@@ -242,6 +242,7 @@ async function main() {
   const defaultPreviewGlow = await canvasStats(page);
   const defaultGlow = defaultPreviewGlow;
   const defaultWholeGlow = await wholeCanvasHash(page);
+  assert.equal(await page.locator('[data-optical-preset="enhanced"]').getAttribute("aria-pressed"), "true", "The shared Receiving Light regression check runs against the default Enhanced preset.");
   const fishWarmSamples = await fishWarmthSamples(page);
   const goldSamples = fishWarmSamples.filter(sample => sample.redMinusBlue >= 24 && sample.greenMinusBlue >= 10);
   assert.ok(goldSamples.length >= 9, `Frozen 03 fish contour should stay chromatically warm gold, not wash to white: ${JSON.stringify(fishWarmSamples)}`);
@@ -250,6 +251,16 @@ async function main() {
   await page.locator("#glowCanvas").evaluate(canvas => {
     window.__edgeFieldDefaultPixels = new Uint8ClampedArray(canvas.getContext("2d").getImageData(0, 0, canvas.width, canvas.height).data);
   });
+
+  // Isolate Receiving Light while Enhanced optical detail remains enabled.
+  // This catches a regression where the default preset bypasses the broad field
+  // but its thin detail paths still make the overall Edge Field toggle look live.
+  await afterRender(page, () => page.locator("#receivingLightEnabled").uncheck());
+  const noReceivingLightHash = await wholeCanvasHash(page);
+  assert.notEqual(noReceivingLightHash, defaultWholeGlow, "Enhanced must render Receiving Light independently of its optical detail paths.");
+  const receivingLightCorners = await perimeterDeltaByCorner(page);
+  assert.ok(receivingLightCorners.every(corner => corner.changedPixels > 0 && corner.colorRoleMatches), `Enhanced Receiving Light must contribute blue/gold pixels in all four corners: ${JSON.stringify(receivingLightCorners)}`);
+  await afterRender(page, () => page.locator("#receivingLightEnabled").check());
 
   // Capture the default Frozen-role composition before stress interactions.
   // The canvas backing store is already 1152x1536, even at responsive CSS scale.
@@ -413,6 +424,7 @@ async function main() {
     contour_bounds_photo_px: identity.contourBounds,
     edge_effect_padding_px: identity.edgeFieldInset,
     edge_field_paths: identity.edgeFieldPaths.map(({ id, family, widthDp, seed, visibleRatio, weight, length }) => ({ id, family, widthDp, seed, visibleRatio, weight, length })),
+    receiving_light_corner_delta: receivingLightCorners,
     perimeter_corner_delta: perimeterCorners,
     effect_bounds_photo_px: identity.effectBounds,
     default_pixel_hash: defaultGlow.hash,

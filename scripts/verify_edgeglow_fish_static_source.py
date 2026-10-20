@@ -42,7 +42,7 @@ def main() -> None:
     bbox_record = json.loads((optical_route / "review_v1/fish_focus_case_b_bbox.json").read_text(encoding="utf-8"))
     review_alpha = optical_route / "review_v1/fish_focus_review_only_alpha.png"
     case_b_photo = args.site_root / "app/src/androidTest/assets/detector_case_b_night_flash.jpg"
-    assert "edgeglow.js?v=edgeglow-optical-v2-layered-composite" in page, "the deployed prototype must load the V2 optical compositor and bypass stale cache entries"
+    assert "edgeglow.js?v=edgeglow-r13-shared-receiving-field" in page, "the deployed prototype must use an R13 cache-busted shared Receiving Light compositor"
     renderer = (route / "edgeglow.js").read_text(encoding="utf-8")
     info = json.loads((route / "build-info.json").read_text(encoding="utf-8"))
     optical_config = json.loads((args.site_root / OPTICAL_CONFIG).read_text(encoding="utf-8"))
@@ -70,8 +70,11 @@ def main() -> None:
     assert 'ctx.globalCompositeOperation = "source-over"' in receiving_renderer and 'ctx.globalCompositeOperation = "source-over"' in perimeter_path_renderer, "photo-edge light must preserve blue/gold hue over bright photo pixels"
     assert "ctx.ellipse(" not in receiving_renderer and "createRadialGradient" not in receiving_renderer, "Receiving Light must follow island paths, not render circular corner glows"
     assert receiving_renderer.count("ctx.stroke();") == 3 and "EDGE_RECEIVING_BLUR_DP[0] * photoPxPerDp * EDGE_FIELD_RENDER_SCALE" in receiving_renderer and "EDGE_RECEIVING_BLUR_DP[1] * photoPxPerDp * EDGE_FIELD_RENDER_SCALE" in receiving_renderer and "EDGE_RECEIVING_WIDTH_DP[0] * photoPxPerDp" in receiving_renderer and "EDGE_RECEIVING_WIDTH_DP[1] * photoPxPerDp" in receiving_renderer and "EDGE_RECEIVING_CORE_WIDTH_DP * photoPxPerDp" in receiving_renderer and "receivingGradient(EDGE_RECEIVING_CORE_ALPHA)" in receiving_renderer, "R12 requires two broad path-following blooms plus a crisp third perimeter-ridge pass"
-    assert "const EDGE_RECEIVING_VISIBLE_RATIO = 1.0;" in renderer and "const EDGE_RECEIVING_INSET = Object.freeze([0.028, 0.022]);" in renderer and "const EDGE_RECEIVING_MIN_PATH_WEIGHT = 0.92;" in renderer and "const common = intensity * Math.max(EDGE_RECEIVING_MIN_PATH_WEIGHT, geometry.weight);" in receiving_renderer and "[[0, geometry.length]]" in receiving_renderer and "ctx.translate(photo.naturalWidth * insetXRatio, photo.naturalHeight * insetYRatio);" in receiving_renderer and "ctx.scale(1 - 2 * insetXRatio, 1 - 2 * insetYRatio);" in receiving_renderer, "R12 keeps the four inset path arcs full length while adding only a luminous crest; thin source paths retain Quiet Gaps"
-    assert "const EDGE_RECEIVING_ALPHA_PER_PASS = Object.freeze([0.78, 0.64]);" in renderer and "const EDGE_RECEIVING_CORE_WIDTH_DP = 1.8;" in renderer and "const EDGE_RECEIVING_CORE_ALPHA = 0.88;" in renderer and "receivingGradient(EDGE_RECEIVING_ALPHA_PER_PASS[0])" in receiving_renderer and "receivingGradient(EDGE_RECEIVING_ALPHA_PER_PASS[1])" in receiving_renderer and "R12" in renderer, "R12 blue/gold corner visibility candidate must remain explicit and distinct from Android runtime"
+    assert "const EDGE_RECEIVING_COVERAGE_BY_ISLAND = Object.freeze({ B1: 1.0, G1: 0.84, G3: 0.60, B3: 0.38 });" in renderer and "const EDGE_RECEIVING_INSET = Object.freeze([0.028, 0.022]);" in renderer and "const EDGE_RECEIVING_MIN_PATH_WEIGHT = 0.54;" in renderer and "const common = intensity * Math.max(EDGE_RECEIVING_MIN_PATH_WEIGHT, geometry.weight);" in receiving_renderer and "const coverage = EDGE_RECEIVING_COVERAGE_BY_ISLAND[geometry.id] ?? geometry.visibleRatio;" in receiving_renderer and "[[0, geometry.length]]" in receiving_renderer and "ctx.translate(photo.naturalWidth * insetXRatio, photo.naturalHeight * insetYRatio);" in receiving_renderer and "ctx.scale(1 - 2 * insetXRatio, 1 - 2 * insetYRatio);" in receiving_renderer, "R13 keeps four inset path arcs deliberately unequal: B1 100%, G1 84%, G3 60%, B3 38%"
+    assert "const EDGE_RECEIVING_ALPHA_PER_PASS = Object.freeze([0.78, 0.64]);" in renderer and "const EDGE_RECEIVING_CORE_WIDTH_DP = 1.8;" in renderer and "const EDGE_RECEIVING_CORE_ALPHA = 0.88;" in renderer and "receivingGradient(EDGE_RECEIVING_ALPHA_PER_PASS[0])" in receiving_renderer and "receivingGradient(EDGE_RECEIVING_ALPHA_PER_PASS[1])" in receiving_renderer and "R13" in renderer, "R13 blue/gold corner visibility candidate must remain explicit and distinct from Android runtime"
+    render_buffer = renderer.split("function renderGlowBuffer()", 1)[1].split("function drawGlowComparison()", 1)[0]
+    enhanced_render_branch = render_buffer.split("// Receiving Light is the broad perimeter base", 1)[1]
+    assert render_buffer.count("drawReceivingLight(edgeContext);") == 2 and "drawReceivingLight(edgeContext);" in enhanced_render_branch and enhanced_render_branch.index("drawReceivingLight(edgeContext);") < enhanced_render_branch.index("for (const layerId of [\"atmospheric_spill\""), "Current and default Enhanced/Frozen Match must render Receiving Light before preset-specific optical detail layers"
     assert "const EDGE_FIELD_RENDER_SCALE = 0.5;" in renderer and "function ensurePhotoEdgeLayer()" in renderer and "const inset = ensurePhotoEdgeLayer()" in renderer and "drawImage(edgeLayer, inset, inset, Math.ceil(photo.naturalWidth * EDGE_FIELD_RENDER_SCALE), Math.ceil(photo.naturalHeight * EDGE_FIELD_RENDER_SCALE), 0, 0, photo.naturalWidth, photo.naturalHeight)" in renderer, "half-resolution edge blur must bleed past photo bounds before cropping back to original pixels"
     companion_renderer = renderer.split("function drawCompanionHairlines", 1)[1].split("function drawStaticEnergyNodes", 1)[0]
     node_renderer = renderer.split("function drawStaticEnergyNodes", 1)[1].split("function drawPrimaryEdgeIslands", 1)[0]
@@ -138,7 +141,7 @@ def main() -> None:
     )
     assert all(definition in renderer for definition in expected_secondary_path_definitions), "secondary path geometry and runtime seed authority must match the existing P1/Android source"
     assert all(token in android_edge_field for token in ("recognitionAmbientPrimaryIslandIds = setOf(\"B1\", \"G1\", \"B3\", \"G3\")", "recognitionAmbientSecondaryFragmentIds = setOf(\"B2\", \"G2\", \"B4\")", "Cubic(.78f, -.02f)", "Cubic(1.02f, .61f)", "Cubic(-.02f, .18f)", "Cubic(-.01f, .74f)", "ATMOSPHERIC_SPILL_INTENSITY * common", "OUTER_BLOOM_INTENSITY *", "INNER_BLOOM_INTENSITY *", "CORE_INTENSITY * islandCommon")), "Android source must keep the existing four primary paths and expose all four V2 optical layers"
-    assert "receiving_alpha_per_pass: EDGE_RECEIVING_ALPHA_PER_PASS" in renderer and "receiving_core_width_dp: EDGE_RECEIVING_CORE_WIDTH_DP" in renderer and "receiving_core_alpha: EDGE_RECEIVING_CORE_ALPHA" in renderer and "receiving_inset_fraction: EDGE_RECEIVING_INSET" in renderer and "corner_color_roles: { top_left: \"gold\", top_right: \"blue\", bottom_left: \"gold\", bottom_right: \"blue\" }" in renderer and "receiving_width_dp: EDGE_RECEIVING_WIDTH_DP" in renderer and "receiving_blur_dp: EDGE_RECEIVING_BLUR_DP" in renderer and '"R12 four-corner Web visibility candidate with a crisp perimeter ridge; above Android runtime 0.13 and Frozen Rendering Contract cap 0.07; open RP-A01"' in renderer and 'perimeter_blend_mode: "source-over R02 hue-preserving photo-edge candidate' in renderer, "R12 parameter contract must expose its photo inset, crest values, color roles, Web values and Android/Frozen cap discrepancy"
+    assert "receiving_alpha_per_pass: EDGE_RECEIVING_ALPHA_PER_PASS" in renderer and "receiving_core_width_dp: EDGE_RECEIVING_CORE_WIDTH_DP" in renderer and "receiving_core_alpha: EDGE_RECEIVING_CORE_ALPHA" in renderer and "receiving_path_coverage_by_island: EDGE_RECEIVING_COVERAGE_BY_ISLAND" in renderer and "receiving_inset_fraction: EDGE_RECEIVING_INSET" in renderer and "corner_color_roles: { top_left: \"gold\", top_right: \"blue\", bottom_left: \"gold\", bottom_right: \"blue\" }" in renderer and "receiving_width_dp: EDGE_RECEIVING_WIDTH_DP" in renderer and "receiving_blur_dp: EDGE_RECEIVING_BLUR_DP" in renderer and '"R13 Web visibility candidate shared by Current, Enhanced and Frozen Match; above Android runtime 0.13 and Frozen Rendering Contract cap 0.07; open RP-A01"' in renderer and 'perimeter_blend_mode: "source-over R02 hue-preserving photo-edge candidate' in renderer, "R13 parameter contract must expose shared preset coverage, photo inset, crest values, color roles and the Android/Frozen cap discrepancy"
     assert 'web_palette: { blue: "#5ab2fc", gold: "#e0b644", authority: "sampled from Frozen 02 photo-edge raster; web visual candidate" }' in renderer and 'android_reference_palette: { blue: "#8bc9e8", blue_hot: "#b2e5f5", gold: "#efc14c", gold_hot: "#f7d05b" }' in renderer, "Web Frozen-raster palette must remain distinct from Android tokens"
     expected_companion_path_definitions = (
         '{ id: "B1C", parentId: "B1", family: "blue", widthDp: 0.60, phaseDelta: -0.055, visibleRatio: 0.44, weight: 0.30, start: [0.75, -0.01], control1: [0.91, 0.07], control2: [0.99, 0.20], end: [0.94, 0.37] }',
@@ -151,7 +154,8 @@ def main() -> None:
     assert "drawCompanionHairlines(edgeContext, companionEdgeFieldGeometry)" in renderer and "drawCompanionHairlines(edgeContext, microEdgeFieldGeometry, true)" in renderer, "frozen companion/micro layers must be drawn independently"
     assert info["pr_source_sha"] == args.pr_sha and info["acceptance_center_source_sha"] == args.center_sha, "build provenance mismatch"
     current_light = optical_config["presets"]["current"]["legacy_receiving_light"]
-    assert current_light["alpha_per_pass"] == [0.78, 0.64] and current_light["path_coverage_ratio"] == 1.0, "Current preset must reflect the live PR #166 R12 renderer"
+    expected_receiving_coverage = {"B1": 1.0, "G1": 0.84, "G3": 0.6, "B3": 0.38}
+    assert current_light["alpha_per_pass"] == [0.78, 0.64] and current_light["path_coverage_ratio"] == 1.0 and current_light["path_coverage_by_corner"] == expected_receiving_coverage, "Current and enhanced presets must share the asymmetric PR #166 R13 Receiving Light profile"
     assert current_light["core_width_dp"] == 1.8 and current_light["core_alpha"] == 0.88
     assert current_light["inset_fraction"] == [0.028, 0.022]
     assert optical_config["bright_background_compensation"]["scope"] == "perimeter_light_only", "brightness compensation must leave photo exposure untouched"
@@ -191,6 +195,7 @@ def main() -> None:
             "android_reference_palette": {"blue": "#bfeaf2", "blue_hot": "#d8f5fa", "gold": "#f6d99b", "gold_hot": "#ffe7ae"},
             "receiving_light_default_alpha_per_pass": current_light["alpha_per_pass"],
             "receiving_light_path_coverage_ratio": current_light["path_coverage_ratio"],
+            "receiving_light_path_coverage_by_corner": current_light["path_coverage_by_corner"],
             "receiving_light_minimum_path_weight": current_light["minimum_path_weight"],
             "receiving_light_width_dp": current_light["width_dp"],
             "receiving_light_blur_dp": current_light["blur_dp"],
@@ -199,8 +204,8 @@ def main() -> None:
             "edge_effect_compositor": "padded transparent offscreen layer; crop back to original photo pixels",
             "edge_effect_padding_px": "responsive; recorded at runtime by the browser lab",
             "bright_background_compensation": optical_config["bright_background_compensation"],
-            "web_current_authority": "PR #166 current R12 renderer; separate from the V2 enhanced and Frozen Match presets",
-            "alpha_reconciliation": "R12_WEB_CURRENT_IS_NOT_AN_ANDROID_ALPHA_MAPPING",
+            "web_receiving_light_authority": "PR #166 R13 shared Receiving Light base across Current, Enhanced and Frozen Match; optical detail layers remain preset-specific",
+            "alpha_reconciliation": "R13_WEB_RECEIVING_IS_NOT_AN_ANDROID_ALPHA_MAPPING",
         },
         "optical_config": {
             "version": optical_config["schema_version"],

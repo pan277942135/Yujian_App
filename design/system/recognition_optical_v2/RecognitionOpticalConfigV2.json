@@ -44,7 +44,13 @@
       },
       "legacy_receiving_light": {
         "path_coverage_ratio": 1,
-        "minimum_path_weight": 0.92,
+        "path_coverage_by_corner": {
+          "B1": 1,
+          "G1": 0.84,
+          "G3": 0.6,
+          "B3": 0.38
+        },
+        "minimum_path_weight": 0.54,
         "alpha_per_pass": [
           0.78,
           0.64
@@ -64,7 +70,7 @@
           4
         ],
         "source_commit": "795b7ab7c3a9ed01f1d8dd5ac875cc7b6b107711",
-        "authority": "PR #166 live Current R12 implementation; Web review values, not Frozen contract or Android tokens"
+        "authority": "PR #166 R13 shared Receiving Light base across Current, Enhanced and Frozen Match; Web review values, not Frozen contract or Android tokens"
       }
     },
     "enhanced": {
