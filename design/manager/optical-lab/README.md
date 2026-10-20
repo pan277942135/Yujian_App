@@ -1,68 +1,42 @@
 # Recognition Optical Lab · Web Review V1
 
-An isolated browser preview of review candidates based on the existing P1–P5 contract. P1–P5 and PR #165 Frozen PNGs remain unchanged. Static and dynamic A/B/C settings are `REVIEW_CANDIDATE` values; they are not Frozen product values and do not represent Android implementation.
+This is a browser review surface based on the existing P1–P5 contract. Candidate rendering is explicitly Web Review only; it does not change P1–P5 or PR #165 Frozen PNGs and does not claim Android Runtime completion.
 
-## Open the cloud preview
+## Canonical preview
 
-The primary HTTPS preview is composed into the existing NH01 Acceptance Center:
+- Acceptance entry: <https://pan277942135.github.io/Yujian_App/design/manager/nh01_acceptance/edgeglow-fish-static/>
+- Integrated static + dynamic review: <https://pan277942135.github.io/Yujian_App/design/manager/nh01_acceptance/edgeglow-fish-static/optical-review/>
+- PR #166: <https://github.com/pan277942135/Yujian_App/pull/166>
 
-`https://pan277942135.github.io/Yujian_App/design/manager/nh01_acceptance/edgeglow-fish-static/optical-review/`
+## Receiving Field correction
 
-The existing static EdgeGlow page links directly to this review route. Static screenshots, dynamic WebM recordings, and provenance evidence are available in the public evidence gallery:
+The earlier automation compared pixels with the Receiving Light layer off and on. That proved the renderer changed pixels; it did not prove that a person could perceive a light field around the photo. In the actual cloud capture, the change read mostly as a faint blue/gold tint across the photo, while the edge still looked bare. The pixel-difference threshold was therefore too weak to support a visual claim.
 
-`https://recognition-optical-lab-a1-20261019.pan277942135.chatgpt.site/design/manager/optical-lab/review_v1/evidence/`
+The new candidates add a separate transparent, browser-only Receiving Field layer around the registered 3:4 photo area. Broad corner blooms establish the field first; four blurred, incomplete edge ribbons supply direction after it. Upper-right blue is strongest, upper-left gold is softer, lower-left gold is a weak residue, and lower-right blue is a short trace. Their independent phases make the field breathe unevenly in dynamic Preview. The existing Canvas paths remain visible beneath the candidate field, and Fish Focus remains a separate warm-gold layer.
 
-The current package exposes static A/B/C candidates, dynamic A/B/C candidates, the three product states, layer decomposition, playback speed, layer toggles, and Fish Focus provenance. The static review gate passed for opening this candidate review; the user has not selected or approved a final direction. Browser playback and WebM output are Web Review evidence only.
+| Candidate | Review layer gain | Character |
+| --- | ---: | --- |
+| `REVIEW_CANDIDATE_A` · Soft Field | 0.31 | Broad, low-contrast field; restrained edge cues |
+| `REVIEW_CANDIDATE_B` · Balanced Field | 0.49 | Clearer blue/gold field with uneven corner hierarchy; start here |
+| `REVIEW_CANDIDATE_C` · Strong Atmosphere | 0.66 | Visibility ceiling for comparison |
 
-## Static optical candidates
+These are review parameters, not frozen product values. The overlay is labelled `REVIEW-ONLY`; it is composited into Web PNG/WebM export so evidence matches the visible preview. The native Android renderer is unchanged.
 
-| Candidate | Receiving field | Primary paths | Secondary filaments | Intent |
-| --- | ---: | ---: | ---: | --- |
-| `REVIEW_CANDIDATE_A` · Soft Field | 1.00× | 0.85× | 0.20× | Softer broad edge field; lower corners remain haze only |
-| `REVIEW_CANDIDATE_B` · Balanced Field | 1.45× | 1.08× | 0.34× | Broad blue/gold edge field; strongest upper-right, softer upper-left, partial lower traces; recommended for first review |
-| `REVIEW_CANDIDATE_C` · Strong Atmosphere | 1.90× | 1.35× | 0.48× | Visibility boundary comparison |
+## Dynamic review
 
-Each keeps P1 path geometry intact and adds an asymmetric, more saturated review-only Receiving Light field: strongest blue at upper right, softer gold at upper left, a restrained gold residue at lower left, and a short weak blue trace at lower right. Web-only per-corner path length/alpha multipliers make the upper-right arc longest, upper-left second, and both lower corners partial/faded. P1–P5 token values and PR #165 Frozen PNGs are unchanged. The candidate composition can be decomposed into receiving field, primary paths, secondary filaments and final composite.
+Dynamic A/B/C controls use the existing page playback, speed, state and recording controls. The candidate field breathes at four different periods (9.2s, 12.8s, 10.6s and 15.4s) with different phases. Existing local path flow remains separate; no full-perimeter chase is introduced by the review layer. Three-state WebM is browser evidence only.
 
-## Receiving-field rendering correction
-
-The pre-change cloud capture at `review_v1/evidence/pre-change-cloud-default.jpg` shows the failure: in the real `optical-review` route, the photo perimeter reads almost as the raw photo even when the Receiving Light layer is isolated. The separate Optical Lab renderer used a unit-radius radial gradient with a transformed unit ellipse; it now builds the radial gradient and rotated ellipse in photo/canvas coordinates, with the gradient radius scaled to the photo dimensions. That coordinate fix restored measurable pixel changes, but the cloud page still read as a raw photo because its broad washes tinted the image without creating a perceptible perimeter field.
-
-The first deployed correction still looked too weak in the real page, so that result was not accepted as closure. The old "Receiving Light alone" view also included the low-alpha P1 contract layer, allowing its pixel changes to mask a missing Review candidate field. The view now isolates the Review candidate field; the full composite continues to include the unchanged P1 layer. The next rendering iteration increases candidate field scale, anchors larger lobes on the photo corners, and adds four unequal, blurred edge ribbons: the upper-right blue sweep is strongest, upper-left gold is second, lower-left gold is a dim residue, and lower-right blue is a short trace. This gives the field a legible perimeter shape without drawing a complete ring.
-
-The Chromium regression samples the isolated candidate layer off/on within the FIT photo rectangle and records per-corner color signal. It now uses a stronger engineering floor and labels its result `RENDER_SIGNAL_FLOOR_MET_VISUAL_REVIEW_REQUIRED`. The check verifies that the renderer contributes blue/gold pixels in the intended asymmetric regions; it cannot decide whether a person sees natural light. The actual cloud canvas must still be visually compared with Frozen, and no automation result is a visual PASS.
-
-## Dynamic candidates
-
-| Candidate | Field breathing | Path flow | Filaments | Intent |
-| --- | --- | --- | --- | --- |
-| `DYNAMIC_CANDIDATE_A` · Calm | 3.5% amplitude, independent periods | 0.24 flow scale, short moving segments | 0.22 scale, rare | Most restrained |
-| `DYNAMIC_CANDIDATE_B` · Balanced | 6.5% amplitude, independent corner phases | 0.39 flow scale, slow local energy travel | 0.34 scale, intermittent | Recommended first motion review |
-| `DYNAMIC_CANDIDATE_C` · Atmospheric | 9.5% amplitude, independent corner phases | 0.52 flow scale | 0.48 scale, more frequent | Upper-bound comparison |
-
-Dynamic A/B/C all build on the widened receiving-field baseline and existing path scales (A 1.12×/0.88×, B 1.48×/1.08×, C 1.82×/1.30×). Each corner has its own breathing period and phase; state changes lower the field as Fish Focus becomes more prominent. The main paths keep a slow, local traveling energy segment instead of a full perimeter chase. Playback and 12-second three-state WebM recordings are available at 0.5×/1×/1.5×. These controls and recordings show browser Canvas output, not Android or a native renderer.
+The added browser smoke captures desktop and narrow A/B/C comparisons and all three dynamic states. Its JSON status is `RENDER_SIGNAL_ONLY_REVIEW_REQUIRED`, and visual approval is `NOT_AUTOMATED`. A screenshot must still be reviewed by a person; automation cannot declare naturalness, taste, or visual PASS.
 
 ## Fish Focus provenance
 
-- `Production`: **BLOCKED**. This build has no current-head production `FishSubjectResult` / production Mask evidence to bind. No production contour is drawn.
-- `Review-only`: `REVIEW_PROXY_NOT_PRODUCTION`, using the Case B photo, a historical detector BBox, and a human-traced alpha fixture. The alpha is not a production Mask. Case B is described by `app/src/androidTest/java/com/yujian/ai/DetectorOrientationRetryRuntimeTest.kt`; source photo SHA-256 is `a7ed3bb0410c191364f6d853b4078aebdc2f3b9baa4da34b7b3f6e8e0e93a56b`.
-- The Review-only browser rendering uses a `0.72×` presentation multiplier to soften the hand-traced contour. This affects only the Web review overlay; P2 contract values are unchanged.
-- `Blocked`: the default page state. With no selected review proxy or current production result, the page draws no Fish Focus contour.
+- `Production`: **BLOCKED**. This review has no current production `FishSubjectResult` or production Mask to bind.
+- `Review-only`: `REVIEW_PROXY_NOT_PRODUCTION`, using the Case B detector fixture, historical BBox evidence, and manually annotated alpha. The alpha is not a production Mask.
+- `Blocked`: default mode when no trusted production input or selected Review-only proxy is available; no Fish Focus contour is drawn.
+- Fish Focus uses a separate warm-gold palette. It is distinct from the blue/gold perimeter field.
 
-The review alpha and its BBox/source record are in `review_v1/`. The BBox values come from the previously reported Case B runtime result. The latest PR-head CI compiled instrumentation tests but skipped runtime execution, so those values were not re-run against this commit.
+## Evidence limits
 
-## Run locally
+The default photo is a P5 test fixture whose SHA is verified against its registry entry; it is not bound to the photo inside the Frozen PNG. Pixel Diff remains exploratory. Canvas output is not Android output. Web review and smoke evidence do not mean that P1–P5, Frozen fidelity, or visual approval passed.
 
-Use the `Recognition-Optical-Lab-Review-V1` artifact attached to the latest PR #166 workflow run. Extract `Recognition-Optical-Lab-Browser-Package.zip`, then from its root run:
-
-```sh
-python3 -m http.server 8765
-```
-
-Open `http://localhost:8765/design/manager/optical-lab/`. The package preserves repository paths and includes the verified P5 photo, the Case B detector fixture, the review alpha and the exact P1–P5/Frozen inputs. Serve over localhost or HTTPS; `file://` prevents data fetch and SHA verification.
-
-## Evidence and limits
-
-The workflow produces desktop/narrow static captures and four layer decomposition captures for each static candidate. Its result field distinguishes automation checks from visual review. An automated browser check does not establish optical approval.
-
-The default photo remains the P5 test fixture, SHA-verified against its registry binding. It is not source-bound to the Frozen screenshots, so Frozen/Web pixel comparisons remain exploratory. Canvas gradients, compositing, text rasterization and blur are browser approximations. Android Runtime: **not completed**. Native implementation: **not completed**.
+Android Runtime: **not completed**. Native implementation: **not completed**. This is a Web Review stage only.

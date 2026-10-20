@@ -124,13 +124,20 @@ def main() -> None:
         "window.OPTICAL_LAB_BUILD_INFO__ = " + json.dumps(review_build_info, separators=(",", ":")) + ";\n",
         encoding="utf-8",
     )
+    helper_loader = (
+        "(function(){const load=()=>{const s=document.createElement('script');"
+        f"s.src='./receiving-field-review.js?source={args.pr_sha}';document.head.appendChild(s);"
+        "};if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',load,{once:true});else load();})();\n"
+    )
+    with (optical_output / "build-info.js").open("a", encoding="utf-8") as build_info_script:
+        build_info_script.write(helper_loader)
     optical_page = optical_output / "index.html"
     optical_html = optical_page.read_text(encoding="utf-8")
-    build_script = '<script src="./build-info.js"></script>'
-    if optical_html.count(build_script) != 1:
+    build_script_pattern = re.compile(r'<script\s+src=["\'](?:\./)?build-info\.js(?:\?[^"\']*)?["\']\s*></script>')
+    if len(build_script_pattern.findall(optical_html)) != 1:
         raise SystemExit("Expected one Optical Lab build-info script reference for cache-busting.")
     optical_page.write_text(
-        optical_html.replace(build_script, f'<script src="./build-info.js?source={args.pr_sha}"></script>'),
+        build_script_pattern.sub(f'<script src="./build-info.js?source={args.pr_sha}"></script>', optical_html, count=1),
         encoding="utf-8",
     )
     case_b_output = args.output_root / CASE_B_FIXTURE

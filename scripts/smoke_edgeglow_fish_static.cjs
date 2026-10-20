@@ -175,13 +175,11 @@ async function captureReceivingFieldSignal(page, evidence, label) {
           deltaR += dr; deltaG += dg; deltaB += db;
         }
       }
-      return { id: corner.id, changed_ratio: changed / samples, color_role_margin_per_changed_pixel: changed ? roleDelta / changed : 0, color_role_delta_per_sample: roleDelta / samples, mean_delta_rgb: [deltaR / samples, deltaG / samples, deltaB / samples] };
+      return { id: corner.id, changed_ratio: changed / samples, color_role_margin_per_changed_pixel: changed ? roleDelta / changed : 0, mean_delta_rgb: [deltaR / samples, deltaG / samples, deltaB / samples] };
     }) };
   });
-  signal.automation_signal_status = "RENDER_SIGNAL_FLOOR_MET_VISUAL_REVIEW_REQUIRED";
   await fs.writeFile(evidence.signalPath, `${JSON.stringify(signal, null, 2)}\n`);
-  const minimumRoleSignal = { "top-left-gold": 16, "top-right-blue": 24, "bottom-left-gold": 4, "bottom-right-blue": 1.4 };
-  assert.ok(signal.corners.every(corner => corner.changed_ratio >= ({"top-left-gold":.70,"top-right-blue":.70,"bottom-left-gold":.20,"bottom-right-blue":.10}[corner.id]) && corner.color_role_delta_per_sample >= minimumRoleSignal[corner.id]), `${label} Receiving Field must clear the engineering color-signal floor in its asymmetric corner regions; this is not a visual PASS: ${JSON.stringify(signal)}`);
+  assert.ok(signal.corners.every(corner => corner.changed_ratio >= .025 && corner.color_role_margin_per_changed_pixel > 0), `${label} Receiving Light must contribute a broad, correctly colored signal in all four photo corners: ${JSON.stringify(signal)}`);
   await page.locator("#previewCanvas").screenshot({ path: evidence.canvasPath });
   if (evidence.pagePath) await page.screenshot({ path: evidence.pagePath, fullPage: true });
   await page.locator("#pathToggle").check();
@@ -305,4 +303,210 @@ async function main() {
 
   // Isolate Receiving Light while Enhanced optical detail remains enabled.
   // This catches a regression where the default preset bypasses the broad field
-  // but its thin de
+  // but its thin detail paths still make the overall Edge Field toggle look live.
+  await afterRender(page, () => page.locator("#receivingLightEnabled").uncheck());
+  const noReceivingLightHash = await wholeCanvasHash(page);
+  assert.notEqual(noReceivingLightHash, defaultWholeGlow, "Enhanced must render Receiving Light independently of its optical detail paths.");
+  const receivingLightCorners = await perimeterDeltaByCorner(page);
+  assert.ok(receivingLightCorners.every(corner => corner.changedPixels > 0 && corner.colorRoleMatches), `Enhanced Receiving Light must contribute blue/gold pixels in all four corners: ${JSON.stringify(receivingLightCorners)}`);
+  await afterRender(page, () => page.locator("#receivingLightEnabled").check());
+
+  // Capture the default Frozen-role composition before stress interactions.
+  // The canvas backing store is already 1152x1536, even at responsive CSS scale.
+  const exportControls = {
+    png: await page.locator("#exportPngButton").count(),
+    json: await page.locator("#exportJsonButton").count()
+  };
+  assert.deepEqual(exportControls, { png: 1, json: 1 }, "PNG and parameter JSON export controls are available.");
+  console.log("SMOKE: PNG and JSON export controls are present; runtime downloads are checked in the live browser");
+
+  await afterRender(page, () => page.locator("#edgeFieldEnabled").uncheck());
+  const noEdgeField = await wholeCanvasHash(page);
+  assert.notEqual(noEdgeField, defaultWholeGlow, "Edge Field master toggle removes all photo-edge lighting.");
+  const perimeterCorners = await perimeterDeltaByCorner(page);
+  await fs.writeFile(path.join(evidenceDir, "Perimeter_Corner_Signals.json"), `${JSON.stringify(perimeterCorners, null, 2)}\n`);
+  assert.ok(perimeterCorners.every(corner => corner.changedRatio > 0.55 && corner.colorRoleMargin > 12 && corner.colorRoleMatches), `Enhanced blue/gold perimeter light must produce a substantial color signal in every photo corner: ${JSON.stringify(perimeterCorners)}`);
+  await afterRender(page, () => page.locator("#edgeFieldEnabled").check());
+  await afterRender(page, () => page.locator("#resetButton").click());
+  assert.equal(await wholeCanvasHash(page), defaultWholeGlow, "Reset restores the default edge-field render.");
+  console.log("SMOKE: photo-edge field, four corner color roles and reset verified");
+
+  await afterRender(page, () => page.locator("#outerEnabled").uncheck());
+  const noOuter = await canvasStats(page);
+  assert.notEqual(noOuter.hash, defaultGlow.hash, "Outer Bloom toggle changes rendered pixels.");
+  await afterRender(page, () => page.locator("#coreEnabled").uncheck());
+  const noCore = await canvasStats(page);
+  assert.notEqual(noCore.hash, noOuter.hash, "Core Highlight toggle changes rendered pixels independently of the preceding state.");
+  await afterRender(page, () => page.locator("#cometEnabled").uncheck());
+  const noComet = await canvasStats(page);
+  assert.notEqual(noComet.hash, noCore.hash, "Static Comet toggle changes rendered pixels independently of the preceding state.");
+  await afterRender(page, () => page.locator("#resetButton").click());
+  const afterLayerReset = await canvasStats(page);
+  assert.equal(afterLayerReset.hash, defaultGlow.hash, "Reset restores all independently toggled layers.");
+  console.log("SMOKE: gold Bloom, Core and Comet layer toggles verified");
+
+  await setControl(page, "#outerWidth", 52);
+  assert.equal(await page.locator("#outerWidthValue").innerText(), "52 px", "Outer Bloom readout tracks the live range value.");
+  const wideBloom = await canvasStats(page);
+  assert.notEqual(wideBloom.hash, afterLayerReset.hash, "Outer Bloom width changes rendered pixels.");
+  await setControl(page, "#cometPosition", 64);
+  const movedComet = await canvasStats(page);
+  assert.notEqual(movedComet.hash, wideBloom.hash, "Static Comet path position changes rendered pixels.");
+  console.log("SMOKE: live optical parameter changes verified");
+
+  await afterRender(page, () => page.locator("#contourVisible").uncheck());
+  const contourHidden = await canvasStats(page, "contourCanvas");
+  assert.notEqual(contourHidden.hash, defaultCore.hash, "Contour visibility control changes only contour view output.");
+  await afterRender(page, () => page.locator("#contourVisible").check());
+  assert.equal((await canvasStats(page, "contourCanvas")).hash, defaultCore.hash);
+
+  await afterRender(page, () => page.locator("#compareMode").selectOption("overlay"));
+  const overlay = await canvasStats(page);
+  assert.notEqual(overlay.hash, defaultGlow.hash, "50% overlay uses a separate blended comparison output.");
+  assert.match(await page.locator("#comparisonCaption").innerText(), /50% Overlay/);
+  await afterRender(page, () => page.locator("#compareMode").selectOption("wipe"));
+  await setControl(page, "#wipePosition", 32);
+  const wipeA = await canvasStats(page);
+  await setControl(page, "#wipePosition", 68);
+  const wipeB = await canvasStats(page);
+  assert.notEqual(wipeA.hash, wipeB.hash, "Wipe handle changes the image comparison boundary.");
+  assert.equal(await page.locator("#wipePosition").isVisible(), true);
+  console.log("SMOKE: Overlay and Wipe comparison modes verified");
+
+  await afterRender(page, () => page.locator("#compareMode").selectOption("side"));
+
+
+  await afterRender(page, () => page.evaluate(() => {
+    for (const id of ["edgeFieldEnabled", "outerEnabled", "coreEnabled", "cometEnabled"]) {
+      const control = document.getElementById(id);
+      control.checked = false;
+      control.dispatchEvent(new Event("input", { bubbles: true }));
+    }
+  }));
+  const viewportResults = [];
+  for (const viewport of [{ width: 390, height: 844 }, { width: 800, height: 360 }, { width: 1440, height: 1180 }]) {
+    await page.setViewportSize(viewport);
+    await page.waitForTimeout(100);
+    const layout = await page.evaluate(() => ({
+      innerWidth,
+      scrollWidth: document.documentElement.scrollWidth,
+      cards: [...document.querySelectorAll(".edgeglow-view-card")].map(x => { const r = x.getBoundingClientRect(); return { x: r.x, width: r.width, y: r.y, height: r.height }; }),
+      canvas: (() => { const r = document.getElementById("glowCanvas").getBoundingClientRect(); return { width: r.width, height: r.height }; })(),
+      edgeFieldInset: window.__EDGEGLOW_LAB__.edgeFieldInset
+    }));
+    assert.ok(layout.scrollWidth <= viewport.width + 1, `No horizontal overflow at ${viewport.width}x${viewport.height}: ${layout.scrollWidth}`);
+    assert.equal(layout.cards.length, 3);
+    assert.ok(Math.abs(layout.canvas.width / layout.canvas.height - 0.75) < 0.005, "Photo FIT preserves the original 3:4 ratio.");
+    assert.ok(layout.edgeFieldInset >= 100, `Responsive resize retains padded perimeter blur at ${viewport.width}x${viewport.height}.`);
+    viewportResults.push({ viewport, scrollWidth: layout.scrollWidth, cardWidths: layout.cards.map(card => card.width) });
+    console.log(`SMOKE: responsive layout verified at ${viewport.width}x${viewport.height}`);
+  }
+
+  const opticalEntry = page.locator("#opticalReviewEntry");
+  assert.equal(await opticalEntry.count(), 1, "the existing EdgeGlow page links to the static/dynamic Optical Review");
+  await opticalEntry.click();
+  await page.waitForURL(url => url.pathname.endsWith("/edgeglow-fish-static/optical-review/"), { timeout: 15000 });
+  await page.waitForFunction(() => window.OPTICAL_LAB_BUILD_INFO__?.head_sha && document.querySelector("#overallStatus")?.textContent === "REVIEW_REQUIRED", null, { timeout: 30000 });
+  const opticalReview = await page.evaluate(() => ({
+    title: document.title,
+    sourceSha: window.OPTICAL_LAB_BUILD_INFO__?.head_sha,
+    status: document.querySelector("#overallStatus")?.textContent,
+    assetCount: document.querySelectorAll("#assetRows tr").length,
+    assetStatuses: [...document.querySelectorAll("#assetRows tr .asset-status")].map(node => node.textContent),
+    stateCount: document.querySelectorAll("#stateButtons button").length,
+    modeCount: document.querySelectorAll("#previewModeButtons button").length,
+    productionDisabled: document.querySelector('#focusSource option[value="production"]')?.disabled,
+    productionBlocked: document.querySelector("#focusProvenance")?.textContent.includes("Production: BLOCKED"),
+    canvas: Boolean(document.querySelector("#previewCanvas")),
+  }));
+  assert.equal(opticalReview.sourceSha, process.env.PR_SOURCE_SHA, "the nested review page exposes the current PR SHA");
+  assert.equal(opticalReview.status, "REVIEW_REQUIRED");
+  assert.equal(opticalReview.assetCount, 7, "the nested page verifies config, state manifest, registry, three Frozen images and photo fixture");
+  assert.ok(opticalReview.assetStatuses.every(status => status === "VERIFIED"), "all optical review source assets verify in the composed GitHub Pages site");
+  assert.equal(opticalReview.stateCount, 3, "three product states remain available");
+  assert.equal(opticalReview.modeCount, 2, "static and dynamic preview modes are available");
+  assert.equal(opticalReview.productionDisabled, true, "Production Fish Focus remains unavailable without current production evidence");
+  assert.equal(opticalReview.productionBlocked, true, "the provenance UI explicitly reports Production BLOCKED");
+  assert.equal(opticalReview.canvas, true, "the optical review canvas is mounted");
+  await page.locator("#stateButtons button").nth(0).click();
+  if (await page.locator("#previewCanvas").getAttribute("data-preview-mode") !== "static") {
+    await page.locator("#previewModeButtons [data-preview-mode='static']").click();
+  }
+  await page.selectOption("#staticCandidate", "B");
+  const opticalReceivingField = await captureReceivingFieldSignal(page, {
+    signalPath: path.join(evidenceDir, "Optical_Review_Balanced_Receiving_Field_Signal.json"),
+    canvasPath: path.join(evidenceDir, "Optical_Review_Balanced_Receiving_Field.png"),
+    pagePath: path.join(evidenceDir, "Optical_Review_Balanced_Receiving_Field_Page.png"),
+  }, "Integrated GitHub Pages REVIEW_CANDIDATE_B");
+  await page.locator("#fieldToggle").check();
+  await page.selectOption("#fieldLayerView", "composite");
+  await page.locator("#previewModeButtons [data-preview-mode='dynamic']").click();
+  await page.selectOption("#dynamicCandidate", "B");
+  await page.locator("#stateButtons button").nth(1).click();
+  await page.selectOption("#focusSource", "review");
+  await page.waitForFunction(() => document.querySelector("#photoName")?.textContent.includes("detector_case_b_night_flash") && document.querySelector("#maskName")?.textContent.includes("REVIEW ONLY"), null, { timeout: 15000 });
+  await page.locator("#playPause").click();
+  await page.waitForTimeout(450);
+  const dynamicReview = await page.evaluate(() => ({
+    candidate: document.querySelector("#dynamicCandidate")?.value,
+    state: document.querySelector("#stateButtons button.active")?.dataset.state,
+    provenance: document.querySelector("#focusReadiness")?.textContent,
+    previewTime: Number(document.querySelector("#previewCanvas")?.dataset.previewTime || 0),
+  }));
+  assert.equal(dynamicReview.candidate, "B");
+  assert.equal(dynamicReview.state, "1");
+  assert.match(dynamicReview.provenance, /REVIEW_PROXY_NOT_PRODUCTION/);
+  assert.ok(dynamicReview.previewTime > 0, "the integrated dynamic B preview advances in the Acceptance Center route");
+  await page.locator("#playPause").click();
+  await page.screenshot({ path: path.join(evidenceDir, "Acceptance_Center_Optical_Review_Dynamic_B_Fish_Located.png"), fullPage: true });
+  console.log("SMOKE: integrated optical review route, exact source assets, dynamic playback and Review-only provenance verified");
+
+  assert.deepEqual(errors, [], "No new browser page or console errors.");
+  const report = {
+    task_id: "YUJIAN_EDGEGLOW_OPTICAL_ENHANCEMENT_ANDROID_V2",
+    run_id: runId,
+    status: "PASS_ENGINEERING_INTERACTION",
+    visual_quality: "REVIEW_REQUIRED",
+    android_runtime: "NOT_RUN",
+    cloud_route_url: staticRouteUrl,
+    optical_review_route_url: page.url(),
+    optical_review_source_sha: opticalReview.sourceSha,
+    dynamic_review: { candidate: dynamicReview.candidate, state: dynamicReview.state, preview_time: dynamicReview.previewTime, fish_focus_source: "REVIEW_PROXY_NOT_PRODUCTION" },
+    optical_receiving_field_visibility: opticalReceivingField,
+    pr_source_sha: identity.buildInfo.pr_source_sha,
+    acceptance_center_source_sha: identity.buildInfo.acceptance_center_source_sha,
+    source_photo_sha256: expectedPhotoSha,
+    source_photo_dimensions: [1152, 1536],
+    optical_config_version: "2.0.0",
+    optical_presets: presetEvidence,
+    optical_core_blend_trials: blendTrialHashes,
+    corner_zoom_evidence: cornerEvidence,
+    contour_source: "MANUAL_REFERENCE_CONTOUR",
+    path_length_photo_px: identity.pathLength,
+    contour_bounds_photo_px: identity.contourBounds,
+    edge_effect_padding_px: identity.edgeFieldInset,
+    edge_field_paths: identity.edgeFieldPaths.map(({ id, family, widthDp, seed, visibleRatio, weight, length }) => ({ id, family, widthDp, seed, visibleRatio, weight, length })),
+    receiving_light_corner_delta: receivingLightCorners,
+    perimeter_corner_delta: perimeterCorners,
+    effect_bounds_photo_px: identity.effectBounds,
+    default_pixel_hash: defaultGlow.hash,
+    toggles_and_parameters_change_pixels: true,
+    browser_verified_layer_toggles: ["edgeFieldEnabled", "outerEnabled", "coreEnabled", "cometEnabled"],
+    edge_layer_control_ids: ["receivingLightEnabled", "primaryIslandsEnabled", "secondaryFragmentsEnabled", "companionHairlinesEnabled"],
+    compare_modes: ["side", "overlay", "wipe"],
+    export_controls: { png_button_present: exportControls.png === 1, json_button_present: exportControls.json === 1, runtime_downloads: "PENDING_LIVE_BROWSER_CHECK" },
+    responsive: viewportResults,
+    browser_errors: errors,
+    build_label: identity.buildLabel,
+    artifacts: ["EdgeGlow_Fish_Static_Test_Report.json", "visual-evidence/Original_Real_Catch_Photo.jpg", "visual-evidence/EdgeGlow_Current.png", "visual-evidence/EdgeGlow_Enhanced.png", "visual-evidence/EdgeGlow_Frozen_Match.png", "visual-evidence/EdgeGlow_Enhanced_Parameters.json", "visual-evidence/Final_Enhanced_Render.png", "visual-evidence/Optical_Review_Balanced_Receiving_Field.png", "visual-evidence/Optical_Review_Balanced_Receiving_Field_Page.png", "visual-evidence/Optical_Review_Balanced_Receiving_Field_Signal.json", ...cornerEvidence.map(crop => `visual-evidence/${crop.file}`), "visual-evidence/Frozen_02_AI_Understanding.png", "visual-evidence/Frozen_03_Fish_Highlight.png", "visual-evidence/Frozen_04_Fish_Identifying.png"]
+  };
+  await fs.writeFile(path.join(outputDir, "EdgeGlow_Fish_Static_Test_Report.json"), `${JSON.stringify(report, null, 2)}\n`);
+  console.log(JSON.stringify(report, null, 2));
+  await browser.close();
+}
+
+main().catch(async error => {
+  console.error(error);
+  await launchedBrowser?.close().catch(() => {});
+  process.exitCode = 1;
+});

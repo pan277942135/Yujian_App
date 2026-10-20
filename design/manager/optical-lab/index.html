@@ -96,4 +96,1191 @@ header{display:flex;justify-content:space-between;gap:20px;align-items:flex-star
             <option value="800x360">800 × 360 · landscape</option>
             <option value="941x1672">941 × 1672 · Frozen reference pixels</option>
           </select>
-          <select id="qu
+          <select id="qualitySelect" class="control-select" aria-label="质量配置">
+            <option>FULL</option><option>BALANCED</option><option>LITE</option>
+          </select>
+          <select id="degradationSelect" class="control-select" aria-label="降级级别">
+            <option>D0</option><option>D1</option><option>D2</option><option>D3</option><option>D4</option>
+          </select>
+        </div>
+        <label class="layer-option" style="margin-top:7px"><input id="reduceMotion" type="checkbox"><span>Reduce Motion（静态阶段）</span><small>无动画</small></label>
+      </div>
+      <div class="section">
+        <div class="section-title">输入绑定 <span class="tiny">不造数据</span></div>
+        <div class="source-warning" id="sourceWarning">Frozen Visual QA = BLOCKED：Processing Frozen 中的照片未与仓库 test fixture 建立来源绑定；test fixture 只用于三种 Renderer 的同源相对比较。</div>
+        <label class="field-label" for="photoInput">当前照片 <span id="photoName">加载中…</span></label>
+        <input id="photoInput" type="file" accept="image/*" class="control-select" style="margin-top:6px">
+        <label class="field-label" for="maskInput" style="margin-top:10px">真实 subject Mask PNG <span id="maskName">未绑定</span></label>
+        <input id="maskInput" type="file" accept="image/png,image/webp" class="control-select" style="margin-top:6px">
+        <div class="tiny" style="margin:7px 0">只有真实 detector BBox + 生产 Mask 才启用 A 级 Focus。无 BBox 时不绘制 Focus；有 BBox 无 Mask 时降级 B。上传文件本身不证明 provenance：Mask 应来自实际 FishSubjectResult alpha，BBox 应来自真实 detector 输出并勾选声明。图片不含坐标元数据。</div>
+        <label class="layer-option"><input id="bboxAttested" type="checkbox"><span>BBox 来自真实 detector 输出</span><small>必需</small></label>
+        <div class="two-inputs">
+          <input id="bboxX1" inputmode="decimal" placeholder="BBox x1 · 0–1" aria-label="bbox x1">
+          <input id="bboxY1" inputmode="decimal" placeholder="BBox y1 · 0–1" aria-label="bbox y1">
+          <input id="bboxX2" inputmode="decimal" placeholder="BBox x2 · 0–1" aria-label="bbox x2">
+          <input id="bboxY2" inputmode="decimal" placeholder="BBox y2 · 0–1" aria-label="bbox y2">
+        </div>
+        <label class="layer-option" style="margin-top:7px"><input id="maskDiagnostic" type="checkbox"><span>Mask 半透明诊断显示</span><small>非产品层</small></label>
+        <div class="statusline" id="focusReadiness">Fish Focus：无真实 BBox，因此关闭</div>
+      </div>
+      <div class="section">
+        <div class="section-title">图层独立控制</div>
+        <div id="layerControls" class="layer-list"></div>
+        <div class="tiny" style="margin-top:7px">Particles / 多时钟动画不在 Stage A；Node 也先保持关闭，避免静态光学结论被动态高光干扰。</div>
+        <div id="pathChecks" class="path-checks"></div>
+      </div>
+      <div class="section">
+        <div class="section-title">实时参数 <span class="tiny">只改本地预览</span></div>
+        <div id="rangeControls"></div>
+      </div>
+      <div class="section">
+        <div class="section-title">Stage B 动效控制 <span class="disabled-tag">静态评审后解锁</span></div>
+        <button type="button" disabled>▶ Play / Pause</button>
+        <input id="motionTimeline" type="range" min="0" max="1" value="0" disabled style="width:100%;margin-top:8px" aria-label="Stage B timeline">
+        <div class="tiny">单一 <span id="motionCycleLabel">P4 SegmentOffset</span> 时钟、状态过渡与 <span id="resolveDurationLabel">P4 RESOLVE</span> 计划保留在 P4；当前静态实验不运行时钟，不录制假动效。</div>
+      </div>
+    </div>
+  </aside>
+  <section class="panel">
+    <div class="panel-head"><h2>Frozen ↔ Web 画布</h2><small id="compareSize">—</small></div>
+    <div class="stage-banner"><span><strong>阶段 A · 静态光学验证</strong>　照片变换、路径、层次、Mask、状态卡片</span><span id="sourceMode">same selected viewport · Frozen FIT · source identity unverified</span></div>
+    <div class="compare-toolbar">
+      <div id="compareModes" class="segmented" aria-label="比较模式">
+        <button data-mode="side" class="active">并排</button><button data-mode="candidates">三候选</button><button data-mode="overlay">50% Overlay</button><button data-mode="wipe">Wipe</button><button data-mode="diff">Pixel Diff</button>
+      </div>
+      <select id="roiSelect" class="control-select toolbar-select" aria-label="放大 ROI">
+        <option value="all">全屏 ROI</option><option value="top-left">左上 Receiving</option><option value="top-right">右上主岛</option><option value="bottom-right">右下主岛</option><option value="bottom-left">左下主岛</option><option value="center">中心留白</option><option value="status">Status Card</option><option value="fish">Fish Focus</option>
+      </select>
+      <button id="exportPreview" type="button">导出 Web PNG</button>
+      <button id="exportCompare" type="button">导出比较图</button>
+      <button id="exportRoi" type="button">导出 ROI</button>
+    </div>
+    <div class="workspace">
+      <div id="boards" class="boards">
+        <figure class="board"><figcaption><span id="frozenCaption">Frozen · —</span><span>原件只读</span></figcaption><div class="screen"><img id="frozenImage" alt="Frozen state visual"></div></figure>
+        <figure class="board"><figcaption><span id="webCaption">WEB · 静态</span><span id="renderBadge">—</span></figcaption><div class="screen"><canvas id="previewCanvas" width="390" height="844" aria-label="Web optical preview"></canvas></div></figure>
+      </div>
+      <div id="candidateGrid" class="candidate-grid"><div class="candidate-card"><h4>android-current · 同源输入</h4><canvas id="candidateCurrent"></canvas></div><div class="candidate-card"><h4>hardware-gradient · 同源输入</h4><canvas id="candidateHardware"></canvas></div><div class="candidate-card"><h4>software-cache · 同源输入</h4><canvas id="candidateSoftware"></canvas></div></div>
+      <div id="compareScreen" class="compare-screen"><canvas id="compareCanvas" width="390" height="844" aria-label="Visual comparison"></canvas></div>
+      <div class="wipe-row" id="wipeRow"><span class="tiny">Frozen / Web 分割位置</span><input id="wipeInput" type="range" min="0" max="100" value="50"><span id="wipeValue" class="tiny">50%</span></div>
+      <div class="metric-strip" id="metrics">
+        <div class="metric">差异范围<b id="metricCoverage">等待图像</b></div><div class="metric">平均 RGB Δ<b id="metricMean">—</b></div><div class="metric">RGB Δ≥16<b id="metricThreshold">—</b></div><div class="metric">ROI 平均 Δ<b id="metricRoi">—</b></div><div class="metric">比较资格<b id="metricGate">探索性</b></div>
+      </div>
+      <div class="roi-box">
+        <div class="roi-head"><strong style="font-size:12px">ROI 放大对照</strong><span id="roiMeta" class="tiny">—</span></div>
+        <canvas id="roiCanvas" width="720" height="240"></canvas>
+      </div>
+      <div id="runtimeStatus" class="statusline"></div>
+    </div>
+  </section>
+  <aside class="right-col">
+    <section class="panel">
+      <div class="panel-head"><h2>静态技术决策记录</h2><small>Stage A</small></div>
+      <div class="panel-body">
+        <div class="tech-card"><strong>当前 Android · Paint MaskFilter</strong><p>原生实现以 Paint.setMaskFilter 做局部 Blur。浏览器 Canvas 的 shadowBlur 仅作近似，不能代表 Android 输出。</p></div>
+        <div class="tech-card"><strong>硬件 Canvas 友好 · Path / Gradient 叠层</strong><p>Receiving 用 RadialGradient；尾段用 LinearGradient；Bloom 以多次宽 Path 低 Alpha 叠层近似，避免 setMaskFilter。</p></div>
+        <div class="tech-card"><strong>软件离屏缓存 · Blur 近似</strong><p>将静态光学层缓存到 RGBA 离屏画布，再合成到照片；浏览器模糊核与 Android 软件 Canvas 仍需实机校准。</p></div>
+        <ul class="report-list">
+          <li><b>API 28 优先方向：</b>先验证硬件渐变分层，后续 Android 端保留真实 Canvas/Path/Shader 实现；只有明确光学收益且帧预算足够时才测局部软件层。</li>
+          <li><b>静态选择：</b><span id="decisionStatus" class="warn">PENDING · 本页不自动伪造视觉 PASS</span></li>
+          <li><b>性能成本：</b>浏览器开销只记录 draw 路径；Android fps、分配量与 GPU 代价待设备测量。</li>
+        </ul>
+      </div>
+    </section>
+    <section class="panel">
+      <div class="panel-head"><h2>数据合同与差异</h2><small>P1–P5 source</small></div>
+      <div class="panel-body">
+        <div id="contractSummary" class="tiny">正在加载既有工程配置…</div>
+        <div class="table-wrap" style="margin-top:8px">
+          <table class="state-map"><thead><tr><th>产品视觉</th><th>内部阶段</th></tr></thead><tbody id="stateMap"></tbody></table>
+        </div>
+        <div class="tiny warn" style="margin-top:9px">CAPTURED / DETECTING 共用 IMAGE_RECOGNIZING；旧 Early 文案差异为 RP-A07 修复项。事件门控和四个内部技术阶段不变。</div>
+      </div>
+    </section>
+  </aside>
+</div>
+<div class="footer-note"><b>研究原型：</b>浏览器结果用于静态 Renderer 相对比较，不代表 Frozen 高保真或 Android Runtime PASS。整体 M1 保持 NOT_PASS。</div>
+</div>
+<script src="./build-info.js"></script>
+<script>
+(function(){
+"use strict";
+const $ = id => document.getElementById(id);
+const elements = {
+  frozenImage:$("frozenImage"), preview:$("previewCanvas"), compare:$("compareCanvas"), roi:$("roiCanvas"),
+  stateButtons:$("stateButtons"), pathChecks:$("pathChecks"), layerControls:$("layerControls"),
+  mode:"side", stateIndex:0, config:null, manifest:null, photo:null, photoUrl:null, mask:null, maskUrl:null, maskBoundaryCache:null,
+  frozenByState:new Map(), params:{}, layers:{}, renderer:"hardware-gradient", quality:"FULL", dLevel:"D0",
+  width:390,height:844, reduceMotion:false, maskDiagnostic:false, cache:null, assetAudit:[], assetErrors:[], buildInfo:null, uiBuilt:false,
+  previewMode:"static",staticCandidate:"B",dynamicCandidate:"B",fieldLayerView:"composite",focusMode:"BLOCKED",stateStartedAt:0,
+  reviewCaseB:null,basePhoto:null,basePhotoUrl:null,playing:false,previewTime:0,motionSpeed:1,rafId:null,lastFrameTime:null,
+  reviewLayers:{field:true,paths:true,filaments:true,fish:true}
+};
+const STATIC_REVIEW_CANDIDATES={
+  A:{name:"Soft Field",field:0.86,paths:0.85,filaments:0.20,description:"底场柔和，保留右上长弧与左上短弧；下方只留余辉。"},
+  B:{name:"Balanced Field",field:1.30,paths:1.08,filaments:0.34,description:"蓝金底场先建立空间；右上长弧、左上柔弧、下角短尾；推荐优先评审。"},
+  C:{name:"Strong Atmosphere",field:1.75,paths:1.35,filaments:0.48,description:"氛围场与局部尾光更明显，作为可见度上限对照。"}
+};
+const STATIC_PATH_REVIEW_PROFILES={
+  A:{B1:{alpha:1.10,length:1},G1:{alpha:.72,length:.76},G3:{alpha:.26,length:.44},B3:{alpha:.04,length:.24},B2:{alpha:.12,length:.45},G2:{alpha:.08,length:.34},B4:{alpha:.03,length:.20}},
+  B:{B1:{alpha:1.35,length:1},G1:{alpha:.95,length:.86},G3:{alpha:.38,length:.54},B3:{alpha:.14,length:.34},B2:{alpha:.26,length:.50},G2:{alpha:.16,length:.40},B4:{alpha:.07,length:.24}},
+  C:{B1:{alpha:1.65,length:1},G1:{alpha:1.24,length:.98},G3:{alpha:.58,length:.72},B3:{alpha:.26,length:.48},B2:{alpha:.38,length:.64},G2:{alpha:.28,length:.52},B4:{alpha:.16,length:.40}}
+};
+const DYNAMIC_REVIEW_ENABLED=true;
+window.OPTICAL_DYNAMIC_REVIEW_ENABLED=DYNAMIC_REVIEW_ENABLED;
+const DYNAMIC_REVIEW_CANDIDATES={
+  A:{name:"Calm",field:1.00,paths:0.88,filaments:0.22,breath:0.035,flow:0.24,periods:[15.4,20.8,24.6,29.1],description:"呼吸最柔，路径短段低亮流过，次级光丝极少。"},
+  B:{name:"Balanced",field:1.30,paths:1.08,filaments:0.34,breath:0.065,flow:0.39,periods:[12.7,17.3,21.9,26.5],description:"四角错相呼吸，主路径缓慢局部流动，次级光丝低频出现；推荐优先评审。"},
+  C:{name:"Atmospheric",field:1.65,paths:1.30,filaments:0.48,breath:0.095,flow:0.52,periods:[10.8,14.9,19.7,23.6],description:"能量变化更明显，作为边界评审；需检查是否接近特效感。"}
+};
+const REVIEW_PROXY_VISUAL_SCALE=0.72;
+const REVIEW_CASE_B={
+  fixture:"app/src/androidTest/assets/detector_case_b_night_flash.jpg",
+  fixtureSha256:"a7ed3bb0410c191364f6d853b4078aebdc2f3b9baa4da34b7b3f6e8e0e93a56b",
+  mask:"design/manager/optical-lab/review_v1/fish_focus_review_only_alpha.png",
+  maskSha256:"ebcf100e49934065f318d5a37f9f1465601838d6af12dd48312045bbb776ae42",
+  sourceTest:"app/src/androidTest/java/com/yujian/ai/DetectorOrientationRetryRuntimeTest.kt",
+  detector:{selectedAttempt:"CCW90",confidence:0.635500,bbox:{x1:0.342930,y1:0.363650,x2:0.605436,y2:0.924975},bboxAreaRatio:0.147351,cropPixels:[349,429,743,1536]},
+  // Human traced against the actual Case B photo. This annotation is review-only and is not a model mask.
+  annotationRecord:"design/manager/optical-lab/review_v1/fish_focus_case_b_bbox.json"
+};
+function activeOpticalCandidate(){return elements.previewMode==="dynamic"?DYNAMIC_REVIEW_CANDIDATES[elements.dynamicCandidate]:STATIC_REVIEW_CANDIDATES[elements.staticCandidate];}
+const referenceExpected = {
+  "IMAGE_RECOGNIZING":"02_AI_Understanding_Frozen.png",
+  "FISH_LOCATED":"03_Fish_Highlight_Frozen.png",
+  "SPECIES_RECOGNIZING":"04_Fish_Identifying_Frozen.png"
+};
+const webLayerNames=[
+  ["photo","PhotoViewport"],["receiving","Receiving Light"],["outer","Primary Outer Bloom"],
+  ["mid","Primary Mid Glow"],["core","Primary Core"],["hairlines","Companion / Micro Hairlines"],
+  ["fishHalo","Fish Focus Halo"],["fishContour","Fish Focus Contour"],["status","Status Card"]
+];
+const references={};
+function mountReviewLayout(){
+  const shell=document.querySelector(".shell"),header=document.querySelector("header"),layout=document.querySelector(".layout");
+  const left=layout.children[0],visual=layout.children[1],right=layout.children[2],sections=[...left.querySelector(".panel-body").children];
+  const stateSection=sections.shift(),rendererSection=sections.shift(),advanced=document.createElement("details"),advancedBody=document.createElement("div");
+  advanced.id="advancedDiagnostics";advanced.innerHTML="<summary>高级诊断 · P1–P5 来源、资产 SHA、PhotoViewport、Mask、ROI、Pixel Diff 与视口验证</summary>";
+  advancedBody.className="advanced-body";advanced.appendChild(advancedBody);
+  const status=document.createElement("div");status.className="review-status-bar";status.innerHTML="<div class=\"review-status-left\"><span id=\"overallStatus\" class=\"review-status-chip\" data-status=\"LOADING\">LOADING</span><span id=\"buildRevision\">PR #166 Draft · build SHA pending</span><span id=\"stateLabel\" class=\"tiny\">—</span></div><button id=\"retryAssets\" type=\"button\">重新加载资源</button>";
+  const toolbar=document.createElement("div");toolbar.id="reviewToolbar";toolbar.className="review-toolbar";toolbar.append(stateSection,rendererSection);
+  const reviewControls=document.createElement("section");reviewControls.id="previewControls";reviewControls.className="preview-controls";reviewControls.innerHTML='<div class="preview-controls-head"><div><div class="preview-controls-title">OPTICAL FIELD REVIEW · STATIC + DYNAMIC</div><div class="preview-controls-note">A/B/C 都是本次 Web Review 候选，不修改 P1–P5 权威合同，也不代表 Android Runtime。</div></div><span class="pill">REVIEW ONLY · NOT ANDROID</span></div><div class="preview-control-grid"><label class="preview-control"><span>Preview</span><div id="previewModeButtons" class="preview-buttons"><button type="button" data-preview-mode="static" class="active">静态</button><button type="button" data-preview-mode="dynamic">动态</button></div></label><label id="staticCandidateControl" class="preview-control"><span>静态光场候选</span><select id="staticCandidate"><option value="A">REVIEW_CANDIDATE_A · Soft Field</option><option value="B" selected>REVIEW_CANDIDATE_B · Balanced Field · 推荐评审</option><option value="C">REVIEW_CANDIDATE_C · Strong Atmosphere</option></select></label><label id="dynamicCandidateControl" class="preview-control"><span>动态节奏候选</span><select id="dynamicCandidate"><option value="A">DYNAMIC_CANDIDATE_A · Calm</option><option value="B" selected>DYNAMIC_CANDIDATE_B · Balanced · 推荐评审</option><option value="C">DYNAMIC_CANDIDATE_C · Atmospheric</option></select></label><label class="preview-control"><span>动态控制</span><div class="preview-buttons"><button id="playPause" type="button" aria-pressed="false">▶ 播放</button><select id="motionSpeed" aria-label="动态倍速"><option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="1.5">1.5×</option></select><button id="recordSequence" type="button">录制三态 WebM</button></div></label></div><div class="preview-control-grid"><label class="preview-control"><span>Fish Focus 来源模式</span><select id="focusSource"><option value="blocked" selected>BLOCKED · 默认无可信 BBox / Mask</option><option value="production" disabled>PRODUCTION · 当前未提供生产 Mask</option><option value="review">REVIEW_PROXY_NOT_PRODUCTION · Case B 手工 alpha</option></select></label><label class="preview-control"><span>光场分解</span><select id="fieldLayerView"><option value="composite" selected>最终合成</option><option value="receiving">评审候选 Receiving Field alone</option><option value="primary">主路径 alone</option><option value="filaments">次级光丝 alone</option></select></label><div class="preview-control"><span>图层开关</span><div class="preview-toggles"><label><input type="checkbox" id="fieldToggle" checked>底场</label><label><input type="checkbox" id="pathToggle" checked>主路径</label><label><input type="checkbox" id="filamentToggle" checked>次级光丝</label><label><input type="checkbox" id="fishToggle" checked>鱼体高亮</label></div></div><label class="preview-control"><span>录制状态</span><div><span id="focusProvenance" class="focus-provenance">Production: BLOCKED · Review-only: 可切换 · 无 BBox 时不绘制</span><div id="recordStatus" class="record-status">WebM 导出由当前浏览器编码；仅是页面 Preview 证据。</div></div></label></div><div class="preview-meta-row"><span class="tiny" id="candidateDescription">候选参数只作用于 Web Review 层，静态候选 B 为默认显示。</span><span class="tiny" id="previewSourceMeta">build/source SHA 加载中 · P5 test fixture</span></div>';
+  const focusEvidence=document.createElement("div");focusEvidence.id="focusEvidenceLinks";focusEvidence.className="tiny";focusEvidence.innerHTML='<a href="./review_v1/fish_focus_case_b_bbox.json" target="_blank" rel="noreferrer">Case B BBox JSON</a> · <a href="./review_v1/fish_focus_review_only_alpha.png" target="_blank" rel="noreferrer">Review-only alpha PNG</a> · <a href="https://github.com/pan277942135/Yujian_App/blob/design/recognition-processing-handoff-p0/app/src/androidTest/java/com/yujian/ai/DetectorOrientationRetryRuntimeTest.kt" target="_blank" rel="noreferrer">Android test source</a>';
+  reviewControls.insertBefore(focusEvidence,reviewControls.querySelector(".preview-meta-row"));
+  header.querySelector(".eyebrow").textContent="RECOGNITION PROCESSING";
+  header.querySelector("h1").textContent="Recognition Processing · Optical Lab";
+  header.querySelector(".pill").textContent="STATIC + DYNAMIC · WEB REVIEW";
+  header.querySelector(".subtitle").textContent="接收光场的静态候选与动态节奏评审。";
+  const actions=header.querySelector(".header-actions"),backLink=actions.querySelector("#opticalBackLink");
+  if(backLink){const nested=/\/nh01_acceptance\/edgeglow-fish-static\/optical-review(?:\/|$)/.test(location.pathname);backLink.href=nested?"../":"../nh01_acceptance/edgeglow-fish-static/";backLink.querySelector("button").textContent=nested?"← EdgeGlow 静态评审":"← Acceptance Center";}
+  actions.appendChild(document.getElementById("exportPreview"));
+  const advancedModes=document.createElement("div");advancedModes.id="advancedModes";advancedModes.className="advanced-modes";advancedModes.innerHTML="<span class=\"tiny\">高级比较：</span>";
+  const modeRoot=document.getElementById("compareModes");modeRoot.classList.add("main-compare-modes");
+  for(const mode of ["candidates","diff"]){const button=modeRoot.querySelector("[data-mode=\""+mode+"\"]");if(button)advancedModes.appendChild(button);}
+  const roiSelect=document.getElementById("roiSelect"),exportCompare=document.getElementById("exportCompare"),exportRoi=document.getElementById("exportRoi");
+  const roiActions=document.createElement("div");roiActions.className="row advanced-card";roiActions.append(roiSelect,exportCompare,exportRoi);
+  const quick=document.createElement("aside");quick.id="quickPanel";quick.className="panel quick-panel";
+  quick.innerHTML="<div class=\"panel-head\"><h2>视觉层次</h2><small>静态实验参数</small></div><div class=\"panel-body\"><p class=\"tiny\" style=\"margin:0 0 8px\">数值只改变本地预览；Frozen 默认值为 1.00。</p>"+[
+    ["quickReceiving","Receiving Light","receiving"],["quickOuter","Outer Bloom","outer"],["quickMid","Mid Glow","mid"],["quickCore","Primary Core","core"],["quickFish","Fish Focus","fish"],["quickStatus","Status Card","status"]
+  ].map(([id,label,key])=>"<label class=\"quick-control\"><span class=\"field-label\"><span>"+label+"</span><output id=\""+id+"Value\">1.00</output></span><input id=\""+id+"\" data-strength=\""+key+"\" type=\"range\" min=\"0\" max=\"1.5\" step=\"0.01\" value=\"1\" aria-label=\""+label+" intensity\"><small>默认 1.00 · 当前 <span id=\""+id+"Current\">1.00</span></small></label>").join("")+"</div>";
+  left.remove();layout.replaceChildren(visual,quick);visual.classList.add("visual-panel");
+  visual.querySelector(".panel-head h2").textContent="Frozen 参考 ↔ Web Renderer";
+  visual.querySelector(".stage-banner").innerHTML="<span><strong>WEB REVIEW</strong>　Static / Dynamic · 不代表 Native Runtime</span><span id=\"sourceMode\" class=\"source-identity-flag\">Frozen 原图身份未绑定 · Pixel Diff 仅探索</span>";
+  visual.querySelector("#frozenCaption").textContent="Frozen 参考 · 原件只读";
+  visual.querySelector("#webCaption").textContent="Web 候选 · 同源 test fixture";
+  const focusBadge=document.createElement("div");focusBadge.id="reviewFocusBadge";focusBadge.className="review-focus-badge";focusBadge.dataset.mode="BLOCKED";focusBadge.textContent="FISH FOCUS · BLOCKED";visual.querySelector("#boards .board:nth-child(2) .screen").appendChild(focusBadge);
+  const gates=document.querySelector(".gatebar");advancedBody.append(gates);
+  gates.children[1].querySelector("#staticGate").textContent="候选 A/B/C · 待用户视觉选择";
+  gates.children[2].innerHTML="<strong>Web 动态 Preview</strong><span>可录制 · 不代表 Android Runtime</span>";
+  const assetCard=document.createElement("section");assetCard.className="advanced-card";assetCard.innerHTML="<div class=\"section-title\"><span>资源自动加载与来源清单</span><button id=\"exportAssetManifest\" type=\"button\">导出资产清单 JSON</button></div><div id=\"assetSummary\" class=\"tiny\">正在校验配置与图片…</div><div class=\"table-wrap\"><table class=\"asset-table\"><thead><tr><th>资产</th><th>来源路径 / SHA-256 / 尺寸</th><th>状态</th></tr></thead><tbody id=\"assetRows\"></tbody></table></div><div id=\"assetErrors\" class=\"diagnostic-error tiny\"></div>";
+  advancedBody.append(assetCard);
+  const diagIntro=document.createElement("section");diagIntro.className="advanced-card";diagIntro.innerHTML="<div class=\"section-title\">高级控制</div><p class=\"tiny\">设备视口、FULL / BALANCED / LITE、D0–D4、Reduce Motion、路径单独开关、全部调参和本地输入绑定仅在展开诊断后出现。Stage B 动效控件在静态评审完成前隐藏。</p><div id=\"advancedModeMount\"></div><div id=\"advancedActionMount\"></div><div id=\"advancedMetricsMount\"></div><div id=\"advancedRoiMount\"></div><div id=\"advancedRuntimeMount\"></div><div class=\"row\" style=\"margin-top:9px\"><button id=\"exportExperiment\" type=\"button\">导出实验参数 JSON</button><label class=\"file-button\" for=\"importExperiment\">导入实验参数 JSON</label><input id=\"importExperiment\" type=\"file\" accept=\"application/json\" hidden></div>";
+  advancedBody.append(diagIntro);
+  const advancedControlCard=document.createElement("section");advancedControlCard.className="advanced-card";advancedControlCard.innerHTML="<div class=\"section-title\">可选本地诊断输入</div>";
+  sections.forEach(section=>{if(section.querySelector("#motionTimeline"))section.classList.add("stage-b-hidden");advancedControlCard.append(section);});
+  advancedBody.append(advancedControlCard,right);
+  // Connect the diagnostics subtree before resolving its mount points with document.getElementById.
+  // The subtree is assembled off-DOM above; querying document while detached returns null.
+  shell.insertBefore(advanced,document.querySelector(".footer-note"));
+  document.getElementById("advancedModeMount").append(advancedModes);
+  document.getElementById("advancedActionMount").append(roiActions);
+  document.getElementById("advancedMetricsMount").append(document.getElementById("metrics"));
+  document.getElementById("advancedRoiMount").append(document.querySelector(".roi-box"));
+  document.getElementById("advancedRuntimeMount").append(document.getElementById("runtimeStatus"));
+  shell.insertBefore(status,layout);shell.insertBefore(toolbar,layout);shell.insertBefore(reviewControls,layout);shell.insertBefore(advanced,document.querySelector(".footer-note"));
+  status.querySelector("#retryAssets").addEventListener("click",()=>loadAssets().catch(handleAssetLoadFailure));
+  document.getElementById("exportAssetManifest").addEventListener("click",downloadAssetManifest);
+  document.getElementById("exportExperiment").addEventListener("click",exportExperiment);
+  document.getElementById("importExperiment").addEventListener("change",importExperiment);
+}
+function designRootUrl(path){
+  const marker="/design/manager/", index=location.pathname.indexOf(marker), siteBase=index>=0?location.pathname.slice(0,index)+"/":"/";
+  const relative=String(path).replace(/^design\//,"");
+  return new URL(siteBase+"design/"+relative,location.origin).href;
+}
+function repositoryAssetUrl(path){
+  if(!/\/design\/manager\/(?:optical-lab|nh01_acceptance\/edgeglow-fish-static\/optical-review)(?:\/|$)/.test(location.pathname))return null;
+  const marker="/design/manager/", index=location.pathname.indexOf(marker), siteBase=index>=0?location.pathname.slice(0,index)+"/":"/";
+  return new URL(siteBase+String(path).replace(/^\//,""),location.origin).href;
+}
+function setOverallStatus(status,message){
+  const chip=$("overallStatus");if(!chip)return;chip.textContent=status;chip.dataset.status=status;
+  if(message)$("buildRevision").textContent=message;
+}
+function runtimeSnapshot(){return elements.config.optical_lab_runtime_snapshot;}
+function reportError(message){$("runtimeStatus").textContent=message;$("runtimeStatus").className="statusline error";}
+function rootPath(path){return designRootUrl(path);}
+function androidArgbColorToCss(argb){const value=String(argb||"#D91A2C35").replace("#","");if(value.length!==8)return "#102D35";const a=parseInt(value.slice(0,2),16)/255,r=parseInt(value.slice(2,4),16),g=parseInt(value.slice(4,6),16),b=parseInt(value.slice(6,8),16);return "rgba("+r+","+g+","+b+","+a+")";}
+function safeAlphaColor(hex,alpha){
+  const c=String(hex||"#ffffff").replace("#","");
+  if(c.length!==6)return "rgba(255,255,255,"+alpha+")";
+  return "rgba("+parseInt(c.slice(0,2),16)+","+parseInt(c.slice(2,4),16)+","+parseInt(c.slice(4,6),16)+","+Math.max(0,Math.min(1,alpha))+")";
+}
+function clamp(v,a,b){return Math.max(a,Math.min(b,v));}
+function colorToken(tokenId){
+  const item=elements.config.p5_compose_import_bindings.token_bindings.find(x=>x.token_id===tokenId);
+  const match=item&&String(item.runtime).match(/#[0-9A-Fa-f]{6}/);
+  return match?match[0]:"#ffffff";
+}
+function frozenPath(stateId){const state=elements.manifest.product_states.find(item=>item.id===stateId);const frame=state&&state.keyframes&&state.keyframes[0];if(!frame)throw new Error("Frozen reference binding missing for "+stateId);return rootPath(frame.path);}
+async function fetchText(url){const response=await fetch(url,{cache:"no-store"});if(!response.ok)throw new Error(response.status+" "+url);return response.text();}
+function rangeRow(id,label,min,max,step,value,unit){
+  return '<label class="range"><span class="field-label"><span>'+label+'</span><span id="'+id+'Value">—</span></span><input id="'+id+'" type="range" min="'+min+'" max="'+max+'" step="'+step+'" value="'+value+'"><span class="tiny">'+(unit||"")+'</span></label>';
+}
+function initialParams(){
+  const edge=elements.config.p1_edge_field, stack=edge.optical_stack;
+  const primary=stack.find(x=>x.layer==="primary_outer_bloom");
+  const mid=stack.find(x=>x.layer==="primary_mid_glow");
+  const focus=elements.config.p2_fish_focus;
+  const A=focus.levels.A;
+  return {
+    alpha:1, glowWidth:1, blurRadius:1, falloff:1, tailLength:1, tailPosition:0,
+    fishHalo:(focus.levels.A.halo_alpha_contract[0]+focus.levels.A.halo_alpha_contract[1])/2,
+    fishContour:A.contour.core_alpha_outline, stateStrength:null,
+    layerStrength:{receiving:1,outer:1,mid:1,core:1,fish:1,status:1},
+    safeTop:0,safeBottom:0,
+    primaryOuter:primary.width_dp, primaryMid:mid.width_dp
+  };
+}
+function buildUI(){
+  const states=elements.config.p3_states_and_status.product_states;
+  const motion=elements.config.p4_motion_quality_responsive.motion_contract;
+  $("motionTimeline").max=motion.base_cycle_ms;
+  $("motionCycleLabel").textContent=(motion.base_cycle_ms/1000)+"s SegmentOffset";
+  $("resolveDurationLabel").textContent=motion.resolve.duration_ms+"ms RESOLVE";
+  const responsive=runtimeSnapshot().responsive_lab,viewports=[responsive.default_viewport_px,...elements.config.p4_motion_quality_responsive.responsive_contract.existing_viewports_px,...responsive.extra_viewports_px];
+  const viewportMap=new Map(viewports.map(([w,h])=>[w+"x"+h,[w,h]]));
+  $("viewportSelect").innerHTML=Array.from(viewportMap.values()).map(([w,h])=>'<option value="'+w+'x'+h+'">'+w+' × '+h+(w===responsive.default_viewport_px[0]&&h===responsive.default_viewport_px[1]?' · Browser preview default':' · P4 / responsive fixture')+'</option>').join("");
+  $("viewportSelect").value=responsive.default_viewport_px.join("x");
+  $("stateButtons").innerHTML=states.map((s,i)=>'<button type="button" data-state="'+i+'" class="'+(i===0?"active":"")+'">'+s.display_name+'</button>').join("");
+  $("layerControls").innerHTML=webLayerNames.map((x,i)=>'<label class="layer-option"><input type="checkbox" data-layer="'+x[0]+'" '+("checked")+'><span>'+x[1]+'</span><small>'+String(i+1).padStart(2,"0")+'</small></label>').join("");
+  elements.layers={photo:true,status:true,receiving:true,outer:true,mid:true,core:true,hairlines:true,fishHalo:true,fishContour:true};
+  elements.reviewLayers={field:true,paths:true,filaments:true,fish:true};
+  $("bboxAttested").disabled=true;["bboxX1","bboxY1","bboxX2","bboxY2"].forEach(id=>$(id).disabled=true);
+  elements.pathChecks.innerHTML=elements.config.p1_edge_field.paths.map(p=>'<label title="'+p.role+' · '+p.island+'"><input type="checkbox" data-path="'+p.id+'" checked>'+p.id+'</label>').join("");
+  const p=initialParams();elements.params=p;
+  $("rendererSelect").value=elements.renderer;
+  $("rangeControls").innerHTML=[
+    rangeRow("paramAlpha","全局 Alpha",0,1.5,.01,1,"BaseAlpha × 控制值"),
+    rangeRow("paramGlow","Glow Width",.4,2,.02,1,"相对 P1 宽度 dp"),
+    rangeRow("paramBlur","Blur Radius",0,2,.02,1,"当前 / 离屏浏览器近似"),
+    rangeRow("paramFalloff","Gradient Falloff",.5,1.6,.02,1,"影响 Path Tail 渐变"),
+    rangeRow("paramTailLength","Tail Length",.4,1.6,.02,1,"每条 Path 按自身 visible_ratio"),
+    rangeRow("paramTailPosition","Tail Position",-0.5,.5,.005,0,"偏移叠加在 P1 Seed"),
+    rangeRow("paramHalo","Fish Halo Intensity",0,.3,.005,p.fishHalo,"A/B/C 需真实 BBox"),
+    rangeRow("paramContour","Fish Contour Intensity",0,.5,.005,p.fishContour,"仅真实 Mask A 级"),
+    rangeRow("paramStrength","State Strength",0,1,.01,1,"状态默认 1 / .58 / .36"),
+    rangeRow("paramMotionSpeed","Motion Speed（Stage B）",0,1.5,.01,1,"按状态读取 P4；静态通过前锁定"),
+    rangeRow("paramSafeTop","Safe Top",0,64,1,0,"浏览器/设备测试输入 px；0 = 未提供"),
+    rangeRow("paramSafeBottom","Safe Bottom",0,80,1,0,"浏览器/设备测试输入 px；0 = 未提供")
+  ].join("");
+  $("stateMap").innerHTML=elements.config.p3_states_and_status.product_states.map(s=>'<tr><td>'+s.display_name+'<br><span class="tiny">'+s.id+'</span></td><td>'+s.phases.join(" / ")+'</td></tr>').join("");
+  const p5=elements.config.p5_compose_import_bindings,imageBindings=p5.image_bindings;
+  $("contractSummary").innerHTML="Config: "+elements.config.artifact_id+"<br>Source authority SHA: <code>"+elements.config.source_snapshot.authority_commit+"</code><br>Frozen manifest: "+elements.manifest.version+" · "+states.length+" product visuals<br>Edge Field: "+elements.config.p1_edge_field.paths.length+" cubic paths · "+elements.config.p1_edge_field.optical_stack.length+" layer records<br>P5 mapping: "+p5.component_tree.length+" native components · "+p5.token_bindings.length+" token bindings · "+imageBindings.frozen_references.length+" Frozen + 1 test photo · "+p5.data_bindings.length+" data bindings<br>Real test fixture: "+imageBindings.test_photo.bytes.toLocaleString()+" bytes · no trusted BBox/Mask<br>Secondary seed candidates remain REVIEW_REQUIRED";
+  $("inputStatus").textContent="PR #166 P1–P5 配置加载成功";
+  $("inputStatus").parentElement.classList.add("success");
+  bindEvents();
+  bindQuickControls();
+  syncReviewControls();
+  selectState(0);
+  updateRendererNote();
+  render();
+  runResponsiveFixtures();
+}
+function bindEvents(){
+  $("stateButtons").addEventListener("click",e=>{const b=e.target.closest("[data-state]");if(b)selectState(Number(b.dataset.state));});
+  const chooseMode=e=>{const b=e.target.closest("[data-mode]");if(!b)return;elements.mode=b.dataset.mode;document.querySelectorAll("[data-mode]").forEach(x=>x.classList.toggle("active",x===b));render();};
+  $("compareModes").addEventListener("click",chooseMode);$("advancedModes").addEventListener("click",chooseMode);
+  $("rendererSelect").addEventListener("change",()=>{elements.renderer=$("rendererSelect").value;elements.cache=null;updateRendererNote();render();});
+  $("viewportSelect").addEventListener("change",()=>{const v=$("viewportSelect").value.split("x").map(Number);elements.width=v[0];elements.height=v[1];render();runResponsiveFixtures();});
+  $("degradationSelect").addEventListener("change",()=>{elements.dLevel=$("degradationSelect").value;applyDLevel();elements.cache=null;render();});
+  $("qualitySelect").addEventListener("change",()=>{const q=$("qualitySelect").value;elements.quality=q;elements.dLevel=q==="FULL"?"D0":(q==="BALANCED"?"D1":(["D3","D4"].includes(elements.dLevel)?elements.dLevel:"D2"));$("degradationSelect").value=elements.dLevel;elements.cache=null;render();});
+  $("reduceMotion").addEventListener("change",()=>{elements.reduceMotion=$("reduceMotion").checked;render();});
+  $("maskDiagnostic").addEventListener("change",()=>{elements.maskDiagnostic=$("maskDiagnostic").checked;elements.cache=null;render();});
+  $("wipeInput").addEventListener("input",()=>{ $("wipeValue").textContent=$("wipeInput").value+"%";renderComparison();});
+  $("roiSelect").addEventListener("change",drawROI);
+  $("photoInput").addEventListener("change",onPhotoUpload);
+  $("maskInput").addEventListener("change",onMaskUpload);
+  ["bboxX1","bboxY1","bboxX2","bboxY2"].forEach(id=>$(id).addEventListener("input",()=>{elements.cache=null;updateFocusReadiness();render();}));
+  $("bboxAttested").addEventListener("change",()=>{elements.cache=null;updateFocusReadiness();render();});
+  $("previewModeButtons").addEventListener("click",e=>{const b=e.target.closest("[data-preview-mode]");if(b)setPreviewMode(b.dataset.previewMode);});
+  $("staticCandidate").addEventListener("change",()=>{elements.staticCandidate=$("staticCandidate").value;updateCandidateDescription();render();});
+  $("dynamicCandidate").addEventListener("change",()=>{elements.dynamicCandidate=$("dynamicCandidate").value;updateCandidateDescription();render();});
+  $("fieldLayerView").addEventListener("change",()=>{elements.fieldLayerView=$("fieldLayerView").value;elements.cache=null;render();});
+  [["fieldToggle","field"],["pathToggle","paths"],["filamentToggle","filaments"],["fishToggle","fish"]].forEach(([id,key])=>$(id).addEventListener("change",()=>{elements.reviewLayers[key]=$(id).checked;elements.cache=null;render();}));
+  $("focusSource").addEventListener("change",()=>setFocusMode($("focusSource").value));
+  $("playPause").addEventListener("click",()=>{if(elements.previewMode!=="dynamic")setPreviewMode("dynamic");setPlaying(!elements.playing);});
+  $("motionSpeed").addEventListener("change",()=>{elements.motionSpeed=Number($("motionSpeed").value)||1;});
+  $("recordSequence").addEventListener("click",recordPreviewSequence);
+  document.querySelectorAll("#layerControls input").forEach(input=>input.addEventListener("change",()=>{elements.layers[input.dataset.layer]=input.checked;elements.cache=null;render();}));
+  document.querySelectorAll("#pathChecks input").forEach(input=>input.addEventListener("change",()=>{elements.cache=null;render();}));
+  const motionSpeed=$("paramMotionSpeed");motionSpeed.disabled=true;
+  const rangeMap={paramAlpha:"alpha",paramGlow:"glowWidth",paramBlur:"blurRadius",paramFalloff:"falloff",paramTailLength:"tailLength",paramTailPosition:"tailPosition",paramHalo:"fishHalo",paramContour:"fishContour",paramStrength:"stateStrength",paramSafeTop:"safeTop",paramSafeBottom:"safeBottom"};
+  Object.keys(rangeMap).forEach(id=>$(id).addEventListener("input",()=>{
+    elements.params[rangeMap[id]]=Number($(id).value);
+    if(id!=="paramStrength")elements.cache=null;
+    render();
+  }));
+  $("resetButton").addEventListener("click",resetDefaults);
+  $("exportPreview").addEventListener("click",()=>downloadCanvas(elements.preview,"web-"+stateId()+"-"+elements.renderer+".png"));
+  $("exportCompare").addEventListener("click",()=>{renderComparison();downloadCanvas(elements.compare,"compare-"+elements.mode+"-"+stateId()+".png");});
+  $("exportRoi").addEventListener("click",()=>downloadCanvas(elements.roi,"roi-"+stateId()+".png"));
+  document.addEventListener("keydown",e=>{if(e.key==="Escape"){setFocusMode("blocked");}});
+}
+function bindQuickControls(){
+  document.querySelectorAll(".quick-control input[data-strength]").forEach(input=>input.addEventListener("input",()=>{
+    elements.params.layerStrength[input.dataset.strength]=Number(input.value);elements.cache=null;updateQuickControlValues();render();
+  }));
+  updateQuickControlValues();
+}
+function updateQuickControlValues(){
+  const values=elements.params.layerStrength||{};
+  document.querySelectorAll(".quick-control input[data-strength]").forEach(input=>{
+    const value=Number(values[input.dataset.strength]??1).toFixed(2);input.value=value;
+    $(input.id+"Value").textContent=value;$(input.id+"Current").textContent=value;
+  });
+  const box=readBBox(),focusInput=$("quickFish");if(focusInput){focusInput.disabled=!box||box.invalid;focusInput.title=focusInput.disabled?"没有可用 BBox；Fish Focus 当前不可绘制":"Review-only Case B proxy；不能代表 Production Fish Focus";}
+}
+function stateId(){return elements.config.p3_states_and_status.product_states[elements.stateIndex].id;}
+function syncReviewControls(){
+  $("staticCandidate").value=elements.staticCandidate;$("dynamicCandidate").value=elements.dynamicCandidate;$("fieldLayerView").value=elements.fieldLayerView;$("motionSpeed").value=String(elements.motionSpeed);
+  $("fieldToggle").checked=elements.reviewLayers.field;$("pathToggle").checked=elements.reviewLayers.paths;$("filamentToggle").checked=elements.reviewLayers.filaments;$("fishToggle").checked=elements.reviewLayers.fish;
+  document.querySelectorAll("#previewModeButtons button").forEach(b=>b.classList.toggle("active",b.dataset.previewMode===elements.previewMode));
+  const dynamicButton=document.querySelector('#previewModeButtons [data-preview-mode="dynamic"]');dynamicButton.disabled=!DYNAMIC_REVIEW_ENABLED;dynamicButton.title=DYNAMIC_REVIEW_ENABLED?"":"开放前先完成静态视觉 Gate";
+  $("playPause").disabled=!DYNAMIC_REVIEW_ENABLED;$("recordSequence").disabled=!DYNAMIC_REVIEW_ENABLED;$("motionSpeed").disabled=!DYNAMIC_REVIEW_ENABLED;
+  $("staticCandidateControl").style.display=elements.previewMode==="static"?"grid":"none";$("dynamicCandidateControl").style.display=elements.previewMode==="dynamic"?"grid":"none";
+  updateCandidateDescription();updateFocusProvenance();
+}
+function updateCandidateDescription(){
+  const candidate=activeOpticalCandidate(),mode=elements.previewMode==="dynamic"?"DYNAMIC_CANDIDATE_"+elements.dynamicCandidate+" · "+candidate.name:"REVIEW_CANDIDATE_"+elements.staticCandidate+" · "+candidate.name;
+  $("candidateDescription").textContent=mode+" — "+candidate.description;
+  const info=elements.buildInfo||{};$("previewSourceMeta").textContent="build "+(info.head_sha||"UNAVAILABLE")+" · source "+(info.source_sha||info.head_sha||"UNAVAILABLE")+" · P5 SHA-verified fixture";
+}
+function updateFocusProvenance(){
+  const label=elements.focusMode==="REVIEW_PROXY_NOT_PRODUCTION"?"Production: BLOCKED · Review-only: Case B 手工 alpha · 0.72× 评审视觉缩放":"Production: BLOCKED · Review-only: 可切换 · 无 BBox / Mask 时不绘制";
+  $("focusProvenance").textContent=label;
+  const badge=document.getElementById("reviewFocusBadge");if(badge){badge.dataset.mode=elements.focusMode==="REVIEW_PROXY_NOT_PRODUCTION"?"REVIEW":"BLOCKED";badge.textContent=elements.focusMode==="REVIEW_PROXY_NOT_PRODUCTION"?"REVIEW_PROXY_NOT_PRODUCTION":"FISH FOCUS · BLOCKED";}
+}
+function setPreviewMode(mode){
+  if(mode==="dynamic"&&!DYNAMIC_REVIEW_ENABLED)return;
+  elements.previewMode=mode==="dynamic"?"dynamic":"static";if(elements.previewMode==="static")setPlaying(false);
+  syncReviewControls();render();
+}
+function setPlaying(value){
+  elements.playing=Boolean(value)&&DYNAMIC_REVIEW_ENABLED&&elements.previewMode==="dynamic";elements.lastFrameTime=null;
+  $("playPause").textContent=elements.playing?"Ⅱ 暂停":"▶ 播放";$("playPause").setAttribute("aria-pressed",String(elements.playing));
+  if(elements.playing&&!elements.rafId)elements.rafId=requestAnimationFrame(animatePreview);
+  if(!elements.playing){if(elements.rafId)cancelAnimationFrame(elements.rafId);elements.rafId=null;render();}
+}
+function animatePreview(now){
+  if(!elements.playing){elements.rafId=null;return;}
+  if(elements.lastFrameTime!==null)elements.previewTime+=Math.min(80,now-elements.lastFrameTime)/1000*elements.motionSpeed;
+  elements.lastFrameTime=now;render();elements.rafId=requestAnimationFrame(animatePreview);
+}
+async function setFocusMode(mode){
+  elements.cache=null;
+  if(mode!=="review"){
+    elements.focusMode="BLOCKED";elements.mask=null;elements.maskBoundaryCache=null;
+    $("bboxAttested").checked=false;["bboxX1","bboxY1","bboxX2","bboxY2"].forEach(id=>$(id).disabled=true);
+    $("bboxAttested").disabled=true;$("photoInput").disabled=false;$("maskInput").disabled=false;
+    if(elements.basePhoto){elements.photo=elements.basePhoto;elements.photoUrl=elements.basePhotoUrl;$("photoName").textContent="recognition_real_catch_fixture.jpg · SHA-256 verified";}
+    $("maskName").textContent="未绑定 · 无生产 Mask";$("focusReadiness").textContent="Fish Focus：BLOCKED · 当前没有可用生产 BBox + Mask";
+    updateFocusProvenance();render();return;
+  }
+  try{
+    if(!elements.reviewCaseB){
+      const photo=await loadVerifiedImage(repositoryAssetUrl(REVIEW_CASE_B.fixture),REVIEW_CASE_B.fixtureSha256,1152,1536,{asset_id:"case-b-production-detector-photo",repository_path:REVIEW_CASE_B.fixture,source_revision:sourceRevisionFor("photo_fixture"),role:"detector_fixture",provenance:"Case B fixture consumed by the real FishRecognitionPipeline Android orientation test; Review-only overlay uses an independently manual alpha annotation"});
+      const maskUrl=new URL("./review_v1/fish_focus_review_only_alpha.png",location.href).href;
+      const mask=await loadVerifiedImage(maskUrl,REVIEW_CASE_B.maskSha256,undefined,undefined,{asset_id:"case-b-review-only-alpha",repository_path:REVIEW_CASE_B.mask,source_revision:sourceRevisionFor("review_candidate"),role:"review_only_mask",provenance:"human-annotated alpha from source photo; not a production FishSubjectResult mask"});
+      elements.reviewCaseB={photo,mask};
+    }
+    elements.focusMode="REVIEW_PROXY_NOT_PRODUCTION";elements.photo=elements.reviewCaseB.photo.image;elements.photoUrl=elements.reviewCaseB.photo.url;elements.mask=elements.reviewCaseB.mask.image;elements.maskBoundaryCache=null;
+    $("photoName").textContent="detector_case_b_night_flash.jpg · SHA-256 verified";$("maskName").textContent="fish_focus_review_only_alpha.png · REVIEW ONLY · SHA-256 verified";
+    $("bboxAttested").checked=false;["bboxX1","bboxY1","bboxX2","bboxY2"].forEach(id=>$(id).disabled=true);
+    $("bboxAttested").disabled=true;$("photoInput").disabled=true;$("maskInput").disabled=true;
+    updateFocusProvenance();updateFocusReadiness();render();
+  }catch(error){elements.focusMode="BLOCKED";$("focusSource").value="blocked";$("focusReadiness").textContent="Fish Focus：BLOCKED · Review-only fixture load failed: "+error.message;updateFocusProvenance();render();}
+}
+async function recordPreviewSequence(){
+  if(!DYNAMIC_REVIEW_ENABLED){$("recordStatus").textContent="动态录制在静态光学 Gate 通过后开放。";return;}
+  if(!elements.preview.captureStream||!window.MediaRecorder){$("recordStatus").textContent="当前浏览器不支持 Canvas MediaRecorder 导出。";return;}
+  if(elements.focusMode!=="REVIEW_PROXY_NOT_PRODUCTION")await setFocusMode("review");
+  setPreviewMode("dynamic");elements.previewTime=0;elements.motionSpeed=1.0;$("motionSpeed").value="1";setPlaying(true);
+  const stream=elements.preview.captureStream(30),mimeType=["video/webm;codecs=vp9","video/webm;codecs=vp8","video/webm"].find(type=>MediaRecorder.isTypeSupported(type));
+  if(!mimeType){$("recordStatus").textContent="当前浏览器没有可用 WebM 编码器。";setPlaying(false);return;}
+  const chunks=[],recorder=new MediaRecorder(stream,{mimeType,videoBitsPerSecond:1800000});elements.recorder=recorder;
+  recorder.ondataavailable=e=>{if(e.data&&e.data.size)chunks.push(e.data);};
+  recorder.onstop=()=>{const blob=new Blob(chunks,{type:mimeType}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="dynamic-"+elements.dynamicCandidate+"-state-cycle.webm";a.click();setTimeout(()=>URL.revokeObjectURL(url),15000);stream.getTracks().forEach(track=>track.stop());elements.recorder=null;$("recordStatus").textContent="WebM 已导出 · 12s · IMAGE_RECOGNIZING → FISH_LOCATED → SPECIES_RECOGNIZING · REVIEW_PROXY_NOT_PRODUCTION";};
+  recorder.start(300);$("recordSequence").disabled=true;$("recordStatus").textContent="正在录制 12s 三态循环 · Web Review only…";
+  const start=performance.now();selectState(0);
+  const stateTimer=setInterval(()=>{const elapsed=performance.now()-start;if(elapsed>=8000&&elements.stateIndex!==2)selectState(2);else if(elapsed>=4000&&elapsed<8000&&elements.stateIndex!==1)selectState(1);},100);
+  setTimeout(()=>{clearInterval(stateTimer);if(recorder.state!=="inactive")recorder.stop();setPlaying(false);$("recordSequence").disabled=false;},12000);
+}
+function applyDLevel(){
+  const mapping=elements.config.p4_motion_quality_responsive.degradation_mapping[elements.dLevel];
+  if(mapping&&mapping.quality){elements.quality=mapping.quality;$("qualitySelect").value=mapping.quality;}
+  render();
+}
+function selectState(index,preserveStrength=false){
+  elements.stateIndex=clamp(index,0,elements.config.p3_states_and_status.product_states.length-1);
+  elements.stateStartedAt=elements.previewTime;
+  const state=elements.config.p3_states_and_status.product_states[elements.stateIndex];
+  const strength=elements.config.p4_motion_quality_responsive.motion_contract.state_strength[state.id];
+  const speed=elements.config.p4_motion_quality_responsive.motion_contract.primary_speed[state.id];
+  if(!preserveStrength||elements.params.stateStrength==null)elements.params.stateStrength=strength;
+  $("paramStrength").value=elements.params.stateStrength;$("paramMotionSpeed").value=speed;
+  document.querySelectorAll("#stateButtons button").forEach((b,i)=>b.classList.toggle("active",i===elements.stateIndex));
+  $("stateLabel").textContent=state.id;
+  $("frozenCaption").textContent="Frozen · "+state.display_name+" · source unbound";
+  $("webCaption").textContent="WEB · "+state.display_name+" · same test fixture";
+  const manifestState=elements.manifest.product_states.find(item=>item.id===state.id);
+  const frame=manifestState&&manifestState.keyframes&&manifestState.keyframes[0];
+  if(!frame)throw new Error("Frozen Manifest binding missing for "+state.id);
+  const fname=frame.path.split("/").pop();
+  $("renderBadge").textContent=elements.renderer;
+  const image=references[state.id];
+  if(image){$("frozenImage").src=image.src;$("frozenImage").alt="Frozen reference "+fname;}
+  else {$("frozenImage").removeAttribute("src");}
+  elements.cache=null;
+  render();
+}
+function hexDigest(bytes){return Array.from(new Uint8Array(bytes)).map(x=>x.toString(16).padStart(2,"0")).join("");}
+async function gitBlobSha(bytes){
+  const prefix=new TextEncoder().encode("blob "+bytes.byteLength+"\0"),joined=new Uint8Array(prefix.length+bytes.byteLength);
+  joined.set(prefix,0);joined.set(new Uint8Array(bytes),prefix.length);return hexDigest(await crypto.subtle.digest("SHA-1",joined));
+}
+function pushAssetError(code,path,error){
+  const message=error&&error.message?error.message:String(error);elements.assetErrors.push({code,path,reason:message});renderAssetAudit();
+  return Object.assign(new Error(code+" · "+path+" · "+message),{code,assetPath:path});
+}
+function recordAsset(record){
+  const index=elements.assetAudit.findIndex(item=>item.asset_id===record.asset_id);
+  if(index>=0)elements.assetAudit[index]=record;else elements.assetAudit.push(record);renderAssetAudit();
+}
+function sourceRevisionFor(role){
+  if(role==="frozen"||role==="state_manifest")return elements.config&&elements.config.source_snapshot.authority_commit||"31d1483b83038db78821625cd9339ad0e8c19ff3";
+  if(role==="photo_fixture")return elements.buildInfo&&elements.buildInfo.head_sha||"NOT_EMBEDDED";
+  if(elements.buildInfo&&elements.buildInfo.head_sha)return elements.buildInfo.head_sha;
+  return "NOT_EMBEDDED";
+}
+function loadImage(url){
+  return new Promise((resolve,reject)=>{const img=new Image();img.onload=()=>resolve(img);img.onerror=()=>reject(new Error("图片解码失败："+url));img.src=url;});
+}
+async function fetchBuffer(url,path,code){
+  let response;try{response=await fetch(url,{cache:"no-store"});}catch(error){throw pushAssetError(code,path,error);}
+  if(!response.ok)throw pushAssetError(code,path,new Error("HTTP "+response.status+" "+url));
+  try{return await response.arrayBuffer();}catch(error){throw pushAssetError(code,path,error);}
+}
+async function loadJsonAsset(url,assetId,path,role,expectedBlobSha){
+  const fetchCode=assetId==="processing-config"?"CONFIG_LOAD_FAILED":(assetId==="processing-state-manifest"?"FROZEN_ASSET_MISSING":"SOURCE_MISMATCH_BLOCKED");
+  const bytes=await fetchBuffer(url,path,fetchCode);
+  const sha=hexDigest(await crypto.subtle.digest("SHA-256",bytes));
+  if(expectedBlobSha){const blobSha=await gitBlobSha(bytes);if(blobSha!==expectedBlobSha)throw pushAssetError("SOURCE_MISMATCH_BLOCKED",path,new Error("Git blob SHA mismatch; expected "+expectedBlobSha+", got "+blobSha));}
+  let value;try{value=JSON.parse(new TextDecoder().decode(bytes));}catch(error){throw pushAssetError(assetId==="processing-config"?"CONFIG_LOAD_FAILED":"SOURCE_MISMATCH_BLOCKED",path,new Error("JSON parse failed: "+error.message));}
+  recordAsset({asset_id:assetId,repository_path:path,source_revision:sourceRevisionFor(role),sha256:sha,dimensions:null,role,provenance:expectedBlobSha?"P1–P5 source snapshot Git blob SHA verified":"Fetched and parsed from the current Optical Lab deployment",status:"VERIFIED"});
+  return {value,bytes,sha256:sha};
+}
+async function loadVerifiedImage(url,expectedSha,expectedWidth,expectedHeight,record){
+  const frozen=record.asset_id.startsWith("frozen-");
+  const bytes=await fetchBuffer(url,record.repository_path,frozen?"FROZEN_ASSET_MISSING":"TEST_FIXTURE_MISSING");
+  const actual=hexDigest(await crypto.subtle.digest("SHA-256",bytes));
+  if(actual!==expectedSha)throw pushAssetError("SOURCE_MISMATCH_BLOCKED",record.repository_path,new Error("SHA-256 mismatch; expected "+expectedSha+", got "+actual));
+  const blobUrl=URL.createObjectURL(new Blob([bytes]));let img;
+  try{img=await loadImage(blobUrl);}catch(error){URL.revokeObjectURL(blobUrl);throw pushAssetError(frozen?"FROZEN_ASSET_MISSING":"TEST_FIXTURE_MISSING",record.repository_path,error);}
+  if((expectedWidth&&img.naturalWidth!==expectedWidth)||(expectedHeight&&img.naturalHeight!==expectedHeight)){URL.revokeObjectURL(blobUrl);throw pushAssetError("SOURCE_MISMATCH_BLOCKED",record.repository_path,new Error("dimensions expected "+expectedWidth+"×"+expectedHeight+", got "+img.naturalWidth+"×"+img.naturalHeight));}
+  recordAsset({...record,sha256:actual,dimensions:[img.naturalWidth,img.naturalHeight],status:"VERIFIED"});
+  return {image:img,url:blobUrl,sha256:actual,bytes:bytes.byteLength,path:record.repository_path};
+}
+async function loadDefaultPhoto(){
+  const binding=elements.config.p5_compose_import_bindings.image_bindings.test_photo;
+  const candidates=[{url:designRootUrl("design/system/fish_media_display_v1/assets/real_catch_source.jpg"),path:"design/system/fish_media_display_v1/assets/real_catch_source.jpg"}],direct=repositoryAssetUrl(binding.path);
+  if(direct)candidates.push({url:direct,path:binding.path});
+  $("photoName").textContent=binding.path.split("/").pop()+" · SHA 校验中";
+  let lastError=null;
+  for(const candidate of candidates){
+    const errorCount=elements.assetErrors.length;
+    try{
+      const result=await loadVerifiedImage(candidate.url,binding.sha256,undefined,undefined,{asset_id:"processing-test-photo",repository_path:candidate.path,source_revision:sourceRevisionFor("photo_fixture"),role:"photo_fixture",provenance:"P5 test-photo SHA-256; design published copy is registered byte-identical in real_photo_cases.json; not linked as the Frozen screenshot source"});
+      if(result.bytes!==binding.bytes)throw pushAssetError("SOURCE_MISMATCH_BLOCKED",candidate.path,new Error("byte length expected "+binding.bytes+", got "+result.bytes));
+      elements.photo=result.image;elements.photoUrl=result.url;
+      elements.basePhoto=result.image;elements.basePhotoUrl=result.url;
+      $("photoName").textContent=candidate.path.split("/").pop()+" · SHA-256 verified";
+      $("sourceWarning").textContent="同源 Renderer 比较使用 P5 SHA 已验证的 test fixture。它与 Frozen 截图内照片不同，Frozen Visual QA = BLOCKED。";
+      render();return result;
+    }catch(error){elements.assetErrors.length=errorCount;lastError=error;}
+  }
+  $("photoName").textContent="未加载";
+  throw lastError||pushAssetError("TEST_FIXTURE_MISSING",binding.path,new Error("No repository or Design Manager asset alias resolved"));
+}
+async function onPhotoUpload(event){
+  const file=event.target.files&&event.target.files[0];if(!file)return;
+  if(elements.photoUrl)URL.revokeObjectURL(elements.photoUrl);
+  elements.photoUrl=URL.createObjectURL(file);
+  try{elements.photo=await loadImage(elements.photoUrl);$("photoName").textContent=file.name+" · 本地导入";$("sourceWarning").textContent="已绑定本地源图。该文件与所选 Frozen 设计原图是否完全相同仍需由设计证据确认；Diff 继续标记为探索性。";render();}
+  catch(e){reportError(e.message);}
+}
+async function onMaskUpload(event){
+  const file=event.target.files&&event.target.files[0];if(!file)return;
+  if(elements.maskUrl)URL.revokeObjectURL(elements.maskUrl);
+  elements.maskUrl=URL.createObjectURL(file);
+  try{elements.mask=await loadImage(elements.maskUrl);elements.maskBoundaryCache=null;$("maskName").textContent=file.name+" · 本地导入";updateFocusReadiness();elements.cache=null;render();}
+  catch(e){elements.mask=null;$("maskName").textContent="读取失败";reportError(e.message);}
+}
+function readBBox(){
+  if(elements.focusMode==="REVIEW_PROXY_NOT_PRODUCTION")return REVIEW_CASE_B.detector.bbox;
+  if(elements.focusMode!=="PRODUCTION_VERIFIED")return null;
+  const values=["bboxX1","bboxY1","bboxX2","bboxY2"].map(id=>$(id).value.trim());
+  if(values.some(v=>v==="")||!$("bboxAttested").checked)return null;
+  const a=values.map(Number);
+  if(a.some(v=>!Number.isFinite(v))||a[0]<0||a[1]<0||a[2]>1||a[3]>1||a[2]<=a[0]||a[3]<=a[1])return {invalid:true};
+  return {x1:a[0],y1:a[1],x2:a[2],y2:a[3]};
+}
+function updateFocusReadiness(){
+  const box=readBBox();
+  const enabled=(stateId()==="FISH_LOCATED"||stateId()==="SPECIES_RECOGNIZING");
+  let message="Fish Focus：";
+  if(!enabled)message+="当前状态不显示（IMAGE_RECOGNIZING）";
+  else if(elements.focusMode==="BLOCKED"||!box)message+="BLOCKED · 当前没有可用生产 BBox + Mask";
+  else if(box.invalid)message+="BLOCKED · BBox 无效";
+  else if(elements.focusMode==="REVIEW_PROXY_NOT_PRODUCTION")message+="REVIEW_PROXY_NOT_PRODUCTION · Case B 历史 detector BBox + 人工标注 alpha；未接入生产 Mask";
+  else message+="BLOCKED · 缺少可验证 FishSubjectResult";
+  $("focusReadiness").textContent=message;
+  $("focusReadiness").className="statusline warn";
+  updateQuickControlValues();
+}
+function updateRendererNote(){
+  const notes={
+    "android-current":"复现当前 Android BlurMaskFilter 的几何与 alpha；浏览器 shadowBlur 是视觉近似，不等同原生 Paint.setMaskFilter。",
+    "hardware-gradient":"优先比较：使用配置 Radial / Linear Gradient 与 Path 多层描边，不调用模糊滤镜；API 28 兼容性仍需真机确认。",
+    "software-cache":"离屏 RGBA 缓存 + 浏览器 blur 近似。缓存重绘成本与 Android 软件层内存 / 帧耗待实机测量。"
+  };
+  $("rendererNote").textContent=notes[elements.renderer]||"";
+  $("renderBadge").textContent=elements.renderer;
+}
+function resetDefaults(){
+  elements.params=initialParams();elements.renderer="hardware-gradient";elements.quality="FULL";elements.dLevel="D0";
+  elements.previewMode="static";elements.staticCandidate="B";elements.dynamicCandidate="B";elements.fieldLayerView="composite";elements.previewTime=0;elements.motionSpeed=1;setPlaying(false);$("focusSource").value="blocked";setFocusMode("blocked");syncReviewControls();
+  elements.layers={photo:true,status:true,receiving:true,outer:true,mid:true,core:true,hairlines:true,fishHalo:true,fishContour:true};
+  elements.reviewLayers={field:true,paths:true,filaments:true,fish:true};
+  $("bboxAttested").disabled=true;["bboxX1","bboxY1","bboxX2","bboxY2"].forEach(id=>$(id).disabled=true);
+  elements.reduceMotion=false;elements.maskDiagnostic=false;elements.cache=null;
+  $("rendererSelect").value=elements.renderer;$("qualitySelect").value="FULL";$("degradationSelect").value="D0";$("reduceMotion").checked=false;$("maskDiagnostic").checked=false;
+  document.querySelectorAll("#layerControls input").forEach(x=>x.checked=elements.layers[x.dataset.layer]);
+  document.querySelectorAll("#pathChecks input").forEach(x=>x.checked=true);
+  const refs={paramAlpha:"alpha",paramGlow:"glowWidth",paramBlur:"blurRadius",paramFalloff:"falloff",paramTailLength:"tailLength",paramTailPosition:"tailPosition",paramHalo:"fishHalo",paramContour:"fishContour",paramStrength:"stateStrength",paramSafeTop:"safeTop",paramSafeBottom:"safeBottom"};
+  Object.keys(refs).forEach(id=>$(id).value=elements.params[refs[id]]??0);
+  updateQuickControlValues();selectState(0);updateRendererNote();render();
+}
+function tokenAlpha(value){return "rgba("+parseInt(value.slice(1,3),16)+","+parseInt(value.slice(3,5),16)+","+parseInt(value.slice(5,7),16)+","+arguments[1]+")";}
+function transformPhoto(sourceWidth,sourceHeight,viewportWidth,viewportHeight,mode){
+  const scale=mode==="CROP"?Math.max(viewportWidth/sourceWidth,viewportHeight/sourceHeight):Math.min(viewportWidth/sourceWidth,viewportHeight/sourceHeight);
+  const drawnWidth=sourceWidth*scale,drawnHeight=sourceHeight*scale,translationX=(viewportWidth-drawnWidth)/2,translationY=(viewportHeight-drawnHeight)/2;
+  return {scale,drawnWidth,drawnHeight,translationX,translationY,photoContentRect:{left:Math.max(0,translationX),top:Math.max(0,translationY),right:Math.min(viewportWidth,translationX+drawnWidth),bottom:Math.min(viewportHeight,translationY+drawnHeight)}};
+}
+function getState(){return elements.config.p3_states_and_status.product_states[elements.stateIndex];}
+function getStack(layer){return elements.config.p1_edge_field.optical_stack.find(x=>x.layer===layer);}
+function getQuality(){return elements.config.p4_motion_quality_responsive.quality_profiles[elements.quality];}
+function tokenColors(){
+  return {blue:colorToken("color.legacy_bfeaf2ff"),blueHot:colorToken("color.legacy_d8f5faff"),gold:colorToken("color.legacy_f6d99bff"),goldHot:colorToken("color.legacy_ffe7aeff")};
+}
+function roundedRect(ctx,x,y,w,h,r){
+  const rr=Math.min(r,w/2,h/2);ctx.beginPath();ctx.moveTo(x+rr,y);ctx.arcTo(x+w,y,x+w,y+h,rr);ctx.arcTo(x+w,y+h,x,y+h,rr);ctx.arcTo(x,y+h,x,y,rr);ctx.arcTo(x,y,x+w,y,rr);ctx.closePath();
+}
+function drawPhoto(ctx,w,h){
+  ctx.fillStyle=runtimeSnapshot().scene_background_color;ctx.fillRect(0,0,w,h);
+  const photo=elements.photo;
+  const sw=photo?photo.naturalWidth:941,sh=photo?photo.naturalHeight:1672;
+  const t=transformPhoto(sw,sh,w,h,"FIT"),r=t.photoContentRect;
+  if(photo&&elements.layers.photo){
+    if((t.translationX>0||t.translationY>0)&&Math.abs(t.translationX)<w&&Math.abs(t.translationY)<h){
+      const crop=transformPhoto(sw,sh,w,h,"CROP");
+      ctx.save();ctx.globalAlpha=runtimeSnapshot().decorative_crop_alpha;ctx.drawImage(photo,crop.translationX,crop.translationY,crop.drawnWidth,crop.drawnHeight);ctx.restore();
+    }
+    ctx.drawImage(photo,t.translationX,t.translationY,t.drawnWidth,t.drawnHeight);
+  } else if(!photo){
+    ctx.fillStyle="#23383e";ctx.fillRect(r.left,r.top,r.right-r.left,r.bottom-r.top);
+    ctx.fillStyle="#bed1d4";ctx.font="14px system-ui";ctx.textAlign="center";ctx.fillText("绑定源照片以开始",w/2,h/2);
+  }
+  return {transform:t,rect:r};
+}
+function mapPoint(point,rect){return {x:rect.left+point[0]*(rect.right-rect.left),y:rect.top+point[1]*(rect.bottom-rect.top)};}
+function cubicPoints(record,rect,steps){
+  const p0=mapPoint(record.start,rect),p1=mapPoint(record.control1,rect),p2=mapPoint(record.control2,rect),p3=mapPoint(record.end,rect),out=[];
+  for(let i=0;i<=steps;i++){const t=i/steps,u=1-t;out.push({x:u*u*u*p0.x+3*u*u*t*p1.x+3*u*t*t*p2.x+t*t*t*p3.x,y:u*u*u*p0.y+3*u*u*t*p1.y+3*u*t*t*p2.y+t*t*t*p3.y});}
+  return out;
+}
+function interpolatePoint(a,b,f){return {x:a.x+(b.x-a.x)*f,y:a.y+(b.y-a.y)*f};}
+function pathPieces(points,start,length){
+  const lens=[0];let total=0;
+  for(let i=1;i<points.length;i++){total+=Math.hypot(points[i].x-points[i-1].x,points[i].y-points[i-1].y);lens.push(total);}
+  if(total<=0)return [];
+  function slice(a,b){
+    const s=a*total,e=b*total,ret=[];
+    for(let i=0;i<points.length;i++)if(lens[i]>=s&&lens[i]<=e)ret.push(points[i]);
+    function at(dist){
+      if(dist<=0)return points[0];if(dist>=total)return points[points.length-1];
+      let i=1;while(i<lens.length&&lens[i]<dist)i++;
+      return interpolatePoint(points[i-1],points[i],(dist-lens[i-1])/(lens[i]-lens[i-1]||1));
+    }
+    const head=at(s),tail=at(e);
+    if(!ret.length||Math.hypot(ret[0].x-head.x,ret[0].y-head.y)>.01)ret.unshift(head);
+    if(Math.hypot(ret[ret.length-1].x-tail.x,ret[ret.length-1].y-tail.y)>.01)ret.push(tail);
+    return ret;
+  }
+  const s=((start%1)+1)%1,e=s+Math.min(.999,Math.max(.001,length));
+  return e<=1?[slice(s,e)]:[slice(s,1),slice(0,e-1)].filter(x=>x.length>1);
+}
+function strokePolyline(ctx,points,color,width,alpha,blur,mode){
+  if(points.length<2)return;
+  ctx.save();ctx.beginPath();ctx.moveTo(points[0].x,points[0].y);for(let i=1;i<points.length;i++)ctx.lineTo(points[i].x,points[i].y);
+  ctx.lineCap="round";ctx.lineJoin="round";ctx.lineWidth=width;ctx.strokeStyle=safeAlphaColor(color,alpha);
+  if(blur>0&&mode==="software-cache"){const scale=runtimeSnapshot().renderer_candidates.software_canvas_filter_blur_multiplier;ctx.filter="blur("+(blur*scale)+"px)";}
+  else if(mode!=="hardware-gradient"&&blur>0){ctx.shadowColor=safeAlphaColor(color,alpha);ctx.shadowBlur=blur;}
+  ctx.stroke();ctx.filter="none";ctx.restore();
+}
+function strokeGradientTail(ctx,points,color,hot,width,alpha,falloff){
+  if(points.length<2)return;
+  const a=points[0],b=points[points.length-1],gradient=ctx.createLinearGradient(a.x,a.y,b.x,b.y);
+  const stops=runtimeSnapshot().gradient_tail_stops;
+  stops.forEach((s,i)=>{const pos=Math.pow(s[0],1/Math.max(.2,falloff));gradient.addColorStop(clamp(pos,0,1),safeAlphaColor(i>=2?hot:color,alpha*s[1]));});
+  ctx.save();ctx.beginPath();ctx.moveTo(a.x,a.y);for(let i=1;i<points.length;i++)ctx.lineTo(points[i].x,points[i].y);
+  ctx.strokeStyle=gradient;ctx.lineWidth=width;ctx.lineCap="round";ctx.lineJoin="round";ctx.stroke();ctx.restore();
+}
+function strokeCandidateGradient(ctx,points,color,hot,width,alpha,falloff){
+  if(points.length<2)return;
+  const a=points[0],b=points[points.length-1],gradient=ctx.createLinearGradient(a.x,a.y,b.x,b.y);
+  runtimeSnapshot().gradient_tail_stops.forEach((stop,index)=>gradient.addColorStop(clamp(Math.pow(stop[0],1/Math.max(.2,falloff)),0,1),safeAlphaColor(index>=2?hot:color,alpha*stop[1])));
+  ctx.save();ctx.beginPath();ctx.moveTo(a.x,a.y);for(let i=1;i<points.length;i++)ctx.lineTo(points[i].x,points[i].y);
+  ctx.strokeStyle=gradient;ctx.lineWidth=width;ctx.lineCap="round";ctx.lineJoin="round";ctx.stroke();ctx.restore();
+}
+function drawHardwareBloom(ctx,points,color,hot,width,common,quality){
+  const outer=getStack("primary_outer_bloom"),candidate=runtimeSnapshot().renderer_candidates;
+  candidate.hardware_outer_bloom_layers.forEach(layer=>strokeCandidateGradient(ctx,points,color,hot,
+    outer.width_dp*elements.params.glowWidth*layer.width_multiplier,
+    outer.android_base_alpha*common*layer.alpha_multiplier*(quality.outer||1),elements.params.falloff));
+}
+function drawHardwareMidGlow(ctx,points,color,hot,width,common,quality,primary){
+  const stack=primary?getStack("primary_mid_glow"):getStack("secondary_fragment_mid_and_core"),candidate=runtimeSnapshot().renderer_candidates;
+  const base=primary?stack.android_base_alpha:stack.android_mid_base_alpha;
+  const widthDp=primary?stack.width_dp:stack.android_mid_width_dp;
+  const cap=primary ? 0.10 : 0.035,qualityFactor=quality.mid||1;
+  candidate.hardware_mid_glow_layers.forEach(layer=>strokeCandidateGradient(ctx,points,color,hot,
+    widthDp*elements.params.glowWidth*layer.width_multiplier,
+    Math.min(cap,base*common*layer.alpha_multiplier*qualityFactor),elements.params.falloff));
+}
+function receivingStateScale(){return stateId()==="SPECIES_RECOGNIZING"?.72:(stateId()==="FISH_LOCATED"?.84:1);}
+function drawReviewReceivingField(ctx,rect,colors,quality){
+  if(!elements.reviewLayers.field||!elements.layers.receiving)return;
+  const candidate=activeOpticalCandidate(),stateScale=receivingStateScale();
+  const breaths=[1,1,1,1];
+  if(elements.previewMode==="dynamic"){
+    const p=DYNAMIC_REVIEW_CANDIDATES[elements.dynamicCandidate],t=elements.previewTime;
+    const configs=[[p.periods[0],.08],[p.periods[1],1.72],[p.periods[2],3.41],[p.periods[3],4.86]];
+    configs.forEach(([period,phase],i)=>{breaths[i]=1+p.breath*Math.sin(2*Math.PI*t/period+phase);});
+  }
+  const reviewColors={blue:"#5AB2FC",gold:"#E0B644"};
+  const blobs=[
+    {x:.86,y:.10,rx:.48,ry:.28,angle:.32,color:reviewColors.blue,weight:1.0,breath:breaths[0]},
+    {x:.15,y:.16,rx:.42,ry:.23,angle:-.24,color:reviewColors.gold,weight:.68,breath:breaths[1]},
+    {x:.12,y:.91,rx:.34,ry:.20,angle:-.39,color:reviewColors.gold,weight:.30,breath:breaths[2]},
+    {x:.91,y:.90,rx:.32,ry:.17,angle:.43,color:reviewColors.blue,weight:.15,breath:breaths[3]}
+  ];
+  const common=candidate.field*stateScale*elements.params.alpha*(elements.params.layerStrength.receiving||0)*(quality.receiving||1)*(quality.alpha||1);
+  ctx.save();ctx.globalCompositeOperation="source-over";
+  blobs.forEach(blob=>{
+    const cx=rect.left+blob.x*(rect.right-rect.left),cy=rect.top+blob.y*(rect.bottom-rect.top),rx=(rect.right-rect.left)*blob.rx,ry=(rect.bottom-rect.top)*blob.ry;
+    const intensity=Math.min(.70,.44*common*blob.weight*blob.breath);
+    // Keep the gradient and its ellipse in the same photo/canvas coordinate
+    // space. The prior unit-radius gradient was coupled to a transformed unit
+    // ellipse, which rendered nearly transparent in the deployed review page.
+    const gradient=ctx.createRadialGradient(cx,cy,0,cx,cy,Math.max(rx,ry)*1.08);
+    gradient.addColorStop(0,safeAlphaColor(blob.color,intensity*.88));gradient.addColorStop(.34,safeAlphaColor(blob.color,intensity*.58));gradient.addColorStop(.69,safeAlphaColor(blob.color,intensity*.22));gradient.addColorStop(1,safeAlphaColor(blob.color,0));
+    ctx.save();ctx.fillStyle=gradient;ctx.beginPath();ctx.ellipse(cx,cy,rx,ry,blob.angle,0,Math.PI*2);ctx.fill();ctx.restore();
+  });
+  ctx.restore();
+}
+function drawReceiving(ctx,rect,mode,quality,colors){
+  if(!elements.layers.receiving||!elements.reviewLayers.field)return;
+  const receiving=getStack("local_receiving_light"),contractRange=receiving.contract_alpha_before_multipliers;
+  const base=mode==="hardware-gradient"?(contractRange[0]+contractRange[1])/2:(receiving.android_base_alpha||.13);
+  const cap=mode==="hardware-gradient"?contractRange[1]:(receiving.runtime_alpha_cap||.14);
+  const minDim=Math.min(rect.right-rect.left,rect.bottom-rect.top);
+  runtimeSnapshot().receiving_light_layout.forEach(item=>{
+    const center={x:rect.left+item.center[0]*(rect.right-rect.left),y:rect.top+item.center[1]*(rect.bottom-rect.top)};
+    const radius=minDim*item.radius_min_dimension,ov=item.oval,ox=rect.left+ov[0]*(rect.right-rect.left),oy=rect.top+ov[1]*(rect.bottom-rect.top),ow=ov[2]*(rect.right-rect.left),oh=ov[3]*(rect.bottom-rect.top);
+    const record=elements.config.p1_edge_field.paths.find(path=>path.island===item.id||path.id===item.id);
+    const weight=record?record.island_weight:1,color=String(item.id).startsWith("G")?colors.gold:colors.blue;
+    const alpha=Math.min(cap,base*weight*elements.params.stateStrength*elements.params.alpha*(elements.params.layerStrength.receiving||0)*(quality.receiving||1)*(quality.alpha||1));
+    const grad=ctx.createRadialGradient(center.x,center.y,0,center.x,center.y,radius);
+    runtimeSnapshot().receiving_light_alpha_stops.forEach(stop=>grad.addColorStop(stop[0],safeAlphaColor(color,alpha*stop[1])));
+    ctx.save();ctx.globalAlpha=1;ctx.fillStyle=grad;ctx.beginPath();ctx.ellipse(ox+ow/2,oy+oh/2,Math.abs(ow/2),Math.abs(oh/2),0,0,Math.PI*2);ctx.fill();ctx.restore();
+  });
+}
+function drawPathRecord(ctx,record,rect,mode,quality,colors,kind,seedOffset,visibleRatio,widthOverride,reviewOpacity=1){
+  const showPath=document.querySelector('[data-path="'+record.id+'"]');
+  if(showPath&&!showPath.checked)return;
+  const points=cubicPoints(record,rect,runtimeSnapshot().renderer_candidates.cubic_subdivisions);
+  const start=(seedOffset===undefined?(record.runtime_seed??record.runtime_seed_candidate??0):seedOffset)+elements.params.tailPosition;
+  const length=(visibleRatio===undefined?record.visible_ratio:visibleRatio)*elements.params.tailLength;
+  const pieces=pathPieces(points,start,length);
+  const primary=record.role==="primary",isSecondary=record.role==="secondary_only";
+  const candidate=activeOpticalCandidate(),roleScale=primary?candidate.paths:candidate.filaments;
+  const weight=record.island_weight||1,state=elements.params.stateStrength,global=elements.params.alpha*(quality.alpha||1)*roleScale*reviewOpacity,width=widthOverride||record.core_width_dp||.8;
+  const outer=getStack("primary_outer_bloom"),mid=getStack("primary_mid_glow"),secondary=getStack("secondary_fragment_mid_and_core"),core=getStack("primary_core"),strength=elements.params.layerStrength;
+  pieces.forEach(piece=>{
+    if(primary&&elements.layers.outer){
+      if(mode==="hardware-gradient")drawHardwareBloom(ctx,piece,record.family==="blue"?colors.blue:colors.gold,record.family==="blue"?colors.blueHot:colors.goldHot,width,weight*state*global*(strength.outer||0),quality);
+      else strokePolyline(ctx,piece,record.family==="blue"?colors.blue:colors.gold,outer.width_dp*elements.params.glowWidth,(outer.android_base_alpha||.04)*weight*state*global*(strength.outer||0)*(quality.outer||1),elements.params.blurRadius*(outer.blur_radius_dp||5),mode);
+    }
+    if(elements.layers.mid){
+      const base=primary?(mid.android_base_alpha||.075):(secondary.android_mid_base_alpha||.025);
+      const mw=primary?mid.width_dp:secondary.android_mid_width_dp;
+      const blur=primary?mid.blur_radius_dp:secondary.android_mid_blur_radius_dp;
+      const alpha=Math.min(primary ? .10 : .035,base*weight*state*global*(strength.mid||0)*(quality.mid||1));
+      const color=record.family==="blue"?colors.blue:colors.gold,hot=record.family==="blue"?colors.blueHot:colors.goldHot;
+      if(mode==="hardware-gradient")drawHardwareMidGlow(ctx,piece,color,hot,width,weight*state*global*(strength.mid||0),quality,primary);
+      else strokePolyline(ctx,piece,color,mw*elements.params.glowWidth,alpha,elements.params.blurRadius*blur,mode);
+    }
+    if(elements.layers.core){
+      const base=primary?(core.android_base_alpha||.46):(secondary.android_core_base_alpha||.16);
+      const cap=primary?(core.maximum_alpha||.5):(secondary.android_core_alpha_cap||.12);
+      const alpha=Math.min(cap,base*weight*state*global*(strength.core||0)*(quality.core||1));
+      if(mode==="hardware-gradient")strokeGradientTail(ctx,piece,record.family==="blue"?colors.blue:colors.gold,record.family==="blue"?colors.blueHot:colors.goldHot,width,alpha,elements.params.falloff);
+      else strokeGradientTail(ctx,piece,record.family==="blue"?colors.blue:colors.gold,record.family==="blue"?colors.blueHot:colors.goldHot,width,alpha,elements.params.falloff);
+    }
+  });
+}
+function echoRecord(echo,parent){
+  return {id:echo.id,family:parent.family,role:"companion",island:parent.island,start:echo.start,control1:echo.control1,control2:echo.control2,end:echo.end};
+}
+function drawEcho(ctx,echo,parent,layer,rect,mode,quality,colors,micro,visibility=1){
+  const parentToggle=document.querySelector('[data-path="'+parent.id+'"]');if(parentToggle&&!parentToggle.checked)return;
+  const delta=(layer.phase_delta_by_path&&layer.phase_delta_by_path[echo.id])||layer.phase_delta||0;
+  const ratio=(layer.android_visible_ratio&&layer.android_visible_ratio[echo.id])||layer.android_visible_ratio||.4;
+  const width=(layer.android_core_width_dp&&layer.android_core_width_dp[echo.id])||layer.android_core_width_dp||.6;
+  const weight=layer.android_weight||.3,localGlow=micro?(layer.android_local_glow_width_dp||1.5):(layer.android_local_glow_width_dp||2.1);
+  const seed=(parent.runtime_seed||0)+delta,start=seed+elements.params.tailPosition,length=ratio*elements.params.tailLength;
+  const pieces=pathPieces(cubicPoints(echo,rect,runtimeSnapshot().renderer_candidates.cubic_subdivisions),start,length),color=parent.family==="blue"?colors.blue:colors.gold,hot=parent.family==="blue"?colors.blueHot:colors.goldHot;
+  const common=(parent.island_weight||1)*elements.params.stateStrength*elements.params.alpha*(quality.alpha||1)*activeOpticalCandidate().filaments*visibility;
+  const alphaContract=runtimeSnapshot().hairline_runtime_alpha[micro?"micro":"companion"];
+  const glowAlpha=Math.min(alphaContract.glow_cap,alphaContract.glow_multiplier*common*weight),coreAlpha=Math.min(alphaContract.core_cap,alphaContract.core_multiplier*common*weight);
+  pieces.forEach(points=>{
+    if(mode==="hardware-gradient"){
+      strokePolyline(ctx,points,color,localGlow*elements.params.glowWidth,glowAlpha,0,mode);
+      strokePolyline(ctx,points,color,localGlow*.62*elements.params.glowWidth,glowAlpha*.62,0,mode);
+    }else strokePolyline(ctx,points,color,localGlow*elements.params.glowWidth,glowAlpha,localGlow*.5*elements.params.blurRadius,mode);
+    strokeGradientTail(ctx,points,color,hot,width,coreAlpha,elements.params.falloff);
+  });
+}
+function drawHairlines(ctx,rect,mode,quality,colors){
+  if(!elements.layers.hairlines||!elements.reviewLayers.filaments)return;
+  const edge=elements.config.p1_edge_field, byId=new Map(edge.paths.map(p=>[p.id,p]));
+  const companion=edge.optical_stack.find(x=>x.layer==="companion_hairline");
+  const micro=edge.optical_stack.find(x=>x.layer==="B_UR_micro_hairline");
+  const dynamic=elements.previewMode==="dynamic",p=DYNAMIC_REVIEW_CANDIDATES[elements.dynamicCandidate];
+  runtimeSnapshot().companion_hairline_geometry.forEach((e,index)=>{
+    if(!(quality.companions||[]).includes(e.id))return;
+    let visibility=[.76,.42,.19,.08][index%4];
+    if(dynamic){const cycle=(elements.previewTime/(p.periods[(index+1)%p.periods.length]*1.19)+index*.217)%1;visibility=cycle<.34?Math.sin(Math.PI*cycle/.34):0;if(visibility<.035)return;}
+    const parent=byId.get(e.parent),profile=STATIC_PATH_REVIEW_PROFILES[dynamic?"B":elements.staticCandidate][e.parent];if(parent)drawEcho(ctx,e,parent,companion,rect,mode,quality,colors,false,visibility*(profile?.alpha??1));
+  });
+  if(quality.micro){let visibility=.38;if(dynamic){const cycle=(elements.previewTime/(p.periods[2]*1.53)+.61)%1;visibility=cycle<.19?Math.sin(Math.PI*cycle/.19):0;}if(visibility>.035)drawEcho(ctx,runtimeSnapshot().micro_hairline_geometry,byId.get("B1"),micro,rect,mode,quality,colors,true,visibility);}
+}
+function drawDynamicFlow(ctx,rect,quality,colors){
+  if(elements.previewMode!=="dynamic"||!elements.reviewLayers.paths)return;
+  const cfg=DYNAMIC_REVIEW_CANDIDATES[elements.dynamicCandidate],paths=elements.config.p1_edge_field.paths.filter(record=>record.role==="primary");
+  paths.forEach((record,index)=>{
+    const period=cfg.periods[index%cfg.periods.length],offset=[.03,.36,.68,.19,.51][index%5],cycle=(elements.previewTime/period+offset)%1,active=.64;
+    if(cycle>=active)return;
+    const local=cycle/active,energy=Math.pow(Math.sin(Math.PI*local),1.45),points=cubicPoints(record,rect,runtimeSnapshot().renderer_candidates.cubic_subdivisions);
+    const base=record.runtime_seed??record.runtime_seed_candidate??0,start=base+.035+local*.40,length=Math.min(.075,record.visible_ratio*.24),pieces=pathPieces(points,start,length);
+    const color=record.family==="blue"?colors.blue:colors.gold,hot=record.family==="blue"?colors.blueHot:colors.goldHot,weight=record.island_weight||1;
+    pieces.forEach(piece=>{strokePolyline(ctx,piece,color,3.8,Math.min(.16,.10*cfg.flow*energy*weight),0,"hardware-gradient");strokeGradientTail(ctx,piece,color,hot,1.25,.52*cfg.flow*energy*weight,elements.params.falloff);});
+  });
+}
+function normalizeBBox(box){
+  const sourceText=String(elements.config.p2_fish_focus.input_contract.contour_source||"");
+  const expansion=sourceText.match(/expanded by ([0-9.]+)/);
+  if(!expansion)throw new Error("Fish subjectBox expansion is not expressed in the existing config; production mask mapping remains pending.");
+  const pad=Number(expansion[1]);
+  const w=box.x2-box.x1,h=box.y2-box.y1;
+  return {x1:clamp(box.x1-w*pad,0,1),y1:clamp(box.y1-h*pad,0,1),x2:clamp(box.x2+w*pad,0,1),y2:clamp(box.y2+h*pad,0,1)};
+}
+function maskBoundarySegments(mask){
+  const stride=elements.config.p2_fish_focus.geometry.contour_extraction_runtime.stride_px;
+  const threshold=elements.config.p2_fish_focus.geometry.contour_extraction_runtime.alpha_threshold_8bit;
+  const w=mask.naturalWidth||mask.width,h=mask.naturalHeight||mask.height;
+  const off=document.createElement("canvas");off.width=w;off.height=h;
+  const oc=off.getContext("2d",{willReadFrequently:true});oc.drawImage(mask,0,0);
+  let pixels;try{pixels=oc.getImageData(0,0,w,h).data;}catch(e){return {segments:[],error:"Mask 不能进行像素读取（跨域或浏览器策略）。请使用本地 PNG。"};}
+  const gw=Math.ceil(w/stride),gh=Math.ceil(h/stride),fg=new Uint8Array(gw*gh),labels=new Int32Array(gw*gh);labels.fill(-1);
+  for(let gy=0;gy<gh;gy++)for(let gx=0;gx<gw;gx++){const x=Math.min(w-1,gx*stride),y=Math.min(h-1,gy*stride);fg[gy*gw+gx]=pixels[(y*w+x)*4+3]>=threshold?1:0;}
+  const sizes=[],queue=[];let next=0;
+  for(let i=0;i<fg.length;i++){if(!fg[i]||labels[i]>=0)continue;labels[i]=next;queue.push(i);let size=0;while(queue.length){const cur=queue.pop(),cx=cur%gw,cy=Math.floor(cur/gw);size++;for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){if(!dx&&!dy)continue;const nx=cx+dx,ny=cy+dy;if(nx<0||ny<0||nx>=gw||ny>=gh)continue;const ni=ny*gw+nx;if(fg[ni]&&labels[ni]<0){labels[ni]=next;queue.push(ni);}}}sizes.push(size);next++;}
+  const filter=String(elements.config.p2_fish_focus.geometry.contour_extraction_runtime.component_filter||"").match(/max\((\d+),\s*largestComponentSize\/(\d+)\)/);
+  const largest=sizes.reduce((m,v)=>Math.max(m,v),0),minComponent=filter&&largest?Math.max(Number(filter[1]),largest/Number(filter[2])):4;
+  const keep=new Set(sizes.map((size,i)=>size>=minComponent?i:-1).filter(i=>i>=0));
+  const seg=[];
+  const inside=(x,y)=>x<0||y<0||x>=gw||y>=gh||!keep.has(labels[y*gw+x]);
+  for(let y=0;y<gh;y++)for(let x=0;x<gw;x++){if(!keep.has(labels[y*gw+x]))continue;const x0=x*stride,y0=y*stride,x1=Math.min(w,(x+1)*stride),y1=Math.min(h,(y+1)*stride);
+    if(inside(x,y-1))seg.push([[x0,y0],[x1,y0]]);
+    if(inside(x+1,y))seg.push([[x1,y0],[x1,y1]]);
+    if(inside(x,y+1))seg.push([[x1,y1],[x0,y1]]);
+    if(inside(x-1,y))seg.push([[x0,y1],[x0,y0]]);
+  }
+  return {segments:seg,maskWidth:w,maskHeight:h,stride,minComponent};
+}
+function drawFish(ctx,rect,transform,mode,quality,colors){
+  const enabled=stateId()==="FISH_LOCATED"||stateId()==="SPECIES_RECOGNIZING";
+  if(!enabled||!elements.reviewLayers.fish||elements.focusMode!=="REVIEW_PROXY_NOT_PRODUCTION")return;
+  const box=readBBox();if(!box||box.invalid)return;
+  const px=x=>rect.left+x*(rect.right-rect.left),py=y=>rect.top+y*(rect.bottom-rect.top);
+  const bx={left:px(box.x1),top:py(box.y1),right:px(box.x2),bottom:py(box.y2)};
+  const center={x:(bx.left+bx.right)/2,y:(bx.top+bx.bottom)/2};
+  const focus=elements.config.p2_fish_focus,contourData=elements.mask?(elements.maskBoundaryCache||(elements.maskBoundaryCache=maskBoundarySegments(elements.mask))):null;
+  const usableContour=Boolean(contourData&&!contourData.error&&contourData.segments.length);
+  const level=elements.dLevel==="D4"?"C":(elements.dLevel==="D3"?"B":(usableContour?"A":"B"));
+  const levelcfg=focus.levels[level];
+  function radiusParts(formula){const m=String(formula).match(/mappedBBox\.(width|height)\s*\*\s*([0-9.]+)\s*\+\s*([0-9.]+)/);return m?[Number(m[2]),Number(m[3])]:null;}
+  const rxParts=radiusParts(levelcfg.radii.x),ryParts=radiusParts(levelcfg.radii.y);
+  if(!rxParts||!ryParts){$("focusReadiness").textContent="Fish halo radius formula missing from P2 config";return;}
+  const rx=(bx.right-bx.left)*rxParts[0]+rxParts[1],ry=(bx.bottom-bx.top)*ryParts[0]+ryParts[1],scale=level==="C"?(levelcfg.radius_scale||.88):1;
+  const stateElapsed=Math.max(0,elements.previewTime-(elements.stateStartedAt||0));
+  const build=elements.previewMode==="dynamic"?(stateId()==="FISH_LOCATED"?clamp(stateElapsed/2.3,0,1):clamp(.82+stateElapsed*.045,.82,1)):1;
+  const focusStrength=(elements.params.layerStrength.fish||0)*build*REVIEW_PROXY_VISUAL_SCALE;
+  if(elements.layers.fishHalo){
+    const gx=rx*scale,gy=ry*scale,outer=elements.config.p2_fish_focus.geometry.radial_outer_extent_multiple||1.18;
+    const g=ctx.createRadialGradient(center.x,center.y,0,center.x,center.y,Math.max(gx,gy)*outer);
+    const staticValues=runtimeSnapshot().fish_focus_static_values[stateId()][level];
+    const alpha=(staticValues.halo_alpha*(elements.params.fishHalo/runtimeSnapshot().fish_focus_static_values.defaults.halo_alpha))*elements.params.alpha*focusStrength;
+    runtimeSnapshot().fish_halo_alpha_stops.forEach(stop=>g.addColorStop(stop[0],safeAlphaColor(colors.gold,alpha*stop[1])));
+    ctx.save();ctx.fillStyle=g;ctx.beginPath();ctx.ellipse(center.x,center.y,gx*outer,gy*outer,0,0,Math.PI*2);ctx.fill();ctx.restore();
+  }
+  if(elements.mask&&elements.maskDiagnostic){
+    const sb=normalizeBBox(box),mask=elements.mask;
+    ctx.save();ctx.globalAlpha=runtimeSnapshot().renderer_candidates.mask_diagnostic_alpha;ctx.drawImage(mask,px(sb.x1),py(sb.y1),Math.max(1,(sb.x2-sb.x1)*(rect.right-rect.left)),Math.max(1,(sb.y2-sb.y1)*(rect.bottom-rect.top)));ctx.restore();
+  }
+  if(level==="A"&&elements.mask&&elements.layers.fishContour){
+    const boundary=contourData,sb=normalizeBBox(box);
+    if(boundary.error){$("focusReadiness").textContent=boundary.error;return;}
+    const map=(p)=>({x:px(sb.x1+(p[0]/boundary.maskWidth)*(sb.x2-sb.x1)),y:py(sb.y1+(p[1]/boundary.maskHeight)*(sb.y2-sb.y1))});
+    const contour=levelcfg.contour,staticValues=runtimeSnapshot().fish_focus_static_values[stateId()][level];
+    const contourCap=stateId()==="FISH_LOCATED"?contour.core_alpha_outline:Math.max(...contour.core_alpha_classifying);
+    const coreAlpha=Math.min(contourCap,staticValues.contour_alpha*(elements.params.fishContour/runtimeSnapshot().fish_focus_static_values.defaults.contour_alpha))*elements.params.alpha*focusStrength;
+    boundary.segments.forEach(seg=>{
+      const a=map(seg[0]),b=map(seg[1]);
+      strokePolyline(ctx,[a,b],contour.glow_color,contour.glow_outer_width_dp*elements.params.glowWidth,Math.min(contour.glow_outer_alpha_cap,coreAlpha*contour.glow_outer_alpha_multiplier),contour.glow_outer_blur_dp*elements.params.blurRadius,mode);
+      strokePolyline(ctx,[a,b],contour.glow_color,contour.glow_mid_width_dp*elements.params.glowWidth,Math.min(contour.glow_mid_alpha_cap,coreAlpha*contour.glow_mid_alpha_multiplier),contour.glow_mid_blur_dp*elements.params.blurRadius,mode);
+      strokePolyline(ctx,[a,b],contour.color,contour.core_width_dp,coreAlpha,0,"hardware-gradient");
+    });
+  }else if(level==="A"&&!elements.mask){
+    $("focusReadiness").textContent="Fish Focus：BLOCKED · 缺少 alpha；未绘制轮廓";
+  }
+}
+function drawStatus(ctx,w,h,safeBottom,safeTop,mode,colors){
+  if(!elements.layers.status)return;
+  const state=getState(),card=elements.config.p3_states_and_status.status_card.android;
+  const statusLayout=runtimeSnapshot().status_layout;
+  const safeHorizontal=statusLayout.safe_horizontal_min_dp,cardW=w-safeHorizontal*2,cardH=card.height_dp;
+  const bottom=statusLayout.status_bottom_padding_dp[state.id];
+  const x=safeHorizontal,y=h-cardH-bottom-safeBottom;
+  ctx.save();ctx.globalAlpha=elements.params.layerStrength.status||0;roundedRect(ctx,x,y,cardW,cardH,card.corner_radius_dp);ctx.fillStyle=androidArgbColorToCss(card.background);ctx.fill();
+  const border=ctx.createLinearGradient(x,y,x+cardW,y+cardH);
+  statusLayout.border_gradient_stops.forEach(stop=>border.addColorStop(stop.position,safeAlphaColor(colorToken(stop.color_token),stop.alpha)));
+  ctx.strokeStyle=border;ctx.lineWidth=card.border_width_dp;ctx.stroke();
+  const cx=x+card.horizontal_padding_dp+card.indicator_size_dp/2,cy=y+cardH/2,r=card.indicator_size_dp/2-card.indicator_stroke_dp/2;
+  ctx.beginPath();ctx.arc(cx,cy,r,0,Math.PI*2);ctx.strokeStyle=safeAlphaColor(statusLayout.ring_track_color,statusLayout.ring_track_alpha);ctx.lineWidth=card.indicator_stroke_dp;ctx.stroke();
+  const sweep=card.indicator_sweep_degrees*Math.PI/180,start=statusLayout.ring_static_start_degrees*Math.PI/180;
+  const ringGradient=ctx.createConicGradient(start,cx,cy);
+  statusLayout.ring_gradient_stops.forEach(stop=>ringGradient.addColorStop(stop.position,safeAlphaColor(colorToken(stop.color_token),stop.alpha)));
+  ctx.beginPath();ctx.arc(cx,cy,r,start,start+sweep);ctx.strokeStyle=ringGradient;ctx.lineWidth=card.indicator_stroke_dp;ctx.lineCap="round";ctx.stroke();
+  const canon=elements.config.p3_states_and_status.status_card.canonical_copy[state.id]||{};
+  const title=state.id==="IMAGE_RECOGNIZING"?state.display_name:canon.title;
+  const subtitle=state.id==="IMAGE_RECOGNIZING"?"":canon.subtitle;
+  const textX=x+card.horizontal_padding_dp+card.indicator_size_dp+card.row_gap_dp;
+  ctx.textAlign="left";ctx.textBaseline="middle";ctx.fillStyle="#FFFFFF";ctx.font="500 "+card.title_size_sp+"px Roboto,Arial,sans-serif";
+  ctx.fillText(title||state.display_name,textX,y+cardH/2-(subtitle?10:0));
+  if(subtitle){ctx.fillStyle=colorToken("color.legacy_bfd0d7ff");ctx.font=card.subtitle_size_sp+"px Roboto,Arial,sans-serif";ctx.fillText(subtitle,textX,y+cardH/2+14);}
+  ctx.restore();
+  if(state.id==="IMAGE_RECOGNIZING"){
+    $("runtimeStatus").textContent="02 Frozen 的 Status Card 原文尚未转录；WEB 仅显示规范态名称，卡片字形与内容对比不计 PASS。";
+  }
+}
+function drawBack(ctx,safeTop){
+  const layout=runtimeSnapshot().status_layout,icon=runtimeSnapshot().renderer_candidates.back_icon_geometry,buttonSize=layout.back_button_size_dp,buttonLeft=layout.safe_horizontal_min_dp/2,cx=buttonLeft+buttonSize/2,cy=safeTop+layout.back_top_extra_dp+buttonSize/2,scale=buttonSize/icon.viewbox_dp[0];
+  ctx.save();ctx.strokeStyle="rgba(255,255,255,.95)";ctx.lineWidth=layout.back_stroke_dp;ctx.lineCap="round";ctx.lineJoin="round";ctx.beginPath();
+  icon.segments.forEach(segment=>{segment.forEach((point,index)=>{const x=cx+(point[0]-12)*scale,y=cy+(point[1]-12)*scale;if(index===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);});});ctx.stroke();ctx.restore();
+}
+function drawField(ctx,rect,mode,quality,colors){
+  const config=elements.config.edge||elements.config.p1_edge_field;
+  const reviewPathColors={blue:"#4F9EB8",blueHot:"#97D3E4",gold:"#C89548",goldHot:"#F2D18A"};
+  ctx.save();ctx.beginPath();ctx.rect(rect.left,rect.top,rect.right-rect.left,rect.bottom-rect.top);ctx.clip();
+  const view=elements.fieldLayerView,showReviewField=view==="composite"||view==="receiving",showBaseReceiving=view==="composite",showPaths=view==="composite"||view==="primary",showFilaments=view==="composite"||view==="filaments";
+  if(showReviewField)drawReviewReceivingField(ctx,rect,colors,quality);
+  if(showBaseReceiving)drawReceiving(ctx,rect,mode,quality,colors);
+  config.paths.forEach(record=>{
+    const primary=record.role==="primary";
+    if(primary&&(!showPaths||!elements.reviewLayers.paths))return;
+    if(!primary&&(!showFilaments||!elements.reviewLayers.filaments))return;
+    if(view==="primary"&&!primary)return;
+    if(view==="filaments"&&primary)return;
+    const seed=record.runtime_seed??record.runtime_seed_candidate??0,profile=STATIC_PATH_REVIEW_PROFILES[elements.previewMode==="dynamic"?"B":elements.staticCandidate][record.id]||{alpha:1,length:1};
+    drawPathRecord(ctx,record,rect,mode,quality,reviewPathColors,primary?"primary":"fragment",seed,record.visible_ratio*profile.length,record.core_width_dp,profile.alpha);
+  });
+  if(showFilaments)drawHairlines(ctx,rect,mode,quality,reviewPathColors);
+  if(showPaths&&elements.reviewLayers.paths)drawDynamicFlow(ctx,rect,quality,colors);
+  ctx.restore();
+}
+function paintScene(ctx,w,h,rendererOverride){
+  const mode=rendererOverride||elements.renderer;
+  ctx.clearRect(0,0,w,h);
+  const media=drawPhoto(ctx,w,h),rect=media.rect;
+  const quality=getQuality(),colors=tokenColors();
+  if(mode==="software-cache"&&elements.previewMode!=="dynamic"){
+    const key=[mode,w,h,stateId(),elements.quality,elements.dLevel,elements.previewMode,elements.staticCandidate,elements.fieldLayerView,JSON.stringify(elements.params),JSON.stringify(elements.layers),JSON.stringify(elements.reviewLayers),elements.focusMode,Array.from(document.querySelectorAll("[data-path]")).map(x=>x.checked?1:0).join(""),elements.mask&&elements.mask.src].join("|");
+    if(!elements.cache||elements.cache.key!==key){
+      const off=document.createElement("canvas");off.width=w;off.height=h;const oc=off.getContext("2d");
+      drawField(oc,rect,"software-cache",quality,colors);
+      const t=media.transform;
+      drawFish(oc,rect,t,"software-cache",quality,colors);
+      elements.cache={key:key,canvas:off};
+    }
+    ctx.drawImage(elements.cache.canvas,0,0,w,h);
+  }else{
+    drawField(ctx,rect,mode,quality,colors);
+    drawFish(ctx,rect,media.transform,mode,quality,colors);
+  }
+  if(elements.fieldLayerView==="composite"){
+    drawBack(ctx,elements.params.safeTop);
+    drawStatus(ctx,w,h,elements.params.safeBottom,elements.params.safeTop,mode,colors);
+  }
+  $("compareSize").textContent=w+" × "+h+" · PhotoViewport FIT";
+  $("renderBadge").textContent=mode+" · "+elements.quality+" / "+elements.dLevel;
+  $("sourceMode").textContent="同一视口 · Frozen FIT · 照片身份未绑定";
+}
+function render(){
+  if(!elements.config)return;
+  const c=elements.preview;c.width=elements.width;c.height=elements.height;
+  paintScene(c.getContext("2d"),c.width,c.height,elements.renderer);
+  c.style.aspectRatio=elements.width+"/"+elements.height;
+  c.dataset.previewMode=elements.previewMode;c.dataset.state=stateId();c.dataset.candidate=elements.previewMode==="dynamic"?elements.dynamicCandidate:elements.staticCandidate;c.dataset.previewTime=elements.previewTime.toFixed(3);
+  $("webCaption").textContent="WEB · "+getState().display_name+" · "+(elements.previewMode==="dynamic"?"动态 "+elements.dynamicCandidate:"静态 "+elements.staticCandidate);
+  document.querySelectorAll(".screen").forEach(s=>s.style.aspectRatio=elements.width+"/"+elements.height);
+  const params={paramAlpha:"alpha",paramGlow:"glowWidth",paramBlur:"blurRadius",paramFalloff:"falloff",paramTailLength:"tailLength",paramTailPosition:"tailPosition",paramHalo:"fishHalo",paramContour:"fishContour",paramStrength:"stateStrength",paramSafeTop:"safeTop",paramSafeBottom:"safeBottom"};
+  Object.keys(params).forEach(id=>{const val=elements.params[params[id]];$(id+"Value").textContent=Number(val).toFixed(id==="paramTailPosition"?3:2);});
+  updateFocusReadiness();renderComparison();drawROI();
+}
+function referenceReady(){
+  const img=references[stateId()];
+  return img&&img.complete&&img.naturalWidth>0?img:null;
+}
+function drawFrozenReference(ctx,img,x,y,w,h){
+  if(!img)return;
+  const scale=Math.min(w/img.naturalWidth,h/img.naturalHeight),dw=img.naturalWidth*scale,dh=img.naturalHeight*scale;
+  ctx.save();ctx.fillStyle=runtimeSnapshot().scene_background_color;ctx.fillRect(x,y,w,h);ctx.drawImage(img,x+(w-dw)/2,y+(h-dh)/2,dw,dh);ctx.restore();
+}
+function makeAlignedFrozenCanvas(img,w,h){
+  const canvas=document.createElement("canvas");canvas.width=w;canvas.height=h;drawFrozenReference(canvas.getContext("2d"),img,0,0,w,h);return canvas;
+}
+function renderCandidateGrid(){
+  const grid=$("candidateGrid"),w=elements.width,h=elements.height;
+  grid.style.display="grid";
+  document.querySelectorAll(".candidate-card img,.candidate-card canvas").forEach(item=>item.style.aspectRatio=w+"/"+h);
+  const candidates=[["candidateCurrent","android-current"],["candidateHardware","hardware-gradient"],["candidateSoftware","software-cache"]];
+  const composite=elements.compare;composite.width=w*3;composite.height=h;const cc=composite.getContext("2d");cc.clearRect(0,0,composite.width,composite.height);
+  candidates.forEach((item,index)=>{const canvas=$(item[0]);canvas.width=w;canvas.height=h;paintScene(canvas.getContext("2d"),w,h,item[1]);cc.drawImage(canvas,index*w,0,w,h);});
+  $("metricMean").textContent="—";$("metricThreshold").textContent="—";$("metricCoverage").textContent="3 个同视口静态候选";$("metricGate").textContent="探索性";$("metricGate").className="warn";
+}
+function renderComparison(){
+  const b=$("boards"),comp=$("compareScreen"),wipe=$("wipeRow"),grid=$("candidateGrid");
+  const canvas=elements.compare;canvas.width=elements.width;canvas.height=elements.height;canvas.style.aspectRatio=elements.width+"/"+elements.height;
+  const ctx=canvas.getContext("2d"),ref=referenceReady(),prev=elements.preview;
+  if(elements.mode==="side"){
+    b.style.display="grid";comp.style.display="none";grid.style.display="none";wipe.style.display="none";
+    canvas.width=elements.width*2;canvas.height=elements.height;canvas.style.aspectRatio=canvas.width+"/"+canvas.height;ctx.clearRect(0,0,canvas.width,canvas.height);
+    if(ref)drawFrozenReference(ctx,ref,0,0,elements.width,elements.height);else{ctx.fillStyle="#18262b";ctx.fillRect(0,0,elements.width,elements.height);}
+    ctx.drawImage(prev,elements.width,0,elements.width,elements.height);
+    $("metricGate").textContent="探索性 · Frozen photo identity unverified";$("metricGate").className="warn";
+  }
+  else if(elements.mode==="candidates"){b.style.display="none";comp.style.display="none";wipe.style.display="none";renderCandidateGrid();return;}
+  else{
+    b.style.display="none";grid.style.display="none";comp.style.display="block";wipe.style.display=elements.mode==="wipe"?"flex":"none";
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    if(!ref){ctx.fillStyle="#18262b";ctx.fillRect(0,0,canvas.width,canvas.height);ctx.fillStyle="#fff";ctx.fillText("Frozen 原件未加载",20,30);$("metricGate").textContent="不可计算";return;}
+    const frozenCanvas=makeAlignedFrozenCanvas(ref,canvas.width,canvas.height);
+    if(elements.mode==="overlay"){
+      ctx.drawImage(frozenCanvas,0,0);ctx.globalAlpha=.5;ctx.drawImage(prev,0,0,canvas.width,canvas.height);ctx.globalAlpha=1;
+    }else if(elements.mode==="wipe"){
+      ctx.drawImage(frozenCanvas,0,0);const cut=canvas.width*Number($("wipeInput").value)/100;ctx.save();ctx.beginPath();ctx.rect(cut,0,canvas.width-cut,canvas.height);ctx.clip();ctx.drawImage(prev,0,0,canvas.width,canvas.height);ctx.restore();ctx.strokeStyle="#fff";ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(cut,0);ctx.lineTo(cut,canvas.height);ctx.stroke();
+    }else if(elements.mode==="diff"){
+      const a=document.createElement("canvas");a.width=canvas.width;a.height=canvas.height;const ac=a.getContext("2d",{willReadFrequently:true});ac.drawImage(frozenCanvas,0,0);
+      const bcanvas=document.createElement("canvas");bcanvas.width=canvas.width;bcanvas.height=canvas.height;const bc=bcanvas.getContext("2d",{willReadFrequently:true});bc.drawImage(prev,0,0,canvas.width,canvas.height);
+      const ad=ac.getImageData(0,0,canvas.width,canvas.height).data,bd=bc.getImageData(0,0,canvas.width,canvas.height).data,out=ctx.createImageData(canvas.width,canvas.height);
+      let sum=0,n=0,threshold=0,max=0;
+      for(let i=0;i<ad.length;i+=4){const d=(Math.abs(ad[i]-bd[i])+Math.abs(ad[i+1]-bd[i+1])+Math.abs(ad[i+2]-bd[i+2]))/3;sum+=d;n++;if(d>=16)threshold++;if(d>max)max=d;const intensity=clamp(d*2.4,0,255);out.data[i]=intensity;out.data[i+1]=Math.max(0,Math.min(255,80-intensity*.18));out.data[i+2]=Math.max(0,255-intensity);out.data[i+3]=255;}
+      ctx.putImageData(out,0,0);$("metricMean").textContent=(sum/n).toFixed(2);$("metricThreshold").textContent=(100*threshold/n).toFixed(1)+"%";$("metricCoverage").textContent="max Δ "+max.toFixed(0);
+      $("metricGate").textContent="探索性（源图未绑定）";$("metricGate").className="warn";
+      return;
+    }
+    $("metricMean").textContent="—";$("metricThreshold").textContent="—";$("metricCoverage").textContent="同分辨率画布";
+    $("metricGate").textContent="探索性";$("metricGate").className="warn";
+  }
+}
+function getRoiRect(){
+  const w=elements.width,h=elements.height,option=$("roiSelect").value,box=readBBox();
+  const map=runtimeSnapshot().renderer_candidates.roi_regions;
+  let a=map[option]||map.all;
+  if(option==="fish"&&box&&!box.invalid){const pad=runtimeSnapshot().renderer_candidates.roi_fish_expansion_ratio,bw=box.x2-box.x1,bh=box.y2-box.y1;a=[clamp(box.x1-pad*bw,0,1),clamp(box.y1-pad*bh,0,1),clamp(bw*(1+2*pad),.1,1),clamp(bh*(1+2*pad),.1,1)];a[2]=Math.min(a[2],1-a[0]);a[3]=Math.min(a[3],1-a[1]);}
+  return {x:a[0]*w,y:a[1]*h,w:a[2]*w,h:a[3]*h};
+}
+function measureRoiDifference(ref,prev,r){
+  if(!ref)return null;
+  const w=Math.max(1,Math.round(r.w)),h=Math.max(1,Math.round(r.h));
+  const a=document.createElement("canvas"),b=document.createElement("canvas");a.width=b.width=w;a.height=b.height=h;
+  const ac=a.getContext("2d",{willReadFrequently:true}),bc=b.getContext("2d",{willReadFrequently:true});
+  try{const aligned=makeAlignedFrozenCanvas(ref,elements.width,elements.height);ac.drawImage(aligned,r.x,r.y,r.w,r.h,0,0,w,h);bc.drawImage(prev,r.x,r.y,r.w,r.h,0,0,w,h);const aa=ac.getImageData(0,0,w,h).data,bb=bc.getImageData(0,0,w,h).data;let sum=0,above=0,n=0;for(let i=0;i<aa.length;i+=4){const d=(Math.abs(aa[i]-bb[i])+Math.abs(aa[i+1]-bb[i+1])+Math.abs(aa[i+2]-bb[i+2]))/3;sum+=d;n++;if(d>=16)above++;}return {mean:sum/n,above:100*above/n};}catch(error){return {error:error.message};}
+}
+function drawROI(){
+  if(!elements.config)return;
+  const ctx=elements.roi.getContext("2d"),ref=referenceReady(),prev=elements.preview,r=getRoiRect(),half=elements.roi.width/2;
+  ctx.clearRect(0,0,elements.roi.width,elements.roi.height);ctx.fillStyle="#0e1a1e";ctx.fillRect(0,0,elements.roi.width,elements.roi.height);
+  if(ref){const aligned=makeAlignedFrozenCanvas(ref,elements.width,elements.height);ctx.drawImage(aligned,r.x,r.y,r.w,r.h,0,0,half,elements.roi.height);ctx.drawImage(prev,r.x,r.y,r.w,r.h,half,0,half,elements.roi.height);}
+  ctx.strokeStyle="#91d6df";ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(half,0);ctx.lineTo(half,elements.roi.height);ctx.stroke();
+  $("roiMeta").textContent=$("roiSelect").selectedOptions[0].text+" · Frozen | Web · "+Math.round(r.x)+"×"+Math.round(r.y)+" / "+Math.round(r.w)+"×"+Math.round(r.h);
+  const measurement=measureRoiDifference(ref,prev,r);$("metricRoi").textContent=measurement?(measurement.error?"不可读":measurement.mean.toFixed(2)+" / "+measurement.above.toFixed(1)+"%"):"—";
+}
+function downloadCanvas(canvas,name){
+  try{canvas.toBlob(blob=>{if(!blob){reportError("画布导出失败；请检查同源图片服务。");return;}const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);},"image/png");}
+  catch(e){reportError("导出被浏览器同源策略拦截："+e.message);}
+}
+function runResponsiveFixtures(){
+  if(!elements.config)return;
+  const responsive=runtimeSnapshot().responsive_lab,dims=[...elements.config.p4_motion_quality_responsive.responsive_contract.existing_viewports_px,...responsive.extra_viewports_px],photo=elements.photo;
+  const sw=photo?photo.naturalWidth:941,sh=photo?photo.naturalHeight:1672;
+  const unique=[...new Map(dims.map(d=>[d.join("x"),d])).values()];
+  const lines=unique.map(d=>{const t=transformPhoto(sw,sh,d[0],d[1],"FIT"),r=t.photoContentRect;const ok=r.left>=0&&r.top>=0&&r.right<=d[0]&&r.bottom<=d[1]&&r.right>=r.left&&r.bottom>=r.top;return d.join("×")+": "+(ok?"PASS · FIT 坐标封闭":"FAIL");});
+  $("runtimeStatus").textContent="Responsive geometry fixtures（P1 FIT model）: "+lines.join(" · ")+"。状态卡横向 safeDrawing = max(24dp, system insets)；Web 逻辑像素与 Android dp 不做等价假设。";
+}
+function buildStaticModelReport(){
+  const paths=elements.config.p1_edge_field.paths;
+  const frozenStates=elements.config.p3_states_and_status.product_states;
+  if(paths.length!==7)throw new Error("Expected exactly seven P1 edge paths.");
+  if(frozenStates.length!==3)throw new Error("Product state contract must remain exactly three.");
+  const manifestStates=elements.manifest.product_states;
+  if(manifestStates.length!==3)throw new Error("Frozen Manifest must bind exactly three product states.");
+  const early=manifestStates.some(s=>String(s.id).includes("EARLY")||s.keyframes.some(k=>k.path.includes("01_Capture_Transition")));
+  if(early)throw new Error("Retired Early visual must not be loaded.");
+  frozenStates.forEach(s=>{const frame=manifestStates.find(item=>item.id===s.id)?.keyframes?.[0];if(!frame)throw new Error("Frozen reference binding missing for "+s.id);const name=frame.path.split("/").pop();if(name!==referenceExpected[s.id])throw new Error("Frozen reference binding mismatch for "+s.id+": "+name);const configRef=elements.config.p5_compose_import_bindings.image_bindings.frozen_references.find(item=>item.state===s.id);if(!configRef||configRef.path!==frame.path||configRef.sha256!==frame.sha256)throw new Error("P5 / Frozen manifest mismatch for "+s.id);});
+  const frozenReady=frozenStates.every(s=>Boolean(references[s.id]));
+  const photoReady=Boolean(elements.photo);
+  $("staticGate").textContent=photoReady&&frozenReady?"REVIEW_REQUIRED · Frozen source-photo identity unverified":"BLOCKED · required image asset missing";
+  $("decisionStatus").textContent="REVIEW_REQUIRED · human static visual review pending";
+  $("decisionStatus").className="warn";
+  $("inputStatus").textContent=photoReady&&frozenReady?"PASS · config / Manifest / 3 Frozen / test fixture SHA verified":"BLOCKED · inspect asset paths below";
+  $("runtimeStatus").textContent="Gate A asset auto-loading: "+(photoReady&&frozenReady?"PASS":"BLOCKED")+" · 7 条路径 / 3 个产品状态 / Early 资产 0 · source-photo identity unverified · BBox / Mask missing by design.";
+  setOverallStatus(photoReady&&frozenReady?"REVIEW_REQUIRED":"BLOCKED","PR #166 Draft · HEAD "+(elements.buildInfo&&elements.buildInfo.head_sha||"not embedded; see PR evidence"));
+  renderAssetAudit();
+}
+function renderAssetAudit(){
+  const rows=$("assetRows");if(!rows)return;
+  const esc=s=>String(s??"").replace(/[&<>\"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+  rows.innerHTML=elements.assetAudit.map(item=>"<tr><td>"+esc(item.asset_id)+"<br><span class=\"tiny\">"+esc(item.role)+"</span></td><td><code>"+esc(item.repository_path)+"</code><br><span class=\"tiny\">SHA-256 "+esc(item.sha256)+" · "+esc(item.dimensions?item.dimensions.join("×"):"n/a")+" px · source "+esc(item.source_revision)+"</span></td><td class=\"asset-status "+esc(item.status)+"\">"+esc(item.status)+"</td></tr>").join("");
+  const verified=elements.assetAudit.filter(item=>item.status==="VERIFIED").length;
+  $("assetSummary").textContent=verified+" / "+elements.assetAudit.length+" 个已加载资源校验通过；Frozen/source-photo identity gate 另行判定。";
+  $("assetErrors").textContent=elements.assetErrors.map(item=>item.code+" · "+item.path+" · "+item.reason).join("\n");
+}
+function currentAssetManifest(){
+  const sources=elements.config&&elements.config.sources||[];
+  const verified=Boolean(elements.buildInfo&&elements.buildInfo.source_dependency_verification==="PASS");
+  return {schema_version:"1.0",task:"RECOGNITION_OPTICAL_LAB_STAGE_A1_VISUAL_CLOSURE",repository:"pan277942135/Yujian_App",pull_request:166,source_revision:elements.buildInfo&&elements.buildInfo.head_sha||"NOT_EMBEDDED",generated_at:new Date().toISOString(),assets:elements.assetAudit,source_dependencies:sources.map((source,index)=>({asset_id:"p1-p5-source-"+String(index+1).padStart(2,"0"),repository_path:source.path,source_revision:elements.buildInfo&&elements.buildInfo.head_sha||"NOT_EMBEDDED",sha256:null,git_blob_sha256_or_sha1:source.blob_sha,dimensions:null,role:source.role,provenance:"Declared by existing Processing_Engineering_Import_Config_V1.json sources; verified by CI Git Blob check",status:verified?"VERIFIED":"NOT_VERIFIED"})),photo_identity_to_frozen:"UNVERIFIED",frozen_visual_qa:"BLOCKED",overall_m1:"NOT_PASS"};
+}
+function downloadAssetManifest(){const blob=new Blob([JSON.stringify(currentAssetManifest(),null,2)],{type:"application/json"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="Recognition-Optical-Lab-Asset-Manifest.json";a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);}
+function currentExperiment(){
+  return {schema_version:"1.0",task:"RECOGNITION_OPTICAL_LAB_STAGE_A1_VISUAL_CLOSURE",state:stateId(),renderer:elements.renderer,viewport:[elements.width,elements.height],quality:elements.quality,degradation:elements.dLevel,reduce_motion:elements.reduceMotion,params:elements.params,layers:elements.layers,paths:Object.fromEntries([...document.querySelectorAll("#pathChecks input")].map(input=>[input.dataset.path,input.checked])),provenance:{configuration:elements.config&&elements.config.artifact_id,source_revision:elements.buildInfo&&elements.buildInfo.head_sha||"NOT_EMBEDDED",parameter_values_are_experimental:true}};
+}
+function exportExperiment(){const blob=new Blob([JSON.stringify(currentExperiment(),null,2)],{type:"application/json"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="Recognition-Optical-Lab-Experiment.json";a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);}
+async function importExperiment(event){
+  const file=event.target.files&&event.target.files[0];if(!file)return;
+  try{
+    const data=JSON.parse(await file.text());if(data.schema_version!=="1.0"||data.task!=="RECOGNITION_OPTICAL_LAB_STAGE_A1_VISUAL_CLOSURE")throw new Error("Unsupported experiment schema/task.");
+    const rendererIds=["android-current","hardware-gradient","software-cache"],stateIndex=elements.config.p3_states_and_status.product_states.findIndex(item=>item.id===data.state);
+    if(!rendererIds.includes(data.renderer)||stateIndex<0)throw new Error("Unknown renderer or product state.");
+    elements.renderer=data.renderer;$("rendererSelect").value=data.renderer;
+    if(Array.isArray(data.viewport)&&data.viewport.length===2){const value=data.viewport.join("x");if([...$("viewportSelect").options].some(option=>option.value===value)){$("viewportSelect").value=value;elements.width=data.viewport[0];elements.height=data.viewport[1];}}
+    if(["FULL","BALANCED","LITE"].includes(data.quality)){$("qualitySelect").value=data.quality;elements.quality=data.quality;}
+    if(["D0","D1","D2","D3","D4"].includes(data.degradation)){$("degradationSelect").value=data.degradation;elements.dLevel=data.degradation;}
+    elements.reduceMotion=Boolean(data.reduce_motion);$("reduceMotion").checked=elements.reduceMotion;
+    const numericRanges={alpha:[0,1.5],glowWidth:[.4,2],blurRadius:[0,2],falloff:[.5,1.6],tailLength:[.4,1.6],tailPosition:[-.5,.5],fishHalo:[0,.3],fishContour:[0,.5],stateStrength:[0,1],safeTop:[0,64],safeBottom:[0,80]};
+    for(const [key,[min,max]] of Object.entries(numericRanges)){const raw=data.params&&data.params[key];if(raw===null||raw===undefined||raw==="")continue;const value=Number(raw);if(Number.isFinite(value))elements.params[key]=clamp(value,min,max);}
+    for(const key of ["receiving","outer","mid","core","fish","status"]){const value=Number(data.params&&data.params.layerStrength&&data.params.layerStrength[key]);if(Number.isFinite(value))elements.params.layerStrength[key]=clamp(value,0,1.5);}
+    for(const [layer,value] of Object.entries(data.layers||{}))if(Object.hasOwn(elements.layers,layer))elements.layers[layer]=Boolean(value);
+    for(const input of document.querySelectorAll("#layerControls input"))input.checked=elements.layers[input.dataset.layer];
+    for(const input of document.querySelectorAll("#pathChecks input"))if(Object.hasOwn(data.paths||{},input.dataset.path))input.checked=Boolean(data.paths[input.dataset.path]);
+    const rangeRefs={paramAlpha:"alpha",paramGlow:"glowWidth",paramBlur:"blurRadius",paramFalloff:"falloff",paramTailLength:"tailLength",paramTailPosition:"tailPosition",paramHalo:"fishHalo",paramContour:"fishContour",paramStrength:"stateStrength",paramSafeTop:"safeTop",paramSafeBottom:"safeBottom"};
+    for(const [id,key] of Object.entries(rangeRefs))$(id).value=elements.params[key];
+    selectState(stateIndex,true);updateRendererNote();updateQuickControlValues();render();
+  }catch(error){reportError("Experiment import failed · "+error.message);}
+  event.target.value="";
+}
+function handleAssetLoadFailure(error){
+  const code=error&&error.code||"CONFIG_LOAD_FAILED",path=error&&error.assetPath||"design/pages/recognition/processing/handoff/Processing_Engineering_Import_Config_V1.json";
+  $("inputStatus").textContent=code;$("staticGate").textContent="BLOCKED · "+code;setOverallStatus("BLOCKED","PR #166 Draft · asset load needs retry");
+  if(!elements.assetErrors.some(item=>item.code===code&&item.path===path))elements.assetErrors.push({code,path,reason:error&&error.message||String(error)});
+  reportError(code+" · "+path+"\n"+(error&&error.message||String(error))+"\n重试：使用 localhost/HTTPS 打开当前 Optical Lab 页面，再按“重新加载资源”。");renderAssetAudit();
+}
+async function loadAssets(){
+  elements.buildInfo=window.OPTICAL_LAB_BUILD_INFO__||null;elements.assetAudit=[];elements.assetErrors=[];elements.config=null;elements.manifest=null;elements.photo=null;elements.photoCaseRegistry=null;
+  for(const loaded of elements.frozenByState.values())if(loaded.url)URL.revokeObjectURL(loaded.url);
+  if(elements.photoUrl)URL.revokeObjectURL(elements.photoUrl);if(elements.maskUrl)URL.revokeObjectURL(elements.maskUrl);
+  elements.photoUrl=null;elements.maskUrl=null;elements.mask=null;elements.maskBoundaryCache=null;
+  elements.frozenByState.clear();for(const key of Object.keys(references))delete references[key];
+  setOverallStatus("LOADING","PR #166 Draft · loading checked assets");
+  if(location.protocol==="file:")throw pushAssetError("CONFIG_LOAD_FAILED","HTTP local preview root",new Error("file:// blocks repository asset fetches; start python3 -m http.server 8765 at the supplied package root."));
+  if(!crypto.subtle)throw pushAssetError("CONFIG_LOAD_FAILED","Web Crypto SHA-256",new Error("secure-context SHA verification is unavailable; open localhost or HTTPS."));
+  const configPath="design/pages/recognition/processing/handoff/Processing_Engineering_Import_Config_V1.json",manifestPath="design/pages/recognition/design/Recognition_Processing_Visual_State_Set_V1_2.json",registryPath="design/system/fish_media_display_v1/real_photo_cases.json";
+  const configLoaded=await loadJsonAsset(designRootUrl(configPath),"processing-config",configPath,"config",null);elements.config=configLoaded.value;
+  const manifestSource=elements.config.sources.find(source=>source.path===manifestPath);
+  const manifestLoaded=await loadJsonAsset(designRootUrl(manifestPath),"processing-state-manifest",manifestPath,"state_manifest",manifestSource&&manifestSource.blob_sha);elements.manifest=manifestLoaded.value;
+  const registryLoaded=await loadJsonAsset(designRootUrl(registryPath),"photo-provenance-registry",registryPath,"photo_registry",null);elements.photoCaseRegistry=registryLoaded.value;
+  const binding=elements.config.p5_compose_import_bindings.image_bindings.test_photo,fixture=elements.photoCaseRegistry.fixture;
+  if(!fixture||fixture.sha256!==binding.sha256||fixture.bytes!==binding.bytes)throw pushAssetError("SOURCE_MISMATCH_BLOCKED",registryPath,new Error("photo registry does not match the existing P5 test-photo SHA/byte binding."));
+  const configStates=elements.config.p3_states_and_status.product_states;
+  if(configStates.length!==3||elements.manifest.product_states.length!==3)throw pushAssetError("SOURCE_MISMATCH_BLOCKED",manifestPath,new Error("source contracts must expose exactly three Frozen product states."));
+  const frozenLoads=await Promise.allSettled(elements.manifest.product_states.map(async state=>{
+    const frame=state.keyframes[0],assetId="frozen-"+state.id;
+    const loaded=await loadVerifiedImage(rootPath(frame.path),frame.sha256,frame.width,frame.height,{asset_id:assetId,repository_path:frame.path,source_revision:sourceRevisionFor("frozen"),role:"frozen",provenance:"PR #165 Frozen State Manifest + P5 image binding SHA-256; read-only reference"});
+    references[state.id]=loaded.image;elements.frozenByState.set(state.id,loaded);return loaded;
+  }));
+  if(!elements.uiBuilt){buildUI();elements.uiBuilt=true;}else{selectState(elements.stateIndex);updateRendererNote();}
+  let photoReady=false;try{await loadDefaultPhoto();photoReady=true;}catch(error){if(!elements.assetErrors.some(item=>item.code==="TEST_FIXTURE_MISSING"||item.code==="SOURCE_MISMATCH_BLOCKED"))elements.assetErrors.push({code:error.code||"TEST_FIXTURE_MISSING",path:error.assetPath||binding.path,reason:error.message});}
+  buildStaticModelReport();
+  const frozenReady=frozenLoads.every(result=>result.status==="fulfilled");
+  if(!photoReady||!frozenReady){const code=!frozenReady?"FROZEN_ASSET_MISSING":"TEST_FIXTURE_MISSING";$('inputStatus').textContent="BLOCKED · "+code;setOverallStatus("BLOCKED","PR #166 Draft · required asset missing; retry or inspect paths");}
+  renderAssetAudit();return {photoReady,frozenReady};
+}
+mountReviewLayout();
+loadAssets().catch(handleAssetLoadFailure);
+})();
+</script>
+</body>
+</html>
