@@ -171,7 +171,7 @@ assert.equal(html.includes("createImageBitmap"), false, "no derived/fabricated F
 
 const report = {
   schema_version: "1.0",
-  task: "RECOGNITION_OPTICAL_STATIC_DYNAMIC_CLOSURE_V1",
+  task: "YUJIAN_EDGEGLOW_WEB_STATIC_VISUAL_CLOSURE_V3",
   repository: "pan277942135/Yujian_App",
   pull_request: 166,
   source_revision: sourceRevision,
