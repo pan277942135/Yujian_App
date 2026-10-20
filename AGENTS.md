@@ -39,3 +39,14 @@ On interruption, return to `CONTROL_PLANE_REGISTRY.yaml`, then resume from the l
 - `control/*` and `design/*` branches are Control Plane change proposals; they run static validation and are not required to equal the current main Control Plane until merged.
 - Work progress MUST NOT modify the static Control Plane. Update branch-local `PROJECT_MASTER_STATE.yaml`, generic `WORK_EXECUTION_STATE.json`, logs and evidence instead.
 - A task/design/contract/gate/recovery rule change must land on main first; affected Work branches then resynchronize and re-enter admission.
+
+## Work V2 bounded recovery (after admission)
+
+For a repeated failing gate, invoke the approved `tools/work_execution_v2/failure_gate.py check`
+against the current branch's `WORK_EXECUTION_STATE.json` before another repair.
+Record each actual failed source run with `failure_gate.py record` and checkpoint
+per `harness/STATE_UPDATE_PROTOCOL.md`. Nonzero guard exit is a hard stop:
+do not bypass it by changing source SHA or opening a different branch for the
+same failure. Reopen only with a separately evidenced, distinct root cause and
+the applicable authorization. This mechanism never promotes a gate to PASS.
+Never push sensitive dynamic state to a public destination.
