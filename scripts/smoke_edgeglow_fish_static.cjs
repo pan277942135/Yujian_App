@@ -169,6 +169,7 @@ async function main() {
     contourBounds: (() => { const b = document.getElementById("fishContourPath").getBBox(); return [b.x, b.y, b.width, b.height]; })(),
     photoSha: document.getElementById("photoSha").textContent,
     buildLabel: document.getElementById("buildSha").textContent,
+    effectBounds: window.__EDGEGLOW_LAB__.effectBounds,
     edgeFieldPaths: window.__EDGEGLOW_LAB__.edgeFieldPaths,
     buildInfo: await fetch("./build-info.json", { cache: "no-store" }).then(response => response.json())
   }));
@@ -413,7 +414,7 @@ async function main() {
     edge_effect_padding_px: identity.edgeFieldInset,
     edge_field_paths: identity.edgeFieldPaths.map(({ id, family, widthDp, seed, visibleRatio, weight, length }) => ({ id, family, widthDp, seed, visibleRatio, weight, length })),
     perimeter_corner_delta: perimeterCorners,
-    effect_bounds_photo_px: await page.evaluate(() => window.__EDGEGLOW_LAB__.effectBounds),
+    effect_bounds_photo_px: identity.effectBounds,
     default_pixel_hash: defaultGlow.hash,
     toggles_and_parameters_change_pixels: true,
     browser_verified_layer_toggles: ["edgeFieldEnabled", "outerEnabled", "coreEnabled", "cometEnabled"],
