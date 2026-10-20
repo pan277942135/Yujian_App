@@ -372,7 +372,7 @@ async function main() {
       authority: "REVIEW_ONLY_NOT_FROZEN",
       source_sha: SOURCE_SHA,
       data_source_photo_sha256: photoSha,
-      receiving_field_geometry_authority: "P1 freezes the radial-oval class and alpha/depth bounds; exact layout/stops/weights are from the non-frozen runtime source snapshot",
+      receiving_field_geometry_authority: "P1 freezes radial-oval class, alpha/depth bounds and matching path island weights; exact oval layout/stops are from the non-frozen runtime source snapshot",
       frozen_path_authority: "P1 exact seven paths and the shared photoContentRect",
       receiving_field_opacity_cap: receivingOptics.opacityCap,
       receiving_field_composite: receivingOptics.composite,
@@ -540,7 +540,7 @@ async function main() {
       ],
 
       geometry: { transform_authority: "RecognitionImageTransform FIT oracle / renderer photoContentRect", photoContentRect: geometry.photoContentRect, viewports: viewportMatrix, paths: geometry.paths.map(pickGeometry), mapped_path_points: geometry.mapped_path_points, quiet_gaps: geometry.quiet_gaps, path_points_clamped: false, diagnostic_paths_clipped_to_photoContentRect: false, status: "PASS_FOR_GEOMETRY_MAPPING" },
-      receiving_field_geometry: { authority: "P1 freezes the local radial-oval class and alpha/depth bounds; exact placements/stops/weights are from the non-frozen runtime snapshot", layout_source_status: config.optical_lab_runtime_snapshot.status, layout: config.optical_lab_runtime_snapshot.receiving_light_layout, alpha_stops: config.optical_lab_runtime_snapshot.receiving_light_alpha_stops, opacity_cap: receivingOptics.opacityCap, oval_gain: receivingOptics.ovalGain, depth_contract: receivingDepthRange, composite: receivingOptics.composite, field_path_ids: [], photoContentRect: geometry.photoContentRect, geometry_added: false, renderer_signal_parity: { software_cache_to_hardware_gradient_ratio: rendererSignalRatio, result: "RENDERER_COMPOSITING_PARITY_ONLY_NOT_VISUAL_PASS" }, status: "REVIEW_CANDIDATE_LAYOUT_NOT_FROZEN_DESIGN" },
+      receiving_field_geometry: { authority: "P1 freezes radial-oval class, alpha/depth bounds and matching path island weights; exact oval placements/stops are from the non-frozen runtime snapshot", layout_source_status: config.optical_lab_runtime_snapshot.status, layout: config.optical_lab_runtime_snapshot.receiving_light_layout, alpha_stops: config.optical_lab_runtime_snapshot.receiving_light_alpha_stops, island_weight_source: "matching P1 primary path island_weight", opacity_cap: receivingOptics.opacityCap, oval_gain: receivingOptics.ovalGain, depth_contract: receivingDepthRange, composite: receivingOptics.composite, field_path_ids: [], photoContentRect: geometry.photoContentRect, geometry_added: false, renderer_signal_parity: { software_cache_to_hardware_gradient_ratio: rendererSignalRatio, result: "RENDERER_COMPOSITING_PARITY_ONLY_NOT_VISUAL_PASS" }, status: "REVIEW_CANDIDATE_LAYOUT_NOT_FROZEN_DESIGN" },
       static_candidates: Object.fromEntries(["A", "B", "C"].map(candidate => [candidate, {
         id: candidateDefinitions[candidate].id,
         name: candidateDefinitions[candidate].name,

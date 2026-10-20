@@ -137,14 +137,15 @@
   ],
   "static_candidate_status": "REVIEW_REQUIRED · nominal base alpha stays within P1 0.03–0.07; candidate scale ≤1.0; depth 0.08–0.18; source-over; .14 remains only the existing runtime ceiling",
   "field_geometry": {
-    "authority": "P1 freezes the local radial-oval class and alpha/depth bounds; exact placement, stops and weights are not frozen",
+    "authority": "P1 freezes the local radial-oval class and alpha/depth bounds; matching P1 path island_weight values set the island hierarchy; exact oval placement and stops remain review-only",
     "layout_source_status": "ANDROID_RUNTIME_SOURCE_SNAPSHOT_NOT_FROZEN_DESIGN",
-    "rendering": "four local radial ovals from the existing runtime source snapshot; candidate base alpha stays within 0.03–0.07, candidate scale ≤1.0, depth in 0.08–0.18; source-over; all clipped through shared photoContentRect",
+    "rendering": "four local radial ovals from the existing runtime source snapshot; matching P1 path island_weight values set corner hierarchy; candidate base alpha stays within 0.03–0.07, candidate scale ≤1, depth in 0.08–0.18; source-over; clipped to shared photoContentRect",
     "quiet_gaps": "review-only oval layout remains separated; the seven frozen paths and Quiet Gaps remain unchanged",
     "geometry_added": false,
     "color_tokens": "existing configured P1 blue/gold tokens",
     "path_source": "P1 B1/G1/B3/G3 paths remain separate layers above Receiving Light; no path samples are added to Receiving Light",
-    "composite_authority": "source-over for the Web P1 Receiving Light layer; P1 and Native source values are unchanged"
+    "composite_authority": "source-over for the Web P1 Receiving Light layer; P1 and Native source values are unchanged",
+    "island_weight_source": "matching P1 path record island_weight for each primary island"
   },
   "dynamic_candidates": {
     "A": {

@@ -55,7 +55,7 @@ This is a static Web Review implementation only. It does not modify P1–P5, PR 
 - The live Optical Review page at the start of this pass reported deployed page/source SHA `af78989301e49d689228b83f538ee931b76a6a7c`. The P5 fixture `real_catch_source.jpg` is 1152×1536, EXIF Orientation 1, FIT / no crop, SHA-256 `6e955087108f7463eca2dbac489699a4942028ebe1b3d456ddfca523286385ef`.
 - The screenshot showed the registered-photo perimeter field was nearly invisible against the photo. Frozen 02 contains a different photo, so the visual comparison is not a same-source Pixel Diff; status is `SOURCE_PHOTO_IDENTITY_UNVERIFIED`.
 - Earlier Web versions mixed a guessed 3:4 rectangle with the shared canvas transform, let the receiving field fall into FIT letterbox, and sometimes relied on broad path strokes or non-P1 blend behavior. A small pixel delta from the old smoke proved only that pixels changed; it did not prove that a person could see an optical field.
-- The current runtime source snapshot is explicitly `ANDROID_RUNTIME_SOURCE_SNAPSHOT_NOT_FROZEN_DESIGN`. It contains four oval locations/stops/weights, but P1 freezes only the local radial-oval class, photo-side relationship, alpha `0.03–0.07`, and depth `0.08–0.18`. Exact oval placement is review-only, not a frozen geometry contract.
+- The current runtime source snapshot is explicitly `ANDROID_RUNTIME_SOURCE_SNAPSHOT_NOT_FROZEN_DESIGN`. It supplies four oval locations and radial alpha stops. The matching P1 primary path records supply each island’s `island_weight`. P1 freezes the local radial-oval class, photo-side relationship, alpha `0.03–0.07`, depth `0.08–0.18`, and the seven path records; oval placement/stops remain review-only.
 
 #### Static reconstruction
 

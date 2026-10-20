@@ -94,8 +94,16 @@ async function main() {
     assert.ok(assetStatuses.every(status => status === "VERIFIED"), `all declared review assets load: ${assetStatuses.join(", ")}`);
     assert.match(await page.locator("#photoName").textContent(), /SHA-256 verified/, "the registered photo is hash-verified by the page");
 
-    const sourceRows = await page.locator("#stateButtons button").evaluateAll(buttons => buttons.map(button => button.dataset.state));
-    assert.deepEqual(sourceRows, ["IMAGE_RECOGNIZING", "FISH_LOCATED", "SPECIES_RECOGNIZING"], "exactly the three Frozen product states remain selectable");
+    const stateButtons = page.locator("#stateButtons button");
+    assert.equal(await stateButtons.count(), 3, "exactly three Frozen product states remain selectable");
+    const expectedStates = ["IMAGE_RECOGNIZING", "FISH_LOCATED", "SPECIES_RECOGNIZING"];
+    const observedStates = [];
+    for (let index = 0; index < expectedStates.length; index++) {
+      await stateButtons.nth(index).click();
+      observedStates.push(await page.locator("#stateLabel").innerText());
+    }
+    assert.deepEqual(observedStates, expectedStates, "the three state controls select the exact Frozen state IDs");
+    await stateButtons.first().click();
     assert.equal(await page.locator('#focusSource option[value="production"]').isDisabled(), true, "Production Focus remains unavailable without production evidence");
     assert.match(await page.locator("#focusProvenance").innerText(), /Production: BLOCKED/, "the page labels missing Production Fish Focus as BLOCKED");
 
