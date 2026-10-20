@@ -4,6 +4,7 @@ import android.graphics.Bitmap
 import android.graphics.RectF
 import android.util.DisplayMetrics
 import android.os.Build
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.platform.LocalDensity
@@ -32,8 +33,13 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
+import org.junit.rules.RuleChain
+import org.junit.rules.TestWatcher
+import org.junit.runner.Description
 import org.junit.runner.RunWith
 import java.io.File
+import java.io.PrintWriter
+import java.io.StringWriter
 import java.util.Locale
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicReference
@@ -42,8 +48,65 @@ import kotlin.math.abs
 /** Actual API 28 window capture, using the installed app's production HomeScreen and real system density. */
 @RunWith(AndroidJUnit4::class)
 class GeminiHomeDeviceMatrixTest {
-    @get:Rule
     val compose = createAndroidComposeRule<ComponentActivity>()
+
+    private var activeProfileId = "UNKNOWN"
+    private var activeVariantName = "UNKNOWN"
+    private var activeCaseOutput: File? = null
+    private var sourceSha = "UNKNOWN_SOURCE_SHA"
+    private var expectedFontScale = "UNKNOWN_FONT_SCALE"
+    private var currentStep = "TEST_RULE_START"
+    private var lastSuccessfulStep = "TEST_NOT_STARTED"
+    private var startedAtEpochMs = 0L
+
+    private val evidenceWatcher = object : TestWatcher() {
+        override fun starting(description: Description) {
+            val args = InstrumentationRegistry.getArguments()
+            activeProfileId = args.getString("profile_id") ?: "UNKNOWN"
+            activeVariantName = args.getString("layout_variant") ?: "UNKNOWN"
+            sourceSha = args.getString("source_sha") ?: "UNKNOWN_SOURCE_SHA"
+            expectedFontScale = args.getString("font_scale") ?: "UNKNOWN_FONT_SCALE"
+            startedAtEpochMs = System.currentTimeMillis()
+            currentStep = "TEST_BODY_START"
+            lastSuccessfulStep = "TEST_RULE_STARTED"
+            activeCaseOutput = runCatching {
+                File(
+                    requireNotNull(InstrumentationRegistry.getInstrumentation().targetContext.getExternalFilesDir(null)),
+                    "nh01-adaptive-visual-balance-v1",
+                ).apply { mkdirs() }
+            }.getOrNull()
+            caseReportFile()?.delete()
+            writeCaseStatus("RUNNING", currentStep)
+            Log.i("NH01_MATRIX_CASE", "START profile=$activeProfileId variant=$activeVariantName sha=$sourceSha")
+        }
+
+        override fun succeeded(description: Description) {
+            val report = caseReportFile()?.let { file ->
+                runCatching { JSONObject(file.readText()) }.getOrNull()
+            }
+            if (report?.optString("status") != "PASS") {
+                writeCaseStatus(
+                    status = "FAIL",
+                    stage = "TEST_RULE_SUCCESS_WITHOUT_PASS_REPORT",
+                    failure = AssertionError("Instrumentation completed without a PASS case report"),
+                )
+            }
+        }
+
+        override fun failed(e: Throwable, description: Description) {
+            writeCaseStatus("FAIL", currentStep, e)
+            captureFailureScreenshot()
+            Log.e(
+                "NH01_MATRIX_CASE",
+                "FAIL profile=$activeProfileId variant=$activeVariantName stage=$currentStep " +
+                    "last_successful_step=$lastSuccessfulStep",
+                e,
+            )
+        }
+    }
+
+    @get:Rule
+    val rules = RuleChain.outerRule(evidenceWatcher).around(compose)
 
     @Test
     fun capturesActualWindowWithTwoUniqueCatches() {
@@ -61,12 +124,23 @@ class GeminiHomeDeviceMatrixTest {
             }
         }
         val catches = fixtureCatches(photo.absolutePath)
+        activeProfileId = profileId
+        activeVariantName = variant.name
+        sourceSha = args.getString("source_sha") ?: "UNKNOWN_SOURCE_SHA"
+        expectedFontScale = args.getString("font_scale") ?: "UNKNOWN_FONT_SCALE"
+        activeCaseOutput = output
+        completeStep("ARGUMENTS_AND_TWO_CATCH_FIXTURE_READY")
         val densityProbe = AtomicReference<RuntimeDensityProbe?>()
         val identifyClicks = AtomicInteger()
         val albumClicks = AtomicInteger()
         val catchClicks = mutableListOf<String>()
 
-        compose.mainClock.autoAdvance = false
+        // The image decoder and derivative renderer complete asynchronously and
+        // their Compose state needs frames to publish the rendered semantics.
+        // Keep the test clock advancing until the image is ready; freeze it only
+        // for the deterministic pager gesture section.
+        compose.mainClock.autoAdvance = true
+        beginStep("COMPOSE_PRODUCTION_HOME_SCREEN")
         compose.setContent {
             val density = LocalDensity.current
             val insets = rememberSafeDrawingInsets()
@@ -99,20 +173,31 @@ class GeminiHomeDeviceMatrixTest {
                 layoutVariant = variant,
             )
         }
-        repeat(2) { compose.mainClock.advanceTimeByFrame() }
+        compose.waitForIdle()
+        completeStep("PRODUCTION_HOME_SCREEN_COMPOSED")
 
+        beginStep("WAIT_FOR_MAIN_CATCH_CARD")
         compose.waitUntil(20_000) {
             compose.onAllNodesWithTag("gemini-home-catch-card-nh01-catch-001", useUnmergedTree = true)
-                .fetchSemanticsNodes().isNotEmpty() &&
-                compose.onAllNodesWithTag("home-evidence-backdrop-ready", useUnmergedTree = true)
-                    .fetchSemanticsNodes().isNotEmpty()
+                .fetchSemanticsNodes().isNotEmpty()
         }
         compose.waitForIdle()
+        completeStep("MAIN_CATCH_CARD_COMPOSED")
+
+        beginStep("WAIT_FOR_FISH_PHOTO_RENDER")
+        compose.waitUntil(20_000) {
+            compose.onAllNodesWithTag("home-evidence-backdrop-ready", useUnmergedTree = true)
+                .fetchSemanticsNodes().isNotEmpty()
+        }
+        compose.waitForIdle()
+        completeStep("FISH_PHOTO_RENDERED")
+        compose.mainClock.autoAdvance = false
 
         val profile = requireNotNull(densityProbe.get()) { "Compose density/insets were not observed" }
-        val expectedFontScale = args.getString("font_scale")?.toFloatOrNull()
+        val expectedFontScaleValue = args.getString("font_scale")?.toFloatOrNull()
             ?: throw AssertionError("font_scale is required")
-        assertEquals("system font_scale must reach Compose unchanged", expectedFontScale, profile.fontScale, 0.02f)
+        beginStep("ASSERT_FONT_SCALE_AND_REQUIRED_CONTENT")
+        assertEquals("system font_scale must reach Compose unchanged", expectedFontScaleValue, profile.fontScale, 0.02f)
         compose.onNodeWithTag("gemini-home-stat-catches-value", useUnmergedTree = true).assertTextEquals("2")
         compose.onNodeWithTag("gemini-home-catch-species-nh01-catch-001", useUnmergedTree = true)
             .assertTextEquals("草鱼")
@@ -122,7 +207,9 @@ class GeminiHomeDeviceMatrixTest {
             .assertTextContains("05月29日 04:26 · 浙江 · 千岛湖")
         compose.onNodeWithText("记录下一条鱼", useUnmergedTree = true).assertIsDisplayed()
         compose.onNodeWithTag("gemini-home-camera", useUnmergedTree = true).assertIsDisplayed().assertHasClickAction()
+        completeStep("REQUIRED_CONTENT_AND_CAMERA_ACTION_VISIBLE")
 
+        beginStep("ASSERT_TWO_CATCH_IDENTITY_AND_PAGER_COUNT")
         val pager = compose.onNodeWithTag("gemini-home-catch-pager", useUnmergedTree = true).fetchSemanticsNode()
         assertEquals("two real catches must be exactly two finite pager pages", 2,
             pager.config[androidx.compose.ui.semantics.SemanticsProperties.CollectionInfo].columnCount)
@@ -136,7 +223,9 @@ class GeminiHomeDeviceMatrixTest {
         assertEquals("the first catch may not be duplicated as a neighbor", 0,
             compose.onAllNodesWithTag("gemini-home-catch-neighbor-nh01-catch-001", useUnmergedTree = true)
                 .fetchSemanticsNodes().size)
+        completeStep("TWO_CATCH_UNIQUENESS_ASSERTIONS_PASSED")
 
+        beginStep("CAPTURE_COMPONENT_BOUNDS_AND_LAYOUT_METRICS")
         val tags = listOf(
             "gemini-home-screen", "gemini-home-brand-title", "gemini-home-header-bar", "gemini-home-stats-bar",
             "gemini-home-section-title", "gemini-home-middle-section", "gemini-home-carousel-track",
@@ -193,7 +282,9 @@ class GeminiHomeDeviceMatrixTest {
         assertTrue("camera stays above the actual bottom safe inset",
             camera.bottom <= root.bottom - profile.insets.bottom.value + 1f)
         assertTrue("footer remains on screen", footer.bottom <= root.bottom - profile.insets.bottom.value + 1f)
+        completeStep("BOUNDS_AND_LAYOUT_ASSERTIONS_PASSED")
 
+        beginStep("CAPTURE_INITIAL_ANDROID_SCREENSHOT")
         val windowManager = compose.activity.windowManager
         val displayMetrics = DisplayMetrics()
         @Suppress("DEPRECATION")
@@ -209,14 +300,18 @@ class GeminiHomeDeviceMatrixTest {
         val screenshot = File(output, screenshotName)
         screenshot.outputStream().use { sink -> assertTrue("screenshot must save", imageCapture.compress(Bitmap.CompressFormat.PNG, 100, sink)) }
         imageCapture.recycle()
+        completeStep("INITIAL_SCREENSHOT_CAPTURED")
 
+        beginStep("VERIFY_CTA_AND_CATCH_INTERACTIONS")
         compose.onNodeWithTag("gemini-home-camera", useUnmergedTree = true).performClick()
         assertEquals("camera action remains available", 1, identifyClicks.get())
         compose.onNodeWithTag("gemini-home-section-all", useUnmergedTree = true).performClick()
         assertEquals("all catches action remains available", 1, albumClicks.get())
         compose.onNodeWithTag("gemini-home-catch-card-nh01-catch-001", useUnmergedTree = true).performClick()
         assertEquals("main card click maps to the real catch id", listOf("nh01-catch-001"), catchClicks)
+        completeStep("CTA_AND_CATCH_INTERACTIONS_PASSED")
 
+        beginStep("VERIFY_CARD_TEXT_ACCESSIBILITY_AND_SCROLL")
         val hasMiddleScroll = compose.onAllNodesWithTag("gemini-home-short-screen-scroll", useUnmergedTree = true)
             .fetchSemanticsNodes().isNotEmpty()
         val cardTextTags = listOf(
@@ -236,7 +331,9 @@ class GeminiHomeDeviceMatrixTest {
             }
             contentBitmap.recycle()
         }
+        completeStep("CARD_TEXT_ACCESSIBILITY_PASSED")
 
+        beginStep("VERIFY_HORIZONTAL_SWIPE_TO_SECOND_REAL_CATCH")
         compose.onNodeWithTag("gemini-home-catch-pager", useUnmergedTree = true).performTouchInput { swipeLeft() }
         advanceFramesUntil(8_000) {
             compose.onNodeWithTag("gemini-home-catch-pager", useUnmergedTree = true)
@@ -249,6 +346,7 @@ class GeminiHomeDeviceMatrixTest {
         val afterSwipeBitmap = InstrumentationRegistry.getInstrumentation().uiAutomation.takeScreenshot()
         afterSwipe.outputStream().use { sink -> assertTrue(afterSwipeBitmap.compress(Bitmap.CompressFormat.PNG, 100, sink)) }
         afterSwipeBitmap.recycle()
+        completeStep("HORIZONTAL_SWIPE_AND_SECOND_SCREENSHOT_PASSED")
 
         val density = compose.activity.resources.displayMetrics.density
         val config = compose.activity.resources.configuration
@@ -260,6 +358,8 @@ class GeminiHomeDeviceMatrixTest {
             put("profile_id", profileId)
             put("layout_variant", variant.name)
             put("source_commit", args.getString("source_sha") ?: "MISSING_SOURCE_SHA")
+            put("target_application_id", targetContext.packageName)
+            put("external_files_directory", output.absolutePath)
             put("system_font_scale", profile.fontScale)
             put("density", density)
             put("density_dpi", displayMetrics.densityDpi)
@@ -312,8 +412,85 @@ class GeminiHomeDeviceMatrixTest {
                 put("catch_id_mapping", "PASS"); put("horizontal_swipe", "PASS")
             })
         }
+        beginStep("WRITE_FINAL_PASS_REPORT")
         File(output, "$profileId-${variant.name.lowercase(Locale.US)}.json").writeText(report.toString(2) + "\n")
+        completeStep("PASS_REPORT_WRITTEN")
+        writeCaseStatus("PASS", "PASS_REPORT_WRITTEN")
         photo.delete()
+    }
+
+    private fun beginStep(step: String) {
+        currentStep = step
+        writeCaseStatus("RUNNING", step)
+        Log.i("NH01_MATRIX_CASE", "STEP profile=$activeProfileId variant=$activeVariantName step=$step")
+    }
+
+    private fun completeStep(step: String) {
+        lastSuccessfulStep = step
+        currentStep = "AFTER_$step"
+        writeCaseStatus("RUNNING", currentStep)
+    }
+
+    private fun caseReportFile(): File? {
+        val output = activeCaseOutput ?: return null
+        val variant = activeVariantName.lowercase(Locale.US)
+        return File(output, "$activeProfileId-$variant.json")
+    }
+
+    private fun writeCaseStatus(status: String, stage: String, failure: Throwable? = null) {
+        val reportFile = caseReportFile() ?: return
+        runCatching {
+            reportFile.parentFile?.mkdirs()
+            val report = if (reportFile.isFile) {
+                runCatching { JSONObject(reportFile.readText()) }.getOrDefault(JSONObject())
+            } else JSONObject()
+            report.put("schema", "NH01_ADAPTIVE_VISUAL_BALANCE_DEVICE_CASE_V1")
+            report.put("execution_mode", "ANDROID_API28_RUNTIME")
+            report.put("status", status)
+            report.put("profile_id", activeProfileId)
+            report.put("layout_variant", activeVariantName)
+            report.put("source_commit", sourceSha)
+            report.put("expected_system_font_scale", expectedFontScale)
+            report.put("target_application_id", InstrumentationRegistry.getInstrumentation().targetContext.packageName)
+            report.put("external_files_directory", activeCaseOutput?.absolutePath ?: "MISSING")
+            report.put("current_step", stage)
+            report.put("last_successful_step", lastSuccessfulStep)
+            report.put("started_at_epoch_ms", startedAtEpochMs)
+            report.put("updated_at_epoch_ms", System.currentTimeMillis())
+            if (failure != null) {
+                val stack = StringWriter().also { writer -> failure.printStackTrace(PrintWriter(writer)) }.toString()
+                report.put("failure_stage", stage)
+                report.put("failure_class", failure.javaClass.name)
+                report.put("failure_message", failure.message ?: "")
+                report.put("failure_stacktrace", stack)
+                report.put("failure_screenshot", "$activeProfileId-${activeVariantName.lowercase(Locale.US)}-failure.png")
+            }
+            val text = report.toString(2) + "\n"
+            val temp = File(reportFile.parentFile, reportFile.name + ".tmp")
+            temp.writeText(text)
+            try {
+                android.system.Os.rename(temp.absolutePath, reportFile.absolutePath)
+            } catch (_: Throwable) {
+                reportFile.writeText(text)
+                temp.delete()
+            }
+        }.onFailure { error ->
+            Log.e("NH01_MATRIX_CASE", "Could not persist case report $reportFile", error)
+        }
+    }
+
+    private fun captureFailureScreenshot() {
+        val output = activeCaseOutput ?: return
+        runCatching {
+            val screenshot = InstrumentationRegistry.getInstrumentation().uiAutomation.takeScreenshot()
+            val file = File(output, "$activeProfileId-${activeVariantName.lowercase(Locale.US)}-failure.png")
+            file.outputStream().use { sink ->
+                check(screenshot.compress(Bitmap.CompressFormat.PNG, 100, sink)) { "failure screenshot compression failed" }
+            }
+            screenshot.recycle()
+        }.onFailure { error ->
+            Log.e("NH01_MATRIX_CASE", "Could not capture failure screenshot", error)
+        }
     }
 
     private fun fixtureCatches(imagePath: String): List<RemoteCatch> {

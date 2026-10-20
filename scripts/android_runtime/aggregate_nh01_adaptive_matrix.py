@@ -30,6 +30,51 @@ def read_case(raw: Path, profile: str, variant: str) -> dict[str, Any] | None:
         return None
 
 
+def read_execution(execution_dir: Path, profile: str, variant: str) -> dict[str, Any] | None:
+    path = execution_dir / f"{profile}-{VARIANTS[variant]}.json"
+    if not path.is_file():
+        return None
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return {"status": "FAIL", "reason": "EXECUTION_RECORD_JSON_INVALID", "exit_code": None}
+
+
+def classify_execution(record: dict[str, Any] | None) -> tuple[str, str]:
+    """Keep a failed execution distinct from a case which never started."""
+    if record is None:
+        return "MISSING", "execution record missing; the case did not start or its evidence was not collected"
+    status = str(record.get("status", "INVALID")).upper()
+    reason = str(record.get("reason") or "")
+    if status in {"MISSING", "PENDING", "NOT_RUN"}:
+        return "MISSING", reason or f"case was not executed (record status={status})"
+    if status == "PASS":
+        failures = []
+        if record.get("exit_code") != 0:
+            failures.append(f"runner exit code={record.get('exit_code')}")
+        if record.get("device_report_present") is not True:
+            failures.append("device report missing")
+        if record.get("required_screenshots_present") is not True:
+            failures.append("required initial/after-swipe screenshots missing")
+        if record.get("profile_settings_match") is not True:
+            failures.append("requested device settings did not apply")
+        if failures:
+            return "FAIL", "; ".join(failures)
+        return "PASS", "instrumentation and host evidence completed"
+    if status == "RUNNING":
+        return "FAIL", reason or "instrumentation started but did not record a terminal result"
+    if status == "FAIL":
+        return "FAIL", reason or f"instrumentation failed (exit code={record.get('exit_code')})"
+    return "FAIL", reason or f"unrecognized execution record status={status}"
+
+
+def report_status(raw: Path, profile: str, variant_key: str, payload: dict[str, Any] | None) -> str:
+    if payload is not None:
+        return str(payload.get("status", "INVALID")).upper()
+    path = raw / f"{profile}-{variant_key}.json"
+    return "INVALID" if path.is_file() else "MISSING"
+
+
 def close(a: float, b: float, tolerance: float = 0.02) -> bool:
     return math.isfinite(a) and abs(a - b) <= tolerance
 
@@ -159,6 +204,7 @@ def make_contact_sheet(pairs: list[tuple[str, Path, int, int, float]], output: P
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--raw-dir", type=Path, required=True)
+    parser.add_argument("--execution-dir", type=Path, required=True)
     parser.add_argument("--output-dir", type=Path, required=True)
     parser.add_argument("--source-sha", required=True)
     parser.add_argument("--run-id", required=True)
@@ -166,6 +212,7 @@ def main() -> int:
     parser.add_argument("--contract", type=Path, required=True)
     args = parser.parse_args()
     raw = args.raw_dir.resolve()
+    execution_dir = args.execution_dir.resolve()
     output = args.output_dir.resolve()
     matrix_dir = output / "NH01_RUNTIME_MATRIX_V1"
     matrix_dir.mkdir(parents=True, exist_ok=True)
@@ -180,18 +227,49 @@ def main() -> int:
     for profile, width, height, font in CASES:
         candidate = read_case(raw, profile, "adaptive_v1")
         baseline = read_case(raw, profile, "v3_baseline")
-        candidate_problems = ["candidate report missing"] if candidate is None else validate_case(
+        candidate_execution = read_execution(execution_dir, profile, "ADAPTIVE_V1")
+        baseline_execution = read_execution(execution_dir, profile, "V3_BASELINE")
+        candidate_execution_status, candidate_execution_reason = classify_execution(candidate_execution)
+        baseline_execution_status, baseline_execution_reason = classify_execution(baseline_execution)
+        candidate_report_status = report_status(raw, profile, "adaptive_v1", candidate)
+        baseline_report_status = report_status(raw, profile, "v3_baseline", baseline)
+
+        candidate_validation = [] if candidate is None else validate_case(
             candidate, profile, width, height, font, "ADAPTIVE_V1", args.source_sha, raw,
         )
-        baseline_problems = ["V3 baseline report missing"] if baseline is None else validate_case(
+        baseline_validation = [] if baseline is None else validate_case(
             baseline, profile, width, height, font, "V3_BASELINE", args.source_sha, raw,
         )
+        candidate_problems: list[str] = []
+        baseline_problems: list[str] = []
+        if candidate_execution_status != "PASS":
+            candidate_problems.append(f"execution {candidate_execution_status}: {candidate_execution_reason}")
+        if candidate_report_status != "PASS":
+            candidate_problems.append(f"device report {candidate_report_status.lower()}")
+        candidate_problems.extend(candidate_validation)
+        if baseline_execution_status != "PASS":
+            baseline_problems.append(f"execution {baseline_execution_status}: {baseline_execution_reason}")
+        if baseline_report_status != "PASS":
+            baseline_problems.append(f"device report {baseline_report_status.lower()}")
+        baseline_problems.extend(baseline_validation)
+
+        candidate_status = "PASS" if not candidate_problems else (
+            "MISSING" if candidate_execution_status == "MISSING" and candidate_report_status == "MISSING" else "FAIL"
+        )
+        baseline_status = "PASS" if not baseline_problems else (
+            "MISSING" if baseline_execution_status == "MISSING" and baseline_report_status == "MISSING" else "FAIL"
+        )
         row_problems = candidate_problems + [f"baseline: {problem}" for problem in baseline_problems]
-        status = "PASS" if not row_problems else "FAIL"
+        result_status = "PASS" if candidate_status == baseline_status == "PASS" else (
+            "FAIL" if "FAIL" in {candidate_status, baseline_status} else "MISSING"
+        )
         report_rows.append({"profile": profile, "size_dp": [width, height], "font_scale": font,
-                            "candidate_status": "PASS" if not candidate_problems else "FAIL",
-                            "baseline_status": "PASS" if not baseline_problems else "FAIL",
-                            "status": status, "problems": row_problems})
+                            "candidate_status": candidate_status, "baseline_status": baseline_status,
+                            "candidate_report_status": candidate_report_status,
+                            "baseline_report_status": baseline_report_status,
+                            "candidate_execution": candidate_execution,
+                            "baseline_execution": baseline_execution,
+                            "status": result_status, "problems": row_problems})
         all_problems.extend(f"{profile}: {problem}" for problem in row_problems)
 
         if candidate is not None:
@@ -206,10 +284,10 @@ def main() -> int:
                                "screenshot": candidate.get("screenshots", {}).get("initial")})
             metric_rows.append({"profile": profile, **candidate.get("metrics", {}),
                                 "card_width_fraction": 0.76, "card_aspect_ratio_target": 247 / 293,
-                                "status": "PASS" if not candidate_problems else "FAIL"})
+                                "status": candidate_status})
             regression_rows.append({"profile": profile, **candidate.get("data", {}),
                                     "visible_card_ids_unique": len(set(candidate.get("data", {}).get("initial_visible_card_ids", []))) == 2,
-                                    "status": "PASS" if not candidate_problems else "FAIL"})
+                                    "status": candidate_status})
         if baseline is not None and candidate is not None:
             pair_file = matrix_dir / "COMPARISON" / f"{profile}_V3_vs_Adaptive.png"
             before = raw / str(baseline.get("screenshots", {}).get("initial", ""))
@@ -251,7 +329,9 @@ def main() -> int:
         problems = "; ".join(row["problems"]) or "all asserted bounds and interactions passed"
         lines.append(f"| {row['profile']} | {row['size_dp'][0]}×{row['size_dp'][1]}dp | {row['font_scale']:.1f}× | "
                      f"{row['candidate_status']} | {row['baseline_status']} | {row['status']} | {problems} |")
-    final_status = "PASS" if len(report_rows) == 9 and all(row["status"] == "PASS" for row in report_rows) else "PARTIAL"
+    final_status = "PASS" if len(report_rows) == 9 and all(row["status"] == "PASS" for row in report_rows) else (
+        "FAIL" if any(row["status"] == "FAIL" for row in report_rows) else "MISSING"
+    )
     (output / "NH01_ADAPTIVE_MATRIX_SUMMARY_V1.json").write_text(json.dumps({
         "schema": "NH01_ADAPTIVE_MATRIX_SUMMARY_V1", "status": final_status,
         "source_sha": args.source_sha, "workflow_run_id": args.run_id,

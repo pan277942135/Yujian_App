@@ -393,12 +393,26 @@ class GeminiNormalHomeResponsiveTest {
             image.recycle()
         }
 
+        val pagerBeforeFinalSwipe = currentCarouselId()
         swipeOnePagerPage(forward = true)
-        compose.waitForIdle()
+        runCatching { compose.waitUntil(5_000) { currentCarouselId().contains("gemini-fixture-02") } }
+        val pagerAfterFinalSwipe = currentCarouselId()
+        if (!pagerAfterFinalSwipe.contains("gemini-fixture-02")) {
+            val diagnostic = JSONObject().apply {
+                put("schema", "NH01_GEMINI_FINAL_SWIPE_FAILURE_V1")
+                put("status", "FAIL")
+                put("pager_before", pagerBeforeFinalSwipe)
+                put("pager_after", pagerAfterFinalSwipe)
+                put("pager_bounds_dp", bounds("gemini-home-catch-pager").toJson())
+                put("profile", profiles.last().name)
+                put("note", "Swipe is issued through the active hero card interior to avoid clipped viewport edge coordinates.")
+            }
+            File(output, "final-pager-swipe-failure.json").writeText(diagnostic.toString(2))
+            writeScreenshot("gemini-home-screen", File(output, "final-pager-swipe-failure.png"))
+        }
         assertTrue(
-            "horizontal carousel must expose the next card after a horizontal swipe",
-            compose.onAllNodesWithTag("gemini-home-catch-card-gemini-fixture-02", useUnmergedTree = true)
-                .fetchSemanticsNodes().isNotEmpty(),
+            "horizontal carousel must expose the next card after a horizontal swipe; before=$pagerBeforeFinalSwipe after=$pagerAfterFinalSwipe",
+            pagerAfterFinalSwipe.contains("gemini-fixture-02"),
         )
         assertEquals(profiles.size, profileResults.length())
 
@@ -811,8 +825,11 @@ class GeminiNormalHomeResponsiveTest {
         val tag = "gemini-home-catch-pager"
         val carouselBounds = compose.onNodeWithTag(tag, useUnmergedTree = true)
             .fetchSemanticsNode().boundsInRoot
-        val startX = if (forward) carouselBounds.width * 0.84f else carouselBounds.width * 0.16f
-        val endX = if (forward) carouselBounds.width * 0.16f else carouselBounds.width * 0.84f
+        // Keep both touch points inside the centered hero card. The old 84% / 16%
+        // positions landed on a preview or outside the real window when a 600dp
+        // Compose constraint fixture ran inside the 480dp API 28 emulator.
+        val startX = if (forward) carouselBounds.width * 0.66f else carouselBounds.width * 0.34f
+        val endX = if (forward) carouselBounds.width * 0.34f else carouselBounds.width * 0.66f
         compose.onNodeWithTag(tag, useUnmergedTree = true).performTouchInput {
             swipe(
                 start = Offset(startX, carouselBounds.height * 0.5f),
