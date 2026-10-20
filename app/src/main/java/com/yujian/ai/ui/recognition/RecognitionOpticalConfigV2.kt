@@ -7,14 +7,14 @@ internal object RecognitionOpticalConfigV2 {
 
     const val CORE_WIDTH_PX = 2.8f
     const val CORE_INTENSITY = .92f
-    const val INNER_BLOOM_RADIUS_PX = 24f
-    const val INNER_BLOOM_INTENSITY = .82f
+    const val INNER_BLOOM_RADIUS_PX = 28f
+    const val INNER_BLOOM_INTENSITY = .88f
     const val INNER_BLOOM_ALPHA_MODIFIER = .78f
-    const val OUTER_BLOOM_RADIUS_PX = 75f
-    const val OUTER_BLOOM_INTENSITY = .68f
+    const val OUTER_BLOOM_RADIUS_PX = 90f
+    const val OUTER_BLOOM_INTENSITY = .82f
     const val OUTER_BLOOM_ALPHA_MODIFIER = .74f
-    const val ATMOSPHERIC_SPILL_RADIUS_PX = 130f
-    const val ATMOSPHERIC_SPILL_INTENSITY = .32f
+    const val ATMOSPHERIC_SPILL_RADIUS_PX = 155f
+    const val ATMOSPHERIC_SPILL_INTENSITY = .42f
 
     const val BRIGHT_LUMINANCE_THRESHOLD = .46f
     const val BRIGHT_LUMINANCE_MAX = .88f

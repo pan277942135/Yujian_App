@@ -9,11 +9,11 @@
   },
   "palette": {
     "perimeter_blue": "#5ab2fc",
-    "perimeter_blue_core": "#bfeaf2",
-    "perimeter_blue_hot": "#d8f5fa",
+    "perimeter_blue_core": "#9cdcf8",
+    "perimeter_blue_hot": "#b7ebff",
     "perimeter_gold": "#e0b644",
-    "perimeter_gold_core": "#f6d99b",
-    "perimeter_gold_hot": "#ffe7ae",
+    "perimeter_gold_core": "#f2c654",
+    "perimeter_gold_hot": "#f8d46a",
     "fish_outline_gold": "#ffd887",
     "fish_core_gold": "#ffe7ae"
   },
@@ -38,12 +38,12 @@
       "atmospheric_spill_intensity": 0.13,
       "island_strengths": {
         "G1": 0.78,
-        "B1": 1.0,
+        "B1": 1,
         "G3": 0.63,
         "B3": 0.54
       },
       "legacy_receiving_light": {
-        "path_coverage_ratio": 1.0,
+        "path_coverage_ratio": 1,
         "minimum_path_weight": 0.92,
         "alpha_per_pass": [
           0.78,
@@ -72,15 +72,15 @@
       "renderer": "OPTICAL_FOUR_LAYER_V2",
       "core_width_px": 2.8,
       "core_intensity": 0.92,
-      "inner_bloom_radius_px": 24,
-      "inner_bloom_intensity": 0.82,
-      "outer_bloom_radius_px": 75,
-      "outer_bloom_intensity": 0.68,
-      "atmospheric_spill_px": 130,
-      "atmospheric_spill_intensity": 0.32,
+      "inner_bloom_radius_px": 28,
+      "inner_bloom_intensity": 0.88,
+      "outer_bloom_radius_px": 90,
+      "outer_bloom_intensity": 0.82,
+      "atmospheric_spill_px": 155,
+      "atmospheric_spill_intensity": 0.42,
       "island_strengths": {
         "G1": 0.9,
-        "B1": 1.0,
+        "B1": 1,
         "G3": 0.88,
         "B3": 0.84
       }
@@ -90,15 +90,15 @@
       "renderer": "OPTICAL_FOUR_LAYER_V2",
       "core_width_px": 2.9,
       "core_intensity": 0.95,
-      "inner_bloom_radius_px": 24,
-      "inner_bloom_intensity": 0.86,
-      "outer_bloom_radius_px": 75,
-      "outer_bloom_intensity": 0.74,
-      "atmospheric_spill_px": 130,
-      "atmospheric_spill_intensity": 0.36,
+      "inner_bloom_radius_px": 30,
+      "inner_bloom_intensity": 0.9,
+      "outer_bloom_radius_px": 95,
+      "outer_bloom_intensity": 0.88,
+      "atmospheric_spill_px": 165,
+      "atmospheric_spill_intensity": 0.46,
       "island_strengths": {
         "G1": 0.92,
-        "B1": 1.0,
+        "B1": 1,
         "G3": 0.9,
         "B3": 0.86
       }
@@ -138,8 +138,8 @@
     "quality_profiles": {
       "HIGH": {
         "android_quality_level": "FULL",
-        "outer_bloom_radius_multiplier": 1.0,
-        "spill_radius_multiplier": 1.0,
+        "outer_bloom_radius_multiplier": 1,
+        "spill_radius_multiplier": 1,
         "retained_layers": [
           "atmospheric_spill",
           "outer_bloom",
@@ -254,9 +254,9 @@
       "id": "B1",
       "family": "blue",
       "corner": "TOP_RIGHT",
-      "strength": 1.0,
+      "strength": 1,
       "width_dp": 1.2,
-      "seed": 0.0,
+      "seed": 0,
       "visible_ratio": 0.3,
       "path": {
         "start": [

@@ -57,7 +57,7 @@
     },
     {
       "path": "app/src/main/java/com/yujian/ai/ui/recognition/RecognitionAmbientField.kt",
-      "blob_sha": "80aa8a4515bb396b06ff330d5c2b7d2891b45122",
+      "blob_sha": "8d213fcdc2dbafd9101801a6a2f3c3c0ee4f3027",
       "role": "runtime path, glow, quality and motion parameters"
     },
     {
@@ -1785,7 +1785,7 @@
     "source_files": [
       {
         "path": "app/src/main/java/com/yujian/ai/ui/recognition/RecognitionAmbientField.kt",
-        "git_blob_sha": "80aa8a4515bb396b06ff330d5c2b7d2891b45122"
+        "git_blob_sha": "8d213fcdc2dbafd9101801a6a2f3c3c0ee4f3027"
       },
       {
         "path": "app/src/main/java/com/yujian/ai/ui/recognition/RecognitionFishFocus.kt",
