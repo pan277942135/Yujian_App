@@ -202,12 +202,23 @@ class GeminiNormalHomeResponsiveTest {
             assertEquals("root height ${window.name}", window.heightDp.toFloat(), root.height(), 1f)
             assertTrue("top must precede the flexible middle ${window.name}", top.bottom <= middle.top + 1f)
             assertTrue("middle must precede the footer ${window.name}", middle.bottom <= footer.top + 1f)
-            assertEquals(
-                "active Hero card keeps the Gemini 247:293 ratio ${window.name}",
-                247f / 293f,
-                activeCard.width() / activeCard.height(),
-                0.015f,
-            )
+            val initiallyVisible = metadata.isInside(middle)
+            if (initiallyVisible) {
+                // boundsInRoot is clipped by the Middle scroll viewport. Check the
+                // full-card ratio only when the card/footer are not viewport-clipped.
+                assertEquals(
+                    "active Hero card keeps the Gemini 247:293 ratio ${window.name}",
+                    247f / 293f,
+                    activeCard.width() / activeCard.height(),
+                    0.015f,
+                )
+            } else {
+                assertTrue(
+                    "clipped Hero footer must have a Middle scroll path ${window.name}",
+                    compose.onAllNodesWithTag("gemini-home-short-screen-scroll", useUnmergedTree = true)
+                        .fetchSemanticsNodes().isNotEmpty(),
+                )
+            }
             assertEquals(
                 "visible section title stays 13dp above the active card ${window.name}",
                 13f,
@@ -220,12 +231,14 @@ class GeminiNormalHomeResponsiveTest {
                 rightPeek.top - activeCard.top,
                 1.5f,
             )
-            assertEquals(
-                "neighbor card height remains 66.7% ${window.name}",
-                0.667f,
-                rightPeek.height() / activeCard.height(),
-                0.015f,
-            )
+            if (initiallyVisible) {
+                assertEquals(
+                    "neighbor card height remains 66.7% ${window.name}",
+                    0.667f,
+                    rightPeek.height() / activeCard.height(),
+                    0.015f,
+                )
+            }
             val statDividers = compose.onAllNodesWithTag("gemini-home-stats-divider", useUnmergedTree = true)
                 .fetchSemanticsNodes()
             assertEquals("stats bar keeps two separators ${window.name}", 2, statDividers.size)
@@ -243,7 +256,6 @@ class GeminiNormalHomeResponsiveTest {
             assertEquals(window.widthDp, image.width)
             assertEquals(window.heightDp, image.height)
 
-            val initiallyVisible = metadata.isInside(middle)
             var afterScrollVisible = initiallyVisible
             var postScrollScreenshot: String? = null
             var finalActiveCard = activeCard
