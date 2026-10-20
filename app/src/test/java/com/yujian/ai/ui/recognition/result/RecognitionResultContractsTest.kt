@@ -90,11 +90,22 @@ class RecognitionResultContractsTest {
     }
 
     @Test
-    fun shortHeightShrinksHeroWithinContractAndKeepsActionsUnaffected() {
+    fun shortHeightKeepsHeroAspectAndUsesScrollableResultContent() {
         val normal = RecognitionResultGeometryResolver.resolve(360, 640)
         val compact = RecognitionResultGeometryResolver.resolve(360, 599)
         assertTrue(compact.compactHeightPolicy)
-        assertEquals((normal.heroHeightDp * 0.88f).roundToInt(), compact.heroHeightDp)
+        assertEquals(normal.heroWidthDp, compact.heroWidthDp)
+        assertEquals(normal.heroHeightDp, compact.heroHeightDp)
+        assertEquals(normal.heroWidthDp.toFloat() / normal.heroHeightDp, compact.heroWidthDp.toFloat() / compact.heroHeightDp, 0f)
+        assertTrue(RecognitionResultGeometryResolver.usesScrollableResultPage(compact.compactHeightPolicy, false))
+    }
+
+    @Test
+    fun wideResultCapsContentWidthAndKeepsTheFrozenHeroRatio() {
+        val geometry = RecognitionResultGeometryResolver.resolve(900, 1200)
+        assertEquals(RecognitionResultGeometryResolver.MAX_CONTENT_WIDTH_DP - 48, geometry.heroWidthDp)
+        assertEquals(24, geometry.horizontalMarginDp)
+        assertEquals(512f / 334f, geometry.heroWidthDp.toFloat() / geometry.heroHeightDp, 0.015f)
     }
 
     @Test
@@ -112,13 +123,22 @@ class RecognitionResultContractsTest {
     }
 
     @Test
-    fun subjectPlannerUsesSafeFitForMissingOrSourceClippedBox() {
+    fun subjectPlannerUsesSafeFitForMissingBoxAndCompensatesSourceClippedBox() {
         val missing = RecognitionHeroMediaPlanner.plan(1600, 900, 320f, 248f, null, false)
         assertEquals(RecognitionHeroMediaMode.SUBJECT_SAFE_FIT, missing.mode)
-        val clipped = RecognitionHeroMediaPlanner.plan(1600, 900, 320f, 248f, NormalizedSourceRect(0f, .25f, .45f, .75f), false)
-        assertEquals(RecognitionHeroMediaMode.SUBJECT_SAFE_FIT, clipped.mode)
+        val missingConfidence = RecognitionHeroMediaPlanner.plan(
+            1600, 900, 320f, 248f, NormalizedSourceRect(.2f, .25f, .45f, .75f), false,
+        )
+        assertEquals(RecognitionHeroMediaMode.SUBJECT_SAFE_FIT, missingConfidence.mode)
+        val clipped = RecognitionHeroMediaPlanner.plan(
+            1600, 900, 320f, 248f, NormalizedSourceRect(0f, .25f, .45f, .75f), false, bboxConfidence = 0.9f,
+        )
+        assertEquals(RecognitionHeroMediaMode.SUBJECT_CROP_FILL, clipped.mode)
         assertTrue(SourceEdge.LEFT in clipped.sourceClippedEdges)
-        assertEquals(NormalizedSourceRect(0f, 0f, 1f, 1f), clipped.sourceRect)
+        assertEquals(0f, clipped.sourceRect.left, 0.0001f)
+        assertTrue(clipped.sourceRect.right > .45f)
+        assertTrue(clipped.sourceRect.left <= 0f && clipped.sourceRect.top <= .25f)
+        assertTrue(clipped.sourceRect.right >= .45f && clipped.sourceRect.bottom >= .75f)
     }
 
     @Test
@@ -126,7 +146,9 @@ class RecognitionResultContractsTest {
         val evidence = RecognitionHeroMediaPlanner.plan(1600, 900, 320f, 248f, NormalizedSourceRect(.2f, .2f, .8f, .8f), true)
         assertEquals(RecognitionHeroMediaMode.EVIDENCE_FIT, evidence.mode)
         assertEquals(NormalizedSourceRect(0f, 0f, 1f, 1f), evidence.sourceRect)
-        val subject = RecognitionHeroMediaPlanner.plan(1600, 900, 320f, 248f, NormalizedSourceRect(.35f, .3f, .65f, .7f), false)
+        val subject = RecognitionHeroMediaPlanner.plan(
+            1600, 900, 320f, 248f, NormalizedSourceRect(.35f, .3f, .65f, .7f), false, bboxConfidence = 0.9f,
+        )
         assertEquals(RecognitionHeroMediaMode.SUBJECT_CROP_FILL, subject.mode)
         assertTrue(subject.sourceRect.left <= .35f)
         assertTrue(subject.sourceRect.right >= .65f)
@@ -210,6 +232,7 @@ class RecognitionResultContractsTest {
             viewportHeightDp = 210f,
             bbox = NormalizedSourceRect(.35f, .40f, .65f, .60f),
             evidenceFirst = false,
+            bboxConfidence = 0.9f,
         )
         assertEquals(RecognitionHeroMediaMode.SUBJECT_CROP_FILL, safePortrait.mode)
         assertFalse(safePortrait.requiresSourceBackdrop)
@@ -223,10 +246,12 @@ class RecognitionResultContractsTest {
             viewportHeightDp = 210f,
             bbox = NormalizedSourceRect(0f, .34f, .48f, .66f),
             evidenceFirst = false,
+            bboxConfidence = 0.9f,
         )
-        assertEquals(RecognitionHeroMediaMode.SUBJECT_SAFE_FIT, clippedPortrait.mode)
-        assertTrue(clippedPortrait.requiresSourceBackdrop)
-        assertEquals(NormalizedSourceRect(0f, 0f, 1f, 1f), clippedPortrait.sourceRect)
+        assertEquals(RecognitionHeroMediaMode.SUBJECT_CROP_FILL, clippedPortrait.mode)
+        assertFalse(clippedPortrait.requiresSourceBackdrop)
+        assertTrue(clippedPortrait.sourceRect.left <= 0f && clippedPortrait.sourceRect.top <= .34f)
+        assertTrue(clippedPortrait.sourceRect.right >= .48f && clippedPortrait.sourceRect.bottom >= .66f)
     }
 
     @Test

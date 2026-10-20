@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
@@ -237,7 +238,10 @@ fun FishRecordDetailScreen(
                         onShare = { onShare(record) },
                     )
                     LazyColumn(
-                        modifier = Modifier.weight(1f).fillMaxWidth()
+                        modifier = Modifier.weight(1f)
+                            .widthIn(max = FishRecordDetailGeometryResolver.MAX_CONTENT_WIDTH_DP.dp)
+                            .fillMaxWidth()
+                            .align(Alignment.CenterHorizontally)
                             .padding(start = safeInsets.start, end = safeInsets.end),
                         state = listState,
                         contentPadding = PaddingValues(

@@ -77,8 +77,9 @@ jobs:
           python3 scripts/design/build_nh01_authority_inventory.py
           python3 scripts/design/verify_nh01_cloud_viewer.py
           python3 -m unittest discover -s scripts/design/tests -p 'test_*.py' -v
+          python3 -m unittest discover -s scripts/android_runtime/tests -p 'test_nh01_adaptive_matrix.py' -v
           python3 scripts/verify_nh01_gemini_native_source.py | tee "$YUJIAN_RUNTIME_EVIDENCE/source_audit.txt"
-          python3 -m py_compile scripts/design/package_nh01_gemini_runtime_evidence.py
+          python3 -m py_compile scripts/design/package_nh01_gemini_runtime_evidence.py scripts/android_runtime/aggregate_nh01_adaptive_matrix.py
           bash scripts/android_runtime/tests/test_contract.sh
 
       - name: Set up JDK 17

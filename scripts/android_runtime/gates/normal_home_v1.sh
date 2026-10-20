@@ -4,6 +4,10 @@ gate_test_classes() {
   printf '%s\n' 'com.yujian.ai.ui.home.NormalHomeRealPhotoProbeTest,com.yujian.ai.ui.components.HomeEvidenceBitmapTest,com.yujian.ai.NormalHomeRuntimeContractTest,com.yujian.ai.ui.home.HomeStatsSemanticsTest,com.yujian.ai.ui.home.NormalHomeHeroBehaviorTest,com.yujian.ai.ui.home.NormalHomeDataParityTest,com.yujian.ai.ui.home.NormalHomeMotionEvidenceTest'
 }
 
+gate_additional_test_classes() {
+  printf '%s\n' 'com.yujian.ai.ui.components.FishPhotoRendererRuntimeTest'
+}
+
 gate_before_instrumentation() {
   "$YUJIAN_ADB_BIN" logcat -c >/dev/null 2>&1 || true
 }
@@ -12,7 +16,7 @@ gate_after_instrumentation() {
   local output_dir="$YUJIAN_EVIDENCE_DIR/normal-home-v1"
   mkdir -p "$output_dir"
   "$YUJIAN_ADB_BIN" logcat -d -v brief -s \
-    NORMAL_HOME_MOTION_TRACE:I NORMAL_HOME_AVATAR_STATE_TRACE:I \
+    NORMAL_HOME_MOTION_TRACE:I NORMAL_HOME_AVATAR_STATE_TRACE:I FishPhotoCropAcceptance:I \
     > "$output_dir/normal-home-motion-instrumentation.log" 2>&1 || true
 }
 
@@ -404,6 +408,41 @@ normal_home_capture_runtime_profile() {
 gate_collect_evidence() {
   local out="$YUJIAN_EVIDENCE_DIR/normal-home-v1"
   mkdir -p "$out"
+  local crop_out="$out/fish-photo-crop-acceptance"
+  mkdir -p "$crop_out"
+  local crop_file
+  for crop_file in labelled-cases.txt fallback-cases.txt \
+    input-landscape-labelled-v1.png output-landscape-labelled-v1.png \
+    input-portrait-labelled-v1.png output-portrait-labelled-v1.png \
+    input-left-edge-labelled-v1.png output-left-edge-labelled-v1.png \
+    input-right-edge-labelled-v1.png output-right-edge-labelled-v1.png \
+    input-top-edge-labelled-v1.png output-top-edge-labelled-v1.png \
+    input-bottom-edge-labelled-v1.png output-bottom-edge-labelled-v1.png \
+    input-no-reliable-bbox-v1.png output-no-reliable-bbox-v1.png
+  do
+    "$YUJIAN_ADB_BIN" exec-out run-as "$YUJIAN_APP_PACKAGE" cat \
+      "cache/fish-photo-crop-acceptance/$crop_file" \
+      > "$crop_out/$crop_file" 2>/dev/null || true
+  done
+  if [[ ! -s "$crop_out/labelled-cases.txt" || ! -s "$crop_out/fallback-cases.txt" ]]; then
+    printf 'MISSING_FISH_PHOTO_CROP_INSTRUMENTATION_EVIDENCE\n' >> "$YUJIAN_EVIDENCE_DIR/evidence_missing.log"
+    runtime_set_failure "EVIDENCE" "FISH_PHOTO_CROP_ACCEPTANCE_EVIDENCE_MISSING"
+    return "$EXIT_FAIL_EVIDENCE"
+  fi
+  for crop_file in input-landscape-labelled-v1.png output-landscape-labelled-v1.png \
+    input-portrait-labelled-v1.png output-portrait-labelled-v1.png \
+    input-left-edge-labelled-v1.png output-left-edge-labelled-v1.png \
+    input-right-edge-labelled-v1.png output-right-edge-labelled-v1.png \
+    input-top-edge-labelled-v1.png output-top-edge-labelled-v1.png \
+    input-bottom-edge-labelled-v1.png output-bottom-edge-labelled-v1.png \
+    input-no-reliable-bbox-v1.png output-no-reliable-bbox-v1.png
+  do
+    if [[ ! -s "$crop_out/$crop_file" ]]; then
+      printf 'MISSING_FISH_PHOTO_CROP_IMAGE=%s\n' "$crop_file" >> "$YUJIAN_EVIDENCE_DIR/evidence_missing.log"
+      runtime_set_failure "EVIDENCE" "FISH_PHOTO_CROP_IMAGE_MISSING"
+      return "$EXIT_FAIL_EVIDENCE"
+    fi
+  done
   "$YUJIAN_ADB_BIN" shell settings put global animator_duration_scale 1.0 || true
   "$YUJIAN_ADB_BIN" shell settings put global transition_animation_scale 1.0 || true
   "$YUJIAN_ADB_BIN" shell settings put global window_animation_scale 1.0 || true

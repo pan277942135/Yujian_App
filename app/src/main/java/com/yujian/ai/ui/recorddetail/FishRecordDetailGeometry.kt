@@ -33,12 +33,14 @@ data class FishRecordDetailGeometry(
 )
 
 object FishRecordDetailGeometryResolver {
+    const val MAX_CONTENT_WIDTH_DP = 560
     private val HERO_ASPECT = FishRecordDetailFrozenGeometry.heroAspectRatio
 
-    fun resolve(profile: AdaptiveLayoutProfile): FishRecordDetailGeometry = resolve(profile.safeWidthDp.roundToInt())
+    fun resolve(profile: AdaptiveLayoutProfile): FishRecordDetailGeometry =
+        resolve(profile.safeWidthDp.coerceAtMost(MAX_CONTENT_WIDTH_DP.toFloat()).roundToInt())
 
     fun resolve(safeWidthDp: Int): FishRecordDetailGeometry {
-        val width = safeWidthDp.coerceAtLeast(1)
+        val width = safeWidthDp.coerceAtMost(MAX_CONTENT_WIDTH_DP).coerceAtLeast(1)
         val margin = when {
             width <= 320 -> 16
             width <= 393 -> 20

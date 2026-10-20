@@ -69,4 +69,14 @@ class FishRecordDetailGeometryTest {
         assertTrue(profile.accessibilityFontScale)
         assertTrue(kotlin.math.abs(renderedAspect - (841f / 540f)) / (841f / 540f) <= 0.01f)
     }
+
+    @Test
+    fun tabletHeroUsesTheContentMaximumAndFrozenAspect() {
+        val geometry = FishRecordDetailGeometryResolver.resolve(900)
+        assertEquals(560 - 2 * geometry.horizontalMarginDp, geometry.heroWidthDp)
+        assertEquals(24, geometry.horizontalMarginDp)
+        assertTrue(kotlin.math.abs(
+            geometry.heroWidthDp.toFloat() / geometry.heroHeightDp - (841f / 540f),
+        ) / (841f / 540f) <= 0.01f)
+    }
 }

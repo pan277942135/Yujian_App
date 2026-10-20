@@ -112,7 +112,7 @@ class GeminiNormalHomeResponsiveTest {
             .assertTextEquals("42.6 cm · 1.28 kg")
 
         val profiles = buildList {
-            listOf(320 to 480, 360 to 640, 390 to 844, 430 to 932, 480 to 840).forEach { (width, height) ->
+            listOf(320 to 480, 360 to 640, 390 to 844, 430 to 932, 480 to 840, 600 to 960).forEach { (width, height) ->
                 listOf(1.0f, 1.3f, 1.5f).forEach { scale ->
                     add(Profile(width, height, scale, "${width}x${height}-font-${scaleToken(scale)}"))
                 }
@@ -220,8 +220,12 @@ class GeminiNormalHomeResponsiveTest {
                 )
             }
             assertEquals(
-                "visible section title stays 13dp above the active card ${window.name}",
-                13f,
+                "visible section title follows its bounded adaptive gap ${window.name}",
+                resolveGeminiHomeLayoutSpec(
+                    safeWidthDp = window.widthDp.toFloat(),
+                    safeHeightDp = (window.heightDp - 48f).coerceAtLeast(1f),
+                    fontScale = window.fontScale,
+                ).titleToCardGap.value,
                 activeCard.top - sectionTitle.bottom,
                 1.1f,
             )
@@ -389,12 +393,26 @@ class GeminiNormalHomeResponsiveTest {
             image.recycle()
         }
 
+        val pagerBeforeFinalSwipe = currentCarouselId()
         swipeOnePagerPage(forward = true)
-        compose.waitForIdle()
+        runCatching { compose.waitUntil(5_000) { currentCarouselId().contains("gemini-fixture-02") } }
+        val pagerAfterFinalSwipe = currentCarouselId()
+        if (!pagerAfterFinalSwipe.contains("gemini-fixture-02")) {
+            val diagnostic = JSONObject().apply {
+                put("schema", "NH01_GEMINI_FINAL_SWIPE_FAILURE_V1")
+                put("status", "FAIL")
+                put("pager_before", pagerBeforeFinalSwipe)
+                put("pager_after", pagerAfterFinalSwipe)
+                put("pager_bounds_dp", bounds("gemini-home-catch-pager").toJson())
+                put("profile", profiles.last().name)
+                put("note", "Swipe is issued through the active hero card interior to avoid clipped viewport edge coordinates.")
+            }
+            File(output, "final-pager-swipe-failure.json").writeText(diagnostic.toString(2))
+            writeScreenshot("gemini-home-screen", File(output, "final-pager-swipe-failure.png"))
+        }
         assertTrue(
-            "horizontal carousel must expose the next card after a horizontal swipe",
-            compose.onAllNodesWithTag("gemini-home-catch-card-gemini-fixture-02", useUnmergedTree = true)
-                .fetchSemanticsNodes().isNotEmpty(),
+            "horizontal carousel must expose the next card after a horizontal swipe; before=$pagerBeforeFinalSwipe after=$pagerAfterFinalSwipe",
+            pagerAfterFinalSwipe.contains("gemini-fixture-02"),
         )
         assertEquals(profiles.size, profileResults.length())
 
@@ -807,8 +825,12 @@ class GeminiNormalHomeResponsiveTest {
         val tag = "gemini-home-catch-pager"
         val carouselBounds = compose.onNodeWithTag(tag, useUnmergedTree = true)
             .fetchSemanticsNode().boundsInRoot
-        val startX = if (forward) carouselBounds.width * 0.84f else carouselBounds.width * 0.16f
-        val endX = if (forward) carouselBounds.width * 0.16f else carouselBounds.width * 0.84f
+        // Move far enough to cross the pager threshold: the hero page is about
+        // 76% of the track, so 66% -> 34% only travels ~42% of a page. At 75%
+        // -> 25% the gesture exceeds half a page while staying in the active
+        // hero and inside the 480dp API 28 window for the 600dp fixture.
+        val startX = if (forward) carouselBounds.width * 0.75f else carouselBounds.width * 0.25f
+        val endX = if (forward) carouselBounds.width * 0.25f else carouselBounds.width * 0.75f
         compose.onNodeWithTag(tag, useUnmergedTree = true).performTouchInput {
             swipe(
                 start = Offset(startX, carouselBounds.height * 0.5f),

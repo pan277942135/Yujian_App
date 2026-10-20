@@ -73,7 +73,8 @@ internal fun RecentFishCard(
                 url = imageUrl,
                 modifier = Modifier.fillMaxSize().testTag("normal-home-catch-media-${item.id}"),
                 contentDescription = "${presentationSpeciesName(item.speciesName)} 鱼获照片",
-                preserveEvidenceWithFitBackdrop = true,
+                smartFishPhoto = true,
+                fishPhotoSourceVersion = item.id,
                 authToken = accessToken,
                 placeholder = {
                     Box(

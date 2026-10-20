@@ -73,6 +73,10 @@ def main() -> int:
     avatar_report = read_json(evidence / "compose-simulation/avatar/gemini_avatar_transition_report.json")
     carousel_report = read_json(evidence / "compose-simulation/compose-simulation/carousel/gemini_catch_carousel_count_report.json")
     responsive_report = read_json(evidence / "Gemini_NH01_Responsive_Runtime_Report_V3.json")
+    adaptive_matrix_summary = read_json(evidence / "NH01_ADAPTIVE_MATRIX_SUMMARY_V1.json")
+    adaptive_bounds = read_json(evidence / "NH01_BOUNDS_MATRIX_V1.json")
+    adaptive_metrics = read_json(evidence / "NH01_LAYOUT_METRICS_V1.json")
+    two_catch_regression = read_json(evidence / "NH01_TWO_CATCH_REGRESSION_V1.json")
     device_bounds_1920 = read_json(evidence / "android-device/api28_1080x1920_bounds.json")
     device_bounds_2340 = read_json(evidence / "android-device/api28_1080x2340_bounds.json")
     device_bounds_720 = read_json(evidence / "android-device/api28_720x1280_bounds.json")
@@ -112,6 +116,15 @@ def main() -> int:
         "compose_fixture_match": compose_fixture_match,
         "physical_business_fixture_checks": physical_fixture,
         "responsive_runtime_report": responsive_report,
+        "adaptive_visual_balance_v1": {
+            "summary": adaptive_matrix_summary,
+            "bounds_matrix": adaptive_bounds,
+            "layout_metrics": adaptive_metrics,
+            "two_catch_regression": two_catch_regression,
+            "acceptance_report": "evidence/NH01_VISUAL_ACCEPTANCE_REPORT_V1.md",
+            "runtime_screenshots": "evidence/NH01_RUNTIME_MATRIX_V1/",
+            "comparison_sheet": "evidence/NH01_V3_VS_CANDIDATE_COMPARISON_V1.png",
+        },
         "compose_profile_count": len(profiles),
         "compose_profiles": profiles,
         "avatar_transition_report": avatar_report,
@@ -125,9 +138,9 @@ def main() -> int:
     )
 
     lines = [
-        "# NH01 Gemini V3 Native Validation APK",
+        "# NH01 Adaptive Visual Balance V1 Candidate APK",
         "",
-        f"- Task: `YUJIAN_NH01_GEMINI_NATIVE_REBUILD_AVATAR_FIX_V3`",
+        f"- Task: `YUJIAN_NH01_ADAPTIVE_VISUAL_BALANCE_V1`",
         f"- PR: {args.pr_url} (kept Draft / Open / Unmerged)",
         f"- Source HEAD: `{args.source_sha}`",
         f"- CI Run ID: [{args.run_id}]({args.run_url})",
@@ -143,6 +156,11 @@ def main() -> int:
         f"- Device preflight/install/instrumentation/evidence: `{runtime.get('preflight', 'NOT_RUN')}` / `{runtime.get('install', 'NOT_RUN')}` / `{runtime.get('instrumentation', 'NOT_RUN')}` / `{runtime.get('evidence', 'NOT_RUN')}`",
         "- Frozen pixel parity: `NOT_CLAIMED`; this is an intentional Gemini V3 container rebuild.",
         "- Separate visual review: `PENDING`; the runtime pass does not claim visual sign-off.",
+        f"- Adaptive 3×3 API 28 matrix: `{adaptive_matrix_summary.get('status', 'NOT_RUN')}` ({adaptive_matrix_summary.get('passed_profiles', 0)}/9 candidate profiles; paired V3 baseline captures are in the same artifact).",
+        "- Physical handset verification: `NOT_RUN`; API 28 emulator evidence is labeled separately.",
+        "- Matrix bounds: `evidence/NH01_BOUNDS_MATRIX_V1.json`; metrics: `evidence/NH01_LAYOUT_METRICS_V1.json`.",
+        "- Two-catch assertions: `evidence/NH01_TWO_CATCH_REGRESSION_V1.json`; visual report: `evidence/NH01_VISUAL_ACCEPTANCE_REPORT_V1.md`.",
+        "- Same-window V3/adaptive side-by-side captures: `evidence/NH01_V3_VS_CANDIDATE_COMPARISON_V1.png` and `evidence/NH01_RUNTIME_MATRIX_V1/COMPARISON/`.",
         "",
         "## Android device captures",
         "",

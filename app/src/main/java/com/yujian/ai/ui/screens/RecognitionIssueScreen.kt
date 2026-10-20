@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -36,7 +37,6 @@ import com.yujian.ai.ui.adaptive.rememberAdaptiveLayoutProfile
 import com.yujian.ai.ui.adaptive.rememberSafeDrawingInsets
 import com.yujian.ai.ui.recognition.result.RecognitionResultGeometryResolver
 import com.yujian.ai.ui.recognition.result.RecognitionResultVisualState
-import com.yujian.ai.ui.recognition.result.usesSourceDerivedHeroBackdrop
 import com.yujian.ai.ui.theme.DeepInk
 import com.yujian.ai.ui.theme.MutedInk
 
@@ -76,7 +76,9 @@ fun RecognitionIssueScreen(
         Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
             YuJianBackCenterTitleTopBar(title = "识别结果", onBack = onBack)
             Column(
-                Modifier.fillMaxWidth().weight(1f)
+                Modifier.weight(1f)
+                    .widthIn(max = RecognitionResultGeometryResolver.MAX_CONTENT_WIDTH_DP.dp)
+                    .fillMaxWidth()
                     .padding(start = safeInsets.start, end = safeInsets.end)
                     .verticalScroll(rememberScrollState())
                     .padding(bottom = 20.dp + safeInsets.bottom),
@@ -89,7 +91,6 @@ fun RecognitionIssueScreen(
                         bitmap = it.bitmap.asImageBitmap(), bbox = null,
                         widthDp = geometry.heroWidthDp, heightDp = geometry.heroHeightDp,
                         evidenceFirst = true,
-                        sourceBackdropEnabled = visualState.usesSourceDerivedHeroBackdrop(),
                     )
                 }
                 Spacer(Modifier.height(16.dp))

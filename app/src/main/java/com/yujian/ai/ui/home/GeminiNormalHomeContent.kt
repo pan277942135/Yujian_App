@@ -77,11 +77,7 @@ import kotlin.math.abs
 
 private const val GeminiHomeBackground = "normal_home_runtime_v1/static/scene_base.png"
 private const val GeminiHomeCardAspectRatio = 247f / 293f
-private const val GeminiHomeCardWidthFraction = 0.686f
 private const val GeminiHomeNeighborHeightFraction = 0.667f
-private val GeminiHomeCardMaxHeight = 400.dp
-private val GeminiHomeCardMaxWidth = GeminiHomeCardMaxHeight * GeminiHomeCardAspectRatio
-private val GeminiHomeMinimumReadableCardHeight = 220.dp
 private val GeminiHomePeekTopOffset = 15.dp
 
 /**
@@ -106,12 +102,22 @@ internal fun GeminiNormalHomeContent(
     motionState: HomeMotionState,
     runtimeAssets: GeminiNormalHomeRuntimeAssets?,
     safeInsets: SafeDrawingInsetsDp = SafeDrawingInsetsDp(),
+    layoutVariant: GeminiHomeLayoutVariant = GeminiHomeLayoutVariant.ADAPTIVE_V1,
     modifier: Modifier = Modifier,
 ) {
     val records = remember(recentCatches) { orderedHomeRecords(recentCatches) }
     BoxWithConstraints(modifier = modifier.testTag("gemini-home-screen")) {
         val safeWidth = (maxWidth - safeInsets.start - safeInsets.end).coerceAtLeast(1.dp)
         val safeHeight = (maxHeight - safeInsets.top - safeInsets.bottom).coerceAtLeast(1.dp)
+        val fontScale = LocalDensity.current.fontScale
+        val layoutSpec = remember(safeWidth, safeHeight, fontScale, layoutVariant) {
+            resolveGeminiHomeLayoutSpec(
+                safeWidthDp = safeWidth.value,
+                safeHeightDp = safeHeight.value,
+                fontScale = fontScale,
+                variant = layoutVariant,
+            )
+        }
         val avatarSize = clampDp(safeHeight.value * 0.06f, 36f, 44f)
         val cameraVisualSize = clampDp(safeHeight.value * 0.095f, 54f, 66f)
         val cameraTouchSize = maxOf(72.dp, cameraVisualSize)
@@ -155,6 +161,8 @@ internal fun GeminiNormalHomeContent(
                     resolveImageUrl = resolveImageUrl,
                     accessToken = accessToken,
                     avatarSize = avatarSize,
+                    brandToStatsGap = layoutSpec.brandToStatsGap
+                        ?: clampDp(safeHeight.value * 0.042f, 18f, 34f),
                     onLoginClick = onLoginClick,
                     onProfileClick = onProfileClick,
                     onSpeciesClick = onSpeciesClick,
@@ -170,6 +178,7 @@ internal fun GeminiNormalHomeContent(
                     resolveImageUrl = resolveImageUrl,
                     accessToken = accessToken,
                     runtimeAssets = runtimeAssets,
+                    layoutSpec = layoutSpec,
                     onCatchesClick = onCatchesClick,
                     onCatchClick = onCatchClick,
                 )
@@ -203,16 +212,16 @@ private fun GeminiTopSection(
     resolveImageUrl: (String?) -> String?,
     accessToken: String,
     avatarSize: Dp,
+    brandToStatsGap: Dp,
     onLoginClick: () -> Unit,
     onProfileClick: () -> Unit,
     onSpeciesClick: () -> Unit,
     onCatchesClick: () -> Unit,
 ) {
-    // Keep a stable status-area buffer; let only the bounded header-to-stats
-    // gap respond to height. System safe insets are already applied by parent.
+    // Keep a stable status-area buffer; the policy bounds the header-to-stats
+    // gap. System safe insets are already applied by the parent.
     val topInset = 8.dp
     val horizontalInset = clampDp(safeWidth.value * 0.075f, 24f, 40f)
-    val headerGap = clampDp(safeHeight.value * 0.042f, 18f, 34f)
     val avatarTargetSize = maxOf(48.dp, avatarSize + 4.dp)
     val brandWidth = clampDp(safeWidth.value * (155f / 1080f), 46f, 70f)
     val brandHeight = brandWidth * (80f / 155f)
@@ -246,7 +255,7 @@ private fun GeminiTopSection(
                 onProfileClick = onProfileClick,
             )
         }
-        Spacer(Modifier.height(headerGap))
+        Spacer(Modifier.height(brandToStatsGap))
         GeminiStatsBar(
             statistics = statistics,
             catches = catches,
@@ -425,11 +434,11 @@ private fun GeminiMiddleSection(
     resolveImageUrl: (String?) -> String?,
     accessToken: String,
     runtimeAssets: GeminiNormalHomeRuntimeAssets?,
+    layoutSpec: GeminiHomeLayoutSpec,
     onCatchesClick: () -> Unit,
     onCatchClick: (String) -> Unit,
 ) {
     val fontScale = LocalDensity.current.fontScale
-    val verticalMargin = clampDp(safeHeight.value * 0.01f, 4f, 10f)
     val titleFontSize = responsiveSp(safeHeight, 0.027f, 16f, 19f)
     val actionFontSize = responsiveSp(safeHeight, 0.021f, 13f, 15f)
     val titleLineHeight = titleFontSize.value * 1.2f * fontScale
@@ -439,25 +448,31 @@ private fun GeminiMiddleSection(
         with(LocalDensity.current) { heightPx.toDp().value }
     } ?: titleLineHeight
     // The row keeps its 48dp action target. Use Compose's measured Text height,
-    // including platform font metrics, to keep the visible title-to-card gap at 13dp.
-    val titleBottomInset = ((headerHeight.value - measuredTitleHeightDp) / 2f).coerceAtLeast(0f)
-    val headerGap = (13f - titleBottomInset).coerceAtLeast(0f).dp
+    // including platform font metrics, to keep the visible title-to-card gap at its policy value.
+    val titleRowInset = ((headerHeight.value - measuredTitleHeightDp) / 2f).coerceAtLeast(0f)
+    val headerGap = (layoutSpec.titleToCardGap.value - titleRowInset).coerceAtLeast(0f).dp
     val trackWidth = safeWidth.coerceAtMost(560.dp)
-    val desiredCardWidth = minOf(trackWidth * GeminiHomeCardWidthFraction, GeminiHomeCardMaxWidth)
-    val desiredCardHeight = (desiredCardWidth / GeminiHomeCardAspectRatio).coerceAtMost(GeminiHomeCardMaxHeight)
+    val desiredCardWidth = geminiHomeCardWidth(trackWidth.value, layoutSpec).dp
+    val desiredCardHeight = (desiredCardWidth / GeminiHomeCardAspectRatio)
+        .coerceAtMost(layoutSpec.maxCardHeight)
 
     BoxWithConstraints(modifier = modifier) {
-        val availableCardHeight = (maxHeight - verticalMargin * 2 - headerHeight - headerGap).coerceAtLeast(0.dp)
-        // When a short viewport has enough room for a legible card, reduce both
-        // axes together. Below the readable floor, preserve the approved card
-        // size and let only the Middle container scroll.
-        val cardHeight = if (availableCardHeight >= GeminiHomeMinimumReadableCardHeight) {
+        val adaptiveLayout = layoutSpec.topAlignMiddleGroup
+        val leadingGap = layoutSpec.statsToTitleGap?.let {
+            (it.value - titleRowInset).coerceAtLeast(0f).dp
+        } ?: clampDp(safeHeight.value * 0.01f, 4f, 10f)
+        val trailingGap = layoutSpec.cardToFooterGap ?: clampDp(safeHeight.value * 0.01f, 4f, 10f)
+        val availableCardHeight = (maxHeight - leadingGap - headerHeight - headerGap - trailingGap)
+            .coerceAtLeast(0.dp)
+        // Compute against the actual height left after Top and Footer have
+        // been measured by the parent Column. Keep the ratio when reducing.
+        val cardHeight = if (availableCardHeight >= layoutSpec.minReadableCardHeight) {
             minOf(desiredCardHeight, availableCardHeight)
         } else {
             desiredCardHeight
         }
         val cardWidth = cardHeight * GeminiHomeCardAspectRatio
-        val groupHeight = verticalMargin * 2 + headerHeight + headerGap + cardHeight
+        val groupHeight = leadingGap + headerHeight + headerGap + cardHeight + trailingGap
         val needsScroll = groupHeight > maxHeight
         val scrollState = rememberScrollState()
         val contentModifier = if (needsScroll) {
@@ -469,9 +484,9 @@ private fun GeminiMiddleSection(
 
         Column(
             modifier = contentModifier,
-            verticalArrangement = if (needsScroll) Arrangement.Top else Arrangement.Center,
+            verticalArrangement = if (adaptiveLayout || needsScroll) Arrangement.Top else Arrangement.Center,
         ) {
-            Spacer(Modifier.height(verticalMargin))
+            Spacer(Modifier.height(leadingGap))
             GeminiSectionHeader(
                 modifier = Modifier.fillMaxWidth().height(headerHeight),
                 safeWidth = safeWidth,
@@ -511,7 +526,7 @@ private fun GeminiMiddleSection(
                     onCatchClick = onCatchClick,
                 )
             }
-            Spacer(Modifier.height(verticalMargin))
+            Spacer(Modifier.height(trailingGap))
         }
     }
 }
@@ -596,13 +611,13 @@ private fun GeminiCatchCarousel(
     val hasNeighborPages = pageCount > 1
     val pagerState = rememberPagerState(initialPage = 0, pageCount = { pageCount })
     val trackWidth = safeWidth.coerceAtMost(560.dp)
-    val neighborWidth = minOf(trackWidth * 0.62f, 260.dp)
+    val pageSpacing = clampDp(trackWidth.value * 0.032f, 10f, 16f)
+    val neighborWidth = geminiHomeNeighborWidth(trackWidth.value, cardWidth.value, pageSpacing.value).dp
     val sideScaleX = (neighborWidth / cardWidth).coerceIn(0.5f, 1f)
     val sideScaleY = GeminiHomeNeighborHeightFraction
     val neighborTranslationY = with(LocalDensity.current) {
         (GeminiHomePeekTopOffset - cardHeight * ((1f - sideScaleY) / 2f)).toPx()
     }
-    val pageSpacing = clampDp(trackWidth.value * 0.032f, 10f, 16f)
     val contentInset = ((trackWidth - cardWidth) / 2).coerceAtLeast(0.dp)
 
     val activeId = records.getOrNull(pagerState.currentPage)?.id
@@ -676,6 +691,7 @@ private fun GeminiCatchCard(
     onClick: () -> Unit,
 ) {
     val textGap = clampDp(safeHeight.value * 0.006f, 2f, 5f)
+    val allowAuxiliaryWrapping = LocalDensity.current.fontScale >= 1.3f
     val speciesSize = responsiveSp(safeHeight, 0.036f, 20f, 26f)
     val measurementSize = responsiveSp(safeHeight, 0.023f, 13f, 16f)
     val metadataSize = responsiveSp(safeHeight, 0.019f, 11f, 13f)
@@ -731,7 +747,7 @@ private fun GeminiCatchCard(
                             lineHeight = (measurementSize.value * 1.2f).sp,
                             fontWeight = FontWeight.Medium,
                         ),
-                        maxLines = 1,
+                        maxLines = if (allowAuxiliaryWrapping) 2 else 1,
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.padding(top = textGap)
                             .testTag("gemini-home-catch-measurement-${item.id}"),
@@ -745,7 +761,7 @@ private fun GeminiCatchCard(
                             fontSize = metadataSize,
                             lineHeight = (metadataSize.value * 1.3f).sp,
                         ),
-                        maxLines = 1,
+                        maxLines = if (allowAuxiliaryWrapping) 2 else 1,
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.padding(top = textGap)
                             .testTag("gemini-home-catch-metadata-${item.id}"),
@@ -760,7 +776,8 @@ private fun GeminiCatchCard(
                     authToken = accessToken,
                     modifier = Modifier.fillMaxSize().testTag("gemini-home-catch-media-${item.id}"),
                     contentDescription = "${presentationSpeciesName(item.speciesName)} 鱼获照片",
-                    preserveEvidenceWithFitBackdrop = true,
+                    smartFishPhoto = true,
+                    fishPhotoSourceVersion = item.id,
                     placeholder = {
                         Box(
                             Modifier.fillMaxSize()

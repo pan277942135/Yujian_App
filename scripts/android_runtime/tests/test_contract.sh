@@ -122,3 +122,63 @@ run_case camera-application-error camera-closed FAIL_TEST 30
 run_case process-crash process-crash FAIL_TEST 30
 run_case evidence-missing missing-evidence FAIL_EVIDENCE 40
 run_case pass ready PASS 0
+
+run_adaptive_matrix_even_when_legacy_suite_fails() {
+  local tmp rc trace
+  tmp="$(mktemp -d)"
+  mkdir -p "$tmp/bin"
+  trace="$tmp/call-order.txt"
+  cat > "$tmp/bin/adb" <<'SH'
+#!/bin/sh
+exit 0
+SH
+  cat > "$tmp/bin/python3" <<'SH'
+#!/bin/sh
+exit 0
+SH
+  cat > "$tmp/bin/bash" <<'SH'
+#!/bin/sh
+case "$1" in
+  scripts/run_android_runtime_gate.sh)
+    printf 'legacy\n' >> "$NH01_TEST_TRACE"
+    exit 30
+    ;;
+  scripts/android_runtime/gates/run_nh01_adaptive_device_matrix.sh)
+    printf 'matrix\n' >> "$NH01_TEST_TRACE"
+    exit 0
+    ;;
+  *)
+    printf 'unexpected child command: %s\n' "$*" >&2
+    exit 99
+    ;;
+esac
+SH
+  chmod +x "$tmp/bin/adb" "$tmp/bin/python3" "$tmp/bin/bash"
+  set +e
+    PATH="$tmp/bin:$PATH" \
+      NH01_TEST_TRACE="$trace" \
+      YUJIAN_RUNTIME_EVIDENCE="$tmp/evidence" \
+      YUJIAN_SOURCE_SHA="fake-sha" \
+      /bin/bash "$ROOT_DIR/scripts/design/run_nh01_emulator_runtime.sh" > "$tmp/output.log" 2>&1
+    rc=$?
+  set -e
+  [[ "$rc" == "30" ]] || {
+    echo "expected core FAIL_TEST exit 30 after matrix attempt; got $rc" >&2
+    cat "$tmp/output.log" >&2
+    exit 1
+  }
+  [[ "$(cat "$trace")" == $'legacy\nmatrix' ]] || {
+    echo "adaptive matrix did not run after the independent legacy failure" >&2
+    cat "$trace" >&2 || true
+    exit 1
+  }
+  grep -q 'NH01_ADAPTIVE_DEVICE_MATRIX=PASS source_sha=fake-sha' "$tmp/output.log" || {
+    echo "successful adaptive matrix result was not recorded" >&2
+    cat "$tmp/output.log" >&2
+    exit 1
+  }
+  printf '%s\n' 'PASS NH01 adaptive matrix runs even after independent legacy FAIL_TEST'
+  rm -rf "$tmp"
+}
+
+run_adaptive_matrix_even_when_legacy_suite_fails

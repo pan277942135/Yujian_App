@@ -41,6 +41,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.text.style.TextAlign
 import com.yujian.ai.catches.CatchMemoryMedia
+import com.yujian.ai.ui.components.FishPhotoErrorPlaceholder
 import com.yujian.ai.ui.components.RemoteImage
 import com.yujian.ai.ui.designsystem.color.YuJianColors
 import com.yujian.ai.ui.designsystem.components.YuJianGlassCard
@@ -229,7 +230,9 @@ private fun MemoryMediaTile(media: CatchMemoryMedia) {
             url = "file://${media.filePath}",
             modifier = Modifier.fillMaxSize(),
             contentDescription = "鱼获照片",
-            contentScale = ContentScale.Crop,
+            smartFishPhoto = true,
+            fishPhotoSourceVersion = media.id,
+            placeholder = { FishPhotoErrorPlaceholder() },
         )
     }
 }

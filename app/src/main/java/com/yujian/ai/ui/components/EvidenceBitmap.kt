@@ -13,11 +13,39 @@ import kotlin.math.roundToInt
 /** Display-only decode. Never rewrites the archived source or its EXIF metadata. */
 internal fun decodeOrientedEvidence(bytes: ByteArray): Bitmap? {
     val decoded = BitmapFactory.decodeByteArray(bytes, 0, bytes.size) ?: return null
-    val orientation = runCatching {
-        ExifInterface(ByteArrayInputStream(bytes)).getAttributeInt(
-            ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL,
-        )
-    }.getOrDefault(ExifInterface.ORIENTATION_NORMAL)
+    return applyExifOrientation(decoded, readExifOrientation(bytes))
+}
+
+/** Decode no larger than the measured image slot needs, then apply EXIF before display/crop geometry. */
+internal fun decodeOrientedEvidenceSampled(bytes: ByteArray, targetWidthPx: Int, targetHeightPx: Int): Bitmap? {
+    val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+    BitmapFactory.decodeByteArray(bytes, 0, bytes.size, bounds)
+    if (bounds.outWidth <= 0 || bounds.outHeight <= 0) return null
+    val orientation = readExifOrientation(bytes)
+    val swapsAxes = orientation == ExifInterface.ORIENTATION_TRANSPOSE ||
+        orientation == ExifInterface.ORIENTATION_ROTATE_90 ||
+        orientation == ExifInterface.ORIENTATION_TRANSVERSE ||
+        orientation == ExifInterface.ORIENTATION_ROTATE_270
+    val requiredRawWidth = (if (swapsAxes) targetHeightPx else targetWidthPx).coerceAtLeast(1)
+    val requiredRawHeight = (if (swapsAxes) targetWidthPx else targetHeightPx).coerceAtLeast(1)
+    var sampleSize = 1
+    while (bounds.outWidth / (sampleSize * 2) >= requiredRawWidth &&
+        bounds.outHeight / (sampleSize * 2) >= requiredRawHeight
+    ) sampleSize *= 2
+    val sampled = BitmapFactory.decodeByteArray(bytes, 0, bytes.size, BitmapFactory.Options().apply {
+        inSampleSize = sampleSize
+        inPreferredConfig = Bitmap.Config.ARGB_8888
+    }) ?: return null
+    return applyExifOrientation(sampled, orientation)
+}
+
+private fun readExifOrientation(bytes: ByteArray): Int = runCatching {
+    ExifInterface(ByteArrayInputStream(bytes)).getAttributeInt(
+        ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL,
+    )
+}.getOrDefault(ExifInterface.ORIENTATION_NORMAL)
+
+private fun applyExifOrientation(decoded: Bitmap, orientation: Int): Bitmap {
     val matrix = when (orientation) {
         ExifInterface.ORIENTATION_FLIP_HORIZONTAL -> Matrix().apply { setScale(-1f, 1f) }
         ExifInterface.ORIENTATION_ROTATE_180 -> Matrix().apply { setRotate(180f) }
