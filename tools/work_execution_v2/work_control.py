@@ -47,6 +47,8 @@ def record_event(path, event):
     previous = [e for e in issue["events"] if e["result"] == "FAIL"]
     if event["result"] == "FAIL":
         attempt = len(previous) + 1
+        if attempt > MAX_ATTEMPTS:
+            raise ValueError('retry budget exceeded; use canonical Work-state guard')
         if attempt == 1:
             action = "LOCALIZE_AND_REPRODUCE"
         elif attempt == 2:
