@@ -4,9 +4,9 @@
   "design_contracts_modified": false,
   "source_contracts": ["P1", "P2", "P3", "P4", "P5"],
   "static_candidates": {
-    "A": { "id": "REVIEW_CANDIDATE_A", "name": "Soft Field", "receiving_field_scale": 7.0, "primary_path_scale": 1.0, "secondary_filament_scale": 0.25 },
-    "B": { "id": "REVIEW_CANDIDATE_B", "name": "Balanced Field", "receiving_field_scale": 10.0, "primary_path_scale": 1.35, "secondary_filament_scale": 0.38, "recommended_for_first_review": true },
-    "C": { "id": "REVIEW_CANDIDATE_C", "name": "Strong Atmosphere", "receiving_field_scale": 13.0, "primary_path_scale": 1.65, "secondary_filament_scale": 0.5 }
+    "A": { "id": "REVIEW_CANDIDATE_A", "name": "Soft Field", "receiving_field_scale": 2.4, "primary_path_scale": 1.0, "secondary_filament_scale": 0.25 },
+    "B": { "id": "REVIEW_CANDIDATE_B", "name": "Balanced Field", "receiving_field_scale": 3.2, "primary_path_scale": 1.35, "secondary_filament_scale": 0.38, "recommended_for_first_review": true },
+    "C": { "id": "REVIEW_CANDIDATE_C", "name": "Strong Atmosphere", "receiving_field_scale": 4.0, "primary_path_scale": 1.65, "secondary_filament_scale": 0.5 }
   },
   "static_path_corner_profile": {
     "A": { "B1": { "alpha": 1.0, "length": 1.0 }, "B2": { "alpha": 1.0, "length": 1.0 }, "B3": { "alpha": 1.0, "length": 1.0 }, "B4": { "alpha": 1.0, "length": 1.0 }, "G1": { "alpha": 1.0, "length": 1.0 }, "G2": { "alpha": 1.0, "length": 1.0 }, "G3": { "alpha": 1.0, "length": 1.0 } },
@@ -14,17 +14,19 @@
     "C": { "B1": { "alpha": 1.0, "length": 1.0 }, "B2": { "alpha": 1.0, "length": 1.0 }, "B3": { "alpha": 1.0, "length": 1.0 }, "B4": { "alpha": 1.0, "length": 1.0 }, "G1": { "alpha": 1.0, "length": 1.0 }, "G2": { "alpha": 1.0, "length": 1.0 }, "G3": { "alpha": 1.0, "length": 1.0 } },
     "intent": "V3 static candidates preserve P1 photo geometry, receiving oval geometry, alpha stops, all seven path control points and visible ratios. A/B/C vary Web-only optical multipliers only."
   },
-  "receiving_light_web_review_alpha_cap": 0.84,
+  "receiving_light_web_review_alpha_cap": 0.32,
   "receiving_light_web_review_composite": "screen",
+  "receiving_light_depth_ratio": 0.13,
   "contract_alpha_before_multipliers": [0.03, 0.07],
   "static_candidate_status": "REVIEW_REQUIRED · gains above 1 are Web-only study multipliers; no P1 or Native value changed",
   "field_geometry": {
     "authority": "P1 receiving_light_layout and receiving_light_alpha_stops",
-    "rendering": "four registered radial ovals mapped through the shared photoContentRect; static Web Review uses screen composite only for Receiving Light; seven frozen paths draw in separate layers above the field",
+    "rendering": "four registered P1 radial ovals plus broad diffuse bloom sampled from the four exact P1 primary curves; depth uses the P1 edge-depth midpoint; clipped through the shared photoContentRect",
     "quiet_gaps": "the four P1 receiving ovals remain separated; the seven frozen path topology and Quiet Gaps are unchanged",
     "geometry_added": false,
     "color_tokens": "existing P1 blue/gold tokens",
-    "composite_authority": "Web Review candidate only; P1 and Native remain unchanged"
+    "path_source": "P1 B1/G1/B3/G3 primary records only; exact geometry, four islands and Quiet Gaps retained",
+    "composite_authority": "Screen and diffuse path bloom are Web static review candidates only; P1 and Native remain unchanged"
   },
   "dynamic_candidates": {
     "A": { "id": "DYNAMIC_CANDIDATE_A", "name": "Calm", "field_scale": 1.0, "path_scale": 0.88, "path_flow_scale": 0.24, "filament_scale": 0.22, "breath_amplitude": 0.035, "corner_periods_seconds": [15.4, 20.8, 24.6, 29.1] },
