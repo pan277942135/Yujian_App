@@ -164,7 +164,7 @@
           "status": "FROZEN",
           "usage": "选择图库图片后进入识别前，原图 100% 完整显示。",
           "note": "选择图片识别保留完整原图；容器若要求满幅，可使用完整原图前景 + 同源背景填充，不裁掉源图边缘。",
-          "authority_path": "design/system/fish_media_display_v1/Fish_Media_Display_Spec_V1.md"
+          "authority_path": "design/system/fish_media_display_v1/Fish_Media_Display_Spec_V1_1.md"
         },
         {
           "id": "CROP_RESULT",
@@ -196,7 +196,7 @@
           "status": "FROZEN",
           "usage": "跨页面方向、比例、贴边、无 bbox、黑边及图片异常的设计验收矩阵。",
           "note": "验收横竖照片、贴边、极端比例、BBox 缺失、EXIF、不同屏幕宽度和字体缩放；静态示意不得作为 Android 真机证据。",
-          "authority_path": "design/system/fish_media_display_v1/Fish_Media_Display_Spec_V1.md"
+          "authority_path": "design/system/fish_media_display_v1/Fish_Media_Display_Spec_V1_1.md"
         }
       ],
       "historical_authority_paths": [
