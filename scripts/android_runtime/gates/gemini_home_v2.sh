@@ -67,6 +67,34 @@ PY
   return 1
 }
 
+gemini_v2_verify_display_profile() {
+  local expected_size="$1" output="$2" actual_wm attempt screenshot
+  screenshot="$output/display_profile_${expected_size}.png"
+  actual_wm="$("$YUJIAN_ADB_BIN" shell wm size 2>&1 | tr -d '\r' || true)"
+  {
+    printf 'expected_size=%s\n' "$expected_size"
+    printf 'reported_wm_size=%s\n' "${actual_wm//$'\n'/; }"
+  } > "$output/display_profile_${expected_size}.log"
+  for attempt in $(seq 1 5); do
+    if "$YUJIAN_ADB_BIN" exec-out screencap -p > "$screenshot" 2>> "$output/display_profile_${expected_size}.log" && \
+       python3 - "$screenshot" "$expected_size" >> "$output/display_profile_${expected_size}.log" 2>&1 <<'PY'
+from PIL import Image
+import pathlib, sys
+with Image.open(pathlib.Path(sys.argv[1])) as image:
+    actual = f"{image.width}x{image.height}"
+expected = sys.argv[2]
+print(f"screencap_size={actual}")
+if actual != expected:
+    raise SystemExit(1)
+PY
+    then
+      return 0
+    fi
+    sleep 1
+  done
+  return 1
+}
+
 gemini_v2_capture_hierarchy() {
   local profile="$1"
   local directory="$YUJIAN_EVIDENCE_DIR/android-device"
@@ -239,6 +267,10 @@ gate_collect_evidence() {
     "$bounds_1920" false || return "$EXIT_FAIL_EVIDENCE"
 
   "$YUJIAN_ADB_BIN" shell wm size 1080x2340 > "$output/1080x2340_wm_size.log" 2>&1 || return "$EXIT_BLOCKED_INFRA"
+  if ! gemini_v2_verify_display_profile 1080x2340 "$output"; then
+    runtime_set_failure "EMULATOR_PROFILE" "API28_DISPLAY_PROFILE_UNAVAILABLE_EXPECTED_1080X2340"
+    return "$EXIT_BLOCKED_INFRA"
+  fi
   "$YUJIAN_ADB_BIN" shell am force-stop "$app_package"
   "$YUJIAN_ADB_BIN" shell monkey -p "$app_package" -c android.intent.category.LAUNCHER 1 >/dev/null
   gemini_v2_wait_for_app 1080x2340 || {
@@ -259,6 +291,10 @@ gate_collect_evidence() {
 
   "$YUJIAN_ADB_BIN" shell wm size 720x1280 > "$output/720x1280_wm_size.log" 2>&1 || return "$EXIT_BLOCKED_INFRA"
   "$YUJIAN_ADB_BIN" shell wm density 320 > "$output/720x1280_wm_density.log" 2>&1 || return "$EXIT_BLOCKED_INFRA"
+  if ! gemini_v2_verify_display_profile 720x1280 "$output"; then
+    runtime_set_failure "EMULATOR_PROFILE" "API28_DISPLAY_PROFILE_UNAVAILABLE_EXPECTED_720X1280"
+    return "$EXIT_BLOCKED_INFRA"
+  fi
   "$YUJIAN_ADB_BIN" shell am force-stop "$app_package"
   "$YUJIAN_ADB_BIN" shell monkey -p "$app_package" -c android.intent.category.LAUNCHER 1 >/dev/null
   gemini_v2_wait_for_app 720x1280 || {
