@@ -51,13 +51,14 @@ concurrency:
 
 env:
   CENTER_SOURCE_BRANCH: main
-  CENTER_SOURCE_SHA: 796edb4b4ecdab1bcdc7c7076238a0ec8817e32f
   PR_SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
 
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    outputs:
+      center_source_sha: ${{ steps.verify_center.outputs.center_source_sha }}
     steps:
       - name: Checkout exact PR #166 source
         uses: actions/checkout@v4
@@ -66,10 +67,10 @@ jobs:
           path: pr-source
           fetch-depth: 1
 
-      - name: Checkout verified current NH01 Acceptance Center source
+      - name: Checkout current NH01 Acceptance Center source
         uses: actions/checkout@v4
         with:
-          ref: 796edb4b4ecdab1bcdc7c7076238a0ec8817e32f
+          ref: main
           path: center-source
           fetch-depth: 1
 
@@ -78,17 +79,20 @@ jobs:
         with:
           node-version: 22
 
-      - name: Guard current Acceptance Center branch identity
+      - name: Verify checked-out Acceptance Center branch identity
+        id: verify_center
         shell: bash
         run: |
           set -euo pipefail
           remote_sha="$(git ls-remote "https://github.com/${GITHUB_REPOSITORY}.git" "refs/heads/${CENTER_SOURCE_BRANCH}" | cut -f1)"
+          checkout_sha="$(git -C center-source rev-parse HEAD)"
           test -n "$remote_sha"
-          if [[ "$remote_sha" != "$CENTER_SOURCE_SHA" ]]; then
-            echo "Acceptance Center source moved: expected $CENTER_SOURCE_SHA, remote is $remote_sha" >&2
+          if [[ "$remote_sha" != "$checkout_sha" ]]; then
+            echo "Acceptance Center source moved during checkout: checked out $checkout_sha, remote is $remote_sha" >&2
             exit 1
           fi
-          test "$(git -C center-source rev-parse HEAD)" = "$CENTER_SOURCE_SHA"
+          echo "CENTER_SOURCE_SHA=$checkout_sha" >> "$GITHUB_ENV"
+          echo "center_source_sha=$checkout_sha" >> "$GITHUB_OUTPUT"
           test "$(git -C pr-source rev-parse HEAD)" = "$PR_SOURCE_SHA"
 
       - name: Compose the existing Acceptance Center with the additive route
@@ -169,12 +173,24 @@ jobs:
     needs: build-and-test
     runs-on: ubuntu-latest
     timeout-minutes: 8
+    env:
+      CENTER_SOURCE_SHA: ${{ needs.build-and-test.outputs.center_source_sha }}
     environment:
       name: design-manager-pages
       url: ${{ steps.deployment.outputs.page_url }}
     outputs:
       page_url: ${{ steps.deployment.outputs.page_url }}
     steps:
+      - name: Reconfirm current Acceptance Center source before deploy
+        shell: bash
+        run: |
+          set -euo pipefail
+          remote_sha="$(git ls-remote "https://github.com/${GITHUB_REPOSITORY}.git" "refs/heads/${CENTER_SOURCE_BRANCH}" | cut -f1)"
+          if [[ "$remote_sha" != "$CENTER_SOURCE_SHA" ]]; then
+            echo "Acceptance Center source moved before deploy: built $CENTER_SOURCE_SHA, remote is $remote_sha" >&2
+            exit 1
+          fi
+
       - name: Checkout exact PR #166 source for live verification
         uses: actions/checkout@v4
         with:
