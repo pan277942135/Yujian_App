@@ -196,3 +196,16 @@ The browser Optical Lab loader and end-to-end static validation now pass from PR
 - CAPTURED and DETECTING remain internal phases mapped to `IMAGE_RECOGNIZING`; RP-A07 records the old user-copy discrepancy. Product event gates, the three visual states and all Frozen PNG bytes are unchanged.
 
 `ENGINEERING_HANDOFF_READY` and the Optical Lab browser smoke can pass independently. `M1_PROCESSING_FIGMA_ENGINEERING_HANDOFF` remains `NOT_PASS` until the actual unified-importer/Figma-node and visual QA gates, source-photo identity, and Android runtime verification are complete. PR #166 remains Draft/Open/Unmerged; PR #165 remains unchanged.
+
+
+## Work B · Optical Review Freeze V1 · 2026-10-20
+
+The review-routing, visual hierarchy, and evidence classification rules are now versioned in `design/pages/recognition/processing/handoff/RECOGNITION_OPTICAL_REVIEW_FREEZE_V1.md` and linked from the Recognition Processing design README.
+
+- Canonical acceptance surface is the existing [GitHub Pages Design Manager entry](https://pan277942135.github.io/Yujian_App/design/manager/nh01_acceptance/edgeglow-fish-static/); the [nested Optical Review route](https://pan277942135.github.io/Yujian_App/design/manager/nh01_acceptance/edgeglow-fish-static/optical-review/) is its review destination. An isolated hosted Site is not the canonical entry.
+- The reported Design Manager browser workflow [#172](https://github.com/pan277942135/Yujian_App/actions/runs/39394414852) succeeded at page-code SHA `5ce46cc28b0af1436cc915bc60ea5520d60aede7`. This is browser/build evidence only.
+- Visual hierarchy is frozen: four disconnected blue/gold photo-edge islands; separate warm-gold Fish Focus on the actual fish body; one shared photo-coordinate transform; exactly three Frozen product visuals 02/03/04; no fabricated progress or production mask.
+- Human static selection remains `REVIEW_REQUIRED`. Production Fish Focus remains `BLOCKED` without trusted bbox + production `FishSubjectResult` mask. Case B remains `REVIEW_PROXY_NOT_PRODUCTION`. Frozen-photo identity, Figma native/export QA, independent visual QA, Android API 28 Runtime, recording and performance evidence remain open/not run unless separately proven.
+- The six-step closure sequence is coordinate mapping → Edge Field optical fidelity → production Fish Focus mask → status-card material → shared clock/cache/degradation → recorded API 28 end-to-end acceptance.
+- This documentation does not alter Frozen assets, Android product code, event gates, PR #165, or the rule that PR #166 remains Draft / Open / Unmerged. No merge to `main` is authorized.
+

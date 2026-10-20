@@ -49,3 +49,13 @@ State changes preserve one continuous Edge Field motion clock.
 This package freezes design authority only. Detector, crop, classifier, confidence semantics, production routing, Runtime closure, and Evidence PASS remain separate concerns.
 
 Historical V1.1 files remain compatibility/history and must not override V1.2 where V1.2 defines the current authority.
+
+
+## Current Optical Review Decision · 2026-10-20
+
+The review-route, visual-hierarchy, and evidence-classification freeze is recorded in [Recognition Optical Review — Frozen Visual & Evidence Rules V1](handoff/RECOGNITION_OPTICAL_REVIEW_FREEZE_V1.md).
+
+- Canonical review entry: [Design Manager · EdgeGlow Fish](https://pan277942135.github.io/Yujian_App/design/manager/nh01_acceptance/edgeglow-fish-static/).
+- Nested static/dynamic review: [Optical Review](https://pan277942135.github.io/Yujian_App/design/manager/nh01_acceptance/edgeglow-fish-static/optical-review/).
+- Current gates remain `REVIEW_REQUIRED` for human static optical selection, `BLOCKED` for Production Fish Focus, and `NOT_RUN` for Android Runtime unless new source-linked evidence closes them. Overall M1 remains `NOT_PASS`.
+- This decision supplements the frozen V1.2 authority; it does not change Frozen PNGs, product-state/event semantics, numerical Rendering Contract values, or PR merge policy.
