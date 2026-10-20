@@ -20,7 +20,8 @@ on:
 
 concurrency:
   group: nh01-gemini-v3-runtime-${{ github.ref }}
-  cancel-in-progress: false
+  # A new PR head supersedes unneeded earlier PR runtime attempts.
+  cancel-in-progress: true
 
 permissions:
   contents: read
