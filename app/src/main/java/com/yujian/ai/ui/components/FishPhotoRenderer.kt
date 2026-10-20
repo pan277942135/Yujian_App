@@ -140,7 +140,7 @@ internal object FishPhotoRenderer {
         }
         if (plan.mode == FishPhotoDisplayMode.SUBJECT_CROP && plan.cropRect != null) {
             val rect = plan.cropRect
-            val scale = outputWidth.toFloat() / rect.width()
+            val scale = outputWidth.toFloat() / rect.width
             val matrix = Matrix().apply {
                 setScale(scale, scale)
                 postTranslate(-rect.left * scale, -rect.top * scale)
