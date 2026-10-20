@@ -4,9 +4,9 @@
   "design_contracts_modified": false,
   "source_contracts": ["P1", "P2", "P3", "P4", "P5"],
   "static_candidates": {
-    "A": { "id": "REVIEW_CANDIDATE_A", "name": "Soft Field", "receiving_field_scale": 3.0, "primary_path_scale": 1.0, "secondary_filament_scale": 0.25 },
-    "B": { "id": "REVIEW_CANDIDATE_B", "name": "Balanced Field", "receiving_field_scale": 6.0, "primary_path_scale": 1.35, "secondary_filament_scale": 0.38, "recommended_for_first_review": true },
-    "C": { "id": "REVIEW_CANDIDATE_C", "name": "Strong Atmosphere", "receiving_field_scale": 7.5, "primary_path_scale": 1.65, "secondary_filament_scale": 0.5 }
+    "A": { "id": "REVIEW_CANDIDATE_A", "name": "Soft Field", "receiving_field_scale": 7.0, "primary_path_scale": 1.0, "secondary_filament_scale": 0.25 },
+    "B": { "id": "REVIEW_CANDIDATE_B", "name": "Balanced Field", "receiving_field_scale": 10.0, "primary_path_scale": 1.35, "secondary_filament_scale": 0.38, "recommended_for_first_review": true },
+    "C": { "id": "REVIEW_CANDIDATE_C", "name": "Strong Atmosphere", "receiving_field_scale": 13.0, "primary_path_scale": 1.65, "secondary_filament_scale": 0.5 }
   },
   "static_path_corner_profile": {
     "A": { "B1": { "alpha": 1.0, "length": 1.0 }, "B2": { "alpha": 1.0, "length": 1.0 }, "B3": { "alpha": 1.0, "length": 1.0 }, "B4": { "alpha": 1.0, "length": 1.0 }, "G1": { "alpha": 1.0, "length": 1.0 }, "G2": { "alpha": 1.0, "length": 1.0 }, "G3": { "alpha": 1.0, "length": 1.0 } },
@@ -14,6 +14,9 @@
     "C": { "B1": { "alpha": 1.0, "length": 1.0 }, "B2": { "alpha": 1.0, "length": 1.0 }, "B3": { "alpha": 1.0, "length": 1.0 }, "B4": { "alpha": 1.0, "length": 1.0 }, "G1": { "alpha": 1.0, "length": 1.0 }, "G2": { "alpha": 1.0, "length": 1.0 }, "G3": { "alpha": 1.0, "length": 1.0 } },
     "intent": "V3 static candidates preserve P1 photo geometry, receiving oval geometry, alpha stops, all seven path control points and visible ratios. A/B/C vary Web-only optical multipliers only."
   },
+  "receiving_light_web_review_alpha_cap": 0.84,
+  "contract_alpha_before_multipliers": [0.03, 0.07],
+  "static_candidate_status": "REVIEW_REQUIRED · gains above 1 are Web-only study multipliers; no P1 or Native value changed",
   "field_geometry": {
     "authority": "P1 receiving_light_layout and receiving_light_alpha_stops",
     "rendering": "four registered radial ovals mapped through the shared photoContentRect; seven frozen paths draw in separate layers above the field",

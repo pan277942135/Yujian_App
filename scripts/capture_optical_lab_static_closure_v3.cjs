@@ -222,6 +222,11 @@ async function main() {
     await setLayer(page, "outer", false); await setLayer(page, "mid", false); await setLayer(page, "core", false); await setLayer(page, "hairlines", false);
     await setReviewLayer(page, "fieldToggle", true); await setReviewLayer(page, "pathToggle", false); await setReviewLayer(page, "filamentToggle", false); await setReviewLayer(page, "fishToggle", false);
     await page.selectOption("#fieldLayerView", "receiving"); await waitForPaint(page); await canvasPng(page, "receiving-light-only.png");
+    // Keep the same P5 source photo visible while every other overlay stays off.
+    // This checks whether the Receiving Light reads as light on the real photo,
+    // not only as colored blobs against the scene background.
+    await setLayer(page, "photo", true); await waitForPaint(page); await canvasPng(page, "receiving-light-over-photo.png");
+    await setLayer(page, "photo", false);
     const layerCases = [
       ["outer-bloom-only.png", "outer"], ["mid-glow-only.png", "mid"], ["core-only.png", "core"],
     ];
@@ -266,8 +271,9 @@ async function main() {
       data_source_photo_sha256: photoSha,
       receiving_field_geometry_authority: "P1 receiving_light_layout and receiving_light_alpha_stops",
       frozen_path_authority: "P1 exact seven paths and one shared photoContentRect",
-      receiving_field_opacity_cap: 0.48,
-      candidate_differences: "Receiving Light multiplier, primary path multiplier, secondary filament multiplier only",
+      receiving_field_opacity_cap: 0.84,
+      contract_alpha_before_multipliers: config.p1_edge_field.optical_stack.find(layer => layer.layer === "local_receiving_light").contract_alpha_before_multipliers,
+      candidate_differences: "Web-only Receiving Light review multiplier, primary path multiplier, secondary filament multiplier only; contract and Native values unchanged",
       candidates: Object.fromEntries(["A", "B", "C"].map(candidate => [candidate, {
         id: candidateDefinitions[candidate].id,
         name: candidateDefinitions[candidate].name,
@@ -337,17 +343,25 @@ async function main() {
         assessment: "P1_OVAL_LAYOUT_RESTORED_BUT_FIELD_STILL_TOO_FAINT_AT_0_34_OPACITY_CAP",
         status: "REAL_BROWSER_CAPTURE_VISUALLY_TOO_WEAK",
       },
+      fourth_v3_failed_render: {
+        source_sha: "6138f994709c19cdcd121cb6bf9928eec2717ac5",
+        workflow_run_id: 39427791943,
+        artifact_id: 12266233847,
+        artifact_url: "https://github.com/pan277942135/Yujian_App/actions/runs/39427791943/artifacts/12266233847",
+        assessment: "The 0.48 Web-only cap still reads primarily as faint path traces on the real P5 photo; direct live-page inspection and Chromium output did not show a perceptible broad receiving field.",
+        status: "REAL_BROWSER_CAPTURE_VISUALLY_TOO_WEAK",
+      },
       root_causes: [
         "The pre-V3 static helper used a second assumed 3:4 coordinate space, was not clipped to the renderer photoContentRect, and produced broad patches instead of edge-following light.",
         "The first V3 fix removed the helper but used four low-alpha radial ovals. The actual Browser Receiving Light-only capture stayed below visibility thresholds in three of four corner samples; its pastel P1 tokens at the 0.07 contract alpha were largely swallowed by the bright fixture.",
         "The second V3 fix turned the Receiving Light into blurred primary-path strokes. That preserved the path curves but made the bottom field too narrow and faint; the real browser PNG still read as a few fine traces.",
         "The third V3 fix restored the exact P1 receiving_light_layout ovals and alpha stops, but the 0.34 local opacity ceiling still left the corner field too faint on the real photograph.",
-        "The current candidate set keeps the P1 ovals, color tokens, island weights and shared photoContentRect, and raises only Web review gain with a bounded 0.48 local opacity ceiling. The exact B1/G1/G3/B3 paths remain a separate layer above the field.",
+        "The fourth V3 pass kept the P1 ovals, alpha stops, colors, island weights and shared photoContentRect, but its 0.48 Web-only opacity cap still read as faint traces on the real photo. This pass raises only the Web-review gain/cap and adds a same-photo Receiving-Light-only capture; P1 and Native values remain unchanged.",
         "The prior smoke measured pixel changes and blue/gold deltas but did not test whether the edge field was visually clear, localized, or natural.",
         "Frozen 02 and the registered P5 source photo are different images, so strict same-source Frozen pixel diff is unavailable.",
       ],
       geometry: { transform_authority: "RecognitionImageTransform FIT oracle / renderer photoContentRect", photoContentRect: geometry.photoContentRect, viewports: viewportMatrix, paths: geometry.paths.map(pickGeometry), mapped_path_points: geometry.mapped_path_points, quiet_gaps: geometry.quiet_gaps, path_points_clamped: false, diagnostic_paths_clipped_to_photoContentRect: false, status: "PASS_FOR_GEOMETRY_MAPPING" },
-      receiving_field_geometry: { authority: "P1 receiving_light_layout and receiving_light_alpha_stops", layout: config.optical_lab_runtime_snapshot.receiving_light_layout, alpha_stops: config.optical_lab_runtime_snapshot.receiving_light_alpha_stops, opacity_cap: 0.48, photoContentRect: geometry.photoContentRect, geometry_added: false, status: "P1_GEOMETRY_MAPPED_TO_SHARED_RECT" },
+      receiving_field_geometry: { authority: "P1 receiving_light_layout and receiving_light_alpha_stops", layout: config.optical_lab_runtime_snapshot.receiving_light_layout, alpha_stops: config.optical_lab_runtime_snapshot.receiving_light_alpha_stops, opacity_cap: 0.84, photoContentRect: geometry.photoContentRect, geometry_added: false, status: "P1_GEOMETRY_MAPPED_TO_SHARED_RECT" },
       static_candidates: Object.fromEntries(["A", "B", "C"].map(candidate => [candidate, {
         id: candidateDefinitions[candidate].id,
         name: candidateDefinitions[candidate].name,
@@ -360,7 +374,7 @@ async function main() {
       candidate_parameter_json: { path: "static-candidate-parameters.json", sha256: sha256(fs.readFileSync(path.join(OUTPUT_DIR, "static-candidate-parameters.json"))) },
       rendered_png_artifacts: renderedArtifacts,
       artifact_manifest: "static-evidence-artifact-manifest.json",
-      layer_images: ["receiving-light-only.png", "outer-bloom-only.png", "mid-glow-only.png", "core-only.png", "hairline-echoes-only.png", "full-composite-B-390x844.png"],
+      layer_images: ["receiving-light-only.png", "receiving-light-over-photo.png", "outer-bloom-only.png", "mid-glow-only.png", "core-only.png", "hairline-echoes-only.png", "full-composite-B-390x844.png"],
       fish_focus: {
         production: "BLOCKED · no production FishSubjectResult mask is bound to this Web review input",
         review_only: "REVIEW_PROXY_NOT_PRODUCTION · Case B historical BBox + manually annotated alpha",
