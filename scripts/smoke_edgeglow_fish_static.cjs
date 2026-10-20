@@ -104,7 +104,7 @@ async function main() {
     }
     assert.deepEqual(observedStates, expectedStates, "the three state controls select the exact Frozen state IDs");
     await stateButtons.first().click();
-    assert.equal(await page.locator('#focusSource option[value="production"]').isDisabled(), true, "Production Focus remains unavailable without production evidence");
+    assert.equal(await page.locator('#focusSource option[value="production"]').evaluate(option => option.disabled), true, "Production Focus remains unavailable without production evidence");
     assert.match(await page.locator("#focusProvenance").innerText(), /Production: BLOCKED/, "the page labels missing Production Fish Focus as BLOCKED");
 
     const candidateOptions = await page.locator("#staticCandidate option").evaluateAll(options => options.map(option => option.value));
