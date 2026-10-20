@@ -1,8 +1,9 @@
-name: Recognition Optical Lab · Static Validation
+name: Recognition Optical Lab · Static + Dynamic Review Evidence
 
 on:
   pull_request:
     branches:
+      - main
       - design/processing-remove-early-visual-v1
     paths:
       - "design/manager/index.html"
@@ -99,7 +100,7 @@ jobs:
           LAB_DESIGN_ROOT_URL=http://127.0.0.1:8766/manager/optical-lab/ \
           PLAYWRIGHT_MODULE_DIR="$RUNNER_TEMP/processing-lab/node_modules" node scripts/smoke_processing_optical_lab.cjs
 
-      - name: Record passing browser runtime and responsive gates
+      - name: Record automation checks without visual-approval claim
         if: success()
         shell: bash
         run: |
@@ -109,7 +110,7 @@ jobs:
           const reportPath = 'optical-lab-artifacts/asset-manifest.json';
           const report = JSON.parse(await readFile(reportPath, 'utf8'));
           const smoke = JSON.parse(await readFile('optical-lab-artifacts/browser-smoke.json', 'utf8'));
-          if (smoke.result !== 'PASS' || !Array.isArray(smoke.responsive) || smoke.browserErrors.length !== 0) {
+          if (smoke.result !== 'AUTOMATION_SMOKE_PASSED_VISUAL_REVIEW_REQUIRED' || !Array.isArray(smoke.responsive) || smoke.browserErrors.length !== 0) {
             throw new Error('Cannot record browser pass without a complete Playwright smoke result.');
           }
           report.gates.browser_route_and_runtime_assets = 'PASS';
@@ -123,6 +124,9 @@ jobs:
             frozen_photo_identity: smoke.frozen_photo_identity,
             fish_focus: smoke.fishFocus,
             stage_b: smoke.stageB,
+            static_candidates: smoke.staticCandidates,
+            dynamic_candidates: smoke.dynamicCandidates,
+            visual_review: smoke.visualReview,
             browser_errors: smoke.browserErrors,
           };
           await writeFile(reportPath, JSON.stringify(report, null, 2) + '\n');
@@ -139,11 +143,14 @@ jobs:
           mkdir -p "$PACKAGE_DIR/design/pages/recognition/processing/handoff"
           mkdir -p "$PACKAGE_DIR/design/pages/recognition/design"
           mkdir -p "$PACKAGE_DIR/design/system/fish_media_display_v1/assets"
+          mkdir -p "$PACKAGE_DIR/design/manager/optical-lab/review_v1"
           mkdir -p "$PACKAGE_DIR/app/src/androidTest/assets"
           cp design/manager/optical-lab/index.html "$PACKAGE_DIR/design/manager/optical-lab/index.html"
           cp design/manager/optical-lab/README.md "$PACKAGE_DIR/design/manager/optical-lab/README.md"
           cp design/manager/optical-lab/build-info.js "$PACKAGE_DIR/design/manager/optical-lab/build-info.js"
           cp design/manager/optical-lab/asset-manifest.json "$PACKAGE_DIR/design/manager/optical-lab/asset-manifest.json"
+          cp design/manager/optical-lab/review_v1/fish_focus_review_only_alpha.png "$PACKAGE_DIR/design/manager/optical-lab/review_v1/"
+          cp design/manager/optical-lab/review_v1/fish_focus_case_b_bbox.json "$PACKAGE_DIR/design/manager/optical-lab/review_v1/"
           cp design/pages/recognition/processing/handoff/Processing_Engineering_Import_Config_V1.json "$PACKAGE_DIR/design/pages/recognition/processing/handoff/"
           cp design/pages/recognition/design/Recognition_Processing_Visual_State_Set_V1_2.json "$PACKAGE_DIR/design/pages/recognition/design/"
           cp design/pages/recognition/design/02_AI_Understanding_Frozen.png "$PACKAGE_DIR/design/pages/recognition/design/"
@@ -152,13 +159,14 @@ jobs:
           cp design/system/fish_media_display_v1/real_photo_cases.json "$PACKAGE_DIR/design/system/fish_media_display_v1/"
           cp design/system/fish_media_display_v1/assets/real_catch_source.jpg "$PACKAGE_DIR/design/system/fish_media_display_v1/assets/"
           cp app/src/androidTest/assets/recognition_real_catch_fixture.jpg "$PACKAGE_DIR/app/src/androidTest/assets/"
+          cp app/src/androidTest/assets/detector_case_b_night_flash.jpg "$PACKAGE_DIR/app/src/androidTest/assets/"
           (cd "$PACKAGE_DIR" && zip -qr "$GITHUB_WORKSPACE/optical-lab-artifacts/Recognition-Optical-Lab-Browser-Package.zip" .)
 
       - name: Upload browser screenshots and comparison report
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: Recognition-Optical-Lab-Static
+          name: Recognition-Optical-Lab-Review-V1
           path: optical-lab-artifacts/
           if-no-files-found: warn
           retention-days: 30

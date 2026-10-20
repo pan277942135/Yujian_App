@@ -12,6 +12,10 @@ let browser;
 (async () => {
   const out = process.env.LAB_OUTPUT_DIR || "optical-lab-artifacts";
   fs.mkdirSync(out, { recursive: true });
+  const staticEvidence = path.join(out, "static-candidates");
+  const dynamicEvidence = path.join(out, "dynamic-candidates");
+  fs.mkdirSync(staticEvidence, { recursive: true });
+  fs.mkdirSync(dynamicEvidence, { recursive: true });
   browser = await chromium.launch({ headless: true, args: ["--no-sandbox"] });
   const allErrors = [];
 
@@ -65,9 +69,16 @@ let browser;
     assert.match(audit.sourceRevision, /^[a-f0-9]{40}$/i, label + ": browser package must expose the exact CI source commit");
     assert.equal(await page.locator("#advancedDiagnostics").evaluate(node => node.open), false, label + ": advanced diagnostics default collapsed");
     assert.equal(await page.locator("#stateButtons button").count(), 3, label + ": exactly three product states");
+    assert.equal(await page.locator("#previewModeButtons button").count(), 2, label + ": static and dynamic review modes available");
+    assert.equal(await page.locator("#playPause").isVisible(), true, label + ": playback control is present");
+    assert.equal(await page.locator("#recordSequence").isVisible(), true, label + ": WebM recorder is present");
+    const dynamicEnabled = await page.evaluate(() => window.OPTICAL_DYNAMIC_REVIEW_ENABLED === true);
+    assert.equal(await page.locator("#playPause").isDisabled(), !dynamicEnabled, label + ": dynamic playback follows the static visual gate");
+    assert.equal(await page.locator("#recordSequence").isDisabled(), !dynamicEnabled, label + ": recorder follows the static visual gate");
+    assert.deepEqual(await page.locator("#motionSpeed option").evaluateAll(nodes => nodes.map(node => node.value)), ["0.5", "1", "1.5"], label + ": all required motion speeds available");
     assert.equal(await page.locator("#compareModes button").count(), 3, label + ": main compare toolbar has only side/overlay/wipe");
     assert.equal(await page.locator("#advancedModes button").count(), 2, label + ": candidate and diff modes stay in advanced diagnostics");
-    assert.equal(await page.locator("#motionTimeline").isVisible(), false, label + ": Stage B controls remain hidden");
+    assert.equal(await page.locator("#motionTimeline").isVisible(), false, label + ": legacy contract timeline remains separate from the new review preview");
     assert.equal(await page.locator("#paramMotionSpeed").isVisible(), false, label + ": motion controls remain hidden during Stage A");
     assert.equal(await page.locator("#stateMap tr").count(), 3, label + ": state map preserves three visuals");
     return { page, errors, audit };
@@ -76,11 +87,12 @@ let browser;
   const repo = await openReady(ROOT_URL, "repository-root HTTP preview");
   const page = repo.page;
   const audit = repo.audit;
+  await page.setViewportSize({ width: 1440, height: 1100 });
   const referenceStates = [];
   const frozen = [];
 
   await page.locator("#stateButtons button").nth(1).click();
-  assert.match(await page.locator("#focusReadiness").textContent(), /无真实 BBox，因此关闭/);
+  assert.match(await page.locator("#focusReadiness").textContent(), /BLOCKED/);
   assert.equal(await page.locator("#quickFish").isDisabled(), true, "Fish Focus tuning is unavailable without a real BBox");
   for (let i = 0; i < 3; i++) {
     await page.locator("#stateButtons button").nth(i).click();
@@ -103,6 +115,67 @@ let browser;
     if (i === 0) await page.locator("#boards").screenshot({ path: path.join(out, "frozen-vs-web-source-identity-unverified.png") });
   }
   assert.deepEqual(referenceStates, REQUIRED_STATES);
+
+  const staticCandidates = [];
+  for (const candidate of ["A", "B", "C"]) {
+    await page.locator("#stateButtons button").nth(0).click();
+    await page.locator("[data-preview-mode='static']").click();
+    await page.selectOption("#staticCandidate", candidate);
+    await page.selectOption("#fieldLayerView", "composite");
+    await page.setViewportSize({ width: 1440, height: 1100 });
+    await page.screenshot({ path: path.join(staticEvidence, `static-${candidate}-desktop.png`), fullPage: true });
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.screenshot({ path: path.join(staticEvidence, `static-${candidate}-narrow.png`), fullPage: true });
+    for (const [view, slug] of [["receiving", "receiving-field"], ["primary", "primary-paths"], ["filaments", "secondary-filaments"], ["composite", "final-composite"]]) {
+      await page.selectOption("#fieldLayerView", view);
+      const png = await page.locator("#previewCanvas").evaluate(canvas => canvas.toDataURL("image/png"));
+      fs.writeFileSync(path.join(staticEvidence, `static-${candidate}-${slug}.png`), Buffer.from(png.split(",")[1], "base64"));
+    }
+    staticCandidates.push(candidate);
+  }
+  await page.selectOption("#fieldLayerView", "composite");
+  await page.selectOption("#staticCandidate", "B");
+  await page.setViewportSize({ width: 1440, height: 1100 });
+
+  await page.locator("#stateButtons button").nth(1).click();
+  await page.screenshot({ path: path.join(out, "fish-focus-blocked.png"), fullPage: true });
+  assert.match(await page.locator("#focusReadiness").textContent(), /BLOCKED/);
+  await page.selectOption("#focusSource", "review");
+  await page.waitForFunction(() => document.querySelector("#photoName")?.textContent.includes("detector_case_b_night_flash") && document.querySelector("#maskName")?.textContent.includes("REVIEW ONLY"), null, { timeout: 30000 });
+  assert.match(await page.locator("#focusProvenance").textContent(), /Production: BLOCKED.*Review-only/);
+  await page.screenshot({ path: path.join(out, "fish-focus-review-proxy-fish-located.png"), fullPage: true });
+  await page.locator("#stateButtons button").nth(2).click();
+  await page.screenshot({ path: path.join(out, "fish-focus-review-proxy-species-recognizing.png"), fullPage: true });
+
+  const dynamicCandidates = [];
+  const dynamicEnabled = await page.evaluate(() => window.OPTICAL_DYNAMIC_REVIEW_ENABLED === true);
+  if (dynamicEnabled) for (const candidate of ["A", "B", "C"]) {
+    await page.locator("[data-preview-mode='dynamic']").click();
+    await page.selectOption("#dynamicCandidate", candidate);
+    await page.selectOption("#motionSpeed", "1");
+    await page.locator("#stateButtons button").nth(0).click();
+    await page.locator("#playPause").click();
+    await page.waitForTimeout(1500);
+    await page.screenshot({ path: path.join(dynamicEvidence, `dynamic-${candidate}-image-recognizing.png`), fullPage: true });
+    await page.locator("#stateButtons button").nth(1).click();
+    await page.waitForTimeout(2000);
+    await page.screenshot({ path: path.join(dynamicEvidence, `dynamic-${candidate}-fish-located.png`), fullPage: true });
+    await page.locator("#stateButtons button").nth(2).click();
+    await page.waitForTimeout(1500);
+    await page.screenshot({ path: path.join(dynamicEvidence, `dynamic-${candidate}-species-recognizing.png`), fullPage: true });
+    await page.locator("#playPause").click();
+    await page.locator("#stateButtons button").nth(0).click();
+    const downloadEvent = page.waitForEvent("download", { timeout: 30000 });
+    await page.locator("#recordSequence").click();
+    const clip = await downloadEvent;
+    const clipPath = path.join(dynamicEvidence, `dynamic-${candidate}-three-state-cycle.webm`);
+    await clip.saveAs(clipPath);
+    assert.ok(fs.statSync(clipPath).size > 10000, `Dynamic ${candidate} clip must contain encoded frames`);
+    dynamicCandidates.push(candidate);
+  }
+  if (dynamicEnabled) await page.locator("#playPause").click().catch(() => {});
+  await page.locator("#focusSource").selectOption("blocked");
+  await page.locator("#resetButton").click();
 
   await page.locator("#stateButtons button").nth(0).click();
   await page.locator("#previewCanvas").evaluate(canvas => { window.__opticalBaseline = new Uint8Array(canvas.getContext("2d").getImageData(0, 0, canvas.width, canvas.height).data); });
@@ -224,7 +297,7 @@ let browser;
   allErrors.push(...repoErrors, ...design.errors);
 
   const summary = {
-    result: "PASS",
+    result: "AUTOMATION_SMOKE_PASSED_VISUAL_REVIEW_REQUIRED",
     source_revision: audit.sourceRevision,
     asset_auto_loading: "PASS · both repository-root and design-root page layouts; config/manifest/3 Frozen/test photo SHA and dimensions checked",
     frozen_photo_identity: "BLOCKED · real source photo not linked to Processing Frozen screenshots",
@@ -232,8 +305,11 @@ let browser;
     renderers: { currentVsHardwarePixels: currentVsHardware, softwareVsHardwarePixels: softwareVsHardware, quickLayerChangedPixels: quickChanged },
     diff: { ...metrics, status: "EXPLORATORY_ONLY_SOURCE_IDENTITY_UNVERIFIED" },
     responsive,
-    fishFocus: "BBOX_MISSING · MASK_MISSING · no focus contour drawn",
-    stageB: "HIDDEN_PENDING_STATIC_VISUAL_REVIEW_AND_SEPARATE_AUTHORIZATION",
+    staticCandidates,
+    dynamicCandidates,
+    fishFocus: "Production BLOCKED · Case B review-only annotated alpha available · no production Mask asserted",
+    stageB: dynamicEnabled ? "WEB_REVIEW_ONLY · three motion candidates and 12s state-cycle WebM recordings exported" : "LOCKED_PENDING_STATIC_VISUAL_GATE",
+    visualReview: "PENDING_USER_CHOICE · automation evidence does not equal visual approval",
     browserErrors: allErrors,
   };
   fs.writeFileSync(path.join(out, "browser-smoke.json"), JSON.stringify(summary, null, 2));

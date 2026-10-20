@@ -24,6 +24,11 @@ header{display:flex;justify-content:space-between;gap:20px;align-items:flex-star
 .metric-strip{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.metric{background:#102026;border:1px solid #294148;border-radius:9px;padding:7px 9px;font-size:10px;color:#a8b9bd}.metric b{display:block;color:#dce8ea;font-size:12px;font-variant-numeric:tabular-nums}
 .source-warning{border:1px solid #775a34;background:#34281b;border-radius:10px;padding:10px 11px;color:#f0d3a6;font-size:11px;margin-bottom:10px}.locked{opacity:.58}.disabled-tag{font-size:10px;color:#f3c985;border:1px solid #775b37;border-radius:999px;padding:3px 7px}.report-list{padding-left:18px;margin:8px 0;display:grid;gap:6px;color:#b8c9cc;font-size:11px}.report-list b{color:#e5eeee}.tech-card{padding:9px;border:1px solid #2a4147;border-radius:9px;margin:7px 0;background:#102026}.tech-card strong{display:block;color:#dae8ea;font-size:11px}.tech-card p{margin:5px 0 0;color:#a8b9bd;font-size:10px}.table-wrap{overflow:auto}.state-map{width:100%;border-collapse:collapse;font-size:10px}.state-map td,.state-map th{padding:6px 4px;border-bottom:1px solid #294047;text-align:left;vertical-align:top}.state-map th{color:#9eb4b9;font-weight:600}.footer-note{margin-top:14px;padding:12px 14px;border:1px solid var(--line);border-radius:12px;color:#9fb3b8;background:#101d22;font-size:11px}
 .statusline{min-height:18px;padding:5px 0;font-size:11px;color:#a5b9bd}
+.preview-controls{display:grid;gap:10px;margin:0 0 14px;padding:12px 14px;border:1px solid #3a5359;border-radius:14px;background:linear-gradient(120deg,#15272d,#122127 58%,#1c2927);box-shadow:0 10px 28px #0002}
+.preview-controls-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}.preview-controls-title{font-size:13px;font-weight:800;letter-spacing:.06em;color:#e6f1f1}.preview-controls-note{font-size:10px;color:#9eb3b8;margin-top:3px}.preview-control-grid{display:grid;grid-template-columns:1.2fr 1fr 1.25fr 1.15fr;gap:9px;align-items:end}.preview-control{display:grid;gap:5px;min-width:0}.preview-control>span{font-size:10px;color:#adc1c5}.preview-control select{width:100%;min-width:0;padding:7px 9px;font-size:11px}.preview-buttons{display:flex;gap:6px;flex-wrap:wrap}.preview-buttons button{font-size:11px;padding:7px 10px}.preview-buttons button.active{border-color:#a8dbe2;background:#23414a;color:#effcfe}.preview-toggles{display:flex;gap:7px;flex-wrap:wrap}.preview-toggles label{display:flex;gap:6px;align-items:center;padding:6px 8px;border:1px solid #2b444b;border-radius:8px;background:#102026;font-size:10px;color:#d0dddf}.preview-toggles input{accent-color:#b6e5eb}.preview-meta-row{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;border-top:1px solid #294047;padding-top:8px}.focus-provenance{font-size:10px;color:#f2d29d}.record-status{font-size:10px;color:#a7e4c4}.review-focus-badge{position:absolute;left:8px;top:8px;z-index:2;padding:5px 8px;border:1px solid #6e5a36;border-radius:7px;background:#171812dd;color:#f4d89c;font:700 9px/1.25 system-ui,sans-serif;letter-spacing:.04em;pointer-events:none}.review-focus-badge[data-mode="BLOCKED"]{border-color:#784940;color:#ffb4a8;background:#271816dd}.field-layer-view-only .field-controls{display:none}
+@media(max-width:920px){.preview-control-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:500px){.preview-control-grid{grid-template-columns:1fr}.preview-controls-head{display:block}.preview-meta-row{align-items:flex-start}.preview-toggles{gap:5px}.preview-toggles label{flex:1 1 44%}}
+.preview-buttons{align-items:center}.preview-buttons select{width:auto;min-width:68px;flex:0 0 auto}.preview-buttons #recordSequence{white-space:nowrap}.preview-meta-row span{min-width:0;overflow-wrap:anywhere}
 @media(max-width:1100px){.layout{grid-template-columns:minmax(250px,320px) minmax(400px,1fr)}.right-col{grid-column:1/-1;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.right-col .panel{margin:0}}
 @media(max-width:720px){.shell{padding:14px 10px 30px}header{display:block}.header-actions{margin-top:12px}.gatebar{grid-template-columns:repeat(2,1fr)}.layout{grid-template-columns:1fr}.right-col{grid-column:auto;display:grid;grid-template-columns:1fr}.boards{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}.candidate-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.board figcaption{font-size:9px}.screen{border-radius:8px}.compare-toolbar{padding:9px}.workspace{padding:8px}.segmented{max-width:100%;overflow:auto}.segmented button{white-space:nowrap}}
 @media(max-width:440px){.boards{grid-template-columns:1fr}.board .screen{width:min(100%,290px)}}
@@ -205,8 +210,34 @@ const elements = {
   stateButtons:$("stateButtons"), pathChecks:$("pathChecks"), layerControls:$("layerControls"),
   mode:"side", stateIndex:0, config:null, manifest:null, photo:null, photoUrl:null, mask:null, maskUrl:null, maskBoundaryCache:null,
   frozenByState:new Map(), params:{}, layers:{}, renderer:"hardware-gradient", quality:"FULL", dLevel:"D0",
-  width:390,height:844, reduceMotion:false, maskDiagnostic:false, cache:null, assetAudit:[], assetErrors:[], buildInfo:null, uiBuilt:false
+  width:390,height:844, reduceMotion:false, maskDiagnostic:false, cache:null, assetAudit:[], assetErrors:[], buildInfo:null, uiBuilt:false,
+  previewMode:"static",staticCandidate:"B",dynamicCandidate:"B",fieldLayerView:"composite",focusMode:"BLOCKED",stateStartedAt:0,
+  reviewCaseB:null,basePhoto:null,basePhotoUrl:null,playing:false,previewTime:0,motionSpeed:1,rafId:null,lastFrameTime:null,
+  reviewLayers:{field:true,paths:true,filaments:true,fish:true}
 };
+const STATIC_REVIEW_CANDIDATES={
+  A:{name:"Soft Field",field:0.72,paths:0.56,filaments:0.28,description:"底场柔和、主路径退后，适合比较克制感。"},
+  B:{name:"Balanced Field",field:1.0,paths:0.76,filaments:0.40,description:"蓝金底场先建立空间，再由少量主路径带方向；推荐优先评审。"},
+  C:{name:"Strong Atmosphere",field:1.28,paths:0.90,filaments:0.56,description:"氛围场更明显，作为可见度上限对照。"}
+};
+const DYNAMIC_REVIEW_ENABLED=false;
+window.OPTICAL_DYNAMIC_REVIEW_ENABLED=DYNAMIC_REVIEW_ENABLED;
+const DYNAMIC_REVIEW_CANDIDATES={
+  A:{name:"Calm",field:0.90,paths:0.62,filaments:0.25,breath:0.035,flow:0.24,periods:[15.4,20.8,24.6,29.1],description:"呼吸最柔，路径短段低亮流过，次级光丝极少。"},
+  B:{name:"Balanced",field:1.02,paths:0.76,filaments:0.38,breath:0.065,flow:0.39,periods:[12.7,17.3,21.9,26.5],description:"四角错相呼吸，主路径缓慢局部流动，次级光丝低频出现；推荐优先评审。"},
+  C:{name:"Atmospheric",field:1.16,paths:0.92,filaments:0.56,breath:0.095,flow:0.52,periods:[10.8,14.9,19.7,23.6],description:"能量变化更明显，作为边界评审；需检查是否接近特效感。"}
+};
+const REVIEW_CASE_B={
+  fixture:"app/src/androidTest/assets/detector_case_b_night_flash.jpg",
+  fixtureSha256:"a7ed3bb0410c191364f6d853b4078aebdc2f3b9baa4da34b7b3f6e8e0e93a56b",
+  mask:"design/manager/optical-lab/review_v1/fish_focus_review_only_alpha.png",
+  maskSha256:"ebcf100e49934065f318d5a37f9f1465601838d6af12dd48312045bbb776ae42",
+  sourceTest:"app/src/androidTest/java/com/yujian/ai/DetectorOrientationRetryRuntimeTest.kt",
+  detector:{selectedAttempt:"CCW90",confidence:0.635500,bbox:{x1:0.342930,y1:0.363650,x2:0.605436,y2:0.924975},bboxAreaRatio:0.147351,cropPixels:[349,429,743,1536]},
+  // Human traced against the actual Case B photo. This annotation is review-only and is not a model mask.
+  annotationRecord:"design/manager/optical-lab/review_v1/fish_focus_case_b_bbox.json"
+};
+function activeOpticalCandidate(){return elements.previewMode==="dynamic"?DYNAMIC_REVIEW_CANDIDATES[elements.dynamicCandidate]:STATIC_REVIEW_CANDIDATES[elements.staticCandidate];}
 const referenceExpected = {
   "IMAGE_RECOGNIZING":"02_AI_Understanding_Frozen.png",
   "FISH_LOCATED":"03_Fish_Highlight_Frozen.png",
@@ -226,10 +257,13 @@ function mountReviewLayout(){
   advancedBody.className="advanced-body";advanced.appendChild(advancedBody);
   const status=document.createElement("div");status.className="review-status-bar";status.innerHTML="<div class=\"review-status-left\"><span id=\"overallStatus\" class=\"review-status-chip\" data-status=\"LOADING\">LOADING</span><span id=\"buildRevision\">PR #166 Draft · build SHA pending</span><span id=\"stateLabel\" class=\"tiny\">—</span></div><button id=\"retryAssets\" type=\"button\">重新加载资源</button>";
   const toolbar=document.createElement("div");toolbar.id="reviewToolbar";toolbar.className="review-toolbar";toolbar.append(stateSection,rendererSection);
+  const reviewControls=document.createElement("section");reviewControls.id="previewControls";reviewControls.className="preview-controls";reviewControls.innerHTML='<div class="preview-controls-head"><div><div class="preview-controls-title">OPTICAL FIELD REVIEW · STATIC + DYNAMIC</div><div class="preview-controls-note">A/B/C 都是本次 Web Review 候选，不修改 P1–P5 权威合同，也不代表 Android Runtime。</div></div><span class="pill">REVIEW ONLY · NOT ANDROID</span></div><div class="preview-control-grid"><label class="preview-control"><span>Preview</span><div id="previewModeButtons" class="preview-buttons"><button type="button" data-preview-mode="static" class="active">静态</button><button type="button" data-preview-mode="dynamic">动态</button></div></label><label id="staticCandidateControl" class="preview-control"><span>静态光场候选</span><select id="staticCandidate"><option value="A">REVIEW_CANDIDATE_A · Soft Field</option><option value="B" selected>REVIEW_CANDIDATE_B · Balanced Field · 推荐评审</option><option value="C">REVIEW_CANDIDATE_C · Strong Atmosphere</option></select></label><label id="dynamicCandidateControl" class="preview-control"><span>动态节奏候选</span><select id="dynamicCandidate"><option value="A">DYNAMIC_CANDIDATE_A · Calm</option><option value="B" selected>DYNAMIC_CANDIDATE_B · Balanced · 推荐评审</option><option value="C">DYNAMIC_CANDIDATE_C · Atmospheric</option></select></label><label class="preview-control"><span>动态控制</span><div class="preview-buttons"><button id="playPause" type="button" aria-pressed="false">▶ 播放</button><select id="motionSpeed" aria-label="动态倍速"><option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="1.5">1.5×</option></select><button id="recordSequence" type="button">录制三态 WebM</button></div></label></div><div class="preview-control-grid"><label class="preview-control"><span>Fish Focus 来源模式</span><select id="focusSource"><option value="blocked" selected>BLOCKED · 默认无可信 BBox / Mask</option><option value="production" disabled>PRODUCTION · 当前未提供生产 Mask</option><option value="review">REVIEW_PROXY_NOT_PRODUCTION · Case B 手工 alpha</option></select></label><label class="preview-control"><span>光场分解</span><select id="fieldLayerView"><option value="composite" selected>最终合成</option><option value="receiving">Receiving Light 底场 alone</option><option value="primary">主路径 alone</option><option value="filaments">次级光丝 alone</option></select></label><div class="preview-control"><span>图层开关</span><div class="preview-toggles"><label><input type="checkbox" id="fieldToggle" checked>底场</label><label><input type="checkbox" id="pathToggle" checked>主路径</label><label><input type="checkbox" id="filamentToggle" checked>次级光丝</label><label><input type="checkbox" id="fishToggle" checked>鱼体高亮</label></div></div><label class="preview-control"><span>录制状态</span><div><span id="focusProvenance" class="focus-provenance">Production: BLOCKED · Review-only: 可切换 · 无 BBox 时不绘制</span><div id="recordStatus" class="record-status">WebM 导出由当前浏览器编码；仅是页面 Preview 证据。</div></div></label></div><div class="preview-meta-row"><span class="tiny" id="candidateDescription">候选参数只作用于 Web Review 层，静态候选 B 为默认显示。</span><span class="tiny" id="previewSourceMeta">build/source SHA 加载中 · P5 test fixture</span></div>';
+  const focusEvidence=document.createElement("div");focusEvidence.id="focusEvidenceLinks";focusEvidence.className="tiny";focusEvidence.innerHTML='<a href="./review_v1/fish_focus_case_b_bbox.json" target="_blank" rel="noreferrer">Case B BBox JSON</a> · <a href="./review_v1/fish_focus_review_only_alpha.png" target="_blank" rel="noreferrer">Review-only alpha PNG</a> · <a href="https://github.com/pan277942135/Yujian_App/blob/design/recognition-processing-handoff-p0/app/src/androidTest/java/com/yujian/ai/DetectorOrientationRetryRuntimeTest.kt" target="_blank" rel="noreferrer">Android test source</a>';
+  reviewControls.insertBefore(focusEvidence,reviewControls.querySelector(".preview-meta-row"));
   header.querySelector(".eyebrow").textContent="RECOGNITION PROCESSING";
   header.querySelector("h1").textContent="Recognition Processing · Optical Lab";
-  header.querySelector(".pill").textContent="STATIC PHASE A · VISUAL REVIEW";
-  header.querySelector(".subtitle").textContent="三态 Frozen 参考与三种同源静态 Renderer 对照。";
+  header.querySelector(".pill").textContent="STATIC + DYNAMIC · WEB REVIEW";
+  header.querySelector(".subtitle").textContent="接收光场的静态候选与动态节奏评审。";
   const actions=header.querySelector(".header-actions");actions.querySelector("a:first-child").remove();
   actions.appendChild(document.getElementById("exportPreview"));
   const advancedModes=document.createElement("div");advancedModes.id="advancedModes";advancedModes.className="advanced-modes";advancedModes.innerHTML="<span class=\"tiny\">高级比较：</span>";
@@ -243,10 +277,13 @@ function mountReviewLayout(){
   ].map(([id,label,key])=>"<label class=\"quick-control\"><span class=\"field-label\"><span>"+label+"</span><output id=\""+id+"Value\">1.00</output></span><input id=\""+id+"\" data-strength=\""+key+"\" type=\"range\" min=\"0\" max=\"1.5\" step=\"0.01\" value=\"1\" aria-label=\""+label+" intensity\"><small>默认 1.00 · 当前 <span id=\""+id+"Current\">1.00</span></small></label>").join("")+"</div>";
   left.remove();layout.replaceChildren(visual,quick);visual.classList.add("visual-panel");
   visual.querySelector(".panel-head h2").textContent="Frozen 参考 ↔ Web Renderer";
-  visual.querySelector(".stage-banner").innerHTML="<span><strong>STATIC PHASE A</strong>　同一 test fixture 用于 Renderer 相对比较</span><span id=\"sourceMode\" class=\"source-identity-flag\">Frozen 原图身份未绑定 · Pixel Diff 仅探索</span>";
+  visual.querySelector(".stage-banner").innerHTML="<span><strong>WEB REVIEW</strong>　Static / Dynamic · 不代表 Native Runtime</span><span id=\"sourceMode\" class=\"source-identity-flag\">Frozen 原图身份未绑定 · Pixel Diff 仅探索</span>";
   visual.querySelector("#frozenCaption").textContent="Frozen 参考 · 原件只读";
   visual.querySelector("#webCaption").textContent="Web 候选 · 同源 test fixture";
+  const focusBadge=document.createElement("div");focusBadge.id="reviewFocusBadge";focusBadge.className="review-focus-badge";focusBadge.dataset.mode="BLOCKED";focusBadge.textContent="FISH FOCUS · BLOCKED";visual.querySelector("#boards .board:nth-child(2) .screen").appendChild(focusBadge);
   const gates=document.querySelector(".gatebar");advancedBody.append(gates);
+  gates.children[1].querySelector("#staticGate").textContent="候选 A/B/C · 待用户视觉选择";
+  gates.children[2].innerHTML="<strong>Web 动态 Preview</strong><span>可录制 · 不代表 Android Runtime</span>";
   const assetCard=document.createElement("section");assetCard.className="advanced-card";assetCard.innerHTML="<div class=\"section-title\"><span>资源自动加载与来源清单</span><button id=\"exportAssetManifest\" type=\"button\">导出资产清单 JSON</button></div><div id=\"assetSummary\" class=\"tiny\">正在校验配置与图片…</div><div class=\"table-wrap\"><table class=\"asset-table\"><thead><tr><th>资产</th><th>来源路径 / SHA-256 / 尺寸</th><th>状态</th></tr></thead><tbody id=\"assetRows\"></tbody></table></div><div id=\"assetErrors\" class=\"diagnostic-error tiny\"></div>";
   advancedBody.append(assetCard);
   const diagIntro=document.createElement("section");diagIntro.className="advanced-card";diagIntro.innerHTML="<div class=\"section-title\">高级控制</div><p class=\"tiny\">设备视口、FULL / BALANCED / LITE、D0–D4、Reduce Motion、路径单独开关、全部调参和本地输入绑定仅在展开诊断后出现。Stage B 动效控件在静态评审完成前隐藏。</p><div id=\"advancedModeMount\"></div><div id=\"advancedActionMount\"></div><div id=\"advancedMetricsMount\"></div><div id=\"advancedRoiMount\"></div><div id=\"advancedRuntimeMount\"></div><div class=\"row\" style=\"margin-top:9px\"><button id=\"exportExperiment\" type=\"button\">导出实验参数 JSON</button><label class=\"file-button\" for=\"importExperiment\">导入实验参数 JSON</label><input id=\"importExperiment\" type=\"file\" accept=\"application/json\" hidden></div>";
@@ -262,7 +299,7 @@ function mountReviewLayout(){
   document.getElementById("advancedMetricsMount").append(document.getElementById("metrics"));
   document.getElementById("advancedRoiMount").append(document.querySelector(".roi-box"));
   document.getElementById("advancedRuntimeMount").append(document.getElementById("runtimeStatus"));
-  shell.insertBefore(status,layout);shell.insertBefore(toolbar,layout);shell.insertBefore(advanced,document.querySelector(".footer-note"));
+  shell.insertBefore(status,layout);shell.insertBefore(toolbar,layout);shell.insertBefore(reviewControls,layout);shell.insertBefore(advanced,document.querySelector(".footer-note"));
   status.querySelector("#retryAssets").addEventListener("click",()=>loadAssets().catch(handleAssetLoadFailure));
   document.getElementById("exportAssetManifest").addEventListener("click",downloadAssetManifest);
   document.getElementById("exportExperiment").addEventListener("click",exportExperiment);
@@ -328,6 +365,8 @@ function buildUI(){
   $("stateButtons").innerHTML=states.map((s,i)=>'<button type="button" data-state="'+i+'" class="'+(i===0?"active":"")+'">'+s.display_name+'</button>').join("");
   $("layerControls").innerHTML=webLayerNames.map((x,i)=>'<label class="layer-option"><input type="checkbox" data-layer="'+x[0]+'" '+("checked")+'><span>'+x[1]+'</span><small>'+String(i+1).padStart(2,"0")+'</small></label>').join("");
   elements.layers={photo:true,status:true,receiving:true,outer:true,mid:true,core:true,hairlines:true,fishHalo:true,fishContour:true};
+  elements.reviewLayers={field:true,paths:true,filaments:true,fish:true};
+  $("bboxAttested").disabled=true;["bboxX1","bboxY1","bboxX2","bboxY2"].forEach(id=>$(id).disabled=true);
   elements.pathChecks.innerHTML=elements.config.p1_edge_field.paths.map(p=>'<label title="'+p.role+' · '+p.island+'"><input type="checkbox" data-path="'+p.id+'" checked>'+p.id+'</label>').join("");
   const p=initialParams();elements.params=p;
   $("rendererSelect").value=elements.renderer;
@@ -352,6 +391,7 @@ function buildUI(){
   $("inputStatus").parentElement.classList.add("success");
   bindEvents();
   bindQuickControls();
+  syncReviewControls();
   selectState(0);
   updateRendererNote();
   render();
@@ -373,6 +413,15 @@ function bindEvents(){
   $("maskInput").addEventListener("change",onMaskUpload);
   ["bboxX1","bboxY1","bboxX2","bboxY2"].forEach(id=>$(id).addEventListener("input",()=>{elements.cache=null;updateFocusReadiness();render();}));
   $("bboxAttested").addEventListener("change",()=>{elements.cache=null;updateFocusReadiness();render();});
+  $("previewModeButtons").addEventListener("click",e=>{const b=e.target.closest("[data-preview-mode]");if(b)setPreviewMode(b.dataset.previewMode);});
+  $("staticCandidate").addEventListener("change",()=>{elements.staticCandidate=$("staticCandidate").value;updateCandidateDescription();render();});
+  $("dynamicCandidate").addEventListener("change",()=>{elements.dynamicCandidate=$("dynamicCandidate").value;updateCandidateDescription();render();});
+  $("fieldLayerView").addEventListener("change",()=>{elements.fieldLayerView=$("fieldLayerView").value;elements.cache=null;render();});
+  [["fieldToggle","field"],["pathToggle","paths"],["filamentToggle","filaments"],["fishToggle","fish"]].forEach(([id,key])=>$(id).addEventListener("change",()=>{elements.reviewLayers[key]=$(id).checked;elements.cache=null;render();}));
+  $("focusSource").addEventListener("change",()=>setFocusMode($("focusSource").value));
+  $("playPause").addEventListener("click",()=>{if(elements.previewMode!=="dynamic")setPreviewMode("dynamic");setPlaying(!elements.playing);});
+  $("motionSpeed").addEventListener("change",()=>{elements.motionSpeed=Number($("motionSpeed").value)||1;});
+  $("recordSequence").addEventListener("click",recordPreviewSequence);
   document.querySelectorAll("#layerControls input").forEach(input=>input.addEventListener("change",()=>{elements.layers[input.dataset.layer]=input.checked;elements.cache=null;render();}));
   document.querySelectorAll("#pathChecks input").forEach(input=>input.addEventListener("change",()=>{elements.cache=null;render();}));
   const motionSpeed=$("paramMotionSpeed");motionSpeed.disabled=true;
@@ -386,7 +435,7 @@ function bindEvents(){
   $("exportPreview").addEventListener("click",()=>downloadCanvas(elements.preview,"web-"+stateId()+"-"+elements.renderer+".png"));
   $("exportCompare").addEventListener("click",()=>{renderComparison();downloadCanvas(elements.compare,"compare-"+elements.mode+"-"+stateId()+".png");});
   $("exportRoi").addEventListener("click",()=>downloadCanvas(elements.roi,"roi-"+stateId()+".png"));
-  document.addEventListener("keydown",e=>{if(e.key==="Escape"){elements.mask=null;elements.maskBoundaryCache=null;elements.maskUrl&&URL.revokeObjectURL(elements.maskUrl);elements.maskUrl=null;$("maskName").textContent="未绑定";updateFocusReadiness();render();}});
+  document.addEventListener("keydown",e=>{if(e.key==="Escape"){setFocusMode("blocked");}});
 }
 function bindQuickControls(){
   document.querySelectorAll(".quick-control input[data-strength]").forEach(input=>input.addEventListener("input",()=>{
@@ -400,9 +449,82 @@ function updateQuickControlValues(){
     const value=Number(values[input.dataset.strength]??1).toFixed(2);input.value=value;
     $(input.id+"Value").textContent=value;$(input.id+"Current").textContent=value;
   });
-  const box=readBBox(),focusInput=$("quickFish");if(focusInput){focusInput.disabled=!box||box.invalid;focusInput.title=focusInput.disabled?"真实 BBox 缺失或无效；Fish Focus 当前不可绘制":"只调整真实 BBox 对应的 Fish Focus 层";}
+  const box=readBBox(),focusInput=$("quickFish");if(focusInput){focusInput.disabled=!box||box.invalid;focusInput.title=focusInput.disabled?"没有可用 BBox；Fish Focus 当前不可绘制":"Review-only Case B proxy；不能代表 Production Fish Focus";}
 }
 function stateId(){return elements.config.p3_states_and_status.product_states[elements.stateIndex].id;}
+function syncReviewControls(){
+  $("staticCandidate").value=elements.staticCandidate;$("dynamicCandidate").value=elements.dynamicCandidate;$("fieldLayerView").value=elements.fieldLayerView;$("motionSpeed").value=String(elements.motionSpeed);
+  $("fieldToggle").checked=elements.reviewLayers.field;$("pathToggle").checked=elements.reviewLayers.paths;$("filamentToggle").checked=elements.reviewLayers.filaments;$("fishToggle").checked=elements.reviewLayers.fish;
+  document.querySelectorAll("[data-preview-mode]").forEach(b=>b.classList.toggle("active",b.dataset.previewMode===elements.previewMode));
+  const dynamicButton=document.querySelector('[data-preview-mode="dynamic"]');dynamicButton.disabled=!DYNAMIC_REVIEW_ENABLED;dynamicButton.title=DYNAMIC_REVIEW_ENABLED?"":"开放前先完成静态视觉 Gate";
+  $("playPause").disabled=!DYNAMIC_REVIEW_ENABLED;$("recordSequence").disabled=!DYNAMIC_REVIEW_ENABLED;$("motionSpeed").disabled=!DYNAMIC_REVIEW_ENABLED;
+  $("staticCandidateControl").style.display=elements.previewMode==="static"?"grid":"none";$("dynamicCandidateControl").style.display=elements.previewMode==="dynamic"?"grid":"none";
+  updateCandidateDescription();updateFocusProvenance();
+}
+function updateCandidateDescription(){
+  const candidate=activeOpticalCandidate(),mode=elements.previewMode==="dynamic"?"DYNAMIC_CANDIDATE_"+elements.dynamicCandidate+" · "+candidate.name:"REVIEW_CANDIDATE_"+elements.staticCandidate+" · "+candidate.name;
+  $("candidateDescription").textContent=mode+" — "+candidate.description;
+  const info=elements.buildInfo||{};$("previewSourceMeta").textContent="build "+(info.head_sha||"UNAVAILABLE")+" · source "+(info.source_sha||info.head_sha||"UNAVAILABLE")+" · P5 SHA-verified fixture";
+}
+function updateFocusProvenance(){
+  const label=elements.focusMode==="REVIEW_PROXY_NOT_PRODUCTION"?"Production: BLOCKED · Review-only: Case B 手工 alpha 已加载":"Production: BLOCKED · Review-only: 可切换 · 无 BBox / Mask 时不绘制";
+  $("focusProvenance").textContent=label;
+  const badge=document.getElementById("reviewFocusBadge");if(badge){badge.dataset.mode=elements.focusMode==="REVIEW_PROXY_NOT_PRODUCTION"?"REVIEW":"BLOCKED";badge.textContent=elements.focusMode==="REVIEW_PROXY_NOT_PRODUCTION"?"REVIEW_PROXY_NOT_PRODUCTION":"FISH FOCUS · BLOCKED";}
+}
+function setPreviewMode(mode){
+  if(mode==="dynamic"&&!DYNAMIC_REVIEW_ENABLED)return;
+  elements.previewMode=mode==="dynamic"?"dynamic":"static";if(elements.previewMode==="static")setPlaying(false);
+  syncReviewControls();render();
+}
+function setPlaying(value){
+  elements.playing=Boolean(value)&&DYNAMIC_REVIEW_ENABLED&&elements.previewMode==="dynamic";elements.lastFrameTime=null;
+  $("playPause").textContent=elements.playing?"Ⅱ 暂停":"▶ 播放";$("playPause").setAttribute("aria-pressed",String(elements.playing));
+  if(elements.playing&&!elements.rafId)elements.rafId=requestAnimationFrame(animatePreview);
+  if(!elements.playing){if(elements.rafId)cancelAnimationFrame(elements.rafId);elements.rafId=null;render();}
+}
+function animatePreview(now){
+  if(!elements.playing){elements.rafId=null;return;}
+  if(elements.lastFrameTime!==null)elements.previewTime+=Math.min(80,now-elements.lastFrameTime)/1000*elements.motionSpeed;
+  elements.lastFrameTime=now;render();elements.rafId=requestAnimationFrame(animatePreview);
+}
+async function setFocusMode(mode){
+  elements.cache=null;
+  if(mode!=="review"){
+    elements.focusMode="BLOCKED";elements.mask=null;elements.maskBoundaryCache=null;
+    $("bboxAttested").checked=false;["bboxX1","bboxY1","bboxX2","bboxY2"].forEach(id=>$(id).disabled=true);
+    $("bboxAttested").disabled=true;$("photoInput").disabled=false;$("maskInput").disabled=false;
+    if(elements.basePhoto){elements.photo=elements.basePhoto;elements.photoUrl=elements.basePhotoUrl;$("photoName").textContent="recognition_real_catch_fixture.jpg · SHA-256 verified";}
+    $("maskName").textContent="未绑定 · 无生产 Mask";$("focusReadiness").textContent="Fish Focus：BLOCKED · 当前没有可用生产 BBox + Mask";
+    updateFocusProvenance();render();return;
+  }
+  try{
+    if(!elements.reviewCaseB){
+      const photo=await loadVerifiedImage(repositoryAssetUrl(REVIEW_CASE_B.fixture),REVIEW_CASE_B.fixtureSha256,1152,1536,{asset_id:"case-b-production-detector-photo",repository_path:REVIEW_CASE_B.fixture,source_revision:sourceRevisionFor("photo_fixture"),role:"detector_fixture",provenance:"Case B fixture consumed by the real FishRecognitionPipeline Android orientation test; Review-only overlay uses an independently manual alpha annotation"});
+      const mask=await loadVerifiedImage(repositoryAssetUrl(REVIEW_CASE_B.mask),REVIEW_CASE_B.maskSha256,undefined,undefined,{asset_id:"case-b-review-only-alpha",repository_path:REVIEW_CASE_B.mask,source_revision:sourceRevisionFor("review_candidate"),role:"review_only_mask",provenance:"human-annotated alpha from source photo; not a production FishSubjectResult mask"});
+      elements.reviewCaseB={photo,mask};
+    }
+    elements.focusMode="REVIEW_PROXY_NOT_PRODUCTION";elements.photo=elements.reviewCaseB.photo.image;elements.photoUrl=elements.reviewCaseB.photo.url;elements.mask=elements.reviewCaseB.mask.image;elements.maskBoundaryCache=null;
+    $("photoName").textContent="detector_case_b_night_flash.jpg · SHA-256 verified";$("maskName").textContent="fish_focus_review_only_alpha.png · REVIEW ONLY · SHA-256 verified";
+    $("bboxAttested").checked=false;["bboxX1","bboxY1","bboxX2","bboxY2"].forEach(id=>$(id).disabled=true);
+    $("bboxAttested").disabled=true;$("photoInput").disabled=true;$("maskInput").disabled=true;
+    updateFocusProvenance();updateFocusReadiness();render();
+  }catch(error){elements.focusMode="BLOCKED";$("focusSource").value="blocked";$("focusReadiness").textContent="Fish Focus：BLOCKED · Review-only fixture load failed: "+error.message;updateFocusProvenance();render();}
+}
+async function recordPreviewSequence(){
+  if(!DYNAMIC_REVIEW_ENABLED){$("recordStatus").textContent="动态录制在静态光学 Gate 通过后开放。";return;}
+  if(!elements.preview.captureStream||!window.MediaRecorder){$("recordStatus").textContent="当前浏览器不支持 Canvas MediaRecorder 导出。";return;}
+  if(elements.focusMode!=="REVIEW_PROXY_NOT_PRODUCTION")await setFocusMode("review");
+  setPreviewMode("dynamic");elements.previewTime=0;elements.motionSpeed=1.0;$("motionSpeed").value="1";setPlaying(true);
+  const stream=elements.preview.captureStream(30),mimeType=["video/webm;codecs=vp9","video/webm;codecs=vp8","video/webm"].find(type=>MediaRecorder.isTypeSupported(type));
+  if(!mimeType){$("recordStatus").textContent="当前浏览器没有可用 WebM 编码器。";setPlaying(false);return;}
+  const chunks=[],recorder=new MediaRecorder(stream,{mimeType,videoBitsPerSecond:1800000});elements.recorder=recorder;
+  recorder.ondataavailable=e=>{if(e.data&&e.data.size)chunks.push(e.data);};
+  recorder.onstop=()=>{const blob=new Blob(chunks,{type:mimeType}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="dynamic-"+elements.dynamicCandidate+"-state-cycle.webm";a.click();setTimeout(()=>URL.revokeObjectURL(url),15000);stream.getTracks().forEach(track=>track.stop());elements.recorder=null;$("recordStatus").textContent="WebM 已导出 · 12s · IMAGE_RECOGNIZING → FISH_LOCATED → SPECIES_RECOGNIZING · REVIEW_PROXY_NOT_PRODUCTION";};
+  recorder.start(300);$("recordSequence").disabled=true;$("recordStatus").textContent="正在录制 12s 三态循环 · Web Review only…";
+  const start=performance.now();selectState(0);
+  const stateTimer=setInterval(()=>{const elapsed=performance.now()-start;if(elapsed>=8000&&elements.stateIndex!==2)selectState(2);else if(elapsed>=4000&&elapsed<8000&&elements.stateIndex!==1)selectState(1);},100);
+  setTimeout(()=>{clearInterval(stateTimer);if(recorder.state!=="inactive")recorder.stop();setPlaying(false);$("recordSequence").disabled=false;},12000);
+}
 function applyDLevel(){
   const mapping=elements.config.p4_motion_quality_responsive.degradation_mapping[elements.dLevel];
   if(mapping&&mapping.quality){elements.quality=mapping.quality;$("qualitySelect").value=mapping.quality;}
@@ -410,6 +532,7 @@ function applyDLevel(){
 }
 function selectState(index,preserveStrength=false){
   elements.stateIndex=clamp(index,0,elements.config.p3_states_and_status.product_states.length-1);
+  elements.stateStartedAt=elements.previewTime;
   const state=elements.config.p3_states_and_status.product_states[elements.stateIndex];
   const strength=elements.config.p4_motion_quality_responsive.motion_contract.state_strength[state.id];
   const speed=elements.config.p4_motion_quality_responsive.motion_contract.primary_speed[state.id];
@@ -489,6 +612,7 @@ async function loadDefaultPhoto(){
       const result=await loadVerifiedImage(candidate.url,binding.sha256,undefined,undefined,{asset_id:"processing-test-photo",repository_path:candidate.path,source_revision:sourceRevisionFor("photo_fixture"),role:"photo_fixture",provenance:"P5 test-photo SHA-256; design published copy is registered byte-identical in real_photo_cases.json; not linked as the Frozen screenshot source"});
       if(result.bytes!==binding.bytes)throw pushAssetError("SOURCE_MISMATCH_BLOCKED",candidate.path,new Error("byte length expected "+binding.bytes+", got "+result.bytes));
       elements.photo=result.image;elements.photoUrl=result.url;
+      elements.basePhoto=result.image;elements.basePhotoUrl=result.url;
       $("photoName").textContent=candidate.path.split("/").pop()+" · SHA-256 verified";
       $("sourceWarning").textContent="同源 Renderer 比较使用 P5 SHA 已验证的 test fixture。它与 Frozen 截图内照片不同，Frozen Visual QA = BLOCKED。";
       render();return result;
@@ -512,6 +636,8 @@ async function onMaskUpload(event){
   catch(e){elements.mask=null;$("maskName").textContent="读取失败";reportError(e.message);}
 }
 function readBBox(){
+  if(elements.focusMode==="REVIEW_PROXY_NOT_PRODUCTION")return REVIEW_CASE_B.detector.bbox;
+  if(elements.focusMode!=="PRODUCTION_VERIFIED")return null;
   const values=["bboxX1","bboxY1","bboxX2","bboxY2"].map(id=>$(id).value.trim());
   if(values.some(v=>v==="")||!$("bboxAttested").checked)return null;
   const a=values.map(Number);
@@ -522,13 +648,13 @@ function updateFocusReadiness(){
   const box=readBBox();
   const enabled=(stateId()==="FISH_LOCATED"||stateId()==="SPECIES_RECOGNIZING");
   let message="Fish Focus：";
-  if(!enabled)message+="当前产品状态不显示（IMAGE_RECOGNIZING）";
-  else if(!box)message+=($("bboxX1").value||$("bboxY1").value||$("bboxX2").value||$("bboxY2").value)?"BBox 尚未被确认为真实 detector 输出":"无真实 BBox，因此关闭";
-  else if(box.invalid)message+="BBox 无效";
-  else if(!elements.mask)message+="真实 BBox 已绑定；无 Mask → B 级真实 BBox Halo / Perimeter";
-  else message+="真实 BBox + Mask 已绑定 → A 级真实轮廓";
+  if(!enabled)message+="当前状态不显示（IMAGE_RECOGNIZING）";
+  else if(elements.focusMode==="BLOCKED"||!box)message+="BLOCKED · 当前没有可用生产 BBox + Mask";
+  else if(box.invalid)message+="BLOCKED · BBox 无效";
+  else if(elements.focusMode==="REVIEW_PROXY_NOT_PRODUCTION")message+="REVIEW_PROXY_NOT_PRODUCTION · Case B 历史 detector BBox + 人工标注 alpha；未接入生产 Mask";
+  else message+="BLOCKED · 缺少可验证 FishSubjectResult";
   $("focusReadiness").textContent=message;
-  $("focusReadiness").className="statusline "+(box&& !box.invalid&&enabled?"success":"warn");
+  $("focusReadiness").className="statusline warn";
   updateQuickControlValues();
 }
 function updateRendererNote(){
@@ -542,7 +668,10 @@ function updateRendererNote(){
 }
 function resetDefaults(){
   elements.params=initialParams();elements.renderer="hardware-gradient";elements.quality="FULL";elements.dLevel="D0";
+  elements.previewMode="static";elements.staticCandidate="B";elements.dynamicCandidate="B";elements.fieldLayerView="composite";elements.previewTime=0;elements.motionSpeed=1;setPlaying(false);$("focusSource").value="blocked";setFocusMode("blocked");syncReviewControls();
   elements.layers={photo:true,status:true,receiving:true,outer:true,mid:true,core:true,hairlines:true,fishHalo:true,fishContour:true};
+  elements.reviewLayers={field:true,paths:true,filaments:true,fish:true};
+  $("bboxAttested").disabled=true;["bboxX1","bboxY1","bboxX2","bboxY2"].forEach(id=>$(id).disabled=true);
   elements.reduceMotion=false;elements.maskDiagnostic=false;elements.cache=null;
   $("rendererSelect").value=elements.renderer;$("qualitySelect").value="FULL";$("degradationSelect").value="D0";$("reduceMotion").checked=false;$("maskDiagnostic").checked=false;
   document.querySelectorAll("#layerControls input").forEach(x=>x.checked=elements.layers[x.dataset.layer]);
@@ -648,8 +777,36 @@ function drawHardwareMidGlow(ctx,points,color,hot,width,common,quality,primary){
     widthDp*elements.params.glowWidth*layer.width_multiplier,
     Math.min(cap,base*common*layer.alpha_multiplier*qualityFactor),elements.params.falloff));
 }
+function receivingStateScale(){return stateId()==="SPECIES_RECOGNIZING"?.72:(stateId()==="FISH_LOCATED"?.84:1);}
+function drawReviewReceivingField(ctx,rect,colors,quality){
+  if(!elements.reviewLayers.field||!elements.layers.receiving)return;
+  const candidate=activeOpticalCandidate(),stateScale=receivingStateScale();
+  const breaths=[1,1,1,1];
+  if(elements.previewMode==="dynamic"){
+    const p=DYNAMIC_REVIEW_CANDIDATES[elements.dynamicCandidate],t=elements.previewTime;
+    const configs=[[p.periods[0],.08],[p.periods[1],1.72],[p.periods[2],3.41],[p.periods[3],4.86]];
+    configs.forEach(([period,phase],i)=>{breaths[i]=1+p.breath*Math.sin(2*Math.PI*t/period+phase);});
+  }
+  const blobs=[
+    {x:.98,y:.035,rx:.62,ry:.255,angle:.32,color:colors.blue,weight:1.0,breath:breaths[0]},
+    {x:.025,y:.08,rx:.49,ry:.23,angle:-.24,color:colors.gold,weight:.71,breath:breaths[1]},
+    {x:.005,y:.97,rx:.38,ry:.20,angle:-.39,color:colors.gold,weight:.34,breath:breaths[2]},
+    {x:1.025,y:.965,rx:.35,ry:.17,angle:.43,color:colors.blue,weight:.19,breath:breaths[3]}
+  ];
+  const common=candidate.field*stateScale*elements.params.alpha*(elements.params.layerStrength.receiving||0)*(quality.receiving||1)*(quality.alpha||1);
+  ctx.save();ctx.beginPath();ctx.rect(rect.left,rect.top,rect.right-rect.left,rect.bottom-rect.top);ctx.clip();ctx.globalCompositeOperation="screen";
+  blobs.forEach(blob=>{
+    const cx=rect.left+blob.x*(rect.right-rect.left),cy=rect.top+blob.y*(rect.bottom-rect.top),rx=(rect.right-rect.left)*blob.rx,ry=(rect.bottom-rect.top)*blob.ry;
+    const intensity=Math.min(.72,.59*common*blob.weight*blob.breath);
+    ctx.save();ctx.translate(cx,cy);ctx.rotate(blob.angle);ctx.scale(rx,ry);
+    const gradient=ctx.createRadialGradient(0,0,0,0,0,1);
+    gradient.addColorStop(0,safeAlphaColor(blob.color,intensity*.76));gradient.addColorStop(.34,safeAlphaColor(blob.color,intensity*.55));gradient.addColorStop(.69,safeAlphaColor(blob.color,intensity*.23));gradient.addColorStop(1,safeAlphaColor(blob.color,0));
+    ctx.fillStyle=gradient;ctx.beginPath();ctx.ellipse(0,0,1,1,0,0,Math.PI*2);ctx.fill();ctx.restore();
+  });
+  ctx.restore();
+}
 function drawReceiving(ctx,rect,mode,quality,colors){
-  if(!elements.layers.receiving)return;
+  if(!elements.layers.receiving||!elements.reviewLayers.field)return;
   const receiving=getStack("local_receiving_light"),contractRange=receiving.contract_alpha_before_multipliers;
   const base=mode==="hardware-gradient"?(contractRange[0]+contractRange[1])/2:(receiving.android_base_alpha||.13);
   const cap=mode==="hardware-gradient"?contractRange[1]:(receiving.runtime_alpha_cap||.14);
@@ -673,7 +830,8 @@ function drawPathRecord(ctx,record,rect,mode,quality,colors,kind,seedOffset,visi
   const length=(visibleRatio===undefined?record.visible_ratio:visibleRatio)*elements.params.tailLength;
   const pieces=pathPieces(points,start,length);
   const primary=record.role==="primary",isSecondary=record.role==="secondary_only";
-  const weight=record.island_weight||1,state=elements.params.stateStrength,global=elements.params.alpha*(quality.alpha||1),width=widthOverride||record.core_width_dp||.8;
+  const candidate=activeOpticalCandidate(),roleScale=primary?candidate.paths:candidate.filaments;
+  const weight=record.island_weight||1,state=elements.params.stateStrength,global=elements.params.alpha*(quality.alpha||1)*roleScale,width=widthOverride||record.core_width_dp||.8;
   const outer=getStack("primary_outer_bloom"),mid=getStack("primary_mid_glow"),secondary=getStack("secondary_fragment_mid_and_core"),core=getStack("primary_core"),strength=elements.params.layerStrength;
   pieces.forEach(piece=>{
     if(primary&&elements.layers.outer){
@@ -701,7 +859,7 @@ function drawPathRecord(ctx,record,rect,mode,quality,colors,kind,seedOffset,visi
 function echoRecord(echo,parent){
   return {id:echo.id,family:parent.family,role:"companion",island:parent.island,start:echo.start,control1:echo.control1,control2:echo.control2,end:echo.end};
 }
-function drawEcho(ctx,echo,parent,layer,rect,mode,quality,colors,micro){
+function drawEcho(ctx,echo,parent,layer,rect,mode,quality,colors,micro,visibility=1){
   const parentToggle=document.querySelector('[data-path="'+parent.id+'"]');if(parentToggle&&!parentToggle.checked)return;
   const delta=(layer.phase_delta_by_path&&layer.phase_delta_by_path[echo.id])||layer.phase_delta||0;
   const ratio=(layer.android_visible_ratio&&layer.android_visible_ratio[echo.id])||layer.android_visible_ratio||.4;
@@ -709,7 +867,7 @@ function drawEcho(ctx,echo,parent,layer,rect,mode,quality,colors,micro){
   const weight=layer.android_weight||.3,localGlow=micro?(layer.android_local_glow_width_dp||1.5):(layer.android_local_glow_width_dp||2.1);
   const seed=(parent.runtime_seed||0)+delta,start=seed+elements.params.tailPosition,length=ratio*elements.params.tailLength;
   const pieces=pathPieces(cubicPoints(echo,rect,runtimeSnapshot().renderer_candidates.cubic_subdivisions),start,length),color=parent.family==="blue"?colors.blue:colors.gold,hot=parent.family==="blue"?colors.blueHot:colors.goldHot;
-  const common=(parent.island_weight||1)*elements.params.stateStrength*elements.params.alpha*(quality.alpha||1);
+  const common=(parent.island_weight||1)*elements.params.stateStrength*elements.params.alpha*(quality.alpha||1)*activeOpticalCandidate().filaments*visibility;
   const alphaContract=runtimeSnapshot().hairline_runtime_alpha[micro?"micro":"companion"];
   const glowAlpha=Math.min(alphaContract.glow_cap,alphaContract.glow_multiplier*common*weight),coreAlpha=Math.min(alphaContract.core_cap,alphaContract.core_multiplier*common*weight);
   pieces.forEach(points=>{
@@ -721,12 +879,30 @@ function drawEcho(ctx,echo,parent,layer,rect,mode,quality,colors,micro){
   });
 }
 function drawHairlines(ctx,rect,mode,quality,colors){
-  if(!elements.layers.hairlines)return;
+  if(!elements.layers.hairlines||!elements.reviewLayers.filaments)return;
   const edge=elements.config.p1_edge_field, byId=new Map(edge.paths.map(p=>[p.id,p]));
   const companion=edge.optical_stack.find(x=>x.layer==="companion_hairline");
   const micro=edge.optical_stack.find(x=>x.layer==="B_UR_micro_hairline");
-  runtimeSnapshot().companion_hairline_geometry.forEach(e=>{if((quality.companions||[]).includes(e.id)){const parent=byId.get(e.parent);drawEcho(ctx,e,parent,companion,rect,mode,quality,colors,false);}});
-  if(quality.micro)drawEcho(ctx,runtimeSnapshot().micro_hairline_geometry,byId.get("B1"),micro,rect,mode,quality,colors,true);
+  const dynamic=elements.previewMode==="dynamic",p=DYNAMIC_REVIEW_CANDIDATES[elements.dynamicCandidate];
+  runtimeSnapshot().companion_hairline_geometry.forEach((e,index)=>{
+    if(!(quality.companions||[]).includes(e.id))return;
+    let visibility=[.76,.42,.19,.08][index%4];
+    if(dynamic){const cycle=(elements.previewTime/(p.periods[(index+1)%p.periods.length]*1.19)+index*.217)%1;visibility=cycle<.34?Math.sin(Math.PI*cycle/.34):0;if(visibility<.035)return;}
+    const parent=byId.get(e.parent);if(parent)drawEcho(ctx,e,parent,companion,rect,mode,quality,colors,false,visibility);
+  });
+  if(quality.micro){let visibility=.38;if(dynamic){const cycle=(elements.previewTime/(p.periods[2]*1.53)+.61)%1;visibility=cycle<.19?Math.sin(Math.PI*cycle/.19):0;}if(visibility>.035)drawEcho(ctx,runtimeSnapshot().micro_hairline_geometry,byId.get("B1"),micro,rect,mode,quality,colors,true,visibility);}
+}
+function drawDynamicFlow(ctx,rect,quality,colors){
+  if(elements.previewMode!=="dynamic"||!elements.reviewLayers.paths)return;
+  const cfg=DYNAMIC_REVIEW_CANDIDATES[elements.dynamicCandidate],paths=elements.config.p1_edge_field.paths.filter(record=>record.role==="primary");
+  paths.forEach((record,index)=>{
+    const period=cfg.periods[index%cfg.periods.length],offset=[.03,.36,.68,.19,.51][index%5],cycle=(elements.previewTime/period+offset)%1,active=.64;
+    if(cycle>=active)return;
+    const local=cycle/active,energy=Math.pow(Math.sin(Math.PI*local),1.45),points=cubicPoints(record,rect,runtimeSnapshot().renderer_candidates.cubic_subdivisions);
+    const base=record.runtime_seed??record.runtime_seed_candidate??0,start=base+.035+local*.40,length=Math.min(.075,record.visible_ratio*.24),pieces=pathPieces(points,start,length);
+    const color=record.family==="blue"?colors.blue:colors.gold,hot=record.family==="blue"?colors.blueHot:colors.goldHot,weight=record.island_weight||1;
+    pieces.forEach(piece=>{strokePolyline(ctx,piece,color,3.8,Math.min(.16,.10*cfg.flow*energy*weight),0,"hardware-gradient");strokeGradientTail(ctx,piece,color,hot,1.25,.52*cfg.flow*energy*weight,elements.params.falloff);});
+  });
 }
 function normalizeBBox(box){
   const sourceText=String(elements.config.p2_fish_focus.input_contract.contour_source||"");
@@ -739,7 +915,7 @@ function normalizeBBox(box){
 function maskBoundarySegments(mask){
   const stride=elements.config.p2_fish_focus.geometry.contour_extraction_runtime.stride_px;
   const threshold=elements.config.p2_fish_focus.geometry.contour_extraction_runtime.alpha_threshold_8bit;
-  const w=mask.naturalWidth,h=mask.naturalHeight;
+  const w=mask.naturalWidth||mask.width,h=mask.naturalHeight||mask.height;
   const off=document.createElement("canvas");off.width=w;off.height=h;
   const oc=off.getContext("2d",{willReadFrequently:true});oc.drawImage(mask,0,0);
   let pixels;try{pixels=oc.getImageData(0,0,w,h).data;}catch(e){return {segments:[],error:"Mask 不能进行像素读取（跨域或浏览器策略）。请使用本地 PNG。"};}
@@ -762,7 +938,7 @@ function maskBoundarySegments(mask){
 }
 function drawFish(ctx,rect,transform,mode,quality,colors){
   const enabled=stateId()==="FISH_LOCATED"||stateId()==="SPECIES_RECOGNIZING";
-  if(!enabled)return;
+  if(!enabled||!elements.reviewLayers.fish||elements.focusMode!=="REVIEW_PROXY_NOT_PRODUCTION")return;
   const box=readBBox();if(!box||box.invalid)return;
   const px=x=>rect.left+x*(rect.right-rect.left),py=y=>rect.top+y*(rect.bottom-rect.top);
   const bx={left:px(box.x1),top:py(box.y1),right:px(box.x2),bottom:py(box.y2)};
@@ -775,7 +951,9 @@ function drawFish(ctx,rect,transform,mode,quality,colors){
   const rxParts=radiusParts(levelcfg.radii.x),ryParts=radiusParts(levelcfg.radii.y);
   if(!rxParts||!ryParts){$("focusReadiness").textContent="Fish halo radius formula missing from P2 config";return;}
   const rx=(bx.right-bx.left)*rxParts[0]+rxParts[1],ry=(bx.bottom-bx.top)*ryParts[0]+ryParts[1],scale=level==="C"?(levelcfg.radius_scale||.88):1;
-  const haloDefault=Number(elements.params.fishHalo)||.14,focusStrength=elements.params.layerStrength.fish||0;
+  const stateElapsed=Math.max(0,elements.previewTime-(elements.stateStartedAt||0));
+  const build=elements.previewMode==="dynamic"?(stateId()==="FISH_LOCATED"?clamp(stateElapsed/2.3,0,1):clamp(.82+stateElapsed*.045,.82,1)):1;
+  const focusStrength=(elements.params.layerStrength.fish||0)*build;
   if(elements.layers.fishHalo){
     const gx=rx*scale,gy=ry*scale,outer=elements.config.p2_fish_focus.geometry.radial_outer_extent_multiple||1.18;
     const g=ctx.createRadialGradient(center.x,center.y,0,center.x,center.y,Math.max(gx,gy)*outer);
@@ -787,11 +965,6 @@ function drawFish(ctx,rect,transform,mode,quality,colors){
   if(elements.mask&&elements.maskDiagnostic){
     const sb=normalizeBBox(box),mask=elements.mask;
     ctx.save();ctx.globalAlpha=runtimeSnapshot().renderer_candidates.mask_diagnostic_alpha;ctx.drawImage(mask,px(sb.x1),py(sb.y1),Math.max(1,(sb.x2-sb.x1)*(rect.right-rect.left)),Math.max(1,(sb.y2-sb.y1)*(rect.bottom-rect.top)));ctx.restore();
-  }
-  if(level==="B"&&elements.layers.fishContour){
-    const perimeter=levelcfg.perimeter,staticValues=runtimeSnapshot().fish_focus_static_values[stateId()][level];
-    const alpha=(staticValues.perimeter_alpha*(elements.params.fishContour/runtimeSnapshot().fish_focus_static_values.defaults.contour_alpha))*elements.params.alpha*focusStrength;
-    ctx.save();ctx.strokeStyle=safeAlphaColor(perimeter.color,alpha);ctx.lineWidth=perimeter.width_dp;ctx.beginPath();ctx.ellipse(center.x,center.y,rx,ry,0,0,Math.PI*2);ctx.stroke();ctx.restore();
   }
   if(level==="A"&&elements.mask&&elements.layers.fishContour){
     const boundary=contourData,sb=normalizeBBox(box);
@@ -807,7 +980,7 @@ function drawFish(ctx,rect,transform,mode,quality,colors){
       strokePolyline(ctx,[a,b],contour.color,contour.core_width_dp,coreAlpha,0,"hardware-gradient");
     });
   }else if(level==="A"&&!elements.mask){
-    $("focusReadiness").textContent="未绑定真实 Mask，运行时回退 B；不生成椭圆假轮廓";
+    $("focusReadiness").textContent="Fish Focus：BLOCKED · 缺少 alpha；未绘制轮廓";
   }
 }
 function drawStatus(ctx,w,h,safeBottom,safeTop,mode,colors){
@@ -847,13 +1020,19 @@ function drawBack(ctx,safeTop){
 function drawField(ctx,rect,mode,quality,colors){
   const config=elements.config.edge||elements.config.p1_edge_field;
   ctx.save();ctx.beginPath();ctx.rect(rect.left,rect.top,rect.right-rect.left,rect.bottom-rect.top);ctx.clip();
-  drawReceiving(ctx,rect,mode,quality,colors);
+  const view=elements.fieldLayerView,showField=view==="composite"||view==="receiving",showPaths=view==="composite"||view==="primary",showFilaments=view==="composite"||view==="filaments";
+  if(showField){drawReviewReceivingField(ctx,rect,colors,quality);drawReceiving(ctx,rect,mode,quality,colors);}
   config.paths.forEach(record=>{
-    const weight=record.island_weight||1,primary=record.role==="primary";
+    const primary=record.role==="primary";
+    if(primary&&(!showPaths||!elements.reviewLayers.paths))return;
+    if(!primary&&(!showFilaments||!elements.reviewLayers.filaments))return;
+    if(view==="primary"&&!primary)return;
+    if(view==="filaments"&&primary)return;
     const seed=record.runtime_seed??record.runtime_seed_candidate??0;
     drawPathRecord(ctx,record,rect,mode,quality,colors,primary?"primary":"fragment",seed,record.visible_ratio,record.core_width_dp);
   });
-  drawHairlines(ctx,rect,mode,quality,colors);
+  if(showFilaments)drawHairlines(ctx,rect,mode,quality,colors);
+  if(showPaths&&elements.reviewLayers.paths)drawDynamicFlow(ctx,rect,quality,colors);
   ctx.restore();
 }
 function paintScene(ctx,w,h,rendererOverride){
@@ -861,8 +1040,8 @@ function paintScene(ctx,w,h,rendererOverride){
   ctx.clearRect(0,0,w,h);
   const media=drawPhoto(ctx,w,h),rect=media.rect;
   const quality=getQuality(),colors=tokenColors();
-  if(mode==="software-cache"){
-    const key=[mode,w,h,stateId(),elements.quality,elements.dLevel,JSON.stringify(elements.params),JSON.stringify(elements.layers),Array.from(document.querySelectorAll("[data-path]")).map(x=>x.checked?1:0).join(""),elements.mask&&elements.mask.src].join("|");
+  if(mode==="software-cache"&&elements.previewMode!=="dynamic"){
+    const key=[mode,w,h,stateId(),elements.quality,elements.dLevel,elements.previewMode,elements.staticCandidate,elements.fieldLayerView,JSON.stringify(elements.params),JSON.stringify(elements.layers),JSON.stringify(elements.reviewLayers),elements.focusMode,Array.from(document.querySelectorAll("[data-path]")).map(x=>x.checked?1:0).join(""),elements.mask&&elements.mask.src].join("|");
     if(!elements.cache||elements.cache.key!==key){
       const off=document.createElement("canvas");off.width=w;off.height=h;const oc=off.getContext("2d");
       drawField(oc,rect,"software-cache",quality,colors);
@@ -875,8 +1054,10 @@ function paintScene(ctx,w,h,rendererOverride){
     drawField(ctx,rect,mode,quality,colors);
     drawFish(ctx,rect,media.transform,mode,quality,colors);
   }
-  drawBack(ctx,elements.params.safeTop);
-  drawStatus(ctx,w,h,elements.params.safeBottom,elements.params.safeTop,mode,colors);
+  if(elements.fieldLayerView==="composite"){
+    drawBack(ctx,elements.params.safeTop);
+    drawStatus(ctx,w,h,elements.params.safeBottom,elements.params.safeTop,mode,colors);
+  }
   $("compareSize").textContent=w+" × "+h+" · PhotoViewport FIT";
   $("renderBadge").textContent=mode+" · "+elements.quality+" / "+elements.dLevel;
   $("sourceMode").textContent="同一视口 · Frozen FIT · 照片身份未绑定";
@@ -886,6 +1067,8 @@ function render(){
   const c=elements.preview;c.width=elements.width;c.height=elements.height;
   paintScene(c.getContext("2d"),c.width,c.height,elements.renderer);
   c.style.aspectRatio=elements.width+"/"+elements.height;
+  c.dataset.previewMode=elements.previewMode;c.dataset.state=stateId();c.dataset.candidate=elements.previewMode==="dynamic"?elements.dynamicCandidate:elements.staticCandidate;
+  $("webCaption").textContent="WEB · "+getState().display_name+" · "+(elements.previewMode==="dynamic"?"动态 "+elements.dynamicCandidate:"静态 "+elements.staticCandidate);
   document.querySelectorAll(".screen").forEach(s=>s.style.aspectRatio=elements.width+"/"+elements.height);
   const params={paramAlpha:"alpha",paramGlow:"glowWidth",paramBlur:"blurRadius",paramFalloff:"falloff",paramTailLength:"tailLength",paramTailPosition:"tailPosition",paramHalo:"fishHalo",paramContour:"fishContour",paramStrength:"stateStrength",paramSafeTop:"safeTop",paramSafeBottom:"safeBottom"};
   Object.keys(params).forEach(id=>{const val=elements.params[params[id]];$(id+"Value").textContent=Number(val).toFixed(id==="paramTailPosition"?3:2);});

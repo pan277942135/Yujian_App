@@ -1,0 +1,40 @@
+{
+  "task": "RECOGNITION_OPTICAL_STATIC_DYNAMIC_CLOSURE_V1",
+  "authority": "REVIEW_ONLY",
+  "design_contracts_modified": false,
+  "source_contracts": ["P1", "P2", "P3", "P4", "P5"],
+  "static_candidates": {
+    "A": { "id": "REVIEW_CANDIDATE_A", "name": "Soft Field", "receiving_field_scale": 0.72, "primary_path_scale": 0.56, "secondary_filament_scale": 0.28 },
+    "B": { "id": "REVIEW_CANDIDATE_B", "name": "Balanced Field", "receiving_field_scale": 1.0, "primary_path_scale": 0.76, "secondary_filament_scale": 0.4, "recommended_for_first_review": true },
+    "C": { "id": "REVIEW_CANDIDATE_C", "name": "Strong Atmosphere", "receiving_field_scale": 1.28, "primary_path_scale": 0.9, "secondary_filament_scale": 0.56 }
+  },
+  "field_corner_weights": {
+    "top_right_blue": 1.0,
+    "top_left_gold": 0.71,
+    "bottom_left_gold": 0.34,
+    "bottom_right_blue": 0.19,
+    "geometry_note": "Asymmetric off-image gradient anchors, unequal ovals and independent rotation values."
+  },
+  "dynamic_candidates": {
+    "A": { "id": "DYNAMIC_CANDIDATE_A", "name": "Calm", "field_scale": 0.9, "path_flow_scale": 0.24, "filament_scale": 0.25, "breath_amplitude": 0.035, "corner_periods_seconds": [15.4, 20.8, 24.6, 29.1] },
+    "B": { "id": "DYNAMIC_CANDIDATE_B", "name": "Balanced", "field_scale": 1.02, "path_flow_scale": 0.39, "filament_scale": 0.38, "breath_amplitude": 0.065, "corner_periods_seconds": [12.7, 17.3, 21.9, 26.5], "recommended_for_first_review": true },
+    "C": { "id": "DYNAMIC_CANDIDATE_C", "name": "Atmospheric", "field_scale": 1.16, "path_flow_scale": 0.52, "filament_scale": 0.56, "breath_amplitude": 0.095, "corner_periods_seconds": [10.8, 14.9, 19.7, 23.6] }
+  },
+  "state_field_scale": { "IMAGE_RECOGNIZING": 1.0, "FISH_LOCATED": 0.84, "SPECIES_RECOGNIZING": 0.72 },
+  "motion": {
+    "speed_options": [0.5, 1.0, 1.5],
+    "recording_duration_seconds": 12,
+    "state_sequence": ["IMAGE_RECOGNIZING", "FISH_LOCATED", "SPECIES_RECOGNIZING"],
+    "recording_format": "WebM",
+    "animation_authority": "Browser Canvas review only"
+  },
+  "fish_focus": {
+    "production": "BLOCKED: no current-head production FishSubjectResult or production Mask evidence was executed or attached.",
+    "review_only": "REVIEW_PROXY_NOT_PRODUCTION: Case B fixture plus manual alpha annotation and previously reported historical detector BBox.",
+    "default": "BLOCKED: no Fish Focus is drawn until the review-only source is selected.",
+    "mask_provenance": "Manual photo annotation; not a production mask.",
+    "evidence_record": "fish_focus_case_b_bbox.json"
+  },
+  "android_runtime_completed": false,
+  "native_implementation_completed": false
+}

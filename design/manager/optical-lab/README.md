@@ -1,53 +1,55 @@
-# Recognition Processing · Optical Lab
+# Recognition Optical Lab · Web Review V1
 
-An isolated browser engineering preview for the existing Processing P1–P5 contract. It reuses `Processing_Engineering_Import_Config_V1.json`, the State Set Manifest, all three Frozen PNGs, the registered P5 test-photo fixture and the existing runtime source bindings. It does not modify the Frozen references, create another Figma importer, or claim a Figma/Android visual pass.
+An isolated browser preview of review candidates based on the existing P1–P5 contract. P1–P5 and PR #165 Frozen PNGs remain unchanged. Static and dynamic A/B/C settings are `REVIEW_CANDIDATE` values; they are not Frozen product values and do not represent Android implementation.
 
-## Run the preview
+## Open the cloud preview
 
-Use the `Recognition-Optical-Lab-Static` artifact attached to the latest PR #166 workflow run. Extract `Recognition-Optical-Lab-Browser-Package.zip`, then from its root run:
+The public HTTPS preview remains the existing Recognition Optical Lab site:
+
+`https://recognition-optical-lab-a1-20261019.pan277942135.chatgpt.site/design/manager/optical-lab/`
+
+The current first-phase package exposes static A/B/C candidates, the three product states, layer decomposition and Fish Focus provenance. Playback and recording stay locked until the static optical screenshots have been reviewed. Browser output is Web Review evidence only.
+
+## Static optical candidates
+
+| Candidate | Receiving field | Primary paths | Secondary filaments | Intent |
+| --- | ---: | ---: | ---: | --- |
+| `REVIEW_CANDIDATE_A` · Soft Field | 0.72× | 0.56× | 0.28× | Softer, more restrained comparison |
+| `REVIEW_CANDIDATE_B` · Balanced Field | 1.00× | 0.76× | 0.40× | Clear asymmetric blue/gold field with subordinate paths; recommended for first review |
+| `REVIEW_CANDIDATE_C` · Strong Atmosphere | 1.28× | 0.90× | 0.56× | Visibility boundary comparison |
+
+Each keeps the existing P1 geometry and adds an asymmetric Receiving Light field before the paths: a strongest blue pool at upper right, a softer gold field at upper left, a restrained gold residue at lower left, and a short, weaker blue trace at lower right. The candidate composition can be decomposed into receiving field, primary paths, secondary filaments and final composite.
+
+## Dynamic candidates
+
+| Candidate | Field breathing | Path flow | Filaments | Intent |
+| --- | --- | --- | --- | --- |
+| `Dynamic A` · Calm | 3.5% amplitude, independent periods | 0.24 scale, short moving segments | 0.25 scale, rare | Most restrained |
+| `Dynamic B` · Balanced | 6.5% amplitude, independent corner phases | 0.39 scale, slow local energy travel | 0.38 scale, intermittent | Recommended first motion review |
+| `Dynamic C` · Atmospheric | 9.5% amplitude, independent corner phases | 0.52 scale | 0.56 scale, more frequent | Upper-bound comparison |
+
+Dynamic A/B/C candidate controls are prepared but remain gated in this static review version. After the static screenshot gate is visually checked, playback and 12-second three-state WebM recordings will be enabled. Those recordings show browser Canvas output, not Android or a native renderer.
+
+## Fish Focus provenance
+
+- `Production`: **BLOCKED**. This build has no current-head production `FishSubjectResult` / production Mask evidence to bind. No production contour is drawn.
+- `Review-only`: `REVIEW_PROXY_NOT_PRODUCTION`, using the Case B photo, a historical detector BBox, and a human-traced alpha fixture. The alpha is not a production Mask. Case B is described by `app/src/androidTest/java/com/yujian/ai/DetectorOrientationRetryRuntimeTest.kt`; source photo SHA-256 is `a7ed3bb0410c191364f6d853b4078aebdc2f3b9baa4da34b7b3f6e8e0e93a56b`.
+- `Blocked`: the default page state. With no selected review proxy or current production result, the page draws no Fish Focus contour.
+
+The review alpha and its BBox/source record are in `review_v1/`. The BBox values come from the previously reported Case B runtime result. The latest PR-head CI compiled instrumentation tests but skipped runtime execution, so those values were not re-run against this commit.
+
+## Run locally
+
+Use the `Recognition-Optical-Lab-Review-V1` artifact attached to the latest PR #166 workflow run. Extract `Recognition-Optical-Lab-Browser-Package.zip`, then from its root run:
 
 ```sh
 python3 -m http.server 8765
 ```
 
-Open `http://localhost:8765/design/manager/optical-lab/`. The package preserves the repository paths and includes both the P5 Android fixture and its byte-identical Design Manager publication alias. It supports the repository-root route above and a design-root deployment at `/manager/optical-lab/`. Serve over localhost or HTTPS; `file://` prevents the page from fetching and SHA-verifying the existing data.
+Open `http://localhost:8765/design/manager/optical-lab/`. The package preserves repository paths and includes the verified P5 photo, the Case B detector fixture, the review alpha and the exact P1–P5/Frozen inputs. Serve over localhost or HTTPS; `file://` prevents data fetch and SHA verification.
 
-The repository route is linked from the existing Design Manager. The Actions package is a reproducible local preview, not a published Figma page.
+## Evidence and limits
 
-## Stage A · static controls
+The workflow produces desktop/narrow static captures and four layer decomposition captures for each static candidate. Its result field distinguishes automation checks from visual review. An automated browser check does not establish optical approval.
 
-- Switch the three frozen product visuals: `IMAGE_RECOGNIZING`, `FISH_LOCATED`, `SPECIES_RECOGNIZING`.
-- Compare the Frozen image and Web candidate side by side, at 50% overlay, or with a wipe. Advanced controls include exploratory pixel heatmap, ROI enlargement, and the three same-source renderer candidates.
-- Toggle PhotoViewport, Receiving Light, Primary Outer Bloom, Primary Mid Glow, Primary Core, Companion/Micro Hairlines, Fish Focus Halo, Fish Focus Contour, and Status Card independently.
-- Use the quick layer controls or advanced sliders for alpha, width, blur, falloff, tail length/position, focus intensity, State Strength, and safe-area inputs. Restore P1–P5-derived defaults with **恢复默认参数**.
-- Set FULL/BALANCED/LITE, D0–D4 and Reduce Motion; inspect the P4 responsive fixtures.
-- Export the current preview, comparison and ROI PNGs, verified asset manifest and experiment parameter JSON. Importing an experiment JSON restores its renderer, state, viewport, quality and parameter values.
-
-The default photo is the existing P5 Android test fixture. Its P5 SHA-256 is checked at load and its published Design Manager alias is verified byte-identical in CI. The registry scopes this asset to real-photo container examples; it does not bind it to the Processing Frozen screenshots. Frozen/Web pixel metrics therefore stay exploratory and the Frozen visual gate remains blocked.
-
-The fixture has no trusted detector BBox or production FishSubjectResult Mask. Fish Focus is disabled without a valid, explicitly attested BBox; no synthetic contour or mask is substituted. A true mask comparison still needs authorized production detector output.
-
-## Renderer comparison
-
-The candidates consume the same source fixture, viewport, state and P1 geometry. Candidate values already stored in the P1–P5 runtime extension remain explicitly experimental.
-
-| Candidate | Browser drawing | Android relevance / limit |
-| --- | --- | --- |
-| `android-current` | Existing geometry with browser `shadowBlur` approximation | Does not reproduce Android `BlurMaskFilter` exactly. |
-| `hardware-gradient` | Path, radial/linear gradients and layered low-alpha strokes without a blur filter | Preferred API 28 research candidate for a device check; not selected or validated by this browser preview. |
-| `software-cache` | Offscreen RGBA Canvas cache and browser Canvas filter blur | Browser kernel and compositing are not an Android software Canvas result. |
-
-The browser smoke confirms that the candidates render different pixels on the same input; that is an interaction/implementation check, not evidence of optical superiority. Antialiasing, color composition, font rasterization and blur differ from Android.
-
-## Stage B gate
-
-Stage B Play/Pause, timeline, continuous clock, state transitions, RESOLVE decay, keyframe export and recording are kept locked until the static optical route is reviewed and selected. No particles or animation are rendered in this Stage A build.
-
-## Reproduce checks
-
-```sh
-node scripts/verify_processing_optical_lab.mjs
-node scripts/smoke_processing_optical_lab.cjs
-```
-
-The PR workflow runs the source verifier and Playwright Chromium against both supported deployment roots. It records screenshot evidence for all three states, renderer comparisons, overlay/diff/ROI, no-BBox Fish Focus downgrade, responsive fixtures, the verified asset manifest and a runnable ZIP. These checks do not establish a Frozen visual pass, source-photo identity, Android Runtime pass, Figma native structure, or overall M1 PASS.
+The default photo remains the P5 test fixture, SHA-verified against its registry binding. It is not source-bound to the Frozen screenshots, so Frozen/Web pixel comparisons remain exploratory. Canvas gradients, compositing, text rasterization and blur are browser approximations. Android Runtime: **not completed**. Native implementation: **not completed**.

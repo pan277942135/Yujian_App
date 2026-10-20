@@ -44,6 +44,7 @@ const registryBytes = await read(registryPath);
 const registry = JSON.parse(registryBytes.toString("utf8"));
 const html = (await read("design/manager/optical-lab/index.html")).toString("utf8");
 const manager = (await read("design/manager/index.html")).toString("utf8");
+const dynamicReviewEnabled = /const DYNAMIC_REVIEW_ENABLED\s*=\s*true/.test(html);
 
 assert.equal(config.source_snapshot.authority_commit, "31d1483b83038db78821625cd9339ad0e8c19ff3", "PR #165 authority SHA changed");
 assert.equal(config.status, "ENGINEERING_HANDOFF_READY");
@@ -156,18 +157,21 @@ for (const required of [
   "Fish Focus Halo", "Fish Focus Contour", "Status Card", "Pixel Diff", "50% Overlay",
   "drawFrozenReference", "makeAlignedFrozenCanvas", "renderer_candidates", "cubic_subdivisions",
   "FishSubjectResult", "State Strength", "paramTailPosition", "motionSpeed.disabled=true",
-  "crypto.subtle.digest", "designRootUrl", "Optical Lab",
+  "crypto.subtle.digest", "designRootUrl", "Optical Lab", "STATIC_REVIEW_CANDIDATES", "DYNAMIC_REVIEW_CANDIDATES",
+  "drawReviewReceivingField", "drawDynamicFlow", "REVIEW_PROXY_NOT_PRODUCTION", "recordPreviewSequence",
+  "previewModeButtons", "staticCandidate", "dynamicCandidate", "motionSpeed", "recordSequence", "fieldLayerView",
 ]) assert.ok(html.includes(required), "Optical Lab missing expected feature/config input: " + required);
 assert.equal(html.includes("01_Capture_Transition_Frozen.png"), false, "Early visual must not return");
-assert.equal(html.includes("requestAnimationFrame"), false, "Stage B must remain locked before static-route review");
-assert.ok(html.includes("stage-b-hidden"), "Stage B timeline controls must remain hidden during static Stage A");
+assert.ok(html.includes("requestAnimationFrame"), "Web review preview needs a real animation frame loop");
+assert.ok(html.includes("stage-b-hidden"), "legacy P4 timeline remains separate from the Web Review controls");
+assert.ok(html.includes("REVIEW ONLY · NOT ANDROID"), "web animation must be identified as review-only");
 assert.ok(html.includes("elements.manifest.product_states.find(item=>item.id===state.id)"), "Frozen bindings must come from the existing State Manifest");
 assert.ok(html.includes("source-photo identity unverified"), "Frozen comparisons must remain explicitly exploratory");
 assert.equal(html.includes("createImageBitmap"), false, "no derived/fabricated Frozen source");
 
 const report = {
   schema_version: "1.0",
-  task: "RECOGNITION_OPTICAL_LAB_STAGE_A1_VISUAL_CLOSURE",
+  task: "RECOGNITION_OPTICAL_STATIC_DYNAMIC_CLOSURE_V1",
   repository: "pan277942135/Yujian_App",
   pull_request: 166,
   source_revision: sourceRevision,
@@ -190,9 +194,9 @@ const report = {
     three_states_seven_paths_no_early: "PASS",
     browser_route_and_runtime_assets: "PENDING_PLAYWRIGHT",
     frozen_source_photo_identity: "BLOCKED_UNBOUND",
-    fish_focus_visual_comparison: "BLOCKED_NO_TRUSTED_BBOX_OR_MASK",
+    fish_focus_visual_comparison: "REVIEW_ONLY_PROXY_AVAILABLE_PRODUCTION_BLOCKED",
     static_optical_selection: "PENDING_HUMAN_REVIEW",
-    motion_phase: "LOCKED_PENDING_STATIC_SELECTION",
+    motion_phase: dynamicReviewEnabled ? "WEB_REVIEW_ONLY_NOT_ANDROID" : "LOCKED_PENDING_STATIC_VISUAL_GATE",
     android_runtime: "NOT_RUN",
     figma_native_structure: "NOT_RUN",
     frozen_visual_qa: "BLOCKED",
@@ -203,7 +207,7 @@ await mkdir(outputDir, { recursive: true });
 await writeFile(path.join(outputDir, "asset-manifest.json"), JSON.stringify(report, null, 2) + "\n");
 await writeFile(path.join(root, "design/manager/optical-lab/asset-manifest.json"), JSON.stringify(report, null, 2) + "\n");
 console.log(JSON.stringify({
-  result: "PASS",
+  result: "SOURCE_VERIFICATION_PASSED_VISUAL_REVIEW_REQUIRED",
   source_revision: sourceRevision,
   gates: report.gates,
   sourceDependencyCount: sourceDependencies.length,
