@@ -1,26 +1,173 @@
 {
-  "$schema":"https://json-schema.org/draft/2020-12/schema",
-  "title":"YuJian Work Execution State V1",
-  "type":"object",
-  "required":["schema_version","work_id","repository","branch","control_plane_revision","base_branch","base_sha","phase","task_id","stage","status","source_sha","checkpoint_updated_at","next_action","dependencies","blockers","evidence"],
-  "properties":{
-    "schema_version":{"const":"1.0"},
-    "work_id":{"type":"string","minLength":1},
-    "repository":{"const":"pan277942135/Yujian_App"},
-    "branch":{"type":"string","minLength":1},
-    "control_plane_revision":{"type":"string","pattern":"^[0-9a-f]{40}$"},
-    "base_branch":{"const":"main"},
-    "base_sha":{"type":"string","pattern":"^[0-9a-f]{40}$"},
-    "phase":{"type":"string","pattern":"^P[0-9]$"},
-    "task_id":{"type":"string","minLength":1},
-    "stage":{"type":"string","minLength":1},
-    "status":{"enum":["READY","RUNNING","VALIDATING","FAIL","RECOVERING","BLOCKED","PASS","CLOSED","FINAL_GATE","CANCELLED"]},
-    "source_sha":{"type":"string","pattern":"^[0-9a-f]{40}$"},
-    "checkpoint_updated_at":{"type":"string","minLength":1},
-    "next_action":{"type":"string","minLength":1},
-    "dependencies":{"type":"array","items":{"type":"string"}},
-    "blockers":{"type":"array","items":{"type":"string"}},
-    "evidence":{"type":"object"}
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "YuJian Work Execution State V1",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "work_id",
+    "repository",
+    "branch",
+    "control_plane_revision",
+    "base_branch",
+    "base_sha",
+    "phase",
+    "task_id",
+    "stage",
+    "status",
+    "source_sha",
+    "checkpoint_updated_at",
+    "next_action",
+    "dependencies",
+    "blockers",
+    "evidence"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "work_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "repository": {
+      "const": "pan277942135/Yujian_App"
+    },
+    "branch": {
+      "type": "string",
+      "minLength": 1
+    },
+    "control_plane_revision": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$"
+    },
+    "base_branch": {
+      "const": "main"
+    },
+    "base_sha": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$"
+    },
+    "phase": {
+      "type": "string",
+      "pattern": "^P[0-9]$"
+    },
+    "task_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "stage": {
+      "type": "string",
+      "minLength": 1
+    },
+    "status": {
+      "enum": [
+        "READY",
+        "RUNNING",
+        "VALIDATING",
+        "FAIL",
+        "RECOVERING",
+        "BLOCKED",
+        "PASS",
+        "CLOSED",
+        "FINAL_GATE",
+        "CANCELLED"
+      ]
+    },
+    "source_sha": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$"
+    },
+    "checkpoint_updated_at": {
+      "type": "string",
+      "minLength": 1
+    },
+    "next_action": {
+      "type": "string",
+      "minLength": 1
+    },
+    "dependencies": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "blockers": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "evidence": {
+      "type": "object"
+    },
+    "execution_v2": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "issues"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": "1.0"
+        },
+        "issues": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "required": [
+              "task_id",
+              "gate_id",
+              "symptom_key",
+              "failures",
+              "closed"
+            ],
+            "properties": {
+              "task_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "gate_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "symptom_key": {
+                "type": "string",
+                "minLength": 1
+              },
+              "closed": {
+                "type": "boolean"
+              },
+              "failures": {
+                "type": "array",
+                "maxItems": 3,
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "source_sha",
+                    "hypothesis",
+                    "evidence"
+                  ],
+                  "properties": {
+                    "source_sha": {
+                      "type": "string",
+                      "pattern": "^[0-9a-f]{40}$"
+                    },
+                    "hypothesis": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "evidence": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
   },
-  "additionalProperties":true
+  "additionalProperties": true
 }
