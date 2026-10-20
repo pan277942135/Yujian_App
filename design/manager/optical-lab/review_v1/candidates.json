@@ -19,7 +19,7 @@
     "top_left_gold": 0.71,
     "bottom_left_gold": 0.34,
     "bottom_right_blue": 0.19,
-    "geometry_note": "Asymmetric off-image gradient anchors, unequal ovals and independent rotation values. Review-only receiving-field palette is separate from P1–P5 token bindings."
+    "geometry_note": "Asymmetric near-corner anchors shifted inboard, unequal ovals, independent rotation values, and a separate review-only palette outside P1–P5 token bindings."
   },
   "dynamic_candidates": {
     "A": { "id": "DYNAMIC_CANDIDATE_A", "name": "Calm", "field_scale": 0.9, "path_flow_scale": 0.24, "filament_scale": 0.25, "breath_amplitude": 0.035, "corner_periods_seconds": [15.4, 20.8, 24.6, 29.1] },

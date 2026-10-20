@@ -794,16 +794,16 @@ function drawReviewReceivingField(ctx,rect,colors,quality){
   }
   const reviewColors={blue:"#6CB8D2",gold:"#D5A34E"};
   const blobs=[
-    {x:.98,y:.035,rx:.57,ry:.27,angle:.32,color:reviewColors.blue,weight:1.0,breath:breaths[0]},
-    {x:.025,y:.08,rx:.47,ry:.24,angle:-.24,color:reviewColors.gold,weight:.68,breath:breaths[1]},
-    {x:.005,y:.97,rx:.38,ry:.20,angle:-.39,color:reviewColors.gold,weight:.30,breath:breaths[2]},
-    {x:1.025,y:.965,rx:.32,ry:.17,angle:.43,color:reviewColors.blue,weight:.15,breath:breaths[3]}
+    {x:.86,y:.10,rx:.48,ry:.28,angle:.32,color:reviewColors.blue,weight:1.0,breath:breaths[0]},
+    {x:.15,y:.16,rx:.42,ry:.23,angle:-.24,color:reviewColors.gold,weight:.68,breath:breaths[1]},
+    {x:.12,y:.91,rx:.34,ry:.20,angle:-.39,color:reviewColors.gold,weight:.30,breath:breaths[2]},
+    {x:.91,y:.90,rx:.32,ry:.17,angle:.43,color:reviewColors.blue,weight:.15,breath:breaths[3]}
   ];
   const common=candidate.field*stateScale*elements.params.alpha*(elements.params.layerStrength.receiving||0)*(quality.receiving||1)*(quality.alpha||1);
   ctx.save();ctx.globalCompositeOperation="source-over";
   blobs.forEach(blob=>{
     const cx=rect.left+blob.x*(rect.right-rect.left),cy=rect.top+blob.y*(rect.bottom-rect.top),rx=(rect.right-rect.left)*blob.rx,ry=(rect.bottom-rect.top)*blob.ry;
-    const intensity=Math.min(.56,.36*common*blob.weight*blob.breath);
+    const intensity=Math.min(.70,.44*common*blob.weight*blob.breath);
     ctx.save();ctx.translate(cx,cy);ctx.rotate(blob.angle);ctx.scale(rx,ry);
     const gradient=ctx.createRadialGradient(0,0,0,0,0,1);
     gradient.addColorStop(0,safeAlphaColor(blob.color,intensity*.88));gradient.addColorStop(.34,safeAlphaColor(blob.color,intensity*.58));gradient.addColorStop(.69,safeAlphaColor(blob.color,intensity*.22));gradient.addColorStop(1,safeAlphaColor(blob.color,0));
