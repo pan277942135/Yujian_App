@@ -1,9 +1,9 @@
 /* Review-only Receiving Light layer. It is intentionally not an Android renderer. */
 (function () {
   "use strict";
-  const candidateLevels = { A: 0.54, B: 0.92, C: 1.18 };
-  const breathAmplitudes = { A: 0.035, B: 0.065, C: 0.095 };
-  const weights = [1, 0.78, 0.40, 0.22];
+  const candidateLevels = { A: 0.75, B: 1.5, C: 2.25 };
+  const breathAmplitudes = { A: 0.045, B: 0.105, C: 0.16 };
+  const weights = [1, 0.72, 0.38, 0.25];
   const phase = [0.1, 1.83, 3.47, 5.02];
   const periods = [9.2, 12.8, 10.6, 15.4];
   let frame = 0;
@@ -141,10 +141,10 @@
     const blue = "#42a8ee";
     const gold = "#e4ad4b";
     const corners = [
-      { x: left + imageWidth * 1.015, y: top + imageHeight * 0.015, rx: imageWidth * 0.57, ry: imageHeight * 0.30, angle: 0.24, color: blue },
-      { x: left - imageWidth * 0.025, y: top + imageHeight * 0.025, rx: imageWidth * 0.51, ry: imageHeight * 0.29, angle: -0.20, color: gold },
-      { x: left - imageWidth * 0.02, y: top + imageHeight * 1.01, rx: imageWidth * 0.43, ry: imageHeight * 0.24, angle: -0.32, color: gold },
-      { x: left + imageWidth * 1.015, y: top + imageHeight * 1.02, rx: imageWidth * 0.39, ry: imageHeight * 0.22, angle: 0.34, color: blue },
+      { x: left + imageWidth * 1.012, y: top + imageHeight * 0.012, rx: imageWidth * 0.43, ry: imageHeight * 0.25, angle: 0.20, color: blue },
+      { x: left - imageWidth * 0.018, y: top + imageHeight * 0.018, rx: imageWidth * 0.38, ry: imageHeight * 0.22, angle: -0.16, color: gold },
+      { x: left - imageWidth * 0.014, y: top + imageHeight * 1.008, rx: imageWidth * 0.31, ry: imageHeight * 0.18, angle: -0.28, color: gold },
+      { x: left + imageWidth * 1.012, y: top + imageHeight * 1.014, rx: imageWidth * 0.27, ry: imageHeight * 0.15, angle: 0.30, color: blue },
     ];
     ctx.save();
     // This canvas is a transparent plane above the photo. Use source-over so
@@ -159,9 +159,9 @@
       ctx.rotate(corner.angle);
       ctx.scale(corner.rx / radius, corner.ry / radius);
       const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, radius);
-      gradient.addColorStop(0, `rgba(${rgb},${0.58 * strength})`);
-      gradient.addColorStop(0.34, `rgba(${rgb},${0.36 * strength})`);
-      gradient.addColorStop(0.70, `rgba(${rgb},${0.13 * strength})`);
+      gradient.addColorStop(0, `rgba(${rgb},${0.68 * strength})`);
+      gradient.addColorStop(0.34, `rgba(${rgb},${0.43 * strength})`);
+      gradient.addColorStop(0.70, `rgba(${rgb},${0.18 * strength})`);
       gradient.addColorStop(1, `rgba(${rgb},0)`);
       ctx.fillStyle = gradient;
       ctx.beginPath();
@@ -170,10 +170,10 @@
       ctx.restore();
     });
     const ribbons = [
-      { points: [[0.28, -0.01], [0.56, -0.035], [0.88, 0.02], [1.015, 0.36]], color: blue, weight: 1, alpha: 0.54, width: 0.105 },
-      { points: [[-0.01, 0.39], [0.01, 0.14], [0.18, -0.02], [0.48, -0.01]], color: gold, weight: 0.78, alpha: 0.43, width: 0.105 },
-      { points: [[-0.005, 0.68], [-0.03, 0.89], [0.19, 1.02], [0.45, 1.005]], color: gold, weight: 0.40, alpha: 0.33, width: 0.075 },
-      { points: [[0.70, 1.01], [0.91, 1.035], [1.02, 0.87], [1.005, 0.67]], color: blue, weight: 0.22, alpha: 0.25, width: 0.060 },
+      { points: [[0.58, -0.02], [0.82, -0.06], [1.035, 0.04], [1.012, 0.34]], color: blue, weight: 1, alpha: 0.62, width: 0.070 },
+      { points: [[-0.012, 0.34], [-0.045, 0.13], [0.11, -0.035], [0.38, -0.008]], color: gold, weight: 0.72, alpha: 0.46, width: 0.062 },
+      { points: [[-0.01, 0.75], [-0.04, 0.92], [0.11, 1.025], [0.35, 1.006]], color: gold, weight: 0.38, alpha: 0.31, width: 0.050 },
+      { points: [[0.80, 1.012], [0.95, 1.04], [1.03, 0.92], [1.008, 0.78]], color: blue, weight: 0.25, alpha: 0.23, width: 0.042 },
     ];
     ribbons.forEach((ribbon, index) => {
       const pts = ribbon.points.map(([x, y]) => ({ x: left + imageWidth * x, y: top + imageHeight * y }));
