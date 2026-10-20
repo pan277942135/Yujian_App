@@ -441,7 +441,8 @@ private fun GeminiMiddleSection(
     // even though the line box is scaled. Compensate the layout gap so the measured
     // visible title-to-card distance remains 13dp; this does not alter the card geometry.
     val visibleGapCorrection = ((fontScale - 1f) * 10f).coerceAtLeast(0f)
-    val headerGap = (13f + visibleGapCorrection - titleBottomInset).coerceAtLeast(0f).dp
+    val baseHeaderGap = (13f - titleBottomInset).coerceAtLeast(0f)
+    val headerGap = (baseHeaderGap + visibleGapCorrection).dp
     val trackWidth = safeWidth.coerceAtMost(560.dp)
     val desiredCardWidth = minOf(trackWidth * GeminiHomeCardWidthFraction, GeminiHomeCardMaxWidth)
     val desiredCardHeight = (desiredCardWidth / GeminiHomeCardAspectRatio).coerceAtMost(GeminiHomeCardMaxHeight)
