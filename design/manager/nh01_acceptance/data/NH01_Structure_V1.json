@@ -1,0 +1,467 @@
+{
+  "schema_version": 1,
+  "document_type": "structure",
+  "page_id": "normal_home_v1",
+  "state_id": "NH01",
+  "authority_version": "V1",
+  "status": "REVIEW_REQUIRED",
+  "source": {
+    "pr164_head_sha": "77a9aabc2648bda2942575d6600b74c9fe7d3ad7",
+    "mapping_sha256": "0a9880d1250969d85104641686efe1b1f85c965b8d9b2f7954d387d3b72c0b6a",
+    "canonical_main_sha_at_handoff": "0d3238e8a41b87363e9a17b04c9cc45fca4c426d"
+  },
+  "frame": {
+    "id": "41:30",
+    "name": "NH01_Normal_Home_1080x1920",
+    "width": 1080,
+    "height": 1920,
+    "coordinate_space": "Frozen Pixel Space",
+    "status": "PASS"
+  },
+  "frozen_authority": {
+    "repo_path": "design/system/core_visual_v1/reference/normal_home_v1.png",
+    "sha256": "6ab9d3348b4a9a7e77ddca3a06235b4991798a309bd3512cc6fb9ea7aeb1d377",
+    "expected_sha256": "6ab9d3348b4a9a7e77ddca3a06235b4991798a309bd3512cc6fb9ea7aeb1d377",
+    "width": 1080,
+    "height": 1920,
+    "status": "PASS"
+  },
+  "source_contracts": {
+    "anchor_map": "design/system_v3/10_Page_Visual_Acceptance_Contracts/Normal_Home/Normal_Home_Component_Anchor_Map_V1.json",
+    "pixel_targets": "design/system_v3/10_Page_Visual_Acceptance_Contracts/Normal_Home/Normal_Home_Pixel_Targets_V1.json",
+    "resource_binding": "design/system_v3/09_Android_Implementation_Contracts/Normal_Home/Normal_Home_Resource_Binding_V1.json",
+    "responsive": "design/pages/home/normal_home/engineering/Layout_Responsive_Contract_V1.md",
+    "visual_acceptance": "design/pages/home/normal_home/engineering/Quantitative_Visual_Acceptance_Contract_V1.md"
+  },
+  "components": [
+    {
+      "id": "environment",
+      "name": "00 / Environment",
+      "figma_node_id": "41:31",
+      "parent_id": "NH01_Normal_Home_1080x1920",
+      "kind": "frame",
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 1080,
+        "height": 1920,
+        "evidence": "full-window background contract"
+      },
+      "compose": "NormalHomeContent background layer",
+      "status": "PASS",
+      "evidence": "Figma structure readback at PR #164 source head; source background hash checked from repository."
+    },
+    {
+      "id": "header",
+      "name": "01 / Header",
+      "figma_node_id": "41:33",
+      "parent_id": "NH01_Normal_Home_1080x1920",
+      "kind": "frame",
+      "rect": {
+        "x": 88,
+        "y": 104,
+        "width": 904,
+        "height": 104,
+        "evidence": "home.header"
+      },
+      "compose": "NormalHomeHeader in NormalHomeContent.kt",
+      "status": "PASS",
+      "evidence": "Figma structural readback and Layout contract."
+    },
+    {
+      "id": "statistics",
+      "name": "02 / Statistics",
+      "figma_node_id": "41:37",
+      "parent_id": "NH01_Normal_Home_1080x1920",
+      "kind": "frame",
+      "rect": {
+        "x": 150,
+        "y": 304,
+        "width": 780,
+        "height": 116,
+        "evidence": "home.statistics; Figma map additionally records rowHeight=116"
+      },
+      "compose": "HomeStats.kt",
+      "status": "PASS",
+      "evidence": "Figma Auto Layout readback and source anchor contract."
+    },
+    {
+      "id": "recent_header",
+      "name": "03 / RecentCatchHeader",
+      "figma_node_id": "41:49",
+      "parent_id": "NH01_Normal_Home_1080x1920",
+      "kind": "frame",
+      "rect": {
+        "x": 108,
+        "y": 494,
+        "width": 864,
+        "height": 70,
+        "evidence": "home.recent_header"
+      },
+      "compose": "RecentCatchSectionHeader in NormalHomeContent.kt",
+      "status": "PASS",
+      "evidence": "Figma structure readback and source anchor contract."
+    },
+    {
+      "id": "fish_pager",
+      "name": "04 / FishCatchPager",
+      "figma_node_id": "41:56",
+      "parent_id": "NH01_Normal_Home_1080x1920",
+      "kind": "frame",
+      "rect": {
+        "x": 0,
+        "y": 596,
+        "width": 1080,
+        "height": 880,
+        "evidence": "runtime pager viewport in Compose; page instance positions follow fixed 740px card + 16px gap"
+      },
+      "compose": "RecentCatchPager + RecentFishCard + YuJianHeroCard",
+      "status": "REVIEW_REQUIRED",
+      "evidence": "Figma reports three clipped instances; real photo fixture provenance and rights remain NOT_VERIFIED."
+    },
+    {
+      "id": "hero_selected",
+      "name": "Selected Hero Card",
+      "figma_node_id": "41:67",
+      "parent_id": "41:56",
+      "kind": "component_instance",
+      "rect": {
+        "x": 170,
+        "y": 596,
+        "width": 740,
+        "height": 880,
+        "radius": 32,
+        "evidence": "home.hero.frame"
+      },
+      "compose": "RecentFishCard → YuJianHeroCard(variant=HOME)",
+      "component_node_id": "38:24",
+      "status": "REVIEW_REQUIRED",
+      "evidence": "740×880/32px geometry confirmed; dynamic photo comparison blocked on fixture rights."
+    },
+    {
+      "id": "hero_neighbor_left",
+      "name": "Neighbor Hero Card · previous",
+      "figma_node_id": "41:58",
+      "parent_id": "41:56",
+      "kind": "component_instance",
+      "rect": {
+        "x": -586,
+        "y": 596,
+        "width": 740,
+        "height": 880,
+        "radius": 32,
+        "evidence": "DERIVED_FROM_PAGER_FIXED_PAGE_SIZE_AND_16PX_GAP; visual transform is a separate runtime state"
+      },
+      "compose": "RecentCatchPager neighbor page; runtime transform varies with pager offset",
+      "component_node_id": "38:24",
+      "status": "REVIEW_REQUIRED",
+      "evidence": "Base page position derived from fixed pager width and 16px spacing; runtime visual transform has not been captured."
+    },
+    {
+      "id": "hero_neighbor_right",
+      "name": "Neighbor Hero Card · next",
+      "figma_node_id": "41:76",
+      "parent_id": "41:56",
+      "kind": "component_instance",
+      "rect": {
+        "x": 926,
+        "y": 596,
+        "width": 740,
+        "height": 880,
+        "radius": 32,
+        "evidence": "DERIVED_FROM_PAGER_FIXED_PAGE_SIZE_AND_16PX_GAP; visual transform is a separate runtime state"
+      },
+      "compose": "RecentCatchPager neighbor page; runtime transform varies with pager offset",
+      "component_node_id": "38:24",
+      "status": "REVIEW_REQUIRED",
+      "evidence": "Base page position derived from fixed pager width and 16px spacing; runtime visual transform has not been captured."
+    },
+    {
+      "id": "capture_action_group",
+      "name": "05 / CaptureActionGroup",
+      "figma_node_id": "41:85",
+      "parent_id": "NH01_Normal_Home_1080x1920",
+      "kind": "component_instance",
+      "rect": {
+        "x": 330,
+        "y": 1495,
+        "width": 420,
+        "height": 296,
+        "evidence": "aggregate from CTA container and current camera action frames; camera authority conflict remains"
+      },
+      "compose": "CTA in NormalHomeContent.kt + HomeCameraButton.kt + YuJianCaptureButton.kt",
+      "component_node_id": "38:28",
+      "status": "REVIEW_REQUIRED",
+      "evidence": "CTA/container exists; camera source anchor y=1564 conflicts with Compose y=1583."
+    },
+    {
+      "id": "cta",
+      "name": "Capture CTA",
+      "figma_node_id": "41:85",
+      "parent_id": "41:85",
+      "kind": "text_action",
+      "rect": {
+        "x": 330,
+        "y": 1495,
+        "width": 420,
+        "height": 58,
+        "evidence": "current Compose container fact; not visible glyph bounds"
+      },
+      "compose": "NormalHomeContent.kt / normal-home-capture-cta",
+      "status": "REVIEW_REQUIRED",
+      "evidence": "Container geometry is implementation fact; Frozen glyph ROI is x433..646/y1527..1558."
+    },
+    {
+      "id": "camera",
+      "name": "Camera artwork + touch target",
+      "figma_node_id": "41:86",
+      "parent_id": "41:85",
+      "kind": "button",
+      "rect": {
+        "x": 435.5,
+        "y": 1583,
+        "width": 208,
+        "height": 208,
+        "evidence": "current Compose artwork frame (source mapping); REVIEW_REQUIRED against contract"
+      },
+      "compose": "HomeCameraButton.kt → YuJianCaptureButton.kt",
+      "status": "REVIEW_REQUIRED",
+      "evidence": "Compose y=1583 vs Layout touch y=1564; runtime bounds not measured."
+    }
+  ],
+  "preview_layout": [
+    {
+      "id": "background",
+      "component_id": "environment",
+      "parent": "41:30",
+      "kind": "image",
+      "rect": {
+        "x": 0,
+        "y": 0,
+        "width": 1080,
+        "height": 1920
+      },
+      "asset_id": "morning_lake_background",
+      "evidence_status": "SOURCE_AUTHORITY_VERIFIED_FIGMA_FILL_BLOCKED"
+    },
+    {
+      "id": "brand",
+      "component_id": "header",
+      "parent": "41:33",
+      "kind": "image",
+      "rect": {
+        "x": 95,
+        "y": 116,
+        "width": 155,
+        "height": 80
+      },
+      "asset_id": "brand_title",
+      "evidence_status": "COMPOSE_ARTWORK_FRAME_FROM_NORMALHOMECONTENT_KT"
+    },
+    {
+      "id": "avatar",
+      "component_id": "header",
+      "parent": "41:33",
+      "kind": "diagnostic_placeholder",
+      "rect": {
+        "x": 900,
+        "y": 110,
+        "width": 92,
+        "height": 92
+      },
+      "asset_id": "avatar_default_nh07",
+      "evidence_status": "AUTHORITY_CONFLICT_NOT_RENDERED"
+    },
+    {
+      "id": "statistics",
+      "component_id": "statistics",
+      "parent": "41:30",
+      "kind": "editable_text_group",
+      "rect": {
+        "x": 150,
+        "y": 304,
+        "width": 780,
+        "height": 116
+      },
+      "token_role": "Statistics Value 36/42 + Statistics Label 28/32",
+      "evidence_status": "FROZEN_CONTRACT"
+    },
+    {
+      "id": "recent_header",
+      "component_id": "recent_header",
+      "parent": "41:30",
+      "kind": "editable_text_group",
+      "rect": {
+        "x": 108,
+        "y": 494,
+        "width": 864,
+        "height": 70
+      },
+      "token_role": "Recent Title 48/52 + Recent Action 40/44",
+      "evidence_status": "FROZEN_CONTRACT"
+    },
+    {
+      "id": "pager",
+      "component_id": "fish_pager",
+      "parent": "41:30",
+      "kind": "clipped_pager",
+      "rect": {
+        "x": 0,
+        "y": 596,
+        "width": 1080,
+        "height": 880
+      },
+      "evidence_status": "COMPOSE_VIEWPORT"
+    },
+    {
+      "id": "hero_neighbor_left",
+      "component_id": "hero_neighbor_left",
+      "parent": "pager",
+      "kind": "component_instance",
+      "rect": {
+        "x": -565.65,
+        "y": 28.2,
+        "width": 699.3,
+        "height": 831.6
+      },
+      "asset_id": "hero_photo_fixture",
+      "evidence_status": "VISUAL_TRANSFORM_DERIVED_FROM_CURRENT_COMPOSE_PAGER; MEDIA_BLOCKED"
+    },
+    {
+      "id": "hero_selected",
+      "component_id": "hero_selected",
+      "parent": "pager",
+      "kind": "component_instance",
+      "rect": {
+        "x": 170,
+        "y": 0,
+        "width": 740,
+        "height": 880
+      },
+      "radius": 32,
+      "asset_id": "hero_photo_fixture",
+      "evidence_status": "FROZEN_FRAME; MEDIA_BLOCKED"
+    },
+    {
+      "id": "hero_neighbor_right",
+      "component_id": "hero_neighbor_right",
+      "parent": "pager",
+      "kind": "component_instance",
+      "rect": {
+        "x": 946.35,
+        "y": 28.2,
+        "width": 699.3,
+        "height": 831.6
+      },
+      "asset_id": "hero_photo_fixture",
+      "evidence_status": "VISUAL_TRANSFORM_DERIVED_FROM_CURRENT_COMPOSE_PAGER; MEDIA_BLOCKED"
+    },
+    {
+      "id": "cta",
+      "component_id": "cta",
+      "parent": "41:85",
+      "kind": "editable_text",
+      "rect": {
+        "x": 330,
+        "y": 1495,
+        "width": 420,
+        "height": 58
+      },
+      "token_role": "CTA 40/44 frozen visual role; current Compose 36/40",
+      "evidence_status": "RUNTIME_BOUNDS_NOT_RUN"
+    },
+    {
+      "id": "camera",
+      "component_id": "camera",
+      "parent": "41:85",
+      "kind": "image_plus_touch_target",
+      "rect": {
+        "x": 435.5,
+        "y": 1583,
+        "width": 208,
+        "height": 208
+      },
+      "touch_rect": {
+        "x": 430.5,
+        "y": 1564,
+        "width": 216,
+        "height": 216
+      },
+      "asset_id": "camera_artwork",
+      "evidence_status": "COMPOSE_Y_CONFLICTS_WITH_LAYOUT_CONTRACT"
+    }
+  ],
+  "reference_typography_px": {
+    "brand": [
+      72,
+      80
+    ],
+    "statistics_value": [
+      36,
+      42
+    ],
+    "statistics_label": [
+      28,
+      32
+    ],
+    "recent_title": [
+      48,
+      52
+    ],
+    "recent_action": [
+      40,
+      44
+    ],
+    "hero_species": [
+      56,
+      64
+    ],
+    "hero_measurement": [
+      46,
+      52
+    ],
+    "hero_context": [
+      36,
+      42
+    ],
+    "cta": [
+      40,
+      44
+    ]
+  },
+  "preview_fixture": {
+    "statistics": [
+      {
+        "value": "12",
+        "label": "鱼种"
+      },
+      {
+        "value": "38",
+        "label": "鱼获"
+      },
+      {
+        "value": "7",
+        "label": "记录天数"
+      }
+    ],
+    "sample_copy_status": "SOURCE_SAMPLE_TEXT_NOT_LIVE_PRODUCT_DATA",
+    "hero": {
+      "species": "草鱼",
+      "measurement": "42.6 cm · 1.28 kg",
+      "context": "昨天 18:20 · 浙江 · 千岛湖",
+      "photo_status": "BLOCKED_ASSET_SOURCE",
+      "photo_placeholder": "Hero photo provenance and usage rights are NOT_VERIFIED."
+    },
+    "avatar_status": "REVIEW_REQUIRED_AUTHORITY_CONFLICT",
+    "font_status": "REVIEW_REQUIRED"
+  },
+  "figma_readback": {
+    "source_head_sha": "77a9aabc2648bda2942575d6600b74c9fe7d3ad7",
+    "overall": "NH01_FIGMA_STRUCTURAL_HANDOFF=REVIEW_REQUIRED",
+    "master_board_untouched": true,
+    "brand_node_41_34": "IMAGE_FILL_READBACK_CONFIRMED_VISUAL_EXPORT_NOT_RUN",
+    "background_node_41_32": "BLOCKED_ENV_NOT_IMPORTED",
+    "visual_export": "NOT_RUN",
+    "runtime_import_acceptance": "NOT_RUN"
+  }
+}

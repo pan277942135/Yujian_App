@@ -26,6 +26,7 @@ fun AssetImage(
     modifier: Modifier = Modifier,
     contentDescription: String? = null,
     contentScale: ContentScale = ContentScale.Fit,
+    alignment: Alignment = Alignment.Center,
     placeholder: @Composable () -> Unit = { Box(modifier = Modifier.fillMaxSize().background(Color.Transparent)) },
 ) {
     val context = LocalContext.current
@@ -44,6 +45,7 @@ fun AssetImage(
             contentDescription = contentDescription,
             modifier = modifier,
             contentScale = contentScale,
+            alignment = alignment,
         )
     } else {
         Box(modifier = modifier, contentAlignment = Alignment.Center) { placeholder() }

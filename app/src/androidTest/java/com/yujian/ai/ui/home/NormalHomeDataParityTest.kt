@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toPixelMap
@@ -29,7 +30,7 @@ import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.swipeLeft
-import androidx.compose.ui.test.swipeUp
+import androidx.compose.ui.test.swipe
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -106,9 +107,11 @@ class NormalHomeDataParityTest {
                 )
             }
 
+            // Wait for the active card's image only. The adjacent pager page is
+            // composed for layout, but its image semantics may not be exposed until
+            // that page becomes active on this API 28 profile.
             compose.waitUntil(timeoutMillis = 10_000) {
-                compose.onAllNodesWithContentDescription("鳜鱼 鱼获照片").fetchSemanticsNodes().isNotEmpty() &&
-                    compose.onAllNodesWithContentDescription("黑鱼 鱼获照片").fetchSemanticsNodes().isNotEmpty()
+                compose.onAllNodesWithContentDescription("黑鱼 鱼获照片").fetchSemanticsNodes().isNotEmpty()
             }
 
             compose.onNodeWithTag("normal-home-stat-species-value", useUnmergedTree = true).assertIsDisplayed().assertTextEquals("2")
@@ -160,17 +163,46 @@ class NormalHomeDataParityTest {
                 2f,
             )
 
+            compose.onNodeWithTag("normal-home-brand-title", useUnmergedTree = true).assertIsDisplayed()
+            compose.onNodeWithContentDescription("渔见", useUnmergedTree = true).assertIsDisplayed()
+            assertBrandArtworkAnchor()
+            listOf("species", "catches", "record-days").forEach { stat ->
+                logTextLayoutMetric("normal-home-stat-$stat-value", "normal-home-stat-$stat", referenceFontPx = 36f)
+                logTextLayoutMetric("normal-home-stat-$stat-label", "normal-home-stat-$stat", referenceFontPx = 28f)
+            }
+            logTextLayoutMetric("normal-home-recent-title", "normal-home-recent-header", referenceFontPx = 48f)
+            logTextLayoutMetric("normal-home-recent-all-label", "normal-home-recent-header", referenceFontPx = 40f)
+            logTextLayoutMetric("normal-home-capture-cta-text", "normal-home-capture-cta-text-region", referenceFontPx = 40f)
+            logHierarchyEvidence()
+
             val firstCard = compose.onNodeWithTag("normal-home-catch-card-catch-snakehead")
             val secondCard = compose.onNodeWithTag("normal-home-catch-card-catch-bass")
             val pager = compose.onNodeWithTag("normal-home-catch-pager")
+            val shortScreenScroll = compose.onAllNodesWithTag("normal-home-short-screen-scroll")
+            val isShortScreen = shortScreenScroll.fetchSemanticsNodes().isNotEmpty()
+            if (isShortScreen) {
+                compose.onNodeWithTag("normal-home-short-screen-scroll").performTouchInput {
+                    val gutterX = width * 0.04f
+                    swipe(
+                        start = Offset(gutterX, height * 0.92f),
+                        end = Offset(gutterX, height * 0.08f),
+                        durationMillis = 500,
+                    )
+                }
+                compose.waitForIdle()
+            }
             firstCard.assertIsDisplayed()
             secondCard.assertIsDisplayed()
             val firstCardBounds = firstCard.fetchSemanticsNode().boundsInRoot
-            val firstMediaBounds = compose.onNodeWithTag("normal-home-catch-media-catch-snakehead", useUnmergedTree = true)
-                .fetchSemanticsNode().boundsInRoot
+            val firstCardLayout = firstCard.fetchSemanticsNode().layoutInfo
+            val firstCardLayoutHeight = firstCardLayout.height.toFloat()
+            val firstMediaNode = compose.onNodeWithTag("normal-home-catch-media-catch-snakehead", useUnmergedTree = true)
+                .fetchSemanticsNode()
+            val firstMediaBounds = firstMediaNode.boundsInRoot
             assertEquals(pagerBounds.center.x, firstCardBounds.center.x, 1.5f)
             assertEquals(740f / 1080f, firstCardBounds.width / pagerBounds.width, 0.015f)
-            assertEquals(880f / 1080f, firstCardBounds.height / pagerBounds.width, 0.02f)
+            assertEquals(880f / 1080f, firstCardLayoutHeight / pagerBounds.width, 0.02f)
+            assertEquals("The Hero is fully visible after scrolling the constrained page", firstCardLayoutHeight, firstCardBounds.height, 1.5f)
             assertTrue("The next card remains visible as an adjacent-page peek", secondCard.fetchSemanticsNode().boundsInRoot.left < pagerBounds.right)
             assertEquals("HOME media and outer card share one horizontal boundary", firstCardBounds.width, firstMediaBounds.width, 1.5f)
             assertEquals("HOME media and outer card share one vertical boundary", firstCardBounds.height, firstMediaBounds.height, 1.5f)
@@ -194,6 +226,9 @@ class NormalHomeDataParityTest {
             assertTrue(metaText.contains("江苏省苏州市吴中区太湖国家湿地公园东岸东岸东岸国家级风景区游客中心北侧临水平台"))
             assertTrue("Long location stays on one constrained line", longMeta.boundsInRoot.height < firstCardBounds.height / 8f)
             assertTrue("Metadata stays inside the card", longMeta.boundsInRoot.right <= firstCardBounds.right + 1f)
+            logTextLayoutMetric("normal-home-catch-species-catch-snakehead", "normal-home-catch-footer-catch-snakehead", referenceFontPx = 56f)
+            logTextLayoutMetric("normal-home-catch-measurement-catch-snakehead", "normal-home-catch-footer-catch-snakehead", referenceFontPx = 46f)
+            logTextLayoutMetric("normal-home-catch-meta-catch-snakehead", "normal-home-catch-footer-catch-snakehead", referenceFontPx = 36f)
             val layoutResults = mutableListOf<androidx.compose.ui.text.TextLayoutResult>()
             val layoutAction = longMeta.config[SemanticsActions.GetTextLayoutResult].action
             assertTrue("Metadata exposes its rendered text layout", layoutAction != null)
@@ -205,26 +240,14 @@ class NormalHomeDataParityTest {
                 layoutResults.single().getLineEnd(0, visibleEnd = true) > metaText.indexOf("21:50 · ") + 7,
             )
 
-            compose.onNodeWithTag("normal-home-brand-title", useUnmergedTree = true).assertIsDisplayed()
-            compose.onNodeWithContentDescription("渔见", useUnmergedTree = true).assertIsDisplayed()
-            assertBrandArtworkAnchor()
-            listOf("species", "catches", "record-days").forEach { stat ->
-                logTextLayoutMetric("normal-home-stat-$stat-value", "normal-home-stat-$stat", referenceFontPx = 36f)
-                logTextLayoutMetric("normal-home-stat-$stat-label", "normal-home-stat-$stat", referenceFontPx = 28f)
-            }
-            logTextLayoutMetric("normal-home-recent-title", "normal-home-recent-header", referenceFontPx = 48f)
-            logTextLayoutMetric("normal-home-recent-all-label", "normal-home-recent-header", referenceFontPx = 40f)
-            logTextLayoutMetric("normal-home-catch-species-catch-snakehead", "normal-home-catch-footer-catch-snakehead", referenceFontPx = 56f)
-            logTextLayoutMetric("normal-home-catch-measurement-catch-snakehead", "normal-home-catch-footer-catch-snakehead", referenceFontPx = 46f)
-            logTextLayoutMetric("normal-home-catch-meta-catch-snakehead", "normal-home-catch-footer-catch-snakehead", referenceFontPx = 36f)
-            logTextLayoutMetric("normal-home-capture-cta-text", "normal-home-capture-cta", referenceFontPx = 40f)
-            logHierarchyEvidence()
-
-            assertEvidenceFit(firstCard, expectedMarkerCenter = 0.20f)
+            assertEvidenceFit(firstCard, expectedMarkerCenter = 0.20f, cardName = "catch-snakehead")
             firstCard.performClick()
             compose.runOnIdle { assertEquals("catch-snakehead", openedCatch) }
 
             pager.performTouchInput { swipeLeft() }
+            compose.waitUntil(timeoutMillis = 10_000) {
+                compose.onAllNodesWithContentDescription("鳜鱼 鱼获照片").fetchSemanticsNodes().isNotEmpty()
+            }
             compose.waitForIdle()
             val secondCardBounds = secondCard.fetchSemanticsNode().boundsInRoot
             val secondMediaBounds = compose.onNodeWithTag("normal-home-catch-media-catch-bass", useUnmergedTree = true)
@@ -240,8 +263,19 @@ class NormalHomeDataParityTest {
             val secondMetaText = secondMeta.config[SemanticsProperties.Text].joinToString("") { it.text }
             assertTrue(secondMetaText.contains("21:48 · "))
             assertTrue(secondMetaText.contains("浙江省杭州市临安区青山湖国家森林公园东侧码头"))
-            assertEvidenceFit(secondCard, expectedMarkerCenter = 0.10f)
+            assertEvidenceFit(secondCard, expectedMarkerCenter = 0.10f, cardName = "catch-bass")
 
+            if (isShortScreen) {
+                compose.onNodeWithTag("normal-home-short-screen-scroll").performTouchInput {
+                    val gutterX = width * 0.04f
+                    swipe(
+                        start = Offset(gutterX, height * 0.08f),
+                        end = Offset(gutterX, height * 0.92f),
+                        durationMillis = 500,
+                    )
+                }
+                compose.waitForIdle()
+            }
             allAction.performClick()
             compose.runOnIdle { assertEquals(1, allClicks) }
             compose.onNodeWithTag("normal-home-stat-species").performClick()
@@ -372,10 +406,24 @@ class NormalHomeDataParityTest {
             compose.waitUntil(timeoutMillis = 10_000) {
                 compose.onAllNodesWithContentDescription("草鱼 鱼获照片").fetchSemanticsNodes().isNotEmpty()
             }
+            val shortScreenScroll = compose.onAllNodesWithTag("normal-home-short-screen-scroll")
+            if (shortScreenScroll.fetchSemanticsNodes().isNotEmpty()) {
+                compose.onNodeWithTag("normal-home-short-screen-scroll").performTouchInput {
+                    val gutterX = width * 0.04f
+                    swipe(
+                        start = Offset(gutterX, height * 0.92f),
+                        end = Offset(gutterX, height * 0.08f),
+                        durationMillis = 500,
+                    )
+                }
+                compose.waitForIdle()
+            }
             val card = compose.onNodeWithTag("normal-home-catch-card-real-photo-catch")
             val media = compose.onNodeWithTag("normal-home-catch-media-real-photo-catch", useUnmergedTree = true)
-            val cardBounds = card.fetchSemanticsNode().boundsInRoot
+            val cardNode = card.fetchSemanticsNode()
+            val cardBounds = cardNode.boundsInRoot
             val mediaBounds = media.fetchSemanticsNode().boundsInRoot
+            assertEquals("The Hero is fully visible before sampling all four photo corners", cardNode.layoutInfo.height.toFloat(), cardBounds.height, 1.5f)
             assertEquals(cardBounds.left, mediaBounds.left, 1f)
             assertEquals(cardBounds.top, mediaBounds.top, 1f)
             assertEquals(cardBounds.width, mediaBounds.width, 1f)
@@ -424,6 +472,7 @@ class NormalHomeDataParityTest {
     private fun assertEvidenceFit(
         card: androidx.compose.ui.test.SemanticsNodeInteraction,
         expectedMarkerCenter: Float,
+        cardName: String,
     ) {
         val pixels = card.captureToImage().toPixelMap()
         val y = (pixels.height * 0.28f).toInt().coerceIn(0, pixels.height - 1)
@@ -437,11 +486,19 @@ class NormalHomeDataParityTest {
                 marker.red > 0.78f && marker.green > 0.68f && marker.blue < 0.42f,
             )
         }
-        val quietTop = pixels[(pixels.width * 0.97f).toInt(), (pixels.height * 0.30f).toInt()]
-        val readableBottom = pixels[(pixels.width * 0.97f).toInt(), (pixels.height * 0.88f).toInt()]
+        // Sample inside the fitted source photo; x=0.97 is the dark side backdrop for portrait media.
+        val quietTop = pixels[(pixels.width * 0.50f).toInt(), (pixels.height * 0.30f).toInt()]
+        val readableBottom = pixels[(pixels.width * 0.50f).toInt(), (pixels.height * 0.88f).toInt()]
         val topBrightness = quietTop.red + quietTop.green + quietTop.blue
         val bottomBrightness = readableBottom.red + readableBottom.green + readableBottom.blue
-        assertTrue("A subtle local bottom treatment keeps card text readable", topBrightness - bottomBrightness > 0.12f)
+        val bottomTreatmentDelta = topBrightness - bottomBrightness
+        assertTrue(
+            "A subtle local bottom treatment keeps card text readable: card=$cardName " +
+                "quietTop=$quietTop readableBottom=$readableBottom " +
+                "topBrightness=$topBrightness bottomBrightness=$bottomBrightness " +
+                "delta=$bottomTreatmentDelta threshold=0.12",
+            bottomTreatmentDelta > 0.12f,
+        )
         val corners = listOf(
             pixels[(pixels.width * 0.01f).toInt(), (pixels.height * 0.01f).toInt()],
             pixels[(pixels.width * 0.99f).toInt(), (pixels.height * 0.01f).toInt()],
@@ -471,6 +528,7 @@ class NormalHomeDataParityTest {
             "hero_media" to rect("normal-home-catch-media-catch-snakehead"),
             "hero_footer" to rect("normal-home-catch-footer-catch-snakehead"),
             "cta_layout" to rect("normal-home-capture-cta"),
+            "cta_text_region" to rect("normal-home-capture-cta-text-region"),
             "cta_text" to rect("normal-home-capture-cta-text"),
             "camera_touch" to rect("normal-home-camera", unmerged = false),
         )
@@ -482,7 +540,17 @@ class NormalHomeDataParityTest {
         val media = bounds.getValue("hero_media")
         val footer = bounds.getValue("hero_footer")
         val cta = bounds.getValue("cta_layout")
+        val ctaTextRegion = bounds.getValue("cta_text_region")
+        val ctaText = bounds.getValue("cta_text")
         val camera = bounds.getValue("camera_touch")
+        val root = bounds.getValue("root")
+        val referenceScale = root.width / 1080f
+        val density = InstrumentationRegistry.getInstrumentation().targetContext.resources.displayMetrics.density
+
+        val payload = bounds.entries.joinToString(" ") { (name, rect) ->
+            "$name=${rect.left},${rect.top},${rect.right},${rect.bottom}"
+        }
+        android.util.Log.i("NORMAL_HOME_HIERARCHY_EVIDENCE", payload)
 
         assertTrue("Brand title stays inside the header", title.left >= header.left && title.right <= header.right)
         assertTrue("Avatar stays inside the header", avatar.left >= header.left && avatar.right <= header.right)
@@ -496,13 +564,23 @@ class NormalHomeDataParityTest {
                 kotlin.math.abs(hero.bottom - media.bottom) <= 1f,
         )
         assertTrue("Hero footer remains over media and inside the Hero", footer.left >= hero.left && footer.top >= hero.top && footer.right <= hero.right && footer.bottom <= hero.bottom)
-        assertTrue("CTA layout remains outside the camera semantic target", cta.bottom <= camera.top || camera.bottom <= cta.top)
-        assertTrue("Camera touch target remains inside the window", camera.left >= 0f && camera.top >= 0f && camera.right <= bounds.getValue("root").right && camera.bottom <= bounds.getValue("root").bottom)
+        assertTrue(
+            "CTA layout remains outside the camera semantic target: cta=$cta camera=$camera",
+            cta.bottom <= camera.top || camera.bottom <= cta.top,
+        )
+        assertEquals("CTA keeps its frozen 420 px reference width", 420f * referenceScale, cta.width, 1.5f)
+        assertEquals("CTA container keeps its frozen 58 px reference height", 58f * referenceScale, cta.height, 1.5f)
+        assertEquals("CTA text region follows the CTA width", cta.width, ctaTextRegion.width, 1f)
+        assertTrue("CTA text fits its measured text region", ctaText.top >= ctaTextRegion.top - 1f && ctaText.bottom <= ctaTextRegion.bottom + 1f)
+        assertTrue("CTA text and camera touch target do not overlap", ctaText.bottom <= camera.top || camera.bottom <= ctaText.top)
+        assertEquals("Camera touch target remains a full square in the window", 216f * referenceScale, camera.width, 1.5f)
+        assertEquals("Camera touch target remains a full square in the window", 216f * referenceScale, camera.height, 1.5f)
+        assertTrue("Camera touch target meets 48dp in both dimensions", camera.width / density >= 48f && camera.height / density >= 48f)
+        assertTrue(
+            "Camera touch target remains inside the measured window",
+            camera.left >= root.left && camera.top >= root.top && camera.right <= root.right && camera.bottom <= root.bottom,
+        )
 
-        val payload = bounds.entries.joinToString(" ") { (name, rect) ->
-            "$name=${rect.left},${rect.top},${rect.right},${rect.bottom}"
-        }
-        android.util.Log.i("NORMAL_HOME_HIERARCHY_EVIDENCE", payload)
     }
 
     private fun logTextLayoutMetric(tag: String, parentTag: String, referenceFontPx: Float) {
@@ -621,26 +699,31 @@ class NormalHomeDataParityTest {
             // Allow <= 1.5 physical pixels of fractional typography rounding,
             // but reject omitted text, wrapping, or material clipping.
             val characterGeometryRoundingPx = 1.5f
-            val characterBoxesInsideNode = visibleEnd == text.length &&
+            val characterBoxesFitHorizontallyWithinNode = visibleEnd == text.length &&
                 characterBoxBounds.left >= -characterGeometryRoundingPx &&
-                characterBoxBounds.top >= -characterGeometryRoundingPx &&
-                characterBoxBounds.right <= nodeBounds.width + characterGeometryRoundingPx &&
-                characterBoxBounds.bottom <= nodeBounds.height + characterGeometryRoundingPx
-            val characterBoxesInsideParent =
+                characterBoxBounds.right <= nodeBounds.width + characterGeometryRoundingPx
+            val characterBoxesFitHorizontallyWithinParent =
                 nodeBounds.left + characterBoxBounds.left >= parentBounds.left - characterGeometryRoundingPx &&
+                nodeBounds.left + characterBoxBounds.right <= parentBounds.right + characterGeometryRoundingPx
+            val characterBoxesFitVerticallyWithinNode = visibleEnd == text.length &&
+                characterBoxBounds.top >= -characterGeometryRoundingPx &&
+                characterBoxBounds.bottom <= nodeBounds.height + characterGeometryRoundingPx
+            val characterBoxesFitVerticallyWithinParent =
                 nodeBounds.top + characterBoxBounds.top >= parentBounds.top - characterGeometryRoundingPx &&
-                nodeBounds.left + characterBoxBounds.right <= parentBounds.right + characterGeometryRoundingPx &&
-                nodeBounds.top + characterBoxBounds.bottom <= parentBounds.bottom + characterGeometryRoundingPx
-            val measuredGlyphsFit = characterBoxesInsideNode && characterBoxesInsideParent
+                    nodeBounds.top + characterBoxBounds.bottom <= parentBounds.bottom + characterGeometryRoundingPx
+            val measuredGlyphsFitHorizontally =
+                characterBoxesFitHorizontallyWithinNode && characterBoxesFitHorizontallyWithinParent
+            val measuredGlyphsFitVertically =
+                characterBoxesFitVerticallyWithinNode && characterBoxesFitVerticallyWithinParent
             assertTrue(
                 "$tag has clipped horizontal text: didOverflowWidth=${layout.didOverflowWidth} " +
                     "characterBoxes=$characterBoxBounds node=$nodeBounds",
-                !layout.didOverflowWidth || brandRasterFitsContainers || measuredGlyphsFit,
+                !layout.didOverflowWidth || brandRasterFitsContainers || measuredGlyphsFitHorizontally,
             )
             assertTrue(
                 "$tag has vertical overflow outside its raster container: didOverflowHeight=${layout.didOverflowHeight} " +
                     "characterBoxes=$characterBoxBounds node=$nodeBounds",
-                !layout.didOverflowHeight || brandRasterFitsContainers || measuredGlyphsFit,
+                !layout.didOverflowHeight || brandRasterFitsContainers || measuredGlyphsFitVertically,
             )
         }
         assertTrue("$tag remains inside its measured parent", nodeBounds.left >= parentBounds.left - 1f)
@@ -841,31 +924,72 @@ class NormalHomeDataParityTest {
 
             val rootBounds = compose.onNodeWithTag("normal-home-content-root").fetchSemanticsNode().boundsInRoot
             val camera = compose.onNodeWithTag("normal-home-camera")
-            val cameraBeforeScroll = camera.fetchSemanticsNode().boundsInRoot
+            val cameraBeforeScroll = camera.assertIsDisplayed().fetchSemanticsNode().boundsInRoot
+            val ctaBeforeScroll = compose.onNodeWithTag("normal-home-capture-cta").assertIsDisplayed()
+                .fetchSemanticsNode().boundsInRoot
+            val ctaTextBeforeScroll = compose.onNodeWithTag("normal-home-capture-cta-text", useUnmergedTree = true)
+                .assertIsDisplayed().fetchSemanticsNode().boundsInRoot
             val scroll = compose.onNodeWithTag("normal-home-short-screen-scroll")
+            val hero = compose.onNodeWithTag("normal-home-catch-pager")
+            val maximumScrollPx = scroll.fetchSemanticsNode().config[SemanticsProperties.VerticalScrollAxisRange].maxValue()
+            assertTrue("Large-font short screen exposes a real vertical scroll range: max=$maximumScrollPx", maximumScrollPx > 0f)
             scroll.performTouchInput {
-                swipeUp(
-                    startY = height * 0.92f,
-                    endY = height * 0.08f,
+                val gutterX = width * 0.04f
+                swipe(
+                    start = Offset(gutterX, height * 0.08f),
+                    end = Offset(gutterX, height * 0.92f),
                     durationMillis = 500,
                 )
             }
             compose.waitForIdle()
+            val scrollOffsetBefore = scroll.fetchSemanticsNode().config[SemanticsProperties.VerticalScrollAxisRange].value()
+            scroll.performTouchInput {
+                val gutterX = width * 0.04f
+                swipe(
+                    start = Offset(gutterX, height * 0.92f),
+                    end = Offset(gutterX, height * 0.08f),
+                    durationMillis = 500,
+                )
+            }
+            compose.waitForIdle()
+            val scrollOffsetAfter = scroll.fetchSemanticsNode().config[SemanticsProperties.VerticalScrollAxisRange].value()
 
             val cameraAfterScroll = camera.assertIsDisplayed().fetchSemanticsNode().boundsInRoot
             val ctaBounds = compose.onNodeWithTag("normal-home-capture-cta").assertIsDisplayed()
                 .fetchSemanticsNode().boundsInRoot
-            val density = context.resources.displayMetrics.density
-            val wasOutsideViewport = cameraBeforeScroll.width <= 0f || cameraBeforeScroll.height <= 0f ||
-                cameraBeforeScroll.bottom > rootBounds.bottom + 1f
-            val expectedHeroHeightPx = 880f * rootBounds.width / 1080f
-            val heroAfterScroll = compose.onNodeWithTag("normal-home-catch-pager")
+            val ctaTextBounds = compose.onNodeWithTag("normal-home-capture-cta-text", useUnmergedTree = true)
                 .assertIsDisplayed().fetchSemanticsNode().boundsInRoot
-            assertTrue("Short screen places the camera below the viewport before scrolling", wasOutsideViewport)
-            assertTrue("Short screen mode scrolls the capture target into its safe viewport", cameraAfterScroll.bottom <= rootBounds.bottom + 1f)
-            assertTrue("Short screen reveals a full-size Hero instead of shrinking it: bounds=$heroAfterScroll", kotlin.math.abs(heroAfterScroll.height - expectedHeroHeightPx) <= 2f)
+            val density = context.resources.displayMetrics.density
+            val expectedHeroHeightPx = 880f * rootBounds.width / 1080f
+            val scrollViewportHeightDp = scroll.fetchSemanticsNode().boundsInRoot.height / density
+            val heroAfterScrollNode = hero.assertIsDisplayed().fetchSemanticsNode()
+            val heroAfterScroll = heroAfterScrollNode.boundsInRoot
+            assertTrue(
+                "Safe overflow keeps the certified 160dp minimum scroll viewport: ${scrollViewportHeightDp}dp",
+                scrollViewportHeightDp >= 160f,
+            )
+            assertTrue(
+                "Pinned camera target remains within the viewport before scrolling",
+                cameraBeforeScroll.bottom <= rootBounds.bottom - 16f * density + 1f,
+            )
+            assertTrue("Short screen mode keeps the camera target inside the safe viewport", cameraAfterScroll.bottom <= rootBounds.bottom - 16f * density + 1f)
+            assertEquals("Scrolling the Hero does not move the pinned camera", cameraBeforeScroll.top, cameraAfterScroll.top, 1f)
+            assertEquals(
+                "Short screen preserves the full-size measured Hero layout even when the viewport clips it",
+                expectedHeroHeightPx,
+                heroAfterScrollNode.layoutInfo.height.toFloat(),
+                2f,
+            )
+            assertTrue(
+                "An upward touch gesture advances the real scroll state: before=$scrollOffsetBefore after=$scrollOffsetAfter max=$maximumScrollPx",
+                scrollOffsetAfter > scrollOffsetBefore,
+            )
+            assertTrue("The Hero keeps a nonzero visible window bound after scrolling", heroAfterScroll.height > 0f)
             assertTrue("The registered camera target remains at least 48dp", cameraAfterScroll.height / density >= 48f)
-            assertTrue("CTA remains present and reachable after overflow", ctaBounds.bottom <= rootBounds.bottom + 1f)
+            assertTrue("CTA remains present and reachable after overflow", ctaBounds.bottom <= cameraAfterScroll.top + 1f)
+            assertEquals("Scrolling the Hero does not move the pinned CTA", ctaBeforeScroll.top, ctaBounds.top, 1f)
+            assertEquals("Scrolling the Hero does not move the scaled CTA label", ctaTextBeforeScroll.top, ctaTextBounds.top, 1f)
+            assertTrue("Scaled CTA label stays above the camera target", ctaTextBounds.bottom <= cameraAfterScroll.top + 1f)
             assertTrue(
                 "The scroll reveals an offscreen camera target with a nonzero runtime hit area",
                 cameraAfterScroll.width > 0f && cameraAfterScroll.height > 0f,

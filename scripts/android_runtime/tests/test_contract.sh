@@ -6,10 +6,16 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
 ENTRYPOINT="$ROOT_DIR/scripts/run_android_runtime_gate.sh"
 FAKE_ADB="$ROOT_DIR/scripts/android_runtime/tests/fake_adb.sh"
 
+grep -q 'gemini-home-v2' "$ENTRYPOINT" || {
+  echo "Gemini Home V2 runtime gate is not registered" >&2
+  exit 1
+}
+
 assert_result() {
   local result_file="$1"
   local expected_classification="$2"
   local expected_rc="$3"
+  local output_log="${5:-}"
   local actual_classification actual_rc
   actual_classification="$(python3 - "$result_file" <<'PY'
 import json
@@ -20,10 +26,22 @@ PY
   actual_rc="$4"
   [[ "$actual_classification" == "$expected_classification" ]] || {
     echo "expected classification=$expected_classification actual=$actual_classification" >&2
+    echo "runtime gate result:" >&2
+    cat "$result_file" >&2 || true
+    if [[ -n "$output_log" && -s "$output_log" ]]; then
+      echo "runtime gate output:" >&2
+      cat "$output_log" >&2 || true
+    fi
     exit 1
   }
   [[ "$actual_rc" == "$expected_rc" ]] || {
     echo "expected exit=$expected_rc actual=$actual_rc" >&2
+    echo "runtime gate result:" >&2
+    cat "$result_file" >&2 || true
+    if [[ -n "$output_log" && -s "$output_log" ]]; then
+      echo "runtime gate output:" >&2
+      cat "$output_log" >&2 || true
+    fi
     exit 1
   }
 }
@@ -57,7 +75,7 @@ run_case() {
       --evidence-dir "$tmp/evidence" > "$tmp/output.log" 2>&1
   rc=$?
   set -e
-  assert_result "$tmp/evidence/runtime_gate_result.json" "$expected_classification" "$expected_rc" "$rc"
+  assert_result "$tmp/evidence/runtime_gate_result.json" "$expected_classification" "$expected_rc" "$rc" "$tmp/output.log"
   if [[ "$name" == "offline" ]]; then
     restarts="$(cat "$tmp/evidence/infra/adb_restart_count")"
     [[ "$restarts" == "1" ]] || {
@@ -66,8 +84,14 @@ run_case() {
     }
   fi
   if [[ "$name" == "pass" ]]; then
-    mapfile -t instrumentation_classes < <(sed -n 's/^TEST_CLASSES=//p' "$tmp/evidence/instrumentation.log")
-    mapfile -t instrumentation_timeouts < <(sed -n 's/^TIMEOUT_SECONDS=//p' "$tmp/evidence/instrumentation.log")
+    instrumentation_classes=()
+    while IFS= read -r instrumentation_class; do
+      instrumentation_classes+=("$instrumentation_class")
+    done < <(sed -n 's/^TEST_CLASSES=//p' "$tmp/evidence/instrumentation.log")
+    instrumentation_timeouts=()
+    while IFS= read -r instrumentation_timeout; do
+      instrumentation_timeouts+=("$instrumentation_timeout")
+    done < <(sed -n 's/^TIMEOUT_SECONDS=//p' "$tmp/evidence/instrumentation.log")
     [[ "${#instrumentation_classes[@]}" == "2" ]] || {
       echo "expected the required suite and one additional evidence invocation" >&2
       exit 1

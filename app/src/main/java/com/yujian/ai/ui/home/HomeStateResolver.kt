@@ -14,7 +14,7 @@ fun validHomeRecords(records: List<RemoteCatch>): List<RemoteCatch> = records.fi
 fun orderedHomeRecords(records: List<RemoteCatch>): List<RemoteCatch> =
     validHomeRecords(records).sortedByDescending {
         PresentationSanitizer.resolveTimestamp(it.capturedAt, it.createdAt).millis ?: Long.MIN_VALUE
-    }
+    }.distinctBy { it.id }
 
 internal fun normalHomeCatchMotionActive(running: Boolean, reduceMotion: Boolean): Boolean =
     running && !reduceMotion

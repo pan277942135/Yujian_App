@@ -151,6 +151,12 @@ PY
   avd_name="$("$YUJIAN_ADB_BIN" shell getprop qemu.avd_name 2>/dev/null | tr -d '\r' || true)"
   local startup_log="$YUJIAN_EVIDENCE_DIR/infra/emulator.log"
   local sdk_root
+  if [[ -z "$avd_name" && "$serial" == emulator-* ]]; then
+    local avd_console
+    avd_console="$("$YUJIAN_ADB_BIN" -s "$serial" emu avd name 2>/dev/null | tr -d '\r' || true)"
+    avd_name="$(printf '%s\n' "$avd_console" | sed -E '/^[[:space:]]*OK[[:space:]]*$/d; /^[[:space:]]*$/d; s/^[[:space:]]*Name:[[:space:]]*//' | tail -n 1)"
+    printf 'resolved_avd_name=%s source=adb_emulator_console\n' "$avd_name" | tee -a "$setup_log"
+  fi
   if [[ -z "$avd_name" && -s "$startup_log" ]]; then
     avd_name="$(sed -nE 's/.*qemu\.avd_name=([^[:space:]]+).*/\1/p' "$startup_log" | tail -n 1)"
     if [[ -z "$avd_name" ]]; then
@@ -158,10 +164,16 @@ PY
     fi
     printf 'resolved_avd_name=%s source=%s\n' "$avd_name" "$startup_log" | tee -a "$setup_log"
   fi
-  emulator_bin="$(command -v emulator || true)"
   sdk_root="${ANDROID_SDK_ROOT:-${ANDROID_HOME:-}}"
-  if [[ -z "$emulator_bin" && -n "$sdk_root" && -x "$sdk_root/emulator/emulator" ]]; then
+  emulator_bin=""
+  if [[ -n "$sdk_root" && -x "$sdk_root/emulator/emulator" ]]; then
     emulator_bin="$sdk_root/emulator/emulator"
+  else
+    local emulator_candidate
+    emulator_candidate="$(command -v emulator || true)"
+    if [[ -n "$emulator_candidate" && -x "$emulator_candidate" ]]; then
+      emulator_bin="$emulator_candidate"
+    fi
   fi
   if [[ "$serial" != emulator-* || -z "$avd_name" || -z "$emulator_bin" ]]; then
     printf 'LONG_SCREEN_NATIVE_PROFILE_UNAVAILABLE serial=%s avd=%s emulator=%s\n' \
@@ -435,9 +447,15 @@ PY
   cp "$YUJIAN_REPO_ROOT/design/system/core_visual_v1/reference/normal_home_v1.png" "$out/03_normal_home_frozen_1080x1920.png"
   cp "$YUJIAN_REPO_ROOT/app/src/main/assets/normal_home_runtime_v1/static/scene_base.png" "$out/07_normal_home_background_runtime.png"
   cp "$YUJIAN_REPO_ROOT/design/system/backgrounds/morning_lake_v1/assets/Morning_Lake_Master_V1.png" "$out/06_normal_home_background_source.png"
+  # Preserve a strict visual failure, but collect the required native font
+  # scale profiles first. Those screenshots and window-coordinate metrics are
+  # still useful for a validation APK even when the frozen visual anchors do
+  # not pass. Do not relax or skip the visual verifier's result.
+  local visual_evidence_rc=0
   python3 "$YUJIAN_REPO_ROOT/scripts/verify_normal_home_visual_evidence.py" "$out" || {
     runtime_set_failure "EVIDENCE" "NORMAL_HOME_VISUAL_EVIDENCE_FAILED"
-    return "$EXIT_FAIL_EVIDENCE"
+    visual_evidence_rc=1
+    printf '%s\n' 'NORMAL_HOME_VISUAL_EVIDENCE_FAILED_CONTINUING_REQUIRED_PROFILE_CAPTURE' >&2
   }
 
   printf '%s\n' \
@@ -451,6 +469,12 @@ PY
   normal_home_capture_runtime_profile "1080x1920_fs1_0" "1080x1920" "1.0" || return "$EXIT_FAIL_EVIDENCE"
   normal_home_capture_runtime_profile "1080x1920_fs1_3" "1080x1920" "1.3" || return "$EXIT_FAIL_EVIDENCE"
   normal_home_capture_runtime_profile "1080x1920_fs1_5" "1080x1920" "1.5" || return "$EXIT_FAIL_EVIDENCE"
+  if (( visual_evidence_rc != 0 )); then
+    # The visual gate remains FAIL_EVIDENCE. Stop here after collecting the
+    # required font-scale screenshots and actual bounds; do not emit a later
+    # full-parity PASS from a run whose primary visual anchors already failed.
+    return "$EXIT_FAIL_EVIDENCE"
+  fi
   "$YUJIAN_ADB_BIN" shell settings put global animator_duration_scale 0.0 >/dev/null
   "$YUJIAN_ADB_BIN" shell settings put global transition_animation_scale 0.0 >/dev/null
   "$YUJIAN_ADB_BIN" shell settings put global window_animation_scale 0.0 >/dev/null

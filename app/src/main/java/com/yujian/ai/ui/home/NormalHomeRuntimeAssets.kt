@@ -26,6 +26,17 @@ internal data class NormalHomeRuntimeAssets(
     override val cameraBreathGlow: Bitmap,
 ) : HomeCameraRasterAssets
 
+/** Gemini runtime bundle intentionally excludes the retired guest illustration. */
+internal data class GeminiNormalHomeRuntimeAssets(
+    val sceneBase: Bitmap,
+    val fishCardGradient: Bitmap,
+    val fishCardOutline: Bitmap,
+    val fishCardShadow: Bitmap,
+    override val cameraBase: Bitmap,
+    override val cameraGoldRim: Bitmap,
+    override val cameraBreathGlow: Bitmap,
+) : HomeCameraRasterAssets
+
 private fun decodeNormalHomeAsset(context: Context, path: String): Bitmap {
     val options = BitmapFactory.Options().apply {
         inScaled = false
@@ -58,6 +69,33 @@ private fun loadNormalHomeRuntimeAssets(context: Context): NormalHomeRuntimeAsse
         cameraGoldRim = decodeNormalHomeAsset(context, "camera/camera_gold_rim_mask.png"),
         cameraBreathGlow = decodeNormalHomeAsset(context, "camera/camera_breath_glow.png"),
     )
+
+private fun loadGeminiNormalHomeRuntimeAssets(context: Context): GeminiNormalHomeRuntimeAssets =
+    GeminiNormalHomeRuntimeAssets(
+        sceneBase = decodeNormalHomeAsset(context, "static/scene_base.png"),
+        fishCardGradient = decodeNormalHomeAsset(context, "fish_card/fish_card_gradient.png"),
+        fishCardOutline = decodeNormalHomeAsset(context, "fish_card/fish_card_outline.png"),
+        fishCardShadow = decodeNormalHomeAsset(context, "fish_card/fish_card_shadow.png"),
+        cameraBase = decodeNormalHomeCamera(context),
+        cameraGoldRim = decodeNormalHomeAsset(context, "camera/camera_gold_rim_mask.png"),
+        cameraBreathGlow = decodeNormalHomeAsset(context, "camera/camera_breath_glow.png"),
+    )
+
+@Composable
+internal fun rememberGeminiNormalHomeRuntimeAssets(
+    enabled: Boolean = true,
+): GeminiNormalHomeRuntimeAssets? {
+    val context = LocalContext.current.applicationContext
+    var assets by remember { mutableStateOf<GeminiNormalHomeRuntimeAssets?>(null) }
+    LaunchedEffect(context, enabled) {
+        if (!enabled) {
+            assets = null
+            return@LaunchedEffect
+        }
+        assets = withContext(Dispatchers.IO) { loadGeminiNormalHomeRuntimeAssets(context) }
+    }
+    return assets
+}
 
 @Composable
 internal fun rememberNormalHomeRuntimeAssets(

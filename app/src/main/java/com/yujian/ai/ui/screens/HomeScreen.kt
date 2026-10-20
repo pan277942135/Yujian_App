@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.absoluteOffset
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -34,7 +33,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
@@ -47,7 +45,6 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.PlatformTextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.view.WindowCompat
@@ -63,17 +60,14 @@ import com.yujian.ai.ui.home.EmptyHomeFrozenLayoutGeometry
 import com.yujian.ai.ui.home.EmptyHomeRuntimeAssets
 import com.yujian.ai.ui.home.calculateEmptyHomeLayoutMapping
 import com.yujian.ai.ui.home.HomeMotionState
-import com.yujian.ai.ui.home.NormalHomeContent
+import com.yujian.ai.ui.home.GeminiNormalHomeContent
 import com.yujian.ai.ui.adaptive.AdaptiveWidthClass
 import com.yujian.ai.ui.adaptive.rememberSafeDrawingInsets
 import com.yujian.ai.ui.home.rememberEmptyHomeRuntimeAssets
-import com.yujian.ai.ui.home.rememberNormalHomeRuntimeAssets
+import com.yujian.ai.ui.home.rememberGeminiNormalHomeRuntimeAssets
 import com.yujian.ai.ui.home.rememberHomeMotionState
 
 private val Ink = Color(0xFF18324A)
-private const val HomeBackground =
-    "normal_home_runtime_v1/static/scene_base.png"
-
 @Composable
 fun HomeScreen(
     nickname: String,
@@ -99,7 +93,7 @@ fun HomeScreen(
     val layoutDirection = LocalLayoutDirection.current
     val homeMotionState = rememberHomeMotionState()
     val emptyRuntimeAssets = rememberEmptyHomeRuntimeAssets(enabled = showEmptyState)
-    val normalRuntimeAssets = rememberNormalHomeRuntimeAssets(enabled = !showEmptyState)
+    val geminiRuntimeAssets = rememberGeminiNormalHomeRuntimeAssets(enabled = !showEmptyState)
 
     DisposableEffect(view) {
         val activity = view.context as? Activity
@@ -122,17 +116,17 @@ fun HomeScreen(
     }
 
     BoxWithConstraints(Modifier.fillMaxSize()) {
-        val mapping = remember(maxWidth, maxHeight, density, safeInsets, layoutDirection) {
-            calculateEmptyHomeLayoutMapping(
-                windowWidthDp = maxWidth.value,
-                windowHeightDp = maxHeight.value,
-                density = density.density,
-                fontScale = density.fontScale,
-                safeInsets = safeInsets,
-                layoutDirection = layoutDirection,
-            )
-        }
         if (showEmptyState) {
+            val mapping = remember(maxWidth, maxHeight, density, safeInsets, layoutDirection) {
+                calculateEmptyHomeLayoutMapping(
+                    windowWidthDp = maxWidth.value,
+                    windowHeightDp = maxHeight.value,
+                    density = density.density,
+                    fontScale = density.fontScale,
+                    safeInsets = safeInsets,
+                    layoutDirection = layoutDirection,
+                )
+            }
             HomeEmptyScene(
                 layoutMapping = mapping,
                 modifier = Modifier.fillMaxSize(),
@@ -154,20 +148,7 @@ fun HomeScreen(
                 runtimeAssets = emptyRuntimeAssets,
             )
         } else {
-            normalRuntimeAssets?.sceneBase?.let { scene ->
-                Image(
-                    bitmap = scene.asImageBitmap(),
-                    modifier = Modifier.fillMaxSize(),
-                    contentDescription = null,
-                    contentScale = ContentScale.Crop,
-                )
-            } ?: AssetImage(
-                HomeBackground,
-                Modifier.fillMaxSize(),
-                contentDescription = null,
-                contentScale = ContentScale.Crop,
-            )
-            NormalHomeContent(
+            GeminiNormalHomeContent(
                 statistics = statistics,
                 recentCatches = recentCatches,
                 resolveImageUrl = resolveImageUrl,
@@ -175,20 +156,16 @@ fun HomeScreen(
                 isLoggedIn = isLoggedIn,
                 avatarUrl = avatarUrl,
                 onIdentify = onIdentify,
+                onLoginClick = onLoginClick,
                 onSpeciesClick = onSpeciesClick,
                 onCatchesClick = onCatchesClick,
                 onProfileClick = onProfileClick,
                 onCatchClick = onCatchClick,
                 isResolving = isResolving,
                 motionState = homeMotionState,
-                runtimeAssets = normalRuntimeAssets,
+                runtimeAssets = geminiRuntimeAssets,
                 safeInsets = safeInsets,
-                modifier = Modifier
-                    // Normal Home keeps the Frozen window Y origin; only its horizontal
-                    // canvas is inset to the safe drawing span.
-                    .absoluteOffset(x = if (layoutDirection == LayoutDirection.Ltr) safeInsets.start else safeInsets.end)
-                    .width((maxWidth - safeInsets.start - safeInsets.end).coerceAtLeast(0.dp))
-                    .height(maxHeight),
+                modifier = Modifier.fillMaxSize(),
             )
         }
     }
