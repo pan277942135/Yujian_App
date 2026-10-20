@@ -16,15 +16,15 @@ The new candidates add a separate transparent, browser-only Receiving Field laye
 
 | Candidate | Review layer gain | Character |
 | --- | ---: | --- |
-| `REVIEW_CANDIDATE_A` · Soft Field | 0.31 | Broad, low-contrast field; restrained edge cues |
-| `REVIEW_CANDIDATE_B` · Balanced Field | 0.49 | Clearer blue/gold field with uneven corner hierarchy; start here |
-| `REVIEW_CANDIDATE_C` · Strong Atmosphere | 0.66 | Visibility ceiling for comparison |
+| `REVIEW_CANDIDATE_A` · Soft Field | 0.54 | Broad, low-contrast field; restrained edge cues |
+| `REVIEW_CANDIDATE_B` · Balanced Field | 0.92 | Clearer blue/gold field with uneven corner hierarchy; start here |
+| `REVIEW_CANDIDATE_C` · Strong Atmosphere | 1.18 | Visibility ceiling for comparison |
 
 These are review parameters, not frozen product values. The overlay is labelled `REVIEW-ONLY`; it is composited into Web PNG/WebM export so evidence matches the visible preview. The native Android renderer is unchanged.
 
 ## Dynamic review
 
-Dynamic A/B/C controls use the existing page playback, speed, state and recording controls. The candidate field breathes at four different periods (9.2s, 12.8s, 10.6s and 15.4s) with different phases. Existing local path flow remains separate; no full-perimeter chase is introduced by the review layer. Three-state WebM is browser evidence only.
+Dynamic A/B/C controls use the existing page playback, speed, state and recording controls. The candidate field breathes at four different periods (9.2s, 12.8s, 10.6s and 15.4s) with different phases; the breath amplitude varies by candidate (3.5%, 6.5%, 9.5%). Existing local path flow remains separate; no full-perimeter chase is introduced by the review layer. Three-state WebM is browser evidence only.
 
 The added browser smoke captures desktop and narrow A/B/C comparisons and all three dynamic states. Its JSON status is `RENDER_SIGNAL_ONLY_REVIEW_REQUIRED`, and visual approval is `NOT_AUTOMATED`. A screenshot must still be reviewed by a person; automation cannot declare naturalness, taste, or visual PASS.
 

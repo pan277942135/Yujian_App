@@ -1,7 +1,8 @@
 /* Review-only Receiving Light layer. It is intentionally not an Android renderer. */
 (function () {
   "use strict";
-  const candidateLevels = { A: 0.31, B: 0.49, C: 0.66 };
+  const candidateLevels = { A: 0.54, B: 0.92, C: 1.18 };
+  const breathAmplitudes = { A: 0.035, B: 0.065, C: 0.095 };
   const weights = [1, 0.78, 0.40, 0.22];
   const phase = [0.1, 1.83, 3.47, 5.02];
   const periods = [9.2, 12.8, 10.6, 15.4];
@@ -133,8 +134,9 @@
     const stateScale = state === "FISH_LOCATED" ? 0.82 : (state === "SPECIES_RECOGNIZING" ? 0.66 : 1);
     const speed = Number(value("motionSpeed", "1")) || 1;
     const t = now / 1000 * speed;
+    const breathAmplitude = breathAmplitudes[candidate] || breathAmplitudes.B;
     const breaths = phase.map((offset, index) => mode === "dynamic" && playing
-      ? 0.91 + 0.12 * Math.sin((Math.PI * 2 * t) / periods[index] + offset)
+      ? 1 + breathAmplitude * Math.sin((Math.PI * 2 * t) / periods[index] + offset)
       : 1);
     const blue = "#42a8ee";
     const gold = "#e4ad4b";
@@ -145,7 +147,9 @@
       { x: left + imageWidth * 1.015, y: top + imageHeight * 1.02, rx: imageWidth * 0.39, ry: imageHeight * 0.22, angle: 0.34, color: blue },
     ];
     ctx.save();
-    ctx.globalCompositeOperation = "screen";
+    // This canvas is a transparent plane above the photo. Use source-over so
+    // blue/gold energy is perceptible over bright sky and water as well as dark areas.
+    ctx.globalCompositeOperation = "source-over";
     corners.forEach((corner, index) => {
       const strength = level * stateScale * weights[index] * breaths[index];
       const radius = Math.max(corner.rx, corner.ry);
@@ -155,9 +159,9 @@
       ctx.rotate(corner.angle);
       ctx.scale(corner.rx / radius, corner.ry / radius);
       const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, radius);
-      gradient.addColorStop(0, `rgba(${rgb},${0.38 * strength})`);
-      gradient.addColorStop(0.34, `rgba(${rgb},${0.27 * strength})`);
-      gradient.addColorStop(0.70, `rgba(${rgb},${0.10 * strength})`);
+      gradient.addColorStop(0, `rgba(${rgb},${0.58 * strength})`);
+      gradient.addColorStop(0.34, `rgba(${rgb},${0.36 * strength})`);
+      gradient.addColorStop(0.70, `rgba(${rgb},${0.13 * strength})`);
       gradient.addColorStop(1, `rgba(${rgb},0)`);
       ctx.fillStyle = gradient;
       ctx.beginPath();
@@ -183,13 +187,13 @@
       ctx.lineJoin = "round";
       ctx.lineWidth = lineWidth;
       ctx.shadowColor = ribbon.color;
-      ctx.shadowBlur = lineWidth * 1.35;
+      ctx.shadowBlur = lineWidth * 1.9;
       ctx.strokeStyle = ribbon.color;
-      ctx.globalAlpha = ribbon.alpha * strength * 0.34;
+      ctx.globalAlpha = ribbon.alpha * strength * 0.48;
       ctx.stroke();
       ctx.shadowBlur = lineWidth * 0.52;
       ctx.lineWidth = lineWidth * 0.47;
-      ctx.globalAlpha = ribbon.alpha * strength * 0.26;
+      ctx.globalAlpha = ribbon.alpha * strength * 0.30;
       ctx.stroke();
       ctx.restore();
     });
