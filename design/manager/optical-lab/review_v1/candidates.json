@@ -15,17 +15,22 @@
     "intent": "V3 static candidates preserve P1 photo geometry, receiving oval geometry, alpha stops, all seven path control points and visible ratios. A/B/C vary Web-only optical multipliers only."
   },
   "receiving_light_web_review_alpha_cap": 0.32,
+  "receiving_light_oval_gain": 0.36,
   "receiving_light_web_review_composite": "screen",
   "receiving_light_depth_ratio": 0.13,
+  "receiving_light_path_bloom_passes": [
+    { "width_ratio": 0.13, "blur_ratio": 0.039, "opacity": 0.78 },
+    { "width_ratio": 0.0624, "blur_ratio": 0.0169, "opacity": 0.54 }
+  ],
   "contract_alpha_before_multipliers": [0.03, 0.07],
   "static_candidate_status": "REVIEW_REQUIRED · gains above 1 are Web-only study multipliers; no P1 or Native value changed",
   "field_geometry": {
     "authority": "P1 receiving_light_layout and receiving_light_alpha_stops",
-    "rendering": "four registered P1 radial ovals plus broad diffuse bloom sampled from the four exact P1 primary curves; depth uses the P1 edge-depth midpoint; clipped through the shared photoContentRect",
+    "rendering": "four registered P1 radial ovals at 0.36 review gain plus broad diffuse bloom sampled from the exact frozen visible segments of the four P1 primary curves; depth uses the P1 edge-depth midpoint; clipped through the shared photoContentRect",
     "quiet_gaps": "the four P1 receiving ovals remain separated; the seven frozen path topology and Quiet Gaps are unchanged",
     "geometry_added": false,
     "color_tokens": "existing P1 blue/gold tokens",
-    "path_source": "P1 B1/G1/B3/G3 primary records only; exact geometry, four islands and Quiet Gaps retained",
+    "path_source": "P1 B1/G1/B3/G3 primary records only; exact runtime seed and visible_ratio segments retained; bloom does not extend the frozen paths or bridge Quiet Gaps",
     "composite_authority": "Screen and diffuse path bloom are Web static review candidates only; P1 and Native remain unchanged"
   },
   "dynamic_candidates": {

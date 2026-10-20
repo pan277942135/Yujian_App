@@ -275,7 +275,10 @@ async function main() {
       receiving_field_composite: "screen · Web Review static only",
       receiving_field_depth_ratio: 0.13,
       contract_alpha_before_multipliers: config.p1_edge_field.optical_stack.find(layer => layer.layer === "local_receiving_light").contract_alpha_before_multipliers,
-      candidate_differences: "Web-only Receiving Light gain plus primary path and secondary filament gains; broad field uses exact P1 primary curves and one shared screen composite; contract and Native values unchanged",
+      candidate_differences: "Web-only Receiving Light gain plus primary path and secondary filament gains; the corner ovals use 0.36 review gain and broad field uses exact P1 primary runtime-seed/visible-ratio segments with a shared screen composite; contract and Native values unchanged",
+      receiving_oval_review_gain: 0.36,
+      path_bloom_passes: [{ width_ratio: 0.13, blur_ratio: 0.039, opacity: 0.78 }, { width_ratio: 0.0624, blur_ratio: 0.0169, opacity: 0.54 }],
+      path_bloom_uses_frozen_visible_segments: true,
       candidates: Object.fromEntries(["A", "B", "C"].map(candidate => [candidate, {
         id: candidateDefinitions[candidate].id,
         name: candidateDefinitions[candidate].name,
@@ -362,6 +365,16 @@ async function main() {
         candidate_c_corner_mean_abs_rgb_delta: 11.872467329672686,
         assessment: "Screen compositing increased measured pixel changes, but the isolated field still read as four corner spots and remained too weak beside Frozen in the real page screenshot.",
         status: "REAL_BROWSER_CAPTURE_VISUALLY_TOO_WEAK",
+      },
+      sixth_v3_failed_render: {
+        source_sha: "f646cf17aab05740299d133abcfcc99060e871b8",
+        workflow_run_id: 39433014752,
+        artifact_id: 12268278853,
+        artifact_url: "https://github.com/pan277942135/Yujian_App/actions/runs/39433014752/artifacts/12268278853",
+        candidate_b_mean_abs_rgb_delta: 5.056944284452641,
+        candidate_c_mean_abs_rgb_delta: 6.269336609965596,
+        assessment: "Actual Chromium single-layer PNG still read as four corner patches, and A/B/C composites remained far weaker than Frozen. The broad pass used the full primary curves, so the next pass constrains it to the frozen runtime-seed/visible-ratio segments and shifts weight from corner ovals to the edge field.",
+        status: "REAL_BROWSER_CAPTURE_VISUALLY_TOO_WEAK_AND_CORNER_PATCHED",
       },
       root_causes: [
         "The pre-V3 static helper used a second assumed 3:4 coordinate space, was not clipped to the renderer photoContentRect, and produced broad patches instead of edge-following light.",
