@@ -3026,3 +3026,14 @@ input:focus, select:focus { border-color: #b9cdc6; box-shadow: 0 0 0 3px rgba(18
   .hifi-master-board-gate{grid-template-columns:1fr}
 }
 @media(prefers-reduced-motion:reduce){.hifi-lightbox-stage img{transition:none}}
+
+
+/* Fish Media Display V1.1 — frozen responsive geometry and crop policy */
+.fish-media-policy-panel {display:grid;gap:9px;margin:12px 0 14px;padding:13px;border:1px solid #cddfda;border-radius:14px;background:linear-gradient(135deg,#f7fbf9,#eef5f3);color:#24464b}
+.fish-media-policy-row {display:grid;grid-template-columns:minmax(100px,150px) minmax(0,1fr);gap:10px;align-items:start;font-size:12px;line-height:1.65}
+.fish-media-policy-row b {color:#1f5358}
+.fish-media-policy-row span {color:#4d6668}
+.fish-media-policy-foot {margin:3px 0 0;padding-top:9px;border-top:1px solid #d8e6e1;font-size:11px;line-height:1.7;color:#647a7a}
+@media(max-width:750px) {
+  .fish-media-policy-row {grid-template-columns:1fr;gap:2px}
+}
