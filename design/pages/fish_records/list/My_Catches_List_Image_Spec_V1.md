@@ -1,6 +1,6 @@
 # 我的鱼获 · 列表图片规范 V1
 
-Status: **FROZEN**
+Status: **FROZEN — MEDIA POLICY V1.1**
 Page: `my_catches_v2`
 Scope: FishRecordRowCard list thumbnail
 
@@ -58,28 +58,22 @@ Current V2 row-card target:
 - frame: **1:1**
 - runtime target: **82dp × 82dp**
 - radius: **14dp**
-- display: **ContentScale.Crop**
-- background fallback surface: `SoftWater`
+- display: BBox-safe crop when valid; otherwise same-source ambient fallback
+- thumbnail geometry remains 82dp × 82dp and 1:1; the row layout responds to available screen width
+- background fallback surface: same-source blurred photo within the thumbnail; neutral SoftWater placeholder only if the source cannot be decoded
 
 旧版“双列大图卡”属于历史探索，不是当前 V2 Timeline Row Card Authority。
 
-## 5. 裁切规则
+## 5. 裁切规则 — V1.1
 
-目标不是“把鱼抠出来”，而是让真实现场照片在小尺寸下仍能快速辨认鱼体。
+目标不是把鱼抠出来，而是让真实现场照片在小尺寸下仍可辨认，并避免裁断鱼体。
 
-优先级：
-
-1. 若存在可靠 fish bbox / subject metadata：
-   - 以鱼体中心作为 crop anchor；
-   - 尽量保留完整鱼头和鱼尾；
-   - 在鱼体外保留适度现场上下文；
-   - 不把手、鱼桶、水面、地面等真实环境全部裁掉。
-2. 若没有可靠 subject metadata：
-   - 使用原始照片中心裁切；
-   - 禁止调用生成模型重构缩略图。
-3. 如果智能裁切会切断主要鱼体：
-   - 回退到更宽松 crop；
-   - 不以“填满画框”为优先。
+1. 对可靠 BBox，以鱼体为锚点向四周扩展，初始水平边距 10%、垂直边距 12%。
+2. 某侧到达原图边界后，停止该侧扩展，把剩余扩展量转移到相反侧。
+3. 若窗口仍不可行，按 10%/12%、8%/8%、4%/4%、0%/0% 顺序缩小安全留白并重新计算。
+4. 只有裁切窗口完整容纳有效 BBox、符合 1:1 比例且位于原图范围内，才允许执行主体裁切。
+5. BBox 缺失、不可信或所有裁切配置均失败时，不使用未经验证的中心裁切；以完整原图为前景、同源模糊背景填满缩略图容器。
+6. 禁止生成式补图、非等比拉伸、用 B-side/鱼鉴资产替换原图，或覆盖原始照片。
 
 ## 6. 加载 / 失败
 
