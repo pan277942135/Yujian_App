@@ -4,6 +4,7 @@ on:
   pull_request:
     branches:
       - design/processing-remove-early-visual-v1
+      - main
     paths:
       - "design/manager/nh01_acceptance/edgeglow-fish-static/**"
       - "design/system/recognition_optical_v2/**"
