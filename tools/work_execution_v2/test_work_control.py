@@ -36,6 +36,16 @@ class FailureLedgerTest(unittest.TestCase):
             ])
             self.assertEqual(len(json.loads(ledger.read_text())["issues"][a["failure_id"]]["events"]), 3)
 
+    def test_legacy_fourth_attempt_rejected(self):
+        with tempfile.TemporaryDirectory() as td:
+            ledger = Path(td) / "failed.json"
+            record_event(ledger, event("sha-1"))
+            record_event(ledger, event("sha-2"))
+            third = record_event(ledger, event("sha-3", "different root cause"))
+            self.assertEqual(third["decision"], "STOP_AND_ESCALATE")
+            with self.assertRaisesRegex(ValueError, "retry budget exceeded"):
+                record_event(ledger, event("sha-4", "yet another guess"))
+
     def test_no_empty_evidence_or_invented_pass(self):
         with tempfile.TemporaryDirectory() as td:
             ledger = Path(td) / "failed.json"
