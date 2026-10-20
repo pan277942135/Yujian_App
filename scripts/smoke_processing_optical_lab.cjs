@@ -28,10 +28,14 @@ async function captureReceivingFieldSignal(page, evidence, label) {
       { id: "bottom-left-gold", x0: 0, x1: .38, y0: .70, y1: 1, gold: true },
       { id: "bottom-right-blue", x0: .62, x1: 1, y0: .64, y1: 1, gold: false },
     ];
-    return corners.map(corner => {
+    const photoWidth = Math.min(canvas.width, canvas.height * .75), photoHeight = photoWidth / .75;
+    const photoRect = { left: (canvas.width - photoWidth) / 2, top: (canvas.height - photoHeight) / 2, width: photoWidth, height: photoHeight };
+    return { photo_rect_px: photoRect, corners: corners.map(corner => {
       let changed = 0, samples = 0, roleDelta = 0, deltaR = 0, deltaG = 0, deltaB = 0;
-      for (let y = Math.floor(canvas.height * corner.y0); y < Math.floor(canvas.height * corner.y1); y += 2) {
-        for (let x = Math.floor(canvas.width * corner.x0); x < Math.floor(canvas.width * corner.x1); x += 2) {
+      const x0 = Math.floor(photoRect.left + photoRect.width * corner.x0), x1 = Math.floor(photoRect.left + photoRect.width * corner.x1);
+      const y0 = Math.floor(photoRect.top + photoRect.height * corner.y0), y1 = Math.floor(photoRect.top + photoRect.height * corner.y1);
+      for (let y = y0; y < y1; y += 2) {
+        for (let x = x0; x < x1; x += 2) {
           const i = (y * canvas.width + x) * 4, dr = data[i] - before[i], dg = data[i + 1] - before[i + 1], db = data[i + 2] - before[i + 2];
           samples++;
           if (Math.max(Math.abs(dr), Math.abs(dg), Math.abs(db)) >= 8) {
@@ -42,10 +46,10 @@ async function captureReceivingFieldSignal(page, evidence, label) {
         }
       }
       return { id: corner.id, changed_ratio: changed / samples, color_role_margin_per_changed_pixel: changed ? roleDelta / changed : 0, mean_delta_rgb: [deltaR / samples, deltaG / samples, deltaB / samples] };
-    });
+    }) };
   });
   fs.writeFileSync(evidence.signalPath, JSON.stringify(signal, null, 2));
-  assert.ok(signal.every(corner => corner.changed_ratio >= .025 && corner.color_role_margin_per_changed_pixel > 0), `${label} Receiving Light must contribute a broad, correctly colored signal in all four photo corners: ${JSON.stringify(signal)}`);
+  assert.ok(signal.corners.every(corner => corner.changed_ratio >= .025 && corner.color_role_margin_per_changed_pixel > 0), `${label} Receiving Light must contribute a broad, correctly colored signal in all four photo corners: ${JSON.stringify(signal)}`);
   await page.locator("#previewCanvas").screenshot({ path: evidence.canvasPath });
   if (evidence.pagePath) await page.screenshot({ path: evidence.pagePath, fullPage: true });
   await page.locator("#pathToggle").check();
@@ -187,7 +191,7 @@ async function captureReceivingFieldSignal(page, evidence, label) {
     }
     staticCandidates.push(candidate);
   }
-  assert.ok(Array.isArray(receivingFieldVisibility) && receivingFieldVisibility.length === 4, "default Balanced Receiving Light signal must be recorded for all four corners");
+  assert.ok(Array.isArray(receivingFieldVisibility?.corners) && receivingFieldVisibility.corners.length === 4, "default Balanced Receiving Light signal must be recorded for all four photo corners");
   await page.selectOption("#fieldLayerView", "composite");
   await page.selectOption("#staticCandidate", "B");
   await page.setViewportSize({ width: 1440, height: 1100 });
