@@ -131,8 +131,9 @@ async function main() {
 
     const acceptanceCaptureUrl = new URL(ACCEPTANCE_PATH, SITE_BASE).href;
     await page.goto(acceptanceCaptureUrl, { waitUntil: "networkidle", timeout: 30000 });
-    const reviewLinks = page.locator('a[href*="edgeglow-fish-static/optical-review/"]');
-    assert.ok(await reviewLinks.count() >= 1, "canonical Acceptance Center must retain the Optical Review entry");
+    const reviewEntry = page.locator("#opticalReviewEntry");
+    assert.equal(await reviewEntry.evaluate(anchor => anchor.tagName.toLowerCase()), "a", "canonical Optical Review entry must remain a direct link");
+    assert.ok(await reviewEntry.evaluate(anchor => new URL(anchor.getAttribute("href"), location.href).pathname.endsWith("/edgeglow-fish-static/optical-review/")), "canonical Acceptance Center must link to its in-project Optical Review route");
     const acceptanceScreenshot = path.join(OUTPUT_DIR, "acceptance-center-entry.png");
     await page.screenshot({ path: acceptanceScreenshot, fullPage: true });
 
