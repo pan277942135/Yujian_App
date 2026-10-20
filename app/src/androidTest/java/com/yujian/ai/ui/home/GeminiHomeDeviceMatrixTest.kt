@@ -106,7 +106,10 @@ class GeminiHomeDeviceMatrixTest {
     }
 
     @get:Rule
-    val rules = RuleChain.outerRule(evidenceWatcher).around(compose)
+    // Keep the activity alive while TestWatcher.failed captures the screenshot
+    // and semantics snapshot. If the watcher is outside Compose, Compose tears
+    // down its activity first and the failure screenshot can show the launcher.
+    val rules = RuleChain.outerRule(compose).around(evidenceWatcher)
 
     @Test
     fun capturesActualWindowWithTwoUniqueCatches() {
@@ -464,6 +467,7 @@ class GeminiHomeDeviceMatrixTest {
                 report.put("failure_message", failure.message ?: "")
                 report.put("failure_stacktrace", stack)
                 report.put("failure_screenshot", "$activeProfileId-${activeVariantName.lowercase(Locale.US)}-failure.png")
+                report.put("failure_semantics_snapshot", failureSemanticsSnapshot())
             }
             val text = report.toString(2) + "\n"
             val temp = File(reportFile.parentFile, reportFile.name + ".tmp")
@@ -491,6 +495,24 @@ class GeminiHomeDeviceMatrixTest {
         }.onFailure { error ->
             Log.e("NH01_MATRIX_CASE", "Could not capture failure screenshot", error)
         }
+    }
+
+    private fun failureSemanticsSnapshot(): JSONObject = JSONObject().apply {
+        listOf(
+            "gemini-home-screen",
+            "gemini-home-catch-card-nh01-catch-001",
+            "home-evidence-backdrop-ready",
+            "home-evidence-backdrop-crop-fallback",
+            "home-evidence-fit-foreground",
+            "fish-photo-subject-crop",
+        ).forEach { tag ->
+            val count = runCatching {
+                compose.onAllNodesWithTag(tag, useUnmergedTree = true).fetchSemanticsNodes().size
+            }.getOrDefault(-1)
+            put(tag, count)
+        }
+        put("activity_is_finishing", runCatching { compose.activity.isFinishing }.getOrNull())
+        put("activity_is_destroyed", runCatching { compose.activity.isDestroyed }.getOrNull())
     }
 
     private fun fixtureCatches(imagePath: String): List<RemoteCatch> {

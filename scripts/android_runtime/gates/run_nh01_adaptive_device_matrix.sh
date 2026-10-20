@@ -196,14 +196,14 @@ fi
 if [[ -z "$initial_font" ]]; then initial_font="null"; fi
 
 BUILD_SHA="$BUILD_SHA" YUJIAN_ADB_BIN="$YUJIAN_ADB_BIN" YUJIAN_APP_PACKAGE="$YUJIAN_APP_PACKAGE" \
-  YUJIAN_INSTRUMENTATION_TARGET="$YUJIAN_INSTRUMENTATION_TARGET" APP_APK="$APP_APK" TEST_APK="$TEST_APK" \
+  YUJIAN_INSTRUMENTATION_TARGET="$YUJIAN_INSTRUMENTATION_TARGET" APP_APK_VALUE="$APP_APK" TEST_APK_VALUE="$TEST_APK" \
   SELECTED_SERIAL="$selected_serial" DEVICE_API="$device_api" DEVICE_FINGERPRINT="$device_fingerprint" \
   WM_SIZE_BEFORE="$wm_size_before" WM_DENSITY_BEFORE="$wm_density_before" INITIAL_FONT_SCALE="$initial_font" \
   INITIAL_SIZE_OVERRIDE="$initial_size_override" INITIAL_DENSITY_OVERRIDE="$initial_density_override" \
   APP_PACKAGE_FROM_APK="$app_package_from_apk" TEST_PACKAGE_FROM_APK="$test_package_from_apk" \
   APP_PACKAGE_VERIFIED="$app_package_verified" TEST_PACKAGE_VERIFIED="$test_package_verified" \
-  INSTRUMENTATION_VERIFIED="$instrumentation_verified" REMOTE_DIR="$REMOTE_DIR" RAW_DIR="$RAW_DIR" \
-  RAW_CASE_DIR="$RAW_CASE_DIR" MATRIX_SETUP_OK="$matrix_setup_ok" MATRIX_SETUP_REASON="$matrix_setup_reason" \
+  INSTRUMENTATION_VERIFIED="$instrumentation_verified" REMOTE_DIR_VALUE="$REMOTE_DIR" RAW_DIR_VALUE="$RAW_DIR" \
+  RAW_CASE_DIR_VALUE="$RAW_CASE_DIR" MATRIX_SETUP_OK="$matrix_setup_ok" MATRIX_SETUP_REASON="$matrix_setup_reason" \
   python3 - "$MATRIX_DIR/matrix_environment.json" <<'PY'
 # Re-run the pure serializer with the matrix-specific values exported for this child.
 import hashlib, json, os, platform, sys
@@ -223,13 +223,13 @@ p={
  "device_api":os.environ.get("DEVICE_API","unknown"),"device_fingerprint":os.environ.get("DEVICE_FINGERPRINT","unknown"),
  "physical_size_before":os.environ.get("WM_SIZE_BEFORE","unknown"),"physical_density_before":os.environ.get("WM_DENSITY_BEFORE","unknown"),
  "initial_size_override":os.environ.get("INITIAL_SIZE_OVERRIDE") or None,"initial_density_override":os.environ.get("INITIAL_DENSITY_OVERRIDE") or None,
- "initial_font_scale":os.environ.get("INITIAL_FONT_SCALE","unknown"),"app_apk":os.environ.get("APP_APK"),"app_apk_sha256":digest("APP_APK"),
- "test_apk":os.environ.get("TEST_APK"),"test_apk_sha256":digest("TEST_APK"),"app_package_expected":os.environ.get("YUJIAN_APP_PACKAGE"),
+ "initial_font_scale":os.environ.get("INITIAL_FONT_SCALE","unknown"),"app_apk":os.environ.get("APP_APK_VALUE"),"app_apk_sha256":digest("APP_APK_VALUE"),
+ "test_apk":os.environ.get("TEST_APK_VALUE"),"test_apk_sha256":digest("TEST_APK_VALUE"),"app_package_expected":os.environ.get("YUJIAN_APP_PACKAGE"),
  "app_package_from_apk":os.environ.get("APP_PACKAGE_FROM_APK"),"test_package_from_apk":os.environ.get("TEST_PACKAGE_FROM_APK"),
  "instrumentation_target":os.environ.get("YUJIAN_INSTRUMENTATION_TARGET"),"package_verified":os.environ.get("APP_PACKAGE_VERIFIED")=="1",
  "test_package_verified":os.environ.get("TEST_PACKAGE_VERIFIED")=="1","installed_packages_and_target_verified":os.environ.get("INSTRUMENTATION_VERIFIED")=="1",
- "device_report_directory":os.environ.get("REMOTE_DIR"),"host_pull_root":os.environ.get("RAW_DIR"),
- "host_case_directory_after_pull":os.environ.get("RAW_CASE_DIR"),"setup_status":"PASS" if os.environ.get("MATRIX_SETUP_OK")=="1" else "FAIL",
+ "device_report_directory":os.environ.get("REMOTE_DIR_VALUE"),"host_pull_root":os.environ.get("RAW_DIR_VALUE"),
+ "host_case_directory_after_pull":os.environ.get("RAW_CASE_DIR_VALUE"),"setup_status":"PASS" if os.environ.get("MATRIX_SETUP_OK")=="1" else "FAIL",
  "setup_reason":os.environ.get("MATRIX_SETUP_REASON","")}
 Path(sys.argv[1]).write_text(json.dumps(p,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
 PY
