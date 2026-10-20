@@ -46,7 +46,7 @@ concurrency:
 
 env:
   CENTER_SOURCE_BRANCH: design/nh01-cloud-structured-parity-v1
-  CENTER_SOURCE_SHA: 25b8c4d50b2d979e380dd76bdb38cde8b80f5f2c
+  CENTER_SOURCE_SHA: 13e81b8239ef0819324f5f56ce919712a1db3a4e
   PR_SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
 
 jobs:
@@ -64,7 +64,7 @@ jobs:
       - name: Checkout verified current NH01 Acceptance Center source
         uses: actions/checkout@v4
         with:
-          ref: 25b8c4d50b2d979e380dd76bdb38cde8b80f5f2c
+          ref: 13e81b8239ef0819324f5f56ce919712a1db3a4e
           path: center-source
           fetch-depth: 1
 
