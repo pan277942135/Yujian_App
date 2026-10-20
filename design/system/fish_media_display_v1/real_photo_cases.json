@@ -1,5 +1,5 @@
 {
-  "version": "V1",
+  "version": "V1.1",
   "status": "FROZEN_DESIGN",
   "scope": "real_photo_css_containers_not_runtime_screenshots",
   "fixture": {
@@ -40,8 +40,8 @@
       "title": "结果 Hero — 受控 Fill 示意",
       "frame": "hero",
       "mode": "crop",
-      "explanation": "以真实照片展示铺满容器的几何效果；正式版本必须先通过 FishSafeRect/12dp 检查，否则改用 Safe Fit。",
-      "qualification": "仅视觉示意：测试图片无可靠 bbox，不能把本图当作安全裁切通过证据"
+      "explanation": "可靠 BBox 下先按 V1.1 的锚定扩展、单侧补偿和留白递减计算安全裁切窗口；本示意没有可靠 BBox，不能作为裁切 PASS 证据。",
+      "qualification": "仅展示容器几何；未完成真实 BBox 安全验证。"
     },
     {
       "id": "R02",
@@ -49,9 +49,9 @@
       "page": "识别结果 / 无 bbox 或失败",
       "title": "结果 Hero — 安全回退",
       "frame": "hero",
-      "mode": "fit",
-      "explanation": "无可靠 bbox 回退整图 Fit；No Fish/Image Quality 始终只使用此模式。",
-      "qualification": "这是无 bbox 的规范结果"
+      "mode": "adaptive",
+      "explanation": "无可靠 BBox 时不执行鱼体裁切；完整原图作为前景，使用同源柔化背景铺满剩余容器区域。",
+      "qualification": "CSS 静态示意，不是真机运行证据；前景仍完整显示原图。"
     },
     {
       "id": "D01",
@@ -60,7 +60,7 @@
       "title": "主图完整 + 同源柔化环境",
       "frame": "hero",
       "mode": "adaptive",
-      "explanation": "安全 Fill 不可行时，前景真实照片完整显示，留空区域由同一原图的低对比 ambient 填充。",
+      "explanation": "同一原图作为清晰完整前景与低对比柔化背景；背景只负责填满容器，不是新增真实内容。",
       "qualification": "背景只是 presentation，不是第二张照片"
     },
     {
@@ -120,7 +120,7 @@
       "title": "详情的同源 Adaptive",
       "frame": "hero",
       "mode": "adaptive",
-      "explanation": "同一照片作为清晰主图与柔化底图，没有生成新环境。",
+      "explanation": "同一原图作为清晰完整前景与低对比柔化背景；背景只负责填满容器，不是新增真实内容。",
       "qualification": "环境图只在 Detail/HOME 允许"
     }
   ],
@@ -133,5 +133,17 @@
     "EXIF 旋转",
     "无鱼",
     "低清晰度"
-  ]
+  ],
+  "responsive_geometry_policy": "container_width_responds_to_available_screen_content_width; each component keeps its frozen aspect ratio; photo orientation does not switch the ratio",
+  "crop_policy": {
+    "order": [
+      "bbox_anchor_expand",
+      "one_sided_edge_compensation",
+      "reduce_padding_profiles_10x12_8x8_4x4_0x0",
+      "same_source_ambient_fallback"
+    ],
+    "fallback": "full oriented original in foreground plus same-source blurred cover background",
+    "generated_outpaint": "prohibited",
+    "original_source_mutation": "prohibited"
+  }
 }
