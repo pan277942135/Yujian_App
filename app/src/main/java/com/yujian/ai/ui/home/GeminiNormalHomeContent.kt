@@ -109,11 +109,12 @@ internal fun GeminiNormalHomeContent(
     BoxWithConstraints(modifier = modifier.testTag("gemini-home-screen")) {
         val safeWidth = (maxWidth - safeInsets.start - safeInsets.end).coerceAtLeast(1.dp)
         val safeHeight = (maxHeight - safeInsets.top - safeInsets.bottom).coerceAtLeast(1.dp)
-        val layoutSpec = remember(safeWidth, safeHeight, LocalDensity.current.fontScale, layoutVariant) {
+        val fontScale = LocalDensity.current.fontScale
+        val layoutSpec = remember(safeWidth, safeHeight, fontScale, layoutVariant) {
             resolveGeminiHomeLayoutSpec(
                 safeWidthDp = safeWidth.value,
                 safeHeightDp = safeHeight.value,
-                fontScale = LocalDensity.current.fontScale,
+                fontScale = fontScale,
                 variant = layoutVariant,
             )
         }
