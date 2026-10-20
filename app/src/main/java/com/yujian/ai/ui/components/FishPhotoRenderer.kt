@@ -2,6 +2,7 @@ package com.yujian.ai.ui.components
 
 import android.graphics.Bitmap
 import android.graphics.Canvas
+import android.graphics.Matrix
 import android.graphics.Paint
 import android.graphics.RectF
 import android.util.Log
@@ -139,12 +140,12 @@ internal object FishPhotoRenderer {
         }
         if (plan.mode == FishPhotoDisplayMode.SUBJECT_CROP && plan.cropRect != null) {
             val rect = plan.cropRect
-            canvas.drawBitmap(
-                source,
-                RectF(rect.left, rect.top, rect.right, rect.bottom),
-                RectF(0f, 0f, outputWidth.toFloat(), outputHeight.toFloat()),
-                paint,
-            )
+            val scale = outputWidth.toFloat() / rect.width()
+            val matrix = Matrix().apply {
+                setScale(scale, scale)
+                postTranslate(-rect.left * scale, -rect.top * scale)
+            }
+            canvas.drawBitmap(source, matrix, paint)
         } else {
             val blurred = blurEvidenceBackdrop(source, BLUR_RADIUS_SOURCE_PX)
             drawSameSourceBackdrop(canvas, blurred, outputWidth, outputHeight)
@@ -171,17 +172,15 @@ internal object FishPhotoRenderer {
     }
 
     private fun drawSameSourceBackdrop(canvas: Canvas, blurred: Bitmap, width: Int, height: Int) {
-        val targetAspect = width.toFloat() / height
-        val sourceAspect = blurred.width.toFloat() / blurred.height
-        val src = if (sourceAspect > targetAspect) {
-            val cropWidth = blurred.height * targetAspect
-            RectF((blurred.width - cropWidth) / 2f, 0f, (blurred.width + cropWidth) / 2f, blurred.height.toFloat())
-        } else {
-            val cropHeight = blurred.width / targetAspect
-            RectF(0f, (blurred.height - cropHeight) / 2f, blurred.width.toFloat(), (blurred.height + cropHeight) / 2f)
+        val scale = max(width.toFloat() / blurred.width, height.toFloat() / blurred.height)
+        val offsetX = (width - blurred.width * scale) / 2f
+        val offsetY = (height - blurred.height * scale) / 2f
+        val matrix = Matrix().apply {
+            setScale(scale, scale)
+            postTranslate(offsetX, offsetY)
         }
         val paint = Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG).apply { alpha = 255 }
-        canvas.drawBitmap(blurred, src, RectF(0f, 0f, width.toFloat(), height.toFloat()), paint)
+        canvas.drawBitmap(blurred, matrix, paint)
         // Lower contrast without introducing a flat fill color.
         canvas.drawColor(0x12000000)
     }

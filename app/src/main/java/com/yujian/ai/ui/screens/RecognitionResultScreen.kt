@@ -291,7 +291,7 @@ fun RecognitionResultScreen(
             box = detection.box,
             confidence = detection.confidence,
             coordinateSpace = FishBoxCoordinateSpace.DISPLAY_ORIENTED,
-            version = "${productionResult?.modelVersion.orEmpty()}-${resultAssessment.status.wireName}",
+            version = "${productionResult?.detectorRun?.modelVersion.orEmpty()}-${resultAssessment.status.wireName}",
         )
     }
     val primaryFishAmbiguous = resultAssessment?.let {

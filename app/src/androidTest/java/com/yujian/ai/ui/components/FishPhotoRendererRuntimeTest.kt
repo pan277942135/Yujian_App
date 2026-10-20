@@ -1,7 +1,11 @@
 package com.yujian.ai.ui.components
 
 import android.graphics.Bitmap
+import android.graphics.Canvas
 import android.graphics.Color
+import android.graphics.Paint
+import android.graphics.Path
+import android.graphics.RectF
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -14,6 +18,73 @@ import com.yujian.ai.ui.imagery.FishPhotoFallbackReason
 
 @RunWith(AndroidJUnit4::class)
 class FishPhotoRendererRuntimeTest {
+    @Test
+    fun labelledLandscapeAndPortraitFishBitmapsRenderWithoutLosingTheirBoxes() {
+        data class Fixture(
+            val name: String,
+            val width: Int,
+            val height: Int,
+            val box: com.yujian.ai.ai.NormalizedFishBox,
+            val horizontalBody: Boolean,
+        )
+
+        val fixtures = listOf(
+            Fixture("landscape-labelled-v1", 1600, 900, NormalizedFishBox(0.28f, 0.32f, 0.68f, 0.68f), true),
+            Fixture("portrait-labelled-v1", 900, 1600, NormalizedFishBox(0.35f, 0.20f, 0.65f, 0.80f), false),
+        )
+        val targetWidth = 494
+        val targetHeight = 586
+
+        fixtures.forEach { fixture ->
+            val source = Bitmap.createBitmap(fixture.width, fixture.height, Bitmap.Config.ARGB_8888).apply {
+                eraseColor(Color.WHITE)
+            }
+            val boxPx = RectF(
+                fixture.box.x1 * fixture.width,
+                fixture.box.y1 * fixture.height,
+                fixture.box.x2 * fixture.width,
+                fixture.box.y2 * fixture.height,
+            )
+            val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.RED; style = Paint.Style.FILL }
+            val canvas = Canvas(source)
+            val body = if (fixture.horizontalBody) {
+                RectF(boxPx.left + boxPx.width() * 0.12f, boxPx.top + boxPx.height() * 0.22f,
+                    boxPx.right - boxPx.width() * 0.10f, boxPx.bottom - boxPx.height() * 0.22f)
+            } else {
+                RectF(boxPx.left + boxPx.width() * 0.22f, boxPx.top + boxPx.height() * 0.10f,
+                    boxPx.right - boxPx.width() * 0.22f, boxPx.bottom - boxPx.height() * 0.12f)
+            }
+            canvas.drawOval(body, paint)
+            val tail = Path().apply {
+                if (fixture.horizontalBody) {
+                    moveTo(body.left, body.centerY())
+                    lineTo(boxPx.left, boxPx.top)
+                    lineTo(boxPx.left, boxPx.bottom)
+                } else {
+                    moveTo(body.centerX(), body.top)
+                    lineTo(boxPx.left, boxPx.top)
+                    lineTo(boxPx.right, boxPx.top)
+                }
+                close()
+            }
+            canvas.drawPath(tail, paint)
+
+            val result = FishPhotoRenderer.render(
+                source = source,
+                targetWidthPx = targetWidth,
+                targetHeightPx = targetHeight,
+                sourceVersion = fixture.name,
+                boundingBox = FishPhotoBoundingBox(fixture.box, 0.93f, version = fixture.name),
+            )
+
+            assertEquals(FishPhotoDisplayMode.SUBJECT_CROP, result.plan.mode)
+            assertTrue(result.plan.retainsWholeBoundingBox)
+            assertEquals(247f / 293f, result.plan.cropRect!!.aspectRatio, 0.0001f)
+            assertEquals(0xFFFF0000.toInt(), result.bitmap.getPixel(targetWidth / 2, targetHeight / 2))
+            source.recycle()
+        }
+    }
+
     @Test
     fun realBitmapCropRetainsBoxUsesTargetAspectAndCacheIsStable() {
         val source = Bitmap.createBitmap(1200, 900, Bitmap.Config.ARGB_8888).apply {

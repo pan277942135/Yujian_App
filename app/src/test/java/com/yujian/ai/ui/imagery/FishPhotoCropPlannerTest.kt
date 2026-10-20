@@ -73,6 +73,39 @@ class FishPhotoCropPlannerTest {
     }
 
     @Test
+    fun labelledLandscapeAndPortraitFixturesKeepTheWholeFishAtOneCardRatio() {
+        data class Fixture(
+            val name: String,
+            val width: Int,
+            val height: Int,
+            val box: NormalizedFishBox,
+        )
+
+        val fixtures = listOf(
+            Fixture("landscape-fish", 1600, 900, NormalizedFishBox(0.28f, 0.32f, 0.68f, 0.68f)),
+            Fixture("portrait-fish", 900, 1600, NormalizedFishBox(0.35f, 0.20f, 0.65f, 0.80f)),
+        )
+        val targetRatio = 247f / 293f
+
+        fixtures.forEach { fixture ->
+            val plan = FishPhotoCropPlanner.plan(
+                sourceWidthPx = fixture.width,
+                sourceHeightPx = fixture.height,
+                targetAspectRatio = targetRatio,
+                boundingBox = FishPhotoBoundingBox(fixture.box, confidence = 0.93f, version = fixture.name),
+            )
+            val crop = requireNotNull(plan.cropRect) { "${fixture.name} unexpectedly used ${plan.fallbackReason}" }
+            val fish = requireNotNull(plan.orientedBoundingBox)
+
+            assertEquals(FishPhotoDisplayMode.SUBJECT_CROP, plan.mode)
+            assertTrue("${fixture.name} BBox must be fully retained", crop.contains(fish))
+            assertTrue(crop.left >= 0f && crop.top >= 0f)
+            assertTrue(crop.right <= fixture.width && crop.bottom <= fixture.height)
+            assertEquals(targetRatio, crop.aspectRatio, 0.0001f)
+        }
+    }
+
+    @Test
     fun allFourImageEdgesRemainCropCandidatesAndUseOppositeSpace() {
         val boxes = listOf(
             NormalizedFishBox(0.001f, 0.40f, 0.091f, 0.52f),
