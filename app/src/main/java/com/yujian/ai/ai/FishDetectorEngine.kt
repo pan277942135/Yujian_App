@@ -41,12 +41,32 @@ data class DetectorAttemptTrace(
     val qualityLevel: String,
 )
 
+/** Debug-only consumer snapshot; emitted only when explicitly installed by a probe. */
+internal data class DetectorInvocationSnapshot(
+    val orientationAttempt: String,
+    val onnxSha256: String,
+    val inputTensorSha256: String,
+    val inputTensorShape: List<Long>,
+    val inputTensorType: String,
+    val scale: Float,
+    val sourceWidth: Int,
+    val sourceHeight: Int,
+    val rawRows: Array<FloatArray>,
+)
+
 internal data class DetectorAssessmentCandidate(
     val orientation: DetectorOrientationAttempt,
     val assessment: FishInputAssessment,
 )
 
 class FishDetectorEngine(private val context: Context) : AutoCloseable {
+    @Volatile
+    private var diagnosticObserver: ((DetectorInvocationSnapshot) -> Unit)? = null
+
+    internal fun setDiagnosticObserver(observer: ((DetectorInvocationSnapshot) -> Unit)?) {
+        diagnosticObserver = observer
+    }
+
     data class DetectorRun(
         val modelVersion: String,
         val onnxSha256: String,
@@ -114,7 +134,7 @@ class FishDetectorEngine(private val context: Context) : AutoCloseable {
         fun evaluate(orientation: DetectorOrientationAttempt): Pair<DetectorRun, FishInputAssessment> {
             val attemptBitmap = orientBitmap(bitmap, orientation)
             val attemptRun = try {
-                detectOnce(attemptBitmap, model)
+                detectOnce(attemptBitmap, model, orientation.wireName)
             } finally {
                 if (attemptBitmap !== bitmap && !attemptBitmap.isRecycled) attemptBitmap.recycle()
             }
@@ -180,10 +200,15 @@ class FishDetectorEngine(private val context: Context) : AutoCloseable {
         )
     }
 
-    private fun detectOnce(bitmap: Bitmap, model: VerifiedModel): DetectorRun {
+    private fun detectOnce(
+        bitmap: Bitmap,
+        model: VerifiedModel,
+        orientationAttempt: String,
+    ): DetectorRun {
         val attemptStarted = System.nanoTime()
         val prepared = prepareInput(bitmap, model.inputSize)
         val shape = longArrayOf(1, 3, model.inputSize.toLong(), model.inputSize.toLong())
+        val inputTensorSha256 = prepared.buffer.sha256()
 
         val rows = OnnxTensor.createTensor(environment, prepared.buffer.asFloatBuffer(), shape).use { tensor ->
             session.run(mapOf(model.inputName to tensor)).use { result ->
@@ -192,6 +217,20 @@ class FishDetectorEngine(private val context: Context) : AutoCloseable {
                 materializeRows(output.value)
             }
         }
+
+        diagnosticObserver?.invoke(
+            DetectorInvocationSnapshot(
+                orientationAttempt = orientationAttempt,
+                onnxSha256 = model.sha256,
+                inputTensorSha256 = inputTensorSha256,
+                inputTensorShape = shape.toList(),
+                inputTensorType = "FLOAT32",
+                scale = prepared.scale,
+                sourceWidth = bitmap.width,
+                sourceHeight = bitmap.height,
+                rawRows = rows,
+            ),
+        )
 
         val detections = decodeAndNms(
             rows = rows,
@@ -290,6 +329,20 @@ class FishDetectorEngine(private val context: Context) : AutoCloseable {
         buffer.asFloatBuffer().put(values)
         buffer.rewind()
         return PreparedInput(buffer, scale, drawWidth, drawHeight)
+    }
+
+    private fun ByteBuffer.sha256(): String {
+        val bytes = duplicate()
+        bytes.position(0)
+        bytes.limit(capacity())
+        val digest = MessageDigest.getInstance("SHA-256")
+        val chunk = ByteArray(8192)
+        while (bytes.hasRemaining()) {
+            val size = min(chunk.size, bytes.remaining())
+            bytes.get(chunk, 0, size)
+            digest.update(chunk, 0, size)
+        }
+        return digest.digest().joinToString("") { "%02x".format(it) }
     }
 
     /**

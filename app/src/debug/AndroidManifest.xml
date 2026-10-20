@@ -1,9 +1,17 @@
-<?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application>
         <activity
             android:name=".ui.designsystem.DesignSystemPreviewActivity"
             android:exported="true"
             android:launchMode="singleTop" />
+        <activity
+            android:name=".ObjectnessProbeActivity"
+            android:exported="true"
+            android:label="Detector Probe">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
     </application>
 </manifest>
