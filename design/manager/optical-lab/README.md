@@ -55,13 +55,14 @@ Task: `YUJIAN_EDGEGLOW_WEB_STATIC_VISUAL_CLOSURE_V3`. This is a static Web revie
 - The 34de baseline screenshot shows the former review helper bleeding into the FIT letterbox and broad translucent color areas occupying much of the photo. That was a separate-coordinate overlay, not a faithful use of the P1 field.
 - The first V3 P1-layout attempt removed that helper from static rendering, but its real Chromium capture still showed a weak field. At `REVIEW_CANDIDATE_B`, the Receiving Light-only signal changed 0.055% of the upper-left sample, 0.804% of the upper-right, 0% of the lower-left, and 4.057% of the lower-right. The [failed Chromium artifact](https://github.com/pan277942135/Yujian_App/actions/runs/39422517210/artifacts/12263717925) preserves those images and measurements. The pastel P1 tokens multiplied by the 0.07 alpha ceiling were largely swallowed by this bright fixture; the check correctly failed.
 - The next real browser capture used a path-derived Receiving Light made by blurring the four primary curves. It still looked like fine corner traces instead of a broad field: candidate B measured only 2.89 mean absolute RGB delta in the sampled photo corners. See [run 39425637563 and its V3 artifact](https://github.com/pan277942135/Yujian_App/actions/runs/39425637563). This second result is also recorded as a visual failure, despite the render smoke completing.
+- Restoring P1's four ovals and alpha stops improved the browser corner signal only to 3.34 mean absolute RGB delta at B. The `.34` per-island cap kept the field too faint in the actual photograph. The [third capture](https://github.com/pan277942135/Yujian_App/actions/runs/39427017498) remains a visual failure; the next candidate set raises only the Web review gain and bounded per-island cap.
 - The earlier smoke only proved that pixels changed. The current smoke records per-corner signal from the renderer's actual `photoContentRect`; neither it nor a numerical threshold is treated as a visual quality pass.
 - The static candidate path profiles also changed path lengths. That obscured whether the exact frozen seven paths were being reviewed.
 
 ### V3 static renderer changes
 
 - Static A/B/C now use the four registered `receiving_light_layout` radial ovals and `receiving_light_alpha_stops` from P1. They are mapped through the renderer's single `photoContentRect` and clipped to the photo; the seven frozen paths draw above them in separate layers. No new receiving geometry, path, or closed perimeter is added.
-- The field uses P1 blue/gold tokens and island weights. Candidate gains apply to the P1 0.07 pre-multiplier alpha in Web Review only and are capped at 0.34 opacity per island; no P1/P5 contract token or Native renderer value changes.
+- The field uses P1 blue/gold tokens and island weights. Candidate gains apply to the P1 0.07 pre-multiplier alpha in Web Review only, with a 0.48 opacity ceiling on each local island; no P1/P5 contract token or Native renderer value changes. The photo interior receives no blanket tint.
 - Static A/B/C preserve the exact P1 path start, control points, end points and visible ratios. Candidate differences are limited to the three review optical multipliers: Receiving Light, primary paths and secondary filaments.
 - Geometry diagnostics expose the actual mapped control points, FIT transform, `photoContentRect`, seven P1 paths and four Quiet Gaps. The static capture matrix is 390×844, 320×640, 412×915, 800×360 and the 1152×1536 source proportion.
 - The official evidence gallery is generated from real Chromium Canvas/page captures and published under the canonical Optical Review route. Its JSON records source/build SHA, photo provenance, per-view coordinates, candidate parameters, PNG names and SHA-256 values.
@@ -70,9 +71,9 @@ Task: `YUJIAN_EDGEGLOW_WEB_STATIC_VISUAL_CLOSURE_V3`. This is a static Web revie
 
 | Candidate | Receiving Light | Primary paths | Secondary filaments | Review intent |
 | --- | ---: | ---: | ---: | --- |
-| `REVIEW_CANDIDATE_A` · Soft Field | 2.50× | 0.85× | 0.20× | Softest field and traces |
-| `REVIEW_CANDIDATE_B` · Balanced Field | 4.40× | 1.08× | 0.34× | Recommended first review |
-| `REVIEW_CANDIDATE_C` · Strong Atmosphere | 5.60× | 1.35× | 0.48× | Visibility ceiling for comparison |
+| `REVIEW_CANDIDATE_A` · Soft Field | 3.00× | 1.00× | 0.25× | Softest field and traces |
+| `REVIEW_CANDIDATE_B` · Balanced Field | 6.00× | 1.35× | 0.38× | Recommended first review |
+| `REVIEW_CANDIDATE_C` · Strong Atmosphere | 7.50× | 1.65× | 0.50× | Visibility ceiling for comparison |
 
 These are unapproved review candidates, not frozen product values. Automation reports only renderer, source, geometry and asset checks. Human visual acceptance remains `REVIEW_REQUIRED`.
 

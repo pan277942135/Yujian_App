@@ -4,9 +4,9 @@
   "design_contracts_modified": false,
   "source_contracts": ["P1", "P2", "P3", "P4", "P5"],
   "static_candidates": {
-    "A": { "id": "REVIEW_CANDIDATE_A", "name": "Soft Field", "receiving_field_scale": 2.5, "primary_path_scale": 0.85, "secondary_filament_scale": 0.2 },
-    "B": { "id": "REVIEW_CANDIDATE_B", "name": "Balanced Field", "receiving_field_scale": 4.4, "primary_path_scale": 1.08, "secondary_filament_scale": 0.34, "recommended_for_first_review": true },
-    "C": { "id": "REVIEW_CANDIDATE_C", "name": "Strong Atmosphere", "receiving_field_scale": 5.6, "primary_path_scale": 1.35, "secondary_filament_scale": 0.48 }
+    "A": { "id": "REVIEW_CANDIDATE_A", "name": "Soft Field", "receiving_field_scale": 3.0, "primary_path_scale": 1.0, "secondary_filament_scale": 0.25 },
+    "B": { "id": "REVIEW_CANDIDATE_B", "name": "Balanced Field", "receiving_field_scale": 6.0, "primary_path_scale": 1.35, "secondary_filament_scale": 0.38, "recommended_for_first_review": true },
+    "C": { "id": "REVIEW_CANDIDATE_C", "name": "Strong Atmosphere", "receiving_field_scale": 7.5, "primary_path_scale": 1.65, "secondary_filament_scale": 0.5 }
   },
   "static_path_corner_profile": {
     "A": { "B1": { "alpha": 1.0, "length": 1.0 }, "B2": { "alpha": 1.0, "length": 1.0 }, "B3": { "alpha": 1.0, "length": 1.0 }, "B4": { "alpha": 1.0, "length": 1.0 }, "G1": { "alpha": 1.0, "length": 1.0 }, "G2": { "alpha": 1.0, "length": 1.0 }, "G3": { "alpha": 1.0, "length": 1.0 } },

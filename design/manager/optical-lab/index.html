@@ -217,9 +217,9 @@ const elements = {
   reviewLayers:{field:true,paths:true,filaments:true,fish:true}
 };
 const STATIC_REVIEW_CANDIDATES={
-  A:{name:"Soft Field",field:2.5,paths:0.85,filaments:0.20,description:"沿 P1 四个 Receiving Light 光岛生成柔和底场；路径和次级碎片保持克制。"},
-  B:{name:"Balanced Field",field:4.4,paths:1.08,filaments:0.34,description:"先看到 P1 蓝金 Receiving Light 底场，再由冻结主路径引导；四岛按原权重保留主次。"},
-  C:{name:"Strong Atmosphere",field:5.6,paths:1.35,filaments:0.48,description:"提高 P1 四个 Receiving Light 光岛的评审可见度上限，不扩大或改变其几何。"}
+  A:{name:"Soft Field",field:3.0,paths:1.0,filaments:0.25,description:"沿 P1 四个 Receiving Light 光岛形成柔和底场；路径和次级碎片保持克制。"},
+  B:{name:"Balanced Field",field:6.0,paths:1.35,filaments:0.38,description:"P1 蓝金 Receiving Light 底场先可见，再由冻结主路径引导；四岛保持原有主次。"},
+  C:{name:"Strong Atmosphere",field:7.5,paths:1.65,filaments:0.50,description:"提高 P1 四个 Receiving Light 光岛的评审可见度上限，不扩大或改变其几何。"}
 };
 const STATIC_PATH_REVIEW_PROFILES={
   A:{B1:{alpha:1.10,length:1},G1:{alpha:.72,length:.76},G3:{alpha:.26,length:.44},B3:{alpha:.04,length:.24},B2:{alpha:.12,length:.45},G2:{alpha:.08,length:.34},B4:{alpha:.03,length:.20}},
@@ -832,7 +832,7 @@ function drawStaticReceivingField(ctx,rect,quality,colors){
     const cx=rect.left+item.center[0]*(rect.right-rect.left),cy=rect.top+item.center[1]*(rect.bottom-rect.top);
     const oval=item.oval,ox=rect.left+oval[0]*(rect.right-rect.left),oy=rect.top+oval[1]*(rect.bottom-rect.top);
     const ow=oval[2]*(rect.right-rect.left),oh=oval[3]*(rect.bottom-rect.top),radius=minDim*item.radius_min_dimension;
-    const alpha=Math.min(.34,contractRange[1]*candidateGain*weight*stateScale*elements.params.alpha*(elements.params.layerStrength.receiving||0)*(quality.receiving||1)*(quality.alpha||1));
+    const alpha=Math.min(.48,contractRange[1]*candidateGain*weight*stateScale*elements.params.alpha*(elements.params.layerStrength.receiving||0)*(quality.receiving||1)*(quality.alpha||1));
     const gradient=ctx.createRadialGradient(cx,cy,0,cx,cy,radius);
     stops.forEach(([offset,multiplier])=>gradient.addColorStop(offset,safeAlphaColor(color,alpha*multiplier)));
     ctx.save();ctx.fillStyle=gradient;ctx.beginPath();ctx.ellipse(ox+ow/2,oy+oh/2,Math.abs(ow/2),Math.abs(oh/2),0,0,Math.PI*2);ctx.fill();ctx.restore();
