@@ -154,7 +154,9 @@ async function main() {
     assert.ok(receivingOptics, "static Receiving Light parameters must be exposed by the rendered page");
     assert.ok(pageCandidates, "static candidate parameters must be exposed by the rendered page");
     const declaredOptics = readJson("design/manager/optical-lab/review_v1/candidates.json");
+    const receivingContract = config.p1_edge_field.optical_stack.find(layer => layer.layer === "local_receiving_light");
     assert.equal(receivingOptics.opacityCap, declaredOptics.receiving_light_web_review_alpha_cap, "reported Receiving Light opacity cap must match page code");
+    assert.ok(receivingOptics.opacityCap <= receivingContract.contract_alpha_before_multipliers[1], "Web Receiving Light cap must remain within P1's per-layer alpha range");
     assert.equal(receivingOptics.depthRatio, declaredOptics.receiving_light_depth_ratio, "reported Receiving Light depth must match page code");
     assert.equal(receivingOptics.fieldInwardOffsetDepthRatio, declaredOptics.receiving_light_photo_side_offset_depth_ratio, "reported photo-side field offset must match page code");
     assert.deepEqual(receivingOptics.pathPasses.map(pass => ({ width_ratio: pass.widthRatio, blur_ratio: pass.blurRatio, opacity: pass.opacity })), declaredOptics.receiving_light_path_bloom_passes, "reported Receiving Light bloom passes must match page code");
@@ -162,6 +164,7 @@ async function main() {
       for (const key of ["id", "name", "receiving_field_scale", "primary_path_scale", "secondary_filament_scale"]) {
         assert.equal(pageCandidates[candidate][key], declaredOptics.static_candidates[candidate][key], `${candidate} ${key} must match the live page candidate`);
       }
+      assert.ok(pageCandidates[candidate].receiving_field_scale <= 1 && pageCandidates[candidate].primary_path_scale <= 1 && pageCandidates[candidate].secondary_filament_scale <= 1, '${candidate} must not amplify frozen per-layer alpha');
     }
     assert.equal(await page.locator("#stateButtons button").count(), 3, "keep exactly the three frozen product visuals");
     await page.locator("#previewModeButtons [data-preview-mode='static']").click();
@@ -465,7 +468,7 @@ async function main() {
         "The software-cache renderer previously screen-blended an overlay on a transparent offscreen canvas and then source-over composited that cache onto the already painted photo. The cache now contains the same FIT photo and its field, making both renderer choices blend against the real photo; the new browser check compares their field signal only for compositing parity.",
         "At dc00e51 the renderer's diffuse bloom followed P1 primary curves whose control points overshoot the photoContentRect; clipping the centered bloom discarded most of the exterior half and left only faint arcs on the photo. The new static field-only sample offset follows the same curves inward within the shared photoContentRect without changing P1 path records.",
         "The dc00e51 candidate report hard-coded path-bloom ratios that differed from the live page implementation. The capture now reads the page's immutable Receiving Light parameters and fails if the report/candidate declaration disagrees with the rendered code.",
-        "The deployed 5553fb7 page remained visibly weak beside Frozen during direct review. Its .32 Web-only cap limited nominal B/C receiving alpha to .224/.280; the changed pixels did not form a clear photo-edge light field. The next iteration raises only bounded Web Review candidate gain/cap and remains REVIEW_REQUIRED.",
+        "The deployed 5553fb7 page remained visibly weak beside Frozen during direct review. A proposed .60 Web cap would exceed P1's per-layer alpha range and was withdrawn; the final candidates must remain at or below the contract maximum and stay REVIEW_REQUIRED unless direct browser images show a clear field.",
         "The prior smoke measured pixel changes and blue/gold deltas but did not test whether the edge field was visually clear, localized, or natural.",
         "Frozen 02 and the registered P5 source photo are different images, so strict same-source Frozen pixel diff is unavailable.",
       ],
