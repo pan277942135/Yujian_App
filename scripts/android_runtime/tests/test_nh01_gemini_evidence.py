@@ -106,7 +106,7 @@ class Nh01GeminiEvidenceValidationTest(unittest.TestCase):
         self.write_valid_reports()
         carousel = self.root / "compose-simulation/carousel/gemini_catch_carousel_count_report.json"
         carousel.write_text(json.dumps({"count_cases": [{"catch_count": 0}, {"catch_count": 1}]}), encoding="utf-8")
-        with self.assertRaisesRegex(EvidenceValidationError, "expected \[0, 1, 2, 3, 10\]"):
+        with self.assertRaisesRegex(EvidenceValidationError, r"expected \[0, 1, 2, 3, 10\]"):
             validate(self.root)
 
     def test_cli_returns_failure_for_missing_reports(self) -> None:
