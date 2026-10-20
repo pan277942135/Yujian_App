@@ -1,11 +1,17 @@
 # 鱼获图片自适应显示设计 — Design Manager 入口
-Status: **FROZEN / 公共设计系统 V1**（2026-10-10）
 
-- 父级菜单：`#shared/fish_media_display_v1`
-- 四个页面的真实照片适配案例由 `real_photo_cases.json` 索引；内容来自仓库已有真实鱼获测试素材，禁止 AI 假鱼。
-- 子菜单：Fit/选择识别、Crop/识别结果、Adaptive/详情 A 面、Crop/我的鱼获、异常及验收。
-- 既有三份专项媒体 FROZEN Authority 继续有效；若冲突，以状态专属合同为准。
-- 只改变**图片如何映射到已冻结容器**，不重开页面外框、字体、CTA、动画或 Android。
-- 视觉对照是设计演示，不是设备截图；没有真实 bbox 时无法宣称 Crop 保留鱼体的自动化验收已经通过。
+Status: **FROZEN / 当前公共设计系统 V1.1**（2026-10-20）
 
-GitHub Pages 仅发布 `design/`。真实鱼获照片通过原始 Git Blob `674bbe8eb1985702aa61c2aeca32579690ab068f` 在 `design/system/fish_media_display_v1/assets/real_catch_source.jpg` 复用，不进行重编码；原始测试素材保留在 `app/src/main/assets/home_normal/fish_record/sample_recent_catch.jpg`。
+- 父级菜单：`#shared/fish_media_display_v1`。
+- 当前权威规范：`Fish_Media_Display_Spec_V1_1.md`。
+- V1 规范保留为历史版本；V1.1 在容器响应式几何、BBox 裁切顺序和背景填充回退方面取代冲突规则。
+- 同类卡片宽高比稳定，卡片宽度随屏幕可用内容宽度响应；不因照片横拍或纵拍改变比例。
+- 冻结裁切顺序：BBox 锚定扩展 → 单侧边界补偿 → 安全留白逐步缩小 → 仍不可行才同源模糊背景填充。
+- BBox 缺失或不可信时，不执行激进中心裁切；使用完整原图前景与同源背景填充。
+- 原图永不被裁切或合成结果覆盖；不使用生成式 AI 补画。
+- 页面子合同仍定义各组件现有比例、信息布局和状态几何；V1.1 不重做页面外框或 CTA。
+- Design Manager 中的照片案例是静态 CSS 视觉对照，不是真机截图；无可靠 BBox 的素材不得被标为自动裁切通过。
+
+GitHub Pages 仅发布 `design/`。真实鱼获照片继续复用已登记的同源仓库素材，不重编码、不替换、不声称静态示意为 Runtime 证据。
+
+Android 实现、APK 构建和真机验收状态必须独立记录；设计冻结不代表运行时已经通过。
