@@ -12,12 +12,32 @@ gate_before_instrumentation() {
   "$YUJIAN_ADB_BIN" logcat -c >/dev/null 2>&1 || true
 }
 
+gemini_v2_pull_compose_evidence() {
+  local target="$1" log="$2"
+  local external="/sdcard/Android/data/$YUJIAN_APP_PACKAGE/files/nh01-gemini-v3"
+  local subdir
+  mkdir -p "$target" "$(dirname "$log")"
+  : > "$log"
+  # Remove the old whole-root pull shape so stale nested files cannot satisfy validation.
+  rm -rf "$target/nh01-gemini-v3" "$target/compose-simulation" "$target/avatar"
+  for subdir in compose-simulation avatar; do
+    printf 'remote=%s/%s\nlocal_parent=%s\n' "$external" "$subdir" "$target" >> "$log"
+    if ! "$YUJIAN_ADB_BIN" pull "$external/$subdir" "$target" >> "$log" 2>&1; then
+      printf 'pull_failed=%s\n' "$subdir" >> "$log"
+      return 1
+    fi
+    if [[ ! -d "$target/$subdir" ]]; then
+      printf 'expected_directory_missing=%s/%s\n' "$target" "$subdir" >> "$log"
+      return 1
+    fi
+  done
+}
+
 gate_after_instrumentation() {
   local output="$YUJIAN_EVIDENCE_DIR/compose-simulation"
-  local external="/sdcard/Android/data/$YUJIAN_APP_PACKAGE/files/nh01-gemini-v3"
+  local log="$YUJIAN_EVIDENCE_DIR/android-device/compose_evidence_pull_after_instrumentation.log"
   mkdir -p "$output" "$YUJIAN_EVIDENCE_DIR/android-device"
-  "$YUJIAN_ADB_BIN" pull "$external" "$output" \
-    > "$YUJIAN_EVIDENCE_DIR/android-device/compose_evidence_pull_after_instrumentation.log" 2>&1 || true
+  gemini_v2_pull_compose_evidence "$output" "$log"
 }
 
 gemini_v2_run_seed() {
@@ -349,34 +369,17 @@ gate_collect_evidence() {
   "$YUJIAN_ADB_BIN" shell settings put global transition_animation_scale 1.0 >/dev/null || true
   "$YUJIAN_ADB_BIN" shell settings put global window_animation_scale 1.0 >/dev/null || true
 
-  local external="/sdcard/Android/data/$YUJIAN_APP_PACKAGE/files/nh01-gemini-v3"
-  "$YUJIAN_ADB_BIN" pull "$external" "$YUJIAN_EVIDENCE_DIR/compose-simulation" \
-    > "$output/compose_evidence_pull.log" 2>&1 || {
-      runtime_set_failure "EVIDENCE" "GEMINI_COMPOSE_PROFILE_EVIDENCE_NOT_RETRIEVED"
-      return "$EXIT_FAIL_EVIDENCE"
-    }
-  python3 - "$YUJIAN_EVIDENCE_DIR/compose-simulation" <<'PY'
-import json, pathlib, sys
-root = pathlib.Path(sys.argv[1])
-compose = root / "compose-simulation/gemini_responsive_compose_report.json"
-avatar = root / "avatar/gemini_avatar_transition_report.json"
-carousel = root / "compose-simulation/carousel/gemini_catch_carousel_count_report.json"
-if not compose.is_file() or not avatar.is_file() or not carousel.is_file():
-    raise SystemExit("Gemini Compose, avatar, or carousel report missing")
-profile_report = json.loads(compose.read_text(encoding="utf-8"))
-avatar_report = json.loads(avatar.read_text(encoding="utf-8"))
-carousel_report = json.loads(carousel.read_text(encoding="utf-8"))
-profiles = profile_report.get("profiles", [])
-if len(profiles) != 15 or any(item.get("status") != "PASS" for item in profiles):
-    raise SystemExit("Gemini Compose constraint profile matrix is incomplete or failed")
-if any(item.get("interactions", {}).get("guest_avatar_login") != "PASS" for item in profiles):
-    raise SystemExit("Guest login click callback did not pass across Compose profiles")
-if avatar_report.get("account_switch_clears_previous_avatar") != "PASS" or avatar_report.get("logout_clears_previous_avatar") != "PASS":
-    raise SystemExit("Gemini avatar transition checks did not pass")
-cases = carousel_report.get("count_cases", [])
-if [item.get("catch_count") for item in cases] != [0, 1, 2, 3, 10]:
-    raise SystemExit("Gemini carousel count matrix is incomplete")
-PY
+  local compose_root="$YUJIAN_EVIDENCE_DIR/compose-simulation"
+  if ! gemini_v2_pull_compose_evidence "$compose_root" "$output/compose_evidence_pull.log"; then
+    runtime_set_failure "EVIDENCE" "GEMINI_COMPOSE_PROFILE_EVIDENCE_NOT_RETRIEVED"
+    return "$EXIT_FAIL_EVIDENCE"
+  fi
+  if ! python3 "$SCRIPT_DIR/android_runtime/validate_nh01_gemini_evidence.py" "$compose_root" \
+      > "$output/gemini_required_reports_validation.log" 2>&1; then
+    cat "$output/gemini_required_reports_validation.log" >&2
+    runtime_set_failure "EVIDENCE" "GEMINI_REQUIRED_REPORT_VALIDATION_FAILED"
+    return "$EXIT_FAIL_EVIDENCE"
+  fi
   local report="$YUJIAN_EVIDENCE_DIR/Gemini_NH01_Responsive_Runtime_Report_V3.json"
   python3 - "$report" "$BUILD_SHA" "$bounds_1920" "$bounds_2340" "$bounds_720" <<'PY'
 import json, pathlib, sys
