@@ -4,9 +4,9 @@
   "design_contracts_modified": false,
   "source_contracts": ["P1", "P2", "P3", "P4", "P5"],
   "static_candidates": {
-    "A": { "id": "REVIEW_CANDIDATE_A", "name": "Soft Field", "receiving_field_scale": 2.4, "primary_path_scale": 1.0, "secondary_filament_scale": 0.25 },
-    "B": { "id": "REVIEW_CANDIDATE_B", "name": "Balanced Field", "receiving_field_scale": 3.2, "primary_path_scale": 1.35, "secondary_filament_scale": 0.38, "recommended_for_first_review": true },
-    "C": { "id": "REVIEW_CANDIDATE_C", "name": "Strong Atmosphere", "receiving_field_scale": 4.0, "primary_path_scale": 1.65, "secondary_filament_scale": 0.5 }
+    "A": { "id": "REVIEW_CANDIDATE_A", "name": "Soft Field", "receiving_field_scale": 4.0, "primary_path_scale": 1.0, "secondary_filament_scale": 0.25 },
+    "B": { "id": "REVIEW_CANDIDATE_B", "name": "Balanced Field", "receiving_field_scale": 6.5, "primary_path_scale": 1.35, "secondary_filament_scale": 0.38, "recommended_for_first_review": true },
+    "C": { "id": "REVIEW_CANDIDATE_C", "name": "Strong Atmosphere", "receiving_field_scale": 8.5, "primary_path_scale": 1.65, "secondary_filament_scale": 0.5 }
   },
   "static_path_corner_profile": {
     "A": { "B1": { "alpha": 1.0, "length": 1.0 }, "B2": { "alpha": 1.0, "length": 1.0 }, "B3": { "alpha": 1.0, "length": 1.0 }, "B4": { "alpha": 1.0, "length": 1.0 }, "G1": { "alpha": 1.0, "length": 1.0 }, "G2": { "alpha": 1.0, "length": 1.0 }, "G3": { "alpha": 1.0, "length": 1.0 } },
@@ -14,7 +14,7 @@
     "C": { "B1": { "alpha": 1.0, "length": 1.0 }, "B2": { "alpha": 1.0, "length": 1.0 }, "B3": { "alpha": 1.0, "length": 1.0 }, "B4": { "alpha": 1.0, "length": 1.0 }, "G1": { "alpha": 1.0, "length": 1.0 }, "G2": { "alpha": 1.0, "length": 1.0 }, "G3": { "alpha": 1.0, "length": 1.0 } },
     "intent": "V3 static candidates preserve P1 photo geometry, receiving oval geometry, alpha stops, all seven path control points and visible ratios. A/B/C vary Web-only optical multipliers only."
   },
-  "receiving_light_web_review_alpha_cap": 0.32,
+  "receiving_light_web_review_alpha_cap": 0.60,
   "receiving_light_oval_gain": 1.0,
   "receiving_light_web_review_composite": "screen",
   "receiving_light_depth_ratio": 0.15,
@@ -24,7 +24,7 @@
     { "width_ratio": 0.40, "blur_ratio": 0.06, "opacity": 0.64 }
   ],
   "contract_alpha_before_multipliers": [0.03, 0.07],
-  "static_candidate_status": "REVIEW_REQUIRED · gains above 1 are Web-only study multipliers; no P1 or Native value changed",
+  "static_candidate_status": "REVIEW_REQUIRED · stronger bounded gains are Web-only study multipliers; no P1 or Native value changed",
   "field_geometry": {
     "authority": "P1 receiving_light_layout and receiving_light_alpha_stops",
     "rendering": "four registered P1 radial ovals at 1.0 review gain plus a broad photo-side diffuse field sampled from the exact four P1 primary cubic curves; field-only samples offset 0.30×P1 depth inward toward the photo center; depth ratio 0.15 remains within P1's 0.08–0.18 range; clipped through the shared photoContentRect",
