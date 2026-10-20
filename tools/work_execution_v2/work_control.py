@@ -168,7 +168,7 @@ def main(argv=None):
         else:
             result = preflight(args.profile)
         print(json.dumps(result, ensure_ascii=False, sort_keys=True))
-        return 0
+        return 3 if result.get("decision") == "STOP_AND_ESCALATE" else 0
     except (ValueError, OSError, json.JSONDecodeError) as exc:
         print("WORK_EXECUTION_V2_ERROR: " + str(exc), file=sys.stderr)
         return 2
