@@ -53,6 +53,28 @@ class FishPhotoCropPlannerTest {
     }
 
     @Test
+    fun rawExifCoordinatesAreMappedOnceBeforeCropPlanning() {
+        val plan = FishPhotoCropPlanner.plan(
+            sourceWidthPx = 1000,
+            sourceHeightPx = 1500,
+            targetAspectRatio = 1f,
+            boundingBox = FishPhotoBoundingBox(
+                box = sample,
+                confidence = 0.91f,
+                coordinateSpace = FishBoxCoordinateSpace.RAW_EXIF_SOURCE,
+                exifOrientation = PhotoExifOrientation.ROTATE_90,
+            ),
+        )
+
+        val actual = requireNotNull(plan.orientedBoundingBox)
+        assertEquals(300f, actual.left, 0.01f)
+        assertEquals(150f, actual.top, 0.01f)
+        assertEquals(800f, actual.right, 0.01f)
+        assertEquals(600f, actual.bottom, 0.01f)
+        assertTrue(plan.retainsWholeBoundingBox)
+    }
+
+    @Test
     fun safeCropKeepsTheWholeBoxInsideSourceAndPreservesRequestedRatio() {
         val plan = FishPhotoCropPlanner.plan(
             sourceWidthPx = 1200,
@@ -203,6 +225,21 @@ class FishPhotoCropPlannerTest {
         )
         assertEquals(FishPhotoDisplayMode.SUBJECT_CROP, configured.mode)
         assertTrue(configured.retainsWholeBoundingBox)
+    }
+
+    @Test
+    fun qualityErrorCanDisableSubjectCropEvenWhenABoxExists() {
+        val plan = FishPhotoCropPlanner.plan(
+            sourceWidthPx = 1200,
+            sourceHeightPx = 900,
+            targetAspectRatio = 4f / 3f,
+            boundingBox = FishPhotoBoundingBox(sample, confidence = 0.92f),
+            allowSubjectCrop = false,
+        )
+
+        assertEquals(FishPhotoDisplayMode.FULL_FRAME_WITH_SOURCE_BACKDROP, plan.mode)
+        assertEquals(FishPhotoFallbackReason.CROPPING_DISABLED, plan.fallbackReason)
+        assertNull(plan.cropRect)
     }
 
     @Test
