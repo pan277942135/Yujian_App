@@ -9,6 +9,51 @@ const REQUIRED_STATES = ["IMAGE_RECOGNIZING", "FISH_LOCATED", "SPECIES_RECOGNIZI
 const RESPONSIVE = [[390, 844], [320, 640], [360, 800], [412, 915], [800, 360]];
 let browser;
 
+async function captureReceivingFieldSignal(page, evidence, label) {
+  await page.selectOption("#fieldLayerView", "receiving");
+  await page.locator("#pathToggle").uncheck();
+  await page.locator("#filamentToggle").uncheck();
+  await page.locator("#fishToggle").uncheck();
+  await page.locator("#fieldToggle").uncheck();
+  await page.locator("#previewCanvas").evaluate(canvas => {
+    window.__receivingFieldOff = new Uint8ClampedArray(canvas.getContext("2d").getImageData(0, 0, canvas.width, canvas.height).data);
+  });
+  await page.locator("#fieldToggle").check();
+  const signal = await page.locator("#previewCanvas").evaluate(canvas => {
+    const data = canvas.getContext("2d").getImageData(0, 0, canvas.width, canvas.height).data;
+    const before = window.__receivingFieldOff;
+    const corners = [
+      { id: "top-left-gold", x0: 0, x1: .30, y0: 0, y1: .24, gold: true },
+      { id: "top-right-blue", x0: .70, x1: 1, y0: 0, y1: .30, gold: false },
+      { id: "bottom-left-gold", x0: 0, x1: .38, y0: .70, y1: 1, gold: true },
+      { id: "bottom-right-blue", x0: .62, x1: 1, y0: .64, y1: 1, gold: false },
+    ];
+    return corners.map(corner => {
+      let changed = 0, samples = 0, roleDelta = 0, deltaR = 0, deltaG = 0, deltaB = 0;
+      for (let y = Math.floor(canvas.height * corner.y0); y < Math.floor(canvas.height * corner.y1); y += 2) {
+        for (let x = Math.floor(canvas.width * corner.x0); x < Math.floor(canvas.width * corner.x1); x += 2) {
+          const i = (y * canvas.width + x) * 4, dr = data[i] - before[i], dg = data[i + 1] - before[i + 1], db = data[i + 2] - before[i + 2];
+          samples++;
+          if (Math.max(Math.abs(dr), Math.abs(dg), Math.abs(db)) >= 8) {
+            changed++;
+            roleDelta += corner.gold ? dr - db : db - dr;
+          }
+          deltaR += dr; deltaG += dg; deltaB += db;
+        }
+      }
+      return { id: corner.id, changed_ratio: changed / samples, color_role_margin_per_changed_pixel: changed ? roleDelta / changed : 0, mean_delta_rgb: [deltaR / samples, deltaG / samples, deltaB / samples] };
+    });
+  });
+  fs.writeFileSync(evidence.signalPath, JSON.stringify(signal, null, 2));
+  assert.ok(signal.every(corner => corner.changed_ratio >= .025 && corner.color_role_margin_per_changed_pixel > 0), `${label} Receiving Light must contribute a broad, correctly colored signal in all four photo corners: ${JSON.stringify(signal)}`);
+  await page.locator("#previewCanvas").screenshot({ path: evidence.canvasPath });
+  if (evidence.pagePath) await page.screenshot({ path: evidence.pagePath, fullPage: true });
+  await page.locator("#pathToggle").check();
+  await page.locator("#filamentToggle").check();
+  await page.locator("#fishToggle").check();
+  return signal;
+}
+
 (async () => {
   const out = process.env.LAB_OUTPUT_DIR || "optical-lab-artifacts";
   fs.mkdirSync(out, { recursive: true });
@@ -117,6 +162,7 @@ let browser;
   assert.deepEqual(referenceStates, REQUIRED_STATES);
 
   const staticCandidates = [];
+  let receivingFieldVisibility = null;
   for (const candidate of ["A", "B", "C"]) {
     await page.locator("#stateButtons button").nth(0).click();
     await page.locator("#previewModeButtons [data-preview-mode='static']").click();
@@ -130,9 +176,18 @@ let browser;
       await page.selectOption("#fieldLayerView", view);
       const png = await page.locator("#previewCanvas").evaluate(canvas => canvas.toDataURL("image/png"));
       fs.writeFileSync(path.join(staticEvidence, `static-${candidate}-${slug}.png`), Buffer.from(png.split(",")[1], "base64"));
+      if (candidate === "B" && view === "receiving") {
+        receivingFieldVisibility = await captureReceivingFieldSignal(page, {
+          signalPath: path.join(staticEvidence, "static-B-receiving-field-signal.json"),
+          canvasPath: path.join(staticEvidence, "static-B-receiving-field-alone-visible.png"),
+        }, "Default REVIEW_CANDIDATE_B");
+        await page.locator("#fieldToggle").check();
+        await page.selectOption("#fieldLayerView", "receiving");
+      }
     }
     staticCandidates.push(candidate);
   }
+  assert.ok(Array.isArray(receivingFieldVisibility) && receivingFieldVisibility.length === 4, "default Balanced Receiving Light signal must be recorded for all four corners");
   await page.selectOption("#fieldLayerView", "composite");
   await page.selectOption("#staticCandidate", "B");
   await page.setViewportSize({ width: 1440, height: 1100 });
@@ -326,6 +381,7 @@ let browser;
     diff: { ...metrics, status: "EXPLORATORY_ONLY_SOURCE_IDENTITY_UNVERIFIED" },
     responsive,
     staticCandidates,
+    receiving_field_visibility: receivingFieldVisibility,
     dynamicCandidates,
     speedPlaybackChecks,
     fishFocus: "Production BLOCKED · Case B review-only annotated alpha rendered at 0.72× Web review scale · no production Mask asserted",

@@ -798,7 +798,7 @@ function drawReviewReceivingField(ctx,rect,colors,quality){
     const configs=[[p.periods[0],.08],[p.periods[1],1.72],[p.periods[2],3.41],[p.periods[3],4.86]];
     configs.forEach(([period,phase],i)=>{breaths[i]=1+p.breath*Math.sin(2*Math.PI*t/period+phase);});
   }
-  const reviewColors={blue:"#6CB8D2",gold:"#D5A34E"};
+  const reviewColors={blue:"#5AB2FC",gold:"#E0B644"};
   const blobs=[
     {x:.86,y:.10,rx:.48,ry:.28,angle:.32,color:reviewColors.blue,weight:1.0,breath:breaths[0]},
     {x:.15,y:.16,rx:.42,ry:.23,angle:-.24,color:reviewColors.gold,weight:.68,breath:breaths[1]},
@@ -810,10 +810,12 @@ function drawReviewReceivingField(ctx,rect,colors,quality){
   blobs.forEach(blob=>{
     const cx=rect.left+blob.x*(rect.right-rect.left),cy=rect.top+blob.y*(rect.bottom-rect.top),rx=(rect.right-rect.left)*blob.rx,ry=(rect.bottom-rect.top)*blob.ry;
     const intensity=Math.min(.70,.44*common*blob.weight*blob.breath);
-    ctx.save();ctx.translate(cx,cy);ctx.rotate(blob.angle);ctx.scale(rx,ry);
-    const gradient=ctx.createRadialGradient(0,0,0,0,0,1);
+    // Keep the gradient and its ellipse in the same photo/canvas coordinate
+    // space. The prior unit-radius gradient was coupled to a transformed unit
+    // ellipse, which rendered nearly transparent in the deployed review page.
+    const gradient=ctx.createRadialGradient(cx,cy,0,cx,cy,Math.max(rx,ry)*1.08);
     gradient.addColorStop(0,safeAlphaColor(blob.color,intensity*.88));gradient.addColorStop(.34,safeAlphaColor(blob.color,intensity*.58));gradient.addColorStop(.69,safeAlphaColor(blob.color,intensity*.22));gradient.addColorStop(1,safeAlphaColor(blob.color,0));
-    ctx.fillStyle=gradient;ctx.beginPath();ctx.ellipse(0,0,1,1,0,0,Math.PI*2);ctx.fill();ctx.restore();
+    ctx.save();ctx.fillStyle=gradient;ctx.beginPath();ctx.ellipse(cx,cy,rx,ry,blob.angle,0,Math.PI*2);ctx.fill();ctx.restore();
   });
   ctx.restore();
 }

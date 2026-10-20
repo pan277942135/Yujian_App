@@ -24,6 +24,12 @@ The current package exposes static A/B/C candidates, dynamic A/B/C candidates, t
 
 Each keeps P1 path geometry intact and adds an asymmetric, more saturated review-only Receiving Light field: strongest blue at upper right, softer gold at upper left, a restrained gold residue at lower left, and a short weak blue trace at lower right. Web-only per-corner path length/alpha multipliers make the upper-right arc longest, upper-left second, and both lower corners partial/faded. P1–P5 token values and PR #165 Frozen PNGs are unchanged. The candidate composition can be decomposed into receiving field, primary paths, secondary filaments and final composite.
 
+## Receiving-field rendering correction
+
+The pre-change cloud capture at `review_v1/evidence/pre-change-cloud-default.jpg` shows the failure: in the real `optical-review` route, the photo perimeter reads almost as the raw photo even when the Receiving Light layer is isolated. The weakness was not fixed by increasing path brightness because the separate Optical Lab renderer was constructing the receiving field with a unit-radius radial gradient and a separately transformed unit ellipse. That coordinate mismatch left the broad field effectively invisible in the deployed preview. The renderer now builds both the radial gradient and rotated ellipse in photo/canvas coordinates, with the gradient radius scaled to the photo dimensions. Its asymmetric blue/gold field layout is preserved.
+
+The browser smoke isolates candidate B's Receiving Light layer from paths, filaments, and Fish Focus, compares canvas pixels with the field off/on in four photo-corner regions, and saves `static-B-receiving-field-alone-visible.png` plus `static-B-receiving-field-signal.json`. The 2.5% changed-pixel threshold is an engineering regression check for broad signal only; it is not a visual PASS. The attached canvas capture must still be judged for strength and naturalness against the Frozen reference.
+
 ## Dynamic candidates
 
 | Candidate | Field breathing | Path flow | Filaments | Intent |

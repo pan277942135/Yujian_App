@@ -125,6 +125,7 @@ jobs:
             fish_focus: smoke.fishFocus,
             stage_b: smoke.stageB,
             static_candidates: smoke.staticCandidates,
+            receiving_field_visibility: smoke.receiving_field_visibility,
             dynamic_candidates: smoke.dynamicCandidates,
             visual_review: smoke.visualReview,
             browser_errors: smoke.browserErrors,
