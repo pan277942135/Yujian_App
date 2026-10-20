@@ -1,0 +1,95 @@
+{
+  "schema_version": 1,
+  "document_type": "evidence_provenance",
+  "status": "REVIEW_REQUIRED",
+  "source": {
+    "pr164_head_sha": "77a9aabc2648bda2942575d6600b74c9fe7d3ad7",
+    "mapping_sha256": "0a9880d1250969d85104641686efe1b1f85c965b8d9b2f7954d387d3b72c0b6a",
+    "canonical_main_sha_at_handoff": "0d3238e8a41b87363e9a17b04c9cc45fca4c426d"
+  },
+  "figma": {
+    "overall": "NH01_FIGMA_STRUCTURAL_HANDOFF=REVIEW_REQUIRED",
+    "page_id": "25:2",
+    "main_frame_id": "41:30",
+    "master_board_untouched": true,
+    "brand_image_fill": "CONFIRMED_ON_PR164_MAPPING_HEAD; visual export NOT_RUN",
+    "background_image_fill": "BLOCKED_ENV_NOT_IMPORTED",
+    "current_visual_export": "NOT_RUN",
+    "pixel_diff": "NOT_RUN",
+    "motion": "NOT_RUN",
+    "independent_qa": "NOT_RUN"
+  },
+  "android": {
+    "runtime": "NOT_RUN",
+    "bounds_in_window": "NOT_RUN",
+    "native_screenshot": "NOT_RUN",
+    "apk_sha256": null,
+    "source_sha": null,
+    "workflow_run_id": null
+  },
+  "design_assets": {
+    "frozen_sha_match": true,
+    "background_sha_match": true,
+    "brand_sha_match": true,
+    "hero_fixture_rights": "INSUFFICIENT_APPROVED_ORIGINALS_FOR_8_CASES"
+  },
+  "open_issues": [
+    {
+      "id": "NH01-A01",
+      "priority": "P0",
+      "status": "BLOCKED_ENV",
+      "acceptance": "Import the original Morning Lake PNG into 41:32 using the proven figma.createImage(bytes) route when the connector quota is available or browser native Fill upload when Figma UI is accessible; verify IMAGE fill, render, export, and source SHA.",
+      "detail": "Background node 41:32 not imported; browser Figma URL unavailable, single-use raw upload returned HTTP 413, and no post-attempt readback is available. Brand node 41:34 has a confirmed IMAGE fill."
+    },
+    {
+      "id": "NH01-A02",
+      "priority": "P0",
+      "status": "BLOCKED_ASSET_SOURCE",
+      "acceptance": "Approve real Hero photo provenance and usage rights"
+    },
+    {
+      "id": "NH01-A03",
+      "priority": "P0",
+      "status": "BLOCKED_ENV",
+      "acceptance": "Export the current 1080x1920 page and run existing Geometry/Glyph/ROI thresholds; obtain independent QA review.",
+      "detail": "No current export after the exact brand image fill readback; browser Figma unavailable and connector limit reached."
+    },
+    {
+      "id": "NH01-A04",
+      "priority": "P1",
+      "status": "REVIEW_REQUIRED",
+      "detail": "CTA 36/40 in Compose vs 40/44 in responsive contract; camera y1583 in Compose vs 1564 in contract"
+    },
+    {
+      "id": "NH01-A05",
+      "priority": "P1",
+      "status": "REVIEW_REQUIRED",
+      "detail": "Figma Noto Sans SC candidate does not have verified 1:1 Android system CJK glyph mapping"
+    },
+    {
+      "id": "NH01-A06",
+      "priority": "P1",
+      "status": "REVIEW_REQUIRED",
+      "detail": "Chevron registry FROZEN conflicts with SVG candidate comment and Android drawable mapping"
+    },
+    {
+      "id": "NH01-A07",
+      "priority": "P1",
+      "status": "REVIEW_REQUIRED",
+      "detail": "Home V2 fallback vs NH07 staged supersession and Resource Binding default conflict; Frozen sample contains an unregistered remote personal avatar with no separately authorized source.",
+      "acceptance": "Resolve the effective signed-in avatar authority and the dynamic-photo comparison treatment; preserve Guest avatar as a separate state."
+    }
+  ],
+  "gate_status": {
+    "G0_SOURCE_AUTHORITY": "PASS",
+    "G1_STRUCTURE_VALID": "PASS",
+    "G2_CLOUD_PREVIEW_VALID": "NOT_RUN",
+    "G3_COMPOSE_MAPPING_VALID": "PASS",
+    "G4_RUNTIME_VALID": "NOT_RUN",
+    "G5_VISUAL_PARITY_VALID": "NOT_RUN",
+    "G6_RESPONSIVE_VALID": "NOT_RUN",
+    "G7_DELIVERY_VALID": "NOT_RUN",
+    "G8_USER_ACCEPTANCE": "PENDING_REVIEW",
+    "FINAL": "IN_PROGRESS"
+  }
+}

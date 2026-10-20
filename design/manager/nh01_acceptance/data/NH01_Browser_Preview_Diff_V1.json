@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "document_type": "browser_preview_diff",
+  "status": "NOT_RUN",
+  "source": {
+    "source_sha": null,
+    "renderer": "Chromium DOM screenshot; not Android Runtime"
+  },
+  "classification": "NOT_RUN",
+  "artifacts": {
+    "structured_preview": null,
+    "heatmap": null,
+    "overlay": null,
+    "roi_report": null
+  },
+  "metrics": {},
+  "rois": []
+}

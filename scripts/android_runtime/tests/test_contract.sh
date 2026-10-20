@@ -6,6 +6,11 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
 ENTRYPOINT="$ROOT_DIR/scripts/run_android_runtime_gate.sh"
 FAKE_ADB="$ROOT_DIR/scripts/android_runtime/tests/fake_adb.sh"
 
+grep -q 'gemini-home-v2' "$ENTRYPOINT" || {
+  echo "Gemini Home V2 runtime gate is not registered" >&2
+  exit 1
+}
+
 assert_result() {
   local result_file="$1"
   local expected_classification="$2"
@@ -79,8 +84,14 @@ run_case() {
     }
   fi
   if [[ "$name" == "pass" ]]; then
-    mapfile -t instrumentation_classes < <(sed -n 's/^TEST_CLASSES=//p' "$tmp/evidence/instrumentation.log")
-    mapfile -t instrumentation_timeouts < <(sed -n 's/^TIMEOUT_SECONDS=//p' "$tmp/evidence/instrumentation.log")
+    instrumentation_classes=()
+    while IFS= read -r instrumentation_class; do
+      instrumentation_classes+=("$instrumentation_class")
+    done < <(sed -n 's/^TEST_CLASSES=//p' "$tmp/evidence/instrumentation.log")
+    instrumentation_timeouts=()
+    while IFS= read -r instrumentation_timeout; do
+      instrumentation_timeouts+=("$instrumentation_timeout")
+    done < <(sed -n 's/^TIMEOUT_SECONDS=//p' "$tmp/evidence/instrumentation.log")
     [[ "${#instrumentation_classes[@]}" == "2" ]] || {
       echo "expected the required suite and one additional evidence invocation" >&2
       exit 1

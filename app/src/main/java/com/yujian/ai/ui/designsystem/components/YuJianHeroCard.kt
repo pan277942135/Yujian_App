@@ -65,6 +65,7 @@ fun YuJianHeroCard(
     cornerRadius: Dp = YuJianRadius.extraLarge,
     footerPaddingHorizontal: Dp? = null,
     footerPaddingVertical: Dp? = null,
+    footerContentFillWidth: Boolean = false,
     editLabel: String? = if (variant == YuJianHeroVariant.DETAIL) "编辑 >" else null,
     onClick: (() -> Unit)? = null,
     semanticsTag: String? = null,
@@ -105,7 +106,9 @@ fun YuJianHeroCard(
                         colors = listOf(
                             YuJianColors.DeepOverlay.copy(alpha = 0f),
                             YuJianColors.DeepOverlay.copy(alpha = 0.10f),
-                            YuJianColors.DeepOverlay,
+                            // Match the approved fish_card_gradient.png endpoint when the
+                            // runtime asset bundle is not available yet.
+                            YuJianColors.DeepOverlay.copy(alpha = 0.48f),
                         ),
                     ),
                 ),
@@ -114,6 +117,7 @@ fun YuJianHeroCard(
             Column(
                 modifier = Modifier
                     .align(Alignment.BottomStart)
+                    .then(if (footerContentFillWidth) Modifier.fillMaxWidth() else Modifier)
                     .padding(
                         horizontal = footerPaddingHorizontal ?: footerPadding,
                         vertical = footerPaddingVertical ?: footerPadding,

@@ -95,8 +95,9 @@ internal fun normalHomeTypographyContract(
         heroTitle = type(referenceFontPx = 56f, referenceLineHeightPx = 64f, minimumFontPx = 18f),
         measurement = type(referenceFontPx = 46f, referenceLineHeightPx = 52f, minimumFontPx = 16f),
         metadata = type(referenceFontPx = 36f, referenceLineHeightPx = 42f, minimumFontPx = 16f),
-        // Frozen CTA glyph height is about 32 px.
-        captureCta = type(referenceFontPx = 36f, referenceLineHeightPx = 40f, minimumFontPx = 16f),
+        // CTA A1 typography is frozen at 40/44 physical reference pixels.
+        // The glyph ink is smaller than its font and line box.
+        captureCta = type(referenceFontPx = 40f, referenceLineHeightPx = 44f, minimumFontPx = 16f),
     )
 }
 

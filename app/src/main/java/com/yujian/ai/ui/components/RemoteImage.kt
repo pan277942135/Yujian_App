@@ -29,6 +29,32 @@ import kotlinx.coroutines.withContext
 import java.net.HttpURLConnection
 import java.net.URL
 import java.io.File
+import java.security.MessageDigest
+import java.util.LinkedHashMap
+
+/** Small process-wide cache for repeated Home pages; auth secrets are never retained in keys. */
+private object RemoteBitmapMemoryCache {
+    private const val MAX_BYTES = 24 * 1024 * 1024
+    private val entries = object : LinkedHashMap<String, Bitmap>(8, 0.75f, true) {}
+    private var bytes = 0
+
+    @Synchronized
+    fun get(key: String): Bitmap? = entries[key]
+
+    @Synchronized
+    fun put(key: String, bitmap: Bitmap) {
+        val previous = entries.put(key, bitmap)
+        if (previous != null) bytes -= previous.byteCount
+        bytes += bitmap.byteCount
+        val iterator = entries.entries.iterator()
+        while (bytes > MAX_BYTES && iterator.hasNext()) {
+            val evicted = iterator.next().value
+            bytes -= evicted.byteCount
+            iterator.remove()
+            // Do not recycle: a composed Image may still hold this bitmap until it leaves composition.
+        }
+    }
+}
 
 @Composable
 fun RemoteImage(
@@ -46,14 +72,24 @@ fun RemoteImage(
     trimVerifiedLetterbox: Boolean = false,
     cacheIdentity: String? = null,
 ) {
-    val bitmapState = remember(url, authToken, reloadToken, cacheIdentity, preserveEvidenceWithFitBackdrop) { mutableStateOf<Bitmap?>(null) }
+    val cacheKey = remember(url, authToken, reloadToken, cacheIdentity, preserveEvidenceWithFitBackdrop) {
+        url?.takeIf(String::isNotBlank)?.let {
+            val tokenDigest = authToken?.takeIf(String::isNotBlank)?.let(::sha256Hex).orEmpty()
+            listOf(it, tokenDigest, reloadToken.toString(), cacheIdentity.orEmpty(), preserveEvidenceWithFitBackdrop.toString())
+                .joinToString("\u0000")
+        }
+    }
+    val bitmapState = remember(cacheKey) { mutableStateOf<Bitmap?>(null) }
     val latestOnLoadResult = rememberUpdatedState(onLoadResult)
-    LaunchedEffect(url, authToken, reloadToken, cacheIdentity, preserveEvidenceWithFitBackdrop) {
-        if (url.isNullOrBlank()) {
+    LaunchedEffect(cacheKey, url, authToken, preserveEvidenceWithFitBackdrop) {
+        if (cacheKey == null || url.isNullOrBlank()) {
             bitmapState.value = null
             return@LaunchedEffect
         }
-        val loaded = withContext(Dispatchers.IO) { loadBitmap(url, authToken, orientEvidence = preserveEvidenceWithFitBackdrop) }
+        val loaded = RemoteBitmapMemoryCache.get(cacheKey) ?: withContext(Dispatchers.IO) {
+            loadBitmap(url, authToken, orientEvidence = preserveEvidenceWithFitBackdrop)
+                ?.also { RemoteBitmapMemoryCache.put(cacheKey, it) }
+        }
         bitmapState.value = loaded
         latestOnLoadResult.value?.invoke(loaded != null)
     }
@@ -80,19 +116,30 @@ fun RemoteImage(
                     }
                 }
                 Box(Modifier.fillMaxSize().background(Color(0xFF16242C)))
+                if (backdrop.value == null) {
+                    // Until the soft backdrop is ready, use the same source as a full-bleed
+                    // crop. This removes hard letterbox bands without stretching or cropping
+                    // the fitted evidence foreground.
+                    Image(
+                        bitmap = imageBitmap,
+                        contentDescription = null,
+                        modifier = Modifier.fillMaxSize().testTag("home-evidence-backdrop-crop-fallback"),
+                        contentScale = ContentScale.Crop,
+                    )
+                }
                 backdrop.value?.let { blurred ->
                     Image(
                         bitmap = blurred.asImageBitmap(),
                         contentDescription = null,
-                        modifier = Modifier.fillMaxSize().alpha(0.82f).testTag("home-evidence-backdrop-ready"),
+                        modifier = Modifier.fillMaxSize().testTag("home-evidence-backdrop-ready"),
                         contentScale = ContentScale.Crop,
                     )
                 }
-                Box(Modifier.fillMaxSize().background(Color(0xFF16242C).copy(alpha = 0.14f)))
+                Box(Modifier.fillMaxSize().background(Color(0xFF16242C).copy(alpha = 0.08f)))
                 Image(
                     bitmap = imageBitmap,
                     contentDescription = contentDescription,
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier.fillMaxSize().testTag("home-evidence-fit-foreground"),
                     contentScale = ContentScale.Fit,
                     colorFilter = colorFilter,
                 )
@@ -126,6 +173,11 @@ fun RemoteImage(
     } else {
         Box(modifier = modifier, contentAlignment = Alignment.Center) { placeholder() }
     }
+}
+
+private fun sha256Hex(value: String): String {
+    val bytes = MessageDigest.getInstance("SHA-256").digest(value.toByteArray(Charsets.UTF_8))
+    return bytes.joinToString(separator = "") { byte -> "%02x".format(byte.toInt() and 0xff) }
 }
 
 private fun loadBitmap(url: String, authToken: String?, orientEvidence: Boolean = false): Bitmap? = runCatching {

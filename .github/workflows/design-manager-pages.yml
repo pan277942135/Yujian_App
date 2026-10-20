@@ -12,6 +12,16 @@ on:
       - "scripts/verify_design_manager_live.py"
       - ".github/workflows/experience-governance.yml"
       - ".github/workflows/design-manager-pages.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "design/**"
+      - "scripts/design/**"
+      - "scripts/verify_design_manager_navigation.py"
+      - "scripts/verify_design_manager_hifi_release.py"
+      - "scripts/verify_design_manager_browser.mjs"
+      - "scripts/verify_design_manager_live.py"
+      - ".github/workflows/design-manager-pages.yml"
   workflow_dispatch:
 
 permissions:
@@ -20,8 +30,11 @@ permissions:
   id-token: write
 
 concurrency:
-  group: "design-manager-pages"
+  group: "design-manager-pages-${{ github.ref }}"
   cancel-in-progress: false
+
+env:
+  BUILD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
 
 jobs:
   build:
@@ -30,6 +43,22 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Set up Python for NH01 schema validation
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Validate NH01 structured bundle
+        run: |
+          python -m pip install --disable-pip-version-check -r scripts/design/requirements_nh01_cloud.txt
+          python3 scripts/design/build_nh01_cloud_bundle.py
+          python3 scripts/design/validate_nh01_cloud_bundle.py
+          python3 scripts/design/build_nh01_authority_inventory.py
+          python3 scripts/design/verify_nh01_cloud_viewer.py
+          python3 -m unittest discover -s scripts/design/tests -p 'test_*.py' -v
 
       - name: Setup Node for browser verification
         uses: actions/setup-node@v4
@@ -60,10 +89,12 @@ jobs:
           rm -rf _site
           mkdir -p _site
           cp -R design _site/design
-          BUILD_SHORT="${GITHUB_SHA:0:12}"
-          sed -i "s/__DESIGN_MANAGER_BUILD__/${GITHUB_SHA}/g" _site/design/manager/index.html
+          BUILD_SHORT="${BUILD_SHA:0:12}"
+          sed -i "s/__DESIGN_MANAGER_BUILD__/${BUILD_SHA}/g" _site/design/manager/index.html
           sed -i "s/__DESIGN_MANAGER_BUILD_SHORT__/${BUILD_SHORT}/g" _site/design/manager/index.html
-          printf '{"sha":"%s","short_sha":"%s"}\n' "${GITHUB_SHA}" "${BUILD_SHORT}" > _site/design/manager/build.json
+          sed -i "s/__NH01_SOURCE_SHA__/${BUILD_SHA}/g" _site/design/manager/nh01_acceptance/index.html
+          sed -i "s/__NH01_VIEWER_BUILD__/${BUILD_SHA}/g" _site/design/manager/nh01_acceptance/index.html
+          printf '{"sha":"%s","short_sha":"%s"}\n' "${BUILD_SHA}" "${BUILD_SHORT}" > _site/design/manager/build.json
           touch _site/.nojekyll
           cat > _site/index.html <<'EOF'
           <!doctype html>
@@ -81,10 +112,10 @@ jobs:
           EOF
 
       - name: Verify Design Manager navigation artifact
-        run: python3 scripts/verify_design_manager_navigation.py --site _site --expected-build "${GITHUB_SHA}"
+        run: python3 scripts/verify_design_manager_navigation.py --site _site --expected-build "${BUILD_SHA}"
 
       - name: Verify hi-fi Pages artifact
-        run: python3 scripts/verify_design_manager_hifi_release.py --site _site --expected-build "${GITHUB_SHA}"
+        run: python3 scripts/verify_design_manager_hifi_release.py --site _site --expected-build "${BUILD_SHA}"
 
       - name: Verify browser routes and responsive preview
         shell: bash
@@ -93,8 +124,55 @@ jobs:
           PLAYWRIGHT_MODULE_DIR="$RUNNER_TEMP/dm-playwright/node_modules" \
             node scripts/verify_design_manager_browser.mjs \
               --root _site \
-              --expected-build "${GITHUB_SHA}" \
+              --expected-build "${BUILD_SHA}" \
               --output-dir "$RUNNER_TEMP/dm-build-browser"
+
+      - name: Serve and verify NH01 Acceptance Center
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m http.server 8765 --directory _site > "$RUNNER_TEMP/nh01-http.log" 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          for attempt in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:8765/design/manager/nh01_acceptance/ >/dev/null; then break; fi
+            sleep 1
+          done
+          curl -fsS http://127.0.0.1:8765/design/manager/nh01_acceptance/ >/dev/null
+          PLAYWRIGHT_MODULE_DIR="$RUNNER_TEMP/dm-playwright/node_modules" \
+            node scripts/design/verify_nh01_viewer_browser.mjs \
+              --base-url=http://127.0.0.1:8765 \
+              --expected-source-sha="$BUILD_SHA" \
+              --output-dir "$RUNNER_TEMP/nh01-browser"
+          mkdir -p "$RUNNER_TEMP/nh01-preview-diff"
+          python3 scripts/design/compare_nh01_structured_preview.py \
+            --structured "$RUNNER_TEMP/nh01-browser/NH01_Structured_Preview_1080x1920.png" \
+            --output-dir "$RUNNER_TEMP/nh01-preview-diff" \
+            --source-sha "$BUILD_SHA"
+          python3 scripts/design/record_nh01_browser_evidence.py \
+            --report "$RUNNER_TEMP/nh01-browser/NH01_Browser_Viewer_Report.json" \
+            --site-root _site \
+            --expected-source-sha "$BUILD_SHA" \
+            --workflow-run-id "${{ github.run_id }}" \
+            --workflow-run-url "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
+            --preview-diff-report "$RUNNER_TEMP/nh01-preview-diff/NH01_ROI_Report.json" \
+            --preview-screenshot "$RUNNER_TEMP/nh01-browser/NH01_Structured_Preview_1080x1920.png" \
+            --preview-diff-dir "$RUNNER_TEMP/nh01-preview-diff"
+          PLAYWRIGHT_MODULE_DIR="$RUNNER_TEMP/dm-playwright/node_modules" \
+            node scripts/design/verify_nh01_viewer_browser.mjs \
+              --base-url=http://127.0.0.1:8765 \
+              --expected-source-sha="$BUILD_SHA" \
+              --require-browser-diff \
+              --output-dir "$RUNNER_TEMP/nh01-browser-final"
+          python3 scripts/design/record_nh01_browser_evidence.py \
+            --report "$RUNNER_TEMP/nh01-browser-final/NH01_Browser_Viewer_Report.json" \
+            --site-root _site \
+            --expected-source-sha "$BUILD_SHA" \
+            --workflow-run-id "${{ github.run_id }}" \
+            --workflow-run-url "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
+            --preview-diff-report "$RUNNER_TEMP/nh01-preview-diff/NH01_ROI_Report.json" \
+            --preview-screenshot "$RUNNER_TEMP/nh01-browser/NH01_Structured_Preview_1080x1920.png" \
+            --preview-diff-dir "$RUNNER_TEMP/nh01-preview-diff"
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v4
@@ -104,12 +182,23 @@ jobs:
       - name: Upload build browser evidence
         uses: actions/upload-artifact@v4
         with:
-          name: Design-Manager-Browser-Build-${{ github.sha }}
+          name: Design-Manager-Browser-Build-${{ github.run_id }}-${{ github.event.pull_request.head.sha || github.sha }}
           path: ${{ runner.temp }}/dm-build-browser/
           if-no-files-found: error
           retention-days: 14
 
+      - name: Upload NH01 structured preview comparison evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: NH01-Structured-Preview-${{ github.run_id }}-${{ github.event.pull_request.head.sha || github.sha }}
+          path: |
+            ${{ runner.temp }}/nh01-browser-final/
+            ${{ runner.temp }}/nh01-preview-diff/
+          if-no-files-found: error
+          retention-days: 30
+
   deploy:
+    if: github.event_name != 'pull_request'
     environment:
       name: design-manager-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -145,7 +234,7 @@ jobs:
         run: |
           python3 scripts/verify_design_manager_live.py \
             --url "${{ steps.deployment.outputs.page_url }}" \
-            --expected-build "${GITHUB_SHA}" \
+            --expected-build "${BUILD_SHA}" \
             --output "$RUNNER_TEMP/dm-live-evidence/live-verification.json"
 
       - name: Verify live browser routes and responsive preview
@@ -155,13 +244,13 @@ jobs:
           PLAYWRIGHT_MODULE_DIR="$RUNNER_TEMP/dm-playwright/node_modules" \
             node scripts/verify_design_manager_browser.mjs \
               --url "${{ steps.deployment.outputs.page_url }}" \
-              --expected-build "${GITHUB_SHA}" \
+              --expected-build "${BUILD_SHA}" \
               --output-dir "$RUNNER_TEMP/dm-live-evidence/browser"
 
       - name: Upload live release evidence
         uses: actions/upload-artifact@v4
         with:
-          name: Design-Manager-Live-Release-${{ github.sha }}
+          name: Design-Manager-Live-Release-${{ github.run_id }}-${{ github.event.pull_request.head.sha || github.sha }}
           path: ${{ runner.temp }}/dm-live-evidence/
           if-no-files-found: error
           retention-days: 30

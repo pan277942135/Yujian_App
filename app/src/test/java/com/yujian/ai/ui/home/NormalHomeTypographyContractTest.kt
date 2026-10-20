@@ -25,7 +25,7 @@ class NormalHomeTypographyContractTest {
                 assertRoleSize(contract.heroTitle, 56f, expectedScale, 18f, density)
                 assertRoleSize(contract.measurement, 46f, expectedScale, 16f, density)
                 assertRoleSize(contract.metadata, 36f, expectedScale, 16f, density)
-                assertRoleSize(contract.captureCta, 36f, expectedScale, 16f, density)
+                assertRoleSize(contract.captureCta, 40f, expectedScale, 16f, density)
             }
         }
     }
@@ -43,7 +43,7 @@ class NormalHomeTypographyContractTest {
             assertEquals(56f, pxAt(contract.heroTitle, density), 0.01f)
             assertEquals(46f, pxAt(contract.measurement, density), 0.01f)
             assertEquals(36f, pxAt(contract.metadata, density), 0.01f)
-            assertEquals(36f, pxAt(contract.captureCta, density), 0.01f)
+            assertEquals(40f, pxAt(contract.captureCta, density), 0.01f)
         }
     }
 
