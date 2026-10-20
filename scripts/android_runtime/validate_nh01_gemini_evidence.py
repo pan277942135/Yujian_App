@@ -56,7 +56,7 @@ def validate(root: Path) -> dict[str, Any]:
     missing_avatar_callbacks = [
         str(item.get("profile", index))
         for index, item in enumerate(profiles)
-        if item.get("interactions", {}).get("guest_avatar_login") != "PASS"
+        if not isinstance(item.get("interactions"), dict) or item["interactions"].get("guest_avatar_login") != "PASS"
     ]
     if missing_avatar_callbacks:
         raise EvidenceValidationError(
