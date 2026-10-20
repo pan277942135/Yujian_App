@@ -151,7 +151,7 @@ async function main() {
   await page.goto(centerUrl, { waitUntil: "networkidle" });
   const entry = page.locator('[data-edgeglow-entry="recognition-processing"]');
   assert.equal(await entry.count(), 1, "Acceptance Center has one Recognition Processing → EdgeGlow entry.");
-  assert.match(await entry.innerText(), /Recognition Processing.*EdgeGlowView Fish Static Prototype/);
+  assert.match(await entry.innerText(), /Recognition Processing.*EdgeGlow Fish Static Prototype.*Static \+ Dynamic Review/);
   await entry.click();
   await page.waitForURL(url => url.pathname.includes("/edgeglow-fish-static/"), { timeout: 15000 });
   const staticRouteUrl = page.url();
