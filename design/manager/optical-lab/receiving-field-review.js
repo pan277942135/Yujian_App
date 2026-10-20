@@ -47,11 +47,14 @@
     observer.observe(photoCanvas, { attributes: true, attributeFilter: ["width", "height", "data-state", "data-candidate", "data-preview-mode", "data-preview-time"] });
     ["staticCandidate", "dynamicCandidate", "fieldLayerView", "fieldToggle", "playPause", "motionSpeed"].forEach((id) => {
       const node = document.getElementById(id);
-      if (node) node.addEventListener("change", () => paint(performance.now()));
+      if (node) node.addEventListener("change", () => { updateCandidateCaption(); paint(performance.now()); });
       if (node && id === "playPause") node.addEventListener("click", () => requestAnimationFrame(() => paint(performance.now())));
     });
     const stateButtons = document.getElementById("stateButtons");
     if (stateButtons) stateButtons.addEventListener("click", () => requestAnimationFrame(() => paint(performance.now())));
+    const modeButtons = document.getElementById("previewModeButtons");
+    if (modeButtons) modeButtons.addEventListener("click", () => requestAnimationFrame(updateCandidateCaption));
+    updateCandidateCaption();
     loop();
   }
 
@@ -70,6 +73,21 @@
       };
       patched.__receivingFieldReviewPatched = true;
       HTMLCanvasElement.prototype.toDataURL = patched;
+    }
+    const originalToBlob = HTMLCanvasElement.prototype.toBlob;
+    if (originalToBlob && !originalToBlob.__receivingFieldReviewPatched) {
+      const patched = function (callback, ...args) {
+        if (this.id !== "previewCanvas" || !overlay || !overlayContext) return originalToBlob.call(this, callback, ...args);
+        const composed = document.createElement("canvas");
+        composed.width = this.width;
+        composed.height = this.height;
+        const context = composed.getContext("2d");
+        context.drawImage(this, 0, 0);
+        context.drawImage(overlay, 0, 0, composed.width, composed.height);
+        return originalToBlob.call(composed, callback, ...args);
+      };
+      patched.__receivingFieldReviewPatched = true;
+      HTMLCanvasElement.prototype.toBlob = patched;
     }
     const originalCapture = HTMLCanvasElement.prototype.captureStream;
     if (originalCapture && !originalCapture.__receivingFieldReviewPatched) {
@@ -105,6 +123,17 @@
     const field = document.getElementById("fieldToggle");
     const decomposition = value("fieldLayerView", "composite");
     return (!field || field.checked) && (decomposition === "composite" || decomposition === "receiving");
+  }
+
+  function updateCandidateCaption() {
+    const caption = document.getElementById("candidateDescription");
+    if (!caption) return;
+    const dynamic = Boolean(document.querySelector('[data-preview-mode="dynamic"].active'));
+    const candidate = dynamic ? value("dynamicCandidate", "B") : value("staticCandidate", "B");
+    const copy = dynamic
+      ? { A: "Dynamic A · 独立慢呼吸，光丝克制；Web Review only。", B: "Dynamic B · 四角不同步呼吸与缓慢流动；Web Review only。", C: "Dynamic C · 呼吸幅度更大，用于氛围上限评审；Web Review only。" }
+      : { A: "REVIEW_CANDIDATE_A · 轻柔边缘场，蓝金层次克制。", B: "REVIEW_CANDIDATE_B · 右上蓝场最强、左上暖金次之，下角保留短余辉。", C: "REVIEW_CANDIDATE_C · 提高底场可见度，用于强度上限评审。" };
+    caption.textContent = copy[candidate] || copy.B;
   }
 
   function paint(now) {

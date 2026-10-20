@@ -84,6 +84,30 @@ function cornerSignal(canvas) {
       await page.setViewportSize({ width: 1440, height: 1080 });
     }
 
+    await page.locator("#previewModeButtons [data-preview-mode='static']").click();
+    await page.locator("#staticCandidate").selectOption("B");
+    await page.waitForTimeout(150);
+    const exportComposite = await page.locator("#previewCanvas").evaluate(async (canvas) => {
+      const overlay = document.querySelector("#receivingFieldReviewOverlay");
+      const layer = overlay.getContext("2d").getImageData(0, 0, overlay.width, overlay.height).data;
+      let sample = -1, maxAlpha = 0;
+      for (let i = 3; i < layer.length; i += 4) if (layer[i] > maxAlpha) { maxAlpha = layer[i]; sample = (i - 3) / 4; }
+      const x = sample % canvas.width, y = Math.floor(sample / canvas.width);
+      const base = canvas.getContext("2d").getImageData(x, y, 1, 1).data;
+      const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/png"));
+      const bitmap = await createImageBitmap(blob);
+      const exportedCanvas = document.createElement("canvas");
+      exportedCanvas.width = canvas.width; exportedCanvas.height = canvas.height;
+      const exportedContext = exportedCanvas.getContext("2d");
+      exportedContext.drawImage(bitmap, 0, 0);
+      const exported = exportedContext.getImageData(x, y, 1, 1).data;
+      bitmap.close();
+      return { x, y, max_overlay_alpha: maxAlpha, channel_delta: Array.from(base).slice(0, 3).reduce((sum, value, index) => sum + Math.abs(value - exported[index]), 0) };
+    });
+    assert.ok(exportComposite.max_overlay_alpha > 32, "Review-only overlay had no strong sample to test export composition.");
+    assert.ok(exportComposite.channel_delta > 24, "Web PNG export omitted the Receiving Field overlay.");
+    result.export_composite_signal = exportComposite;
+
     await page.locator("#previewModeButtons [data-preview-mode='dynamic']").click();
     await page.locator("#dynamicCandidate").selectOption("B");
     await page.locator("#motionSpeed").selectOption("1");

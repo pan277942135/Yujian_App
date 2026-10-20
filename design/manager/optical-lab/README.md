@@ -20,7 +20,7 @@ The new candidates add a separate transparent, browser-only Receiving Field laye
 | `REVIEW_CANDIDATE_B` · Balanced Field | 1.50 | Stronger blue/gold edge field with broken arcs; compare first |
 | `REVIEW_CANDIDATE_C` · Strong Atmosphere | 2.25 | Review-only visibility ceiling |
 
-These are review parameters, not frozen product values. The overlay is labelled `REVIEW-ONLY`; it is composited into Web PNG/WebM export so evidence matches the visible preview. The native Android renderer is unchanged.
+These are review parameters, not frozen product values. The overlay is labelled `REVIEW-ONLY`; it is composited into Web PNG/WebM export so evidence matches the visible preview. The PNG export regression now checks that its output contains overlay pixels. The native Android renderer is unchanged.
 
 ## Dynamic review
 
