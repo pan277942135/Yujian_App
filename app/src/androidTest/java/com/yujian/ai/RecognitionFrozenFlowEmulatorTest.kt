@@ -25,7 +25,7 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.DeviceConfigurationOverride
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.FontScale
-import androidx.compose.ui.test.WindowSize
+import androidx.compose.ui.test.ForcedSize
 import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.hasStateDescription
 import androidx.compose.ui.test.hasText
@@ -497,7 +497,7 @@ class RecognitionFrozenFlowEmulatorTest {
         composeRule.setContent {
             val profile = active.value
             DeviceConfigurationOverride(
-                DeviceConfigurationOverride.WindowSize(
+                DeviceConfigurationOverride.ForcedSize(
                     DpSize(profile.widthDp.dp, profile.heightDp.dp),
                 ) + DeviceConfigurationOverride.FontScale(profile.fontScale),
             ) {
