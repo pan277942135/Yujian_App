@@ -223,6 +223,8 @@ async function main() {
   assert(canvasAudit?.status === "PASS", `Gemini canvas preview asset integrity failed: ${JSON.stringify(canvasAudit)}`);
   assert(canvasLayout?.variant === "ADAPTIVE_V1" && canvasLayout?.logical_viewport_dp?.join("x") === "360x640",
     `Gemini canvas screenshot must use the default 360x640 logical profile: ${JSON.stringify(canvasLayout)}`);
+  assert(Math.abs(canvasLayout.card_width_dp - 220) <= 1 && Math.abs(canvasLayout.card_height_dp - 261) <= 1,
+    `Gemini preview card geometry must match the API28 360x640 runtime bounds (220×261dp): ${JSON.stringify(canvasLayout)}`);
   const canvasPath = resolve(args.outputDir, "nh01-gemini-native-structure-1080x1920.png");
   await canvasPage.screenshot({ path: canvasPath, fullPage: false, scale: "device" });
   const canvasPng = readFileSync(canvasPath);
