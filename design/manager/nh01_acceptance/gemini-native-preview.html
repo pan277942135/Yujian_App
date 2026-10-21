@@ -456,6 +456,8 @@
         });
       }
       function applyViewport() {
+        // Invalidate the prior frame's readiness before changing viewport geometry; browser gates must not read stale bounds.
+        window.NH01GeminiPreviewLayoutReady = false;
         const requestedViewport = params.get("viewport");
         const widthHeight = canvasMode ? [window.innerWidth, window.innerHeight] : (matrixMode && requestedViewport ? requestedViewport.split("x").map(Number) : preset.value.split("x").map(Number));
         const width = widthHeight[0], height = widthHeight[1];
