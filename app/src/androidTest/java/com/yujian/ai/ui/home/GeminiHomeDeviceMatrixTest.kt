@@ -264,6 +264,8 @@ class GeminiHomeDeviceMatrixTest {
         val headerToStatsGap = stats.top - header.bottom
         val centerOffset = abs(activeCard.centerX() - track.centerX())
         val ratio = activeCardLayoutWidthDp / activeCardLayoutHeightDp
+        val neighborWidthFraction = neighborCard.width() / activeCardLayoutWidthDp
+        val neighborOverlapDp = maxOf(0f, activeCard.right - neighborCard.left)
         val cardWidthFraction = when (variant) {
             GeminiHomeLayoutVariant.ADAPTIVE_V1 -> 0.76f
             GeminiHomeLayoutVariant.ADAPTIVE_V2 -> 0.70f
@@ -419,6 +421,9 @@ class GeminiHomeDeviceMatrixTest {
                 put("card_aspect_error_percent", ratioErrorPercent)
                 put("card_target_width_dp", targetCardWidthDp)
                 put("card_actual_width_dp", activeCardLayoutWidthDp)
+                put("neighbor_width_dp", neighborCard.width())
+                put("neighbor_width_fraction", neighborWidthFraction)
+                put("peek_card_overlap_dp", neighborOverlapDp)
                 put("card_shrunk_for_height", activeCardLayoutWidthDp < targetCardWidthDp - 1f)
                 put("section_title_to_card_gap_dp", sectionTitleCardGap)
                 put("card_to_footer_gap_dp", footer.top - activeCard.bottom)
