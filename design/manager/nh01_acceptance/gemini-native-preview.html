@@ -96,7 +96,7 @@
     .canvas-mode .device-wrap{width:100vw!important;height:100dvh!important}
     .canvas-mode .device{width:100vw!important;height:100dvh!important;transform:none!important;border:0;border-radius:0;box-shadow:none}
     @media(max-width:850px){.workspace{grid-template-columns:minmax(0,1fr);padding:14px;gap:14px}.workspace-header{margin-bottom:10px}.preview-stage{padding:0}.audit-column{grid-template-columns:minmax(0,1fr)}}
-    @media(max-width:460px){.workspace{padding:10px}.workspace-header{display:grid}.controls{gap:8px}.control{min-width:calc(50% - 8px)}.device{border-radius:18px}.asset-row{grid-template-columns:minmax(0,1fr)}.asset-status{justify-self:start}}
+    @media(max-width:460px){.workspace{padding:10px}.workspace-header{display:grid}.controls{gap:8px}.control{min-width:calc(50% - 8px)}.device{border-radius:18px}.asset-row{grid-template-columns:minmax(0,1fr)}.asset-status{justify-self:start;white-space:normal;overflow-wrap:anywhere;max-width:100%}}
   </style>
 </head>
 <body>
@@ -290,7 +290,7 @@
           const name = document.createElement("div"); name.className = "asset-name"; name.textContent = result.label;
           const meta = document.createElement("div"); meta.className = "asset-meta";
           meta.textContent = result.actual_sha256 ? "SHA-256 " + result.actual_sha256 + " · " + result.actual_dimensions_px.join("×") : (result.reason || "未提供可公开预览的正式原图。");
-          const status = document.createElement("span"); status.className = "asset-status"; status.dataset.status = result.status; status.textContent = result.status;
+          const status = document.createElement("span"); status.className = "asset-status"; status.dataset.status = result.status; status.title = result.status; status.textContent = ({ PASS_SOURCE_INTEGRITY: "PASS · SHA + SIZE", BLOCKED_ASSET_SOURCE: "BLOCKED · PHOTO SOURCE", BLOCKED_MISSING_APPROVED_INDEPENDENT_ORIGINALS: "BLOCKED · PHOTO SET" })[result.status] || result.status;
           details.append(name, meta); row.append(details, status); assetList.append(row);
         }
         const failures = results.filter(result => result.status === "FAIL_SOURCE_INTEGRITY");
