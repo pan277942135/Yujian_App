@@ -18,7 +18,7 @@ EXPECTED_RECOGNITION_FLOW = [
 ]
 EXPECTED_RECOGNITION_RESULT = [
     "overview", "high", "medium", "low", "no_fish", "image_quality",
-    "content_edit", "decision_logic",
+    "content_edit", "decision_logic", "visual_acceptance", "motion_continuation",
 ]
 
 
@@ -70,7 +70,20 @@ def validate_tree(root: Path, *, built: bool = False, expected_build: str | None
         fail("legacy 07 guide and P01/P02/P03 menu mapping must remain stable")
     journey = next((x for x in registry["features"] if x.get("id") == "recognition_result_v1"), None)
     if not journey or [x.get("id") for x in journey.get("hifi_views", [])] != EXPECTED_RECOGNITION_RESULT:
-        fail("Recognition Result existing RR01–RR08 view mapping changed")
+        fail("Recognition Result hifi views must preserve RR00–RR07 and append RR08/RR09")
+    result_views = {x.get("id"): x for x in journey.get("hifi_views", [])}
+    rr08 = result_views.get("visual_acceptance", {})
+    rr09 = result_views.get("motion_continuation", {})
+    if rr08.get("status") != "FROZEN" or rr08.get("readiness_status") != "READY_FOR_VISUAL_IMPLEMENTATION":
+        fail("RR08 visual acceptance index must be frozen while preserving its separate implementation-readiness status")
+    if rr09.get("status") != "FROZEN" or rr09.get("behavior_authority") != "design/pages/recognition/result/motion/Recognition_Result_Motion_Spec_V2.md":
+        fail("RR09 motion continuation must resolve to the frozen Motion V2 authority")
+    if rr09.get("machine_authority") != "design/pages/recognition/result/motion/recognition_result_motion_contract_v2.json":
+        fail("RR09 machine-readable Motion V2 contract is not registered")
+    result_nav = load_json(design / "pages/recognition/result/navigation.json")
+    rr09_nav = next((x for x in result_nav.get("level_2", []) if x.get("id") == "RR09"), None)
+    if not rr09_nav or rr09_nav.get("order") != 10 or rr09_nav.get("status") != "FROZEN":
+        fail("Recognition Result RR09 · 动效接续 menu contract missing or out of order")
 
     # NH07 is a design-only asset workspace: gate its source identity, not Android runtime.
     if not built:
