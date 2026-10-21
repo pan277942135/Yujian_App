@@ -320,6 +320,10 @@ jobs:
             emulator_options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -partition-size 4096 -skin 1080x1920
 
     steps:
+      - name: Checkout
+        if: ${{ matrix.required == true || (github.event_name == 'workflow_dispatch' && inputs.run_runtime_parity == true) }}
+        uses: actions/checkout@v4
+
       - name: Set up JDK 17 for GitHub-hosted API 28 runtime
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.runtime_backend == 'github-hosted' && (matrix.required == true || inputs.run_runtime_parity == true) }}
         uses: actions/setup-java@v4
@@ -330,6 +334,8 @@ jobs:
       - name: Set up Android SDK for GitHub-hosted API 28 runtime
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.runtime_backend == 'github-hosted' && (matrix.required == true || inputs.run_runtime_parity == true) }}
         uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
 
       - name: Provision Pixel 2 API 28 emulator for GitHub-hosted runtime
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.runtime_backend == 'github-hosted' && (matrix.required == true || inputs.run_runtime_parity == true) }}
@@ -344,10 +350,6 @@ jobs:
             --package "system-images;android-28;google_apis;x86_64" \
             --device pixel_2 \
             --force
-
-      - name: Checkout
-        if: ${{ matrix.required == true || (github.event_name == 'workflow_dispatch' && inputs.run_runtime_parity == true) }}
-        uses: actions/checkout@v4
 
       - name: Download frozen runtime APK pair
         if: ${{ matrix.required == true || (github.event_name == 'workflow_dispatch' && inputs.run_runtime_parity == true) }}
