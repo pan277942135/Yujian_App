@@ -1,8 +1,8 @@
-# NH01 Adaptive Visual Balance V2 — Candidate Contract V2.1
+# NH01 Adaptive Visual Balance V2 — Frozen Target Contract V2.2
 
 **Task:** `YUJIAN_NH01_CONTENT_FIRST_LAYOUT_V2`  
 **Implementation:** `GeminiHomeAdaptiveLayoutPolicy.kt` + `GeminiNormalHomeContent.kt`  
-**Status:** Candidate only. Runtime acceptance requires the exact-SHA 24-execution Android API 28 matrix.
+**Status:** SPEC_FROZEN current Gemini Adaptive V2 design target; RUNTIME_PENDING until the exact-SHA 24 native executions and 20 scoped cases pass.
 
 ## Frozen decisions for this candidate
 
@@ -42,3 +42,13 @@ Run both **Adaptive V2** and **V3 Baseline** on the same source SHA:
 - Compare all 12 same-profile V3/V2 screenshot pairs and both variants' bounds/metrics before selecting the default. A successful build or browser preview is not visual acceptance.
 
 **No merge, release PASS, or Frozen status is implied by this candidate contract.**
+
+## Section Spacing V2.2 and scoped current-route overrides
+
+For Adaptive V2 at 1.0x system font scale, independent measured Recent Title Text.bottom -> selected Hero outer top targets are 320x480=8±2dp, 360x640=12±2dp, 390x844=18±2dp and 430x932=20±2dp. Unlike the old 7–12dp formula this is a design target, not code self-consistency. V3 Baseline remains a control; bigger fonts first compress nonessential intervals but never clip required content.
+
+At 320x480 the 124dp height exception is confined to 1.0x and also requires card width>=145dp, no Middle scroll and readable text. Full address in HOME card may be shortened/ellipsized, preserving time and avoiding a final isolated “号” or punctuation despite hasVisualOverflow=false; detailed address remains unchanged in FishRecordDetail. NH07 mist Avatar V1.1 is active on Gemini only with separate Guest/Login and Signed-in/Profile semantics; NH06 source unchanged with Gemini TopCenter Crop; NH05 one-piece-offset is historical for rebuilt Gemini. Hero idle motion 6000ms/Reduce Motion remains required.
+
+Current scoped authority: design/pages/home/normal_home/engineering/NH01_GEMINI_ADAPTIVE_V2_UNIFIED_AUTHORITY_V1.md; 20-case acceptance: design/pages/home/normal_home/engineering/NH01_GEMINI_ADAPTIVE_V2_ACCEPTANCE_V1.md; machine matrix: design/pages/home/normal_home/engineering/NH01_GEMINI_ADAPTIVE_V2_ACCEPTANCE_MATRIX_V1.json.
+
+SPEC_FROZEN is not Android runtime or Frozen Pixel Parity PASS.
