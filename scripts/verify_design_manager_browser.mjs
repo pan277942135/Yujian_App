@@ -142,7 +142,24 @@ async function main() {
   assert(previewResponse?.ok(), "NH01 Gemini Native preview route did not load");
   const previewBuild = await previewPage.locator('meta[name="nh01-gemini-preview-build"]').getAttribute("content");
   if (args.expectedBuild) assert(previewBuild === args.expectedBuild, `Gemini preview build mismatch: ${previewBuild} != ${args.expectedBuild}`);
-  await previewPage.waitForFunction(() => window.NH01GeminiPreviewReady === true, { timeout: 30000 });
+  try {
+    await previewPage.waitForFunction(() => window.NH01GeminiPreviewReady === true, { timeout: 30000 });
+  } catch (error) {
+    const browserState = await previewPage.evaluate(() => ({
+      ready: window.NH01GeminiPreviewReady === true,
+      layoutReady: window.NH01GeminiPreviewLayoutReady === true,
+      audit: window.NH01GeminiPreviewAudit || null,
+      layout: window.NH01GeminiPreviewLayout || null,
+      images: [...document.images].map(image => ({
+        id: image.id, src: image.currentSrc || image.src, complete: image.complete,
+        naturalWidth: image.naturalWidth, naturalHeight: image.naturalHeight,
+        loading: image.loading
+      })),
+      scriptCount: document.scripts.length,
+      buildSha: document.querySelector('meta[name="nh01-gemini-preview-build"]')?.content || null
+    }));
+    throw new Error(`Gemini preview initialization timed out: ${JSON.stringify({ browserState, consoleErrors: errors, failedRequests, badResponses, originalError: error.message })}`);
+  }
   await previewPage.waitForFunction(() => window.NH01GeminiPreviewLayoutReady === true, { timeout: 5000 });
   const previewAudit = await previewPage.evaluate(() => window.NH01GeminiPreviewAudit);
   const defaultLayout = await previewPage.evaluate(() => window.NH01GeminiPreviewLayout);
