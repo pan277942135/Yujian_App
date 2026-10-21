@@ -32,12 +32,17 @@ internal fun RecognitionRevealOpticalOverlay(
     val activePhotoGeometry = photoGeometry ?: return
     val activeRevealGeometry = geometry
     if (!frame.drawOpticalLayer && !holdPhotoUntilHeroReady) return
-    val canvasModifier = modifier
-        .testTag("recognition-reveal-optics")
-        .then(
-            if (activeRevealGeometry != null) Modifier.testTag("recognition-reveal-geometry-ready")
-            else Modifier,
-        )
+    val drawsOptics = frame.drawOpticalLayer && activeRevealGeometry != null
+    val canvasModifier = modifier.then(
+        when {
+            drawsOptics -> Modifier.testTag("recognition-reveal-optics")
+            holdPhotoUntilHeroReady -> Modifier.testTag("recognition-reveal-photo-hold")
+            else -> Modifier
+        },
+    ).then(
+        if (activeRevealGeometry != null) Modifier.testTag("recognition-reveal-geometry-ready")
+        else Modifier,
+    )
 
     val transferMeasure = remember(activeRevealGeometry) {
         activeRevealGeometry?.let { PathMeasure(it.goldTransferPathLocal.toPath(), false) }

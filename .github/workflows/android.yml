@@ -523,7 +523,16 @@ jobs:
           fi
 
           ready=0
-          for readiness_attempt in $(seq 1 30); do
+          readiness_attempts=30
+          if [[ "$YUJIAN_RUNTIME_BACKEND" == "github-hosted" ]]; then
+            # The hosted API 28 x86_64 emulator may run without KVM and reports
+            # boot_completed only after its full software-rendered startup.
+            # Emulator logs explicitly allow two minutes or more; keep the
+            # self-hosted KVM window unchanged and give hosted runners 6 minutes.
+            readiness_attempts=180
+            echo 'EMULATOR_READINESS_WINDOW_SECONDS=360' | tee -a "$preflight_log"
+          fi
+          for readiness_attempt in $(seq 1 "$readiness_attempts"); do
             state="$("$adb" get-state 2>&1 | tr -d '\r' | head -n 1 || true)"
             boot="$("$adb" shell getprop sys.boot_completed 2>&1 | tr -d '\r' | head -n 1 || true)"
             sdk="$("$adb" shell getprop ro.build.version.sdk 2>&1 | tr -d '\r' | head -n 1 || true)"

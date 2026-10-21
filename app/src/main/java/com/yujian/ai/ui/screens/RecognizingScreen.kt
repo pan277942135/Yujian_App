@@ -22,6 +22,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -110,6 +111,7 @@ fun RecognitionProcessingScene(
     onSubjectGeometry: (FishSubjectResult, RecognitionSubjectGeometrySnapshot?) -> Unit = { _, _ -> },
     onProcessingPhotoSnapshot: (RecognitionProcessingPhotoSnapshot) -> Unit = {},
 ) {
+    val phasePresentedCallback by rememberUpdatedState(onVisualPhasePresented)
     var realPhase by remember(image?.imageId) { mutableStateOf(RecognitionPhase.CAPTURED) }
     var visualPhase by remember(image?.imageId) { mutableStateOf(RecognitionPhase.CAPTURED) }
     var assessment by remember(image?.imageId) { mutableStateOf<FishInputAssessment?>(null) }
@@ -183,7 +185,9 @@ fun RecognitionProcessingScene(
 
     LaunchedEffect(image?.imageId) {
         if (image == null) { onFailure(IllegalStateException("recognition image is unavailable")); return@LaunchedEffect }
-        controller.reset(recognitionMonotonicNowMs()); realPhase = RecognitionPhase.CAPTURED; visualPhase = RecognitionPhase.CAPTURED; visualNowMs = recognitionMonotonicNowMs()
+        val startedAtMs = recognitionMonotonicNowMs()
+        controller.reset(startedAtMs); realPhase = RecognitionPhase.CAPTURED; visualPhase = RecognitionPhase.CAPTURED; visualNowMs = startedAtMs
+        if (phaseOverride == null) phasePresentedCallback(RecognitionPhase.CAPTURED, startedAtMs)
         assessment = null
         val result = try {
             recognize { progress ->
@@ -218,12 +222,6 @@ fun RecognitionProcessingScene(
         }
     }
 
-    LaunchedEffect(visualPhase, image?.imageId, phaseOverride) {
-        if (phaseOverride == null && visualPhase != RecognitionPhase.RESULT) {
-            onVisualPhasePresented(visualPhase, recognitionMonotonicNowMs())
-        }
-    }
-
     // The visual clock must remain stable while the real detector/classifier advances.
     // realPhase is intentionally NOT a LaunchedEffect key: restarting this loop on every
     // progress callback can cancel the presentation before it reaches RESULT.
@@ -238,12 +236,12 @@ fun RecognitionProcessingScene(
                 if (nextVisualPhase != visualPhase) {
                     Log.i(LOG_TAG, "visual phase $visualPhase -> $nextVisualPhase real=$realPhase")
                     visualPhase = nextVisualPhase
+                    phasePresentedCallback(nextVisualPhase, visualNowMs)
                 }
                 if (nextVisualPhase == RecognitionPhase.RESULT && finishedResult?.ready == true && !delivered) {
                     // RESULT_READY hands off immediately when the existing V3.1 visual minimums
                     // are satisfied; RR09 starts its clock on Result's first frame.
                     delivered = true
-                    onVisualPhasePresented(nextVisualPhase, visualNowMs)
                     Log.i(LOG_TAG, "delivering RESULT_READY at monotonic=$visualNowMs")
                     onFinished(requireNotNull(finishedResult))
                     break
