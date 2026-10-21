@@ -34,7 +34,7 @@
       "id": "background",
       "label": "Morning Lake background",
       "source_path": "design/system/backgrounds/morning_lake_v1/assets/Morning_Lake_Master_V1.png",
-      "preview_path": "../../system/backgrounds/morning_lake_v1/assets/Morning_Lake_Master_V1.png",
+      "preview_path": "../../../../../design/system/backgrounds/morning_lake_v1/assets/Morning_Lake_Master_V1.png",
       "sha256": "5fba741088ea186e898cd3bee5777e35978436f427492e6e6122528ef6aa91d7",
       "dimensions_px": [
         941,
@@ -48,7 +48,7 @@
       "id": "brand",
       "label": "Brand title artwork",
       "source_path": "design/system_v3/06_Asset_System/derived/brand_title_primary/brand_title_primary.png",
-      "preview_path": "../../system_v3/06_Asset_System/derived/brand_title_primary/brand_title_primary.png",
+      "preview_path": "../../../../../design/system_v3/06_Asset_System/derived/brand_title_primary/brand_title_primary.png",
       "sha256": "2dd41f5138e88e3bd48178dd26a15dfbb29c434536e4e3cc887fe2db13bdfddc",
       "dimensions_px": [
         155,
@@ -76,7 +76,7 @@
       "id": "camera",
       "label": "Camera artwork",
       "source_path": "design/system_v3/06_Asset_System/derived/normal_home_camera_primary_v1/normal_home_camera_primary_v1.png",
-      "preview_path": "../../system_v3/06_Asset_System/derived/normal_home_camera_primary_v1/normal_home_camera_primary_v1.png",
+      "preview_path": "../../../../../design/system_v3/06_Asset_System/derived/normal_home_camera_primary_v1/normal_home_camera_primary_v1.png",
       "sha256": "fb6417e372d08328ac8559d004d1c6f5b03fc17551646be46031df641660e8f2",
       "dimensions_px": [
         208,
