@@ -166,7 +166,7 @@ async function captureVariant(browser, variant, viewport, errors) {
       const depthPx = 0.18 * minDimension;
       const outerSigma = depthPx * 0.0857;
       const quietDepthPx = window.__EDGEGLOW_EDGE_RIBBON_EXPERIMENT__ === true
-        ? depthPx
+        ? depthPx + 3 * Math.max(2, minDimension * 0.0065)
         : Math.min(minDimension * 0.18, depthPx / 2 + outerSigma * 3);
       const quietRegions = {
         Q_TOP: [Math.ceil(0.32 * canvas.width) + 2, 2, Math.floor(0.68 * canvas.width) - 2, Math.floor(quietDepthPx) - 2],
@@ -302,9 +302,10 @@ async function captureVariant(browser, variant, viewport, errors) {
         receiving_geometry: variant.id === "CANDIDATE" ? "edge-anchored ribbon quads sampled along visible P1 path intervals; path-stroke masks bypassed in review-only mode" : "original P1 path-stroke masks and blur layers",
         edge_ribbon_geometry: variant.id === "CANDIDATE" ? {
           anchor: "nearest photo perimeter edge at each sampled path point",
-          inward_depth: "full frozen 18% depth ratio; Quiet Gap mask extends to the same depth",
+          inward_depth: "frozen 18% depth ratio plus a 3-sigma feather clearance; Quiet Gap mask covers the full feather",
           geometry: "one continuous ribbon polygon per visible interval; side-normal gradients clipped to the polygon",
           color_gradient: "blue/gold perimeter color with broad plateau and smooth inward fade",
+          feather: "Gaussian blur sigma max(2 px, 0.0065 x minDimension), before the unchanged alpha cap",
           segment_taper: "three-sample geometric taper at visible interval endpoints"
         } : "not applicable to P1 path-stroke baseline",
         colors: "unchanged",
@@ -480,7 +481,7 @@ async function main() {
       "- Acceptance Center SHA: " + CENTER_SHA,
       "- Photo SHA-256: " + PHOTO_SHA,
       "- Baseline: base Alpha 0.07, output cap 17/255, depth 18%.",
-      "- Review-only candidate: continuous perimeter-anchored ribbon polygons, side-normal gradients, tapered endpoints; base Alpha 0.07, output cap 17/255, depth 18%.",
+      "- Review-only candidate: continuous perimeter-anchored ribbon polygons with side-normal gradients, tapered endpoints, and a small Gaussian feather; base Alpha 0.07, output cap 17/255, core depth 18%.",
       "- Only geometry changes: each visible path interval becomes one continuous perimeter-anchored polygon with edge-normal gradients and a geometric endpoint taper. Alpha, color, depth ratio, global intensity, photo mapping, Quiet Gaps and source-over remain fixed.",
       "- Baseline RGB signal vs source photo (390x844): mean absolute delta " + baseline.over_photo.pixel_signal_vs_photo.mean_abs_rgb_delta_sampled.toFixed(6) + ".",
       "- Candidate RGB signal vs source photo (390x844): mean absolute delta " + candidate390.over_photo.pixel_signal_vs_photo.mean_abs_rgb_delta_sampled.toFixed(6) + ".",
