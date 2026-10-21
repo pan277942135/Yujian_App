@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# The frozen Recognition gate runs 50 instrumentation tests, including the
+# The frozen Recognition gate runs 59 instrumentation tests, including the
 # live FULL/LITE optical-fidelity capture. Its test suite needs more room than
 # the 180-second default; this does not alter any other gate's timeout.
 gate_instrumentation_timeout_seconds() {
@@ -8,7 +8,7 @@ gate_instrumentation_timeout_seconds() {
 }
 
 gate_test_classes() {
-  printf '%s\n' 'com.yujian.ai.ui.identify.RecognitionFirstCaptureGuideRuntimeTest,com.yujian.ai.RecognitionFrozenFlowEmulatorTest,com.yujian.ai.RecognitionOpticalSegmentRuntimeTest,com.yujian.ai.RecognitionFishContourRuntimeTest,com.yujian.ai.RecognitionImageStoreTest,com.yujian.ai.catches.GuestCatchRepositoryRuntimeTest,com.yujian.ai.FishDetectionQualityGateTest,com.yujian.ai.PipelineTraceTest,com.yujian.ai.DetectorOrientationRetryRuntimeTest,com.yujian.ai.DetectorGoldenParityTest'
+  printf '%s\n' 'com.yujian.ai.ui.identify.RecognitionFirstCaptureGuideRuntimeTest,com.yujian.ai.RecognitionFrozenFlowEmulatorTest,com.yujian.ai.RecognitionOpticalSegmentRuntimeTest,com.yujian.ai.RecognitionFishContourRuntimeTest,com.yujian.ai.RecognitionImageStoreTest,com.yujian.ai.media.RecognitionImageStoreExifOrientationRuntimeTest,com.yujian.ai.BboxExifBeforeAfterRuntimeTest,com.yujian.ai.catches.GuestCatchRepositoryRuntimeTest,com.yujian.ai.FishDetectionQualityGateTest,com.yujian.ai.FishDetectorDecodeTest,com.yujian.ai.PipelineTraceTest,com.yujian.ai.DetectorOrientationRetryRuntimeTest,com.yujian.ai.DetectorGoldenParityTest'
 }
 
 gate_additional_test_classes() {
@@ -71,6 +71,27 @@ gate_after_instrumentation() {
 gate_collect_evidence() {
   local output_dir="$YUJIAN_EVIDENCE_DIR/recognition_v1_2"
   mkdir -p "$output_dir"
+
+  local bbox_output_dir="$YUJIAN_EVIDENCE_DIR/bbox_localization"
+  mkdir -p "$bbox_output_dir"
+  local bbox_name
+  for bbox_name in \
+    bbox_case_b_direction_replay.json \
+    bbox_case_b_direction_replay_raw_outputs.bin \
+    bbox_case_b_direction_replay.png \
+    bbox_before_after_metrics.json \
+    bbox_before_after_comparison.png \
+    bbox_metrics_v1.json \
+    bbox_test_manifest.json \
+    bbox_coordinate_regression_report.md; do
+    if ! "${YUJIAN_ADB_BIN}" exec-out run-as "$YUJIAN_APP_PACKAGE" \
+      cat "cache/$bbox_name" > "$bbox_output_dir/$bbox_name" 2>/dev/null ||
+      [[ ! -s "$bbox_output_dir/$bbox_name" ]]; then
+      printf 'MISSING_EVIDENCE=%s\n' "$bbox_output_dir/$bbox_name" >> "$YUJIAN_EVIDENCE_DIR/evidence_missing.log"
+      runtime_set_failure "EVIDENCE" "BBOX_LOCALIZATION_EVIDENCE_MISSING"
+      return "$EXIT_FAIL_EVIDENCE"
+    fi
+  done
 
   local first_guide_output="$YUJIAN_EVIDENCE_DIR/first_use_camera_guide"
   mkdir -p "$first_guide_output"

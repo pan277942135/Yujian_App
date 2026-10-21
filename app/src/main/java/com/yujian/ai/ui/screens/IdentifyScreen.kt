@@ -485,7 +485,8 @@ fun IdentifyScreen(
                                         requestId,
                                         "decode_result",
                                         "decode_success=true decoded_width=${details.decodedWidth} " +
-                                            "decoded_height=${details.decodedHeight} rotation_degrees=${details.rotationDegrees} " +
+                                            "decoded_height=${details.decodedHeight} exif_orientation=${details.exifOrientation} " +
+                                                "rotation_degrees=${details.rotationDegrees} " +
                                             "selected_image_created=true",
                                     )
                                     handoffImage = details.selectedImage

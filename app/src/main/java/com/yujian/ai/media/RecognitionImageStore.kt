@@ -18,9 +18,15 @@ object RecognitionImageStore {
 
     data class CameraNormalizationResult(
         val selectedImage: SelectedImage,
+        val exifOrientation: Int,
         val rotationDegrees: Int,
         val decodedWidth: Int,
         val decodedHeight: Int,
+    )
+
+    private data class ExifMetadata(
+        val orientation: Int,
+        val rotationDegrees: Int,
     )
 
     fun createCameraTarget(context: Context): CameraTarget {
@@ -58,7 +64,7 @@ object RecognitionImageStore {
     ): CameraNormalizationResult = withContext(Dispatchers.IO) {
         require(file.exists() && file.length() > 0L) { "没有读取到拍照内容，请重新拍摄" }
 
-        val rotation = runCatching { ExifInterface(file).rotationDegrees }.getOrDefault(0)
+        val exif = readExifMetadata(file)
         val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
         BitmapFactory.decodeFile(file.absolutePath, bounds)
         require(bounds.outWidth > 0 && bounds.outHeight > 0) { "拍照文件无法解析，请重新拍摄" }
@@ -69,10 +75,11 @@ object RecognitionImageStore {
         val options = BitmapFactory.Options().apply { inSampleSize = sample }
         val decoded = BitmapFactory.decodeFile(file.absolutePath, options)
             ?: error("拍照文件无法解析，请重新拍摄")
-        val selected = persistNormalized(context, decoded, rotation, "camera")
+        val selected = persistNormalized(context, decoded, exif.orientation, "camera")
         CameraNormalizationResult(
             selectedImage = selected,
-            rotationDegrees = rotation,
+            exifOrientation = exif.orientation,
+            rotationDegrees = exif.rotationDegrees,
             decodedWidth = selected.bitmap.width,
             decodedHeight = selected.bitmap.height,
         )
@@ -84,7 +91,7 @@ object RecognitionImageStore {
         source: String,
         invalidMessage: String,
     ): SelectedImage {
-        val rotation = runCatching { ExifInterface(file).rotationDegrees }.getOrDefault(0)
+        val exif = readExifMetadata(file)
 
         // BitmapFactory intentionally returns null when inJustDecodeBounds=true;
         // valid decoding is determined from outWidth/outHeight instead.
@@ -98,19 +105,27 @@ object RecognitionImageStore {
         val options = BitmapFactory.Options().apply { inSampleSize = sample }
         val decoded = BitmapFactory.decodeFile(file.absolutePath, options)
             ?: error(invalidMessage)
-        return persistNormalized(context, decoded, rotation, source)
+        return persistNormalized(context, decoded, exif.orientation, source)
     }
+
+    private fun readExifMetadata(file: File): ExifMetadata = runCatching {
+        val exif = ExifInterface(file)
+        ExifMetadata(
+            orientation = exif.getAttributeInt(
+                ExifInterface.TAG_ORIENTATION,
+                ExifInterface.ORIENTATION_NORMAL,
+            ),
+            rotationDegrees = exif.rotationDegrees,
+        )
+    }.getOrDefault(ExifMetadata(ExifInterface.ORIENTATION_NORMAL, 0))
 
     private fun persistNormalized(
         context: Context,
         decoded: Bitmap,
-        rotation: Int,
+        orientation: Int,
         source: String,
     ): SelectedImage {
-        val oriented = if (rotation == 0) decoded else Bitmap.createBitmap(
-            decoded, 0, 0, decoded.width, decoded.height,
-            Matrix().apply { postRotate(rotation.toFloat()) }, true,
-        )
+        val oriented = applyExifOrientation(decoded, orientation)
 
         val dir = File(context.filesDir, "recognition_inputs").apply { mkdirs() }
         val normalized = File(dir, "input_${UUID.randomUUID()}.jpg")
@@ -119,5 +134,36 @@ object RecognitionImageStore {
         }
         check(normalized.exists() && normalized.length() > 0L) { "无法保存识别照片" }
         return SelectedImage(filePath = normalized.absolutePath, bitmap = oriented, source = source)
+    }
+
+    private fun applyExifOrientation(decoded: Bitmap, orientation: Int): Bitmap {
+        val matrix = when (orientation) {
+            ExifInterface.ORIENTATION_FLIP_HORIZONTAL -> Matrix().apply { setScale(-1f, 1f) }
+            ExifInterface.ORIENTATION_ROTATE_180 -> Matrix().apply { setRotate(180f) }
+            ExifInterface.ORIENTATION_FLIP_VERTICAL -> Matrix().apply { setScale(1f, -1f) }
+            ExifInterface.ORIENTATION_TRANSPOSE -> Matrix().apply {
+                setRotate(90f)
+                postScale(-1f, 1f)
+            }
+            ExifInterface.ORIENTATION_ROTATE_90 -> Matrix().apply { setRotate(90f) }
+            ExifInterface.ORIENTATION_TRANSVERSE -> Matrix().apply {
+                setRotate(-90f)
+                postScale(-1f, 1f)
+            }
+            ExifInterface.ORIENTATION_ROTATE_270 -> Matrix().apply { setRotate(-90f) }
+            else -> null
+        } ?: return decoded
+
+        val oriented = Bitmap.createBitmap(
+            decoded,
+            0,
+            0,
+            decoded.width,
+            decoded.height,
+            matrix,
+            true,
+        )
+        if (oriented !== decoded && !decoded.isRecycled) decoded.recycle()
+        return oriented
     }
 }

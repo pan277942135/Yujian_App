@@ -1,0 +1,117 @@
+{
+  "schema_version": "BBOX_TEST_MANIFEST_V1",
+  "task_id": "YUJIAN_BBOX_LOCALIZATION_ANDROID_FIX_V1",
+  "repository": "pan277942135/Yujian_App",
+  "record_status": "PRE_RUNTIME_EVIDENCE_INVENTORY",
+  "recorded_at_utc": "2026-10-19",
+  "android_baseline": {
+    "branch": "main",
+    "sha": "0d3238e8a41b87363e9a17b04c9cc45fca4c426d"
+  },
+  "work_branch": "fix/bbox-localization-android-v1",
+  "investigation_reference": {
+    "repository": "pan277942135/Yujian",
+    "pr": 164,
+    "state": "OPEN_DRAFT_UNMERGED",
+    "head_sha": "689e9e38391bcce70610c9c6ce8ca7efd35cc20c",
+    "historical_evidence_path": "reports/case_a/user_provided_two_image_retest_v3_20261019.json"
+  },
+  "models": {
+    "detector": {
+      "model_version": "DET_FISH_v0.1",
+      "source": "pinned Android GitHub Release bundle",
+      "bundle_sha256": "246ddacaf89ca7ecc9c64a47d3e12c5ee9088d92c763a38626778505ae8c15ee",
+      "onnx_sha256": "12b97f7c081987f33f99d255cdd2e935fb9cf93b893146f54ff98b9c4e3a8e4f",
+      "metadata_sha256": "53994a745c192e3c2afc31ad256800bb87f841fafd07977f0fd38fa7e1f8327e",
+      "input_shape": [1, 3, 416, 416],
+      "output_shape": [1, 3549, 6],
+      "identity_scope": "locally verified archived/current Android repository asset; exact tested APK identity pending"
+    },
+    "classifier": {
+      "model_id": "MODEL_CROP_M1_v0.2",
+      "release_tag": "mobile-model-v0.2",
+      "tflite_sha256": "29c2f2fd1608178f023b8e35edf632c0dd685df4a7ae1c3562220a7352ccce18",
+      "input_shape": [1, 3, 224, 224],
+      "output_shape": [1, 15],
+      "identity_scope": "locally verified GitHub Release asset; exact tested APK identity pending"
+    }
+  },
+  "frozen_parameters": {
+    "detector_input_size": 416,
+    "letterbox_anchor": "top_left",
+    "letterbox_fill": 114,
+    "input_dtype": "float32",
+    "input_layout": "NCHW",
+    "input_channel_order": "BGR",
+    "weak_confidence": 0.2,
+    "strong_confidence": 0.35,
+    "nms_iou": 0.45,
+    "crop_expand_ratio": 0.15
+  },
+  "inputs": [
+    {
+      "name": "historical_case_a_original",
+      "sha256": "2dd703a46b378093604e10f0add454606393138f7501774bd3bbcca75352c9fe",
+      "dimensions": [1440, 1920],
+      "identity_status": "EXPECTED_HISTORICAL_SOURCE_NOT_RECOVERED",
+      "local_bytes_available": false,
+      "ground_truth_status": "MISSING"
+    },
+    {
+      "name": "IMG_1415.jpg",
+      "sha256": "0fc341627e4345131a15fbf3514454f053dcb349db17bf1171c8f2f8756226cf",
+      "dimensions": [1152, 1536],
+      "exif_orientation": 1,
+      "identity_status": "USER_DESIGNATED_CASE_A_CANDIDATE_NOT_MATCHED_TO_HISTORICAL_SOURCE",
+      "evidence_status": "HISTORICAL_PR164_V3_CPU_REPLAY_ONLY",
+      "local_bytes_available": false,
+      "ground_truth_status": "MISSING"
+    },
+    {
+      "name": "screenshot_20261007_012240_com.xingin.xhs_hos.jpg",
+      "sha256": "10409025dd5fe590b9487ef4dc43ea019a9e2083143fb458bf160a6c37eec5a6",
+      "dimensions": [911, 1536],
+      "exif_orientation": 1,
+      "identity_status": "SEPARATE_SCREENSHOT_INPUT",
+      "evidence_status": "HISTORICAL_PR164_V3_CPU_REPLAY_ONLY",
+      "local_bytes_available": false,
+      "ground_truth_status": "MISSING"
+    },
+    {
+      "name": "detector_case_b_night_flash.jpg",
+      "sha256": "a7ed3bb0410c191364f6d853b4078aebdc2f3b9baa4da34b7b3f6e8e0e93a56b",
+      "dimensions": [1152, 1536],
+      "exif_orientation": 1,
+      "identity_status": "REPOSITORY_TEST_FIXTURE_HASH_VERIFIED",
+      "local_bytes_available": true,
+      "ground_truth_status": "MISSING"
+    }
+  ],
+  "runtime_tests": [
+    "RecognitionImageStoreExifOrientationRuntimeTest",
+    "FishDetectorDecodeTest",
+    "FishDetectionQualityGateTest",
+    "DetectorOrientationRetryRuntimeTest",
+    "BboxExifBeforeAfterRuntimeTest"
+  ],
+  "runtime_status": {
+    "build": "NOT_RUN",
+    "unit_tests": "NOT_RUN",
+    "android_test_compile": "NOT_RUN",
+    "lint": "NOT_RUN",
+    "api28_install": "NOT_RUN",
+    "api28_runtime": "NOT_RUN",
+    "bbox_metrics": "INSUFFICIENT_GROUND_TRUTH",
+    "apk_sha256": null,
+    "ci_run_id": null
+  },
+  "ground_truth": {
+    "status": "MISSING",
+    "coordinate_space": "normalized_xyxy_in_original_upright_image",
+    "eligible_image_count": 0,
+    "iou_claims": []
+  },
+  "gcp_accessed": false,
+  "model_training_performed": false,
+  "production_thresholds_or_nms_changed": false
+}

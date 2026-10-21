@@ -2,6 +2,8 @@ package com.yujian.ai
 
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.yujian.ai.ai.FishDetectorEngine
+import com.yujian.ai.ai.DetectorOrientationAttempt
+import com.yujian.ai.ai.NormalizedFishBox
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -55,5 +57,79 @@ class FishDetectorDecodeTest {
         )
         assertEquals(1, detections.size)
         assertEquals(.9025f, detections.single().confidence, 1e-6f)
+    }
+
+    @Test
+    fun nonSquareTopLeftLetterboxDecodeMapsBackToSourceCoordinates() {
+        // 300x500 -> 249x416 at scale 0.832, with content anchored at (0, 0).
+        // The 167px horizontal padding is on the right, so x needs scale removal
+        // but no left-padding subtraction.
+        val detections = FishDetectorEngine.decodeAndNms(
+            rows = arrayOf(floatArrayOf(124.8f, 208f, 83.2f, 166.4f, .9f, .8f)),
+            scale = .832f,
+            sourceWidth = 300,
+            sourceHeight = 500,
+        )
+        val box = detections.single().box
+        assertEquals(1f / 3f, box.x1, 1e-6f)
+        assertEquals(.3f, box.y1, 1e-6f)
+        assertEquals(2f / 3f, box.x2, 1e-6f)
+        assertEquals(.7f, box.y2, 1e-6f)
+    }
+
+    @Test
+    fun clockwiseAndCounterClockwiseBoxesMapBackAtAllFourCorners() {
+        val sourceCorners = listOf(
+            NormalizedFishBox(0f, 0f, .1f, .1f),
+            NormalizedFishBox(.9f, 0f, 1f, .1f),
+            NormalizedFishBox(0f, .9f, .1f, 1f),
+            NormalizedFishBox(.9f, .9f, 1f, 1f),
+        )
+        val clockwiseCorners = listOf(
+            NormalizedFishBox(.9f, 0f, 1f, .1f),
+            NormalizedFishBox(.9f, .9f, 1f, 1f),
+            NormalizedFishBox(0f, 0f, .1f, .1f),
+            NormalizedFishBox(0f, .9f, .1f, 1f),
+        )
+        val counterClockwiseCorners = listOf(
+            NormalizedFishBox(0f, .9f, .1f, 1f),
+            NormalizedFishBox(0f, 0f, .1f, .1f),
+            NormalizedFishBox(.9f, .9f, 1f, 1f),
+            NormalizedFishBox(.9f, 0f, 1f, .1f),
+        )
+
+        sourceCorners.indices.forEach { index ->
+            assertBoxEquals(
+                sourceCorners[index],
+                FishDetectorEngine.mapBoxToOriginal(clockwiseCorners[index], DetectorOrientationAttempt.CW90),
+            )
+            assertBoxEquals(
+                sourceCorners[index],
+                FishDetectorEngine.mapBoxToOriginal(counterClockwiseCorners[index], DetectorOrientationAttempt.CCW90),
+            )
+        }
+    }
+
+    @Test
+    fun rotatedNonSquareDetectionBoxRoundTripsWithoutWidthHeightSwap() {
+        val expected = NormalizedFishBox(.13f, .21f, .72f, .89f)
+        val clockwiseCandidate = NormalizedFishBox(.11f, .13f, .79f, .72f)
+        val counterClockwiseCandidate = NormalizedFishBox(.21f, .28f, .89f, .87f)
+
+        assertBoxEquals(
+            expected,
+            FishDetectorEngine.mapBoxToOriginal(clockwiseCandidate, DetectorOrientationAttempt.CW90),
+        )
+        assertBoxEquals(
+            expected,
+            FishDetectorEngine.mapBoxToOriginal(counterClockwiseCandidate, DetectorOrientationAttempt.CCW90),
+        )
+    }
+
+    private fun assertBoxEquals(expected: NormalizedFishBox, actual: NormalizedFishBox) {
+        assertEquals(expected.x1, actual.x1, 1e-6f)
+        assertEquals(expected.y1, actual.y1, 1e-6f)
+        assertEquals(expected.x2, actual.x2, 1e-6f)
+        assertEquals(expected.y2, actual.y2, 1e-6f)
     }
 }

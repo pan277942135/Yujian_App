@@ -1,0 +1,170 @@
+schema_version: "1.0"
+state_id: "YUJIAN-BBOX-LOCALIZATION-ANDROID-FIX-V1"
+project:
+  name: "渔见 AI"
+  repository: "pan277942135/Yujian_App"
+  scope: "BBox coordinate localization and Android runtime validation"
+state_control:
+  current_branch: "fix/bbox-localization-android-v1"
+  current_pr: null
+  base_branch: "main"
+  base_sha: "0d3238e8a41b87363e9a17b04c9cc45fca4c426d"
+  execution_baseline_sha: "265f99c5157e347f91a942681ce514e21ca46c63"
+  updated_at: "2026-10-19T15:36:40Z"
+source_of_truth:
+  canonical_control_plane: "main:CONTROL_PLANE_REGISTRY.yaml"
+  current_work_state: "WORK_EXECUTION_STATE.json"
+  recognition_contracts: "main:harness/UNIFIED_CONTRACT_REGISTRY.yaml"
+repositories:
+  android:
+    name: "pan277942135/Yujian_App"
+    main_sha: "0d3238e8a41b87363e9a17b04c9cc45fca4c426d"
+  model_and_investigation:
+    name: "pan277942135/Yujian"
+    case_a_pr: 164
+    case_a_pr_state: "DRAFT_OPEN_UNMERGED"
+pull_requests:
+  PR145:
+    number: 145
+    repository: "pan277942135/Yujian_App"
+    state: "CLOSED"
+    merged: true
+    scope: "Design System V3.1; not the current Recognition implementation branch"
+  PR164:
+    number: 164
+    repository: "pan277942135/Yujian"
+    state: "OPEN"
+    draft: true
+    merged: false
+    head: "689e9e38391bcce70610c9c6ce8ca7efd35cc20c"
+  PR166:
+    number: 166
+    repository: "pan277942135/Yujian_App"
+    state: "OPEN"
+    draft: true
+    merged: false
+    head_branch: "design/recognition-processing-handoff-p0"
+  PR167:
+    number: 167
+    repository: "pan277942135/Yujian_App"
+    state: "OPEN"
+    draft: true
+    merged: false
+    head_branch: "design/nh01-cloud-structured-parity-v1"
+phases:
+  P0: {status: "NOT_CONFIRMED", basis: "No branch-local project state existed on main at task start."}
+  P1: {status: "NOT_CONFIRMED", basis: "No branch-local project state existed on main at task start."}
+  P2: {status: "NOT_CONFIRMED", basis: "No branch-local project state existed on main at task start."}
+  P3: {status: "NOT_CONFIRMED", basis: "No branch-local project state existed on main at task start."}
+  P4: {status: "NOT_CONFIRMED", basis: "No branch-local project state existed on main at task start."}
+  P5: {status: "NOT_CONFIRMED", basis: "No branch-local project state existed on main at task start."}
+  P6: {status: "IN_PROGRESS", basis: "Current scoped Work: recognition BBox localization."}
+  P7: {status: "NOT_CONFIRMED", basis: "No branch-local project state existed on main at task start."}
+  P8: {status: "NOT_RUN", basis: "Exact-head Android runtime gates have not run for this Work branch."}
+  P9: {status: "NOT_RUN", basis: "No release action is in scope."}
+recognition_main_journey:
+  contract_status: "FROZEN"
+  route:
+    - "J01 Empty Home"
+    - "J02 Tap Camera"
+    - "J03 Camera Permission"
+    - "J04 First Capture Guide"
+    - "J05 Camera Capture"
+    - "J06 Preview Ready"
+    - "J07 Recognition Processing"
+    - "J08 Detection"
+    - "J09 Outline"
+    - "J10 Classification"
+    - "J11 Recognition Result"
+    - "J12 High Confidence Result"
+    - "J13 Medium/Low Confidence Result"
+    - "J14 No Fish / Invalid Image"
+    - "J15 Save Catch"
+    - "J16 Continue / Edit Catch"
+    - "J17 Return Home"
+    - "J18 Recent Catch"
+    - "J19 FishRecordDetail A"
+    - "J20 FishRecordDetail B / Memory"
+runtime_gates:
+  exact_head:
+    sha: "265f99c5157e347f91a942681ce514e21ca46c63"
+    build: "NOT_RUN"
+    unit_tests: "NOT_RUN"
+    android_test_compile: "NOT_RUN"
+    lint: "NOT_RUN"
+    api28_install: "NOT_RUN"
+    api28_runtime: "NOT_RUN"
+    bbox_metrics: "INSUFFICIENT_GROUND_TRUTH"
+  historical_runtime_run:
+    status: "HISTORICAL"
+    rule: "Historical results cannot promote current exact HEAD to PASS."
+apk_and_evidence:
+  status: "NOT_RUN"
+  apk_sha256: null
+  source_sha: "265f99c5157e347f91a942681ce514e21ca46c63"
+  build_run_id: null
+  detector_onnx_sha256: "12b97f7c081987f33f99d255cdd2e935fb9cf93b893146f54ff98b9c4e3a8e4f"
+  classifier_tflite_sha256: "29c2f2fd1608178f023b8e35edf632c0dd685df4a7ae1c3562220a7352ccce18"
+current_work:
+  id: "YUJIAN_BBOX_LOCALIZATION_ANDROID_FIX_V1"
+  phase: "P6"
+  task_id: "P6-02"
+  exact_head: "265f99c5157e347f91a942681ce514e21ca46c63"
+  status: "RUNNING"
+blockers:
+  - id: "BBOX-GT-001"
+    severity: "P1"
+    area: "Ground Truth and IoU"
+    condition: "The user-provided candidate images have no authoritative bbox annotation in the available evidence; local image bytes are not present in this session workspace."
+    affected_gate: "BBOX_METRICS_PASS"
+    unblock_condition: "Recover exact input bytes and provide reviewed fish-body boxes, or create and independently review annotations with provenance."
+    independent_work_allowed: true
+  - id: "BBOX-IMG-001"
+    severity: "P1"
+    area: "User image Android replay"
+    condition: "The original Case A bytes and the two user image files are not present in this Android Work filesystem; only PR #164 V3 hashes and historical CPU outputs are available."
+    affected_gate: "USER_IMAGE_ANDROID_REPLAY"
+    unblock_condition: "Make the exact private source files available to the active Work filesystem; verify SHA-256 before replay and do not commit the photos."
+    independent_work_allowed: true
+protected_invariants:
+  model:
+    - "Do not modify detector or classifier weights."
+    - "Record model SHA from the actual packaged Android build."
+  inference_contract:
+    - "Do not change confidence thresholds or NMS parameters to mask localization errors."
+    - "Preserve the frozen detector and classifier contracts unless a verified coordinate bug requires a scoped correction."
+  operations:
+    - "Do not enable or restore Google Cloud or billing resources."
+  release:
+    - "Do not merge main; all PRs remain Draft/Open/Unmerged."
+next_actions:
+  - id: "BBOX-A01"
+    status: "COMPLETED"
+    owner: "Work"
+    action: "Trace EXIF normalization, detector decode, orientation inverse mapping, display mapping, crop, and classifier input; record source lines and evidence."
+  - id: "BBOX-A02"
+    status: "COMPLETED"
+    owner: "Work"
+    action: "Add geometry and EXIF regression tests after confirming the minimum code fix."
+  - id: "BBOX-A03"
+    status: "READY"
+    owner: "Work"
+    action: "Push the isolated branch, open the independent Draft PR, and run exact-head hosted Android build checks."
+  - id: "BBOX-A04"
+    status: "PENDING"
+    owner: "Work"
+    action: "Run and record the existing API 28 runtime gate on the exact pushed branch head; retain APK and evidence artifact provenance."
+  - id: "BBOX-A05"
+    status: "BLOCKED"
+    owner: "User"
+    action: "Make the original Case A bytes and both supplied test images available to the active Work filesystem and provide reviewed Ground Truth boxes for IoU."
+completion_rules:
+  - "Report each evidence gate separately; do not infer IoU or API28 runtime from static checks."
+  - "Bind any APK, CI result, or runtime evidence to the exact source SHA."
+state_update:
+  protocol: "harness/STATE_UPDATE_PROTOCOL.md"
+  last_observation: "Committed the full-EXIF normalization fix and Android BBox evidence harness at 265f99c5157e347f91a942681ce514e21ca46c63; Android build/runtime and user-image replay remain pending."
+agent_recovery:
+  entrypoint: "AGENTS.md"
+  current_work_state: "WORK_EXECUTION_STATE.json"
+  resume_rule: "Refresh main, run control-plane admission, and continue the first READY action."

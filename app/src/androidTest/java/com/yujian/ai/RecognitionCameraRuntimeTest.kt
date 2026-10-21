@@ -395,6 +395,9 @@ class RecognitionCameraRuntimeTest {
         val rotationDegrees = Regex("rotation_degrees=(-?[0-9]+)")
             .find(decodeLine)?.groupValues?.get(1)?.toIntOrNull()
         assertNotNull("Production camera orientation diagnostic was not emitted", rotationDegrees)
+        val exifOrientation = Regex("exif_orientation=([1-8])")
+            .find(decodeLine)?.groupValues?.get(1)?.toIntOrNull()
+        assertNotNull("Production EXIF orientation diagnostic was not emitted", exifOrientation)
         assertTrue("Unexpected camera rotation diagnostic: " + rotationDegrees,
             rotationDegrees == 0 || rotationDegrees == 90 ||
                 rotationDegrees == 180 || rotationDegrees == 270)
@@ -416,6 +419,7 @@ class RecognitionCameraRuntimeTest {
             },
         )
         record("SOURCE_ROTATION_DEGREES", rotationDegrees.toString())
+        record("SOURCE_EXIF_ORIENTATION", exifOrientation.toString())
         record("SELECTED_IMAGE", "PASS")
         record("SELECTED_IMAGE_BYTES", selectedFiles.single().length().toString())
         record("SELECTED_IMAGE_DIMENSIONS", selectedDecode.width.toString() + "x" + selectedDecode.height)
