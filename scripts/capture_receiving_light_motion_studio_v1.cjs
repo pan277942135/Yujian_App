@@ -213,7 +213,12 @@ async function main() {
 
   const setLayer = async (id, expectedHidden) => {
     const input = page.locator("#" + id);
-    await input.setChecked(!expectedHidden);
+    const targetChecked = !expectedHidden;
+    const currentChecked = await input.evaluate(node => node.checked);
+    if (currentChecked !== targetChecked) {
+      await page.locator("label.toggle-row").filter({ has: input }).click();
+    }
+    assert(await input.evaluate(node => node.checked) === targetChecked, id + " label did not toggle its checkbox");
   };
   await setLayer("toggleEdge", true);
   assert(await page.locator("#p1Receiving").evaluate(node => getComputedStyle(node).display === "none"), "Edge Field toggle did not hide the shared layer");
