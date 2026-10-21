@@ -13,9 +13,10 @@ from PIL import Image, ImageDraw, ImageFont
 
 
 CASES = (
-    ("M01", 320, 640, 1.0), ("M02", 320, 640, 1.3), ("M03", 320, 640, 1.5),
-    ("M04", 393, 852, 1.0), ("M05", 393, 852, 1.3), ("M06", 393, 852, 1.5),
-    ("M07", 411, 915, 1.0), ("M08", 411, 915, 1.3), ("M09", 411, 915, 1.5),
+    ("M01", 320, 480, 1.0), ("M02", 320, 480, 1.3), ("M03", 320, 480, 1.5),
+    ("M04", 360, 640, 1.0), ("M05", 360, 640, 1.3), ("M06", 360, 640, 1.5),
+    ("M07", 390, 844, 1.0), ("M08", 390, 844, 1.3), ("M09", 390, 844, 1.5),
+    ("M10", 430, 932, 1.0), ("M11", 430, 932, 1.3), ("M12", 430, 932, 1.5),
 )
 VARIANTS = {"ADAPTIVE_V2": "adaptive_v2", "V3_BASELINE": "v3_baseline"}
 
@@ -283,7 +284,7 @@ def main() -> int:
                                "bounds_in_window_px": candidate.get("bounds_in_window_px"),
                                "screenshot": candidate.get("screenshots", {}).get("initial")})
             metric_rows.append({"profile": profile, **candidate.get("metrics", {}),
-                                "card_width_fraction": 0.76, "card_aspect_ratio_target": 247 / 293,
+                                "card_width_fraction": 0.70, "card_aspect_ratio_target": 247 / 293,
                                 "status": candidate_status})
             regression_rows.append({"profile": profile, **candidate.get("data", {}),
                                     "visible_card_ids_unique": len(set(candidate.get("data", {}).get("initial_visible_card_ids", []))) == 2,
@@ -322,14 +323,14 @@ def main() -> int:
         "- Physical Android handset: `NOT_RUN`; the CI API 28 Pixel 2 emulator is reported separately.",
         "- Candidate uses the production `HomeScreen`; exactly two stable catch IDs are injected per case.",
         "- Full-resolution Android screenshots: `NH01_RUNTIME_MATRIX_V1/`; paired same-runtime V3 screenshots are in `NH01_RUNTIME_MATRIX_V1/COMPARISON/`.",
-        "", "| Case | Display | System font | Adaptive V1 | V3 baseline | Result | Details |",
+        "", "| Case | Display | System font | Adaptive V2 | V3 baseline | Result | Details |",
         "|---|---:|---:|---|---|---|---|",
     ]
     for row in report_rows:
         problems = "; ".join(row["problems"]) or "all asserted bounds and interactions passed"
         lines.append(f"| {row['profile']} | {row['size_dp'][0]}×{row['size_dp'][1]}dp | {row['font_scale']:.1f}× | "
                      f"{row['candidate_status']} | {row['baseline_status']} | {row['status']} | {problems} |")
-    final_status = "PASS" if len(report_rows) == 9 and all(row["status"] == "PASS" for row in report_rows) else (
+    final_status = "PASS" if len(report_rows) == 12 and all(row["status"] == "PASS" for row in report_rows) else (
         "FAIL" if any(row["status"] == "FAIL" for row in report_rows) else "MISSING"
     )
     (output / "NH01_ADAPTIVE_MATRIX_SUMMARY_V1.json").write_text(json.dumps({
@@ -343,11 +344,11 @@ def main() -> int:
     lines.extend([
         "", f"**Matrix result: {final_status}.** This report is generated from the actual device test outputs; missing or failed cases remain explicit.",
         "", "## Candidate policy notes", "",
-        "Card shape remains 247:293. The candidate width target is 76% of the measured carousel track, capped at 360dp; any reduction to keep a compact viewport usable is proportional. Actual card width and title/card/footer gaps are recorded per case in `NH01_LAYOUT_METRICS_V1.json`.",
+        "Card shape remains 247:293. The candidate width target is 70% of the measured carousel track, capped at 337.2dp; any reduction to keep a compact viewport usable is proportional. Actual card width and title/card/footer gaps are recorded per case in `NH01_LAYOUT_METRICS_V1.json`.",
         "", "The side-by-side image is a contact sheet of same-profile full-window Android captures. The raw case PNGs remain the visual source of record.",
     ])
     (output / "NH01_VISUAL_ACCEPTANCE_REPORT_V1.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
-    print(f"NH01_ADAPTIVE_MATRIX={final_status} profiles={sum(row['status'] == 'PASS' for row in report_rows)}/9 source_sha={args.source_sha}")
+    print(f"NH01_ADAPTIVE_MATRIX={final_status} profiles={sum(row['status'] == 'PASS' for row in report_rows)}/12 source_sha={args.source_sha}")
     if all_problems:
         for problem in all_problems:
             print(f"FAIL {problem}")
