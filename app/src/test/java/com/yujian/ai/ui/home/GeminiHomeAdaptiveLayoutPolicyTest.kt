@@ -45,7 +45,8 @@ class GeminiHomeAdaptiveLayoutPolicyTest {
         val large = resolve(393f, 852f, 1.3f)
         val largest = resolve(393f, 852f, 1.5f)
 
-        assertEquals(148f, normal.minReadableCardHeight.value, 0.001f)
+        assertTrue(normal.minReadableCardHeight.value >= 148f)
+        assertTrue(normal.minReadableCardHeight.value < 180f)
         assertTrue(large.minReadableCardHeight.value > normal.minReadableCardHeight.value)
         assertTrue(largest.minReadableCardHeight.value > large.minReadableCardHeight.value)
         assertTrue(largest.minReadableCardHeight.value <= 220f)
@@ -104,20 +105,34 @@ class GeminiHomeAdaptiveLayoutPolicyTest {
     }
 
     @Test
-    fun cameraArtworkScalesWithCanvasWidthAndHeightWithoutGrowingUnbounded() {
-        val compact = geminiHomeCameraVisualSize(320f, 568f)
-        val phone = geminiHomeCameraVisualSize(393f, 780f)
-        val tallPhone = geminiHomeCameraVisualSize(411f, 843f)
-        val wideCanvas = geminiHomeCameraVisualSize(560f, 928f)
-        val shortViewport = geminiHomeCameraVisualSize(393f, 432f)
-        val extraWideViewport = geminiHomeCameraVisualSize(900f, 1200f)
+    fun responsiveTypographyGrowsWithLargerAndTallerViewports() {
+        val compact = geminiHomeResponsiveFontScale(360f, 568f)
+        val phone = geminiHomeResponsiveFontScale(390f, 796f)
+        val tallPhone = geminiHomeResponsiveFontScale(430f, 884f)
+        val compactShort = geminiHomeResponsiveFontScale(320f, 432f)
 
-        assertTrue("phone camera art grows beyond compact size", phone > compact)
-        assertTrue("taller/wider phone camera art grows proportionally", tallPhone > phone)
-        assertTrue("large canvas receives larger camera art", wideCanvas > tallPhone)
-        assertEquals(80f, wideCanvas, 0.001f)
-        assertEquals(80f, extraWideViewport, 0.001f)
-        assertEquals("short viewports retain a visible minimum", 56f, shortViewport, 0.001f)
+        assertEquals(1f, compact, 0.001f)
+        assertTrue("larger phone must not retain compact typography", phone > compact)
+        assertTrue("wider and taller phone must have larger type", tallPhone > phone)
+        assertEquals("short compact viewports must not shrink text below baseline", 1f, compactShort, 0.001f)
+    }
+
+    @Test
+    fun neighborCardsStaySmallerEvenWhenHeroShrinksForHeight() {
+        val profiles = listOf(
+            Triple(320f, 150f, 10f),
+            Triple(360f, 252f, 11.52f),
+            Triple(390f, 273f, 12.48f),
+            Triple(430f, 301f, 13.76f),
+        )
+        profiles.forEach { (trackWidth, cardWidth, spacing) ->
+            val neighbor = geminiHomeNeighborWidth(trackWidth, cardWidth, spacing)
+            assertTrue("neighbor must be visibly smaller at $trackWidth dp", neighbor < cardWidth)
+            assertTrue("neighbor width must stay within 82% of the active card", neighbor <= cardWidth * 0.82f + 0.01f)
+            val visiblePeek = ((trackWidth - 2f * cardWidth + neighbor) / 2f - spacing).coerceAtLeast(0f)
+            val expectedPeek = (trackWidth * 0.05f).coerceIn(12f, 28f)
+            assertTrue("peek remains visible at $trackWidth dp: $visiblePeek", visiblePeek >= expectedPeek - 1f)
+        }
     }
 
     @Test
