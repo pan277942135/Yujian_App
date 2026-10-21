@@ -105,12 +105,24 @@ async function captureVariant(browser, variant, viewport, errors) {
         const captured = document.createElement("canvas");
         captured.width = dw;
         captured.height = dh;
-        nativeDrawImage.call(captured.getContext("2d"), source, sx, sy, sw, sh, dx, dy, dw, dh);
+        const capturedContext = captured.getContext("2d", { willReadFrequently: true });
+        nativeDrawImage.call(capturedContext, source, sx, sy, sw, sh, dx, dy, dw, dh);
+        const alphaData = capturedContext.getImageData(0, 0, captured.width, captured.height).data;
+        let alphaNonzeroPixels = 0;
+        let alphaPeak = 0;
+        for (let offset = 3; offset < alphaData.length; offset += 4) {
+          const alpha = alphaData[offset];
+          if (alpha > 0) alphaNonzeroPixels++;
+          if (alpha > alphaPeak) alphaPeak = alpha;
+        }
         window.__EDGEGLOW_RECEIVING_CAPTURE_CALLS__.push({
           canvas: captured,
           source_size: [source.width, source.height],
           source_rect: [sx, sy, sw, sh],
-          destination_rect: [dx, dy, dw, dh]
+          destination_rect: [dx, dy, dw, dh],
+          captured_size: [captured.width, captured.height],
+          alpha_nonzero_pixels: alphaNonzeroPixels,
+          alpha_peak_8bit: alphaPeak
         });
       }
       return nativeDrawImage.call(this, source, ...args);
@@ -153,13 +165,21 @@ async function captureVariant(browser, variant, viewport, errors) {
         }
       }, variant.id === "CANDIDATE");
       await page.waitForFunction(() =>
-        window.__EDGEGLOW_RECEIVING_CAPTURE_CALLS__?.length > 0 ||
+        window.__EDGEGLOW_RECEIVING_CAPTURE_CALLS__?.some(call => call.alpha_nonzero_pixels > 0) ||
         ["failed", "disabled"].includes(window.__EDGEGLOW_RECEIVING_LIGHT_STATUS__?.status),
       null, { timeout: 12000 });
     } catch (error) {
       const runtime = await page.evaluate(() => ({
         status: window.__EDGEGLOW_RECEIVING_LIGHT_STATUS__ || null,
-        captured_draw_calls: window.__EDGEGLOW_RECEIVING_CAPTURE_CALLS__?.length || 0
+        captured_draw_calls: window.__EDGEGLOW_RECEIVING_CAPTURE_CALLS__?.length || 0,
+        captures: (window.__EDGEGLOW_RECEIVING_CAPTURE_CALLS__ || []).map(call => ({
+          source_size: call.source_size,
+          source_rect: call.source_rect,
+          destination_rect: call.destination_rect,
+          captured_size: call.captured_size,
+          alpha_nonzero_pixels: call.alpha_nonzero_pixels,
+          alpha_peak_8bit: call.alpha_peak_8bit
+        }))
       })).catch(() => null);
       throw new Error("Edge-ribbon renderer did not become ready. " + JSON.stringify({
         render_invocation: renderInvocation || null,
@@ -170,7 +190,15 @@ async function captureVariant(browser, variant, viewport, errors) {
     }
     const runtime = await page.evaluate(() => ({
       status: window.__EDGEGLOW_RECEIVING_LIGHT_STATUS__ || null,
-      captured_draw_calls: window.__EDGEGLOW_RECEIVING_CAPTURE_CALLS__?.length || 0
+      captured_draw_calls: window.__EDGEGLOW_RECEIVING_CAPTURE_CALLS__?.length || 0,
+      captures: (window.__EDGEGLOW_RECEIVING_CAPTURE_CALLS__ || []).map(call => ({
+        source_size: call.source_size,
+        source_rect: call.source_rect,
+        destination_rect: call.destination_rect,
+        captured_size: call.captured_size,
+        alpha_nonzero_pixels: call.alpha_nonzero_pixels,
+        alpha_peak_8bit: call.alpha_peak_8bit
+      }))
     }));
     if (renderInvocation?.error || runtime.status?.status !== "ready" || runtime.captured_draw_calls < 1) {
       throw new Error("Edge-ribbon renderer failed. " + JSON.stringify({
@@ -181,7 +209,8 @@ async function captureVariant(browser, variant, viewport, errors) {
     }
 
     const overlay = await page.evaluate(() => {
-      const call = window.__EDGEGLOW_RECEIVING_CAPTURE_CALLS__[0];
+      const call = window.__EDGEGLOW_RECEIVING_CAPTURE_CALLS__.find(item => item.alpha_nonzero_pixels > 0);
+      if (!call) throw new Error("No captured Receiving Light draw contains nonzero alpha.");
       const canvas = call.canvas;
       const rgba = canvas.getContext("2d", { willReadFrequently: true }).getImageData(0, 0, canvas.width, canvas.height).data;
       const islands = {
