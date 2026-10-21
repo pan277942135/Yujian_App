@@ -26,13 +26,42 @@ YUJIAN_RECOGNITION_OUTPUT_NAME="recognition_processing_v3_1.mp4"
 
 gate_before_instrumentation() {
   if [[ "${YUJIAN_CAPTURE_RECOGNITION_VIDEO:-1}" != "1" ]]; then
+    printf 'PRETEST_STATUS=SKIPPED_RECORDING_DISABLED\n' > "$YUJIAN_EVIDENCE_DIR/rr09_production_pretest_status.txt"
     return 0
   fi
   "${YUJIAN_ADB_BIN}" shell "rm -f '${YUJIAN_RECOGNITION_DEVICE_RECORDING}'" >/dev/null 2>&1 || true
+  "${YUJIAN_ADB_BIN}" shell 'cut -d" " -f1 /proc/uptime' 2>/dev/null | tr -d '\r' \
+    > "$YUJIAN_EVIDENCE_DIR/rr09_gate_recording_start_uptime_seconds.txt" || true
   "${YUJIAN_ADB_BIN}" shell \
-    "screenrecord --bit-rate 4000000 --time-limit 45 '${YUJIAN_RECOGNITION_DEVICE_RECORDING}' >/dev/null 2>&1 &" \
+    "screenrecord --bit-rate 4000000 --time-limit 120 '${YUJIAN_RECOGNITION_DEVICE_RECORDING}' >/dev/null 2>&1 &" \
     >/dev/null 2>&1 || true
   sleep 0.5
+
+  local pretest_log="$YUJIAN_EVIDENCE_DIR/rr09_production_pretest.log"
+  local pretest_status="$YUJIAN_EVIDENCE_DIR/rr09_production_pretest_status.txt"
+  local pretest_rc=0
+  timeout 180s "${YUJIAN_ADB_BIN}" shell am instrument -w -r \
+    -e class com.yujian.ai.RecognitionRevealProductionRuntimeTest \
+    "$YUJIAN_INSTRUMENTATION_TARGET" > "$pretest_log" 2>&1 || pretest_rc=$?
+
+  local pids pid
+  pids="$("${YUJIAN_ADB_BIN}" shell "pidof screenrecord 2>/dev/null || true" 2>/dev/null | tr -d '\r')"
+  for pid in $pids; do "${YUJIAN_ADB_BIN}" shell kill -2 "$pid" >/dev/null 2>&1 || true; done
+  local recording_bytes=0 attempt
+  for attempt in $(seq 1 24); do
+    recording_bytes="$("${YUJIAN_ADB_BIN}" shell \
+      "wc -c < '${YUJIAN_RECOGNITION_DEVICE_RECORDING}' 2>/dev/null || echo 0" \
+      2>/dev/null | tr -d '\r' | tail -n 1)"
+    if [[ "$recording_bytes" =~ ^[0-9]+$ ]] && (( recording_bytes > 1024 )); then break; fi
+    sleep 0.25
+  done
+  if (( pretest_rc == 0 )) && ! grep -Eiq 'FAILURES!!!|INSTRUMENTATION_FAILED|Assertion(Error|FailedError)|Process (crashed|has died)' "$pretest_log" && \
+    grep -Eq 'INSTRUMENTATION_CODE:[[:space:]]*0|OK \([0-9]+ test' "$pretest_log"; then
+    printf 'PRETEST_STATUS=PASS\nRECORDING_BYTES=%s\n' "$recording_bytes" > "$pretest_status"
+  else
+    printf 'PRETEST_STATUS=FAIL\nPRETEST_EXIT_CODE=%s\nRECORDING_BYTES=%s\n' "$pretest_rc" "$recording_bytes" > "$pretest_status"
+    runtime_set_failure "INSTRUMENTATION" "RR09_PRODUCTION_QUALIFICATION_FAILED"
+  fi
 }
 
 gate_after_instrumentation() {
@@ -206,6 +235,41 @@ PY
       fi
     done
   done
+  local rr09_production_dir="$rr09_output/production_model_flow"
+  mkdir -p "$rr09_production_dir"
+  if ! grep -Fxq 'PRETEST_STATUS=PASS' "$YUJIAN_EVIDENCE_DIR/rr09_production_pretest_status.txt" 2>/dev/null; then
+    printf 'RR09 production runtime class did not produce a successful API28 qualification. See rr09_production_pretest.log.\n' >&2
+    runtime_set_failure "INSTRUMENTATION" "RR09_PRODUCTION_QUALIFICATION_FAILED"
+    return "$EXIT_FAIL_EVIDENCE"
+  fi
+  local rr09_production_name
+  for rr09_production_name in \
+    RR09_Production_K01_processing.png \
+    RR09_Production_K02_120ms.png \
+    RR09_Production_K03_290ms.png \
+    RR09_Production_K04_465ms.png \
+    RR09_Production_K05_610ms.png \
+    RR09_Production_K06_850ms.png \
+    RR09_Production_Qualification_Report.json
+  do
+    "${YUJIAN_ADB_BIN}" exec-out run-as "$YUJIAN_APP_PACKAGE" cat \
+      "cache/rr09-gold-transfer-production/${rr09_production_name}" \
+      > "$rr09_production_dir/${rr09_production_name}" 2>/dev/null || true
+    if [[ ! -s "$rr09_production_dir/${rr09_production_name}" ]]; then
+      printf 'MISSING_EVIDENCE=%s\n' "$rr09_production_dir/${rr09_production_name}" >> "$YUJIAN_EVIDENCE_DIR/evidence_missing.log"
+      runtime_set_failure "EVIDENCE" "RR09_PRODUCTION_MODEL_FLOW_EVIDENCE_MISSING"
+      return "$EXIT_FAIL_EVIDENCE"
+    fi
+  done
+  "${YUJIAN_ADB_BIN}" pull "$YUJIAN_RECOGNITION_DEVICE_RECORDING" \
+    "$rr09_production_dir/RR09_Production_Recognition_Flow_Recording.mp4" >/dev/null 2>&1 || true
+  if [[ ! -s "$rr09_production_dir/RR09_Production_Recognition_Flow_Recording.mp4" ]]; then
+    printf 'MISSING_EVIDENCE=%s\n' "$rr09_production_dir/RR09_Production_Recognition_Flow_Recording.mp4" >> "$YUJIAN_EVIDENCE_DIR/evidence_missing.log"
+    runtime_set_failure "EVIDENCE" "RR09_PRODUCTION_FLOW_RECORDING_MISSING"
+    return "$EXIT_FAIL_EVIDENCE"
+  fi
+  cp "$YUJIAN_EVIDENCE_DIR/rr09_gate_recording_start_uptime_seconds.txt" \
+    "$rr09_production_dir/recording_start_uptime_seconds.txt" 2>/dev/null || true
   if ! python3 - "$rr09_output" "$YUJIAN_BUILD_SHA" "$YUJIAN_APP_APK" "RR09_Recognition_Flow_Recording.mp4" "$YUJIAN_REPO_ROOT/design/system/core_visual_v1/reference/recognition_result_v1.png" <<'PY'
 import hashlib
 import json
@@ -234,6 +298,47 @@ manifest["notes"] = [
     "The fish alpha and species result are instrumentation-only fixtures; these frames do not claim production model identity or segmentation.",
     "K01 is the last Processing fixture frame, not a camera-driven RESULT_READY capture.",
 ]
+production_dir = evidence / "production_model_flow"
+production = json.loads((production_dir / "RR09_Production_Qualification_Report.json").read_text(encoding="utf-8"))
+production_recording = production_dir / "RR09_Production_Recognition_Flow_Recording.mp4"
+production_probe = subprocess.run(
+    ["ffprobe", "-v", "error", "-show_streams", "-show_format", "-of", "json", str(production_recording)],
+    check=True,
+    capture_output=True,
+    text=True,
+)
+production_video = json.loads(production_probe.stdout)
+production_stream = next(item for item in production_video["streams"] if item.get("codec_type") == "video")
+production_duration = float(production_video["format"]["duration"])
+if production_duration < 0.85 or int(production_stream["width"]) < 320 or int(production_stream["height"]) < 640:
+    raise SystemExit(f"RR09_PRODUCTION_RECORDING_INVALID duration={production_duration} dimensions={production_stream.get('width')}x{production_stream.get('height')}")
+production["source_commit_sha"] = build_sha
+production["workflow_run_id"] = os.environ.get("GITHUB_RUN_ID")
+production["apk_sha256"] = None
+production["recording_file"] = production_recording.name
+production["recording_duration_seconds"] = production_duration
+production["recording_dimensions"] = [int(production_stream["width"]), int(production_stream["height"])]
+start_uptime = (production_dir / "recording_start_uptime_seconds.txt").read_text(encoding="utf-8").strip()
+production["recording_start_uptime_seconds"] = start_uptime
+production["recording_source"] = "API28 screenrecord started by the runtime gate before this production-data instrumentation class"
+production_frame_specs = [
+    ("RR09_Production_K01_processing.png", None),
+    ("RR09_Production_K02_120ms.png", 120),
+    ("RR09_Production_K03_290ms.png", 290),
+    ("RR09_Production_K04_465ms.png", 465),
+    ("RR09_Production_K05_610ms.png", 610),
+    ("RR09_Production_K06_850ms.png", 850),
+]
+manifest["production_model_flow"] = {
+    "status": production.get("status"),
+    "source_asset": production.get("source_asset"),
+    "source_sha256": production.get("source_sha256"),
+    "result_entry_mode": production.get("result_entry_mode"),
+    "frames": [
+        {"file": f"production_model_flow/{name}", "sample_ms": sample}
+        for name, sample in production_frame_specs
+    ],
+}
 manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
 report = json.loads((evidence / "RR09_API28_Test_Report.json").read_text(encoding="utf-8"))
@@ -266,7 +371,13 @@ report.update({
     "android_build": "PENDING_EXACT_SHA_BUILD_SUMMARY",
     "api28_runtime": "PASS_FOR_INSTRUMENTATION_FIXTURE",
     "responsive_matrix": "PASS_12_CASE_API28_RUNTIME",
-    "production_model_reveal": "NOT_RUN",
+    "production_model_reveal": production.get("status", "NOT_RUN"),
+    "api28_production_runtime": "PASS",
+    "production_model_species_id": production.get("species_id"),
+    "production_model_confidence": production.get("species_confidence"),
+    "production_geometry_trust": production.get("geometry_trust"),
+    "production_geometry_status": production.get("result_geometry_status"),
+    "production_recording_status": "API28_GATE_SCREENRECORD_INCLUDES_PRODUCTION_TEST_FIRST",
     "visual_parity_review": "REVIEW_REQUIRED",
     "performance": "NOT_RUN",
     "frame_sampling": "DETERMINISTIC_TEST_CLOCK",
@@ -276,12 +387,36 @@ if apk and apk.is_file():
     report["apk_sha256"] = digest
     report["apk_bytes"] = apk.stat().st_size
     manifest["apk_sha256"] = digest
+    production["apk_sha256"] = digest
     (evidence / "RR09_Gold_Transfer_Android_Debug.apk").write_bytes(apk.read_bytes())
     (evidence / "RR09_Gold_Transfer_Android_Debug_SHA256.txt").write_text(
         f"{digest}  RR09_Gold_Transfer_Android_Debug.apk\n", encoding="utf-8"
     )
 else:
     raise SystemExit(f"RR09_APK_MISSING path={apk}")
+for production_frame in production_frame_specs:
+    frame_name, _sample = production_frame
+    frame_path = production_dir / frame_name
+    if not frame_path.is_file():
+        raise SystemExit(f"RR09_PRODUCTION_FRAME_MISSING path={frame_path}")
+    with Image.open(frame_path) as image:
+        width, height = image.size
+    manifest["production_model_flow"]["frames"][production_frame_specs.index(production_frame)].update({
+        "width_px": width,
+        "height_px": height,
+        "bytes": frame_path.stat().st_size,
+        "sha256": hashlib.sha256(frame_path.read_bytes()).hexdigest(),
+    })
+manifest["production_model_flow"]["recording"] = {
+    "file": "production_model_flow/RR09_Production_Recognition_Flow_Recording.mp4",
+    "duration_seconds": production_duration,
+    "dimensions": [int(production_stream["width"]), int(production_stream["height"])],
+    "sha256": hashlib.sha256(production_recording.read_bytes()).hexdigest(),
+}
+production["recording_sha256"] = manifest["production_model_flow"]["recording"]["sha256"]
+(production_dir / "RR09_Production_Qualification_Report.json").write_text(
+    json.dumps(production, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+)
 for frame in manifest.get("frames", []):
     frame_path = evidence / frame["file"]
     if not frame_path.is_file():
@@ -310,12 +445,14 @@ report["workflow_run_id"] = __import__("os").environ.get("GITHUB_RUN_ID")
     "- Runtime: Android API 28 instrumentation on the frozen Pixel 2 emulator configuration (1080 x 1920).\n"
     "- Native Compose reveal: PASS_FOR_INSTRUMENTATION_FIXTURE.\n"
     f"- Six controlled frames and the native clock playback were recorded from the Android test app ({duration:.2f} seconds).\n"
-    "- Production model result and production segmentation reveal: NOT_RUN in this fixture test.\n"
+    f"- Production model result and ML Kit segmentation: {production.get('status')} for {production.get('species_id')} (confidence {production.get('species_confidence')}); geometry {production.get('geometry_trust')} / {production.get('result_geometry_status')}.\n"
+    "- Production-data frame captures: six screenshots under production_model_flow. Result entry in this isolated production-data qualification test is test-controlled after the actual model RESULT_READY; automatic V3.1 handoff is tested separately.\n"
+    f"- Production recording: {production_recording.name}, {production_duration:.2f}s, {production_stream['width']} x {production_stream['height']}; API28 screenrecord begins before the production runtime class.\n"
     "- Responsive matrix: PASS, 12 API28 cases across 320×480, 360×640, 390×844, 430×932 at font scales 1.0, 1.3, 1.5.\n"
     "- Frame timing captured from Android Window FrameMetrics; allocation rate: NOT_RUN.\n"
     f"- APK SHA-256: {report['apk_sha256']}\n"
     "- Visual parity: REVIEW_REQUIRED pending human review against the frozen Result design and browser prototype.\n"
-    "\nThe fish photo is the repository fixture. Its alpha contour and species identity are test-only inputs, not a production recognition claim.\n",
+    "\nThe production qualification uses the SHA-verified registered night-catch photo, actual production detector/classifier and ML Kit subject mask. The separate baseline RR09 fixture frames still use test-only alpha and species data.\n",
     encoding="utf-8",
 )
 

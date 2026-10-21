@@ -74,6 +74,14 @@ case "$1" in
       fi
       exit 0
     fi
+    if [[ "$command_line" == *cache/rr09-gold-transfer-production/RR09_Production_Qualification_Report.json* ]]; then
+      printf '{"status":"SAFE_FALLBACK","source_asset":"synthetic_fake_adb_fixture.jpg","source_sha256":"fake-sha256","species_id":"yellow_catfish","species_confidence":0.82,"geometry_trust":"UNTRUSTED","result_geometry_status":"FAKE_FIXTURE","result_entry_mode":"TEST_CONTROLLED"}\n'
+      exit 0
+    fi
+    if [[ "$command_line" == *cache/rr09-gold-transfer-production/*RR09_Production_*.png* ]]; then
+      cat "$fixture_root/05_Result_High_Frozen.png"
+      exit 0
+    fi
     if [[ "$command_line" == *cache/rr09-gold-transfer/* ]]; then
       case "$command_line" in
         *.png*) cat "$fixture_root/05_Result_High_Frozen.png" ;;

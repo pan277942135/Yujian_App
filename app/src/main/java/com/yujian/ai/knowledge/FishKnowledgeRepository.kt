@@ -26,6 +26,7 @@ class FishKnowledgeRepository(
                 id = item.optString("id"),
                 nameCn = item.optString("name_cn"),
                 aliases = stringList(item.optJSONArray("alias")),
+                scientificName = item.optString("scientific_name").cleanJsonString(),
                 summary = item.optString("summary"),
                 category = item.optString("category"),
                 coverImage = item.optString("cover_image").cleanJsonString(),

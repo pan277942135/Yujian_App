@@ -25,6 +25,19 @@ class FishKnowledgeContractTest {
     }
 
     @Test
+    fun species_list_parser_keeps_catalog_scientific_names_and_hides_missing_values() {
+        val items = FishKnowledgeRepository("https://api.example").parseSpeciesJson(
+            """[
+              {"id":"yellow_catfish","name_cn":"黄颡鱼","scientific_name":"Testus catalogus"},
+              {"id":"grass_carp","name_cn":"草鱼","scientific_name":null}
+            ]""",
+        )
+
+        assertEquals("Testus catalogus", items.first { it.id == "yellow_catfish" }.scientificName)
+        assertNull(items.first { it.id == "grass_carp" }.scientificName)
+    }
+
+    @Test
     fun species_list_parser_excludes_non_active_catalog_entries() {
         val items = FishKnowledgeRepository("https://api.example").parseSpeciesJson(
             """[
