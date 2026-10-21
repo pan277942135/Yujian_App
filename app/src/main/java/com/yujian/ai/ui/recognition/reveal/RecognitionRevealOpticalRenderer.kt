@@ -32,6 +32,12 @@ internal fun RecognitionRevealOpticalOverlay(
     val activePhotoGeometry = photoGeometry ?: return
     val activeRevealGeometry = geometry
     if (!frame.drawOpticalLayer && !holdPhotoUntilHeroReady) return
+    val canvasModifier = modifier
+        .testTag("recognition-reveal-optics")
+        .then(
+            if (activeRevealGeometry != null) Modifier.testTag("recognition-reveal-geometry-ready")
+            else Modifier,
+        )
 
     val transferMeasure = remember(activeRevealGeometry) {
         activeRevealGeometry?.let { PathMeasure(it.goldTransferPathLocal.toPath(), false) }
@@ -68,7 +74,7 @@ internal fun RecognitionRevealOpticalOverlay(
     val dotPaint = remember { AndroidPaint(AndroidPaint.ANTI_ALIAS_FLAG) }
     val sweepPaint = remember { AndroidPaint(AndroidPaint.ANTI_ALIAS_FLAG) }
 
-    Canvas(modifier.testTag("recognition-reveal-optics")) {
+    Canvas(canvasModifier) {
         drawIntoCanvas { composeCanvas ->
             val canvas = composeCanvas.nativeCanvas
             val gold = android.graphics.Color.rgb(220, 176, 91)

@@ -72,7 +72,10 @@ import com.yujian.ai.ui.recognition.RecognitionVisualStateController
 import com.yujian.ai.ui.recognition.reveal.RecognitionGeometryTrustState
 import com.yujian.ai.ui.recognition.reveal.RecognitionRevealEligibility
 import com.yujian.ai.ui.recognition.reveal.RecognitionRevealHandoff
+import com.yujian.ai.ui.recognition.reveal.RecognitionRevealHandoffFactory
 import com.yujian.ai.ui.recognition.reveal.RecognitionRevealKey
+import com.yujian.ai.ui.recognition.reveal.RecognitionProcessingPhotoSnapshot
+import com.yujian.ai.ui.recognition.reveal.RecognitionSubjectGeometrySnapshot
 import com.yujian.ai.ui.recognition.reveal.RecognitionRevealWindowRect
 import com.yujian.ai.ui.screens.RecognitionIssueScreen
 import com.yujian.ai.ui.screens.RecognitionProcessingScene
@@ -134,6 +137,7 @@ class RecognitionFrozenFlowEmulatorTest {
         fun clearFrozenEvidenceOnce() {
             val instrumentation = InstrumentationRegistry.getInstrumentation()
             File(instrumentation.targetContext.cacheDir, "recognition-evidence").deleteRecursively()
+            File(instrumentation.targetContext.cacheDir, "rr09-gold-transfer").deleteRecursively()
         }
     }
 
@@ -450,6 +454,362 @@ class RecognitionFrozenFlowEmulatorTest {
         composeRule.onNodeWithContentDescription("返回").performClick()
         composeRule.onNodeWithText("保存本次鱼获").performScrollTo().performClick()
         composeRule.waitUntil(timeoutMillis = 2_000L) { saveCalls.get() == 1 }
+    }
+
+    @Test
+    fun rr09RunsResultResponsiveMatrixAcrossScreenSizesAndFontScales() {
+        data class Profile(val widthDp: Int, val heightDp: Int, val fontScale: Float) {
+            val key: String get() = "${widthDp}x${heightDp}_font${fontScale.toString().replace('.', 'p')}"
+        }
+
+        val profiles = listOf(
+            320 to 480,
+            360 to 640,
+            390 to 844,
+            430 to 932,
+        ).flatMap { (width, height) ->
+            listOf(1.0f, 1.3f, 1.5f).map { scale -> Profile(width, height, scale) }
+        }
+        val targetContext = InstrumentationRegistry.getInstrumentation().targetContext
+        val output = File(targetContext.cacheDir, "rr09-gold-transfer/responsive").apply { mkdirs() }
+        val active = mutableStateOf(profiles.first())
+        val reportCases = org.json.JSONArray()
+        val identity = requireNotNull(high.prediction).top1
+        val catalog = listOf(
+            FishGuideItem(
+                id = identity.speciesKey,
+                nameCn = identity.speciesName,
+                scientificName = "Ctenopharyngodon idella",
+            ),
+        )
+
+        composeRule.setContent {
+            val profile = active.value
+            YujianTheme {
+                key(profile.key) {
+                    RecognitionResultScreen(
+                        image = photo,
+                        prediction = requireNotNull(high.prediction),
+                        productionResult = high,
+                        availableSpecies = catalog,
+                        revealElapsedOverrideMs = 850L,
+                        onBack = {},
+                        onRetry = {},
+                        onSave = { _, _, _ -> },
+                    )
+                }
+            }
+        }
+
+        try {
+            device.executeShellCommand("wm density 480")
+            profiles.forEach { profile ->
+                device.executeShellCommand("wm size ${profile.widthDp * 3}x${profile.heightDp * 3}")
+                device.executeShellCommand("settings put system font_scale ${profile.fontScale}")
+                device.waitForIdle()
+                active.value = profile
+                composeRule.waitUntil(timeoutMillis = 10_000L) {
+                    val config = composeRule.activity.resources.configuration
+                    config.screenWidthDp == profile.widthDp &&
+                        kotlin.math.abs(config.fontScale - profile.fontScale) <= 0.05f
+                }
+                composeRule.waitForIdle()
+
+                composeRule.onNodeWithTag("recognition-result-hero").assertIsDisplayed()
+                composeRule.onNodeWithText(identity.speciesName).assertIsDisplayed()
+                composeRule.onNodeWithText("Ctenopharyngodon idella").assertIsDisplayed()
+                composeRule.onNodeWithText("修改鱼种").assertIsDisplayed().assertIsEnabled()
+                composeRule.onNodeWithText("继续记忆").performScrollTo().assertIsDisplayed()
+                composeRule.onNodeWithText("保存本次鱼获").performScrollTo().assertIsDisplayed()
+
+                val root = composeRule.onRoot().fetchSemanticsNode().boundsInWindow
+                val hero = composeRule.onNodeWithTag("recognition-result-hero").fetchSemanticsNode().boundsInWindow
+                val title = composeRule.onNodeWithTag("recognition-result-species").fetchSemanticsNode().boundsInWindow
+                assertTrue("Hero escaped the root at ${profile.key}", hero.left >= root.left && hero.right <= root.right)
+                assertTrue("species title escaped the root at ${profile.key}", title.left >= root.left && title.right <= root.right)
+                saveRevealFrame(output, "responsive_${profile.key}.png")
+
+                val item = org.json.JSONObject()
+                    .put("profile", profile.key)
+                    .put("requested_width_dp", profile.widthDp)
+                    .put("requested_height_dp", profile.heightDp)
+                    .put("requested_font_scale", profile.fontScale)
+                    .put("actual_screen_width_dp", composeRule.activity.resources.configuration.screenWidthDp)
+                    .put("actual_screen_height_dp", composeRule.activity.resources.configuration.screenHeightDp)
+                    .put("actual_font_scale", composeRule.activity.resources.configuration.fontScale)
+                    .put("hero_bounds_in_window_px", org.json.JSONArray().put(hero.left).put(hero.top).put(hero.right).put(hero.bottom))
+                    .put("title_bounds_in_window_px", org.json.JSONArray().put(title.left).put(title.top).put(title.right).put(title.bottom))
+                    .put("hero_visible", true)
+                    .put("scientific_name_visible", true)
+                    .put("edit_species_enabled", true)
+                    .put("continue_cta_reachable", true)
+                    .put("save_cta_reachable", true)
+                reportCases.put(item)
+            }
+        } finally {
+            device.executeShellCommand("wm size 1080x1920")
+            device.executeShellCommand("wm density 480")
+            device.executeShellCommand("settings put system font_scale 1.0")
+            device.waitForIdle()
+        }
+
+        val report = org.json.JSONObject()
+            .put("status", "PASS")
+            .put("api", android.os.Build.VERSION.SDK_INT)
+            .put("source_commit_sha", "TEST_BUILD")
+            .put("matrix_cases", reportCases)
+            .put("case_count", reportCases.length())
+            .put("expected_case_count", profiles.size)
+            .put("test_result_source", "TEST_FIXTURE_ONLY")
+        File(targetContext.cacheDir, "rr09-gold-transfer/RR09_Responsive_Matrix_Report.json")
+            .writeText(report.toString(2))
+        assertEquals("responsive matrix case count mismatch", profiles.size, reportCases.length())
+    }
+
+    @Test
+    fun rr09CapturesNativeRevealFramesFromRealPhotoFixture() {
+        val targetContext = InstrumentationRegistry.getInstrumentation().targetContext
+        val evidence = File(targetContext.cacheDir, "rr09-gold-transfer").apply { mkdirs() }
+        val stage = mutableStateOf("processing")
+        val elapsed = mutableStateOf<Long?>(0L)
+        val geometry = AtomicReference<RecognitionSubjectGeometrySnapshot?>()
+        val processingPhoto = AtomicReference<RecognitionProcessingPhotoSnapshot?>()
+        val handoffState = mutableStateOf<RecognitionRevealHandoff?>(null)
+        val subject = createAnnotatedSubjectAlphaFixture(
+            photo.bitmap,
+            requireNotNull(high.assessment.primary).box,
+        )
+        val scientificName = "Ctenopharyngodon idella"
+        val catalogEntry = FishGuideItem(
+            id = requireNotNull(high.prediction).top1.speciesKey,
+            nameCn = requireNotNull(high.prediction).top1.speciesName,
+            scientificName = scientificName,
+        )
+
+        composeRule.setContent {
+            YujianTheme {
+                if (stage.value == "processing") {
+                    RecognitionProcessingScene(
+                        image = photo,
+                        onBack = {},
+                        recognize = { onProgress ->
+                            onProgress(RecognitionProgress(RecognitionPhase.RESULT, high.assessment))
+                            high
+                        },
+                        generateSubject = { _, _ -> subject },
+                        onFinished = {},
+                        phaseOverride = RecognitionPhase.CLASSIFYING,
+                        visualClockOverrideMs = 3_200L,
+                        onSubjectGeometry = { _, snapshot -> if (snapshot != null) geometry.set(snapshot) },
+                        onProcessingPhotoSnapshot = { processingPhoto.set(it) },
+                    )
+                } else {
+                    RecognitionResultScreen(
+                        image = photo,
+                        prediction = requireNotNull(high.prediction),
+                        productionResult = high,
+                        availableSpecies = listOf(catalogEntry),
+                        revealHandoff = handoffState.value,
+                        revealElapsedOverrideMs = elapsed.value,
+                        revealMotionPolicyOverride = com.yujian.ai.ui.recognition.reveal.RecognitionRevealMotionPolicy(
+                            reduceMotion = false,
+                            lowPerformance = false,
+                        ),
+                        onBack = {},
+                        onRetry = {},
+                        onSave = { _, _, _ -> },
+                    )
+                }
+            }
+        }
+
+        composeRule.waitUntil(timeoutMillis = 5_000L) {
+            geometry.get() != null && processingPhoto.get() != null
+        }
+        saveRevealFrame(evidence, "K01_processing_fixture_final.png")
+        val handoff = RecognitionRevealHandoffFactory.create(
+            recognitionSessionId = "rr09-runtime-fixture-session",
+            recognitionAttemptId = "rr09-runtime-fixture-attempt",
+            image = photo,
+            result = high,
+            subject = requireNotNull(geometry.get()),
+            processingPhoto = requireNotNull(processingPhoto.get()),
+            highConfidenceResult = true,
+            handoffTimestampUptimeMs = SystemClock.uptimeMillis(),
+        )
+        assertEquals(RecognitionRevealEligibility.FULL_REVEAL, handoff.eligibility)
+        handoffState.value = handoff
+        stage.value = "result"
+        composeRule.waitUntil(timeoutMillis = 5_000L) {
+            composeRule.onAllNodesWithTag("recognition-reveal-geometry-ready").fetchSemanticsNodes().isNotEmpty()
+        }
+
+        val frames = listOf(120L, 290L, 465L, 610L, 850L)
+        frames.forEachIndexed { index, timeMs ->
+            elapsed.value = timeMs
+            composeRule.waitForIdle()
+            saveRevealFrame(evidence, "K${index + 2}_${timeMs}ms.png")
+        }
+        composeRule.onNodeWithText("Ctenopharyngodon idella").assertIsDisplayed()
+        val heroBounds = composeRule.onNodeWithTag("recognition-result-hero").fetchSemanticsNode().boundsInWindow
+        val titleBounds = composeRule.onNodeWithTag("recognition-result-species").fetchSemanticsNode().boundsInWindow
+        val latinBounds = composeRule.onNodeWithTag("recognition-result-species-scientific-name")
+            .fetchSemanticsNode().boundsInWindow
+        assertTrue("species identity row must remain below the Hero", titleBounds.top >= heroBounds.bottom)
+        assertTrue("Latin name must be placed within the species identity row", latinBounds.top >= titleBounds.top)
+        fun rectJson(rect: androidx.compose.ui.geometry.Rect) =
+            "[${rect.left},${rect.top},${rect.right},${rect.bottom}]"
+        val sourceTransform = requireNotNull(processingPhoto.get()).sourceToViewport
+
+        elapsed.value = 0L
+        stage.value = "processing"
+        composeRule.waitUntil(timeoutMillis = 5_000L) {
+            geometry.get() != null && processingPhoto.get() != null
+        }
+        composeRule.waitForIdle()
+        Thread.sleep(5_500L)
+        stopRunningScreenRecorders()
+        val recordingDevicePath = "/sdcard/rr09_gold_transfer_runtime.mp4"
+        device.executeShellCommand("rm -f '$recordingDevicePath'")
+        device.executeShellCommand(
+            "screenrecord --bit-rate 4000000 --time-limit 10 '$recordingDevicePath' >/dev/null 2>&1 &",
+        )
+        Thread.sleep(250L)
+        stage.value = "result"
+        composeRule.waitUntil(timeoutMillis = 5_000L) {
+            composeRule.onAllNodesWithTag("recognition-reveal-geometry-ready").fetchSemanticsNodes().isNotEmpty()
+        }
+
+        // Switch to the real monotonic clock once, so the dedicated Android
+        // screen recording contains continuous native playback.
+        val frameTimesNs = Collections.synchronizedList(mutableListOf<Long>())
+        val metricThread = android.os.HandlerThread("rr09-frame-metrics").apply { start() }
+        val frameMetricsListener = android.view.Window.OnFrameMetricsAvailableListener { _, metrics, _ ->
+            frameTimesNs += metrics.getMetric(android.view.FrameMetrics.TOTAL_DURATION)
+        }
+        composeRule.activity.window.addOnFrameMetricsAvailableListener(
+            frameMetricsListener,
+            android.os.Handler(metricThread.looper),
+        )
+        elapsed.value = null
+        composeRule.waitForIdle()
+        Thread.sleep(1_000L)
+        val framesAtAnimationEnd = frameTimesNs.size
+        Thread.sleep(250L)
+        val framesAfterIdleWindow = (frameTimesNs.size - framesAtAnimationEnd).coerceAtLeast(0)
+        composeRule.activity.window.removeOnFrameMetricsAvailableListener(frameMetricsListener)
+        metricThread.quitSafely()
+        metricThread.join(2_000L)
+        val sortedFrameTimes = frameTimesNs.toList().filter { it > 0L }.sorted()
+        val averageFrameMs = sortedFrameTimes.average() / 1_000_000.0
+        fun percentileFrameMs(percentile: Double): Double {
+            if (sortedFrameTimes.isEmpty()) return 0.0
+            val index = kotlin.math.ceil(sortedFrameTimes.size * percentile).toInt()
+                .coerceIn(1, sortedFrameTimes.size) - 1
+            return sortedFrameTimes[index] / 1_000_000.0
+        }
+        val jankCount = sortedFrameTimes.count { it > 16_666_667L }
+        assertTrue("FrameMetrics returned too few frames: ${sortedFrameTimes.size}", sortedFrameTimes.size >= 10)
+        val performanceReport = """
+            {
+              "api": ${android.os.Build.VERSION.SDK_INT},
+              "measurement": "Android Window FrameMetrics TOTAL_DURATION during one monotonic RR09 playback",
+              "sample_count": ${sortedFrameTimes.size},
+              "average_frame_ms": $averageFrameMs,
+              "p95_frame_ms": ${percentileFrameMs(0.95)},
+              "p99_frame_ms": ${percentileFrameMs(0.99)},
+              "jank_over_16_67ms": $jankCount,
+              "estimated_average_fps": ${if (averageFrameMs > 0.0) 1000.0 / averageFrameMs else 0.0},
+              "frames_in_250ms_after_animation_wait": $framesAfterIdleWindow,
+              "allocation_rate": "NOT_RUN"
+            }
+        """.trimIndent()
+        File(evidence, "RR09_Performance_Report.json").writeText(performanceReport)
+        stopRunningScreenRecorders()
+        var recordingBytes = 0L
+        for (attempt in 0 until 12) {
+            recordingBytes = device.executeShellCommand("wc -c < '$recordingDevicePath'").trim().toLongOrNull() ?: 0L
+            if (recordingBytes > 1024L) break
+            Thread.sleep(250L)
+        }
+        assertTrue("RR09 screen recording is empty: bytes=$recordingBytes", recordingBytes > 1024L)
+        val appRecording = File(evidence, "RR09_Recognition_Flow_Recording.mp4")
+        val copyResult = device.executeShellCommand(
+            "run-as ${targetContext.packageName} cp '$recordingDevicePath' '${appRecording.absolutePath}'",
+        )
+        assertTrue("could not copy RR09 device recording: $copyResult", appRecording.isFile && appRecording.length() > 1024L)
+
+        val sourceBytes = InstrumentationRegistry.getInstrumentation().context.assets
+            .open("recognition_real_catch_fixture.jpg").use { it.readBytes() }
+        val sourceSha256 = java.security.MessageDigest.getInstance("SHA-256")
+            .digest(sourceBytes).joinToString("") { "%02x".format(it) }
+        val manifest = """
+            {
+              "source_commit_sha": "TEST_BUILD",
+              "device_api": ${android.os.Build.VERSION.SDK_INT},
+              "source_photo_asset": "recognition_real_catch_fixture.jpg",
+              "source_photo_sha256": "$sourceSha256",
+              "source_photo_size_px": [${photo.bitmap.width},${photo.bitmap.height}],
+              "source_orientation_degrees_applied": ${handoff.sourceOrientationDegreesApplied},
+              "photo_source_identity": "${handoff.photoSourceIdentity}",
+              "trusted_detector_bbox_normalized": [
+                ${handoff.trustedDetectorBBox?.left},${handoff.trustedDetectorBBox?.top},
+                ${handoff.trustedDetectorBBox?.right},${handoff.trustedDetectorBBox?.bottom}
+              ],
+              "processing_source_matrix": {
+                "scale": ${sourceTransform.scale},
+                "translation_x": ${sourceTransform.translationX},
+                "translation_y": ${sourceTransform.translationY}
+              },
+              "processing_photo_bounds_in_window_px": [
+                ${processingPhoto.get()?.viewportBoundsInWindow?.left},
+                ${processingPhoto.get()?.viewportBoundsInWindow?.top},
+                ${processingPhoto.get()?.viewportBoundsInWindow?.right},
+                ${processingPhoto.get()?.viewportBoundsInWindow?.bottom}
+              ],
+              "component_bounds_in_window_px": {
+                "hero": ${rectJson(heroBounds)},
+                "species_identity": ${rectJson(titleBounds)},
+                "scientific_name": ${rectJson(latinBounds)},
+                "species_edit": ${rectJson(composeRule.onNodeWithTag("recognition-result-species-edit").fetchSemanticsNode().boundsInWindow)},
+                "save_cta": ${rectJson(composeRule.onNodeWithText("保存本次鱼获").fetchSemanticsNode().boundsInWindow)}
+              },
+              "recognition_session_id": "${handoff.key.recognitionSessionId}",
+              "recognition_attempt_id": "${handoff.key.recognitionAttemptId}",
+              "geometry_trust": "${handoff.geometryTrustState}",
+              "result_geometry_resolved": true,
+              "eligibility": "${handoff.eligibility}",
+              "species_result_source": "TEST_FIXTURE_ONLY",
+              "species_name": "${requireNotNull(high.prediction).top1.speciesName}",
+              "scientific_name": "$scientificName",
+              "manual_alpha_fixture": true,
+              "production_model_or_species_claim": false,
+              "first_result_frame_t0_rule": "Result page first frame",
+              "frame_sampling_mode": "Deterministic test clock; injected elapsed values are exact inputs, not wall-clock sample readings",
+              "frames": [
+                {"file":"K01_processing_fixture_final.png","processing_visual_clock_ms":3200,"reveal_elapsed_ms":0,"source":"fixed processing fixture"},
+                {"file":"K02_120ms.png","sample_ms":120,"source":"deterministic RR09 clock override"},
+                {"file":"K03_290ms.png","sample_ms":290,"source":"deterministic RR09 clock override"},
+                {"file":"K04_465ms.png","sample_ms":465,"source":"deterministic RR09 clock override"},
+                {"file":"K05_610ms.png","sample_ms":610,"source":"deterministic RR09 clock override"},
+                {"file":"K06_850ms.png","sample_ms":850,"source":"deterministic RR09 clock override"}
+              ]
+            }
+        """.trimIndent()
+        File(evidence, "RR09_Frames_Manifest.json").writeText(manifest)
+        val trace = (listOf(0L, 120L, 200L, 290L, 380L, 465L, 550L, 610L, 680L, 850L))
+            .joinToString(",\n", "[\n", "\n]\n") { timeMs ->
+            val frame = com.yujian.ai.ui.recognition.reveal.RecognitionRevealClock.evaluate(
+                elapsedMs = timeMs,
+                handoff = handoff,
+                policy = com.yujian.ai.ui.recognition.reveal.RecognitionRevealMotionPolicy(),
+            )
+            "  {\"elapsed_ms\":$timeMs,\"phase\":\"${frame.phase}\",\"title_mode\":\"${frame.titleMode}\",\"particles\":${frame.visibleParticleCount},\"photo_progress\":${frame.photoProgress}}"
+        }
+        File(evidence, "RR09_Motion_Trace.json").writeText(trace)
+        File(evidence, "RR09_API28_Test_Report.json").writeText(
+            "{\"status\":\"PASS\",\"api\":${android.os.Build.VERSION.SDK_INT},\"result\":\"TEST_FIXTURE_ONLY\",\"full_reveal_eligibility\":\"${handoff.eligibility}\",\"reduce_motion\":\"NOT_RUN\",\"low_performance\":\"NOT_RUN\",\"responsive_matrix\":\"NOT_RUN\"}\n",
+        )
     }
 
     @Test
@@ -1459,6 +1819,28 @@ class RecognitionFrozenFlowEmulatorTest {
             maskAreaRatio = area,
             quality = FishSubjectQuality.GOOD,
         )
+    }
+
+    private fun saveRevealFrame(outputDir: File, fileName: String) {
+        val bitmap = composeRule.onRoot().captureToImage().asAndroidBitmap()
+        try {
+            File(outputDir, fileName).outputStream().use { stream ->
+                check(bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream))
+            }
+        } finally {
+            bitmap.recycle()
+        }
+    }
+
+    private fun stopRunningScreenRecorders() {
+        val pids = device.executeShellCommand("pidof screenrecord").trim()
+            .split(Regex("\\s+"))
+            .filter(String::isNotBlank)
+        pids.forEach { pid -> device.executeShellCommand("kill -2 $pid") }
+        for (attempt in 0 until 12) {
+            if (device.executeShellCommand("pidof screenrecord").isBlank()) break
+            Thread.sleep(100L)
+        }
     }
 
     private fun bitmapDifferenceRatio(left: Bitmap, right: Bitmap, topSkipPx: Int): Float {

@@ -168,6 +168,194 @@ PY
     if [[ ! -s "$output_dir/${name}" ]]; then rm -f "$output_dir/${name}"; fi
   done
 
+  local rr09_output="$output_dir/rr09-gold-transfer"
+  mkdir -p "$rr09_output"
+  local rr09_name
+  for rr09_name in \
+    K01_processing_fixture_final.png \
+    K02_120ms.png \
+    K03_290ms.png \
+    K04_465ms.png \
+    K05_610ms.png \
+    K06_850ms.png \
+    RR09_Recognition_Flow_Recording.mp4 \
+    RR09_Frames_Manifest.json \
+    RR09_Motion_Trace.json \
+    RR09_API28_Test_Report.json \
+    RR09_Performance_Report.json \
+    RR09_Responsive_Matrix_Report.json
+  do
+    "${YUJIAN_ADB_BIN}" exec-out run-as "$YUJIAN_APP_PACKAGE" cat \
+      "cache/rr09-gold-transfer/${rr09_name}" > "$rr09_output/${rr09_name}" 2>/dev/null || true
+    if [[ ! -s "$rr09_output/${rr09_name}" ]]; then
+      printf 'MISSING_EVIDENCE=%s\n' "$rr09_output/${rr09_name}" >> "$YUJIAN_EVIDENCE_DIR/evidence_missing.log"
+      runtime_set_failure "EVIDENCE" "RR09_NATIVE_FRAME_EVIDENCE_MISSING"
+      return "$EXIT_FAIL_EVIDENCE"
+    fi
+  done
+  local rr09_dimensions rr09_font
+  for rr09_dimensions in 320x480 360x640 390x844 430x932; do
+    for rr09_font in 1p0 1p3 1p5; do
+      rr09_name="responsive_${rr09_dimensions}_font${rr09_font}.png"
+      "${YUJIAN_ADB_BIN}" exec-out run-as "$YUJIAN_APP_PACKAGE" cat \
+        "cache/rr09-gold-transfer/responsive/${rr09_name}" > "$rr09_output/${rr09_name}" 2>/dev/null || true
+      if [[ ! -s "$rr09_output/${rr09_name}" ]]; then
+        printf 'MISSING_EVIDENCE=%s\n' "$rr09_output/${rr09_name}" >> "$YUJIAN_EVIDENCE_DIR/evidence_missing.log"
+        runtime_set_failure "EVIDENCE" "RR09_RESPONSIVE_MATRIX_FRAME_MISSING"
+        return "$EXIT_FAIL_EVIDENCE"
+      fi
+    done
+  done
+  if ! python3 - "$rr09_output" "$YUJIAN_BUILD_SHA" "$YUJIAN_APP_APK" "RR09_Recognition_Flow_Recording.mp4" "$YUJIAN_REPO_ROOT/design/system/core_visual_v1/reference/recognition_result_v1.png" <<'PY'
+import hashlib
+import json
+import os
+import subprocess
+import sys
+from pathlib import Path
+from PIL import Image, ImageChops, ImageStat
+
+evidence = Path(sys.argv[1])
+build_sha = sys.argv[2]
+apk = Path(sys.argv[3]) if sys.argv[3] else None
+recording_name = sys.argv[4]
+frozen_reference = Path(sys.argv[5])
+manifest_path = evidence / "RR09_Frames_Manifest.json"
+manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+manifest["source_commit_sha"] = build_sha
+manifest["runtime_device_api"] = 28
+manifest["runtime_recording"] = recording_name
+manifest["runtime_recording_status"] = "CAPTURED_BY_INSTRUMENTATION_SCREENRECORD"
+manifest["review_status"] = "VISUAL_PARITY_REVIEW_REQUIRED"
+manifest["workflow_run_id"] = os.environ.get("GITHUB_RUN_ID")
+manifest["apk_sha256"] = None
+manifest["notes"] = [
+    "Frame captures use the deterministic RR09 clock override and are not samples from the live monotonic playback.",
+    "The fish alpha and species result are instrumentation-only fixtures; these frames do not claim production model identity or segmentation.",
+    "K01 is the last Processing fixture frame, not a camera-driven RESULT_READY capture.",
+]
+manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+report = json.loads((evidence / "RR09_API28_Test_Report.json").read_text(encoding="utf-8"))
+matrix = json.loads((evidence / "RR09_Responsive_Matrix_Report.json").read_text(encoding="utf-8"))
+if matrix.get("status") != "PASS" or matrix.get("case_count") != 12:
+    raise SystemExit(f"RR09_RESPONSIVE_MATRIX_INVALID case_count={matrix.get('case_count')}")
+matrix["source_commit_sha"] = build_sha
+matrix["workflow_run_id"] = os.environ.get("GITHUB_RUN_ID")
+(evidence / "RR09_Responsive_Matrix_Report.json").write_text(
+    json.dumps(matrix, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+)
+recording = evidence / "RR09_Recognition_Flow_Recording.mp4"
+probe = subprocess.run(
+    ["ffprobe", "-v", "error", "-show_streams", "-show_format", "-of", "json", str(recording)],
+    check=True,
+    capture_output=True,
+    text=True,
+)
+metadata = json.loads(probe.stdout)
+video_stream = next(item for item in metadata["streams"] if item.get("codec_type") == "video")
+duration = float(metadata["format"]["duration"])
+if duration < 0.85 or int(video_stream["width"]) < 320 or int(video_stream["height"]) < 640:
+    raise SystemExit(f"RR09_RECORDING_INVALID duration={duration} dimensions={video_stream.get('width')}x{video_stream.get('height')}")
+report["recording_duration_seconds"] = duration
+report["recording_dimensions"] = [int(video_stream["width"]), int(video_stream["height"])]
+report.update({
+    "source_commit_sha": build_sha,
+    "apk_sha256": None,
+    "apk_bytes": None,
+    "android_build": "PENDING_EXACT_SHA_BUILD_SUMMARY",
+    "api28_runtime": "PASS_FOR_INSTRUMENTATION_FIXTURE",
+    "responsive_matrix": "PASS_12_CASE_API28_RUNTIME",
+    "production_model_reveal": "NOT_RUN",
+    "visual_parity_review": "REVIEW_REQUIRED",
+    "performance": "NOT_RUN",
+    "frame_sampling": "DETERMINISTIC_TEST_CLOCK",
+})
+if apk and apk.is_file():
+    digest = hashlib.sha256(apk.read_bytes()).hexdigest()
+    report["apk_sha256"] = digest
+    report["apk_bytes"] = apk.stat().st_size
+    manifest["apk_sha256"] = digest
+    (evidence / "RR09_Gold_Transfer_Android_Debug.apk").write_bytes(apk.read_bytes())
+    (evidence / "RR09_Gold_Transfer_Android_Debug_SHA256.txt").write_text(
+        f"{digest}  RR09_Gold_Transfer_Android_Debug.apk\n", encoding="utf-8"
+    )
+else:
+    raise SystemExit(f"RR09_APK_MISSING path={apk}")
+for frame in manifest.get("frames", []):
+    frame_path = evidence / frame["file"]
+    if not frame_path.is_file():
+        raise SystemExit(f"RR09_FRAME_MISSING path={frame_path}")
+    with Image.open(frame_path) as image:
+        frame["width_px"], frame["height_px"] = image.size
+    frame["bytes"] = frame_path.stat().st_size
+    frame["sha256"] = hashlib.sha256(frame_path.read_bytes()).hexdigest()
+manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+performance = json.loads((evidence / "RR09_Performance_Report.json").read_text(encoding="utf-8"))
+performance["source_commit_sha"] = build_sha
+performance["workflow_run_id"] = __import__("os").environ.get("GITHUB_RUN_ID")
+performance["apk_sha256"] = report["apk_sha256"]
+(evidence / "RR09_Performance_Report.json").write_text(
+    json.dumps(performance, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+)
+report["performance"] = "CAPTURED_FRAME_METRICS_WITH_ALLOCATION_RATE_NOT_RUN"
+report["workflow_run_id"] = __import__("os").environ.get("GITHUB_RUN_ID")
+(evidence / "RR09_API28_Test_Report.json").write_text(
+    json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+)
+(evidence / "RR09_Android_Runtime_Report.md").write_text(
+    "# RR09 Android Runtime Report\n\n"
+    f"- Source SHA: {build_sha}\n"
+    f"- Android workflow run: {__import__('os').environ.get('GITHUB_RUN_ID')}\n"
+    "- Runtime: Android API 28 instrumentation on the frozen Pixel 2 emulator configuration (1080 x 1920).\n"
+    "- Native Compose reveal: PASS_FOR_INSTRUMENTATION_FIXTURE.\n"
+    f"- Six controlled frames and the native clock playback were recorded from the Android test app ({duration:.2f} seconds).\n"
+    "- Production model result and production segmentation reveal: NOT_RUN in this fixture test.\n"
+    "- Responsive matrix: PASS, 12 API28 cases across 320×480, 360×640, 390×844, 430×932 at font scales 1.0, 1.3, 1.5.\n"
+    "- Frame timing captured from Android Window FrameMetrics; allocation rate: NOT_RUN.\n"
+    f"- APK SHA-256: {report['apk_sha256']}\n"
+    "- Visual parity: REVIEW_REQUIRED pending human review against the frozen Result design and browser prototype.\n"
+    "\nThe fish photo is the repository fixture. Its alpha contour and species identity are test-only inputs, not a production recognition claim.\n",
+    encoding="utf-8",
+)
+
+if not frozen_reference.is_file():
+    raise SystemExit(f"RR09_FROZEN_REFERENCE_MISSING path={frozen_reference}")
+final_frame = Image.open(evidence / "K06_850ms.png").convert("RGB")
+reference = Image.open(frozen_reference).convert("RGB")
+final_scaled = final_frame.resize(reference.size, Image.Resampling.LANCZOS)
+diff = ImageChops.difference(final_scaled, reference)
+overlay = Image.blend(reference, final_scaled, 0.5)
+diff_path = evidence / "RR09_Android_Static_Pixel_Diff.png"
+overlay_path = evidence / "RR09_Android_Static_Overlay.png"
+diff.save(diff_path)
+overlay.save(overlay_path)
+mean_absolute_error = sum(ImageStat.Stat(diff).mean) / 3.0
+changed_ratio = sum(1 for pixel in diff.getdata() if max(pixel) > 18) / (reference.width * reference.height)
+android_static = Image.open(Path(sys.argv[1]).parent / "05_result_high.png").convert("RGB")
+android_final = final_frame.resize(android_static.size, Image.Resampling.LANCZOS)
+android_diff = ImageChops.difference(android_static, android_final)
+android_mean_absolute_error = sum(ImageStat.Stat(android_diff).mean) / 3.0
+android_changed_ratio = sum(1 for pixel in android_diff.getdata() if max(pixel) > 18) / (android_static.width * android_static.height)
+(evidence / "RR09_Visual_Comparison_Report.md").write_text(
+    "# RR09 Visual Comparison Report\n\n"
+    f"- Source SHA: {build_sha}\n"
+    f"- Android final screenshot: K06_850ms.png ({final_frame.width} x {final_frame.height})\n"
+    f"- Frozen Result reference: {frozen_reference} ({reference.width} x {reference.height}), SHA-256 {hashlib.sha256(frozen_reference.read_bytes()).hexdigest()}\n"
+    f"- Final Android to frozen reference: mean absolute RGB difference {mean_absolute_error:.3f}; pixels with max-channel delta above 18: {changed_ratio:.3%}.\n"
+    f"- Final Android to static Android Result capture: mean absolute RGB difference {android_mean_absolute_error:.3f}; pixels with max-channel delta above 18: {android_changed_ratio:.3%}.\n"
+    "- Pixel diff and 50% overlay files are included. Resizing to reference dimensions is used only for comparison; the frozen PNG bytes are unchanged.\n"
+    "- Component bounds in window pixels are recorded in RR09_Frames_Manifest.json.\n"
+    "- Dynamic browser-to-Android comparison: REVIEW_REQUIRED; browser run is Design Governance 39584894137 and its recording was not downloaded into this runtime artifact.\n"
+    "- VISUAL_PARITY_REVIEW_REQUIRED. Pixel metrics are evidence and are not an automatic visual approval.\n",
+    encoding="utf-8",
+)
+PY
+  then
+    runtime_set_failure "EVIDENCE" "RR09_NATIVE_FRAME_EVIDENCE_INVALID"
+    return "$EXIT_FAIL_EVIDENCE"
+  fi
+
   local optical_dir="$output_dir/optical-fidelity"
   mkdir -p "$optical_dir"
   for name in recognition_optical_fidelity_v3_1.json optical_fidelity_full.png optical_fidelity_lite.png; do
@@ -225,7 +413,6 @@ PY
     printf 'HOST_RECORDING_BYTES=%s\n' "$recording_bytes" >> "$YUJIAN_EVIDENCE_DIR/evidence_missing.log"
     rm -f "$output_dir/$YUJIAN_RECOGNITION_OUTPUT_NAME"
   fi
-
   if [[ -s "$output_dir/02_image_recognizing_late.png" &&
         -s "$output_dir/03_fish_located.png" &&
         -s "$output_dir/04_species_recognizing.png" ]]; then
