@@ -45,6 +45,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.SemanticsPropertyKey
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.CollectionInfo
 import androidx.compose.ui.semantics.collectionInfo
@@ -79,6 +80,9 @@ private const val GeminiHomeBackground = "normal_home_runtime_v1/static/scene_ba
 private const val GeminiHomeCardAspectRatio = 247f / 293f
 private const val GeminiHomeNeighborHeightFraction = 0.667f
 private val GeminiHomePeekTopOffset = 15.dp
+
+/** Test-visible layout signal; the UI does not announce this as accessibility copy. */
+internal val GeminiHomeTextHasVisualOverflow = SemanticsPropertyKey<Boolean>("GeminiHomeTextHasVisualOverflow")
 
 /**
  * NH01 Gemini V3 page. The Compose tree follows Gemini's Top / Middle / Footer
@@ -182,6 +186,7 @@ internal fun GeminiNormalHomeContent(
                     accessToken = accessToken,
                     runtimeAssets = runtimeAssets,
                     layoutSpec = layoutSpec,
+                    layoutVariant = layoutVariant,
                     onCatchesClick = onCatchesClick,
                     onCatchClick = onCatchClick,
                 )
@@ -439,6 +444,7 @@ private fun GeminiMiddleSection(
     accessToken: String,
     runtimeAssets: GeminiNormalHomeRuntimeAssets?,
     layoutSpec: GeminiHomeLayoutSpec,
+    layoutVariant: GeminiHomeLayoutVariant,
     onCatchesClick: () -> Unit,
     onCatchClick: (String) -> Unit,
 ) {
@@ -622,7 +628,11 @@ private fun GeminiCatchCarousel(
     val pagerState = rememberPagerState(initialPage = 0, pageCount = { pageCount })
     val trackWidth = safeWidth.coerceAtMost(560.dp)
     val pageSpacing = clampDp(trackWidth.value * 0.032f, 10f, 16f)
-    val neighborWidth = geminiHomeNeighborWidth(trackWidth.value, cardWidth.value, pageSpacing.value).dp
+    val neighborWidth = (if (layoutSpec.contentFirstSizing) {
+        geminiHomeNeighborWidthAdaptiveV2(trackWidth.value, cardWidth.value, pageSpacing.value)
+    } else {
+        geminiHomeNeighborWidth(trackWidth.value, cardWidth.value, pageSpacing.value)
+    }).dp
     val sideScaleX = (neighborWidth / cardWidth).coerceIn(0.10f, 1f)
     val sideScaleY = GeminiHomeNeighborHeightFraction
     val neighborTranslationY = with(LocalDensity.current) {
@@ -684,6 +694,7 @@ private fun GeminiCatchCarousel(
                     safeHeight = safeHeight,
                     runtimeAssets = runtimeAssets,
                     isActive = active,
+                    layoutVariant = layoutVariant,
                     onClick = { onCatchClick(record.id) },
                 )
             }
@@ -702,10 +713,15 @@ private fun GeminiCatchCard(
     safeHeight: Dp,
     runtimeAssets: GeminiNormalHomeRuntimeAssets?,
     isActive: Boolean,
+    layoutVariant: GeminiHomeLayoutVariant,
     onClick: () -> Unit,
 ) {
     val textGap = clampDp(safeHeight.value * 0.006f, 2f, 5f)
-    val allowAuxiliaryWrapping = LocalDensity.current.fontScale >= 1.3f
+    val allowAuxiliaryWrapping = geminiHomeShouldWrapAuxiliaryText(
+        cardWidthDp = cardWidth.value,
+        fontScale = LocalDensity.current.fontScale,
+        variant = layoutVariant,
+    )
     val speciesSize = responsiveSp(safeHeight, safeWidth, 0.036f, 20f, 26f)
     val measurementSize = responsiveSp(safeHeight, safeWidth, 0.023f, 13f, 16f)
     val metadataSize = responsiveSp(safeHeight, safeWidth, 0.019f, 11f, 13f)
@@ -719,6 +735,9 @@ private fun GeminiCatchCard(
     val time = PresentationSanitizer.formatHomeTimestamp(item.capturedAt, item.createdAt)
     val location = sanitizeOptionalText(item.location)
     val metadata = listOfNotNull(time?.takeIf { it.isNotBlank() }, location).joinToString(" · ")
+    val speciesTextOverflow = remember(item.id) { mutableStateOf(false) }
+    val measurementTextOverflow = remember(item.id) { mutableStateOf(false) }
+    val metadataTextOverflow = remember(item.id) { mutableStateOf(false) }
 
     YuJianHeroCard(
         title = species,
@@ -751,7 +770,10 @@ private fun GeminiCatchCard(
                     ),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.testTag("gemini-home-catch-species-${item.id}"),
+                    onTextLayout = { speciesTextOverflow.value = it.hasVisualOverflow },
+                    modifier = Modifier
+                        .semantics { this[GeminiHomeTextHasVisualOverflow] = speciesTextOverflow.value }
+                        .testTag("gemini-home-catch-species-${item.id}"),
                 )
                 if (measurements.isNotBlank()) {
                     Text(
@@ -764,7 +786,9 @@ private fun GeminiCatchCard(
                         ),
                         maxLines = if (allowAuxiliaryWrapping) 2 else 1,
                         overflow = TextOverflow.Ellipsis,
+                        onTextLayout = { measurementTextOverflow.value = it.hasVisualOverflow },
                         modifier = Modifier.padding(top = textGap)
+                            .semantics { this[GeminiHomeTextHasVisualOverflow] = measurementTextOverflow.value }
                             .testTag("gemini-home-catch-measurement-${item.id}"),
                     )
                 }
@@ -778,7 +802,9 @@ private fun GeminiCatchCard(
                         ),
                         maxLines = if (allowAuxiliaryWrapping) 2 else 1,
                         overflow = TextOverflow.Ellipsis,
+                        onTextLayout = { metadataTextOverflow.value = it.hasVisualOverflow },
                         modifier = Modifier.padding(top = textGap)
+                            .semantics { this[GeminiHomeTextHasVisualOverflow] = metadataTextOverflow.value }
                             .testTag("gemini-home-catch-metadata-${item.id}"),
                     )
                 }

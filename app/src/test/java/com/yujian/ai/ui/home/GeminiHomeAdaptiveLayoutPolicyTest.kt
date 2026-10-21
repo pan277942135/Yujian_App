@@ -135,32 +135,60 @@ class GeminiHomeAdaptiveLayoutPolicyTest {
             Triple(390f, 273f, 12.48f),
             Triple(430f, 301f, 13.76f),
         )
-        profiles.forEach { (trackWidth, cardWidth, spacing) ->
-            val neighbor = geminiHomeNeighborWidth(trackWidth, cardWidth, spacing)
-            assertTrue("neighbor must be visibly smaller at $trackWidth dp", neighbor < cardWidth)
-            assertTrue("neighbor width must stay within 82% of the active card", neighbor <= cardWidth * 0.82f + 0.01f)
-            val visiblePeek = ((trackWidth - 2f * cardWidth + neighbor) / 2f - spacing).coerceAtLeast(0f)
-            val expectedPeek = (trackWidth * 0.05f).coerceIn(12f, 28f)
-            assertTrue("peek remains visible at $trackWidth dp: $visiblePeek", visiblePeek >= expectedPeek - 1f)
-        }
+        profiles.forEach { (trackWidth, cardWidth, spacing) -> assertAdaptivePeek(trackWidth, cardWidth, spacing) }
     }
 
     @Test
-    fun cappedHeroKeepsAVisibleRealNeighborPreviewAcrossWidths() {
+    fun cappedHeroKeepsAnEdgePeekWhenFeasibleAndAnInTrackFallbackOtherwise() {
         val profiles = listOf(
             Triple(320f, 224f, 10.24f),
             Triple(393f, 275.1f, 12.576f),
             Triple(411f, 287.7f, 13.152f),
             Triple(480f, 336f, 15.36f),
             Triple(560f, 337.2f, 16f),
+            Triple(320f, 100f, 10f),
+            Triple(320f, 120f, 10f),
         )
+        profiles.forEach { (trackWidth, cardWidth, spacing) -> assertAdaptivePeek(trackWidth, cardWidth, spacing) }
+    }
 
-        profiles.forEach { (trackWidth, cardWidth, pageSpacing) ->
-            val neighborWidth = geminiHomeNeighborWidth(trackWidth, cardWidth, pageSpacing)
-            val visiblePeek = ((trackWidth - 2f * cardWidth + neighborWidth) / 2f - pageSpacing)
-                .coerceAtLeast(0f)
-            assertTrue("neighbor preview remains visible at ${trackWidth}dp: $visiblePeek dp", visiblePeek >= 12f)
-            assertTrue("neighbor remains no wider than the main card", neighborWidth <= cardWidth)
+    @Test
+    fun adaptiveV2WrapsAuxiliaryTextForNarrowCardsWithoutChangingV3BaselinePolicy() {
+        assertTrue(geminiHomeShouldWrapAuxiliaryText(209f, 1.0f, GeminiHomeLayoutVariant.ADAPTIVE_V2))
+        assertFalse(geminiHomeShouldWrapAuxiliaryText(210f, 1.0f, GeminiHomeLayoutVariant.ADAPTIVE_V2))
+        assertFalse(geminiHomeShouldWrapAuxiliaryText(170f, 1.0f, GeminiHomeLayoutVariant.V3_BASELINE))
+        assertTrue(geminiHomeShouldWrapAuxiliaryText(240f, 1.3f, GeminiHomeLayoutVariant.V3_BASELINE))
+    }
+
+    @Test
+    fun adaptiveV2FixesEdgePeekWhenTheHeightConstrainedHeroBecomesNarrow() {
+        assertEquals(16f, geminiHomeNeighborWidth(320f, 120f, 10f), 0.001f)
+        assertEquals(60f, geminiHomeNeighborWidthAdaptiveV2(320f, 120f, 10f), 0.001f)
+    }
+
+    private fun assertAdaptivePeek(trackWidth: Float, cardWidth: Float, spacing: Float) {
+        val neighborWidth = geminiHomeNeighborWidthAdaptiveV2(trackWidth, cardWidth, spacing)
+        val targetPeek = (trackWidth * 0.05f).coerceIn(12f, 28f)
+        val widthForTargetEdgePeek = 2f * targetPeek + 2f * spacing + 2f * cardWidth - trackWidth
+        val minimumWidthToTouchEdge = (trackWidth - 2f * cardWidth - 2f * spacing).coerceAtLeast(0f)
+        val requiredWidth = maxOf(targetPeek, widthForTargetEdgePeek, minimumWidthToTouchEdge)
+        val edgePeekFeasible = requiredWidth <= cardWidth * 0.82f + 0.01f
+        val activeRight = (trackWidth + cardWidth) / 2f
+        val neighborCenter = trackWidth / 2f + cardWidth + spacing
+        val neighborLeft = neighborCenter - neighborWidth / 2f
+        val neighborRight = neighborCenter + neighborWidth / 2f
+        val visibleInTrack = (minOf(neighborRight, trackWidth) - maxOf(neighborLeft, 0f)).coerceAtLeast(0f)
+        val visibleAtEdge = if (neighborRight >= trackWidth - 1f) {
+            (trackWidth - maxOf(neighborLeft, 0f)).coerceAtLeast(0f)
+        } else 0f
+
+        assertTrue("neighbor stays smaller at $trackWidth dp", neighborWidth < cardWidth)
+        assertTrue("neighbor width remains within 82% at $trackWidth dp", neighborWidth <= cardWidth * 0.82f + 0.01f)
+        assertTrue("neighbor cannot overlap the active card at $trackWidth dp", neighborLeft >= activeRight - 1f)
+        assertTrue("neighbor remains visible within track at $trackWidth dp", visibleInTrack >= minOf(12f, neighborWidth) - 1f)
+        if (edgePeekFeasible) {
+            assertTrue("edge peek reaches target at $trackWidth dp: visible=$visibleAtEdge target=$targetPeek",
+                visibleAtEdge >= targetPeek - 1f)
         }
     }
 

@@ -211,15 +211,39 @@ internal fun geminiHomeResolvedCardHeight(
 internal fun geminiHomeCardWidth(trackWidthDp: Float, spec: GeminiHomeLayoutSpec): Float =
     minOf(trackWidthDp * spec.cardWidthFraction, spec.maxCardWidth.value)
 
-/** Keeps adjacent cards visibly smaller than the active Hero while preserving an edge peek. */
+/** Legacy side-card sizing retained unchanged for the V3 Baseline comparison arm. */
 internal fun geminiHomeNeighborWidth(trackWidthDp: Float, cardWidthDp: Float, pageSpacingDp: Float): Float {
     val targetPeekWidth = (trackWidthDp * 0.05f).coerceIn(12f, 28f)
     val minimumWidthForPeek = 2f * targetPeekWidth + 2f * pageSpacingDp +
         2f * cardWidthDp - trackWidthDp
     val widthNeededForPeek = maxOf(targetPeekWidth, minimumWidthForPeek)
-    // Never let a height-constrained Hero force its side cards back to full Hero width.
     return minOf(cardWidthDp * 0.82f, widthNeededForPeek)
 }
+
+/**
+ * Adaptive V2 also accounts for a height-shrunk Hero: when the ordinary peek formula
+ * becomes non-positive, use the largest safe width that can still touch the track edge.
+ * If the 82% cap makes that impossible, the smaller neighbor remains visible inside the track.
+ */
+internal fun geminiHomeNeighborWidthAdaptiveV2(
+    trackWidthDp: Float,
+    cardWidthDp: Float,
+    pageSpacingDp: Float,
+): Float {
+    val targetPeekWidth = (trackWidthDp * 0.05f).coerceIn(12f, 28f)
+    val widthForTargetEdgePeek = 2f * targetPeekWidth + 2f * pageSpacingDp +
+        2f * cardWidthDp - trackWidthDp
+    val minimumWidthToTouchEdge = (trackWidthDp - 2f * cardWidthDp - 2f * pageSpacingDp).coerceAtLeast(0f)
+    val widthNeededForPeek = maxOf(targetPeekWidth, widthForTargetEdgePeek, minimumWidthToTouchEdge)
+    return minOf(cardWidthDp * 0.82f, widthNeededForPeek)
+}
+
+/** Narrow Adaptive V2 cards wrap auxiliary text before allowing ellipsis to hide it. */
+internal fun geminiHomeShouldWrapAuxiliaryText(
+    cardWidthDp: Float,
+    fontScale: Float,
+    variant: GeminiHomeLayoutVariant,
+): Boolean = fontScale >= 1.3f || (variant == GeminiHomeLayoutVariant.ADAPTIVE_V2 && cardWidthDp < 210f)
 
 /** Gentle viewport scaling lets typography grow on larger/taller screens without shrinking on compact ones. */
 internal fun geminiHomeResponsiveFontScale(safeWidthDp: Float, safeHeightDp: Float): Float {

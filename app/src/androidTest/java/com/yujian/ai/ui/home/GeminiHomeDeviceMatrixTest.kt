@@ -208,6 +208,15 @@ class GeminiHomeDeviceMatrixTest {
             .assertTextEquals("42.6 cm · 1.28 kg")
         compose.onNodeWithTag("gemini-home-catch-metadata-nh01-catch-001", useUnmergedTree = true)
             .assertTextContains("05月29日 04:26 · 浙江 · 千岛湖")
+        val requiredCardTextTags = listOf(
+            "gemini-home-catch-species-nh01-catch-001",
+            "gemini-home-catch-measurement-nh01-catch-001",
+            "gemini-home-catch-metadata-nh01-catch-001",
+        )
+        val requiredCardTextNoVisualOverflow = requiredCardTextTags.none(::hasVisualOverflow)
+        if (variant == GeminiHomeLayoutVariant.ADAPTIVE_V2) {
+            assertTrue("Adaptive V2 must not visually truncate required card text: $requiredCardTextTags", requiredCardTextNoVisualOverflow)
+        }
         compose.onNodeWithText("记录下一条鱼", useUnmergedTree = true).assertIsDisplayed()
         compose.onNodeWithTag("gemini-home-camera", useUnmergedTree = true).assertIsDisplayed().assertHasClickAction()
         completeStep("REQUIRED_CONTENT_AND_CAMERA_ACTION_VISIBLE")
@@ -266,6 +275,19 @@ class GeminiHomeDeviceMatrixTest {
         val ratio = activeCardLayoutWidthDp / activeCardLayoutHeightDp
         val neighborWidthFraction = neighborCard.width() / activeCardLayoutWidthDp
         val neighborOverlapDp = maxOf(0f, activeCard.right - neighborCard.left)
+        val targetPeekWidthDp = (track.width() * 0.05f).coerceIn(12f, 28f)
+        val pageSpacingDp = (track.width() * 0.032f).coerceIn(10f, 16f)
+        val widthForTargetEdgePeek = 2f * targetPeekWidthDp + 2f * pageSpacingDp +
+            2f * activeCardLayoutWidthDp - track.width()
+        val minimumWidthToTouchEdge = (track.width() - 2f * activeCardLayoutWidthDp - 2f * pageSpacingDp).coerceAtLeast(0f)
+        val requiredNeighborWidthDp = maxOf(targetPeekWidthDp, widthForTargetEdgePeek, minimumWidthToTouchEdge)
+        val edgePeekFeasible = requiredNeighborWidthDp <= activeCardLayoutWidthDp * 0.82f + 1f
+        val rightPeekVisibleWidthDp = (
+            minOf(neighborCard.right, track.right) - maxOf(neighborCard.left, track.left)
+        ).coerceAtLeast(0f)
+        val rightEdgePeekVisibleWidthDp = if (neighborCard.right >= track.right - 1f && neighborCard.left < track.right) {
+            (track.right - maxOf(neighborCard.left, track.left)).coerceAtLeast(0f)
+        } else 0f
         val cardWidthFraction = when (variant) {
             GeminiHomeLayoutVariant.ADAPTIVE_V1 -> 0.76f
             GeminiHomeLayoutVariant.ADAPTIVE_V2 -> 0.70f
@@ -284,6 +306,12 @@ class GeminiHomeDeviceMatrixTest {
             neighborCard.left >= activeCard.right - 1f)
         assertTrue("right peek must remain at most 82% of active card width: active=$activeCardLayoutWidthDp neighbor=$neighborCard",
             neighborCard.width() <= activeCardLayoutWidthDp * 0.82f + 1f)
+        assertTrue("right peek must remain visibly present inside the track",
+            rightPeekVisibleWidthDp >= minOf(12f, neighborCard.width()) - 1f)
+        if (variant == GeminiHomeLayoutVariant.ADAPTIVE_V2 && edgePeekFeasible) {
+            assertTrue("Adaptive V2 edge peek must expose the target width at the track edge: target=$targetPeekWidthDp actual=$rightEdgePeekVisibleWidthDp",
+                rightEdgePeekVisibleWidthDp >= targetPeekWidthDp - 1f)
+        }
         assertTrue("title-to-card gap follows the active layout policy: $sectionTitleCardGap dp",
             abs(sectionTitleCardGap - layoutSpec.titleToCardGap.value) <= 2f)
         if (variant != GeminiHomeLayoutVariant.V3_BASELINE) {
@@ -371,10 +399,38 @@ class GeminiHomeDeviceMatrixTest {
         assertSingleNode("gemini-home-catch-neighbor-nh01-catch-001")
         val activeAfterSwipe = rect("gemini-home-catch-card-nh01-catch-002").toDp(profile.density)
         val leftPeekAfterSwipe = rect("gemini-home-catch-neighbor-nh01-catch-001").toDp(profile.density)
+        val trackAfterSwipe = rect("gemini-home-carousel-track").toDp(profile.density)
+        val leftPeekOverlapAfterSwipeDp = maxOf(0f, leftPeekAfterSwipe.right - activeAfterSwipe.left)
+        val leftPeekVisibleWidthAfterSwipeDp = (
+            minOf(leftPeekAfterSwipe.right, trackAfterSwipe.right) - maxOf(leftPeekAfterSwipe.left, trackAfterSwipe.left)
+        ).coerceAtLeast(0f)
+        val leftPeekEdgeVisibleWidthAfterSwipeDp = if (
+            leftPeekAfterSwipe.left <= trackAfterSwipe.left + 1f && leftPeekAfterSwipe.right > trackAfterSwipe.left
+        ) {
+            (minOf(leftPeekAfterSwipe.right, trackAfterSwipe.right) - trackAfterSwipe.left).coerceAtLeast(0f)
+        } else 0f
+        val widthForLeftTargetEdgePeek = 2f * targetPeekWidthDp + 2f * pageSpacingDp +
+            2f * activeAfterSwipe.width() - trackAfterSwipe.width()
+        val minimumLeftWidthToTouchEdge = (
+            trackAfterSwipe.width() - 2f * activeAfterSwipe.width() - 2f * pageSpacingDp
+        ).coerceAtLeast(0f)
+        val requiredLeftPeekWidthDp = maxOf(targetPeekWidthDp, widthForLeftTargetEdgePeek, minimumLeftWidthToTouchEdge)
+        val leftEdgePeekFeasibleAfterSwipe = requiredLeftPeekWidthDp <= activeAfterSwipe.width() * 0.82f + 1f
         assertTrue("left peek must not overlap the active card after swipe: active=$activeAfterSwipe left=$leftPeekAfterSwipe",
-            leftPeekAfterSwipe.right <= activeAfterSwipe.left + 1f)
+            leftPeekOverlapAfterSwipeDp <= 1f)
         assertTrue("left peek must remain subordinate after swipe",
             leftPeekAfterSwipe.width() <= activeAfterSwipe.width() * 0.82f + 1f)
+        assertTrue("left peek must remain visible inside the track after swipe",
+            leftPeekVisibleWidthAfterSwipeDp >= minOf(12f, leftPeekAfterSwipe.width()) - 1f)
+        if (variant == GeminiHomeLayoutVariant.ADAPTIVE_V2 && leftEdgePeekFeasibleAfterSwipe) {
+            assertTrue("Adaptive V2 left edge peek must expose the target width after swipe",
+                leftPeekEdgeVisibleWidthAfterSwipeDp >= targetPeekWidthDp - 1f)
+        }
+        val afterSwipeBoundsPx = JSONObject().apply {
+            put("gemini-home-carousel-track", rect("gemini-home-carousel-track").toJson())
+            put("gemini-home-catch-card-nh01-catch-002", rect("gemini-home-catch-card-nh01-catch-002").toJson())
+            put("gemini-home-catch-neighbor-nh01-catch-001", rect("gemini-home-catch-neighbor-nh01-catch-001").toJson())
+        }
         val afterSwipe = File(output, "$profileId-${variant.name.lowercase(Locale.US)}-after-swipe.png")
         val afterSwipeBitmap = InstrumentationRegistry.getInstrumentation().uiAutomation.takeScreenshot()
         afterSwipe.outputStream().use { sink -> assertTrue(afterSwipeBitmap.compress(Bitmap.CompressFormat.PNG, 100, sink)) }
@@ -412,6 +468,7 @@ class GeminiHomeDeviceMatrixTest {
                 put("swipe_reached_second_id", true)
                 put("middle_scroll_enabled", hasMiddleScroll)
                 put("required_card_text_accessible", true)
+                put("required_card_text_no_visual_overflow", requiredCardTextNoVisualOverflow)
             })
             put("metrics", JSONObject().apply {
                 put("card_bounds_dp", activeCard.toJson())
@@ -424,6 +481,15 @@ class GeminiHomeDeviceMatrixTest {
                 put("neighbor_width_dp", neighborCard.width())
                 put("neighbor_width_fraction", neighborWidthFraction)
                 put("peek_card_overlap_dp", neighborOverlapDp)
+                put("peek_visible_width_dp", rightPeekVisibleWidthDp)
+                put("peek_edge_visible_width_dp", rightEdgePeekVisibleWidthDp)
+                put("peek_edge_target_dp", targetPeekWidthDp)
+                put("peek_edge_feasible", edgePeekFeasible)
+                put("left_peek_after_swipe_width_dp", leftPeekAfterSwipe.width())
+                put("left_peek_after_swipe_overlap_dp", leftPeekOverlapAfterSwipeDp)
+                put("left_peek_after_swipe_visible_width_dp", leftPeekVisibleWidthAfterSwipeDp)
+                put("left_peek_after_swipe_edge_visible_width_dp", leftPeekEdgeVisibleWidthAfterSwipeDp)
+                put("left_peek_after_swipe_edge_feasible", leftEdgePeekFeasibleAfterSwipe)
                 put("card_shrunk_for_height", activeCardLayoutWidthDp < targetCardWidthDp - 1f)
                 put("section_title_to_card_gap_dp", sectionTitleCardGap)
                 put("card_to_footer_gap_dp", footer.top - activeCard.bottom)
@@ -438,6 +504,7 @@ class GeminiHomeDeviceMatrixTest {
                 put("camera_bounds_dp", camera.toJson())
             })
             put("bounds_in_window_px", boundsPx)
+            put("bounds_after_swipe_in_window_px", afterSwipeBoundsPx)
             put("screenshots", JSONObject().apply {
                 put("initial", screenshotName); put("after_swipe", afterSwipe.name)
                 put("content_visible", contentScreenshotName ?: JSONObject.NULL)
@@ -569,6 +636,11 @@ class GeminiHomeDeviceMatrixTest {
     private fun assertSingleNode(tag: String) {
         assertEquals("$tag must appear once", 1,
             compose.onAllNodesWithTag(tag, useUnmergedTree = true).fetchSemanticsNodes().size)
+    }
+
+    private fun hasVisualOverflow(tag: String): Boolean {
+        val node = compose.onNodeWithTag(tag, useUnmergedTree = true).fetchSemanticsNode()
+        return node.config[GeminiHomeTextHasVisualOverflow]
     }
 
     private fun advanceFramesUntil(timeoutMillis: Long, condition: () -> Boolean) {
