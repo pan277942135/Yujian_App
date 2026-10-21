@@ -87,7 +87,7 @@ fun HomeScreen(
     onCatchesClick: () -> Unit,
     onProfileClick: () -> Unit,
     onCatchClick: (String) -> Unit,
-    layoutVariant: GeminiHomeLayoutVariant = GeminiHomeLayoutVariant.ADAPTIVE_V1,
+    layoutVariant: GeminiHomeLayoutVariant = GeminiHomeLayoutVariant.ADAPTIVE_V2,
 ) {
     val view = LocalView.current
     val safeInsets = rememberSafeDrawingInsets()
