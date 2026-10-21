@@ -189,7 +189,8 @@ async function main() {
   await seek(540);
   await page.locator("#stepForward").click();
   const stepped = await page.evaluate(() => window.RecognitionMotionStudio.getState());
-  assert(stepped.currentMs > 540 && stepped.currentMs < 560, "single-frame step must advance about 33ms");
+  assert(stepped.currentMs - 540 >= 30 && stepped.currentMs - 540 <= 36,
+    "single-frame step must advance about 33ms: " + stepped.currentMs);
   await page.locator("#stepBack").click();
   const steppedBack = await page.evaluate(() => window.RecognitionMotionStudio.getState());
   assert(Math.abs(steppedBack.currentMs - 540) < 1, "reverse frame step must restore the prior frame");
