@@ -63,8 +63,8 @@ def main() -> None:
     if evidence.get("result_ready") is not False:
         fail("optical-fidelity scene must remain live during measurement")
     method = str(evidence.get("measurement_method", ""))
-    if "Choreographer.FrameCallback" not in method or "RecognitionProcessingScene" not in method:
-        fail("frame timing must come from a live production scene and Choreographer callbacks")
+    if "Window.FrameMetrics TOTAL_DURATION" not in method or "RecognitionProcessingScene" not in method:
+        fail("frame timing must come from Window.FrameMetrics on the live production scene")
     if "CLASSIFYING" not in evidence.get("presented_phases", []):
         fail("the production scene did not present CLASSIFYING during the measurement")
     profiles = evidence.get("profiles")
@@ -74,32 +74,42 @@ def main() -> None:
     for row in profiles:
         if row.get("phase") != "CLASSIFYING" or row.get("budget_policy") != POLICY:
             fail(f"{row.get('profile')} measurement metadata is inconsistent")
-        intervals = row.get("samples_ms")
-        if not isinstance(intervals, list) or len(intervals) < MIN_SAMPLES:
-            fail(f"{row.get('profile')} needs at least {MIN_SAMPLES} raw frame intervals")
-        if row.get("sample_count") != len(intervals):
-            fail(f"{row.get('profile')} frame sample count does not match raw intervals")
+        durations = row.get("frame_duration_samples_ms")
+        if not isinstance(durations, list) or len(durations) < MIN_SAMPLES:
+            fail(f"{row.get('profile')} needs at least {MIN_SAMPLES} raw frame durations")
+        if row.get("sample_count") != len(durations):
+            fail(f"{row.get('profile')} frame sample count does not match raw durations")
         if row.get("motion_sample_count", 0) < 20:
             fail(f"{row.get('profile')} production motion clock did not emit enough samples")
         if not math.isfinite(float(row.get("refresh_rate_hz", 0))) or row["refresh_rate_hz"] <= 0:
             fail(f"{row.get('profile')} refresh rate is invalid")
-        clean = [float(value) for value in intervals]
+        clean = [float(value) for value in durations]
         if any(not math.isfinite(value) or value <= 0 for value in clean):
-            fail(f"{row.get('profile')} has invalid frame intervals")
-        summary = row.get("interval_ms", {})
+            fail(f"{row.get('profile')} has invalid frame durations")
+        summary = row.get("frame_metrics_ms", {})
         ordered = sorted(clean)
+        frame_budget = 1000.0 / row["refresh_rate_hz"]
         expected = {
             "mean": statistics.fmean(clean),
-            "median": statistics.median(clean),
             "p95": ordered[math.ceil(len(ordered) * .95) - 1],
+            "p99": ordered[math.ceil(len(ordered) * .99) - 1],
             "max": ordered[-1],
+            "frame_budget": frame_budget,
         }
         for key, computed in expected.items():
             value = float(summary.get(key, float("nan")))
             if not math.isfinite(value) or abs(value - computed) > .01:
-                fail(f"{row.get('profile')} {key} summary does not match raw intervals")
+                fail(f"{row.get('profile')} {key} summary does not match raw frame durations")
+        fps_estimate = float(row.get("fps_estimate", float("nan")))
+        expected_fps = 1000.0 / statistics.fmean(clean)
+        if not math.isfinite(fps_estimate) or abs(fps_estimate - expected_fps) > .01:
+            fail(f"{row.get('profile')} FPS estimate does not match raw frame durations")
+        if summary.get("frames_over_budget") != sum(value > frame_budget for value in clean):
+            fail(f"{row.get('profile')} over-budget count is inconsistent")
         if summary.get("frames_over_32ms") != sum(value > 32.0 for value in clean):
             fail(f"{row.get('profile')} over-32ms count is inconsistent")
+        if not isinstance(summary.get("dropped_frames_before_callback"), int) or summary["dropped_frames_before_callback"] < 0:
+            fail(f"{row.get('profile')} dropped-frame callback count is invalid")
 
     artifacts = [
         {"path": name, "bytes": (root / name).stat().st_size, "sha256": sha256(root / name)}

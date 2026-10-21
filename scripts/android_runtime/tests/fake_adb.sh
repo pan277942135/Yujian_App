@@ -134,27 +134,32 @@ case "$1" in
     if [[ "$command_line" == *cache/recognition-optical-fidelity/recognition_optical_fidelity_v3_1.json* ]]; then
       python3 - <<'PY'
 import json
-intervals = [16.67] * 120
+frame_duration = 1000 / 60.0
+durations = [frame_duration] * 120
 def profile(name):
     return {
         "profile": name,
         "phase": "CLASSIFYING",
-        "sample_count": len(intervals),
+        "sample_count": len(durations),
         "motion_sample_count": 120,
         "refresh_rate_hz": 60.0,
-        "interval_ms": {
-            "mean": 16.67,
-            "median": 16.67,
-            "p95": 16.67,
-            "max": 16.67,
+        "fps_estimate": 1000 / frame_duration,
+        "frame_metrics_ms": {
+            "mean": frame_duration,
+            "p95": frame_duration,
+            "p99": frame_duration,
+            "max": frame_duration,
+            "frame_budget": 1000 / 60.0,
+            "frames_over_budget": 0,
             "frames_over_32ms": 0,
+            "dropped_frames_before_callback": 0,
         },
-        "samples_ms": intervals,
+        "frame_duration_samples_ms": durations,
         "budget_policy": "MEASURED_ONLY_NO_FROZEN_THRESHOLD",
     }
 print(json.dumps({
     "contract_version": "recognition_processing_state_machine_v3_1",
-    "measurement_method": "Choreographer.FrameCallback frame intervals while production RecognitionProcessingScene is live (synthetic fake-adb contract fixture)",
+    "measurement_method": "Window.FrameMetrics TOTAL_DURATION while production RecognitionProcessingScene is live (synthetic fake-adb contract fixture)",
     "phase": "CLASSIFYING",
     "fixture": "fake",
     "refresh_rate_hz": 60.0,
