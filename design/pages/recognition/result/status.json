@@ -94,5 +94,9 @@
   "motion_continuation_menu_id": "RR09",
   "motion_continuation_menu_authority": "design/pages/recognition/result/08_motion_continuation/README.md",
   "motion_continuation_status": "FROZEN_SPEC_ONLY_RUNTIME_NOT_RUN",
-  "motion_runtime_status": "NOT_RUN"
+  "motion_runtime_status": "NOT_RUN",
+  "motion_playable_prototype": "design/manager/rr09_motion/",
+  "motion_playable_fixture": "design/manager/rr09_motion/fixture.json",
+  "motion_browser_evidence_status": "PENDING_EXACT_SHA_BROWSER_GATE",
+  "motion_android_runtime_status": "NOT_RUN"
 }
