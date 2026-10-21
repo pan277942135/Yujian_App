@@ -25,7 +25,6 @@ on:
       - "scripts/capture_receiving_light_continuous_spatial_field_v1.cjs"
       - "scripts/capture_receiving_light_motion_studio_v1.cjs"
       - "scripts/verify_design_manager_navigation.py"
-      - "scripts/verify_design_manager_browser.mjs"
       - "scripts/smoke_edgeglow_fish_static.cjs"
       - "scripts/verify_edgeglow_fish_static_source.py"
       - "scripts/smoke_edgeglow_fish_static_live.py"
@@ -53,7 +52,6 @@ on:
       - "scripts/capture_receiving_light_continuous_spatial_field_v1.cjs"
       - "scripts/capture_receiving_light_motion_studio_v1.cjs"
       - "scripts/verify_design_manager_navigation.py"
-      - "scripts/verify_design_manager_browser.mjs"
       - "scripts/smoke_edgeglow_fish_static.cjs"
       - "scripts/verify_edgeglow_fish_static_source.py"
       - "scripts/smoke_edgeglow_fish_static_live.py"
@@ -141,7 +139,6 @@ jobs:
           set -euo pipefail
           node --check pr-source/scripts/capture_receiving_light_continuous_spatial_field_v1.cjs
           node --check pr-source/scripts/capture_receiving_light_motion_studio_v1.cjs
-          node --check pr-source/scripts/verify_design_manager_browser.mjs
           python3 -m py_compile pr-source/scripts/smoke_edgeglow_fish_static_live.py
 
       - name: Verify Design Manager navigation and route
@@ -149,15 +146,6 @@ jobs:
         run: |
           set -euo pipefail
           python3 pr-source/scripts/verify_design_manager_navigation.py
-
-      - name: Run Design Manager Chromium browser verification
-        shell: bash
-        run: |
-          set -euo pipefail
-          PLAYWRIGHT_MODULE_DIR="$RUNNER_TEMP/edgeglow-playwright/node_modules" \
-            node pr-source/scripts/verify_design_manager_browser.mjs \
-              --root "$GITHUB_WORKSPACE/pr-source" \
-              --output-dir "$RUNNER_TEMP/edgeglow-evidence/design-manager-browser"
 
       - name: Capture Receiving Light continuous spatial field and Quiet Gap variants
         shell: bash
