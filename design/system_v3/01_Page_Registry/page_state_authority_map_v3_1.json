@@ -1,7 +1,7 @@
 {
   "audit_version": "YuJian Design System V3.1 Phase 1",
   "audit_status": "AUDIT_DRAFT",
-  "generated_at": "2026-10-11T03:11:24.366Z",
+  "generated_at": "2026-10-21T08:42:00.000Z",
   "source": {
     "repository": "pan277942135/Yujian_App",
     "baseline_branch": "main",
@@ -14,11 +14,11 @@
   ],
   "counts": {
     "features": 15,
-    "hifi_views": 62,
+    "hifi_views": 64,
     "nested_children": 70,
     "scenario_pages": 13,
     "shared_systems": 16,
-    "map_nodes": 150
+    "map_nodes": 152
   },
   "manager_route_contract": {
     "source": "design/manager/app.js",
@@ -279,7 +279,7 @@
         },
         "motion": {
           "status": "FROZEN",
-          "authority": "design/pages/recognition/result/motion/Recognition_Result_Motion_Spec_V1.md"
+          "authority": "design/pages/recognition/result/motion/Recognition_Result_Motion_Spec_V2.md"
         },
         "haptic": {
           "status": "FROZEN",
@@ -302,7 +302,7 @@
           "authority": "design/pages/recognition/design/reference_manifest.json"
         }
       },
-      "hifi_count": 8,
+      "hifi_count": 10,
       "nested_count": 0,
       "scenario_count": 0,
       "shared_dependencies": [
@@ -4245,6 +4245,76 @@
       "verification_status": "REGISTRY_ENTRY_AND_MANAGER_HASH_ROUTE_PATTERN_VERIFIED",
       "visual_authority_declared_path": null,
       "authority_reference": "design/pages/recognition/result/07_decision_logic/README.md",
+      "visual_authority_reference": "design/pages/recognition/result/authority/authority_map.json"
+    },
+    {
+      "flow_node_id": "hifi_view_recognition_result_v1_visual_acceptance",
+      "feature_id": "recognition_result_v1",
+      "page_id": "recognition_result_v1",
+      "state_id": "visual_acceptance",
+      "node_type": "hifi_view",
+      "title": "RR08 · 视觉验收",
+      "trigger": null,
+      "guard": null,
+      "entry": "Registry item opened in Design Manager; registry presence does not establish app entry.",
+      "exit": "No product transition inferred for a registry index item.",
+      "manager_route": "design/manager/#page/recognition_result_v1/hifi/visual_acceptance",
+      "manager_visibility": "MENU_VISIBLE",
+      "visual_authority": null,
+      "visual_authority_scope": "no_direct_image_declared",
+      "visual_verification_status": "NO_DIRECT_VISUAL_AUTHORITY",
+      "behavior_authority": "design/system_v3/10_Page_Visual_Acceptance_Contracts/Recognition_Result/Recognition_Result_Visual_Contract_V1.md",
+      "shared_dependencies": [
+        "background_system_v1",
+        "top_navigation_v1",
+        "mist_glass_surface_v1",
+        "color_typography_v1",
+        "spacing_radius_v1",
+        "action_button_v1",
+        "text_action_v1",
+        "fish_media_display_v1",
+        "icon_library_v0_1"
+      ],
+      "design_status": "READY_FOR_VISUAL_IMPLEMENTATION",
+      "registry_status": "READY_FOR_VISUAL_IMPLEMENTATION",
+      "verification_status": "REGISTRY_ENTRY_PENDING_PR_DEPLOYMENT",
+      "visual_authority_declared_path": null,
+      "authority_reference": "design/system_v3/10_Page_Visual_Acceptance_Contracts/Recognition_Result/Recognition_Result_Visual_Contract_V1.md",
+      "visual_authority_reference": "design/pages/recognition/result/authority/authority_map.json"
+    },
+    {
+      "flow_node_id": "hifi_view_recognition_result_v1_motion_continuation",
+      "feature_id": "recognition_result_v1",
+      "page_id": "recognition_result_v1",
+      "state_id": "motion_continuation",
+      "node_type": "hifi_view",
+      "title": "RR09 · 动效接续",
+      "trigger": null,
+      "guard": null,
+      "entry": "Registry item opened in Design Manager; registry presence does not establish app entry.",
+      "exit": "No product transition inferred for a registry index item.",
+      "manager_route": "design/manager/#page/recognition_result_v1/hifi/motion_continuation",
+      "manager_visibility": "MENU_VISIBLE",
+      "visual_authority": null,
+      "visual_authority_scope": "no_direct_image_declared",
+      "visual_verification_status": "NO_DIRECT_VISUAL_AUTHORITY",
+      "behavior_authority": "design/pages/recognition/result/motion/Recognition_Result_Motion_Spec_V2.md",
+      "shared_dependencies": [
+        "background_system_v1",
+        "top_navigation_v1",
+        "mist_glass_surface_v1",
+        "color_typography_v1",
+        "spacing_radius_v1",
+        "action_button_v1",
+        "text_action_v1",
+        "fish_media_display_v1",
+        "icon_library_v0_1"
+      ],
+      "design_status": "FROZEN",
+      "registry_status": "FROZEN",
+      "verification_status": "REGISTRY_ENTRY_PENDING_PR_DEPLOYMENT",
+      "visual_authority_declared_path": null,
+      "authority_reference": "design/pages/recognition/result/motion/Recognition_Result_Motion_Spec_V2.md",
       "visual_authority_reference": "design/pages/recognition/result/authority/authority_map.json"
     },
     {
