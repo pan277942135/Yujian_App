@@ -122,6 +122,26 @@ async function main() {
 
   await open(p01Hash);
   await waitForManager(page);
+  const motionLink = page.locator('a[aria-label="打开 识别动效 · Receiving Light Studio"]');
+  assert(await motionLink.count() === 1, "Recognition Motion Studio submenu must be exposed as one accessible link");
+  const motionHref = await motionLink.getAttribute("href");
+  assert(motionHref === "./optical-lab/recognition-motion/", "unexpected Motion Studio route: " + motionHref);
+  await motionLink.click();
+  await page.locator("h1").filter({ hasText: "Receiving Light Studio" }).waitFor({ state: "visible", timeout: 30000 });
+  await page.waitForFunction(() => document.querySelector("#runtimeStatus")?.textContent?.includes("已就绪"), null, { timeout: 30000 });
+  assert(page.url().includes("/optical-lab/recognition-motion/"), "Recognition Motion Studio submenu opened the wrong route");
+  assert((await page.locator("#photoDigest").innerText()).includes("SHA-256 MATCH"), "Motion Studio must verify its registered original photo SHA");
+  await page.screenshot({ path: resolve(args.outputDir, "recognition-motion-studio-1440.png"), fullPage: true });
+  await page.reload({ waitUntil: "networkidle" });
+  await page.locator("h1").filter({ hasText: "Receiving Light Studio" }).waitFor({ state: "visible", timeout: 30000 });
+  assert(page.url().includes("/optical-lab/recognition-motion/"), "refresh must keep the direct Recognition Motion Studio route");
+  await page.goBack();
+  await page.waitForFunction(expected => location.hash === expected, p01Hash);
+  await page.goForward();
+  await page.waitForFunction(() => location.pathname.endsWith("/optical-lab/recognition-motion/"));
+  await open(p01Hash);
+  await waitForManager(page);
+
   const buildMarker = await page.locator('meta[name="design-manager-build"]').getAttribute("content");
   if (args.expectedBuild) assert(buildMarker === args.expectedBuild, `live/build marker mismatch: ${buildMarker} != ${args.expectedBuild}`);
   const image = page.locator(".hifi-asset-figure img").first();

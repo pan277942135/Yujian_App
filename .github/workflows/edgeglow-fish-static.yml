@@ -8,6 +8,8 @@ on:
     paths:
       - "design/manager/nh01_acceptance/edgeglow-fish-static/**"
       - "design/manager/optical-lab/**"
+      - "design/manager/index.html"
+      - "design/manager/styles.css"
       - "design/manager/edgeglow-receiving-light.js"
       - "design/system/recognition_optical_v2/**"
       - "app/src/main/java/com/yujian/ai/ui/recognition/RecognitionOpticalConfigV2.kt"
@@ -21,6 +23,9 @@ on:
       - "scripts/capture_receiving_light_radial_geometry_review_v1.cjs"
       - "scripts/capture_receiving_light_edge_ribbon_review_v1.cjs"
       - "scripts/capture_receiving_light_continuous_spatial_field_v1.cjs"
+      - "scripts/capture_receiving_light_motion_studio_v1.cjs"
+      - "scripts/verify_design_manager_navigation.py"
+      - "scripts/verify_design_manager_browser.mjs"
       - "scripts/smoke_edgeglow_fish_static.cjs"
       - "scripts/verify_edgeglow_fish_static_source.py"
       - "scripts/smoke_edgeglow_fish_static_live.py"
@@ -31,6 +36,8 @@ on:
     paths:
       - "design/manager/nh01_acceptance/edgeglow-fish-static/**"
       - "design/manager/optical-lab/**"
+      - "design/manager/index.html"
+      - "design/manager/styles.css"
       - "design/manager/edgeglow-receiving-light.js"
       - "design/system/recognition_optical_v2/**"
       - "app/src/main/java/com/yujian/ai/ui/recognition/RecognitionOpticalConfigV2.kt"
@@ -44,6 +51,9 @@ on:
       - "scripts/capture_receiving_light_radial_geometry_review_v1.cjs"
       - "scripts/capture_receiving_light_edge_ribbon_review_v1.cjs"
       - "scripts/capture_receiving_light_continuous_spatial_field_v1.cjs"
+      - "scripts/capture_receiving_light_motion_studio_v1.cjs"
+      - "scripts/verify_design_manager_navigation.py"
+      - "scripts/verify_design_manager_browser.mjs"
       - "scripts/smoke_edgeglow_fish_static.cjs"
       - "scripts/verify_edgeglow_fish_static_source.py"
       - "scripts/smoke_edgeglow_fish_static_live.py"
@@ -130,7 +140,24 @@ jobs:
         run: |
           set -euo pipefail
           node --check pr-source/scripts/capture_receiving_light_continuous_spatial_field_v1.cjs
+          node --check pr-source/scripts/capture_receiving_light_motion_studio_v1.cjs
+          node --check pr-source/scripts/verify_design_manager_browser.mjs
           python3 -m py_compile pr-source/scripts/smoke_edgeglow_fish_static_live.py
+
+      - name: Verify Design Manager navigation and route
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 pr-source/scripts/verify_design_manager_navigation.py
+
+      - name: Run Design Manager Chromium browser verification
+        shell: bash
+        run: |
+          set -euo pipefail
+          PLAYWRIGHT_MODULE_DIR="$RUNNER_TEMP/edgeglow-playwright/node_modules" \
+            node pr-source/scripts/verify_design_manager_browser.mjs \
+              --root "$GITHUB_WORKSPACE/pr-source" \
+              --output-dir "$RUNNER_TEMP/edgeglow-evidence/design-manager-browser"
 
       - name: Capture Receiving Light continuous spatial field and Quiet Gap variants
         shell: bash
@@ -152,6 +179,27 @@ jobs:
             CENTER_SOURCE_SHA="$CENTER_SOURCE_SHA" \
             OPTICAL_EVIDENCE_DIR="$RUNNER_TEMP/edgeglow-evidence/receiving-light-continuous-spatial-field-v1" \
             node pr-source/scripts/capture_receiving_light_continuous_spatial_field_v1.cjs
+
+      - name: Capture playable Receiving Light Motion Studio
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/edgeglow-evidence/recognition-motion-studio"
+          python3 -m http.server 8766 --directory pr-source >"$RUNNER_TEMP/edgeglow-motion-studio-http.log" 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          for attempt in {1..30}; do
+            if curl -fsS "http://127.0.0.1:8766/design/manager/optical-lab/recognition-motion/" >/dev/null; then
+              break
+            fi
+            sleep 1
+          done
+          PLAYWRIGHT_MODULE_DIR="$RUNNER_TEMP/edgeglow-playwright/node_modules" \
+            MOTION_STUDIO_BASE="http://127.0.0.1:8766/" \
+            MOTION_STUDIO_SOURCE_SHA="$PR_SOURCE_SHA" \
+            PR_SOURCE_ROOT="$GITHUB_WORKSPACE/pr-source" \
+            MOTION_STUDIO_EVIDENCE_DIR="$RUNNER_TEMP/edgeglow-evidence/recognition-motion-studio" \
+            node pr-source/scripts/capture_receiving_light_motion_studio_v1.cjs 2>&1 | tee "$RUNNER_TEMP/edgeglow-evidence/recognition-motion-studio/capture.log"
 
       - name: Upload static visual evidence
         if: always()

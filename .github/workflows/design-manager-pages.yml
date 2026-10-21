@@ -96,6 +96,7 @@ jobs:
           sed -i "s/__NH01_VIEWER_BUILD__/${BUILD_SHA}/g" _site/design/manager/nh01_acceptance/index.html
           printf '{"sha":"%s","short_sha":"%s"}\n' "${BUILD_SHA}" "${BUILD_SHORT}" > _site/design/manager/build.json
           touch _site/.nojekyll
+          sed -i "s/__MOTION_STUDIO_SOURCE_SHA__/$BUILD_SHA/g" _site/design/manager/optical-lab/recognition-motion/index.html
           cat > _site/index.html <<'EOF'
           <!doctype html>
           <html lang="zh-CN">

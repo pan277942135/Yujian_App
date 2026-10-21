@@ -189,6 +189,42 @@ def validate_tree(root: Path, *, built: bool = False, expected_build: str | None
         fail("Design Manager direct Hash / history / Hi-Fi preview routes regressed")
 
     index = index_path.read_text(encoding="utf-8") if index_path.exists() else ""
+    motion_route = design / "manager/optical-lab/recognition-motion/index.html"
+    if not motion_route.is_file():
+        fail("Recognition Motion Studio direct route is missing")
+    motion_href = "./optical-lab/recognition-motion/"
+    motion_label = "打开 识别动效 · Receiving Light Studio"
+    optical_href = 'href="./optical-lab/"'
+    result_href = "../system_v3/08_Page_Contracts/recognition/result/Recognition_Result_Page_Contract_V3_1.md"
+    if motion_href not in index or motion_label not in index:
+        fail("Design Manager Processing submenu lacks the accessible Recognition Motion Studio link")
+    if "module-item-child" not in index or not (index.find(optical_href) < index.find(motion_href) < index.find(result_href)):
+        fail("Recognition Motion Studio must remain a nested Processing child between Optical Lab and Result")
+    motion_html = motion_route.read_text(encoding="utf-8")
+    required_motion_contract = (
+        'id="playPause"', 'id="restart"', 'id="timeline"', 'id="stepForward"',
+        'id="toggleEdge"', 'id="toggleTransfer"', 'id="toggleFish"',
+        "MANUAL_REFERENCE_CONTOUR", "演示轮廓 · 非生产 Mask",
+        "real_catch_source.jpg", "studio.js"
+    )
+    if any(token not in motion_html for token in required_motion_contract):
+        fail("Recognition Motion Studio lost a required accessible playback/layer/source control")
+    if built and "__MOTION_STUDIO_SOURCE_SHA__" in motion_html:
+        fail("Pages artifact still contains the unresolved Motion Studio source SHA placeholder")
+    if not built:
+        android_workflow = root / ".github/workflows/android.yml"
+        android_text = android_workflow.read_text(encoding="utf-8") if android_workflow.exists() else ""
+        for web_only_path in (
+            ".github/workflows/design-manager-pages.yml",
+            "design/manager/index.html",
+            "design/manager/styles.css",
+            "scripts/capture_receiving_light_motion_studio_v1.cjs",
+            "scripts/verify_design_manager_navigation.py",
+            "scripts/verify_design_manager_browser.mjs"
+        ):
+            if web_only_path not in android_text:
+                fail(f"Android CI must ignore this Web-only review path: {web_only_path}")
+
     if built:
         if "__DESIGN_MANAGER_BUILD__" in index or "__DESIGN_MANAGER_BUILD_SHORT__" in index:
             fail("Pages artifact still contains unresolved build placeholders")
@@ -206,7 +242,9 @@ def validate_tree(root: Path, *, built: bool = False, expected_build: str | None
 
     print(
         "PASS: Design Manager navigation guard | "
-        f"Normal Home={','.join(hifi_ids)} | Recognition Flow={','.join(recognition_ids)} | built={built}"
+        f"Normal Home={','.join(hifi_ids)} | Recognition Flow={','.join(recognition_ids)} | "
+        "Recognition Motion Studio=direct accessible child | built="
+        f"{built}"
     )
 
 

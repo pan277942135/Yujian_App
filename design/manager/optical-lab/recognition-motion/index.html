@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#e7eeea">
+  <meta name="recognition-motion-studio" content="WEB_REVIEW_PROTOTYPE">
+  <meta name="recognition-motion-source-sha" content="__MOTION_STUDIO_SOURCE_SHA__">
+  <title>识别动效 · Receiving Light Studio</title>
+  <link rel="stylesheet" href="./studio.css">
+  <script src="../../edgeglow-receiving-light.js?v=shared-path-field-v1" defer></script>
+  <script src="./studio.js?v=receiving-motion-v1" type="module"></script>
+</head>
+<body>
+  <div class="studio-shell">
+    <header class="topbar">
+      <a class="back-link" href="../../" aria-label="返回 Design Manager">← <span>Design Manager</span></a>
+      <div class="topbar-meta">
+        <span class="eyebrow">RECOGNITION · PROCESSING</span>
+        <span class="review-pill">WEB REVIEW PROTOTYPE</span>
+      </div>
+      <a class="contract-link" href="../../../pages/recognition/processing/handoff/M1_P4_MOTION_QUALITY_RESPONSIVE.md">P4 Motion Contract ↗</a>
+    </header>
+
+    <main>
+      <section class="title-block">
+        <div>
+          <p class="eyebrow">WORK B · PLAYABLE MOTION STUDIO</p>
+          <h1>识别动效 <span>Receiving Light Studio</span></h1>
+          <p class="intro">从照片外围的蓝金受光，到鱼体暖金轮廓的连续交接。拖动时间轴或逐帧检查每个阶段。</p>
+        </div>
+        <div class="runtime-chip"><span class="live-dot"></span><span id="runtimeStatus">正在读取照片与光学配置…</span></div>
+      </section>
+
+      <div class="workbench">
+        <aside class="panel scene-panel" aria-label="场景与资源信息">
+          <div class="panel-heading">
+            <div><span class="eyebrow">01 · SCENE</span><h2>识别过程</h2></div>
+            <span class="panel-index">01 / 03</span>
+          </div>
+          <div class="panel-content">
+            <a class="manager-entry" href="../../" aria-label="打开 Design Manager">设计系统首页 <span>↗</span></a>
+            <div class="phase-list" id="phaseList" aria-label="动画阶段">
+              <button class="phase-item active" type="button" data-time="0" aria-label="跳转到 CAPTURED 阶段">
+                <span class="phase-number">01</span><span><strong>外围光场唤醒</strong><small>CAPTURED · 0–220 ms</small></span>
+              </button>
+              <button class="phase-item" type="button" data-time="380" aria-label="跳转到 DETECTING 阶段">
+                <span class="phase-number">02</span><span><strong>外围光场流动</strong><small>DETECTING · 220–540 ms</small></span>
+              </button>
+              <button class="phase-item" type="button" data-time="700" aria-label="跳转到 OUTLINE 阶段">
+                <span class="phase-number">03</span><span><strong>光场过渡至鱼体</strong><small>OUTLINE · 540–890 ms</small></span>
+              </button>
+              <button class="phase-item" type="button" data-time="1010" aria-label="跳转到 CLASSIFYING 阶段">
+                <span class="phase-number">04</span><span><strong>鱼体高亮稳定</strong><small>CLASSIFYING · 890–1140 ms</small></span>
+              </button>
+            </div>
+
+            <div class="source-card">
+              <span class="card-label">PHOTO SOURCE</span>
+              <strong>真实鱼获照片 · FIT 全图</strong>
+              <code>real_catch_source.jpg</code>
+              <small id="photoDigest">SHA-256 校验中…</small>
+            </div>
+            <div class="source-card contour-card">
+              <span class="card-label">CONTOUR SOURCE</span>
+              <strong>演示轮廓 · 非生产 Mask</strong>
+              <code>MANUAL_REFERENCE_CONTOUR</code>
+              <small>仅用于 Web 视觉评审，不代表生产检测或分割。</small>
+            </div>
+            <div class="source-card">
+              <span class="card-label">BUILD / AUTHORITY</span>
+              <strong id="buildSha">本地预览</strong>
+              <small>Receiving Light 使用共享渲染器与 V2 主路径；动效层为 Review-only。</small>
+            </div>
+          </div>
+        </aside>
+
+        <section class="panel preview-panel" aria-label="可播放识别动效预览">
+          <div class="panel-heading">
+            <div><span class="eyebrow">02 · PLAYABLE PREVIEW</span><h2>真实照片上的识别过程</h2></div>
+            <span class="screen-tag" id="viewportLabel">390 × 844</span>
+          </div>
+          <div class="preview-toolbar">
+            <div class="phase-readout"><span class="phase-led"></span><span id="stageName">CAPTURED</span><small id="stageCaption">外围光场唤醒</small></div>
+            <div class="toolbar-note" id="motionPreference">统一时钟 · 1,140 ms</div>
+          </div>
+          <div class="preview-area" id="previewArea">
+            <div class="device-frame" id="deviceFrame" data-viewport="390x844" aria-label="设备预览画布">
+              <div class="device-notch" aria-hidden="true"></div>
+              <div class="device-status" aria-hidden="true"><span>9:41</span><span>•••　◖</span></div>
+              <div class="photo-stage" id="photoStage">
+                <div class="photo-content" id="photoContent">
+                  <img id="catchPhoto" alt="用于识别过程评审的真实鱼获照片" draggable="false">
+                  <canvas id="p1Receiving" width="1152" height="1536" aria-hidden="true"></canvas>
+                  <svg id="motionSvg" viewBox="0 0 1152 1536" preserveAspectRatio="xMidYMid meet" role="img" aria-label="外围蓝金光场与演示鱼体轮廓动画">
+                    <defs>
+                      <clipPath id="photoClip"><rect x="0" y="0" width="1152" height="1536"/></clipPath>
+                      <linearGradient id="blueTrail" x1="0" y1="0" x2="1" y2="1">
+                        <stop offset="0" stop-color="#8edcff" stop-opacity="0"/>
+                        <stop offset=".22" stop-color="#5ab2fc" stop-opacity=".64"/>
+                        <stop offset=".68" stop-color="#79c8ff" stop-opacity=".78"/>
+                        <stop offset="1" stop-color="#d4f3ff" stop-opacity=".12"/>
+                      </linearGradient>
+                      <linearGradient id="goldTrail" x1="0" y1="0" x2="1" y2="1">
+                        <stop offset="0" stop-color="#f7d77d" stop-opacity="0"/>
+                        <stop offset=".28" stop-color="#e0b644" stop-opacity=".58"/>
+                        <stop offset=".7" stop-color="#f5d681" stop-opacity=".78"/>
+                        <stop offset="1" stop-color="#fff0c0" stop-opacity=".12"/>
+                      </linearGradient>
+                      <radialGradient id="transferGradient">
+                        <stop offset="0" stop-color="#ffe7a1" stop-opacity=".52"/>
+                        <stop offset=".36" stop-color="#f0c969" stop-opacity=".29"/>
+                        <stop offset="1" stop-color="#e7bb5b" stop-opacity="0"/>
+                      </radialGradient>
+                      <filter id="wideBloom" filterUnits="userSpaceOnUse" x="-320" y="-320" width="1792" height="2176">
+                        <feGaussianBlur stdDeviation="54"/>
+                      </filter>
+                      <filter id="midBloom" filterUnits="userSpaceOnUse" x="-160" y="-160" width="1472" height="1856">
+                        <feGaussianBlur stdDeviation="24"/>
+                      </filter>
+                      <filter id="fishHalo" filterUnits="userSpaceOnUse" x="-120" y="-120" width="1392" height="1776">
+                        <feGaussianBlur stdDeviation="22"/>
+                      </filter>
+                      <filter id="transferBlur" filterUnits="userSpaceOnUse" x="-420" y="-400" width="1992" height="2336">
+                        <feGaussianBlur stdDeviation="36"/>
+                      </filter>
+                    </defs>
+                    <g id="edgeMotion" clip-path="url(#photoClip)" aria-hidden="true"></g>
+                    <g id="transferLayer" clip-path="url(#photoClip)" aria-hidden="true">
+                      <ellipse id="transferWash" cx="120" cy="890" rx="270" ry="210" fill="url(#transferGradient)" filter="url(#transferBlur)" opacity="0"/>
+                    </g>
+                    <g id="fishFocus" clip-path="url(#photoClip)" aria-hidden="true">
+                      <path id="fishHalo" fill="none" stroke="#f4d17a" stroke-width="48" stroke-linecap="round" stroke-linejoin="round" filter="url(#fishHalo)" opacity="0"/>
+                      <path id="fishMid" fill="none" stroke="#f2cf75" stroke-width="19" stroke-linecap="round" stroke-linejoin="round" filter="url(#midBloom)" opacity="0"/>
+                      <path id="fishCore" fill="none" stroke="#fff0bc" stroke-width="4.8" stroke-linecap="round" stroke-linejoin="round" opacity="0"/>
+                    </g>
+                  </svg>
+                  <div class="image-load-error" id="imageLoadError" hidden>照片未能加载。请检查本地资源路径。</div>
+                </div>
+                <div class="recognition-caption"><span>AI 正在识别照片</span><span class="caption-dot"></span><span id="captionStage">等待开始</span></div>
+              </div>
+              <div class="device-home-indicator" aria-hidden="true"></div>
+            </div>
+          </div>
+          <div class="playback">
+            <div class="control-row">
+              <button class="primary-button" id="playPause" type="button" aria-label="播放识别动效">▶ 播放</button>
+              <button class="icon-button" id="restart" type="button" aria-label="从头重播">↺ 重播</button>
+              <button class="icon-button step-button" id="stepBack" type="button" aria-label="向前检查一帧">−1 帧</button>
+              <button class="icon-button step-button" id="stepForward" type="button" aria-label="向后检查一帧">+1 帧</button>
+              <label class="speed-select">速度
+                <select id="speed" aria-label="播放速度">
+                  <option value="0.5">0.5×</option>
+                  <option value="1" selected>1×</option>
+                  <option value="1.5">1.5×</option>
+                </select>
+              </label>
+            </div>
+            <div class="timeline-wrap">
+              <div class="timeline-labels"><span>0 ms</span><span>220</span><span>540</span><span>890</span><span>1,140 ms</span></div>
+              <input id="timeline" type="range" min="0" max="1140" step="1" value="0" aria-label="拖动检查识别动效时间轴">
+              <div class="timeline-track" aria-hidden="true"><span style="--at:19.3%"></span><span style="--at:47.4%"></span><span style="--at:78.1%"></span></div>
+            </div>
+            <div class="playback-footer"><span><strong id="currentTime">0</strong> / 1,140 ms</span><span id="playbackState" aria-live="polite">已暂停</span><button id="exportFrame" type="button" class="text-button">导出当前帧 PNG ↓</button></div>
+          </div>
+        </section>
+
+        <aside class="panel controls-panel" aria-label="时间轴与图层检查">
+          <div class="panel-heading">
+            <div><span class="eyebrow">03 · LAYER REVIEW</span><h2>图层与节奏</h2></div>
+            <span class="panel-index">REVIEW</span>
+          </div>
+          <div class="panel-content">
+            <section class="control-section">
+              <h3>图层开关 <span>同步时间轴</span></h3>
+              <label class="toggle-row"><input id="toggleEdge" type="checkbox" checked><span class="toggle-swatch blue"></span><span><strong>Edge Field</strong><small>外围 Receiving Light + 动态光域</small></span></label>
+              <label class="toggle-row"><input id="toggleTransfer" type="checkbox" checked><span class="toggle-swatch wash"></span><span><strong>Transfer Wash</strong><small>外围至鱼体的宽幅过渡柔光</small></span></label>
+              <label class="toggle-row"><input id="toggleFish" type="checkbox" checked><span class="toggle-swatch gold"></span><span><strong>Fish Focus</strong><small>暖金 Halo 与核心光</small></span></label>
+              <label class="toggle-row"><input id="toggleContour" type="checkbox" checked><span class="toggle-swatch outline"></span><span><strong>演示轮廓</strong><small>人工参考路径 · 非生产 Mask</small></span></label>
+            </section>
+
+            <section class="control-section">
+              <h3>预览尺寸 <span>等比适配</span></h3>
+              <div class="viewport-options" role="group" aria-label="设备视口预设">
+                <button type="button" class="viewport-option active" data-viewport="320x640" aria-label="切换到 320 × 640 视口">320 × 640</button>
+                <button type="button" class="viewport-option" data-viewport="390x844" aria-label="切换到 390 × 844 视口">390 × 844</button>
+                <button type="button" class="viewport-option" data-viewport="430x932" aria-label="切换到 430 × 932 视口">430 × 932</button>
+                <button type="button" class="viewport-option" data-viewport="1080x1920" aria-label="切换到 1080 × 1920 视口">1080 × 1920</button>
+              </div>
+            </section>
+
+            <section class="control-section data-section">
+              <h3>渲染来源 <span>可追溯</span></h3>
+              <dl>
+                <div><dt>共享渲染器</dt><dd id="rendererVersion">读取中…</dd></div>
+                <div><dt>照片坐标</dt><dd>1152 × 1536 · FIT 全图</dd></div>
+                <div><dt>主光路</dt><dd>B1 · G1 · G3 · B3</dd></div>
+                <div><dt>轮廓来源</dt><dd>MANUAL_REFERENCE_CONTOUR</dd></div>
+              </dl>
+            </section>
+            <p class="review-note"><strong>Review-only</strong>：外围动态光域与人工参考轮廓仅供网页视觉评审，不代表 Android Runtime 或生产 Fish Mask 已完成。</p>
+            <p class="reduced-note" id="reducedNote" hidden>已检测到减少动态偏好。页面不会自动播放；播放、暂停和逐帧控制仍可手动使用。</p>
+          </div>
+        </aside>
+      </div>
+    </main>
+    <footer class="page-footer">
+      <span>Recognition Processing · Optical Review</span>
+      <span>Frozen timing: 220 / 320 / 350 / 250 ms · total 1,140 ms</span>
+      <span>ANDROID_NOT_RUN</span>
+    </footer>
+  </div>
+</body>
+</html>
