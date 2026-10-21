@@ -83,6 +83,7 @@ private val GeminiHomePeekTopOffset = 15.dp
 
 /** Test-visible layout signal; the UI does not announce this as accessibility copy. */
 internal val GeminiHomeTextHasVisualOverflow = SemanticsPropertyKey<Boolean>("GeminiHomeTextHasVisualOverflow")
+internal val GeminiHomeRenderedFontSizeSp = SemanticsPropertyKey<Float>("GeminiHomeRenderedFontSizeSp")
 
 /**
  * NH01 Gemini V3 page. The Compose tree follows Gemini's Top / Middle / Footer
@@ -417,7 +418,9 @@ private fun RowScope.GeminiStatItem(
             ),
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.testTag("gemini-home-stat-$tag-value"),
+            modifier = Modifier
+                .semantics { this[GeminiHomeRenderedFontSizeSp] = valueFontSize.value }
+                .testTag("gemini-home-stat-$tag-value"),
         )
         Text(
             text = label,
@@ -429,7 +432,9 @@ private fun RowScope.GeminiStatItem(
             ),
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.padding(top = 2.dp).testTag("gemini-home-stat-$tag-label"),
+            modifier = Modifier.padding(top = 2.dp)
+                .semantics { this[GeminiHomeRenderedFontSizeSp] = labelFontSize.value }
+                .testTag("gemini-home-stat-$tag-label"),
         )
     }
 }
@@ -573,7 +578,9 @@ private fun GeminiSectionHeader(
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
             onTextLayout = { onTitleMeasuredHeight(it.size.height) },
-            modifier = Modifier.testTag("gemini-home-section-title"),
+            modifier = Modifier
+                .semantics { this[GeminiHomeRenderedFontSizeSp] = titleFontSize.value }
+                .testTag("gemini-home-section-title"),
         )
         Row(
             modifier = Modifier.requiredSizeIn(minWidth = 48.dp, minHeight = 48.dp)
@@ -595,6 +602,9 @@ private fun GeminiSectionHeader(
                     shadow = Shadow(YuJianColors.DeepLakeBlue.copy(alpha = 0.45f), blurRadius = 3f),
                 ),
                 maxLines = 1,
+                modifier = Modifier
+                    .semantics { this[GeminiHomeRenderedFontSizeSp] = actionFontSize.value }
+                    .testTag("gemini-home-section-all-label"),
             )
             Text(
                 text = "›",
@@ -604,7 +614,9 @@ private fun GeminiSectionHeader(
                     lineHeight = (actionFontSize.value * 1.2f).sp,
                 ),
                 maxLines = 1,
-                modifier = Modifier.testTag("gemini-home-section-chevron"),
+                modifier = Modifier
+                    .semantics { this[GeminiHomeRenderedFontSizeSp] = actionFontSize.value }
+                    .testTag("gemini-home-section-chevron"),
             )
         }
     }
@@ -717,9 +729,15 @@ private fun GeminiCatchCard(
     onClick: () -> Unit,
 ) {
     val textGap = clampDp(safeHeight.value * 0.006f, 2f, 5f)
+    val currentFontScale = LocalDensity.current.fontScale
     val allowAuxiliaryWrapping = geminiHomeShouldWrapAuxiliaryText(
         cardWidthDp = cardWidth.value,
-        fontScale = LocalDensity.current.fontScale,
+        fontScale = currentFontScale,
+        variant = layoutVariant,
+    )
+    val allowSpeciesWrapping = geminiHomeShouldWrapSpeciesTitle(
+        cardWidthDp = cardWidth.value,
+        fontScale = currentFontScale,
         variant = layoutVariant,
     )
     val speciesSize = responsiveSp(safeHeight, safeWidth, 0.036f, 20f, 26f)
@@ -768,11 +786,14 @@ private fun GeminiCatchCard(
                         fontWeight = FontWeight.Bold,
                         shadow = Shadow(YuJianColors.DeepLakeBlue.copy(alpha = 0.38f), blurRadius = 2f),
                     ),
-                    maxLines = 1,
+                    maxLines = if (allowSpeciesWrapping) 2 else 1,
                     overflow = TextOverflow.Ellipsis,
                     onTextLayout = { speciesTextOverflow.value = it.hasVisualOverflow },
                     modifier = Modifier
-                        .semantics { this[GeminiHomeTextHasVisualOverflow] = speciesTextOverflow.value }
+                        .semantics {
+                            this[GeminiHomeTextHasVisualOverflow] = speciesTextOverflow.value
+                            this[GeminiHomeRenderedFontSizeSp] = speciesSize.value
+                        }
                         .testTag("gemini-home-catch-species-${item.id}"),
                 )
                 if (measurements.isNotBlank()) {
@@ -788,7 +809,10 @@ private fun GeminiCatchCard(
                         overflow = TextOverflow.Ellipsis,
                         onTextLayout = { measurementTextOverflow.value = it.hasVisualOverflow },
                         modifier = Modifier.padding(top = textGap)
-                            .semantics { this[GeminiHomeTextHasVisualOverflow] = measurementTextOverflow.value }
+                            .semantics {
+                            this[GeminiHomeTextHasVisualOverflow] = measurementTextOverflow.value
+                            this[GeminiHomeRenderedFontSizeSp] = measurementSize.value
+                        }
                             .testTag("gemini-home-catch-measurement-${item.id}"),
                     )
                 }
@@ -804,7 +828,10 @@ private fun GeminiCatchCard(
                         overflow = TextOverflow.Ellipsis,
                         onTextLayout = { metadataTextOverflow.value = it.hasVisualOverflow },
                         modifier = Modifier.padding(top = textGap)
-                            .semantics { this[GeminiHomeTextHasVisualOverflow] = metadataTextOverflow.value }
+                            .semantics {
+                            this[GeminiHomeTextHasVisualOverflow] = metadataTextOverflow.value
+                            this[GeminiHomeRenderedFontSizeSp] = metadataSize.value
+                        }
                             .testTag("gemini-home-catch-metadata-${item.id}"),
                     )
                 }
@@ -876,7 +903,9 @@ private fun GeminiFooterSection(
                 textAlign = TextAlign.Center,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.testTag("gemini-home-cta-label"),
+                modifier = Modifier
+                    .semantics { this[GeminiHomeRenderedFontSizeSp] = labelSize.value }
+                    .testTag("gemini-home-cta-label"),
             )
         }
         if (runtimeAssets != null) {

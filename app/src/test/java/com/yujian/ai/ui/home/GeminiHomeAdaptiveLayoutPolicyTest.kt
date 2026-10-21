@@ -48,7 +48,7 @@ class GeminiHomeAdaptiveLayoutPolicyTest {
         assertTrue(normal.minReadableCardHeight.value >= 148f)
         assertTrue(normal.minReadableCardHeight.value < 180f)
         assertTrue(large.minReadableCardHeight.value > normal.minReadableCardHeight.value)
-        assertTrue(largest.minReadableCardHeight.value > large.minReadableCardHeight.value)
+        assertTrue(largest.minReadableCardHeight.value >= large.minReadableCardHeight.value)
         assertTrue(largest.minReadableCardHeight.value <= 220f)
     }
 
@@ -109,7 +109,7 @@ class GeminiHomeAdaptiveLayoutPolicyTest {
         val normal = resolve(320f, 432f, 1.0f)
         val accessible = resolve(320f, 432f, 1.3f)
 
-        assertEquals(124f, normal.minReadableCardHeight.value, 0.001f)
+        assertTrue("compact card budget includes narrow-card wrapping", normal.minReadableCardHeight.value >= 148f)
         assertTrue("larger system fonts reserve additional metadata space",
             accessible.minReadableCardHeight.value > normal.minReadableCardHeight.value)
     }
@@ -154,10 +154,13 @@ class GeminiHomeAdaptiveLayoutPolicyTest {
 
     @Test
     fun adaptiveV2WrapsAuxiliaryTextForNarrowCardsWithoutChangingV3BaselinePolicy() {
-        assertTrue(geminiHomeShouldWrapAuxiliaryText(209f, 1.0f, GeminiHomeLayoutVariant.ADAPTIVE_V2))
-        assertFalse(geminiHomeShouldWrapAuxiliaryText(210f, 1.0f, GeminiHomeLayoutVariant.ADAPTIVE_V2))
+        assertTrue(geminiHomeShouldWrapAuxiliaryText(239f, 1.0f, GeminiHomeLayoutVariant.ADAPTIVE_V2))
+        assertFalse(geminiHomeShouldWrapAuxiliaryText(240f, 1.0f, GeminiHomeLayoutVariant.ADAPTIVE_V2))
         assertFalse(geminiHomeShouldWrapAuxiliaryText(170f, 1.0f, GeminiHomeLayoutVariant.V3_BASELINE))
         assertTrue(geminiHomeShouldWrapAuxiliaryText(240f, 1.3f, GeminiHomeLayoutVariant.V3_BASELINE))
+        assertTrue(geminiHomeShouldWrapSpeciesTitle(239f, 1.0f, GeminiHomeLayoutVariant.ADAPTIVE_V2))
+        assertFalse(geminiHomeShouldWrapSpeciesTitle(240f, 1.0f, GeminiHomeLayoutVariant.ADAPTIVE_V2))
+        assertFalse(geminiHomeShouldWrapSpeciesTitle(170f, 1.0f, GeminiHomeLayoutVariant.V3_BASELINE))
     }
 
     @Test

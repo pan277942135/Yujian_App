@@ -19,6 +19,16 @@ CASES = (
     ("M10", 430, 932, 1.0), ("M11", 430, 932, 1.3), ("M12", 430, 932, 1.5),
 )
 VARIANTS = {"ADAPTIVE_V2": "adaptive_v2", "V3_BASELINE": "v3_baseline"}
+REQUIRED_FONT_SIZE_TAGS = (
+    "gemini-home-stat-species-value", "gemini-home-stat-species-label",
+    "gemini-home-stat-catches-value", "gemini-home-stat-catches-label",
+    "gemini-home-stat-record-days-value", "gemini-home-stat-record-days-label",
+    "gemini-home-section-title", "gemini-home-section-all-label",
+    "gemini-home-catch-species-nh01-catch-001",
+    "gemini-home-catch-measurement-nh01-catch-001",
+    "gemini-home-catch-metadata-nh01-catch-001",
+    "gemini-home-cta-label",
+)
 
 
 def read_case(raw: Path, profile: str, variant: str) -> dict[str, Any] | None:
@@ -76,6 +86,69 @@ def report_status(raw: Path, profile: str, variant_key: str, payload: dict[str, 
     return "INVALID" if path.is_file() else "MISSING"
 
 
+def apply_cross_profile_monotonicity_gates(
+    report_rows: list[dict[str, Any]],
+    metric_rows: list[dict[str, Any]],
+) -> list[str]:
+    problems: list[str] = []
+    report_by_profile = {row["profile"]: row for row in report_rows}
+    metric_by_key = {(row["profile"], row["layout_variant"]): row for row in metric_rows}
+    font_scales = sorted({case[3] for case in CASES})
+
+    for variant in ("ADAPTIVE_V2", "V3_BASELINE"):
+        status_key = "candidate_status" if variant == "ADAPTIVE_V2" else "baseline_status"
+        problems_key = "candidate_problems" if variant == "ADAPTIVE_V2" else "baseline_problems"
+        for font_scale in font_scales:
+            profiles = [profile for profile, _, _, scale in CASES if scale == font_scale]
+            for smaller_profile, larger_profile in zip(profiles, profiles[1:]):
+                smaller = metric_by_key.get((smaller_profile, variant))
+                larger = metric_by_key.get((larger_profile, variant))
+                if smaller is None or larger is None:
+                    continue
+                previous_width = float(smaller.get("card_actual_width_dp", 0))
+                current_width = float(larger.get("card_actual_width_dp", 0))
+                if previous_width > 0 and current_width > 0 and current_width < previous_width - 1.0:
+                    problem = (
+                        f"{variant} main-card width shrank from {smaller_profile} "
+                        f"({previous_width:.1f}dp) to {larger_profile} ({current_width:.1f}dp) "
+                        f"at font scale {font_scale:.1f}x"
+                    )
+                    _mark_monotonicity_failure(report_by_profile[larger_profile], larger, status_key, problems_key, problem)
+                    problems.append(f"{larger_profile}: {problem}")
+
+                previous_fonts = smaller.get("rendered_font_sizes_sp", {})
+                current_fonts = larger.get("rendered_font_sizes_sp", {})
+                for tag in REQUIRED_FONT_SIZE_TAGS:
+                    try:
+                        previous_size = float(previous_fonts.get(tag, 0))
+                        current_size = float(current_fonts.get(tag, 0))
+                    except (TypeError, ValueError):
+                        continue
+                    if previous_size > 0 and current_size > 0 and current_size < previous_size - 0.05:
+                        problem = (
+                            f"{variant} font size for {tag} shrank from {smaller_profile} "
+                            f"({previous_size:.2f}sp) to {larger_profile} ({current_size:.2f}sp) "
+                            f"at font scale {font_scale:.1f}x"
+                        )
+                        _mark_monotonicity_failure(report_by_profile[larger_profile], larger, status_key, problems_key, problem)
+                        problems.append(f"{larger_profile}: {problem}")
+    return problems
+
+
+def _mark_monotonicity_failure(
+    report_row: dict[str, Any],
+    metric_row: dict[str, Any],
+    status_key: str,
+    problems_key: str,
+    problem: str,
+) -> None:
+    report_row[status_key] = "FAIL"
+    report_row["status"] = "FAIL"
+    report_row[problems_key].append(problem)
+    report_row["problems"].append(problem)
+    metric_row["status"] = "FAIL"
+
+
 def close(a: float, b: float, tolerance: float = 0.02) -> bool:
     return math.isfinite(a) and abs(a - b) <= tolerance
 
@@ -116,6 +189,20 @@ def validate_case(payload: dict[str, Any], profile: str, width: int, height: int
     if missing_after_swipe:
         problems.append("missing after-swipe bounds: " + ", ".join(missing_after_swipe))
     metrics = payload.get("metrics", {})
+    font_sizes = metrics.get("rendered_font_sizes_sp")
+    if not isinstance(font_sizes, dict):
+        problems.append("rendered font-size metrics missing")
+    else:
+        missing_font_sizes = [tag for tag in REQUIRED_FONT_SIZE_TAGS if tag not in font_sizes]
+        if missing_font_sizes:
+            problems.append("missing rendered font sizes: " + ", ".join(missing_font_sizes))
+        for tag in REQUIRED_FONT_SIZE_TAGS:
+            try:
+                font_size = float(font_sizes.get(tag, 0))
+            except (TypeError, ValueError):
+                font_size = 0
+            if not math.isfinite(font_size) or font_size <= 0:
+                problems.append(f"invalid rendered font size for {tag}: {font_sizes.get(tag)}")
     ratio = float(metrics.get("card_aspect_ratio", 0))
     if abs(ratio / (247 / 293) - 1) > 0.01:
         problems.append(f"card ratio={ratio:.5f} exceeds 1% error")
@@ -307,6 +394,8 @@ def main() -> int:
                             "baseline_report_status": baseline_report_status,
                             "candidate_execution": candidate_execution,
                             "baseline_execution": baseline_execution,
+                            "candidate_problems": candidate_problems,
+                            "baseline_problems": baseline_problems,
                             "status": result_status, "problems": row_problems})
         all_problems.extend(f"{profile}: {problem}" for problem in row_problems)
 
@@ -346,6 +435,9 @@ def main() -> int:
             if before.is_file() and after.is_file():
                 make_pair(raw, baseline, candidate, pair_file, profile)
                 pairs.append((profile, pair_file, width, height, font))
+
+    monotonicity_problems = apply_cross_profile_monotonicity_gates(report_rows, metric_rows)
+    all_problems.extend(monotonicity_problems)
 
     (output / "NH01_BOUNDS_MATRIX_V1.json").write_text(json.dumps({
         "schema": "NH01_BOUNDS_MATRIX_V1", "source_sha": args.source_sha,

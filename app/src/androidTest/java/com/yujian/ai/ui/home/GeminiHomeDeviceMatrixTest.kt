@@ -213,7 +213,7 @@ class GeminiHomeDeviceMatrixTest {
             "gemini-home-catch-measurement-nh01-catch-001",
             "gemini-home-catch-metadata-nh01-catch-001",
         )
-        val requiredCardTextNoVisualOverflow = requiredCardTextTags.none(::hasVisualOverflow)
+        var requiredCardTextNoVisualOverflow = requiredCardTextTags.none(::hasVisualOverflow)
         if (variant == GeminiHomeLayoutVariant.ADAPTIVE_V2) {
             assertTrue("Adaptive V2 must not visually truncate required card text: $requiredCardTextTags", requiredCardTextNoVisualOverflow)
         }
@@ -240,13 +240,29 @@ class GeminiHomeDeviceMatrixTest {
         beginStep("CAPTURE_COMPONENT_BOUNDS_AND_LAYOUT_METRICS")
         val tags = listOf(
             "gemini-home-screen", "gemini-home-brand-title", "gemini-home-header-bar", "gemini-home-stats-bar",
-            "gemini-home-section-title", "gemini-home-middle-section", "gemini-home-carousel-track",
+            "gemini-home-section-title", "gemini-home-section-all-label", "gemini-home-middle-section", "gemini-home-carousel-track",
+            "gemini-home-stat-species-value", "gemini-home-stat-species-label",
+            "gemini-home-stat-catches-value", "gemini-home-stat-catches-label",
+            "gemini-home-stat-record-days-value", "gemini-home-stat-record-days-label",
             "gemini-home-catch-card-nh01-catch-001", "gemini-home-catch-neighbor-nh01-catch-002",
             "gemini-home-footer-cta", "gemini-home-cta-label", "gemini-home-camera", "gemini-home-camera-art",
             "gemini-home-catch-species-nh01-catch-001", "gemini-home-catch-measurement-nh01-catch-001",
             "gemini-home-catch-metadata-nh01-catch-001",
         )
         val boundsPx = JSONObject().apply { tags.forEach { put(it, rect(it).toJson()) } }
+        val fontSizeTags = listOf(
+            "gemini-home-stat-species-value", "gemini-home-stat-species-label",
+            "gemini-home-stat-catches-value", "gemini-home-stat-catches-label",
+            "gemini-home-stat-record-days-value", "gemini-home-stat-record-days-label",
+            "gemini-home-section-title", "gemini-home-section-all-label",
+            "gemini-home-catch-species-nh01-catch-001",
+            "gemini-home-catch-measurement-nh01-catch-001",
+            "gemini-home-catch-metadata-nh01-catch-001",
+            "gemini-home-cta-label",
+        )
+        val renderedFontSizesSp = JSONObject().apply {
+            fontSizeTags.forEach { put(it, fontSizeSp(it)) }
+        }
         val root = rect("gemini-home-screen").toDp(profile.density)
         val track = rect("gemini-home-carousel-track").toDp(profile.density)
         val safeWidthDp = (root.width() - profile.insets.start.value - profile.insets.end.value).coerceAtLeast(1f)
@@ -397,6 +413,17 @@ class GeminiHomeDeviceMatrixTest {
         }
         assertSingleNode("gemini-home-catch-card-nh01-catch-002")
         assertSingleNode("gemini-home-catch-neighbor-nh01-catch-001")
+        val secondCardTextTags = listOf(
+            "gemini-home-catch-species-nh01-catch-002",
+            "gemini-home-catch-measurement-nh01-catch-002",
+            "gemini-home-catch-metadata-nh01-catch-002",
+        )
+        secondCardTextTags.forEach { compose.onNodeWithTag(it, useUnmergedTree = true).assertIsDisplayed() }
+        val secondCardTextNoVisualOverflow = secondCardTextTags.none(::hasVisualOverflow)
+        if (variant == GeminiHomeLayoutVariant.ADAPTIVE_V2) {
+            assertTrue("Adaptive V2 must not visually truncate the long second catch: $secondCardTextTags", secondCardTextNoVisualOverflow)
+        }
+        requiredCardTextNoVisualOverflow = requiredCardTextNoVisualOverflow && secondCardTextNoVisualOverflow
         val activeAfterSwipe = rect("gemini-home-catch-card-nh01-catch-002").toDp(profile.density)
         val leftPeekAfterSwipe = rect("gemini-home-catch-neighbor-nh01-catch-001").toDp(profile.density)
         val trackAfterSwipe = rect("gemini-home-carousel-track").toDp(profile.density)
@@ -480,6 +507,7 @@ class GeminiHomeDeviceMatrixTest {
                 put("card_actual_width_dp", activeCardLayoutWidthDp)
                 put("neighbor_width_dp", neighborCard.width())
                 put("neighbor_width_fraction", neighborWidthFraction)
+                put("rendered_font_sizes_sp", renderedFontSizesSp)
                 put("peek_card_overlap_dp", neighborOverlapDp)
                 put("peek_visible_width_dp", rightPeekVisibleWidthDp)
                 put("peek_edge_visible_width_dp", rightEdgePeekVisibleWidthDp)
@@ -626,9 +654,9 @@ class GeminiHomeDeviceMatrixTest {
             ),
             RemoteCatch(
                 id = "nh01-catch-002", imageUrl = imagePath, speciesId = "species-common-carp",
-                speciesName = "鲤鱼", confidence = 0.88f, modelVersion = "nh01-layout-fixture",
+                speciesName = "长吻鮠（黄颡鱼）", confidence = 0.88f, modelVersion = "nh01-layout-fixture",
                 capturedAt = timestamp, createdAt = timestamp, lengthCm = 31f, weightKg = 0.84f,
-                location = "浙江 · 千岛湖",
+                location = "浙江省杭州市淳安县千岛湖西南岸",
             ),
         )
     }
@@ -641,6 +669,11 @@ class GeminiHomeDeviceMatrixTest {
     private fun hasVisualOverflow(tag: String): Boolean {
         val node = compose.onNodeWithTag(tag, useUnmergedTree = true).fetchSemanticsNode()
         return node.config[GeminiHomeTextHasVisualOverflow]
+    }
+
+    private fun fontSizeSp(tag: String): Float {
+        val node = compose.onNodeWithTag(tag, useUnmergedTree = true).fetchSemanticsNode()
+        return node.config[GeminiHomeRenderedFontSizeSp]
     }
 
     private fun advanceFramesUntil(timeoutMillis: Long, condition: () -> Boolean) {

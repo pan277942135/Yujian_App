@@ -11,7 +11,10 @@ from unittest.mock import patch
 from PIL import Image
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from aggregate_nh01_adaptive_matrix import CASES, classify_execution, main, make_contact_sheet, read_execution, validate_case
+from aggregate_nh01_adaptive_matrix import (
+    CASES, REQUIRED_FONT_SIZE_TAGS, apply_cross_profile_monotonicity_gates,
+    classify_execution, main, make_contact_sheet, read_execution, validate_case,
+)
 
 
 class AdaptiveMatrixAggregateTest(unittest.TestCase):
@@ -44,6 +47,7 @@ class AdaptiveMatrixAggregateTest(unittest.TestCase):
                 "cta_camera_overlap": False,
                 "camera_safe_bottom_clearance_dp": 8.0,
                 "neighbor_width_dp": 70.0,
+                "rendered_font_sizes_sp": {tag: 12.0 for tag in REQUIRED_FONT_SIZE_TAGS},
                 "peek_visible_width_dp": 16.0,
                 "peek_edge_visible_width_dp": 16.0,
                 "peek_edge_target_dp": 16.0,
@@ -135,6 +139,31 @@ class AdaptiveMatrixAggregateTest(unittest.TestCase):
         record = read_execution(execution_dir, "M01", "ADAPTIVE_V2")
         self.assertEqual("FAIL", classify_execution(record)[0])
         self.assertEqual("EXECUTION_RECORD_JSON_INVALID", classify_execution(record)[1])
+
+    def test_larger_viewports_may_not_shrink_card_or_responsive_type(self) -> None:
+        report_rows = [
+            {"profile": profile, "candidate_status": "PASS", "baseline_status": "PASS",
+             "candidate_problems": [], "baseline_problems": [], "status": "PASS", "problems": []}
+            for profile, _, _, _ in CASES
+        ]
+        metric_rows = []
+        for profile, width, height, font_scale in CASES:
+            for variant in ("ADAPTIVE_V2", "V3_BASELINE"):
+                metric_rows.append({
+                    "profile": profile, "layout_variant": variant,
+                    "card_actual_width_dp": 200.0,
+                    "rendered_font_sizes_sp": {tag: 12.0 for tag in REQUIRED_FONT_SIZE_TAGS},
+                    "status": "PASS",
+                })
+        metrics_by_key = {(r["profile"], r["layout_variant"]): r for r in metric_rows}
+        metrics_by_key[("M07", "ADAPTIVE_V2")]["card_actual_width_dp"] = 190.0
+        metrics_by_key[("M07", "ADAPTIVE_V2")]["rendered_font_sizes_sp"][REQUIRED_FONT_SIZE_TAGS[0]] = 10.0
+        problems = apply_cross_profile_monotonicity_gates(report_rows, metric_rows)
+        self.assertTrue(any("main-card width shrank" in p for p in problems), problems)
+        self.assertTrue(any("font size for" in p and "shrank" in p for p in problems), problems)
+        row = next(r for r in report_rows if r["profile"] == "M07")
+        self.assertEqual("FAIL", row["candidate_status"])
+        self.assertEqual("FAIL", row["status"])
 
     def test_contact_sheet_includes_all_twelve_profiles_in_four_rows(self) -> None:
         pairs = []

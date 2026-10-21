@@ -183,15 +183,19 @@ private fun adaptiveV2MinimumCardHeightDp(
     fontScale: Float,
 ): Float {
     val viewportScale = geminiHomeResponsiveFontScale(safeWidthDp, safeHeightDp)
-    val auxiliaryLines = if (fontScale >= 1.3f) 2f else 1f
-    val speciesLine = safeHeightDp.times(0.036f).coerceIn(20f, 26f) * viewportScale * 1.2f * fontScale
+    val targetCardWidthDp = minOf(safeWidthDp * ADAPTIVE_V2_CARD_WIDTH_FRACTION, ADAPTIVE_V2_CARD_MAX_WIDTH.value)
+    val wrapAuxiliary = fontScale >= 1.3f || targetCardWidthDp < 240f
+    val auxiliaryLines = if (wrapAuxiliary) 2f else 1f
+    val speciesLines = if (wrapAuxiliary) 2f else 1f
+    val speciesLine = safeHeightDp.times(0.036f).coerceIn(20f, 26f) *
+        viewportScale * 1.2f * fontScale * speciesLines
     val measurementLines = safeHeightDp.times(0.023f).coerceIn(13f, 16f) *
         viewportScale * 1.2f * fontScale * auxiliaryLines
     val metadataLines = safeHeightDp.times(0.019f).coerceIn(11f, 13f) *
         viewportScale * 1.3f * fontScale * auxiliaryLines
     val textGaps = safeHeightDp.times(0.006f).coerceIn(2f, 5f) * 2f
-    // A compact 320×480 window can use a smaller floor at normal font scale because
-    // measurements and metadata are single-line there. Larger system fonts reserve two lines.
+    // The 124dp compact floor remains a fallback, but the measured two-line text budget
+    // normally dominates for narrow cards so the Hero is not undersized to save whitespace.
     val minimumFloor = if (safeHeightDp < 460f && fontScale < 1.3f) 124f else 148f
     return maxOf(minimumFloor, speciesLine + measurementLines + metadataLines + textGaps + 20f + 16f)
         .coerceAtMost(220f)
@@ -243,7 +247,14 @@ internal fun geminiHomeShouldWrapAuxiliaryText(
     cardWidthDp: Float,
     fontScale: Float,
     variant: GeminiHomeLayoutVariant,
-): Boolean = fontScale >= 1.3f || (variant == GeminiHomeLayoutVariant.ADAPTIVE_V2 && cardWidthDp < 210f)
+): Boolean = fontScale >= 1.3f || (variant == GeminiHomeLayoutVariant.ADAPTIVE_V2 && cardWidthDp < 240f)
+
+/** Long species names wrap in the candidate when the available footer width is constrained. */
+internal fun geminiHomeShouldWrapSpeciesTitle(
+    cardWidthDp: Float,
+    fontScale: Float,
+    variant: GeminiHomeLayoutVariant,
+): Boolean = variant == GeminiHomeLayoutVariant.ADAPTIVE_V2 && (cardWidthDp < 240f || fontScale >= 1.3f)
 
 /** Gentle viewport scaling lets typography grow on larger/taller screens without shrinking on compact ones. */
 internal fun geminiHomeResponsiveFontScale(safeWidthDp: Float, safeHeightDp: Float): Float {
