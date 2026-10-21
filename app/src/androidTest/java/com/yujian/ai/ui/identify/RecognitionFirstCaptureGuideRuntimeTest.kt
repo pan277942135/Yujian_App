@@ -292,8 +292,8 @@ class RecognitionFirstCaptureGuideRuntimeTest {
 
     @Test
     fun requiredWidthsAndFontScalesKeepGuideActionsInsideTheViewport() {
-        val profiles = listOf(320 to 640, 360 to 640, 411 to 891)
-        val fontScales = listOf(1.0f, 1.3f, 2.0f)
+        val profiles = listOf(320 to 640, 393 to 852, 411 to 915, 640 to 360)
+        val fontScales = listOf(1.0f, 1.3f, 1.5f, 2.0f)
         var viewportWidth by mutableStateOf(profiles.first().first)
         var viewportHeight by mutableStateOf(profiles.first().second)
         var guideFontScale by mutableStateOf(fontScales.first())
@@ -325,11 +325,31 @@ class RecognitionFirstCaptureGuideRuntimeTest {
                 assertInsideViewport("recognition-guide-skip", width, height)
                 assertInsideViewport("recognition-guide-primary-action", width, height)
                 assertInsideViewport("recognition-guide-back", width, height)
+
+                composeRule.onNodeWithText("竖屏拍摄示意").assertIsDisplayed()
                 composeRule.onNodeWithTag("recognition-guide-primary-action").performClick()
+                composeRule.onNodeWithText("竖拍鱼类拍摄示意").assertIsDisplayed()
                 composeRule.onNodeWithTag("recognition-guide-previous").assertIsDisplayed()
                 assertInsideViewport("recognition-guide-previous", width, height)
+                assertInsideViewport("recognition-guide-primary-action", width, height)
+                assertInsideViewport("recognition-guide-skip", width, height)
                 composeRule.onNodeWithTag("recognition-guide-previous").performClick()
                 composeRule.waitForIdle()
+                composeRule.onNodeWithText("竖屏拍摄示意").assertIsDisplayed()
+
+                composeRule.onNodeWithTag("recognition-guide-primary-action").performClick()
+                composeRule.onNodeWithTag("recognition-guide-primary-action").performClick()
+                composeRule.onNodeWithText("横屏拍摄示意").assertIsDisplayed()
+                composeRule.onNodeWithText("开始拍摄 →").assertIsDisplayed()
+                composeRule.onNodeWithTag("recognition-guide-previous").assertIsDisplayed()
+                assertInsideViewport("recognition-guide-previous", width, height)
+                assertInsideViewport("recognition-guide-primary-action", width, height)
+                assertInsideViewport("recognition-guide-skip", width, height)
+
+                composeRule.onNodeWithTag("recognition-guide-previous").performClick()
+                composeRule.onNodeWithText("竖拍鱼类拍摄示意").assertIsDisplayed()
+                composeRule.onNodeWithTag("recognition-guide-previous").performClick()
+                composeRule.onNodeWithText("竖屏拍摄示意").assertIsDisplayed()
             }
         }
     }

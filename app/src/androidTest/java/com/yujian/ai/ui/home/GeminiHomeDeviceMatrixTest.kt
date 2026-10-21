@@ -4,6 +4,7 @@ import android.graphics.Bitmap
 import android.graphics.RectF
 import android.util.DisplayMetrics
 import android.os.Build
+import android.provider.Settings
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.compose.runtime.SideEffect
@@ -133,6 +134,28 @@ class GeminiHomeDeviceMatrixTest {
         expectedFontScale = args.getString("font_scale") ?: "UNKNOWN_FONT_SCALE"
         activeCaseOutput = output
         completeStep("ARGUMENTS_AND_TWO_CATCH_FIXTURE_READY")
+        val animationScales = mapOf(
+            "animator_duration_scale" to Settings.Global.getFloat(
+                targetContext.contentResolver,
+                Settings.Global.ANIMATOR_DURATION_SCALE,
+                1f,
+            ),
+            "transition_animation_scale" to Settings.Global.getFloat(
+                targetContext.contentResolver,
+                Settings.Global.TRANSITION_ANIMATION_SCALE,
+                1f,
+            ),
+            "window_animation_scale" to Settings.Global.getFloat(
+                targetContext.contentResolver,
+                Settings.Global.WINDOW_ANIMATION_SCALE,
+                1f,
+            ),
+        )
+        beginStep("VERIFY_DETERMINISTIC_SYSTEM_ANIMATION_SETTINGS")
+        animationScales.forEach { (setting, value) ->
+            assertEquals("$setting must be disabled for deterministic Compose runtime capture", 0f, value, 0f)
+        }
+        completeStep("DETERMINISTIC_SYSTEM_ANIMATION_SETTINGS_CONFIRMED")
         val densityProbe = AtomicReference<RuntimeDensityProbe?>()
         val identifyClicks = AtomicInteger()
         val albumClicks = AtomicInteger()
@@ -364,6 +387,9 @@ class GeminiHomeDeviceMatrixTest {
             put("target_application_id", targetContext.packageName)
             put("external_files_directory", output.absolutePath)
             put("system_font_scale", profile.fontScale)
+            put("android_animation_scales", JSONObject().apply {
+                animationScales.forEach { (setting, value) -> put(setting, value) }
+            })
             put("density", density)
             put("density_dpi", displayMetrics.densityDpi)
             put("display_resolution_px", JSONArray(listOf(displayMetrics.widthPixels, displayMetrics.heightPixels)))
