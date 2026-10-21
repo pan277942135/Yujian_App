@@ -88,15 +88,34 @@
     .integrity-summary{font-size:11px;color:var(--muted);line-height:1.5;margin-top:10px;overflow-wrap:anywhere}
     .integrity-summary[data-state="PASS"]{color:var(--success)}
     .integrity-summary[data-state="FAIL"]{color:var(--danger)}
-    .canvas-mode{background:transparent;overflow:hidden}
+    .responsive-matrix{grid-column:1/-1;background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px;box-shadow:0 8px 24px rgba(17,48,61,.05)}
+    .responsive-matrix-header{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:14px}
+    .responsive-matrix-title{font-size:16px;font-weight:800;margin:0 0 4px}
+    .responsive-matrix-subtitle{font-size:11px;line-height:1.5;color:var(--muted);margin:0;max-width:720px}
+    .matrix-scale-control{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--muted);font-weight:700}
+    .matrix-scale-control select{padding:7px 9px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink)}
+    .responsive-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;align-items:start}
+    .responsive-tile{min-width:0;padding:10px;border:1px solid var(--line);border-radius:12px;background:#f8fbfb}
+    .responsive-tile-header{display:flex;justify-content:space-between;align-items:center;gap:5px;margin-bottom:8px}
+    .responsive-tile-title{font-size:11px;font-weight:800;color:var(--ink)}
+    .responsive-tile-size{font-size:10px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+    .responsive-frame{display:block;width:100%;padding:0;border:1px solid #c6d5d9;border-radius:10px;background:#dfe8e9;overflow:hidden}
+    .responsive-tile-note{font-size:10px;color:var(--muted);line-height:1.45;margin:8px 0 0;min-height:28px}
+    .canvas-mode,.matrix-mode{background:transparent;overflow:hidden}
     .canvas-mode .workspace{display:block;width:100vw;height:100dvh;max-width:none;margin:0;padding:0}
-    .canvas-mode .workspace-header,.canvas-mode .control-panel,.canvas-mode .audit-column{display:none!important}
+    .canvas-mode .workspace-header,.canvas-mode .control-panel,.canvas-mode .audit-column,.canvas-mode .responsive-matrix{display:none!important}
     .canvas-mode .preview-column{width:100vw;height:100dvh}
     .canvas-mode .preview-stage{width:100vw;height:100dvh;padding:0;margin:0;display:block}
     .canvas-mode .device-wrap{width:100vw!important;height:100dvh!important}
     .canvas-mode .device{width:100vw!important;height:100dvh!important;transform:none!important;border:0;border-radius:0;box-shadow:none}
-    @media(max-width:850px){.workspace{grid-template-columns:minmax(0,1fr);padding:14px;gap:14px}.workspace-header{margin-bottom:10px}.preview-stage{padding:0}.audit-column{grid-template-columns:minmax(0,1fr)}}
-    @media(max-width:460px){.workspace{padding:10px}.workspace-header{display:grid}.controls{gap:8px}.control{min-width:calc(50% - 8px)}.device{border-radius:18px}.asset-row{grid-template-columns:minmax(0,1fr)}.asset-status{justify-self:start;white-space:normal;overflow-wrap:anywhere;max-width:100%}}
+    .matrix-mode .workspace{display:block;width:100vw;height:100dvh;max-width:none;margin:0;padding:0}
+    .matrix-mode .workspace-header,.matrix-mode .control-panel,.matrix-mode .audit-column,.matrix-mode .responsive-matrix{display:none!important}
+    .matrix-mode .preview-column{width:100vw;height:100dvh}
+    .matrix-mode .preview-stage{width:100vw;height:100dvh;padding:0;margin:0;display:flex;justify-content:center;align-items:flex-start;overflow:hidden}
+    .matrix-mode .device{border:0;border-radius:10px;box-shadow:none}
+    @media(max-width:1150px){.responsive-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+    @media(max-width:850px){.workspace{grid-template-columns:minmax(0,1fr);padding:14px;gap:14px}.workspace-header{margin-bottom:10px}.preview-stage{padding:0}.audit-column{grid-template-columns:minmax(0,1fr)}.responsive-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+    @media(max-width:460px){.workspace{padding:10px}.workspace-header{display:grid}.controls{gap:8px}.control{min-width:calc(50% - 8px)}.device{border-radius:18px}.asset-row{grid-template-columns:minmax(0,1fr)}.asset-status{justify-self:start;white-space:normal;overflow-wrap:anywhere;max-width:100%}.responsive-grid{grid-template-columns:minmax(0,1fr)}}
   </style>
 </head>
 <body>
@@ -191,18 +210,35 @@
         </div>
       </section>
     </aside>
+    <section class="responsive-matrix" aria-label="不同屏幕尺寸响应式对照">
+      <div class="responsive-matrix-header">
+        <div><h2 class="responsive-matrix-title">多屏响应式对照</h2><p class="responsive-matrix-subtitle">同一套页面结构在五种逻辑视口下并排渲染。切换字体缩放，可直观看到卡片、标题、底部 CTA 与相机控件如何响应。此处是浏览器结构预览，最终仍需用同一源码 SHA 的 Android Runtime 截图验收。</p></div>
+        <label class="matrix-scale-control" for="matrixFontScale">全矩阵字体缩放<select id="matrixFontScale"><option value="1" selected>1.0×</option><option value="1.3">1.3×</option><option value="1.5">1.5×</option></select></label>
+      </div>
+      <div class="responsive-grid">
+        <article class="responsive-tile"><div class="responsive-tile-header"><span class="responsive-tile-title">紧凑短屏</span><span class="responsive-tile-size">320×480</span></div><iframe class="responsive-frame" data-viewport="320x480" title="NH01 320×480 响应式预览" style="aspect-ratio:2/3" src="./gemini-native-preview.html?mode=matrix&amp;viewport=320x480&amp;fontScale=1"></iframe><p class="responsive-tile-note">检查短屏空间竞争与局部滚动。</p></article>
+        <article class="responsive-tile"><div class="responsive-tile-header"><span class="responsive-tile-title">紧凑屏</span><span class="responsive-tile-size">360×640</span></div><iframe class="responsive-frame" data-viewport="360x640" title="NH01 360×640 响应式预览" style="aspect-ratio:9/16" src="./gemini-native-preview.html?mode=matrix&amp;viewport=360x640&amp;fontScale=1"></iframe><p class="responsive-tile-note">检查标准紧凑布局与卡片比例。</p></article>
+        <article class="responsive-tile"><div class="responsive-tile-header"><span class="responsive-tile-title">基准手机</span><span class="responsive-tile-size">390×844</span></div><iframe class="responsive-frame" data-viewport="390x844" title="NH01 390×844 响应式预览" style="aspect-ratio:390/844" src="./gemini-native-preview.html?mode=matrix&amp;viewport=390x844&amp;fontScale=1"></iframe><p class="responsive-tile-note">检查基准页面比例与主卡几何。</p></article>
+        <article class="responsive-tile"><div class="responsive-tile-header"><span class="responsive-tile-title">大屏手机</span><span class="responsive-tile-size">430×932</span></div><iframe class="responsive-frame" data-viewport="430x932" title="NH01 430×932 响应式预览" style="aspect-ratio:430/932" src="./gemini-native-preview.html?mode=matrix&amp;viewport=430x932&amp;fontScale=1"></iframe><p class="responsive-tile-note">检查宽屏留白与卡片最大宽度。</p></article>
+        <article class="responsive-tile"><div class="responsive-tile-header"><span class="responsive-tile-title">宽视口</span><span class="responsive-tile-size">600×960</span></div><iframe class="responsive-frame" data-viewport="600x960" title="NH01 600×960 响应式预览" style="aspect-ratio:5/8" src="./gemini-native-preview.html?mode=matrix&amp;viewport=600x960&amp;fontScale=1"></iframe><p class="responsive-tile-note">检查宽视口下的内容宽度上限。</p></article>
+      </div>
+    </section>
   </main>
   <script>
     (() => {
       "use strict";
       const params = new URLSearchParams(location.search);
       const canvasMode = params.get("mode") === "canvas";
+      const matrixMode = params.get("mode") === "matrix";
       if (canvasMode) document.body.classList.add("canvas-mode");
+      if (matrixMode) document.body.classList.add("matrix-mode");
       const buildSha = document.querySelector('meta[name="nh01-gemini-preview-build"]').content;
       document.getElementById("buildSha").textContent = buildSha;
       const preset = document.getElementById("viewportPreset");
       const layoutVariant = document.getElementById("layoutVariant");
       const fontScale = document.getElementById("fontScale");
+      const requestedScale = params.get("fontScale");
+      if (["1", "1.3", "1.5"].includes(requestedScale)) fontScale.value = requestedScale;
       const device = document.getElementById("device");
       const wrap = document.getElementById("deviceWrap");
       const topSection = document.getElementById("topSection");
@@ -312,7 +348,7 @@
         root.style.setProperty("--text-gap", clamp(safeHeight * 0.006, 2, 5) + "px");
         middleSection.dataset.topAlign = String(policy.topAlignMiddleGroup);
         window.NH01GeminiPreviewLayout = {
-          variant, band, logical_viewport_dp: [width, height], safe_insets_dp: { top: 24, bottom: 48, start: 0, end: 0 },
+          variant, band: policy.band, logical_viewport_dp: [width, height], safe_insets_dp: { top: 24, bottom: 48, start: 0, end: 0 },
           safe_width_dp: safeWidth, safe_height_dp: safeHeight, font_scale: scale,
           gaps_dp: { brand_to_stats: policy.brandToStatsGap, stats_to_title: policy.statsToTitleGap, leading: leadingGap, title_to_card: policy.titleToCardGap, actual_header_gap: headerGap, card_to_footer: policy.cardToFooterGap },
           desired_card_size_dp: [desiredCardWidth, desiredCardHeight], card_height_dp: null, card_width_dp: null,
@@ -341,7 +377,8 @@
         });
       }
       function applyViewport() {
-        const widthHeight = canvasMode ? [window.innerWidth, window.innerHeight] : preset.value.split("x").map(Number);
+        const requestedViewport = params.get("viewport");
+        const widthHeight = canvasMode ? [window.innerWidth, window.innerHeight] : (matrixMode && requestedViewport ? requestedViewport.split("x").map(Number) : preset.value.split("x").map(Number));
         const width = widthHeight[0], height = widthHeight[1];
         if (canvasMode) {
           device.style.width = String(width) + "px";
@@ -350,8 +387,8 @@
           wrap.style.width = String(width) + "px";
           wrap.style.height = String(height) + "px";
         } else {
-          const availableWidth = Math.max(250, Math.min(520, window.innerWidth - 56));
-          const availableHeight = Math.max(300, window.innerHeight - 205);
+          const availableWidth = matrixMode ? window.innerWidth : Math.max(250, Math.min(520, window.innerWidth - 56));
+          const availableHeight = matrixMode ? window.innerHeight : Math.max(300, window.innerHeight - 205);
           const scale = Math.min(1, availableWidth / width, availableHeight / height);
           device.style.width = String(width) + "px";
           device.style.height = String(height) + "px";
@@ -364,6 +401,15 @@
       preset.addEventListener("change", applyViewport);
       layoutVariant.addEventListener("change", applyViewport);
       fontScale.addEventListener("change", applyViewport);
+      const matrixFontScale = document.getElementById("matrixFontScale");
+      if (matrixFontScale) {
+        matrixFontScale.addEventListener("change", () => {
+          document.querySelectorAll(".responsive-frame").forEach(frame => {
+            const viewport = frame.dataset.viewport;
+            frame.src = "./gemini-native-preview.html?mode=matrix&viewport=" + encodeURIComponent(viewport) + "&fontScale=" + encodeURIComponent(matrixFontScale.value);
+          });
+        });
+      }
       window.addEventListener("resize", applyViewport);
       document.getElementById("cameraButton").addEventListener("click", () => showToast("静态预览：真实拍照交互以精确 SHA 的 Android Runtime Gate 为准。"));
       document.getElementById("avatarButton").addEventListener("click", () => showToast("Gemini V3 静态预览使用注册的 V2 头像底图；真实账号头像加载由 Android 数据层处理。"));
