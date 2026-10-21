@@ -26,6 +26,8 @@ env:
 
 jobs:
   runtime:
+    # PR #166 remains Draft for the Web static visual review; do not start this emulator runtime.
+    if: ${{ github.event.pull_request.number != 166 || !github.event.pull_request.draft }}
     runs-on: macos-15-intel
     timeout-minutes: 100
     outputs:

@@ -154,6 +154,7 @@ jobs:
           cp design/manager/optical-lab/README.md "$PACKAGE_DIR/design/manager/optical-lab/README.md"
           cp design/manager/optical-lab/build-info.js "$PACKAGE_DIR/design/manager/optical-lab/build-info.js"
           cp design/manager/optical-lab/receiving-field-review.js "$PACKAGE_DIR/design/manager/optical-lab/receiving-field-review.js"
+          cp design/manager/edgeglow-receiving-light.js "$PACKAGE_DIR/design/manager/edgeglow-receiving-light.js"
           cp design/manager/optical-lab/asset-manifest.json "$PACKAGE_DIR/design/manager/optical-lab/asset-manifest.json"
           cp design/manager/optical-lab/review_v1/fish_focus_review_only_alpha.png "$PACKAGE_DIR/design/manager/optical-lab/review_v1/"
           cp design/manager/optical-lab/review_v1/fish_focus_case_b_bbox.json "$PACKAGE_DIR/design/manager/optical-lab/review_v1/"

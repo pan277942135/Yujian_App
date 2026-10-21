@@ -8,6 +8,7 @@
   <title>EdgeGlow Fish · Static + Dynamic Review · 渔见</title>
   <link rel="stylesheet" href="../viewer.css">
   <link rel="stylesheet" href="./edgeglow.css">
+  <script src="../../edgeglow-receiving-light.js?v=shared-path-field-v1"></script>
   <script src="./edgeglow.js?v=edgeglow-r13-shared-receiving-field" defer></script>
 </head>
 <body>
@@ -172,7 +173,7 @@
           <small>鱼体描边、柔光与光尾保持暖金层次；蓝青色只用于图片四周光场。</small>
         </fieldset>
       </div>
-      <div class="render-note"><strong>Frozen 02 / 03 颜色分工：</strong>照片四周显示蓝金边缘光岛；鱼体只显示暖金轮廓、柔光和静态光尾。蓝色不会进入鱼体层，鱼体金色不会替代照片外围光场。<br><strong>渲染层级：</strong>原照片 → 四周蓝金 Receiving Light 和断开边缘 Path → 鱼体暖金 Bloom → Core → Comet。R13 将宽幅 Receiving Light 接入 Current / Enhanced / Frozen Match 三档，覆盖主次为右上 B1 100%、左上 G1 84%、左下 G3 60%、右下 B3 38%，再叠加候选各自的光学细节；窄路径 Quiet Gaps 仍保留。鱼体主线、柔光和光尾仍为独立暖金层，蓝光不会进入鱼体。透明离屏层保留模糊外溢后再裁回原图。照片 / Path 坐标和三张 Frozen 资产保持不变。蓝金外圈 alpha 高于 Android 与 Frozen Contract 上限，仅是 Web 视觉候选；浏览器模糊不等同 Android API 28，视觉质量仍待人工评审。</div>
+      <div class="render-note"><strong>Frozen 02 / 03 颜色分工：</strong>照片四周显示蓝金边缘光岛；鱼体只显示暖金轮廓、柔光和静态光尾。蓝色不会进入鱼体层，鱼体金色不会替代照片外围光场。<br><strong>渲染层级：</strong>原照片 → 四周蓝金 Receiving Light 和断开边缘 Path → 鱼体暖金 Bloom → Core → Comet。静态 Receiving Light 由 Optical Lab 与本页共用的 SVG 路径渲染器绘制：沿 B1/G1/G3/B3 使用外层柔光、中层柔光和核心光脊；应用照片内容矩形、Quiet Gap 遮罩与 source-over。基础 Alpha 限于 P1 0.03–0.07，最终透明层按 8-bit 精度封顶于 17/255；边缘深度为 14%。此候选仍需人工视觉评审，不代表 Android Runtime。</div>
     </section>
 
     <section class="panel-card frozen-reference-card" aria-label="Frozen 高保真视觉参考">

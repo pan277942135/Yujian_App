@@ -20,6 +20,7 @@ PROCESSING_CONFIG = Path("design/pages/recognition/processing/handoff/Processing
 ROUTE_PATH = Path("design/manager/nh01_acceptance/edgeglow-fish-static")
 OPTICAL_REVIEW_SOURCE = Path("design/manager/optical-lab")
 OPTICAL_REVIEW_ROUTE = ROUTE_PATH / "optical-review"
+RECEIVING_LIGHT_RENDERER = Path("design/manager/edgeglow-receiving-light.js")
 CASE_B_FIXTURE = Path("app/src/androidTest/assets/detector_case_b_night_flash.jpg")
 EVIDENCE_GALLERY_URL = "https://pan277942135.github.io/Yujian_App/design/manager/nh01_acceptance/edgeglow-fish-static/optical-review/evidence/static-v3/"
 ENTRY = (
@@ -71,7 +72,8 @@ def main() -> None:
     case_b_photo = args.pr_root / CASE_B_FIXTURE
     review_alpha = args.pr_root / OPTICAL_REVIEW_SOURCE / "review_v1/fish_focus_review_only_alpha.png"
     bbox_record = args.pr_root / OPTICAL_REVIEW_SOURCE / "review_v1/fish_focus_case_b_bbox.json"
-    if not all(path.is_file() for path in (registry_path, source_photo, fixture_path, config_path, processing_config_path, optical_page, case_b_photo, review_alpha, bbox_record)):
+    receiving_renderer = args.pr_root / RECEIVING_LIGHT_RENDERER
+    if not all(path.is_file() for path in (registry_path, source_photo, fixture_path, config_path, processing_config_path, optical_page, receiving_renderer, case_b_photo, review_alpha, bbox_record)):
         raise SystemExit("Expected photo registry, source image, static fixture, both optical configs, Optical Review page, Case B fixture and provenance files are required.")
     registry = json.loads(registry_path.read_text(encoding="utf-8"))
     registered = registry["fixture"]
@@ -91,6 +93,9 @@ def main() -> None:
         raise SystemExit(f"Refusing to overwrite non-empty output directory: {args.output_root}")
     args.output_root.mkdir(parents=True, exist_ok=True)
     shutil.copytree(args.center_root / "design", args.output_root / "design")
+    receiving_renderer_output = args.output_root / RECEIVING_LIGHT_RENDERER
+    receiving_renderer_output.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(receiving_renderer, receiving_renderer_output)
     processing_config_output = args.output_root / PROCESSING_CONFIG
     processing_config_output.parent.mkdir(parents=True, exist_ok=True)
     shutil.copy2(processing_config_path, processing_config_output)
@@ -140,6 +145,14 @@ def main() -> None:
         build_info_script.write(helper_loader)
     optical_page = optical_output / "index.html"
     optical_html = optical_page.read_text(encoding="utf-8")
+    renderer_script = '<script src="../edgeglow-receiving-light.js"></script>'
+    if optical_html.count(renderer_script) != 1:
+        raise SystemExit("Expected one Optical Lab import for the shared Receiving Light renderer.")
+    optical_html = optical_html.replace(
+        renderer_script,
+        '<script src="../../../edgeglow-receiving-light.js?source=' + args.pr_sha + '"></script>',
+        1,
+    )
     build_script_pattern = re.compile(r'<script\s+src=["\'](?:\./)?build-info\.js(?:\?[^"\']*)?["\']\s*></script>')
     if len(build_script_pattern.findall(optical_html)) != 1:
         raise SystemExit("Expected one Optical Lab build-info script reference for cache-busting.")
@@ -154,7 +167,7 @@ def main() -> None:
     shared_config_output.parent.mkdir(parents=True, exist_ok=True)
     shutil.copy2(config_path, shared_config_output)
     build_info = {
-        "task_id": "YUJIAN_EDGEGLOW_WEB_STATIC_VISUAL_CLOSURE_V3",
+        "task_id": "YUJIAN_EDGEGLOW_STATIC_VISUAL_ONE_SHOT_V1",
         "task_scope": "WEB_STATIC_ONLY",
         "previous_project_task_id": "YUJIAN_EDGEGLOW_OPTICAL_ENHANCEMENT_ANDROID_V2",
         "status": "CLOUD_PREVIEW_COMPOSED",

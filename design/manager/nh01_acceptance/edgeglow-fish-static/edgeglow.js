@@ -8,16 +8,7 @@
   const SVG_NS = "http://www.w3.org/2000/svg";
   const EDGE_FIELD_SOURCE = "app/src/main/java/com/yujian/ai/ui/recognition/RecognitionAmbientField.kt";
   const EDGE_FIELD_RENDER_SCALE = 0.5;
-  // R13 Web review candidate: Receiving Light is shared by all optical presets,
-  // with deliberately unequal coverage so the four corners do not read as a template.
-  const EDGE_RECEIVING_COVERAGE_BY_ISLAND = Object.freeze({ B1: 1.0, G1: 0.84, G3: 0.60, B3: 0.38 });
-  const EDGE_RECEIVING_INSET = Object.freeze([0.028, 0.022]);
-  const EDGE_RECEIVING_MIN_PATH_WEIGHT = 0.54;
-  const EDGE_RECEIVING_ALPHA_PER_PASS = Object.freeze([0.78, 0.64]);
-  const EDGE_RECEIVING_WIDTH_DP = Object.freeze([48, 14]);
-  const EDGE_RECEIVING_BLUR_DP = Object.freeze([20, 4]);
-  const EDGE_RECEIVING_CORE_WIDTH_DP = 1.8;
-  const EDGE_RECEIVING_CORE_ALPHA = 0.88;
+  // Receiving Light is delegated to the shared P1-bounded SVG renderer.
   const EDGE_FIELD_PATHS = Object.freeze([
     { id: "B1", family: "blue", widthDp: 1.2, seed: 0.00, visibleRatio: 0.30, weight: 1.00, start: [0.78, -0.02], control1: [0.94, 0.06], control2: [1.02, 0.22], end: [0.96, 0.42] },
     { id: "B3", family: "blue", widthDp: 1.2, seed: 0.47, visibleRatio: 0.20, weight: 0.54, start: [1.02, 0.61], control1: [0.92, 0.75], control2: [0.84, 0.89], end: [0.66, 1.02] },
@@ -361,61 +352,38 @@
 
   function drawReceivingLight(ctx) {
     if (!params.edgeFieldEnabled || !params.receivingLightEnabled || params.edgeFieldIntensity <= 0) return;
+    const renderer = window.EdgeGlowReceivingLight;
+    if (!renderer) throw new Error("Shared EdgeGlow Receiving Light renderer is not loaded.");
     const displayWidth = el.glowCanvas.getBoundingClientRect().width || photo.naturalWidth;
-    const photoPxPerDp = photo.naturalWidth / displayWidth;
-    const intensity = params.edgeFieldIntensity / 100;
-    ctx.save();
-    // Frozen 02/03 keep blue/gold light on the photo perimeter and warm gold on
-    // the fish. These broad receiving bands follow the four disconnected edge
-    // paths; the padded offscreen layer preserves their blur past photo bounds.
-    // Source-over keeps the blue/gold hues visible on bright sky pixels.
-    ctx.globalCompositeOperation = "source-over";
-    ctx.lineCap = "round";
-    ctx.lineJoin = "round";
-    // The source paths intentionally overscan the photo boundary. Move the broad glow inward
-    // by a small proportional inset; primary/micro paths keep their exact source coordinates.
-    const [insetXRatio, insetYRatio] = EDGE_RECEIVING_INSET;
-    ctx.translate(photo.naturalWidth * insetXRatio, photo.naturalHeight * insetYRatio);
-    ctx.scale(1 - 2 * insetXRatio, 1 - 2 * insetYRatio);
-    for (const geometry of edgeFieldGeometry) {
-      const color = geometry.family === "blue" ? params.edgeFieldBlueColor : params.edgeFieldGoldColor;
-      const hotColor = geometry.family === "blue" ? "#e7fbff" : "#fff1c8";
-      const common = intensity * Math.max(EDGE_RECEIVING_MIN_PATH_WEIGHT, geometry.weight);
-      const coverage = EDGE_RECEIVING_COVERAGE_BY_ISLAND[geometry.id] ?? geometry.visibleRatio;
-      const receivingParts = coverage >= 1
-        ? [[0, geometry.length]]
-        : edgeFieldPartsAt(geometry, geometry.seed, coverage);
-      for (const [from, to] of receivingParts) {
-        const points = edgeFieldSegment(ctx, geometry, from, to, Math.max(2, photoPxPerDp));
-        const first = points[0], last = points[points.length - 1];
-        const receivingGradient = peakAlpha => {
-          const gradient = ctx.createLinearGradient(first[0], first[1], last[0], last[1]);
-          gradient.addColorStop(0, rgba(color, peakAlpha * 0.52 * common));
-          gradient.addColorStop(0.38, rgba(color, peakAlpha * 0.88 * common));
-          gradient.addColorStop(0.82, rgba(hotColor, peakAlpha * 0.82 * common));
-          gradient.addColorStop(1, rgba(hotColor, peakAlpha * 0.68 * common));
-          return gradient;
-        };
-        // R12 draws a narrow luminous ridge over the four inset blue/gold Receiving Light corner arcs.
-        // Its color roles follow Frozen 02/03; fine island paths keep their Quiet Gaps.
-        // Values are Web review candidates, not Android tokens or Frozen PASS.
-        ctx.filter = `blur(${EDGE_RECEIVING_BLUR_DP[0] * photoPxPerDp * EDGE_FIELD_RENDER_SCALE}px)`;
-        ctx.strokeStyle = receivingGradient(EDGE_RECEIVING_ALPHA_PER_PASS[0]);
-        ctx.lineWidth = EDGE_RECEIVING_WIDTH_DP[0] * photoPxPerDp;
-        ctx.stroke();
-        ctx.filter = `blur(${EDGE_RECEIVING_BLUR_DP[1] * photoPxPerDp * EDGE_FIELD_RENDER_SCALE}px)`;
-        ctx.strokeStyle = receivingGradient(EDGE_RECEIVING_ALPHA_PER_PASS[1]);
-        ctx.lineWidth = EDGE_RECEIVING_WIDTH_DP[1] * photoPxPerDp;
-        ctx.stroke();
-        // R12 adds a crisp colored crest to each perimeter arc after its two soft-bloom passes.
-        // The four corner arcs become readable at preview scale without changing the fish's gold layer.
-        ctx.filter = "none";
-        ctx.strokeStyle = receivingGradient(EDGE_RECEIVING_CORE_ALPHA);
-        ctx.lineWidth = EDGE_RECEIVING_CORE_WIDTH_DP * photoPxPerDp;
-        ctx.stroke();
-      }
-    }
-    ctx.restore();
+    const paths = edgeFieldGeometry.map(geometry => ({
+      id: geometry.id,
+      family: geometry.family,
+      weight: geometry.weight,
+      seed: geometry.seed,
+      visibleRatio: geometry.visibleRatio,
+      start: geometry.start,
+      control1: geometry.control1,
+      control2: geometry.control2,
+      end: geometry.end
+    }));
+    renderer.paint(ctx, {
+      width: photo.naturalWidth,
+      height: photo.naturalHeight,
+      photoContentRect: { left: 0, top: 0, right: photo.naturalWidth, bottom: photo.naturalHeight },
+      paths,
+      colors: {
+        blue: params.edgeFieldBlueColor,
+        blueHot: "#e7fbff",
+        gold: params.edgeFieldGoldColor,
+        goldHot: "#fff1c8"
+      },
+      baseAlpha: renderer.p1AlphaRange[1],
+      depthRatio: 0.14,
+      globalMultiplier: params.edgeFieldIntensity / 100,
+      dpToCanvasPx: photo.naturalWidth / displayWidth,
+      enabled: true,
+      onReady: () => scheduleRender("glow")
+    });
   }
 
   function edgeFieldPartsAt(geometry, seed = geometry.seed, visibleRatio = geometry.visibleRatio) {
@@ -926,9 +894,9 @@
       contour: { source: fixture.contour.source, production_mask: false, coordinate_space: fixture.contour.coordinate_space, approximate_bbox_px: fixture.contour.approximate_bbox_px, path_d: fixture.contour.path_d },
       optical_config: { schema_version: OPTICAL_CONFIG_VERSION, source: "design/system/recognition_optical_v2/RecognitionOpticalConfigV2.json", preset: params.preset, shared_mapping: opticalConfig.android_mapping, bright_background_compensation: opticalConfig.bright_background_compensation, blend_mode_trials: opticalConfig.blend_mode_trials, selected_optical_core_blend: params.opticalCoreBlend, selected_preset_contract: opticalConfig.presets[params.preset] || null },
       upstream: { repository: "yu-day/EdgeGlowView", commit: "46ce28221ed30bcd7763ff13ecdd96171756eb60", license: "MIT", copyright: "Copyright (c) 2025 WANG YU" },
-      edge_field: { geometry_source: EDGE_FIELD_SOURCE, paths: [...EDGE_FIELD_PATHS, ...EDGE_FIELD_SECONDARY_PATHS, ...EDGE_FIELD_COMPANION_PATHS, ...EDGE_FIELD_MICRO_PATHS], primary_path_ids: EDGE_FIELD_PATHS.map(path => path.id), secondary_path_ids: EDGE_FIELD_SECONDARY_PATHS.map(path => path.id), companion_path_ids: EDGE_FIELD_COMPANION_PATHS.map(path => path.id), micro_path_ids: EDGE_FIELD_MICRO_PATHS.map(path => path.id), static_seed_offsets: true, secondary_seed_authority: "Android runtime values .07/.11/.09; not Frozen; see RP-A03", companion_geometry_authority: "RecognitionAmbientField.kt frozen companion/micro geometry", animation: false, receiving_light: "shared four-corner blue/gold base field with asymmetric B1/G1/G3/B3 coverage; two broad blooms plus a crisp path-following ridge; no circles or closed frame", receiving_alpha_per_pass: EDGE_RECEIVING_ALPHA_PER_PASS, receiving_core_width_dp: EDGE_RECEIVING_CORE_WIDTH_DP, receiving_core_alpha: EDGE_RECEIVING_CORE_ALPHA, receiving_path_coverage_by_island: EDGE_RECEIVING_COVERAGE_BY_ISLAND, receiving_inset_fraction: EDGE_RECEIVING_INSET, receiving_min_path_weight: EDGE_RECEIVING_MIN_PATH_WEIGHT, receiving_width_dp: EDGE_RECEIVING_WIDTH_DP, receiving_blur_dp: EDGE_RECEIVING_BLUR_DP, corner_color_roles: { top_left: "gold", top_right: "blue", bottom_left: "gold", bottom_right: "blue" }, receiving_alpha_authority: "R13 Web visibility candidate shared by Current, Enhanced and Frozen Match; above Android runtime 0.13 and Frozen Rendering Contract cap 0.07; open RP-A01", edge_effect_compositor: "half-resolution padded transparent offscreen layer; upsample and crop back to original photo pixels; preserves Frozen-reference perimeter blur at photo bounds", edge_effect_render_scale: EDGE_FIELD_RENDER_SCALE, edge_effect_padding_px: edgeFieldInset, perimeter_blend_mode: "source-over R02 hue-preserving photo-edge candidate; fish contour remains separately warm gold", web_palette: { blue: "#5ab2fc", gold: "#e0b644", authority: "sampled from Frozen 02 photo-edge raster; web visual candidate" }, android_reference_palette: { blue: "#8bc9e8", blue_hot: "#b2e5f5", gold: "#efc14c", gold_hot: "#f7d05b" } },
+      edge_field: { geometry_source: EDGE_FIELD_SOURCE, paths: [...EDGE_FIELD_PATHS, ...EDGE_FIELD_SECONDARY_PATHS, ...EDGE_FIELD_COMPANION_PATHS, ...EDGE_FIELD_MICRO_PATHS], primary_path_ids: EDGE_FIELD_PATHS.map(path => path.id), secondary_path_ids: EDGE_FIELD_SECONDARY_PATHS.map(path => path.id), companion_path_ids: EDGE_FIELD_COMPANION_PATHS.map(path => path.id), micro_path_ids: EDGE_FIELD_MICRO_PATHS.map(path => path.id), static_seed_offsets: true, secondary_seed_authority: "Android runtime values .07/.11/.09; not Frozen; see RP-A03", companion_geometry_authority: "RecognitionAmbientField.kt frozen companion/micro geometry", animation: false, receiving_light: "shared SVG path-field renderer; path masks, feGaussianBlur outer/mid, core ridge, photoContentRect clip, P1 Quiet Gap mask, source-over", receiving_light_renderer: window.EdgeGlowReceivingLight.version, receiving_base_alpha_range: window.EdgeGlowReceivingLight.p1AlphaRange, receiving_final_alpha_cap: window.EdgeGlowReceivingLight.outputAlphaCap, receiving_depth_range: window.EdgeGlowReceivingLight.p1DepthRange, receiving_layer_profile: window.EdgeGlowReceivingLight.layers, receiving_path_coverage_by_island: window.EdgeGlowReceivingLight.coverageByPath, receiving_inset_fraction: window.EdgeGlowReceivingLight.inset, receiving_min_path_weight: window.EdgeGlowReceivingLight.minPathWeight, corner_color_roles: { top_left: "gold", top_right: "blue", bottom_left: "gold", bottom_right: "blue" }, receiving_alpha_authority: "P1 base alpha range 0.03–0.07; shared renderer caps the final 8-bit transparent layer at floor(0.07*255)/255; Web review only, not Android runtime proof", edge_effect_compositor: "half-resolution padded transparent offscreen layer; upsample and crop back to original photo pixels; preserves Frozen-reference perimeter blur at photo bounds", edge_effect_render_scale: EDGE_FIELD_RENDER_SCALE, edge_effect_padding_px: edgeFieldInset, perimeter_blend_mode: "source-over R02 hue-preserving photo-edge candidate; fish contour remains separately warm gold", web_palette: { blue: "#5ab2fc", gold: "#e0b644", authority: "sampled from Frozen 02 photo-edge raster; web visual candidate" }, android_reference_palette: { blue: "#8bc9e8", blue_hot: "#b2e5f5", gold: "#efc14c", gold_hot: "#f7d05b" } },
       fish_highlight: { source: fixture.contour.source, composite_mode: "source-over hue-preserving warm-gold composition", palette: { outline: params.fishGoldColor, core: params.fishCoreColor }, blue_perimeter_excluded: true, layer_order: ["outer_bloom", "core_highlight", "static_comet"] },
-      renderer: "Canvas 2D web adaptation; static SVG Path arc sampling; not Android runtime",
+      renderer: "Canvas photo compositor + shared SVG Receiving Light renderer; not Android runtime",
       parameters: { ...params },
       island_luminance_samples: islandLuminance,
       build: buildInfo

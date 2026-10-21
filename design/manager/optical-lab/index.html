@@ -201,6 +201,7 @@ header{display:flex;justify-content:space-between;gap:20px;align-items:flex-star
 </div>
 <div class="footer-note"><b>研究原型：</b>浏览器结果用于静态 Renderer 相对比较，不代表 Frozen 高保真或 Android Runtime PASS。整体 M1 保持 NOT_PASS。</div>
 </div>
+<script src="../edgeglow-receiving-light.js"></script>
 <script src="./build-info.js"></script>
 <script>
 (function(){
@@ -212,53 +213,39 @@ const elements = {
   mode:"side", stateIndex:0, config:null, manifest:null, photo:null, photoUrl:null, mask:null, maskUrl:null, maskBoundaryCache:null,
   frozenByState:new Map(), params:{}, layers:{}, renderer:"hardware-gradient", quality:"FULL", dLevel:"D0",
   width:390,height:844, reduceMotion:false, maskDiagnostic:false, cache:null, assetAudit:[], assetErrors:[], buildInfo:null, uiBuilt:false,
-  previewMode:"static",staticCandidate:"B",dynamicCandidate:"B",fieldLayerView:"composite",focusMode:"BLOCKED",stateStartedAt:0,
+  previewMode:"static",staticCandidate:"SINGLE",dynamicCandidate:"B",fieldLayerView:"composite",focusMode:"BLOCKED",stateStartedAt:0,
   reviewCaseB:null,basePhoto:null,basePhotoUrl:null,playing:false,previewTime:0,motionSpeed:1,rafId:null,lastFrameTime:null,
   reviewLayers:{field:true,paths:true,filaments:true,fish:true}
 };
 const STATIC_REVIEW_CANDIDATES={
-  A:{name:"Soft Field",field:0.50,paths:0.65,filaments:0.25,depthRatio:0.12,description:"REVIEW_CANDIDATE_A · 柔光先可感知，主路径保持轻量。"},
-  B:{name:"Balanced Field",field:0.82,paths:0.85,filaments:0.45,depthRatio:0.15,description:"REVIEW_CANDIDATE_B · P1 范围内的接收光场与路径层次，作为首选评审方向。"},
-  C:{name:"Strong Atmosphere",field:1.0,paths:1.0,filaments:0.65,depthRatio:0.18,description:"REVIEW_CANDIDATE_C · P1 alpha 与深度上限的静态评审候选。"}
+  SINGLE:{name:"Unified Path Field",field:1.0,paths:0.85,filaments:0.45,depthRatio:0.14,description:"REVIEW_CANDIDATE_SINGLE · 统一路径光场；使用正式 EdgeGlow 共用 SVG Receiving Light。"}
 };
-const STATIC_RECEIVING_REVIEW_R01=Object.freeze({
-  revision:"R01",
-  geometryAuthority:"REVIEW_ONLY_CALIBRATION_OF_EXISTING_P1_ISLANDS",
-  layout:Object.freeze([
-    Object.freeze({id:"B_UR",center:Object.freeze([0.90,0.20]),tangentRadiusMinDimension:0.34,angleRad:1.275}),
-    Object.freeze({id:"G_UL",center:Object.freeze([0.12,0.10]),tangentRadiusMinDimension:0.29,angleRad:-0.76}),
-    Object.freeze({id:"G_LL",center:Object.freeze([0.18,0.84]),tangentRadiusMinDimension:0.27,angleRad:0.77}),
-    Object.freeze({id:"B_LR",center:Object.freeze([0.91,0.82]),tangentRadiusMinDimension:0.26,angleRad:2.15})
-  ]),
-  // Only the non-frozen radial falloff changes. Peak alpha and P1 color tokens stay unchanged.
-  alphaStops:Object.freeze([
-    Object.freeze([0,1]),Object.freeze([0.48,0.94]),Object.freeze([0.84,0.46]),Object.freeze([1,0])
-  ])
-});
-const STATIC_RECEIVING_OPTICS={
-  ovalGain:1.0,
-  opacityCap:.14,
+const STATIC_RECEIVING_REVIEW=Object.freeze({
+  revision:"PATH_FIELD_V1",
+  candidate:"REVIEW_CANDIDATE_SINGLE",
+  renderer:"edgeglow-receiving-light-svg-v1",
+  geometryAuthority:"P1_B1_G1_G3_B3_SHARED_EDGEGLOW_PATHS",
+  baseAlpha:0.07,
+  depthRatio:0.14,
   composite:"source-over"
-};
+});
 window.OPTICAL_LAB_STATIC_RECEIVING_PARAMETERS__=Object.freeze({
-  revision:STATIC_RECEIVING_REVIEW_R01.revision,
-  geometryAuthority:STATIC_RECEIVING_REVIEW_R01.geometryAuthority,
-  ovalGain:STATIC_RECEIVING_OPTICS.ovalGain,
-  opacityCap:STATIC_RECEIVING_OPTICS.opacityCap,
-  composite:STATIC_RECEIVING_OPTICS.composite,
-  alphaStops:STATIC_RECEIVING_REVIEW_R01.alphaStops,
-  layout:STATIC_RECEIVING_REVIEW_R01.layout
+  ...STATIC_RECEIVING_REVIEW,
+  alphaRange:window.EdgeGlowReceivingLight?.p1AlphaRange||[0.03,0.07],
+  finalAlphaCap:window.EdgeGlowReceivingLight?.outputAlphaCap,
+  coverageByPath:window.EdgeGlowReceivingLight?.coverageByPath,
+  quietGaps:window.EdgeGlowReceivingLight?.quietGaps
 });
 const STATIC_PATH_REVIEW_PROFILES={
   A:{B1:{alpha:1.10,length:1},G1:{alpha:.72,length:.76},G3:{alpha:.26,length:.44},B3:{alpha:.04,length:.24},B2:{alpha:.12,length:.45},G2:{alpha:.08,length:.34},B4:{alpha:.03,length:.20}},
   B:{B1:{alpha:1.35,length:1},G1:{alpha:.95,length:.86},G3:{alpha:.38,length:.54},B3:{alpha:.14,length:.34},B2:{alpha:.26,length:.50},G2:{alpha:.16,length:.40},B4:{alpha:.07,length:.24}},
   C:{B1:{alpha:1.65,length:1},G1:{alpha:1.24,length:.98},G3:{alpha:.58,length:.72},B3:{alpha:.26,length:.48},B2:{alpha:.38,length:.64},G2:{alpha:.28,length:.52},B4:{alpha:.16,length:.40}}
 };
-window.OPTICAL_LAB_STATIC_CANDIDATES__=Object.freeze(Object.fromEntries(Object.entries(STATIC_REVIEW_CANDIDATES).map(([key,candidate])=>[key,Object.freeze({
-  id:"REVIEW_CANDIDATE_"+key,name:candidate.name,receiving_field_scale:candidate.field,
-  primary_path_scale:candidate.paths,secondary_filament_scale:candidate.filaments,
-  receiving_depth_ratio:candidate.depthRatio
-})])));
+window.OPTICAL_LAB_STATIC_CANDIDATES__=Object.freeze({SINGLE:Object.freeze({
+  id:"REVIEW_CANDIDATE_SINGLE",name:STATIC_REVIEW_CANDIDATES.SINGLE.name,receiving_field_scale:1,
+  primary_path_scale:STATIC_REVIEW_CANDIDATES.SINGLE.paths,secondary_filament_scale:STATIC_REVIEW_CANDIDATES.SINGLE.filaments,
+  receiving_depth_ratio:STATIC_RECEIVING_REVIEW.depthRatio
+})});
 const DYNAMIC_REVIEW_ENABLED=true;
 window.OPTICAL_DYNAMIC_REVIEW_ENABLED=DYNAMIC_REVIEW_ENABLED;
 const DYNAMIC_REVIEW_CANDIDATES={
@@ -297,7 +284,7 @@ function mountReviewLayout(){
   advancedBody.className="advanced-body";advanced.appendChild(advancedBody);
   const status=document.createElement("div");status.className="review-status-bar";status.innerHTML="<div class=\"review-status-left\"><span id=\"overallStatus\" class=\"review-status-chip\" data-status=\"LOADING\">LOADING</span><span id=\"buildRevision\">PR #166 Draft · build SHA pending</span><span id=\"stateLabel\" class=\"tiny\">—</span></div><button id=\"retryAssets\" type=\"button\">重新加载资源</button>";
   const toolbar=document.createElement("div");toolbar.id="reviewToolbar";toolbar.className="review-toolbar";toolbar.append(stateSection,rendererSection);
-  const reviewControls=document.createElement("section");reviewControls.id="previewControls";reviewControls.className="preview-controls";reviewControls.innerHTML='<div class="preview-controls-head"><div><div class="preview-controls-title">OPTICAL FIELD REVIEW · STATIC + DYNAMIC</div><div class="preview-controls-note">静态 A/B/C 使用同一 P1 PhotoViewport 与七路径；Receiving Light 仅绘制四个局部径向椭圆。精确位置与 alpha stops 来自 NOT_FROZEN Android runtime snapshot；分岛强度使用匹配的 P1 path island_weight；候选 alpha scale ≤1，深度 0.08–0.18，source-over。静态 PNG 仍需人工评审，不代表 Android。</div></div><span class="pill">REVIEW ONLY · NOT ANDROID</span></div><div class="preview-control-grid"><label class="preview-control"><span>Preview</span><div id="previewModeButtons" class="preview-buttons"><button type="button" data-preview-mode="static" class="active">静态</button><button type="button" data-preview-mode="dynamic">动态</button></div></label><label id="staticCandidateControl" class="preview-control"><span>静态光场候选</span><select id="staticCandidate"><option value="A">REVIEW_CANDIDATE_A · Soft Field</option><option value="B" selected>REVIEW_CANDIDATE_B · Balanced Field · 推荐评审</option><option value="C">REVIEW_CANDIDATE_C · Strong Atmosphere</option></select></label><label id="dynamicCandidateControl" class="preview-control"><span>动态节奏候选</span><select id="dynamicCandidate"><option value="A">DYNAMIC_CANDIDATE_A · Calm</option><option value="B" selected>DYNAMIC_CANDIDATE_B · Balanced · 推荐评审</option><option value="C">DYNAMIC_CANDIDATE_C · Atmospheric</option></select></label><label class="preview-control"><span>动态控制</span><div class="preview-buttons"><button id="playPause" type="button" aria-pressed="false">▶ 播放</button><select id="motionSpeed" aria-label="动态倍速"><option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="1.5">1.5×</option></select><button id="recordSequence" type="button">录制三态 WebM</button></div></label></div><div class="preview-control-grid"><label class="preview-control"><span>Fish Focus 来源模式</span><select id="focusSource"><option value="blocked" selected>BLOCKED · 默认无可信 BBox / Mask</option><option value="production" disabled>PRODUCTION · 当前未提供生产 Mask</option><option value="review">REVIEW_PROXY_NOT_PRODUCTION · Case B 手工 alpha</option></select></label><label class="preview-control"><span>光场分解</span><select id="fieldLayerView"><option value="composite" selected>最终合成</option><option value="receiving">Receiving Light only · P1</option><option value="primary">主路径图层</option><option value="filaments">次级碎片图层</option><option value="hairline">Hairline echoes only</option></select></label><div class="preview-control"><span>图层开关</span><div class="preview-toggles"><label><input type="checkbox" id="fieldToggle" checked>底场</label><label><input type="checkbox" id="pathToggle" checked>主路径</label><label><input type="checkbox" id="filamentToggle" checked>次级光丝</label><label><input type="checkbox" id="fishToggle" checked>鱼体高亮</label></div></div><label class="preview-control"><span>静态 PNG / 参数证据</span><div><span id="focusProvenance" class="focus-provenance">Production: BLOCKED · Review-only: 可切换 · 无 BBox 时不绘制</span><div id="recordStatus" class="record-status">A/B/C、P1 图层拆分、几何诊断和照片来源记录。</div></div></label></div><div class="preview-meta-row"><span class="tiny" id="candidateDescription">候选参数只作用于 Web Review 层，静态候选 B 为默认显示。</span><span class="tiny" id="previewSourceMeta">build/source SHA 加载中 · P5 test fixture</span></div>';
+  const reviewControls=document.createElement("section");reviewControls.id="previewControls";reviewControls.className="preview-controls";reviewControls.innerHTML='<div class="preview-controls-head"><div><div class="preview-controls-title">OPTICAL FIELD REVIEW · STATIC + DYNAMIC</div><div class="preview-controls-note">静态只保留一个 REVIEW_CANDIDATE_SINGLE：Optical Lab 与正式 EdgeGlow 共用同一 SVG 路径光场渲染器，使用 P1 B1/G1/G3/B3、唯一 photoContentRect、8%–18% 边缘深度、0.03–0.07 基础 Alpha、Quiet Gap 遮罩与 source-over。静态结果供网页评审，不代表 Android。</div></div><span class="pill">REVIEW ONLY · NOT ANDROID</span></div><div class="preview-control-grid"><label class="preview-control"><span>Preview</span><div id="previewModeButtons" class="preview-buttons"><button type="button" data-preview-mode="static" class="active">静态</button><button type="button" data-preview-mode="dynamic">动态</button></div></label><label id="staticCandidateControl" class="preview-control"><span>静态光场实现</span><select id="staticCandidate"><option value="SINGLE" selected>REVIEW_CANDIDATE_SINGLE · Unified Path Field</option></select></label><label id="dynamicCandidateControl" class="preview-control"><span>动态节奏候选</span><select id="dynamicCandidate"><option value="A">DYNAMIC_CANDIDATE_A · Calm</option><option value="B" selected>DYNAMIC_CANDIDATE_B · Balanced · 推荐评审</option><option value="C">DYNAMIC_CANDIDATE_C · Atmospheric</option></select></label><label class="preview-control"><span>动态控制</span><div class="preview-buttons"><button id="playPause" type="button" aria-pressed="false">▶ 播放</button><select id="motionSpeed" aria-label="动态倍速"><option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="1.5">1.5×</option></select><button id="recordSequence" type="button">录制三态 WebM</button></div></label></div><div class="preview-control-grid"><label class="preview-control"><span>Fish Focus 来源模式</span><select id="focusSource"><option value="blocked" selected>BLOCKED · 默认无可信 BBox / Mask</option><option value="production" disabled>PRODUCTION · 当前未提供生产 Mask</option><option value="review">REVIEW_PROXY_NOT_PRODUCTION · Case B 手工 alpha</option></select></label><label class="preview-control"><span>光场分解</span><select id="fieldLayerView"><option value="composite" selected>最终合成</option><option value="receiving">Receiving Light only · P1</option><option value="primary">主路径图层</option><option value="filaments">次级碎片图层</option><option value="hairline">Hairline echoes only</option></select></label><div class="preview-control"><span>图层开关</span><div class="preview-toggles"><label><input type="checkbox" id="fieldToggle" checked>底场</label><label><input type="checkbox" id="pathToggle" checked>主路径</label><label><input type="checkbox" id="filamentToggle" checked>次级光丝</label><label><input type="checkbox" id="fishToggle" checked>鱼体高亮</label></div></div><label class="preview-control"><span>静态 PNG / 参数证据</span><div><span id="focusProvenance" class="focus-provenance">Production: BLOCKED · Review-only: 可切换 · 无 BBox 时不绘制</span><div id="recordStatus" class="record-status">统一静态光场、P1 图层拆分、坐标与来源记录。</div></div></label></div><div class="preview-meta-row"><span class="tiny" id="candidateDescription">候选参数只作用于 Web Review 层，单一静态路径光场候选。</span><span class="tiny" id="previewSourceMeta">build/source SHA 加载中 · P5 test fixture</span></div>';
   const focusEvidence=document.createElement("div");focusEvidence.id="focusEvidenceLinks";focusEvidence.className="tiny";focusEvidence.innerHTML='<a href="./review_v1/fish_focus_case_b_bbox.json" target="_blank" rel="noreferrer">Case B BBox JSON</a> · <a href="./review_v1/fish_focus_review_only_alpha.png" target="_blank" rel="noreferrer">Review-only alpha PNG</a> · <a href="https://github.com/pan277942135/Yujian_App/blob/design/recognition-processing-handoff-p0/app/src/androidTest/java/com/yujian/ai/DetectorOrientationRetryRuntimeTest.kt" target="_blank" rel="noreferrer">Android test source</a>';
   reviewControls.insertBefore(focusEvidence,reviewControls.querySelector(".preview-meta-row"));
   header.querySelector(".eyebrow").textContent="RECOGNITION PROCESSING";
@@ -712,7 +699,7 @@ function updateRendererNote(){
 }
 function resetDefaults(){
   elements.params=initialParams();elements.renderer="hardware-gradient";elements.quality="FULL";elements.dLevel="D0";
-  elements.previewMode="static";elements.staticCandidate="B";elements.dynamicCandidate="B";elements.fieldLayerView="composite";elements.previewTime=0;elements.motionSpeed=1;setPlaying(false);$("focusSource").value="blocked";setFocusMode("blocked");syncReviewControls();
+  elements.previewMode="static";elements.staticCandidate="SINGLE";elements.dynamicCandidate="B";elements.fieldLayerView="composite";elements.previewTime=0;elements.motionSpeed=1;setPlaying(false);$("focusSource").value="blocked";setFocusMode("blocked");syncReviewControls();
   elements.layers={photo:true,status:true,receiving:true,outer:true,mid:true,core:true,hairlines:true,fishHalo:true,fishContour:true};
   elements.reviewLayers={field:true,paths:true,filaments:true,fish:true};
   $("bboxAttested").disabled=true;["bboxX1","bboxY1","bboxX2","bboxY2"].forEach(id=>$(id).disabled=true);
@@ -857,61 +844,27 @@ function drawReviewReceivingField(ctx,rect,colors,quality){
   });
   ctx.restore();
 }
-function staticReceivingFieldGeometry(rect,depthRatio){
-  const width=rect.right-rect.left,height=rect.bottom-rect.top,minDim=Math.min(width,height);
-  return STATIC_RECEIVING_REVIEW_R01.layout.map(item=>({
-    id:item.id,
-    family:item.id.startsWith("G_")?"gold":"blue",
-    center_normalized:[item.center[0],item.center[1]],
-    center_px:{x:rect.left+item.center[0]*width,y:rect.top+item.center[1]*height},
-    major_radius_px:minDim*item.tangentRadiusMinDimension,
-    minor_radius_px:minDim*depthRatio,
-    angle_rad:item.angleRad,
-    tangent_radius_min_dimension:item.tangentRadiusMinDimension,
-    depth_ratio:depthRatio
-  }));
-}
 function drawStaticReceivingField(ctx,rect,quality,colors){
-  const receiving=getStack("local_receiving_light"),contractRange=receiving.contract_alpha_before_multipliers;
-  const candidate=STATIC_REVIEW_CANDIDATES[elements.staticCandidate]||STATIC_REVIEW_CANDIDATES.B;
-  const stateScale=receivingStateScale(),minDim=Math.min(rect.right-rect.left,rect.bottom-rect.top);
-  const depthRange=receiving.contract_edge_depth_ratio||[.08,.18];
-  const depthRatio=Math.max(depthRange[0],Math.min(depthRange[1],candidate.depthRatio));
-  const stops=STATIC_RECEIVING_REVIEW_R01.alphaStops;
-  const byIsland=new Map(elements.config.p1_edge_field.paths.map(record=>[record.island,record]));
-  const fields=staticReceivingFieldGeometry(rect,depthRatio);
-  ctx.save();
-  ctx.globalCompositeOperation=STATIC_RECEIVING_OPTICS.composite;
-  fields.forEach(field=>{
-    const record=byIsland.get(field.id),weight=record?.island_weight||1;
-    const family=record?.family||field.family,color=family==="gold"?colors.gold:colors.blue;
-    const alpha=Math.min(STATIC_RECEIVING_OPTICS.opacityCap,
-      contractRange[1]*candidate.field*weight*stateScale*elements.params.alpha*
-      (elements.params.layerStrength.receiving||0)*(quality.receiving||1)*(quality.alpha||1)*
-      STATIC_RECEIVING_OPTICS.ovalGain);
-    const ratio=field.minor_radius_px/field.major_radius_px;
-    ctx.save();
-    ctx.translate(field.center_px.x,field.center_px.y);
-    ctx.rotate(field.angle_rad);
-    // The short axis stays within the P1 8–18% edge-depth range. The long axis
-    // follows the existing primary island; no path geometry is added.
-    ctx.scale(1,ratio);
-    const gradient=ctx.createRadialGradient(0,0,0,0,0,field.major_radius_px);
-    stops.forEach(([offset,multiplier])=>gradient.addColorStop(offset,safeAlphaColor(color,alpha*multiplier)));
-    ctx.fillStyle=gradient;
-    ctx.beginPath();
-    ctx.arc(0,0,field.major_radius_px,0,Math.PI*2);
-    ctx.closePath();
-    ctx.fill();
-    ctx.restore();
+  const renderer=window.EdgeGlowReceivingLight;
+  if(!renderer)throw new Error("Shared EdgeGlow Receiving Light renderer is not loaded.");
+  const receiving=getStack("local_receiving_light");
+  const primaryPaths=elements.config.p1_edge_field.paths.filter(record=>record.role==="primary");
+  const canvasWidth=ctx.canvas.width,canvasHeight=ctx.canvas.height;
+  const displayWidth=elements.preview.getBoundingClientRect().width||canvasWidth;
+  const globalMultiplier=receivingStateScale()*elements.params.alpha*
+    (elements.params.layerStrength.receiving||0)*(quality.receiving||1)*(quality.alpha||1);
+  renderer.paint(ctx,{
+    width:canvasWidth,height:canvasHeight,photoContentRect:rect,paths:primaryPaths,
+    colors:renderer.defaultColors,baseAlpha:STATIC_RECEIVING_REVIEW.baseAlpha,
+    depthRatio:STATIC_RECEIVING_REVIEW.depthRatio,globalMultiplier,
+    dpToCanvasPx:canvasWidth/displayWidth,enabled:elements.reviewLayers.field,
+    onReady:()=>{elements.cache=null;render();}
   });
-  ctx.restore();
 }function drawReceiving(ctx,rect,mode,quality,colors){
   if(!elements.layers.receiving||!elements.reviewLayers.field)return;
   if(elements.previewMode==="static"){
-    // Static Receiving Light reuses P1's four registered oval fields and alpha
-    // stops. The existing photoContentRect clip keeps every island in photo space;
-    // seven frozen paths remain a separate layer above the field.
+    // Static Optical Lab and the formal EdgeGlow page call the same SVG renderer.
+    // The B1/G1/G3/B3 path data and FIT photoContentRect remain the only geometry.
     drawStaticReceivingField(ctx,rect,quality,colors);return;
   }
   const receiving=getStack("local_receiving_light"),contractRange=receiving.contract_alpha_before_multipliers;
@@ -1196,21 +1149,7 @@ window.OPTICAL_LAB_STATIC_GEOMETRY_DIAGNOSTIC=function(){
   ctx.save();ctx.strokeStyle="rgba(255,255,255,.9)";ctx.lineWidth=1.5;ctx.strokeRect(r.left+.5,r.top+.5,r.right-r.left-1,r.bottom-r.top-1);
   ctx.font="12px system-ui";ctx.fillStyle="#ffffff";ctx.fillText("photoContentRect · FIT",r.left+7,r.top+17);
   for(let i=1;i<10;i++){const x=r.left+(r.right-r.left)*i/10,y=r.top+(r.bottom-r.top)*i/10;ctx.strokeStyle="rgba(235,245,248,.22)";ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(x,r.top);ctx.lineTo(x,r.bottom);ctx.moveTo(r.left,y);ctx.lineTo(r.right,y);ctx.stroke();ctx.fillStyle="rgba(255,255,255,.75)";ctx.fillText(String(i*10)+"%",x+2,r.top+31);}
-  const receivingFields=staticReceivingFieldGeometry(r,STATIC_REVIEW_CANDIDATES.B.depthRatio);
-  ctx.save();
-  receivingFields.forEach(field=>{
-    const color=field.family==="gold"?"#f2c86f":"#65c4f6";
-    ctx.save();ctx.translate(field.center_px.x,field.center_px.y);ctx.rotate(field.angle_rad);
-    ctx.strokeStyle=color;ctx.lineWidth=1.5;ctx.setLineDash([5,3]);
-    ctx.beginPath();ctx.ellipse(0,0,field.major_radius_px,field.minor_radius_px,0,0,Math.PI*2);ctx.stroke();
-    ctx.setLineDash([]);ctx.lineWidth=1;
-    ctx.beginPath();ctx.moveTo(-field.major_radius_px,0);ctx.lineTo(field.major_radius_px,0);
-    ctx.moveTo(0,-field.minor_radius_px);ctx.lineTo(0,field.minor_radius_px);ctx.stroke();
-    ctx.beginPath();ctx.arc(0,0,3,0,Math.PI*2);ctx.fillStyle=color;ctx.fill();
-    ctx.font="bold 10px system-ui";ctx.fillText(field.id,6,-6);
-    ctx.restore();
-  });
-  ctx.restore();
+  const receivingFields={renderer:STATIC_RECEIVING_REVIEW.renderer,path_ids:["B1","G1","G3","B3"],depth_ratio:STATIC_RECEIVING_REVIEW.depthRatio,base_alpha:STATIC_RECEIVING_REVIEW.baseAlpha};
   const paths=elements.config.p1_edge_field.paths,quiet=elements.config.p1_edge_field.topology.quiet_gaps;
   paths.forEach(path=>{const color=path.family==="blue"?"#65c4f6":"#f2c86f",p0=mapPoint(path.start,r),p1=mapPoint(path.control1,r),p2=mapPoint(path.control2,r),p3=mapPoint(path.end,r);ctx.strokeStyle=color;ctx.fillStyle=color;ctx.lineWidth=2;ctx.setLineDash([5,4]);ctx.beginPath();ctx.moveTo(p0.x,p0.y);ctx.lineTo(p1.x,p1.y);ctx.moveTo(p2.x,p2.y);ctx.lineTo(p3.x,p3.y);ctx.stroke();ctx.setLineDash([]);ctx.lineWidth=2.5;ctx.beginPath();ctx.moveTo(p0.x,p0.y);ctx.bezierCurveTo(p1.x,p1.y,p2.x,p2.y,p3.x,p3.y);ctx.stroke();[p0,p1,p2,p3].forEach((point,index)=>{ctx.beginPath();ctx.arc(point.x,point.y,index===0||index===3?3.2:2.4,0,Math.PI*2);ctx.fill();});const label=path.id;ctx.font="bold 12px system-ui";ctx.fillText(label,p0.x+4,p0.y-4);});
   const gapColor="rgba(237,246,248,.8)";ctx.setLineDash([3,4]);ctx.lineWidth=2;ctx.strokeStyle=gapColor;ctx.fillStyle=gapColor;const drawGap=(label,range,a,b)=>{ctx.beginPath();ctx.moveTo(a[0],a[1]);ctx.lineTo(b[0],b[1]);ctx.stroke();ctx.font="10px system-ui";ctx.fillText(label,a[0]+2,a[1]+(label==="Q_TOP"?13:-4));};
@@ -1227,8 +1166,8 @@ function render(){
   const c=elements.preview;c.width=elements.width;c.height=elements.height;
   paintScene(c.getContext("2d"),c.width,c.height,elements.renderer);
   c.style.aspectRatio=elements.width+"/"+elements.height;
-  c.dataset.previewMode=elements.previewMode;c.dataset.state=stateId();c.dataset.candidate=elements.previewMode==="dynamic"?elements.dynamicCandidate:elements.staticCandidate;c.dataset.previewTime=elements.previewTime.toFixed(3);
-  $("webCaption").textContent="WEB · "+getState().display_name+" · "+(elements.previewMode==="dynamic"?"动态 "+elements.dynamicCandidate:"静态 "+elements.staticCandidate);
+  c.dataset.previewMode=elements.previewMode;c.dataset.state=stateId();c.dataset.candidate=elements.previewMode==="dynamic"?elements.dynamicCandidate:"REVIEW_CANDIDATE_SINGLE";c.dataset.previewTime=elements.previewTime.toFixed(3);
+  $("webCaption").textContent="WEB · "+getState().display_name+" · "+(elements.previewMode==="dynamic"?"动态 "+elements.dynamicCandidate:"静态 · 单一路径光场候选");
   document.querySelectorAll(".screen").forEach(s=>s.style.aspectRatio=elements.width+"/"+elements.height);
   const params={paramAlpha:"alpha",paramGlow:"glowWidth",paramBlur:"blurRadius",paramFalloff:"falloff",paramTailLength:"tailLength",paramTailPosition:"tailPosition",paramHalo:"fishHalo",paramContour:"fishContour",paramStrength:"stateStrength",paramSafeTop:"safeTop",paramSafeBottom:"safeBottom"};
   Object.keys(params).forEach(id=>{const val=elements.params[params[id]];$(id+"Value").textContent=Number(val).toFixed(id==="paramTailPosition"?3:2);});

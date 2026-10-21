@@ -8,6 +8,7 @@ on:
     paths:
       - "design/manager/nh01_acceptance/edgeglow-fish-static/**"
       - "design/manager/optical-lab/**"
+      - "design/manager/edgeglow-receiving-light.js"
       - "design/system/recognition_optical_v2/**"
       - "app/src/main/java/com/yujian/ai/ui/recognition/RecognitionOpticalConfigV2.kt"
       - "app/src/main/java/com/yujian/ai/ui/recognition/RecognitionAmbientField.kt"
@@ -15,6 +16,7 @@ on:
       - "app/src/androidTest/java/com/yujian/ai/RecognitionOpticalFidelityRuntimeTest.kt"
       - "scripts/design/build_edgeglow_fish_acceptance_site.py"
       - "scripts/capture_optical_lab_static_closure_v3.cjs"
+      - "scripts/capture_receiving_light_static_one_shot_v1.cjs"
       - "scripts/smoke_edgeglow_fish_static.cjs"
       - "scripts/verify_edgeglow_fish_static_source.py"
       - "scripts/smoke_edgeglow_fish_static_live.py"
@@ -25,6 +27,7 @@ on:
     paths:
       - "design/manager/nh01_acceptance/edgeglow-fish-static/**"
       - "design/manager/optical-lab/**"
+      - "design/manager/edgeglow-receiving-light.js"
       - "design/system/recognition_optical_v2/**"
       - "app/src/main/java/com/yujian/ai/ui/recognition/RecognitionOpticalConfigV2.kt"
       - "app/src/main/java/com/yujian/ai/ui/recognition/RecognitionAmbientField.kt"
@@ -32,6 +35,7 @@ on:
       - "app/src/androidTest/java/com/yujian/ai/RecognitionOpticalFidelityRuntimeTest.kt"
       - "scripts/design/build_edgeglow_fish_acceptance_site.py"
       - "scripts/capture_optical_lab_static_closure_v3.cjs"
+      - "scripts/capture_receiving_light_static_one_shot_v1.cjs"
       - "scripts/smoke_edgeglow_fish_static.cjs"
       - "scripts/verify_edgeglow_fish_static_source.py"
       - "scripts/smoke_edgeglow_fish_static_live.py"
@@ -117,10 +121,10 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          node --check pr-source/scripts/capture_optical_lab_static_closure_v3.cjs
+          node --check pr-source/scripts/capture_receiving_light_static_one_shot_v1.cjs
           python3 -m py_compile pr-source/scripts/smoke_edgeglow_fish_static_live.py
 
-      - name: Capture targeted Receiving Light R01 browser evidence
+      - name: Capture shared Receiving Light static one-shot evidence
         shell: bash
         run: |
           set -euo pipefail
@@ -135,19 +139,16 @@ jobs:
           done
           PLAYWRIGHT_MODULE_DIR="$RUNNER_TEMP/edgeglow-playwright/node_modules" \
             EDGEGLOW_SITE_BASE="http://127.0.0.1:8765/" \
-            OPTICAL_PUBLIC_BASE_URL="https://pan277942135.github.io/Yujian_App/" \
             PR_SOURCE_ROOT="$GITHUB_WORKSPACE/pr-source" \
             PR_SOURCE_SHA="$PR_SOURCE_SHA" \
-            OPTICAL_RECOVERY_BASELINE_SHA="76512ea4c889e4963cc8ed42662f2b0d344b835b" \
-            OPTICAL_EVIDENCE_DIR="$RUNNER_TEMP/edgeglow-evidence/static-recovery-r01" \
-            OPTICAL_PUBLIC_EVIDENCE_DIR="$RUNNER_TEMP/edgeglow-pages/design/manager/nh01_acceptance/edgeglow-fish-static/optical-review/evidence/static-recovery-r01" \
-            node pr-source/scripts/capture_optical_lab_static_closure_v3.cjs --receiving-recovery-r01
+            OPTICAL_EVIDENCE_DIR="$RUNNER_TEMP/edgeglow-evidence/receiving-light-static-one-shot-v1" \
+            node pr-source/scripts/capture_receiving_light_static_one_shot_v1.cjs
 
       - name: Upload static visual evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: EdgeGlow-Fish-Static-Source-Audit-${{ github.run_id }}-${{ github.event.pull_request.head.sha || github.sha }}
+          name: EdgeGlow-Receiving-Light-Static-One-Shot-V1-${{ github.run_id }}-${{ github.event.pull_request.head.sha || github.sha }}
           path: ${{ runner.temp }}/edgeglow-evidence/
           if-no-files-found: warn
           retention-days: 30

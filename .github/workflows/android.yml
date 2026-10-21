@@ -14,10 +14,16 @@ on:
     paths-ignore:
       - ".github/workflows/android.yml"
       - ".github/workflows/edgeglow-fish-static.yml"
+      - ".github/workflows/nh01-cloud-runtime.yml"
+      - ".github/workflows/processing-optical-lab.yml"
       # Web-only optical review changes must not start Android/APK CI.
       - "design/manager/optical-lab/**"
+      - "design/manager/edgeglow-receiving-light.js"
       - "design/manager/nh01_acceptance/edgeglow-fish-static/**"
       - "scripts/capture_optical_lab_static_closure_v3.cjs"
+      - "scripts/capture_receiving_light_static_one_shot_v1.cjs"
+      - "scripts/design/build_edgeglow_fish_acceptance_site.py"
+      - "scripts/smoke_processing_optical_lab.cjs"
       - "scripts/smoke_edgeglow_fish_static.cjs"
       - "scripts/smoke_edgeglow_fish_static_live.py"
       - "scripts/verify_edgeglow_fish_static_source.py"
@@ -44,13 +50,19 @@ on:
     branches: [main]
     paths-ignore:
       - "design/manager/optical-lab/**"
+      - "design/manager/edgeglow-receiving-light.js"
       - "design/manager/nh01_acceptance/edgeglow-fish-static/**"
       - "scripts/capture_optical_lab_static_closure_v3.cjs"
+      - "scripts/capture_receiving_light_static_one_shot_v1.cjs"
+      - "scripts/design/build_edgeglow_fish_acceptance_site.py"
+      - "scripts/smoke_processing_optical_lab.cjs"
       - "scripts/smoke_edgeglow_fish_static.cjs"
       - "scripts/smoke_edgeglow_fish_static_live.py"
       - "scripts/verify_edgeglow_fish_static_source.py"
       - ".github/workflows/android.yml"
       - ".github/workflows/edgeglow-fish-static.yml"
+      - ".github/workflows/nh01-cloud-runtime.yml"
+      - ".github/workflows/processing-optical-lab.yml"
       - "CONTROL_PLANE_REGISTRY.yaml"
       - "CONTROL_PLANE_CHANGE_SYNC.md"
       - "harness/FEATURE_MATRIX.yaml"
@@ -92,6 +104,8 @@ env:
 
 jobs:
   build:
+    # PR #166 remains Draft for the Web static visual review; keep APK and API 28 work off until separately authorized.
+    if: ${{ (github.event_name != 'push' || !contains(github.event.head_commit.message, '[no-android-runtime]')) && (github.event_name != 'pull_request' || github.event.pull_request.number != 166 || !github.event.pull_request.draft) }}
     runs-on: ubuntu-latest
     timeout-minutes: 25
     outputs:
