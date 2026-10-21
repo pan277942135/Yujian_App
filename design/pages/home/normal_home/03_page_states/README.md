@@ -1,5 +1,7 @@
 # NH03 · Page States & Exceptions / 页面状态与异常 · Design Spec V1
 
+> **2026-10-21 现行 Gemini NH01/NH02 局部替代说明：** 原 NH03 的 Unknown ≠ Empty、刷新/异常保持现有鱼获、图片失败只影响 Media，继续对当前 Gemini/Adaptive V2 生效。本次统一规范未更改这些业务状态：design/pages/home/normal_home/engineering/NH01_GEMINI_ADAPTIVE_V2_UNIFIED_AUTHORITY_V1.md。原 Frozen 图不变，所有状态需实际 Android 测试。
+
 Status: **FROZEN — SPEC + VISUAL**
 Scope: **Normal Home state continuity / failure containment**  
 Output policy: **COMBINED_BOARD**
