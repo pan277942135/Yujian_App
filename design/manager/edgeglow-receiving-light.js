@@ -19,6 +19,11 @@
     outputAlphaCap: OUTPUT_ALPHA_CAP,
     depthRatio: P1_DEPTH_RANGE[1]
   });
+  const REVIEW_ONLY_EDGE_RIBBON_EXPERIMENT = Object.freeze({
+    baseAlpha: P1_ALPHA_RANGE[1],
+    outputAlphaCap: OUTPUT_ALPHA_CAP,
+    depthRatio: P1_DEPTH_RANGE[1]
+  });
   const MIN_PATH_WEIGHT = 0.54;
   const COVERAGE_BY_PATH = Object.freeze({ B1: 1.0, G1: 0.84, G3: 0.60, B3: 0.38 });
   const INSET = Object.freeze({ x: 0.028, y: 0.022 });
@@ -75,8 +80,9 @@
     }
     const reviewOnlyAlphaExperiment = options.reviewOnlyAlphaExperiment === true;
     const reviewOnlyRadialFieldExperiment = options.reviewOnlyRadialFieldExperiment === true;
-    if (reviewOnlyAlphaExperiment && reviewOnlyRadialFieldExperiment) {
-      throw new Error("Alpha-only and radial-field review experiments must remain isolated.");
+    const reviewOnlyEdgeRibbonExperiment = options.reviewOnlyEdgeRibbonExperiment === true;
+    if ([reviewOnlyAlphaExperiment, reviewOnlyRadialFieldExperiment, reviewOnlyEdgeRibbonExperiment].filter(Boolean).length > 1) {
+      throw new Error("Alpha-only, radial-field, and edge-ribbon review experiments must remain isolated.");
     }
     const outputAlphaCap = reviewOnlyAlphaExperiment
       ? REVIEW_ONLY_ALPHA_EXPERIMENT.outputAlphaCap
@@ -87,17 +93,21 @@
       : P1_ALPHA_RANGE[1];
     if (!Number.isFinite(baseAlpha) || baseAlpha < P1_ALPHA_RANGE[0] || baseAlpha > maxBaseAlpha ||
         (reviewOnlyAlphaExperiment && baseAlpha !== REVIEW_ONLY_ALPHA_EXPERIMENT.baseAlpha) ||
-        (reviewOnlyRadialFieldExperiment && baseAlpha !== REVIEW_ONLY_RADIAL_FIELD_EXPERIMENT.baseAlpha)) {
+        (reviewOnlyRadialFieldExperiment && baseAlpha !== REVIEW_ONLY_RADIAL_FIELD_EXPERIMENT.baseAlpha) ||
+        (reviewOnlyEdgeRibbonExperiment && baseAlpha !== REVIEW_ONLY_EDGE_RIBBON_EXPERIMENT.baseAlpha)) {
       throw new Error(reviewOnlyAlphaExperiment
         ? "Review-only Alpha experiment accepts exactly base Alpha 0.10."
         : reviewOnlyRadialFieldExperiment
           ? "Review-only radial geometry requires P1 base Alpha 0.07."
-          : "P1 Receiving Light base Alpha must remain in [0.03, 0.07].");
+          : reviewOnlyEdgeRibbonExperiment
+            ? "Review-only edge-ribbon geometry requires P1 base Alpha 0.07."
+            : "P1 Receiving Light base Alpha must remain in [0.03, 0.07].");
     }
     const requestedDepth = Number(options.depthRatio ?? 0.14);
     if (!Number.isFinite(requestedDepth) || requestedDepth < P1_DEPTH_RANGE[0] || requestedDepth > P1_DEPTH_RANGE[1] ||
-        (reviewOnlyRadialFieldExperiment && requestedDepth !== REVIEW_ONLY_RADIAL_FIELD_EXPERIMENT.depthRatio)) {
-      throw new Error("P1 Receiving Light edge depth must remain in [0.08, 0.18]; radial review requires exactly 0.18.");
+        (reviewOnlyRadialFieldExperiment && requestedDepth !== REVIEW_ONLY_RADIAL_FIELD_EXPERIMENT.depthRatio) ||
+        (reviewOnlyEdgeRibbonExperiment && requestedDepth !== REVIEW_ONLY_EDGE_RIBBON_EXPERIMENT.depthRatio)) {
+      throw new Error("P1 Receiving Light edge depth must remain in [0.08, 0.18]; radial and edge-ribbon reviews require exactly 0.18.");
     }
     const colors = { ...DEFAULT_COLORS, ...(options.colors || {}) };
     for (const key of Object.keys(DEFAULT_COLORS)) {
@@ -127,7 +137,7 @@
     return {
       width, height, rect: normalizedRect, paths, colors,
       baseAlpha, depthRatio: requestedDepth,
-      reviewOnlyAlphaExperiment, reviewOnlyRadialFieldExperiment, outputAlphaCap,
+      reviewOnlyAlphaExperiment, reviewOnlyRadialFieldExperiment, reviewOnlyEdgeRibbonExperiment, outputAlphaCap,
       globalMultiplier: clamp(Number(options.globalMultiplier ?? 1), 0, 1),
       dpToCanvasPx: clamp(Number(options.dpToCanvasPx ?? 1), 0.1, 100),
       enabled: options.enabled !== false
@@ -176,6 +186,47 @@
     ).join("");
     return '<linearGradient id="' + id + '" gradientUnits="userSpaceOnUse" x1="' + number(x1) +
       '" y1="' + number(y1) + '" x2="' + number(x2) + '" y2="' + number(y2) + '">' + stops + '</linearGradient>';
+  }
+
+  function edgeRibbonGradientMarkup(id, x1, y1, x2, y2, baseColor, hotColor) {
+    const stops = [
+      [0.00, baseColor, 0.72],
+      [0.12, hotColor, 0.88],
+      [0.32, baseColor, 0.72],
+      [0.56, baseColor, 0.38],
+      [0.82, baseColor, 0.10],
+      [1.00, baseColor, 0.00]
+    ].map(stop =>
+      '<stop offset="' + number(stop[0] * 100) + '%" stop-color="' + stop[1] +
+      '" stop-opacity="' + number(stop[2]) + '"/>'
+    ).join("");
+    return '<linearGradient id="' + id +
+      '" gradientUnits="userSpaceOnUse" x1="' + number(x1) + '" y1="' + number(y1) +
+      '" x2="' + number(x2) + '" y2="' + number(y2) + '">' + stops + '</linearGradient>';
+  }
+
+  function edgeBoundaryProjection(point, rect) {
+    const x = clamp(point[0], rect.left, rect.right);
+    const y = clamp(point[1], rect.top, rect.bottom);
+    const edges = [
+      { side: "top", distance: y - rect.top, boundary: [x, rect.top], normal: [0, 1] },
+      { side: "right", distance: rect.right - x, boundary: [rect.right, y], normal: [-1, 0] },
+      { side: "bottom", distance: rect.bottom - y, boundary: [x, rect.bottom], normal: [0, -1] },
+      { side: "left", distance: x - rect.left, boundary: [rect.left, y], normal: [1, 0] }
+    ];
+    edges.sort((a, b) => a.distance - b.distance);
+    return edges[0];
+  }
+
+  function cornerBetweenEdges(sideA, sideB, rect) {
+    const key = [sideA, sideB].sort().join("|");
+    const corners = {
+      "bottom|left": [rect.left, rect.bottom],
+      "bottom|right": [rect.right, rect.bottom],
+      "left|top": [rect.left, rect.top],
+      "right|top": [rect.right, rect.top]
+    };
+    return corners[key] || null;
   }
 
   function radialFieldGradientMarkup(id, baseColor, hotColor) {
@@ -252,6 +303,66 @@
         const baseAlpha = config.baseAlpha * config.globalMultiplier * islandWeight;
         const baseColor = path.family === "gold" ? config.colors.gold : config.colors.blue;
         const hotColor = path.family === "gold" ? config.colors.goldHot : config.colors.blueHot;
+
+        // Review-only edge ribbon: the frozen P1 path chooses the lit perimeter span;
+        // a one-sided ribbon extends inward from the actual photo edge and fades to zero.
+        if (config.reviewOnlyEdgeRibbonExperiment) {
+          const ribbonDepth = maxDepth;
+          const ribbonStep = Math.max(6, minDimension * 0.0125);
+          intervals.forEach((interval, intervalIndex) => {
+            const intervalLength = interval[1] - interval[0];
+            if (!(intervalLength > 1)) return;
+            const count = Math.max(2, Math.ceil(intervalLength / ribbonStep));
+            const samples = [];
+            for (let index = 0; index <= count; index++) {
+              const distance = interval[0] + intervalLength * index / count;
+              const sourcePoint = sourcePath.getPointAtLength(distance);
+              const point = mapInset([sourcePoint.x, sourcePoint.y], rect);
+              const edge = edgeBoundaryProjection(point, rect);
+              const inner = [
+                clamp(edge.boundary[0] + edge.normal[0] * ribbonDepth, rect.left, rect.right),
+                clamp(edge.boundary[1] + edge.normal[1] * ribbonDepth, rect.top, rect.bottom)
+              ];
+              samples.push({ point, ...edge, inner });
+            }
+            for (let index = 0; index < count; index++) {
+              const a = samples[index], b = samples[index + 1];
+              const corner = a.side === b.side ? null : cornerBetweenEdges(a.side, b.side, rect);
+              const outerRoute = [a.boundary];
+              if (corner) outerRoute.push(corner);
+              outerRoute.push(b.boundary);
+              let innerCorner = null;
+              if (corner) {
+                innerCorner = [
+                  clamp(corner[0] + (corner[0] === rect.left ? ribbonDepth : corner[0] === rect.right ? -ribbonDepth : 0), rect.left, rect.right),
+                  clamp(corner[1] + (corner[1] === rect.top ? ribbonDepth : corner[1] === rect.bottom ? -ribbonDepth : 0), rect.top, rect.bottom)
+                ];
+              }
+              const polygonPoints = [...outerRoute, b.inner];
+              if (innerCorner) polygonPoints.push(innerCorner);
+              polygonPoints.push(a.inner);
+              const pathD = "M " + polygonPoints.map((point, pointIndex) =>
+                (pointIndex ? "L " : "") + number(point[0]) + " " + number(point[1])
+              ).join(" ") + " Z";
+              const average = points => [
+                points.reduce((sum, point) => sum + point[0], 0) / points.length,
+                points.reduce((sum, point) => sum + point[1], 0) / points.length
+              ];
+              const outerCenter = average(outerRoute);
+              const innerCenter = average(innerCorner ? [a.inner, innerCorner, b.inner] : [a.inner, b.inner]);
+              const gradientId = "edge-ribbon-gradient-" + safeId(path.id + "-" + intervalIndex + "-" + index);
+              defsMarkup.push(edgeRibbonGradientMarkup(
+                gradientId, outerCenter[0], outerCenter[1], innerCenter[0], innerCenter[1], baseColor, hotColor
+              ));
+              const taper = Math.min(1, (index + 1) / 3, (count - index) / 3);
+              layersMarkup.push(
+                '<path d="' + pathD + '" fill="url(#' + gradientId + ')" opacity="' + number(baseAlpha * taper) + '"/>'
+              );
+            }
+          });
+          measureSvg.removeChild(sourcePath);
+          continue;
+        }
 
         if (config.reviewOnlyRadialFieldExperiment) {
           const totalVisibleSpan = intervals.reduce((sum, interval) => sum + Math.max(0, interval[1] - interval[0]), 0);
@@ -356,6 +467,7 @@
       depthRatio: config.depthRatio, globalMultiplier: config.globalMultiplier,
       reviewOnlyAlphaExperiment: config.reviewOnlyAlphaExperiment,
       reviewOnlyRadialFieldExperiment: config.reviewOnlyRadialFieldExperiment,
+      reviewOnlyEdgeRibbonExperiment: config.reviewOnlyEdgeRibbonExperiment,
       outputAlphaCap: config.outputAlphaCap,
       dpToCanvasPx: config.dpToCanvasPx, enabled: config.enabled,
       coverage: COVERAGE_BY_PATH, inset: INSET, gaps: QUIET_GAPS, layers: LAYERS
@@ -394,8 +506,8 @@
         entry.blobUrl = "";
         setStatus("ready", {
           cache_key: key, canvas: [config.width, config.height],
-          alpha_mode: config.reviewOnlyRadialFieldExperiment ? "REVIEW_ONLY_RADIAL_FIELD_GEOMETRY" : config.reviewOnlyAlphaExperiment ? "REVIEW_ONLY_ALPHA_EXPERIMENT" : "P1",
-          geometry_mode: config.reviewOnlyRadialFieldExperiment ? "DIRECTIONAL_RADIAL_FIELDS" : "PATH_STROKE",
+          alpha_mode: config.reviewOnlyEdgeRibbonExperiment ? "REVIEW_ONLY_EDGE_ANCHORED_RIBBON" : config.reviewOnlyRadialFieldExperiment ? "REVIEW_ONLY_RADIAL_FIELD_GEOMETRY" : config.reviewOnlyAlphaExperiment ? "REVIEW_ONLY_ALPHA_EXPERIMENT" : "P1",
+          geometry_mode: config.reviewOnlyEdgeRibbonExperiment ? "EDGE_ANCHORED_RIBBON_FIELD" : config.reviewOnlyRadialFieldExperiment ? "DIRECTIONAL_RADIAL_FIELDS" : "PATH_STROKE",
           base_alpha: config.baseAlpha, alpha_cap: config.outputAlphaCap
         });
         for (const callback of entry.callbacks) callback();
@@ -423,8 +535,8 @@
       if (typeof options.onReady === "function") entry.callbacks.add(options.onReady);
       setStatus("pending", {
         cache_key: key, canvas: [config.width, config.height],
-        alpha_mode: config.reviewOnlyRadialFieldExperiment ? "REVIEW_ONLY_RADIAL_FIELD_GEOMETRY" : config.reviewOnlyAlphaExperiment ? "REVIEW_ONLY_ALPHA_EXPERIMENT" : "P1",
-          geometry_mode: config.reviewOnlyRadialFieldExperiment ? "DIRECTIONAL_RADIAL_FIELDS" : "PATH_STROKE",
+        alpha_mode: config.reviewOnlyEdgeRibbonExperiment ? "REVIEW_ONLY_EDGE_ANCHORED_RIBBON" : config.reviewOnlyRadialFieldExperiment ? "REVIEW_ONLY_RADIAL_FIELD_GEOMETRY" : config.reviewOnlyAlphaExperiment ? "REVIEW_ONLY_ALPHA_EXPERIMENT" : "P1",
+          geometry_mode: config.reviewOnlyEdgeRibbonExperiment ? "EDGE_ANCHORED_RIBBON_FIELD" : config.reviewOnlyRadialFieldExperiment ? "DIRECTIONAL_RADIAL_FIELDS" : "PATH_STROKE",
         base_alpha: config.baseAlpha, alpha_cap: config.outputAlphaCap
       });
       return { status: "pending", renderer: VERSION, cache_key: key };
@@ -438,8 +550,8 @@
     context.restore();
     setStatus("ready", {
       cache_key: key, canvas: [config.width, config.height],
-      alpha_mode: config.reviewOnlyRadialFieldExperiment ? "REVIEW_ONLY_RADIAL_FIELD_GEOMETRY" : config.reviewOnlyAlphaExperiment ? "REVIEW_ONLY_ALPHA_EXPERIMENT" : "P1",
-          geometry_mode: config.reviewOnlyRadialFieldExperiment ? "DIRECTIONAL_RADIAL_FIELDS" : "PATH_STROKE",
+      alpha_mode: config.reviewOnlyEdgeRibbonExperiment ? "REVIEW_ONLY_EDGE_ANCHORED_RIBBON" : config.reviewOnlyRadialFieldExperiment ? "REVIEW_ONLY_RADIAL_FIELD_GEOMETRY" : config.reviewOnlyAlphaExperiment ? "REVIEW_ONLY_ALPHA_EXPERIMENT" : "P1",
+          geometry_mode: config.reviewOnlyEdgeRibbonExperiment ? "EDGE_ANCHORED_RIBBON_FIELD" : config.reviewOnlyRadialFieldExperiment ? "DIRECTIONAL_RADIAL_FIELDS" : "PATH_STROKE",
       base_alpha: config.baseAlpha, alpha_cap: config.outputAlphaCap
     });
     return { status: "ready", renderer: VERSION, cache_key: key };
@@ -452,6 +564,7 @@
     outputAlphaCap: OUTPUT_ALPHA_CAP,
     reviewOnlyAlphaExperiment: REVIEW_ONLY_ALPHA_EXPERIMENT,
     reviewOnlyRadialFieldExperiment: REVIEW_ONLY_RADIAL_FIELD_EXPERIMENT,
+    reviewOnlyEdgeRibbonExperiment: REVIEW_ONLY_EDGE_RIBBON_EXPERIMENT,
     minPathWeight: MIN_PATH_WEIGHT,
     coverageByPath: COVERAGE_BY_PATH,
     inset: INSET,
