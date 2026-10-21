@@ -56,16 +56,20 @@ run_case() {
   printf 'fake-apk' > "$tmp/app-debug.apk"
   printf 'fake-test-apk' > "$tmp/app-debug-androidTest.apk"
   if [[ "$mode" == "ready" ]]; then
-    # The evidence packager validates a real MP4 container. Generate a tiny
-    # synthetic recording for the fake-adb PASS path; it is not runtime proof.
-    ffmpeg -hide_banner -loglevel error -y \
-      -f lavfi -i color=c=black:s=320x640:r=30 -t 1 -an \
-      -c:v mpeg4 -q:v 5 -pix_fmt yuv420p -movflags +faststart \
-      "$tmp/fake-rr09-recording.mp4"
+    # Stub container metadata for the fake-adb PASS path. The production
+    # API28 gate uses the real ffprobe installed by its runtime workflow job.
+    mkdir -p "$tmp/bin"
+    printf 'synthetic test-only recording\n' > "$tmp/fake-rr09-recording.mp4"
+    cat > "$tmp/bin/ffprobe" <<'SH'
+#!/usr/bin/env sh
+printf '%s\n' '{"streams":[{"codec_type":"video","width":320,"height":640}],"format":{"duration":"1.0"}}'
+SH
+    chmod +x "$tmp/bin/ffprobe"
   fi
   local app_apk_sha256
   app_apk_sha256="$(sha256sum "$tmp/app-debug.apk" | awk '{print $1}')"
   set +e
+    PATH="$tmp/bin:$PATH" \
     FAKE_ADB_MODE="$mode" \
     FAKE_APP_APK_SHA256="$app_apk_sha256" \
     FAKE_RR09_VIDEO_FILE="$tmp/fake-rr09-recording.mp4" \
