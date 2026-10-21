@@ -148,7 +148,12 @@ async function main() {
   assert(await motionLink.count() === 1, "Design Manager submenu link is missing");
   await motionLink.click();
   await page.waitForURL(url => url.pathname.endsWith("/optical-lab/recognition-motion/"), { timeout: 15000 });
-  assert((await page.locator("#runtimeStatus").innerText()).includes("已就绪"), "submenu route did not load the studio");
+  await page.waitForFunction(() => {
+    const status = document.querySelector("#runtimeStatus")?.textContent || "";
+    return status.includes("已就绪") || status.includes("加载失败");
+  }, null, { timeout: 30000 });
+  const submenuStatus = await page.locator("#runtimeStatus").innerText();
+  assert(submenuStatus.includes("已就绪"), "submenu route did not load the studio: " + submenuStatus);
   await page.reload({ waitUntil: "networkidle" });
   assert(page.url().includes("/optical-lab/recognition-motion/"), "refresh did not preserve the studio route");
   await page.goBack();
