@@ -8,11 +8,16 @@ import android.graphics.Paint
 import android.graphics.Path
 import android.graphics.Rect
 import android.os.SystemClock
+import android.util.DisplayMetrics
 import android.util.Log
 import android.view.ViewTreeObserver
 import androidx.activity.ComponentActivity
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.requiredSize
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.key
 import androidx.compose.runtime.LaunchedEffect
@@ -22,10 +27,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.DeviceConfigurationOverride
-import androidx.compose.ui.test.ExperimentalTestApi
-import androidx.compose.ui.test.FontScale
-import androidx.compose.ui.test.ForcedSize
 import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.hasStateDescription
 import androidx.compose.ui.test.hasText
@@ -44,8 +45,10 @@ import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.printToString
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.semantics.SemanticsProperties
-import androidx.compose.ui.unit.DpSize
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.asImageBitmap
@@ -356,6 +359,7 @@ class RecognitionFrozenFlowEmulatorTest {
         val recognizeStarted = CountDownLatch(1)
         val failureCount = java.util.concurrent.atomic.AtomicInteger(0)
 
+        composeRule.mainClock.autoAdvance = false
         composeRule.setContent {
             YujianTheme {
                 if (processingVisible.value) {
@@ -372,6 +376,7 @@ class RecognitionFrozenFlowEmulatorTest {
                 }
             }
         }
+        composeRule.mainClock.advanceTimeByFrame()
 
         assertTrue("recognition coroutine did not start", recognizeStarted.await(2, TimeUnit.SECONDS))
         val backNodes = composeRule.onAllNodesWithContentDescription("返回")
@@ -460,12 +465,13 @@ class RecognitionFrozenFlowEmulatorTest {
         composeRule.onNodeWithText("Ctenopharyngodon idella").assertIsDisplayed()
         composeRule.onNodeWithText("修改鱼种").assertIsDisplayed().performClick()
         composeRule.onNodeWithText("选择鱼种").assertIsDisplayed()
-        composeRule.onNodeWithContentDescription("返回").performClick()
+        val backNodes = composeRule.onAllNodesWithContentDescription("返回").fetchSemanticsNodes()
+        assertTrue("species selector Back action must exist", backNodes.size >= 2)
+        composeRule.onAllNodesWithContentDescription("返回")[backNodes.lastIndex].performClick()
         composeRule.onNodeWithText("保存本次鱼获").performScrollTo().performClick()
         composeRule.waitUntil(timeoutMillis = 2_000L) { saveCalls.get() == 1 }
     }
 
-    @OptIn(ExperimentalTestApi::class)
     @Test
     fun rr09RunsResultResponsiveMatrixAcrossScreenSizesAndFontScales() {
         data class Profile(val widthDp: Int, val heightDp: Int, val fontScale: Float) {
@@ -496,32 +502,60 @@ class RecognitionFrozenFlowEmulatorTest {
 
         composeRule.setContent {
             val profile = active.value
-            DeviceConfigurationOverride(
-                DeviceConfigurationOverride.ForcedSize(
-                    DpSize(profile.widthDp.dp, profile.heightDp.dp),
-                ),
-            ) {
-                DeviceConfigurationOverride(DeviceConfigurationOverride.FontScale(profile.fontScale)) {
-                    val configuration = LocalConfiguration.current
-                    SideEffect {
-                        observedConfiguration.value = Triple(
-                            configuration.screenWidthDp,
-                            configuration.screenHeightDp,
-                            configuration.fontScale,
-                        )
+            BoxWithConstraints(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                val physicalDensity = LocalDensity.current
+                val availableWidthPx = with(physicalDensity) { maxWidth.toPx() }
+                val availableHeightPx = with(physicalDensity) { maxHeight.toPx() }
+                val virtualDensity = minOf(
+                    availableWidthPx / profile.widthDp,
+                    availableHeightPx / profile.heightDp,
+                )
+                val configuration = androidx.compose.ui.platform.LocalConfiguration.current
+                val viewportConfiguration = remember(
+                    configuration,
+                    profile.widthDp,
+                    profile.heightDp,
+                    profile.fontScale,
+                    virtualDensity,
+                ) {
+                    android.content.res.Configuration(configuration).apply {
+                        screenWidthDp = profile.widthDp
+                        screenHeightDp = profile.heightDp
+                        smallestScreenWidthDp = minOf(profile.widthDp, profile.heightDp)
+                        orientation = if (profile.widthDp <= profile.heightDp) {
+                            android.content.res.Configuration.ORIENTATION_PORTRAIT
+                        } else {
+                            android.content.res.Configuration.ORIENTATION_LANDSCAPE
+                        }
+                        densityDpi = (virtualDensity * DisplayMetrics.DENSITY_DEFAULT).toInt()
+                        fontScale = profile.fontScale
                     }
-                    YujianTheme {
-                        key(profile.key) {
-                            RecognitionResultScreen(
-                                image = photo,
-                                prediction = requireNotNull(high.prediction),
-                                productionResult = high,
-                                availableSpecies = catalog,
-                                revealElapsedOverrideMs = 850L,
-                                onBack = {},
-                                onRetry = {},
-                                onSave = { _, _, _ -> },
+                }
+                CompositionLocalProvider(
+                    LocalConfiguration provides viewportConfiguration,
+                    LocalDensity provides Density(virtualDensity, profile.fontScale),
+                ) {
+                    Box(Modifier.requiredSize(profile.widthDp.dp, profile.heightDp.dp)) {
+                        SideEffect {
+                            observedConfiguration.value = Triple(
+                                viewportConfiguration.screenWidthDp,
+                                viewportConfiguration.screenHeightDp,
+                                viewportConfiguration.fontScale,
                             )
+                        }
+                        YujianTheme {
+                            key(profile.key) {
+                                RecognitionResultScreen(
+                                    image = photo,
+                                    prediction = requireNotNull(high.prediction),
+                                    productionResult = high,
+                                    availableSpecies = catalog,
+                                    revealElapsedOverrideMs = 850L,
+                                    onBack = {},
+                                    onRetry = {},
+                                    onSave = { _, _, _ -> },
+                                )
+                            }
                         }
                     }
                 }
@@ -561,7 +595,7 @@ class RecognitionFrozenFlowEmulatorTest {
                 .put("effective_window_width_dp", actualWidth)
                 .put("effective_window_height_dp", actualHeight)
                 .put("effective_font_scale", actualFontScale)
-                .put("configuration_source", "Compose DeviceConfigurationOverride.WindowSize on API28 Pixel 2")
+                .put("configuration_source", "API28 Pixel 2 Compose virtual viewport, constrained to the live window and centered with uniform density")
                 .put("hero_bounds_in_window_px", org.json.JSONArray().put(hero.left).put(hero.top).put(hero.right).put(hero.bottom))
                 .put("title_bounds_in_window_px", org.json.JSONArray().put(title.left).put(title.top).put(title.right).put(title.bottom))
                 .put("hero_visible", true)
@@ -662,13 +696,21 @@ class RecognitionFrozenFlowEmulatorTest {
         handoffState.value = handoff
         stage.value = "result"
         fun assertRevealGeometryResolved() {
-            composeRule.waitUntil(timeoutMillis = 5_000L) {
-                composeRule.onAllNodesWithTag("recognition-reveal-geometry-ready").fetchSemanticsNodes().isNotEmpty() ||
-                    geometryResolution.get()?.failureReason != null
-            }
+            val settled = runCatching {
+                composeRule.waitUntil(timeoutMillis = 5_000L) {
+                    val reason = geometryResolution.get()?.failureReason
+                    composeRule.onAllNodesWithTag("recognition-reveal-geometry-ready").fetchSemanticsNodes().isNotEmpty() ||
+                        (reason != null && !reason.endsWith("_PENDING"))
+                }
+            }.isSuccess
+            val geometryReady = composeRule.onAllNodesWithTag("recognition-reveal-geometry-ready")
+                .fetchSemanticsNodes().isNotEmpty()
             assertTrue(
-                "RR09 reveal geometry rejected: ${geometryResolution.get()?.failureReason ?: "no layout resolution"}",
-                composeRule.onAllNodesWithTag("recognition-reveal-geometry-ready").fetchSemanticsNodes().isNotEmpty(),
+                "RR09 reveal geometry rejected: ${geometryResolution.get()?.failureReason ?: "layout inputs pending"}; " +
+                    "hero=${composeRule.onAllNodesWithTag("recognition-result-hero").fetchSemanticsNodes().size}, " +
+                    "title=${composeRule.onAllNodesWithTag("recognition-result-species").fetchSemanticsNodes().size}, " +
+                    "optics=${composeRule.onAllNodesWithTag("recognition-reveal-optics").fetchSemanticsNodes().size}",
+                settled && geometryReady,
             )
         }
         assertRevealGeometryResolved()
@@ -1652,25 +1694,15 @@ class RecognitionFrozenFlowEmulatorTest {
         assertFalse(composeRule.onAllNodesWithText("草鱼").fetchSemanticsNodes().isNotEmpty())
 
         composeRule.waitForIdle()
-        // The reduced-motion receiving field has a one-time 180 ms settle; sample after it completes.
+        // Freeze the visual clock so this compares one reduced-motion phase, not a real navigation phase change.
         SystemClock.sleep(220L)
-        val appSurfaceBounds = composeSurfaceBoundsOnScreen()
-        val first = File(evidenceDir, "_reduce_motion_a.png")
-        val second = File(evidenceDir, "_reduce_motion_b.png")
-        assertTrue(device.takeScreenshot(first))
+        val firstBitmap = composeRule.onRoot().captureToImage().asAndroidBitmap()
         Thread.sleep(350L)
-        assertTrue(device.takeScreenshot(second))
-        val firstRaw = requireNotNull(BitmapFactory.decodeFile(first.absolutePath))
-        val secondRaw = requireNotNull(BitmapFactory.decodeFile(second.absolutePath))
-        val firstBitmap = cropToComposeRoot(firstRaw, appSurfaceBounds)
-        val secondBitmap = cropToComposeRoot(secondRaw, appSurfaceBounds)
-        firstRaw.recycle()
-        secondRaw.recycle()
+        composeRule.waitForIdle()
+        val secondBitmap = composeRule.onRoot().captureToImage().asAndroidBitmap()
         val diffRatio = bitmapDifferenceRatio(firstBitmap, secondBitmap, topSkipPx = 80)
         firstBitmap.recycle()
         secondBitmap.recycle()
-        first.delete()
-        second.delete()
 
         // Restrict the comparison to the four ambient-field edge regions. A
         // whole-screen ratio is diluted by the photo and affected by unrelated

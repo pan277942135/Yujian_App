@@ -350,13 +350,18 @@ fun RecognitionResultScreen(
         )
     }
     val revealGeometryResolution = remember(revealHandoff, heroSnapshot, revealTitleBounds, rootBounds) {
-        if (revealHandoff == null || heroSnapshot == null || revealTitleBounds == null || rootBounds == null) null
-        else RecognitionRevealGeometryResolver.resolveDetailed(
-            handoff = revealHandoff,
-            hero = requireNotNull(heroSnapshot),
-            titleBoundsInWindow = requireNotNull(revealTitleBounds),
-            rootBoundsInWindow = requireNotNull(rootBounds),
-        )
+        if (revealHandoff == null) null
+        else when {
+            rootBounds == null -> RecognitionRevealGeometryResolution(null, "LAYOUT_ROOT_PENDING")
+            heroSnapshot == null -> RecognitionRevealGeometryResolution(null, "LAYOUT_HERO_PENDING")
+            revealTitleBounds == null -> RecognitionRevealGeometryResolution(null, "LAYOUT_TITLE_PENDING")
+            else -> RecognitionRevealGeometryResolver.resolveDetailed(
+                handoff = revealHandoff,
+                hero = requireNotNull(heroSnapshot),
+                titleBoundsInWindow = requireNotNull(revealTitleBounds),
+                rootBoundsInWindow = requireNotNull(rootBounds),
+            )
+        }
     }
     val revealGeometry = revealGeometryResolution?.geometry
     SideEffect {
