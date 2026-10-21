@@ -17,7 +17,7 @@ CASES = (
     ("M04", 393, 852, 1.0), ("M05", 393, 852, 1.3), ("M06", 393, 852, 1.5),
     ("M07", 411, 915, 1.0), ("M08", 411, 915, 1.3), ("M09", 411, 915, 1.5),
 )
-VARIANTS = {"ADAPTIVE_V1": "adaptive_v1", "V3_BASELINE": "v3_baseline"}
+VARIANTS = {"ADAPTIVE_V2": "adaptive_v2", "V3_BASELINE": "v3_baseline"}
 
 
 def read_case(raw: Path, profile: str, variant: str) -> dict[str, Any] | None:
