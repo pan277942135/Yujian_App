@@ -216,7 +216,7 @@ def main() -> int:
     output = args.output_dir.resolve()
     matrix_dir = output / "NH01_RUNTIME_MATRIX_V1"
     matrix_dir.mkdir(parents=True, exist_ok=True)
-    shutil.copy2(args.contract, output / "NH01_ADAPTIVE_VISUAL_BALANCE_V1.md")
+    shutil.copy2(args.contract, output / "NH01_ADAPTIVE_VISUAL_BALANCE_V2.md")
 
     report_rows: list[dict[str, Any]] = []
     bound_rows: list[dict[str, Any]] = []
@@ -225,17 +225,17 @@ def main() -> int:
     pairs: list[tuple[str, Path, int, int, float]] = []
     all_problems: list[str] = []
     for profile, width, height, font in CASES:
-        candidate = read_case(raw, profile, "adaptive_v1")
+        candidate = read_case(raw, profile, "adaptive_v2")
         baseline = read_case(raw, profile, "v3_baseline")
-        candidate_execution = read_execution(execution_dir, profile, "ADAPTIVE_V1")
+        candidate_execution = read_execution(execution_dir, profile, "ADAPTIVE_V2")
         baseline_execution = read_execution(execution_dir, profile, "V3_BASELINE")
         candidate_execution_status, candidate_execution_reason = classify_execution(candidate_execution)
         baseline_execution_status, baseline_execution_reason = classify_execution(baseline_execution)
-        candidate_report_status = report_status(raw, profile, "adaptive_v1", candidate)
+        candidate_report_status = report_status(raw, profile, "adaptive_v2", candidate)
         baseline_report_status = report_status(raw, profile, "v3_baseline", baseline)
 
         candidate_validation = [] if candidate is None else validate_case(
-            candidate, profile, width, height, font, "ADAPTIVE_V1", args.source_sha, raw,
+            candidate, profile, width, height, font, "ADAPTIVE_V2", args.source_sha, raw,
         )
         baseline_validation = [] if baseline is None else validate_case(
             baseline, profile, width, height, font, "V3_BASELINE", args.source_sha, raw,
@@ -274,7 +274,7 @@ def main() -> int:
 
         if candidate is not None:
             copy_screenshot(raw, candidate, matrix_dir, f"{profile}.png")
-            bound_rows.append({"profile": profile, "layout_variant": "ADAPTIVE_V1",
+            bound_rows.append({"profile": profile, "layout_variant": "ADAPTIVE_V2",
                                "system_font_scale": candidate.get("system_font_scale"),
                                "display_resolution_px": candidate.get("display_resolution_px"),
                                "configuration_screen_dp": candidate.get("configuration_screen_dp"),
