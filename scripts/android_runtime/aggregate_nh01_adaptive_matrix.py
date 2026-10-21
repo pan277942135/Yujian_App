@@ -165,7 +165,7 @@ def make_pair(raw: Path, baseline: dict[str, Any], adaptive: dict[str, Any], tar
     sheet = Image.new("RGB", (width * 2 + gutter, height + label_height), "#ffffff")
     draw = ImageDraw.Draw(sheet)
     draw.text((0, 4), f"{profile} | V3 baseline", fill="#15202b")
-    draw.text((width + gutter, 4), f"{profile} | Adaptive V1", fill="#15202b")
+    draw.text((width + gutter, 4), f"{profile} | Adaptive V2", fill="#15202b")
     sheet.paste(before, (0, label_height))
     sheet.paste(after, (width + gutter, label_height))
     target.parent.mkdir(parents=True, exist_ok=True)
@@ -304,8 +304,9 @@ def main() -> int:
     }, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     (output / "NH01_LAYOUT_METRICS_V1.json").write_text(json.dumps({
         "schema": "NH01_LAYOUT_METRICS_V1", "source_sha": args.source_sha,
-        "candidate_parameters": {"width_fraction": 0.76, "max_width_dp": 360, "aspect_ratio": "247:293",
-                                 "compact_if_width_lt_dp": 360, "compact_if_height_lt_dp": 700},
+        "candidate_parameters": {"width_fraction": 0.70, "max_width_dp": 337.2, "aspect_ratio": "247:293",
+                                 "viewport_font_scale_min": 1.0, "viewport_font_scale_max": 1.2,
+                                 "neighbor_width_cap_fraction": 0.82, "compact_if_safe_height_lt_dp": 460},
         "profiles": metric_rows,
     }, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     (output / "NH01_TWO_CATCH_REGRESSION_V1.json").write_text(json.dumps({
