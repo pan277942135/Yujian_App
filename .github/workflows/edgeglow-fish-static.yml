@@ -214,7 +214,8 @@ jobs:
     # A review capture may be pushed to the PR branch without publishing its
     # composed Pages artifact. Commits marked [no-pages-deploy] still run the
     # browser capture job above, but must never update the live site.
-    if: github.event_name == 'push' && !contains(github.event.head_commit.message, '[no-pages-deploy]')
+    # Publishing a review candidate requires an explicit commit-message opt-in; keep ordinary optical experiments review-only.
+    if: github.event_name == 'push' && contains(github.event.head_commit.message, '[allow-pages-deploy]') && !contains(github.event.head_commit.message, '[no-pages-deploy]')
     needs: build-and-test
     runs-on: ubuntu-latest
     timeout-minutes: 8
