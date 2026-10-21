@@ -60,6 +60,7 @@ import com.yujian.ai.ai.subject.FishSubjectQuality
 import com.yujian.ai.ai.subject.FishSubjectResult
 import com.yujian.ai.ai.subject.SubjectStatus
 import com.yujian.ai.catches.CatchSaveDraft
+import com.yujian.ai.knowledge.FishGuideItem
 import com.yujian.ai.model.RecognitionCandidate
 import com.yujian.ai.model.RecognitionPrediction
 import com.yujian.ai.model.SelectedImage
@@ -68,6 +69,11 @@ import com.yujian.ai.ui.recognition.RecognitionMotionTraceSample
 import com.yujian.ai.ui.recognition.RecognitionDegradationLevel
 import com.yujian.ai.ui.identify.RecognitionImageTransform
 import com.yujian.ai.ui.recognition.RecognitionVisualStateController
+import com.yujian.ai.ui.recognition.reveal.RecognitionGeometryTrustState
+import com.yujian.ai.ui.recognition.reveal.RecognitionRevealEligibility
+import com.yujian.ai.ui.recognition.reveal.RecognitionRevealHandoff
+import com.yujian.ai.ui.recognition.reveal.RecognitionRevealKey
+import com.yujian.ai.ui.recognition.reveal.RecognitionRevealWindowRect
 import com.yujian.ai.ui.screens.RecognitionIssueScreen
 import com.yujian.ai.ui.screens.RecognitionProcessingScene
 import com.yujian.ai.ui.screens.RecognitionResultScreen
@@ -388,6 +394,62 @@ class RecognitionFrozenFlowEmulatorTest {
         composeRule.onNodeWithText("继续记忆").performScrollTo().assertIsDisplayed()
         composeRule.onNodeWithText("保存本次鱼获").performScrollTo().assertIsDisplayed()
         assertFalse(composeRule.onAllNodesWithText("已识别").fetchSemanticsNodes().isNotEmpty())
+    }
+
+    @Test
+    fun rr09ResultUsesCatalogLatinNameAndRevealLayerLeavesEarlyActionsTouchable() {
+        val saveCalls = java.util.concurrent.atomic.AtomicInteger()
+        val identity = requireNotNull(high.prediction).top1
+        val catalogEntry = FishGuideItem(
+            id = identity.speciesKey,
+            nameCn = identity.speciesName,
+            scientificName = "Ctenopharyngodon idella",
+        )
+        val handoff = RecognitionRevealHandoff(
+            key = RecognitionRevealKey("runtime-session", "runtime-attempt"),
+            imageId = photo.imageId,
+            photoSourceIdentity = "${photo.imageId}|fixture|${photo.bitmap.width}x${photo.bitmap.height}",
+            normalizedSourceWidth = photo.bitmap.width,
+            normalizedSourceHeight = photo.bitmap.height,
+            sourceOrientationDegreesApplied = 0,
+            trustedDetectorBBox = null,
+            detectorConfidence = null,
+            subjectMaskOrContour = emptyList(),
+            subjectRoiInSource = null,
+            subjectAnchorNormalizedSource = null,
+            contourSourceSpace = "UNAVAILABLE",
+            geometryTrustState = RecognitionGeometryTrustState.MISSING,
+            processingPhotoViewportBounds = null,
+            processingPhotoTransform = null,
+            processingSubjectAnchor = null,
+            resultIdentity = identity.speciesKey,
+            eligibility = RecognitionRevealEligibility.TITLE_FADE_ONLY,
+            handoffTimestampUptimeMs = SystemClock.uptimeMillis(),
+        )
+        composeRule.setContent {
+            YujianTheme {
+                RecognitionResultScreen(
+                    image = photo,
+                    prediction = requireNotNull(high.prediction),
+                    productionResult = high,
+                    availableSpecies = listOf(catalogEntry),
+                    revealHandoff = handoff,
+                    revealElapsedOverrideMs = 290L,
+                    onBack = {},
+                    onRetry = {},
+                    onSave = { _, _, _ -> saveCalls.incrementAndGet() },
+                )
+            }
+        }
+
+        composeRule.onNodeWithTag("recognition-result-species-scientific-name")
+            .assertIsDisplayed()
+        composeRule.onNodeWithText("Ctenopharyngodon idella").assertIsDisplayed()
+        composeRule.onNodeWithText("修改鱼种").assertIsDisplayed().performClick()
+        composeRule.onNodeWithText("选择鱼种").assertIsDisplayed()
+        composeRule.onNodeWithContentDescription("返回").performClick()
+        composeRule.onNodeWithText("保存本次鱼获").performScrollTo().performClick()
+        composeRule.waitUntil(timeoutMillis = 2_000L) { saveCalls.get() == 1 }
     }
 
     @Test

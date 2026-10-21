@@ -38,6 +38,7 @@ import com.yujian.ai.ui.imagery.FishPhotoBoundingBox
 import com.yujian.ai.ui.imagery.FishPhotoCropPlan
 import com.yujian.ai.ui.imagery.FishPhotoCropPlanner
 import com.yujian.ai.ui.imagery.FishPhotoDisplayMode
+import com.yujian.ai.ui.imagery.PhotoCropRect
 import kotlin.math.max
 import kotlin.math.roundToInt
 
@@ -218,6 +219,7 @@ internal fun FishPhotoBitmapImage(
     boundingBox: FishPhotoBoundingBox? = null,
     primaryAmbiguous: Boolean = false,
     allowSubjectCrop: Boolean = true,
+    onRenderGeometry: ((PhotoCropRect?, Boolean) -> Unit)? = null,
     placeholder: @Composable () -> Unit = { FishPhotoErrorPlaceholder() },
 ) {
     BoxWithConstraints(modifier = modifier) {
@@ -305,6 +307,21 @@ internal fun FishPhotoBitmapImage(
             }
         }
         val image = cachedRender ?: rendered
+        val activePlan = image?.plan ?: remember(
+            androidBitmap, width, height, boundingBox, primaryAmbiguous, allowSubjectCrop,
+        ) {
+            FishPhotoCropPlanner.plan(
+                androidBitmap.width,
+                androidBitmap.height,
+                FishPhotoRenderer.outputAspectRatio(width, height),
+                boundingBox,
+                primaryAmbiguous,
+                allowSubjectCrop,
+            )
+        }
+        LaunchedEffect(image?.cacheKey, activePlan) {
+            onRenderGeometry?.invoke(activePlan.cropRect, image != null)
+        }
         if (image == null) {
             Box(Modifier.fillMaxSize()) { placeholder() }
         } else {

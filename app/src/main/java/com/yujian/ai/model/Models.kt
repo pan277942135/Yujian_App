@@ -23,6 +23,8 @@ data class SelectedImage(
     val source: String,
     /** Stable identity shared by original image, crop, feedback and backend assets. */
     val imageId: String = "yj_img_${UUID.randomUUID()}",
+    /** EXIF rotation applied before detection; bitmap coordinates are the normalized source space. */
+    val sourceOrientationDegrees: Int = 0,
 )
 
 data class RecognitionCandidate(

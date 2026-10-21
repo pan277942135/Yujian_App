@@ -118,6 +118,11 @@ object RecognitionImageStore {
             check(oriented.compress(Bitmap.CompressFormat.JPEG, 92, output)) { "无法保存识别照片" }
         }
         check(normalized.exists() && normalized.length() > 0L) { "无法保存识别照片" }
-        return SelectedImage(filePath = normalized.absolutePath, bitmap = oriented, source = source)
+        return SelectedImage(
+            filePath = normalized.absolutePath,
+            bitmap = oriented,
+            source = source,
+            sourceOrientationDegrees = rotation,
+        )
     }
 }
