@@ -20,20 +20,22 @@
     "asset_registry": "design/system_v3/06_Asset_System/Asset_Registry_V3_FINAL.json",
     "data_lineage": "design/system_v3/08_Page_Contracts/recognition/result/Recognition_Result_Data_Lineage_V1.json",
     "quality_copy": "design/system_v3/08_Page_Contracts/recognition/result/ImageQualityCopy_V1.json",
-    "result_motion": "design/pages/recognition/result/motion/Recognition_Result_Motion_Spec_V1.md",
+    "result_motion": "design/pages/recognition/result/motion/Recognition_Result_Motion_Spec_V2.md",
     "recognition_transition": "design/pages/recognition/spec/Recognition_Visual_Fidelity_V1_2.md",
     "responsive_rules": "design/system_v3/07_Responsive_System/Responsive_Rules_V3_FINAL.md",
     "metadata_edit": "design/pages/recognition/result/engineering/metadata_edit_flow_contract.json",
-    "hero_media": "design/pages/recognition/result/media/hero_media_contract.json"
+    "hero_media": "design/pages/recognition/result/media/hero_media_contract.json",
+    "result_motion_v1_baseline": "design/pages/recognition/result/motion/Recognition_Result_Motion_Spec_V1.md"
   },
   "contracts": {
     "visual": "design/system_v3/10_Page_Visual_Acceptance_Contracts/Recognition_Result/Recognition_Result_Visual_Contract_V1.md",
     "pixel_targets": "design/system_v3/10_Page_Visual_Acceptance_Contracts/Recognition_Result/Recognition_Result_Pixel_Targets_V1.json",
     "component_anchor_map": "design/system_v3/10_Page_Visual_Acceptance_Contracts/Recognition_Result/Recognition_Result_Component_Anchor_Map_V1.json",
     "state_visual_matrix": "design/system_v3/10_Page_Visual_Acceptance_Contracts/Recognition_Result/Recognition_Result_State_Visual_Matrix_V1.json",
-    "motion": "design/system_v3/10_Page_Visual_Acceptance_Contracts/Recognition_Result/Recognition_Result_Motion_Contract_V1.md",
+    "motion": "design/system_v3/10_Page_Visual_Acceptance_Contracts/Recognition_Result/Recognition_Result_Motion_Contract_V2.md",
     "accessibility": "design/system_v3/10_Page_Visual_Acceptance_Contracts/Recognition_Result/Recognition_Result_Accessibility_Contract_V1.md",
-    "runtime_gate": "design/system_v3/10_Page_Visual_Acceptance_Contracts/Recognition_Result/Recognition_Result_Runtime_Gate_V1.md"
+    "runtime_gate": "design/system_v3/10_Page_Visual_Acceptance_Contracts/Recognition_Result/Recognition_Result_Runtime_Gate_V1.md",
+    "motion_v1_baseline": "design/system_v3/10_Page_Visual_Acceptance_Contracts/Recognition_Result/Recognition_Result_Motion_Contract_V1.md"
   },
   "required_state_ids": [
     "HIGH_CONFIDENCE",
