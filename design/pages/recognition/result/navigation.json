@@ -188,7 +188,10 @@
         "850 ms total reveal and afterglow fade",
         "High-only trigger, no replay, Reduce Motion and low-performance fallbacks",
         "No new product state; runtime remains NOT_RUN"
-      ]
+      ],
+      "playable_prototype": "design/manager/rr09_motion/",
+      "provenance_fixture": "design/manager/rr09_motion/fixture.json",
+      "prototype_status": "BROWSER_REVIEW_PENDING"
     }
   ],
   "status": "IMPLEMENTATION_READY",
