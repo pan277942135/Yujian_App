@@ -5,7 +5,7 @@
 **Structure handoff:** PR #164, HEAD `06308bd21e175e321e9f345dbf18174f5e0134f9`
 **Implementation starting HEAD:** `25b8c4d50b2d979e380dd76bdb38cde8b80f5f2c`
 
-This revision supersedes the V2 layout/runtime behavior for the active Gemini Normal Home route. It retains the same approved bitmap sources and the avatar-specific V2 policy override.
+This revision supersedes the V2 layout/runtime behavior for the active Gemini Normal Home route. The legacy V2 avatar bitmap is preserved for rollback/provenance but NH01's displayed avatar is superseded by `NH01_Avatar_Visual_Contract_V1_1_FROZEN.md` (thin mist-glass silhouette).
 
 ## Authority and implementation boundary
 
@@ -43,7 +43,8 @@ The Morning Lake master already contains the mountain-mist scene. The Compose la
 | Brand title | `brand_title_primary.png`, SHA-256 `2dd41f5138e88e3bd48178dd26a15dfbb29c434536e4e3cc887fe2db13bdfddc` |
 | Camera | `normal_home_camera_primary_v1.png`, SHA-256 `fb6417e372d08328ac8559d004d1c6f5b03fc17551646be46031df641660e8f2` |
 | Fish card material | registered gradient, outline, and shadow runtime derivatives |
-| Default avatar | original `normal_home_default_avatar_v2.png`, 1254×1254, SHA-256 `fe94b11ba9f6c0635cd230bcc786fd2ea9a64d1a6f512dc6078556379676f528` |
+| NH01 current default avatar | Compose mist-glass silhouette, authority `NH01_Avatar_Visual_Contract_V1_1_FROZEN.md` |
+| Legacy V2 avatar preserved | `normal_home_default_avatar_v2.png`, 1254×1254, SHA-256 `fe94b11ba9f6c0635cd230bcc786fd2ea9a64d1a6f512dc6078556379676f528` |
 
 The page binds the real `species_count`, `catch_count`, `record_days`, `catch_image`, `species_name`, `length_cm`, `weight_kg`, `captured_at`, `location`, and `catch_id` values. The screenshot-matching evidence fixture uses 3 species, 3 catches, 1 record day, and the first 草鱼 record at 42.6 cm / 1.28 kg / 浙江 · 千岛湖 with the same registered `sample_recent_catch.jpg` photo as the baseline screenshot.
 
@@ -51,13 +52,15 @@ The pager has exactly one page per distinct valid stable `catch_id`: counts 0, 1
 
 Fish photos use `RemoteImage(preserveEvidenceWithFitBackdrop = true)`: the source photo remains fully visible with `Fit`, and a blurred crop of that same decoded source fills the remaining area. While blur is prepared, a same-source `Crop` fills the background so no flat gray letterbox appears. The crop is behind the unchanged fitted photo; source bytes, fish subject, and foreground dimensions are not edited or cropped. Successful decoded sources are held in a bounded process memory cache whose key hashes (and does not retain) the authorization token.
 
-## Avatar validation-page policy
+## Avatar validation-page policy — frozen V1.1 supersedes legacy V2 visual
 
-The visible arrow/tower-like mark in PR #167's baseline API 28 screenshot (`NH01_Android_Runtime_1080x1920.png`, source `08ed847e711f8c7accd4ebba08a74e55e756882f`, run `39247751377`) was traced to the signed-in fallback branch: `HomeScreen` supplied the active session, `NormalHomeHeader` selected `NormalHomeDefaultAvatar`, and that function painted `R.drawable.nh07_default_avatar_3x_192` (SHA-256 `b79dc7eaa6da78722cedb240b35985871c422531b3d452efaa5fba9aa3eeb7c2`). At capture time that raster was visible; the screenshot cannot distinguish a missing URL from a still-pending or failed remote load. The separate old Guest branch used `NormalHomeRuntimeAssets.guestAvatar` → `normal_home_runtime_v1/avatar/guest_avatar.png` (SHA-256 `8a6219ee213af8693e7ca4ff39684fad607c0be891c6c5f31872f96a6ca0120b`). The Gemini runtime asset bundle does not load either old image.
+The prior fallback implementation on **this NH01 Gemini V3 validation page only** used a **local visual-policy override** binding `normal_home_default_avatar_v2.png` (SHA-256 `fe94b11ba9f6c0635cd230bcc786fd2ea9a64d1a6f512dc6078556379676f528`). That registered legacy image remains byte-identical in the repository, and the global Guest avatar manifest remains unchanged, but the V2 image is **not** displayed as the current NH01 default.
 
-For this NH01 Gemini V3 validation page only, both Guest and signed-in accounts without a usable remote avatar show the exact approved Home V2 bitmap named above. This is an explicit local visual-policy override: the existing global Home V2 and shared profile avatar manifests retain their separate Guest mapping. A usable signed-in remote avatar is drawn over the V2 fallback with circular clipping and `ContentScale.Crop`; while it loads, fails, or is replaced by another account, the V2 bitmap remains below it. URL, token, and signed-in state key the remote layer so logout or account switches cannot retain the previous account's image. Guest taps call login/register; signed-in taps call profile center.
+Authoritative current NH01 visual: `NH01_Avatar_Visual_Contract_V1_1_FROZEN.md`. Draw a 36–40dp Compose mist circle (`#EEF3F2`, alpha 36%) with a 0.8dp white outline (48% alpha) and a calm deep-lake line-drawn head/shoulders (`#214454`, stroke 1.65dp). Derive artwork size from safe window width, never height; the independent click target remains >=48dp. No thick white bezel, plastic gloss, harsh reflection, shadow, or decorative animation.
 
-The avatar is checked in three independent ways: the visual resource/crop, the circular visual boundary, and the clickable target bounds/action. The avatar button has a minimum 48dp target.
+Guest and missing/failed/loading-photo states use the same mist silhouette. A valid signed-in user photograph overlays it with circular crop and retains the thin rim. Remote-photo URL, access token and signed-in status continue to key the overlay, avoiding stale cross-account images. Guest taps invoke login/register; signed-in taps open profile. The avatar change must not affect any non-avatar Adaptive V2 geometry.
+
+Runtime screenshot + `boundsInWindow` + real-image/fallback/login interactions and exact-SHA Android CI are required before declaring Android implementation accepted.
 
 ## Responsive rules
 
