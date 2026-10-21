@@ -190,11 +190,11 @@
 
   function edgeRibbonGradientMarkup(id, x1, y1, x2, y2, baseColor, hotColor) {
     const stops = [
-      [0.00, baseColor, 0.82],
-      [0.10, hotColor, 0.90],
-      [0.28, baseColor, 0.84],
-      [0.56, baseColor, 0.58],
-      [0.82, baseColor, 0.25],
+      [0.00, baseColor, 0.90],
+      [0.08, hotColor, 0.95],
+      [0.30, baseColor, 0.92],
+      [0.58, baseColor, 0.78],
+      [0.84, baseColor, 0.42],
       [1.00, baseColor, 0.00]
     ].map(stop =>
       '<stop offset="' + number(stop[0] * 100) + '%" stop-color="' + stop[1] +
