@@ -18,11 +18,11 @@ class AdaptiveMatrixAggregateTest(unittest.TestCase):
     def setUp(self) -> None:
         self.temp = tempfile.TemporaryDirectory()
         self.raw = Path(self.temp.name)
-        Image.new("RGB", (320, 640), "#668899").save(self.raw / "M01-adaptive_v1.png")
+        Image.new("RGB", (320, 640), "#668899").save(self.raw / "M01-adaptive_v2.png")
         self.payload = {
             "status": "PASS",
             "execution_mode": "ANDROID_API28_RUNTIME",
-            "layout_variant": "ADAPTIVE_V1",
+            "layout_variant": "ADAPTIVE_V2",
             "source_commit": "a" * 40,
             "system_font_scale": 1.0,
             "density_dpi": 160,
@@ -49,7 +49,7 @@ class AdaptiveMatrixAggregateTest(unittest.TestCase):
                 "swipe_reached_second_id": True,
                 "required_card_text_accessible": True,
             },
-            "screenshots": {"initial": "M01-adaptive_v1.png"},
+            "screenshots": {"initial": "M01-adaptive_v2.png"},
         }
 
     def tearDown(self) -> None:
@@ -57,14 +57,14 @@ class AdaptiveMatrixAggregateTest(unittest.TestCase):
 
     def test_accepts_actual_runtime_report_with_complete_two_catch_evidence(self) -> None:
         self.assertEqual([], validate_case(
-            self.payload, "M01", 320, 640, 1.0, "ADAPTIVE_V1", "a" * 40, self.raw,
+            self.payload, "M01", 320, 640, 1.0, "ADAPTIVE_V2", "a" * 40, self.raw,
         ))
 
     def test_rejects_wrong_shape_and_duplicate_or_missing_catch_identity(self) -> None:
         self.payload["metrics"]["card_aspect_ratio"] = 0.71
         self.payload["data"]["catch_ids"] = ["nh01-catch-001", "nh01-catch-001"]
         problems = validate_case(
-            self.payload, "M01", 320, 640, 1.0, "ADAPTIVE_V1", "a" * 40, self.raw,
+            self.payload, "M01", 320, 640, 1.0, "ADAPTIVE_V2", "a" * 40, self.raw,
         )
         self.assertTrue(any("card ratio" in problem for problem in problems), problems)
         self.assertTrue(any("two-catch IDs/uniqueness" in problem for problem in problems), problems)
@@ -112,8 +112,8 @@ class AdaptiveMatrixAggregateTest(unittest.TestCase):
     def test_invalid_execution_json_is_reported_as_failure(self) -> None:
         execution_dir = self.raw / "executions"
         execution_dir.mkdir()
-        (execution_dir / "M01-adaptive_v1.json").write_text("{bad json", encoding="utf-8")
-        record = read_execution(execution_dir, "M01", "ADAPTIVE_V1")
+        (execution_dir / "M01-adaptive_v2.json").write_text("{bad json", encoding="utf-8")
+        record = read_execution(execution_dir, "M01", "ADAPTIVE_V2")
         self.assertEqual("FAIL", classify_execution(record)[0])
         self.assertEqual("EXECUTION_RECORD_JSON_INVALID", classify_execution(record)[1])
 
@@ -123,14 +123,14 @@ class AdaptiveMatrixAggregateTest(unittest.TestCase):
         output = self.raw / "output"
         raw.mkdir()
         execution.mkdir()
-        (raw / "M01-adaptive_v1.json").write_text(
+        (raw / "M01-adaptive_v2.json").write_text(
             '{"status":"FAIL","failure_stage":"WAIT_FOR_MAIN_CATCH_CARD"}', encoding="utf-8",
         )
-        (execution / "M01-adaptive_v1.json").write_text(
+        (execution / "M01-adaptive_v2.json").write_text(
             '{"status":"FAIL","exit_code":1,"reason":"TEST_ASSERTION_FAILED: WAIT_FOR_MAIN_CATCH_CARD"}',
             encoding="utf-8",
         )
-        contract = Path(__file__).resolve().parents[3] / "design/qa/NH01_ADAPTIVE_VISUAL_BALANCE_V1.md"
+        contract = Path(__file__).resolve().parents[3] / "design/qa/NH01_ADAPTIVE_VISUAL_BALANCE_V2.md"
         arguments = [
             "aggregate_nh01_adaptive_matrix.py", "--raw-dir", str(raw),
             "--execution-dir", str(execution), "--output-dir", str(output),
