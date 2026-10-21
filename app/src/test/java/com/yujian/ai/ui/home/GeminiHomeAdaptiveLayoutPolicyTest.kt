@@ -7,6 +7,15 @@ import org.junit.Test
 
 class GeminiHomeAdaptiveLayoutPolicyTest {
     @Test
+    fun mistAvatarUsesFrozenWidthOnlySizingAndDoesNotShrinkOnLargerScreens() {
+        assertEquals(36f, geminiHomeAvatarVisualSize(320f), 0.001f)
+        assertEquals(36f, geminiHomeAvatarVisualSize(360f), 0.001f)
+        assertEquals(39f, geminiHomeAvatarVisualSize(390f), 0.001f)
+        assertEquals(40f, geminiHomeAvatarVisualSize(430f), 0.001f)
+        assertEquals(40f, geminiHomeAvatarVisualSize(560f), 0.001f)
+    }
+
+    @Test
     fun screenBandRemainsDiagnosticWhileAdaptiveSpacingUsesContinuousInputs() {
         assertEquals(GeminiHomeScreenBand.COMPACT, resolve(320f, 915f).band)
         assertEquals(GeminiHomeScreenBand.COMPACT, resolve(393f, 640f).band)
