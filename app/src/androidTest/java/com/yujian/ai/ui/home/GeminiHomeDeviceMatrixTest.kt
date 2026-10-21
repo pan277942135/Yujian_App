@@ -233,7 +233,7 @@ class GeminiHomeDeviceMatrixTest {
             "gemini-home-screen", "gemini-home-brand-title", "gemini-home-header-bar", "gemini-home-stats-bar",
             "gemini-home-section-title", "gemini-home-middle-section", "gemini-home-carousel-track",
             "gemini-home-catch-card-nh01-catch-001", "gemini-home-catch-neighbor-nh01-catch-002",
-            "gemini-home-footer-cta", "gemini-home-cta-label", "gemini-home-camera",
+            "gemini-home-footer-cta", "gemini-home-cta-label", "gemini-home-camera", "gemini-home-camera-art",
             "gemini-home-catch-species-nh01-catch-001", "gemini-home-catch-measurement-nh01-catch-001",
             "gemini-home-catch-metadata-nh01-catch-001",
         )
@@ -255,6 +255,8 @@ class GeminiHomeDeviceMatrixTest {
         val footer = rect("gemini-home-footer-cta").toDp(profile.density)
         val cta = rect("gemini-home-cta-label").toDp(profile.density)
         val camera = rect("gemini-home-camera").toDp(profile.density)
+        val cameraArt = rect("gemini-home-camera-art").toDp(profile.density)
+        val expectedCameraArtSize = geminiHomeCameraVisualSize(safeWidthDp, safeHeightDp)
         val brand = rect("gemini-home-brand-title").toDp(profile.density)
         val stats = rect("gemini-home-stats-bar").toDp(profile.density)
         val sectionTitleCardGap = activeCard.top - title.bottom
@@ -284,7 +286,12 @@ class GeminiHomeDeviceMatrixTest {
             assertTrue("brand-to-stats gap follows the active layout policy: $headerToStatsGap dp",
                 abs(headerToStatsGap - requireNotNull(layoutSpec.brandToStatsGap).value) <= 2f)
         }
-        assertTrue("camera hit target is at least 48dp", camera.width() >= 48f && camera.height() >= 48f)
+        assertTrue("camera touch target remains at least 72dp", camera.width() >= 72f && camera.height() >= 72f)
+        assertTrue(
+            "visible camera artwork follows width/height-aware policy: expected=$expectedCameraArtSize dp actual=$cameraArt",
+            abs(cameraArt.width() - expectedCameraArtSize) <= 2f &&
+                abs(cameraArt.height() - expectedCameraArtSize) <= 2f,
+        )
         assertTrue("CTA and camera must not overlap", cta.bottom <= camera.top + 1f)
         assertTrue("camera stays above the actual bottom safe inset",
             camera.bottom <= root.bottom - profile.insets.bottom.value + 1f)
