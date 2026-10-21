@@ -18,7 +18,7 @@ class AdaptiveMatrixAggregateTest(unittest.TestCase):
     def setUp(self) -> None:
         self.temp = tempfile.TemporaryDirectory()
         self.raw = Path(self.temp.name)
-        Image.new("RGB", (320, 640), "#668899").save(self.raw / "M01-adaptive_v2.png")
+        Image.new("RGB", (320, 480), "#668899").save(self.raw / "M01-adaptive_v2.png")
         self.payload = {
             "status": "PASS",
             "execution_mode": "ANDROID_API28_RUNTIME",
@@ -26,7 +26,7 @@ class AdaptiveMatrixAggregateTest(unittest.TestCase):
             "source_commit": "a" * 40,
             "system_font_scale": 1.0,
             "density_dpi": 160,
-            "display_resolution_px": [320, 640],
+            "display_resolution_px": [320, 480],
             "bounds_in_window_px": {
                 name: {"left": 0, "top": 0, "right": 1, "bottom": 1}
                 for name in (
@@ -57,7 +57,7 @@ class AdaptiveMatrixAggregateTest(unittest.TestCase):
 
     def test_accepts_actual_runtime_report_with_complete_two_catch_evidence(self) -> None:
         self.assertEqual([], validate_case(
-            self.payload, "M01", 320, 640, 1.0, "ADAPTIVE_V2", "a" * 40, self.raw,
+            self.payload, "M01", 320, 480, 1.0, "ADAPTIVE_V2", "a" * 40, self.raw,
         ))
 
     def test_rejects_wrong_shape_and_duplicate_or_missing_catch_identity(self) -> None:
