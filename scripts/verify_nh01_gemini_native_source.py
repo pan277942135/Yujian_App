@@ -68,7 +68,20 @@ def main() -> None:
     checks.append(("home_hero_uses_shared_smart_fish_photo_path", "smartFishPhoto = true" in page and "fishPhotoSourceVersion = item.id" in page and "FishPhotoRenderer.render(" in remote_image, "GeminiNormalHomeContent.kt + RemoteImage.kt"))
     checks.append(("home_hero_uses_adaptive_bounded_aspect_policy", "GeminiHomeCardAspectRatio = 247f / 293f" in page and "layoutSpec.maxCardHeight" in page and "availableCardHeight" in page and "geminiHomeCardWidth(trackWidth.value, layoutSpec)" in page, "GeminiNormalHomeContent.kt"))
     checks.append(("section_title_and_main_card_use_policy_gap", "layoutSpec.titleToCardGap.value" in page and "measuredTitleHeightPx" in page and "measuredTitleHeightDp" in page, "GeminiNormalHomeContent.kt"))
-    checks.append(("adaptive_policy_has_frozen_candidate_width_breakpoints_and_gaps", "ADAPTIVE_CARD_WIDTH_FRACTION = 0.76f" in (ROOT / "app/src/main/java/com/yujian/ai/ui/home/GeminiHomeAdaptiveLayoutPolicy.kt").read_text() and "safeWidthDp < 360f || safeHeightDp < 700f" in (ROOT / "app/src/main/java/com/yujian/ai/ui/home/GeminiHomeAdaptiveLayoutPolicy.kt").read_text(), "GeminiHomeAdaptiveLayoutPolicy.kt"))
+    policy_text = (ROOT / "app/src/main/java/com/yujian/ai/ui/home/GeminiHomeAdaptiveLayoutPolicy.kt").read_text()
+    checks.append((
+        "adaptive_v2_is_content_first_and_keeps_v3_comparison",
+        "ADAPTIVE_V2_CARD_WIDTH_FRACTION = 0.70f" in policy_text
+        and "ADAPTIVE_V2_CARD_MAX_WIDTH = 337.2.dp" in policy_text
+        and "fontPressure" in policy_text
+        and "shortHeightPressure" in policy_text
+        and "adaptiveV2MinimumCardHeightDp" in policy_text
+        and "geminiHomeResolvedCardHeight" in policy_text
+        and "contentFirstSizing = true" in policy_text
+        and "GeminiHomeLayoutVariant.ADAPTIVE_V2" in home_screen
+        and "GeminiHomeLayoutVariant.ADAPTIVE_V2" in page,
+        "GeminiHomeAdaptiveLayoutPolicy.kt + HomeScreen.kt + GeminiNormalHomeContent.kt",
+    ))
     checks.append(("font_scaled_title_gap_uses_measured_text_bounds", "measuredTitleHeightPx" in page and "onTitleMeasuredHeight" in page and "measuredTitleHeightDp" in page, "GeminiNormalHomeContent.kt"))
     checks.append(("neighbor_cards_keep_top_offset_and_height", "GeminiHomeNeighborHeightFraction = 0.667f" in page and "GeminiHomePeekTopOffset = 15.dp" in page and "translationY = if (active) 0f else neighborTranslationY" in page, "GeminiNormalHomeContent.kt"))
     policy = (ROOT / "app/src/main/java/com/yujian/ai/ui/home/GeminiHomeAdaptiveLayoutPolicy.kt").read_text()
