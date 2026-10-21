@@ -186,7 +186,10 @@ private fun adaptiveV2MinimumCardHeightDp(
     val targetCardWidthDp = minOf(safeWidthDp * ADAPTIVE_V2_CARD_WIDTH_FRACTION, ADAPTIVE_V2_CARD_MAX_WIDTH.value)
     val wrapAuxiliary = fontScale >= 1.3f || targetCardWidthDp < 240f
     val auxiliaryLines = if (wrapAuxiliary) 2f else 1f
-    val metadataLineCount = if (wrapAuxiliary) 3f else 1f
+    // The active catch may contain a long region/location string even when the
+    // viewport is wide. Reserve three lines in the compact-height budget; Text
+    // consumes only the lines actually needed, so this adds no visual blank space.
+    val metadataLineCount = 3f
     val speciesLines = if (wrapAuxiliary) 2f else 1f
     val speciesLine = safeHeightDp.times(0.036f).coerceIn(20f, 26f) *
         viewportScale * 1.2f * fontScale * speciesLines
@@ -258,7 +261,7 @@ internal fun geminiHomeMetadataMaxLines(
 ): Int {
     val wraps = geminiHomeShouldWrapAuxiliaryText(cardWidthDp, fontScale, variant)
     return when {
-        variant == GeminiHomeLayoutVariant.ADAPTIVE_V2 && wraps -> 3
+        variant == GeminiHomeLayoutVariant.ADAPTIVE_V2 -> 3
         wraps -> 2
         else -> 1
     }
