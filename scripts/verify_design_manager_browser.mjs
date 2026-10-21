@@ -165,7 +165,7 @@ async function main() {
   const defaultLayout = await previewPage.evaluate(() => window.NH01GeminiPreviewLayout);
   assert(previewAudit?.status === "PASS", `Gemini preview asset integrity failed: ${JSON.stringify(previewAudit)}`);
   assert(defaultLayout?.variant === "ADAPTIVE_V2" && defaultLayout?.layout_version === "CONTENT_FIRST_V2", "Gemini preview must default to the content-first Adaptive V2 candidate");
-  assert(defaultLayout?.safe_insets_dp?.top === 24 && defaultLayout?.safe_insets_dp?.bottom === 48,
+  assert(defaultLayout?.safe_insets_dp?.top === 24 && defaultLayout?.safe_insets_dp?.bottom === 24,
     `Gemini preview must model the API28 safe insets: ${JSON.stringify(defaultLayout?.safe_insets_dp)}`);
   assert(defaultLayout?.card_height_dp > 0 && defaultLayout?.card_width_dp > 0,
     `Gemini preview must resolve card geometry: ${JSON.stringify(defaultLayout)}`);
@@ -200,21 +200,67 @@ async function main() {
   assert(selectedCard?.target === "#mainCatchCard" && selectedCard?.status === "BLOCKED",
     `Hero photo provenance must remain visibly blocked on the selected card: ${JSON.stringify(selectedCard)}`);
 
-  // Five side-by-side logical viewports must render once each without recursively spawning more matrices.
+  // Five logical viewports must expose real measured geometry, not just load successfully.
   assert(await previewPage.locator(".responsive-frame").count() === 5, "Responsive comparison must expose exactly five viewport frames");
+  await previewPage.waitForFunction(
+    () => [...document.querySelectorAll(".responsive-frame")].every(frame =>
+      frame.contentWindow?.NH01GeminiPreviewLayoutReady === true),
+    { timeout: 15000 },
+  );
+  const typographyByViewport = {};
   for (const [width, height] of [[320,480],[360,640],[390,844],[430,932],[600,960]]) {
     const frame = previewPage.frameLocator(`iframe[data-viewport="${width}x${height}"]`);
     await frame.locator("#device").waitFor({ state: "visible", timeout: 15000 });
-    const frameState = await frame.locator("#device").evaluate(node => ({
-      width: node.offsetWidth, height: node.offsetHeight,
-      scale: getComputedStyle(document.documentElement).getPropertyValue("--font-scale").trim(),
-      nestedMatrixFrames: document.querySelectorAll('iframe[src*="mode=matrix"]').length
-    }));
+    const frameState = await frame.locator("#device").evaluate(node => {
+      const box = selector => {
+        const element = document.querySelector(selector);
+        if (!element) return null;
+        const rect = element.getBoundingClientRect();
+        return {
+          left: rect.left, top: rect.top, right: rect.right, bottom: rect.bottom,
+          width: rect.width, height: rect.height
+        };
+      };
+      return {
+        width: node.offsetWidth, height: node.offsetHeight,
+        scale: getComputedStyle(document.documentElement).getPropertyValue("--font-scale").trim(),
+        nestedMatrixFrames: document.querySelectorAll('iframe[src*="mode=matrix"]').length,
+        ready: window.NH01GeminiPreviewLayoutReady === true,
+        layout: window.NH01GeminiPreviewLayout,
+        bounds: {
+          main: box(".main-card"), left: box(".neighbor-left"), right: box(".neighbor-right"),
+          footer: box("#footerSection"), camera: box("#cameraButton")
+        }
+      };
+    });
     assert(frameState.width === width && frameState.height === height,
       `Responsive frame ${width}x${height} must render its declared logical viewport: ${JSON.stringify(frameState)}`);
     assert(frameState.nestedMatrixFrames === 0,
       `Responsive frame ${width}x${height} must not recursively load another matrix: ${JSON.stringify(frameState)}`);
+    assert(frameState.ready && frameState.layout?.safe_insets_dp?.bottom === 24,
+      `Responsive frame ${width}x${height} must use current 24dp bottom safe inset: ${JSON.stringify(frameState)}`);
+    const { main, left, right, camera } = frameState.bounds;
+    assert(main && left && right &&
+      left.right <= main.left - 7 && right.left >= main.right + 7,
+      `Peek cards must not overlap the active card at ${width}x${height}: ${JSON.stringify(frameState.bounds)}`);
+    assert(left.width <= main.width * 0.35 + 1 && right.width <= main.width * 0.35 + 1,
+      `Peek cards must remain visually subordinate at ${width}x${height}: ${JSON.stringify(frameState.bounds)}`);
+    assert(Math.abs(left.top - main.top - 15) <= 1.5 &&
+      Math.abs(right.top - main.top - 15) <= 1.5 &&
+      Math.abs(left.height / main.height - 0.67) <= 0.02 &&
+      Math.abs(right.height / main.height - 0.67) <= 0.02,
+      `Peek-card geometry must preserve the 15dp top offset and 67% height at ${width}x${height}: ${JSON.stringify(frameState.bounds)}`);
+    if (width === 320 && height === 480 && frameState.scale === "1") {
+      assert(frameState.layout.needs_scroll === false,
+        `320x480 at default font scale must fit without a middle scroll viewport: ${JSON.stringify(frameState.layout)}`);
+      assert(camera && height - camera.bottom <= 27,
+        `320x480 footer must not have excess blank space below the camera target: ${JSON.stringify(frameState.bounds)}`);
+    }
+    typographyByViewport[`${width}x${height}`] = frameState.layout?.typography_sizes_dp?.species;
   }
+  assert(typographyByViewport["390x844"] > typographyByViewport["360x640"] &&
+    typographyByViewport["430x932"] > typographyByViewport["390x844"],
+    `Species typography must grow with larger/taller viewports: ${JSON.stringify(typographyByViewport)}`);
   await previewPage.locator("#matrixFontScale").selectOption("1.5");
   const largestFrame = previewPage.frameLocator('iframe[data-viewport="390x844"]');
   await largestFrame.locator("#device").waitFor({ state: "visible", timeout: 15000 });
@@ -299,8 +345,8 @@ async function main() {
     const selectors = {
       brand: "#assetBrand", header: ".header-bar", stats: ".stats-bar",
       sectionTitle: ".section-title", middle: "#middleSection", carousel: "#carouselWindow",
-      mainCard: ".main-card", footer: "#footerSection", ctaLabel: ".cta-label",
-      cameraButton: "#cameraButton", cameraArt: ".camera-art"
+      mainCard: ".main-card", leftPeek: ".neighbor-left", rightPeek: ".neighbor-right",
+      footer: "#footerSection", ctaLabel: ".cta-label", cameraButton: "#cameraButton", cameraArt: ".camera-art"
     };
     const result = {};
     for (const [key, selector] of Object.entries(selectors)) {
@@ -320,6 +366,8 @@ async function main() {
   const footerBounds = canvasBounds.footer;
   const cameraBounds = canvasBounds.cameraButton;
   const cameraArtBounds = canvasBounds.cameraArt;
+  const leftPeekBounds = canvasBounds.leftPeek;
+  const rightPeekBounds = canvasBounds.rightPeek;
   const expectedCameraVisual = Math.max(56, Math.min(Math.min(canvasLayout.safe_width_dp, 560) * 0.18, canvasLayout.safe_height_dp * 0.10, 80));
   const expectedCameraTouch = Math.max(72, expectedCameraVisual);
   assert(Math.abs(canvasLayout.camera_visual_size_dp - expectedCameraVisual) <= 0.01 &&
@@ -330,6 +378,17 @@ async function main() {
     `Adaptive V2 main card must remain within the canvas and preserve its aspect ratio: ${JSON.stringify(canvasBounds)}`);
   assert(titleBounds && cardBounds.top >= titleBounds.bottom - 1,
     `Adaptive V2 card must not overlap the section title: ${JSON.stringify(canvasBounds)}`);
+  assert(leftPeekBounds && rightPeekBounds &&
+    leftPeekBounds.right <= cardBounds.left - 7 && rightPeekBounds.left >= cardBounds.right + 7,
+    `Left/right peek cards must not overlap the active card: ${JSON.stringify(canvasBounds)}`);
+  assert(leftPeekBounds.width <= cardBounds.width * 0.35 + 1 &&
+    rightPeekBounds.width <= cardBounds.width * 0.35 + 1,
+    `Peek cards must remain visually subordinate to the active card: ${JSON.stringify(canvasBounds)}`);
+  assert(Math.abs(leftPeekBounds.top - cardBounds.top - 15) <= 1.5 &&
+    Math.abs(rightPeekBounds.top - cardBounds.top - 15) <= 1.5 &&
+    Math.abs(leftPeekBounds.height / cardBounds.height - 0.67) <= 0.02 &&
+    Math.abs(rightPeekBounds.height / cardBounds.height - 0.67) <= 0.02,
+    `Peek cards must preserve the 15dp offset and 67% height: ${JSON.stringify(canvasBounds)}`);
   assert(footerBounds && cardBounds.bottom <= footerBounds.top + 1,
     `Adaptive V2 scrollable content must not cover the fixed footer: ${JSON.stringify(canvasBounds)}`);
   assert(cameraBounds && Math.abs(cameraBounds.width - expectedCameraTouch) <= 1 &&
