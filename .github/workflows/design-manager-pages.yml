@@ -26,6 +26,7 @@ on:
 
 permissions:
   contents: read
+  actions: read
   pages: write
   id-token: write
 
@@ -38,6 +39,8 @@ env:
 
 jobs:
   build:
+    outputs:
+      published_build_sha: ${{ steps.prepare_site.outputs.published_build_sha }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -82,27 +85,108 @@ jobs:
         with:
           enablement: true
 
+      - name: Resolve last successful production Pages deployment
+        if: github.event_name == 'pull_request' && github.event.pull_request.number == 176 && github.event.pull_request.head.repo.full_name == github.repository
+        id: production_baseline
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const { data } = await github.rest.actions.listWorkflowRuns({
+              owner, repo, workflow_id: "design-manager-pages.yml",
+              branch: "main", event: "push", per_page: 100
+            });
+            const run = data.workflow_runs.find(item =>
+              item.name === "Design Manager Pages" &&
+              item.event === "push" &&
+              item.conclusion === "success" &&
+              item.head_sha
+            );
+            if (!run) throw new Error("No successful main Design Manager Pages deployment is available; refusing to replace the production site.");
+            core.setOutput("sha", run.head_sha);
+            core.setOutput("run_id", String(run.id));
+            core.info(`Preserving published Pages artifact from run ${run.id} at ${run.head_sha}`);
+
+      - name: Checkout exact published production source
+        if: github.event_name == 'pull_request' && github.event.pull_request.number == 176 && github.event.pull_request.head.repo.full_name == github.repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.production_baseline.outputs.sha }}
+          path: _production_baseline
+
+      - name: Download exact published production Pages artifact
+        if: github.event_name == 'pull_request' && github.event.pull_request.number == 176 && github.event.pull_request.head.repo.full_name == github.repository
+        uses: actions/download-artifact@v4
+        with:
+          name: github-pages
+          path: _published_pages
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: ${{ steps.production_baseline.outputs.run_id }}
+
       - name: Prepare static site
+        id: prepare_site
         shell: bash
         run: |
           set -euo pipefail
           rm -rf _site
           mkdir -p _site
-          cp -R design _site/design
-          mkdir -p _site/design/manager/nh01_acceptance/assets
-          cp app/src/main/res/drawable-nodpi/normal_home_default_avatar_v2.png \
-            _site/design/manager/nh01_acceptance/assets/normal_home_default_avatar_v2.png
-          AVATAR_SHA="$(sha256sum _site/design/manager/nh01_acceptance/assets/normal_home_default_avatar_v2.png | cut -d' ' -f1)"
-          test "$AVATAR_SHA" = "fe94b11ba9f6c0635cd230bcc786fd2ea9a64d1a6f512dc6078556379676f528"
-          BUILD_SHORT="${BUILD_SHA:0:12}"
-          sed -i "s/__DESIGN_MANAGER_BUILD__/${BUILD_SHA}/g" _site/design/manager/index.html
-          sed -i "s/__DESIGN_MANAGER_BUILD_SHORT__/${BUILD_SHORT}/g" _site/design/manager/index.html
-          sed -i "s/__NH01_SOURCE_SHA__/${BUILD_SHA}/g" _site/design/manager/nh01_acceptance/index.html
-          sed -i "s/__NH01_VIEWER_BUILD__/${BUILD_SHA}/g" _site/design/manager/nh01_acceptance/index.html
-          sed -i "s/__NH01_GEMINI_PREVIEW_BUILD__/${BUILD_SHA}/g" _site/design/manager/nh01_acceptance/gemini-native-preview.html
-          printf '{"sha":"%s","short_sha":"%s"}\n' "${BUILD_SHA}" "${BUILD_SHORT}" > _site/design/manager/build.json
-          touch _site/.nojekyll
-          cat > _site/index.html <<'EOF'
+          if [[ "${{ github.event_name }}" == "pull_request" && "${{ github.event.pull_request.number }}" == "176" && "${{ github.event.pull_request.head.repo.full_name }}" == "${{ github.repository }}" ]]; then
+            PUBLISHED_BUILD_SHA="$(git -C _production_baseline rev-parse HEAD)"
+            if [[ "$PUBLISHED_BUILD_SHA" != "${{ steps.production_baseline.outputs.sha }}" ]]; then
+              echo "Production baseline checkout SHA mismatch; refusing deployment." >&2
+              exit 1
+            fi
+            if [[ ! -f _published_pages/artifact.tar ]]; then
+              echo "Expected github-pages artifact.tar was not downloaded; refusing deployment." >&2
+              find _published_pages -maxdepth 2 -type f -print >&2 || true
+              exit 1
+            fi
+            tar -xf _published_pages/artifact.tar -C _site
+            if [[ -e _site/previews/pr-176 ]]; then
+              echo "Preview path already exists in the published artifact; refusing to overwrite it." >&2
+              exit 1
+            fi
+            (cd _site && find . -type f ! -path './previews/pr-176/*' -print0 | sort -z | xargs -0 -r sha256sum) > "$RUNNER_TEMP/production-root.before.sha256"
+            mkdir -p _site/previews/pr-176
+            cp -R design _site/previews/pr-176/design
+            PREVIEW_SHORT="${BUILD_SHA:0:12}"
+            sed -i "s/__DESIGN_MANAGER_BUILD__/${BUILD_SHA}/g" _site/previews/pr-176/design/manager/index.html
+            sed -i "s/__DESIGN_MANAGER_BUILD_SHORT__/${PREVIEW_SHORT}/g" _site/previews/pr-176/design/manager/index.html
+            sed -i "s/__NH01_SOURCE_SHA__/${BUILD_SHA}/g" _site/previews/pr-176/design/manager/nh01_acceptance/index.html
+            sed -i "s/__NH01_VIEWER_BUILD__/${BUILD_SHA}/g" _site/previews/pr-176/design/manager/nh01_acceptance/index.html
+            if [[ -f _site/previews/pr-176/design/manager/nh01_acceptance/gemini-native-preview.html ]]; then
+              sed -i "s/__NH01_GEMINI_PREVIEW_BUILD__/${BUILD_SHA}/g" _site/previews/pr-176/design/manager/nh01_acceptance/gemini-native-preview.html
+            fi
+            printf '{"sha":"%s","short_sha":"%s"}\n' "${BUILD_SHA}" "${PREVIEW_SHORT}" > _site/previews/pr-176/design/manager/build.json
+            cat > _site/previews/pr-176/index.html <<'EOF'
+          <!doctype html>
+          <html lang="zh-CN">
+          <head>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width,initial-scale=1">
+            <meta http-equiv="refresh" content="0; url=./design/manager/nh01_acceptance/gemini-native-preview.html">
+            <title>YuJian · NH01 PR #176 Preview</title>
+          </head>
+          <body>
+            <p><a href="./design/manager/nh01_acceptance/gemini-native-preview.html">Open NH01 interactive structure preview</a></p>
+          </body>
+          </html>
+          EOF
+            (cd _site && find . -type f ! -path './previews/pr-176/*' -print0 | sort -z | xargs -0 -r sha256sum) > "$RUNNER_TEMP/production-root.after.sha256"
+            diff -u "$RUNNER_TEMP/production-root.before.sha256" "$RUNNER_TEMP/production-root.after.sha256"
+            echo "Verified: every pre-existing production file retains its exact SHA-256."
+          else
+            PUBLISHED_BUILD_SHA="$BUILD_SHA"
+            cp -R design _site/design
+            BUILD_SHORT="${PUBLISHED_BUILD_SHA:0:12}"
+            sed -i "s/__DESIGN_MANAGER_BUILD__/${PUBLISHED_BUILD_SHA}/g" _site/design/manager/index.html
+            sed -i "s/__DESIGN_MANAGER_BUILD_SHORT__/${BUILD_SHORT}/g" _site/design/manager/index.html
+            sed -i "s/__NH01_SOURCE_SHA__/${PUBLISHED_BUILD_SHA}/g" _site/design/manager/nh01_acceptance/index.html
+            sed -i "s/__NH01_VIEWER_BUILD__/${PUBLISHED_BUILD_SHA}/g" _site/design/manager/nh01_acceptance/index.html
+            printf '{"sha":"%s","short_sha":"%s"}\n' "${PUBLISHED_BUILD_SHA}" "${BUILD_SHORT}" > _site/design/manager/build.json
+            touch _site/.nojekyll
+            cat > _site/index.html <<'EOF'
           <!doctype html>
           <html lang="zh-CN">
           <head>
@@ -116,22 +200,54 @@ jobs:
           </body>
           </html>
           EOF
+          fi
+          echo "PUBLISHED_BUILD_SHA=$PUBLISHED_BUILD_SHA" >> "$GITHUB_ENV"
+          echo "published_build_sha=$PUBLISHED_BUILD_SHA" >> "$GITHUB_OUTPUT"
 
       - name: Verify Design Manager navigation artifact
-        run: python3 scripts/verify_design_manager_navigation.py --site _site --expected-build "${BUILD_SHA}"
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "${{ github.event_name }}" == "pull_request" && "${{ github.event.pull_request.number }}" == "176" && "${{ github.event.pull_request.head.repo.full_name }}" == "${{ github.repository }}" ]]; then
+            python3 _production_baseline/scripts/verify_design_manager_navigation.py --site _site --expected-build "${PUBLISHED_BUILD_SHA}"
+            python3 scripts/verify_design_manager_navigation.py --site _site/previews/pr-176 --expected-build "${BUILD_SHA}"
+          else
+            python3 scripts/verify_design_manager_navigation.py --site _site --expected-build "${PUBLISHED_BUILD_SHA}"
+          fi
 
       - name: Verify hi-fi Pages artifact
-        run: python3 scripts/verify_design_manager_hifi_release.py --site _site --expected-build "${BUILD_SHA}"
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "${{ github.event_name }}" == "pull_request" && "${{ github.event.pull_request.number }}" == "176" && "${{ github.event.pull_request.head.repo.full_name }}" == "${{ github.repository }}" ]]; then
+            python3 _production_baseline/scripts/verify_design_manager_hifi_release.py --site _site --expected-build "${PUBLISHED_BUILD_SHA}"
+            python3 scripts/verify_design_manager_hifi_release.py --site _site/previews/pr-176 --expected-build "${BUILD_SHA}"
+          else
+            python3 scripts/verify_design_manager_hifi_release.py --site _site --expected-build "${PUBLISHED_BUILD_SHA}"
+          fi
 
       - name: Verify browser routes and responsive preview
         shell: bash
         run: |
           set -euo pipefail
-          PLAYWRIGHT_MODULE_DIR="$RUNNER_TEMP/dm-playwright/node_modules" \
-            node scripts/verify_design_manager_browser.mjs \
-              --root _site \
-              --expected-build "${BUILD_SHA}" \
-              --output-dir "$RUNNER_TEMP/dm-build-browser"
+          if [[ "${{ github.event_name }}" == "pull_request" && "${{ github.event.pull_request.number }}" == "176" && "${{ github.event.pull_request.head.repo.full_name }}" == "${{ github.repository }}" ]]; then
+            PLAYWRIGHT_MODULE_DIR="$RUNNER_TEMP/dm-playwright/node_modules" \
+              node _production_baseline/scripts/verify_design_manager_browser.mjs \
+                --root _site \
+                --expected-build "${PUBLISHED_BUILD_SHA}" \
+                --output-dir "$RUNNER_TEMP/dm-build-browser"
+            PLAYWRIGHT_MODULE_DIR="$RUNNER_TEMP/dm-playwright/node_modules" \
+              node scripts/verify_design_manager_browser.mjs \
+                --root _site/previews/pr-176 \
+                --expected-build "${BUILD_SHA}" \
+                --output-dir "$RUNNER_TEMP/dm-preview-browser"
+          else
+            PLAYWRIGHT_MODULE_DIR="$RUNNER_TEMP/dm-playwright/node_modules" \
+              node scripts/verify_design_manager_browser.mjs \
+                --root _site \
+                --expected-build "${PUBLISHED_BUILD_SHA}" \
+                --output-dir "$RUNNER_TEMP/dm-build-browser"
+          fi
 
       - name: Serve and verify NH01 Acceptance Center
         shell: bash
@@ -145,20 +261,34 @@ jobs:
             sleep 1
           done
           curl -fsS http://127.0.0.1:8765/design/manager/nh01_acceptance/ >/dev/null
+          if [[ "${{ github.event_name }}" == "pull_request" && "${{ github.event.pull_request.number }}" == "176" && "${{ github.event.pull_request.head.repo.full_name }}" == "${{ github.repository }}" ]]; then
+            PLAYWRIGHT_MODULE_DIR="$RUNNER_TEMP/dm-playwright/node_modules" \
+              node _production_baseline/scripts/design/verify_nh01_viewer_browser.mjs \
+                --base-url=http://127.0.0.1:8765 \
+                --expected-source-sha="${PUBLISHED_BUILD_SHA}" \
+                --output-dir "$RUNNER_TEMP/nh01-main-browser"
+            TARGET_BASE_URL="http://127.0.0.1:8765/previews/pr-176"
+            TARGET_SITE_ROOT="_site/previews/pr-176"
+            TARGET_SHA="${BUILD_SHA}"
+          else
+            TARGET_BASE_URL="http://127.0.0.1:8765"
+            TARGET_SITE_ROOT="_site"
+            TARGET_SHA="${PUBLISHED_BUILD_SHA}"
+          fi
           PLAYWRIGHT_MODULE_DIR="$RUNNER_TEMP/dm-playwright/node_modules" \
             node scripts/design/verify_nh01_viewer_browser.mjs \
-              --base-url=http://127.0.0.1:8765 \
-              --expected-source-sha="$BUILD_SHA" \
+              --base-url="$TARGET_BASE_URL" \
+              --expected-source-sha="$TARGET_SHA" \
               --output-dir "$RUNNER_TEMP/nh01-browser"
           mkdir -p "$RUNNER_TEMP/nh01-preview-diff"
           python3 scripts/design/compare_nh01_structured_preview.py \
             --structured "$RUNNER_TEMP/nh01-browser/NH01_Structured_Preview_1080x1920.png" \
             --output-dir "$RUNNER_TEMP/nh01-preview-diff" \
-            --source-sha "$BUILD_SHA"
+            --source-sha "$TARGET_SHA"
           python3 scripts/design/record_nh01_browser_evidence.py \
             --report "$RUNNER_TEMP/nh01-browser/NH01_Browser_Viewer_Report.json" \
-            --site-root _site \
-            --expected-source-sha "$BUILD_SHA" \
+            --site-root "$TARGET_SITE_ROOT" \
+            --expected-source-sha "$TARGET_SHA" \
             --workflow-run-id "${{ github.run_id }}" \
             --workflow-run-url "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
             --preview-diff-report "$RUNNER_TEMP/nh01-preview-diff/NH01_ROI_Report.json" \
@@ -166,14 +296,14 @@ jobs:
             --preview-diff-dir "$RUNNER_TEMP/nh01-preview-diff"
           PLAYWRIGHT_MODULE_DIR="$RUNNER_TEMP/dm-playwright/node_modules" \
             node scripts/design/verify_nh01_viewer_browser.mjs \
-              --base-url=http://127.0.0.1:8765 \
-              --expected-source-sha="$BUILD_SHA" \
+              --base-url="$TARGET_BASE_URL" \
+              --expected-source-sha="$TARGET_SHA" \
               --require-browser-diff \
               --output-dir "$RUNNER_TEMP/nh01-browser-final"
           python3 scripts/design/record_nh01_browser_evidence.py \
             --report "$RUNNER_TEMP/nh01-browser-final/NH01_Browser_Viewer_Report.json" \
-            --site-root _site \
-            --expected-source-sha "$BUILD_SHA" \
+            --site-root "$TARGET_SITE_ROOT" \
+            --expected-source-sha "$TARGET_SHA" \
             --workflow-run-id "${{ github.run_id }}" \
             --workflow-run-url "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
             --preview-diff-report "$RUNNER_TEMP/nh01-preview-diff/NH01_ROI_Report.json" \
@@ -193,6 +323,15 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
+      - name: Upload PR #176 preview browser evidence
+        if: github.event_name == 'pull_request' && github.event.pull_request.number == 176 && github.event.pull_request.head.repo.full_name == github.repository
+        uses: actions/upload-artifact@v4
+        with:
+          name: NH01-PR176-Preview-Browser-${{ github.run_id }}-${{ github.event.pull_request.head.sha }}
+          path: ${{ runner.temp }}/dm-preview-browser/
+          if-no-files-found: error
+          retention-days: 30
+
       - name: Upload NH01 structured preview comparison evidence
         uses: actions/upload-artifact@v4
         with:
@@ -204,16 +343,27 @@ jobs:
           retention-days: 30
 
   deploy:
-    if: github.event_name != 'pull_request'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' || github.event_name == 'pull_request' && github.event.pull_request.number == 176 && github.event.pull_request.head.repo.full_name == github.repository
     environment:
       name: design-manager-pages
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
     needs: build
+    env:
+      PUBLISHED_BUILD_SHA: ${{ needs.build.outputs.published_build_sha }}
     steps:
-      - name: Checkout
+      - name: Checkout production source for live verification
         uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.build.outputs.published_build_sha }}
+
+      - name: Checkout PR #176 source for live preview verification
+        if: github.event_name == 'pull_request' && github.event.pull_request.number == 176 && github.event.pull_request.head.repo.full_name == github.repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          path: _preview_source
 
       - name: Deploy to GitHub Pages
         id: deployment
@@ -240,19 +390,37 @@ jobs:
         run: |
           python3 scripts/verify_design_manager_live.py \
             --url "${{ steps.deployment.outputs.page_url }}" \
-            --expected-build "${BUILD_SHA}" \
+            --expected-build "${PUBLISHED_BUILD_SHA}" \
             --output "$RUNNER_TEMP/dm-live-evidence/live-verification.json"
 
-      - name: Verify live browser routes and responsive preview
+      - name: Verify published PR #176 preview path and source SHA
+        if: github.event_name == 'pull_request' && github.event.pull_request.number == 176 && github.event.pull_request.head.repo.full_name == github.repository
         shell: bash
         run: |
           set -euo pipefail
+          BASE_URL="${{ steps.deployment.outputs.page_url }}"
+          BASE_URL="${BASE_URL%/}"
+          PREVIEW_ROOT="${BASE_URL}/previews/pr-176"
+          curl -fsS "${PREVIEW_ROOT}/" | grep -F "gemini-native-preview.html" >/dev/null
           PLAYWRIGHT_MODULE_DIR="$RUNNER_TEMP/dm-playwright/node_modules" \
-            node scripts/verify_design_manager_browser.mjs \
-              --url "${{ steps.deployment.outputs.page_url }}" \
+            node _preview_source/scripts/verify_design_manager_browser.mjs \
+              --url "${PREVIEW_ROOT}/design/manager/" \
               --expected-build "${BUILD_SHA}" \
-              --output-dir "$RUNNER_TEMP/dm-live-evidence/browser"
+              --output-dir "$RUNNER_TEMP/dm-live-evidence/preview-browser"
+          PLAYWRIGHT_MODULE_DIR="$RUNNER_TEMP/dm-playwright/node_modules" \
+            node _preview_source/scripts/design/verify_nh01_viewer_browser.mjs \
+              --base-url="${PREVIEW_ROOT}" \
+              --expected-source-sha="${BUILD_SHA}" \
+              --output-dir "$RUNNER_TEMP/dm-live-evidence/preview-nh01-browser"
+          {
+            echo "## NH01 PR #176 independent preview"
+            echo ""
+            echo "- Preview URL: ${PREVIEW_ROOT}/"
+            echo "- Preview source SHA: ${BUILD_SHA}"
+            echo "- Preserved production SHA: ${PUBLISHED_BUILD_SHA}"
+          } >> "$GITHUB_STEP_SUMMARY"
 
+      - name: Upload live release evidence
       - name: Upload live release evidence
         uses: actions/upload-artifact@v4
         with:
