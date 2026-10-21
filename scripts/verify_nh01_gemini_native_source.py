@@ -121,7 +121,16 @@ def main() -> None:
     checks.append(("stats_dividers_are_capped_at_26dp", "dividerHeight = 26.dp" in page, "GeminiNormalHomeContent.kt"))
     checks.append(("gemini_page_tree_tags_present", all(tag in page for tag in LAYERS), "GeminiNormalHomeContent.kt"))
     checks.append(("gemini_runtime_bundle_excludes_guest_and_nh07_images", "guest_avatar.png" not in gemini_loader and "nh07_default_avatar_3x_192" not in gemini_loader, "loadGeminiNormalHomeRuntimeAssets"))
-    checks.append(("gemini_page_uses_exact_v2_avatar_drawable", "painterResource(R.drawable.normal_home_default_avatar_v2)" in page, "GeminiNormalHomeContent.kt"))
+    frozen_mist_contract_path = ROOT / "design/pages/home/normal_home/engineering/NH01_Avatar_Visual_Contract_V1_1_FROZEN.md"
+    frozen_mist_contract = frozen_mist_contract_path.read_text(encoding="utf-8")
+    checks.append(("gemini_page_uses_frozen_mist_avatar", "gemini-home-default-avatar-mist" in page
+        and "gemini-home-avatar-outline" in page
+        and "GeminiMistAvatarFill" in page
+        and "geminiHomeAvatarVisualSize(safeWidth.value).dp" in page
+        and "painterResource(R.drawable.normal_home_default_avatar_v2)" not in page, "GeminiNormalHomeContent.kt"))
+    checks.append(("mist_avatar_visual_contract_frozen_and_linked", "NH01_AVATAR_VISUAL_V1_1" in frozen_mist_contract
+        and "SPEC_FROZEN" in frozen_mist_contract
+        and "NH01_Avatar_Visual_Contract_V1_1_FROZEN.md" in gemini_contract, str(frozen_mist_contract_path.relative_to(ROOT))))
     checks.append(("global_avatar_contract_keeps_existing_guest_mapping", avatar_contract["display_states"].get("guest") == "normal_home_runtime_v1/avatar/guest_avatar.png", str(avatar_contract_path.relative_to(ROOT))))
     checks.append(("gemini_page_uses_finite_real_catch_pages", "val pageCount = records.size" in page and "key = { page -> records[page].id }" in page and "recordAtVirtualPage" not in page, "GeminiNormalHomeContent.kt"))
     checks.append(("gemini_page_exposes_carousel_collection_semantics", "collectionInfo = CollectionInfo(rowCount = 1, columnCount = pageCount)" in page and "stateDescription = activeId?.let" in page, "GeminiNormalHomeContent.kt"))
