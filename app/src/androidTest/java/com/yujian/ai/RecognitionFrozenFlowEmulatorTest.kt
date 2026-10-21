@@ -782,9 +782,18 @@ class RecognitionFrozenFlowEmulatorTest {
         stopRunningScreenRecorders()
         val recordingDevicePath = "/sdcard/rr09_gold_transfer_runtime.mp4"
         device.executeShellCommand("rm -f '$recordingDevicePath'")
-        device.executeShellCommand(
-            "screenrecord --bit-rate 4000000 --time-limit 10 '$recordingDevicePath' >/dev/null 2>&1 &",
-        )
+        val recordingCommandOutput = AtomicReference<String?>()
+        val recordingCommandThread = Thread({
+            try {
+                recordingCommandOutput.set(
+                    device.executeShellCommand(
+                        "screenrecord --bit-rate 4000000 --time-limit 10 '$recordingDevicePath'",
+                    ),
+                )
+            } catch (error: Throwable) {
+                recordingCommandOutput.set("${error::class.java.simpleName}: ${error.message}")
+            }
+        }, "rr09-screenrecord-command").apply { start() }
         Thread.sleep(250L)
         Snapshot.withMutableSnapshot {
             handoffState.value = handoff
@@ -844,13 +853,20 @@ class RecognitionFrozenFlowEmulatorTest {
         """.trimIndent()
         File(evidence, "RR09_Performance_Report.json").writeText(performanceReport)
         stopRunningScreenRecorders()
+        recordingCommandThread.join(2_000L)
+        val recordingCommandStillRunning = recordingCommandThread.isAlive
         var recordingBytes = 0L
         for (attempt in 0 until 12) {
             recordingBytes = device.executeShellCommand("wc -c < '$recordingDevicePath'").trim().toLongOrNull() ?: 0L
             if (recordingBytes > 1024L) break
             Thread.sleep(250L)
         }
-        assertTrue("RR09 screen recording is empty: bytes=$recordingBytes", recordingBytes > 1024L)
+        assertTrue(
+            "RR09 screen recording is empty: bytes=$recordingBytes " +
+                "recorder_output=${recordingCommandOutput.get()} " +
+                "command_still_running=$recordingCommandStillRunning",
+            recordingBytes > 1024L,
+        )
         val appRecording = File(evidence, "RR09_Recognition_Flow_Recording.mp4")
         val copyResult = device.executeShellCommand(
             "run-as ${targetContext.packageName} cp '$recordingDevicePath' '${appRecording.absolutePath}'",
