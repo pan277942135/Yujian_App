@@ -295,6 +295,79 @@
     const layersMarkup = [];
     try {
       for (const path of config.paths) {
+        if (config.reviewOnlyEdgeRibbonExperiment) {
+          // Review-only perimeter distribution: construct edge bands from photoContentRect.
+          // This intentionally does not reuse the four corner-island paths.
+          if (path.id === "B1") {
+            const ribbonDepth = depthPx;
+            const taperFraction = 0.12;
+            const segments = [
+              { side: "top", start: 0, end: QUIET_GAPS.Q_TOP[0], color: "gold" },
+              { side: "top", start: QUIET_GAPS.Q_TOP[1], end: 1, color: "blue" },
+              { side: "right", start: 0, end: QUIET_GAPS.Q_RIGHT[0], color: "blue" },
+              { side: "right", start: QUIET_GAPS.Q_RIGHT[1], end: 1, color: "blue" },
+              { side: "bottom", start: 0, end: QUIET_GAPS.Q_BOTTOM[0], color: "gold" },
+              { side: "bottom", start: QUIET_GAPS.Q_BOTTOM[1], end: 1, color: "blue" },
+              { side: "left", start: 0, end: QUIET_GAPS.Q_LEFT[0], color: "gold" },
+              { side: "left", start: QUIET_GAPS.Q_LEFT[1], end: 1, color: "gold" }
+            ];
+            const edgePoint = (side, t, depth) => {
+              if (side === "top") return [rect.left + t * photoWidth, rect.top + depth];
+              if (side === "right") return [rect.right - depth, rect.top + t * photoHeight];
+              if (side === "bottom") return [rect.left + t * photoWidth, rect.bottom - depth];
+              return [rect.left + depth, rect.top + t * photoHeight];
+            };
+            for (const segment of segments) {
+              const spanPx = (segment.end - segment.start) * (segment.side === "top" || segment.side === "bottom" ? photoWidth : photoHeight);
+              if (spanPx < 2) continue;
+              const taperT = Math.min(spanPx * taperFraction, ribbonDepth * 0.75) / spanPx;
+              const points = [
+                edgePoint(segment.side, segment.start, 0),
+                edgePoint(segment.side, segment.end, 0),
+                edgePoint(segment.side, segment.end - taperT, ribbonDepth),
+                edgePoint(segment.side, segment.start + taperT, ribbonDepth)
+              ];
+              const pathD = "M " + points.map((point, index) =>
+                (index ? "L " : "") + number(point[0]) + " " + number(point[1])
+              ).join(" ") + " Z";
+              const bounds = points.reduce((value, point) => ({
+                left: Math.min(value.left, point[0]), top: Math.min(value.top, point[1]),
+                right: Math.max(value.right, point[0]), bottom: Math.max(value.bottom, point[1])
+              }), { left: Infinity, top: Infinity, right: -Infinity, bottom: -Infinity });
+              const id = safeId("perimeter-" + segment.side + "-" + segment.start);
+              const clipId = "perimeter-clip-" + id;
+              const blurId = "perimeter-blur-" + id;
+              const gradientId = "perimeter-gradient-" + id;
+              const filterPadding = ribbonBlurSigma * 3;
+              defsMarkup.push('<clipPath id="' + clipId + '" clipPathUnits="userSpaceOnUse"><path d="' + pathD + '"/></clipPath>');
+              defsMarkup.push(
+                '<filter id="' + blurId + '" filterUnits="userSpaceOnUse" primitiveUnits="userSpaceOnUse"' +
+                ' x="' + number(bounds.left - filterPadding) + '" y="' + number(bounds.top - filterPadding) +
+                '" width="' + number(bounds.right - bounds.left + filterPadding * 2) +
+                '" height="' + number(bounds.bottom - bounds.top + filterPadding * 2) +
+                '" color-interpolation-filters="sRGB"><feGaussianBlur in="SourceGraphic" stdDeviation="' +
+                number(ribbonBlurSigma) + '"/></filter>'
+              );
+              const gradient = segment.side === "top"
+                ? [rect.left, rect.top, rect.left, rect.top + ribbonDepth]
+                : segment.side === "right"
+                  ? [rect.right, rect.top, rect.right - ribbonDepth, rect.top]
+                  : segment.side === "bottom"
+                    ? [rect.left, rect.bottom, rect.left, rect.bottom - ribbonDepth]
+                    : [rect.left, rect.top, rect.left + ribbonDepth, rect.top];
+              const baseColor = segment.color === "gold" ? config.colors.gold : config.colors.blue;
+              const hotColor = segment.color === "gold" ? config.colors.goldHot : config.colors.blueHot;
+              defsMarkup.push(edgeRibbonGradientMarkup(gradientId, ...gradient, baseColor, hotColor));
+              layersMarkup.push(
+                '<g filter="url(#' + blurId + ')"><rect x="' + number(bounds.left) + '" y="' + number(bounds.top) +
+                '" width="' + number(bounds.right - bounds.left) + '" height="' + number(bounds.bottom - bounds.top) +
+                '" fill="url(#' + gradientId + ')" clip-path="url(#' + clipId + ')" opacity="' +
+                number(baseAlpha) + '"/> </g>'
+              );
+            }
+          }
+          continue;
+        }
         const sourcePath = document.createElementNS(SVG_NS, "path");
         sourcePath.setAttribute("d", pathData(path, rect));
         measureSvg.appendChild(sourcePath);
