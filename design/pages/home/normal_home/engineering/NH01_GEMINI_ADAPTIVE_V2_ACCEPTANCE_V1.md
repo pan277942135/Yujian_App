@@ -11,12 +11,12 @@ Actual API28 native 320x480 / 360x640 / 390x844 / 430x932 dp x fontScale 1.0/1.3
 | Case | Acceptance and evidence |
 | --- | --- |
 | AUTH-01/02 | Typed current/legacy authority, no Frozen/binary asset mutation; original 46 matrix preserved |
-| SP-01 | Recent TITLE TEXT layout bottom -> selected HERO TOP: 8/12/18/20dp ±2 (320/360/390/430) at 1.0x; not self-reference to previous policy. V3 Baseline remains control |
+| SP-01 | Recent TITLE TEXT layout bottom -> selected HERO TOP: 8/12/18/20dp ±2 (320/360/390/430) at 1.0x; at 1.3x/1.5x retain >=8dp where feasible. V2 is top-aligned content-first; V3 Baseline remains a diagnostic control. The independent target is not self-reference to the previous policy |
 | SP-02 | Six adjacent interval bounds and screenshot review; no text crowding, unusable whitespace, or interactive overlap |
 | GEO-01/02 | 247:293±1%, centered±2dp, capped hero, finite Pager, neighbor width<=82%, top+15dp, no >1dp overlap, real left/right peeks |
 | SHORT-01 | 124dp floor ONLY 320x480/1.0 if width>=145dp, no Middle scroll or text clipping; other floor>=148dp; safe Footer+camera |
 | TYPO-01 | system fontScale preserved, font-role sp and main card width non-decreasing on growing viewport profiles |
-| TEXT-01/02 | Full address example ending 321号, time always first, no lone final 号 or punctuation, max 2 context lines; species and positive measurements complete with proper units; no fake missing values |
+| TEXT-01/02 | Full address example ending 321号, time always first, no lone final 号 or punctuation, max 2 context lines; metadata is measured with TextMeasurer, its actual TextLayoutResult line count and final-line character count are emitted and host-validated. Species and positive measurements complete with proper units; no fake missing values |
 | PHOTO-01/02 | True fish photo identity and source hashes, safe BBox or whole-source seamless background; F01-F08 genuine originals, HOME+DETAIL evidence |
 | AVATAR-01/BG-01 | Mist visual size 36-40dp, touch>=48dp; Guest/Login and signed-in/Profile, photo load/failed/logout; original Morning Lake TopCenter source+hash |
 | STATE-01/PAGE-01 | Unresolved != Empty, refresh/error retain valid previous state, one-catch NH02 and finite multi-catch NH01 correct ID/taps |

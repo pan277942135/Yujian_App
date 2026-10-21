@@ -35,6 +35,23 @@ class GeminiHomeAdaptiveLayoutPolicyTest {
     }
 
     @Test
+    fun adaptiveV2UsesIndependentV22VisibleSpacingTargets() {
+        assertEquals(8f, resolve(320f, 432f, 1f).titleToCardGap.value, 0.001f)
+        assertEquals(12f, resolve(360f, 592f, 1f).titleToCardGap.value, 0.001f)
+        assertEquals(18f, resolve(390f, 796f, 1f).titleToCardGap.value, 0.001f)
+        assertEquals(20f, resolve(430f, 884f, 1f).titleToCardGap.value, 0.001f)
+        assertEquals(14f, resolve(320f, 432f, 1f).statsToTitleGap!!.value, 0.001f)
+        assertEquals(14f, resolve(360f, 592f, 1f).statsToTitleGap!!.value, 0.001f)
+        assertEquals(16f, resolve(390f, 796f, 1f).statsToTitleGap!!.value, 0.001f)
+        assertEquals(18f, resolve(430f, 884f, 1f).statsToTitleGap!!.value, 0.001f)
+        listOf(1.0f, 1.3f, 1.5f).forEach { scale ->
+            listOf(432f, 592f, 796f, 884f).forEach { height ->
+                assertTrue("V2.2 title gap remains >=8dp at font scale $scale", resolve(390f, height, scale).titleToCardGap.value >= 8f)
+            }
+        }
+    }
+
+    @Test
     fun adaptiveV2UsesV3LikeCardWidthCapAndFrozenAspectRatio() {
         val compact = resolve(320f, 640f)
         val medium = resolve(393f, 852f)
@@ -69,7 +86,7 @@ class GeminiHomeAdaptiveLayoutPolicyTest {
     }
 
     @Test
-    fun adaptiveV2CentersWhenItFitsAndScrollsWhenTheReadableMinimumCannotFit() {
+    fun adaptiveV2TopAlignsItsContentFirstGroupAndScrollsOnlyWhenNeeded() {
         val adaptive = resolve(393f, 852f, 1.0f)
         val baseline = resolve(
             widthDp = 393f,
@@ -84,7 +101,7 @@ class GeminiHomeAdaptiveLayoutPolicyTest {
             variant = GeminiHomeLayoutVariant.ADAPTIVE_V1,
         )
 
-        assertFalse(adaptive.topAlignMiddleGroup)
+        assertTrue(adaptive.topAlignMiddleGroup)
         assertTrue(adaptive.contentFirstSizing)
         assertFalse(baseline.contentFirstSizing)
         assertFalse(legacy.contentFirstSizing)
@@ -180,7 +197,7 @@ class GeminiHomeAdaptiveLayoutPolicyTest {
     @Test
     fun adaptiveV2FixesEdgePeekWhenTheHeightConstrainedHeroBecomesNarrow() {
         assertEquals(16f, geminiHomeNeighborWidth(320f, 120f, 10f), 0.001f)
-        assertEquals(60f, geminiHomeNeighborWidthAdaptiveV2(320f, 120f, 10f), 0.001f)
+        assertEquals(62f, geminiHomeNeighborWidthAdaptiveV2(320f, 120f, 10f), 0.001f)
     }
 
     private fun assertAdaptivePeek(trackWidth: Float, cardWidth: Float, spacing: Float) {

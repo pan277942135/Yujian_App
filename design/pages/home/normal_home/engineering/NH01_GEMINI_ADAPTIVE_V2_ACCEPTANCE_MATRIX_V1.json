@@ -1,6 +1,6 @@
 {
   "schema": "NH01_GEMINI_ADAPTIVE_V2_ACCEPTANCE_MATRIX_V1",
-  "status": "SPEC_FROZEN_RUNTIME_PENDING",
+  "status": "IMPLEMENTATION_REPAIR_IN_PROGRESS",
   "runtime_verdict": "NOT_RUN",
   "authority": "design/pages/home/normal_home/engineering/NH01_GEMINI_ADAPTIVE_V2_UNIFIED_AUTHORITY_V1.md",
   "acceptance": "design/pages/home/normal_home/engineering/NH01_GEMINI_ADAPTIVE_V2_ACCEPTANCE_V1.md",
@@ -246,7 +246,11 @@
     "bounds_in_window",
     "title_card_gap_dp",
     "text_layout_lines",
-    "pager_peek_bounds"
+    "pager_peek_bounds",
+    "metadata_line_count_initial",
+    "metadata_last_line_character_count_initial",
+    "metadata_line_count_after_swipe",
+    "metadata_last_line_character_count_after_swipe"
   ],
   "release_gate": {
     "requires_24_native": true,
@@ -255,5 +259,6 @@
     "requires_independent_review": true,
     "build_pass_not_visual_pass": true,
     "main_merge_not_authorized": true
-  }
+  },
+  "visible_gap_dp_font_1_3_1_5_min": 8
 }

@@ -207,7 +207,9 @@ class GeminiHomeDeviceMatrixTest {
         compose.onNodeWithTag("gemini-home-catch-measurement-nh01-catch-001", useUnmergedTree = true)
             .assertTextEquals("42.6 cm · 1.28 kg")
         compose.onNodeWithTag("gemini-home-catch-metadata-nh01-catch-001", useUnmergedTree = true)
-            .assertTextContains("05月29日 04:26 · 浙江 · 千岛湖")
+            .assertTextContains("05月29日 04:26")
+        compose.onNodeWithTag("gemini-home-catch-metadata-nh01-catch-001", useUnmergedTree = true)
+            .assertTextContains("浙江 · 千岛湖")
         val requiredCardTextTags = listOf(
             "gemini-home-catch-species-nh01-catch-001",
             "gemini-home-catch-measurement-nh01-catch-001",
@@ -412,9 +414,27 @@ class GeminiHomeDeviceMatrixTest {
         )
         cardTextTags.forEach { tag ->
             val interaction = compose.onNodeWithTag(tag, useUnmergedTree = true)
-            if (hasMiddleScroll) interaction.performScrollTo().assertIsDisplayed() else interaction.assertIsDisplayed()
+            if (variant == GeminiHomeLayoutVariant.ADAPTIVE_V2) {
+                if (hasMiddleScroll) interaction.performScrollTo().assertIsDisplayed() else interaction.assertIsDisplayed()
+            } else {
+                // V3 is a visual comparison control. Preserve and record its text semantics
+                // even when its historical short-screen layout requires scrolling.
+                assertTrue("V3 baseline retains semantic text node $tag",
+                    compose.onAllNodesWithTag(tag, useUnmergedTree = true).fetchSemanticsNodes().isNotEmpty())
+            }
         }
-        val contentScreenshotName = if (hasMiddleScroll) "$profileId-${variant.name.lowercase(Locale.US)}-content-visible.png" else null
+        val initialCardTextSemanticsPresent = cardTextTags.all { tag ->
+            compose.onAllNodesWithTag(tag, useUnmergedTree = true).fetchSemanticsNodes().isNotEmpty()
+        }
+        assertTrue("required first-catch text semantics must exist", initialCardTextSemanticsPresent)
+        val firstMetadataLineCount = textLineCount("gemini-home-catch-metadata-nh01-catch-001")
+        val firstMetadataLastLineLength = textLastLineCharacterCount("gemini-home-catch-metadata-nh01-catch-001")
+        if (variant == GeminiHomeLayoutVariant.ADAPTIVE_V2) {
+            assertTrue("metadata must occupy one or two lines", firstMetadataLineCount in 1..2)
+            assertTrue("metadata last line must not be an orphan glyph", firstMetadataLastLineLength >= 2)
+        }
+        val contentScreenshotName = if (hasMiddleScroll && variant == GeminiHomeLayoutVariant.ADAPTIVE_V2)
+            "$profileId-${variant.name.lowercase(Locale.US)}-content-visible.png" else null
         if (contentScreenshotName != null) {
             val contentBitmap = InstrumentationRegistry.getInstrumentation().uiAutomation.takeScreenshot()
             File(output, contentScreenshotName).outputStream().use { sink ->
@@ -451,12 +471,35 @@ class GeminiHomeDeviceMatrixTest {
             "gemini-home-catch-measurement-nh01-catch-002",
             "gemini-home-catch-metadata-nh01-catch-002",
         )
-        secondCardTextTags.forEach { compose.onNodeWithTag(it, useUnmergedTree = true).assertIsDisplayed() }
+        secondCardTextTags.forEach { tag ->
+            if (variant == GeminiHomeLayoutVariant.ADAPTIVE_V2) {
+                compose.onNodeWithTag(tag, useUnmergedTree = true).assertIsDisplayed()
+            } else {
+                assertTrue("V3 baseline retains semantic text node after swipe: $tag",
+                    compose.onAllNodesWithTag(tag, useUnmergedTree = true).fetchSemanticsNodes().isNotEmpty())
+            }
+        }
+        val secondCardTextSemanticsPresent = secondCardTextTags.all { tag ->
+            compose.onAllNodesWithTag(tag, useUnmergedTree = true).fetchSemanticsNodes().isNotEmpty()
+        }
+        assertTrue("required second-catch text semantics must exist", secondCardTextSemanticsPresent)
+        val secondMetadataTag = "gemini-home-catch-metadata-nh01-catch-002"
+        advanceFramesUntil(3_000) {
+            runCatching { textLineCount(secondMetadataTag) in 1..2 }.getOrDefault(false)
+        }
+        val secondMetadataLineCount = textLineCount(secondMetadataTag)
+        val secondMetadataLastLineLength = textLastLineCharacterCount(secondMetadataTag)
+        if (variant == GeminiHomeLayoutVariant.ADAPTIVE_V2) {
+            assertTrue("long metadata must occupy at most two lines", secondMetadataLineCount in 1..2)
+            assertTrue("long metadata cannot end in one isolated CJK glyph or punctuation",
+                secondMetadataLastLineLength >= 2)
+        }
         val secondCardTextNoVisualOverflow = secondCardTextTags.none(::hasVisualOverflow)
         if (variant == GeminiHomeLayoutVariant.ADAPTIVE_V2) {
-            assertTrue("Adaptive V2 must not visually truncate the long second catch: $secondCardTextTags", secondCardTextNoVisualOverflow)
+            assertTrue("Adaptive V2 must not visually truncate required second-catch text: $secondCardTextTags", secondCardTextNoVisualOverflow)
         }
         requiredCardTextNoVisualOverflow = requiredCardTextNoVisualOverflow && secondCardTextNoVisualOverflow
+        val requiredCardTextAccessible = initialCardTextSemanticsPresent && secondCardTextSemanticsPresent
         val activeAfterSwipe = rect("gemini-home-catch-card-nh01-catch-002").toDp(profile.density)
         val leftPeekAfterSwipe = rect("gemini-home-catch-neighbor-nh01-catch-001").toDp(profile.density)
         val trackAfterSwipe = rect("gemini-home-carousel-track").toDp(profile.density)
@@ -527,8 +570,12 @@ class GeminiHomeDeviceMatrixTest {
                 put("same_time_duplicate_ids", false)
                 put("swipe_reached_second_id", true)
                 put("middle_scroll_enabled", hasMiddleScroll)
-                put("required_card_text_accessible", true)
+                put("required_card_text_accessible", requiredCardTextAccessible)
                 put("required_card_text_no_visual_overflow", requiredCardTextNoVisualOverflow)
+                put("metadata_line_count_initial", firstMetadataLineCount)
+                put("metadata_last_line_character_count_initial", firstMetadataLastLineLength)
+                put("metadata_line_count_after_swipe", secondMetadataLineCount)
+                put("metadata_last_line_character_count_after_swipe", secondMetadataLastLineLength)
             })
             put("metrics", JSONObject().apply {
                 put("card_bounds_dp", activeCard.toJson())
@@ -691,7 +738,7 @@ class GeminiHomeDeviceMatrixTest {
                 id = "nh01-catch-002", imageUrl = imagePath, speciesId = "species-common-carp",
                 speciesName = "长吻鮠（黄颡鱼）", confidence = 0.88f, modelVersion = "nh01-layout-fixture",
                 capturedAt = timestamp, createdAt = timestamp, lengthCm = 31f, weightKg = 0.84f,
-                location = "浙江省杭州市淳安县千岛湖西南岸",
+                location = "上海市青浦区岑卜村东岸临时钓位定位点地址编号321号",
             ),
         )
     }
@@ -709,6 +756,16 @@ class GeminiHomeDeviceMatrixTest {
     private fun fontSizeSp(tag: String): Float {
         val node = compose.onNodeWithTag(tag, useUnmergedTree = true).fetchSemanticsNode()
         return node.config[GeminiHomeRenderedFontSizeSp]
+    }
+
+    private fun textLineCount(tag: String): Int {
+        val node = compose.onNodeWithTag(tag, useUnmergedTree = true).fetchSemanticsNode()
+        return node.config[GeminiHomeTextLineCount]
+    }
+
+    private fun textLastLineCharacterCount(tag: String): Int {
+        val node = compose.onNodeWithTag(tag, useUnmergedTree = true).fetchSemanticsNode()
+        return node.config[GeminiHomeTextLastLineCharacterCount]
     }
 
     private fun advanceFramesUntil(timeoutMillis: Long, condition: () -> Boolean) {

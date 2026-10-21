@@ -149,14 +149,23 @@ internal fun resolveGeminiHomeLayoutSpec(
         9f,
         safeHeightDp.times(0.035f).coerceIn(14f, 28f) - fontPressure * 3f - shortHeightPressure * 2f,
     )
-    val statsToTitle = maxOf(
-        2f,
-        safeHeightDp.times(0.015f).coerceIn(6f, 14f) - fontPressure * 3f - shortHeightPressure * 1.5f,
-    )
-    val titleToCard = maxOf(
-        4f,
-        safeHeightDp.times(0.014f).coerceIn(7f, 12f) - fontPressure * 2f - shortHeightPressure * 1.5f,
-    )
+    // V2.2 spacing is based on independently approved visible Text-to-Card geometry,
+    // not a continuous formula that can collapse the Hero gap on tall viewports.
+    val baseStatsToTitle = when {
+        safeHeightDp < 500f -> 14f
+        safeHeightDp < 700f -> 14f
+        safeHeightDp < 840f -> 16f
+        else -> 18f
+    }
+    val statsToTitle = maxOf(12f, baseStatsToTitle - fontPressure * 2f)
+    val baseTitleToCard = when {
+        safeHeightDp < 500f -> 8f
+        safeHeightDp < 700f -> 12f
+        safeHeightDp < 840f -> 18f
+        else -> 20f
+    }
+    // Large system fonts may compress nonessential spacing, but never below 8dp.
+    val titleToCard = maxOf(8f, baseTitleToCard - fontPressure * 4f)
     val cardToFooter = maxOf(
         3f,
         safeHeightDp.times(0.018f).coerceIn(8f, 14f) - fontPressure * 3f - shortHeightPressure * 2f,
@@ -172,7 +181,7 @@ internal fun resolveGeminiHomeLayoutSpec(
         statsToTitleGap = statsToTitle.dp,
         titleToCardGap = titleToCard.dp,
         cardToFooterGap = cardToFooter.dp,
-        topAlignMiddleGroup = false,
+        topAlignMiddleGroup = true,
         contentFirstSizing = true,
     )
 }
@@ -239,8 +248,9 @@ internal fun geminiHomeNeighborWidthAdaptiveV2(
     val widthForTargetEdgePeek = 2f * targetPeekWidth + 2f * pageSpacingDp +
         2f * cardWidthDp - trackWidthDp
     val minimumWidthToTouchEdge = (trackWidthDp - 2f * cardWidthDp - 2f * pageSpacingDp).coerceAtLeast(0f)
+    // Add a small sub-pixel safety margin: native bounds are rounded at device density.
     val widthNeededForPeek = maxOf(targetPeekWidth, widthForTargetEdgePeek, minimumWidthToTouchEdge)
-    return minOf(cardWidthDp * 0.82f, widthNeededForPeek)
+    return minOf(cardWidthDp * 0.82f, widthNeededForPeek + 2f)
 }
 
 /** Narrow Adaptive V2 cards wrap auxiliary text before allowing ellipsis to hide it. */

@@ -254,6 +254,20 @@ def validate_case(payload: dict[str, Any], profile: str, width: int, height: int
         problems.append("required-card text-overflow metric missing")
     elif variant == "ADAPTIVE_V2" and data.get("required_card_text_no_visual_overflow") is not True:
         problems.append("Adaptive V2 species, measurement, or metadata text visually overflows")
+    if variant == "ADAPTIVE_V2":
+        for count_key, last_key, label in (
+            ("metadata_line_count_initial", "metadata_last_line_character_count_initial", "initial"),
+            ("metadata_line_count_after_swipe", "metadata_last_line_character_count_after_swipe", "after-swipe"),
+        ):
+            try:
+                line_count = int(data.get(count_key, 0))
+                last_line_length = int(data.get(last_key, 0))
+            except (TypeError, ValueError):
+                line_count, last_line_length = 0, 0
+            if not 1 <= line_count <= 2:
+                problems.append(f"{label} metadata line count={line_count}; expected 1..2")
+            if last_line_length < 2:
+                problems.append(f"{label} metadata final line has fewer than two visible characters; possible orphan glyph")
     screenshot_name = payload.get("screenshots", {}).get("initial")
     image_path = raw / str(screenshot_name)
     if not image_path.is_file():
