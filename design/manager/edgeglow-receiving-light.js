@@ -267,9 +267,7 @@
       '<filter id="blur-mid" filterUnits="userSpaceOnUse" primitiveUnits="userSpaceOnUse"' + filterFrame +
         ' color-interpolation-filters="sRGB"><feGaussianBlur in="SourceAlpha" stdDeviation="' + number(midSigma) + '"/></filter>',
       '<filter id="blur-core" filterUnits="userSpaceOnUse" primitiveUnits="userSpaceOnUse"' + filterFrame +
-        ' color-interpolation-filters="sRGB"><feGaussianBlur in="SourceAlpha" stdDeviation="' + number(coreSigma) + '"/></filter>',
-      '<filter id="blur-ribbon" filterUnits="userSpaceOnUse" primitiveUnits="userSpaceOnUse"' + filterFrame +
-        ' color-interpolation-filters="sRGB"><feGaussianBlur in="SourceGraphic" stdDeviation="' + number(ribbonBlurSigma) + '"/></filter>'
+        ' color-interpolation-filters="sRGB"><feGaussianBlur in="SourceAlpha" stdDeviation="' + number(coreSigma) + '"/></filter>'
     ].join("");
     const alphaTable = Array.from({ length: 256 }, (_, index) =>
       number(Math.min(index / 255, config.outputAlphaCap))
@@ -352,8 +350,24 @@
             const pathD = "M " + polygonPoints.map((point, pointIndex) =>
               (pointIndex ? "L " : "") + number(point[0]) + " " + number(point[1])
             ).join(" ") + " Z";
+            const ribbonBounds = polygonPoints.reduce((bounds, point) => ({
+              left: Math.min(bounds.left, point[0]),
+              top: Math.min(bounds.top, point[1]),
+              right: Math.max(bounds.right, point[0]),
+              bottom: Math.max(bounds.bottom, point[1])
+            }), { left: Infinity, top: Infinity, right: -Infinity, bottom: -Infinity });
             const clipId = "edge-ribbon-clip-" + safeId(path.id + "-" + intervalIndex);
+            const blurFilterId = "edge-ribbon-blur-" + safeId(path.id + "-" + intervalIndex);
+            const filterPadding = ribbonBlurSigma * 3;
             defsMarkup.push('<clipPath id="' + clipId + '" clipPathUnits="userSpaceOnUse"><path d="' + pathD + '"/></clipPath>');
+            defsMarkup.push(
+              '<filter id="' + blurFilterId + '" filterUnits="userSpaceOnUse" primitiveUnits="userSpaceOnUse"' +
+              ' x="' + number(ribbonBounds.left - filterPadding) + '" y="' + number(ribbonBounds.top - filterPadding) +
+              '" width="' + number(ribbonBounds.right - ribbonBounds.left + filterPadding * 2) +
+              '" height="' + number(ribbonBounds.bottom - ribbonBounds.top + filterPadding * 2) +
+              '" color-interpolation-filters="sRGB"><feGaussianBlur in="SourceGraphic" stdDeviation="' +
+              number(ribbonBlurSigma) + '"/></filter>'
+            );
             const activeSides = [...new Set(samples.map(sample => sample.side))];
             const gradients = {
               top: [rect.left, rect.top, rect.left, rect.top + ribbonDepth],
@@ -367,8 +381,8 @@
                 gradientId, ...gradients[side], baseColor, hotColor
               ));
               layersMarkup.push(
-                '<g filter="url(#blur-ribbon)"><rect x="' + number(rect.left) + '" y="' + number(rect.top) +
-                '" width="' + number(photoWidth) + '" height="' + number(photoHeight) +
+                '<g filter="url(#' + blurFilterId + ')"><rect x="' + number(ribbonBounds.left) + '" y="' + number(ribbonBounds.top) +
+                '" width="' + number(ribbonBounds.right - ribbonBounds.left) + '" height="' + number(ribbonBounds.bottom - ribbonBounds.top) +
                 '" fill="url(#' + gradientId + ')" clip-path="url(#' + clipId +
                 ')" opacity="' + number(baseAlpha) + '"/></g>'
               );
