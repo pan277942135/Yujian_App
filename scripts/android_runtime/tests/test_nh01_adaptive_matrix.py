@@ -66,6 +66,10 @@ class AdaptiveMatrixAggregateTest(unittest.TestCase):
                 "swipe_reached_second_id": True,
                 "required_card_text_accessible": True,
                 "required_card_text_no_visual_overflow": True,
+                "metadata_line_count_initial": 2,
+                "metadata_last_line_character_count_initial": 8,
+                "metadata_line_count_after_swipe": 2,
+                "metadata_last_line_character_count_after_swipe": 8,
             },
             "screenshots": {"initial": "M01-adaptive_v2.png"},
             "bounds_after_swipe_in_window_px": {
@@ -186,6 +190,16 @@ class AdaptiveMatrixAggregateTest(unittest.TestCase):
         )
         self.assertTrue(any("edge peek below target" in problem for problem in problems), problems)
         self.assertTrue(any("text visually overflows" in problem for problem in problems), problems)
+
+    def test_candidate_rejects_orphan_metadata_final_line(self) -> None:
+        self.payload["data"]["metadata_last_line_character_count_after_swipe"] = 1
+        problems = validate_case(
+            self.payload, "M01", 320, 480, 1.0, "ADAPTIVE_V2", "a" * 40, self.raw,
+        )
+        self.assertTrue(
+            any("metadata final line has fewer than two visible characters" in problem for problem in problems),
+            problems,
+        )
 
     def test_evidence_pull_and_device_output_directory_versions_match(self) -> None:
         script = Path(__file__).resolve().parents[1] / "gates" / "run_nh01_adaptive_device_matrix.sh"
