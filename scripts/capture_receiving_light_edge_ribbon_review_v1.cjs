@@ -166,7 +166,7 @@ async function captureVariant(browser, variant, viewport, errors) {
       const depthPx = 0.18 * minDimension;
       const outerSigma = depthPx * 0.0857;
       const quietDepthPx = window.__EDGEGLOW_EDGE_RIBBON_EXPERIMENT__ === true
-        ? depthPx + 3 * Math.max(2, minDimension * 0.0065)
+        ? depthPx + 3 * Math.max(2, minDimension * 0.0065) * 1.55
         : Math.min(minDimension * 0.18, depthPx / 2 + outerSigma * 3);
       const quietRegions = {
         Q_TOP: [Math.ceil(0.32 * canvas.width) + 2, 2, Math.floor(0.68 * canvas.width) - 2, Math.floor(quietDepthPx) - 2],
@@ -305,7 +305,7 @@ async function captureVariant(browser, variant, viewport, errors) {
           inward_depth: "frozen 18% depth ratio plus a 3-sigma feather clearance; Quiet Gap mask covers the full feather",
           geometry: "one continuous ribbon polygon per visible interval; side-normal gradients clipped to the polygon",
           color_gradient: "blue/gold perimeter color with broad plateau and smooth inward fade",
-          feather: "Gaussian blur sigma max(2 px, 0.0065 x minDimension), before the unchanged alpha cap",
+          feather: "local Gaussian blur sigma max(2 px, 0.0065 x minDimension), followed by post-cap blur at 0.55x sigma; Quiet Gap mask is applied after the blur",
           segment_taper: "three-sample geometric taper at visible interval endpoints"
         } : "not applicable to P1 path-stroke baseline",
         colors: "unchanged",
