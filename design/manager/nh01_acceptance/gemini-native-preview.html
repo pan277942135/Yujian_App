@@ -481,6 +481,12 @@
       layoutVariant.addEventListener("change", applyViewport);
       fontScale.addEventListener("change", applyViewport);
       const matrixFontScale = document.getElementById("matrixFontScale");
+      // Only the top-level workspace starts the five viewport previews. Matrix children must never spawn more matrices.
+      if (!matrixMode && !canvasMode) {
+        document.querySelectorAll(".responsive-frame").forEach(frame => {
+          if (frame.dataset.src) frame.src = frame.dataset.src;
+        });
+      }
       if (matrixFontScale) {
         matrixFontScale.addEventListener("change", () => {
           document.querySelectorAll(".responsive-frame").forEach(frame => {
