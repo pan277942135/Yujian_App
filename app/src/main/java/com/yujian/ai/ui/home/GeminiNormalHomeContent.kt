@@ -1,6 +1,7 @@
 package com.yujian.ai.ui.home
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -36,7 +37,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.StrokeJoin
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
@@ -80,6 +86,10 @@ private const val GeminiHomeBackground = "normal_home_runtime_v1/static/scene_ba
 private const val GeminiHomeCardAspectRatio = 247f / 293f
 private const val GeminiHomeNeighborHeightFraction = 0.667f
 private val GeminiHomePeekTopOffset = 15.dp
+// NH01_AVATAR_VISUAL_V1_1: frozen mist glass and lake-ink profile illustration.
+private val GeminiMistAvatarFill = Color(0xFFEEF3F2).copy(alpha = 0.36f)
+private val GeminiMistAvatarBorder = Color.White.copy(alpha = 0.48f)
+private val GeminiMistAvatarInk = Color(0xFF214454)
 
 /** Test-visible layout signal; the UI does not announce this as accessibility copy. */
 internal val GeminiHomeTextHasVisualOverflow = SemanticsPropertyKey<Boolean>("GeminiHomeTextHasVisualOverflow")
@@ -123,7 +133,7 @@ internal fun GeminiNormalHomeContent(
                 variant = layoutVariant,
             )
         }
-        val avatarSize = clampDp(safeHeight.value * 0.06f, 36f, 44f)
+        val avatarSize = geminiHomeAvatarVisualSize(safeWidth.value).dp
         val cameraVisualSize = geminiHomeCameraVisualSize(safeWidth.value, safeHeight.value).dp
         val cameraTouchSize = maxOf(72.dp, cameraVisualSize)
 
@@ -315,17 +325,37 @@ private fun GeminiAvatarButton(
     ) {
         Box(
             modifier = Modifier.size(avatarSize).clip(CircleShape)
-                .background(Color.White.copy(alpha = 0.96f))
-                .border(2.dp, Color.White.copy(alpha = 0.98f), CircleShape)
+                .background(GeminiMistAvatarFill)
                 .testTag("gemini-home-avatar-visual"),
         ) {
-            Image(
-                painter = painterResource(R.drawable.normal_home_default_avatar_v2),
-                contentDescription = null,
-                modifier = Modifier.fillMaxSize().clip(CircleShape)
-                    .testTag("gemini-home-default-avatar-v2"),
-                contentScale = ContentScale.Fit,
-            )
+            // NH01-only fallback; the registered legacy V2 bitmap is left untouched.
+            Canvas(Modifier.fillMaxSize().testTag("gemini-home-default-avatar-mist")) {
+                val inkStroke = Stroke(
+                    width = 1.65.dp.toPx(),
+                    cap = StrokeCap.Round,
+                    join = StrokeJoin.Round,
+                )
+                drawCircle(
+                    color = GeminiMistAvatarInk,
+                    radius = size.minDimension * 0.12f,
+                    center = Offset(size.width * 0.50f, size.height * 0.36f),
+                    style = inkStroke,
+                )
+                val shoulders = Path().apply {
+                    moveTo(size.width * 0.26f, size.height * 0.77f)
+                    cubicTo(
+                        size.width * 0.26f, size.height * 0.62f,
+                        size.width * 0.34f, size.height * 0.57f,
+                        size.width * 0.50f, size.height * 0.57f,
+                    )
+                    cubicTo(
+                        size.width * 0.66f, size.height * 0.57f,
+                        size.width * 0.74f, size.height * 0.62f,
+                        size.width * 0.74f, size.height * 0.77f,
+                    )
+                }
+                drawPath(path = shoulders, color = GeminiMistAvatarInk, style = inkStroke)
+            }
             if (avatarState == NormalHomeAvatarState.PROFILE_LOADING ||
                 avatarState == NormalHomeAvatarState.PROFILE_IMAGE
             ) {
@@ -342,6 +372,12 @@ private fun GeminiAvatarButton(
                     )
                 }
             }
+            // Draw last to keep the quiet outline visible over real user photos.
+            Box(
+                Modifier.fillMaxSize()
+                    .border(0.8.dp, GeminiMistAvatarBorder, CircleShape)
+                    .testTag("gemini-home-avatar-outline"),
+            )
         }
     }
 }
