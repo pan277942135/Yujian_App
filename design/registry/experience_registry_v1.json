@@ -3896,13 +3896,13 @@
           "code": "RR09",
           "title": "RR09 · 动效接续",
           "status": "FROZEN",
-          "render_mode": "authority_index",
+          "render_mode": "recognition_result_motion_playable",
           "authority_type": "behavior",
           "authority": "design/pages/recognition/result/08_motion_continuation/README.md",
           "behavior_authority": "design/pages/recognition/result/motion/Recognition_Result_Motion_Spec_V2.md",
           "machine_authority": "design/pages/recognition/result/motion/recognition_result_motion_contract_v2.json",
           "secondary_authority": "design/system_v3/10_Page_Visual_Acceptance_Contracts/Recognition_Result/Recognition_Result_Motion_Contract_V2.md",
-          "summary": "FROZEN · Motion V2 设计规范。照片在既有 RESOLVE 内自然接续；金光从真实鱼体转移至照片下方的鱼种标题，中文名与有效英文名凝结成形，余辉在 850ms 内消散。Runtime NOT_RUN。",
+          "summary": "FROZEN · Motion V2. 点击“打开可播放原型”使用经 SHA 校验的真实鱼获照片检查 6 个关键帧、金光向下转移、中文/拉丁学名、低性能与 Reduce Motion；照片人工轮廓非生产 Mask，浏览器证据独立于 Android Runtime。",
           "menu_points": [
             "K01 · 鱼体高亮锁定：不提前显示鱼种名",
             "K02 · 0–200ms 照片自然接续：复用既有 RESOLVE",
@@ -3911,7 +3911,9 @@
             "K05 · 550–680ms 中文鱼种名揭晓，英文名紧随其下",
             "K06 · 680–850ms 余辉消散，恢复静态结果页",
             "Reduce Motion / Low Performance / 不重播规则"
-          ]
+          ],
+          "demo_url": "design/manager/rr09_motion/",
+          "prototype_status": "PLAYABLE_PROTOTYPE_PENDING_BROWSER_EVIDENCE"
         }
       ]
     },
