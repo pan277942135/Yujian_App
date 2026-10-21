@@ -44,6 +44,12 @@ function startStaticServer(root) {
     if (file !== absoluteRoot && !file.startsWith(absoluteRoot + sep)) {
       response.writeHead(403).end("Forbidden"); return;
     }
+    // The Pages build materializes this approved avatar under the preview route.
+    // Governance also serves the repository root directly, so map that one generated URL
+    // to the exact immutable app source asset only when the staged copy is absent.
+    if (!existsSync(file) && pathname === "/design/manager/nh01_acceptance/assets/normal_home_default_avatar_v2.png") {
+      file = resolve(absoluteRoot, "app/src/main/res/drawable-nodpi/normal_home_default_avatar_v2.png");
+    }
     if (existsSync(file) && statSync(file).isDirectory()) file = resolve(file, "index.html");
     if (!existsSync(file) || !statSync(file).isFile()) {
       response.writeHead(404).end("Not found"); return;
