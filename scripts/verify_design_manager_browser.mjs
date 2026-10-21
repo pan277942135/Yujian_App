@@ -213,13 +213,19 @@ async function main() {
     const frame = previewPage.frameLocator(`iframe[data-viewport="${width}x${height}"]`);
     await frame.locator("#device").waitFor({ state: "visible", timeout: 15000 });
     const frameState = await frame.locator("#device").evaluate(node => {
+      const deviceRect = node.getBoundingClientRect();
+      const scaleX = deviceRect.width / Math.max(1, node.offsetWidth);
+      const scaleY = deviceRect.height / Math.max(1, node.offsetHeight);
       const box = selector => {
         const element = document.querySelector(selector);
         if (!element) return null;
         const rect = element.getBoundingClientRect();
         return {
-          left: rect.left, top: rect.top, right: rect.right, bottom: rect.bottom,
-          width: rect.width, height: rect.height
+          left: (rect.left - deviceRect.left) / scaleX,
+          top: (rect.top - deviceRect.top) / scaleY,
+          right: (rect.right - deviceRect.left) / scaleX,
+          bottom: (rect.bottom - deviceRect.top) / scaleY,
+          width: rect.width / scaleX, height: rect.height / scaleY
         };
       };
       return {
