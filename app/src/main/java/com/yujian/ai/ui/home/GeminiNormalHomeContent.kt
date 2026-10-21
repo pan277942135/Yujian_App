@@ -119,7 +119,7 @@ internal fun GeminiNormalHomeContent(
             )
         }
         val avatarSize = clampDp(safeHeight.value * 0.06f, 36f, 44f)
-        val cameraVisualSize = clampDp(safeHeight.value * 0.095f, 54f, 66f)
+        val cameraVisualSize = geminiHomeCameraVisualSize(safeWidth.value, safeHeight.value).dp
         val cameraTouchSize = maxOf(72.dp, cameraVisualSize)
 
         Box(Modifier.fillMaxSize()) {
