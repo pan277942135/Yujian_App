@@ -711,7 +711,7 @@ class GeminiNormalHomeResponsiveTest {
         val loadedImage = compose.onNodeWithTag("gemini-home-avatar-visual", useUnmergedTree = true)
             .captureToImage().toPixelMap()
         val center = loadedImage[loadedImage.width / 2, loadedImage.height / 2]
-        assertTrue("real user avatar must replace the V2 placeholder after successful load", center.red > 0.8f && center.blue > 0.8f)
+        assertTrue("real user avatar must replace mist placeholder after successful load", center.red > 0.8f && center.blue > 0.8f)
 
         auth.value = AvatarProfile(isLoggedIn = true, avatarUrl = failedAvatar.absolutePath)
         compose.waitUntil(10_000) {
@@ -720,13 +720,15 @@ class GeminiNormalHomeResponsiveTest {
         }
         assertEquals(0, compose.onAllNodesWithTag("gemini-home-remote-avatar", useUnmergedTree = true)
             .fetchSemanticsNodes().size)
-        compose.onNodeWithTag("gemini-home-default-avatar-v2", useUnmergedTree = true).assertIsDisplayed()
+        compose.onNodeWithTag("gemini-home-default-avatar-mist", useUnmergedTree = true).assertIsDisplayed()
         val fallback = compose.onNodeWithTag("gemini-home-avatar-visual", useUnmergedTree = true)
             .captureToImage().asAndroidBitmap()
         val buttonBounds = bounds("gemini-home-avatar-button")
         val visualBounds = bounds("gemini-home-avatar-visual")
         assertTrue("avatar action target must be at least 48dp", buttonBounds.width() >= 48f && buttonBounds.height() >= 48f)
         assertTrue("avatar visual must stay within its independent action target", visualBounds.isInside(buttonBounds))
+        assertTrue("avatar artwork must stay within frozen 36-40dp", visualBounds.width() in 36f..40.1f)
+        compose.onNodeWithTag("gemini-home-avatar-outline", useUnmergedTree = true).assertIsDisplayed()
         val fallbackPixels = fallback.asImageBitmap().toPixelMap()
         val centerPixel = fallbackPixels[fallbackPixels.width / 2, fallbackPixels.height / 2]
         val cornerPixel = fallbackPixels[0, 0]
@@ -740,7 +742,7 @@ class GeminiNormalHomeResponsiveTest {
         compose.waitForIdle()
         assertEquals(0, compose.onAllNodesWithTag("gemini-home-remote-avatar", useUnmergedTree = true)
             .fetchSemanticsNodes().size)
-        compose.onNodeWithTag("gemini-home-default-avatar-v2", useUnmergedTree = true).assertIsDisplayed()
+        compose.onNodeWithTag("gemini-home-default-avatar-mist", useUnmergedTree = true).assertIsDisplayed()
         compose.onNodeWithTag("gemini-home-avatar-button", useUnmergedTree = true)
             .assertHasClickAction().performClick()
         compose.runOnIdle {
@@ -751,9 +753,11 @@ class GeminiNormalHomeResponsiveTest {
         val report = JSONObject().apply {
             put("schema", "NH01_GEMINI_AVATAR_TRANSITION_REPORT_V3")
             put("mode", "COMPOSE_CONSTRAINT_SIMULATION")
-            put("avatar_asset", "drawable/normal_home_default_avatar_v2.png")
-            put("avatar_asset_sha256", "fe94b11ba9f6c0635cd230bcc786fd2ea9a64d1a6f512dc6078556379676f528")
-            put("avatar_visual_crop", "CIRCLE_CLIP_CONTENT_SCALE_FIT")
+            put("avatar_visual_contract", "NH01_AVATAR_VISUAL_V1_1")
+            put("avatar_visual_source", "COMPOSE_MIST_GLASS_LINE_ART")
+            put("legacy_avatar_asset_retained", "drawable/normal_home_default_avatar_v2.png")
+            put("legacy_avatar_asset_sha256", "fe94b11ba9f6c0635cd230bcc786fd2ea9a64d1a6f512dc6078556379676f528")
+            put("avatar_visual_crop", "CIRCLE_CLIP_0_8DP_BORDER")
             put("avatar_visual_bounds_dp", visualBounds.toJson())
             put("avatar_button_bounds_dp", buttonBounds.toJson())
             put("user_avatar_load", "PASS")
