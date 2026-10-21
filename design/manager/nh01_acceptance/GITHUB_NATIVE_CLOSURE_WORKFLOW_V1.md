@@ -7,7 +7,7 @@
 
 1. The registered Frozen NH01 PNG remains the read-only composition reference until an explicitly approved replacement target is registered.
 2. GitHub source assets, JSON models, Markdown contracts, Compose source, workflows, and exact-SHA artifacts are the reproducible working set.
-3. The historical PR #164 Figma node map is retained as provenance only. No step in this workflow requires live Figma access or a Figma write.
+3. The PR #164 Figma node map is retained as a versioned, immutable source snapshot that seeds the current structured model. Once checked into GitHub, builds consume this repository snapshot and GitHub contracts without live Figma access or a Figma write. Its REVIEW_REQUIRED status is not visual acceptance, and GitHub contracts plus explicit authority decisions must resolve ambiguous or conflicting snapshot values.
 4. The structured HTML preview is an editable engineering model, not an approved design target by itself. Its differences from Frozen are diagnostic; never tune the reference or thresholds merely to make the preview pass.
 5. Local screenshot comparison runs entirely in the browser. It does not upload a user's screenshot, commit it, or promote local results to CI/runtime PASS.
 
