@@ -4275,12 +4275,13 @@
         "fish_media_display_v1",
         "icon_library_v0_1"
       ],
-      "design_status": "READY_FOR_VISUAL_IMPLEMENTATION",
-      "registry_status": "READY_FOR_VISUAL_IMPLEMENTATION",
+      "design_status": "FROZEN",
+      "registry_status": "FROZEN",
       "verification_status": "REGISTRY_ENTRY_PENDING_PR_DEPLOYMENT",
       "visual_authority_declared_path": null,
       "authority_reference": "design/system_v3/10_Page_Visual_Acceptance_Contracts/Recognition_Result/Recognition_Result_Visual_Contract_V1.md",
-      "visual_authority_reference": "design/pages/recognition/result/authority/authority_map.json"
+      "visual_authority_reference": "design/pages/recognition/result/authority/authority_map.json",
+      "acceptance_readiness_status": "READY_FOR_VISUAL_IMPLEMENTATION"
     },
     {
       "flow_node_id": "hifi_view_recognition_result_v1_motion_continuation",
