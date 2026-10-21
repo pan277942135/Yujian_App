@@ -28,6 +28,7 @@ internal data class GeminiHomeLayoutSpec(
     val titleToCardGap: Dp,
     val cardToFooterGap: Dp?,
     val topAlignMiddleGroup: Boolean,
+    val contentFirstSizing: Boolean = false,
 )
 
 private const val GEMINI_CARD_ASPECT_RATIO = 247f / 293f
@@ -172,6 +173,7 @@ internal fun resolveGeminiHomeLayoutSpec(
         titleToCardGap = titleToCard.dp,
         cardToFooterGap = cardToFooter.dp,
         topAlignMiddleGroup = false,
+        contentFirstSizing = true,
     )
 }
 
