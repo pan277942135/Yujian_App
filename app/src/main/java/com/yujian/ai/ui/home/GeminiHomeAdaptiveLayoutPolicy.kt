@@ -208,3 +208,17 @@ internal fun geminiHomeNeighborWidth(trackWidthDp: Float, cardWidthDp: Float, pa
     val minimumWidthForPeek = 2f * targetPeekWidth + 2f * pageSpacingDp + 2f * cardWidthDp - trackWidthDp
     return maxOf(existingNeighborWidth, minimumWidthForPeek).coerceIn(0f, cardWidthDp)
 }
+
+/**
+ * Keeps the camera artwork proportional to the usable Home canvas on larger devices,
+ * while constraining it by both horizontal and vertical space. The footer's touch
+ * target is resolved separately and must never be smaller than 72dp.
+ */
+internal fun geminiHomeCameraVisualSize(safeWidthDp: Float, safeHeightDp: Float): Float {
+    require(safeWidthDp > 0f)
+    require(safeHeightDp > 0f)
+    val contentWidthDp = minOf(safeWidthDp, 560f)
+    val widthBound = contentWidthDp * 0.18f
+    val heightBound = safeHeightDp * 0.10f
+    return minOf(widthBound, heightBound, 80f).coerceAtLeast(56f)
+}
