@@ -13,9 +13,11 @@ F={k:f"{B}/{v}" for k,v in {
  "pixels":"Recognition_Result_Pixel_Targets_V1.json",
  "anchors":"Recognition_Result_Component_Anchor_Map_V1.json",
  "visual":"Recognition_Result_Visual_Contract_V1.md",
- "motion":"Recognition_Result_Motion_Contract_V1.md",
+ "motion":"Recognition_Result_Motion_Contract_V2.md",
  "access":"Recognition_Result_Accessibility_Contract_V1.md",
  "runtime":"Recognition_Result_Runtime_Gate_V1.md"}.items()}
+F["motion_spec"]="design/pages/recognition/result/motion/Recognition_Result_Motion_Spec_V2.md"
+F["motion_json"]="design/pages/recognition/result/motion/recognition_result_motion_contract_v2.json"
 PAGE_REG="design/system_v3/08_Page_Contracts/Page_Registry_V3_1.json"
 PAGE_STATE="design/system_v3/08_Page_Contracts/recognition/result/State_Machine_V3_1.json"
 LAYOUT="design/system_v3/08_Page_Contracts/recognition/result/Layout_Contract_V3_1.json"
@@ -49,11 +51,15 @@ def main()->int:
  ap.add_argument("--verify-bytes",action="store_true",help="Recompute referenced image SHA in a complete checkout.")
  args=ap.parse_args();issues=[]
  for p in [*F.values(),PAGE_REG,PAGE_STATE,LAYOUT,ANDROID,COMPONENTS,ASSETS,BACKGROUND,*TOKENS]:req(p,issues,"source")
- reg=readj(F["registry"]); sm=readj(F["states"]); px=readj(F["pixels"]); an=readj(F["anchors"])
+ reg=readj(F["registry"]); sm=readj(F["states"]); px=readj(F["pixels"]); an=readj(F["anchors"]); motion_data=readj(F["motion_json"])
  pg=readj(PAGE_REG); pm=readj(PAGE_STATE); layout=readj(LAYOUT); android=readj(ANDROID)
  comps_doc=readj(COMPONENTS); assets_doc=readj(ASSETS); bg_doc=readj(BACKGROUND)
  token_docs=[readj(x) for x in TOKENS]
  if reg.get("registry_id")!="recognition_result_visual_contract_registry_v1" or reg.get("status")!="READY_FOR_VISUAL_IMPLEMENTATION" or reg.get("version")!="V1":issues.append("Visual Registry identity/status/version mismatch")
+ if reg.get("contracts",{}).get("motion")!=F["motion"]:issues.append("Current Motion contract pointer must resolve to V2")
+ if reg.get("authority_source",{}).get("result_motion")!=F["motion_spec"]:issues.append("Current Result motion spec pointer must resolve to V2")
+ if motion_data.get("contract_id")!="recognition_result_motion_continuation_v2" or motion_data.get("status")!="FROZEN" or motion_data.get("total_duration_ms")!=850:issues.append("Motion V2 machine contract identity/status/timing mismatch")
+ if motion_data.get("scope",{}).get("trigger_states")!=["RESULT_HIGH"] or len(motion_data.get("keyframes",[]))!=6:issues.append("Motion V2 trigger/keyframe contract incomplete")
  visual_sources=reg.get("frozen_visual_authority",[])
  if len(visual_sources)!=5:issues.append("Frozen visual authority must map exactly five Result states")
  source_by_path={x.get("path"):x for x in reg.get("authority_assets",[]) if isinstance(x,dict)}
@@ -147,6 +153,7 @@ def main()->int:
  if (ROOT/nav).is_file():
   j=readj(nav)
   if not any(x.get("id")=="RR08" and x.get("status")=="READY_FOR_VISUAL_IMPLEMENTATION" for x in j.get("level_2",[])):issues.append("Design Manager RR08 link missing")
+  if not any(x.get("id")=="RR09" and x.get("status")=="FROZEN" and x.get("contract")==F["motion_spec"] and x.get("machine_contract")==F["motion_json"] for x in j.get("level_2",[])):issues.append("Design Manager RR09 Motion V2 link missing or inconsistent")
  if issues:
   print(f"FAIL: {len(issues)} Recognition Result Visual Contract issue(s)")
   for x in issues:print(" - "+x)
