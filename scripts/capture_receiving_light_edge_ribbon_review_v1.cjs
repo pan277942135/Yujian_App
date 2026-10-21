@@ -165,7 +165,9 @@ async function captureVariant(browser, variant, viewport, errors) {
       const minDimension = Math.min(canvas.width, canvas.height);
       const depthPx = 0.18 * minDimension;
       const outerSigma = depthPx * 0.0857;
-      const quietDepthPx = Math.min(minDimension * 0.18, depthPx / 2 + outerSigma * 3);
+      const quietDepthPx = window.__EDGEGLOW_EDGE_RIBBON_EXPERIMENT__ === true
+        ? depthPx
+        : Math.min(minDimension * 0.18, depthPx / 2 + outerSigma * 3);
       const quietRegions = {
         Q_TOP: [Math.ceil(0.32 * canvas.width) + 2, 2, Math.floor(0.68 * canvas.width) - 2, Math.floor(quietDepthPx) - 2],
         Q_LEFT: [2, Math.ceil(0.38 * canvas.height) + 2, Math.floor(quietDepthPx) - 2, Math.floor(0.62 * canvas.height) - 2],
@@ -225,6 +227,9 @@ async function captureVariant(browser, variant, viewport, errors) {
     assert.equal(overlay.renderer_status.base_alpha, expectedBase, "renderer must report the requested base alpha");
     assert.equal(Math.round(overlay.renderer_status.alpha_cap * 255), expectedCap, "renderer must report the requested output alpha cap");
     assert.ok(overlay.alpha.nonzero_pixels > 0, "Receiving Light layer must render");
+    if (variant.id === "CANDIDATE") {
+      assert.ok(overlay.alpha.canvas_area_fraction > 0.17, "continuous edge ribbon must cover a broad perimeter band");
+    }
     assert.ok(overlay.alpha.peak_alpha_8bit <= expectedCap, "actual PNG alpha must respect its recorded cap");
     for (const [id, stats] of Object.entries(overlay.per_island)) assert.ok(stats.nonzero_pixels > 0, "P1 island missing: " + id);
     for (const [id, stats] of Object.entries(overlay.quiet_gap_checks)) assert.equal(stats.peak_alpha_8bit, 0, "Quiet Gap must remain clear: " + id);
@@ -297,10 +302,10 @@ async function captureVariant(browser, variant, viewport, errors) {
         receiving_geometry: variant.id === "CANDIDATE" ? "edge-anchored ribbon quads sampled along visible P1 path intervals; path-stroke masks bypassed in review-only mode" : "original P1 path-stroke masks and blur layers",
         edge_ribbon_geometry: variant.id === "CANDIDATE" ? {
           anchor: "nearest photo perimeter edge at each sampled path point",
-          inward_depth: "existing maxDepth, preserving the P1 Quiet Gap mask depth",
-          geometry: "per-segment quadrilateral ribbon with inward linear-alpha falloff",
-          color_gradient: "blue/gold edge color with restrained hot stop, fading to zero inward",
-          segment_taper: "three-sample fade at visible interval endpoints"
+          inward_depth: "full frozen 18% depth ratio; Quiet Gap mask extends to the same depth",
+          geometry: "one continuous ribbon polygon per visible interval; side-normal gradients clipped to the polygon",
+          color_gradient: "blue/gold perimeter color with broad plateau and smooth inward fade",
+          segment_taper: "three-sample geometric taper at visible interval endpoints"
         } : "not applicable to P1 path-stroke baseline",
         colors: "unchanged",
         quiet_gaps: "unchanged",
@@ -445,7 +450,7 @@ async function main() {
         output_alpha_cap_8bit: 17,
         depth_ratio: 0.18,
         primary_paths: ["B1", "G1", "G3", "B3"],
-        geometry_change: "candidate uses edge-anchored ribbon quads along visible path intervals with an inward linear falloff; Alpha remains fixed",
+        geometry_change: "candidate uses one continuous perimeter-anchored ribbon polygon per visible interval with side-normal gradients and tapered endpoints; Alpha remains fixed",
         colors: "unchanged",
         quiet_gaps: "unchanged",
         coordinate_mapping: "unchanged",
@@ -475,8 +480,8 @@ async function main() {
       "- Acceptance Center SHA: " + CENTER_SHA,
       "- Photo SHA-256: " + PHOTO_SHA,
       "- Baseline: base Alpha 0.07, output cap 17/255, depth 18%.",
-      "- Review-only candidate: edge-anchored ribbon quads along the existing visible path intervals; base Alpha 0.07, output cap 17/255, depth 18%.",
-      "- Only geometry changes: each visible path interval becomes a perimeter-anchored ribbon extending inward with a linear falloff. Alpha, color, depth, global intensity, photo mapping, Quiet Gaps and source-over remain fixed.",
+      "- Review-only candidate: continuous perimeter-anchored ribbon polygons, side-normal gradients, tapered endpoints; base Alpha 0.07, output cap 17/255, depth 18%.",
+      "- Only geometry changes: each visible path interval becomes one continuous perimeter-anchored polygon with edge-normal gradients and a geometric endpoint taper. Alpha, color, depth ratio, global intensity, photo mapping, Quiet Gaps and source-over remain fixed.",
       "- Baseline RGB signal vs source photo (390x844): mean absolute delta " + baseline.over_photo.pixel_signal_vs_photo.mean_abs_rgb_delta_sampled.toFixed(6) + ".",
       "- Candidate RGB signal vs source photo (390x844): mean absolute delta " + candidate390.over_photo.pixel_signal_vs_photo.mean_abs_rgb_delta_sampled.toFixed(6) + ".",
       "- Candidate-vs-baseline RGB delta (390x844): " + comparison.mean_abs_rgb_delta_candidate_vs_baseline.toFixed(6) + ".",
