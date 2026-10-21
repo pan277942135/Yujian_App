@@ -344,9 +344,13 @@ async function captureVariant(browser, variant, viewport, errors) {
           alpha_at_6pct_depth: pixel(...edgePoints[side](t, 0.06 * minDimension)).alpha
         }));
       }
-      let nonzero = 0, peak = 0, minX = canvas.width, minY = canvas.height, maxX = -1, maxY = -1;
+      let nonzero = 0, peak = 0, alphaSum = 0;
+      const alphaHistogram = new Uint32Array(256);
+      let minX = canvas.width, minY = canvas.height, maxX = -1, maxY = -1;
       for (let y = 0; y < canvas.height; y++) for (let x = 0; x < canvas.width; x++) {
         const alpha = rgba[(y * canvas.width + x) * 4 + 3];
+        alphaHistogram[alpha]++;
+        alphaSum += alpha;
         if (!alpha) continue;
         nonzero++;
         if (alpha > peak) peak = alpha;
@@ -362,12 +366,28 @@ async function captureVariant(browser, variant, viewport, errors) {
           }
         }
       }
+      const alphaPercentile = percentile => {
+        const target = Math.ceil(nonzero * percentile);
+        let cumulative = 0;
+        for (let value = 0; value < alphaHistogram.length; value++) {
+          cumulative += alphaHistogram[value];
+          if (cumulative >= alphaHistogram[0] + target) return value;
+        }
+        return 0;
+      };
       return {
         png: canvas.toDataURL("image/png"),
         size: [canvas.width, canvas.height],
         source_size: call.source_size, source_rect: call.source_rect, destination_rect: call.destination_rect,
         alpha: {
           nonzero_pixels: nonzero, peak_alpha_8bit: peak,
+          mean_alpha_all_pixels: alphaSum / (canvas.width * canvas.height),
+          mean_alpha_nonzero_pixels: nonzero ? alphaSum / nonzero : 0,
+          p50_alpha_nonzero_pixels: alphaPercentile(0.50),
+          p90_alpha_nonzero_pixels: alphaPercentile(0.90),
+          p99_alpha_nonzero_pixels: alphaPercentile(0.99),
+          cap_alpha_pixels: alphaHistogram[17],
+          cap_alpha_fraction_of_nonzero: nonzero ? alphaHistogram[17] / nonzero : 0,
           bbox: [minX, minY, maxX + 1, maxY + 1],
           bbox_area_fraction: nonzero ? ((maxX - minX + 1) * (maxY - minY + 1)) / (canvas.width * canvas.height) : 0,
           canvas_area_fraction: nonzero / (canvas.width * canvas.height)
@@ -479,7 +499,7 @@ async function captureVariant(browser, variant, viewport, errors) {
         continuous_field: isContinuous ? {
           version: overlay.renderer_status.field_version,
           anchors: overlay.renderer_status.field_anchors,
-          profile: "E(s)=0.035+sum(weight*coverage*wrapped-Gaussian(s,mu,sigma)); local inward attenuation is a 3-Gaussian profile with energy-dependent width",
+          profile: "E(s)=0.035+sum(weight*coverage*wrapped-Gaussian(s,mu,sigma)); renderEnergy=0.035+0.965*((E-0.035)/0.965)^0.52; local inward attenuation is a 3-Gaussian profile with energy-dependent width",
           spatial_parameters: overlay.renderer_status.field_profile || null,
           photo_depth_px: overlay.renderer_status.field_depth_px
         } : null,

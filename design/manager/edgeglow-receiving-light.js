@@ -44,6 +44,7 @@
     localDepthScaleMinimum: 0.78,
     quietFeatherRatio: 0.02,
     quietLowLevel: 0.12,
+    energyResponseExponent: 0.52,
     energyBins: 256,
     maximumCachedFieldPixels: 4_194_304
   });
@@ -390,7 +391,12 @@
         hotColors.blue[channel] * blueShare + hotColors.gold[channel] * goldShare
       );
       const maxAmplitude = Math.max(0.01, ...anchors.map(anchor => anchor.amplitude));
-      const localEnergy = quietGapEnergy(side, t, config.quietGapVariant, clamp(energy, 0, 1));
+      const normalizedEnergy = clamp(energy, 0, 1);
+      const ambient = CONTINUOUS_FIELD_PROFILE.ambientEnergy;
+      const responseInput = clamp((normalizedEnergy - ambient) / (1 - ambient), 0, 1);
+      const shapedEnergy = ambient + (1 - ambient) *
+        Math.pow(responseInput, CONTINUOUS_FIELD_PROFILE.energyResponseExponent);
+      const localEnergy = quietGapEnergy(side, t, config.quietGapVariant, shapedEnergy);
       const familyEnergy = clamp((blueEnergy + goldEnergy) / maxAmplitude, 0, 1);
       profile[index] = {
         energy: localEnergy,
