@@ -1,59 +1,44 @@
-# NH01 Adaptive Visual Balance V2 — Content-First Layout Contract
+# NH01 Adaptive Visual Balance V2 — Candidate Contract V2.1
 
 **Task:** `YUJIAN_NH01_CONTENT_FIRST_LAYOUT_V2`  
 **Implementation:** `GeminiHomeAdaptiveLayoutPolicy.kt` + `GeminiNormalHomeContent.kt`  
-**Status:** Candidate implementation; exact-SHA Android API 28 matrix is required before acceptance.
+**Status:** Candidate only. Runtime acceptance requires the exact-SHA 24-execution Android API 28 matrix.
 
-## Decision
+## Frozen decisions for this candidate
 
-V2 replaces Adaptive V1 as the default policy. V1 remains in the enum only for explicit regression comparison; it is not the default or acceptance candidate. V3 Baseline remains the same-device comparison arm.
+1. **Main card:** maximize within the reasonable design cap; do not shrink it simply because a screen is larger or taller.
+2. **Side Peek:** preserve left and right neighbor previews whenever geometry permits, without overlapping the active card.
+3. **320×480:** compact mode compresses nonessential whitespace first and preserves readable content, the camera touch target, and Footer CTA.
 
-The root defect in V1 was not merely its spacing values. When the measured Middle height fell below the large fixed readability floor, the implementation restored the full desired card height. That created the opposite of responsive behavior: the tighter the viewport, the more likely the card was to force an oversized scroll region. V2 never restores an oversized target when space is constrained.
+## Geometry and sizing algorithm
 
-## Geometry contract
+- Use `dp` for layout geometry, `sp` for type, and actual Android window bounds for evidence. Apply each system inset exactly once.
+- Preserve the Hero aspect ratio **247:293**.
+- Main-card target width is `min(min(trackWidth, 560dp) × 0.70, 337.2dp)`; target height follows the ratio and is capped at 400dp.
+- Measure the real Top and Footer sections first. Compress nonessential gaps before reducing the card. Resolve final card height as `min(desiredHeight, max(minReadableHeight, availableCardHeight))`; keep the Footer outside any Middle scroll container.
+- Standard readable-height floor is **148–220dp**. The existing **124dp** exception is allowed only for 320×480dp at 1.0× font scale and only if the measured card width is at least 145dp, required text is not visually truncated, and Middle does not scroll.
+- Viewport type multiplier remains bounded to **1.0–1.2×** and must be monotonic across 360×640, 390×844, and 430×932 at the same system font scale. Respect Android system font scaling.
+- Adaptive V2 allows measurement and metadata text to wrap to two lines when the card width is below **210dp**, including at 1.0× system font scale. V3 Baseline retains its prior line policy as the control.
+- The neighbor width cap is **82%** of the active card. For Adaptive V2, target edge-peek width is `clamp(trackWidth × 5%, 12dp, 28dp)`. Increase neighbor width only as needed to expose that edge width. If the 82% cap makes an edge sliver impossible, require the neighbor to remain visibly present inside the track by at least `min(12dp, actualNeighborWidth)`. Never overlap the active card. Preserve the 15dp top offset and 66.7% neighbor height.
+- Keep the content-width cap at 560dp. Camera artwork follows `min(min(safeWidth, 560dp) × 0.18, safeHeight × 0.10, 80dp)`, with a 56dp visual floor and a separate touch target of at least 72dp.
 
-- Preserve the approved Hero card ratio **247:293**.
-- Main-card target width is **70% of the carousel track**, capped at **337.2dp**. The final width may be smaller because height is constrained by the actual Middle region.
-- Resolve final card height as `min(desiredHeight, max(minReadableHeight, availableCardHeight))`.
-- Compute a conservative readable minimum from the font-scaled text budget: species title, up to two measurement lines, up to two metadata lines, footer padding, and font-metric safety allowance. Bound the minimum to **148–220dp**.
-- If the available Middle space can contain the target card and its header/gaps, center the group vertically. If the readable minimum cannot fit, keep the card at that minimum (unless the viewport itself forces a smaller target) and enable scrolling **inside Middle only**. The Footer remains outside that scroll container.
-- Typography uses both usable width and height to establish a bounded viewport multiplier (1.0–1.2×) on top of the height-based type scale and the system font scale. At normal font scale, the 390×844 and 430×932 profiles must render larger type than 360×640; compact 320×480 must not shrink below the base readable sizes.
-- Side peek cards must remain at most 82% of the active card width and must not overlap the active card. The immediate neighbor must remain visible at the viewport edge, with the 15dp top offset and 66.7% height preserved.
-- Compact 320×480 at 1.0× font scale must fit the card and footer without a Middle scroll viewport. The CTA must sit close to the real bottom safe inset, with no extra double-counted footer padding. Larger accessibility font scales may scroll only if the measured text budget truly cannot fit.
-- Keep the existing safe-drawing inset contract, finite pager identity, and 560dp content-width cap. Camera artwork scales from both usable canvas width and height: `min(min(safeWidth, 560dp) × 0.18, safeHeight × 0.10, 80dp)`, with a 56dp visual floor. The camera touch target is `max(72dp, visualSize)`; visible artwork and touch bounds are measured independently.
+## Exact-SHA runtime matrix
 
-## Continuous spacing policy
+Run both **Adaptive V2** and **V3 Baseline** on the same source SHA:
 
-The V2 policy no longer uses a nine-cell band × font-scale lookup table. It calculates bounded spacing from continuous font pressure and short-height pressure:
-
-- `fontPressure = clamp((fontScale - 1) / 0.5, 0, 1)`
-- `shortHeightPressure = clamp((620dp - safeHeight) / 220dp, 0, 1)`
-
-| Gap | Base rule | Font-pressure reduction | Short-height reduction |
-|---|---|---:|---:|
-| Brand → stats | clamp(safeHeight × 0.035, 14, 28) | 3dp × pressure | 2dp × pressure |
-| Stats → section title | clamp(safeHeight × 0.015, 6, 14) | 3dp × pressure | 1.5dp × pressure |
-| Section title → card | clamp(safeHeight × 0.014, 7, 12) | 2dp × pressure | 1.5dp × pressure |
-| Card → footer region | clamp(safeHeight × 0.018, 8, 14) | 3dp × pressure | 2dp × pressure |
-
-Each final gap has a non-negative lower bound in code. The screen band remains diagnostic metadata; it does not select a separate spacing table in V2.
-
-## Required runtime matrix
-
-The exact-SHA API 28 device matrix must run V2 and V3 Baseline across the four user-reported logical viewports and three system font scales (12 profiles per variant):
-
-- 320 × 480dp, 360 × 640dp, 390 × 844dp, 430 × 932dp
-- System font scale 1.0×, 1.3×, 1.5×
-
-For each exact source SHA, preserve full-screen PNGs, `boundsInWindow`, actual density/resolution, observed font scale, card ratio/target-vs-measured size, scrollability, footer visibility, camera touch bounds and separate visible-art bounds, active/peek card bounds and overlap checks, and two-catch pager identity evidence.
+- 320×480dp, 360×640dp, 390×844dp, 430×932dp.
+- System font scale 1.0×, 1.3×, 1.5×.
+- **12 cases per variant, 24 executions total.** Each case records the exact SHA, applied device settings, full-window PNG, component bounds, card dimensions, Peek geometry, text-overflow status, CTA/camera geometry, and two-catch pager interactions.
+- Capture initial right-Peek bounds and after-swipe left-Peek bounds. The aggregator must reject missing evidence instead of treating a missing report as PASS.
+- Device output and host aggregation must use the same versioned directory name. Browser simulation is not Android runtime evidence.
 
 ## Acceptance gates
 
-- No CTA/camera overlap; camera target remains at least 72dp. Visible camera artwork matches the width/height-aware size policy within 2dp and increases across the compact, phone, tall-phone and wide-canvas profiles until the 80dp cap.
-- Footer stays outside the Middle scroll viewport and above the actual bottom safe inset.
-- Card ratio remains within 1% of 247:293; measured width never exceeds the V2 target. Left/right peek bounds never overlap the active card, and peek width remains at most 82% of the active card.
-- When the minimum readable card does not fit, V2 reports/uses Middle scrolling instead of reverting to the oversized desired height.
-- Required fish metadata remains reachable and visible after scrolling; no text is silently clipped.
-- Compare all nine paired V2/V3 screenshots before selecting a final default. Browser preview success alone is not Android runtime acceptance.
+- Card ratio within 1% of 247:293; active card centered within 2dp; measured width never exceeds its variant's target.
+- No active/Peek overlap beyond 1dp; neighbor width no greater than 82%; real visible intersection is measured. Adaptive V2 must expose the target edge Peek when geometrically feasible.
+- CTA and camera do not overlap; camera touch target at least 72dp; camera artwork matches its sizing policy within 2dp; Footer and camera remain above the actual bottom safe inset.
+- Adaptive V2 species, measurement, and metadata text must not visually overflow. Required content must remain accessible.
+- 320×480dp at 1.0× must have no Middle scroll viewport, active-card width at least 145dp, and no excessive blank area below the CTA.
+- Compare all 12 same-profile V3/V2 screenshot pairs and both variants' bounds/metrics before selecting the default. A successful build or browser preview is not visual acceptance.
 
-**No merge or release PASS is implied by adding this contract.**
+**No merge, release PASS, or Frozen status is implied by this candidate contract.**

@@ -100,13 +100,21 @@ def validate_case(payload: dict[str, Any], profile: str, width: int, height: int
     bounds = payload.get("bounds_in_window_px", {})
     required_bounds = (
         "gemini-home-screen", "gemini-home-brand-title", "gemini-home-stats-bar",
-        "gemini-home-section-title", "gemini-home-catch-card-nh01-catch-001",
+        "gemini-home-section-title", "gemini-home-carousel-track", "gemini-home-catch-card-nh01-catch-001",
         "gemini-home-catch-neighbor-nh01-catch-002",
         "gemini-home-footer-cta", "gemini-home-cta-label", "gemini-home-camera",
     )
     missing = [tag for tag in required_bounds if tag not in bounds]
     if missing:
         problems.append("missing bounds: " + ", ".join(missing))
+    after_swipe = payload.get("bounds_after_swipe_in_window_px", {})
+    required_after_swipe = (
+        "gemini-home-carousel-track", "gemini-home-catch-card-nh01-catch-002",
+        "gemini-home-catch-neighbor-nh01-catch-001",
+    )
+    missing_after_swipe = [tag for tag in required_after_swipe if tag not in after_swipe]
+    if missing_after_swipe:
+        problems.append("missing after-swipe bounds: " + ", ".join(missing_after_swipe))
     metrics = payload.get("metrics", {})
     ratio = float(metrics.get("card_aspect_ratio", 0))
     if abs(ratio / (247 / 293) - 1) > 0.01:
@@ -121,6 +129,26 @@ def validate_case(payload: dict[str, Any], profile: str, width: int, height: int
     neighbor_overlap = float(metrics.get("peek_card_overlap_dp", 999))
     if not math.isfinite(neighbor_overlap) or neighbor_overlap > 1:
         problems.append(f"active/peek cards overlap by {neighbor_overlap}dp")
+    neighbor_width = float(metrics.get("neighbor_width_dp", 0))
+    visible_width = float(metrics.get("peek_visible_width_dp", -999))
+    if not math.isfinite(visible_width) or visible_width < min(12.0, neighbor_width) - 1.0:
+        problems.append(f"peek is not visibly present inside the track: visible={visible_width}dp width={neighbor_width}dp")
+    edge_target = float(metrics.get("peek_edge_target_dp", -999))
+    edge_visible = float(metrics.get("peek_edge_visible_width_dp", -999))
+    if variant == "ADAPTIVE_V2" and payload.get("metrics", {}).get("peek_edge_feasible") is True:
+        if not math.isfinite(edge_target) or not math.isfinite(edge_visible) or edge_visible < edge_target - 1.0:
+            problems.append(f"edge peek below target: visible={edge_visible}dp target={edge_target}dp")
+    left_overlap = float(metrics.get("left_peek_after_swipe_overlap_dp", 999))
+    if not math.isfinite(left_overlap) or left_overlap > 1:
+        problems.append(f"active/left-peek cards overlap after swipe by {left_overlap}dp")
+    left_visible = float(metrics.get("left_peek_after_swipe_visible_width_dp", -999))
+    left_width = float(metrics.get("left_peek_after_swipe_width_dp", 0))
+    if not math.isfinite(left_visible) or left_visible < min(12.0, left_width) - 1.0:
+        problems.append(f"left peek is not visibly present after swipe: visible={left_visible}dp width={left_width}dp")
+    if variant == "ADAPTIVE_V2" and payload.get("metrics", {}).get("left_peek_after_swipe_edge_feasible") is True:
+        left_edge_visible = float(metrics.get("left_peek_after_swipe_edge_visible_width_dp", -999))
+        if not math.isfinite(left_edge_visible) or not math.isfinite(edge_target) or left_edge_visible < edge_target - 1.0:
+            problems.append(f"left edge peek below target after swipe: visible={left_edge_visible}dp target={edge_target}dp")
     if metrics.get("cta_camera_overlap") is not False:
         problems.append("CTA and camera overlap or were not measured")
     if float(metrics.get("camera_safe_bottom_clearance_dp", -999)) < -1:
@@ -135,6 +163,10 @@ def validate_case(payload: dict[str, Any], profile: str, width: int, height: int
         problems.append("real-ID horizontal swipe was not verified")
     if data.get("required_card_text_accessible") is not True:
         problems.append("species, measurement, and metadata accessibility assertion failed")
+    if not isinstance(data.get("required_card_text_no_visual_overflow"), bool):
+        problems.append("required-card text-overflow metric missing")
+    elif variant == "ADAPTIVE_V2" and data.get("required_card_text_no_visual_overflow") is not True:
+        problems.append("Adaptive V2 species, measurement, or metadata text visually overflows")
     screenshot_name = payload.get("screenshots", {}).get("initial")
     image_path = raw / str(screenshot_name)
     if not image_path.is_file():
@@ -280,19 +312,27 @@ def main() -> int:
                             "status": result_status, "problems": row_problems})
         all_problems.extend(f"{profile}: {problem}" for problem in row_problems)
 
+        for variant_name, payload, status in (
+            ("ADAPTIVE_V2", candidate, candidate_status),
+            ("V3_BASELINE", baseline, baseline_status),
+        ):
+            if payload is None:
+                continue
+            if variant_name == "ADAPTIVE_V2":
+                copy_screenshot(raw, payload, matrix_dir, f"{profile}.png")
+            bound_rows.append({"profile": profile, "layout_variant": variant_name,
+                               "system_font_scale": payload.get("system_font_scale"),
+                               "display_resolution_px": payload.get("display_resolution_px"),
+                               "configuration_screen_dp": payload.get("configuration_screen_dp"),
+                               "window_bounds_dp": payload.get("window_bounds_dp"),
+                               "safe_insets_dp": payload.get("safe_insets_dp"),
+                               "bounds_in_window_px": payload.get("bounds_in_window_px"),
+                               "bounds_after_swipe_in_window_px": payload.get("bounds_after_swipe_in_window_px"),
+                               "screenshot": payload.get("screenshots", {}).get("initial")})
+            metric_rows.append({"profile": profile, "layout_variant": variant_name, **payload.get("metrics", {}),
+                                "card_width_fraction": 0.70 if variant_name == "ADAPTIVE_V2" else 0.686,
+                                "card_aspect_ratio_target": 247 / 293, "status": status})
         if candidate is not None:
-            copy_screenshot(raw, candidate, matrix_dir, f"{profile}.png")
-            bound_rows.append({"profile": profile, "layout_variant": "ADAPTIVE_V2",
-                               "system_font_scale": candidate.get("system_font_scale"),
-                               "display_resolution_px": candidate.get("display_resolution_px"),
-                               "configuration_screen_dp": candidate.get("configuration_screen_dp"),
-                               "window_bounds_dp": candidate.get("window_bounds_dp"),
-                               "safe_insets_dp": candidate.get("safe_insets_dp"),
-                               "bounds_in_window_px": candidate.get("bounds_in_window_px"),
-                               "screenshot": candidate.get("screenshots", {}).get("initial")})
-            metric_rows.append({"profile": profile, **candidate.get("metrics", {}),
-                                "card_width_fraction": 0.70, "card_aspect_ratio_target": 247 / 293,
-                                "status": candidate_status})
             regression_rows.append({"profile": profile, **candidate.get("data", {}),
                                     "visible_card_ids_unique": len(set(candidate.get("data", {}).get("initial_visible_card_ids", []))) == 2,
                                     "status": candidate_status})
@@ -311,9 +351,12 @@ def main() -> int:
     }, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     (output / "NH01_LAYOUT_METRICS_V1.json").write_text(json.dumps({
         "schema": "NH01_LAYOUT_METRICS_V1", "source_sha": args.source_sha,
-        "candidate_parameters": {"width_fraction": 0.70, "max_width_dp": 337.2, "aspect_ratio": "247:293",
-                                 "viewport_font_scale_min": 1.0, "viewport_font_scale_max": 1.2,
-                                 "neighbor_width_cap_fraction": 0.82, "compact_if_safe_height_lt_dp": 460},
+        "candidate_parameters": {
+            "ADAPTIVE_V2": {"width_fraction": 0.70, "max_width_dp": 337.2, "aspect_ratio": "247:293",
+                            "viewport_font_scale_min": 1.0, "viewport_font_scale_max": 1.2,
+                            "neighbor_width_cap_fraction": 0.82, "compact_if_safe_height_lt_dp": 460},
+            "V3_BASELINE": {"width_fraction": 0.686, "max_width_dp": 337.2, "aspect_ratio": "247:293"},
+        },
         "profiles": metric_rows,
     }, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     (output / "NH01_TWO_CATCH_REGRESSION_V1.json").write_text(json.dumps({

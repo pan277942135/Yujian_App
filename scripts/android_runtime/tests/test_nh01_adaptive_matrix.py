@@ -31,7 +31,7 @@ class AdaptiveMatrixAggregateTest(unittest.TestCase):
                 name: {"left": 0, "top": 0, "right": 1, "bottom": 1}
                 for name in (
                     "gemini-home-screen", "gemini-home-brand-title", "gemini-home-stats-bar",
-                    "gemini-home-section-title", "gemini-home-catch-card-nh01-catch-001",
+                    "gemini-home-section-title", "gemini-home-carousel-track", "gemini-home-catch-card-nh01-catch-001",
                     "gemini-home-catch-neighbor-nh01-catch-002",
                     "gemini-home-footer-cta", "gemini-home-cta-label", "gemini-home-camera",
                 )
@@ -43,6 +43,16 @@ class AdaptiveMatrixAggregateTest(unittest.TestCase):
                 "card_track_horizontal_center_error_dp": 0.2,
                 "cta_camera_overlap": False,
                 "camera_safe_bottom_clearance_dp": 8.0,
+                "neighbor_width_dp": 70.0,
+                "peek_visible_width_dp": 16.0,
+                "peek_edge_visible_width_dp": 16.0,
+                "peek_edge_target_dp": 16.0,
+                "peek_edge_feasible": True,
+                "left_peek_after_swipe_width_dp": 70.0,
+                "left_peek_after_swipe_overlap_dp": 0.0,
+                "left_peek_after_swipe_visible_width_dp": 16.0,
+                "left_peek_after_swipe_edge_visible_width_dp": 16.0,
+                "left_peek_after_swipe_edge_feasible": True,
             },
             "data": {
                 "catch_ids": ["nh01-catch-001", "nh01-catch-002"],
@@ -51,8 +61,14 @@ class AdaptiveMatrixAggregateTest(unittest.TestCase):
                 "same_time_duplicate_ids": False,
                 "swipe_reached_second_id": True,
                 "required_card_text_accessible": True,
+                "required_card_text_no_visual_overflow": True,
             },
             "screenshots": {"initial": "M01-adaptive_v2.png"},
+            "bounds_after_swipe_in_window_px": {
+                "gemini-home-carousel-track": {"left": 0, "top": 0, "right": 320, "bottom": 480},
+                "gemini-home-catch-card-nh01-catch-002": {"left": 0, "top": 0, "right": 1, "bottom": 1},
+                "gemini-home-catch-neighbor-nh01-catch-001": {"left": 0, "top": 0, "right": 1, "bottom": 1},
+            },
         }
 
     def tearDown(self) -> None:
@@ -119,6 +135,25 @@ class AdaptiveMatrixAggregateTest(unittest.TestCase):
         record = read_execution(execution_dir, "M01", "ADAPTIVE_V2")
         self.assertEqual("FAIL", classify_execution(record)[0])
         self.assertEqual("EXECUTION_RECORD_JSON_INVALID", classify_execution(record)[1])
+
+    def test_candidate_rejects_missing_edge_peek_or_visual_text_overflow(self) -> None:
+        self.payload["metrics"]["peek_edge_visible_width_dp"] = 0.0
+        self.payload["data"]["required_card_text_no_visual_overflow"] = False
+        problems = validate_case(
+            self.payload, "M01", 320, 480, 1.0, "ADAPTIVE_V2", "a" * 40, self.raw,
+        )
+        self.assertTrue(any("edge peek below target" in problem for problem in problems), problems)
+        self.assertTrue(any("text visually overflows" in problem for problem in problems), problems)
+
+    def test_evidence_pull_and_device_output_directory_versions_match(self) -> None:
+        script = Path(__file__).resolve().parents[1] / "gates" / "run_nh01_adaptive_device_matrix.sh"
+        source = script.read_text(encoding="utf-8")
+        import re
+        raw_match = re.search(r'RAW_CASE_DIR="\$RAW_DIR/([^"]+)"', source)
+        remote_match = re.search(r'REMOTE_DIR="[^"]*/files/([^"]+)"', source)
+        self.assertIsNotNone(raw_match, "local raw evidence path must be explicit")
+        self.assertIsNotNone(remote_match, "device evidence path must be explicit")
+        self.assertEqual(remote_match.group(1), raw_match.group(1), "adb pull must land in the folder the aggregator reads")
 
     def test_aggregator_keeps_test_failure_distinct_from_missing_report(self) -> None:
         raw = self.raw / "raw"
