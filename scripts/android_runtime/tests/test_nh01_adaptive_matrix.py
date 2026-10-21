@@ -32,11 +32,14 @@ class AdaptiveMatrixAggregateTest(unittest.TestCase):
                 for name in (
                     "gemini-home-screen", "gemini-home-brand-title", "gemini-home-stats-bar",
                     "gemini-home-section-title", "gemini-home-catch-card-nh01-catch-001",
+                    "gemini-home-catch-neighbor-nh01-catch-002",
                     "gemini-home-footer-cta", "gemini-home-cta-label", "gemini-home-camera",
                 )
             },
             "metrics": {
                 "card_aspect_ratio": 247 / 293,
+                "neighbor_width_fraction": 0.70,
+                "peek_card_overlap_dp": 0.0,
                 "card_track_horizontal_center_error_dp": 0.2,
                 "cta_camera_overlap": False,
                 "camera_safe_bottom_clearance_dp": 8.0,
