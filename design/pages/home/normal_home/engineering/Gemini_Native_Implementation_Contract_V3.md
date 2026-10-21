@@ -1,5 +1,7 @@
 # NH01 Gemini Native Home V3 Contract
 
+> **2026-10-21 现行 Gemini NH01/NH02 局部替代说明：** Gemini Native V3 当前依照 NH01_GEMINI_ADAPTIVE_V2_UNIFIED_AUTHORITY_V1.md + NH01_GEMINI_ADAPTIVE_V2_ACCEPTANCE_V1.md 执行。统一规则覆盖当前 Adaptive V2.2 标题可见间距、NH04 孤字换行、NH06 TopCenter、NH07 薄雾头像、NH05 动效安全区要求。冻结的是 SPEC；不是历史全屏像素还原 PASS，也不是已完成新 24 次原生验收。
+
 **Task:** `YUJIAN_NH01_GEMINI_NATIVE_REBUILD_AVATAR_FIX_V3`
 **Android PR:** #167, Draft / Open / Unmerged
 **Structure handoff:** PR #164, HEAD `06308bd21e175e321e9f345dbf18174f5e0134f9`
