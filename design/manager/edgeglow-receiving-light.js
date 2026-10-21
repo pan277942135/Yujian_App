@@ -295,6 +295,8 @@
     const layersMarkup = [];
     try {
       for (const path of config.paths) {
+        const islandWeight = Math.max(MIN_PATH_WEIGHT, path.weight);
+        const baseAlpha = config.baseAlpha * config.globalMultiplier * islandWeight;
         if (config.reviewOnlyEdgeRibbonExperiment) {
           // Review-only perimeter distribution: construct edge bands from photoContentRect.
           // This intentionally does not reuse the four corner-island paths.
@@ -381,8 +383,6 @@
           ? [[start, end]]
           : [[start, length], [0, end - length]];
         const sampleStep = Math.max(2, minDimension * 0.0075);
-        const islandWeight = Math.max(MIN_PATH_WEIGHT, path.weight);
-        const baseAlpha = config.baseAlpha * config.globalMultiplier * islandWeight;
         const baseColor = path.family === "gold" ? config.colors.gold : config.colors.blue;
         const hotColor = path.family === "gold" ? config.colors.goldHot : config.colors.blueHot;
 
