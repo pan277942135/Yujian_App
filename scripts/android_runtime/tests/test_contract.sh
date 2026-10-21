@@ -55,11 +55,20 @@ run_case() {
   tmp="$(mktemp -d)"
   printf 'fake-apk' > "$tmp/app-debug.apk"
   printf 'fake-test-apk' > "$tmp/app-debug-androidTest.apk"
+  if [[ "$mode" == "ready" ]]; then
+    # The evidence packager validates a real MP4 container. Generate a tiny
+    # synthetic recording for the fake-adb PASS path; it is not runtime proof.
+    ffmpeg -hide_banner -loglevel error -y \
+      -f lavfi -i color=c=black:s=320x640:r=30 -t 1 -an \
+      -c:v mpeg4 -q:v 5 -pix_fmt yuv420p -movflags +faststart \
+      "$tmp/fake-rr09-recording.mp4"
+  fi
   local app_apk_sha256
   app_apk_sha256="$(sha256sum "$tmp/app-debug.apk" | awk '{print $1}')"
   set +e
     FAKE_ADB_MODE="$mode" \
     FAKE_APP_APK_SHA256="$app_apk_sha256" \
+    FAKE_RR09_VIDEO_FILE="$tmp/fake-rr09-recording.mp4" \
     YUJIAN_CAPTURE_RECOGNITION_VIDEO=1 \
     YUJIAN_VALIDATE_RECOGNITION_VIDEO=0 \
     ADB="$FAKE_ADB" \

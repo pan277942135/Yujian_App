@@ -68,6 +68,28 @@ case "$1" in
     # This fake checks Harness classification and evidence-validator routing;
     # it does not claim to render application screenshots or validate video.
     fixture_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)/design/pages/recognition/design"
+    if [[ "$command_line" == *cache/rr09-gold-transfer/RR09_Recognition_Flow_Recording.mp4* ]]; then
+      if [[ -n "${FAKE_RR09_VIDEO_FILE:-}" && -s "${FAKE_RR09_VIDEO_FILE}" ]]; then
+        cat "$FAKE_RR09_VIDEO_FILE"
+      fi
+      exit 0
+    fi
+    if [[ "$command_line" == *cache/rr09-gold-transfer/* ]]; then
+      case "$command_line" in
+        *.png*) cat "$fixture_root/05_Result_High_Frozen.png" ;;
+        *RR09_Frames_Manifest.json*)
+          printf '{"frames":[{"file":"K06_850ms.png"}]}\n'
+          ;;
+        *RR09_Motion_Trace.json*) printf '[]\n' ;;
+        *RR09_API28_Test_Report.json*) printf '{"status":"PASS"}\n' ;;
+        *RR09_Performance_Report.json*) printf '{}\n' ;;
+        *RR09_Responsive_Matrix_Report.json*)
+          printf '{"status":"PASS","case_count":12}\n'
+          ;;
+        *) printf '{}\n' ;;
+      esac
+      exit 0
+    fi
     if [[ "$command_line" == *recognition_motion_trace_v3_1.json* ]]; then
       printf '{"samples":['
       for index in $(seq 0 9); do
