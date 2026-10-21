@@ -61,7 +61,6 @@ async function waitForFormal(page) {
     window.EdgeGlowReceivingLight?.version === "edgeglow-receiving-light-svg-v1",
   null, { timeout: 30000 });
   await page.waitForFunction(() =>
-    window.__EDGEGLOW_RECEIVING_LIGHT_STATUS__?.status === "ready" &&
     document.querySelector("#buildSha")?.textContent?.includes("center"),
   null, { timeout: 30000 });
 }
@@ -142,14 +141,44 @@ async function captureVariant(browser, variant, viewport, errors) {
       companionHairlinesEnabled: false, outerEnabled: false, coreEnabled: false,
       cometEnabled: false, contourVisible: false
     })) await setControl(page, id, value);
-    await page.evaluate(() => {
-      window.__EDGEGLOW_RECEIVING_CAPTURE_CALLS__.length = 0;
-      window.__EDGEGLOW_LAB__.render();
-    });
-    await page.waitForFunction(() =>
-      window.__EDGEGLOW_RECEIVING_CAPTURE_CALLS__?.length > 0 &&
-      window.__EDGEGLOW_RECEIVING_LIGHT_STATUS__?.status === "ready",
-    null, { timeout: 30000 });
+    let renderInvocation;
+    try {
+      renderInvocation = await page.evaluate(() => {
+        window.__EDGEGLOW_RECEIVING_CAPTURE_CALLS__.length = 0;
+        try {
+          window.__EDGEGLOW_LAB__.render();
+          return { error: null, status: window.__EDGEGLOW_RECEIVING_LIGHT_STATUS__ || null };
+        } catch (error) {
+          return { error: String(error && (error.stack || error.message) || error), status: window.__EDGEGLOW_RECEIVING_LIGHT_STATUS__ || null };
+        }
+      });
+      await page.waitForFunction(() =>
+        window.__EDGEGLOW_RECEIVING_CAPTURE_CALLS__?.length > 0 ||
+        ["failed", "disabled"].includes(window.__EDGEGLOW_RECEIVING_LIGHT_STATUS__?.status),
+      null, { timeout: 12000 });
+    } catch (error) {
+      const runtime = await page.evaluate(() => ({
+        status: window.__EDGEGLOW_RECEIVING_LIGHT_STATUS__ || null,
+        captured_draw_calls: window.__EDGEGLOW_RECEIVING_CAPTURE_CALLS__?.length || 0
+      })).catch(() => null);
+      throw new Error("Edge-ribbon renderer did not become ready. " + JSON.stringify({
+        render_invocation: renderInvocation || null,
+        runtime,
+        browser_errors: errors.slice(-20),
+        wait_error: String(error)
+      }));
+    }
+    const runtime = await page.evaluate(() => ({
+      status: window.__EDGEGLOW_RECEIVING_LIGHT_STATUS__ || null,
+      captured_draw_calls: window.__EDGEGLOW_RECEIVING_CAPTURE_CALLS__?.length || 0
+    }));
+    if (renderInvocation?.error || runtime.status?.status !== "ready" || runtime.captured_draw_calls < 1) {
+      throw new Error("Edge-ribbon renderer failed. " + JSON.stringify({
+        render_invocation: renderInvocation || null,
+        runtime,
+        browser_errors: errors.slice(-20)
+      }));
+    }
 
     const overlay = await page.evaluate(() => {
       const call = window.__EDGEGLOW_RECEIVING_CAPTURE_CALLS__[0];
