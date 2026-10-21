@@ -58,9 +58,17 @@ on:
         required: false
         default: false
         type: boolean
+      runtime_backend:
+        description: API 28 emulator runner for exact-head runtime validation
+        required: false
+        default: self-hosted
+        type: choice
+        options:
+          - self-hosted
+          - github-hosted
 
 concurrency:
-  group: yujian-android-ci-${{ github.workflow }}-${{ github.ref }}
+  group: yujian-android-ci-${{ github.workflow }}-${{ github.ref }}-${{ github.event_name == 'workflow_dispatch' && inputs.runtime_backend || 'self-hosted' }}
   # Keep only the latest PR head; do not cancel manual/push release runs.
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
@@ -269,8 +277,10 @@ jobs:
   android-runtime:
     if: ${{ (github.event_name == 'push' && !contains(github.event.head_commit.message, '[normal-home-brand-title-validation]')) || github.event_name == 'workflow_dispatch' }}
     needs: build
-    runs-on: [self-hosted, yujian-android, api28]
+    runs-on: ${{ github.event_name == 'workflow_dispatch' && inputs.runtime_backend == 'github-hosted' && 'ubuntu-latest' || fromJSON('["self-hosted", "yujian-android", "api28"]') }}
     timeout-minutes: 60
+    env:
+      YUJIAN_RUNTIME_BACKEND: ${{ github.event_name == 'workflow_dispatch' && inputs.runtime_backend || 'self-hosted' }}
     strategy:
       fail-fast: false
       max-parallel: 1
@@ -310,6 +320,31 @@ jobs:
             emulator_options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -partition-size 4096 -skin 1080x1920
 
     steps:
+      - name: Set up JDK 17 for GitHub-hosted API 28 runtime
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.runtime_backend == 'github-hosted' && (matrix.required == true || inputs.run_runtime_parity == true) }}
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Android SDK for GitHub-hosted API 28 runtime
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.runtime_backend == 'github-hosted' && (matrix.required == true || inputs.run_runtime_parity == true) }}
+        uses: android-actions/setup-android@v3
+
+      - name: Provision Pixel 2 API 28 emulator for GitHub-hosted runtime
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.runtime_backend == 'github-hosted' && (matrix.required == true || inputs.run_runtime_parity == true) }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          sdk_root="${ANDROID_SDK_ROOT:-${ANDROID_HOME:-}}"
+          test -n "$sdk_root"
+          sdkmanager --install "emulator" "system-images;android-28;google_apis;x86_64"
+          printf 'no\n' | avdmanager create avd \
+            --name yujian_pixel2_api28 \
+            --package "system-images;android-28;google_apis;x86_64" \
+            --device pixel_2 \
+            --force
+
       - name: Checkout
         if: ${{ matrix.required == true || (github.event_name == 'workflow_dispatch' && inputs.run_runtime_parity == true) }}
         uses: actions/checkout@v4
@@ -351,33 +386,54 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          echo "/opt/android-sdk/platform-tools" >> "$GITHUB_PATH"
-          echo "/opt/android-sdk/emulator" >> "$GITHUB_PATH"
-          test -e /dev/kvm
-
-          adb=/opt/android-sdk/platform-tools/adb
-          emulator=/opt/android-sdk/emulator/emulator
           preflight_log="evidence/runtime/${{ matrix.gate }}/infra/workflow_preflight.log"
           emulator_log="evidence/runtime/${{ matrix.gate }}/infra/emulator.log"
           mkdir -p "$(dirname "$preflight_log")"
           : > "$preflight_log"
           : > "$emulator_log"
+
+          if [[ "$YUJIAN_RUNTIME_BACKEND" == "github-hosted" ]]; then
+            sdk_root="${ANDROID_SDK_ROOT:-${ANDROID_HOME:-}}"
+            test -n "$sdk_root"
+            echo "$sdk_root/platform-tools" >> "$GITHUB_PATH"
+            echo "$sdk_root/emulator" >> "$GITHUB_PATH"
+            echo "$sdk_root/cmdline-tools/latest/bin" >> "$GITHUB_PATH"
+            export PATH="$sdk_root/platform-tools:$sdk_root/emulator:$sdk_root/cmdline-tools/latest/bin:$PATH"
+            if [[ -e /dev/kvm ]]; then sudo chmod 0666 /dev/kvm; fi
+            adb="$sdk_root/platform-tools/adb"
+            emulator="$sdk_root/emulator/emulator"
+            avd_name="yujian_pixel2_api28"
+          else
+            echo "/opt/android-sdk/platform-tools" >> "$GITHUB_PATH"
+            echo "/opt/android-sdk/emulator" >> "$GITHUB_PATH"
+            test -e /dev/kvm
+            adb=/opt/android-sdk/platform-tools/adb
+            emulator=/opt/android-sdk/emulator/emulator
+            avd_list="$("$emulator" -list-avds 2>&1)" || {
+              printf '%s\n' "$avd_list" | tee -a "$preflight_log"
+              echo 'ANDROID_AVD_LIST_FAILED' | tee -a "$preflight_log"
+              exit 1
+            }
+            avd_name="$(printf '%s\n' "$avd_list" | awk '/28/ {print; exit}')"
+            if [[ -z "$avd_name" ]]; then
+              avd_name="$(printf '%s\n' "$avd_list" | awk 'NF {print; exit}')"
+            fi
+          fi
+
           printf 'ADB_BIN=%s\nEMULATOR_BIN=%s\nAPI_LEVEL=%s\n' \
             "$adb" "$emulator" "${{ matrix.api_level }}" | tee -a "$preflight_log"
 
           test -x "$emulator"
           "$emulator" -version 2>&1 | head -n 2 | tee -a "$preflight_log" || true
-          avd_list="$("$emulator" -list-avds 2>&1)" || {
-            printf '%s\n' "$avd_list" | tee -a "$preflight_log"
-            echo 'ANDROID_AVD_LIST_FAILED' | tee -a "$preflight_log"
-            exit 1
-          }
+          if [[ "$YUJIAN_RUNTIME_BACKEND" == "github-hosted" ]]; then
+            avd_list="$("$emulator" -list-avds 2>&1)" || {
+              printf '%s\n' "$avd_list" | tee -a "$preflight_log"
+              echo 'ANDROID_AVD_LIST_FAILED' | tee -a "$preflight_log"
+              exit 1
+            }
+          fi
           printf 'AVAILABLE_AVDS_BEGIN\n%s\nAVAILABLE_AVDS_END\n' \
             "$avd_list" | tee -a "$preflight_log"
-          avd_name="$(printf '%s\n' "$avd_list" | awk '/28/ {print; exit}')"
-          if [[ -z "$avd_name" ]]; then
-            avd_name="$(printf '%s\n' "$avd_list" | awk 'NF {print; exit}')"
-          fi
           if [[ -z "$avd_name" ]]; then
             echo 'ANDROID_AVD_NOT_FOUND' | tee -a "$preflight_log"
             exit 1
@@ -412,6 +468,9 @@ jobs:
           if ! "$adb" devices | awk 'NR > 1 && $2 == "device" {found=1} END {exit !found}'; then
             if ! pgrep -f -- "$emulator -avd" >/dev/null 2>&1; then
               read -r -a emulator_options <<< "${{ matrix.emulator_options }}"
+              if [[ "$YUJIAN_RUNTIME_BACKEND" == "github-hosted" && ! -e /dev/kvm ]]; then
+                emulator_options+=( -accel off )
+              fi
               nohup "$emulator" -avd "$avd_name" -no-snapshot \
                 "${emulator_options[@]}" > "$emulator_log" 2>&1 &
               emulator_pid=$!
@@ -496,9 +555,14 @@ jobs:
         if: ${{ matrix.required == true || (github.event_name == 'workflow_dispatch' && inputs.run_runtime_parity == true) }}
         continue-on-error: true
         shell: bash
-        env:
-          ADB: /opt/android-sdk/platform-tools/adb
         run: |
+          if [[ "$YUJIAN_RUNTIME_BACKEND" == "github-hosted" ]]; then
+            sdk_root="${ANDROID_SDK_ROOT:-${ANDROID_HOME:-}}"
+            test -n "$sdk_root"
+            export ADB="$sdk_root/platform-tools/adb"
+          else
+            export ADB=/opt/android-sdk/platform-tools/adb
+          fi
           bash scripts/run_android_runtime_gate.sh --gate "${{ matrix.gate }}" --api-level "${{ matrix.api_level }}" --build-sha "$GITHUB_SHA" --app-apk build/runtime-apks/app-debug.apk --test-apk build/runtime-apks/app-debug-androidTest.apk --evidence-dir "evidence/runtime/${{ matrix.gate }}"
 
       - name: Materialize runtime status when emulator action fails before Harness startup
