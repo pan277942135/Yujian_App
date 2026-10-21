@@ -529,7 +529,6 @@ private fun GeminiMiddleSection(
                     resolveImageUrl = resolveImageUrl,
                     accessToken = accessToken,
                     safeWidth = safeWidth,
-                    safeWidth = safeWidth,
                     safeHeight = safeHeight,
                     cardWidth = cardWidth,
                     cardHeight = cardHeight,
@@ -611,7 +610,6 @@ private fun GeminiCatchCarousel(
     records: List<RemoteCatch>,
     resolveImageUrl: (String?) -> String?,
     accessToken: String,
-    safeWidth: Dp,
     safeWidth: Dp,
     safeHeight: Dp,
     cardWidth: Dp,
@@ -697,6 +695,7 @@ private fun GeminiCatchCard(
     item: RemoteCatch,
     imageUrl: String?,
     accessToken: String,
+    safeWidth: Dp,
     cardHeight: Dp,
     safeHeight: Dp,
     runtimeAssets: GeminiNormalHomeRuntimeAssets?,
@@ -885,8 +884,8 @@ private fun GeminiFooterSection(
 }
 
 private fun responsiveSp(height: Dp, width: Dp, ratio: Float, minimum: Float, maximum: Float) =
-    (height.value * ratio).coerceIn(minimum, maximum) *
-        geminiHomeResponsiveFontScale(width.value, height.value).sp
+    ((height.value * ratio).coerceIn(minimum, maximum) *
+        geminiHomeResponsiveFontScale(width.value, height.value)).sp
 
 private fun clampDp(value: Float, minimum: Float, maximum: Float) =
     value.coerceIn(minimum, maximum).dp
