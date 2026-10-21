@@ -180,10 +180,10 @@
 
   function radialFieldGradientMarkup(id, baseColor, hotColor) {
     const stops = [
-      [0.00, hotColor, 0.74],
-      [0.22, hotColor, 0.94],
-      [0.48, baseColor, 0.78],
-      [0.72, baseColor, 0.36],
+      [0.00, hotColor, 0.88],
+      [0.22, hotColor, 0.82],
+      [0.48, baseColor, 0.62],
+      [0.72, baseColor, 0.32],
       [0.90, baseColor, 0.08],
       [1.00, baseColor, 0.00]
     ].map(stop =>
@@ -254,21 +254,38 @@
         const hotColor = path.family === "gold" ? config.colors.goldHot : config.colors.blueHot;
 
         if (config.reviewOnlyRadialFieldExperiment) {
-          intervals.forEach((interval, partIndex) => {
-            const span = interval[1] - interval[0];
-            if (!(span > 1)) return;
-            const centerDistance = (interval[0] + interval[1]) / 2;
-            const tangentStep = Math.max(1, Math.min(span * 0.15, minDimension * 0.025));
-            const centerPoint = sourcePath.getPointAtLength(centerDistance);
-            const beforePoint = sourcePath.getPointAtLength(Math.max(interval[0], centerDistance - tangentStep));
-            const afterPoint = sourcePath.getPointAtLength(Math.min(interval[1], centerDistance + tangentStep));
-            const center = mapInset([centerPoint.x, centerPoint.y], rect);
+          const totalVisibleSpan = intervals.reduce((sum, interval) => sum + Math.max(0, interval[1] - interval[0]), 0);
+          if (totalVisibleSpan > 1) {
+            let weightedX = 0;
+            let weightedY = 0;
+            let accumulatedSpan = 0;
+            for (const interval of intervals) {
+              const span = interval[1] - interval[0];
+              if (!(span > 1)) continue;
+              const sampleCount = Math.max(4, Math.ceil(span / Math.max(1, minDimension * 0.10)));
+              let sumX = 0;
+              let sumY = 0;
+              for (let index = 0; index <= sampleCount; index++) {
+                const distance = interval[0] + span * index / sampleCount;
+                const point = sourcePath.getPointAtLength(distance);
+                sumX += point.x;
+                sumY += point.y;
+              }
+              weightedX += (sumX / (sampleCount + 1)) * span;
+              weightedY += (sumY / (sampleCount + 1)) * span;
+              accumulatedSpan += span;
+            }
+            const center = mapInset([weightedX / accumulatedSpan, weightedY / accumulatedSpan], rect);
+            const tangentDistance = length * 0.5;
+            const tangentStep = Math.max(1, Math.min(length * 0.05, minDimension * 0.025));
+            const beforePoint = sourcePath.getPointAtLength(Math.max(0, tangentDistance - tangentStep));
+            const afterPoint = sourcePath.getPointAtLength(Math.min(length, tangentDistance + tangentStep));
             const before = mapInset([beforePoint.x, beforePoint.y], rect);
             const after = mapInset([afterPoint.x, afterPoint.y], rect);
             const angle = Math.atan2(after[1] - before[1], after[0] - before[0]) * 180 / Math.PI;
-            const radiusX = Math.min(Math.max(span / 2, minDimension * 0.06), photoWidth * 0.30);
-            const radiusY = Math.min(depthPx / 2, maxDepth);
-            const gradientId = "radial-gradient-" + safeId(path.id + "-" + partIndex);
+            const radiusX = Math.min(Math.max(totalVisibleSpan / 2, minDimension * 0.20), minDimension * 0.25);
+            const radiusY = maxDepth;
+            const gradientId = "radial-gradient-" + safeId(path.id);
             defsMarkup.push(radialFieldGradientMarkup(gradientId, baseColor, hotColor));
             layersMarkup.push(
               '<ellipse cx="' + number(center[0]) + '" cy="' + number(center[1]) +
@@ -276,7 +293,7 @@
               '" transform="rotate(' + number(angle) + ' ' + number(center[0]) + ' ' + number(center[1]) +
               ')" fill="url(#' + gradientId + ')" opacity="' + number(baseAlpha) + '"/>'
             );
-          });
+          }
           measureSvg.removeChild(sourcePath);
           continue;
         }
