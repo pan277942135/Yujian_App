@@ -191,7 +191,7 @@
       </header>
       <section class="control-panel" aria-label="预览控制">
         <div class="controls">
-          <div class="control"><label for="layoutVariant">布局变体</label><select id="layoutVariant"><option value="ADAPTIVE_V1" selected>Adaptive V1 · Android 默认</option><option value="V3_BASELINE">V3 Baseline · 对照</option></select></div>
+          <div class="control"><label for="layoutVariant">布局变体</label><select id="layoutVariant"><option value="ADAPTIVE_V2" selected>Adaptive V2 · 内容优先</option><option value="V3_BASELINE">V3 Baseline · 对照</option></select></div>
           <div class="control"><label for="viewportPreset">逻辑视口</label><select id="viewportPreset">
             <option value="360x640">360 × 640</option><option value="390x844" selected>390 × 844</option><option value="430x932">430 × 932</option><option value="320x480">320 × 480</option><option value="600x960">600 × 960</option>
           </select></div>
@@ -324,6 +324,8 @@
       const middleSection = document.getElementById("middleSection");
       const sectionHeader = document.getElementById("sectionHeader");
       const carouselWindow = document.getElementById("carouselWindow");
+      const mainCatchCard = document.getElementById("mainCatchCard");
+      const cardMetadata = document.getElementById("cardMetadata");
       const footerSection = document.getElementById("footerSection");
       const toast = document.getElementById("previewToast");
       const assetList = document.getElementById("assetList");
@@ -345,7 +347,7 @@
         return clamp(safeHeight * ratio, minimum, maximum);
       }
       function resolveLayoutPolicy(safeWidth, safeHeight, scale, variant) {
-        const band = (safeWidth < 360 || safeHeight < 700) ? "COMPACT" : (safeWidth < 400 ? "MEDIUM" : "EXPANDED");
+        const band = (safeWidth < 360 || safeHeight < 560) ? "COMPACT" : (safeWidth < 400 ? "MEDIUM" : "EXPANDED");
         if (variant === "V3_BASELINE") {
           return {
             band, variant, cardWidthFraction: 0.686, maxCardWidth: 337.2, maxCardHeight: 400,
@@ -357,24 +359,21 @@
             topAlignMiddleGroup: false
           };
         }
-        const compact = band === "COMPACT";
-        const expanded = band === "EXPANDED";
-        const high = scale >= 1.5;
-        const large = scale >= 1.3;
-        const choose = (compactNormal, compactLarge, compactHigh, mediumNormal, mediumLarge, mediumHigh, expandedNormal, expandedLarge, expandedHigh) => {
-          if (compact) return high ? compactHigh : (large ? compactLarge : compactNormal);
-          if (expanded) return high ? expandedHigh : (large ? expandedLarge : expandedNormal);
-          return high ? mediumHigh : (large ? mediumLarge : mediumNormal);
-        };
+
+        // Adaptive V2: continuous space pressure, not a width/height/font-scale lookup table.
+        // Keep the card close to the V3 target width; allocate its final height from the
+        // measured middle-section budget, then scroll only when the readable minimum cannot fit.
+        const fontPressure = clamp((scale - 1) / 0.5, 0, 1);
+        const shortHeightPressure = clamp((620 - safeHeight) / 220, 0, 1);
         return {
-          band, variant, cardWidthFraction: 0.76, maxCardWidth: 360,
-          maxCardHeight: 360 / (247 / 293),
-          minReadableCardHeight: 200 / (247 / 293),
-          brandToStatsGap: choose(16,14,12,20,18,16,24,20,18),
-          statsToTitleGap: choose(20,18,16,24,22,20,26,22,20),
-          titleToCardGap: choose(12,11,10,16,14,12,18,16,14),
-          cardToFooterGap: choose(16,14,12,20,18,16,24,20,16),
-          topAlignMiddleGroup: true
+          band, variant, cardWidthFraction: 0.70, maxCardWidth: 337.2,
+          maxCardHeight: 400,
+          minReadableCardHeight: 148,
+          brandToStatsGap: Math.max(9, clamp(safeHeight * 0.035, 14, 28) - fontPressure * 3 - shortHeightPressure * 2),
+          statsToTitleGap: Math.max(2, clamp(safeHeight * 0.015, 6, 14) - fontPressure * 3 - shortHeightPressure * 1.5),
+          titleToCardGap: Math.max(4, clamp(safeHeight * 0.014, 7, 12) - fontPressure * 2 - shortHeightPressure * 1.5),
+          cardToFooterGap: Math.max(3, clamp(safeHeight * 0.018, 8, 14) - fontPressure * 3 - shortHeightPressure * 2),
+          topAlignMiddleGroup: false
         };
       }
       function updateLayoutGeometry(width, height) {
@@ -396,7 +395,8 @@
         const avatarSize = clamp(safeHeight * 0.06, 36, 44);
         const cameraSize = clamp(safeHeight * 0.095, 54, 66);
         const titleLineHeight = sectionTitle * 1.5 * scale;
-        const headerHeight = Math.max(48, titleLineHeight + 8);
+        const compactViewport = variant !== "V3_BASELINE" && safeHeight < 500;
+        const headerHeight = Math.max(compactViewport ? 40 : 48, titleLineHeight + (compactViewport ? 4 : 8));
         const titleRowInset = Math.max(0, (headerHeight - titleLineHeight) / 2);
         const leadingGap = variant === "V3_BASELINE"
           ? clamp(safeHeight * 0.01, 4, 10)
@@ -405,6 +405,7 @@
         const trackWidth = Math.min(safeWidth, 560);
         const desiredCardWidth = Math.min(trackWidth * policy.cardWidthFraction, policy.maxCardWidth);
         const desiredCardHeight = Math.min(desiredCardWidth / (247 / 293), policy.maxCardHeight);
+
         root.style.setProperty("--font-scale", String(scale));
         root.style.setProperty("--brand-stats-gap", policy.brandToStatsGap + "px");
         root.style.setProperty("--leading-gap", leadingGap + "px");
@@ -423,34 +424,70 @@
         root.style.setProperty("--catch-metadata-size", metadataSize + "px");
         root.style.setProperty("--desired-card-width", desiredCardWidth + "px");
         root.style.setProperty("--desired-card-height", desiredCardHeight + "px");
-        root.style.setProperty("--min-readable-card-height", policy.minReadableCardHeight + "px");
         root.style.setProperty("--text-gap", clamp(safeHeight * 0.006, 2, 5) + "px");
-        middleSection.dataset.topAlign = String(policy.topAlignMiddleGroup);
+        // Start at the target width so wrapped metadata is measured at the intended card geometry.
+        root.style.setProperty("--main-card-width", desiredCardWidth + "px");
+        root.style.setProperty("--main-card-height", desiredCardHeight + "px");
+        root.style.setProperty("--card-footer-padding", clamp(desiredCardHeight * 0.07, 10, 20) + "px");
+
         window.NH01GeminiPreviewLayout = {
-          variant, band: policy.band, logical_viewport_dp: [width, height], safe_insets_dp: { top: 24, bottom: 48, start: 0, end: 0 },
+          layout_version: variant === "V3_BASELINE" ? "V3_BASELINE" : "CONTENT_FIRST_V2",
+          variant, band: policy.band, logical_viewport_dp: [width, height],
+          safe_insets_dp: { top: 24, bottom: 48, start: 0, end: 0 },
           safe_width_dp: safeWidth, safe_height_dp: safeHeight, font_scale: scale,
           gaps_dp: { brand_to_stats: policy.brandToStatsGap, stats_to_title: policy.statsToTitleGap, leading: leadingGap, title_to_card: policy.titleToCardGap, actual_header_gap: headerGap, card_to_footer: policy.cardToFooterGap },
-          desired_card_size_dp: [desiredCardWidth, desiredCardHeight], card_height_dp: null, card_width_dp: null,
-          top_align_middle_group: policy.topAlignMiddleGroup
+          desired_card_size_dp: [desiredCardWidth, desiredCardHeight],
+          card_height_dp: null, card_width_dp: null, available_card_height_dp: null,
+          content_min_card_height_dp: null, middle_height_dp: null, needs_scroll: null,
+          layout_mode: null, overflow_reason: null, top_align_middle_group: null
         };
+
         requestAnimationFrame(() => {
           const middleHeight = middleSection.clientHeight;
-          const availableCardHeight = Math.max(0, middleHeight - leadingGap - headerHeight - headerGap - policy.cardToFooterGap);
-          const cardHeight = availableCardHeight >= policy.minReadableCardHeight
-            ? Math.min(desiredCardHeight, availableCardHeight)
-            : desiredCardHeight;
-          const cardWidth = cardHeight * (247 / 293);
-          const needsScroll = leadingGap + headerHeight + headerGap + cardHeight + policy.cardToFooterGap > middleHeight + 0.5;
-          root.style.setProperty("--main-card-height", cardHeight + "px");
-          root.style.setProperty("--main-card-width", cardWidth + "px");
-          root.style.setProperty("--card-footer-padding", clamp(cardHeight * 0.07, 10, 20) + "px");
+          const actualHeaderHeight = sectionHeader.getBoundingClientRect().height;
+          const availableCardHeight = Math.max(0, middleHeight - leadingGap - actualHeaderHeight - headerGap - policy.cardToFooterGap);
+          let contentMinCardHeight = policy.minReadableCardHeight;
+          let cardHeight = desiredCardHeight;
+          let cardWidth = desiredCardWidth;
+
+          // Re-measure after each width change because long metadata can wrap and increase
+          // its intrinsic height. The card never jumps back to an oversized target when space is tight.
+          for (let pass = 0; pass < 4; pass++) {
+            contentMinCardHeight = clamp(cardMetadata.scrollHeight + 20, policy.minReadableCardHeight, 240);
+            cardHeight = Math.min(desiredCardHeight, Math.max(contentMinCardHeight, availableCardHeight));
+            cardWidth = cardHeight * (247 / 293);
+            root.style.setProperty("--main-card-height", cardHeight + "px");
+            root.style.setProperty("--main-card-width", cardWidth + "px");
+            root.style.setProperty("--card-footer-padding", clamp(cardHeight * 0.07, 10, 20) + "px");
+            void cardMetadata.offsetHeight;
+          }
+          contentMinCardHeight = clamp(cardMetadata.scrollHeight + 20, policy.minReadableCardHeight, 240);
+          if (cardHeight < contentMinCardHeight && desiredCardHeight >= contentMinCardHeight) {
+            cardHeight = Math.min(desiredCardHeight, Math.max(contentMinCardHeight, availableCardHeight));
+            cardWidth = cardHeight * (247 / 293);
+            root.style.setProperty("--main-card-height", cardHeight + "px");
+            root.style.setProperty("--main-card-width", cardWidth + "px");
+            root.style.setProperty("--card-footer-padding", clamp(cardHeight * 0.07, 10, 20) + "px");
+            void cardMetadata.offsetHeight;
+          }
+
+          const requiredMiddleHeight = leadingGap + actualHeaderHeight + headerGap + cardHeight + policy.cardToFooterGap;
+          const needsScroll = requiredMiddleHeight > middleHeight + 0.5;
           middleSection.dataset.scrollNeeded = String(needsScroll);
+          // Center the complete group when it fits; switch to top-aligned scrolling only on real overflow.
+          middleSection.dataset.topAlign = String(needsScroll ? true : policy.topAlignMiddleGroup);
           if (window.NH01GeminiPreviewLayout) {
             window.NH01GeminiPreviewLayout.card_height_dp = cardHeight;
             window.NH01GeminiPreviewLayout.card_width_dp = cardWidth;
             window.NH01GeminiPreviewLayout.available_card_height_dp = availableCardHeight;
+            window.NH01GeminiPreviewLayout.content_min_card_height_dp = contentMinCardHeight;
             window.NH01GeminiPreviewLayout.middle_height_dp = middleHeight;
             window.NH01GeminiPreviewLayout.needs_scroll = needsScroll;
+            window.NH01GeminiPreviewLayout.layout_mode = needsScroll ? "CONTENT_SCROLL" : "FIT";
+            window.NH01GeminiPreviewLayout.overflow_reason = needsScroll
+              ? (availableCardHeight < contentMinCardHeight ? "viewport-space-below-readable-card" : "middle-group-exceeds-available-space")
+              : null;
+            window.NH01GeminiPreviewLayout.top_align_middle_group = needsScroll || policy.topAlignMiddleGroup;
           }
           window.NH01GeminiPreviewLayoutReady = true;
         });
