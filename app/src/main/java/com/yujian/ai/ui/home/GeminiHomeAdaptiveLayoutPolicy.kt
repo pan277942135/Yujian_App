@@ -167,7 +167,7 @@ internal fun resolveGeminiHomeLayoutSpec(
         cardWidthFraction = ADAPTIVE_V2_CARD_WIDTH_FRACTION,
         maxCardWidth = ADAPTIVE_V2_CARD_MAX_WIDTH,
         maxCardHeight = ADAPTIVE_V2_CARD_MAX_HEIGHT,
-        minReadableCardHeight = adaptiveV2MinimumCardHeightDp(safeHeightDp, fontScale).dp,
+        minReadableCardHeight = adaptiveV2MinimumCardHeightDp(safeWidthDp, safeHeightDp, fontScale).dp,
         brandToStatsGap = brandToStats.dp,
         statsToTitleGap = statsToTitle.dp,
         titleToCardGap = titleToCard.dp,
@@ -177,13 +177,23 @@ internal fun resolveGeminiHomeLayoutSpec(
     )
 }
 
-private fun adaptiveV2MinimumCardHeightDp(safeHeightDp: Float, fontScale: Float): Float {
-    val speciesLine = safeHeightDp.times(0.036f).coerceIn(20f, 26f) * 1.2f * fontScale
-    val measurementLines = safeHeightDp.times(0.023f).coerceIn(13f, 16f) * 1.2f * fontScale * 2f
-    val metadataLines = safeHeightDp.times(0.019f).coerceIn(11f, 13f) * 1.3f * fontScale * 2f
+private fun adaptiveV2MinimumCardHeightDp(
+    safeWidthDp: Float,
+    safeHeightDp: Float,
+    fontScale: Float,
+): Float {
+    val viewportScale = geminiHomeResponsiveFontScale(safeWidthDp, safeHeightDp)
+    val auxiliaryLines = if (fontScale >= 1.3f) 2f else 1f
+    val speciesLine = safeHeightDp.times(0.036f).coerceIn(20f, 26f) * viewportScale * 1.2f * fontScale
+    val measurementLines = safeHeightDp.times(0.023f).coerceIn(13f, 16f) *
+        viewportScale * 1.2f * fontScale * auxiliaryLines
+    val metadataLines = safeHeightDp.times(0.019f).coerceIn(11f, 13f) *
+        viewportScale * 1.3f * fontScale * auxiliaryLines
     val textGaps = safeHeightDp.times(0.006f).coerceIn(2f, 5f) * 2f
-    // Reserve two footer padding edges plus a small font-metric safety allowance.
-    return maxOf(148f, speciesLine + measurementLines + metadataLines + textGaps + 20f + 16f)
+    // A compact 320×480 window can use a smaller floor at normal font scale because
+    // measurements and metadata are single-line there. Larger system fonts reserve two lines.
+    val minimumFloor = if (safeHeightDp < 460f && fontScale < 1.3f) 124f else 148f
+    return maxOf(minimumFloor, speciesLine + measurementLines + metadataLines + textGaps + 20f + 16f)
         .coerceAtMost(220f)
 }
 
@@ -201,12 +211,22 @@ internal fun geminiHomeResolvedCardHeight(
 internal fun geminiHomeCardWidth(trackWidthDp: Float, spec: GeminiHomeLayoutSpec): Float =
     minOf(trackWidthDp * spec.cardWidthFraction, spec.maxCardWidth.value)
 
-/** Keeps a real side-card sliver visible when the adaptive Hero reaches its width cap. */
+/** Keeps adjacent cards visibly smaller than the active Hero while preserving an edge peek. */
 internal fun geminiHomeNeighborWidth(trackWidthDp: Float, cardWidthDp: Float, pageSpacingDp: Float): Float {
     val targetPeekWidth = (trackWidthDp * 0.05f).coerceIn(12f, 28f)
-    val existingNeighborWidth = minOf(trackWidthDp * 0.62f, 260f)
-    val minimumWidthForPeek = 2f * targetPeekWidth + 2f * pageSpacingDp + 2f * cardWidthDp - trackWidthDp
-    return maxOf(existingNeighborWidth, minimumWidthForPeek).coerceIn(0f, cardWidthDp)
+    val minimumWidthForPeek = 2f * targetPeekWidth + 2f * pageSpacingDp +
+        2f * cardWidthDp - trackWidthDp
+    val widthNeededForPeek = maxOf(targetPeekWidth, minimumWidthForPeek)
+    // Never let a height-constrained Hero force its side cards back to full Hero width.
+    return minOf(cardWidthDp * 0.82f, widthNeededForPeek)
+}
+
+/** Gentle viewport scaling lets typography grow on larger/taller screens without shrinking on compact ones. */
+internal fun geminiHomeResponsiveFontScale(safeWidthDp: Float, safeHeightDp: Float): Float {
+    require(safeWidthDp > 0f)
+    require(safeHeightDp > 0f)
+    val contentWidthDp = minOf(safeWidthDp, 560f)
+    return minOf(contentWidthDp / 360f, safeHeightDp / 568f).coerceIn(1f, 1.2f)
 }
 
 /**
