@@ -822,7 +822,10 @@ class NormalHomeDataParityTest {
 
         compose.waitUntil(timeoutMillis = 10_000) {
             observedInsets != null &&
-                compose.onAllNodesWithTag("normal-home-content-root").fetchSemanticsNodes().isNotEmpty()
+                compose.onAllNodesWithTag(
+                    "normal-home-content-root",
+                    useUnmergedTree = true,
+                ).fetchSemanticsNodes().isNotEmpty()
         }
         compose.waitForIdle()
 
