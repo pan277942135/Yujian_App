@@ -321,15 +321,15 @@ function renderLists() {
 
       const renderNestedChild = child => {
         const childKey = viewKey + "/" + child.id;
-        const childCode = child.code || child.id.toUpperCase().replace("_"," · ");
+        const childCode = child.show_code === false ? "" : (child.code || child.id.toUpperCase().replace("_"," · "));
         const childName = child.title.replace(/^[A-Z]\d+\s*·\s*/, "");
         return '<button class="page-subsubitem' + (selectedKey === childKey ? " active" : "") +
           '" data-kind="page-hifi-child" data-page-id="' + esc(feature.id) +
           '" data-hifi-id="' + esc(view.id) +
           '" data-hifi-child-id="' + esc(child.id) + '">' +
-          '<span class="subsub-code">' + esc(childCode) + '</span>' +
+          (childCode ? '<span class="subsub-code">' + esc(childCode) + '</span>' : '') +
           '<span class="subsub-name">' + esc(childName) + '</span>' +
-          '<span class="subsub-type">' + esc(child.authority_type === "behavior" ? "行为" : "视觉") + '</span>' +
+          '<span class="subsub-type">' + esc(child.authority_type === "behavior" ? "行为" : child.authority_type === "asset_catalog" ? "资源" : "视觉") + '</span>' +
           statusBadge(child.status || view.status || "PARTIAL") +
         '</button>';
       };
@@ -346,6 +346,7 @@ function renderLists() {
         child.authority_type === "behavior" &&
         !["state","spec","visual_reference"].includes(child.menu_group)
       );
+      const resourceChildren = childItems.filter(child => child.menu_group === "resource");
       const nested = [
         visualChildren.length
           ? '<div class="subsub-group-label">高保真页面</div>' + visualChildren.map(renderNestedChild).join("")
@@ -361,7 +362,8 @@ function renderLists() {
           : "",
         behaviorChildren.length
           ? '<div class="subsub-group-label">交互规范</div>' + behaviorChildren.map(renderNestedChild).join("")
-          : ""
+          : "",
+        resourceChildren.map(renderNestedChild).join("")
       ].join("");
 
       return parentView + (nested ? '<div class="page-subsublist">' + nested + '</div>' : '');
@@ -3005,7 +3007,53 @@ function accountPrivacyGalleryCanvas(item) {
   '</div>';
 }
 
+function recognitionGuideResourcesCanvas(child, feature) {
+  const sourceView = (feature?.hifi_views || []).find(view => view.id === child.source_view_id);
+  const sourceChildren = new Map((sourceView?.children || []).map(item => [item.id, item]));
+  const resources = (child.resource_ids || []).map(id => sourceChildren.get(id)).filter(item =>
+    item && item.status === "FROZEN" && isImage(item.visual_authority || item.image)
+  );
+  const cards = resources.map(item => {
+    const path = item.visual_authority || item.image;
+    const dimensions = item.visual_authority_dimensions || {};
+    const dimensionText = dimensions.width && dimensions.height
+      ? dimensions.width + " × " + dimensions.height + " px"
+      : "尺寸未登记";
+    const filename = path.split("/").pop();
+    const sourceFilename = item.source_high_fidelity_png || filename;
+    const fileHref = repoHref(path);
+    return '<article class="authority-index-card guide-resource-card" data-resource-id="' + esc(item.id) + '">' +
+      '<div class="authority-index-head"><strong>' + esc(item.title) + '</strong>' + statusBadge("FROZEN") + '</div>' +
+      '<button type="button" class="hifi-image-open guide-resource-preview" data-image-src="' + esc(fileHref) +
+        '" data-image-title="' + esc(item.title) + '" aria-label="放大查看 ' + esc(item.title) + '">' +
+        '<img src="' + esc(fileHref) + '" alt="' + esc(item.title) + ' · 原始比例完整预览" loading="lazy" decoding="async"></button>' +
+      '<dl class="guide-resource-metadata">' +
+        '<div><dt>源文件名</dt><dd>' + esc(sourceFilename) + '</dd></div>' +
+        '<div><dt>仓库文件名</dt><dd>' + esc(filename) + '</dd></div>' +
+        '<div><dt>仓库路径</dt><dd>' + esc(path) + '</dd></div>' +
+        '<div><dt>图像尺寸</dt><dd>' + esc(dimensionText) + '</dd></div>' +
+        '<div><dt>文件大小</dt><dd>' + esc(Number(item.visual_authority_bytes || 0).toLocaleString("en-US")) + ' bytes</dd></div>' +
+        '<div><dt>SHA-256</dt><dd>' + esc(item.visual_authority_sha256 || "未登记") + '</dd></div>' +
+      '</dl>' +
+      '<div class="guide-resource-actions">' +
+        '<a href="' + esc(fileHref) + '" download="' + esc(filename) + '">下载原始 PNG</a>' +
+        '<a href="' + esc(fileHref) + '" target="_blank" rel="noreferrer">打开原始文件 ↗</a>' +
+      '</div>' +
+    '</article>';
+  }).join("");
+  const manifest = child.resource_manifest
+    ? '<a href="' + esc(repoHref(child.resource_manifest)) + '" target="_blank" rel="noreferrer">打开资源 Manifest ↗</a>'
+    : "";
+  return '<div class="authority-index guide-resource-gallery">' +
+    '<div class="authority-index-intro"><strong>页面静态资源 · Design Source</strong>' +
+      '<span>以下图片直接引用仓库中的 Frozen 原始 PNG，保持原始字节与比例。它们用于设计预览和下载，不代表 Android 运行时资源。</span></div>' +
+    (cards ? '<div class="authority-index-grid guide-resource-grid">' + cards + '</div>' : '<div class="preview-empty">资源清单没有可展示的 Frozen PNG。</div>') +
+    (manifest ? '<div class="authority-index-intro guide-resource-manifest"><strong>资源来源</strong><span>' + manifest + '</span></div>' : '') +
+  '</div>';
+}
+
 function genericSpecChildCanvas(child, feature = null) {
+  if (child.render_mode === "recognition_guide_resources") return recognitionGuideResourcesCanvas(child, feature);
   if (child.render_mode === "recognition_master_board") return recognitionMasterBoardCanvas(child);
   if (child.render_mode === "recognition_new_states_review") return recognitionNewStatesReviewCanvas(child);
   if (child.render_mode === "missing_authority") return recognitionMissingAuthorityCanvas(child);

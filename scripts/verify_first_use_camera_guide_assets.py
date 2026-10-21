@@ -58,8 +58,10 @@ def load_json(path: Path) -> dict:
 def main() -> None:
     manifest_path = GUIDE / "manifest.json"
     report_path = GUIDE / "asset_import_report.json"
+    navigation_path = GUIDE / "navigation.json"
     manifest = load_json(manifest_path)
     report = load_json(report_path)
+    navigation = load_json(navigation_path)
 
     import_status = manifest.get("repository_binary_import", {})
     expected_paths = [asset["path"] for asset in EXPECTED]
@@ -71,6 +73,18 @@ def main() -> None:
         fail("asset import report schema/task id mismatch")
     if report.get("status") != "PASS" or report.get("binary_import_status") != "PASS":
         fail("asset import report must record PASS")
+    if [item.get("id") for item in navigation.get("children", [])] != ["p01", "p02", "p03"]:
+        fail("frozen overlay navigation must retain only the P01/P02/P03 teaching sequence")
+    resource_menus = navigation.get("resource_menus", [])
+    if (
+        len(resource_menus) != 1
+        or resource_menus[0].get("id") != "resources"
+        or resource_menus[0].get("title") != "资源"
+        or resource_menus[0].get("manifest") != "manifest.json"
+        or resource_menus[0].get("resource_ids") != ["p01", "p02", "p03"]
+        or resource_menus[0].get("runtime_visual_authority") is not False
+    ):
+        fail("Design Manager resource submenu must catalog the frozen PNGs outside the teaching sequence")
 
     manifest_assets = {item.get("id"): item for item in manifest.get("assets", [])}
     if [item.get("id") for item in manifest.get("assets", [])] != [asset["id"] for asset in EXPECTED]:
