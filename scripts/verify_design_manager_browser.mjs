@@ -227,7 +227,14 @@ async function main() {
   const previewViewportResults = [];
   for (const [width, height] of [[1440, 1000], [768, 1024], [390, 844], [320, 720]]) {
     await previewPage.setViewportSize({ width, height });
-    await previewPage.waitForFunction(() => window.NH01GeminiPreviewLayoutReady === true, { timeout: 5000 });
+    await previewPage.waitForFunction(
+      ({ expectedWidth, expectedHeight }) =>
+        window.NH01GeminiPreviewLayoutReady === true &&
+        window.NH01GeminiPreviewOuterViewport?.width === expectedWidth &&
+        window.NH01GeminiPreviewOuterViewport?.height === expectedHeight,
+      { expectedWidth: width, expectedHeight: height },
+      { timeout: 5000 }
+    );
     const result = await previewPage.evaluate(() => ({
       viewport: window.innerWidth,
       document: document.documentElement.scrollWidth,
@@ -284,6 +291,8 @@ async function main() {
     `Gemini canvas screenshot must use the content-first 360x640 logical profile: ${JSON.stringify(canvasLayout)}`);
   assert(Math.abs(canvasLayout.card_width_dp / canvasLayout.card_height_dp - (247 / 293)) < 0.015,
     `Adaptive V2 card must preserve the approved 247:293 aspect ratio: ${JSON.stringify(canvasLayout)}`);
+  assert(canvasLayout.top_align_middle_group === canvasLayout.needs_scroll,
+    `Adaptive V2 must center when content fits and top-align only when scrolling is required: ${JSON.stringify(canvasLayout)}`);
   assert(canvasLayout.content_min_card_height_dp > 0 && ["FIT", "CONTENT_SCROLL"].includes(canvasLayout.layout_mode),
     `Adaptive V2 must report content measurement and an explicit fit/scroll decision: ${JSON.stringify(canvasLayout)}`);
   const canvasBounds = await canvasPage.evaluate(() => {
