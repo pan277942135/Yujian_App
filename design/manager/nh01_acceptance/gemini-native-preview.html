@@ -7,7 +7,7 @@
   <meta name="nh01-gemini-preview-target" content="GEMINI_NATIVE_V3_STRUCTURE_PREVIEW_NOT_VISUAL_PASS">
   <title>渔见 · NH01 Gemini Native Preview</title>
   <style>
-    :root{color-scheme:light;--ink:#16313e;--muted:#5b737d;--line:#d4e0e3;--panel:#f5f8f8;--success:#176d50;--warn:#815b12;--danger:#84382e;--font-scale:1;--safe-top:24px;--safe-bottom:48px;--brand-stats-gap:16px;--leading-gap:6px;--title-card-gap:0px;--card-footer-gap:16px;--section-header-height:48px;--avatar-size:36px;--camera-visual-size:54px;--stat-value-size:17px;--stat-label-size:11px;--section-title-size:16px;--section-action-size:13px;--cta-label-size:12px;--catch-species-size:20px;--catch-measure-size:13px;--catch-metadata-size:11px;--main-card-width:220px;--main-card-height:261px;--card-footer-padding:18px;--text-gap:3px}
+    :root{color-scheme:light;--ink:#16313e;--muted:#5b737d;--line:#d4e0e3;--panel:#f5f8f8;--success:#176d50;--warn:#815b12;--danger:#84382e;--font-scale:1;--safe-top:24px;--safe-bottom:48px;--brand-stats-gap:16px;--leading-gap:6px;--title-card-gap:0px;--card-footer-gap:16px;--section-header-height:48px;--avatar-size:36px;--camera-visual-size:56px;--camera-touch-size:72px;--stat-value-size:17px;--stat-label-size:11px;--section-title-size:16px;--section-action-size:13px;--cta-label-size:12px;--catch-species-size:20px;--catch-measure-size:13px;--catch-metadata-size:11px;--main-card-width:220px;--main-card-height:261px;--card-footer-padding:18px;--text-gap:3px}
     *{box-sizing:border-box}
     html,body{margin:0;min-height:100%;font-family:system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--ink);background:#eaf0f1}
     body{min-height:100dvh}
@@ -91,7 +91,7 @@
     .catch-location{font-size:calc(var(--catch-metadata-size)*var(--font-scale));line-height:1.3;margin:0;opacity:.9}
     .footer-section{flex:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:11px;padding:4px 0 10px;color:#fff;text-shadow:0 1px 8px rgba(9,30,39,.35)}
     .cta-label{font-size:calc(var(--cta-label-size)*var(--font-scale));line-height:1.5;letter-spacing:.08em}
-    .camera-button{display:grid;place-items:center;width:72px;height:72px;padding:0;border:0;border-radius:50%;background:transparent;cursor:pointer}
+    .camera-button{display:grid;place-items:center;width:var(--camera-touch-size);height:var(--camera-touch-size);padding:0;border:0;border-radius:50%;background:transparent;cursor:pointer}
     .camera-art{display:block;width:var(--camera-visual-size);height:var(--camera-visual-size);object-fit:contain}
     .preview-toast{position:absolute;left:12px;right:12px;bottom:10px;z-index:8;padding:8px 10px;border-radius:9px;background:rgba(10,34,43,.9);color:#fff;font-size:10px;line-height:1.4;display:none}
     .preview-toast[data-visible="true"]{display:block}
@@ -393,7 +393,10 @@
         const measureSize = responsiveSp(safeHeight, 0.023, 13, 16);
         const metadataSize = responsiveSp(safeHeight, 0.019, 11, 13);
         const avatarSize = clamp(safeHeight * 0.06, 36, 44);
-        const cameraSize = clamp(safeHeight * 0.095, 54, 66);
+        // Match Android: respond to both usable width and height, not height alone.
+        // This prevents the camera artwork from becoming proportionally tiny on wide/tall canvases.
+        const cameraSize = Math.max(56, Math.min(Math.min(safeWidth, 560) * 0.18, safeHeight * 0.10, 80));
+        const cameraTouchSize = Math.max(72, cameraSize);
         const titleLineHeight = sectionTitle * 1.5 * scale;
         const compactViewport = variant !== "V3_BASELINE" && safeHeight < 500;
         const headerHeight = Math.max(compactViewport ? 40 : 48, titleLineHeight + (compactViewport ? 4 : 8));
@@ -414,6 +417,7 @@
         root.style.setProperty("--section-header-height", headerHeight + "px");
         root.style.setProperty("--avatar-size", avatarSize + "px");
         root.style.setProperty("--camera-visual-size", cameraSize + "px");
+        root.style.setProperty("--camera-touch-size", cameraTouchSize + "px");
         root.style.setProperty("--stat-value-size", statValue + "px");
         root.style.setProperty("--stat-label-size", statLabel + "px");
         root.style.setProperty("--section-title-size", sectionTitle + "px");
@@ -435,6 +439,7 @@
           variant, band: policy.band, logical_viewport_dp: [width, height],
           safe_insets_dp: { top: 24, bottom: 48, start: 0, end: 0 },
           safe_width_dp: safeWidth, safe_height_dp: safeHeight, font_scale: scale,
+          camera_visual_size_dp: cameraSize, camera_touch_size_dp: cameraTouchSize,
           gaps_dp: { brand_to_stats: policy.brandToStatsGap, stats_to_title: policy.statsToTitleGap, leading: leadingGap, title_to_card: policy.titleToCardGap, actual_header_gap: headerGap, card_to_footer: policy.cardToFooterGap },
           desired_card_size_dp: [desiredCardWidth, desiredCardHeight],
           card_height_dp: null, card_width_dp: null, available_card_height_dp: null,
@@ -559,7 +564,7 @@
         "#rightCatchCard": {name:"Card-Peek-Right",design:"Card-Peek-Right",compose:"GeminiCatchCarousel / next page",asset:"独立获批照片未登记",constraint:"邻卡宽度约为轨道 62%；垂直居中；照片来源未批准。",status:"BLOCKED",note:"只显示占位材质。不得以未确认来源的图片替代。"},
         "#footerSection": {name:"Footer-CTA-Section",design:"Footer-CTA-Section",compose:"GeminiFooterSection",constraint:"底部固定操作区；系统导航安全区由根容器处理。",status:"MAPPED"},
         "#ctaLabel": {name:"CTA-Label-RecordNext",design:"CTA-Label-RecordNext",compose:"GeminiFooterSection / CTA label",constraint:"文字字号跟随安全高度和字体缩放；与相机控件保持垂直间距。",status:"MAPPED"},
-        "#cameraButton": {name:"CTA-Camera-Button",design:"CTA-Camera-Button",compose:"HomeCameraButton",asset:"normal_home_camera_primary_v1.png · SHA registered",constraint:"72dp 触控区域；内部图形 contain，视觉尺寸按安全高度缩放。",status:"MAPPED"}
+        "#cameraButton": {name:"CTA-Camera-Button",design:"CTA-Camera-Button",compose:"HomeCameraButton",asset:"normal_home_camera_primary_v1.png · SHA registered",constraint:"触控区域至少 72dp；内部图形 contain，视觉尺寸按安全画布宽高共同缩放，56–80dp。",status:"MAPPED"}
       };
       const inspectorFields = {
         name:document.getElementById("inspectorNodeName"), status:document.getElementById("inspectorNodeStatus"),
