@@ -1,5 +1,7 @@
 # NH06 · Background & Environment Authority / 背景与环境权威 · Design Spec V1
 
+> **2026-10-21 现行 Gemini NH01/NH02 局部替代说明：** NH06 晨湖背景的原图来源、SHA、环境气质均不变。仅当前 Gemini Native V3 有数据首页的视口裁切使用 TopCenter / ContentScale.Crop；历史 NormalHomeContent 的 centered Crop 属于旧布局规则。不能对同一页面同时执行两种裁切权威；不得修改主图、调色或从截图反裁背景。
+
 Status: **FROZEN — SPEC + VISUAL**
 Scope: **Normal Home / Morning Lake / BG_ENV_HERO**  
 Output policy: **AUTHORITY_BOARD**
