@@ -745,12 +745,6 @@ private fun GeminiCatchCard(
     val speciesSize = responsiveSp(safeHeight, safeWidth, 0.036f, 20f, 26f)
     val measurementSize = responsiveSp(safeHeight, safeWidth, 0.023f, 13f, 16f)
     val metadataSize = responsiveSp(safeHeight, safeWidth, 0.019f, 11f, 13f)
-    val metadataMaxLines = geminiHomeMetadataMaxLines(
-        metadataLength = metadata.length,
-        cardWidthDp = cardWidth.value,
-        fontScale = currentFontScale,
-        variant = layoutVariant,
-    )
     val footerVerticalPadding = clampDp(cardHeight.value * 0.07f, 10f, 20f)
     val footerHorizontalPadding = if (layoutVariant == GeminiHomeLayoutVariant.ADAPTIVE_V2) {
         // Scale the inner inset continuously so the long metadata line budget gets
@@ -767,6 +761,12 @@ private fun GeminiCatchCard(
     val time = PresentationSanitizer.formatHomeTimestamp(item.capturedAt, item.createdAt)
     val location = sanitizeOptionalText(item.location)
     val metadata = listOfNotNull(time?.takeIf { it.isNotBlank() }, location).joinToString(" · ")
+    val metadataMaxLines = geminiHomeMetadataMaxLines(
+        metadataLength = metadata.length,
+        cardWidthDp = cardWidth.value,
+        fontScale = currentFontScale,
+        variant = layoutVariant,
+    )
     val speciesTextOverflow = remember(item.id) { mutableStateOf(false) }
     val measurementTextOverflow = remember(item.id) { mutableStateOf(false) }
     val metadataTextOverflow = remember(item.id) { mutableStateOf(false) }
