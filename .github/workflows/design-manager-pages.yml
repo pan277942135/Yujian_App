@@ -150,6 +150,9 @@ jobs:
             (cd _site && find . -type f ! -path './previews/pr-176/*' -print0 | sort -z | xargs -0 -r sha256sum) > "$RUNNER_TEMP/production-root.before.sha256"
             mkdir -p _site/previews/pr-176
             cp -R design _site/previews/pr-176/design
+            mkdir -p _site/previews/pr-176/design/manager/nh01_acceptance/assets
+            cp _production_baseline/app/src/main/res/drawable-nodpi/normal_home_default_avatar_v2.png _site/previews/pr-176/design/manager/nh01_acceptance/assets/normal_home_default_avatar_v2.png
+            cmp -s _production_baseline/app/src/main/res/drawable-nodpi/normal_home_default_avatar_v2.png _site/previews/pr-176/design/manager/nh01_acceptance/assets/normal_home_default_avatar_v2.png
             PREVIEW_SHORT="${BUILD_SHA:0:12}"
             sed -i "s/__DESIGN_MANAGER_BUILD__/${BUILD_SHA}/g" _site/previews/pr-176/design/manager/index.html
             sed -i "s/__DESIGN_MANAGER_BUILD_SHORT__/${PREVIEW_SHORT}/g" _site/previews/pr-176/design/manager/index.html
