@@ -7,7 +7,9 @@
   <meta name="nh01-viewer-build" content="__NH01_VIEWER_BUILD__">
   <title>NH01 Acceptance Center · 渔见设计管理</title>
   <link rel="stylesheet" href="./viewer.css">
+  <link rel="stylesheet" href="./local_compare.css">
   <script src="./viewer.js" defer></script>
+  <script src="./local_compare.js" defer></script>
 </head>
 <body>
   <header class="site-header">
@@ -124,6 +126,28 @@
         <div class="browser-diff-images" id="browserDiffImages"></div>
         <div id="browserDiffRois"></div>
       </section>
+    <!-- Local screenshot comparison is diagnostic-only and has no gate authority. -->
+    <section class="panel-card local-compare-panel" id="localComparePanel" aria-label="本地 Android 截图对照">
+        <header class="panel-heading"><div><span class="eyebrow">LOCAL BROWSER ONLY · NO UPLOAD</span><h3>本地 Android 截图对照</h3></div><span class="status-pill review">诊断工具 · 不关闭 Gate</span></header>
+        <p class="local-compare-note">选择从设备或 APK 验收中取得的截图。图片只在当前浏览器内存处理，不会上传 GitHub、保存到服务器或提交到仓库。Frozen 图仅适用于当前设计仍以该 Frozen 组合为视觉权威的场景；若 Gemini-native 目标已获批准且布局不同，应使用批准后的目标，不可把此处差异直接判为失败。此工具结果永远不会替代 exact-SHA API 28 Runtime、boundsInWindow 或正式视觉 Gate。</p>
+        <div class="local-compare-controls">
+          <label>Android 截图（PNG / JPEG / WebP）<input id="localAndroidScreenshot" type="file" accept="image/png,image/jpeg,image/webp"></label>
+          <label>尺寸处理<select id="localCompareFit"><option value="strict">严格：必须原生 1080×1920</option><option value="contain">等比例居中适配（仅诊断）</option></select></label>
+          <button id="runLocalCompare" type="button">生成差异诊断</button>
+          <button id="clearLocalCompare" type="button">清除本地图片</button>
+          <button id="downloadLocalCompareReport" type="button" disabled>下载诊断 JSON</button>
+        </div>
+        <div class="local-compare-status" id="localCompareStatus" data-state="NOT_RUN" role="status" aria-live="polite">尚未选择截图。</div>
+        <div class="local-compare-meta" id="localCompareSummary" aria-label="本地差异摘要"></div>
+        <div class="local-compare-images" id="localScreenshotMetadata" data-loaded="false">
+          <figure class="local-compare-figure"><figcaption>Frozen NH01 · 只读参考</figcaption><img id="localFrozenTarget" src="../../system/core_visual_v1/reference/normal_home_v1.png" alt="Frozen NH01 reference 1080×1920"></figure>
+          <figure class="local-compare-figure"><figcaption>所选 Android 截图（原始比例）</figcaption><img id="localScreenshotPreview" alt="尚未选择 Android 截图"></figure>
+          <figure class="local-compare-figure"><figcaption>50% Overlay · 诊断</figcaption><canvas id="localOverlayCanvas" width="1080" height="1920" aria-label="Frozen 与本地截图叠加图"></canvas></figure>
+          <figure class="local-compare-figure"><figcaption>Pixel Heatmap · 诊断</figcaption><canvas id="localHeatmapCanvas" width="1080" height="1920" aria-label="Frozen 与本地截图像素差异热图"></canvas></figure>
+        </div>
+        <div class="local-compare-table-wrap" id="localCompareRoiTable"></div>
+      </section>
+
     </section>
 
     <section class="view-panel hidden" id="view-heatmap" data-view="heatmap">
