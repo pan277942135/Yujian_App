@@ -19,6 +19,7 @@ const OUTPUT = resolve(process.env.MOTION_STUDIO_EVIDENCE_DIR || "/tmp/receiving
 const SOURCE_SHA = process.env.MOTION_STUDIO_SOURCE_SHA || process.env.GITHUB_SHA || "local-uncommitted";
 const BASE = process.env.MOTION_STUDIO_BASE || "";
 const PHOTO_SHA = "6e955087108f7463eca2dbac489699a4942028ebe1b3d456ddfca523286385ef";
+const DURATION = 1140;
 const MOTION_PATH = "design/manager/optical-lab/recognition-motion/";
 const VIEWPORTS = [[320, 640], [390, 844], [430, 932], [1080, 1920]];
 let server = null;
