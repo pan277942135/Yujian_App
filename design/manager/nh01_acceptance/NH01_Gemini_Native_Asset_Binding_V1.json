@@ -3,7 +3,7 @@
   "version": 1,
   "status": "PREVIEW_READY_WITH_HERO_MEDIA_BLOCKED",
   "source_commit": "6bac75e63d8ca2448d33d5dbd6d1a71e9a548188",
-  "purpose": "GitHub-native structure and asset integrity preview. This is not a Figma live readback, Android screenshot, or visual parity pass.",
+  "purpose": "GitHub-native structure and asset integrity preview. The layout geometry follows the checked-in Compose policy for the selected variant, but the HTML render is not an Android screenshot or visual parity pass.",
   "structure_authority": {
     "alignment_snapshot": "release/design_manager/NH01_GEMINI_STRUCTURE_ALIGNMENT_V1.json",
     "alignment_status": "GITHUB_SNAPSHOT_ONLY__LIVE_FIGMA_READBACK_NOT_VERIFIED",
@@ -13,8 +13,20 @@
     "frozen_reference": {
       "path": "design/system/core_visual_v1/reference/normal_home_v1.png",
       "sha256": "6ab9d3348b4a9a7e77ddca3a06235b4991798a309bd3512cc6fb9ea7aeb1d377",
-      "dimensions_px": [1080, 1920],
+      "dimensions_px": [
+        1080,
+        1920
+      ],
       "role": "IMMUTABLE_OLD_NH01_REFERENCE__NOT_A_GEMINI_V3_PIXEL_TARGET"
+    },
+    "layout_policy_source": "app/src/main/java/com/yujian/ai/ui/home/GeminiHomeAdaptiveLayoutPolicy.kt",
+    "content_layout_source": "app/src/main/java/com/yujian/ai/ui/home/GeminiNormalHomeContent.kt",
+    "default_preview_variant": "ADAPTIVE_V1",
+    "safe_insets_dp": {
+      "top": 24,
+      "bottom": 48,
+      "start": 0,
+      "end": 0
     }
   },
   "assets": [
@@ -24,7 +36,10 @@
       "source_path": "design/system/backgrounds/morning_lake_v1/assets/Morning_Lake_Master_V1.png",
       "preview_path": "../../system/backgrounds/morning_lake_v1/assets/Morning_Lake_Master_V1.png",
       "sha256": "5fba741088ea186e898cd3bee5777e35978436f427492e6e6122528ef6aa91d7",
-      "dimensions_px": [941, 1672],
+      "dimensions_px": [
+        941,
+        1672
+      ],
       "status": "FROZEN",
       "public_preview": true,
       "render_rule": "Full-window ContentScale.Crop, TopCenter; no extra overlay/tint."
@@ -35,7 +50,10 @@
       "source_path": "design/system_v3/06_Asset_System/derived/brand_title_primary/brand_title_primary.png",
       "preview_path": "../../system_v3/06_Asset_System/derived/brand_title_primary/brand_title_primary.png",
       "sha256": "2dd41f5138e88e3bd48178dd26a15dfbb29c434536e4e3cc887fe2db13bdfddc",
-      "dimensions_px": [155, 80],
+      "dimensions_px": [
+        155,
+        80
+      ],
       "status": "FROZEN",
       "public_preview": true,
       "render_rule": "Use registered artwork; preserve aspect ratio."
@@ -46,7 +64,10 @@
       "source_path": "app/src/main/res/drawable-nodpi/normal_home_default_avatar_v2.png",
       "preview_path": "./assets/normal_home_default_avatar_v2.png",
       "sha256": "fe94b11ba9f6c0635cd230bcc786fd2ea9a64d1a6f512dc6078556379676f528",
-      "dimensions_px": [1254, 1254],
+      "dimensions_px": [
+        1254,
+        1254
+      ],
       "status": "FROZEN_HOME_V2_VISUAL_CONSUMER",
       "public_preview": true,
       "render_rule": "Gemini Native V3 page-local policy uses this V2 raster under Guest and signed-in fallback; a usable remote signed-in avatar overlays it at runtime."
@@ -57,7 +78,10 @@
       "source_path": "design/system_v3/06_Asset_System/derived/normal_home_camera_primary_v1/normal_home_camera_primary_v1.png",
       "preview_path": "../../system_v3/06_Asset_System/derived/normal_home_camera_primary_v1/normal_home_camera_primary_v1.png",
       "sha256": "fb6417e372d08328ac8559d004d1c6f5b03fc17551646be46031df641660e8f2",
-      "dimensions_px": [208, 208],
+      "dimensions_px": [
+        208,
+        208
+      ],
       "status": "FROZEN",
       "public_preview": true,
       "render_rule": "Use the registered complete camera artwork; do not add another ring or vector icon."
@@ -67,7 +91,10 @@
       "label": "Real catch Hero photo fixture",
       "source_path": "app/src/main/assets/home_normal/fish_record/sample_recent_catch.jpg",
       "sha256": "6e955087108f7463eca2dbac489699a4942028ebe1b3d456ddfca523286385ef",
-      "dimensions_px": [1152, 1536],
+      "dimensions_px": [
+        1152,
+        1536
+      ],
       "status": "BLOCKED_ASSET_SOURCE",
       "public_preview": false,
       "photo_provenance": "NOT_VERIFIED",
