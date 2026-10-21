@@ -89,11 +89,17 @@ jobs:
           rm -rf _site
           mkdir -p _site
           cp -R design _site/design
+          mkdir -p _site/design/manager/nh01_acceptance/assets
+          cp app/src/main/res/drawable-nodpi/normal_home_default_avatar_v2.png \
+            _site/design/manager/nh01_acceptance/assets/normal_home_default_avatar_v2.png
+          AVATAR_SHA="$(sha256sum _site/design/manager/nh01_acceptance/assets/normal_home_default_avatar_v2.png | cut -d' ' -f1)"
+          test "$AVATAR_SHA" = "fe94b11ba9f6c0635cd230bcc786fd2ea9a64d1a6f512dc6078556379676f528"
           BUILD_SHORT="${BUILD_SHA:0:12}"
           sed -i "s/__DESIGN_MANAGER_BUILD__/${BUILD_SHA}/g" _site/design/manager/index.html
           sed -i "s/__DESIGN_MANAGER_BUILD_SHORT__/${BUILD_SHORT}/g" _site/design/manager/index.html
           sed -i "s/__NH01_SOURCE_SHA__/${BUILD_SHA}/g" _site/design/manager/nh01_acceptance/index.html
           sed -i "s/__NH01_VIEWER_BUILD__/${BUILD_SHA}/g" _site/design/manager/nh01_acceptance/index.html
+          sed -i "s/__NH01_GEMINI_PREVIEW_BUILD__/${BUILD_SHA}/g" _site/design/manager/nh01_acceptance/gemini-native-preview.html
           printf '{"sha":"%s","short_sha":"%s"}\n' "${BUILD_SHA}" "${BUILD_SHORT}" > _site/design/manager/build.json
           touch _site/.nojekyll
           cat > _site/index.html <<'EOF'
