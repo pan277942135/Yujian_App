@@ -454,7 +454,7 @@ reference_names = [
     "05_result_high.png",
 ]
 references = [Image.open(output_dir / name).convert("RGB") for name in reference_names]
-if len(references) != 5:
+if len(references) != len(reference_names):
     raise SystemExit(f"RECOGNITION_VIDEO_REFERENCE_COUNT={len(references)}")
 
 probe = subprocess.run(
