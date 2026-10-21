@@ -42,7 +42,7 @@
     .stat+.stat{position:relative;border-left:0}.stat+.stat:before{content:"";position:absolute;left:0;top:50%;transform:translateY(-50%);height:26px;width:1px;background:rgba(244,251,252,.3)}
     .stat-value{font-weight:750;font-size:calc(var(--stat-value-size)*var(--font-scale));line-height:1.2}
     .stat-label{font-size:calc(var(--stat-label-size)*var(--font-scale));line-height:1.2;opacity:.92}
-    .middle-section{display:flex;flex:1;flex-direction:column;min-height:0;margin-top:0;padding-top:var(--leading-gap);padding-bottom:var(--card-footer-gap)}.middle-section[data-scroll-needed="true"]{overflow-y:auto;scrollbar-width:none}.middle-section[data-scroll-needed="true"]::-webkit-scrollbar{display:none}
+    .middle-section{display:flex;flex:1;flex-direction:column;justify-content:flex-start;min-height:0;margin-top:0;overflow:visible}.middle-section:before,.middle-section:after{content:"";display:block;flex:none;height:var(--leading-gap)}.middle-section:after{height:var(--card-footer-gap)}.middle-section[data-top-align="false"]{justify-content:center}.middle-section[data-scroll-needed="true"]{justify-content:flex-start;overflow-y:auto;scrollbar-width:none}.middle-section[data-scroll-needed="true"]::-webkit-scrollbar{display:none}
     .section-header{display:flex;flex:none;height:var(--section-header-height);align-items:center;justify-content:space-between;gap:12px;padding:0 clamp(24px,7.5cqw,40px);margin-bottom:var(--title-card-gap);color:#fff;text-shadow:0 1px 7px rgba(9,30,39,.3)}
     .section-title{font-size:calc(var(--section-title-size)*var(--font-scale));line-height:1.2;font-weight:700;white-space:nowrap}
     .section-action{font-size:calc(var(--section-action-size)*var(--font-scale));line-height:1.2;opacity:.95;white-space:nowrap}
@@ -137,7 +137,7 @@
                   <div class="stat"><span class="stat-value">1</span><span class="stat-label">记录天数</span></div>
                 </div>
               </header>
-              <section class="middle-section" id="middleSection" data-scroll-needed="false" data-layer="Middle-Carousel-Section">
+              <section class="middle-section" id="middleSection" data-scroll-needed="false" data-top-align="true" data-layer="Middle-Carousel-Section">
                 <div class="section-header" id="sectionHeader" data-layer="Section-Header-Bar">
                   <span class="section-title">最近鱼获</span><span class="section-action">全部 ›</span>
                 </div>
@@ -201,9 +201,15 @@
       const buildSha = document.querySelector('meta[name="nh01-gemini-preview-build"]').content;
       document.getElementById("buildSha").textContent = buildSha;
       const preset = document.getElementById("viewportPreset");
+      const layoutVariant = document.getElementById("layoutVariant");
       const fontScale = document.getElementById("fontScale");
       const device = document.getElementById("device");
       const wrap = document.getElementById("deviceWrap");
+      const topSection = document.getElementById("topSection");
+      const middleSection = document.getElementById("middleSection");
+      const sectionHeader = document.getElementById("sectionHeader");
+      const carouselWindow = document.getElementById("carouselWindow");
+      const footerSection = document.getElementById("footerSection");
       const toast = document.getElementById("previewToast");
       const assetList = document.getElementById("assetList");
       const integritySummary = document.getElementById("integritySummary");
@@ -217,28 +223,146 @@
         toast.textContent = message;
         toast.dataset.visible = "true";
       }
-      function applyViewport() {
-        document.documentElement.style.setProperty("--font-scale", fontScale.value);
-        if (canvasMode) {
-          device.style.width = String(window.innerWidth) + "px";
-          device.style.height = String(window.innerHeight) + "px";
-          device.style.transform = "none";
-          wrap.style.width = String(window.innerWidth) + "px";
-          wrap.style.height = String(window.innerHeight) + "px";
-          return;
+      function clamp(value, minimum, maximum) {
+        return Math.min(maximum, Math.max(minimum, value));
+      }
+      function responsiveSp(safeHeight, ratio, minimum, maximum) {
+        return clamp(safeHeight * ratio, minimum, maximum);
+      }
+      function resolveLayoutPolicy(safeWidth, safeHeight, scale, variant) {
+        const band = (safeWidth < 360 || safeHeight < 700) ? "COMPACT" : (safeWidth < 400 ? "MEDIUM" : "EXPANDED");
+        if (variant === "V3_BASELINE") {
+          return {
+            band, variant, cardWidthFraction: 0.686, maxCardWidth: 337.2, maxCardHeight: 400,
+            minReadableCardHeight: 220,
+            brandToStatsGap: clamp(safeHeight * 0.042, 18, 34),
+            statsToTitleGap: clamp(safeHeight * 0.01, 4, 10),
+            titleToCardGap: 13,
+            cardToFooterGap: clamp(safeHeight * 0.01, 4, 10),
+            topAlignMiddleGroup: false
+          };
         }
-        const parts = preset.value.split("x").map(Number);
-        const width = parts[0], height = parts[1];
-        const availableWidth = Math.max(250, Math.min(520, window.innerWidth - 56));
-        const availableHeight = Math.max(300, window.innerHeight - 205);
-        const scale = Math.min(1, availableWidth / width, availableHeight / height);
-        device.style.width = String(width) + "px";
-        device.style.height = String(height) + "px";
-        device.style.transform = "scale(" + scale + ")";
-        wrap.style.width = String(width * scale) + "px";
-        wrap.style.height = String(height * scale) + "px";
+        const compact = band === "COMPACT";
+        const expanded = band === "EXPANDED";
+        const high = scale >= 1.5;
+        const large = scale >= 1.3;
+        const choose = (compactNormal, compactLarge, compactHigh, mediumNormal, mediumLarge, mediumHigh, expandedNormal, expandedLarge, expandedHigh) => {
+          if (compact) return high ? compactHigh : (large ? compactLarge : compactNormal);
+          if (expanded) return high ? expandedHigh : (large ? expandedLarge : expandedNormal);
+          return high ? mediumHigh : (large ? mediumLarge : mediumNormal);
+        };
+        return {
+          band, variant, cardWidthFraction: 0.76, maxCardWidth: 360,
+          maxCardHeight: 360 / (247 / 293),
+          minReadableCardHeight: 200 / (247 / 293),
+          brandToStatsGap: choose(16,14,12,20,18,16,24,20,18),
+          statsToTitleGap: choose(20,18,16,24,22,20,26,22,20),
+          titleToCardGap: choose(12,11,10,16,14,12,18,16,14),
+          cardToFooterGap: choose(16,14,12,20,18,16,24,20,16),
+          topAlignMiddleGroup: true
+        };
+      }
+      function updateLayoutGeometry(width, height) {
+        window.NH01GeminiPreviewLayoutReady = false;
+        const root = document.documentElement;
+        const scale = Number(fontScale.value);
+        const safeWidth = width;
+        const safeHeight = Math.max(1, height - 72);
+        const variant = layoutVariant.value;
+        const policy = resolveLayoutPolicy(safeWidth, safeHeight, scale, variant);
+        const statValue = responsiveSp(safeHeight, 0.03, 17, 21);
+        const statLabel = responsiveSp(safeHeight, 0.019, 11, 13);
+        const sectionTitle = responsiveSp(safeHeight, 0.027, 16, 19);
+        const sectionAction = responsiveSp(safeHeight, 0.021, 13, 15);
+        const ctaSize = responsiveSp(safeHeight, 0.021, 12, 14);
+        const speciesSize = responsiveSp(safeHeight, 0.036, 20, 26);
+        const measureSize = responsiveSp(safeHeight, 0.023, 13, 16);
+        const metadataSize = responsiveSp(safeHeight, 0.019, 11, 13);
+        const avatarSize = clamp(safeHeight * 0.06, 36, 44);
+        const cameraSize = clamp(safeHeight * 0.095, 54, 66);
+        const titleLineHeight = sectionTitle * 1.2 * scale;
+        const headerHeight = Math.max(48, titleLineHeight + 8);
+        const titleRowInset = Math.max(0, (headerHeight - titleLineHeight) / 2);
+        const leadingGap = variant === "V3_BASELINE"
+          ? clamp(safeHeight * 0.01, 4, 10)
+          : Math.max(0, policy.statsToTitleGap - titleRowInset);
+        const headerGap = Math.max(0, policy.titleToCardGap - titleRowInset);
+        const trackWidth = Math.min(safeWidth, 560);
+        const desiredCardWidth = Math.min(trackWidth * policy.cardWidthFraction, policy.maxCardWidth);
+        const desiredCardHeight = Math.min(desiredCardWidth / (247 / 293), policy.maxCardHeight);
+        root.style.setProperty("--font-scale", String(scale));
+        root.style.setProperty("--brand-stats-gap", policy.brandToStatsGap + "px");
+        root.style.setProperty("--leading-gap", leadingGap + "px");
+        root.style.setProperty("--title-card-gap", headerGap + "px");
+        root.style.setProperty("--card-footer-gap", policy.cardToFooterGap + "px");
+        root.style.setProperty("--section-header-height", headerHeight + "px");
+        root.style.setProperty("--avatar-size", avatarSize + "px");
+        root.style.setProperty("--camera-visual-size", cameraSize + "px");
+        root.style.setProperty("--stat-value-size", statValue + "px");
+        root.style.setProperty("--stat-label-size", statLabel + "px");
+        root.style.setProperty("--section-title-size", sectionTitle + "px");
+        root.style.setProperty("--section-action-size", sectionAction + "px");
+        root.style.setProperty("--cta-label-size", ctaSize + "px");
+        root.style.setProperty("--catch-species-size", speciesSize + "px");
+        root.style.setProperty("--catch-measure-size", measureSize + "px");
+        root.style.setProperty("--catch-metadata-size", metadataSize + "px");
+        root.style.setProperty("--desired-card-width", desiredCardWidth + "px");
+        root.style.setProperty("--desired-card-height", desiredCardHeight + "px");
+        root.style.setProperty("--min-readable-card-height", policy.minReadableCardHeight + "px");
+        root.style.setProperty("--text-gap", clamp(safeHeight * 0.006, 2, 5) + "px");
+        middleSection.dataset.topAlign = String(policy.topAlignMiddleGroup);
+        window.NH01GeminiPreviewLayout = {
+          variant, band, logical_viewport_dp: [width, height], safe_insets_dp: { top: 24, bottom: 48, start: 0, end: 0 },
+          safe_width_dp: safeWidth, safe_height_dp: safeHeight, font_scale: scale,
+          gaps_dp: { brand_to_stats: policy.brandToStatsGap, stats_to_title: policy.statsToTitleGap, leading: leadingGap, title_to_card: policy.titleToCardGap, actual_header_gap: headerGap, card_to_footer: policy.cardToFooterGap },
+          desired_card_size_dp: [desiredCardWidth, desiredCardHeight], card_height_dp: null, card_width_dp: null,
+          top_align_middle_group: policy.topAlignMiddleGroup
+        };
+        requestAnimationFrame(() => {
+          const middleHeight = middleSection.clientHeight;
+          const availableCardHeight = Math.max(0, middleHeight - leadingGap - headerHeight - headerGap - policy.cardToFooterGap);
+          const cardHeight = availableCardHeight >= policy.minReadableCardHeight
+            ? Math.min(desiredCardHeight, availableCardHeight)
+            : desiredCardHeight;
+          const cardWidth = cardHeight * (247 / 293);
+          const needsScroll = leadingGap + headerHeight + headerGap + cardHeight + policy.cardToFooterGap > middleHeight + 0.5;
+          root.style.setProperty("--main-card-height", cardHeight + "px");
+          root.style.setProperty("--main-card-width", cardWidth + "px");
+          root.style.setProperty("--card-footer-padding", clamp(cardHeight * 0.07, 10, 20) + "px");
+          middleSection.dataset.scrollNeeded = String(needsScroll);
+          if (window.NH01GeminiPreviewLayout) {
+            window.NH01GeminiPreviewLayout.card_height_dp = cardHeight;
+            window.NH01GeminiPreviewLayout.card_width_dp = cardWidth;
+            window.NH01GeminiPreviewLayout.available_card_height_dp = availableCardHeight;
+            window.NH01GeminiPreviewLayout.middle_height_dp = middleHeight;
+            window.NH01GeminiPreviewLayout.needs_scroll = needsScroll;
+          }
+          window.NH01GeminiPreviewLayoutReady = true;
+        });
+      }
+      function applyViewport() {
+        const widthHeight = canvasMode ? [window.innerWidth, window.innerHeight] : preset.value.split("x").map(Number);
+        const width = widthHeight[0], height = widthHeight[1];
+        if (canvasMode) {
+          device.style.width = String(width) + "px";
+          device.style.height = String(height) + "px";
+          device.style.transform = "none";
+          wrap.style.width = String(width) + "px";
+          wrap.style.height = String(height) + "px";
+        } else {
+          const availableWidth = Math.max(250, Math.min(520, window.innerWidth - 56));
+          const availableHeight = Math.max(300, window.innerHeight - 205);
+          const scale = Math.min(1, availableWidth / width, availableHeight / height);
+          device.style.width = String(width) + "px";
+          device.style.height = String(height) + "px";
+          device.style.transform = "scale(" + scale + ")";
+          wrap.style.width = String(width * scale) + "px";
+          wrap.style.height = String(height * scale) + "px";
+        }
+        updateLayoutGeometry(width, height);
       }
       preset.addEventListener("change", applyViewport);
+      layoutVariant.addEventListener("change", applyViewport);
       fontScale.addEventListener("change", applyViewport);
       window.addEventListener("resize", applyViewport);
       document.getElementById("cameraButton").addEventListener("click", () => showToast("静态预览：真实拍照交互以精确 SHA 的 Android Runtime Gate 为准。"));
