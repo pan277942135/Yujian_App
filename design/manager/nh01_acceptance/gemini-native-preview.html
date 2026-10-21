@@ -562,7 +562,7 @@
       document.getElementById("avatarButton").addEventListener("click", () => showToast("Gemini V3 静态预览使用注册的 V2 头像底图；真实账号头像加载由 Android 数据层处理。"));
 
       const layerMeta = {
-        "#device": {name:"Screen · NH01 Home",design:"Screen-Yujian-Home",compose:"GeminiNormalHomeContent",constraint:"全屏容器；顶部/底部安全区分别预留 24dp / 48dp。",status:"MAPPED",note:"根容器。真实系统栏与窗口 inset 需由 Android Runtime 证据确认。"},
+        "#device": {name:"Screen · NH01 Home",design:"Screen-Yujian-Home",compose:"GeminiNormalHomeContent",constraint:"全屏容器；顶部/底部安全区分别预留 24dp / 24dp，短屏不额外重复计算底部留白。",status:"MAPPED",note:"根容器。真实系统栏与窗口 inset 需由 Android Runtime 证据确认。"},
         "#assetBackground": {name:"BG · Morning Lake",design:"BG-Mountain-Mist",compose:"GeminiNormalHomeContent / background group",asset:"Morning Lake master · registered bitmap",constraint:"全屏铺底；ContentScale.Crop，TopCenter。",status:"MAPPED",note:"背景源图为正式登记资产，保持原始像素，不在此页添加额外叠层。"},
         "#topSection": {name:"Top-Section-AutoLayout",design:"Top-Section-AutoLayout",compose:"GeminiTopSection",constraint:"顶部固定区域；宽度跟随可用视口；安全区由根容器处理。",status:"MAPPED"},
         "#headerBar": {name:"Header-Bar",design:"Header-Bar",compose:"GeminiTopSection / Header-Bar",constraint:"横向排列；左右对齐；间距 12dp；最小高度 48dp。",status:"MAPPED"},
