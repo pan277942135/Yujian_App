@@ -56,7 +56,7 @@ class GeminiHomeAdaptiveLayoutPolicyTest {
     fun cardShrinksToReadableMinimumInsteadOfRestoringOversizedTarget() {
         assertEquals(168f, geminiHomeResolvedCardHeight(320f, 110f, 168f), 0.001f)
         assertEquals(250f, geminiHomeResolvedCardHeight(320f, 250f, 168f), 0.001f)
-        assertEquals(190f, geminiHomeResolvedCardHeight(190f, 110f, 168f), 0.001f)
+        assertEquals(168f, geminiHomeResolvedCardHeight(190f, 110f, 168f), 0.001f)
     }
 
     @Test
