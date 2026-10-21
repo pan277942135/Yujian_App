@@ -235,6 +235,14 @@ class GeminiNormalHomeResponsiveTest {
                 rightPeek.top - activeCard.top,
                 1.5f,
             )
+            assertTrue(
+                "right peek must not overlap the active card ${window.name}: active=$activeCard right=$rightPeek",
+                rightPeek.left >= activeCard.right - 1f,
+            )
+            assertTrue(
+                "side peek stays below 82% of active card width ${window.name}",
+                rightPeek.width() <= activeCard.width() * 0.83f + 1f,
+            )
             if (initiallyVisible) {
                 assertEquals(
                     "neighbor card height remains 66.7% ${window.name}",
@@ -257,6 +265,19 @@ class GeminiNormalHomeResponsiveTest {
             assertTrue("camera art must be centered in its target ${window.name}", cameraCenterDistance <= 2f)
             assertTrue("CTA label and camera may not overlap ${window.name}", ctaLabel.bottom <= camera.top + 1f)
             assertTrue("camera must remain above the bottom safe inset ${window.name}", camera.bottom <= root.bottom - 24f + 1f)
+            if (window.name == "320x480-font-1_0") {
+                assertTrue("320×480 main card must retain a useful visible size: $activeCard", activeCard.width() >= 145f)
+                assertTrue("320×480 main card metadata should fit without scrolling", initiallyVisible)
+                assertTrue(
+                    "320×480 at default font scale should not expose a middle scroll container",
+                    compose.onAllNodesWithTag("gemini-home-short-screen-scroll", useUnmergedTree = true)
+                        .fetchSemanticsNodes().isEmpty(),
+                )
+                assertTrue(
+                    "footer CTA should not have excessive blank space below it",
+                    root.bottom - camera.bottom <= 30f,
+                )
+            }
             assertEquals(window.widthDp, image.width)
             assertEquals(window.heightDp, image.height)
 
