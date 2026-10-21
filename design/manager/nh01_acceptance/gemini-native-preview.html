@@ -7,7 +7,7 @@
   <meta name="nh01-gemini-preview-target" content="GEMINI_NATIVE_V3_STRUCTURE_PREVIEW_NOT_VISUAL_PASS">
   <title>渔见 · NH01 Gemini Native Preview</title>
   <style>
-    :root{color-scheme:light;--ink:#16313e;--muted:#5b737d;--line:#d4e0e3;--panel:#f5f8f8;--success:#176d50;--warn:#815b12;--danger:#84382e;--font-scale:1;--safe-top:24px;--safe-bottom:48px;--brand-stats-gap:16px;--leading-gap:6px;--title-card-gap:0px;--card-footer-gap:16px;--section-header-height:48px;--avatar-size:36px;--camera-visual-size:56px;--camera-touch-size:72px;--stat-value-size:17px;--stat-label-size:11px;--section-title-size:16px;--section-action-size:13px;--cta-label-size:12px;--catch-species-size:20px;--catch-measure-size:13px;--catch-metadata-size:11px;--main-card-width:220px;--main-card-height:261px;--card-footer-padding:18px;--text-gap:3px}
+    :root{color-scheme:light;--ink:#16313e;--muted:#5b737d;--line:#d4e0e3;--panel:#f5f8f8;--success:#176d50;--warn:#815b12;--danger:#84382e;--font-scale:1;--safe-top:24px;--safe-bottom:24px;--brand-stats-gap:16px;--leading-gap:6px;--title-card-gap:0px;--card-footer-gap:16px;--section-header-height:48px;--avatar-size:36px;--camera-visual-size:56px;--camera-touch-size:72px;--neighbor-width:80px;--neighbor-gap:8px;--peek-top-offset:15px;--stat-value-size:17px;--stat-label-size:11px;--section-title-size:16px;--section-action-size:13px;--cta-label-size:12px;--catch-species-size:20px;--catch-measure-size:13px;--catch-metadata-size:11px;--main-card-width:220px;--main-card-height:261px;--card-footer-padding:18px;--text-gap:3px}
     *{box-sizing:border-box}
     html,body{margin:0;min-height:100%;font-family:system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--ink);background:#eaf0f1}
     body{min-height:100dvh}
@@ -75,9 +75,9 @@
     .section-action{font-size:calc(var(--section-action-size)*var(--font-scale));line-height:1.5;opacity:.95;white-space:nowrap}
     .carousel-window{position:relative;display:flex;align-items:center;justify-content:center;flex:none;width:100%;height:var(--main-card-height);min-height:0;overflow:hidden}
     .catch-card{position:absolute;overflow:hidden;border:1.5px solid rgba(255,255,255,.92);border-radius:18px;background:rgba(27,59,72,.36);box-shadow:0 12px 26px rgba(9,30,40,.22)}
-    .neighbor-card{width:62%;height:67%;top:50%;transform:translateY(-50%);opacity:.72}
-    .neighbor-left{left:-43%}
-    .neighbor-right{right:-43%}
+    .neighbor-card{width:var(--neighbor-width);height:67%;top:var(--peek-top-offset);transform:none;opacity:.72;z-index:1}
+    .neighbor-left{left:calc(50% - var(--main-card-width)/2 - var(--neighbor-width) - var(--neighbor-gap))}
+    .neighbor-right{right:calc(50% - var(--main-card-width)/2 - var(--neighbor-width) - var(--neighbor-gap))}
     .neighbor-slot{display:block;width:100%;height:100%;background:rgba(41,72,88,.58);color:transparent;font-size:0;padding:0}
     .main-card{position:relative;z-index:2;width:var(--main-card-width);height:var(--main-card-height);flex:none;aspect-ratio:247/293;display:flex;flex-direction:column;justify-content:flex-end}
     .hero-placeholder{position:absolute;inset:0;display:block;background:rgba(41,72,88,.5)}
@@ -90,6 +90,9 @@
     .catch-measure{font-size:calc(var(--catch-measure-size)*var(--font-scale));font-weight:600;line-height:1.2;margin:0 0 var(--text-gap)}
     .catch-location{font-size:calc(var(--catch-metadata-size)*var(--font-scale));line-height:1.3;margin:0;opacity:.9}
     .footer-section{flex:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:11px;padding:4px 0 10px;color:#fff;text-shadow:0 1px 8px rgba(9,30,39,.35)}
+    .device[data-compact="true"] .top-section{padding-top:2px}
+    .device[data-compact="true"] .stats-bar{margin-top:4px;padding:2px 0}
+    .device[data-compact="true"] .footer-section{gap:4px;padding:0}
     .cta-label{font-size:calc(var(--cta-label-size)*var(--font-scale));line-height:1.5;letter-spacing:.08em}
     .camera-button{display:grid;place-items:center;width:var(--camera-touch-size);height:var(--camera-touch-size);padding:0;border:0;border-radius:50%;background:transparent;cursor:pointer}
     .camera-art{display:block;width:var(--camera-visual-size);height:var(--camera-visual-size);object-fit:contain}
@@ -343,8 +346,9 @@
       function clamp(value, minimum, maximum) {
         return Math.min(maximum, Math.max(minimum, value));
       }
-      function responsiveSp(safeHeight, ratio, minimum, maximum) {
-        return clamp(safeHeight * ratio, minimum, maximum);
+      function responsiveSp(safeHeight, safeWidth, ratio, minimum, maximum) {
+        const viewportScale = clamp(Math.min(Math.min(safeWidth, 560) / 360, safeHeight / 568), 1, 1.2);
+        return clamp(safeHeight * ratio, minimum, maximum) * viewportScale;
       }
       function resolveLayoutPolicy(safeWidth, safeHeight, scale, variant) {
         const band = (safeWidth < 360 || safeHeight < 560) ? "COMPACT" : (safeWidth < 400 ? "MEDIUM" : "EXPANDED");
@@ -368,7 +372,7 @@
         return {
           band, variant, cardWidthFraction: 0.70, maxCardWidth: 337.2,
           maxCardHeight: 400,
-          minReadableCardHeight: 148,
+          minReadableCardHeight: safeHeight < 460 && scale < 1.3 ? 124 : 148,
           brandToStatsGap: Math.max(9, clamp(safeHeight * 0.035, 14, 28) - fontPressure * 3 - shortHeightPressure * 2),
           statsToTitleGap: Math.max(2, clamp(safeHeight * 0.015, 6, 14) - fontPressure * 3 - shortHeightPressure * 1.5),
           titleToCardGap: Math.max(4, clamp(safeHeight * 0.014, 7, 12) - fontPressure * 2 - shortHeightPressure * 1.5),
@@ -381,24 +385,25 @@
         const root = document.documentElement;
         const scale = Number(fontScale.value);
         const safeWidth = width;
-        const safeHeight = Math.max(1, height - 72);
+        const safeHeight = Math.max(1, height - 48);
         const variant = layoutVariant.value;
         const policy = resolveLayoutPolicy(safeWidth, safeHeight, scale, variant);
-        const statValue = responsiveSp(safeHeight, 0.03, 17, 21);
-        const statLabel = responsiveSp(safeHeight, 0.019, 11, 13);
-        const sectionTitle = responsiveSp(safeHeight, 0.027, 16, 19);
-        const sectionAction = responsiveSp(safeHeight, 0.021, 13, 15);
-        const ctaSize = responsiveSp(safeHeight, 0.021, 12, 14);
-        const speciesSize = responsiveSp(safeHeight, 0.036, 20, 26);
-        const measureSize = responsiveSp(safeHeight, 0.023, 13, 16);
-        const metadataSize = responsiveSp(safeHeight, 0.019, 11, 13);
+        const statValue = responsiveSp(safeHeight, safeWidth, 0.03, 17, 21);
+        const statLabel = responsiveSp(safeHeight, safeWidth, 0.019, 11, 13);
+        const sectionTitle = responsiveSp(safeHeight, safeWidth, 0.027, 16, 19);
+        const sectionAction = responsiveSp(safeHeight, safeWidth, 0.021, 13, 15);
+        const ctaSize = responsiveSp(safeHeight, safeWidth, 0.021, 12, 14);
+        const speciesSize = responsiveSp(safeHeight, safeWidth, 0.036, 20, 26);
+        const measureSize = responsiveSp(safeHeight, safeWidth, 0.023, 13, 16);
+        const metadataSize = responsiveSp(safeHeight, safeWidth, 0.019, 11, 13);
         const avatarSize = clamp(safeHeight * 0.06, 36, 44);
         // Match Android: respond to both usable width and height, not height alone.
         // This prevents the camera artwork from becoming proportionally tiny on wide/tall canvases.
         const cameraSize = Math.max(56, Math.min(Math.min(safeWidth, 560) * 0.18, safeHeight * 0.10, 80));
         const cameraTouchSize = Math.max(72, cameraSize);
         const titleLineHeight = sectionTitle * 1.5 * scale;
-        const compactViewport = variant !== "V3_BASELINE" && safeHeight < 500;
+        const compactViewport = variant !== "V3_BASELINE" && safeHeight < 460;
+        device.dataset.compact = String(compactViewport);
         const headerHeight = Math.max(compactViewport ? 40 : 48, titleLineHeight + (compactViewport ? 4 : 8));
         const titleRowInset = Math.max(0, (headerHeight - titleLineHeight) / 2);
         const leadingGap = variant === "V3_BASELINE"
@@ -437,7 +442,7 @@
         window.NH01GeminiPreviewLayout = {
           layout_version: variant === "V3_BASELINE" ? "V3_BASELINE" : "CONTENT_FIRST_V2",
           variant, band: policy.band, logical_viewport_dp: [width, height],
-          safe_insets_dp: { top: 24, bottom: 48, start: 0, end: 0 },
+          safe_insets_dp: { top: 24, bottom: 24, start: 0, end: 0 },
           safe_width_dp: safeWidth, safe_height_dp: safeHeight, font_scale: scale,
           camera_visual_size_dp: cameraSize, camera_touch_size_dp: cameraTouchSize,
           gaps_dp: { brand_to_stats: policy.brandToStatsGap, stats_to_title: policy.statsToTitleGap, leading: leadingGap, title_to_card: policy.titleToCardGap, actual_header_gap: headerGap, card_to_footer: policy.cardToFooterGap },
@@ -476,6 +481,11 @@
             void cardMetadata.offsetHeight;
           }
 
+          const neighborGap = 8;
+          const neighborWidth = Math.min(cardWidth * 0.34, Math.max(0, (trackWidth - cardWidth) / 2 - neighborGap));
+          root.style.setProperty("--neighbor-width", neighborWidth + "px");
+          root.style.setProperty("--neighbor-gap", neighborGap + "px");
+          root.style.setProperty("--peek-top-offset", "15px");
           const requiredMiddleHeight = leadingGap + actualHeaderHeight + headerGap + cardHeight + policy.cardToFooterGap;
           const needsScroll = requiredMiddleHeight > middleHeight + 0.5;
           middleSection.dataset.scrollNeeded = String(needsScroll);
