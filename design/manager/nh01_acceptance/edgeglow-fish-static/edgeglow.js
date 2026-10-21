@@ -355,6 +355,7 @@
     const renderer = window.EdgeGlowReceivingLight;
     if (!renderer) throw new Error("Shared EdgeGlow Receiving Light renderer is not loaded.");
     const displayWidth = el.glowCanvas.getBoundingClientRect().width || photo.naturalWidth;
+    const reviewOnlyAlphaExperiment = window.__EDGEGLOW_ALPHA_EXPERIMENT__ === true;
     const paths = edgeFieldGeometry.map(geometry => ({
       id: geometry.id,
       family: geometry.family,
@@ -377,7 +378,10 @@
         gold: params.edgeFieldGoldColor,
         goldHot: "#fff1c8"
       },
-      baseAlpha: renderer.p1AlphaRange[1],
+      baseAlpha: reviewOnlyAlphaExperiment
+        ? renderer.reviewOnlyAlphaExperiment.baseAlpha
+        : renderer.p1AlphaRange[1],
+      reviewOnlyAlphaExperiment,
       depthRatio: 0.18,
       globalMultiplier: params.edgeFieldIntensity / 100,
       dpToCanvasPx: photo.naturalWidth / displayWidth,

@@ -10,6 +10,10 @@
   const P1_ALPHA_RANGE = Object.freeze([0.03, 0.07]);
   const P1_DEPTH_RANGE = Object.freeze([0.08, 0.18]);
   const OUTPUT_ALPHA_CAP = Math.floor(P1_ALPHA_RANGE[1] * 255) / 255;
+  const REVIEW_ONLY_ALPHA_EXPERIMENT = Object.freeze({
+    baseAlpha: 0.10,
+    outputAlphaCap: Math.floor(0.10 * 255) / 255
+  });
   const MIN_PATH_WEIGHT = 0.54;
   const COVERAGE_BY_PATH = Object.freeze({ B1: 1.0, G1: 0.84, G3: 0.60, B3: 0.38 });
   const INSET = Object.freeze({ x: 0.028, y: 0.022 });
@@ -64,9 +68,19 @@
         normalizedRect.right > width + 0.01 || normalizedRect.bottom > height + 0.01) {
       throw new Error("photoContentRect must be inside the Receiving Light canvas.");
     }
+    const reviewOnlyAlphaExperiment = options.reviewOnlyAlphaExperiment === true;
+    const outputAlphaCap = reviewOnlyAlphaExperiment
+      ? REVIEW_ONLY_ALPHA_EXPERIMENT.outputAlphaCap
+      : OUTPUT_ALPHA_CAP;
     const baseAlpha = Number(options.baseAlpha ?? P1_ALPHA_RANGE[1]);
-    if (!Number.isFinite(baseAlpha) || baseAlpha < P1_ALPHA_RANGE[0] || baseAlpha > P1_ALPHA_RANGE[1]) {
-      throw new Error("P1 Receiving Light base Alpha must remain in [0.03, 0.07].");
+    const maxBaseAlpha = reviewOnlyAlphaExperiment
+      ? REVIEW_ONLY_ALPHA_EXPERIMENT.baseAlpha
+      : P1_ALPHA_RANGE[1];
+    if (!Number.isFinite(baseAlpha) || baseAlpha < P1_ALPHA_RANGE[0] || baseAlpha > maxBaseAlpha ||
+        (reviewOnlyAlphaExperiment && baseAlpha !== REVIEW_ONLY_ALPHA_EXPERIMENT.baseAlpha)) {
+      throw new Error(reviewOnlyAlphaExperiment
+        ? "Review-only Alpha experiment accepts exactly base Alpha 0.10."
+        : "P1 Receiving Light base Alpha must remain in [0.03, 0.07].");
     }
     const requestedDepth = Number(options.depthRatio ?? 0.14);
     if (!Number.isFinite(requestedDepth) || requestedDepth < P1_DEPTH_RANGE[0] || requestedDepth > P1_DEPTH_RANGE[1]) {
@@ -100,6 +114,7 @@
     return {
       width, height, rect: normalizedRect, paths, colors,
       baseAlpha, depthRatio: requestedDepth,
+      reviewOnlyAlphaExperiment, outputAlphaCap,
       globalMultiplier: clamp(Number(options.globalMultiplier ?? 1), 0, 1),
       dpToCanvasPx: clamp(Number(options.dpToCanvasPx ?? 1), 0.1, 100),
       enabled: options.enabled !== false
@@ -174,7 +189,7 @@
         ' color-interpolation-filters="sRGB"><feGaussianBlur in="SourceAlpha" stdDeviation="' + number(coreSigma) + '"/></filter>'
     ].join("");
     const alphaTable = Array.from({ length: 256 }, (_, index) =>
-      number(Math.min(index / 255, OUTPUT_ALPHA_CAP))
+      number(Math.min(index / 255, config.outputAlphaCap))
     ).join(" ");
     const alphaCap = '<filter id="alpha-cap" filterUnits="userSpaceOnUse" primitiveUnits="userSpaceOnUse" ' +
       'x="0" y="0" width="' + width + '" height="' + height + '">' +
@@ -265,6 +280,8 @@
       version: VERSION, width: config.width, height: config.height, rect: config.rect,
       paths: config.paths, colors: config.colors, baseAlpha: config.baseAlpha,
       depthRatio: config.depthRatio, globalMultiplier: config.globalMultiplier,
+      reviewOnlyAlphaExperiment: config.reviewOnlyAlphaExperiment,
+      outputAlphaCap: config.outputAlphaCap,
       dpToCanvasPx: config.dpToCanvasPx, enabled: config.enabled,
       coverage: COVERAGE_BY_PATH, inset: INSET, gaps: QUIET_GAPS, layers: LAYERS
     });
@@ -300,7 +317,11 @@
         entry.ready = true;
         URL.revokeObjectURL(entry.blobUrl);
         entry.blobUrl = "";
-        setStatus("ready", { cache_key: key, canvas: [config.width, config.height] });
+        setStatus("ready", {
+          cache_key: key, canvas: [config.width, config.height],
+          alpha_mode: config.reviewOnlyAlphaExperiment ? "REVIEW_ONLY_ALPHA_EXPERIMENT" : "P1",
+          base_alpha: config.baseAlpha, alpha_cap: config.outputAlphaCap
+        });
         for (const callback of entry.callbacks) callback();
         entry.callbacks.clear();
       };
@@ -324,7 +345,11 @@
     if (entry.failed) return { status: "failed", renderer: VERSION, cache_key: key };
     if (!entry.ready) {
       if (typeof options.onReady === "function") entry.callbacks.add(options.onReady);
-      setStatus("pending", { cache_key: key, canvas: [config.width, config.height] });
+      setStatus("pending", {
+        cache_key: key, canvas: [config.width, config.height],
+        alpha_mode: config.reviewOnlyAlphaExperiment ? "REVIEW_ONLY_ALPHA_EXPERIMENT" : "P1",
+        base_alpha: config.baseAlpha, alpha_cap: config.outputAlphaCap
+      });
       return { status: "pending", renderer: VERSION, cache_key: key };
     }
     context.save();
@@ -334,7 +359,11 @@
     context.shadowBlur = 0;
     context.drawImage(entry.image, 0, 0, config.width, config.height);
     context.restore();
-    setStatus("ready", { cache_key: key, canvas: [config.width, config.height] });
+    setStatus("ready", {
+      cache_key: key, canvas: [config.width, config.height],
+      alpha_mode: config.reviewOnlyAlphaExperiment ? "REVIEW_ONLY_ALPHA_EXPERIMENT" : "P1",
+      base_alpha: config.baseAlpha, alpha_cap: config.outputAlphaCap
+    });
     return { status: "ready", renderer: VERSION, cache_key: key };
   }
 
@@ -343,6 +372,7 @@
     p1AlphaRange: P1_ALPHA_RANGE,
     p1DepthRange: P1_DEPTH_RANGE,
     outputAlphaCap: OUTPUT_ALPHA_CAP,
+    reviewOnlyAlphaExperiment: REVIEW_ONLY_ALPHA_EXPERIMENT,
     minPathWeight: MIN_PATH_WEIGHT,
     coverageByPath: COVERAGE_BY_PATH,
     inset: INSET,

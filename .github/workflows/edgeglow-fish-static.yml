@@ -17,6 +17,7 @@ on:
       - "scripts/design/build_edgeglow_fish_acceptance_site.py"
       - "scripts/capture_optical_lab_static_closure_v3.cjs"
       - "scripts/capture_receiving_light_static_one_shot_v1.cjs"
+      - "scripts/capture_receiving_light_alpha_diagnostic_v1.cjs"
       - "scripts/smoke_edgeglow_fish_static.cjs"
       - "scripts/verify_edgeglow_fish_static_source.py"
       - "scripts/smoke_edgeglow_fish_static_live.py"
@@ -36,6 +37,7 @@ on:
       - "scripts/design/build_edgeglow_fish_acceptance_site.py"
       - "scripts/capture_optical_lab_static_closure_v3.cjs"
       - "scripts/capture_receiving_light_static_one_shot_v1.cjs"
+      - "scripts/capture_receiving_light_alpha_diagnostic_v1.cjs"
       - "scripts/smoke_edgeglow_fish_static.cjs"
       - "scripts/verify_edgeglow_fish_static_source.py"
       - "scripts/smoke_edgeglow_fish_static_live.py"
@@ -122,9 +124,10 @@ jobs:
         run: |
           set -euo pipefail
           node --check pr-source/scripts/capture_receiving_light_static_one_shot_v1.cjs
+          node --check pr-source/scripts/capture_receiving_light_alpha_diagnostic_v1.cjs
           python3 -m py_compile pr-source/scripts/smoke_edgeglow_fish_static_live.py
 
-      - name: Capture shared Receiving Light static one-shot evidence
+      - name: Capture final Receiving Light alpha-only diagnostic
         shell: bash
         run: |
           set -euo pipefail
@@ -141,14 +144,15 @@ jobs:
             EDGEGLOW_SITE_BASE="http://127.0.0.1:8765/" \
             PR_SOURCE_ROOT="$GITHUB_WORKSPACE/pr-source" \
             PR_SOURCE_SHA="$PR_SOURCE_SHA" \
-            OPTICAL_EVIDENCE_DIR="$RUNNER_TEMP/edgeglow-evidence/receiving-light-static-one-shot-v1" \
-            node pr-source/scripts/capture_receiving_light_static_one_shot_v1.cjs
+            CENTER_SOURCE_SHA="$CENTER_SOURCE_SHA" \
+            OPTICAL_EVIDENCE_DIR="$RUNNER_TEMP/edgeglow-evidence/receiving-light-alpha-diagnostic-v1" \
+            node pr-source/scripts/capture_receiving_light_alpha_diagnostic_v1.cjs
 
       - name: Upload static visual evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: EdgeGlow-Receiving-Light-Static-One-Shot-V1-${{ github.run_id }}-${{ github.event.pull_request.head.sha || github.sha }}
+          name: EdgeGlow-Receiving-Light-Alpha-Diagnostic-V1-${{ github.run_id }}-${{ github.event.pull_request.head.sha || github.sha }}
           path: ${{ runner.temp }}/edgeglow-evidence/
           if-no-files-found: warn
           retention-days: 30
