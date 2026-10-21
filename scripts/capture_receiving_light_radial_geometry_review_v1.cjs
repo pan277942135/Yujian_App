@@ -7,7 +7,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 
 const REPO = path.resolve(process.env.PR_SOURCE_ROOT || process.cwd());
-const OUTPUT = path.resolve(process.env.OPTICAL_EVIDENCE_DIR || path.join(REPO, "receiving-light-radial-geometry-review-v1"));
+const OUTPUT = path.resolve(process.env.OPTICAL_EVIDENCE_DIR || path.join(REPO, "receiving-light-edge-ribbon-review-v1"));
 const SITE_BASE = process.env.EDGEGLOW_SITE_BASE || "http://127.0.0.1:8765/";
 const SOURCE_SHA = process.env.PR_SOURCE_SHA || "LOCAL_UNBOUND";
 const CENTER_SHA = process.env.CENTER_SOURCE_SHA || "";
@@ -96,7 +96,8 @@ async function captureVariant(browser, variant, viewport, errors) {
   attachErrors(page, prefix, errors);
   await page.addInitScript(isCandidate => {
     window.__EDGEGLOW_ALPHA_EXPERIMENT__ = false;
-    window.__EDGEGLOW_RADIAL_FIELD_EXPERIMENT__ = isCandidate;
+    window.__EDGEGLOW_RADIAL_FIELD_EXPERIMENT__ = false;
+    window.__EDGEGLOW_EDGE_RIBBON_EXPERIMENT__ = isCandidate;
     window.__EDGEGLOW_RECEIVING_CAPTURE_CALLS__ = [];
     const nativeDrawImage = CanvasRenderingContext2D.prototype.drawImage;
     CanvasRenderingContext2D.prototype.drawImage = function(source, ...args) {
@@ -215,11 +216,11 @@ async function captureVariant(browser, variant, viewport, errors) {
       };
     });
 
-    const expectedMode = variant.id === "CANDIDATE" ? "REVIEW_ONLY_RADIAL_FIELD_GEOMETRY" : "P1";
+    const expectedMode = variant.id === "CANDIDATE" ? "REVIEW_ONLY_EDGE_ANCHORED_RIBBON" : "P1";
     const expectedBase = 0.07;
     const expectedCap = 17;
     assert.equal(overlay.renderer_status.alpha_mode, expectedMode, "renderer must report the requested alpha mode");
-    const expectedGeometry = variant.id === "CANDIDATE" ? "DIRECTIONAL_RADIAL_FIELDS" : "PATH_STROKE";
+    const expectedGeometry = variant.id === "CANDIDATE" ? "EDGE_ANCHORED_RIBBON_FIELD" : "PATH_STROKE";
     assert.equal(overlay.renderer_status.geometry_mode, expectedGeometry, "renderer must report the requested geometry mode");
     assert.equal(overlay.renderer_status.base_alpha, expectedBase, "renderer must report the requested base alpha");
     assert.equal(Math.round(overlay.renderer_status.alpha_cap * 255), expectedCap, "renderer must report the requested output alpha cap");
@@ -293,13 +294,12 @@ async function captureVariant(browser, variant, viewport, errors) {
         depth_ratio: 0.18,
         paths: ["B1", "G1", "G3", "B3"],
         path_geometry_sha256: sha256(Buffer.from(JSON.stringify(identity.paths))),
-        receiving_geometry: variant.id === "CANDIDATE" ? "one broad directional radial field per primary island; path-stroke masks bypassed in review-only mode" : "original P1 path-stroke masks and blur layers",
-        radial_field_geometry: variant.id === "CANDIDATE" ? {
-          center: "visible-interval-weighted path center",
-          major_radius: "clamp(total visible span / 2, 0.20 x minDimension, 0.25 x minDimension)",
-          minor_radius: "existing maxDepth",
-          fields_per_primary_island: 1,
-          gradient: "monotonic radial falloff"
+        receiving_geometry: variant.id === "CANDIDATE" ? "perimeter-anchored ribbon polygon with side-normal inward fade; path-stroke masks bypassed in review-only mode" : "original P1 path-stroke masks and blur layers",
+        edge_ribbon_geometry: variant.id === "CANDIDATE" ? {
+          anchor: "projected photo perimeter",
+          inner_boundary: "per-sample side-normal offset up to 18% depth with endpoint taper",
+          color_falloff: "edge-specific linear gradient plus Gaussian softness",
+          geometry: "corner-aware polygon per visible path interval"
         } : "not applicable to P1 path-stroke baseline",
         colors: "unchanged",
         quiet_gaps: "unchanged",
@@ -396,9 +396,9 @@ async function saveSideBySide(browser, baselineUrl, candidateUrl) {
       main{display:flex;gap:10px}section{width:400px;padding:5px;background:white;border-radius:8px}
       h1{font-size:14px;margin:4px 0 8px}img{display:block;width:390px;height:520px;object-fit:contain;background:#fff}
     </style><main><section><h1>BASELINE · P1 Alpha 0.07 / cap 17</h1><img id="baseline" src="${baselineUrl}"></section>
-    <section><h1>REVIEW ONLY · directional radial fields · Alpha 0.07 / cap 17</h1><img id="candidate" src="${candidateUrl}"></section></main>`);
+    <section><h1>REVIEW ONLY · edge-anchored ribbon field · Alpha 0.07 / cap 17</h1><img id="candidate" src="${candidateUrl}"></section></main>`);
     await page.evaluate(() => Promise.all([...document.images].map(image => image.decode())));
-    const file = "baseline-vs-radial-field-candidate-390x844-side-by-side.png";
+    const file = "baseline-vs-edge-ribbon-candidate-390x844-side-by-side.png";
     const buffer = await page.screenshot({ path: path.join(OUTPUT, file), fullPage: false });
     const item = { file, bytes: buffer.length, sha256: sha256(buffer), viewport: [820, 590], source: "side-by-side browser composition of the two real 1152x1536 Chromium PNGs" };
     files.push(item);
@@ -431,7 +431,7 @@ async function main() {
     const rendererBytes = fs.readFileSync(path.join(REPO, "design/manager/edgeglow-receiving-light.js"));
     const report = {
       schema_version: "1.0",
-      task_id: "YUJIAN_RECEIVING_LIGHT_RADIAL_FIELD_GEOMETRY_REVIEW_V1",
+      task_id: "YUJIAN_RECEIVING_LIGHT_EDGE_ANCHORED_RIBBON_REVIEW_V1",
       status: "REVIEW_REQUIRED",
       experiment_result: "AWAITING_HUMAN_VISUAL_ASSESSMENT",
       source_sha: SOURCE_SHA,
@@ -444,7 +444,7 @@ async function main() {
         output_alpha_cap_8bit: 17,
         depth_ratio: 0.18,
         primary_paths: ["B1", "G1", "G3", "B3"],
-        geometry_change: "candidate uses one broad tangent-oriented radial field per island, with weighted center and expanded normal radius; Alpha remains fixed",
+        geometry_change: "candidate uses perimeter-anchored ribbon polygon that follows the projected edge and fades inward, with weighted center and expanded normal radius; Alpha remains fixed",
         colors: "unchanged",
         quiet_gaps: "unchanged",
         coordinate_mapping: "unchanged",
@@ -465,17 +465,17 @@ async function main() {
       native_implementation: "NOT_RUN",
       apk: "NOT_RUN"
     };
-    fs.writeFileSync(path.join(OUTPUT, "receiving-light-radial-geometry-review-report.json"), JSON.stringify(report, null, 2) + "\n");
+    fs.writeFileSync(path.join(OUTPUT, "receiving-light-edge-ribbon-review-report.json"), JSON.stringify(report, null, 2) + "\n");
     const markdown = [
-      "# Receiving Light Radial Geometry Review V1",
+      "# Receiving Light Edge-Anchored Ribbon Review V1",
       "",
       "- Status: REVIEW_REQUIRED; pixel checks are evidence, not a visual PASS.",
       "- Source SHA: " + SOURCE_SHA,
       "- Acceptance Center SHA: " + CENTER_SHA,
       "- Photo SHA-256: " + PHOTO_SHA,
       "- Baseline: base Alpha 0.07, output cap 17/255, depth 18%.",
-      "- Review-only candidate: one broad tangent-oriented radial field per island; base Alpha 0.07, output cap 17/255, depth 18%.",
-      "- Only geometry changes: the candidate replaces path-stroke Receiving Light with direction-oriented radial ellipses. Alpha, color, depth, global intensity, photo mapping, Quiet Gaps and source-over remain fixed.",
+      "- Review-only candidate: perimeter-anchored ribbon polygon that follows the projected edge and fades inward; base Alpha 0.07, output cap 17/255, depth 18%.",
+      "- Only geometry changes: the candidate replaces path-stroke Receiving Light with an edge-anchored ribbon polygon and side-normal inward gradients. Alpha, color, depth, global intensity, photo mapping, Quiet Gaps and source-over remain fixed.",
       "- Baseline RGB signal vs source photo (390x844): mean absolute delta " + baseline.over_photo.pixel_signal_vs_photo.mean_abs_rgb_delta_sampled.toFixed(6) + ".",
       "- Candidate RGB signal vs source photo (390x844): mean absolute delta " + candidate390.over_photo.pixel_signal_vs_photo.mean_abs_rgb_delta_sampled.toFixed(6) + ".",
       "- Candidate-vs-baseline RGB delta (390x844): " + comparison.mean_abs_rgb_delta_candidate_vs_baseline.toFixed(6) + ".",
@@ -489,7 +489,7 @@ async function main() {
       ...files.map(file => `| ${file.file} | ${file.sha256} |`),
       ""
     ].join("\n");
-    fs.writeFileSync(path.join(OUTPUT, "receiving-light-radial-geometry-review-report.md"), markdown);
+    fs.writeFileSync(path.join(OUTPUT, "receiving-light-edge-ribbon-review-report.md"), markdown);
     fs.writeFileSync(path.join(OUTPUT, "sha256-manifest.json"), JSON.stringify(files, null, 2) + "\n");
     console.log(JSON.stringify({
       result: "ALPHA_DIAGNOSTIC_CAPTURE_COMPLETE_REVIEW_REQUIRED",
