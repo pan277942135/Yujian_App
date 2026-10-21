@@ -20,6 +20,7 @@ on:
       - "scripts/capture_receiving_light_alpha_diagnostic_v1.cjs"
       - "scripts/capture_receiving_light_radial_geometry_review_v1.cjs"
       - "scripts/capture_receiving_light_edge_ribbon_review_v1.cjs"
+      - "scripts/capture_receiving_light_continuous_spatial_field_v1.cjs"
       - "scripts/smoke_edgeglow_fish_static.cjs"
       - "scripts/verify_edgeglow_fish_static_source.py"
       - "scripts/smoke_edgeglow_fish_static_live.py"
@@ -42,6 +43,7 @@ on:
       - "scripts/capture_receiving_light_alpha_diagnostic_v1.cjs"
       - "scripts/capture_receiving_light_radial_geometry_review_v1.cjs"
       - "scripts/capture_receiving_light_edge_ribbon_review_v1.cjs"
+      - "scripts/capture_receiving_light_continuous_spatial_field_v1.cjs"
       - "scripts/smoke_edgeglow_fish_static.cjs"
       - "scripts/verify_edgeglow_fish_static_source.py"
       - "scripts/smoke_edgeglow_fish_static_live.py"
@@ -66,7 +68,7 @@ env:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 25
     outputs:
       center_source_sha: ${{ steps.verify_center.outputs.center_source_sha }}
     steps:
@@ -127,17 +129,14 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          node --check pr-source/scripts/capture_receiving_light_static_one_shot_v1.cjs
-          node --check pr-source/scripts/capture_receiving_light_alpha_diagnostic_v1.cjs
-          node --check pr-source/scripts/capture_receiving_light_radial_geometry_review_v1.cjs
-          node --check pr-source/scripts/capture_receiving_light_edge_ribbon_review_v1.cjs
+          node --check pr-source/scripts/capture_receiving_light_continuous_spatial_field_v1.cjs
           python3 -m py_compile pr-source/scripts/smoke_edgeglow_fish_static_live.py
 
-      - name: Capture final Receiving Light alpha-only diagnostic
+      - name: Capture Receiving Light continuous spatial field and Quiet Gap variants
         shell: bash
         run: |
           set -euo pipefail
-          python3 -m http.server 8765 --directory "$RUNNER_TEMP/edgeglow-pages" >"$RUNNER_TEMP/edgeglow-http.log" 2>&1 &
+          python3 -m http.server 8765 --directory "$RUNNER_TEMP/edgeglow-pages" >"$RUNNER_TEMP/edgeglow-continuous-field-http.log" 2>&1 &
           server_pid=$!
           trap 'kill "$server_pid" 2>/dev/null || true' EXIT
           for attempt in {1..30}; do
@@ -151,56 +150,14 @@ jobs:
             PR_SOURCE_ROOT="$GITHUB_WORKSPACE/pr-source" \
             PR_SOURCE_SHA="$PR_SOURCE_SHA" \
             CENTER_SOURCE_SHA="$CENTER_SOURCE_SHA" \
-            OPTICAL_EVIDENCE_DIR="$RUNNER_TEMP/edgeglow-evidence/receiving-light-alpha-diagnostic-v1" \
-            node pr-source/scripts/capture_receiving_light_alpha_diagnostic_v1.cjs
-
-      - name: Capture Receiving Light radial geometry review
-        shell: bash
-        run: |
-          set -euo pipefail
-          python3 -m http.server 8765 --directory "$RUNNER_TEMP/edgeglow-pages" >"$RUNNER_TEMP/edgeglow-radial-http.log" 2>&1 &
-          server_pid=$!
-          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
-          for attempt in {1..30}; do
-            if curl -fsS "http://127.0.0.1:8765/design/manager/nh01_acceptance/" >/dev/null; then
-              break
-            fi
-            sleep 1
-          done
-          PLAYWRIGHT_MODULE_DIR="$RUNNER_TEMP/edgeglow-playwright/node_modules" \
-            EDGEGLOW_SITE_BASE="http://127.0.0.1:8765/" \
-            PR_SOURCE_ROOT="$GITHUB_WORKSPACE/pr-source" \
-            PR_SOURCE_SHA="$PR_SOURCE_SHA" \
-            CENTER_SOURCE_SHA="$CENTER_SOURCE_SHA" \
-            OPTICAL_EVIDENCE_DIR="$RUNNER_TEMP/edgeglow-evidence/receiving-light-radial-geometry-review-v1" \
-            node pr-source/scripts/capture_receiving_light_radial_geometry_review_v1.cjs
-
-      - name: Capture Receiving Light edge-anchored ribbon review
-        shell: bash
-        run: |
-          set -euo pipefail
-          python3 -m http.server 8766 --directory "$RUNNER_TEMP/edgeglow-pages" >"$RUNNER_TEMP/edgeglow-ribbon-http.log" 2>&1 &
-          server_pid=$!
-          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
-          for attempt in {1..30}; do
-            if curl -fsS "http://127.0.0.1:8766/design/manager/nh01_acceptance/" >/dev/null; then
-              break
-            fi
-            sleep 1
-          done
-          PLAYWRIGHT_MODULE_DIR="$RUNNER_TEMP/edgeglow-playwright/node_modules" \
-            EDGEGLOW_SITE_BASE="http://127.0.0.1:8766/" \
-            PR_SOURCE_ROOT="$GITHUB_WORKSPACE/pr-source" \
-            PR_SOURCE_SHA="$PR_SOURCE_SHA" \
-            CENTER_SOURCE_SHA="$CENTER_SOURCE_SHA" \
-            OPTICAL_EVIDENCE_DIR="$RUNNER_TEMP/edgeglow-evidence/receiving-light-edge-ribbon-review-v1" \
-            node pr-source/scripts/capture_receiving_light_edge_ribbon_review_v1.cjs
+            OPTICAL_EVIDENCE_DIR="$RUNNER_TEMP/edgeglow-evidence/receiving-light-continuous-spatial-field-v1" \
+            node pr-source/scripts/capture_receiving_light_continuous_spatial_field_v1.cjs
 
       - name: Upload static visual evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: EdgeGlow-Receiving-Light-Edge-Ribbon-Review-V1-${{ github.run_id }}-${{ github.event.pull_request.head.sha || github.sha }}
+          name: EdgeGlow-Receiving-Light-Continuous-Spatial-Field-V1-${{ github.run_id }}-${{ github.event.pull_request.head.sha || github.sha }}
           path: ${{ runner.temp }}/edgeglow-evidence/
           if-no-files-found: warn
           retention-days: 30

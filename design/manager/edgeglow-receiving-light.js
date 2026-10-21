@@ -24,6 +24,29 @@
     outputAlphaCap: OUTPUT_ALPHA_CAP,
     depthRatio: P1_DEPTH_RANGE[1]
   });
+  const REVIEW_ONLY_CONTINUOUS_FIELD_EXPERIMENT = Object.freeze({
+    baseAlpha: P1_ALPHA_RANGE[1],
+    outputAlphaCap: OUTPUT_ALPHA_CAP,
+    depthRatio: P1_DEPTH_RANGE[1],
+    version: "perimeter-anchored-continuous-field-v1"
+  });
+  const CONTINUOUS_FIELD_PROFILE = Object.freeze({
+    ambientEnergy: 0.035,
+    minimumPerimeterSigma: 0.018,
+    maximumPerimeterSigma: 0.095,
+    pathSpreadScale: 0.70,
+    outerSigmaDepth: 0.62,
+    midSigmaDepth: 0.30,
+    coreSigmaDepth: 0.08,
+    outerShare: 0.42,
+    midShare: 0.40,
+    coreShare: 0.18,
+    localDepthScaleMinimum: 0.78,
+    quietFeatherRatio: 0.02,
+    quietLowLevel: 0.12,
+    energyBins: 256,
+    maximumCachedFieldPixels: 4_194_304
+  });
   const MIN_PATH_WEIGHT = 0.54;
   const COVERAGE_BY_PATH = Object.freeze({ B1: 1.0, G1: 0.84, G3: 0.60, B3: 0.38 });
   const INSET = Object.freeze({ x: 0.028, y: 0.022 });
@@ -81,9 +104,12 @@
     const reviewOnlyAlphaExperiment = options.reviewOnlyAlphaExperiment === true;
     const reviewOnlyRadialFieldExperiment = options.reviewOnlyRadialFieldExperiment === true;
     const reviewOnlyEdgeRibbonExperiment = options.reviewOnlyEdgeRibbonExperiment === true;
-    if ([reviewOnlyAlphaExperiment, reviewOnlyRadialFieldExperiment, reviewOnlyEdgeRibbonExperiment].filter(Boolean).length > 1) {
-      throw new Error("Alpha-only, radial-field, and edge-ribbon review experiments must remain isolated.");
+    const reviewOnlyContinuousFieldExperiment = options.reviewOnlyContinuousFieldExperiment === true;
+    if ([reviewOnlyAlphaExperiment, reviewOnlyRadialFieldExperiment, reviewOnlyEdgeRibbonExperiment, reviewOnlyContinuousFieldExperiment].filter(Boolean).length > 1) {
+      throw new Error("Alpha-only, radial-field, edge-ribbon, and continuous-field review experiments must remain isolated.");
     }
+    const quietGapVariant = String(options.quietGapVariant || "B").toUpperCase();
+    if (!/^[ABC]$/.test(quietGapVariant)) throw new Error("Quiet Gap review variant must be A, B, or C.");
     const outputAlphaCap = reviewOnlyAlphaExperiment
       ? REVIEW_ONLY_ALPHA_EXPERIMENT.outputAlphaCap
       : OUTPUT_ALPHA_CAP;
@@ -94,20 +120,24 @@
     if (!Number.isFinite(baseAlpha) || baseAlpha < P1_ALPHA_RANGE[0] || baseAlpha > maxBaseAlpha ||
         (reviewOnlyAlphaExperiment && baseAlpha !== REVIEW_ONLY_ALPHA_EXPERIMENT.baseAlpha) ||
         (reviewOnlyRadialFieldExperiment && baseAlpha !== REVIEW_ONLY_RADIAL_FIELD_EXPERIMENT.baseAlpha) ||
-        (reviewOnlyEdgeRibbonExperiment && baseAlpha !== REVIEW_ONLY_EDGE_RIBBON_EXPERIMENT.baseAlpha)) {
+        (reviewOnlyEdgeRibbonExperiment && baseAlpha !== REVIEW_ONLY_EDGE_RIBBON_EXPERIMENT.baseAlpha) ||
+        (reviewOnlyContinuousFieldExperiment && baseAlpha !== REVIEW_ONLY_CONTINUOUS_FIELD_EXPERIMENT.baseAlpha)) {
       throw new Error(reviewOnlyAlphaExperiment
         ? "Review-only Alpha experiment accepts exactly base Alpha 0.10."
         : reviewOnlyRadialFieldExperiment
           ? "Review-only radial geometry requires P1 base Alpha 0.07."
           : reviewOnlyEdgeRibbonExperiment
             ? "Review-only edge-ribbon geometry requires P1 base Alpha 0.07."
+            : reviewOnlyContinuousFieldExperiment
+              ? "Review-only continuous field requires P1 base Alpha 0.07."
             : "P1 Receiving Light base Alpha must remain in [0.03, 0.07].");
     }
     const requestedDepth = Number(options.depthRatio ?? 0.14);
     if (!Number.isFinite(requestedDepth) || requestedDepth < P1_DEPTH_RANGE[0] || requestedDepth > P1_DEPTH_RANGE[1] ||
         (reviewOnlyRadialFieldExperiment && requestedDepth !== REVIEW_ONLY_RADIAL_FIELD_EXPERIMENT.depthRatio) ||
-        (reviewOnlyEdgeRibbonExperiment && requestedDepth !== REVIEW_ONLY_EDGE_RIBBON_EXPERIMENT.depthRatio)) {
-      throw new Error("P1 Receiving Light edge depth must remain in [0.08, 0.18]; radial and edge-ribbon reviews require exactly 0.18.");
+        (reviewOnlyEdgeRibbonExperiment && requestedDepth !== REVIEW_ONLY_EDGE_RIBBON_EXPERIMENT.depthRatio) ||
+        (reviewOnlyContinuousFieldExperiment && requestedDepth !== REVIEW_ONLY_CONTINUOUS_FIELD_EXPERIMENT.depthRatio)) {
+      throw new Error("P1 Receiving Light edge depth must remain in [0.08, 0.18]; radial, edge-ribbon, and continuous-field reviews require exactly 0.18.");
     }
     const colors = { ...DEFAULT_COLORS, ...(options.colors || {}) };
     for (const key of Object.keys(DEFAULT_COLORS)) {
@@ -137,7 +167,8 @@
     return {
       width, height, rect: normalizedRect, paths, colors,
       baseAlpha, depthRatio: requestedDepth,
-      reviewOnlyAlphaExperiment, reviewOnlyRadialFieldExperiment, reviewOnlyEdgeRibbonExperiment, outputAlphaCap,
+      reviewOnlyAlphaExperiment, reviewOnlyRadialFieldExperiment, reviewOnlyEdgeRibbonExperiment,
+      reviewOnlyContinuousFieldExperiment, quietGapVariant, outputAlphaCap,
       globalMultiplier: clamp(Number(options.globalMultiplier ?? 1), 0, 1),
       dpToCanvasPx: clamp(Number(options.dpToCanvasPx ?? 1), 0.1, 100),
       enabled: options.enabled !== false
@@ -159,6 +190,313 @@
       rect.left + INSET.x * rectWidth + (point[0] - rect.left) * (1 - 2 * INSET.x),
       rect.top + INSET.y * rectHeight + (point[1] - rect.top) * (1 - 2 * INSET.y)
     ];
+  }
+
+  const wrapUnit = value => ((value % 1) + 1) % 1;
+
+  function perimeterCoordinate(side, t, photoWidth, photoHeight) {
+    const perimeter = 2 * (photoWidth + photoHeight);
+    const along = clamp(t, 0, 1);
+    if (side === "top") return photoWidth * along / perimeter;
+    if (side === "right") return (photoWidth + photoHeight * along) / perimeter;
+    if (side === "bottom") return (photoWidth + photoHeight + photoWidth * (1 - along)) / perimeter;
+    return (2 * photoWidth + photoHeight + photoHeight * (1 - along)) / perimeter;
+  }
+
+  function perimeterProjection(point, rect) {
+    const photoWidth = rect.right - rect.left;
+    const photoHeight = rect.bottom - rect.top;
+    const x = clamp((point[0] - rect.left) / photoWidth, 0, 1);
+    const y = clamp((point[1] - rect.top) / photoHeight, 0, 1);
+    const edges = [
+      { side: "top", distance: Math.abs(point[1] - rect.top), t: x },
+      { side: "right", distance: Math.abs(point[0] - rect.right), t: y },
+      { side: "bottom", distance: Math.abs(point[1] - rect.bottom), t: x },
+      { side: "left", distance: Math.abs(point[0] - rect.left), t: y }
+    ];
+    edges.sort((a, b) => a.distance - b.distance);
+    const nearest = edges[0];
+    return {
+      side: nearest.side,
+      t: nearest.t,
+      s: perimeterCoordinate(nearest.side, nearest.t, photoWidth, photoHeight)
+    };
+  }
+
+  function cubicPoint(path, t) {
+    const u = 1 - t;
+    const a = u * u * u;
+    const b = 3 * u * u * t;
+    const c = 3 * u * t * t;
+    const d = t * t * t;
+    return [
+      a * path.start[0] + b * path.control1[0] + c * path.control2[0] + d * path.end[0],
+      a * path.start[1] + b * path.control1[1] + c * path.control2[1] + d * path.end[1]
+    ];
+  }
+
+  function deriveFieldAnchors(config) {
+    const rect = config.rect;
+    const photoWidth = rect.right - rect.left;
+    const photoHeight = rect.bottom - rect.top;
+    const perimeter = 2 * (photoWidth + photoHeight);
+    return config.paths.map(path => {
+      const sampleCount = 256;
+      const samples = [];
+      const cumulative = [0];
+      for (let index = 0; index <= sampleCount; index++) {
+        const t = index / sampleCount;
+        const normalized = cubicPoint(path, t);
+        const point = mapInset([
+          rect.left + normalized[0] * photoWidth,
+          rect.top + normalized[1] * photoHeight
+        ], rect);
+        samples.push(point);
+        if (index > 0) {
+          const previous = samples[index - 1];
+          cumulative.push(cumulative[index - 1] + Math.hypot(point[0] - previous[0], point[1] - previous[1]));
+        }
+      }
+      const length = cumulative[cumulative.length - 1];
+      if (!(length > 1)) throw new Error("Continuous-field anchor path has no measurable length: " + path.id);
+      const coverage = COVERAGE_BY_PATH[path.id] ?? path.visibleRatio;
+      const visibleLength = length * clamp(coverage, 0, 1);
+      const start = wrapUnit(path.seed) * length;
+      const pointAtDistance = distance => {
+        const target = ((distance % length) + length) % length;
+        let low = 0, high = cumulative.length - 1;
+        while (low + 1 < high) {
+          const middle = (low + high) >> 1;
+          if (cumulative[middle] < target) low = middle;
+          else high = middle;
+        }
+        const span = cumulative[high] - cumulative[low];
+        const ratio = span > 0 ? (target - cumulative[low]) / span : 0;
+        return [
+          samples[low][0] + (samples[high][0] - samples[low][0]) * ratio,
+          samples[low][1] + (samples[high][1] - samples[low][1]) * ratio
+        ];
+      };
+      const projected = [];
+      const visibleSamples = 64;
+      for (let index = 0; index <= visibleSamples; index++) {
+        const point = pointAtDistance(start + visibleLength * index / visibleSamples);
+        projected.push(perimeterProjection(point, rect).s);
+      }
+      let sine = 0, cosine = 0;
+      projected.forEach(s => {
+        const angle = s * Math.PI * 2;
+        sine += Math.sin(angle);
+        cosine += Math.cos(angle);
+      });
+      const center = wrapUnit(Math.atan2(sine, cosine) / (Math.PI * 2));
+      const deviations = projected.map(s => ((s - center + 1.5) % 1) - 0.5);
+      const spread = Math.max(...deviations.map(Math.abs));
+      const sigma = clamp(
+        spread * CONTINUOUS_FIELD_PROFILE.pathSpreadScale,
+        CONTINUOUS_FIELD_PROFILE.minimumPerimeterSigma,
+        CONTINUOUS_FIELD_PROFILE.maximumPerimeterSigma
+      );
+      return {
+        id: path.id,
+        family: path.family,
+        center,
+        sigma,
+        projectedSpan: spread * 2,
+        amplitude: Math.max(MIN_PATH_WEIGHT, path.weight) * clamp(coverage, 0, 1),
+        coverage,
+        weight: path.weight,
+        seed: path.seed
+      };
+    });
+  }
+
+  function circularDistance(a, b) {
+    const distance = Math.abs(wrapUnit(a) - wrapUnit(b));
+    return Math.min(distance, 1 - distance);
+  }
+
+  function smoothstep(value) {
+    const x = clamp(value, 0, 1);
+    return x * x * (3 - 2 * x);
+  }
+
+  function quietGapEnergy(side, t, variant, energy) {
+    const key = side === "top" ? "Q_TOP" : side === "right" ? "Q_RIGHT" : side === "bottom" ? "Q_BOTTOM" : "Q_LEFT";
+    const [start, end] = QUIET_GAPS[key];
+    const inside = t >= start && t <= end;
+    if (variant === "A") return inside ? 0 : energy;
+    const low = variant === "C" ? CONTINUOUS_FIELD_PROFILE.quietLowLevel : 0;
+    const feather = CONTINUOUS_FIELD_PROFILE.quietFeatherRatio;
+    if (inside) return low;
+    if (t < start && t > start - feather) {
+      const progress = smoothstep((t - (start - feather)) / feather);
+      return energy + (low - energy) * progress;
+    }
+    if (t > end && t < end + feather) {
+      const progress = smoothstep((t - end) / feather);
+      return low + (energy - low) * progress;
+    }
+    return energy;
+  }
+
+  function hexRgb(hex) {
+    const value = String(hex).replace(/^#/, "");
+    return [0, 2, 4].map(index => parseInt(value.slice(index, index + 2), 16));
+  }
+
+  function mixRgb(a, b, amount) {
+    const t = clamp(amount, 0, 1);
+    return [0, 1, 2].map(channel => a[channel] + (b[channel] - a[channel]) * t);
+  }
+
+  function continuousFieldSideProfile(config, anchors, side, count) {
+    const rect = config.rect;
+    const photoWidth = rect.right - rect.left;
+    const photoHeight = rect.bottom - rect.top;
+    const sideLength = side === "top" || side === "bottom" ? photoWidth : photoHeight;
+    const perimeter = 2 * (photoWidth + photoHeight);
+    const baseColors = { blue: hexRgb(config.colors.blue), gold: hexRgb(config.colors.gold) };
+    const hotColors = { blue: hexRgb(config.colors.blueHot), gold: hexRgb(config.colors.goldHot) };
+    const profile = new Array(count);
+    for (let index = 0; index < count; index++) {
+      const t = clamp((index + 0.5) / sideLength, 0, 1);
+      const s = perimeterCoordinate(side, t, photoWidth, photoHeight);
+      let energy = CONTINUOUS_FIELD_PROFILE.ambientEnergy;
+      let blueEnergy = 0, goldEnergy = 0;
+      let blueColorEnergy = 0, goldColorEnergy = 0;
+      for (const anchor of anchors) {
+        const distance = circularDistance(s, anchor.center) * perimeter;
+        const sigma = Math.max(1, anchor.sigma * perimeter);
+        const contribution = anchor.amplitude * Math.exp(-0.5 * (distance / sigma) ** 2);
+        energy += contribution;
+        const colorSigma = Math.max(sigma, perimeter * 0.12);
+        const colorContribution = anchor.amplitude * Math.exp(-0.5 * (distance / colorSigma) ** 2);
+        if (anchor.family === "blue") {
+          blueEnergy += contribution;
+          blueColorEnergy += colorContribution;
+        } else {
+          goldEnergy += contribution;
+          goldColorEnergy += colorContribution;
+        }
+      }
+      const totalFamily = blueColorEnergy + goldColorEnergy;
+      const blueShare = totalFamily > 1e-8 ? blueColorEnergy / totalFamily : 0.5;
+      const goldShare = 1 - blueShare;
+      const base = [0, 1, 2].map(channel =>
+        baseColors.blue[channel] * blueShare + baseColors.gold[channel] * goldShare
+      );
+      const hot = [0, 1, 2].map(channel =>
+        hotColors.blue[channel] * blueShare + hotColors.gold[channel] * goldShare
+      );
+      const maxAmplitude = Math.max(0.01, ...anchors.map(anchor => anchor.amplitude));
+      const localEnergy = quietGapEnergy(side, t, config.quietGapVariant, clamp(energy, 0, 1));
+      const familyEnergy = clamp((blueEnergy + goldEnergy) / maxAmplitude, 0, 1);
+      profile[index] = {
+        energy: localEnergy,
+        blueShare,
+        hotMix: 0.08 + 0.24 * familyEnergy,
+        baseColor: base,
+        hotColor: hot
+      };
+    }
+    return profile;
+  }
+
+  function buildContinuousFieldCanvas(config) {
+    const width = config.width, height = config.height, rect = config.rect;
+    const photoWidth = rect.right - rect.left, photoHeight = rect.bottom - rect.top;
+    const pixelCount = width * height;
+    if (pixelCount > CONTINUOUS_FIELD_PROFILE.maximumCachedFieldPixels) {
+      throw new Error("Review-only continuous field exceeds the 4,194,304-pixel cache budget.");
+    }
+    const canvas = document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = height;
+    canvas.dataset.receivingLightGeometry = "PERIMETER_ANCHORED_CONTINUOUS_FIELD";
+    canvas.dataset.edgeglowReceivingLightSource = "continuous-field";
+    const context = canvas.getContext("2d", { willReadFrequently: true });
+    if (!context) throw new Error("Continuous field could not allocate its offscreen Canvas.");
+    const anchors = deriveFieldAnchors(config);
+    const sides = {
+      top: continuousFieldSideProfile(config, anchors, "top", Math.ceil(photoWidth)),
+      right: continuousFieldSideProfile(config, anchors, "right", Math.ceil(photoHeight)),
+      bottom: continuousFieldSideProfile(config, anchors, "bottom", Math.ceil(photoWidth)),
+      left: continuousFieldSideProfile(config, anchors, "left", Math.ceil(photoHeight))
+    };
+    const depthPx = config.depthRatio * Math.min(photoWidth, photoHeight);
+    const maxDepth = Math.max(1, Math.ceil(depthPx));
+    const depthStride = maxDepth + 1;
+    const attenuationTable = new Float32Array(CONTINUOUS_FIELD_PROFILE.energyBins * depthStride);
+    for (let energyBin = 0; energyBin < CONTINUOUS_FIELD_PROFILE.energyBins; energyBin++) {
+      const energy = energyBin / (CONTINUOUS_FIELD_PROFILE.energyBins - 1);
+      const depthScale = CONTINUOUS_FIELD_PROFILE.localDepthScaleMinimum +
+        (1 - CONTINUOUS_FIELD_PROFILE.localDepthScaleMinimum) * energy;
+      const outerSigma = Math.max(1, depthPx * CONTINUOUS_FIELD_PROFILE.outerSigmaDepth * depthScale);
+      const midSigma = Math.max(1, depthPx * CONTINUOUS_FIELD_PROFILE.midSigmaDepth * depthScale);
+      const coreSigma = Math.max(1, depthPx * CONTINUOUS_FIELD_PROFILE.coreSigmaDepth * depthScale);
+      for (let distance = 0; distance <= maxDepth; distance++) {
+        attenuationTable[energyBin * depthStride + distance] =
+          CONTINUOUS_FIELD_PROFILE.outerShare * Math.exp(-0.5 * (distance / outerSigma) ** 2) +
+          CONTINUOUS_FIELD_PROFILE.midShare * Math.exp(-0.5 * (distance / midSigma) ** 2) +
+          CONTINUOUS_FIELD_PROFILE.coreShare * Math.exp(-0.5 * (distance / coreSigma) ** 2);
+      }
+    }
+    const imageData = context.createImageData(width, height);
+    const output = imageData.data;
+    const cap = Math.floor(P1_ALPHA_RANGE[1] * 255);
+    const alphaScale = clamp(config.globalMultiplier * config.baseAlpha / P1_ALPHA_RANGE[1], 0, 1);
+    const xStart = Math.max(0, Math.floor(rect.left));
+    const xEnd = Math.min(width, Math.ceil(rect.right));
+    const yStart = Math.max(0, Math.floor(rect.top));
+    const yEnd = Math.min(height, Math.ceil(rect.bottom));
+    for (let y = yStart; y < yEnd; y++) {
+      const py = y + 0.5;
+      if (py < rect.top || py >= rect.bottom) continue;
+      const localY = Math.floor(py - rect.top);
+      const topDistance = py - rect.top;
+      const bottomDistance = rect.bottom - py;
+      for (let x = xStart; x < xEnd; x++) {
+        const px = x + 0.5;
+        if (px < rect.left || px >= rect.right) continue;
+        const localX = Math.floor(px - rect.left);
+        const leftDistance = px - rect.left;
+        const rightDistance = rect.right - px;
+        let side, distance, localIndex;
+        if (topDistance <= rightDistance && topDistance <= bottomDistance && topDistance <= leftDistance) {
+          side = "top"; distance = topDistance; localIndex = localX;
+        } else if (rightDistance <= bottomDistance && rightDistance <= leftDistance) {
+          side = "right"; distance = rightDistance; localIndex = localY;
+        } else if (bottomDistance <= leftDistance) {
+          side = "bottom"; distance = bottomDistance; localIndex = localX;
+        } else {
+          side = "left"; distance = leftDistance; localIndex = localY;
+        }
+        if (distance > depthPx) continue;
+        const sideProfile = sides[side];
+        const profile = sideProfile[clamp(localIndex, 0, sideProfile.length - 1)];
+        if (!profile || profile.energy <= 0) continue;
+        const energyBin = Math.round(profile.energy * (CONTINUOUS_FIELD_PROFILE.energyBins - 1));
+        const depth = clamp(distance, 0, maxDepth);
+        const depthIndex = Math.floor(depth);
+        const depthMix = depth - depthIndex;
+        const rowOffset = energyBin * depthStride;
+        const attenuation = attenuationTable[rowOffset + depthIndex] * (1 - depthMix) +
+          attenuationTable[rowOffset + Math.min(maxDepth, depthIndex + 1)] * depthMix;
+        const alpha = Math.min(cap, Math.round(cap * alphaScale * profile.energy * attenuation));
+        if (alpha <= 0) continue;
+        const color = mixRgb(profile.baseColor, profile.hotColor, profile.hotMix);
+        const offset = (y * width + x) * 4;
+        output[offset] = Math.round(color[0]);
+        output[offset + 1] = Math.round(color[1]);
+        output[offset + 2] = Math.round(color[2]);
+        output[offset + 3] = alpha;
+      }
+    }
+    context.putImageData(imageData, 0, 0);
+    canvas.dataset.continuousFieldAnchors = JSON.stringify(anchors);
+    canvas.dataset.continuousFieldQuietVariant = config.quietGapVariant;
+    return { canvas, anchors, depthPx, profile: CONTINUOUS_FIELD_PROFILE };
   }
 
   function quietMaskMarkup(rect, width, height, maxDepth) {
@@ -577,10 +915,42 @@
       reviewOnlyAlphaExperiment: config.reviewOnlyAlphaExperiment,
       reviewOnlyRadialFieldExperiment: config.reviewOnlyRadialFieldExperiment,
       reviewOnlyEdgeRibbonExperiment: config.reviewOnlyEdgeRibbonExperiment,
+      reviewOnlyContinuousFieldExperiment: config.reviewOnlyContinuousFieldExperiment,
+      quietGapVariant: config.quietGapVariant,
+      continuousField: config.reviewOnlyContinuousFieldExperiment ? CONTINUOUS_FIELD_PROFILE : null,
       outputAlphaCap: config.outputAlphaCap,
       dpToCanvasPx: config.dpToCanvasPx, enabled: config.enabled,
       coverage: COVERAGE_BY_PATH, inset: INSET, gaps: QUIET_GAPS, layers: LAYERS
     });
+  }
+
+  function modeDetails(config, entry, key) {
+    if (config.reviewOnlyContinuousFieldExperiment) {
+      return {
+        alpha_mode: "REVIEW_ONLY_PERIMETER_CONTINUOUS_FIELD",
+        geometry_mode: "PERIMETER_ANCHORED_CONTINUOUS_FIELD",
+        field_version: REVIEW_ONLY_CONTINUOUS_FIELD_EXPERIMENT.version,
+        quiet_gap_variant: config.quietGapVariant,
+        field_anchors: entry.anchors,
+        field_profile: CONTINUOUS_FIELD_PROFILE,
+        field_depth_px: entry.depthPx,
+        field_build_ms: entry.buildDurationMs,
+        field_cache_hits: entry.cacheHits,
+        estimated_cache_bytes: entry.estimatedBytes,
+        cache_key: key,
+        canvas: [config.width, config.height],
+        base_alpha: config.baseAlpha,
+        alpha_cap: config.outputAlphaCap
+      };
+    }
+    return {
+      alpha_mode: config.reviewOnlyEdgeRibbonExperiment ? "REVIEW_ONLY_EDGE_ANCHORED_RIBBON" : config.reviewOnlyRadialFieldExperiment ? "REVIEW_ONLY_RADIAL_FIELD_GEOMETRY" : config.reviewOnlyAlphaExperiment ? "REVIEW_ONLY_ALPHA_EXPERIMENT" : "P1",
+      geometry_mode: config.reviewOnlyEdgeRibbonExperiment ? "EDGE_ANCHORED_RIBBON_FIELD" : config.reviewOnlyRadialFieldExperiment ? "DIRECTIONAL_RADIAL_FIELDS" : "PATH_STROKE",
+      cache_key: key,
+      canvas: [config.width, config.height],
+      base_alpha: config.baseAlpha,
+      alpha_cap: config.outputAlphaCap
+    };
   }
 
   function setStatus(status, details) {
@@ -605,37 +975,49 @@
     const key = stableKey(config);
     let entry = cache.get(key);
     if (!entry) {
-      const svg = buildSvg(config);
-      const blobUrl = URL.createObjectURL(new Blob([svg], { type: "image/svg+xml;charset=utf-8" }));
-      const image = new Image();
-      entry = { image, blobUrl, ready: false, failed: false, callbacks: new Set() };
-      image.onload = () => {
-        entry.ready = true;
-        URL.revokeObjectURL(entry.blobUrl);
-        entry.blobUrl = "";
-        setStatus("ready", {
-          cache_key: key, canvas: [config.width, config.height],
-          alpha_mode: config.reviewOnlyEdgeRibbonExperiment ? "REVIEW_ONLY_EDGE_ANCHORED_RIBBON" : config.reviewOnlyRadialFieldExperiment ? "REVIEW_ONLY_RADIAL_FIELD_GEOMETRY" : config.reviewOnlyAlphaExperiment ? "REVIEW_ONLY_ALPHA_EXPERIMENT" : "P1",
-          geometry_mode: config.reviewOnlyEdgeRibbonExperiment ? "EDGE_ANCHORED_RIBBON_FIELD" : config.reviewOnlyRadialFieldExperiment ? "DIRECTIONAL_RADIAL_FIELDS" : "PATH_STROKE",
-          base_alpha: config.baseAlpha, alpha_cap: config.outputAlphaCap
-        });
-        for (const callback of entry.callbacks) callback();
-        entry.callbacks.clear();
-      };
-      image.onerror = () => {
-        entry.failed = true;
-        if (entry.blobUrl) URL.revokeObjectURL(entry.blobUrl);
-        setStatus("failed", { cache_key: key, message: "SVG Receiving Light failed to rasterize." });
-        console.error("Shared SVG Receiving Light failed to rasterize.");
-      };
-      image.src = blobUrl;
-      cache.set(key, entry);
-      while (cache.size > 16) {
+      if (config.reviewOnlyContinuousFieldExperiment) {
+        const buildStartedAt = performance.now();
+        const field = buildContinuousFieldCanvas(config);
+        entry = {
+          image: field.canvas, ready: true, failed: false, blobUrl: "", callbacks: new Set(),
+          anchors: field.anchors, depthPx: field.depthPx,
+          estimatedBytes: config.width * config.height * 4,
+          buildDurationMs: performance.now() - buildStartedAt,
+          cacheHits: 0
+        };
+        cache.set(key, entry);
+      } else {
+        const svg = buildSvg(config);
+        const blobUrl = URL.createObjectURL(new Blob([svg], { type: "image/svg+xml;charset=utf-8" }));
+        const image = new Image();
+        image.dataset.edgeglowReceivingLightSource = "p1-path-svg";
+        entry = { image, blobUrl, ready: false, failed: false, callbacks: new Set(), estimatedBytes: 0 };
+        image.onload = () => {
+          entry.ready = true;
+          URL.revokeObjectURL(entry.blobUrl);
+          entry.blobUrl = "";
+          setStatus("ready", modeDetails(config, entry, key));
+          for (const callback of entry.callbacks) callback();
+          entry.callbacks.clear();
+        };
+        image.onerror = () => {
+          entry.failed = true;
+          if (entry.blobUrl) URL.revokeObjectURL(entry.blobUrl);
+          setStatus("failed", { cache_key: key, message: "SVG Receiving Light failed to rasterize." });
+          console.error("Shared SVG Receiving Light failed to rasterize.");
+        };
+        image.src = blobUrl;
+        cache.set(key, entry);
+      }
+      const cachedFieldBytes = () => [...cache.values()].reduce((sum, item) => sum + (item.estimatedBytes || 0), 0);
+      while (cache.size > 16 || cachedFieldBytes() > 64 * 1024 * 1024) {
         const oldest = cache.keys().next().value;
         const old = cache.get(oldest);
         if (old && old.blobUrl) URL.revokeObjectURL(old.blobUrl);
         cache.delete(oldest);
       }
+    } else if (config.reviewOnlyContinuousFieldExperiment) {
+      entry.cacheHits++;
     }
     context.canvas.dataset.receivingLightRenderer = VERSION;
     context.canvas.dataset.receivingLightStatus = entry.ready ? "ready" : entry.failed ? "failed" : "pending";
@@ -657,12 +1039,7 @@
     context.shadowBlur = 0;
     context.drawImage(entry.image, 0, 0, config.width, config.height);
     context.restore();
-    setStatus("ready", {
-      cache_key: key, canvas: [config.width, config.height],
-      alpha_mode: config.reviewOnlyEdgeRibbonExperiment ? "REVIEW_ONLY_EDGE_ANCHORED_RIBBON" : config.reviewOnlyRadialFieldExperiment ? "REVIEW_ONLY_RADIAL_FIELD_GEOMETRY" : config.reviewOnlyAlphaExperiment ? "REVIEW_ONLY_ALPHA_EXPERIMENT" : "P1",
-          geometry_mode: config.reviewOnlyEdgeRibbonExperiment ? "EDGE_ANCHORED_RIBBON_FIELD" : config.reviewOnlyRadialFieldExperiment ? "DIRECTIONAL_RADIAL_FIELDS" : "PATH_STROKE",
-      base_alpha: config.baseAlpha, alpha_cap: config.outputAlphaCap
-    });
+    setStatus("ready", modeDetails(config, entry, key));
     return { status: "ready", renderer: VERSION, cache_key: key };
   }
 
@@ -674,6 +1051,8 @@
     reviewOnlyAlphaExperiment: REVIEW_ONLY_ALPHA_EXPERIMENT,
     reviewOnlyRadialFieldExperiment: REVIEW_ONLY_RADIAL_FIELD_EXPERIMENT,
     reviewOnlyEdgeRibbonExperiment: REVIEW_ONLY_EDGE_RIBBON_EXPERIMENT,
+    reviewOnlyContinuousFieldExperiment: REVIEW_ONLY_CONTINUOUS_FIELD_EXPERIMENT,
+    continuousFieldProfile: CONTINUOUS_FIELD_PROFILE,
     minPathWeight: MIN_PATH_WEIGHT,
     coverageByPath: COVERAGE_BY_PATH,
     inset: INSET,

@@ -358,6 +358,8 @@
     const reviewOnlyAlphaExperiment = window.__EDGEGLOW_ALPHA_EXPERIMENT__ === true;
     const reviewOnlyRadialFieldExperiment = window.__EDGEGLOW_RADIAL_FIELD_EXPERIMENT__ === true;
     const reviewOnlyEdgeRibbonExperiment = window.__EDGEGLOW_EDGE_RIBBON_EXPERIMENT__ === true;
+    const reviewOnlyContinuousFieldExperiment = window.__EDGEGLOW_CONTINUOUS_FIELD_EXPERIMENT__ === true;
+    const quietGapVariant = String(window.__EDGEGLOW_QUIET_GAP_VARIANT__ || "B").toUpperCase();
     const paths = edgeFieldGeometry.map(geometry => ({
       id: geometry.id,
       family: geometry.family,
@@ -386,6 +388,8 @@
       reviewOnlyAlphaExperiment,
       reviewOnlyRadialFieldExperiment,
       reviewOnlyEdgeRibbonExperiment,
+      reviewOnlyContinuousFieldExperiment,
+      quietGapVariant,
       depthRatio: 0.18,
       globalMultiplier: params.edgeFieldIntensity / 100,
       dpToCanvasPx: photo.naturalWidth / displayWidth,
