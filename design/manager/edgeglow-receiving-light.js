@@ -190,11 +190,11 @@
 
   function edgeRibbonGradientMarkup(id, x1, y1, x2, y2, baseColor, hotColor) {
     const stops = [
-      [0.00, baseColor, 0.72],
-      [0.12, hotColor, 0.88],
-      [0.32, baseColor, 0.72],
-      [0.56, baseColor, 0.38],
-      [0.82, baseColor, 0.10],
+      [0.00, baseColor, 0.82],
+      [0.10, hotColor, 0.90],
+      [0.28, baseColor, 0.84],
+      [0.56, baseColor, 0.58],
+      [0.82, baseColor, 0.25],
       [1.00, baseColor, 0.00]
     ].map(stop =>
       '<stop offset="' + number(stop[0] * 100) + '%" stop-color="' + stop[1] +
@@ -274,7 +274,8 @@
     const alphaCap = '<filter id="alpha-cap" filterUnits="userSpaceOnUse" primitiveUnits="userSpaceOnUse" ' +
       'x="0" y="0" width="' + width + '" height="' + height + '">' +
       '<feComponentTransfer><feFuncA type="table" tableValues="' + alphaTable + '"/></feComponentTransfer></filter>';
-    const defs = [photoClip, quietMaskMarkup(rect, width, height, maxDepth), filters, alphaCap].join("");
+    const quietMaskDepth = config.reviewOnlyEdgeRibbonExperiment ? depthPx : maxDepth;
+    const defs = [photoClip, quietMaskMarkup(rect, width, height, quietMaskDepth), filters, alphaCap].join("");
     const measureSvg = document.createElementNS(SVG_NS, "svg");
     measureSvg.setAttribute("width", String(width));
     measureSvg.setAttribute("height", String(height));
@@ -304,10 +305,10 @@
         const baseColor = path.family === "gold" ? config.colors.gold : config.colors.blue;
         const hotColor = path.family === "gold" ? config.colors.goldHot : config.colors.blueHot;
 
-        // Review-only edge ribbon: the frozen P1 path chooses the lit perimeter span;
-        // a one-sided ribbon extends inward from the actual photo edge and fades to zero.
+        // Review-only edge ribbon: one continuous polygon per visible path interval.
+        // The P1 curve chooses the perimeter span; side-normal gradients fade inward.
         if (config.reviewOnlyEdgeRibbonExperiment) {
-          const ribbonDepth = maxDepth;
+          const ribbonDepth = depthPx;
           const ribbonStep = Math.max(6, minDimension * 0.0125);
           intervals.forEach((interval, intervalIndex) => {
             const intervalLength = interval[1] - interval[0];
@@ -319,44 +320,54 @@
               const sourcePoint = sourcePath.getPointAtLength(distance);
               const point = mapInset([sourcePoint.x, sourcePoint.y], rect);
               const edge = edgeBoundaryProjection(point, rect);
+              const taper = Math.min(1, index / 3, (count - index) / 3);
+              const depth = ribbonDepth * taper;
               const inner = [
-                clamp(edge.boundary[0] + edge.normal[0] * ribbonDepth, rect.left, rect.right),
-                clamp(edge.boundary[1] + edge.normal[1] * ribbonDepth, rect.top, rect.bottom)
+                clamp(edge.boundary[0] + edge.normal[0] * depth, rect.left, rect.right),
+                clamp(edge.boundary[1] + edge.normal[1] * depth, rect.top, rect.bottom)
               ];
-              samples.push({ point, ...edge, inner });
+              samples.push({ point, ...edge, inner, taper });
             }
+            const outerRoute = [samples[0].boundary];
+            const innerForward = [samples[0].inner];
             for (let index = 0; index < count; index++) {
               const a = samples[index], b = samples[index + 1];
               const corner = a.side === b.side ? null : cornerBetweenEdges(a.side, b.side, rect);
-              const outerRoute = [a.boundary];
-              if (corner) outerRoute.push(corner);
-              outerRoute.push(b.boundary);
-              let innerCorner = null;
               if (corner) {
-                innerCorner = [
-                  clamp(corner[0] + (corner[0] === rect.left ? ribbonDepth : corner[0] === rect.right ? -ribbonDepth : 0), rect.left, rect.right),
-                  clamp(corner[1] + (corner[1] === rect.top ? ribbonDepth : corner[1] === rect.bottom ? -ribbonDepth : 0), rect.top, rect.bottom)
+                outerRoute.push(corner);
+                const cornerDepth = ribbonDepth * Math.min(a.taper, b.taper);
+                const innerCorner = [
+                  clamp(corner[0] + (corner[0] === rect.left ? cornerDepth : corner[0] === rect.right ? -cornerDepth : 0), rect.left, rect.right),
+                  clamp(corner[1] + (corner[1] === rect.top ? cornerDepth : corner[1] === rect.bottom ? -cornerDepth : 0), rect.top, rect.bottom)
                 ];
+                innerForward.push(innerCorner);
               }
-              const polygonPoints = [...outerRoute, b.inner];
-              if (innerCorner) polygonPoints.push(innerCorner);
-              polygonPoints.push(a.inner);
-              const pathD = "M " + polygonPoints.map((point, pointIndex) =>
-                (pointIndex ? "L " : "") + number(point[0]) + " " + number(point[1])
-              ).join(" ") + " Z";
-              const average = points => [
-                points.reduce((sum, point) => sum + point[0], 0) / points.length,
-                points.reduce((sum, point) => sum + point[1], 0) / points.length
-              ];
-              const outerCenter = average(outerRoute);
-              const innerCenter = average(innerCorner ? [a.inner, innerCorner, b.inner] : [a.inner, b.inner]);
-              const gradientId = "edge-ribbon-gradient-" + safeId(path.id + "-" + intervalIndex + "-" + index);
+              outerRoute.push(b.boundary);
+              innerForward.push(b.inner);
+            }
+            const polygonPoints = [...outerRoute, ...innerForward.reverse()];
+            const pathD = "M " + polygonPoints.map((point, pointIndex) =>
+              (pointIndex ? "L " : "") + number(point[0]) + " " + number(point[1])
+            ).join(" ") + " Z";
+            const clipId = "edge-ribbon-clip-" + safeId(path.id + "-" + intervalIndex);
+            defsMarkup.push('<clipPath id="' + clipId + '" clipPathUnits="userSpaceOnUse"><path d="' + pathD + '"/></clipPath>');
+            const activeSides = [...new Set(samples.map(sample => sample.side))];
+            const gradients = {
+              top: [rect.left, rect.top, rect.left, rect.top + ribbonDepth],
+              right: [rect.right, rect.top, rect.right - ribbonDepth, rect.top],
+              bottom: [rect.left, rect.bottom, rect.left, rect.bottom - ribbonDepth],
+              left: [rect.left, rect.top, rect.left + ribbonDepth, rect.top]
+            };
+            for (const side of activeSides) {
+              const gradientId = "edge-ribbon-gradient-" + safeId(path.id + "-" + intervalIndex + "-" + side);
               defsMarkup.push(edgeRibbonGradientMarkup(
-                gradientId, outerCenter[0], outerCenter[1], innerCenter[0], innerCenter[1], baseColor, hotColor
+                gradientId, ...gradients[side], baseColor, hotColor
               ));
-              const taper = Math.min(1, (index + 1) / 3, (count - index) / 3);
               layersMarkup.push(
-                '<path d="' + pathD + '" fill="url(#' + gradientId + ')" opacity="' + number(baseAlpha * taper) + '"/>'
+                '<rect x="' + number(rect.left) + '" y="' + number(rect.top) +
+                '" width="' + number(photoWidth) + '" height="' + number(photoHeight) +
+                '" fill="url(#' + gradientId + ')" clip-path="url(#' + clipId +
+                ')" opacity="' + number(baseAlpha) + '"/>'
               );
             }
           });
