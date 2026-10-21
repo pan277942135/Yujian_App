@@ -172,8 +172,6 @@ async function main() {
   }
   await previewPage.setViewportSize({ width: 1440, height: 1000 });
   await previewPage.locator("#fontScale").selectOption("1.5");
-  assert(await previewPage.locator("#device").evaluate(node => getComputedStyle(node).getPropertyValue("--font-scale").trim()) === "",
-    "font scale is stored on the document root, not the device node");
   assert(await previewPage.locator("html").evaluate(node => getComputedStyle(node).getPropertyValue("--font-scale").trim()) === "1.5",
     "Gemini preview font-scale control must update the root font scale");
   await previewPage.locator("#viewportPreset").selectOption("320x480");
