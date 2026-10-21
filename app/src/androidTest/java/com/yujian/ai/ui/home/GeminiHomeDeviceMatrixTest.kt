@@ -116,7 +116,7 @@ class GeminiHomeDeviceMatrixTest {
         val args = InstrumentationRegistry.getArguments()
         val profileId = requireNotNull(args.getString("profile_id")) { "profile_id is required" }
         val variant = GeminiHomeLayoutVariant.valueOf(
-            args.getString("layout_variant") ?: GeminiHomeLayoutVariant.ADAPTIVE_V1.name,
+            args.getString("layout_variant") ?: GeminiHomeLayoutVariant.ADAPTIVE_V2.name,
         )
         val targetContext = InstrumentationRegistry.getInstrumentation().targetContext
         val output = File(requireNotNull(targetContext.getExternalFilesDir(null)), "nh01-adaptive-visual-balance-v1")
@@ -262,7 +262,11 @@ class GeminiHomeDeviceMatrixTest {
         val headerToStatsGap = stats.top - header.bottom
         val centerOffset = abs(activeCard.centerX() - track.centerX())
         val ratio = activeCardLayoutWidthDp / activeCardLayoutHeightDp
-        val cardWidthFraction = if (variant == GeminiHomeLayoutVariant.ADAPTIVE_V1) 0.76f else 0.686f
+        val cardWidthFraction = when (variant) {
+            GeminiHomeLayoutVariant.ADAPTIVE_V1 -> 0.76f
+            GeminiHomeLayoutVariant.ADAPTIVE_V2 -> 0.70f
+            GeminiHomeLayoutVariant.V3_BASELINE -> 0.686f
+        }
         val cardWidthCap = if (variant == GeminiHomeLayoutVariant.ADAPTIVE_V1) 360f else 337.2f
         val targetCardWidthDp = minOf(minOf(track.width(), 560f) * cardWidthFraction, cardWidthCap)
 
@@ -274,7 +278,7 @@ class GeminiHomeDeviceMatrixTest {
         assertTrue("card bounds remain inside the pager track", activeCard.left >= track.left - 1f && activeCard.right <= track.right + 1f)
         assertTrue("title-to-card gap follows the active layout policy: $sectionTitleCardGap dp",
             abs(sectionTitleCardGap - layoutSpec.titleToCardGap.value) <= 2f)
-        if (variant == GeminiHomeLayoutVariant.ADAPTIVE_V1) {
+        if (variant != GeminiHomeLayoutVariant.V3_BASELINE) {
             assertTrue("stats-to-title visual gap follows the active layout policy: $statsToTitleGap dp",
                 abs(statsToTitleGap - requireNotNull(layoutSpec.statsToTitleGap).value) <= 2f)
             assertTrue("brand-to-stats gap follows the active layout policy: $headerToStatsGap dp",
