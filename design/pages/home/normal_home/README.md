@@ -1,5 +1,7 @@
 # Normal Home V1
 
+> **2026-10-21 CURRENT GEMINI NH01/NH02:** First consult [scoped unified authority](engineering/NH01_GEMINI_ADAPTIVE_V2_UNIFIED_AUTHORITY_V1.md) and [independent Android acceptance](engineering/NH01_GEMINI_ADAPTIVE_V2_ACCEPTANCE_V1.md). These override only named fields of historical NH04/NH05/NH06/NH07 for the populated Gemini route. All old Frozen raster assets and other-page contracts remain unchanged.
+
 > **2026-10-10 Engineering Authority (ACTIVE):** For Work development and independent Validation Work, begin at [engineering/README.md](engineering/README.md), including its 2026-10-10 final visual-anchor, short-window, real-photo and quantitative-acceptance bindings, then follow its P0 Geometry/Responsive, P1 State/Motion/Acceptance, and P2 Archive contracts. This page remains the NH01–NH06 DESIGN catalogue; the Frozen raster and design freeze are unchanged. Design-freeze is not runtime PASS. Legacy V2 DRAFT / rejected B examples are non-normative.
 
 Role: **Home / Catch Baseline**  
