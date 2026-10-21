@@ -816,6 +816,9 @@ class NormalHomeDataParityTest {
                 onCatchClick = {},
             )
         }
+        // With autoAdvance disabled, drive the initial composition once before
+        // waiting for semantics and the inset SideEffect; keep later frames frozen.
+        compose.mainClock.advanceTimeByFrame()
 
         compose.waitUntil(timeoutMillis = 10_000) {
             observedInsets != null &&
