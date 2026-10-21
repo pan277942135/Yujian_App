@@ -823,7 +823,7 @@ class NormalHomeDataParityTest {
         compose.waitUntil(timeoutMillis = 10_000) {
             observedInsets != null &&
                 compose.onAllNodesWithTag(
-                    "normal-home-content-root",
+                    "gemini-home-content",
                     useUnmergedTree = true,
                 ).fetchSemanticsNodes().isNotEmpty()
         }
@@ -833,41 +833,48 @@ class NormalHomeDataParityTest {
         val density = context.resources.displayMetrics.density
         val fontScale = context.resources.configuration.fontScale
         val composeWindow = compose.onRoot().fetchSemanticsNode().boundsInWindow
-        val contentWindow = compose.onNodeWithTag("normal-home-content-root", useUnmergedTree = true)
+        val screenWindow = compose.onNodeWithTag("gemini-home-screen", useUnmergedTree = true)
             .fetchSemanticsNode().boundsInWindow
-        val headerWindow = compose.onNodeWithTag("normal-home-header", useUnmergedTree = true)
+        val contentWindow = compose.onNodeWithTag("gemini-home-content", useUnmergedTree = true)
             .fetchSemanticsNode().boundsInWindow
-        val ctaContainerWindow = compose.onNodeWithTag("normal-home-capture-cta", useUnmergedTree = true)
+        val headerWindow = compose.onNodeWithTag("gemini-home-header-bar", useUnmergedTree = true)
             .fetchSemanticsNode().boundsInWindow
-        val ctaTextWindow = compose.onNodeWithTag("normal-home-capture-cta-text", useUnmergedTree = true)
+        val ctaContainerWindow = compose.onNodeWithTag("gemini-home-footer-cta", useUnmergedTree = true)
             .fetchSemanticsNode().boundsInWindow
-        val cameraTouchWindow = compose.onNodeWithTag("normal-home-camera", useUnmergedTree = true)
+        val ctaTextWindow = compose.onNodeWithTag("gemini-home-cta-label", useUnmergedTree = true)
+            .fetchSemanticsNode().boundsInWindow
+        val cameraTouchWindow = compose.onNodeWithTag("gemini-home-camera", useUnmergedTree = true)
             .fetchSemanticsNode().boundsInWindow
 
-        val scaleDp = contentWindow.width / density / 1080f
-        val usableHeightDp = composeWindow.height / density - insets.top.value - insets.bottom.value
-        val offsetYpx = normalHomeVerticalOffset(scaleDp, usableHeightDp) * density
-        val expectedHeaderWindowY = composeWindow.top + (104f * scaleDp * density) + offsetYpx
+        val expectedContentTop = composeWindow.top + insets.top.value * density
+        val expectedContentBottom = composeWindow.bottom - insets.bottom.value * density
+        val expectedHeaderTop = contentWindow.top + 8f * density
 
         android.util.Log.i(
             "NORMAL_HOME_WINDOW_METRICS",
-            
-                "density=$density fontScale=$fontScale safeInsetsPx=" +
+            "density=$density fontScale=$fontScale safeInsetsPx=" +
                 "${insets.start.value * density},${insets.top.value * density}," +
-                "${insets.end.value * density},${insets.bottom.value} " +
-                "composeWindowBounds=$composeWindow contentBoundsInWindow=$contentWindow " +
+                "${insets.end.value * density},${insets.bottom.value * density} " +
+                "composeWindowBounds=$composeWindow screenBoundsInWindow=$screenWindow " +
+                "contentBoundsInWindow=$contentWindow " +
                 "headerBoundsInWindow=$headerWindow ctaContainerBoundsInWindow=$ctaContainerWindow " +
                 "ctaTextBoundsInWindow=$ctaTextWindow cameraTouchBoundsInWindow=$cameraTouchWindow " +
-                "scalePhysical=${scaleDp * density} offsetYPhysical=$offsetYpx",
+                "expectedContentTop=$expectedContentTop expectedContentBottom=$expectedContentBottom " +
+                "expectedHeaderTop=$expectedHeaderTop",
         )
         assertEquals("The composition root must begin at the edge-to-edge window origin", 0f, composeWindow.top, 1f)
-        assertEquals("Normal Home must retain the same window Y origin", composeWindow.top, contentWindow.top, 1f)
+        assertEquals("Home scene must share the composition window origin", composeWindow.top, screenWindow.top, 1f)
+        assertEquals("Home content applies the safe drawing top inset once", expectedContentTop, contentWindow.top, 1f)
+        assertEquals("Home content applies the safe drawing bottom inset once", expectedContentBottom, contentWindow.bottom, 1f)
         assertEquals(
-            "Normal Home header uses one safe-height adjustment and no extra top-inset translation",
-            expectedHeaderWindowY,
+            "Home header begins after its local 8dp spacing beneath the system safe area",
+            expectedHeaderTop,
             headerWindow.top,
             1f,
         )
+        assertTrue("Home footer CTA remains inside the safe drawing viewport", ctaContainerWindow.bottom <= contentWindow.bottom)
+        assertTrue("Home camera touch target remains inside the safe drawing viewport", cameraTouchWindow.bottom <= contentWindow.bottom)
+        assertTrue("Home CTA label remains visible in the measured footer", ctaTextWindow.height > 0f)
     }
 
     @Test
