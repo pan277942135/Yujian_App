@@ -11,7 +11,7 @@ from unittest.mock import patch
 from PIL import Image
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from aggregate_nh01_adaptive_matrix import classify_execution, main, read_execution, validate_case
+from aggregate_nh01_adaptive_matrix import CASES, classify_execution, main, make_contact_sheet, read_execution, validate_case
 
 
 class AdaptiveMatrixAggregateTest(unittest.TestCase):
@@ -135,6 +135,19 @@ class AdaptiveMatrixAggregateTest(unittest.TestCase):
         record = read_execution(execution_dir, "M01", "ADAPTIVE_V2")
         self.assertEqual("FAIL", classify_execution(record)[0])
         self.assertEqual("EXECUTION_RECORD_JSON_INVALID", classify_execution(record)[1])
+
+    def test_contact_sheet_includes_all_twelve_profiles_in_four_rows(self) -> None:
+        pairs = []
+        for profile, width, height, font_scale in CASES:
+            path = self.raw / f"{profile}-pair.png"
+            Image.new("RGB", (40, 30), "#668899").save(path)
+            pairs.append((profile, path, width, height, font_scale))
+        output = self.raw / "comparison.png"
+        make_contact_sheet(pairs, output)
+        with Image.open(output) as image:
+            self.assertEqual(1536, image.width)
+            self.assertGreater(image.height, 4 * 28 + 4 * 16)
+        self.assertTrue(output.is_file())
 
     def test_candidate_rejects_missing_edge_peek_or_visual_text_overflow(self) -> None:
         self.payload["metrics"]["peek_edge_visible_width_dp"] = 0.0

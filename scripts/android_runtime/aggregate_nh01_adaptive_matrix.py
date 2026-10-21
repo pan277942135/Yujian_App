@@ -223,20 +223,18 @@ def make_contact_sheet(pairs: list[tuple[str, Path, int, int, float]], output: P
         scaled_height = round(image.height * cell_width / max(image.width, 1))
         preview = image.resize((cell_width, scaled_height), Image.Resampling.LANCZOS)
         previews.append((f"{profile} | font {font_scale:.1f}x", preview))
-    row_heights = [max(previews[index][1].height for index in row) + caption
-                   for row in (range(0, 3), range(3, 6), range(6, 9))]
-    sheet = Image.new("RGB", (cell_width * 3, sum(row_heights) + 4 * gutter), "#eef2f4")
+    rows = [range(start, min(start + 3, len(previews))) for start in range(0, len(previews), 3)]
+    row_heights = [max(previews[index][1].height for index in row) + caption for row in rows]
+    sheet = Image.new("RGB", (cell_width * 3, sum(row_heights) + (len(rows) + 1) * gutter), "#eef2f4")
     draw = ImageDraw.Draw(sheet)
     y = gutter
-    for row in range(3):
-        row_height = row_heights[row]
-        for col in range(3):
-            index = row * 3 + col
+    for row_index, indices in enumerate(rows):
+        for col, index in enumerate(indices):
             title, preview = previews[index]
             x = col * cell_width + gutter // 2
             draw.text((x, y), title, fill="#10202c")
             sheet.paste(preview, (x, y + caption))
-        y += row_height + gutter
+        y += row_heights[row_index] + gutter
     output.parent.mkdir(parents=True, exist_ok=True)
     sheet.save(output, format="PNG", optimize=True)
 
