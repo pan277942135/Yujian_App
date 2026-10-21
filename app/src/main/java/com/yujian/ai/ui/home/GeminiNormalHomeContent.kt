@@ -544,6 +544,7 @@ private fun GeminiMiddleSection(
                     cardWidth = cardWidth,
                     cardHeight = cardHeight,
                     runtimeAssets = runtimeAssets,
+                    layoutVariant = layoutVariant,
                     onCatchClick = onCatchClick,
                 )
             }
@@ -633,6 +634,7 @@ private fun GeminiCatchCarousel(
     cardWidth: Dp,
     cardHeight: Dp,
     runtimeAssets: GeminiNormalHomeRuntimeAssets?,
+    layoutVariant: GeminiHomeLayoutVariant,
     onCatchClick: (String) -> Unit,
 ) {
     val pageCount = records.size
@@ -640,7 +642,7 @@ private fun GeminiCatchCarousel(
     val pagerState = rememberPagerState(initialPage = 0, pageCount = { pageCount })
     val trackWidth = safeWidth.coerceAtMost(560.dp)
     val pageSpacing = clampDp(trackWidth.value * 0.032f, 10f, 16f)
-    val neighborWidth = (if (layoutSpec.contentFirstSizing) {
+    val neighborWidth = (if (layoutVariant == GeminiHomeLayoutVariant.ADAPTIVE_V2) {
         geminiHomeNeighborWidthAdaptiveV2(trackWidth.value, cardWidth.value, pageSpacing.value)
     } else {
         geminiHomeNeighborWidth(trackWidth.value, cardWidth.value, pageSpacing.value)
