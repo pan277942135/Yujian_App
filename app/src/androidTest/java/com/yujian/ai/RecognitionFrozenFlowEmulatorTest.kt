@@ -499,28 +499,30 @@ class RecognitionFrozenFlowEmulatorTest {
             DeviceConfigurationOverride(
                 DeviceConfigurationOverride.ForcedSize(
                     DpSize(profile.widthDp.dp, profile.heightDp.dp),
-                ) + DeviceConfigurationOverride.FontScale(profile.fontScale),
+                ),
             ) {
-                val configuration = LocalConfiguration.current
-                SideEffect {
-                    observedConfiguration.value = Triple(
-                        configuration.screenWidthDp,
-                        configuration.screenHeightDp,
-                        configuration.fontScale,
-                    )
-                }
-                YujianTheme {
-                    key(profile.key) {
-                        RecognitionResultScreen(
-                            image = photo,
-                            prediction = requireNotNull(high.prediction),
-                            productionResult = high,
-                            availableSpecies = catalog,
-                            revealElapsedOverrideMs = 850L,
-                            onBack = {},
-                            onRetry = {},
-                            onSave = { _, _, _ -> },
+                DeviceConfigurationOverride(DeviceConfigurationOverride.FontScale(profile.fontScale)) {
+                    val configuration = LocalConfiguration.current
+                    SideEffect {
+                        observedConfiguration.value = Triple(
+                            configuration.screenWidthDp,
+                            configuration.screenHeightDp,
+                            configuration.fontScale,
                         )
+                    }
+                    YujianTheme {
+                        key(profile.key) {
+                            RecognitionResultScreen(
+                                image = photo,
+                                prediction = requireNotNull(high.prediction),
+                                productionResult = high,
+                                availableSpecies = catalog,
+                                revealElapsedOverrideMs = 850L,
+                                onBack = {},
+                                onRetry = {},
+                                onSave = { _, _, _ -> },
+                            )
+                        }
                     }
                 }
             }
