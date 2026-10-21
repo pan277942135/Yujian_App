@@ -13,6 +13,7 @@ on:
       - design/recognition-processing-handoff-p0
     paths-ignore:
       - ".github/workflows/android.yml"
+      - ".github/workflows/edgeglow-fish-static.yml"
       # Web-only optical review changes must not start Android/APK CI.
       - "design/manager/optical-lab/**"
       - "design/manager/nh01_acceptance/edgeglow-fish-static/**"
@@ -49,6 +50,7 @@ on:
       - "scripts/smoke_edgeglow_fish_static_live.py"
       - "scripts/verify_edgeglow_fish_static_source.py"
       - ".github/workflows/android.yml"
+      - ".github/workflows/edgeglow-fish-static.yml"
       - "CONTROL_PLANE_REGISTRY.yaml"
       - "CONTROL_PLANE_CHANGE_SYNC.md"
       - "harness/FEATURE_MATRIX.yaml"
