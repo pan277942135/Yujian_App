@@ -52,6 +52,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -143,6 +144,7 @@ import com.yujian.ai.ui.recognition.reveal.RecognitionRevealEligibility
 import com.yujian.ai.ui.recognition.reveal.RecognitionRevealFrame
 import com.yujian.ai.ui.recognition.reveal.RecognitionRevealGeometry
 import com.yujian.ai.ui.recognition.reveal.RecognitionRevealGeometryResolver
+import com.yujian.ai.ui.recognition.reveal.RecognitionRevealGeometryResolution
 import com.yujian.ai.ui.recognition.reveal.RecognitionRevealHandoff
 import com.yujian.ai.ui.recognition.reveal.RecognitionRevealHeroSnapshot
 import com.yujian.ai.ui.recognition.reveal.RecognitionRevealKey
@@ -207,6 +209,7 @@ fun RecognitionResultScreen(
     onRevealFinished: (RecognitionRevealKey) -> Unit = {},
     revealElapsedOverrideMs: Long? = null,
     revealMotionPolicyOverride: RecognitionRevealMotionPolicy? = null,
+    revealGeometryResolutionObserver: ((RecognitionRevealGeometryResolution?) -> Unit)? = null,
     onSave: (CatchSaveDraft, FeedbackDraft, RecognitionSaveDestination) -> Unit,
 ) {
     var rootBounds by remember { mutableStateOf<RecognitionRevealWindowRect?>(null) }
@@ -346,14 +349,20 @@ fun RecognitionResultScreen(
             rootBoundsInWindow = requireNotNull(rootBounds),
         )
     }
-    val revealGeometry = remember(revealHandoff, heroSnapshot, revealTitleBounds, rootBounds) {
+    val revealGeometryResolution = remember(revealHandoff, heroSnapshot, revealTitleBounds, rootBounds) {
         if (revealHandoff == null || heroSnapshot == null || revealTitleBounds == null || rootBounds == null) null
-        else RecognitionRevealGeometryResolver.resolve(
+        else RecognitionRevealGeometryResolver.resolveDetailed(
             handoff = revealHandoff,
             hero = requireNotNull(heroSnapshot),
             titleBoundsInWindow = requireNotNull(revealTitleBounds),
             rootBoundsInWindow = requireNotNull(rootBounds),
         )
+    }
+    val revealGeometry = revealGeometryResolution?.geometry
+    SideEffect {
+        if (revealHandoff != null) {
+            revealGeometryResolutionObserver?.invoke(revealGeometryResolution)
+        }
     }
     val visualHandoff = if (
         revealHandoff?.eligibility == RecognitionRevealEligibility.FULL_REVEAL && revealGeometry == null

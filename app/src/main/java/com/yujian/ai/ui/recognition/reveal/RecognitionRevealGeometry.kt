@@ -141,6 +141,12 @@ data class RecognitionRevealGeometry(
     )
 }
 
+/** Result of resolving the live Result layout into source-space reveal geometry. */
+data class RecognitionRevealGeometryResolution(
+    val geometry: RecognitionRevealGeometry?,
+    val failureReason: String?,
+)
+
 object RecognitionRevealGeometryResolver {
     fun resolvePhoto(
         handoff: RecognitionRevealHandoff,
@@ -188,35 +194,50 @@ object RecognitionRevealGeometryResolver {
         hero: RecognitionRevealHeroSnapshot,
         titleBoundsInWindow: RecognitionRevealWindowRect,
         rootBoundsInWindow: RecognitionRevealWindowRect,
-    ): RecognitionRevealGeometry? {
-        val photoGeometry = resolvePhoto(handoff, hero, rootBoundsInWindow) ?: return null
-        val subjectBox = handoff.subjectRoiInSource ?: return null
-        val anchor = handoff.subjectAnchorNormalizedSource ?: return null
+    ): RecognitionRevealGeometry? = resolveDetailed(
+        handoff = handoff,
+        hero = hero,
+        titleBoundsInWindow = titleBoundsInWindow,
+        rootBoundsInWindow = rootBoundsInWindow,
+    ).geometry
+
+    fun resolveDetailed(
+        handoff: RecognitionRevealHandoff,
+        hero: RecognitionRevealHeroSnapshot,
+        titleBoundsInWindow: RecognitionRevealWindowRect,
+        rootBoundsInWindow: RecognitionRevealWindowRect,
+    ): RecognitionRevealGeometryResolution {
+        val photoGeometry = resolvePhoto(handoff, hero, rootBoundsInWindow)
+            ?: return rejected("PHOTO_GEOMETRY_INVALID")
+        val subjectBox = handoff.subjectRoiInSource ?: return rejected("SUBJECT_BOX_MISSING")
+        val anchor = handoff.subjectAnchorNormalizedSource ?: return rejected("SUBJECT_ANCHOR_MISSING")
         val contour = handoff.subjectMaskOrContour
-        if (!handoff.key.recognitionSessionId.isNotBlank() || handoff.imageId.isBlank()) return null
-        if (handoff.eligibility != RecognitionRevealEligibility.FULL_REVEAL) return null
-        if (handoff.geometryTrustState != RecognitionGeometryTrustState.TRUSTED_MASK) return null
-        if (handoff.normalizedSourceWidth <= 0 || handoff.normalizedSourceHeight <= 0 || contour.isEmpty()) return null
-        if (!titleBoundsInWindow.isValid() || !rootBoundsInWindow.isValid()) return null
-        if (titleBoundsInWindow.top <= hero.boundsInWindow.bottom) return null
-        if (titleBoundsInWindow.bottom > rootBoundsInWindow.bottom + 1f) return null
-        if (!isValidSourceBox(subjectBox) || !isValidSourcePoint(anchor)) return null
+        if (handoff.key.recognitionSessionId.isBlank() || handoff.imageId.isBlank()) return rejected("IDENTITY_INVALID")
+        if (handoff.eligibility != RecognitionRevealEligibility.FULL_REVEAL) return rejected("NOT_FULL_REVEAL")
+        if (handoff.geometryTrustState != RecognitionGeometryTrustState.TRUSTED_MASK) return rejected("GEOMETRY_UNTRUSTED")
+        if (handoff.normalizedSourceWidth <= 0 || handoff.normalizedSourceHeight <= 0 || contour.isEmpty()) {
+            return rejected("MASK_EMPTY_OR_SOURCE_SIZE_INVALID")
+        }
+        if (!titleBoundsInWindow.isValid() || !rootBoundsInWindow.isValid()) return rejected("LAYOUT_BOUNDS_INVALID")
+        if (titleBoundsInWindow.top <= hero.boundsInWindow.bottom) return rejected("TITLE_OVERLAPS_HERO")
+        if (titleBoundsInWindow.bottom > rootBoundsInWindow.bottom + 1f) return rejected("TITLE_OUTSIDE_ROOT")
+        if (!isValidSourceBox(subjectBox) || !isValidSourcePoint(anchor)) return rejected("SUBJECT_SOURCE_GEOMETRY_INVALID")
         if (contour.any { segment ->
                 listOf(
                     segment.startX, segment.startY, segment.endX, segment.endY,
                     segment.control1X, segment.control1Y, segment.control2X, segment.control2Y,
                 ).any { !it.isFinite() || it !in 0f..1f }
             }
-        ) return null
+        ) return rejected("CONTOUR_COORDINATES_INVALID")
 
         val processingMatrix = photoGeometry.processingStartMatrix
         val sourceAnchorX = anchor.x * handoff.normalizedSourceWidth
         val sourceAnchorY = anchor.y * handoff.normalizedSourceHeight
         val mappedStartAnchor = processingMatrix.map(sourceAnchorX, sourceAnchorY)
-        val reportedAnchor = handoff.processingSubjectAnchor ?: return null
+        val reportedAnchor = handoff.processingSubjectAnchor ?: return rejected("PROCESSING_ANCHOR_MISSING")
         if (abs(mappedStartAnchor.x + rootBoundsInWindow.left - reportedAnchor.x) > 2f ||
             abs(mappedStartAnchor.y + rootBoundsInWindow.top - reportedAnchor.y) > 2f
-        ) return null
+        ) return rejected("PROCESSING_ANCHOR_TRANSFORM_MISMATCH")
 
         val targetLocalTransform = photoGeometry.heroSourceTransform
         val targetMatrix = photoGeometry.heroEndMatrix
@@ -229,21 +250,30 @@ object RecognitionRevealGeometryResolver {
             x = titleBoundsInWindow.left + titleBoundsInWindow.width * .5f,
             y = titleBoundsInWindow.top + titleBoundsInWindow.height * .32f,
         )
-        val path = transferCurve(targetAnchorWindow, targetTitle) ?: return null
-        return RecognitionRevealGeometry(
-            rootWindowOrigin = DisplayPoint(rootBoundsInWindow.left, rootBoundsInWindow.top),
-            sourceWidth = photoGeometry.sourceWidth,
-            sourceHeight = photoGeometry.sourceHeight,
-            processingStartMatrix = photoGeometry.processingStartMatrix,
-            heroEndMatrix = photoGeometry.heroEndMatrix,
-            processingPhotoClip = photoGeometry.processingPhotoClip,
-            heroPhotoClip = photoGeometry.heroPhotoClip,
-            sourceContourPath = sourceContourPath(contour, subjectBox, handoff.normalizedSourceWidth, handoff.normalizedSourceHeight),
-            goldTransferPath = path,
-            titleBounds = titleBoundsInWindow,
-            heroSourceTransform = targetLocalTransform,
+        val path = transferCurve(targetAnchorWindow, targetTitle)
+            ?: return rejected("TRANSFER_PATH_DOES_NOT_REACH_TITLE")
+        return RecognitionRevealGeometryResolution(
+            geometry = RecognitionRevealGeometry(
+                rootWindowOrigin = DisplayPoint(rootBoundsInWindow.left, rootBoundsInWindow.top),
+                sourceWidth = photoGeometry.sourceWidth,
+                sourceHeight = photoGeometry.sourceHeight,
+                processingStartMatrix = photoGeometry.processingStartMatrix,
+                heroEndMatrix = photoGeometry.heroEndMatrix,
+                processingPhotoClip = photoGeometry.processingPhotoClip,
+                heroPhotoClip = photoGeometry.heroPhotoClip,
+                sourceContourPath = sourceContourPath(contour, subjectBox, handoff.normalizedSourceWidth, handoff.normalizedSourceHeight),
+                goldTransferPath = path,
+                titleBounds = titleBoundsInWindow,
+                heroSourceTransform = targetLocalTransform,
+            ),
+            failureReason = null,
         )
     }
+
+    private fun rejected(reason: String) = RecognitionRevealGeometryResolution(
+        geometry = null,
+        failureReason = reason,
+    )
 
     private fun sourceMatrix(
         transform: RecognitionImageTransform,

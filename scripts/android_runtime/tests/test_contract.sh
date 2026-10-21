@@ -117,7 +117,7 @@ SH
       echo "live optical-fidelity evidence was not isolated into its own invocation" >&2
       exit 1
     }
-    [[ "${instrumentation_timeouts[*]}" == "300 420" ]] || {
+    [[ "${instrumentation_timeouts[*]}" == "600 420" ]] || {
       echo "unexpected instrumentation timeout budgets: ${instrumentation_timeouts[*]}" >&2
       exit 1
     }

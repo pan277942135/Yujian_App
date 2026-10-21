@@ -17,10 +17,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.key
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.DeviceConfigurationOverride
+import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.hasStateDescription
 import androidx.compose.ui.test.hasText
@@ -40,9 +43,12 @@ import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.printToString
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.unit.DpSize
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -71,6 +77,7 @@ import com.yujian.ai.ui.identify.RecognitionImageTransform
 import com.yujian.ai.ui.recognition.RecognitionVisualStateController
 import com.yujian.ai.ui.recognition.reveal.RecognitionGeometryTrustState
 import com.yujian.ai.ui.recognition.reveal.RecognitionRevealEligibility
+import com.yujian.ai.ui.recognition.reveal.RecognitionRevealGeometryResolution
 import com.yujian.ai.ui.recognition.reveal.RecognitionRevealHandoff
 import com.yujian.ai.ui.recognition.reveal.RecognitionRevealHandoffFactory
 import com.yujian.ai.ui.recognition.reveal.RecognitionRevealKey
@@ -446,7 +453,7 @@ class RecognitionFrozenFlowEmulatorTest {
             }
         }
 
-        composeRule.onNodeWithTag("recognition-result-species-scientific-name")
+        composeRule.onNodeWithTag("recognition-result-scientific-name")
             .assertIsDisplayed()
         composeRule.onNodeWithText("Ctenopharyngodon idella").assertIsDisplayed()
         composeRule.onNodeWithText("修改鱼种").assertIsDisplayed().performClick()
@@ -456,6 +463,7 @@ class RecognitionFrozenFlowEmulatorTest {
         composeRule.waitUntil(timeoutMillis = 2_000L) { saveCalls.get() == 1 }
     }
 
+    @OptIn(ExperimentalTestApi::class)
     @Test
     fun rr09RunsResultResponsiveMatrixAcrossScreenSizesAndFontScales() {
         data class Profile(val widthDp: Int, val heightDp: Int, val fontScale: Float) {
@@ -473,6 +481,7 @@ class RecognitionFrozenFlowEmulatorTest {
         val targetContext = InstrumentationRegistry.getInstrumentation().targetContext
         val output = File(targetContext.cacheDir, "rr09-gold-transfer/responsive").apply { mkdirs() }
         val active = mutableStateOf(profiles.first())
+        val observedConfiguration = mutableStateOf(Triple(0, 0, 0f))
         val reportCases = org.json.JSONArray()
         val identity = requireNotNull(high.prediction).top1
         val catalog = listOf(
@@ -485,72 +494,78 @@ class RecognitionFrozenFlowEmulatorTest {
 
         composeRule.setContent {
             val profile = active.value
-            YujianTheme {
-                key(profile.key) {
-                    RecognitionResultScreen(
-                        image = photo,
-                        prediction = requireNotNull(high.prediction),
-                        productionResult = high,
-                        availableSpecies = catalog,
-                        revealElapsedOverrideMs = 850L,
-                        onBack = {},
-                        onRetry = {},
-                        onSave = { _, _, _ -> },
+            DeviceConfigurationOverride(
+                DeviceConfigurationOverride.WindowSize(
+                    DpSize(profile.widthDp.dp, profile.heightDp.dp),
+                ) + DeviceConfigurationOverride.FontScale(profile.fontScale),
+            ) {
+                val configuration = LocalConfiguration.current
+                SideEffect {
+                    observedConfiguration.value = Triple(
+                        configuration.screenWidthDp,
+                        configuration.screenHeightDp,
+                        configuration.fontScale,
                     )
+                }
+                YujianTheme {
+                    key(profile.key) {
+                        RecognitionResultScreen(
+                            image = photo,
+                            prediction = requireNotNull(high.prediction),
+                            productionResult = high,
+                            availableSpecies = catalog,
+                            revealElapsedOverrideMs = 850L,
+                            onBack = {},
+                            onRetry = {},
+                            onSave = { _, _, _ -> },
+                        )
+                    }
                 }
             }
         }
 
-        try {
-            device.executeShellCommand("wm density 480")
-            profiles.forEach { profile ->
-                device.executeShellCommand("wm size ${profile.widthDp * 3}x${profile.heightDp * 3}")
-                device.executeShellCommand("settings put system font_scale ${profile.fontScale}")
-                device.waitForIdle()
-                active.value = profile
-                composeRule.waitUntil(timeoutMillis = 10_000L) {
-                    val config = composeRule.activity.resources.configuration
-                    config.screenWidthDp == profile.widthDp &&
-                        kotlin.math.abs(config.fontScale - profile.fontScale) <= 0.05f
-                }
-                composeRule.waitForIdle()
+        profiles.forEach { profile ->
+            active.value = profile
+            composeRule.waitForIdle()
 
-                composeRule.onNodeWithTag("recognition-result-hero").assertIsDisplayed()
-                composeRule.onNodeWithText(identity.speciesName).assertIsDisplayed()
-                composeRule.onNodeWithText("Ctenopharyngodon idella").assertIsDisplayed()
-                composeRule.onNodeWithText("修改鱼种").assertIsDisplayed().assertIsEnabled()
-                composeRule.onNodeWithText("继续记忆").performScrollTo().assertIsDisplayed()
-                composeRule.onNodeWithText("保存本次鱼获").performScrollTo().assertIsDisplayed()
+            val (actualWidth, actualHeight, actualFontScale) = observedConfiguration.value
+            assertEquals("configured width at ${profile.key}", profile.widthDp, actualWidth)
+            assertEquals("configured height at ${profile.key}", profile.heightDp, actualHeight)
+            assertTrue(
+                "configured font scale at ${profile.key}",
+                kotlin.math.abs(actualFontScale - profile.fontScale) <= 0.05f,
+            )
+            composeRule.onNodeWithTag("recognition-result-hero").assertIsDisplayed()
+            composeRule.onNodeWithText(identity.speciesName).assertIsDisplayed()
+            composeRule.onNodeWithText("Ctenopharyngodon idella").assertIsDisplayed()
+            composeRule.onNodeWithText("修改鱼种").assertIsDisplayed().assertIsEnabled()
+            composeRule.onNodeWithText("继续记忆").performScrollTo().assertIsDisplayed()
+            composeRule.onNodeWithText("保存本次鱼获").performScrollTo().assertIsDisplayed()
 
-                val root = composeRule.onRoot().fetchSemanticsNode().boundsInWindow
-                val hero = composeRule.onNodeWithTag("recognition-result-hero").fetchSemanticsNode().boundsInWindow
-                val title = composeRule.onNodeWithTag("recognition-result-species").fetchSemanticsNode().boundsInWindow
-                assertTrue("Hero escaped the root at ${profile.key}", hero.left >= root.left && hero.right <= root.right)
-                assertTrue("species title escaped the root at ${profile.key}", title.left >= root.left && title.right <= root.right)
-                saveRevealFrame(output, "responsive_${profile.key}.png")
+            val root = composeRule.onRoot().fetchSemanticsNode().boundsInWindow
+            val hero = composeRule.onNodeWithTag("recognition-result-hero").fetchSemanticsNode().boundsInWindow
+            val title = composeRule.onNodeWithTag("recognition-result-species").fetchSemanticsNode().boundsInWindow
+            assertTrue("Hero escaped the root at ${profile.key}", hero.left >= root.left && hero.right <= root.right)
+            assertTrue("species title escaped the root at ${profile.key}", title.left >= root.left && title.right <= root.right)
+            saveRevealFrame(output, "responsive_${profile.key}.png")
 
-                val item = org.json.JSONObject()
-                    .put("profile", profile.key)
-                    .put("requested_width_dp", profile.widthDp)
-                    .put("requested_height_dp", profile.heightDp)
-                    .put("requested_font_scale", profile.fontScale)
-                    .put("actual_screen_width_dp", composeRule.activity.resources.configuration.screenWidthDp)
-                    .put("actual_screen_height_dp", composeRule.activity.resources.configuration.screenHeightDp)
-                    .put("actual_font_scale", composeRule.activity.resources.configuration.fontScale)
-                    .put("hero_bounds_in_window_px", org.json.JSONArray().put(hero.left).put(hero.top).put(hero.right).put(hero.bottom))
-                    .put("title_bounds_in_window_px", org.json.JSONArray().put(title.left).put(title.top).put(title.right).put(title.bottom))
-                    .put("hero_visible", true)
-                    .put("scientific_name_visible", true)
-                    .put("edit_species_enabled", true)
-                    .put("continue_cta_reachable", true)
-                    .put("save_cta_reachable", true)
-                reportCases.put(item)
-            }
-        } finally {
-            device.executeShellCommand("wm size 1080x1920")
-            device.executeShellCommand("wm density 480")
-            device.executeShellCommand("settings put system font_scale 1.0")
-            device.waitForIdle()
+            val item = org.json.JSONObject()
+                .put("profile", profile.key)
+                .put("requested_width_dp", profile.widthDp)
+                .put("requested_height_dp", profile.heightDp)
+                .put("requested_font_scale", profile.fontScale)
+                .put("effective_window_width_dp", actualWidth)
+                .put("effective_window_height_dp", actualHeight)
+                .put("effective_font_scale", actualFontScale)
+                .put("configuration_source", "Compose DeviceConfigurationOverride.WindowSize on API28 Pixel 2")
+                .put("hero_bounds_in_window_px", org.json.JSONArray().put(hero.left).put(hero.top).put(hero.right).put(hero.bottom))
+                .put("title_bounds_in_window_px", org.json.JSONArray().put(title.left).put(title.top).put(title.right).put(title.bottom))
+                .put("hero_visible", true)
+                .put("scientific_name_visible", true)
+                .put("edit_species_enabled", true)
+                .put("continue_cta_reachable", true)
+                .put("save_cta_reachable", true)
+            reportCases.put(item)
         }
 
         val report = org.json.JSONObject()
@@ -574,6 +589,7 @@ class RecognitionFrozenFlowEmulatorTest {
         val elapsed = mutableStateOf<Long?>(0L)
         val geometry = AtomicReference<RecognitionSubjectGeometrySnapshot?>()
         val processingPhoto = AtomicReference<RecognitionProcessingPhotoSnapshot?>()
+        val geometryResolution = AtomicReference<RecognitionRevealGeometryResolution?>()
         val handoffState = mutableStateOf<RecognitionRevealHandoff?>(null)
         val subject = createAnnotatedSubjectAlphaFixture(
             photo.bitmap,
@@ -615,6 +631,7 @@ class RecognitionFrozenFlowEmulatorTest {
                             reduceMotion = false,
                             lowPerformance = false,
                         ),
+                        revealGeometryResolutionObserver = { geometryResolution.set(it) },
                         onBack = {},
                         onRetry = {},
                         onSave = { _, _, _ -> },
@@ -640,9 +657,17 @@ class RecognitionFrozenFlowEmulatorTest {
         assertEquals(RecognitionRevealEligibility.FULL_REVEAL, handoff.eligibility)
         handoffState.value = handoff
         stage.value = "result"
-        composeRule.waitUntil(timeoutMillis = 5_000L) {
-            composeRule.onAllNodesWithTag("recognition-reveal-geometry-ready").fetchSemanticsNodes().isNotEmpty()
+        fun assertRevealGeometryResolved() {
+            composeRule.waitUntil(timeoutMillis = 5_000L) {
+                composeRule.onAllNodesWithTag("recognition-reveal-geometry-ready").fetchSemanticsNodes().isNotEmpty() ||
+                    geometryResolution.get()?.failureReason != null
+            }
+            assertTrue(
+                "RR09 reveal geometry rejected: ${geometryResolution.get()?.failureReason ?: "no layout resolution"}",
+                composeRule.onAllNodesWithTag("recognition-reveal-geometry-ready").fetchSemanticsNodes().isNotEmpty(),
+            )
         }
+        assertRevealGeometryResolved()
 
         val frames = listOf(120L, 290L, 465L, 610L, 850L)
         frames.forEachIndexed { index, timeMs ->
@@ -653,7 +678,7 @@ class RecognitionFrozenFlowEmulatorTest {
         composeRule.onNodeWithText("Ctenopharyngodon idella").assertIsDisplayed()
         val heroBounds = composeRule.onNodeWithTag("recognition-result-hero").fetchSemanticsNode().boundsInWindow
         val titleBounds = composeRule.onNodeWithTag("recognition-result-species").fetchSemanticsNode().boundsInWindow
-        val latinBounds = composeRule.onNodeWithTag("recognition-result-species-scientific-name")
+        val latinBounds = composeRule.onNodeWithTag("recognition-result-scientific-name")
             .fetchSemanticsNode().boundsInWindow
         assertTrue("species identity row must remain below the Hero", titleBounds.top >= heroBounds.bottom)
         assertTrue("Latin name must be placed within the species identity row", latinBounds.top >= titleBounds.top)
@@ -676,9 +701,7 @@ class RecognitionFrozenFlowEmulatorTest {
         )
         Thread.sleep(250L)
         stage.value = "result"
-        composeRule.waitUntil(timeoutMillis = 5_000L) {
-            composeRule.onAllNodesWithTag("recognition-reveal-geometry-ready").fetchSemanticsNodes().isNotEmpty()
-        }
+        assertRevealGeometryResolved()
 
         // Switch to the real monotonic clock once, so the dedicated Android
         // screen recording contains continuous native playback.

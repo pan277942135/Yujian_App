@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 
-# The frozen Recognition gate runs 50 instrumentation tests, including the
-# live FULL/LITE optical-fidelity capture. Its test suite needs more room than
-# the 180-second default; this does not alter any other gate's timeout.
+# The frozen Recognition gate includes the Recognition Flow suite and RR09's
+# 12-profile layout capture. The prior exact-SHA run reached test 34/52 when
+# the 300-second harness limit expired, so give this gate enough time to finish.
 gate_instrumentation_timeout_seconds() {
-  printf '%s\n' '300'
+  printf '%s\n' '600'
 }
 
 gate_test_classes() {
