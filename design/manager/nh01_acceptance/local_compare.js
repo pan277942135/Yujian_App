@@ -71,7 +71,7 @@
   function bind(){
     $("localAndroidScreenshot").addEventListener("change",event=>{
       const file=event.target.files&&event.target.files[0];if(!file){clear();return;}if(!/^image\/(png|jpeg|webp)$/.test(file.type)){setStatus("BLOCKED_FILE_TYPE","仅支持 PNG、JPEG 或 WebP 图片。");return;}
-      selectedFile=file;if(objectUrl)URL.revokeObjectURL(objectUrl);objectUrl=URL.createObjectURL(file);const image=new Image();
+      selectedFile=file;selectedImage=null;latestReport=null;$("downloadLocalCompareReport").disabled=true;$("localScreenshotMetadata").dataset.loaded="false";if(objectUrl)URL.revokeObjectURL(objectUrl);objectUrl=URL.createObjectURL(file);const image=new Image();
       image.onload=()=>{selectedImage=image;$("localScreenshotPreview").src=objectUrl;$("localScreenshotMetadata").dataset.loaded="true";setStatus("READY","已在浏览器本地读取 "+file.name+" · "+image.naturalWidth+"×"+image.naturalHeight+"。尚未计算差异。");};
       image.onerror=()=>setStatus("BLOCKED_IMAGE_DECODE","浏览器无法解码所选图片。");image.src=objectUrl;
     });
