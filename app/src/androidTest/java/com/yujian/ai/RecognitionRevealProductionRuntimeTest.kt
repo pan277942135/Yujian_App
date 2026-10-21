@@ -9,7 +9,7 @@ import androidx.compose.runtime.snapshots.Snapshot
 import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.test.captureToImage
 import androidx.compose.ui.test.assertHasClickAction
-import androidx.compose.ui.test.assertExists
+import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -185,7 +185,7 @@ class RecognitionRevealProductionRuntimeTest {
                 val value = geometryResolution.get()
                 value != null && (value.geometry != null || value.failureReason?.endsWith("_PENDING") == false)
             }
-            composeRule.onNodeWithTag("recognition-result-hero").assertExists()
+            composeRule.onNodeWithTag("recognition-result-hero").assertIsDisplayed()
             assertEquals(selectedImage.imageId, handoff.imageId)
 
             // The API28 gate owns the single screenrecord process. This instrumentation test
@@ -256,7 +256,7 @@ class RecognitionRevealProductionRuntimeTest {
 
             composeRule.onNodeWithText("修改鱼种").assertHasClickAction()
             species?.scientificName?.takeIf(String::isNotBlank)?.let { latinName ->
-                composeRule.onNodeWithText(latinName).assertExists()
+                composeRule.onNodeWithText(latinName).assertIsDisplayed()
             }
             assertNotNull("production photo-source identity is required", handoff.photoSourceIdentity)
             if (!bitmap.isRecycled) bitmap.recycle()
