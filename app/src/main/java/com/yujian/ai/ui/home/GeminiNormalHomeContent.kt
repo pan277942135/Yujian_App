@@ -161,8 +161,11 @@ internal fun GeminiNormalHomeContent(
                     resolveImageUrl = resolveImageUrl,
                     accessToken = accessToken,
                     avatarSize = avatarSize,
-                    brandToStatsGap = layoutSpec.brandToStatsGap
-                        ?: clampDp(safeHeight.value * 0.042f, 18f, 34f),
+                    brandToStatsGap = if (safeHeight.value < 460f) {
+                        4.dp
+                    } else {
+                        layoutSpec.brandToStatsGap ?: clampDp(safeHeight.value * 0.042f, 18f, 34f)
+                    },
                     onLoginClick = onLoginClick,
                     onProfileClick = onProfileClick,
                     onSpeciesClick = onSpeciesClick,
@@ -185,6 +188,7 @@ internal fun GeminiNormalHomeContent(
                 GeminiFooterSection(
                     modifier = Modifier.widthIn(max = 560.dp).fillMaxWidth()
                         .align(Alignment.CenterHorizontally),
+                    safeWidth = safeWidth,
                     safeHeight = safeHeight,
                     safeBottomInset = safeInsets.bottom,
                     isResolving = isResolving,
@@ -220,7 +224,7 @@ private fun GeminiTopSection(
 ) {
     // Keep a stable status-area buffer; the policy bounds the header-to-stats
     // gap. System safe insets are already applied by the parent.
-    val topInset = 8.dp
+    val topInset = if (safeHeight.value < 460f) 2.dp else 8.dp
     val horizontalInset = clampDp(safeWidth.value * 0.075f, 24f, 40f)
     val avatarTargetSize = maxOf(48.dp, avatarSize + 4.dp)
     val brandWidth = clampDp(safeWidth.value * (155f / 1080f), 46f, 70f)
@@ -260,8 +264,8 @@ private fun GeminiTopSection(
             statistics = statistics,
             catches = catches,
             isResolving = isResolving,
-            valueFontSize = responsiveSp(safeHeight, 0.03f, 17f, 21f),
-            labelFontSize = responsiveSp(safeHeight, 0.019f, 11f, 13f),
+            valueFontSize = responsiveSp(safeHeight, safeWidth, 0.03f, 17f, 21f),
+            labelFontSize = responsiveSp(safeHeight, safeWidth, 0.019f, 11f, 13f),
             dividerHeight = 26.dp,
             onSpeciesClick = onSpeciesClick,
             onCatchesClick = onCatchesClick,
@@ -439,8 +443,8 @@ private fun GeminiMiddleSection(
     onCatchClick: (String) -> Unit,
 ) {
     val fontScale = LocalDensity.current.fontScale
-    val titleFontSize = responsiveSp(safeHeight, 0.027f, 16f, 19f)
-    val actionFontSize = responsiveSp(safeHeight, 0.021f, 13f, 15f)
+    val titleFontSize = responsiveSp(safeHeight, safeWidth, 0.027f, 16f, 19f)
+    val actionFontSize = responsiveSp(safeHeight, safeWidth, 0.021f, 13f, 15f)
     val titleLineHeight = titleFontSize.value * 1.2f * fontScale
     val headerHeight = maxOf(48.dp, (titleLineHeight + 8f).dp)
     val measuredTitleHeightPx = remember(titleFontSize, fontScale) { mutableStateOf(0) }
@@ -525,6 +529,7 @@ private fun GeminiMiddleSection(
                     resolveImageUrl = resolveImageUrl,
                     accessToken = accessToken,
                     safeWidth = safeWidth,
+                    safeWidth = safeWidth,
                     safeHeight = safeHeight,
                     cardWidth = cardWidth,
                     cardHeight = cardHeight,
@@ -607,6 +612,7 @@ private fun GeminiCatchCarousel(
     resolveImageUrl: (String?) -> String?,
     accessToken: String,
     safeWidth: Dp,
+    safeWidth: Dp,
     safeHeight: Dp,
     cardWidth: Dp,
     cardHeight: Dp,
@@ -619,7 +625,7 @@ private fun GeminiCatchCarousel(
     val trackWidth = safeWidth.coerceAtMost(560.dp)
     val pageSpacing = clampDp(trackWidth.value * 0.032f, 10f, 16f)
     val neighborWidth = geminiHomeNeighborWidth(trackWidth.value, cardWidth.value, pageSpacing.value).dp
-    val sideScaleX = (neighborWidth / cardWidth).coerceIn(0.5f, 1f)
+    val sideScaleX = (neighborWidth / cardWidth).coerceIn(0.10f, 1f)
     val sideScaleY = GeminiHomeNeighborHeightFraction
     val neighborTranslationY = with(LocalDensity.current) {
         (GeminiHomePeekTopOffset - cardHeight * ((1f - sideScaleY) / 2f)).toPx()
@@ -674,6 +680,7 @@ private fun GeminiCatchCarousel(
                     item = record,
                     imageUrl = resolveImageUrl(record.imageUrl),
                     accessToken = accessToken,
+                    safeWidth = safeWidth,
                     cardHeight = cardHeight,
                     safeHeight = safeHeight,
                     runtimeAssets = runtimeAssets,
@@ -698,9 +705,9 @@ private fun GeminiCatchCard(
 ) {
     val textGap = clampDp(safeHeight.value * 0.006f, 2f, 5f)
     val allowAuxiliaryWrapping = LocalDensity.current.fontScale >= 1.3f
-    val speciesSize = responsiveSp(safeHeight, 0.036f, 20f, 26f)
-    val measurementSize = responsiveSp(safeHeight, 0.023f, 13f, 16f)
-    val metadataSize = responsiveSp(safeHeight, 0.019f, 11f, 13f)
+    val speciesSize = responsiveSp(safeHeight, safeWidth, 0.036f, 20f, 26f)
+    val measurementSize = responsiveSp(safeHeight, safeWidth, 0.023f, 13f, 16f)
+    val metadataSize = responsiveSp(safeHeight, safeWidth, 0.019f, 11f, 13f)
     val footerVerticalPadding = clampDp(cardHeight.value * 0.07f, 10f, 20f)
     val species = presentationSpeciesName(item.speciesName)
     val measurements = buildList {
@@ -803,6 +810,7 @@ private fun GeminiCatchCard(
 @Composable
 private fun GeminiFooterSection(
     modifier: Modifier,
+    safeWidth: Dp,
     safeHeight: Dp,
     safeBottomInset: Dp,
     isResolving: Boolean,
@@ -812,18 +820,19 @@ private fun GeminiFooterSection(
     cameraTouchSize: Dp,
     onIdentify: () -> Unit,
 ) {
-    val verticalPadding = if (safeBottomInset >= 40.dp) {
-        10.dp
-    } else {
-        (maxOf(safeBottomInset + 12.dp, 28.dp) - safeBottomInset).coerceAtLeast(12.dp)
+    val compactViewport = safeHeight.value < 460f
+    val verticalPadding = when {
+        compactViewport -> 2.dp
+        safeBottomInset >= 40.dp -> 6.dp
+        else -> 8.dp
     }
-    val gap = 11.dp
-    val labelSize = responsiveSp(safeHeight, 0.021f, 12f, 14f)
+    val gap = if (compactViewport) 6.dp else 11.dp
+    val labelSize = responsiveSp(safeHeight, safeWidth, 0.021f, 12f, 14f)
     val horizontalInset = clampDp(safeHeight.value * 0.01f, 8f, 12f)
     Column(
         modifier = modifier.testTag("gemini-home-footer-cta")
             .padding(horizontal = horizontalInset)
-            .padding(top = 4.dp, bottom = verticalPadding),
+            .padding(top = if (compactViewport) 2.dp else 4.dp, bottom = verticalPadding),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(gap),
     ) {
@@ -875,8 +884,9 @@ private fun GeminiFooterSection(
     }
 }
 
-private fun responsiveSp(height: Dp, ratio: Float, minimum: Float, maximum: Float) =
-    (height.value * ratio).coerceIn(minimum, maximum).sp
+private fun responsiveSp(height: Dp, width: Dp, ratio: Float, minimum: Float, maximum: Float) =
+    (height.value * ratio).coerceIn(minimum, maximum) *
+        geminiHomeResponsiveFontScale(width.value, height.value).sp
 
 private fun clampDp(value: Float, minimum: Float, maximum: Float) =
     value.coerceIn(minimum, maximum).dp
