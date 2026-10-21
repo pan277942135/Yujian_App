@@ -328,8 +328,28 @@ class GeminiHomeDeviceMatrixTest {
             assertTrue("Adaptive V2 edge peek must expose the target width at the track edge: target=$targetPeekWidthDp actual=$rightEdgePeekVisibleWidthDp",
                 rightEdgePeekVisibleWidthDp >= targetPeekWidthDp - 1f)
         }
-        assertTrue("title-to-card gap follows the active layout policy: $sectionTitleCardGap dp",
-            abs(sectionTitleCardGap - layoutSpec.titleToCardGap.value) <= 2f)
+        // V2.2 approval: independent visible title TEXT to selected CARD gap,
+        // not just self-consistency against the old 7-12dp layout policy.
+        val frozenTitleCardGapDp = if (variant == GeminiHomeLayoutVariant.ADAPTIVE_V2 &&
+            profile.fontScale <= 1.01f
+        ) {
+            when (profileId) {
+                "M01" -> 8f
+                "M04" -> 12f
+                "M07" -> 18f
+                "M10" -> 20f
+                else -> null
+            }
+        } else null
+        if (frozenTitleCardGapDp != null) {
+            assertTrue(
+                "V2.2 independent title-card gap target=$frozenTitleCardGapDp dp actual=$sectionTitleCardGap dp profile=$profileId",
+                abs(sectionTitleCardGap - frozenTitleCardGapDp) <= 2f,
+            )
+        } else {
+            assertTrue("V3 comparison or font-scaled gap tracks its own policy: $sectionTitleCardGap dp",
+                abs(sectionTitleCardGap - layoutSpec.titleToCardGap.value) <= 2f)
+        }
         if (variant != GeminiHomeLayoutVariant.V3_BASELINE) {
             assertTrue("stats-to-title visual gap follows the active layout policy: $statsToTitleGap dp",
                 abs(statsToTitleGap - requireNotNull(layoutSpec.statsToTitleGap).value) <= 2f)
@@ -533,6 +553,8 @@ class GeminiHomeDeviceMatrixTest {
                 put("left_peek_after_swipe_edge_feasible", leftEdgePeekFeasibleAfterSwipe)
                 put("card_shrunk_for_height", activeCardLayoutWidthDp < targetCardWidthDp - 1f)
                 put("section_title_to_card_gap_dp", sectionTitleCardGap)
+                put("section_title_to_card_frozen_target_dp", frozenTitleCardGapDp ?: JSONObject.NULL)
+                put("section_spacing_contract", "NH01_GEMINI_ADAPTIVE_V2_UNIFIED_V1")
                 put("card_to_footer_gap_dp", footer.top - activeCard.bottom)
                 put("header_to_stats_gap_dp", headerToStatsGap)
                 put("stats_to_title_gap_dp", statsToTitleGap)
