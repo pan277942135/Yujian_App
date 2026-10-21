@@ -102,7 +102,7 @@ internal fun GeminiNormalHomeContent(
     motionState: HomeMotionState,
     runtimeAssets: GeminiNormalHomeRuntimeAssets?,
     safeInsets: SafeDrawingInsetsDp = SafeDrawingInsetsDp(),
-    layoutVariant: GeminiHomeLayoutVariant = GeminiHomeLayoutVariant.ADAPTIVE_V1,
+    layoutVariant: GeminiHomeLayoutVariant = GeminiHomeLayoutVariant.ADAPTIVE_V2,
     modifier: Modifier = Modifier,
 ) {
     val records = remember(recentCatches) { orderedHomeRecords(recentCatches) }
@@ -466,11 +466,11 @@ private fun GeminiMiddleSection(
             .coerceAtLeast(0.dp)
         // Compute against the actual height left after Top and Footer have
         // been measured by the parent Column. Keep the ratio when reducing.
-        val cardHeight = if (availableCardHeight >= layoutSpec.minReadableCardHeight) {
-            minOf(desiredCardHeight, availableCardHeight)
-        } else {
-            desiredCardHeight
-        }
+        val cardHeight = geminiHomeResolvedCardHeight(
+            desiredCardHeightDp = desiredCardHeight.value,
+            availableCardHeightDp = availableCardHeight.value,
+            minReadableCardHeightDp = layoutSpec.minReadableCardHeight.value,
+        ).dp
         val cardWidth = cardHeight * GeminiHomeCardAspectRatio
         val groupHeight = leadingGap + headerHeight + headerGap + cardHeight + trailingGap
         val needsScroll = groupHeight > maxHeight
