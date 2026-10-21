@@ -708,6 +708,7 @@ private fun GeminiCatchCard(
     val measurementSize = responsiveSp(safeHeight, safeWidth, 0.023f, 13f, 16f)
     val metadataSize = responsiveSp(safeHeight, safeWidth, 0.019f, 11f, 13f)
     val footerVerticalPadding = clampDp(cardHeight.value * 0.07f, 10f, 20f)
+    val footerHorizontalPadding = if (cardWidth.value < 190f) 12.dp else 20.dp
     val species = presentationSpeciesName(item.speciesName)
     val measurements = buildList {
         item.lengthCm?.takeIf { it > 0f }?.let { add("${formatGeminiNumber(it)} cm") }
@@ -724,7 +725,7 @@ private fun GeminiCatchCard(
         modifier = Modifier.fillMaxSize(),
         heightOverride = cardHeight,
         cornerRadius = 22.dp,
-        footerPaddingHorizontal = 20.dp,
+        footerPaddingHorizontal = footerHorizontalPadding,
         footerPaddingVertical = footerVerticalPadding,
         footerContentFillWidth = true,
         onClick = onClick,
