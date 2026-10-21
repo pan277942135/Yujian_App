@@ -105,6 +105,16 @@ class GeminiHomeAdaptiveLayoutPolicyTest {
     }
 
     @Test
+    fun compactViewportDoesNotOverReserveTwoMetadataLinesAtNormalFontScale() {
+        val normal = resolve(320f, 432f, 1.0f)
+        val accessible = resolve(320f, 432f, 1.3f)
+
+        assertEquals(124f, normal.minReadableCardHeight.value, 0.001f)
+        assertTrue("larger system fonts reserve additional metadata space",
+            accessible.minReadableCardHeight.value > normal.minReadableCardHeight.value)
+    }
+
+    @Test
     fun responsiveTypographyGrowsWithLargerAndTallerViewports() {
         val compact = geminiHomeResponsiveFontScale(360f, 568f)
         val phone = geminiHomeResponsiveFontScale(390f, 796f)
