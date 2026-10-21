@@ -60,9 +60,7 @@ async function waitForFormal(page) {
     window.__EDGEGLOW_LAB__?.photoDimensions?.[0] === 1152 &&
     window.EdgeGlowReceivingLight?.version === "edgeglow-receiving-light-svg-v1",
   null, { timeout: 30000 });
-  await page.waitForFunction(() =>
-    document.querySelector("#buildSha")?.textContent?.includes("center"),
-  null, { timeout: 30000 });
+  // build-info.json is verified immediately after this wait; do not gate on display-label text.
 }
 
 async function setControl(page, id, value) {
