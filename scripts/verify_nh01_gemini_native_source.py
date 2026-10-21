@@ -65,6 +65,15 @@ def main() -> None:
     checks.append(("new_page_contains_no_legacy_anchors", all(token not in page for token in FORBIDDEN_NEW_PAGE_REFERENCES), "GeminiNormalHomeContent.kt"))
     checks.append(("new_page_uses_registered_brand", "R.drawable.brand_title_primary" in page, "GeminiNormalHomeContent.kt"))
     checks.append(("new_page_uses_registered_camera", "R.drawable.normal_home_camera_primary_v1" in page, "GeminiNormalHomeContent.kt"))
+    checks.append((
+        "camera_artwork_scales_with_canvas_and_has_separate_touch_bounds",
+        "geminiHomeCameraVisualSize(safeWidth.value, safeHeight.value).dp" in page
+        and "cameraTouchSize = maxOf(72.dp, cameraVisualSize)" in page
+        and "minOf(safeWidthDp, 560f)" in (ROOT / "app/src/main/java/com/yujian/ai/ui/home/GeminiHomeAdaptiveLayoutPolicy.kt").read_text()
+        and "safeHeightDp * 0.10f" in (ROOT / "app/src/main/java/com/yujian/ai/ui/home/GeminiHomeAdaptiveLayoutPolicy.kt").read_text()
+        and "visualModifier = Modifier.testTag(\"gemini-home-camera-art\")" in (ROOT / "app/src/main/java/com/yujian/ai/ui/home/HomeCameraButton.kt").read_text(),
+        "GeminiNormalHomeContent.kt + GeminiHomeAdaptiveLayoutPolicy.kt + HomeCameraButton.kt",
+    ))
     checks.append(("home_hero_uses_shared_smart_fish_photo_path", "smartFishPhoto = true" in page and "fishPhotoSourceVersion = item.id" in page and "FishPhotoRenderer.render(" in remote_image, "GeminiNormalHomeContent.kt + RemoteImage.kt"))
     checks.append(("home_hero_uses_adaptive_bounded_aspect_policy", "GeminiHomeCardAspectRatio = 247f / 293f" in page and "layoutSpec.maxCardHeight" in page and "availableCardHeight" in page and "geminiHomeCardWidth(trackWidth.value, layoutSpec)" in page, "GeminiNormalHomeContent.kt"))
     checks.append(("section_title_and_main_card_use_policy_gap", "layoutSpec.titleToCardGap.value" in page and "measuredTitleHeightPx" in page and "measuredTitleHeightDp" in page, "GeminiNormalHomeContent.kt"))
