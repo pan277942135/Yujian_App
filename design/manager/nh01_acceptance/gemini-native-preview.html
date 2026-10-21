@@ -493,6 +493,8 @@
         });
       }
       function applyViewport() {
+        // Expose the outer viewport handled by this resize so browser tests cannot accept stale layout evidence.
+        window.NH01GeminiPreviewOuterViewport = { width: window.innerWidth, height: window.innerHeight };
         // Invalidate the prior frame's readiness before changing viewport geometry; browser gates must not read stale bounds.
         window.NH01GeminiPreviewLayoutReady = false;
         const requestedViewport = params.get("viewport");
@@ -550,7 +552,7 @@
         "#sectionHeader": {name:"Section-Header-Bar",design:"Section-Header-Bar",compose:"GeminiSectionHeader",constraint:"横向标题与操作项；字号随高度及字体缩放。",status:"MAPPED"},
         "#carouselWindow": {name:"Carousel-Track-Container",design:"Carousel-Track-Container",compose:"GeminiCatchCarousel / HorizontalPager",constraint:"轨道宽度受可用视口约束；主卡保持 247:293 比例，邻卡只露出两侧。",status:"MAPPED"},
         "#leftCatchCard": {name:"Card-Peek-Left",design:"Card-Peek-Left",compose:"GeminiCatchCarousel / previous page",asset:"独立获批照片未登记",constraint:"邻卡宽度约为轨道 62%；垂直居中；照片来源未批准。",status:"BLOCKED",note:"只显示占位材质。不得以未确认来源的图片替代。"},
-        "#mainCatchCard": {name:"Card-Main-Active",design:"Card-Main-Active",compose:"GeminiCatchCarousel / selected page",asset:"Hero photo source approval pending",constraint:"主卡宽高比 247:293；宽度 76% 轨道且最大 360dp；高度受可用中区约束。",status:"BLOCKED",note:"主卡结构和元数据可审查，但 Hero 原图未获批准，不能视觉验收通过。"},
+        "#mainCatchCard": {name:"Card-Main-Active",design:"Card-Main-Active",compose:"GeminiCatchCarousel / selected page",asset:"Hero photo source approval pending",constraint:"Adaptive V2 主卡目标宽度为轨道 70% 且最大 337.2dp；根据真实元数据换行与中区剩余高度计算最终尺寸，空间不足时进入中区滚动；保持 247:293 宽高比。",status:"BLOCKED",note:"主卡结构和元数据可审查，但 Hero 原图未获批准，不能视觉验收通过。"},
         "#cardMetadata": {name:"Card-Metadata",design:"Card-Metadata",compose:"GeminiCatchCarousel / CatchCardMetadata",constraint:"底部渐变承载鱼种、尺寸重量、时间地点；字号与卡片空间受响应式合同约束。",status:"MAPPED"},
         "#heroPlaceholder": {name:"Hero-Photo",design:"Card-Main-Active / Hero-Photo",compose:"GeminiCatchCarousel / RemoteImage",asset:"BLOCKED_ASSET_SOURCE",constraint:"目标图像需按已批准的 Crop/Fit 合同渲染；当前仅为阻塞占位。",status:"BLOCKED",note:"此处不能推断生产鱼体 Mask 或照片裁切是否正确。"},
         "#cardMetadata": {name:"Card-Metadata",design:"Card-Main-Active / metadata",compose:"GeminiCatchCarousel / CatchCardMetadata",constraint:"底部渐变承载文字；鱼种、尺寸重量、时间地点分级排布。",status:"MAPPED"},
