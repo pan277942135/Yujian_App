@@ -262,6 +262,7 @@ features:
       - "p01"
       - "p02"
       - "p03"
+      - "resources"
     child_surfaces:
       - "capture"
       - "permission"

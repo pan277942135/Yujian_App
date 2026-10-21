@@ -22,5 +22,20 @@
       "status": "FROZEN",
       "visual_authority": "frozen/P03_First_Use_Camera_Guide_Frozen.png"
     }
+  ],
+  "resource_menus": [
+    {
+      "id": "resources",
+      "title": "资源",
+      "status": "DESIGN_ONLY",
+      "route": "#page/recognition_flow_v1_2/hifi/capture_first_use_guide/resources",
+      "manifest": "manifest.json",
+      "resource_ids": [
+        "p01",
+        "p02",
+        "p03"
+      ],
+      "runtime_visual_authority": false
+    }
   ]
 }

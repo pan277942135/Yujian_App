@@ -3259,6 +3259,24 @@
               ],
               "runtime_status": "NOT_RUN",
               "runtime_note": "Frozen design does not establish Android runtime implementation or acceptance."
+            },
+            {
+              "id": "resources",
+              "title": "资源",
+              "show_code": false,
+              "status": "DESIGN_ONLY",
+              "authority_type": "asset_catalog",
+              "menu_group": "resource",
+              "render_mode": "recognition_guide_resources",
+              "source_view_id": "capture_first_use_guide",
+              "resource_manifest": "design/pages/recognition/first_use_camera_guide/manifest.json",
+              "resource_ids": [
+                "p01",
+                "p02",
+                "p03"
+              ],
+              "runtime_visual_authority": false,
+              "summary": "首次拍照教学的三张 Frozen 原始 PNG 静态资源目录。可预览、打开或下载原文件，并查看 Manifest、尺寸、字节数与 SHA-256；仅供设计资源使用，不映射为 Android 运行时背景。"
             }
           ],
           "visual_status": "FROZEN",

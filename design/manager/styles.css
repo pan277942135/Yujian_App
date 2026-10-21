@@ -2955,6 +2955,18 @@ input:focus, select:focus { border-color: #b9cdc6; box-shadow: 0 0 0 3px rgba(18
 .hifi-image-actions{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;font-size:11px;color:#687f80}
 .hifi-image-actions a{display:inline-flex;align-items:center;min-height:44px;padding:0 12px;border:1px solid #cfdfda;border-radius:9px;color:#28635f;text-decoration:none;background:#fff;font-weight:700}
 .hifi-original-caption{overflow-wrap:anywhere;text-align:center;line-height:1.6}
+.guide-resource-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+.guide-resource-card{display:grid;align-content:start;gap:9px;min-width:0}
+.guide-resource-preview{min-height:0;padding:8px;border:1px solid #e2ebe8;border-radius:10px;background:#f4f8f6}
+.guide-resource-preview img{display:block;width:auto;height:auto;max-width:100%;max-height:min(58vh,520px);object-fit:contain;border-radius:6px}
+.guide-resource-metadata{display:grid;gap:6px;margin:0;min-width:0}
+.guide-resource-metadata>div{display:grid;grid-template-columns:86px minmax(0,1fr);gap:8px;padding-bottom:5px;border-bottom:1px solid #e8efec}
+.guide-resource-metadata dt{font-size:8px;color:#73878a}
+.guide-resource-metadata dd{margin:0;font-size:8px;line-height:1.5;color:#38595c;overflow-wrap:anywhere}
+.guide-resource-actions{display:flex;flex-wrap:wrap;gap:7px}
+.guide-resource-actions a{display:inline-flex;align-items:center;justify-content:center;min-height:40px;padding:0 10px;border:1px solid #cfdfda;border-radius:8px;color:#28635f;text-decoration:none;background:#fff;font-size:9px;font-weight:750}
+.guide-resource-actions a:hover,.guide-resource-manifest a:hover{border-color:#75a4a1;color:#1c524e}
+.guide-resource-manifest a{color:#28635f;text-decoration:underline;text-underline-offset:2px}
 .hifi-contract-details{margin:16px 0;padding:15px;border:1px solid #dae8e3;border-radius:13px;background:#f8fbfa;min-width:0}
 .hifi-contract-heading{display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:11px}
 .hifi-contract-heading strong{font-size:13px;color:#244e4e}
@@ -3015,6 +3027,8 @@ input:focus, select:focus { border-color: #b9cdc6; box-shadow: 0 0 0 3px rgba(18
 @media(max-width:760px){
   .hifi-contract-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
   .hifi-overview-grid,.hifi-boundary-grid{grid-template-columns:1fr}
+  .guide-resource-grid{grid-template-columns:1fr}
+  .guide-resource-preview img{max-height:min(66vh,560px)}
   .hifi-lightbox-content{height:94vh;padding:8px}
   .hifi-lightbox-stage img{max-height:calc(94vh - 210px)}
 }

@@ -85,7 +85,7 @@ The Result Motion Spec V1 continues to govern the resolve-to-Result visual hando
 
 ## Navigation contract
 
-- Keep `recognition_flow_v1_2 → 07 · 首次拍照教学 → P01/P02/P03` and all existing hifi IDs intact.
+- Keep `recognition_flow_v1_2 → 07 · 首次拍照教学 → P01/P02/P03` and all existing hifi IDs intact. Add the separate Design Manager-only `资源` route at `#page/recognition_flow_v1_2/hifi/capture_first_use_guide/resources`; it lists the same P01/P02/P03 source PNGs and does not add an overlay step, Android route, or runtime asset mapping.
 - Each page and state uses a stable `#page/{feature}/hifi/{view}[/{child}]` URL.
 - User-selected navigation pushes a history entry. Direct Hash load, refresh, back, and forward resolve the same Registry item.
 - An invalid Hash displays an explicit route error and never falls back to a valid Frozen page.
