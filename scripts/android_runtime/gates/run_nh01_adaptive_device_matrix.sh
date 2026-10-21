@@ -25,7 +25,7 @@ profiles=(
   "M04 393 852 1.0" "M05 393 852 1.3" "M06 393 852 1.5"
   "M07 411 915 1.0" "M08 411 915 1.3" "M09 411 915 1.5"
 )
-variants=("ADAPTIVE_V1" "V3_BASELINE")
+variants=("ADAPTIVE_V2" "V3_BASELINE")
 all_ok=1
 matrix_setup_ok=1
 matrix_setup_reason=""
