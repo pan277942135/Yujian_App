@@ -3876,19 +3876,20 @@
           "id": "visual_acceptance",
           "code": "RR08",
           "title": "RR08 · 视觉验收",
-          "status": "READY_FOR_VISUAL_IMPLEMENTATION",
+          "status": "FROZEN",
           "render_mode": "authority_index",
           "authority_type": "behavior",
           "authority": "design/system_v3/10_Page_Visual_Acceptance_Contracts/Recognition_Result/index.html",
           "secondary_authority": "design/system_v3/10_Page_Visual_Acceptance_Contracts/Recognition_Result/Recognition_Result_Visual_Contract_V1.md",
           "machine_authority": "design/system_v3/10_Page_Visual_Acceptance_Contracts/Recognition_Result/Recognition_Result_Visual_Contract_Registry_V1.json",
-          "summary": "RR08 · 识别结果视觉验收合同索引。五态、像素目标、锚点、无障碍与 Runtime Gate 分开治理；Runtime 仍为 NOT_RUN。",
+          "summary": "RR08 · 视觉验收合同索引已冻结；视觉合同 readiness 为 READY_FOR_VISUAL_IMPLEMENTATION，Runtime 仍为 NOT_RUN。",
           "menu_points": [
             "五态视觉 Authority 与像素目标",
             "组件锚点与几何容差",
             "Motion / Accessibility 合同索引",
             "Runtime Gate 独立验收；不代表 Runtime PASS"
-          ]
+          ],
+          "readiness_status": "READY_FOR_VISUAL_IMPLEMENTATION"
         },
         {
           "id": "motion_continuation",
