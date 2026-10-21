@@ -746,12 +746,19 @@ private fun GeminiCatchCard(
     val measurementSize = responsiveSp(safeHeight, safeWidth, 0.023f, 13f, 16f)
     val metadataSize = responsiveSp(safeHeight, safeWidth, 0.019f, 11f, 13f)
     val metadataMaxLines = geminiHomeMetadataMaxLines(
+        metadataLength = metadata.length,
         cardWidthDp = cardWidth.value,
         fontScale = currentFontScale,
         variant = layoutVariant,
     )
     val footerVerticalPadding = clampDp(cardHeight.value * 0.07f, 10f, 20f)
-    val footerHorizontalPadding = if (cardWidth.value < 190f) 12.dp else 20.dp
+    val footerHorizontalPadding = if (layoutVariant == GeminiHomeLayoutVariant.ADAPTIVE_V2) {
+        // Scale the inner inset continuously so the long metadata line budget gets
+        // usable width on compact cards without changing the Hero's outer geometry.
+        clampDp(cardWidth.value * 0.06f, 8f, 20f)
+    } else {
+        if (cardWidth.value < 190f) 12.dp else 20.dp
+    }
     val species = presentationSpeciesName(item.speciesName)
     val measurements = buildList {
         item.lengthCm?.takeIf { it > 0f }?.let { add("${formatGeminiNumber(it)} cm") }
