@@ -278,6 +278,10 @@ class GeminiHomeDeviceMatrixTest {
         assertTrue("measured card may shrink under height pressure but may not exceed its policy target",
             activeCardLayoutWidthDp <= targetCardWidthDp + 1f)
         assertTrue("card bounds remain inside the pager track", activeCard.left >= track.left - 1f && activeCard.right <= track.right + 1f)
+        assertTrue("right peek must not overlap the active card: active=$activeCard neighbor=$neighborCard",
+            neighborCard.left >= activeCard.right - 1f)
+        assertTrue("right peek must remain at most 82% of active card width: active=$activeCardLayoutWidthDp neighbor=$neighborCard",
+            neighborCard.width() <= activeCardLayoutWidthDp * 0.82f + 1f)
         assertTrue("title-to-card gap follows the active layout policy: $sectionTitleCardGap dp",
             abs(sectionTitleCardGap - layoutSpec.titleToCardGap.value) <= 2f)
         if (variant != GeminiHomeLayoutVariant.V3_BASELINE) {
@@ -328,6 +332,13 @@ class GeminiHomeDeviceMatrixTest {
         beginStep("VERIFY_CARD_TEXT_ACCESSIBILITY_AND_SCROLL")
         val hasMiddleScroll = compose.onAllNodesWithTag("gemini-home-short-screen-scroll", useUnmergedTree = true)
             .fetchSemanticsNodes().isNotEmpty()
+        if (variant == GeminiHomeLayoutVariant.ADAPTIVE_V2 && profileId == "M01" && expectedFontScale == "1.0") {
+            assertTrue("320×480 at default font scale must fit without middle scrolling", !hasMiddleScroll)
+            assertTrue("320×480 main card must remain readable, width=$activeCardLayoutWidthDp dp",
+                activeCardLayoutWidthDp >= 145f)
+            val bottomClearance = root.bottom - profile.insets.bottom.value - camera.bottom
+            assertTrue("320×480 footer must not add excessive blank space: $bottomClearance dp", bottomClearance <= 4f)
+        }
         val cardTextTags = listOf(
             "gemini-home-catch-species-nh01-catch-001",
             "gemini-home-catch-measurement-nh01-catch-001",
@@ -356,6 +367,12 @@ class GeminiHomeDeviceMatrixTest {
         }
         assertSingleNode("gemini-home-catch-card-nh01-catch-002")
         assertSingleNode("gemini-home-catch-neighbor-nh01-catch-001")
+        val activeAfterSwipe = rect("gemini-home-catch-card-nh01-catch-002").toDp(profile.density)
+        val leftPeekAfterSwipe = rect("gemini-home-catch-neighbor-nh01-catch-001").toDp(profile.density)
+        assertTrue("left peek must not overlap the active card after swipe: active=$activeAfterSwipe left=$leftPeekAfterSwipe",
+            leftPeekAfterSwipe.right <= activeAfterSwipe.left + 1f)
+        assertTrue("left peek must remain subordinate after swipe",
+            leftPeekAfterSwipe.width() <= activeAfterSwipe.width() * 0.82f + 1f)
         val afterSwipe = File(output, "$profileId-${variant.name.lowercase(Locale.US)}-after-swipe.png")
         val afterSwipeBitmap = InstrumentationRegistry.getInstrumentation().uiAutomation.takeScreenshot()
         afterSwipe.outputStream().use { sink -> assertTrue(afterSwipeBitmap.compress(Bitmap.CompressFormat.PNG, 100, sink)) }
