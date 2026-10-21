@@ -101,6 +101,7 @@ def validate_case(payload: dict[str, Any], profile: str, width: int, height: int
     required_bounds = (
         "gemini-home-screen", "gemini-home-brand-title", "gemini-home-stats-bar",
         "gemini-home-section-title", "gemini-home-catch-card-nh01-catch-001",
+        "gemini-home-catch-neighbor-nh01-catch-002",
         "gemini-home-footer-cta", "gemini-home-cta-label", "gemini-home-camera",
     )
     missing = [tag for tag in required_bounds if tag not in bounds]
@@ -114,6 +115,12 @@ def validate_case(payload: dict[str, Any], profile: str, width: int, height: int
         problems.append("card is more than 2dp off center")
     if float(metrics.get("card_actual_width_dp", 0)) > float(metrics.get("card_target_width_dp", 0)) + 1:
         problems.append("card width exceeds its responsive policy target")
+    neighbor_fraction = float(metrics.get("neighbor_width_fraction", 999))
+    if not math.isfinite(neighbor_fraction) or neighbor_fraction <= 0 or neighbor_fraction > 0.82:
+        problems.append(f"neighbor width fraction={neighbor_fraction} must be >0 and <=0.82")
+    neighbor_overlap = float(metrics.get("peek_card_overlap_dp", 999))
+    if not math.isfinite(neighbor_overlap) or neighbor_overlap > 1:
+        problems.append(f"active/peek cards overlap by {neighbor_overlap}dp")
     if metrics.get("cta_camera_overlap") is not False:
         problems.append("CTA and camera overlap or were not measured")
     if float(metrics.get("camera_safe_bottom_clearance_dp", -999)) < -1:
