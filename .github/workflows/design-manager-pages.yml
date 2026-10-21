@@ -393,6 +393,16 @@ jobs:
             --expected-build "${PUBLISHED_BUILD_SHA}" \
             --output "$RUNNER_TEMP/dm-live-evidence/live-verification.json"
 
+      - name: Verify live browser routes and responsive preview
+        shell: bash
+        run: |
+          set -euo pipefail
+          PLAYWRIGHT_MODULE_DIR="$RUNNER_TEMP/dm-playwright/node_modules" \
+            node scripts/verify_design_manager_browser.mjs \
+              --url "${{ steps.deployment.outputs.page_url }}" \
+              --expected-build "${PUBLISHED_BUILD_SHA}" \
+              --output-dir "$RUNNER_TEMP/dm-live-evidence/browser"
+
       - name: Verify published PR #176 preview path and source SHA
         if: github.event_name == 'pull_request' && github.event.pull_request.number == 176 && github.event.pull_request.head.repo.full_name == github.repository
         shell: bash
@@ -420,7 +430,6 @@ jobs:
             echo "- Preserved production SHA: ${PUBLISHED_BUILD_SHA}"
           } >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Upload live release evidence
       - name: Upload live release evidence
         uses: actions/upload-artifact@v4
         with:
