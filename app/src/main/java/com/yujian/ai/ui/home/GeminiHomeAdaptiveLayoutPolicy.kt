@@ -290,3 +290,9 @@ internal fun geminiHomeCameraVisualSize(safeWidthDp: Float, safeHeightDp: Float)
     val heightBound = safeHeightDp * 0.10f
     return minOf(widthBound, heightBound, 80f).coerceAtLeast(56f)
 }
+
+/** NH01 Avatar Visual V1.1: based on safe width, never on tall-window height. */
+internal fun geminiHomeAvatarVisualSize(safeWidthDp: Float): Float {
+    require(safeWidthDp > 0f)
+    return (safeWidthDp * 0.10f).coerceIn(36f, 40f)
+}
