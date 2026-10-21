@@ -79,6 +79,28 @@ def main() -> None:
     checks.append(("section_title_and_main_card_use_policy_gap", "layoutSpec.titleToCardGap.value" in page and "measuredTitleHeightPx" in page and "measuredTitleHeightDp" in page, "GeminiNormalHomeContent.kt"))
     policy_text = (ROOT / "app/src/main/java/com/yujian/ai/ui/home/GeminiHomeAdaptiveLayoutPolicy.kt").read_text()
     checks.append((
+        "viewport_typography_scales_on_width_and_height",
+        "responsiveSp(safeHeight, safeWidth" in page
+        and "geminiHomeResponsiveFontScale" in policy_text
+        and "coerceIn(1f, 1.2f)" in policy_text,
+        "GeminiNormalHomeContent.kt + GeminiHomeAdaptiveLayoutPolicy.kt",
+    ))
+    checks.append((
+        "short_viewport_compacts_footer_and_avoids_unnecessary_scroll",
+        "safeHeight.value < 460f" in page
+        and "compactViewport -> 2.dp" in page
+        and "if (compactViewport) 6.dp else 11.dp" in page
+        and "safeHeightDp < 460f && fontScale < 1.3f) 124f else 148f" in policy_text,
+        "GeminiNormalHomeContent.kt + GeminiHomeAdaptiveLayoutPolicy.kt",
+    ))
+    checks.append((
+        "peek_cards_are_smaller_than_active_hero",
+        "coerceIn(0.10f, 1f)" in page
+        and "cardWidthDp * 0.82f" in policy_text
+        and "minimumWidthForPeek" in policy_text,
+        "GeminiNormalHomeContent.kt + GeminiHomeAdaptiveLayoutPolicy.kt",
+    ))
+    checks.append((
         "adaptive_v2_is_content_first_and_keeps_v3_comparison",
         "ADAPTIVE_V2_CARD_WIDTH_FRACTION = 0.70f" in policy_text
         and "ADAPTIVE_V2_CARD_MAX_WIDTH = 337.2.dp" in policy_text
