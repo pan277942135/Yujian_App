@@ -138,11 +138,11 @@ class GeminiHomeDeviceMatrixTest {
         val albumClicks = AtomicInteger()
         val catchClicks = mutableListOf<String>()
 
-        // The image decoder and derivative renderer complete asynchronously and
-        // their Compose state needs frames to publish the rendered semantics.
-        // Keep the test clock advancing until the image is ready; freeze it only
-        // for the deterministic pager gesture section.
-        compose.mainClock.autoAdvance = true
+        // The production HomeMotionState intentionally emits a frame continuously.
+        // Freeze implicit clock advancement from the start and advance frames only
+        // while waiting for concrete UI/image conditions; waitForIdle cannot succeed
+        // while this frame clock is running.
+        compose.mainClock.autoAdvance = false
         beginStep("COMPOSE_PRODUCTION_HOME_SCREEN")
         compose.setContent {
             val density = LocalDensity.current
@@ -176,24 +176,25 @@ class GeminiHomeDeviceMatrixTest {
                 layoutVariant = variant,
             )
         }
-        // The production HomeMotionState advances continuously by design. The
-        // runtime gate waits for concrete semantics below instead of waiting for idle.
+        advanceFramesUntil(20_000) {
+            compose.onAllNodesWithTag("gemini-home-screen", useUnmergedTree = true)
+                .fetchSemanticsNodes().isNotEmpty()
+        }
         completeStep("PRODUCTION_HOME_SCREEN_COMPOSED")
 
         beginStep("WAIT_FOR_MAIN_CATCH_CARD")
-        compose.waitUntil(20_000) {
+        advanceFramesUntil(20_000) {
             compose.onAllNodesWithTag("gemini-home-catch-card-nh01-catch-001", useUnmergedTree = true)
                 .fetchSemanticsNodes().isNotEmpty()
         }
         completeStep("MAIN_CATCH_CARD_COMPOSED")
 
         beginStep("WAIT_FOR_FISH_PHOTO_RENDER")
-        compose.waitUntil(20_000) {
+        advanceFramesUntil(20_000) {
             compose.onAllNodesWithTag("home-evidence-backdrop-ready", useUnmergedTree = true)
                 .fetchSemanticsNodes().isNotEmpty()
         }
         completeStep("FISH_PHOTO_RENDERED")
-        compose.mainClock.autoAdvance = false
 
         val profile = requireNotNull(densityProbe.get()) { "Compose density/insets were not observed" }
         val expectedFontScaleValue = args.getString("font_scale")?.toFloatOrNull()
