@@ -1,0 +1,310 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="nh01-gemini-preview-build" content="__NH01_GEMINI_PREVIEW_BUILD__">
+  <meta name="nh01-gemini-preview-target" content="GEMINI_NATIVE_V3_STRUCTURE_PREVIEW_NOT_VISUAL_PASS">
+  <title>渔见 · NH01 Gemini Native Preview</title>
+  <style>
+    :root{color-scheme:light;--ink:#16313e;--muted:#5b737d;--line:#d4e0e3;--panel:#f5f8f8;--success:#176d50;--warn:#815b12;--danger:#84382e;--font-scale:1}
+    *{box-sizing:border-box}
+    html,body{margin:0;min-height:100%;font-family:system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--ink);background:#eaf0f1}
+    body{min-height:100dvh}
+    button,select{font:inherit}
+    .workspace{max-width:1440px;margin:0 auto;padding:22px;display:grid;grid-template-columns:minmax(320px,520px) minmax(300px,1fr);gap:22px;align-items:start}
+    .preview-column,.audit-column{min-width:0}
+    .workspace-header{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin:0 0 16px}
+    .eyebrow{font-size:10px;font-weight:800;letter-spacing:.13em;color:#617d87;text-transform:uppercase}
+    h1{font-size:clamp(20px,2vw,28px);line-height:1.2;margin:5px 0 7px}
+    h2{font-size:16px;margin:0}
+    p{line-height:1.6}
+    .subtitle{margin:0;color:var(--muted);font-size:12px;max-width:600px}
+    .status-badge{display:inline-flex;align-items:center;gap:6px;padding:6px 9px;border-radius:999px;background:#fff2d7;color:var(--warn);border:1px solid #e6cf98;font-size:10px;font-weight:800;white-space:nowrap}
+    .control-panel,.audit-card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px;box-shadow:0 8px 24px rgba(17,48,61,.05)}
+    .control-panel{margin-bottom:14px}
+    .controls{display:flex;flex-wrap:wrap;gap:10px;align-items:end}
+    .control{display:grid;gap:5px;min-width:105px;flex:1}
+    .control label{font-size:10px;color:var(--muted);font-weight:700}
+    .control select{width:100%;padding:8px 9px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink);font-size:12px}
+    .preview-stage{display:flex;justify-content:center;align-items:flex-start;padding:6px 0 12px;min-width:0}
+    .device-wrap{position:relative;flex:none}
+    .device{position:relative;width:390px;height:844px;transform-origin:top left;overflow:hidden;container-type:size;background:#173746;isolation:isolate;box-shadow:0 18px 48px rgba(13,39,49,.22);border:1px solid rgba(255,255,255,.45);border-radius:26px}
+    .scene-background{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:top center;z-index:-2}
+    .page-content{position:relative;z-index:1;display:flex;flex-direction:column;width:100%;height:100%;min-height:0}
+    .top-section{flex:none;padding:8px clamp(24px,7.5cqw,40px) 0}
+    .header-bar{display:flex;align-items:center;justify-content:space-between;min-height:48px;gap:12px}
+    .brand-title{display:block;width:clamp(46px,14.36cqw,70px);height:auto;object-fit:contain}
+    .avatar-button{display:grid;place-items:center;flex:none;width:48px;height:48px;border:0;padding:0;background:transparent;border-radius:50%}
+    .avatar-visual{display:block;width:clamp(36px,6cqh,44px);height:clamp(36px,6cqh,44px);object-fit:contain;border-radius:50%;background:rgba(255,255,255,.96)}
+    .stats-bar{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));align-items:center;margin-top:clamp(18px,4.2cqh,34px);color:#f7fbfc;text-align:center;text-shadow:0 1px 8px rgba(8,30,39,.28)}
+    .stat{display:grid;gap:4px;min-width:0;padding:0 3px}
+    .stat+.stat{border-left:1px solid rgba(244,251,252,.3)}
+    .stat-value{font-weight:750;font-size:calc(clamp(17px,5.3cqw,21px)*var(--font-scale));line-height:1.1}
+    .stat-label{font-size:calc(clamp(11px,3.2cqw,13px)*var(--font-scale));line-height:1.2;opacity:.92}
+    .middle-section{display:flex;flex:1;flex-direction:column;min-height:0;margin-top:clamp(20px,4.5cqh,34px)}
+    .section-header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 clamp(24px,7.5cqw,40px);margin-bottom:10px;color:#fff;text-shadow:0 1px 7px rgba(9,30,39,.3)}
+    .section-title{font-size:calc(clamp(16px,4.5cqw,20px)*var(--font-scale));font-weight:700;white-space:nowrap}
+    .section-action{font-size:calc(clamp(12px,3.4cqw,15px)*var(--font-scale));opacity:.95;white-space:nowrap}
+    .carousel-window{position:relative;display:flex;align-items:center;justify-content:center;flex:1;min-height:0;overflow:hidden}
+    .catch-card{position:absolute;overflow:hidden;border:1.5px solid rgba(255,255,255,.92);border-radius:18px;background:rgba(27,59,72,.36);box-shadow:0 12px 26px rgba(9,30,40,.22)}
+    .neighbor-card{width:62%;height:67%;top:50%;transform:translateY(-50%);opacity:.72}
+    .neighbor-left{left:-43%}
+    .neighbor-right{right:-43%}
+    .neighbor-slot{display:grid;place-items:center;width:100%;height:100%;background:rgba(218,232,235,.18);color:rgba(255,255,255,.78);font-size:9px;text-align:center;padding:8px}
+    .main-card{position:relative;z-index:2;width:min(68.6cqw,360px);height:auto;aspect-ratio:247/293;max-height:100%;display:flex;flex-direction:column;justify-content:flex-end}
+    .hero-placeholder{position:absolute;inset:0;display:grid;place-items:center;padding:18px;text-align:center;color:#315767;background:repeating-linear-gradient(135deg,rgba(225,239,242,.92) 0 10px,rgba(203,222,227,.92) 10px 20px);border:1px dashed rgba(255,255,255,.95)}
+    .hero-placeholder-inner{max-width:90%;display:grid;gap:7px;justify-items:center}
+    .hero-placeholder strong{font-size:calc(12px*var(--font-scale));letter-spacing:.04em}
+    .hero-placeholder span{font-size:calc(10px*var(--font-scale));line-height:1.45}
+    .blocked-icon{display:grid;place-items:center;width:30px;height:30px;border:1px solid #8caab2;border-radius:50%;font-size:16px;background:rgba(255,255,255,.6)}
+    .card-bottom{position:relative;z-index:2;padding:16px clamp(16px,4.2cqw,20px) 17px;color:#fff;background:linear-gradient(180deg,rgba(12,20,28,0) 0%,rgba(12,20,28,.52) 52%,rgba(10,16,24,.84) 100%);text-shadow:0 1px 5px rgba(0,0,0,.25)}
+    .catch-species{font-size:calc(clamp(20px,5.5cqw,26px)*var(--font-scale));font-weight:750;line-height:1.2;margin:0 0 8px}
+    .catch-measure{font-size:calc(clamp(13px,3.7cqw,16px)*var(--font-scale));font-weight:600;line-height:1.3;margin:0 0 5px}
+    .catch-location{font-size:calc(clamp(11px,3.1cqw,13px)*var(--font-scale));line-height:1.35;margin:0;opacity:.9}
+    .footer-section{flex:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(8px,1.6cqh,14px);padding:4px 0 clamp(18px,4.2cqh,36px);color:#fff;text-shadow:0 1px 8px rgba(9,30,39,.35)}
+    .cta-label{font-size:calc(clamp(12px,3.8cqw,14px)*var(--font-scale));letter-spacing:.08em}
+    .camera-button{display:grid;place-items:center;width:72px;height:72px;padding:0;border:0;border-radius:50%;background:transparent;cursor:pointer}
+    .camera-art{display:block;width:clamp(54px,9.5cqh,66px);height:clamp(54px,9.5cqh,66px);object-fit:contain}
+    .preview-toast{position:absolute;left:12px;right:12px;bottom:10px;z-index:8;padding:8px 10px;border-radius:9px;background:rgba(10,34,43,.9);color:#fff;font-size:10px;line-height:1.4;display:none}
+    .preview-toast[data-visible="true"]{display:block}
+    .audit-column{display:grid;gap:14px}
+    .audit-card h2{margin-bottom:10px}
+    .audit-intro{margin:0 0 12px;color:var(--muted);font-size:12px}
+    .asset-list{display:grid;gap:9px}
+    .asset-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:start;padding:10px;border:1px solid var(--line);border-radius:10px;background:#fbfdfd}
+    .asset-name{font-size:12px;font-weight:750;margin-bottom:4px}
+    .asset-meta{font-size:10px;line-height:1.5;color:var(--muted);overflow-wrap:anywhere}
+    .asset-status{font-size:9px;font-weight:800;letter-spacing:.02em;padding:5px 7px;border-radius:7px;white-space:nowrap;background:#edf2f3;color:#49636d}
+    .asset-status[data-status="PASS_SOURCE_INTEGRITY"]{background:#e2f4ec;color:var(--success)}
+    .asset-status[data-status^="BLOCKED"]{background:#fff0ed;color:var(--danger)}
+    .asset-status[data-status="FROZEN"]{background:#e2f4ec;color:var(--success)}
+    .asset-status[data-status="FROZEN_HOME_V2_VISUAL_CONSUMER"]{background:#e2f4ec;color:var(--success)}
+    .audit-footer{font-size:11px;line-height:1.55;color:var(--muted);margin:12px 0 0}
+    .audit-footer strong{color:var(--ink)}
+    .audit-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+    .audit-actions a,.audit-actions button{display:inline-flex;align-items:center;justify-content:center;padding:8px 10px;border-radius:8px;border:1px solid var(--line);background:#fff;color:var(--ink);font-size:11px;text-decoration:none;cursor:pointer}
+    .audit-actions button:focus-visible,.audit-actions a:focus-visible,.control select:focus-visible{outline:2px solid #3d8798;outline-offset:2px}
+    .integrity-summary{font-size:11px;color:var(--muted);line-height:1.5;margin-top:10px;overflow-wrap:anywhere}
+    .integrity-summary[data-state="PASS"]{color:var(--success)}
+    .integrity-summary[data-state="FAIL"]{color:var(--danger)}
+    .canvas-mode{background:transparent;overflow:hidden}
+    .canvas-mode .workspace{display:block;width:100vw;height:100dvh;max-width:none;margin:0;padding:0}
+    .canvas-mode .workspace-header,.canvas-mode .control-panel,.canvas-mode .audit-column{display:none!important}
+    .canvas-mode .preview-column{width:100vw;height:100dvh}
+    .canvas-mode .preview-stage{width:100vw;height:100dvh;padding:0;margin:0;display:block}
+    .canvas-mode .device-wrap{width:100vw!important;height:100dvh!important}
+    .canvas-mode .device{width:100vw!important;height:100dvh!important;transform:none!important;border:0;border-radius:0;box-shadow:none}
+    @media(max-width:850px){.workspace{grid-template-columns:minmax(0,1fr);padding:14px;gap:14px}.workspace-header{margin-bottom:10px}.preview-stage{padding:0}.audit-column{grid-template-columns:minmax(0,1fr)}}
+    @media(max-width:460px){.workspace{padding:10px}.workspace-header{display:grid}.controls{gap:8px}.control{min-width:calc(50% - 8px)}.device{border-radius:18px}.asset-row{grid-template-columns:minmax(0,1fr)}.asset-status{justify-self:start}}
+  </style>
+</head>
+<body>
+  <main class="workspace" id="nh01GeminiPreview">
+    <section class="preview-column">
+      <header class="workspace-header">
+        <div>
+          <div class="eyebrow">GITHUB NATIVE · GEMINI STRUCTURE</div>
+          <h1>NH01 · Gemini Native V3</h1>
+          <p class="subtitle">正式资产优先，未验证鱼获照片保持阻塞占位。此页用于结构/资源核验，不代表 Android 像素验收。</p>
+        </div>
+        <span class="status-badge">PREVIEW ONLY · NOT VISUAL PASS</span>
+      </header>
+      <section class="control-panel" aria-label="预览控制">
+        <div class="controls">
+          <div class="control"><label for="viewportPreset">逻辑视口</label><select id="viewportPreset">
+            <option value="360x640">360 × 640</option><option value="390x844" selected>390 × 844</option><option value="430x932">430 × 932</option><option value="320x480">320 × 480</option><option value="600x960">600 × 960</option>
+          </select></div>
+          <div class="control"><label for="fontScale">字体缩放</label><select id="fontScale"><option value="1">1.0×</option><option value="1.3">1.3×</option><option value="1.5">1.5×</option></select></div>
+        </div>
+      </section>
+      <div class="preview-stage">
+        <div class="device-wrap" id="deviceWrap">
+          <section class="device" id="device" aria-label="NH01 Gemini Native V3 structure preview">
+            <img class="scene-background" id="assetBackground" data-asset-id="background" src="../../system/backgrounds/morning_lake_v1/assets/Morning_Lake_Master_V1.png" alt="">
+            <div class="page-content">
+              <header class="top-section" data-layer="Top-Section-AutoLayout">
+                <div class="header-bar" data-layer="Header-Bar">
+                  <img class="brand-title" id="assetBrand" data-asset-id="brand" src="../../system_v3/06_Asset_System/derived/brand_title_primary/brand_title_primary.png" alt="渔见">
+                  <button class="avatar-button" type="button" id="avatarButton" aria-label="头像状态预览">
+                    <img class="avatar-visual" id="assetAvatar" data-asset-id="avatar" src="./assets/normal_home_default_avatar_v2.png" alt="">
+                  </button>
+                </div>
+                <div class="stats-bar" data-layer="Stats-Bar" aria-label="静态参考数据夹具">
+                  <div class="stat"><span class="stat-value">3</span><span class="stat-label">鱼种</span></div>
+                  <div class="stat"><span class="stat-value">3</span><span class="stat-label">鱼获</span></div>
+                  <div class="stat"><span class="stat-value">1</span><span class="stat-label">记录天数</span></div>
+                </div>
+              </header>
+              <section class="middle-section" data-layer="Middle-Carousel-Section">
+                <div class="section-header" data-layer="Section-Header-Bar">
+                  <span class="section-title">最近鱼获</span><span class="section-action">全部 ›</span>
+                </div>
+                <div class="carousel-window" data-layer="Carousel-Track-Container">
+                  <article class="catch-card neighbor-card neighbor-left" data-layer="Card-Peek-Left" aria-label="上一条鱼获，照片资产待批准">
+                    <div class="neighbor-slot">NEIGHBOR PHOTO<br>BLOCKED</div>
+                  </article>
+                  <article class="catch-card main-card" data-layer="Card-Main-Active" aria-label="选中鱼获静态参考夹具">
+                    <div class="hero-placeholder" id="heroPlaceholder" data-status="BLOCKED_ASSET_SOURCE">
+                      <div class="hero-placeholder-inner">
+                        <span class="blocked-icon" aria-hidden="true">!</span>
+                        <strong>HERO PHOTO · BLOCKED</strong>
+                        <span>原始鱼获照片的来源、使用权和鱼体框尚未核实。为避免公开用户原图，本预览不加载或复制照片。</span>
+                      </div>
+                    </div>
+                    <div class="card-bottom">
+                      <p class="catch-species">草鱼</p>
+                      <p class="catch-measure">42.6 cm · 1.28 kg</p>
+                      <p class="catch-location">昨天 18:20 · 浙江 · 千岛湖</p>
+                    </div>
+                  </article>
+                  <article class="catch-card neighbor-card neighbor-right" data-layer="Card-Peek-Right" aria-label="下一条鱼获，照片资产待批准">
+                    <div class="neighbor-slot">NEIGHBOR PHOTO<br>BLOCKED</div>
+                  </article>
+                </div>
+              </section>
+              <footer class="footer-section" data-layer="Footer-CTA-Section">
+                <span class="cta-label">记录下一条鱼</span>
+                <button class="camera-button" type="button" id="cameraButton" aria-label="相机按钮静态预览">
+                  <img class="camera-art" id="assetCamera" data-asset-id="camera" src="../../system_v3/06_Asset_System/derived/normal_home_camera_primary_v1/normal_home_camera_primary_v1.png" alt="">
+                </button>
+              </footer>
+            </div>
+            <div class="preview-toast" id="previewToast" role="status" aria-live="polite" data-visible="false"></div>
+          </section>
+        </div>
+      </div>
+    </section>
+    <aside class="audit-column">
+      <section class="audit-card">
+        <div class="eyebrow">ASSET AUTHORITY</div>
+        <h2>正式资产绑定与 SHA 核验</h2>
+        <p class="audit-intro">仅将已登记、可公开的设计资产实际渲染。Hero/邻卡照片保持占位，不以仓库中存在文件推定来源或使用权。</p>
+        <div class="asset-list" id="assetList" aria-live="polite"></div>
+        <div class="integrity-summary" id="integritySummary" data-state="RUNNING">正在核对注册资产的原始字节与尺寸…</div>
+      </section>
+      <section class="audit-card">
+        <div class="eyebrow">AUTHORITY BOUNDARY</div>
+        <h2>验收边界</h2>
+        <p class="audit-intro">结构来源是仓库内 Gemini 结构快照与 V3 实现合同；不是 Figma 实时节点读回。原 NH01 Frozen PNG 仍不可修改，但 Gemini V3 不宣称与旧 Frozen 全页逐像素一致。</p>
+        <div class="asset-row"><div><div class="asset-name">Android Runtime</div><div class="asset-meta">精确源码 SHA 的 API 28 安装、启动、交互、截图、boundsInWindow 和响应式矩阵另行验收。</div></div><span class="asset-status" data-status="NOT_RUN">NOT RUN</span></div>
+        <div class="asset-row"><div><div class="asset-name">Visual Parity</div><div class="asset-meta">本页只证明静态结构与资产可加载；动态照片 ROI 和未批准目标不参与 PASS 判定。</div></div><span class="asset-status" data-status="NOT_RUN">NOT RUN</span></div>
+        <p class="audit-footer"><strong>Preview build:</strong> <code id="buildSha">__NH01_GEMINI_PREVIEW_BUILD__</code><br><strong>Release gate effect:</strong> NONE</p>
+        <div class="audit-actions">
+          <a href="./index.html">返回 NH01 验收中心</a>
+          <a href="../../../release/design_manager/NH01_GEMINI_STRUCTURE_ALIGNMENT_V1.json" target="_blank" rel="noreferrer">查看 Gemini 结构快照</a>
+        </div>
+      </section>
+    </aside>
+  </main>
+  <script>
+    (() => {
+      "use strict";
+      const params = new URLSearchParams(location.search);
+      const canvasMode = params.get("mode") === "canvas";
+      if (canvasMode) document.body.classList.add("canvas-mode");
+      const buildSha = document.querySelector('meta[name="nh01-gemini-preview-build"]').content;
+      document.getElementById("buildSha").textContent = buildSha;
+      const preset = document.getElementById("viewportPreset");
+      const fontScale = document.getElementById("fontScale");
+      const device = document.getElementById("device");
+      const wrap = document.getElementById("deviceWrap");
+      const toast = document.getElementById("previewToast");
+      const assetList = document.getElementById("assetList");
+      const integritySummary = document.getElementById("integritySummary");
+      const assetNodes = {
+        background: document.getElementById("assetBackground"),
+        brand: document.getElementById("assetBrand"),
+        avatar: document.getElementById("assetAvatar"),
+        camera: document.getElementById("assetCamera")
+      };
+      function showToast(message) {
+        toast.textContent = message;
+        toast.dataset.visible = "true";
+      }
+      function applyViewport() {
+        document.documentElement.style.setProperty("--font-scale", fontScale.value);
+        if (canvasMode) {
+          device.style.width = String(window.innerWidth) + "px";
+          device.style.height = String(window.innerHeight) + "px";
+          device.style.transform = "none";
+          wrap.style.width = String(window.innerWidth) + "px";
+          wrap.style.height = String(window.innerHeight) + "px";
+          return;
+        }
+        const parts = preset.value.split("x").map(Number);
+        const width = parts[0], height = parts[1];
+        const availableWidth = Math.max(250, Math.min(520, window.innerWidth - 56));
+        const availableHeight = Math.max(300, window.innerHeight - 205);
+        const scale = Math.min(1, availableWidth / width, availableHeight / height);
+        device.style.width = String(width) + "px";
+        device.style.height = String(height) + "px";
+        device.style.transform = "scale(" + scale + ")";
+        wrap.style.width = String(width * scale) + "px";
+        wrap.style.height = String(height * scale) + "px";
+      }
+      preset.addEventListener("change", applyViewport);
+      fontScale.addEventListener("change", applyViewport);
+      window.addEventListener("resize", applyViewport);
+      document.getElementById("cameraButton").addEventListener("click", () => showToast("静态预览：真实拍照交互以精确 SHA 的 Android Runtime Gate 为准。"));
+      document.getElementById("avatarButton").addEventListener("click", () => showToast("Gemini V3 静态预览使用注册的 V2 头像底图；真实账号头像加载由 Android 数据层处理。"));
+
+      async function digest(url) {
+        const response = await fetch(url, { cache: "no-store" });
+        if (!response.ok) throw new Error("HTTP " + response.status + " for " + url);
+        const bytes = await response.arrayBuffer();
+        const hash = await crypto.subtle.digest("SHA-256", bytes);
+        return [...new Uint8Array(hash)].map(value => value.toString(16).padStart(2, "0")).join("");
+      }
+      function waitImage(image) {
+        if (image.complete && image.naturalWidth > 0) return Promise.resolve();
+        return new Promise((resolve, reject) => {
+          image.addEventListener("load", resolve, { once: true });
+          image.addEventListener("error", () => reject(new Error("Image load failed: " + (image.currentSrc || image.src))), { once: true });
+        });
+      }
+      async function auditAssets() {
+        const response = await fetch("./NH01_Gemini_Native_Asset_Binding_V1.json", { cache: "no-store" });
+        if (!response.ok) throw new Error("Asset manifest HTTP " + response.status);
+        const manifest = await response.json();
+        const results = [];
+        for (const asset of manifest.assets.filter(item => item.public_preview)) {
+          const image = assetNodes[asset.id];
+          if (!image) throw new Error("Missing DOM asset node: " + asset.id);
+          await waitImage(image);
+          const actualHash = await digest(asset.preview_path);
+          const dimensions = [image.naturalWidth, image.naturalHeight];
+          const passed = actualHash === asset.sha256 && dimensions[0] === asset.dimensions_px[0] && dimensions[1] === asset.dimensions_px[1];
+          results.push({ id: asset.id, label: asset.label, status: passed ? "PASS_SOURCE_INTEGRITY" : "FAIL_SOURCE_INTEGRITY", expected_sha256: asset.sha256, actual_sha256: actualHash, expected_dimensions_px: asset.dimensions_px, actual_dimensions_px: dimensions, preview_path: asset.preview_path });
+        }
+        for (const asset of manifest.assets.filter(item => !item.public_preview)) {
+          results.push({ id: asset.id, label: asset.label, status: asset.status, expected_sha256: asset.sha256 || null, actual_sha256: null, expected_dimensions_px: asset.dimensions_px || null, actual_dimensions_px: null, preview_path: null, reason: asset.privacy_policy || asset.render_rule });
+        }
+        assetList.replaceChildren();
+        for (const result of results) {
+          const row = document.createElement("div"); row.className = "asset-row";
+          const details = document.createElement("div");
+          const name = document.createElement("div"); name.className = "asset-name"; name.textContent = result.label;
+          const meta = document.createElement("div"); meta.className = "asset-meta";
+          meta.textContent = result.actual_sha256 ? "SHA-256 " + result.actual_sha256 + " · " + result.actual_dimensions_px.join("×") : (result.reason || "未提供可公开预览的正式原图。");
+          const status = document.createElement("span"); status.className = "asset-status"; status.dataset.status = result.status; status.textContent = result.status;
+          details.append(name, meta); row.append(details, status); assetList.append(row);
+        }
+        const failures = results.filter(result => result.status === "FAIL_SOURCE_INTEGRITY");
+        integritySummary.dataset.state = failures.length ? "FAIL" : "PASS";
+        integritySummary.textContent = failures.length ? "资产完整性失败：" + failures.map(result => result.id).join(", ") + "。此预览不能用于正式验收。" : "已渲染资产 SHA-256 与尺寸均匹配登记。Hero 与邻卡照片仍为 BLOCKED；release_gate_effect=NONE。";
+        window.NH01GeminiPreviewAudit = { schema: manifest.schema, build_sha: buildSha, status: failures.length ? "FAIL" : "PASS", release_gate_effect: "NONE", assets: results, checked_at_utc: new Date().toISOString() };
+        window.NH01GeminiPreviewReady = true;
+        return window.NH01GeminiPreviewAudit;
+      }
+      applyViewport();
+      auditAssets().catch(error => {
+        integritySummary.dataset.state = "FAIL";
+        integritySummary.textContent = "资产核验失败：" + error.message;
+        window.NH01GeminiPreviewAudit = { status: "FAIL", release_gate_effect: "NONE", error: error.message };
+        window.NH01GeminiPreviewReady = true;
+      });
+    })();
+  </script>
+</body>
+</html>
