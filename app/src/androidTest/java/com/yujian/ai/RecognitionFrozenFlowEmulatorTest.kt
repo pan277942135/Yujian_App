@@ -803,9 +803,15 @@ class RecognitionFrozenFlowEmulatorTest {
             frameMetricsListener,
             android.os.Handler(metricThread.looper),
         )
+        // Compose's instrumentation clock is virtual: waitForIdle() would
+        // fast-forward the whole reveal before Android can emit frame metrics.
+        // Drive one frame at a time, allowing each frame to reach Window/SurfaceFlinger.
+        composeRule.mainClock.autoAdvance = false
         elapsed.value = null
-        composeRule.waitForIdle()
-        Thread.sleep(1_000L)
+        repeat(60) {
+            composeRule.mainClock.advanceTimeByFrame()
+            Thread.sleep(16L)
+        }
         val framesAtAnimationEnd = frameTimesNs.size
         Thread.sleep(250L)
         val framesAfterIdleWindow = (frameTimesNs.size - framesAtAnimationEnd).coerceAtLeast(0)
