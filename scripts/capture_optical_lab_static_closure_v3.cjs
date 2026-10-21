@@ -605,6 +605,145 @@ async function main() {
   }
 }
 
+async function captureFormalReceivingRenderer(browser, fixture) {
+  const page = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1 });
+  const errors = [];
+  page.on("pageerror", error => errors.push("formal pageerror: " + error.message));
+  page.on("console", message => { if (message.type() === "error") errors.push("formal console: " + message.text()); });
+  page.on("requestfailed", request => errors.push("formal requestfailed: " + request.url() + " · " + request.failure()?.errorText));
+  await page.addInitScript(() => {
+    window.__EDGEGLOW_RECEIVING_CAPTURE_CALLS__ = [];
+    const nativeDrawImage = CanvasRenderingContext2D.prototype.drawImage;
+    CanvasRenderingContext2D.prototype.drawImage = function(source, ...args) {
+      if (source instanceof HTMLCanvasElement && args.length === 8 && this.canvas.width === 1152 && this.canvas.height === 1536) {
+        const [sx, sy, sw, sh, dx, dy, dw, dh] = args;
+        const captured = document.createElement("canvas");
+        captured.width = dw; captured.height = dh;
+        nativeDrawImage.call(captured.getContext("2d"), source, sx, sy, sw, sh, dx, dy, dw, dh);
+        window.__EDGEGLOW_RECEIVING_CAPTURE_CALLS__.push({
+          canvas: captured,
+          source_size: [source.width, source.height],
+          source_rect: [sx, sy, sw, sh],
+          destination_rect: [dx, dy, dw, dh]
+        });
+      }
+      return nativeDrawImage.call(this, source, ...args);
+    };
+  });
+  try {
+    await page.goto(new URL(ACCEPTANCE_PATH, SITE_BASE).href, { waitUntil: "networkidle", timeout: 30000 });
+    await page.waitForFunction(() =>
+      document.querySelector("#sourceStatus")?.dataset.status === "PASS" &&
+      window.__EDGEGLOW_LAB__?.photoDimensions?.[0] === 1152 &&
+      document.querySelector("#buildSha")?.textContent,
+      null,
+      { timeout: 30000 }
+    );
+    const build = await page.evaluate(async () => ({
+      build: await fetch("./build-info.json", { cache: "no-store" }).then(response => response.json()),
+      photo_sha: document.querySelector("#photoSha")?.textContent.trim(),
+      photo_dimensions: window.__EDGEGLOW_LAB__.photoDimensions,
+      page_build_stamp: document.querySelector("#buildSha")?.textContent.trim(),
+      script_url: [...document.scripts].find(script => script.src.includes("edgeglow.js"))?.src || null,
+      script_attribute: [...document.scripts].find(script => script.src.includes("edgeglow.js"))?.getAttribute("src") || null,
+      browser_viewport: [innerWidth, innerHeight]
+    }));
+    assert.equal(build.build.pr_source_sha, SOURCE_SHA, "formal renderer must use the exact PR source SHA");
+    assert.equal(build.photo_sha, fixture.photo.sha256, "formal renderer must load the registered source photo");
+    assert.deepEqual(build.photo_dimensions, [fixture.photo.width, fixture.photo.height]);
+    assert.deepEqual(build.browser_viewport, [390, 844]);
+    const loadedScriptText = await page.evaluate(url => fetch(url, { cache: "no-store" }).then(response => response.text()), build.script_url);
+    const loadedScriptSha = sha256(Buffer.from(loadedScriptText, "utf8"));
+    const sourceScriptPath = path.join(SOURCE_ROOT, "design/manager/nh01_acceptance/edgeglow-fish-static/edgeglow.js");
+    assert.equal(loadedScriptSha, sha256(fs.readFileSync(sourceScriptPath)), "formal page must load the committed EdgeGlow renderer byte-for-byte");
+
+    const setControl = async (id, value) => page.locator(`#${id}`).evaluate((node, next) => {
+      if (node.type === "checkbox") node.checked = Boolean(next);
+      else node.value = String(next);
+      node.dispatchEvent(new Event("input", { bubbles: true }));
+      node.dispatchEvent(new Event("change", { bubbles: true }));
+    }, value);
+    for (const [id, value] of Object.entries({
+      edgeFieldEnabled: true, receivingLightEnabled: true,
+      primaryIslandsEnabled: false, secondaryFragmentsEnabled: false,
+      companionHairlinesEnabled: false, outerEnabled: false,
+      coreEnabled: false, cometEnabled: false
+    })) await setControl(id, value);
+    await page.evaluate(() => {
+      window.__EDGEGLOW_RECEIVING_CAPTURE_CALLS__.length = 0;
+      window.__EDGEGLOW_LAB__.render();
+    });
+    await page.waitForFunction(() => window.__EDGEGLOW_RECEIVING_CAPTURE_CALLS__?.length > 0, null, { timeout: 15000 });
+    const isolated = await page.evaluate(() => {
+      const call = window.__EDGEGLOW_RECEIVING_CAPTURE_CALLS__[0];
+      const data = call.canvas.toDataURL("image/png");
+      const rgba = call.canvas.getContext("2d", { willReadFrequently: true }).getImageData(0, 0, 1152, 1536).data;
+      let nonzero = 0, translucent = 0, peak = 0;
+      for (let i = 3; i < rgba.length; i += 4) {
+        const alpha = rgba[i];
+        if (alpha > 0) nonzero++;
+        if (alpha > 0 && alpha < 255) translucent++;
+        if (alpha > peak) peak = alpha;
+      }
+      return {
+        data,
+        source_size: call.source_size,
+        source_rect: call.source_rect,
+        destination_rect: call.destination_rect,
+        alpha: { width: 1152, height: 1536, nonzero_pixels: nonzero, translucent_pixels: translucent, peak_alpha_8bit: peak }
+      };
+    });
+    writeDataUrl("formal-receiving-light-only-1152x1536.png", isolated.data);
+    const receivingOnlyState = await page.evaluate(() => ({
+      renderer_state: window.__EDGEGLOW_LAB__.state,
+      path_ids: window.__EDGEGLOW_LAB__.edgeFieldPaths.map(path => path.id),
+      render_version: document.documentElement.dataset.renderVersion
+    }));
+    await page.locator("#glowCanvas").evaluate(canvas => canvas.toDataURL("image/png"))
+      .then(data => writeDataUrl("formal-receiving-over-photo-1152x1536.png", data));
+
+    await page.reload({ waitUntil: "networkidle" });
+    await page.waitForFunction(() =>
+      document.querySelector("#sourceStatus")?.dataset.status === "PASS" &&
+      window.__EDGEGLOW_LAB__?.photoDimensions?.[0] === 1152,
+      null,
+      { timeout: 30000 }
+    );
+    await page.evaluate(() => window.__EDGEGLOW_LAB__.render());
+    await page.waitForTimeout(100);
+    const fullData = await page.locator("#glowCanvas").evaluate(canvas => canvas.toDataURL("image/png"));
+    writeDataUrl("formal-static-composite-1152x1536.png", fullData);
+    await page.screenshot({ path: path.join(OUTPUT_DIR, "formal-page-static-390x844.png") });
+
+    return {
+      page_url: new URL(ACCEPTANCE_PATH, SITE_BASE).href,
+      renderer_function: "drawReceivingLight(ctx) -> compositePhotoEdge(bufferContext, inset, source-over)",
+      capture_method: "actual detached alpha edgeLayer cloned at its 9-argument drawImage into the photo-sized browser compositor while only Receiving Light was enabled",
+      browser_viewport: build.browser_viewport,
+      photo_sha256: build.photo_sha,
+      photo_dimensions: build.photo_dimensions,
+      build: build.build,
+      page_build_stamp: build.page_build_stamp,
+      loaded_script_url: build.script_url,
+      loaded_script_attribute: build.script_attribute,
+      loaded_script_source_sha256: loadedScriptSha,
+      isolated_layer: isolated.alpha,
+      isolated_capture_geometry: { source_size: isolated.source_size, source_rect: isolated.source_rect, destination_rect: isolated.destination_rect },
+      receiving_only_state: receivingOnlyState,
+      default_static_state: "reloaded page defaults, preset Enhanced, all configured layers enabled",
+      rendered_files: [
+        "formal-receiving-light-only-1152x1536.png",
+        "formal-receiving-over-photo-1152x1536.png",
+        "formal-static-composite-1152x1536.png",
+        "formal-page-static-390x844.png"
+      ],
+      browser_errors: errors
+    };
+  } finally {
+    await page.close().catch(() => {});
+  }
+}
+
 async function mainReceivingRecoveryR01() {
   fs.rmSync(OUTPUT_DIR, { recursive: true, force: true });
   fs.mkdirSync(OUTPUT_DIR, { recursive: true });
@@ -618,6 +757,7 @@ async function mainReceivingRecoveryR01() {
   const browser = await chromium.launch({ headless: true, args: ["--no-sandbox"] });
   const errors = [];
   try {
+    const formalEvidence = await captureFormalReceivingRenderer(browser, fixture);
     const page = await browser.newPage({ viewport: { width: 1440, height: 1100 }, deviceScaleFactor: 1 });
     page.on("pageerror", error => errors.push(error.message));
     page.on("console", message => { if (message.type() === "error") errors.push(message.text()); });
@@ -693,6 +833,11 @@ async function mainReceivingRecoveryR01() {
       assert.ok(bytes.subarray(0,8).equals(Buffer.from([137,80,78,71,13,10,26,10])), file + " must be a real browser PNG");
       return {file,bytes:bytes.length,sha256:sha256(bytes)};
     });
+    const formalRendered = formalEvidence.rendered_files.map(file => {
+      const bytes = fs.readFileSync(path.join(OUTPUT_DIR, file));
+      assert.ok(bytes.subarray(0,8).equals(Buffer.from([137,80,78,71,13,10,26,10])), file + " must be a real browser PNG");
+      return {file, bytes:bytes.length, sha256:sha256(bytes)};
+    });
     const fieldParams = geometry.receiving_fields.map(field => ({
       id:field.id,family:field.family,
       path_id:config.p1_edge_field.paths.find(path=>path.island===field.id)?.id||null,
@@ -721,6 +866,7 @@ async function mainReceivingRecoveryR01() {
       },
       receiving_fields:fieldParams,
       alpha_stops:optics.alphaStops,
+      formal_renderer_capture:formalEvidence,
       palette_authority:"Existing P1 blue/gold tokens; unchanged",
       paths_authority:"Existing P1 seven paths and Quiet Gaps; unchanged",
       inherited_geometry_evidence:{
@@ -747,6 +893,8 @@ async function mainReceivingRecoveryR01() {
       inherited_geometry_evidence:parameterJson.inherited_geometry_evidence,
       receiving_layer_alpha_integrity:isolatedAlpha,
       rendered_pngs:rendered,
+      formal_renderer:formalEvidence,
+      formal_rendered_pngs:formalRendered,
       parameters_file:"receiving-light-recovery-r01-parameters.json",
       parameters_sha256:sha256(parameterBytes),
       constraints:{
@@ -760,8 +908,8 @@ async function mainReceivingRecoveryR01() {
     const gallery='<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Receiving Light 静态恢复 R01</title><style>body{font:15px/1.45 system-ui,sans-serif;background:#101b20;color:#eaf3f5;margin:0 auto;padding:22px;max-width:1180px}a{color:#9edbe8}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}figure{margin:0}img{width:100%;height:auto;background:#162329;border:1px solid #38535c;border-radius:8px}figcaption{font-size:13px;padding:5px 0;color:#b5c9ce}code{overflow-wrap:anywhere}</style><h1>Receiving Light 定向修复 R01</h1><p>REVIEW_REQUIRED · Web 静态候选 · source SHA <code>'+SOURCE_SHA+'</code> · IMAGE_RECOGNIZING · 390×844</p><p><a href="./receiving-light-recovery-r01-parameters.json">参数 JSON</a> · <a href="./receiving-light-recovery-r01-test-report.json">浏览器测试报告</a></p><div class="grid">'+figures+'</div></html>';
     fs.writeFileSync(path.join(OUTPUT_DIR,"index.html"),gallery);
     if(PUBLIC_DIR)fs.cpSync(OUTPUT_DIR,PUBLIC_DIR,{recursive:true});
-    assert.equal(fs.readdirSync(OUTPUT_DIR).filter(file=>file.endsWith(".png")).length,4,"R01 mode must output exactly four PNGs");
-    console.log(JSON.stringify({result:"PASS_TARGETED_BROWSER_RENDER_ONLY",visual_status:"REVIEW_REQUIRED",source_sha:SOURCE_SHA,output_dir:OUTPUT_DIR,public_dir:PUBLIC_DIR,pngs:rendered},null,2));
+    assert.equal(fs.readdirSync(OUTPUT_DIR).filter(file=>file.endsWith(".png")).length,8,"R01 mode must output four R01 and four formal-renderer browser PNGs");
+    console.log(JSON.stringify({result:"PASS_TARGETED_BROWSER_RENDER_ONLY",visual_status:"REVIEW_REQUIRED",source_sha:SOURCE_SHA,output_dir:OUTPUT_DIR,public_dir:PUBLIC_DIR,r01_pngs:rendered,formal_pngs:formalRendered},null,2));
   } finally {
     await browser.close();
   }
