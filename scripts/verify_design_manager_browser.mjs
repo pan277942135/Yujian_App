@@ -205,6 +205,7 @@ async function main() {
   await previewPage.waitForFunction(
     () => [...document.querySelectorAll(".responsive-frame")].every(frame =>
       frame.contentWindow?.NH01GeminiPreviewLayoutReady === true),
+    undefined,
     { timeout: 15000 },
   );
   const typographyByViewport = {};
