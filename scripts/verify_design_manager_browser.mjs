@@ -225,6 +225,36 @@ async function main() {
     `Gemini canvas screenshot must use the default 360x640 logical profile: ${JSON.stringify(canvasLayout)}`);
   assert(Math.abs(canvasLayout.card_width_dp - 220) <= 1 && Math.abs(canvasLayout.card_height_dp - 261) <= 1,
     `Gemini preview card geometry must match the API28 360x640 runtime bounds (220×261dp): ${JSON.stringify(canvasLayout)}`);
+  const canvasBounds = await canvasPage.evaluate(() => {
+    const selectors = {
+      brand: "#assetBrand", header: ".header-bar", stats: ".stats-bar",
+      sectionTitle: ".section-title", middle: "#middleSection", carousel: "#carouselWindow",
+      mainCard: ".main-card", footer: "#footerSection", ctaLabel: ".cta-label", cameraButton: "#cameraButton"
+    };
+    const result = {};
+    for (const [key, selector] of Object.entries(selectors)) {
+      const node = document.querySelector(selector);
+      if (!node) { result[key] = null; continue; }
+      const rect = node.getBoundingClientRect();
+      result[key] = {
+        left: Number(rect.left.toFixed(2)), top: Number(rect.top.toFixed(2)),
+        right: Number(rect.right.toFixed(2)), bottom: Number(rect.bottom.toFixed(2)),
+        width: Number(rect.width.toFixed(2)), height: Number(rect.height.toFixed(2))
+      };
+    }
+    return result;
+  });
+  for (const [key, expected] of Object.entries({
+    mainCard: { left: 70, top: 200, width: 220, height: 261 },
+    sectionTitle: { top: 164, height: 24 },
+    footer: { top: 477, height: 115 },
+    ctaLabel: { top: 481, height: 18 },
+    cameraButton: { top: 510, width: 72, height: 72 }
+  })) {
+    const actual = canvasBounds[key];
+    assert(actual && Object.entries(expected).every(([field, value]) => Math.abs(actual[field] - value) <= 2),
+      `Gemini preview ${key} bounds differ from recorded API28 runtime geometry: expected ${JSON.stringify(expected)}, actual ${JSON.stringify(actual)}`);
+  }
   const canvasPath = resolve(args.outputDir, "nh01-gemini-native-structure-1080x1920.png");
   await canvasPage.screenshot({ path: canvasPath, fullPage: false, scale: "device" });
   const canvasPng = readFileSync(canvasPath);
@@ -355,7 +385,7 @@ async function main() {
     overview: overviewImageInfo,
     review: reviewImage,
     checks: ["direct Hash", "refresh", "back/forward", "modal zoom/fit/Esc/focus restore", "missing authority no fake UI", "invalid route guard", "no HTTP errors", "no console/page errors"],
-    gemini_native_preview: { build_sha: previewBuild, asset_audit: previewAudit, default_layout: defaultLayout, viewports: previewViewportResults, canvas_layout: canvasLayout, canvas_screenshot: "nh01-gemini-native-structure-1080x1920.png", canvas_dimensions_px: [1080, 1920], release_gate_effect: "NONE" },
+    gemini_native_preview: { build_sha: previewBuild, asset_audit: previewAudit, default_layout: defaultLayout, viewports: previewViewportResults, canvas_layout: canvasLayout, canvas_bounds_dp: canvasBounds, canvas_bounds_px: Object.fromEntries(Object.entries(canvasBounds).map(([key, box]) => [key, box && Object.fromEntries(Object.entries(box).map(([field, value]) => [field, Number((value * 3).toFixed(2))]))])), canvas_screenshot: "nh01-gemini-native-structure-1080x1920.png", canvas_dimensions_px: [1080, 1920], release_gate_effect: "NONE" },
     screenshots: ["desktop-1440.png", "tablet-768.png", "mobile-390.png", "lightbox-1440.png", "overview-1440.png", "nh01-gemini-native-preview-desktop.png", "nh01-gemini-native-structure-1080x1920.png"],
     errors,
     bad_responses: badResponses,
