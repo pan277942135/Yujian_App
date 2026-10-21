@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" color="#0B2D4B" role="img" aria-labelledby="title">
+  <title id="title">语音</title>
+  <!-- YuJian ic_voice V0.1 CANDIDATE — NOT FROZEN. 24x24 SVG, 1.75 stroke, currentColor. -->
+  <!-- Microphone and open acoustic pickup arc distinguish voice from playback and video. -->
+  <rect x="9.45" y="3.3" width="5.1" height="10.1" rx="2.55" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M6.95 10.85V11.45C6.95 14.34 9.15 16.65 12 16.65C14.85 16.65 17.05 14.34 17.05 11.45V10.85" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M12 16.65V20.45M9.15 20.45H14.85" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

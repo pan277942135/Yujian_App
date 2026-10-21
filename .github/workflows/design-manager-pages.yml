@@ -4,8 +4,12 @@ on:
   push:
     branches:
       - main
+      - ops/pages-recovery-nh01-preview-20261021
     paths:
       - "design/**"
+      - "previews/**"
+      - "release/design_manager/**"
+      - "scripts/verify_nh01_pr_preview_live.mjs"
       - "scripts/verify_design_manager_navigation.py"
       - "scripts/verify_design_manager_hifi_release.py"
       - "scripts/verify_design_manager_browser.mjs"
@@ -89,11 +93,18 @@ jobs:
           rm -rf _site
           mkdir -p _site
           cp -R design _site/design
+          if [ -d previews ]; then cp -R previews _site/previews; fi
           BUILD_SHORT="${BUILD_SHA:0:12}"
           sed -i "s/__DESIGN_MANAGER_BUILD__/${BUILD_SHA}/g" _site/design/manager/index.html
           sed -i "s/__DESIGN_MANAGER_BUILD_SHORT__/${BUILD_SHORT}/g" _site/design/manager/index.html
           sed -i "s/__NH01_SOURCE_SHA__/${BUILD_SHA}/g" _site/design/manager/nh01_acceptance/index.html
           sed -i "s/__NH01_VIEWER_BUILD__/${BUILD_SHA}/g" _site/design/manager/nh01_acceptance/index.html
+          if [ -f _site/previews/pr-176/index.html ]; then
+            sed -i "s/__NH01_PREVIEW_BUILD__/${BUILD_SHA}/g" _site/previews/pr-176/index.html
+          fi
+          if [ -f _site/previews/pr-176/design/manager/nh01_acceptance/gemini-native-preview.html ]; then
+            sed -i "s/__NH01_GEMINI_PREVIEW_BUILD__/${BUILD_SHA}/g" _site/previews/pr-176/design/manager/nh01_acceptance/gemini-native-preview.html
+          fi
           printf '{"sha":"%s","short_sha":"%s"}\n' "${BUILD_SHA}" "${BUILD_SHORT}" > _site/design/manager/build.json
           touch _site/.nojekyll
           cat > _site/index.html <<'EOF'
@@ -113,6 +124,16 @@ jobs:
 
       - name: Verify Design Manager navigation artifact
         run: python3 scripts/verify_design_manager_navigation.py --site _site --expected-build "${BUILD_SHA}"
+
+      - name: Verify NH01 PR preview routes and interactions
+        shell: bash
+        run: |
+          set -euo pipefail
+          PLAYWRIGHT_MODULE_DIR="$RUNNER_TEMP/dm-playwright/node_modules" \
+            node scripts/verify_nh01_pr_preview_live.mjs \
+              --root _site \
+              --expected-build "${BUILD_SHA}" \
+              --output "$RUNNER_TEMP/nh01-pr-preview-build-report.json"
 
       - name: Verify hi-fi Pages artifact
         run: python3 scripts/verify_design_manager_hifi_release.py --site _site --expected-build "${BUILD_SHA}"
@@ -246,6 +267,16 @@ jobs:
               --url "${{ steps.deployment.outputs.page_url }}" \
               --expected-build "${BUILD_SHA}" \
               --output-dir "$RUNNER_TEMP/dm-live-evidence/browser"
+
+      - name: Verify live NH01 PR preview routes and interactions
+        shell: bash
+        run: |
+          set -euo pipefail
+          PLAYWRIGHT_MODULE_DIR="$RUNNER_TEMP/dm-playwright/node_modules" \
+            node scripts/verify_nh01_pr_preview_live.mjs \
+              --url "${{ steps.deployment.outputs.page_url }}" \
+              --expected-build "${BUILD_SHA}" \
+              --output "$RUNNER_TEMP/dm-live-evidence/nh01-pr-preview-verification.json"
 
       - name: Upload live release evidence
         uses: actions/upload-artifact@v4

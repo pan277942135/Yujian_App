@@ -1,0 +1,41 @@
+{
+  "version": "1.0",
+  "reference_canvas": "1080x1920",
+  "roles": {
+    "BRAND": {
+      "usage": [
+        "logo",
+        "emotional hero copy"
+      ],
+      "note": "calligraphic/brand only"
+    },
+    "DISPLAY": {
+      "usage": [
+        "page title",
+        "section title",
+        "species title"
+      ],
+      "sizes_px": {
+        "XL": "52-60",
+        "L": "42-48",
+        "M": "32-38"
+      },
+      "note": "editorial/natural archive character; avoid heavy weight"
+    },
+    "UI": {
+      "usage": [
+        "metadata",
+        "measurements",
+        "buttons",
+        "utility text"
+      ],
+      "sizes_px": {
+        "L": "30-34",
+        "M": "26-30",
+        "S": "22-26",
+        "XS": "18-22"
+      },
+      "note": "neutral and readable"
+    }
+  }
+}

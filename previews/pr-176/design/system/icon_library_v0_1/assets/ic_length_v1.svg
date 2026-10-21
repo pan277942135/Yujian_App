@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" color="#0B2D4B" role="img" aria-labelledby="title">
+  <title id="title">长度</title>
+  <!-- YuJian shared icon candidate V0.1: optical 24-unit master; no baked background -->
+  <rect x="2.75" y="7.25" width="18.5" height="9.5" rx="1.8" stroke="currentColor" stroke-width="1.75"/>
+  <path d="M6.1 7.25v4.2M9.05 7.25v2.55M12 7.25v4.2M14.95 7.25v2.55M17.9 7.25v4.2" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:yujian:nh01:pr164-node-mapping-v2",
+  "title": "Imported M1 NH01 Figma Node Mapping V2",
+  "type": "object",
+  "required": ["schema", "taskId", "status", "canonicalSourceSha", "figma", "frozenAuthority", "structuralAudit", "components", "nodeToCompose", "tokens", "assets", "visualComparison", "conflicts"],
+  "properties": {
+    "schema": { "const": "M1_NH01_FIGMA_NODE_MAPPING_V2" },
+    "taskId": { "const": "M1_NH01_FIGMA_STRUCTURAL_HANDOFF_V2" },
+    "status": { "enum": ["REVIEW_REQUIRED", "PASS", "BLOCKED"] },
+    "canonicalSourceSha": { "type": "string", "minLength": 40 },
+    "figma": { "type": "object", "required": ["fileKey", "url", "page", "mainFrame", "responsiveFrame"] },
+    "frozenAuthority": { "type": "object", "required": ["path", "width", "height", "sha256"] },
+    "structuralAudit": { "type": "object", "required": ["topLevelGroups", "nativeTextNodeCount", "imageFillCount", "frameSizePass", "verifiedGeometryAnchors"] },
+    "components": { "type": "array" },
+    "nodeToCompose": { "type": "array", "minItems": 6 },
+    "tokens": { "type": "object" },
+    "assets": { "type": "array", "minItems": 5 },
+    "visualComparison": { "type": "object" },
+    "conflicts": { "type": "array" }
+  },
+  "additionalProperties": true
+}

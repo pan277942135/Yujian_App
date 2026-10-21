@@ -1,0 +1,87 @@
+{
+  "version": "1.0",
+  "status": "PASS",
+  "scope": "This validation confirms that the frozen references, tokens, component map, page-asset map, and page contracts are sufficient to guide a future adaptive implementation. It does not claim a new pixel rendering or alter a frozen PNG.",
+  "required_inputs": [
+    "reference/reference_manifest.json",
+    "tokens/",
+    "validation/component_map.json",
+    "validation/page_asset_map.json",
+    "validation/shared_asset_manifest.json",
+    "design/pages/"
+  ],
+  "pages": [
+    {
+      "page_id": "empty_home_v2",
+      "status": "PASS",
+      "component_hierarchy": "PASS",
+      "spacing": "PASS",
+      "radius": "PASS",
+      "glass_level": "PASS",
+      "background_level": "PASS: BG_ENV_HERO",
+      "hero_relation": "NOT_APPLICABLE: brand/environment baseline has no catch hero",
+      "camera_button": "PASS: YuJianPrimaryCaptureButton",
+      "gold_usage": "PASS: brand/capture rim only"
+    },
+    {
+      "page_id": "normal_home_v1",
+      "status": "PASS",
+      "component_hierarchy": "PASS",
+      "spacing": "PASS",
+      "radius": "PASS",
+      "glass_level": "PASS",
+      "background_level": "PASS: BG_ENV_HERO",
+      "hero_relation": "PASS: YuJianCatchHeroCard HOME, real catch before statistics",
+      "camera_button": "PASS: YuJianPrimaryCaptureButton",
+      "gold_usage": "PASS: restrained meaningful accent"
+    },
+    {
+      "page_id": "recognition_result_v1",
+      "status": "PASS",
+      "component_hierarchy": "PASS",
+      "spacing": "PASS",
+      "radius": "PASS",
+      "glass_level": "PASS: GLASS_A/GLASS_C",
+      "background_level": "PASS: BG_CONTENT",
+      "hero_relation": "PASS: current capture leads the confirmation form",
+      "camera_button": "NOT_APPLICABLE: no primary capture entry on this page",
+      "gold_usage": "PASS: no generic action emphasis"
+    },
+    {
+      "page_id": "fish_record_detail_v2",
+      "status": "PASS",
+      "component_hierarchy": "PASS",
+      "spacing": "PASS: scroll before compression",
+      "radius": "PASS",
+      "glass_level": "PASS: GLASS_A/GLASS_B/GLASS_C",
+      "background_level": "PASS: BG_CONTENT",
+      "hero_relation": "PASS: YuJianCatchHeroCard DETAIL, record media above metadata",
+      "camera_button": "NOT_APPLICABLE: no primary capture entry on this page",
+      "gold_usage": "PASS: meaningful-record accent only"
+    },
+    {
+      "page_id": "my_catches_v2",
+      "status": "PASS",
+      "component_hierarchy": "PASS: TopNavigation, timeline, FishRecordRowCard, capture entry",
+      "spacing": "PASS: chronological grouping remains scrollable",
+      "radius": "PASS",
+      "glass_level": "PASS: restrained archive surfaces",
+      "background_level": "PASS: BG_DATA",
+      "hero_relation": "NOT_APPLICABLE: chronological archive uses row cards, not a hero",
+      "camera_button": "PASS: YuJianPrimaryCaptureButton",
+      "gold_usage": "PASS: low-weight meaningful annotations only"
+    },
+    {
+      "page_id": "fish_guide_v2",
+      "status": "PASS",
+      "component_hierarchy": "PASS: TopNavigation, FishGuideCard carousel, archive metadata",
+      "spacing": "PASS",
+      "radius": "PASS",
+      "glass_level": "PASS: restrained card surfaces",
+      "background_level": "PASS: BG_DATA",
+      "hero_relation": "PASS: one central FishGuideCard maintains a single focus",
+      "camera_button": "NOT_APPLICABLE: no primary capture entry on this page",
+      "gold_usage": "PASS: restrained field-guide detail, not a reward treatment"
+    }
+  ]
+}
