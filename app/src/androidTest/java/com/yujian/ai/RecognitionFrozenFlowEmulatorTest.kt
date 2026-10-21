@@ -706,24 +706,26 @@ class RecognitionFrozenFlowEmulatorTest {
             composeRule.waitForIdle()
             val settled = runCatching {
                 composeRule.waitUntil(timeoutMillis = 10_000L) {
-                    val reason = geometryResolution.get()?.failureReason
-                    composeRule.onAllNodesWithTag(
-                        "recognition-reveal-geometry-ready",
-                        useUnmergedTree = true,
-                    ).fetchSemanticsNodes().isNotEmpty() ||
-                        (reason != null && !reason.endsWith("_PENDING"))
+                    val resolution = geometryResolution.get()
+                    resolution?.geometry != null ||
+                        (resolution?.failureReason?.let { reason ->
+                            !reason.endsWith("_PENDING")
+                        } == true)
                 }
             }.isSuccess
-            val geometryReady = composeRule.onAllNodesWithTag(
-                "recognition-reveal-geometry-ready",
+            val resolution = geometryResolution.get()
+            val geometryReady = resolution?.geometry != null
+            val opticsVisible = composeRule.onAllNodesWithTag(
+                "recognition-reveal-optics",
                 useUnmergedTree = true,
             ).fetchSemanticsNodes().isNotEmpty()
             assertTrue(
-                "RR09 reveal geometry rejected: ${geometryResolution.get()?.failureReason ?: "layout inputs pending"}; " +
+                "RR09 reveal geometry rejected: resolution=${resolution?.let { "geometry=${it.geometry != null},reason=${it.failureReason ?: "none"}" } ?: "not reported"}; " +
                     "hero=${composeRule.onAllNodesWithTag("recognition-result-hero").fetchSemanticsNodes().size}, " +
                     "title=${composeRule.onAllNodesWithTag("recognition-result-species").fetchSemanticsNodes().size}, " +
-                    "optics=${composeRule.onAllNodesWithTag("recognition-reveal-optics").fetchSemanticsNodes().size}",
-                settled && geometryReady,
+                    "optics=$opticsVisible, " +
+                    "geometryTag=${composeRule.onAllNodesWithTag("recognition-reveal-geometry-ready", useUnmergedTree = true).fetchSemanticsNodes().size}",
+                settled && geometryReady && opticsVisible,
             )
         }
         assertRevealGeometryResolved()
