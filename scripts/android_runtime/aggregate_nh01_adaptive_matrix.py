@@ -327,7 +327,12 @@ def main() -> int:
                                "bounds_in_window_px": payload.get("bounds_in_window_px"),
                                "bounds_after_swipe_in_window_px": payload.get("bounds_after_swipe_in_window_px"),
                                "screenshot": payload.get("screenshots", {}).get("initial")})
+            data_metrics = payload.get("data", {})
             metric_rows.append({"profile": profile, "layout_variant": variant_name, **payload.get("metrics", {}),
+                                "required_card_text_accessible": data_metrics.get("required_card_text_accessible"),
+                                "required_card_text_no_visual_overflow": data_metrics.get("required_card_text_no_visual_overflow"),
+                                "middle_scroll_enabled": data_metrics.get("middle_scroll_enabled"),
+                                "catch_ids_unique": data_metrics.get("unique_catch_count") == 2,
                                 "card_width_fraction": 0.70 if variant_name == "ADAPTIVE_V2" else 0.686,
                                 "card_aspect_ratio_target": 247 / 293, "status": status})
         if candidate is not None:
