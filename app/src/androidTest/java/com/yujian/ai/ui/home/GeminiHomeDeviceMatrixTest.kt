@@ -72,7 +72,7 @@ class GeminiHomeDeviceMatrixTest {
             activeCaseOutput = runCatching {
                 File(
                     requireNotNull(InstrumentationRegistry.getInstrumentation().targetContext.getExternalFilesDir(null)),
-                    "nh01-adaptive-visual-balance-v1",
+                    "nh01-adaptive-visual-balance-v2",
                 ).apply { mkdirs() }
             }.getOrNull()
             caseReportFile()?.delete()
@@ -119,7 +119,7 @@ class GeminiHomeDeviceMatrixTest {
             args.getString("layout_variant") ?: GeminiHomeLayoutVariant.ADAPTIVE_V2.name,
         )
         val targetContext = InstrumentationRegistry.getInstrumentation().targetContext
-        val output = File(requireNotNull(targetContext.getExternalFilesDir(null)), "nh01-adaptive-visual-balance-v1")
+        val output = File(requireNotNull(targetContext.getExternalFilesDir(null)), "nh01-adaptive-visual-balance-v2")
             .apply { mkdirs() }
         val photo = File(targetContext.cacheDir, "nh01-adaptive-two-catch-fixture.jpg").apply {
             targetContext.assets.open("home_normal/fish_record/sample_recent_catch.jpg").use { input ->
