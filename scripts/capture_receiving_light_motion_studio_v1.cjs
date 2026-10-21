@@ -132,6 +132,7 @@ async function main() {
   assert((await page.locator("#photoDigest").innerText()).includes("SHA-256 MATCH"), "registered photo hash must match in the browser");
   assert(await page.locator("#imageLoadError").isHidden(), "photo fallback error is visible");
   assert((await page.locator("#rendererVersion").innerText()).includes("edgeglow-receiving-light-svg-v1"), "shared renderer did not initialize");
+  assert(await page.locator("#fishHalo").count() === 1, "fish Halo path ID must be unique from its SVG filter");
   assert(await page.locator("#toggleContour").isChecked(), "review contour control must be enabled by default");
   const browserPhoto = await page.locator("#catchPhoto").evaluate(image => ({
     width: image.naturalWidth,

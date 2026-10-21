@@ -118,7 +118,7 @@
                       <filter id="midBloom" filterUnits="userSpaceOnUse" x="-160" y="-160" width="1472" height="1856">
                         <feGaussianBlur stdDeviation="24"/>
                       </filter>
-                      <filter id="fishHalo" filterUnits="userSpaceOnUse" x="-120" y="-120" width="1392" height="1776">
+                      <filter id="fishHaloBlur" filterUnits="userSpaceOnUse" x="-120" y="-120" width="1392" height="1776">
                         <feGaussianBlur stdDeviation="22"/>
                       </filter>
                       <filter id="transferBlur" filterUnits="userSpaceOnUse" x="-420" y="-400" width="1992" height="2336">
@@ -130,7 +130,7 @@
                       <ellipse id="transferWash" cx="120" cy="890" rx="270" ry="210" fill="url(#transferGradient)" filter="url(#transferBlur)" opacity="0"/>
                     </g>
                     <g id="fishFocus" clip-path="url(#photoClip)" aria-hidden="true">
-                      <path id="fishHalo" fill="none" stroke="#f4d17a" stroke-width="48" stroke-linecap="round" stroke-linejoin="round" filter="url(#fishHalo)" opacity="0"/>
+                      <path id="fishHalo" fill="none" stroke="#f4d17a" stroke-width="48" stroke-linecap="round" stroke-linejoin="round" filter="url(#fishHaloBlur)" opacity="0"/>
                       <path id="fishMid" fill="none" stroke="#f2cf75" stroke-width="19" stroke-linecap="round" stroke-linejoin="round" filter="url(#midBloom)" opacity="0"/>
                       <path id="fishCore" fill="none" stroke="#fff0bc" stroke-width="4.8" stroke-linecap="round" stroke-linejoin="round" opacity="0"/>
                     </g>
