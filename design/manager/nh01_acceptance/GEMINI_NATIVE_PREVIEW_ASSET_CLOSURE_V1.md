@@ -6,8 +6,8 @@ This page is a GitHub-native static preview of the checked-in Gemini Native V3 s
 
 - The approved Morning Lake background, registered brand artwork, Gemini V3 avatar fallback and complete camera artwork load from the repository.
 - Their downloaded bytes are SHA-256 checked against the asset binding manifest.
-- The page renders the Gemini Top / Middle / Footer structure with responsive viewport presets and a font-scale diagnostic control.
-- A 1080×1920 Chromium screenshot is emitted as a CI artifact from a 360×640 CSS viewport at device scale factor 3.
+- The page renders the Gemini Top / Middle / Footer structure using the checked-in `GeminiHomeAdaptiveLayoutPolicy.kt` geometry formulas, including safe insets, card-height constraints and the `ADAPTIVE_V1` / `V3_BASELINE` comparison selector.
+- A 1080×1920 Chromium screenshot is emitted as a CI artifact from a 360×640 CSS viewport at device scale factor 3. The screenshot simulates 24dp top / 48dp bottom safe insets; Android system status/navigation glyphs are not drawn.
 
 ## What it deliberately does not claim
 
