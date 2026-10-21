@@ -12,12 +12,32 @@ gate_before_instrumentation() {
   "$YUJIAN_ADB_BIN" logcat -c >/dev/null 2>&1 || true
 }
 
+gemini_v2_pull_compose_evidence() {
+  local target="$1" log="$2"
+  local external="/sdcard/Android/data/$YUJIAN_APP_PACKAGE/files/nh01-gemini-v3"
+  local subdir
+  mkdir -p "$target" "$(dirname "$log")"
+  : > "$log"
+  # Remove the old whole-root pull shape so stale nested files cannot satisfy validation.
+  rm -rf "$target/nh01-gemini-v3" "$target/compose-simulation" "$target/avatar"
+  for subdir in compose-simulation avatar; do
+    printf 'remote=%s/%s\nlocal_parent=%s\n' "$external" "$subdir" "$target" >> "$log"
+    if ! "$YUJIAN_ADB_BIN" pull "$external/$subdir" "$target" >> "$log" 2>&1; then
+      printf 'pull_failed=%s\n' "$subdir" >> "$log"
+      return 1
+    fi
+    if [[ ! -d "$target/$subdir" ]]; then
+      printf 'expected_directory_missing=%s/%s\n' "$target" "$subdir" >> "$log"
+      return 1
+    fi
+  done
+}
+
 gate_after_instrumentation() {
   local output="$YUJIAN_EVIDENCE_DIR/compose-simulation"
-  local external="/sdcard/Android/data/$YUJIAN_APP_PACKAGE/files/nh01-gemini-v3"
+  local log="$YUJIAN_EVIDENCE_DIR/android-device/compose_evidence_pull_after_instrumentation.log"
   mkdir -p "$output" "$YUJIAN_EVIDENCE_DIR/android-device"
-  "$YUJIAN_ADB_BIN" pull "$external" "$output" \
-    > "$YUJIAN_EVIDENCE_DIR/android-device/compose_evidence_pull_after_instrumentation.log" 2>&1 || true
+  gemini_v2_pull_compose_evidence "$output" "$log"
 }
 
 gemini_v2_run_seed() {
@@ -62,6 +82,54 @@ PY
         sleep 1
       done
     fi
+    sleep 1
+  done
+  return 1
+}
+
+gemini_v2_verify_display_profile() {
+  local expected_size="$1" output="$2" wm_size physical_size override_size logical_size attempt screenshot
+  screenshot="$output/display_profile_"$expected_size".png"
+  local profile_log="$output/display_profile_"$expected_size".log"
+  wm_size="$("$YUJIAN_ADB_BIN" shell wm size 2>&1 | tr -d '\r' || true)"
+  physical_size="$(sed -n 's/^Physical size: //p' <<< "$wm_size" | head -n 1)"
+  override_size="$(sed -n 's/^Override size: //p' <<< "$wm_size" | head -n 1)"
+  logical_size="$physical_size"
+  if [[ -n "$override_size" ]]; then logical_size="$override_size"; fi
+  {
+    printf 'expected_logical_size=%s\n' "$expected_size"
+    printf 'physical_size=%s\n' "$physical_size"
+    if [[ -n "$override_size" ]]; then
+      printf 'override_size=%s\n' "$override_size"
+    else
+      printf 'override_size=NONE\n'
+    fi
+    printf 'logical_size=%s\n' "$logical_size"
+    printf 'reported_wm_size=%s\n' "$wm_size"
+  } > "$profile_log"
+  if [[ -z "$physical_size" || "$logical_size" != "$expected_size" ]]; then
+    echo "logical_display_size_mismatch=true" >> "$profile_log"
+    return 1
+  fi
+  for attempt in $(seq 1 5); do
+    if "$YUJIAN_ADB_BIN" exec-out screencap -p > "$screenshot" 2>> "$profile_log" && \
+       python3 - "$screenshot" "$physical_size" >> "$profile_log" 2>&1 <<'PY'
+from PIL import Image
+import pathlib, sys
+path = pathlib.Path(sys.argv[1])
+with Image.open(path) as image:
+    actual = f"{image.width}x{image.height}"
+expected_physical = sys.argv[2]
+print(f"screencap_size={actual}")
+print(f"expected_physical_size={expected_physical}")
+if actual != expected_physical:
+    print("screencap_physical_size_mismatch=true")
+    raise SystemExit(1)
+PY
+    then
+      return 0
+    fi
+    echo "screencap_attempt=$attempt did not match physical size" >> "$profile_log"
     sleep 1
   done
   return 1
