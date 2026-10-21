@@ -41,7 +41,7 @@ Run both **Adaptive V2** and **V3 Baseline** on the same source SHA:
 - 320×480dp at 1.0× must have no Middle scroll viewport, active-card width at least 145dp, and no excessive blank area below the CTA.
 - Compare all 12 same-profile V3/V2 screenshot pairs and both variants' bounds/metrics before selecting the default. A successful build or browser preview is not visual acceptance.
 
-**No merge, release PASS, or Frozen status is implied by this candidate contract.**
+**No merge or release PASS is implied. The new design target is SPEC_FROZEN V2.2; native Android Runtime remains pending.**
 
 ## Section Spacing V2.2 and scoped current-route overrides
 
