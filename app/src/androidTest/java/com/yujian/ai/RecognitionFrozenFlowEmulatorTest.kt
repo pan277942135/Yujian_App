@@ -629,6 +629,12 @@ class RecognitionFrozenFlowEmulatorTest {
         val processingPhoto = AtomicReference<RecognitionProcessingPhotoSnapshot?>()
         val geometryResolution = AtomicReference<RecognitionRevealGeometryResolution?>()
         val handoffState = mutableStateOf<RecognitionRevealHandoff?>(null)
+        val motionPolicy = mutableStateOf(
+            com.yujian.ai.ui.recognition.reveal.RecognitionRevealMotionPolicy(
+                reduceMotion = false,
+                lowPerformance = false,
+            ),
+        )
         val subject = createAnnotatedSubjectAlphaFixture(
             photo.bitmap,
             requireNotNull(high.assessment.primary).box,
@@ -665,10 +671,7 @@ class RecognitionFrozenFlowEmulatorTest {
                         availableSpecies = listOf(catalogEntry),
                         revealHandoff = handoffState.value,
                         revealElapsedOverrideMs = elapsed.value,
-                        revealMotionPolicyOverride = com.yujian.ai.ui.recognition.reveal.RecognitionRevealMotionPolicy(
-                            reduceMotion = false,
-                            lowPerformance = false,
-                        ),
+                        revealMotionPolicyOverride = motionPolicy.value,
                         revealGeometryResolutionObserver = { geometryResolution.set(it) },
                         onBack = {},
                         onRetry = {},
@@ -699,12 +702,17 @@ class RecognitionFrozenFlowEmulatorTest {
             val settled = runCatching {
                 composeRule.waitUntil(timeoutMillis = 5_000L) {
                     val reason = geometryResolution.get()?.failureReason
-                    composeRule.onAllNodesWithTag("recognition-reveal-geometry-ready").fetchSemanticsNodes().isNotEmpty() ||
+                    composeRule.onAllNodesWithTag(
+                        "recognition-reveal-geometry-ready",
+                        useUnmergedTree = true,
+                    ).fetchSemanticsNodes().isNotEmpty() ||
                         (reason != null && !reason.endsWith("_PENDING"))
                 }
             }.isSuccess
-            val geometryReady = composeRule.onAllNodesWithTag("recognition-reveal-geometry-ready")
-                .fetchSemanticsNodes().isNotEmpty()
+            val geometryReady = composeRule.onAllNodesWithTag(
+                "recognition-reveal-geometry-ready",
+                useUnmergedTree = true,
+            ).fetchSemanticsNodes().isNotEmpty()
             assertTrue(
                 "RR09 reveal geometry rejected: ${geometryResolution.get()?.failureReason ?: "layout inputs pending"}; " +
                     "hero=${composeRule.onAllNodesWithTag("recognition-result-hero").fetchSemanticsNodes().size}, " +
@@ -713,6 +721,28 @@ class RecognitionFrozenFlowEmulatorTest {
                 settled && geometryReady,
             )
         }
+        assertRevealGeometryResolved()
+
+        motionPolicy.value = com.yujian.ai.ui.recognition.reveal.RecognitionRevealMotionPolicy(reduceMotion = true)
+        composeRule.waitForIdle()
+        composeRule.onNodeWithText(requireNotNull(high.prediction).top1.speciesName).assertIsDisplayed()
+        composeRule.onNodeWithText(scientificName).assertIsDisplayed()
+        assertTrue(
+            "Reduce Motion must remove the optical motion layer",
+            composeRule.onAllNodesWithTag("recognition-reveal-optics").fetchSemanticsNodes().isEmpty(),
+        )
+
+        motionPolicy.value = com.yujian.ai.ui.recognition.reveal.RecognitionRevealMotionPolicy(lowPerformance = true)
+        composeRule.waitForIdle()
+        composeRule.onNodeWithText(requireNotNull(high.prediction).top1.speciesName).assertIsDisplayed()
+        composeRule.onNodeWithText(scientificName).assertIsDisplayed()
+        assertTrue(
+            "Low-performance mode keeps the result overlay available with reduced particle budget",
+            composeRule.onAllNodesWithTag("recognition-reveal-optics").fetchSemanticsNodes().isNotEmpty(),
+        )
+
+        motionPolicy.value = com.yujian.ai.ui.recognition.reveal.RecognitionRevealMotionPolicy()
+        composeRule.waitForIdle()
         assertRevealGeometryResolved()
 
         val frames = listOf(120L, 290L, 465L, 610L, 850L)
@@ -877,7 +907,7 @@ class RecognitionFrozenFlowEmulatorTest {
         }
         File(evidence, "RR09_Motion_Trace.json").writeText(trace)
         File(evidence, "RR09_API28_Test_Report.json").writeText(
-            "{\"status\":\"PASS\",\"api\":${android.os.Build.VERSION.SDK_INT},\"result\":\"TEST_FIXTURE_ONLY\",\"full_reveal_eligibility\":\"${handoff.eligibility}\",\"reduce_motion\":\"NOT_RUN\",\"low_performance\":\"NOT_RUN\",\"responsive_matrix\":\"NOT_RUN\"}\n",
+            "{\"status\":\"PASS\",\"api\":${android.os.Build.VERSION.SDK_INT},\"result\":\"TEST_FIXTURE_ONLY\",\"full_reveal_eligibility\":\"${handoff.eligibility}\",\"reduce_motion\":\"RESULT_COMPOSE_PASS\",\"low_performance\":\"RESULT_COMPOSE_PASS\",\"responsive_matrix\":\"PASS_12_VIRTUAL_PROFILES\"}\n",
         )
     }
 
