@@ -357,6 +357,7 @@
     const displayWidth = el.glowCanvas.getBoundingClientRect().width || photo.naturalWidth;
     const reviewOnlyAlphaExperiment = window.__EDGEGLOW_ALPHA_EXPERIMENT__ === true;
     const reviewOnlyRadialFieldExperiment = window.__EDGEGLOW_RADIAL_FIELD_EXPERIMENT__ === true;
+    const reviewOnlyEdgeRibbonExperiment = window.__EDGEGLOW_EDGE_RIBBON_EXPERIMENT__ === true;
     const paths = edgeFieldGeometry.map(geometry => ({
       id: geometry.id,
       family: geometry.family,
@@ -384,6 +385,7 @@
         : renderer.p1AlphaRange[1],
       reviewOnlyAlphaExperiment,
       reviewOnlyRadialFieldExperiment,
+      reviewOnlyEdgeRibbonExperiment,
       depthRatio: 0.18,
       globalMultiplier: params.edgeFieldIntensity / 100,
       dpToCanvasPx: photo.naturalWidth / displayWidth,
