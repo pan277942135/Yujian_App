@@ -351,12 +351,10 @@ def main() -> int:
     }, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     (output / "NH01_LAYOUT_METRICS_V1.json").write_text(json.dumps({
         "schema": "NH01_LAYOUT_METRICS_V1", "source_sha": args.source_sha,
-        "candidate_parameters": {
-            "ADAPTIVE_V2": {"width_fraction": 0.70, "max_width_dp": 337.2, "aspect_ratio": "247:293",
-                            "viewport_font_scale_min": 1.0, "viewport_font_scale_max": 1.2,
-                            "neighbor_width_cap_fraction": 0.82, "compact_if_safe_height_lt_dp": 460},
-            "V3_BASELINE": {"width_fraction": 0.686, "max_width_dp": 337.2, "aspect_ratio": "247:293"},
-        },
+        "candidate_parameters": {"width_fraction": 0.70, "max_width_dp": 337.2, "aspect_ratio": "247:293",
+                                 "viewport_font_scale_min": 1.0, "viewport_font_scale_max": 1.2,
+                                 "neighbor_width_cap_fraction": 0.82, "compact_if_safe_height_lt_dp": 460},
+        "baseline_parameters": {"width_fraction": 0.686, "max_width_dp": 337.2, "aspect_ratio": "247:293"},
         "profiles": metric_rows,
     }, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     (output / "NH01_TWO_CATCH_REGRESSION_V1.json").write_text(json.dumps({
