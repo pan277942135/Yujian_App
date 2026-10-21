@@ -18,7 +18,7 @@ The root defect in V1 was not merely its spacing values. When the measured Middl
 - Compute a conservative readable minimum from the font-scaled text budget: species title, up to two measurement lines, up to two metadata lines, footer padding, and font-metric safety allowance. Bound the minimum to **148–220dp**.
 - If the available Middle space can contain the target card and its header/gaps, center the group vertically. If the readable minimum cannot fit, keep the card at that minimum (unless the viewport itself forces a smaller target) and enable scrolling **inside Middle only**. The Footer remains outside that scroll container.
 - Never shrink text below the system-provided Compose font scale to make the layout appear to fit.
-- Keep the existing safe-drawing inset contract, camera touch target, finite pager identity, and 560dp content-width cap.
+- Keep the existing safe-drawing inset contract, finite pager identity, and 560dp content-width cap. Camera artwork scales from both usable canvas width and height: `min(min(safeWidth, 560dp) × 0.18, safeHeight × 0.10, 80dp)`, with a 56dp visual floor. The camera touch target is `max(72dp, visualSize)`; visible artwork and touch bounds are measured independently.
 
 ## Continuous spacing policy
 
@@ -43,11 +43,11 @@ The existing API 28 device matrix must run V2 and V3 Baseline for the same nine 
 - 320 × 640dp, 393 × 852dp, 411 × 915dp
 - System font scale 1.0×, 1.3×, 1.5×
 
-For each exact source SHA, preserve full-screen PNGs, `boundsInWindow`, actual density/resolution, observed font scale, card ratio/target-vs-measured size, scrollability, footer visibility, camera touch bounds, and two-catch pager identity evidence.
+For each exact source SHA, preserve full-screen PNGs, `boundsInWindow`, actual density/resolution, observed font scale, card ratio/target-vs-measured size, scrollability, footer visibility, camera touch bounds and separate visible-art bounds, and two-catch pager identity evidence.
 
 ## Acceptance gates
 
-- No CTA/camera overlap; camera target remains at least 48dp.
+- No CTA/camera overlap; camera target remains at least 72dp. Visible camera artwork matches the width/height-aware size policy within 2dp and increases across the compact, phone, tall-phone and wide-canvas profiles until the 80dp cap.
 - Footer stays outside the Middle scroll viewport and above the actual bottom safe inset.
 - Card ratio remains within 1% of 247:293; measured width never exceeds the V2 target.
 - When the minimum readable card does not fit, V2 reports/uses Middle scrolling instead of reverting to the oversized desired height.
