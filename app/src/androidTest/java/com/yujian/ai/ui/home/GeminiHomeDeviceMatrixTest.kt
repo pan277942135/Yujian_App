@@ -176,7 +176,8 @@ class GeminiHomeDeviceMatrixTest {
                 layoutVariant = variant,
             )
         }
-        compose.waitForIdle()
+        // The production HomeMotionState advances continuously by design. The
+        // runtime gate waits for concrete semantics below instead of waiting for idle.
         completeStep("PRODUCTION_HOME_SCREEN_COMPOSED")
 
         beginStep("WAIT_FOR_MAIN_CATCH_CARD")
@@ -184,7 +185,6 @@ class GeminiHomeDeviceMatrixTest {
             compose.onAllNodesWithTag("gemini-home-catch-card-nh01-catch-001", useUnmergedTree = true)
                 .fetchSemanticsNodes().isNotEmpty()
         }
-        compose.waitForIdle()
         completeStep("MAIN_CATCH_CARD_COMPOSED")
 
         beginStep("WAIT_FOR_FISH_PHOTO_RENDER")
@@ -192,7 +192,6 @@ class GeminiHomeDeviceMatrixTest {
             compose.onAllNodesWithTag("home-evidence-backdrop-ready", useUnmergedTree = true)
                 .fetchSemanticsNodes().isNotEmpty()
         }
-        compose.waitForIdle()
         completeStep("FISH_PHOTO_RENDERED")
         compose.mainClock.autoAdvance = false
 
@@ -407,9 +406,22 @@ class GeminiHomeDeviceMatrixTest {
         beginStep("VERIFY_HORIZONTAL_SWIPE_TO_SECOND_REAL_CATCH")
         compose.onNodeWithTag("gemini-home-catch-pager", useUnmergedTree = true).performTouchInput { swipeLeft() }
         advanceFramesUntil(8_000) {
-            compose.onNodeWithTag("gemini-home-catch-pager", useUnmergedTree = true)
-                .fetchSemanticsNode().config[androidx.compose.ui.semantics.SemanticsProperties.StateDescription]
-                .contains("nh01-catch-002")
+            val pageIsSecondCatch = runCatching {
+                compose.onNodeWithTag("gemini-home-catch-pager", useUnmergedTree = true)
+                    .fetchSemanticsNode().config[androidx.compose.ui.semantics.SemanticsProperties.StateDescription]
+                    .contains("nh01-catch-002")
+            }.getOrDefault(false)
+            if (!pageIsSecondCatch) {
+                false
+            } else {
+                // currentPage changes near the midpoint of the pager animation.
+                // Wait for the second card to settle at the track center before asserting visibility.
+                runCatching {
+                    val active = rect("gemini-home-catch-card-nh01-catch-002").toDp(profile.density)
+                    val track = rect("gemini-home-carousel-track").toDp(profile.density)
+                    abs(active.centerX() - track.centerX()) <= 2f
+                }.getOrDefault(false)
+            }
         }
         assertSingleNode("gemini-home-catch-card-nh01-catch-002")
         assertSingleNode("gemini-home-catch-neighbor-nh01-catch-001")
@@ -681,7 +693,9 @@ class GeminiHomeDeviceMatrixTest {
         repeat(frames.toInt()) {
             if (condition()) return
             compose.mainClock.advanceTimeByFrame()
-            compose.waitForIdle()
+            // The production HomeMotionState intentionally ticks every frame.
+            // Do not wait for idle while the frame clock is running.
+            Thread.sleep(16L)
         }
         assertTrue("Compose animation did not settle before timeout", condition())
     }

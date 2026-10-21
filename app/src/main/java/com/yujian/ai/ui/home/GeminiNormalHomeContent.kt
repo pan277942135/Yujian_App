@@ -745,6 +745,11 @@ private fun GeminiCatchCard(
     val speciesSize = responsiveSp(safeHeight, safeWidth, 0.036f, 20f, 26f)
     val measurementSize = responsiveSp(safeHeight, safeWidth, 0.023f, 13f, 16f)
     val metadataSize = responsiveSp(safeHeight, safeWidth, 0.019f, 11f, 13f)
+    val metadataMaxLines = geminiHomeMetadataMaxLines(
+        cardWidthDp = cardWidth.value,
+        fontScale = currentFontScale,
+        variant = layoutVariant,
+    )
     val footerVerticalPadding = clampDp(cardHeight.value * 0.07f, 10f, 20f)
     val footerHorizontalPadding = if (cardWidth.value < 190f) 12.dp else 20.dp
     val species = presentationSpeciesName(item.speciesName)
@@ -826,7 +831,7 @@ private fun GeminiCatchCard(
                             fontSize = metadataSize,
                             lineHeight = (metadataSize.value * 1.3f).sp,
                         ),
-                        maxLines = if (allowAuxiliaryWrapping) 2 else 1,
+                        maxLines = metadataMaxLines,
                         overflow = TextOverflow.Ellipsis,
                         onTextLayout = { metadataTextOverflow.value = it.hasVisualOverflow },
                         modifier = Modifier.padding(top = textGap)
