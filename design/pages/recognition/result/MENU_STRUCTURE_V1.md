@@ -1,6 +1,6 @@
 # Recognition Result — Design Manager Menu V1
 
-Status: **DESIGN CLOSED**
+Status: **DESIGN CLOSED · RR09 MOTION V2 SPEC FROZEN (RUNTIME NOT_RUN)**
 
 Canonical machine-readable navigation:
 
@@ -20,6 +20,8 @@ Canonical machine-readable navigation:
 | 05 | RR05 | Image Quality / 图片质量不足 | 09_Error_Image_Quality_Frozen.png | CLOSED V1 |
 | 06 | RR06 | Content Edit / 内容修改 | Species Selector V1 + Metadata Edit Flow V1 (existing FROZEN authorities) | FROZEN AUTHORITY INDEX |
 | 07 | RR07 | **识别过程 · 07 · 判定逻辑** | Current Kotlin routing audit + 3+2 machine contract | AS-IS DOCUMENTED / PROPOSALS UNAPPROVED |
+| 08 | RR08 | Visual Acceptance / 视觉验收 | Recognition Result Visual Contract V1 + Pixel Targets + State Matrix + Anchor Map | READY_FOR_VISUAL_IMPLEMENTATION; runtime NOT_RUN |
+| 09 | RR09 | **动效接续** | Recognition Result Motion Spec V2 + machine contract + system Motion Contract V2 | FROZEN SPEC ONLY; runtime NOT_RUN |
 
 ## Asset rule
 
@@ -35,8 +37,16 @@ RR07 在识别结果下直接显示检测器质量门、分类阈值、first-mat
 
 **RR07 不增加产品状态，不更改 RR01–RR05 五张 Frozen PNG，不代表已调整 Kotlin 阈值。**
 
-| 08 | RR08 | Visual Acceptance / 视觉验收 | Recognition Result Visual Contract V1 + Pixel Targets + State Matrix + Anchor Map | READY_FOR_VISUAL_IMPLEMENTATION; runtime NOT_RUN |
-
 ## RR08 · Visual Acceptance Contract V1
 
 RR08 links the canonical visual, pixel, state, anchor, motion, accessibility and runtime acceptance contracts. It is derived from the frozen Page Contract, adds no Result product state and leaves source artwork unchanged.
+
+
+## RR09 · 动效接续 / Motion Continuation V2
+
+RR09 冻结一次性 `RESULT_HIGH` 揭晓：既有 RESOLVE 内照片自然接续 → 金光从真实鱼体向下转移到照片下方的鱼种标题 → 中文名及有效英文名凝结出现 → 余辉在 850ms 内消散。它不是新产品状态，不改变 3+2 判定，也不代表 Android Runtime 已通过。
+
+- Spec: `design/pages/recognition/result/motion/Recognition_Result_Motion_Spec_V2.md`
+- Machine contract: `design/pages/recognition/result/motion/recognition_result_motion_contract_v2.json`
+- System contract: `design/system_v3/10_Page_Visual_Acceptance_Contracts/Recognition_Result/Recognition_Result_Motion_Contract_V2.md`
+- Motion V1 remains the baseline for non-conflicting Result interactions; V2 supersedes only the scoped successful Result-entry reveal rules.

@@ -2,7 +2,7 @@
 
 Role: **Capture → Record Bridge**
 
-Status: **DESIGN FROZEN — 3+2 STATE PACKAGE**
+Status: **DESIGN FROZEN — 3+2 STATE PACKAGE · RR09 MOTION V2 SPEC FROZEN / RUNTIME NOT_RUN**
 
 ## Design Manager menu
 
@@ -16,6 +16,8 @@ Second-level pages:
 - `05_image_quality/` — Image Quality / 图片质量不足
 - `06_content_edit/` — RR06 · 内容修改（Species Selector V1 + Metadata Edit Flow V1 Authority 索引）
 - `07_decision_logic/` — **RR07 · 识别过程 · 07 · 判定逻辑**（现行 Detector / Classifier 判定链及门槛说明，不增加产品状态）
+- RR08 — `design/system_v3/10_Page_Visual_Acceptance_Contracts/Recognition_Result/` — 视觉验收合同索引（Runtime NOT_RUN）
+- `08_motion_continuation/` — **RR09 · 动效接续**（Motion V2 · FROZEN SPEC ONLY · Runtime NOT_RUN）
 
 Machine-readable menu:
 
@@ -91,11 +93,15 @@ The Frozen PNG owns Hero **container composition**. The Hero Media Contract owns
 - `spec/Recognition_Result_State_Matrix_V1.md`
 - `spec/Recognition_Result_Behavior_Spec_V1.md`
 - `spec/Recognition_Result_Visual_Spec_V1.md`
-- `motion/Recognition_Result_Motion_Spec_V1.md`
+- `motion/Recognition_Result_Motion_Spec_V2.md` — current Result-entry reveal authority
+- `motion/recognition_result_motion_contract_v2.json` — machine-readable timing and trigger contract
+- `motion/Recognition_Result_Motion_Spec_V1.md` — historical baseline for non-conflicting rules
 - `media/Recognition_Result_Hero_Media_Contract_V1.md`
 - `media/hero_media_contract.json`
 - `media/hero_media_test_vectors.json`
 - `spec/Recognition_Result_Acceptance_Criteria_V1.md`
+- `08_motion_continuation/README.md` — RR09 Design Manager entry
+- `design/system_v3/10_Page_Visual_Acceptance_Contracts/Recognition_Result/Recognition_Result_Motion_Contract_V2.md` — current system-level motion contract
 - `authority/authority_map.json`
 - `review/Recognition_Result_Runtime_Alignment_Review_V1.md`
 - `status.json`
@@ -177,3 +183,8 @@ See `review/Recognition_Result_Design_Audit_20261010.md`. Runtime parity remains
 ## Recognition Decision Logic · RR07
 
 `07_decision_logic/README.md` 是单独的 Design Manager 行为/工程子菜单。交互展示当前代码阈值、质量门分支优先级、五态映射、有效 Softmax 测试向量及待校准风险；机器合同是 `spec/recognition_result_3plus2_decision_contract_v1_1.json`。**当前代码与未经批准的优化建议严格分离。**
+
+
+## Motion Continuation · RR09
+
+`08_motion_continuation/README.md` is the single Design Manager entry for the frozen Motion V2 specification. The reveal is presentation-only: it does not add a Processing or Result state, modify recognition thresholds, or change CTA semantics. Runtime and visual playback remain NOT_RUN.

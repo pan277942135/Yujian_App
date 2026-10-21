@@ -2384,6 +2384,23 @@ function recognitionMasterBoardCanvas(child) {
 }
 
 function genericSpecHifiCanvas(feature, view) {
+  if (feature.id === "recognition_result_v1" && view.render_mode === "recognition_result_motion_playable") {
+    const href="./rr09_motion/";
+    const points=view.menu_points||[];
+    return '<div class="authority-index">' +
+      '<div class="authority-index-intro"><strong>RR09 · 金光转译揭晓 · 可播放原型</strong>' +
+        '<span>真实鱼获照片经 SHA-256 校验；逐帧播放、拖动时间轴、验证 Reduced Motion / 低性能回退。规格已冻结，浏览器验收与 Android Runtime 分开记录。</span></div>' +
+      '<div class="authority-index-card">' +
+        '<div class="authority-index-head"><strong>PLAYABLE REVIEW · MOTION V2</strong>' + statusBadge("FROZEN") + '</div>' +
+        '<p>六个关键帧：鱼体高亮 → 照片接续 → 金光向下转移 → 名称凝结 → 中英鱼种名揭晓 → 余辉消散。</p>' +
+        '<p><a class="primary-button" href="'+esc(href)+'" target="_blank" rel="noopener noreferrer">▶ 打开可播放原型与完整验收控制台 ↗</a></p>' +
+        '<p>照片来源：现有真实鱼获资产；鱼体轮廓为人工视觉参考，不得当作生产检测 Mask。示例鱼种名不等于模型对照片的推理结论。</p></div>' +
+      '<iframe title="RR09 · 动效接续 · 金光转译可播放原型" loading="lazy" src="'+esc(href)+'" style="width:100%;min-height:900px;border:1px solid #48636b;border-radius:14px;background:#101d25" referrerpolicy="no-referrer"></iframe>' +
+      '<div class="authority-index-grid">' +
+        points.map((p,i)=>'<article class="authority-index-card"><div class="authority-index-head"><strong>'+
+          esc(String(i+1).padStart(2,"0")+" · "+p)+'</strong></div><div class="authority-kind">FROZEN MOTION V2</div></article>').join("") +
+      '</div></div>';
+  }
   if (view.render_mode === "recognition_main_journey_overview") return recognitionMainJourneyOverviewCanvas(view);
   if (view.render_mode === "recognition_boundary_release_gate") return recognitionBoundaryReleaseGateCanvas(feature, view);
   if (view.render_mode === "recognition_decision_logic") return recognitionDecisionLogicCanvas(view);

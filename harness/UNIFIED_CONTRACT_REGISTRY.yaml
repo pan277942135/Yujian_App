@@ -330,7 +330,7 @@ feature_contracts:
     control_phase: "P8"
     registry_status: "FROZEN"
     owner_path: "design/pages/recognition/result"
-    child_surfaces: ["overview", "high", "medium", "low", "no_fish", "image_quality", "content_edit", "decision_logic"]
+    child_surfaces: ["overview", "high", "medium", "low", "no_fish", "image_quality", "content_edit", "decision_logic", "visual_acceptance", "motion_continuation"]
     journey_refs: ["J11", "J12", "J13", "J14", "J15", "J16"]
     route_refs: ["result"]
     domain_contracts:
@@ -342,7 +342,7 @@ feature_contracts:
         authority: "design/pages/recognition/result/authority/authority_map.json"
       motion:
         status: "FROZEN"
-        authority: "design/pages/recognition/result/motion/Recognition_Result_Motion_Spec_V1.md"
+        authority: "design/pages/recognition/result/motion/Recognition_Result_Motion_Spec_V2.md"
       haptic:
         status: "FROZEN"
         authority: "design/pages/recognition/result/motion/Recognition_Result_Motion_Spec_V1.md"
@@ -358,7 +358,7 @@ feature_contracts:
       assets:
         status: "FROZEN"
         authority: "design/pages/recognition/design/reference_manifest.json"
-    page_contract_refs: ["design/system_v3/08_Page_Contracts/recognition/result/Recognition_Result_Page_Contract_V3_1.md", "design/system_v3/08_Page_Contracts/recognition/result/Layout_Contract_V3_1.json", "design/system_v3/08_Page_Contracts/recognition/result/State_Machine_V3_1.json", "design/system_v3/08_Page_Contracts/recognition/result/Data_Contract_V3_1.json", "design/system_v3/08_Page_Contracts/recognition/result/Engineering_Contract_V3_1.md", "design/system_v3/08_Page_Contracts/recognition/result/Acceptance_Contract_V3_1.json", "design/system_v3/08_Page_Contracts/recognition/result/Result_Responsive_Accessibility_Matrix_V3_1.md", "design/system_v3/09_Android_Implementation_Contracts/Android_Implementation_Contract_Registry_V1.json", "design/system_v3/09_Android_Implementation_Contracts/Recognition_Result_State_Binding_V1.json", "design/system_v3/09_Android_Implementation_Contracts/Recognition_Result_Component_Mapping_V1.json", "design/system_v3/09_Android_Implementation_Contracts/Recognition_Result_Runtime_Gate_V1.md", "design/system_v3/10_Page_Visual_Acceptance_Contracts/Recognition_Result/Recognition_Result_Visual_Contract_V1.md", "design/system_v3/10_Page_Visual_Acceptance_Contracts/Recognition_Result/Recognition_Result_Pixel_Targets_V1.json", "design/system_v3/10_Page_Visual_Acceptance_Contracts/Recognition_Result/Recognition_Result_Motion_Contract_V1.md", "design/system_v3/10_Page_Visual_Acceptance_Contracts/Recognition_Result/Recognition_Result_Accessibility_Contract_V1.md"]
+    page_contract_refs: ["design/system_v3/08_Page_Contracts/recognition/result/Recognition_Result_Page_Contract_V3_1.md", "design/system_v3/08_Page_Contracts/recognition/result/Layout_Contract_V3_1.json", "design/system_v3/08_Page_Contracts/recognition/result/State_Machine_V3_1.json", "design/system_v3/08_Page_Contracts/recognition/result/Data_Contract_V3_1.json", "design/system_v3/08_Page_Contracts/recognition/result/Engineering_Contract_V3_1.md", "design/system_v3/08_Page_Contracts/recognition/result/Acceptance_Contract_V3_1.json", "design/system_v3/08_Page_Contracts/recognition/result/Result_Responsive_Accessibility_Matrix_V3_1.md", "design/system_v3/09_Android_Implementation_Contracts/Android_Implementation_Contract_Registry_V1.json", "design/system_v3/09_Android_Implementation_Contracts/Recognition_Result_State_Binding_V1.json", "design/system_v3/09_Android_Implementation_Contracts/Recognition_Result_Component_Mapping_V1.json", "design/system_v3/09_Android_Implementation_Contracts/Recognition_Result_Runtime_Gate_V1.md", "design/system_v3/10_Page_Visual_Acceptance_Contracts/Recognition_Result/Recognition_Result_Visual_Contract_V1.md", "design/system_v3/10_Page_Visual_Acceptance_Contracts/Recognition_Result/Recognition_Result_Pixel_Targets_V1.json", "design/system_v3/10_Page_Visual_Acceptance_Contracts/Recognition_Result/Recognition_Result_Motion_Contract_V2.md", "design/system_v3/10_Page_Visual_Acceptance_Contracts/Recognition_Result/Recognition_Result_Accessibility_Contract_V1.md"]
     page_contract_keys: ["page_contract", "layout", "state", "data", "engineering", "acceptance", "responsive_accessibility", "android_registry", "android_state_binding", "android_component_mapping", "android_runtime_gate", "visual_contract", "visual_pixel_targets", "visual_motion", "visual_accessibility"]
     shared_contract_refs: ["DS-FOUNDATION", "ANDROID-RUNTIME-HARNESS", "STATE-EVIDENCE-PROVENANCE"]
     additional_shared_contract_refs: ["MODEL-RECOGNITION", "API-DATA-BOUNDARY"]
@@ -1001,6 +1001,14 @@ child_surface_contracts:
     owner_features: ["recognition_result_v1"]
     contract_refs: ["FC-recognition_result_v1"]
     resolution_rule: "Resolve child surface through its owner feature contract; page-owned authority wins over shared fallback."
+  "visual_acceptance":
+    owner_features: ["recognition_result_v1"]
+    contract_refs: ["FC-recognition_result_v1"]
+    resolution_rule: "Resolve child surface through its owner feature contract; page-owned authority wins over shared fallback."
+  "motion_continuation":
+    owner_features: ["recognition_result_v1"]
+    contract_refs: ["FC-recognition_result_v1"]
+    resolution_rule: "Resolve child surface through its owner feature contract; page-owned authority wins over shared fallback."
   "a_side":
     owner_features: ["fish_record_detail_v2"]
     contract_refs: ["FC-fish_record_detail_v2"]
@@ -1358,7 +1366,7 @@ page_contract_sets:
       android_runtime_gate: "design/system_v3/09_Android_Implementation_Contracts/Recognition_Result_Runtime_Gate_V1.md"
       visual_contract: "design/system_v3/10_Page_Visual_Acceptance_Contracts/Recognition_Result/Recognition_Result_Visual_Contract_V1.md"
       visual_pixel_targets: "design/system_v3/10_Page_Visual_Acceptance_Contracts/Recognition_Result/Recognition_Result_Pixel_Targets_V1.json"
-      visual_motion: "design/system_v3/10_Page_Visual_Acceptance_Contracts/Recognition_Result/Recognition_Result_Motion_Contract_V1.md"
+      visual_motion: "design/system_v3/10_Page_Visual_Acceptance_Contracts/Recognition_Result/Recognition_Result_Motion_Contract_V2.md"
       visual_accessibility: "design/system_v3/10_Page_Visual_Acceptance_Contracts/Recognition_Result/Recognition_Result_Accessibility_Contract_V1.md"
     authority_rule: "Only the named source owns the declared contract dimension; absence is not inherited silently."
 
@@ -1650,7 +1658,7 @@ global_acceptance_rules:
 inventory:
   feature_count: 15
   journey_count: 20
-  child_surface_count: 79
+  child_surface_count: 81
   route_count: 22
   task_count: 45
   gate_count: 11

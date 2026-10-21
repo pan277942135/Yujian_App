@@ -324,7 +324,7 @@ features:
         authority: "design/pages/recognition/result/authority/authority_map.json"
       motion:
         status: "FROZEN"
-        authority: "design/pages/recognition/result/motion/Recognition_Result_Motion_Spec_V1.md"
+        authority: "design/pages/recognition/result/motion/Recognition_Result_Motion_Spec_V2.md"
       haptic:
         status: "FROZEN"
         authority: "design/pages/recognition/result/motion/Recognition_Result_Motion_Spec_V1.md"
@@ -349,6 +349,8 @@ features:
       - "image_quality"
       - "content_edit"
       - "decision_logic"
+      - "visual_acceptance"
+      - "motion_continuation"
     design_children: []
     child_surfaces:
       - "overview"
@@ -359,6 +361,8 @@ features:
       - "image_quality"
       - "content_edit"
       - "decision_logic"
+      - "visual_acceptance"
+      - "motion_continuation"
     journey_refs:
       - "J11"
       - "J12"
