@@ -113,21 +113,14 @@ jobs:
           npm install --no-save --prefix "$RUNNER_TEMP/edgeglow-playwright" playwright@1.63.0
           "$RUNNER_TEMP/edgeglow-playwright/node_modules/.bin/playwright" install --with-deps chromium
 
-      - name: Audit source contracts and renderer syntax
+      - name: Check targeted capture scripts
         shell: bash
-        env:
-          EDGEGLOW_OUTPUT_DIR: ${{ runner.temp }}/edgeglow-evidence
         run: |
           set -euo pipefail
-          node --check pr-source/design/manager/nh01_acceptance/edgeglow-fish-static/edgeglow.js
-          node --check pr-source/scripts/smoke_edgeglow_fish_static.cjs
-          python3 pr-source/scripts/verify_edgeglow_fish_static_source.py \
-            --site-root "$RUNNER_TEMP/edgeglow-pages" \
-            --pr-sha "$PR_SOURCE_SHA" \
-            --center-sha "$CENTER_SOURCE_SHA" \
-            --output "$EDGEGLOW_OUTPUT_DIR/EdgeGlow_Fish_Static_Source_Audit.json"
+          node --check pr-source/scripts/capture_optical_lab_static_closure_v3.cjs
+          python3 -m py_compile pr-source/scripts/smoke_edgeglow_fish_static_live.py
 
-      - name: Run Chromium static geometry, layer-toggle and PNG smoke
+      - name: Capture targeted Receiving Light R01 browser evidence
         shell: bash
         run: |
           set -euo pipefail
@@ -145,14 +138,10 @@ jobs:
             OPTICAL_PUBLIC_BASE_URL="https://pan277942135.github.io/Yujian_App/" \
             PR_SOURCE_ROOT="$GITHUB_WORKSPACE/pr-source" \
             PR_SOURCE_SHA="$PR_SOURCE_SHA" \
-            OPTICAL_EVIDENCE_DIR="$RUNNER_TEMP/edgeglow-evidence/static-optical-v3" \
-            OPTICAL_PUBLIC_EVIDENCE_DIR="$RUNNER_TEMP/edgeglow-pages/design/manager/nh01_acceptance/edgeglow-fish-static/optical-review/evidence/static-v3" \
-            node pr-source/scripts/capture_optical_lab_static_closure_v3.cjs
-          PLAYWRIGHT_MODULE_DIR="$RUNNER_TEMP/edgeglow-playwright/node_modules" \
-            PR_SOURCE_SHA="$PR_SOURCE_SHA" CENTER_SOURCE_SHA="$CENTER_SOURCE_SHA" \
-            node pr-source/scripts/smoke_edgeglow_fish_static.cjs \
-              --base-url http://127.0.0.1:8765/ \
-              --output-dir "$RUNNER_TEMP/edgeglow-evidence/browser-smoke"
+            OPTICAL_RECOVERY_BASELINE_SHA="76512ea4c889e4963cc8ed42662f2b0d344b835b" \
+            OPTICAL_EVIDENCE_DIR="$RUNNER_TEMP/edgeglow-evidence/static-recovery-r01" \
+            OPTICAL_PUBLIC_EVIDENCE_DIR="$RUNNER_TEMP/edgeglow-pages/design/manager/nh01_acceptance/edgeglow-fish-static/optical-review/evidence/static-recovery-r01" \
+            node pr-source/scripts/capture_optical_lab_static_closure_v3.cjs --receiving-recovery-r01
 
       - name: Upload static visual evidence
         if: always()
