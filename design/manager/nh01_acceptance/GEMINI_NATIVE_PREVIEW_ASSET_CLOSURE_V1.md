@@ -6,7 +6,7 @@ This page is a GitHub-native static preview of the checked-in Gemini Native V3 s
 
 - The approved Morning Lake background, registered brand artwork, Gemini V3 avatar fallback and complete camera artwork load from the repository.
 - Their downloaded bytes are SHA-256 checked against the asset binding manifest.
-- The page renders the Gemini Top / Middle / Footer structure using the checked-in `GeminiHomeAdaptiveLayoutPolicy.kt` geometry formulas, including safe insets, card-height constraints and the `ADAPTIVE_V1` / `V3_BASELINE` comparison selector.
+- The page renders the Gemini V3 Top / Middle / Footer structure and exposes a **content-first Adaptive V2 preview candidate** beside the unchanged V3 Baseline. The browser candidate measures the actual rendered metadata block to estimate its readable minimum, continuously adjusts spacing for font/short-height pressure, and only scrolls the Middle region when that minimum cannot fit. This is a review prototype; native Compose parity is not claimed until the separate Android policy implementation and exact-SHA API 28 matrix agree.
 - A 1080×1920 Chromium screenshot is emitted as a CI artifact from a 360×640 CSS viewport at device scale factor 3. The screenshot simulates 24dp top / 48dp bottom safe insets; Android system status/navigation glyphs are not drawn.
 
 ## What it deliberately does not claim
@@ -21,4 +21,4 @@ This page is a GitHub-native static preview of the checked-in Gemini Native V3 s
 
 design/manager/nh01_acceptance/gemini-native-preview.html
 
-The page status and CI screenshot are diagnostics only. release_gate_effect remains NONE.
+The native implementation of Adaptive V2 is tracked separately in the NH01 Android follow-up. Until its source and the browser candidate pass paired exact-SHA runtime checks, this page is a diagnostic prototype only. release_gate_effect remains NONE.
