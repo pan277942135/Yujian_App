@@ -15,7 +15,7 @@ readonly RAW_CASE_DIR="$RAW_DIR/nh01-adaptive-visual-balance-v1"
 readonly MATRIX_DIR="$YUJIAN_EVIDENCE_DIR/NH01_RUNTIME_MATRIX_V1"
 readonly EXEC_DIR="$MATRIX_DIR/executions"
 readonly LOG_DIR="$MATRIX_DIR/logs"
-readonly REMOTE_DIR="/sdcard/Android/data/$YUJIAN_APP_PACKAGE/files/nh01-adaptive-visual-balance-v1"
+readonly REMOTE_DIR="/sdcard/Android/data/$YUJIAN_APP_PACKAGE/files/nh01-adaptive-visual-balance-v2"
 
 rm -rf "$RAW_DIR" "$MATRIX_DIR"
 mkdir -p "$RAW_CASE_DIR" "$EXEC_DIR" "$LOG_DIR/diagnostics"
