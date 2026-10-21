@@ -571,7 +571,7 @@
           if (entry) selectLayer(entry[0]);
         }
       });
-      selectLayer("#mainCatchCard");
+      if (!canvasMode && !matrixMode) selectLayer("#mainCatchCard");
 
       async function digest(url) {
         const response = await fetch(url, { cache: "no-store" });
