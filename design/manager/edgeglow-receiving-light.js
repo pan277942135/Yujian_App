@@ -367,11 +367,11 @@
                 gradientId, ...gradients[side], baseColor, hotColor
               ));
               layersMarkup.push(
-                '<rect x="' + number(rect.left) + '" y="' + number(rect.top) +
+                '<g filter="url(#blur-ribbon)"><rect x="' + number(rect.left) + '" y="' + number(rect.top) +
                 '" width="' + number(photoWidth) + '" height="' + number(photoHeight) +
                 '" fill="url(#' + gradientId + ')" clip-path="url(#' + clipId +
-                ')" opacity="' + number(baseAlpha) + '"/>'
-              ).replace('<rect ', '<g filter="url(#blur-ribbon)"><rect ').replace('/>', '/></g>');
+                ')" opacity="' + number(baseAlpha) + '"/></g>'
+              );
 
             }
           });
