@@ -143,8 +143,15 @@ async function main() {
   const previewBuild = await previewPage.locator('meta[name="nh01-gemini-preview-build"]').getAttribute("content");
   if (args.expectedBuild) assert(previewBuild === args.expectedBuild, `Gemini preview build mismatch: ${previewBuild} != ${args.expectedBuild}`);
   await previewPage.waitForFunction(() => window.NH01GeminiPreviewReady === true, { timeout: 30000 });
+  await previewPage.waitForFunction(() => window.NH01GeminiPreviewLayoutReady === true, { timeout: 5000 });
   const previewAudit = await previewPage.evaluate(() => window.NH01GeminiPreviewAudit);
+  const defaultLayout = await previewPage.evaluate(() => window.NH01GeminiPreviewLayout);
   assert(previewAudit?.status === "PASS", `Gemini preview asset integrity failed: ${JSON.stringify(previewAudit)}`);
+  assert(defaultLayout?.variant === "ADAPTIVE_V1", "Gemini preview default must match the Android default layout variant");
+  assert(defaultLayout?.safe_insets_dp?.top === 24 && defaultLayout?.safe_insets_dp?.bottom === 48,
+    `Gemini preview must model the API28 safe insets: ${JSON.stringify(defaultLayout?.safe_insets_dp)}`);
+  assert(defaultLayout?.card_height_dp > 0 && defaultLayout?.card_width_dp > 0,
+    `Gemini preview must resolve card geometry: ${JSON.stringify(defaultLayout)}`);
   assert(previewAudit.release_gate_effect === "NONE", "Gemini preview must not affect release gates");
   const requiredAssetIds = ["background", "brand", "avatar", "camera"];
   for (const id of requiredAssetIds) {
@@ -165,22 +172,34 @@ async function main() {
   const previewViewportResults = [];
   for (const [width, height] of [[1440, 1000], [768, 1024], [390, 844], [320, 720]]) {
     await previewPage.setViewportSize({ width, height });
-    await previewPage.waitForTimeout(50);
+    await previewPage.waitForFunction(() => window.NH01GeminiPreviewLayoutReady === true, { timeout: 5000 });
     const result = await previewPage.evaluate(() => ({
       viewport: window.innerWidth,
       document: document.documentElement.scrollWidth,
       body: document.body.scrollWidth,
+      layout: window.NH01GeminiPreviewLayout,
       deviceBox: (() => { const r = document.querySelector("#deviceWrap").getBoundingClientRect(); return { width: r.width, height: r.height }; })()
     }));
     assert(result.document <= width && result.body <= width,
       `Gemini preview horizontal overflow at ${width}px: ${JSON.stringify(result)}`);
+    assert(result.layout?.card_height_dp > 0 && result.layout?.card_width_dp > 0,
+      `Gemini preview did not resolve card geometry at ${width}px: ${JSON.stringify(result.layout)}`);
     previewViewportResults.push(result);
   }
   await previewPage.setViewportSize({ width: 1440, height: 1000 });
+  await previewPage.waitForFunction(() => window.NH01GeminiPreviewLayoutReady === true, { timeout: 5000 });
   await previewPage.locator("#fontScale").selectOption("1.5");
+  await previewPage.waitForFunction(() => window.NH01GeminiPreviewLayoutReady === true, { timeout: 5000 });
   assert(await previewPage.locator("html").evaluate(node => getComputedStyle(node).getPropertyValue("--font-scale").trim()) === "1.5",
     "Gemini preview font-scale control must update the root font scale");
+  await previewPage.locator("#layoutVariant").selectOption("V3_BASELINE");
+  await previewPage.waitForFunction(() => window.NH01GeminiPreviewLayoutReady === true, { timeout: 5000 });
+  assert((await previewPage.evaluate(() => window.NH01GeminiPreviewLayout)).variant === "V3_BASELINE",
+    "Gemini preview must switch to the V3 baseline policy");
+  await previewPage.locator("#layoutVariant").selectOption("ADAPTIVE_V1");
+  await previewPage.waitForFunction(() => window.NH01GeminiPreviewLayoutReady === true, { timeout: 5000 });
   await previewPage.locator("#viewportPreset").selectOption("320x480");
+  await previewPage.waitForFunction(() => window.NH01GeminiPreviewLayoutReady === true, { timeout: 5000 });
   assert(await previewPage.locator("#device").evaluate(node => node.style.width) === "320px",
     "Gemini preview viewport preset must change the logical device width");
   await previewPage.locator("#cameraButton").click();
@@ -198,8 +217,12 @@ async function main() {
   });
   await canvasPage.goto(previewUrl + "?mode=canvas", { waitUntil: "networkidle", timeout: 45000 });
   await canvasPage.waitForFunction(() => window.NH01GeminiPreviewReady === true, { timeout: 30000 });
+  await canvasPage.waitForFunction(() => window.NH01GeminiPreviewLayoutReady === true, { timeout: 5000 });
   const canvasAudit = await canvasPage.evaluate(() => window.NH01GeminiPreviewAudit);
+  const canvasLayout = await canvasPage.evaluate(() => window.NH01GeminiPreviewLayout);
   assert(canvasAudit?.status === "PASS", `Gemini canvas preview asset integrity failed: ${JSON.stringify(canvasAudit)}`);
+  assert(canvasLayout?.variant === "ADAPTIVE_V1" && canvasLayout?.logical_viewport_dp?.join("x") === "360x640",
+    `Gemini canvas screenshot must use the default 360x640 logical profile: ${JSON.stringify(canvasLayout)}`);
   const canvasPath = resolve(args.outputDir, "nh01-gemini-native-structure-1080x1920.png");
   await canvasPage.screenshot({ path: canvasPath, fullPage: false, scale: "device" });
   const canvasPng = readFileSync(canvasPath);
@@ -330,7 +353,7 @@ async function main() {
     overview: overviewImageInfo,
     review: reviewImage,
     checks: ["direct Hash", "refresh", "back/forward", "modal zoom/fit/Esc/focus restore", "missing authority no fake UI", "invalid route guard", "no HTTP errors", "no console/page errors"],
-    gemini_native_preview: { build_sha: previewBuild, asset_audit: previewAudit, viewports: previewViewportResults, canvas_screenshot: "nh01-gemini-native-structure-1080x1920.png", canvas_dimensions_px: [1080, 1920], release_gate_effect: "NONE" },
+    gemini_native_preview: { build_sha: previewBuild, asset_audit: previewAudit, default_layout: defaultLayout, viewports: previewViewportResults, canvas_layout: canvasLayout, canvas_screenshot: "nh01-gemini-native-structure-1080x1920.png", canvas_dimensions_px: [1080, 1920], release_gate_effect: "NONE" },
     screenshots: ["desktop-1440.png", "tablet-768.png", "mobile-390.png", "lightbox-1440.png", "overview-1440.png", "nh01-gemini-native-preview-desktop.png", "nh01-gemini-native-structure-1080x1920.png"],
     errors,
     bad_responses: badResponses,
