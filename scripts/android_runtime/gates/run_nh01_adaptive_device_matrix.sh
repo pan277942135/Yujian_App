@@ -482,7 +482,7 @@ python3 scripts/android_runtime/aggregate_nh01_adaptive_matrix.py \
   --source-sha "$BUILD_SHA" \
   --run-id "${GITHUB_RUN_ID:-local}" \
   --run-url "${GITHUB_SERVER_URL:-https://github.com}/${GITHUB_REPOSITORY:-pan277942135/Yujian_App}/actions/runs/${GITHUB_RUN_ID:-local}" \
-  --contract design/qa/NH01_ADAPTIVE_VISUAL_BALANCE_V1.md || aggregate_rc=$?
+  --contract design/qa/NH01_ADAPTIVE_VISUAL_BALANCE_V2.md || aggregate_rc=$?
 if [[ "$aggregate_rc" -ne 0 ]]; then all_ok=0; fi
 
 MATRIX_STATUS="PASS"
