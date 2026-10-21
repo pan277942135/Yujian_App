@@ -466,11 +466,17 @@ private fun GeminiMiddleSection(
             .coerceAtLeast(0.dp)
         // Compute against the actual height left after Top and Footer have
         // been measured by the parent Column. Keep the ratio when reducing.
-        val cardHeight = geminiHomeResolvedCardHeight(
-            desiredCardHeightDp = desiredCardHeight.value,
-            availableCardHeightDp = availableCardHeight.value,
-            minReadableCardHeightDp = layoutSpec.minReadableCardHeight.value,
-        ).dp
+        val cardHeight = if (layoutSpec.contentFirstSizing) {
+            geminiHomeResolvedCardHeight(
+                desiredCardHeightDp = desiredCardHeight.value,
+                availableCardHeightDp = availableCardHeight.value,
+                minReadableCardHeightDp = layoutSpec.minReadableCardHeight.value,
+            ).dp
+        } else if (availableCardHeight >= layoutSpec.minReadableCardHeight) {
+            minOf(desiredCardHeight, availableCardHeight)
+        } else {
+            desiredCardHeight
+        }
         val cardWidth = cardHeight * GeminiHomeCardAspectRatio
         val groupHeight = leadingGap + headerHeight + headerGap + cardHeight + trailingGap
         val needsScroll = groupHeight > maxHeight
