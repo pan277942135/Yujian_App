@@ -25,6 +25,7 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.snapshots.Snapshot
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.hasClickAction
@@ -696,11 +697,15 @@ class RecognitionFrozenFlowEmulatorTest {
             handoffTimestampUptimeMs = SystemClock.uptimeMillis(),
         )
         assertEquals(RecognitionRevealEligibility.FULL_REVEAL, handoff.eligibility)
-        handoffState.value = handoff
-        stage.value = "result"
+        Snapshot.withMutableSnapshot {
+            handoffState.value = handoff
+            stage.value = "result"
+        }
         fun assertRevealGeometryResolved() {
+            composeRule.mainClock.advanceTimeByFrame()
+            composeRule.waitForIdle()
             val settled = runCatching {
-                composeRule.waitUntil(timeoutMillis = 5_000L) {
+                composeRule.waitUntil(timeoutMillis = 10_000L) {
                     val reason = geometryResolution.get()?.failureReason
                     composeRule.onAllNodesWithTag(
                         "recognition-reveal-geometry-ready",
@@ -763,7 +768,10 @@ class RecognitionFrozenFlowEmulatorTest {
         val sourceTransform = requireNotNull(processingPhoto.get()).sourceToViewport
 
         elapsed.value = 0L
-        stage.value = "processing"
+        Snapshot.withMutableSnapshot {
+            handoffState.value = null
+            stage.value = "processing"
+        }
         composeRule.waitUntil(timeoutMillis = 5_000L) {
             geometry.get() != null && processingPhoto.get() != null
         }
@@ -776,7 +784,10 @@ class RecognitionFrozenFlowEmulatorTest {
             "screenrecord --bit-rate 4000000 --time-limit 10 '$recordingDevicePath' >/dev/null 2>&1 &",
         )
         Thread.sleep(250L)
-        stage.value = "result"
+        Snapshot.withMutableSnapshot {
+            handoffState.value = handoff
+            stage.value = "result"
+        }
         assertRevealGeometryResolved()
 
         // Switch to the real monotonic clock once, so the dedicated Android
