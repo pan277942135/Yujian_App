@@ -253,6 +253,7 @@
     const outerSigma = depthPx * LAYERS[0].blurRatio;
     const midSigma = depthPx * LAYERS[1].blurRatio;
     const coreSigma = LAYERS[2].blurRatio * config.dpToCanvasPx;
+    const ribbonBlurSigma = Math.max(2, minDimension * 0.0065);
     const padding = Math.ceil(depthPx / 2 + outerSigma * 4 + 2);
     const maxDepth = Math.min(minDimension * P1_DEPTH_RANGE[1], depthPx / 2 + outerSigma * 3);
     const photoClip = '<clipPath id="photo-clip" clipPathUnits="userSpaceOnUse"><rect x="' +
@@ -266,7 +267,9 @@
       '<filter id="blur-mid" filterUnits="userSpaceOnUse" primitiveUnits="userSpaceOnUse"' + filterFrame +
         ' color-interpolation-filters="sRGB"><feGaussianBlur in="SourceAlpha" stdDeviation="' + number(midSigma) + '"/></filter>',
       '<filter id="blur-core" filterUnits="userSpaceOnUse" primitiveUnits="userSpaceOnUse"' + filterFrame +
-        ' color-interpolation-filters="sRGB"><feGaussianBlur in="SourceAlpha" stdDeviation="' + number(coreSigma) + '"/></filter>'
+        ' color-interpolation-filters="sRGB"><feGaussianBlur in="SourceAlpha" stdDeviation="' + number(coreSigma) + '"/></filter>',
+      '<filter id="blur-ribbon" filterUnits="userSpaceOnUse" primitiveUnits="userSpaceOnUse"' + filterFrame +
+        ' color-interpolation-filters="sRGB"><feGaussianBlur in="SourceGraphic" stdDeviation="' + number(ribbonBlurSigma) + '"/></filter>'
     ].join("");
     const alphaTable = Array.from({ length: 256 }, (_, index) =>
       number(Math.min(index / 255, config.outputAlphaCap))
@@ -274,7 +277,7 @@
     const alphaCap = '<filter id="alpha-cap" filterUnits="userSpaceOnUse" primitiveUnits="userSpaceOnUse" ' +
       'x="0" y="0" width="' + width + '" height="' + height + '">' +
       '<feComponentTransfer><feFuncA type="table" tableValues="' + alphaTable + '"/></feComponentTransfer></filter>';
-    const quietMaskDepth = config.reviewOnlyEdgeRibbonExperiment ? depthPx : maxDepth;
+    const quietMaskDepth = config.reviewOnlyEdgeRibbonExperiment ? depthPx + ribbonBlurSigma * 3 : maxDepth;
     const defs = [photoClip, quietMaskMarkup(rect, width, height, quietMaskDepth), filters, alphaCap].join("");
     const measureSvg = document.createElementNS(SVG_NS, "svg");
     measureSvg.setAttribute("width", String(width));
@@ -368,7 +371,8 @@
                 '" width="' + number(photoWidth) + '" height="' + number(photoHeight) +
                 '" fill="url(#' + gradientId + ')" clip-path="url(#' + clipId +
                 ')" opacity="' + number(baseAlpha) + '"/>'
-              );
+              ).replace('<rect ', '<g filter="url(#blur-ribbon)"><rect ').replace('/>', '/></g>');
+
             }
           });
           measureSvg.removeChild(sourcePath);
