@@ -12,7 +12,7 @@ Current main contains **15 features, 62 top-level hifi/spec views, 70 nested hif
 | `home_normal_v1` | 有数据首页 | FROZEN / FROZEN | 7 | 0 | 0 | NOT_YET_ASSESSED |
 | `record_date_v2` | 记录日期 | PARTIAL / FROZEN | 3 | 0 | 0 | NOT_YET_ASSESSED |
 | `recognition_flow_v1_2` | 识别过程 | ACTIVE_CLOSURE / FROZEN | 6 | 18 | 0 | NOT_YET_ASSESSED |
-| `recognition_result_v1` | 识别结果 | FROZEN / FROZEN | 8 | 0 | 0 | NOT_YET_ASSESSED |
+| `recognition_result_v1` | 识别结果 | FROZEN / FROZEN | 10 | 0 | 0 | NOT_YET_ASSESSED |
 | `fish_record_detail_v2` | 鱼获详情 | PARTIAL / PARTIAL | 6 | 4 | 0 | NOT_YET_ASSESSED |
 | `share_templates_v1` | 分享模板 | PARTIAL / PARTIAL | 6 | 7 | 0 | NOT_YET_ASSESSED |
 | `fish_memory_bside_v1` | 鱼获记忆 / B 面 | PARTIAL / PARTIAL | 0 | 0 | 0 | NOT_YET_ASSESSED |
@@ -94,6 +94,8 @@ Every listed system includes authority paths, variant status, file presence, Git
 | `recognition_result_v1` | image_quality | hifi_view | RR05 · 图片质量不足 | FROZEN | `design/manager/#page/recognition_result_v1/hifi/image_quality` | `design/pages/recognition/design/09_Error_Image_Quality_Frozen.png` | BLOCKED_ACCESS_API_CONTENT_OMITTED |
 | `recognition_result_v1` | content_edit | hifi_view | RR06 · 内容修改 | FROZEN | `design/manager/#page/recognition_result_v1/hifi/content_edit` | `design/pages/recognition/result/authority/authority_map.json` | PATH_PRESENT_SHA256_NOT_RECALCULATED |
 | `recognition_result_v1` | decision_logic | hifi_view | 识别过程 · 07 · 判定逻辑 | ACTIVE_CLOSURE | `design/manager/#page/recognition_result_v1/hifi/decision_logic` | `design/pages/recognition/result/authority/authority_map.json` | PATH_PRESENT_SHA256_NOT_RECALCULATED |
+| `recognition_result_v1` | visual_acceptance | hifi_view | RR08 · 视觉验收 | READY_FOR_VISUAL_IMPLEMENTATION | `design/manager/#page/recognition_result_v1/hifi/visual_acceptance` | `design/system_v3/10_Page_Visual_Acceptance_Contracts/Recognition_Result/Recognition_Result_Visual_Contract_V1.md` | REGISTRY_ENTRY_PENDING_PR_DEPLOYMENT |
+| `recognition_result_v1` | motion_continuation | hifi_view | RR09 · 动效接续 | FROZEN | `design/manager/#page/recognition_result_v1/hifi/motion_continuation` | `design/pages/recognition/result/motion/Recognition_Result_Motion_Spec_V2.md` | REGISTRY_ENTRY_PENDING_PR_DEPLOYMENT |
 | `fish_record_detail_v2` | overview | hifi_view | 00 · Overview | FROZEN | `design/manager/#page/fish_record_detail_v2/hifi/overview` | `design/system/core_visual_v1/reference/fish_record_detail_v2.png` | BLOCKED_ACCESS_API_CONTENT_OMITTED |
 | `fish_record_detail_v2` | a_side | hifi_view | 01 · A 面 · 鱼获记录 | FROZEN | `design/manager/#page/fish_record_detail_v2/hifi/a_side` | `design/system/core_visual_v1/reference/fish_record_detail_v2.png` | BLOCKED_ACCESS_API_CONTENT_OMITTED |
 | `fish_record_detail_v2` | b_side | hifi_view | 02 · B 面 · 鱼获记忆 | FROZEN | `design/manager/#page/fish_record_detail_v2/hifi/b_side` | `design/pages/fish_record/detail/frozen/FishRecordDetail_B_Side_V1_Frozen.png` | BLOCKED_ACCESS_API_CONTENT_OMITTED |
