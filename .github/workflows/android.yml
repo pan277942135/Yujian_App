@@ -344,12 +344,19 @@ jobs:
           set -euo pipefail
           sdk_root="${ANDROID_SDK_ROOT:-${ANDROID_HOME:-}}"
           test -n "$sdk_root"
+          avd_home="$HOME/.android/avd"
+          mkdir -p "$avd_home"
+          export ANDROID_AVD_HOME="$avd_home"
+          echo "ANDROID_AVD_HOME=$avd_home" >> "$GITHUB_ENV"
           sdkmanager --install "emulator" "system-images;android-28;google_apis;x86_64"
           printf 'no\n' | avdmanager create avd \
             --name yujian_pixel2_api28 \
             --package "system-images;android-28;google_apis;x86_64" \
             --device pixel_2 \
+            -p "$avd_home/yujian_pixel2_api28.avd" \
             --force
+          test -s "$avd_home/yujian_pixel2_api28.ini"
+          "$sdk_root/emulator/emulator" -list-avds | grep -Fx yujian_pixel2_api28
 
       - name: Download frozen runtime APK pair
         if: ${{ matrix.required == true || (github.event_name == 'workflow_dispatch' && inputs.run_runtime_parity == true) }}
@@ -397,6 +404,10 @@ jobs:
           if [[ "$YUJIAN_RUNTIME_BACKEND" == "github-hosted" ]]; then
             sdk_root="${ANDROID_SDK_ROOT:-${ANDROID_HOME:-}}"
             test -n "$sdk_root"
+            avd_home="$HOME/.android/avd"
+            export ANDROID_AVD_HOME="$avd_home"
+            printf 'ANDROID_AVD_HOME=%s\n' "$ANDROID_AVD_HOME" | tee -a "$preflight_log"
+            test -s "$avd_home/yujian_pixel2_api28.ini"
             echo "$sdk_root/platform-tools" >> "$GITHUB_PATH"
             echo "$sdk_root/emulator" >> "$GITHUB_PATH"
             echo "$sdk_root/cmdline-tools/latest/bin" >> "$GITHUB_PATH"
