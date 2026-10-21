@@ -75,8 +75,8 @@ class GeminiHomeAdaptiveLayoutPolicyTest {
         )
 
         assertFalse(adaptive.topAlignMiddleGroup)
-        assertFalse(adaptive.contentFirstSizing.not())
-        assertTrue(baseline.contentFirstSizing.not())
+        assertTrue(adaptive.contentFirstSizing)
+        assertFalse(baseline.contentFirstSizing)
         assertFalse(legacy.contentFirstSizing)
         assertFalse(baseline.topAlignMiddleGroup)
         assertTrue(legacy.topAlignMiddleGroup)
