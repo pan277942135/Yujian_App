@@ -219,6 +219,8 @@ async function captureVariant(browser, variant, viewport, errors) {
     const expectedBase = 0.07;
     const expectedCap = 17;
     assert.equal(overlay.renderer_status.alpha_mode, expectedMode, "renderer must report the requested alpha mode");
+    const expectedGeometry = variant.id === "CANDIDATE" ? "DIRECTIONAL_RADIAL_FIELDS" : "PATH_STROKE";
+    assert.equal(overlay.renderer_status.geometry_mode, expectedGeometry, "renderer must report the requested geometry mode");
     assert.equal(overlay.renderer_status.base_alpha, expectedBase, "renderer must report the requested base alpha");
     assert.equal(Math.round(overlay.renderer_status.alpha_cap * 255), expectedCap, "renderer must report the requested output alpha cap");
     assert.ok(overlay.alpha.nonzero_pixels > 0, "Receiving Light layer must render");
@@ -291,7 +293,14 @@ async function captureVariant(browser, variant, viewport, errors) {
         depth_ratio: 0.18,
         paths: ["B1", "G1", "G3", "B3"],
         path_geometry_sha256: sha256(Buffer.from(JSON.stringify(identity.paths))),
-        receiving_geometry: variant.id === "CANDIDATE" ? "directional radial ellipses; path-stroke masks bypassed in review-only mode" : "original P1 path-stroke masks and blur layers",
+        receiving_geometry: variant.id === "CANDIDATE" ? "one broad directional radial field per primary island; path-stroke masks bypassed in review-only mode" : "original P1 path-stroke masks and blur layers",
+        radial_field_geometry: variant.id === "CANDIDATE" ? {
+          center: "visible-interval-weighted path center",
+          major_radius: "clamp(total visible span / 2, 0.20 x minDimension, 0.25 x minDimension)",
+          minor_radius: "existing maxDepth",
+          fields_per_primary_island: 1,
+          gradient: "monotonic radial falloff"
+        } : "not applicable to P1 path-stroke baseline",
         colors: "unchanged",
         quiet_gaps: "unchanged",
         photo_mapping: "unchanged photoContentRect",
@@ -435,7 +444,7 @@ async function main() {
         output_alpha_cap_8bit: 17,
         depth_ratio: 0.18,
         primary_paths: ["B1", "G1", "G3", "B3"],
-        geometry_change: "candidate uses direction-oriented radial ellipses instead of path-stroke masks",
+        geometry_change: "candidate uses one broad tangent-oriented radial field per island, with weighted center and expanded normal radius; Alpha remains fixed",
         colors: "unchanged",
         quiet_gaps: "unchanged",
         coordinate_mapping: "unchanged",
@@ -465,7 +474,7 @@ async function main() {
       "- Acceptance Center SHA: " + CENTER_SHA,
       "- Photo SHA-256: " + PHOTO_SHA,
       "- Baseline: base Alpha 0.07, output cap 17/255, depth 18%.",
-      "- Review-only candidate: directional radial fields; base Alpha 0.07, output cap 17/255, depth 18%.",
+      "- Review-only candidate: one broad tangent-oriented radial field per island; base Alpha 0.07, output cap 17/255, depth 18%.",
       "- Only geometry changes: the candidate replaces path-stroke Receiving Light with direction-oriented radial ellipses. Alpha, color, depth, global intensity, photo mapping, Quiet Gaps and source-over remain fixed.",
       "- Baseline RGB signal vs source photo (390x844): mean absolute delta " + baseline.over_photo.pixel_signal_vs_photo.mean_abs_rgb_delta_sampled.toFixed(6) + ".",
       "- Candidate RGB signal vs source photo (390x844): mean absolute delta " + candidate390.over_photo.pixel_signal_vs_photo.mean_abs_rgb_delta_sampled.toFixed(6) + ".",
