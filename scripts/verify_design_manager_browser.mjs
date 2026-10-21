@@ -184,6 +184,44 @@ async function main() {
     `Gemini preview must not use external images: ${previewImageSources.join("; ")}`);
   assert(await previewPage.locator('img[src*="sample_recent_catch"]').count() === 0,
     "Sensitive user-provided Hero source must not be embedded in the public preview");
+
+  // Figma-like structure tree ↔ canvas selection ↔ live property inspector.
+  assert(await previewPage.locator(".layer-node").count() >= 16, "NH01 structure tree must expose the registered selectable layers");
+  await previewPage.locator('.layer-node[data-target="#assetBrand"]').click();
+  const selectedBrand = await previewPage.evaluate(() => window.NH01SelectedLayer);
+  assert(selectedBrand?.target === "#assetBrand" && selectedBrand?.designNode === "Brand-Title",
+    `Selecting a tree node must update the selected design node: ${JSON.stringify(selectedBrand)}`);
+  assert(await previewPage.locator("#inspectorComposeNode").innerText() === "R.drawable.brand_title_primary",
+    "Property inspector must show the selected brand's Compose mapping");
+  assert(await previewPage.locator("#assetBrand").getAttribute("data-inspected") === "true",
+    "Selecting a tree node must highlight the corresponding canvas element");
+  await previewPage.locator('.layer-node[data-target="#mainCatchCard"]').click();
+  const selectedCard = await previewPage.evaluate(() => window.NH01SelectedLayer);
+  assert(selectedCard?.target === "#mainCatchCard" && selectedCard?.status === "BLOCKED",
+    `Hero photo provenance must remain visibly blocked on the selected card: ${JSON.stringify(selectedCard)}`);
+
+  // Five side-by-side logical viewports must render once each without recursively spawning more matrices.
+  assert(await previewPage.locator(".responsive-frame").count() === 5, "Responsive comparison must expose exactly five viewport frames");
+  for (const [width, height] of [[320,480],[360,640],[390,844],[430,932],[600,960]]) {
+    const frame = previewPage.frameLocator(`iframe[data-viewport="${width}x${height}"]`);
+    await frame.locator("#device").waitFor({ state: "visible", timeout: 15000 });
+    const frameState = await frame.locator("#device").evaluate(node => ({
+      width: node.offsetWidth, height: node.offsetHeight,
+      scale: getComputedStyle(document.documentElement).getPropertyValue("--font-scale").trim(),
+      nestedMatrixFrames: document.querySelectorAll('iframe[src*="mode=matrix"]').length
+    }));
+    assert(frameState.width === width && frameState.height === height,
+      `Responsive frame ${width}x${height} must render its declared logical viewport: ${JSON.stringify(frameState)}`);
+    assert(frameState.nestedMatrixFrames === 0,
+      `Responsive frame ${width}x${height} must not recursively load another matrix: ${JSON.stringify(frameState)}`);
+  }
+  await previewPage.locator("#matrixFontScale").selectOption("1.5");
+  const largestFrame = previewPage.frameLocator('iframe[data-viewport="390x844"]');
+  await largestFrame.locator("#device").waitFor({ state: "visible", timeout: 15000 });
+  const matrixScale = await largestFrame.locator("#device").evaluate(node => getComputedStyle(document.documentElement).getPropertyValue("--font-scale").trim());
+  assert(matrixScale === "1.5", `Responsive matrix font-scale control must propagate to frames; got ${matrixScale}`);
+  await previewPage.locator("#matrixFontScale").selectOption("1");
+
   await previewPage.screenshot({ path: resolve(args.outputDir, "nh01-gemini-native-preview-desktop.png"), fullPage: true });
 
   const previewViewportResults = [];
