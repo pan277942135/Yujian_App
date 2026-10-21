@@ -207,7 +207,6 @@ PY
     K04_465ms.png \
     K05_610ms.png \
     K06_850ms.png \
-    RR09_Recognition_Flow_Recording.mp4 \
     RR09_Frames_Manifest.json \
     RR09_Motion_Trace.json \
     RR09_API28_Test_Report.json \
@@ -270,6 +269,8 @@ PY
   fi
   cp "$YUJIAN_EVIDENCE_DIR/rr09_gate_recording_start_uptime_seconds.txt" \
     "$rr09_production_dir/recording_start_uptime_seconds.txt" 2>/dev/null || true
+  cp "$rr09_production_dir/RR09_Production_Recognition_Flow_Recording.mp4" \
+    "$rr09_output/RR09_Recognition_Flow_Recording.mp4"
   if ! python3 - "$rr09_output" "$YUJIAN_BUILD_SHA" "$YUJIAN_APP_APK" "RR09_Recognition_Flow_Recording.mp4" "$YUJIAN_REPO_ROOT/design/system/core_visual_v1/reference/recognition_result_v1.png" <<'PY'
 import hashlib
 import json
@@ -289,14 +290,16 @@ manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
 manifest["source_commit_sha"] = build_sha
 manifest["runtime_device_api"] = 28
 manifest["runtime_recording"] = recording_name
-manifest["runtime_recording_status"] = "CAPTURED_BY_INSTRUMENTATION_SCREENRECORD"
+manifest["runtime_recording_status"] = "CAPTURED_BY_API28_GATE_SCREENRECORD"
 manifest["review_status"] = "VISUAL_PARITY_REVIEW_REQUIRED"
 manifest["workflow_run_id"] = os.environ.get("GITHUB_RUN_ID")
 manifest["apk_sha256"] = None
+manifest["recording_source"] = "API28 gate screenrecord captured during the real production-data reveal test"
 manifest["notes"] = [
-    "Frame captures use the deterministic RR09 clock override and are not samples from the live monotonic playback.",
-    "The fish alpha and species result are instrumentation-only fixtures; these frames do not claim production model identity or segmentation.",
+    "Fixture frames use the deterministic RR09 clock override; they are not samples from the live monotonic playback.",
+    "The fixture fish alpha and species result are instrumentation-only; production model identity and segmentation are reported separately under production_model_flow.",
     "K01 is the last Processing fixture frame, not a camera-driven RESULT_READY capture.",
+    "The continuous recording is the API28 gate screenrecord from the real production-data reveal qualification.",
 ]
 production_dir = evidence / "production_model_flow"
 production = json.loads((production_dir / "RR09_Production_Qualification_Report.json").read_text(encoding="utf-8"))
@@ -381,6 +384,7 @@ report.update({
     "visual_parity_review": "REVIEW_REQUIRED",
     "performance": "NOT_RUN",
     "frame_sampling": "DETERMINISTIC_TEST_CLOCK",
+    "recording_source": "API28_GATE_SCREENRECORD_DURING_PRODUCTION_DATA_REVEAL",
 })
 if apk and apk.is_file():
     digest = hashlib.sha256(apk.read_bytes()).hexdigest()
@@ -444,7 +448,7 @@ report["workflow_run_id"] = __import__("os").environ.get("GITHUB_RUN_ID")
     f"- Android workflow run: {__import__('os').environ.get('GITHUB_RUN_ID')}\n"
     "- Runtime: Android API 28 instrumentation on the frozen Pixel 2 emulator configuration (1080 x 1920).\n"
     "- Native Compose reveal: PASS_FOR_INSTRUMENTATION_FIXTURE.\n"
-    f"- Six controlled frames and the native clock playback were recorded from the Android test app ({duration:.2f} seconds).\n"
+    f"- Six deterministic fixture frames were captured from the Android test app; the continuous native production reveal recording is the API28 gate screenrecord ({duration:.2f} seconds).\n"
     f"- Production model result and ML Kit segmentation: {production.get('status')} for {production.get('species_id')} (confidence {production.get('species_confidence')}); geometry {production.get('geometry_trust')} / {production.get('result_geometry_status')}.\n"
     "- Production-data frame captures: six screenshots under production_model_flow. Result entry in this isolated production-data qualification test is test-controlled after the actual model RESULT_READY; automatic V3.1 handoff is tested separately.\n"
     f"- Production recording: {production_recording.name}, {production_duration:.2f}s, {production_stream['width']} x {production_stream['height']}; API28 screenrecord begins before the production runtime class.\n"

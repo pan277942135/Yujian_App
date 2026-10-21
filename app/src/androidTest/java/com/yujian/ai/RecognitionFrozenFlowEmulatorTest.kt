@@ -778,31 +778,15 @@ class RecognitionFrozenFlowEmulatorTest {
             geometry.get() != null && processingPhoto.get() != null
         }
         composeRule.waitForIdle()
-        Thread.sleep(5_500L)
-        stopRunningScreenRecorders()
-        val recordingDevicePath = "/sdcard/rr09_gold_transfer_runtime.mp4"
-        device.executeShellCommand("rm -f '$recordingDevicePath'")
-        val recordingCommandOutput = AtomicReference<String?>()
-        val recordingCommandThread = Thread({
-            try {
-                recordingCommandOutput.set(
-                    device.executeShellCommand(
-                        "screenrecord --bit-rate 4000000 --time-limit 10 '$recordingDevicePath'",
-                    ),
-                )
-            } catch (error: Throwable) {
-                recordingCommandOutput.set("${error::class.java.simpleName}: ${error.message}")
-            }
-        }, "rr09-screenrecord-command").apply { start() }
-        Thread.sleep(250L)
         Snapshot.withMutableSnapshot {
             handoffState.value = handoff
             stage.value = "result"
         }
         assertRevealGeometryResolved()
 
-        // Switch to the real monotonic clock once, so the dedicated Android
-        // screen recording contains continuous native playback.
+        // Switch to the real monotonic clock once so FrameMetrics measure
+        // native playback. The API28 gate captures the continuous screen
+        // recording outside instrumentation.
         val frameTimesNs = Collections.synchronizedList(mutableListOf<Long>())
         val metricThread = android.os.HandlerThread("rr09-frame-metrics").apply { start() }
         val frameMetricsListener = android.view.Window.OnFrameMetricsAvailableListener { _, metrics, _ ->
@@ -852,26 +836,6 @@ class RecognitionFrozenFlowEmulatorTest {
             }
         """.trimIndent()
         File(evidence, "RR09_Performance_Report.json").writeText(performanceReport)
-        stopRunningScreenRecorders()
-        recordingCommandThread.join(2_000L)
-        val recordingCommandStillRunning = recordingCommandThread.isAlive
-        var recordingBytes = 0L
-        for (attempt in 0 until 12) {
-            recordingBytes = device.executeShellCommand("wc -c < '$recordingDevicePath'").trim().toLongOrNull() ?: 0L
-            if (recordingBytes > 1024L) break
-            Thread.sleep(250L)
-        }
-        assertTrue(
-            "RR09 screen recording is empty: bytes=$recordingBytes " +
-                "recorder_output=${recordingCommandOutput.get()} " +
-                "command_still_running=$recordingCommandStillRunning",
-            recordingBytes > 1024L,
-        )
-        val appRecording = File(evidence, "RR09_Recognition_Flow_Recording.mp4")
-        val copyResult = device.executeShellCommand(
-            "run-as ${targetContext.packageName} cp '$recordingDevicePath' '${appRecording.absolutePath}'",
-        )
-        assertTrue("could not copy RR09 device recording: $copyResult", appRecording.isFile && appRecording.length() > 1024L)
 
         val sourceBytes = InstrumentationRegistry.getInstrumentation().context.assets
             .open("recognition_real_catch_fixture.jpg").use { it.readBytes() }
@@ -1953,17 +1917,6 @@ class RecognitionFrozenFlowEmulatorTest {
             }
         } finally {
             bitmap.recycle()
-        }
-    }
-
-    private fun stopRunningScreenRecorders() {
-        val pids = device.executeShellCommand("pidof screenrecord").trim()
-            .split(Regex("\\s+"))
-            .filter(String::isNotBlank)
-        pids.forEach { pid -> device.executeShellCommand("kill -2 $pid") }
-        for (attempt in 0 until 12) {
-            if (device.executeShellCommand("pidof screenrecord").isBlank()) break
-            Thread.sleep(100L)
         }
     }
 
