@@ -184,7 +184,7 @@ async function captureReceivingOnly(browser, errors) {
       const perIsland = {};
       for (const [id] of Object.entries(islands)) perIsland[id] = { nonzero_pixels: 0, peak_alpha_8bit: 0 };
       const minDimension = Math.min(canvas.width, canvas.height);
-      const depthPx = 0.14 * minDimension;
+      const depthPx = 0.18 * minDimension;
       const outerSigma = depthPx * 0.0857;
       const quietDepthPx = Math.min(minDimension * 0.18, depthPx / 2 + outerSigma * 3);
       const quietRegions = {
@@ -452,7 +452,7 @@ function buildMarkdown(report) {
     "- Photo SHA-256: " + report.photo.sha256,
     "- Shared renderer: " + report.renderer.version + " · SHA-256 " + report.renderer.sha256,
     "- P1 base alpha: 0.07; final 8-bit output cap: " + report.renderer.output_alpha_cap_8bit + "/255.",
-    "- P1 edge depth: 14%; composite: source-over; Quiet Gaps: masked.",
+    "- P1 edge depth: 18% (the P1 upper bound); composite: source-over; Quiet Gaps: masked.",
     "- Android Runtime / Native / APK: NOT_RUN.",
     "",
     "## Browser PNG evidence",
@@ -511,7 +511,7 @@ async function main() {
         p1_base_alpha_range: [0.03, 0.07],
         selected_base_alpha: 0.07,
         p1_depth_range: [0.08, 0.18],
-        selected_depth_ratio: 0.14,
+        selected_depth_ratio: 0.18,
         composite: "source-over",
         drawing: "SVG path masks + feGaussianBlur outer/mid + core ridge + photoContentRect clip + P1 Quiet Gap mask",
         paths: ["B1", "G1", "G3", "B3"],

@@ -378,7 +378,7 @@
         goldHot: "#fff1c8"
       },
       baseAlpha: renderer.p1AlphaRange[1],
-      depthRatio: 0.14,
+      depthRatio: 0.18,
       globalMultiplier: params.edgeFieldIntensity / 100,
       dpToCanvasPx: photo.naturalWidth / displayWidth,
       enabled: true,
