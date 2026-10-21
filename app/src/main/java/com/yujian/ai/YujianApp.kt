@@ -783,7 +783,9 @@ fun YujianApp() {
                             availableSpecies = guideSpecies.ifEmpty { localGuideItems() },
                             speciesCoverUrlFor = fishKnowledgeRepository::resolveAssetUrl,
                             revealHandoff = revealHandoff,
-                            revealAlreadyPlayed = revealHandoff?.let(revealSessionStore::hasPlayed) ?: true,
+                            revealAlreadyPlayed = revealHandoff?.let { handoff ->
+                                revealSessionStore.hasPlayed(handoff.key)
+                            } ?: true,
                             onClaimReveal = revealSessionStore::claimPlayback,
                             onRevealFinished = revealSessionStore::releaseAnimationGeometry,
                             onSave = { draft, feedback, destination ->

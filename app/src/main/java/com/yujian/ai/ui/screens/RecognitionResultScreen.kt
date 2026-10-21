@@ -72,6 +72,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.asAndroidBitmap
+import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.graphics.ImageBitmap
@@ -99,7 +100,6 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.compose.foundation.relocation.BringIntoViewRequester
 import androidx.compose.foundation.relocation.bringIntoViewRequester
-import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.text.TextStyle
@@ -957,7 +957,16 @@ private fun SpeciesIdentityRow(
                             RecognitionRevealTitleMode.STATIC,
                             RecognitionRevealTitleMode.VISIBLE -> 1f
                         }
-                        if (fraction > 0f) clipRect(right = size.width * fraction) { drawContent() }
+                        if (fraction > 0f) {
+                            val canvas = drawContext.canvas.nativeCanvas
+                            val saveCount = canvas.save()
+                            try {
+                                canvas.clipRect(0f, 0f, size.width * fraction, size.height)
+                                drawContent()
+                            } finally {
+                                canvas.restoreToCount(saveCount)
+                            }
+                        }
                     }
                     .testTag("recognition-result-species-name"),
                 color = DeepInk,
@@ -980,7 +989,16 @@ private fun SpeciesIdentityRow(
                                 RecognitionRevealTitleMode.STATIC,
                                 RecognitionRevealTitleMode.VISIBLE -> 1f
                             }
-                            if (fraction > 0f) clipRect(right = size.width * fraction) { drawContent() }
+                            if (fraction > 0f) {
+                                val canvas = drawContext.canvas.nativeCanvas
+                                val saveCount = canvas.save()
+                                try {
+                                    canvas.clipRect(0f, 0f, size.width * fraction, size.height)
+                                    drawContent()
+                                } finally {
+                                    canvas.restoreToCount(saveCount)
+                                }
+                            }
                         }
                         .testTag("recognition-result-scientific-name"),
                     color = MutedInk,

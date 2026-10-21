@@ -123,6 +123,22 @@ data class RecognitionRevealGeometry(
 
     fun photoClip(progress: Float): RecognitionRevealWindowRect =
         lerp(processingPhotoClip.localTo(rootWindowOrigin), heroPhotoClip.localTo(rootWindowOrigin), progress)
+
+    private fun lerp(a: Float, b: Float, progress: Float): Float {
+        val p = progress.coerceIn(0f, 1f)
+        return a + (b - a) * p
+    }
+
+    private fun lerp(
+        a: RecognitionRevealWindowRect,
+        b: RecognitionRevealWindowRect,
+        progress: Float,
+    ) = RecognitionRevealWindowRect(
+        left = lerp(a.left, b.left, progress),
+        top = lerp(a.top, b.top, progress),
+        right = lerp(a.right, b.right, progress),
+        bottom = lerp(a.bottom, b.bottom, progress),
+    )
 }
 
 object RecognitionRevealGeometryResolver {
