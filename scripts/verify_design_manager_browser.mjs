@@ -164,7 +164,7 @@ async function main() {
   const previewAudit = await previewPage.evaluate(() => window.NH01GeminiPreviewAudit);
   const defaultLayout = await previewPage.evaluate(() => window.NH01GeminiPreviewLayout);
   assert(previewAudit?.status === "PASS", `Gemini preview asset integrity failed: ${JSON.stringify(previewAudit)}`);
-  assert(defaultLayout?.variant === "ADAPTIVE_V1", "Gemini preview default must match the Android default layout variant");
+  assert(defaultLayout?.variant === "ADAPTIVE_V2" && defaultLayout?.layout_version === "CONTENT_FIRST_V2", "Gemini preview must default to the content-first Adaptive V2 candidate");
   assert(defaultLayout?.safe_insets_dp?.top === 24 && defaultLayout?.safe_insets_dp?.bottom === 48,
     `Gemini preview must model the API28 safe insets: ${JSON.stringify(defaultLayout?.safe_insets_dp)}`);
   assert(defaultLayout?.card_height_dp > 0 && defaultLayout?.card_width_dp > 0,
@@ -251,12 +251,16 @@ async function main() {
   await previewPage.waitForFunction(() => window.NH01GeminiPreviewLayoutReady === true, { timeout: 5000 });
   assert((await previewPage.evaluate(() => window.NH01GeminiPreviewLayout)).variant === "V3_BASELINE",
     "Gemini preview must switch to the V3 baseline policy");
-  await previewPage.locator("#layoutVariant").selectOption("ADAPTIVE_V1");
+  await previewPage.locator("#layoutVariant").selectOption("ADAPTIVE_V2");
   await previewPage.waitForFunction(() => window.NH01GeminiPreviewLayoutReady === true, { timeout: 5000 });
   await previewPage.locator("#viewportPreset").selectOption("320x480");
   await previewPage.waitForFunction(() => window.NH01GeminiPreviewLayoutReady === true, { timeout: 5000 });
   assert(await previewPage.locator("#device").evaluate(node => node.style.width) === "320px",
     "Gemini preview viewport preset must change the logical device width");
+  const compactLayout = await previewPage.evaluate(() => window.NH01GeminiPreviewLayout);
+  assert(compactLayout?.content_min_card_height_dp > 0 && compactLayout?.card_height_dp > 0 &&
+    compactLayout?.card_height_dp <= compactLayout?.desired_card_size_dp?.[1] + 0.5,
+    `Compact/high-font layout must respect measured content minimum and never exceed the target card size: ${JSON.stringify(compactLayout)}`);
   await previewPage.locator("#cameraButton").click();
   assert(await previewPage.locator("#previewToast").getAttribute("data-visible") === "true",
     "Static camera button must clearly disclose that runtime interaction is not wired");
@@ -276,10 +280,12 @@ async function main() {
   const canvasAudit = await canvasPage.evaluate(() => window.NH01GeminiPreviewAudit);
   const canvasLayout = await canvasPage.evaluate(() => window.NH01GeminiPreviewLayout);
   assert(canvasAudit?.status === "PASS", `Gemini canvas preview asset integrity failed: ${JSON.stringify(canvasAudit)}`);
-  assert(canvasLayout?.variant === "ADAPTIVE_V1" && canvasLayout?.logical_viewport_dp?.join("x") === "360x640",
-    `Gemini canvas screenshot must use the default 360x640 logical profile: ${JSON.stringify(canvasLayout)}`);
-  assert(Math.abs(canvasLayout.card_width_dp - 220) <= 1 && Math.abs(canvasLayout.card_height_dp - 261) <= 1,
-    `Gemini preview card geometry must match the API28 360x640 runtime bounds (220×261dp): ${JSON.stringify(canvasLayout)}`);
+  assert(canvasLayout?.variant === "ADAPTIVE_V2" && canvasLayout?.layout_version === "CONTENT_FIRST_V2" && canvasLayout?.logical_viewport_dp?.join("x") === "360x640",
+    `Gemini canvas screenshot must use the content-first 360x640 logical profile: ${JSON.stringify(canvasLayout)}`);
+  assert(Math.abs(canvasLayout.card_width_dp / canvasLayout.card_height_dp - (247 / 293)) < 0.015,
+    `Adaptive V2 card must preserve the approved 247:293 aspect ratio: ${JSON.stringify(canvasLayout)}`);
+  assert(canvasLayout.content_min_card_height_dp > 0 && ["FIT", "CONTENT_SCROLL"].includes(canvasLayout.layout_mode),
+    `Adaptive V2 must report content measurement and an explicit fit/scroll decision: ${JSON.stringify(canvasLayout)}`);
   const canvasBounds = await canvasPage.evaluate(() => {
     const selectors = {
       brand: "#assetBrand", header: ".header-bar", stats: ".stats-bar",
@@ -299,17 +305,20 @@ async function main() {
     }
     return result;
   });
-  for (const [key, expected] of Object.entries({
-    mainCard: { left: 70, top: 200, width: 220, height: 261 },
-    sectionTitle: { top: 164, height: 24 },
-    footer: { top: 477, height: 115 },
-    ctaLabel: { top: 481, height: 18 },
-    cameraButton: { top: 510, width: 72, height: 72 }
-  })) {
-    const actual = canvasBounds[key];
-    assert(actual && Object.entries(expected).every(([field, value]) => Math.abs(actual[field] - value) <= 2),
-      `Gemini preview ${key} bounds differ from recorded API28 runtime geometry: expected ${JSON.stringify(expected)}, actual ${JSON.stringify(actual)}`);
-  }
+  const cardBounds = canvasBounds.mainCard;
+  const titleBounds = canvasBounds.sectionTitle;
+  const footerBounds = canvasBounds.footer;
+  const cameraBounds = canvasBounds.cameraButton;
+  assert(cardBounds && cardBounds.left >= 0 && cardBounds.right <= 360 &&
+    Math.abs(cardBounds.width / cardBounds.height - (247 / 293)) < 0.015,
+    `Adaptive V2 main card must remain within the canvas and preserve its aspect ratio: ${JSON.stringify(canvasBounds)}`);
+  assert(titleBounds && cardBounds.top >= titleBounds.bottom - 1,
+    `Adaptive V2 card must not overlap the section title: ${JSON.stringify(canvasBounds)}`);
+  assert(footerBounds && cardBounds.bottom <= footerBounds.top + 1,
+    `Adaptive V2 scrollable content must not cover the fixed footer: ${JSON.stringify(canvasBounds)}`);
+  assert(cameraBounds && cameraBounds.width === 72 && cameraBounds.height === 72 &&
+    cameraBounds.top >= canvasBounds.ctaLabel.bottom - 1,
+    `Camera touch target must remain intact and below the CTA label: ${JSON.stringify(canvasBounds)}`);
   const canvasPath = resolve(args.outputDir, "nh01-gemini-native-structure-1080x1920.png");
   await canvasPage.screenshot({ path: canvasPath, fullPage: false, scale: "device" });
   const canvasPng = readFileSync(canvasPath);
