@@ -299,7 +299,8 @@ async function main() {
     const selectors = {
       brand: "#assetBrand", header: ".header-bar", stats: ".stats-bar",
       sectionTitle: ".section-title", middle: "#middleSection", carousel: "#carouselWindow",
-      mainCard: ".main-card", footer: "#footerSection", ctaLabel: ".cta-label", cameraButton: "#cameraButton"
+      mainCard: ".main-card", footer: "#footerSection", ctaLabel: ".cta-label",
+      cameraButton: "#cameraButton", cameraArt: ".camera-art"
     };
     const result = {};
     for (const [key, selector] of Object.entries(selectors)) {
@@ -318,6 +319,12 @@ async function main() {
   const titleBounds = canvasBounds.sectionTitle;
   const footerBounds = canvasBounds.footer;
   const cameraBounds = canvasBounds.cameraButton;
+  const cameraArtBounds = canvasBounds.cameraArt;
+  const expectedCameraVisual = Math.max(56, Math.min(Math.min(canvasLayout.safe_width_dp, 560) * 0.18, canvasLayout.safe_height_dp * 0.10, 80));
+  const expectedCameraTouch = Math.max(72, expectedCameraVisual);
+  assert(Math.abs(canvasLayout.camera_visual_size_dp - expectedCameraVisual) <= 0.01 &&
+    Math.abs(canvasLayout.camera_touch_size_dp - expectedCameraTouch) <= 0.01,
+    `Camera sizes must follow the shared width/height policy: ${JSON.stringify(canvasLayout)}`);
   assert(cardBounds && cardBounds.left >= 0 && cardBounds.right <= 360 &&
     Math.abs(cardBounds.width / cardBounds.height - (247 / 293)) < 0.015,
     `Adaptive V2 main card must remain within the canvas and preserve its aspect ratio: ${JSON.stringify(canvasBounds)}`);
@@ -325,9 +332,13 @@ async function main() {
     `Adaptive V2 card must not overlap the section title: ${JSON.stringify(canvasBounds)}`);
   assert(footerBounds && cardBounds.bottom <= footerBounds.top + 1,
     `Adaptive V2 scrollable content must not cover the fixed footer: ${JSON.stringify(canvasBounds)}`);
-  assert(cameraBounds && cameraBounds.width === 72 && cameraBounds.height === 72 &&
+  assert(cameraBounds && Math.abs(cameraBounds.width - expectedCameraTouch) <= 1 &&
+    Math.abs(cameraBounds.height - expectedCameraTouch) <= 1 &&
     cameraBounds.top >= canvasBounds.ctaLabel.bottom - 1,
-    `Camera touch target must remain intact and below the CTA label: ${JSON.stringify(canvasBounds)}`);
+    `Camera touch target must match the responsive policy and stay below the CTA label: ${JSON.stringify(canvasBounds)}`);
+  assert(cameraArtBounds && Math.abs(cameraArtBounds.width - expectedCameraVisual) <= 1 &&
+    Math.abs(cameraArtBounds.height - expectedCameraVisual) <= 1,
+    `Visible camera artwork must be measured separately from its touch target: ${JSON.stringify(canvasBounds)}`);
   const canvasPath = resolve(args.outputDir, "nh01-gemini-native-structure-1080x1920.png");
   await canvasPage.screenshot({ path: canvasPath, fullPage: false, scale: "device" });
   const canvasPng = readFileSync(canvasPath);
