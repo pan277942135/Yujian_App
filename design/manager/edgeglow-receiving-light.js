@@ -272,10 +272,17 @@
     const alphaTable = Array.from({ length: 256 }, (_, index) =>
       number(Math.min(index / 255, config.outputAlphaCap))
     ).join(" ");
+    const postCapSigma = config.reviewOnlyEdgeRibbonExperiment ? ribbonBlurSigma * 0.55 : 0;
+    const postCapBlur = config.reviewOnlyEdgeRibbonExperiment
+      ? '<feGaussianBlur in="capped" stdDeviation="' + number(postCapSigma) + '"/>'
+      : '';
     const alphaCap = '<filter id="alpha-cap" filterUnits="userSpaceOnUse" primitiveUnits="userSpaceOnUse" ' +
       'x="0" y="0" width="' + width + '" height="' + height + '">' +
-      '<feComponentTransfer><feFuncA type="table" tableValues="' + alphaTable + '"/></feComponentTransfer></filter>';
-    const quietMaskDepth = config.reviewOnlyEdgeRibbonExperiment ? depthPx + ribbonBlurSigma * 3 : maxDepth;
+      '<feComponentTransfer result="capped"><feFuncA type="table" tableValues="' + alphaTable + '"/></feComponentTransfer>' +
+      postCapBlur + '</filter>';
+    const quietMaskDepth = config.reviewOnlyEdgeRibbonExperiment
+      ? depthPx + (ribbonBlurSigma + postCapSigma) * 3
+      : maxDepth;
     const defs = [photoClip, quietMaskMarkup(rect, width, height, quietMaskDepth), filters, alphaCap].join("");
     const measureSvg = document.createElementNS(SVG_NS, "svg");
     measureSvg.setAttribute("width", String(width));
@@ -485,7 +492,7 @@
     return '<svg xmlns="http://www.w3.org/2000/svg" width="' + width + '" height="' + height +
       '" viewBox="0 0 ' + width + ' ' + height + '">' +
       '<defs>' + defs + defsMarkup.join("") + '</defs>' +
-      '<g filter="url(#alpha-cap)"><g clip-path="url(#photo-clip)" mask="url(#quiet-gaps)">' +
+      '<g filter="url(#alpha-cap)" clip-path="url(#photo-clip)" mask="url(#quiet-gaps)"><g>' +
       layersMarkup.join("") + '</g></g></svg>';
   }
 
