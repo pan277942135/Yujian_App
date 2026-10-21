@@ -10,6 +10,7 @@ const SOURCE_ROOT = path.resolve(process.env.PR_SOURCE_ROOT || process.cwd());
 const OUTPUT_DIR = path.resolve(process.env.OPTICAL_EVIDENCE_DIR || "optical-static-v3-evidence");
 const PUBLIC_DIR = process.env.OPTICAL_PUBLIC_EVIDENCE_DIR ? path.resolve(process.env.OPTICAL_PUBLIC_EVIDENCE_DIR) : null;
 const SOURCE_SHA = process.env.PR_SOURCE_SHA || process.env.GITHUB_SHA || "LOCAL_UNPINNED";
+const RECOVERY_BASELINE_SHA = process.env.OPTICAL_RECOVERY_BASELINE_SHA || "76512ea4c889e4963cc8ed42662f2b0d344b835b";
 const ACCEPTANCE_PATH = "design/manager/nh01_acceptance/edgeglow-fish-static/";
 const REVIEW_PATH = ACCEPTANCE_PATH + "optical-review/";
 const VIEWPORTS = [[390, 844], [320, 640], [412, 915], [800, 360], [1152, 1536]];
@@ -604,6 +605,168 @@ async function main() {
   }
 }
 
+async function mainReceivingRecoveryR01() {
+  fs.rmSync(OUTPUT_DIR, { recursive: true, force: true });
+  fs.mkdirSync(OUTPUT_DIR, { recursive: true });
+  if (PUBLIC_DIR) {
+    fs.rmSync(PUBLIC_DIR, { recursive: true, force: true });
+    fs.mkdirSync(PUBLIC_DIR, { recursive: true });
+  }
+  const config = readJson(configPath);
+  const fixture = readJson(fixturePath);
+  const candidateManifest = readJson("design/manager/optical-lab/review_v1/candidates.json");
+  const browser = await chromium.launch({ headless: true, args: ["--no-sandbox"] });
+  const errors = [];
+  try {
+    const page = await browser.newPage({ viewport: { width: 1440, height: 1100 }, deviceScaleFactor: 1 });
+    page.on("pageerror", error => errors.push(error.message));
+    page.on("console", message => { if (message.type() === "error") errors.push(message.text()); });
+    page.on("requestfailed", request => errors.push("requestfailed: " + request.url() + " · " + request.failure()?.errorText));
+    await page.goto(new URL(REVIEW_PATH, SITE_BASE).href, { waitUntil: "networkidle", timeout: 30000 });
+    await page.waitForFunction(() =>
+      document.querySelector("#overallStatus")?.textContent === "REVIEW_REQUIRED" &&
+      window.OPTICAL_LAB_BUILD_INFO__?.head_sha &&
+      document.querySelector("#previewCanvas")?.dataset.photoContentRect,
+      null,
+      { timeout: 30000 }
+    );
+    await page.locator("#previewModeButtons [data-preview-mode='static']").click();
+    await page.locator("#stateButtons button").nth(0).click();
+    await page.selectOption("#focusSource", "blocked");
+    await page.selectOption("#staticCandidate", "B");
+    await setTargetViewport(page, 390, 844);
+    await page.waitForTimeout(120);
+
+    const buildInfo = await page.evaluate(() => window.OPTICAL_LAB_BUILD_INFO__);
+    assert.equal(buildInfo.head_sha, SOURCE_SHA, "R01 browser page must be built from this exact source SHA");
+    assert.ok(buildInfo.acceptance_center_source_sha, "Acceptance Center source SHA must be present");
+
+    const setOnlyLayers = async enabled => {
+      for (const name of ["photo","receiving","outer","mid","core","hairlines","fishHalo","fishContour","status"]) {
+        await setLayer(page, name, enabled.includes(name));
+      }
+    };
+    const setFieldFlags = async () => {
+      await setReviewLayer(page, "fieldToggle", true);
+      await setReviewLayer(page, "pathToggle", false);
+      await setReviewLayer(page, "filamentToggle", false);
+      await setReviewLayer(page, "fishToggle", false);
+    };
+    await setFieldFlags();
+    await page.selectOption("#fieldLayerView", "receiving");
+    await setOnlyLayers(["receiving"]);
+    await waitForPaint(page);
+    await canvasPng(page, "receiving-light-only-B.png");
+    const isolatedAlpha = await canvasAlphaSummary(page);
+    assert.equal(isolatedAlpha.opaque_pixels, 0, "isolated Receiving Light export must retain transparency");
+    assert.ok(isolatedAlpha.translucent_pixels > 0, "isolated Receiving Light export must contain rendered field pixels");
+
+    await setOnlyLayers(["photo","receiving"]);
+    await waitForPaint(page);
+    await canvasPng(page, "receiving-light-over-photo-B.png");
+
+    await setFieldFlags();
+    await setOnlyLayers(["photo","receiving","outer","mid","core","hairlines","fishHalo","fishContour","status"]);
+    await page.selectOption("#fieldLayerView", "composite");
+    await waitForPaint(page);
+    await canvasPng(page, "static-B-390x844.png");
+
+    const geometry = await page.evaluate(() => window.OPTICAL_LAB_STATIC_GEOMETRY_DIAGNOSTIC());
+    assert.deepEqual(geometry.viewport, [390, 844]);
+    assert.equal(geometry.receiving_fields.length, 4, "R01 must keep the four existing primary islands");
+    const minDim = Math.min(geometry.photoContentRect.right-geometry.photoContentRect.left, geometry.photoContentRect.bottom-geometry.photoContentRect.top);
+    assert.ok(geometry.receiving_fields.every(field => field.minor_radius_px <= 0.18*minDim+0.01), "the field depth axis must stay within P1's 8–18% range");
+    writeDataUrl("geometry-diagnostic-390x844.png", geometry.png_data_url);
+
+    const optics = await page.evaluate(() => window.OPTICAL_LAB_STATIC_RECEIVING_PARAMETERS__);
+    const pageCandidates = await page.evaluate(() => window.OPTICAL_LAB_STATIC_CANDIDATES__);
+    assert.equal(optics.composite, "source-over");
+    assert.equal(optics.opacityCap, 0.14);
+    assert.equal(pageCandidates.B.receiving_field_scale, candidateManifest.static_candidates.B.receiving_field_scale);
+    assert.equal(pageCandidates.B.receiving_depth_ratio, candidateManifest.static_candidates.B.receiving_depth_ratio);
+    assert.deepEqual(optics.alphaStops, [[0,1],[0.48,0.94],[0.84,0.46],[1,0]]);
+    assert.deepEqual(optics.layout.map(item => item.id), ["B_UR","G_UL","G_LL","B_LR"]);
+
+    const names = ["receiving-light-only-B.png","receiving-light-over-photo-B.png","static-B-390x844.png","geometry-diagnostic-390x844.png"];
+    const rendered = names.map(file => {
+      const bytes = fs.readFileSync(path.join(OUTPUT_DIR,file));
+      assert.ok(bytes.subarray(0,8).equals(Buffer.from([137,80,78,71,13,10,26,10])), file + " must be a real browser PNG");
+      return {file,bytes:bytes.length,sha256:sha256(bytes)};
+    });
+    const fieldParams = geometry.receiving_fields.map(field => ({
+      id:field.id,family:field.family,
+      path_id:config.p1_edge_field.paths.find(path=>path.island===field.id)?.id||null,
+      center_normalized:field.center_normalized,center_px:field.center_px,
+      tangent_radius_min_dimension:field.tangent_radius_min_dimension,
+      major_radius_px:field.major_radius_px,minor_radius_px:field.minor_radius_px,
+      angle_rad:field.angle_rad,depth_ratio:field.depth_ratio
+    }));
+    const parameterJson = {
+      task_id:"YUJIAN_EDGEFIELD_STATIC_RECOVERY_R01",
+      authority:"REVIEW_CANDIDATE_ONLY_NOT_FROZEN",
+      source_sha:SOURCE_SHA,
+      inherited_baseline_sha:RECOVERY_BASELINE_SHA,
+      source_photo_sha256:fixture.photo.sha256,
+      source_photo_dimensions:[fixture.photo.width,fixture.photo.height],
+      exif_orientation:fixture.photo.exif_orientation,
+      viewport:[390,844],
+      photoContentRect:geometry.photoContentRect,
+      candidate:{
+        id:"REVIEW_CANDIDATE_B",name:"Balanced Field",
+        receiving_field_scale:pageCandidates.B.receiving_field_scale,
+        base_alpha_range:config.p1_edge_field.optical_stack.find(layer=>layer.layer==="local_receiving_light").contract_alpha_before_multipliers,
+        nominal_peak_alpha_before_path_weight:0.07*pageCandidates.B.receiving_field_scale,
+        depth_ratio:pageCandidates.B.receiving_depth_ratio,
+        opacity_cap:optics.opacityCap,composite:optics.composite
+      },
+      receiving_fields:fieldParams,
+      alpha_stops:optics.alphaStops,
+      palette_authority:"Existing P1 blue/gold tokens; unchanged",
+      paths_authority:"Existing P1 seven paths and Quiet Gaps; unchanged",
+      inherited_geometry_evidence:{
+        workflow_run:39453185868,source_sha:RECOVERY_BASELINE_SHA,
+        source_photo_sha256:"6e955087108f7463eca2dbac489699a4942028ebe1b3d456ddfca523286385ef",
+        photo_exif:"PASS_ORIENTATION_1",shared_photoContentRect:"PASS",
+        five_viewport_geometry:"PASS_GEOMETRY_ONLY",
+        status:"REUSED_PARENT_EVIDENCE_NO_REPEAT"
+      }
+    };
+    const parameterBytes = Buffer.from(JSON.stringify(parameterJson,null,2)+"\n");
+    fs.writeFileSync(path.join(OUTPUT_DIR,"receiving-light-recovery-r01-parameters.json"),parameterBytes);
+    const report = {
+      task_id:"YUJIAN_EDGEFIELD_STATIC_RECOVERY_R01",
+      scope:"WEB_STATIC_RECEIVING_LIGHT_ONLY",
+      source_sha:SOURCE_SHA,build_sha:buildInfo.head_sha,deployment_source_sha:SOURCE_SHA,
+      acceptance_center_source_sha:buildInfo.acceptance_center_source_sha,
+      page_url:new URL(REVIEW_PATH,PUBLIC_SITE_BASE).href,
+      evidence_url:new URL(REVIEW_PATH+"evidence/static-recovery-r01/",PUBLIC_SITE_BASE).href,
+      viewport:[390,844],state:"IMAGE_RECOGNIZING",candidate:"REVIEW_CANDIDATE_B",
+      photoContentRect:geometry.photoContentRect,
+      browser_render_status:"PASS_TARGETED_BROWSER_RENDER_ONLY",
+      visual_status:"REVIEW_REQUIRED · no automated visual PASS",
+      inherited_geometry_evidence:parameterJson.inherited_geometry_evidence,
+      receiving_layer_alpha_integrity:isolatedAlpha,
+      rendered_pngs:rendered,
+      parameters_file:"receiving-light-recovery-r01-parameters.json",
+      parameters_sha256:sha256(parameterBytes),
+      constraints:{
+        p1_base_alpha:"UNCHANGED",palette:"UNCHANGED",seven_paths:"UNCHANGED",
+        composite:"source-over",extra_layers_or_paths:"NONE",android:"NOT_RUN",dynamic:"NOT_RUN"
+      },
+      browser_errors:errors
+    };
+    fs.writeFileSync(path.join(OUTPUT_DIR,"receiving-light-recovery-r01-test-report.json"),JSON.stringify(report,null,2)+"\n");
+    const figures=names.map(file=>"<figure><a href=\"./"+file+"\"><img src=\"./"+file+"\" alt=\""+file+"\"></a><figcaption>"+file+"</figcaption></figure>").join("");
+    const gallery='<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Receiving Light 静态恢复 R01</title><style>body{font:15px/1.45 system-ui,sans-serif;background:#101b20;color:#eaf3f5;margin:0 auto;padding:22px;max-width:1180px}a{color:#9edbe8}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}figure{margin:0}img{width:100%;height:auto;background:#162329;border:1px solid #38535c;border-radius:8px}figcaption{font-size:13px;padding:5px 0;color:#b5c9ce}code{overflow-wrap:anywhere}</style><h1>Receiving Light 定向修复 R01</h1><p>REVIEW_REQUIRED · Web 静态候选 · source SHA <code>'+SOURCE_SHA+'</code> · IMAGE_RECOGNIZING · 390×844</p><p><a href="./receiving-light-recovery-r01-parameters.json">参数 JSON</a> · <a href="./receiving-light-recovery-r01-test-report.json">浏览器测试报告</a></p><div class="grid">'+figures+'</div></html>';
+    fs.writeFileSync(path.join(OUTPUT_DIR,"index.html"),gallery);
+    if(PUBLIC_DIR)fs.cpSync(OUTPUT_DIR,PUBLIC_DIR,{recursive:true});
+    assert.equal(fs.readdirSync(OUTPUT_DIR).filter(file=>file.endsWith(".png")).length,4,"R01 mode must output exactly four PNGs");
+    console.log(JSON.stringify({result:"PASS_TARGETED_BROWSER_RENDER_ONLY",visual_status:"REVIEW_REQUIRED",source_sha:SOURCE_SHA,output_dir:OUTPUT_DIR,public_dir:PUBLIC_DIR,pngs:rendered},null,2));
+  } finally {
+    await browser.close();
+  }
+}
+
 function galleryHtml(report) {
   const cand = ["A", "B", "C"].map(candidate => {
     const entry = report.static_candidates[candidate];
@@ -617,4 +780,4 @@ function galleryHtml(report) {
   return `<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>EdgeGlow 静态光场证据 V3</title><style>body{font:15px/1.5 system-ui,sans-serif;background:#101b20;color:#eaf3f5;margin:0 auto;padding:24px;max-width:1440px}a{color:#9edbe8}section{border-top:1px solid #38535c;padding:20px 0}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px}figure{margin:0}img{display:block;width:100%;height:auto;border:1px solid #38535c;border-radius:8px;background:#152329}figcaption{font-size:12px;color:#aac0c6;padding:6px 0}.badge{display:inline-block;border:1px solid #8c7550;border-radius:999px;padding:4px 10px;color:#ffdda3}pre{white-space:pre-wrap;background:#17272d;padding:12px;border-radius:8px}</style><h1>EdgeGlow 静态光场 · 浏览器真实渲染证据 V3</h1><p class="badge">REVIEW_REQUIRED · 未替用户批准候选</p><p>页面：<a href="${report.page_url}">Optical Review</a> · <a href="${report.acceptance_url}">正式验收中心</a></p><p>source SHA <code>${report.source_sha}</code> · build SHA <code>${report.build_sha}</code> · deploy source <code>${report.deployment_source_sha}</code>（部署仅由 post-deploy live smoke 验证）· 目标状态 IMAGE_RECOGNIZING · P5 FIT 真实 fixture</p><p>源照片 <code>${report.data_source.sha256}</code> · ${report.data_source.dimensions.join("×")} · EXIF ${report.data_source.exif_orientation} · FIT / NO CROP。Frozen source photo identity: <strong>SOURCE_PHOTO_IDENTITY_UNVERIFIED</strong>。</p><section><h2>修复前真实页面与 G0 基线</h2><p>正式页部署前 source SHA：<code>${report.baseline.live_predeploy_capture.page_source_sha || "NOT_CAPTURED"}</code> · 截图状态：<code>${report.baseline.live_predeploy_capture.status}</code>。</p>${liveBaselineHtml}<p><img src="baseline-pre-change-cloud-default.jpg" style="max-width:720px" alt="修复前浏览器截图"><br>修复前存档截图；历史 34de run <code>${report.baseline.workflow_run_id}</code>，<a href="${report.baseline.workflow_run_url}">原始 Actions artifact</a>。历史图 SHA <code>${report.baseline.original_screenshot_sha256}</code>、Receiving Light PNG SHA <code>${report.baseline.original_receiving_layer_sha256}</code> 记录在来源清单。</p><p>旧像素差只证明渲染信号，不是视觉通过。Frozen 02 与当前 P5 photo 不同源，因此标记 SOURCE_PHOTO_IDENTITY_UNVERIFIED。</p></section><h2>静态候选 A/B/C</h2>${cand}<section><h2>B · 正式视口矩阵 PNG</h2><div class="grid">${viewports}</div></section><section><h2>图层与几何</h2><p><a href="geometry-diagnostic-390x844.png">纯几何诊断（photoContentRect、网格、七路径、控制点、Quiet Gaps）</a> · <a href="static-closure-v3-report.json">静态闭环 JSON</a> · <a href="static-candidate-parameters.json">A/B/C 参数 JSON</a> · <a href="static-evidence-artifact-manifest.json">PNG SHA-256 清单</a> · <a href="fish-focus-case-b-bbox.json">Case B BBox JSON</a> · <a href="fish-focus-review-only-alpha.png">Review-only alpha PNG</a></p><div class="grid">${report.layer_images.map(file => `<figure><img src="${file}"><figcaption>${file}</figcaption></figure>`).join("")}</div></section><section><h2>Fish Focus 输入来源</h2><p>Production: <strong>BLOCKED</strong>。Case B 使用历史 BBox 与人工标注 alpha，必须标记 <code>REVIEW_PROXY_NOT_PRODUCTION</code>。<a href="fish-focus-case-b-bbox.json">BBox JSON</a> · <a href="fish-focus-review-only-alpha.png">review alpha PNG</a> · <a href="fish-focus-review-case-b-photo.jpg">Case B fixture photo</a> · <a href="fish-focus-review-proxy-only.png">暖金 Fish Focus 单层 PNG</a>。</p><div class="grid">${report.fish_focus.screenshots.map(file => `<figure><img src="${file}"><figcaption>${file}</figcaption></figure>`).join("")}</div></section><section><h2>候选参数</h2><pre>${JSON.stringify(report.static_candidates,null,2)}</pre></section><p>这些 PNG 是 Chromium Canvas 页面构建的实际输出；自动化验证资源、坐标、图层开关和导出完整性，不替代视觉判断。视觉结论为 REVIEW_REQUIRED；动态实现/录制和 Android Runtime 本轮 NOT_RUN。</p></html>`;
 }
 
-main().catch(error => { console.error(error); process.exitCode = 1; });
+(process.argv.includes("--receiving-recovery-r01") ? mainReceivingRecoveryR01 : main)().catch(error => { console.error(error); process.exitCode = 1; });
