@@ -91,10 +91,11 @@ async function captureVariant(browser, variant, viewport, errors) {
   const prefix = variant.id.toLowerCase() + "-" + width + "x" + height;
   const page = await browser.newPage({ viewport: { width, height }, deviceScaleFactor: 1 });
   attachErrors(page, prefix, errors);
-  await page.addInitScript(isCandidate => {
+  await page.addInitScript(() => {
     window.__EDGEGLOW_ALPHA_EXPERIMENT__ = false;
     window.__EDGEGLOW_RADIAL_FIELD_EXPERIMENT__ = false;
-    window.__EDGEGLOW_EDGE_RIBBON_EXPERIMENT__ = isCandidate;
+    // Keep bootstrap on known-good P1; activate the candidate only after page identity is verified.
+    window.__EDGEGLOW_EDGE_RIBBON_EXPERIMENT__ = false;
     window.__EDGEGLOW_RECEIVING_CAPTURE_CALLS__ = [];
     const nativeDrawImage = CanvasRenderingContext2D.prototype.drawImage;
     CanvasRenderingContext2D.prototype.drawImage = function(source, ...args) {
@@ -114,7 +115,7 @@ async function captureVariant(browser, variant, viewport, errors) {
       }
       return nativeDrawImage.call(this, source, ...args);
     };
-  }, variant.id === "CANDIDATE");
+  });
 
   try {
     const url = new URL(ACCEPTANCE_PATH, SITE_BASE).href;
@@ -141,7 +142,8 @@ async function captureVariant(browser, variant, viewport, errors) {
     })) await setControl(page, id, value);
     let renderInvocation;
     try {
-      renderInvocation = await page.evaluate(() => {
+      renderInvocation = await page.evaluate(isCandidate => {
+        window.__EDGEGLOW_EDGE_RIBBON_EXPERIMENT__ = isCandidate;
         window.__EDGEGLOW_RECEIVING_CAPTURE_CALLS__.length = 0;
         try {
           window.__EDGEGLOW_LAB__.render();
@@ -149,7 +151,7 @@ async function captureVariant(browser, variant, viewport, errors) {
         } catch (error) {
           return { error: String(error && (error.stack || error.message) || error), status: window.__EDGEGLOW_RECEIVING_LIGHT_STATUS__ || null };
         }
-      });
+      }, variant.id === "CANDIDATE");
       await page.waitForFunction(() =>
         window.__EDGEGLOW_RECEIVING_CAPTURE_CALLS__?.length > 0 ||
         ["failed", "disabled"].includes(window.__EDGEGLOW_RECEIVING_LIGHT_STATUS__?.status),
