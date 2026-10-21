@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { createServer } from "node:http";
-import { createReadStream, existsSync, statSync } from "node:fs";
+import { createReadStream, existsSync, readFileSync, statSync } from "node:fs";
 import { resolve, extname, sep } from "node:path";
 import { createRequire } from "node:module";
 
@@ -119,6 +119,90 @@ async function main() {
   const p02Hash = "#page/recognition_flow_v1_2/hifi/capture_first_use_guide/p02";
   const p03Hash = "#page/recognition_flow_v1_2/hifi/capture_first_use_guide/p03";
   const open = hash => page.goto(baseUrl + hash, { waitUntil: "networkidle", timeout: 45000 });
+
+  // Gemini Native V3 is sourced from the checked-in structure snapshot and approved assets,
+  // not from live Figma. Verify the actual assets and emit a 1080x1920 diagnostic artifact.
+  const previewUrl = new URL("nh01_acceptance/gemini-native-preview.html", baseUrl).href;
+  const previewPage = await browser.newPage({ viewport: { width: 1440, height: 1000 }, deviceScaleFactor: 1 });
+  previewPage.on("console", message => { if (message.type() === "error") errors.push(message.text()); });
+  previewPage.on("pageerror", error => errors.push(error.message));
+  previewPage.on("requestfailed", request => failedRequests.push(`${request.url()} · ${request.failure()?.errorText || "request failed"}`));
+  previewPage.on("response", response => {
+    if (response.status() >= 400 && response.url().startsWith(new URL(baseUrl).origin)) {
+      badResponses.push(`${response.status()} ${response.url()}`);
+    }
+  });
+  const previewResponse = await previewPage.goto(previewUrl, { waitUntil: "networkidle", timeout: 45000 });
+  assert(previewResponse?.ok(), "NH01 Gemini Native preview route did not load");
+  const previewBuild = await previewPage.locator('meta[name="nh01-gemini-preview-build"]').getAttribute("content");
+  if (args.expectedBuild) assert(previewBuild === args.expectedBuild, `Gemini preview build mismatch: ${previewBuild} != ${args.expectedBuild}`);
+  await previewPage.waitForFunction(() => window.NH01GeminiPreviewReady === true, { timeout: 30000 });
+  const previewAudit = await previewPage.evaluate(() => window.NH01GeminiPreviewAudit);
+  assert(previewAudit?.status === "PASS", `Gemini preview asset integrity failed: ${JSON.stringify(previewAudit)}`);
+  assert(previewAudit.release_gate_effect === "NONE", "Gemini preview must not affect release gates");
+  const requiredAssetIds = ["background", "brand", "avatar", "camera"];
+  for (const id of requiredAssetIds) {
+    const result = previewAudit.assets.find(asset => asset.id === id);
+    assert(result?.status === "PASS_SOURCE_INTEGRITY", `Registered Gemini asset failed SHA/dimension check: ${id} ${JSON.stringify(result)}`);
+  }
+  assert(previewAudit.assets.find(asset => asset.id === "hero_photo")?.status === "BLOCKED_ASSET_SOURCE",
+    "Hero photo must remain blocked until source provenance and usage rights are verified");
+  assert(previewAudit.assets.find(asset => asset.id === "neighbor_photos")?.status === "BLOCKED_MISSING_APPROVED_INDEPENDENT_ORIGINALS",
+    "Neighbor photos must not be invented or duplicated");
+  const previewImageSources = await previewPage.locator("img").evaluateAll(images => images.map(image => image.currentSrc).filter(Boolean));
+  assert(previewImageSources.every(src => new URL(src).origin === new URL(previewUrl).origin),
+    `Gemini preview must not use external images: ${previewImageSources.join("; ")}`);
+  assert(await previewPage.locator('img[src*="sample_recent_catch"]').count() === 0,
+    "Sensitive user-provided Hero source must not be embedded in the public preview");
+  await previewPage.screenshot({ path: resolve(args.outputDir, "nh01-gemini-native-preview-desktop.png"), fullPage: true });
+
+  const previewViewportResults = [];
+  for (const [width, height] of [[1440, 1000], [768, 1024], [390, 844], [320, 720]]) {
+    await previewPage.setViewportSize({ width, height });
+    await previewPage.waitForTimeout(50);
+    const result = await previewPage.evaluate(() => ({
+      viewport: window.innerWidth,
+      document: document.documentElement.scrollWidth,
+      body: document.body.scrollWidth,
+      deviceBox: (() => { const r = document.querySelector("#deviceWrap").getBoundingClientRect(); return { width: r.width, height: r.height }; })()
+    }));
+    assert(result.document <= width && result.body <= width,
+      `Gemini preview horizontal overflow at ${width}px: ${JSON.stringify(result)}`);
+    previewViewportResults.push(result);
+  }
+  await previewPage.setViewportSize({ width: 1440, height: 1000 });
+  await previewPage.locator("#fontScale").selectOption("1.5");
+  assert(await previewPage.locator("#device").evaluate(node => getComputedStyle(node).getPropertyValue("--font-scale").trim()) === "",
+    "font scale is stored on the document root, not the device node");
+  assert(await previewPage.locator("html").evaluate(node => getComputedStyle(node).getPropertyValue("--font-scale").trim()) === "1.5",
+    "Gemini preview font-scale control must update the root font scale");
+  await previewPage.locator("#viewportPreset").selectOption("320x480");
+  assert(await previewPage.locator("#device").evaluate(node => node.style.width) === "320px",
+    "Gemini preview viewport preset must change the logical device width");
+  await previewPage.locator("#cameraButton").click();
+  assert(await previewPage.locator("#previewToast").getAttribute("data-visible") === "true",
+    "Static camera button must clearly disclose that runtime interaction is not wired");
+
+  const canvasPage = await browser.newPage({ viewport: { width: 360, height: 640 }, deviceScaleFactor: 3 });
+  canvasPage.on("console", message => { if (message.type() === "error") errors.push(message.text()); });
+  canvasPage.on("pageerror", error => errors.push(error.message));
+  canvasPage.on("requestfailed", request => failedRequests.push(`${request.url()} · ${request.failure()?.errorText || "request failed"}`));
+  canvasPage.on("response", response => {
+    if (response.status() >= 400 && response.url().startsWith(new URL(baseUrl).origin)) {
+      badResponses.push(`${response.status()} ${response.url()}`);
+    }
+  });
+  await canvasPage.goto(previewUrl + "?mode=canvas", { waitUntil: "networkidle", timeout: 45000 });
+  await canvasPage.waitForFunction(() => window.NH01GeminiPreviewReady === true, { timeout: 30000 });
+  const canvasAudit = await canvasPage.evaluate(() => window.NH01GeminiPreviewAudit);
+  assert(canvasAudit?.status === "PASS", `Gemini canvas preview asset integrity failed: ${JSON.stringify(canvasAudit)}`);
+  const canvasPath = resolve(args.outputDir, "nh01-gemini-native-structure-1080x1920.png");
+  await canvasPage.screenshot({ path: canvasPath, fullPage: false, scale: "device" });
+  const canvasPng = readFileSync(canvasPath);
+  assert(canvasPng.readUInt32BE(16) === 1080 && canvasPng.readUInt32BE(20) === 1920,
+    "Gemini structure screenshot artifact must be exactly 1080x1920 pixels");
+  await canvasPage.close();
+  await previewPage.close();
 
   await open(p01Hash);
   await waitForManager(page);
@@ -242,7 +326,8 @@ async function main() {
     overview: overviewImageInfo,
     review: reviewImage,
     checks: ["direct Hash", "refresh", "back/forward", "modal zoom/fit/Esc/focus restore", "missing authority no fake UI", "invalid route guard", "no HTTP errors", "no console/page errors"],
-    screenshots: ["desktop-1440.png", "tablet-768.png", "mobile-390.png", "lightbox-1440.png", "overview-1440.png"],
+    gemini_native_preview: { build_sha: previewBuild, asset_audit: previewAudit, viewports: previewViewportResults, canvas_screenshot: "nh01-gemini-native-structure-1080x1920.png", canvas_dimensions_px: [1080, 1920], release_gate_effect: "NONE" },
+    screenshots: ["desktop-1440.png", "tablet-768.png", "mobile-390.png", "lightbox-1440.png", "overview-1440.png", "nh01-gemini-native-preview-desktop.png", "nh01-gemini-native-structure-1080x1920.png"],
     errors,
     bad_responses: badResponses,
     failed_requests: failedRequests
