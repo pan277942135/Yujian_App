@@ -4,13 +4,13 @@
 
 ## 视觉来源与边界
 
-用户确认的原始三阶段 Web 图在当前仓库未登记。Library 中找到 `yujian_ai_fish_identification_hifi_static_v1.png` 候选（2560×1440，文件身份 `libfile_4322907ab4ec8191b0199e89e4918483`），但尚未从字节和确认记录证明其就是批准原图；SHA-256、精确像素间距和公开权限待核。此文件不进入公开仓库，也不作为 `PIXEL_FROZEN_SOURCE`。本合同的 Web 尺寸、色彩补全均标为 `DESIGN_COMPLETION_NOT_PIXEL_MEASURED`，只有现行共享系统与 Result 已冻结数值标为源冻结。`208758.jpg` 的已知 SHA 是 `ab7227cf7205ee2ac342b6cd75cd899747879506c95c33b888b6adf0acb47987`，含人物及水印，公开权限不明，不提交照片或派生图。
+用户确认的原始三阶段 Web 图在当前仓库未登记。Library 中找到 `yujian_ai_fish_identification_hifi_static_v1.png` 候选（2560×1440，文件身份 `libfile_4322907ab4ec8191b0199e89e4918483`），已核对本地字节 SHA-256 `5f07c2f65ea33f14c8517dddbb7f8d6b7369a6ed980cba11cc92014f4e6a75f9`，画面具有品牌顶栏、近等宽三阶段卡与下方五节点；但缺最终批准记录，精确像素合同和公开权限待核。此文件不进入公开仓库，也不作为 `PIXEL_FROZEN_SOURCE`。本合同的 Web 尺寸、色彩补全均标为 `DESIGN_COMPLETION_NOT_PIXEL_MEASURED`，只有现行共享系统与 Result 已冻结数值标为源冻结。`208758.jpg` 的已知 SHA 是 `ab7227cf7205ee2ac342b6cd75cd899747879506c95c33b888b6adf0acb47987`，含人物及水印，公开权限不明，不提交照片或派生图。
 
 ## 页面与视觉
 
 三阶段结构、组件 ID 和底部五节点见 `Page_Structure_V2.json`。入口与认证保持 Platform V1；在产品路由采用宽阔的居中 Product Shell，侧栏让出空间，返回后恢复。桌面横向三阶段为视觉总览；当前阶段及未开始阶段必须可辨。平板两列、手机活跃阶段聚焦是设计补全，须在批准原稿完成对照后复核。底部节点不可冒充 Detector/Crop/Classifier 的实时进度。
 
-颜色、字号、间距、卡片及按钮见 `Visual_Tokens_V2.json` 和 `Component_Geometry_V2.json`。CSS 示例：`.catch-product{max-width:1280px;margin-inline:auto;padding-inline:var(--web-gutter,32px)}`；`grid-template-columns:1fr 1.15fr 1.1fr;gap:20px` 仅是待原稿校准的桌面设计补全。正文和表单不使用 10–12px 微字；系统字族 CJK fallback；最小触控目标 44px。晨光金用于有意义时刻，不覆盖所有控件。上传、重选、识别、状态、地点、时间、返回应映射共享 `Icon_Registry_V3.json` 的语义 ID；Web 无可用图标资产时标注待映射，不以 emoji 冒充冻结图标。
+颜色、字号、间距、卡片及按钮见 `Visual_Tokens_V2.json` 和 `Component_Geometry_V2.json`。CSS 示例：`.catch-product{max-width:1280px;margin-inline:auto;padding-inline:var(--web-gutter,32px)}`；`grid-template-columns:repeat(3,minmax(0,1fr));gap:18px` 仅是待原稿校准的桌面设计补全。正文和表单不使用 10–12px 微字；系统字族 CJK fallback；最小触控目标 44px。晨光金用于有意义时刻，不覆盖所有控件。上传、重选、识别、状态、地点、时间、返回应映射共享 `Icon_Registry_V3.json` 的语义 ID；Web 无可用图标资产时标注待映射，不以 emoji 冒充冻结图标。
 
 ## 上传
 

@@ -11,16 +11,21 @@
     "Yujian/PR177@7da5c1100d981cfe88317b39b5b95713bdba91d7"
   ],
   "approved_web_hifi": {
-    "status": "CANDIDATE_FOUND_APPROVAL_AND_BYTES_NOT_VERIFIED",
+    "status": "CANDIDATE_BYTES_VERIFIED_APPROVAL_NOT_TRACED",
     "candidate_library_path": "/yujian_ai_fish_identification_hifi_static_v1.png",
     "library_file_id": "libfile_4322907ab4ec8191b0199e89e4918483",
     "reported_size_px": [
       2560,
       1440
     ],
-    "sha256": null,
+    "sha256": "5f07c2f65ea33f14c8517dddbb7f8d6b7369a6ed980cba11cc92014f4e6a75f9",
     "publication_permission": "NOT_CONFIRMED",
-    "role": "candidate to inspect against user-approved source; not pixel authority"
+    "role": "candidate to inspect against user-approved source; not pixel authority",
+    "observed_structure": [
+      "brand platform top navigation",
+      "three near-equal desktop cards",
+      "five-step lower visual strip"
+    ]
   },
   "swos_photo": {
     "name": "208758.jpg",

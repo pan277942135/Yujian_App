@@ -19,7 +19,7 @@
       "mobile": 16
     },
     "stage_gap_px": {
-      "desktop": 20,
+      "desktop": 18,
       "tablet": 16,
       "mobile": 12
     },
@@ -32,10 +32,11 @@
     "five_step_min_height_px": 96,
     "desktop_column_ratio": [
       1,
-      1.15,
-      1.1
+      1,
+      1
     ],
-    "source_class": "DESIGN_COMPLETION_NOT_MEASURED_FROM_APPROVED_ORIGINAL"
+    "source_class": "DESIGN_COMPLETION_NOT_MEASURED_FROM_APPROVED_ORIGINAL",
+    "candidate_visual_observation": "The 2560x1440 candidate image presents three near-equal cards and a full-width top navigation; this is structural evidence, not confirmed pixel authority."
   },
   "image_fit": {
     "upload": "contain; EXIF oriented; never stretch/crop",

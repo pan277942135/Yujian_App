@@ -5,7 +5,7 @@
 | ID | 当前实现位置/观察 | 合同/优先级 | Work B 修复边界与简单验收 |
 |---|---|---|---|
 | G01 | `catch_recognition.html` extends `platform/base.html`，`sidebar.html` 保留模型工厂侧栏 | Page_Structure / P0 | 产品路由让侧栏收起或让宽，认证及平台返回不丢；1280 宽测三阶段可用内容宽 |
-| G02 | `.catch-grid` 三列等宽、gap 13px | Component_Geometry / P0 | 按权重和原稿复核卡片，阶段对齐；桌面截图对照批准源，禁止称已像素 PASS |
+| G02 | `.catch-grid` 三列等宽、gap 13px | Component_Geometry / P0 | 候选源呈近等宽三卡，但现有后台侧栏使三卡过窄；按全宽 Product Shell 与原稿复核卡片，阶段对齐；桌面截图对照批准源，禁止称已像素 PASS |
 | G03 | `.catch-page` 白色卡片/渐变环境有限 | Visual_Tokens / P1 | 接入共享背景与淡蓝金氛围但照片保持真实；检查主文案对比度 |
 | G04 | kicker 10px、标题 17px、说明 11px | Visual_Tokens / P0 | 应用角色字号及换行，主界面正文不低于 14px；320/390/1440 检查 |
 | G05 | `.catch-drop` min-height 186px，处理区 aspect 1.42 | Component_Geometry / P0 | 提升照片主体面积并保持 contain、EXIF 正向；横竖长图全显 |

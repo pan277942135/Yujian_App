@@ -258,5 +258,6 @@
     "AA text contrast to be measured in implementation",
     "all normal text >=14px",
     "shared semantic color usage preserved"
-  ]
+  ],
+  "candidate_source_sha256": "5f07c2f65ea33f14c8517dddbb7f8d6b7369a6ed980cba11cc92014f4e6a75f9"
 }
