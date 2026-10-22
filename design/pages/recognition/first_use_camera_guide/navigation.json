@@ -62,7 +62,8 @@
         "p01",
         "p02"
       ],
-      "runtime_visual_authority": false
+      "runtime_visual_authority": false,
+      "manifest": "manifest.json"
     }
   ]
 }
