@@ -125,7 +125,15 @@ async function main() {
   const p03Hash = "#page/recognition_flow_v1_2/hifi/capture_first_use_guide/p03";
   const resourcesHash = "#page/recognition_flow_v1_2/hifi/capture_first_use_guide/resources";
   const fullFlowModelsHash = "#page/recognition_flow_v1_2/hifi/recognition_full_flow_models";
-  const open = hash => page.goto(baseUrl + hash, { waitUntil: "networkidle", timeout: 45000 });
+  const open = async hash => {
+    await page.goto(baseUrl + hash, { waitUntil: "domcontentloaded", timeout: 45000 });
+    await waitForManager(page);
+    await page.waitForFunction(expected =>
+      location.hash === expected && Boolean(document.querySelector("#hifiViewTitle")?.textContent?.trim()),
+      hash,
+      { timeout: 30000 }
+    );
+  };
 
   await open(p01Hash);
   await waitForManager(page);
