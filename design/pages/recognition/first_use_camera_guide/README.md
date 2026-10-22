@@ -1,30 +1,29 @@
-# Recognition Capture · 首次拍照教学
+# 首次拍照教学 V1.2
 
-**Status: FROZEN — three-page V1 for RECOGNITION-FIRST-USE-GUIDE-V1**
+**Active authority:** `First_Use_Camera_Guide_Spec_V1_2.md`, `manifest.json`, and `navigation.json`.  
+**Status:** FROZEN — two-page sequence.
 
 Design Manager 入口：`识别过程 → 07 · 首次拍照教学`
 
 ## Active pages
 
-| ID | Title | Phone | Fish |
-|---|---|---|---|
-| P01 | 竖屏拍摄示意 | Portrait | Horizontal |
-| P02 | 竖拍鱼类拍摄示意 | Portrait | Vertical |
-| P03 | 横屏拍摄示意 | Landscape | Horizontal |
+| ID | Title | Phone | Fish | Primary action |
+|---|---|---|---|---|
+| P01 | 竖屏拍摄示意 | Portrait | Horizontal | 下一张 |
+| P02 | 横屏拍摄示意 | Landscape | Horizontal | 开始拍摄 |
 
-**Active sequence:** P01 → P02 → P03
-
-P01 and P02 use `下一张`; P02/P03 expose `上一张`; P03 uses `开始拍摄`. Skip and final Start persist completion. Start returns to Capture Ready without taking a photo.
+**Active sequence:** P01 → P02. The previous P02 portrait-phone / vertical-fish page is removed from active navigation. The former P03 landscape PNG is promoted byte-identically to active P02.
 
 ## Frozen assets
 
-P01/P02/P03 are Design Manager visual authorities, not Android runtime backgrounds. Their original PNG bytes are imported and verified in `asset_import_report.json`:
+- P01: `frozen/P01_First_Use_Camera_Guide_Frozen.png` — 941×1671, 1,988,159 bytes, SHA-256 `dc731cca5470ef2154bb06172b9836e823ea780b0833f04e34caaf883e465c50`
+- P02: `frozen/P02_Landscape_Horizontal_Fish_Frozen.png` — 941×1672, 2,001,322 bytes, SHA-256 `1a3008483ac5708a0649501cf2aef6c799d47b95bcc2c1b1272fa64e68f7f9b3`
 
-- P01: 941×1671, 1,988,159 bytes, SHA-256 `dc731cca5470ef2154bb06172b9836e823ea780b0833f04e34caaf883e465c50`
-- P02: 941×1671, 2,042,852 bytes, SHA-256 `fb092235fd043a42aa8250aba9dfdb91a78e96549dd5a63f8e89cf7433685f8f`
-- P03: 941×1672, 2,001,322 bytes, SHA-256 `1a3008483ac5708a0649501cf2aef6c799d47b95bcc2c1b1272fa64e68f7f9b3`
+The former vertical-fish P02 PNG is retained only under `archive/P02_Portrait_Vertical_Fish_Superseded_20261016.png` for provenance; it is not an active design or runtime resource.
 
-The task-scope resolution is recorded in `Scope_Resolution_20261016.md`. The later two-page freeze proposal remains preserved as history and does not replace this explicitly requested V1 task scope.
+## Runtime boundary
+
+Frozen full-page PNGs are Design Manager visual authorities, not Android runtime backgrounds. Android must render the guide over the live CameraX route. Independent runtime example-photo sources and visual evidence remain separate acceptance gates.
 
 ## Design Manager resources
 
