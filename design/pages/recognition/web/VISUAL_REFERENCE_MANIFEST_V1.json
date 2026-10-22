@@ -1,0 +1,217 @@
+{
+  "schema_version": "1.0",
+  "task_id": "YUJIAN_WEB_SWOS_FROZEN_VISUAL_ASSET_CLOSURE_V1",
+  "public_permission": "NOT_CONFIRMED",
+  "browser_policy": "LOCAL_MEMORY_ONLY_NO_UPLOAD_NO_PERSISTENCE",
+  "runtime_visual_verified": false,
+  "references": [
+    {
+      "id": "web-three-stage",
+      "filename": "渔见AI鱼获识别流程展示.png",
+      "sha256": "27c34ee5d3cf90921df433cb43c671e42b8ffa80b8f5cebfe9b397da2ee853e2",
+      "width": 1536,
+      "height": 1024,
+      "size_bytes": 1804497,
+      "status": "USER_CONFIRMED_VISUAL_REFERENCE",
+      "byte_verification": "PRIVATE_HANDOFF_SHA256_AND_DIMENSIONS_VERIFIED",
+      "public_permission": "NOT_CONFIRMED",
+      "repository_included": false,
+      "route": "#page/recognition_flow_v1_2/hifi/web_hifi_contract_v2"
+    },
+    {
+      "id": "swos-history",
+      "filename": "渔见AI鱼获识别动画分镜海报.png",
+      "sha256": "ea0cf2e5fa84aad64195487cbedaab07b1727e96e87c9b4e661dc3d0fa252c1c",
+      "width": 1672,
+      "height": 941,
+      "size_bytes": 2340788,
+      "status": "14_FRAME_V0_3_HISTORICAL_VISUAL_REFERENCE",
+      "byte_verification": "PRIVATE_HANDOFF_SHA256_AND_DIMENSIONS_VERIFIED",
+      "public_permission": "NOT_CONFIRMED",
+      "repository_included": false,
+      "route": "#page/recognition_flow_v1_2/hifi/swos_static_visual_v1_1"
+    }
+  ],
+  "current_frame_contract": "design/pages/recognition/processing/optics/SWOS_15_Frame_Keyframe_Contract_V1_1.json",
+  "mappings": [
+    {
+      "label": "品牌区",
+      "component_ids": [
+        "catch.product-shell"
+      ],
+      "region": [
+        0,
+        0,
+        1536,
+        106
+      ],
+      "tokens": [
+        "web.type.brand",
+        "web.color.background",
+        "web.color.text"
+      ],
+      "geometry": [
+        "content_max_width_px",
+        "outer_gutter_px"
+      ],
+      "responsive": [
+        "DESKTOP_THREE_STAGE",
+        "TABLET_TWO_STAGE",
+        "MOBILE_ACTIVE_STAGE"
+      ]
+    },
+    {
+      "label": "01 上传照片",
+      "component_ids": [
+        "catch.upload",
+        "upload.drop-zone",
+        "upload.preview",
+        "upload.file-meta",
+        "upload.actions",
+        "upload.error"
+      ],
+      "region": [
+        23,
+        106,
+        474,
+        704
+      ],
+      "tokens": [
+        "web.type.stage-title",
+        "web.color.primary",
+        "web.color.glass"
+      ],
+      "geometry": [
+        "card_padding_px",
+        "upload_min_height_px",
+        "primary_button_min_height_px"
+      ],
+      "responsive": [
+        "DESKTOP_THREE_STAGE",
+        "TABLET_TWO_STAGE",
+        "MOBILE_ACTIVE_STAGE"
+      ]
+    },
+    {
+      "label": "02 AI 核心识别",
+      "component_ids": [
+        "catch.processing",
+        "processing.photo",
+        "processing.optics",
+        "processing.business-status",
+        "processing.diagnostics"
+      ],
+      "region": [
+        519,
+        106,
+        508,
+        704
+      ],
+      "tokens": [
+        "web.color.water",
+        "web.color.gold",
+        "web.type.status"
+      ],
+      "geometry": [
+        "desktop_column_ratio",
+        "stage_gap_px"
+      ],
+      "responsive": [
+        "DESKTOP_THREE_STAGE",
+        "TABLET_TWO_STAGE",
+        "MOBILE_ACTIVE_STAGE"
+      ]
+    },
+    {
+      "label": "03 识别结果",
+      "component_ids": [
+        "catch.result",
+        "result.nav",
+        "result.hero",
+        "result.species-zh",
+        "result.confidence-candidates",
+        "result.metadata",
+        "result.story",
+        "result.dual-cta",
+        "result.recovery"
+      ],
+      "region": [
+        1050,
+        106,
+        470,
+        704
+      ],
+      "tokens": [
+        "web.type.species-zh",
+        "web.type.form-label",
+        "web.type.cta",
+        "web.color.gold"
+      ],
+      "geometry": [
+        "image_fit",
+        "primary_button_min_height_px"
+      ],
+      "responsive": [
+        "DESKTOP_THREE_STAGE",
+        "TABLET_TWO_STAGE",
+        "MOBILE_ACTIVE_STAGE"
+      ]
+    },
+    {
+      "label": "底部五阶段",
+      "component_ids": [
+        "step.upload",
+        "step.water",
+        "step.fish",
+        "step.photo",
+        "step.reveal"
+      ],
+      "region": [
+        23,
+        827,
+        1497,
+        197
+      ],
+      "tokens": [
+        "web.type.image-caption",
+        "web.color.line"
+      ],
+      "geometry": [
+        "five_step_min_height_px"
+      ],
+      "responsive": [
+        "desktop-wide",
+        "desktop",
+        "tablet",
+        "mobile"
+      ]
+    }
+  ],
+  "mapping_provenance": "Regions manually located on verified 1536x1024 source for inspection only; no token values or responsive thresholds measured from the image.",
+  "differences": [
+    {
+      "item": "原图身份",
+      "rule": "2560×1440、5f07c2…候选仅保留历史溯源，不得替代本次用户确认的1536×1024原图。"
+    },
+    {
+      "item": "示例文案、鱼种、日期、置信度、模型参数及文件大小限制",
+      "rule": "图内为示例；不覆盖Page State Matrix、正式API或模型合同。未根据图中畸形文字更改产品文案。"
+    },
+    {
+      "item": "几何、Token与响应式",
+      "rule": "图中区域是结构参照；现有1280px容器、颜色与断点仍按机器合同，未声称源图像素测量一致。"
+    },
+    {
+      "item": "历史14帧 → 现行15帧",
+      "rule": "现行V1.1新增R0.5（相对100ms / 全局2900ms），位于R0与R1之间；8+7=15，2800+850=3650ms不变。"
+    },
+    {
+      "item": "自然水光与鱼体高亮",
+      "rule": "保留自然水光、共享照片迁移、金光转译；海报人工轮廓不是生产Mask或推理证据。"
+    },
+    {
+      "item": "当前Web实现截图",
+      "rule": "使用用户本地选择的截图，显示自填源码SHA/视口；未提供或独立验证时保持NOT_VERIFIED，不冒称当前HEAD截图。"
+    }
+  ]
+}

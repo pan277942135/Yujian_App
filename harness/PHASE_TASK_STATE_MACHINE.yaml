@@ -444,7 +444,7 @@ tasks:
     depends_on: ["P3-05"]
     entry_blockers: []
     target_blockers: []
-    evidence_required: ["web_hifi_contract_v2", "web_hifi_machine_contracts", "web_hifi_gap_matrix", "web_hifi_validator", "design_manager_navigation"]
+    evidence_required: ["web_hifi_contract_v2", "web_hifi_machine_contracts", "web_hifi_gap_matrix", "web_hifi_validator", "design_manager_navigation", "private_visual_reference_sha_dimensions", "local_viewer_browser_evidence", "visual_reference_component_mapping", "publication_exclusion_gate"]
     completion: "Web V2 structure, optical/continuity references, responsive and state contracts are main-adopted design authority via PR #190; source image pixel authority, Work B implementation, and runtime visual evidence remain separate gates."
     human_required: false
     gate_id: "G-WEB-HIFI-CONTRACT"

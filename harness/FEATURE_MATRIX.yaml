@@ -322,6 +322,7 @@ features:
       - "Capture Hi-Fi source PNG binary import remains pending."
       - "The V1 first-use guide uses the three frozen pages P01/P02/P03; exact-head API28 runtime and visual parity evidence remain pending."
       - "SWOS V1 / Processing V3.2 and SWOS Static V1.1 are main-adopted design contracts via PR #190; Android still uses V3.1 timing and the legacy Edge Field renderer until separately authorized Stage 1 implementation."
+      - "Web/SWOS user-confirmed private visual references and local viewer: design/pages/recognition/web/VISUAL_REFERENCE_MANIFEST_V1.json; visual closure requires browser evidence and publication permission checks."
       - "SWOS photo source has no confirmed public publication permission; public preview requires a local browser upload and static exports remain private."
       - "Web Hi-Fi V2 is a main-adopted design contract via PR #190. Candidate source-image identity and public permission remain unverified; PIXEL_FROZEN_SOURCE=NOT_CONFIRMED and RUNTIME_VISUAL_VERIFIED=NO."
   recognition_result_v1:

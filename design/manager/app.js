@@ -3337,6 +3337,13 @@ function renderHifiView(feature, hifiId, hifiChildId = null) {
     ? (feature.id === "my_catches_v2" ? myCatchesSearchChildCanvas(child) : genericSpecChildCanvas(child, feature))
     : (feature.id === "my_catches_v2" ? myCatchesHifiCanvas(feature,view) : genericSpecHifiCanvas(feature,view));
 
+  if (!child && ["web_hifi_contract_v2", "swos_static_visual_v1_1"].includes(view.id)) {
+    const viewer = document.createElement("iframe");
+    viewer.src = "./private_visual_references.html?reference=" + (view.id === "web_hifi_contract_v2" ? "web-three-stage" : "swos-history");
+    viewer.title = "原始高保真私有查看与合同对照";
+    viewer.style = "width:100%;height:980px;border:1px solid #b9cdc6;border-radius:12px";
+    el("hifiViewCanvas").prepend(viewer);
+  }
   if (!child && view.render_mode === "swos_static_visual_workspace") {
     window.SWOSStaticVisual?.mount(el("hifiViewCanvas"), view);
   }

@@ -90,6 +90,7 @@ jobs:
           python3 scripts/design_manager.py validate
           python3 scripts/verify_design_manager_hifi_release.py
           python3 scripts/verify_swos_static_visual_v1_1.py
+          python3 scripts/verify_private_visual_references.py
 
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
