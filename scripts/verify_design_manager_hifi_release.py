@@ -81,7 +81,7 @@ def expect_failure(callable_, label: str) -> None:
     raise ValidationError(f"negative test did not fail: {label}")
 
 
-def validate_nh01_multiscreen(root: Path) -> list[str]:
+def validate_nh01_multiscreen(root: Path, *, built: bool = False) -> list[str]:
     design = root / "design"
     archive = design / "pages/home/normal_home/08_multi_screen_static_hifi"
     manifest = load_json(archive / "NH01_MULTI_SCREEN_STATIC_HIFI_V1_MANIFEST.json")
@@ -123,6 +123,10 @@ def validate_nh01_multiscreen(root: Path) -> list[str]:
     for phrase in ("M05 addition", "Android acceptance status", "six", "UNSUPPORTED_WINDOW", "Morning Lake", "Guest", "Avatar"):
         require(phrase.lower() in markdown.lower(), f"NH01 full responsive contract section missing: {phrase}")
     for ref in contract.get("authority_crosswalk", []):
+        # The Pages artifact intentionally contains the public design system, not Android source.
+        # Source-tree validation runs before artifact validation and checks these implementation traces.
+        if built and Path(ref["path"]).parts[0] == "app":
+            continue
         require((root / ref["path"]).is_file(), f"NH01 crosswalk authority missing: {ref['path']}")
 
     native = matrix.get("android_matrix", {})
@@ -363,7 +367,7 @@ def validate_tree(root: Path, *, built: bool = False, expected_build: str | None
     require("900ms" in motion_text and "600ms" in motion_text and "1250ms" in motion_text, "unchanged V1.2 motion source cannot be confirmed")
     require(all(x in manager_contract for x in ("220ms", "320ms", "350ms", "250ms", "900 / 600 / 1250 / 200ms", "sole effective timeline")), "motion authority resolution must be traceable without editing frozen thresholds")
 
-    nh01_results = validate_nh01_multiscreen(root)
+    nh01_results = validate_nh01_multiscreen(root, built=built)
 
     if built:
         build_path = design / "manager/build.json"

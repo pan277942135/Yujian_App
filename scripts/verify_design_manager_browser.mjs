@@ -62,8 +62,11 @@ function startStaticServer(root) {
 }
 
 async function waitForManager(page) {
-  await page.locator("#hifiViewTitle").waitFor({ state: "visible", timeout: 30000 });
   await page.locator("#pageList .module-item").first().waitFor({ state: "visible", timeout: 30000 });
+}
+
+async function waitForHifiView(page) {
+  await page.locator("#hifiViewTitle").waitFor({ state: "visible", timeout: 30000 });
 }
 
 async function waitForLoadedImage(page, selector, label) {
@@ -125,6 +128,7 @@ async function main() {
 
   await open(nh01MultiScreenHash);
   await waitForManager(page);
+  await waitForHifiView(page);
   await page.locator('[data-testid="nh01-multiscreen-workspace"]').waitFor({ state: "visible", timeout: 30000 });
   assert((await page.locator("#hifiViewTitle").innerText()).includes("多屏静态高保真"), "NH01 multi-screen workspace route did not resolve");
   assert((await page.locator("#hifiViewStatus").innerText()).includes("静态高保已冻结"), "NH01 static hi-fi frozen status is missing");
@@ -172,6 +176,7 @@ async function main() {
   assert(await nh01Menu.isVisible(), "NH01 multi-screen entry is not visible under 有数据首页 navigation");
   await nh01Menu.click();
   await page.waitForFunction(expected => location.hash === expected, nh01MultiScreenHash);
+  await waitForHifiView(page);
   assert(page.url().endsWith(nh01MultiScreenHash), "NH01 menu item did not open its registered deep route");
   await page.goBack();
   await page.waitForFunction(() => location.hash === "#page/home_normal_v1", null, { timeout: 15000 });
@@ -184,6 +189,7 @@ async function main() {
 
   await open(p01Hash);
   await waitForManager(page);
+  await waitForHifiView(page);
   const buildMarker = await page.locator('meta[name="design-manager-build"]').getAttribute("content");
   if (args.expectedBuild) assert(buildMarker === args.expectedBuild, `live/build marker mismatch: ${buildMarker} != ${args.expectedBuild}`);
   const image = page.locator(".hifi-asset-figure img").first();
@@ -200,6 +206,7 @@ async function main() {
   assert(await resourcesMenuItem.isVisible(), "07 guide must show its Resources submenu");
   await resourcesMenuItem.click();
   await page.waitForFunction(expected => location.hash === expected, resourcesHash);
+  await waitForHifiView(page);
   assert((await page.locator("#hifiViewTitle").innerText()).trim() === "资源", "Resources submenu must open its registered route");
   assert((await page.locator("#hifiViewSummary").innerText()).includes("不映射为 Android 运行时背景"), "Resources route must state its Android runtime boundary");
   assert(await page.locator(".guide-resource-card").count() === 3, "Resources route must show exactly three Frozen source PNGs");
@@ -271,6 +278,7 @@ async function main() {
 
   await open(overviewHash);
   await waitForManager(page);
+  await waitForHifiView(page);
   const overviewImageInfo = await waitForLoadedImage(page, ".hifi-asset-figure img", "overview PNG");
   assert(overviewImageInfo.complete && overviewImageInfo.width === 5120 && overviewImageInfo.height === 2880,
     `Overview must show the complete approved PNG: ${JSON.stringify(overviewImageInfo)}`);
@@ -291,6 +299,7 @@ async function main() {
 
   await open(fullFlowModelsHash);
   await waitForManager(page);
+  await waitForHifiView(page);
   assert(page.url().endsWith(fullFlowModelsHash), "full-flow/model direct Hash route did not resolve");
   assert((await page.locator("#hifiViewTitle").innerText()).includes("识别全流程-和模型"), "full-flow/model menu title is missing");
   const fullFlowImage = await waitForLoadedImage(page, ".recognition-full-flow-models .hifi-asset-figure img", "recognition full-flow diagram");
@@ -303,6 +312,7 @@ async function main() {
   await page.screenshot({ path: resolve(args.outputDir, "recognition-full-flow-models-1440.png"), fullPage: true });
 
   await open("#page/recognition_flow_v1_2/hifi/boundary_state_release_gate/new_states_review");
+  await waitForHifiView(page);
   const reviewImage = await waitForLoadedImage(page, ".hifi-asset-figure img", "review source");
   assert(reviewImage.complete && reviewImage.width === 2800 && reviewImage.height === 1600,
     `review image must load the real 2800×1600 source: ${JSON.stringify(reviewImage)}`);
