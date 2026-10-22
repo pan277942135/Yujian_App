@@ -629,12 +629,27 @@ async function main() {
   assert((await responsiveFrame.locator("#cardMetadata").innerText()).includes("未提供"),
     "Responsive workspace must render explicit missing metadata without inventing values");
 
-  await page.evaluate(() => history.back());
+  await page.locator('.workspace-nav-item[data-workspace-id="structured_hifi"]').click();
   await page.waitForFunction(expected => location.hash === expected, nhWorkspaceRoutes.structured);
+  await page.locator('.workspace-nav-item[data-workspace-id="responsive_design"]').click();
+  await page.waitForFunction(expected => location.hash === expected, nhWorkspaceRoutes.responsive);
+  const historyBeforeBack = await page.evaluate(() => ({ hash:location.hash, length:history.length }));
+  await page.evaluate(() => history.back());
+  try {
+    await page.waitForFunction(expected => location.hash === expected, nhWorkspaceRoutes.structured, { timeout:10000 });
+  } catch (error) {
+    const historyAfterBack = await page.evaluate(() => ({ hash:location.hash, length:history.length }));
+    throw new Error(`Browser Back did not restore Structured Hi-Fi: before=${JSON.stringify(historyBeforeBack)} after=${JSON.stringify(historyAfterBack)}; ${error.message}`);
+  }
   assert(await page.locator("#workspaceFrame").getAttribute("data-workspace-id").then(value => value === "structured_hifi"),
     "Browser Back must restore the Structured Hi-Fi workspace");
   await page.evaluate(() => history.forward());
-  await page.waitForFunction(expected => location.hash === expected, nhWorkspaceRoutes.responsive);
+  try {
+    await page.waitForFunction(expected => location.hash === expected, nhWorkspaceRoutes.responsive, { timeout:10000 });
+  } catch (error) {
+    const historyAfterForward = await page.evaluate(() => ({ hash:location.hash, length:history.length }));
+    throw new Error(`Browser Forward did not restore Responsive Design: after=${JSON.stringify(historyAfterForward)}; ${error.message}`);
+  }
   await page.reload({ waitUntil:"networkidle" });
   await page.waitForFunction(expected => location.hash === expected, nhWorkspaceRoutes.responsive);
   await page.locator(".responsive-matrix").waitFor({ state:"visible", timeout:30000 });
