@@ -182,12 +182,12 @@ Runtime、Evidence 和 Work 交接暂不进入当前 Design Manager。
 注册源：`design/registry/experience_registry_v1.json` → `recognition_flow_v1_2.hifi_views.capture_first_use_guide`。
 
 - Parent：`FROZEN` + `authority_gallery`，展示三张 Frozen Visual Authority。
-- P01/P02/P03：`FROZEN` + `repo_image`，点击后直接预览对应 PNG，不生成模拟 UI。
+- P01/P02：`FROZEN` + `repo_image`，点击后直接预览对应 PNG，不生成模拟 UI；旧竖拍鱼体 P02 仅归档。
 - P01/P02 →「下一张」；P03 →「开始拍摄」。
 - Hero 为唯一正确示范；下方三个均为错误示范。
 - P02 的三个错误示例保持竖直鱼体；P03 的三个错误示例保持横向鱼体。
 - `跳过/开始拍摄` 均不自动触发快门。
-- P01/P02/P03 PNG 按原字节导入；Design Manager 导航、Manifest 与 SHA 校验分别验收。
+- 当前有效 P01/P02 PNG 按原字节导入；旧 P02 竖拍资产归档，旧 P03 横屏 PNG 以相同字节转为 P02；Design Manager 导航、Manifest 与 SHA 校验分别验收。
 - 「资源」子菜单直接预览和下载这三张已上传的 Frozen 原始 PNG，并显示仓库路径、尺寸、字节数和 SHA-256；来源为 `design/pages/recognition/first_use_camera_guide/manifest.json`，不复制文件，也不把设计稿映射为 Android 运行时资源。
 
 ## Normal Home · NH07 头像状态
@@ -227,7 +227,7 @@ GitHub Pages 仅复制 `design/`。合并到 main 并完成 Pages 部署后，�
 
 ## 拍照识别主链路 · 高保真发布视图
 
-`recognition_flow_v1_2` 保留既有 `07 · 首次拍照教学` 菜单与 P01/P02/P03 Hash。新增 `00 · 全流程总览` 和 `08 · 边界状态与验收`：总览 PNG 标明为业务流程图，不冒充单页 Frozen Hi-Fi；边界视图按真实 Master Board JSON 展示状态映射，并将未导入的 PNG/SVG、缺失的 Capture 图和权限图标记为 `PARTIAL`、`BLOCKED_INTEGRITY` 或 `MISSING`。
+`recognition_flow_v1_2` 保留既有 `07 · 首次拍照教学` 菜单与冻结 V1.2 的 P01/P02 Hash。新增 `00 · 全流程总览` 和 `08 · 边界状态与验收`：总览 PNG 标明为业务流程图，不冒充单页 Frozen Hi-Fi；边界视图按真实 Master Board JSON 展示状态映射，并将未导入的 PNG/SVG、缺失的 Capture 图和权限图标记为 `PARTIAL`、`BLOCKED_INTEGRITY` 或 `MISSING`。
 
 Frozen 图片按原始比例完整展示。点击可打开支持放大、缩小、适配窗口和查看原文件的弹层；页面与状态合同显示 Authority Path / SHA、进入条件、触发、操作、下一状态、返回 / 取消 / 重拍和独立 Runtime 状态。未提供的原图不生成模拟 UI 或可点击假路径；浏览器前进 / 后退、刷新和无效 Hash 均经过回归验证。
 
