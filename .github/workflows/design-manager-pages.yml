@@ -36,6 +36,7 @@ concurrency:
 
 env:
   BUILD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+  IS_PR_176_PREVIEW: ${{ (github.event_name == 'pull_request' && github.event.pull_request.number == 176 && github.event.pull_request.head.repo.full_name == github.repository) || (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/work/nh01-gemini-native-preview-asset-closure-v1') }}
 
 jobs:
   build:
@@ -86,7 +87,7 @@ jobs:
           enablement: true
 
       - name: Resolve last successful production Pages deployment
-        if: github.event_name == 'pull_request' && github.event.pull_request.number == 176 && github.event.pull_request.head.repo.full_name == github.repository
+        if: env.IS_PR_176_PREVIEW == 'true'
         id: production_baseline
         uses: actions/github-script@v7
         with:
@@ -108,14 +109,14 @@ jobs:
             core.info(`Preserving published Pages artifact from run ${run.id} at ${run.head_sha}`);
 
       - name: Checkout exact published production source
-        if: github.event_name == 'pull_request' && github.event.pull_request.number == 176 && github.event.pull_request.head.repo.full_name == github.repository
+        if: env.IS_PR_176_PREVIEW == 'true'
         uses: actions/checkout@v4
         with:
           ref: ${{ steps.production_baseline.outputs.sha }}
           path: _production_baseline
 
       - name: Download exact published production Pages artifact
-        if: github.event_name == 'pull_request' && github.event.pull_request.number == 176 && github.event.pull_request.head.repo.full_name == github.repository
+        if: env.IS_PR_176_PREVIEW == 'true'
         uses: actions/download-artifact@v4
         with:
           name: github-pages
@@ -131,7 +132,7 @@ jobs:
           set -euo pipefail
           rm -rf _site
           mkdir -p _site
-          if [[ "${{ github.event_name }}" == "pull_request" && "${{ github.event.pull_request.number }}" == "176" && "${{ github.event.pull_request.head.repo.full_name }}" == "${{ github.repository }}" ]]; then
+          if [[ "${{ env.IS_PR_176_PREVIEW }}" == "true" ]]; then
             PUBLISHED_BUILD_SHA="$(git -C _production_baseline rev-parse HEAD)"
             if [[ "$PUBLISHED_BUILD_SHA" != "${{ steps.production_baseline.outputs.sha }}" ]]; then
               echo "Production baseline checkout SHA mismatch; refusing deployment." >&2
@@ -216,7 +217,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          if [[ "${{ github.event_name }}" == "pull_request" && "${{ github.event.pull_request.number }}" == "176" && "${{ github.event.pull_request.head.repo.full_name }}" == "${{ github.repository }}" ]]; then
+          if [[ "${{ env.IS_PR_176_PREVIEW }}" == "true" ]]; then
             python3 _production_baseline/scripts/verify_design_manager_navigation.py --site _site --expected-build "${PUBLISHED_BUILD_SHA}"
             python3 scripts/verify_design_manager_navigation.py --site _site/previews/pr-176 --expected-build "${BUILD_SHA}"
           else
@@ -227,7 +228,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          if [[ "${{ github.event_name }}" == "pull_request" && "${{ github.event.pull_request.number }}" == "176" && "${{ github.event.pull_request.head.repo.full_name }}" == "${{ github.repository }}" ]]; then
+          if [[ "${{ env.IS_PR_176_PREVIEW }}" == "true" ]]; then
             python3 _production_baseline/scripts/verify_design_manager_hifi_release.py --site _site --expected-build "${PUBLISHED_BUILD_SHA}"
             python3 scripts/verify_design_manager_hifi_release.py --site _site/previews/pr-176 --expected-build "${BUILD_SHA}"
           else
@@ -238,7 +239,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          if [[ "${{ github.event_name }}" == "pull_request" && "${{ github.event.pull_request.number }}" == "176" && "${{ github.event.pull_request.head.repo.full_name }}" == "${{ github.repository }}" ]]; then
+          if [[ "${{ env.IS_PR_176_PREVIEW }}" == "true" ]]; then
             PLAYWRIGHT_MODULE_DIR="$RUNNER_TEMP/dm-playwright/node_modules" \
               node _production_baseline/scripts/verify_design_manager_browser.mjs \
                 --root _site \
@@ -258,7 +259,7 @@ jobs:
           fi
 
       - name: Publish PR #176 workspace screenshots and report
-        if: github.event_name == 'pull_request' && github.event.pull_request.number == 176 && github.event.pull_request.head.repo.full_name == github.repository
+        if: env.IS_PR_176_PREVIEW == 'true'
         shell: bash
         run: |
           set -euo pipefail
@@ -307,7 +308,7 @@ jobs:
             sleep 1
           done
           curl -fsS http://127.0.0.1:8765/design/manager/nh01_acceptance/ >/dev/null
-          if [[ "${{ github.event_name }}" == "pull_request" && "${{ github.event.pull_request.number }}" == "176" && "${{ github.event.pull_request.head.repo.full_name }}" == "${{ github.repository }}" ]]; then
+          if [[ "${{ env.IS_PR_176_PREVIEW }}" == "true" ]]; then
             PLAYWRIGHT_MODULE_DIR="$RUNNER_TEMP/dm-playwright/node_modules" \
               node _production_baseline/scripts/design/verify_nh01_viewer_browser.mjs \
                 --base-url=http://127.0.0.1:8765 \
@@ -370,10 +371,10 @@ jobs:
           retention-days: 14
 
       - name: Upload PR #176 preview browser evidence
-        if: github.event_name == 'pull_request' && github.event.pull_request.number == 176 && github.event.pull_request.head.repo.full_name == github.repository
+        if: env.IS_PR_176_PREVIEW == 'true'
         uses: actions/upload-artifact@v4
         with:
-          name: NH01-PR176-Preview-Browser-${{ github.run_id }}-${{ github.event.pull_request.head.sha }}
+          name: NH01-PR176-Preview-Browser-${{ github.run_id }}-${{ github.event.pull_request.head.sha || github.sha }}
           path: ${{ runner.temp }}/dm-preview-browser/
           if-no-files-found: error
           retention-days: 30
@@ -389,7 +390,7 @@ jobs:
           retention-days: 30
 
   deploy:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' || github.event_name == 'pull_request' && github.event.pull_request.number == 176 && github.event.pull_request.head.repo.full_name == github.repository
+    if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || (github.event_name == 'workflow_dispatch' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/work/nh01-gemini-native-preview-asset-closure-v1')) || (github.event_name == 'pull_request' && github.event.pull_request.number == 176 && github.event.pull_request.head.repo.full_name == github.repository)
     environment:
       name: design-manager-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -405,10 +406,10 @@ jobs:
           ref: ${{ needs.build.outputs.published_build_sha }}
 
       - name: Checkout PR #176 source for live preview verification
-        if: github.event_name == 'pull_request' && github.event.pull_request.number == 176 && github.event.pull_request.head.repo.full_name == github.repository
+        if: env.IS_PR_176_PREVIEW == 'true'
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.head.sha }}
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
           path: _preview_source
 
       - name: Deploy to GitHub Pages
@@ -450,7 +451,7 @@ jobs:
               --output-dir "$RUNNER_TEMP/dm-live-evidence/browser"
 
       - name: Verify published PR #176 preview path and source SHA
-        if: github.event_name == 'pull_request' && github.event.pull_request.number == 176 && github.event.pull_request.head.repo.full_name == github.repository
+        if: env.IS_PR_176_PREVIEW == 'true'
         shell: bash
         run: |
           set -euo pipefail
