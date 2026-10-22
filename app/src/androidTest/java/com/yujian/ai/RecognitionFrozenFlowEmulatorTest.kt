@@ -756,7 +756,8 @@ class RecognitionFrozenFlowEmulatorTest {
         frames.forEachIndexed { index, timeMs ->
             elapsed.value = timeMs
             composeRule.waitForIdle()
-            saveRevealFrame(evidence, "K${index + 2}_${timeMs}ms.png")
+            val frameName = String.format(java.util.Locale.US, "K%02d_%dms.png", index + 2, timeMs)
+            saveRevealFrame(evidence, frameName)
         }
         composeRule.onNodeWithText("Ctenopharyngodon idella").assertIsDisplayed()
         val heroBounds = composeRule.onNodeWithTag("recognition-result-hero").fetchSemanticsNode().boundsInWindow
@@ -1912,8 +1913,17 @@ class RecognitionFrozenFlowEmulatorTest {
     private fun saveRevealFrame(outputDir: File, fileName: String) {
         val bitmap = composeRule.onRoot().captureToImage().asAndroidBitmap()
         try {
-            File(outputDir, fileName).outputStream().use { stream ->
+            val frameFile = File(outputDir, fileName)
+            frameFile.outputStream().use { stream ->
                 check(bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream))
+            }
+            check(frameFile.isFile && frameFile.length() > 8L) { "RR09 frame was not persisted: $fileName" }
+            val pngSignature = ByteArray(8)
+            frameFile.inputStream().use { stream ->
+                check(stream.read(pngSignature) == pngSignature.size) { "RR09 frame is truncated: $fileName" }
+            }
+            check(pngSignature.contentEquals(byteArrayOf(0x89.toByte(), 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a))) {
+                "RR09 frame is not a PNG: $fileName"
             }
         } finally {
             bitmap.recycle()
