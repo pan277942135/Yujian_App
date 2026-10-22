@@ -16,6 +16,7 @@ EXPECTED_RECOGNITION_FLOW = [
     "layer_component_ownership", "motion_transition", "degradation_accessibility",
     "runtime_evidence", "capture_first_use_guide", "boundary_state_release_gate",
     "recognition_full_flow_models", "swos_optical_contract", "processing_result_continuity",
+    "swos_static_visual_v1_1",
 ]
 EXPECTED_RECOGNITION_RESULT = [
     "overview", "high", "medium", "low", "no_fish", "image_quality",
@@ -76,6 +77,7 @@ def validate_tree(root: Path, *, built: bool = False, expected_build: str | None
         fail("09 · 识别全流程-和模型 must remain a registered DESIGN_ONLY submenu")
     swos_optical = next((x for x in recognition["hifi_views"] if x.get("id") == "swos_optical_contract"), None)
     continuity = next((x for x in recognition["hifi_views"] if x.get("id") == "processing_result_continuity"), None)
+    swos_static = next((x for x in recognition["hifi_views"] if x.get("id") == "swos_static_visual_v1_1"), None)
     if (
         swos_optical is None or swos_optical.get("status") != "ACTIVE_CLOSURE"
         or swos_optical.get("authority") != "design/pages/recognition/processing/optics/SWOS_Optical_Contract_V1.md"
@@ -90,6 +92,41 @@ def validate_tree(root: Path, *, built: bool = False, expected_build: str | None
         fail("Processing → Result Optical Continuity Contract V1 must be registered")
     if not (root / swos_optical["authority"]).is_file() or not (root / continuity["authority"]).is_file():
         fail("SWOS/continuity Design Manager authority source is missing")
+    if (
+        swos_static is None or swos_static.get("title") != "12 · SWOS · 静态视觉"
+        or swos_static.get("status") != "DESIGN_ONLY"
+        or swos_static.get("design_status") != "FROZEN_DESIGN_DIRECTION"
+        or swos_static.get("adoption_status") != "DRAFT_DEPENDENT_ON_PR_186"
+        or swos_static.get("render_mode") != "swos_static_visual_workspace"
+        or swos_static.get("dependency", {}).get("pull_request") != 186
+        or swos_static.get("playback_implemented") is not False
+    ):
+        fail("SWOS V1.1 must remain a dependent, static-only Design Manager submenu")
+    for field in ("authority", "machine_authority", "transition_authority", "asset_manifest"):
+        path = swos_static.get(field)
+        if not path or not (root / path).is_file():
+            fail(f"SWOS static Design Manager {field} is missing: {path}")
+    if not any(x.get("route") == "#page/recognition_result_v1/hifi/motion_continuation" for x in swos_static.get("related_routes", [])):
+        fail("SWOS static submenu must link to RR09 V3")
+    static_frames = load_json(root / swos_static["machine_authority"])
+    if static_frames.get("frame_count") != 15 or len(static_frames.get("keyframes", [])) != 15:
+        fail("SWOS keyframe authority must contain exactly 15 frames")
+    if static_frames.get("total_nominal_duration_ms") != 3650 or static_frames.get("processing", {}).get("duration_ms") != 2800 or static_frames.get("rr09", {}).get("duration_ms") != 850:
+        fail("SWOS keyframe duration contract drift")
+    if not any(x.get("id") == "R0.5" and x.get("relative_ms") == 100 and x.get("global_nominal_ms") == 2900 for x in static_frames["keyframes"]):
+        fail("SWOS static keyframe contract must include R0.5 at 100ms / 2900ms")
+    result_feature = next((x for x in registry.get("features", []) if x.get("id") == "recognition_result_v1"), None)
+    result_rr09 = next((x for x in (result_feature or {}).get("hifi_views", []) if x.get("id") == "motion_continuation"), None)
+    if not result_rr09 or not any(x.get("route") == "#page/recognition_flow_v1_2/hifi/swos_static_visual_v1_1" for x in result_rr09.get("related_routes", [])):
+        fail("RR09 V3 must link back to the SWOS static visual workspace")
+    result_navigation = load_json(root / "design/pages/recognition/result/navigation.json")
+    rr09_navigation = next((x for x in result_navigation.get("level_2", []) if x.get("id") == "RR09"), None)
+    if not rr09_navigation or not any(x.get("route") == "#page/recognition_flow_v1_2/hifi/swos_static_visual_v1_1" for x in rr09_navigation.get("related_manager_routes", [])):
+        fail("RR09 page navigation manifest must link to SWOS static review")
+    if (root / "design/manager/swos_static_visual.js").is_file() is False:
+        fail("SWOS static visual workspace renderer is missing")
+    if not any("swos_static_visual.js" in line for line in (root / "design/manager/index.html").read_text(encoding="utf-8").splitlines()):
+        fail("Design Manager HTML does not load the SWOS static visual renderer")
     guide = next(x for x in recognition["hifi_views"] if x.get("id") == "capture_first_use_guide")
     guide_children = [x.get("id") for x in guide.get("children", [])]
     if guide.get("title") != "07 · 首次拍照教学" or guide_children != ["p01", "p02", "p03", "resources"]:

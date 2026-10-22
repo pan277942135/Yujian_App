@@ -2450,6 +2450,10 @@ function recognitionMasterBoardCanvas(child) {
 }
 
 function genericSpecHifiCanvas(feature, view) {
+  if (view.render_mode === "swos_static_visual_workspace") {
+    return window.SWOSStaticVisual?.canvas(view) ||
+      '<div class="hifi-missing-authority"><div><strong>SWOS 静态验收模块尚未加载</strong><p>Design Manager 的静态工作区脚本不可用。</p></div></div>';
+  }
   if (feature.id === "recognition_result_v1" && view.render_mode === "recognition_result_motion_playable") {
     const href="./rr09_motion/";
     const points=view.menu_points||[];
@@ -3222,6 +3226,18 @@ function renderHifiView(feature, hifiId, hifiChildId = null) {
   el("hifiViewCanvas").innerHTML = child
     ? (feature.id === "my_catches_v2" ? myCatchesSearchChildCanvas(child) : genericSpecChildCanvas(child, feature))
     : (feature.id === "my_catches_v2" ? myCatchesHifiCanvas(feature,view) : genericSpecHifiCanvas(feature,view));
+
+  if (!child && view.render_mode === "swos_static_visual_workspace") {
+    window.SWOSStaticVisual?.mount(el("hifiViewCanvas"), view);
+  }
+  if (!child && Array.isArray(view.related_routes) && view.related_routes.length) {
+    const related = '<nav class="hifi-related-routes" aria-label="关联 Design Manager 页面">' +
+      '<strong>关联页面</strong>' + view.related_routes.map(route =>
+        '<a href="' + esc(route.route) + '">' + esc(route.label) + ' ↗</a>' +
+        (route.note ? '<span>' + esc(route.note) + '</span>' : '')
+      ).join("") + '</nav>';
+    el("hifiViewCanvas").insertAdjacentHTML("beforeend", related);
+  }
 
   const contractDetails = hifiContractMetadataHtml(child || view, view);
   el("hifiViewContractDetails").innerHTML = contractDetails;

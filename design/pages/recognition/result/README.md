@@ -190,3 +190,5 @@ See `review/Recognition_Result_Design_Audit_20261010.md`. Runtime parity remains
 ## Motion Continuation · RR09
 
 `08_motion_continuation/README.md` is the Design Manager entry for proposed RR09 V3 and its V2 historical baseline. The reveal is presentation-only: it does not add a Processing or Result state, modify recognition thresholds, or change CTA semantics. Runtime and visual playback remain NOT_RUN. V3 is not canonical on main until the Draft control-plane PR is adopted.
+
+The RR09 V3 Design Manager view links back to `识别过程 → 12 · SWOS · 静态视觉`, the dependent static V1.1 review workspace. It adds no product state and does not replace the historical RR09 V2 contract.

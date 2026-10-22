@@ -189,6 +189,13 @@
         "V3 为提案，Runtime NOT_RUN；V2 独立保留为历史菜单"
       ],
       "playable_prototype": "design/manager/rr09_motion/",
+      "related_manager_routes": [
+        {
+          "label": "SWOS · 静态视觉",
+          "route": "#page/recognition_flow_v1_2/hifi/swos_static_visual_v1_1",
+          "note": "P7 → R0 → R0.5 → R1 同源照片几何连续性与 15 帧静态检查。"
+        }
+      ],
       "provenance_fixture": "design/manager/rr09_motion/fixture.json",
       "prototype_status": "BROWSER_REVIEW_PENDING",
       "authority": "design/pages/recognition/result/motion/Recognition_Result_Motion_Spec_V3.md"

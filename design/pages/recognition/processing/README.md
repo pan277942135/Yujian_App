@@ -28,6 +28,20 @@ The three user-visible product states remain unchanged. CAPTURED/DETECTING are i
 
 SWOS replaces the line-led seven-path Edge Field optical basis after control-plane adoption. The 2600–2800ms peripheral-water release is within CLASSIFYING; no RESOLVE business state or pre-navigation wait is added. Actual Android timing and renderer remain NOT_RUN against this proposal.
 
+## SWOS Static Visual V1.1
+
+The Design Manager entry `识别过程 → 12 · SWOS · 静态视觉` is a static review workspace only. It registers 8 Processing frames + 7 RR09 frames, including R0.5 at 100ms inside the existing 0–200ms photo handoff. Total nominal time remains 3650ms. The frame and shared-photo contracts depend on Draft PR #186 and are not canonical on main yet.
+
+- Static visual contract: `optics/SWOS_Static_Visual_Contract_V1_1.md`
+- Fifteen-frame machine contract: `optics/SWOS_15_Frame_Keyframe_Contract_V1_1.json`
+- Shared photo geometry: `../continuity/SWOS_Shared_Photo_Transition_Contract_V1.md` + `.json`
+- Static source manifest: `optics/SWOS_Static_Asset_Manifest_V1_1.json`
+- Dynamic demo handoff: `optics/SWOS_Dynamic_Demo_Technical_Handoff_V1.md`
+
+Photo preview uses a user-selected local file in browser memory. The nominated 208758.jpg fixture and derivative exports are withheld from this public repository because publication permission is not confirmed. Its manual fish contour is review-only and never a production mask. R5 reuses the existing Frozen HIGH Result source and Hero Media Contract; the species name is a visual placeholder rather than model output.
+
+The Phase/Task State Machine remains unchanged: R0.5 is a static sample within the existing transition interval and adds no product or execution state.
+
 ## Feedback
 
 - Haptic: NONE

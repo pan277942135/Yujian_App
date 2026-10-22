@@ -331,6 +331,28 @@ feature_contracts:
         product_runtime_state: false
         production_default_model_changed: false
         note: "Design-only technical/business flow reference. DET_FISH owns full-scene fish detection/location; MODEL_M1 classifies valid crops; size/quality rules and RR07 own eligibility and final user-facing routing."
+      swos_static_visual_v1_1:
+        status: "DESIGN_ONLY"
+        design_status: "FROZEN_DESIGN_DIRECTION"
+        adoption_status: "DRAFT_DEPENDENT_ON_PR_186"
+        dependency: "PR #186"
+        manager_route: "#page/recognition_flow_v1_2/hifi/swos_static_visual_v1_1"
+        visual_contract: "design/pages/recognition/processing/optics/SWOS_Static_Visual_Contract_V1_1.md"
+        keyframe_contract: "design/pages/recognition/processing/optics/SWOS_15_Frame_Keyframe_Contract_V1_1.json"
+        shared_photo_transition: "design/pages/recognition/continuity/SWOS_Shared_Photo_Transition_Contract_V1.json"
+        asset_manifest: "design/pages/recognition/processing/optics/SWOS_Static_Asset_Manifest_V1_1.json"
+        dynamic_demo_handoff: "design/pages/recognition/processing/optics/SWOS_Dynamic_Demo_Technical_Handoff_V1.md"
+        related_rr09_route: "#page/recognition_result_v1/hifi/motion_continuation"
+        frame_count: 15
+        processing_duration_ms: 2800
+        rr09_duration_ms: 850
+        total_nominal_duration_ms: 3650
+        r0_5_relative_ms: 100
+        adds_product_state: false
+        changes_model_logic: false
+        android_runtime_mapping: false
+        public_photo_permission: "NOT_CONFIRMED"
+        note: "静态设计提案。R0.5 是现有 0–200ms handoff 内的采样帧；Phase/Task State Machine 不变，因为未增加产品状态或执行状态。"
 
     shared_contract_refs: ["DS-FOUNDATION", "ANDROID-RUNTIME-HARNESS", "STATE-EVIDENCE-PROVENANCE"]
     additional_shared_contract_refs: ["MODEL-RECOGNITION", "API-DATA-BOUNDARY", "RECOGNITION-OPTICAL-CONTINUITY"]

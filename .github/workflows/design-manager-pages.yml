@@ -17,13 +17,14 @@ on:
       - ".github/workflows/experience-governance.yml"
       - ".github/workflows/design-manager-pages.yml"
   pull_request:
-    branches: [main]
+    branches: [main, design/swos-phase0-audit-optical-contract-v1]
     paths:
       - "design/**"
       - "scripts/design/**"
       - "scripts/verify_design_manager_navigation.py"
       - "scripts/verify_design_manager_hifi_release.py"
       - "scripts/verify_design_manager_browser.mjs"
+      - "scripts/verify_swos_static_visual_v1_1.py"
       - "scripts/verify_design_manager_live.py"
       - ".github/workflows/design-manager-pages.yml"
   workflow_dispatch:
@@ -80,6 +81,7 @@ jobs:
         run: |
           python3 scripts/design_manager.py validate
           python3 scripts/verify_design_manager_hifi_release.py
+          python3 scripts/verify_swos_static_visual_v1_1.py
 
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5

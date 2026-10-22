@@ -5,6 +5,8 @@
 **Runtime / playback:** NOT_RUN
 **产品状态变更：** 无；不增加第四个 Processing 状态或第六个 Result 状态。
 
+静态 SWOS V1.1 帧与 P7 → R0 → R0.5 → R1 几何检查入口：`#page/recognition_flow_v1_2/hifi/swos_static_visual_v1_1`。该页仅供静态验收，不是可播放 Demo。
+
 ## 当前提案权威（待 main 采纳）
 
 - [Recognition Result Motion Spec V3 — SWOS 金光接续](../motion/Recognition_Result_Motion_Spec_V3.md)

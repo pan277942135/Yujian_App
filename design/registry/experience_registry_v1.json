@@ -748,6 +748,14 @@
           "spec_authority": "design/pages/recognition/processing/optics/SWOS_Optical_Contract_V1.md",
           "motion_authority": "design/pages/recognition/processing/motion/Recognition_Processing_Motion_Spec_V1_3.md",
           "note": "Phase 0 proposal pending main adoption; V1.2 Frozen raster assets and V3.1 Android timing/runtime remain unchanged."
+        },
+        {
+          "version": "SWOS Static V1.1",
+          "status": "DESIGN_ONLY",
+          "current": false,
+          "spec_authority": "design/pages/recognition/processing/optics/SWOS_Static_Visual_Contract_V1_1.md",
+          "keyframe_authority": "design/pages/recognition/processing/optics/SWOS_15_Frame_Keyframe_Contract_V1_1.json",
+          "note": "FROZEN_DESIGN_DIRECTION / FROZEN_KEYFRAME_BEHAVIOR；依赖 Draft PR #186，尚未成为 main authority。"
         }
       ],
       "design_overall": "ACTIVE_CLOSURE",
@@ -3655,6 +3663,61 @@
           "authority": "design/pages/recognition/continuity/Processing_Result_Optical_Continuity_Contract_V1.md",
           "machine_authority": "design/pages/recognition/continuity/processing_result_optical_continuity_v1.json",
           "summary": "共享照片、坐标、会话标识与残留金光；Processing 2800ms + RR09 850ms，导航无额外等待。"
+        },
+        {
+          "id": "swos_static_visual_v1_1",
+          "title": "12 · SWOS · 静态视觉",
+          "status": "DESIGN_ONLY",
+          "design_status": "FROZEN_DESIGN_DIRECTION",
+          "adoption_status": "DRAFT_DEPENDENT_ON_PR_186",
+          "dependency": {
+            "pull_request": 186,
+            "head_sha": "3b0b5848206cdea949f4bf6be7eb7cb1d19b1e34"
+          },
+          "render_mode": "swos_static_visual_workspace",
+          "authority": "design/pages/recognition/processing/optics/SWOS_Static_Visual_Contract_V1_1.md",
+          "machine_authority": "design/pages/recognition/processing/optics/SWOS_15_Frame_Keyframe_Contract_V1_1.json",
+          "transition_authority": "design/pages/recognition/continuity/SWOS_Shared_Photo_Transition_Contract_V1.json",
+          "asset_manifest": "design/pages/recognition/processing/optics/SWOS_Static_Asset_Manifest_V1_1.json",
+          "summary": "SWOS V1.1 静态工作区：15 帧、R0.5 共享照片几何、真实照片本地预览与逐帧检查。合同和光效为依赖 PR #186 的设计提案；上传素材仅留在浏览器内存。",
+          "menu_points": [
+            "完整横向静态总图；8 个 Processing 帧 + 7 个 RR09 帧",
+            "点击单帧放大，核对时间、相对强度、原图与静态合成",
+            "P7 → R0 → R0.5 → R1 共享照片几何连续性",
+            "R5 复用 Frozen HIGH Result 版式；鱼种名为视觉占位，不代表模型输出",
+            "不自动播放，不新增识别状态，不映射 Android Runtime"
+          ],
+          "related_routes": [
+            {
+              "label": "RR09 · 动效接续 V3",
+              "route": "#page/recognition_result_v1/hifi/motion_continuation",
+              "note": "850ms V3 Proposal；V2 历史基线保留且不改写。"
+            }
+          ],
+          "runtime_status": "NOT_RUN",
+          "playback_implemented": false,
+          "contract_links": [
+            {
+              "label": "SWOS Static Visual Contract V1.1",
+              "path": "design/pages/recognition/processing/optics/SWOS_Static_Visual_Contract_V1_1.md"
+            },
+            {
+              "label": "SWOS 15-Frame Keyframe Contract V1.1",
+              "path": "design/pages/recognition/processing/optics/SWOS_15_Frame_Keyframe_Contract_V1_1.json"
+            },
+            {
+              "label": "Shared Photo Transition Contract V1",
+              "path": "design/pages/recognition/continuity/SWOS_Shared_Photo_Transition_Contract_V1.json"
+            },
+            {
+              "label": "Static Asset Manifest V1.1",
+              "path": "design/pages/recognition/processing/optics/SWOS_Static_Asset_Manifest_V1_1.json"
+            },
+            {
+              "label": "Dynamic Demo Technical Handoff V1",
+              "path": "design/pages/recognition/processing/optics/SWOS_Dynamic_Demo_Technical_Handoff_V1.md"
+            }
+          ]
         }
       ],
       "navigation_mode": "submenu_direct",
@@ -4055,7 +4118,14 @@
             "HIGH-only、新会话单次播放；不阻塞 CTA、保存、编辑或返回；Reduce Motion 移除装饰运动"
           ],
           "demo_url": "design/manager/rr09_motion/",
-          "prototype_status": "PLAYABLE_PROTOTYPE_PENDING_BROWSER_EVIDENCE"
+          "prototype_status": "PLAYABLE_PROTOTYPE_PENDING_BROWSER_EVIDENCE",
+          "related_routes": [
+            {
+              "label": "SWOS · 静态视觉",
+              "route": "#page/recognition_flow_v1_2/hifi/swos_static_visual_v1_1",
+              "note": "查看 P7 → R0 → R0.5 → R1 静态几何与 15 帧合同。"
+            }
+          ]
         },
         {
           "id": "motion_continuation_v2_history",

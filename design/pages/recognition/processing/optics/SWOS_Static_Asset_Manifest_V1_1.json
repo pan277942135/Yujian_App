@@ -1,0 +1,78 @@
+{
+  "schema_version": "1.0",
+  "manifest_id": "SWOS_STATIC_VISUAL_ASSETS_V1_1",
+  "status": "PRIVATE_REVIEW_ASSETS_WITHHELD_FROM_PUBLIC_REPOSITORY",
+  "dependency": "PR #186 (Draft/Open/Unmerged)",
+  "source_photo": {
+    "filename": "208758.jpg",
+    "sha256": "ab7227cf7205ee2ac342b6cd75cd899747879506c95c33b888b6adf0acb47987",
+    "width": 1152,
+    "height": 1536,
+    "orientation": 1,
+    "source_status": "WORKSPACE_SOURCE_SHA_VERIFIED",
+    "public_permission": "NOT_CONFIRMED",
+    "repository_included": false,
+    "reason": "Contains a person and Xiaohongshu watermark; no confirmed public publication permission."
+  },
+  "historic_direction_reference": {
+    "filename": "渔见AI鱼获识别动画分镜海报.png",
+    "sha256": "ea0cf2e5fa84aad64195487cbedaab07b1727e96e87c9b4e661dc3d0fa252c1c",
+    "width": 1672,
+    "height": 941,
+    "role": "APPROVED_DIRECTION_REFERENCE",
+    "pixel_frozen_source": false,
+    "version": "SWOS 14-frame V0.3",
+    "model_generated": true,
+    "availability": "HASH_ONLY_REFERENCE_NOT_FOUND_IN_REPOSITORY_OR_ACCESSIBLE_PRIVATE_ASSET_SET"
+  },
+  "processing_authorities": [
+    {
+      "path": "design/pages/recognition/design/02_AI_Understanding_Frozen.png",
+      "role": "FROZEN_PAGE_STRUCTURE_REFERENCE"
+    },
+    {
+      "path": "design/pages/recognition/design/03_Fish_Highlight_Frozen.png",
+      "role": "FROZEN_PAGE_STRUCTURE_REFERENCE"
+    },
+    {
+      "path": "design/pages/recognition/design/04_Fish_Identifying_Frozen.png",
+      "role": "FROZEN_PAGE_STRUCTURE_REFERENCE"
+    }
+  ],
+  "result_authority": {
+    "path": "design/pages/recognition/design/05_Result_High_Frozen.png",
+    "role": "FROZEN_HIGH_RESULT_STRUCTURE_REFERENCE",
+    "hero_media_contract": "design/pages/recognition/result/media/hero_media_contract.json"
+  },
+  "fish_geometry": {
+    "source": "human visual trace for this SHA only",
+    "state": "MANUAL_REFERENCE_ONLY_NOT_PRODUCTION_MASK",
+    "not_detector_output": true,
+    "not_approved_for_runtime": true
+  },
+  "derived_frames": {
+    "status": "PRIVATE_REVIEW_RENDERED_VISUAL_REVIEWED",
+    "repository_included": false,
+    "frame_count": 15,
+    "expected_dimensions_px": {
+      "width": 1080,
+      "height": 1920
+    },
+    "deliverables": [
+      "15 individual 1080x1920 PNG frames",
+      "8+7 contact sheet with global sample times",
+      "P7/R0/R0.5/R1 shared geometry comparison",
+      "P0/P4 original-photo versus effect-composite comparison",
+      "R5 versus Frozen HIGH Result comparison"
+    ],
+    "renderer": "deterministic Pillow static compositor; no image-generation model",
+    "fish_outline": "MANUAL_REFERENCE_ONLY_NOT_PRODUCTION_MASK",
+    "effect_strength_alpha_mapping": "ILLUSTRATIVE_STATIC_REVIEW_ONLY_NOT_PRODUCTION_ALPHA"
+  },
+  "browser_preview": {
+    "default_photo_embedded": false,
+    "local_user_upload": true,
+    "photo_uploads_networked": false,
+    "persistent_storage": false
+  }
+}
