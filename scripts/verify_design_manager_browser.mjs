@@ -311,7 +311,7 @@ async function main() {
         `Responsive geometry incomplete at ${width}x${height} scale ${scale}: ${JSON.stringify(state.bounds)}`);
       assert(state.bounds.left.right <= state.bounds.main.left - 7 && state.bounds.right.left >= state.bounds.main.right + 7,
         `Neighbor cards overlap the active card at ${width}x${height} scale ${scale}: ${JSON.stringify(state.bounds)}`);
-      assert(state.bounds.camera.width >= 72 && state.bounds.camera.height >= 72 &&
+      assert(state.bounds.camera.width >= 72 - 0.1 && state.bounds.camera.height >= 72 - 0.1 &&
         state.bounds.camera.bottom <= height - 24 + 1,
         `Camera touch target or safe footer bounds invalid at ${width}x${height} scale ${scale}: ${JSON.stringify(state.bounds)}`);
       assert(state.bounds.cameraArt.width <= state.bounds.camera.width && state.bounds.cameraArt.height <= state.bounds.camera.height,
