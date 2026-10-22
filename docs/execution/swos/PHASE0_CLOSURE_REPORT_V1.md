@@ -9,7 +9,7 @@
 
 At execution start, `git fetch origin main --prune` returned `origin/main = 888706fda16d6f343f9bb4e02463f3b7a3526c31`. PR #186 was Open, Draft, Unmerged and based on that main SHA. Its branch was `design/swos-phase0-audit-optical-contract-v1`; the live PR head at audit was `5e43fa295bc7d3e8de578f9fa3569152591a58b9`. The prior audit SHA `888706…` still matched main; the PR head was a separate one-file audit proposal. A clean isolated worktree was used; unrelated dirty worktrees were left untouched.
 
-`python scripts/validate_control_plane_admission.py` was run locally from exact audit head `5e43fa295bc7d3e8de578f9fa3569152591a58b9` and logged `mode=CONTROL_PLANE_CHANGE branch=design/swos-phase0-audit-optical-contract-v1` plus `CONTROL_PLANE_ADMISSION=PASS`. The PR's `control-plane-admission` workflow run `39714784710` also succeeded for the pre-change PR state. After the Phase 0 change set is committed, Admission and relevant validators must be rerun on the new exact SHA; their run IDs and results belong in the final PR report.
+`python scripts/validate_control_plane_admission.py` was run locally from exact audit head `5e43fa295bc7d3e8de578f9fa3569152591a58b9` and logged `mode=CONTROL_PLANE_CHANGE branch=design/swos-phase0-audit-optical-contract-v1` plus `CONTROL_PLANE_ADMISSION=PASS`. The PR's `control-plane-admission` workflow run `39714784710` also succeeded for the pre-change PR state. The Phase 0 contract/control-plane set was committed at `7685206f0ae78b5a3c274475228427ac436c212e`. Its first browser CI exposed one assertion wording mismatch (`已弃用` expected, while the existing Design Manager label is `已废弃`). The browser assertion was corrected without changing product labels or contract content. Final exact-SHA evidence is recorded below for `e207ae604e56dc4c21ce6d049a80fa38e637682d`.
 
 Repository policy keeps `main` as the adopted Control Plane authority and requires a control-plane change to land there before dependent product branches synchronize. Therefore this Draft PR's new files and references are a reviewable proposal set, not yet the canonical main authority. This is why the Phase 0 outcome remains `PARTIAL` until the PR is reviewed/adopted. No main merge was performed.
 
@@ -54,19 +54,22 @@ The root `CONTROL_PLANE_REGISTRY.yaml` remains unchanged because it is the index
 
 ## 5. Validation and status
 
-This section is updated after final exact-SHA validation. Required commands and results:
+All final evidence below corresponds to proposal source SHA `e207ae604e56dc4c21ce6d049a80fa38e637682d`, unless a row identifies the initial audit baseline. The proposal branch is `design/swos-phase0-audit-optical-contract-v1`; PR #186 remains Draft / Open / Unmerged and base `main` remains `888706fda16d6f343f9bb4e02463f3b7a3526c31`.
 
 | Check | Source SHA / Run ID | Result | Evidence |
 |---|---|---|---|
-| Initial Control Plane Admission (audit baseline) | `5e43fa295bc7d3e8de578f9fa3569152591a58b9` / workflow `39714784710` plus local run | PASS | [PR #186 admission workflow](https://github.com/pan277942135/Yujian_App/actions/runs/39714784710) |
-| Final Control Plane Admission | fill with exact committed SHA and run ID | PENDING | Final PR comment |
-| Feature Matrix / State Machine / Unified Registry | fill with exact committed SHA and run IDs | PENDING | Final PR comment |
-| Design Manager registry/navigation/hifi release | fill with exact committed SHA and run IDs | PENDING | Final PR comment |
-| SWOS cross-contract validator + regression tests | fill with exact committed SHA and run IDs | PENDING | Final PR comment |
-| Browser visual / demo / Android / API 28 / APK | intentionally not run in Phase 0 | NOT_RUN | Out of Phase 0 scope |
+| Initial Control Plane Admission (audit baseline) | `5e43fa295bc7d3e8de578f9fa3569152591a58b9` / run `39714784710` | PASS | [Admission workflow](https://github.com/pan277942135/Yujian_App/actions/runs/39714784710) |
+| Final Control Plane Admission | `e207ae604e56dc4c21ce6d049a80fa38e637682d` / run `39726848122` | PASS — `CONTROL_PLANE_ADMISSION=PASS` | [Admission run #543](https://github.com/pan277942135/Yujian_App/actions/runs/39726848122) |
+| SWOS cross-contract validator and regression tests | `e207ae604e56dc4c21ce6d049a80fa38e637682d` / run `39726848022` | PASS — contract gate and 8 local regression tests | [Design Governance run #1242](https://github.com/pan277942135/Yujian_App/actions/runs/39726848022) |
+| Design Manager registry, navigation and hi-fi release checks | `e207ae604e56dc4c21ce6d049a80fa38e637682d` / run `39726848010` | PASS — local validator, navigation and release checks also pass | [Pages build run #830](https://github.com/pan277942135/Yujian_App/actions/runs/39726848010) |
+| Chromium route, responsive and existing RR09 V2 historical review | `e207ae604e56dc4c21ce6d049a80fa38e637682d` / run `39726848022` | PASS — browser gates completed; V2 remains separately reachable | [Browser evidence and run](https://github.com/pan277942135/Yujian_App/actions/runs/39726848022) |
+| GitHub Pages deployment | `e207ae604e56dc4c21ce6d049a80fa38e637682d` / run `39726848010` | NOT_RUN — deploy job skipped; only a build artifact was produced | [Pages run #830](https://github.com/pan277942135/Yujian_App/actions/runs/39726848010) |
+| SWOS playable demo and optical visual acceptance | Phase 1 | NOT_RUN — outside Phase 0 | [Phase 1 plan](PHASE1_PLAYABLE_DEMO_EXECUTION_PLAN_V1.md) |
+| Android Runtime / API 28 / APK | `e207ae604e56dc4c21ce6d049a80fa38e637682d` / auto-triggered runs `39726848033`, `39726847904` | NOT_RUN — both workflows were cancelled before Android tests, emulator/API 28 gate, or APK build; no Android PASS or APK is claimed | [Android CI run #2992](https://github.com/pan277942135/Yujian_App/actions/runs/39726848033) · [Native Runtime run #275](https://github.com/pan277942135/Yujian_App/actions/runs/39726847904) |
 
-Contract consistency PASS is not a visual PASS, an Android PASS, or an adopted-main PASS. The PR remains Draft / Open / Unmerged, and Pages were not deployed.
+The corrected Design Governance and Design Manager Pages workflows completed on the same source SHA. Pages' deploy job was skipped, so the generated artifact is not a deployment. Browser route/responsive verification is not a SWOS animation or visual acceptance result. Contract consistency PASS is not an optical visual PASS, an Android PASS, or an adopted-main PASS.
 
+PR #186 remains Draft / Open / Unmerged. No merge or Pages deployment was performed.
 ## 6. Stage 1 gaps
 
 The exact Android files/symbols and required Stage 1 checks are listed in [`ANDROID_STAGE1_IMPLEMENTATION_GAP_REPORT_V1.md`](ANDROID_STAGE1_IMPLEMENTATION_GAP_REPORT_V1.md). The largest confirmed gaps are the V3.1 220/320/350/250ms projection/assets/controller/tests, the seven-path Edge Field renderer, V2 RR09 title rendering and the absence of exact-SHA SWOS/API 28 evidence. These are not addressed in Phase 0.
