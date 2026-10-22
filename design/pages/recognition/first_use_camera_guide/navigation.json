@@ -51,5 +51,18 @@
       "sha256": "fb092235fd043a42aa8250aba9dfdb91a78e96549dd5a63f8e89cf7433685f8f",
       "status": "ARCHIVED_NOT_ACTIVE"
     }
+  ],
+  "resource_menus": [
+    {
+      "id": "resources",
+      "title": "资源",
+      "route": "#page/recognition_flow_v1_2/hifi/capture_first_use_guide/resources",
+      "status": "DESIGN_ONLY",
+      "resource_ids": [
+        "p01",
+        "p02"
+      ],
+      "runtime_visual_authority": false
+    }
   ]
 }
