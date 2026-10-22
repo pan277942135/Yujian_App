@@ -76,14 +76,17 @@ def record_event(path, event):
 
 
 def extract_pr_paths(workflow_path):
-    """Read only the subset of Actions YAML required for pull_request.paths."""
+    """Read pull_request.paths; return empty when the workflow has no PR trigger."""
     lines = Path(workflow_path).read_text(encoding="utf-8").splitlines()
     in_pr = False
     in_paths = False
+    saw_pr = False
+    saw_paths = False
     result = []
     for line in lines:
         if line == "  pull_request:":
             in_pr, in_paths = True, False
+            saw_pr = True
             continue
         if in_pr and re.match(r"^  [A-Za-z_][\w-]*:", line):
             break
@@ -91,6 +94,7 @@ def extract_pr_paths(workflow_path):
             continue
         if line == "    paths:":
             in_paths = True
+            saw_paths = True
             continue
         if in_paths and re.match(r"^    [A-Za-z_][\w-]*:", line):
             break
@@ -98,7 +102,9 @@ def extract_pr_paths(workflow_path):
             match = re.match(r"^      - ['\"]?([^'\"]+)['\"]?\s*$", line)
             if match:
                 result.append(match.group(1))
-    if not result:
+    if not saw_pr:
+        return []
+    if not saw_paths or not result:
         raise ValueError("No explicit pull_request.paths found in " + str(workflow_path))
     return result
 

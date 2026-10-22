@@ -82,25 +82,26 @@ class RoutingTest(unittest.TestCase):
     def test_home_android_change_preserves_required_gates(self):
         r = route_files(ROOT, ["app/src/main/java/com/yujian/ai/ui/home/GeminiHome.kt"])
         self.assertTrue(r["android_ci"], r)
-        self.assertTrue(r["nh01_runtime"], r)
+        self.assertFalse(r["nh01_runtime"], r)
 
     def test_frozen_foundation_still_triggers_android(self):
         r = route_files(ROOT, ["design/system_v3/06_Asset_System/derived/brand.png"])
         self.assertTrue(r["android_ci"], r)
-        self.assertTrue(r["nh01_runtime"], r)
+        self.assertFalse(r["nh01_runtime"], r)
 
     def test_nh01_viewer_and_no_unbounded_design_trigger(self):
         a = route_files(ROOT, ["design/manager/nh01_acceptance/viewer.js"])
-        self.assertTrue(a["nh01_runtime"])
+        self.assertFalse(a["nh01_runtime"])
         b = route_files(ROOT, ["design/pages/recognition/processing/foo.md"])
         self.assertFalse(b["nh01_runtime"])
         self.assertFalse(b["android_ci"])
 
-    def test_explicit_path_allowlist_is_mandatory(self):
-        for workflow in ("android.yml", "nh01-cloud-runtime.yml"):
-            paths = extract_pr_paths(ROOT / ".github" / "workflows" / workflow)
-            self.assertTrue(paths)
-            self.assertNotIn("design/**", paths)
+    def test_android_has_explicit_pr_allowlist_and_nh01_has_no_pr_runtime_trigger(self):
+        android_paths = extract_pr_paths(ROOT / ".github" / "workflows" / "android.yml")
+        nh01_paths = extract_pr_paths(ROOT / ".github" / "workflows" / "nh01-cloud-runtime.yml")
+        self.assertTrue(android_paths)
+        self.assertNotIn("design/**", android_paths)
+        self.assertEqual([], nh01_paths)
 
 
 class PreflightTest(unittest.TestCase):

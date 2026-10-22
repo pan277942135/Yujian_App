@@ -12,7 +12,7 @@ def run(label,args):
     return subprocess.run(args,cwd=ROOT).returncode==0
 def branch_name():
     return os.environ.get("GITHUB_HEAD_REF") or os.environ.get("GITHUB_REF_NAME") or subprocess.check_output(["git","rev-parse","--abbrev-ref","HEAD"],cwd=ROOT,text=True).strip()
-def validate_canonical_promotion_tree(root: Path = ROOT):
+def validate_canonical_promotion_tree(root: Path | None = None):
     """Canonical main must never ingest a product branch's live execution state.
 
     A pull request *to main* is a canonical promotion review, not a Work run
@@ -25,6 +25,7 @@ def validate_canonical_promotion_tree(root: Path = ROOT):
         "harness/build-log.md",
         ".github/workflows/project-master-state.yml",
     )
+    root = root or ROOT
     leaked = [path for path in forbidden if (root / path).exists()]
     if leaked:
         print("CANONICAL_PROMOTION_TREE=FAIL forbidden_branch_state=" + ",".join(leaked),
