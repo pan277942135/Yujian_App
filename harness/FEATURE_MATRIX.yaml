@@ -240,6 +240,7 @@ features:
       - "degradation_accessibility"
       - "runtime_evidence"
       - "capture_first_use_guide"
+      - "recognition_full_flow_models"
     design_children:
       - "ai_edge_field_v1_static_shape"
       - "ai_edge_field_v1_rendering_contract"
