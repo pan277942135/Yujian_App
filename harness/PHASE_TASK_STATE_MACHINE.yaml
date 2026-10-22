@@ -95,8 +95,8 @@ phases:
     entry_condition: "Required contracts and engineering foundation exist."
     exit_condition: "Release-scope feature implementation reaches executable acceptance tasks."
     release_scope: "PRIMARY_PLUS_SECONDARY"
-    feature_refs: ["record_date_v2", "share_templates_v1", "auth_register_v2"]
-    task_refs: ["P6-01", "P6-02", "P6-03", "P6-04"]
+    feature_refs: ["home_normal_v1", "record_date_v2", "share_templates_v1", "auth_register_v2"]
+    task_refs: ["P6-01", "P6-02", "P6-03", "P6-04", "YUJIAN_NH01_ANDROID_FROZEN_V22_IMPLEMENTATION_REPAIR_WORK_B_V1"]
   P7:
     name: "Integration / Full Surface"
     entry_condition: "Feature implementation is executable."
@@ -543,6 +543,19 @@ tasks:
     target_blockers: ["B007"]
     evidence_required: ["secondary_feature_implementation"]
     completion: "Secondary implementation closure for expanded scope."
+    human_required: false
+  YUJIAN_NH01_ANDROID_FROZEN_V22_IMPLEMENTATION_REPAIR_WORK_B_V1:
+    phase: "P6"
+    priority: "P0"
+    owner: "Work B"
+    feature_refs: ["home_normal_v1"]
+    journey_refs: ["J17", "J18"]
+    depends_on: ["P5-01", "P5-02"]
+    entry_blockers: []
+    target_blockers: []
+    gate_id: "G-NH01-WORK-B-V22-EXACT-SHA"
+    evidence_required: ["frozen_v22_authority_resolution", "nh01_android_source_repair", "build_unit_lint", "api28_targeted_runtime", "apk_sha256_provenance"]
+    completion: "Issue #194 V2.2 Android repair has exact-SHA build, focused tests, targeted API28 evidence and a traceable debug APK; the full 24-case native matrix, N004 and release gates remain separate and are not promoted by this task."
     human_required: false
 
   P7-01:

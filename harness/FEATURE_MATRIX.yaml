@@ -112,7 +112,7 @@ features:
         authority: "design/pages/home/normal_home/sound/Normal_Home_Sound_Spec_V1.md"
       runtime:
         status: "PARTIAL"
-        authority: "app/src/main/java/com/yujian/ai/ui/home/NormalHomeContent.kt"
+        authority: "app/src/main/java/com/yujian/ai/ui/home/GeminiNormalHomeContent.kt"
       evidence:
         status: "PARTIAL"
         authority: null
@@ -148,7 +148,8 @@ features:
       - "home"
     implementation:
       registered_runtime_status: "PARTIAL"
-      runtime_authority: "app/src/main/java/com/yujian/ai/ui/home/NormalHomeContent.kt"
+      runtime_authority: "app/src/main/java/com/yujian/ai/ui/home/GeminiNormalHomeContent.kt"
+      layout_policy: "app/src/main/java/com/yujian/ai/ui/home/GeminiHomeAdaptiveLayoutPolicy.kt"
     known_gaps:
       - "Runtime/evidence remain partial; Hero F01-F08 fixture matrix and camera optical parity are open (B003/B004)."
   record_date_v2:
