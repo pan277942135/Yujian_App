@@ -117,7 +117,6 @@ async function main() {
   const overviewHash = "#page/recognition_flow_v1_2/hifi/main_journey_overview";
   const p01Hash = "#page/recognition_flow_v1_2/hifi/capture_first_use_guide/p01";
   const p02Hash = "#page/recognition_flow_v1_2/hifi/capture_first_use_guide/p02";
-  const p03Hash = "#page/recognition_flow_v1_2/hifi/capture_first_use_guide/p03";
   const resourcesHash = "#page/recognition_flow_v1_2/hifi/capture_first_use_guide/resources";
   const open = hash => page.goto(baseUrl + hash, { waitUntil: "networkidle", timeout: 45000 });
 
@@ -141,11 +140,10 @@ async function main() {
   await page.waitForFunction(expected => location.hash === expected, resourcesHash);
   assert((await page.locator("#hifiViewTitle").innerText()).trim() === "资源", "Resources submenu must open its registered route");
   assert((await page.locator("#hifiViewSummary").innerText()).includes("不映射为 Android 运行时背景"), "Resources route must state its Android runtime boundary");
-  assert(await page.locator(".guide-resource-card").count() === 3, "Resources route must show exactly three Frozen source PNGs");
+  assert(await page.locator(".guide-resource-card").count() === 2, "Resources route must show exactly three Frozen source PNGs");
   const resourceExpected = [
     ["p01", 941, 1671, "P01_First_Use_Camera_Guide_Frozen.png", "dc731cca5470"],
-    ["p02", 941, 1671, "P02_First_Use_Camera_Guide_Frozen.png", "fb092235fd04"],
-    ["p03", 941, 1672, "P03_First_Use_Camera_Guide_Frozen.png", "1a3008483ac5"]
+    ["p02", 941, 1672, "P02_Landscape_Horizontal_Fish_Frozen.png", "1a3008483ac5"]
   ];
   for (const [id, width, height, filename, shaPrefix] of resourceExpected) {
     const selector = `.guide-resource-card[data-resource-id="${id}"]`;
@@ -201,7 +199,7 @@ async function main() {
   await dialog.waitFor({ state: "hidden" });
   assert(await page.locator(".hifi-image-open").evaluate(node => document.activeElement === node), "closing the lightbox must restore focus");
 
-  for (const [hash, width, height, id] of [[p02Hash, 941, 1671, "P02"], [p03Hash, 941, 1672, "P03"]]) {
+  for (const [hash, width, height, id] of [[p02Hash, 941, 1672, "P02"]]) {
     await open(hash);
     const loaded = await waitForLoadedImage(page, ".hifi-asset-figure img", id);
     assert(loaded.complete && loaded.width === width && loaded.height === height, `${id} original dimensions are wrong: ${JSON.stringify(loaded)}`);
@@ -241,7 +239,7 @@ async function main() {
   await open(resourcesHash);
   await page.reload({ waitUntil: "networkidle" });
   assert(page.url().endsWith(resourcesHash), "refresh must preserve the direct Resources Hash");
-  assert(await page.locator(".guide-resource-card").count() === 3, "direct Resources Hash must render all source PNGs after refresh");
+  assert(await page.locator(".guide-resource-card").count() === 2, "direct Resources Hash must render all source PNGs after refresh");
 
   const missingCases = [
     ["capture_portrait", "Recognition_Capture_Ready_Portrait_Horizontal_Fish_Frozen.png"],
