@@ -516,7 +516,7 @@
     return { canvas, anchors, depthPx, profile: CONTINUOUS_FIELD_PROFILE };
   }
 
-  function quietMaskMarkup(rect, width, height, maxDepth) {
+  function quietMaskMarkup(rect, width, height, maxDepth, antiAliasGuardPx = 0) {
     const photoWidth = rect.right - rect.left;
     const photoHeight = rect.bottom - rect.top;
     const gaps = QUIET_GAPS;
@@ -525,7 +525,14 @@
       [rect.left, rect.top + gaps.Q_LEFT[0] * photoHeight, maxDepth, (gaps.Q_LEFT[1] - gaps.Q_LEFT[0]) * photoHeight],
       [rect.right - maxDepth, rect.top + gaps.Q_RIGHT[0] * photoHeight, maxDepth, (gaps.Q_RIGHT[1] - gaps.Q_RIGHT[0]) * photoHeight],
       [rect.left + gaps.Q_BOTTOM[0] * photoWidth, rect.bottom - maxDepth, (gaps.Q_BOTTOM[1] - gaps.Q_BOTTOM[0]) * photoWidth, maxDepth]
-    ];
+    ].map(([x, y, regionWidth, regionHeight]) => {
+      const guard = Math.max(0, Number(antiAliasGuardPx) || 0);
+      const left = Math.max(rect.left, x - guard);
+      const top = Math.max(rect.top, y - guard);
+      const right = Math.min(rect.right, x + regionWidth + guard);
+      const bottom = Math.min(rect.bottom, y + regionHeight + guard);
+      return [left, top, right - left, bottom - top];
+    });
     const cuts = regions.map(region =>
       '<rect x="' + number(region[0]) + '" y="' + number(region[1]) + '" width="' + number(region[2]) + '" height="' + number(region[3]) + '" fill="#000"/>'
     ).join("");
@@ -621,7 +628,9 @@
         '<rect x="' + numberString(rect.left) + '" y="' + numberString(rect.top) + '" width="' + numberString(clippedDepthPx) + '" height="' + numberString(photoHeight) + '"/>' +
         '<rect x="' + numberString(rect.right - clippedDepthPx) + '" y="' + numberString(rect.top) + '" width="' + numberString(clippedDepthPx) + '" height="' + numberString(photoHeight) + '"/>' +
       '</clipPath>',
-      quietMaskMarkup(rect, width, height, depthPx).replace(/quiet-gaps/g, quietMaskId),
+      // The one-pixel guard only removes SVG mask antialias fringe; it expands
+      // the quiet area and cannot reduce the frozen Quiet Gap or Depth contract.
+      quietMaskMarkup(rect, width, height, depthPx, 1).replace(/quiet-gaps/g, quietMaskId),
       '<filter id="' + outerBlurId + '" filterUnits="userSpaceOnUse" primitiveUnits="userSpaceOnUse" x="' +
         numberString(rect.left - padding) + '" y="' + numberString(rect.top - padding) + '" width="' +
         numberString(photoWidth + padding * 2) + '" height="' + numberString(photoHeight + padding * 2) +
