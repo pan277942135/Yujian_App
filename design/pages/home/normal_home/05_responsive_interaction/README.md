@@ -1,5 +1,7 @@
 # NH05 · Responsive & Interaction / 响应式与交互 · Design Spec V1
 
+> **2026-10-21 现行 Gemini NH01/NH02 局部替代说明：** 当前 Gemini V3 / Adaptive V2 使用内容优先 Top/Middle/Footer、独立可见间距 8/12/18/20dp 目标，不沿用此历史 NH05 的整页统一 Y 位移算法；旧算法仍供 legacy NormalHomeContent 使用。NH05 的 Pager 有限、Reduce Motion、安全区、交互触控规则继续适用。来源：engineering/NH01_GEMINI_ADAPTIVE_V2_UNIFIED_AUTHORITY_V1.md；不得将旧坐标与新布局同时作为同一路由的 PASS 条件。
+
 > **Current engineering binding:** [../engineering/Layout_Responsive_Contract_V1.md](../engineering/Layout_Responsive_Contract_V1.md) implements approved NH05 A without a second Y safe-inset translation and defines conditional short-screen SAFE_OVERFLOW. Original CTA y1504 / Camera y1582 shorthand refer to unresolved visual anchor kinds; do not equate them with code CTA CONTAINER y1495 / Camera TOUCH y1564. The immutable Frozen pixels remain primary for visible optical targets; target runtime ROI proof is still pending.
 
 Status: **FROZEN — SPEC + VISUAL**

@@ -1,5 +1,7 @@
 # NH07 · 头像状态（Avatar States）· Design Contract V1
 
+> **2026-10-21 现行 Gemini NH01/NH02 局部替代说明：** 已由用户选择并冻结的 NH01 Avatar Visual V1.1 薄雾玻璃线描替代**当前 Gemini NH01/NH02 默认头像视觉**；Guest 与已登录缺省/加载/失败可共用造型，但点击和语义必须分别是 Login / Profile。下文 NH07 晨湖垂钓者、三档透明 PNG 与资产清单均作为**历史冻结设计和可回退资产**保留，不再作为当前 Gemini 的有效 fallback。不能删除、覆盖原图或改动其他页面头像规则。Android 原生验收与规范冻结是两种状态。
+
 **状态：SPEC_FROZEN / 头像资产已登记；页面视觉仍以 NH01 冻结整页为准。**  
 范围：Normal Home Header，仅新增头像状态局部工作区；**不修改 Android、冻结整页或其他页面**。设计版本：2026-10-10。
 

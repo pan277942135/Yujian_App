@@ -1,11 +1,13 @@
 # NH01 Gemini Native Home V3 Contract
 
+> **2026-10-21 现行 Gemini NH01/NH02 局部替代说明：** Gemini Native V3 当前依照 NH01_GEMINI_ADAPTIVE_V2_UNIFIED_AUTHORITY_V1.md + NH01_GEMINI_ADAPTIVE_V2_ACCEPTANCE_V1.md 执行。统一规则覆盖当前 Adaptive V2.2 标题可见间距、NH04 孤字换行、NH06 TopCenter、NH07 薄雾头像、NH05 动效安全区要求。冻结的是 SPEC；不是历史全屏像素还原 PASS，也不是已完成新 24 次原生验收。
+
 **Task:** `YUJIAN_NH01_GEMINI_NATIVE_REBUILD_AVATAR_FIX_V3`
 **Android PR:** #167, Draft / Open / Unmerged
 **Structure handoff:** PR #164, HEAD `06308bd21e175e321e9f345dbf18174f5e0134f9`
 **Implementation starting HEAD:** `25b8c4d50b2d979e380dd76bdb38cde8b80f5f2c`
 
-This revision supersedes the V2 layout/runtime behavior for the active Gemini Normal Home route. It retains the same approved bitmap sources and the avatar-specific V2 policy override.
+This revision supersedes the V2 layout/runtime behavior for the active Gemini Normal Home route. The legacy V2 avatar bitmap is preserved for rollback/provenance but NH01's displayed avatar is superseded by `NH01_Avatar_Visual_Contract_V1_1_FROZEN.md` (thin mist-glass silhouette).
 
 ## Authority and implementation boundary
 
@@ -43,7 +45,8 @@ The Morning Lake master already contains the mountain-mist scene. The Compose la
 | Brand title | `brand_title_primary.png`, SHA-256 `2dd41f5138e88e3bd48178dd26a15dfbb29c434536e4e3cc887fe2db13bdfddc` |
 | Camera | `normal_home_camera_primary_v1.png`, SHA-256 `fb6417e372d08328ac8559d004d1c6f5b03fc17551646be46031df641660e8f2` |
 | Fish card material | registered gradient, outline, and shadow runtime derivatives |
-| Default avatar | original `normal_home_default_avatar_v2.png`, 1254×1254, SHA-256 `fe94b11ba9f6c0635cd230bcc786fd2ea9a64d1a6f512dc6078556379676f528` |
+| NH01 current default avatar | Compose mist-glass silhouette, authority `NH01_Avatar_Visual_Contract_V1_1_FROZEN.md` |
+| Legacy V2 avatar preserved | `normal_home_default_avatar_v2.png`, 1254×1254, SHA-256 `fe94b11ba9f6c0635cd230bcc786fd2ea9a64d1a6f512dc6078556379676f528` |
 
 The page binds the real `species_count`, `catch_count`, `record_days`, `catch_image`, `species_name`, `length_cm`, `weight_kg`, `captured_at`, `location`, and `catch_id` values. The screenshot-matching evidence fixture uses 3 species, 3 catches, 1 record day, and the first 草鱼 record at 42.6 cm / 1.28 kg / 浙江 · 千岛湖 with the same registered `sample_recent_catch.jpg` photo as the baseline screenshot.
 
@@ -51,23 +54,25 @@ The pager has exactly one page per distinct valid stable `catch_id`: counts 0, 1
 
 Fish photos use `RemoteImage(preserveEvidenceWithFitBackdrop = true)`: the source photo remains fully visible with `Fit`, and a blurred crop of that same decoded source fills the remaining area. While blur is prepared, a same-source `Crop` fills the background so no flat gray letterbox appears. The crop is behind the unchanged fitted photo; source bytes, fish subject, and foreground dimensions are not edited or cropped. Successful decoded sources are held in a bounded process memory cache whose key hashes (and does not retain) the authorization token.
 
-## Avatar validation-page policy
+## Avatar validation-page policy — frozen V1.1 supersedes legacy V2 visual
 
-The visible arrow/tower-like mark in PR #167's baseline API 28 screenshot (`NH01_Android_Runtime_1080x1920.png`, source `08ed847e711f8c7accd4ebba08a74e55e756882f`, run `39247751377`) was traced to the signed-in fallback branch: `HomeScreen` supplied the active session, `NormalHomeHeader` selected `NormalHomeDefaultAvatar`, and that function painted `R.drawable.nh07_default_avatar_3x_192` (SHA-256 `b79dc7eaa6da78722cedb240b35985871c422531b3d452efaa5fba9aa3eeb7c2`). At capture time that raster was visible; the screenshot cannot distinguish a missing URL from a still-pending or failed remote load. The separate old Guest branch used `NormalHomeRuntimeAssets.guestAvatar` → `normal_home_runtime_v1/avatar/guest_avatar.png` (SHA-256 `8a6219ee213af8693e7ca4ff39684fad607c0be891c6c5f31872f96a6ca0120b`). The Gemini runtime asset bundle does not load either old image.
+The prior fallback implementation on **this NH01 Gemini V3 validation page only** used a **local visual-policy override** binding `normal_home_default_avatar_v2.png` (SHA-256 `fe94b11ba9f6c0635cd230bcc786fd2ea9a64d1a6f512dc6078556379676f528`). That registered legacy image remains byte-identical in the repository, and the global Guest avatar manifest remains unchanged, but the V2 image is **not** displayed as the current NH01 default.
 
-For this NH01 Gemini V3 validation page only, both Guest and signed-in accounts without a usable remote avatar show the exact approved Home V2 bitmap named above. This is an explicit local visual-policy override: the existing global Home V2 and shared profile avatar manifests retain their separate Guest mapping. A usable signed-in remote avatar is drawn over the V2 fallback with circular clipping and `ContentScale.Crop`; while it loads, fails, or is replaced by another account, the V2 bitmap remains below it. URL, token, and signed-in state key the remote layer so logout or account switches cannot retain the previous account's image. Guest taps call login/register; signed-in taps call profile center.
+Authoritative current NH01 visual: `NH01_Avatar_Visual_Contract_V1_1_FROZEN.md`. Draw a 36–40dp Compose mist circle (`#EEF3F2`, alpha 36%) with a 0.8dp white outline (48% alpha) and a calm deep-lake line-drawn head/shoulders (`#214454`, stroke 1.65dp). Derive artwork size from safe window width, never height; the independent click target remains >=48dp. No thick white bezel, plastic gloss, harsh reflection, shadow, or decorative animation.
 
-The avatar is checked in three independent ways: the visual resource/crop, the circular visual boundary, and the clickable target bounds/action. The avatar button has a minimum 48dp target.
+Guest and missing/failed/loading-photo states use the same mist silhouette. A valid signed-in user photograph overlays it with circular crop and retains the thin rim. Remote-photo URL, access token and signed-in status continue to key the overlay, avoiding stale cross-account images. Guest taps invoke login/register; signed-in taps open profile. The avatar change must not affect any non-avatar Adaptive V2 geometry.
+
+Runtime screenshot + `boundsInWindow` + real-image/fallback/login interactions and exact-SHA Android CI are required before declaring Android implementation accepted.
 
 ## Responsive rules
 
 - Safe-drawing insets wrap the content; the scene bitmap remains edge-to-edge.
 - The top section uses bounded vertical and horizontal spacing and is capped at 560dp. Its brand/avatar row, stats row, section title, card and footer remain grouped in the Gemini Top / Middle / Footer hierarchy. Stats separators are 26dp tall.
-- The active card uses the Gemini reference ratio `247:293` (`width / height = 0.843`). Width is based on `min(68.6% of track, 337.2dp)`; height is derived from that width and capped at 400dp. If the Middle viewport is tight but can still show a readable 220dp card, both axes shrink together. Below that floor, the card retains its target size and only the Middle section scrolls.
-- The section title's visible text stays 13dp above the main card across font scales, using the measured Compose text height (including platform font metrics) to keep the visual gap stable. Neighbor cards use `min(62% of track, 260dp)`, remain 66.7% of the main card height, and are translated so their visible top edge is 15dp below the active card's top edge.
-- In a short viewport, only the Middle section scrolls; the Footer remains in the bottom slot. The carousel group is measured as one unit and vertically centered in the remaining Middle space, so extra track height cannot separate the title from the card. Hero footer content uses card-height-derived padding so all three metadata rows stay inside the card.
-- Bottom action padding derives from safe-drawing insets: legacy three-button navigation keeps a compact inner clearance; gesture navigation retains the system inset plus a visible breathing gap. The camera target remains at least 72dp and CTA text stays above it.
-- Text uses height-responsive sizes, system font scaling, one-line ellipsis where the Gemini row is single-line, and 48dp minimum targets for actions.
+- The active card always preserves the Gemini reference ratio `247:293` (`width / height = 0.843`). **Adaptive V2 is the default:** target width is `min(70% of track, 337.2dp)`; target height derives from that width and is capped at 400dp. Its readable minimum is calculated from the font-scaled line budget for species, up to two measurement lines, up to two metadata lines, footer padding and font-metric safety allowance, bounded to 148–220dp. Final height is `min(desiredHeight, max(minReadableHeight, availableCardHeight))`; it never restores an oversized desired height when space is tight. V3 Baseline retains its 68.6% / 337.2dp target and 220dp comparison floor.
+- Adaptive V2 uses continuous font-pressure and short-height-pressure inputs for bounded spacing instead of a band × font-scale lookup table. The title-to-card visible gap is still calculated from Compose's measured text height and platform font metrics. V3 Baseline retains its 13dp visible title gap. Neighbor cards use `min(62% of track, 260dp)`, remain 66.7% of the main card height, and are translated so their visible top edge is 15dp below the active card's top edge.
+- When the complete group fits, Adaptive V2 centers it in the remaining Middle space. If the readable minimum cannot fit, only the Middle section scrolls and is top-aligned; the Footer remains outside the scroll viewport in the bottom slot. The card's aspect ratio and text sizing are not sacrificed to make the screen appear to fit. Hero footer content uses card-height-derived padding so all three metadata rows stay inside the card.
+- Bottom action padding derives from the actual safe-drawing inset without double-counting it: for the compact 320×480 viewport, use 2dp inner footer padding and a 6dp CTA-to-camera gap; otherwise use a bounded 6–8dp inner clearance. Camera artwork uses `min(min(safeWidth, 560dp) × 0.18, safeHeight × 0.10, 80dp)`, bounded to 56–80dp; the independent touch target is `max(72dp, visualSize)`. Runtime evidence records the artwork bounds separately from the touch bounds. CTA text stays above the target.
+- Text uses height-responsive sizes multiplied by a bounded viewport scale derived from both safe width and safe height (1.0–1.2×), plus the system font scale. The 390×844 and 430×932 profiles must not retain the same capped typography as 360×640. One-line ellipsis is used where the Gemini row is single-line, and actions keep 48dp minimum targets.
 - The finite horizontal catch pager owns horizontal gestures; vertical scrolling is confined to the Middle container.
 
 ### Fish photo framing boundary

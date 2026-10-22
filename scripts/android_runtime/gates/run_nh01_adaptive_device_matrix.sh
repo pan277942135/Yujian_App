@@ -11,21 +11,22 @@ readonly TEST_CLASS="com.yujian.ai.ui.home.GeminiHomeDeviceMatrixTest#capturesAc
 readonly APP_APK="${YUJIAN_APP_APK:-build/runtime-apks/app-debug.apk}"
 readonly TEST_APK="${YUJIAN_TEST_APK:-build/runtime-apks/app-debug-androidTest.apk}"
 readonly RAW_DIR="$YUJIAN_EVIDENCE_DIR/nh01-adaptive-raw"
-readonly RAW_CASE_DIR="$RAW_DIR/nh01-adaptive-visual-balance-v1"
+readonly RAW_CASE_DIR="$RAW_DIR/nh01-adaptive-visual-balance-v2"
 readonly MATRIX_DIR="$YUJIAN_EVIDENCE_DIR/NH01_RUNTIME_MATRIX_V1"
 readonly EXEC_DIR="$MATRIX_DIR/executions"
 readonly LOG_DIR="$MATRIX_DIR/logs"
-readonly REMOTE_DIR="/sdcard/Android/data/$YUJIAN_APP_PACKAGE/files/nh01-adaptive-visual-balance-v1"
+readonly REMOTE_DIR="/sdcard/Android/data/$YUJIAN_APP_PACKAGE/files/nh01-adaptive-visual-balance-v2"
 
 rm -rf "$RAW_DIR" "$MATRIX_DIR"
 mkdir -p "$RAW_CASE_DIR" "$EXEC_DIR" "$LOG_DIR/diagnostics"
 
 profiles=(
-  "M01 320 640 1.0" "M02 320 640 1.3" "M03 320 640 1.5"
-  "M04 393 852 1.0" "M05 393 852 1.3" "M06 393 852 1.5"
-  "M07 411 915 1.0" "M08 411 915 1.3" "M09 411 915 1.5"
+  "M01 320 480 1.0" "M02 320 480 1.3" "M03 320 480 1.5"
+  "M04 360 640 1.0" "M05 360 640 1.3" "M06 360 640 1.5"
+  "M07 390 844 1.0" "M08 390 844 1.3" "M09 390 844 1.5"
+  "M10 430 932 1.0" "M11 430 932 1.3" "M12 430 932 1.5"
 )
-variants=("ADAPTIVE_V1" "V3_BASELINE")
+variants=("ADAPTIVE_V2" "V3_BASELINE")
 all_ok=1
 matrix_setup_ok=1
 matrix_setup_reason=""
@@ -546,7 +547,7 @@ python3 scripts/android_runtime/aggregate_nh01_adaptive_matrix.py \
   --source-sha "$BUILD_SHA" \
   --run-id "${GITHUB_RUN_ID:-local}" \
   --run-url "${GITHUB_SERVER_URL:-https://github.com}/${GITHUB_REPOSITORY:-pan277942135/Yujian_App}/actions/runs/${GITHUB_RUN_ID:-local}" \
-  --contract design/qa/NH01_ADAPTIVE_VISUAL_BALANCE_V1.md || aggregate_rc=$?
+  --contract design/qa/NH01_ADAPTIVE_VISUAL_BALANCE_V2.md || aggregate_rc=$?
 if [[ "$aggregate_rc" -ne 0 ]]; then all_ok=0; fi
 
 MATRIX_STATUS="PASS"

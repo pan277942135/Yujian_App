@@ -4,6 +4,7 @@ import android.graphics.Bitmap
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.unit.Dp
 import com.yujian.ai.ui.designsystem.components.YuJianCaptureButton
@@ -61,5 +62,6 @@ internal fun HomeCameraButton(
         ),
         visualSize = visualSize,
         touchTargetSize = touchTargetSize,
+        visualModifier = Modifier.testTag("gemini-home-camera-art"),
     )
 }
