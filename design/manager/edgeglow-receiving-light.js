@@ -597,6 +597,10 @@
     const width = config.width, height = config.height, rect = config.rect;
     const photoWidth = rect.right - rect.left, photoHeight = rect.bottom - rect.top;
     const depthPx = config.depthRatio * Math.min(photoWidth, photoHeight);
+    // Keep the vector clip one raster pixel inside the contractual maximum.
+    // Chromium antialiases a fractional SVG clip edge; this avoids a fringe
+    // crossing 18% while leaving the P1 depth token and generated geometry intact.
+    const clippedDepthPx = Math.max(0.5, depthPx - 1);
     const outerSigma = Math.max(8, depthPx * 0.18);
     const midSigma = Math.max(4, depthPx * 0.075);
     const padding = Math.ceil(outerSigma * 3 + 4);
@@ -612,10 +616,10 @@
     const midBlurId = prefix + "-mid-blur";
     const defs = [
       '<clipPath id="' + depthClipId + '" clipPathUnits="userSpaceOnUse">' +
-        '<rect x="' + numberString(rect.left) + '" y="' + numberString(rect.top) + '" width="' + numberString(photoWidth) + '" height="' + numberString(depthPx) + '"/>' +
-        '<rect x="' + numberString(rect.left) + '" y="' + numberString(rect.bottom - depthPx) + '" width="' + numberString(photoWidth) + '" height="' + numberString(depthPx) + '"/>' +
-        '<rect x="' + numberString(rect.left) + '" y="' + numberString(rect.top) + '" width="' + numberString(depthPx) + '" height="' + numberString(photoHeight) + '"/>' +
-        '<rect x="' + numberString(rect.right - depthPx) + '" y="' + numberString(rect.top) + '" width="' + numberString(depthPx) + '" height="' + numberString(photoHeight) + '"/>' +
+        '<rect x="' + numberString(rect.left) + '" y="' + numberString(rect.top) + '" width="' + numberString(photoWidth) + '" height="' + numberString(clippedDepthPx) + '"/>' +
+        '<rect x="' + numberString(rect.left) + '" y="' + numberString(rect.bottom - clippedDepthPx) + '" width="' + numberString(photoWidth) + '" height="' + numberString(clippedDepthPx) + '"/>' +
+        '<rect x="' + numberString(rect.left) + '" y="' + numberString(rect.top) + '" width="' + numberString(clippedDepthPx) + '" height="' + numberString(photoHeight) + '"/>' +
+        '<rect x="' + numberString(rect.right - clippedDepthPx) + '" y="' + numberString(rect.top) + '" width="' + numberString(clippedDepthPx) + '" height="' + numberString(photoHeight) + '"/>' +
       '</clipPath>',
       quietMaskMarkup(rect, width, height, depthPx).replace(/quiet-gaps/g, quietMaskId),
       '<filter id="' + outerBlurId + '" filterUnits="userSpaceOnUse" primitiveUnits="userSpaceOnUse" x="' +
