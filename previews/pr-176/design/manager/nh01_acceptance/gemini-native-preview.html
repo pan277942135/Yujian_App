@@ -5,9 +5,15 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="nh01-gemini-preview-build" content="__NH01_GEMINI_PREVIEW_BUILD__">
   <meta name="nh01-gemini-preview-target" content="GEMINI_NATIVE_V3_STRUCTURE_PREVIEW_NOT_VISUAL_PASS">
+  <meta name="nh01-preview-root" content="../../../../../">
+  <meta name="nh01-responsive-contract-url" content="design/pages/home/normal_home/responsive/NH01_RESPONSIVE_LAYOUT_V2.json">
+  <meta name="nh01-responsive-contract-id" content="NH01_RESPONSIVE_LAYOUT_V2">
+  <meta name="nh01-responsive-contract-version" content="2.0">
+  <meta name="nh01-preview-deployment-sha" content="__NH01_PREVIEW_DEPLOYMENT_SHA__">
   <title>渔见 · NH01 Gemini Native Preview</title>
   <style>
-    :root{color-scheme:light;--ink:#16313e;--muted:#5b737d;--line:#d4e0e3;--panel:#f5f8f8;--success:#176d50;--warn:#815b12;--danger:#84382e;--font-scale:1;--safe-top:24px;--safe-bottom:24px;--brand-stats-gap:16px;--leading-gap:6px;--title-card-gap:0px;--card-footer-gap:16px;--section-header-height:48px;--avatar-size:36px;--camera-visual-size:56px;--camera-touch-size:72px;--neighbor-width:80px;--neighbor-gap:8px;--main-card-side-inset:40px;--peek-top-offset:15px;--stat-value-size:17px;--stat-label-size:11px;--section-title-size:16px;--section-action-size:13px;--cta-label-size:12px;--catch-species-size:20px;--catch-measure-size:13px;--catch-metadata-size:11px;--main-card-width:220px;--main-card-height:261px;--card-footer-padding:18px;--text-gap:3px}
+    :root{color-scheme:light;--ink:#16313e;--muted:#5b737d;--line:#d4e0e3;--panel:#f5f8f8;--success:#176d50;--warn:#815b12;--danger:#84382e;--font-scale:1;--safe-top:0px;--safe-bottom:0px;--safe-start:0px;--safe-end:0px;--brand-stats-gap:0px;--leading-gap:0px;--title-card-gap:0px;--card-footer-gap:0px;--section-header-height:0px;--header-height:0px;--header-horizontal-gap:0px;--content-width:0px;--content-top-padding:0px;--top-inline-padding:0px;--section-inline-padding:0px;--section-horizontal-gap:0px;--stats-min-height:0px;--stats-vertical-padding:0px;--stats-item-gap:0px;--avatar-size:0px;--avatar-touch-size:0px;--camera-visual-size:0px;--camera-touch-size:0px;--neighbor-width:0px;--neighbor-height:0px;--neighbor-gap:0px;--main-card-side-inset:0px;--peek-top-offset:0px;--stat-value-size:0px;--stat-label-size:0px;--section-title-size:0px;--section-action-size:0px;--cta-label-size:0px;--catch-species-size:0px;--catch-measure-size:0px;--catch-metadata-size:0px;--main-card-width:0px;--main-card-height:0px;--card-footer-padding:0px;--card-horizontal-padding:0px;--cta-camera-gap:0px;--footer-top-padding:0px;--footer-bottom-padding:0px;--text-gap:0px;--hero-aspect:1/1}
+    :root{--species-max-lines:1;--measurement-max-lines:1;--metadata-max-lines:2}
     *{box-sizing:border-box}
     html,body{margin:0;min-height:100%;font-family:system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--ink);background:#eaf0f1}
     body{min-height:100dvh}
@@ -27,6 +33,27 @@
     .control{display:grid;gap:5px;min-width:105px;flex:1}
     .control label{font-size:10px;color:var(--muted);font-weight:700}
     .control select{width:100%;padding:8px 9px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink);font-size:12px}
+    .control input{width:100%;padding:8px 9px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink);font-size:12px}
+    .contract-line{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;font-size:10px;color:var(--muted)}
+    .contract-line strong{color:var(--ink)}
+    .contract-line [data-state="PASS"]{color:var(--success)}
+    .contract-line [data-state="FAIL"]{color:var(--danger)}
+    .contract-error{display:none;padding:12px;border:1px solid #d99b8e;background:#fff0ed;color:var(--danger);border-radius:10px;font-size:12px;line-height:1.5;margin-bottom:12px}
+    .contract-failed .contract-error{display:block}
+    .contract-failed .device{visibility:hidden}
+    .contract-pending .device{visibility:hidden}
+    .control:has(input[type="range"]){min-width:150px}
+    .control input[type="range"]{padding:0;accent-color:#367a88}
+    .rule-list{display:grid;gap:7px;margin:0}
+    .rule-row{display:grid;grid-template-columns:minmax(90px,.8fr) minmax(0,1.2fr);gap:8px;padding:7px 8px;border:1px solid #e0e8ea;border-radius:8px;background:#f8fbfb;font-size:10px;line-height:1.45}
+    .rule-row dt{color:var(--muted)}.rule-row dd{margin:0;color:var(--ink);font-weight:700;overflow-wrap:anywhere}
+    .reference-controls{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center;margin:10px 0}
+    .reference-controls select{min-width:0;padding:8px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink);font-size:11px}
+    .reference-meta{font-size:10px;color:var(--muted);line-height:1.5;margin:0 0 8px;overflow-wrap:anywhere}
+    .reference-stage{display:grid;place-items:center;min-height:240px;max-height:520px;overflow:auto;padding:8px;background:#e7eef0;border:1px solid var(--line);border-radius:10px}
+    .reference-stage img{display:block;max-width:100%;max-height:500px;object-fit:contain;box-shadow:0 4px 16px rgba(14,41,51,.15)}
+    .reference-open{font-size:10px;color:#2a6675}
+    .workspace.contract-pending .control-panel select,.workspace.contract-pending .control-panel input{opacity:.6}
     .layer-panel,.audit-card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:13px;box-shadow:0 8px 24px rgba(17,48,61,.05)}
     .layer-panel{position:sticky;top:12px;max-height:calc(100dvh - 24px);display:flex;flex-direction:column;min-height:360px}
     .panel-heading{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:9px}
@@ -56,46 +83,47 @@
     .inspected-node{outline:2px solid #e7b452!important;outline-offset:-2px!important}
     .preview-stage{display:flex;justify-content:center;align-items:flex-start;padding:6px 0 12px;min-width:0}
     .device-wrap{position:relative;flex:none}
-    .device{position:relative;width:390px;height:844px;transform-origin:top left;overflow:hidden;container-type:size;background:#173746;isolation:isolate;box-shadow:0 18px 48px rgba(13,39,49,.22);border:1px solid rgba(255,255,255,.45);border-radius:26px}
+    .device{position:relative;width:0;height:0;transform-origin:top left;overflow:hidden;container-type:size;background:#173746;isolation:isolate;box-shadow:0 18px 48px rgba(13,39,49,.22);border:1px solid rgba(255,255,255,.45);border-radius:26px}
     .scene-background{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:top center;z-index:-2}
-    .page-content{position:relative;z-index:1;display:flex;flex-direction:column;width:100%;height:100%;min-height:0;box-sizing:border-box;padding-top:var(--safe-top);padding-bottom:var(--safe-bottom)}
-    .top-section{flex:none;padding:8px clamp(24px,7.5cqw,40px) 0}
-    .header-bar{display:flex;align-items:center;justify-content:space-between;min-height:48px;gap:12px}
-    .brand-title{display:block;width:clamp(46px,14.36cqw,70px);height:auto;object-fit:contain}
-    .avatar-button{display:grid;place-items:center;flex:none;width:48px;height:48px;border:0;padding:0;background:transparent;border-radius:50%}
+    .page-content{position:relative;z-index:1;display:flex;flex-direction:column;width:min(100%,calc(var(--content-width) + var(--safe-start) + var(--safe-end)));height:100%;min-height:0;box-sizing:border-box;margin-inline:auto;padding:var(--safe-top) var(--safe-end) var(--safe-bottom) var(--safe-start)}
+    .top-section{flex:none;padding:var(--content-top-padding) var(--top-inline-padding) 0}
+    .header-bar{display:flex;align-items:center;justify-content:space-between;min-height:var(--header-height);gap:var(--header-horizontal-gap)}
+    .brand-title{display:block;width:var(--brand-width);height:auto;object-fit:contain;flex:none}
+    .avatar-button{display:grid;place-items:center;flex:none;width:var(--avatar-touch-size);height:var(--avatar-touch-size);border:0;padding:0;background:transparent;border-radius:50%}
     .avatar-visual{display:block;width:var(--avatar-size);height:var(--avatar-size);object-fit:contain;border-radius:50%;background:rgba(255,255,255,.96)}
-    .stats-bar{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));align-items:center;min-height:48px;padding:4px 0;margin-top:var(--brand-stats-gap);color:#f7fbfc;text-align:center;text-shadow:0 1px 8px rgba(8,30,39,.28)}
-    .stat{display:grid;gap:2px;min-width:0;padding:0 3px}
+    .stats-bar{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));align-items:center;min-height:var(--stats-min-height);padding:var(--stats-vertical-padding) 0;margin-top:var(--brand-stats-gap);color:#f7fbfc;text-align:center;text-shadow:0 1px 8px rgba(8,30,39,.28)}
+    .stat{display:grid;gap:var(--stats-item-gap);min-width:0;padding:0 3px}
     .stat+.stat{position:relative;border-left:0}.stat+.stat:before{content:"";position:absolute;left:0;top:50%;transform:translateY(-50%);height:26px;width:1px;background:rgba(244,251,252,.3)}
     .stat-value{font-weight:750;font-size:calc(var(--stat-value-size)*var(--font-scale));line-height:1.2}
     .stat-label{font-size:calc(var(--stat-label-size)*var(--font-scale));line-height:1.2;opacity:.92}
     .middle-section{display:flex;flex:1;flex-direction:column;justify-content:flex-start;min-height:0;margin-top:0;overflow:visible}.middle-section:before,.middle-section:after{content:"";display:block;flex:none;height:var(--leading-gap)}.middle-section:after{height:var(--card-footer-gap)}.middle-section[data-top-align="false"]{justify-content:center}.middle-section[data-scroll-needed="true"]{justify-content:flex-start;overflow-y:auto;scrollbar-width:none}.middle-section[data-scroll-needed="true"]::-webkit-scrollbar{display:none}
-    .section-header{display:flex;flex:none;height:var(--section-header-height);align-items:center;justify-content:space-between;gap:12px;padding:0 clamp(24px,8.8cqw,42px);margin-bottom:var(--title-card-gap);color:#fff;text-shadow:0 1px 7px rgba(9,30,39,.3)}
+    .section-header{display:flex;flex:none;height:var(--section-header-height);align-items:center;justify-content:space-between;gap:var(--section-horizontal-gap);padding:0 var(--section-inline-padding);margin-bottom:var(--title-card-gap);color:#fff;text-shadow:0 1px 7px rgba(9,30,39,.3)}
     .section-title{font-size:calc(var(--section-title-size)*var(--font-scale));line-height:1.5;font-weight:700;white-space:nowrap}
     .section-action{font-size:calc(var(--section-action-size)*var(--font-scale));line-height:1.5;opacity:.95;white-space:nowrap}
     .carousel-window{position:relative;display:flex;align-items:center;justify-content:center;flex:none;width:100%;height:var(--main-card-height);min-height:0;overflow:hidden}
     .catch-card{position:absolute;overflow:hidden;border:1.5px solid rgba(255,255,255,.92);border-radius:18px;background:rgba(27,59,72,.36);box-shadow:0 12px 26px rgba(9,30,40,.22)}
-    .neighbor-card{width:var(--neighbor-width);height:67%;top:var(--peek-top-offset);transform:none;opacity:.72;z-index:1}
+    .neighbor-card{width:var(--neighbor-width);height:var(--neighbor-height);top:var(--peek-top-offset);transform:none;opacity:.72;z-index:1}
     .neighbor-left{left:calc(var(--main-card-side-inset) - var(--neighbor-width) - var(--neighbor-gap))}
     .neighbor-right{right:calc(var(--main-card-side-inset) - var(--neighbor-width) - var(--neighbor-gap))}
     .neighbor-slot{display:block;width:100%;height:100%;background:rgba(41,72,88,.58);color:transparent;font-size:0;padding:0}
-    .main-card{position:relative;z-index:2;width:var(--main-card-width);height:var(--main-card-height);flex:none;aspect-ratio:247/293;display:flex;flex-direction:column;justify-content:flex-end}
-    .hero-placeholder{position:absolute;inset:0;display:block;background:rgba(41,72,88,.5)}
+    .main-card{position:relative;z-index:2;width:var(--main-card-width);height:var(--main-card-height);flex:none;aspect-ratio:var(--hero-aspect);display:flex;flex-direction:column;justify-content:flex-end}
+    .hero-placeholder{position:absolute;inset:0;display:grid;place-items:center;padding:12px;background:rgba(41,72,88,.5);color:#eef5f6;text-align:center}
     .hero-placeholder-inner{max-width:90%;display:grid;gap:7px;justify-items:center}
     .hero-placeholder strong{font-size:calc(12px*var(--font-scale));letter-spacing:.04em}
     .hero-placeholder span{font-size:calc(10px*var(--font-scale));line-height:1.45}
     .blocked-icon{display:grid;place-items:center;width:30px;height:30px;border:1px solid #8caab2;border-radius:50%;font-size:16px;background:rgba(255,255,255,.6)}
-    .card-bottom{position:relative;z-index:2;padding:var(--card-footer-padding) 20px;color:#fff;background:linear-gradient(180deg,rgba(12,20,28,0) 0%,rgba(12,20,28,.52) 52%,rgba(10,16,24,.84) 100%);text-shadow:0 1px 5px rgba(0,0,0,.25)}
+    .card-bottom{position:relative;z-index:2;padding:var(--card-footer-padding) var(--card-horizontal-padding);color:#fff;background:linear-gradient(180deg,rgba(12,20,28,0) 0%,rgba(12,20,28,.52) 52%,rgba(10,16,24,.84) 100%);text-shadow:0 1px 5px rgba(0,0,0,.25)}
     .catch-species{font-size:calc(var(--catch-species-size)*var(--font-scale));font-weight:750;line-height:1.2;margin:0 0 var(--text-gap)}
     .catch-measure{font-size:calc(var(--catch-measure-size)*var(--font-scale));font-weight:600;line-height:1.2;margin:0 0 var(--text-gap)}
-    .catch-location{font-size:calc(var(--catch-metadata-size)*var(--font-scale));line-height:1.3;margin:0;opacity:.9}
-    .footer-section{flex:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:11px;padding:4px 0 10px;color:#fff;text-shadow:0 1px 8px rgba(9,30,39,.35)}
-    .device[data-compact="true"] .top-section{padding-top:2px}
-    .device[data-compact="true"] .stats-bar{margin-top:4px;padding:2px 0}
-    .device[data-compact="true"] .footer-section{gap:4px;padding:0}
-    .device[data-compact="true"] .card-bottom{padding-left:12px;padding-right:12px}
+    .catch-location{display:flex;align-items:flex-start;gap:0;font-size:calc(var(--catch-metadata-size)*var(--font-scale));line-height:1.3;margin:0;opacity:.9;min-width:0;overflow:hidden}
+    .catch-species,.catch-measure{display:-webkit-box;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere}
+    .catch-species{-webkit-line-clamp:var(--species-max-lines)}
+    .catch-measure{-webkit-line-clamp:var(--measurement-max-lines)}
+    .catch-time{white-space:nowrap;flex:none}
+    .catch-region{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:var(--metadata-max-lines);min-width:0;overflow:hidden;overflow-wrap:anywhere}
+    .footer-section{flex:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:var(--cta-camera-gap);padding:var(--footer-top-padding) 0 var(--footer-bottom-padding);color:#fff;text-shadow:0 1px 8px rgba(9,30,39,.35)}
     .cta-label{font-size:calc(var(--cta-label-size)*var(--font-scale));line-height:1.5;letter-spacing:.08em}
-    .camera-button{display:grid;place-items:center;width:var(--camera-touch-size);height:var(--camera-touch-size);padding:0;border:0;border-radius:50%;background:transparent;cursor:pointer}
+    .camera-button{display:grid;place-items:center;width:var(--camera-touch-size);height:var(--camera-touch-size);padding:0;border:0;border-radius:50%;background:transparent;cursor:pointer;flex:none}
     .camera-art{display:block;width:var(--camera-visual-size);height:var(--camera-visual-size);object-fit:contain}
     .preview-toast{position:absolute;left:12px;right:12px;bottom:10px;z-index:8;padding:8px 10px;border-radius:9px;background:rgba(10,34,43,.9);color:#fff;font-size:10px;line-height:1.4;display:none}
     .preview-toast[data-visible="true"]{display:block}
@@ -151,7 +179,7 @@
   </style>
 </head>
 <body>
-  <main class="workspace" id="nh01GeminiPreview">
+  <main class="workspace contract-pending" id="nh01GeminiPreview">
     <aside class="layer-column" aria-label="NH01 页面结构树">
       <section class="layer-panel">
         <div class="panel-heading"><h2>页面图层</h2><span class="panel-count">NH01 · V3</span></div>
@@ -189,27 +217,35 @@
         <div>
           <div class="eyebrow">GITHUB NATIVE · GEMINI STRUCTURE</div>
           <h1>NH01 · Gemini Native V3</h1>
-          <p class="subtitle">正式资产优先，未验证鱼获照片保持阻塞占位。此页用于结构/资源核验，不代表 Android 像素验收。</p>
+      <p class="subtitle">Adaptive V2 直接读取响应式机器合同。冻结参考、组件规则和交互预览并列展示；照片来源状态会在画布中明确标记。</p>
         </div>
         <span class="status-badge">PREVIEW ONLY · NOT VISUAL PASS</span>
       </header>
       <section class="control-panel" aria-label="预览控制">
+        <div id="contractFailure" class="contract-error" role="alert"></div>
         <div class="controls">
           <div class="control"><label for="layoutVariant">布局变体</label><select id="layoutVariant"><option value="ADAPTIVE_V2" selected>Adaptive V2 · 内容优先</option><option value="V3_BASELINE">V3 Baseline · 对照</option></select></div>
           <div class="control"><label for="viewportPreset">逻辑视口</label><select id="viewportPreset">
             <option value="360x640">360 × 640</option><option value="390x844" selected>390 × 844</option><option value="430x932">430 × 932</option><option value="320x480">320 × 480</option><option value="600x960">600 × 960</option>
           </select></div>
-          <div class="control"><label for="fontScale">字体缩放</label><select id="fontScale"><option value="1">1.0×</option><option value="1.3">1.3×</option><option value="1.5">1.5×</option></select></div>
+          <div class="control"><label for="customWidth">自由视口宽度 (dp)</label><input id="customWidth" type="number" min="240" max="1200" step="1" value="390"></div>
+          <div class="control"><label for="customHeight">自由视口高度 (dp)</label><input id="customHeight" type="number" min="320" max="1600" step="1" value="844"></div>
+          <div class="control"><label for="fontScale">系统字体缩放 · <span id="fontScaleReadout">1.0×</span></label><input id="fontScale" type="range" min="1" max="1.5" step="0.1" value="1"></div>
+          <div class="control"><label for="safeTop">安全区顶部 (dp)</label><input id="safeTop" type="number" min="0" max="200" step="1" value="24"></div>
+          <div class="control"><label for="safeBottom">安全区底部 (dp)</label><input id="safeBottom" type="number" min="0" max="200" step="1" value="24"></div>
+          <div class="control"><label for="safeStart">安全区起始侧 (dp)</label><input id="safeStart" type="number" min="0" max="200" step="1" value="0"></div>
+          <div class="control"><label for="safeEnd">安全区结束侧 (dp)</label><input id="safeEnd" type="number" min="0" max="200" step="1" value="0"></div>
         </div>
+        <div class="contract-line"><span>响应式合同：<strong id="contractVersion">加载中</strong></span><span>合同 SHA-256：<code id="contractSha">—</code></span><span>预览源 SHA：<code id="previewSourceSha">—</code></span><span>Pages 部署 SHA：<code id="deploymentSha">—</code></span><span id="contractLoadState" data-state="PENDING">等待合同</span></div>
       </section>
       <div class="preview-stage">
         <div class="device-wrap" id="deviceWrap">
           <section class="device" id="device" aria-label="NH01 Gemini Native V3 structure preview">
-            <img class="scene-background" id="assetBackground" data-asset-id="background" src="../../../../../design/system/backgrounds/morning_lake_v1/assets/Morning_Lake_Master_V1.png" alt="">
+            <img class="scene-background" id="assetBackground" data-asset-id="background" data-preview-path="design/system/backgrounds/morning_lake_v1/assets/Morning_Lake_Master_V1.png" alt="">
             <div class="page-content">
               <header class="top-section" id="topSection" data-layer="Top-Section-AutoLayout">
                 <div class="header-bar" id="headerBar" data-layer="Header-Bar">
-                  <img class="brand-title" id="assetBrand" data-asset-id="brand" src="../../../../../design/system_v3/06_Asset_System/derived/brand_title_primary/brand_title_primary.png" alt="渔见">
+                  <img class="brand-title" id="assetBrand" data-asset-id="brand" data-preview-path="design/system_v3/06_Asset_System/derived/brand_title_primary/brand_title_primary.png" alt="渔见">
                   <button class="avatar-button" type="button" id="avatarButton" aria-label="头像状态预览">
                     <img class="avatar-visual" id="assetAvatar" data-asset-id="avatar" src="./assets/normal_home_default_avatar_v2.png" alt="">
                   </button>
@@ -225,18 +261,18 @@
                   <span class="section-title">最近鱼获</span><span class="section-action">全部 ›</span>
                 </div>
                 <div class="carousel-window" id="carouselWindow" data-layer="Carousel-Track-Container">
-                  <article class="catch-card neighbor-card neighbor-left" id="leftCatchCard" data-layer="Card-Peek-Left" aria-label="上一条鱼获，照片资产待批准">
+          <article class="catch-card neighbor-card neighbor-left" id="leftCatchCard" data-layer="Card-Peek-Left" aria-label="没有已批准的上一条鱼获素材" hidden>
                     <div class="neighbor-slot" aria-hidden="true"></div>
                   </article>
                   <article class="catch-card main-card" id="mainCatchCard" data-layer="Card-Main-Active" aria-label="选中鱼获静态参考夹具">
-                    <div class="hero-placeholder" id="heroPlaceholder" data-layer="Hero-Photo" data-status="BLOCKED_ASSET_SOURCE" aria-label="Hero photo intentionally blocked; see asset audit panel"></div>
+            <div class="hero-placeholder" id="heroPlaceholder" data-layer="Hero-Photo" data-status="BLOCKED_ASSET_SOURCE" aria-label="Hero photo intentionally blocked; see asset audit panel"><div class="hero-placeholder-inner"><span class="blocked-icon" aria-hidden="true">▧</span><strong>鱼获照片来源待批准</strong><span>保留真实素材占位，不生成或复制鱼获图像</span></div></div>
                     <div class="card-bottom" id="cardMetadata" data-layer="Card-Metadata">
                       <p class="catch-species">草鱼</p>
                       <p class="catch-measure">42.6 cm · 1.28 kg</p>
-                      <p class="catch-location">昨天 18:20 · 浙江 · 千岛湖</p>
+                      <p class="catch-location"><span class="catch-time">昨天 18:20 · </span><span class="catch-region">浙江 · 千岛湖</span></p>
                     </div>
                   </article>
-                  <article class="catch-card neighbor-card neighbor-right" id="rightCatchCard" data-layer="Card-Peek-Right" aria-label="下一条鱼获，照片资产待批准">
+          <article class="catch-card neighbor-card neighbor-right" id="rightCatchCard" data-layer="Card-Peek-Right" aria-label="没有已批准的下一条鱼获素材" hidden>
                     <div class="neighbor-slot" aria-hidden="true"></div>
                   </article>
                 </div>
@@ -244,7 +280,7 @@
               <footer class="footer-section" id="footerSection" data-layer="Footer-CTA-Section">
                 <span class="cta-label" id="ctaLabel" data-layer="CTA-Label-RecordNext">记录下一条鱼</span>
                 <button class="camera-button" type="button" id="cameraButton" aria-label="相机按钮静态预览">
-                  <img class="camera-art" id="assetCamera" data-asset-id="camera" src="../../../../../design/system_v3/06_Asset_System/derived/normal_home_camera_primary_v1/normal_home_camera_primary_v1.png" alt="">
+                  <img class="camera-art" id="assetCamera" data-asset-id="camera" data-preview-path="design/system_v3/06_Asset_System/derived/normal_home_camera_primary_v1/normal_home_camera_primary_v1.png" alt="">
                 </button>
               </footer>
             </div>
@@ -256,7 +292,7 @@
     <aside class="audit-column">
       <section class="audit-card" aria-label="所选图层属性检查器">
         <div class="panel-heading"><h2>属性检查器</h2><span class="panel-count" id="inspectorNodeStatus">MAPPED</span></div>
-        <p class="audit-intro">几何与样式读取自当前浏览器画布；Compose 映射来自仓库合同，不能替代 Android Runtime 证据。</p>
+        <p class="audit-intro">几何与样式读取自当前浏览器画布；动态数值规则由 V2 机器合同提供。</p>
         <div class="asset-name" id="inspectorNodeName">Card-Main-Active</div>
         <div class="inspector-grid">
           <div class="inspector-field wide"><span class="inspector-label">设计节点</span><span class="inspector-value inspector-code" id="inspectorDesignNode">Card-Main-Active</span></div>
@@ -272,6 +308,20 @@
           <div class="inspector-field wide"><span class="inspector-label">资产 / 实现状态</span><span class="inspector-value" id="inspectorAssetStatus">—</span></div>
         </div>
         <p class="panel-help" id="inspectorNote">选择图层以查看实际样式、素材状态和合同映射。</p>
+      </section>
+      <section class="audit-card" aria-label="当前组件响应式规则">
+        <div class="eyebrow">V2 CONTRACT · LIVE VALUES</div>
+        <h2>组件响应式规则</h2>
+        <p class="audit-intro">规则来自已加载的机器合同；尺寸值跟随当前视口、系统字体与安全区更新。</p>
+        <dl class="rule-list" id="responsiveRuleList"><div class="rule-row"><dt>状态</dt><dd>等待合同加载</dd></div></dl>
+      </section>
+      <section class="audit-card" aria-label="冻结高保真参考对照">
+        <div class="eyebrow">FROZEN HI-FI ANCHORS</div>
+        <h2>冻结高保真对照</h2>
+        <p class="audit-intro">左侧交互预览与下方冻结 PNG 分开展示；参考资产只读。M05 是 480dp 宽度边界静态参考，没有指定高度。</p>
+        <div class="reference-controls"><select id="anchorSelect" aria-label="选择冻结参考"></select><a id="anchorOpen" class="reference-open" target="_blank" rel="noreferrer">打开原图</a></div>
+        <p class="reference-meta" id="anchorMeta">等待参考登记</p>
+        <div class="reference-stage"><img id="anchorImage" alt="冻结高保真参考图像" hidden></div>
       </section>
       <section class="audit-card">
         <div class="eyebrow">ASSET AUTHORITY</div>
@@ -289,7 +339,7 @@
         <p class="audit-footer"><strong>Preview build:</strong> <code id="buildSha">__NH01_GEMINI_PREVIEW_BUILD__</code><br><strong>Release gate effect:</strong> NONE</p>
         <div class="audit-actions">
           <a href="../../../../../design/manager/nh01_acceptance/">返回 NH01 验收中心</a>
-          <a href="../../../release/design_manager/NH01_GEMINI_STRUCTURE_ALIGNMENT_V1.json" target="_blank" rel="noreferrer">查看 Gemini 结构快照</a>
+          <a id="contractAuthorityLink" href="#" target="_blank" rel="noreferrer">查看当前 V2 机器合同</a>
         </div>
       </section>
     </aside>
@@ -307,24 +357,29 @@
       </div>
     </section>
   </main>
+  <script src="./nh01-responsive-contract-runtime.js"></script>
   <script>
     (() => {
       "use strict";
       const params = new URLSearchParams(location.search);
       const canvasMode = params.get("mode") === "canvas";
       const matrixMode = params.get("mode") === "matrix";
+      const workspace = document.getElementById("nh01GeminiPreview");
+      workspace.classList.add("contract-pending");
       if (canvasMode) document.body.classList.add("canvas-mode");
       if (matrixMode) document.body.classList.add("matrix-mode");
       const buildSha = document.querySelector('meta[name="nh01-gemini-preview-build"]').content;
       document.getElementById("buildSha").textContent = buildSha;
+      document.getElementById("previewSourceSha").textContent = buildSha;
       const preset = document.getElementById("viewportPreset");
+      const widthInput = document.getElementById("customWidth");
+      const heightInput = document.getElementById("customHeight");
+      const safeInsetInputs = {top:document.getElementById("safeTop"),bottom:document.getElementById("safeBottom"),start:document.getElementById("safeStart"),end:document.getElementById("safeEnd")};
       const layoutVariant = document.getElementById("layoutVariant");
       const fontScale = document.getElementById("fontScale");
-      const requestedScale = params.get("fontScale");
-      if (["1", "1.3", "1.5"].includes(requestedScale)) fontScale.value = requestedScale;
+      const fontScaleReadout = document.getElementById("fontScaleReadout");
       const device = document.getElementById("device");
       const wrap = document.getElementById("deviceWrap");
-      const topSection = document.getElementById("topSection");
       const middleSection = document.getElementById("middleSection");
       const sectionHeader = document.getElementById("sectionHeader");
       const carouselWindow = document.getElementById("carouselWindow");
@@ -334,254 +389,445 @@
       const toast = document.getElementById("previewToast");
       const assetList = document.getElementById("assetList");
       const integritySummary = document.getElementById("integritySummary");
+      const contractStatus = document.getElementById("contractLoadState");
+      const contractVersionLabel = document.getElementById("contractVersion");
+      const contractShaLabel = document.getElementById("contractSha");
+      const contractFailure = document.getElementById("contractFailure");
+      const ruleList = document.getElementById("responsiveRuleList");
+      const anchorSelect = document.getElementById("anchorSelect");
+      const anchorImage = document.getElementById("anchorImage");
+      const anchorMeta = document.getElementById("anchorMeta");
+      const anchorOpen = document.getElementById("anchorOpen");
       const assetNodes = {
         background: document.getElementById("assetBackground"),
         brand: document.getElementById("assetBrand"),
         avatar: document.getElementById("assetAvatar"),
         camera: document.getElementById("assetCamera")
       };
+      const rootMeta = document.querySelector('meta[name="nh01-preview-root"]');
+      let rootPrefix = null;
+      function resolveAssetUrl(path) {
+        if (!rootPrefix) throw new Error("NH01 preview root was not initialized.");
+        if (path.startsWith("./")) return new URL(path, location.href).href;
+        return new URL(path.replace(/^(\.\.\/)+/, ""), rootPrefix).href;
+      }
+      let contractEnvelope = null;
+      let anchorAudit = [];
+      let layoutSequence = 0;
       function showToast(message) {
         toast.textContent = message;
         toast.dataset.visible = "true";
       }
-      function clamp(value, minimum, maximum) {
-        return Math.min(maximum, Math.max(minimum, value));
+      function setVariable(name, value) {
+        document.documentElement.style.setProperty(name, String(value));
       }
-      function responsiveSp(safeHeight, safeWidth, ratio, minimum, maximum) {
-        const viewportScale = clamp(Math.min(Math.min(safeWidth, 560) / 360, safeHeight / 568), 1, 1.2);
-        return clamp(safeHeight * ratio, minimum, maximum) * viewportScale;
+      function cssPx(value) { return `${Math.max(0, Number(value))}px`; }
+      function failClosed(error) {
+        window.NH01GeminiPreviewLayoutReady = false;
+        window.NH01GeminiPreviewReady = false;
+        workspace.classList.remove("contract-pending");
+        workspace.classList.add("contract-failed");
+        contractStatus.dataset.state = "FAIL";
+        contractStatus.textContent = "合同加载失败 · 预览已停止";
+        contractFailure.textContent = `Adaptive V2 已停止：${error.message || error}。未回退到旧版硬编码响应式算法。`;
+        integritySummary.dataset.state = "FAIL";
+        integritySummary.textContent = contractFailure.textContent;
+        window.NH01ResponsiveContractFailure = String(error.message || error);
       }
-      function resolveLayoutPolicy(safeWidth, safeHeight, scale, variant) {
-        const band = (safeWidth < 360 || safeHeight < 560) ? "COMPACT" : (safeWidth < 400 ? "MEDIUM" : "EXPANDED");
-        if (variant === "V3_BASELINE") {
-          return {
-            band, variant, cardWidthFraction: 0.686, maxCardWidth: 337.2, maxCardHeight: 400,
-            minReadableCardHeight: 220,
-            brandToStatsGap: clamp(safeHeight * 0.042, 18, 34),
-            statsToTitleGap: clamp(safeHeight * 0.01, 4, 10),
-            titleToCardGap: 13,
-            cardToFooterGap: clamp(safeHeight * 0.01, 4, 10),
-            topAlignMiddleGroup: false
-          };
+      function nextFrame() { return new Promise(resolve => requestAnimationFrame(() => resolve())); }
+      function readSafeInsets() {
+        const values = Object.fromEntries(Object.entries(safeInsetInputs).map(([key,input])=>[key,Number(input.value)]));
+        if (Object.values(values).some(value=>!Number.isFinite(value)||value<0)) throw new Error("Safe-area inset values must be non-negative dp numbers.");
+        return values;
+      }
+      function displayReference(anchor) {
+        const imageUrl = new URL(anchor.path, rootPrefix).href;
+        anchorImage.hidden = true;
+        anchorImage.onload = () => { anchorImage.hidden = false; };
+        anchorImage.onerror = () => {
+          anchorImage.hidden = true;
+          anchorMeta.textContent = `参考加载失败：${anchor.id} · ${imageUrl}`;
+        };
+        anchorImage.src = imageUrl;
+        anchorOpen.href = imageUrl;
+        const logical = anchor.logical_viewport_dp;
+        const size = logical.height === null
+          ? `${logical.width}dp 宽度边界 · 高度未指定 · 静态参考，不作为固定视口验收目标`
+          : `${logical.width}×${logical.height}dp · ${anchor.role}`;
+        anchorMeta.textContent = `${anchor.id} · ${size} · ${anchor.canvas_px.width}×${anchor.canvas_px.height}px · SHA-256 ${anchor.sha256}`;
+      }
+      function initializeAnchorViewer(contract) {
+        anchorSelect.replaceChildren();
+        for (const anchor of contract.visual_anchors) {
+          const option = document.createElement("option");
+          option.value = anchor.id;
+          option.textContent = anchor.logical_viewport_dp.height === null
+            ? `M05 · ${anchor.logical_viewport_dp.width}dp 宽度静态边界`
+            : `${anchor.logical_viewport_dp.width}×${anchor.logical_viewport_dp.height}dp · ${anchor.id.includes("ORIGINAL") ? "原始基准" : anchor.id.split("-")[1]}`;
+          anchorSelect.append(option);
         }
-
-        // Adaptive V2: continuous space pressure, not a width/height/font-scale lookup table.
-        // Keep the card close to the V3 target width; allocate its final height from the
-        // measured middle-section budget, then scroll only when the readable minimum cannot fit.
-        const fontPressure = clamp((scale - 1) / 0.5, 0, 1);
-        const shortHeightPressure = clamp((620 - safeHeight) / 220, 0, 1);
+        anchorSelect.addEventListener("change", () => {
+          const anchor = contract.visual_anchors.find(item => item.id === anchorSelect.value);
+          if (anchor) displayReference(anchor);
+        });
+        if (contract.visual_anchors.length) displayReference(contract.visual_anchors[0]);
+      }
+      function roleText(contract, id) {
+        const role = contract.typography.roles.find(item => item.id === id);
+        if (!role) throw new Error(`Typography rule missing from contract: ${id}`);
+        return role;
+      }
+      function renderRuleInspector(layout) {
+        const p = layout.responsive_parameters;
+        const contract = contractEnvelope.contract;
+        const rules = [
+          ["品牌标题", `宽 ${layout.brand_width_dp.toFixed(1)}dp；规则 clamp(安全宽×${p.brand_title.width_ratio_numerator}/${p.brand_title.width_ratio_denominator}, ${p.brand_title.min_width_dp}–${p.brand_title.max_width_dp}dp)`],
+          ["头像", `视觉 ${layout.avatar_visual_size_dp.toFixed(1)}dp；触控 ${layout.avatar_touch_size_dp}dp`],
+          ["统计行", `数值 ${layout.typography_sizes_dp.stat_value.toFixed(1)}sp · 标签 ${layout.typography_sizes_dp.stat_label.toFixed(1)}sp；品牌间距 ${layout.gaps_dp.brand_to_stats.toFixed(1)}dp`],
+          ["最近鱼获标题", `${layout.typography_sizes_dp.section_title.toFixed(1)}sp；标题行 ${layout.section_header_height_dp.toFixed(1)}dp；统计间距目标 ${layout.gaps_dp.stats_to_title.toFixed(1)}dp`],
+          ["主卡片", `${layout.card_width_dp.toFixed(1)}×${layout.card_height_dp.toFixed(1)}dp；比例 ${p.hero.aspect_ratio_width}:${p.hero.aspect_ratio_height}；目标宽度 ${p.hero.target_width_fraction * 100}%，上限 ${p.hero.maximum_width_dp}dp`],
+          ["邻卡", `只显示已有独立记录；当前无获批邻卡素材，隐藏左右邻卡。最大宽度 ${p.neighbor.maximum_width_fraction_of_hero * 100}% 主卡，最多重叠 ${p.neighbor.maximum_overlap_dp}dp`],
+          ["标题到主卡", `合同目标 ${layout.gaps_dp.title_to_card_target.toFixed(1)}dp；实际 ${layout.measurements.title_to_card.toFixed(1)}dp`],
+          ["卡片到 Footer", `目标 ${layout.gaps_dp.card_to_footer.toFixed(1)}dp；实际 ${layout.measurements.card_to_footer.toFixed(1)}dp；Footer 固定在 Middle 外`],
+          ["CTA 与相机", `间距 ${layout.footer.cta_camera_gap_dp.toFixed(1)}dp；相机图形 ${layout.camera_visual_size_dp.toFixed(1)}dp；触控 ${layout.camera_touch_size_dp}dp`],
+          ["系统字体", `${layout.system_font_scale.toFixed(1)}×；系统缩放只应用一次。标题 ${roleText(contract, "recent-catch-heading").min_sp}–${roleText(contract, "recent-catch-heading").max_sp}sp；全局缩小 ${contract.typography.global_shrink_forbidden ? "禁止" : "允许"}`]
+        ];
+        ruleList.replaceChildren(...rules.map(([name, value]) => {
+          const row = document.createElement("div"); row.className = "rule-row";
+          const dt = document.createElement("dt"); dt.textContent = name;
+          const dd = document.createElement("dd"); dd.textContent = value;
+          row.append(dt, dd); return row;
+        }));
+      }
+      function baselinePolicy(width, height, scale, safeInsets) {
+        const safeWidth = width - safeInsets.start - safeInsets.end;
+        const safeHeight = height - safeInsets.top - safeInsets.bottom;
+        const cardWidth = Math.min(Math.min(safeWidth, 560) * 0.686, 337.2);
+        const cardHeight = Math.min(cardWidth * 293 / 247, 400);
         return {
-          band, variant, cardWidthFraction: 0.70, maxCardWidth: 337.2,
-          maxCardHeight: 400,
-          minReadableCardHeight: safeHeight < 460 && scale < 1.3 ? 124 : 148,
-          brandToStatsGap: Math.max(9, clamp(safeHeight * 0.035, 14, 28) - fontPressure * 3 - shortHeightPressure * 2),
-          statsToTitleGap: Math.max(2, clamp(safeHeight * 0.015, 6, 14) - fontPressure * 3 - shortHeightPressure * 1.5),
-          titleToCardGap: Math.max(4, clamp(safeHeight * 0.014, 7, 12) - fontPressure * 2 - shortHeightPressure * 1.5),
-          cardToFooterGap: Math.max(3, clamp(safeHeight * 0.018, 8, 14) - fontPressure * 3 - shortHeightPressure * 2),
-          topAlignMiddleGroup: false
+          variant: "V3_BASELINE", logical_viewport_dp: [width, height], safe_insets_dp: safeInsets,
+          safe_width_dp: safeWidth, safe_height_dp: safeHeight, content_width_dp: Math.min(safeWidth, 560),
+          system_font_scale: scale, brand_width_dp: 56, avatar_visual_size_dp: 38, avatar_touch_size_dp: 48,
+          camera_visual_size_dp: 64, camera_touch_size_dp: 72, hero_target_size_dp: [cardWidth, cardHeight],
+          hero_readable_height_range_dp: [220, 220], card_content: {padding_horizontal_dp:20,footer_padding_height_fraction:.07,minimum_footer_padding_dp:10,maximum_footer_padding_dp:20,text_gap_height_fraction:.006,minimum_text_gap_dp:2,maximum_text_gap_dp:5},
+          responsive_parameters: {brand_title:{min_width_dp:46,max_width_dp:70,width_ratio_numerator:155,width_ratio_denominator:1080},avatar:{minimum_touch_dp:48},content:{max_width_dp:560,top_padding_dp:8,header_min_height_dp:48,header_horizontal_gap_dp:12,stats_min_height_dp:48,stats_vertical_padding_dp:4,stats_item_gap_dp:2,top_horizontal_padding:{ratio:.075,min_dp:24,max_dp:40},section_horizontal_padding:{ratio:.088,min_dp:24,max_dp:42},section_horizontal_gap_dp:12,section_vertical_padding_dp:2},hero:{aspect_ratio_width:247,aspect_ratio_height:293,maximum_width_dp:337.2,maximum_height_dp:400,target_width_fraction:.686,minimum_readable_height_dp:220,maximum_readable_height_dp:220,short_screen_exception:{minimum_height_dp:220,exact_viewport_width_dp:-1,exact_viewport_height_dp:-1,exact_font_scale:0}},neighbor:{maximum_width_fraction_of_hero:.82,height_fraction_of_hero:.667,top_offset_dp:15,maximum_edge_peek_dp:28,minimum_edge_peek_dp:12,edge_peek_width_fraction_of_track:.05,maximum_overlap_dp:1},camera:{minimum_visual_dp:56,maximum_visual_dp:80,minimum_touch_dp:72},card_content:{padding_horizontal_dp:20,text_gap_height_fraction:.006,minimum_text_gap_dp:2,maximum_text_gap_dp:5,footer_padding_height_fraction:.07,minimum_footer_padding_dp:10,maximum_footer_padding_dp:20,maximum_lines_species:2,maximum_lines_measurements:2,maximum_lines_metadata:2},spacing:{brand_to_stats:{minimum_gap_dp:9,height_fraction:.035,base_minimum_dp:14,base_maximum_dp:28,font_pressure_penalty_dp:3,short_height_pressure_penalty_dp:2},stats_to_title:{minimum_gap_dp:12,font_pressure_penalty_dp:2},title_to_card:{minimum_gap_dp:8,font_pressure_penalty_dp:4},card_to_footer:{minimum_gap_dp:3,height_fraction:.018,base_minimum_dp:8,base_maximum_dp:14,font_pressure_penalty_dp:3,short_height_pressure_penalty_dp:2},footer:{large_bottom_inset_threshold_dp:40}} ,viewport_scale:{width_reference_dp:360,height_reference_dp:568,minimum:1,maximum:1.2}},
+          typography_sizes_dp:{stat_value:17,stat_label:11,section_title:16,section_action:13,cta:12,species:20,measurement:13,metadata:11},
+          footer:{cta_camera_gap_dp:11,top_padding_dp:4,bottom_padding_dp:8}, gaps_dp:{brand_to_stats:20,stats_to_title:8,title_to_card_target:13,card_to_footer:8},
+          rendered_text_metrics:{section_title:{size_css_px:24,line_height_ratio:1.5}}, section_header_height_dp:48,
+          title_to_card_gap_target_dp:13, stats_to_title_gap_target_dp:8, card_to_footer_gap_dp:8,
+          camera_horizontal_room_dp:Math.min(safeWidth,560), contract_sha256:"COMPARISON_ONLY", contract_id:"V3_BASELINE", contract_version:"comparison", header_height_dp:48, neighbor_target_edge_peek_dp:12,
+          composition:{top_horizontal_padding:{ratio:.075,min_dp:24,max_dp:40},section_horizontal_padding:{ratio:.088,min_dp:24,max_dp:42},top_padding_dp:8,header_min_height_dp:48,header_horizontal_gap_dp:12,stats_min_height_dp:48,stats_vertical_padding_dp:4,stats_item_gap_dp:2,section_vertical_padding_dp:2,section_horizontal_gap_dp:12},
+          typography_effective_css_px:{stat_value:17*scale,stat_label:11*scale,section_title:16*scale,section_action:13*scale,cta:12*scale,species:20*scale,measurement:13*scale,metadata:11*scale}
         };
       }
-      function updateLayoutGeometry(width, height) {
-        window.NH01GeminiPreviewLayoutReady = false;
-        const root = document.documentElement;
-        const scale = Number(fontScale.value);
-        const safeWidth = width;
-        const safeHeight = Math.max(1, height - 48);
-        const variant = layoutVariant.value;
-        const policy = resolveLayoutPolicy(safeWidth, safeHeight, scale, variant);
-        const statValue = responsiveSp(safeHeight, safeWidth, 0.03, 17, 21);
-        const statLabel = responsiveSp(safeHeight, safeWidth, 0.019, 11, 13);
-        const sectionTitle = responsiveSp(safeHeight, safeWidth, 0.027, 16, 19);
-        const sectionAction = responsiveSp(safeHeight, safeWidth, 0.021, 13, 15);
-        const ctaSize = responsiveSp(safeHeight, safeWidth, 0.021, 12, 14);
-        const speciesSize = responsiveSp(safeHeight, safeWidth, 0.036, 20, 26);
-        const measureSize = responsiveSp(safeHeight, safeWidth, 0.023, 13, 16);
-        const metadataSize = responsiveSp(safeHeight, safeWidth, 0.019, 11, 13);
-        const avatarSize = clamp(safeHeight * 0.06, 36, 44);
-        // Match Android: respond to both usable width and height, not height alone.
-        // This prevents the camera artwork from becoming proportionally tiny on wide/tall canvases.
-        const cameraSize = Math.max(56, Math.min(Math.min(safeWidth, 560) * 0.18, safeHeight * 0.10, 80));
-        const cameraTouchSize = Math.max(72, cameraSize);
-        const titleLineHeight = sectionTitle * 1.5 * scale;
-        const compactViewport = variant !== "V3_BASELINE" && safeHeight < 460;
-        device.dataset.compact = String(compactViewport);
-        const headerHeight = Math.max(compactViewport ? 40 : 48, titleLineHeight + (compactViewport ? 4 : 8));
-        const titleRowInset = Math.max(0, (headerHeight - titleLineHeight) / 2);
-        const leadingGap = variant === "V3_BASELINE"
-          ? clamp(safeHeight * 0.01, 4, 10)
-          : Math.max(0, policy.statsToTitleGap - titleRowInset);
-        const headerGap = Math.max(0, policy.titleToCardGap - titleRowInset);
-        const trackWidth = Math.min(safeWidth, 560);
-        const desiredCardWidth = Math.min(trackWidth * policy.cardWidthFraction, policy.maxCardWidth);
-        const desiredCardHeight = Math.min(desiredCardWidth / (247 / 293), policy.maxCardHeight);
-
-        root.style.setProperty("--font-scale", String(scale));
-        root.style.setProperty("--brand-stats-gap", policy.brandToStatsGap + "px");
-        root.style.setProperty("--leading-gap", leadingGap + "px");
-        root.style.setProperty("--title-card-gap", headerGap + "px");
-        root.style.setProperty("--card-footer-gap", policy.cardToFooterGap + "px");
-        root.style.setProperty("--section-header-height", headerHeight + "px");
-        root.style.setProperty("--avatar-size", avatarSize + "px");
-        root.style.setProperty("--camera-visual-size", cameraSize + "px");
-        root.style.setProperty("--camera-touch-size", cameraTouchSize + "px");
-        root.style.setProperty("--stat-value-size", statValue + "px");
-        root.style.setProperty("--stat-label-size", statLabel + "px");
-        root.style.setProperty("--section-title-size", sectionTitle + "px");
-        root.style.setProperty("--section-action-size", sectionAction + "px");
-        root.style.setProperty("--cta-label-size", ctaSize + "px");
-        root.style.setProperty("--catch-species-size", speciesSize + "px");
-        root.style.setProperty("--catch-measure-size", measureSize + "px");
-        root.style.setProperty("--catch-metadata-size", metadataSize + "px");
-        root.style.setProperty("--desired-card-width", desiredCardWidth + "px");
-        root.style.setProperty("--desired-card-height", desiredCardHeight + "px");
-        root.style.setProperty("--text-gap", clamp(safeHeight * 0.006, 2, 5) + "px");
-        // Start at the target width so wrapped metadata is measured at the intended card geometry.
-        root.style.setProperty("--main-card-width", desiredCardWidth + "px");
-        root.style.setProperty("--main-card-height", desiredCardHeight + "px");
-        root.style.setProperty("--card-footer-padding", clamp(desiredCardHeight * 0.07, 10, 20) + "px");
-
-        window.NH01GeminiPreviewLayout = {
-          layout_version: variant === "V3_BASELINE" ? "V3_BASELINE" : "CONTENT_FIRST_V2",
-          variant, band: policy.band, logical_viewport_dp: [width, height],
-          safe_insets_dp: { top: 24, bottom: 24, start: 0, end: 0 },
-          safe_width_dp: safeWidth, safe_height_dp: safeHeight, font_scale: scale,
-          camera_visual_size_dp: cameraSize, camera_touch_size_dp: cameraTouchSize,
-          typography_sizes_dp: {
-            stat_value: statValue, stat_label: statLabel, section_title: sectionTitle,
-            section_action: sectionAction, cta: ctaSize, species: speciesSize,
-            measurement: measureSize, metadata: metadataSize
-          },
-          gaps_dp: { brand_to_stats: policy.brandToStatsGap, stats_to_title: policy.statsToTitleGap, leading: leadingGap, title_to_card: policy.titleToCardGap, actual_header_gap: headerGap, card_to_footer: policy.cardToFooterGap },
-          desired_card_size_dp: [desiredCardWidth, desiredCardHeight],
-          card_height_dp: null, card_width_dp: null, available_card_height_dp: null,
-          content_min_card_height_dp: null, middle_height_dp: null, needs_scroll: null,
-          layout_mode: null, overflow_reason: null, top_align_middle_group: null
-        };
-
-        requestAnimationFrame(() => {
-          const middleHeight = middleSection.clientHeight;
-          const actualHeaderHeight = sectionHeader.getBoundingClientRect().height;
-          const availableCardHeight = Math.max(0, middleHeight - leadingGap - actualHeaderHeight - headerGap - policy.cardToFooterGap);
-          let contentMinCardHeight = policy.minReadableCardHeight;
-          let cardHeight = desiredCardHeight;
-          let cardWidth = desiredCardWidth;
-
-          // Re-measure after each width change because long metadata can wrap and increase
-          // its intrinsic height. The card never jumps back to an oversized target when space is tight.
-          for (let pass = 0; pass < 4; pass++) {
-            contentMinCardHeight = clamp(cardMetadata.scrollHeight + 20, policy.minReadableCardHeight, 220);
-            cardHeight = Math.min(desiredCardHeight, Math.max(contentMinCardHeight, availableCardHeight));
-            cardWidth = cardHeight * (247 / 293);
-            root.style.setProperty("--main-card-height", cardHeight + "px");
-            root.style.setProperty("--main-card-width", cardWidth + "px");
-            root.style.setProperty("--card-footer-padding", clamp(cardHeight * 0.07, 10, 20) + "px");
-            void cardMetadata.offsetHeight;
-          }
-          contentMinCardHeight = clamp(cardMetadata.scrollHeight + 20, policy.minReadableCardHeight, 220);
-          if (cardHeight < contentMinCardHeight && desiredCardHeight >= contentMinCardHeight) {
-            cardHeight = Math.min(desiredCardHeight, Math.max(contentMinCardHeight, availableCardHeight));
-            cardWidth = cardHeight * (247 / 293);
-            root.style.setProperty("--main-card-height", cardHeight + "px");
-            root.style.setProperty("--main-card-width", cardWidth + "px");
-            root.style.setProperty("--card-footer-padding", clamp(cardHeight * 0.07, 10, 20) + "px");
-            void cardMetadata.offsetHeight;
-          }
-
-          const neighborGap = 8;
-          const neighborWidth = Math.min(cardWidth * 0.34, Math.max(0, (trackWidth - cardWidth) / 2 - neighborGap));
-          root.style.setProperty("--neighbor-width", neighborWidth + "px");
-          root.style.setProperty("--neighbor-gap", neighborGap + "px");
-          root.style.setProperty("--main-card-side-inset", Math.max(0, (trackWidth - cardWidth) / 2) + "px");
-          root.style.setProperty("--peek-top-offset", "15px");
-          const requiredMiddleHeight = leadingGap + actualHeaderHeight + headerGap + cardHeight + policy.cardToFooterGap;
-          const needsScroll = requiredMiddleHeight > middleHeight + 0.5;
-          middleSection.dataset.scrollNeeded = String(needsScroll);
-          // Center the complete group when it fits; switch to top-aligned scrolling only on real overflow.
-          middleSection.dataset.topAlign = String(needsScroll ? true : policy.topAlignMiddleGroup);
-          if (window.NH01GeminiPreviewLayout) {
-            window.NH01GeminiPreviewLayout.card_height_dp = cardHeight;
-            window.NH01GeminiPreviewLayout.card_width_dp = cardWidth;
-            window.NH01GeminiPreviewLayout.available_card_height_dp = availableCardHeight;
-            window.NH01GeminiPreviewLayout.content_min_card_height_dp = contentMinCardHeight;
-            window.NH01GeminiPreviewLayout.middle_height_dp = middleHeight;
-            window.NH01GeminiPreviewLayout.needs_scroll = needsScroll;
-            window.NH01GeminiPreviewLayout.layout_mode = needsScroll ? "CONTENT_SCROLL" : "FIT";
-            window.NH01GeminiPreviewLayout.overflow_reason = needsScroll
-              ? (availableCardHeight < contentMinCardHeight ? "viewport-space-below-readable-card" : "middle-group-exceeds-available-space")
-              : null;
-            window.NH01GeminiPreviewLayout.top_align_middle_group = needsScroll || policy.topAlignMiddleGroup;
-          }
-          window.NH01GeminiPreviewLayoutReady = true;
-        });
+      function applyLayoutVariables(layout, values) {
+        const p = layout.responsive_parameters;
+        const c = layout.composition || p.content;
+        const safe = layout.safe_insets_dp;
+        const topPad = c.top_horizontal_padding;
+        const sectionPad = c.section_horizontal_padding;
+        const topInline = Math.min(topPad.max_dp, Math.max(topPad.min_dp, layout.safe_width_dp * topPad.ratio));
+        const sectionInline = Math.min(sectionPad.max_dp, Math.max(sectionPad.min_dp, layout.content_width_dp * sectionPad.ratio));
+        const titleLine = layout.rendered_text_metrics.section_title.size_css_px * layout.rendered_text_metrics.section_title.line_height_ratio;
+        const rowInset = Math.max(0, (layout.section_header_height_dp - titleLine) / 2);
+        const leadingGap = Math.max(0, layout.stats_to_title_gap_target_dp - rowInset);
+        const titleCardGap = Math.max(0, layout.title_to_card_gap_target_dp - rowInset);
+        const desiredWidth = layout.hero_target_size_dp[0];
+        const desiredHeight = Math.min(desiredWidth * p.hero.aspect_ratio_height / p.hero.aspect_ratio_width, p.hero.maximum_height_dp);
+        const cardBottom = p.card_content;
+        const footerGap = layout.footer.cta_camera_gap_dp;
+        const footerTop = layout.footer.top_padding_dp;
+        const footerBottom = layout.footer.bottom_padding_dp;
+        const set = (key, value) => setVariable(key, cssPx(value));
+        set("--safe-top", safe.top); set("--safe-bottom", safe.bottom); set("--safe-start", safe.start); set("--safe-end", safe.end);
+        set("--content-width", layout.content_width_dp);
+        set("--content-top-padding", c.top_padding_dp);
+        set("--top-inline-padding", topInline);
+        set("--header-height", Math.max(c.header_min_height_dp, layout.header_height_dp));
+        set("--header-horizontal-gap", c.header_horizontal_gap_dp);
+        set("--brand-width", layout.brand_width_dp);
+        set("--avatar-size", layout.avatar_visual_size_dp);
+        set("--avatar-touch-size", layout.avatar_touch_size_dp);
+        set("--stats-min-height", c.stats_min_height_dp);
+        set("--stats-vertical-padding", c.stats_vertical_padding_dp);
+        set("--stats-item-gap", c.stats_item_gap_dp);
+        set("--brand-stats-gap", layout.gaps_dp.brand_to_stats);
+        set("--section-header-height", layout.section_header_height_dp);
+        set("--section-inline-padding", sectionInline);
+        set("--section-horizontal-gap", c.section_horizontal_gap_dp);
+        set("--leading-gap", leadingGap);
+        set("--title-card-gap", titleCardGap);
+        set("--card-footer-gap", layout.card_to_footer_gap_dp);
+        set("--footer-top-padding", footerTop); set("--footer-bottom-padding", footerBottom);
+        set("--cta-camera-gap", footerGap);
+        set("--camera-visual-size", layout.camera_visual_size_dp); set("--camera-touch-size", layout.camera_touch_size_dp);
+        set("--stat-value-size", layout.typography_sizes_dp.stat_value); set("--stat-label-size", layout.typography_sizes_dp.stat_label);
+        set("--section-title-size", layout.typography_sizes_dp.section_title); set("--section-action-size", layout.typography_sizes_dp.section_action);
+        set("--cta-label-size", layout.typography_sizes_dp.cta); set("--catch-species-size", layout.typography_sizes_dp.species);
+        set("--catch-measure-size", layout.typography_sizes_dp.measurement); set("--catch-metadata-size", layout.typography_sizes_dp.metadata);
+        set("--hero-aspect", `${p.hero.aspect_ratio_width} / ${p.hero.aspect_ratio_height}`);
+        set("--main-card-width", desiredWidth); set("--main-card-height", desiredHeight);
+        set("--desired-card-width", desiredWidth); set("--desired-card-height", desiredHeight);
+        set("--card-horizontal-padding", cardBottom.padding_horizontal_dp);
+        set("--text-gap", Math.max(cardBottom.minimum_text_gap_dp, Math.min(cardBottom.maximum_text_gap_dp, layout.safe_height_dp * cardBottom.text_gap_height_fraction)));
+        set("--card-footer-padding", Math.max(cardBottom.minimum_footer_padding_dp, Math.min(cardBottom.maximum_footer_padding_dp, desiredHeight * cardBottom.footer_padding_height_fraction)));
+        set("--neighbor-height", desiredHeight * p.neighbor.height_fraction_of_hero);
+        set("--peek-top-offset", p.neighbor.top_offset_dp);
+        set("--font-scale", layout.system_font_scale);
+        Object.entries(layout.typography_sizes_dp).forEach(([role, size]) => set(`--${({stat_value:"stat-value",stat_label:"stat-label",section_title:"section-title",section_action:"section-action",cta:"cta-label",species:"catch-species",measurement:"catch-measure",metadata:"catch-metadata"})[role]}-size`, size));
+        return { leadingGap, titleCardGap, desiredWidth, desiredHeight, topInline, sectionInline };
       }
-      function applyViewport() {
-        // Expose the outer viewport handled by this resize so browser tests cannot accept stale layout evidence.
-        window.NH01GeminiPreviewOuterViewport = { width: window.innerWidth, height: window.innerHeight };
-        // Invalidate the prior frame's readiness before changing viewport geometry; browser gates must not read stale bounds.
+      function applyTextWrapRules(layout, cardWidth) {
+        const rules=layout.responsive_parameters.card_content;
+        const mayWrap=cardWidth<rules.species_wrap_width_threshold_dp || layout.system_font_scale>=rules.large_font_scale_threshold;
+        setVariable("--species-max-lines",mayWrap?rules.maximum_lines_species:1);
+        setVariable("--measurement-max-lines",mayWrap?rules.maximum_lines_measurements:1);
+        setVariable("--metadata-max-lines",rules.maximum_lines_metadata);
+      }
+      function countTextLines(element) {
+        const range = document.createRange(); range.selectNodeContents(element);
+        return new Set(Array.from(range.getClientRects()).map(rect => Math.round(rect.top * 10) / 10)).size;
+      }
+      async function applyViewport() {
+        if (!contractEnvelope || workspace.classList.contains("contract-failed")) return;
+        const sequence = ++layoutSequence;
         window.NH01GeminiPreviewLayoutReady = false;
-        const requestedViewport = params.get("viewport");
-        const widthHeight = canvasMode ? [window.innerWidth, window.innerHeight] : (matrixMode && requestedViewport ? requestedViewport.split("x").map(Number) : preset.value.split("x").map(Number));
-        const width = widthHeight[0], height = widthHeight[1];
-        if (canvasMode) {
-          device.style.width = String(width) + "px";
-          device.style.height = String(height) + "px";
-          device.style.transform = "none";
-          wrap.style.width = String(width) + "px";
-          wrap.style.height = String(height) + "px";
-        } else {
-          const availableWidth = matrixMode ? window.innerWidth : Math.max(250, Math.min(520, window.innerWidth - 56));
-          const availableHeight = matrixMode ? window.innerHeight : Math.max(300, window.innerHeight - 205);
-          const scale = Math.min(1, availableWidth / width, availableHeight / height);
-          device.style.width = String(width) + "px";
-          device.style.height = String(height) + "px";
-          device.style.transform = "scale(" + scale + ")";
-          wrap.style.width = String(width * scale) + "px";
-          wrap.style.height = String(height * scale) + "px";
+        const requested = params.get("viewport");
+        let width, height;
+        if (canvasMode) { width = window.innerWidth; height = window.innerHeight; }
+        else if (matrixMode && requested) [width, height] = requested.split("x").map(Number);
+        else { width = Number(widthInput.value); height = Number(heightInput.value); }
+        if (!Number.isFinite(width) || !Number.isFinite(height) || width < 240 || height < 320 || width > 1200 || height > 1600) {
+          throw new Error("Free viewport must be within 240–1200dp wide and 320–1600dp high.");
         }
-        updateLayoutGeometry(width, height);
+        const scale = Number(fontScale.value);
+        const safeInsets = readSafeInsets();
+        const variant = layoutVariant.value;
+        const adaptive = variant === "ADAPTIVE_V2";
+        const layout = adaptive
+          ? window.NH01ResponsiveContractRuntime.computeAdaptive({widthDp:width,heightDp:height,fontScale:scale,safeInsetsDp:safeInsets,contractSha256:contractEnvelope.contractSha256}, contractEnvelope.contract)
+          : baselinePolicy(width,height,scale,safeInsets);
+        layout.contract_sha256 = contractEnvelope.contractSha256;
+        layout.contract_path = contractEnvelope.contractPath;
+        layout.variant = variant;
+        const vars = applyLayoutVariables(layout);
+        applyTextWrapRules(layout,vars.desiredWidth);
+        device.dataset.compact = "false";
+        device.style.width = `${width}px`; device.style.height = `${height}px`;
+        const availableWidth = canvasMode ? width : Math.max(250, Math.min(520, window.innerWidth - 56));
+        const availableHeight = canvasMode ? height : Math.max(300, window.innerHeight - 205);
+        const deviceScale = canvasMode ? 1 : Math.min(1, availableWidth / width, availableHeight / height);
+        device.style.transform = canvasMode ? "none" : `scale(${deviceScale})`;
+        wrap.style.width = `${width * deviceScale}px`; wrap.style.height = `${height * deviceScale}px`;
+        await nextFrame();
+        await nextFrame();
+        if (sequence !== layoutSequence) return;
+        const middleHeight = middleSection.clientHeight;
+        const sectionHeaderHeight = sectionHeader.offsetHeight;
+        const actualGapHeaderCard = vars.titleCardGap;
+        const availableCardHeight = Math.max(0, middleHeight - vars.leadingGap - sectionHeaderHeight - actualGapHeaderCard - layout.card_to_footer_gap_dp);
+        const p = layout.responsive_parameters;
+        const hero = p.hero;
+        const exception = hero.short_screen_exception;
+        const shortExceptionEligible = adaptive && width === exception.exact_viewport_width_dp && height === exception.exact_viewport_height_dp && scale === exception.exact_font_scale;
+        const readableFloor = shortExceptionEligible ? exception.minimum_height_dp : hero.minimum_readable_height_dp;
+        const desiredHeight = vars.desiredHeight;
+        const actualTextHeight = cardMetadata.scrollHeight;
+        const contentMinimum = Math.max(readableFloor, Math.min(hero.maximum_readable_height_dp, actualTextHeight));
+        let cardHeight = Math.min(desiredHeight, Math.max(contentMinimum, availableCardHeight));
+        if (availableCardHeight < contentMinimum) cardHeight = Math.min(desiredHeight, availableCardHeight);
+        let cardWidth = Math.min(vars.desiredWidth, cardHeight * hero.aspect_ratio_width / hero.aspect_ratio_height);
+        setVariable("--main-card-height", cssPx(cardHeight)); setVariable("--main-card-width", cssPx(cardWidth));
+        setVariable("--card-footer-padding", cssPx(Math.max(p.card_content.minimum_footer_padding_dp, Math.min(p.card_content.maximum_footer_padding_dp, cardHeight * p.card_content.footer_padding_height_fraction))));
+        await nextFrame();
+        const actualTextHeightAfterResize = cardMetadata.scrollHeight;
+        const needsScroll = vars.leadingGap + sectionHeaderHeight + actualGapHeaderCard + cardHeight + layout.card_to_footer_gap_dp > middleHeight + 0.5;
+        // The 124dp exception is valid only when this exact viewport and scale fit the full group without scrolling.
+        if (shortExceptionEligible && needsScroll) {
+          const nonExceptionFloor = hero.minimum_readable_height_dp;
+          const nonExceptionHeight = Math.min(desiredHeight, Math.max(nonExceptionFloor, availableCardHeight));
+          cardHeight = Math.max(nonExceptionFloor, nonExceptionHeight);
+          cardWidth = Math.min(vars.desiredWidth, cardHeight * hero.aspect_ratio_width / hero.aspect_ratio_height);
+          setVariable("--main-card-height", cssPx(cardHeight)); setVariable("--main-card-width", cssPx(cardWidth));
+          setVariable("--card-footer-padding", cssPx(Math.max(p.card_content.minimum_footer_padding_dp, Math.min(p.card_content.maximum_footer_padding_dp, cardHeight * p.card_content.footer_padding_height_fraction))));
+          await nextFrame();
+        }
+        const finalNeedsScroll = vars.leadingGap + sectionHeaderHeight + actualGapHeaderCard + cardHeight + layout.card_to_footer_gap_dp > middleHeight + 0.5;
+        applyTextWrapRules(layout,cardWidth);
+        const trackWidth = layout.content_width_dp;
+        const sideInset = Math.max(0, (trackWidth - cardWidth) / 2);
+        const neighborGap = Math.max(0, sideInset - Math.min(cardWidth * p.neighbor.maximum_width_fraction_of_hero, Math.max(0, (trackWidth - cardWidth) / 2 - layout.neighbor_target_edge_peek_dp)));
+        const neighborWidth = Math.min(cardWidth * p.neighbor.maximum_width_fraction_of_hero, Math.max(0, sideInset - neighborGap));
+        setVariable("--main-card-side-inset", cssPx(sideInset)); setVariable("--neighbor-gap", cssPx(neighborGap)); setVariable("--neighbor-width", cssPx(neighborWidth));
+        middleSection.dataset.scrollNeeded = String(finalNeedsScroll);
+        middleSection.dataset.topAlign = String(finalNeedsScroll);
+        document.querySelectorAll(".neighbor-card").forEach(node => { node.hidden = true; });
+        const scaleRatio = device.getBoundingClientRect().width / Math.max(1, device.offsetWidth);
+        const bounds = element => {
+          const r = element.getBoundingClientRect();
+          return {left:(r.left-device.getBoundingClientRect().left)/scaleRatio,top:(r.top-device.getBoundingClientRect().top)/scaleRatio,right:(r.right-device.getBoundingClientRect().left)/scaleRatio,bottom:(r.bottom-device.getBoundingClientRect().top)/scaleRatio,width:r.width/scaleRatio,height:r.height/scaleRatio};
+        };
+        const headerBounds = bounds(document.getElementById("headerBar"));
+        const statsBounds = bounds(document.getElementById("statsBar"));
+        const titleBounds = bounds(document.querySelector(".section-title"));
+        const heroBounds = bounds(mainCatchCard);
+        const footerBounds = bounds(footerSection);
+        const ctaBounds = bounds(document.getElementById("ctaLabel"));
+        const cameraBounds = bounds(document.getElementById("assetCamera"));
+        const cameraTouchBounds = bounds(document.getElementById("cameraButton"));
+        const pageBounds = bounds(document.querySelector(".page-content"));
+        const titleToCard = heroBounds.top - titleBounds.bottom;
+        const measurements = {
+          header_to_stats: statsBounds.top - headerBounds.bottom,
+          stats_to_title: titleBounds.top - statsBounds.bottom,
+          title_to_card: titleToCard,
+          card_to_footer: footerBounds.top - heroBounds.bottom,
+          cta_camera_visual: cameraBounds.top - ctaBounds.bottom,
+          cta_camera_touch: cameraTouchBounds.top - ctaBounds.bottom,
+          camera_bottom_safe: pageBounds.bottom - cameraBounds.bottom,
+          camera_touch_bottom_safe: pageBounds.bottom - cameraTouchBounds.bottom,
+          hero_overlap_footer: Math.max(0, heroBounds.bottom - footerBounds.top),
+          horizontal_overflow_dp: Math.max(0, device.scrollWidth - device.clientWidth),
+          middle_height_dp: middleHeight,
+          available_card_height_dp: availableCardHeight
+        };
+        const layoutMetrics = {
+          ...layout, card_width_dp:cardWidth, card_height_dp:cardHeight, desired_card_size_dp:[vars.desiredWidth,vars.desiredHeight],
+          content_min_card_height_dp:contentMinimum, actual_text_height_dp:actualTextHeightAfterResize, middle_height_dp:middleHeight,
+          available_card_height_dp:availableCardHeight, needs_scroll:finalNeedsScroll, layout_mode:finalNeedsScroll?"CONTENT_SCROLL":"FIT",
+          short_screen_exception_applied:shortExceptionEligible && !finalNeedsScroll,
+          footer:layout.footer, measurements,
+          gaps_dp:{...(layout.gaps_dp||{}),brand_to_stats:layout.brand_to_stats_gap_dp??layout.gaps_dp?.brand_to_stats,stats_to_title:layout.stats_to_title_gap_target_dp,title_to_card_target:layout.title_to_card_gap_target_dp,card_to_footer:layout.card_to_footer_gap_dp},
+          neighbor_state:{previous_record_present:false,next_record_present:false,rendered:false,maximum_width_dp:cardWidth*p.neighbor.maximum_width_fraction_of_hero},
+          text_lines:{species:countTextLines(document.querySelector(".catch-species")),measurement:countTextLines(document.querySelector(".catch-measure")),metadata:countTextLines(document.querySelector(".catch-location"))},
+          actual_bounds_dp:{header:headerBounds,stats:statsBounds,title:titleBounds,hero:heroBounds,footer:footerBounds,cta:ctaBounds,camera_visual:cameraBounds,camera_touch:cameraTouchBounds},
+          device_scale:deviceScale
+        };
+        window.NH01GeminiPreviewLayout = layoutMetrics;
+        window.NH01GeminiPreviewLayoutReady = true;
+        if (adaptive) renderRuleInspector(layoutMetrics);
+        else ruleList.innerHTML = '<div class="rule-row"><dt>布局用途</dt><dd>V3 Baseline 仅供对照；Adaptive V2 的合同值仍保留在机器权威中。</dd></div>';
+        if (!matrixMode && !canvasMode && typeof selectLayer === "function") selectLayer("#mainCatchCard");
       }
-      preset.addEventListener("change", applyViewport);
-      layoutVariant.addEventListener("change", applyViewport);
-      fontScale.addEventListener("change", applyViewport);
-      const matrixFontScale = document.getElementById("matrixFontScale");
-      // Only the top-level workspace starts the five viewport previews. Matrix children must never spawn more matrices.
-      if (!matrixMode && !canvasMode) {
-        document.querySelectorAll(".responsive-frame").forEach(frame => {
-          if (frame.dataset.src) frame.src = frame.dataset.src;
-        });
+      async function digest(url) {
+        const response = await fetch(url, { cache: "no-store" });
+        if (!response.ok) throw new Error(`HTTP ${response.status} for ${url}`);
+        const bytes = await response.arrayBuffer();
+        const hash = await crypto.subtle.digest("SHA-256", bytes);
+        return [...new Uint8Array(hash)].map(value => value.toString(16).padStart(2, "0")).join("");
       }
-      if (matrixFontScale) {
-        matrixFontScale.addEventListener("change", () => {
-          document.querySelectorAll(".responsive-frame").forEach(frame => {
-            const viewport = frame.dataset.viewport;
-            frame.src = "./gemini-native-preview.html?mode=matrix&viewport=" + encodeURIComponent(viewport) + "&fontScale=" + encodeURIComponent(matrixFontScale.value);
-          });
-        });
+      function waitImage(image) {
+        if (image.complete) return image.naturalWidth > 0 ? Promise.resolve() : Promise.reject(new Error(`Image failed to load: ${image.currentSrc || image.src}`));
+        return new Promise((resolve, reject) => { image.addEventListener("load", resolve, {once:true}); image.addEventListener("error", () => reject(new Error(`Image load failed: ${image.currentSrc || image.src}`)), {once:true}); });
       }
-      window.addEventListener("resize", applyViewport);
-      document.getElementById("cameraButton").addEventListener("click", () => showToast("静态预览：真实拍照交互以精确 SHA 的 Android Runtime Gate 为准。"));
-      document.getElementById("avatarButton").addEventListener("click", () => showToast("Gemini V3 静态预览使用注册的 V2 头像底图；真实账号头像加载由 Android 数据层处理。"));
+      async function auditAnchors(contract) {
+        const results = await Promise.all(contract.visual_anchors.map(async anchor => {
+          const url = new URL(anchor.path, rootPrefix).href;
+          const actualHash = await digest(url);
+          const probe = new Image(); probe.src = url; await waitImage(probe);
+          const actual = {width:probe.naturalWidth,height:probe.naturalHeight};
+          const expected = anchor.canvas_px;
+          const pass = actualHash === anchor.sha256 && actual.width === expected.width && actual.height === expected.height;
+          return {id:anchor.id,path:anchor.path,role:anchor.role,status:pass?"PASS":"FAIL",expected_sha256:anchor.sha256,actual_sha256:actualHash,expected_canvas_px:expected,actual_canvas_px:actual,logical_viewport_dp:anchor.logical_viewport_dp,width_only_static:anchor.logical_viewport_dp.height===null};
+        }));
+        if (results.length !== 6 || results.some(item => item.status !== "PASS")) throw new Error(`Frozen reference integrity failed: ${JSON.stringify(results.filter(item => item.status !== "PASS"))}`);
+        anchorAudit = results; window.NH01FrozenAnchorAudit = {status:"PASS",assets:results}; return results;
+      }
+      async function auditAssets() {
+        if (matrixMode) return {status:"MATRIX_PREVIEW_ONLY",release_gate_effect:"NONE"};
+        const response = await fetch("./NH01_Gemini_Native_Asset_Binding_V1.json", {cache:"no-store"});
+        if (!response.ok) throw new Error(`Asset manifest HTTP ${response.status}`);
+        const manifest = await response.json(); const results = [];
+        for (const asset of manifest.assets.filter(item => item.public_preview)) {
+          const image = assetNodes[asset.id]; if (!image) throw new Error(`Missing DOM asset node: ${asset.id}`);
+          await waitImage(image); const actualHash = await digest(resolveAssetUrl(asset.preview_path));
+          const dimensions = [image.naturalWidth,image.naturalHeight];
+          const passed = actualHash === asset.sha256 && dimensions[0] === asset.dimensions_px[0] && dimensions[1] === asset.dimensions_px[1];
+          results.push({id:asset.id,label:asset.label,status:passed?"PASS_SOURCE_INTEGRITY":"FAIL_SOURCE_INTEGRITY",expected_sha256:asset.sha256,actual_sha256:actualHash,expected_dimensions_px:asset.dimensions_px,actual_dimensions_px:dimensions,preview_path:asset.preview_path});
+        }
+        for (const asset of manifest.assets.filter(item => !item.public_preview)) results.push({id:asset.id,label:asset.label,status:asset.status,expected_sha256:asset.sha256||null,actual_sha256:null,expected_dimensions_px:asset.dimensions_px||null,actual_dimensions_px:null,reason:asset.privacy_policy||asset.render_rule});
+        assetList.replaceChildren();
+        for (const result of results) {
+          const row=document.createElement("div");row.className="asset-row";const details=document.createElement("div");
+          const name=document.createElement("div");name.className="asset-name";name.textContent=result.label;
+          const meta=document.createElement("div");meta.className="asset-meta";meta.textContent=result.actual_sha256?`SHA-256 ${result.actual_sha256} · ${result.actual_dimensions_px.join("×")}`:(result.reason||"未提供可公开预览的正式原图。");
+          const status=document.createElement("span");status.className="asset-status";status.dataset.status=result.status;status.title=result.status;status.textContent=({PASS_SOURCE_INTEGRITY:"PASS · SHA + SIZE",BLOCKED_ASSET_SOURCE:"BLOCKED · PHOTO SOURCE",BLOCKED_MISSING_APPROVED_INDEPENDENT_ORIGINALS:"BLOCKED · PHOTO SET"})[result.status]||result.status;
+          details.append(name,meta);row.append(details,status);assetList.append(row);
+        }
+        const failures=results.filter(result=>result.status==="FAIL_SOURCE_INTEGRITY");
+        integritySummary.dataset.state=failures.length?"FAIL":"PASS";
+        integritySummary.textContent=failures.length?`资产完整性失败：${failures.map(item=>item.id).join(", ")}`:"注册资产 SHA-256 与尺寸匹配。Hero 照片和邻卡来源仍被明确阻塞；预览不会生成虚假邻卡。";
+        window.NH01GeminiPreviewAudit={schema:manifest.schema,build_sha:buildSha,status:failures.length?"FAIL":"PASS",release_gate_effect:"NONE",assets:results,checked_at_utc:new Date().toISOString()};
+        return window.NH01GeminiPreviewAudit;
+      }
+      async function initialize() {
+        try {
+          if (!rootMeta?.content) throw new Error("NH01 preview root metadata is missing.");
+          rootPrefix = new URL(rootMeta.content, location.href);
+          for (const image of document.querySelectorAll("img[data-preview-path]")) image.src = new URL(image.dataset.previewPath, rootPrefix).href;
+          if (!window.NH01ResponsiveContractRuntime) throw new Error("Responsive contract runtime module is missing.");
+          contractEnvelope = await window.NH01ResponsiveContractRuntime.loadContract();
+          const contract = contractEnvelope.contract;
+          if (!Array.isArray(contract.visual_anchors) || contract.visual_anchors.length !== 6) throw new Error("Contract must register exactly six frozen visual references.");
+          document.getElementById("contractVersion").textContent = `${contract.contract_id} · V${contract.contract_version}`;
+          contractShaLabel.textContent = contractEnvelope.contractSha256;
+          contractStatus.dataset.state = "PASS"; contractStatus.textContent = "Adaptive V2 机器合同已加载";
+          initializeAnchorViewer(contract);
+          const requestedScale=params.get("fontScale"); if (requestedScale && Number(requestedScale)>=1 && Number(requestedScale)<=1.5) fontScale.value=requestedScale;
+          fontScaleReadout.textContent=`${Number(fontScale.value).toFixed(1)}×`;
+          const initialInsets=window.NH01ResponsiveContractRuntime.resolveInsets(params,contract.preview_engine.coordinate_space.default_safe_insets_dp);
+          Object.entries(initialInsets).forEach(([key,value])=>safeInsetInputs[key].value=String(value));
+          const requested=params.get("viewport");
+          if (requested) { const [w,h]=requested.split("x").map(Number);widthInput.value=w;heightInput.value=h; }
+          const initial=preset.value.split("x").map(Number); if (!requested) {widthInput.value=initial[0];heightInput.value=initial[1];}
+          const frameUrl = new URL(contractEnvelope.contractUrl);
+          const deploymentSha=document.querySelector('meta[name="nh01-preview-deployment-sha"]').content;
+          document.getElementById("deploymentSha").textContent=deploymentSha;
+          document.getElementById("contractAuthorityLink").href=frameUrl.href;
+          window.NH01ResponsiveContract = {id:contract.contract_id,version:contract.contract_version,sha256:contractEnvelope.contractSha256,path:frameUrl.pathname,source_sha:buildSha,deployment_sha:deploymentSha,status:contract.status};
+          await applyViewport();
+          workspace.classList.remove("contract-pending");
+          const [assets, anchors] = matrixMode
+            ? [{status:"MATRIX_PREVIEW_ONLY",release_gate_effect:"NONE"}, []]
+            : await Promise.all([auditAssets(), auditAnchors(contract)]);
+          window.NH01GeminiPreviewReady=true;
+          window.NH01GeminiPreviewAudit={...(window.NH01GeminiPreviewAudit||{}),contract:window.NH01ResponsiveContract,anchors,asset_audit:assets,assets:assets.assets||[],status:assets.status==="PASS"&&anchors.every(item=>item.status==="PASS")?"PASS":"FAIL",release_gate_effect:"NONE"};
+          if (!matrixMode && assets.status!=="PASS") throw new Error("Registered preview asset integrity check failed.");
+        } catch (error) { failClosed(error); }
+      }
+      preset.addEventListener("change", () => { const [w,h]=preset.value.split("x").map(Number);widthInput.value=w;heightInput.value=h;applyViewport().catch(failClosed); });
+      [widthInput,heightInput].forEach(input=>input.addEventListener("change",()=>{preset.value="";applyViewport().catch(error=>showToast(error.message));}));
+      Object.values(safeInsetInputs).forEach(input=>input.addEventListener("change",()=>applyViewport().catch(error=>showToast(error.message))));
+      layoutVariant.addEventListener("change",()=>applyViewport().catch(failClosed));
+      fontScale.addEventListener("input",()=>{fontScaleReadout.textContent=`${Number(fontScale.value).toFixed(1)}×`;applyViewport().catch(failClosed);});
+      window.addEventListener("resize",()=>{if(canvasMode)applyViewport().catch(failClosed);});
+      document.getElementById("cameraButton").addEventListener("click",()=>showToast("浏览器验收预览：拍照运行时行为仍由独立 Android Runtime Gate 验证。"));
+      document.getElementById("avatarButton").addEventListener("click",()=>showToast("当前使用已登记的 V2 头像回退资产。"));
+      document.querySelectorAll(".responsive-frame").forEach(frame=>{if(!matrixMode&&!canvasMode&&frame.dataset.src)frame.src=frame.dataset.src;});
+      const matrixFontScale=document.getElementById("matrixFontScale");
+      if(matrixFontScale)matrixFontScale.addEventListener("change",()=>document.querySelectorAll(".responsive-frame").forEach(frame=>{frame.src=`./gemini-native-preview.html?mode=matrix&viewport=${encodeURIComponent(frame.dataset.viewport)}&fontScale=${encodeURIComponent(matrixFontScale.value)}`;}));
+      initialize();
 
       const layerMeta = {
-        "#device": {name:"Screen · NH01 Home",design:"Screen-Yujian-Home",compose:"GeminiNormalHomeContent",constraint:"全屏容器；顶部/底部安全区分别预留 24dp / 24dp，短屏不额外重复计算底部留白。",status:"MAPPED",note:"根容器。真实系统栏与窗口 inset 需由 Android Runtime 证据确认。"},
+        "#device": {name:"Screen · NH01 Home",design:"Screen-Yujian-Home",compose:"GeminiNormalHomeContent",constraint:"全屏容器；安全区数值读取当前 V2 机器合同与用户输入。",status:"MAPPED",note:"浏览器安全区为可调预览输入，不构成 Android 系统 inset 实测证据。"},
         "#assetBackground": {name:"BG · Morning Lake",design:"BG-Mountain-Mist",compose:"GeminiNormalHomeContent / background group",asset:"Morning Lake master · registered bitmap",constraint:"全屏铺底；ContentScale.Crop，TopCenter。",status:"MAPPED",note:"背景源图为正式登记资产，保持原始像素，不在此页添加额外叠层。"},
         "#topSection": {name:"Top-Section-AutoLayout",design:"Top-Section-AutoLayout",compose:"GeminiTopSection",constraint:"顶部固定区域；宽度跟随可用视口；安全区由根容器处理。",status:"MAPPED"},
-        "#headerBar": {name:"Header-Bar",design:"Header-Bar",compose:"GeminiTopSection / Header-Bar",constraint:"横向排列；左右对齐；间距 12dp；最小高度 48dp。",status:"MAPPED"},
-        "#assetBrand": {name:"Brand-Title",design:"Brand-Title",compose:"R.drawable.brand_title_primary",asset:"brand_title_primary.png · SHA registered",constraint:"宽度随视口 clamp；object-fit: contain。",status:"MAPPED"},
-        "#avatarButton": {name:"User-Avatar-Btn",design:"User-Avatar-Btn",compose:"GeminiAvatarButton",asset:"normal_home_default_avatar_v2.png · SHA registered",constraint:"48dp 触控容器；头像视觉尺寸按安全内容高度缩放。",status:"MAPPED"},
+        "#headerBar": {name:"Header-Bar",design:"Header-Bar",compose:"GeminiTopSection / Header-Bar",constraint:"横向排列；合同计算间距与容器高度。",status:"MAPPED"},
+        "#assetBrand": {name:"Brand-Title",design:"Brand-Title",compose:"R.drawable.brand_title_primary",asset:"brand_title_primary.png · SHA registered",constraint:"宽度由当前 V2 合同计算；object-fit: contain。",status:"MAPPED"},
+        "#avatarButton": {name:"User-Avatar-Btn",design:"User-Avatar-Btn",compose:"GeminiAvatarButton",asset:"normal_home_default_avatar_v2.png · SHA registered",constraint:"触控与头像视觉尺寸由当前 V2 合同计算。",status:"MAPPED"},
         "#statsBar": {name:"Stats-Bar",design:"Stats-Bar",compose:"GeminiStatsBar",constraint:"三列等宽；数值与标签按安全高度和系统字体缩放。",status:"MAPPED"},
         "#middleSection": {name:"Middle-Carousel-Section",design:"Middle-Carousel-Section",compose:"GeminiMiddleSection",constraint:"占用剩余垂直空间；紧凑短屏允许该区域局部滚动。",status:"MAPPED"},
         "#sectionHeader": {name:"Section-Header-Bar",design:"Section-Header-Bar",compose:"GeminiSectionHeader",constraint:"横向标题与操作项；字号随高度及字体缩放。",status:"MAPPED"},
-        "#carouselWindow": {name:"Carousel-Track-Container",design:"Carousel-Track-Container",compose:"GeminiCatchCarousel / HorizontalPager",constraint:"轨道宽度受可用视口约束；主卡保持 247:293 比例，邻卡只露出两侧。",status:"MAPPED"},
-        "#leftCatchCard": {name:"Card-Peek-Left",design:"Card-Peek-Left",compose:"GeminiCatchCarousel / previous page",asset:"独立获批照片未登记",constraint:"邻卡宽度约为轨道 62%；垂直居中；照片来源未批准。",status:"BLOCKED",note:"只显示占位材质。不得以未确认来源的图片替代。"},
-        "#mainCatchCard": {name:"Card-Main-Active",design:"Card-Main-Active",compose:"GeminiCatchCarousel / selected page",asset:"Hero photo source approval pending",constraint:"Adaptive V2 主卡目标宽度为轨道 70% 且最大 337.2dp；根据真实元数据换行与中区剩余高度计算最终尺寸，空间不足时进入中区滚动；保持 247:293 宽高比。",status:"BLOCKED",note:"主卡结构和元数据可审查，但 Hero 原图未获批准，不能视觉验收通过。"},
+        "#carouselWindow": {name:"Carousel-Track-Container",design:"Carousel-Track-Container",compose:"GeminiCatchCarousel / HorizontalPager",constraint:"轨道宽度、卡片比例和边缘预览值由当前 V2 合同计算。",status:"MAPPED"},
+        "#leftCatchCard": {name:"Card-Peek-Left",design:"Card-Peek-Left",compose:"GeminiCatchCarousel / previous page",asset:"独立获批照片未登记",constraint:"只在存在真实独立鱼获记录与获批素材时显示。",status:"BLOCKED",note:"当前没有可公开的独立邻卡记录，画布隐藏该卡。不得复制 Hero 鱼获。"},
+        "#mainCatchCard": {name:"Card-Main-Active",design:"Card-Main-Active",compose:"GeminiCatchCarousel / selected page",asset:"Hero photo source approval pending",constraint:"尺寸、宽高比、文字和空间约束读取当前 V2 合同；空间不足时只允许 Middle 局部滚动。",status:"BLOCKED",note:"鱼获照片来源被资产合同阻塞；当前画布不显示非真实照片。冻结参考对照仍可查看。"},
         "#cardMetadata": {name:"Card-Metadata",design:"Card-Metadata",compose:"GeminiCatchCarousel / CatchCardMetadata",constraint:"底部渐变承载鱼种、尺寸重量、时间地点；字号与卡片空间受响应式合同约束。",status:"MAPPED"},
         "#heroPlaceholder": {name:"Hero-Photo",design:"Card-Main-Active / Hero-Photo",compose:"GeminiCatchCarousel / RemoteImage",asset:"BLOCKED_ASSET_SOURCE",constraint:"目标图像需按已批准的 Crop/Fit 合同渲染；当前仅为阻塞占位。",status:"BLOCKED",note:"此处不能推断生产鱼体 Mask 或照片裁切是否正确。"},
         "#cardMetadata": {name:"Card-Metadata",design:"Card-Main-Active / metadata",compose:"GeminiCatchCarousel / CatchCardMetadata",constraint:"底部渐变承载文字；鱼种、尺寸重量、时间地点分级排布。",status:"MAPPED"},
-        "#rightCatchCard": {name:"Card-Peek-Right",design:"Card-Peek-Right",compose:"GeminiCatchCarousel / next page",asset:"独立获批照片未登记",constraint:"邻卡宽度约为轨道 62%；垂直居中；照片来源未批准。",status:"BLOCKED",note:"只显示占位材质。不得以未确认来源的图片替代。"},
+        "#rightCatchCard": {name:"Card-Peek-Right",design:"Card-Peek-Right",compose:"GeminiCatchCarousel / next page",asset:"独立获批照片未登记",constraint:"只在存在真实独立鱼获记录与获批素材时显示。",status:"BLOCKED",note:"当前没有可公开的独立邻卡记录，画布隐藏该卡。不得复制 Hero 鱼获。"},
         "#footerSection": {name:"Footer-CTA-Section",design:"Footer-CTA-Section",compose:"GeminiFooterSection",constraint:"底部固定操作区；系统导航安全区由根容器处理。",status:"MAPPED"},
         "#ctaLabel": {name:"CTA-Label-RecordNext",design:"CTA-Label-RecordNext",compose:"GeminiFooterSection / CTA label",constraint:"文字字号跟随安全高度和字体缩放；与相机控件保持垂直间距。",status:"MAPPED"},
-        "#cameraButton": {name:"CTA-Camera-Button",design:"CTA-Camera-Button",compose:"HomeCameraButton",asset:"normal_home_camera_primary_v1.png · SHA registered",constraint:"触控区域至少 72dp；内部图形 contain，视觉尺寸按安全画布宽高共同缩放，56–80dp。",status:"MAPPED"}
+        "#cameraButton": {name:"CTA-Camera-Button",design:"CTA-Camera-Button",compose:"HomeCameraButton",asset:"normal_home_camera_primary_v1.png · SHA registered",constraint:"视觉尺寸与触控目标依据当前 V2 合同和安全区域计算。",status:"MAPPED"}
       };
       const inspectorFields = {
         name:document.getElementById("inspectorNodeName"), status:document.getElementById("inspectorNodeStatus"),
@@ -642,69 +888,6 @@
       });
       if (!canvasMode && !matrixMode) selectLayer("#mainCatchCard");
 
-      async function digest(url) {
-        const response = await fetch(url, { cache: "no-store" });
-        if (!response.ok) throw new Error("HTTP " + response.status + " for " + url);
-        const bytes = await response.arrayBuffer();
-        const hash = await crypto.subtle.digest("SHA-256", bytes);
-        return [...new Uint8Array(hash)].map(value => value.toString(16).padStart(2, "0")).join("");
-      }
-      function waitImage(image) {
-        if (image.complete) {
-          if (image.naturalWidth > 0) return Promise.resolve();
-          return Promise.reject(new Error("Image failed to load: " + (image.currentSrc || image.src)));
-        }
-        return new Promise((resolve, reject) => {
-          image.addEventListener("load", resolve, { once: true });
-          image.addEventListener("error", () => reject(new Error("Image load failed: " + (image.currentSrc || image.src))), { once: true });
-        });
-      }
-      async function auditAssets() {
-        if (matrixMode) {
-          window.NH01GeminiPreviewAudit = { status: "MATRIX_PREVIEW_ONLY", release_gate_effect: "NONE" };
-          window.NH01GeminiPreviewReady = true;
-          return window.NH01GeminiPreviewAudit;
-        }
-        const response = await fetch("./NH01_Gemini_Native_Asset_Binding_V1.json", { cache: "no-store" });
-        if (!response.ok) throw new Error("Asset manifest HTTP " + response.status);
-        const manifest = await response.json();
-        const results = [];
-        for (const asset of manifest.assets.filter(item => item.public_preview)) {
-          const image = assetNodes[asset.id];
-          if (!image) throw new Error("Missing DOM asset node: " + asset.id);
-          await waitImage(image);
-          const actualHash = await digest(asset.preview_path);
-          const dimensions = [image.naturalWidth, image.naturalHeight];
-          const passed = actualHash === asset.sha256 && dimensions[0] === asset.dimensions_px[0] && dimensions[1] === asset.dimensions_px[1];
-          results.push({ id: asset.id, label: asset.label, status: passed ? "PASS_SOURCE_INTEGRITY" : "FAIL_SOURCE_INTEGRITY", expected_sha256: asset.sha256, actual_sha256: actualHash, expected_dimensions_px: asset.dimensions_px, actual_dimensions_px: dimensions, preview_path: asset.preview_path });
-        }
-        for (const asset of manifest.assets.filter(item => !item.public_preview)) {
-          results.push({ id: asset.id, label: asset.label, status: asset.status, expected_sha256: asset.sha256 || null, actual_sha256: null, expected_dimensions_px: asset.dimensions_px || null, actual_dimensions_px: null, preview_path: null, reason: asset.privacy_policy || asset.render_rule });
-        }
-        assetList.replaceChildren();
-        for (const result of results) {
-          const row = document.createElement("div"); row.className = "asset-row";
-          const details = document.createElement("div");
-          const name = document.createElement("div"); name.className = "asset-name"; name.textContent = result.label;
-          const meta = document.createElement("div"); meta.className = "asset-meta";
-          meta.textContent = result.actual_sha256 ? "SHA-256 " + result.actual_sha256 + " · " + result.actual_dimensions_px.join("×") : (result.reason || "未提供可公开预览的正式原图。");
-          const status = document.createElement("span"); status.className = "asset-status"; status.dataset.status = result.status; status.title = result.status; status.textContent = ({ PASS_SOURCE_INTEGRITY: "PASS · SHA + SIZE", BLOCKED_ASSET_SOURCE: "BLOCKED · PHOTO SOURCE", BLOCKED_MISSING_APPROVED_INDEPENDENT_ORIGINALS: "BLOCKED · PHOTO SET" })[result.status] || result.status;
-          details.append(name, meta); row.append(details, status); assetList.append(row);
-        }
-        const failures = results.filter(result => result.status === "FAIL_SOURCE_INTEGRITY");
-        integritySummary.dataset.state = failures.length ? "FAIL" : "PASS";
-        integritySummary.textContent = failures.length ? "资产完整性失败：" + failures.map(result => result.id).join(", ") + "。此预览不能用于正式验收。" : "已渲染资产 SHA-256 与尺寸均匹配登记。Hero 与邻卡照片仍为 BLOCKED；release_gate_effect=NONE。";
-        window.NH01GeminiPreviewAudit = { schema: manifest.schema, build_sha: buildSha, status: failures.length ? "FAIL" : "PASS", release_gate_effect: "NONE", assets: results, checked_at_utc: new Date().toISOString() };
-        window.NH01GeminiPreviewReady = true;
-        return window.NH01GeminiPreviewAudit;
-      }
-      applyViewport();
-      auditAssets().catch(error => {
-        integritySummary.dataset.state = "FAIL";
-        integritySummary.textContent = "资产核验失败：" + error.message;
-        window.NH01GeminiPreviewAudit = { status: "FAIL", release_gate_effect: "NONE", error: error.message };
-        window.NH01GeminiPreviewReady = true;
-      });
     })();
   </script>
 </body>

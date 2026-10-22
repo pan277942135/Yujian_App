@@ -15,6 +15,7 @@ ROOT = Path(__file__).resolve().parents[2]
 SCHEMA_PATH = ROOT / "design/system_v3/07_Responsive_System/Responsive_Layout_Contract_Schema_V1.json"
 CONTRACT_PATH = ROOT / "design/pages/home/normal_home/responsive/NH01_RESPONSIVE_LAYOUT_V2.json"
 PROFILES_PATH = ROOT / "design/system_v3/07_Responsive_System/Viewport_Profiles_V1.json"
+PREVIEW_RUNTIME_PATH = ROOT / "previews/pr-176/design/manager/nh01_acceptance/nh01-responsive-contract-runtime.js"
 MANIFEST_PATH = ROOT / "design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_MULTI_SCREEN_STATIC_HIFI_V1_MANIFEST.json"
 AUTHORITY_PATH = ROOT / "design/pages/home/normal_home/authority/authority_map.json"
 NAV_PATH = ROOT / "design/pages/home/normal_home/navigation.json"
@@ -57,6 +58,48 @@ require(contract.get("native_acceptance",{}).get("status")=="NOT_VERIFIED","Andr
 require(contract.get("native_acceptance",{}).get("required_case_count")==24,"current native matrix must remain 24 cases")
 require(contract.get("acceptance",{}).get("runtime_status_independent") is True,"design status must be independent of runtime acceptance")
 
+# The interactive browser preview may execute only generic calculations whose numeric inputs
+# come from this page-level machine contract. Keep the shared schema generic and reject
+# viewport-keyed policy branches here.
+preview_engine = contract.get("preview_engine", {})
+preview_parameters = preview_engine.get("parameters", {})
+coordinate_space = preview_engine.get("coordinate_space", {})
+require(preview_engine.get("engine_id")=="NH01_ADAPTIVE_V2_CONTRACT_PREVIEW_V1","responsive preview engine id mismatch")
+require(preview_engine.get("schema_version")=="1.0","responsive preview engine schema version mismatch")
+require(coordinate_space.get("runtime_evidence") is False,"browser preview engine must not claim Android runtime evidence")
+require(coordinate_space.get("default_insets_are_browser_fixture") is True,"default safe insets must be labelled as a browser fixture")
+require(set(coordinate_space.get("default_safe_insets_dp",{}))=={"top","bottom","start","end"},"preview engine must declare four safe inset inputs")
+require(all(isinstance(preview_parameters.get(section),dict) for section in ("content","viewport_scale","brand_title","avatar","hero","neighbor","camera","card_content","spacing")),"preview engine is missing a required numeric policy section")
+require(preview_parameters.get("content",{}).get("max_width_dp")==560,"preview engine must retain the 560dp maximum content width")
+require("systemFontScale" in preview_engine.get("inputs",[]),"preview engine must bind system font scale as an input")
+require(set(preview_engine.get("role_bindings",{}))=={"stat_value","stat_label","section_title","section_action","cta","species","measurement","metadata"},"preview engine typography role bindings are incomplete")
+card_content=preview_parameters.get("card_content",{})
+require(card_content.get("species_wrap_width_threshold_dp")==240,"preview engine must use the contract species wrap width threshold")
+require(card_content.get("large_font_scale_threshold")==1.3,"preview engine must use the contract large-font wrap threshold")
+require(card_content.get("maximum_lines_species")==2 and card_content.get("maximum_lines_measurements")==2 and card_content.get("maximum_lines_metadata")==2,"preview engine text wrap line limits must match the contract")
+
+def check_sorted_curve(points, x_key, label):
+    require(isinstance(points,list) and len(points)>=2,f"{label} interpolation curve must have at least two points")
+    if isinstance(points,list) and len(points)>=2:
+        xs=[item.get(x_key) for item in points]
+        require(all(isinstance(value,(int,float)) for value in xs),f"{label} interpolation curve has a missing/non-numeric coordinate")
+        if all(isinstance(value,(int,float)) for value in xs):
+            require(xs==sorted(xs) and len(xs)==len(set(xs)),f"{label} interpolation curve coordinates must be strictly increasing")
+
+for key in ("stats_to_title","title_to_card"):
+    check_sorted_curve(preview_parameters.get("spacing",{}).get(key,{}).get("base_curve",[]),"safe_height_dp",key)
+check_sorted_curve(preview_parameters.get("spacing",{}).get("footer",{}).get("transition_curve",[]),"safe_height_dp","footer")
+
+forbidden_policy_keys={"profile_id","viewport_id","viewport_key","viewport_override","viewport_overrides","fixed_layout","per_viewport_layout"}
+def find_forbidden_policy_keys(value, path="preview_engine.parameters"):
+    if isinstance(value,dict):
+        for key,item in value.items():
+            if key in forbidden_policy_keys: errors.append(f"viewport-keyed responsive rule is forbidden: {path}.{key}")
+            find_forbidden_policy_keys(item,f"{path}.{key}")
+    elif isinstance(value,list):
+        for index,item in enumerate(value): find_forbidden_policy_keys(item,f"{path}[{index}]")
+find_forbidden_policy_keys(preview_parameters)
+
 anchors=contract.get("visual_anchors",[])
 require(len(anchors)==6,"exactly six frozen visual anchors must be registered (original + M01-M05)")
 manifest_assets={item.get("asset_id"):item for item in manifest.get("assets",[])}
@@ -78,6 +121,11 @@ for anchor in anchors:
         require(rel=="design/system/core_visual_v1/reference/normal_home_v1.png","only the original master may omit source_asset_id")
 
 global_profiles={item.get("profile_id"):item for item in profiles.get("profiles",[])}
+require(contract.get("authority",{}).get("viewport_profiles")==str(PROFILES_PATH.relative_to(ROOT)),"responsive contract must reference the page-independent viewport profile registry")
+registered_probes={item.get("probe_id"):item for item in profiles.get("interpolation_probes",[])}
+continuity_ids=contract.get("acceptance",{}).get("continuity_probe_ids",[])
+require(len(continuity_ids)==len(set(continuity_ids)),"continuity probe IDs must be unique")
+require(bool(continuity_ids) and all(probe_id in registered_probes for probe_id in continuity_ids),"contract continuity_probe_ids must all resolve to the page-independent viewport registry")
 for profile in contract.get("preview_profiles",[]):
     pid=profile.get("profile_id"); ref=global_profiles.get(pid)
     require(ref is not None,f"unknown global viewport profile: {pid}")
@@ -87,6 +135,17 @@ for profile in contract.get("preview_profiles",[]):
 require(global_profiles.get("WIDTH-BOUNDARY-480DP",{}).get("height_dp") is None,"M05 must remain width-only")
 require(global_profiles.get("WIDTH-BOUNDARY-480DP",{}).get("native_matrix") is False,"M05 must not enter native matrix")
 require(global_profiles.get("WIDE-PREVIEW-600x960",{}).get("native_matrix") is False,"600x960 preview must remain outside current native matrix")
+require(PREVIEW_RUNTIME_PATH.is_file(),"contract-driven browser runtime module is missing")
+default_insets=coordinate_space.get("default_safe_insets_dp",{})
+inset_total=default_insets.get("top",0)+default_insets.get("bottom",0)
+title_curve={item.get("safe_height_dp"):item.get("value_dp") for item in preview_parameters.get("spacing",{}).get("title_to_card",{}).get("base_curve",[])}
+for target in contract.get("spacing",{}).get("title_to_card_anchor_targets",[]):
+    profile=global_profiles.get(target.get("profile_id"),{})
+    height=profile.get("height_dp")
+    if isinstance(height,(int,float)):
+        safe_height=height-inset_total
+        require(title_curve.get(safe_height)==target.get("target_dp"),f"title-to-card curve does not pass through {target.get('profile_id')} anchor target")
+require(global_profiles.get("WIDTH-BOUNDARY-480DP",{}).get("height_dp") is None,"M05 must not gain a rendered viewport height")
 
 conflicts=contract.get("conflict_resolution",[])
 require(len(conflicts)>=7,"authority conflict register must cover required domains")

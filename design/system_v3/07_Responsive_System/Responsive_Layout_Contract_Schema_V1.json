@@ -627,6 +627,9 @@
           }
         }
       }
+    },
+    "preview_engine": {
+      "$ref": "#/$defs/previewEngine"
     }
   },
   "$defs": {
@@ -828,6 +831,81 @@
             "RESOLVED_BY_PROPOSED_CONTRACT",
             "SCOPED_NOT_CONFLICTING"
           ]
+        }
+      }
+    },
+    "jsonValue": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "number"
+        },
+        {
+          "type": "string"
+        },
+        {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/jsonValue"
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/jsonValue"
+          }
+        }
+      ]
+    },
+    "previewEngine": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "engine_id",
+        "coordinate_space",
+        "inputs",
+        "parameters",
+        "role_bindings"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {
+          "type": "string"
+        },
+        "engine_id": {
+          "type": "string"
+        },
+        "coordinate_space": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/jsonValue"
+          }
+        },
+        "inputs": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string"
+          }
+        },
+        "parameters": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": {
+            "$ref": "#/$defs/jsonValue"
+          }
+        },
+        "role_bindings": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": {
+            "type": "string"
+          }
         }
       }
     }

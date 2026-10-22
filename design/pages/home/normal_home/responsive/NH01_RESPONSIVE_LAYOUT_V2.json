@@ -59,28 +59,28 @@
     "explicit_thresholds": [
       {
         "id": "compact-footer",
-        "condition": "safeHeightDp < 460",
-        "purpose": "Apply the existing compact CTA-camera gap and Footer padding values; test both sides of the threshold."
+        "condition": "safeHeightDp is measured around the 460dp footer transition control point",
+        "purpose": "Interpolate compact to standard CTA-camera gap and Footer padding continuously; the 459/460 probe must not trigger a layout-mode switch."
       },
       {
         "id": "title-card-compact",
-        "condition": "safeHeightDp < 500",
-        "purpose": "Use the approved compact visible title-to-card spacing base."
+        "condition": "safeHeightDp is measured on the corresponding title_to_card interpolation interval",
+        "purpose": "Use the declared continuous title-to-card spacing curve; this probe is not a viewport-keyed layout branch."
       },
       {
         "id": "title-card-medium",
-        "condition": "500 <= safeHeightDp < 700",
-        "purpose": "Use the approved medium visible title-to-card spacing base."
+        "condition": "safeHeightDp is measured on the corresponding title_to_card interpolation interval",
+        "purpose": "Use the declared continuous title-to-card spacing curve; this probe is not a viewport-keyed layout branch."
       },
       {
         "id": "title-card-long",
-        "condition": "700 <= safeHeightDp < 840",
-        "purpose": "Use the approved long-screen visible title-to-card spacing base."
+        "condition": "safeHeightDp is measured on the corresponding title_to_card interpolation interval",
+        "purpose": "Use the declared continuous title-to-card spacing curve; this probe is not a viewport-keyed layout branch."
       },
       {
         "id": "title-card-extra-long",
-        "condition": "safeHeightDp >= 840",
-        "purpose": "Use the approved extra-long visible title-to-card spacing base."
+        "condition": "safeHeightDp is measured on the corresponding title_to_card interpolation interval",
+        "purpose": "Use the declared continuous title-to-card spacing curve; this probe is not a viewport-keyed layout branch."
       },
       {
         "id": "font-wrap",
@@ -524,12 +524,12 @@
       "font_pressure": "clamp((systemFontScale - 1.0) / 0.5, 0, 1)",
       "short_height_pressure": "clamp((620 - safeHeightDp) / 220, 0, 1)",
       "brand_to_stats": "max(9dp, clamp(safeHeightDp*0.035,14dp,28dp) - 3dp*fontPressure - 2dp*shortHeightPressure)",
-      "stats_to_title": "max(12dp, base - 2dp*fontPressure); base=14dp if safeHeightDp<700, 16dp if <840, else 18dp",
-      "title_to_card_runtime": "max(8dp, base - 4dp*fontPressure); base=8dp if safeHeightDp<500, 12dp if <700, 18dp if <840, else 20dp",
+      "stats_to_title": "max(minimum_gap_dp, interpolate(base_curve over safeHeightDp) - font_pressure_penalty_dp*fontPressure); the configured curve is continuous at its control points.",
+      "title_to_card_runtime": "max(minimum_gap_dp, interpolate(base_curve over safeHeightDp) - font_pressure_penalty_dp*fontPressure); the configured curve passes through the four declared static anchor targets and is continuous between them.",
       "card_to_footer": "max(3dp, clamp(safeHeightDp*0.018,8dp,14dp) - 3dp*fontPressure - 2dp*shortHeightPressure)",
-      "cta_to_camera": "6dp if safeHeightDp<460, otherwise 11dp",
-      "footer_top_padding": "2dp if safeHeightDp<460, otherwise 4dp",
-      "footer_bottom_padding": "2dp if safeHeightDp<460; otherwise 6dp if bottomInsetDp>=40, else 8dp"
+      "cta_to_camera": "Piecewise-linear interpolation of preview_engine.parameters.spacing.footer.transition_curve over safeHeightDp; clamp to endpoint values.",
+      "footer_top_padding": "Piecewise-linear interpolation of preview_engine.parameters.spacing.footer.transition_curve over safeHeightDp; clamp to endpoint values.",
+      "footer_bottom_padding": "Piecewise-linear interpolation of the inset-appropriate bottom-padding values in preview_engine.parameters.spacing.footer.transition_curve over safeHeightDp; clamp to endpoint values."
     },
     "title_to_card_anchor_targets": [
       {
@@ -775,7 +775,217 @@
     {
       "version": "V2.0",
       "date": "2026-10-22",
-      "change": "Consolidate one constraint-driven responsive policy; bind all six frozen visual anchors; resolve static/archive, legacy-layout, Gemini runtime, M05 width-only and status semantics; retain Android runtime as NOT_VERIFIED."
+      "change": "Consolidate one constraint-driven responsive policy; bind all six frozen visual anchors; resolve static/archive, legacy-layout, Gemini runtime, M05 width-only and status semantics; define deterministic browser preview parameters, continuous spacing curves and contract-owned text-wrap thresholds; retain Android runtime as NOT_VERIFIED."
     }
-  ]
+  ],
+  "preview_engine": {
+    "schema_version": "1.0",
+    "engine_id": "NH01_ADAPTIVE_V2_CONTRACT_PREVIEW_V1",
+    "coordinate_space": {
+      "logical_dp_to_css_px": 1,
+      "default_safe_insets_dp": {
+        "top": 24,
+        "bottom": 24,
+        "start": 0,
+        "end": 0
+      },
+      "default_insets_are_browser_fixture": true,
+      "runtime_evidence": false
+    },
+    "inputs": [
+      "logicalViewportWidthDp",
+      "logicalViewportHeightDp",
+      "safeInsetsDp",
+      "systemFontScale",
+      "actualMeasuredTextBounds",
+      "contentAndRecordState"
+    ],
+    "parameters": {
+      "content": {
+        "max_width_dp": 560,
+        "top_horizontal_padding": {
+          "ratio": 0.075,
+          "min_dp": 24,
+          "max_dp": 40
+        },
+        "section_horizontal_padding": {
+          "ratio": 0.088,
+          "min_dp": 24,
+          "max_dp": 42
+        },
+        "top_padding_dp": 8,
+        "header_min_height_dp": 48,
+        "header_horizontal_gap_dp": 12,
+        "stats_min_height_dp": 48,
+        "stats_vertical_padding_dp": 4,
+        "stats_item_gap_dp": 2,
+        "section_vertical_padding_dp": 2,
+        "section_horizontal_gap_dp": 12
+      },
+      "viewport_scale": {
+        "width_reference_dp": 360,
+        "height_reference_dp": 568,
+        "minimum": 1,
+        "maximum": 1.2
+      },
+      "brand_title": {
+        "width_ratio_numerator": 155,
+        "width_ratio_denominator": 1080,
+        "min_width_dp": 46,
+        "max_width_dp": 70,
+        "height_ratio_numerator": 80,
+        "height_ratio_denominator": 155
+      },
+      "avatar": {
+        "width_ratio": 0.1,
+        "min_visual_dp": 36,
+        "max_visual_dp": 40,
+        "minimum_touch_dp": 48
+      },
+      "hero": {
+        "aspect_ratio_width": 247,
+        "aspect_ratio_height": 293,
+        "target_width_fraction": 0.7,
+        "maximum_width_dp": 337.2,
+        "maximum_height_dp": 400,
+        "minimum_readable_height_dp": 148,
+        "maximum_readable_height_dp": 220,
+        "short_screen_exception": {
+          "minimum_height_dp": 124,
+          "minimum_width_dp": 145,
+          "exact_viewport_width_dp": 320,
+          "exact_viewport_height_dp": 480,
+          "exact_font_scale": 1,
+          "requires_no_middle_scroll": true,
+          "requires_all_copy_readable": true
+        }
+      },
+      "neighbor": {
+        "maximum_width_fraction_of_hero": 0.82,
+        "height_fraction_of_hero": 0.667,
+        "top_offset_dp": 15,
+        "edge_peek_width_fraction_of_track": 0.05,
+        "minimum_edge_peek_dp": 12,
+        "maximum_edge_peek_dp": 28,
+        "maximum_overlap_dp": 1
+      },
+      "camera": {
+        "width_fraction_of_capped_safe_width": 0.18,
+        "height_fraction_of_safe_height": 0.1,
+        "minimum_visual_dp": 56,
+        "maximum_visual_dp": 80,
+        "minimum_touch_dp": 72
+      },
+      "card_content": {
+        "padding_horizontal_dp": 20,
+        "text_gap_height_fraction": 0.006,
+        "minimum_text_gap_dp": 2,
+        "maximum_text_gap_dp": 5,
+        "footer_padding_height_fraction": 0.07,
+        "minimum_footer_padding_dp": 10,
+        "maximum_footer_padding_dp": 20,
+        "species_wrap_width_threshold_dp": 240,
+        "large_font_scale_threshold": 1.3,
+        "maximum_lines_species": 2,
+        "maximum_lines_measurements": 2,
+        "maximum_lines_metadata": 2
+      },
+      "spacing": {
+        "font_pressure": {
+          "base_font_scale": 1,
+          "range": 0.5
+        },
+        "short_height_pressure": {
+          "reference_height_dp": 620,
+          "range_dp": 220
+        },
+        "brand_to_stats": {
+          "height_fraction": 0.035,
+          "base_minimum_dp": 14,
+          "base_maximum_dp": 28,
+          "minimum_gap_dp": 9,
+          "font_pressure_penalty_dp": 3,
+          "short_height_pressure_penalty_dp": 2
+        },
+        "stats_to_title": {
+          "minimum_gap_dp": 12,
+          "font_pressure_penalty_dp": 2,
+          "base_curve": [
+            {
+              "safe_height_dp": 500,
+              "value_dp": 14
+            },
+            {
+              "safe_height_dp": 700,
+              "value_dp": 16
+            },
+            {
+              "safe_height_dp": 840,
+              "value_dp": 18
+            }
+          ]
+        },
+        "title_to_card": {
+          "minimum_gap_dp": 8,
+          "font_pressure_penalty_dp": 4,
+          "base_curve": [
+            {
+              "safe_height_dp": 432,
+              "value_dp": 8
+            },
+            {
+              "safe_height_dp": 592,
+              "value_dp": 12
+            },
+            {
+              "safe_height_dp": 796,
+              "value_dp": 18
+            },
+            {
+              "safe_height_dp": 884,
+              "value_dp": 20
+            }
+          ],
+          "curve_rule": "PIECEWISE_LINEAR_CLAMP_TO_ENDPOINTS"
+        },
+        "card_to_footer": {
+          "height_fraction": 0.018,
+          "base_minimum_dp": 8,
+          "base_maximum_dp": 14,
+          "minimum_gap_dp": 3,
+          "font_pressure_penalty_dp": 3,
+          "short_height_pressure_penalty_dp": 2
+        },
+        "footer": {
+          "transition_curve": [
+            {
+              "safe_height_dp": 430,
+              "cta_camera_gap_dp": 6,
+              "top_padding_dp": 2,
+              "bottom_padding_small_inset_dp": 2,
+              "bottom_padding_large_inset_dp": 2
+            },
+            {
+              "safe_height_dp": 460,
+              "cta_camera_gap_dp": 11,
+              "top_padding_dp": 4,
+              "bottom_padding_small_inset_dp": 8,
+              "bottom_padding_large_inset_dp": 6
+            }
+          ],
+          "large_bottom_inset_threshold_dp": 40
+        }
+      }
+    },
+    "role_bindings": {
+      "stat_value": "statistics-number",
+      "stat_label": "statistics-label",
+      "section_title": "recent-catch-heading",
+      "section_action": "all-entry",
+      "cta": "record-next-catch-cta",
+      "species": "species-name",
+      "measurement": "measurements",
+      "metadata": "time-location"
+    }
+  }
 }
