@@ -362,7 +362,7 @@
       ]
     }
   ],
-  "current_runtime_audit_note": "The 2026-10-10 RR07 audit documented implementation-specific DET_FISH_v0.1 and classifier rules against an older source SHA. Those numbers are historical audit evidence, not newly frozen universal thresholds; verify exact current code/config before asserting current behavior.",
+  "current_runtime_audit_note": "The 2026-10-10 RR07 audit documented implementation-specific DET_FISH_v0.1 and classifier rules against an older source SHA. Those numbers are historical audit evidence, not newly frozen universal thresholds. That audit also recorded a path where NO_FISH can carry INVALID and result routing checks status == NO_FISH before classifier eligibility. The quality-first no-box branch described here is a design target, not a claim that current Android implements that priority. Reconcile differences against the exact current source and an approved versioned Result contract before claiming runtime conformance.",
   "acceptance_scenarios": [
     "clear single fish",
     "clear no-fish scene",
