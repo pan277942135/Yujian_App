@@ -90,6 +90,9 @@
         "DESKTOP_THREE_STAGE",
         "TABLET_TWO_STAGE",
         "MOBILE_ACTIVE_STAGE"
+      ],
+      "not_shown_in_source": [
+        "upload.error"
       ]
     },
     {
@@ -120,6 +123,9 @@
         "DESKTOP_THREE_STAGE",
         "TABLET_TWO_STAGE",
         "MOBILE_ACTIVE_STAGE"
+      ],
+      "not_shown_in_source": [
+        "processing.diagnostics"
       ]
     },
     {
@@ -155,6 +161,11 @@
         "DESKTOP_THREE_STAGE",
         "TABLET_TWO_STAGE",
         "MOBILE_ACTIVE_STAGE"
+      ],
+      "not_shown_in_source": [
+        "result.nav",
+        "result.confidence-candidates",
+        "result.recovery"
       ]
     },
     {
@@ -212,6 +223,10 @@
     {
       "item": "当前Web实现截图",
       "rule": "使用用户本地选择的截图，显示自填源码SHA/视口；未提供或独立验证时保持NOT_VERIFIED，不冒称当前HEAD截图。"
+    },
+    {
+      "item": "图中未出现的状态与控件",
+      "rule": "upload.error、processing.diagnostics、result.nav、result.confidence-candidates、result.recovery等由正式机器合同定义；区域定位仅显示所属阶段，不证明原图绘制过这些状态。"
     }
   ]
 }
