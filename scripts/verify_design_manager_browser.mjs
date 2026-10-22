@@ -552,6 +552,10 @@ async function main() {
     "Structured workspace must expose its resource authority links");
   await structuredFrame.locator("#assetBrand").click();
   await structuredFrame.locator("#assetZoomDialog").waitFor({ state:"visible", timeout:5000 });
+  await structuredFrame.waitForFunction(() => {
+    const image=document.querySelector("#assetZoomImage");
+    return image?.complete === true && image.naturalWidth > 0;
+  }, undefined, { timeout:10000 });
   const originalAsset = await structuredFrame.locator("#assetZoomImage").evaluate(image => ({ width:image.naturalWidth,height:image.naturalHeight }));
   assert(originalAsset.width === 155 && originalAsset.height === 80, `Asset zoom must preserve original proportions: ${JSON.stringify(originalAsset)}`);
   assert((await structuredFrame.locator("#assetZoomOriginal").getAttribute("href")).includes("brand_title_primary.png"),
