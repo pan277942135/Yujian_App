@@ -422,6 +422,11 @@
         document.documentElement.style.setProperty(name, String(value));
       }
       function cssPx(value) { return `${Math.max(0, Number(value))}px`; }
+      function cssPxSigned(value) {
+        const number = Number(value);
+        if (!Number.isFinite(number)) throw new Error("Contract produced a non-finite signed spacing value.");
+        return `${number}px`;
+      }
       function failClosed(error) {
         window.NH01GeminiPreviewLayoutReady = false;
         window.NH01GeminiPreviewReady = false;
@@ -559,7 +564,7 @@
         set("--section-inline-padding", sectionInline);
         set("--section-horizontal-gap", c.section_horizontal_gap_dp);
         set("--leading-gap", leadingGap);
-        set("--title-card-gap", titleCardGap);
+        setVariable("--title-card-gap", cssPxSigned(titleCardGap));
         set("--card-footer-gap", layout.card_to_footer_gap_dp);
         set("--footer-top-padding", footerTop); set("--footer-bottom-padding", footerBottom);
         set("--cta-camera-gap", footerGap);
