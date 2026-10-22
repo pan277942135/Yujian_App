@@ -15,6 +15,7 @@ EXPECTED_RECOGNITION_FLOW = [
     "main_journey_overview", "state_timeline", "visual_states",
     "layer_component_ownership", "motion_transition", "degradation_accessibility",
     "runtime_evidence", "capture_first_use_guide", "boundary_state_release_gate",
+    "recognition_full_flow_models",
 ]
 EXPECTED_RECOGNITION_RESULT = [
     "overview", "high", "medium", "low", "no_fish", "image_quality",
@@ -64,6 +65,14 @@ def validate_tree(root: Path, *, built: bool = False, expected_build: str | None
     recognition_ids = [x.get("id") for x in recognition.get("hifi_views", [])]
     if recognition_ids != EXPECTED_RECOGNITION_FLOW:
         fail(f"Recognition main journey navigation changed: {recognition_ids} != {EXPECTED_RECOGNITION_FLOW}")
+    flow_models = next((x for x in recognition["hifi_views"] if x.get("id") == "recognition_full_flow_models"), None)
+    if (
+        flow_models is None
+        or flow_models.get("title") != "09 · 识别全流程-和模型"
+        or flow_models.get("status") != "DESIGN_ONLY"
+        or flow_models.get("render_mode") != "recognition_full_flow_models"
+    ):
+        fail("09 · 识别全流程-和模型 must remain a registered DESIGN_ONLY submenu")
     guide = next(x for x in recognition["hifi_views"] if x.get("id") == "capture_first_use_guide")
     guide_children = [x.get("id") for x in guide.get("children", [])]
     if guide.get("title") != "07 · 首次拍照教学" or guide_children != ["p01", "p02", "p03", "resources"]:
