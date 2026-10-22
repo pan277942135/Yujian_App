@@ -600,7 +600,20 @@ function selectWorkspace(pageId, workspaceId, writeHistory = true) {
   frame.dataset.workspaceId = workspace.id;
   el("workspaceRendererState").textContent = "正在加载 Gemini Native V3 预览与资产…";
   el("workspaceRendererState").dataset.state = "LOADING";
-  frame.src = workspace.preview_entry;
+  const previewEntryUrl = new URL(workspace.preview_entry, document.baseURI).href;
+  // Keep workspace navigation in the parent Design Manager history only.
+  // Replacing the iframe's current entry prevents Back from traversing stale
+  // child-document URLs before restoring the previous parent workspace route.
+  if (frame.dataset.historyNeutralWorkspaceNavigation === "true") {
+    try {
+      frame.contentWindow.location.replace(previewEntryUrl);
+    } catch (_) {
+      frame.src = previewEntryUrl;
+    }
+  } else {
+    frame.src = previewEntryUrl;
+    frame.dataset.historyNeutralWorkspaceNavigation = "true";
+  }
   frame.style.height = workspace.id === "responsive_design" ? "1400px" : "900px";
   window.setTimeout(() => {
     if (frame.dataset.workspaceId !== workspace.id || selectedKey !== "page/" + pageId + "/workspace/" + workspace.id || el("workspaceRendererState").dataset.state !== "LOADING") return;
