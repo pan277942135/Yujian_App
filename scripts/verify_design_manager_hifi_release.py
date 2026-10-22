@@ -104,6 +104,10 @@ def validate_tree(root: Path, *, built: bool = False, expected_build: str | None
     require(flow_machine.get("flow_id") == "recognition_full_flow_models_v1", "full-flow machine authority identity drift")
     require(len(flow_machine.get("stages", [])) == 10, "full-flow authority must contain ten workflow stages")
     require(len(flow_machine.get("model_responsibilities", [])) == 4, "full-flow authority must preserve four responsibility groups")
+    require(
+        len(full_flow.get("acceptance_scenarios", [])) == len(flow_machine.get("acceptance_scenarios", [])),
+        "Design Manager acceptance scenarios must match machine authority",
+    )
     flow_svg_path = root / full_flow["image"]
     require(flow_svg_path.is_file(), "full-flow SVG asset missing")
     flow_svg = flow_svg_path.read_text(encoding="utf-8")
