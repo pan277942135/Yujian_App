@@ -4,7 +4,7 @@
   "unit_policy": "All fixed viewport dimensions are logical dp unless a profile explicitly declares a different coordinate space. A width-only profile has no implied height.",
   "profiles": [
     {
-      "profile_id": "NH01-PREVIEW-320x480",
+      "profile_id": "PHONE-COMPACT-320x480",
       "kind": "FIXED_LOGICAL_DP",
       "width_dp": 320,
       "height_dp": 480,
@@ -13,7 +13,7 @@
       "purpose": "Compact short-screen anchor; tests constrained content and Footer safety."
     },
     {
-      "profile_id": "NH01-PREVIEW-360x640",
+      "profile_id": "PHONE-REFERENCE-360x640",
       "kind": "FIXED_LOGICAL_DP",
       "width_dp": 360,
       "height_dp": 640,
@@ -22,7 +22,7 @@
       "purpose": "Logical reference viewport; source PNG canvas dimensions remain a separate fact."
     },
     {
-      "profile_id": "NH01-PREVIEW-390x844",
+      "profile_id": "PHONE-LONG-390x844",
       "kind": "FIXED_LOGICAL_DP",
       "width_dp": 390,
       "height_dp": 844,
@@ -31,7 +31,7 @@
       "purpose": "Long phone anchor; verifies typography and vertical distribution."
     },
     {
-      "profile_id": "NH01-PREVIEW-430x932",
+      "profile_id": "PHONE-LARGE-LONG-430x932",
       "kind": "FIXED_LOGICAL_DP",
       "width_dp": 430,
       "height_dp": 932,
@@ -40,7 +40,7 @@
       "purpose": "Large long-phone anchor; verifies monotonic scaling and card proportion."
     },
     {
-      "profile_id": "NH01-PREVIEW-600x960",
+      "profile_id": "WIDE-PREVIEW-600x960",
       "kind": "FIXED_LOGICAL_DP",
       "width_dp": 600,
       "height_dp": 960,
@@ -49,7 +49,7 @@
       "purpose": "Wide preview boundary; content max-width must remain bounded and centered. Not part of the current 24-case Android matrix."
     },
     {
-      "profile_id": "NH01-M05-480DP-WIDTH-ONLY",
+      "profile_id": "WIDTH-BOUNDARY-480DP",
       "kind": "WIDTH_BOUNDARY_ONLY",
       "width_dp": 480,
       "height_dp": null,
@@ -60,7 +60,7 @@
   ],
   "interpolation_probes": [
     {
-      "probe_id": "NH01-CONTINUITY-375x720",
+      "probe_id": "RESPONSIVE-CONTINUITY-375x720",
       "width_dp": 375,
       "height_dp": 720,
       "font_scales": [
@@ -70,7 +70,7 @@
       "purpose": "Non-anchor interpolation check; confirms a single rule set between frozen anchors."
     },
     {
-      "probe_id": "NH01-HEIGHT-BOUNDARY-499-500",
+      "probe_id": "RESPONSIVE-HEIGHT-BOUNDARY-499-500",
       "width_dp": 390,
       "height_values_dp": [
         499,
@@ -80,7 +80,7 @@
       "purpose": "Probe the declared short-height threshold without selecting a viewport-specific layout."
     },
     {
-      "probe_id": "NH01-HEIGHT-BOUNDARY-699-700",
+      "probe_id": "RESPONSIVE-HEIGHT-BOUNDARY-699-700",
       "width_dp": 390,
       "height_values_dp": [
         699,
@@ -90,7 +90,7 @@
       "purpose": "Probe the declared stats/title and title/card spacing threshold."
     },
     {
-      "probe_id": "NH01-HEIGHT-BOUNDARY-839-840",
+      "probe_id": "RESPONSIVE-HEIGHT-BOUNDARY-839-840",
       "width_dp": 430,
       "height_values_dp": [
         839,
@@ -100,7 +100,7 @@
       "purpose": "Probe the declared long-height spacing threshold."
     },
     {
-      "probe_id": "NH01-FOOTER-BOUNDARY-459-460",
+      "probe_id": "RESPONSIVE-FOOTER-BOUNDARY-459-460",
       "width_dp": 320,
       "height_values_dp": [
         459,

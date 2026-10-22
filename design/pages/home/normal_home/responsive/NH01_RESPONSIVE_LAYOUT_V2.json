@@ -201,7 +201,7 @@
   ],
   "preview_profiles": [
     {
-      "profile_id": "NH01-PREVIEW-320x480",
+      "profile_id": "PHONE-COMPACT-320x480",
       "profile_kind": "FIXED_LOGICAL_DP",
       "width_dp": 320,
       "height_dp": 480,
@@ -213,7 +213,7 @@
       "purpose": "Short-screen responsive generation and anchor review."
     },
     {
-      "profile_id": "NH01-PREVIEW-360x640",
+      "profile_id": "PHONE-REFERENCE-360x640",
       "profile_kind": "FIXED_LOGICAL_DP",
       "width_dp": 360,
       "height_dp": 640,
@@ -226,7 +226,7 @@
       "purpose": "Reference logical viewport; original source canvas remains 1080x1920 pixels."
     },
     {
-      "profile_id": "NH01-PREVIEW-390x844",
+      "profile_id": "PHONE-LONG-390x844",
       "profile_kind": "FIXED_LOGICAL_DP",
       "width_dp": 390,
       "height_dp": 844,
@@ -238,7 +238,7 @@
       "purpose": "Long-phone responsive generation and anchor review."
     },
     {
-      "profile_id": "NH01-PREVIEW-430x932",
+      "profile_id": "PHONE-LARGE-LONG-430x932",
       "profile_kind": "FIXED_LOGICAL_DP",
       "width_dp": 430,
       "height_dp": 932,
@@ -250,7 +250,7 @@
       "purpose": "Large long-phone responsive generation and anchor review."
     },
     {
-      "profile_id": "NH01-PREVIEW-600x960",
+      "profile_id": "WIDE-PREVIEW-600x960",
       "profile_kind": "FIXED_LOGICAL_DP",
       "width_dp": 600,
       "height_dp": 960,
@@ -260,7 +260,7 @@
       "purpose": "Design Manager wide preview only; content remains capped and centered. Not part of the existing native matrix."
     },
     {
-      "profile_id": "NH01-M05-480DP-WIDTH-ONLY",
+      "profile_id": "WIDTH-BOUNDARY-480DP",
       "profile_kind": "WIDTH_BOUNDARY_ONLY",
       "width_dp": 480,
       "height_dp": null,
@@ -533,28 +533,28 @@
     },
     "title_to_card_anchor_targets": [
       {
-        "profile_id": "NH01-PREVIEW-320x480",
+        "profile_id": "PHONE-COMPACT-320x480",
         "target_dp": 8,
         "tolerance_dp": 2,
         "font_scale": 1,
         "measurement": "Rendered Recent Catch text-layout bottom to selected Hero outer top, using native boundsInWindow."
       },
       {
-        "profile_id": "NH01-PREVIEW-360x640",
+        "profile_id": "PHONE-REFERENCE-360x640",
         "target_dp": 12,
         "tolerance_dp": 2,
         "font_scale": 1,
         "measurement": "Rendered Recent Catch text-layout bottom to selected Hero outer top, using native boundsInWindow."
       },
       {
-        "profile_id": "NH01-PREVIEW-390x844",
+        "profile_id": "PHONE-LONG-390x844",
         "target_dp": 18,
         "tolerance_dp": 2,
         "font_scale": 1,
         "measurement": "Rendered Recent Catch text-layout bottom to selected Hero outer top, using native boundsInWindow."
       },
       {
-        "profile_id": "NH01-PREVIEW-430x932",
+        "profile_id": "PHONE-LARGE-LONG-430x932",
         "target_dp": 20,
         "tolerance_dp": 2,
         "font_scale": 1,
@@ -563,7 +563,7 @@
     ],
     "static_only_targets": [
       {
-        "profile_id": "NH01-M05-480DP-WIDTH-ONLY",
+        "profile_id": "WIDTH-BOUNDARY-480DP",
         "target_dp": 24,
         "tolerance_dp": 2,
         "native_runtime_authority": false,
@@ -764,11 +764,11 @@
       "separate exact-SHA Android runtime gate"
     ],
     "continuity_probe_ids": [
-      "NH01-CONTINUITY-375x720",
-      "NH01-HEIGHT-BOUNDARY-499-500",
-      "NH01-HEIGHT-BOUNDARY-699-700",
-      "NH01-HEIGHT-BOUNDARY-839-840",
-      "NH01-FOOTER-BOUNDARY-459-460"
+      "RESPONSIVE-CONTINUITY-375x720",
+      "RESPONSIVE-HEIGHT-BOUNDARY-499-500",
+      "RESPONSIVE-HEIGHT-BOUNDARY-699-700",
+      "RESPONSIVE-HEIGHT-BOUNDARY-839-840",
+      "RESPONSIVE-FOOTER-BOUNDARY-459-460"
     ]
   },
   "change_log": [

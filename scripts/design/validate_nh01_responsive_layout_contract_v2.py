@@ -84,9 +84,9 @@ for profile in contract.get("preview_profiles",[]):
     if ref:
         for key in ("width_dp","height_dp","native_matrix","preview_enabled"):
             require(profile.get(key)==ref.get(key),f"{pid}: {key} drift from global profile registry")
-require(global_profiles.get("NH01-M05-480DP-WIDTH-ONLY",{}).get("height_dp") is None,"M05 must remain width-only")
-require(global_profiles.get("NH01-M05-480DP-WIDTH-ONLY",{}).get("native_matrix") is False,"M05 must not enter native matrix")
-require(global_profiles.get("NH01-PREVIEW-600x960",{}).get("native_matrix") is False,"600x960 preview must remain outside current native matrix")
+require(global_profiles.get("WIDTH-BOUNDARY-480DP",{}).get("height_dp") is None,"M05 must remain width-only")
+require(global_profiles.get("WIDTH-BOUNDARY-480DP",{}).get("native_matrix") is False,"M05 must not enter native matrix")
+require(global_profiles.get("WIDE-PREVIEW-600x960",{}).get("native_matrix") is False,"600x960 preview must remain outside current native matrix")
 
 conflicts=contract.get("conflict_resolution",[])
 require(len(conflicts)>=7,"authority conflict register must cover required domains")
