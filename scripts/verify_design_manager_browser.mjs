@@ -643,7 +643,7 @@ async function main() {
     }
   });
   await historyPage.goto(baseUrl + "#page/home_normal_v1", { waitUntil:"networkidle", timeout:45000 });
-  await waitForManager(historyPage);
+  await historyPage.locator(".workspace-nav-group").waitFor({ state:"visible", timeout:30000 });
   await historyPage.locator('.workspace-nav-item[data-workspace-id="structured_hifi"]').click();
   await historyPage.waitForFunction(expected => location.hash === expected, nhWorkspaceRoutes.structured);
   await historyPage.locator('.workspace-nav-item[data-workspace-id="responsive_design"]').click();
