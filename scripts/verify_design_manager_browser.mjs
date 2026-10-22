@@ -634,22 +634,24 @@ async function main() {
   await page.locator('.workspace-nav-item[data-workspace-id="responsive_design"]').click();
   await page.waitForFunction(expected => location.hash === expected, nhWorkspaceRoutes.responsive);
   const historyBeforeBack = await page.evaluate(() => ({ hash:location.hash, length:history.length }));
-  await page.evaluate(() => history.back());
-  try {
-    await page.waitForFunction(expected => location.hash === expected, nhWorkspaceRoutes.structured, { timeout:10000 });
-  } catch (error) {
-    const historyAfterBack = await page.evaluate(() => ({ hash:location.hash, length:history.length }));
-    throw new Error(`Browser Back did not restore Structured Hi-Fi: before=${JSON.stringify(historyBeforeBack)} after=${JSON.stringify(historyAfterBack)}; ${error.message}`);
-  }
+  let goBackError = null;
+  try { await page.goBack({ waitUntil:"commit", timeout:3000 }); }
+  catch (error) { goBackError = error.message; }
+  try { await page.waitForFunction(expected => location.hash === expected, nhWorkspaceRoutes.structured, { timeout:5000 }); }
+  catch (_) {}
+  const historyAfterBack = await page.evaluate(() => ({ hash:location.hash, length:history.length }));
+  assert(historyAfterBack.hash === nhWorkspaceRoutes.structured,
+    `Browser Back did not restore Structured Hi-Fi: before=${JSON.stringify(historyBeforeBack)} after=${JSON.stringify(historyAfterBack)} goBack=${goBackError || "completed"}`);
   assert(await page.locator("#workspaceFrame").getAttribute("data-workspace-id").then(value => value === "structured_hifi"),
     "Browser Back must restore the Structured Hi-Fi workspace");
-  await page.evaluate(() => history.forward());
-  try {
-    await page.waitForFunction(expected => location.hash === expected, nhWorkspaceRoutes.responsive, { timeout:10000 });
-  } catch (error) {
-    const historyAfterForward = await page.evaluate(() => ({ hash:location.hash, length:history.length }));
-    throw new Error(`Browser Forward did not restore Responsive Design: after=${JSON.stringify(historyAfterForward)}; ${error.message}`);
-  }
+  let goForwardError = null;
+  try { await page.goForward({ waitUntil:"commit", timeout:3000 }); }
+  catch (error) { goForwardError = error.message; }
+  try { await page.waitForFunction(expected => location.hash === expected, nhWorkspaceRoutes.responsive, { timeout:5000 }); }
+  catch (_) {}
+  const historyAfterForward = await page.evaluate(() => ({ hash:location.hash, length:history.length }));
+  assert(historyAfterForward.hash === nhWorkspaceRoutes.responsive,
+    `Browser Forward did not restore Responsive Design: after=${JSON.stringify(historyAfterForward)} goForward=${goForwardError || "completed"}`);
   await page.reload({ waitUntil:"networkidle" });
   await page.waitForFunction(expected => location.hash === expected, nhWorkspaceRoutes.responsive);
   await page.locator(".responsive-matrix").waitFor({ state:"visible", timeout:30000 });
