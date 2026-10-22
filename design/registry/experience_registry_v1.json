@@ -3720,6 +3720,7 @@
             "多鱼场景：候选框与主目标策略可审计",
             "夜拍/黑底/黄色鲶鱼：检查召回、BBox、Crop 与分类",
             "竖拍/横拍/EXIF 旋转：坐标映射一致，无偏移",
+            "BBox / Crop 坐标映射：像素框、Crop rectangle 与原图变换关系一致",
             "低置信/候选歧义：按既有 Low / Medium 合同处理",
             "ONNX / 模型 / Crop 故障：进入 Technical Failure",
             "用户 Back / 重拍：不复用旧图、不自动保存"
