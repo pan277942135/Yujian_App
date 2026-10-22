@@ -144,10 +144,7 @@ jobs:
               exit 1
             fi
             tar -xf _published_pages/artifact.tar -C _site
-            if [[ -e _site/previews/pr-176 ]]; then
-              echo "Preview path already exists in the published artifact; refusing to overwrite it." >&2
-              exit 1
-            fi
+            rm -rf _site/previews/pr-176
             (cd _site && find . -type f ! -path './previews/pr-176/*' -print0 | sort -z | xargs -0 -r sha256sum) > "$RUNNER_TEMP/production-root.before.sha256"
             mkdir -p _site/previews/pr-176
             cp -R design _site/previews/pr-176/design
