@@ -63,6 +63,9 @@
   <path class="arrow" d="M840 297 H892"/>
   <path class="arrow" d="M1250 297 H1302"/>
   <path class="arrow" d="M1660 297 H1678"/>
+  <!-- Invalid input branch: routed around the process boxes to avoid implying detector no-box == no-fish. -->
+  <path class="goldArrow" d="M1075 365 V410 H50 V640 H562 V672"/>
+  <text class="small" x="1090" y="402">INVALID · 输入恢复</text>
 
   <!-- No-box branch -->
   <text class="small" x="1687" y="410">否 · 无有效框</text>
