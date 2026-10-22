@@ -137,7 +137,14 @@ async function main() {
   const browser = await chromium.launch({ headless: true });
   activeBrowser = browser;
   const page = await browser.newPage({ viewport: { width: 1440, height: 1000 }, deviceScaleFactor: 1 });
-  page.on("console", message => { if (message.type() === "error") errors.push(message.text()); });
+  page.on("console", message => {
+    if (message.type() !== "error") return;
+    const text = message.text();
+    // HTTP status failures are reported with their exact URL by response
+    // tracking; do not fail a second time on Playwright's generic console line.
+    if (/^Failed to load resource: the server responded with a status of \d+/.test(text)) return;
+    errors.push(text);
+  });
   page.on("pageerror", error => errors.push(error.message));
   page.on("request", request => { if (new URL(request.url()).origin !== sameOrigin) externalRequests.push(request.url()); });
   page.on("requestfailed", request => recordFailedRequest(request, failedRequests));
@@ -156,7 +163,14 @@ async function main() {
   // not from live Figma. Verify the actual assets and emit a 1080x1920 diagnostic artifact.
   const previewUrl = new URL("nh01_acceptance/gemini-native-preview.html", baseUrl).href;
   const previewPage = await browser.newPage({ viewport: { width: 1440, height: 1000 }, deviceScaleFactor: 1 });
-  previewPage.on("console", message => { if (message.type() === "error") errors.push(message.text()); });
+  previewPage.on("console", message => {
+    if (message.type() !== "error") return;
+    const text = message.text();
+    // HTTP status failures are reported with their exact URL by response
+    // tracking; do not fail a second time on Playwright's generic console line.
+    if (/^Failed to load resource: the server responded with a status of \d+/.test(text)) return;
+    errors.push(text);
+  });
   previewPage.on("pageerror", error => errors.push(error.message));
   previewPage.on("request", request => { if (new URL(request.url()).origin !== sameOrigin) externalRequests.push(request.url()); });
   previewPage.on("requestfailed", request => recordFailedRequest(request, failedRequests));
@@ -425,7 +439,14 @@ async function main() {
     "Static camera button must clearly disclose that runtime interaction is not wired");
 
   const canvasPage = await browser.newPage({ viewport: { width: 360, height: 640 }, deviceScaleFactor: 3 });
-  canvasPage.on("console", message => { if (message.type() === "error") errors.push(message.text()); });
+  canvasPage.on("console", message => {
+    if (message.type() !== "error") return;
+    const text = message.text();
+    // HTTP status failures are reported with their exact URL by response
+    // tracking; do not fail a second time on Playwright's generic console line.
+    if (/^Failed to load resource: the server responded with a status of \d+/.test(text)) return;
+    errors.push(text);
+  });
   canvasPage.on("pageerror", error => errors.push(error.message));
   canvasPage.on("requestfailed", request => recordFailedRequest(request, failedRequests));
   canvasPage.on("response", response => recordBadResponse(response, badResponses, sameOrigin, isPrPreviewContext));
@@ -652,7 +673,14 @@ async function main() {
   // already visited many independent routes and can reach Chromium's 50-entry
   // history cap before the workspace-specific navigation assertions run.
   const historyPage = await browser.newPage({ viewport: { width: 1440, height: 1000 }, deviceScaleFactor: 1 });
-  historyPage.on("console", message => { if (message.type() === "error") errors.push(message.text()); });
+  historyPage.on("console", message => {
+    if (message.type() !== "error") return;
+    const text = message.text();
+    // HTTP status failures are reported with their exact URL by response
+    // tracking; do not fail a second time on Playwright's generic console line.
+    if (/^Failed to load resource: the server responded with a status of \d+/.test(text)) return;
+    errors.push(text);
+  });
   historyPage.on("pageerror", error => errors.push(error.message));
   historyPage.on("request", request => { if (new URL(request.url()).origin !== sameOrigin) externalRequests.push(request.url()); });
   historyPage.on("requestfailed", request => recordFailedRequest(request, failedRequests));
