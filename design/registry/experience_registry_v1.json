@@ -3532,6 +3532,227 @@
           ],
           "authority_path": "design/system_v3/00_Product_Master_Flow/assets/Recognition_Main_Journey_Master_Board_V1.md",
           "authority_path_available": true
+        },
+        {
+          "id": "recognition_full_flow_models",
+          "code": "09",
+          "title": "09 · 识别全流程-和模型",
+          "status": "DESIGN_ONLY",
+          "authority_type": "behavior",
+          "render_mode": "recognition_full_flow_models",
+          "design_version": "Recognition_Full_Flow_Models_V1",
+          "page_id": "recognition.main_journey",
+          "state_id": "RECOGNITION_FULL_FLOW_MODELS_OVERVIEW",
+          "state_id_scope": "Design Manager reference only; not a product runtime state",
+          "authority_path": "design/system_v3/00_Product_Master_Flow/subflows/Recognition_Full_Flow_Models_V1.md",
+          "authority": "design/system_v3/00_Product_Master_Flow/subflows/Recognition_Full_Flow_Models_V1.md",
+          "machine_authority": "design/system_v3/00_Product_Master_Flow/subflows/Recognition_Full_Flow_Models_V1.json",
+          "image": "design/system_v3/00_Product_Master_Flow/subflows/Recognition_Full_Flow_Models_V1.svg",
+          "visual_status": "DESIGN_ONLY",
+          "diagram_caption": "业务 / 技术流程图 · DESIGN ONLY · 不代表单页高保真或生产模型已切换",
+          "summary": "完整拍照识鱼链路：原始完整场景图 → 预处理/质量门 → DET_FISH 定位 → BBox 与尺寸校验 → Crop → MODEL_M1 分类 → 结果融合 → 既有 Result / Issue。清楚区分模型职责、规则门与用户可见状态。",
+          "runtime_status": "NOT_RUN",
+          "runtime_note": "此菜单仅注册设计系统中的业务流程与模型职责说明；模型页面选择、独立测试集与线上推理必须分别验收。",
+          "workflow_steps": [
+            {
+              "order": 1,
+              "title": "拍照 / 相册选择",
+              "owner": "相机 / 相册入口",
+              "input": "用户拍摄或选择的原始完整场景图",
+              "operation": "保留原图引用、来源与 attempt ID",
+              "output": "可追溯的完整场景图"
+            },
+            {
+              "order": 2,
+              "title": "图像预处理",
+              "owner": "预处理模块",
+              "input": "原始场景图",
+              "operation": "EXIF 方向归一化、解码、记录尺寸与坐标变换",
+              "output": "方向正确的完整图像与变换关系"
+            },
+            {
+              "order": 3,
+              "title": "输入质量门",
+              "owner": "质量 / 几何规则",
+              "input": "标准图像、尺寸与解码状态",
+              "operation": "判定 GOOD / WARNING / INVALID，保留原因码",
+              "output": "可继续处理标志；无效输入进入恢复"
+            },
+            {
+              "order": 4,
+              "title": "鱼体检测",
+              "owner": "目标检测模型",
+              "input": "完整场景图，不是分类 Crop",
+              "operation": "输出零个、一个或多个鱼体候选框及检测分数",
+              "output": "BBox、检测分数、候选数与推理状态"
+            },
+            {
+              "order": 5,
+              "title": "BBox 映射与校验",
+              "owner": "坐标 / 几何规则",
+              "input": "候选框、图像变换与原图尺寸",
+              "operation": "检查坐标系、边界、正面积及像素框映射",
+              "output": "可追溯的有效鱼体框"
+            },
+            {
+              "order": 6,
+              "title": "尺寸与可分类性",
+              "owner": "质量 / 几何规则",
+              "input": "有效 BBox、像素尺寸与质量状态",
+              "operation": "判断目标大小、触边/截断和 Crop 可用性",
+              "output": "可分类、尺寸警告或内部原因码"
+            },
+            {
+              "order": 7,
+              "title": "安全裁剪 Crop",
+              "owner": "裁剪模块",
+              "input": "完整场景图与有效 BBox",
+              "operation": "按现有裁剪合同安全扩展并夹取边界",
+              "output": "鱼体局部图及 Crop 坐标来源"
+            },
+            {
+              "order": 8,
+              "title": "鱼种分类",
+              "owner": "鱼种分类模型",
+              "input": "有效鱼体 Crop",
+              "operation": "输出 Top-K 鱼种候选与分类分数",
+              "output": "物种候选，不是完整场景的有鱼判定"
+            },
+            {
+              "order": 9,
+              "title": "结果融合与判定",
+              "owner": "业务决策层",
+              "input": "检测、质量、尺寸、分类与运行状态",
+              "operation": "区分无鱼、输入恢复、物种不确定和技术错误",
+              "output": "既有 High / Medium / Low / Issue 分支"
+            },
+            {
+              "order": 10,
+              "title": "用户确认与鱼获记录",
+              "owner": "识别结果 / 鱼获记录",
+              "input": "最终结果与用户操作",
+              "operation": "允许纠正鱼种，按现有确认/保存门禁持久化",
+              "output": "鱼获记录、纠正反馈或恢复动作"
+            }
+          ],
+          "model_responsibilities": [
+            {
+              "id": "DET_FISH",
+              "title": "DET_FISH · 鱼体检测器",
+              "question": "是否有鱼体证据？鱼在哪里？",
+              "input": "完整场景图",
+              "output": "BBox、检测分数、候选数量与检测状态",
+              "boundary": "不负责鱼种分类；检测分数不等于鱼种置信度。",
+              "version_note": "DET_FISH_v0.3 已训练；测试页可选性、独立测试集和真实推理需分别验证。生产默认版本不会因本页自动改变。"
+            },
+            {
+              "id": "QUALITY_AND_SIZE_RULES",
+              "title": "质量 / 尺寸规则门",
+              "question": "图片与鱼体是否具备可靠分类条件？",
+              "input": "质量状态、BBox、像素尺寸、图像变换",
+              "output": "GOOD / WARNING / INVALID、尺寸原因码与分类资格",
+              "boundary": "不推断鱼种；模型/裁剪异常不得判为无鱼。",
+              "version_note": "具体阈值以当前有效合同和精确源码为准，本页不新增阈值。"
+            },
+            {
+              "id": "MODEL_M1",
+              "title": "MODEL_M1 · 鱼种分类器",
+              "question": "这个鱼体 Crop 像哪些已知鱼种？",
+              "input": "经过校验的鱼体 Crop",
+              "output": "Top-K 类别与分类分数",
+              "boundary": "不在完整场景找鱼，不负责修正 BBox，也不单独判无鱼。",
+              "version_note": "实际分类器版本从运行配置读取；本页不擅自指定或升级版本。"
+            },
+            {
+              "id": "RESULT_FUSION",
+              "title": "结果融合 / 业务决策层",
+              "question": "最终应向用户显示什么？",
+              "input": "检测证据、质量/尺寸原因、分类候选与错误状态",
+              "output": "既有 High / Medium / Low、No Fish、Image Quality、Technical Failure 分支",
+              "boundary": "不新增产品状态、不复制一套独立阈值、不绕过用户确认。",
+              "version_note": "遵循当前 RR07 与 Result 合同。"
+            }
+          ],
+          "decision_branches": [
+            {
+              "title": "输入无效",
+              "condition": "质量门 INVALID 或无法可靠解码",
+              "outcome": "Image Quality / 输入恢复",
+              "rule": "不能把无效输入上的无框结果解释为无鱼。"
+            },
+            {
+              "title": "没有有效鱼体框",
+              "condition": "输入足以判断且检测正常完成",
+              "outcome": "No Fish",
+              "rule": "仅在有足够判断条件且检测正常结束后使用。"
+            },
+            {
+              "title": "检测到鱼但过小 / Crop 不可用",
+              "condition": "当前有效规则判定不具备分类资格",
+              "outcome": "Image Quality（保留 FISH_TOO_SMALL 等内部原因码）",
+              "rule": "内部原因码不是新增用户可见产品状态。"
+            },
+            {
+              "title": "物种证据不足",
+              "condition": "鱼体证据存在但分类证据不足",
+              "outcome": "Low",
+              "rule": "不能把分类不确定改写成 No Fish；按现有 RR07 规则决定。"
+            },
+            {
+              "title": "候选物种歧义",
+              "condition": "多个物种候选仍合理且当前合同判为歧义",
+              "outcome": "Medium",
+              "rule": "候选仅为建议，用户确认前不作为已确认鱼种保存。"
+            },
+            {
+              "title": "模型 / Crop / Runtime 错误",
+              "condition": "模型加载、推理、裁剪或运行异常",
+              "outcome": "Technical Failure",
+              "rule": "不得伪装成无鱼或责怪用户照片。"
+            },
+            {
+              "title": "用户主动返回",
+              "condition": "用户在任一阶段主动 Back",
+              "outcome": "Previous Surface",
+              "rule": "Back 不是 Failure，不自动保存，也不得复用过期 attempt 的结果。"
+            }
+          ],
+          "acceptance_scenarios": [
+            "清晰单鱼：BBox 对齐，Crop 来源正确，分类器收到鱼体 Crop",
+            "清晰无鱼：检测正常结束后进入 No Fish，不创建鱼获",
+            "无效/低质量输入：不把无框直接判为 No Fish",
+            "远距离小鱼：尺寸原因可追溯，不强行断言鱼种",
+            "鱼体触边或不完整入画：边界状态不被忽略",
+            "多鱼场景：候选框与主目标策略可审计",
+            "夜拍/黑底/黄色鲶鱼：检查召回、BBox、Crop 与分类",
+            "竖拍/横拍/EXIF 旋转：坐标映射一致，无偏移",
+            "BBox / Crop 坐标映射：像素框、Crop rectangle 与原图变换关系一致",
+            "低置信/候选歧义：按既有 Low / Medium 合同处理",
+            "ONNX / 模型 / Crop 故障：进入 Technical Failure",
+            "用户 Back / 重拍：不复用旧图、不自动保存"
+          ],
+          "contract_links": [
+            {
+              "label": "完整业务流程与模型职责规范",
+              "path": "design/system_v3/00_Product_Master_Flow/subflows/Recognition_Full_Flow_Models_V1.md"
+            },
+            {
+              "label": "机器可读流程定义",
+              "path": "design/system_v3/00_Product_Master_Flow/subflows/Recognition_Full_Flow_Models_V1.json"
+            },
+            {
+              "label": "流程图 SVG 原图",
+              "path": "design/system_v3/00_Product_Master_Flow/subflows/Recognition_Full_Flow_Models_V1.svg"
+            },
+            {
+              "label": "Processing 三状态冻结规范",
+              "path": "design/pages/recognition/spec/Recognition_State_Timeline_Spec_V1_3.md"
+            },
+            {
+              "label": "Result 3+2 判定权威",
+              "path": "design/pages/recognition/result/spec/Recognition_Result_3plus2_Decision_Spec_V1_1.md"
+            }
+          ]
         }
       ],
       "navigation_mode": "submenu_direct",

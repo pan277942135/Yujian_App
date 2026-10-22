@@ -119,6 +119,7 @@ async function main() {
   const p02Hash = "#page/recognition_flow_v1_2/hifi/capture_first_use_guide/p02";
   const p03Hash = "#page/recognition_flow_v1_2/hifi/capture_first_use_guide/p03";
   const resourcesHash = "#page/recognition_flow_v1_2/hifi/capture_first_use_guide/resources";
+  const fullFlowModelsHash = "#page/recognition_flow_v1_2/hifi/recognition_full_flow_models";
   const open = hash => page.goto(baseUrl + hash, { waitUntil: "networkidle", timeout: 45000 });
 
   await open(p01Hash);
@@ -227,6 +228,19 @@ async function main() {
   assert(page.url().endsWith(overviewHash), `Back did not restore the overview route from ${overviewUrl}`);
   await page.goForward();
   await page.waitForFunction(expected => location.hash === expected, targetHash);
+
+  await open(fullFlowModelsHash);
+  await waitForManager(page);
+  assert(page.url().endsWith(fullFlowModelsHash), "full-flow/model direct Hash route did not resolve");
+  assert((await page.locator("#hifiViewTitle").innerText()).includes("识别全流程-和模型"), "full-flow/model menu title is missing");
+  const fullFlowImage = await waitForLoadedImage(page, ".recognition-full-flow-models .hifi-asset-figure img", "recognition full-flow diagram");
+  assert(fullFlowImage.complete && fullFlowImage.width === 2200 && fullFlowImage.height === 1500,
+    `full-flow SVG must load at 2200×1500: ${JSON.stringify(fullFlowImage)}`);
+  assert(await page.locator(".recognition-full-flow-models .authority-index-card").count() >= 30,
+    "full-flow/model page must render the stages, model roles, branches and acceptance cards");
+  assert((await page.locator("#hifiViewContractDetails").innerText()).includes("Recognition_Full_Flow_Models_V1.md"),
+    "full-flow/model page must expose its canonical specification link");
+  await page.screenshot({ path: resolve(args.outputDir, "recognition-full-flow-models-1440.png"), fullPage: true });
 
   await open("#page/recognition_flow_v1_2/hifi/boundary_state_release_gate/new_states_review");
   const reviewImage = await waitForLoadedImage(page, ".hifi-asset-figure img", "review source");

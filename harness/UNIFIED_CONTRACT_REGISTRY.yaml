@@ -318,6 +318,15 @@ feature_contracts:
           resource_ids: ["p01", "p02", "p03"]
           direct_original_file_links: true
           android_runtime_mapping: false
+      full_flow_models:
+        status: "DESIGN_ONLY"
+        authority_spec: "design/system_v3/00_Product_Master_Flow/subflows/Recognition_Full_Flow_Models_V1.md"
+        machine_authority: "design/system_v3/00_Product_Master_Flow/subflows/Recognition_Full_Flow_Models_V1.json"
+        flowchart_asset: "design/system_v3/00_Product_Master_Flow/subflows/Recognition_Full_Flow_Models_V1.svg"
+        manager_route: "#page/recognition_flow_v1_2/hifi/recognition_full_flow_models"
+        product_runtime_state: false
+        production_default_model_changed: false
+        note: "Design-only technical/business flow reference. DET_FISH owns full-scene fish detection/location; MODEL_M1 classifies valid crops; size/quality rules and RR07 own eligibility and final user-facing routing."
 
     shared_contract_refs: ["DS-FOUNDATION", "ANDROID-RUNTIME-HARNESS", "STATE-EVIDENCE-PROVENANCE"]
     additional_shared_contract_refs: ["MODEL-RECOGNITION", "API-DATA-BOUNDARY"]
@@ -1663,6 +1672,6 @@ inventory:
   task_count: 45
   gate_count: 11
   registry_created_from_pr_head: "ebb6b3904feaa0cf26b4fd4b83bc809a397085a2"
-  last_synced_feature_matrix_sha: "f280d12a97ff0412ef852c0e7f3524330a3825ac"
-  last_synced_phase_task_state_machine_sha: "275a22ad28d6f9df3ab3feaba47855dd2c4f3a4e"
-  last_synced_experience_registry_sha: "31f90473ed64c74acdcbd9ad66bb0221219cd977"
+  last_synced_feature_matrix_sha: "42071f09795de91ebb75ba809694e2d7b1030418"
+  last_synced_phase_task_state_machine_sha: "bb94ab7c1b2bfc1204dee0d5b1ec6cd949d8712d"
+  last_synced_experience_registry_sha: "2040cc40402e909d4814f81d4aae64cae164b5f4"

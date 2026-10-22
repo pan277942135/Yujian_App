@@ -2308,6 +2308,72 @@ function recognitionDecisionLogicCanvas(view) {
   '</div>';
 }
 
+function recognitionFullFlowModelsCanvas(view) {
+  const asText = value => Array.isArray(value) ? value.join("；") : (value || "—");
+  const flowPath = view.image || null;
+  const stepCards = (view.workflow_steps || []).map((step, index) =>
+    '<article class="authority-index-card">' +
+      '<div class="authority-index-head"><strong>' +
+        esc(String(step.order || index + 1).padStart(2, "0") + " · " + step.title) +
+      '</strong></div>' +
+      '<div class="authority-kind">' + esc(step.owner || "流程阶段") + '</div>' +
+      '<p><b>输入</b> · ' + esc(asText(step.input)) + '</p>' +
+      '<p><b>处理</b> · ' + esc(asText(step.operation)) + '</p>' +
+      '<p><b>输出</b> · ' + esc(asText(step.output)) + '</p>' +
+    '</article>'
+  ).join("");
+  const modelCards = (view.model_responsibilities || []).map(model =>
+    '<article class="authority-index-card">' +
+      '<div class="authority-index-head"><strong>' + esc(model.title) + '</strong>' +
+        statusBadge("DESIGN_ONLY") + '</div>' +
+      '<div class="authority-kind">职责 · ' + esc(model.id || "MODEL / RULE") + '</div>' +
+      '<p><b>回答</b> · ' + esc(asText(model.question)) + '</p>' +
+      '<p><b>输入</b> · ' + esc(asText(model.input)) + '</p>' +
+      '<p><b>输出</b> · ' + esc(asText(model.output)) + '</p>' +
+      '<p><b>边界</b> · ' + esc(asText(model.boundary)) + '</p>' +
+      '<p><b>版本规则</b> · ' + esc(asText(model.version_note)) + '</p>' +
+    '</article>'
+  ).join("");
+  const branchCards = (view.decision_branches || []).map((branch, index) =>
+    '<article class="authority-index-card">' +
+      '<div class="authority-index-head"><strong>' +
+        esc(String(index + 1).padStart(2, "0") + " · " + branch.title) +
+      '</strong></div>' +
+      '<div class="authority-kind">决策分支</div>' +
+      '<p><b>条件</b> · ' + esc(asText(branch.condition)) + '</p>' +
+      '<p><b>结果</b> · ' + esc(asText(branch.outcome)) + '</p>' +
+      '<p><b>规则</b> · ' + esc(asText(branch.rule)) + '</p>' +
+    '</article>'
+  ).join("");
+  const testCards = (view.acceptance_scenarios || []).map((scenario, index) =>
+    '<article class="authority-index-card">' +
+      '<div class="authority-index-head"><strong>' +
+        esc(String(index + 1).padStart(2, "0") + " · " + scenario) +
+      '</strong></div><div class="authority-kind">端到端验收场景</div>' +
+    '</article>'
+  ).join("");
+  return '<div class="authority-index recognition-full-flow-models">' +
+    '<div class="authority-index-intro"><strong>业务 / 技术全流程</strong>' +
+      '<span>' + esc(view.summary || "从原始完整场景图到检测、分类、结果融合与用户确认。") +
+      ' 本页是 DESIGN ONLY 流程权威，不是单页高保真，也不声明生产模型版本已切换。</span></div>' +
+    (flowPath && isImage(flowPath)
+      ? hifiImageFigure(flowPath, view.title || "识别全流程-和模型", view.diagram_caption || "业务 / 技术流程图 · DESIGN ONLY")
+      : '<div class="preview-empty">流程图资产尚未登记。</div>') +
+    '<div class="authority-index-intro"><strong>01 · 全流程阶段</strong>' +
+      '<span>检测、坐标映射、尺寸判断、裁剪与分类是内部技术步骤，不等同于新增产品 Processing 状态。</span></div>' +
+    '<div class="authority-index-grid">' + stepCards + '</div>' +
+    '<div class="authority-index-intro"><strong>02 · 模型与规则职责</strong>' +
+      '<span>DET_FISH 找鱼并定位；质量/尺寸门判断能否继续；MODEL_M1 对有效 Crop 分类；结果融合遵循 RR07。</span></div>' +
+    '<div class="authority-index-grid">' + modelCards + '</div>' +
+    '<div class="authority-index-intro"><strong>03 · 关键决策分支</strong>' +
+      '<span>无鱼、图像质量、物种不确定与技术失败必须区分，不能互相冒充。</span></div>' +
+    '<div class="authority-index-grid">' + branchCards + '</div>' +
+    '<div class="authority-index-intro"><strong>04 · 端到端验收矩阵</strong>' +
+      '<span>以下场景用于后续测试计划；本菜单本身不代表运行时已通过。</span></div>' +
+    '<div class="authority-index-grid">' + testCards + '</div>' +
+  '</div>';
+}
+
 function recognitionMainJourneyOverviewCanvas(view) {
   const links = (view.journey_links || []).map(link =>
     '<a class="hifi-overview-link" href="' + esc(link.route) + '">' +
@@ -2401,6 +2467,7 @@ function genericSpecHifiCanvas(feature, view) {
           esc(String(i+1).padStart(2,"0")+" · "+p)+'</strong></div><div class="authority-kind">FROZEN MOTION V2</div></article>').join("") +
       '</div></div>';
   }
+  if (view.render_mode === "recognition_full_flow_models") return recognitionFullFlowModelsCanvas(view);
   if (view.render_mode === "recognition_main_journey_overview") return recognitionMainJourneyOverviewCanvas(view);
   if (view.render_mode === "recognition_boundary_release_gate") return recognitionBoundaryReleaseGateCanvas(feature, view);
   if (view.render_mode === "recognition_decision_logic") return recognitionDecisionLogicCanvas(view);
@@ -3132,6 +3199,7 @@ function renderHifiView(feature, hifiId, hifiChildId = null) {
   panel.classList.remove("hidden");
   const authorityType = child?.authority_type || view.authority_type || "visual";
   el("hifiViewEyebrow").textContent =
+    view.render_mode === "recognition_full_flow_models" ? "业务流程与模型职责 · DESIGN ONLY" :
     view.render_mode === "recognition_main_journey_overview" ? "业务流程总览 · 不代表单页视觉 Authority" :
     view.render_mode === "recognition_boundary_release_gate" ? "主链路边界状态 · 设计与资产 Gate" :
     child?.render_mode === "recognition_new_states_review" ? "Review Source · 非 Frozen 单页 Authority" :
