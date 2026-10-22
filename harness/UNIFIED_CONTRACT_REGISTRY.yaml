@@ -127,6 +127,10 @@ shared_contracts:
     domain: "DOMAIN"
     status: "READY"
     refs: ["design/governance/DESIGN_MANAGER_PAGE_LAYER_WORKSPACE_V1.md"]
+  RESPONSIVE-LAYOUT-STANDARD-V1:
+    domain: "DOMAIN"
+    status: "READY"
+    refs: ["design/system_v3/07_Responsive_System/Responsive_Layout_Standard_V1.md", "design/system_v3/07_Responsive_System/Responsive_Layout_Contract_Schema_V1.json", "design/system_v3/07_Responsive_System/Viewport_Profiles_V1.json"]
 
 feature_contracts:
   home_empty_v2:
@@ -199,17 +203,17 @@ feature_contracts:
         authority: "design/pages/home/normal_home/sound/Normal_Home_Sound_Spec_V1.md"
       runtime:
         status: "PARTIAL"
-        authority: "app/src/main/java/com/yujian/ai/ui/home/NormalHomeContent.kt"
+        authority: "app/src/main/java/com/yujian/ai/ui/home/GeminiNormalHomeContent.kt"
       evidence:
         status: "PARTIAL"
         authority: null
       assets:
         status: "FROZEN"
         authority: "design/pages/home/normal_home/assets/asset_manifest.json"
-    page_contract_refs: ["design/system_v3/10_Page_Visual_Acceptance_Contracts/Normal_Home/Normal_Home_Visual_Contract_V1.md", "design/system_v3/09_Android_Implementation_Contracts/Normal_Home/Normal_Home_Android_Contract_V1.md", "design/system_v3/09_Android_Implementation_Contracts/Normal_Home/Normal_Home_State_Binding_V1.json", "design/system_v3/09_Android_Implementation_Contracts/Normal_Home/Normal_Home_Android_Component_Mapping_V1.json", "design/system_v3/09_Android_Implementation_Contracts/Normal_Home/Normal_Home_Resource_Binding_V1.json", "design/system_v3/09_Android_Implementation_Contracts/Normal_Home/Normal_Home_Motion_Runtime_Binding_V1.md", "design/system_v3/09_Android_Implementation_Contracts/Normal_Home/Normal_Home_Runtime_Gate_V1.md", "design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_MULTI_SCREEN_STATIC_HIFI_V1_MANIFEST.json", "design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_MULTI_SCREEN_RESPONSIVE_CONTRACT_V1.md", "design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_MULTI_SCREEN_RESPONSIVE_CONTRACT_V1.json", "design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_STATIC_HIFI_ACCEPTANCE_MATRIX_V1.json"]
-    page_contract_keys: ["visual", "implementation", "state", "component_mapping", "resource_binding", "motion_runtime", "runtime_gate", "static_hifi_assets", "static_hifi_responsive", "static_hifi_acceptance"]
+    page_contract_refs: ["design/system_v3/10_Page_Visual_Acceptance_Contracts/Normal_Home/Normal_Home_Visual_Contract_V1.md", "design/system_v3/09_Android_Implementation_Contracts/Normal_Home/Normal_Home_Android_Contract_V1.md", "design/system_v3/09_Android_Implementation_Contracts/Normal_Home/Normal_Home_State_Binding_V1.json", "design/system_v3/09_Android_Implementation_Contracts/Normal_Home/Normal_Home_Android_Component_Mapping_V1.json", "design/system_v3/09_Android_Implementation_Contracts/Normal_Home/Normal_Home_Resource_Binding_V1.json", "design/system_v3/09_Android_Implementation_Contracts/Normal_Home/Normal_Home_Motion_Runtime_Binding_V1.md", "design/system_v3/09_Android_Implementation_Contracts/Normal_Home/Normal_Home_Runtime_Gate_V1.md", "design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_MULTI_SCREEN_STATIC_HIFI_V1_MANIFEST.json", "design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_MULTI_SCREEN_RESPONSIVE_CONTRACT_V1.md", "design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_MULTI_SCREEN_RESPONSIVE_CONTRACT_V1.json", "design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_STATIC_HIFI_ACCEPTANCE_MATRIX_V1.json", "design/pages/home/normal_home/responsive/NH01_RESPONSIVE_LAYOUT_V2.md", "design/pages/home/normal_home/responsive/NH01_RESPONSIVE_LAYOUT_V2.json", "design/pages/home/normal_home/responsive/NH01_RESPONSIVE_AUTHORITY_CROSSWALK_V1.md"]
+    page_contract_keys: ["visual", "implementation", "state", "component_mapping", "resource_binding", "motion_runtime", "runtime_gate", "static_hifi_assets", "static_hifi_responsive", "static_hifi_acceptance", "responsive_layout"]
     shared_contract_refs: ["DS-FOUNDATION", "ANDROID-RUNTIME-HARNESS", "STATE-EVIDENCE-PROVENANCE"]
-    additional_shared_contract_refs: []
+    additional_shared_contract_refs: ["RESPONSIVE-LAYOUT-STANDARD-V1"]
     required_gate_classes: ["STATIC_CONTRACT", "BUILD", "RUNTIME", "VISUAL", "MOTION_ACCESSIBILITY", "JOURNEY_E2E", "APK_PROVENANCE"]
   record_date_v2:
     contract_id: "FC-record_date_v2"
@@ -1350,7 +1354,8 @@ page_contract_sets:
       static_hifi_assets: "design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_MULTI_SCREEN_STATIC_HIFI_V1_MANIFEST.json"
       static_hifi_responsive: "design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_MULTI_SCREEN_RESPONSIVE_CONTRACT_V1.json"
       static_hifi_acceptance: "design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_STATIC_HIFI_ACCEPTANCE_MATRIX_V1.json"
-    authority_rule: "The existing visual key remains the original NH01 V1 whole-page authority; appended static_hifi keys own only the additive archive, static responsive rules, and preview/asset checks. Gemini Adaptive V2 and its native matrix remain the Android runtime authority."
+      responsive_layout: "design/pages/home/normal_home/responsive/NH01_RESPONSIVE_LAYOUT_V2.json"
+    authority_rule: "The original visual key remains the frozen whole-page composition. static_hifi_assets/static_hifi_responsive/static_hifi_acceptance retain V1 frozen archive identity, static presentation and archive checks. responsive_layout is the single proposed machine authority for current Gemini responsive geometry after canonical adoption; the existing Gemini unified authority continues to own non-responsive fields. Android Runtime remains independently NOT_VERIFIED."
   recognition_flow_v1_2:
     refs:
       capture_page: "design/system_v3/08_Page_Contracts/recognition/capture/Recognition_Capture_Page_Contract_V3_1.md"
@@ -1406,6 +1411,11 @@ gate_contracts:
     purpose: "Normal Home Hero fixture and camera parity"
     contract_refs: ["FC-home_normal_v1", "FC-fish_record_detail_v2"]
     acceptance_domains: ["visual", "runtime", "evidence"]
+    exact_sha_required: true
+  G-NH01-RESPONSIVE-CONTRACT:
+    purpose: "NH01 responsive contract schema, six frozen visual anchors, authority crosswalk, control-plane references and generated-preview boundary evidence; design-only and not Android runtime acceptance"
+    contract_refs: ["FC-home_normal_v1", "RESPONSIVE-LAYOUT-STANDARD-V1", "STATE-EVIDENCE-PROVENANCE"]
+    acceptance_domains: ["static_contract", "visual", "evidence"]
     exact_sha_required: true
   G-EVIDENCE-PACK:
     purpose: "Primary runtime/evidence package"
@@ -1492,6 +1502,10 @@ task_contract_bindings:
   P3-04:
     contract_refs: ["FC-fish_memory_bside_v1", "FC-record_date_v2", "FC-share_templates_v1", "FC-my_catches_v2", "FC-fish_guide_v2", "FC-account_privacy_v1"]
     gate_id: null
+    phase: "P3"
+  P3-05:
+    contract_refs: ["FC-home_normal_v1", "RESPONSIVE-LAYOUT-STANDARD-V1", "STATE-EVIDENCE-PROVENANCE", "G-NH01-RESPONSIVE-CONTRACT"]
+    gate_id: "G-NH01-RESPONSIVE-CONTRACT"
     phase: "P3"
   P4-01:
     contract_refs: ["FC-recognition_flow_v1_2", "FC-recognition_result_v1"]
@@ -1676,8 +1690,8 @@ inventory:
   journey_count: 20
   child_surface_count: 81
   route_count: 22
-  task_count: 45
-  gate_count: 11
+  task_count: 46
+  gate_count: 12
   registry_created_from_pr_head: "ebb6b3904feaa0cf26b4fd4b83bc809a397085a2"
   last_synced_feature_matrix_sha: "42071f09795de91ebb75ba809694e2d7b1030418"
   last_synced_phase_task_state_machine_sha: "bb94ab7c1b2bfc1204dee0d5b1ec6cd949d8712d"

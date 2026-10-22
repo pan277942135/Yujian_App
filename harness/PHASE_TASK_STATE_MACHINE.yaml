@@ -277,7 +277,7 @@ feature_closure_rollup:
   home_normal_v1:
     task_id: "FT-home_normal_v1"
     phase: "P8"
-    depends_on: []
+    depends_on: ["P3-05"]
   record_date_v2:
     task_id: "FT-record_date_v2"
     phase: "P6"
@@ -392,7 +392,7 @@ tasks:
     owner: "Work"
     feature_refs: ["home_normal_v1", "recognition_result_v1"]
     journey_refs: ["J11-J18"]
-    depends_on: ["P3-01"]
+    depends_on: ["P3-01", "P3-05"]
     entry_blockers: []
     target_blockers: ["B003", "B004", "B006"]
     evidence_required: ["hero_F01-F08_provenance", "camera_mask_runtime_parity", "phase_3b_provenance_resolution", "design_manager_shared_page_layer_contract", "nh01_page_owned_layer_map_and_authority_binding", "non_nh01_fixture_shell_independence", "workspace_view_back_forward_refresh_direct_route", "existing_asset_navigation_viewport_governance_checks"]
@@ -422,6 +422,20 @@ tasks:
     evidence_required: ["secondary_surface_contracts"]
     completion: "Secondary design contracts and child surfaces are closed for expanded scope."
     human_required: false
+  P3-05:
+    phase: "P3"
+    priority: "P0"
+    owner: "Design"
+    feature_refs: ["home_normal_v1"]
+    journey_refs: ["J17", "J18"]
+    depends_on: ["P3-01"]
+    entry_blockers: []
+    target_blockers: []
+    gate_id: "G-NH01-RESPONSIVE-CONTRACT"
+    evidence_required: ["responsive_standard_schema_pass", "nh01_contract_schema_pass", "six_frozen_visual_anchor_sha_pass", "authority_crosswalk_resolved", "control_plane_binding_validation_pass", "generated_preview_and_boundary_probe_report"]
+    completion: "NH01 responsive authority is consolidated into one constraint-driven machine contract; six frozen visual anchors remain unchanged; page and control-plane references agree; Android Runtime remains NOT_VERIFIED."
+    human_required: false
+
   P4-01:
     phase: "P4"
     priority: "P0"
