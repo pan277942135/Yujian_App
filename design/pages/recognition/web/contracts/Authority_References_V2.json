@@ -1,0 +1,100 @@
+{
+  "contract_id": "YUJIAN_AI_CATCH_RECOGNITION_WEB_HIFI_V1",
+  "version": "2.0-proposal",
+  "authority_status": "VISUAL_CONTRACT_DEFINED",
+  "adoption_status": "DRAFT_DEPENDENT_ON_PR_186_AND_187",
+  "page_id": "ai_catch_recognition_web",
+  "source_ref": [
+    "Yujian_App/main@ad8bf1ba61e42a34d1fdd91de47fa386e25f11ef",
+    "Yujian_App/PR186@3b0b5848206cdea949f4bf6be7eb7cb1d19b1e34",
+    "Yujian_App/PR187@ee3bb45858183144598bc28c5bae53ae55b324e0",
+    "Yujian/PR177@7da5c1100d981cfe88317b39b5b95713bdba91d7"
+  ],
+  "motion_contract_ref": "design/pages/recognition/processing/optics/SWOS_15_Frame_Keyframe_Contract_V1_1.json",
+  "transition_contract_ref": "design/pages/recognition/continuity/SWOS_Shared_Photo_Transition_Contract_V1.json",
+  "optical_contract_ref": "design/pages/recognition/processing/optics/SWOS_Optical_Contract_V1.json",
+  "result_motion_ref": "design/pages/recognition/result/motion/recognition_result_motion_contract_v3.json",
+  "result_media_ref": "design/pages/recognition/result/media/hero_media_contract.json",
+  "processing_ms": 2800,
+  "rr09_ms": 850,
+  "nominal_total_ms": 3650,
+  "frame_count": 15,
+  "processing_frame_count": 8,
+  "rr09_frame_count": 7,
+  "r05_relative_ms": 100,
+  "r05_global_ms": 2900,
+  "optical_layers": [
+    "Photo Base",
+    "Ambient Water",
+    "Caustic Field",
+    "Ripple Field",
+    "Peripheral Refraction",
+    "Fish Focus",
+    "Residual Gold Trace"
+  ],
+  "water_strength": [
+    0,
+    10,
+    45,
+    75,
+    60,
+    35,
+    10,
+    0
+  ],
+  "gold_strength": [
+    0,
+    0,
+    15,
+    45,
+    100,
+    100,
+    100,
+    100
+  ],
+  "gold_geometry_trust": [
+    "TRUSTED_MASK_THREE_LAYERS",
+    "BBOX_ONLY_SOFT_REGION",
+    "NONE_NO_SPATIAL_FOCUS"
+  ],
+  "r05_geometry_360dp": {
+    "processing_foreground": [
+      0,
+      80,
+      360,
+      480
+    ],
+    "mid_container": [
+      9.5,
+      26.5,
+      341,
+      425
+    ],
+    "mid_foreground": [
+      50.625,
+      66.5,
+      258.75,
+      345
+    ],
+    "result_hero": [
+      19,
+      53,
+      322,
+      210
+    ],
+    "result_foreground": [
+      101.25,
+      53,
+      157.5,
+      210
+    ]
+  },
+  "timing_note": "relative visual intensity not alpha; true inference may prolong Processing; one shared transform and time source",
+  "acceptance_criteria": [
+    "R0 first presented Result frame",
+    "R0.5 geometric intermediate not crossfade",
+    "R1 hero landed before gold transfer",
+    "R4 Chinese name fully readable",
+    "R5 no looping glow"
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "contract_id": "YUJIAN_AI_CATCH_RECOGNITION_WEB_HIFI_V1",
+  "version": "2.0-proposal",
+  "authority_status": "VISUAL_CONTRACT_DEFINED",
+  "adoption_status": "DRAFT_DEPENDENT_ON_PR_186_AND_187",
+  "page_id": "ai_catch_recognition_web",
+  "source_ref": [
+    "Yujian_App/main@ad8bf1ba61e42a34d1fdd91de47fa386e25f11ef",
+    "Yujian_App/PR186@3b0b5848206cdea949f4bf6be7eb7cb1d19b1e34",
+    "Yujian_App/PR187@ee3bb45858183144598bc28c5bae53ae55b324e0",
+    "Yujian/PR177@7da5c1100d981cfe88317b39b5b95713bdba91d7"
+  ],
+  "web_repo": "pan277942135/Yujian",
+  "web_pr": 177,
+  "source_sha": "7da5c1100d981cfe88317b39b5b95713bdba91d7",
+  "files": [
+    "app/templates/platform/catch_recognition.html",
+    "app/static/js/catch_recognition.js",
+    "app/templates/platform/sidebar.html"
+  ],
+  "handoff_a": "design/pages/recognition/web/WEB_HIFI_HANDOFF_A_V2.md",
+  "handoff_b": "design/pages/recognition/web/WEB_HIFI_HANDOFF_B_V2.md",
+  "tasks": [
+    "extract product shell preserving auth and navigation",
+    "move diagnostic model details behind disclosure",
+    "implement approved optical layers gated by trusted geometry",
+    "enforce HIGH-only RR09 and one shared photo transform",
+    "apply token/geometry/responsive contracts",
+    "browser compare against approved source once verified"
+  ],
+  "do_not": [
+    "change model thresholds",
+    "pretend BBox is segmentation",
+    "publish private photos",
+    "claim visual parity from UI simulation"
+  ],
+  "acceptance_criteria": [
+    "Referenced source and status remain explicit; dependent draft is not runtime evidence"
+  ]
+}

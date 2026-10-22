@@ -1,0 +1,113 @@
+{
+  "contract_id": "YUJIAN_AI_CATCH_RECOGNITION_WEB_HIFI_V1",
+  "version": "2.0-proposal",
+  "authority_status": "VISUAL_CONTRACT_DEFINED",
+  "adoption_status": "DRAFT_DEPENDENT_ON_PR_186_AND_187",
+  "page_id": "ai_catch_recognition_web",
+  "source_ref": [
+    "Yujian_App/main@ad8bf1ba61e42a34d1fdd91de47fa386e25f11ef",
+    "Yujian_App/PR186@3b0b5848206cdea949f4bf6be7eb7cb1d19b1e34",
+    "Yujian_App/PR187@ee3bb45858183144598bc28c5bae53ae55b324e0",
+    "Yujian/PR177@7da5c1100d981cfe88317b39b5b95713bdba91d7"
+  ],
+  "states": [
+    {
+      "state": "HIGH",
+      "title": "真实中文鱼种名与置信信息",
+      "copy": "真实中文鱼种名与置信信息",
+      "hero_reference_dp_360": "322x210",
+      "edit": "可编辑",
+      "save": "仅明确点击且认证后保存",
+      "primary_secondary_actions": "继续记忆未开放；保存本次鱼获",
+      "rr09": "once if new valid session",
+      "source": "design/pages/recognition/result/engineering/layout_geometry_contract.json; recognition_result_3plus2_decision_contract_v1_1.json"
+    },
+    {
+      "state": "MEDIUM",
+      "title": "候选与用户确认",
+      "copy": "候选与用户确认",
+      "hero_reference_dp_360": "322x178",
+      "edit": "确认后编辑",
+      "save": "未确认禁止保存",
+      "primary_secondary_actions": "确认鱼种；重新选择照片",
+      "rr09": "never",
+      "source": "design/pages/recognition/result/engineering/layout_geometry_contract.json; recognition_result_3plus2_decision_contract_v1_1.json"
+    },
+    {
+      "state": "LOW",
+      "title": "识别不确定，人工选择",
+      "copy": "识别不确定，人工选择",
+      "hero_reference_dp_360": "322x178",
+      "edit": "人工确认后编辑",
+      "save": "未确认禁止保存",
+      "primary_secondary_actions": "人工选择；重新选择照片",
+      "rr09": "never",
+      "source": "design/pages/recognition/result/engineering/layout_geometry_contract.json; recognition_result_3plus2_decision_contract_v1_1.json"
+    },
+    {
+      "state": "NO_FISH",
+      "title": "未检测到鱼",
+      "copy": "未检测到鱼",
+      "hero_reference_dp_360": "322x245",
+      "edit": "否",
+      "save": "否",
+      "primary_secondary_actions": "重新选择/拍摄",
+      "rr09": "never",
+      "source": "design/pages/recognition/result/engineering/layout_geometry_contract.json; recognition_result_3plus2_decision_contract_v1_1.json"
+    },
+    {
+      "state": "IMAGE_QUALITY",
+      "title": "照片不适合识别",
+      "copy": "照片不适合识别",
+      "hero_reference_dp_360": "322x214",
+      "edit": "否",
+      "save": "否",
+      "primary_secondary_actions": "重新选择/拍摄",
+      "rr09": "never",
+      "source": "design/pages/recognition/result/engineering/layout_geometry_contract.json; recognition_result_3plus2_decision_contract_v1_1.json"
+    },
+    {
+      "state": "TECHNICAL_FAILURE",
+      "title": "服务暂时不可用",
+      "copy": "服务暂时不可用",
+      "hero_reference_dp_360": "same source contain; no invented fish",
+      "edit": "否",
+      "save": "否",
+      "primary_secondary_actions": "重试/重新选择",
+      "rr09": "never",
+      "source": "separate technical failure fallback"
+    }
+  ],
+  "upload_states": [
+    "EMPTY",
+    "DRAG_ACTIVE",
+    "SELECTED",
+    "PREVIEW",
+    "VALIDATION_ERROR",
+    "UNSUPPORTED_TYPE",
+    "OVERSIZE",
+    "DECODE_ERROR",
+    "RESELECT",
+    "SUBMITTING",
+    "CANCELLED",
+    "RETRY"
+  ],
+  "business_visual_mapping": {
+    "inference_pending": "processing without false percentage or completed model stages",
+    "detector_bbox_only": "soft regional light, not rectangle outline or fish contour",
+    "trusted_mask": "three layer gold may use one geometry",
+    "no_geometry": "no spatial fish gold",
+    "valid_high": "RR09 once after true response and minimum nominal Processing",
+    "other_result": "direct appropriate state without celebration",
+    "cancel_or_reupload": "abort/reset session photo, bbox, mask, species and optical residue",
+    "reduce_motion": "static equivalent with identical data and controls"
+  },
+  "threshold_authority": "design/pages/recognition/result/spec/recognition_result_3plus2_decision_contract_v1_1.json; do not invent threshold",
+  "known_threshold_conflict": "App observed top1 <0.45 vs backend default low confidence 0.55; business owner resolution required",
+  "acceptance_criteria": [
+    "3+2 plus technical failure",
+    "HIGH only RR09",
+    "no species before real classifier result",
+    "no save without explicit user action"
+  ]
+}

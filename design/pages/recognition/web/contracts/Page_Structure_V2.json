@@ -1,0 +1,136 @@
+{
+  "contract_id": "YUJIAN_AI_CATCH_RECOGNITION_WEB_HIFI_V1",
+  "version": "2.0-proposal",
+  "authority_status": "VISUAL_CONTRACT_DEFINED",
+  "adoption_status": "DRAFT_DEPENDENT_ON_PR_186_AND_187",
+  "page_id": "ai_catch_recognition_web",
+  "source_ref": [
+    "Yujian_App/main@ad8bf1ba61e42a34d1fdd91de47fa386e25f11ef",
+    "Yujian_App/PR186@3b0b5848206cdea949f4bf6be7eb7cb1d19b1e34",
+    "Yujian_App/PR187@ee3bb45858183144598bc28c5bae53ae55b324e0",
+    "Yujian/PR177@7da5c1100d981cfe88317b39b5b95713bdba91d7"
+  ],
+  "product_entry": "渔见 AI 智能生产平台 · V1 → AI渔获识别",
+  "shell": {
+    "component_id": "catch.product-shell",
+    "authenticated": true,
+    "platform_navigation_preserved": true,
+    "sidebar_behavior": "collapse_or_yield_width_on_product_route; restore_on_exit",
+    "max_content_width_px": 1280,
+    "max_content_width_provenance": "DESIGN_COMPLETION_PENDING_APPROVED_SOURCE_MEASUREMENT",
+    "public_site_reuse": "swap outer route/auth/nav adapters; preserve product module"
+  },
+  "stages": [
+    {
+      "id": "upload",
+      "component_id": "catch.upload",
+      "title": "01 上传照片",
+      "children": [
+        "upload.drop-zone",
+        "upload.preview",
+        "upload.file-meta",
+        "upload.actions",
+        "upload.error"
+      ]
+    },
+    {
+      "id": "processing",
+      "component_id": "catch.processing",
+      "title": "02 AI 核心识别",
+      "children": [
+        "processing.photo",
+        "processing.optics",
+        "processing.business-status",
+        "processing.diagnostics"
+      ]
+    },
+    {
+      "id": "result",
+      "component_id": "catch.result",
+      "title": "03 识别结果",
+      "children": [
+        "result.nav",
+        "result.hero",
+        "result.species-zh",
+        "result.confidence-candidates",
+        "result.metadata",
+        "result.story",
+        "result.dual-cta",
+        "result.recovery"
+      ]
+    }
+  ],
+  "five_step_strip": [
+    {
+      "component_id": "step.upload",
+      "title": "上传照片",
+      "maps_to": "upload",
+      "states": [
+        "pending",
+        "active",
+        "done",
+        "error"
+      ],
+      "business_gate": "never claim completion from animation clock"
+    },
+    {
+      "component_id": "step.water",
+      "title": "水光自然增强",
+      "maps_to": "processing",
+      "states": [
+        "pending",
+        "active",
+        "done",
+        "error"
+      ],
+      "business_gate": "never claim completion from animation clock"
+    },
+    {
+      "component_id": "step.fish",
+      "title": "鱼体逐步高亮",
+      "maps_to": "processing",
+      "states": [
+        "pending",
+        "active",
+        "done",
+        "error"
+      ],
+      "business_gate": "never claim completion from animation clock"
+    },
+    {
+      "component_id": "step.photo",
+      "title": "照片缩小接续",
+      "maps_to": "result",
+      "states": [
+        "pending",
+        "active",
+        "done",
+        "error"
+      ],
+      "business_gate": "never claim completion from animation clock"
+    },
+    {
+      "component_id": "step.reveal",
+      "title": "结果揭晓",
+      "maps_to": "result",
+      "states": [
+        "pending",
+        "active",
+        "done",
+        "error"
+      ],
+      "business_gate": "never claim completion from animation clock"
+    }
+  ],
+  "layout_variants": [
+    "DESKTOP_THREE_STAGE",
+    "TABLET_TWO_STAGE",
+    "MOBILE_ACTIVE_STAGE"
+  ],
+  "acceptance_criteria": [
+    "three stages and five explanatory nodes",
+    "auth and platform return remain",
+    "diagnostics collapsed in normal mode",
+    "no invented progress"
+  ]
+}

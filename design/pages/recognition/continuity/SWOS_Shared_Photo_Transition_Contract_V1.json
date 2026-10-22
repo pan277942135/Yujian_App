@@ -1,0 +1,137 @@
+{
+  "schema_version": "1.0",
+  "contract_id": "SWOS_SHARED_PHOTO_TRANSITION_V1",
+  "title": "Shared Photo Transition Contract V1",
+  "status": "FROZEN_DESIGN_DIRECTION",
+  "canonicality": "DRAFT_DEPENDENT_ON_PR_186",
+  "dependency": {
+    "pull_request": 186,
+    "head_sha": "3b0b5848206cdea949f4bf6be7eb7cb1d19b1e34"
+  },
+  "sample_source": {
+    "source_photo_id": "sha256:ab7227cf7205ee2ac342b6cd75cd899747879506c95c33b888b6adf0acb47987",
+    "source_photo_sha256": "ab7227cf7205ee2ac342b6cd75cd899747879506c95c33b888b6adf0acb47987",
+    "orientation": 1,
+    "orientation_normalized": true,
+    "source_width": 1152,
+    "source_height": 1536,
+    "display_aspect": 0.75,
+    "recognition_session_id": "FIXTURE_208758_REVIEW_ONLY"
+  },
+  "viewport_reference_dp": {
+    "width": 360,
+    "height": 640
+  },
+  "processing_photo_viewport_rect": {
+    "x": 0,
+    "y": 0,
+    "width": 360,
+    "height": 640
+  },
+  "processing_photo_content_rect": {
+    "x": 0,
+    "y": 80,
+    "width": 360,
+    "height": 480,
+    "fit": "CONTAIN"
+  },
+  "result_hero_rect": {
+    "x": 19,
+    "y": 53,
+    "width": 322,
+    "height": 210,
+    "aspect_ratio": 1.5333333333,
+    "source_contract": "design/pages/recognition/result/media/hero_media_contract.json"
+  },
+  "result_hero_photo_content_rect": {
+    "x": 101.25,
+    "y": 53,
+    "width": 157.5,
+    "height": 210,
+    "fit": "CONTAIN"
+  },
+  "samples": {
+    "R0": {
+      "global_nominal_ms": 2800,
+      "outer_rect": {
+        "x": 0,
+        "y": 0,
+        "width": 360,
+        "height": 640
+      },
+      "foreground_rect": {
+        "x": 0,
+        "y": 80,
+        "width": 360,
+        "height": 480
+      }
+    },
+    "R0.5": {
+      "relative_ms": 100,
+      "global_nominal_ms": 2900,
+      "outer_rect": {
+        "x": 9.5,
+        "y": 26.5,
+        "width": 341,
+        "height": 425
+      },
+      "foreground_rect": {
+        "x": 50.625,
+        "y": 66.5,
+        "width": 258.75,
+        "height": 345
+      },
+      "geometry_method": "uniform_scale_and_center_lerp_at_t_0_5"
+    },
+    "R1": {
+      "relative_ms": 200,
+      "global_nominal_ms": 3000,
+      "outer_rect": {
+        "x": 19,
+        "y": 53,
+        "width": 322,
+        "height": 210
+      },
+      "foreground_rect": {
+        "x": 101.25,
+        "y": 53,
+        "width": 157.5,
+        "height": 210
+      }
+    }
+  },
+  "transform": {
+    "container_rect": "linear interpolation between Processing viewport and Result Hero",
+    "foreground_rect": "interpolate center and one uniform scale factor; preserve the oriented source aspect ratio",
+    "crop_policy": "full oriented source foreground plus low-contrast blurred cover derived from the same source when safe crop cannot retain a verified fish BBox",
+    "stretch": false,
+    "generated_fill": false,
+    "second_crop_jump_at_r1": false,
+    "photo_swap": false
+  },
+  "fish_geometry": {
+    "trust_state": "MANUAL_REFERENCE_ONLY_NOT_PRODUCTION_MASK",
+    "bbox_source": "human visual reference, not detector output",
+    "bbox_pixels": {
+      "left": 52,
+      "top": 322,
+      "right": 724,
+      "bottom": 1140
+    },
+    "contour_source": "MANUAL_REFERENCE_CONTOUR",
+    "contour_svg_path": "M691 372 C665 386 645 398 618 397 C583 398 554 421 532 448 C513 472 486 479 456 466 C432 454 417 435 398 431 L380 448 L357 433 L342 461 L320 445 L302 471 L278 457 L270 496 L246 488 L253 523 L233 529 L239 563 L220 576 L236 616 L223 650 C231 705 252 758 281 812 C302 857 335 913 364 961 C342 1002 303 1045 266 1070 C305 1084 342 1090 376 1070 C412 1048 447 1014 463 980 C476 940 484 907 498 874 C518 832 537 791 555 752 C575 710 596 664 620 628 C641 586 670 529 682 481 C691 441 712 410 691 372 Z",
+    "production_mask": false,
+    "note": "The hand-obscured head boundary is approximate; this path is review artwork only and must never satisfy a runtime geometry trust gate."
+  },
+  "golden_trace_state": {
+    "source_geometry": "fishGeometry.contour_svg_path",
+    "transform": "same foreground transform used by the photo",
+    "three_layers_share_geometry": true
+  },
+  "publication": {
+    "source_photo_committed": false,
+    "public_pages_publish_permission": "NOT_CONFIRMED",
+    "public_preview_requires_local_user_upload": true
+  },
+  "playback_or_android_implementation": false
+}

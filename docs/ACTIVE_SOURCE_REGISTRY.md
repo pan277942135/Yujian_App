@@ -149,6 +149,23 @@ Frozen minimum visual beats:
 
 Historical V1.1 contracts and verifier remain repository history/compatibility. They must not override current V1.2 design authority.
 
+### Proposed Phase 0 authority set — PR #186, not yet adopted by `main`
+
+The Draft PR proposes the next optical/timing contract set. Until it is reviewed and adopted on `main`, the V1.2 entries above remain the repository's active authority; the files below are reviewable proposals and do not claim runtime conformance:
+
+- SWOS optical layers and calibration boundary:
+  `design/pages/recognition/processing/optics/SWOS_Optical_Contract_V1.md`
+- Proposed Processing motion: 350 / 600 / 600 / 1250ms, total 2800ms; cumulative boundaries 0 / 350 / 950 / 1550 / 2800ms:
+  `design/pages/recognition/processing/motion/Recognition_Processing_Motion_Spec_V1_3.md`
+- Proposed Processing Page Contract V3.2 and State Machine V3.2:
+  `design/system_v3/08_Page_Contracts/recognition/processing/`
+- Proposed Processing → Result continuity, with no pre-navigation delay and RR09 T0 at the first presented Result frame:
+  `design/pages/recognition/continuity/Processing_Result_Optical_Continuity_Contract_V1.md`
+- Proposed RR09 V3: 850ms, five reveal intervals, Chinese species name only; V2 remains unchanged as historical baseline:
+  `design/pages/recognition/result/motion/Recognition_Result_Motion_Spec_V3.md`
+
+The nominal 3650ms is the 2800ms Processing visual rhythm plus the 850ms Result reveal, not an inference deadline. If real inference or business gates are not ready at 2800ms, the app must remain in its truthful low-intensity waiting state. Android timing, SWOS rendering, Result handoff, API 28 and runtime evidence remain Stage 1 work.
+
 
 ## Recognition Result 3+2
 
@@ -162,8 +179,12 @@ Historical V1.1 contracts and verifier remain repository history/compatibility. 
   `design/pages/recognition/result/spec/Recognition_Result_State_Matrix_V1.md`
 - Feature / behavior / visual:
   `design/pages/recognition/result/spec/`
-- Motion (current Result-entry authority):
+- Motion (proposed current Result-entry authority, pending main adoption):
+  `design/pages/recognition/result/motion/Recognition_Result_Motion_Spec_V3.md`
+- Motion V2 (unchanged historical baseline):
   `design/pages/recognition/result/motion/Recognition_Result_Motion_Spec_V2.md`
+- Processing → Result continuity (proposed):
+  `design/pages/recognition/continuity/Processing_Result_Optical_Continuity_Contract_V1.md`
 - Motion V1 historical baseline (non-conflicting Result interaction rules):
   `design/pages/recognition/result/motion/Recognition_Result_Motion_Spec_V1.md`
 - Authority order:
@@ -184,7 +205,7 @@ Historical V1.1 contracts and verifier remain repository history/compatibility. 
 - RR06 — 内容修改 — Species Selector / Metadata Edit authority index
 - RR07 — 判定逻辑 — current runtime routing documented separately
 - RR08 — 视觉验收 — Visual Acceptance Contract V1; runtime NOT_RUN
-- RR09 — 动效接续 — Motion V2 FROZEN SPEC ONLY; runtime NOT_RUN
+- RR09 — 动效接续 V3 — proposed for main adoption; V2 retained as DEPRECATED historical baseline; runtime NOT_RUN
 
 ### State-level visual authority
 

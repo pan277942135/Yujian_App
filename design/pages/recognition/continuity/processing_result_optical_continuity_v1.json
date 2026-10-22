@@ -1,0 +1,28 @@
+{
+  "schema_version": "1.0",
+  "contract_id": "YUJIAN-RECOGNITION-OPTICAL-CONTINUITY-V1",
+  "status": "PROPOSED_FOR_MAIN_ADOPTION",
+  "scope": "Processing to Result shared optical handoff",
+  "processing_minimum_ms": 2800,
+  "result_reveal_ms": 850,
+  "nominal_combined_visual_ms": 3650,
+  "nominal_is_inference_deadline": false,
+  "handoff": {
+    "same_source_photo": true,
+    "same_photo_transform": true,
+    "shared_transform": "RecognitionImageTransform / photoContentRect",
+    "shared_session_identity": true,
+    "required_identity_fields": ["source_image_id", "source_dimensions", "recognition_session_id", "attempt_id", "result_id"],
+    "subject_geometry_source": "real detector output and existing geometry-trust-gated visual subject geometry"
+  },
+  "processing_release": {"start_ms":2600,"end_ms":2800,"peripheral_water_strength_at_end":0,"residual_gold":"NARROW_SOFT_TRACE_ON_TRUSTED_FISH_GEOMETRY"},
+  "navigation": {"condition":"REAL_RESULT_AND_EXISTING_BUSINESS_GATES_AND_2800MS_MINIMUM","additional_pre_navigation_wait_ms":0},
+  "rr09": {"t0":"FIRST_ACTUALLY_PRESENTED_RESULT_FRAME","duration_ms":850,"photo_continuity_ms":[0,200],"photo_continuity_is_pre_navigation_wait":false,"gold_destination":"EXISTING_CHINESE_SPECIES_TITLE_BELOW_PHOTO"},
+  "geometry_fallback": {
+    "trusted_contour": "CONTOUR_FOLLOWING_GOLD",
+    "valid_bbox_without_trusted_contour": "BOUNDED_REGIONAL_GLOW_NO_RECTANGLE_TRACE",
+    "invalid_bbox_or_mapping": "NO_SPATIAL_SOURCE_RESTRAINED_NON_SPATIAL_TITLE_RESOLUTION"
+  },
+  "cta_blocked_by_animation": false,
+  "runtime_status": "NOT_RUN"
+}

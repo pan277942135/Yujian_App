@@ -1,0 +1,56 @@
+{
+  "contract_id": "YUJIAN_AI_CATCH_RECOGNITION_WEB_HIFI_V1",
+  "version": "2.0-proposal",
+  "authority_status": "VISUAL_CONTRACT_DEFINED",
+  "adoption_status": "DRAFT_DEPENDENT_ON_PR_186_AND_187",
+  "page_id": "ai_catch_recognition_web",
+  "source_ref": [
+    "Yujian_App/main@ad8bf1ba61e42a34d1fdd91de47fa386e25f11ef",
+    "Yujian_App/PR186@3b0b5848206cdea949f4bf6be7eb7cb1d19b1e34",
+    "Yujian_App/PR187@ee3bb45858183144598bc28c5bae53ae55b324e0",
+    "Yujian/PR177@7da5c1100d981cfe88317b39b5b95713bdba91d7"
+  ],
+  "layout_variant": "responsive",
+  "geometry": {
+    "content_max_width_px": 1280,
+    "outer_gutter_px": {
+      "desktop": 32,
+      "tablet": 24,
+      "mobile": 16
+    },
+    "stage_gap_px": {
+      "desktop": 20,
+      "tablet": 16,
+      "mobile": 12
+    },
+    "card_padding_px": {
+      "desktop": 24,
+      "mobile": 16
+    },
+    "upload_min_height_px": 260,
+    "primary_button_min_height_px": 44,
+    "five_step_min_height_px": 96,
+    "desktop_column_ratio": [
+      1,
+      1.15,
+      1.1
+    ],
+    "source_class": "DESIGN_COMPLETION_NOT_MEASURED_FROM_APPROVED_ORIGINAL"
+  },
+  "image_fit": {
+    "upload": "contain; EXIF oriented; never stretch/crop",
+    "processing": "contain original in viewport; photo coordinates shared",
+    "result": "reuse frozen hero media contract: verified BBox safe crop, else full same-source foreground with low-contrast same-source backdrop",
+    "reference_360dp_high_hero": [
+      322,
+      210
+    ]
+  },
+  "motion_contract_ref": "design/pages/recognition/continuity/SWOS_Shared_Photo_Transition_Contract_V1.json",
+  "acceptance_criteria": [
+    "photo content visible without distortion",
+    "safe crop retains verified fish",
+    "same source across stages",
+    "no fixed 360dp absolute layout on desktop"
+  ]
+}

@@ -1,6 +1,6 @@
-# YuJian Recognition Processing Design Package V1.2
+# YuJian Recognition Processing Design Package — V1.2 Baseline / SWOS V1 Proposal
 
-Status: **DESIGN FROZEN**
+Status: **V1.2 FROZEN BASELINE · SWOS V1 / Page V3.2 PROPOSED FOR MAIN ADOPTION**
 
 Runtime: **ACTIVE_CLOSURE**  
 Evidence: **ACTIVE_CLOSURE**
@@ -39,7 +39,18 @@ Binary hashes remain frozen in:
 
 - `design/reference_manifest.json`
 
-## Active design authorities
+## Frozen baseline authorities and current proposal
+
+Frozen V1.2 photo-state references remain unchanged. The Phase 0 Draft PR proposes a versioned optical/timing successor; until main adoption, Android and main remain on their prior authorities.
+
+- Proposed SWOS optics: `processing/optics/SWOS_Optical_Contract_V1.md`
+- Proposed Processing timing: `processing/motion/Recognition_Processing_Motion_Spec_V1_3.md`
+- Proposed Processing Page Contract V3.2: `design/system_v3/08_Page_Contracts/recognition/processing/Recognition_Processing_Page_Contract_V3_2.md`
+- Proposed Processing → Result continuity: `continuity/Processing_Result_Optical_Continuity_Contract_V1.md`
+- Proposed RR09 reveal: `result/motion/Recognition_Result_Motion_Spec_V3.md`
+- Phase 0 closure and Android gap list: `docs/execution/swos/PHASE0_CLOSURE_REPORT_V1.md`
+
+## Frozen V1.2 baseline authorities
 
 - State Timeline: `spec/Recognition_State_Timeline_Spec_V1_3.md`
 - Visual: `processing/spec/Recognition_Processing_Visual_Spec_V1_1.md`

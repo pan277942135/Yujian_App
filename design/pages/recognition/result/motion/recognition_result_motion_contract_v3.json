@@ -1,0 +1,46 @@
+{
+  "schema_version": "1.0",
+  "contract_id": "recognition_result_motion_v3",
+  "version": "3.0",
+  "status": "PROPOSED_FOR_MAIN_ADOPTION",
+  "runtime_status": "NOT_RUN",
+  "supersedes_scope": ["RR09 V2 clock origin", "RR09 V2 Processing pre-navigation interpretation", "RR09 V2 title contents"],
+  "historical_baseline": {
+    "version": "V2",
+    "spec": "design/pages/recognition/result/motion/Recognition_Result_Motion_Spec_V2.md",
+    "machine_contract": "design/pages/recognition/result/motion/recognition_result_motion_contract_v2.json",
+    "system_contract": "design/system_v3/10_Page_Visual_Acceptance_Contracts/Recognition_Result/Recognition_Result_Motion_Contract_V2.md",
+    "files_modified": false
+  },
+  "duration_ms": 850,
+  "t0": "FIRST_ACTUALLY_PRESENTED_RESULT_FRAME",
+  "timeline": [
+    {"start_ms":0,"end_ms":200,"duration_ms":200,"phase":"PHOTO_CONTINUITY","after_navigation":true},
+    {"start_ms":200,"end_ms":380,"duration_ms":180,"phase":"GOLD_TRANSFER_TO_CHINESE_TITLE"},
+    {"start_ms":380,"end_ms":550,"duration_ms":170,"phase":"CHINESE_GLYPH_FORMATION","complete_name_readable":false},
+    {"start_ms":550,"end_ms":680,"duration_ms":130,"phase":"CHINESE_NAME_REVEAL","complete_name_readable":true},
+    {"start_ms":680,"end_ms":850,"duration_ms":170,"phase":"AFTERGLOW_FADE_TO_STATIC_RESULT"}
+  ],
+  "title": {
+    "location": "EXISTING_RESULT_TITLE_BLOCK_BELOW_PHOTO",
+    "species_title_language": "CHINESE_ONLY",
+    "show_english_scientific_name": false,
+    "reserve_empty_english_row": false
+  },
+  "eligibility": {
+    "result_state": "RESULT_HIGH",
+    "requires_valid_species_identity": true,
+    "requires_new_recognition_session": true,
+    "play_once_per_session": true,
+    "excluded": ["RESULT_MEDIUM", "RESULT_LOW", "ERROR_NO_FISH", "ERROR_IMAGE_QUALITY", "TECHNICAL_FAILURE", "historical_or_reopened_result"]
+  },
+  "geometry": {
+    "source": "Processing_Result_Optical_Continuity_Contract_V1",
+    "trusted_contour": "CONTOUR_FOLLOWING_GOLD_SOURCE",
+    "bbox_without_trusted_contour": "BOUNDED_REGIONAL_GLOW_NO_RECTANGLE_STROKE",
+    "invalid_geometry": "NO_SPATIAL_TRANSFER_RESTRAINED_NON_SPATIAL_TITLE_RESOLUTION"
+  },
+  "interaction": {"cta_blocked":false,"save_blocked":false,"edit_blocked":false,"back_blocked":false},
+  "accessibility": {"reduce_motion":"STATIC_RESTRAINED_TITLE_RESOLUTION_NO_SPATIAL_TRAVEL", "persistent_motion_after_850ms":false},
+  "static_layout_authority": "design/pages/recognition/result/media/Recognition_Result_Hero_Media_Contract_V1.md"
+}
