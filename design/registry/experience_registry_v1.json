@@ -699,12 +699,14 @@
           "authority": "design/pages/recognition/spec/Recognition_State_Timeline_Spec_V1_3.md"
         },
         "visual": {
-          "status": "FROZEN",
-          "authority": "design/pages/recognition/design/Recognition_Processing_Visual_State_Set_V1_2.json"
+          "status": "ACTIVE_CLOSURE",
+          "authority": "design/pages/recognition/processing/optics/SWOS_Optical_Contract_V1.md",
+          "note": "Proposed SWOS V1 optical authority pending main adoption; V1.2 Frozen photo-state raster assets remain unchanged."
         },
         "motion": {
-          "status": "FROZEN",
-          "authority": "design/pages/recognition/processing/motion/Recognition_Processing_Motion_Spec_V1_2.md"
+          "status": "ACTIVE_CLOSURE",
+          "authority": "design/pages/recognition/processing/motion/Recognition_Processing_Motion_Spec_V1_3.md",
+          "note": "Proposed 2800ms minimum optical rhythm; Android remains on the V3.1 projection until Stage 1."
         },
         "haptic": {
           "status": "FROZEN",
@@ -738,9 +740,17 @@
           "current": true,
           "spec_authority": "design/pages/recognition/Recognition_Design_Closure_V1_2.md",
           "note": "Current design closure. Existing four Processing PNGs form the frozen three-state Keyframe Set; Runtime/Evidence remain separate."
+        },
+        {
+          "version": "V1.3-SWOS",
+          "status": "ACTIVE_CLOSURE",
+          "current": false,
+          "spec_authority": "design/pages/recognition/processing/optics/SWOS_Optical_Contract_V1.md",
+          "motion_authority": "design/pages/recognition/processing/motion/Recognition_Processing_Motion_Spec_V1_3.md",
+          "note": "Phase 0 proposal pending main adoption; V1.2 Frozen raster assets and V3.1 Android timing/runtime remain unchanged."
         }
       ],
-      "design_overall": "FROZEN",
+      "design_overall": "ACTIVE_CLOSURE",
       "shared_system_refs": [
         {
           "id": "background_system_v1",
@@ -825,7 +835,7 @@
             {
               "label": "05 · AI 识别过程",
               "route": "#page/recognition_flow_v1_2/hifi/state_timeline",
-              "note": "Recognition Processing Page Contract V3.1 uses the five-state event-gated State Machine; the older Motion Spec V1.2 timing table remains immutable and is cross-referenced in the closure report."
+              "note": "Proposed Processing Page Contract V3.2 uses the 2800ms optical minimum; main retains V3.1 until control-plane adoption."
             },
             {
               "label": "06 · 识别结果",
@@ -2046,197 +2056,69 @@
         },
         {
           "id": "motion_transition",
-          "title": "04 · Motion & Transition",
-          "status": "FROZEN",
+          "title": "04 · SWOS Motion & Transition",
+          "status": "ACTIVE_CLOSURE",
           "authority_type": "behavior",
-          "render_mode": "recognition_motion",
-          "authority": "design/pages/recognition/processing/motion/Recognition_Processing_Motion_Spec_V1_2.md",
-          "secondary_authority": "design/pages/recognition/processing/motion/AI_Edge_Field_V1_Motion_Contract.md",
-          "image": "design/pages/recognition/processing/design/YuJian_Recognition_AI_Ambient_Field_Engineering_Spec_V1.png",
-          "summary": "三步 Recognition Motion 已重新冻结。AI Edge Field 不在 State 切换时重启动画；SegmentOffset 连续、StateStrength 只改变视觉权重、ResolveStrength 统一完成结果前退场。",
+          "render_mode": "authority_index",
+          "authority": "design/pages/recognition/processing/motion/Recognition_Processing_Motion_Spec_V1_3.md",
+          "secondary_authority": "design/pages/recognition/processing/optics/SWOS_Optical_Contract_V1.md",
+          "summary": "Proposed SWOS timing authority, pending main adoption: 350/600/600/1250ms (2800ms minimum), real-event gated; the 2600–2800ms peripheral-water release is a visual subphase inside CLASSIFYING.",
           "menu_points": [
-            "图片识别中：StateStrength 1.00；Segment Speed 1.00×；AI Edge Field 是最明显的 Processing 阶段",
-            "已定位到鱼体：StateStrength 0.58；Segment Speed 0.62×；视觉中心从边缘光场转向鱼体",
-            "鱼种识别中：StateStrength 0.36；Segment Speed 0.42×；外围仅保留低幅 AI 工作感",
-            "所有 State 切换保持 SegmentOffset 连续；禁止归零、跳位、重启 10s Loop",
-            "RESOLVE 200ms：冻结 SegmentOffset，ResolveStrength=(1-p)^2 从 1→0",
-            "Companion / Micro Hairline 不拥有独立时钟；只跟随本岛 Primary 的 offset 并保持固定小幅 lead/lag",
-            "精确最低节奏：900ms / 600ms / 1250ms + 200ms Resolve；慢处理允许停留当前状态"
+            "CAPTURED · 0–350ms：照片先呈现，底部晨光与环境水色开始建立；不得伪造识别成功。",
+            "DETECTING · 350–950ms：非规则水纹与焦散向照片可见区域扩散；不使用旧七路径 Edge Field 作为 SWOS 几何。",
+            "OUTLINE · 950–1550ms：真实可信鱼体几何可用时，空间光场逐步聚焦鱼体；缺少 Mask 时只允许区域柔光，不描绘假轮廓。",
+            "CLASSIFYING · 1550–2800ms：真实推理未完成时保持低强度等待；2600–2800ms 外围水光作为视觉子阶段消退。",
+            "Processing 最小视觉节奏为 2800ms；它不是推理截止时间，也不新增 RESOLVE 业务状态。",
+            "真实结果与业务门禁满足后立即接续 Result；不在导航前增加 200ms 等待。"
           ],
           "motion_model": {
-            "state_timing": [
+            "clock_origin": "PROCESSING_VISUAL_ENTRY",
+            "minimum_visual_duration_ms": 2800,
+            "phase_boundaries_ms": [
+              0,
+              350,
+              950,
+              1550,
+              2800
+            ],
+            "phases": [
               {
-                "state": "图片识别中",
-                "minimum_ms": 900,
-                "state_strength": 1,
-                "segment_speed": 1,
-                "transition_in_ms": 420,
-                "note": "前 420ms 完成光场自然建立；不是独立 CAPTURED 状态。"
+                "phase": "CAPTURED",
+                "duration_ms": 350
               },
               {
-                "state": "已定位到鱼体",
-                "minimum_ms": 600,
-                "state_strength": 0.58,
-                "segment_speed": 0.62,
-                "strength_transition_ms": 260,
-                "speed_transition_ms": 260,
-                "note": "OUTLINE / Fish Focus 成为视觉中心；边缘光场明显降权但不断流。"
+                "phase": "DETECTING",
+                "duration_ms": 600
               },
               {
-                "state": "鱼种识别中",
-                "minimum_ms": 1250,
-                "state_strength": 0.36,
-                "segment_speed": 0.42,
-                "strength_transition_ms": 280,
-                "speed_transition_ms": 280,
-                "note": "保持稳定分析感；外围光场慢且弱。"
+                "phase": "OUTLINE",
+                "duration_ms": 600
+              },
+              {
+                "phase": "CLASSIFYING",
+                "duration_ms": 1250
               }
             ],
-            "segment_offset": {
-              "base_cycle_ms": 10000,
-              "reset_on_state_change": false,
-              "formula": "offset_i(t) = fract(seed_i + integral(speed(state(t)) / 10000 dt))",
-              "easing_between_speeds": "cubic-bezier(0.22, 1, 0.36, 1)",
-              "primary_seeds": [
-                {
-                  "island": "B_UR",
-                  "path": "B1",
-                  "seed": 0,
-                  "direction": "path-forward"
-                },
-                {
-                  "island": "G_UL",
-                  "path": "G1",
-                  "seed": 0.12,
-                  "direction": "path-forward"
-                },
-                {
-                  "island": "B_LR",
-                  "path": "B3",
-                  "seed": 0.47,
-                  "direction": "path-forward"
-                },
-                {
-                  "island": "G_LL",
-                  "path": "G3",
-                  "seed": 0.64,
-                  "direction": "path-forward"
-                }
-              ],
-              "visible_segment_ratio": [
-                {
-                  "island": "B_UR",
-                  "ratio": 0.3
-                },
-                {
-                  "island": "G_UL",
-                  "ratio": 0.26
-                },
-                {
-                  "island": "G_LL",
-                  "ratio": 0.22
-                },
-                {
-                  "island": "B_LR",
-                  "ratio": 0.2
-                }
-              ],
-              "rule": "4 条 Primary 轨迹方向由各自 Bézier 定义，不构成统一顺/逆时针环流。"
+            "processing_release_subphase": {
+              "start_ms": 2600,
+              "end_ms": 2800,
+              "parent_phase": "CLASSIFYING",
+              "adds_business_state": false
             },
-            "hairline_follow": {
-              "independent_clock": false,
-              "companion_rule": "Companion 使用同一个 Primary normalized t，叠加固定 path-local lead/lag；不独立循环。",
-              "companion_phase_delta": [
-                {
-                  "island": "B_UR",
-                  "delta": -0.055
-                },
-                {
-                  "island": "G_UL",
-                  "delta": 0.065
-                },
-                {
-                  "island": "B_LR",
-                  "delta": -0.06
-                },
-                {
-                  "island": "G_LL",
-                  "delta": 0.05
-                }
-              ],
-              "micro_rule": "B_UR Micro 使用 Primary t + 0.085；只作为短纹理，不产生第二个运动焦点。",
-              "rule": "Hairline motion 必须看起来是 Primary 的局部余韵，而不是第二套路径动画。"
-            },
-            "state_strength": {
-              "entry": {
-                "start": 0,
-                "target": 1,
-                "duration_ms": 420,
-                "easing": "cubic-bezier(0.22, 1, 0.36, 1)",
-                "staging": [
-                  {
-                    "range_ms": "0–180",
-                    "layer": "Receiving Light",
-                    "behavior": "先建立局部柔光"
-                  },
-                  {
-                    "range_ms": "80–320",
-                    "layer": "Primary Bloom/Mid/Core",
-                    "behavior": "主光带逐步可感知"
-                  },
-                  {
-                    "range_ms": "180–420",
-                    "layer": "Hairline/Node/Particle",
-                    "behavior": "最后补充细节，禁止同时闪现"
-                  }
-                ]
-              },
-              "state_targets": {
-                "image_recognizing": 1,
-                "fish_located": 0.58,
-                "species_recognizing": 0.36
-              },
-              "transition_rule": "只插值 StateStrength；不改变 Static Shape，不重新实例化 Island，不重置 SegmentOffset。"
-            },
-            "resolve_strength": {
-              "duration_ms": 200,
-              "segment_behavior": "freeze_current_offset",
-              "progress": "p = elapsed / 200ms",
-              "formula": "ResolveStrength = (1 - p)^2",
-              "start": 1,
-              "end": 0,
-              "applies_to": [
-                "Receiving Light",
-                "Outer Bloom",
-                "Mid Glow",
-                "Primary Core",
-                "Hairline",
-                "Hot Node",
-                "Particles"
-              ],
-              "rule": "所有 AI Edge Field 层共用同一 ResolveStrength；禁止某些 Glow 或 Particle 晚退造成残影。"
-            },
-            "continuous_motion_rules": [
-              "State 变化不重启 10s base clock",
-              "State 变化不瞬间改变 SegmentOffset",
-              "Speed 与 StateStrength 分开插值",
-              "Segment 在 Resolve 开始时冻结位置，只做 alpha 退场",
-              "Primary 是唯一自主连续运动；Hairline 从 Primary 派生",
-              "Node 附着当前 Primary luminous segment，不独立沿屏幕巡航",
-              "Particle 可有低幅局部漂移，但不得形成第二运动层级"
-            ]
+            "minimum_is_inference_deadline": false,
+            "handoff": "Immediate when real result and business gates allow; no additional pre-navigation wait."
           },
           "children": [
             {
               "id": "ai_edge_field_v1_motion_contract",
               "code": "AI EDGE FIELD V1 · MOTION",
-              "title": "AI Edge Field V1 · Motion Contract",
+              "title": "AI Edge Field V1 · 冻结历史运动合同",
               "status": "FROZEN",
               "authority_type": "behavior",
               "render_mode": "recognition_ai_edge_field_motion",
               "authority": "design/pages/recognition/processing/motion/AI_Edge_Field_V1_Motion_Contract.md",
               "contract": "design/pages/recognition/processing/contracts/AI_Edge_Field_V1_Motion_Contract.json",
-              "summary": "冻结 SegmentOffset / StateStrength / ResolveStrength 三个运动输入。状态切换连续、不重启；Fish Focus 出现后 Edge Field 明显降权；Resolve 200ms 冻结位置并统一淡出。",
+              "summary": "FROZEN historical contract for the V1.2 line-led Edge Field only. Retained for traceability; it is not the SWOS optical or motion basis.",
               "motion_model": {
                 "state_timing": [
                   {
@@ -2399,9 +2281,11 @@
                   "Node 附着当前 Primary luminous segment，不独立沿屏幕巡航",
                   "Particle 可有低幅局部漂移，但不得形成第二运动层级"
                 ]
-              }
+              },
+              "scope": "HISTORICAL_EDGE_FIELD_ONLY_NOT_SWOS"
             }
-          ]
+          ],
+          "machine_authority": "design/pages/recognition/processing/motion/recognition_processing_motion_contract_v1_3.json"
         },
         {
           "id": "degradation_accessibility",
@@ -3753,6 +3637,24 @@
               "path": "design/pages/recognition/result/spec/Recognition_Result_3plus2_Decision_Spec_V1_1.md"
             }
           ]
+        },
+        {
+          "id": "swos_optical_contract",
+          "title": "10 · SWOS 光学合同",
+          "status": "ACTIVE_CLOSURE",
+          "render_mode": "authority_index",
+          "authority": "design/pages/recognition/processing/optics/SWOS_Optical_Contract_V1.md",
+          "machine_authority": "design/pages/recognition/processing/optics/SWOS_Optical_Contract_V1.json",
+          "summary": "晨光、水纹、焦散与真实鱼体暖金高亮的分层合同。该提案待 main 采纳；不代表 Web 或 Android Runtime 已完成。"
+        },
+        {
+          "id": "processing_result_continuity",
+          "title": "11 · Processing → Result 光学接续",
+          "status": "ACTIVE_CLOSURE",
+          "render_mode": "authority_index",
+          "authority": "design/pages/recognition/continuity/Processing_Result_Optical_Continuity_Contract_V1.md",
+          "machine_authority": "design/pages/recognition/continuity/processing_result_optical_continuity_v1.json",
+          "summary": "共享照片、坐标、会话标识与残留金光；Processing 2800ms + RR09 850ms，导航无额外等待。"
         }
       ],
       "navigation_mode": "submenu_direct",
@@ -3761,7 +3663,7 @@
     {
       "id": "recognition_result_v1",
       "owner_path": "design/pages/recognition/result",
-      "overall": "FROZEN",
+      "overall": "ACTIVE_CLOSURE",
       "modalities": {
         "behavior": {
           "status": "FROZEN",
@@ -3772,9 +3674,9 @@
           "authority": "design/pages/recognition/result/authority/authority_map.json"
         },
         "motion": {
-          "status": "FROZEN",
-          "authority": "design/pages/recognition/result/motion/Recognition_Result_Motion_Spec_V2.md",
-          "note": "Current Result-entry reveal authority is Motion V2. Motion V1 remains the baseline for non-conflicting interactions; runtime acceptance is separate and remains NOT_RUN."
+          "status": "ACTIVE_CLOSURE",
+          "authority": "design/pages/recognition/result/motion/Recognition_Result_Motion_Spec_V3.md",
+          "note": "Proposed RR09 V3 authority: first presented Result frame T0 and Chinese-only reveal. RR09 V2 remains unchanged historical baseline; runtime NOT_RUN."
         },
         "haptic": {
           "status": "FROZEN",
@@ -3809,7 +3711,7 @@
           "visual_authority": "design/pages/recognition/design/reference_manifest.json"
         }
       ],
-      "design_overall": "FROZEN",
+      "design_overall": "ACTIVE_CLOSURE",
       "shared_system_refs": [
         {
           "id": "background_system_v1",
@@ -3860,7 +3762,7 @@
         "authority": "05–09 state Frozen PNG > Result package spec > Core Visual recognition_result_v1 > runtime implementation.",
         "asset_rule": "Do not duplicate/crop/recompress the five Frozen PNGs for Design Manager.",
         "content_edit": "RR06 consolidates links to Species Selector V1 and Metadata Edit Flow V1 visual/specification authorities without changing their individual contracts or the 3+2 state model.",
-        "contract_revision": "Result V1.1 base package + scoped Motion V2 reveal; state PNGs and runtime semantics remain separate authorities.",
+        "contract_revision": "Static Result V1.1 package remains frozen; scoped RR09 V3 is proposed for main adoption. RR09 V2 remains unchanged historical baseline.",
         "exceptions": [
           "design/system/components/top_navigation/exceptions/Recognition_Result_Centered_Title_V1.md",
           "design/system/components/action_button/exceptions/Recognition_Result_Actions_V1.md"
@@ -3871,8 +3773,9 @@
         "state_decision_contract": "design/pages/recognition/result/spec/recognition_result_3plus2_decision_contract_v1_1.json",
         "state_thresholds": "AS_IMPLEMENTED_RUNTIME_AUDIT_NOT_NEW_FROZEN_VALUES",
         "state_decision_submenu": "RR07 · 识别过程 · 07 · 判定逻辑",
-        "motion_continuation": "RR09 freezes the one-shot RESULT_HIGH Result-entry reveal only; it adds no Processing/Result state and leaves runtime NOT_RUN.",
-        "current_motion_authority": "design/pages/recognition/result/motion/Recognition_Result_Motion_Spec_V2.md"
+        "motion_continuation": "RR09 V3 proposes an 850ms first-presented-Result-frame reveal; it adds no Processing/Result state and leaves runtime NOT_RUN.",
+        "current_motion_authority": "design/pages/recognition/result/motion/Recognition_Result_Motion_Spec_V3.md",
+        "historical_motion_authority": "design/pages/recognition/result/motion/Recognition_Result_Motion_Spec_V2.md"
       },
       "hifi_views": [
         {
@@ -4133,26 +4036,41 @@
         {
           "id": "motion_continuation",
           "code": "RR09",
-          "title": "RR09 · 动效接续",
-          "status": "FROZEN",
-          "render_mode": "recognition_result_motion_playable",
+          "title": "RR09 · 动效接续 V3",
+          "status": "ACTIVE_CLOSURE",
+          "render_mode": "authority_index",
           "authority_type": "behavior",
-          "authority": "design/pages/recognition/result/08_motion_continuation/README.md",
-          "behavior_authority": "design/pages/recognition/result/motion/Recognition_Result_Motion_Spec_V2.md",
-          "machine_authority": "design/pages/recognition/result/motion/recognition_result_motion_contract_v2.json",
-          "secondary_authority": "design/system_v3/10_Page_Visual_Acceptance_Contracts/Recognition_Result/Recognition_Result_Motion_Contract_V2.md",
-          "summary": "FROZEN · Motion V2. 点击“打开可播放原型”使用经 SHA 校验的真实鱼获照片检查 6 个关键帧、金光向下转移、中文/拉丁学名、低性能与 Reduce Motion；照片人工轮廓非生产 Mask，浏览器证据独立于 Android Runtime。",
+          "authority": "design/pages/recognition/result/motion/Recognition_Result_Motion_Spec_V3.md",
+          "behavior_authority": "design/pages/recognition/result/motion/Recognition_Result_Motion_Spec_V3.md",
+          "machine_authority": "design/pages/recognition/result/motion/recognition_result_motion_contract_v3.json",
+          "secondary_authority": "design/system_v3/10_Page_Visual_Acceptance_Contracts/Recognition_Result/Recognition_Result_Motion_Contract_V3.md",
+          "summary": "V3 proposal: 850ms from first presented Result frame; Chinese species title only; V2 is retained under the adjacent historical submenu.",
           "menu_points": [
             "K01 · 鱼体高亮锁定：不提前显示鱼种名",
-            "K02 · 0–200ms 照片自然接续：复用既有 RESOLVE",
-            "K03 · 200–380ms 金光由鱼体向下转移",
-            "K04 · 380–550ms 标题凝结中：不提前完整露字",
-            "K05 · 550–680ms 中文鱼种名揭晓，英文名紧随其下",
-            "K06 · 680–850ms 余辉消散，恢复静态结果页",
-            "Reduce Motion / Low Performance / 不重播规则"
+            "K02 · 0–200ms：首个实际呈现的 Result 帧开始照片自然接续；不是导航前等待",
+            "K03 · 200–380ms：金光由可信鱼体几何向下转移",
+            "K04 · 380–550ms：中文名称笔画逐渐形成",
+            "K05 · 550–680ms：中文鱼种名清晰揭晓；不显示英文科学名或空白英文行",
+            "K06 · 680–850ms：余辉消散，恢复静态结果页",
+            "HIGH-only、新会话单次播放；不阻塞 CTA、保存、编辑或返回；Reduce Motion 移除装饰运动"
           ],
           "demo_url": "design/manager/rr09_motion/",
           "prototype_status": "PLAYABLE_PROTOTYPE_PENDING_BROWSER_EVIDENCE"
+        },
+        {
+          "id": "motion_continuation_v2_history",
+          "title": "RR09 · V2 历史基线",
+          "status": "DEPRECATED",
+          "render_mode": "recognition_result_motion_playable",
+          "authority": "design/pages/recognition/result/motion/Recognition_Result_Motion_Spec_V2.md",
+          "behavior_authority": "design/pages/recognition/result/motion/Recognition_Result_Motion_Spec_V2.md",
+          "machine_authority": "design/pages/recognition/result/motion/recognition_result_motion_contract_v2.json",
+          "menu_points": [
+            "V2 clock-origin wording",
+            "English scientific-name reveal",
+            "Historical playable review only"
+          ],
+          "summary": "Unchanged V2 historical prototype. Its RESOLVE-origin and English-name rules are superseded by the V3 proposal; do not treat this view as current authority."
         }
       ]
     },

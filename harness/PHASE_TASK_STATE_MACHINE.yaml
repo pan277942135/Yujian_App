@@ -75,7 +75,7 @@ phases:
     exit_condition: "Required design authority, page contracts, assets and provenance are closed for the claimed scope."
     release_scope: "PRIMARY_PLUS_SECONDARY"
     feature_refs: ["home_empty_v2", "home_normal_v1", "recognition_flow_v1_2", "recognition_result_v1", "fish_record_detail_v2", "fish_memory_bside_v1", "share_templates_v1", "record_date_v2", "fish_guide_v2", "account_privacy_v1", "auth_login_v2", "auth_register_v2", "profile_edit_v1", "user_agreement_v1"]
-    task_refs: ["P3-01", "P3-02", "P3-03", "P3-04", "N010"]
+    task_refs: ["P3-01", "P3-02", "P3-03", "P3-04", "P3-05", "N010"]
   P4:
     name: "Architecture / API / Data Contracts"
     entry_condition: "Required product contracts exist."
@@ -422,6 +422,19 @@ tasks:
     evidence_required: ["secondary_surface_contracts"]
     completion: "Secondary design contracts and child surfaces are closed for expanded scope."
     human_required: false
+  P3-05:
+    phase: "P3"
+    priority: "P0"
+    owner: "Design"
+    feature_refs: ["recognition_flow_v1_2", "recognition_result_v1"]
+    journey_refs: ["J07-J16"]
+    depends_on: ["P3-01"]
+    entry_blockers: []
+    target_blockers: []
+    evidence_required: ["swos_optical_contract_v1", "processing_result_continuity_v1", "rr09_v3_contract", "authority_reference_sync", "android_stage1_gap_report", "swos_contract_validation"]
+    completion: "Versioned SWOS/Processing/RR09 authorities and control-plane references are synchronized; Android runtime remains a Stage 1 gate."
+    human_required: false
+    gate_id: "G-SWOS-PHASE0-CONTRACT"
   P4-01:
     phase: "P4"
     priority: "P0"

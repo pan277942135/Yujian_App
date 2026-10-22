@@ -1,0 +1,77 @@
+{
+  "schema_version": "3.2",
+  "state_machine_id": "recognition_processing_state_machine_v3_2",
+  "name": "Recognition Processing State Machine V3.2",
+  "page_id": "recognition.processing.v3_2",
+  "status": "PROPOSED_FOR_MAIN_ADOPTION",
+  "authority": "design/system_v3/08_Page_Contracts/recognition/processing/State_Machine_V3_2.json",
+  "supersedes_scope": ["State_Machine_V3_1 timing", "State_Machine_V3_1 Processing optical behavior"],
+  "entry_state": "CAPTURED",
+  "minimum_visual_timeline": {
+    "total_ms": 2800,
+    "boundaries_ms": [0, 350, 950, 1550, 2800],
+    "product_states": ["IMAGE_RECOGNIZING", "FISH_LOCATED", "SPECIES_RECOGNIZING"]
+  },
+  "states": [
+    {
+      "id": "CAPTURED",
+      "duration_ms": 350,
+      "start_ms": 0,
+      "end_ms": 350,
+      "product_state": "IMAGE_RECOGNIZING",
+      "visual_behavior": "Original EXIF-normalized photo is unchanged. A restrained water reflection wakes near the lower visible photo region. No fish focus without real detector evidence.",
+      "transition_rule": "Advance after the 350ms minimum and the real detection-start event. Real issue/failure events use existing routes."
+    },
+    {
+      "id": "DETECTING",
+      "duration_ms": 600,
+      "start_ms": 350,
+      "end_ms": 950,
+      "product_state": "IMAGE_RECOGNIZING",
+      "visual_behavior": "Irregular caustics and overlapping ripple fields diffuse upward; no scan line, mechanical center convergence or fabricated fish geometry.",
+      "transition_rule": "Advance after the 600ms minimum and a real eligible fish-location result; real No Fish, quality and technical failure paths remain distinct."
+    },
+    {
+      "id": "OUTLINE",
+      "duration_ms": 600,
+      "start_ms": 950,
+      "end_ms": 1550,
+      "product_state": "FISH_LOCATED",
+      "visual_behavior": "Use trusted real subject geometry for warm-gold focus; water light yields naturally toward the verified fish region without warping the photo.",
+      "transition_rule": "Advance after the 600ms minimum and a real classification-start event. If trusted subject contour is absent, never trace the detector BBox."
+    },
+    {
+      "id": "CLASSIFYING",
+      "duration_ms": 1250,
+      "start_ms": 1550,
+      "end_ms": 2800,
+      "product_state": "SPECIES_RECOGNIZING",
+      "visual_behavior": "Fish focus is the semantic lead; water field is subordinate. During 2600–2800ms, peripheral water fades to zero and a narrow trusted fish-gold trace may remain.",
+      "transition_rule": "Successful handoff requires the 1250ms minimum and the real classifier result plus existing business gates. A real issue/failure follows its existing route."
+    },
+    {
+      "id": "RESULT_READY",
+      "duration_ms": 0,
+      "product_state": null,
+      "visual_behavior": "No additional Processing visual state; hand off the real outcome immediately when minimum beats and business gates are satisfied.",
+      "transition_rule": "Do not add a RESOLVE state or pre-navigation 200ms wait. RR09 T0 is the first actual Result frame."
+    }
+  ],
+  "failure_routing": {
+    "no_fish": "Existing distinct NO_FISH route; never relabel as technical failure.",
+    "image_quality": "Existing IMAGE_QUALITY_WARNING route only when the real quality gate emits INVALID.",
+    "technical_failure": "Only a reported pipeline/model/crop/network dependency failure."
+  },
+  "timing_policy": {
+    "minimum_beats_are_inference_deadline": false,
+    "timer_only_success": false,
+    "early_result": "Maintain the 2800ms minimum optical story before route handoff.",
+    "late_result": "Remain in quiet low-intensity CLASSIFYING until real result and business gates permit handoff.",
+    "peripheral_release_subphase_ms": [2600, 2800],
+    "peripheral_release_adds_business_state": false
+  },
+  "optical_authority": "design/pages/recognition/processing/optics/SWOS_Optical_Contract_V1.md",
+  "motion_authority": "design/pages/recognition/processing/motion/Recognition_Processing_Motion_Spec_V1_3.md",
+  "continuity_authority": "design/pages/recognition/continuity/Processing_Result_Optical_Continuity_Contract_V1.md",
+  "runtime_status": "NOT_RUN"
+}

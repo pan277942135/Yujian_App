@@ -123,6 +123,10 @@ shared_contracts:
     domain: "EXECUTION"
     status: "ACTIVE"
     refs: ["harness/STATE_UPDATE_PROTOCOL.md", "harness/PHASE_TASK_STATE_MACHINE.yaml", "PROJECT_MASTER_STATE.yaml"]
+  RECOGNITION-OPTICAL-CONTINUITY:
+    domain: "DOMAIN"
+    status: "ACTIVE_CLOSURE"
+    refs: ["design/pages/recognition/continuity/Processing_Result_Optical_Continuity_Contract_V1.md", "design/pages/recognition/continuity/processing_result_optical_continuity_v1.json"]
 
 feature_contracts:
   home_empty_v2:
@@ -264,11 +268,11 @@ feature_contracts:
         status: "FROZEN"
         authority: "design/pages/recognition/spec/Recognition_State_Timeline_Spec_V1_3.md"
       visual:
-        status: "FROZEN"
-        authority: "design/pages/recognition/design/Recognition_Processing_Visual_State_Set_V1_2.json"
+        status: "ACTIVE_CLOSURE"
+        authority: "design/pages/recognition/processing/optics/SWOS_Optical_Contract_V1.md"
       motion:
-        status: "FROZEN"
-        authority: "design/pages/recognition/processing/motion/Recognition_Processing_Motion_Spec_V1_2.md"
+        status: "ACTIVE_CLOSURE"
+        authority: "design/pages/recognition/processing/motion/Recognition_Processing_Motion_Spec_V1_3.md"
       haptic:
         status: "FROZEN"
         authority: "design/pages/recognition/processing/haptic/Recognition_Processing_Haptic_Spec_V1.md"
@@ -284,7 +288,7 @@ feature_contracts:
       assets:
         status: "FROZEN"
         authority: "design/pages/recognition/design/reference_manifest.json"
-    page_contract_refs: ["design/system_v3/08_Page_Contracts/recognition/capture/Recognition_Capture_Page_Contract_V3_1.md", "design/system_v3/08_Page_Contracts/recognition/capture/Layout_Contract_V3_1.json", "design/system_v3/08_Page_Contracts/recognition/capture/State_Machine_V3_1.json", "design/system_v3/08_Page_Contracts/recognition/capture/Data_Contract_V3_1.json", "design/system_v3/08_Page_Contracts/recognition/capture/Engineering_Contract_V3_1.md", "design/system_v3/08_Page_Contracts/recognition/capture/Acceptance_Contract_V3_1.json", "design/system_v3/08_Page_Contracts/recognition/capture/Capture_Accessibility_Responsive_Matrix.md", "design/system_v3/08_Page_Contracts/recognition/processing/Recognition_Processing_Page_Contract_V3_1.md", "design/system_v3/08_Page_Contracts/recognition/processing/Layout_Contract_V3_1.json", "design/system_v3/08_Page_Contracts/recognition/processing/State_Machine_V3_1.json", "design/system_v3/08_Page_Contracts/recognition/processing/Data_Contract_V3_1.json", "design/system_v3/08_Page_Contracts/recognition/processing/Engineering_Contract_V3_1.md", "design/system_v3/08_Page_Contracts/recognition/processing/Acceptance_Contract_V3_1.json"]
+    page_contract_refs: ["design/system_v3/08_Page_Contracts/recognition/capture/Recognition_Capture_Page_Contract_V3_1.md", "design/system_v3/08_Page_Contracts/recognition/capture/Layout_Contract_V3_1.json", "design/system_v3/08_Page_Contracts/recognition/capture/State_Machine_V3_1.json", "design/system_v3/08_Page_Contracts/recognition/capture/Data_Contract_V3_1.json", "design/system_v3/08_Page_Contracts/recognition/capture/Engineering_Contract_V3_1.md", "design/system_v3/08_Page_Contracts/recognition/capture/Acceptance_Contract_V3_1.json", "design/system_v3/08_Page_Contracts/recognition/capture/Capture_Accessibility_Responsive_Matrix.md", "design/system_v3/08_Page_Contracts/recognition/processing/Recognition_Processing_Page_Contract_V3_2.md", "design/system_v3/08_Page_Contracts/recognition/processing/Layout_Contract_V3_1.json", "design/system_v3/08_Page_Contracts/recognition/processing/State_Machine_V3_2.json", "design/system_v3/08_Page_Contracts/recognition/processing/Data_Contract_V3_1.json", "design/system_v3/08_Page_Contracts/recognition/processing/Engineering_Contract_V3_2.md", "design/system_v3/08_Page_Contracts/recognition/processing/Acceptance_Contract_V3_2.json"]
     page_contract_keys: ["capture_page", "capture_layout", "capture_state", "capture_data", "capture_engineering", "capture_acceptance", "capture_accessibility", "processing_page", "processing_layout", "processing_state", "processing_data", "processing_engineering", "processing_acceptance"]
     contract_extensions:
       capture_hifi:
@@ -329,7 +333,7 @@ feature_contracts:
         note: "Design-only technical/business flow reference. DET_FISH owns full-scene fish detection/location; MODEL_M1 classifies valid crops; size/quality rules and RR07 own eligibility and final user-facing routing."
 
     shared_contract_refs: ["DS-FOUNDATION", "ANDROID-RUNTIME-HARNESS", "STATE-EVIDENCE-PROVENANCE"]
-    additional_shared_contract_refs: ["MODEL-RECOGNITION", "API-DATA-BOUNDARY"]
+    additional_shared_contract_refs: ["MODEL-RECOGNITION", "API-DATA-BOUNDARY", "RECOGNITION-OPTICAL-CONTINUITY"]
     required_gate_classes: ["STATIC_CONTRACT", "BUILD", "RUNTIME", "VISUAL", "MOTION_ACCESSIBILITY", "JOURNEY_E2E", "APK_PROVENANCE"]
   recognition_result_v1:
     contract_id: "FC-recognition_result_v1"
@@ -337,7 +341,7 @@ feature_contracts:
     scope: "PRIMARY_JOURNEY"
     priority: "P0"
     control_phase: "P8"
-    registry_status: "FROZEN"
+    registry_status: "ACTIVE_CLOSURE"
     owner_path: "design/pages/recognition/result"
     child_surfaces: ["overview", "high", "medium", "low", "no_fish", "image_quality", "content_edit", "decision_logic", "visual_acceptance", "motion_continuation"]
     journey_refs: ["J11", "J12", "J13", "J14", "J15", "J16"]
@@ -350,8 +354,8 @@ feature_contracts:
         status: "FROZEN"
         authority: "design/pages/recognition/result/authority/authority_map.json"
       motion:
-        status: "FROZEN"
-        authority: "design/pages/recognition/result/motion/Recognition_Result_Motion_Spec_V2.md"
+        status: "ACTIVE_CLOSURE"
+        authority: "design/pages/recognition/result/motion/Recognition_Result_Motion_Spec_V3.md"
       haptic:
         status: "FROZEN"
         authority: "design/pages/recognition/result/motion/Recognition_Result_Motion_Spec_V1.md"
@@ -367,10 +371,10 @@ feature_contracts:
       assets:
         status: "FROZEN"
         authority: "design/pages/recognition/design/reference_manifest.json"
-    page_contract_refs: ["design/system_v3/08_Page_Contracts/recognition/result/Recognition_Result_Page_Contract_V3_1.md", "design/system_v3/08_Page_Contracts/recognition/result/Layout_Contract_V3_1.json", "design/system_v3/08_Page_Contracts/recognition/result/State_Machine_V3_1.json", "design/system_v3/08_Page_Contracts/recognition/result/Data_Contract_V3_1.json", "design/system_v3/08_Page_Contracts/recognition/result/Engineering_Contract_V3_1.md", "design/system_v3/08_Page_Contracts/recognition/result/Acceptance_Contract_V3_1.json", "design/system_v3/08_Page_Contracts/recognition/result/Result_Responsive_Accessibility_Matrix_V3_1.md", "design/system_v3/09_Android_Implementation_Contracts/Android_Implementation_Contract_Registry_V1.json", "design/system_v3/09_Android_Implementation_Contracts/Recognition_Result_State_Binding_V1.json", "design/system_v3/09_Android_Implementation_Contracts/Recognition_Result_Component_Mapping_V1.json", "design/system_v3/09_Android_Implementation_Contracts/Recognition_Result_Runtime_Gate_V1.md", "design/system_v3/10_Page_Visual_Acceptance_Contracts/Recognition_Result/Recognition_Result_Visual_Contract_V1.md", "design/system_v3/10_Page_Visual_Acceptance_Contracts/Recognition_Result/Recognition_Result_Pixel_Targets_V1.json", "design/system_v3/10_Page_Visual_Acceptance_Contracts/Recognition_Result/Recognition_Result_Motion_Contract_V2.md", "design/system_v3/10_Page_Visual_Acceptance_Contracts/Recognition_Result/Recognition_Result_Accessibility_Contract_V1.md"]
+    page_contract_refs: ["design/system_v3/08_Page_Contracts/recognition/result/Recognition_Result_Page_Contract_V3_1.md", "design/system_v3/08_Page_Contracts/recognition/result/Layout_Contract_V3_1.json", "design/system_v3/08_Page_Contracts/recognition/result/State_Machine_V3_1.json", "design/system_v3/08_Page_Contracts/recognition/result/Data_Contract_V3_1.json", "design/system_v3/08_Page_Contracts/recognition/result/Engineering_Contract_V3_1.md", "design/system_v3/08_Page_Contracts/recognition/result/Acceptance_Contract_V3_1.json", "design/system_v3/08_Page_Contracts/recognition/result/Result_Responsive_Accessibility_Matrix_V3_1.md", "design/system_v3/09_Android_Implementation_Contracts/Android_Implementation_Contract_Registry_V1.json", "design/system_v3/09_Android_Implementation_Contracts/Recognition_Result_State_Binding_V1.json", "design/system_v3/09_Android_Implementation_Contracts/Recognition_Result_Component_Mapping_V1.json", "design/system_v3/09_Android_Implementation_Contracts/Recognition_Result_Runtime_Gate_V1.md", "design/system_v3/10_Page_Visual_Acceptance_Contracts/Recognition_Result/Recognition_Result_Visual_Contract_V1.md", "design/system_v3/10_Page_Visual_Acceptance_Contracts/Recognition_Result/Recognition_Result_Pixel_Targets_V1.json", "design/system_v3/10_Page_Visual_Acceptance_Contracts/Recognition_Result/Recognition_Result_Motion_Contract_V3.md", "design/system_v3/10_Page_Visual_Acceptance_Contracts/Recognition_Result/Recognition_Result_Accessibility_Contract_V1.md"]
     page_contract_keys: ["page_contract", "layout", "state", "data", "engineering", "acceptance", "responsive_accessibility", "android_registry", "android_state_binding", "android_component_mapping", "android_runtime_gate", "visual_contract", "visual_pixel_targets", "visual_motion", "visual_accessibility"]
     shared_contract_refs: ["DS-FOUNDATION", "ANDROID-RUNTIME-HARNESS", "STATE-EVIDENCE-PROVENANCE"]
-    additional_shared_contract_refs: ["MODEL-RECOGNITION", "API-DATA-BOUNDARY"]
+    additional_shared_contract_refs: ["MODEL-RECOGNITION", "API-DATA-BOUNDARY", "RECOGNITION-OPTICAL-CONTINUITY"]
     required_gate_classes: ["STATIC_CONTRACT", "BUILD", "RUNTIME", "VISUAL", "MOTION_ACCESSIBILITY", "JOURNEY_E2E", "APK_PROVENANCE"]
   fish_record_detail_v2:
     contract_id: "FC-fish_record_detail_v2"
@@ -1353,12 +1357,12 @@ page_contract_sets:
       capture_engineering: "design/system_v3/08_Page_Contracts/recognition/capture/Engineering_Contract_V3_1.md"
       capture_acceptance: "design/system_v3/08_Page_Contracts/recognition/capture/Acceptance_Contract_V3_1.json"
       capture_accessibility: "design/system_v3/08_Page_Contracts/recognition/capture/Capture_Accessibility_Responsive_Matrix.md"
-      processing_page: "design/system_v3/08_Page_Contracts/recognition/processing/Recognition_Processing_Page_Contract_V3_1.md"
+      processing_page: "design/system_v3/08_Page_Contracts/recognition/processing/Recognition_Processing_Page_Contract_V3_2.md"
       processing_layout: "design/system_v3/08_Page_Contracts/recognition/processing/Layout_Contract_V3_1.json"
-      processing_state: "design/system_v3/08_Page_Contracts/recognition/processing/State_Machine_V3_1.json"
+      processing_state: "design/system_v3/08_Page_Contracts/recognition/processing/State_Machine_V3_2.json"
       processing_data: "design/system_v3/08_Page_Contracts/recognition/processing/Data_Contract_V3_1.json"
-      processing_engineering: "design/system_v3/08_Page_Contracts/recognition/processing/Engineering_Contract_V3_1.md"
-      processing_acceptance: "design/system_v3/08_Page_Contracts/recognition/processing/Acceptance_Contract_V3_1.json"
+      processing_engineering: "design/system_v3/08_Page_Contracts/recognition/processing/Engineering_Contract_V3_2.md"
+      processing_acceptance: "design/system_v3/08_Page_Contracts/recognition/processing/Acceptance_Contract_V3_2.json"
     authority_rule: "Only the named source owns the declared contract dimension; absence is not inherited silently."
   recognition_result_v1:
     refs:
@@ -1375,7 +1379,7 @@ page_contract_sets:
       android_runtime_gate: "design/system_v3/09_Android_Implementation_Contracts/Recognition_Result_Runtime_Gate_V1.md"
       visual_contract: "design/system_v3/10_Page_Visual_Acceptance_Contracts/Recognition_Result/Recognition_Result_Visual_Contract_V1.md"
       visual_pixel_targets: "design/system_v3/10_Page_Visual_Acceptance_Contracts/Recognition_Result/Recognition_Result_Pixel_Targets_V1.json"
-      visual_motion: "design/system_v3/10_Page_Visual_Acceptance_Contracts/Recognition_Result/Recognition_Result_Motion_Contract_V2.md"
+      visual_motion: "design/system_v3/10_Page_Visual_Acceptance_Contracts/Recognition_Result/Recognition_Result_Motion_Contract_V3.md"
       visual_accessibility: "design/system_v3/10_Page_Visual_Acceptance_Contracts/Recognition_Result/Recognition_Result_Accessibility_Contract_V1.md"
     authority_rule: "Only the named source owns the declared contract dimension; absence is not inherited silently."
 
@@ -1429,6 +1433,11 @@ gate_contracts:
     purpose: "Human release authorization"
     contract_refs: ["STATE-EVIDENCE-PROVENANCE"]
     acceptance_domains: ["release"]
+    exact_sha_required: true
+  G-SWOS-PHASE0-CONTRACT:
+    purpose: "Cross-contract SWOS Phase 0 authority and timing consistency"
+    contract_refs: ["FC-recognition_flow_v1_2", "FC-recognition_result_v1", "RECOGNITION-OPTICAL-CONTINUITY", "DS-FOUNDATION"]
+    acceptance_domains: ["visual", "motion", "accessibility", "evidence"]
     exact_sha_required: true
   G-FIRST-USE-GUIDE-ASSET:
     purpose: "First-use guide binary identity and governance"
@@ -1485,6 +1494,10 @@ task_contract_bindings:
   P3-04:
     contract_refs: ["FC-fish_memory_bside_v1", "FC-record_date_v2", "FC-share_templates_v1", "FC-my_catches_v2", "FC-fish_guide_v2", "FC-account_privacy_v1"]
     gate_id: null
+    phase: "P3"
+  P3-05:
+    contract_refs: ["FC-recognition_flow_v1_2", "FC-recognition_result_v1", "RECOGNITION-OPTICAL-CONTINUITY", "G-SWOS-PHASE0-CONTRACT"]
+    gate_id: "G-SWOS-PHASE0-CONTRACT"
     phase: "P3"
   P4-01:
     contract_refs: ["FC-recognition_flow_v1_2", "FC-recognition_result_v1"]
@@ -1669,9 +1682,9 @@ inventory:
   journey_count: 20
   child_surface_count: 81
   route_count: 22
-  task_count: 45
-  gate_count: 11
+  task_count: 46
+  gate_count: 12
   registry_created_from_pr_head: "ebb6b3904feaa0cf26b4fd4b83bc809a397085a2"
-  last_synced_feature_matrix_sha: "42071f09795de91ebb75ba809694e2d7b1030418"
-  last_synced_phase_task_state_machine_sha: "bb94ab7c1b2bfc1204dee0d5b1ec6cd949d8712d"
-  last_synced_experience_registry_sha: "2040cc40402e909d4814f81d4aae64cae164b5f4"
+  last_synced_feature_matrix_sha: "60293c35ab295d4a0b9e1c931d2d478ab78e773a"
+  last_synced_phase_task_state_machine_sha: "706c57bb9f7b185fcc33741fbaed3da7a01baeb2"
+  last_synced_experience_registry_sha: "d1995525ca3293933a183f500370403bdaaa8813"

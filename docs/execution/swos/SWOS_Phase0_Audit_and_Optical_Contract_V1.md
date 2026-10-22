@@ -1,10 +1,10 @@
 # SWOS Phase 0 — Current-State Audit & Optical Contract V1
 
-**Task ID:** YUJIAN_SWOS_PHASE0_AUDIT_AND_OPTICAL_CONTRACT_V1  
-**Status:** PROPOSED_FOR_REVIEW · NOT FROZEN · DESIGN/AUDIT ONLY  
-**Repository:** pan277942135/Yujian_App  
-**Audit baseline:** main @ 888706fda16d6f343f9bb4e02463f3b7a3526c31  
-**Runtime status:** NOT_RUN for SWOS; existing RR09 runtime evidence does not prove SWOS acceptance  
+**Task ID:** YUJIAN_SWOS_PHASE0_AUDIT_AND_OPTICAL_CONTRACT_V1
+**Status:** AUDIT SOURCE · VERSIONED CONTRACTS AND CONTROL-PLANE CLOSURE ARE IN `PHASE0_CLOSURE_REPORT_V1.md` · NOT YET MAIN-AUTHORITATIVE
+**Repository:** pan277942135/Yujian_App
+**Audit baseline:** main @ 888706fda16d6f343f9bb4e02463f3b7a3526c31
+**Runtime status:** NOT_RUN for SWOS; existing RR09 runtime evidence does not prove SWOS acceptance
 **Scope:** Current-state audit, optical design contract proposal, and cross-page continuity definition. No Android source changes in Phase 0.
 
 ## 1. Product decision captured
@@ -219,6 +219,8 @@ Acceptance must prove:
 - browser evidence and Android API 28 evidence are classified separately.
 
 ## 7. Phase 0 exit criteria and authority boundary
+
+Versioned Phase 0 authorities are now split into dedicated files: SWOS Optical Contract V1, Processing Motion Spec V1.3 / Page Contract V3.2, Processing→Result Optical Continuity Contract V1 and RR09 V3. This document remains the source audit and design rationale; use `docs/execution/swos/PHASE0_CLOSURE_REPORT_V1.md` for the exact current contract set, control-plane links, validation evidence and Stage 1 gap list.
 
 Phase 0 is complete only when the audit is reviewed, the SWOS and Processing-to-Result continuity contracts are approved, and the Control Plane authority pointers are synchronized coherently. The active RR09 V2 frozen spec is retained as historical evidence; do not edit it in place. A new RR09 V3 authority is required for the Chinese-only title and first-Result-frame clock origin.
 

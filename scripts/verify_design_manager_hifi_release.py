@@ -87,10 +87,11 @@ def validate_tree(root: Path, *, built: bool = False, expected_build: str | None
     full_flow = by_view.get("recognition_full_flow_models")
     require(overview and boundary and guide_view and full_flow, "overview/boundary/guide/full-flow view missing")
     require(views[0].get("id") == "main_journey_overview", "00 journey overview is not the first recognition route")
+    view_ids = [view.get("id") for view in views]
     require(
-        len(views) >= 2 and views[-2].get("id") == "boundary_state_release_gate"
-        and views[-1].get("id") == "recognition_full_flow_models",
-        "08 boundary gate must remain in place and 09 full-flow/model route must be appended",
+        view_ids.index("boundary_state_release_gate") < view_ids.index("recognition_full_flow_models")
+        < view_ids.index("swos_optical_contract") < view_ids.index("processing_result_continuity"),
+        "08 boundary, 09 full-flow/model, SWOS and continuity routes must retain their registered order",
     )
     require(full_flow.get("title") == "09 · 识别全流程-和模型", "09 full-flow/model menu title drift")
     require(full_flow.get("status") == "DESIGN_ONLY" and full_flow.get("render_mode") == "recognition_full_flow_models", "09 full-flow/model must remain DESIGN_ONLY with its renderer")
