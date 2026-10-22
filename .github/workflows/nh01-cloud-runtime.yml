@@ -1,40 +1,48 @@
 name: NH01 Gemini Native V3 Runtime
 
 on:
-  pull_request:
-    branches: [main]
-    paths:
-      - "app/**"
-      - "design/pages/home/**"
-      - "design/system_v3/**"
-      - "design/manager/nh01_acceptance/index.html"
-      - "design/manager/nh01_acceptance/viewer.js"
-      - "design/manager/nh01_acceptance/viewer.css"
-      - "design/manager/nh01_acceptance/data/**"
-      - "scripts/android_runtime/**"
-      - "scripts/run_android_runtime_gate.sh"
-      - "scripts/verify_normal_home_*.py"
-      - "scripts/verify_nh01_gemini_native_source.py"
-      - "scripts/verify_yujian_resource_package.py"
-      - "scripts/materialize_yujian_resource_package.py"
-      - "scripts/design/**"
-      - ".github/workflows/nh01-cloud-runtime.yml"
-
-concurrency:
-  group: nh01-gemini-v3-runtime-${{ github.ref }}
-  # A new PR head supersedes unneeded earlier PR runtime attempts.
-  cancel-in-progress: true
+  workflow_dispatch:
+    inputs:
+      run_legacy_api28_diagnostic:
+        description: Main-only legacy API28 diagnostic; formal acceptance uses the central batch
+        required: true
+        default: false
+        type: boolean
+  workflow_call:
+    inputs:
+      source_sha:
+        description: Exact Integration SHA prepared by the central scheduler
+        required: true
+        type: string
+      artifact_class:
+        description: API28_INTEGRATION_CANDIDATE for a central batch
+        required: true
+        type: string
+      api28_scope:
+        description: CORE or FULL; Gemini API28 runtime runs in FULL only
+        required: true
+        type: string
 
 permissions:
   contents: read
 
 env:
-  YUJIAN_SOURCE_SHA: ${{ github.event.pull_request.head.sha }}
+  YUJIAN_SOURCE_SHA: ${{ inputs.source_sha || github.sha }}
   YUJIAN_RUNTIME_EVIDENCE: evidence/runtime/gemini-home-v3
 
 jobs:
   runtime:
+    if: >-
+      ${{ github.ref == 'refs/heads/main' && (
+          (github.workflow_ref == 'pan277942135/Yujian_App/.github/workflows/api28-batch-acceptance.yml@refs/heads/main' &&
+           inputs.artifact_class == 'API28_INTEGRATION_CANDIDATE' && inputs.api28_scope == 'FULL') ||
+          (github.event_name == 'workflow_dispatch' && inputs.run_legacy_api28_diagnostic == true)
+      ) }}
     runs-on: macos-15-intel
+    concurrency:
+      group: yujian-api28-global
+      cancel-in-progress: false
+      queue: max
     timeout-minutes: 100
     outputs:
       source_sha: ${{ steps.source.outputs.sha }}
@@ -43,7 +51,7 @@ jobs:
       - name: Checkout exact pull request source commit
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.head.sha }}
+          ref: ${{ inputs.source_sha || github.sha }}
 
       - name: Record canonical source commit
         id: source
@@ -111,6 +119,7 @@ jobs:
 
       - name: Android unit tests and exact-source APK build
         id: android_build
+        if: ${{ inputs.artifact_class != 'API28_INTEGRATION_CANDIDATE' }}
         run: |
           set -euo pipefail
           gradle -Pandroid.aapt2FromMavenOverride="$YUJIAN_AAPT2" test --stacktrace --no-daemon --max-workers=2
@@ -120,6 +129,25 @@ jobs:
           cp app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk build/runtime-apks/app-debug-androidTest.apk
           python3 scripts/export_apk_model_trace.py --apk build/runtime-apks/app-debug.apk --output-dir build/runtime-apks --build-sha "$YUJIAN_SOURCE_SHA"
           (cd build/runtime-apks && sha256sum app-debug.apk app-debug-androidTest.apk model_release_contract.json apk_model_trace.json > SHA256SUMS)
+          (cd build/runtime-apks && sha256sum -c SHA256SUMS)
+
+      - name: Download the central batch APK pair
+        id: shared_apk
+        if: ${{ inputs.artifact_class == 'API28_INTEGRATION_CANDIDATE' }}
+        uses: actions/download-artifact@v4
+        with:
+          pattern: YuJian-runtime-apks-${{ inputs.source_sha }}-*
+          path: build/runtime-apks
+          merge-multiple: true
+
+      - name: Verify the central batch APK pair
+        if: ${{ inputs.artifact_class == 'API28_INTEGRATION_CANDIDATE' }}
+        run: |
+          set -euo pipefail
+          test -s build/runtime-apks/app-debug.apk
+          test -s build/runtime-apks/app-debug-androidTest.apk
+          test -s build/runtime-apks/model_release_contract.json
+          test -s build/runtime-apks/apk_model_trace.json
           (cd build/runtime-apks && sha256sum -c SHA256SUMS)
 
       - name: Select standard Intel macOS emulator environment
@@ -168,7 +196,7 @@ jobs:
             --allow-unavailable
 
       - name: Record emulator outcome when the runtime gate produced no result
-        if: always() && steps.android_build.outcome == 'success'
+        if: always() && (steps.android_build.outcome == 'success' || steps.shared_apk.outcome == 'success')
         run: |
           set -euo pipefail
           result="$YUJIAN_RUNTIME_EVIDENCE/runtime_gate_result.json"
@@ -187,6 +215,8 @@ jobs:
               --gate gemini-home-v2 \
               --api-level 28 \
               --build-sha "$YUJIAN_SOURCE_SHA" \
+              --app-apk build/runtime-apks/app-debug.apk \
+              --test-apk build/runtime-apks/app-debug-androidTest.apk \
               --adb-state unknown \
               --boot-completed unknown \
               --data-free-kb "" \
@@ -202,7 +232,7 @@ jobs:
 
       - name: Package Gemini V3 APK and runtime evidence
         id: package
-        if: always() && steps.android_build.outcome == 'success'
+        if: always() && (steps.android_build.outcome == 'success' || steps.shared_apk.outcome == 'success')
         run: |
           set -euo pipefail
           mkdir -p build/nh01-gemini-artifact
@@ -224,7 +254,7 @@ jobs:
         if: always() && steps.package.outcome == 'success'
         uses: actions/upload-artifact@v4
         with:
-          name: YuJian-NH01-Gemini-V3-${{ github.event.pull_request.head.sha }}-${{ github.run_id }}
+          name: YuJian-NH01-Gemini-V3-${{ inputs.source_sha || github.sha }}-${{ github.run_id }}
           path: build/nh01-gemini-artifact
           if-no-files-found: error
           retention-days: 30

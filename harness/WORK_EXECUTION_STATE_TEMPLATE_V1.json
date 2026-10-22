@@ -17,5 +17,16 @@
   "next_action":"<NEXT_ACTION>",
   "dependencies":[],
   "blockers":[],
-  "evidence":{}
+  "evidence":{},
+  "delivery":{
+    "artifact_class":"USER_PREVIEW",
+    "source_sha":"<WORK_HEAD_SHA>",
+    "source_branch":"<PRODUCT_BRANCH>",
+    "api28_status":"NOT_RUN",
+    "formal_status":"NOT_ELIGIBLE",
+    "release_status":"NOT_ELIGIBLE",
+    "quick_checks":{},
+    "evidence_links":[]
+  },
+  "user_feedback":[]
 }

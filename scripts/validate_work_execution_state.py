@@ -10,6 +10,10 @@ MACHINE=ROOT/"harness/PHASE_TASK_STATE_MACHINE.yaml"
 CONTRACT=ROOT/"harness/UNIFIED_CONTRACT_REGISTRY.yaml"
 SHA=re.compile(r"^[0-9a-f]{40}$")
 STATUS={"READY","RUNNING","VALIDATING","FAIL","RECOVERING","BLOCKED","PASS","CLOSED","FINAL_GATE","CANCELLED"}
+try:
+    from .work_lifecycle import validate_delivery, validate_feedback
+except ImportError:  # direct script execution
+    from work_lifecycle import validate_delivery, validate_feedback
 def git(*args):
     return subprocess.check_output(["git",*args],cwd=ROOT,text=True,stderr=subprocess.DEVNULL).strip()
 
@@ -147,6 +151,14 @@ def main():
     if not isinstance(state.get("blockers"),list): errors.append("blockers must be array")
     if not isinstance(state.get("evidence"),dict): errors.append("evidence must be object")
     if not state.get("next_action"): errors.append("next_action is required")
+    if state.get("delivery") is not None:
+        errors.extend("delivery: " + error for error in validate_delivery(state.get("delivery")))
+    feedback = state.get("user_feedback", [])
+    if not isinstance(feedback, list):
+        errors.append("user_feedback must be an array")
+    else:
+        for index, record in enumerate(feedback):
+            errors.extend(f"user_feedback[{index}]: {error}" for error in validate_feedback(record))
     # Optional V2 ledger uses the existing Work state; never infer a Gate PASS.
     from importlib.util import module_from_spec, spec_from_file_location
     guard_path = ROOT / "tools/work_execution_v2/failure_gate.py"

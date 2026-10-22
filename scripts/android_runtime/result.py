@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 from pathlib import Path
 
@@ -15,11 +16,26 @@ def maybe_int(value: str) -> int | None:
         return None
 
 
+def file_sha256(path: str | None) -> str | None:
+    if not path:
+        return None
+    candidate = Path(path)
+    if not candidate.is_file():
+        return None
+    digest = hashlib.sha256()
+    with candidate.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
 def build_payload(args: argparse.Namespace) -> dict[str, object]:
     return {
         "gate": args.gate,
         "api_level": maybe_int(args.api_level),
         "build_sha": args.build_sha,
+        "app_apk_sha256": file_sha256(args.app_apk),
+        "test_apk_sha256": file_sha256(args.test_apk),
         "device": {
             "adb_state": args.adb_state,
             "boot_completed": args.boot_completed,
@@ -64,6 +80,8 @@ def main() -> None:
     parser.add_argument("--gate", required=True)
     parser.add_argument("--api-level", required=True)
     parser.add_argument("--build-sha", required=True)
+    parser.add_argument("--app-apk", default="")
+    parser.add_argument("--test-apk", default="")
     parser.add_argument("--adb-state", required=True)
     parser.add_argument("--boot-completed", required=True)
     parser.add_argument("--data-free-kb", required=True)

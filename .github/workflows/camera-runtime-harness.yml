@@ -1,25 +1,25 @@
 name: Camera Runtime Harness P0
 
 on:
-  push:
-    branches:
-      - infra/camera-runtime-harness-p0-v1
-      - infra/camera-runtime-harness-p0-v1-1
-      - fix/recognition-camera-capture-p0-v2
-      - integration/android-product-closure-v1
-      - main
   workflow_dispatch:
+    inputs:
+      run_legacy_api28_diagnostic:
+        description: Main-only legacy API28 diagnostic; formal acceptance uses the central batch
+        required: true
+        default: false
+        type: boolean
 
 permissions:
   contents: read
 
-concurrency:
-  group: yujian-camera-runtime-inventory-${{ github.ref }}
-  cancel-in-progress: false
-
 jobs:
   inventory:
+    if: ${{ github.ref == 'refs/heads/main' && inputs.run_legacy_api28_diagnostic == true }}
     runs-on: [self-hosted, yujian-android, api28]
+    concurrency:
+      group: yujian-api28-global
+      cancel-in-progress: false
+      queue: max
     timeout-minutes: 12
     steps:
       - name: Checkout
@@ -239,8 +239,13 @@ jobs:
           retention-days: 14
 
   camera-runtime:
+    if: ${{ github.ref == 'refs/heads/main' && inputs.run_legacy_api28_diagnostic == true }}
     needs: [inventory, build]
     runs-on: [self-hosted, yujian-android, api28]
+    concurrency:
+      group: yujian-api28-global
+      cancel-in-progress: false
+      queue: max
     timeout-minutes: 60
     steps:
       - name: Checkout exact product source

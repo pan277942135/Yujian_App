@@ -1,21 +1,25 @@
 name: Camera Capture P0 V2 Product Runtime
 
 on:
-  push:
-    branches:
-      - fix/recognition-camera-capture-p0-v2
   workflow_dispatch:
+    inputs:
+      run_legacy_api28_diagnostic:
+        description: Main-only legacy API28 diagnostic; formal acceptance uses the central batch
+        required: true
+        default: false
+        type: boolean
 
 permissions:
   contents: read
 
-concurrency:
-  group: yujian-camera-capture-p0-v2-${{ github.ref }}
-  cancel-in-progress: false
-
 jobs:
   inventory:
+    if: ${{ github.ref == 'refs/heads/main' && inputs.run_legacy_api28_diagnostic == true }}
     runs-on: [self-hosted, yujian-android, api28]
+    concurrency:
+      group: yujian-api28-global
+      cancel-in-progress: false
+      queue: max
     timeout-minutes: 12
     steps:
       - name: Checkout
@@ -248,8 +252,13 @@ jobs:
           retention-days: 14
 
   camera-runtime:
+    if: ${{ github.ref == 'refs/heads/main' && inputs.run_legacy_api28_diagnostic == true }}
     needs: [inventory, build]
     runs-on: [self-hosted, yujian-android, api28]
+    concurrency:
+      group: yujian-api28-global
+      cancel-in-progress: false
+      queue: max
     timeout-minutes: 60
     steps:
       - name: Checkout product source
