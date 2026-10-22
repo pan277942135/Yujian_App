@@ -4,6 +4,8 @@ const PAGE_REGISTRY_URL =
   "../registry/experience_registry_v1.json?v=" + encodeURIComponent(DESIGN_MANAGER_BUILD);
 const SHARED_REGISTRY_URL =
   "../registry/shared_design_system_v1.json?v=" + encodeURIComponent(DESIGN_MANAGER_BUILD);
+const WORKSPACE_REGISTRY_URL =
+  "./workspace_registry.json?v=" + encodeURIComponent(DESIGN_MANAGER_BUILD);
 const DESIGN_MODALITIES = ["behavior", "visual", "motion", "haptic", "sound", "assets"];
 
 const ICONS = {
@@ -30,6 +32,7 @@ const CATEGORY_LABELS = { foundation: "基础系统", component: "公共组件" 
 
 let pageRegistry = null;
 let sharedRegistry = null;
+let workspaceRegistry = null;
 let backgroundContract = null;
 let backgroundUsage = null;
 let recognitionDecisionContract = null;
@@ -475,8 +478,20 @@ function renderLists() {
       return parentView + (nested ? '<div class="page-subsublist">' + nested + '</div>' : '');
     }).join("");
 
-    return parent + (children
-      ? '<div class="page-sublist nav-children' + (expanded ? ' expanded' : ' collapsed') + '">' + children + '</div>'
+    const workspaces = feature.id === (workspaceRegistry?.parent_page_id || "home_normal_v1")
+      ? (workspaceRegistry?.workspaces || []) : [];
+    const workspaceMenu = workspaces.length
+      ? '<div class="workspace-nav-group"><div class="workspace-nav-heading">' +
+        esc(workspaceRegistry.navigation_group || "设计工作台") + '</div>' +
+        workspaces.map(workspace =>
+          '<button class="workspace-nav-item' + (selectedKey === "page/" + feature.id + "/workspace/" + workspace.id ? " active" : "") +
+          '" type="button" data-kind="workspace" data-page-id="' + esc(feature.id) +
+          '" data-workspace-id="' + esc(workspace.id) + '"><span>' + esc(workspace.title) +
+          '</span>' + statusBadge(workspace.status || "PREVIEW_ONLY") + '</button>'
+        ).join("") + '</div>' : "";
+
+    return parent + ((children || workspaceMenu)
+      ? '<div class="page-sublist nav-children' + (expanded ? ' expanded' : ' collapsed') + '">' + children + workspaceMenu + '</div>'
       : '');
   }).join("") || '<div class="preview-empty compact">没有匹配的页面</div>';
 
@@ -533,13 +548,108 @@ function renderLists() {
       selectPage(btn.dataset.pageId, null, btn.dataset.hifiId, btn.dataset.hifiChildId);
     });
   });
+
+  document.querySelectorAll(".workspace-nav-item[data-kind='workspace']").forEach(btn => {
+    btn.addEventListener("click", () => {
+      expandedLevelOne.add("page:" + btn.dataset.pageId);
+      selectWorkspace(btn.dataset.pageId, btn.dataset.workspaceId);
+    });
+  });
 }
 
 function hideAllDetails() {
   el("emptyState").classList.add("hidden");
   el("sharedDetail").classList.add("hidden");
   el("pageDetail").classList.add("hidden");
+  el("workspaceDetail").classList.add("hidden");
 }
+
+function selectWorkspace(pageId, workspaceId, writeHistory = true) {
+  const parent = pageRegistry?.features?.find(feature => feature.id === pageId);
+  const workspace = workspaceRegistry?.workspaces?.find(item => item.id === workspaceId);
+  if (!parent || !workspace || pageId !== workspaceRegistry.parent_page_id) return;
+  selectedKey = "page/" + pageId + "/workspace/" + workspaceId;
+  writeManagerRoute(workspace.route, writeHistory);
+  expandedLevelOne.add("page:" + pageId);
+  renderLists();
+  hideAllDetails();
+  el("workspaceDetail").classList.remove("hidden");
+  el("pageEyebrow").textContent = "渔见 · " + (workspaceRegistry.navigation_group || "设计工作台") + " · NH01";
+  el("pageTitle").textContent = workspace.title;
+  el("pageStatus").innerHTML = statusBadge(workspace.status || "PREVIEW_ONLY");
+
+  const authorityPaths = [
+    ["Gemini Native V3 结构快照", workspace.structure_snapshot],
+    ["NH01 Gemini 资产 Manifest", workspace.asset_manifest],
+    ["Android 实现合同", workspace.implementation_contract]
+  ];
+  el("workspaceDescription").textContent = workspace.description;
+  el("workspaceMode").textContent = workspace.render_mode;
+  el("workspaceRuntimeStatus").textContent = "Android Runtime · " + (workspace.android_runtime || "NOT_RUN");
+  el("workspaceVisualStatus").textContent = "Visual Review · " + (workspace.visual_review || "REQUIRED");
+  el("workspaceAuthorities").innerHTML = authorityPaths.map(([label,path]) =>
+    '<a class="authority-row" href="' + esc(repoHref(path)) + '" target="_blank" rel="noreferrer">' +
+    '<span>' + esc(label) + '</span><code>' + esc(path) + '</code></a>'
+  ).join("");
+  el("workspaceEvidence").innerHTML = (workspace.evidence || []).map(item =>
+    '<a class="authority-row" href="' + esc(item.path) + '?v=' + encodeURIComponent(DESIGN_MANAGER_BUILD) +
+    '" target="_blank" rel="noreferrer"><span>' + esc(item.label) + '</span><code>' + esc(item.path) + '</code></a>'
+  ).join("") || '<div class="preview-empty">当前构建尚未附加浏览器证据。</div>';
+  const frame = el("workspaceFrame");
+  frame.title = "NH01 · " + workspace.title;
+  frame.dataset.workspaceId = workspace.id;
+  el("workspaceRendererState").textContent = "正在加载 Gemini Native V3 预览与资产…";
+  el("workspaceRendererState").dataset.state = "LOADING";
+  const previewEntryUrl = new URL(workspace.preview_entry, document.baseURI).href;
+  // Keep workspace navigation in the parent Design Manager history only.
+  // Replacing the iframe's current entry prevents Back from traversing stale
+  // child-document URLs before restoring the previous parent workspace route.
+  if (frame.dataset.historyNeutralWorkspaceNavigation === "true") {
+    try {
+      frame.contentWindow.location.replace(previewEntryUrl);
+    } catch (_) {
+      frame.src = previewEntryUrl;
+    }
+  } else {
+    frame.src = previewEntryUrl;
+    frame.dataset.historyNeutralWorkspaceNavigation = "true";
+  }
+  frame.style.height = workspace.id === "responsive_design" ? "1400px" : "900px";
+  window.setTimeout(() => {
+    if (frame.dataset.workspaceId !== workspace.id || selectedKey !== "page/" + pageId + "/workspace/" + workspace.id || el("workspaceRendererState").dataset.state !== "LOADING") return;
+    try {
+      if (frame.contentWindow?.NH01GeminiPreviewReady) return;
+    } catch (_) {}
+    el("workspaceRendererState").textContent = "预览未就绪；请检查入口、资源路径或加载错误。";
+    el("workspaceRendererState").dataset.state = "ERROR";
+  }, 30000);
+}
+
+window.addEventListener("message", event => {
+  const frame = el("workspaceFrame");
+  if (!frame || event.origin !== location.origin || event.source !== frame.contentWindow) return;
+  if (event.data?.workspace_id && event.data.workspace_id !== frame.dataset.workspaceId) return;
+  if (event.data?.type !== "nh01-workspace-height") return;
+  const height = Number(event.data.height);
+  if (!Number.isFinite(height)) return;
+  frame.style.height = Math.max(720, Math.min(5000, Math.ceil(height))) + "px";
+});
+
+window.addEventListener("message", event => {
+  const frame = el("workspaceFrame");
+  if (!frame || event.origin !== location.origin || event.source !== frame.contentWindow) return;
+  if (event.data?.workspace_id !== frame.dataset.workspaceId) return;
+  if (event.data?.type !== "nh01-workspace-status") return;
+  const status = String(event.data.status || "ERROR");
+  const output = el("workspaceRendererState");
+  if (status === "PASS") {
+    output.textContent = "预览已加载 · 已登记资产 SHA / 原始尺寸核验完成；阻塞照片仍为占位。";
+    output.dataset.state = "READY";
+  } else {
+    output.textContent = "预览资源核验失败：" + String(event.data.message || status);
+    output.dataset.state = "ERROR";
+  }
+});
 
 function previewHtml(path, alt, note) {
   if (!path) return '<div class="preview-empty">尚未登记独立预览资产。</div>';
@@ -3705,6 +3815,11 @@ function selectFromHash() {
           return selectPage(id, scenarioId, null, null, false);
         }
       }
+      if (parts[2] === "workspace" && parts[3] && parts.length === 4) {
+        if (id === workspaceRegistry?.parent_page_id && (workspaceRegistry?.workspaces || []).some(item => item.id === parts[3])) {
+          return selectWorkspace(id, parts[3], false);
+        }
+      }
       if (parts.length === 2) return selectPage(id, null, null, null, false);
     }
   }
@@ -3713,13 +3828,15 @@ function selectFromHash() {
 
 async function init() {
   try {
-    const [pageResponse, sharedResponse] = await Promise.all([
+    const [pageResponse, sharedResponse, workspaceResponse] = await Promise.all([
       fetch(PAGE_REGISTRY_URL, { cache:"no-store" }),
-      fetch(SHARED_REGISTRY_URL, { cache:"no-store" })
+      fetch(SHARED_REGISTRY_URL, { cache:"no-store" }),
+      fetch(WORKSPACE_REGISTRY_URL, { cache:"no-store" })
     ]);
-    if (!pageResponse.ok || !sharedResponse.ok) throw new Error("Registry HTTP error");
+    if (!pageResponse.ok || !sharedResponse.ok || !workspaceResponse.ok) throw new Error("Registry HTTP error");
     pageRegistry = await pageResponse.json();
     sharedRegistry = await sharedResponse.json();
+    workspaceRegistry = await workspaceResponse.json();
     const mainJourneyBoard = pageRegistry.features.find(x => x.id === "recognition_flow_v1_2")
       ?.hifi_views?.find(x => x.id === "boundary_state_release_gate")
       ?.children?.find(x => x.id === "master_board_v1");

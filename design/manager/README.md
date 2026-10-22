@@ -27,6 +27,15 @@ Design Manager V1 采用两层结构：
 
 每个页面通过 `shared_system_refs` 声明使用哪些公共系统和变体。
 
+## NH01 设计工作台
+
+「有数据首页」保留 `NH01–NH07` 的 Registry、顺序与 Frozen 权威；工作台是其下单独的 Design Manager 工作区，不计入页面状态：
+
+- **结构化高保真**：复用 Gemini Native V3 预览的结构树、组件检查器和精确资产 Manifest。
+- **响应式设计**：复用同一预览逻辑，切换视口、字体缩放、当前/原有对照方案及合成内容压力样例。
+
+工作区路由与渲染模式注册在 `design/manager/workspace_registry.json`。工作区仅证明结构、静态布局和登记资产完整性；Hero / 邻卡原图若仍未获批即保持阻塞占位。Android Runtime 与整页视觉一致性分别验收，本工作台不改变 NH01 Frozen PNG 或 Android Release Gate。
+
 例如：
 
 ```text
@@ -233,6 +242,17 @@ GitHub Pages 仅复制 `design/`。合并到 main 并完成 Pages 部署后，�
 Frozen 图片按原始比例完整展示。点击可打开支持放大、缩小、适配窗口和查看原文件的弹层；页面与状态合同显示 Authority Path / SHA、进入条件、触发、操作、下一状态、返回 / 取消 / 重拍和独立 Runtime 状态。未提供的原图不生成模拟 UI 或可点击假路径；浏览器前进 / 后退、刷新和无效 Hash 均经过回归验证。
 
 展示与路由合同见 [`RECOGNITION_HIFI_PRESENTATION_CONTRACT_V1.md`](RECOGNITION_HIFI_PRESENTATION_CONTRACT_V1.md)。本管理站的响应式验证只证明 Design Manager；Page Contract 的 320dp / 360dp、Insets、字号、TalkBack 和 Runtime 项仍由各自产品合同与验收状态控制。
+
+
+## NH01 工作区 · PR #176 验收交付
+
+- 预览入口：`previews/pr-176/design/manager/#page/home_normal_v1`。
+- Chromium 报告与截图由 Design Manager Pages 工作流生成，随同一预览发布到 `nh01_acceptance/evidence/`，并记录源码 SHA 与 Workflow Run ID。
+- 响应式证据覆盖六个视口和 1.0× / 1.3× / 1.5× 字体缩放；自动化结果不替代整页视觉审查。
+- 结构预览与 Android Runtime 状态分开记录；本工作区状态为 `PREVIEW_ONLY`、视觉审查 `REQUIRED`、Android `NOT_RUN`。
+
+
+- 重新进入工作区会载入默认结构视图与响应式视口；审阅参数只改变预览，并由当前构建的浏览器证据记录。
 
 ## Recognition · 识别全流程-和模型
 
