@@ -11,12 +11,14 @@ const playwrightPath = process.env.PLAYWRIGHT_PATH || (moduleRoot ? resolve(modu
 const { chromium } = require(playwrightPath);
 function assert(condition, message) { if (!condition) throw new Error(message); }
 function parseArgs(argv) {
-  const result = { root: process.cwd(), url: null, expectedBuild: null, output: "/tmp/nh01-pr-preview-report.json" };
+  const result = { root: process.cwd(), url: null, expectedBuild: null, expectedManagerBuild: null, expectedPreviewBuild: null, output: "/tmp/nh01-pr-preview-report.json" };
   for (let i = 2; i < argv.length; i += 1) {
     const arg = argv[i];
     if (arg === "--root") result.root = resolve(argv[++i]);
     else if (arg === "--url") result.url = argv[++i];
     else if (arg === "--expected-build") result.expectedBuild = argv[++i];
+    else if (arg === "--expected-manager-build") result.expectedManagerBuild = argv[++i];
+    else if (arg === "--expected-preview-build") result.expectedPreviewBuild = argv[++i];
     else if (arg === "--output") result.output = resolve(argv[++i]);
     else throw new Error("Unknown argument: " + arg);
   }
@@ -43,7 +45,10 @@ function startStaticServer(root) {
 }
 async function main() {
   const args = parseArgs(process.argv);
-  assert(args.expectedBuild, "--expected-build is required");
+  const expectedManagerBuild = args.expectedManagerBuild || args.expectedBuild;
+  const expectedPreviewBuild = args.expectedPreviewBuild || args.expectedBuild;
+  assert(expectedManagerBuild, "--expected-build or --expected-manager-build is required");
+  assert(expectedPreviewBuild, "--expected-build or --expected-preview-build is required");
   await mkdir(resolve(args.output, ".."), { recursive: true });
   let server = null;
   let origin = args.url;
@@ -56,7 +61,7 @@ async function main() {
   const failedRequests = [];
   const badResponses = [];
   const sameOrigin = new URL(origin).origin;
-  const report = { expected_build: args.expectedBuild, manager_url: managerUrl, preview_url: previewUrl, checks: {}, errors, failed_requests: failedRequests, bad_responses: badResponses };
+  const report = { expected_build: args.expectedBuild, expected_manager_build: expectedManagerBuild, expected_preview_build: expectedPreviewBuild, manager_url: managerUrl, preview_url: previewUrl, checks: {}, errors, failed_requests: failedRequests, bad_responses: badResponses };
   try {
     const page = await browser.newPage({ viewport: { width: 1440, height: 1000 }, deviceScaleFactor: 1 });
     page.on("console", message => { if (message.type() === "error") errors.push(message.text()); });
@@ -69,14 +74,14 @@ async function main() {
     await page.locator("#hifiViewTitle").waitFor({ state: "visible", timeout: 30000 });
     await page.locator("#pageList .module-item").first().waitFor({ state: "visible", timeout: 30000 });
     const mainBuild = await page.locator('meta[name="design-manager-build"]').getAttribute("content");
-    assert(mainBuild === args.expectedBuild, "Design Manager build SHA mismatch: " + mainBuild);
+    assert(mainBuild === expectedManagerBuild, `Design Manager build SHA mismatch: ${mainBuild} != ${expectedManagerBuild}`);
     report.checks.main = { http_status: mainResponse.status(), build_sha: mainBuild, title: await page.title() };
 
     const previewResponse = await page.goto(previewUrl, { waitUntil: "domcontentloaded", timeout: 60000 });
     assert(previewResponse && previewResponse.status() === 200, "NH01 preview page HTTP status is not 200");
     await page.waitForFunction(() => window.NH01GeminiPreviewLayoutReady === true, { timeout: 30000 });
     const previewBuild = await page.locator('meta[name="nh01-gemini-preview-build"]').getAttribute("content");
-    assert(previewBuild === args.expectedBuild, "NH01 preview build SHA mismatch: " + previewBuild);
+    assert(previewBuild === expectedPreviewBuild, `NH01 preview build SHA mismatch: ${previewBuild} != ${expectedPreviewBuild}`);
     const iframeCount = await page.locator(".responsive-frame").count();
     assert(iframeCount === 5, "Expected five responsive viewport preview frames, got " + iframeCount);
     await page.waitForFunction(() => Array.from(document.querySelectorAll(".responsive-frame")).every(frame => frame.contentWindow && frame.contentWindow.NH01GeminiPreviewLayoutReady === true), { timeout: 60000 });

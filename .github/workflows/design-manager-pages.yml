@@ -239,7 +239,8 @@ jobs:
           PLAYWRIGHT_MODULE_DIR="$RUNNER_TEMP/dm-playwright/node_modules" \
             node scripts/verify_nh01_pr_preview_live.mjs \
               --root _site \
-              --expected-build "${BUILD_SHA}" \
+              --expected-manager-build "${PUBLISHED_BUILD_SHA}" \
+              --expected-preview-build "${BUILD_SHA}" \
               --output "$RUNNER_TEMP/nh01-pr-preview-build-report.json"
 
       - name: Verify hi-fi Pages artifact
@@ -507,6 +508,12 @@ jobs:
               --base-url="${PREVIEW_ROOT}" \
               --expected-source-sha="${BUILD_SHA}" \
               --output-dir "$RUNNER_TEMP/dm-live-evidence/preview-nh01-browser"
+          PLAYWRIGHT_MODULE_DIR="$RUNNER_TEMP/dm-playwright/node_modules" \
+            node _preview_source/scripts/verify_nh01_pr_preview_live.mjs \
+              --url "${BASE_URL}/" \
+              --expected-manager-build "${PUBLISHED_BUILD_SHA}" \
+              --expected-preview-build "${BUILD_SHA}" \
+              --output "$RUNNER_TEMP/dm-live-evidence/pr-176-preview-verification.json"
           {
             echo "## NH01 PR #176 independent preview"
             echo ""
@@ -524,7 +531,8 @@ jobs:
           PLAYWRIGHT_MODULE_DIR="$RUNNER_TEMP/dm-playwright/node_modules" \
             node scripts/verify_nh01_pr_preview_live.mjs \
               --url "${{ steps.deployment.outputs.page_url }}" \
-              --expected-build "${BUILD_SHA}" \
+              --expected-manager-build "${PUBLISHED_BUILD_SHA}" \
+              --expected-preview-build "${BUILD_SHA}" \
               --output "$RUNNER_TEMP/dm-live-evidence/nh01-pr-preview-verification.json"
 
       - name: Upload live release evidence

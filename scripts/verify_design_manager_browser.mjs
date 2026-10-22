@@ -652,7 +652,22 @@ async function main() {
   await historyPage.waitForFunction(expected => location.hash === expected, nhWorkspaceRoutes.responsive);
   const historyBeforeBack = await historyPage.evaluate(() => ({ hash:location.hash, length:history.length }));
   assert(historyBeforeBack.length >= 3, `Workspace navigation did not create browser history entries: ${JSON.stringify(historyBeforeBack)}`);
-  await historyPage.goBack({ waitUntil:"commit", timeout:10000 });
+  await historyPage.evaluate(() => {
+    window.__NH01WorkspaceHistoryEvents = [];
+    for (const type of ["popstate", "hashchange"]) {
+      addEventListener(type, () => window.__NH01WorkspaceHistoryEvents.push({ type, hash:location.hash, length:history.length }));
+    }
+  });
+  try {
+    await historyPage.goBack({ waitUntil:"commit", timeout:10000 });
+  } catch (error) {
+    const historyAfterBackFailure = await historyPage.evaluate(() => ({
+      hash:location.hash,
+      length:history.length,
+      events:window.__NH01WorkspaceHistoryEvents || []
+    }));
+    throw new Error(`Browser Back did not settle: before=${JSON.stringify(historyBeforeBack)} after=${JSON.stringify(historyAfterBackFailure)}; ${error.message}`);
+  }
   await historyPage.waitForFunction(expected => location.hash === expected, nhWorkspaceRoutes.structured, { timeout:10000 });
   const historyAfterBack = await historyPage.evaluate(() => ({ hash:location.hash, length:history.length }));
   assert(historyAfterBack.hash === nhWorkspaceRoutes.structured,
