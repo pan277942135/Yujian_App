@@ -24,8 +24,10 @@ EXPECTED_ARCHIVE_SHA256 = "45b7d796e9eb8e9162eae111212afbd02d7e8395b9507965b49bc
 SOURCE_PATHS = {
     "home": ROOT / "design/system/core_visual_v1/reference/normal_home_v1.png",
     "P01": ROOT / "design/pages/recognition/first_use_camera_guide/frozen/P01_First_Use_Camera_Guide_Frozen.png",
-    "P02": ROOT / "design/pages/recognition/first_use_camera_guide/frozen/P02_First_Use_Camera_Guide_Frozen.png",
-    "P03": ROOT / "design/pages/recognition/first_use_camera_guide/frozen/P03_First_Use_Camera_Guide_Frozen.png",
+    # The package is historical V1: P02 remains in the archive, not in the active guide.
+    "P02": ROOT / "design/pages/recognition/first_use_camera_guide/archive/P02_Portrait_Vertical_Fish_Superseded_20261016.png",
+    # Historical P03 is byte-identical to active V1.2 P02.
+    "P03": ROOT / "design/pages/recognition/first_use_camera_guide/frozen/P02_Landscape_Horizontal_Fish_Frozen.png",
 }
 KNOWN_STATUSES = {
     "REFERENCE_ONLY",

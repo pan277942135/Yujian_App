@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "suite_id": "YU_JIAN_RECOGNITION_E2E",
-  "suite_version": "1.1.0",
+  "suite_version": "1.2.0",
   "status": "REVIEW",
   "test_user_id": "QA_RECOGNITION_001",
   "test_user_dataset_version": "1.1.0",
@@ -11,7 +11,7 @@
   "scenarios": [
     {
       "scenario_id": "E2E-01",
-      "title": "首次安装→权限→P01/P02/P03→真实拍照→真实结果→返回",
+      "title": "首次安装→权限→P01/P02→真实拍照→真实结果→返回",
       "test_user_id": "QA_RECOGNITION_001",
       "initial_state": "FIRST_USE",
       "execution_mode": "REAL_DEVICE",

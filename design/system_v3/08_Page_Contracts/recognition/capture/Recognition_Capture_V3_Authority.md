@@ -55,15 +55,14 @@ The capture-button master remains the existing Asset Registry entry and SHA. Its
 
 ## Additive first-use guide authority
 
-The first-use camera guide is a three-page additive overlay state inside Recognition Capture. Its active frozen visual authority is:
+The first-use camera guide is a two-page additive overlay state inside Recognition Capture. Its frozen V1.2 authority is:
 
-- `design/pages/recognition/first_use_camera_guide/First_Use_Camera_Guide_Spec_V1.md`
+- `design/pages/recognition/first_use_camera_guide/First_Use_Camera_Guide_Spec_V1_2.md`
 - `design/pages/recognition/first_use_camera_guide/manifest.json`
 - `design/pages/recognition/first_use_camera_guide/frozen/P01_First_Use_Camera_Guide_Frozen.png`
-- `design/pages/recognition/first_use_camera_guide/frozen/P02_First_Use_Camera_Guide_Frozen.png`
-- `design/pages/recognition/first_use_camera_guide/frozen/P03_First_Use_Camera_Guide_Frozen.png`
+- `design/pages/recognition/first_use_camera_guide/frozen/P02_Landscape_Horizontal_Fish_Frozen.png`
 
-P01 is portrait phone + horizontal fish; P02 is portrait phone + vertical fish; P03 is landscape phone + horizontal fish. P01 and P02 advance with `下一张`; P02 and P03 expose `上一张`; P03 uses `开始拍摄`. Skip and final Start dismiss the guide, and Start never fires the shutter. This overlay does not replace the live Camera Preview or redefine Capture's Top Navigation, Gallery, primary capture action, permission UI, or Photo Picker.
+P01 is portrait phone + horizontal fish; P02 is landscape phone + horizontal fish. P01 advances with `下一张`; P02 exposes `上一张` and uses `开始拍摄`. The former portrait-phone + vertical-fish P02 is archived and is not active. Skip and final Start dismiss the guide, and Start never fires the shutter. This overlay does not replace the live Camera Preview or redefine Capture's Top Navigation, Gallery, primary capture action, permission UI, or Photo Picker.
 
 ## Acceptance
 

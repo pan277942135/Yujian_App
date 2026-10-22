@@ -1,0 +1,11 @@
+{
+  "task_id": "YUJIAN_EDGEGLOW_FISH_STATIC_HIFI_V1",
+  "status": "BUILD_INFO_INJECTED_BY_PREVIEW_WORKFLOW",
+  "pr_number": 166,
+  "pr_source_sha": "NOT_BUILT",
+  "acceptance_center_source_sha": "NOT_BUILT",
+  "acceptance_center_source_branch": "design/nh01-cloud-structured-parity-v1",
+  "photo_sha256": "6e955087108f7463eca2dbac489699a4942028ebe1b3d456ddfca523286385ef",
+  "contour_source": "MANUAL_REFERENCE_CONTOUR",
+  "android_runtime": "NOT_RUN"
+}

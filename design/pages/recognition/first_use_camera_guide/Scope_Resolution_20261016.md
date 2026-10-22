@@ -1,3 +1,5 @@
+> **Superseded 2026-10-17.** This document records the 2026-10-16 three-page task-scope decision. The active proposal is `First_Use_Camera_Guide_Spec_V1_2.md`: P01 portrait + horizontal fish, P02 landscape + horizontal fish. The former vertical-fish P02 is archived only.
+
 # First-use Camera Guide V1 · Task Scope Resolution
 
 **Status:** ACTIVE FOR `RECOGNITION-FIRST-USE-GUIDE-V1`\

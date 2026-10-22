@@ -1,0 +1,711 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="nh01-gemini-preview-build" content="__NH01_GEMINI_PREVIEW_BUILD__">
+  <meta name="nh01-gemini-preview-target" content="GEMINI_NATIVE_V3_STRUCTURE_PREVIEW_NOT_VISUAL_PASS">
+  <title>渔见 · NH01 Gemini Native Preview</title>
+  <style>
+    :root{color-scheme:light;--ink:#16313e;--muted:#5b737d;--line:#d4e0e3;--panel:#f5f8f8;--success:#176d50;--warn:#815b12;--danger:#84382e;--font-scale:1;--safe-top:24px;--safe-bottom:24px;--brand-stats-gap:16px;--leading-gap:6px;--title-card-gap:0px;--card-footer-gap:16px;--section-header-height:48px;--avatar-size:36px;--camera-visual-size:56px;--camera-touch-size:72px;--neighbor-width:80px;--neighbor-gap:8px;--main-card-side-inset:40px;--peek-top-offset:15px;--stat-value-size:17px;--stat-label-size:11px;--section-title-size:16px;--section-action-size:13px;--cta-label-size:12px;--catch-species-size:20px;--catch-measure-size:13px;--catch-metadata-size:11px;--main-card-width:220px;--main-card-height:261px;--card-footer-padding:18px;--text-gap:3px}
+    *{box-sizing:border-box}
+    html,body{margin:0;min-height:100%;font-family:system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--ink);background:#eaf0f1}
+    body{min-height:100dvh}
+    button,select{font:inherit}
+    .workspace{max-width:1680px;margin:0 auto;padding:18px;display:grid;grid-template-columns:220px minmax(360px,520px) minmax(290px,1fr);gap:16px;align-items:start}
+    .layer-column,.preview-column,.audit-column{min-width:0}
+    .workspace-header{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin:0 0 16px}
+    .eyebrow{font-size:10px;font-weight:800;letter-spacing:.13em;color:#617d87;text-transform:uppercase}
+    h1{font-size:clamp(20px,2vw,28px);line-height:1.2;margin:5px 0 7px}
+    h2{font-size:16px;margin:0}
+    p{line-height:1.6}
+    .subtitle{margin:0;color:var(--muted);font-size:12px;max-width:600px}
+    .status-badge{display:inline-flex;align-items:center;gap:6px;padding:6px 9px;border-radius:999px;background:#fff2d7;color:var(--warn);border:1px solid #e6cf98;font-size:10px;font-weight:800;white-space:nowrap}
+    .control-panel{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px;box-shadow:0 8px 24px rgba(17,48,61,.05)}
+    .control-panel{margin-bottom:14px}
+    .controls{display:flex;flex-wrap:wrap;gap:10px;align-items:end}
+    .control{display:grid;gap:5px;min-width:105px;flex:1}
+    .control label{font-size:10px;color:var(--muted);font-weight:700}
+    .control select{width:100%;padding:8px 9px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink);font-size:12px}
+    .layer-panel,.audit-card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:13px;box-shadow:0 8px 24px rgba(17,48,61,.05)}
+    .layer-panel{position:sticky;top:12px;max-height:calc(100dvh - 24px);display:flex;flex-direction:column;min-height:360px}
+    .panel-heading{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:9px}
+    .panel-heading h2{font-size:13px;margin:0}
+    .panel-count{font-size:9px;font-weight:800;color:#56727d;background:#edf3f4;padding:4px 6px;border-radius:6px;white-space:nowrap}
+    .panel-help{font-size:10px;color:var(--muted);line-height:1.45;margin:0 0 10px}
+    .layer-scroll{overflow:auto;min-height:0;overscroll-behavior:contain}
+    .layer-tree,.layer-children{list-style:none;padding:0;margin:0}
+    .layer-children{padding-left:14px;margin-left:10px;border-left:1px solid #dce6e8}
+    .layer-tree li{margin:2px 0}
+    .layer-node{display:flex;align-items:center;gap:6px;width:100%;min-width:0;padding:6px 7px;border:1px solid transparent;border-radius:7px;background:transparent;text-align:left;color:#34515c;font-size:10px;cursor:pointer}
+    .layer-node:hover{background:#f1f6f7}
+    .layer-node[aria-selected="true"]{background:#e5f2f4;border-color:#8eb8c1;color:#174c5a;font-weight:800}
+    .layer-node .node-icon{flex:none;width:14px;text-align:center;color:#6e8b95;font-size:11px}
+    .layer-node .node-label{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
+    .layer-node .node-state{flex:none;font-size:8px;color:#9a6a24}
+    .layer-branch>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:5px;padding:5px 4px;color:#536e78;font-size:9px;font-weight:800}
+    .layer-branch>summary::-webkit-details-marker{display:none}
+    .layer-branch>summary:before{content:"▸";display:inline-block;width:10px;color:#76909a}
+    .layer-branch[open]>summary:before{content:"▾"}
+    .inspector-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin:10px 0}
+    .inspector-field{min-width:0;padding:8px;border:1px solid #e0e8ea;border-radius:8px;background:#f8fbfb}
+    .inspector-field.wide{grid-column:1/-1}
+    .inspector-label{display:block;font-size:9px;color:var(--muted);margin-bottom:4px}
+    .inspector-value{display:block;font-size:11px;line-height:1.45;color:var(--ink);font-weight:750;overflow-wrap:anywhere}
+    .inspector-code{font:10px/1.45 ui-monospace,SFMono-Regular,Consolas,monospace;font-weight:600}
+    .inspected-node{outline:2px solid #e7b452!important;outline-offset:-2px!important}
+    .preview-stage{display:flex;justify-content:center;align-items:flex-start;padding:6px 0 12px;min-width:0}
+    .device-wrap{position:relative;flex:none}
+    .device{position:relative;width:390px;height:844px;transform-origin:top left;overflow:hidden;container-type:size;background:#173746;isolation:isolate;box-shadow:0 18px 48px rgba(13,39,49,.22);border:1px solid rgba(255,255,255,.45);border-radius:26px}
+    .scene-background{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:top center;z-index:-2}
+    .page-content{position:relative;z-index:1;display:flex;flex-direction:column;width:100%;height:100%;min-height:0;box-sizing:border-box;padding-top:var(--safe-top);padding-bottom:var(--safe-bottom)}
+    .top-section{flex:none;padding:8px clamp(24px,7.5cqw,40px) 0}
+    .header-bar{display:flex;align-items:center;justify-content:space-between;min-height:48px;gap:12px}
+    .brand-title{display:block;width:clamp(46px,14.36cqw,70px);height:auto;object-fit:contain}
+    .avatar-button{display:grid;place-items:center;flex:none;width:48px;height:48px;border:0;padding:0;background:transparent;border-radius:50%}
+    .avatar-visual{display:block;width:var(--avatar-size);height:var(--avatar-size);object-fit:contain;border-radius:50%;background:rgba(255,255,255,.96)}
+    .stats-bar{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));align-items:center;min-height:48px;padding:4px 0;margin-top:var(--brand-stats-gap);color:#f7fbfc;text-align:center;text-shadow:0 1px 8px rgba(8,30,39,.28)}
+    .stat{display:grid;gap:2px;min-width:0;padding:0 3px}
+    .stat+.stat{position:relative;border-left:0}.stat+.stat:before{content:"";position:absolute;left:0;top:50%;transform:translateY(-50%);height:26px;width:1px;background:rgba(244,251,252,.3)}
+    .stat-value{font-weight:750;font-size:calc(var(--stat-value-size)*var(--font-scale));line-height:1.2}
+    .stat-label{font-size:calc(var(--stat-label-size)*var(--font-scale));line-height:1.2;opacity:.92}
+    .middle-section{display:flex;flex:1;flex-direction:column;justify-content:flex-start;min-height:0;margin-top:0;overflow:visible}.middle-section:before,.middle-section:after{content:"";display:block;flex:none;height:var(--leading-gap)}.middle-section:after{height:var(--card-footer-gap)}.middle-section[data-top-align="false"]{justify-content:center}.middle-section[data-scroll-needed="true"]{justify-content:flex-start;overflow-y:auto;scrollbar-width:none}.middle-section[data-scroll-needed="true"]::-webkit-scrollbar{display:none}
+    .section-header{display:flex;flex:none;height:var(--section-header-height);align-items:center;justify-content:space-between;gap:12px;padding:0 clamp(24px,8.8cqw,42px);margin-bottom:var(--title-card-gap);color:#fff;text-shadow:0 1px 7px rgba(9,30,39,.3)}
+    .section-title{font-size:calc(var(--section-title-size)*var(--font-scale));line-height:1.5;font-weight:700;white-space:nowrap}
+    .section-action{font-size:calc(var(--section-action-size)*var(--font-scale));line-height:1.5;opacity:.95;white-space:nowrap}
+    .carousel-window{position:relative;display:flex;align-items:center;justify-content:center;flex:none;width:100%;height:var(--main-card-height);min-height:0;overflow:hidden}
+    .catch-card{position:absolute;overflow:hidden;border:1.5px solid rgba(255,255,255,.92);border-radius:18px;background:rgba(27,59,72,.36);box-shadow:0 12px 26px rgba(9,30,40,.22)}
+    .neighbor-card{width:var(--neighbor-width);height:67%;top:var(--peek-top-offset);transform:none;opacity:.72;z-index:1}
+    .neighbor-left{left:calc(var(--main-card-side-inset) - var(--neighbor-width) - var(--neighbor-gap))}
+    .neighbor-right{right:calc(var(--main-card-side-inset) - var(--neighbor-width) - var(--neighbor-gap))}
+    .neighbor-slot{display:block;width:100%;height:100%;background:rgba(41,72,88,.58);color:transparent;font-size:0;padding:0}
+    .main-card{position:relative;z-index:2;width:var(--main-card-width);height:var(--main-card-height);flex:none;aspect-ratio:247/293;display:flex;flex-direction:column;justify-content:flex-end}
+    .hero-placeholder{position:absolute;inset:0;display:block;background:rgba(41,72,88,.5)}
+    .hero-placeholder-inner{max-width:90%;display:grid;gap:7px;justify-items:center}
+    .hero-placeholder strong{font-size:calc(12px*var(--font-scale));letter-spacing:.04em}
+    .hero-placeholder span{font-size:calc(10px*var(--font-scale));line-height:1.45}
+    .blocked-icon{display:grid;place-items:center;width:30px;height:30px;border:1px solid #8caab2;border-radius:50%;font-size:16px;background:rgba(255,255,255,.6)}
+    .card-bottom{position:relative;z-index:2;padding:var(--card-footer-padding) 20px;color:#fff;background:linear-gradient(180deg,rgba(12,20,28,0) 0%,rgba(12,20,28,.52) 52%,rgba(10,16,24,.84) 100%);text-shadow:0 1px 5px rgba(0,0,0,.25)}
+    .catch-species{font-size:calc(var(--catch-species-size)*var(--font-scale));font-weight:750;line-height:1.2;margin:0 0 var(--text-gap)}
+    .catch-measure{font-size:calc(var(--catch-measure-size)*var(--font-scale));font-weight:600;line-height:1.2;margin:0 0 var(--text-gap)}
+    .catch-location{font-size:calc(var(--catch-metadata-size)*var(--font-scale));line-height:1.3;margin:0;opacity:.9}
+    .footer-section{flex:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:11px;padding:4px 0 10px;color:#fff;text-shadow:0 1px 8px rgba(9,30,39,.35)}
+    .device[data-compact="true"] .top-section{padding-top:2px}
+    .device[data-compact="true"] .stats-bar{margin-top:4px;padding:2px 0}
+    .device[data-compact="true"] .footer-section{gap:4px;padding:0}
+    .device[data-compact="true"] .card-bottom{padding-left:12px;padding-right:12px}
+    .cta-label{font-size:calc(var(--cta-label-size)*var(--font-scale));line-height:1.5;letter-spacing:.08em}
+    .camera-button{display:grid;place-items:center;width:var(--camera-touch-size);height:var(--camera-touch-size);padding:0;border:0;border-radius:50%;background:transparent;cursor:pointer}
+    .camera-art{display:block;width:var(--camera-visual-size);height:var(--camera-visual-size);object-fit:contain}
+    .preview-toast{position:absolute;left:12px;right:12px;bottom:10px;z-index:8;padding:8px 10px;border-radius:9px;background:rgba(10,34,43,.9);color:#fff;font-size:10px;line-height:1.4;display:none}
+    .preview-toast[data-visible="true"]{display:block}
+    .audit-column{display:grid;gap:12px}
+    .audit-card h2{margin-bottom:10px}
+    .audit-intro{margin:0 0 12px;color:var(--muted);font-size:12px}
+    .asset-list{display:grid;gap:9px}
+    .asset-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:start;padding:10px;border:1px solid var(--line);border-radius:10px;background:#fbfdfd}
+    .asset-name{font-size:12px;font-weight:750;margin-bottom:4px}
+    .asset-meta{font-size:10px;line-height:1.5;color:var(--muted);overflow-wrap:anywhere}
+    .asset-status{font-size:9px;font-weight:800;letter-spacing:.02em;padding:5px 7px;border-radius:7px;white-space:nowrap;background:#edf2f3;color:#49636d}
+    .asset-status[data-status="PASS_SOURCE_INTEGRITY"]{background:#e2f4ec;color:var(--success)}
+    .asset-status[data-status^="BLOCKED"]{background:#fff0ed;color:var(--danger)}
+    .asset-status[data-status="FROZEN"]{background:#e2f4ec;color:var(--success)}
+    .asset-status[data-status="FROZEN_HOME_V2_VISUAL_CONSUMER"]{background:#e2f4ec;color:var(--success)}
+    .audit-footer{font-size:11px;line-height:1.55;color:var(--muted);margin:12px 0 0}
+    .audit-footer strong{color:var(--ink)}
+    .audit-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+    .audit-actions a,.audit-actions button{display:inline-flex;align-items:center;justify-content:center;padding:8px 10px;border-radius:8px;border:1px solid var(--line);background:#fff;color:var(--ink);font-size:11px;text-decoration:none;cursor:pointer}
+    .audit-actions button:focus-visible,.audit-actions a:focus-visible,.control select:focus-visible{outline:2px solid #3d8798;outline-offset:2px}
+    .integrity-summary{font-size:11px;color:var(--muted);line-height:1.5;margin-top:10px;overflow-wrap:anywhere}
+    .integrity-summary[data-state="PASS"]{color:var(--success)}
+    .integrity-summary[data-state="FAIL"]{color:var(--danger)}
+    .responsive-matrix{grid-column:1/-1;background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px;box-shadow:0 8px 24px rgba(17,48,61,.05)}
+    .responsive-matrix-header{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:14px}
+    .responsive-matrix-title{font-size:16px;font-weight:800;margin:0 0 4px}
+    .responsive-matrix-subtitle{font-size:11px;line-height:1.5;color:var(--muted);margin:0;max-width:720px}
+    .matrix-scale-control{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--muted);font-weight:700}
+    .matrix-scale-control select{padding:7px 9px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink)}
+    .responsive-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;align-items:start}
+    .responsive-tile{min-width:0;padding:10px;border:1px solid var(--line);border-radius:12px;background:#f8fbfb}
+    .responsive-tile-header{display:flex;justify-content:space-between;align-items:center;gap:5px;margin-bottom:8px}
+    .responsive-tile-title{font-size:11px;font-weight:800;color:var(--ink)}
+    .responsive-tile-size{font-size:10px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+    .responsive-frame{display:block;width:100%;padding:0;border:1px solid #c6d5d9;border-radius:10px;background:#dfe8e9;overflow:hidden}
+    .responsive-tile-note{font-size:10px;color:var(--muted);line-height:1.45;margin:8px 0 0;min-height:28px}
+    .canvas-mode,.matrix-mode{background:transparent;overflow:hidden}
+    .canvas-mode .workspace{display:block;width:100vw;height:100dvh;max-width:none;margin:0;padding:0}
+    .canvas-mode .workspace-header,.canvas-mode .control-panel,.canvas-mode .layer-column,.canvas-mode .audit-column,.canvas-mode .responsive-matrix{display:none!important}
+    .canvas-mode .preview-column{width:100vw;height:100dvh}
+    .canvas-mode .preview-stage{width:100vw;height:100dvh;padding:0;margin:0;display:block}
+    .canvas-mode .device-wrap{width:100vw!important;height:100dvh!important}
+    .canvas-mode .device{width:100vw!important;height:100dvh!important;transform:none!important;border:0;border-radius:0;box-shadow:none}
+    .matrix-mode .workspace{display:block;width:100vw;height:100dvh;max-width:none;margin:0;padding:0}
+    .matrix-mode .workspace-header,.matrix-mode .control-panel,.matrix-mode .layer-column,.matrix-mode .audit-column,.matrix-mode .responsive-matrix{display:none!important}
+    .matrix-mode .preview-column{width:100vw;height:100dvh}
+    .matrix-mode .preview-stage{width:100vw;height:100dvh;padding:0;margin:0;display:flex;justify-content:center;align-items:flex-start;overflow:hidden}
+    .matrix-mode .device{border:0;border-radius:10px;box-shadow:none}
+    @media(max-width:1350px){.workspace{grid-template-columns:200px minmax(320px,1fr) 300px;gap:12px;padding:14px}}
+    @media(max-width:1150px){.workspace{grid-template-columns:200px minmax(0,1fr)}.audit-column{grid-column:1/-1;grid-template-columns:repeat(2,minmax(0,1fr))}.responsive-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.layer-panel{position:static;max-height:none}}
+    @media(max-width:850px){.workspace{grid-template-columns:minmax(0,1fr);padding:14px;gap:14px}.workspace-header{margin-bottom:10px}.preview-stage{padding:0}.audit-column{grid-column:auto;grid-template-columns:minmax(0,1fr)}.responsive-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.layer-panel{max-height:420px}}
+    @media(max-width:460px){.workspace{padding:10px}.workspace-header{display:grid}.controls{gap:8px}.control{min-width:calc(50% - 8px)}.device{border-radius:18px}.asset-row{grid-template-columns:minmax(0,1fr)}.asset-status{justify-self:start;white-space:normal;overflow-wrap:anywhere;max-width:100%}.responsive-grid{grid-template-columns:minmax(0,1fr)}}
+  </style>
+</head>
+<body>
+  <main class="workspace" id="nh01GeminiPreview">
+    <aside class="layer-column" aria-label="NH01 页面结构树">
+      <section class="layer-panel">
+        <div class="panel-heading"><h2>页面图层</h2><span class="panel-count">NH01 · V3</span></div>
+        <p class="panel-help">选择图层查看画布边界、素材绑定与 Android 对应节点。未批准的鱼获照片保持阻塞。</p>
+        <div class="layer-scroll"><ul class="layer-tree" id="layerTree">
+          <li><button class="layer-node" type="button" data-target="#device" aria-selected="false"><span class="node-icon">▣</span><span class="node-label">Screen · NH01 Home</span></button></li>
+          <li><button class="layer-node" type="button" data-target="#assetBackground" aria-selected="false"><span class="node-icon">▧</span><span class="node-label">BG · Morning Lake</span></button></li>
+          <li><details class="layer-branch" open><summary>Top · 顶部区域</summary><ul class="layer-children">
+            <li><button class="layer-node" type="button" data-target="#topSection" aria-selected="false"><span class="node-icon">▱</span><span class="node-label">Top-Section-AutoLayout</span></button></li>
+            <li><details class="layer-branch" open><summary>Header · 品牌与头像</summary><ul class="layer-children">
+              <li><button class="layer-node" type="button" data-target="#assetBrand" aria-selected="false"><span class="node-icon">▧</span><span class="node-label">Brand-Title</span></button></li>
+              <li><button class="layer-node" type="button" data-target="#avatarButton" aria-selected="false"><span class="node-icon">◉</span><span class="node-label">User-Avatar-Btn</span></button></li>
+            </ul></details></li>
+            <li><button class="layer-node" type="button" data-target="#statsBar" aria-selected="false"><span class="node-icon">▤</span><span class="node-label">Stats-Bar</span></button></li>
+          </ul></details></li>
+          <li><details class="layer-branch" open><summary>Middle · 鱼获轮播</summary><ul class="layer-children">
+            <li><button class="layer-node" type="button" data-target="#middleSection" aria-selected="false"><span class="node-icon">▱</span><span class="node-label">Middle-Carousel-Section</span></button></li>
+            <li><button class="layer-node" type="button" data-target="#sectionHeader" aria-selected="false"><span class="node-icon">T</span><span class="node-label">Section-Header-Bar</span></button></li>
+            <li><button class="layer-node" type="button" data-target="#carouselWindow" aria-selected="false"><span class="node-icon">▦</span><span class="node-label">Carousel-Track</span></button></li>
+            <li><button class="layer-node" type="button" data-target="#leftCatchCard" aria-selected="false"><span class="node-icon">▧</span><span class="node-label">Card-Peek-Left</span><span class="node-state">LOCK</span></button></li>
+            <li><button class="layer-node" type="button" data-target="#mainCatchCard" aria-selected="true"><span class="node-icon">▣</span><span class="node-label">Card-Main-Active</span><span class="node-state">LOCK</span></button></li>
+            <li><button class="layer-node" type="button" data-target="#heroPlaceholder" aria-selected="false"><span class="node-icon">▧</span><span class="node-label">Hero-Photo</span><span class="node-state">LOCK</span></button></li>
+            <li><button class="layer-node" type="button" data-target="#rightCatchCard" aria-selected="false"><span class="node-icon">▧</span><span class="node-label">Card-Peek-Right</span><span class="node-state">LOCK</span></button></li>
+          </ul></details></li>
+          <li><details class="layer-branch" open><summary>Footer · 底部操作</summary><ul class="layer-children">
+            <li><button class="layer-node" type="button" data-target="#footerSection" aria-selected="false"><span class="node-icon">▱</span><span class="node-label">Footer-CTA-Section</span></button></li>
+            <li><button class="layer-node" type="button" data-target="#ctaLabel" aria-selected="false"><span class="node-icon">T</span><span class="node-label">CTA-Label-RecordNext</span></button></li>
+            <li><button class="layer-node" type="button" data-target="#cameraButton" aria-selected="false"><span class="node-icon">◉</span><span class="node-label">CTA-Camera-Button</span></button></li>
+          </ul></details></li>
+        </ul></div>
+      </section>
+    </aside>
+    <section class="preview-column">
+      <header class="workspace-header">
+        <div>
+          <div class="eyebrow">GITHUB NATIVE · GEMINI STRUCTURE</div>
+          <h1>NH01 · Gemini Native V3</h1>
+          <p class="subtitle">正式资产优先，未验证鱼获照片保持阻塞占位。此页用于结构/资源核验，不代表 Android 像素验收。</p>
+        </div>
+        <span class="status-badge">PREVIEW ONLY · NOT VISUAL PASS</span>
+      </header>
+      <section class="control-panel" aria-label="预览控制">
+        <div class="controls">
+          <div class="control"><label for="layoutVariant">布局变体</label><select id="layoutVariant"><option value="ADAPTIVE_V2" selected>Adaptive V2 · 内容优先</option><option value="V3_BASELINE">V3 Baseline · 对照</option></select></div>
+          <div class="control"><label for="viewportPreset">逻辑视口</label><select id="viewportPreset">
+            <option value="360x640">360 × 640</option><option value="390x844" selected>390 × 844</option><option value="430x932">430 × 932</option><option value="320x480">320 × 480</option><option value="600x960">600 × 960</option>
+          </select></div>
+          <div class="control"><label for="fontScale">字体缩放</label><select id="fontScale"><option value="1">1.0×</option><option value="1.3">1.3×</option><option value="1.5">1.5×</option></select></div>
+        </div>
+      </section>
+      <div class="preview-stage">
+        <div class="device-wrap" id="deviceWrap">
+          <section class="device" id="device" aria-label="NH01 Gemini Native V3 structure preview">
+            <img class="scene-background" id="assetBackground" data-asset-id="background" src="../../system/backgrounds/morning_lake_v1/assets/Morning_Lake_Master_V1.png" alt="">
+            <div class="page-content">
+              <header class="top-section" id="topSection" data-layer="Top-Section-AutoLayout">
+                <div class="header-bar" id="headerBar" data-layer="Header-Bar">
+                  <img class="brand-title" id="assetBrand" data-asset-id="brand" src="../../system_v3/06_Asset_System/derived/brand_title_primary/brand_title_primary.png" alt="渔见">
+                  <button class="avatar-button" type="button" id="avatarButton" aria-label="头像状态预览">
+                    <img class="avatar-visual" id="assetAvatar" data-asset-id="avatar" src="./assets/normal_home_default_avatar_v2.png" alt="">
+                  </button>
+                </div>
+                <div class="stats-bar" id="statsBar" data-layer="Stats-Bar" aria-label="静态参考数据夹具">
+                  <div class="stat"><span class="stat-value">3</span><span class="stat-label">鱼种</span></div>
+                  <div class="stat"><span class="stat-value">3</span><span class="stat-label">鱼获</span></div>
+                  <div class="stat"><span class="stat-value">1</span><span class="stat-label">记录天数</span></div>
+                </div>
+              </header>
+              <section class="middle-section" id="middleSection" data-scroll-needed="false" data-top-align="true" data-layer="Middle-Carousel-Section">
+                <div class="section-header" id="sectionHeader" data-layer="Section-Header-Bar">
+                  <span class="section-title">最近鱼获</span><span class="section-action">全部 ›</span>
+                </div>
+                <div class="carousel-window" id="carouselWindow" data-layer="Carousel-Track-Container">
+                  <article class="catch-card neighbor-card neighbor-left" id="leftCatchCard" data-layer="Card-Peek-Left" aria-label="上一条鱼获，照片资产待批准">
+                    <div class="neighbor-slot" aria-hidden="true"></div>
+                  </article>
+                  <article class="catch-card main-card" id="mainCatchCard" data-layer="Card-Main-Active" aria-label="选中鱼获静态参考夹具">
+                    <div class="hero-placeholder" id="heroPlaceholder" data-layer="Hero-Photo" data-status="BLOCKED_ASSET_SOURCE" aria-label="Hero photo intentionally blocked; see asset audit panel"></div>
+                    <div class="card-bottom" id="cardMetadata" data-layer="Card-Metadata">
+                      <p class="catch-species">草鱼</p>
+                      <p class="catch-measure">42.6 cm · 1.28 kg</p>
+                      <p class="catch-location">昨天 18:20 · 浙江 · 千岛湖</p>
+                    </div>
+                  </article>
+                  <article class="catch-card neighbor-card neighbor-right" id="rightCatchCard" data-layer="Card-Peek-Right" aria-label="下一条鱼获，照片资产待批准">
+                    <div class="neighbor-slot" aria-hidden="true"></div>
+                  </article>
+                </div>
+              </section>
+              <footer class="footer-section" id="footerSection" data-layer="Footer-CTA-Section">
+                <span class="cta-label" id="ctaLabel" data-layer="CTA-Label-RecordNext">记录下一条鱼</span>
+                <button class="camera-button" type="button" id="cameraButton" aria-label="相机按钮静态预览">
+                  <img class="camera-art" id="assetCamera" data-asset-id="camera" src="../../system_v3/06_Asset_System/derived/normal_home_camera_primary_v1/normal_home_camera_primary_v1.png" alt="">
+                </button>
+              </footer>
+            </div>
+            <div class="preview-toast" id="previewToast" role="status" aria-live="polite" data-visible="false"></div>
+          </section>
+        </div>
+      </div>
+    </section>
+    <aside class="audit-column">
+      <section class="audit-card" aria-label="所选图层属性检查器">
+        <div class="panel-heading"><h2>属性检查器</h2><span class="panel-count" id="inspectorNodeStatus">MAPPED</span></div>
+        <p class="audit-intro">几何与样式读取自当前浏览器画布；Compose 映射来自仓库合同，不能替代 Android Runtime 证据。</p>
+        <div class="asset-name" id="inspectorNodeName">Card-Main-Active</div>
+        <div class="inspector-grid">
+          <div class="inspector-field wide"><span class="inspector-label">设计节点</span><span class="inspector-value inspector-code" id="inspectorDesignNode">Card-Main-Active</span></div>
+          <div class="inspector-field wide"><span class="inspector-label">Android Compose 映射</span><span class="inspector-value inspector-code" id="inspectorComposeNode">GeminiCatchCarousel / Card-Main-Active</span></div>
+          <div class="inspector-field"><span class="inspector-label">X · Y (dp)</span><span class="inspector-value inspector-code" id="inspectorPosition">—</span></div>
+          <div class="inspector-field"><span class="inspector-label">W · H (dp)</span><span class="inspector-value inspector-code" id="inspectorSize">—</span></div>
+          <div class="inspector-field"><span class="inspector-label">字体 / 字重</span><span class="inspector-value inspector-code" id="inspectorFont">—</span></div>
+          <div class="inspector-field"><span class="inspector-label">圆角</span><span class="inspector-value inspector-code" id="inspectorRadius">—</span></div>
+          <div class="inspector-field"><span class="inspector-label">背景色</span><span class="inspector-value inspector-code" id="inspectorBackground">—</span></div>
+          <div class="inspector-field"><span class="inspector-label">文字颜色</span><span class="inspector-value inspector-code" id="inspectorColor">—</span></div>
+          <div class="inspector-field wide"><span class="inspector-label">图片裁切 / 素材</span><span class="inspector-value inspector-code" id="inspectorImage">—</span></div>
+          <div class="inspector-field wide"><span class="inspector-label">响应式约束</span><span class="inspector-value" id="inspectorConstraint">—</span></div>
+          <div class="inspector-field wide"><span class="inspector-label">资产 / 实现状态</span><span class="inspector-value" id="inspectorAssetStatus">—</span></div>
+        </div>
+        <p class="panel-help" id="inspectorNote">选择图层以查看实际样式、素材状态和合同映射。</p>
+      </section>
+      <section class="audit-card">
+        <div class="eyebrow">ASSET AUTHORITY</div>
+        <h2>正式资产绑定与 SHA 核验</h2>
+        <p class="audit-intro">仅将已登记、可公开的设计资产实际渲染。Hero/邻卡照片保持占位，不以仓库中存在文件推定来源或使用权。</p>
+        <div class="asset-list" id="assetList" aria-live="polite"></div>
+        <div class="integrity-summary" id="integritySummary" data-state="RUNNING">正在核对注册资产的原始字节与尺寸…</div>
+      </section>
+      <section class="audit-card">
+        <div class="eyebrow">AUTHORITY BOUNDARY</div>
+        <h2>验收边界</h2>
+        <p class="audit-intro">结构来源是仓库内 Gemini 结构快照与 V3 实现合同；不是 Figma 实时节点读回。原 NH01 Frozen PNG 仍不可修改，但 Gemini V3 不宣称与旧 Frozen 全页逐像素一致。</p>
+        <div class="asset-row"><div><div class="asset-name">Android Runtime</div><div class="asset-meta">精确源码 SHA 的 API 28 安装、启动、交互、截图、boundsInWindow 和响应式矩阵另行验收。</div></div><span class="asset-status" data-status="NOT_RUN">NOT RUN</span></div>
+        <div class="asset-row"><div><div class="asset-name">Visual Parity</div><div class="asset-meta">本页只证明静态结构与资产可加载；动态照片 ROI 和未批准目标不参与 PASS 判定。</div></div><span class="asset-status" data-status="NOT_RUN">NOT RUN</span></div>
+        <p class="audit-footer"><strong>Preview build:</strong> <code id="buildSha">__NH01_GEMINI_PREVIEW_BUILD__</code><br><strong>Release gate effect:</strong> NONE</p>
+        <div class="audit-actions">
+          <a href="./index.html">返回 NH01 验收中心</a>
+          <a href="../../../release/design_manager/NH01_GEMINI_STRUCTURE_ALIGNMENT_V1.json" target="_blank" rel="noreferrer">查看 Gemini 结构快照</a>
+        </div>
+      </section>
+    </aside>
+    <section class="responsive-matrix" aria-label="不同屏幕尺寸响应式对照">
+      <div class="responsive-matrix-header">
+        <div><h2 class="responsive-matrix-title">多屏响应式对照</h2><p class="responsive-matrix-subtitle">同一套页面结构在五种逻辑视口下并排渲染。切换字体缩放，可直观看到卡片、标题、底部 CTA 与相机控件如何响应。此处是浏览器结构预览，最终仍需用同一源码 SHA 的 Android Runtime 截图验收。</p></div>
+        <label class="matrix-scale-control" for="matrixFontScale">全矩阵字体缩放<select id="matrixFontScale"><option value="1" selected>1.0×</option><option value="1.3">1.3×</option><option value="1.5">1.5×</option></select></label>
+      </div>
+      <div class="responsive-grid">
+        <article class="responsive-tile"><div class="responsive-tile-header"><span class="responsive-tile-title">紧凑短屏</span><span class="responsive-tile-size">320×480</span></div><iframe class="responsive-frame" data-viewport="320x480" title="NH01 320×480 响应式预览" style="aspect-ratio:2/3" data-src="./gemini-native-preview.html?mode=matrix&amp;viewport=320x480&amp;fontScale=1"></iframe><p class="responsive-tile-note">检查短屏空间竞争与局部滚动。</p></article>
+        <article class="responsive-tile"><div class="responsive-tile-header"><span class="responsive-tile-title">紧凑屏</span><span class="responsive-tile-size">360×640</span></div><iframe class="responsive-frame" data-viewport="360x640" title="NH01 360×640 响应式预览" style="aspect-ratio:9/16" data-src="./gemini-native-preview.html?mode=matrix&amp;viewport=360x640&amp;fontScale=1"></iframe><p class="responsive-tile-note">检查标准紧凑布局与卡片比例。</p></article>
+        <article class="responsive-tile"><div class="responsive-tile-header"><span class="responsive-tile-title">基准手机</span><span class="responsive-tile-size">390×844</span></div><iframe class="responsive-frame" data-viewport="390x844" title="NH01 390×844 响应式预览" style="aspect-ratio:390/844" data-src="./gemini-native-preview.html?mode=matrix&amp;viewport=390x844&amp;fontScale=1"></iframe><p class="responsive-tile-note">检查基准页面比例与主卡几何。</p></article>
+        <article class="responsive-tile"><div class="responsive-tile-header"><span class="responsive-tile-title">大屏手机</span><span class="responsive-tile-size">430×932</span></div><iframe class="responsive-frame" data-viewport="430x932" title="NH01 430×932 响应式预览" style="aspect-ratio:430/932" data-src="./gemini-native-preview.html?mode=matrix&amp;viewport=430x932&amp;fontScale=1"></iframe><p class="responsive-tile-note">检查宽屏留白与卡片最大宽度。</p></article>
+        <article class="responsive-tile"><div class="responsive-tile-header"><span class="responsive-tile-title">宽视口</span><span class="responsive-tile-size">600×960</span></div><iframe class="responsive-frame" data-viewport="600x960" title="NH01 600×960 响应式预览" style="aspect-ratio:5/8" data-src="./gemini-native-preview.html?mode=matrix&amp;viewport=600x960&amp;fontScale=1"></iframe><p class="responsive-tile-note">检查宽视口下的内容宽度上限。</p></article>
+      </div>
+    </section>
+  </main>
+  <script>
+    (() => {
+      "use strict";
+      const params = new URLSearchParams(location.search);
+      const canvasMode = params.get("mode") === "canvas";
+      const matrixMode = params.get("mode") === "matrix";
+      if (canvasMode) document.body.classList.add("canvas-mode");
+      if (matrixMode) document.body.classList.add("matrix-mode");
+      const buildSha = document.querySelector('meta[name="nh01-gemini-preview-build"]').content;
+      document.getElementById("buildSha").textContent = buildSha;
+      const preset = document.getElementById("viewportPreset");
+      const layoutVariant = document.getElementById("layoutVariant");
+      const fontScale = document.getElementById("fontScale");
+      const requestedScale = params.get("fontScale");
+      if (["1", "1.3", "1.5"].includes(requestedScale)) fontScale.value = requestedScale;
+      const device = document.getElementById("device");
+      const wrap = document.getElementById("deviceWrap");
+      const topSection = document.getElementById("topSection");
+      const middleSection = document.getElementById("middleSection");
+      const sectionHeader = document.getElementById("sectionHeader");
+      const carouselWindow = document.getElementById("carouselWindow");
+      const mainCatchCard = document.getElementById("mainCatchCard");
+      const cardMetadata = document.getElementById("cardMetadata");
+      const footerSection = document.getElementById("footerSection");
+      const toast = document.getElementById("previewToast");
+      const assetList = document.getElementById("assetList");
+      const integritySummary = document.getElementById("integritySummary");
+      const assetNodes = {
+        background: document.getElementById("assetBackground"),
+        brand: document.getElementById("assetBrand"),
+        avatar: document.getElementById("assetAvatar"),
+        camera: document.getElementById("assetCamera")
+      };
+      function showToast(message) {
+        toast.textContent = message;
+        toast.dataset.visible = "true";
+      }
+      function clamp(value, minimum, maximum) {
+        return Math.min(maximum, Math.max(minimum, value));
+      }
+      function responsiveSp(safeHeight, safeWidth, ratio, minimum, maximum) {
+        const viewportScale = clamp(Math.min(Math.min(safeWidth, 560) / 360, safeHeight / 568), 1, 1.2);
+        return clamp(safeHeight * ratio, minimum, maximum) * viewportScale;
+      }
+      function resolveLayoutPolicy(safeWidth, safeHeight, scale, variant) {
+        const band = (safeWidth < 360 || safeHeight < 560) ? "COMPACT" : (safeWidth < 400 ? "MEDIUM" : "EXPANDED");
+        if (variant === "V3_BASELINE") {
+          return {
+            band, variant, cardWidthFraction: 0.686, maxCardWidth: 337.2, maxCardHeight: 400,
+            minReadableCardHeight: 220,
+            brandToStatsGap: clamp(safeHeight * 0.042, 18, 34),
+            statsToTitleGap: clamp(safeHeight * 0.01, 4, 10),
+            titleToCardGap: 13,
+            cardToFooterGap: clamp(safeHeight * 0.01, 4, 10),
+            topAlignMiddleGroup: false
+          };
+        }
+
+        // Adaptive V2: continuous space pressure, not a width/height/font-scale lookup table.
+        // Keep the card close to the V3 target width; allocate its final height from the
+        // measured middle-section budget, then scroll only when the readable minimum cannot fit.
+        const fontPressure = clamp((scale - 1) / 0.5, 0, 1);
+        const shortHeightPressure = clamp((620 - safeHeight) / 220, 0, 1);
+        return {
+          band, variant, cardWidthFraction: 0.70, maxCardWidth: 337.2,
+          maxCardHeight: 400,
+          minReadableCardHeight: safeHeight < 460 && scale < 1.3 ? 124 : 148,
+          brandToStatsGap: Math.max(9, clamp(safeHeight * 0.035, 14, 28) - fontPressure * 3 - shortHeightPressure * 2),
+          statsToTitleGap: Math.max(2, clamp(safeHeight * 0.015, 6, 14) - fontPressure * 3 - shortHeightPressure * 1.5),
+          titleToCardGap: Math.max(4, clamp(safeHeight * 0.014, 7, 12) - fontPressure * 2 - shortHeightPressure * 1.5),
+          cardToFooterGap: Math.max(3, clamp(safeHeight * 0.018, 8, 14) - fontPressure * 3 - shortHeightPressure * 2),
+          topAlignMiddleGroup: false
+        };
+      }
+      function updateLayoutGeometry(width, height) {
+        window.NH01GeminiPreviewLayoutReady = false;
+        const root = document.documentElement;
+        const scale = Number(fontScale.value);
+        const safeWidth = width;
+        const safeHeight = Math.max(1, height - 48);
+        const variant = layoutVariant.value;
+        const policy = resolveLayoutPolicy(safeWidth, safeHeight, scale, variant);
+        const statValue = responsiveSp(safeHeight, safeWidth, 0.03, 17, 21);
+        const statLabel = responsiveSp(safeHeight, safeWidth, 0.019, 11, 13);
+        const sectionTitle = responsiveSp(safeHeight, safeWidth, 0.027, 16, 19);
+        const sectionAction = responsiveSp(safeHeight, safeWidth, 0.021, 13, 15);
+        const ctaSize = responsiveSp(safeHeight, safeWidth, 0.021, 12, 14);
+        const speciesSize = responsiveSp(safeHeight, safeWidth, 0.036, 20, 26);
+        const measureSize = responsiveSp(safeHeight, safeWidth, 0.023, 13, 16);
+        const metadataSize = responsiveSp(safeHeight, safeWidth, 0.019, 11, 13);
+        const avatarSize = clamp(safeHeight * 0.06, 36, 44);
+        // Match Android: respond to both usable width and height, not height alone.
+        // This prevents the camera artwork from becoming proportionally tiny on wide/tall canvases.
+        const cameraSize = Math.max(56, Math.min(Math.min(safeWidth, 560) * 0.18, safeHeight * 0.10, 80));
+        const cameraTouchSize = Math.max(72, cameraSize);
+        const titleLineHeight = sectionTitle * 1.5 * scale;
+        const compactViewport = variant !== "V3_BASELINE" && safeHeight < 460;
+        device.dataset.compact = String(compactViewport);
+        const headerHeight = Math.max(compactViewport ? 40 : 48, titleLineHeight + (compactViewport ? 4 : 8));
+        const titleRowInset = Math.max(0, (headerHeight - titleLineHeight) / 2);
+        const leadingGap = variant === "V3_BASELINE"
+          ? clamp(safeHeight * 0.01, 4, 10)
+          : Math.max(0, policy.statsToTitleGap - titleRowInset);
+        const headerGap = Math.max(0, policy.titleToCardGap - titleRowInset);
+        const trackWidth = Math.min(safeWidth, 560);
+        const desiredCardWidth = Math.min(trackWidth * policy.cardWidthFraction, policy.maxCardWidth);
+        const desiredCardHeight = Math.min(desiredCardWidth / (247 / 293), policy.maxCardHeight);
+
+        root.style.setProperty("--font-scale", String(scale));
+        root.style.setProperty("--brand-stats-gap", policy.brandToStatsGap + "px");
+        root.style.setProperty("--leading-gap", leadingGap + "px");
+        root.style.setProperty("--title-card-gap", headerGap + "px");
+        root.style.setProperty("--card-footer-gap", policy.cardToFooterGap + "px");
+        root.style.setProperty("--section-header-height", headerHeight + "px");
+        root.style.setProperty("--avatar-size", avatarSize + "px");
+        root.style.setProperty("--camera-visual-size", cameraSize + "px");
+        root.style.setProperty("--camera-touch-size", cameraTouchSize + "px");
+        root.style.setProperty("--stat-value-size", statValue + "px");
+        root.style.setProperty("--stat-label-size", statLabel + "px");
+        root.style.setProperty("--section-title-size", sectionTitle + "px");
+        root.style.setProperty("--section-action-size", sectionAction + "px");
+        root.style.setProperty("--cta-label-size", ctaSize + "px");
+        root.style.setProperty("--catch-species-size", speciesSize + "px");
+        root.style.setProperty("--catch-measure-size", measureSize + "px");
+        root.style.setProperty("--catch-metadata-size", metadataSize + "px");
+        root.style.setProperty("--desired-card-width", desiredCardWidth + "px");
+        root.style.setProperty("--desired-card-height", desiredCardHeight + "px");
+        root.style.setProperty("--text-gap", clamp(safeHeight * 0.006, 2, 5) + "px");
+        // Start at the target width so wrapped metadata is measured at the intended card geometry.
+        root.style.setProperty("--main-card-width", desiredCardWidth + "px");
+        root.style.setProperty("--main-card-height", desiredCardHeight + "px");
+        root.style.setProperty("--card-footer-padding", clamp(desiredCardHeight * 0.07, 10, 20) + "px");
+
+        window.NH01GeminiPreviewLayout = {
+          layout_version: variant === "V3_BASELINE" ? "V3_BASELINE" : "CONTENT_FIRST_V2",
+          variant, band: policy.band, logical_viewport_dp: [width, height],
+          safe_insets_dp: { top: 24, bottom: 24, start: 0, end: 0 },
+          safe_width_dp: safeWidth, safe_height_dp: safeHeight, font_scale: scale,
+          camera_visual_size_dp: cameraSize, camera_touch_size_dp: cameraTouchSize,
+          typography_sizes_dp: {
+            stat_value: statValue, stat_label: statLabel, section_title: sectionTitle,
+            section_action: sectionAction, cta: ctaSize, species: speciesSize,
+            measurement: measureSize, metadata: metadataSize
+          },
+          gaps_dp: { brand_to_stats: policy.brandToStatsGap, stats_to_title: policy.statsToTitleGap, leading: leadingGap, title_to_card: policy.titleToCardGap, actual_header_gap: headerGap, card_to_footer: policy.cardToFooterGap },
+          desired_card_size_dp: [desiredCardWidth, desiredCardHeight],
+          card_height_dp: null, card_width_dp: null, available_card_height_dp: null,
+          content_min_card_height_dp: null, middle_height_dp: null, needs_scroll: null,
+          layout_mode: null, overflow_reason: null, top_align_middle_group: null
+        };
+
+        requestAnimationFrame(() => {
+          const middleHeight = middleSection.clientHeight;
+          const actualHeaderHeight = sectionHeader.getBoundingClientRect().height;
+          const availableCardHeight = Math.max(0, middleHeight - leadingGap - actualHeaderHeight - headerGap - policy.cardToFooterGap);
+          let contentMinCardHeight = policy.minReadableCardHeight;
+          let cardHeight = desiredCardHeight;
+          let cardWidth = desiredCardWidth;
+
+          // Re-measure after each width change because long metadata can wrap and increase
+          // its intrinsic height. The card never jumps back to an oversized target when space is tight.
+          for (let pass = 0; pass < 4; pass++) {
+            contentMinCardHeight = clamp(cardMetadata.scrollHeight + 20, policy.minReadableCardHeight, 220);
+            cardHeight = Math.min(desiredCardHeight, Math.max(contentMinCardHeight, availableCardHeight));
+            cardWidth = cardHeight * (247 / 293);
+            root.style.setProperty("--main-card-height", cardHeight + "px");
+            root.style.setProperty("--main-card-width", cardWidth + "px");
+            root.style.setProperty("--card-footer-padding", clamp(cardHeight * 0.07, 10, 20) + "px");
+            void cardMetadata.offsetHeight;
+          }
+          contentMinCardHeight = clamp(cardMetadata.scrollHeight + 20, policy.minReadableCardHeight, 220);
+          if (cardHeight < contentMinCardHeight && desiredCardHeight >= contentMinCardHeight) {
+            cardHeight = Math.min(desiredCardHeight, Math.max(contentMinCardHeight, availableCardHeight));
+            cardWidth = cardHeight * (247 / 293);
+            root.style.setProperty("--main-card-height", cardHeight + "px");
+            root.style.setProperty("--main-card-width", cardWidth + "px");
+            root.style.setProperty("--card-footer-padding", clamp(cardHeight * 0.07, 10, 20) + "px");
+            void cardMetadata.offsetHeight;
+          }
+
+          const neighborGap = 8;
+          const neighborWidth = Math.min(cardWidth * 0.34, Math.max(0, (trackWidth - cardWidth) / 2 - neighborGap));
+          root.style.setProperty("--neighbor-width", neighborWidth + "px");
+          root.style.setProperty("--neighbor-gap", neighborGap + "px");
+          root.style.setProperty("--main-card-side-inset", Math.max(0, (trackWidth - cardWidth) / 2) + "px");
+          root.style.setProperty("--peek-top-offset", "15px");
+          const requiredMiddleHeight = leadingGap + actualHeaderHeight + headerGap + cardHeight + policy.cardToFooterGap;
+          const needsScroll = requiredMiddleHeight > middleHeight + 0.5;
+          middleSection.dataset.scrollNeeded = String(needsScroll);
+          // Center the complete group when it fits; switch to top-aligned scrolling only on real overflow.
+          middleSection.dataset.topAlign = String(needsScroll ? true : policy.topAlignMiddleGroup);
+          if (window.NH01GeminiPreviewLayout) {
+            window.NH01GeminiPreviewLayout.card_height_dp = cardHeight;
+            window.NH01GeminiPreviewLayout.card_width_dp = cardWidth;
+            window.NH01GeminiPreviewLayout.available_card_height_dp = availableCardHeight;
+            window.NH01GeminiPreviewLayout.content_min_card_height_dp = contentMinCardHeight;
+            window.NH01GeminiPreviewLayout.middle_height_dp = middleHeight;
+            window.NH01GeminiPreviewLayout.needs_scroll = needsScroll;
+            window.NH01GeminiPreviewLayout.layout_mode = needsScroll ? "CONTENT_SCROLL" : "FIT";
+            window.NH01GeminiPreviewLayout.overflow_reason = needsScroll
+              ? (availableCardHeight < contentMinCardHeight ? "viewport-space-below-readable-card" : "middle-group-exceeds-available-space")
+              : null;
+            window.NH01GeminiPreviewLayout.top_align_middle_group = needsScroll || policy.topAlignMiddleGroup;
+          }
+          window.NH01GeminiPreviewLayoutReady = true;
+        });
+      }
+      function applyViewport() {
+        // Expose the outer viewport handled by this resize so browser tests cannot accept stale layout evidence.
+        window.NH01GeminiPreviewOuterViewport = { width: window.innerWidth, height: window.innerHeight };
+        // Invalidate the prior frame's readiness before changing viewport geometry; browser gates must not read stale bounds.
+        window.NH01GeminiPreviewLayoutReady = false;
+        const requestedViewport = params.get("viewport");
+        const widthHeight = canvasMode ? [window.innerWidth, window.innerHeight] : (matrixMode && requestedViewport ? requestedViewport.split("x").map(Number) : preset.value.split("x").map(Number));
+        const width = widthHeight[0], height = widthHeight[1];
+        if (canvasMode) {
+          device.style.width = String(width) + "px";
+          device.style.height = String(height) + "px";
+          device.style.transform = "none";
+          wrap.style.width = String(width) + "px";
+          wrap.style.height = String(height) + "px";
+        } else {
+          const availableWidth = matrixMode ? window.innerWidth : Math.max(250, Math.min(520, window.innerWidth - 56));
+          const availableHeight = matrixMode ? window.innerHeight : Math.max(300, window.innerHeight - 205);
+          const scale = Math.min(1, availableWidth / width, availableHeight / height);
+          device.style.width = String(width) + "px";
+          device.style.height = String(height) + "px";
+          device.style.transform = "scale(" + scale + ")";
+          wrap.style.width = String(width * scale) + "px";
+          wrap.style.height = String(height * scale) + "px";
+        }
+        updateLayoutGeometry(width, height);
+      }
+      preset.addEventListener("change", applyViewport);
+      layoutVariant.addEventListener("change", applyViewport);
+      fontScale.addEventListener("change", applyViewport);
+      const matrixFontScale = document.getElementById("matrixFontScale");
+      // Only the top-level workspace starts the five viewport previews. Matrix children must never spawn more matrices.
+      if (!matrixMode && !canvasMode) {
+        document.querySelectorAll(".responsive-frame").forEach(frame => {
+          if (frame.dataset.src) frame.src = frame.dataset.src;
+        });
+      }
+      if (matrixFontScale) {
+        matrixFontScale.addEventListener("change", () => {
+          document.querySelectorAll(".responsive-frame").forEach(frame => {
+            const viewport = frame.dataset.viewport;
+            frame.src = "./gemini-native-preview.html?mode=matrix&viewport=" + encodeURIComponent(viewport) + "&fontScale=" + encodeURIComponent(matrixFontScale.value);
+          });
+        });
+      }
+      window.addEventListener("resize", applyViewport);
+      document.getElementById("cameraButton").addEventListener("click", () => showToast("静态预览：真实拍照交互以精确 SHA 的 Android Runtime Gate 为准。"));
+      document.getElementById("avatarButton").addEventListener("click", () => showToast("Gemini V3 静态预览使用注册的 V2 头像底图；真实账号头像加载由 Android 数据层处理。"));
+
+      const layerMeta = {
+        "#device": {name:"Screen · NH01 Home",design:"Screen-Yujian-Home",compose:"GeminiNormalHomeContent",constraint:"全屏容器；顶部/底部安全区分别预留 24dp / 24dp，短屏不额外重复计算底部留白。",status:"MAPPED",note:"根容器。真实系统栏与窗口 inset 需由 Android Runtime 证据确认。"},
+        "#assetBackground": {name:"BG · Morning Lake",design:"BG-Mountain-Mist",compose:"GeminiNormalHomeContent / background group",asset:"Morning Lake master · registered bitmap",constraint:"全屏铺底；ContentScale.Crop，TopCenter。",status:"MAPPED",note:"背景源图为正式登记资产，保持原始像素，不在此页添加额外叠层。"},
+        "#topSection": {name:"Top-Section-AutoLayout",design:"Top-Section-AutoLayout",compose:"GeminiTopSection",constraint:"顶部固定区域；宽度跟随可用视口；安全区由根容器处理。",status:"MAPPED"},
+        "#headerBar": {name:"Header-Bar",design:"Header-Bar",compose:"GeminiTopSection / Header-Bar",constraint:"横向排列；左右对齐；间距 12dp；最小高度 48dp。",status:"MAPPED"},
+        "#assetBrand": {name:"Brand-Title",design:"Brand-Title",compose:"R.drawable.brand_title_primary",asset:"brand_title_primary.png · SHA registered",constraint:"宽度随视口 clamp；object-fit: contain。",status:"MAPPED"},
+        "#avatarButton": {name:"User-Avatar-Btn",design:"User-Avatar-Btn",compose:"GeminiAvatarButton",asset:"normal_home_default_avatar_v2.png · SHA registered",constraint:"48dp 触控容器；头像视觉尺寸按安全内容高度缩放。",status:"MAPPED"},
+        "#statsBar": {name:"Stats-Bar",design:"Stats-Bar",compose:"GeminiStatsBar",constraint:"三列等宽；数值与标签按安全高度和系统字体缩放。",status:"MAPPED"},
+        "#middleSection": {name:"Middle-Carousel-Section",design:"Middle-Carousel-Section",compose:"GeminiMiddleSection",constraint:"占用剩余垂直空间；紧凑短屏允许该区域局部滚动。",status:"MAPPED"},
+        "#sectionHeader": {name:"Section-Header-Bar",design:"Section-Header-Bar",compose:"GeminiSectionHeader",constraint:"横向标题与操作项；字号随高度及字体缩放。",status:"MAPPED"},
+        "#carouselWindow": {name:"Carousel-Track-Container",design:"Carousel-Track-Container",compose:"GeminiCatchCarousel / HorizontalPager",constraint:"轨道宽度受可用视口约束；主卡保持 247:293 比例，邻卡只露出两侧。",status:"MAPPED"},
+        "#leftCatchCard": {name:"Card-Peek-Left",design:"Card-Peek-Left",compose:"GeminiCatchCarousel / previous page",asset:"独立获批照片未登记",constraint:"邻卡宽度约为轨道 62%；垂直居中；照片来源未批准。",status:"BLOCKED",note:"只显示占位材质。不得以未确认来源的图片替代。"},
+        "#mainCatchCard": {name:"Card-Main-Active",design:"Card-Main-Active",compose:"GeminiCatchCarousel / selected page",asset:"Hero photo source approval pending",constraint:"Adaptive V2 主卡目标宽度为轨道 70% 且最大 337.2dp；根据真实元数据换行与中区剩余高度计算最终尺寸，空间不足时进入中区滚动；保持 247:293 宽高比。",status:"BLOCKED",note:"主卡结构和元数据可审查，但 Hero 原图未获批准，不能视觉验收通过。"},
+        "#cardMetadata": {name:"Card-Metadata",design:"Card-Metadata",compose:"GeminiCatchCarousel / CatchCardMetadata",constraint:"底部渐变承载鱼种、尺寸重量、时间地点；字号与卡片空间受响应式合同约束。",status:"MAPPED"},
+        "#heroPlaceholder": {name:"Hero-Photo",design:"Card-Main-Active / Hero-Photo",compose:"GeminiCatchCarousel / RemoteImage",asset:"BLOCKED_ASSET_SOURCE",constraint:"目标图像需按已批准的 Crop/Fit 合同渲染；当前仅为阻塞占位。",status:"BLOCKED",note:"此处不能推断生产鱼体 Mask 或照片裁切是否正确。"},
+        "#cardMetadata": {name:"Card-Metadata",design:"Card-Main-Active / metadata",compose:"GeminiCatchCarousel / CatchCardMetadata",constraint:"底部渐变承载文字；鱼种、尺寸重量、时间地点分级排布。",status:"MAPPED"},
+        "#rightCatchCard": {name:"Card-Peek-Right",design:"Card-Peek-Right",compose:"GeminiCatchCarousel / next page",asset:"独立获批照片未登记",constraint:"邻卡宽度约为轨道 62%；垂直居中；照片来源未批准。",status:"BLOCKED",note:"只显示占位材质。不得以未确认来源的图片替代。"},
+        "#footerSection": {name:"Footer-CTA-Section",design:"Footer-CTA-Section",compose:"GeminiFooterSection",constraint:"底部固定操作区；系统导航安全区由根容器处理。",status:"MAPPED"},
+        "#ctaLabel": {name:"CTA-Label-RecordNext",design:"CTA-Label-RecordNext",compose:"GeminiFooterSection / CTA label",constraint:"文字字号跟随安全高度和字体缩放；与相机控件保持垂直间距。",status:"MAPPED"},
+        "#cameraButton": {name:"CTA-Camera-Button",design:"CTA-Camera-Button",compose:"HomeCameraButton",asset:"normal_home_camera_primary_v1.png · SHA registered",constraint:"触控区域至少 72dp；内部图形 contain，视觉尺寸按安全画布宽高共同缩放，56–80dp。",status:"MAPPED"}
+      };
+      const inspectorFields = {
+        name:document.getElementById("inspectorNodeName"), status:document.getElementById("inspectorNodeStatus"),
+        design:document.getElementById("inspectorDesignNode"), compose:document.getElementById("inspectorComposeNode"),
+        position:document.getElementById("inspectorPosition"), size:document.getElementById("inspectorSize"),
+        font:document.getElementById("inspectorFont"), radius:document.getElementById("inspectorRadius"),
+        background:document.getElementById("inspectorBackground"), color:document.getElementById("inspectorColor"),
+        image:document.getElementById("inspectorImage"), constraint:document.getElementById("inspectorConstraint"),
+        assetStatus:document.getElementById("inspectorAssetStatus"), note:document.getElementById("inspectorNote")
+      };
+      function selectLayer(target) {
+        const node = document.querySelector(target);
+        if (!node) return;
+        document.querySelectorAll(".layer-node").forEach(button => button.setAttribute("aria-selected", String(button.dataset.target === target)));
+        document.querySelectorAll("[data-inspected='true']").forEach(el => { el.removeAttribute("data-inspected"); el.classList.remove("inspected-node"); });
+        node.setAttribute("data-inspected", "true");
+        node.classList.add("inspected-node");
+        const meta = layerMeta[target] || {name:node.getAttribute("data-layer") || node.id || target,design:node.getAttribute("data-layer") || target,compose:"Compose mapping not registered",constraint:"尚未登记响应式约束。",status:"REVIEW_REQUIRED",note:"需要补齐设计节点与 Android Compose 的明确映射。"};
+        const deviceRect = device.getBoundingClientRect(), rect = node.getBoundingClientRect();
+        const scale = device.offsetWidth ? deviceRect.width / device.offsetWidth : 1;
+        const number = value => (Math.round(value * 100) / 100).toFixed(2);
+        const x = (rect.left - deviceRect.left) / scale, y = (rect.top - deviceRect.top) / scale;
+        const width = rect.width / scale, height = rect.height / scale, style = getComputedStyle(node);
+        const image = node.matches("img") ? node : node.querySelector("img");
+        const assetText = meta.asset || (image ? (image.dataset.assetId || (image.currentSrc || image.src).split("/").pop()) : "无独立图片资产");
+        inspectorFields.name.textContent = meta.name;
+        inspectorFields.status.textContent = meta.status;
+        inspectorFields.status.dataset.status = meta.status === "BLOCKED" ? "BLOCKED" : (meta.status === "MAPPED" ? "MAPPED" : "REVIEW_REQUIRED");
+        inspectorFields.design.textContent = meta.design || "—";
+        inspectorFields.compose.textContent = meta.compose || "—";
+        inspectorFields.position.textContent = number(x) + " · " + number(y);
+        inspectorFields.size.textContent = number(width) + " · " + number(height);
+        inspectorFields.font.textContent = style.fontSize + " / " + style.fontWeight;
+        inspectorFields.radius.textContent = style.borderRadius || "0px";
+        inspectorFields.background.textContent = style.backgroundColor;
+        inspectorFields.color.textContent = style.color;
+        inspectorFields.image.textContent = image ? (image.currentSrc || image.src).split("/").pop() + " · fit=" + getComputedStyle(image).objectFit : assetText;
+        inspectorFields.constraint.textContent = meta.constraint || "未登记";
+        inspectorFields.assetStatus.textContent = assetText + " · " + meta.status;
+        inspectorFields.note.textContent = meta.note || "几何数值来自当前浏览器预览；需用同一源码 SHA 的 Android boundsInWindow 和截图复核。";
+        window.NH01SelectedLayer = {target,name:meta.name,designNode:meta.design,compose:meta.compose,boundsDp:{x:Number(number(x)),y:Number(number(y)),width:Number(number(width)),height:Number(number(height))},status:meta.status};
+      }
+      document.getElementById("layerTree").addEventListener("click", event => {
+        const button = event.target.closest(".layer-node");
+        if (button) selectLayer(button.dataset.target);
+      });
+      device.addEventListener("click", event => {
+        if (event.target.closest(".camera-button") || event.target.closest(".avatar-button")) return;
+        const target = event.target.closest("[data-layer], [data-asset-id], #device");
+        if (!target) return;
+        const selector = target.id ? "#" + target.id : null;
+        if (selector && layerMeta[selector]) selectLayer(selector);
+        else {
+          const layerName = target.getAttribute("data-layer");
+          const entry = Object.entries(layerMeta).find(([key,value]) => value.design === layerName || value.name === layerName);
+          if (entry) selectLayer(entry[0]);
+        }
+      });
+      if (!canvasMode && !matrixMode) selectLayer("#mainCatchCard");
+
+      async function digest(url) {
+        const response = await fetch(url, { cache: "no-store" });
+        if (!response.ok) throw new Error("HTTP " + response.status + " for " + url);
+        const bytes = await response.arrayBuffer();
+        const hash = await crypto.subtle.digest("SHA-256", bytes);
+        return [...new Uint8Array(hash)].map(value => value.toString(16).padStart(2, "0")).join("");
+      }
+      function waitImage(image) {
+        if (image.complete) {
+          if (image.naturalWidth > 0) return Promise.resolve();
+          return Promise.reject(new Error("Image failed to load: " + (image.currentSrc || image.src)));
+        }
+        return new Promise((resolve, reject) => {
+          image.addEventListener("load", resolve, { once: true });
+          image.addEventListener("error", () => reject(new Error("Image load failed: " + (image.currentSrc || image.src))), { once: true });
+        });
+      }
+      async function auditAssets() {
+        if (matrixMode) {
+          window.NH01GeminiPreviewAudit = { status: "MATRIX_PREVIEW_ONLY", release_gate_effect: "NONE" };
+          window.NH01GeminiPreviewReady = true;
+          return window.NH01GeminiPreviewAudit;
+        }
+        const response = await fetch("./NH01_Gemini_Native_Asset_Binding_V1.json", { cache: "no-store" });
+        if (!response.ok) throw new Error("Asset manifest HTTP " + response.status);
+        const manifest = await response.json();
+        const results = [];
+        for (const asset of manifest.assets.filter(item => item.public_preview)) {
+          const image = assetNodes[asset.id];
+          if (!image) throw new Error("Missing DOM asset node: " + asset.id);
+          await waitImage(image);
+          const actualHash = await digest(asset.preview_path);
+          const dimensions = [image.naturalWidth, image.naturalHeight];
+          const passed = actualHash === asset.sha256 && dimensions[0] === asset.dimensions_px[0] && dimensions[1] === asset.dimensions_px[1];
+          results.push({ id: asset.id, label: asset.label, status: passed ? "PASS_SOURCE_INTEGRITY" : "FAIL_SOURCE_INTEGRITY", expected_sha256: asset.sha256, actual_sha256: actualHash, expected_dimensions_px: asset.dimensions_px, actual_dimensions_px: dimensions, preview_path: asset.preview_path });
+        }
+        for (const asset of manifest.assets.filter(item => !item.public_preview)) {
+          results.push({ id: asset.id, label: asset.label, status: asset.status, expected_sha256: asset.sha256 || null, actual_sha256: null, expected_dimensions_px: asset.dimensions_px || null, actual_dimensions_px: null, preview_path: null, reason: asset.privacy_policy || asset.render_rule });
+        }
+        assetList.replaceChildren();
+        for (const result of results) {
+          const row = document.createElement("div"); row.className = "asset-row";
+          const details = document.createElement("div");
+          const name = document.createElement("div"); name.className = "asset-name"; name.textContent = result.label;
+          const meta = document.createElement("div"); meta.className = "asset-meta";
+          meta.textContent = result.actual_sha256 ? "SHA-256 " + result.actual_sha256 + " · " + result.actual_dimensions_px.join("×") : (result.reason || "未提供可公开预览的正式原图。");
+          const status = document.createElement("span"); status.className = "asset-status"; status.dataset.status = result.status; status.title = result.status; status.textContent = ({ PASS_SOURCE_INTEGRITY: "PASS · SHA + SIZE", BLOCKED_ASSET_SOURCE: "BLOCKED · PHOTO SOURCE", BLOCKED_MISSING_APPROVED_INDEPENDENT_ORIGINALS: "BLOCKED · PHOTO SET" })[result.status] || result.status;
+          details.append(name, meta); row.append(details, status); assetList.append(row);
+        }
+        const failures = results.filter(result => result.status === "FAIL_SOURCE_INTEGRITY");
+        integritySummary.dataset.state = failures.length ? "FAIL" : "PASS";
+        integritySummary.textContent = failures.length ? "资产完整性失败：" + failures.map(result => result.id).join(", ") + "。此预览不能用于正式验收。" : "已渲染资产 SHA-256 与尺寸均匹配登记。Hero 与邻卡照片仍为 BLOCKED；release_gate_effect=NONE。";
+        window.NH01GeminiPreviewAudit = { schema: manifest.schema, build_sha: buildSha, status: failures.length ? "FAIL" : "PASS", release_gate_effect: "NONE", assets: results, checked_at_utc: new Date().toISOString() };
+        window.NH01GeminiPreviewReady = true;
+        return window.NH01GeminiPreviewAudit;
+      }
+      applyViewport();
+      auditAssets().catch(error => {
+        integritySummary.dataset.state = "FAIL";
+        integritySummary.textContent = "资产核验失败：" + error.message;
+        window.NH01GeminiPreviewAudit = { status: "FAIL", release_gate_effect: "NONE", error: error.message };
+        window.NH01GeminiPreviewReady = true;
+      });
+    })();
+  </script>
+</body>
+</html>

@@ -1,5 +1,5 @@
 {
-  "schema_version": "1.0",
+  "schema_version": "1.1",
   "board_id": "recognition_main_journey_master_board_v1",
   "status": "FROZEN_REVIEW_BOARD",
   "standalone_visual_authority": false,
@@ -9,7 +9,7 @@
     "orientation": "LANDSCAPE"
   },
   "title": "渔见 · 拍照识鱼主链路",
-  "subtitle": "MASTER BOARD V1 · HIGH-FIDELITY REVIEW",
+  "subtitle": "MASTER BOARD V1.1 · TWO-PAGE GUIDE",
   "primary_sequence": [
     {
       "board_id": "MB-01",
@@ -37,14 +37,9 @@
       "page_id": "GUIDE",
       "state_id": "P02",
       "status": "FROZEN",
-      "ownership": null
-    },
-    {
-      "board_id": "MB-05",
-      "page_id": "GUIDE",
-      "state_id": "P03",
-      "status": "FROZEN",
-      "ownership": null
+      "ownership": null,
+      "title": "P02 · 横屏拍摄示意",
+      "guide_orientation": "LANDSCAPE_PHONE + HORIZONTAL_FISH"
     },
     {
       "board_id": "MB-06",
@@ -212,5 +207,30 @@
     "no_ai_generated_substitutes": true
   },
   "processing_early_late_same_product_state": false,
-  "processing_visual_policy": "Three user-visible product states / three Frozen visual keyframes; MB-08 Early retired and MB-09 is sole IMAGE_RECOGNIZING design."
+  "processing_visual_policy": "Three user-visible product states / three Frozen visual keyframes; MB-08 Early retired and MB-09 is sole IMAGE_RECOGNIZING design.",
+  "guide_authority": {
+    "spec": "design/pages/recognition/first_use_camera_guide/First_Use_Camera_Guide_Spec_V1_2.md",
+    "active_sequence": [
+      "P01",
+      "P02"
+    ],
+    "former_p02_vertical_fish": {
+      "status": "ARCHIVED_NOT_ACTIVE",
+      "archive_path": "design/pages/recognition/first_use_camera_guide/archive/P02_Portrait_Vertical_Fish_Superseded_20261016.png",
+      "sha256": "fb092235fd043a42aa8250aba9dfdb91a78e96549dd5a63f8e89cf7433685f8f"
+    },
+    "former_p03_landscape": {
+      "status": "PROMOTED_BYTE_IDENTICAL_TO_P02",
+      "active_path": "design/pages/recognition/first_use_camera_guide/frozen/P02_Landscape_Horizontal_Fish_Frozen.png",
+      "sha256": "1a3008483ac5708a0649501cf2aef6c799d47b95bcc2c1b1272fa64e68f7f9b3"
+    }
+  },
+  "retired_items": [
+    {
+      "board_id": "MB-05",
+      "former_state_id": "P03",
+      "status": "SUPERSEDED_NOT_ACTIVE",
+      "reason": "The former three-page guide was replaced by the two-page V1.2 guide. MB-05 is intentionally retired; later MB identifiers remain stable and are not renumbered."
+    }
+  ]
 }

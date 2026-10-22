@@ -31,6 +31,14 @@ class RecognitionFishFocusTest {
     }
 
     @Test
+    fun classifyingContourCoreBreathesWithinFrozenV11RangeAt1900MsPeriod() {
+        assertEquals(.36f, recognitionClassifyingContourCoreAlpha(0L, false), .001f)
+        assertEquals(.42f, recognitionClassifyingContourCoreAlpha(950L, false), .001f)
+        assertEquals(.36f, recognitionClassifyingContourCoreAlpha(1_900L, false), .001f)
+        assertEquals(.39f, recognitionClassifyingContourCoreAlpha(950L, true), .001f)
+    }
+
+    @Test
     fun levelBIsPerceptibleOnTheFirstOutlineFrameBeforeContourPromotion() {
         val halo = recognitionLevelBHaloAlpha(0L, reduceMotion = false)
         val perimeter = recognitionLevelBPerimeterAlpha(0L, reduceMotion = false)

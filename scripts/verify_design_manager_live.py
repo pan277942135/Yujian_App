@@ -15,8 +15,7 @@ from urllib.request import Request, urlopen
 
 EXPECTED_GUIDE = {
     "P01": (941, 1671, "dc731cca5470ef2154bb06172b9836e823ea780b0833f04e34caaf883e465c50"),
-    "P02": (941, 1671, "fb092235fd043a42aa8250aba9dfdb91a78e96549dd5a63f8e89cf7433685f8f"),
-    "P03": (941, 1672, "1a3008483ac5708a0649501cf2aef6c799d47b95bcc2c1b1272fa64e68f7f9b3"),
+    "P02": (941, 1672, "1a3008483ac5708a0649501cf2aef6c799d47b95bcc2c1b1272fa64e68f7f9b3"),
 }
 
 
@@ -82,11 +81,11 @@ def main() -> int:
     guide = views.get("capture_first_use_guide")
     require(guide is not None and guide.get("title") == "07 · 首次拍照教学", "live guide entry changed")
     guide_children = {item.get("id"): item for item in guide.get("children", [])}
-    require(set(guide_children) == {"p01", "p02", "p03", "resources"}, "live guide must retain P01/P02/P03 and expose Resources")
+    require(set(guide_children) == {"p01", "p02", "p03", "resources"}, "live guide must retain P01/P02 and expose Resources")
     resources = guide_children["resources"]
     require(resources.get("title") == "资源" and resources.get("render_mode") == "recognition_guide_resources",
             "live guide Resources menu definition changed")
-    require(resources.get("resource_ids") == ["p01", "p02", "p03"] and resources.get("runtime_visual_authority") is False,
+    require(resources.get("resource_ids") == ["p01", "p02"] and resources.get("runtime_visual_authority") is False,
             "live guide Resources must expose the three design-only source PNGs")
 
     guide_manifest_raw, _ = fetch(urljoin(parent_url, "design/pages/recognition/first_use_camera_guide/manifest.json"))
@@ -99,7 +98,7 @@ def main() -> int:
     require(len(resource_menus) == 1 and resource_menus[0].get("route") ==
             "#page/recognition_flow_v1_2/hifi/capture_first_use_guide/resources",
             "live guide navigation manifest is missing the Resources route")
-    require(resource_menus[0].get("resource_ids") == ["p01", "p02", "p03"] and
+    require(resource_menus[0].get("resource_ids") == ["p01", "p02"] and
             resource_menus[0].get("runtime_visual_authority") is False,
             "live guide navigation manifest resource catalog is not design-only")
     guide_assets = {asset.get("id", "").upper(): asset for asset in guide_manifest.get("assets", [])}
@@ -148,7 +147,7 @@ def main() -> int:
     if args.output:
         args.output.parent.mkdir(parents=True, exist_ok=True)
         args.output.write_text(json.dumps(result, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    print(f"PASS: Pages live release | build={build['sha']} | Resources menu + P01/P02/P03 + overview/review originals SHA-verified | expected missing paths=404")
+    print(f"PASS: Pages live release | build={build['sha']} | Resources menu + P01/P02 + overview/review originals SHA-verified | expected missing paths=404")
     return 0
 
 

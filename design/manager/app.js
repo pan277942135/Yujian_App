@@ -2353,7 +2353,7 @@ function recognitionNewStatesReviewCanvas(child) {
       '<p>' + esc(state.note) + '</p></article>'
   ).join("");
   return '<div class="hifi-review-banner"><strong>Review source image · 非 Frozen 单页 Authority</strong>' +
-      '<span>原始合成板仍含已被三页 P01/P02/P03 替换的旧教学画面；仅作为边界审阅来源展示。</span></div>' +
+      '<span>原始合成板仍含已被冻结 V1.2 两页 P01/P02 替换的旧教学画面；仅作为边界审阅来源展示。</span></div>' +
     hifiImageFigure(child.image, child.title, child.review_caption, child.visual_authority_sha256) +
     '<div class="authority-index-grid">' + states + '</div>';
 }

@@ -1,8 +1,14 @@
 {
-  "version": "1.0",
+  "schema_version": "1.2",
   "status": "FROZEN",
+  "authority_status": "FROZEN",
   "manager_parent": "recognition_flow_v1_2",
   "manager_title": "07 · 首次拍照教学",
+  "entry_condition": "Camera permission granted AND camera preview Ready AND guide not previously completed",
+  "active_sequence": [
+    "p01",
+    "p02"
+  ],
   "children": [
     {
       "id": "p01",
@@ -12,30 +18,52 @@
     },
     {
       "id": "p02",
-      "title": "P02 · 竖拍鱼类拍摄示意",
+      "title": "P02 · 横屏拍摄示意",
       "status": "FROZEN",
-      "visual_authority": "frozen/P02_First_Use_Camera_Guide_Frozen.png"
-    },
+      "visual_authority": "frozen/P02_Landscape_Horizontal_Fish_Frozen.png"
+    }
+  ],
+  "transitions": {
+    "p01_primary": "p02",
+    "p02_primary": "capture_ready_as_current_device_state",
+    "previous_from_p02": "p01",
+    "skip_from_either": "dismiss_without_shutter",
+    "completion_persisted_after": "skip_or_final_action"
+  },
+  "former_p02_vertical_fish": {
+    "status": "SUPERSEDED_NOT_ACTIVE",
+    "archive": "archive/P02_Portrait_Vertical_Fish_Superseded_20261016.png"
+  },
+  "former_p03": {
+    "status": "PROMOTED_BYTE_IDENTICAL_TO_ACTIVE_P02",
+    "active_page_id": "p02"
+  },
+  "version": "1.2",
+  "active_page_ids": [
+    "p01",
+    "p02"
+  ],
+  "superseded_archive_refs": [
     {
-      "id": "p03",
-      "title": "P03 · 横屏拍摄示意",
-      "status": "FROZEN",
-      "visual_authority": "frozen/P03_First_Use_Camera_Guide_Frozen.png"
+      "former_id": "p02",
+      "label": "Portrait phone + vertical fish",
+      "path": "archive/P02_Portrait_Vertical_Fish_Superseded_20261016.png",
+      "sha256": "fb092235fd043a42aa8250aba9dfdb91a78e96549dd5a63f8e89cf7433685f8f",
+      "status": "ARCHIVED_NOT_ACTIVE"
     }
   ],
   "resource_menus": [
     {
       "id": "resources",
       "title": "资源",
-      "status": "DESIGN_ONLY",
       "route": "#page/recognition_flow_v1_2/hifi/capture_first_use_guide/resources",
-      "manifest": "manifest.json",
+      "status": "DESIGN_ONLY",
       "resource_ids": [
         "p01",
-        "p02",
-        "p03"
+        "p02"
       ],
-      "runtime_visual_authority": false
+      "runtime_visual_authority": false,
+      "manifest": "manifest.json"
     }
   ]
 }

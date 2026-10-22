@@ -57,7 +57,7 @@ class RecognitionFirstCaptureGuidePolicyTest {
     }
 
     @Test
-    fun pageSequenceAndActionsMatchTheFrozenThreePageContract() {
+    fun pageSequenceAndActionsMatchTheFrozenTwoPageContract() {
         var state = RecognitionFirstCaptureGuideState()
         state = reduceRecognitionFirstCaptureGuideState(state, RecognitionFirstCaptureGuideIntent.NEXT)
         assertEquals(RecognitionFirstCaptureGuidePage.P02, state.currentPage)
@@ -66,10 +66,9 @@ class RecognitionFirstCaptureGuidePolicyTest {
         state = reduceRecognitionFirstCaptureGuideState(state, RecognitionFirstCaptureGuideIntent.PREVIOUS)
         assertEquals(RecognitionFirstCaptureGuidePage.P01, state.currentPage)
         state = reduceRecognitionFirstCaptureGuideState(state, RecognitionFirstCaptureGuideIntent.NEXT)
-        state = reduceRecognitionFirstCaptureGuideState(state, RecognitionFirstCaptureGuideIntent.NEXT)
-        assertEquals(RecognitionFirstCaptureGuidePage.P03, state.currentPage)
-        state = reduceRecognitionFirstCaptureGuideState(state, RecognitionFirstCaptureGuideIntent.PREVIOUS)
         assertEquals(RecognitionFirstCaptureGuidePage.P02, state.currentPage)
+        state = reduceRecognitionFirstCaptureGuideState(state, RecognitionFirstCaptureGuideIntent.NEXT)
+        assertEquals("NEXT must stay on the final page", RecognitionFirstCaptureGuidePage.P02, state.currentPage)
     }
 
     @Test
@@ -93,38 +92,35 @@ class RecognitionFirstCaptureGuidePolicyTest {
         assertTrue(skipped.completed)
 
         val started = reduceRecognitionFirstCaptureGuideState(
-            RecognitionFirstCaptureGuideState(currentPage = RecognitionFirstCaptureGuidePage.P03),
+            RecognitionFirstCaptureGuideState(currentPage = RecognitionFirstCaptureGuidePage.P02),
             RecognitionFirstCaptureGuideIntent.START,
         )
         assertFalse(started.visible)
         assertTrue(started.completed)
 
-        listOf(RecognitionFirstCaptureGuidePage.P01, RecognitionFirstCaptureGuidePage.P02).forEach { page ->
+        listOf(RecognitionFirstCaptureGuidePage.P01).forEach { page ->
             val prematureStart = reduceRecognitionFirstCaptureGuideState(
                 RecognitionFirstCaptureGuideState(currentPage = page),
                 RecognitionFirstCaptureGuideIntent.START,
             )
-            assertTrue("START is only valid on P03 ($page)", prematureStart.visible)
-            assertFalse("START is only valid on P03 ($page)", prematureStart.completed)
+            assertTrue("START is only valid on P02 ($page)", prematureStart.visible)
+            assertFalse("START is only valid on P02 ($page)", prematureStart.completed)
         }
     }
 
     @Test
     fun fishOrientationAndErrorExamplesStayConsistentOnEachPage() {
-        val horizontalPages = listOf(RecognitionFirstCaptureGuidePage.P01, RecognitionFirstCaptureGuidePage.P03)
-        horizontalPages.forEach { page ->
+        val activePages = listOf(RecognitionFirstCaptureGuidePage.P01, RecognitionFirstCaptureGuidePage.P02)
+        activePages.forEach { page ->
             val spec = recognitionFirstCaptureGuidePageSpec(page)
             assertEquals(RecognitionGuideFishOrientation.HORIZONTAL, spec.fishOrientation)
             assertEquals(listOf("鱼头不在画面", "鱼体过小", "遮挡过多"), spec.errors.map { it.label })
             assertTrue(spec.errors.all { it.orientation == RecognitionGuideFishOrientation.HORIZONTAL })
+            assertEquals(if (page == RecognitionFirstCaptureGuidePage.P01) "竖屏拍摄示意" else "横屏拍摄示意", spec.title)
+            assertEquals(if (page == RecognitionFirstCaptureGuidePage.P01) "下一张" else "开始拍摄", spec.primaryActionLabel)
         }
 
-        val verticalSpec = recognitionFirstCaptureGuidePageSpec(RecognitionFirstCaptureGuidePage.P02)
-        assertEquals(RecognitionGuideFishOrientation.VERTICAL, verticalSpec.fishOrientation)
-        assertTrue(verticalSpec.errors.all { it.orientation == RecognitionGuideFishOrientation.VERTICAL })
-
-        listOf(RecognitionFirstCaptureGuidePage.P01, RecognitionFirstCaptureGuidePage.P02, RecognitionFirstCaptureGuidePage.P03)
-            .forEach { page ->
+        activePages.forEach { page ->
                 val spec = recognitionFirstCaptureGuidePageSpec(page)
                 assertEquals(RecognitionGuideRuntimeAssetStatus.ASSET_SOURCE_BLOCKED, spec.runtimeAssetStatus)
                 assertEquals(null, spec.heroAsset)
@@ -154,7 +150,7 @@ class RecognitionFirstCaptureGuidePolicyTest {
         assertEquals(
             1672,
             mapRecognitionGuideReferenceSpace(
-                page = RecognitionFirstCaptureGuidePage.P03,
+                page = RecognitionFirstCaptureGuidePage.P02,
                 runtimeWidthPx = 1080,
                 runtimeHeightPx = 1920,
             ).referenceHeightPx,

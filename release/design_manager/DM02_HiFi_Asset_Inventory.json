@@ -18,7 +18,10 @@
     "head_sha": "1d463ebff473c402725ffaa118908ad147d3967a",
     "base_sha": "ae7f492a649d20dc23e7f04bcffa49749c7d9e70",
     "authority_status": "CONTROL_PLANE_PROPOSAL_PENDING_MAIN_AUTHORIZATION",
-    "proposed_active_guide_page_ids": ["p01", "p02"],
+    "proposed_active_guide_page_ids": [
+      "p01",
+      "p02"
+    ],
     "current_main_authority_applied": false,
     "visual_findings": [
       {
@@ -27,7 +30,10 @@
         "current_main_present": false,
         "current_main_design_manager_status": "BLOCKED_INTEGRITY",
         "proposal_bytes": 2079370,
-        "proposal_dimensions_px": [1672, 941],
+        "proposal_dimensions_px": [
+          1672,
+          941
+        ],
         "proposal_sha256": "c5d7f126ca4820f4299e8e5a27be64b26bc3aaeec026e6bd8bedac2c1c33b18f",
         "current_main_expected_sha256": "c5d7f126ca4820f4299e8e5a27be64b26bc3aaeec026e6bd8bedac2c1c33b18",
         "proposal_sha256_length": 64,
@@ -486,5 +492,8 @@
     "master_board_schema": "design/system_v3/00_Product_Master_Flow/assets/Recognition_Main_Journey_Master_Board_V1.json",
     "page_registry": "design/system_v3/08_Page_Contracts/Page_Registry_V3_1.json",
     "effective_authority_registry": "design/system_v3/11_Freeze_Governance/Effective_Authority_Registry_V3_1.json"
-  }
+  },
+  "status": "SUPERSEDED_HISTORICAL_SNAPSHOT",
+  "superseded_by": "release/design_manager/DM06_First_Use_Guide_Two_Page_Closure_20261017.md",
+  "supersession_note": "This 2026-10-16 inventory remains historical evidence of the then-current main branch. The active guide proposal is the two-page V1.2 authority on 2026-10-17; do not use this snapshot as the current guide mapping."
 }

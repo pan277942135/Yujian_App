@@ -1,9 +1,14 @@
 package com.yujian.ai.ui.recognition
 
+import android.graphics.Bitmap
+import android.graphics.BlendMode as AndroidBlendMode
 import android.graphics.BlurMaskFilter
 import android.graphics.Paint as AndroidPaint
 import android.graphics.Path as AndroidPath
 import android.graphics.PathMeasure as AndroidPathMeasure
+import android.graphics.PorterDuff
+import android.graphics.PorterDuffXfermode
+import android.os.Build
 import androidx.compose.animation.core.CubicBezierEasing
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.fillMaxSize
@@ -14,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
@@ -34,10 +40,10 @@ import com.yujian.ai.ui.identify.RecognitionImageTransform
 import kotlin.math.PI
 import kotlin.math.sin
 
-private val AiBlueCore = Color(0xFFBFEAF2)
-private val AiBlueHot = Color(0xFFD8F5FA)
-private val AiGoldCore = Color(0xFFF6D99B)
-private val AiGoldHot = Color(0xFFFFE7AE)
+private val AiBlueCore = Color(0xFF8BC9E8)
+private val AiBlueHot = Color(0xFFB2E5F5)
+private val AiGoldCore = Color(0xFFEFC14C)
+private val AiGoldHot = Color(0xFFF7D05B)
 private val MotionEase = CubicBezierEasing(.22f, 1f, .36f, 1f)
 
 internal val recognitionAmbientPrimaryIslandIds = setOf("B1", "G1", "B3", "G3")
@@ -285,11 +291,15 @@ fun RecognitionAmbientField(
         if (lowPerformance) RecognitionQualityLevel.LITE else RecognitionQualityLevel.FULL,
     onMotionFrame: ((RecognitionMotionTraceSample) -> Unit)? = null,
     photoTransform: RecognitionImageTransform? = null,
+    sourcePhoto: Bitmap? = null,
 ) {
     val nowMs = visualClockMs ?: 0L
     val accumulator = remember(motionSessionKey) { EdgeFieldMotionAccumulator() }
     val cachedGeometry = remember(photoTransform?.photoContentRect) {
         photoTransform?.photoContentRect?.let(::buildOpticalPathCache)
+    }
+    val localLuminance = remember(sourcePhoto) {
+        sourcePhoto?.let(::samplePerimeterLuminance).orEmpty()
     }
 
     val frame = if (deterministicMotion) {
@@ -341,17 +351,26 @@ fun RecognitionAmbientField(
             drawReceivingLight(
                 frame = frame,
                 quality = quality,
+                qualityLevel = qualityLevel,
                 fieldRect = fieldRect,
+                primaryPaths = primaryPaths,
+                localLuminance = localLuminance,
+                blurPaints = geometry.blurPaints,
             )
 
             PRIMARY_ISLANDS.forEachIndexed { index, filament ->
                 val path = primaryPaths[index]
                 val offset = positiveMod(frame.cycleOffset + filament.seed)
+                val fieldWeight = if (filament.id in recognitionAmbientPrimaryIslandIds) {
+                    1f
+                } else {
+                    filament.islandWeight
+                }
                 val common =
                     frame.stateStrength *
                         frame.primaryEntry *
                         quality.alphaMultiplier *
-                        filament.islandWeight
+                        fieldWeight
 
                 if (filament.id in recognitionAmbientPrimaryIslandIds) {
                     drawCompositePrimary(
@@ -360,7 +379,10 @@ fun RecognitionAmbientField(
                         offset = offset,
                         common = common,
                         quality = quality,
+                        qualityLevel = qualityLevel,
                         blurPaints = geometry.blurPaints,
+                        fieldRect = fieldRect,
+                        localLuminance = localLuminance,
                     )
                 } else if (filament.id in recognitionAmbientSecondaryFragmentIds) {
                     drawSecondaryFragment(
@@ -502,81 +524,63 @@ private fun qualityProfile(level: RecognitionQualityLevel): QualityProfile =
         )
     }
 
+/** Samples only the four photo-edge environments; it never adjusts the source image. */
+private fun samplePerimeterLuminance(bitmap: Bitmap): Map<String, Float> {
+    val normalizedPoints = mapOf(
+        "G1" to (.10f to .10f),
+        "B1" to (.92f to .12f),
+        "G3" to (.12f to .90f),
+        "B3" to (.88f to .88f),
+    )
+    return normalizedPoints.mapValues { (_, point) ->
+        val centerX = (point.first * (bitmap.width - 1)).toInt().coerceIn(0, bitmap.width - 1)
+        val centerY = (point.second * (bitmap.height - 1)).toInt().coerceIn(0, bitmap.height - 1)
+        var total = 0f
+        var samples = 0
+        for (dy in -2..2) for (dx in -2..2) {
+            val x = (centerX + dx).coerceIn(0, bitmap.width - 1)
+            val y = (centerY + dy).coerceIn(0, bitmap.height - 1)
+            val pixel = bitmap.getPixel(x, y)
+            val red = android.graphics.Color.red(pixel) / 255f
+            val green = android.graphics.Color.green(pixel) / 255f
+            val blue = android.graphics.Color.blue(pixel) / 255f
+            total += .2126f * red + .7152f * green + .0722f * blue
+            samples++
+        }
+        total / samples
+    }
+}
+
 private fun DrawScope.drawReceivingLight(
     frame: MotionFrame,
     quality: QualityProfile,
+    qualityLevel: RecognitionQualityLevel,
     fieldRect: DisplayRect,
+    primaryPaths: List<RecognitionMeasuredPath>,
+    localLuminance: Map<String, Float>,
+    blurPaints: RecognitionBlurPaintCache,
 ) {
-    val common =
-        frame.stateStrength *
-            frame.receivingEntry *
-            quality.receiving *
-            quality.alphaMultiplier
-
-    if (common <= .001f) return
-
-    val fieldWidth = fieldRect.width
-    val fieldHeight = fieldRect.height
-    val minDimension = minOf(fieldWidth, fieldHeight)
-
-    fun islandLight(
-        color: Color,
-        weight: Float,
-        center: Offset,
-        radius: Float,
-        ovalTopLeft: Offset,
-        ovalSize: Size,
-    ) {
-        val alpha = (.13f * common * weight).coerceAtMost(.14f)
-        val brush = Brush.radialGradient(
-            colorStops = arrayOf(
-                0f to color.copy(alpha = alpha),
-                .34f to color.copy(alpha = alpha * .92f),
-                .72f to color.copy(alpha = alpha * .40f),
-                1f to Color.Transparent,
-            ),
-            center = center,
-            radius = radius,
-        )
-        drawOval(
-            brush = brush,
-            topLeft = ovalTopLeft,
-            size = ovalSize,
+    if (frame.stateStrength <= .001f) return
+    val dimensions = RecognitionOpticalConfigV2.layerDimensions(
+        displayedPhotoWidthPx = fieldRect.width,
+        quality = qualityLevel,
+    )
+    PRIMARY_ISLANDS.forEachIndexed { index, island ->
+        if (island.id !in recognitionAmbientPrimaryIslandIds) return@forEachIndexed
+        val measuredPath = primaryPaths[index]
+        val compensation = RecognitionOpticalConfigV2.localBackgroundGain(localLuminance[island.id] ?: .5f)
+        val common = frame.stateStrength * frame.receivingEntry * quality.receiving *
+            quality.alphaMultiplier * RecognitionOpticalConfigV2.islandStrength(island.id) * compensation
+        if (common <= .001f) return@forEachIndexed
+        drawLocalBlur(
+            path = measuredPath.path,
+            color = island.color.copy(alpha = RecognitionOpticalConfigV2.ATMOSPHERIC_SPILL_INTENSITY * common),
+            strokeWidthPx = dimensions.spillRadiusPx * 1.7f,
+            blurRadiusPx = dimensions.spillRadiusPx * .56f,
+            blurPaints = blurPaints,
+            blend = RecognitionOpticalBlend.SOFT_LIGHT,
         )
     }
-
-    islandLight(
-        color = AiBlueCore,
-        weight = 1f,
-        center = Offset(fieldRect.left + fieldWidth, fieldRect.top + fieldHeight * .12f),
-        radius = minDimension * .28f,
-        ovalTopLeft = Offset(fieldRect.left + fieldWidth * .62f, fieldRect.top - fieldHeight * .04f),
-        ovalSize = Size(fieldWidth * .46f, fieldHeight * .40f),
-    )
-    islandLight(
-        color = AiGoldCore,
-        weight = .78f,
-        center = Offset(fieldRect.left, fieldRect.top + fieldHeight * .10f),
-        radius = minDimension * .25f,
-        ovalTopLeft = Offset(fieldRect.left - fieldWidth * .08f, fieldRect.top - fieldHeight * .04f),
-        ovalSize = Size(fieldWidth * .46f, fieldHeight * .36f),
-    )
-    islandLight(
-        color = AiGoldCore,
-        weight = .63f,
-        center = Offset(fieldRect.left, fieldRect.top + fieldHeight * .88f),
-        radius = minDimension * .26f,
-        ovalTopLeft = Offset(fieldRect.left - fieldWidth * .08f, fieldRect.top + fieldHeight * .64f),
-        ovalSize = Size(fieldWidth * .48f, fieldHeight * .38f),
-    )
-    islandLight(
-        color = AiBlueCore,
-        weight = .54f,
-        center = Offset(fieldRect.left + fieldWidth, fieldRect.top + fieldHeight * .86f),
-        radius = minDimension * .25f,
-        ovalTopLeft = Offset(fieldRect.left + fieldWidth * .60f, fieldRect.top + fieldHeight * .64f),
-        ovalSize = Size(fieldWidth * .48f, fieldHeight * .38f),
-    )
 }
 
 private fun DrawScope.drawCompositePrimary(
@@ -585,30 +589,59 @@ private fun DrawScope.drawCompositePrimary(
     offset: Float,
     common: Float,
     quality: QualityProfile,
+    qualityLevel: RecognitionQualityLevel,
     blurPaints: RecognitionBlurPaintCache,
+    fieldRect: DisplayRect,
+    localLuminance: Map<String, Float>,
 ) {
     if (common <= .001f) return
 
     val segments = extractVisiblePathSegments(path, offset, filament.visibleRatio)
+    val compensation = RecognitionOpticalConfigV2.localBackgroundGain(localLuminance[filament.id] ?: .5f)
+    val islandCommon = common * RecognitionOpticalConfigV2.islandStrength(filament.id) * compensation
+    val dimensions = RecognitionOpticalConfigV2.layerDimensions(
+        displayedPhotoWidthPx = fieldRect.width,
+        quality = qualityLevel,
+    )
+    val outerRadius = dimensions.outerRadiusPx
+    val innerRadius = dimensions.innerRadiusPx * quality.mid
     val outer = filament.color.copy(
-        alpha = (.04f * common * quality.outer).coerceAtMost(.055f),
+        alpha = RecognitionOpticalConfigV2.OUTER_BLOOM_INTENSITY *
+            RecognitionOpticalConfigV2.OUTER_BLOOM_ALPHA_MODIFIER * islandCommon * quality.outer,
     )
-    val mid = filament.color.copy(
-        alpha = (.075f * common * quality.mid).coerceAtMost(.10f),
+    val inner = filament.color.copy(
+        alpha = RecognitionOpticalConfigV2.INNER_BLOOM_INTENSITY *
+            RecognitionOpticalConfigV2.INNER_BLOOM_ALPHA_MODIFIER * islandCommon * quality.mid,
     )
-    val coreAlpha = (.46f * common * quality.core).coerceAtMost(.50f)
+    val coreAlpha = RecognitionOpticalConfigV2.CORE_INTENSITY * islandCommon * quality.core
+    val coreWidth = dimensions.coreWidthPx
 
     segments.forEach { segment ->
-        drawLocalBlur(segment.path, outer, 10.dp.toPx(), 5.dp.toPx(), blurPaints)
-        drawLocalBlur(segment.path, mid, 4.dp.toPx(), 2.dp.toPx(), blurPaints)
+        drawLocalBlur(
+            segment.path,
+            outer,
+            strokeWidthPx = outerRadius * 1.8f + coreWidth,
+            blurRadiusPx = outerRadius * .46f,
+            blurPaints = blurPaints,
+            blend = RecognitionOpticalBlend.SCREEN,
+        )
+        drawLocalBlur(
+            segment.path,
+            inner,
+            strokeWidthPx = innerRadius * 1.65f + coreWidth,
+            blurRadiusPx = innerRadius * .42f,
+            blurPaints = blurPaints,
+            blend = RecognitionOpticalBlend.SCREEN,
+        )
         drawPath(
             segment.path,
             brush = gradientTail(segment, filament.color, filament.hot, coreAlpha),
             style = Stroke(
-                width = filament.width.toPx(),
+                width = coreWidth,
                 cap = StrokeCap.Round,
                 join = StrokeJoin.Round,
             ),
+            blendMode = BlendMode.SrcOver,
         )
     }
 }
@@ -792,13 +825,18 @@ private data class RecognitionOpticalPathCache(
 
 /** Reuses native glow paints while updating only the animated color each frame. */
 internal class RecognitionBlurPaintCache {
-    private data class Style(val strokeWidthBits: Int, val blurRadiusBits: Int)
+    private data class Style(val strokeWidthBits: Int, val blurRadiusBits: Int, val blend: RecognitionOpticalBlend)
 
     private val paints = HashMap<Style, AndroidPaint>()
 
-    fun obtain(color: Color, strokeWidthPx: Float, blurRadiusPx: Float): AndroidPaint? {
+    fun obtain(
+        color: Color,
+        strokeWidthPx: Float,
+        blurRadiusPx: Float,
+        blend: RecognitionOpticalBlend,
+    ): AndroidPaint? {
         if (color.alpha <= 0f || strokeWidthPx <= 0f || blurRadiusPx <= 0f) return null
-        val style = Style(strokeWidthPx.toBits(), blurRadiusPx.toBits())
+        val style = Style(strokeWidthPx.toBits(), blurRadiusPx.toBits(), blend)
         return paints.getOrPut(style) {
             AndroidPaint(AndroidPaint.ANTI_ALIAS_FLAG).apply {
                 this.style = AndroidPaint.Style.STROKE
@@ -806,9 +844,28 @@ internal class RecognitionBlurPaintCache {
                 strokeJoin = AndroidPaint.Join.ROUND
                 strokeWidth = strokeWidthPx
                 maskFilter = BlurMaskFilter(blurRadiusPx, BlurMaskFilter.Blur.NORMAL)
+                applyOpticalBlend(blend)
             }
         }.apply {
             this.color = color.toArgb()
+        }
+    }
+
+    @Suppress("NewApi")
+    private fun AndroidPaint.applyOpticalBlend(blend: RecognitionOpticalBlend) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            xfermode = null
+            blendMode = when (blend) {
+                RecognitionOpticalBlend.SOURCE_OVER -> AndroidBlendMode.SRC_OVER
+                RecognitionOpticalBlend.SCREEN -> AndroidBlendMode.SCREEN
+                RecognitionOpticalBlend.SOFT_LIGHT -> AndroidBlendMode.SOFT_LIGHT
+            }
+        } else {
+            xfermode = when (blend) {
+                RecognitionOpticalBlend.SOURCE_OVER -> null
+                RecognitionOpticalBlend.SCREEN -> PorterDuffXfermode(PorterDuff.Mode.SCREEN)
+                RecognitionOpticalBlend.SOFT_LIGHT -> PorterDuffXfermode(PorterDuff.Mode.LIGHTEN)
+            }
         }
     }
 }
@@ -866,8 +923,9 @@ private fun DrawScope.drawLocalBlur(
     strokeWidthPx: Float,
     blurRadiusPx: Float,
     blurPaints: RecognitionBlurPaintCache,
+    blend: RecognitionOpticalBlend = RecognitionOpticalBlend.SCREEN,
 ) {
-    val paint = blurPaints.obtain(color, strokeWidthPx, blurRadiusPx) ?: return
+    val paint = blurPaints.obtain(color, strokeWidthPx, blurRadiusPx, blend) ?: return
     drawIntoCanvas { canvas ->
         canvas.nativeCanvas.drawPath(path.asAndroidPath(), paint)
     }

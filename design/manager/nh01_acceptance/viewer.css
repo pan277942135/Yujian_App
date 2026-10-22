@@ -9,3 +9,6 @@
 @media(max-width:560px){html,body{width:100%;max-width:100%;min-width:0}main{width:100vw!important;max-width:100vw!important;margin:0!important}.view-panel{width:100%;min-width:0;max-width:100%}.overview-heading,.workspace-heading{width:100%;min-width:0;max-width:100%}.overview-heading>div,.workspace-heading>div{width:100%;min-width:0;max-width:100%}}
 @media(max-width:560px){.site-header{width:100%;min-width:0}.header-page{min-width:0;max-width:100%}.header-page .eyebrow,.header-page h1{max-width:100%;overflow-wrap:anywhere}}
 @media(max-width:560px){.evidence-footer{grid-template-columns:minmax(0,1fr)}.evidence-footer>*{min-width:0;max-width:100%}.evidence-footer strong,.evidence-footer small,.evidence-footer a{overflow-wrap:anywhere}}
+
+
+/* GitHub-native local screenshot diagnostic tool. */

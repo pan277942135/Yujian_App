@@ -1,0 +1,27 @@
+{
+  "schema_version": "BBOX_METRICS_V1",
+  "status": "INSUFFICIENT_GROUND_TRUTH",
+  "execution_status": "NOT_RUN_EXACT_ANDROID_HEAD",
+  "source_sha": null,
+  "ci_run_id": null,
+  "detector_onnx_sha256": "12b97f7c081987f33f99d255cdd2e935fb9cf93b893146f54ff98b9c4e3a8e4f",
+  "classifier_tflite_sha256": "29c2f2fd1608178f023b8e35edf632c0dd685df4a7ae1c3562220a7352ccce18",
+  "ground_truth_status": "MISSING",
+  "gt_box_count": 0,
+  "iou_eligible_directions": 0,
+  "aggregate_iou": null,
+  "misses": null,
+  "directions": [
+    {"orientation": "ORIGINAL", "status": "NOT_RUN", "iou": null},
+    {"orientation": "CW90", "status": "NOT_RUN", "iou": null},
+    {"orientation": "CCW90", "status": "NOT_RUN", "iou": null}
+  ],
+  "historical_reference": {
+    "status": "HISTORICAL_NOT_ANDROID_RUNTIME",
+    "repository": "pan277942135/Yujian",
+    "pr": 164,
+    "head_sha": "689e9e38391bcce70610c9c6ce8ca7efd35cc20c",
+    "evidence_path": "reports/case_a/user_provided_two_image_retest_v3_20261019.json"
+  },
+  "bbox_metrics_pass": false
+}

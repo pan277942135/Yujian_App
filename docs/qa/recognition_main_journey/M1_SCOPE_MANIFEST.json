@@ -1,0 +1,291 @@
+{
+  "schema_version": "1.0",
+  "manifest_id": "M1_SCOPE_MANIFEST_V1",
+  "task_id": "YUJIAN_M1_PARALLEL_DELIVERY_V1",
+  "quality_lock": "M1_QUALITY_ENFORCEMENT_V1_1_C1",
+  "repository": "pan277942135/Yujian_App",
+  "canonical_base_sha": "0d3238e8a41b87363e9a17b04c9cc45fca4c426d",
+  "work_branch": "work/m1-parallel-delivery-v1",
+  "scope_status": "DECLARED_NOT_RUNTIME_ACCEPTED",
+  "work_items": [
+    {
+      "id": "A_RECOGNITION_RUNTIME",
+      "feature_ids": [
+        "recognition_flow_v1_2",
+        "recognition_result_v1"
+      ],
+      "page_state_ids": [
+        "recognition_processing:captured_detecting_outline_classifying_result_ready",
+        "recognition_result:metadata_edit_with_ime"
+      ],
+      "expected_changes": [
+        "V3.1 real-event gated phase handoff",
+        "Result metadata editor IME and keyboard handling",
+        "real detector bbox and motion controller contract"
+      ],
+      "paths": [
+        "app/src/main/java/com/yujian/ai/ai/RecognitionRuntimeContract.kt",
+        "app/src/main/java/com/yujian/ai/ui/recognition/RecognitionAmbientField.kt",
+        "app/src/main/java/com/yujian/ai/ui/recognition/RecognitionFishFocus.kt",
+        "app/src/main/java/com/yujian/ai/ui/recognition/RecognitionVisualStateController.kt",
+        "app/src/main/java/com/yujian/ai/ui/screens/RecognitionLocationPicker.kt",
+        "app/src/main/java/com/yujian/ai/ui/screens/RecognitionResultScreen.kt",
+        "app/src/main/java/com/yujian/ai/ui/screens/RecognizingScreen.kt",
+        "app/src/androidTest/java/com/yujian/ai/RecognitionFrozenFlowEmulatorTest.kt",
+        "app/src/androidTest/java/com/yujian/ai/RecognitionRuntimeAssetContractTest.kt",
+        "app/src/test/java/com/yujian/ai/ai/RecognitionRuntimeContractTest.kt",
+        "app/src/test/java/com/yujian/ai/ui/recognition/RecognitionAmbientFieldTest.kt",
+        "app/src/test/java/com/yujian/ai/ui/recognition/RecognitionFishFocusTest.kt",
+        "app/src/test/java/com/yujian/ai/ui/recognition/RecognitionVisualStateControllerTest.kt"
+      ],
+      "frozen_invariants": [
+        "Frozen PNG/SVG bytes and registered hashes",
+        "model/backend/API contracts",
+        "shared design tokens",
+        "approved process state authority"
+      ],
+      "tests": [
+        "RecognitionRuntimeContractTest",
+        "RecognitionVisualStateControllerTest",
+        "RecognitionFrozenFlowEmulatorTest",
+        "RecognitionResult IME runtime assertions"
+      ],
+      "evidence": "M1 exact-SHA hosted API28 workflow and per-gate artifacts"
+    },
+    {
+      "id": "C_QA_AND_GUIDE_CONTRACT",
+      "feature_ids": [
+        "recognition_flow_v1_2",
+        "recognition_result_v1",
+        "fish_record_detail_v2",
+        "fish_memory_bside_v1"
+      ],
+      "page_state_ids": [
+        "first_use_guide:P01_P02",
+        "recognition_processing:V3_1",
+        "result_save:detail_A_B"
+      ],
+      "expected_changes": [
+        "V3.1 evidence authority",
+        "two-page QA contract inherited from approved PR #162",
+        "supplemental save/detail runtime coverage"
+      ],
+      "paths": [
+        "app/src/androidTest/java/com/yujian/ai/RecognitionSaveCatchJourneyContractRuntimeTest.kt",
+        "docs/qa/recognition_main_journey/EVIDENCE_SOURCE_CLOSURE_REPAIR_V1.md",
+        "docs/qa/recognition_main_journey/M1_TRACK_C_RUNTIME_QA_REPORT_20261018.md",
+        "docs/qa/recognition_main_journey/SEVEN_DECISIONS_APPROVED_V1.md",
+        "docs/qa/recognition_main_journey/TEST_CASE_REVIEW_V1.md",
+        "docs/qa/recognition_main_journey/WORK_TASK_FIRST_USE_CAMERA_GUIDE_V1.md",
+        "docs/qa/recognition_main_journey/e2e_scenarios_v1.json",
+        "docs/qa/recognition_main_journey/m1_recognition_runtime_gate_contract_v3_1.json",
+        "docs/qa/recognition_main_journey/test_case_catalog_v1.json",
+        "scripts/android_runtime/gates/camera_runtime_v1.sh",
+        "scripts/android_runtime/gates/recognition_frozen.sh",
+        "scripts/android_runtime/tests/fake_adb.sh",
+        "scripts/android_runtime/tests/test_camera_runtime_gate.sh",
+        "scripts/android_runtime/tests/test_contract.sh",
+        "scripts/android_runtime/tests/test_recognition_m1_authority_map.py",
+        "scripts/android_runtime/tests/test_recognition_m1_v3_1_finalizer.py",
+        "scripts/create_first_use_camera_guide_visual_evidence.py",
+        "scripts/finalize_recognition_m1_v3_1_runtime_evidence.py",
+        "scripts/test_runtime_evidence_source_closure.py",
+        "scripts/verify_recognition_m1_v3_1_runtime_evidence.py",
+        "scripts/verify_runtime_evidence_source_closure.py"
+      ],
+      "frozen_invariants": [
+        "No Frozen image content or old asset history is changed",
+        "old V1.1 timing stays historical",
+        "PROC-07 timeout remains BLOCKED_PARAMETER until approved"
+      ],
+      "tests": [
+        "66 base cases and 10 E2E remain versioned and NOT_RUN until executed",
+        "recognition frozen and save/detail AndroidTest suites"
+      ],
+      "evidence": "M1_TRACK_C_RUNTIME_QA_REPORT_20261018.md and exact-SHA Runtime artifacts"
+    },
+    {
+      "id": "B_DESIGN_AUTHORITY_EVIDENCE",
+      "feature_ids": [
+        "home_empty_v2",
+        "recognition_flow_v1_2",
+        "recognition_result_v1",
+        "fish_record_detail_v2",
+        "fish_memory_bside_v1",
+        "auth_login_v2"
+      ],
+      "page_state_ids": [
+        "M1 scoped 49 page/state rows and 16 shared components"
+      ],
+      "expected_changes": [
+        "reuse 65-row authority matrix and asset audit only",
+        "do not copy PR #162 product authorities or Frozen binaries into PR #163"
+      ],
+      "paths": [
+        "docs/qa/recognition_main_journey/M1_DESIGN_ASSET_REPORT.md",
+        "docs/qa/recognition_main_journey/M1_DESIGN_AUTHORITY_MATRIX.json",
+        "docs/qa/recognition_main_journey/M1_DESIGN_AUTHORITY_MATRIX.md"
+      ],
+      "frozen_invariants": [
+        "PR #162 stays Draft/unmerged",
+        "main remains on its three-page guide contract",
+        "Design Manager authority is not changed by report reuse"
+      ],
+      "tests": [
+        "matrix source/hash audit",
+        "page-contract validator"
+      ],
+      "evidence": "Matrix source snapshot and the referenced canonical PR #162 branch"
+    },
+    {
+      "id": "WORK_AUDIT_AND_RUNNER_MIGRATION",
+      "feature_ids": [
+        "recognition_flow_v1_2",
+        "recognition_result_v1",
+        "fish_record_detail_v2"
+      ],
+      "page_state_ids": [
+        "M1 six-layer audit",
+        "API28 hosted runner preflight",
+        "exact-SHA M1 runtime"
+      ],
+      "expected_changes": [
+        "report the real six-layer findings",
+        "enforce C1 file whitelist",
+        "run existing Android Runtime Harness on GitHub-hosted Ubuntu"
+      ],
+      "paths": [
+        ".github/workflows/android.yml",
+        ".github/workflows/camera-runtime-harness.yml",
+        ".github/workflows/m1-hosted-api28-runtime.yml",
+        "docs/qa/recognition_main_journey/M1_ACCEPTANCE_CONFLICT_REGISTER.json",
+        "docs/qa/recognition_main_journey/M1_BASELINE_REPORT.md",
+        "docs/qa/recognition_main_journey/M1_GAP_REGISTER.json",
+        "docs/qa/recognition_main_journey/M1_IMPLEMENTATION_REPORT.md",
+        "docs/qa/recognition_main_journey/M1_LOCAL_REPAIR_EVIDENCE.md",
+        "docs/qa/recognition_main_journey/M1_QUALITY_ACCEPTANCE_REPORT.md",
+        "docs/qa/recognition_main_journey/M1_RELEASE_GATE_REPORT.md",
+        "docs/qa/recognition_main_journey/M1_RUNTIME_ENV_MIGRATION_REPORT.md",
+        "docs/qa/recognition_main_journey/M1_RUNTIME_QA_REPORT.md",
+        "docs/qa/recognition_main_journey/M1_SCOPE_MANIFEST.json",
+        "docs/qa/recognition_main_journey/M1_SIX_LAYER_COMPLIANCE_REPORT.md",
+        "scripts/bootstrap_android_recognition_assets.py",
+        "scripts/test_bootstrap_android_recognition_assets.py",
+        "scripts/test_validate_m1_scope.py",
+        "scripts/validate_m1_scope.py"
+      ],
+      "frozen_invariants": [
+        "No model/API/backend changes",
+        "no control-plane static registry changes",
+        "no Frozen PNG/SVG edits",
+        "no weakened Runtime assertions"
+      ],
+      "tests": [
+        "scope whitelist against merge base",
+        "existing harness unit/contract checks",
+        "hosted API28 preflight and formal gates"
+      ],
+      "evidence": "GitHub Actions Run ID, source SHA, APK SHA-256 and gate artifacts"
+    },
+    {
+      "id": "D_PAGE_CONTRACT_REGISTRY_CARDINALITY",
+      "feature_ids": [
+        "recognition_flow_v1_2"
+      ],
+      "page_state_ids": [
+        "page_contract_registry:V3_1"
+      ],
+      "expected_changes": [
+        "Correct the stale 658 count to the effective V3 FINAL registry count of 669.",
+        "Assert row count, unique asset IDs, and unique paths independently; preserve all other registry, Frozen-byte, and contract checks.",
+        "Execute the corrected Page Contract validator in Android CI and emit the Build Once APK SHA-256 values in the hosted job log."
+      ],
+      "paths": [
+        ".github/workflows/android.yml",
+        ".github/workflows/m1-hosted-api28-runtime.yml",
+        "scripts/design/verify_page_contract_v3.py"
+      ],
+      "frozen_invariants": [
+        "Asset_Registry_V3_FINAL.json and all registered asset hashes remain unchanged.",
+        "No Frozen PNG/SVG bytes or registered hashes change."
+      ],
+      "tests": [
+        "python3 scripts/design/verify_page_contract_v3.py",
+        "Android CI exact-SHA workflow",
+        "M1 Hosted API28 Runtime Build Once exact-SHA workflow"
+      ],
+      "evidence": "Correction is grounded in the unchanged 669-entry V3 FINAL registry; exact-SHA CI result is pending.",
+      "dependency": "Effective Asset_Registry_V3_FINAL.json at the canonical baseline.",
+      "status": "IN_PROGRESS"
+    }
+  ],
+  "allowed_paths": [
+    ".github/workflows/android.yml",
+    ".github/workflows/camera-runtime-harness.yml",
+    ".github/workflows/m1-hosted-api28-runtime.yml",
+    "app/src/androidTest/java/com/yujian/ai/RecognitionFrozenFlowEmulatorTest.kt",
+    "app/src/androidTest/java/com/yujian/ai/RecognitionRuntimeAssetContractTest.kt",
+    "app/src/androidTest/java/com/yujian/ai/RecognitionSaveCatchJourneyContractRuntimeTest.kt",
+    "app/src/main/java/com/yujian/ai/ai/RecognitionRuntimeContract.kt",
+    "app/src/main/java/com/yujian/ai/ui/recognition/RecognitionAmbientField.kt",
+    "app/src/main/java/com/yujian/ai/ui/recognition/RecognitionFishFocus.kt",
+    "app/src/main/java/com/yujian/ai/ui/recognition/RecognitionVisualStateController.kt",
+    "app/src/main/java/com/yujian/ai/ui/screens/RecognitionLocationPicker.kt",
+    "app/src/main/java/com/yujian/ai/ui/screens/RecognitionResultScreen.kt",
+    "app/src/main/java/com/yujian/ai/ui/screens/RecognizingScreen.kt",
+    "app/src/test/java/com/yujian/ai/ai/RecognitionRuntimeContractTest.kt",
+    "app/src/test/java/com/yujian/ai/ui/recognition/RecognitionAmbientFieldTest.kt",
+    "app/src/test/java/com/yujian/ai/ui/recognition/RecognitionFishFocusTest.kt",
+    "app/src/test/java/com/yujian/ai/ui/recognition/RecognitionVisualStateControllerTest.kt",
+    "docs/qa/recognition_main_journey/EVIDENCE_SOURCE_CLOSURE_REPAIR_V1.md",
+    "docs/qa/recognition_main_journey/M1_ACCEPTANCE_CONFLICT_REGISTER.json",
+    "docs/qa/recognition_main_journey/M1_BASELINE_REPORT.md",
+    "docs/qa/recognition_main_journey/M1_DESIGN_ASSET_REPORT.md",
+    "docs/qa/recognition_main_journey/M1_DESIGN_AUTHORITY_MATRIX.json",
+    "docs/qa/recognition_main_journey/M1_DESIGN_AUTHORITY_MATRIX.md",
+    "docs/qa/recognition_main_journey/M1_GAP_REGISTER.json",
+    "docs/qa/recognition_main_journey/M1_IMPLEMENTATION_REPORT.md",
+    "docs/qa/recognition_main_journey/M1_LOCAL_REPAIR_EVIDENCE.md",
+    "docs/qa/recognition_main_journey/M1_QUALITY_ACCEPTANCE_REPORT.md",
+    "docs/qa/recognition_main_journey/M1_RELEASE_GATE_REPORT.md",
+    "docs/qa/recognition_main_journey/M1_RUNTIME_ENV_MIGRATION_REPORT.md",
+    "docs/qa/recognition_main_journey/M1_RUNTIME_QA_REPORT.md",
+    "docs/qa/recognition_main_journey/M1_SCOPE_MANIFEST.json",
+    "docs/qa/recognition_main_journey/M1_SIX_LAYER_COMPLIANCE_REPORT.md",
+    "docs/qa/recognition_main_journey/M1_TRACK_C_RUNTIME_QA_REPORT_20261018.md",
+    "docs/qa/recognition_main_journey/SEVEN_DECISIONS_APPROVED_V1.md",
+    "docs/qa/recognition_main_journey/TEST_CASE_REVIEW_V1.md",
+    "docs/qa/recognition_main_journey/WORK_TASK_FIRST_USE_CAMERA_GUIDE_V1.md",
+    "docs/qa/recognition_main_journey/e2e_scenarios_v1.json",
+    "docs/qa/recognition_main_journey/m1_recognition_runtime_gate_contract_v3_1.json",
+    "docs/qa/recognition_main_journey/test_case_catalog_v1.json",
+    "scripts/android_runtime/gates/camera_runtime_v1.sh",
+    "scripts/android_runtime/gates/recognition_frozen.sh",
+    "scripts/android_runtime/tests/fake_adb.sh",
+    "scripts/android_runtime/tests/test_camera_runtime_gate.sh",
+    "scripts/android_runtime/tests/test_contract.sh",
+    "scripts/android_runtime/tests/test_recognition_m1_authority_map.py",
+    "scripts/android_runtime/tests/test_recognition_m1_v3_1_finalizer.py",
+    "scripts/bootstrap_android_recognition_assets.py",
+    "scripts/create_first_use_camera_guide_visual_evidence.py",
+    "scripts/design/verify_page_contract_v3.py",
+    "scripts/finalize_recognition_m1_v3_1_runtime_evidence.py",
+    "scripts/test_bootstrap_android_recognition_assets.py",
+    "scripts/test_runtime_evidence_source_closure.py",
+    "scripts/test_validate_m1_scope.py",
+    "scripts/validate_m1_scope.py",
+    "scripts/verify_recognition_m1_v3_1_runtime_evidence.py",
+    "scripts/verify_runtime_evidence_source_closure.py"
+  ],
+  "protected_patterns": [
+    "CONTROL_PLANE_REGISTRY.yaml",
+    "harness/**",
+    "design/system/core_visual_v1/tokens/**",
+    "design/system_v3/06_Asset_System/Asset_Registry*",
+    "design/system_v3/06_Asset_System/Asset_Integrity_Register*",
+    "app/src/main/assets/models/**",
+    "app/src/main/assets/model_release_contract.json"
+  ],
+  "protected_frozen_image_rule": "Any added, modified, deleted, renamed, or copied PNG/SVG inside design paths containing a frozen segment or Frozen basename fails scope validation.",
+  "expected_scope_status": "DECLARED_NOT_RUNTIME_ACCEPTED"
+}

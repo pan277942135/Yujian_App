@@ -1,0 +1,38 @@
+From https://github.com/pan277942135/Yujian_App
+ * branch              main       -> FETCH_HEAD
+CONTROL_PLANE_REGISTRY_VALIDATION=PASS
+entrypoint=CONTROL_PLANE_REGISTRY.yaml
+layer_count=6
+static_file_count=21
+design_authority_root_count=4
+FEATURE_MATRIX_VALIDATION=PASS
+feature_count=15
+journey_count=20
+route_count=22
+open_gaps=0
+PHASE_TASK_STATE_MACHINE_VALIDATION=PASS
+phase_count=10
+task_count=45
+journey_count=20
+queue=N001-N010
+UNIFIED_CONTRACT_VALIDATION=PASS
+feature_count=15
+journey_count=20
+child_surface_count=79
+route_count=22
+task_count=45
+gate_count=11
+structural_errors=0
+open_gaps=0
+
+=== PYTHON_SYNTAX ===
+
+=== CONTROL_PLANE_REGISTRY ===
+
+=== FEATURE_MATRIX ===
+
+=== PHASE_TASK_STATE_MACHINE ===
+
+=== UNIFIED_CONTRACT ===
+mode=CONTROL_PLANE_CHANGE branch=design/recognition-processing-handoff-p0
+CONTROL_PLANE_ADMISSION=PASS

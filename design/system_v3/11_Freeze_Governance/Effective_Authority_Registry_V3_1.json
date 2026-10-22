@@ -4,7 +4,7 @@
   "version": "V3.1",
   "status": "FROZEN",
   "shared_foundation_status": "SHARED_FOUNDATION_READY",
-  "updated_at": "2026-10-16",
+  "updated_at": "2026-10-22",
   "authority_model": "Use one canonical registry or contract per shared domain. A review candidate is never a production source. Page-specific Frozen visual/geometry authority controls properties it explicitly owns; Shared Foundation applies only to registered shared properties.",
   "entries": [
     {
@@ -266,22 +266,24 @@
       "authority_id": "recognition_first_use_camera_guide",
       "domain": "Recognition Capture first-use camera guide visual and interaction surface",
       "status": "CANONICAL",
-      "canonical_path": "design/pages/recognition/first_use_camera_guide/First_Use_Camera_Guide_Spec_V1.md",
+      "canonical_path": "design/pages/recognition/first_use_camera_guide/First_Use_Camera_Guide_Spec_V1_2.md",
       "supporting_paths": [
         "design/pages/recognition/first_use_camera_guide/README.md",
         "design/pages/recognition/first_use_camera_guide/navigation.json",
         "design/pages/recognition/first_use_camera_guide/manifest.json",
         "design/pages/recognition/first_use_camera_guide/frozen/P01_First_Use_Camera_Guide_Frozen.png",
-        "design/pages/recognition/first_use_camera_guide/frozen/P02_First_Use_Camera_Guide_Frozen.png",
-        "design/pages/recognition/first_use_camera_guide/frozen/P03_First_Use_Camera_Guide_Frozen.png",
         "design/pages/recognition/first_use_camera_guide/Freeze_Decision_20261016.md",
         "design/pages/recognition/first_use_camera_guide/Scope_Resolution_20261016.md",
         "design/pages/recognition/first_use_camera_guide/asset_import_report.json",
         "design/system_v3/08_Page_Contracts/recognition/capture/Recognition_Capture_V3_Authority.md",
-        "design/system_v3/00_Product_Master_Flow/subflows/Recognition_Main_Journey_Business_Contract_V1.md"
+        "design/system_v3/00_Product_Master_Flow/subflows/Recognition_Main_Journey_Business_Contract_V1.md",
+        "design/pages/recognition/first_use_camera_guide/frozen/P02_Landscape_Horizontal_Fish_Frozen.png",
+        "design/pages/recognition/first_use_camera_guide/Freeze_Decision_20261017.md",
+        "design/pages/recognition/first_use_camera_guide/archive/P02_Portrait_Vertical_Fish_Superseded_20261016.png",
+        "design/pages/recognition/first_use_camera_guide/archive/superseded_assets.json"
       ],
       "scope": "Additive Capture overlay only; does not replace Recognition Capture V3.1 page authority or live Camera Preview.",
-      "status_detail": "P01/P02/P03 FROZEN for the authorized three-page V1 design scope: P01 portrait + horizontal fish, P02 portrait + vertical fish, P03 landscape + horizontal fish. P01/P02 use 下一张; P03 uses 开始拍摄; no automatic shutter. Original PNG bytes and SHA-256 are declared in the V1 asset import report. Superseded two-page proposals remain historical only. Android Runtime and independent photo sources require separate acceptance."
+      "status_detail": "Two-page guide authority is FROZEN and effective: P01 portrait + horizontal fish; P02 landscape + horizontal fish. The former portrait + vertical-fish P02 is archive-only; the former P03 landscape PNG is promoted byte-identically to active P02. Android Runtime and independent photo sources require separate acceptance."
     }
   ],
   "precedence_rules": [

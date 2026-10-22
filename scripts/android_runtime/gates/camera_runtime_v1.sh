@@ -51,7 +51,6 @@ gate_after_instrumentation() {
     06_recognition_handoff.png \
     P01_runtime.png \
     P02_runtime.png \
-    P03_runtime.png \
     first_use_camera_guide_runtime_report.json \
     camera_preflight.txt \
     camera_runtime_log.txt \
@@ -67,7 +66,6 @@ gate_after_instrumentation() {
   for name in \
     P01_compose_component.png \
     P02_compose_component.png \
-    P03_compose_component.png \
     first_use_camera_guide_runtime_report.json
   do
     camera_runtime_pull_file "cache/recognition-first-use-camera-guide/$name" "$component_output/$name"
@@ -78,7 +76,7 @@ gate_after_instrumentation() {
   # artifacts must not turn a test assertion into an evidence failure.
   if [[ "${YUJIAN_FAILURE_PHASE:-}" != "INSTRUMENTATION" && \
         -s "$output/first_use_camera_guide_runtime_report.json" && \
-        -s "$output/P01_runtime.png" && -s "$output/P02_runtime.png" && -s "$output/P03_runtime.png" ]]; then
+        -s "$output/P01_runtime.png" && -s "$output/P02_runtime.png" ]]; then
     python3 scripts/create_first_use_camera_guide_visual_evidence.py \
       --runtime-dir "$output" \
       --output-dir "$output/first_use_camera_guide" \
@@ -147,7 +145,6 @@ gate_collect_evidence() {
     06_recognition_handoff.png \
     P01_runtime.png \
     P02_runtime.png \
-    P03_runtime.png \
     first_use_camera_guide_runtime_report.json \
     camera_capture_trace.txt \
     camera_runtime_log.txt \
@@ -159,14 +156,14 @@ gate_collect_evidence() {
       return "$EXIT_FAIL_EVIDENCE"
     fi
   done
-  for name in P01_overlay.png P02_overlay.png P03_overlay.png P01_diff.png P02_diff.png P03_diff.png first_use_camera_guide_runtime_report.json; do
+  for name in P01_overlay.png P02_overlay.png P01_diff.png P02_diff.png first_use_camera_guide_runtime_report.json; do
     if [[ ! -s "$output/first_use_camera_guide/$name" ]]; then
       printf 'MISSING_FIRST_USE_GUIDE_EVIDENCE=%s\n' "$name" >> "$YUJIAN_EVIDENCE_DIR/evidence_missing.log"
       runtime_set_failure "EVIDENCE" "FIRST_USE_CAMERA_GUIDE_COMPARISON_INCOMPLETE"
       return "$EXIT_FAIL_EVIDENCE"
     fi
   done
-  for name in P01_compose_component.png P02_compose_component.png P03_compose_component.png first_use_camera_guide_runtime_report.json; do
+  for name in P01_compose_component.png P02_compose_component.png first_use_camera_guide_runtime_report.json; do
     if [[ ! -s "$output/component/$name" ]]; then
       printf 'MISSING_FIRST_USE_GUIDE_COMPONENT_EVIDENCE=%s\n' "$name" >> "$YUJIAN_EVIDENCE_DIR/evidence_missing.log"
       runtime_set_failure "EVIDENCE" "FIRST_USE_CAMERA_GUIDE_COMPONENT_EVIDENCE_INCOMPLETE"

@@ -136,6 +136,13 @@ class ConditionalVerdictTests(unittest.TestCase):
         result = closure.evaluate_guide(report, records, ev)
         self.assertTrue(result["pass"], result["blockers"])
 
+    def test_guide_rejects_retired_or_extra_page_coverage(self):
+        report, records, ev = self.guide_setup()
+        records.append(dict(records[-1], page="P03"))
+        result = closure.evaluate_guide(report, records, ev)
+        self.assertFalse(result["pass"])
+        self.assertIn("TWO_PAGE_RUNTIME_COVERAGE_MISSING", result["blockers"])
+
     def test_guide_unapproved_source_fails_closed(self):
         report, records, ev = self.guide_setup()
         records[0]["runtime_photo_assets"]["hero"]["source_usage_rights"] = "NOT_VERIFIED"

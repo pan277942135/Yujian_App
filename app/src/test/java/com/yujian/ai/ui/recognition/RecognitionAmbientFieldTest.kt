@@ -16,6 +16,7 @@ class RecognitionAmbientFieldTest {
         assertTrue(classifying.strength < located.strength)
         assertEquals(.58f, located.strength, .001f)
         assertEquals(.36f, classifying.strength, .001f)
+        assertEquals(1f, opening.speed, .001f)
         assertEquals(.62f, located.speed, .001f)
         assertEquals(.42f, classifying.speed, .001f)
     }
@@ -45,6 +46,11 @@ class RecognitionAmbientFieldTest {
             phase = RecognitionPhase.OUTLINE,
             reduceMotionNow = false,
         )
+        val outlineTargetClock = clock.sample(
+            nowMs = 1_276L,
+            phase = RecognitionPhase.OUTLINE,
+            reduceMotionNow = false,
+        )
 
         assertTrue(firstOutlineFrame.cycleOffset >= beforeOutline.cycleOffset)
         assertTrue(
@@ -53,6 +59,19 @@ class RecognitionAmbientFieldTest {
         )
         assertTrue(settledOutlineClock.segmentSpeed > .62f)
         assertTrue(settledOutlineClock.segmentSpeed < 1f)
+        assertEquals(.62f, outlineTargetClock.segmentSpeed, .001f)
+
+        clock.sample(
+            nowMs = 1_300L,
+            phase = RecognitionPhase.CLASSIFYING,
+            reduceMotionNow = false,
+        )
+        val classifyingTargetClock = clock.sample(
+            nowMs = 1_580L,
+            phase = RecognitionPhase.CLASSIFYING,
+            reduceMotionNow = false,
+        )
+        assertEquals(.42f, classifyingTargetClock.segmentSpeed, .001f)
     }
 
     @Test

@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="edgeglow-photo-sha256" content="6e955087108f7463eca2dbac489699a4942028ebe1b3d456ddfca523286385ef">
+  <meta name="edgeglow-contour-source" content="MANUAL_REFERENCE_CONTOUR">
+  <title>EdgeGlow Fish · Static + Dynamic Review · 渔见</title>
+  <link rel="stylesheet" href="../viewer.css">
+  <link rel="stylesheet" href="./edgeglow.css">
+  <script src="../../edgeglow-receiving-light.js?v=shared-path-field-v1"></script>
+  <script src="./edgeglow.js?v=edgeglow-r13-shared-receiving-field" defer></script>
+</head>
+<body>
+  <header class="site-header">
+    <a class="brand-lockup" href="../" aria-label="返回云端高保真验收中心">
+      <span class="brand-symbol">渔见</span>
+      <span class="brand-caption">DESIGN MANAGER</span>
+    </a>
+    <div class="header-page">
+      <div class="eyebrow">RECOGNITION PROCESSING · STATIC + DYNAMIC OPTICAL REVIEW</div>
+      <h1>EdgeGlow Fish · Static + Dynamic Review</h1>
+    </div>
+    <div class="header-meta">
+      <span class="status-pill review">REVIEW_REQUIRED</span>
+      <a class="quiet-button" href="../">返回验收中心</a>
+    </div>
+  </header>
+
+  <main class="edgeglow-main">
+    <section class="workspace-heading edgeglow-heading">
+      <div>
+        <div class="eyebrow">FROZEN 02 / 03 / 04 · PHOTO EDGE FIELD + FISH FOCUS</div>
+        <h2>图片四周蓝金光场 · 鱼体暖金高亮</h2>
+        <p>严格按 Frozen 02 / 03 分工：蓝金光场围绕照片四周的四个断开边缘岛；鱼体轮廓、柔光和光尾单独使用暖金。三张画布复用同一张原图和 1152×1536 FIT 坐标；Path 是人工参考轮廓，不代表生产 Mask。</p>
+      </div>
+      <div class="edgeglow-source-stamp" id="sourceStatus" role="status">正在核验照片来源…</div>
+    </section>
+
+    <section class="panel-card edgeglow-review-entry" aria-label="静态与动态光学评审">
+      <div>
+        <span class="eyebrow">WORK B · OPTICAL REVIEW</span>
+        <strong>静态候选 A / B / C · 动态候选 A / B / C · 三态与 Fish Focus 来源评审</strong>
+        <small>新版动态预览现已接入这个验收中心；候选仍待人工视觉选择。</small>
+      </div>
+      <a class="primary-button" id="opticalReviewEntry" href="./optical-review/">打开静态 / 动态预览 →</a>
+      <a class="quiet-button" href="https://recognition-optical-lab-a1-20261019.pan277942135.chatgpt.site/design/manager/optical-lab/review_v1/evidence/" target="_blank" rel="noreferrer">截图与 WebM 证据</a>
+    </section>
+
+    <section class="edgeglow-meta-grid" aria-label="资产和来源">
+      <div class="panel-card metadata-card"><small>PHOTO SOURCE · SHA-256</small><code id="photoSha">6e955087108f7463eca2dbac489699a4942028ebe1b3d456ddfca523286385ef</code></div>
+      <div class="panel-card metadata-card"><small>PHOTO · ORIGINAL PIXELS</small><strong id="photoDimensions">1152 × 1536 · EXIF 1 · FIT / NO CROP</strong></div>
+      <div class="panel-card metadata-card"><small>CONTOUR SOURCE</small><strong>MANUAL_REFERENCE_CONTOUR · NOT PRODUCTION MASK</strong></div>
+      <div class="panel-card metadata-card"><small>BUILD</small><code id="buildSha">loading…</code></div>
+    </section>
+
+    <section class="panel-card preset-card" aria-label="光效预设">
+      <div class="preset-copy"><span class="eyebrow">OPTICAL PRESET</span><strong>切换同一张照片上的光效版本</strong><small>Current 保留现有渲染；Enhanced 与 Frozen Match 使用四层光学结构。参数以照片实际显示宽度归一化。</small></div>
+      <div class="preset-buttons" role="group" aria-label="光效预设">
+        <button class="preset-button" type="button" data-optical-preset="current">Preset A · Current</button>
+        <button class="preset-button active" type="button" data-optical-preset="enhanced">Preset B · Enhanced</button>
+        <button class="preset-button" type="button" data-optical-preset="frozen_match">Preset C · Frozen Match</button>
+      </div>
+      <output class="preset-status" id="presetStatus" aria-live="polite">正在加载光效参数…</output>
+    </section>
+
+    <section class="edgeglow-view-grid" aria-label="三个静态光学视图">
+      <article class="panel-card edgeglow-view-card">
+        <header class="panel-heading">
+          <div><span class="eyebrow">VIEW 1</span><h3>Original Photo</h3></div>
+          <span class="status-pill pass">READ ONLY</span>
+        </header>
+        <div class="photo-stage"><canvas id="originalCanvas" width="1152" height="1536" aria-label="原始鱼获照片"></canvas></div>
+        <p class="view-caption">仓库已登记真实鱼获照片；原始比例完整显示。</p>
+      </article>
+
+      <article class="panel-card edgeglow-view-card">
+        <header class="panel-heading">
+          <div><span class="eyebrow">VIEW 2</span><h3>Contour</h3></div>
+          <label class="compact-toggle"><input type="checkbox" id="contourVisible" checked> 显示轮廓</label>
+        </header>
+        <div class="photo-stage"><canvas id="contourCanvas" width="1152" height="1536" aria-label="鱼获照片与人工参考轮廓"></canvas></div>
+        <p class="view-caption">仅鱼体轮廓使用暖金；参考路径沿照片可见边缘手绘，坐标锁定原图像素。</p>
+      </article>
+
+      <article class="panel-card edgeglow-view-card">
+        <header class="panel-heading">
+          <div><span class="eyebrow">VIEW 3</span><h3>EdgeGlowView Adapted</h3></div>
+          <label class="compare-select">对比
+            <select id="compareMode" aria-label="高亮图与原图的比较方式">
+              <option value="side">并排预览</option>
+              <option value="overlay">50% Overlay</option>
+              <option value="wipe">Before / After Wipe</option>
+            </select>
+          </label>
+        </header>
+        <div class="photo-stage glow-stage">
+          <canvas id="glowCanvas" width="1152" height="1536" aria-label="照片四周蓝金光场与鱼体暖金高亮"></canvas>
+          <input id="wipePosition" class="wipe-position" type="range" min="5" max="95" value="50" aria-label="擦拭比较位置" hidden>
+        </div>
+        <p class="view-caption" id="comparisonCaption">照片四边四岛蓝金光场 · 鱼体独立暖金 Bloom/Core/Comet</p>
+      </article>
+    </section>
+
+    <section class="panel-card controls-card">
+      <header class="panel-heading">
+        <div><span class="eyebrow">STATIC CONTROLS</span><h3>光效参数</h3></div>
+        <div class="toolbar">
+          <button class="quiet-button" id="resetButton" type="button">恢复默认参数</button>
+          <button class="quiet-button" id="exportJsonButton" type="button">导出参数 JSON</button>
+          <button class="primary-button" id="exportPngButton" type="button">导出当前 PNG</button>
+        </div>
+      </header>
+      <div class="control-grid">
+        <fieldset class="optical-v2-controls">
+          <legend>Optical Four-Layer · V2 照片边缘光场</legend>
+          <label>Core Intensity <output id="opticalCoreIntensityValue">88%</output><input id="opticalCoreIntensity" type="range" min="35" max="100" value="88"></label>
+          <label>Core Width <output id="opticalCoreWidthValue">2.6 px / 600</output><input id="opticalCoreWidth" type="range" min="1.5" max="3.5" step="0.1" value="2.6"></label>
+          <label>Inner Bloom Radius <output id="innerBloomRadiusValue">18 px / 600</output><input id="innerBloomRadius" type="range" min="10" max="24" value="18"></label>
+          <label>Inner Bloom Intensity <output id="innerBloomIntensityValue">62%</output><input id="innerBloomIntensity" type="range" min="0" max="100" value="62"></label>
+          <label>Outer Bloom Radius <output id="outerBloomRadiusValue">54 px / 600</output><input id="outerBloomRadius" type="range" min="35" max="75" value="54"></label>
+          <label>Outer Bloom Intensity <output id="outerBloomIntensityValue">34%</output><input id="outerBloomIntensity" type="range" min="0" max="100" value="34"></label>
+          <label class="blend-trial">Optical Core Blend Trial<select id="opticalCoreBlend" aria-label="光核混合模式对比"><option value="source-over">Normal Alpha · Source Over</option><option value="screen">Screen</option><option value="additive">Additive</option><option value="soft-light">Soft Light</option></select></label>
+          <label>Atmospheric Spill <output id="atmosphericSpillValue">15%</output><input id="atmosphericSpill" type="range" min="0" max="35" value="15"></label>
+          <label>Blue Saturation <output id="blueSaturationValue">82%</output><input id="blueSaturation" type="range" min="35" max="100" value="82"></label>
+          <label>Gold Warmth <output id="goldWarmthValue">74%</output><input id="goldWarmth" type="range" min="35" max="100" value="74"></label>
+          <label>Background Compensation <output id="backgroundCompensationValue">100%</output><input id="backgroundCompensation" type="range" min="0" max="100" value="100"></label>
+          <small>强度按 G1=.90、B1=1.00、G3=.88、B3=.84 独立控制；局部亮度补偿只改变边缘光，不改变照片曝光。光核可对比 Source Over、Screen、Additive、Soft Light，默认选择保色 Source Over；Inner / Outer 使用 Screen，Atmospheric Spill 使用 Soft Light（API 28 采用 Lighten 回退）。</small>
+        </fieldset>
+        <fieldset class="island-controls">
+          <legend>Corner Islands · 独立强度</legend>
+          <label>G1 · 左上暖金 <output id="strengthG1Value">85%</output><input id="strengthG1" type="range" min="0" max="100" value="85"></label>
+          <label>B1 · 右上蓝晶 <output id="strengthB1Value">100%</output><input id="strengthB1" type="range" min="0" max="100" value="100"></label>
+          <label>G3 · 左下暖金 <output id="strengthG3Value">75%</output><input id="strengthG3" type="range" min="0" max="100" value="75"></label>
+          <label>B3 · 右下蓝晶 <output id="strengthB3Value">70%</output><input id="strengthB3" type="range" min="0" max="100" value="70"></label>
+          <small>Path 与颜色角色沿用现有 Demo 和 Android 识别页；仅增强光学层，不连接成连续霓虹边框。</small>
+        </fieldset>
+        <fieldset>
+          <legend>AI Edge Field · 图片四周光场</legend>
+          <label class="check-line"><input id="edgeFieldEnabled" type="checkbox" checked> 启用照片四周光场</label>
+          <label class="check-line"><input id="receivingLightEnabled" type="checkbox" checked> Receiving Light · 沿岛局部受光</label>
+          <label class="check-line"><input id="primaryIslandsEnabled" type="checkbox" checked> 四条断开的主能量岛</label>
+          <label class="check-line"><input id="secondaryFragmentsEnabled" type="checkbox" checked> 三条次级边缘光丝 · B2 / G2 / B4</label>
+          <label class="check-line"><input id="companionHairlinesEnabled" type="checkbox" checked> 伴随细丝 · 4 条 Companion + 1 条 B1 Micro</label>
+          <label>整体强度 <output id="edgeFieldIntensityValue">100%</output><input id="edgeFieldIntensity" type="range" min="0" max="100" value="100"></label>
+          <label class="color-line">光场蓝 <input id="edgeFieldBlueColor" type="color" value="#5ab2fc"></label>
+          <label class="color-line">光场暖金 <input id="edgeFieldGoldColor" type="color" value="#e0b644"></label>
+          <small>四角照片光场按 Frozen 颜色分布：左上、左下为金色，右上、右下为蓝色；每个角都由沿边缘弧线的 Receiving Light 柔光托起。鱼体只使用独立暖金高亮。主线和伴随细丝继续保留 Quiet Gaps，不连成完整边框；B2/G2/B4 种子仍标记 RP-A03，尚非 Frozen 值。</small>
+        </fieldset>
+        <fieldset>
+          <legend>Outer Bloom · 鱼体暖金柔光</legend>
+          <label class="check-line"><input id="outerEnabled" type="checkbox" checked> 启用外层柔光</label>
+          <label>宽度 <output id="outerWidthValue">28 px</output><input id="outerWidth" type="range" min="12" max="72" value="28"></label>
+          <label>强度 <output id="outerIntensityValue">62%</output><input id="outerIntensity" type="range" min="0" max="100" value="62"></label>
+        </fieldset>
+        <fieldset>
+          <legend>Core Highlight · 核心描边</legend>
+          <label class="check-line"><input id="coreEnabled" type="checkbox" checked> 启用核心高亮</label>
+          <label>宽度 <output id="coreWidthValue">3 px</output><input id="coreWidth" type="range" min="1" max="12" value="3"></label>
+          <label>强度 <output id="coreIntensityValue">92%</output><input id="coreIntensity" type="range" min="0" max="100" value="92"></label>
+        </fieldset>
+        <fieldset>
+          <legend>Static Comet · 静态光尾</legend>
+          <label class="check-line"><input id="cometEnabled" type="checkbox" checked> 启用静态渐变光尾</label>
+          <label>弧长 <output id="cometLengthValue">14%</output><input id="cometLength" type="range" min="4" max="30" value="14"></label>
+          <label>固定位置 <output id="cometPositionValue">21%</output><input id="cometPosition" type="range" min="0" max="100" value="21"></label>
+          <label>渐变衰减 <output id="cometFalloffValue">1.55</output><input id="cometFalloff" type="range" min="0.5" max="3" step="0.05" value="1.55"></label>
+        </fieldset>
+        <fieldset>
+          <legend>Fish Focus Palette · 鱼体金色层次</legend>
+          <label class="color-line">鱼体暖金 <input id="fishGoldColor" type="color" value="#ffd887"></label>
+          <label class="color-line">核心浅金 <input id="fishCoreColor" type="color" value="#ffe7ae"></label>
+          <small>鱼体描边、柔光与光尾保持暖金层次；蓝青色只用于图片四周光场。</small>
+        </fieldset>
+      </div>
+      <div class="render-note"><strong>Frozen 02 / 03 颜色分工：</strong>照片四周显示蓝金边缘光岛；鱼体只显示暖金轮廓、柔光和静态光尾。蓝色不会进入鱼体层，鱼体金色不会替代照片外围光场。<br><strong>渲染层级：</strong>原照片 → 四周蓝金 Receiving Light 和断开边缘 Path → 鱼体暖金 Bloom → Core → Comet。静态 Receiving Light 由 Optical Lab 与本页共用的 SVG 路径渲染器绘制：沿 B1/G1/G3/B3 使用外层柔光、中层柔光和核心光脊；应用照片内容矩形、Quiet Gap 遮罩与 source-over。基础 Alpha 限于 P1 0.03–0.07，最终透明层按 8-bit 精度封顶于 17/255；边缘深度为 14%。此候选仍需人工视觉评审，不代表 Android Runtime。</div>
+    </section>
+
+    <section class="panel-card frozen-reference-card" aria-label="Frozen 高保真视觉参考">
+      <header class="panel-heading"><div><span class="eyebrow">FROZEN VISUAL REFERENCES</span><h3>Frozen 02 / 03 / 04</h3></div><span class="status-pill review">REFERENCE ONLY · DIFFERENT PHOTO</span></header>
+      <div class="frozen-reference-grid">
+        <figure><img src="../../../pages/recognition/design/02_AI_Understanding_Frozen.png" alt="Frozen 02 AI Understanding"><figcaption>02 · Understanding · 周边蓝金光场</figcaption></figure>
+        <figure><img src="../../../pages/recognition/design/03_Fish_Highlight_Frozen.png" alt="Frozen 03 Fish Highlight"><figcaption>03 · Fish Highlight · 鱼体独立暖金 Halo</figcaption></figure>
+        <figure><img src="../../../pages/recognition/design/04_Fish_Identifying_Frozen.png" alt="Frozen 04 Fish Identifying"><figcaption>04 · Identifying · 光场随状态渐变</figcaption></figure>
+      </div>
+      <p class="reference-note">Frozen 图保留原始字节，仅作光学质感和色彩角色参考；本页 Current / Enhanced / Frozen Match 使用上方登记的同一张测试照片。</p>
+    </section>
+
+    <section class="edgeglow-footer-grid">
+      <article class="panel-card">
+        <span class="eyebrow">SOURCE CONTRACT</span>
+        <p><strong>照片：</strong><code>design/system/fish_media_display_v1/assets/real_catch_source.jpg</code></p>
+        <p><strong>轮廓：</strong><code>MANUAL_REFERENCE_CONTOUR</code>，坐标范围 1152×1536 原图像素，FIT 保持全图不裁切。</p>
+        <p><strong>上游：</strong><a href="https://github.com/yu-day/EdgeGlowView/tree/46ce28221ed30bcd7763ff13ecdd96171756eb60" target="_blank" rel="noreferrer">EdgeGlowView @ 46ce282</a> · MIT · Copyright (c) 2025 WANG YU.</p>
+      </article>
+      <article class="panel-card">
+        <span class="eyebrow">OPEN ACCEPTANCE ITEMS</span>
+        <p>人工轮廓需要视觉审查；生产 Mask 未验证。</p>
+        <p>光晕、抗锯齿和混色只在浏览器验证；Android API 28 Runtime 为 <strong>NOT_RUN</strong>。</p>
+        <p>视觉质量为 <strong>REVIEW_REQUIRED</strong>，自动化交互测试不代替人工判断。</p>
+      </article>
+    </section>
+    <footer class="edgeglow-footer">YUJIAN_EDGEGLOW_FISH_STATIC_HIFI_V1 · STATIC WEB ADAPTATION · NOT ANDROID RUNTIME PASS</footer>
+  </main>
+
+  <svg class="path-measure-source" aria-hidden="true" viewBox="0 0 1152 1536" width="1152" height="1536">
+    <path id="fishContourPath" d="" />
+  </svg>
+</body>
+</html>

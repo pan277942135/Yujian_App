@@ -407,8 +407,8 @@ tasks:
     depends_on: ["P3-01"]
     entry_blockers: []
     target_blockers: []
-    evidence_required: ["P01_png_sha", "P02_png_sha", "P03_png_sha", "design_governance_pass"]
-    completion: "Three-page First Capture Guide frozen binaries are restored and registered; Design Governance remains the acceptance gate."
+    evidence_required: ["P01_png_sha", "P02_png_sha", "design_governance_pass"]
+    completion: "Two-page V1.2 First Capture Guide frozen binaries are registered; the former vertical-fish P02 is archive-only and Design Governance remains the acceptance gate."
     human_required: false
   P3-04:
     phase: "P3"
@@ -479,8 +479,8 @@ tasks:
     depends_on: ["P3-03", "P5-02"]
     entry_blockers: []
     target_blockers: []
-    evidence_required: ["first_use_guide_implementation", "P01_P02_P03_binary_integrity"]
-    completion: "Three-page First Capture Guide implementation and frozen teaching assets are ready for exact-head runtime."
+    evidence_required: ["first_use_guide_implementation", "P01_P02_binary_integrity"]
+    completion: "Two-page First Capture Guide V1.2 implementation and frozen teaching assets are ready for exact-head runtime."
     human_required: false
   P6-02:
     phase: "P6"
@@ -936,8 +936,8 @@ tasks:
     entry_blockers: []
     target_blockers: []
     gate_id: "G-FIRST-USE-GUIDE-ASSET"
-    evidence_required: ["P01_png_sha256_bytes_dimensions", "P02_png_sha256_bytes_dimensions", "P03_png_sha256_bytes_dimensions", "Design_Manager_resource_menu", "Design_Governance_PASS"]
-    completion: "Approved P01/P02/P03 Frozen PNGs remain at their registered paths and are exposed by the Design Manager Resources route with original-file links; Design Governance must pass before task closure."
+    evidence_required: ["P01_png_sha256_bytes_dimensions", "P02_png_sha256_bytes_dimensions", "Design_Manager_resource_menu", "Design_Governance_PASS"]
+    completion: "Approved P01/P02 Frozen PNGs remain at their registered paths and are exposed by the Design Manager Resources route with original-file links; Design Governance must pass before task closure."
     human_required: false
 
 feature_task_coverage:

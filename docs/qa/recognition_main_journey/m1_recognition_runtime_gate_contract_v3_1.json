@@ -1,0 +1,99 @@
+{
+  "schema_version": "1.0",
+  "contract_id": "M1_RECOGNITION_RUNTIME_GATE_V3_1",
+  "status": "ACTIVE_FOR_M1_QA",
+  "scope": "M1 Recognition state timing and runtime evidence only",
+  "authority": {
+    "version": "recognition_processing_state_machine_v3_1",
+    "path": "design/system_v3/08_Page_Contracts/recognition/processing/State_Machine_V3_1.json",
+    "sha256": "fa4f9f7ea371dd46f8a92be8fc0398bee465c05356a8d1d5623a46120d07de02"
+  },
+  "timing_ms": {
+    "CAPTURED_min": 220,
+    "DETECTING_min": 320,
+    "OUTLINE_min": 350,
+    "CLASSIFYING_min": 250,
+    "RESULT_READY": 0
+  },
+  "presentation_states": [
+    "CAPTURED",
+    "DETECTING",
+    "OUTLINE",
+    "CLASSIFYING",
+    "RESULT_READY"
+  ],
+  "pipeline_events": [
+    "CAPTURED",
+    "DETECTING",
+    "OUTLINE",
+    "CLASSIFYING",
+    "RESULT"
+  ],
+  "transition_rule": "Each state advances only after its V3.1 minimum visual beat and its corresponding real pipeline event/focus/result. No timer-only advance. RESULT_READY is immediate after CLASSIFYING minimum and real RESULT.",
+  "motion_authority_collision": {
+    "version": "Recognition_Processing_Motion_Spec_V1_2",
+    "path": "design/pages/recognition/processing/motion/Recognition_Processing_Motion_Spec_V1_2.md",
+    "sha256": "00df6a7c28a76182a44f8f2008918dc533f5640114496b132a759d72e61ddc7c",
+    "status": "REVIEW_REQUIRED",
+    "resolution": null,
+    "conflict": "V3.1 requires immediate RESULT_READY with no Resolve state; V1.2 requires a 200ms RESOLVE handoff. Resolve values may be collected as diagnostics but cannot satisfy or extend V3.1 state timing. M1 release eligibility remains blocked until this authority collision is resolved."
+  },
+  "proc_07_timeout": {
+    "acceptance_readiness": "BLOCKED_PARAMETER",
+    "timeout_ms": null,
+    "rule": "Do not infer the inference timeout from the V3.1 minimum visual beats or measured total."
+  },
+  "required_m1_processing_artifacts": [
+    "recognition_processing_m1_v3_1.mp4",
+    "recognition_processing_timing.txt",
+    "recognition_production_flow_trace.txt",
+    "recognition_production_flow_trace_m1_v3_1.json",
+    "recognition_motion_trace_m1_v3_1.json"
+  ],
+  "exact_source_provenance": {
+    "required_fields": [
+      "source_commit_sha",
+      "workflow_run_id",
+      "api_level",
+      "device_model",
+      "avd_name",
+      "display_size",
+      "display_density",
+      "font_scale",
+      "app_apk_sha256",
+      "test_apk_sha256",
+      "sha256sums_verified"
+    ],
+    "api_level": 28,
+    "device_model": "Pixel 2",
+    "avd_name": "yujian-api28",
+    "display_size": "1080x1920",
+    "display_density": 480,
+    "font_scale": 1.0,
+    "workflow_runner_labels": [
+      "self-hosted",
+      "yujian-android",
+      "api28"
+    ]
+  },
+  "catalog_binding": {
+    "path": "docs/qa/recognition_main_journey/test_case_catalog_v1.json",
+    "version": "1.2.2",
+    "case_ids": [
+      "PROC-01",
+      "PROC-02",
+      "PROC-03",
+      "PROC-04",
+      "PROC-05",
+      "PROC-06",
+      "PROC-07"
+    ]
+  },
+  "visual_authority_matrix": {
+    "path": "docs/qa/recognition_main_journey/M1_DESIGN_AUTHORITY_MATRIX.json",
+    "root_key": "authority_rows",
+    "rule": "The matrix maps visual runtime targets to Design System authority; matrix presence alone is never a visual PASS. Missing authority sources or known gaps leave affected targets REVIEW_REQUIRED/BLOCKED."
+  },
+  "manifest": "recognition_runtime_evidence_manifest_m1_v3_1.json",
+  "runtime_gate_result": "runtime_gate_result_v1_2.json"
+}
