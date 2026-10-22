@@ -82,8 +82,14 @@ async function main() {
     await page.waitForFunction(() => window.NH01GeminiPreviewLayoutReady === true, { timeout: 30000 });
     const previewBuild = await page.locator('meta[name="nh01-gemini-preview-build"]').getAttribute("content");
     assert(previewBuild === expectedPreviewBuild, `NH01 preview build SHA mismatch: ${previewBuild} != ${expectedPreviewBuild}`);
-    const iframeCount = await page.locator(".responsive-frame").count();
-    assert(iframeCount === 5, "Expected five responsive viewport preview frames, got " + iframeCount);
+    const viewportIds = await page.locator(".responsive-frame").evaluateAll(frames => frames.map(frame => frame.dataset.viewport));
+    const requiredViewportIds = ["320x480", "360x640", "390x844", "430x932", "600x960"];
+    const missingViewportIds = requiredViewportIds.filter(viewport => !viewportIds.includes(viewport));
+    assert(missingViewportIds.length === 0,
+      "Missing required responsive viewport preview frames: " + missingViewportIds.join(", ") + "; available " + viewportIds.join(", "));
+    assert(new Set(viewportIds).size === viewportIds.length,
+      "Responsive viewport preview frames must have unique IDs: " + viewportIds.join(", "));
+    const iframeCount = viewportIds.length;
     await page.waitForFunction(() => Array.from(document.querySelectorAll(".responsive-frame")).every(frame => frame.contentWindow && frame.contentWindow.NH01GeminiPreviewLayoutReady === true), { timeout: 60000 });
     const imageState = await page.locator("img[data-asset-id]").evaluateAll(images => images.map(image => ({ asset: image.dataset.assetId, src: image.currentSrc, complete: image.complete, naturalWidth: image.naturalWidth, naturalHeight: image.naturalHeight })));
     const brokenImages = imageState.filter(image => !image.complete || image.naturalWidth <= 0);
