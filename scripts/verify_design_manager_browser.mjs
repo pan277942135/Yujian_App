@@ -69,6 +69,13 @@ async function waitForManager(page) {
   await page.locator("#pageList .module-item").first().waitFor({ state: "visible", timeout: 30000 });
 }
 
+async function waitForManagerShell(page) {
+  // Historical routes can intentionally hide the current title while keeping
+  // the shared navigation shell mounted. Use the shell as the readiness signal
+  // when opening arbitrary registered routes.
+  await page.locator("#pageList .module-item").first().waitFor({ state: "visible", timeout: 30000 });
+}
+
 async function waitForLoadedImage(page, selector, label) {
   await page.locator(selector).first().waitFor({ state: "attached", timeout: 30000 });
   try {
@@ -127,7 +134,7 @@ async function main() {
   const fullFlowModelsHash = "#page/recognition_flow_v1_2/hifi/recognition_full_flow_models";
   const open = async hash => {
     await page.goto(baseUrl + hash, { waitUntil: "domcontentloaded", timeout: 45000 });
-    await waitForManager(page);
+    await waitForManagerShell(page);
     await page.waitForFunction(expected =>
       location.hash === expected && Boolean(document.querySelector("#hifiViewTitle")?.textContent?.trim()),
       hash,
