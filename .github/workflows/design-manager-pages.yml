@@ -163,7 +163,14 @@ jobs:
           EOF
 
       - name: Verify Design Manager navigation artifact
-        run: python3 scripts/verify_design_manager_navigation.py --site _site --expected-build "${SITE_BUILD_SHA}"
+        shell: bash
+        run: |
+          set -euo pipefail
+          verifier=scripts/verify_design_manager_navigation.py
+          if [ "${ISOLATED_NH01_PUSH}" = true ]; then
+            verifier=production-baseline/scripts/verify_design_manager_navigation.py
+          fi
+          python3 "${verifier}" --site _site --expected-build "${SITE_BUILD_SHA}"
 
       - name: Verify NH01 PR preview routes and interactions
         shell: bash
@@ -225,14 +232,25 @@ jobs:
           fi
 
       - name: Verify hi-fi Pages artifact
-        run: python3 scripts/verify_design_manager_hifi_release.py --site _site --expected-build "${SITE_BUILD_SHA}"
+        shell: bash
+        run: |
+          set -euo pipefail
+          verifier=scripts/verify_design_manager_hifi_release.py
+          if [ "${ISOLATED_NH01_PUSH}" = true ]; then
+            verifier=production-baseline/scripts/verify_design_manager_hifi_release.py
+          fi
+          python3 "${verifier}" --site _site --expected-build "${SITE_BUILD_SHA}"
 
       - name: Verify browser routes and responsive preview
         shell: bash
         run: |
           set -euo pipefail
+          verifier=scripts/verify_design_manager_browser.mjs
+          if [ "${ISOLATED_NH01_PUSH}" = true ]; then
+            verifier=production-baseline/scripts/verify_design_manager_browser.mjs
+          fi
           PLAYWRIGHT_MODULE_DIR="$RUNNER_TEMP/dm-playwright/node_modules" \
-            node scripts/verify_design_manager_browser.mjs \
+            node "${verifier}" \
               --root _site \
               --expected-build "${SITE_BUILD_SHA}" \
               --output-dir "$RUNNER_TEMP/dm-build-browser"
