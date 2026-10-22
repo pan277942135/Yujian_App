@@ -68,7 +68,7 @@ on:
           - github-hosted
 
 concurrency:
-  group: yujian-android-ci-${{ github.workflow }}-${{ github.ref }}-${{ github.event_name == 'workflow_dispatch' && inputs.runtime_backend || 'self-hosted' }}
+  group: yujian-android-ci-${{ github.workflow }}-${{ github.ref }}-${{ github.event_name == 'workflow_dispatch' && inputs.runtime_backend || 'self-hosted' }}-${{ github.event_name == 'workflow_dispatch' && github.sha || 'branch' }}
   # Keep only the latest PR head; do not cancel manual/push release runs.
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
