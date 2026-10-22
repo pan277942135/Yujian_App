@@ -233,3 +233,13 @@ GitHub Pages 仅复制 `design/`。合并到 main 并完成 Pages 部署后，�
 Frozen 图片按原始比例完整展示。点击可打开支持放大、缩小、适配窗口和查看原文件的弹层；页面与状态合同显示 Authority Path / SHA、进入条件、触发、操作、下一状态、返回 / 取消 / 重拍和独立 Runtime 状态。未提供的原图不生成模拟 UI 或可点击假路径；浏览器前进 / 后退、刷新和无效 Hash 均经过回归验证。
 
 展示与路由合同见 [`RECOGNITION_HIFI_PRESENTATION_CONTRACT_V1.md`](RECOGNITION_HIFI_PRESENTATION_CONTRACT_V1.md)。本管理站的响应式验证只证明 Design Manager；Page Contract 的 320dp / 360dp、Insets、字号、TalkBack 和 Runtime 项仍由各自产品合同与验收状态控制。
+
+## Recognition · 识别全流程-和模型
+
+在「识别过程」下新增 `09 · 识别全流程-和模型`，展示完整业务流程图、十个处理阶段、DET_FISH / MODEL_M1 / 质量尺寸规则 / 结果融合的职责边界、关键决策分支与端到端验收场景。
+
+- 详细规范：`design/system_v3/00_Product_Master_Flow/subflows/Recognition_Full_Flow_Models_V1.md`
+- 机器可读定义：`design/system_v3/00_Product_Master_Flow/subflows/Recognition_Full_Flow_Models_V1.json`
+- SVG 流程图：`design/system_v3/00_Product_Master_Flow/subflows/Recognition_Full_Flow_Models_V1.svg`
+
+此入口属于 DESIGN_ONLY 业务/技术说明，不增加 Android 产品状态、不修改冻结动效，也不声明 DET_FISH_v0.3 已成为生产默认模型。设计站的流程图预览与运行时/模型验收分别记录。
