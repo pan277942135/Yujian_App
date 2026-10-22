@@ -97,7 +97,7 @@ base_ref = f"origin/{base_branch}" if base_branch else "origin/pr/186"
 verified_base = subprocess.run(["git", "rev-parse", "--verify", base_ref], cwd=ROOT, capture_output=True, text=True)
 if verified_base.returncode != 0:
     fail(f"control-scope base ref is unavailable: {base_ref}")
-changed = subprocess.run(["git", "diff", "--name-only", f"{base_ref}...HEAD"], cwd=ROOT, check=True, capture_output=True, text=True).stdout.splitlines()
+changed = subprocess.run(["git", "diff", "--name-only", base_ref, "HEAD"], cwd=ROOT, check=True, capture_output=True, text=True).stdout.splitlines()
 for path in changed:
     require(not path.startswith("app/") and not path.startswith("android/") and not path.startswith("design/manager/rr09_motion/"), f"scope boundary violated by {path}")
 
