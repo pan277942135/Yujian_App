@@ -4,7 +4,7 @@
   "version": "V3.1",
   "status": "FROZEN",
   "shared_foundation_status": "SHARED_FOUNDATION_READY",
-  "updated_at": "2026-10-16",
+  "updated_at": "2026-10-22",
   "authority_model": "Use one canonical registry or contract per shared domain. A review candidate is never a production source. Page-specific Frozen visual/geometry authority controls properties it explicitly owns; Shared Foundation applies only to registered shared properties.",
   "entries": [
     {
@@ -278,10 +278,12 @@
         "design/system_v3/08_Page_Contracts/recognition/capture/Recognition_Capture_V3_Authority.md",
         "design/system_v3/00_Product_Master_Flow/subflows/Recognition_Main_Journey_Business_Contract_V1.md",
         "design/pages/recognition/first_use_camera_guide/frozen/P02_Landscape_Horizontal_Fish_Frozen.png",
-        "design/pages/recognition/first_use_camera_guide/Freeze_Decision_20261017.md"
+        "design/pages/recognition/first_use_camera_guide/Freeze_Decision_20261017.md",
+        "design/pages/recognition/first_use_camera_guide/archive/P02_Portrait_Vertical_Fish_Superseded_20261016.png",
+        "design/pages/recognition/first_use_camera_guide/archive/superseded_assets.json"
       ],
       "scope": "Additive Capture overlay only; does not replace Recognition Capture V3.1 page authority or live Camera Preview.",
-      "status_detail": "Two-page guide authority proposed for main review: P01 portrait + horizontal fish; P02 landscape + horizontal fish. Former portrait + vertical-fish P02 is archive-only. P02 uses former P03 PNG bytes unchanged. Android Runtime and independent photo sources require separate acceptance."
+      "status_detail": "Two-page guide authority is FROZEN and effective: P01 portrait + horizontal fish; P02 landscape + horizontal fish. The former portrait + vertical-fish P02 is archive-only; the former P03 landscape PNG is promoted byte-identically to active P02. Android Runtime and independent photo sources require separate acceptance."
     }
   ],
   "precedence_rules": [
