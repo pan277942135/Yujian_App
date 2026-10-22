@@ -719,7 +719,7 @@ async function main() {
   await historyPage.close();
   await page.reload({ waitUntil:"networkidle" });
   await page.waitForFunction(expected => location.hash === expected, nhWorkspaceRoutes.responsive);
-  await page.locator(".responsive-matrix").waitFor({ state:"visible", timeout:30000 });
+  await page.frameLocator("#workspaceFrame").locator(".responsive-matrix").waitFor({ state:"visible", timeout:10000 });
   await page.locator("#workspaceReturn").click();
   await page.waitForFunction(() => location.hash === "#page/home_normal_v1");
   assert(await page.locator("#pageDetail").isVisible() && (await page.locator("#pageTitle").innerText()).includes("有数据首页"),
