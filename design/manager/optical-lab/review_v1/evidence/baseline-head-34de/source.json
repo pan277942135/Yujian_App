@@ -1,0 +1,33 @@
+{
+  "source_commit_sha": "34de30e0e3cb38940702e4059961165101c61c18",
+  "workflow_run_id": 39412909437,
+  "workflow": "EdgeGlow Fish Static · NH01 Acceptance Center",
+  "artifact_id": 12260292243,
+  "artifact_name": "EdgeGlow-Fish-Static-Source-Audit-39412909437-34de30e0e3cb38940702e4059961165101c61c18",
+  "capture": {
+    "candidate": "REVIEW_CANDIDATE_B",
+    "state": "IMAGE_RECOGNIZING",
+    "field_layer": "Receiving Field alone",
+    "canvas_viewport": [390, 844],
+    "photo_content_rect_px": { "left": 0, "top": 162, "width": 390, "height": 520 },
+    "source_photo_sha256": "6e955087108f7463eca2dbac489699a4942028ebe1b3d456ddfca523286385ef",
+    "source_photo_dimensions": [1152, 1536],
+    "source_photo_exif_orientation": 1,
+    "frozen_source_identity": "SOURCE_PHOTO_IDENTITY_UNVERIFIED"
+  },
+  "files": {
+    "optical-review-page.png": {
+      "sha256": "08dba49361d9681ae98f31bdb5710c95001114b5d1a0a8cb57d17998ecbe3c21",
+      "original_artifact_path": "browser-smoke/visual-evidence/Optical_Review_Balanced_Receiving_Field_Page.png"
+    },
+    "receiving-field-only.png": {
+      "sha256": "95768d6cff83910730af879f9321d929836be339532b1b5fb1fc442d1f582d2d",
+      "original_artifact_path": "browser-smoke/visual-evidence/Optical_Review_Balanced_Receiving_Field.png"
+    },
+    "receiving-field-signal.json": {
+      "sha256": "121cb4000a5baaf92cf1ef45c3469673eaf5c65d429098c8ce5eff8381891c88",
+      "original_artifact_path": "browser-smoke/visual-evidence/Optical_Review_Balanced_Receiving_Field_Signal.json"
+    }
+  },
+  "limitation": "Prior automated signal reports pixel changes only. It is not a visual-quality pass or same-source Frozen comparison."
+}

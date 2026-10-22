@@ -1,0 +1,2294 @@
+{
+  "schema_version": "1.0",
+  "artifact_id": "recognition.processing.engineering_handoff",
+  "artifact_role": "DERIVED_IMPLEMENTATION_TRACE_NOT_NORMATIVE",
+  "status": "ENGINEERING_HANDOFF_READY",
+  "purpose": "Structured input for NH01 unified Figma importer and Android engineering handoff; source contracts remain authoritative.",
+  "source_snapshot": {
+    "repository": "pan277942135/Yujian_App",
+    "authority_branch": "design/processing-remove-early-visual-v1",
+    "authority_commit": "31d1483b83038db78821625cd9339ad0e8c19ff3",
+    "handoff_pr": 166,
+    "handoff_branch": "design/recognition-processing-handoff-p0",
+    "figma_write_status": "DEFERRED_UNTIL_NH01_UNIFIED_PLUGIN_PASSES_MINIMUM_IMPORT",
+    "figma_node_ids": [],
+    "frozen_pixel_diff": "NOT_RUN"
+  },
+  "sources": [
+    {
+      "path": "design/pages/recognition/design/Recognition_Processing_Visual_State_Set_V1_2.json",
+      "blob_sha": "06e34a28a94e235d43cd7ca84f339e7ebcc6518d",
+      "role": "three product states and Frozen image manifest"
+    },
+    {
+      "path": "design/system_v3/08_Page_Contracts/recognition/processing/State_Machine_V3_1.json",
+      "blob_sha": "0be6a1685a91c0cb4940080b845ad6f7b4a3bf4c",
+      "role": "internal event phases and minimum beats"
+    },
+    {
+      "path": "design/system_v3/08_Page_Contracts/recognition/processing/Layout_Contract_V3_1.json",
+      "blob_sha": "a46e0cecf561282ec5484745a6cd5e7063e4bb77",
+      "role": "components, tokens, assets, page mapping"
+    },
+    {
+      "path": "design/pages/recognition/processing/contracts/AI_Edge_Field_V1_Static_Shape_Contract.json",
+      "blob_sha": "e1d9f71bc97708b0ba877b11561f363a83ec6c6e",
+      "role": "frozen path topology and optical constraints"
+    },
+    {
+      "path": "design/pages/recognition/processing/components/AI_Edge_Field_V1_Rendering_Contract.md",
+      "blob_sha": "d4fa76a15a289334199978cb439c13756325ecb7",
+      "role": "photo coordinate space and draw order"
+    },
+    {
+      "path": "design/pages/recognition/processing/motion/AI_Edge_Field_V1_Motion_Contract.md",
+      "blob_sha": "2736c169bf31e2ecc8c6e36bc216a264113501c8",
+      "role": "continuous path motion and Resolve"
+    },
+    {
+      "path": "app/src/main/java/com/yujian/ai/ui/identify/RecognitionImageTransform.kt",
+      "blob_sha": "ce01468faabcef3ab42e523950c3a94b175a6d5e",
+      "role": "source-to-viewport transform implementation"
+    },
+    {
+      "path": "app/src/main/java/com/yujian/ai/ui/identify/RecognitionSourcePhoto.kt",
+      "blob_sha": "78794674de145ba304a140567df63992bdce63e8",
+      "role": "photo drawing uses same transform"
+    },
+    {
+      "path": "app/src/main/java/com/yujian/ai/ui/recognition/RecognitionAmbientField.kt",
+      "blob_sha": "7a7259e8ed40e03b384c621798e31f4906f0491b",
+      "role": "runtime path, glow, quality and motion parameters"
+    },
+    {
+      "path": "design/system_v3/08_Page_Contracts/recognition/processing/Data_Contract_V3_1.json",
+      "blob_sha": "ae1aacad36ba627910e697bacccc572b6696861a",
+      "role": "real focus data contract and no-fabrication boundary"
+    },
+    {
+      "path": "design/pages/recognition/processing/spec/Recognition_Processing_Visual_Spec_V1_1.md",
+      "blob_sha": "4e2eb5a3d91ca25fef61eee8369da905f95dcbfc",
+      "role": "focus geometry/contour visual behavior; superseded only where V3.1 or runtime differs"
+    },
+    {
+      "path": "app/src/main/java/com/yujian/ai/ui/recognition/RecognitionFishFocus.kt",
+      "blob_sha": "d465bfeb8408d235a8e3ee1eaac2d50e812f92f2",
+      "role": "bbox halo, contour, focus levels, transitions"
+    },
+    {
+      "path": "app/src/main/java/com/yujian/ai/ui/screens/RecognizingScreen.kt",
+      "blob_sha": "d005a291baef35248a1bd573ee44e79c4035a09e",
+      "role": "real detector focus input, subject mask generation and contour sampling"
+    },
+    {
+      "path": "app/src/androidTest/java/com/yujian/ai/RecognitionFishContourRuntimeTest.kt",
+      "blob_sha": "a87290588da9c3ba24a40d17a560f229a4dbef11",
+      "role": "synthetic oval-mask contour test; not production mask evidence"
+    },
+    {
+      "path": "design/pages/recognition/spec/RecognitionStatusCard_V1.md",
+      "blob_sha": "684902493ab15ae795db5c690cde603c3f6a3483",
+      "role": "shared status card structure"
+    },
+    {
+      "path": "app/src/main/java/com/yujian/ai/ui/recognition/RecognitionStatusOverlay.kt",
+      "blob_sha": "891caf7473bf2a46c5730bc3586df7bc069f575a",
+      "role": "Android status-card implementation"
+    },
+    {
+      "path": "app/src/main/java/com/yujian/ai/ui/recognition/RecognitionProcessingVisualTokens.kt",
+      "blob_sha": "68a61dae637672337dd8117ae789493f112d97e3",
+      "role": "Android status copy and visual tokens"
+    },
+    {
+      "path": "design/system_v3/08_Page_Contracts/recognition/processing/Acceptance_Contract_V3_1.json",
+      "blob_sha": "b9fe764896e37516ade27dc71984f47f67f225a2",
+      "role": "status copy and motion acceptance gates"
+    },
+    {
+      "path": "app/src/main/java/com/yujian/ai/ui/recognition/RecognitionMotionPolicy.kt",
+      "blob_sha": "1946bf79c451ee99f15756e60318dbf39b92eeee",
+      "role": "D0-D4 and reduce-motion runtime policy"
+    },
+    {
+      "path": "design/pages/recognition/processing/accessibility/Recognition_Degradation_Accessibility_V1.md",
+      "blob_sha": "0474b69ff4947d6e7a673f352502a0657073f3ce",
+      "role": "parent authority for quality/reduce-motion/degradation"
+    },
+    {
+      "path": "design/pages/recognition/processing/motion/Recognition_Processing_Motion_Spec_V1_2.md",
+      "blob_sha": "1d4384ff25ffeb515659d5b0e13a2863d3a23e83",
+      "role": "motion/resolve cross-check; V3.1 owns event gating"
+    },
+    {
+      "path": "app/src/test/java/com/yujian/ai/ui/recognition/RecognitionVisualStateControllerTest.kt",
+      "blob_sha": "958ad857d44a31fa2d93094d28e43320efda7ec4",
+      "role": "real event and minimum-beat presentation gate tests"
+    },
+    {
+      "path": "app/src/test/java/com/yujian/ai/ui/recognition/RecognitionProcessingVisualTokensTest.kt",
+      "blob_sha": "edf1a2f23857c83d309b006307322f3f566bd3f6",
+      "role": "quality/token/render behavior tests"
+    },
+    {
+      "path": "design/system_v3/05_Component_System/Component_Registry_V3_FINAL.json",
+      "blob_sha": "fdc8cb9642ededad4ea875b14223e00c5dcb7a6b",
+      "role": "shared component registry"
+    },
+    {
+      "path": "design/system/icon_library_v0_1/assets/ic_back_v1.svg",
+      "blob_sha": "1d9813c5f3262fba9599fb0ec9a772596d1a1d3f",
+      "role": "Layout Contract Back asset ref; SVG itself says candidate/not frozen"
+    },
+    {
+      "path": "app/src/main/java/com/yujian/ai/ui/recognition/RecognitionVisualStateController.kt",
+      "blob_sha": "c96b1c0bd925f051e817e3ad9f67653775fb0828",
+      "role": "V3.1 visual event/minimum controller test/source baseline"
+    },
+    {
+      "path": "app/src/main/java/com/yujian/ai/ui/recognition/result/RecognitionResultGeometry.kt",
+      "blob_sha": "1032a786d2a6d066cf849bd207011938d3244d5d",
+      "role": "shared RecognitionMediaPlanner geometry source"
+    }
+  ],
+  "invariants": {
+    "product_state_count": 3,
+    "frozen_png_count": 3,
+    "no_early_visual": true,
+    "product_state_ids": [
+      "IMAGE_RECOGNIZING",
+      "FISH_LOCATED",
+      "SPECIES_RECOGNIZING"
+    ],
+    "source_assets": [
+      {
+        "id": "IMAGE_RECOGNIZING",
+        "path": "design/pages/recognition/design/02_AI_Understanding_Frozen.png",
+        "sha256": "82fff89fabc368b01535dc94f4f084fee7b1e50e20948b9e82d5711c9a42473b",
+        "width": 941,
+        "height": 1672
+      },
+      {
+        "id": "FISH_LOCATED",
+        "path": "design/pages/recognition/design/03_Fish_Highlight_Frozen.png",
+        "sha256": "632c9a7e6b45620d6a468acd0f83418ca6465423201e485f9699ebbc0d665284",
+        "width": 941,
+        "height": 1672
+      },
+      {
+        "id": "SPECIES_RECOGNIZING",
+        "path": "design/pages/recognition/design/04_Fish_Identifying_Frozen.png",
+        "sha256": "d6ad5b06ddd4eb6236dd5ee03b5e5f5e16bf1b23661689c0fc9d88c790dd15ec",
+        "width": 941,
+        "height": 1672
+      }
+    ],
+    "forbidden": [
+      "fourth product state",
+      "Early visual recreation",
+      "timer-only state advance",
+      "fake detector geometry"
+    ]
+  },
+  "p1_photoviewport": {
+    "status": "DERIVED_FROM_ANDROID_RUNTIME_AND_RENDERING_CONTRACT",
+    "source_orientation": "EXIF-oriented normalized source coordinates",
+    "viewport": "full available Recognition screen; safe drawing insets do not remap media or Edge Field",
+    "primary_mode": "FIT",
+    "visible_source_rect": [
+      0,
+      0,
+      1,
+      1
+    ],
+    "transform": {
+      "fit_scale": "min(viewportWidth/sourceWidth, viewportHeight/sourceHeight)",
+      "crop_scale": "max(viewportWidth/sourceWidth, viewportHeight/sourceHeight)",
+      "drawn_width": "sourceWidth * scale",
+      "drawn_height": "sourceHeight * scale",
+      "translation_x": "(viewportWidth - drawnWidth) / 2",
+      "translation_y": "(viewportHeight - drawnHeight) / 2",
+      "source_normalized_to_viewport": [
+        "translationX + x * drawnWidth",
+        "translationY + y * drawnHeight"
+      ],
+      "optical_normalized_to_photo_content": [
+        "photoContentRect.left + x * photoContentRect.width",
+        "photoContentRect.top + y * photoContentRect.height"
+      ],
+      "photo_content_rect": [
+        "max(0, translationX)",
+        "max(0, translationY)",
+        "min(viewportWidth, translationX+drawnWidth)",
+        "min(viewportHeight, translationY+drawnHeight)"
+      ]
+    },
+    "rules": [
+      "one primary transform drives original photo, detector bbox, mask/contour, halo, Edge Field, nodes and particle anchors",
+      "FIT letterbox bands are excluded from photoContentRect",
+      "same-source CROP may fill letterbox decoratively at alpha 0.16; it is never used for overlays",
+      "Edge Field authored coordinates may overshoot [0,1]; do not clamp them; clip drawing to photoContentRect",
+      "bbox and mask points use the same EXIF-oriented source transform",
+      "detector bbox arrival must not change primary transform",
+      "system safe insets affect Back and Status controls only"
+    ],
+    "example": {
+      "source_px": [
+        2000,
+        1000
+      ],
+      "viewport_px": [
+        1000,
+        1000
+      ],
+      "mode": "FIT",
+      "expected_scale": 0.5,
+      "expected_translation_px": [
+        0,
+        250
+      ],
+      "expected_photo_content_rect_px": [
+        0,
+        250,
+        1000,
+        750
+      ],
+      "source": "RecognitionImageTransformTest.fitModePreservesFullSourceRectAndDiffersFromFrozenProcessingCrop"
+    },
+    "android_mapping": {
+      "planner": "RecognitionMediaPlanner.planProcessing",
+      "transform": "calculateRecognitionImageTransform",
+      "photo": "RecognitionSourcePhoto",
+      "crop_render": "ContentScale.FillBounds + absoluteOffset + requiredSize + clipToBounds"
+    }
+  },
+  "p1_edge_field": {
+    "component_id": "AI_EDGE_FIELD_V1",
+    "coordinate_space": "normalized photoContentRect",
+    "clip": "photoContentRect",
+    "topology": {
+      "islands": [
+        "G_UL",
+        "B_UR",
+        "B_LR",
+        "G_LL"
+      ],
+      "primary_paths": [
+        "B1",
+        "G1",
+        "B3",
+        "G3"
+      ],
+      "secondary_paths": [
+        "B2",
+        "G2",
+        "B4"
+      ],
+      "quiet_gaps": {
+        "Q_TOP": [
+          0.32,
+          0.68
+        ],
+        "Q_LEFT": [
+          0.38,
+          0.62
+        ],
+        "Q_RIGHT": [
+          0.46,
+          0.58
+        ],
+        "Q_BOTTOM": [
+          0.4,
+          0.62
+        ]
+      },
+      "forbidden": [
+        "closed frame",
+        "continuous border",
+        "center crossing primary",
+        "reconnect quiet gaps",
+        "equal corner emphasis"
+      ]
+    },
+    "paths": [
+      {
+        "id": "B1",
+        "island": "B_UR",
+        "family": "blue",
+        "role": "primary",
+        "start": [
+          0.78,
+          -0.02
+        ],
+        "control1": [
+          0.94,
+          0.06
+        ],
+        "control2": [
+          1.02,
+          0.22
+        ],
+        "end": [
+          0.96,
+          0.42
+        ],
+        "core_width_dp": 1.2,
+        "runtime_seed": 0,
+        "seed_authority": "FROZEN_MOTION_V1_2",
+        "visible_ratio": 0.3,
+        "island_weight": 1
+      },
+      {
+        "id": "B2",
+        "island": "B_UR_SECONDARY_FRAGMENT",
+        "family": "blue",
+        "role": "secondary_only",
+        "start": [
+          1.01,
+          0.18
+        ],
+        "control1": [
+          0.92,
+          0.31
+        ],
+        "control2": [
+          0.95,
+          0.52
+        ],
+        "end": [
+          1.02,
+          0.68
+        ],
+        "core_width_dp": 1,
+        "runtime_seed_candidate": 0.07,
+        "legacy_v1_1_seed": 0.23,
+        "seed_authority": "REVIEW_REQUIRED_CONTRACT_GAP",
+        "visible_ratio": 0.18,
+        "island_weight": 0.3
+      },
+      {
+        "id": "B3",
+        "island": "B_LR",
+        "family": "blue",
+        "role": "primary",
+        "start": [
+          1.02,
+          0.61
+        ],
+        "control1": [
+          0.92,
+          0.75
+        ],
+        "control2": [
+          0.84,
+          0.89
+        ],
+        "end": [
+          0.66,
+          1.02
+        ],
+        "core_width_dp": 1.2,
+        "runtime_seed": 0.47,
+        "seed_authority": "FROZEN_MOTION_V1_2",
+        "visible_ratio": 0.2,
+        "island_weight": 0.54
+      },
+      {
+        "id": "B4",
+        "island": "BOTTOM_SECONDARY_FRAGMENT",
+        "family": "blue",
+        "role": "secondary_only",
+        "start": [
+          0.22,
+          1.02
+        ],
+        "control1": [
+          0.38,
+          0.95
+        ],
+        "control2": [
+          0.52,
+          0.95
+        ],
+        "end": [
+          0.66,
+          1.01
+        ],
+        "core_width_dp": 0.8,
+        "runtime_seed_candidate": 0.11,
+        "legacy_v1_1_seed": 0.71,
+        "seed_authority": "REVIEW_REQUIRED_CONTRACT_GAP",
+        "visible_ratio": 0.14,
+        "island_weight": 0.22
+      },
+      {
+        "id": "G1",
+        "island": "G_UL",
+        "family": "gold",
+        "role": "primary",
+        "start": [
+          -0.02,
+          0.18
+        ],
+        "control1": [
+          0.03,
+          0.08
+        ],
+        "control2": [
+          0.12,
+          0.02
+        ],
+        "end": [
+          0.26,
+          -0.02
+        ],
+        "core_width_dp": 1.1,
+        "runtime_seed": 0.12,
+        "seed_authority": "FROZEN_MOTION_V1_2",
+        "visible_ratio": 0.26,
+        "island_weight": 0.78
+      },
+      {
+        "id": "G2",
+        "island": "G_UL_SECONDARY_FRAGMENT",
+        "family": "gold",
+        "role": "secondary_only",
+        "start": [
+          -0.02,
+          0.33
+        ],
+        "control1": [
+          0.04,
+          0.47
+        ],
+        "control2": [
+          0.02,
+          0.62
+        ],
+        "end": [
+          -0.01,
+          0.78
+        ],
+        "core_width_dp": 0.9,
+        "runtime_seed_candidate": 0.09,
+        "legacy_v1_1_seed": 0.39,
+        "seed_authority": "REVIEW_REQUIRED_CONTRACT_GAP",
+        "visible_ratio": 0.16,
+        "island_weight": 0.26
+      },
+      {
+        "id": "G3",
+        "island": "G_LL",
+        "family": "gold",
+        "role": "primary",
+        "start": [
+          -0.01,
+          0.74
+        ],
+        "control1": [
+          0.08,
+          0.86
+        ],
+        "control2": [
+          0.2,
+          0.95
+        ],
+        "end": [
+          0.38,
+          1.02
+        ],
+        "core_width_dp": 1.2,
+        "runtime_seed": 0.64,
+        "seed_authority": "FROZEN_MOTION_V1_2",
+        "visible_ratio": 0.22,
+        "island_weight": 0.63
+      }
+    ],
+    "optical_stack": [
+      {
+        "layer": "local_receiving_light",
+        "draw_order": 1,
+        "contract_alpha_before_multipliers": [
+          0.03,
+          0.07
+        ],
+        "contract_edge_depth_ratio": [
+          0.08,
+          0.18
+        ],
+        "android_geometry": "four broad local radial ovals; no full-frame tint; clip photoContentRect",
+        "android_base_alpha": 0.13,
+        "runtime_alpha_cap": 0.14,
+        "issue_id": "RP-A01"
+      },
+      {
+        "layer": "primary_outer_bloom",
+        "draw_order": 2,
+        "width_dp": 10,
+        "contract_alpha_before_multipliers": [
+          0.025,
+          0.055
+        ],
+        "android_base_alpha": 0.04,
+        "blur_radius_dp": 5,
+        "primary_only": true
+      },
+      {
+        "layer": "primary_mid_glow",
+        "draw_order": 3,
+        "width_dp": 4,
+        "contract_alpha_before_multipliers": [
+          0.05,
+          0.1
+        ],
+        "android_base_alpha": 0.075,
+        "blur_radius_dp": 2,
+        "primary_only": true
+      },
+      {
+        "layer": "primary_core",
+        "draw_order": 4,
+        "width_dp": "per-path",
+        "width_by_path_dp": {
+          "B1": 1.2,
+          "B2": 1,
+          "B3": 1.2,
+          "B4": 0.8,
+          "G1": 1.1,
+          "G2": 0.9,
+          "G3": 1.2
+        },
+        "android_base_alpha": 0.46,
+        "maximum_alpha": 0.5,
+        "round_caps": true,
+        "round_joins": true
+      },
+      {
+        "layer": "secondary_fragment_mid_and_core",
+        "draw_order": 4,
+        "width_dp": "per-path",
+        "outer_bloom": false,
+        "android_mid_width_dp": 2,
+        "android_mid_blur_radius_dp": 1,
+        "android_mid_base_alpha": 0.025,
+        "android_core_base_alpha": 0.16,
+        "android_core_alpha_cap": 0.12
+      },
+      {
+        "layer": "companion_hairline",
+        "draw_order": 5,
+        "outer_bloom": false,
+        "core_width_dp": [
+          0.5,
+          0.65
+        ],
+        "local_glow_width_dp": [
+          1.8,
+          2.4
+        ],
+        "phase_delta_by_path": {
+          "B1C": -0.055,
+          "G1C": 0.065,
+          "B3C": -0.06,
+          "G3C": 0.05
+        },
+        "android_core_width_dp": {
+          "B1C": 0.6,
+          "G1C": 0.58,
+          "G3C": 0.6,
+          "B3C": 0.58
+        },
+        "android_local_glow_width_dp": 2.1,
+        "android_visible_ratio": {
+          "B1C": 0.44,
+          "G1C": 0.42,
+          "G3C": 0.38,
+          "B3C": 0.34
+        },
+        "android_weight": 0.3,
+        "visible_ratio_basis": "REVIEW_REQUIRED_LOCAL_PRIMARY_SPAN_VS_CHILD_PATH"
+      },
+      {
+        "layer": "B_UR_micro_hairline",
+        "draw_order": 5,
+        "outer_bloom": false,
+        "core_width_dp": [
+          0.35,
+          0.5
+        ],
+        "local_glow_width_dp": [
+          1.2,
+          1.8
+        ],
+        "phase_delta": 0.085,
+        "android_core_width_dp": 0.42,
+        "android_local_glow_width_dp": 1.5,
+        "android_visible_ratio": 0.12,
+        "visible_ratio_contract": [
+          0.15,
+          0.32
+        ],
+        "android_weight": 0.18,
+        "issue_id": "RP-A02"
+      },
+      {
+        "layer": "hot_nodes",
+        "draw_order": 6,
+        "radius_dp": {
+          "outer": 4,
+          "inner": 1.35
+        },
+        "alpha": {
+          "outer": 0.07,
+          "inner": 0.36,
+          "inner_cap": 0.3
+        },
+        "anchors": [
+          "active B_UR midpoint",
+          "weak G_UL midpoint"
+        ],
+        "weak_node_weight": 0.42,
+        "max_nodes": 2
+      },
+      {
+        "layer": "sparse_particles",
+        "draw_order": 7,
+        "radius_dp": 1.5,
+        "max_alpha": 0.18,
+        "anchors": [
+          [
+            0.84,
+            0.1
+          ],
+          [
+            0.96,
+            0.33
+          ],
+          [
+            0.92,
+            0.64
+          ],
+          [
+            0.73,
+            0.88
+          ],
+          [
+            0.08,
+            0.18
+          ],
+          [
+            0.04,
+            0.51
+          ],
+          [
+            0.18,
+            0.9
+          ],
+          [
+            0.48,
+            0.97
+          ]
+        ],
+        "anchors_by_path": [
+          "B1",
+          "B1",
+          "B3",
+          "B3",
+          "G1",
+          "G1",
+          "G3",
+          "G3"
+        ],
+        "runtime_drift_px": "14 + (index % 4) * 7"
+      }
+    ],
+    "shared_alpha_equation": "BaseAlpha * IslandWeight * StateStrength * ResolveStrength * QualityStrength",
+    "runtime_note": "Current Android multiplies state/entry/quality but has no explicit ResolveStrength and uses independent detail alpha formulas; visual alignment remains unverified.",
+    "path_relationship_note": "B2 and G2 are secondary fragments near their upper islands and must not connect upper/lower islands."
+  },
+  "android_repairs": [
+    {
+      "id": "RP-A01",
+      "severity": "P1",
+      "target": "RecognitionAmbientField.drawReceivingLight",
+      "defect": "Runtime alpha base 0.13 exceeds frozen pre-multiplier 0.03–0.07 range; four local ovals need optical/device evidence before calibration.",
+      "action": "Reconcile against Rendering Contract and single Frozen 02 reference; retain local falloff and island hierarchy; record before/after FULL runtime captures.",
+      "gate": "Frozen visual comparison and Android runtime evidence; do not tune from unavailable Early PNG."
+    },
+    {
+      "id": "RP-A02",
+      "severity": "P1",
+      "target": "B1M micro hairline",
+      "defect": "Runtime visibleRatio 0.12 is below frozen 0.15–0.32 and denominator may differ.",
+      "action": "Check visible length on common local-primary-span basis; set only after optical comparison."
+    },
+    {
+      "id": "RP-A03",
+      "severity": "P1",
+      "target": "B2/B4/G2 secondary path seeds",
+      "defect": "V1.1 values differ from current runtime; V1.2 Motion freezes only B1/G1/B3/G3.",
+      "action": "Resolve path-seed authority before producing animated native Figma prototype; geometry remains fixed."
+    },
+    {
+      "id": "RP-A04",
+      "severity": "P1",
+      "target": "RecognitionFishFocus B-level halo/perimeter",
+      "defect": "V1.1 visual contract caps Fish halo at 0.18, while current B fallback runtime reaches 0.36 halo and 0.56 perimeter alpha.",
+      "action": "Compare bbox-only B fallback against the single Frozen 03/04 states and decide the allowed local alpha range; preserve real-bbox gate."
+    },
+    {
+      "id": "RP-A05",
+      "severity": "P2",
+      "target": "extractContour sampling",
+      "defect": "Visual Spec V1.1 states 4px equivalent sampling; current Android OUTLINE_STRIDE is 2px.",
+      "action": "Confirm whether the denser runtime sampling is an accepted quality improvement or a contract mismatch using a real mask fixture; record CPU and contour fidelity."
+    },
+    {
+      "id": "RP-A06",
+      "severity": "P1",
+      "target": "production mask evidence",
+      "defect": "Available Android contour test is synthetic; supplied repository photo fixture has no trusted static bbox/mask provenance.",
+      "action": "Keep runtime-only mask binding; do not encode test bbox/mask as design data. Add consented/provenanced production mask fixture before mask-specific visual QA."
+    },
+    {
+      "id": "RP-A07",
+      "severity": "P1",
+      "target": "recognitionStatusCopy",
+      "defect": "CAPTURED/DETECTING retain distinct superseded Early copy under the one IMAGE_RECOGNIZING visual.",
+      "action": "Change resolver key to the three product-state IDs; transcribe exact shared IMAGE_RECOGNIZING copy from retained Frozen 02 before string implementation. Replace RecognitionProcessingVisualTokensTest's CAPTURED != DETECTING assertion with equality for the shared product visual; preserve all controller event/minimum tests."
+    },
+    {
+      "id": "RP-A09",
+      "severity": "P2",
+      "target": "Back icon",
+      "defect": "Layout Contract references ic_back_v1.svg but Compose uses Material AutoMirrored ArrowBack.",
+      "action": "Compare/replace using registered asset mapping and verify touch target."
+    },
+    {
+      "id": "RP-A10",
+      "severity": "P1",
+      "target": "V1.1 lightweight DETECTING variant",
+      "defect": "Old visual spec requests a different DETECTING treatment; V1.2 says CAPTURED/DETECTING share one Frozen product visual.",
+      "action": "Resolve against the retained Frozen 02 visual and V1.2 authority; never produce or label Early."
+    },
+    {
+      "id": "RP-V-A01",
+      "severity": "PENDING_VISUAL_VERIFICATION",
+      "target": "RecognitionStatusOverlay product-state anchors",
+      "defect": null,
+      "action": "Verify 84dp/safe-bottom for IMAGE_RECOGNIZING and 34dp/safe-bottom for later states against their Frozen compositions; do not force one position across three distinct product states."
+    },
+    {
+      "id": "RP-A11",
+      "severity": "P1",
+      "target": "EdgeFieldMotionAccumulator RESULT/RESOLVE",
+      "defect": "current path continues moving during the 200ms strength fade; no separate quadratic ResolveStrength; nodes/particles do not freeze; Status/Fish do not share explicit fade progress.",
+      "action": "Capture one Resolve start offset, freeze all secondary clocks, apply a shared (1-p)^2 ResolveStrength across Edge Field/Fish Focus/Status, and hand off to Result with no extra wait."
+    },
+    {
+      "id": "RP-A12",
+      "severity": "P1",
+      "target": "Motion evidence",
+      "defect": "10s clock, state transition continuity and exact transition traces have not been independently verified on-device in this handoff.",
+      "action": "Add/execute deterministic trace assertions across CAPTURED→DETECTING→OUTLINE→CLASSIFYING and Verify no path reset or offset jump; keep deterministic screenshot mode separate."
+    },
+    {
+      "id": "RP-A13",
+      "severity": "P2",
+      "target": "Responsive Status/Back",
+      "defect": "Existing responsive tests cover source transforms and fish boxes, not card wrapping, tap target, safe-area positions or full overlay ROIs.",
+      "action": "Add compact/edge-inset Compose verification at 320x640 and portrait targets; assert readable card copy, touch.minimum, and invariant photo-space geometry."
+    },
+    {
+      "id": "RP-A14",
+      "severity": "P1",
+      "target": "R05 strength calibration",
+      "defect": "Early upper-bound PNG is retired; Frozen contract states FULL/LITE runtime calibration is REVIEW_REQUIRED.",
+      "action": "Capture same three product states using FULL and LITE on real device; compare photo dominance, receiving light, core/bloom and particle visibility to retained 02/03/04 only."
+    }
+  ],
+  "validation": {
+    "source_tests": [
+      {
+        "path": "app/src/test/java/com/yujian/ai/ui/identify/RecognitionImageTransformTest.kt",
+        "blob_sha": "b5ae7c52e5f696d19259f695ca70a146cd789805",
+        "coverage": [
+          "FIT/CROP",
+          "FIT photo rect",
+          "overshoot",
+          "shared source transform",
+          "responsive viewports 1080x1920/2160/2340/2400, 720x1600, 320x640"
+        ],
+        "execution": "NOT_RUN_IN_THIS_SESSION"
+      },
+      {
+        "path": "app/src/test/java/com/yujian/ai/ui/recognition/result/RecognitionProcessingMediaPlanTest.kt",
+        "blob_sha": "460c9ca6d58f71f02c6a153e28765c3a2137eb85",
+        "coverage": [
+          "FIT full-source",
+          "decorative CROP",
+          "transform invariant when bbox arrives",
+          "five source aspect cases across five viewport classes",
+          "compact 320x640"
+        ],
+        "execution": "NOT_RUN_IN_THIS_SESSION"
+      },
+      {
+        "path": "app/src/androidTest/java/com/yujian/ai/RecognitionOpticalSegmentRuntimeTest.kt",
+        "blob_sha": "fbaf92562f3cb42a11fc49e7a3a551cd2b58297e",
+        "coverage": [
+          "measured Bézier length",
+          "wraparound split",
+          "segment remains partial"
+        ],
+        "execution": "NOT_RUN_IN_THIS_SESSION"
+      }
+    ],
+    "this_module_checks": [
+      "Seven path records and the three-state/three-PNG invariant are machine-validated before commit.",
+      "Coordinate transform formula and overshoot behavior are traceable to Android implementation and named tests.",
+      "No Android runtime, Figma structure, export, Geometry/Glyph/Optical ROI or Pixel Diff was run."
+    ]
+  },
+  "pending_modules": [],
+  "p2_fish_focus": {
+    "status": "DERIVED_IMPLEMENTATION_TRACE_NOT_NORMATIVE",
+    "visibility_gate": "Only OUTLINE / CLASSIFYING and only with a real detector focus bbox. Never synthesize focus from the photo, placeholder data or timer.",
+    "input_contract": {
+      "focus_bbox": "recognition.focus_region normalized detector bbox in EXIF-oriented source-photo coordinates",
+      "transform": "p1_photoviewport.primary FIT transform; detector bbox, subject box, contour and halo share it",
+      "contour_source": "FishSubjectResult bitmap alpha from the real subject-generation pipeline; subjectBox = primary detector bbox expanded by 0.12 before local-mask contour mapping",
+      "missing_bbox": "draw no Fish Focus",
+      "missing_mask_or_contour": "fall back to B; never create a rectangle or bbox-as-contour",
+      "classifier_semantics": "A/B/C affects presentation only"
+    },
+    "levels": {
+      "A": {
+        "trigger": "real bbox + nonempty generated subject bitmap + nonempty extracted contour; promotion after 420ms unless phase override",
+        "draw": [
+          "bbox-centered warm-gold radial halo",
+          "real mask contour"
+        ],
+        "radii": {
+          "x": "mappedBBox.width * 0.62 + 14dp",
+          "y": "mappedBBox.height * 0.72 + 14dp"
+        },
+        "halo_color": "#F6D99B",
+        "halo_alpha_contract": [
+          0.1,
+          0.18
+        ],
+        "contour": {
+          "color": "#FFE7AE",
+          "core_width_dp": 1.5,
+          "core_alpha_outline": 0.36,
+          "core_alpha_classifying": [
+            0.3,
+            0.42
+          ],
+          "glow_color": "#FFD887",
+          "glow_outer_width_dp": 11,
+          "glow_outer_blur_dp": 5,
+          "glow_outer_alpha_multiplier": 0.22,
+          "glow_outer_alpha_cap": 0.1,
+          "glow_mid_width_dp": 4,
+          "glow_mid_blur_dp": 2,
+          "glow_mid_alpha_multiplier": 0.68,
+          "glow_mid_alpha_cap": 0.24,
+          "reveal_easing": "smoothstep",
+          "runtime_reveal_ms": 380,
+          "reduce_motion_reveal_ms": 180
+        }
+      },
+      "B": {
+        "trigger": "real bbox is valid but contour is unavailable; also the 420ms A promotion delay",
+        "draw": [
+          "bbox-derived warm-gold halo",
+          "restrained perimeter ellipse",
+          "no contour"
+        ],
+        "radii": {
+          "x": "mappedBBox.width * 0.54 + 14dp",
+          "y": "mappedBBox.height * 0.60 + 14dp"
+        },
+        "halo_color": "#F6D99B",
+        "runtime_outline_halo_alpha": [
+          0.24,
+          0.36
+        ],
+        "runtime_perimeter_alpha": [
+          0.42,
+          0.56
+        ],
+        "perimeter": {
+          "color": "#FFE7AE",
+          "width_dp": 1.2
+        }
+      },
+      "C": {
+        "trigger": "explicit D4 performance degradation only",
+        "draw": [
+          "real-bbox center-biased warm-gold halo",
+          "no contour",
+          "no perimeter"
+        ],
+        "radius_scale": 0.88
+      }
+    },
+    "geometry": {
+      "radial_outer_extent_multiple": 1.18,
+      "interior_fill": "transparent",
+      "normalized_mask_contour": "map subject-local normalized contour through subjectBox and the primary photo transform",
+      "contour_extraction_runtime": {
+        "alpha_threshold_8bit": 36,
+        "stride_px": 2,
+        "connectivity": 8,
+        "component_filter": "keep component size >= max(4, largestComponentSize/200)",
+        "output": "closed smooth Bezier loops"
+      },
+      "source_spec_stride_px": 4,
+      "stride_conflict": "REVIEW_REQUIRED_SOURCE_VS_RUNTIME"
+    },
+    "timing": {
+      "A_promotion_delay_ms": 420,
+      "outline_contour_reveal_ms": "runtime 380; V1.1 describes approximately 360–380",
+      "classifying_breath_cycle_ms": 1900,
+      "classifying_halo_alpha_runtime": "0.12 + 0.06 * wave",
+      "resolve_behavior": "Fish Focus must fade with the terminal handoff; explicit ResolveStrength is not currently exposed by RecognitionFishFocus."
+    },
+    "fallback": {
+      "no_bbox": "no focus layer",
+      "bbox_no_mask": "B",
+      "explicit_D3": "B",
+      "explicit_D4": "C",
+      "reduce_motion": "retain semantic focus; freeze/shorten motion and use static focus levels",
+      "performance": "apply D0…D4 to visual detail only; do not alter detector/classifier/result semantics"
+    },
+    "verification": {
+      "fixture_sha256": "6e955087108f7463eca2dbac489699a4942028ebe1b3d456ddfca523286385ef",
+      "fixture_path": "app/src/androidTest/assets/recognition_real_catch_fixture.jpg",
+      "fixture_bytes": 292222,
+      "fixture_limit": "runtime source-photo fixture only; no trusted static bbox, production mask, provenance or usage-right evidence",
+      "contour_test": "RecognitionFishContourRuntimeTest builds a synthetic 160x120 oval mask and verifies a connected smooth closed contour; it does not validate the production fish mask",
+      "execution": "NOT_RUN_IN_THIS_SESSION"
+    }
+  },
+  "p3_states_and_status": {
+    "product_states": [
+      {
+        "id": "IMAGE_RECOGNIZING",
+        "display_name": "图片识别中",
+        "frozen_png": "design/pages/recognition/design/02_AI_Understanding_Frozen.png",
+        "phases": [
+          "CAPTURED",
+          "DETECTING"
+        ]
+      },
+      {
+        "id": "FISH_LOCATED",
+        "display_name": "已定位到鱼体",
+        "frozen_png": "design/pages/recognition/design/03_Fish_Highlight_Frozen.png",
+        "phases": [
+          "OUTLINE"
+        ]
+      },
+      {
+        "id": "SPECIES_RECOGNIZING",
+        "display_name": "鱼种识别中",
+        "frozen_png": "design/pages/recognition/design/04_Fish_Identifying_Frozen.png",
+        "phases": [
+          "CLASSIFYING"
+        ]
+      }
+    ],
+    "internal_pipeline_phases": [
+      {
+        "id": "CAPTURED",
+        "minimum_ms": 220,
+        "advance_requires": [
+          "minimum_beat_elapsed",
+          "real_detection_start_event"
+        ],
+        "visual": "IMAGE_RECOGNIZING",
+        "fish_focus": false
+      },
+      {
+        "id": "DETECTING",
+        "minimum_ms": 320,
+        "advance_requires": [
+          "minimum_beat_elapsed",
+          "real_classifier_eligible_fish_focus"
+        ],
+        "visual": "IMAGE_RECOGNIZING",
+        "fish_focus": false
+      },
+      {
+        "id": "OUTLINE",
+        "minimum_ms": 350,
+        "advance_requires": [
+          "minimum_beat_elapsed",
+          "real_classification_start_event"
+        ],
+        "visual": "FISH_LOCATED",
+        "fish_focus": "only with real detector geometry"
+      },
+      {
+        "id": "CLASSIFYING",
+        "minimum_ms": 250,
+        "advance_requires": [
+          "minimum_beat_elapsed",
+          "real_classifier_result"
+        ],
+        "visual": "SPECIES_RECOGNIZING"
+      },
+      {
+        "id": "RESULT_READY",
+        "minimum_ms": 0,
+        "visual": "NO_ADDITIONAL_PROCESSING_STATE",
+        "action": "immediate result handoff; Resolve is non-blocking"
+      }
+    ],
+    "status_card": {
+      "component": "RecognitionStatusCard",
+      "structure": [
+        "GlassContainer",
+        "AIRingIndicator",
+        "Title",
+        "Subtitle"
+      ],
+      "android": {
+        "height_dp": 112,
+        "corner_radius_dp": 30,
+        "background": "#D91A2C35",
+        "border_width_dp": 0.75,
+        "horizontal_padding_dp": 28,
+        "indicator_size_dp": 54,
+        "indicator_stroke_dp": 4,
+        "indicator_sweep_degrees": 112,
+        "indicator_cycle_ms": 1600,
+        "row_gap_dp": 16,
+        "title_size_sp": 20,
+        "title_weight": "Medium",
+        "subtitle_size_sp": 14,
+        "text_gap_dp": 5
+      },
+      "token_refs": [
+        "color.legacy_1a2c35ff",
+        "color.legacy_bfd0d7ff",
+        "color.legacy_bfeaf2ff",
+        "color.legacy_d8f5faff",
+        "color.legacy_f6d99bff",
+        "color.legacy_ffe7aeff",
+        "type.title",
+        "type.body_small"
+      ],
+      "current_copy_by_phase": {
+        "CAPTURED": {
+          "title": "正在准备识别",
+          "subtitle": "AI 已获取这张照片"
+        },
+        "DETECTING": {
+          "title": "正在理解这张照片",
+          "subtitle": "寻找这次鱼获的线索"
+        },
+        "OUTLINE": {
+          "title": "已定位到鱼体",
+          "subtitle": "正在分析这次鱼获"
+        },
+        "CLASSIFYING": {
+          "title": "正在认识这条鱼",
+          "subtitle": "分析鱼体特征"
+        }
+      },
+      "canonical_copy": {
+        "IMAGE_RECOGNIZING": {
+          "display_name": "图片识别中",
+          "title_subtitle_source": "02_AI_Understanding_Frozen.png",
+          "exact_copy_status": "NOT_TRANSCRIBED_IN_TEXT_AUTHORITY"
+        },
+        "FISH_LOCATED": {
+          "title": "已定位到鱼体",
+          "subtitle": "正在分析这次鱼获"
+        },
+        "SPECIES_RECOGNIZING": {
+          "title": "正在认识这条鱼",
+          "subtitle": "分析鱼体特征"
+        }
+      },
+      "discrepancies": [
+        {
+          "id": "RP-A07",
+          "target": "recognitionStatusCopy",
+          "issue": "CAPTURED and DETECTING currently resolve to two different titles/subtitles despite sharing one IMAGE_RECOGNIZING product visual and one Frozen PNG.",
+          "action": "Change the resolver key from internal RecognitionPhase to the three product-state IDs; transcribe the exact IMAGE_RECOGNIZING title/subtitle from the retained 02 Frozen asset before string implementation. Do not add a fourth status."
+        },
+        {
+          "id": "RP-A09",
+          "target": "Back icon mapping",
+          "issue": "V3.1 Layout Contract references the frozen ic_back_v1.svg asset; Android screen currently renders Material AutoMirrored ArrowBack.",
+          "action": "Map registered asset to the native component or document an accepted equivalent after asset comparison; retain safe-area placement and touch.minimum."
+        },
+        {
+          "id": "RP-A10",
+          "target": "DETECTING lightweight card variant",
+          "issue": "V1.1 visual spec describes a lightweight DETECTING status treatment, but V1.2 has one IMAGE_RECOGNIZING product visual for CAPTURED/DETECTING.",
+          "action": "Treat the shared three-state Frozen visual and V3.1 state machine as current authority; do not expose DETECTING as an additional product state. Confirm card treatment against retained 02 Frozen asset."
+        }
+      ],
+      "layout_verifications": [
+        {
+          "id": "RP-V-A01",
+          "target": "RecognitionStatusOverlay product-state anchors",
+          "source_runtime": "safeBottom+84dp for CAPTURED/DETECTING; safeBottom+34dp for OUTLINE/CLASSIFYING",
+          "finding": "CAPTURED and DETECTING already share one anchor; differing later-state anchor is not confirmed defect.",
+          "action": "Compare each product-state anchor with its retained Frozen PNG when real visual access returns; keep CAPTURED and DETECTING identical."
+        }
+      ],
+      "existing_test_conflict": {
+        "path": "app/src/test/java/com/yujian/ai/ui/recognition/RecognitionProcessingVisualTokensTest.kt",
+        "blob_sha": "edf1a2f23857c83d309b006307322f3f566bd3f6",
+        "current_assertion": "v31StatusCopyKeepsAllFourPipelineBeatsDistinct asserts CAPTURED != DETECTING",
+        "required_change": "replace four-phase copy assertion with three product-state assertions; assert CAPTURED and DETECTING resolve to exactly the same IMAGE_RECOGNIZING copy while retaining distinct OUTLINE and CLASSIFYING copy",
+        "execution": "NOT_RUN_IN_THIS_SESSION"
+      }
+    },
+    "event_gate_change": "NONE",
+    "event_gate_note": "Preserve real V3.1 event gates and >=220/320/350/250ms minimum beats exactly; state/copy repair is presentation-only."
+  },
+  "p4_motion_quality_responsive": {
+    "status": "DERIVED_IMPLEMENTATION_TRACE_NOT_NORMATIVE",
+    "motion_contract": {
+      "independent_inputs": [
+        "SegmentOffset",
+        "StateStrength",
+        "ResolveStrength"
+      ],
+      "base_cycle_ms": 10000,
+      "continuous_across_product_states": true,
+      "primary_seed": {
+        "B1": 0,
+        "G1": 0.12,
+        "B3": 0.47,
+        "G3": 0.64
+      },
+      "primary_speed": {
+        "IMAGE_RECOGNIZING": 1,
+        "FISH_LOCATED": 0.62,
+        "SPECIES_RECOGNIZING": 0.42,
+        "RESOLVE": 0
+      },
+      "state_strength": {
+        "IMAGE_RECOGNIZING": 1,
+        "FISH_LOCATED": 0.58,
+        "SPECIES_RECOGNIZING": 0.36
+      },
+      "easing": "cubic-bezier(0.22,1,0.36,1)",
+      "transition_ms": {
+        "IMAGE_RECOGNIZING_entry": 420,
+        "to_FISH_LOCATED": 260,
+        "to_SPECIES_RECOGNIZING": 280,
+        "RESOLVE": 200
+      },
+      "entry_staging_ms": {
+        "receiving": [
+          0,
+          180
+        ],
+        "primary": [
+          80,
+          320
+        ],
+        "detail": [
+          180,
+          420
+        ]
+      },
+      "companion_phase_delta": {
+        "B1C": -0.055,
+        "G1C": 0.065,
+        "B3C": -0.06,
+        "G3C": 0.05
+      },
+      "micro_phase_delta": {
+        "B1M": 0.085
+      },
+      "resolve": {
+        "strength": "(1-p)^2",
+        "duration_ms": 200,
+        "freeze_segment_offset": true,
+        "freeze_hairline_offsets": true,
+        "freeze_nodes": true,
+        "freeze_particles": true,
+        "shared_fade_layers": [
+          "Receiving Light",
+          "Outer Bloom",
+          "Mid Glow",
+          "Primary Core",
+          "Hairline",
+          "Hot Node",
+          "Particles",
+          "Fish Focus",
+          "Status Card"
+        ],
+        "additional_processing_wait_ms": 0
+      }
+    },
+    "android_runtime": {
+      "clock": "EdgeFieldMotionAccumulator integrates mean speed per uptime delta into a 10s cycle; CAPTURED and DETECTING share IMAGE_RECOGNIZING stage, so no reset between them.",
+      "initial_state_ramp_ms": 420,
+      "transition_ms": {
+        "to_FISH_LOCATED": 260,
+        "to_SPECIES_RECOGNIZING": 280,
+        "to_TERMINAL": 200
+      },
+      "reduce_motion_detection": "Settings.Global.ANIMATOR_DURATION_SCALE <= 0",
+      "reduce_motion_behavior": [
+        "segment speed set to 0",
+        "primary entry uses a 180ms eased reveal",
+        "node held static",
+        "particles not drawn",
+        "Fish Focus uses reduced/static alpha and 180ms OUTLINE reveal",
+        "minimum event gates remain owned by RecognitionVisualStateController"
+      ],
+      "resolve_gap": "Current terminal stage eases speed toward 0 and StateStrength toward 0 over 200ms, but it does not freeze SegmentOffset at Resolve start, has no independent ResolveStrength=(1-p)^2, and node/particle clocks remain live during the fade. Status and Fish Focus are removed on RESULT phase rather than consuming the same explicit ResolveStrength.",
+      "deterministic_evidence_mode": "visualClockOverride uses deterministic per-phase frames and is a screenshot fixture mode; do not treat its stage-specific offsets as production continuous-clock proof."
+    },
+    "quality_profiles": {
+      "FULL": {
+        "receiving": 1,
+        "outer": 1,
+        "mid": 1,
+        "core": 1,
+        "companions": [
+          "B1C",
+          "G1C",
+          "G3C",
+          "B3C"
+        ],
+        "micro": true,
+        "nodes": 2,
+        "particles": 8,
+        "alpha": 1
+      },
+      "BALANCED": {
+        "receiving": 0.85,
+        "outer": 0.75,
+        "mid": 0.9,
+        "core": 1,
+        "companions": [
+          "B1C",
+          "G1C"
+        ],
+        "micro": false,
+        "nodes": 1,
+        "particles": 4,
+        "alpha": 0.92
+      },
+      "LITE": {
+        "receiving": 0.7,
+        "outer": 0.5,
+        "mid": 0.8,
+        "core": 1,
+        "companions": [],
+        "micro": false,
+        "nodes": 0,
+        "particles": 0,
+        "alpha": 0.82
+      }
+    },
+    "degradation_mapping": {
+      "D0": {
+        "quality": "FULL",
+        "fish_focus": "A"
+      },
+      "D1": {
+        "quality": "BALANCED",
+        "fish_focus": "A"
+      },
+      "D2": {
+        "quality": "LITE",
+        "fish_focus": "A"
+      },
+      "D3": {
+        "quality": "LITE",
+        "fish_focus": "B"
+      },
+      "D4": {
+        "quality": "LITE",
+        "fish_focus": "C"
+      },
+      "compatibility_input": "lowPerformance=true with no explicit level maps to D2",
+      "semantic_invariant": "No quality/degradation/reduce-motion choice changes detector, crop, classifier, confidence, result, event gates, or recovery semantics."
+    },
+    "responsive_contract": {
+      "photo_viewport": "full-size BoxWithConstraints; recompute FIT transform on bitmap/viewport/density change",
+      "overlay_space": "normalized photoContentRect, not safe inset rectangle",
+      "controls": "safe drawing insets; horizontal inset max(24dp,leftInset,rightInset); Back top safeInset+4dp",
+      "status_horizontal_padding": "24dp outer screen inset, then tokenized card horizontal padding 28dp",
+      "existing_viewports_px": [
+        [
+          1080,
+          1920
+        ],
+        [
+          1080,
+          2160
+        ],
+        [
+          1080,
+          2340
+        ],
+        [
+          1080,
+          2400
+        ],
+        [
+          720,
+          1600
+        ],
+        [
+          320,
+          640
+        ]
+      ],
+      "existing_source_aspect_cases": [
+        [
+          2000,
+          1500
+        ],
+        [
+          1536,
+          2304
+        ],
+        [
+          2048,
+          1365
+        ],
+        [
+          1152,
+          1536
+        ],
+        [
+          1600,
+          900
+        ]
+      ],
+      "existing_geometry_cases": [
+        "center fish",
+        "left edge fish",
+        "right edge fish",
+        "top edge fish",
+        "bottom edge fish"
+      ],
+      "coverage_gap": "Current media/transform tests check image/focus geometry but do not assert Status Card text wrapping, Back touch target, safe-area screenshots, or full optical ROI at these viewport classes."
+    },
+    "test_refs": {
+      "event_gate": {
+        "path": "app/src/test/java/com/yujian/ai/ui/recognition/RecognitionVisualStateControllerTest.kt",
+        "blob_sha": "958ad857d44a31fa2d93094d28e43320efda7ec4",
+        "execution": "NOT_RUN_IN_THIS_SESSION"
+      },
+      "quality_tokens": {
+        "path": "app/src/test/java/com/yujian/ai/ui/recognition/RecognitionProcessingVisualTokensTest.kt",
+        "blob_sha": "edf1a2f23857c83d309b006307322f3f566bd3f6",
+        "execution": "NOT_RUN_IN_THIS_SESSION"
+      },
+      "viewport": {
+        "path": "app/src/test/java/com/yujian/ai/ui/identify/RecognitionImageTransformTest.kt",
+        "execution": "SOURCE_REVIEWED_NOT_RUN"
+      },
+      "media": {
+        "path": "app/src/test/java/com/yujian/ai/ui/recognition/result/RecognitionProcessingMediaPlanTest.kt",
+        "execution": "SOURCE_REVIEWED_NOT_RUN"
+      }
+    }
+  },
+  "p5_compose_import_bindings": {
+    "status": "ENGINEERING_HANDOFF_READY_FOR_UNIFIED_IMPORTER_INPUT",
+    "figma_import": {
+      "importer_owner": "NH01 Work A unified importer",
+      "activation_gate": "NH01 unified plugin passes minimum import validation before Processing configuration is connected",
+      "target_page_logical_name": "RP01",
+      "existing_page_policy": "inspect existing RP01 before write; do not create a second RP01 page; if page cannot be found, stop and report without writing",
+      "logical_frames": [
+        "RP01/IMAGE_RECOGNIZING",
+        "RP01/FISH_LOCATED",
+        "RP01/SPECIES_RECOGNIZING"
+      ],
+      "frame_dimensions_px": null,
+      "dimension_rule": "derive from an existing reviewed RP01 frame or retained native design contract; do not infer editable Figma frame size from 941x1672 PNG pixels",
+      "stable_node_ids": [],
+      "node_id_policy": "real node IDs must be read from Figma after a real write; never synthesize IDs",
+      "reference_png_policy": "import or bind each retained Frozen PNG as a locked visual reference; build native editable reconstruction as a sibling group; never replace or edit original reference",
+      "required_capabilities": [
+        "Frame",
+        "Text",
+        "Path",
+        "Component",
+        "PNG import/reference binding"
+      ],
+      "non_destructive": true,
+      "idempotent": true,
+      "repeated_run_policy": "find logical keyed nodes in existing RP01 and update or reuse; never duplicate page, frame, component or source asset",
+      "destructive_delete": false,
+      "write_status": "DEFERRED",
+      "native_structure_gate": "NOT_PASS_PENDING_REAL_FIGMA_NODES"
+    },
+    "component_tree": [
+      {
+        "logical_id": "processing.page",
+        "role": "three-state Processing composition",
+        "android": "RecognitionProcessingScene",
+        "children": [
+          "photo.viewport",
+          "edge.field",
+          "fish.focus",
+          "status.card",
+          "navigation.back"
+        ]
+      },
+      {
+        "logical_id": "photo.viewport",
+        "role": "full-screen original-photo coordinate surface",
+        "android": [
+          "RecognitionPhoto",
+          "RecognitionSourcePhoto",
+          "RecognitionImageTransform",
+          "RecognitionMediaPlanner.planProcessing"
+        ],
+        "children": [
+          "photo.original",
+          "photo.decorative_fit_fill",
+          "edge.field",
+          "fish.focus"
+        ]
+      },
+      {
+        "logical_id": "photo.original",
+        "role": "opaque current user photo; frozen reference is separate",
+        "android": "SelectedImage.bitmap -> RecognitionSourcePhoto"
+      },
+      {
+        "logical_id": "photo.decorative_fit_fill",
+        "role": "same-source CROP underlay only when FIT letterbox exists; alpha 0.16",
+        "android": "RecognitionSourcePhoto with decorativeBackgroundTransform"
+      },
+      {
+        "logical_id": "edge.field",
+        "role": "AI_EDGE_FIELD_V1 local overlay on photoContentRect",
+        "android": "RecognitionAmbientField",
+        "children": [
+          "receiving.light",
+          "primary.paths",
+          "secondary.fragments",
+          "hairline.echoes",
+          "hot.nodes",
+          "sparse.particles"
+        ]
+      },
+      {
+        "logical_id": "fish.focus",
+        "role": "real bbox and mask dependent focus; only after detector focus",
+        "android": "RecognitionFishFocus",
+        "children": [
+          "bbox.halo",
+          "real.mask.contour",
+          "fallback.perimeter"
+        ]
+      },
+      {
+        "logical_id": "status.card",
+        "role": "glass + ring + title + subtitle; product-state keyed",
+        "android": "RecognitionStatusOverlay"
+      },
+      {
+        "logical_id": "navigation.back",
+        "role": "safe-area Back exit; no save",
+        "android": "RecognizingScreen IconButton",
+        "asset_ref": "system_icon_library_v0_1_assets_ic_back_v1_svg",
+        "asset_status": "candidate_not_frozen"
+      }
+    ],
+    "android_to_native_mapping": [
+      {
+        "figma_logical_component": "PhotoViewport",
+        "compose": "RecognitionPhoto/RecognitionSourcePhoto",
+        "source": [
+          "RecognitionImageTransform",
+          "RecognitionMediaPlanner.planProcessing"
+        ],
+        "coordinates": "full source FIT transform; crop underlay not used by overlays"
+      },
+      {
+        "figma_logical_component": "AI Edge Field V1",
+        "compose": "RecognitionAmbientField",
+        "source": [
+          "Static_Shape_Contract",
+          "Rendering_Contract",
+          "Motion_Contract"
+        ],
+        "geometry_source": "p1_edge_field.paths"
+      },
+      {
+        "figma_logical_component": "Fish Focus A/B/C",
+        "compose": "RecognitionFishFocus",
+        "source": [
+          "real focus bbox",
+          "FishSubjectResult mask alpha",
+          "extracted contour"
+        ],
+        "geometry_source": "p2_fish_focus"
+      },
+      {
+        "figma_logical_component": "RecognitionStatusCard",
+        "compose": "RecognitionStatusOverlay",
+        "source": [
+          "RecognitionProcessingVisualTokens",
+          "V3.1 Layout Contract",
+          "Frozen per-state copy"
+        ],
+        "copy_key": "product_state_id"
+      },
+      {
+        "figma_logical_component": "Processing Back",
+        "compose": "RecognizingScreen IconButton",
+        "source": [
+          "V3.1 Layout Contract",
+          "ic_back_v1.svg candidate"
+        ],
+        "touch_minimum_dp": 44
+      }
+    ],
+    "token_bindings": [
+      {
+        "token_id": "color.legacy_1a2c35ff",
+        "path": "design/system_v3/04_Design_Tokens/Color/Color_Tokens_V3_FINAL.json",
+        "runtime": "#1A2C35 @ alpha 0.85"
+      },
+      {
+        "token_id": "color.legacy_bfd0d7ff",
+        "path": "design/system_v3/04_Design_Tokens/Color/Color_Tokens_V3_FINAL.json",
+        "runtime": "#BFD0D7"
+      },
+      {
+        "token_id": "color.legacy_bfeaf2ff",
+        "path": "design/system_v3/04_Design_Tokens/Color/Color_Tokens_V3_FINAL.json",
+        "runtime": "#BFEAF2"
+      },
+      {
+        "token_id": "color.legacy_d8f5faff",
+        "path": "design/system_v3/04_Design_Tokens/Color/Color_Tokens_V3_FINAL.json",
+        "runtime": "#D8F5FA"
+      },
+      {
+        "token_id": "color.legacy_f6d99bff",
+        "path": "design/system_v3/04_Design_Tokens/Color/Color_Tokens_V3_FINAL.json",
+        "runtime": "#F6D99B"
+      },
+      {
+        "token_id": "color.legacy_ffe7aeff",
+        "path": "design/system_v3/04_Design_Tokens/Color/Color_Tokens_V3_FINAL.json",
+        "runtime": "#FFE7AE"
+      },
+      {
+        "token_id": "geometry.media.fit",
+        "path": "design/system_v3/07_Responsive_System/Geometry_Tokens_V3_FINAL.json",
+        "runtime": "FIT; full normalized source rect"
+      },
+      {
+        "token_id": "geometry.media.cover",
+        "path": "design/system_v3/07_Responsive_System/Geometry_Tokens_V3_FINAL.json",
+        "runtime": "CROP only as same-source decorative FIT-band fill"
+      },
+      {
+        "token_id": "touch.minimum",
+        "path": "design/system_v3/07_Responsive_System/Geometry_Tokens_V3_FINAL.json",
+        "runtime_minimum_dp": 44
+      },
+      {
+        "token_id": "type.title",
+        "path": "design/system_v3/04_Design_Tokens/Typography/Typography_Tokens_V3_FINAL.json",
+        "runtime": "20sp Medium per Processing visual contract"
+      },
+      {
+        "token_id": "type.body_small",
+        "path": "design/system_v3/04_Design_Tokens/Typography/Typography_Tokens_V3_FINAL.json",
+        "runtime": "14sp secondary"
+      }
+    ],
+    "image_bindings": {
+      "runtime_photo": {
+        "field": "recognition.normalized_image",
+        "android": "SelectedImage.bitmap",
+        "transform": "p1_photoviewport",
+        "required": true,
+        "fallback": "return to Capture; do not start detector"
+      },
+      "frozen_references": [
+        {
+          "state": "IMAGE_RECOGNIZING",
+          "path": "design/pages/recognition/design/02_AI_Understanding_Frozen.png",
+          "sha256": "82fff89fabc368b01535dc94f4f084fee7b1e50e20948b9e82d5711c9a42473b",
+          "width": 941,
+          "height": 1672,
+          "mode": "import_or_external_reference_locked"
+        },
+        {
+          "state": "FISH_LOCATED",
+          "path": "design/pages/recognition/design/03_Fish_Highlight_Frozen.png",
+          "sha256": "632c9a7e6b45620d6a468acd0f83418ca6465423201e485f9699ebbc0d665284",
+          "width": 941,
+          "height": 1672,
+          "mode": "import_or_external_reference_locked"
+        },
+        {
+          "state": "SPECIES_RECOGNIZING",
+          "path": "design/pages/recognition/design/04_Fish_Identifying_Frozen.png",
+          "sha256": "d6ad5b06ddd4eb6236dd5ee03b5e5f5e16bf1b23661689c0fc9d88c790dd15ec",
+          "width": 941,
+          "height": 1672,
+          "mode": "import_or_external_reference_locked"
+        }
+      ],
+      "test_photo": {
+        "path": "app/src/androidTest/assets/recognition_real_catch_fixture.jpg",
+        "sha256": "6e955087108f7463eca2dbac489699a4942028ebe1b3d456ddfca523286385ef",
+        "bytes": 292222,
+        "role": "runtime/test fixture only",
+        "mask_or_bbox_binding": "none_trusted"
+      },
+      "back_icon": {
+        "path": "design/system/icon_library_v0_1/assets/ic_back_v1.svg",
+        "sha256": "1d9813c5f3262fba9599fb0ec9a772596d1a1d3f",
+        "status": "candidate_not_frozen",
+        "runtime_current": "Material AutoMirrored ArrowBack"
+      }
+    },
+    "data_bindings": [
+      {
+        "field": "recognition.normalized_image",
+        "type": "SelectedImage / opaque normalized photo",
+        "source": "Identify normalized-image handoff",
+        "required": true,
+        "android": "RecognizingScreen.image",
+        "fallback": "return to Capture",
+        "visual_rule": "original photo remains opaque and dominant"
+      },
+      {
+        "field": "recognition.pipeline_phase",
+        "type": "RecognitionPhase",
+        "source": "real RecognitionProgress.phase callback",
+        "required": true,
+        "android": "RecognitionVisualStateController.onPipelinePhase",
+        "fallback": "remain in current semantic stage",
+        "visual_rule": "internal phases map through p3 product-state table"
+      },
+      {
+        "field": "recognition.detector_outcome",
+        "type": "real detector assessment",
+        "source": "RecognitionProgress.assessment",
+        "required_to_leave": "DETECTING",
+        "android": "assessment.primary",
+        "fallback": "no fabricated candidate or focus"
+      },
+      {
+        "field": "recognition.focus_region",
+        "type": "NormalizedFishBox in source-photo coordinates",
+        "source": "real detector bbox",
+        "required_before": "Fish Focus",
+        "android": "RecognitionFishFocus.focusBox",
+        "fallback": "no focus if absent; B only when bbox exists and contour is unavailable"
+      },
+      {
+        "field": "recognition.subject_mask",
+        "type": "FishSubjectResult bitmap alpha",
+        "source": "generateSubject(SelectedImage,NormalizedFishBox)",
+        "required_for": "Level A contour",
+        "android": "extractContour(subjectBitmap)",
+        "fallback": "Level B; classifier semantics unchanged"
+      },
+      {
+        "field": "recognition.classifier_outcome",
+        "type": "ProductionRecognitionResult",
+        "source": "real classifier result",
+        "required_to_enter": "RESULT_READY",
+        "android": "RecognitionProcessingScene.finishedResult",
+        "fallback": "remain CLASSIFYING until event and min beat"
+      },
+      {
+        "field": "recognition.failure",
+        "type": "NO_FISH | IMAGE_QUALITY_WARNING | TECHNICAL_FAILURE",
+        "source": "existing real recovery route",
+        "required": true,
+        "visual_rule": "three failure classes remain distinct; Processing creates no record"
+      }
+    ],
+    "test_and_acceptance_bindings": [
+      {
+        "acceptance_id": "PROC-V-01",
+        "target": "original photo dominance, retained keyframes and optical layer order",
+        "execution": "NOT_RUN"
+      },
+      {
+        "acceptance_id": "PROC-V-02",
+        "target": "internal sequence maps into exactly three product visuals",
+        "execution": "SOURCE_CONTRACT_REVIEWED"
+      },
+      {
+        "acceptance_id": "PROC-V-03",
+        "target": "Frozen state copy and 14sp type.body_small",
+        "execution": "COPY_MISMATCH_REGISTERED; NOT_PASS"
+      },
+      {
+        "acceptance_id": "PROC-I-01",
+        "target": "220/320/350/250ms plus real events; no timer-only advance",
+        "execution": "SOURCE_TEST_EXISTS; NOT_RUN_HERE"
+      },
+      {
+        "acceptance_id": "PROC-I-02",
+        "target": "Back exits without saving; touch target >=44x44dp",
+        "execution": "NOT_RUN"
+      },
+      {
+        "acceptance_id": "PROC-I-03",
+        "target": "continuous motion and no phase reset",
+        "execution": "MOTION_GAP_RP-A11; NOT_PASS"
+      },
+      {
+        "acceptance_id": "PROC-A-01",
+        "target": "FULL/BALANCED/LITE, D0-D4, Reduce Motion preserve semantics",
+        "execution": "SOURCE_MAPPING_REVIEWED; RUNTIME_NOT_RUN"
+      },
+      {
+        "acceptance_id": "PROC-A-02",
+        "target": "Back 44x44dp minimum",
+        "execution": "NOT_RUN"
+      },
+      {
+        "acceptance_id": "PROC-E-01",
+        "target": "No Fish / Image Quality / Technical Failure distinct exits",
+        "execution": "NOT_RUN"
+      },
+      {
+        "acceptance_id": "PROC-E-02",
+        "target": "network/model failure never relabeled",
+        "execution": "NOT_RUN"
+      }
+    ]
+  },
+  "engineering_handoff_status": "ENGINEERING_HANDOFF_READY",
+  "runtime_validation_status": "NOT_RUN",
+  "overall_m1_gate": "NOT_PASS_PENDING_REAL_FIGMA_NODES_EXPORT_AND_INDEPENDENT_QA",
+  "optical_lab_runtime_snapshot": {
+    "status": "ANDROID_RUNTIME_SOURCE_SNAPSHOT_NOT_FROZEN_DESIGN",
+    "purpose": "Only fills rendering inputs absent from the P1-P5 JSON so the browser lab can compare current Android behavior. This extension is runtime provenance, not Frozen design authority or a visual PASS.",
+    "source_files": [
+      {
+        "path": "app/src/main/java/com/yujian/ai/ui/recognition/RecognitionAmbientField.kt",
+        "git_blob_sha": "7a7259e8ed40e03b384c621798e31f4906f0491b"
+      },
+      {
+        "path": "app/src/main/java/com/yujian/ai/ui/recognition/RecognitionFishFocus.kt",
+        "git_blob_sha": "d465bfeb8408d235a8e3ee1eaac2d50e812f92f2"
+      },
+      {
+        "path": "app/src/main/java/com/yujian/ai/ui/recognition/RecognitionProcessingVisualTokens.kt",
+        "git_blob_sha": "68a61dae637672337dd8117ae789493f112d97e3"
+      },
+      {
+        "path": "app/src/main/java/com/yujian/ai/ui/recognition/RecognitionStatusOverlay.kt",
+        "git_blob_sha": "891caf7473bf2a46c5730bc3586df7bc069f575a"
+      },
+      {
+        "path": "app/src/main/java/com/yujian/ai/ui/screens/RecognizingScreen.kt",
+        "git_blob_sha": "d005a291baef35248a1bd573ee44e79c4035a09e"
+      }
+    ],
+    "scene_background_color": "#102D35",
+    "decorative_crop_alpha": 0.16,
+    "receiving_light_layout": [
+      {
+        "id": "B_UR",
+        "center": [
+          1,
+          0.12
+        ],
+        "radius_min_dimension": 0.28,
+        "oval": [
+          0.62,
+          -0.04,
+          0.46,
+          0.4
+        ]
+      },
+      {
+        "id": "G_UL",
+        "center": [
+          0,
+          0.1
+        ],
+        "radius_min_dimension": 0.25,
+        "oval": [
+          -0.08,
+          -0.04,
+          0.46,
+          0.36
+        ]
+      },
+      {
+        "id": "G_LL",
+        "center": [
+          0,
+          0.88
+        ],
+        "radius_min_dimension": 0.26,
+        "oval": [
+          -0.08,
+          0.64,
+          0.48,
+          0.38
+        ]
+      },
+      {
+        "id": "B_LR",
+        "center": [
+          1,
+          0.86
+        ],
+        "radius_min_dimension": 0.25,
+        "oval": [
+          0.6,
+          0.64,
+          0.48,
+          0.38
+        ]
+      }
+    ],
+    "receiving_light_alpha_stops": [
+      [
+        0,
+        1
+      ],
+      [
+        0.34,
+        0.92
+      ],
+      [
+        0.72,
+        0.4
+      ],
+      [
+        1,
+        0
+      ]
+    ],
+    "gradient_tail_stops": [
+      [
+        0,
+        0.08
+      ],
+      [
+        0.58,
+        0.58
+      ],
+      [
+        0.88,
+        1
+      ],
+      [
+        1,
+        0.78
+      ]
+    ],
+    "hairline_runtime_alpha": {
+      "companion": {
+        "glow_multiplier": 0.18,
+        "glow_cap": 0.08,
+        "core_multiplier": 0.52,
+        "core_cap": 0.2
+      },
+      "micro": {
+        "glow_multiplier": 0.18,
+        "glow_cap": 0.08,
+        "core_multiplier": 0.52,
+        "core_cap": 0.2
+      }
+    },
+    "companion_hairline_geometry": [
+      {
+        "id": "B1C",
+        "parent": "B1",
+        "start": [
+          0.75,
+          -0.01
+        ],
+        "control1": [
+          0.91,
+          0.07
+        ],
+        "control2": [
+          0.99,
+          0.2
+        ],
+        "end": [
+          0.94,
+          0.37
+        ]
+      },
+      {
+        "id": "G1C",
+        "parent": "G1",
+        "start": [
+          -0.01,
+          0.2
+        ],
+        "control1": [
+          0.04,
+          0.11
+        ],
+        "control2": [
+          0.13,
+          0.04
+        ],
+        "end": [
+          0.24,
+          0
+        ]
+      },
+      {
+        "id": "G3C",
+        "parent": "G3",
+        "start": [
+          0.01,
+          0.77
+        ],
+        "control1": [
+          0.09,
+          0.87
+        ],
+        "control2": [
+          0.2,
+          0.94
+        ],
+        "end": [
+          0.34,
+          0.99
+        ]
+      },
+      {
+        "id": "B3C",
+        "parent": "B3",
+        "start": [
+          0.99,
+          0.65
+        ],
+        "control1": [
+          0.91,
+          0.77
+        ],
+        "control2": [
+          0.82,
+          0.9
+        ],
+        "end": [
+          0.69,
+          0.99
+        ]
+      }
+    ],
+    "micro_hairline_geometry": {
+      "id": "B1M",
+      "parent": "B1",
+      "start": [
+        0.84,
+        -0.01
+      ],
+      "control1": [
+        0.94,
+        0.05
+      ],
+      "control2": [
+        0.99,
+        0.13
+      ],
+      "end": [
+        0.985,
+        0.24
+      ]
+    },
+    "fish_halo_alpha_stops": [
+      [
+        0,
+        0
+      ],
+      [
+        0.52,
+        0
+      ],
+      [
+        0.75,
+        0
+      ],
+      [
+        0.88,
+        1
+      ],
+      [
+        1,
+        0
+      ]
+    ],
+    "status_layout": {
+      "safe_horizontal_min_dp": 24,
+      "back_button_size_dp": 48,
+      "back_top_extra_dp": 4,
+      "back_stroke_dp": 2,
+      "status_bottom_padding_dp": {
+        "IMAGE_RECOGNIZING": 84,
+        "FISH_LOCATED": 34,
+        "SPECIES_RECOGNIZING": 34
+      },
+      "ring_static_start_degrees": -90,
+      "ring_track_color": "#8A979B",
+      "ring_track_alpha": 0.4,
+      "border_gradient_stops": [
+        {
+          "position": 0,
+          "color_token": "color.legacy_ffe7aeff",
+          "alpha": 0.44
+        },
+        {
+          "position": 0.34,
+          "color_token": "color.legacy_f6d99bff",
+          "alpha": 0.28
+        },
+        {
+          "position": 0.68,
+          "color_token": "color.legacy_bfeaf2ff",
+          "alpha": 0.28
+        },
+        {
+          "position": 1,
+          "color_token": "color.legacy_d8f5faff",
+          "alpha": 0.44
+        }
+      ],
+      "ring_gradient_stops": [
+        {
+          "position": 0,
+          "color_token": "color.legacy_ffe7aeff",
+          "alpha": 0.22
+        },
+        {
+          "position": 0.25,
+          "color_token": "color.legacy_f6d99bff",
+          "alpha": 1
+        },
+        {
+          "position": 0.5,
+          "color_token": "color.legacy_ffe7aeff",
+          "alpha": 1
+        },
+        {
+          "position": 0.75,
+          "color_token": "color.legacy_bfeaf2ff",
+          "alpha": 0.85
+        },
+        {
+          "position": 1,
+          "color_token": "color.legacy_ffe7aeff",
+          "alpha": 0.22
+        }
+      ]
+    },
+    "renderer_candidates": {
+      "status": "BROWSER_ENGINEERING_CANDIDATE_NOT_FROZEN_PENDING_STATIC_VISUAL_REVIEW",
+      "cubic_subdivisions": 220,
+      "software_canvas_filter_blur_multiplier": 1,
+      "mask_diagnostic_alpha": 0.18,
+      "hardware_outer_bloom_layers": [
+        {
+          "width_multiplier": 2.8,
+          "alpha_multiplier": 0.2
+        },
+        {
+          "width_multiplier": 1.8,
+          "alpha_multiplier": 0.36
+        },
+        {
+          "width_multiplier": 1,
+          "alpha_multiplier": 0.6
+        }
+      ],
+      "hardware_mid_glow_layers": [
+        {
+          "width_multiplier": 1.8,
+          "alpha_multiplier": 0.3
+        },
+        {
+          "width_multiplier": 1,
+          "alpha_multiplier": 0.7
+        }
+      ],
+      "parameter_provenance": "Browser renderer multipliers and tessellation count are local engineering knobs; they are absent from Frozen design and P1–P5 and require visual review.",
+      "back_icon_geometry": {
+        "status": "BROWSER_APPROXIMATION_OF_ANDROID_AUTOMIRRORED_ARROW_BACK",
+        "viewbox_dp": [
+          24,
+          24
+        ],
+        "segments": [
+          [
+            [
+              19,
+              12
+            ],
+            [
+              5,
+              12
+            ]
+          ],
+          [
+            [
+              12,
+              19
+            ],
+            [
+              5,
+              12
+            ],
+            [
+              12,
+              5
+            ]
+          ]
+        ]
+      },
+      "roi_regions": {
+        "all": [
+          0,
+          0,
+          1,
+          1
+        ],
+        "top-left": [
+          0,
+          0,
+          0.32,
+          0.25
+        ],
+        "top-right": [
+          0.68,
+          0,
+          0.32,
+          0.25
+        ],
+        "bottom-right": [
+          0.68,
+          0.72,
+          0.32,
+          0.28
+        ],
+        "bottom-left": [
+          0,
+          0.72,
+          0.32,
+          0.28
+        ],
+        "center": [
+          0.32,
+          0.32,
+          0.36,
+          0.36
+        ],
+        "status": [
+          0.05,
+          0.73,
+          0.9,
+          0.25
+        ]
+      },
+      "roi_fish_expansion_ratio": 0.12,
+      "roi_status": "BROWSER_DIAGNOSTIC_REGION_CANDIDATE_NOT_DESIGN_GEOMETRY"
+    },
+    "fish_focus_static_values": {
+      "status": "ANDROID_RUNTIME_REDUCE_MOTION_STATIC_SAMPLE_NOT_FROZEN_DESIGN",
+      "basis": "Settled/Reduce Motion snapshot sampled from RecognitionFishFocus.kt; native runtime still requires Android validation.",
+      "defaults": {
+        "halo_alpha": 0.15,
+        "contour_alpha": 0.39
+      },
+      "FISH_LOCATED": {
+        "A": {
+          "halo_alpha": 0.15,
+          "contour_alpha": 0.39
+        },
+        "B": {
+          "halo_alpha": 0.28,
+          "contour_alpha": 0,
+          "perimeter_alpha": 0.48
+        },
+        "C": {
+          "halo_alpha": 0.15,
+          "contour_alpha": 0,
+          "perimeter_alpha": 0
+        }
+      },
+      "SPECIES_RECOGNIZING": {
+        "A": {
+          "halo_alpha": 0.15,
+          "contour_alpha": 0.39
+        },
+        "B": {
+          "halo_alpha": 0.15,
+          "contour_alpha": 0,
+          "perimeter_alpha": 0.36
+        },
+        "C": {
+          "halo_alpha": 0.15,
+          "contour_alpha": 0,
+          "perimeter_alpha": 0
+        }
+      }
+    },
+    "responsive_lab": {
+      "default_viewport_px": [
+        390,
+        844
+      ],
+      "extra_viewports_px": [
+        [
+          360,
+          800
+        ],
+        [
+          412,
+          915
+        ],
+        [
+          800,
+          360
+        ],
+        [
+          941,
+          1672
+        ]
+      ],
+      "test_viewports_from_p4": true,
+      "note": "The canonical responsive fixtures remain in p4_motion_quality_responsive.responsive_contract.existing_viewports_px."
+    },
+    "comparison_contract": {
+      "frozen_fit": "Uniform FIT into selected preview viewport; never stretch a Frozen reference to a different aspect ratio.",
+      "pixel_diff": "Same canvas dimensions and coordinate space; experimental because source-photo identity is not attested.",
+      "status": "BROWSER_COMPARISON_METHOD_NOT_FROZEN_DESIGN"
+    }
+  },
+  "optical_lab_input_baseline": {
+    "repository": "pan277942135/Yujian_App",
+    "pr_165_head_sha": "31d1483b83038db78821625cd9339ad0e8c19ff3",
+    "pr_166_head_sha_before_optical_lab": "f6ee9ddebb6036e9f3ce5629e5ff9f9b3c10a209",
+    "base_tree_sha": "87699ca418eafe09b2cdf09c157396acdae5c6ef",
+    "pre_extension_config_blob_sha": "b1646d1379682ad3c0df9e628792e180d1f5437e",
+    "gating_note": "PR #166 remains Draft/Open/Unmerged; no Figma node, Frozen diff, or Android Runtime PASS is claimed."
+  }
+}

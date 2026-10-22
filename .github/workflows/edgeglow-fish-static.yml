@@ -1,0 +1,263 @@
+name: EdgeGlow Fish Static · NH01 Acceptance Center
+
+on:
+  pull_request:
+    branches:
+      - design/processing-remove-early-visual-v1
+      - main
+    paths:
+      - "design/manager/nh01_acceptance/edgeglow-fish-static/**"
+      - "design/manager/optical-lab/**"
+      - "design/manager/index.html"
+      - "design/manager/styles.css"
+      - "design/manager/edgeglow-receiving-light.js"
+      - "design/system/recognition_optical_v2/**"
+      - "app/src/main/java/com/yujian/ai/ui/recognition/RecognitionOpticalConfigV2.kt"
+      - "app/src/main/java/com/yujian/ai/ui/recognition/RecognitionAmbientField.kt"
+      - "app/src/main/java/com/yujian/ai/ui/screens/RecognizingScreen.kt"
+      - "app/src/androidTest/java/com/yujian/ai/RecognitionOpticalFidelityRuntimeTest.kt"
+      - "scripts/design/build_edgeglow_fish_acceptance_site.py"
+      - "scripts/capture_optical_lab_static_closure_v3.cjs"
+      - "scripts/capture_receiving_light_static_one_shot_v1.cjs"
+      - "scripts/capture_receiving_light_alpha_diagnostic_v1.cjs"
+      - "scripts/capture_receiving_light_radial_geometry_review_v1.cjs"
+      - "scripts/capture_receiving_light_edge_ribbon_review_v1.cjs"
+      - "scripts/capture_receiving_light_continuous_spatial_field_v1.cjs"
+      - "scripts/capture_receiving_light_motion_studio_v1.cjs"
+      - "scripts/verify_design_manager_navigation.py"
+      - "scripts/smoke_edgeglow_fish_static.cjs"
+      - "scripts/verify_edgeglow_fish_static_source.py"
+      - "scripts/smoke_edgeglow_fish_static_live.py"
+      - ".github/workflows/edgeglow-fish-static.yml"
+  push:
+    branches:
+      - design/recognition-processing-handoff-p0
+    paths:
+      - "design/manager/nh01_acceptance/edgeglow-fish-static/**"
+      - "design/manager/optical-lab/**"
+      - "design/manager/index.html"
+      - "design/manager/styles.css"
+      - "design/manager/edgeglow-receiving-light.js"
+      - "design/system/recognition_optical_v2/**"
+      - "app/src/main/java/com/yujian/ai/ui/recognition/RecognitionOpticalConfigV2.kt"
+      - "app/src/main/java/com/yujian/ai/ui/recognition/RecognitionAmbientField.kt"
+      - "app/src/main/java/com/yujian/ai/ui/screens/RecognizingScreen.kt"
+      - "app/src/androidTest/java/com/yujian/ai/RecognitionOpticalFidelityRuntimeTest.kt"
+      - "scripts/design/build_edgeglow_fish_acceptance_site.py"
+      - "scripts/capture_optical_lab_static_closure_v3.cjs"
+      - "scripts/capture_receiving_light_static_one_shot_v1.cjs"
+      - "scripts/capture_receiving_light_alpha_diagnostic_v1.cjs"
+      - "scripts/capture_receiving_light_radial_geometry_review_v1.cjs"
+      - "scripts/capture_receiving_light_edge_ribbon_review_v1.cjs"
+      - "scripts/capture_receiving_light_continuous_spatial_field_v1.cjs"
+      - "scripts/capture_receiving_light_motion_studio_v1.cjs"
+      - "scripts/verify_design_manager_navigation.py"
+      - "scripts/smoke_edgeglow_fish_static.cjs"
+      - "scripts/verify_edgeglow_fish_static_source.py"
+      - "scripts/smoke_edgeglow_fish_static_live.py"
+      - ".github/workflows/edgeglow-fish-static.yml"
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  # Serialize the composed branch preview with the canonical main Pages deploy.
+  # Pull-request validation never deploys, so it must not evict a pending push
+  # deployment from GitHub's single-pending-run concurrency slot.
+  group: ${{ github.event_name == 'push' && 'design-manager-pages' || format('edgeglow-static-pr-{0}', github.event.pull_request.number) }}
+  cancel-in-progress: false
+
+env:
+  CENTER_SOURCE_BRANCH: main
+  PR_SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    outputs:
+      center_source_sha: ${{ steps.verify_center.outputs.center_source_sha }}
+    steps:
+      - name: Checkout exact PR #166 source
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          path: pr-source
+          fetch-depth: 1
+
+      - name: Checkout current NH01 Acceptance Center source
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          path: center-source
+          fetch-depth: 1
+
+      - name: Set up Node for browser smoke
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Verify checked-out Acceptance Center branch identity
+        id: verify_center
+        shell: bash
+        run: |
+          set -euo pipefail
+          remote_sha="$(git ls-remote "https://github.com/${GITHUB_REPOSITORY}.git" "refs/heads/${CENTER_SOURCE_BRANCH}" | cut -f1)"
+          checkout_sha="$(git -C center-source rev-parse HEAD)"
+          test -n "$remote_sha"
+          if [[ "$remote_sha" != "$checkout_sha" ]]; then
+            echo "Acceptance Center source moved during checkout: checked out $checkout_sha, remote is $remote_sha" >&2
+            exit 1
+          fi
+          echo "CENTER_SOURCE_SHA=$checkout_sha" >> "$GITHUB_ENV"
+          echo "center_source_sha=$checkout_sha" >> "$GITHUB_OUTPUT"
+          test "$(git -C pr-source rev-parse HEAD)" = "$PR_SOURCE_SHA"
+
+      - name: Compose the existing Acceptance Center with the additive route
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 pr-source/scripts/design/build_edgeglow_fish_acceptance_site.py \
+            --center-root center-source \
+            --pr-root pr-source \
+            --output-root "$RUNNER_TEMP/edgeglow-pages" \
+            --center-sha "$CENTER_SOURCE_SHA" \
+            --pr-sha "$PR_SOURCE_SHA"
+
+      - name: Install Playwright Chromium
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm install --no-save --prefix "$RUNNER_TEMP/edgeglow-playwright" playwright@1.63.0
+          "$RUNNER_TEMP/edgeglow-playwright/node_modules/.bin/playwright" install --with-deps chromium
+
+      - name: Check targeted capture scripts
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check pr-source/scripts/capture_receiving_light_continuous_spatial_field_v1.cjs
+          node --check pr-source/scripts/capture_receiving_light_motion_studio_v1.cjs
+          python3 -m py_compile pr-source/scripts/smoke_edgeglow_fish_static_live.py
+
+      - name: Verify Design Manager navigation and route
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 pr-source/scripts/verify_design_manager_navigation.py
+
+      - name: Capture Receiving Light continuous spatial field and Quiet Gap variants
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m http.server 8765 --directory "$RUNNER_TEMP/edgeglow-pages" >"$RUNNER_TEMP/edgeglow-continuous-field-http.log" 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          for attempt in {1..30}; do
+            if curl -fsS "http://127.0.0.1:8765/design/manager/nh01_acceptance/" >/dev/null; then
+              break
+            fi
+            sleep 1
+          done
+          PLAYWRIGHT_MODULE_DIR="$RUNNER_TEMP/edgeglow-playwright/node_modules" \
+            EDGEGLOW_SITE_BASE="http://127.0.0.1:8765/" \
+            PR_SOURCE_ROOT="$GITHUB_WORKSPACE/pr-source" \
+            PR_SOURCE_SHA="$PR_SOURCE_SHA" \
+            CENTER_SOURCE_SHA="$CENTER_SOURCE_SHA" \
+            OPTICAL_EVIDENCE_DIR="$RUNNER_TEMP/edgeglow-evidence/receiving-light-continuous-spatial-field-v1" \
+            node pr-source/scripts/capture_receiving_light_continuous_spatial_field_v1.cjs
+
+      - name: Capture playable Receiving Light Motion Studio
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/edgeglow-evidence/recognition-motion-studio"
+          python3 -m http.server 8766 --directory pr-source >"$RUNNER_TEMP/edgeglow-motion-studio-http.log" 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          for attempt in {1..30}; do
+            if curl -fsS "http://127.0.0.1:8766/design/manager/optical-lab/recognition-motion/" >/dev/null; then
+              break
+            fi
+            sleep 1
+          done
+          PLAYWRIGHT_MODULE_DIR="$RUNNER_TEMP/edgeglow-playwright/node_modules" \
+            MOTION_STUDIO_BASE="http://127.0.0.1:8766/" \
+            MOTION_STUDIO_SOURCE_SHA="$PR_SOURCE_SHA" \
+            PR_SOURCE_ROOT="$GITHUB_WORKSPACE/pr-source" \
+            MOTION_STUDIO_EVIDENCE_DIR="$RUNNER_TEMP/edgeglow-evidence/recognition-motion-studio" \
+            node pr-source/scripts/capture_receiving_light_motion_studio_v1.cjs 2>&1 | tee "$RUNNER_TEMP/edgeglow-evidence/recognition-motion-studio/capture.log"
+
+      - name: Upload static visual evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: EdgeGlow-Receiving-Light-Continuous-Spatial-Field-V1-${{ github.run_id }}-${{ github.event.pull_request.head.sha || github.sha }}
+          path: ${{ runner.temp }}/edgeglow-evidence/
+          if-no-files-found: warn
+          retention-days: 30
+
+      - name: Upload composed GitHub Pages site
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: ${{ runner.temp }}/edgeglow-pages
+
+  deploy:
+    # A review capture may be pushed to the PR branch without publishing its
+    # composed Pages artifact. Commits marked [no-pages-deploy] still run the
+    # browser capture job above, but must never update the live site.
+    # Publishing a review candidate requires an explicit commit-message opt-in; keep ordinary optical experiments review-only.
+    if: github.event_name == 'push' && contains(github.event.head_commit.message, '[allow-pages-deploy]') && !contains(github.event.head_commit.message, '[no-pages-deploy]')
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    env:
+      CENTER_SOURCE_SHA: ${{ needs.build-and-test.outputs.center_source_sha }}
+    environment:
+      name: design-manager-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    outputs:
+      page_url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Reconfirm current Acceptance Center source before deploy
+        shell: bash
+        run: |
+          set -euo pipefail
+          remote_sha="$(git ls-remote "https://github.com/${GITHUB_REPOSITORY}.git" "refs/heads/${CENTER_SOURCE_BRANCH}" | cut -f1)"
+          if [[ "$remote_sha" != "$CENTER_SOURCE_SHA" ]]; then
+            echo "Acceptance Center source moved before deploy: built $CENTER_SOURCE_SHA, remote is $remote_sha" >&2
+            exit 1
+          fi
+
+      - name: Checkout exact PR #166 source for live verification
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          path: pr-source
+          fetch-depth: 1
+
+      - name: Deploy the additive Acceptance Center build
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+      - name: Verify public HTTPS route, source identity and registered photo
+        shell: bash
+        env:
+          EDGEGLOW_OUTPUT_DIR: ${{ runner.temp }}/edgeglow-live-evidence
+          EDGEGLOW_BASE_URL: ${{ steps.deployment.outputs.page_url }}
+        run: |
+          set -euo pipefail
+          python3 "$GITHUB_WORKSPACE/pr-source/scripts/smoke_edgeglow_fish_static_live.py" \
+            --base-url="$EDGEGLOW_BASE_URL" \
+            --pr-sha="$PR_SOURCE_SHA" \
+            --center-sha="$CENTER_SOURCE_SHA" \
+            --output="$EDGEGLOW_OUTPUT_DIR/EdgeGlow_Fish_Static_Live_Smoke.json"
+
+      - name: Upload live cloud verification evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: EdgeGlow-Fish-Static-Live-${{ github.run_id }}-${{ github.event.pull_request.head.sha || github.sha }}
+          path: ${{ runner.temp }}/edgeglow-live-evidence/
+          if-no-files-found: error
+          retention-days: 30

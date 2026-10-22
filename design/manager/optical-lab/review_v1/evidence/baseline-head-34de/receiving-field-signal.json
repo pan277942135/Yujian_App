@@ -1,0 +1,50 @@
+{
+  "photo_rect_px": {
+    "left": 0,
+    "top": 162,
+    "width": 390,
+    "height": 520
+  },
+  "corners": [
+    {
+      "id": "top-left-gold",
+      "changed_ratio": 1,
+      "color_role_margin_per_changed_pixel": 36.893384363039914,
+      "mean_delta_rgb": [
+        9.693275013668671,
+        1.1205576817933296,
+        -27.200109349371242
+      ]
+    },
+    {
+      "id": "top-right-blue",
+      "changed_ratio": 1,
+      "color_role_margin_per_changed_pixel": 65.1212516297262,
+      "mean_delta_rgb": [
+        -40.70143415906128,
+        -5.771186440677966,
+        24.419817470664928
+      ]
+    },
+    {
+      "id": "bottom-left-gold",
+      "changed_ratio": 0.41753291753291755,
+      "color_role_margin_per_changed_pixel": 12.777593360995851,
+      "mean_delta_rgb": [
+        5.743762993762994,
+        3.258316008316008,
+        -3.3513513513513513
+      ]
+    },
+    {
+      "id": "bottom-right-blue",
+      "changed_ratio": 0.20539007092198583,
+      "color_role_margin_per_changed_pixel": 11.613950276243093,
+      "mean_delta_rgb": [
+        -1.6639716312056738,
+        1.0880851063829786,
+        3.8415602836879432
+      ]
+    }
+  ]
+}
