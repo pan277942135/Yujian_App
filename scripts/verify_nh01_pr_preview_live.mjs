@@ -325,8 +325,9 @@ async function main() {
 
     const mismatchPage=await browser.newPage({viewport:{width:1500,height:1200}});
     const originalContract=await page.evaluate(async path=>(await (await fetch(path,{cache:'no-store'})).json()),contract.path);
-    originalContract.contract_version='9.9';
-    await mismatchPage.route('**/NH01_RESPONSIVE_LAYOUT_V2.json',route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(originalContract)}));
+    const mismatchContract=JSON.parse(JSON.stringify(originalContract));
+    mismatchContract.contract_version='9.9';
+    await mismatchPage.route('**/NH01_RESPONSIVE_LAYOUT_V2.json',route=>route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(mismatchContract)}));
     await mismatchPage.goto(previewUrl,{waitUntil:'domcontentloaded',timeout:60000});
     await mismatchPage.locator('#contractFailure').waitFor({state:'visible',timeout:30000});
     const versionFailure=await mismatchPage.locator('#contractFailure').innerText();
@@ -339,7 +340,7 @@ async function main() {
     await missingFieldPage.goto(previewUrl,{waitUntil:'domcontentloaded',timeout:60000});
     await missingFieldPage.locator('#contractFailure').waitFor({state:'visible',timeout:30000});
     const missingFieldFailure=await missingFieldPage.locator('#contractFailure').innerText();
-    assert(/content.max_width_dp/.test(missingFieldFailure),'Missing required contract field did not fail closed');
+    assert(/content.max_width_dp/.test(missingFieldFailure),'Missing required contract field did not fail closed: '+missingFieldFailure);
     assert(await missingFieldPage.evaluate(()=>window.NH01GeminiPreviewLayoutReady!==true),'Missing required field used a stale/fallback layout');
     await missingFieldPage.close();
     report.checks.fail_closed={missing_contract:missingFailure,version_mismatch:versionFailure,missing_required_field:missingFieldFailure,no_fallback:true};

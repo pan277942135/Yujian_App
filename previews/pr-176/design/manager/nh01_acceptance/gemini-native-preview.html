@@ -1,913 +1,31 @@
-<!doctype html>
-<html lang="zh-CN">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="nh01-gemini-preview-build" content="__NH01_GEMINI_PREVIEW_BUILD__">
-  <meta name="nh01-gemini-preview-target" content="GEMINI_NATIVE_V3_STRUCTURE_PREVIEW_NOT_VISUAL_PASS">
-  <meta name="nh01-preview-root" content="../../../../../">
-  <meta name="nh01-responsive-contract-url" content="design/pages/home/normal_home/responsive/NH01_RESPONSIVE_LAYOUT_V2.json">
-  <meta name="nh01-responsive-contract-id" content="NH01_RESPONSIVE_LAYOUT_V2">
-  <meta name="nh01-responsive-contract-version" content="2.0">
-  <meta name="nh01-preview-deployment-sha" content="__NH01_PREVIEW_DEPLOYMENT_SHA__">
-  <title>æ¸”è§ Â· NH01 Gemini Native Preview</title>
-  <style>
-    :root{color-scheme:light;--ink:#16313e;--muted:#5b737d;--line:#d4e0e3;--panel:#f5f8f8;--success:#176d50;--warn:#815b12;--danger:#84382e;--font-scale:1;--safe-top:0px;--safe-bottom:0px;--safe-start:0px;--safe-end:0px;--brand-stats-gap:0px;--leading-gap:0px;--title-card-gap:0px;--card-footer-gap:0px;--section-header-height:0px;--header-height:0px;--header-horizontal-gap:0px;--content-width:0px;--content-top-padding:0px;--top-inline-padding:0px;--section-inline-padding:0px;--section-horizontal-gap:0px;--stats-min-height:0px;--stats-vertical-padding:0px;--stats-item-gap:0px;--avatar-size:0px;--avatar-touch-size:0px;--camera-visual-size:0px;--camera-touch-size:0px;--neighbor-width:0px;--neighbor-height:0px;--neighbor-gap:0px;--main-card-side-inset:0px;--peek-top-offset:0px;--stat-value-size:0px;--stat-label-size:0px;--section-title-size:0px;--section-action-size:0px;--cta-label-size:0px;--catch-species-size:0px;--catch-measure-size:0px;--catch-metadata-size:0px;--main-card-width:0px;--main-card-height:0px;--card-footer-padding:0px;--card-horizontal-padding:0px;--cta-camera-gap:0px;--footer-top-padding:0px;--footer-bottom-padding:0px;--text-gap:0px;--hero-aspect:1/1}
-    :root{--species-max-lines:1;--measurement-max-lines:1;--metadata-max-lines:2}
-    *{box-sizing:border-box}
-    html,body{margin:0;min-height:100%;font-family:system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--ink);background:#eaf0f1}
-    body{min-height:100dvh}
-    button,select{font:inherit}
-    .workspace{max-width:1680px;margin:0 auto;padding:18px;display:grid;grid-template-columns:220px minmax(360px,520px) minmax(290px,1fr);gap:16px;align-items:start}
-    .layer-column,.preview-column,.audit-column{min-width:0}
-    .workspace-header{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin:0 0 16px}
-    .eyebrow{font-size:10px;font-weight:800;letter-spacing:.13em;color:#617d87;text-transform:uppercase}
-    h1{font-size:clamp(20px,2vw,28px);line-height:1.2;margin:5px 0 7px}
-    h2{font-size:16px;margin:0}
-    p{line-height:1.6}
-    .subtitle{margin:0;color:var(--muted);font-size:12px;max-width:600px}
-    .status-badge{display:inline-flex;align-items:center;gap:6px;padding:6px 9px;border-radius:999px;background:#fff2d7;color:var(--warn);border:1px solid #e6cf98;font-size:10px;font-weight:800;white-space:nowrap}
-    .control-panel{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px;box-shadow:0 8px 24px rgba(17,48,61,.05)}
-    .control-panel{margin-bottom:14px}
-    .controls{display:flex;flex-wrap:wrap;gap:10px;align-items:end}
-    .control{display:grid;gap:5px;min-width:105px;flex:1}
-    .control label{font-size:10px;color:var(--muted);font-weight:700}
-    .control select{width:100%;padding:8px 9px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink);font-size:12px}
-    .control input{width:100%;padding:8px 9px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink);font-size:12px}
-    .contract-line{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;font-size:10px;color:var(--muted)}
-    .contract-line strong{color:var(--ink)}
-    .contract-line [data-state="PASS"]{color:var(--success)}
-    .contract-line [data-state="FAIL"]{color:var(--danger)}
-    .contract-error{display:none;padding:12px;border:1px solid #d99b8e;background:#fff0ed;color:var(--danger);border-radius:10px;font-size:12px;line-height:1.5;margin-bottom:12px}
-    .contract-failed .contract-error{display:block}
-    .contract-failed .device{visibility:hidden}
-    .contract-pending .device{visibility:hidden}
-    .control:has(input[type="range"]){min-width:150px}
-    .control input[type="range"]{padding:0;accent-color:#367a88}
-    .rule-list{display:grid;gap:7px;margin:0}
-    .rule-row{display:grid;grid-template-columns:minmax(90px,.8fr) minmax(0,1.2fr);gap:8px;padding:7px 8px;border:1px solid #e0e8ea;border-radius:8px;background:#f8fbfb;font-size:10px;line-height:1.45}
-    .rule-row dt{color:var(--muted)}.rule-row dd{margin:0;color:var(--ink);font-weight:700;overflow-wrap:anywhere}
-    .reference-controls{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center;margin:10px 0}
-    .reference-controls select{min-width:0;padding:8px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink);font-size:11px}
-    .reference-meta{font-size:10px;color:var(--muted);line-height:1.5;margin:0 0 8px;overflow-wrap:anywhere}
-    .reference-stage{display:grid;place-items:center;min-height:240px;max-height:520px;overflow:auto;padding:8px;background:#e7eef0;border:1px solid var(--line);border-radius:10px}
-    .reference-stage img{display:block;max-width:100%;max-height:500px;object-fit:contain;box-shadow:0 4px 16px rgba(14,41,51,.15)}
-    .reference-open{font-size:10px;color:#2a6675}
-    .workspace.contract-pending .control-panel select,.workspace.contract-pending .control-panel input{opacity:.6}
-    .layer-panel,.audit-card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:13px;box-shadow:0 8px 24px rgba(17,48,61,.05)}
-    .layer-panel{position:sticky;top:12px;max-height:calc(100dvh - 24px);display:flex;flex-direction:column;min-height:360px}
-    .panel-heading{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:9px}
-    .panel-heading h2{font-size:13px;margin:0}
-    .panel-count{font-size:9px;font-weight:800;color:#56727d;background:#edf3f4;padding:4px 6px;border-radius:6px;white-space:nowrap}
-    .panel-help{font-size:10px;color:var(--muted);line-height:1.45;margin:0 0 10px}
-    .layer-scroll{overflow:auto;min-height:0;overscroll-behavior:contain}
-    .layer-tree,.layer-children{list-style:none;padding:0;margin:0}
-    .layer-children{padding-left:14px;margin-left:10px;border-left:1px solid #dce6e8}
-    .layer-tree li{margin:2px 0}
-    .layer-node{display:flex;align-items:center;gap:6px;width:100%;min-width:0;padding:6px 7px;border:1px solid transparent;border-radius:7px;background:transparent;text-align:left;color:#34515c;font-size:10px;cursor:pointer}
-    .layer-node:hover{background:#f1f6f7}
-    .layer-node[aria-selected="true"]{background:#e5f2f4;border-color:#8eb8c1;color:#174c5a;font-weight:800}
-    .layer-node .node-icon{flex:none;width:14px;text-align:center;color:#6e8b95;font-size:11px}
-    .layer-node .node-label{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
-    .layer-node .node-state{flex:none;font-size:8px;color:#9a6a24}
-    .layer-branch>summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:5px;padding:5px 4px;color:#536e78;font-size:9px;font-weight:800}
-    .layer-branch>summary::-webkit-details-marker{display:none}
-    .layer-branch>summary:before{content:"â–¸";display:inline-block;width:10px;color:#76909a}
-    .layer-branch[open]>summary:before{content:"â–¾"}
-    .inspector-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin:10px 0}
-    .inspector-field{min-width:0;padding:8px;border:1px solid #e0e8ea;border-radius:8px;background:#f8fbfb}
-    .inspector-field.wide{grid-column:1/-1}
-    .inspector-label{display:block;font-size:9px;color:var(--muted);margin-bottom:4px}
-    .inspector-value{display:block;font-size:11px;line-height:1.45;color:var(--ink);font-weight:750;overflow-wrap:anywhere}
-    .inspector-code{font:10px/1.45 ui-monospace,SFMono-Regular,Consolas,monospace;font-weight:600}
-    .inspected-node{outline:2px solid #e7b452!important;outline-offset:-2px!important}
-    .preview-stage{display:flex;justify-content:center;align-items:flex-start;padding:6px 0 12px;min-width:0}
-    .device-wrap{position:relative;flex:none}
-    .device{position:relative;width:0;height:0;transform-origin:top left;overflow:hidden;container-type:size;background:#173746;isolation:isolate;box-shadow:0 18px 48px rgba(13,39,49,.22);border:1px solid rgba(255,255,255,.45);border-radius:26px}
-    .scene-background{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:top center;z-index:-2}
-    .page-content{position:relative;z-index:1;display:flex;flex-direction:column;width:min(100%,calc(var(--content-width) + var(--safe-start) + var(--safe-end)));height:100%;min-height:0;box-sizing:border-box;margin-inline:auto;padding:var(--safe-top) var(--safe-end) var(--safe-bottom) var(--safe-start)}
-    .top-section{flex:none;padding:var(--content-top-padding) var(--top-inline-padding) 0}
-    .header-bar{display:flex;align-items:center;justify-content:space-between;min-height:var(--header-height);gap:var(--header-horizontal-gap)}
-    .brand-title{display:block;width:var(--brand-width);height:auto;object-fit:contain;flex:none}
-    .avatar-button{display:grid;place-items:center;flex:none;width:var(--avatar-touch-size);height:var(--avatar-touch-size);border:0;padding:0;background:transparent;border-radius:50%}
-    .avatar-visual{display:block;width:var(--avatar-size);height:var(--avatar-size);object-fit:contain;border-radius:50%;background:rgba(255,255,255,.96)}
-    .stats-bar{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));align-items:center;min-height:var(--stats-min-height);padding:var(--stats-vertical-padding) 0;margin-top:var(--brand-stats-gap);color:#f7fbfc;text-align:center;text-shadow:0 1px 8px rgba(8,30,39,.28)}
-    .stat{display:grid;gap:var(--stats-item-gap);min-width:0;padding:0 3px}
-    .stat+.stat{position:relative;border-left:0}.stat+.stat:before{content:"";position:absolute;left:0;top:50%;transform:translateY(-50%);height:26px;width:1px;background:rgba(244,251,252,.3)}
-    .stat-value{font-weight:750;font-size:calc(var(--stat-value-size)*var(--font-scale));line-height:1.2}
-    .stat-label{font-size:calc(var(--stat-label-size)*var(--font-scale));line-height:1.2;opacity:.92}
-    .middle-section{display:flex;flex:1;flex-direction:column;justify-content:flex-start;min-height:0;margin-top:0;overflow:visible}.middle-section:before,.middle-section:after{content:"";display:block;flex:none;height:var(--leading-gap)}.middle-section:after{height:var(--card-footer-gap)}.middle-section[data-top-align="false"]{justify-content:center}.middle-section[data-scroll-needed="true"]{justify-content:flex-start;overflow-y:auto;scrollbar-width:none}.middle-section[data-scroll-needed="true"]::-webkit-scrollbar{display:none}
-    .section-header{display:flex;flex:none;height:var(--section-header-height);align-items:center;justify-content:space-between;gap:var(--section-horizontal-gap);padding:0 var(--section-inline-padding);margin-bottom:var(--title-card-gap);color:#fff;text-shadow:0 1px 7px rgba(9,30,39,.3)}
-    .section-title{font-size:calc(var(--section-title-size)*var(--font-scale));line-height:1.5;font-weight:700;white-space:nowrap}
-    .section-action{font-size:calc(var(--section-action-size)*var(--font-scale));line-height:1.5;opacity:.95;white-space:nowrap}
-    .carousel-window{position:relative;display:flex;align-items:center;justify-content:center;flex:none;width:100%;height:var(--main-card-height);min-height:0;overflow:hidden}
-    .catch-card{position:absolute;overflow:hidden;border:1.5px solid rgba(255,255,255,.92);border-radius:18px;background:rgba(27,59,72,.36);box-shadow:0 12px 26px rgba(9,30,40,.22)}
-    .neighbor-card{width:var(--neighbor-width);height:var(--neighbor-height);top:var(--peek-top-offset);transform:none;opacity:.72;z-index:1}
-    .neighbor-left{left:calc(var(--main-card-side-inset) - var(--neighbor-width) - var(--neighbor-gap))}
-    .neighbor-right{right:calc(var(--main-card-side-inset) - var(--neighbor-width) - var(--neighbor-gap))}
-    .neighbor-slot{display:block;width:100%;height:100%;background:rgba(41,72,88,.58);color:transparent;font-size:0;padding:0}
-    .main-card{position:relative;z-index:2;width:var(--main-card-width);height:var(--main-card-height);flex:none;aspect-ratio:var(--hero-aspect);display:flex;flex-direction:column;justify-content:flex-end}
-    .hero-placeholder{position:absolute;inset:0;display:grid;place-items:center;padding:12px;background:rgba(41,72,88,.5);color:#eef5f6;text-align:center}
-    .hero-placeholder-inner{max-width:90%;display:grid;gap:7px;justify-items:center}
-    .hero-placeholder strong{font-size:calc(12px*var(--font-scale));letter-spacing:.04em}
-    .hero-placeholder span{font-size:calc(10px*var(--font-scale));line-height:1.45}
-    .blocked-icon{display:grid;place-items:center;width:30px;height:30px;border:1px solid #8caab2;border-radius:50%;font-size:16px;background:rgba(255,255,255,.6)}
-    .card-bottom{position:relative;z-index:2;padding:var(--card-footer-padding) var(--card-horizontal-padding);color:#fff;background:linear-gradient(180deg,rgba(12,20,28,0) 0%,rgba(12,20,28,.52) 52%,rgba(10,16,24,.84) 100%);text-shadow:0 1px 5px rgba(0,0,0,.25)}
-    .catch-species{font-size:calc(var(--catch-species-size)*var(--font-scale));font-weight:750;line-height:1.2;margin:0 0 var(--text-gap)}
-    .catch-measure{font-size:calc(var(--catch-measure-size)*var(--font-scale));font-weight:600;line-height:1.2;margin:0 0 var(--text-gap)}
-    .catch-location{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:var(--metadata-max-lines);font-size:calc(var(--catch-metadata-size)*var(--font-scale));line-height:1.3;margin:0;opacity:.9;min-width:0;overflow:hidden;overflow-wrap:anywhere}
-    .catch-species,.catch-measure{display:-webkit-box;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere}
-    .catch-species{-webkit-line-clamp:var(--species-max-lines)}
-    .catch-measure{-webkit-line-clamp:var(--measurement-max-lines)}
-    .footer-section{flex:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:var(--cta-camera-gap);padding:var(--footer-top-padding) 0 var(--footer-bottom-padding);color:#fff;text-shadow:0 1px 8px rgba(9,30,39,.35)}
-    .cta-label{font-size:calc(var(--cta-label-size)*var(--font-scale));line-height:1.5;letter-spacing:.08em}
-    .camera-button{display:grid;place-items:center;width:var(--camera-touch-size);height:var(--camera-touch-size);padding:0;border:0;border-radius:50%;background:transparent;cursor:pointer;flex:none}
-    .camera-art{display:block;width:var(--camera-visual-size);height:var(--camera-visual-size);object-fit:contain}
-    .preview-toast{position:absolute;left:12px;right:12px;bottom:10px;z-index:8;padding:8px 10px;border-radius:9px;background:rgba(10,34,43,.9);color:#fff;font-size:10px;line-height:1.4;display:none}
-    .preview-toast[data-visible="true"]{display:block}
-    .audit-column{display:grid;gap:12px}
-    .audit-card h2{margin-bottom:10px}
-    .audit-intro{margin:0 0 12px;color:var(--muted);font-size:12px}
-    .asset-list{display:grid;gap:9px}
-    .asset-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:start;padding:10px;border:1px solid var(--line);border-radius:10px;background:#fbfdfd}
-    .asset-name{font-size:12px;font-weight:750;margin-bottom:4px}
-    .asset-meta{font-size:10px;line-height:1.5;color:var(--muted);overflow-wrap:anywhere}
-    .asset-status{font-size:9px;font-weight:800;letter-spacing:.02em;padding:5px 7px;border-radius:7px;white-space:nowrap;background:#edf2f3;color:#49636d}
-    .asset-status[data-status="PASS_SOURCE_INTEGRITY"]{background:#e2f4ec;color:var(--success)}
-    .asset-status[data-status^="BLOCKED"]{background:#fff0ed;color:var(--danger)}
-    .asset-status[data-status="FROZEN"]{background:#e2f4ec;color:var(--success)}
-    .asset-status[data-status="FROZEN_HOME_V2_VISUAL_CONSUMER"]{background:#e2f4ec;color:var(--success)}
-    .audit-footer{font-size:11px;line-height:1.55;color:var(--muted);margin:12px 0 0}
-    .audit-footer strong{color:var(--ink)}
-    .audit-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
-    .audit-actions a,.audit-actions button{display:inline-flex;align-items:center;justify-content:center;padding:8px 10px;border-radius:8px;border:1px solid var(--line);background:#fff;color:var(--ink);font-size:11px;text-decoration:none;cursor:pointer}
-    .audit-actions button:focus-visible,.audit-actions a:focus-visible,.control select:focus-visible{outline:2px solid #3d8798;outline-offset:2px}
-    .integrity-summary{font-size:11px;color:var(--muted);line-height:1.5;margin-top:10px;overflow-wrap:anywhere}
-    .integrity-summary[data-state="PASS"]{color:var(--success)}
-    .integrity-summary[data-state="FAIL"]{color:var(--danger)}
-    .responsive-matrix{grid-column:1/-1;background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px;box-shadow:0 8px 24px rgba(17,48,61,.05)}
-    .responsive-matrix-header{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:14px}
-    .responsive-matrix-title{font-size:16px;font-weight:800;margin:0 0 4px}
-    .responsive-matrix-subtitle{font-size:11px;line-height:1.5;color:var(--muted);margin:0;max-width:720px}
-    .matrix-scale-control{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--muted);font-weight:700}
-    .matrix-scale-control select{padding:7px 9px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink)}
-    .responsive-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;align-items:start}
-    .responsive-tile{min-width:0;padding:10px;border:1px solid var(--line);border-radius:12px;background:#f8fbfb}
-    .responsive-tile-header{display:flex;justify-content:space-between;align-items:center;gap:5px;margin-bottom:8px}
-    .responsive-tile-title{font-size:11px;font-weight:800;color:var(--ink)}
-    .responsive-tile-size{font-size:10px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
-    .responsive-frame{display:block;width:100%;padding:0;border:1px solid #c6d5d9;border-radius:10px;background:#dfe8e9;overflow:hidden}
-    .responsive-tile-note{font-size:10px;color:var(--muted);line-height:1.45;margin:8px 0 0;min-height:28px}
-    .canvas-mode,.matrix-mode{background:transparent;overflow:hidden}
-    .canvas-mode .workspace{display:block;width:100vw;height:100dvh;max-width:none;margin:0;padding:0}
-    .canvas-mode .workspace-header,.canvas-mode .control-panel,.canvas-mode .layer-column,.canvas-mode .audit-column,.canvas-mode .responsive-matrix{display:none!important}
-    .canvas-mode .preview-column{width:100vw;height:100dvh}
-    .canvas-mode .preview-stage{width:100vw;height:100dvh;padding:0;margin:0;display:block}
-    .canvas-mode .device-wrap{width:100vw!important;height:100dvh!important}
-    .canvas-mode .device{width:100vw!important;height:100dvh!important;transform:none!important;border:0;border-radius:0;box-shadow:none}
-    .matrix-mode .workspace{display:block;width:100vw;height:100dvh;max-width:none;margin:0;padding:0}
-    .matrix-mode .workspace-header,.matrix-mode .control-panel,.matrix-mode .layer-column,.matrix-mode .audit-column,.matrix-mode .responsive-matrix{display:none!important}
-    .matrix-mode .preview-column{width:100vw;height:100dvh}
-    .matrix-mode .preview-stage{width:100vw;height:100dvh;padding:0;margin:0;display:flex;justify-content:center;align-items:flex-start;overflow:hidden}
-    .matrix-mode .device{border:0;border-radius:10px;box-shadow:none}
-    @media(max-width:1350px){.workspace{grid-template-columns:200px minmax(320px,1fr) 300px;gap:12px;padding:14px}}
-    @media(max-width:1150px){.workspace{grid-template-columns:200px minmax(0,1fr)}.audit-column{grid-column:1/-1;grid-template-columns:repeat(2,minmax(0,1fr))}.responsive-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.layer-panel{position:static;max-height:none}}
-    @media(max-width:850px){.workspace{grid-template-columns:minmax(0,1fr);padding:14px;gap:14px}.workspace-header{margin-bottom:10px}.preview-stage{padding:0}.audit-column{grid-column:auto;grid-template-columns:minmax(0,1fr)}.responsive-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.layer-panel{max-height:420px}}
-    @media(max-width:460px){.workspace{padding:10px}.workspace-header{display:grid}.controls{gap:8px}.control{min-width:calc(50% - 8px)}.device{border-radius:18px}.asset-row{grid-template-columns:minmax(0,1fr)}.asset-status{justify-self:start;white-space:normal;overflow-wrap:anywhere;max-width:100%}.responsive-grid{grid-template-columns:minmax(0,1fr)}}
-  </style>
-</head>
-<body>
-  <main class="workspace contract-pending" id="nh01GeminiPreview">
-    <aside class="layer-column" aria-label="NH01 é¡µé¢ç»“æ„æ ‘">
-      <section class="layer-panel">
-        <div class="panel-heading"><h2>é¡µé¢å›¾å±‚</h2><span class="panel-count">NH01 Â· V3</span></div>
-        <p class="panel-help">é€‰æ‹©å›¾å±‚æŸ¥çœ‹ç”»å¸ƒè¾¹ç•Œã€ç´ æç»‘å®šä¸ Android å¯¹åº”èŠ‚ç‚¹ã€‚æœªæ‰¹å‡†çš„é±¼è·ç…§ç‰‡ä¿æŒé˜»å¡ã€‚</p>
-        <div class="layer-scroll"><ul class="layer-tree" id="layerTree">
-          <li><button class="layer-node" type="button" data-target="#device" aria-selected="false"><span class="node-icon">â–£</span><span class="node-label">Screen Â· NH01 Home</span></button></li>
-          <li><button class="layer-node" type="button" data-target="#assetBackground" aria-selected="false"><span class="node-icon">â–§</span><span class="node-label">BG Â· Morning Lake</span></button></li>
-          <li><details class="layer-branch" open><summary>Top Â· é¡¶éƒ¨åŒºåŸŸ</summary><ul class="layer-children">
-            <li><button class="layer-node" type="button" data-target="#topSection" aria-selected="false"><span class="node-icon">â–±</span><span class="node-label">Top-Section-AutoLayout</span></button></li>
-            <li><details class="layer-branch" open><summary>Header Â· å“ç‰Œä¸å¤´åƒ</summary><ul class="layer-children">
-              <li><button class="layer-node" type="button" data-target="#assetBrand" aria-selected="false"><span class="node-icon">â–§</span><span class="node-label">Brand-Title</span></button></li>
-              <li><button class="layer-node" type="button" data-target="#avatarButton" aria-selected="false"><span class="node-icon">â—‰</span><span class="node-label">User-Avatar-Btn</span></button></li>
-            </ul></details></li>
-            <li><button class="layer-node" type="button" data-target="#statsBar" aria-selected="false"><span class="node-icon">â–¤</span><span class="node-label">Stats-Bar</span></button></li>
-          </ul></details></li>
-          <li><details class="layer-branch" open><summary>Middle Â· é±¼è·è½®æ’­</summary><ul class="layer-children">
-            <li><button class="layer-node" type="button" data-target="#middleSection" aria-selected="false"><span class="node-icon">â–±</span><span class="node-label">Middle-Carousel-Section</span></button></li>
-            <li><button class="layer-node" type="button" data-target="#sectionHeader" aria-selected="false"><span class="node-icon">T</span><span class="node-label">Section-Header-Bar</span></button></li>
-            <li><button class="layer-node" type="button" data-target="#carouselWindow" aria-selected="false"><span class="node-icon">â–¦</span><span class="node-label">Carousel-Track</span></button></li>
-            <li><button class="layer-node" type="button" data-target="#leftCatchCard" aria-selected="false"><span class="node-icon">â–§</span><span class="node-label">Card-Peek-Left</span><span class="node-state">LOCK</span></button></li>
-            <li><button class="layer-node" type="button" data-target="#mainCatchCard" aria-selected="true"><span class="node-icon">â–£</span><span class="node-label">Card-Main-Active</span><span class="node-state">LOCK</span></button></li>
-            <li><button class="layer-node" type="button" data-target="#heroPlaceholder" aria-selected="false"><span class="node-icon">â–§</span><span class="node-label">Hero-Photo</span><span class="node-state">LOCK</span></button></li>
-            <li><button class="layer-node" type="button" data-target="#rightCatchCard" aria-selected="false"><span class="node-icon">â–§</span><span class="node-label">Card-Peek-Right</span><span class="node-state">LOCK</span></button></li>
-          </ul></details></li>
-          <li><details class="layer-branch" open><summary>Footer Â· åº•éƒ¨æ“ä½œ</summary><ul class="layer-children">
-            <li><button class="layer-node" type="button" data-target="#footerSection" aria-selected="false"><span class="node-icon">â–±</span><span class="node-label">Footer-CTA-Section</span></button></li>
-            <li><button class="layer-node" type="button" data-target="#ctaLabel" aria-selected="false"><span class="node-icon">T</span><span class="node-label">CTA-Label-RecordNext</span></button></li>
-            <li><button class="layer-node" type="button" data-target="#cameraButton" aria-selected="false"><span class="node-icon">â—‰</span><span class="node-label">CTA-Camera-Button</span></button></li>
-          </ul></details></li>
-        </ul></div>
-      </section>
-    </aside>
-    <section class="preview-column">
-      <header class="workspace-header">
-        <div>
-          <div class="eyebrow">GITHUB NATIVE Â· GEMINI STRUCTURE</div>
-          <h1>NH01 Â· Gemini Native V3</h1>
-      <p class="subtitle">Adaptive V2 ç›´æ¥è¯»å–å“åº”å¼æœºå™¨åˆåŒã€‚å†»ç»“å‚è€ƒã€ç»„ä»¶è§„åˆ™å’Œäº¤äº’é¢„è§ˆå¹¶åˆ—å±•ç¤ºï¼›ç…§ç‰‡æ¥æºçŠ¶æ€ä¼šåœ¨ç”»å¸ƒä¸­æ˜ç¡®æ ‡è®°ã€‚</p>
-        </div>
-        <span class="status-badge">PREVIEW ONLY Â· NOT VISUAL PASS</span>
-      </header>
-      <section class="control-panel" aria-label="é¢„è§ˆæ§åˆ¶">
-        <div id="contractFailure" class="contract-error" role="alert"></div>
-        <div class="controls">
-          <div class="control"><label for="layoutVariant">å¸ƒå±€å˜ä½“</label><select id="layoutVariant"><option value="ADAPTIVE_V2" selected>Adaptive V2 Â· å†…å®¹ä¼˜å…ˆ</option><option value="V3_BASELINE">V3 Baseline Â· å¯¹ç…§</option></select></div>
-          <div class="control"><label for="viewportPreset">é€»è¾‘è§†å£</label><select id="viewportPreset">
-            <option value="360x640">360 Ã— 640</option><option value="390x844" selected>390 Ã— 844</option><option value="430x932">430 Ã— 932</option><option value="320x480">320 Ã— 480</option><option value="600x960">600 Ã— 960</option>
-          </select></div>
-          <div class="control"><label for="customWidth">è‡ªç”±è§†å£å®½åº¦ (dp)</label><input id="customWidth" type="number" min="240" max="1200" step="1" value="390"></div>
-          <div class="control"><label for="customHeight">è‡ªç”±è§†å£é«˜åº¦ (dp)</label><input id="customHeight" type="number" min="320" max="1600" step="1" value="844"></div>
-          <div class="control"><label for="fontScale">ç³»ç»Ÿå­—ä½“ç¼©æ”¾ Â· <span id="fontScaleReadout">1.0Ã—</span></label><input id="fontScale" type="range" min="1" max="1.5" step="0.1" value="1"></div>
-          <div class="control"><label for="safeTop">å®‰å…¨åŒºé¡¶éƒ¨ (dp)</label><input id="safeTop" type="number" min="0" max="200" step="1" value="24"></div>
-          <div class="control"><label for="safeBottom">å®‰å…¨åŒºåº•éƒ¨ (dp)</label><input id="safeBottom" type="number" min="0" max="200" step="1" value="24"></div>
-          <div class="control"><label for="safeStart">å®‰å…¨åŒºèµ·å§‹ä¾§ (dp)</label><input id="safeStart" type="number" min="0" max="200" step="1" value="0"></div>
-          <div class="control"><label for="safeEnd">å®‰å…¨åŒºç»“æŸä¾§ (dp)</label><input id="safeEnd" type="number" min="0" max="200" step="1" value="0"></div>
-        </div>
-        <div class="contract-line"><span>å“åº”å¼åˆåŒï¼š<strong id="contractVersion">åŠ è½½ä¸­</strong></span><span>åˆåŒ SHA-256ï¼š<code id="contractSha">â€”</code></span><span>é¢„è§ˆæº SHAï¼š<code id="previewSourceSha">â€”</code></span><span>Pages éƒ¨ç½² SHAï¼š<code id="deploymentSha">â€”</code></span><span id="contractLoadState" data-state="PENDING">ç­‰å¾…åˆåŒ</span></div>
-      </section>
-      <div class="preview-stage">
-        <div class="device-wrap" id="deviceWrap">
-          <section class="device" id="device" aria-label="NH01 Gemini Native V3 structure preview">
-            <img class="scene-background" id="assetBackground" data-asset-id="background" data-preview-path="design/system/backgrounds/morning_lake_v1/assets/Morning_Lake_Master_V1.png" alt="">
-            <div class="page-content">
-              <header class="top-section" id="topSection" data-layer="Top-Section-AutoLayout">
-                <div class="header-bar" id="headerBar" data-layer="Header-Bar">
-                  <img class="brand-title" id="assetBrand" data-asset-id="brand" data-preview-path="design/system_v3/06_Asset_System/derived/brand_title_primary/brand_title_primary.png" alt="æ¸”è§">
-                  <button class="avatar-button" type="button" id="avatarButton" aria-label="å¤´åƒçŠ¶æ€é¢„è§ˆ">
-                    <img class="avatar-visual" id="assetAvatar" data-asset-id="avatar" src="./assets/normal_home_default_avatar_v2.png" alt="">
-                  </button>
-                </div>
-                <div class="stats-bar" id="statsBar" data-layer="Stats-Bar" aria-label="é™æ€å‚è€ƒæ•°æ®å¤¹å…·">
-                  <div class="stat"><span class="stat-value">3</span><span class="stat-label">é±¼ç§</span></div>
-                  <div class="stat"><span class="stat-value">3</span><span class="stat-label">é±¼è·</span></div>
-                  <div class="stat"><span class="stat-value">1</span><span class="stat-label">è®°å½•å¤©æ•°</span></div>
-                </div>
-              </header>
-              <section class="middle-section" id="middleSection" data-scroll-needed="false" data-top-align="true" data-layer="Middle-Carousel-Section">
-                <div class="section-header" id="sectionHeader" data-layer="Section-Header-Bar">
-                  <span class="section-title">æœ€è¿‘é±¼è·</span><span class="section-action">å…¨éƒ¨ â€º</span>
-                </div>
-                <div class="carousel-window" id="carouselWindow" data-layer="Carousel-Track-Container">
-          <article class="catch-card neighbor-card neighbor-left" id="leftCatchCard" data-layer="Card-Peek-Left" aria-label="æ²¡æœ‰å·²æ‰¹å‡†çš„ä¸Šä¸€æ¡é±¼è·ç´ æ" hidden>
-                    <div class="neighbor-slot" aria-hidden="true"></div>
-                  </article>
-                  <article class="catch-card main-card" id="mainCatchCard" data-layer="Card-Main-Active" aria-label="é€‰ä¸­é±¼è·é™æ€å‚è€ƒå¤¹å…·">
-            <div class="hero-placeholder" id="heroPlaceholder" data-layer="Hero-Photo" data-status="BLOCKED_ASSET_SOURCE" aria-label="Hero photo intentionally blocked; see asset audit panel"><div class="hero-placeholder-inner"><span class="blocked-icon" aria-hidden="true">â–§</span><strong>é±¼è·ç…§ç‰‡æ¥æºå¾…æ‰¹å‡†</strong><span>ä¿ç•™çœŸå®ç´ æå ä½ï¼Œä¸ç”Ÿæˆæˆ–å¤åˆ¶é±¼è·å›¾åƒ</span></div></div>
-                    <div class="card-bottom" id="cardMetadata" data-layer="Card-Metadata">
-                      <p class="catch-species">è‰é±¼</p>
-                      <p class="catch-measure">42.6 cm Â· 1.28 kg</p>
-                      <p class="catch-location">æ˜¨å¤© 18:20 Â· æµ™æ±Ÿ Â· åƒå²›æ¹–</p>
-                    </div>
-                  </article>
-          <article class="catch-card neighbor-card neighbor-right" id="rightCatchCard" data-layer="Card-Peek-Right" aria-label="æ²¡æœ‰å·²æ‰¹å‡†çš„ä¸‹ä¸€æ¡é±¼è·ç´ æ" hidden>
-                    <div class="neighbor-slot" aria-hidden="true"></div>
-                  </article>
-                </div>
-              </section>
-              <footer class="footer-section" id="footerSection" data-layer="Footer-CTA-Section">
-                <span class="cta-label" id="ctaLabel" data-layer="CTA-Label-RecordNext">è®°å½•ä¸‹ä¸€æ¡é±¼</span>
-                <button class="camera-button" type="button" id="cameraButton" aria-label="ç›¸æœºæŒ‰é’®é™æ€é¢„è§ˆ">
-                  <img class="camera-art" id="assetCamera" data-asset-id="camera" data-preview-path="design/system_v3/06_Asset_System/derived/normal_home_camera_primary_v1/normal_home_camera_primary_v1.png" alt="">
-                </button>
-              </footer>
-            </div>
-            <div class="preview-toast" id="previewToast" role="status" aria-live="polite" data-visible="false"></div>
-          </section>
-        </div>
-      </div>
-    </section>
-    <aside class="audit-column">
-      <section class="audit-card" aria-label="æ‰€é€‰å›¾å±‚å±æ€§æ£€æŸ¥å™¨">
-        <div class="panel-heading"><h2>å±æ€§æ£€æŸ¥å™¨</h2><span class="panel-count" id="inspectorNodeStatus">MAPPED</span></div>
-        <p class="audit-intro">å‡ ä½•ä¸æ ·å¼è¯»å–è‡ªå½“å‰æµè§ˆå™¨ç”»å¸ƒï¼›åŠ¨æ€æ•°å€¼è§„åˆ™ç”± V2 æœºå™¨åˆåŒæä¾›ã€‚</p>
-        <div class="asset-name" id="inspectorNodeName">Card-Main-Active</div>
-        <div class="inspector-grid">
-          <div class="inspector-field wide"><span class="inspector-label">è®¾è®¡èŠ‚ç‚¹</span><span class="inspector-value inspector-code" id="inspectorDesignNode">Card-Main-Active</span></div>
-          <div class="inspector-field wide"><span class="inspector-label">Android Compose æ˜ å°„</span><span class="inspector-value inspector-code" id="inspectorComposeNode">GeminiCatchCarousel / Card-Main-Active</span></div>
-          <div class="inspector-field"><span class="inspector-label">X Â· Y (dp)</span><span class="inspector-value inspector-code" id="inspectorPosition">â€”</span></div>
-          <div class="inspector-field"><span class="inspector-label">W Â· H (dp)</span><span class="inspector-value inspector-code" id="inspectorSize">â€”</span></div>
-          <div class="inspector-field"><span class="inspector-label">å­—ä½“ / å­—é‡</span><span class="inspector-value inspector-code" id="inspectorFont">â€”</span></div>
-          <div class="inspector-field"><span class="inspector-label">åœ†è§’</span><span class="inspector-value inspector-code" id="inspectorRadius">â€”</span></div>
-          <div class="inspector-field"><span class="inspector-label">èƒŒæ™¯è‰²</span><span class="inspector-value inspector-code" id="inspectorBackground">â€”</span></div>
-          <div class="inspector-field"><span class="inspector-label">æ–‡å­—é¢œè‰²</span><span class="inspector-value inspector-code" id="inspectorColor">â€”</span></div>
-          <div class="inspector-field wide"><span class="inspector-label">å›¾ç‰‡è£åˆ‡ / ç´ æ</span><span class="inspector-value inspector-code" id="inspectorImage">â€”</span></div>
-          <div class="inspector-field wide"><span class="inspector-label">å“åº”å¼çº¦æŸ</span><span class="inspector-value" id="inspectorConstraint">â€”</span></div>
-          <div class="inspector-field wide"><span class="inspector-label">èµ„äº§ / å®ç°çŠ¶æ€</span><span class="inspector-value" id="inspectorAssetStatus">â€”</span></div>
-        </div>
-        <p class="panel-help" id="inspectorNote">é€‰æ‹©å›¾å±‚ä»¥æŸ¥çœ‹å®é™…æ ·å¼ã€ç´ æçŠ¶æ€å’ŒåˆåŒæ˜ å°„ã€‚</p>
-      </section>
-      <section class="audit-card" aria-label="å½“å‰ç»„ä»¶å“åº”å¼è§„åˆ™">
-        <div class="eyebrow">V2 CONTRACT Â· LIVE VALUES</div>
-        <h2>ç»„ä»¶å“åº”å¼è§„åˆ™</h2>
-        <p class="audit-intro">è§„åˆ™æ¥è‡ªå·²åŠ è½½çš„æœºå™¨åˆåŒï¼›å°ºå¯¸å€¼è·Ÿéšå½“å‰è§†å£ã€ç³»ç»Ÿå­—ä½“ä¸å®‰å…¨åŒºæ›´æ–°ã€‚</p>
-        <dl class="rule-list" id="responsiveRuleList"><div class="rule-row"><dt>çŠ¶æ€</dt><dd>ç­‰å¾…åˆåŒåŠ è½½</dd></div></dl>
-      </section>
-      <section class="audit-card" aria-label="å†»ç»“é«˜ä¿çœŸå‚è€ƒå¯¹ç…§">
-        <div class="eyebrow">FROZEN HI-FI ANCHORS</div>
-        <h2>å†»ç»“é«˜ä¿çœŸå¯¹ç…§</h2>
-        <p class="audit-intro">å·¦ä¾§äº¤äº’é¢„è§ˆä¸ä¸‹æ–¹å†»ç»“ PNG åˆ†å¼€å±•ç¤ºï¼›å‚è€ƒèµ„äº§åªè¯»ã€‚M05 æ˜¯ 480dp å®½åº¦è¾¹ç•Œé™æ€å‚è€ƒï¼Œæ²¡æœ‰æŒ‡å®šé«˜åº¦ã€‚</p>
-        <div class="reference-controls"><select id="anchorSelect" aria-label="é€‰æ‹©å†»ç»“å‚è€ƒ"></select><a id="anchorOpen" class="reference-open" target="_blank" rel="noreferrer">æ‰“å¼€åŸå›¾</a></div>
-        <p class="reference-meta" id="anchorMeta">ç­‰å¾…å‚è€ƒç™»è®°</p>
-        <div class="reference-stage"><img id="anchorImage" alt="å†»ç»“é«˜ä¿çœŸå‚è€ƒå›¾åƒ" hidden></div>
-      </section>
-      <section class="audit-card">
-        <div class="eyebrow">ASSET AUTHORITY</div>
-        <h2>æ­£å¼èµ„äº§ç»‘å®šä¸ SHA æ ¸éªŒ</h2>
-        <p class="audit-intro">ä»…å°†å·²ç™»è®°ã€å¯å…¬å¼€çš„è®¾è®¡èµ„äº§å®é™…æ¸²æŸ“ã€‚Hero/é‚»å¡ç…§ç‰‡ä¿æŒå ä½ï¼Œä¸ä»¥ä»“åº“ä¸­å­˜åœ¨æ–‡ä»¶æ¨å®šæ¥æºæˆ–ä½¿ç”¨æƒã€‚</p>
-        <div class="asset-list" id="assetList" aria-live="polite"></div>
-        <div class="integrity-summary" id="integritySummary" data-state="RUNNING">æ­£åœ¨æ ¸å¯¹æ³¨å†Œèµ„äº§çš„åŸå§‹å­—èŠ‚ä¸å°ºå¯¸â€¦</div>
-      </section>
-      <section class="audit-card">
-        <div class="eyebrow">AUTHORITY BOUNDARY</div>
-        <h2>éªŒæ”¶è¾¹ç•Œ</h2>
-        <p class="audit-intro">ç»“æ„æ¥æºæ˜¯ä»“åº“å†… Gemini ç»“æ„å¿«ç…§ä¸ V3 å®ç°åˆåŒï¼›ä¸æ˜¯ Figma å®æ—¶èŠ‚ç‚¹è¯»å›ã€‚åŸ NH01 Frozen PNG ä»ä¸å¯ä¿®æ”¹ï¼Œä½† Gemini V3 ä¸å®£ç§°ä¸æ—§ Frozen å…¨é¡µé€åƒç´ ä¸€è‡´ã€‚</p>
-        <div class="asset-row"><div><div class="asset-name">Android Runtime</div><div class="asset-meta">ç²¾ç¡®æºç  SHA çš„ API 28 å®‰è£…ã€å¯åŠ¨ã€äº¤äº’ã€æˆªå›¾ã€boundsInWindow å’Œå“åº”å¼çŸ©é˜µå¦è¡ŒéªŒæ”¶ã€‚</div></div><span class="asset-status" data-status="NOT_RUN">NOT RUN</span></div>
-        <div class="asset-row"><div><div class="asset-name">Visual Parity</div><div class="asset-meta">æœ¬é¡µåªè¯æ˜é™æ€ç»“æ„ä¸èµ„äº§å¯åŠ è½½ï¼›åŠ¨æ€ç…§ç‰‡ ROI å’Œæœªæ‰¹å‡†ç›®æ ‡ä¸å‚ä¸ PASS åˆ¤å®šã€‚</div></div><span class="asset-status" data-status="NOT_RUN">NOT RUN</span></div>
-        <p class="audit-footer"><strong>Preview build:</strong> <code id="buildSha">__NH01_GEMINI_PREVIEW_BUILD__</code><br><strong>Release gate effect:</strong> NONE</p>
-        <div class="audit-actions">
-          <a href="../../../../../design/manager/nh01_acceptance/">è¿”å› NH01 éªŒæ”¶ä¸­å¿ƒ</a>
-          <a id="contractAuthorityLink" href="#" target="_blank" rel="noreferrer">æŸ¥çœ‹å½“å‰ V2 æœºå™¨åˆåŒ</a>
-        </div>
-      </section>
-    </aside>
-    <section class="responsive-matrix" aria-label="ä¸åŒå±å¹•å°ºå¯¸å“åº”å¼å¯¹ç…§">
-      <div class="responsive-matrix-header">
-        <div><h2 class="responsive-matrix-title">å¤šå±å“åº”å¼å¯¹ç…§</h2><p class="responsive-matrix-subtitle">åŒä¸€å¥—é¡µé¢ç»“æ„åœ¨äº”ç§é€»è¾‘è§†å£ä¸‹å¹¶æ’æ¸²æŸ“ã€‚åˆ‡æ¢å­—ä½“ç¼©æ”¾ï¼Œå¯ç›´è§‚çœ‹åˆ°å¡ç‰‡ã€æ ‡é¢˜ã€åº•éƒ¨ CTA ä¸ç›¸æœºæ§ä»¶å¦‚ä½•å“åº”ã€‚æ­¤å¤„æ˜¯æµè§ˆå™¨ç»“æ„é¢„è§ˆï¼Œæœ€ç»ˆä»éœ€ç”¨åŒä¸€æºç  SHA çš„ Android Runtime æˆªå›¾éªŒæ”¶ã€‚</p></div>
-        <label class="matrix-scale-control" for="matrixFontScale">å…¨çŸ©é˜µå­—ä½“ç¼©æ”¾<select id="matrixFontScale"><option value="1" selected>1.0Ã—</option><option value="1.3">1.3Ã—</option><option value="1.5">1.5Ã—</option></select></label>
-      </div>
-      <div class="responsive-grid">
-        <article class="responsive-tile"><div class="responsive-tile-header"><span class="responsive-tile-title">ç´§å‡‘çŸ­å±</span><span class="responsive-tile-size">320Ã—480</span></div><iframe class="responsive-frame" data-viewport="320x480" title="NH01 320Ã—480 å“åº”å¼é¢„è§ˆ" style="aspect-ratio:2/3" data-src="./gemini-native-preview.html?mode=matrix&amp;viewport=320x480&amp;fontScale=1"></iframe><p class="responsive-tile-note">æ£€æŸ¥çŸ­å±ç©ºé—´ç«äº‰ä¸å±€éƒ¨æ»šåŠ¨ã€‚</p></article>
-        <article class="responsive-tile"><div class="responsive-tile-header"><span class="responsive-tile-title">ç´§å‡‘å±</span><span class="responsive-tile-size">360Ã—640</span></div><iframe class="responsive-frame" data-viewport="360x640" title="NH01 360Ã—640 å“åº”å¼é¢„è§ˆ" style="aspect-ratio:9/16" data-src="./gemini-native-preview.html?mode=matrix&amp;viewport=360x640&amp;fontScale=1"></iframe><p class="responsive-tile-note">æ£€æŸ¥æ ‡å‡†ç´§å‡‘å¸ƒå±€ä¸å¡ç‰‡æ¯”ä¾‹ã€‚</p></article>
-        <article class="responsive-tile"><div class="responsive-tile-header"><span class="responsive-tile-title">åŸºå‡†æ‰‹æœº</span><span class="responsive-tile-size">390Ã—844</span></div><iframe class="responsive-frame" data-viewport="390x844" title="NH01 390Ã—844 å“åº”å¼é¢„è§ˆ" style="aspect-ratio:390/844" data-src="./gemini-native-preview.html?mode=matrix&amp;viewport=390x844&amp;fontScale=1"></iframe><p class="responsive-tile-note">æ£€æŸ¥åŸºå‡†é¡µé¢æ¯”ä¾‹ä¸ä¸»å¡å‡ ä½•ã€‚</p></article>
-        <article class="responsive-tile"><div class="responsive-tile-header"><span class="responsive-tile-title">å¤§å±æ‰‹æœº</span><span class="responsive-tile-size">430Ã—932</span></div><iframe class="responsive-frame" data-viewport="430x932" title="NH01 430Ã—932 å“åº”å¼é¢„è§ˆ" style="aspect-ratio:430/932" data-src="./gemini-native-preview.html?mode=matrix&amp;viewport=430x932&amp;fontScale=1"></iframe><p class="responsive-tile-note">æ£€æŸ¥å®½å±ç•™ç™½ä¸å¡ç‰‡æœ€å¤§å®½åº¦ã€‚</p></article>
-        <article class="responsive-tile"><div class="responsive-tile-header"><span class="responsive-tile-title">å®½è§†å£</span><span class="responsive-tile-size">600Ã—960</span></div><iframe class="responsive-frame" data-viewport="600x960" title="NH01 600Ã—960 å“åº”å¼é¢„è§ˆ" style="aspect-ratio:5/8" data-src="./gemini-native-preview.html?mode=matrix&amp;viewport=600x960&amp;fontScale=1"></iframe><p class="responsive-tile-note">æ£€æŸ¥å®½è§†å£ä¸‹çš„å†…å®¹å®½åº¦ä¸Šé™ã€‚</p></article>
-      </div>
-    </section>
-  </main>
-  <script src="./nh01-responsive-contract-runtime.js"></script>
-  <script>
-    (() => {
-      "use strict";
-      const params = new URLSearchParams(location.search);
-      const canvasMode = params.get("mode") === "canvas";
-      const matrixMode = params.get("mode") === "matrix";
-      const workspace = document.getElementById("nh01GeminiPreview");
-      workspace.classList.add("contract-pending");
-      if (canvasMode) document.body.classList.add("canvas-mode");
-      if (matrixMode) document.body.classList.add("matrix-mode");
-      const buildSha = document.querySelector('meta[name="nh01-gemini-preview-build"]').content;
-      document.getElementById("buildSha").textContent = buildSha;
-      document.getElementById("previewSourceSha").textContent = buildSha;
-      const preset = document.getElementById("viewportPreset");
-      const widthInput = document.getElementById("customWidth");
-      const heightInput = document.getElementById("customHeight");
-      const safeInsetInputs = {top:document.getElementById("safeTop"),bottom:document.getElementById("safeBottom"),start:document.getElementById("safeStart"),end:document.getElementById("safeEnd")};
-      const layoutVariant = document.getElementById("layoutVariant");
-      const fontScale = document.getElementById("fontScale");
-      const fontScaleReadout = document.getElementById("fontScaleReadout");
-      const device = document.getElementById("device");
-      const wrap = document.getElementById("deviceWrap");
-      const middleSection = document.getElementById("middleSection");
-      const sectionHeader = document.getElementById("sectionHeader");
-      const carouselWindow = document.getElementById("carouselWindow");
-      const mainCatchCard = document.getElementById("mainCatchCard");
-      const cardMetadata = document.getElementById("cardMetadata");
-      const footerSection = document.getElementById("footerSection");
-      const toast = document.getElementById("previewToast");
-      const assetList = document.getElementById("assetList");
-      const integritySummary = document.getElementById("integritySummary");
-      const contractStatus = document.getElementById("contractLoadState");
-      const contractVersionLabel = document.getElementById("contractVersion");
-      const contractShaLabel = document.getElementById("contractSha");
-      const contractFailure = document.getElementById("contractFailure");
-      const ruleList = document.getElementById("responsiveRuleList");
-      const anchorSelect = document.getElementById("anchorSelect");
-      const anchorImage = document.getElementById("anchorImage");
-      const anchorMeta = document.getElementById("anchorMeta");
-      const anchorOpen = document.getElementById("anchorOpen");
-      const assetNodes = {
-        background: document.getElementById("assetBackground"),
-        brand: document.getElementById("assetBrand"),
-        avatar: document.getElementById("assetAvatar"),
-        camera: document.getElementById("assetCamera")
-      };
-      const rootMeta = document.querySelector('meta[name="nh01-preview-root"]');
-      let rootPrefix = null;
-      function resolveAssetUrl(path) {
-        if (!rootPrefix) throw new Error("NH01 preview root was not initialized.");
-        if (path.startsWith("./")) return new URL(path, location.href).href;
-        return new URL(path.replace(/^(\.\.\/)+/, ""), rootPrefix).href;
-      }
-      let contractEnvelope = null;
-      let anchorAudit = [];
-      let layoutSequence = 0;
-      function showToast(message) {
-        toast.textContent = message;
-        toast.dataset.visible = "true";
-      }
-      function setVariable(name, value) {
-        document.documentElement.style.setProperty(name, String(value));
-      }
-      function cssPx(value) { return `${Math.max(0, Number(value))}px`; }
-      function cssPxSigned(value) {
-        const number = Number(value);
-        if (!Number.isFinite(number)) throw new Error("Contract produced a non-finite signed spacing value.");
-        return `${number}px`;
-      }
-      function failClosed(error) {
-        window.NH01GeminiPreviewLayoutReady = false;
-        window.NH01GeminiPreviewReady = false;
-        workspace.classList.remove("contract-pending");
-        workspace.classList.add("contract-failed");
-        contractStatus.dataset.state = "FAIL";
-        contractStatus.textContent = "åˆåŒåŠ è½½å¤±è´¥ Â· é¢„è§ˆå·²åœæ­¢";
-        contractFailure.textContent = `Adaptive V2 å·²åœæ­¢ï¼š${error.message || error}ã€‚æœªå›é€€åˆ°æ—§ç‰ˆç¡¬ç¼–ç å“åº”å¼ç®—æ³•ã€‚`;
-        integritySummary.dataset.state = "FAIL";
-        integritySummary.textContent = contractFailure.textContent;
-        window.NH01ResponsiveContractFailure = String(error.message || error);
-      }
-      function nextFrame() { return new Promise(resolve => requestAnimationFrame(() => resolve())); }
-      function readSafeInsets() {
-        const values = Object.fromEntries(Object.entries(safeInsetInputs).map(([key,input])=>[key,Number(input.value)]));
-        if (Object.values(values).some(value=>!Number.isFinite(value)||value<0)) throw new Error("Safe-area inset values must be non-negative dp numbers.");
-        return values;
-      }
-      function displayReference(anchor) {
-        const imageUrl = new URL(anchor.path, rootPrefix).href;
-        anchorImage.hidden = true;
-        anchorImage.onload = () => { anchorImage.hidden = false; };
-        anchorImage.onerror = () => {
-          anchorImage.hidden = true;
-          anchorMeta.textContent = `å‚è€ƒåŠ è½½å¤±è´¥ï¼š${anchor.id} Â· ${imageUrl}`;
-        };
-        anchorImage.src = imageUrl;
-        anchorOpen.href = imageUrl;
-        const logical = anchor.logical_viewport_dp;
-        const size = logical.height === null
-          ? `${logical.width}dp å®½åº¦è¾¹ç•Œ Â· é«˜åº¦æœªæŒ‡å®š Â· é™æ€å‚è€ƒï¼Œä¸ä½œä¸ºå›ºå®šè§†å£éªŒæ”¶ç›®æ ‡`
-          : `${logical.width}Ã—${logical.height}dp Â· ${anchor.role}`;
-        anchorMeta.textContent = `${anchor.id} Â· ${size} Â· ${anchor.canvas_px.width}Ã—${anchor.canvas_px.height}px Â· SHA-256 ${anchor.sha256}`;
-      }
-      function initializeAnchorViewer(contract) {
-        anchorSelect.replaceChildren();
-        for (const anchor of contract.visual_anchors) {
-          const option = document.createElement("option");
-          option.value = anchor.id;
-          option.textContent = anchor.logical_viewport_dp.height === null
-            ? `M05 Â· ${anchor.logical_viewport_dp.width}dp å®½åº¦é™æ€è¾¹ç•Œ`
-            : `${anchor.logical_viewport_dp.width}Ã—${anchor.logical_viewport_dp.height}dp Â· ${anchor.id.includes("ORIGINAL") ? "åŸå§‹åŸºå‡†" : anchor.id.split("-")[1]}`;
-          anchorSelect.append(option);
-        }
-        anchorSelect.addEventListener("change", () => {
-          const anchor = contract.visual_anchors.find(item => item.id === anchorSelect.value);
-          if (anchor) displayReference(anchor);
-        });
-        if (contract.visual_anchors.length) displayReference(contract.visual_anchors[0]);
-      }
-      function roleText(contract, id) {
-        const role = contract.typography.roles.find(item => item.id === id);
-        if (!role) throw new Error(`Typography rule missing from contract: ${id}`);
-        return role;
-      }
-      function renderRuleInspector(layout) {
-        const p = layout.responsive_parameters;
-        const contract = contractEnvelope.contract;
-        const rules = [
-          ["å“ç‰Œæ ‡é¢˜", `å®½ ${layout.brand_width_dp.toFixed(1)}dpï¼›è§„åˆ™ clamp(å®‰å…¨å®½Ã—${p.brand_title.width_ratio_numerator}/${p.brand_title.width_ratio_denominator}, ${p.brand_title.min_width_dp}â€“${p.brand_title.max_width_dp}dp)`],
-          ["å¤´åƒ", `è§†è§‰ ${layout.avatar_visual_size_dp.toFixed(1)}dpï¼›è§¦æ§ ${layout.avatar_touch_size_dp}dp`],
-          ["ç»Ÿè®¡è¡Œ", `æ•°å€¼ ${layout.typography_sizes_dp.stat_value.toFixed(1)}sp Â· æ ‡ç­¾ ${layout.typography_sizes_dp.stat_label.toFixed(1)}spï¼›å“ç‰Œé—´è· ${layout.gaps_dp.brand_to_stats.toFixed(1)}dp`],
-          ["æœ€è¿‘é±¼è·æ ‡é¢˜", `${layout.typography_sizes_dp.section_title.toFixed(1)}spï¼›æ ‡é¢˜è¡Œ ${layout.section_header_height_dp.toFixed(1)}dpï¼›ç»Ÿè®¡é—´è·ç›®æ ‡ ${layout.gaps_dp.stats_to_title.toFixed(1)}dp`],
-          ["ä¸»å¡ç‰‡", `${layout.card_width_dp.toFixed(1)}Ã—${layout.card_height_dp.toFixed(1)}dpï¼›æ¯”ä¾‹ ${p.hero.aspect_ratio_width}:${p.hero.aspect_ratio_height}ï¼›ç›®æ ‡å®½åº¦ ${p.hero.target_width_fraction * 100}%ï¼Œä¸Šé™ ${p.hero.maximum_width_dp}dp`],
-          ["é‚»å¡", `åªæ˜¾ç¤ºå·²æœ‰ç‹¬ç«‹è®°å½•ï¼›å½“å‰æ— è·æ‰¹é‚»å¡ç´ æï¼Œéšè—å·¦å³é‚»å¡ã€‚æœ€å¤§å®½åº¦ ${p.neighbor.maximum_width_fraction_of_hero * 100}% ä¸»å¡ï¼Œæœ€å¤šé‡å  ${p.neighbor.maximum_overlap_dp}dp`],
-          ["æ ‡é¢˜åˆ°ä¸»å¡", `åˆåŒç›®æ ‡ ${layout.gaps_dp.title_to_card_target.toFixed(1)}dpï¼›å®é™… ${layout.measurements.title_to_card.toFixed(1)}dp`],
-          ["å¡ç‰‡åˆ° Footer", `ç›®æ ‡ ${layout.gaps_dp.card_to_footer.toFixed(1)}dpï¼›å®é™… ${layout.measurements.card_to_footer.toFixed(1)}dpï¼›Footer å›ºå®šåœ¨ Middle å¤–`],
-          ["CTA ä¸ç›¸æœº", `é—´è· ${layout.footer.cta_camera_gap_dp.toFixed(1)}dpï¼›ç›¸æœºå›¾å½¢ ${layout.camera_visual_size_dp.toFixed(1)}dpï¼›è§¦æ§ ${layout.camera_touch_size_dp}dp`],
-          ["ç³»ç»Ÿå­—ä½“", `${layout.system_font_scale.toFixed(1)}Ã—ï¼›ç³»ç»Ÿç¼©æ”¾åªåº”ç”¨ä¸€æ¬¡ã€‚æ ‡é¢˜ ${roleText(contract, "recent-catch-heading").min_sp}â€“${roleText(contract, "recent-catch-heading").max_sp}spï¼›å…¨å±€ç¼©å° ${contract.typography.global_shrink_forbidden ? "ç¦æ­¢" : "å…è®¸"}`]
-        ];
-        ruleList.replaceChildren(...rules.map(([name, value]) => {
-          const row = document.createElement("div"); row.className = "rule-row";
-          const dt = document.createElement("dt"); dt.textContent = name;
-          const dd = document.createElement("dd"); dd.textContent = value;
-          row.append(dt, dd); return row;
-        }));
-      }
-      function baselinePolicy(width, height, scale, safeInsets) {
-        const safeWidth = width - safeInsets.start - safeInsets.end;
-        const safeHeight = height - safeInsets.top - safeInsets.bottom;
-        const cardWidth = Math.min(Math.min(safeWidth, 560) * 0.686, 337.2);
-        const cardHeight = Math.min(cardWidth * 293 / 247, 400);
-        return {
-          variant: "V3_BASELINE", logical_viewport_dp: [width, height], safe_insets_dp: safeInsets,
-          safe_width_dp: safeWidth, safe_height_dp: safeHeight, content_width_dp: Math.min(safeWidth, 560),
-          system_font_scale: scale, brand_width_dp: 56, avatar_visual_size_dp: 38, avatar_touch_size_dp: 48,
-          camera_visual_size_dp: 64, camera_touch_size_dp: 72, hero_target_size_dp: [cardWidth, cardHeight],
-          hero_readable_height_range_dp: [220, 220], card_content: {padding_horizontal_dp:20,footer_padding_height_fraction:.07,minimum_footer_padding_dp:10,maximum_footer_padding_dp:20,text_gap_height_fraction:.006,minimum_text_gap_dp:2,maximum_text_gap_dp:5},
-          responsive_parameters: {brand_title:{min_width_dp:46,max_width_dp:70,width_ratio_numerator:155,width_ratio_denominator:1080},avatar:{minimum_touch_dp:48},content:{max_width_dp:560,top_padding_dp:8,header_min_height_dp:48,header_horizontal_gap_dp:12,stats_min_height_dp:48,stats_vertical_padding_dp:4,stats_item_gap_dp:2,top_horizontal_padding:{ratio:.075,min_dp:24,max_dp:40},section_horizontal_padding:{ratio:.088,min_dp:24,max_dp:42},section_horizontal_gap_dp:12,section_vertical_padding_dp:2},hero:{aspect_ratio_width:247,aspect_ratio_height:293,maximum_width_dp:337.2,maximum_height_dp:400,target_width_fraction:.686,minimum_readable_height_dp:220,maximum_readable_height_dp:220,short_screen_exception:{minimum_height_dp:220,exact_viewport_width_dp:-1,exact_viewport_height_dp:-1,exact_font_scale:0}},neighbor:{maximum_width_fraction_of_hero:.82,height_fraction_of_hero:.667,top_offset_dp:15,maximum_edge_peek_dp:28,minimum_edge_peek_dp:12,edge_peek_width_fraction_of_track:.05,maximum_overlap_dp:1},camera:{minimum_visual_dp:56,maximum_visual_dp:80,minimum_touch_dp:72},card_content:{padding_horizontal_dp:20,text_gap_height_fraction:.006,minimum_text_gap_dp:2,maximum_text_gap_dp:5,footer_padding_height_fraction:.07,minimum_footer_padding_dp:10,maximum_footer_padding_dp:20,maximum_lines_species:2,maximum_lines_measurements:2,maximum_lines_metadata:2},spacing:{brand_to_stats:{minimum_gap_dp:9,height_fraction:.035,base_minimum_dp:14,base_maximum_dp:28,font_pressure_penalty_dp:3,short_height_pressure_penalty_dp:2},stats_to_title:{minimum_gap_dp:12,font_pressure_penalty_dp:2},title_to_card:{minimum_gap_dp:8,font_pressure_penalty_dp:4},card_to_footer:{minimum_gap_dp:3,height_fraction:.018,base_minimum_dp:8,base_maximum_dp:14,font_pressure_penalty_dp:3,short_height_pressure_penalty_dp:2},footer:{large_bottom_inset_threshold_dp:40}} ,viewport_scale:{width_reference_dp:360,height_reference_dp:568,minimum:1,maximum:1.2}},
-          typography_sizes_dp:{stat_value:17,stat_label:11,section_title:16,section_action:13,cta:12,species:20,measurement:13,metadata:11},
-          footer:{cta_camera_gap_dp:11,top_padding_dp:4,bottom_padding_dp:8}, gaps_dp:{brand_to_stats:20,stats_to_title:8,title_to_card_target:13,card_to_footer:8},
-          rendered_text_metrics:{section_title:{size_css_px:24,line_height_ratio:1.5}}, section_header_height_dp:48,
-          title_to_card_gap_target_dp:13, stats_to_title_gap_target_dp:8, card_to_footer_gap_dp:8,
-          camera_horizontal_room_dp:Math.min(safeWidth,560), contract_sha256:"COMPARISON_ONLY", contract_id:"V3_BASELINE", contract_version:"comparison", header_height_dp:48, neighbor_target_edge_peek_dp:12,
-          composition:{top_horizontal_padding:{ratio:.075,min_dp:24,max_dp:40},section_horizontal_padding:{ratio:.088,min_dp:24,max_dp:42},top_padding_dp:8,header_min_height_dp:48,header_horizontal_gap_dp:12,stats_min_height_dp:48,stats_vertical_padding_dp:4,stats_item_gap_dp:2,section_vertical_padding_dp:2,section_horizontal_gap_dp:12},
-          typography_effective_css_px:{stat_value:17*scale,stat_label:11*scale,section_title:16*scale,section_action:13*scale,cta:12*scale,species:20*scale,measurement:13*scale,metadata:11*scale}
-        };
-      }
-      function applyLayoutVariables(layout, values) {
-        const p = layout.responsive_parameters;
-        const c = layout.composition || p.content;
-        const safe = layout.safe_insets_dp;
-        const topPad = c.top_horizontal_padding;
-        const sectionPad = c.section_horizontal_padding;
-        const topInline = Math.min(topPad.max_dp, Math.max(topPad.min_dp, layout.safe_width_dp * topPad.ratio));
-        const sectionInline = Math.min(sectionPad.max_dp, Math.max(sectionPad.min_dp, layout.content_width_dp * sectionPad.ratio));
-        const titleLine = layout.rendered_text_metrics.section_title.size_css_px * layout.rendered_text_metrics.section_title.line_height_ratio;
-        const rowInset = Math.max(0, (layout.section_header_height_dp - titleLine) / 2);
-        const leadingGap = Math.max(0, layout.stats_to_title_gap_target_dp - rowInset);
-        // The measurement is from the rendered title line box to the Hero,
-        // so the header's centered row inset must be removed even when that
-        // requires a small negative margin below the header container.
-        const titleCardGap = layout.title_to_card_gap_target_dp - rowInset;
-        const desiredWidth = layout.hero_target_size_dp[0];
-        const desiredHeight = Math.min(desiredWidth * p.hero.aspect_ratio_height / p.hero.aspect_ratio_width, p.hero.maximum_height_dp);
-        const cardBottom = p.card_content;
-        const footerGap = layout.footer.cta_camera_gap_dp;
-        const footerTop = layout.footer.top_padding_dp;
-        const footerBottom = layout.footer.bottom_padding_dp;
-        const set = (key, value) => setVariable(key, cssPx(value));
-        set("--safe-top", safe.top); set("--safe-bottom", safe.bottom); set("--safe-start", safe.start); set("--safe-end", safe.end);
-        set("--content-width", layout.content_width_dp);
-        set("--content-top-padding", c.top_padding_dp);
-        set("--top-inline-padding", topInline);
-        set("--header-height", Math.max(c.header_min_height_dp, layout.header_height_dp));
-        set("--header-horizontal-gap", c.header_horizontal_gap_dp);
-        set("--brand-width", layout.brand_width_dp);
-        set("--avatar-size", layout.avatar_visual_size_dp);
-        set("--avatar-touch-size", layout.avatar_touch_size_dp);
-        set("--stats-min-height", c.stats_min_height_dp);
-        set("--stats-vertical-padding", c.stats_vertical_padding_dp);
-        set("--stats-item-gap", c.stats_item_gap_dp);
-        set("--brand-stats-gap", layout.gaps_dp.brand_to_stats);
-        set("--section-header-height", layout.section_header_height_dp);
-        set("--section-inline-padding", sectionInline);
-        set("--section-horizontal-gap", c.section_horizontal_gap_dp);
-        set("--leading-gap", leadingGap);
-        setVariable("--title-card-gap", cssPxSigned(titleCardGap));
-        set("--card-footer-gap", layout.card_to_footer_gap_dp);
-        set("--footer-top-padding", footerTop); set("--footer-bottom-padding", footerBottom);
-        set("--cta-camera-gap", footerGap);
-        set("--camera-visual-size", layout.camera_visual_size_dp); set("--camera-touch-size", layout.camera_touch_size_dp);
-        set("--stat-value-size", layout.typography_sizes_dp.stat_value); set("--stat-label-size", layout.typography_sizes_dp.stat_label);
-        set("--section-title-size", layout.typography_sizes_dp.section_title); set("--section-action-size", layout.typography_sizes_dp.section_action);
-        set("--cta-label-size", layout.typography_sizes_dp.cta); set("--catch-species-size", layout.typography_sizes_dp.species);
-        set("--catch-measure-size", layout.typography_sizes_dp.measurement); set("--catch-metadata-size", layout.typography_sizes_dp.metadata);
-        set("--hero-aspect", `${p.hero.aspect_ratio_width} / ${p.hero.aspect_ratio_height}`);
-        set("--main-card-width", desiredWidth); set("--main-card-height", desiredHeight);
-        set("--desired-card-width", desiredWidth); set("--desired-card-height", desiredHeight);
-        set("--card-horizontal-padding", cardBottom.padding_horizontal_dp);
-        set("--text-gap", Math.max(cardBottom.minimum_text_gap_dp, Math.min(cardBottom.maximum_text_gap_dp, layout.safe_height_dp * cardBottom.text_gap_height_fraction)));
-        set("--card-footer-padding", Math.max(cardBottom.minimum_footer_padding_dp, Math.min(cardBottom.maximum_footer_padding_dp, desiredHeight * cardBottom.footer_padding_height_fraction)));
-        set("--neighbor-height", desiredHeight * p.neighbor.height_fraction_of_hero);
-        set("--peek-top-offset", p.neighbor.top_offset_dp);
-        set("--font-scale", layout.system_font_scale);
-        Object.entries(layout.typography_sizes_dp).forEach(([role, size]) => set(`--${({stat_value:"stat-value",stat_label:"stat-label",section_title:"section-title",section_action:"section-action",cta:"cta-label",species:"catch-species",measurement:"catch-measure",metadata:"catch-metadata"})[role]}-size`, size));
-        return { leadingGap, titleCardGap, desiredWidth, desiredHeight, topInline, sectionInline };
-      }
-      function applyTextWrapRules(layout, cardWidth) {
-        const rules=layout.responsive_parameters.card_content;
-        const mayWrap=cardWidth<rules.species_wrap_width_threshold_dp || layout.system_font_scale>=rules.large_font_scale_threshold;
-        setVariable("--species-max-lines",mayWrap?rules.maximum_lines_species:1);
-        setVariable("--measurement-max-lines",mayWrap?rules.maximum_lines_measurements:1);
-        setVariable("--metadata-max-lines",rules.maximum_lines_metadata);
-      }
-      function countTextLines(element) {
-        const range = document.createRange(); range.selectNodeContents(element);
-        return new Set(Array.from(range.getClientRects()).map(rect => Math.round(rect.top * 10) / 10)).size;
-      }
-      async function applyViewport() {
-        if (!contractEnvelope || workspace.classList.contains("contract-failed")) return;
-        const sequence = ++layoutSequence;
-        window.NH01GeminiPreviewLayoutReady = false;
-        const requested = params.get("viewport");
-        let width, height;
-        if (canvasMode) { width = window.innerWidth; height = window.innerHeight; }
-        else if (matrixMode && requested) [width, height] = requested.split("x").map(Number);
-        else { width = Number(widthInput.value); height = Number(heightInput.value); }
-        if (!Number.isFinite(width) || !Number.isFinite(height) || width < 240 || height < 320 || width > 1200 || height > 1600) {
-          throw new Error("Free viewport must be within 240â€“1200dp wide and 320â€“1600dp high.");
-        }
-        const scale = Number(fontScale.value);
-        const safeInsets = readSafeInsets();
-        const variant = layoutVariant.value;
-        const adaptive = variant === "ADAPTIVE_V2";
-        const layout = adaptive
-          ? window.NH01ResponsiveContractRuntime.computeAdaptive({widthDp:width,heightDp:height,fontScale:scale,safeInsetsDp:safeInsets,contractSha256:contractEnvelope.contractSha256}, contractEnvelope.contract)
-          : baselinePolicy(width,height,scale,safeInsets);
-        layout.contract_sha256 = contractEnvelope.contractSha256;
-        layout.contract_path = contractEnvelope.contractPath;
-        layout.variant = variant;
-        const vars = applyLayoutVariables(layout);
-        applyTextWrapRules(layout,vars.desiredWidth);
-        device.dataset.compact = "false";
-        device.style.width = `${width}px`; device.style.height = `${height}px`;
-        const availableWidth = canvasMode ? width : Math.max(250, Math.min(520, window.innerWidth - 56));
-        const availableHeight = canvasMode ? height : Math.max(300, window.innerHeight - 205);
-        const deviceScale = canvasMode ? 1 : Math.min(1, availableWidth / width, availableHeight / height);
-        device.style.transform = canvasMode ? "none" : `scale(${deviceScale})`;
-        wrap.style.width = `${width * deviceScale}px`; wrap.style.height = `${height * deviceScale}px`;
-        await nextFrame();
-        await nextFrame();
-        if (sequence !== layoutSequence) return;
-        const pageScaleRatio = device.getBoundingClientRect().width / Math.max(1, device.offsetWidth);
-        const renderedHeaderRect = sectionHeader.getBoundingClientRect();
-        const renderedTitleRect = document.querySelector(".section-title").getBoundingClientRect();
-        const titleBottomInsetDp = Math.max(0, (renderedHeaderRect.bottom - renderedTitleRect.bottom) / pageScaleRatio);
-        vars.titleCardGap = layout.title_to_card_gap_target_dp - titleBottomInsetDp;
-        setVariable("--title-card-gap", cssPxSigned(vars.titleCardGap));
-        await nextFrame();
-        if (sequence !== layoutSequence) return;
-        const middleHeight = middleSection.clientHeight;
-        const sectionHeaderHeight = sectionHeader.offsetHeight;
-        const actualGapHeaderCard = vars.titleCardGap;
-        const availableCardHeight = Math.max(0, middleHeight - vars.leadingGap - sectionHeaderHeight - actualGapHeaderCard - layout.card_to_footer_gap_dp);
-        const p = layout.responsive_parameters;
-        const hero = p.hero;
-        const exception = hero.short_screen_exception;
-        const shortExceptionEligible = adaptive && width === exception.exact_viewport_width_dp && height === exception.exact_viewport_height_dp && scale === exception.exact_font_scale;
-        const shortExceptionHeightFromWidth = exception.minimum_width_dp * hero.aspect_ratio_height / hero.aspect_ratio_width;
-        const readableFloor = shortExceptionEligible ? Math.max(exception.minimum_height_dp, shortExceptionHeightFromWidth) : hero.minimum_readable_height_dp;
-        const desiredHeight = vars.desiredHeight;
-        const actualTextHeight = cardMetadata.scrollHeight;
-        const contentMinimum = Math.max(readableFloor, Math.min(hero.maximum_readable_height_dp, actualTextHeight));
-        let cardHeight = Math.min(desiredHeight, Math.max(contentMinimum, availableCardHeight));
-        let cardWidth = Math.min(vars.desiredWidth, cardHeight * hero.aspect_ratio_width / hero.aspect_ratio_height);
-        setVariable("--main-card-height", cssPx(cardHeight)); setVariable("--main-card-width", cssPx(cardWidth));
-        setVariable("--card-footer-padding", cssPx(Math.max(p.card_content.minimum_footer_padding_dp, Math.min(p.card_content.maximum_footer_padding_dp, cardHeight * p.card_content.footer_padding_height_fraction))));
-        await nextFrame();
-        const actualTextHeightAfterResize = cardMetadata.scrollHeight;
-        const needsScroll = vars.leadingGap + sectionHeaderHeight + actualGapHeaderCard + cardHeight + layout.card_to_footer_gap_dp > middleHeight + 0.5;
-        // A contract exception may forbid scrolling; otherwise preserve the readable Hero floor and let only Middle scroll.
-        if (shortExceptionEligible && exception.requires_no_middle_scroll && needsScroll) {
-          const nonExceptionFloor = hero.minimum_readable_height_dp;
-          const nonExceptionHeight = Math.min(desiredHeight, Math.max(nonExceptionFloor, availableCardHeight));
-          cardHeight = Math.max(nonExceptionFloor, nonExceptionHeight);
-          cardWidth = Math.min(vars.desiredWidth, cardHeight * hero.aspect_ratio_width / hero.aspect_ratio_height);
-          setVariable("--main-card-height", cssPx(cardHeight)); setVariable("--main-card-width", cssPx(cardWidth));
-          setVariable("--card-footer-padding", cssPx(Math.max(p.card_content.minimum_footer_padding_dp, Math.min(p.card_content.maximum_footer_padding_dp, cardHeight * p.card_content.footer_padding_height_fraction))));
-          await nextFrame();
-        }
-        const finalNeedsScroll = vars.leadingGap + sectionHeaderHeight + actualGapHeaderCard + cardHeight + layout.card_to_footer_gap_dp > middleHeight + 0.5;
-        applyTextWrapRules(layout,cardWidth);
-        const trackWidth = layout.content_width_dp;
-        const sideInset = Math.max(0, (trackWidth - cardWidth) / 2);
-        const neighborGap = Math.max(0, sideInset - Math.min(cardWidth * p.neighbor.maximum_width_fraction_of_hero, Math.max(0, (trackWidth - cardWidth) / 2 - layout.neighbor_target_edge_peek_dp)));
-        const neighborWidth = Math.min(cardWidth * p.neighbor.maximum_width_fraction_of_hero, Math.max(0, sideInset - neighborGap));
-        setVariable("--main-card-side-inset", cssPx(sideInset)); setVariable("--neighbor-gap", cssPx(neighborGap)); setVariable("--neighbor-width", cssPx(neighborWidth));
-        middleSection.dataset.scrollNeeded = String(finalNeedsScroll);
-        middleSection.dataset.topAlign = String(finalNeedsScroll);
-        document.querySelectorAll(".neighbor-card").forEach(node => { node.hidden = true; });
-        const scaleRatio = device.getBoundingClientRect().width / Math.max(1, device.offsetWidth);
-        const bounds = element => {
-          const r = element.getBoundingClientRect();
-          return {left:(r.left-device.getBoundingClientRect().left)/scaleRatio,top:(r.top-device.getBoundingClientRect().top)/scaleRatio,right:(r.right-device.getBoundingClientRect().left)/scaleRatio,bottom:(r.bottom-device.getBoundingClientRect().top)/scaleRatio,width:r.width/scaleRatio,height:r.height/scaleRatio};
-        };
-        const headerBounds = bounds(document.getElementById("headerBar"));
-        const statsBounds = bounds(document.getElementById("statsBar"));
-        const titleBounds = bounds(document.querySelector(".section-title"));
-        const heroBounds = bounds(mainCatchCard);
-        const middleBounds = bounds(middleSection);
-        const footerBounds = bounds(footerSection);
-        const ctaBounds = bounds(document.getElementById("ctaLabel"));
-        const cameraBounds = bounds(document.getElementById("assetCamera"));
-        const cameraTouchBounds = bounds(document.getElementById("cameraButton"));
-        const pageBounds = bounds(document.querySelector(".page-content"));
-        const titleToCard = heroBounds.top - titleBounds.bottom;
-        const visibleHeroBottom = Math.min(heroBounds.bottom, middleBounds.bottom);
-        const measurements = {
-          header_to_stats: statsBounds.top - headerBounds.bottom,
-          stats_to_title: titleBounds.top - statsBounds.bottom,
-          title_to_card: titleToCard,
-          card_to_footer: footerBounds.top - heroBounds.bottom,
-          cta_camera_visual: cameraBounds.top - ctaBounds.bottom,
-          cta_camera_touch: cameraTouchBounds.top - ctaBounds.bottom,
-          camera_bottom_safe: pageBounds.bottom - cameraBounds.bottom,
-          camera_touch_bottom_safe: pageBounds.bottom - cameraTouchBounds.bottom,
-          hero_overlap_footer: Math.max(0, visibleHeroBottom - footerBounds.top),
-          hero_content_beyond_middle: Math.max(0, heroBounds.bottom - middleBounds.bottom),
-          horizontal_overflow_dp: Math.max(0, device.scrollWidth - device.clientWidth),
-          middle_height_dp: middleHeight,
-          available_card_height_dp: availableCardHeight
-        };
-        const layoutMetrics = {
-          ...layout, card_width_dp:cardWidth, card_height_dp:cardHeight, desired_card_size_dp:[vars.desiredWidth,vars.desiredHeight],
-          title_spacing:{contract_target_dp:layout.title_to_card_gap_target_dp,rendered_title_bottom_inset_dp:titleBottomInsetDp,header_margin_dp:vars.titleCardGap,measured_gap_dp:titleToCard},
-          content_min_card_height_dp:contentMinimum, actual_text_height_dp:actualTextHeightAfterResize, middle_height_dp:middleHeight,
-          available_card_height_dp:availableCardHeight, needs_scroll:finalNeedsScroll, layout_mode:finalNeedsScroll?"CONTENT_SCROLL":"FIT",
-          short_screen_exception_applied:shortExceptionEligible,
-          footer:layout.footer, measurements,
-          gaps_dp:{...(layout.gaps_dp||{}),brand_to_stats:layout.brand_to_stats_gap_dp??layout.gaps_dp?.brand_to_stats,stats_to_title:layout.stats_to_title_gap_target_dp,title_to_card_target:layout.title_to_card_gap_target_dp,card_to_footer:layout.card_to_footer_gap_dp},
-          neighbor_state:{previous_record_present:false,next_record_present:false,rendered:false,maximum_width_dp:cardWidth*p.neighbor.maximum_width_fraction_of_hero},
-          text_lines:{species:countTextLines(document.querySelector(".catch-species")),measurement:countTextLines(document.querySelector(".catch-measure")),metadata:countTextLines(document.querySelector(".catch-location"))},
-          actual_bounds_dp:{header:headerBounds,stats:statsBounds,title:titleBounds,hero:heroBounds,middle:middleBounds,footer:footerBounds,cta:ctaBounds,camera_visual:cameraBounds,camera_touch:cameraTouchBounds},
-          scroll_metrics:{middle_client_height_dp:middleSection.clientHeight,middle_scroll_height_dp:middleSection.scrollHeight,middle_scroll_top_dp:middleSection.scrollTop,hero_content_beyond_middle_dp:Math.max(0,heroBounds.bottom-middleBounds.bottom)},
-          device_scale:deviceScale
-        };
-        window.NH01GeminiPreviewLayout = layoutMetrics;
-        window.NH01GeminiPreviewLayoutReady = true;
-        if (adaptive) renderRuleInspector(layoutMetrics);
-        else ruleList.innerHTML = '<div class="rule-row"><dt>å¸ƒå±€ç”¨é€”</dt><dd>V3 Baseline ä»…ä¾›å¯¹ç…§ï¼›Adaptive V2 çš„åˆåŒå€¼ä»ä¿ç•™åœ¨æœºå™¨æƒå¨ä¸­ã€‚</dd></div>';
-        if (!matrixMode && !canvasMode && typeof selectLayer === "function") selectLayer("#mainCatchCard");
-      }
-      async function digest(url) {
-        const response = await fetch(url, { cache: "no-store" });
-        if (!response.ok) throw new Error(`HTTP ${response.status} for ${url}`);
-        const bytes = await response.arrayBuffer();
-        const hash = await crypto.subtle.digest("SHA-256", bytes);
-        return [...new Uint8Array(hash)].map(value => value.toString(16).padStart(2, "0")).join("");
-      }
-      function waitImage(image) {
-        if (image.complete) return image.naturalWidth > 0 ? Promise.resolve() : Promise.reject(new Error(`Image failed to load: ${image.currentSrc || image.src}`));
-        return new Promise((resolve, reject) => { image.addEventListener("load", resolve, {once:true}); image.addEventListener("error", () => reject(new Error(`Image load failed: ${image.currentSrc || image.src}`)), {once:true}); });
-      }
-      async function auditAnchors(contract) {
-        const results = await Promise.all(contract.visual_anchors.map(async anchor => {
-          const url = new URL(anchor.path, rootPrefix).href;
-          const actualHash = await digest(url);
-          const probe = new Image(); probe.src = url; await waitImage(probe);
-          const actual = {width:probe.naturalWidth,height:probe.naturalHeight};
-          const expected = anchor.canvas_px;
-          const pass = actualHash === anchor.sha256 && actual.width === expected.width && actual.height === expected.height;
-          return {id:anchor.id,path:anchor.path,role:anchor.role,status:pass?"PASS":"FAIL",expected_sha256:anchor.sha256,actual_sha256:actualHash,expected_canvas_px:expected,actual_canvas_px:actual,logical_viewport_dp:anchor.logical_viewport_dp,width_only_static:anchor.logical_viewport_dp.height===null};
-        }));
-        if (results.length !== 6 || results.some(item => item.status !== "PASS")) throw new Error(`Frozen reference integrity failed: ${JSON.stringify(results.filter(item => item.status !== "PASS"))}`);
-        anchorAudit = results; window.NH01FrozenAnchorAudit = {status:"PASS",assets:results}; return results;
-      }
-      async function auditAssets() {
-        if (matrixMode) return {status:"MATRIX_PREVIEW_ONLY",release_gate_effect:"NONE"};
-        const response = await fetch("./NH01_Gemini_Native_Asset_Binding_V1.json", {cache:"no-store"});
-        if (!response.ok) throw new Error(`Asset manifest HTTP ${response.status}`);
-        const manifest = await response.json(); const results = [];
-        for (const asset of manifest.assets.filter(item => item.public_preview)) {
-          const image = assetNodes[asset.id]; if (!image) throw new Error(`Missing DOM asset node: ${asset.id}`);
-          await waitImage(image); const actualHash = await digest(resolveAssetUrl(asset.preview_path));
-          const dimensions = [image.naturalWidth,image.naturalHeight];
-          const passed = actualHash === asset.sha256 && dimensions[0] === asset.dimensions_px[0] && dimensions[1] === asset.dimensions_px[1];
-          results.push({id:asset.id,label:asset.label,status:passed?"PASS_SOURCE_INTEGRITY":"FAIL_SOURCE_INTEGRITY",expected_sha256:asset.sha256,actual_sha256:actualHash,expected_dimensions_px:asset.dimensions_px,actual_dimensions_px:dimensions,preview_path:asset.preview_path});
-        }
-        for (const asset of manifest.assets.filter(item => !item.public_preview)) results.push({id:asset.id,label:asset.label,status:asset.status,expected_sha256:asset.sha256||null,actual_sha256:null,expected_dimensions_px:asset.dimensions_px||null,actual_dimensions_px:null,reason:asset.privacy_policy||asset.render_rule});
-        assetList.replaceChildren();
-        for (const result of results) {
-          const row=document.createElement("div");row.className="asset-row";const details=document.createElement("div");
-          const name=document.createElement("div");name.className="asset-name";name.textContent=result.label;
-          const meta=document.createElement("div");meta.className="asset-meta";meta.textContent=result.actual_sha256?`SHA-256 ${result.actual_sha256} Â· ${result.actual_dimensions_px.join("Ã—")}`:(result.reason||"æœªæä¾›å¯å…¬å¼€é¢„è§ˆçš„æ­£å¼åŸå›¾ã€‚");
-          const status=document.createElement("span");status.className="asset-status";status.dataset.status=result.status;status.title=result.status;status.textContent=({PASS_SOURCE_INTEGRITY:"PASS Â· SHA + SIZE",BLOCKED_ASSET_SOURCE:"BLOCKED Â· PHOTO SOURCE",BLOCKED_MISSING_APPROVED_INDEPENDENT_ORIGINALS:"BLOCKED Â· PHOTO SET"})[result.status]||result.status;
-          details.append(name,meta);row.append(details,status);assetList.append(row);
-        }
-        const failures=results.filter(result=>result.status==="FAIL_SOURCE_INTEGRITY");
-        integritySummary.dataset.state=failures.length?"FAIL":"PASS";
-        integritySummary.textContent=failures.length?`èµ„äº§å®Œæ•´æ€§å¤±è´¥ï¼š${failures.map(item=>item.id).join(", ")}`:"æ³¨å†Œèµ„äº§ SHA-256 ä¸å°ºå¯¸åŒ¹é…ã€‚Hero ç…§ç‰‡å’Œé‚»å¡æ¥æºä»è¢«æ˜ç¡®é˜»å¡ï¼›é¢„è§ˆä¸ä¼šç”Ÿæˆè™šå‡é‚»å¡ã€‚";
-        window.NH01GeminiPreviewAudit={schema:manifest.schema,build_sha:buildSha,status:failures.length?"FAIL":"PASS",release_gate_effect:"NONE",assets:results,checked_at_utc:new Date().toISOString()};
-        return window.NH01GeminiPreviewAudit;
-      }
-      async function initialize() {
-        try {
-          if (!rootMeta?.content) throw new Error("NH01 preview root metadata is missing.");
-          rootPrefix = new URL(rootMeta.content, location.href);
-          for (const image of document.querySelectorAll("img[data-preview-path]")) image.src = new URL(image.dataset.previewPath, rootPrefix).href;
-          if (!window.NH01ResponsiveContractRuntime) throw new Error("Responsive contract runtime module is missing.");
-          contractEnvelope = await window.NH01ResponsiveContractRuntime.loadContract();
-          const contract = contractEnvelope.contract;
-          if (!Array.isArray(contract.visual_anchors) || contract.visual_anchors.length !== 6) throw new Error("Contract must register exactly six frozen visual references.");
-          document.getElementById("contractVersion").textContent = `${contract.contract_id} Â· V${contract.contract_version}`;
-          contractShaLabel.textContent = contractEnvelope.contractSha256;
-          contractStatus.dataset.state = "PASS"; contractStatus.textContent = "Adaptive V2 æœºå™¨åˆåŒå·²åŠ è½½";
-          initializeAnchorViewer(contract);
-          const requestedScale=params.get("fontScale"); if (requestedScale && Number(requestedScale)>=1 && Number(requestedScale)<=1.5) fontScale.value=requestedScale;
-          fontScaleReadout.textContent=`${Number(fontScale.value).toFixed(1)}Ã—`;
-          const initialInsets=window.NH01ResponsiveContractRuntime.resolveInsets(params,contract.preview_engine.coordinate_space.default_safe_insets_dp);
-          Object.entries(initialInsets).forEach(([key,value])=>safeInsetInputs[key].value=String(value));
-          const requested=params.get("viewport");
-          if (requested) { const [w,h]=requested.split("x").map(Number);widthInput.value=w;heightInput.value=h; }
-          const initial=preset.value.split("x").map(Number); if (!requested) {widthInput.value=initial[0];heightInput.value=initial[1];}
-          const frameUrl = new URL(contractEnvelope.contractUrl);
-          const deploymentSha=document.querySelector('meta[name="nh01-preview-deployment-sha"]').content;
-          document.getElementById("deploymentSha").textContent=deploymentSha;
-          document.getElementById("contractAuthorityLink").href=frameUrl.href;
-          window.NH01ResponsiveContract = {id:contract.contract_id,version:contract.contract_version,sha256:contractEnvelope.contractSha256,path:frameUrl.pathname,source_sha:buildSha,deployment_sha:deploymentSha,status:contract.status};
-          await applyViewport();
-          workspace.classList.remove("contract-pending");
-          const [assets, anchors] = matrixMode
-            ? [{status:"MATRIX_PREVIEW_ONLY",release_gate_effect:"NONE"}, []]
-            : await Promise.all([auditAssets(), auditAnchors(contract)]);
-          window.NH01GeminiPreviewReady=true;
-          window.NH01GeminiPreviewAudit={...(window.NH01GeminiPreviewAudit||{}),contract:window.NH01ResponsiveContract,anchors,asset_audit:assets,assets:assets.assets||[],status:assets.status==="PASS"&&anchors.every(item=>item.status==="PASS")?"PASS":"FAIL",release_gate_effect:"NONE"};
-          if (!matrixMode && assets.status!=="PASS") throw new Error("Registered preview asset integrity check failed.");
-        } catch (error) { failClosed(error); }
-      }
-      preset.addEventListener("change", () => { const [w,h]=preset.value.split("x").map(Number);widthInput.value=w;heightInput.value=h;applyViewport().catch(failClosed); });
-      [widthInput,heightInput].forEach(input=>input.addEventListener("change",()=>{preset.value="";applyViewport().catch(error=>showToast(error.message));}));
-      Object.values(safeInsetInputs).forEach(input=>input.addEventListener("change",()=>applyViewport().catch(error=>showToast(error.message))));
-      layoutVariant.addEventListener("change",()=>applyViewport().catch(failClosed));
-      fontScale.addEventListener("input",()=>{fontScaleReadout.textContent=`${Number(fontScale.value).toFixed(1)}Ã—`;applyViewport().catch(failClosed);});
-      window.addEventListener("resize",()=>{if(canvasMode)applyViewport().catch(failClosed);});
-      document.getElementById("cameraButton").addEventListener("click",()=>showToast("æµè§ˆå™¨éªŒæ”¶é¢„è§ˆï¼šæ‹ç…§è¿è¡Œæ—¶è¡Œä¸ºä»ç”±ç‹¬ç«‹ Android Runtime Gate éªŒè¯ã€‚"));
-      document.getElementById("avatarButton").addEventListener("click",()=>showToast("å½“å‰ä½¿ç”¨å·²ç™»è®°çš„ V2 å¤´åƒå›é€€èµ„äº§ã€‚"));
-      document.querySelectorAll(".responsive-frame").forEach(frame=>{if(!matrixMode&&!canvasMode&&frame.dataset.src)frame.src=frame.dataset.src;});
-      const matrixFontScale=document.getElementById("matrixFontScale");
-      if(matrixFontScale)matrixFontScale.addEventListener("change",()=>document.querySelectorAll(".responsive-frame").forEach(frame=>{frame.src=`./gemini-native-preview.html?mode=matrix&viewport=${encodeURIComponent(frame.dataset.viewport)}&fontScale=${encodeURIComponent(matrixFontScale.value)}`;}));
-      initialize();
-
-      const layerMeta = {
-        "#device": {name:"Screen Â· NH01 Home",design:"Screen-Yujian-Home",compose:"GeminiNormalHomeContent",constraint:"å…¨å±å®¹å™¨ï¼›å®‰å…¨åŒºæ•°å€¼è¯»å–å½“å‰ V2 æœºå™¨åˆåŒä¸ç”¨æˆ·è¾“å…¥ã€‚",status:"MAPPED",note:"æµè§ˆå™¨å®‰å…¨åŒºä¸ºå¯è°ƒé¢„è§ˆè¾“å…¥ï¼Œä¸æ„æˆ Android ç³»ç»Ÿ inset å®æµ‹è¯æ®ã€‚"},
-        "#assetBackground": {name:"BG Â· Morning Lake",design:"BG-Mountain-Mist",compose:"GeminiNormalHomeContent / background group",asset:"Morning Lake master Â· registered bitmap",constraint:"å…¨å±é“ºåº•ï¼›ContentScale.Cropï¼ŒTopCenterã€‚",status:"MAPPED",note:"èƒŒæ™¯æºå›¾ä¸ºæ­£å¼ç™»è®°èµ„äº§ï¼Œä¿æŒåŸå§‹åƒç´ ï¼Œä¸åœ¨æ­¤é¡µæ·»åŠ é¢å¤–å å±‚ã€‚"},
-        "#topSection": {name:"Top-Section-AutoLayout",design:"Top-Section-AutoLayout",compose:"GeminiTopSection",constraint:"é¡¶éƒ¨å›ºå®šåŒºåŸŸï¼›å®½åº¦è·Ÿéšå¯ç”¨è§†å£ï¼›å®‰å…¨åŒºç”±æ ¹å®¹å™¨å¤„ç†ã€‚",status:"MAPPED"},
-        "#headerBar": {name:"Header-Bar",design:"Header-Bar",compose:"GeminiTopSection / Header-Bar",constraint:"æ¨ªå‘æ’åˆ—ï¼›åˆåŒè®¡ç®—é—´è·ä¸å®¹å™¨é«˜åº¦ã€‚",status:"MAPPED"},
-        "#assetBrand": {name:"Brand-Title",design:"Brand-Title",compose:"R.drawable.brand_title_primary",asset:"brand_title_primary.png Â· SHA registered",constraint:"å®½åº¦ç”±å½“å‰ V2 åˆåŒè®¡ç®—ï¼›object-fit: containã€‚",status:"MAPPED"},
-        "#avatarButton": {name:"User-Avatar-Btn",design:"User-Avatar-Btn",compose:"GeminiAvatarButton",asset:"normal_home_default_avatar_v2.png Â· SHA registered",constraint:"è§¦æ§ä¸å¤´åƒè§†è§‰å°ºå¯¸ç”±å½“å‰ V2 åˆåŒè®¡ç®—ã€‚",status:"MAPPED"},
-        "#statsBar": {name:"Stats-Bar",design:"Stats-Bar",compose:"GeminiStatsBar",constraint:"ä¸‰åˆ—ç­‰å®½ï¼›æ•°å€¼ä¸æ ‡ç­¾æŒ‰å®‰å…¨é«˜åº¦å’Œç³»ç»Ÿå­—ä½“ç¼©æ”¾ã€‚",status:"MAPPED"},
-        "#middleSection": {name:"Middle-Carousel-Section",design:"Middle-Carousel-Section",compose:"GeminiMiddleSection",constraint:"å ç”¨å‰©ä½™å‚ç›´ç©ºé—´ï¼›ç´§å‡‘çŸ­å±å…è®¸è¯¥åŒºåŸŸå±€éƒ¨æ»šåŠ¨ã€‚",status:"MAPPED"},
-        "#sectionHeader": {name:"Section-Header-Bar",design:"Section-Header-Bar",compose:"GeminiSectionHeader",constraint:"æ¨ªå‘æ ‡é¢˜ä¸æ“ä½œé¡¹ï¼›å­—å·éšé«˜åº¦åŠå­—ä½“ç¼©æ”¾ã€‚",status:"MAPPED"},
-        "#carouselWindow": {name:"Carousel-Track-Container",design:"Carousel-Track-Container",compose:"GeminiCatchCarousel / HorizontalPager",constraint:"è½¨é“å®½åº¦ã€å¡ç‰‡æ¯”ä¾‹å’Œè¾¹ç¼˜é¢„è§ˆå€¼ç”±å½“å‰ V2 åˆåŒè®¡ç®—ã€‚",status:"MAPPED"},
-        "#leftCatchCard": {name:"Card-Peek-Left",design:"Card-Peek-Left",compose:"GeminiCatchCarousel / previous page",asset:"ç‹¬ç«‹è·æ‰¹ç…§ç‰‡æœªç™»è®°",constraint:"åªåœ¨å­˜åœ¨çœŸå®ç‹¬ç«‹é±¼è·è®°å½•ä¸è·æ‰¹ç´ ææ—¶æ˜¾ç¤ºã€‚",status:"BLOCKED",note:"å½“å‰æ²¡æœ‰å¯å…¬å¼€çš„ç‹¬ç«‹é‚»å¡è®°å½•ï¼Œç”»å¸ƒéšè—è¯¥å¡ã€‚ä¸å¾—å¤åˆ¶ Hero é±¼è·ã€‚"},
-        "#mainCatchCard": {name:"Card-Main-Active",design:"Card-Main-Active",compose:"GeminiCatchCarousel / selected page",asset:"Hero photo source approval pending",constraint:"å°ºå¯¸ã€å®½é«˜æ¯”ã€æ–‡å­—å’Œç©ºé—´çº¦æŸè¯»å–å½“å‰ V2 åˆåŒï¼›ç©ºé—´ä¸è¶³æ—¶åªå…è®¸ Middle å±€éƒ¨æ»šåŠ¨ã€‚",status:"BLOCKED",note:"é±¼è·ç…§ç‰‡æ¥æºè¢«èµ„äº§åˆåŒé˜»å¡ï¼›å½“å‰ç”»å¸ƒä¸æ˜¾ç¤ºéçœŸå®ç…§ç‰‡ã€‚å†»ç»“å‚è€ƒå¯¹ç…§ä»å¯æŸ¥çœ‹ã€‚"},
-        "#cardMetadata": {name:"Card-Metadata",design:"Card-Metadata",compose:"GeminiCatchCarousel / CatchCardMetadata",constraint:"åº•éƒ¨æ¸å˜æ‰¿è½½é±¼ç§ã€å°ºå¯¸é‡é‡ã€æ—¶é—´åœ°ç‚¹ï¼›å­—å·ä¸å¡ç‰‡ç©ºé—´å—å“åº”å¼åˆåŒçº¦æŸã€‚",status:"MAPPED"},
-        "#heroPlaceholder": {name:"Hero-Photo",design:"Card-Main-Active / Hero-Photo",compose:"GeminiCatchCarousel / RemoteImage",asset:"BLOCKED_ASSET_SOURCE",constraint:"ç›®æ ‡å›¾åƒéœ€æŒ‰å·²æ‰¹å‡†çš„ Crop/Fit åˆåŒæ¸²æŸ“ï¼›å½“å‰ä»…ä¸ºé˜»å¡å ä½ã€‚",status:"BLOCKED",note:"æ­¤å¤„ä¸èƒ½æ¨æ–­ç”Ÿäº§é±¼ä½“ Mask æˆ–ç…§ç‰‡è£åˆ‡æ˜¯å¦æ­£ç¡®ã€‚"},
-        "#cardMetadata": {name:"Card-Metadata",design:"Card-Main-Active / metadata",compose:"GeminiCatchCarousel / CatchCardMetadata",constraint:"åº•éƒ¨æ¸å˜æ‰¿è½½æ–‡å­—ï¼›é±¼ç§ã€å°ºå¯¸é‡é‡ã€æ—¶é—´åœ°ç‚¹åˆ†çº§æ’å¸ƒã€‚",status:"MAPPED"},
-        "#rightCatchCard": {name:"Card-Peek-Right",design:"Card-Peek-Right",compose:"GeminiCatchCarousel / next page",asset:"ç‹¬ç«‹è·æ‰¹ç…§ç‰‡æœªç™»è®°",constraint:"åªåœ¨å­˜åœ¨çœŸå®ç‹¬ç«‹é±¼è·è®°å½•ä¸è·æ‰¹ç´ ææ—¶æ˜¾ç¤ºã€‚",status:"BLOCKED",note:"å½“å‰æ²¡æœ‰å¯å…¬å¼€çš„ç‹¬ç«‹é‚»å¡è®°å½•ï¼Œç”»å¸ƒéšè—è¯¥å¡ã€‚ä¸å¾—å¤åˆ¶ Hero é±¼è·ã€‚"},
-        "#footerSection": {name:"Footer-CTA-Section",design:"Footer-CTA-Section",compose:"GeminiFooterSection",constraint:"åº•éƒ¨å›ºå®šæ“ä½œåŒºï¼›ç³»ç»Ÿå¯¼èˆªå®‰å…¨åŒºç”±æ ¹å®¹å™¨å¤„ç†ã€‚",status:"MAPPED"},
-        "#ctaLabel": {name:"CTA-Label-RecordNext",design:"CTA-Label-RecordNext",compose:"GeminiFooterSection / CTA label",constraint:"æ–‡å­—å­—å·è·Ÿéšå®‰å…¨é«˜åº¦å’Œå­—ä½“ç¼©æ”¾ï¼›ä¸ç›¸æœºæ§ä»¶ä¿æŒå‚ç›´é—´è·ã€‚",status:"MAPPED"},
-        "#cameraButton": {name:"CTA-Camera-Button",design:"CTA-Camera-Button",compose:"HomeCameraButton",asset:"normal_home_camera_primary_v1.png Â· SHA registered",constraint:"è§†è§‰å°ºå¯¸ä¸è§¦æ§ç›®æ ‡ä¾æ®å½“å‰ V2 åˆåŒå’Œå®‰å…¨åŒºåŸŸè®¡ç®—ã€‚",status:"MAPPED"}
-      };
-      const inspectorFields = {
-        name:document.getElementById("inspectorNodeName"), status:document.getElementById("inspectorNodeStatus"),
-        design:document.getElementById("inspectorDesignNode"), compose:document.getElementById("inspectorComposeNode"),
-        position:document.getElementById("inspectorPosition"), size:document.getElementById("inspectorSize"),
-        font:document.getElementById("inspectorFont"), radius:document.getElementById("inspectorRadius"),
-        background:document.getElementById("inspectorBackground"), color:document.getElementById("inspectorColor"),
-        image:document.getElementById("inspectorImage"), constraint:document.getElementById("inspectorConstraint"),
-        assetStatus:document.getElementById("inspectorAssetStatus"), note:document.getElementById("inspectorNote")
-      };
-      function selectLayer(target) {
-        const node = document.querySelector(target);
-        if (!node) return;
-        document.querySelectorAll(".layer-node").forEach(button => button.setAttribute("aria-selected", String(button.dataset.target === target)));
-        document.querySelectorAll("[data-inspected='true']").forEach(el => { el.removeAttribute("data-inspected"); el.classList.remove("inspected-node"); });
-        node.setAttribute("data-inspected", "true");
-        node.classList.add("inspected-node");
-        const meta = layerMeta[target] || {name:node.getAttribute("data-layer") || node.id || target,design:node.getAttribute("data-layer") || target,compose:"Compose mapping not registered",constraint:"å°šæœªç™»è®°å“åº”å¼çº¦æŸã€‚",status:"REVIEW_REQUIRED",note:"éœ€è¦è¡¥é½è®¾è®¡èŠ‚ç‚¹ä¸ Android Compose çš„æ˜ç¡®æ˜ å°„ã€‚"};
-        const deviceRect = device.getBoundingClientRect(), rect = node.getBoundingClientRect();
-        const scale = device.offsetWidth ? deviceRect.width / device.offsetWidth : 1;
-        const number = value => (Math.round(value * 100) / 100).toFixed(2);
-        const x = (rect.left - deviceRect.left) / scale, y = (rect.top - deviceRect.top) / scale;
-        const width = rect.width / scale, height = rect.height / scale, style = getComputedStyle(node);
-        const image = node.matches("img") ? node : node.querySelector("img");
-        const assetText = meta.asset || (image ? (image.dataset.assetId || (image.currentSrc || image.src).split("/").pop()) : "æ— ç‹¬ç«‹å›¾ç‰‡èµ„äº§");
-        inspectorFields.name.textContent = meta.name;
-        inspectorFields.status.textContent = meta.status;
-        inspectorFields.status.dataset.status = meta.status === "BLOCKED" ? "BLOCKED" : (meta.status === "MAPPED" ? "MAPPED" : "REVIEW_REQUIRED");
-        inspectorFields.design.textContent = meta.design || "â€”";
-        inspectorFields.compose.textContent = meta.compose || "â€”";
-        inspectorFields.position.textContent = number(x) + " Â· " + number(y);
-        inspectorFields.size.textContent = number(width) + " Â· " + number(height);
-        inspectorFields.font.textContent = style.fontSize + " / " + style.fontWeight;
-        inspectorFields.radius.textContent = style.borderRadius || "0px";
-        inspectorFields.background.textContent = style.backgroundColor;
-        inspectorFields.color.textContent = style.color;
-        inspectorFields.image.textContent = image ? (image.currentSrc || image.src).split("/").pop() + " Â· fit=" + getComputedStyle(image).objectFit : assetText;
-        inspectorFields.constraint.textContent = meta.constraint || "æœªç™»è®°";
-        inspectorFields.assetStatus.textContent = assetText + " Â· " + meta.status;
-        inspectorFields.note.textContent = meta.note || "å‡ ä½•æ•°å€¼æ¥è‡ªå½“å‰æµè§ˆå™¨é¢„è§ˆï¼›éœ€ç”¨åŒä¸€æºç  SHA çš„ Android boundsInWindow å’Œæˆªå›¾å¤æ ¸ã€‚";
-        window.NH01SelectedLayer = {target,name:meta.name,designNode:meta.design,compose:meta.compose,boundsDp:{x:Number(number(x)),y:Number(number(y)),width:Number(number(width)),height:Number(number(height))},status:meta.status};
-      }
-      document.getElementById("layerTree").addEventListener("click", event => {
-        const button = event.target.closest(".layer-node");
-        if (button) selectLayer(button.dataset.target);
-      });
-      device.addEventListener("click", event => {
-        if (event.target.closest(".camera-button") || event.target.closest(".avatar-button")) return;
-        const target = event.target.closest("[data-layer], [data-asset-id], #device");
-        if (!target) return;
-        const selector = target.id ? "#" + target.id : null;
-        if (selector && layerMeta[selector]) selectLayer(selector);
-        else {
-          const layerName = target.getAttribute("data-layer");
-          const entry = Object.entries(layerMeta).find(([key,value]) => value.design === layerName || value.name === layerName);
-          if (entry) selectLayer(entry[0]);
-        }
-      });
-      if (!canvasMode && !matrixMode) selectLayer("#mainCatchCard");
-
-    })();
-  </script>
-</body>
-</html>
+YªçŠx-®éÜj×¢ëiºÚ+Š§j[h‘éÜ¢éíß]üá:-jZ.¶›­–)Ş³SÂFö7G—R‡FÖÃà£Æ‡FÖÂÆæsÒ'¦‚Ô4â#à£Æ†VCà¢ÆÖWF6†'6WCÒ'WFbÓ‚#à¢ÆÖWFæÖSÒ'f–Ww÷'B"6öçFVçCÒ'v–GFƒÖFWf–6R×v–GF‚Æ–æ—F–Â×66ÆSÓÇf–Ww÷'BÖf—CÖ6÷fW"#à¢ÆÖWFæÖSÒ&æƒÖvVÖ–æ’×&Wf–WrÖ'V–ÆB"6öçFVçCÒ%õôäƒôtTÔ”ä•õ$Ud”Uuô%T”ÄEõò#à¢ÆÖWFæÖSÒ&æƒÖvVÖ–æ’×&Wf–Wr×F&vWB"6öçFVçCÒ$tTÔ”ä•ôäD•dUõc5õ5E%T5EU$Uõ$Ud”UuôäõEõd•5TÅõ52#à¢ÆÖWFæÖSÒ&æƒ×&Wf–Wr×&ö÷B"6öçFVçCÒ"ââòââòââòââòââò#à¢ÆÖWFæÖSÒ&æƒ×&W7öç6—fRÖ6öçG&7B×W&Â"6öçFVçCÒ&FW6–vâ÷vW2ö†öÖRöæ÷&ÖÅö†öÖR÷&W7öç6—fRôäƒõ$U5ôå4•dUôÄ”õUEõc"æ§6öâ#à¢ÆÖWFæÖSÒ&æƒ×&W7öç6—fRÖ6öçG&7BÖ–B"6öçFVçCÒ$äƒõ$U5ôå4•dUôÄ”õUEõc"#à¢ÆÖWFæÖSÒ&æƒ×&W7öç6—fRÖ6öçG&7B×fW'6–öâ"6öçFVçCÒ#"ã#à¢ÆÖWFæÖSÒ&æƒ×&Wf–WrÖFWÆ÷–ÖVçB×6†"6öçFVçCÒ%õôäƒõ$Ud”UuôDUÄõ”ÔTåEõ4„õò#à¢ÇF—FÆSîk‰NŠx+räƒvVÖ–æ’æF—fR&Wf–WsÂ÷F—FÆSà¢Ç7G–ÆSà¢§&ö÷G¶6öÆ÷"×66†VÖS¦Æ–v‡C²ÒÖ–æ³¢3c36S²ÒÖ×WFVC¢3V#s3vC²ÒÖÆ–æS¢6CFSS3²Ò×æVÃ¢6cVc†cƒ²Ò×7V66W73¢3sfCS²Ò×v&ã¢3ƒV##²ÒÖFævW#¢3ƒC3ƒ&S²ÒÖföçB×66ÆS£²Ò×6fR×F÷£ƒ²Ò×6fRÖ&÷GFöÓ£ƒ²Ò×6fR×7F'C£ƒ²Ò×6fRÖVæC£ƒ²ÒÖ'&æB×7FG2Öv£ƒ²ÒÖÆVF–ærÖv£ƒ²Ò×F—FÆRÖ6&BÖv£ƒ²ÒÖ6&BÖfö÷FW"Öv£ƒ²Ò×6V7F–öâÖ†VFW"Ö†V–v‡C£ƒ²ÒÖ†VFW"Ö†V–v‡C£ƒ²ÒÖ†VFW"Ö†÷&—¦öçFÂÖv£ƒ²ÒÖ6öçFVçB×v–GFƒ£ƒ²ÒÖ6öçFVçB×F÷×FF–æs£ƒ²Ò×F÷Ö–æÆ–æR×FF–æs£ƒ²Ò×6V7F–öâÖ–æÆ–æR×FF–æs£ƒ²Ò×6V7F–öâÖ†÷&—¦öçFÂÖv£ƒ²Ò×7FG2ÖÖ–âÖ†V–v‡C£ƒ²Ò×7FG2×fW'F–6Â×FF–æs£ƒ²Ò×7FG2Ö—FVÒÖv£ƒ²ÒÖfF"×6—¦S£ƒ²ÒÖfF"×F÷V6‚×6—¦S£ƒ²ÒÖ6ÖW&×f—7VÂ×6—¦S£ƒ²ÒÖ6ÖW&×F÷V6‚×6—¦S£ƒ²ÒÖæV–v†&÷"×v–GFƒ£ƒ²ÒÖæV–v†&÷"Ö†V–v‡C£ƒ²ÒÖæV–v†&÷"Öv£ƒ²ÒÖÖ–âÖ6&B×6–FRÖ–ç6WC£ƒ²Ò×VV²×F÷Ööfg6WC£ƒ²Ò×7FB×fÇVR×6—¦S£ƒ²Ò×7FBÖÆ&VÂ×6—¦S£ƒ²Ò×6V7F–öâ×F—FÆR×6—¦S£ƒ²Ò×6V7F–öâÖ7F–öâ×6—¦S£ƒ²ÒÖ7FÖÆ&VÂ×6—¦S£ƒ²ÒÖ6F6‚×7V6–W2×6—¦S£ƒ²ÒÖ6F6‚ÖÖV7W&R×6—¦S£ƒ²ÒÖ6F6‚ÖÖWFFF×6—¦S£ƒ²ÒÖÖ–âÖ6&B×v–GFƒ£ƒ²ÒÖÖ–âÖ6&BÖ†V–v‡C£ƒ²ÒÖ6&BÖfö÷FW"×FF–æs£ƒ²ÒÖ6&BÖ†÷&—¦öçFÂ×FF–æs£ƒ²ÒÖ7FÖ6ÖW&Öv£ƒ²ÒÖfö÷FW"×F÷×FF–æs£ƒ²ÒÖfö÷FW"Ö&÷GFöÒ×FF–æs£ƒ²Ò×FW‡BÖv£ƒ²ÒÖ†W&òÖ7V7C£óĞ¢§&ö÷G²Ò×7V6–W2ÖÖ‚ÖÆ–æW3£²ÒÖÖV7W&VÖVçBÖÖ‚ÖÆ–æW3£²ÒÖÖWFFFÖÖ‚ÖÆ–æW3£'Ğ¢§¶&÷‚×6—¦–æs¦&÷&FW"Ö&÷‡Ğ¢‡FÖÂÆ&öG—¶Ö&v–ã£¶Ö–âÖ†V–v‡C£S¶föçBÖfÖ–Ç“§7—7FVÒ×V’ÂÖÆR×7—7FVÒÂ%–ætfær42"Â$Ö–7&÷6ögB–†V’"Ç6ç2×6W&–c¶6öÆ÷#§f"‚ÒÖ–æ²“¶&6¶w&÷VæC¢6VccĞ¢&öG—¶Ö–âÖ†V–v‡C£Gf‡Ğ¢'WGFöâÇ6VÆV7G¶föçC¦–æ†W&—GĞ¢çv÷&·76W¶Ö‚×v–GFƒ£cƒƒ¶Ö&v–ã£WFó·FF–æs£‡ƒ¶F—7Æ“¦w&–C¶w&–B×FV×ÆFRÖ6öÇVÖç3£##‚Ö–æÖ‚ƒ3c‚ÃS#‚’Ö–æÖ‚ƒ#“‚Ãg"“¶v£gƒ¶Æ–vâÖ—FV×3§7F'GĞ¢æÆ–W"Ö6öÇVÖâÂç&Wf–WrÖ6öÇVÖâÂæVF—BÖ6öÇVÖç¶Ö–â×v–GFƒ£Ğ¢çv÷&·76RÖ†VFW'¶F—7Æ“¦fÆWƒ¶Æ–vâÖ—FV×3¦fÆW‚×7F'C¶§W7F–g’Ö6öçFVçC§76RÖ&WGvVVã¶v£Gƒ¶Ö&v–ã£g‡Ğ¢æW–V'&÷w¶föçB×6—¦S£ƒ¶föçB×vV–v‡C£ƒ¶ÆWGFW"×76–æs¢ã6VÓ¶6öÆ÷#¢3cvCƒs·FW‡B×G&ç6f÷&Ó§WW&66WĞ¢ƒ¶föçB×6—¦S¦6Æ×ƒ#‚Ã'grÃ#‡‚“¶Æ–æRÖ†V–v‡C£ã#¶Ö&v–ã£W‚w‡Ğ¢ƒ'¶föçB×6—¦S£gƒ¶Ö&v–ã£Ğ¢¶Æ–æRÖ†V–v‡C£ãgĞ¢ç7V'F—FÆW¶Ö&v–ã£¶6öÆ÷#§f"‚ÒÖ×WFVB“¶föçB×6—¦S£'ƒ¶Ö‚×v–GFƒ£c‡Ğ¢ç7FGW2Ö&FvW¶F—7Æ“¦–æÆ–æRÖfÆWƒ¶Æ–vâÖ—FV×3¦6VçFW#¶v£gƒ·FF–æs£g‚—ƒ¶&÷&FW"×&F—W3£““—ƒ¶&6¶w&÷VæC¢6ffc&Cs¶6öÆ÷#§f"‚Ò×v&â“¶&÷&FW#£‚6öÆ–B6Sf6c“ƒ¶föçB×6—¦S£ƒ¶föçB×vV–v‡C£ƒ·v†—FR×76S¦æ÷w&Ğ¢æ6öçG&öÂ×æVÇ¶&6¶w&÷VæC¢6ffc¶&÷&FW#£‚6öÆ–Bf"‚ÒÖÆ–æR“¶&÷&FW"×&F—W3£Gƒ·FF–æs£Gƒ¶&÷‚×6†F÷s£‡‚#G‚&v&ƒrÃC‚ÃcÂãR—Ğ¢æ6öçG&öÂ×æVÇ¶Ö&v–âÖ&÷GFöÓ£G‡Ğ¢æ6öçG&öÇ7¶F—7Æ“¦fÆWƒ¶fÆW‚×w&§w&¶v£ƒ¶Æ–vâÖ—FV×3¦VæGĞ¢æ6öçG&öÇ¶F—7Æ“¦w&–C¶v£Wƒ¶Ö–â×v–GFƒ£Wƒ¶fÆWƒ£Ğ¢æ6öçG&öÂÆ&VÇ¶föçB×6—¦S£ƒ¶6öÆ÷#§f"‚ÒÖ×WFVB“¶föçB×vV–v‡C£sĞ¢æ6öçG&öÂ6VÆV7G·v–GFƒ£S·FF–æs£‡‚—ƒ¶&÷&FW#£‚6öÆ–Bf"‚ÒÖÆ–æR“¶&÷&FW"×&F—W3£‡ƒ¶&6¶w&÷VæC¢6ffc¶6öÆ÷#§f"‚ÒÖ–æ²“¶föçB×6—¦S£'‡Ğ¢æ6öçG&öÂ–çWG·v–GFƒ£S·FF–æs£‡‚—ƒ¶&÷&FW#£‚6öÆ–Bf"‚ÒÖÆ–æR“¶&÷&FW"×&F—W3£‡ƒ¶&6¶w&÷VæC¢6ffc¶6öÆ÷#§f"‚ÒÖ–æ²“¶föçB×6—¦S£'‡Ğ¢æ6öçG&7BÖÆ–æW¶F—7Æ“¦fÆWƒ¶fÆW‚×w&§w&¶v£‡ƒ¶Ö&v–â×F÷£ƒ¶föçB×6—¦S£ƒ¶6öÆ÷#§f"‚ÒÖ×WFVB—Ğ¢æ6öçG&7BÖÆ–æR7G&öæw¶6öÆ÷#§f"‚ÒÖ–æ²—Ğ¢æ6öçG&7BÖÆ–æR¶FF×7FFSÒ%52%×¶6öÆ÷#§f"‚Ò×7V66W72—Ğ¢æ6öçG&7BÖÆ–æR¶FF×7FFSÒ$d”Â%×¶6öÆ÷#§f"‚ÒÖFævW"—Ğ¢æ6öçG&7BÖW'&÷'¶F—7Æ“¦æöæS·FF–æs£'ƒ¶&÷&FW#£‚6öÆ–B6C“–#†S¶&6¶w&÷VæC¢6ffcVC¶6öÆ÷#§f"‚ÒÖFævW"“¶&÷&FW"×&F—W3£ƒ¶föçB×6—¦S£'ƒ¶Æ–æRÖ†V–v‡C£ãS¶Ö&v–âÖ&÷GFöÓ£'‡Ğ¢æ6öçG&7BÖf–ÆVBæ6öçG&7BÖW'&÷'¶F—7Æ“¦&Æö6·Ğ¢æ6öçG&7BÖf–ÆVBæFWf–6W·f—6–&–Æ—G“¦†–FFVçĞ¢æ6öçG&7B×VæF–æræFWf–6W·f—6–&–Æ—G“¦†–FFVçĞ¢æ6öçG&öÃ¦†2†–çWE·G—SÒ'&ævR%Ò—¶Ö–â×v–GFƒ£S‡Ğ¢æ6öçG&öÂ–çWE·G—SÒ'&ævR%×·FF–æs£¶66VçBÖ6öÆ÷#¢33cvƒ‡Ğ¢ç'VÆRÖÆ—7G¶F—7Æ“¦w&–C¶v£wƒ¶Ö&v–ã£Ğ¢ç'VÆR×&÷w¶F—7Æ“¦w&–C¶w&–B×FV×ÆFRÖ6öÇVÖç3¦Ö–æÖ‚ƒ“‚Âã†g"’Ö–æÖ‚ƒÃã&g"“¶v£‡ƒ·FF–æs£w‚‡ƒ¶&÷&FW#£‚6öÆ–B6SS†V¶&÷&FW"×&F—W3£‡ƒ¶&6¶w&÷VæC¢6c†f&f#¶föçB×6—¦S£ƒ¶Æ–æRÖ†V–v‡C£ãCWĞ¢ç'VÆR×&÷rGG¶6öÆ÷#§f"‚ÒÖ×WFVB—Òç'VÆR×&÷rFG¶Ö&v–ã£¶6öÆ÷#§f"‚ÒÖ–æ²“¶föçB×vV–v‡C£s¶÷fW&fÆ÷r×w&¦ç—v†W&WĞ¢ç&VfW&Væ6RÖ6öçG&öÇ7¶F—7Æ“¦w&–C¶w&–B×FV×ÆFRÖ6öÇVÖç3¦Ö–æÖ‚ƒÃg"’WFó¶v£‡ƒ¶Æ–vâÖ—FV×3¦6VçFW#¶Ö&v–ã£‚Ğ¢ç&VfW&Væ6RÖ6öçG&öÇ26VÆV7G¶Ö–â×v–GFƒ£·FF–æs£‡ƒ¶&÷&FW#£‚6öÆ–Bf"‚ÒÖÆ–æR“¶&÷&FW"×&F—W3£‡ƒ¶&6¶w&÷VæC¢6ffc¶6öÆ÷#§f"‚ÒÖ–æ²“¶föçB×6—¦S£‡Ğ¢ç&VfW&Væ6RÖÖWF¶föçB×6—¦S£ƒ¶6öÆ÷#§f"‚ÒÖ×WFVB“¶Æ–æRÖ†V–v‡C£ãS¶Ö&v–ã£‡ƒ¶÷fW&fÆ÷r×w&¦ç—v†W&WĞ¢ç&VfW&Væ6R×7FvW¶F—7Æ“¦w&–C·Æ6RÖ—FV×3¦6VçFW#¶Ö–âÖ†V–v‡C£#Cƒ¶Ö‚Ö†V–v‡C£S#ƒ¶÷fW&fÆ÷s¦WFó·FF–æs£‡ƒ¶&6¶w&÷VæC¢6SvVVc¶&÷&FW#£‚6öÆ–Bf"‚ÒÖÆ–æR“¶&÷&FW"×&F—W3£‡Ğ¢ç&VfW&Væ6R×7FvR–Öw¶F—7Æ“¦&Æö6³¶Ö‚×v–GFƒ£S¶Ö‚Ö†V–v‡C£Sƒ¶ö&¦V7BÖf—C¦6öçF–ã¶&÷‚×6†F÷s£G‚g‚&v&ƒBÃCÃSÂãR—Ğ¢ç&VfW&Væ6RÖ÷Vç¶föçB×6—¦S£ƒ¶6öÆ÷#¢3&ccsWĞ¢çv÷&·76Ræ6öçG&7B×VæF–æræ6öçG&öÂ×æVÂ6VÆV7BÂçv÷&·76Ræ6öçG&7B×VæF–æræ6öçG&öÂ×æVÂ–çWG¶÷6—G“¢ãgĞ¢æÆ–W"×æVÂÂæVF—BÖ6&G¶&6¶w&÷VæC¢6ffc¶&÷&FW#£‚6öÆ–Bf"‚ÒÖÆ–æR“¶&÷&FW"×&F—W3£Gƒ·FF–æs£7ƒ¶&÷‚×6†F÷s£‡‚#G‚&v&ƒrÃC‚ÃcÂãR—Ğ¢æÆ–W"×æVÇ·÷6—F–öã§7F–6·“·F÷£'ƒ¶Ö‚Ö†V–v‡C¦6Æ2ƒGf‚Ò#G‚“¶F—7Æ“¦fÆWƒ¶fÆW‚ÖF—&V7F–öã¦6öÇVÖã¶Ö–âÖ†V–v‡C£3c‡Ğ¢çæVÂÖ†VF–æw¶F—7Æ“¦fÆWƒ¶Æ–vâÖ—FV×3¦6VçFW#¶§W7F–g’Ö6öçFVçC§76RÖ&WGvVVã¶v£‡ƒ¶Ö&v–âÖ&÷GFöÓ£—‡Ğ¢çæVÂÖ†VF–ærƒ'¶föçB×6—¦S£7ƒ¶Ö&v–ã£Ğ¢çæVÂÖ6÷VçG¶föçB×6—¦S£—ƒ¶föçB×vV–v‡C£ƒ¶6öÆ÷#¢3Scs#vC¶&6¶w&÷VæC¢6VFc6cC·FF–æs£G‚gƒ¶&÷&FW"×&F—W3£gƒ·v†—FR×76S¦æ÷w&Ğ¢çæVÂÖ†VÇ¶föçB×6—¦S£ƒ¶6öÆ÷#§f"‚ÒÖ×WFVB“¶Æ–æRÖ†V–v‡C£ãCS¶Ö&v–ã£‡Ğ¢æÆ–W"×67&öÆÇ¶÷fW&fÆ÷s¦WFó¶Ö–âÖ†V–v‡C£¶÷fW'67&öÆÂÖ&V†f–÷#¦6öçF–çĞ¢æÆ–W"×G&VRÂæÆ–W"Ö6†–ÆG&Vç¶Æ—7B×7G–ÆS¦æöæS·FF–æs£¶Ö&v–ã£Ğ¢æÆ–W"Ö6†–ÆG&Vç·FF–ærÖÆVgC£Gƒ¶Ö&v–âÖÆVgC£ƒ¶&÷&FW"ÖÆVgC£‚6öÆ–B6F6SfS‡Ğ¢æÆ–W"×G&VRÆ—¶Ö&v–ã£'‚Ğ¢æÆ–W"ÖæöFW¶F—7Æ“¦fÆWƒ¶Æ–vâÖ—FV×3¦6VçFW#¶v£gƒ·v–GFƒ£S¶Ö–â×v–GFƒ£·FF–æs£g‚wƒ¶&÷&FW#£‚6öÆ–BG&ç7&VçC¶&÷&FW"×&F—W3£wƒ¶&6¶w&÷VæC§G&ç7&VçC·FW‡BÖÆ–vã¦ÆVgC¶6öÆ÷#¢33CSV3¶föçB×6—¦S£ƒ¶7W'6÷#§ö–çFW'Ğ¢æÆ–W"ÖæöFS¦†÷fW'¶&6¶w&÷VæC¢6ccfcwĞ¢æÆ–W"ÖæöFU¶&–×6VÆV7FVCÒ'G'VR%×¶&6¶w&÷VæC¢6SVc&cC¶&÷&FW"Ö6öÆ÷#¢3†V#†3¶6öÆ÷#¢3sF3V¶föçB×vV–v‡C£ƒĞ¢æÆ–W"ÖæöFRææöFRÖ–6öç¶fÆWƒ¦æöæS·v–GFƒ£Gƒ·FW‡BÖÆ–vã¦6VçFW#¶6öÆ÷#¢3fS†#“S¶föçB×6—¦S£‡Ğ¢æÆ–W"ÖæöFRææöFRÖÆ&VÇ¶Ö–â×v–GFƒ£¶÷fW&fÆ÷s¦†–FFVã·FW‡BÖ÷fW&fÆ÷s¦VÆÆ—6—3·v†—FR×76S¦æ÷w&¶fÆWƒ£Ğ¢æÆ–W"ÖæöFRææöFR×7FFW¶fÆWƒ¦æöæS¶föçB×6—¦S£‡ƒ¶6öÆ÷#¢3–f#GĞ¢æÆ–W"Ö'&æ6ƒç7VÖÖ'—¶Æ—7B×7G–ÆS¦æöæS¶7W'6÷#§ö–çFW#¶F—7Æ“¦fÆWƒ¶Æ–vâÖ—FV×3¦6VçFW#¶v£Wƒ·FF–æs£W‚Gƒ¶6öÆ÷#¢3S3fSsƒ¶föçB×6—¦S£—ƒ¶föçB×vV–v‡C£ƒĞ¢æÆ–W"Ö'&æ6ƒç7VÖÖ'“£¢×vV&¶—BÖFWF–Ç2ÖÖ&¶W'¶F—7Æ“¦æöæWĞ¢æÆ–W"Ö'&æ6ƒç7VÖÖ'“¦&Vf÷&W¶6öçFVçC¢.)k‚#¶F—7Æ“¦–æÆ–æRÖ&Æö6³·v–GFƒ£ƒ¶6öÆ÷#¢3sc“–Ğ¢æÆ–W"Ö'&æ6…¶÷VåÓç7VÖÖ'“¦&Vf÷&W¶6öçFVçC¢.)kâ'Ğ¢æ–ç7V7F÷"Öw&–G¶F—7Æ“¦w&–C¶w&–B×FV×ÆFRÖ6öÇVÖç3§&WVBƒ"ÆÖ–æÖ‚ƒÃg"’“¶v£wƒ¶Ö&v–ã£‚Ğ¢æ–ç7V7F÷"Öf–VÆG¶Ö–â×v–GFƒ£·FF–æs£‡ƒ¶&÷&FW#£‚6öÆ–B6SS†V¶&÷&FW"×&F—W3£‡ƒ¶&6¶w&÷VæC¢6c†f&f'Ğ¢æ–ç7V7F÷"Öf–VÆBçv–FW¶w&–BÖ6öÇVÖã£òÓĞ¢æ–ç7V7F÷"ÖÆ&VÇ¶F—7Æ“¦&Æö6³¶föçB×6—¦S£—ƒ¶6öÆ÷#§f"‚ÒÖ×WFVB“¶Ö&v–âÖ&÷GFöÓ£G‡Ğ¢æ–ç7V7F÷"×fÇVW¶F—7Æ“¦&Æö6³¶föçB×6—¦S£ƒ¶Æ–æRÖ†V–v‡C£ãCS¶6öÆ÷#§f"‚ÒÖ–æ²“¶föçB×vV–v‡C£sS¶÷fW&fÆ÷r×w&¦ç—v†W&WĞ¢æ–ç7V7F÷"Ö6öFW¶föçC£‚óãCRV’ÖÖöæ÷76RÅ4dÖöæòÕ&VwVÆ"Ä6öç6öÆ2ÆÖöæ÷76S¶föçB×vV–v‡C£cĞ¢æ–ç7V7FVBÖæöFW¶÷WFÆ–æS£'‚6öÆ–B6Sv#CS"–×÷'FçC¶÷WFÆ–æRÖöfg6WC¢Ó'‚–×÷'FçGĞ¢ç&Wf–Wr×7FvW¶F—7Æ“¦fÆWƒ¶§W7F–g’Ö6öçFVçC¦6VçFW#¶Æ–vâÖ—FV×3¦fÆW‚×7F'C·FF–æs£g‚'ƒ¶Ö–â×v–GFƒ£Ğ¢æFWf–6R×w&·÷6—F–öã§&VÆF—fS¶fÆWƒ¦æöæWĞ¢æFWf–6W·÷6—F–öã§&VÆF—fS·v–GFƒ£¶†V–v‡C£·G&ç6f÷&ÒÖ÷&–v–ã§F÷ÆVgC¶÷fW&fÆ÷s¦†–FFVã¶6öçF–æW"×G—S§6—¦S¶&6¶w&÷VæC¢3s3sCc¶—6öÆF–öã¦—6öÆFS¶&÷‚×6†F÷s£‡‚C‡‚&v&ƒ2Ã3’ÃC’Âã#"“¶&÷&FW#£‚6öÆ–B&v&ƒ#SRÃ#SRÃ#SRÂãCR“¶&÷&FW"×&F—W3£#g‡Ğ¢ç66VæRÖ&6¶w&÷VæG·÷6—F–öã¦'6öÇWFS¶–ç6WC£·v–GFƒ£S¶†V–v‡C£S¶ö&¦V7BÖf—C¦6÷fW#¶ö&¦V7B×÷6—F–öã§F÷6VçFW#·¢Ö–æFWƒ¢Ó'Ğ¢çvRÖ6öçFVçG·÷6—F–öã§&VÆF—fS·¢Ö–æFWƒ£¶F—7Æ“¦fÆWƒ¶fÆW‚ÖF—&V7F–öã¦6öÇVÖã·v–GFƒ¦Ö–âƒRÆ6Æ2‡f"‚ÒÖ6öçFVçB×v–GF‚’²f"‚Ò×6fR×7F'B’²f"‚Ò×6fRÖVæB’’“¶†V–v‡C£S¶Ö–âÖ†V–v‡C£¶&÷‚×6—¦–æs¦&÷&FW"Ö&÷ƒ¶Ö&v–âÖ–æÆ–æS¦WFó·FF–æs§f"‚Ò×6fR×F÷’f"‚Ò×6fRÖVæB’f"‚Ò×6fRÖ&÷GFöÒ’f"‚Ò×6fR×7F'B—Ğ¢çF÷×6V7F–öç¶fÆWƒ¦æöæS·FF–æs§f"‚ÒÖ6öçFVçB×F÷×FF–ær’f"‚Ò×F÷Ö–æÆ–æR×FF–ær’Ğ¢æ†VFW"Ö&'¶F—7Æ“¦fÆWƒ¶Æ–vâÖ—FV×3¦6VçFW#¶§W7F–g’Ö6öçFVçC§76RÖ&WGvVVã¶Ö–âÖ†V–v‡C§f"‚ÒÖ†VFW"Ö†V–v‡B“¶v§f"‚ÒÖ†VFW"Ö†÷&—¦öçFÂÖv—Ğ¢æ'&æB×F—FÆW¶F—7Æ“¦&Æö6³·v–GFƒ§f"‚ÒÖ'&æB×v–GF‚“¶†V–v‡C¦WFó¶ö&¦V7BÖf—C¦6öçF–ã¶fÆWƒ¦æöæWĞ¢æfF"Ö'WGFöç¶F—7Æ“¦w&–C·Æ6RÖ—FV×3¦6VçFW#¶fÆWƒ¦æöæS·v–GFƒ§f"‚ÒÖfF"×F÷V6‚×6—¦R“¶†V–v‡C§f"‚ÒÖfF"×F÷V6‚×6—¦R“¶&÷&FW#£·FF–æs£¶&6¶w&÷VæC§G&ç7&VçC¶&÷&FW"×&F—W3£SWĞ¢æfF"×f—7VÇ¶F—7Æ“¦&Æö6³·v–GFƒ§f"‚ÒÖfF"×6—¦R“¶†V–v‡C§f"‚ÒÖfF"×6—¦R“¶ö&¦V7BÖf—C¦6öçF–ã¶&÷&FW"×&F—W3£SS¶&6¶w&÷VæC§&v&ƒ#SRÃ#SRÃ#SRÂã“b—Ğ¢ç7FG2Ö&'¶F—7Æ“¦w&–C¶w&–B×FV×ÆFRÖ6öÇVÖç3§&WVBƒ2ÆÖ–æÖ‚ƒÃg"’“¶Æ–vâÖ—FV×3¦6VçFW#¶Ö–âÖ†V–v‡C§f"‚Ò×7FG2ÖÖ–âÖ†V–v‡B“·FF–æs§f"‚Ò×7FG2×fW'F–6Â×FF–ær’¶Ö&v–â×F÷§f"‚ÒÖ'&æB×7FG2Öv“¶6öÆ÷#¢6cvf&f3·FW‡BÖÆ–vã¦6VçFW#·FW‡B×6†F÷s£‚‡‚&v&ƒ‚Ã3Ã3’Âã#‚—Ğ¢ç7FG¶F—7Æ“¦w&–C¶v§f"‚Ò×7FG2Ö—FVÒÖv“¶Ö–â×v–GFƒ£·FF–æs£7‡Ğ¢ç7FB²ç7FG·÷6—F–öã§&VÆF—fS¶&÷&FW"ÖÆVgC£Òç7FB²ç7FC¦&Vf÷&W¶6öçFVçC¢"#·÷6—F–öã¦'6öÇWFS¶ÆVgC£·F÷£SS·G&ç6f÷&Ó§G&ç6ÆFU’‚ÓSR“¶†V–v‡C£#gƒ·v–GFƒ£ƒ¶&6¶w&÷VæC§&v&ƒ#CBÃ#SÃ#S"Âã2—Ğ¢ç7FB×fÇVW¶föçB×vV–v‡C£sS¶föçB×6—¦S¦6Æ2‡f"‚Ò×7FB×fÇVR×6—¦R’§f"‚ÒÖföçB×66ÆR’“¶Æ–æRÖ†V–v‡C£ã'Ğ¢ç7FBÖÆ&VÇ¶föçB×6—¦S¦6Æ2‡f"‚Ò×7FBÖÆ&VÂ×6—¦R’§f"‚ÒÖföçB×66ÆR’“¶Æ–æRÖ†V–v‡C£ã#¶÷6—G“¢ã“'Ğ¢æÖ–FFÆR×6V7F–öç¶F—7Æ“¦fÆWƒ¶fÆWƒ£¶fÆW‚ÖF—&V7F–öã¦6öÇVÖã¶§W7F–g’Ö6öçFVçC¦fÆW‚×7F'C¶Ö–âÖ†V–v‡C£¶Ö&v–â×F÷£¶÷fW&fÆ÷s§f—6–&ÆWÒæÖ–FFÆR×6V7F–öã¦&Vf÷&RÂæÖ–FFÆR×6V7F–öã¦gFW'¶6öçFVçC¢"#¶F—7Æ“¦&Æö6³¶fÆWƒ¦æöæS¶†V–v‡C§f"‚ÒÖÆVF–ærÖv—ÒæÖ–FFÆR×6V7F–öã¦gFW'¶†V–v‡C§f"‚ÒÖ6&BÖfö÷FW"Öv—ÒæÖ–FFÆR×6V7F–öå¶FF×F÷ÖÆ–vãÒ&fÇ6R%×¶§W7F–g’Ö6öçFVçC¦6VçFW'ÒæÖ–FFÆR×6V7F–öå¶FF×67&öÆÂÖæVVFVCÒ'G'VR%×¶§W7F–g’Ö6öçFVçC¦fÆW‚×7F'C¶÷fW&fÆ÷r×“¦WFó·67&öÆÆ&"×v–GFƒ¦æöæWÒæÖ–FFÆR×6V7F–öå¶FF×67&öÆÂÖæVVFVCÒ'G'VR%Ó£¢×vV&¶—B×67&öÆÆ&'¶F—7Æ“¦æöæWĞ¢ç6V7F–öâÖ†VFW'¶F—7Æ“¦fÆWƒ¶fÆWƒ¦æöæS¶†V–v‡C§f"‚Ò×6V7F–öâÖ†VFW"Ö†V–v‡B“¶Æ–vâÖ—FV×3¦6VçFW#¶§W7F–g’Ö6öçFVçC§76RÖ&WGvVVã¶v§f"‚Ò×6V7F–öâÖ†÷&—¦öçFÂÖv“·FF–æs£f"‚Ò×6V7F–öâÖ–æÆ–æR×FF–ær“¶Ö&v–âÖ&÷GFöÓ§f"‚Ò×F—FÆRÖ6&BÖv“¶6öÆ÷#¢6ffc·FW‡B×6†F÷s£‚w‚&v&ƒ’Ã3Ã3’Âã2—Ğ¢ç6V7F–öâ×F—FÆW¶föçB×6—¦S¦6Æ2‡f"‚Ò×6V7F–öâ×F—FÆR×6—¦R’§f"‚ÒÖföçB×66ÆR’“¶Æ–æRÖ†V–v‡C£ãS¶föçB×vV–v‡C£s·v†—FR×76S¦æ÷w&Ğ¢ç6V7F–öâÖ7F–öç¶föçB×6—¦S¦6Æ2‡f"‚Ò×6V7F–öâÖ7F–öâ×6—¦R’§f"‚ÒÖföçB×66ÆR’“¶Æ–æRÖ†V–v‡C£ãS¶÷6—G“¢ã“S·v†—FR×76S¦æ÷w&Ğ¢æ6&÷W6VÂ×v–æF÷w·÷6—F–öã§&VÆF—fS¶F—7Æ“¦fÆWƒ¶Æ–vâÖ—FV×3¦6VçFW#¶§W7F–g’Ö6öçFVçC¦6VçFW#¶fÆWƒ¦æöæS·v–GFƒ£S¶†V–v‡C§f"‚ÒÖÖ–âÖ6&BÖ†V–v‡B“¶Ö–âÖ†V–v‡C£¶÷fW&fÆ÷s¦†–FFVçĞ¢æ6F6‚Ö6&G·÷6—F–öã¦'6öÇWFS¶÷fW&fÆ÷s¦†–FFVã¶&÷&FW#£ãW‚6öÆ–B&v&ƒ#SRÃ#SRÃ#SRÂã“"“¶&÷&FW"×&F—W3£‡ƒ¶&6¶w&÷VæC§&v&ƒ#rÃS’Ãs"Âã3b“¶&÷‚×6†F÷s£'‚#g‚&v&ƒ’Ã3ÃCÂã#"—Ğ¢ææV–v†&÷"Ö6&G·v–GFƒ§f"‚ÒÖæV–v†&÷"×v–GF‚“¶†V–v‡C§f"‚ÒÖæV–v†&÷"Ö†V–v‡B“·F÷§f"‚Ò×VV²×F÷Ööfg6WB“·G&ç6f÷&Ó¦æöæS¶÷6—G“¢ãs#·¢Ö–æFWƒ£Ğ¢ææV–v†&÷"ÖÆVgG¶ÆVgC¦6Æ2‡f"‚ÒÖÖ–âÖ6&B×6–FRÖ–ç6WB’Òf"‚ÒÖæV–v†&÷"×v–GF‚’Òf"‚ÒÖæV–v†&÷"Öv’—Ğ¢ææV–v†&÷"×&–v‡G·&–v‡C¦6Æ2‡f"‚ÒÖÖ–âÖ6&B×6–FRÖ–ç6WB’Òf"‚ÒÖæV–v†&÷"×v–GF‚’Òf"‚ÒÖæV–v†&÷"Öv’—Ğ¢ææV–v†&÷"×6Æ÷G¶F—7Æ“¦&Æö6³·v–GFƒ£S¶†V–v‡C£S¶&6¶w&÷VæC§&v&ƒCÃs"Ãƒ‚ÂãS‚“¶6öÆ÷#§G&ç7&VçC¶föçB×6—¦S£·FF–æs£Ğ¢æÖ–âÖ6&G·÷6—F–öã§&VÆF—fS·¢Ö–æFWƒ£#·v–GFƒ§f"‚ÒÖÖ–âÖ6&B×v–GF‚“¶†V–v‡C§f"‚ÒÖÖ–âÖ6&BÖ†V–v‡B“¶fÆWƒ¦æöæS¶7V7B×&F–ó§f"‚ÒÖ†W&òÖ7V7B“¶F—7Æ“¦fÆWƒ¶fÆW‚ÖF—&V7F–öã¦6öÇVÖã¶§W7F–g’Ö6öçFVçC¦fÆW‚ÖVæGĞ¢æ†W&ò×Æ6V†öÆFW'·÷6—F–öã¦'6öÇWFS¶–ç6WC£¶F—7Æ“¦fÆWƒ¶Æ–vâÖ—FV×3¦fÆW‚×7F'C¶§W7F–g’Ö6öçFVçC¦fÆW‚×7F'C·FF–æs£ƒ¶&6¶w&÷VæC¦Æ–æV"Öw&F–VçBƒƒFVrÇ&v&ƒ#bÃS2ÃcRÂãsB’RÇ&v&ƒ#bÃS2ÃcRÂãC"’#RRÇ&v&ƒ#bÃS2ÃcRÃ’S"R“¶6öÆ÷#¢6VVcVcc·FW‡BÖÆ–vã¦ÆVgC·ö–çFW"ÖWfVçG3¦æöæWĞ¢æ†W&ò×Æ6V†öÆFW"Ö–ææW'¶Ö‚×v–GFƒ£S¶F—7Æ“¦fÆWƒ¶Æ–vâÖ—FV×3¦fÆW‚×7F'C¶v£‡‡Ğ¢æ†W&ò×Æ6V†öÆFW"7G&öæw¶F—7Æ“¦&Æö6³¶föçB×6—¦S¦6Æ2ƒ'‚§f"‚ÒÖföçB×66ÆR’“¶Æ–æRÖ†V–v‡C£ã#S¶ÆWGFW"×76–æs¢ãFV×Ğ¢æ†W&ò×Æ6V†öÆFW"7ç¶F—7Æ“¦&Æö6³¶föçB×6—¦S¦6Æ2ƒ‚§f"‚ÒÖföçB×66ÆR’“¶Æ–æRÖ†V–v‡C£ã3WĞ¢æ&Æö6¶VBÖ–6öç¶F—7Æ“¦w&–C·Æ6RÖ—FV×3¦6VçFW#¶fÆWƒ¦æöæS·v–GFƒ£#Gƒ¶†V–v‡C£#Gƒ¶&÷&FW#£‚6öÆ–B3†6##¶&÷&FW"×&F—W3£SS¶föçB×6—¦S£Gƒ¶&6¶w&÷VæC§&v&ƒ#SRÃ#SRÃ#SRÂãb—Ğ¢æ6&BÖ&÷GFö×·÷6—F–öã§&VÆF—fS·¢Ö–æFWƒ£#·FF–æs§f"‚ÒÖ6&BÖfö÷FW"×FF–ær’f"‚ÒÖ6&BÖ†÷&—¦öçFÂ×FF–ær“¶6öÆ÷#¢6ffc¶&6¶w&÷VæC¦Æ–æV"Öw&F–VçBƒƒFVrÇ&v&ƒ"Ã#Ã#‚Ã’RÇ&v&ƒ"Ã#Ã#‚ÂãS"’S"RÇ&v&ƒÃbÃ#BÂãƒB’R“·FW‡B×6†F÷s£‚W‚&v&ƒÃÃÂã#R—Ğ¢æ6F6‚×7V6–W7¶föçB×6—¦S¦6Æ2‡f"‚ÒÖ6F6‚×7V6–W2×6—¦R’§f"‚ÒÖföçB×66ÆR’“¶föçB×vV–v‡C£sS¶Æ–æRÖ†V–v‡C£ã#¶Ö&v–ã£f"‚Ò×FW‡BÖv—Ğ¢æ6F6‚ÖÖV7W&W¶föçB×6—¦S¦6Æ2‡f"‚ÒÖ6F6‚ÖÖV7W&R×6—¦R’§f"‚ÒÖföçB×66ÆR’“¶föçB×vV–v‡C£c¶Æ–æRÖ†V–v‡C£ã#¶Ö&v–ã£f"‚Ò×FW‡BÖv—Ğ¢æ6F6‚ÖÆö6F–öç¶F—7Æ“¢×vV&¶—BÖ&÷ƒ²×vV&¶—BÖ&÷‚Ö÷&–VçC§fW'F–6Ã²×vV&¶—BÖÆ–æRÖ6Æ×§f"‚ÒÖÖWFFFÖÖ‚ÖÆ–æW2“¶föçB×6—¦S¦6Æ2‡f"‚ÒÖ6F6‚ÖÖWFFF×6—¦R’§f"‚ÒÖföçB×66ÆR’“¶Æ–æRÖ†V–v‡C£ã3¶Ö&v–ã£¶÷6—G“¢ã“¶Ö–â×v–GFƒ£¶÷fW&fÆ÷s¦†–FFVã¶÷fW&fÆ÷r×w&¦ç—v†W&WĞ¢æ6F6‚×7V6–W2Âæ6F6‚ÖÖV7W&W¶F—7Æ“¢×vV&¶—BÖ&÷ƒ²×vV&¶—BÖ&÷‚Ö÷&–VçC§fW'F–6Ã¶÷fW&fÆ÷s¦†–FFVã¶÷fW&fÆ÷r×w&¦ç—v†W&WĞ¢æ6F6‚×7V6–W7²×vV&¶—BÖÆ–æRÖ6Æ×§f"‚Ò×7V6–W2ÖÖ‚ÖÆ–æW2—Ğ¢æ6F6‚ÖÖV7W&W²×vV&¶—BÖÆ–æRÖ6Æ×§f"‚ÒÖÖV7W&VÖVçBÖÖ‚ÖÆ–æW2—Ğ¢æfö÷FW"×6V7F–öç¶fÆWƒ¦æöæS¶F—7Æ“¦fÆWƒ¶fÆW‚ÖF—&V7F–öã¦6öÇVÖã¶Æ–vâÖ—FV×3¦6VçFW#¶§W7F–g’Ö6öçFVçC¦6VçFW#¶v§f"‚ÒÖ7FÖ6ÖW&Öv“·FF–æs§f"‚ÒÖfö÷FW"×F÷×FF–ær’f"‚ÒÖfö÷FW"Ö&÷GFöÒ×FF–ær“¶6öÆ÷#¢6ffc·FW‡B×6†F÷s£‚‡‚&v&ƒ’Ã3Ã3’Âã3R—Ğ¢æ7FÖÆ&VÇ¶föçB×6—¦S¦6Æ2‡f"‚ÒÖ7FÖÆ&VÂ×6—¦R’§f"‚ÒÖföçB×66ÆR’“¶Æ–æRÖ†V–v‡C£ãS¶ÆWGFW"×76–æs¢ã†V×Ğ¢æ6ÖW&Ö'WGFöç¶F—7Æ“¦w&–C·Æ6RÖ—FV×3¦6VçFW#·v–GFƒ§f"‚ÒÖ6ÖW&×F÷V6‚×6—¦R“¶†V–v‡C§f"‚ÒÖ6ÖW&×F÷V6‚×6—¦R“·FF–æs£¶&÷&FW#£¶&÷&FW"×&F—W3£SS¶&6¶w&÷VæC§G&ç7&VçC¶7W'6÷#§ö–çFW#¶fÆWƒ¦æöæWĞ¢æ6ÖW&Ö'G¶F—7Æ“¦&Æö6³·v–GFƒ§f"‚ÒÖ6ÖW&×f—7VÂ×6—¦R“¶†V–v‡C§f"‚ÒÖ6ÖW&×f—7VÂ×6—¦R“¶ö&¦V7BÖf—C¦6öçF–çĞ¢ç&Wf–Wr×Fö7G·÷6—F–öã¦'6öÇWFS¶ÆVgC£'ƒ·&–v‡C£'ƒ¶&÷GFöÓ£ƒ·¢Ö–æFWƒ£ƒ·FF–æs£‡‚ƒ¶&÷&FW"×&F—W3£—ƒ¶&6¶w&÷VæC§&v&ƒÃ3BÃC2Âã’“¶6öÆ÷#¢6ffc¶föçB×6—¦S£ƒ¶Æ–æRÖ†V–v‡C£ãC¶F—7Æ“¦æöæWĞ¢ç&Wf–Wr×Fö7E¶FF×f—6–&ÆSÒ'G'VR%×¶F—7Æ“¦&Æö6·Ğ¢æVF—BÖ6öÇVÖç¶F—7Æ“¦w&–C¶v£'‡Ğ¢æVF—BÖ6&Bƒ'¶Ö&v–âÖ&÷GFöÓ£‡Ğ¢æVF—BÖ–çG&÷¶Ö&v–ã£'ƒ¶6öÆ÷#§f"‚ÒÖ×WFVB“¶föçB×6—¦S£'‡Ğ¢æ76WBÖÆ—7G¶F—7Æ“¦w&–C¶v£—‡Ğ¢æ76WB×&÷w¶F—7Æ“¦w&–C¶w&–B×FV×ÆFRÖ6öÇVÖç3¦Ö–æÖ‚ƒÃg"’WFó¶v£ƒ¶Æ–vâÖ—FV×3§7F'C·FF–æs£ƒ¶&÷&FW#£‚6öÆ–Bf"‚ÒÖÆ–æR“¶&÷&FW"×&F—W3£ƒ¶&6¶w&÷VæC¢6f&fFfGĞ¢æ76WBÖæÖW¶föçB×6—¦S£'ƒ¶föçB×vV–v‡C£sS¶Ö&v–âÖ&÷GFöÓ£G‡Ğ¢æ76WBÖÖWF¶föçB×6—¦S£ƒ¶Æ–æRÖ†V–v‡C£ãS¶6öÆ÷#§f"‚ÒÖ×WFVB“¶÷fW&fÆ÷r×w&¦ç—v†W&WĞ¢æ76WB×7FGW7¶föçB×6—¦S£—ƒ¶föçB×vV–v‡C£ƒ¶ÆWGFW"×76–æs¢ã&VÓ·FF–æs£W‚wƒ¶&÷&FW"×&F—W3£wƒ·v†—FR×76S¦æ÷w&¶&6¶w&÷VæC¢6VFc&c3¶6öÆ÷#¢3C“c3fGĞ¢æ76WB×7FGW5¶FF×7FGW3Ò%55õ4õU$4Uô”åDTu$•E’%×¶&6¶w&÷VæC¢6S&cFV3¶6öÆ÷#§f"‚Ò×7V66W72—Ğ¢æ76WB×7FGW5¶FF×7FGW5ãÒ$$Äô4´TB%×¶&6¶w&÷VæC¢6ffcVC¶6öÆ÷#§f"‚ÒÖFævW"—Ğ¢æ76WB×7FGW5¶FF×7FGW3Ò$e$õ¤Tâ%×¶&6¶w&÷VæC¢6S&cFV3¶6öÆ÷#§f"‚Ò×7V66W72—Ğ¢æ76WB×7FGW5¶FF×7FGW3Ò$e$õ¤Tåô„ôÔUõc%õd•5TÅô4ôå5TÔU"%×¶&6¶w&÷VæC¢6S&cFV3¶6öÆ÷#§f"‚Ò×7V66W72—Ğ¢æVF—BÖfö÷FW'¶föçB×6—¦S£ƒ¶Æ–æRÖ†V–v‡C£ãSS¶6öÆ÷#§f"‚ÒÖ×WFVB“¶Ö&v–ã£'‚Ğ¢æVF—BÖfö÷FW"7G&öæw¶6öÆ÷#§f"‚ÒÖ–æ²—Ğ¢æVF—BÖ7F–öç7¶F—7Æ“¦fÆWƒ¶fÆW‚×w&§w&¶v£‡ƒ¶Ö&v–â×F÷£'‡Ğ¢æVF—BÖ7F–öç2ÂæVF—BÖ7F–öç2'WGFöç¶F—7Æ“¦–æÆ–æRÖfÆWƒ¶Æ–vâÖ—FV×3¦6VçFW#¶§W7F–g’Ö6öçFVçC¦6VçFW#·FF–æs£‡‚ƒ¶&÷&FW"×&F—W3£‡ƒ¶&÷&FW#£‚6öÆ–Bf"‚ÒÖÆ–æR“¶&6¶w&÷VæC¢6ffc¶6öÆ÷#§f"‚ÒÖ–æ²“¶föçB×6—¦S£ƒ·FW‡BÖFV6÷&F–öã¦æöæS¶7W'6÷#§ö–çFW'Ğ¢æVF—BÖ7F–öç2'WGFöã¦fö7W2×f—6–&ÆRÂæVF—BÖ7F–öç2¦fö7W2×f—6–&ÆRÂæ6öçG&öÂ6VÆV7C¦fö7W2×f—6–&ÆW¶÷WFÆ–æS£'‚6öÆ–B36Cƒs“ƒ¶÷WFÆ–æRÖöfg6WC£'‡Ğ¢æ–çFVw&—G’×7VÖÖ'—¶föçB×6—¦S£ƒ¶6öÆ÷#§f"‚ÒÖ×WFVB“¶Æ–æRÖ†V–v‡C£ãS¶Ö&v–â×F÷£ƒ¶÷fW&fÆ÷r×w&¦ç—v†W&WĞ¢æ–çFVw&—G’×7VÖÖ'•¶FF×7FFSÒ%52%×¶6öÆ÷#§f"‚Ò×7V66W72—Ğ¢æ–çFVw&—G’×7VÖÖ'•¶FF×7FFSÒ$d”Â%×¶6öÆ÷#§f"‚ÒÖFævW"—Ğ¢ç&W7öç6—fRÖÖG&—‡¶w&–BÖ6öÇVÖã£òÓ¶&6¶w&÷VæC¢6ffc¶&÷&FW#£‚6öÆ–Bf"‚ÒÖÆ–æR“¶&÷&FW"×&F—W3£Gƒ·FF–æs£gƒ¶&÷‚×6†F÷s£‡‚#G‚&v&ƒrÃC‚ÃcÂãR—Ğ¢ç&W7öç6—fRÖÖG&—‚Ö†VFW'¶F—7Æ“¦fÆWƒ¶Æ–vâÖ—FV×3¦fÆW‚×7F'C¶§W7F–g’Ö6öçFVçC§76RÖ&WGvVVã¶v£Gƒ¶fÆW‚×w&§w&¶Ö&v–âÖ&÷GFöÓ£G‡Ğ¢ç&W7öç6—fRÖÖG&—‚×F—FÆW¶föçB×6—¦S£gƒ¶föçB×vV–v‡C£ƒ¶Ö&v–ã£G‡Ğ¢ç&W7öç6—fRÖÖG&—‚×7V'F—FÆW¶föçB×6—¦S£ƒ¶Æ–æRÖ†V–v‡C£ãS¶6öÆ÷#§f"‚ÒÖ×WFVB“¶Ö&v–ã£¶Ö‚×v–GFƒ£s#‡Ğ¢æÖG&—‚×66ÆRÖ6öçG&öÇ¶F—7Æ“¦fÆWƒ¶Æ–vâÖ—FV×3¦6VçFW#¶v£‡ƒ¶föçB×6—¦S£ƒ¶6öÆ÷#§f"‚ÒÖ×WFVB“¶föçB×vV–v‡C£sĞ¢æÖG&—‚×66ÆRÖ6öçG&öÂ6VÆV7G·FF–æs£w‚—ƒ¶&÷&FW#£‚6öÆ–Bf"‚ÒÖÆ–æR“¶&÷&FW"×&F—W3£‡ƒ¶&6¶w&÷VæC¢6ffc¶6öÆ÷#§f"‚ÒÖ–æ²—Ğ¢ç&W7öç6—fRÖw&–G¶F—7Æ“¦w&–C¶w&–B×FV×ÆFRÖ6öÇVÖç3§&WVBƒRÆÖ–æÖ‚ƒÃg"’“¶v£'ƒ¶Æ–vâÖ—FV×3§7F'GĞ¢ç&W7öç6—fR×F–ÆW¶Ö–â×v–GFƒ£·FF–æs£ƒ¶&÷&FW#£‚6öÆ–Bf"‚ÒÖÆ–æR“¶&÷&FW"×&F—W3£'ƒ¶&6¶w&÷VæC¢6c†f&f'Ğ¢ç&W7öç6—fR×F–ÆRÖ†VFW'¶F—7Æ“¦fÆWƒ¶§W7F–g’Ö6öçFVçC§76RÖ&WGvVVã¶Æ–vâÖ—FV×3¦6VçFW#¶v£Wƒ¶Ö&v–âÖ&÷GFöÓ£‡‡Ğ¢ç&W7öç6—fR×F–ÆR×F—FÆW¶föçB×6—¦S£ƒ¶föçB×vV–v‡C£ƒ¶6öÆ÷#§f"‚ÒÖ–æ²—Ğ¢ç&W7öç6—fR×F–ÆR×6—¦W¶föçB×6—¦S£ƒ¶6öÆ÷#§f"‚ÒÖ×WFVB“¶föçB×f&–çBÖçVÖW&–3§F'VÆ"ÖçV×3·v†—FR×76S¦æ÷w&Ğ¢ç&W7öç6—fRÖg&ÖW¶F—7Æ“¦&Æö6³·v–GFƒ£S·FF–æs£¶&÷&FW#£‚6öÆ–B63fCVC“¶&÷&FW"×&F—W3£ƒ¶&6¶w&÷VæC¢6FfS†S“¶÷fW&fÆ÷s¦†–FFVçĞ¢ç&W7öç6—fR×F–ÆRÖæ÷FW¶föçB×6—¦S£ƒ¶6öÆ÷#§f"‚ÒÖ×WFVB“¶Æ–æRÖ†V–v‡C£ãCS¶Ö&v–ã£‡‚¶Ö–âÖ†V–v‡C£#‡‡Ğ¢æ6çf2ÖÖöFRÂæÖG&—‚ÖÖöFW¶&6¶w&÷VæC§G&ç7&VçC¶÷fW&fÆ÷s¦†–FFVçĞ¢æ6çf2ÖÖöFRçv÷&·76W¶F—7Æ“¦&Æö6³·v–GFƒ£gs¶†V–v‡C£Gfƒ¶Ö‚×v–GFƒ¦æöæS¶Ö&v–ã£·FF–æs£Ğ¢æ6çf2ÖÖöFRçv÷&·76RÖ†VFW"Âæ6çf2ÖÖöFRæ6öçG&öÂ×æVÂÂæ6çf2ÖÖöFRæÆ–W"Ö6öÇVÖâÂæ6çf2ÖÖöFRæVF—BÖ6öÇVÖâÂæ6çf2ÖÖöFRç&W7öç6—fRÖÖG&—‡¶F—7Æ“¦æöæR–×÷'FçGĞ¢æ6çf2ÖÖöFRç&Wf–WrÖ6öÇVÖç·v–GFƒ£gs¶†V–v‡C£Gf‡Ğ¢æ6çf2ÖÖöFRç&Wf–Wr×7FvW·v–GFƒ£gs¶†V–v‡C£Gfƒ·FF–æs£¶Ö&v–ã£¶F—7Æ“¦&Æö6·Ğ¢æ6çf2ÖÖöFRæFWf–6R×w&·v–GFƒ£gr–×÷'FçC¶†V–v‡C£Gf‚–×÷'FçGĞ¢æ6çf2ÖÖöFRæFWf–6W·v–GFƒ£gr–×÷'FçC¶†V–v‡C£Gf‚–×÷'FçC·G&ç6f÷&Ó¦æöæR–×÷'FçC¶&÷&FW#£¶&÷&FW"×&F—W3£¶&÷‚×6†F÷s¦æöæWĞ¢æÖG&—‚ÖÖöFRçv÷&·76W¶F—7Æ“¦&Æö6³·v–GFƒ£gs¶†V–v‡C£Gfƒ¶Ö‚×v–GFƒ¦æöæS¶Ö&v–ã£·FF–æs£Ğ¢æÖG&—‚ÖÖöFRçv÷&·76RÖ†VFW"ÂæÖG&—‚ÖÖöFRæ6öçG&öÂ×æVÂÂæÖG&—‚ÖÖöFRæÆ–W"Ö6öÇVÖâÂæÖG&—‚ÖÖöFRæVF—BÖ6öÇVÖâÂæÖG&—‚ÖÖöFRç&W7öç6—fRÖÖG&—‡¶F—7Æ“¦æöæR–×÷'FçGĞ¢æÖG&—‚ÖÖöFRç&Wf–WrÖ6öÇVÖç·v–GFƒ£gs¶†V–v‡C£Gf‡Ğ¢æÖG&—‚ÖÖöFRç&Wf–Wr×7FvW·v–GFƒ£gs¶†V–v‡C£Gfƒ·FF–æs£¶Ö&v–ã£¶F—7Æ“¦fÆWƒ¶§W7F–g’Ö6öçFVçC¦6VçFW#¶Æ–vâÖ—FV×3¦fÆW‚×7F'C¶÷fW&fÆ÷s¦†–FFVçĞ¢æÖG&—‚ÖÖöFRæFWf–6W¶&÷&FW#£¶&÷&FW"×&F—W3£ƒ¶&÷‚×6†F÷s¦æöæWĞ¢ÖVF–†Ö‚×v–GFƒ£3S‚—²çv÷&·76W¶w&–B×FV×ÆFRÖ6öÇVÖç3£#‚Ö–æÖ‚ƒ3#‚Ãg"’3ƒ¶v£'ƒ·FF–æs£G‡×Ğ¢ÖVF–†Ö‚×v–GFƒ£S‚—²çv÷&·76W¶w&–B×FV×ÆFRÖ6öÇVÖç3£#‚Ö–æÖ‚ƒÃg"—ÒæVF—BÖ6öÇVÖç¶w&–BÖ6öÇVÖã£òÓ¶w&–B×FV×ÆFRÖ6öÇVÖç3§&WVBƒ"ÆÖ–æÖ‚ƒÃg"’—Òç&W7öç6—fRÖw&–G¶w&–B×FV×ÆFRÖ6öÇVÖç3§&WVBƒ2ÆÖ–æÖ‚ƒÃg"’—ÒæÆ–W"×æVÇ·÷6—F–öã§7FF–3¶Ö‚Ö†V–v‡C¦æöæW×Ğ¢ÖVF–†Ö‚×v–GFƒ£ƒS‚—²çv÷&·76W¶w&–B×FV×ÆFRÖ6öÇVÖç3¦Ö–æÖ‚ƒÃg"“·FF–æs£Gƒ¶v£G‡Òçv÷&·76RÖ†VFW'¶Ö&v–âÖ&÷GFöÓ£‡Òç&Wf–Wr×7FvW·FF–æs£ÒæVF—BÖ6öÇVÖç¶w&–BÖ6öÇVÖã¦WFó¶w&–B×FV×ÆFRÖ6öÇVÖç3¦Ö–æÖ‚ƒÃg"—Òç&W7öç6—fRÖw&–G¶w&–B×FV×ÆFRÖ6öÇVÖç3§&WVBƒ"ÆÖ–æÖ‚ƒÃg"’—ÒæÆ–W"×æVÇ¶Ö‚Ö†V–v‡C£C#‡×Ğ¢ÖVF–†Ö‚×v–GFƒ£Cc‚—²çv÷&·76W·FF–æs£‡Òçv÷&·76RÖ†VFW'¶F—7Æ“¦w&–GÒæ6öçG&öÇ7¶v£‡‡Òæ6öçG&öÇ¶Ö–â×v–GFƒ¦6Æ2ƒSRÒ‡‚—ÒæFWf–6W¶&÷&FW"×&F—W3£‡‡Òæ76WB×&÷w¶w&–B×FV×ÆFRÖ6öÇVÖç3¦Ö–æÖ‚ƒÃg"—Òæ76WB×7FGW7¶§W7F–g’×6VÆc§7F'C·v†—FR×76S¦æ÷&ÖÃ¶÷fW&fÆ÷r×w&¦ç—v†W&S¶Ö‚×v–GFƒ£WÒç&W7öç6—fRÖw&–G¶w&–B×FV×ÆFRÖ6öÇVÖç3¦Ö–æÖ‚ƒÃg"—×Ğ¢Â÷7G–ÆSà£Âö†VCà£Æ&öG“à¢ÆÖ–â6Æ73Ò'v÷&·76R6öçG&7B×VæF–ær"–CÒ&æƒvVÖ–æ•&Wf–Wr#à¢Æ6–FR6Æ73Ò&Æ–W"Ö6öÇVÖâ"&–ÖÆ&VÃÒ$äƒš^™Ú.{¹>ièNj	#à¢Ç6V7F–öâ6Æ73Ò&Æ–W"×æVÂ#à¢ÆF—b6Æ73Ò'æVÂÖ†VF–ær#ãÆƒ#îš^™Ú.Y»î[#Âöƒ#ãÇ7â6Æ73Ò'æVÂÖ6÷VçB#ääƒ+rc3Â÷7ããÂöF—cà¢Ç6Æ73Ò'æVÂÖ†VÇ#î˜hºY»î[.iú^yÈ¾yK¾[ˆ>‹ëyXÎ8{JiÙ{¹Zé®KˆâæG&ö–BZû[©Nˆ¨.x+8.iÊ®h›Xxny¨N›Îˆë~xZ~x˜~KùŞhÈ™‹¾Zî8#Â÷à¢ÆF—b6Æ73Ò&Æ–W"×67&öÆÂ#ãÇVÂ6Æ73Ò&Æ–W"×G&VR"–CÒ&Æ–W%G&VR#à¢ÆÆ“ãÆ'WGFöâ6Æ73Ò&Æ–W"ÖæöFR"G—SÒ&'WGFöâ"FF×F&vWCÒ"6FWf–6R"&–×6VÆV7FVCÒ&fÇ6R#ãÇ7â6Æ73Ò&æöFRÖ–6öâ#î)j3Â÷7ããÇ7â6Æ73Ò&æöFRÖÆ&VÂ#å67&VVâ+räƒ†öÖSÂ÷7ããÂö'WGFöããÂöÆ“à¢ÆÆ“ãÆ'WGFöâ6Æ73Ò&Æ–W"ÖæöFR"G—SÒ&'WGFöâ"FF×F&vWCÒ"676WD&6¶w&÷VæB"&–×6VÆV7FVCÒ&fÇ6R#ãÇ7â6Æ73Ò&æöFRÖ–6öâ#î)jsÂ÷7ããÇ7â6Æ73Ò&æöFRÖÆ&VÂ#ä$r+rÖ÷&æ–ærÆ¶SÂ÷7ããÂö'WGFöããÂöÆ“à¢ÆÆ“ãÆFWF–Ç26Æ73Ò&Æ–W"Ö'&æ6‚"÷VããÇ7VÖÖ'“åF÷+ršn˜:XË®YùóÂ÷7VÖÖ'“ãÇVÂ6Æ73Ò&Æ–W"Ö6†–ÆG&Vâ#à¢ÆÆ“ãÆ'WGFöâ6Æ73Ò&Æ–W"ÖæöFR"G—SÒ&'WGFöâ"FF×F&vWCÒ"7F÷6V7F–öâ"&–×6VÆV7FVCÒ&fÇ6R#ãÇ7â6Æ73Ò&æöFRÖ–6öâ#î)kÂ÷7ããÇ7â6Æ73Ò&æöFRÖÆ&VÂ#åF÷Õ6V7F–öâÔWFôÆ–÷WCÂ÷7ããÂö'WGFöããÂöÆ“à¢ÆÆ“ãÆFWF–Ç26Æ73Ò&Æ–W"Ö'&æ6‚"÷VããÇ7VÖÖ'“ä†VFW"+rY8x˜ÎKˆîZKNX8óÂ÷7VÖÖ'“ãÇVÂ6Æ73Ò&Æ–W"Ö6†–ÆG&Vâ#à¢ÆÆ“ãÆ'WGFöâ6Æ73Ò&Æ–W"ÖæöFR"G—SÒ&'WGFöâ"FF×F&vWCÒ"676WD'&æB"&–×6VÆV7FVCÒ&fÇ6R#ãÇ7â6Æ73Ò&æöFRÖ–6öâ#î)jsÂ÷7ããÇ7â6Æ73Ò&æöFRÖÆ&VÂ#ä'&æBÕF—FÆSÂ÷7ããÂö'WGFöããÂöÆ“à¢ÆÆ“ãÆ'WGFöâ6Æ73Ò&Æ–W"ÖæöFR"G—SÒ&'WGFöâ"FF×F&vWCÒ"6fF$'WGFöâ"&–×6VÆV7FVCÒ&fÇ6R#ãÇ7â6Æ73Ò&æöFRÖ–6öâ#î)x“Â÷7ããÇ7â6Æ73Ò&æöFRÖÆ&VÂ#åW6W"ÔfF"Ô'FãÂ÷7ããÂö'WGFöããÂöÆ“à¢Â÷VÃãÂöFWF–Ç3ãÂöÆ“à¢ÆÆ“ãÆ'WGFöâ6Æ73Ò&Æ–W"ÖæöFR"G—SÒ&'WGFöâ"FF×F&vWCÒ"77FG4&""&–×6VÆV7FVCÒ&fÇ6R#ãÇ7â6Æ73Ò&æöFRÖ–6öâ#î)jCÂ÷7ããÇ7â6Æ73Ò&æöFRÖÆ&VÂ#å7FG2Ô&#Â÷7ããÂö'WGFöããÂöÆ“à¢Â÷VÃãÂöFWF–Ç3ãÂöÆ“à¢ÆÆ“ãÆFWF–Ç26Æ73Ò&Æ–W"Ö'&æ6‚"÷VããÇ7VÖÖ'“äÖ–FFÆR+r›Îˆë~‹Úîi*ÓÂ÷7VÖÖ'“ãÇVÂ6Æ73Ò&Æ–W"Ö6†–ÆG&Vâ#à¢ÆÆ“ãÆ'WGFöâ6Æ73Ò&Æ–W"ÖæöFR"G—SÒ&'WGFöâ"FF×F&vWCÒ"6Ö–FFÆU6V7F–öâ"&–×6VÆV7FVCÒ&fÇ6R#ãÇ7â6Æ73Ò&æöFRÖ–6öâ#î)kÂ÷7ããÇ7â6Æ73Ò&æöFRÖÆ&VÂ#äÖ–FFÆRÔ6&÷W6VÂÕ6V7F–öãÂ÷7ããÂö'WGFöããÂöÆ“à¢ÆÆ“ãÆ'WGFöâ6Æ73Ò&Æ–W"ÖæöFR"G—SÒ&'WGFöâ"FF×F&vWCÒ"76V7F–öä†VFW""&–×6VÆV7FVCÒ&fÇ6R#ãÇ7â6Æ73Ò&æöFRÖ–6öâ#åCÂ÷7ããÇ7â6Æ73Ò&æöFRÖÆ&VÂ#å6V7F–öâÔ†VFW"Ô&#Â÷7ããÂö'WGFöããÂöÆ“à¢ÆÆ“ãÆ'WGFöâ6Æ73Ò&Æ–W"ÖæöFR"G—SÒ&'WGFöâ"FF×F&vWCÒ"66&÷W6VÅv–æF÷r"&–×6VÆV7FVCÒ&fÇ6R#ãÇ7â6Æ73Ò&æöFRÖ–6öâ#î)jcÂ÷7ããÇ7â6Æ73Ò&æöFRÖÆ&VÂ#ä6&÷W6VÂÕG&6³Â÷7ããÂö'WGFöããÂöÆ“à¢ÆÆ“ãÆ'WGFöâ6Æ73Ò&Æ–W"ÖæöFR"G—SÒ&'WGFöâ"FF×F&vWCÒ"6ÆVgD6F6„6&B"&–×6VÆV7FVCÒ&fÇ6R#ãÇ7â6Æ73Ò&æöFRÖ–6öâ#î)jsÂ÷7ããÇ7â6Æ73Ò&æöFRÖÆ&VÂ#ä6&BÕVV²ÔÆVgCÂ÷7ããÇ7â6Æ73Ò&æöFR×7FFR#äÄô4³Â÷7ããÂö'WGFöããÂöÆ“à¢ÆÆ“ãÆ'WGFöâ6Æ73Ò&Æ–W"ÖæöFR"G—SÒ&'WGFöâ"FF×F&vWCÒ"6Ö–ä6F6„6&B"&–×6VÆV7FVCÒ'G'VR#ãÇ7â6Æ73Ò&æöFRÖ–6öâ#î)j3Â÷7ããÇ7â6Æ73Ò&æöFRÖÆ&VÂ#ä6&BÔÖ–âÔ7F—fSÂ÷7ããÇ7â6Æ73Ò&æöFR×7FFR#äÄô4³Â÷7ããÂö'WGFöããÂöÆ“à¢ÆÆ“ãÆ'WGFöâ6Æ73Ò&Æ–W"ÖæöFR"G—SÒ&'WGFöâ"FF×F&vWCÒ"6†W&õÆ6V†öÆFW""&–×6VÆV7FVCÒ&fÇ6R#ãÇ7â6Æ73Ò&æöFRÖ–6öâ#î)jsÂ÷7ããÇ7â6Æ73Ò&æöFRÖÆ&VÂ#ä†W&òÕ†÷FóÂ÷7ããÇ7â6Æ73Ò&æöFR×7FFR#äÄô4³Â÷7ããÂö'WGFöããÂöÆ“à¢ÆÆ“ãÆ'WGFöâ6Æ73Ò&Æ–W"ÖæöFR"G—SÒ&'WGFöâ"FF×F&vWCÒ"7&–v‡D6F6„6&B"&–×6VÆV7FVCÒ&fÇ6R#ãÇ7â6Æ73Ò&æöFRÖ–6öâ#î)jsÂ÷7ããÇ7â6Æ73Ò&æöFRÖÆ&VÂ#ä6&BÕVV²Õ&–v‡CÂ÷7ããÇ7â6Æ73Ò&æöFR×7FFR#äÄô4³Â÷7ããÂö'WGFöããÂöÆ“à¢Â÷VÃãÂöFWF–Ç3ãÂöÆ“à¢ÆÆ“ãÆFWF–Ç26Æ73Ò&Æ–W"Ö'&æ6‚"÷VããÇ7VÖÖ'“äfö÷FW"+r[©^˜:i8ŞKÙÃÂ÷7VÖÖ'“ãÇVÂ6Æ73Ò&Æ–W"Ö6†–ÆG&Vâ#à¢ÆÆ“ãÆ'WGFöâ6Æ73Ò&Æ–W"ÖæöFR"G—SÒ&'WGFöâ"FF×F&vWCÒ"6fö÷FW%6V7F–öâ"&–×6VÆV7FVCÒ&fÇ6R#ãÇ7â6Æ73Ò&æöFRÖ–6öâ#î)kÂ÷7ããÇ7â6Æ73Ò&æöFRÖÆ&VÂ#äfö÷FW"Ô5DÕ6V7F–öãÂ÷7ããÂö'WGFöããÂöÆ“à¢ÆÆ“ãÆ'WGFöâ6Æ73Ò&Æ–W"ÖæöFR"G—SÒ&'WGFöâ"FF×F&vWCÒ"67FÆ&VÂ"&–×6VÆV7FVCÒ&fÇ6R#ãÇ7â6Æ73Ò&æöFRÖ–6öâ#åCÂ÷7ããÇ7â6Æ73Ò&æöFRÖÆ&VÂ#ä5DÔÆ&VÂÕ&V6÷&DæW‡CÂ÷7ããÂö'WGFöããÂöÆ“à¢ÆÆ“ãÆ'WGFöâ6Æ73Ò&Æ–W"ÖæöFR"G—SÒ&'WGFöâ"FF×F&vWCÒ"66ÖW&'WGFöâ"&–×6VÆV7FVCÒ&fÇ6R#ãÇ7â6Æ73Ò&æöFRÖ–6öâ#î)x“Â÷7ããÇ7â6Æ73Ò&æöFRÖÆ&VÂ#ä5DÔ6ÖW&Ô'WGFöãÂ÷7ããÂö'WGFöããÂöÆ“à¢Â÷VÃãÂöFWF–Ç3ãÂöÆ“à¢Â÷VÃãÂöF—cà¢Â÷6V7F–öãà¢Âö6–FSà¢Ç6V7F–öâ6Æ73Ò'&Wf–WrÖ6öÇVÖâ#à¢Æ†VFW"6Æ73Ò'v÷&·76RÖ†VFW"#à¢ÆF—cà¢ÆF—b6Æ73Ò&W–V'&÷r#ät•D…T"äD•dR+rtTÔ”ä’5E%T5EU$SÂöF—cà¢Æƒääƒ+rvVÖ–æ’æF—fRc3Âöƒà¢Ç6Æ73Ò'7V'F—FÆR#äFF—fRc"y»Nhê^Šû¾XùnY8Ş[©N[ÈşiË®YšYYÎ8.Xk¾{¹>Xø.ˆ>8{¸NK»nŠxNX‰Y(ÎKªNK©.š(NŠx[›nX‰~[^zK®ûÉ¾xZ~x˜~iÚ^k©x«nhKÉ®YÊyK¾[ˆ>KŠŞiˆîzîj~Šë8#Â÷à¢ÂöF—cà¢Ç7â6Æ73Ò'7FGW2Ö&FvR#å$Ud”UrôäÅ’+räõBd•5TÂ53Â÷7ãà¢Âö†VFW#à¢Ç6V7F–öâ6Æ73Ò&6öçG&öÂ×æVÂ"&–ÖÆ&VÃÒ.š(NŠxhê~X‹b#à¢ÆF—b–CÒ&6öçG&7Df–ÇW&R"6Æ73Ò&6öçG&7BÖW'&÷""&öÆSÒ&ÆW'B#ãÂöF—cà¢ÆF—b6Æ73Ò&6öçG&öÇ2#à¢ÆF—b6Æ73Ò&6öçG&öÂ#ãÆÆ&VÂf÷#Ò&Æ–÷WEf&–çB#î[ˆ>[XùKÙ3ÂöÆ&VÃãÇ6VÆV7B–CÒ&Æ–÷WEf&–çB#ãÆ÷F–öâfÇVSÒ$DD•dUõc""6VÆV7FVCäFF—fRc"+rXh^ZëKÉXXƒÂö÷F–öããÆ÷F–öâfÇVSÒ%c5ô$4TÄ”äR#åc2&6VÆ–æR+rZûxZsÂö÷F–öããÂ÷6VÆV7CãÂöF—cà¢ÆF—b6Æ73Ò&6öçG&öÂ#ãÆÆ&VÂf÷#Ò'f–Ww÷'E&W6WB#î˜¾‹éŠxnXú3ÂöÆ&VÃãÇ6VÆV7B–CÒ'f–Ww÷'E&W6WB#à¢Æ÷F–öâfÇVSÒ#3cƒcC#ã3c9rcCÂö÷F–öããÆ÷F–öâfÇVSÒ#3“ƒƒCB"6VÆV7FVCã3“9rƒCCÂö÷F–öããÆ÷F–öâfÇVSÒ#C3ƒ“3"#ãC39r“3#Âö÷F–öããÆ÷F–öâfÇVSÒ#3#ƒCƒ#ã3#9rCƒÂö÷F–öããÆ÷F–öâfÇVSÒ#cƒ“c#ãc9r“cÂö÷F–öãà¢Â÷6VÆV7CãÂöF—cà¢ÆF—b6Æ73Ò&6öçG&öÂ#ãÆÆ&VÂf÷#Ò&7W7FöÕv–GF‚#îˆz®yKŠxnXú>ZëŞ[ªb†G“ÂöÆ&VÃãÆ–çWB–CÒ&7W7FöÕv–GF‚"G—SÒ&çVÖ&W""Ö–ãÒ##C"ÖƒÒ##"7FWÒ#"fÇVSÒ#3“#ãÂöF—cà¢ÆF—b6Æ73Ò&6öçG&öÂ#ãÆÆ&VÂf÷#Ò&7W7FöÔ†V–v‡B#îˆz®yKŠxnXú>š¹[ªb†G“ÂöÆ&VÃãÆ–çWB–CÒ&7W7FöÔ†V–v‡B"G—SÒ&çVÖ&W""Ö–ãÒ#3#"ÖƒÒ#c"7FWÒ#"fÇVSÒ#ƒCB#ãÂöF—cà¢ÆF—b6Æ73Ò&6öçG&öÂ#ãÆÆ&VÂf÷#Ò&föçE66ÆR#î{;¾{¹şZÙ~KÙ>{ÊiKâ+rÇ7â–CÒ&föçE66ÆU&VF÷WB#ãã9sÂ÷7ããÂöÆ&VÃãÆ–çWB–CÒ&föçE66ÆR"G—SÒ'&ævR"Ö–ãÒ#"ÖƒÒ#ãR"7FWÒ#ã"fÇVSÒ##ãÂöF—cà¢ÆF—b6Æ73Ò&6öçG&öÂ#ãÆÆ&VÂf÷#Ò'6fUF÷#îZèXZXË®šn˜:‚†G“ÂöÆ&VÃãÆ–çWB–CÒ'6fUF÷"G—SÒ&çVÖ&W""Ö–ãÒ#"ÖƒÒ##"7FWÒ#"fÇVSÒ##B#ãÂöF—cà¢ÆF—b6Æ73Ò&6öçG&öÂ#ãÆÆ&VÂf÷#Ò'6fT&÷GFöÒ#îZèXZXË®[©^˜:‚†G“ÂöÆ&VÃãÆ–çWB–CÒ'6fT&÷GFöÒ"G—SÒ&çVÖ&W""Ö–ãÒ#"ÖƒÒ##"7FWÒ#"fÇVSÒ##B#ãÂöF—cà¢ÆF—b6Æ73Ò&6öçG&öÂ#ãÆÆ&VÂf÷#Ò'6fU7F'B#îZèXZXË®‹[~Zx¾Kêr†G“ÂöÆ&VÃãÆ–çWB–CÒ'6fU7F'B"G—SÒ&çVÖ&W""Ö–ãÒ#"ÖƒÒ##"7FWÒ#"fÇVSÒ##ãÂöF—cà¢ÆF—b6Æ73Ò&6öçG&öÂ#ãÆÆ&VÂf÷#Ò'6fTVæB#îZèXZXË®{¹>iÙşKêr†G“ÂöÆ&VÃãÆ–çWB–CÒ'6fTVæB"G—SÒ&çVÖ&W""Ö–ãÒ#"ÖƒÒ##"7FWÒ#"fÇVSÒ##ãÂöF—cà¢ÂöF—cà¢ÆF—b6Æ73Ò&6öçG&7BÖÆ–æR#ãÇ7ãîY8Ş[©N[ÈşYYÎûÉ£Ç7G&öær–CÒ&6öçG&7EfW'6–öâ#îXª‹ÛŞKŠÓÂ÷7G&öæsãÂ÷7ããÇ7ãîYYÂ4„Ó#SnûÉ£Æ6öFR–CÒ&6öçG&7E6†#î(	CÂö6öFSãÂ÷7ããÇ7ãîš(NŠxk©4„ûÉ£Æ6öFR–CÒ'&Wf–Wu6÷W&6U6†#î(	CÂö6öFSãÂ÷7ããÇ7ãåvW2˜:{Û"4„ûÉ£Æ6öFR–CÒ&FWÆ÷–ÖVçE6†#î(	CÂö6öFSãÂ÷7ããÇ7â–CÒ&6öçG&7DÆöE7FFR"FF×7FFSÒ%TäD”är#îzØ[è^YYÃÂ÷7ããÂöF—cà¢Â÷6V7F–öãà¢ÆF—b6Æ73Ò'&Wf–Wr×7FvR#à¢ÆF—b6Æ73Ò&FWf–6R×w&"–CÒ&FWf–6Uw&#à¢Ç6V7F–öâ6Æ73Ò&FWf–6R"–CÒ&FWf–6R"&–ÖÆ&VÃÒ$äƒvVÖ–æ’æF—fRc27G'V7GW&R&Wf–Wr#à¢Æ–Ör6Æ73Ò'66VæRÖ&6¶w&÷VæB"–CÒ&76WD&6¶w&÷VæB"FFÖ76WBÖ–CÒ&&6¶w&÷VæB"FF×&Wf–Wr×FƒÒ&FW6–vâ÷7—7FVÒö&6¶w&÷VæG2öÖ÷&æ–æuöÆ¶U÷cö76WG2ôÖ÷&æ–æuôÆ¶UôÖ7FW%õcçær"ÇCÒ"#à¢ÆF—b6Æ73Ò'vRÖ6öçFVçB#à¢Æ†VFW"6Æ73Ò'F÷×6V7F–öâ"–CÒ'F÷6V7F–öâ"FFÖÆ–W#Ò%F÷Õ6V7F–öâÔWFôÆ–÷WB#à¢ÆF—b6Æ73Ò&†VFW"Ö&""–CÒ&†VFW$&""FFÖÆ–W#Ò$†VFW"Ô&"#à¢Æ–Ör6Æ73Ò&'&æB×F—FÆR"–CÒ&76WD'&æB"FFÖ76WBÖ–CÒ&'&æB"FF×&Wf–Wr×FƒÒ&FW6–vâ÷7—7FVÕ÷c2óeô76WEõ7—7FVÒöFW&—fVBö'&æE÷F—FÆU÷&–Ö'’ö'&æE÷F—FÆU÷&–Ö'’çær"ÇCÒ.k‰NŠx#à¢Æ'WGFöâ6Æ73Ò&fF"Ö'WGFöâ"G—SÒ&'WGFöâ"–CÒ&fF$'WGFöâ"&–ÖÆ&VÃÒ.ZKNX8şx«nhš(NŠx‚#à¢Æ–Ör6Æ73Ò&fF"×f—7VÂ"–CÒ&76WDfF""FFÖ76WBÖ–CÒ&fF""7&3Ò"âö76WG2öæ÷&ÖÅö†öÖUöFVfVÇEöfF%÷c"çær"ÇCÒ"#à¢Âö'WGFöãà¢ÂöF—cà¢ÆF—b6Æ73Ò'7FG2Ö&""–CÒ'7FG4&""FFÖÆ–W#Ò%7FG2Ô&""&–ÖÆ&VÃÒ.™ÙhXø.ˆ>i[hÚîZKX[r#à¢ÆF—b6Æ73Ò'7FB#ãÇ7â6Æ73Ò'7FB×fÇVR#ã3Â÷7ããÇ7â6Æ73Ò'7FBÖÆ&VÂ#î›ÎzxÓÂ÷7ããÂöF—cà¢ÆF—b6Æ73Ò'7FB#ãÇ7â6Æ73Ò'7FB×fÇVR#ã3Â÷7ããÇ7â6Æ73Ò'7FBÖÆ&VÂ#î›ÎˆësÂ÷7ããÂöF—cà¢ÆF—b6Æ73Ò'7FB#ãÇ7â6Æ73Ò'7FB×fÇVR#ãÂ÷7ããÇ7â6Æ73Ò'7FBÖÆ&VÂ#îŠë[Ù^ZJi[Â÷7ããÂöF—cà¢ÂöF—cà¢Âö†VFW#à¢Ç6V7F–öâ6Æ73Ò&Ö–FFÆR×6V7F–öâ"–CÒ&Ö–FFÆU6V7F–öâ"FF×67&öÆÂÖæVVFVCÒ&fÇ6R"FF×F÷ÖÆ–vãÒ'G'VR"FFÖÆ–W#Ò$Ö–FFÆRÔ6&÷W6VÂÕ6V7F–öâ#à¢ÆF—b6Æ73Ò'6V7F–öâÖ†VFW""–CÒ'6V7F–öä†VFW""FFÖÆ–W#Ò%6V7F–öâÔ†VFW"Ô&"#à¢Ç7â6Æ73Ò'6V7F–öâ×F—FÆR#îiÈ‹ù›ÎˆësÂ÷7ããÇ7â6Æ73Ò'6V7F–öâÖ7F–öâ#îXZ˜:‚(£Â÷7ãà¢ÂöF—cà¢ÆF—b6Æ73Ò&6&÷W6VÂ×v–æF÷r"–CÒ&6&÷W6VÅv–æF÷r"FFÖÆ–W#Ò$6&÷W6VÂÕG&6²Ô6öçF–æW"#à¢Æ'F–6ÆR6Æ73Ò&6F6‚Ö6&BæV–v†&÷"Ö6&BæV–v†&÷"ÖÆVgB"–CÒ&ÆVgD6F6„6&B"FFÖÆ–W#Ò$6&BÕVV²ÔÆVgB"&–ÖÆ&VÃÒ.k*iÈ[{.h›Xxny¨NKˆ®KˆiÚ›Îˆë~{JiÙ"†–FFVãà¢ÆF—b6Æ73Ò&æV–v†&÷"×6Æ÷B"&–Ö†–FFVãÒ'G'VR#ãÂöF—cà¢Âö'F–6ÆSà¢Æ'F–6ÆR6Æ73Ò&6F6‚Ö6&BÖ–âÖ6&B"–CÒ&Ö–ä6F6„6&B"FFÖÆ–W#Ò$6&BÔÖ–âÔ7F—fR"&–ÖÆ&VÃÒ.˜KŠŞ›Îˆë~™ÙhXø.ˆ>ZKX[r#à¢ÆF—b6Æ73Ò&†W&ò×Æ6V†öÆFW""–CÒ&†W&õÆ6V†öÆFW""FFÖÆ–W#Ò$†W&òÕ†÷Fò"FF×7FGW3Ò$$Äô4´TEô54UEõ4õU$4R"&–ÖÆ&VÃÒ$†W&ò†÷Fò–çFVçF–öæÆÇ’&Æö6¶VC²6VR76WBVF—BæVÂ#ãÆF—b6Æ73Ò&†W&ò×Æ6V†öÆFW"Ö–ææW"#ãÇ7â6Æ73Ò&&Æö6¶VBÖ–6öâ"&–Ö†–FFVãÒ'G'VR#î)jsÂ÷7ããÇ7G&öæsî›Îˆë~xZ~x˜~iÚ^k©[è^h›XxcÂ÷7G&öæsãÇ7ãîKùŞyYyÉşZéî{JiÙXÚKØŞûÈÎKˆŞyIşh‰h‰nZHŞX‹n›Îˆë~Y»îX8óÂ÷7ããÂöF—cãÂöF—cà¢ÆF—b6Æ73Ò&6&BÖ&÷GFöÒ"–CÒ&6&DÖWFFF"FFÖÆ–W#Ò$6&BÔÖWFFF#à¢Ç6Æ73Ò&6F6‚×7V6–W2#îˆØ›ÃÂ÷à¢Ç6Æ73Ò&6F6‚ÖÖV7W&R#ãC"ãb6Ò+rã#‚¶sÂ÷à¢Ç6Æ73Ò&6F6‚ÖÆö6F–öâ#îiŠZJ’ƒ£#+rkYkò+rXØ>[)¾k™cÂ÷à¢ÂöF—cà¢Âö'F–6ÆSà¢Æ'F–6ÆR6Æ73Ò&6F6‚Ö6&BæV–v†&÷"Ö6&BæV–v†&÷"×&–v‡B"–CÒ'&–v‡D6F6„6&B"FFÖÆ–W#Ò$6&BÕVV²Õ&–v‡B"&–ÖÆ&VÃÒ.k*iÈ[{.h›Xxny¨NKˆ¾KˆiÚ›Îˆë~{JiÙ"†–FFVãà¢ÆF—b6Æ73Ò&æV–v†&÷"×6Æ÷B"&–Ö†–FFVãÒ'G'VR#ãÂöF—cà¢Âö'F–6ÆSà¢ÂöF—cà¢Â÷6V7F–öãà¢Æfö÷FW"6Æ73Ò&fö÷FW"×6V7F–öâ"–CÒ&fö÷FW%6V7F–öâ"FFÖÆ–W#Ò$fö÷FW"Ô5DÕ6V7F–öâ#à¢Ç7â6Æ73Ò&7FÖÆ&VÂ"–CÒ&7FÆ&VÂ"FFÖÆ–W#Ò$5DÔÆ&VÂÕ&V6÷&DæW‡B#îŠë[Ù^Kˆ¾KˆiÚ›ÃÂ÷7ãà¢Æ'WGFöâ6Æ73Ò&6ÖW&Ö'WGFöâ"G—SÒ&'WGFöâ"–CÒ&6ÖW&'WGFöâ"&–ÖÆ&VÃÒ.y»iË®hÈ™*î™Ùhš(NŠx‚#à¢Æ–Ör6Æ73Ò&6ÖW&Ö'B"–CÒ&76WD6ÖW&"FFÖ76WBÖ–CÒ&6ÖW&"FF×&Wf–Wr×FƒÒ&FW6–vâ÷7—7FVÕ÷c2óeô76WEõ7—7FVÒöFW&—fVBöæ÷&ÖÅö†öÖUö6ÖW&÷&–Ö'•÷cöæ÷&ÖÅö†öÖUö6ÖW&÷&–Ö'•÷cçær"ÇCÒ"#à¢Âö'WGFöãà¢Âöfö÷FW#à¢ÂöF—cà¢ÆF—b6Æ73Ò'&Wf–Wr×Fö7B"–CÒ'&Wf–WuFö7B"&öÆSÒ'7FGW2"&–ÖÆ—fSÒ'öÆ—FR"FF×f—6–&ÆSÒ&fÇ6R#ãÂöF—cà¢Â÷6V7F–öãà¢ÂöF—cà¢ÂöF—cà¢Â÷6V7F–öãà¢Æ6–FR6Æ73Ò&VF—BÖ6öÇVÖâ#à¢Ç6V7F–öâ6Æ73Ò&VF—BÖ6&B"&–ÖÆ&VÃÒ.h˜˜Y»î[.[îh
+~j8iú^Yš‚#à¢ÆF—b6Æ73Ò'æVÂÖ†VF–ær#ãÆƒ#î[îh
+~j8iú^YšƒÂöƒ#ãÇ7â6Æ73Ò'æVÂÖ6÷VçB"–CÒ&–ç7V7F÷$æöFU7FGW2#äÔTCÂ÷7ããÂöF—cà¢Ç6Æ73Ò&VF—BÖ–çG&ò#îXzKÙ^Kˆîj~[ÈşŠû¾Xùnˆz®[Ù>X˜ŞkXşŠxYšyK¾[ˆ>ûÉ¾Xªhi[XÎŠxNX‰yKc"iË®YšYYÎhùKé¾8#Â÷à¢ÆF—b6Æ73Ò&76WBÖæÖR"–CÒ&–ç7V7F÷$æöFTæÖR#ä6&BÔÖ–âÔ7F—fSÂöF—cà¢ÆF—b6Æ73Ò&–ç7V7F÷"Öw&–B#à¢ÆF—b6Æ73Ò&–ç7V7F÷"Öf–VÆBv–FR#ãÇ7â6Æ73Ò&–ç7V7F÷"ÖÆ&VÂ#îŠëîŠêˆ¨.x+“Â÷7ããÇ7â6Æ73Ò&–ç7V7F÷"×fÇVR–ç7V7F÷"Ö6öFR"–CÒ&–ç7V7F÷$FW6–väæöFR#ä6&BÔÖ–âÔ7F—fSÂ÷7ããÂöF—cà¢ÆF—b6Æ73Ò&–ç7V7F÷"Öf–VÆBv–FR#ãÇ7â6Æ73Ò&–ç7V7F÷"ÖÆ&VÂ#äæG&ö–B6ö×÷6RiŠ[CÂ÷7ããÇ7â6Æ73Ò&–ç7V7F÷"×fÇVR–ç7V7F÷"Ö6öFR"–CÒ&–ç7V7F÷$6ö×÷6TæöFR#ävVÖ–æ”6F6„6&÷W6VÂò6&BÔÖ–âÔ7F—fSÂ÷7ããÂöF—cà¢ÆF—b6Æ73Ò&–ç7V7F÷"Öf–VÆB#ãÇ7â6Æ73Ò&–ç7V7F÷"ÖÆ&VÂ#å‚+r’†G“Â÷7ããÇ7â6Æ73Ò&–ç7V7F÷"×fÇVR–ç7V7F÷"Ö6öFR"–CÒ&–ç7V7F÷%÷6—F–öâ#î(	CÂ÷7ããÂöF—cà¢ÆF—b6Æ73Ò&–ç7V7F÷"Öf–VÆB#ãÇ7â6Æ73Ò&–ç7V7F÷"ÖÆ&VÂ#år+r‚†G“Â÷7ããÇ7â6Æ73Ò&–ç7V7F÷"×fÇVR–ç7V7F÷"Ö6öFR"–CÒ&–ç7V7F÷%6—¦R#î(	CÂ÷7ããÂöF—cà¢ÆF—b6Æ73Ò&–ç7V7F÷"Öf–VÆB#ãÇ7â6Æ73Ò&–ç7V7F÷"ÖÆ&VÂ#îZÙ~KÙ2òZÙ~˜xÓÂ÷7ããÇ7â6Æ73Ò&–ç7V7F÷"×fÇVR–ç7V7F÷"Ö6öFR"–CÒ&–ç7V7F÷$föçB#î(	CÂ÷7ããÂöF—cà¢ÆF—b6Æ73Ò&–ç7V7F÷"Öf–VÆB#ãÇ7â6Æ73Ò&–ç7V7F÷"ÖÆ&VÂ#îYÈnŠy#Â÷7ããÇ7â6Æ73Ò&–ç7V7F÷"×fÇVR–ç7V7F÷"Ö6öFR"–CÒ&–ç7V7F÷%&F—W2#î(	CÂ÷7ããÂöF—cà¢ÆF—b6Æ73Ò&–ç7V7F÷"Öf–VÆB#ãÇ7â6Æ73Ò&–ç7V7F÷"ÖÆ&VÂ#îˆ8Îišşˆ›#Â÷7ããÇ7â6Æ73Ò&–ç7V7F÷"×fÇVR–ç7V7F÷"Ö6öFR"–CÒ&–ç7V7F÷$&6¶w&÷VæB#î(	CÂ÷7ããÂöF—cà¢ÆF—b6Æ73Ò&–ç7V7F÷"Öf–VÆB#ãÇ7â6Æ73Ò&–ç7V7F÷"ÖÆ&VÂ#îih~ZÙ~š)Îˆ›#Â÷7ããÇ7â6Æ73Ò&–ç7V7F÷"×fÇVR–ç7V7F÷"Ö6öFR"–CÒ&–ç7V7F÷$6öÆ÷"#î(	CÂ÷7ããÂöF—cà¢ÆF—b6Æ73Ò&–ç7V7F÷"Öf–VÆBv–FR#ãÇ7â6Æ73Ò&–ç7V7F÷"ÖÆ&VÂ#îY»îx˜~Š8Xˆrò{JiÙÂ÷7ããÇ7â6Æ73Ò&–ç7V7F÷"×fÇVR–ç7V7F÷"Ö6öFR"–CÒ&–ç7V7F÷$–ÖvR#î(	CÂ÷7ããÂöF—cà¢ÆF—b6Æ73Ò&–ç7V7F÷"Öf–VÆBv–FR#ãÇ7â6Æ73Ò&–ç7V7F÷"ÖÆ&VÂ#îY8Ş[©N[Èş{ªniÙóÂ÷7ããÇ7â6Æ73Ò&–ç7V7F÷"×fÇVR"–CÒ&–ç7V7F÷$6öç7G&–çB#î(	CÂ÷7ããÂöF—cà¢ÆF—b6Æ73Ò&–ç7V7F÷"Öf–VÆBv–FR#ãÇ7â6Æ73Ò&–ç7V7F÷"ÖÆ&VÂ#î‹XNKªròZéîxëx«nhÂ÷7ããÇ7â6Æ73Ò&–ç7V7F÷"×fÇVR"–CÒ&–ç7V7F÷$76WE7FGW2#î(	CÂ÷7ããÂöF—cà¢ÂöF—cà¢Ç6Æ73Ò'æVÂÖ†VÇ"–CÒ&–ç7V7F÷$æ÷FR#î˜hºY»î[.Kº^iú^yÈ¾Zéî™˜^j~[Èş8{JiÙx«nhY(ÎYYÎiŠ[N8#Â÷à¢Â÷6V7F–öãà¢Ç6V7F–öâ6Æ73Ò&VF—BÖ6&B"&–ÖÆ&VÃÒ.[Ù>X˜Ş{¸NK»nY8Ş[©N[ÈşŠxNX‰’#à¢ÆF—b6Æ73Ò&W–V'&÷r#åc"4ôåE$5B+rÄ•dRdÅTU3ÂöF—cà¢Æƒ#î{¸NK»nY8Ş[©N[ÈşŠxNX‰“Âöƒ#à¢Ç6Æ73Ò&VF—BÖ–çG&ò#îŠxNX‰iÚ^ˆz®[{.Xª‹ÛŞy¨NiË®YšYYÎûÉ¾[®ZûXÎ‹yş™¨ş[Ù>X˜ŞŠxnXú>8{;¾{¹şZÙ~KÙ>KˆîZèXZXË®i»Nik8#Â÷à¢ÆFÂ6Æ73Ò''VÆRÖÆ—7B"–CÒ'&W7öç6—fU'VÆTÆ—7B#ãÆF—b6Æ73Ò''VÆR×&÷r#ãÆGCîx«nhÂöGCãÆFCîzØ[è^YYÎXª‹ÛÓÂöFCãÂöF—cãÂöFÃà¢Â÷6V7F–öãà¢Ç6V7F–öâ6Æ73Ò&VF—BÖ6&B"&–ÖÆ&VÃÒ.Xk¾{¹>š¹KùŞyÉşXø.ˆ>ZûxZr#à¢ÆF—b6Æ73Ò&W–V'&÷r#äe$õ¤Tâ„’Ôd’ä4„õ%3ÂöF—cà¢Æƒ#îXk¾{¹>š¹KùŞyÉşZûxZsÂöƒ#à¢Ç6Æ73Ò&VF—BÖ–çG&ò#î[znKê~KªNK©.š(NŠxKˆîKˆ¾ikXk¾{¹2ärXˆn[È[^zK®ûÉ¾Xø.ˆ>‹XNKª~Xú®Šû¾8$ÓRiŠòCƒGZëŞ[ªn‹ëyXÎ™ÙhXø.ˆ>ûÈÎk*iÈhÈ~Zé®š¹[ªn8#Â÷à¢ÆF—b6Æ73Ò'&VfW&Væ6RÖ6öçG&öÇ2#ãÇ6VÆV7B–CÒ&æ6†÷%6VÆV7B"&–ÖÆ&VÃÒ.˜hºXk¾{¹>Xø.ˆ2#ãÂ÷6VÆV7CãÆ–CÒ&æ6†÷$÷Vâ"6Æ73Ò'&VfW&Væ6RÖ÷Vâ"F&vWCÒ%ö&Ææ²"&VÃÒ&æ÷&VfW'&W"#îh™>[ÈXéşY»ãÂöãÂöF—cà¢Ç6Æ73Ò'&VfW&Væ6RÖÖWF"–CÒ&æ6†÷$ÖWF#îzØ[è^Xø.ˆ>y›¾ŠëÂ÷à¢ÆF—b6Æ73Ò'&VfW&Væ6R×7FvR#ãÆ–Ör–CÒ&æ6†÷$–ÖvR"ÇCÒ.Xk¾{¹>š¹KùŞyÉşXø.ˆ>Y»îX8ò"†–FFVããÂöF—cà¢Â÷6V7F–öãà¢Ç6V7F–öâ6Æ73Ò&VF—BÖ6&B#à¢ÆF—b6Æ73Ò&W–V'&÷r#ä54UBUD„õ$•E“ÂöF—cà¢Æƒ#îjÚ>[Èş‹XNKª~{¹Zé®Kˆâ4„jš¨ÃÂöƒ#à¢Ç6Æ73Ò&VF—BÖ–çG&ò#îK¸^[n[{.y›¾Šë8XúşXZÎ[Èy¨NŠëîŠê‹XNKª~Zéî™˜^k‹.iù>8$†W&òş˜+¾XÚxZ~x˜~KùŞhÈXÚKØŞûÈÎKˆŞKº^K¹>[©>KŠŞZÙYÊih~K»nhêZé®iÚ^k©h‰nKÛşyJiØ>8#Â÷à¢ÆF—b6Æ73Ò&76WBÖÆ—7B"–CÒ&76WDÆ—7B"&–ÖÆ—fSÒ'öÆ—FR#ãÂöF—cà¢ÆF—b6Æ73Ò&–çFVw&—G’×7VÖÖ'’"–CÒ&–çFVw&—G•7VÖÖ'’"FF×7FFSÒ%%Tää”är#îjÚ>YÊjZûk:XhÎ‹XNKª~y¨NXéşZx¾ZÙ~ˆ¨.Kˆî[®Zû(
+cÂöF—cà¢Â÷6V7F–öãà¢Ç6V7F–öâ6Æ73Ò&VF—BÖ6&B#à¢ÆF—b6Æ73Ò&W–V'&÷r#äUD„õ$•E’$õTäD%“ÂöF—cà¢Æƒ#îš¨ÎiKn‹ëyXÃÂöƒ#à¢Ç6Æ73Ò&VF—BÖ–çG&ò#î{¹>ièNiÚ^k©iŠşK¹>[©>XhRvVÖ–æ’{¹>ièN[ú¾xZ~Kˆâc2ZéîxëYYÎûÉ¾KˆŞiŠòf–vÖZéîi{nˆ¨.x+Šû¾Y¹î8.Xéòäƒg&÷¦VâärK¸ŞKˆŞXúşKúîiKûÈÎKØbvVÖ–æ’c2KˆŞZê>z{Kˆîizrg&÷¦VâXZš^˜	X8ş{JKˆˆ{N8#Â÷à¢ÆF—b6Æ73Ò&76WB×&÷r#ãÆF—cãÆF—b6Æ73Ò&76WBÖæÖR#äæG&ö–B'VçF–ÖSÂöF—cãÆF—b6Æ73Ò&76WBÖÖWF#î{+îzîk©z4„y¨B’#‚ZèŠ8^8Y
+şXª8KªNK©.8hŠ®Y»î8&÷VæG4–åv–æF÷rY(ÎY8Ş[©N[Èşyú™‹^XúnŠÎš¨ÎiKn8#ÂöF—cãÂöF—cãÇ7â6Æ73Ò&76WB×7FGW2"FF×7FGW3Ò$äõEõ%Tâ#ääõB%TãÂ÷7ããÂöF—cà¢ÆF—b6Æ73Ò&76WB×&÷r#ãÆF—cãÆF—b6Æ73Ò&76WBÖæÖR#åf—7VÂ&—G“ÂöF—cãÆF—b6Æ73Ò&76WBÖÖWF#îiÊÎš^Xú®Šøiˆî™Ùh{¹>ièNKˆî‹XNKª~XúşXª‹ÛŞûÉ¾XªhxZ~x˜r$ô’Y(ÎiÊ®h›Xxnyºîj~KˆŞXø.Kˆâ52XŠNZé®8#ÂöF—cãÂöF—cãÇ7â6Æ73Ò&76WB×7FGW2"FF×7FGW3Ò$äõEõ%Tâ#ääõB%TãÂ÷7ããÂöF—cà¢Ç6Æ73Ò&VF—BÖfö÷FW"#ãÇ7G&öæså&Wf–Wr'V–ÆC£Â÷7G&öæsâÆ6öFR–CÒ&'V–ÆE6†#åõôäƒôtTÔ”ä•õ$Ud”Uuô%T”ÄEõóÂö6öFSãÆ'#ãÇ7G&öæså&VÆV6RvFRVffV7C£Â÷7G&öæsâäôäSÂ÷à¢ÆF—b6Æ73Ò&VF—BÖ7F–öç2#à¢Æ‡&VcÒ"ââòââòââòââòââöFW6–vâöÖævW"öæƒö66WFæ6Rò#î‹ùNY¹âäƒš¨ÎiKnKŠŞ[ø3Âöà¢Æ–CÒ&6öçG&7DWF†÷&—G”Æ–æ²"‡&VcÒ"2"F&vWCÒ%ö&Ææ²"&VÃÒ&æ÷&VfW'&W"#îiú^yÈ¾[Ù>X˜Òc"iË®YšYYÃÂöà¢ÂöF—cà¢Â÷6V7F–öãà¢Âö6–FSà¢Ç6V7F–öâ6Æ73Ò'&W7öç6—fRÖÖG&—‚"&–ÖÆ&VÃÒ.KˆŞYÎ[ş[™^[®ZûY8Ş[©N[ÈşZûxZr#à¢ÆF—b6Æ73Ò'&W7öç6—fRÖÖG&—‚Ö†VFW"#à¢ÆF—cãÆƒ"6Æ73Ò'&W7öç6—fRÖÖG&—‚×F—FÆR#îZI®[şY8Ş[©N[ÈşZûxZsÂöƒ#ãÇ6Æ73Ò'&W7öç6—fRÖÖG&—‚×7V'F—FÆR#îYÎKˆZY~š^™Ú.{¹>ièNYÊK©NzxŞ˜¾‹éŠxnXú>Kˆ¾[›nhé.k‹.iù>8.Xˆ~hÚ.ZÙ~KÙ>{ÊiKîûÈÎXúşy»NŠx.yÈ¾X‹XÚx˜~8j~š)8[©^˜:‚5DKˆîy»iË®hê~K»nZh.KÙ^Y8Ş[©N8.jÚNZHNiŠşkXşŠxYš{¹>ièNš(NŠxûÈÎiÈ{¸K¸Ş™ÈyJYÎKˆk©z4„y¨BæG&ö–B'VçF–ÖRhŠ®Y»îš¨ÎiKn8#Â÷ãÂöF—cà¢ÆÆ&VÂ6Æ73Ò&ÖG&—‚×66ÆRÖ6öçG&öÂ"f÷#Ò&ÖG&—„föçE66ÆR#îXZyú™‹^ZÙ~KÙ>{ÊiKãÇ6VÆV7B–CÒ&ÖG&—„föçE66ÆR#ãÆ÷F–öâfÇVSÒ#"6VÆV7FVCãã9sÂö÷F–öããÆ÷F–öâfÇVSÒ#ã2#ãã<9sÂö÷F–öããÆ÷F–öâfÇVSÒ#ãR#ãã\9sÂö÷F–öããÂ÷6VÆV7CãÂöÆ&VÃà¢ÂöF—cà¢ÆF—b6Æ73Ò'&W7öç6—fRÖw&–B#à¢Æ'F–6ÆR6Æ73Ò'&W7öç6—fR×F–ÆR#ãÆF—b6Æ73Ò'&W7öç6—fR×F–ÆRÖ†VFW"#ãÇ7â6Æ73Ò'&W7öç6—fR×F–ÆR×F—FÆR#î{J~XyyúŞ[óÂ÷7ããÇ7â6Æ73Ò'&W7öç6—fR×F–ÆR×6—¦R#ã3#9sCƒÂ÷7ããÂöF—cãÆ–g&ÖR6Æ73Ò'&W7öç6—fRÖg&ÖR"FF×f–Ww÷'CÒ#3#ƒCƒ"F—FÆSÒ$äƒ3#9sCƒY8Ş[©N[Èşš(NŠx‚"7G–ÆSÒ&7V7B×&F–ó£"ó2"FF×7&3Ò"âövVÖ–æ’ÖæF—fR×&Wf–Wræ‡FÖÃöÖöFSÖÖG&—‚f×·f–Ww÷'CÓ3#ƒCƒf×¶föçE66ÆSÓ#ãÂö–g&ÖSãÇ6Æ73Ò'&W7öç6—fR×F–ÆRÖæ÷FR#îj8iú^yúŞ[şz›®™{Nz¹îK¨Kˆî[˜:k¹®Xª8#Â÷ãÂö'F–6ÆSà¢Æ'F–6ÆR6Æ73Ò'&W7öç6—fR×F–ÆR#ãÆF—b6Æ73Ò'&W7öç6—fR×F–ÆRÖ†VFW"#ãÇ7â6Æ73Ò'&W7öç6—fR×F–ÆR×F—FÆR#î{J~Xy[óÂ÷7ããÇ7â6Æ73Ò'&W7öç6—fR×F–ÆR×6—¦R#ã3c9scCÂ÷7ããÂöF—cãÆ–g&ÖR6Æ73Ò'&W7öç6—fRÖg&ÖR"FF×f–Ww÷'CÒ#3cƒcC"F—FÆSÒ$äƒ3c9scCY8Ş[©N[Èşš(NŠx‚"7G–ÆSÒ&7V7B×&F–ó£’ób"FF×7&3Ò"âövVÖ–æ’ÖæF—fR×&Wf–Wræ‡FÖÃöÖöFSÖÖG&—‚f×·f–Ww÷'CÓ3cƒcCf×¶föçE66ÆSÓ#ãÂö–g&ÖSãÇ6Æ73Ò'&W7öç6—fR×F–ÆRÖæ÷FR#îj8iú^j~Xxn{J~Xy[ˆ>[KˆîXÚx˜~jùNKè¾8#Â÷ãÂö'F–6ÆSà¢Æ'F–6ÆR6Æ73Ò'&W7öç6—fR×F–ÆR#ãÆF—b6Æ73Ò'&W7öç6—fR×F–ÆRÖ†VFW"#ãÇ7â6Æ73Ò'&W7öç6—fR×F–ÆR×F—FÆR#îYû®Xxnh˜¾iË£Â÷7ããÇ7â6Æ73Ò'&W7öç6—fR×F–ÆR×6—¦R#ã3“9sƒCCÂ÷7ããÂöF—cãÆ–g&ÖR6Æ73Ò'&W7öç6—fRÖg&ÖR"FF×f–Ww÷'CÒ#3“ƒƒCB"F—FÆSÒ$äƒ3“9sƒCBY8Ş[©N[Èşš(NŠx‚"7G–ÆSÒ&7V7B×&F–ó£3“óƒCB"FF×7&3Ò"âövVÖ–æ’ÖæF—fR×&Wf–Wræ‡FÖÃöÖöFSÖÖG&—‚f×·f–Ww÷'CÓ3“ƒƒCBf×¶föçE66ÆSÓ#ãÂö–g&ÖSãÇ6Æ73Ò'&W7öç6—fR×F–ÆRÖæ÷FR#îj8iú^Yû®Xxnš^™Ú.jùNKè¾KˆîK‹¾XÚXzKÙ^8#Â÷ãÂö'F–6ÆSà¢Æ'F–6ÆR6Æ73Ò'&W7öç6—fR×F–ÆR#ãÆF—b6Æ73Ò'&W7öç6—fR×F–ÆRÖ†VFW"#ãÇ7â6Æ73Ò'&W7öç6—fR×F–ÆR×F—FÆR#îZJ~[şh˜¾iË£Â÷7ããÇ7â6Æ73Ò'&W7öç6—fR×F–ÆR×6—¦R#ãC39s“3#Â÷7ããÂöF—cãÆ–g&ÖR6Æ73Ò'&W7öç6—fRÖg&ÖR"FF×f–Ww÷'CÒ#C3ƒ“3""F—FÆSÒ$äƒC39s“3"Y8Ş[©N[Èşš(NŠx‚"7G–ÆSÒ&7V7B×&F–ó£C3ó“3""FF×7&3Ò"âövVÖ–æ’ÖæF—fR×&Wf–Wræ‡FÖÃöÖöFSÖÖG&—‚f×·f–Ww÷'CÓC3ƒ“3"f×¶föçE66ÆSÓ#ãÂö–g&ÖSãÇ6Æ73Ò'&W7öç6—fR×F–ÆRÖæ÷FR#îj8iú^ZëŞ[şyYy›ŞKˆîXÚx˜~iÈZJ~ZëŞ[ªn8#Â÷ãÂö'F–6ÆSà¢Æ'F–6ÆR6Æ73Ò'&W7öç6—fR×F–ÆR#ãÆF—b6Æ73Ò'&W7öç6—fR×F–ÆRÖ†VFW"#ãÇ7â6Æ73Ò'&W7öç6—fR×F–ÆR×F—FÆR#îZëŞŠxnXú3Â÷7ããÇ7â6Æ73Ò'&W7öç6—fR×F–ÆR×6—¦R#ãc9s“cÂ÷7ããÂöF—cãÆ–g&ÖR6Æ73Ò'&W7öç6—fRÖg&ÖR"FF×f–Ww÷'CÒ#cƒ“c"F—FÆSÒ$äƒc9s“cY8Ş[©N[Èşš(NŠx‚"7G–ÆSÒ&7V7B×&F–ó£Ró‚"FF×7&3Ò"âövVÖ–æ’ÖæF—fR×&Wf–Wræ‡FÖÃöÖöFSÖÖG&—‚f×·f–Ww÷'CÓcƒ“cf×¶föçE66ÆSÓ#ãÂö–g&ÖSãÇ6Æ73Ò'&W7öç6—fR×F–ÆRÖæ÷FR#îj8iú^ZëŞŠxnXú>Kˆ¾y¨NXh^ZëZëŞ[ªnKˆ®™™8#Â÷ãÂö'F–6ÆSà¢ÂöF—cà¢Â÷6V7F–öãà¢ÂöÖ–ãà¢Ç67&—B7&3Ò"âöæƒ×&W7öç6—fRÖ6öçG&7B×'VçF–ÖRæ§2#ãÂ÷67&—Cà¢Ç67&—Cà¢‚‚’Óâ°¢'W6R7G&–7B#°¢6öç7B&×2ÒæWrU$Å6V&6…&×2†Æö6F–öâç6V&6‚“°¢6öç7B6çf4ÖöFRÒ&×2ævWB‚&ÖöFR"’ÓÓÒ&6çf2#°¢6öç7BÖG&—„ÖöFRÒ&×2ævWB‚&ÖöFR"’ÓÓÒ&ÖG&—‚#°¢6öç7Bv÷&·76RÒFö7VÖVçBævWDVÆVÖVçD'”–B‚&æƒvVÖ–æ•&Wf–Wr"“°¢v÷&·76Ræ6Æ74Æ—7BæFB‚&6öçG&7B×VæF–ær"“°¢–b†6çf4ÖöFR’Fö7VÖVçBæ&öG’æ6Æ74Æ—7BæFB‚&6çf2ÖÖöFR"“°¢–b†ÖG&—„ÖöFR’Fö7VÖVçBæ&öG’æ6Æ74Æ—7BæFB‚&ÖG&—‚ÖÖöFR"“°¢6öç7B'V–ÆE6†ÒFö7VÖVçBçVW'•6VÆV7F÷"‚vÖWF¶æÖSÒ&æƒÖvVÖ–æ’×&Wf–WrÖ'V–ÆB%Òr’æ6öçFVçC°¢Fö7VÖVçBævWDVÆVÖVçD'”–B‚&'V–ÆE6†"’çFW‡D6öçFVçBÒ'V–ÆE6†°¢Fö7VÖVçBævWDVÆVÖVçD'”–B‚'&Wf–Wu6÷W&6U6†"’çFW‡D6öçFVçBÒ'V–ÆE6†°¢6öç7B&W6WBÒFö7VÖVçBævWDVÆVÖVçD'”–B‚'f–Ww÷'E&W6WB"“°¢6öç7Bv–GF„–çWBÒFö7VÖVçBævWDVÆVÖVçD'”–B‚&7W7FöÕv–GF‚"“°¢6öç7B†V–v‡D–çWBÒFö7VÖVçBævWDVÆVÖVçD'”–B‚&7W7FöÔ†V–v‡B"“°¢6öç7B6fT–ç6WD–çWG2Ò·F÷¦Fö7VÖVçBævWDVÆVÖVçD'”–B‚'6fUF÷"’Æ&÷GFöÓ¦Fö7VÖVçBævWDVÆVÖVçD'”–B‚'6fT&÷GFöÒ"’Ç7F'C¦Fö7VÖVçBævWDVÆVÖVçD'”–B‚'6fU7F'B"’ÆVæC¦Fö7VÖVçBævWDVÆVÖVçD'”–B‚'6fTVæB"—Ó°¢6öç7BÆ–÷WEf&–çBÒFö7VÖVçBævWDVÆVÖVçD'”–B‚&Æ–÷WEf&–çB"“°¢6öç7BföçE66ÆRÒFö7VÖVçBævWDVÆVÖVçD'”–B‚&föçE66ÆR"“°¢6öç7BföçE66ÆU&VF÷WBÒFö7VÖVçBævWDVÆVÖVçD'”–B‚&föçE66ÆU&VF÷WB"“°¢6öç7BFWf–6RÒFö7VÖVçBævWDVÆVÖVçD'”–B‚&FWf–6R"“°¢6öç7Bw&ÒFö7VÖVçBævWDVÆVÖVçD'”–B‚&FWf–6Uw&"“°¢6öç7BÖ–FFÆU6V7F–öâÒFö7VÖVçBævWDVÆVÖVçD'”–B‚&Ö–FFÆU6V7F–öâ"“°¢6öç7B6V7F–öä†VFW"ÒFö7VÖVçBævWDVÆVÖVçD'”–B‚'6V7F–öä†VFW""“°¢6öç7B6&÷W6VÅv–æF÷rÒFö7VÖVçBævWDVÆVÖVçD'”–B‚&6&÷W6VÅv–æF÷r"“°¢6öç7BÖ–ä6F6„6&BÒFö7VÖVçBævWDVÆVÖVçD'”–B‚&Ö–ä6F6„6&B"“°¢6öç7B6&DÖWFFFÒFö7VÖVçBævWDVÆVÖVçD'”–B‚&6&DÖWFFF"“°¢6öç7Bfö÷FW%6V7F–öâÒFö7VÖVçBævWDVÆVÖVçD'”–B‚&fö÷FW%6V7F–öâ"“°¢6öç7BFö7BÒFö7VÖVçBævWDVÆVÖVçD'”–B‚'&Wf–WuFö7B"“°¢6öç7B76WDÆ—7BÒFö7VÖVçBævWDVÆVÖVçD'”–B‚&76WDÆ—7B"“°¢6öç7B–çFVw&—G•7VÖÖ'’ÒFö7VÖVçBævWDVÆVÖVçD'”–B‚&–çFVw&—G•7VÖÖ'’"“°¢6öç7B6öçG&7E7FGW2ÒFö7VÖVçBævWDVÆVÖVçD'”–B‚&6öçG&7DÆöE7FFR"“°¢6öç7B6öçG&7EfW'6–öäÆ&VÂÒFö7VÖVçBævWDVÆVÖVçD'”–B‚&6öçG&7EfW'6–öâ"“°¢6öç7B6öçG&7E6†Æ&VÂÒFö7VÖVçBævWDVÆVÖVçD'”–B‚&6öçG&7E6†"“°¢6öç7B6öçG&7Df–ÇW&RÒFö7VÖVçBævWDVÆVÖVçD'”–B‚&6öçG&7Df–ÇW&R"“°¢6öç7B'VÆTÆ—7BÒFö7VÖVçBævWDVÆVÖVçD'”–B‚'&W7öç6—fU'VÆTÆ—7B"“°¢6öç7Bæ6†÷%6VÆV7BÒFö7VÖVçBævWDVÆVÖVçD'”–B‚&æ6†÷%6VÆV7B"“°¢6öç7Bæ6†÷$–ÖvRÒFö7VÖVçBævWDVÆVÖVçD'”–B‚&æ6†÷$–ÖvR"“°¢6öç7Bæ6†÷$ÖWFÒFö7VÖVçBævWDVÆVÖVçD'”–B‚&æ6†÷$ÖWF"“°¢6öç7Bæ6†÷$÷VâÒFö7VÖVçBævWDVÆVÖVçD'”–B‚&æ6†÷$÷Vâ"“°¢6öç7B76WDæöFW2Ò°¢&6¶w&÷VæC¢Fö7VÖVçMwó‹h‘éì¶»§q«^u¹Ñ ¤‘¥ÍÁ±…åI•™•É•¹”¡½¹ÑÉ…Ğ¹Ù¥ÍÕ…±}…¹¡½ÉÍlÁt¤ì(€€€€€ô(€€€€€™Õ¹Ñ¥½¸É½±•Q•áĞ¡½¹ÑÉ…Ğ°¥¤ì(€€€€€€€½¹ÍĞÉ½±”€ô½¹ÑÉ…Ğ¹ÑåÁ½É…Á¡ä¹É½±•Ì¹™¥¹¡¥Ñ•´€ôø¥Ñ•´¹¥€ôôô¥¤ì(€€€€€€€¥˜€ …É½±”¤Ñ¡É½Ü¹•ÜÉÉ½È¡QåÁ½É…Á¡äÉÕ±”µ¥ÍÍ¥¹œ™É½´½¹ÑÉ…Ğè€‘í¥‘õ€¤ì(€€€€€€€É•ÑÕÉ¸É½±”ì(€€€€€ô(€€€€€™Õ¹Ñ¥½¸É•¹‘•ÉIÕ±•%¹ÍÁ•Ñ½È¡±…å½ÕĞ¤ì(€€€€€€€½¹ÍĞÀ€ô±…å½ÕĞ¹É•ÍÁ½¹Í¥Ù•}Á…É…µ•Ñ•ÉÌì(€€€€€€€½¹ÍĞ½¹ÑÉ…Ğ€ô½¹ÑÉ…Ñ¹Ù•±½Á”¹½¹ÑÉ…Ğì(€€€€€€€½¹ÍĞÉÕ±•Ì€ôl(€€€€€€€€€l‹–N&3š‚¦Š`ˆ°ƒ–ºô€‘í±…å½ÕĞ¹‰É…¹‘}İ¥‘Ñ¡}‘À¹Ñ½¥á• Ä¥õ‘Ã¾òo¢–"d±…µÀ£–º'–£–º÷\‘íÀ¹‰É…¹‘}Ñ¥Ñ±”¹İ¥‘Ñ¡}É…Ñ¥½}¹Õµ•É…Ñ½Éô¼‘íÀ¹‰É…¹‘}Ñ¥Ñ±”¹İ¥‘Ñ¡}É…Ñ¥½}‘•¹½µ¥¹…Ñ½Éô°€‘íÀ¹‰É…¹‘}Ñ¥Ñ±”¹µ¥¹}İ¥‘Ñ¡}‘Á÷ŠL‘íÀ¹‰É…¹‘}Ñ¥Ñ±”¹µ…á}İ¥‘Ñ¡}‘Áõ‘À¥t°(€€€€€€€€€l‹–’Ó–<ˆ°ƒ¢¢$€‘í±…å½ÕĞ¹…Ù…Ñ…É}Ù¥ÍÕ…±}Í¥é•}‘À¹Ñ½¥á• Ä¥õ‘Ã¾òo¢›š:œ€‘í±…å½ÕĞ¹…Ù…Ñ…É}Ñ½Õ¡}Í¥é•}‘Áõ‘Át°(€€€€€€€€€l‹î¢º‡¢†0ˆ°ƒšVÃ–ğ€‘í±…å½ÕĞ¹ÑåÁ½É…Á¡å}Í¥é•Í}‘À¹ÍÑ…Ñ}Ù…±Õ”¹Ñ½¥á• Ä¥õÍÀƒ
+Üƒš‚¶ø€‘í±…å½ÕĞ¹ÑåÁ½É…Á¡å}Í¥é•Í}‘À¹ÍÑ…Ñ}±…‰•°¹Ñ½¥á• Ä¥õÍÃ¾òo–N&3¦^Ó¢Şt€‘í±…å½ÕĞ¹…ÁÍ}‘À¹‰É…¹‘}Ñ½}ÍÑ…ÑÌ¹Ñ½¥á• Ä¥õ‘Át°(€€€€€€€€€l‹šr¢şG¦Æó¢:ßš‚¦Š`ˆ°€‘í±…å½ÕĞ¹ÑåÁ½É…Á¡å}Í¥é•Í}‘À¹Í•Ñ¥½¹}Ñ¥Ñ±”¹Ñ½¥á• Ä¥õÍÃ¾òoš‚¦Šc¢†0€‘í±…å½ÕĞ¹Í•Ñ¥½¹}¡•…‘•É}¡•¥¡Ñ}‘À¹Ñ½¥á• Ä¥õ‘Ã¾òoî¢º‡¦^Ó¢Şwn»š‚€‘í±…å½ÕĞ¹…ÁÍ}‘À¹ÍÑ…ÑÍ}Ñ½}Ñ¥Ñ±”¹Ñ½¥á• Ä¥õ‘Át°(€€€€€€€€€l‹’âï–6‡&ˆ°€‘í±…å½ÕĞ¹…É‘}İ¥‘Ñ¡}‘À¹Ñ½¥á• Ä¥÷\‘í±…å½ÕĞ¹…É‘}¡•¥¡Ñ}‘À¹Ñ½¥á• Ä¥õ‘Ã¾òoš¾S’ú,€‘íÀ¹¡•É¼¹…ÍÁ•Ñ}É…Ñ¥½}İ¥‘Ñ¡ôè‘íÀ¹¡•É¼¹…ÍÁ•Ñ}É…Ñ¥½}¡•¥¡Ñ÷¾òon»š‚–º÷–ê˜€‘íÀ¹¡•É¼¹Ñ…É•Ñ}İ¥‘Ñ¡}™É…Ñ¥½¸€¨€ÄÀÁô—¾ò3’â+¦f@€‘íÀ¹¡•É¼¹µ…á¥µÕµ}İ¥‘Ñ¡}‘Áõ‘Át°(€€€€€€€€€l‹¦
+ï–6„ˆ°ƒ–>«šbû’ë–ŞËšr'.³®/¢ºÃ–öW¾òo–öO–&7š^ƒ¢:ßš&ç¦
+ï–6‡ÒƒšvC¾ò3¦jC¢^?–Ş›–>Ï¦
+ï–6‡šr–’Ÿ–º÷–ê˜€‘íÀ¹¹•¥¡‰½È¹µ…á¥µÕµ}İ¥‘Ñ¡}™É…Ñ¥½¹}½™}¡•É¼€¨€ÄÀÁô”ƒ’âï–6‡¾ò3šr–’k¦7–>€€‘íÀ¹¹•¥¡‰½È¹µ…á¥µÕµ}½Ù•É±…Á}‘Áõ‘Át°(€€€€€€€€€l‹š‚¦Šc–"Ã’âï–6„ˆ°ƒ–B#–B3n»š‚€‘í±…å½ÕĞ¹…ÁÍ}‘À¹Ñ¥Ñ±•}Ñ½}…É‘}Ñ…É•Ğ¹Ñ½¥á• Ä¥õ‘Ã¾òo–º{¦f€‘í±…å½ÕĞ¹µ•…ÍÕÉ•µ•¹ÑÌ¹Ñ¥Ñ±•}Ñ½}…É¹Ñ½¥á• Ä¥õ‘Át°(€€€€€€€€€l‹–6‡&–"À½½Ñ•Èˆ°ƒn»š‚€‘í±…å½ÕĞ¹…ÁÍ}‘À¹…É‘}Ñ½}™½½Ñ•È¹Ñ½¥á• Ä¥õ‘Ã¾òo–º{¦f€‘í±…å½ÕĞ¹µ•…ÍÕÉ•µ•¹ÑÌ¹…É‘}Ñ½}™½½Ñ•È¹Ñ½¥á• Ä¥õ‘Ã¾òm½½Ñ•Èƒ–në–ºk–r 5¥‘‘±”ƒ–’Yt°(€€€€€€€€€l‰Qƒ’â;nãšrèˆ°ƒ¦^Ó¢Şt€‘í±…å½ÕĞ¹™½½Ñ•È¹Ñ…}…µ•É…}…Á}‘À¹Ñ½¥á• Ä¥õ‘Ã¾òonãšrë–nû–öˆ€‘í±…å½ÕĞ¹…µ•É…}Ù¥ÍÕ…±}Í¥é•}‘À¹Ñ½¥á• Ä¥õ‘Ã¾òo¢›š:œ€‘í±…å½ÕĞ¹…µ•É…}Ñ½Õ¡}Í¥é•}‘Áõ‘Át°(€€€€€€€€€l‹Îïî–¶_’öLˆ°€‘í±…å½ÕĞ¹ÍåÍÑ•µ}™½¹Ñ}Í…±”¹Ñ½¥á• Ä¥÷_¾òoÎïîò§šRû–>«–êSR£’âš²‡š‚¦Š`€‘íÉ½±•Q•áĞ¡½¹ÑÉ…Ğ°€‰É••¹Ğµ…Ñ µ¡•…‘¥¹œˆ¤¹µ¥¹}ÍÁ÷ŠL‘íÉ½±•Q•áĞ¡½¹ÑÉ…Ğ°€‰É••¹Ğµ…Ñ µ¡•…‘¥¹œˆ¤¹µ…á}ÍÁõÍÃ¾òo–£–Æò§–Â<€‘í½¹ÑÉ…Ğ¹ÑåÁ½É…Á¡ä¹±½‰…±}Í¡É¥¹­}™½É‰¥‘‘•¸€ü€‹šš¶ˆˆ€è€‹–¢ºà‰õt(€€€€€€€tì(€€€€€€€ÉÕ±•1¥ÍĞ¹É•Á±…•¡¥±‘É•¸ ¸¸¹ÉÕ±•Ì¹µ…À ¡m¹…µ”°Ù…±Õ•t¤€ôøì(€€€€€€€€€½¹ÍĞÉ½Ü€ô‘½Õµ•¹Ğ¹É•…Ñ•±•µ•¹Ğ ‰‘¥Øˆ¤ìÉ½Ü¹±…ÍÍ9…µ”€ô€‰ÉÕ±”µÉ½Üˆì(€€€€€€€€€½¹ÍĞ‘Ğ€ô‘½Õµ•¹Ğ¹É•…Ñ•±•µ•¹Ğ ‰‘Ğˆ¤ì‘Ğ¹Ñ•áÑ½¹Ñ•¹Ğ€ô¹…µ”ì(€€€€€€€€€½¹ÍĞ‘€ô‘½Õµ•¹Ğ¹É•…Ñ•±•µ•¹Ğ ‰‘ˆ¤ì‘¹Ñ•áÑ½¹Ñ•¹Ğ€ôÙ…±Õ”ì(€€€€€€€€€É½Ü¹…ÁÁ•¹¡‘Ğ°‘¤ìÉ•ÑÕÉ¸É½Üì(€€€€€€€ô¤¤ì(€€€€€ô(€€€€€™Õ¹Ñ¥½¸‰…Í•±¥¹•A½±¥ä¡İ¥‘Ñ °¡•¥¡Ğ°Í…±”°Í…™•%¹Í•ÑÌ¤ì(€€€€€€€½¹ÍĞÍ…™•]¥‘Ñ €ôİ¥‘Ñ €´Í…™•%¹Í•ÑÌ¹ÍÑ…ÉĞ€´Í…™•%¹Í•ÑÌ¹•¹ì(€€€€€€€½¹ÍĞÍ…™•!•¥¡Ğ€ô¡•¥¡Ğ€´Í…™•%¹Í•ÑÌ¹Ñ½À€´Í…™•%¹Í•ÑÌ¹‰½ÑÑ½´ì(€€€€€€€½¹ÍĞ…É‘]¥‘Ñ €ô5…Ñ ¹µ¥¸¡5…Ñ ¹µ¥¸¡Í…™•]¥‘Ñ °€ÔØÀ¤€¨€À¸ØàØ°€ÌÌÜ¸È¤ì(€€€€€€€½¹ÍĞ…É‘!•¥¡Ğ€ô5…Ñ ¹µ¥¸¡…É‘]¥‘Ñ €¨€ÈäÌ€¼€ÈĞÜ°€ĞÀÀ¤ì(€€€€€€€É•ÑÕÉ¸ì(€€€€€€€€€Ù…É¥…¹Ğè€‰XÍ}	M1%9ˆ°±½¥…±}Ù¥•İÁ½ÉÑ}‘Àèmİ¥‘Ñ °¡•¥¡Ñt°Í…™•}¥¹Í•ÑÍ}‘ÀèÍ…™•%¹Í•ÑÌ°(€€€€€€€€€Í…™•}İ¥‘Ñ¡}‘ÀèÍ…™•]¥‘Ñ °Í…™•}¡•¥¡Ñ}‘ÀèÍ…™•!•¥¡Ğ°½¹Ñ•¹Ñ}İ¥‘Ñ¡}‘Àè5…Ñ ¹µ¥¸¡Í…™•]¥‘Ñ °€ÔØÀ¤°(€€€€€€€€€ÍåÍÑ•µ}™½¹Ñ}Í…±”èÍ…±”°‰É…¹‘}İ¥‘Ñ¡}‘Àè€ÔØ°…Ù…Ñ…É}Ù¥ÍÕ…±}Í¥é•}‘Àè€Ìà°…Ù…Ñ…É}Ñ½Õ¡}Í¥é•}‘Àè€Ğà°(€€€€€€€€€…µ•É…}Ù¥ÍÕ…±}Í¥é•}‘Àè€ØĞ°…µ•É…}Ñ½Õ¡}Í¥é•}‘Àè€ÜÈ°¡•É½}Ñ…É•Ñ}Í¥é•}‘Àèm…É‘]¥‘Ñ °…É‘!•¥¡Ñt°(€€€€€€€€€¡•É½}É•…‘…‰±•}¡•¥¡Ñ}É…¹•}‘ÀèlÈÈÀ°€ÈÈÁt°…É‘}½¹Ñ•¹ĞèíÁ…‘‘¥¹}¡½É¥é½¹Ñ…±}‘ÀèÈÀ±™½½Ñ•É}Á…‘‘¥¹}¡•¥¡Ñ}™É…Ñ¥½¸è¸ÀÜ±µ¥¹¥µÕµ}™½½Ñ•É}Á…‘‘¥¹}‘ÀèÄÀ±µ…á¥µÕµ}™½½Ñ•É}Á…‘‘¥¹}‘ÀèÈÀ±Ñ•áÑ}…Á}¡•¥¡Ñ}™É…Ñ¥½¸è¸ÀÀØ±µ¥¹¥µÕµ}Ñ•áÑ}…Á}‘ÀèÈ±µ…á¥µÕµ}Ñ•áÑ}…Á}‘ÀèÕô°(€€€€€€€€€É•ÍÁ½¹Í¥Ù•}Á…É…µ•Ñ•ÉÌèí‰É…¹‘}Ñ¥Ñ±”éíµ¥¹}İ¥‘Ñ¡}‘ÀèĞØ±µ…á}İ¥‘Ñ¡}‘ÀèÜÀ±İ¥‘Ñ¡}É…Ñ¥½}¹Õµ•É…Ñ½ÈèÄÔÔ±İ¥‘Ñ¡}É…Ñ¥½}‘•¹½µ¥¹…Ñ½ÈèÄÀàÁô±…Ù…Ñ…Èéíµ¥¹¥µÕµ}Ñ½Õ¡}‘ÀèĞáô±½¹Ñ•¹Ğéíµ…á}İ¥‘Ñ¡}‘ÀèÔØÀ±Ñ½Á}Á…‘‘¥¹}‘Àèà±¡•…‘•É}µ¥¹}¡•¥¡Ñ}‘ÀèĞà±¡•…‘•É}¡½É¥é½¹Ñ…±}…Á}‘ÀèÄÈ±ÍÑ…ÑÍ}µ¥¹}¡•¥¡Ñ}‘ÀèĞà±ÍÑ…ÑÍ}Ù•ÉÑ¥…±}Á…‘‘¥¹}‘ÀèĞ±ÍÑ…ÑÍ}¥Ñ•µ}…Á}‘ÀèÈ±Ñ½Á}¡½É¥é½¹Ñ…±}Á…‘‘¥¹œéíÉ…Ñ¥¼è¸ÀÜÔ±µ¥¹}‘ÀèÈĞ±µ…á}‘ÀèĞÁô±Í•Ñ¥½¹}¡½É¥é½¹Ñ…±}Á…‘‘¥¹œéíÉ…Ñ¥¼è¸Ààà±µ¥¹}‘ÀèÈĞ±µ…á}‘ÀèĞÉô±Í•Ñ¥½¹}¡½É¥é½¹Ñ…±}…Á}‘ÀèÄÈ±Í•Ñ¥½¹}Ù•ÉÑ¥…±}Á…‘‘¥¹}‘ÀèÉô±¡•É¼éí…ÍÁ•Ñ}É…Ñ¥½}İ¥‘Ñ èÈĞÜ±…ÍÁ•Ñ}É…Ñ¥½}¡•¥¡ĞèÈäÌ±µ…á¥µÕµ}İ¥‘Ñ¡}‘ÀèÌÌÜ¸È±µ…á¥µÕµ}¡•¥¡Ñ}‘ÀèĞÀÀ±Ñ…É•Ñ}İ¥‘Ñ¡}™É…Ñ¥½¸è¸ØàØ±µ¥¹¥µÕµ}É•…‘…‰±•}¡•¥¡Ñ}‘ÀèÈÈÀ±µ…á¥µÕµ}É•…‘…‰±•}¡•¥¡Ñ}‘ÀèÈÈÀ±Í¡½ÉÑ}ÍÉ••¹}•á•ÁÑ¥½¸éíµ¥¹¥µÕµ}¡•¥¡Ñ}‘ÀèÈÈÀ±•á…Ñ}Ù¥•İÁ½ÉÑ}İ¥‘Ñ¡}‘Àè´Ä±•á…Ñ}Ù¥•İÁ½ÉÑ}¡•¥¡Ñ}‘Àè´Ä±•á…Ñ}™½¹Ñ}Í…±”èÁõô±¹•¥¡‰½Èéíµ…á¥µÕµ}İ¥‘Ñ¡}™É…Ñ¥½¹}½™}¡•É¼è¸àÈ±¡•¥¡Ñ}™É…Ñ¥½¹}½™}¡•É¼è¸ØØÜ±Ñ½Á}½™™Í•Ñ}‘ÀèÄÔ±µ…á¥µÕµ}•‘•}Á••­}‘ÀèÈà±µ¥¹¥µÕµ}•‘•}Á••­}‘ÀèÄÈ±•‘•}Á••­}İ¥‘Ñ¡}™É…Ñ¥½¹}½™}ÑÉ…¬è¸ÀÔ±µ…á¥µÕµ}½Ù•É±…Á}‘ÀèÅô±…µ•É„éíµ¥¹¥µÕµ}Ù¥ÍÕ…±}‘ÀèÔØ±µ…á¥µÕµ}Ù¥ÍÕ…±}‘ÀèàÀ±µ¥¹¥µÕµ}Ñ½Õ¡}‘ÀèÜÉô±…É‘}½¹Ñ•¹ĞéíÁ…‘‘¥¹}¡½É¥é½¹Ñ…±}‘ÀèÈÀ±Ñ•áÑ}…Á}¡•¥¡Ñ}™É…Ñ¥½¸è¸ÀÀØ±µ¥¹¥µÕµ}Ñ•áÑ}…Á}‘ÀèÈ±µ…á¥µÕµ}Ñ•áÑ}…Á}‘ÀèÔ±™½½Ñ•É}Á…‘‘¥¹}¡•¥¡Ñ}™É…Ñ¥½¸è¸ÀÜ±µ¥¹¥µÕµ}™½½Ñ•É}Á…‘‘¥¹}‘ÀèÄÀ±µ…á¥µÕµ}™½½Ñ•É}Á…‘‘¥¹}‘ÀèÈÀ±µ…á¥µÕµ}±¥¹•Í}ÍÁ•¥•ÌèÈ±µ…á¥µÕµ}±¥¹•Í}µ•…ÍÕÉ•µ•¹ÑÌèÈ±µ…á¥µÕµ}±¥¹•Í}µ•Ñ…‘…Ñ„èÉô±ÍÁ…¥¹œéí‰É…¹‘}Ñ½}ÍÑ…ÑÌéíµ¥¹¥µÕµ}…Á}‘Àèä±¡•¥¡Ñ}™É…Ñ¥½¸è¸ÀÌÔ±‰…Í•}µ¥¹¥µÕµ}‘ÀèÄĞ±‰…Í•}µ…á¥µÕµ}‘ÀèÈà±™½¹Ñ}ÁÉ•ÍÍÕÉ•}Á•¹…±Ñå}‘ÀèÌ±Í¡½ÉÑ}¡•¥¡Ñ}ÁÉ•ÍÍÕÉ•}Á•¹…±Ñå}‘ÀèÉô±ÍÑ…ÑÍ}Ñ½}Ñ¥Ñ±”éíµ¥¹¥µÕµ}…Á}‘ÀèÄÈ±™½¹Ñ}ÁÉ•ÍÍÕÉ•}Á•¹…±Ñå}‘ÀèÉô±Ñ¥Ñ±•}Ñ½}…Ééíµ¥¹¥µÕµ}…Á}‘Àèà±™½¹Ñ}ÁÉ•ÍÍÕÉ•}Á•¹…±Ñå}‘ÀèÑô±…É‘}Ñ½}™½½Ñ•Èéíµ¥¹¥µÕµ}…Á}‘ÀèÌ±¡•¥¡Ñ}™É…Ñ¥½¸è¸ÀÄà±‰…Í•}µ¥¹¥µÕµ}‘Àèà±‰…Í•}µ…á¥µÕµ}‘ÀèÄĞ±™½¹Ñ}ÁÉ•ÍÍÕÉ•}Á•¹…±Ñå}‘ÀèÌ±Í¡½ÉÑ}¡•¥¡Ñ}ÁÉ•ÍÍÕÉ•}Á•¹…±Ñå}‘ÀèÉô±™½½Ñ•Èéí±…É•}‰½ÑÑ½µ}¥¹Í•Ñ}Ñ¡É•Í¡½±‘}‘ÀèĞÁõô€±Ù¥•İÁ½ÉÑ}Í…±”éíİ¥‘Ñ¡}É•™•É•¹•}‘ÀèÌØÀ±¡•¥¡Ñ}É•™•É•¹•}‘ÀèÔØà±µ¥¹¥µÕ´èÄ±µ…á¥µÕ´èÄ¸Éõô°(€€€€€€€€€ÑåÁ½É…Á¡å}Í¥é•Í}‘ÀéíÍÑ…Ñ}Ù…±Õ”èÄÜ±ÍÑ…Ñ}±…‰•°èÄÄ±Í•Ñ¥½¹}Ñ¥Ñ±”èÄØ±Í•Ñ¥½¹}…Ñ¥½¸èÄÌ±Ñ„èÄÈ±ÍÁ•¥•ÌèÈÀ±µ•…ÍÕÉ•µ•¹ĞèÄÌ±µ•Ñ…‘…Ñ„èÄÅô°(€€€€€€€€€™½½Ñ•ÈéíÑ…}…µ•É…}…Á}‘ÀèÄÄ±Ñ½Á}Á…‘‘¥¹}‘ÀèĞ±‰½ÑÑ½µ}Á…‘‘¥¹}‘Àèáô°…ÁÍ}‘Àéí‰É…¹‘}Ñ½}ÍÑ…ÑÌèÈÀ±ÍÑ…ÑÍ}Ñ½}Ñ¥Ñ±”èà±Ñ¥Ñ±•}Ñ½}…É‘}Ñ…É•ĞèÄÌ±…É‘}Ñ½}™½½Ñ•Èèáô°(€€€€€€€€€É•¹‘•É•‘}Ñ•áÑ}µ•ÑÉ¥ÌéíÍ•Ñ¥½¹}Ñ¥Ñ±”éíÍ¥é•}ÍÍ}ÁàèÈĞ±±¥¹•}¡•¥¡Ñ}É…Ñ¥¼èÄ¸Õõô°Í•Ñ¥½¹}¡•…‘•É}¡•¥¡Ñ}‘ÀèĞà°(€€€€€€€€€Ñ¥Ñ±•}Ñ½}…É‘}…Á}Ñ…É•Ñ}‘ÀèÄÌ°ÍÑ…ÑÍ}Ñ½}Ñ¥Ñ±•}…Á}Ñ…É•Ñ}‘Àèà°…É‘}Ñ½}™½½Ñ•É}…Á}‘Àèà°(€€€€€€€€€…µ•É…}¡½É¥é½¹Ñ…±}É½½µ}‘Àé5…Ñ ¹µ¥¸¡Í…™•]¥‘Ñ °ÔØÀ¤°½¹ÑÉ…Ñ}Í¡„ÈÔØè‰=5AI%M=9}=91dˆ°½¹ÑÉ…Ñ}¥è‰XÍ}	M1%9ˆ°½¹ÑÉ…Ñ}Ù•ÉÍ¥½¸è‰½µÁ…É¥Í½¸ˆ°¡•…‘•É}¡•¥¡Ñ}‘ÀèĞà°¹•¥¡‰½É}Ñ…É•Ñ}•‘•}Á••­}‘ÀèÄÈ°(€€€€€€€€€½µÁ½Í¥Ñ¥½¸éíÑ½Á}¡½É¥é½¹Ñ…±}Á…‘‘¥¹œéíÉ…Ñ¥¼è¸ÀÜÔ±µ¥¹}‘ÀèÈĞ±µ…á}‘ÀèĞÁô±Í•Ñ¥½¹}¡½É¥é½¹Ñ…±}Á…‘‘¥¹œéíÉ…Ñ¥¼è¸Ààà±µ¥¹}‘ÀèÈĞ±µ…á}‘ÀèĞÉô±Ñ½Á}Á…‘‘¥¹}‘Àèà±¡•…‘•É}µ¥¹}¡•¥¡Ñ}‘ÀèĞà±¡•…‘•É}¡½É¥é½¹Ñ…±}…Á}‘ÀèÄÈ±ÍÑ…ÑÍ}µ¥¹}¡•¥¡Ñ}‘ÀèĞà±ÍÑ…ÑÍ}Ù•ÉÑ¥…±}Á…‘‘¥¹}‘ÀèĞ±ÍÑ…ÑÍ}¥Ñ•µ}…Á}‘ÀèÈ±Í•Ñ¥½¹}Ù•ÉÑ¥…±}Á…‘‘¥¹}‘ÀèÈ±Í•Ñ¥½¹}¡½É¥é½¹Ñ…±}…Á}‘ÀèÄÉô°(€€€€€€€€€ÑåÁ½É…Á¡å}•™™•Ñ¥Ù•}ÍÍ}ÁàéíÍÑ…Ñ}Ù…±Õ”èÄÜ©Í…±”±ÍÑ…Ñ}±…‰•°èÄÄ©Í…±”±Í•Ñ¥½¹}Ñ¥Ñ±”èÄØ©Í…±”±Í•Ñ¥½¹}…Ñ¥½¸èÄÌ©Í…±”±Ñ„èÄÈ©Í…±”±ÍÁ•¥•ÌèÈÀ©Í…±”±µ•…ÍÕÉ•µ•¹ĞèÄÌ©Í…±”±µ•Ñ…‘…Ñ„èÄÄ©Í…±•ô(€€€€€€€ôì(€€€€€ô(€€€€€™Õ¹Ñ¥½¸…ÁÁ±å1…å½ÕÑY…É¥…‰±•Ì¡±…å½ÕĞ°Ù…±Õ•Ì¤ì(€€€€€€€½¹ÍĞÀ€ô±…å½ÕĞ¹É•ÍÁ½¹Í¥Ù•}Á…É…µ•Ñ•ÉÌì(€€€€€€€½¹ÍĞŒ€ô±…å½ÕĞ¹½µÁ½Í¥Ñ¥½¸ñğÀ¹½¹Ñ•¹Ğì(€€€€€€€½¹ÍĞÍ…™”€ô±…å½ÕĞ¹Í…™•}¥¹Í•ÑÍ}‘Àì(€€€€€€€½¹ÍĞÑ½ÁA…€ôŒ¹Ñ½Á}¡½É¥é½¹Ñ…±}Á…‘‘¥¹œì(€€€€€€€½¹ÍĞÍ•Ñ¥½¹A…€ôŒ¹Í•Ñ¥½¹}¡½É¥é½¹Ñ…±}Á…‘‘¥¹œì(€€€€€€€½¹ÍĞÑ½Á%¹±¥¹”€ô5…Ñ ¹µ¥¸¡Ñ½ÁA…¹µ…á}‘À°5…Ñ ¹µ…à¡Ñ½ÁA…¹µ¥¹}‘À°±…å½ÕĞ¹Í…™•}İ¥‘Ñ¡}‘À€¨Ñ½ÁA…¹É…Ñ¥¼¤¤ì(€€€€€€€½¹ÍĞÍ•Ñ¥½¹%¹±¥¹”€ô5…Ñ ¹µ¥¸¡Í•Ñ¥½¹A…¹µ…á}‘À°5…Ñ ¹µ…à¡Í•Ñ¥½¹A…¹µ¥¹}‘À°±…å½ÕĞ¹½¹Ñ•¹Ñ}İ¥‘Ñ¡}‘À€¨Í•Ñ¥½¹A…¹É…Ñ¥¼¤¤ì(€€€€€€€½¹ÍĞÑ¥Ñ±•1¥¹”€ô±…å½ÕĞ¹É•¹‘•É•‘}Ñ•áÑ}µ•ÑÉ¥Ì¹Í•Ñ¥½¹}Ñ¥Ñ±”¹Í¥é•}ÍÍ}Áà€¨±…å½ÕĞ¹É•¹‘•É•‘}Ñ•áÑ}µ•ÑÉ¥Ì¹Í•Ñ¥½¹}Ñ¥Ñ±”¹±¥¹•}¡•¥¡Ñ}É…Ñ¥¼ì(€€€€€€€½¹ÍĞÉ½İ%¹Í•Ğ€ô5…Ñ ¹µ…à À°€¡±…å½ÕĞ¹Í•Ñ¥½¹}¡•…‘•É}¡•¥¡Ñ}‘À€´Ñ¥Ñ±•1¥¹”¤€¼€È¤ì(€€€€€€€½¹ÍĞ±•…‘¥¹…À€ô5…Ñ ¹µ…à À°±…å½ÕĞ¹ÍÑ…ÑÍ}Ñ½}Ñ¥Ñ±•}…Á}Ñ…É•Ñ}‘À€´É½İ%¹Í•Ğ¤ì(€€€€€€€€¼¼Q¡”µ•…ÍÕÉ•µ•¹Ğ¥Ì™É½´Ñ¡”É•¹‘•É•Ñ¥Ñ±”±¥¹”‰½àÑ¼Ñ¡”!•É¼°(€€€€€€€€¼¼Í¼Ñ¡”¡•…‘•ÈÌ•¹Ñ•É•É½Ü¥¹Í•ĞµÕÍĞ‰”É•µ½Ù••Ù•¸İ¡•¸Ñ¡…Ğ(€€€€€€€€¼¼É•ÅÕ¥É•Ì„Íµ…±°¹•…Ñ¥Ù”µ…É¥¸‰•±½ÜÑ¡”¡•…‘•È½¹Ñ…¥¹•È¸(€€€€€€€½¹ÍĞÑ¥Ñ±•…É‘…À€ô±…å½ÕĞ¹Ñ¥Ñ±•}Ñ½}…É‘}…Á}Ñ…É•Ñ}‘À€´É½İ%¹Í•Ğì(€€€€€€€½¹ÍĞ‘•Í¥É•‘]¥‘Ñ €ô±…å½ÕĞ¹¡•É½}Ñ…É•Ñ}Í¥é•}‘ÁlÁtì(€€€€€€€½¹ÍĞ‘•Í¥É•‘!•¥¡Ğ€ô5…Ñ ¹µ¥¸¡‘•Í¥É•‘]¥‘Ñ €¨À¹¡•É¼¹…ÍÁ•Ñ}É…Ñ¥½}¡•¥¡Ğ€¼À¹¡•É¼¹…ÍÁ•Ñ}É…Ñ¥½}İ¥‘Ñ °À¹¡•É¼¹µ…á¥µÕµ}¡•¥¡Ñ}‘À¤ì(€€€€€€€½¹ÍĞ…É‘	½ÑÑ½´€ôÀ¹…É‘}½¹Ñ•¹Ğì(€€€€€€€½¹ÍĞ™½½Ñ•É…À€ô±…å½ÕĞ¹™½½Ñ•È¹Ñ…}…µ•É…}…Á}‘Àì(€€€€€€€½¹ÍĞ™½½Ñ•ÉQ½À€ô±…å½ÕĞ¹™½½Ñ•È¹Ñ½Á}Á…‘‘¥¹}‘Àì(€€€€€€€½¹ÍĞ™½½Ñ•É	½ÑÑ½´€ô±…å½ÕĞ¹™½½Ñ•È¹‰½ÑÑ½µ}Á…‘‘¥¹}‘Àì(€€€€€€€½¹ÍĞÍ•Ğ€ô€¡­•ä°Ù…±Õ”¤€ôøÍ•ÑY…É¥…‰±”¡­•ä°ÍÍAà¡Ù…±Õ”¤¤ì(€€€€€€€Í•Ğ ˆ´µÍ…™”µÑ½Àˆ°Í…™”¹Ñ½À¤ìÍ•Ğ ˆ´µÍ…™”µ‰½ÑÑ½´ˆ°Í…™”¹‰½ÑÑ½´¤ìÍ•Ğ ˆ´µÍ…™”µÍÑ…ÉĞˆ°Í…™”¹ÍÑ…ÉĞ¤ìÍ•Ğ ˆ´µÍ…™”µ•¹ˆ°Í…™”¹•¹¤ì(€€€€€€€Í•Ğ ˆ´µ½¹Ñ•¹Ğµİ¥‘Ñ ˆ°±…å½ÕĞ¹½¹Ñ•¹Ñ}İ¥‘Ñ¡}‘À¤ì(€€€€€€€Í•Ğ ˆ´µ½¹Ñ•¹ĞµÑ½ÀµÁ…‘‘¥¹œˆ°Œ¹Ñ½Á}Á…‘‘¥¹}‘À¤ì(€€€€€€€Í•Ğ ˆ´µÑ½Àµ¥¹±¥¹”µÁ…‘‘¥¹œˆ°Ñ½Á%¹±¥¹”¤ì(€€€€€€€Í•Ğ ˆ´µ¡•…‘•Èµ¡•¥¡Ğˆ°5…Ñ ¹µ…à¡Œ¹¡•…‘•É}µ¥¹}¡•¥¡Ñ}‘À°±…å½ÕĞ¹¡•…‘•É}¡•¥¡Ñ}‘À¤¤ì(€€€€€€€Í•Ğ ˆ´µ¡•…‘•Èµ¡½É¥é½¹Ñ…°µ…Àˆ°Œ¹¡•…‘•É}¡½É¥é½¹Ñ…±}…Á}‘À¤ì(€€€€€€€Í•Ğ ˆ´µ‰É…¹µİ¥‘Ñ ˆ°±…å½ÕĞ¹‰É…¹‘}İ¥‘Ñ¡}‘À¤ì(€€€€€€€Í•Ğ ˆ´µ…Ù…Ñ…ÈµÍ¥é”ˆ°±…å½ÕĞ¹…Ù…Ñ…É}Ù¥ÍÕ…±}Í¥é•}‘À¤ì(€€€€€€€Í•Ğ ˆ´µ…Ù…Ñ…ÈµÑ½Õ µÍ¥é”ˆ°±…å½ÕĞ¹…Ù…Ñ…É}Ñ½Õ¡}Í¥é•}‘À¤ì(€€€€€€€Í•Ğ ˆ´µÍÑ…ÑÌµµ¥¸µ¡•¥¡Ğˆ°Œ¹ÍÑ…ÑÍ}µ¥¹}¡•¥¡Ñ}‘À¤ì(€€€€€€€Í•Ğ ˆ´µÍÑ…ÑÌµÙ•ÉÑ¥…°µÁ…‘‘¥¹œˆ°Œ¹ÍÑ…ÑÍ}Ù•ÉÑ¥…±}Á…‘‘¥¹}‘À¤ì(€€€€€€€Í•Ğ ˆ´µÍÑ…ÑÌµ¥Ñ•´µ…Àˆ°Œ¹ÍÑ…ÑÍ}¥Ñ•µ}…Á}‘À¤ì(€€€€€€€Í•Ğ ˆ´µ‰É…¹µÍÑ…ÑÌµ…Àˆ°±…å½ÕĞ¹…ÁÍ}‘À¹‰É…¹‘}Ñ½}ÍÑ…ÑÌ¤ì(€€€€€€€Í•Ğ ˆ´µÍ•Ñ¥½¸µ¡•…‘•Èµ¡•¥¡Ğˆ°±…å½ÕĞ¹Í•Ñ¥½¹}¡•…‘•É}¡•¥¡Ñ}‘À¤ì(€€€€€€€Í•Ğ ˆ´µÍ•Ñ¥½¸µ¥¹±¥¹”µÁ…‘‘¥¹œˆ°Í•Ñ¥½¹%¹±¥¹”¤ì(€€€€€€€Í•Ğ ˆ´µÍ•Ñ¥½¸µ¡½É¥é½¹Ñ…°µ…Àˆ°Œ¹Í•Ñ¥½¹}¡½É¥é½¹Ñ…±}…Á}‘À¤ì(€€€€€€€Í•Ğ ˆ´µ±•…‘¥¹œµ…Àˆ°±•…‘¥¹…À¤ì(€€€€€€€Í•ÑY…É¥…‰±” ˆ´µÑ¥Ñ±”µ…Éµ…Àˆ°ÍÍAáM¥¹•¡Ñ¥Ñ±•…É‘…À¤¤ì(€€€€€€€Í•Ğ ˆ´µ…Éµ™½½Ñ•Èµ…Àˆ°±…å½ÕĞ¹…É‘}Ñ½}™½½Ñ•É}…Á}‘À¤ì(€€€€€€€Í•Ğ ˆ´µ™½½Ñ•ÈµÑ½ÀµÁ…‘‘¥¹œˆ°™½½Ñ•ÉQ½À¤ìÍ•Ğ ˆ´µ™½½Ñ•Èµ‰½ÑÑ½´µÁ…‘‘¥¹œˆ°™½½Ñ•É	½ÑÑ½´¤ì(€€€€€€€Í•Ğ ˆ´µÑ„µ…µ•É„µ…Àˆ°™½½Ñ•É…À¤ì(€€€€€€€Í•Ğ ˆ´µ…µ•É„µÙ¥ÍÕ…°µÍ¥é”ˆ°±…å½ÕĞ¹…µ•É…}Ù¥ÍÕ…±}Í¥é•}‘À¤ìÍ•Ğ ˆ´µ…µ•É„µÑ½Õ µÍ¥é”ˆ°±…å½ÕĞ¹…µ•É…}Ñ½Õ¡}Í¥é•}‘À¤ì(€€€€€€€Í•Ğ ˆ´µÍÑ…ĞµÙ…±Õ”µÍ¥é”ˆ°±…å½ÕĞ¹ÑåÁ½É…Á¡å}Í¥é•Í}‘À¹ÍÑ…Ñ}Ù…±Õ”¤ìÍ•Ğ ˆ´µÍÑ…Ğµ±…‰•°µÍ¥é”ˆ°±…å½ÕĞ¹ÑåÁ½É…Á¡å}Í¥é•Í}‘À¹ÍÑ…Ñ}±…‰•°¤ì(€€€€€€€Í•Ğ ˆ´µÍ•Ñ¥½¸µÑ¥Ñ±”µÍ¥é”ˆ°±…å½ÕĞ¹ÑåÁ½É…Á¡å}Í¥é•Í}‘À¹Í•Ñ¥½¹}Ñ¥Ñ±”¤ìÍ•Ğ ˆ´µÍ•Ñ¥½¸µ…Ñ¥½¸µÍ¥é”ˆ°±…å½ÕĞ¹ÑåÁ½É…Á¡å}Í¥é•Í}‘À¹Í•Ñ¥½¹}…Ñ¥½¸¤ì(€€€€€€€Í•Ğ ˆ´µÑ„µ±…‰•°µÍ¥é”ˆ°±…å½ÕĞ¹ÑåÁ½É…Á¡å}Í¥é•Í}‘À¹Ñ„¤ìÍ•Ğ ˆ´µ…Ñ µÍÁ•¥•ÌµÍ¥é”ˆ°±…å½ÕĞ¹ÑåÁ½É…Á¡å}Í¥é•Í}‘À¹ÍÁ•¥•Ì¤ì(€€€€€€€Í•Ğ ˆ´µ…Ñ µµ•…ÍÕÉ”µÍ¥é”ˆ°±…å½ÕĞ¹ÑåÁ½É…Á¡å}Í¥é•Í}‘À¹µ•…ÍÕÉ•µ•¹Ğ¤ìÍ•Ğ ˆ´µ…Ñ µµ•Ñ…‘…Ñ„µÍ¥é”ˆ°±…å½ÕĞ¹ÑåÁ½É…Á¡å}Í¥é•Í}‘À¹µ•Ñ…‘…Ñ„¤ì(€€€€€€€Í•Ğ ˆ´µ¡•É¼µ…ÍÁ•Ğˆ°€‘íÀ¹¡•É¼¹…ÍÁ•Ñ}É…Ñ¥½}İ¥‘Ñ¡ô€¼€‘íÀ¹¡•É¼¹…ÍÁ•Ñ}É…Ñ¥½}¡•¥¡Ñõ€¤ì(€€€€€€€Í•Ğ ˆ´µµ…¥¸µ…Éµİ¥‘Ñ ˆ°‘•Í¥É•‘]¥‘Ñ ¤ìÍ•Ğ ˆ´µµ…¥¸µ…Éµ¡•¥¡Ğˆ°‘•Í¥É•‘!•¥¡Ğ¤ì(€€€€€€€Í•Ğ ˆ´µ‘•Í¥É•µ…Éµİ¥‘Ñ ˆ°‘•Í¥É•‘]¥‘Ñ ¤ìÍ•Ğ ˆ´µ‘•Í¥É•µ…Éµ¡•¥¡Ğˆ°‘•Í¥É•‘!•¥¡Ğ¤ì(€€€€€€€Í•Ğ ˆ´µ…Éµ¡½É¥é½¹Ñ…°µÁ…‘‘¥¹œˆ°…É‘	½ÑÑ½´¹Á…‘‘¥¹}¡½É¥é½¹Ñ…±}‘À¤ì(€€€€€€€Í•Ğ ˆ´µÑ•áĞµ…Àˆ°5…Ñ ¹µ…à¡…É‘	½ÑÑ½´¹µ¥¹¥µÕµ}Ñ•áÑ}…Á}‘À°5…Ñ ¹µ¥¸¡…É‘	½ÑÑ½´¹µ…á¥µÕµ}Ñ•áÑ}…Á}‘À°±…å½ÕĞ¹Í…™•}¡•¥¡Ñ}‘À€¨…É‘	½ÑÑ½´¹Ñ•áÑ}…Á}¡•¥¡Ñ}™É…Ñ¥½¸¤¤¤ì(€€€€€€€Í•Ğ ˆ´µ…Éµ™½½Ñ•ÈµÁ…‘‘¥¹œˆ°5…Ñ ¹µ…à¡…É‘	½ÑÑ½´¹µ¥¹¥µÕµ}™½½Ñ•É}Á…‘‘¥¹}‘À°5…Ñ ¹µ¥¸¡…É‘	½ÑÑ½´¹µ…á¥µÕµ}™½½Ñ•É}Á…‘‘¥¹}‘À°‘•Í¥É•‘!•¥¡Ğ€¨…É‘	½ÑÑ½´¹™½½Ñ•É}Á…‘‘¥¹}¡•¥¡Ñ}™É…Ñ¥½¸¤¤¤ì(€€€€€€€Í•Ğ ˆ´µ¹•¥¡‰½Èµ¡•¥¡Ğˆ°‘•Í¥É•‘!•¥¡Ğ€¨À¹¹•¥¡‰½È¹¡•¥¡Ñ}™É…Ñ¥½¹}½™}¡•É¼¤ì(€€€€€€€Í•Ğ ˆ´µÁ••¬µÑ½Àµ½™™Í•Ğˆ°À¹¹•¥¡‰½È¹Ñ½Á}½™™Í•Ñ}‘À¤ì(€€€€€€€Í•Ğ ˆ´µ™½¹ĞµÍ…±”ˆ°±…å½ÕĞ¹ÍåÍÑ•µ}™½¹Ñ}Í…±”¤ì(€€€€€€€=‰©•Ğ¹•¹ÑÉ¥•Ì¡±…å½ÕĞ¹ÑåÁ½É…Á¡å}Í¥é•Í}‘À¤¹™½É…  ¡mÉ½±”°Í¥é•t¤€ôøÍ•Ğ¡€´´‘ì¡íÍÑ…Ñ}Ù…±Õ”è‰ÍÑ…ĞµÙ…±Õ”ˆ±ÍÑ…Ñ}±…‰•°è‰ÍÑ…Ğµ±…‰•°ˆ±Í•Ñ¥½¹}Ñ¥Ñ±”è‰Í•Ñ¥½¸µÑ¥Ñ±”ˆ±Í•Ñ¥½¹}…Ñ¥½¸è‰Í•Ñ¥½¸µ…Ñ¥½¸ˆ±Ñ„è‰Ñ„µ±…‰•°ˆ±ÍÁ•¥•Ìè‰…Ñ µÍÁ•¥•Ìˆ±µ•…ÍÕÉ•µ•¹Ğè‰…Ñ µµ•…ÍÕÉ”ˆ±µ•Ñ…‘…Ñ„è‰…Ñ µµ•Ñ…‘…Ñ„‰ô¥mÉ½±•uôµÍ¥é•€°Í¥é”¤¤ì(€€€€€€€É•ÑÕÉ¸ì±•…‘¥¹…À°Ñ¥Ñ±•…É‘…À°‘•Í¥É•‘]¥‘Ñ °‘•Í¥É•‘!•¥¡Ğ°Ñ½Á%¹±¥¹”°Í•Ñ¥½¹%¹±¥¹”ôì(€€€€€ô(€€€€€™Õ¹Ñ¥½¸…ÁÁ±åQ•áÑ]É…ÁIÕ±•Ì¡±…å½ÕĞ°…É‘]¥‘Ñ ¤ì(€€€€€€€½¹ÍĞÉÕ±•Ìõ±…å½ÕĞ¹É•ÍÁ½¹Í¥Ù•}Á…É…µ•Ñ•ÉÌ¹…É‘}½¹Ñ•¹Ğì(€€€€€€€½¹ÍĞµ…å]É…Àõ…É‘]¥‘Ñ ñÉÕ±•Ì¹ÍÁ•¥•Í}İÉ…Á}İ¥‘Ñ¡}Ñ¡É•Í¡½±‘}‘Àñğ±…å½ÕĞ¹ÍåÍÑ•µ}™½¹Ñ}Í…±”øõÉÕ±•Ì¹±…É•}™½¹Ñ}Í…±•}Ñ¡É•Í¡½±ì(€€€€€€€Í•ÑY…É¥…‰±” ˆ´µÍÁ•¥•Ìµµ…àµ±¥¹•Ìˆ±µ…å]É…ÀıÉÕ±•Ì¹µ…á¥µÕµ}±¥¹•Í}ÍÁ•¥•ÌèÄ¤ì(€€€€€€€Í•ÑY…É¥…‰±” ˆ´µµ•…ÍÕÉ•µ•¹Ğµµ…àµ±¥¹•Ìˆ±µ…å]É…ÀıÉÕ±•Ì¹µ…á¥µÕµ}±¥¹•Í}µ•…ÍÕÉ•µ•¹ÑÌèÄ¤ì(€€€€€€€Í•ÑY…É¥…‰±” ˆ´µµ•Ñ…‘…Ñ„µµ…àµ±¥¹•Ìˆ±ÉÕ±•Ì¹µ…á¥µÕµ}±¥¹•Í}µ•Ñ…‘…Ñ„¤ì(€€€€€ô(€€€€€™Õ¹Ñ¥½¸½Õ¹ÑQ•áÑ1¥¹•Ì¡•±•µ•¹Ğ¤ì(€€€€€€€½¹ÍĞÉ…¹”€ô‘½Õµ•¹Ğ¹É•…Ñ•I…¹” ¤ìÉ…¹”¹Í•±•Ñ9½‘•½¹Ñ•¹ÑÌ¡•±•µ•¹Ğ¤ì(€€€€€€€É•ÑÕÉ¸¹•ÜM•Ğ¡ÉÉ…ä¹™É½´¡É…¹”¹•Ñ±¥•¹ÑI•ÑÌ ¤¤¹µ…À¡É•Ğ€ôø5…Ñ ¹É½Õ¹¡É•Ğ¹Ñ½À€¨€ÄÀ¤€¼€ÄÀ¤¤¹Í¥é”ì(€€€€€ô(€€€€€…Íå¹Œ™Õ¹Ñ¥½¸…ÁÁ±åY¥•İÁ½ÉĞ ¤ì(€€€€€€€¥˜€ …½¹ÑÉ…Ñ¹Ù•±½Á”ñğİ½É­ÍÁ…”¹±…ÍÍ1¥ÍĞ¹½¹Ñ…¥¹Ì ‰½¹ÑÉ…Ğµ™…¥±•ˆ¤¤É•ÑÕÉ¸ì(€€€€€€€½¹ÍĞÍ•ÅÕ•¹”€ô€¬­±…å½ÕÑM•ÅÕ•¹”ì(€€€€€€€İ¥¹‘½Ü¹9 ÀÅ•µ¥¹¥AÉ•Ù¥•İ1…å½ÕÑI•…‘ä€ô™…±Í”ì(€€€€€€€½¹ÍĞÉ•ÅÕ•ÍÑ•€ôÁ…É…µÌ¹•Ğ ‰Ù¥•İÁ½ÉĞˆ¤ì(€€€€€€€±•Ğİ¥‘Ñ °¡•¥¡Ğì(€€€€€€€¥˜€¡…¹Ù…Í5½‘”¤ìİ¥‘Ñ €ôİ¥¹‘½Ü¹¥¹¹•É]¥‘Ñ ì¡•¥¡Ğ€ôİ¥¹‘½Ü¹¥¹¹•É!•¥¡Ğìô(€€€€€€€•±Í”¥˜€¡µ…ÑÉ¥á5½‘”€˜˜É•ÅÕ•ÍÑ•¤mİ¥‘Ñ °¡•¥¡Ñt€ôÉ•ÅÕ•ÍÑ•¹ÍÁ±¥Ğ ‰àˆ¤¹µ…À¡9Õµ‰•È¤ì(€€€€€€€•±Í”ìİ¥‘Ñ €ô9Õµ‰•È¡İ¥‘Ñ¡%¹ÁÕĞ¹Ù…±Õ”¤ì¡•¥¡Ğ€ô9Õµ‰•È¡¡•¥¡Ñ%¹ÁÕĞ¹Ù…±Õ”¤ìô(€€€€€€€¥˜€ …9Õµ‰•È¹¥Í¥¹¥Ñ”¡İ¥‘Ñ ¤ñğ€…9Õµ‰•È¹¥Í¥¹¥Ñ”¡¡•¥¡Ğ¤ñğİ¥‘Ñ €ğ€ÈĞÀñğ¡•¥¡Ğ€ğ€ÌÈÀñğİ¥‘Ñ €ø€ÄÈÀÀñğ¡•¥¡Ğ€ø€ÄØÀÀ¤ì(€€€€€€€€€Ñ¡É½Ü¹•ÜÉÉ½È ‰É•”Ù¥•İÁ½ÉĞµÕÍĞ‰”İ¥Ñ¡¥¸€ÈĞÃŠLÄÈÀÁ‘Àİ¥‘”…¹€ÌÈÃŠLÄØÀÁ‘À¡¥ ¸ˆ¤ì(€€€€€€€ô(€€€€€€€½¹ÍĞÍ…±”€ô9Õµ‰•È¡™½¹ÑM…±”¹Ù…±Õ”¤ì(€€€€€€€½¹ÍĞÍ…™•%¹Í•ÑÌ€ôÉ•…‘M…™•%¹Í•ÑÌ ¤ì(€€€€€€€½¹ÍĞÙ…É¥…¹Ğ€ô±…å½ÕÑY…É¥…¹Ğ¹Ù…±Õ”ì(€€€€€€€½¹ÍĞ…‘…ÁÑ¥Ù”€ôÙ…É¥…¹Ğ€ôôô€‰AQ%Y}XÈˆì(€€€€€€€½¹ÍĞ±…å½ÕĞ€ô…‘…ÁÑ¥Ù”(€€€€€€€€€€üİ¥¹‘½Ü¹9 ÀÅI•ÍÁ½¹Í¥Ù•½¹ÑÉ…ÑIÕ¹Ñ¥µ”¹½µÁÕÑ•‘…ÁÑ¥Ù”¡íİ¥‘Ñ¡Àéİ¥‘Ñ ±¡•¥¡ÑÀé¡•¥¡Ğ±™½¹ÑM…±”éÍ…±”±Í…™•%¹Í•ÑÍÀéÍ…™•%¹Í•ÑÌ±½¹ÑÉ…ÑM¡„ÈÔØé½¹ÑÉ…Ñ¹Ù•±½Á”¹½¹ÑÉ…ÑM¡„ÈÔÙô°½¹ÑÉ…Ñ¹Ù•±½Á”¹½¹ÑÉ…Ğ¤(€€€€€€€€€€è‰…Í•±¥¹•A½±¥ä¡İ¥‘Ñ ±¡•¥¡Ğ±Í…±”±Í…™•%¹Í•ÑÌ¤ì(€€€€€€€±…å½ÕĞ¹½¹ÑÉ…Ñ}Í¡„ÈÔØ€ô½¹ÑÉ…Ñ¹Ù•±½Á”¹½¹ÑÉ…ÑM¡„ÈÔØì(€€€€€€€±…å½ÕĞ¹½¹ÑÉ…Ñ}Á…Ñ €ô½¹ÑÉ…Ñ¹Ù•±½Á”¹½¹ÑÉ…ÑA…Ñ ì(€€€€€€€±…å½ÕĞ¹Ù…É¥…¹Ğ€ôÙ…É¥…¹Ğì(€€€€€€€½¹ÍĞÙ…ÉÌ€ô…ÁÁ±å1…å½ÕÑY…É¥…‰±•Ì¡±…å½ÕĞ¤ì(€€€€€€€…ÁÁ±åQ•áÑ]É…ÁIÕ±•Ì¡±…å½ÕĞ±Ù…ÉÌ¹‘•Í¥É•‘]¥‘Ñ ¤ì(€€€€€€€‘•Ù¥”¹‘…Ñ…Í•Ğ¹½µÁ…Ğ€ô€‰™…±Í”ˆì(€€€€€€€‘•Ù¥”¹ÍÑå±”¹İ¥‘Ñ €ô€‘íİ¥‘Ñ¡õÁá€ì‘•Ù¥”¹ÍÑå±”¹¡•¥¡Ğ€ô€‘í¡•¥¡ÑõÁá€ì(€€€€€€€½¹ÍĞ…Ù…¥±…‰±•]¥‘Ñ €ô…¹Ù…Í5½‘”€üİ¥‘Ñ €è5…Ñ ¹µ…à ÈÔÀ°5…Ñ ¹µ¥¸ ÔÈÀ°İ¥¹‘½Ü¹¥¹¹•É]¥‘Ñ €´€ÔØ¤¤ì(€€€€€€€½¹ÍĞ…Ù…¥±…‰±•!•¥¡Ğ€ô…¹Ù…Í5½‘”€ü¡•¥¡Ğ€è5…Ñ ¹µ…à ÌÀÀ°İ¥¹‘½Ü¹¥¹¹•É!•¥¡Ğ€´€ÈÀÔ¤ì(€€€€€€€½¹ÍĞ‘•Ù¥•M…±”€ô…¹Ù…Í5½‘”€ü€Ä€è5…Ñ ¹µ¥¸ Ä°…Ù…¥±…‰±•]¥‘Ñ €¼İ¥‘Ñ °…Ù…¥±…‰±•!•¥¡Ğ€¼¡•¥¡Ğ¤ì(€€€€€€€‘•Ù¥”¹ÍÑå±”¹ÑÉ…¹Í™½É´€ô…¹Ù…Í5½‘”€ü€‰¹½¹”ˆ€èÍ…±” ‘í‘•Ù¥•M…±•ô¥€ì(€€€€€€€İÉ…À¹ÍÑå±”¹İ¥‘Ñ €ô€‘íİ¥‘Ñ €¨‘•Ù¥•M…±•õÁá€ìİÉ…À¹ÍÑå±”¹¡•¥¡Ğ€ô€‘í¡•¥¡Ğ€¨‘•Ù¥•M…±•õÁá€ì(€€€€€€€…İ…¥Ğ¹•áÑÉ…µ” ¤ì(€€€€€€€…İ…¥Ğ¹•áÑÉ…µ” ¤ì(€€€€€€€¥˜€¡Í•ÅÕ•¹”€„ôô±…å½ÕÑM•ÅÕ•¹”¤É•ÑÕÉ¸ì(€€€€€€€½¹ÍĞÁ…•M…±•I…Ñ¥¼€ô‘•Ù¥”¹•Ñ	½Õ¹‘¥¹±¥•¹ÑI•Ğ ¤¹İ¥‘Ñ €¼5…Ñ ¹µ…à Ä°‘•Ù¥”¹½™™Í•Ñ]¥‘Ñ ¤ì(€€€€€€€½¹ÍĞÉ•¹‘•É•‘!•…‘•ÉI•Ğ€ôÍ•Ñ¥½¹!•…‘•È¹•Ñ	½Õ¹‘¥¹±¥•¹ÑI•Ğ ¤ì(€€€€€€€½¹ÍĞÉ•¹‘•É•‘Q¥Ñ±•I•Ğ€ô‘½Õµ•¹Ğ¹ÅÕ•ÉåM•±•Ñ½È ˆ¹Í•Ñ¥½¸µÑ¥Ñ±”ˆ¤¹•Ñ	½Õ¹‘¥¹±¥•¹ÑI•Ğ ¤ì(€€€€€€€½¹ÍĞÑ¥Ñ±•	½ÑÑ½µ%¹Í•ÑÀ€ô5…Ñ ¹µ…à À°€¡É•¹‘•É•‘!•…‘•ÉI•Ğ¹‰½ÑÑ½´€´É•¹‘•É•‘Q¥Ñ±•I•Ğ¹‰½ÑÑ½´¤€¼Á…•M…±•I…Ñ¥¼¤ì(€€€€€€€Ù…ÉÌ¹Ñ¥Ñ±•…É‘…À€ô±…å½ÕĞ¹Ñ¥Ñ±•}Ñ½}…É‘}…Á}Ñ…É•Ñ}‘À€´Ñ¥Ñ±•	½ÑÑ½µ%¹Í•ÑÀì(€€€€€€€Í•ÑY…É¥…‰±” ˆ´µÑ¥Ñ±”µ…Éµ…Àˆ°ÍÍAáM¥¹•¡Ù…ÉÌ¹Ñ¥Ñ±•…É‘…À¤¤ì(€€€€€€€…İ…¥Ğ¹•áÑÉ…µ” ¤ì(€€€€€€€¥˜€¡Í•ÅÕ•¹”€„ôô±…å½ÕÑM•ÅÕ•¹”¤É•ÑÕÉ¸ì(€€€€€€€½¹ÍĞµ¥‘‘±•!•¥¡Ğ€ôµ¥‘‘±•M•Ñ¥½¸¹±¥•¹Ñ!•¥¡Ğì(€€€€€€€½¹ÍĞÍ•Ñ¥½¹!•…‘•É!•¥¡Ğ€ôÍ•Ñ¥½¹!•…‘•È¹½™™Í•Ñ!•¥¡Ğì(€€€€€€€½¹ÍĞ…ÑÕ…±…Á!•…‘•É…É€ôÙ…ÉÌ¹Ñ¥Ñ±•…É‘…Àì(€€€€€€€½¹ÍĞ…Ù…¥±…‰±•…É‘!•¥¡Ğ€ô5…Ñ ¹µ…à À°µ¥‘‘±•!•¥¡Ğ€´Ù…ÉÌ¹±•…‘¥¹…À€´Í•Ñ¥½¹!•…‘•É!•¥¡Ğ€´…ÑÕ…±…Á!•…‘•É…É€´±…å½ÕĞ¹…É‘}Ñ½}™½½Ñ•É}…Á}‘À¤ì(€€€€€€€½¹ÍĞÀ€ô±…å½ÕĞ¹É•ÍÁ½¹Í¥Ù•}Á…É…µ•Ñ•ÉÌì(€€€€€€€½¹ÍĞ¡•É¼€ôÀ¹¡•É¼ì(€€€€€€€½¹ÍĞ•á•ÁÑ¥½¸€ô¡•É¼¹Í¡½ÉÑ}ÍÉ••¹}•á•ÁÑ¥½¸ì(€€€€€€€½¹ÍĞÍ¡½ÉÑá•ÁÑ¥½¹±¥¥‰±”€ô…‘…ÁÑ¥Ù”€˜˜İ¥‘Ñ €ôôô•á•ÁÑ¥½¸¹•á…Ñ}Ù¥•İÁ½ÉÑ}İ¥‘Ñ¡}‘À€˜˜¡•¥¡Ğ€ôôô•á•ÁÑ¥½¸¹•á…Ñ}Ù¥•İÁ½ÉÑ}¡•¥¡Ñ}‘À€˜˜Í…±”€ôôô•á•ÁÑ¥½¸¹•á…Ñ}™½¹Ñ}Í…±”ì(€€€€€€€½¹ÍĞÍ¡½ÉÑá•ÁÑ¥½¹!•¥¡ÑÉ½µ]¥‘Ñ €ô•á•ÁÑ¥½¸¹µ¥¹¥µÕµ}İ¥‘Ñ¡}‘À€¨¡•É¼¹…ÍÁ•Ñ}É…Ñ¥½}¡•¥¡Ğ€¼¡•É¼¹…ÍÁ•Ñ}É…Ñ¥½}İ¥‘Ñ ì(€€€€€€€½¹ÍĞÉ•…‘…‰±•±½½È€ôÍ¡½ÉÑá•ÁÑ¥½¹±¥¥‰±”€ü5…Ñ ¹µ…à¡•á•ÁÑ¥½¸¹µ¥¹¥µÕµ}¡•¥¡Ñ}‘À°Í¡½ÉÑá•ÁÑ¥½¹!•¥¡ÑÉ½µ]¥‘Ñ ¤€è¡•É¼¹µ¥¹¥µÕµ}É•…‘…‰±•}¡•¥¡Ñ}‘Àì(€€€€€€€½¹ÍĞ‘•Í¥É•‘!•¥¡Ğ€ôÙ…ÉÌ¹‘•Í¥É•‘!•¥¡Ğì(€€€€€€€½¹ÍĞ…ÑÕ…±Q•áÑ!•¥¡Ğ€ô…É‘5•Ñ…‘…Ñ„¹ÍÉ½±±!•¥¡Ğì(€€€€€€€½¹ÍĞ½¹Ñ•¹Ñ5¥¹¥µÕ´€ô5…Ñ ¹µ…à¡É•…‘…‰±•±½½È°5…Ñ ¹µ¥¸¡¡•É¼¹µ…á¥µÕµ}É•…‘…‰±•}¡•¥¡Ñ}‘À°…ÑÕ…±Q•áÑ!•¥¡Ğ¤¤ì(€€€€€€€±•Ğ…É‘!•¥¡Ğ€ô5…Ñ ¹µ¥¸¡‘•Í¥É•‘!•¥¡Ğ°5…Ñ ¹µ…à¡½¹Ñ•¹Ñ5¥¹¥µÕ´°…Ù…¥±…‰±•…É‘!•¥¡Ğ¤¤ì(€€€€€€€±•Ğ…É‘]¥‘Ñ €ô5…Ñ ¹µ¥¸¡Ù…ÉÌ¹‘•Í¥É•‘]¥‘Ñ °…É‘!•¥¡Ğ€¨¡•É¼¹…ÍÁ•Ñ}É…Ñ¥½}İ¥‘Ñ €¼¡•É¼¹…ÍÁ•Ñ}É…Ñ¥½}¡•¥¡Ğ¤ì(€€€€€€€Í•ÑY…É¥…‰±” ˆ´µµ…¥¸µ…Éµ¡•¥¡Ğˆ°ÍÍAà¡…É‘!•¥¡Ğ¤¤ìÍ•ÑY…É¥…‰±” ˆ´µµ…¥¸µ…Éµİ¥‘Ñ ˆ°ÍÍAà¡…É‘]¥‘Ñ ¤¤ì(€€€€€€€Í•ÑY…É¥…‰±” ˆ´µ…Éµ™½½Ñ•ÈµÁ…‘‘¥¹œˆ°ÍÍAà¡5…Ñ ¹µ…à¡À¹…É‘}½¹Ñ•¹Ğ¹µ¥¹¥µÕµ}™½½Ñ•É}Á…‘‘¥¹}‘À°5…Ñ ¹µ¥¸¡À¹…É‘}½¹Ñ•¹Ğ¹µ…á¥µÕµ}™½½Ñ•É}Á…‘‘¥¹}‘À°…É‘!•¥¡Ğ€¨À¹…É‘}½¹Ñ•¹Ğ¹™½½Ñ•É}Á…‘‘¥¹}¡•¥¡Ñ}™É…Ñ¥½¸¤¤¤¤ì(€€€€€€€…İ…¥Ğ¹•áÑÉ…µ” ¤ì(€€€€€€€½¹ÍĞ…ÑÕ…±Q•áÑ!•¥¡Ñ™Ñ•ÉI•Í¥é”€ô…É‘5•Ñ…‘…Ñ„¹ÍÉ½±±!•¥¡Ğì(€€€€€€€½¹ÍĞ¹••‘ÍMÉ½±°€ôÙ…ÉÌ¹±•…‘¥¹…À€¬Í•Ñ¥½¹!•…‘•É!•¥¡Ğ€¬…ÑÕ…±…Á!•…‘•É…É€¬…É‘!•¥¡Ğ€¬±…å½ÕĞ¹…É‘}Ñ½}™½½Ñ•É}…Á}‘À€øµ¥‘‘±•!•¥¡Ğ€¬€À¸Ôì(€€€€€€€€¼¼½¹ÑÉ…Ğ•á•ÁÑ¥½¸µ…ä™½É‰¥ÍÉ½±±¥¹œì½Ñ¡•Éİ¥Í”ÁÉ•Í•ÉÙ”Ñ¡”É•…‘…‰±”!•É¼™±½½È…¹±•Ğ½¹±ä5¥‘‘±”ÍÉ½±°¸(€€€€€€€¥˜€¡Í¡½ÉÑá•ÁÑ¥½¹±¥¥‰±”€˜˜•á•ÁÑ¥½¸¹É•ÅÕ¥É•Í}¹½}µ¥‘‘±•}ÍÉ½±°€˜˜¹••‘ÍMÉ½±°¤ì(€€€€€€€€€½¹ÍĞ¹½¹á•ÁÑ¥½¹±½½È€ô¡•É¼¹µ¥¹¥µÕµ}É•…‘…‰±•}¡•¥¡Ñ}‘Àì(€€€€€€€€€½¹ÍĞ¹½¹á•ÁÑ¥½¹!•¥¡Ğ€ô5…Ñ ¹µ¥¸¡‘•Í¥É•‘!•¥¡Ğ°5…Ñ ¹µ…à¡¹½¹á•ÁÑ¥½¹±½½È°…Ù…¥±…‰±•…É‘!•¥¡Ğ¤¤ì(€€€€€€€€€…É‘!•¥¡Ğ€ô5…Ñ ¹µ…à¡¹½¹á•ÁÑ¥½¹±½½È°¹½¹á•ÁÑ¥½¹!•¥¡Ğ¤ì(€€€€€€€€€…É‘]¥‘Ñ €ô5…Ñ ¹µ¥¸¡Ù…ÉÌ¹‘•Í¥É•‘]¥‘Ñ °…É‘!•¥¡Ğ€¨¡•É¼¹…ÍÁ•Ñ}É…Ñ¥½}İ¥‘Ñ €¼¡•É¼¹…ÍÁ•Ñ}É…Ñ¥½}¡•¥¡Ğ¤ì(€€€€€€€€€Í•ÑY…É¥…‰±” ˆ´µµ…¥¸µ…Éµ¡•¥¡Ğˆ°ÍÍAà¡…É‘!•¥¡Ğ¤¤ìÍ•ÑY…É¥…‰±” ˆ´µµ…¥¸µ…Éµİ¥‘Ñ ˆ°ÍÍAà¡…É‘]¥‘Ñ ¤¤ì(€€€€€€€€€Í•ÑY…É¥…‰±” ˆ´µ…Éµ™½½Ñ•ÈµÁ…‘‘¥¹œˆ°ÍÍAà¡5…Ñ ¹µ…à¡À¹…É‘}½¹Ñ•¹Ğ¹µ¥¹¥µÕµ}™½½Ñ•É}Á…‘‘¥¹}‘À°5…Ñ ¹µ¥¸¡À¹…É‘}½¹Ñ•¹Ğ¹µ…á¥µÕµ}™½½Ñ•É}Á…‘‘¥¹}‘À°…É‘!•¥¡Ğ€¨À¹…É‘}½¹Ñ•¹Ğ¹™½½Ñ•É}Á…‘‘¥¹}¡•¥¡Ñ}™É…Ñ¥½¸¤¤¤¤ì(€€€€€€€€€…İ…¥Ğ¹•áÑÉ…µ” ¤ì(€€€€€€€ô(€€€€€€€½¹ÍĞ™¥¹…±9••‘ÍMÉ½±°€ôÙ…ÉÌ¹±•…‘¥¹…À€¬Í•Ñ¥½¹!•…‘•É!•¥¡Ğ€¬…ÑÕ…±…Á!•…‘•É…É€¬…É‘!•¥¡Ğ€¬±…å½ÕĞ¹…É‘}Ñ½}™½½Ñ•É}…Á}‘À€øµ¥‘‘±•!•¥¡Ğ€¬€À¸Ôì(€€€€€€€…ÁÁ±åQ•áÑ]É…ÁIÕ±•Ì¡±…å½ÕĞ±…É‘]¥‘Ñ ¤ì(€€€€€€€½¹ÍĞÑÉ…­]¥‘Ñ €ô±…å½ÕĞ¹½¹Ñ•¹Ñ}İ¥‘Ñ¡}‘Àì(€€€€€€€½¹ÍĞÍ¥‘•%¹Í•Ğ€ô5…Ñ ¹µ…à À°€¡ÑÉ…­]¥‘Ñ €´…É‘]¥‘Ñ ¤€¼€È¤ì(€€€€€€€½¹ÍĞ¹•¥¡‰½É…À€ô5…Ñ ¹µ…à À°Í¥‘•%¹Í•Ğ€´5…Ñ ¹µ¥¸¡…É‘]¥‘Ñ €¨À¹¹•¥¡‰½È¹µ…á¥µÕµ}İ¥‘Ñ¡}™É…Ñ¥½¹}½™}¡•É¼°5…Ñ ¹µ…à À°€¡ÑÉ…­]¥‘Ñ €´…É‘]¥‘Ñ ¤€¼€È€´±…å½ÕĞ¹¹•¥¡‰½É}Ñ…É•Ñ}•‘•}Á••­}‘À¤¤¤ì(€€€€€€€½¹ÍĞ¹•¥¡‰½É]¥‘Ñ €ô5…Ñ ¹µ¥¸¡…É‘]¥‘Ñ €¨À¹¹•¥¡‰½È¹µ…á¥µÕµ}İ¥‘Ñ¡}™É…Ñ¥½¹}½™}¡•É¼°5…Ñ ¹µ…à À°Í¥‘•%¹Í•Ğ€´¹•¥¡‰½É…À¤¤ì(€€€€€€€Í•ÑY…É¥…‰±” ˆ´µµ…¥¸µ…ÉµÍ¥‘”µ¥¹Í•Ğˆ°ÍÍAà¡Í¥‘•%¹Í•Ğ¤¤ìÍ•ÑY…É¥…‰±” ˆ´µ¹•¥¡‰½Èµ…Àˆ°ÍÍAà¡¹•¥¡‰½É…À¤¤ìÍ•ÑY…É¥…‰±” ˆ´µ¹•¥¡‰½Èµİ¥‘Ñ ˆ°ÍÍAà¡¹•¥¡‰½É]¥‘Ñ ¤¤ì(€€€€€€€µ¥‘‘±•M•Ñ¥½¸¹‘…Ñ…Í•Ğ¹ÍÉ½±±9••‘•€ôMÑÉ¥¹œ¡™¥¹…±9••‘ÍMÉ½±°¤ì(€€€€€€€µ¥‘‘±•M•Ñ¥½¸¹‘…Ñ…Í•Ğ¹Ñ½Á±¥¸€ôMÑÉ¥¹œ¡™¥¹…±9••‘ÍMÉ½±°¤ì(€€€€€€€‘½Õµ•¹Ğ¹ÅÕ•ÉåM•±•Ñ½É±° ˆ¹¹•¥¡‰½Èµ…Éˆ¤¹™½É… ¡¹½‘”€ôøì¹½‘”¹¡¥‘‘•¸€ôÑÉÕ”ìô¤ì(€€€€€€€½¹ÍĞÍ…±•I…Ñ¥¼€ô‘•Ù¥”¹•Ñ	½Õ¹‘¥¹±¥•¹ÑI•Ğ ¤¹İ¥‘Ñ €¼5…Ñ ¹µ…à Ä°‘•Ù¥”¹½™™Í•Ñ]¥‘Ñ ¤ì(€€€€€€€½¹ÍĞ‰½Õ¹‘Ì€ô•±•µ•¹Ğ€ôøì(€€€€€€€€€½¹ÍĞÈ€ô•±•µ•¹Ğ¹•Ñ	½Õ¹‘¥¹±¥•¹ÑI•Ğ ¤ì(€€€€€€€€€É•ÑÕÉ¸í±•™Ğè¡È¹±•™Ğµ‘•Ù¥”¹•Ñ	½Õ¹‘¥¹±¥•¹ÑI•Ğ ¤¹±•™Ğ¤½Í…±•I…Ñ¥¼±Ñ½Àè¡È¹Ñ½Àµ‘•Ù¥”¹•Ñ	½Õ¹‘¥¹±¥•¹ÑI•Ğ ¤¹Ñ½À¤½Í…±•I…Ñ¥¼±É¥¡Ğè¡È¹É¥¡Ğµ‘•Ù¥”¹•Ñ	½Õ¹‘¥¹±¥•¹ÑI•Ğ ¤¹±•™Ğ¤½Í…±•I…Ñ¥¼±‰½ÑÑ½´è¡È¹‰½ÑÑ½´µ‘•Ù¥”¹•Ñ	½Õ¹‘¥¹±¥•¹ÑI•Ğ ¤¹Ñ½À¤½Í…±•I…Ñ¥¼±İ¥‘Ñ éÈ¹İ¥‘Ñ ½Í…±•I…Ñ¥¼±¡•¥¡ĞéÈ¹¡•¥¡Ğ½Í…±•I…Ñ¥½ôì(€€€€€€€ôì(€€€€€€€½¹ÍĞ¡•…‘•É	½Õ¹‘Ì€ô‰½Õ¹‘Ì¡‘½Õµ•¹Ğ¹•Ñ±•µ•¹Ñ	å% ‰¡•…‘•É	…Èˆ¤¤ì(€€€€€€€½¹ÍĞÍÑ…ÑÍ	½Õ¹‘Ì€ô‰½Õ¹‘Ì¡‘½Õµ•¹Ğ¹•Ñ±•µ•¹Ñ	å% ‰ÍÑ…ÑÍ	…Èˆ¤¤ì(€€€€€€€½¹ÍĞÑ¥Ñ±•	½Õ¹‘Ì€ô‰½Õ¹‘Ì¡‘½Õµ•¹Ğ¹ÅÕ•ÉåM•±•Ñ½È ˆ¹Í•Ñ¥½¸µÑ¥Ñ±”ˆ¤¤ì(€€€€€€€½¹ÍĞ¡•É½	½Õ¹‘Ì€ô‰½Õ¹‘Ì¡µ…¥¹…Ñ¡…É¤ì(€€€€€€€½¹ÍĞµ¥‘‘±•	½Õ¹‘Ì€ô‰½Õ¹‘Ì¡µ¥‘‘±•M•Ñ¥½¸¤ì(€€€€€€€½¹ÍĞ™½½Ñ•É	½Õ¹‘Ì€ô‰½Õ¹‘Ì¡™½½Ñ•ÉM•Ñ¥½¸¤ì(€€€€€€€½¹ÍĞÑ…	½Õ¹‘Ì€ô‰½Õ¹‘Ì¡‘½Õµ•¹Ğ¹•Ñ±•µ•¹Ñ	å% ‰Ñ…1…‰•°ˆ¤¤ì(€€€€€€€½¹ÍĞ…µ•É…	½Õ¹‘Ì€ô‰½Õ¹‘Ì¡‘½Õµ•¹Ğ¹•Ñ±•µ•¹Ñ	å% ‰…ÍÍ•Ñ…µ•É„ˆ¤¤ì(€€€€€€€½¹ÍĞ…µ•É…Q½Õ¡	½Õ¹‘Ì€ô‰½Õ¹‘Ì¡‘½Õµ•¹Ğ¹•Ñ±•µ•¹Ñ	å% ‰…µ•É…	ÕÑÑ½¸ˆ¤¤ì(€€€€€€€½¹ÍĞÁ…•	½Õ¹‘Ì€ô‰½Õ¹‘Ì¡‘½Õµ•¹Ğ¹ÅÕ•ÉåM•±•Ñ½È ˆ¹Á…”µ½¹Ñ•¹Ğˆ¤¤ì(€€€€€€€½¹ÍĞÑ¥Ñ±•Q½…É€ô¡•É½	½Õ¹‘Ì¹Ñ½À€´Ñ¥Ñ±•	½Õ¹‘Ì¹‰½ÑÑ½´ì(€€€€€€€½¹ÍĞÙ¥Í¥‰±•!•É½	½ÑÑ½´€ô5…Ñ ¹µ¥¸¡¡•É½	½Õ¹‘Ì¹‰½ÑÑ½´°µ¥‘‘±•	½Õ¹‘Ì¹‰½ÑÑ½´¤ì(€€€€€€€½¹ÍĞµ•…ÍÕÉ•µ•¹ÑÌ€ôì(€€€€€€€€€¡•…‘•É}Ñ½}ÍÑ…ÑÌèÍÑ…ÑÍ	½Õ¹‘Ì¹Ñ½À€´¡•…‘•É	½Õ¹‘Ì¹‰½ÑÑ½´°(€€€€€€€€€ÍÑ…ÑÍ}Ñ½}Ñ¥Ñ±”èÑ¥Ñ±•	½Õ¹‘Ì¹Ñ½À€´ÍÑ…ÑÍ	½Õ¹‘Ì¹‰½ÑÑ½´°(€€€€€€€€€Ñ¥Ñ±•}Ñ½}…ÉèÑ¥Ñ±•Q½…É°(€€€€€€€€€…É‘}Ñ½}™½½Ñ•Èè™½½Ñ•É	½Õ¹‘Ì¹Ñ½À€´¡•É½	½Õ¹‘Ì¹‰½ÑÑ½´°(€€€€€€€€€Ñ…}…µ•É…}Ù¥ÍÕ…°è…µ•É…	½Õ¹‘Ì¹Ñ½À€´Ñ…	½Õ¹‘Ì¹‰½ÑÑ½´°(€€€€€€€€€Ñ…}…µ•É…}Ñ½Õ è…µ•É…Q½Õ¡	½Õ¹‘Ì¹Ñ½À€´Ñ…	½Õ¹‘Ì¹‰½ÑÑ½´°(€€€€€€€€€…µ•É…}‰½ÑÑ½µ}Í…™”èÁ…•	½Õ¹‘Ì¹‰½ÑÑ½´€´…µ•É…	½Õ¹‘Ì¹‰½ÑÑ½´°(€€€€€€€€€…µ•É…}Ñ½Õ¡}‰½ÑÑ½µ}Í…™”èÁ…•	½Õ¹‘Ì¹‰½ÑÑ½´€´…µ•É…Q½Õ¡	½Õ¹‘Ì¹‰½ÑÑ½´°(€€€€€€€€€¡•É½}½Ù•É±…Á}™½½Ñ•Èè5…Ñ ¹µ…à À°Ù¥Í¥‰±•!•É½	½ÑÑ½´€´™½½Ñ•É	½Õ¹‘Ì¹Ñ½À¤°(€€€€€€€€€¡•É½}½¹Ñ•¹Ñ}‰•å½¹‘}µ¥‘‘±”è5…Ñ ¹µ…à À°¡•É½	½Õ¹‘Ì¹‰½ÑÑ½´€´µ¥‘‘±•	½Õ¹‘Ì¹‰½ÑÑ½´¤°(€€€€€€€€€¡½É¥é½¹Ñ…±}½Ù•É™±½İ}‘Àè5…Ñ ¹µ…à À°‘•Ù¥”¹ÍÉ½±±]¥‘Ñ €´‘•Ù¥”¹±¥•¹Ñ]¥‘Ñ ¤°(€€€€€€€€€µ¥‘‘±•}¡•¥¡Ñ}‘Àèµ¥‘‘±•!•¥¡Ğ°(€€€€€€€€€…Ù…¥±…‰±•}…É‘}¡•¥¡Ñ}‘Àè…Ù…¥±…‰±•…É‘!•¥¡Ğ(€€€€€€€ôì(€€€€€€€½¹ÍĞ±…å½ÕÑ5•ÑÉ¥Ì€ôì(€€€€€€€€€€¸¸¹±…å½ÕĞ°…É‘}İ¥‘Ñ¡}‘Àé…É‘]¥‘Ñ °…É‘}¡•¥¡Ñ}‘Àé…É‘!•¥¡Ğ°‘•Í¥É•‘}…É‘}Í¥é•}‘ÀémÙ…ÉÌ¹‘•Í¥É•‘]¥‘Ñ ±Ù…ÉÌ¹‘•Í¥É•‘!•¥¡Ñt°(€€€€€€€€€Ñ¥Ñ±•}ÍÁ…¥¹œéí½¹ÑÉ…Ñ}Ñ…É•Ñ}‘Àé±…å½ÕĞ¹Ñ¥Ñ±•}Ñ½}…É‘}…Á}Ñ…É•Ñ}‘À±É•¹‘•É•‘}Ñ¥Ñ±•}‰½ÑÑ½µ}¥¹Í•Ñ}‘ÀéÑ¥Ñ±•	½ÑÑ½µ%¹Í•ÑÀ±¡•…‘•É}µ…É¥¹}‘ÀéÙ…ÉÌ¹Ñ¥Ñ±•…É‘…À±µ•…ÍÕÉ•‘}…Á}‘ÀéÑ¥Ñ±•Q½…É‘ô°(€€€€€€€€€½¹Ñ•¹Ñ}µ¥¹}…É‘}¡•¥¡Ñ}‘Àé½¹Ñ•¹Ñ5¥¹¥µÕ´°…ÑÕ…±}Ñ•áÑ}¡•¥¡Ñ}‘Àé…ÑÕ…±Q•áÑ!•¥¡Ñ™Ñ•ÉI•Í¥é”°µ¥‘‘±•}¡•¥¡Ñ}‘Àéµ¥‘‘±•!•¥¡Ğ°(€€€€€€€€€…Ù…¥±…‰±•}…É‘}¡•¥¡Ñ}‘Àé…Ù…¥±…‰±•…É‘!•¥¡Ğ°¹••‘Í}ÍÉ½±°é™¥¹…±9••‘ÍMÉ½±°°±…å½ÕÑ}µ½‘”é™¥¹…±9••‘ÍMÉ½±°ü‰=9Q9Q}MI=10ˆè‰%Pˆ°(€€€€€€€€€Í¡½ÉÑ}ÍÉ••¹}•á•ÁÑ¥½¹}…ÁÁ±¥•éÍ¡½ÉÑá•ÁÑ¥½¹±¥¥‰±”°(€€€€€€€€€™½½Ñ•Èé±…å½ÕĞ¹™½½Ñ•È°µ•…ÍÕÉ•µ•¹ÑÌ°(€€€€€€€€€…ÁÍ}‘Àéì¸¸¸¡±…å½ÕĞ¹…ÁÍ}‘Áññíô¤±‰É…¹‘}Ñ½}ÍÑ…ÑÌé±…å½ÕĞ¹‰É…¹‘}Ñ½}ÍÑ…ÑÍ}…Á}‘Àüı±…å½ÕĞ¹…ÁÍ}‘Àü¹‰É…¹‘}Ñ½}ÍÑ…ÑÌ±ÍÑ…ÑÍ}Ñ½}Ñ¥Ñ±”é±…å½ÕĞ¹ÍÑ…ÑÍ}Ñ½}Ñ¥Ñ±•}…Á}Ñ…É•Ñ}‘À±Ñ¥Ñ±•}Ñ½}…É‘}Ñ…É•Ğé±…å½ÕĞ¹Ñ¥Ñ±•}Ñ½}…É‘}…Á}Ñ…É•Ñ}‘À±…É‘}Ñ½}™½½Ñ•Èé±…å½ÕĞ¹…É‘}Ñ½}™½½Ñ•É}…Á}‘Áô°(€€€€€€€€€¹•¥¡‰½É}ÍÑ…Ñ”éíÁÉ•Ù¥½ÕÍ}É•½É‘}ÁÉ•Í•¹Ğé™…±Í”±¹•áÑ}É•½É‘}ÁÉ•Í•¹Ğé™…±Í”±É•¹‘•É•é™…±Í”±µ…á¥µÕµ}İ¥‘Ñ¡}‘Àé…É‘]¥‘Ñ ©À¹¹•¥¡‰½È¹µ…á¥µÕµ}İ¥‘Ñ¡}™É…Ñ¥½¹}½™}¡•É½ô°(€€€€€€€€€Ñ•áÑ}±¥¹•ÌéíÍÁ•¥•Ìé½Õ¹ÑQ•áÑ1¥¹•Ì¡‘½Õµ•¹Ğ¹ÅÕ•ÉåM•±•Ñ½È ˆ¹…Ñ µÍÁ•¥•Ìˆ¤¤±µ•…ÍÕÉ•µ•¹Ğé½Õ¹ÑQ•áÑ1¥¹•Ì¡‘½Õµ•¹Ğ¹ÅÕ•ÉåM•±•Ñ½È ˆ¹…Ñ µµ•…ÍÕÉ”ˆ¤¤±µ•Ñ…‘…Ñ„é½Õ¹ÑQ•áÑ1¥¹•Ì¡‘½Õµ•¹Ğ¹ÅÕ•ÉåM•±•Ñ½È ˆ¹…Ñ µ±½…Ñ¥½¸ˆ¤¥ô°(€€€€€€€€€…ÑÕ…±}‰½Õ¹‘Í}‘Àéí¡•…‘•Èé¡•…‘•É	½Õ¹‘Ì±ÍÑ…ÑÌéÍÑ…ÑÍ	½Õ¹‘Ì±Ñ¥Ñ±”éÑ¥Ñ±•	½Õ¹‘Ì±¡•É¼é¡•É½	½Õ¹‘Ì±µ¥‘‘±”éµ¥‘‘±•	½Õ¹‘Ì±™½½Ñ•Èé™½½Ñ•É	½Õ¹‘Ì±Ñ„éÑ…	½Õ¹‘Ì±…µ•É…}Ù¥ÍÕ…°é…µ•É…	½Õ¹‘Ì±…µ•É…}Ñ½Õ é…µ•É…Q½Õ¡	½Õ¹‘Íô°(€€€€€€€€€ÍÉ½±±}µ•ÑÉ¥Ìéíµ¥‘‘±•}±¥•¹Ñ}¡•¥¡Ñ}‘Àéµ¥‘‘±•M•Ñ¥½¸¹±¥•¹Ñ!•¥¡Ğ±µ¥‘‘±•}ÍÉ½±±}¡•¥¡Ñ}‘Àéµ¥‘‘±•M•Ñ¥½¸¹ÍÉ½±±!•¥¡Ğ±µ¥‘‘±•}ÍÉ½±±}Ñ½Á}‘Àéµ¥‘‘±•M•Ñ¥½¸¹ÍÉ½±±Q½À±¡•É½}½¹Ñ•¹Ñ}‰•å½¹‘}µ¥‘‘±•}‘Àé5…Ñ ¹µ…à À±¡•É½	½Õ¹‘Ì¹‰½ÑÑ½´µµ¥‘‘±•	½Õ¹‘Ì¹‰½ÑÑ½´¥ô°(€€€€€€€€€‘•Ù¥•}Í…±”é‘•Ù¥•M…±”(€€€€€€€ôì(€€€€€€€İ¥¹‘½Ü¹9 ÀÅ•µ¥¹¥AÉ•Ù¥•İ1…å½ÕĞ€ô±…å½ÕÑ5•ÑÉ¥Ìì(€€€€€€€İ¥¹‘½Ü¹9 ÀÅ•µ¥¹¥AÉ•Ù¥•İ1…å½ÕÑI•…‘ä€ôÑÉÕ”ì(€€€€€€€¥˜€¡…‘…ÁÑ¥Ù”¤É•¹‘•ÉIÕ±•%¹ÍÁ•Ñ½È¡±…å½ÕÑ5•ÑÉ¥Ì¤ì(€€€€€€€•±Í”ÉÕ±•1¥ÍĞ¹¥¹¹•É!Q50€ô€œñ‘¥Ø±…ÍÌô‰ÉÕ±”µÉ½Üˆøñ‘Ğû–â–ÆR£¦Pğ½‘Ğøñ‘ùXÌ	…Í•±¥¹”ƒ’î’úo–¾çŸ¾òm‘…ÁÑ¥Ù”XÈƒj–B#–B3–ó’î7’şwVg–r£šrë–f£šv–¢’â·ğ½‘øğ½‘¥Øøœì(€€€€€€€¥˜€ …µ…ÑÉ¥á5½‘”€˜˜€……¹Ù…Í5½‘”€˜˜ÑåÁ•½˜Í•±•Ñ1…å•È€ôôô€‰™Õ¹Ñ¥½¸ˆ¤Í•±•Ñ1…å•È ˆµ…¥¹…Ñ¡…Éˆ¤ì(€€€€€ô(€€€€€…Íå¹Œ™Õ¹Ñ¥½¸‘¥•ÍĞ¡ÕÉ°¤ì(€€€€€€€½¹ÍĞÉ•ÍÁ½¹Í”€ô…İ…¥Ğ™•Ñ ¡ÕÉ°°ì…¡”è€‰¹¼µÍÑ½É”ˆô¤ì(€€€€€€€¥˜€ …É•ÍÁ½¹Í”¹½¬¤Ñ¡É½Ü¹•ÜÉÉ½È¡!QQ@€‘íÉ•ÍÁ½¹Í”¹ÍÑ…ÑÕÍô™½È€‘íÕÉ±õ€¤ì(€€€€€€€½¹ÍĞ‰åÑ•Ì€ô…İ…¥ĞÉ•ÍÁ½¹Í”¹…ÉÉ…å	Õ™™•È ¤ì(€€€€€€€½¹ÍĞ¡…Í €ô…İ…¥ĞÉåÁÑ¼¹ÍÕ‰Ñ±”¹‘¥•ÍĞ ‰M!´ÈÔØˆ°‰åÑ•Ì¤ì(€€€€€€€É•ÑÕÉ¸l¸¸¹¹•ÜU¥¹ĞáÉÉ…ä¡¡…Í ¥t¹µ…À¡Ù…±Õ”€ôøÙ…±Õ”¹Ñ½MÑÉ¥¹œ ÄØ¤¹Á…‘MÑ…ÉĞ È°€ˆÀˆ¤¤¹©½¥¸ ˆˆ¤ì(€€€€€ô(€€€€€™Õ¹Ñ¥½¸İ…¥Ñ%µ…”¡¥µ…”¤ì(€€€€€€€¥˜€¡¥µ…”¹½µÁ±•Ñ”¤É•ÑÕÉ¸¥µ…”¹¹…ÑÕÉ…±]¥‘Ñ €ø€À€üAÉ½µ¥Í”¹É•Í½±Ù” ¤€èAÉ½µ¥Í”¹É•©•Ğ¡¹•ÜÉÉ½È¡%µ…”™…¥±•Ñ¼±½…è€‘í¥µ…”¹ÕÉÉ•¹ÑMÉŒñğ¥µ…”¹ÍÉõ€¤¤ì(€€€€€€€É•ÑÕÉ¸¹•ÜAÉ½µ¥Í” ¡É•Í½±Ù”°É•©•Ğ¤€ôøì¥µ…”¹…‘‘Ù•¹Ñ1¥ÍÑ•¹•È ‰±½…ˆ°É•Í½±Ù”°í½¹”éÑÉÕ•ô¤ì¥µ…”¹…‘‘Ù•¹Ñ1¥ÍÑ•¹•È ‰•ÉÉ½Èˆ°€ ¤€ôøÉ•©•Ğ¡¹•ÜÉÉ½È¡%µ…”±½…™…¥±•è€‘í¥µ…”¹ÕÉÉ•¹ÑMÉŒñğ¥µ…”¹ÍÉõ€¤¤°í½¹”éÑÉÕ•ô¤ìô¤ì(€€€€€ô(€€€€€…Íå¹Œ™Õ¹Ñ¥½¸…Õ‘¥Ñ¹¡½ÉÌ¡½¹ÑÉ…Ğ¤ì(€€€€€€€½¹ÍĞÉ•ÍÕ±ÑÌ€ô…İ…¥ĞAÉ½µ¥Í”¹…±°¡½¹ÑÉ…Ğ¹Ù¥ÍÕ…±}…¹¡½ÉÌ¹µ…À¡…Íå¹Œ…¹¡½È€ôøì(€€€€€€€€€½¹ÍĞÕÉ°€ô¹•ÜUI0¡…¹¡½È¹Á…Ñ °É½½ÑAÉ•™¥à¤¹¡É•˜ì(€€€€€€€€€½¹ÍĞ…ÑÕ…±!…Í €ô…İ…¥Ğ‘¥•ÍĞ¡ÕÉ°¤ì(€€€€€€€€€½¹ÍĞÁÉ½‰”€ô¹•Ü%µ…” ¤ìÁÉ½‰”¹ÍÉŒ€ôÕÉ°ì…İ…¥Ğİ…¥Ñ%µ…”¡ÁÉ½‰”¤ì(€€€€€€€€€½¹ÍĞ…ÑÕ…°€ôíİ¥‘Ñ éÁÉ½‰”¹¹…ÑÕÉ…±]¥‘Ñ ±¡•¥¡ĞéÁÉ½‰”¹¹…ÑÕÉ…±!•¥¡Ñôì(€€€€€€€€€½¹ÍĞ•áÁ•Ñ•€ô…¹¡½È¹…¹Ù…Í}Áàì(€€€€€€€€€½¹ÍĞÁ…ÍÌ€ô…ÑÕ…±!…Í €ôôô…¹¡½È¹Í¡„ÈÔØ€˜˜…ÑÕ…°¹İ¥‘Ñ €ôôô•áÁ•Ñ•¹İ¥‘Ñ €˜˜…ÑÕ…°¹¡•¥¡Ğ€ôôô•áÁ•Ñ•¹¡•¥¡Ğì(€€€€€€€€€É•ÑÕÉ¸í¥é…¹¡½È¹¥±Á…Ñ é…¹¡½È¹Á…Ñ ±É½±”é…¹¡½È¹É½±”±ÍÑ…ÑÕÌéÁ…ÍÌü‰AMLˆè‰%0ˆ±•áÁ•Ñ•‘}Í¡„ÈÔØé…¹¡½È¹Í¡„ÈÔØ±…ÑÕ…±}Í¡„ÈÔØé…ÑÕ…±!…Í ±•áÁ•Ñ•‘}…¹Ù…Í}Áàé•áÁ•Ñ•±…ÑÕ…±}…¹Ù…Í}Áàé…ÑÕ…°±±½¥…±}Ù¥•İÁ½ÉÑ}‘Àé…¹¡½È¹±½¥…±}Ù¥•İÁ½ÉÑ}‘À±İ¥‘Ñ¡}½¹±å}ÍÑ…Ñ¥Œé…¹¡½È¹±½¥…±}Ù¥•İÁ½ÉÑ}‘À¹¡•¥¡Ğôôõ¹Õ±±ôì(€€€€€€€ô¤¤ì(€€€€€€€¥˜€¡É•ÍÕ±ÑÌ¹±•¹Ñ €„ôô€ØñğÉ•ÍÕ±ÑÌ¹Í½µ”¡¥Ñ•´€ôø¥Ñ•´¹ÍÑ…ÑÕÌ€„ôô€‰AMLˆ¤¤Ñ¡É½Ü¹•ÜÉÉ½È¡É½é•¸É•™•É•¹”¥¹Ñ•É¥Ñä™…¥±•è€‘í)M=8¹ÍÑÉ¥¹¥™ä¡É•ÍÕ±ÑÌ¹™¥±Ñ•È¡¥Ñ•´€ôø¥Ñ•´¹ÍÑ…ÑÕÌ€„ôô€‰AMLˆ¤¥õ€¤ì(€€€€€€€…¹¡½ÉÕ‘¥Ğ€ôÉ•ÍÕ±ÑÌìİ¥¹‘½Ü¹9 ÀÅÉ½é•¹¹¡½ÉÕ‘¥Ğ€ôíÍÑ…ÑÕÌè‰AMLˆ±…ÍÍ•ÑÌéÉ•ÍÕ±ÑÍôìÉ•ÑÕÉ¸É•ÍÕ±ÑÌì(€€€€€ô(€€€€€…Íå¹Œ™Õ¹Ñ¥½¸…Õ‘¥ÑÍÍ•ÑÌ ¤ì(€€€€€€€¥˜€¡µ…ÑÉ¥á5½‘”¤É•ÑÕÉ¸íÍÑ…ÑÕÌè‰5QI%a}AIY%]}=91dˆ±É•±•…Í•}…Ñ•}•™™•Ğè‰9=9‰ôì(€€€€€€€½¹ÍĞÉ•ÍÁ½¹Í”€ô…İ…¥Ğ™•Ñ  ˆ¸½9 ÀÅ}•µ¥¹¥}9…Ñ¥Ù•}ÍÍ•Ñ}	¥¹‘¥¹}XÄ¹©Í½¸ˆ°í…¡”è‰¹¼µÍÑ½É”‰ô¤ì(€€€€€€€¥˜€ …É•ÍÁ½¹Í”¹½¬¤Ñ¡É½Ü¹•ÜÉÉ½È¡ÍÍ•Ğµ…¹¥™•ÍĞ!QQ@€‘íÉ•ÍÁ½¹Í”¹ÍÑ…ÑÕÍõ€¤ì(€€€€€€€½¹ÍĞµ…¹¥™•ÍĞ€ô…İ…¥ĞÉ•ÍÁ½¹Í”¹©Í½¸ ¤ì½¹ÍĞÉ•ÍÕ±ÑÌ€ômtì(€€€€€€€™½È€¡½¹ÍĞ…ÍÍ•Ğ½˜µ…¹¥™•ÍĞ¹…ÍÍ•ÑÌ¹™¥±Ñ•È¡¥Ñ•´€ôø¥Ñ•´¹ÁÕ‰±¥}ÁÉ•Ù¥•Ü¤¤ì(€€€€€€€€€½¹ÍĞ¥µ…”€ô…ÍÍ•Ñ9½‘•Ím…ÍÍ•Ğ¹¥‘tì¥˜€ …¥µ…”¤Ñ¡É½Ü¹•ÜÉÉ½È¡5¥ÍÍ¥¹œ=4…ÍÍ•Ğ¹½‘”è€‘í…ÍÍ•Ğ¹¥‘õ€¤ì(€€€€€€€€€…İ…¥Ğİ…¥Ñ%µ…”¡¥µ…”¤ì½¹ÍĞ…ÑÕ…±!…Í €ô…İ…¥Ğ‘¥•ÍĞ¡É•Í½±Ù•ÍÍ•ÑUÉ°¡…ÍÍ•Ğ¹ÁÉ•Ù¥•İ}Á…Ñ ¤¤ì(€€€€€€€€€½¹ÍĞ‘¥µ•¹Í¥½¹Ì€ôm¥µ…”¹¹…ÑÕÉ…±]¥‘Ñ ±¥µ…”¹¹…ÑÕÉ…±!•¥¡Ñtì(€€€€€€€€€½¹ÍĞÁ…ÍÍ•€ô…ÑÕ…±!…Í €ôôô…ÍÍ•Ğ¹Í¡„ÈÔØ€˜˜‘¥µ•¹Í¥½¹ÍlÁt€ôôô…ÍÍ•Ğ¹‘¥µ•¹Í¥½¹Í}ÁálÁt€˜˜‘¥µ•¹Í¥½¹ÍlÅt€ôôô…ÍÍ•Ğ¹‘¥µ•¹Í¥½¹Í}ÁálÅtì(€€€€€€€€€É•ÍÕ±ÑÌ¹ÁÕÍ ¡í¥é…ÍÍ•Ğ¹¥±±…‰•°é…ÍÍ•Ğ¹±…‰•°±ÍÑ…ÑÕÌéÁ…ÍÍ•ü‰AMM}M=UI}%9QI%Qdˆè‰%1}M=UI}%9QI%Qdˆ±•áÁ•Ñ•‘}Í¡„ÈÔØé…ÍÍ•Ğ¹Í¡„ÈÔØ±…ÑÕ…±}Í¡„ÈÔØé…ÑÕ…±!…Í ±•áÁ•Ñ•‘}‘¥µ•¹Í¥½¹Í}Áàé…ÍÍ•Ğ¹‘¥µ•¹Í¥½¹Í}Áà±…ÑÕ…±}‘¥µ•¹Í¥½¹Í}Áàé‘¥µ•¹Í¥½¹Ì±ÁÉ•Ù¥•İ}Á…Ñ é…ÍÍ•Ğ¹ÁÉ•Ù¥•İ}Á…Ñ¡ô¤ì(€€€€€€€ô(€€€€€€€™½È€¡½¹ÍĞ…ÍÍ•Ğ½˜µ…¹¥™•ÍĞ¹…ÍÍ•ÑÌ¹™¥±Ñ•È¡¥Ñ•´€ôø€…¥Ñ•´¹ÁÕ‰±¥}ÁÉ•Ù¥•Ü¤¤É•ÍÕ±ÑÌ¹ÁÕÍ ¡í¥é…ÍÍ•Ğ¹¥±±…‰•°é…ÍÍ•Ğ¹±…‰•°±ÍÑ…ÑÕÌé…ÍÍ•Ğ¹ÍÑ…ÑÕÌ±•áÁ•Ñ•‘}Í¡„ÈÔØé…ÍÍ•Ğ¹Í¡„ÈÔÙññ¹Õ±°±…ÑÕ…±}Í¡„ÈÔØé¹Õ±°±•áÁ•Ñ•‘}‘¥µ•¹Í¥½¹Í}Áàé…ÍÍ•Ğ¹‘¥µ•¹Í¥½¹Í}Ááññ¹Õ±°±…ÑÕ…±}‘¥µ•¹Í¥½¹Í}Áàé¹Õ±°±É•…Í½¸é…ÍÍ•Ğ¹ÁÉ¥Ù…å}Á½±¥åññ…ÍÍ•Ğ¹É•¹‘•É}ÉÕ±•ô¤ì(€€€€€€€…ÍÍ•Ñ1¥ÍĞ¹É•Á±…•¡¥±‘É•¸ ¤ì(€€€€€€€™½È€¡½¹ÍĞÉ•ÍÕ±Ğ½˜É•ÍÕ±ÑÌ¤ì(€€€€€€€€€½¹ÍĞÉ½Üõ‘½Õµ•¹Ğ¹É•…Ñ•±•µ•¹Ğ ‰‘¥Øˆ¤íÉ½Ü¹±…ÍÍ9…µ”ô‰…ÍÍ•ĞµÉ½Üˆí½¹ÍĞ‘•Ñ…¥±Ìõ‘½Õµ•¹Ğ¹É•…Ñ•±•µ•¹Ğ ‰‘¥Øˆ¤ì(€€€€€€€€€½¹ÍĞ¹…µ”õ‘½Õµ•¹Ğ¹É•…Ñ•±•µ•¹Ğ ‰‘¥Øˆ¤í¹…µ”¹±…ÍÍ9…µ”ô‰…ÍÍ•Ğµ¹…µ”ˆí¹…µ”¹Ñ•áÑ½¹Ñ•¹ĞõÉ•ÍÕ±Ğ¹±…‰•°ì(€€€€€€€€€½¹ÍĞµ•Ñ„õ‘½Õµ•¹Ğ¹É•…Ñ•±•µ•¹Ğ ‰‘¥Øˆ¤íµ•Ñ„¹±…ÍÍ9…µ”ô‰…ÍÍ•Ğµµ•Ñ„ˆíµ•Ñ„¹Ñ•áÑ½¹Ñ•¹ĞõÉ•ÍÕ±Ğ¹…ÑÕ…±}Í¡„ÈÔØıM!´ÈÔØ€‘íÉ•ÍÕ±Ğ¹…ÑÕ…±}Í¡„ÈÔÙôƒ
+Ü€‘íÉ•ÍÕ±Ğ¹…ÑÕ…±}‘¥µ•¹Í¥½¹Í}Áà¹©½¥¸ ‹\ˆ¥õ€è¡É•ÍÕ±Ğ¹É•…Í½¹ñğ‹šr«š>C’úo–>¿–³–ò¦Š¢#jš¶–ò?–:–nûˆ¤ì(€€€€€€€€€½¹ÍĞÍÑ…ÑÕÌõ‘½Õµ•¹Ğ¹É•…Ñ•±•µ•¹Ğ ‰ÍÁ…¸ˆ¤íÍÑ…ÑÕÌ¹±…ÍÍ9…µ”ô‰…ÍÍ•ĞµÍÑ…ÑÕÌˆíÍÑ…ÑÕÌ¹‘…Ñ…Í•Ğ¹ÍÑ…ÑÕÌõÉ•ÍÕ±Ğ¹ÍÑ…ÑÕÌíÍÑ…ÑÕÌ¹Ñ¥Ñ±”õÉ•ÍÕ±Ğ¹ÍÑ…ÑÕÌíÍÑ…ÑÕÌ¹Ñ•áÑ½¹Ñ•¹Ğô¡íAMM}M=UI}%9QI%Qdè‰AMLƒ
+ÜM!€¬M%iˆ±	1=-}MMQ}M=UIè‰	1=-ƒ
+ÜA!=Q<M=UIˆ±	1=-}5%MM%9}AAI=Y}%9A99Q}=I%%91Lè‰	1=-ƒ
+ÜA!=Q<MP‰ô¥mÉ•ÍÕ±Ğ¹ÍÑ…ÑÕÍuññÉ•ÍÕ±Ğ¹ÍÑ…ÑÕÌì(€€€€€€€€€‘•Ñ…¥±Ì¹…ÁÁ•¹¡¹…µ”±µ•Ñ„¤íÉ½Ü¹…ÁÁ•¹¡‘•Ñ…¥±Ì±ÍÑ…ÑÕÌ¤í…ÍÍ•Ñ1¥ÍĞ¹…ÁÁ•¹¡É½Ü¤ì(€€€€€€€ô(€€€€€€€½¹ÍĞ™…¥±ÕÉ•ÌõÉ•ÍÕ±ÑÌ¹™¥±Ñ•È¡É•ÍÕ±ĞôùÉ•ÍÕ±Ğ¹ÍÑ…ÑÕÌôôô‰%1}M=UI}%9QI%Qdˆ¤ì(€€€€€€€¥¹Ñ•É¥ÑåMÕµµ…Éä¹‘…Ñ…Í•Ğ¹ÍÑ…Ñ”õ™…¥±ÕÉ•Ì¹±•¹Ñ ü‰%0ˆè‰AMLˆì(€€€€€€€¥¹Ñ•É¥ÑåMÕµµ…Éä¹Ñ•áÑ½¹Ñ•¹Ğõ™…¥±ÕÉ•Ì¹±•¹Ñ ıƒ¢Ö’êŸ–º3šVÓšŸ–’Ç¢Ò—¾òh‘í™…¥±ÕÉ•Ì¹µ…À¡¥Ñ•´ôù¥Ñ•´¹¥¤¹©½¥¸ ˆ°€ˆ¥õ€è‹šÎ£–3¢Ö’êœM!´ÈÔØƒ’â;–Âë–¾ã–2ç¦7	!•É¼ƒŸ&–J3¦
+ï–6‡šv—šêC’î7¢Š¯šb;†»¦bï–†{¾òo¦Š¢#’â7’òkRš"C¢fk–¦
+ï–6‡ˆì(€€€€€€€İ¥¹‘½Ü¹9 ÀÅ•µ¥¹¥AÉ•Ù¥•İÕ‘¥ĞõíÍ¡•µ„éµ…¹¥™•ÍĞ¹Í¡•µ„±‰Õ¥±‘}Í¡„é‰Õ¥±‘M¡„±ÍÑ…ÑÕÌé™…¥±ÕÉ•Ì¹±•¹Ñ ü‰%0ˆè‰AMLˆ±É•±•…Í•}…Ñ•}•™™•Ğè‰9=9ˆ±…ÍÍ•ÑÌéÉ•ÍÕ±ÑÌ±¡•­•‘}…Ñ}ÕÑŒé¹•Ü…Ñ” ¤¹Ñ½%M=MÑÉ¥¹œ ¥ôì(€€€€€€€É•ÑÕÉ¸İ¥¹‘½Ü¹9 ÀÅ•µ¥¹¥AÉ•Ù¥•İÕ‘¥Ğì(€€€€€ô(€€€€€…Íå¹Œ™Õ¹Ñ¥½¸¥¹¥Ñ¥…±¥é” ¤ì(€€€€€€€ÑÉäì(€€€€€€€€€¥˜€ …É½½Ñ5•Ñ„ü¹½¹Ñ•¹Ğ¤Ñ¡É½Ü¹•ÜÉÉ½È ‰9 ÀÄÁÉ•Ù¥•ÜÉ½½Ğµ•Ñ…‘…Ñ„¥Ìµ¥ÍÍ¥¹œ¸ˆ¤ì(€€€€€€€€€É½½ÑAÉ•™¥à€ô¹•ÜUI0¡É½½Ñ5•Ñ„¹½¹Ñ•¹Ğ°±½…Ñ¥½¸¹¡É•˜¤ì(€€€€€€€€€™½È€¡½¹ÍĞ¥µ…”½˜‘½Õµ•¹Ğ¹ÅÕ•ÉåM•±•Ñ½É±° ‰¥µm‘…Ñ„µÁÉ•Ù¥•ÜµÁ…Ñ¡tˆ¤¤¥µ…”¹ÍÉŒ€ô¹•ÜUI0¡¥µ…”¹‘…Ñ…Í•Ğ¹ÁÉ•Ù¥•İA…Ñ °É½½ÑAÉ•™¥à¤¹¡É•˜ì(€€€€€€€€€¥˜€ …İ¥¹‘½Ü¹9 ÀÅI•ÍÁ½¹Í¥Ù•½¹ÑÉ…ÑIÕ¹Ñ¥µ”¤Ñ¡É½Ü¹•ÜÉÉ½È ‰I•ÍÁ½¹Í¥Ù”½¹ÑÉ…ĞÉÕ¹Ñ¥µ”µ½‘Õ±”¥Ìµ¥ÍÍ¥¹œ¸ˆ¤ì(€€€€€€€€€½¹ÑÉ…Ñ¹Ù•±½Á”€ô…İ…¥Ğİ¥¹‘½Ü¹9 ÀÅI•ÍÁ½¹Í¥Ù•½¹ÑÉ…ÑIÕ¹Ñ¥µ”¹±½…‘½¹ÑÉ…Ğ ¤ì(€€€€€€€€€½¹ÍĞ½¹ÑÉ…Ğ€ô½¹ÑÉ…Ñ¹Ù•±½Á”¹½¹ÑÉ…Ğì(€€€€€€€€€¥˜€ …ÉÉ…ä¹¥ÍÉÉ…ä¡½¹ÑÉ…Ğ¹Ù¥ÍÕ…±}…¹¡½ÉÌ¤ñğ½¹ÑÉ…Ğ¹Ù¥ÍÕ…±}…¹¡½ÉÌ¹±•¹Ñ €„ôô€Ø¤Ñ¡É½Ü¹•ÜÉÉ½È ‰½¹ÑÉ…ĞµÕÍĞÉ•¥ÍÑ•È•á…Ñ±äÍ¥à™É½é•¸Ù¥ÍÕ…°É•™•É•¹•Ì¸ˆ¤ì(€€€€€€€€€‘½Õµ•¹Ğ¹•Ñ±•µ•¹Ñ	å% ‰½¹ÑÉ…ÑY•ÉÍ¥½¸ˆ¤¹Ñ•áÑ½¹Ñ•¹Ğ€ô€‘í½¹ÑÉ…Ğ¹½¹ÑÉ…Ñ}¥‘ôƒ
+ÜX‘í½¹ÑÉ…Ğ¹½¹ÑÉ…Ñ}Ù•ÉÍ¥½¹õ€ì(€€€€€€€€€½¹ÑÉ…ÑM¡…1…‰•°¹Ñ•áÑ½¹Ñ•¹Ğ€ô½¹ÑÉ…Ñ¹Ù•±½Á”¹½¹ÑÉ…ÑM¡„ÈÔØì(€€€€€€€€€½¹ÑÉ…ÑMÑ…ÑÕÌ¹‘…Ñ…Í•Ğ¹ÍÑ…Ñ”€ô€‰AMLˆì½¹ÑÉ…ÑMÑ…ÑÕÌ¹Ñ•áÑ½¹Ñ•¹Ğ€ô€‰‘…ÁÑ¥Ù”XÈƒšrë–f£–B#–B3–ŞË–*ƒ¢öôˆì(€€€€€€€€€¥¹¥Ñ¥…±¥é•¹¡½ÉY¥•İ•È¡½¹ÑÉ…Ğ¤ì(€€€€€€€€€½¹ÍĞÉ•ÅÕ•ÍÑ•‘M…±”õÁ…É…µÌ¹•Ğ ‰™½¹ÑM…±”ˆ¤ì¥˜€¡É•ÅÕ•ÍÑ•‘M…±”€˜˜9Õµ‰•È¡É•ÅÕ•ÍÑ•‘M…±”¤øôÄ€˜˜9Õµ‰•È¡É•ÅÕ•ÍÑ•‘M…±”¤ğôÄ¸Ô¤™½¹ÑM…±”¹Ù…±Õ”õÉ•ÅÕ•ÍÑ•‘M…±”ì(€€€€€€€€€™½¹ÑM…±•I•…‘½ÕĞ¹Ñ•áÑ½¹Ñ•¹Ğõ€‘í9Õµ‰•È¡™½¹ÑM…±”¹Ù…±Õ”¤¹Ñ½¥á• Ä¥÷]€ì(€€€€€€€€€½¹ÍĞ¥¹¥Ñ¥…±%¹Í•ÑÌõİ¥¹‘½Ü¹9 ÀÅI•ÍÁ½¹Í¥Ù•½¹ÑÉ…ÑIÕ¹Ñ¥µ”¹É•Í½±Ù•%¹Í•ÑÌ¡Á…É…µÌ±½¹ÑÉ…Ğ¹ÁÉ•Ù¥•İ}•¹¥¹”¹½½É‘¥¹…Ñ•}ÍÁ…”¹‘•™…Õ±Ñ}Í…™•}¥¹Í•ÑÍ}‘À¤ì(€€€€€€€€€=‰©•Ğ¹•¹ÑÉ¥•Ì¡¥¹¥Ñ¥…±%¹Í•ÑÌ¤¹™½É…  ¡m­•ä±Ù…±Õ•t¤ôùÍ…™•%¹Í•Ñ%¹ÁÕÑÍm­•åt¹Ù…±Õ”õMÑÉ¥¹œ¡Ù…±Õ”¤¤ì(€€€€€€€€€½¹ÍĞÉ•ÅÕ•ÍÑ•õÁ…É…µÌ¹•Ğ ‰Ù¥•İÁ½ÉĞˆ¤ì(€€€€€€€€€¥˜€¡É•ÅÕ•ÍÑ•¤ì½¹ÍĞmÜ±¡tõÉ•ÅÕ•ÍÑ•¹ÍÁ±¥Ğ ‰àˆ¤¹µ…À¡9Õµ‰•È¤íİ¥‘Ñ¡%¹ÁÕĞ¹Ù…±Õ”õÜí¡•¥¡Ñ%¹ÁÕĞ¹Ù…±Õ”õ ìô(€€€€€€€€€½¹ÍĞ¥¹¥Ñ¥…°õÁÉ•Í•Ğ¹Ù…±Õ”¹ÍÁ±¥Ğ ‰àˆ¤¹µ…À¡9Õµ‰•È¤ì¥˜€ …É•ÅÕ•ÍÑ•¤íİ¥‘Ñ¡%¹ÁÕĞ¹Ù…±Õ”õ¥¹¥Ñ¥…±lÁtí¡•¥¡Ñ%¹ÁÕĞ¹Ù…±Õ”õ¥¹¥Ñ¥…±lÅtíô(€€€€€€€€€½¹ÍĞ™É…µ•UÉ°€ô¹•ÜUI0¡½¹ÑÉ…Ñ¹Ù•±½Á”¹½¹ÑÉ…ÑUÉ°¤ì(€€€€€€€€€½¹ÍĞ‘•Á±½åµ•¹ÑM¡„õ‘½Õµ•¹Ğ¹ÅÕ•ÉåM•±•Ñ½È µ•Ñ…m¹…µ”ô‰¹ ÀÄµÁÉ•Ù¥•Üµ‘•Á±½åµ•¹ĞµÍ¡„‰tœ¤¹½¹Ñ•¹Ğì(€€€€€€€€€‘½Õµ•¹Ğ¹•Ñ±•µ•¹Ñ	å% ‰‘•Á±½åµ•¹ÑM¡„ˆ¤¹Ñ•áÑ½¹Ñ•¹Ğõ‘•Á±½åµ•¹ÑM¡„ì(€€€€€€€€€‘½Õµ•¹Ğ¹•Ñ±•µ•¹Ñ	å% ‰½¹ÑÉ…ÑÕÑ¡½É¥Ñå1¥¹¬ˆ¤¹¡É•˜õ™É…µ•UÉ°¹¡É•˜ì(€€€€€€€€€İ¥¹‘½Ü¹9 ÀÅI•ÍÁ½¹Í¥Ù•½¹ÑÉ…Ğ€ôí¥é½¹ÑÉ…Ğ¹½¹ÑÉ…Ñ}¥±Ù•ÉÍ¥½¸é½¹ÑÉ…Ğ¹½¹ÑÉ…Ñ}Ù•ÉÍ¥½¸±Í¡„ÈÔØé½¹ÑÉ…Ñ¹Ù•±½Á”¹½¹ÑÉ…ÑM¡„ÈÔØ±Á…Ñ é™É…µ•UÉ°¹Á…Ñ¡¹…µ”±Í½ÕÉ•}Í¡„é‰Õ¥±‘M¡„±‘•Á±½åµ•¹Ñ}Í¡„é‘•Á±½åµ•¹ÑM¡„±ÍÑ…ÑÕÌé½¹ÑÉ…Ğ¹ÍÑ…ÑÕÍôì(€€€€€€€€€…İ…¥Ğ…ÁÁ±åY¥•İÁ½ÉĞ ¤ì(€€€€€€€€€İ½É­ÍÁ…”¹±…ÍÍ1¥ÍĞ¹É•µ½Ù” ‰½¹ÑÉ…ĞµÁ•¹‘¥¹œˆ¤ì(€€€€€€€€€½¹ÍĞm…ÍÍ•ÑÌ°…¹¡½ÉÍt€ôµ…ÑÉ¥á5½‘”(€€€€€€€€€€€€ümíÍÑ…ÑÕÌè‰5QI%a}AIY%]}=91dˆ±É•±•…Í•}…Ñ•}•™™•Ğè‰9=9‰ô°mut(€€€€€€€€€€€€è…İ…¥ĞAÉ½µ¥Í”¹…±°¡m…Õ‘¥ÑÍÍ•ÑÌ ¤°…Õ‘¥Ñ¹¡½ÉÌ¡½¹ÑÉ…Ğ¥t¤ì(€€€€€€€€€İ¥¹‘½Ü¹9 ÀÅ•µ¥¹¥AÉ•Ù¥•İI•…‘äõÑÉÕ”ì(€€€€€€€€€İ¥¹‘½Ü¹9 ÀÅ•µ¥¹¥AÉ•Ù¥•İÕ‘¥Ğõì¸¸¸¡İ¥¹‘½Ü¹9 ÀÅ•µ¥¹¥AÉ•Ù¥•İÕ‘¥Ñññíô¤±½¹ÑÉ…Ğéİ¥¹‘½Ü¹9 ÀÅI•ÍÁ½¹Í¥Ù•½¹ÑÉ…Ğ±…¹¡½ÉÌ±…ÍÍ•Ñ}…Õ‘¥Ğé…ÍÍ•ÑÌ±…ÍÍ•ÑÌé…ÍÍ•ÑÌ¹…ÍÍ•ÑÍññmt±ÍÑ…ÑÕÌé…ÍÍ•ÑÌ¹ÍÑ…ÑÕÌôôô‰AMLˆ˜™…¹¡½ÉÌ¹•Ù•Éä¡¥Ñ•´ôù¥Ñ•´¹ÍÑ…ÑÕÌôôô‰AMLˆ¤ü‰AMLˆè‰%0ˆ±É•±•…Í•}…Ñ•}•™™•Ğè‰9=9‰ôì(€€€€€€€€€¥˜€ …µ…ÑÉ¥á5½‘”€˜˜…ÍÍ•ÑÌ¹ÍÑ…ÑÕÌ„ôô‰AMLˆ¤Ñ¡É½Ü¹•ÜÉÉ½È ‰I•¥ÍÑ•É•ÁÉ•Ù¥•Ü…ÍÍ•Ğ¥¹Ñ•É¥Ñä¡•¬™…¥±•¸ˆ¤ì(€€€€€€€ô…Ñ €¡•ÉÉ½È¤ì™…¥±±½Í•¡•ÉÉ½È¤ìô(€€€€€ô(€€€€€ÁÉ•Í•Ğ¹…‘‘Ù•¹Ñ1¥ÍÑ•¹•È ‰¡…¹”ˆ°€ ¤€ôøì½¹ÍĞmÜ±¡tõÁÉ•Í•Ğ¹Ù…±Õ”¹ÍÁ±¥Ğ ‰àˆ¤¹µ…À¡9Õµ‰•È¤íİ¥‘Ñ¡%¹ÁÕĞ¹Ù…±Õ”õÜí¡•¥¡Ñ%¹ÁÕĞ¹Ù…±Õ”õ í…ÁÁ±åY¥•İÁ½ÉĞ ¤¹…Ñ ¡™…¥±±½Í•¤ìô¤ì(€€€€€mİ¥‘Ñ¡%¹ÁÕĞ±¡•¥¡Ñ%¹ÁÕÑt¹™½É… ¡¥¹ÁÕĞôù¥¹ÁÕĞ¹…‘‘Ù•¹Ñ1¥ÍÑ•¹•È ‰¡…¹”ˆ° ¤ôùíÁÉ•Í•Ğ¹Ù…±Õ”ôˆˆí…ÁÁ±åY¥•İÁ½ÉĞ ¤¹…Ñ ¡•ÉÉ½ÈôùÍ¡½İQ½…ÍĞ¡•ÉÉ½È¹µ•ÍÍ…”¤¤íô¤¤ì(€€€€€=‰©•Ğ¹Ù…±Õ•Ì¡Í…™•%¹Í•Ñ%¹ÁÕÑÌ¤¹™½É… ¡¥¹ÁÕĞôù¥¹ÁÕĞ¹…‘‘Ù•¹Ñ1¥ÍÑ•¹•È ‰¡…¹”ˆ° ¤ôù…ÁÁ±åY¥•İÁ½ÉĞ ¤¹…Ñ ¡•ÉÉ½ÈôùÍ¡½İQ½…ÍĞ¡•ÉÉ½È¹µ•ÍÍ…”¤¤¤¤ì(€€€€€±…å½ÕÑY…É¥…¹Ğ¹…‘‘Ù•¹Ñ1¥ÍÑ•¹•È ‰¡…¹”ˆ° ¤ôù…ÁÁ±åY¥•İÁ½ÉĞ ¤¹…Ñ ¡™…¥±±½Í•¤¤ì(€€€€€™½¹ÑM…±”¹…‘‘Ù•¹Ñ1¥ÍÑ•¹•È ‰¥¹ÁÕĞˆ° ¤ôùí™½¹ÑM…±•I•…‘½ÕĞ¹Ñ•áÑ½¹Ñ•¹Ğõ€‘í9Õµ‰•È¡™½¹ÑM…±”¹Ù…±Õ”¤¹Ñ½¥á• Ä¥÷]€í…ÁÁ±åY¥•İÁ½ÉĞ ¤¹…Ñ ¡™…¥±±½Í•¤íô¤ì(€€€€€İ¥¹‘½Ü¹…‘‘Ù•¹Ñ1¥ÍÑ•¹•È ‰É•Í¥é”ˆ° ¤ôùí¥˜¡…¹Ù…Í5½‘”¥…ÁÁ±åY¥•İÁ½ÉĞ ¤¹…Ñ ¡™…¥±±½Í•¤íô¤ì(€€€€€‘½Õµ•¹Ğ¹•Ñ±•µ•¹Ñ	å% ‰…µ•É…	ÕÑÑ½¸ˆ¤¹…‘‘Ù•¹Ñ1¥ÍÑ•¹•È ‰±¥¬ˆ° ¤ôùÍ¡½İQ½…ÍĞ ‹šÖ?¢#–f£¦ª3šRÛ¦Š¢#¾òkš.7Ÿ¢şC¢†3š^Û¢†3’âë’î7RÇ.³®,¹‘É½¥IÕ¹Ñ¥µ”…Ñ”ƒ¦ª3¢¾ˆ¤¤ì(€€€€€‘½Õµ•¹Ğ¹•Ñ±•µ•¹Ñ	å% ‰…Ù…Ñ…É	ÕÑÑ½¸ˆ¤¹…‘‘Ù•¹Ñ1¥ÍÑ•¹•È ‰±¥¬ˆ° ¤ôùÍ¡½İQ½…ÍĞ ‹–öO–&7’öÿR£–ŞËfï¢ºÃjXÈƒ–’Ó–?–n{¦¢Ö’êŸˆ¤¤ì(€€€€€‘½Õµ•¹Ğ¹ÅÕ•ÉåM•±•Ñ½É±° ˆ¹É•ÍÁ½¹Í¥Ù”µ™É…µ”ˆ¤¹™½É… ¡™É…µ”ôùí¥˜ …µ…ÑÉ¥á5½‘”˜˜……¹Ù…Í5½‘”˜™™É…µ”¹‘…Ñ…Í•Ğ¹ÍÉŒ¥™É…µ”¹ÍÉŒõ™É…µ”¹‘…Ñ…Í•Ğ¹ÍÉŒíô¤ì(€€€€€½¹ÍĞµ…ÑÉ¥á½¹ÑM…±”õ‘½Õµ•¹Ğ¹•Ñ±•µ•¹Ñ	å% ‰µ…ÑÉ¥á½¹ÑM…±”ˆ¤ì(€€€€€¥˜¡µ…ÑÉ¥á½¹ÑM…±”¥µ…ÑÉ¥á½¹ÑM…±”¹…‘‘Ù•¹Ñ1¥ÍÑ•¹•È ‰¡…¹”ˆ° ¤ôù‘½Õµ•¹Ğ¹ÅÕ•ÉåM•±•Ñ½É±° ˆ¹É•ÍÁ½¹Í¥Ù”µ™É…µ”ˆ¤¹™½É… ¡™É…µ”ôùí™É…µ”¹ÍÉŒõ€¸½•µ¥¹¤µ¹…Ñ¥Ù”µÁÉ•Ù¥•Ü¹¡Ñµ°ıµ½‘”õµ…ÑÉ¥à™Ù¥•İÁ½ÉĞô‘í•¹½‘•UI%½µÁ½¹•¹Ğ¡™É…µ”¹‘…Ñ…Í•Ğ¹Ù¥•İÁ½ÉĞ¥ô™™½¹ÑM…±”ô‘í•¹½‘•UI%½µÁ½¹•¹Ğ¡µ…ÑÉ¥á½¹ÑM…±”¹Ù…±Õ”¥õ€íô¤¤ì(€€€€€¥¹¥Ñ¥…±¥é” ¤ì((€€€€€½¹ÍĞ±…å•É5•Ñ„€ôì(€€€€€€€€ˆ‘•Ù¥”ˆèí¹…µ”è‰MÉ••¸ƒ
+Ü9 ÀÄ!½µ”ˆ±‘•Í¥¸è‰MÉ••¸µeÕ©¥…¸µ!½µ”ˆ±½µÁ½Í”è‰•µ¥¹¥9½Éµ…±!½µ•½¹Ñ•¹Ğˆ±½¹ÍÑÉ…¥¹Ğè‹–£–Æ?–ºç–f£¾òo–º'–£–2ëšVÃ–ó¢¾ï–>[–öO–&4XÈƒšrë–f£–B#–B3’â;R£š"ß¢úO–—ˆ±ÍÑ…ÑÕÌè‰5AAˆ±¹½Ñ”è‹šÖ?¢#–f£–º'–£–2ë’âë–>¿¢Â¦Š¢#¢úO–—¾ò3’â7šzš"@¹‘É½¥ƒÎïî|¥¹Í•Ğƒ–º{šÖ/¢¾š6»‰ô°(€€€€€€€€ˆ…ÍÍ•Ñ	…­É½Õ¹ˆèí¹…µ”è‰	ƒ
+Ü5½É¹¥¹œ1…­”ˆ±‘•Í¥¸è‰	µ5½Õ¹Ñ…¥¸µ5¥ÍĞˆ±½µÁ½Í”è‰•µ¥¹¥9½Éµ…±!½µ•½¹Ñ•¹Ğ€¼‰…­É½Õ¹É½ÕÀˆ±…ÍÍ•Ğè‰5½É¹¥¹œ1…­”µ…ÍÑ•Èƒ
+ÜÉ•¥ÍÑ•É•‰¥Ñµ…Àˆ±½¹ÍÑÉ…¥¹Ğè‹–£–Æ?¦Në–êW¾òm½¹Ñ•¹ÑM…±”¹É½Ã¾ò1Q½Á•¹Ñ•Ëˆ±ÍÑ…ÑÕÌè‰5AAˆ±¹½Ñ”è‹¢3šf¿šêC–nû’âëš¶–ò?fï¢ºÃ¢Ö’êŸ¾ò3’şwš2–:–/–?Òƒ¾ò3’â7–r£š¶“¦†×šŞï–*ƒ¦Šw–’[–>ƒ–Æ‰ô°(€€€€€€€€ˆÑ½ÁM•Ñ¥½¸ˆèí¹…µ”è‰Q½ÀµM•Ñ¥½¸µÕÑ½1…å½ÕĞˆ±‘•Í¥¸è‰Q½ÀµM•Ñ¥½¸µÕÑ½1…å½ÕĞˆ±½µÁ½Í”è‰•µ¥¹¥Q½ÁM•Ñ¥½¸ˆ±½¹ÍÑÉ…¥¹Ğè‹¦†Û¦£–në–ºk–2ë–~¾òo–º÷–ê›¢Ş¦j?–>¿R£¢–>¾òo–º'–£–2ëRÇš‚ç–ºç–f£–’Bˆ±ÍÑ…ÑÕÌè‰5AA‰ô°(€€€€€€€€ˆ¡•…‘•É	…Èˆèí¹…µ”è‰!•…‘•Èµ	…Èˆ±‘•Í¥¸è‰!•…‘•Èµ	…Èˆ±½µÁ½Í”è‰•µ¥¹¥Q½ÁM•Ñ¥½¸€¼!•…‘•Èµ	…Èˆ±½¹ÍÑÉ…¥¹Ğè‹š¢«–BGš:K–"_¾òo–B#–B3¢º‡º_¦^Ó¢Şw’â;–ºç–f£¦®c–ê›ˆ±ÍÑ…ÑÕÌè‰5AA‰ô°(€€€€€€€€ˆ…ÍÍ•Ñ	É…¹ˆèí¹…µ”è‰	É…¹µQ¥Ñ±”ˆ±‘•Í¥¸è‰	É…¹µQ¥Ñ±”ˆ±½µÁ½Í”è‰H¹‘É…İ…‰±”¹‰É…¹‘}Ñ¥Ñ±•}ÁÉ¥µ…Éäˆ±…ÍÍ•Ğè‰‰É…¹‘}Ñ¥Ñ±•}ÁÉ¥µ…Éä¹Á¹œƒ
+ÜM!É•¥ÍÑ•É•ˆ±½¹ÍÑÉ…¥¹Ğè‹–º÷–ê›RÇ–öO–&4XÈƒ–B#–B3¢º‡º_¾òm½‰©•Ğµ™¥Ğè½¹Ñ…¥»ˆ±ÍÑ…ÑÕÌè‰5AA‰ô°(€€€€€€€€ˆ…Ù…Ñ…É	ÕÑÑ½¸ˆèí¹…µ”è‰UÍ•ÈµÙ…Ñ…Èµ	Ñ¸ˆ±‘•Í¥¸è‰UÍ•ÈµÙ…Ñ…Èµ	Ñ¸ˆ±½µÁ½Í”è‰•µ¥¹¥Ù…Ñ…É	ÕÑÑ½¸ˆ±…ÍÍ•Ğè‰¹½Éµ…±}¡½µ•}‘•™…Õ±Ñ}…Ù…Ñ…É}ØÈ¹Á¹œƒ
+ÜM!É•¥ÍÑ•É•ˆ±½¹ÍÑÉ…¥¹Ğè‹¢›š:Ÿ’â;–’Ó–?¢¢'–Âë–¾ãRÇ–öO–&4XÈƒ–B#–B3¢º‡º_ˆ±ÍÑ…ÑÕÌè‰5AA‰ô°(€€€€€€€€ˆÍÑ…ÑÍ	…Èˆèí¹…µ”è‰MÑ…ÑÌµ	…Èˆ±‘•Í¥¸è‰MÑ…ÑÌµ	…Èˆ±½µÁ½Í”è‰•µ¥¹¥MÑ…ÑÍ	…Èˆ±½¹ÍÑÉ…¥¹Ğè‹’â'–"_¶'–º÷¾òošVÃ–ó’â;š‚¶ûš2'–º'–£¦®c–ê›–J3Îïî–¶_’öOò§šRûˆ±ÍÑ…ÑÕÌè‰5AA‰ô°(€€€€€€€€ˆµ¥‘‘±•M•Ñ¥½¸ˆèí¹…µ”è‰5¥‘‘±”µ…É½ÕÍ•°µM•Ñ¥½¸ˆ±‘•Í¥¸è‰5¥‘‘±”µ…É½ÕÍ•°µM•Ñ¥½¸ˆ±½µÁ½Í”è‰•µ¥¹¥5¥‘‘±•M•Ñ¥½¸ˆ±½¹ÍÑÉ…¥¹Ğè‹–6ƒR£–&§’ög–znÓ¦ë¦^Ó¾òoÒŸ–G~·–Æ?–¢ºã¢¾—–2ë–~–Æ¦£šîk–*£ˆ±ÍÑ…ÑÕÌè‰5AA‰ô°(€€€€€€€€ˆÍ•Ñ¥½¹!•…‘•Èˆèí¹…µ”è‰M•Ñ¥½¸µ!•…‘•Èµ	…Èˆ±‘•Í¥¸è‰M•Ñ¥½¸µ!•…‘•Èµ	…Èˆ±½µÁ½Í”è‰•µ¥¹¥M•Ñ¥½¹!•…‘•Èˆ±½¹ÍÑÉ…¥¹Ğè‹š¢«–BGš‚¦Šc’â;šN7’ös¦†ç¾òo–¶_–>ß¦j?¦®c–ê›–>+–¶_’öOò§šRûˆ±ÍÑ…ÑÕÌè‰5AA‰ô°(€€€€€€€€ˆ…É½ÕÍ•±]¥¹‘½Üˆèí¹…µ”è‰…É½ÕÍ•°µQÉ…¬µ½¹Ñ…¥¹•Èˆ±‘•Í¥¸è‰…É½ÕÍ•°µQÉ…¬µ½¹Ñ…¥¹•Èˆ±½µÁ½Í”è‰•µ¥¹¥…Ñ¡…É½ÕÍ•°€¼!½É¥é½¹Ñ…±A…•Èˆ±½¹ÍÑÉ…¥¹Ğè‹¢ö£¦O–º÷–ê›–6‡&š¾S’ú/–J3¢úçòc¦Š¢#–óRÇ–öO–&4XÈƒ–B#–B3¢º‡º_ˆ±ÍÑ…ÑÕÌè‰5AA‰ô°(€€€€€€€€ˆ±•™Ñ…Ñ¡…Éˆèí¹…µ”è‰…ÉµA••¬µ1•™Ğˆ±‘•Í¥¸è‰…ÉµA••¬µ1•™Ğˆ±½µÁ½Í”è‰•µ¥¹¥…Ñ¡…É½ÕÍ•°€¼ÁÉ•Ù¥½ÕÌÁ…”ˆ±…ÍÍ•Ğè‹.³®/¢:ßš&çŸ&šr«fï¢ºÀˆ±½¹ÍÑÉ…¥¹Ğè‹–>«–r£–¶c–r£r–º{.³®/¦Æó¢:ß¢ºÃ–öW’â;¢:ßš&çÒƒšvCš^Ûšbû’ëˆ±ÍÑ…ÑÕÌè‰	1=-ˆ±¹½Ñ”è‹–öO–&7šÊ‡šr'–>¿–³–òj.³®/¦
+ï–6‡¢ºÃ–öW¾ò3Rï–â¦jC¢^?¢¾—–6‡’â7–ú_–’7–"Ø!•É¼ƒ¦Æó¢:ß‰ô°(€€€€€€€€ˆµ…¥¹…Ñ¡…Éˆèí¹…µ”è‰…Éµ5…¥¸µÑ¥Ù”ˆ±‘•Í¥¸è‰…Éµ5…¥¸µÑ¥Ù”ˆ±½µÁ½Í”è‰•µ¥¹¥…Ñ¡…É½ÕÍ•°€¼Í•±•Ñ•Á…”ˆ±…ÍÍ•Ğè‰!•É¼Á¡½Ñ¼Í½ÕÉ”…ÁÁÉ½Ù…°Á•¹‘¥¹œˆ±½¹ÍÑÉ…¥¹Ğè‹–Âë–¾ã–º÷¦®cš¾SšZ–¶_–J3¦ë¦^Óê›šv¢¾ï–>[–öO–&4XÈƒ–B#–B3¾òo¦ë¦^Ó’â7¢ÚÏš^Û–>«–¢ºà5¥‘‘±”ƒ–Æ¦£šîk–*£ˆ±ÍÑ…ÑÕÌè‰	1=-ˆ±¹½Ñ”è‹¦Æó¢:ßŸ&šv—šêC¢Š¯¢Ö’êŸ–B#–B3¦bï–†{¾òo–öO–&7Rï–â’â7šbû’ë¦v{r–º{Ÿ&–ïîO–>¢–¾çŸ’î7–>¿š~—r/‰ô°(€€€€€€€€ˆ…É‘5•Ñ…‘…Ñ„ˆèí¹…µ”è‰…Éµ5•Ñ…‘…Ñ„ˆ±‘•Í¥¸è‰…Éµ5•Ñ…‘…Ñ„ˆ±½µÁ½Í”è‰•µ¥¹¥…Ñ¡…É½ÕÍ•°€¼…Ñ¡…É‘5•Ñ…‘…Ñ„ˆ±½¹ÍÑÉ…¥¹Ğè‹–êW¦£šâC–>cš&ÿ¢ö÷¦Æó7–Âë–¾ã¦7¦?š^Û¦^Ó–rÃ
+ç¾òo–¶_–>ß’â;–6‡&¦ë¦^Ó–>_–N7–êS–ò?–B#–B3ê›švˆ±ÍÑ…ÑÕÌè‰5AA‰ô°(€€€€€€€€ˆ¡•É½A±…•¡½±‘•Èˆèí¹…µ”è‰!•É¼µA¡½Ñ¼ˆ±‘•Í¥¸è‰…Éµ5…¥¸µÑ¥Ù”€¼!•É¼µA¡½Ñ¼ˆ±½µÁ½Í”è‰•µ¥¹¥…Ñ¡…É½ÕÍ•°€¼I•µ½Ñ•%µ…”ˆ±…ÍÍ•Ğè‰	1=-}MMQ}M=UIˆ±½¹ÍÑÉ…¥¹Ğè‹n»š‚–nû–?¦rš2'–ŞËš&ç–jÉ½À½¥Ğƒ–B#–B3šâËš~O¾òo–öO–&7’î’âë¦bï–†{–6ƒ’ö7ˆ±ÍÑ…ÑÕÌè‰	1=-ˆ±¹½Ñ”è‹š¶“–’’â7¢÷š:£šZ·R’êŸ¦Æó’öL5…Í¬ƒš"[Ÿ&¢–"šb¿–B›š¶†»‰ô°(€€€€€€€€ˆ…É‘5•Ñ…‘…Ñ„ˆèí¹…µ”è‰…Éµ5•Ñ…‘…Ñ„ˆ±‘•Í¥¸è‰…Éµ5…¥¸µÑ¥Ù”€¼µ•Ñ…‘…Ñ„ˆ±½µÁ½Í”è‰•µ¥¹¥…Ñ¡…É½ÕÍ•°€¼…Ñ¡…É‘5•Ñ…‘…Ñ„ˆ±½¹ÍÑÉ…¥¹Ğè‹–êW¦£šâC–>cš&ÿ¢ö÷šZ–¶_¾òo¦Æó7–Âë–¾ã¦7¦?š^Û¦^Ó–rÃ
+ç–"êŸš:K–âˆ±ÍÑ…ÑÕÌè‰5AA‰ô°(€€€€€€€€ˆÉ¥¡Ñ…Ñ¡…Éˆèí¹…µ”è‰…ÉµA••¬µI¥¡Ğˆ±‘•Í¥¸è‰…ÉµA••¬µI¥¡Ğˆ±½µÁ½Í”è‰•µ¥¹¥…Ñ¡…É½ÕÍ•°€¼¹•áĞÁ…”ˆ±…ÍÍ•Ğè‹.³®/¢:ßš&çŸ&šr«fï¢ºÀˆ±½¹ÍÑÉ…¥¹Ğè‹–>«–r£–¶c–r£r–º{.³®/¦Æó¢:ß¢ºÃ–öW’â;¢:ßš&çÒƒšvCš^Ûšbû’ëˆ±ÍÑ…ÑÕÌè‰	1=-ˆ±¹½Ñ”è‹–öO–&7šÊ‡šr'–>¿–³–òj.³®/¦
+ï–6‡¢ºÃ–öW¾ò3Rï–â¦jC¢^?¢¾—–6‡’â7–ú_–’7–"Ø!•É¼ƒ¦Æó¢:ß‰ô°(€€€€€€€€ˆ™½½Ñ•ÉM•Ñ¥½¸ˆèí¹…µ”è‰½½Ñ•ÈµQµM•Ñ¥½¸ˆ±‘•Í¥¸è‰½½Ñ•ÈµQµM•Ñ¥½¸ˆ±½µÁ½Í”è‰•µ¥¹¥½½Ñ•ÉM•Ñ¥½¸ˆ±½¹ÍÑÉ…¥¹Ğè‹–êW¦£–në–ºkšN7’ös–2ë¾òoÎïî–¾ó¢"«–º'–£–2ëRÇš‚ç–ºç–f£–’Bˆ±ÍÑ…ÑÕÌè‰5AA‰ô°(€€€€€€€€ˆÑ…1…‰•°ˆèí¹…µ”è‰Qµ1…‰•°µI•½É‘9•áĞˆ±‘•Í¥¸è‰Qµ1…‰•°µI•½É‘9•áĞˆ±½µÁ½Í”è‰•µ¥¹¥½½Ñ•ÉM•Ñ¥½¸€¼Q±…‰•°ˆ±½¹ÍÑÉ…¥¹Ğè‹šZ–¶_–¶_–>ß¢Ş¦j?–º'–£¦®c–ê›–J3–¶_’öOò§šRû¾òo’â;nãšrëš:Ÿ’îÛ’şwš2–znÓ¦^Ó¢Şwˆ±ÍÑ…ÑÕÌè‰5AA‰ô°(€€€€€€€€ˆ…µ•É…	ÕÑÑ½¸ˆèí¹…µ”è‰Qµ…µ•É„µ	ÕÑÑ½¸ˆ±‘•Í¥¸è‰Qµ…µ•É„µ	ÕÑÑ½¸ˆ±½µÁ½Í”è‰!½µ•…µ•É…	ÕÑÑ½¸ˆ±…ÍÍ•Ğè‰¹½Éµ…±}¡½µ•}…µ•É…}ÁÉ¥µ…Éå}ØÄ¹Á¹œƒ
+ÜM!É•¥ÍÑ•É•ˆ±½¹ÍÑÉ…¥¹Ğè‹¢¢'–Âë–¾ã’â;¢›š:Ÿn»š‚’úwš6»–öO–&4XÈƒ–B#–B3–J3–º'–£–2ë–~¢º‡º_ˆ±ÍÑ…ÑÕÌè‰5AA‰ô(€€€€€ôì(€€€€€½¹ÍĞ¥¹ÍÁ•Ñ½É¥•±‘Ì€ôì(€€€€€€€¹…µ”é‘½Õµ•¹Ğ¹•Ñ±•µ•¹Ñ	å% ‰¥¹ÍÁ•Ñ½É9½‘•9…µ”ˆ¤°ÍÑ…ÑÕÌé‘½Õµ•¹Ğ¹•Ñ±•µ•¹Ñ	å% ‰¥¹ÍÁ•Ñ½É9½‘•MÑ…ÑÕÌˆ¤°(€€€€€€€‘•Í¥¸é‘½Õµ•¹Ğ¹•Ñ±•µ•¹Ñ	å% ‰¥¹ÍÁ•Ñ½É•Í¥¹9½‘”ˆ¤°½µÁ½Í”é‘½Õµ•¹Ğ¹•Ñ±•µ•¹Ñ	å% ‰¥¹ÍÁ•Ñ½É½µÁ½Í•9½‘”ˆ¤°(€€€€€€€Á½Í¥Ñ¥½¸é‘½Õµ•¹Ğ¹•Ñ±•µ•¹Ñ	å% ‰¥¹ÍÁ•Ñ½ÉA½Í¥Ñ¥½¸ˆ¤°Í¥é”é‘½Õµ•¹Ğ¹•Ñ±•µ•¹Ñ	å% ‰¥¹ÍÁ•Ñ½ÉM¥é”ˆ¤°(€€€€€€€™½¹Ğé‘½Õµ•¹Ğ¹•Ñ±•µ•¹Ñ	å% ‰¥¹ÍÁ•Ñ½É½¹Ğˆ¤°É…‘¥ÕÌé‘½Õµ•¹Ğ¹•Ñ±•µ•¹Ñ	å% ‰¥¹ÍÁ•Ñ½ÉI…‘¥ÕÌˆ¤°(€€€€€€€‰…­É½Õ¹é‘½Õµ•¹Ğ¹•Ñ±•µ•¹Ñ	å% ‰¥¹ÍÁ•Ñ½É	…­É½Õ¹ˆ¤°½±½Èé‘½Õµ•¹Ğ¹•Ñ±•µ•¹Ñ	å% ‰¥¹ÍÁ•Ñ½É½±½Èˆ¤°(€€€€€€€¥µ…”é‘½Õµ•¹Ğ¹•Ñ±•µ•¹Ñ	å% ‰¥¹ÍÁ•Ñ½É%µ…”ˆ¤°½¹ÍÑÉ…¥¹Ğé‘½Õµ•¹Ğ¹•Ñ±•µ•¹Ñ	å% ‰¥¹ÍÁ•Ñ½É½¹ÍÑÉ…¥¹Ğˆ¤°(€€€€€€€…ÍÍ•ÑMÑ…ÑÕÌé‘½Õµ•¹Ğ¹•Ñ±•µ•¹Ñ	å% ‰¥¹ÍÁ•Ñ½ÉÍÍ•ÑMÑ…ÑÕÌˆ¤°¹½Ñ”é‘½Õµ•¹Ğ¹•Ñ±•µ•¹Ñ	å% ‰¥¹ÍÁ•Ñ½É9½Ñ”ˆ¤(€€€€€ôì(€€€€€™Õ¹Ñ¥½¸Í•±•Ñ1…å•È¡Ñ…É•Ğ¤ì(€€€€€€€½¹ÍĞ¹½‘”€ô‘½Õµ•¹Ğ¹ÅÕ•ÉåM•±•Ñ½È¡Ñ…É•Ğ¤ì(€€€€€€€¥˜€ …¹½‘”¤É•ÑÕÉ¸ì(€€€€€€€‘½Õµ•¹Ğ¹ÅÕ•ÉåM•±•Ñ½É±° ˆ¹±…å•Èµ¹½‘”ˆ¤¹™½É… ¡‰ÕÑÑ½¸€ôø‰ÕÑÑ½¸¹Í•ÑÑÑÉ¥‰ÕÑ” ‰…É¥„µÍ•±•Ñ•ˆ°MÑÉ¥¹œ¡‰ÕÑÑ½¸¹‘…Ñ…Í•Ğ¹Ñ…É•Ğ€ôôôÑ…É•Ğ¤¤¤ì(€€€€€€€‘½Õµ•¹Ğ¹ÅÕ•ÉåM•±•Ñ½É±° ‰m‘…Ñ„µ¥¹ÍÁ•Ñ•ôÑÉÕ”tˆ¤¹™½É… ¡•°€ôøì•°¹É•µ½Ù•ÑÑÉ¥‰ÕÑ” ‰‘…Ñ„µ¥¹ÍÁ•Ñ•ˆ¤ì•°¹±…ÍÍ1¥ÍĞ¹É•µ½Ù” ‰¥¹ÍÁ•Ñ•µ¹½‘”ˆ¤ìô¤ì(€€€€€€€¹½‘”¹Í•ÑÑÑÉ¥‰ÕÑ” ‰‘…Ñ„µ¥¹ÍÁ•Ñ•ˆ°€‰ÑÉÕ”ˆ¤ì(€€€€€€€¹½‘”¹±…ÍÍ1¥ÍĞ¹…‘ ‰¥¹ÍÁ•Ñ•µ¹½‘”ˆ¤ì(€€€€€€€½¹ÍĞµ•Ñ„€ô±…å•É5•Ñ…mÑ…É•Ñtñğí¹…µ”é¹½‘”¹•ÑÑÑÉ¥‰ÕÑ” ‰‘…Ñ„µ±…å•Èˆ¤ñğ¹½‘”¹¥ñğÑ…É•Ğ±‘•Í¥¸é¹½‘”¹•ÑÑÑÉ¥‰ÕÑ” ‰‘…Ñ„µ±…å•Èˆ¤ñğÑ…É•Ğ±½µÁ½Í”è‰½µÁ½Í”µ…ÁÁ¥¹œ¹½ĞÉ•¥ÍÑ•É•ˆ±½¹ÍÑÉ…¥¹Ğè‹–Âkšr«fï¢ºÃ–N7–êS–ò?ê›švˆ±ÍÑ…ÑÕÌè‰IY%]}IEU%Iˆ±¹½Ñ”è‹¦r¢š¢†—¦öC¢ºû¢º‡¢*
+ç’â8¹‘É½¥½µÁ½Í”ƒjšb;†»šbƒ–Â‰ôì(€€€€€€€½¹ÍĞ‘•Ù¥•I•Ğ€ô‘•Ù¥”¹•Ñ	½Õ¹‘¥¹±¥•¹ÑI•Ğ ¤°É•Ğ€ô¹½‘”¹•Ñ	½Õ¹‘¥¹±¥•¹ÑI•Ğ ¤ì(€€€€€€€½¹ÍĞÍ…±”€ô‘•Ù¥”¹½™™Í•Ñ]¥‘Ñ €ü‘•Ù¥•I•Ğ¹İ¥‘Ñ €¼‘•Ù¥”¹½™™Í•Ñ]¥‘Ñ €è€Äì(€€€€€€€½¹ÍĞ¹Õµ‰•È€ôÙ…±Õ”€ôø€¡5…Ñ ¹É½Õ¹¡Ù…±Õ”€¨€ÄÀÀ¤€¼€ÄÀÀ¤¹Ñ½¥á• È¤ì(€€€€€€€½¹ÍĞà€ô€¡É•Ğ¹±•™Ğ€´‘•Ù¥•I•Ğ¹±•™Ğ¤€¼Í…±”°ä€ô€¡É•Ğ¹Ñ½À€´‘•Ù¥•I•Ğ¹Ñ½À¤€¼Í…±”ì(€€€€€€€½¹ÍĞİ¥‘Ñ €ôÉ•Ğ¹İ¥‘Ñ €¼Í…±”°¡•¥¡Ğ€ôÉ•Ğ¹¡•¥¡Ğ€¼Í…±”°ÍÑå±”€ô•Ñ½µÁÕÑ•‘MÑå±”¡¹½‘”¤ì(€€€€€€€½¹ÍĞ¥µ…”€ô¹½‘”¹µ…Ñ¡•Ì ‰¥µœˆ¤€ü¹½‘”€è¹½‘”¹ÅÕ•ÉåM•±•Ñ½È ‰¥µœˆ¤ì(€€€€€€€½¹ÍĞ…ÍÍ•ÑQ•áĞ€ôµ•Ñ„¹…ÍÍ•Ğñğ€¡¥µ…”€ü€¡¥µ…”¹‘…Ñ…Í•Ğ¹…ÍÍ•Ñ%ñğ€¡¥µ…”¹ÕÉÉ•¹ÑMÉŒñğ¥µ…”¹ÍÉŒ¤¹ÍÁ±¥Ğ ˆ¼ˆ¤¹Á½À ¤¤€è€‹š^ƒ.³®/–nû&¢Ö’êœˆ¤ì(€€€€€€€¥¹ÍÁ•Ñ½É¥•±‘Ì¹¹…µ”¹Ñ•áÑ½¹Ñ•¹Ğ€ôµ•Ñ„¹¹…µ”ì(€€€€€€€¥¹ÍÁ•Ñ½É¥•±‘Ì¹ÍÑ…ÑÕÌ¹Ñ•áÑ½¹Ñ•¹Ğ€ôµ•Ñ„¹ÍÑ…ÑÕÌì(€€€€€€€¥¹ÍÁ•Ñ½É¥•±‘Ì¹ÍÑ…ÑÕÌ¹‘…Ñ…Í•Ğ¹ÍÑ…ÑÕÌ€ôµ•Ñ„¹ÍÑ…ÑÕÌ€ôôô€‰	1=-ˆ€ü€‰	1=-ˆ€è€¡µ•Ñ„¹ÍÑ…ÑÕÌ€ôôô€‰5AAˆ€ü€‰5AAˆ€è€‰IY%]}IEU%Iˆ¤ì(€€€€€€€¥¹ÍÁ•Ñ½É¥•±‘Ì¹‘•Í¥¸¹Ñ•áÑ½¹Ñ•¹Ğ€ôµ•Ñ„¹‘•Í¥¸ñğ€‹ŠPˆì(€€€€€€€¥¹ÍÁ•Ñ½É¥•±‘Ì¹½µÁ½Í”¹Ñ•áÑ½¹Ñ•¹Ğ€ôµ•Ñ„¹½µÁ½Í”ñğ€‹ŠPˆì(€€€€€€€¥¹ÍÁ•Ñ½É¥•±‘Ì¹Á½Í¥Ñ¥½¸¹Ñ•áÑ½¹Ñ•¹Ğ€ô¹Õµ‰•È¡à¤€¬€ˆƒ
+Ü€ˆ€¬¹Õµ‰•È¡ä¤ì(€€€€€€€¥¹ÍÁ•Ñ½É¥•±‘Ì¹Í¥é”¹Ñ•áÑ½¹Ñ•¹Ğ€ô¹Õµ‰•È¡İ¥‘Ñ ¤€¬€ˆƒ
+Ü€ˆ€¬¹Õµ‰•È¡¡•¥¡Ğ¤ì(€€€€€€€¥¹ÍÁ•Ñ½É¥•±‘Ì¹™½¹Ğ¹Ñ•áÑ½¹Ñ•¹Ğ€ôÍÑå±”¹™½¹ÑM¥é”€¬€ˆ€¼€ˆ€¬ÍÑå±”¹™½¹Ñ]•¥¡Ğì(€€€€€€€¥¹ÍÁ•Ñ½É¥•±‘Ì¹É…‘¥ÕÌ¹Ñ•áÑ½¹Ñ•¹Ğ€ôÍÑå±”¹‰½É‘•ÉI…‘¥ÕÌñğ€ˆÁÁàˆì(€€€€€€€¥¹ÍÁ•Ñ½É¥•±‘Ì¹‰…­É½Õ¹¹Ñ•áÑ½¹Ñ•¹Ğ€ôÍÑå±”¹‰…­É½Õ¹‘½±½Èì(€€€€€€€¥¹ÍÁ•Ñ½É¥•±‘Ì¹½±½È¹Ñ•áÑ½¹Ñ•¹Ğ€ôÍÑå±”¹½±½Èì(€€€€€€€¥¹ÍÁ•Ñ½É¥•±‘Ì¹¥µ…”¹Ñ•áÑ½¹Ñ•¹Ğ€ô¥µ…”€ü€¡¥µ…”¹ÕÉÉ•¹ÑMÉŒñğ¥µ…”¹ÍÉŒ¤¹ÍÁ±¥Ğ ˆ¼ˆ¤¹Á½À ¤€¬€ˆƒ
+Ü™¥Ğôˆ€¬•Ñ½µÁÕÑ•‘MÑå±”¡¥µ…”¤¹½‰©•Ñ¥Ğ€è…ÍÍ•ÑQ•áĞì(€€€€€€€¥¹ÍÁ•Ñ½É¥•±‘Ì¹½¹ÍÑÉ…¥¹Ğ¹Ñ•áÑ½¹Ñ•¹Ğ€ôµ•Ñ„¹½¹ÍÑÉ…¥¹Ğñğ€‹šr«fï¢ºÀˆì(€€€€€€€¥¹ÍÁ•Ñ½É¥•±‘Ì¹…ÍÍ•ÑMÑ…ÑÕÌ¹Ñ•áÑ½¹Ñ•¹Ğ€ô…ÍÍ•ÑQ•áĞ€¬€ˆƒ
+Ü€ˆ€¬µ•Ñ„¹ÍÑ…ÑÕÌì(€€€€€€€¥¹ÍÁ•Ñ½É¥•±‘Ì¹¹½Ñ”¹Ñ•áÑ½¹Ñ•¹Ğ€ôµ•Ñ„¹¹½Ñ”ñğ€‹–ƒ’öWšVÃ–óšv—¢«–öO–&7šÖ?¢#–f£¦Š¢#¾òo¦rR£–B3’âšêC‚M!ƒj¹‘É½¥‰½Õ¹‘Í%¹]¥¹‘½Üƒ–J3š"«–nû–’7š‚ãˆì(€€€€€€€İ¥¹‘½Ü¹9 ÀÅM•±•Ñ•‘1…å•È€ôíÑ…É•Ğ±¹…µ”éµ•Ñ„¹¹…µ”±‘•Í¥¹9½‘”éµ•Ñ„¹‘•Í¥¸±½µÁ½Í”éµ•Ñ„¹½µÁ½Í”±‰½Õ¹‘ÍÀéíàé9Õµ‰•È¡¹Õµ‰•È¡à¤¤±äé9Õµ‰•È¡¹Õµ‰•È¡ä¤¤±İ¥‘Ñ é9Õµ‰•È¡¹Õµ‰•È¡İ¥‘Ñ ¤¤±¡•¥¡Ğé9Õµ‰•È¡¹Õµ‰•È¡¡•¥¡Ğ¤¥ô±ÍÑ…ÑÕÌéµ•Ñ„¹ÍÑ…ÑÕÍôì(€€€€€ô(€€€€€‘½Õµ•¹Ğ¹•Ñ±•µ•¹Ñ	å% ‰±…å•ÉQÉ•”ˆ¤¹…‘‘Ù•¹Ñ1¥ÍÑ•¹•È ‰±¥¬ˆ°•Ù•¹Ğ€ôøì(€€€€€€€½¹ÍĞ‰ÕÑÑ½¸€ô•Ù•¹Ğ¹Ñ…É•Ğ¹±½Í•ÍĞ ˆ¹±…å•Èµ¹½‘”ˆ¤ì(€€€€€€€¥˜€¡‰ÕÑÑ½¸¤Í•±•Ñ1…å•È¡‰ÕÑÑ½¸¹‘…Ñ…Í•Ğ¹Ñ…É•Ğ¤ì(€€€€€ô¤ì(€€€€€‘•Ù¥”¹…‘‘Ù•¹Ñ1¥ÍÑ•¹•È ‰±¥¬ˆ°•Ù•¹Ğ€ôøì(€€€€€€€¥˜€¡•Ù•¹Ğ¹Ñ…É•Ğ¹±½Í•ÍĞ ˆ¹…µ•É„µ‰ÕÑÑ½¸ˆ¤ñğ•Ù•¹Ğ¹Ñ…É•Ğ¹±½Í•ÍĞ ˆ¹…Ù…Ñ…Èµ‰ÕÑÑ½¸ˆ¤¤É•ÑÕÉ¸ì(€€€€€€€½¹ÍĞÑ…É•Ğ€ô•Ù•¹Ğ¹Ñ…É•Ğ¹±½Í•ÍĞ ‰m‘…Ñ„µ±…å•Ét°m‘…Ñ„µ…ÍÍ•Ğµ¥‘t°€‘•Ù¥”ˆ¤ì(€€€€€€€¥˜€ …Ñ…É•Ğ¤É•ÑÕÉ¸ì(€€€€€€€½¹ÍĞÍ•±•Ñ½È€ôÑ…É•Ğ¹¥€ü€ˆŒˆ€¬Ñ…É•Ğ¹¥€è¹Õ±°ì(€€€€€€€¥˜€¡Í•±•Ñ½È€˜˜±…å•É5•Ñ…mÍ•±•Ñ½Ét¤Í•±•Ñ1…å•È¡Í•±•Ñ½È¤ì(€€€€€€€•±Í”ì(€€€€€€€€€½¹ÍĞ±…å•É9…µ”€ôÑ…É•Ğ¹•ÑÑÑÉ¥‰ÕÑ” ‰‘…Ñ„µ±…å•Èˆ¤ì(€€€€€€€€€½¹ÍĞ•¹ÑÉä€ô=‰©•Ğ¹•¹ÑÉ¥•Ì¡±…å•É5•Ñ„¤¹™¥¹ ¡m­•ä±Ù…±Õ•t¤€ôøÙ…±Õ”¹‘•Í¥¸€ôôô±…å•É9…µ”ñğÙ…±Õ”¹¹…µ”€ôôô±…å•É9…µ”¤ì(€€€€€€€€€¥˜€¡•¹ÑÉä¤Í•±•Ñ1…å•È¡•¹ÑÉålÁt¤ì(€€€€€€€ô(€€€€€ô¤ì(€€€€€¥˜€ ……¹Ù…Í5½‘”€˜˜€…µ…ÑÉ¥á5½‘”¤Í•±•Ñ1…å•È ˆµ…¥¹…Ñ¡…Éˆ¤ì((€€€ô¤ ¤ì(€€ğ½ÍÉ¥ÁĞø(ğ½‰½‘äø(ğ½¡Ñµ°ø
