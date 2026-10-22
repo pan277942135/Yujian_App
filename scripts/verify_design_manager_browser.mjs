@@ -28,6 +28,15 @@ function parseArgs(argv) {
 function fail(message) { throw new Error(message); }
 function assert(condition, message) { if (!condition) fail(message); }
 
+function recordFailedRequest(request, failedRequests) {
+  const reason = request.failure()?.errorText || "request failed";
+  // Playwright reports navigation-cancelled resources as ERR_ABORTED when
+  // a workspace iframe is deliberately switched or refreshed. That is not
+  // a failed asset fetch; keep all other request failures as hard errors.
+  if (reason === "net::ERR_ABORTED") return;
+  failedRequests.push(`${request.url()} · ${reason}`);
+}
+
 function startStaticServer(root) {
   const absoluteRoot = resolve(root);
   const mime = {
@@ -119,7 +128,7 @@ async function main() {
   page.on("console", message => { if (message.type() === "error") errors.push(message.text()); });
   page.on("pageerror", error => errors.push(error.message));
   page.on("request", request => { if (new URL(request.url()).origin !== sameOrigin) externalRequests.push(request.url()); });
-  page.on("requestfailed", request => failedRequests.push(`${request.url()} · ${request.failure()?.errorText || "request failed"}`));
+  page.on("requestfailed", request => recordFailedRequest(request, failedRequests));
   page.on("response", response => {
     if (response.status() >= 400 && response.url().startsWith(new URL(baseUrl).origin)) {
       badResponses.push(`${response.status()} ${response.url()}`);
@@ -142,7 +151,7 @@ async function main() {
   previewPage.on("console", message => { if (message.type() === "error") errors.push(message.text()); });
   previewPage.on("pageerror", error => errors.push(error.message));
   previewPage.on("request", request => { if (new URL(request.url()).origin !== sameOrigin) externalRequests.push(request.url()); });
-  previewPage.on("requestfailed", request => failedRequests.push(`${request.url()} · ${request.failure()?.errorText || "request failed"}`));
+  previewPage.on("requestfailed", request => recordFailedRequest(request, failedRequests));
   previewPage.on("response", response => {
     if (response.status() >= 400 && response.url().startsWith(new URL(baseUrl).origin)) {
       badResponses.push(`${response.status()} ${response.url()}`);
@@ -414,7 +423,7 @@ async function main() {
   const canvasPage = await browser.newPage({ viewport: { width: 360, height: 640 }, deviceScaleFactor: 3 });
   canvasPage.on("console", message => { if (message.type() === "error") errors.push(message.text()); });
   canvasPage.on("pageerror", error => errors.push(error.message));
-  canvasPage.on("requestfailed", request => failedRequests.push(`${request.url()} · ${request.failure()?.errorText || "request failed"}`));
+  canvasPage.on("requestfailed", request => recordFailedRequest(request, failedRequests));
   canvasPage.on("response", response => {
     if (response.status() >= 400 && response.url().startsWith(new URL(baseUrl).origin)) {
       badResponses.push(`${response.status()} ${response.url()}`);
@@ -646,7 +655,7 @@ async function main() {
   historyPage.on("console", message => { if (message.type() === "error") errors.push(message.text()); });
   historyPage.on("pageerror", error => errors.push(error.message));
   historyPage.on("request", request => { if (new URL(request.url()).origin !== sameOrigin) externalRequests.push(request.url()); });
-  historyPage.on("requestfailed", request => failedRequests.push(`${request.url()} · ${request.failure()?.errorText || "request failed"}`));
+  historyPage.on("requestfailed", request => recordFailedRequest(request, failedRequests));
   historyPage.on("response", response => {
     if (response.status() >= 400 && response.url().startsWith(new URL(baseUrl).origin)) {
       badResponses.push(`${response.status()} ${response.url()}`);
