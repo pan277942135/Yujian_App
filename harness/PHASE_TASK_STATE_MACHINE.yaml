@@ -395,8 +395,8 @@ tasks:
     depends_on: ["P3-01"]
     entry_blockers: []
     target_blockers: ["B003", "B004", "B006"]
-    evidence_required: ["hero_F01-F08_provenance", "camera_mask_runtime_parity", "phase_3b_provenance_resolution"]
-    completion: "Normal Home and Recognition Result design/runtime provenance blockers closed."
+    evidence_required: ["hero_F01-F08_provenance", "camera_mask_runtime_parity", "phase_3b_provenance_resolution", "design_manager_shared_page_layer_contract", "nh01_page_owned_layer_map_and_authority_binding", "non_nh01_fixture_shell_independence", "workspace_view_back_forward_refresh_direct_route", "existing_asset_navigation_viewport_governance_checks"]
+    completion: "Normal Home and Recognition Result design/runtime provenance blockers closed. NH01 Design Manager workspace also satisfies the shared page-layer contract with a non-NH01 shell-independence fixture and exact-SHA browser-history evidence; other pages remain opt-in."
     human_required: false
   P3-03:
     phase: "P3"

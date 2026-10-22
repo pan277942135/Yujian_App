@@ -123,6 +123,10 @@ shared_contracts:
     domain: "EXECUTION"
     status: "ACTIVE"
     refs: ["harness/STATE_UPDATE_PROTOCOL.md", "harness/PHASE_TASK_STATE_MACHINE.yaml", "PROJECT_MASTER_STATE.yaml"]
+  DESIGN-MANAGER-PAGE-LAYER-WORKSPACE-V1:
+    domain: "DOMAIN"
+    status: "READY"
+    refs: ["design/governance/DESIGN_MANAGER_PAGE_LAYER_WORKSPACE_V1.md"]
 
 feature_contracts:
   home_empty_v2:
@@ -1475,7 +1479,7 @@ task_contract_bindings:
     gate_id: null
     phase: "P3"
   P3-02:
-    contract_refs: ["FC-home_normal_v1", "FC-recognition_result_v1"]
+    contract_refs: ["FC-home_normal_v1", "FC-recognition_result_v1", "DESIGN-MANAGER-PAGE-LAYER-WORKSPACE-V1"]
     gate_id: null
     phase: "P3"
   P3-03:
