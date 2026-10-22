@@ -63,6 +63,19 @@ class BootstrapError(RuntimeError):
     pass
 
 
+def source_build_sha() -> str | None:
+    """Resolve the product source SHA before GitHub's synthetic merge SHA.
+
+    Pull request runtime workflows explicitly check out the PR head commit so
+    their APK provenance remains bound to the source being reviewed.
+    """
+    return (
+        os.environ.get("YUJIAN_BUILD_SHA")
+        or os.environ.get("BUILD_SHA")
+        or os.environ.get("GITHUB_SHA")
+    )
+
+
 def _github_api_authorization() -> dict[str, str]:
     token = os.environ.get("YUJIAN_GITHUB_TOKEN", "").strip()
     return {"Authorization": f"Bearer {token}"} if token else {}
@@ -327,7 +340,7 @@ def bootstrap(contract: DetectorContract | None = None, root: Path = ROOT, cache
                 class_map_bytes=downloaded[REQUIRED_ASSETS[2]],
                 tensor_contract_bytes=downloaded[REQUIRED_ASSETS[3]],
                 release=release,
-                build_sha=os.environ.get("GITHUB_SHA") or os.environ.get("BUILD_SHA"),
+                build_sha=source_build_sha(),
             )
             package_files = {
                 ANDROID_MODEL_FILE: downloaded[REQUIRED_ASSETS[0]],

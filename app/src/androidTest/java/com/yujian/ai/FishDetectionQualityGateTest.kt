@@ -91,4 +91,16 @@ class FishDetectionQualityGateTest {
             ),
         )
     }
+
+    @Test
+    fun cropPixelMappingHandlesAllEdgesAndOnePixelTargets() {
+        assertArrayEquals(
+            intArrayOf(0, 0, 1, 1),
+            FishDetectionQualityGate.cropBoxPixels(NormalizedFishBox(0f, 0f, .001f, .001f), 416, 416),
+        )
+        assertArrayEquals(
+            intArrayOf(90, 190, 100, 200),
+            FishDetectionQualityGate.cropBoxPixels(NormalizedFishBox(.9f, .95f, 1f, 1f), 100, 200),
+        )
+    }
 }

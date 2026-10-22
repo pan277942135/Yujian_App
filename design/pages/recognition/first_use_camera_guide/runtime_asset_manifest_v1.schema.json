@@ -1,0 +1,447 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Recognition First-use Camera Guide Runtime Asset Manifest V1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "manifest_id",
+    "status",
+    "required_slot_count",
+    "approved_slot_count",
+    "frozen_page_reference_policy",
+    "slots"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "manifest_id": {
+      "const": "recognition_first_use_camera_guide_runtime_assets_v1"
+    },
+    "status": {
+      "enum": [
+        "BLOCKED_ASSET_SOURCE",
+        "READY_FOR_REVIEW",
+        "APPROVED"
+      ]
+    },
+    "required_slot_count": {
+      "const": 12
+    },
+    "approved_slot_count": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 12
+    },
+    "frozen_page_reference_policy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "paths_are_reference_only",
+        "frozen_page_png_as_runtime_background_allowed",
+        "forbid_crop_from_full_page"
+      ],
+      "properties": {
+        "paths_are_reference_only": {
+          "const": true
+        },
+        "frozen_page_png_as_runtime_background_allowed": {
+          "const": false
+        },
+        "forbid_crop_from_full_page": {
+          "const": true
+        }
+      }
+    },
+    "slots": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "P01_HERO",
+        "P01_ERROR_HEAD_OUT",
+        "P01_ERROR_TOO_SMALL",
+        "P01_ERROR_OCCLUDED",
+        "P02_HERO",
+        "P02_ERROR_HEAD_OUT",
+        "P02_ERROR_TOO_SMALL",
+        "P02_ERROR_OCCLUDED",
+        "P03_HERO",
+        "P03_ERROR_HEAD_OUT",
+        "P03_ERROR_TOO_SMALL",
+        "P03_ERROR_OCCLUDED"
+      ],
+      "properties": {
+        "P01_HERO": {
+          "$ref": "#/$defs/slot"
+        },
+        "P01_ERROR_HEAD_OUT": {
+          "$ref": "#/$defs/slot"
+        },
+        "P01_ERROR_TOO_SMALL": {
+          "$ref": "#/$defs/slot"
+        },
+        "P01_ERROR_OCCLUDED": {
+          "$ref": "#/$defs/slot"
+        },
+        "P02_HERO": {
+          "$ref": "#/$defs/slot"
+        },
+        "P02_ERROR_HEAD_OUT": {
+          "$ref": "#/$defs/slot"
+        },
+        "P02_ERROR_TOO_SMALL": {
+          "$ref": "#/$defs/slot"
+        },
+        "P02_ERROR_OCCLUDED": {
+          "$ref": "#/$defs/slot"
+        },
+        "P03_HERO": {
+          "$ref": "#/$defs/slot"
+        },
+        "P03_ERROR_HEAD_OUT": {
+          "$ref": "#/$defs/slot"
+        },
+        "P03_ERROR_TOO_SMALL": {
+          "$ref": "#/$defs/slot"
+        },
+        "P03_ERROR_OCCLUDED": {
+          "$ref": "#/$defs/slot"
+        }
+      }
+    }
+  },
+  "$defs": {
+    "slot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "slot_id",
+        "page_id",
+        "role",
+        "phone_orientation",
+        "fish_orientation",
+        "semantic_expectation",
+        "source_status",
+        "source_path",
+        "source_sha256",
+        "source_dimensions",
+        "source_authorization_status",
+        "source_authorization_record",
+        "runtime_binding_status",
+        "android_resource_name",
+        "android_resource_path",
+        "runtime_sha256",
+        "fit_mode",
+        "semantic_annotations",
+        "review_status",
+        "reviewed_by",
+        "reviewed_at",
+        "approved",
+        "allow_reuse",
+        "reuse_group",
+        "source_git_blob_sha",
+        "runtime_git_blob_sha",
+        "source_exif_orientation"
+      ],
+      "properties": {
+        "slot_id": {
+          "type": "string"
+        },
+        "page_id": {
+          "enum": [
+            "P01",
+            "P02",
+            "P03"
+          ]
+        },
+        "role": {
+          "enum": [
+            "CORRECT_HERO",
+            "ERROR_HEAD_OUT_OF_FRAME",
+            "ERROR_FISH_TOO_SMALL",
+            "ERROR_EXCESSIVE_OCCLUSION"
+          ]
+        },
+        "phone_orientation": {
+          "enum": [
+            "PORTRAIT",
+            "LANDSCAPE"
+          ]
+        },
+        "fish_orientation": {
+          "enum": [
+            "HORIZONTAL",
+            "VERTICAL"
+          ]
+        },
+        "semantic_expectation": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source_status": {
+          "enum": [
+            "MISSING",
+            "CANDIDATE",
+            "APPROVED"
+          ]
+        },
+        "source_path": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "source_sha256": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "source_dimensions": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": false,
+          "required": [
+            "width",
+            "height",
+            "format",
+            "bytes"
+          ],
+          "properties": {
+            "width": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "height": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "format": {
+              "enum": [
+                "PNG",
+                "JPEG",
+                "WEBP"
+              ]
+            },
+            "bytes": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        },
+        "source_authorization_status": {
+          "enum": [
+            "NOT_REVIEWED",
+            "PENDING",
+            "APPROVED",
+            "REJECTED"
+          ]
+        },
+        "source_authorization_record": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": false,
+          "required": [
+            "source_ref",
+            "rights_holder",
+            "allowed_uses",
+            "repository_distribution",
+            "app_distribution",
+            "ci_use",
+            "privacy_review",
+            "license_basis"
+          ],
+          "properties": {
+            "source_ref": {
+              "type": "string",
+              "minLength": 1
+            },
+            "rights_holder": {
+              "type": "string",
+              "minLength": 1
+            },
+            "allowed_uses": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "minItems": 1
+            },
+            "repository_distribution": {
+              "type": "boolean"
+            },
+            "app_distribution": {
+              "type": "boolean"
+            },
+            "ci_use": {
+              "type": "boolean"
+            },
+            "privacy_review": {
+              "enum": [
+                "NOT_REQUIRED",
+                "APPROVED",
+                "PENDING",
+                "REJECTED"
+              ]
+            },
+            "license_basis": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        "runtime_binding_status": {
+          "enum": [
+            "MISSING",
+            "UNBOUND",
+            "BOUND",
+            "VERIFIED"
+          ]
+        },
+        "android_resource_name": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^[a-z][a-z0-9_]*$"
+        },
+        "android_resource_path": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "runtime_sha256": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "fit_mode": {
+          "enum": [
+            "FIT_CENTER",
+            "CROP_REVIEWED"
+          ]
+        },
+        "semantic_annotations": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "additionalProperties": false,
+          "required": [
+            "fish_bbox_normalized",
+            "head_visible",
+            "tail_visible",
+            "occlusion_fraction",
+            "long_axis_ratio",
+            "annotation_note"
+          ],
+          "properties": {
+            "fish_bbox_normalized": {
+              "type": "array",
+              "minItems": 4,
+              "maxItems": 4,
+              "items": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              }
+            },
+            "head_visible": {
+              "type": "boolean"
+            },
+            "tail_visible": {
+              "type": "boolean"
+            },
+            "occlusion_fraction": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            "long_axis_ratio": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            },
+            "annotation_note": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        "review_status": {
+          "enum": [
+            "NOT_REVIEWED",
+            "REVIEW_REQUIRED",
+            "APPROVED",
+            "REJECTED"
+          ]
+        },
+        "reviewed_by": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "reviewed_at": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        },
+        "approved": {
+          "type": "boolean"
+        },
+        "allow_reuse": {
+          "type": "boolean"
+        },
+        "reuse_group": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "source_git_blob_sha": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^[a-f0-9]{40}$"
+        },
+        "runtime_git_blob_sha": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^[a-f0-9]{40}$"
+        },
+        "source_exif_orientation": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "enum": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            null
+          ]
+        }
+      }
+    }
+  }
+}

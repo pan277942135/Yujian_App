@@ -1,0 +1,55 @@
+{
+  "schema_version": "1.0",
+  "register_id": "M1_ACCEPTANCE_CONFLICT_REGISTER_V1",
+  "parent_task": "YUJIAN_M1_PARALLEL_DELIVERY_V1",
+  "repository": "pan277942135/Yujian_App",
+  "pr163_state_at_last_remote_check": {
+    "state": "OPEN",
+    "draft": true,
+    "merged": false,
+    "head_sha": "85dfe9217e879e0f87d19b41801beb05e502aaa2",
+    "comment_id": 6244627483
+  },
+  "conflicts": [
+    {
+      "conflict_id": "C01",
+      "name": "First-use Guide P02 removal",
+      "old_authority": "Canonical main and current PR #163 product code still expose the three-page P01/P02/P03 guide.",
+      "new_authority": "User-approved M1 target: P01 portrait phone + horizontal fish; P02 landscape phone + horizontal fish reusing former P03 Frozen PNG bytes; former vertical-fish P02 is archive-only. PR #162 is the existing Draft proposal.",
+      "change_pr": "https://github.com/pan277942135/Yujian_App/pull/162",
+      "test_result": "PR #162 head 43b8267167d8a948754fe3df7d20edf072955cf9 passed Android CI 39084647628, Design Governance 39084647640, and canonical-promotion Admission 39084647595. It has no API28 interaction evidence and remains separate; PR #163 at ffe still has three-page code.",
+      "status": "REVIEW_REQUIRED",
+      "blockers": [
+        "PR #162 remains Draft/Open/unmerged and is not integrated into canonical main or current PR #163 product code.",
+        "N010 canonical target still says three pages; exact-SHA API28 guide interaction test has not run."
+      ]
+    },
+    {
+      "conflict_id": "C02",
+      "name": "Recognition Motion timing authority",
+      "old_authority": "Earlier M1 instruction named Recognition_Processing_Motion_Spec_V1_1.md with 350/600/600/1250ms and 2800ms; the latest PR #163 comment explicitly supersedes this as an M1 acceptance threshold.",
+      "new_authority": "Latest PR #163 comment selects design/system_v3/08_Page_Contracts/recognition/processing/State_Machine_V3_1.json: CAPTURED ≥220ms, DETECTING ≥320ms, OUTLINE ≥350ms, CLASSIFYING ≥250ms, and every transition waits for the corresponding real Pipeline event. Visual minimums are not model timeouts; PROC-07 needs an approved timeout value.",
+      "change_pr": "https://github.com/pan277942135/Yujian_App/pull/163",
+      "test_result": "Android CI Run 39095194583 passed JVM/controller and AndroidTest compile at 85dfe9217e879e0f87d19b41801beb05e502aaa2; Hosted Run 39095194693 stopped before emulator startup, so there is no real timing trace, phase screenshot or Motion MP4.",
+      "status": "REVIEW_REQUIRED",
+      "blockers": [
+        "Resolve 200ms visual hold and PROC-07 timeout are still unresolved against event-gated V3.1.",
+        "Exact-SHA Pipeline Trace/phase PNG/Motion MP4 is unavailable because KVM preflight failed."
+      ]
+    },
+    {
+      "conflict_id": "C03",
+      "name": "Exact-SHA hosted API28 Runtime evidence",
+      "old_authority": "Expired GCP self-hosted API28 runner and older-source artifacts.",
+      "new_authority": "GitHub-hosted standard ubuntu-24.04 runner, API28 google_apis x86_64 Pixel 2, 1080×1920, JDK17/Gradle8.9, Build Once APK pair, and existing Harness.",
+      "change_pr": "https://github.com/pan277942135/Yujian_App/pull/163",
+      "test_result": "At exact source 85dfe9217e879e0f87d19b41801beb05e502aaa2, Android CI 39095194583 passed; QA Test Users 39095194548 and canonical-promotion Admission 39095194580 passed. Hosted M1 Run 39095194693 Build Once passed and uploaded APK artifact 12124820081 (archive digest ab298c711af40ef00cc9820e6e60926687b67ed67736d1454a2c15b18c253c97). Preflight failed KVM access; Runtime skipped. APK hash values are in the artifact manifest; the next workflow revision prints them in the job log.",
+      "status": "BLOCKED_INFRA",
+      "blockers": [
+        "GitHub-hosted runner KVM preflight failed; AVD/device/install/CameraX/Instrumentation/screenshots/Motion/Pixel Diff/Runtime did not run.",
+        "Branch-local PRODUCT_WORK Admission and recovery are not refreshed at this latest SHA.",
+        "No paid or self-hosted fallback is authorized."
+      ]
+    }
+  ]
+}

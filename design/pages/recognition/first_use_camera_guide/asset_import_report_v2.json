@@ -1,8 +1,8 @@
 {
   "schema_version": "2.0",
   "task_id": "RECOGNITION-FIRST-USE-GUIDE-V2-HISTORICAL",
-  "status": "HISTORICAL_SUPERSEDED_BY_USER_AUTHORIZED_V1_SCOPE",
-  "binary_import_status": "NOT_APPLICABLE_TO_ACTIVE_V1_SCOPE",
+  "status": "HISTORICAL_PROPOSAL_SUPERSEDED_BY_V1_2_AUTHORITY",
+  "binary_import_status": "NOT_APPLICABLE_TO_CURRENT_ACTIVE_AUTHORITY",
   "historical_assets": [
     {
       "id": "former_p02_portrait_vertical",
@@ -19,7 +19,7 @@
       "status": "HISTORICAL_COMPATIBILITY_ONLY"
     }
   ],
-  "note": "Preserved historical two-page proposal. It does not define the active RECOGNITION-FIRST-USE-GUIDE-V1 task, which explicitly requires byte-identical P01/P02/P03; see Scope_Resolution_20261016.md.",
+  "note": "Historical record of the earlier two-page proposal, whose landscape source was pending at the time. The active authority is now First_Use_Camera_Guide_Spec_V1_2.md (2026-10-17): P01 portrait + horizontal fish, P02 landscape + horizontal fish. Active P02 reuses the former P03 frozen PNG bytes unchanged. The former vertical-fish P02 is archived only.",
   "historical_proposal_assets": [
     {
       "id": "p01",

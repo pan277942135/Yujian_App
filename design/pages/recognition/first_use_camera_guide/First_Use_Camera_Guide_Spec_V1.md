@@ -1,3 +1,5 @@
+> Historical record only. The active two-page authority is `First_Use_Camera_Guide_Spec_V1_2.md`, effective 2026-10-17. The former vertical-fish P02 is not active.
+
 # 渔见 · First-use Camera Guide V1
 
 **Status:** FROZEN\

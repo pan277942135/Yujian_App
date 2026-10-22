@@ -1,5 +1,6 @@
 package com.yujian.ai.ui.screens
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -7,6 +8,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -34,12 +37,16 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
@@ -59,6 +66,7 @@ import com.yujian.ai.ui.theme.DeepInk
 import com.yujian.ai.ui.theme.MutedInk
 import com.yujian.ai.ui.theme.WaterTeal
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -80,9 +88,31 @@ internal fun ResultLocationPickerSheet(
     var results by remember { mutableStateOf(emptyList<RecognitionPlace>()) }
     var searching by remember { mutableStateOf(false) }
     var providerError by remember { mutableStateOf(false) }
-    val screenHeightDp = LocalConfiguration.current.screenHeightDp
-    val sheetHeight = (screenHeightDp * if (query.isBlank()) 0.40f else 0.56f)
+    val screenHeightDp = LocalConfiguration.current.screenHeightDp.dp
+    val density = LocalDensity.current
+    val imeBottomDp = with(density) { WindowInsets.ime.getBottom(this).toDp() }
+    val availableSheetHeight = (screenHeightDp - imeBottomDp - 24.dp).coerceAtLeast(180.dp)
+    val preferredSheetHeight = (screenHeightDp.value * if (query.isBlank()) 0.40f else 0.56f)
         .coerceIn(if (query.isBlank()) 280f else 320f, if (query.isBlank()) 420f else 520f).dp
+    val sheetHeight = minOf(preferredSheetHeight, availableSheetHeight)
+    val keyboard = LocalSoftwareKeyboardController.current
+    val focusManager = LocalFocusManager.current
+    val imeVisible = WindowInsets.ime.getBottom(density) > 0
+    val scope = rememberCoroutineScope()
+    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    var closeRequested by remember { mutableStateOf(false) }
+
+    fun closeSheet(afterCloseRequest: () -> Unit = {}) {
+        if (closeRequested) return
+        closeRequested = true
+        keyboard?.hide()
+        focusManager.clearFocus()
+        scope.launch {
+            afterCloseRequest()
+            sheetState.hide()
+            onDismiss()
+        }
+    }
 
     LaunchedEffect(query) {
         if (query.isBlank()) {
@@ -103,13 +133,29 @@ internal fun ResultLocationPickerSheet(
     }
 
     ModalBottomSheet(
-        onDismissRequest = onDismiss,
-        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+        modifier = Modifier.heightIn(max = sheetHeight),
+        onDismissRequest = {
+            if (!closeRequested) {
+                closeRequested = true
+                keyboard?.hide()
+                focusManager.clearFocus()
+                onDismiss()
+            }
+        },
+        sheetState = sheetState,
     ) {
         Column(
             Modifier.fillMaxWidth().height(sheetHeight).padding(horizontal = 20.dp).padding(top = 2.dp, bottom = 12.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
+            BackHandler(enabled = !closeRequested) {
+                if (imeVisible) {
+                    keyboard?.hide()
+                    focusManager.clearFocus()
+                } else {
+                    closeSheet()
+                }
+            }
             Text("鱼获地点", modifier = Modifier.fillMaxWidth(), textAlign = androidx.compose.ui.text.style.TextAlign.Center, color = DeepInk, fontSize = 20.sp, lineHeight = 26.sp, fontWeight = FontWeight.Medium)
             OutlinedTextField(
                 value = query,
@@ -151,8 +197,10 @@ internal fun ResultLocationPickerSheet(
                     } else {
                         recent.forEachIndexed { index, place ->
                             PlaceRow(place, testTag = "recognition-location-recent-$index") {
-                                recent = store.commit(place)
-                                onSelectPlace(place)
+                                closeSheet {
+                                    recent = store.commit(place)
+                                    onSelectPlace(place)
+                                }
                             }
                         }
                     }
@@ -167,8 +215,10 @@ internal fun ResultLocationPickerSheet(
                 } else {
                     results.forEachIndexed { index, place ->
                         PlaceRow(place, testTag = "recognition-location-result-$index") {
-                            recent = store.commit(place)
-                            onSelectPlace(place)
+                            closeSheet {
+                                recent = store.commit(place)
+                                onSelectPlace(place)
+                            }
                         }
                     }
                 }
@@ -180,7 +230,11 @@ internal fun ResultLocationPickerSheet(
             Row(
                 Modifier.fillMaxWidth().heightIn(min = 48.dp).clip(RoundedCornerShape(14.dp))
                     .background(Color(0xCFF7FAFB)).border(1.dp, Color(0x33FFFFFF), RoundedCornerShape(14.dp))
-                    .clickable(enabled = !resolving, role = Role.Button, onClick = onUseCurrentLocation)
+                    .clickable(enabled = !resolving, role = Role.Button) {
+                        keyboard?.hide()
+                        focusManager.clearFocus()
+                        onUseCurrentLocation()
+                    }
                     .semantics { contentDescription = if (resolving) "正在获取位置" else "使用当前位置" }
                     .padding(horizontal = 14.dp, vertical = 10.dp),
                 verticalAlignment = Alignment.CenterVertically,
@@ -189,7 +243,7 @@ internal fun ResultLocationPickerSheet(
                 if (resolving) CircularProgressIndicator(color = WaterTeal, modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
             }
             if (value.isNotBlank()) {
-                YuJianTextAction(text = "清除", onClick = onClearLocation, role = YuJianTextActionRole.MUTED)
+                YuJianTextAction(text = "清除", onClick = { closeSheet(onClearLocation) }, role = YuJianTextActionRole.MUTED)
             }
         }
     }
