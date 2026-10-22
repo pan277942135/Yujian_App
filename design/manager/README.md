@@ -240,3 +240,11 @@ GitHub Pages 仅复制 `design/`。合并到 main 并完成 Pages 部署后，�
 Frozen 图片按原始比例完整展示。点击可打开支持放大、缩小、适配窗口和查看原文件的弹层；页面与状态合同显示 Authority Path / SHA、进入条件、触发、操作、下一状态、返回 / 取消 / 重拍和独立 Runtime 状态。未提供的原图不生成模拟 UI 或可点击假路径；浏览器前进 / 后退、刷新和无效 Hash 均经过回归验证。
 
 展示与路由合同见 [`RECOGNITION_HIFI_PRESENTATION_CONTRACT_V1.md`](RECOGNITION_HIFI_PRESENTATION_CONTRACT_V1.md)。本管理站的响应式验证只证明 Design Manager；Page Contract 的 320dp / 360dp、Insets、字号、TalkBack 和 Runtime 项仍由各自产品合同与验收状态控制。
+
+
+## NH01 工作区 · PR #176 验收交付
+
+- 预览入口：`previews/pr-176/design/manager/#page/home_normal_v1`。
+- Chromium 报告与截图由 Design Manager Pages 工作流生成，随同一预览发布到 `nh01_acceptance/evidence/`，并记录源码 SHA 与 Workflow Run ID。
+- 响应式证据覆盖六个视口和 1.0× / 1.3× / 1.5× 字体缩放；自动化结果不替代整页视觉审查。
+- 结构预览与 Android Runtime 状态分开记录；本工作区状态为 `PREVIEW_ONLY`、视觉审查 `REQUIRED`、Android `NOT_RUN`。
