@@ -62,3 +62,13 @@ V1.1 Recognition Processing contracts remain in the repository for historical/ru
 ## Runtime boundary
 
 Design is frozen. Android Runtime and Evidence continue to close independently. Runtime gaps, runner issues, evidence gaps, or parity failures must not silently reopen the V1.2 design authority.
+
+## Recognition Full Flow & Model Responsibilities V1
+
+The Design Manager submenu `识别过程 → 09 · 识别全流程-和模型` documents the end-to-end path from the original complete scene image through preprocessing, quality gate, DET_FISH detection, BBox coordinate validation, size/classifiability rules, Crop, MODEL_M1 classification, RR07 result fusion and user confirmation.
+
+- Detailed authority: `design/system_v3/00_Product_Master_Flow/subflows/Recognition_Full_Flow_Models_V1.md`
+- Machine-readable flow: `design/system_v3/00_Product_Master_Flow/subflows/Recognition_Full_Flow_Models_V1.json`
+- Flowchart: `design/system_v3/00_Product_Master_Flow/subflows/Recognition_Full_Flow_Models_V1.svg`
+
+This is a DESIGN_ONLY business/technical flow view, not a new product state or single-page Hi-Fi authority. DET_FISH owns fish presence/location; geometry/quality rules own size and eligibility; MODEL_M1 classifies a valid crop; final user-facing states remain governed by the existing Processing and Result contracts. Runtime model versions and thresholds are not changed by this documentation.
