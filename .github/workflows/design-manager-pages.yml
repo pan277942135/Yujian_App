@@ -77,6 +77,13 @@ jobs:
           npm install --no-save --prefix "$RUNNER_TEMP/dm-playwright" playwright@1.63.0
           "$RUNNER_TEMP/dm-playwright/node_modules/.bin/playwright" install --with-deps chromium
 
+      - name: Fetch PR base for changed-file scope gate
+        if: github.event_name == 'pull_request'
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --no-tags --depth=1 origin "refs/heads/${GITHUB_BASE_REF}:refs/remotes/origin/${GITHUB_BASE_REF}"
+
       - name: Validate design registry and hi-fi assets
         run: |
           python3 scripts/design_manager.py validate

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -91,7 +92,12 @@ static_view = next((view for view in flow.get("hifi_views", []) if view.get("id"
 require(static_view is not None and static_view.get("render_mode") == "swos_static_visual_workspace", "Design Manager route/renderer registration missing")
 require(static_view.get("status") == "DESIGN_ONLY" and static_view.get("adoption_status") == "DRAFT_DEPENDENT_ON_PR_186", "proposal must remain dependent and noncanonical")
 
-changed = subprocess.run(["git", "diff", "--name-only", "origin/pr/186...HEAD"], cwd=ROOT, check=True, capture_output=True, text=True).stdout.splitlines()
+base_branch = os.environ.get("GITHUB_BASE_REF")
+base_ref = f"origin/{base_branch}" if base_branch else "origin/pr/186"
+verified_base = subprocess.run(["git", "rev-parse", "--verify", base_ref], cwd=ROOT, capture_output=True, text=True)
+if verified_base.returncode != 0:
+    fail(f"control-scope base ref is unavailable: {base_ref}")
+changed = subprocess.run(["git", "diff", "--name-only", f"{base_ref}...HEAD"], cwd=ROOT, check=True, capture_output=True, text=True).stdout.splitlines()
 for path in changed:
     require(not path.startswith("app/") and not path.startswith("android/") and not path.startswith("design/manager/rr09_motion/"), f"scope boundary violated by {path}")
 
