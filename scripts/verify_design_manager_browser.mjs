@@ -524,7 +524,7 @@ async function main() {
   assert((await page.locator('.workspace-nav-item[data-workspace-id="structured_hifi"]').getAttribute("class")).includes("active"),
     "Structured Hi-Fi current navigation item must be highlighted");
   await page.frameLocator("#workspaceFrame").locator("#layerTree").waitFor({ state:"visible", timeout:30000 });
-  const structuredFrame = page.frame({ url: url => url.includes("embed=structured_hifi") });
+  const structuredFrame = page.frames().find(frame => frame.url().includes("embed=structured_hifi"));
   assert(structuredFrame, "Structured Hi-Fi must reuse the Gemini Native V3 renderer in an internal frame");
   await structuredFrame.waitForFunction(() => window.NH01GeminiPreviewReady === true && window.NH01GeminiPreviewAudit?.status === "PASS", undefined, { timeout:30000 });
   await page.waitForFunction(() => document.querySelector("#workspaceRendererState")?.dataset.state === "READY", undefined, { timeout:15000 });
@@ -565,7 +565,7 @@ async function main() {
   assert((await page.locator('.workspace-nav-item[data-workspace-id="responsive_design"]').getAttribute("class")).includes("active"),
     "Responsive Design current navigation item must be highlighted");
   await page.frameLocator("#workspaceFrame").locator(".responsive-matrix").waitFor({ state:"visible", timeout:30000 });
-  const responsiveFrame = page.frame({ url: url => url.includes("embed=responsive_design") });
+  const responsiveFrame = page.frames().find(frame => frame.url().includes("embed=responsive_design"));
   assert(responsiveFrame, "Responsive Design must reuse the Gemini Native V3 renderer in an internal frame");
   await responsiveFrame.waitForFunction(() => window.NH01GeminiPreviewReady === true && window.NH01GeminiPreviewAudit?.status === "PASS", undefined, { timeout:30000 });
   await page.waitForFunction(() => document.querySelector("#workspaceRendererState")?.dataset.state === "READY", undefined, { timeout:15000 });
