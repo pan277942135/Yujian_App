@@ -3343,6 +3343,12 @@ function renderHifiView(feature, hifiId, hifiChildId = null) {
     viewer.title = "原始高保真私有查看与合同对照";
     viewer.style = "width:100%;height:980px;border:1px solid #b9cdc6;border-radius:12px";
     el("hifiViewCanvas").prepend(viewer);
+    if (view.id === "web_hifi_contract_v2") {
+      const provenance = document.createElement("p");
+      provenance.className = "hifi-source-provenance";
+      provenance.textContent = "原图候选尚未确认为像素权威：旧 2560×1440 候选仅作历史溯源。用户确认的 1536×1024 原图已登记并核验 SHA、尺寸和字节数；这不等于原图像素冻结权威（PIXEL_FROZEN_SOURCE=NOT_CONFIRMED）。公开许可 NOT_CONFIRMED；运行视觉验收 RUNTIME_VISUAL_VERIFIED=NO。原图仅可本地选择查看，不上传服务器。";
+      el("hifiViewCanvas").prepend(provenance);
+    }
   }
   if (!child && view.render_mode === "swos_static_visual_workspace") {
     window.SWOSStaticVisual?.mount(el("hifiViewCanvas"), view);
