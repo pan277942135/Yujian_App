@@ -11,7 +11,7 @@
 | `08_multi_screen_static_hifi/NH01_MULTI_SCREEN_STATIC_HIFI_V1_MANIFEST.json` plus M01-M05 PNGs | Exact identity, canvas dimensions, SHA-256 and provenance of the five recovered static anchors | A set of five separate responsive algorithms |
 | `08_multi_screen_static_hifi/NH01_MULTI_SCREEN_RESPONSIVE_CONTRACT_V1.md/.json` | Immutable historical archive contract and static image presentation/metadata; M05 remains a width-only static reference | Current Gemini runtime layout formulas or a fabricated M05 native height |
 | `responsive/NH01_RESPONSIVE_LAYOUT_V2.json` | Single proposed machine authority for responsive geometry, constraints, typography roles, spacing, overflow and generated preview rules for the current Gemini route | Motion, avatar, background, photo, state or backend behavior outside its declared scope |
-| `engineering/NH01_GEMINI_ADAPTIVE_V2_UNIFIED_AUTHORITY_V1.md` | Existing current authority for non-responsive Gemini fields and acceptance semantics; responsive geometry is delegated to V2 after canonical adoption | A competing copy of responsive numeric values once V2 is canonical |
+| `engineering/NH01_GEMINI_ADAPTIVE_V2_UNIFIED_AUTHORITY_V1.md` | Existing current authority for non-responsive Gemini fields and acceptance semantics; responsive geometry is delegated to V2 only after its preview/freeze gate passes | A competing copy of responsive numeric values once V2 is canonical |
 | `engineering/Layout_Responsive_Contract_V1.md` | Legacy `NormalHomeContent` route and verified raster/touch-anchor evidence, where explicitly applicable | The rebuilt Gemini V3 Top/Middle/Footer responsive algorithm |
 | `design/qa/NH01_ADAPTIVE_VISUAL_BALANCE_V2.md` | Frozen decision record and traceability for current Adaptive V2.2 targets | A second independently maintained machine parameter set after V2 is canonical |
 | `GeminiHomeAdaptiveLayoutPolicy.kt` and `GeminiNormalHomeContent.kt` | Evidence of the current implementation to compare against the contract | Design authority; current code discrepancies must be fixed to meet the contract, not used to silently redefine it |
@@ -31,9 +31,10 @@
 
 1. Validate the JSON against the shared schema and verify all six frozen image hashes/canvas dimensions.
 2. Validate page-owned and control-plane references, task/gate binding and the single-authority rule.
-3. Generate fixed and non-anchor previews; run threshold-boundary checks and visual-invariant assertions.
-4. Review and merge this control-plane proposal to canonical `main`.
-5. Synchronize product branches and rerun admission before responsive implementation.
-6. Run the exact-SHA Android matrix separately. Until then, runtime remains `NOT_VERIFIED`.
+3. Merge the validated candidate contract to canonical `main` with status still `PROPOSED_FOR_CANONICAL_MAIN_REVIEW`; do not begin Android implementation from a candidate.
+4. P3-02 integrates the existing Design Manager workspace and keeps the static V1 renderer backward-compatible.
+5. P3-06 proves that the existing NH01 preview consumes the machine contract; fixed, wide, non-anchor and threshold-boundary checks must pass.
+6. Only after P3-06 passes may a control-plane change promote the contract to `SPEC_FROZEN`; synchronize product branches and rerun admission before Android implementation.
+7. Run the exact-SHA Android matrix separately. Runtime remains `NOT_VERIFIED` until the native gate passes.
 
 No frozen PNG or existing V1 archive file is rewritten by this proposal.

@@ -21,7 +21,7 @@
     {
       "priority": 4,
       "authority": "design/pages/home/normal_home/responsive/NH01_RESPONSIVE_LAYOUT_V2.json",
-      "scope": "Current Gemini NH01/NH02 responsive geometry only after canonical adoption; does not replace frozen visible composition or non-responsive Gemini authorities."
+      "scope": "Candidate responsive geometry contract for current Gemini NH01/NH02; active as frozen implementation authority only after P3-06 preview/boundary gate promotes status to SPEC_FROZEN. Until then, existing Gemini responsive authority remains canonical."
     },
     {
       "priority": 5,
@@ -146,6 +146,8 @@
     "static_archive_contract": "design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_MULTI_SCREEN_RESPONSIVE_CONTRACT_V1.json",
     "static_archive_manifest": "design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_MULTI_SCREEN_STATIC_HIFI_V1_MANIFEST.json",
     "legacy_layout_contract": "design/pages/home/normal_home/engineering/Layout_Responsive_Contract_V1.md",
-    "responsive_runtime_status": "NOT_VERIFIED"
+    "responsive_runtime_status": "NOT_VERIFIED",
+    "responsive_layout_freeze_gate": "G-NH01-RESPONSIVE-PREVIEW",
+    "android_implementation_gate": "SPEC_FROZEN responsive contract plus exact-SHA native runtime gate"
   }
 }
