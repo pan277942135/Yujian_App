@@ -385,6 +385,8 @@ feature_contracts:
         handoff_a: "design/pages/recognition/web/WEB_HIFI_HANDOFF_A_V2.md"
         handoff_b: "design/pages/recognition/web/WEB_HIFI_HANDOFF_B_V2.md"
         gap_matrix: "design/pages/recognition/web/WEB_HIFI_GAP_MATRIX_V2.md"
+        visual_reference_manifest: "design/pages/recognition/web/VISUAL_REFERENCE_MANIFEST_V1.json"
+        visual_reference_gate: "scripts/verify_private_visual_references.py"
         product_repository: "pan277942135/Yujian"
         product_pr: 177
         product_pr_head: "655c4af07a0244fcf29441b5652c48ca74f2e6a2"
@@ -1516,7 +1518,9 @@ gate_contracts:
     acceptance_domains: ["visual", "motion", "accessibility", "evidence"]
     exact_sha_required: true
   G-WEB-HIFI-CONTRACT:
-    purpose: "Web hi-fi V2 machine references, state, responsive and Design Manager registration; no pixel/runtime promotion"
+    purpose: "Web hi-fi V2 contracts and private visual registration; browser evidence required, no pixel/runtime promotion"
+    visual_reference_policy: "design/governance/VISUAL_REFERENCE_CLOSURE_GATE_V1.md"
+    visual_reference_validator: "scripts/verify_private_visual_references.py"
     contract_refs: ["FC-recognition_flow_v1_2", "FC-recognition_result_v1", "WEB-RECOGNITION-HIFI-V2"]
     acceptance_domains: ["visual", "motion", "asset", "evidence"]
     exact_sha_required: true

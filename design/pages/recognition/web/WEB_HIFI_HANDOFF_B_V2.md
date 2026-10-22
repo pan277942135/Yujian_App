@@ -20,3 +20,7 @@
 - 确定用户批准 Web 高保真原图的字节身份、SHA-256 和可公开权限，再开展像素测量与对照。
 - 合同内容已通过 PR #190 纳入 Main；Work B 实施前仍须读取 PR #190 发布评论所记的实际 Main SHA，并按当前控制面重新 Admission。PR #177 保持 Draft/Open/Unmerged，设计合同采纳不等于产品代码或视觉验收通过。
 - Result CTA「继续记忆」与任务文案「继续记录记忆」、后端 0.55 与 App 0.45 的差异须由权威来源解决，不由 Web 视觉代码自行定夺。
+
+
+## 原始视觉资产补档 V1
+用户确认原图与历史14帧海报已核验，见 `VISUAL_REFERENCE_MANIFEST_V1.json`。使用 Design Manager 对应菜单中的本地查看器，不再用其他候选图替代原图。公开权限 NOT_CONFIRMED；像素 Runtime 未验收；机器业务合同保持。

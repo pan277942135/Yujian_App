@@ -13,6 +13,8 @@ on:
       - "scripts/verify_design_manager_navigation.py"
       - "scripts/verify_design_manager_hifi_release.py"
       - "scripts/verify_design_manager_browser.mjs"
+      - "scripts/verify_private_visual_references.py"
+      - "scripts/verify_private_visual_browser.mjs"
       - "scripts/verify_design_manager_live.py"
       - "scripts/verify_swos_static_visual_v1_1.py"
       - ".github/workflows/experience-governance.yml"
@@ -25,6 +27,8 @@ on:
       - "scripts/verify_design_manager_navigation.py"
       - "scripts/verify_design_manager_hifi_release.py"
       - "scripts/verify_design_manager_browser.mjs"
+      - "scripts/verify_private_visual_references.py"
+      - "scripts/verify_private_visual_browser.mjs"
       - "scripts/verify_swos_static_visual_v1_1.py"
       - "scripts/verify_design_manager_live.py"
       - ".github/workflows/design-manager-pages.yml"
@@ -90,6 +94,7 @@ jobs:
           python3 scripts/design_manager.py validate
           python3 scripts/verify_design_manager_hifi_release.py
           python3 scripts/verify_swos_static_visual_v1_1.py
+          python3 scripts/verify_private_visual_references.py
 
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5

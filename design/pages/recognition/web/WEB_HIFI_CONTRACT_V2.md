@@ -4,7 +4,9 @@
 
 ## 视觉来源与边界
 
-用户确认的原始三阶段 Web 图在当前仓库未登记。Library 中找到 `yujian_ai_fish_identification_hifi_static_v1.png` 候选（2560×1440，文件身份 `libfile_4322907ab4ec8191b0199e89e4918483`），已核对本地字节 SHA-256 `5f07c2f65ea33f14c8517dddbb7f8d6b7369a6ed980cba11cc92014f4e6a75f9`，画面具有品牌顶栏、近等宽三阶段卡与下方五节点；但缺最终批准记录，精确像素合同和公开权限待核。此文件不进入公开仓库，也不作为 `PIXEL_FROZEN_SOURCE`。本合同的 Web 尺寸、色彩补全均标为 `DESIGN_COMPLETION_NOT_PIXEL_MEASURED`，只有现行共享系统与 Result 已冻结数值标为源冻结。`208758.jpg` 的已知 SHA 是 `ab7227cf7205ee2ac342b6cd75cd899747879506c95c33b888b6adf0acb47987`，含人物及水印，公开权限不明，不提交照片或派生图。
+用户确认的原始三阶段图现登记于 `VISUAL_REFERENCE_MANIFEST_V1.json`：`渔见AI鱼获识别流程展示.png`，1536×1024，SHA-256 `27c34ee5d3cf90921df433cb43c671e42b8ffa80b8f5cebfe9b397da2ee853e2`。私有交接包字节、尺寸已核验。此前 2560×1440、SHA `5f07c2f65ea33f14c8517dddbb7f8d6b7369a6ed980cba11cc92014f4e6a75f9` 候选降为历史溯源，不可替代本次原图。Design Manager 本地查看器通过 SHA、尺寸和字节数验证后显示；原图不进入仓库或 Pages。公开许可仍未确认，运行像素一致性仍未验收。
+
+该原图确认构图方向，不自动覆盖示例文案、鱼种、模型参数、现行 Token、几何及响应式阈值。结构映射及冲突差异见同一 Manifest；数值补全仍保留 `DESIGN_COMPLETION_NOT_PIXEL_MEASURED`。14 帧 V0.3 历史海报与现行 15 帧 V1.1（含 R0.5）分别标记，3650ms 与 RR09 V3 不变。人工鱼体描线不是生产 Mask。
 
 ## 页面与视觉
 

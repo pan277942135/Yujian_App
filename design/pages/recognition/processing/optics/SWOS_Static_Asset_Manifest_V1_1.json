@@ -22,7 +22,14 @@
     "pixel_frozen_source": false,
     "version": "SWOS 14-frame V0.3",
     "model_generated": true,
-    "availability": "HASH_ONLY_REFERENCE_NOT_FOUND_IN_REPOSITORY_OR_ACCESSIBLE_PRIVATE_ASSET_SET"
+    "availability": "PRIVATE_HANDOFF_VERIFIED_BROWSER_LOCAL_VIEWER",
+    "id": "swos-history",
+    "size_bytes": 2340788,
+    "status": "14_FRAME_V0_3_HISTORICAL_VISUAL_REFERENCE",
+    "byte_verification": "PRIVATE_HANDOFF_SHA256_AND_DIMENSIONS_VERIFIED",
+    "public_permission": "NOT_CONFIRMED",
+    "repository_included": false,
+    "route": "#page/recognition_flow_v1_2/hifi/swos_static_visual_v1_1"
   },
   "processing_authorities": [
     {
@@ -80,5 +87,6 @@
     186,
     187
   ],
-  "photo_publication_permission": "NOT_CONFIRMED"
+  "photo_publication_permission": "NOT_CONFIRMED",
+  "visual_reference_manifest": "design/pages/recognition/web/VISUAL_REFERENCE_MANIFEST_V1.json"
 }

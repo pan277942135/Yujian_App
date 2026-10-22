@@ -3719,7 +3719,10 @@
           "status": "DESIGN_ONLY",
           "design_status": "FROZEN_DESIGN_DIRECTION",
           "adoption_status": "MAIN_ADOPTED_DESIGN_ONLY",
-          "source_prs": [186, 187],
+          "source_prs": [
+            186,
+            187
+          ],
           "source_pr_heads": {
             "186": "3b0b5848206cdea949f4bf6be7eb7cb1d19b1e34",
             "187": "ee3bb45858183144598bc28c5bae53ae55b324e0"
@@ -3768,15 +3771,15 @@
             {
               "label": "Dynamic Demo Technical Handoff V1",
               "path": "design/pages/recognition/processing/optics/SWOS_Dynamic_Demo_Technical_Handoff_V1.md"
+            },
+            {
+              "label": "原始视觉参考登记与结构映射（私有本地查看）",
+              "path": "design/pages/recognition/web/VISUAL_REFERENCE_MANIFEST_V1.json"
             }
           ],
-          "adoption_pr": 190,
-          "source_prs": [
-            186,
-            187
-          ],
           "runtime_visual_verified": false,
-          "public_photo_permission": "NOT_CONFIRMED"
+          "public_photo_permission": "NOT_CONFIRMED",
+          "visual_reference_manifest": "design/pages/recognition/web/VISUAL_REFERENCE_MANIFEST_V1.json"
         },
         {
           "id": "web_hifi_contract_v2",
@@ -3787,13 +3790,13 @@
           "render_mode": "authority_index",
           "authority": "design/pages/recognition/web/WEB_HIFI_CONTRACT_V2.md",
           "machine_authority": "design/pages/recognition/web/contracts/Page_Structure_V2.json",
-          "summary": "产品三阶段与五节点、视觉 Token、上传与 3+2 状态、SWOS 15 帧、R0.5 共享照片、九视口响应式及 Work B 差异交接；批准原图像素身份待验证，运行视觉未验收。",
+          "summary": "用户确认1536×1024原图已登记；支持本地SHA校验、结构映射和实现截图对照。三阶段/五节点与九机器合同保持；公开权限未确认，运行视觉未验收。",
           "menu_points": [
             "Handoff A：产品外壳、三阶段、五节点与 Result 结构",
             "全量合同：Token、几何、响应式和 3+2 状态",
             "SWOS 七层、15 帧及 R0.5 引用 #186/#187 的来源内容，已由 PR #190 纳入 Main",
             "Web PR #177 Gap Matrix 与 Work B Handoff B",
-            "原图候选尚未确认为像素权威，公开素材权限未确认"
+            "用户确认原图已核验；仅浏览器本地查看，公开权限未确认，像素Runtime未验收"
           ],
           "contract_links": [
             {
@@ -3835,6 +3838,10 @@
             {
               "label": "Web #177 Gap Matrix",
               "path": "design/pages/recognition/web/WEB_HIFI_GAP_MATRIX_V2.md"
+            },
+            {
+              "label": "原始视觉参考登记与结构映射（私有本地查看）",
+              "path": "design/pages/recognition/web/VISUAL_REFERENCE_MANIFEST_V1.json"
             }
           ],
           "related_routes": [
@@ -3855,7 +3862,8 @@
             187
           ],
           "runtime_visual_verified": false,
-          "pixel_frozen_source": "NOT_CONFIRMED"
+          "pixel_frozen_source": "NOT_CONFIRMED",
+          "visual_reference_manifest": "design/pages/recognition/web/VISUAL_REFERENCE_MANIFEST_V1.json"
         }
       ],
       "navigation_mode": "submenu_direct",

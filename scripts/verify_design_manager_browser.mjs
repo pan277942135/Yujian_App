@@ -75,6 +75,13 @@ async function waitForManagerShell(page) {
   await page.locator("#pageList .module-item").first().waitFor({ state: "visible", timeout: 30000 });
 }
 
+async function waitForPrivateReference(page) {
+  const selector = 'iframe[title="原始高保真私有查看与合同对照"]';
+  if (await page.locator(selector).count()) {
+    await page.frameLocator(selector).locator("#identity").filter({hasText: /SHA-256|正式权威/}).waitFor({state: "visible", timeout: 30000});
+  }
+}
+
 async function waitForHifiView(page) {
   await page.locator("#hifiViewTitle").waitFor({ state: "visible", timeout: 30000 });
 }
@@ -144,6 +151,7 @@ async function main() {
       hash,
       { timeout: 30000 }
     );
+    await waitForPrivateReference(page);
   };
 
   await open(nh01MultiScreenHash);
@@ -431,6 +439,7 @@ async function main() {
   assert(await page.locator('.hifi-related-routes a[href="' + swosStaticHash + '"]').count() === 1, "RR09 must expose the reverse link to SWOS static inspection");
   await page.locator('.hifi-related-routes a[href="' + swosStaticHash + '"]').click();
   await page.waitForFunction(expected => location.hash === expected, swosStaticHash);
+  await waitForPrivateReference(page);
   await page.setViewportSize({ width: 390, height: 844 });
   const swosMobileWidth = await page.evaluate(() => ({ document: document.documentElement.scrollWidth, body: document.body.scrollWidth }));
   assert(swosMobileWidth.document <= 390 && swosMobileWidth.body <= 390, `SWOS workspace overflows the mobile viewport: ${JSON.stringify(swosMobileWidth)}`);

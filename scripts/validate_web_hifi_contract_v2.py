@@ -49,7 +49,7 @@ def main():
     for ref in [times[k] for k in ['motion_contract_ref','transition_contract_ref','optical_contract_ref','result_motion_ref','result_media_ref']]:
         check((ROOT / ref).is_file(), f'missing authority {ref}')
     assets = docs['Asset_Manifest']
-    check(assets['approved_web_hifi']['sha256'] == '5f07c2f65ea33f14c8517dddbb7f8d6b7369a6ed980cba11cc92014f4e6a75f9' and assets['approved_web_hifi']['publication_permission'] == 'NOT_CONFIRMED' and assets['approved_web_hifi']['status'] == 'CANDIDATE_BYTES_VERIFIED_APPROVAL_NOT_TRACED', 'candidate bytes and publication gate')
+    check(assets['approved_web_hifi']['sha256'] == '27c34ee5d3cf90921df433cb43c671e42b8ffa80b8f5cebfe9b397da2ee853e2' and assets['approved_web_hifi']['public_permission'] == 'NOT_CONFIRMED' and assets['approved_web_hifi']['status'] == 'USER_CONFIRMED_VISUAL_REFERENCE', 'confirmed private source and publication gate')
     registry = load(ROOT / 'design/registry/experience_registry_v1.json')
     feature = next(f for f in registry['features'] if f['id']=='recognition_flow_v1_2')
     view = next(v for v in feature['hifi_views'] if v['id']=='web_hifi_contract_v2')
