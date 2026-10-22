@@ -140,6 +140,19 @@
       "visual_authority": "design/pages/home/normal_home/07_avatar_states/assets/nh07_default_avatar_3x_192.png",
       "visual_manifest": "design/pages/home/normal_home/07_avatar_states/assets/avatar_asset_manifest_v1.json",
       "high_resolution_master": "design/pages/home/normal_home/07_avatar_states/assets/nh07_default_avatar_master_1254.png"
+    },
+    {
+      "order": 8,
+      "id": "multi_screen_static_hifi",
+      "label_zh": "多屏静态高保真 · 响应式规范",
+      "label_en": "Multi-Screen Static Hi-Fi & Responsive Contract",
+      "output_policy": "STATIC_HIFI_AND_RESPONSIVE_CONTRACT",
+      "status": "STATIC_HIFI_FROZEN",
+      "route": "#page/home_normal_v1/hifi/multi_screen_static_hifi",
+      "authority": "design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_MULTI_SCREEN_RESPONSIVE_CONTRACT_V1.md",
+      "visual_manifest": "design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_MULTI_SCREEN_STATIC_HIFI_V1_MANIFEST.json",
+      "machine_authority": "design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_MULTI_SCREEN_RESPONSIVE_CONTRACT_V1.json",
+      "runtime_status": "NOT_VERIFIED"
     }
   ]
 }

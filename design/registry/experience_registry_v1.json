@@ -14,7 +14,9 @@
     "DEFERRED",
     "BLOCKED_INTEGRITY",
     "SPEC_FROZEN",
-    "VISUAL_MISSING"
+    "VISUAL_MISSING",
+    "STATIC_HIFI_FROZEN",
+    "STATIC_RULES_FROZEN"
   ],
   "features": [
     {
@@ -507,6 +509,53 @@
           "master_sha256": "12ec5fc8c1a08723ea461edf327870df19b7dfe309587b18b6de28c9f701b643",
           "master_bytes": 1255352,
           "master_preview_mode": "LIGHTBOX_OPEN_ORIGINAL"
+        },
+        {
+          "id": "multi_screen_static_hifi",
+          "title": "多屏静态高保真 · 响应式规范",
+          "status": "STATIC_HIFI_FROZEN",
+          "design_approval_status": "STATIC_RULES_FROZEN",
+          "design_version": "V1",
+          "render_mode": "nh01_multi_screen_static_hifi",
+          "authority_type": "visual",
+          "page_id": "home.normal.v1",
+          "page_name": "NH01 有数据首页",
+          "authority": "design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_MULTI_SCREEN_RESPONSIVE_CONTRACT_V1.md",
+          "machine_authority": "design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_MULTI_SCREEN_RESPONSIVE_CONTRACT_V1.json",
+          "visual_authority_manifest": "design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_MULTI_SCREEN_STATIC_HIFI_V1_MANIFEST.json",
+          "acceptance_matrix": "design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_STATIC_HIFI_ACCEPTANCE_MATRIX_V1.json",
+          "native_acceptance_authority": "design/pages/home/normal_home/engineering/NH01_GEMINI_ADAPTIVE_V2_ACCEPTANCE_MATRIX_V1.json",
+          "runtime_status": "NOT_VERIFIED",
+          "summary": "五张静态冻结高保真与正式响应式规则工作区。静态资产/规范冻结；Android Runtime 仍为 NOT_VERIFIED，保留当前 24 次原生验收矩阵。",
+          "menu_points": [
+            "M01–M05 五张原始冻结 PNG",
+            "目标 dp 与实际 PNG 像素尺寸分别登记",
+            "Hero / Peek / 字体 / 相机 / 安全区合同",
+            "Recent Catch 标题—卡片间距及六组测量方法",
+            "Android NOT_VERIFIED · 24 次原生矩阵保持有效"
+          ],
+          "contract_links": [
+            {
+              "label": "NH01 Multi-Screen Responsive Contract V1 · 完整规范",
+              "path": "design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_MULTI_SCREEN_RESPONSIVE_CONTRACT_V1.md"
+            },
+            {
+              "label": "Machine-Readable Responsive Contract V1",
+              "path": "design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_MULTI_SCREEN_RESPONSIVE_CONTRACT_V1.json"
+            },
+            {
+              "label": "Static Hi-Fi Asset Manifest V1",
+              "path": "design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_MULTI_SCREEN_STATIC_HIFI_V1_MANIFEST.json"
+            },
+            {
+              "label": "Current 24-Run Android Acceptance Matrix",
+              "path": "design/pages/home/normal_home/engineering/NH01_GEMINI_ADAPTIVE_V2_ACCEPTANCE_MATRIX_V1.json"
+            },
+            {
+              "label": "Static Hi-Fi Browser/Asset Acceptance Matrix",
+              "path": "design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_STATIC_HIFI_ACCEPTANCE_MATRIX_V1.json"
+            }
+          ]
         }
       ]
     },
