@@ -305,7 +305,7 @@ async function main() {
   await open(rr09V2HistoryHash);
   assert(page.url().endsWith(rr09V2HistoryHash), "RR09 V2 history direct Hash route did not resolve");
   assert((await page.locator("#hifiViewTitle").innerText()).includes("V2 历史基线"), "RR09 V2 history label is missing");
-  assert((await page.locator("#hifiViewStatus").innerText()).includes("已弃用"), "RR09 V2 history must remain DEPRECATED");
+  assert((await page.locator("#hifiViewStatus").innerText()).includes("已废弃"), "RR09 V2 history must remain DEPRECATED");
   assert((await page.locator("#hifiViewCanvas").innerText()).includes("历史对照"), "RR09 V2 page must explain that it is historical only");
   assert(await page.locator("#hifiViewCanvas iframe").count() === 1, "RR09 V2 historical preview must remain separately reachable");
   await page.screenshot({ path: resolve(args.outputDir, "rr09-v2-history-1440.png"), fullPage: true });
