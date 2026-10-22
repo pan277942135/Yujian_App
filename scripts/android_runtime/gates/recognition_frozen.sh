@@ -238,14 +238,14 @@ from pathlib import Path
 path = Path(sys.argv[1])
 try:
     with path.open("rb") as image:
-        valid = image.read(8) == b"\\x89PNG\\r\\n\\x1a\\n"
+        valid = image.read(8) == b"\x89PNG\r\n\x1a\n"
 except OSError:
     valid = False
 if not valid:
     raise SystemExit(f"invalid PNG evidence: {path}")
 PY
     then
-      printf 'INVALID_EVIDENCE=%s\\n' "$rr09_output/$rr09_name" >> "$YUJIAN_EVIDENCE_DIR/evidence_missing.log"
+      printf 'INVALID_EVIDENCE=%s\n' "$rr09_output/$rr09_name" >> "$YUJIAN_EVIDENCE_DIR/evidence_missing.log"
       runtime_set_failure "EVIDENCE" "RR09_NATIVE_FRAME_EVIDENCE_INVALID"
       return "$EXIT_FAIL_EVIDENCE"
     fi
