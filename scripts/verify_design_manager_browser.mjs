@@ -523,6 +523,7 @@ async function main() {
   assert((await page.locator("#pageTitle").innerText()) === "结构化高保真", "Structured Hi-Fi title mismatch");
   assert((await page.locator('.workspace-nav-item[data-workspace-id="structured_hifi"]').getAttribute("class")).includes("active"),
     "Structured Hi-Fi current navigation item must be highlighted");
+  await page.locator("#workspaceFrame").scrollIntoViewIfNeeded();
   await page.frameLocator("#workspaceFrame").locator("#layerTree").waitFor({ state:"visible", timeout:30000 });
   const structuredFrame = page.frames().find(frame => frame.url().includes("embed=structured_hifi"));
   assert(structuredFrame, "Structured Hi-Fi must reuse the Gemini Native V3 renderer in an internal frame");
@@ -564,6 +565,7 @@ async function main() {
   assert((await page.locator("#pageTitle").innerText()) === "响应式设计", "Responsive Design title mismatch");
   assert((await page.locator('.workspace-nav-item[data-workspace-id="responsive_design"]').getAttribute("class")).includes("active"),
     "Responsive Design current navigation item must be highlighted");
+  await page.locator("#workspaceFrame").scrollIntoViewIfNeeded();
   await page.frameLocator("#workspaceFrame").locator(".responsive-matrix").waitFor({ state:"visible", timeout:30000 });
   const responsiveFrame = page.frames().find(frame => frame.url().includes("embed=responsive_design"));
   assert(responsiveFrame, "Responsive Design must reuse the Gemini Native V3 renderer in an internal frame");
@@ -637,10 +639,12 @@ async function main() {
   assert(await page.locator("#pageDetail").isVisible() && (await page.locator("#pageTitle").innerText()).includes("有数据首页"),
     "Return to Home action must restore the existing Home overview");
   await page.goto(baseUrl + nhWorkspaceRoutes.structured, { waitUntil:"networkidle", timeout:45000 });
+  await page.locator("#workspaceFrame").scrollIntoViewIfNeeded();
   await page.frameLocator("#workspaceFrame").locator("#layerTree").waitFor({ state:"visible", timeout:30000 });
   await page.reload({ waitUntil:"networkidle" });
   assert(page.url().endsWith(nhWorkspaceRoutes.structured), "Direct workspace route and refresh must preserve the internal route");
   await page.locator("#workspaceDetail").waitFor({ state:"visible", timeout:30000 });
+  await page.locator("#workspaceFrame").scrollIntoViewIfNeeded();
   await page.frameLocator("#workspaceFrame").locator("#layerTree").waitFor({ state:"visible", timeout:30000 });
   await open("#page/home_normal_v1/workspace/not_registered");
   assert(await page.locator(".invalid-manager-route").isVisible(), "Unregistered workspace routes must show the manager invalid-route state");
