@@ -25,13 +25,7 @@ PAGE_FILES = {
     ),
     "P02": (
         "P02_runtime.png",
-        "P02_First_Use_Camera_Guide_Frozen.png",
-        "fb092235fd043a42aa8250aba9dfdb91a78e96549dd5a63f8e89cf7433685f8f",
-        1671,
-    ),
-    "P03": (
-        "P03_runtime.png",
-        "P03_First_Use_Camera_Guide_Frozen.png",
+        "P02_Landscape_Horizontal_Fish_Frozen.png",
         "1a3008483ac5708a0649501cf2aef6c799d47b95bcc2c1b1272fa64e68f7f9b3",
         1672,
     ),
