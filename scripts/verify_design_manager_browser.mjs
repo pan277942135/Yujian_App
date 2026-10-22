@@ -651,6 +651,18 @@ async function main() {
   await historyPage.locator('.workspace-nav-item[data-workspace-id="responsive_design"]').click();
   await historyPage.waitForFunction(expected => location.hash === expected, nhWorkspaceRoutes.responsive);
   const historyBeforeBack = await historyPage.evaluate(() => ({ hash:location.hash, length:history.length }));
+  const frameHistoryBeforeBack = await historyPage.evaluate(() => {
+    const frame = document.querySelector("#workspaceFrame");
+    try {
+      return {
+        src:frame?.getAttribute("src") || null,
+        href:frame?.contentWindow?.location.href || null,
+        historyLength:frame?.contentWindow?.history.length ?? null
+      };
+    } catch (error) {
+      return { src:frame?.getAttribute("src") || null, accessError:error.message };
+    }
+  });
   assert(historyBeforeBack.length >= 3, `Workspace navigation did not create browser history entries: ${JSON.stringify(historyBeforeBack)}`);
   await historyPage.evaluate(() => {
     window.__NH01WorkspaceHistoryEvents = [];
@@ -666,7 +678,24 @@ async function main() {
       length:history.length,
       events:window.__NH01WorkspaceHistoryEvents || []
     }));
-    throw new Error(`Browser Back did not settle: before=${JSON.stringify(historyBeforeBack)} after=${JSON.stringify(historyAfterBackFailure)}; ${error.message}`);
+    const frameHistoryAfterBack = await historyPage.evaluate(() => {
+      const frame = document.querySelector("#workspaceFrame");
+      try {
+        return {
+          src:frame?.getAttribute("src") || null,
+          href:frame?.contentWindow?.location.href || null,
+          historyLength:frame?.contentWindow?.history.length ?? null
+        };
+      } catch (frameError) {
+        return { src:frame?.getAttribute("src") || null, accessError:frameError.message };
+      }
+    });
+    const diagnostic = {
+      top:{ before:historyBeforeBack, after:historyAfterBackFailure },
+      iframe:{ before:frameHistoryBeforeBack, after:frameHistoryAfterBack }
+    };
+    console.error(`NH01_WORKSPACE_HISTORY_DIAGNOSTIC ${JSON.stringify(diagnostic)}`);
+    throw new Error(`Browser Back did not settle: ${JSON.stringify(diagnostic)}; ${error.message}`);
   }
   await historyPage.waitForFunction(expected => location.hash === expected, nhWorkspaceRoutes.structured, { timeout:10000 });
   const historyAfterBack = await historyPage.evaluate(() => ({ hash:location.hash, length:history.length }));
