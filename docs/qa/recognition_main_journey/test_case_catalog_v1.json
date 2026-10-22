@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "catalog_id": "YU_JIAN_RECOGNITION_MAIN_FLOW_CASES",
-  "catalog_version": "1.1.0",
+  "catalog_version": "1.2.2",
   "status": "REVIEW",
   "test_user_id": "QA_RECOGNITION_001",
   "test_user_dataset_version": "1.1.0",
@@ -542,7 +542,7 @@
         "observed_assertions"
       ],
       "authority_refs": [
-        "docs/qa/recognition_main_journey/WORK_TASK_FIRST_USE_CAMERA_GUIDE_V1.md"
+        "docs/qa/recognition_main_journey/WORK_HANDOFF_FIGMA_MASTER_BOARD_V1_20261016.md"
       ]
     },
     {
@@ -562,8 +562,8 @@
       ],
       "assertions": [
         "默认第一页 P01",
-        "页码 1/3",
-        "横鱼竖屏教学"
+        "页码 1/2",
+        "P01 竖屏手机与横向鱼体教学"
       ],
       "evidence_required": [
         "source_sha",
@@ -572,7 +572,7 @@
         "semantics_or_state_log"
       ],
       "authority_refs": [
-        "docs/qa/recognition_main_journey/WORK_TASK_FIRST_USE_CAMERA_GUIDE_V1.md"
+        "docs/qa/recognition_main_journey/WORK_HANDOFF_FIGMA_MASTER_BOARD_V1_20261016.md"
       ]
     },
     {
@@ -592,8 +592,8 @@
       ],
       "assertions": [
         "切到 P02",
-        "页码 2/3",
-        "竖向鱼体说明"
+        "页码 2/2",
+        "P02 横屏手机与横向鱼体示意"
       ],
       "evidence_required": [
         "source_sha",
@@ -602,13 +602,13 @@
         "semantics_or_state_log"
       ],
       "authority_refs": [
-        "docs/qa/recognition_main_journey/WORK_TASK_FIRST_USE_CAMERA_GUIDE_V1.md"
+        "docs/qa/recognition_main_journey/WORK_HANDOFF_FIGMA_MASTER_BOARD_V1_20261016.md"
       ]
     },
     {
       "case_id": "GUIDE-04",
       "module": "GUIDE",
-      "title": "P02 到 P03",
+      "title": "P02 末页拍摄入口",
       "priority": "P0",
       "design_status": "DRAFT",
       "execution_status": "NOT_RUN",
@@ -618,12 +618,13 @@
       "execution_mode": "CONTROLLED_UI",
       "input_ids": [],
       "steps": [
-        "在 P02 点击下一张"
+        "在 P01 点击下一张",
+        "检查 P02 页末操作"
       ],
       "assertions": [
-        "切到 P03",
-        "页码 3/3",
-        "横屏横鱼教学"
+        "P02 为第二页，页码 2/2",
+        "显示开始拍摄操作",
+        "不显示下一张操作"
       ],
       "evidence_required": [
         "source_sha",
@@ -632,7 +633,7 @@
         "semantics_or_state_log"
       ],
       "authority_refs": [
-        "docs/qa/recognition_main_journey/WORK_TASK_FIRST_USE_CAMERA_GUIDE_V1.md"
+        "docs/qa/recognition_main_journey/WORK_HANDOFF_FIGMA_MASTER_BOARD_V1_20261016.md"
       ]
     },
     {
@@ -648,11 +649,10 @@
       "execution_mode": "CONTROLLED_UI",
       "input_ids": [],
       "steps": [
-        "P03 点击上一张",
-        "P02 再点击上一张"
+        "P02 点击上一张"
       ],
       "assertions": [
-        "依次回到 P02 和 P01",
+        "回到 P01",
         "完成标记仍为 false"
       ],
       "evidence_required": [
@@ -662,7 +662,7 @@
         "semantics_or_state_log"
       ],
       "authority_refs": [
-        "docs/qa/recognition_main_journey/WORK_TASK_FIRST_USE_CAMERA_GUIDE_V1.md"
+        "docs/qa/recognition_main_journey/WORK_HANDOFF_FIGMA_MASTER_BOARD_V1_20261016.md"
       ]
     },
     {
@@ -678,11 +678,11 @@
       "execution_mode": "CONTROLLED_UI",
       "input_ids": [],
       "steps": [
-        "P01 左滑两次",
-        "P03 右滑两次"
+        "P01 左滑一次",
+        "P02 右滑一次"
       ],
       "assertions": [
-        "P01/P02/P03 顺序正确",
+        "P01/P02 顺序正确",
         "页码与可访问状态同步"
       ],
       "evidence_required": [
@@ -692,13 +692,13 @@
         "semantics_or_state_log"
       ],
       "authority_refs": [
-        "docs/qa/recognition_main_journey/WORK_TASK_FIRST_USE_CAMERA_GUIDE_V1.md"
+        "docs/qa/recognition_main_journey/WORK_HANDOFF_FIGMA_MASTER_BOARD_V1_20261016.md"
       ]
     },
     {
       "case_id": "GUIDE-07",
       "module": "GUIDE",
-      "title": "P03 开始拍摄",
+      "title": "P02 开始拍摄",
       "priority": "P0",
       "design_status": "DRAFT",
       "execution_status": "NOT_RUN",
@@ -710,7 +710,6 @@
       "steps": [
         "P01",
         "P02",
-        "P03",
         "点击开始拍摄"
       ],
       "assertions": [
@@ -725,7 +724,7 @@
         "semantics_or_state_log"
       ],
       "authority_refs": [
-        "docs/qa/recognition_main_journey/WORK_TASK_FIRST_USE_CAMERA_GUIDE_V1.md"
+        "docs/qa/recognition_main_journey/WORK_HANDOFF_FIGMA_MASTER_BOARD_V1_20261016.md"
       ]
     },
     {
@@ -755,7 +754,7 @@
         "semantics_or_state_log"
       ],
       "authority_refs": [
-        "docs/qa/recognition_main_journey/WORK_TASK_FIRST_USE_CAMERA_GUIDE_V1.md"
+        "docs/qa/recognition_main_journey/WORK_HANDOFF_FIGMA_MASTER_BOARD_V1_20261016.md"
       ]
     },
     {
@@ -785,7 +784,7 @@
         "semantics_or_state_log"
       ],
       "authority_refs": [
-        "docs/qa/recognition_main_journey/WORK_TASK_FIRST_USE_CAMERA_GUIDE_V1.md"
+        "docs/qa/recognition_main_journey/WORK_HANDOFF_FIGMA_MASTER_BOARD_V1_20261016.md"
       ]
     },
     {
@@ -814,7 +813,7 @@
         "semantics_or_state_log"
       ],
       "authority_refs": [
-        "docs/qa/recognition_main_journey/WORK_TASK_FIRST_USE_CAMERA_GUIDE_V1.md"
+        "docs/qa/recognition_main_journey/WORK_HANDOFF_FIGMA_MASTER_BOARD_V1_20261016.md"
       ]
     },
     {
@@ -832,7 +831,7 @@
         "DEVICE_RESET"
       ],
       "steps": [
-        "完成 Guide",
+        "从 P02 开始拍摄或跳过 Guide",
         "退出重新进入",
         "清除 App 数据后再进入"
       ],
@@ -848,7 +847,7 @@
         "observed_assertions"
       ],
       "authority_refs": [
-        "docs/qa/recognition_main_journey/WORK_TASK_FIRST_USE_CAMERA_GUIDE_V1.md"
+        "docs/qa/recognition_main_journey/WORK_HANDOFF_FIGMA_MASTER_BOARD_V1_20261016.md"
       ]
     },
     {
@@ -1208,7 +1207,8 @@
       ],
       "assertions": [
         "CAPTURED ≥220ms",
-        "无真实等价事件不推进"
+        "必须等待真实 detection-start Pipeline 事件后进入 DETECTING",
+        "无真实事件不推进，不以定时器单独推进"
       ],
       "evidence_required": [
         "source_sha",
@@ -1239,7 +1239,8 @@
       ],
       "assertions": [
         "DETECTING ≥320ms",
-        "无可信鱼焦点不进入 OUTLINE"
+        "只有真实 classifier-eligible 鱼体焦点/检测框到达后进入 OUTLINE",
+        "真实焦点出现前不得显示 bbox、光晕或轮廓"
       ],
       "evidence_required": [
         "source_sha",
@@ -1271,7 +1272,8 @@
       ],
       "assertions": [
         "OUTLINE ≥350ms",
-        "无虚构鱼体轮廓或矩形 HUD"
+        "必须等待真实 classification-start Pipeline 事件后进入 CLASSIFYING",
+        "不得绘制虚构鱼体轮廓或矩形 HUD"
       ],
       "evidence_required": [
         "source_sha",
@@ -1303,7 +1305,8 @@
       ],
       "assertions": [
         "CLASSIFYING ≥250ms",
-        "无结果不进入 RESULT_READY"
+        "只有最短节拍结束且真实 classifier RESULT 到达后立即进入 RESULT_READY",
+        "无真实结果不进入 RESULT；真实失败按既有失败路由退出"
       ],
       "evidence_required": [
         "source_sha",
@@ -1333,8 +1336,9 @@
         "提前发送检测/分类事件"
       ],
       "assertions": [
-        "仍满足四个最短节拍",
-        "不跳过必要语义状态"
+        "四个状态节拍分别至少为 220/320/350/250ms",
+        "每次状态推进都同时满足对应最短节拍与真实 Pipeline 事件/鱼体焦点/结果",
+        "不声明固定总时长、ETA 或进度；不得用定时器伪造 Pipeline 阶段或结果"
       ],
       "evidence_required": [
         "source_sha",
@@ -1384,7 +1388,8 @@
         "record_count"
       ],
       "authority_refs": [
-        "design/system_v3/08_Page_Contracts/recognition/processing/State_Machine_V3_1.json"
+        "docs/qa/recognition_main_journey/SEVEN_DECISIONS_APPROVED_V1.md",
+        "docs/qa/recognition_main_journey/seven_decisions_v1.json"
       ],
       "decision_status": "APPROVED_BY_USER",
       "decision_id": "PROC-07",
