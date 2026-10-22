@@ -66,18 +66,18 @@ def validate_tree(root: Path, *, built: bool = False, expected_build: str | None
         fail(f"Recognition main journey navigation changed: {recognition_ids} != {EXPECTED_RECOGNITION_FLOW}")
     guide = next(x for x in recognition["hifi_views"] if x.get("id") == "capture_first_use_guide")
     guide_children = [x.get("id") for x in guide.get("children", [])]
-    if guide.get("title") != "07 · 首次拍照教学" or guide_children != ["p01", "p02", "p03", "resources"]:
-        fail("07 guide must retain P01/P02/P03 and expose the Resources submenu")
+    if guide.get("title") != "07 · 首次拍照教学" or guide_children != ["p01", "p02", "resources"]:
+        fail("07 guide must retain P01/P02 and expose the Resources submenu")
     resources = guide["children"][-1]
     if (
         resources.get("title") != "资源"
         or resources.get("status") != "DESIGN_ONLY"
         or resources.get("authority_type") != "asset_catalog"
         or resources.get("render_mode") != "recognition_guide_resources"
-        or resources.get("resource_ids") != ["p01", "p02", "p03"]
+        or resources.get("resource_ids") != ["p01", "p02"]
         or resources.get("runtime_visual_authority") is not False
     ):
-        fail("guide Resources submenu must expose only its design-source P01/P02/P03 catalog")
+        fail("guide Resources submenu must expose only its design-source P01/P02 catalog")
     guide_manifest = load_json(root / resources["resource_manifest"])
     guide_navigation = load_json(root / "design/pages/recognition/first_use_camera_guide/navigation.json")
     resource_menus = guide_navigation.get("resource_menus", [])
@@ -85,13 +85,13 @@ def validate_tree(root: Path, *, built: bool = False, expected_build: str | None
         len(resource_menus) != 1
         or resource_menus[0].get("id") != "resources"
         or resource_menus[0].get("route") != "#page/recognition_flow_v1_2/hifi/capture_first_use_guide/resources"
-        or resource_menus[0].get("resource_ids") != ["p01", "p02", "p03"]
+        or resource_menus[0].get("resource_ids") != ["p01", "p02"]
         or resource_menus[0].get("runtime_visual_authority") is not False
     ):
         fail("guide navigation manifest must register the separate Design Manager Resources submenu")
     manifest_assets = {item.get("id"): item for item in guide_manifest.get("assets", [])}
-    frozen_children = {item.get("id"): item for item in guide.get("children", []) if item.get("id") in {"p01", "p02", "p03"}}
-    for asset_id in ("p01", "p02", "p03"):
+    frozen_children = {item.get("id"): item for item in guide.get("children", []) if item.get("id") in {"p01", "p02"}}
+    for asset_id in ("p01", "p02"):
         child = frozen_children.get(asset_id, {})
         asset = manifest_assets.get(asset_id, {})
         if child.get("visual_authority") != asset.get("path") or child.get("visual_authority_sha256") != asset.get("sha256"):
