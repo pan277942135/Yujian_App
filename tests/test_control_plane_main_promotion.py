@@ -23,6 +23,7 @@ class MainPromotionAdmissionTest(unittest.TestCase):
         env = {"GITHUB_EVENT_NAME": event, "GITHUB_BASE_REF": base}
         with mock.patch.dict(os.environ, env, clear=True), \
              mock.patch.object(module, "branch_name", return_value=branch), \
+             mock.patch.object(module, "rev", return_value="1" * 40), \
              mock.patch.object(module, "run", side_effect=static_gate) as gates, \
              mock.patch.object(module, "validate_canonical_promotion_tree", return_value=clean) as tree, \
              mock.patch.object(sys, "argv", ["validator", "--no-fetch-main"]):
@@ -33,7 +34,15 @@ class MainPromotionAdmissionTest(unittest.TestCase):
         rc, names, tree_checked = self.call(event="pull_request", base="main")
         self.assertEqual(0, rc)
         self.assertEqual(["PYTHON_SYNTAX", "CONTROL_PLANE_REGISTRY", "FEATURE_MATRIX",
-                          "PHASE_TASK_STATE_MACHINE", "UNIFIED_CONTRACT"], names)
+                          "PHASE_TASK_STATE_MACHINE", "UNIFIED_CONTRACT",
+                          "WORK_LIFECYCLE_GOVERNANCE"], names)
+        self.assertTrue(tree_checked)
+
+    def test_control_plane_pr_to_main_also_checks_branch_local_state(self):
+        rc, names, tree_checked = self.call(
+            event="pull_request", base="main", branch="control/example")
+        self.assertEqual(0, rc)
+        self.assertIn("WORK_LIFECYCLE_GOVERNANCE", names)
         self.assertTrue(tree_checked)
 
     def test_product_pr_to_nonmain_retains_strict_branch_admission(self):
@@ -72,12 +81,17 @@ class MainPromotionAdmissionTest(unittest.TestCase):
                 (root / "PROJECT_MASTER_STATE.yaml").unlink()
                 (root / "WORK_EXECUTION_STATE.json").write_text("{}")
                 self.assertFalse(module.validate_canonical_promotion_tree())
+                (root / "WORK_EXECUTION_STATE.json").unlink()
+                (root / "harness").mkdir()
+                (root / "harness" / "build-log.md").write_text("runtime log")
+                self.assertFalse(module.validate_canonical_promotion_tree())
 
     def test_main_branch_validates_canonical_tree(self):
         rc, names, checked = self.call(event="push", base="", branch="main")
         self.assertEqual(0, rc)
         self.assertTrue(checked)
         self.assertNotIn("PROJECT_MASTER_STATE", names)
+        self.assertIn("WORK_LIFECYCLE_GOVERNANCE", names)
 
 
 if __name__ == "__main__":

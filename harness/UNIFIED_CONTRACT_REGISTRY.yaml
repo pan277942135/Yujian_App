@@ -123,6 +123,10 @@ shared_contracts:
     domain: "EXECUTION"
     status: "ACTIVE"
     refs: ["harness/STATE_UPDATE_PROTOCOL.md", "harness/PHASE_TASK_STATE_MACHINE.yaml", "PROJECT_MASTER_STATE.yaml"]
+  WORK-LIFECYCLE-API28-POLICY:
+    domain: "EXECUTION"
+    status: "ACTIVE_PROPOSAL"
+    refs: ["harness/WORK_INSTRUCTION_PROTOCOL_V1_1.md", "harness/ANDROID_BATCH_ACCEPTANCE_POLICY_V1_1.yaml", "harness/USER_FEEDBACK_SCHEMA_V1.json", "harness/WORK_INSTRUCTION_TEMPLATE_V1_1.md", "scripts/work_lifecycle.py"]
 
 feature_contracts:
   home_empty_v2:
@@ -1502,6 +1506,10 @@ task_contract_bindings:
     contract_refs: ["STATE-EVIDENCE-PROVENANCE"]
     gate_id: null
     phase: "P5"
+  P5-03:
+    contract_refs: ["STATE-EVIDENCE-PROVENANCE", "WORK-LIFECYCLE-API28-POLICY"]
+    gate_id: null
+    phase: "P5"
   P6-01:
     contract_refs: ["FC-recognition_flow_v1_2"]
     gate_id: null
@@ -1669,7 +1677,7 @@ inventory:
   journey_count: 20
   child_surface_count: 81
   route_count: 22
-  task_count: 45
+  task_count: 46
   gate_count: 11
   registry_created_from_pr_head: "ebb6b3904feaa0cf26b4fd4b83bc809a397085a2"
   last_synced_feature_matrix_sha: "42071f09795de91ebb75ba809694e2d7b1030418"

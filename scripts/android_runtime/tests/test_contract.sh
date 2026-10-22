@@ -89,6 +89,14 @@ SH
   rc=$?
   set -e
   assert_result "$tmp/evidence/runtime_gate_result.json" "$expected_classification" "$expected_rc" "$rc" "$tmp/output.log"
+  python3 - "$tmp/evidence/runtime_gate_result.json" "$tmp/app-debug.apk" "$tmp/app-debug-androidTest.apk" <<'PY'
+import hashlib, json, pathlib, sys
+result = json.loads(pathlib.Path(sys.argv[1]).read_text())
+for field, filename in (("app_apk_sha256", sys.argv[2]), ("test_apk_sha256", sys.argv[3])):
+    expected = hashlib.sha256(pathlib.Path(filename).read_bytes()).hexdigest()
+    if result.get(field) != expected:
+        raise SystemExit(f"{field} does not match the exact APK pair")
+PY
   if [[ "$name" == "offline" ]]; then
     restarts="$(cat "$tmp/evidence/infra/adb_restart_count")"
     [[ "$restarts" == "1" ]] || {

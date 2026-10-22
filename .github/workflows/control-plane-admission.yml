@@ -38,3 +38,5 @@ jobs:
         run: python -m unittest discover -s tests -p 'test_control_plane_main_promotion.py' -v
       - name: Work checkpoint and contract alias regression
         run: python -m unittest discover -s tests -p 'test_work_execution_state_provenance.py' -v
+      - name: Work lifecycle and API28 batch governance regression
+        run: python -m unittest discover -s tests -p 'test_work_lifecycle_governance.py' -v
