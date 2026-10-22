@@ -2,6 +2,7 @@ package com.yujian.ai
 
 import android.net.Uri
 import android.content.Intent
+import android.os.SystemClock
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
@@ -21,6 +22,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -84,6 +86,10 @@ import com.yujian.ai.ui.screens.LegalDocumentScreen
 import com.yujian.ai.ui.screens.RecognitionIssueScreen
 import com.yujian.ai.ui.screens.RecognitionResultScreen
 import com.yujian.ai.ui.screens.RecognitionSaveDestination
+import com.yujian.ai.ui.identify.RecognitionUiState
+import com.yujian.ai.ui.identify.resolveRecognitionResultState
+import com.yujian.ai.ui.recognition.reveal.RecognitionRevealKey
+import com.yujian.ai.ui.recognition.reveal.RecognitionRevealSessionStore
 import com.yujian.ai.ui.screens.RecognizingScreen
 import com.yujian.ai.ui.home.CatchArchiveState
 import com.yujian.ai.ui.home.HomeState
@@ -110,6 +116,7 @@ import java.util.UUID
 fun YujianApp() {
     val activityContext = LocalContext.current
     val context = LocalContext.current.applicationContext
+    val revealSessionStore: RecognitionRevealSessionStore = viewModel()
     val nav = rememberNavController()
     val scope = rememberCoroutineScope()
     val sessionManager = remember { UserSessionManager(context) }
@@ -130,15 +137,21 @@ fun YujianApp() {
     var authError by remember { mutableStateOf<String?>(null) }
     var catchesState by remember { mutableStateOf(CatchArchiveState()) }
     var catchReload by remember { mutableIntStateOf(0) }
-    var recognitionSessionId by remember { mutableStateOf<String?>(null) }
-    var sessionImage by remember { mutableStateOf<SelectedImage?>(null) }
-    var productionResult by remember { mutableStateOf<ProductionRecognitionResult?>(null) }
+    var recognitionSessionId by remember(revealSessionStore) {
+        mutableStateOf(revealSessionStore.snapshot?.recognitionSessionId)
+    }
+    var sessionImage by remember(revealSessionStore) { mutableStateOf(revealSessionStore.snapshot?.image) }
+    var productionResult by remember(revealSessionStore) { mutableStateOf(revealSessionStore.snapshot?.productionResult) }
     var recognitionTechnicalFailure by remember { mutableStateOf(false) }
-    var subjectResult by remember { mutableStateOf(FishSubjectResult(SubjectStatus.IDLE)) }
+    var subjectResult by remember(revealSessionStore) {
+        mutableStateOf(revealSessionStore.snapshot?.subjectResult ?: FishSubjectResult(SubjectStatus.IDLE))
+    }
     var subjectModelState by remember { mutableStateOf(SubjectModelState()) }
-    var prediction by remember { mutableStateOf<RecognitionPrediction?>(null) }
-    var inferenceAsset by remember { mutableStateOf<InferenceAsset?>(null) }
-    var activeRecognitionAttemptId by remember { mutableStateOf<String?>(null) }
+    var prediction by remember(revealSessionStore) { mutableStateOf(revealSessionStore.snapshot?.prediction) }
+    var inferenceAsset by remember(revealSessionStore) { mutableStateOf(revealSessionStore.snapshot?.inferenceAsset) }
+    var activeRecognitionAttemptId by remember(revealSessionStore) {
+        mutableStateOf(revealSessionStore.snapshot?.recognitionAttemptId)
+    }
     var captureResetToken by remember { mutableIntStateOf(0) }
     var catchSaving by remember { mutableStateOf(false) }
     var catchSaveError by remember { mutableStateOf<String?>(null) }
@@ -190,6 +203,7 @@ fun YujianApp() {
     }
 
     fun clearRecognitionSession(preserveSession: Boolean = false) {
+        revealSessionStore.clearAttempt(preserveSession)
         activeRecognitionAttemptId = null
         sessionImage = null
         productionResult = null
@@ -614,6 +628,11 @@ fun YujianApp() {
                             if (recognitionSessionId == null) recognitionSessionId = UUID.randomUUID().toString()
                             sessionImage = selected
                             activeRecognitionAttemptId = UUID.randomUUID().toString()
+                            revealSessionStore.beginAttempt(
+                                requireNotNull(recognitionSessionId),
+                                requireNotNull(activeRecognitionAttemptId),
+                                selected,
+                            )
                             productionResult = null
                             recognitionTechnicalFailure = false
                             subjectResult = FishSubjectResult(SubjectStatus.IDLE)
@@ -649,12 +668,43 @@ fun YujianApp() {
                         generateSubject = { selected, box ->
                             subjectPreviewEngine.generate(selected.bitmap, box)
                         },
+                        onSubjectGeometry = { resolvedSubject, geometry ->
+                            val sessionId = recognitionSessionId
+                            if (sessionId != null && attemptId != null &&
+                                activeRecognitionAttemptId == attemptId && sessionImage != null &&
+                                (geometry == null || sessionImage?.imageId == geometry.imageId)
+                            ) {
+                                subjectResult = resolvedSubject
+                                revealSessionStore.updateSubject(
+                                    RecognitionRevealKey(sessionId, attemptId),
+                                    resolvedSubject,
+                                    geometry,
+                                )
+                            }
+                        },
+                        onProcessingPhotoSnapshot = { photo ->
+                            val sessionId = recognitionSessionId
+                            if (sessionId != null && attemptId != null && activeRecognitionAttemptId == attemptId) {
+                                revealSessionStore.updateProcessingPhoto(RecognitionRevealKey(sessionId, attemptId), photo)
+                            }
+                        },
                         onFinished = { result ->
                             if (attemptId != null && activeRecognitionAttemptId == attemptId && currentRoute == "recognizing") {
                                 productionResult = result
                                 recognitionTechnicalFailure = false
-                                subjectResult = FishSubjectResult(SubjectStatus.IDLE)
                                 prediction = result.prediction
+                                val sessionId = recognitionSessionId
+                                if (sessionId != null) {
+                                    revealSessionStore.completeAttempt(
+                                        key = RecognitionRevealKey(sessionId, attemptId),
+                                        result = result,
+                                        highConfidenceResult = result.prediction?.let {
+                                            resolveRecognitionResultState(it) == RecognitionUiState.RESULT_HIGH
+                                        } == true,
+                                        inferenceAsset = inferenceAsset,
+                                        handoffTimestampUptimeMs = SystemClock.uptimeMillis(),
+                                    )
+                                }
                                 if (result.ready) {
                                     nav.navigate("result") { popUpTo("recognizing") { inclusive = true } }
                                 } else {
@@ -688,6 +738,11 @@ fun YujianApp() {
                 }
                 composable("result") {
                     val currentPrediction = prediction
+                    val revealSnapshot = revealSessionStore.snapshot?.takeIf { snapshot ->
+                        snapshot.recognitionSessionId == recognitionSessionId &&
+                            snapshot.recognitionAttemptId == activeRecognitionAttemptId
+                    }
+                    val revealHandoff = revealSnapshot?.handoff
                     LaunchedEffect(Unit) {
                         subjectModelState = subjectModelManager.checkStatus()
                     }
@@ -727,6 +782,12 @@ fun YujianApp() {
                             },
                             availableSpecies = guideSpecies.ifEmpty { localGuideItems() },
                             speciesCoverUrlFor = fishKnowledgeRepository::resolveAssetUrl,
+                            revealHandoff = revealHandoff,
+                            revealAlreadyPlayed = revealHandoff?.let { handoff ->
+                                revealSessionStore.hasPlayed(handoff.key)
+                            } ?: true,
+                            onClaimReveal = revealSessionStore::claimPlayback,
+                            onRevealFinished = revealSessionStore::releaseAnimationGeometry,
                             onSave = { draft, feedback, destination ->
                                 val active = session
                                 val selected = sessionImage

@@ -55,11 +55,24 @@ run_case() {
   tmp="$(mktemp -d)"
   printf 'fake-apk' > "$tmp/app-debug.apk"
   printf 'fake-test-apk' > "$tmp/app-debug-androidTest.apk"
+  if [[ "$mode" == "ready" ]]; then
+    # Stub container metadata for the fake-adb PASS path. The production
+    # API28 gate uses the real ffprobe installed by its runtime workflow job.
+    mkdir -p "$tmp/bin"
+    printf 'synthetic test-only recording\n' > "$tmp/fake-rr09-recording.mp4"
+    cat > "$tmp/bin/ffprobe" <<'SH'
+#!/usr/bin/env sh
+printf '%s\n' '{"streams":[{"codec_type":"video","width":320,"height":640}],"format":{"duration":"1.0"}}'
+SH
+    chmod +x "$tmp/bin/ffprobe"
+  fi
   local app_apk_sha256
   app_apk_sha256="$(sha256sum "$tmp/app-debug.apk" | awk '{print $1}')"
   set +e
+    PATH="$tmp/bin:$PATH" \
     FAKE_ADB_MODE="$mode" \
     FAKE_APP_APK_SHA256="$app_apk_sha256" \
+    FAKE_RR09_VIDEO_FILE="$tmp/fake-rr09-recording.mp4" \
     YUJIAN_CAPTURE_RECOGNITION_VIDEO=1 \
     YUJIAN_VALIDATE_RECOGNITION_VIDEO=0 \
     ADB="$FAKE_ADB" \
@@ -104,7 +117,7 @@ run_case() {
       echo "live optical-fidelity evidence was not isolated into its own invocation" >&2
       exit 1
     }
-    [[ "${instrumentation_timeouts[*]}" == "300 420" ]] || {
+    [[ "${instrumentation_timeouts[*]}" == "600 420" ]] || {
       echo "unexpected instrumentation timeout budgets: ${instrumentation_timeouts[*]}" >&2
       exit 1
     }
