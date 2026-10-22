@@ -1,0 +1,149 @@
+schema_version: "1.1"
+policy_id: "YUJIAN-ANDROID-BATCH-ACCEPTANCE-V1.1"
+status: "ACTIVE_PROPOSAL"
+authority_role: "INDEXED_EXECUTION_POLICY"
+repository: "pan277942135/Yujian_App"
+canonical_branch: "main"
+timezone: "Asia/Shanghai"
+schedule:
+  midday:
+    local_time: "12:30"
+    cron_utc: "30 4 * * *"
+    scope: "CORE"
+  evening:
+    local_time: "21:00"
+    cron_utc: "0 13 * * *"
+    scope: "FULL"
+manual:
+  workflow_dispatch_required: true
+  allowed_modes: ["DRY_RUN", "CORE", "FULL", "EMERGENCY"]
+  main_ref_only: true
+  emergency_requires:
+    - "authorized_actor_permission"
+    - "authorization_source"
+    - "reason"
+  emergency_bypasses_admission: false
+  emergency_bypasses_quick_checks: false
+candidate:
+  approval_label: "api28-ready"
+  base_branch: "main"
+  forks_allowed: false
+  allowed_author_associations: ["OWNER", "MEMBER", "COLLABORATOR"]
+  required_pr_body_fields:
+    - "Task ID"
+    - "API28 gates"
+    - "Depends on PRs"
+  required_quick_checks:
+    - "control-plane-admission"
+    - "Android CI build"
+  compatibility:
+    sort_order: "ascending_pr_number"
+    explicit_dependencies_required: true
+    merge_conflict_status: "BLOCKED_CONFLICT"
+    missing_dependency_status: "BLOCKED_DEPENDENCY"
+  superseded_status: "CANCELLED_SUPERSEDED"
+  retain_superseded_record: true
+  eligible_scope_rule: "all declared gates must be included in this batch scope"
+batch:
+  id_format: "api28-{scope}-{github_run_id}"
+  queue_storage:
+    kind: "dedicated_git_branch"
+    branch: "api28-batch-ledger"
+    path: "ledger/"
+    public_fields_only: true
+    forbidden_files:
+      - "PROJECT_MASTER_STATE.yaml"
+      - "WORK_EXECUTION_STATE.json"
+      - "harness/build-log.md"
+  integration:
+    build_once: true
+    deterministic_order: "ascending_pr_number"
+    record_base_sha: true
+    record_tree_sha: true
+    record_commit_sha: true
+    per_pr_pass_promotion: false
+    conflict_action: "BLOCK_AND_RECORD"
+  api28_mutex:
+    group: "yujian-api28-global"
+    cancel_in_progress: false
+    pending_execution_queue: "GitHub Actions queue:max; up to 100 pending jobs"
+    pending_execution_queue_is_task_database: false
+    authoritative_task_queue: "api28-batch-ledger"
+    applies_to_all_api28_workflows: true
+  timeout_minutes: 90
+  maximum_queue_wait_minutes: 360
+  runner_unavailable_classification: "BLOCKED_INFRA"
+  retry_behavior: "retain_candidates_for_next_compatible_batch"
+  duplicate_trigger_behavior: "idempotent_by_scope_main_sha_candidate_heads"
+  evidence_required:
+    - "batch_id"
+    - "integration_sha"
+    - "base_sha"
+    - "component_pr_head_shas"
+    - "apk_sha256"
+    - "central_workflow_run_id"
+    - "build_workflow_run_id"
+    - "queue_started_at"
+    - "runner_started_at"
+    - "finished_at"
+    - "gate_results"
+    - "evidence_links"
+core_gates:
+  - "normal-home-v1"
+  - "recognition-frozen"
+  - "camera-runtime-v1"
+  - "empty-home-v2"
+full_gates:
+  - "normal-home-v1"
+  - "recognition-frozen"
+  - "camera-runtime-v1"
+  - "empty-home-v2"
+  - "login-v2"
+  - "data-sanitization"
+  - "fish-guide-v1"
+  - "runtime-parity"
+  - "gemini-home-v2"
+artifact_classes:
+  user_preview:
+    value: "USER_PREVIEW"
+    api28_status: "NOT_RUN"
+    release_status: "NOT_ELIGIBLE"
+    promotable: false
+  batch_build:
+    value: "API28_INTEGRATION_CANDIDATE"
+    api28_status_before_runtime: "NOT_RUN"
+  formal_acceptance:
+    value: "FORMAL_ACCEPTANCE"
+    requirements:
+      - "full_batch_required_gates_pass"
+      - "source_sha_equals_integration_sha"
+      - "apk_sha256_verified"
+      - "batch_id_and_run_id_present"
+      - "evidence_links_present"
+feedback:
+  schema: "harness/USER_FEEDBACK_SCHEMA_V1.json"
+  close_requires_user_retest: true
+  api28_pass_closes_feedback: false
+runner_security:
+  normal_android_ci_runner: "GitHub-hosted"
+  api28_runner: "self-hosted/yujian-android/api28"
+  candidate_host_shell_executes_on_self_hosted_api28: false
+  candidate_apk_executes_on_api28_emulator: true
+  candidate_runtime_code_is_untrusted: true
+  api28_job_token_permissions: ["contents:read"]
+  api28_secrets_exposed: []
+  isolated_runner_or_emulator_boundary_required: true
+  runner_inventory_verification_required: true
+  branch_protection_verification_required: true
+  unverified_permissions_classification: "BLOCKED_PERMISSION_VERIFICATION"
+  live_runner_inventory_status: "NOT_CONFIRMED"
+  live_branch_protection_status: "NOT_CONFIRMED"
+terminal_states:
+  - "PASS"
+  - "FAIL"
+  - "BLOCKED_INFRA"
+  - "BLOCKED_CONFLICT"
+  - "BLOCKED_DEPENDENCY"
+  - "CANCELLED_SUPERSEDED"
+  - "CANCELLED_WITHDRAWN"
+  - "NOT_RUN"

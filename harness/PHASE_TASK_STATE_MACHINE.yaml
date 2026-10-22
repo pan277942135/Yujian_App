@@ -89,7 +89,7 @@ phases:
     exit_condition: "Build, test harness, CI and API28 runner are available."
     release_scope: "FOUNDATION"
     feature_refs: []
-    task_refs: ["P5-01", "P5-02"]
+    task_refs: ["P5-01", "P5-02", "P5-03"]
   P6:
     name: "Feature Implementation"
     entry_condition: "Required contracts and engineering foundation exist."
@@ -469,6 +469,18 @@ tasks:
     target_blockers: []
     evidence_required: ["self_hosted_api28_runner"]
     completion: "Authoritative API28 runner is available."
+    human_required: false
+  P5-03:
+    phase: "P5"
+    priority: "P0"
+    owner: "Work"
+    feature_refs: []
+    journey_refs: ["J01-J20"]
+    depends_on: ["P5-01"]
+    entry_blockers: []
+    target_blockers: []
+    evidence_required: ["work_instruction_protocol_v1_1", "api28_batch_policy_v1_1", "user_feedback_binding", "user_preview_provenance", "central_scheduler_exact_sha_runtime", "branch_protection_and_runner_isolation"]
+    completion: "Work lifecycle, preview provenance, durable API28 batch scheduling, feedback closure, required repository protections, and actual runner isolation are independently verified."
     human_required: false
   P6-01:
     phase: "P6"

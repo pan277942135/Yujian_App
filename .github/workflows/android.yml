@@ -53,6 +53,17 @@ on:
       - ".github/workflows/android.yml"
   workflow_dispatch:
     inputs:
+      artifact_class:
+        description: Ordinary builds produce experience APKs; API28 artifacts require the central scheduler
+        required: false
+        default: USER_PREVIEW
+        type: choice
+        options: [USER_PREVIEW]
+      run_legacy_api28_diagnostic:
+        description: Main-only legacy diagnostic. Formal batches must use the central scheduler.
+        required: false
+        default: false
+        type: boolean
       run_runtime_parity:
         description: Run the heavy Empty Home and Design System parity evidence gate
         required: false
@@ -66,6 +77,41 @@ on:
         options:
           - self-hosted
           - github-hosted
+      run_normal_home_brand_title:
+        description: Run the targeted main-only Normal Home legacy diagnostic
+        required: false
+        default: false
+        type: boolean
+  workflow_call:
+    inputs:
+      source_sha:
+        description: Exact Integration SHA prepared by the central scheduler
+        required: true
+        type: string
+      source_branch:
+        description: Provenance branch containing the Integration SHA
+        required: true
+        type: string
+      harness_sha:
+        description: Trusted main SHA supplying host-side runtime harness scripts
+        required: true
+        type: string
+      artifact_class:
+        description: API28_INTEGRATION_CANDIDATE for a central batch
+        required: true
+        type: string
+      api28_scope:
+        description: CORE or FULL; only the central main workflow may call runtime
+        required: true
+        type: string
+
+env:
+  YUJIAN_SOURCE_SHA: ${{ inputs.source_sha || github.sha }}
+  YUJIAN_SOURCE_BRANCH: ${{ inputs.source_branch || github.head_ref || github.ref_name }}
+  YUJIAN_ARTIFACT_CLASS: ${{ inputs.artifact_class || 'USER_PREVIEW' }}
+  YUJIAN_API_BASE_URL: https://yujian-model-factory-console-571785698442.asia-east1.run.app
+  YUJIAN_FISH_KNOWLEDGE_BASE_URL: https://yujian-model-factory-console-571785698442.asia-east1.run.app
+  YUJIAN_FEEDBACK_BASE_URL: https://yujian-model-factory-console-571785698442.asia-east1.run.app
 
 concurrency:
   group: yujian-android-ci-${{ github.workflow }}-${{ github.ref }}-${{ github.event_name == 'workflow_dispatch' && inputs.runtime_backend || 'self-hosted' }}
@@ -74,11 +120,6 @@ concurrency:
 
 permissions:
   contents: read
-
-env:
-  YUJIAN_API_BASE_URL: https://yujian-model-factory-console-571785698442.asia-east1.run.app
-  YUJIAN_FISH_KNOWLEDGE_BASE_URL: https://yujian-model-factory-console-571785698442.asia-east1.run.app
-  YUJIAN_FEEDBACK_BASE_URL: https://yujian-model-factory-console-571785698442.asia-east1.run.app
 
 jobs:
   build:
@@ -91,6 +132,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.source_sha || github.sha }}
 
       - name: Set up Python image verification dependency
         uses: actions/setup-python@v5
@@ -124,7 +167,7 @@ jobs:
           retention-days: 14
 
       - name: Bootstrap verified recognition assets
-        run: python3 scripts/bootstrap_android_recognition_assets.py
+        run: env -u GITHUB_SHA BUILD_SHA="$YUJIAN_SOURCE_SHA" python3 scripts/bootstrap_android_recognition_assets.py
         env:
           YUJIAN_GITHUB_TOKEN: ${{ github.token }}
 
@@ -135,7 +178,7 @@ jobs:
           import json, pathlib, re
           p = pathlib.Path('app/src/main/assets/model_release_contract.json')
           contract = json.loads(p.read_text(encoding='utf-8'))
-          if contract.get('build_sha') != '${{ github.sha }}':
+          if contract.get('build_sha') != '${{ inputs.source_sha || github.sha }}':
               raise SystemExit('model snapshot build_sha does not match the checked-out commit')
           model_id = str(contract.get('model_id') or '')
           if not re.fullmatch(r'[A-Za-z0-9_.-]+', model_id):
@@ -195,7 +238,7 @@ jobs:
           python3 scripts/export_apk_model_trace.py
           --apk app/build/outputs/apk/debug/app-debug.apk
           --output-dir build/runtime-apks
-          --build-sha "$GITHUB_SHA"
+          --build-sha "$YUJIAN_SOURCE_SHA"
 
       - name: Android lint
         run: gradle -Pandroid.aapt2FromMavenOverride="$YUJIAN_AAPT2" :app:lintDebug --stacktrace --no-daemon --max-workers=2
@@ -211,10 +254,34 @@ jobs:
           test -s build/runtime-apks/app-debug.apk
           test -s build/runtime-apks/app-debug-androidTest.apk
 
+      - name: Write exact APK provenance
+        run: |
+          set -euo pipefail
+          python3 scripts/write_apk_provenance.py \
+            --apk app/build/outputs/apk/debug/app-debug.apk \
+            --test-apk app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk \
+            --output app/build/outputs/apk/debug/apk_provenance.json \
+            --source-sha "$YUJIAN_SOURCE_SHA" \
+            --source-branch "$YUJIAN_SOURCE_BRANCH" \
+            --artifact-class "$YUJIAN_ARTIFACT_CLASS" \
+            --run-id "$GITHUB_RUN_ID" \
+            --artifact-name "YuJian-debug-${YUJIAN_SOURCE_SHA}-${{ steps.model_trace.outputs.model_id }}" \
+            --quick-check asset-contracts=PASS \
+            --quick-check production-model=PASS \
+            --quick-check unit-tests=PASS \
+            --quick-check android-runtime-contract-tests=PASS \
+            --quick-check debug-apk=PASS \
+            --quick-check android-test-apk=PASS \
+            --quick-check packaged-launcher=PASS \
+            --quick-check packaged-recognition-assets=PASS \
+            --quick-check lint=PASS
+          cp app/build/outputs/apk/debug/apk_provenance.json build/runtime-apks/apk_provenance.json
+          (cd build/runtime-apks && sha256sum app-debug.apk app-debug-androidTest.apk model_release_contract.json apk_model_trace.json apk_provenance.json > SHA256SUMS)
+
       - name: Upload frozen runtime APK pair
         uses: actions/upload-artifact@v4
         with:
-          name: YuJian-runtime-apks-${{ github.sha }}-${{ steps.model_trace.outputs.model_id }}
+          name: YuJian-runtime-apks-${{ inputs.source_sha || github.sha }}-${{ steps.model_trace.outputs.model_id }}
           path: build/runtime-apks
           if-no-files-found: error
           retention-days: 14
@@ -225,16 +292,17 @@ jobs:
       - name: Prepare Recognition Processing V1.3 QA APK
         id: recognition_qa_apk
         run: |
-          filename="YuJian_Recognition_Visual_V1_3_QA_${GITHUB_SHA:0:12}_${{ steps.model_trace.outputs.model_id }}.apk"
+          filename="YuJian_Recognition_Visual_V1_3_QA_${YUJIAN_SOURCE_SHA:0:12}_${{ steps.model_trace.outputs.model_id }}.apk"
           cp app/build/outputs/apk/debug/app-debug.apk "app/build/outputs/apk/debug/${filename}"
           echo "filename=${filename}" >> "$GITHUB_OUTPUT"
 
       - name: Upload installable debug APK
         uses: actions/upload-artifact@v4
         with:
-          name: YuJian-debug-${{ github.sha }}-${{ steps.model_trace.outputs.model_id }}
+          name: YuJian-debug-${{ inputs.source_sha || github.sha }}-${{ steps.model_trace.outputs.model_id }}
           path: |
             app/build/outputs/apk/debug/YuJian-debug.apk
+            app/build/outputs/apk/debug/apk_provenance.json
             build/runtime-apks/model_release_contract.json
             build/runtime-apks/apk_model_trace.json
           if-no-files-found: error
@@ -242,7 +310,7 @@ jobs:
 
       - name: Prepare YuJian Full-Surface APK bundle
         run: |
-          filename="YuJian_Full_Surface_Android_${GITHUB_SHA:0:12}_${{ steps.model_trace.outputs.model_id }}.apk"
+          filename="YuJian_Full_Surface_Android_${YUJIAN_SOURCE_SHA:0:12}_${{ steps.model_trace.outputs.model_id }}.apk"
           mkdir -p build/full-surface-apk
           cp app/build/outputs/apk/debug/app-debug.apk "build/full-surface-apk/${filename}"
           cp build/runtime-apks/model_release_contract.json build/full-surface-apk/model_release_contract.json
@@ -250,13 +318,13 @@ jobs:
           (cd build/full-surface-apk && sha256sum "${filename}" model_release_contract.json apk_model_trace.json > SHA256SUMS)
           python3 scripts/verify_full_surface_apk_bundle.py \
             --bundle-dir build/full-surface-apk \
-            --build-sha "$GITHUB_SHA" \
+            --build-sha "$YUJIAN_SOURCE_SHA" \
             --model-id "${{ steps.model_trace.outputs.model_id }}"
 
       - name: Upload Full-Surface Android APK and provenance
         uses: actions/upload-artifact@v4
         with:
-          name: YuJian-Full-Surface-${{ github.sha }}-${{ steps.model_trace.outputs.model_id }}
+          name: YuJian-Full-Surface-${{ inputs.source_sha || github.sha }}-${{ steps.model_trace.outputs.model_id }}
           path: build/full-surface-apk
           if-no-files-found: error
           retention-days: 14
@@ -275,9 +343,22 @@ jobs:
   # One job, one Harness, and one frozen APK pair.  The optional parity row is
   # part of this same matrix so it cannot grow a second ADB/install path.
   android-runtime:
-    if: ${{ (github.event_name == 'push' && !contains(github.event.head_commit.message, '[normal-home-brand-title-validation]')) || github.event_name == 'workflow_dispatch' }}
+    if: >-
+      ${{
+        github.ref == 'refs/heads/main' &&
+        ((github.workflow_ref == 'pan277942135/Yujian_App/.github/workflows/api28-batch-acceptance.yml@refs/heads/main' &&
+          inputs.artifact_class == 'API28_INTEGRATION_CANDIDATE' &&
+          (inputs.api28_scope == 'CORE' || inputs.api28_scope == 'FULL')) ||
+         (github.event_name == 'workflow_dispatch' &&
+          (inputs.run_legacy_api28_diagnostic == true || inputs.run_runtime_parity == true) &&
+          inputs.run_normal_home_brand_title != true))
+      }}
     needs: build
     runs-on: ${{ github.event_name == 'workflow_dispatch' && inputs.runtime_backend == 'github-hosted' && 'ubuntu-latest' || fromJSON('["self-hosted", "yujian-android", "api28"]') }}
+    concurrency:
+      group: yujian-api28-global
+      cancel-in-progress: false
+      queue: max
     timeout-minutes: 60
     env:
       YUJIAN_RUNTIME_BACKEND: ${{ github.event_name == 'workflow_dispatch' && inputs.runtime_backend || 'self-hosted' }}
@@ -289,40 +370,50 @@ jobs:
           - gate: normal-home-v1
             api_level: 28
             required: true
+            scope: CORE
             emulator_options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -partition-size 4096 -skin 1080x1920
           - gate: recognition-frozen
             api_level: 28
             required: true
+            scope: CORE
             emulator_options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -partition-size 4096 -skin 1080x1920
           - gate: camera-runtime-v1
             api_level: 28
             required: true
+            scope: CORE
             emulator_options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back emulated -partition-size 4096 -skin 1080x1920
           - gate: empty-home-v2
             api_level: 28
             required: true
+            scope: CORE
             emulator_options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -partition-size 4096 -skin 1080x1920
           - gate: login-v2
             api_level: 28
             required: true
+            scope: FULL
             emulator_options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -partition-size 4096 -skin 1080x1920
           - gate: data-sanitization
             api_level: 28
             required: true
+            scope: FULL
             emulator_options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -partition-size 4096 -skin 1080x1920
           - gate: fish-guide-v1
             api_level: 28
             required: true
+            scope: FULL
             emulator_options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -partition-size 4096 -skin 1080x1920
           - gate: runtime-parity
             api_level: 28
             required: false
+            scope: FULL
             emulator_options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -partition-size 4096 -skin 1080x1920
 
     steps:
       - name: Checkout
-        if: ${{ matrix.required == true || (github.event_name == 'workflow_dispatch' && inputs.run_runtime_parity == true) }}
+        if: ${{ (inputs.api28_scope == 'FULL' || (inputs.api28_scope == 'CORE' && matrix.scope == 'CORE')) || (github.event_name == 'workflow_dispatch' && (matrix.required == true || inputs.run_runtime_parity == true)) }}
         uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.harness_sha || github.sha }}
 
       - name: Set up JDK 17 for GitHub-hosted API 28 runtime
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.runtime_backend == 'github-hosted' && (matrix.required == true || inputs.run_runtime_parity == true) }}
@@ -359,28 +450,28 @@ jobs:
           "$sdk_root/emulator/emulator" -list-avds | grep -Fx yujian_pixel2_api28
 
       - name: Download frozen runtime APK pair
-        if: ${{ matrix.required == true || (github.event_name == 'workflow_dispatch' && inputs.run_runtime_parity == true) }}
+        if: ${{ (inputs.api28_scope == 'FULL' || (inputs.api28_scope == 'CORE' && matrix.scope == 'CORE')) || (github.event_name == 'workflow_dispatch' && (matrix.required == true || inputs.run_runtime_parity == true)) }}
         uses: actions/download-artifact@v4
         with:
-          name: YuJian-runtime-apks-${{ github.sha }}-${{ needs.build.outputs.model_id }}
+          name: YuJian-runtime-apks-${{ inputs.source_sha || github.sha }}-${{ needs.build.outputs.model_id }}
           path: build/runtime-apks
 
       - name: Verify exact frozen APK pair
-        if: ${{ matrix.required == true || (github.event_name == 'workflow_dispatch' && inputs.run_runtime_parity == true) }}
+        if: ${{ (inputs.api28_scope == 'FULL' || (inputs.api28_scope == 'CORE' && matrix.scope == 'CORE')) || (github.event_name == 'workflow_dispatch' && (matrix.required == true || inputs.run_runtime_parity == true)) }}
         run: |
           test -s build/runtime-apks/app-debug.apk
           test -s build/runtime-apks/app-debug-androidTest.apk
           (cd build/runtime-apks && sha256sum -c SHA256SUMS)
           ! find build/runtime-apks -type f -name '*.apk' | grep -vE '/(app-debug|app-debug-androidTest)\.apk$'
       - name: Add production model trace to runtime evidence
-        if: ${{ matrix.required == true || (github.event_name == 'workflow_dispatch' && inputs.run_runtime_parity == true) }}
+        if: ${{ (inputs.api28_scope == 'FULL' || (inputs.api28_scope == 'CORE' && matrix.scope == 'CORE')) || (github.event_name == 'workflow_dispatch' && (matrix.required == true || inputs.run_runtime_parity == true)) }}
         run: |
           mkdir -p "evidence/runtime/${{ matrix.gate }}"
           cp build/runtime-apks/model_release_contract.json "evidence/runtime/${{ matrix.gate }}/model_release_contract.json"
           cp build/runtime-apks/apk_model_trace.json "evidence/runtime/${{ matrix.gate }}/apk_model_trace.json"
 
       - name: Install runtime parity dependencies
-        if: ${{ matrix.gate == 'recognition-frozen' || matrix.gate == 'camera-runtime-v1' || matrix.gate == 'empty-home-v2' || matrix.gate == 'normal-home-v1' || matrix.gate == 'login-v2' || matrix.gate == 'fish-guide-v1' || (matrix.gate == 'runtime-parity' && github.event_name == 'workflow_dispatch' && inputs.run_runtime_parity == true) }}
+        if: ${{ (inputs.api28_scope == 'FULL' || (inputs.api28_scope == 'CORE' && matrix.scope == 'CORE')) || (github.event_name == 'workflow_dispatch' && (matrix.required == true || inputs.run_runtime_parity == true)) }}
         run: |
           sudo apt-get update
           sudo apt-get install -y ffmpeg
@@ -391,7 +482,7 @@ jobs:
           python3 -c 'from PIL import Image; print("Pillow", Image.__version__)'
 
       - name: Prepare GCP self-hosted Android runtime
-        if: ${{ matrix.required == true || (github.event_name == 'workflow_dispatch' && inputs.run_runtime_parity == true) }}
+        if: ${{ (inputs.api28_scope == 'FULL' || (inputs.api28_scope == 'CORE' && matrix.scope == 'CORE')) || (github.event_name == 'workflow_dispatch' && (matrix.required == true || inputs.run_runtime_parity == true)) }}
         shell: bash
         run: |
           set -euo pipefail
@@ -574,7 +665,7 @@ jobs:
 
       - name: Run unified Android Runtime Harness
         id: runtime_gate
-        if: ${{ matrix.required == true || (github.event_name == 'workflow_dispatch' && inputs.run_runtime_parity == true) }}
+        if: ${{ (inputs.api28_scope == 'FULL' || (inputs.api28_scope == 'CORE' && matrix.scope == 'CORE')) || (github.event_name == 'workflow_dispatch' && (matrix.required == true || inputs.run_runtime_parity == true)) }}
         continue-on-error: true
         shell: bash
         run: |
@@ -585,10 +676,10 @@ jobs:
           else
             export ADB=/opt/android-sdk/platform-tools/adb
           fi
-          bash scripts/run_android_runtime_gate.sh --gate "${{ matrix.gate }}" --api-level "${{ matrix.api_level }}" --build-sha "$GITHUB_SHA" --app-apk build/runtime-apks/app-debug.apk --test-apk build/runtime-apks/app-debug-androidTest.apk --evidence-dir "evidence/runtime/${{ matrix.gate }}"
+          bash scripts/run_android_runtime_gate.sh --gate "${{ matrix.gate }}" --api-level "${{ matrix.api_level }}" --build-sha "$YUJIAN_SOURCE_SHA" --app-apk build/runtime-apks/app-debug.apk --test-apk build/runtime-apks/app-debug-androidTest.apk --evidence-dir "evidence/runtime/${{ matrix.gate }}"
 
       - name: Materialize runtime status when emulator action fails before Harness startup
-        if: ${{ always() && (matrix.required == true || (github.event_name == 'workflow_dispatch' && inputs.run_runtime_parity == true)) }}
+        if: ${{ always() && ((inputs.api28_scope == 'FULL' || (inputs.api28_scope == 'CORE' && matrix.scope == 'CORE')) || (github.event_name == 'workflow_dispatch' && (matrix.required == true || inputs.run_runtime_parity == true))) }}
         run: |
           result="evidence/runtime/${{ matrix.gate }}/runtime_gate_result.json"
           if [[ ! -s "$result" ]]; then
@@ -597,7 +688,9 @@ jobs:
               --output "$result" \
               --gate "${{ matrix.gate }}" \
               --api-level "${{ matrix.api_level }}" \
-              --build-sha "$GITHUB_SHA" \
+              --build-sha "$YUJIAN_SOURCE_SHA" \
+              --app-apk build/runtime-apks/app-debug.apk \
+              --test-apk build/runtime-apks/app-debug-androidTest.apk \
               --adb-state unknown \
               --boot-completed unknown \
               --data-free-kb "" \
@@ -612,16 +705,16 @@ jobs:
           fi
 
       - name: Upload runtime gate status and diagnostics
-        if: ${{ always() && (matrix.required == true || (github.event_name == 'workflow_dispatch' && inputs.run_runtime_parity == true)) }}
+        if: ${{ always() && ((inputs.api28_scope == 'FULL' || (inputs.api28_scope == 'CORE' && matrix.scope == 'CORE')) || (github.event_name == 'workflow_dispatch' && (matrix.required == true || inputs.run_runtime_parity == true))) }}
         uses: actions/upload-artifact@v4
         with:
-          name: runtime-gate-${{ matrix.gate }}-${{ github.sha }}-${{ needs.build.outputs.model_id }}
+          name: runtime-gate-${{ matrix.gate }}-${{ inputs.source_sha || github.sha }}-${{ needs.build.outputs.model_id }}
           path: evidence/runtime/${{ matrix.gate }}
           if-no-files-found: error
           retention-days: 14
 
       - name: Enforce runtime gate classification
-        if: ${{ always() && (matrix.required == true || (github.event_name == 'workflow_dispatch' && inputs.run_runtime_parity == true)) }}
+        if: ${{ always() && ((inputs.api28_scope == 'FULL' || (inputs.api28_scope == 'CORE' && matrix.scope == 'CORE')) || (github.event_name == 'workflow_dispatch' && (matrix.required == true || inputs.run_runtime_parity == true))) }}
         run: |
           result="evidence/runtime/${{ matrix.gate }}/runtime_gate_result.json"
           classification="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1], encoding="utf-8"))["classification"])' "$result")"
@@ -635,18 +728,24 @@ jobs:
   # Branch pushes with the explicit marker own exact-HEAD device evidence.
   # Avoid a duplicate PR merge-ref emulator job on every synchronize event.
   normal-home-brand-title-validation:
-    if: ${{ (github.event_name == 'push' && contains(github.event.head_commit.message, '[normal-home-brand-title-validation]')) || (github.event_name == 'pull_request' && github.event.action != 'synchronize' && github.event.pull_request.head.ref == 'audit/design-system-v3-1-phase1-master-baseline') }}
+    if: ${{ github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.run_normal_home_brand_title == true }}
     needs: build
     runs-on: [self-hosted, yujian-android, api28]
+    concurrency:
+      group: yujian-api28-global
+      cancel-in-progress: false
+      queue: max
     timeout-minutes: 90
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.harness_sha || github.sha }}
 
       - name: Download frozen runtime APK pair
         uses: actions/download-artifact@v4
         with:
-          name: YuJian-runtime-apks-${{ github.sha }}-${{ needs.build.outputs.model_id }}
+          name: YuJian-runtime-apks-${{ inputs.source_sha || github.sha }}-${{ needs.build.outputs.model_id }}
           path: build/runtime-apks
 
       - name: Verify exact APK pair
@@ -727,7 +826,7 @@ jobs:
           APP_APK: build/runtime-apks/app-debug.apk
           TEST_APK: build/runtime-apks/app-debug-androidTest.apk
           API_LEVEL: '28'
-          BUILD_SHA: ${{ github.sha }}
+          BUILD_SHA: ${{ inputs.source_sha || github.sha }}
           EVIDENCE_DIR: evidence/runtime/normal-home-brand-title-v1
         run: bash scripts/android_runtime/run_normal_home_brand_title_validation.sh
 
@@ -735,7 +834,7 @@ jobs:
         if: ${{ always() }}
         uses: actions/upload-artifact@v4
         with:
-          name: normal-home-brand-title-validation-${{ github.sha }}-${{ needs.build.outputs.model_id }}
+          name: normal-home-brand-title-validation-${{ inputs.source_sha || github.sha }}-${{ needs.build.outputs.model_id }}
           path: evidence/runtime/normal-home-brand-title-v1
           if-no-files-found: warn
           retention-days: 14

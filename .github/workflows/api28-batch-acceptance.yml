@@ -1,0 +1,706 @@
+name: API28 Batch Acceptance
+
+on:
+  schedule:
+    - cron: '30 4 * * *' # 12:30 Asia/Shanghai
+    - cron: '0 13 * * *' # 21:00 Asia/Shanghai
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: Run a rehearsal, core batch, full batch, or authorized emergency batch
+        required: true
+        default: DRY_RUN
+        type: choice
+        options: [DRY_RUN, CORE, FULL, EMERGENCY]
+      dry_run_scope:
+        description: Scope to plan during DRY_RUN
+        required: true
+        default: CORE
+        type: choice
+        options: [CORE, FULL]
+      emergency_scope:
+        description: Scope for an authorized EMERGENCY batch
+        required: false
+        default: FULL
+        type: choice
+        options: [CORE, FULL]
+      authorization_source:
+        description: Ticket, incident, or written approval reference for EMERGENCY
+        required: false
+        type: string
+      emergency_reason:
+        description: Reason for priority; this never bypasses candidate gates
+        required: false
+        type: string
+
+permissions:
+  contents: read
+  pull-requests: read
+  checks: read
+  actions: read
+
+concurrency:
+  group: yujian-api28-batch-orchestrator
+  cancel-in-progress: false
+  queue: max
+
+jobs:
+  prepare:
+    if: ${{ github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write
+      pull-requests: read
+      checks: read
+      actions: read
+    outputs:
+      batch_id: ${{ steps.publish_outputs.outputs.batch_id }}
+      mode: ${{ steps.publish_outputs.outputs.mode }}
+      scope: ${{ steps.publish_outputs.outputs.scope }}
+      integration_sha: ${{ steps.publish_outputs.outputs.integration_sha }}
+      integration_branch: ${{ steps.publish_outputs.outputs.integration_branch }}
+      has_integration: ${{ steps.publish_outputs.outputs.has_integration }}
+      duplicate_of: ${{ steps.publish_outputs.outputs.duplicate_of }}
+      eligible_count: ${{ steps.publish_outputs.outputs.eligible_count }}
+
+    steps:
+      - name: Checkout exact main workflow revision
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+
+      - name: Resolve scope and authorize emergency metadata
+        id: context
+        uses: actions/github-script@v7
+        with:
+          script: |
+            if (context.ref !== 'refs/heads/main') throw new Error('API28 scheduler accepts main only');
+            let mode;
+            let scope;
+            let authorization = null;
+            if (context.eventName === 'schedule') {
+              mode = context.payload.schedule === '0 13 * * *' ? 'FULL' : 'CORE';
+              scope = mode;
+            } else {
+              mode = context.payload.inputs?.mode || 'DRY_RUN';
+              scope = mode === 'EMERGENCY'
+                ? (context.payload.inputs?.emergency_scope || 'FULL')
+                : mode === 'DRY_RUN'
+                  ? (context.payload.inputs?.dry_run_scope || 'CORE')
+                  : mode;
+              if (!['DRY_RUN', 'CORE', 'FULL', 'EMERGENCY'].includes(mode)) throw new Error(`Unsupported mode: ${mode}`);
+              if (mode === 'EMERGENCY') {
+                const authorizationSource = (context.payload.inputs?.authorization_source || '').trim();
+                const reason = (context.payload.inputs?.emergency_reason || '').trim();
+                if (!authorizationSource || !reason) throw new Error('EMERGENCY requires authorization_source and emergency_reason');
+                const permission = await github.rest.repos.getCollaboratorPermissionLevel({
+                  owner: context.repo.owner, repo: context.repo.repo, username: context.actor,
+                });
+                if (!['admin', 'write', 'maintain'].includes(permission.data.permission)) {
+                  throw new Error(`EMERGENCY actor lacks repository write permission: ${permission.data.permission}`);
+                }
+                authorization = { actor: context.actor, permission: permission.data.permission, authorization_source: authorizationSource, reason };
+              }
+            }
+            if (!['CORE', 'FULL'].includes(scope)) throw new Error(`Unsupported batch scope: ${scope}`);
+            const batchId = `api28-${scope.toLowerCase()}-${context.runId}`;
+            core.setOutput('mode', mode);
+            core.setOutput('scope', scope);
+            core.setOutput('batch_id', batchId);
+            core.setOutput('authorization', JSON.stringify(authorization));
+            core.summary.addHeading('API28 batch context');
+            core.summary.addTable([
+              [{data:'Mode',header:true},{data:'Scope',header:true},{data:'Batch ID',header:true}],
+              [mode, scope, batchId],
+            ]);
+            await core.summary.write();
+
+      - name: Set up Python and YAML dependency
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install YAML dependency
+        run: python -m pip install --disable-pip-version-check PyYAML
+
+      - name: Refresh main and run centralized Admission
+        run: |
+          set -euo pipefail
+          git fetch origin main --prune
+          test "$(git rev-parse HEAD)" = "$(git rev-parse origin/main)"
+          python scripts/validate_control_plane_admission.py
+          python -m unittest discover -s tests -p 'test_work_lifecycle_governance.py' -v
+
+      - name: Collect exact-SHA eligible candidates
+        id: candidates
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const pulls = await github.paginate(github.rest.pulls.list, {
+              owner: context.repo.owner, repo: context.repo.repo, state: 'all', base: 'main', per_page: 100,
+            });
+            const labelled = pulls.filter(pr => pr.state === 'open' && pr.labels.some(label => label.name === 'api28-ready'));
+            const parseField = (body, name) => {
+              const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+              const match = (body || '').match(new RegExp(`^\\s*${escaped}\\s*:\\s*(.*?)\\s*$`, 'im'));
+              return match ? match[1].trim() : null;
+            };
+            const parseList = value => {
+              if (!value || /^none$/i.test(value.trim())) return null;
+              return value.split(',').map(value => value.trim().replace(/^#/, '')).filter(Boolean);
+            };
+            const checkRuns = async sha => {
+              if (!sha) return [];
+              return github.paginate(github.rest.checks.listForRef, {
+                owner: context.repo.owner, repo: context.repo.repo, ref: sha, per_page: 100,
+              });
+            };
+            const normalized = value => value.toLowerCase().replace(/[^a-z0-9]/g, '');
+            const checkResult = (runs, predicate) => {
+              const matching = runs.filter(run => predicate(normalized(run.name)))
+                .sort((a, b) => String(b.completed_at || b.started_at || '').localeCompare(String(a.completed_at || a.started_at || '')));
+              if (!matching.length) return 'NOT_RUN';
+              const latest = matching[0];
+              return latest.status === 'completed' && latest.conclusion === 'success' ? 'PASS' : 'FAIL';
+            };
+            const raw = [];
+            const observed = pulls.map(pr => pr.number);
+            for (const pr of labelled) {
+              const taskId = parseField(pr.body, 'Task ID');
+              const gateText = parseField(pr.body, 'API28 gates');
+              const dependencyText = parseField(pr.body, 'Depends on PRs');
+              const gates = parseList(gateText) || [];
+              const dependencyTokens = parseList(dependencyText);
+              const dependenciesValid = /^none$/i.test(dependencyText || '') ||
+                (Array.isArray(dependencyTokens) && dependencyTokens.every(value => /^\d+$/.test(value)));
+              const dependencies = dependenciesValid ? (dependencyTokens || []).map(Number) : null;
+              const headSha = pr.head.sha;
+              const headRuns = await checkRuns(headSha);
+              const admissionRuns = pr.merge_commit_sha ? await checkRuns(pr.merge_commit_sha) : headRuns;
+              const timeline = await github.paginate(github.rest.issues.listEventsForTimeline, {
+                owner: context.repo.owner, repo: context.repo.repo, issue_number: pr.number, per_page: 100,
+              });
+              const labelEvents = timeline.filter(event =>
+                ['labeled', 'unlabeled'].includes(event.event) && event.label?.name === 'api28-ready'
+              ).sort((a,b) => String(a.created_at).localeCompare(String(b.created_at)));
+              const latestLabelEvent = labelEvents[labelEvents.length - 1];
+              const labelActor = latestLabelEvent?.event === 'labeled' ? latestLabelEvent.actor?.login : null;
+              const labelPermission = labelActor ? await github.rest.repos.getCollaboratorPermissionLevel({
+                owner: context.repo.owner, repo: context.repo.repo, username: labelActor,
+              }).catch(() => null) : null;
+              const quickChecks = {
+                'control-plane-admission': checkResult(admissionRuns, name => name.includes('controlplaneadmission')),
+                'Android CI build': checkResult(headRuns, name => name.includes('androidci') && name.includes('build')),
+              };
+              const candidate = {
+                pr_number: pr.number,
+                state: pr.state,
+                draft: pr.draft,
+                base_branch: pr.base.ref,
+                base_repo: pr.base.repo?.full_name || '',
+                head_repo: pr.head.repo?.full_name || '',
+                author_association: pr.author_association,
+                labels: pr.labels.map(label => label.name),
+                task_id: taskId,
+                required_gates: gates,
+                depends_on_prs: dependencies,
+                head_sha: headSha,
+                merge_sha: pr.merge_commit_sha,
+                html_url: pr.html_url,
+                quick_check_results: quickChecks,
+                label_authorized: ['admin','write','maintain'].includes(labelPermission?.data?.permission),
+                label_approver: labelActor,
+                label_approver_permission: labelPermission?.data?.permission || 'NOT_CONFIRMED',
+                observed_check_run_ids: [...new Set([...headRuns, ...admissionRuns].map(run => run.id))],
+              };
+              if (!dependenciesValid) candidate.depends_on_prs = null;
+              raw.push(candidate);
+            }
+            fs.mkdirSync('build/api28', {recursive:true});
+            fs.writeFileSync('build/api28/raw-candidates.json', JSON.stringify(raw, null, 2) + '\n');
+            fs.writeFileSync('build/api28/observed-prs.json', JSON.stringify(observed, null, 2) + '\n');
+            fs.writeFileSync('build/api28/merged-prs.json', JSON.stringify(pulls.filter(pr => pr.merged_at).map(pr => pr.number), null, 2) + '\n');
+            core.setOutput('labelled_count', String(labelled.length));
+            core.setOutput('observed_pr_count', String(observed.length));
+
+      - name: Apply candidate Admission and quick-check policy
+        id: filter_candidates
+        run: |
+          set -euo pipefail
+          python scripts/filter_api28_candidates.py \
+            --input build/api28/raw-candidates.json \
+            --current-output build/api28/candidate-input.json \
+            --eligible-output build/api28/eligible-candidates.json \
+            --rejected-output build/api28/rejected-candidates.json
+          python3 - <<'PY' >> "$GITHUB_OUTPUT"
+          import json
+          from pathlib import Path
+          print(f"eligible_count={len(json.loads(Path('build/api28/eligible-candidates.json').read_text()))}")
+          print(f"labelled_count={len(json.loads(Path('build/api28/candidate-input.json').read_text()))}")
+          PY
+
+      - name: Resolve exact base and write initial batch record
+        id: batch_input
+        env:
+          MODE: ${{ steps.context.outputs.mode }}
+          SCOPE: ${{ steps.context.outputs.scope }}
+          BATCH_ID: ${{ steps.context.outputs.batch_id }}
+          AUTHORIZATION: ${{ steps.context.outputs.authorization }}
+          RUN_ID: ${{ github.run_id }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          base_sha="$(git rev-parse origin/main)"
+          python3 - "$base_sha" build/api28/candidate-input.json build/api28/eligible-candidates.json build/api28/merged-prs.json build/api28/batch-input.json <<'PY'
+          import json, os, pathlib, sys, datetime
+          base_sha, current_path, eligible_path, merged_path, output_path = sys.argv[1:]
+          current = json.loads(pathlib.Path(current_path).read_text())
+          eligible = json.loads(pathlib.Path(eligible_path).read_text())
+          merged_prs = json.loads(pathlib.Path(merged_path).read_text())
+          policy_text = pathlib.Path('harness/ANDROID_BATCH_ACCEPTANCE_POLICY_V1_1.yaml').read_text()
+          import yaml
+          policy = yaml.safe_load(policy_text)
+          mode = os.environ['MODE']
+          scope = os.environ['SCOPE']
+          required = policy['core_gates'] if scope == 'CORE' else policy['full_gates']
+          record = {
+            'schema_version': '1.1', 'batch_id': os.environ['BATCH_ID'],
+            'repository': os.environ['REPOSITORY'], 'workflow_run_id': os.environ['RUN_ID'],
+            'mode': mode, 'scope': scope, 'base_sha': base_sha,
+            'queue_started_at': datetime.datetime.now(datetime.timezone.utc).isoformat(timespec='seconds').replace('+00:00','Z'),
+            'required_gates': required, 'eligible_candidates': eligible,
+            'merged_prs': merged_prs,
+            'labelled_candidates': current,
+            'rejected_candidates': [row for row in current if row.get('initial_status') != 'QUEUED'],
+            'authorization': json.loads(os.environ['AUTHORIZATION'] or 'null'),
+            'batch_status': 'PREPARED', 'api28_status': 'NOT_RUN',
+          }
+          pathlib.Path(output_path).write_text(json.dumps(record, ensure_ascii=False, indent=2, sort_keys=True)+'\n')
+          PY
+
+      - name: Open durable candidate ledger branch
+        id: ledger
+        run: |
+          set -euo pipefail
+          python scripts/api28_batch_git.py open \
+            --repository-root "$GITHUB_WORKSPACE" \
+            --ledger-dir "$RUNNER_TEMP/yujian-api28-ledger"
+          echo "ledger_dir=$RUNNER_TEMP/yujian-api28-ledger" >> "$GITHUB_OUTPUT"
+
+      - name: Persist candidates before runtime dispatch
+        id: persist_candidates
+        env:
+          LEDGER_DIR: ${{ steps.ledger.outputs.ledger_dir }}
+        run: |
+          set -euo pipefail
+          python scripts/api28_batch_ledger.py prepare \
+            --ledger-dir "$LEDGER_DIR" \
+            --batch-input build/api28/batch-input.json \
+            --current-input build/api28/candidate-input.json \
+            --observed-prs build/api28/observed-prs.json \
+            --batch-output build/api28/batch-prepared.json \
+            --queue-output build/api28/queue-prepared.json
+          python scripts/api28_batch_git.py commit \
+            --ledger-dir "$LEDGER_DIR" \
+            --message "Queue API28 batch ${{ steps.context.outputs.batch_id }}"
+          python3 - <<'PY' >> "$GITHUB_OUTPUT"
+          import json
+          from pathlib import Path
+          batch=json.loads(Path('build/api28/batch-prepared.json').read_text())
+          print(f"eligible_count={len(batch.get('eligible_candidates', []))}")
+          print(f"duplicate_of={batch.get('duplicate_of') or ''}")
+          PY
+
+      - name: Compose the deterministic Integration SHA
+        id: compose
+        if: ${{ steps.persist_candidates.outputs.eligible_count != '0' && steps.persist_candidates.outputs.duplicate_of == '' }}
+        continue-on-error: true
+        env:
+          SCOPE: ${{ steps.context.outputs.scope }}
+          BATCH_ID: ${{ steps.context.outputs.batch_id }}
+          MODE: ${{ steps.context.outputs.mode }}
+        run: |
+          set -euo pipefail
+          base_sha="$(git rev-parse origin/main)"
+          test -n "$base_sha"
+          git worktree add --detach "$RUNNER_TEMP/yujian-api28-composer" origin/main
+          scope_gates="$(python3 - "$SCOPE" <<'PY'
+          import pathlib,sys,yaml
+          policy=yaml.safe_load(pathlib.Path('harness/ANDROID_BATCH_ACCEPTANCE_POLICY_V1_1.yaml').read_text())
+          print(','.join(policy['core_gates'] if sys.argv[1] == 'CORE' else policy['full_gates']))
+          PY
+          )"
+          composer_args=(
+            --base-sha "$base_sha"
+            --batch-id "$BATCH_ID"
+            --scope "$SCOPE"
+            --candidates "$GITHUB_WORKSPACE/build/api28/eligible-candidates.json"
+            --scope-gates "$scope_gates"
+            --merged-prs "$(python3 -c 'import json; print(",".join(map(str,json.load(open("build/api28/merged-prs.json")))))')"
+            --output "$RUNNER_TEMP/yujian-integration.json"
+          )
+          if [[ "$MODE" == "DRY_RUN" ]]; then composer_args+=(--dry-run); fi
+          YUJIAN_COMPOSER_ROOT="$RUNNER_TEMP/yujian-api28-composer" \
+            python scripts/create_api28_integration_candidate.py "${composer_args[@]}"
+
+      - name: Record Integration SHA or composer blocker
+        id: save_plan
+        if: ${{ always() }}
+        env:
+          COMPOSE_OUTCOME: ${{ steps.compose.outcome }}
+          MODE: ${{ steps.context.outputs.mode }}
+          LEDGER_DIR: ${{ steps.ledger.outputs.ledger_dir }}
+          BATCH_ID: ${{ steps.context.outputs.batch_id }}
+          SCOPE: ${{ steps.context.outputs.scope }}
+        run: |
+          set -euo pipefail
+          python3 - build/api28/batch-prepared.json "$RUNNER_TEMP/yujian-integration.json" <<'PY'
+          import json, pathlib, sys, os
+          batch_path=pathlib.Path(sys.argv[1]); integration_path=pathlib.Path(sys.argv[2])
+          batch=json.loads(batch_path.read_text())
+          if os.environ['COMPOSE_OUTCOME'] == 'success' and integration_path.is_file():
+              integration=json.loads(integration_path.read_text())
+              batch.update(integration)
+              batch['batch_status']='DRY_RUN' if os.environ['MODE']=='DRY_RUN' else 'PREPARED'
+          elif batch.get('duplicate_of'):
+              batch['batch_status']='DUPLICATE_SKIPPED'
+          elif not batch.get('eligible_candidates'):
+              batch['batch_status']='NO_CANDIDATES'
+          else:
+              batch['batch_status']='BLOCKED_INFRA'
+              batch['api28_status']='NOT_RUN'
+              batch['reason']='integration composer failed before producing an Integration SHA'
+              batch['blocked']=batch.get('blocked',[])+[{'status':'BLOCKED_INFRA','reason':batch['reason']}]
+          batch['required_gates']=batch.get('required_gates',[])
+          batch_path.write_text(json.dumps(batch,ensure_ascii=False,indent=2,sort_keys=True)+'\n')
+          pathlib.Path('build/api28/batch-final-prepared.json').write_text(json.dumps(batch,ensure_ascii=False,indent=2,sort_keys=True)+'\n')
+          PY
+          python scripts/api28_batch_ledger.py prepare \
+            --ledger-dir "$LEDGER_DIR" \
+            --batch-input build/api28/batch-final-prepared.json \
+            --current-input build/api28/candidate-input.json \
+            --observed-prs build/api28/observed-prs.json \
+            --batch-output build/api28/batch-final-prepared.json \
+            --queue-output build/api28/queue-final-prepared.json
+          python scripts/api28_batch_git.py commit --ledger-dir "$LEDGER_DIR" --message "Prepare API28 batch $BATCH_ID"
+          python3 - <<'PY' >> "$GITHUB_OUTPUT"
+          import json
+          from pathlib import Path
+          batch=json.loads(Path('build/api28/batch-final-prepared.json').read_text())
+          print(f"integration_sha={batch.get('integration_sha') or ''}")
+          print(f"integration_branch={batch.get('integration_branch') or ''}")
+          print(f"has_integration={'true' if batch.get('integration_sha') else 'false'}")
+          print(f"duplicate_of={batch.get('duplicate_of') or ''}")
+          print(f"eligible_count={len(batch.get('eligible_candidates', []))}")
+          PY
+
+      - name: Publish prepared batch evidence
+        uses: actions/upload-artifact@v4
+        if: ${{ always() && steps.save_plan.outcome == 'success' }}
+        with:
+          name: api28-batch-prepared-${{ github.run_id }}
+          path: build/api28
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Publish scheduler outputs
+        id: publish_outputs
+        if: ${{ always() && steps.save_plan.outcome == 'success' }}
+        run: |
+          set -euo pipefail
+          python3 - build/api28/batch-final-prepared.json "$GITHUB_OUTPUT" <<'PY'
+          import json,sys
+          batch=json.loads(open(sys.argv[1],encoding='utf-8').read())
+          with open(sys.argv[2],'a',encoding='utf-8') as out:
+            out.write(f"batch_id={batch['batch_id']}\n")
+            out.write(f"mode={batch['mode']}\n")
+            out.write(f"scope={batch['scope']}\n")
+            out.write(f"integration_sha={batch.get('integration_sha') or ''}\n")
+            out.write(f"integration_branch={batch.get('integration_branch') or ''}\n")
+            out.write(f"has_integration={'true' if batch.get('integration_sha') else 'false'}\n")
+            out.write(f"duplicate_of={batch.get('duplicate_of') or ''}\n")
+            out.write(f"eligible_count={len(batch.get('eligible_candidates', []))}\n")
+          PY
+
+  android_batch:
+    needs: prepare
+    if: ${{ needs.prepare.outputs.has_integration == 'true' && needs.prepare.outputs.mode != 'DRY_RUN' && needs.prepare.outputs.duplicate_of == '' }}
+    permissions:
+      contents: read
+    uses: ./.github/workflows/android.yml
+    with:
+      source_sha: ${{ needs.prepare.outputs.integration_sha }}
+      source_branch: ${{ needs.prepare.outputs.integration_branch }}
+      harness_sha: ${{ github.sha }}
+      artifact_class: API28_INTEGRATION_CANDIDATE
+      api28_scope: ${{ needs.prepare.outputs.scope }}
+
+  nh01_full_batch:
+    needs: [prepare, android_batch]
+    if: ${{ always() && needs.prepare.result == 'success' && needs.prepare.outputs.has_integration == 'true' && needs.prepare.outputs.scope == 'FULL' && needs.prepare.outputs.mode != 'DRY_RUN' && needs.prepare.outputs.duplicate_of == '' }}
+    permissions:
+      contents: read
+    uses: ./.github/workflows/nh01-cloud-runtime.yml
+    with:
+      source_sha: ${{ needs.prepare.outputs.integration_sha }}
+      artifact_class: API28_INTEGRATION_CANDIDATE
+      api28_scope: FULL
+
+  api28_queue_monitor:
+    needs: prepare
+    if: ${{ needs.prepare.result == 'success' && needs.prepare.outputs.has_integration == 'true' && needs.prepare.outputs.mode != 'DRY_RUN' && needs.prepare.outputs.duplicate_of == '' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    continue-on-error: true
+    permissions:
+      contents: write
+      actions: write
+      checks: read
+    steps:
+      - name: Checkout trusted scheduler code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+      - name: Set up Python and YAML dependency
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install YAML dependency
+        run: python -m pip install --disable-pip-version-check PyYAML
+      - name: Open the durable ledger
+        run: python scripts/api28_batch_git.py open --repository-root "$GITHUB_WORKSPACE" --ledger-dir "$RUNNER_TEMP/yujian-api28-ledger"
+      - name: Download prepared batch record
+        uses: actions/download-artifact@v4
+        with:
+          name: api28-batch-prepared-${{ github.run_id }}
+          path: batch-record
+      - name: Mark runner queue timeout as BLOCKED_INFRA
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_API_URL: ${{ github.api_url }}
+        run: |
+          python scripts/api28_batch_monitor.py \
+            --repository "$GITHUB_REPOSITORY" \
+            --api-url "$GITHUB_API_URL" \
+            --run-id "$GITHUB_RUN_ID" \
+            --batch-id "${{ needs.prepare.outputs.batch_id }}" \
+            --batch-record batch-record/batch-final-prepared.json \
+            --ledger-dir "$RUNNER_TEMP/yujian-api28-ledger"
+
+  api28_queue_monitor_2:
+    needs: [prepare, api28_queue_monitor]
+    if: ${{ always() && needs.prepare.result == 'success' && needs.prepare.outputs.has_integration == 'true' && needs.prepare.outputs.mode != 'DRY_RUN' && needs.prepare.outputs.duplicate_of == '' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    continue-on-error: true
+    permissions:
+      contents: write
+      actions: write
+      checks: read
+    steps:
+      - name: Checkout trusted scheduler code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+      - name: Set up Python and YAML dependency
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install YAML dependency
+        run: python -m pip install --disable-pip-version-check PyYAML
+      - name: Open the durable ledger
+        run: python scripts/api28_batch_git.py open --repository-root "$GITHUB_WORKSPACE" --ledger-dir "$RUNNER_TEMP/yujian-api28-ledger"
+      - name: Download prepared batch record
+        uses: actions/download-artifact@v4
+        with:
+          name: api28-batch-prepared-${{ github.run_id }}
+          path: batch-record
+      - name: Continue API28 queue and runner watch
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_API_URL: ${{ github.api_url }}
+        run: |
+          python scripts/api28_batch_monitor.py \
+            --repository "$GITHUB_REPOSITORY" \
+            --api-url "$GITHUB_API_URL" \
+            --run-id "$GITHUB_RUN_ID" \
+            --batch-id "${{ needs.prepare.outputs.batch_id }}" \
+            --batch-record batch-record/batch-final-prepared.json \
+            --ledger-dir "$RUNNER_TEMP/yujian-api28-ledger"
+
+  api28_queue_monitor_3:
+    needs: [prepare, api28_queue_monitor_2]
+    if: ${{ always() && needs.prepare.result == 'success' && needs.prepare.outputs.has_integration == 'true' && needs.prepare.outputs.mode != 'DRY_RUN' && needs.prepare.outputs.duplicate_of == '' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    continue-on-error: true
+    permissions:
+      contents: write
+      actions: write
+      checks: read
+    steps:
+      - name: Checkout trusted scheduler code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+      - name: Set up Python and YAML dependency
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install YAML dependency
+        run: python -m pip install --disable-pip-version-check PyYAML
+      - name: Open the durable ledger
+        run: python scripts/api28_batch_git.py open --repository-root "$GITHUB_WORKSPACE" --ledger-dir "$RUNNER_TEMP/yujian-api28-ledger"
+      - name: Download prepared batch record
+        uses: actions/download-artifact@v4
+        with:
+          name: api28-batch-prepared-${{ github.run_id }}
+          path: batch-record
+      - name: Continue API28 queue and runner watch
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_API_URL: ${{ github.api_url }}
+        run: |
+          python scripts/api28_batch_monitor.py \
+            --repository "$GITHUB_REPOSITORY" \
+            --api-url "$GITHUB_API_URL" \
+            --run-id "$GITHUB_RUN_ID" \
+            --batch-id "${{ needs.prepare.outputs.batch_id }}" \
+            --batch-record batch-record/batch-final-prepared.json \
+            --ledger-dir "$RUNNER_TEMP/yujian-api28-ledger"
+
+  finalize:
+    needs: [prepare, android_batch, nh01_full_batch, api28_queue_monitor_3]
+    if: ${{ always() && needs.prepare.result == 'success' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write
+      actions: read
+      checks: read
+    steps:
+      - name: Checkout trusted finalizer code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+      - name: Set up Python and YAML dependency
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install YAML dependency
+        run: python -m pip install --disable-pip-version-check PyYAML
+      - name: Open the durable ledger
+        run: python scripts/api28_batch_git.py open --repository-root "$GITHUB_WORKSPACE" --ledger-dir "$RUNNER_TEMP/yujian-api28-ledger"
+      - name: Download prepared batch evidence
+        uses: actions/download-artifact@v4
+        with:
+          name: api28-batch-prepared-${{ github.run_id }}
+          path: batch-record
+      - name: Download exact Integration APK pair
+        if: ${{ needs.prepare.outputs.has_integration == 'true' && needs.prepare.outputs.mode != 'DRY_RUN' && needs.prepare.outputs.duplicate_of == '' }}
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          pattern: YuJian-runtime-apks-${{ needs.prepare.outputs.integration_sha }}-*
+          path: batch-artifacts/apk
+          merge-multiple: true
+      - name: Download runtime gate evidence
+        if: ${{ needs.prepare.outputs.has_integration == 'true' && needs.prepare.outputs.mode != 'DRY_RUN' && needs.prepare.outputs.duplicate_of == '' }}
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          pattern: runtime-gate-*-${{ needs.prepare.outputs.integration_sha }}-*
+          path: batch-artifacts/gates
+          merge-multiple: false
+      - name: Download Gemini full-scope evidence
+        if: ${{ needs.prepare.outputs.scope == 'FULL' && needs.prepare.outputs.has_integration == 'true' && needs.prepare.outputs.mode != 'DRY_RUN' && needs.prepare.outputs.duplicate_of == '' }}
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          pattern: YuJian-NH01-Gemini-V3-${{ needs.prepare.outputs.integration_sha }}-*
+          path: batch-artifacts/gemini
+          merge-multiple: true
+      - name: Capture actual Actions job queue, start, and finish times
+        id: actions_jobs
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const jobs = await github.paginate(github.rest.actions.listJobsForWorkflowRun, {
+              owner: context.repo.owner, repo: context.repo.repo, run_id: context.runId, per_page: 100,
+            });
+            const runtime = jobs.filter(job => {
+              const labels = (job.labels || []).map(value => value.toLowerCase());
+              const name = job.name.toLowerCase();
+              return (labels.includes('self-hosted') && labels.includes('yujian-android') && labels.includes('api28')) ||
+                (name.includes('nh01') && name.includes('runtime'));
+            });
+            const checks = await Promise.all(runtime.map(async job => {
+              const id = Number((job.check_run_url || '').match(/\/check-runs\/(\d+)$/)?.[1] || 0);
+              if (!id) return null;
+              const response = await github.rest.checks.get({owner:context.repo.owner, repo:context.repo.repo, check_run_id:id}).catch(() => null);
+              return response?.data?.created_at ? {job_id:job.id, created_at:response.data.created_at} : null;
+            }));
+            const queued = checks.filter(Boolean);
+            const started = runtime.map(job => job.started_at).filter(Boolean).sort();
+            const completed = runtime.map(job => job.completed_at).filter(Boolean).sort();
+            const earliestQueue = queued.map(row => row.created_at).sort()[0] || null;
+            const earliestStart = started[0] || null;
+            const latestFinish = completed[completed.length - 1] || null;
+            let queueWait = null;
+            if (earliestQueue && earliestStart) queueWait = Math.max(0, Math.floor((Date.parse(earliestStart)-Date.parse(earliestQueue))/1000));
+            const record = {
+              workflow_run_id: context.runId,
+              runner_started_at: earliestStart,
+              finished_at: latestFinish || new Date().toISOString(),
+              api28_queue_started_at: earliestQueue,
+              api28_queue_wait_seconds: queueWait,
+              jobs: runtime.map(job => ({name:job.name,status:job.status,conclusion:job.conclusion,labels:job.labels,started_at:job.started_at,completed_at:job.completed_at,check_run_url:job.check_run_url})),
+            };
+            fs.mkdirSync('batch-record', {recursive:true});
+            fs.writeFileSync('batch-record/run-metadata.json', JSON.stringify(record,null,2)+'\n');
+            core.setOutput('runner_started_at', earliestStart || '');
+
+      - name: Derive exact batch result and gate evidence
+        id: result
+        env:
+          ANDROID_OUTCOME: ${{ needs.android_batch.result }}
+          GEMINI_OUTCOME: ${{ needs.nh01_full_batch.result }}
+        run: |
+          set -euo pipefail
+          python scripts/finalize_api28_batch.py \
+            --batch batch-record/batch-final-prepared.json \
+            --artifacts batch-artifacts \
+            --run-metadata batch-record/run-metadata.json \
+            --android-outcome "$ANDROID_OUTCOME" \
+            --gemini-outcome "$GEMINI_OUTCOME" \
+            --output batch-record/batch-final-result.json
+
+      - name: Persist exact batch result and queue status
+        if: ${{ always() }}
+        env:
+          BATCH_ID: ${{ needs.prepare.outputs.batch_id }}
+        run: |
+          set -euo pipefail
+          python scripts/api28_batch_ledger.py finalize \
+            --ledger-dir "$RUNNER_TEMP/yujian-api28-ledger" \
+            --batch-id "$BATCH_ID" \
+            --final-input batch-record/batch-final-result.json
+          python scripts/api28_batch_git.py commit \
+            --ledger-dir "$RUNNER_TEMP/yujian-api28-ledger" \
+            --message "Close API28 batch $BATCH_ID"
+      - name: Upload batch evidence manifest
+        if: ${{ always() && steps.result.outcome == 'success' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: api28-batch-evidence-${{ github.run_id }}
+          path: batch-record
+          if-no-files-found: warn
+          retention-days: 90

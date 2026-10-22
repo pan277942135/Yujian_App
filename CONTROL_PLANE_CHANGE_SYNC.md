@@ -21,6 +21,13 @@ For every material task or design change, update the affected authoritative sour
 
 The change is incomplete until all affected references validate.
 
+For Work lifecycle/API28 scheduling rule changes, also update the indexed Work
+Instruction Protocol, Android Batch Acceptance Policy, feedback schema and
+template, Work Execution State schema/validator, P5 governance task binding,
+and affected workflow/admission tests as one coherent change set. The central
+schedule and ledger remain proposals until a real main-branch dispatch,
+exact-SHA runtime, and settings/runner checks establish effectiveness.
+
 ## Branch admission
 Before Work executes:
 1. Resolve the canonical `CONTROL_PLANE_REGISTRY.yaml` from `main`.

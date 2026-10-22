@@ -100,6 +100,35 @@
     "evidence": {
       "type": "object"
     },
+    "delivery": {
+      "type": "object",
+      "required": ["artifact_class", "source_sha", "source_branch", "api28_status", "formal_status"],
+      "properties": {
+        "artifact_class": {"enum": ["USER_PREVIEW", "API28_INTEGRATION_CANDIDATE", "FORMAL_ACCEPTANCE", "RELEASE_CANDIDATE"]},
+        "source_sha": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+        "source_branch": {"type": "string", "minLength": 1},
+        "api28_status": {"enum": ["NOT_RUN", "QUEUED", "RUNNING", "CORE_PASS", "PASS", "FAIL", "BLOCKED_INFRA"]},
+        "formal_status": {"enum": ["NOT_ELIGIBLE", "PENDING", "CORE_PASS", "PASS", "FAIL", "BLOCKED_INFRA"]},
+        "release_status": {"enum": ["NOT_ELIGIBLE", "PENDING", "PASS", "BLOCKED"]},
+        "integration_sha": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+        "tested_source_sha": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+        "batch_id": {"type": "string", "minLength": 1},
+        "workflow_run_id": {"type": ["integer", "string"]},
+        "build_run_id": {"type": ["integer", "string"]},
+        "artifact_url": {"type": "string", "format": "uri"},
+        "apk_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "quick_checks": {"type": "object"},
+        "required_gates": {"type": "array", "items": {"type": "string"}},
+        "gate_results": {"type": "object"},
+        "evidence_links": {"type": "array", "items": {"type": "string", "format": "uri"}},
+        "component_prs": {"type": "array", "items": {"type": "object"}}
+      },
+      "additionalProperties": true
+    },
+    "user_feedback": {
+      "type": "array",
+      "items": {"$ref": "./USER_FEEDBACK_SCHEMA_V1.json"}
+    },
     "execution_v2": {
       "type": "object",
       "required": [

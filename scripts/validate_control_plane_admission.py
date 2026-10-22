@@ -4,6 +4,9 @@ from __future__ import annotations
 import argparse,os,subprocess,sys
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
+def rev(*args):
+    return subprocess.check_output(["git", "rev-parse", *args], cwd=ROOT, text=True).strip()
+
 def run(label,args):
     print(f"\n=== {label} ===")
     return subprocess.run(args,cwd=ROOT).returncode==0
@@ -37,11 +40,20 @@ def main():
     branch=branch_name(); event=os.environ.get("GITHUB_EVENT_NAME","")
     if event=="merge_group": branch="main"
     control_change=branch.startswith(("control/","design/")); ok=True
+    if branch == "main" and event != "merge_group":
+        local_main = rev("HEAD")
+        canonical_main = rev("origin/main")
+        print(f"LOCAL_MAIN_SHA={local_main}")
+        print(f"ORIGIN_MAIN_SHA={canonical_main}")
+        if local_main != canonical_main:
+            print("CONTROL_PLANE_ADMISSION=FAIL\n- local main is stale or differs from refreshed origin/main", file=sys.stderr)
+            return 1
     ok &= run("PYTHON_SYNTAX",["python","-m","compileall","-q","scripts"])
     ok &= run("CONTROL_PLANE_REGISTRY",["python","scripts/validate_control_plane_registry.py"])
     ok &= run("FEATURE_MATRIX",["python","scripts/validate_feature_matrix.py"])
     ok &= run("PHASE_TASK_STATE_MACHINE",["python","scripts/validate_phase_task_state_machine.py"])
     ok &= run("UNIFIED_CONTRACT",["python","scripts/validate_unified_contract.py"])
+    ok &= run("WORK_LIFECYCLE_GOVERNANCE",["python","scripts/validate_work_lifecycle_governance.py"])
     if control_change:
         print(f"mode=CONTROL_PLANE_CHANGE branch={branch}")
         print("CONTROL_PLANE_ADMISSION="+("PASS" if ok else "FAIL")); return 0 if ok else 1

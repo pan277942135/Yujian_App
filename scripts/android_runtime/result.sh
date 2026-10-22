@@ -7,6 +7,8 @@ android_runtime_write_result() {
     --gate "$YUJIAN_GATE" \
     --api-level "$YUJIAN_API_LEVEL" \
     --build-sha "$YUJIAN_BUILD_SHA" \
+    --app-apk "${YUJIAN_APP_APK:-}" \
+    --test-apk "${YUJIAN_TEST_APK:-}" \
     --adb-state "$YUJIAN_DEVICE_STATE" \
     --boot-completed "$YUJIAN_BOOT_COMPLETED" \
     --data-free-kb "${YUJIAN_DATA_FREE_KB:-}" \

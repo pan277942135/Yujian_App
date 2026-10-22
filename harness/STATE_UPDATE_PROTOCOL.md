@@ -380,6 +380,28 @@ The Control Plane defines rules; it does not store live Work progress.
 - A Work status change never requires a main Control Plane commit.
 - A task/design/contract/gate/recovery rule change requires a Control Plane change on main first, followed by branch resynchronization and re-admission.
 
+## 19. Work lifecycle, previews, batches, and user feedback V1.1
+
+Follow `harness/WORK_INSTRUCTION_PROTOCOL_V1_1.md` and the policy indexed by
+`CONTROL_PLANE_REGISTRY.yaml`.
+
+- Record `USER_PREVIEW` provenance in branch-local Work state: exact source
+  SHA/branch, Actions Run ID, artifact URL, APK SHA-256, real quick-check
+  results, and `api28_status=NOT_RUN`. A preview is never formal acceptance or
+  Release PASS.
+- A central batch records Batch ID, base SHA, exact Integration SHA, ordered
+  PR/head SHAs, exact APK SHA-256, Workflow Run IDs, queue/start/finish times,
+  per-gate results, and evidence links. Store scheduler records on its
+  dedicated ledger branch, never on `main`.
+- A batch result belongs to its Integration SHA. Component PRs remain
+  `TESTED_INTEGRATED` until each exact PR SHA is independently tested.
+- Preserve replaced candidates as `CANCELLED_SUPERSEDED`. Runner or artifact
+  infrastructure failure is `BLOCKED_INFRA` and retains the candidate for a
+  later batch. Do not convert a skipped/queued job to PASS.
+- Add user reports using `harness/USER_FEEDBACK_SCHEMA_V1.json`. A fixed item
+  remains `FIXED_AWAITING_RETEST` until the user tests the replacement APK;
+  automated API28 evidence cannot close that feedback.
+
 
 ## Work State Migration V1.1
 Legacy feature-specific Work state paths such as `docs/qa/recognition_main_journey/WORK_EXECUTION_STATE.json` are retired. Every active Work branch uses root `WORK_EXECUTION_STATE.json`.
