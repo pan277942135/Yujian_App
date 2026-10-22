@@ -14,6 +14,7 @@ REQUIRED_GATES = {
     "recognition-frozen",
     "empty-home-v2",
     "login-v2",
+    "hifi-pages-v1",
     "data-sanitization",
     "fish-guide-v1",
 }
@@ -43,6 +44,7 @@ for gate in REQUIRED_GATES | {"runtime-parity"}:
 
 EXPECTED_TESTS = {
     "login-v2": ("scripts/android_runtime/gates/login_v2.sh", "FishRecordDetailRuntimeTest"),
+    "hifi-pages-v1": ("scripts/android_runtime/gates/hifi_pages_v1.sh", "HiFiPagesRuntimeTest"),
     "data-sanitization": (
         "scripts/android_runtime/gates/data_sanitization.sh",
         "PresentationSanitizationRuntimeTest",
