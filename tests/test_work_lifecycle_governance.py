@@ -387,6 +387,7 @@ class WorkLifecycleGovernanceTests(unittest.TestCase):
         self.assertIn("api28-batch-acceptance.yml@refs/heads/main", workflow_text)
         self.assertIn("yujian-api28-global", workflow_text)
         self.assertIn("queue: max", workflow_text)
+        self.assertIn("max-parallel: 1", workflow_text)
         for path in ("camera-capture-p0-v2.yml", "camera-runtime-harness.yml", "nh01-cloud-runtime.yml"):
             text = (ROOT / ".github/workflows" / path).read_text(encoding="utf-8")
             self.assertNotRegex(text, r"(?m)^  (push|pull_request):")
@@ -395,6 +396,47 @@ class WorkLifecycleGovernanceTests(unittest.TestCase):
         self.assertIn("cancel-in-progress: false", central)
         self.assertIn("queue: max", central)
         self.assertIn("github.ref == 'refs/heads/main'", central)
+        self.assertIn("needs.prepare.outputs.duplicate_of == ''", central)
+
+    def test_repeated_successful_candidate_set_is_recorded_and_skips_runtime(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            ledger = root / "ledger"
+            batch_dir = ledger / "ledger" / "batches"
+            batch_dir.mkdir(parents=True)
+            candidate = {
+                "pr_number": 23, "head_sha": SHA_A, "task_id": "TASK-23",
+                "required_gates": ["normal-home-v1"], "depends_on_prs": [], "initial_status": "QUEUED",
+            }
+            key = candidate_set_key(SHA_C, "CORE", [candidate])
+            (batch_dir / "prior.json").write_text(json.dumps({
+                "batch_id": "prior-batch", "candidate_set_key": key, "batch_status": "CORE_PASS",
+            }))
+            inputs = root / "inputs"
+            inputs.mkdir()
+            current = inputs / "current.json"
+            current.write_text(json.dumps([candidate]))
+            observed = inputs / "observed.json"
+            observed.write_text("[23]")
+            batch_input = inputs / "batch.json"
+            batch_input.write_text(json.dumps({
+                "batch_id": "duplicate-batch", "base_sha": SHA_C, "scope": "CORE",
+                "eligible_candidates": [candidate],
+            }))
+            batch_output = inputs / "batch-output.json"
+            queue_output = inputs / "queue-output.json"
+            command = [sys.executable, str(ROOT / "scripts/api28_batch_ledger.py"), "prepare",
+                       "--ledger-dir", str(ledger), "--batch-input", str(batch_input),
+                       "--current-input", str(current), "--observed-prs", str(observed),
+                       "--batch-output", str(batch_output), "--queue-output", str(queue_output)]
+            subprocess.run(command, cwd=ROOT, check=True, capture_output=True, text=True)
+
+            batch = json.loads(batch_output.read_text())
+            persisted = json.loads((batch_dir / "duplicate-batch.json").read_text())
+            self.assertEqual(batch["duplicate_of"], "prior-batch")
+            self.assertEqual(batch["batch_status"], "DUPLICATE_SKIPPED")
+            self.assertEqual(persisted["duplicate_of"], "prior-batch")
+            self.assertEqual(persisted["candidate_set_key"], key)
 
 
 if __name__ == "__main__":
