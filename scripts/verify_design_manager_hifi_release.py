@@ -108,6 +108,15 @@ def validate_tree(root: Path, *, built: bool = False, expected_build: str | None
         len(full_flow.get("acceptance_scenarios", [])) == len(flow_machine.get("acceptance_scenarios", [])),
         "Design Manager acceptance scenarios must match machine authority",
     )
+    require(
+        [step.get("title") for step in full_flow.get("workflow_steps", [])]
+        == [step.get("title") for step in flow_machine.get("stages", [])],
+        "Design Manager workflow stage titles must match machine authority",
+    )
+    require(
+        len(full_flow.get("decision_branches", [])) == len(flow_machine.get("branches", [])),
+        "Design Manager decision branches must match machine authority",
+    )
     flow_svg_path = root / full_flow["image"]
     require(flow_svg_path.is_file(), "full-flow SVG asset missing")
     flow_svg = flow_svg_path.read_text(encoding="utf-8")
