@@ -90,7 +90,7 @@ require(not any(ROOT.rglob("208758.jpg")), "private photo 208758.jpg leaked into
 flow = next(feature for feature in registry["features"] if feature.get("id") == "recognition_flow_v1_2")
 static_view = next((view for view in flow.get("hifi_views", []) if view.get("id") == "swos_static_visual_v1_1"), None)
 require(static_view is not None and static_view.get("render_mode") == "swos_static_visual_workspace", "Design Manager route/renderer registration missing")
-require(static_view.get("status") == "DESIGN_ONLY" and static_view.get("adoption_status") == "DRAFT_DEPENDENT_ON_PR_186", "proposal must remain dependent and noncanonical")
+require(static_view.get("status") == "DESIGN_ONLY" and static_view.get("adoption_status") == "MAIN_ADOPTED_DESIGN_ONLY" and static_view.get("adoption_pr") == 190, "static contract must be main-adopted design-only")
 
 base_branch = os.environ.get("GITHUB_BASE_REF")
 base_ref = f"origin/{base_branch}" if base_branch else "origin/pr/186"

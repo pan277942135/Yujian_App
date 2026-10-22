@@ -1,12 +1,12 @@
 # Recognition Result Motion Spec V3 — SWOS Gold Continuation
 
-**Status:** `PROPOSED_FOR_MAIN_ADOPTION` · design contract only
+**Status:** `MAIN_ADOPTED_DESIGN_ONLY` · Runtime / playback `NOT_RUN`
 **Runtime / playback:** `NOT_RUN`
 **Menu:** Recognition Result → RR09 · 动效接续 V3
 
 ## Authority and V2 history
 
-V3 is the proposed current RR09 reveal authority. It supersedes V2 only for the successful Result-entry reveal's clock origin, Processing handoff, optical source and title presentation. Frozen RR09 V2 remains byte-for-byte unchanged and is kept as a historical baseline. Motion V1 continues to govern non-conflicting Result interactions, CTA/save behavior and recovery states. The static Result layout, existing Hero Media Contract, real photo and result routing remain unchanged.
+V3 is the main-adopted design authority for the current RR09 reveal. It supersedes V2 only for the successful Result-entry reveal's clock origin, Processing handoff, optical source and title presentation. Frozen RR09 V2 remains byte-for-byte unchanged and is kept as a historical baseline. Motion V1 continues to govern non-conflicting Result interactions, CTA/save behavior and recovery states. The static Result layout, existing Hero Media Contract, real photo and result routing remain unchanged.
 
 V3 resolves two conflicts in V2: `T0` is the first frame actually presented by Result (not a Processing RESOLVE timestamp), and the Chinese species name is the only revealed species title; no English scientific-name line or blank reserved row is shown.
 

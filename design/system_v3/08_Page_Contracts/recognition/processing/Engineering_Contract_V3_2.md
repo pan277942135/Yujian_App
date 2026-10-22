@@ -1,6 +1,6 @@
 # Recognition Processing Engineering Contract V3.2
 
-**Status:** `PROPOSED_FOR_MAIN_ADOPTION`
+**Status:** `MAIN_ADOPTED_DESIGN_ONLY`
 **Page:** `recognition.processing.v3_2`
 
 ## Source and geometry
@@ -29,4 +29,4 @@
 
 ## Adoption and evidence boundary
 
-V3.2 is a proposed contract and does not assert that Android code, API 28 runtime, demo or APK has been updated. Stage 1 must implement the mapped source files listed in `docs/execution/swos/PHASE0_CLOSURE_REPORT_V1.md` and attach exact-SHA evidence before claiming runtime parity.
+V3.2 is a main-adopted design-only contract and does not assert that Android code, API 28 runtime, demo or APK has been updated. Stage 1 must implement the mapped source files listed in `docs/execution/swos/PHASE0_CLOSURE_REPORT_V1.md` and attach exact-SHA evidence before claiming runtime parity.

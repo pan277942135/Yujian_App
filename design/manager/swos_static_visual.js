@@ -18,7 +18,7 @@
       '<div class="swos-photo-control"><label class="swos-upload-button">选择本地真实鱼获照片<input class="swos-photo-input" type="file" accept="image/jpeg,image/png,image/webp"></label>' +
       '<div class="swos-privacy-note"><strong>本地预览</strong><span>照片仅由此页面的浏览器内存读取，不会上传或保存。公开预览不含默认照片。</span></div>' +
       '<div class="swos-photo-meta" aria-live="polite">尚未选择照片 · 帧结构与合同仍可检查</div></div>' +
-      '<div class="swos-gate-strip"><span><b>DESIGN_ONLY</b> · 依赖 Draft PR #186</span><span>照片发布许可：未确认</span><span>鱼体轮廓：仅当 SHA 匹配 fixture 时显示人工参考线，不是生产 Mask</span></div>' +
+      '<div class="swos-gate-strip"><span><b>DESIGN_ONLY</b> · MAIN-ADOPTED VIA PR #190 · RUNTIME NOT_RUN</span><span>照片发布许可：未确认</span><span>鱼体轮廓：仅当 SHA 匹配 fixture 时显示人工参考线，不是生产 Mask</span></div>' +
       '<div class="swos-storyboard-wrap"><div class="swos-storyboard-title"><strong>完整横向静态总图</strong><span>点击任一帧可放大；左右滚动查看 15 帧</span></div><div class="swos-storyboard" data-storyboard></div></div>' +
       '<section class="swos-inspector" aria-label="逐帧检查"><div class="swos-inspector-header"><div><div class="swos-kicker">FRAME INSPECTOR</div><h4 data-inspector-title>等待载入帧合同</h4></div><span data-inspector-state class="swos-inspector-state">STATIC · NO PLAYBACK</span></div>' +
       '<div class="swos-inspector-grid"><div class="swos-inspector-phone" data-inspector-phone></div><div class="swos-inspector-details" data-inspector-details></div></div></section>' +

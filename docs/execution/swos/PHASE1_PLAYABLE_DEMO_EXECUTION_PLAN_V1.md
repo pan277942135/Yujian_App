@@ -1,12 +1,12 @@
 # SWOS Phase 1 — Playable Demo Execution Plan V1
 
 **Status:** `WAITING_FOR_PHASE1_AUTHORIZATION`
-**Depends on:** PR #186 contract adoption on `main`, current approved SWOS V1 / Processing V1.3 / Page V3.2 / continuity V1 / RR09 V3 refs, and a confirmed review photo/geometry bundle.
+**Depends on:** Main adoption of the SWOS contract set through PR #190, current approved SWOS V1 / Processing V1.3 / Page V3.2 / continuity V1 / RR09 V3 refs, and a confirmed review photo/geometry bundle.
 **Phase 0 disposition:** Planning only. No demo, Android code, Pages deployment, API 28 run or APK was started.
 
 ## Entry gates
 
-1. PR #186 is reviewed and its control-plane contracts are adopted on `main`; the implementation branch starts from that adopted SHA.
+1. PR #190 is merged and the SWOS design contracts are adopted on `main`; any implementation branch starts from the released Main SHA in the PR #190 release report.
 2. Product/design review confirms the SWOS water-light direction and the static Result title placement under the linked contracts.
 3. The input bundle in [`Phase1_SWOS_Playable_Demo_Input_Contract_V1.md`](../../../design/pages/recognition/phase1/Phase1_SWOS_Playable_Demo_Input_Contract_V1.md) is available: registered original photo set, transform/`photoContentRect`, real detector/classifier trace, and provenance-tagged subject geometry.
 4. Missing production contour data is explicitly represented as BBox-only or `BLOCKED`; manual reference assets remain `REVIEW_PROXY_NOT_PRODUCTION`.
@@ -37,4 +37,4 @@
 - Android run ID/device/API, frame/performance/lifecycle evidence and APK SHA only after P1-D is authorized and executed.
 - A report that distinguishes `WEB_PROTOTYPE_PASS`, `VISUAL_REVIEW_REQUIRED`, `ANDROID_NOT_RUN` and `APK_NOT_BUILT` as separate states.
 
-**Phase 1 is not started by this plan.** Wait for PR #186 adoption and explicit Phase 1 entry; do not begin Android implementation from this document alone.
+**Phase 1 is not started by this plan.** PR #186/#187 contract content is adopted through PR #190; Phase 1 remains unstarted until explicit Phase 1 entry. Do not begin Android implementation from this document alone.

@@ -2,10 +2,10 @@
   "schema_version": "1.0",
   "contract_id": "YUJIAN-SWOS-OPTICAL-V1",
   "version": "1.0",
-  "status": "PROPOSED_FOR_MAIN_ADOPTION",
+  "status": "MAIN_ADOPTED_DESIGN_ONLY",
   "scope": "Recognition Processing optical language and rendering invariants",
   "runtime_status": "NOT_RUN",
-  "canonicality": "PENDING_MAIN_CONTROL_PLANE_ADOPTION",
+  "canonicality": "MAIN_ADOPTED_DESIGN_ONLY",
   "narrative": [
     "晨光入水",
     "水纹扩散",
@@ -17,19 +17,46 @@
     "余辉消散"
   ],
   "layers": [
-    {"id":"photo_base","role":"Preserve original photo bytes and approved photo transform; never replace, tint globally, or alter model input."},
-    {"id":"ambient_water","role":"Low-frequency local environmental light that begins near the lower visible photo region and diffuses upward."},
-    {"id":"caustic_field","role":"Irregular, non-uniform, multi-scale refracted-light texture with non-synchronous phases."},
-    {"id":"ripple_field","role":"Overlapping unequal wave structures with natural propagation and attenuation; no mechanical scan or simple concentric rings."},
-    {"id":"peripheral_refraction","role":"Uneven local light near the actual visible photo edge; never a uniform closed frame."},
-    {"id":"fish_focus","role":"Warm-gold focus using only trusted engine-generated subject geometry; BBox permits regional glow only."},
-    {"id":"residual_gold_trace","role":"Narrow soft trace on trusted fish geometry retained for Processing-to-Result transfer."}
+    {
+      "id": "photo_base",
+      "role": "Preserve original photo bytes and approved photo transform; never replace, tint globally, or alter model input."
+    },
+    {
+      "id": "ambient_water",
+      "role": "Low-frequency local environmental light that begins near the lower visible photo region and diffuses upward."
+    },
+    {
+      "id": "caustic_field",
+      "role": "Irregular, non-uniform, multi-scale refracted-light texture with non-synchronous phases."
+    },
+    {
+      "id": "ripple_field",
+      "role": "Overlapping unequal wave structures with natural propagation and attenuation; no mechanical scan or simple concentric rings."
+    },
+    {
+      "id": "peripheral_refraction",
+      "role": "Uneven local light near the actual visible photo edge; never a uniform closed frame."
+    },
+    {
+      "id": "fish_focus",
+      "role": "Warm-gold focus using only trusted engine-generated subject geometry; BBox permits regional glow only."
+    },
+    {
+      "id": "residual_gold_trace",
+      "role": "Narrow soft trace on trusted fish geometry retained for Processing-to-Result transfer."
+    }
   ],
   "coordinate_contract": {
     "orientation": "EXIF_NORMALIZED_BEFORE_GEOMETRY",
     "transform_source": "RecognitionImageTransform",
     "clip_rect": "photoContentRect",
-    "shared_by": ["photo", "all_optical_layers", "detector_bbox", "trusted_subject_geometry", "residual_gold_trace"],
+    "shared_by": [
+      "photo",
+      "all_optical_layers",
+      "detector_bbox",
+      "trusted_subject_geometry",
+      "residual_gold_trace"
+    ],
     "screen_insets_remap_photo": false,
     "letterbox_optical_content": false
   },
@@ -42,8 +69,23 @@
     "untrusted_geometry": "NO_SPATIAL_GOLD_TRAVEL"
   },
   "calibration": {
-    "fixed_in_phase_0": ["layer_semantics", "coordinate_identity", "prohibited_forms", "real_event_gate", "reduce_motion_semantics"],
-    "requires_real_photo_calibration": ["color", "alpha", "blur", "field_width", "caustic_contrast", "ripple_speed", "texture_scale", "performance_thresholds"],
+    "fixed_in_phase_0": [
+      "layer_semantics",
+      "coordinate_identity",
+      "prohibited_forms",
+      "real_event_gate",
+      "reduce_motion_semantics"
+    ],
+    "requires_real_photo_calibration": [
+      "color",
+      "alpha",
+      "blur",
+      "field_width",
+      "caustic_contrast",
+      "ripple_speed",
+      "texture_scale",
+      "performance_thresholds"
+    ],
     "freeze_from_single_demo_photo": false
   },
   "legacy_edge_field": {
@@ -58,5 +100,12 @@
     "newer_runtime_shader_required": false,
     "reduce_motion_static_composition": true,
     "runtime_implementation_status": "NOT_IMPLEMENTED_IN_PHASE_0"
-  }
+  },
+  "adoption_status": "MAIN_ADOPTED_DESIGN_ONLY",
+  "adoption_pr": 190,
+  "adopted_source_prs": [
+    186,
+    187
+  ],
+  "runtime_visual_verified": false
 }

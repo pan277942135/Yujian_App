@@ -1,12 +1,12 @@
-# Recognition Processing — V1.2 Frozen Baseline / SWOS V1.3 Proposal
+# Recognition Processing — V1.2 Frozen Baseline / SWOS V1.3 Main-Adopted Design Contract
 
-V1.2 remains the frozen historical baseline on main. The proposed SWOS contract set below is the current Processing optical/timing proposal on the Phase 0 control-plane branch; it becomes canonical only after main adoption.
+V1.2 remains the frozen historical baseline. The SWOS contract set below was adopted on main through PR #190 as the current Processing optical/timing design authority. Android implementation and runtime acceptance remain separate and are not claimed by this adoption.
 
 ## Authority order
 
-1. Proposed optical: `optics/SWOS_Optical_Contract_V1.md` + `.json` — pending main adoption; runtime NOT_RUN.
-2. Proposed timing: `motion/Recognition_Processing_Motion_Spec_V1_3.md` + `motion/recognition_processing_motion_contract_v1_3.json`.
-3. Proposed Page Contract: `design/system_v3/08_Page_Contracts/recognition/processing/Recognition_Processing_Page_Contract_V3_2.md` and its V3.2 state/engineering/acceptance companions.
+1. Main-adopted design-only optical authority: `optics/SWOS_Optical_Contract_V1.md` + `.json`; runtime NOT_RUN.
+2. Main-adopted timing: `motion/Recognition_Processing_Motion_Spec_V1_3.md` + `motion/recognition_processing_motion_contract_v1_3.json`.
+3. Main-adopted design-only Page Contract: `design/system_v3/08_Page_Contracts/recognition/processing/Recognition_Processing_Page_Contract_V3_2.md` and its V3.2 state/engineering/acceptance companions.
 4. Cross-page handoff: `../continuity/Processing_Result_Optical_Continuity_Contract_V1.md` + `.json`.
 5. Existing frozen photo-state references: `../Recognition_Design_Closure_V1_2.md`, `../spec/Recognition_State_Timeline_Spec_V1_3.md`, `../design/Recognition_Processing_Visual_State_Set_V1_2.json`.
 6. Legacy Edge Field V1 static shape/render/motion contracts remain unchanged historical implementation references; they are not the SWOS geometry basis.
@@ -22,15 +22,15 @@ V1.2 remains the frozen historical baseline on main. The proposed SWOS contract 
 → Result
 ```
 
-The three user-visible product states remain unchanged. CAPTURED/DETECTING are internal phases of IMAGE_RECOGNIZING. Proposed boundaries are 0/350/950/1550/2800ms with real-event gates; they are not an inference deadline. V3.1's 220/320/350/250ms values and V1.2's 900/600/1250/200ms wording remain documented history and are superseded only when the proposed V3.2 contract is adopted.
+The three user-visible product states remain unchanged. CAPTURED/DETECTING are internal phases of IMAGE_RECOGNIZING. The main-adopted V3.2 design boundaries are 0/350/950/1550/2800ms with real-event gates; they are not an inference deadline. V3.1's 220/320/350/250ms values and V1.2's 900/600/1250/200ms wording remain documented history and are superseded in design authority by V3.2, while the Android runtime remains on its existing implementation until Stage 1.
 
-## Proposed motion and legacy boundary
+## Main-adopted motion and legacy boundary
 
-SWOS replaces the line-led seven-path Edge Field optical basis after control-plane adoption. The 2600–2800ms peripheral-water release is within CLASSIFYING; no RESOLVE business state or pre-navigation wait is added. Actual Android timing and renderer remain NOT_RUN against this proposal.
+SWOS is the main-adopted design basis replacing the line-led seven-path Edge Field optical basis. The 2600–2800ms peripheral-water release is within CLASSIFYING; no RESOLVE business state or pre-navigation wait is added. Actual Android timing and renderer remain NOT_RUN against this design contract.
 
 ## SWOS Static Visual V1.1
 
-The Design Manager entry `识别过程 → 12 · SWOS · 静态视觉` is a static review workspace only. It registers 8 Processing frames + 7 RR09 frames, including R0.5 at 100ms inside the existing 0–200ms photo handoff. Total nominal time remains 3650ms. The frame and shared-photo contracts depend on Draft PR #186 and are not canonical on main yet.
+The Design Manager entry `识别过程 → 12 · SWOS · 静态视觉` is a static review workspace only. It registers 8 Processing frames + 7 RR09 frames, including R0.5 at 100ms inside the existing 0–200ms photo handoff. Total nominal time remains 3650ms. The frame and shared-photo contracts are main-adopted design authorities through PR #190; runtime and production visual acceptance remain NOT_RUN.
 
 - Static visual contract: `optics/SWOS_Static_Visual_Contract_V1_1.md`
 - Fifteen-frame machine contract: `optics/SWOS_15_Frame_Keyframe_Contract_V1_1.json`

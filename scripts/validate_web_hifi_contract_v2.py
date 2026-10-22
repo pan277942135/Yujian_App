@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Static consistency gate for the dependent Web Hi-Fi V2 design proposal."""
+"""Static consistency gate for the main-adopted Web Hi-Fi V2 design contract."""
 import json
 from pathlib import Path
 
@@ -19,7 +19,8 @@ def main():
     for name, document in docs.items():
         check(document['contract_id'] == 'YUJIAN_AI_CATCH_RECOGNITION_WEB_HIFI_V1', f'{name}: ID')
         check(document['authority_status'] == 'VISUAL_CONTRACT_DEFINED', f'{name}: authority')
-        check(document['adoption_status'].startswith('DRAFT_'), f'{name}: draft dependence')
+        check(document['adoption_status'] == 'MAIN_ADOPTED_DESIGN_ONLY' and document['adoption_pr'] == 190 and document['adopted_source_prs'] == [186, 187] and document['adoption_scope'] == 'DESIGN_CONTRACT_ONLY', f'{name}: main design adoption')
+        check(document['runtime_visual_verified'] is False and document['pixel_frozen_source'] == 'NOT_CONFIRMED', f'{name}: runtime/pixel authority boundary')
         check(document['page_id'] == 'ai_catch_recognition_web', f'{name}: page ID')
         check(bool(document['acceptance_criteria']), f'{name}: acceptance criteria')
     structure = docs['Page_Structure']
@@ -57,7 +58,7 @@ def main():
         check((ROOT / link['path']).is_file(), f'missing menu resource {link["path"]}')
     check(all((ROOT / f'design/pages/recognition/web/{name}').is_file() for name in ['WEB_HIFI_HANDOFF_A_V2.md','WEB_HIFI_GAP_MATRIX_V2.md']), 'handoff/gap')
     print('WEB_HIFI_CONTRACT_V2=PASS contract_files=9 stages=3 steps=5 states=6 frames=15 duration_ms=3650 responsive_widths=9')
-    print('PIXEL_AUTHORITY=NOT_CONFIRMED MAIN_ADOPTED=NO RUNTIME_VISUAL_VERIFIED=NO')
+    print('PIXEL_FROZEN_SOURCE=NOT_CONFIRMED MAIN_ADOPTED=YES_SCOPE=DESIGN_CONTRACT_ONLY RUNTIME_VISUAL_VERIFIED=NO')
 
 if __name__ == '__main__':
     main()

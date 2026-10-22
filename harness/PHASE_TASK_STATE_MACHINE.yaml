@@ -445,7 +445,7 @@ tasks:
     entry_blockers: []
     target_blockers: []
     evidence_required: ["web_hifi_contract_v2", "web_hifi_machine_contracts", "web_hifi_gap_matrix", "web_hifi_validator", "design_manager_navigation"]
-    completion: "Web V2 structure, optical/continuity references, responsive and state contracts are reviewable; source image pixel authority and main adoption remain separate gates."
+    completion: "Web V2 structure, optical/continuity references, responsive and state contracts are main-adopted design authority via PR #190; source image pixel authority, Work B implementation, and runtime visual evidence remain separate gates."
     human_required: false
     gate_id: "G-WEB-HIFI-CONTRACT"
   P4-01:

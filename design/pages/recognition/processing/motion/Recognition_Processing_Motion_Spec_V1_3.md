@@ -1,12 +1,12 @@
 # Recognition Processing Motion Spec V1.3 — SWOS Timing Authority
 
-**Status:** `PROPOSED_FOR_MAIN_ADOPTION`
+**Status:** `MAIN_ADOPTED_DESIGN_ONLY`
 **Scope:** Recognition Processing's minimum optical pacing and state/event relationship.
 **Runtime:** `NOT_RUN`; this version does not claim Android parity.
 
 ## Authority and supersession
 
-On control-plane adoption, V1.3 supersedes V1.2 only for Processing timing, optical direction and Processing-to-Result timing ownership. V1.2, Visual Fidelity V1.2, the V3.1 Page Contract, the V3.1 State Machine and AI Edge Field V1 remain unchanged as frozen history/implementation evidence. The new SWOS Optical Contract V1 owns the optical layer responsibilities; V1.3 owns the timeline below. This proposal does not change recognition behavior, confidence semantics, routing, copy, thresholds or CTA availability.
+Adopted on main through PR #190, V1.3 supersedes V1.2 only for Processing timing, optical direction and Processing-to-Result timing ownership. V1.2, Visual Fidelity V1.2, the V3.1 Page Contract, the V3.1 State Machine and AI Edge Field V1 remain unchanged as frozen history/implementation evidence. The new SWOS Optical Contract V1 owns the optical layer responsibilities; V1.3 owns the timeline below. This design contract does not change recognition behavior, confidence semantics, routing, copy, thresholds or CTA availability.
 
 ## 2800 ms minimum visual pacing
 

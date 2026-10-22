@@ -1,6 +1,6 @@
 # Recognition Result — Design Manager Menu V1
 
-Status: **STATIC RESULT DESIGN FROZEN · RR09 V3 PROPOSED / V2 HISTORICAL (RUNTIME NOT_RUN)**
+Status: **STATIC RESULT DESIGN FROZEN · RR09 V3 MAIN-ADOPTED DESIGN ONLY / V2 HISTORICAL (RUNTIME NOT_RUN)**
 
 Canonical machine-readable navigation:
 
@@ -21,7 +21,7 @@ Canonical machine-readable navigation:
 | 06 | RR06 | Content Edit / 内容修改 | Species Selector V1 + Metadata Edit Flow V1 (existing FROZEN authorities) | FROZEN AUTHORITY INDEX |
 | 07 | RR07 | **识别过程 · 07 · 判定逻辑** | Current Kotlin routing audit + 3+2 machine contract | AS-IS DOCUMENTED / PROPOSALS UNAPPROVED |
 | 08 | RR08 | Visual Acceptance / 视觉验收 | Recognition Result Visual Contract V1 + Pixel Targets + State Matrix + Anchor Map | READY_FOR_VISUAL_IMPLEMENTATION; runtime NOT_RUN |
-| 09 | RR09 | **动效接续 V3** | Recognition Result Motion Spec V3 + machine contract + system Motion Contract V3 + Optical Continuity V1 | PROPOSED_FOR_MAIN_ADOPTION; runtime NOT_RUN |
+| 09 | RR09 | **动效接续 V3** | Recognition Result Motion Spec V3 + machine contract + system Motion Contract V3 + Optical Continuity V1 | MAIN_ADOPTED_DESIGN_ONLY; runtime NOT_RUN |
 | 10 | RR09 V2 | **V2 历史基线** | Recognition Result Motion Spec V2 + machine contract + system Motion Contract V2 | DEPRECATED historical authority; bytes preserved |
 
 ## Asset rule
@@ -45,7 +45,7 @@ RR08 links the canonical visual, pixel, state, anchor, motion, accessibility and
 
 ## RR09 · 动效接续 / Motion Continuation V3
 
-RR09 V3 提议一次性 `RESULT_HIGH` 揭晓：T0 为首个实际呈现的 Result 帧；导航不等待 200ms；同一照片接续 → 金光从可信鱼体区域转向照片下方的中文鱼种名 → 余辉在 850ms 内消散。英文科学名不显示，也不预留空行。它不是新产品状态，不改变 3+2 判定，也不代表 Android Runtime 已通过。
+RR09 V3 规定一次性 `RESULT_HIGH` 揭晓：T0 为首个实际呈现的 Result 帧；导航不等待 200ms；同一照片接续 → 金光从可信鱼体区域转向照片下方的中文鱼种名 → 余辉在 850ms 内消散。英文科学名不显示，也不预留空行。它不是新产品状态，不改变 3+2 判定，也不代表 Android Runtime 已通过。
 
 - Spec: `design/pages/recognition/result/motion/Recognition_Result_Motion_Spec_V3.md`
 - Machine contract: `design/pages/recognition/result/motion/recognition_result_motion_contract_v3.json`

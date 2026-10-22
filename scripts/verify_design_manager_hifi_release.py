@@ -181,12 +181,13 @@ def validate_tree(root: Path, *, built: bool = False, expected_build: str | None
     require(
         swos_static.get("status") == "DESIGN_ONLY"
         and swos_static.get("design_status") == "FROZEN_DESIGN_DIRECTION"
-        and swos_static.get("adoption_status") == "DRAFT_DEPENDENT_ON_PR_186"
+        and swos_static.get("adoption_status") == "MAIN_ADOPTED_DESIGN_ONLY"
+        and swos_static.get("adoption_pr") == 190
         and swos_static.get("render_mode") == "swos_static_visual_workspace"
         and swos_static.get("playback_implemented") is False,
         "SWOS V1.1 static route must remain a non-playing dependent design review",
     )
-    require(swos_static.get("dependency", {}).get("pull_request") == 186, "SWOS static route must retain its PR #186 dependency")
+    require(swos_static.get("source_prs") == [186, 187], "SWOS static route must retain its source PR provenance")
     frames = load_json(root / swos_static["machine_authority"])
     transition = load_json(root / swos_static["transition_authority"])
     require(frames.get("frame_count") == 15 and len(frames.get("keyframes", [])) == 15, "SWOS static authority must render exactly 15 frames")

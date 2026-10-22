@@ -112,7 +112,7 @@ def consistency_errors(contracts: dict) -> list[str]:
 
 
 def authority_reference_errors(registry: dict, result_navigation: dict, active_registry: str) -> list[str]:
-    """Keep Design Manager's current/proposed routes aligned with the new authorities."""
+    """Keep Design Manager's main-adopted design routes aligned with their authorities."""
     errors: list[str] = []
 
     def find_hifi_view(feature_id: str, view_id: str):
@@ -126,7 +126,7 @@ def authority_reference_errors(registry: dict, result_navigation: dict, active_r
         errors.append("Design Manager must expose the Processing motion authority route")
     else:
         if motion.get("authority") != "design/pages/recognition/processing/motion/Recognition_Processing_Motion_Spec_V1_3.md":
-            errors.append("Processing motion route must point to proposed Motion V1.3")
+            errors.append("Processing motion route must point to main-adopted Motion V1.3")
         if motion.get("secondary_authority") != "design/pages/recognition/processing/optics/SWOS_Optical_Contract_V1.md":
             errors.append("Processing motion route must use SWOS V1, not the legacy Edge Field motion contract")
         model = motion.get("motion_model", {})
@@ -158,12 +158,12 @@ def authority_reference_errors(registry: dict, result_navigation: dict, active_r
     rr09_current = next((item for item in rr09_entries if item.get("id") == "RR09"), None)
     rr09_v2 = next((item for item in rr09_entries if item.get("id") == "RR09_V2_HISTORY"), None)
     if rr09_current is None or rr09_current.get("contract") != "design/pages/recognition/result/motion/Recognition_Result_Motion_Spec_V3.md":
-        errors.append("Result navigation must identify RR09 V3 as the proposed current contract")
+        errors.append("Result navigation must identify RR09 V3 as the main-adopted design-only contract")
     if rr09_v2 is None or rr09_v2.get("status") != "DEPRECATED" or rr09_v2.get("contract") != "design/pages/recognition/result/motion/Recognition_Result_Motion_Spec_V2.md":
         errors.append("Result navigation must retain RR09 V2 as a deprecated historical contract")
 
-    if "not yet adopted by `main`" not in active_registry or "0 / 350 / 950 / 1550 / 2800ms" not in active_registry:
-        errors.append("Active Source Registry must distinguish the main baseline from the pending SWOS proposal")
+    if "Main-adopted Phase 0 design authority set — PR #190" not in active_registry or "0 / 350 / 950 / 1550 / 2800ms" not in active_registry:
+        errors.append("Active Source Registry must identify the main-adopted SWOS design authority set")
     return errors
 
 

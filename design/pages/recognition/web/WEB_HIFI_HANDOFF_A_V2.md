@@ -1,6 +1,6 @@
 # Work B Handoff A — AI 渔获识别 Web 页面骨架
 
-状态：`VISUAL_CONTRACT_DEFINED` 的结构提案；依赖 Draft PR #186/#187。基线：Yujian_App `main@ad8bf1ba61e42a34d1fdd91de47fa386e25f11ef`、Yujian PR #177 `7da5c1100d981cfe88317b39b5b95713bdba91d7`。未代表主分支采纳或运行视觉验收。
+状态：`VISUAL_CONTRACT_DEFINED`；`MAIN_ADOPTED=YES (DESIGN_CONTRACT_ONLY)`；`PIXEL_FROZEN_SOURCE=NOT_CONFIRMED`；`RUNTIME_VISUAL_VERIFIED=NO`。#186/#187 的设计合同内容经 PR #190 纳入 Main；两者仅保留来源关系，不再是阻塞依赖。审计基线为 Yujian_App `main@ad8bf1ba61e42a34d1fdd91de47fa386e25f11ef` 和 Yujian PR #177 HEAD `655c4af07a0244fcf29441b5652c48ca74f2e6a2`（Draft/Open/Unmerged）。PR #190 发布评论记录实际 adoption SHA 与 Pages 地址；本交接不代表 Work B 代码、真实 Web 视觉或 User UAT 已验收。
 
 ## 入口与外壳
 

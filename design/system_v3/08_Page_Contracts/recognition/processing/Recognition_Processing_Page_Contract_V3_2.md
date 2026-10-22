@@ -3,12 +3,12 @@
 PAGE_ID: `recognition.processing.v3_2`
 PAGE_NAME: Recognition Processing
 VERSION: `3.2`
-STATUS: `PROPOSED_FOR_MAIN_ADOPTION`
+STATUS: `MAIN_ADOPTED_DESIGN_ONLY`
 AUTHORITY_SOURCE: `design/system_v3/08_Page_Contracts/recognition/processing/State_Machine_V3_2.json`
 
 ## Adoption and version boundary
 
-V3.2 is the proposed effective Processing timeline and optical authority when this control-plane change is adopted on main. It supersedes V3.1 **only** for timeline, optical behavior and Processing-to-Result timing ownership. V3.1 remains unchanged history; its Layout and Data contracts remain reused where this version does not redefine them. The Frozen photo references, Capture/Result product semantics, model thresholds, route, CTA and error behavior remain unchanged.
+V3.2 is the main-adopted Processing design timeline and optical authority through PR #190. It supersedes V3.1 **only** for timeline, optical behavior and Processing-to-Result timing ownership. V3.1 remains unchanged history; its Layout and Data contracts remain reused where this version does not redefine them. The Frozen photo references, Capture/Result product semantics, model thresholds, route, CTA and error behavior remain unchanged.
 
 ## Purpose and user-visible states
 
@@ -20,7 +20,7 @@ CAPTURED and DETECTING are internal phases mapped to IMAGE_RECOGNIZING. The inte
 
 ## Optical authority
 
-`design/pages/recognition/processing/optics/SWOS_Optical_Contract_V1.md` defines the proposed optical language. SWOS uses natural sunlight-on-water behavior: lower photo reflection, irregular caustics and ripple diffusion, real-fish focus, peripheral-water release and a residual fish-gold trace. The legacy seven-path Edge Field remains unchanged historical implementation authority and is not the SWOS geometry basis.
+`design/pages/recognition/processing/optics/SWOS_Optical_Contract_V1.md` defines the main-adopted design-only optical language. SWOS uses natural sunlight-on-water behavior: lower photo reflection, irregular caustics and ripple diffusion, real-fish focus, peripheral-water release and a residual fish-gold trace. The legacy seven-path Edge Field remains unchanged historical implementation authority and is not the SWOS geometry basis.
 
 ## State and handoff rules
 
@@ -39,4 +39,4 @@ CAPTURED and DETECTING are internal phases mapped to IMAGE_RECOGNIZING. The inte
 
 ## Verification status
 
-The V3.2 contract is structurally validated in this Draft control-plane change. Android runtime, API 28 rendering, SWOS visual output and Stage 1 demo are `NOT_RUN`; the existing Android implementation still reflects earlier timing and Edge Field rendering and is listed as a Stage 1 gap.
+The V3.2 contract was structurally validated on the PR #190 head before main adoption. Android runtime, API 28 rendering, SWOS visual output and Stage 1 demo are `NOT_RUN`; the existing Android implementation still reflects earlier timing and Edge Field rendering and is listed as a Stage 1 gap.

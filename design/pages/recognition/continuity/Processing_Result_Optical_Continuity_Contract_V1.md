@@ -1,13 +1,13 @@
 # Processing → Result Optical Continuity Contract V1
 
 **Contract ID:** `YUJIAN-RECOGNITION-OPTICAL-CONTINUITY-V1`
-**Status:** `PROPOSED_FOR_MAIN_ADOPTION`
+**Status:** `MAIN_ADOPTED_DESIGN_ONLY`
 **Scope:** Shared photo, subject geometry, session identity and light-source handoff from Processing into RR09 V3.
 **Runtime:** `NOT_RUN`.
 
 ## Authority
 
-This version resolves the cross-page clock and visual-source ambiguity between Recognition Processing Motion V1.3 and RR09 V3. On adoption, it is the shared authority used by both pages. It does not replace Processing state/data contracts, the Result static Page Contract or the Hero Media Contract; it coordinates only the optical handoff between them.
+Adopted by PR #190, this is the shared design authority resolving the cross-page clock and visual-source ambiguity between Recognition Processing Motion V1.3 and RR09 V3. It does not replace Processing state/data contracts, the Result static Page Contract or the Hero Media Contract; it coordinates only the optical handoff between them. Runtime remains NOT_RUN.
 
 ## Handoff identity
 

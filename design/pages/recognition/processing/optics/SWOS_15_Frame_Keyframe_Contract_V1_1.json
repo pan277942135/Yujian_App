@@ -3,12 +3,7 @@
   "contract_id": "YUJIAN-SWOS-15-FRAME-KEYFRAME-V1_1",
   "title": "SWOS 15-Frame Keyframe Contract V1.1",
   "status": "FROZEN_KEYFRAME_BEHAVIOR",
-  "canonicality": "DRAFT_DEPENDENT_ON_PR_186",
-  "dependency": {
-    "pull_request": 186,
-    "head_sha": "3b0b5848206cdea949f4bf6be7eb7cb1d19b1e34",
-    "required_before_main_authority": true
-  },
+  "canonicality": "MAIN_ADOPTED_DESIGN_ONLY",
   "total_nominal_duration_ms": 3650,
   "processing": {
     "duration_ms": 2800,
@@ -272,7 +267,7 @@
     "R0.5 is a static sample at 100ms inside the existing 0-200ms photo handoff; it adds no wait.",
     "R1 remains at RR09 200ms; gold transfer begins only after the photo has settled.",
     "The total nominal visual sum remains 2800ms + 850ms = 3650ms.",
-    "Chinese species name is the only name revealed in this dependent V3 proposal; no English scientific-name row is reserved.",
+    "Chinese species name is the only name revealed in this main-adopted RR09 V3 design contract; no English scientific-name row is reserved.",
     "R5 is a still result page with no continuing glow or looping effect.",
     "Illustrative manual contour is never production detection geometry."
   ],
@@ -292,5 +287,16 @@
   },
   "playback_implemented": false,
   "android_runtime": "NOT_RUN",
-  "production_status": "NOT_ESTABLISHED"
+  "production_status": "NOT_ESTABLISHED",
+  "adoption_status": "MAIN_ADOPTED_DESIGN_ONLY",
+  "adoption_pr": 190,
+  "adopted_source_prs": [
+    186,
+    187
+  ],
+  "runtime_visual_verified": false,
+  "source_provenance": {
+    "pull_request": 186,
+    "head_sha": "3b0b5848206cdea949f4bf6be7eb7cb1d19b1e34"
+  }
 }

@@ -342,8 +342,10 @@ feature_contracts:
       swos_static_visual_v1_1:
         status: "DESIGN_ONLY"
         design_status: "FROZEN_DESIGN_DIRECTION"
-        adoption_status: "DRAFT_DEPENDENT_ON_PR_186"
-        dependency: "PR #186"
+        adoption_status: "MAIN_ADOPTED_DESIGN_ONLY"
+        adoption_pr: 190
+        source_prs: [186, 187]
+        runtime_visual_verified: false
         manager_route: "#page/recognition_flow_v1_2/hifi/swos_static_visual_v1_1"
         visual_contract: "design/pages/recognition/processing/optics/SWOS_Static_Visual_Contract_V1_1.md"
         keyframe_contract: "design/pages/recognition/processing/optics/SWOS_15_Frame_Keyframe_Contract_V1_1.json"
@@ -360,7 +362,37 @@ feature_contracts:
         changes_model_logic: false
         android_runtime_mapping: false
         public_photo_permission: "NOT_CONFIRMED"
-        note: "静态设计提案。R0.5 是现有 0–200ms handoff 内的采样帧；Phase/Task State Machine 不变，因为未增加产品状态或执行状态。"
+        note: "Main 已采纳的静态设计合同，仅用于评审。R0.5 是现有 0–200ms handoff 内的采样帧；Phase/Task State Machine 不变，因为未增加产品状态或执行状态。Android Runtime 未运行，照片公开许可仍未确认。"
+      web_hifi_contract_v2:
+        status: "DESIGN_ONLY"
+        authority_status: "VISUAL_CONTRACT_DEFINED"
+        adoption_status: "MAIN_ADOPTED_DESIGN_ONLY"
+        adoption_pr: 190
+        source_prs: [186, 187]
+        manager_route: "#page/recognition_flow_v1_2/hifi/web_hifi_contract_v2"
+        contract: "design/pages/recognition/web/WEB_HIFI_CONTRACT_V2.md"
+        machine_contracts:
+          - "design/pages/recognition/web/contracts/Page_Structure_V2.json"
+          - "design/pages/recognition/web/contracts/Visual_Tokens_V2.json"
+          - "design/pages/recognition/web/contracts/Component_Geometry_V2.json"
+          - "design/pages/recognition/web/contracts/Responsive_Rules_V2.json"
+          - "design/pages/recognition/web/contracts/Page_State_Matrix_V2.json"
+          - "design/pages/recognition/web/contracts/Authority_References_V2.json"
+          - "design/pages/recognition/web/contracts/Acceptance_Matrix_V2.json"
+          - "design/pages/recognition/web/contracts/Asset_Manifest_V2.json"
+          - "design/pages/recognition/web/contracts/Work_B_Implementation_Mapping_V2.json"
+        handoff_a: "design/pages/recognition/web/WEB_HIFI_HANDOFF_A_V2.md"
+        handoff_b: "design/pages/recognition/web/WEB_HIFI_HANDOFF_B_V2.md"
+        gap_matrix: "design/pages/recognition/web/WEB_HIFI_GAP_MATRIX_V2.md"
+        product_repository: "pan277942135/Yujian"
+        product_pr: 177
+        product_pr_head: "655c4af07a0244fcf29441b5652c48ca74f2e6a2"
+        runtime_visual_verified: false
+        pixel_frozen_source: "NOT_CONFIRMED"
+        candidate_photo_publication_permission: "NOT_CONFIRMED"
+        product_runtime_state: false
+        product_web_deployed: false
+        note: "Main 已采纳的设计合同，不包含 Web 产品实现、生产流量切换、真实视觉 UAT 或未经授权照片。PR #177 保持 Draft/Open/Unmerged。"
 
     shared_contract_refs: ["DS-FOUNDATION", "ANDROID-RUNTIME-HARNESS", "STATE-EVIDENCE-PROVENANCE"]
     additional_shared_contract_refs: ["MODEL-RECOGNITION", "API-DATA-BOUNDARY", "RECOGNITION-OPTICAL-CONTINUITY"]

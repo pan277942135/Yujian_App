@@ -2,17 +2,17 @@
 
 **Contract ID:** `YUJIAN-SWOS-OPTICAL-V1`
 **Version:** 1.0
-**Status:** `PROPOSED_FOR_MAIN_ADOPTION`
+**Status:** `MAIN_ADOPTED_DESIGN_ONLY`
 **Scope:** Recognition Processing optical language and rendering invariants.
 **Runtime:** `NOT_RUN` — this document is a design contract, not implementation evidence.
 
 ## Authority and adoption boundary
 
-This is the proposed optical authority for the Recognition Processing SWOS direction. It is submitted through the control-plane Draft PR and becomes canonical only after the repository's main-first control-plane process accepts it. Until then, frozen V1.2 / V3.1 artifacts remain the adopted main authority; this version is the coherent proposal for Phase 1 inputs.
+This contract was adopted on `main` through PR #190 as design authority. It supersedes the optical-language and optical-layer portions of the line-led AI Edge Field V1 contracts for Recognition Processing. Android implementation and Runtime remain unchanged/not run until a separately authorized Stage 1; the design adoption does not claim a rendered SWOS implementation.
 
 On adoption, SWOS V1 supersedes the **optical-language and optical-layer** portions of the line-led AI Edge Field V1 contracts for Recognition Processing. It does not delete or rewrite the frozen Edge Field assets, geometry, alpha values, Quiet Gaps, or history. Those authorities continue to describe the legacy Edge Field implementation only. SWOS does not inherit its seven-path geometry as its visual foundation.
 
-Related proposed authorities:
+Related main-adopted design authorities:
 
 - Processing timing: [`Recognition_Processing_Motion_Spec_V1_3.md`](../motion/Recognition_Processing_Motion_Spec_V1_3.md)
 - Cross-page handoff: [`Processing_Result_Optical_Continuity_Contract_V1.md`](../../continuity/Processing_Result_Optical_Continuity_Contract_V1.md)

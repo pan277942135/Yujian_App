@@ -750,12 +750,12 @@
         "visual": {
           "status": "ACTIVE_CLOSURE",
           "authority": "design/pages/recognition/processing/optics/SWOS_Optical_Contract_V1.md",
-          "note": "Proposed SWOS V1 optical authority pending main adoption; V1.2 Frozen photo-state raster assets remain unchanged."
+          "note": "SWOS V1 optical authority is main-adopted as a design contract; V1.2 Frozen photo-state raster assets remain unchanged and Android Runtime remains NOT_RUN."
         },
         "motion": {
           "status": "ACTIVE_CLOSURE",
           "authority": "design/pages/recognition/processing/motion/Recognition_Processing_Motion_Spec_V1_3.md",
-          "note": "Proposed 2800ms minimum optical rhythm; Android remains on the V3.1 projection until Stage 1."
+          "note": "Main-adopted 2800ms minimum optical rhythm; Android remains on the V3.1 projection until Stage 1."
         },
         "haptic": {
           "status": "FROZEN",
@@ -796,7 +796,7 @@
           "current": false,
           "spec_authority": "design/pages/recognition/processing/optics/SWOS_Optical_Contract_V1.md",
           "motion_authority": "design/pages/recognition/processing/motion/Recognition_Processing_Motion_Spec_V1_3.md",
-          "note": "Phase 0 proposal pending main adoption; V1.2 Frozen raster assets and V3.1 Android timing/runtime remain unchanged."
+          "note": "Phase 0 design contract set is main-adopted via PR #190; V1.2 Frozen raster assets and V3.1 Android timing/runtime remain unchanged."
         },
         {
           "version": "SWOS Static V1.1",
@@ -804,7 +804,7 @@
           "current": false,
           "spec_authority": "design/pages/recognition/processing/optics/SWOS_Static_Visual_Contract_V1_1.md",
           "keyframe_authority": "design/pages/recognition/processing/optics/SWOS_15_Frame_Keyframe_Contract_V1_1.json",
-          "note": "FROZEN_DESIGN_DIRECTION / FROZEN_KEYFRAME_BEHAVIOR；依赖 Draft PR #186，尚未成为 main authority。"
+          "note": "FROZEN_DESIGN_DIRECTION / FROZEN_KEYFRAME_BEHAVIOR；main authority via PR #190；Runtime NOT_RUN，照片公开许可未确认。"
         }
       ],
       "design_overall": "ACTIVE_CLOSURE",
@@ -892,7 +892,7 @@
             {
               "label": "05 · AI 识别过程",
               "route": "#page/recognition_flow_v1_2/hifi/state_timeline",
-              "note": "Proposed Processing Page Contract V3.2 uses the 2800ms optical minimum; main retains V3.1 until control-plane adoption."
+              "note": "Main-adopted design-only Processing Page Contract V3.2 uses the 2800ms optical minimum; Android runtime remains on V3.1 until Stage 1."
             },
             {
               "label": "06 · 识别结果",
@@ -2119,7 +2119,7 @@
           "render_mode": "authority_index",
           "authority": "design/pages/recognition/processing/motion/Recognition_Processing_Motion_Spec_V1_3.md",
           "secondary_authority": "design/pages/recognition/processing/optics/SWOS_Optical_Contract_V1.md",
-          "summary": "Proposed SWOS timing authority, pending main adoption: 350/600/600/1250ms (2800ms minimum), real-event gated; the 2600–2800ms peripheral-water release is a visual subphase inside CLASSIFYING.",
+          "summary": "Main-adopted SWOS design timing authority only: 350/600/600/1250ms (2800ms minimum), real-event gated; Android runtime implementation remains unchanged until Stage 1.",
           "menu_points": [
             "CAPTURED · 0–350ms：照片先呈现，底部晨光与环境水色开始建立；不得伪造识别成功。",
             "DETECTING · 350–950ms：非规则水纹与焦散向照片可见区域扩散；不使用旧七路径 Edge Field 作为 SWOS 几何。",
@@ -3702,7 +3702,7 @@
           "render_mode": "authority_index",
           "authority": "design/pages/recognition/processing/optics/SWOS_Optical_Contract_V1.md",
           "machine_authority": "design/pages/recognition/processing/optics/SWOS_Optical_Contract_V1.json",
-          "summary": "晨光、水纹、焦散与真实鱼体暖金高亮的分层合同。该提案待 main 采纳；不代表 Web 或 Android Runtime 已完成。"
+          "summary": "SWOS V1 optical authority is main-adopted as a design contract; V1.2 Frozen photo-state raster assets remain unchanged, Android Runtime remains NOT_RUN."
         },
         {
           "id": "processing_result_continuity",
@@ -3711,24 +3711,27 @@
           "render_mode": "authority_index",
           "authority": "design/pages/recognition/continuity/Processing_Result_Optical_Continuity_Contract_V1.md",
           "machine_authority": "design/pages/recognition/continuity/processing_result_optical_continuity_v1.json",
-          "summary": "共享照片、坐标、会话标识与残留金光；Processing 2800ms + RR09 850ms，导航无额外等待。"
+          "summary": "Main-adopted shared-photo, coordinate, session identity and light-source design contract; Processing 2800ms + RR09 850ms, no navigation delay; runtime NOT_RUN."
         },
         {
           "id": "swos_static_visual_v1_1",
           "title": "12 · SWOS · 静态视觉",
           "status": "DESIGN_ONLY",
           "design_status": "FROZEN_DESIGN_DIRECTION",
-          "adoption_status": "DRAFT_DEPENDENT_ON_PR_186",
-          "dependency": {
-            "pull_request": 186,
-            "head_sha": "3b0b5848206cdea949f4bf6be7eb7cb1d19b1e34"
+          "adoption_status": "MAIN_ADOPTED_DESIGN_ONLY",
+          "source_prs": [186, 187],
+          "source_pr_heads": {
+            "186": "3b0b5848206cdea949f4bf6be7eb7cb1d19b1e34",
+            "187": "ee3bb45858183144598bc28c5bae53ae55b324e0"
           },
+          "adoption_pr": 190,
+          "source_pr_disposition": "CLOSED_UNMERGED_SUPERSEDED_PROVENANCE_ONLY",
           "render_mode": "swos_static_visual_workspace",
           "authority": "design/pages/recognition/processing/optics/SWOS_Static_Visual_Contract_V1_1.md",
           "machine_authority": "design/pages/recognition/processing/optics/SWOS_15_Frame_Keyframe_Contract_V1_1.json",
           "transition_authority": "design/pages/recognition/continuity/SWOS_Shared_Photo_Transition_Contract_V1.json",
           "asset_manifest": "design/pages/recognition/processing/optics/SWOS_Static_Asset_Manifest_V1_1.json",
-          "summary": "SWOS V1.1 静态工作区：15 帧、R0.5 共享照片几何、真实照片本地预览与逐帧检查。合同和光效为依赖 PR #186 的设计提案；上传素材仅留在浏览器内存。",
+          "summary": "Main-adopted static review workspace: 15 frames, R0.5 shared-photo geometry and local-only photo preview. Source PRs #186/#187 were integrated through #190; photo upload stays in browser memory.",
           "menu_points": [
             "完整横向静态总图；8 个 Processing 帧 + 7 个 RR09 帧",
             "点击单帧放大，核对时间、相对强度、原图与静态合成",
@@ -3740,7 +3743,7 @@
             {
               "label": "RR09 · 动效接续 V3",
               "route": "#page/recognition_result_v1/hifi/motion_continuation",
-              "note": "850ms V3 Proposal；V2 历史基线保留且不改写。"
+              "note": "Main-adopted design-only 850ms V3；V2 历史基线保留且不改写。"
             }
           ],
           "runtime_status": "NOT_RUN",
@@ -3766,14 +3769,21 @@
               "label": "Dynamic Demo Technical Handoff V1",
               "path": "design/pages/recognition/processing/optics/SWOS_Dynamic_Demo_Technical_Handoff_V1.md"
             }
-          ]
+          ],
+          "adoption_pr": 190,
+          "source_prs": [
+            186,
+            187
+          ],
+          "runtime_visual_verified": false,
+          "public_photo_permission": "NOT_CONFIRMED"
         },
         {
           "id": "web_hifi_contract_v2",
           "title": "13 · Web AI渔获识别 · 全量高保真合同 V2",
           "status": "DESIGN_ONLY",
           "design_status": "VISUAL_CONTRACT_DEFINED",
-          "adoption_status": "DRAFT_DEPENDENT_ON_PR_186_AND_187",
+          "adoption_status": "MAIN_ADOPTED_DESIGN_ONLY",
           "render_mode": "authority_index",
           "authority": "design/pages/recognition/web/WEB_HIFI_CONTRACT_V2.md",
           "machine_authority": "design/pages/recognition/web/contracts/Page_Structure_V2.json",
@@ -3781,7 +3791,7 @@
           "menu_points": [
             "Handoff A：产品外壳、三阶段、五节点与 Result 结构",
             "全量合同：Token、几何、响应式和 3+2 状态",
-            "SWOS 七层、15 帧及 R0.5 依赖 #186/#187",
+            "SWOS 七层、15 帧及 R0.5 引用 #186/#187 的来源内容，已由 PR #190 纳入 Main",
             "Web PR #177 Gap Matrix 与 Work B Handoff B",
             "原图候选尚未确认为像素权威，公开素材权限未确认"
           ],
@@ -3838,7 +3848,14 @@
             }
           ],
           "runtime_status": "NOT_RUN",
-          "asset_pixel_authority": "NOT_CONFIRMED"
+          "asset_pixel_authority": "NOT_CONFIRMED",
+          "adoption_pr": 190,
+          "source_prs": [
+            186,
+            187
+          ],
+          "runtime_visual_verified": false,
+          "pixel_frozen_source": "NOT_CONFIRMED"
         }
       ],
       "navigation_mode": "submenu_direct",
@@ -3860,7 +3877,7 @@
         "motion": {
           "status": "ACTIVE_CLOSURE",
           "authority": "design/pages/recognition/result/motion/Recognition_Result_Motion_Spec_V3.md",
-          "note": "Proposed RR09 V3 authority: first presented Result frame T0 and Chinese-only reveal. RR09 V2 remains unchanged historical baseline; runtime NOT_RUN."
+          "note": "Main-adopted design-only RR09 V3 authority: first presented Result frame T0 and Chinese-only reveal. RR09 V2 remains unchanged historical baseline; runtime NOT_RUN."
         },
         "haptic": {
           "status": "FROZEN",
@@ -3946,7 +3963,7 @@
         "authority": "05–09 state Frozen PNG > Result package spec > Core Visual recognition_result_v1 > runtime implementation.",
         "asset_rule": "Do not duplicate/crop/recompress the five Frozen PNGs for Design Manager.",
         "content_edit": "RR06 consolidates links to Species Selector V1 and Metadata Edit Flow V1 visual/specification authorities without changing their individual contracts or the 3+2 state model.",
-        "contract_revision": "Static Result V1.1 package remains frozen; scoped RR09 V3 is proposed for main adoption. RR09 V2 remains unchanged historical baseline.",
+        "contract_revision": "Static Result V1.1 package remains frozen; scoped RR09 V3 is main-adopted as a design-only contract through PR #190. RR09 V2 remains unchanged historical baseline.",
         "exceptions": [
           "design/system/components/top_navigation/exceptions/Recognition_Result_Centered_Title_V1.md",
           "design/system/components/action_button/exceptions/Recognition_Result_Actions_V1.md"
@@ -3957,7 +3974,7 @@
         "state_decision_contract": "design/pages/recognition/result/spec/recognition_result_3plus2_decision_contract_v1_1.json",
         "state_thresholds": "AS_IMPLEMENTED_RUNTIME_AUDIT_NOT_NEW_FROZEN_VALUES",
         "state_decision_submenu": "RR07 · 识别过程 · 07 · 判定逻辑",
-        "motion_continuation": "RR09 V3 proposes an 850ms first-presented-Result-frame reveal; it adds no Processing/Result state and leaves runtime NOT_RUN.",
+        "motion_continuation": "Main-adopted RR09 V3 defines an 850ms first-presented-Result-frame reveal; it adds no Processing/Result state and leaves runtime NOT_RUN.",
         "current_motion_authority": "design/pages/recognition/result/motion/Recognition_Result_Motion_Spec_V3.md",
         "historical_motion_authority": "design/pages/recognition/result/motion/Recognition_Result_Motion_Spec_V2.md"
       },
@@ -4228,7 +4245,7 @@
           "behavior_authority": "design/pages/recognition/result/motion/Recognition_Result_Motion_Spec_V3.md",
           "machine_authority": "design/pages/recognition/result/motion/recognition_result_motion_contract_v3.json",
           "secondary_authority": "design/system_v3/10_Page_Visual_Acceptance_Contracts/Recognition_Result/Recognition_Result_Motion_Contract_V3.md",
-          "summary": "V3 proposal: 850ms from first presented Result frame; Chinese species title only; V2 is retained under the adjacent historical submenu.",
+          "summary": "Main-adopted design-only V3: 850ms from first presented Result frame; Chinese species title only; V2 is retained under the adjacent historical submenu.",
           "menu_points": [
             "K01 · 鱼体高亮锁定：不提前显示鱼种名",
             "K02 · 0–200ms：首个实际呈现的 Result 帧开始照片自然接续；不是导航前等待",
@@ -4261,7 +4278,7 @@
             "English scientific-name reveal",
             "Historical playable review only"
           ],
-          "summary": "Unchanged V2 historical prototype. Its RESOLVE-origin and English-name rules are superseded by the V3 proposal; do not treat this view as current authority."
+          "summary": "Unchanged V2 historical prototype. Its RESOLVE-origin and English-name rules are superseded by the main-adopted V3 design contract; do not treat this view as current authority."
         }
       ]
     },

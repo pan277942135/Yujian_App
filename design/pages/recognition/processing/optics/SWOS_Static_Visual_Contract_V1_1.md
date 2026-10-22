@@ -2,16 +2,16 @@
 
 **Contract ID:** `YUJIAN-SWOS-STATIC-VISUAL-V1_1`
 **Design status:** `FROZEN_DESIGN_DIRECTION`
-**Adoption status:** `DRAFT_DEPENDENT_ON_PR_186`
-**Dependency:** PR #186, head `3b0b5848206cdea949f4bf6be7eb7cb1d19b1e34`
+**Adoption status:** `MAIN_ADOPTED_DESIGN_ONLY`
+**Source PRs (provenance only):** #186 (Phase 0) and #187 (Static Visual V1.1); design content adopted together via PR #190
 **Runtime / playback:** `NOT_RUN`
 
 ## Authority and scope
 
-This is a dependent static design proposal. It becomes canonical only after PR #186 and this change are adopted through the main-first control-plane process. Until then, the adopted main authority remains unchanged. This contract adds a static visual/keyframe layer; it does not create a parallel Processing or RR09 motion specification.
+This static visual/keyframe contract is main-adopted through PR #190, with content sourced from PR #186 and #187. The predecessor PRs are provenance only and are not active dependencies. It does not create a parallel Processing or RR09 motion specification; static review remains design-only and is not Runtime or production evidence.
 
-- Processing duration remains **2800ms** under the proposed Processing Motion V1.3.
-- RR09 reveal remains **850ms** under the proposed RR09 Motion V3.
+- Processing duration remains **2800ms** under the main-adopted Processing Motion V1.3.
+- RR09 reveal remains **850ms** under the main-adopted RR09 Motion V3.
 - Total nominal visual time remains **3650ms**; no extra wait, model behavior, or business state is added.
 - The 14-frame V0.3 poster remains `HISTORICAL_DIRECTION_REFERENCE`, not a pixel-frozen source.
 - This document does not claim browser animation, Android runtime, or production fish-mask acceptance.
@@ -82,7 +82,7 @@ R5 reuses the existing frozen HIGH Result page composition and media policy. It 
 
 ## RR09 authority relationship
 
-The current adopted main RR09 authority remains Motion V2, which allows a validated scientific name when available. PR #186 proposes Motion V3 with a Chinese-only reveal. This dependent change follows V3 and adds only a static R0.5 sampling point and shared-photo geometry evidence. It does not edit or replace historical V2, and it does not claim the V3 proposal is already production authority.
+RR09 V3 is the main-adopted design authority for the successful reveal; V2 remains byte-for-byte historical. This static contract adds R0.5 sampling and shared-photo geometry evidence. It does not change model output or establish runtime/production visual acceptance.
 
 ## Photo and publication boundary
 
@@ -92,6 +92,6 @@ No detector BBox or production contour was present in the task input. A manually
 
 ## Freeze boundary
 
-Frozen here: visual language, relative strengths/timing, three-layer geometry relationship, 15 frame identities, R0.5 geometry, Chinese-only reveal for the dependent V3 proposal, source-identity invariants, and prohibited visual forms.
+Frozen here: visual language, relative strengths/timing, three-layer geometry relationship, 15 frame identities, R0.5 geometry, Chinese-only reveal for the main-adopted RR09 V3 design contract, source-identity invariants, and prohibited visual forms.
 
-Still open: photo publication permission, PR #186 main adoption, browser visual art-direction acceptance for production, calibrated shader/opacity parameters, dynamic playback, Android/API28 implementation, and runtime performance.
+Still open: photo publication permission, browser visual art-direction acceptance for production, calibrated shader/opacity parameters, dynamic playback, Android/API28 implementation, and runtime performance.

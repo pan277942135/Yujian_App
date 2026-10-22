@@ -2,8 +2,9 @@
 
 **Contract ID:** `SWOS_SHARED_PHOTO_TRANSITION_V1`
 **Design status:** `FROZEN_DESIGN_DIRECTION`
-**Adoption status:** `DRAFT_DEPENDENT_ON_PR_186`
+**Adoption status:** `MAIN_ADOPTED_DESIGN_ONLY`
 **Machine authority:** [SWOS_Shared_Photo_Transition_Contract_V1.json](SWOS_Shared_Photo_Transition_Contract_V1.json)
+**Adoption:** PR #190; source contract from PR #186. Runtime remains `NOT_RUN`.
 
 ## Purpose
 

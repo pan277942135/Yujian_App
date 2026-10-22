@@ -1,14 +1,14 @@
 {
   "contract_id": "YUJIAN_AI_CATCH_RECOGNITION_WEB_HIFI_V1",
-  "version": "2.0-proposal",
+  "version": "2.0",
   "authority_status": "VISUAL_CONTRACT_DEFINED",
-  "adoption_status": "DRAFT_DEPENDENT_ON_PR_186_AND_187",
+  "adoption_status": "MAIN_ADOPTED_DESIGN_ONLY",
   "page_id": "ai_catch_recognition_web",
   "source_ref": [
     "Yujian_App/main@ad8bf1ba61e42a34d1fdd91de47fa386e25f11ef",
     "Yujian_App/PR186@3b0b5848206cdea949f4bf6be7eb7cb1d19b1e34",
     "Yujian_App/PR187@ee3bb45858183144598bc28c5bae53ae55b324e0",
-    "Yujian/PR177@7da5c1100d981cfe88317b39b5b95713bdba91d7"
+    "Yujian/PR177@655c4af07a0244fcf29441b5652c48ca74f2e6a2"
   ],
   "layout_variant": "responsive",
   "geometry": {
@@ -53,5 +53,13 @@
     "safe crop retains verified fish",
     "same source across stages",
     "no fixed 360dp absolute layout on desktop"
-  ]
+  ],
+  "adoption_pr": 190,
+  "adopted_source_prs": [
+    186,
+    187
+  ],
+  "adoption_scope": "DESIGN_CONTRACT_ONLY",
+  "runtime_visual_verified": false,
+  "pixel_frozen_source": "NOT_CONFIRMED"
 }

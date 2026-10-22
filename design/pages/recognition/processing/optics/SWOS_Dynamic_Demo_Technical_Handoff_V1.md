@@ -1,7 +1,7 @@
 # SWOS 3650ms Dynamic Hi-Fi Demo — Technical Handoff V1
 
 **Status:** `IMPLEMENTATION_PLAN_READY` · dynamic demo not implemented in this change
-**Design dependency:** PR #186 and this static V1.1 proposal
+**Design basis:** Main-adopted SWOS contracts from PR #186/#187, integrated via PR #190. Phase 1 still requires explicit entry, approved photo inputs and evidence.
 **Scope:** Design Manager / browser demo first; no Android production code or APK
 
 ## Repository evidence and technology decision
@@ -60,7 +60,7 @@ If fish geometry is absent or untrusted, preserve the photo motion and page tran
 - Water caustics live only in the optical renderer and use low-to-medium-density irregular area patches, soft multiscale falloff, and upward propagation. No closed frame, mechanical scan path, Edge Field seven-path substitution, or photo-scene rewrite.
 - Gold Core, Soft Glow, and Halo share the exact contour and shared transform. They have one strength input and hold without flashing or breathing from 1550ms to 2800ms.
 - At 200ms after Result begins, transfer may start only after the photo has reached R1. Its source is the real trusted fish contour. Its target is the existing Chinese title area. The title component supplies the target bounds; a separate hard-coded glowing title is not permitted.
-- Build the Chinese glyph mask from the actual title text and the final font. R3 may show incomplete unreadable mask fragments. R4 is fully readable at 680ms. No English scientific-name row is reserved in the V3 proposal. R5 removes all temporary glow and remains interactive.
+- Build the Chinese glyph mask from the actual title text and the final font. R3 may show incomplete unreadable mask fragments. R4 is fully readable at 680ms. No English scientific-name row is reserved in the main-adopted V3 design contract. R5 removes all temporary glow and remains interactive.
 
 ## Browser compatibility and evidence
 
@@ -85,4 +85,4 @@ Do not port WebGL to production Android. Keep the production surface in the exis
 | D7 · Review controls | Layer switches, intensity controls, original/composite compare, geometry overlay, parameter export | Export captures fixture identity and all changed tunables; no production state mutation |
 | D8 · Verification | Multi-photo cases, Chromium screenshots/recording and perf report | 3650ms completion; pause/step/seek/fallback/Reduce Motion; R5 CTA remains operable |
 
-Each dynamic result must be reviewed against this 15-frame contract and the existing Processing, RR09 V3 proposal, Result HIGH page and Hero Media Contract. That review is separate from Android Runtime acceptance.
+Each dynamic result must be reviewed against this 15-frame contract and the existing Processing, main-adopted RR09 V3 design contract, Result HIGH page and Hero Media Contract. That review is separate from Android Runtime acceptance.

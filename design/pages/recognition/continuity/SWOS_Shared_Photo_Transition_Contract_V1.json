@@ -3,11 +3,7 @@
   "contract_id": "SWOS_SHARED_PHOTO_TRANSITION_V1",
   "title": "Shared Photo Transition Contract V1",
   "status": "FROZEN_DESIGN_DIRECTION",
-  "canonicality": "DRAFT_DEPENDENT_ON_PR_186",
-  "dependency": {
-    "pull_request": 186,
-    "head_sha": "3b0b5848206cdea949f4bf6be7eb7cb1d19b1e34"
-  },
+  "canonicality": "MAIN_ADOPTED_DESIGN_ONLY",
   "sample_source": {
     "source_photo_id": "sha256:ab7227cf7205ee2ac342b6cd75cd899747879506c95c33b888b6adf0acb47987",
     "source_photo_sha256": "ab7227cf7205ee2ac342b6cd75cd899747879506c95c33b888b6adf0acb47987",
@@ -133,5 +129,16 @@
     "public_pages_publish_permission": "NOT_CONFIRMED",
     "public_preview_requires_local_user_upload": true
   },
-  "playback_or_android_implementation": false
+  "playback_or_android_implementation": false,
+  "adoption_status": "MAIN_ADOPTED_DESIGN_ONLY",
+  "adoption_pr": 190,
+  "adopted_source_prs": [
+    186,
+    187
+  ],
+  "runtime_visual_verified": false,
+  "source_provenance": {
+    "pull_request": 186,
+    "head_sha": "3b0b5848206cdea949f4bf6be7eb7cb1d19b1e34"
+  }
 }

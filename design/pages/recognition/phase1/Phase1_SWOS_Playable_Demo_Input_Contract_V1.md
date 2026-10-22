@@ -1,6 +1,6 @@
 # Phase 1 Input Contract — SWOS Playable Demo V1
 
-**Status:** `PROPOSED_FOR_MAIN_ADOPTION`
+**Status:** `MAIN_ADOPTED_DESIGN_ONLY`
 **Scope:** Required inputs and evidence boundary for a future playable Web/Android SWOS demo.
 **Phase 0 disposition:** Contract only; no demo is implemented here.
 

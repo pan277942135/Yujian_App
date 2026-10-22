@@ -116,12 +116,12 @@ def validate_tree(root: Path, *, built: bool = False, expected_build: str | None
         swos_static is None or swos_static.get("title") != "12 · SWOS · 静态视觉"
         or swos_static.get("status") != "DESIGN_ONLY"
         or swos_static.get("design_status") != "FROZEN_DESIGN_DIRECTION"
-        or swos_static.get("adoption_status") != "DRAFT_DEPENDENT_ON_PR_186"
+        or swos_static.get("adoption_status") != "MAIN_ADOPTED_DESIGN_ONLY"
+        or swos_static.get("adoption_pr") != 190
         or swos_static.get("render_mode") != "swos_static_visual_workspace"
-        or swos_static.get("dependency", {}).get("pull_request") != 186
         or swos_static.get("playback_implemented") is not False
     ):
-        fail("SWOS V1.1 must remain a dependent, static-only Design Manager submenu")
+        fail("SWOS V1.1 must remain a main-adopted, static-only Design Manager submenu")
     for field in ("authority", "machine_authority", "transition_authority", "asset_manifest"):
         path = swos_static.get(field)
         if not path or not (root / path).is_file():
@@ -189,7 +189,7 @@ def validate_tree(root: Path, *, built: bool = False, expected_build: str | None
     if rr08.get("status") != "FROZEN" or rr08.get("readiness_status") != "READY_FOR_VISUAL_IMPLEMENTATION":
         fail("RR08 visual acceptance index must be frozen while preserving its separate implementation-readiness status")
     if rr09.get("status") != "ACTIVE_CLOSURE" or rr09.get("render_mode") != "authority_index" or rr09.get("authority") != "design/pages/recognition/result/motion/Recognition_Result_Motion_Spec_V3.md":
-        fail("Current RR09 must resolve to the proposed Motion V3 authority index")
+        fail("Current RR09 must resolve to the main-adopted design-only Motion V3 authority index")
     if rr09.get("machine_authority") != "design/pages/recognition/result/motion/recognition_result_motion_contract_v3.json":
         fail("RR09 machine-readable Motion V3 contract is not registered")
     if rr09_v2_history.get("status") != "DEPRECATED" or rr09_v2_history.get("render_mode") != "recognition_result_motion_playable":

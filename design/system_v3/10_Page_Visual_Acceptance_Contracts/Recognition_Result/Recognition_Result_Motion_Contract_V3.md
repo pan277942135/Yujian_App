@@ -1,13 +1,13 @@
 # Recognition Result Motion Contract V3 — RR09 SWOS Continuation
 
-**Status:** `PROPOSED_FOR_MAIN_ADOPTION` · visual/motion design contract only
+**Status:** `MAIN_ADOPTED_DESIGN_ONLY` · visual/motion design contract only
 **Runtime:** `NOT_RUN`
-**Current proposed RR09 authority:** `design/pages/recognition/result/motion/Recognition_Result_Motion_Spec_V3.md`
+**Current main-adopted RR09 design authority:** `design/pages/recognition/result/motion/Recognition_Result_Motion_Spec_V3.md`
 **Machine companion:** `design/pages/recognition/result/motion/recognition_result_motion_contract_v3.json`
 
 ## Scope and versioning
 
-V3 is the proposed current contract for the successful Result-entry motion. It supersedes V2 only for clock origin, Processing handoff interpretation and revealed species-title content. V2 remains unchanged and is retained as the historical baseline. Result Page Contract V3.1, static Result assets, Hero Media Contract V1, CTA/action semantics and all non-conflicting Motion V1 behavior remain in force.
+V3 is the main-adopted design contract for the successful Result-entry motion. It supersedes V2 only for clock origin, Processing handoff interpretation and revealed species-title content. V2 remains unchanged and is retained as the historical baseline. Result Page Contract V3.1, static Result assets, Hero Media Contract V1, CTA/action semantics and all non-conflicting Motion V1 behavior remain in force.
 
 ## Required visual acceptance
 

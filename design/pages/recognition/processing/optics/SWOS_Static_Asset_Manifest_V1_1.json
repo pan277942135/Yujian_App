@@ -2,7 +2,6 @@
   "schema_version": "1.0",
   "manifest_id": "SWOS_STATIC_VISUAL_ASSETS_V1_1",
   "status": "PRIVATE_REVIEW_ASSETS_WITHHELD_FROM_PUBLIC_REPOSITORY",
-  "dependency": "PR #186 (Draft/Open/Unmerged)",
   "source_photo": {
     "filename": "208758.jpg",
     "sha256": "ab7227cf7205ee2ac342b6cd75cd899747879506c95c33b888b6adf0acb47987",
@@ -74,5 +73,12 @@
     "local_user_upload": true,
     "photo_uploads_networked": false,
     "persistent_storage": false
-  }
+  },
+  "contract_adoption_status": "MAIN_ADOPTED_DESIGN_ONLY",
+  "adoption_pr": 190,
+  "source_prs": [
+    186,
+    187
+  ],
+  "photo_publication_permission": "NOT_CONFIRMED"
 }
