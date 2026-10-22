@@ -100,8 +100,10 @@ require(authority.get("engineering_binding",{}).get("layout")==str(CONTRACT_PATH
 menu=next((item for item in navigation.get("level_2",[]) if item.get("id")=="multi_screen_static_hifi"),None)
 require(menu is not None,"NH01 static hi-fi/responsive menu entry missing")
 if menu:
-    require(menu.get("machine_authority")==str(CONTRACT_PATH.relative_to(ROOT)),"Design Manager menu machine authority mismatch")
+    require(menu.get("machine_authority")=="design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_MULTI_SCREEN_RESPONSIVE_CONTRACT_V1.json","existing Design Manager renderer must retain the V1 static archive machine contract")
+    require(menu.get("responsive_layout_authority")==str(CONTRACT_PATH.relative_to(ROOT)),"Design Manager menu must register the V2 responsive layout authority separately")
     require(menu.get("visual_manifest")==str(MANIFEST_PATH.relative_to(ROOT)),"Design Manager must retain frozen static manifest")
+    require(menu.get("authority")=="design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_MULTI_SCREEN_RESPONSIVE_CONTRACT_V1.md","existing Design Manager renderer must retain the V1 static archive reading guide")
 
 fm=feature_matrix.get("features",{}).get("home_normal_v1",{})
 required_refs=[str(CONTRACT_PATH.relative_to(ROOT)),str((ROOT/"design/pages/home/normal_home/responsive/NH01_RESPONSIVE_LAYOUT_V2.md").relative_to(ROOT)),str((ROOT/"design/pages/home/normal_home/responsive/NH01_RESPONSIVE_AUTHORITY_CROSSWALK_V1.md").relative_to(ROOT)),str(SCHEMA_PATH.relative_to(ROOT)),str(PROFILES_PATH.relative_to(ROOT)),str((ROOT/"design/system_v3/07_Responsive_System/Responsive_Layout_Standard_V1.md").relative_to(ROOT))]

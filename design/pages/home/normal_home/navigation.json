@@ -149,14 +149,17 @@
       "output_policy": "STATIC_HIFI_AND_RESPONSIVE_CONTRACT",
       "status": "STATIC_HIFI_FROZEN",
       "route": "#page/home_normal_v1/hifi/multi_screen_static_hifi",
-      "authority": "design/pages/home/normal_home/responsive/NH01_RESPONSIVE_LAYOUT_V2.md",
+      "authority": "design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_MULTI_SCREEN_RESPONSIVE_CONTRACT_V1.md",
       "visual_manifest": "design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_MULTI_SCREEN_STATIC_HIFI_V1_MANIFEST.json",
-      "machine_authority": "design/pages/home/normal_home/responsive/NH01_RESPONSIVE_LAYOUT_V2.json",
+      "machine_authority": "design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_MULTI_SCREEN_RESPONSIVE_CONTRACT_V1.json",
       "runtime_status": "NOT_VERIFIED",
       "archive_contract": "design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_MULTI_SCREEN_RESPONSIVE_CONTRACT_V1.md",
       "responsive_standard": "design/system_v3/07_Responsive_System/Responsive_Layout_Standard_V1.md",
       "responsive_schema": "design/system_v3/07_Responsive_System/Responsive_Layout_Contract_Schema_V1.json",
-      "responsive_rules_status": "PROPOSED_FOR_CANONICAL_MAIN_REVIEW"
+      "responsive_rules_status": "PROPOSED_FOR_CANONICAL_MAIN_REVIEW",
+      "visual_authority_manifest": "design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_MULTI_SCREEN_STATIC_HIFI_V1_MANIFEST.json",
+      "responsive_layout_authority": "design/pages/home/normal_home/responsive/NH01_RESPONSIVE_LAYOUT_V2.json",
+      "responsive_layout_guide": "design/pages/home/normal_home/responsive/NH01_RESPONSIVE_LAYOUT_V2.md"
     }
   ]
 }
