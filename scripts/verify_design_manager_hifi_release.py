@@ -22,6 +22,14 @@ EXPECTED_OVERVIEW = "2cf0ea161360888248fb42227d2a2511df64aa94a4c4d3af7c7ffd3f06a
 EXPECTED_NEW_STATES = "8cc7c04a4e15bf35ca0f307d0b95940d05901ead0cf6c66742a9f25d4d2e33e5"
 EXPECTED_OVERVIEW_SVG = "fcb7a89215760b08901bdb94c2181dc5f40bc8ff0af0324b8ed0c8b705e0db6b"
 EXPECTED_NEW_STATES_SVG = "c47c2fa800d201d331c72c3aa6037404887d2567d7526445ecd6cded9ca1b9de"
+NH01_STATIC_ASSETS = [
+    ("NH01-M01-320x480dp-STATIC-HIFI-V1", "design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_M01_320x480dp_STATIC_HIFI_V1.png", 1024, 1536, "a3808f2fb93d48494eafbb6ba061dbd9c1dd019348488355780c8f4504636692"),
+    ("NH01-M02-360x640dp-STATIC-HIFI-V1", "design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_M02_360x640dp_STATIC_HIFI_V1.png", 941, 1672, "8a6721552cec97113c2a77200a07bb76b954c1a16f4e0f10d8410b9e873a90c0"),
+    ("NH01-M03-390x844dp-STATIC-HIFI-V1", "design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_M03_390x844dp_STATIC_HIFI_V1.png", 853, 1844, "6a5e2e9fd18d2b06f9452b6a6c95802e41cfc0450b7ec77cf0d1500c6b3932ff"),
+    ("NH01-M04-430x932dp-STATIC-HIFI-V1", "design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_M04_430x932dp_STATIC_HIFI_V1.png", 853, 1844, "07846d3089b7c2a0b0e6c858dbd3f97890121b225092dde7d7622f0a461b9893"),
+    ("NH01-M05-480dp-WIDTH-STATIC-HIFI-V1", "design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_M05_480dp_WIDTH_STATIC_HIFI_V1.png", 1024, 1536, "ee2ed666107bd7f4263cf140438a5a1cbb171af0199e57646372e2e1d8cc8de2"),
+]
+NH01_ORIGINAL_SHA = "6ab9d3348b4a9a7e77ddca3a06235b4991798a309bd3512cc6fb9ea7aeb1d377"
 
 
 class ValidationError(Exception):
@@ -71,6 +79,75 @@ def expect_failure(callable_, label: str) -> None:
     except ValidationError:
         return
     raise ValidationError(f"negative test did not fail: {label}")
+
+
+def validate_nh01_multiscreen(root: Path) -> list[str]:
+    design = root / "design"
+    archive = design / "pages/home/normal_home/08_multi_screen_static_hifi"
+    manifest = load_json(archive / "NH01_MULTI_SCREEN_STATIC_HIFI_V1_MANIFEST.json")
+    contract = load_json(archive / "NH01_MULTI_SCREEN_RESPONSIVE_CONTRACT_V1.json")
+    matrix = load_json(archive / "NH01_STATIC_HIFI_ACCEPTANCE_MATRIX_V1.json")
+    require(manifest.get("contract_id") == "NH01_MULTI_SCREEN_STATIC_HIFI_V1", "NH01 multi-screen contract identity drift")
+    require(manifest.get("status") == "STATIC_HIFI_FROZEN" and manifest.get("rules_status") == "STATIC_RULES_FROZEN", "NH01 static freeze statuses drift")
+    require(manifest.get("android_runtime_status") == "NOT_VERIFIED", "NH01 static archive cannot upgrade Android Runtime")
+    registered = manifest.get("assets", [])
+    require(len(registered) == len(NH01_STATIC_ASSETS), "NH01 manifest must register exactly M01-M05")
+    files = {}
+    for asset, expected in zip(registered, NH01_STATIC_ASSETS):
+        asset_id, path, width, height, sha = expected
+        require(asset.get("asset_id") == asset_id and asset.get("path") == path, f"NH01 asset registration path/ID drift: {asset_id}")
+        require(asset.get("status") == "STATIC_HIFI_FROZEN" and asset.get("version") == "V1", f"NH01 freeze version/status drift: {asset_id}")
+        require(asset.get("responsive_contract") == "NH01_MULTI_SCREEN_STATIC_HIFI_V1", f"NH01 contract mapping missing: {asset_id}")
+        require(asset.get("actual_canvas_px") == {"width": width, "height": height}, f"NH01 manifest canvas mismatch: {asset_id}")
+        require(asset.get("size_bytes") == (root / path).stat().st_size, f"NH01 manifest byte count mismatch: {asset_id}")
+        files[asset_id] = check_png(root / path, sha, (width, height))
+        require(asset.get("sha256") == sha, f"NH01 manifest SHA drift: {asset_id}")
+    original = manifest.get("original_reference", {})
+    require(original.get("path") == "design/system/core_visual_v1/reference/normal_home_v1.png" and original.get("historical_sha256") == NH01_ORIGINAL_SHA, "original NH01 reference identity drift")
+    check_png(root / original["path"], NH01_ORIGINAL_SHA, (1080, 1920))
+    require(manifest.get("provenance", {}).get("visual_content_recreated_or_modified") is False, "recovered PNG provenance must state unchanged original bytes")
+    require(manifest.get("provenance", {}).get("private_library_file_ids_excluded") is True, "public asset manifest must not expose Library file IDs")
+
+    require(contract.get("contract_id") == manifest["contract_id"] and contract.get("rules_status") == "STATIC_RULES_FROZEN", "NH01 responsive contract identity/status drift")
+    require(len(contract.get("viewport_profiles", [])) == 5, "responsive contract must cover five viewport profiles")
+    require(contract["viewport_profiles"][-1].get("id") == "M05" and contract["viewport_profiles"][-1].get("height_dp") is None, "M05 must remain width-only without an invented Android height")
+    targets = contract.get("spacing", {}).get("title_to_card_targets_dp_at_font_scale_1_0", [])
+    require(len(targets) == 5 and targets[-1].get("target") == 24 and targets[-1].get("tolerance") == 2, "480dp 24±2dp static spacing extension is missing")
+    require("NEW STATIC WIDTH EXTENSION" in targets[-1].get("authority", "") and targets[-1].get("scope", "").startswith("static design preview only"), "M05 24dp target must declare new static-only authority scope")
+    require(len(contract.get("typography", {}).get("roles", [])) == 9, "complete NH01 typography role table is missing")
+    require(len(contract.get("spacing", {}).get("required_adjacent_interval_measurements", [])) == 6, "six adjacent-region measurement contracts are missing")
+    require(len(contract.get("authority_crosswalk", [])) >= 8, "existing NH01 authority crosswalk is incomplete")
+    markdown_path = archive / "NH01_MULTI_SCREEN_RESPONSIVE_CONTRACT_V1.md"
+    require(markdown_path.is_file(), "NH01 full responsive Markdown contract is missing")
+    markdown = markdown_path.read_text(encoding="utf-8")
+    for phrase in ("M05 addition", "Android acceptance status", "six", "UNSUPPORTED_WINDOW", "Morning Lake", "Guest", "Avatar"):
+        require(phrase.lower() in markdown.lower(), f"NH01 full responsive contract section missing: {phrase}")
+    for ref in contract.get("authority_crosswalk", []):
+        require((root / ref["path"]).is_file(), f"NH01 crosswalk authority missing: {ref['path']}")
+
+    native = matrix.get("android_matrix", {})
+    cases = native.get("cases", [])
+    require(native.get("required_case_count") == 24 and len(cases) == 24, "NH01 must retain the exact 24-case native matrix")
+    require(matrix.get("android_runtime_status") == "NOT_VERIFIED" and native.get("native_status") == "NOT_VERIFIED", "browser/image checks cannot promote Android Runtime")
+    require(all(item.get("execution_status") == "NOT_RUN" and item.get("evidence") is None for item in cases), "native NOT_RUN records require real evidence before changing")
+    require(set(item.get("viewport_dp") for item in cases) == {"320x480", "360x640", "390x844", "430x932"}, "native matrix viewport set drift")
+    require(set(item.get("layout_variant") for item in cases) == {"ADAPTIVE_V2", "V3_BASELINE"}, "native layout variant set drift")
+    require(set(item.get("system_font_scale") for item in cases) == {1.0, 1.3, 1.5}, "native font scale set drift")
+
+    registry = load_json(design / "registry/experience_registry_v1.json")
+    feature = next((item for item in registry.get("features", []) if item.get("id") == "home_normal_v1"), None)
+    view = next((item for item in (feature or {}).get("hifi_views", []) if item.get("id") == "multi_screen_static_hifi"), None)
+    require(view is not None and view.get("render_mode") == "nh01_multi_screen_static_hifi", "NH01 Design Manager static workspace renderer is not registered")
+    require(view.get("status") == "STATIC_HIFI_FROZEN" and view.get("design_approval_status") == "STATIC_RULES_FROZEN" and view.get("runtime_status") == "NOT_VERIFIED", "NH01 Design Manager statuses drift")
+    require(view.get("authority") == "design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_MULTI_SCREEN_RESPONSIVE_CONTRACT_V1.md", "NH01 Design Manager contract path drift")
+    nav = load_json(design / "pages/home/normal_home/navigation.json")
+    menu = next((item for item in nav.get("level_2", []) if item.get("id") == "multi_screen_static_hifi"), None)
+    require(menu and menu.get("route") == "#page/home_normal_v1/hifi/multi_screen_static_hifi", "NH01 direct menu route missing")
+    app = (design / "manager/app.js").read_text(encoding="utf-8")
+    css = (design / "manager/styles.css").read_text(encoding="utf-8")
+    require("nh01ResponsiveRuleCanvas" in app and "nh01-static-asset" in app and "data-testid=\"nh01-multiscreen-workspace\"" in app, "NH01 Design Manager renderer/gallery is missing")
+    require(".nh01-static-gallery" in css and "@media(max-width:650px)" in css.replace(" ", ""), "NH01 responsive gallery CSS is missing")
+    return ["NH01 M01-M05 source PNG integrity", "NH01 original raster preserved", "NH01 responsive contract and crosswalk", "NH01 24-case native matrix remains NOT_VERIFIED", "NH01 Design Manager registry and navigation"]
 
 
 def validate_tree(root: Path, *, built: bool = False, expected_build: str | None = None) -> list[str]:
@@ -286,6 +363,8 @@ def validate_tree(root: Path, *, built: bool = False, expected_build: str | None
     require("900ms" in motion_text and "600ms" in motion_text and "1250ms" in motion_text, "unchanged V1.2 motion source cannot be confirmed")
     require(all(x in manager_contract for x in ("220ms", "320ms", "350ms", "250ms", "900 / 600 / 1250 / 200ms", "sole effective timeline")), "motion authority resolution must be traceable without editing frozen thresholds")
 
+    nh01_results = validate_nh01_multiscreen(root)
+
     if built:
         build_path = design / "manager/build.json"
         build = load_json(build_path)
@@ -322,7 +401,8 @@ def validate_tree(root: Path, *, built: bool = False, expected_build: str | None
         "DM-T08 responsive CSS width coverage",
         "DM-T09 legacy routes and existing registry items retained",
         "DM-T10 Pages artifact resource completeness" if built else "DM-T10 source resource completeness",
-        "DM-T12 authority and governance references"
+        "DM-T12 authority and governance references",
+        *nh01_results
     ]
 
 

@@ -10,7 +10,7 @@ import struct
 from pathlib import Path
 import sys
 
-EXPECTED_NORMAL_HOME = ["NH01", "NH02", "NH03", "NH04", "NH05", "NH06", "NH07"]
+EXPECTED_NORMAL_HOME = ["NH01", "NH02", "NH03", "NH04", "NH05", "NH06", "NH07", "multi_screen_static_hifi"]
 EXPECTED_RECOGNITION_FLOW = [
     "main_journey_overview", "state_timeline", "visual_states",
     "layer_component_ownership", "motion_transition", "degradation_accessibility",
@@ -58,6 +58,25 @@ def validate_tree(root: Path, *, built: bool = False, expected_build: str | None
     nav_ids = [x.get("id") for x in nav.get("level_2", [])]
     if nav_ids != EXPECTED_NORMAL_HOME:
         fail(f"Normal Home navigation changed: {nav_ids} != {EXPECTED_NORMAL_HOME}")
+
+    multiscreen = feature["hifi_views"][-1]
+    expected_route = "#page/home_normal_v1/hifi/multi_screen_static_hifi"
+    if (
+        multiscreen.get("id") != "multi_screen_static_hifi"
+        or multiscreen.get("title") != "多屏静态高保真 · 响应式规范"
+        or multiscreen.get("render_mode") != "nh01_multi_screen_static_hifi"
+        or multiscreen.get("status") != "STATIC_HIFI_FROZEN"
+        or multiscreen.get("design_approval_status") != "STATIC_RULES_FROZEN"
+        or multiscreen.get("runtime_status") != "NOT_VERIFIED"
+    ):
+        fail("NH01 multi-screen static hi-fi route must preserve frozen design and NOT_VERIFIED runtime statuses")
+    nav_view = nav["level_2"][-1]
+    if nav_view.get("id") != "multi_screen_static_hifi" or nav_view.get("route") != expected_route:
+        fail("NH01 multi-screen workspace must be the final direct Hash navigation entry")
+    for key in ("authority", "machine_authority", "visual_authority_manifest", "acceptance_matrix", "native_acceptance_authority"):
+        target = multiscreen.get(key)
+        if not target or not (root / target).is_file():
+            fail(f"NH01 multi-screen registration has missing {key}: {target}")
 
     recognition = next((x for x in registry.get("features", []) if x.get("id") == "recognition_flow_v1_2"), None)
     if not recognition:
@@ -124,7 +143,7 @@ def validate_tree(root: Path, *, built: bool = False, expected_build: str | None
 
     # NH07 is a design-only asset workspace: gate its source identity, not Android runtime.
     if not built:
-        nh07 = feature["hifi_views"][-1]
+        nh07 = next((item for item in feature["hifi_views"] if item.get("id") == "NH07"), None)
         if nh07.get("id") != "NH07" or nh07.get("render_mode") != "nh07_avatar_states":
             fail("NH07 must be registered as its own avatar state workspace")
         manifest_path = root / "design/pages/home/normal_home/07_avatar_states/assets/avatar_asset_manifest_v1.json"

@@ -120,7 +120,67 @@ async function main() {
   const p03Hash = "#page/recognition_flow_v1_2/hifi/capture_first_use_guide/p03";
   const resourcesHash = "#page/recognition_flow_v1_2/hifi/capture_first_use_guide/resources";
   const fullFlowModelsHash = "#page/recognition_flow_v1_2/hifi/recognition_full_flow_models";
+  const nh01MultiScreenHash = "#page/home_normal_v1/hifi/multi_screen_static_hifi";
   const open = hash => page.goto(baseUrl + hash, { waitUntil: "networkidle", timeout: 45000 });
+
+  await open(nh01MultiScreenHash);
+  await waitForManager(page);
+  await page.locator('[data-testid="nh01-multiscreen-workspace"]').waitFor({ state: "visible", timeout: 30000 });
+  assert((await page.locator("#hifiViewTitle").innerText()).includes("多屏静态高保真"), "NH01 multi-screen workspace route did not resolve");
+  assert((await page.locator("#hifiViewStatus").innerText()).includes("静态高保已冻结"), "NH01 static hi-fi frozen status is missing");
+  assert(await page.locator(".nh01-static-asset").count() === 5, "NH01 route must show exactly five recovered static assets");
+  const nh01ExpectedAssets = [
+    ["NH01-M01-320x480dp-STATIC-HIFI-V1", 1024, 1536, "a3808f2fb93d"],
+    ["NH01-M02-360x640dp-STATIC-HIFI-V1", 941, 1672, "8a6721552cec"],
+    ["NH01-M03-390x844dp-STATIC-HIFI-V1", 853, 1844, "6a5e2e9fd18d"],
+    ["NH01-M04-430x932dp-STATIC-HIFI-V1", 853, 1844, "07846d3089b7"],
+    ["NH01-M05-480dp-WIDTH-STATIC-HIFI-V1", 1024, 1536, "ee2ed666107b"]
+  ];
+  for (const [assetId, width, height, shaPrefix] of nh01ExpectedAssets) {
+    const card = page.locator(`.nh01-static-asset[data-nh01-asset-card="${assetId}"]`);
+    assert(await card.isVisible(), `${assetId} gallery card is missing`);
+    const loaded = await waitForLoadedImage(page, `.nh01-static-asset[data-nh01-asset-card="${assetId}"] .hifi-original img`, assetId);
+    assert(loaded.width === width && loaded.height === height, `${assetId} source PNG dimensions changed: ${JSON.stringify(loaded)}`);
+    assert((await card.innerText()).includes(shaPrefix), `${assetId} SHA is not visible in its card`);
+  }
+  const nh01ContractText = await page.locator("#hifiViewCanvas").innerText();
+  for (const phrase of ["480dp width; height unspecified", "24±2 dp", "fontScale", "六组相邻区域验收", "24 次 API 28 原生执行", "NOT_VERIFIED"]) {
+    assert(nh01ContractText.includes(phrase), `NH01 responsive contract detail is missing: ${phrase}`);
+  }
+  assert((await page.locator("#hifiViewContractDetails").innerText()).includes("NOT_VERIFIED"), "NH01 Design Manager metadata must retain NOT_VERIFIED runtime status");
+  await page.screenshot({ path: resolve(args.outputDir, "nh01-multiscreen-desktop.png"), fullPage: true });
+  await page.setViewportSize({ width: 390, height: 844 });
+  const nh01Narrow = await page.evaluate(() => ({
+    viewport: window.innerWidth,
+    document: document.documentElement.scrollWidth,
+    body: document.body.scrollWidth,
+    galleryColumns: getComputedStyle(document.querySelector(".nh01-static-gallery")).gridTemplateColumns,
+    assetCount: document.querySelectorAll(".nh01-static-asset").length
+  }));
+  assert(nh01Narrow.document <= nh01Narrow.viewport && nh01Narrow.body <= nh01Narrow.viewport,
+    `NH01 narrow workspace has horizontal overflow: ${JSON.stringify(nh01Narrow)}`);
+  assert(nh01Narrow.assetCount === 5, "NH01 narrow workspace lost one or more assets");
+  await page.screenshot({ path: resolve(args.outputDir, "nh01-multiscreen-390.png"), fullPage: true });
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await open(nh01MultiScreenHash);
+  await page.reload({ waitUntil: "networkidle" });
+  await page.locator('[data-testid="nh01-multiscreen-workspace"]').waitFor({ state: "visible", timeout: 30000 });
+  assert(page.url().endsWith(nh01MultiScreenHash), "NH01 deep link did not survive refresh");
+  await open("#page/home_normal_v1");
+  await waitForManager(page);
+  const nh01Menu = page.locator('#pageList .page-subitem[data-page-id="home_normal_v1"][data-hifi-id="multi_screen_static_hifi"]');
+  assert(await nh01Menu.isVisible(), "NH01 multi-screen entry is not visible under 有数据首页 navigation");
+  await nh01Menu.click();
+  await page.waitForFunction(expected => location.hash === expected, nh01MultiScreenHash);
+  assert(page.url().endsWith(nh01MultiScreenHash), "NH01 menu item did not open its registered deep route");
+  await page.goBack();
+  await page.waitForFunction(() => location.hash === "#page/home_normal_v1", null, { timeout: 15000 });
+  await page.goForward();
+  await page.waitForFunction(expected => location.hash === expected, nh01MultiScreenHash, { timeout: 15000 });
+  await page.locator(".nh01-static-asset").first().locator(".hifi-image-open").click();
+  assert(await page.locator(".hifi-image-lightbox[open]").isVisible(), "NH01 source image did not open in the existing lightbox");
+  await page.locator(".hifi-image-lightbox .hifi-lightbox-close").click();
+  await page.waitForFunction(() => !document.querySelector(".hifi-image-lightbox")?.open, null, { timeout: 10000 });
 
   await open(p01Hash);
   await waitForManager(page);

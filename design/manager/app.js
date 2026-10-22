@@ -9,14 +9,16 @@ const DESIGN_MODALITIES = ["behavior", "visual", "motion", "haptic", "sound", "a
 const ICONS = {
   FROZEN: "✓", ACTIVE_CLOSURE: "◐", PARTIAL: "◒", MISSING: "×",
   DEFERRED: "↷", BLOCKED_INTEGRITY: "!", RUNTIME_ONLY: "↗",
-  DESIGN_ONLY: "◇", DEPRECATED: "—", CANDIDATE: "◐"
+  DESIGN_ONLY: "◇", DEPRECATED: "—", CANDIDATE: "◐",
+  STATIC_HIFI_FROZEN: "✓", STATIC_RULES_FROZEN: "✓"
 };
 
 const STATUS_LABELS = {
   FROZEN: "已冻结", ACTIVE_CLOSURE: "收口中", PARTIAL: "部分完成",
   MISSING: "缺失", DEFERRED: "已延后", BLOCKED_INTEGRITY: "完整性阻塞",
   RUNTIME_ONLY: "仅运行时", DESIGN_ONLY: "仅设计",
-  DEPRECATED: "已废弃", CANDIDATE: "候选"
+  DEPRECATED: "已废弃", CANDIDATE: "候选",
+  STATIC_HIFI_FROZEN: "静态高保已冻结", STATIC_RULES_FROZEN: "响应式规则已冻结"
 };
 
 const MODALITY_LABELS = {
@@ -111,6 +113,110 @@ function hifiContractMetadataHtml(item, parentView = null) {
     (links ? '<div class="hifi-contract-links"><span>设计规范 / Contracts</span>' + links + '</div>' : '') +
     (item.missing_reason ? '<p class="hifi-missing-reason">' + esc(item.missing_reason) + '</p>' : '') +
   '</section>';
+}
+
+function nh01RuleList(items) {
+  return '<ul>' + (items || []).map(item => '<li>' + esc(item) + '</li>').join('') + '</ul>';
+}
+
+function nh01ResponsiveRuleCanvas(view) {
+  const root = el('hifiViewCanvas');
+  const token = view.id + ':' + (view.visual_authority_manifest || '');
+  root.dataset.nh01ResponsiveToken = token;
+  root.innerHTML = '<div class="nh01-static-loading" role="status">正在载入冻结资产清单与响应式合同…</div>';
+  Promise.all([
+    fetch(repoHref(view.visual_authority_manifest)).then(response => {
+      if (!response.ok) throw new Error('Asset manifest HTTP ' + response.status);
+      return response.json();
+    }),
+    fetch(repoHref(view.machine_authority)).then(response => {
+      if (!response.ok) throw new Error('Responsive contract HTTP ' + response.status);
+      return response.json();
+    })
+  ]).then(([manifest, contract]) => {
+    if (root.dataset.nh01ResponsiveToken !== token) return;
+    const assets = manifest.assets || [];
+    const original = manifest.original_reference || {};
+    const assetCards = assets.map(asset => {
+      const target = asset.target_viewport_dp || {};
+      const pixels = asset.actual_canvas_px || {};
+      const targetLabel = target.height == null
+        ? (asset.viewport_note || (target.width + ' dp 宽；高度未固定'))
+        : target.width + '×' + target.height + ' dp';
+      return '<article class="nh01-static-asset" data-nh01-asset-card="' + esc(asset.asset_id) + '">' +
+        '<div class="nh01-static-asset-head"><div><span class="nh01-static-asset-id">' + esc(asset.asset_id) + '</span>' +
+          '<h3>' + esc(targetLabel) + '</h3></div>' + statusBadge(asset.status) + '</div>' +
+        '<p class="nh01-static-dimensions">目标视口：' + esc(targetLabel) + '<br>实际画布：' + esc(pixels.width + '×' + pixels.height + ' px') + '</p>' +
+        hifiImageFigure(asset.path, asset.asset_id, targetLabel + ' · PNG ' + pixels.width + '×' + pixels.height + ' px', asset.sha256) +
+        '<dl class="nh01-static-asset-facts"><div><dt>Asset ID</dt><dd>' + esc(asset.asset_id) + '</dd></div>' +
+          '<div><dt>SHA-256</dt><dd><code>' + esc(asset.sha256) + '</code></dd></div>' +
+          '<div><dt>冻结版本</dt><dd>' + esc(asset.version || 'V1') + ' · ' + esc(asset.status) + '</dd></div></dl>' +
+      '</article>';
+    }).join('');
+    const typographyRows = (contract.typography?.roles || []).map(role =>
+      '<tr><th scope="row">' + esc(role.role) + '</th><td>' + esc(role.base_ratio == null ? role.visual_size_dp : 'safeHeight×' + role.base_ratio) + '</td>' +
+        '<td>' + esc(role.minimum_sp == null ? '—' : role.minimum_sp + '–' + role.maximum_sp + ' sp') + '</td>' +
+        '<td>' + esc(role.line_height_ratio == null ? '—' : role.line_height_ratio + '×') + '</td>' +
+        '<td>' + esc(role.system_font_scale) + '</td></tr>'
+    ).join('');
+    const spacingRows = (contract.spacing?.title_to_card_targets_dp_at_font_scale_1_0 || []).map(row =>
+      '<tr><th scope="row">' + esc(row.viewport) + '</th><td>' + esc(row.target + '±' + row.tolerance + ' dp') + '</td><td>' + esc(row.authority) + '</td></tr>'
+    ).join('');
+    const intervals = (contract.spacing?.required_adjacent_interval_measurements || []).map(row =>
+      '<tr><th scope="row">' + esc(row.id) + '</th><td>' + esc(row.bounds) + '</td><td>' + esc(row.reference) + '</td><td>' + nh01RuleList(row.checks) + '</td></tr>'
+    ).join('');
+    const structure = (contract.page_structure || []).map(item => '<li>' + esc(item) + '</li>').join('');
+    const hero = contract.hero_and_peek || {};
+    const camera = contract.camera_and_touch || {};
+    const bg = contract.background_avatar_photos || {};
+    const native = contract.native_acceptance || {};
+    root.innerHTML = '<div class="nh01-static-workspace" data-testid="nh01-multiscreen-workspace">' +
+      '<section class="nh01-static-freeze-banner"><div><span class="nh01-static-eyebrow">NH01 · 有数据首页 · V1</span>' +
+        '<h2>五屏静态高保真与响应式合同</h2><p>五张原始冻结稿按原始比例展示。目标 dp 视口与 PNG 实际像素尺寸分别登记。</p></div>' +
+        '<div class="nh01-static-statuses">' + statusBadge(manifest.status) + statusBadge(manifest.rules_status) +
+          '<span class="nh01-runtime-pill">Android · ' + esc(manifest.android_runtime_status) + '</span></div></section>' +
+      '<section class="nh01-static-original"><div class="nh01-static-original-copy"><span class="nh01-static-eyebrow">原始参考 · 保持不变</span>' +
+        '<h3>1080×1920 px → 360×640 dp 逻辑参考</h3><p>原始 NH01 V1 整页冻结图继续是原始视觉 Authority；M01–M05 是新增样本，不替换它。</p>' +
+        '<code>' + esc(original.path) + '</code><p>SHA-256 · <code>' + esc(original.historical_sha256) + '</code></p></div>' +
+        hifiImageFigure(original.path, 'NH01 原始冻结参考 V1', '原始画布 1080×1920 px · 逻辑参考 360×640 dp', original.historical_sha256) + '</section>' +
+      '<section class="nh01-static-section"><div class="nh01-static-section-head"><div><span class="nh01-static-eyebrow">ASSET REGISTER</span><h2>五张冻结设计稿</h2></div><p>逐张登记目标逻辑视口、Asset ID、冻结状态与实际 PNG 尺寸</p></div>' +
+        '<div class="nh01-static-gallery">' + assetCards + '</div></section>' +
+      '<section class="nh01-static-section"><div class="nh01-static-section-head"><div><span class="nh01-static-eyebrow">RESPONSIVE CONTRACT</span><h2>页面结构与单调响应式</h2></div></div>' +
+        '<div class="nh01-static-two-col"><article class="nh01-static-rule-card"><h3>页面结构</h3><ol>' + structure + '</ol></article>' +
+        '<article class="nh01-static-rule-card"><h3>尺寸变化</h3><p>' + esc(contract.responsive_monotonicity.key_rule) + '</p>' +
+          '<p><strong>文字倍率：</strong><code>' + esc(contract.responsive_monotonicity.font_viewport_scale_formula) + '</code></p>' +
+          '<p><strong>Hero 主卡：</strong><code>' + esc(contract.responsive_monotonicity.hero_width_formula) + '</code></p>' +
+          '<p><strong>相机视觉：</strong><code>' + esc(contract.responsive_monotonicity.camera_visual_formula) + '</code></p>' +
+          '<p>' + esc(contract.responsive_monotonicity.forbidden) + '</p></article></div></section>' +
+      '<section class="nh01-static-section"><div class="nh01-static-section-head"><div><span class="nh01-static-eyebrow">TYPE SCALE</span><h2>字体角色</h2></div><p>系统 fontScale 由 Compose sp 应用一次</p></div>' +
+        '<div class="nh01-static-table-wrap"><table><thead><tr><th>角色</th><th>基准字号来源</th><th>范围</th><th>行高</th><th>fontScale 行为</th></tr></thead><tbody>' + typographyRows + '</tbody></table></div>' +
+        '<div class="nh01-static-note">' + esc(contract.typography.font_scale_behavior) + '</div></section>' +
+      '<section class="nh01-static-section"><div class="nh01-static-section-head"><div><span class="nh01-static-eyebrow">HERO · PEEK · TOUCH</span><h2>主卡、邻卡与底部触控</h2></div></div>' +
+        '<div class="nh01-static-facts-grid"><article><span>主 Hero</span><strong>' + esc(hero.hero_ratio) + '</strong><small>最大目标宽 ' + esc(hero.hero_target_width_max_dp) + ' dp · 最大高 ' + esc(hero.hero_height_max_dp) + ' dp</small></article>' +
+          '<article><span>真实 Peek</span><strong>宽 ≤' + esc(Math.round(hero.peek.width_max_relative_to_main * 100)) + '%</strong><small>高 ' + esc(Math.round(hero.peek.height_relative_to_main * 100)) + '% · 顶偏移 ' + esc(hero.peek.top_offset_dp) + ' dp · 重叠 ≤' + esc(hero.peek.max_geometry_overlap_dp) + ' dp</small></article>' +
+          '<article><span>相机视觉 / 触控</span><strong>' + esc(camera.camera_visual_size_dp.minimum + '–' + camera.camera_visual_size_dp.maximum) + ' dp / ≥' + esc(camera.camera_touch_target_dp.minimum_width) + '×' + esc(camera.camera_touch_target_dp.minimum_height) + ' dp</strong><small>其他动作触控 ≥' + esc(camera.other_action_touch_target_dp.minimum) + ' dp</small></article></div>' +
+        '<div class="nh01-static-note">' + esc(hero.single_record) + ' ' + esc(camera.grouping) + ' ' + esc(camera.safe_area) + '</div></section>' +
+      '<section class="nh01-static-section"><div class="nh01-static-section-head"><div><span class="nh01-static-eyebrow">VISIBLE GAP TARGETS</span><h2>Recent Catch 标题到主卡片</h2></div><p>fontScale 1.0× · 原生 boundsInWindow 测量定义</p></div>' +
+        '<div class="nh01-static-table-wrap"><table><thead><tr><th>目标视口</th><th>可见间距</th><th>权威范围</th></tr></thead><tbody>' + spacingRows + '</tbody></table></div>' +
+        '<div class="nh01-static-note nh01-static-note-warning">' + esc(contract.spacing.extension_conflict) + '</div></section>' +
+      '<section class="nh01-static-section"><div class="nh01-static-section-head"><div><span class="nh01-static-eyebrow">MEASUREMENT METHOD</span><h2>六组相邻区域验收</h2></div><p>每次记录真实 dp、fontScale、布局和截图/bounds</p></div>' +
+        '<div class="nh01-static-table-wrap"><table><thead><tr><th>区域</th><th>测量边界</th><th>当前引用</th><th>检查项</th></tr></thead><tbody>' + intervals + '</tbody></table></div></section>' +
+      '<section class="nh01-static-two-col"><article class="nh01-static-rule-card"><span class="nh01-static-eyebrow">SHORT WINDOW</span><h2>短屏与安全区</h2>' +
+        nh01RuleList(contract.short_screen_and_safe_area.priority_order.concat(contract.short_screen_and_safe_area.forbidden)) +
+        '<p>真实窗口不满足时，记录 ' + esc(contract.short_screen_and_safe_area.failure_states.join(' / ')) + '；静态图不是原生通过证据。</p></article>' +
+        '<article class="nh01-static-rule-card"><span class="nh01-static-eyebrow">BACKGROUND · AVATAR · PHOTO</span><h2>背景与头像边界</h2>' +
+          '<p>' + esc(bg.background) + '</p><p>' + esc(bg.avatar) + '</p><p>' + esc(bg.photo) + '</p></article></section>' +
+      '<section class="nh01-static-native-status"><div><span class="nh01-static-eyebrow">ANDROID NATIVE ACCEPTANCE</span><h2>状态：' + esc(native.status) + '</h2>' +
+        '<p>现行矩阵仍是 ' + esc(native.existing_matrix_cases) + ' 次 API 28 原生执行：4 个窗口 × 3 种系统字体缩放 × 2 种布局。实际证据齐全前保持 NOT_VERIFIED。</p>' +
+        '<p>M05 是 480 dp 宽度边界，不指定窗口高度，也不追加第五组原生测试。</p></div>' +
+        '<a href="' + esc(repoHref(view.native_acceptance_authority)) + '" target="_blank" rel="noreferrer">查看完整原生验收矩阵 ↗</a></section>' +
+      '<footer class="nh01-static-workspace-footer">完整响应式合同与新旧权威交叉表 · <a href="' + esc(repoHref(view.machine_authority)) + '" target="_blank" rel="noreferrer">机器可读 JSON ↗</a> · <a href="' + esc(repoHref(view.authority)) + '" target="_blank" rel="noreferrer">完整 Markdown 合同 ↗</a></footer></div>';
+    root.querySelectorAll('.hifi-image-open').forEach(button => button.addEventListener('click', () => openHifiImageLightbox(button)));
+  }).catch(error => {
+    if (root.dataset.nh01ResponsiveToken !== token) return;
+    root.innerHTML = '<div class="nh01-static-load-error" role="alert"><strong>冻结合同载入失败</strong><p>' + esc(error.message) + '</p>' +
+      '<a href="' + esc(repoHref(view.visual_authority_manifest)) + '" target="_blank" rel="noreferrer">打开资产清单 ↗</a></div>';
+  });
 }
 
 function currentVersion(feature) {
@@ -2450,6 +2556,9 @@ function recognitionMasterBoardCanvas(child) {
 }
 
 function genericSpecHifiCanvas(feature, view) {
+  if (view.render_mode === "nh01_multi_screen_static_hifi") {
+    return '<div class="nh01-static-loading" role="status">正在载入五屏冻结高保真与响应式合同…</div>';
+  }
   if (feature.id === "recognition_result_v1" && view.render_mode === "recognition_result_motion_playable") {
     const href="./rr09_motion/";
     const points=view.menu_points||[];
@@ -3200,6 +3309,7 @@ function renderHifiView(feature, hifiId, hifiChildId = null) {
   const authorityType = child?.authority_type || view.authority_type || "visual";
   el("hifiViewEyebrow").textContent =
     view.render_mode === "recognition_full_flow_models" ? "业务流程与模型职责 · DESIGN ONLY" :
+    view.render_mode === "nh01_multi_screen_static_hifi" ? "STATIC_HIFI_FROZEN · STATIC_RULES_FROZEN · Android NOT_VERIFIED" :
     view.render_mode === "recognition_main_journey_overview" ? "业务流程总览 · 不代表单页视觉 Authority" :
     view.render_mode === "recognition_boundary_release_gate" ? "主链路边界状态 · 设计与资产 Gate" :
     child?.render_mode === "recognition_new_states_review" ? "Review Source · 非 Frozen 单页 Authority" :
@@ -3221,6 +3331,12 @@ function renderHifiView(feature, hifiId, hifiChildId = null) {
   el("hifiViewCanvas").innerHTML = child
     ? (feature.id === "my_catches_v2" ? myCatchesSearchChildCanvas(child) : genericSpecChildCanvas(child, feature))
     : (feature.id === "my_catches_v2" ? myCatchesHifiCanvas(feature,view) : genericSpecHifiCanvas(feature,view));
+
+  if (!child && view.render_mode === "nh01_multi_screen_static_hifi") {
+    nh01ResponsiveRuleCanvas(view);
+  } else {
+    delete el("hifiViewCanvas").dataset.nh01ResponsiveToken;
+  }
 
   const contractDetails = hifiContractMetadataHtml(child || view, view);
   el("hifiViewContractDetails").innerHTML = contractDetails;
