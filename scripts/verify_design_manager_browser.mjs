@@ -629,11 +629,11 @@ async function main() {
   assert((await responsiveFrame.locator("#cardMetadata").innerText()).includes("未提供"),
     "Responsive workspace must render explicit missing metadata without inventing values");
 
-  await page.goBack({ waitUntil:"commit" });
+  await page.evaluate(() => history.back());
   await page.waitForFunction(expected => location.hash === expected, nhWorkspaceRoutes.structured);
   assert(await page.locator("#workspaceFrame").getAttribute("data-workspace-id").then(value => value === "structured_hifi"),
     "Browser Back must restore the Structured Hi-Fi workspace");
-  await page.goForward({ waitUntil:"commit" });
+  await page.evaluate(() => history.forward());
   await page.waitForFunction(expected => location.hash === expected, nhWorkspaceRoutes.responsive);
   await page.reload({ waitUntil:"networkidle" });
   await page.waitForFunction(expected => location.hash === expected, nhWorkspaceRoutes.responsive);
