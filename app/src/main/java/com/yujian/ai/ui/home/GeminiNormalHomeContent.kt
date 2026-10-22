@@ -842,7 +842,8 @@ private fun GeminiCatchCard(
         when {
             combined.isBlank() -> ""
             time != null && location != null &&
-                !geminiHomeTextFitsSingleLine(combined, metadataTextMeasurer, metadataStyle, metadataMaxWidthPx) -> {
+                geminiHomeTextFitsSingleLine(combined, metadataTextMeasurer, metadataStyle, metadataMaxWidthPx) -> combined
+            time != null && location != null -> {
                 val fittedLocation = geminiHomeEllipsizeSingleLine(
                     location, metadataTextMeasurer, metadataStyle, metadataMaxWidthPx,
                 )
