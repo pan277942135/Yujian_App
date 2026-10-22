@@ -1,7 +1,7 @@
 {
   "schema_version": "1.2",
   "status": "FROZEN",
-  "authority_status": "TWO_PAGE_AUTHORITY_PROPOSED_FOR_MAIN_REVIEW",
+  "authority_status": "FROZEN",
   "manager_parent": "recognition_flow_v1_2",
   "manager_title": "07 · 首次拍照教学",
   "entry_condition": "Camera permission granted AND camera preview Ready AND guide not previously completed",
