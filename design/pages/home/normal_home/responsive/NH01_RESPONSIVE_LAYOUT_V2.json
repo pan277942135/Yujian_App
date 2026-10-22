@@ -776,6 +776,11 @@
       "version": "V2.0",
       "date": "2026-10-22",
       "change": "Consolidate one constraint-driven responsive policy; bind all six frozen visual anchors; resolve static/archive, legacy-layout, Gemini runtime, M05 width-only and status semantics; define deterministic browser preview parameters, continuous spacing curves and contract-owned text-wrap thresholds; retain Android runtime as NOT_VERIFIED."
+    },
+    {
+      "version": "V2.0",
+      "date": "2026-10-22",
+      "change": "Browser audit showed short-screen height pressure shrinking the Hero below its declared width floor and 1.3x metadata occupying three lines. Raise the readable Hero floor to 220dp (185dp at the declared aspect ratio) and permit Middle-only scrolling while Footer remains pinned; keep frozen image assets unchanged."
     }
   ],
   "preview_engine": {
@@ -848,15 +853,15 @@
         "target_width_fraction": 0.7,
         "maximum_width_dp": 337.2,
         "maximum_height_dp": 400,
-        "minimum_readable_height_dp": 148,
+        "minimum_readable_height_dp": 220,
         "maximum_readable_height_dp": 220,
         "short_screen_exception": {
-          "minimum_height_dp": 124,
-          "minimum_width_dp": 145,
+          "minimum_height_dp": 220,
+          "minimum_width_dp": 185,
           "exact_viewport_width_dp": 320,
           "exact_viewport_height_dp": 480,
           "exact_font_scale": 1,
-          "requires_no_middle_scroll": true,
+          "requires_no_middle_scroll": false,
           "requires_all_copy_readable": true
         }
       },

@@ -119,8 +119,6 @@
     .catch-species,.catch-measure{display:-webkit-box;-webkit-box-orient:vertical;overflow:hidden;overflow-wrap:anywhere}
     .catch-species{-webkit-line-clamp:var(--species-max-lines)}
     .catch-measure{-webkit-line-clamp:var(--measurement-max-lines)}
-    .catch-time{white-space:normal}
-    .catch-region{display:inline;min-width:0;overflow-wrap:anywhere}
     .footer-section{flex:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:var(--cta-camera-gap);padding:var(--footer-top-padding) 0 var(--footer-bottom-padding);color:#fff;text-shadow:0 1px 8px rgba(9,30,39,.35)}
     .cta-label{font-size:calc(var(--cta-label-size)*var(--font-scale));line-height:1.5;letter-spacing:.08em}
     .camera-button{display:grid;place-items:center;width:var(--camera-touch-size);height:var(--camera-touch-size);padding:0;border:0;border-radius:50%;background:transparent;cursor:pointer;flex:none}
@@ -269,7 +267,7 @@
                     <div class="card-bottom" id="cardMetadata" data-layer="Card-Metadata">
                       <p class="catch-species">草鱼</p>
                       <p class="catch-measure">42.6 cm · 1.28 kg</p>
-                      <p class="catch-location"><span class="catch-time">昨天 18:20 · </span><span class="catch-region">浙江 · 千岛湖</span></p>
+                      <p class="catch-location">昨天 18:20 · 浙江 · 千岛湖</p>
                     </div>
                   </article>
           <article class="catch-card neighbor-card neighbor-right" id="rightCatchCard" data-layer="Card-Peek-Right" aria-label="没有已批准的下一条鱼获素材" hidden>
@@ -646,20 +644,20 @@
         const hero = p.hero;
         const exception = hero.short_screen_exception;
         const shortExceptionEligible = adaptive && width === exception.exact_viewport_width_dp && height === exception.exact_viewport_height_dp && scale === exception.exact_font_scale;
-        const readableFloor = shortExceptionEligible ? exception.minimum_height_dp : hero.minimum_readable_height_dp;
+        const shortExceptionHeightFromWidth = exception.minimum_width_dp * hero.aspect_ratio_height / hero.aspect_ratio_width;
+        const readableFloor = shortExceptionEligible ? Math.max(exception.minimum_height_dp, shortExceptionHeightFromWidth) : hero.minimum_readable_height_dp;
         const desiredHeight = vars.desiredHeight;
         const actualTextHeight = cardMetadata.scrollHeight;
         const contentMinimum = Math.max(readableFloor, Math.min(hero.maximum_readable_height_dp, actualTextHeight));
         let cardHeight = Math.min(desiredHeight, Math.max(contentMinimum, availableCardHeight));
-        if (availableCardHeight < contentMinimum) cardHeight = Math.min(desiredHeight, availableCardHeight);
         let cardWidth = Math.min(vars.desiredWidth, cardHeight * hero.aspect_ratio_width / hero.aspect_ratio_height);
         setVariable("--main-card-height", cssPx(cardHeight)); setVariable("--main-card-width", cssPx(cardWidth));
         setVariable("--card-footer-padding", cssPx(Math.max(p.card_content.minimum_footer_padding_dp, Math.min(p.card_content.maximum_footer_padding_dp, cardHeight * p.card_content.footer_padding_height_fraction))));
         await nextFrame();
         const actualTextHeightAfterResize = cardMetadata.scrollHeight;
         const needsScroll = vars.leadingGap + sectionHeaderHeight + actualGapHeaderCard + cardHeight + layout.card_to_footer_gap_dp > middleHeight + 0.5;
-        // The 124dp exception is valid only when this exact viewport and scale fit the full group without scrolling.
-        if (shortExceptionEligible && needsScroll) {
+        // A contract exception may forbid scrolling; otherwise preserve the readable Hero floor and let only Middle scroll.
+        if (shortExceptionEligible && exception.requires_no_middle_scroll && needsScroll) {
           const nonExceptionFloor = hero.minimum_readable_height_dp;
           const nonExceptionHeight = Math.min(desiredHeight, Math.max(nonExceptionFloor, availableCardHeight));
           cardHeight = Math.max(nonExceptionFloor, nonExceptionHeight);
@@ -712,7 +710,7 @@
           title_spacing:{contract_target_dp:layout.title_to_card_gap_target_dp,rendered_title_bottom_inset_dp:titleBottomInsetDp,header_margin_dp:vars.titleCardGap,measured_gap_dp:titleToCard},
           content_min_card_height_dp:contentMinimum, actual_text_height_dp:actualTextHeightAfterResize, middle_height_dp:middleHeight,
           available_card_height_dp:availableCardHeight, needs_scroll:finalNeedsScroll, layout_mode:finalNeedsScroll?"CONTENT_SCROLL":"FIT",
-          short_screen_exception_applied:shortExceptionEligible && !finalNeedsScroll,
+          short_screen_exception_applied:shortExceptionEligible,
           footer:layout.footer, measurements,
           gaps_dp:{...(layout.gaps_dp||{}),brand_to_stats:layout.brand_to_stats_gap_dp??layout.gaps_dp?.brand_to_stats,stats_to_title:layout.stats_to_title_gap_target_dp,title_to_card_target:layout.title_to_card_gap_target_dp,card_to_footer:layout.card_to_footer_gap_dp},
           neighbor_state:{previous_record_present:false,next_record_present:false,rendered:false,maximum_width_dp:cardWidth*p.neighbor.maximum_width_fraction_of_hero},

@@ -22,7 +22,7 @@ The JSON is the sole machine authority for responsive values and rules. This gui
 
 ## What may adapt
 
-Component width/height within declared bounds, approved spacing formulas, text wrapping, card space allocation, edge-Peek exposure, and the documented local Middle-scroll fallback. Every change is governed by the JSON contract and actual safe window constraints.
+Component width/height within declared bounds, approved spacing formulas, text wrapping, card space allocation, edge-Peek exposure, and the documented local Middle-scroll fallback. The Hero keeps its readable frame and aspect ratio when short-screen space runs out; only Middle scrolls, and Footer stays pinned. Every numeric bound remains in the JSON contract.
 
 ## Authority boundary
 

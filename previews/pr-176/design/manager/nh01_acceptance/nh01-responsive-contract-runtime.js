@@ -36,6 +36,9 @@
     assert(contract.preview_engine?.engine_id === "NH01_ADAPTIVE_V2_CONTRACT_PREVIEW_V1", "Responsive preview engine is missing or mismatched.");
     assert(contract.preview_engine?.coordinate_space?.runtime_evidence === false, "Browser preview must remain separate from Android Runtime evidence.");
     assert(contract.preview_engine?.parameters && contract.preview_engine?.role_bindings, "Responsive preview policy is incomplete.");
+    const hero = contract.preview_engine.parameters.hero;
+    assert(Number.isFinite(hero.minimum_readable_height_dp) && Number.isFinite(hero.maximum_readable_height_dp), "Responsive Hero readability bounds are missing or invalid.");
+    assert(Number.isFinite(hero.short_screen_exception?.minimum_height_dp) && Number.isFinite(hero.short_screen_exception?.minimum_width_dp), "Responsive short-screen Hero bounds are missing or invalid.");
     return {
       contract,
       contractPath: contract.authority?.machine_contract || "design/pages/home/normal_home/responsive/NH01_RESPONSIVE_LAYOUT_V2.json",

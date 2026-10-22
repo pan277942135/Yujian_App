@@ -230,9 +230,13 @@ async function main() {
     const typeSizes=fixedResults[2].measured.typography_base_sp;
     assert(typeSizes.stat_value>typeSizes.stat_label&&typeSizes.species>typeSizes.measurement, 'Key text hierarchy changed at the 390x844dp reference viewport');
     assert(Math.abs(fixedResults.at(-1).measured.content_left_dp-20)<=0.5,'600dp wide content is not centered around its 560dp width cap');
+    report.checks.fixed_viewports=fixedResults;
 
     const font130=await setViewport(page,320,480,1.3);
     report.checks.font_1_3=font130;
+    const fontScreenshot=join(evidenceDir,'font-1_3-320x480.png');
+    await page.locator('#device').screenshot({path:fontScreenshot,animations:'disabled'});
+    report.screenshots.push(fontScreenshot);
     assert(font130.text_lines.species>=1&&font130.text_lines.species<=2&&font130.text_lines.measurement<=2&&font130.text_lines.metadata<=2, `Font scale 1.3 text wrapping exceeded the contract line limits: ${JSON.stringify(font130.text_lines)}`);
     assert(font130.measurements.horizontal_overflow_dp<=0.5, 'Font scale 1.3 caused horizontal overflow');
     await page.locator('#layoutVariant').selectOption('V3_BASELINE');
