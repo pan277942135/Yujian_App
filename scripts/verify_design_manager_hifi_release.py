@@ -97,7 +97,7 @@ def validate_tree(root: Path, *, built: bool = False, expected_build: str | None
     require(resource_view.get("title") == "资源", "guide Resources submenu title changed")
     require(resource_view.get("status") == "DESIGN_ONLY" and resource_view.get("authority_type") == "asset_catalog", "guide Resources must remain a Design Manager-only asset catalog")
     require(resource_view.get("render_mode") == "recognition_guide_resources", "guide Resources renderer is missing")
-    require(resource_view.get("resource_ids") == ["p01", "p02"], "guide Resources must expose the three active Frozen images")
+    require(resource_view.get("resource_ids") == ["p01", "p02"], "guide Resources must expose the two active Frozen images")
     require(resource_view.get("runtime_visual_authority") is False, "guide Resources cannot claim Android runtime visual authority")
 
     manifest = load_json(design / GUIDE / "manifest.json")
