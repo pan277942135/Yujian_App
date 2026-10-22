@@ -61,7 +61,7 @@ Product owner: only versioned design decisions / genuinely conflicting immutable
 - [NH01_RESPONSIVE_LAYOUT_V2.json](../responsive/NH01_RESPONSIVE_LAYOUT_V2.json) — proposed sole responsive geometry source for current Gemini NH01/NH02 after canonical adoption.
 - [NH01_RESPONSIVE_LAYOUT_V2.md](../responsive/NH01_RESPONSIVE_LAYOUT_V2.md) — human-readable contract guide; numeric values remain in JSON.
 - [NH01_RESPONSIVE_AUTHORITY_CROSSWALK_V1.md](../responsive/NH01_RESPONSIVE_AUTHORITY_CROSSWALK_V1.md) — explicit field-scoped authority and conflict decisions.
-- [Responsive Layout Standard V1](../../../system_v3/07_Responsive_System/Responsive_Layout_Standard_V1.md) — shared page-independent responsive rules.
+- [Responsive Layout Standard V1](../../../../system_v3/07_Responsive_System/Responsive_Layout_Standard_V1.md) — shared page-independent responsive rules.
 - Layout_Responsive_Contract_V1.md — legacy NormalHomeContent route and raster/touch-anchor evidence; not the current Gemini responsive source.
 - State_Interaction_Contract_V1.md — P1, state machine, navigation and data-content behavior.
 - Motion_Feedback_Contract_V1.md — P1, motion, haptic, sound and lifecycle.
@@ -93,8 +93,8 @@ These four are active specialized bindings and supersede any contrary interim st
 - Machine authority candidate: `../responsive/NH01_RESPONSIVE_LAYOUT_V2.json`
 - Human guide: `../responsive/NH01_RESPONSIVE_LAYOUT_V2.md`
 - Authority conflict crosswalk: `../responsive/NH01_RESPONSIVE_AUTHORITY_CROSSWALK_V1.md`
-- Shared standard: `../../../system_v3/07_Responsive_System/Responsive_Layout_Standard_V1.md`
-- Schema: `../../../system_v3/07_Responsive_System/Responsive_Layout_Contract_Schema_V1.json`
-- Global viewport profiles: `../../../system_v3/07_Responsive_System/Viewport_Profiles_V1.json`
+- Shared standard: `../../../../system_v3/07_Responsive_System/Responsive_Layout_Standard_V1.md`
+- Schema: `../../../../system_v3/07_Responsive_System/Responsive_Layout_Contract_Schema_V1.json`
+- Global viewport profiles: `../../../../system_v3/07_Responsive_System/Viewport_Profiles_V1.json`
 
 The proposal preserves all frozen assets and the existing 24-case native matrix. Its status is a design/control-plane proposal; do not begin implementation from the candidate branch and do not infer Android Runtime PASS from schema or browser checks.

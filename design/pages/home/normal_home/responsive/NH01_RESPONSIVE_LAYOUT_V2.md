@@ -2,7 +2,7 @@
 
 **Status:** `PROPOSED_FOR_CANONICAL_MAIN_REVIEW`  
 **Machine authority:** [NH01_RESPONSIVE_LAYOUT_V2.json](NH01_RESPONSIVE_LAYOUT_V2.json)  
-**Global standard:** [Responsive Layout Standard V1](../../../system_v3/07_Responsive_System/Responsive_Layout_Standard_V1.md)  
+**Global standard:** [Responsive Layout Standard V1](../../../../system_v3/07_Responsive_System/Responsive_Layout_Standard_V1.md)  
 **Authority crosswalk:** [NH01_RESPONSIVE_AUTHORITY_CROSSWALK_V1.md](NH01_RESPONSIVE_AUTHORITY_CROSSWALK_V1.md)  
 **Android Runtime:** `NOT_VERIFIED`
 
