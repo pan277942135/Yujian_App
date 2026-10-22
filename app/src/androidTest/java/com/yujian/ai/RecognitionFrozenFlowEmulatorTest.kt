@@ -1384,7 +1384,6 @@ class RecognitionFrozenFlowEmulatorTest {
         val pipelineTrace = Collections.synchronizedList(mutableListOf<String>())
         val visualTimes = Collections.synchronizedMap(LinkedHashMap<RecognitionPhase, Long>())
         val motionSamples = Collections.synchronizedList(mutableListOf<RecognitionMotionTraceSample>())
-        val subjectEvidence = mutableStateOf<FishSubjectResult?>(null)
         var finishedAtMs = 0L
 
         composeRule.setContent {
@@ -1407,11 +1406,6 @@ class RecognitionFrozenFlowEmulatorTest {
                                 pipelineTrace += entry
                                 trace(entry)
                                 onProgress(progress)
-                            }
-                        },
-                        generateSubject = { selected, box ->
-                            withContext(Dispatchers.Default) {
-                                createAnnotatedSubjectAlphaFixture(selected.bitmap, box).also { subjectEvidence.value = it }
                             }
                         },
                         onFinished = { resultValue ->
@@ -1523,7 +1517,12 @@ class RecognitionFrozenFlowEmulatorTest {
 
         val primary = requireNotNull(result.assessment.primary)
         val box = primary.box.normalized()
-        val subject = requireNotNull(subjectEvidence.value) { "subject alpha evidence was not generated" }
+        // RESULT_READY must remain an immediate handoff. The annotated alpha mask is
+        // a fixed, test-only contour fixture for the separate Level A evidence bundle;
+        // create it after measuring the real pipeline so this fixture cannot hold up or
+        // race the production Processing -> Result transition.
+        val subject = createAnnotatedSubjectAlphaFixture(photo.bitmap, primary.box)
+        trace("TEST_ONLY_SUBJECT_ALPHA_FIXTURE=FIXED_REAL_CATCH_POLYGON_POST_RESULT")
         val contourSegments = subject.bitmapPath?.let { path ->
             BitmapFactory.decodeFile(path)?.let { bitmap ->
                 try {
@@ -1547,6 +1546,7 @@ class RecognitionFrozenFlowEmulatorTest {
             pipelineTrace.joinToString("\n") + "\n" +
                 "REAL_BBOX=${box.x1},${box.y1},${box.x2},${box.y2} confidence=${primary.confidence}\n" +
                 "SUBJECT_STATUS=${subject.status}\n" +
+                "SUBJECT_EVIDENCE_SOURCE=FIXED_TEST_ALPHA_FIXTURE_POST_RESULT\n" +
                 "SUBJECT_QUALITY=${subject.quality}\n" +
                 "SUBJECT_MASK_AREA=${subject.maskAreaRatio}\n" +
                 "SUBJECT_WIDTH=${subject.width}\n" +
@@ -1594,8 +1594,8 @@ class RecognitionFrozenFlowEmulatorTest {
                 "\"quality_gate\":{\"status\":\"${result.assessment.status}\",\"level\":\"${result.assessment.qualityLevel}\",\"reason\":\"${result.assessment.qualityReason}\",\"classifier_eligible\":${result.assessment.isClassifierEligible}}," +
                 "\"crop\":{\"pixels\":$cropPixelsJson,\"expand_ratio\":${FishDetectionQualityGate.CROP_EXPAND_RATIO}}," +
                 "\"mapped_bbox_screen\":{\"left\":${mappedRect.left},\"top\":${mappedRect.top},\"right\":${mappedRect.right},\"bottom\":${mappedRect.bottom}}," +
-                "\"subject\":{\"status\":\"${subject.status}\",\"quality\":\"${subject.quality}\",\"mask_area\":${subject.maskAreaRatio},\"contour_segments\":$contourSegments}," +
-                "\"focus\":{\"level\":\"A\",\"degradation\":\"D0\"},\"route\":\"RESULT\"}\n",
+                "\"subject\":{\"status\":\"${subject.status}\",\"quality\":\"${subject.quality}\",\"mask_area\":${subject.maskAreaRatio},\"contour_segments\":$contourSegments,\"geometry_provenance\":\"FIXED_TEST_ALPHA_FIXTURE_POST_RESULT\"}," +
+                "\"focus\":{\"level\":\"A\",\"degradation\":\"D0\",\"geometry_provenance\":\"FIXED_TEST_ALPHA_FIXTURE_POST_RESULT\"},\"route\":\"RESULT\"}\n",
         )
         val mappedCenter = transform.mapBox(primary.box)
         val crop = primary.box.expand(.12f).normalized()
