@@ -1,6 +1,6 @@
 # AI 渔获识别 Web 全量高保真与工程合同 V2
 
-**ID** `YUJIAN_AI_CATCH_RECOGNITION_WEB_HIFI_V1` · **状态** `VISUAL_CONTRACT_DEFINED`（Main 已采纳的设计合同） · 用户认可的三阶段与水光方向 `USER_APPROVED_VISUAL_DIRECTION`；`MAIN_ADOPTED=YES (DESIGN_CONTRACT_ONLY)`；`PIXEL_FROZEN_SOURCE=NOT_CONFIRMED`；`RUNTIME_VISUAL_VERIFIED=NO`。#186/#187 合同内容由 PR #190 纳入 Main；Web PR #177 当前审计 HEAD `655c4af07a0244fcf29441b5652c48ca74f2e6a2` 仍为 Draft/Unmerged。不得声称原图像素冻结、真实 Web 视觉 PASS 或产品代码已验收。机器文件在 `contracts/`，结构先行见 `WEB_HIFI_HANDOFF_A_V2.md`。
+**ID** `YUJIAN_AI_CATCH_RECOGNITION_WEB_HIFI_V1` · **状态** `VISUAL_CONTRACT_DEFINED`（Main 已采纳的设计合同） · 用户认可的三阶段与水光方向 `USER_APPROVED_VISUAL_DIRECTION`；`MAIN_ADOPTED=YES (DESIGN_CONTRACT_ONLY)`；`PIXEL_FROZEN_SOURCE=NOT_CONFIRMED`；`RUNTIME_VISUAL_VERIFIED=NO`。#186/#187 合同内容由 PR #190 纳入 Main；Work B Gap Matrix 的审计快照为 Web PR #177 HEAD `655c4af07a0244fcf29441b5652c48ca74f2e6a2`。Web PR #177 仍为 Draft/Open/Unmerged；实施前必须从 [PR #177](https://github.com/pan277942135/Yujian/pull/177) 读取最新 HEAD。该快照之后的代码变更尚未纳入 G01–G18 重审。不得声称原图像素冻结、真实 Web 视觉 PASS 或产品代码已验收。机器文件在 `contracts/`，结构先行见 `WEB_HIFI_HANDOFF_A_V2.md`。
 
 ## 视觉来源与边界
 
