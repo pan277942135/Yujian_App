@@ -136,13 +136,16 @@ jobs:
             sed -i "s/__NH01_GEMINI_PREVIEW_BUILD__/${BUILD_SHA}/g" _site/previews/pr-176/design/manager/nh01_acceptance/gemini-native-preview.html
             sed -i "s/__NH01_PREVIEW_DEPLOYMENT_SHA__/${SITE_BUILD_SHA}/g" _site/previews/pr-176/design/manager/nh01_acceptance/gemini-native-preview.html
           fi
+          # The isolated packager checks all production manager entry metadata
+          # before and after adding its route. Materialize the baseline build
+          # marker before that check, using the same main SHA as the manager.
+          printf '{"sha":"%s","short_sha":"%s"}\n' "${SITE_BUILD_SHA}" "${BUILD_SHORT}" > _site/design/manager/build.json
           if [ "${ISOLATED_NH01_PUSH}" = true ]; then
             python3 scripts/design/build_nh01_responsive_preview_site.py \
               --source-root . --site-root _site \
               --source-sha "${BUILD_SHA}" --deployment-sha "${BUILD_SHA}" --base-site-sha "${SITE_BUILD_SHA}" \
               --workflow-run-url "${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
           fi
-          printf '{"sha":"%s","short_sha":"%s"}\n' "${SITE_BUILD_SHA}" "${BUILD_SHORT}" > _site/design/manager/build.json
           touch _site/.nojekyll
           cat > _site/index.html <<'EOF'
           <!doctype html>

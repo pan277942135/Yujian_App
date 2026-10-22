@@ -531,7 +531,10 @@
         const titleLine = layout.rendered_text_metrics.section_title.size_css_px * layout.rendered_text_metrics.section_title.line_height_ratio;
         const rowInset = Math.max(0, (layout.section_header_height_dp - titleLine) / 2);
         const leadingGap = Math.max(0, layout.stats_to_title_gap_target_dp - rowInset);
-        const titleCardGap = Math.max(0, layout.title_to_card_gap_target_dp - rowInset);
+        // The measurement is from the rendered title line box to the Hero,
+        // so the header's centered row inset must be removed even when that
+        // requires a small negative margin below the header container.
+        const titleCardGap = layout.title_to_card_gap_target_dp - rowInset;
         const desiredWidth = layout.hero_target_size_dp[0];
         const desiredHeight = Math.min(desiredWidth * p.hero.aspect_ratio_height / p.hero.aspect_ratio_width, p.hero.maximum_height_dp);
         const cardBottom = p.card_content;
