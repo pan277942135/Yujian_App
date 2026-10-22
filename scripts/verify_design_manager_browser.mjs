@@ -508,10 +508,14 @@ async function main() {
   };
   await open("#page/home_normal_v1");
   await page.locator(".workspace-nav-group").waitFor({ state:"visible", timeout:15000 });
-  const nhMenuOrder = await page.locator('#pageList .page-subitem[data-kind="page-hifi"][data-page-id="home_normal_v1"]')
+  const homeHifiOrder = await page.locator('#pageList .page-subitem[data-kind="page-hifi"][data-page-id="home_normal_v1"]')
     .evaluateAll(nodes => nodes.map(node => node.dataset.hifiId));
+  const expectedHomeHifiOrder = ["NH01","NH02","NH03","NH04","NH05","NH06","NH07","multi_screen_static_hifi"];
+  assert(JSON.stringify(homeHifiOrder) === JSON.stringify(expectedHomeHifiOrder),
+    `Normal Home hi-fi route order changed: ${JSON.stringify(homeHifiOrder)}`);
+  const nhMenuOrder = homeHifiOrder.slice(0, 7);
   assert(JSON.stringify(nhMenuOrder) === JSON.stringify(["NH01","NH02","NH03","NH04","NH05","NH06","NH07"]),
-    `NH01–NH07 menu order changed: ${JSON.stringify(nhMenuOrder)}`);
+    `NH01–NH07 page-state order changed: ${JSON.stringify(nhMenuOrder)}`);
   assert((await page.locator('.workspace-nav-item[data-workspace-id="structured_hifi"]').innerText()).includes("结构化高保真"),
     "Structured Hi-Fi menu item missing from the Design Manager workbench group");
   assert((await page.locator('.workspace-nav-item[data-workspace-id="responsive_design"]').innerText()).includes("响应式设计"),
