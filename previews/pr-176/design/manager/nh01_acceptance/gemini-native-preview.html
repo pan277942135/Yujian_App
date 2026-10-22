@@ -109,6 +109,7 @@
     .main-card{position:relative;z-index:2;width:var(--main-card-width);height:var(--main-card-height);flex:none;aspect-ratio:var(--hero-aspect);display:flex;flex-direction:column;justify-content:flex-end}
     .hero-placeholder{position:absolute;inset:0;display:flex;align-items:flex-start;justify-content:flex-start;padding:10px;background:linear-gradient(180deg,rgba(26,53,65,.74) 0%,rgba(26,53,65,.42) 25%,rgba(26,53,65,0) 52%);color:#eef5f6;text-align:left;pointer-events:none}
     .hero-placeholder-inner{max-width:100%;display:flex;align-items:flex-start;gap:8px}
+    .hero-placeholder-copy{display:grid;gap:2px;min-width:0}
     .hero-placeholder strong{display:block;font-size:calc(12px*var(--font-scale));line-height:1.25;letter-spacing:.04em}
     .hero-placeholder span{display:block;font-size:calc(10px*var(--font-scale));line-height:1.35}
     .blocked-icon{display:grid;place-items:center;flex:none;width:24px;height:24px;border:1px solid #8caab2;border-radius:50%;font-size:14px;background:rgba(255,255,255,.6)}
@@ -263,7 +264,7 @@
                     <div class="neighbor-slot" aria-hidden="true"></div>
                   </article>
                   <article class="catch-card main-card" id="mainCatchCard" data-layer="Card-Main-Active" aria-label="选中鱼获静态参考夹具">
-            <div class="hero-placeholder" id="heroPlaceholder" data-layer="Hero-Photo" data-status="BLOCKED_ASSET_SOURCE" aria-label="Hero photo intentionally blocked; see asset audit panel"><div class="hero-placeholder-inner"><span class="blocked-icon" aria-hidden="true">▧</span><strong>鱼获照片来源待批准</strong><span>保留真实素材占位，不生成或复制鱼获图像</span></div></div>
+            <div class="hero-placeholder" id="heroPlaceholder" data-layer="Hero-Photo" data-status="BLOCKED_ASSET_SOURCE" aria-label="Hero photo intentionally blocked; see asset audit panel"><div class="hero-placeholder-inner"><span class="blocked-icon" aria-hidden="true">▧</span><div class="hero-placeholder-copy"><strong>照片素材待授权</strong><span>保留占位，不公开源照片</span></div></div></div>
                     <div class="card-bottom" id="cardMetadata" data-layer="Card-Metadata">
                       <p class="catch-species">草鱼</p>
                       <p class="catch-measure">42.6 cm · 1.28 kg</p>
