@@ -29,6 +29,18 @@ Keep these states distinct in task state and delivery evidence:
 
 The same PR SHA may receive independent quick-check results. A batch PASS applies to its Integration SHA only. Never copy it to the component PR SHAs. The Integration APK must be built once, hashed, and reused by every gate in that batch.
 
+## Freeze, verification scope, and production closure
+
+Freeze state, integration state, and production-verification state are independent dimensions; they must never be collapsed into one PASS/FAIL label.
+
+- `FROZEN_CANDIDATE` means an exact `main` SHA and its audit evidence are preserved for reproducibility and rollback. Record the UTC audit-window boundaries, snapshot timestamp, exact `main` SHA, freeze-ref name, and audit-pack SHA-256.
+- `FROZEN_CANDIDATE` does **not** imply API28 PASS, `FORMAL_ACCEPTANCE`, `PRODUCTION_VERIFIED`, or release authorization. A frozen baseline may correctly remain `BLOCKED`.
+- `BLOCKED` means a required safety, permission, dependency, infrastructure, or validation condition is unresolved. Retain the candidate and its evidence; do not merge or promote it merely to clear the status.
+- Every PASS is scoped to the exact tested SHA, named gate, and run. A result from a PR head, an integration SHA, or an earlier `main` SHA must not be copied to a different SHA. Queued, skipped, missing, or not-yet-finished jobs are `NOT_RUN`, never PASS.
+- When API28 queue wait exceeds the configured `maximum_queue_wait_minutes` (currently 360), classify the batch as `BLOCKED_INFRA`, preserve the candidate for a later compatible batch, and retain the queue/run evidence. Do not claim the runtime gate passed.
+- `PRODUCTION_VERIFIED` requires the exact current-main SHA to have Admission PASS, Android CI PASS, the authorized full API28 batch's required gates PASS, Camera Runtime PASS, all required feature/runtime gates PASS, verified APK provenance/SHA-256, and a Pages deployment verified against the intended SHA. Pages-only success, a preview APK, a queued/skipped API28 job, or a partial batch is insufficient.
+- `PRODUCTION_VERIFIED` is a verification conclusion, not permission to release. Release authorization remains a separate explicit gate.
+
 ## Candidate and batch lifecycle
 
 Only a maintainer-issued `api28-ready` label plus exact-SHA quick checks and the required PR metadata may enqueue a task. Candidates must identify their Work Task ID, required API28 gates, and either named dependency PRs or `none`. Fork code, missing task metadata, missing checks, stale heads, and unstated dependencies are rejected or blocked.

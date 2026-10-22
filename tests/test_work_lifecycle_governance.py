@@ -9,6 +9,8 @@ import tempfile
 import unittest
 from unittest.mock import patch
 
+import yaml
+
 from scripts import api28_batch_monitor as batch_monitor
 from scripts import create_api28_integration_candidate as composer
 from scripts.work_lifecycle import (
@@ -36,6 +38,27 @@ def git(root: Path, *args: str, env: dict | None = None) -> str:
 
 
 class WorkLifecycleGovernanceTests(unittest.TestCase):
+    def test_freeze_candidate_and_production_verification_are_separate(self):
+        policy = yaml.safe_load((ROOT / "harness/ANDROID_BATCH_ACCEPTANCE_POLICY_V1_1.yaml").read_text(encoding="utf-8"))
+        model = policy["state_model"]
+        freeze = model["freeze_candidate"]
+        self.assertEqual(freeze["status"], "FROZEN_CANDIDATE")
+        self.assertIn("PRODUCTION_VERIFIED", freeze["does_not_imply"])
+        self.assertIn("FORMAL_ACCEPTANCE", freeze["does_not_imply"])
+        self.assertIn("RELEASE_AUTHORIZATION", freeze["does_not_imply"])
+        self.assertEqual(model["integration"]["blocked_status"], "BLOCKED")
+        self.assertTrue(model["integration"]["preserve_candidate_for_retry"])
+        evidence = model["evidence_scope"]
+        self.assertTrue(evidence["exact_sha_required"])
+        self.assertEqual(evidence["queued_or_skipped_job_result"], "NOT_RUN")
+        self.assertEqual(evidence["maximum_queue_wait_minutes"], policy["batch"]["maximum_queue_wait_minutes"])
+        self.assertEqual(evidence["exceeded_queue_wait_status"], "BLOCKED_INFRA")
+        production = model["production_verification"]
+        self.assertEqual(production["status"], "PRODUCTION_VERIFIED")
+        self.assertFalse(production["pages_only_is_sufficient"])
+        self.assertFalse(production["queued_or_skipped_api28_is_sufficient"])
+        self.assertFalse(production["release_authorization_implied"])
+
     def test_admission_start_and_recovery_require_current_canonical_sha(self):
         self.assertEqual(check_admission_identity(registry_sha=SHA_A, canonical_sha=SHA_A, static_valid=True, control_change=False), [])
         self.assertEqual(check_admission_identity(registry_sha=SHA_A, canonical_sha=SHA_A, static_valid=True, control_change=False), [])

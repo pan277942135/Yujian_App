@@ -120,6 +120,46 @@ artifact_classes:
       - "apk_sha256_verified"
       - "batch_id_and_run_id_present"
       - "evidence_links_present"
+state_model:
+  freeze_candidate:
+    status: "FROZEN_CANDIDATE"
+    required_evidence:
+      - "audit_window_utc"
+      - "snapshot_timestamp_utc"
+      - "main_sha"
+      - "freeze_ref"
+      - "audit_pack_sha256"
+    does_not_imply:
+      - "API28_PASS"
+      - "FORMAL_ACCEPTANCE"
+      - "PRODUCTION_VERIFIED"
+      - "RELEASE_AUTHORIZATION"
+  integration:
+    blocked_status: "BLOCKED"
+    preserve_candidate_for_retry: true
+    blocked_or_unrun_gates_are_pass: false
+  evidence_scope:
+    exact_sha_required: true
+    pass_applies_to: "the exact tested SHA and declared gate only"
+    queued_or_skipped_job_result: "NOT_RUN"
+    maximum_queue_wait_minutes: 360
+    exceeded_queue_wait_status: "BLOCKED_INFRA"
+    runner_unavailable_status: "BLOCKED_INFRA"
+  production_verification:
+    status: "PRODUCTION_VERIFIED"
+    required_evidence:
+      - "current_main_sha_verified"
+      - "control_plane_admission_pass"
+      - "android_ci_pass_on_exact_main_sha"
+      - "api28_full_batch_required_gates_pass"
+      - "camera_runtime_pass_on_exact_main_sha"
+      - "required_gate_matrix_all_pass"
+      - "apk_sha256_and_provenance_verified"
+      - "pages_deployed_sha_verified"
+    pages_only_is_sufficient: false
+    queued_or_skipped_api28_is_sufficient: false
+    release_authorization_implied: false
+
 feedback:
   schema: "harness/USER_FEEDBACK_SCHEMA_V1.json"
   close_requires_user_retest: true

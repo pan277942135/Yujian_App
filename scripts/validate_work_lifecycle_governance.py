@@ -64,6 +64,64 @@ def main() -> int:
 
     if policy.get("timezone") != "Asia/Shanghai":
         errors.append("API28 policy timezone must be Asia/Shanghai")
+
+    state_model = policy.get("state_model", {})
+    freeze_model = state_model.get("freeze_candidate", {})
+    required_freeze_evidence = {
+        "audit_window_utc", "snapshot_timestamp_utc", "main_sha", "freeze_ref", "audit_pack_sha256"
+    }
+    if freeze_model.get("status") != "FROZEN_CANDIDATE":
+        errors.append("freeze state must be named FROZEN_CANDIDATE")
+    if not required_freeze_evidence <= set(freeze_model.get("required_evidence", [])):
+        errors.append("FROZEN_CANDIDATE must bind exact SHA, UTC audit window, snapshot, freeze ref, and audit-pack SHA-256")
+    if not {"API28_PASS", "FORMAL_ACCEPTANCE", "PRODUCTION_VERIFIED", "RELEASE_AUTHORIZATION"} <= set(freeze_model.get("does_not_imply", [])):
+        errors.append("FROZEN_CANDIDATE must not imply API28, formal acceptance, production verification, or release authorization")
+
+    integration_model = state_model.get("integration", {})
+    if integration_model.get("blocked_status") != "BLOCKED" or integration_model.get("preserve_candidate_for_retry") is not True:
+        errors.append("blocked integration must preserve its candidate for retry")
+    if integration_model.get("blocked_or_unrun_gates_are_pass") is not False:
+        errors.append("blocked or unrun gates must never count as PASS")
+
+    evidence_scope = state_model.get("evidence_scope", {})
+    if evidence_scope.get("exact_sha_required") is not True:
+        errors.append("verification evidence must be bound to the exact tested SHA")
+    if evidence_scope.get("queued_or_skipped_job_result") != "NOT_RUN":
+        errors.append("queued or skipped jobs must be classified NOT_RUN")
+    if evidence_scope.get("maximum_queue_wait_minutes") != policy.get("batch", {}).get("maximum_queue_wait_minutes"):
+        errors.append("status model queue timeout must match the API28 batch policy")
+    if evidence_scope.get("exceeded_queue_wait_status") != "BLOCKED_INFRA":
+        errors.append("API28 queue timeout must resolve to BLOCKED_INFRA")
+    if evidence_scope.get("runner_unavailable_status") != "BLOCKED_INFRA":
+        errors.append("runner unavailability must resolve to BLOCKED_INFRA")
+
+    production_model = state_model.get("production_verification", {})
+    required_production_evidence = {
+        "current_main_sha_verified", "control_plane_admission_pass", "android_ci_pass_on_exact_main_sha",
+        "api28_full_batch_required_gates_pass", "camera_runtime_pass_on_exact_main_sha",
+        "required_gate_matrix_all_pass", "apk_sha256_and_provenance_verified", "pages_deployed_sha_verified",
+    }
+    if production_model.get("status") != "PRODUCTION_VERIFIED":
+        errors.append("production verification state must be named PRODUCTION_VERIFIED")
+    if not required_production_evidence <= set(production_model.get("required_evidence", [])):
+        errors.append("PRODUCTION_VERIFIED is missing one or more required exact-SHA gates/evidence")
+    if production_model.get("pages_only_is_sufficient") is not False:
+        errors.append("Pages-only verification must not imply application PRODUCTION_VERIFIED")
+    if production_model.get("queued_or_skipped_api28_is_sufficient") is not False:
+        errors.append("queued/skipped API28 jobs must not imply PRODUCTION_VERIFIED")
+    if production_model.get("release_authorization_implied") is not False:
+        errors.append("PRODUCTION_VERIFIED must not imply release authorization")
+
+    protocol_text = (ROOT / "harness/WORK_INSTRUCTION_PROTOCOL_V1_1.md").read_text(encoding="utf-8")
+    for required_phrase in (
+        "Freeze, verification scope, and production closure",
+        "`FROZEN_CANDIDATE`",
+        "`PRODUCTION_VERIFIED`",
+        "Pages-only success",
+        "BLOCKED_INFRA",
+    ):
+        if required_phrase not in protocol_text:
+            errors.append(f"Work protocol is missing freeze/verification rule: {required_phrase}")
     schedule = policy.get("schedule", {})
     if schedule.get("midday", {}).get("local_time") != "12:30" or schedule.get("midday", {}).get("cron_utc") != "30 4 * * *":
         errors.append("midday schedule must be 12:30 Asia/Shanghai (30 4 * * *)")
