@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { createServer } from "node:http";
-import { createReadStream, existsSync, statSync } from "node:fs";
+import { createReadStream, existsSync, readFileSync, statSync } from "node:fs";
 import { resolve, extname, sep } from "node:path";
 import { createRequire } from "node:module";
 
@@ -43,6 +43,9 @@ function startStaticServer(root) {
     let file = resolve(absoluteRoot, `.${pathname}`);
     if (file !== absoluteRoot && !file.startsWith(absoluteRoot + sep)) {
       response.writeHead(403).end("Forbidden"); return;
+    }
+    if (!existsSync(file) && pathname === "/design/manager/nh01_acceptance/assets/normal_home_default_avatar_v2.png") {
+      file = resolve(absoluteRoot, "app/src/main/res/drawable-nodpi/normal_home_default_avatar_v2.png");
     }
     if (existsSync(file) && statSync(file).isDirectory()) file = resolve(file, "index.html");
     if (!existsSync(file) || !statSync(file).isFile()) {
@@ -268,7 +271,296 @@ async function main() {
   assert(failedRequests.length === 0, `Failed requests observed: ${failedRequests.join("; ")}`);
   assert(errors.length === 0, `Browser errors observed: ${errors.join("; ")}`);
 
+  // Gemini Native V3 is sourced from the checked-in structure snapshot and approved assets,
+  // not from live Figma. Verify the actual assets and emit a 1080x1920 diagnostic artifact.
+  const previewUrl = new URL("nh01_acceptance/gemini-native-preview.html", baseUrl).href;
+  const previewPage = await browser.newPage({ viewport: { width: 1440, height: 1000 }, deviceScaleFactor: 1 });
+  previewPage.on("console", message => { if (message.type() === "error") errors.push(message.text()); });
+  previewPage.on("pageerror", error => errors.push(error.message));
+  previewPage.on("requestfailed", request => failedRequests.push(`${request.url()} · ${request.failure()?.errorText || "request failed"}`));
+  previewPage.on("response", response => {
+    if (response.status() >= 400 && response.url().startsWith(new URL(baseUrl).origin)) {
+      badResponses.push(`${response.status()} ${response.url()}`);
+    }
+  });
+  const previewResponse = await previewPage.goto(previewUrl, { waitUntil: "networkidle", timeout: 45000 });
+  assert(previewResponse?.ok(), "NH01 Gemini Native preview route did not load");
+  const previewBuild = await previewPage.locator('meta[name="nh01-gemini-preview-build"]').getAttribute("content");
+  if (args.expectedBuild) assert(previewBuild === args.expectedBuild, `Gemini preview build mismatch: ${previewBuild} != ${args.expectedBuild}`);
+  try {
+    await previewPage.waitForFunction(() => window.NH01GeminiPreviewReady === true, { timeout: 30000 });
+  } catch (error) {
+    const browserState = await previewPage.evaluate(() => ({
+      ready: window.NH01GeminiPreviewReady === true,
+      layoutReady: window.NH01GeminiPreviewLayoutReady === true,
+      audit: window.NH01GeminiPreviewAudit || null,
+      layout: window.NH01GeminiPreviewLayout || null,
+      images: [...document.images].map(image => ({
+        id: image.id, src: image.currentSrc || image.src, complete: image.complete,
+        naturalWidth: image.naturalWidth, naturalHeight: image.naturalHeight,
+        loading: image.loading
+      })),
+      scriptCount: document.scripts.length,
+      buildSha: document.querySelector('meta[name="nh01-gemini-preview-build"]')?.content || null
+    }));
+    throw new Error(`Gemini preview initialization timed out: ${JSON.stringify({ browserState, consoleErrors: errors, failedRequests, badResponses, originalError: error.message })}`);
+  }
+  await previewPage.waitForFunction(() => window.NH01GeminiPreviewLayoutReady === true, { timeout: 5000 });
+  const previewAudit = await previewPage.evaluate(() => window.NH01GeminiPreviewAudit);
+  const defaultLayout = await previewPage.evaluate(() => window.NH01GeminiPreviewLayout);
+  assert(previewAudit?.status === "PASS", `Gemini preview asset integrity failed: ${JSON.stringify(previewAudit)}`);
+  assert(defaultLayout?.variant === "ADAPTIVE_V2" && defaultLayout?.layout_version === "CONTENT_FIRST_V2", "Gemini preview must default to the content-first Adaptive V2 candidate");
+  assert(defaultLayout?.safe_insets_dp?.top === 24 && defaultLayout?.safe_insets_dp?.bottom === 24,
+    `Gemini preview must model the API28 safe insets: ${JSON.stringify(defaultLayout?.safe_insets_dp)}`);
+  assert(defaultLayout?.card_height_dp > 0 && defaultLayout?.card_width_dp > 0,
+    `Gemini preview must resolve card geometry: ${JSON.stringify(defaultLayout)}`);
+  assert(previewAudit.release_gate_effect === "NONE", "Gemini preview must not affect release gates");
+  const requiredAssetIds = ["background", "brand", "avatar", "camera"];
+  for (const id of requiredAssetIds) {
+    const result = previewAudit.assets.find(asset => asset.id === id);
+    assert(result?.status === "PASS_SOURCE_INTEGRITY", `Registered Gemini asset failed SHA/dimension check: ${id} ${JSON.stringify(result)}`);
+  }
+  assert(previewAudit.assets.find(asset => asset.id === "hero_photo")?.status === "BLOCKED_ASSET_SOURCE",
+    "Hero photo must remain blocked until source provenance and usage rights are verified");
+  assert(previewAudit.assets.find(asset => asset.id === "neighbor_photos")?.status === "BLOCKED_MISSING_APPROVED_INDEPENDENT_ORIGINALS",
+    "Neighbor photos must not be invented or duplicated");
+  const previewImageSources = await previewPage.locator("img").evaluateAll(images => images.map(image => image.currentSrc).filter(Boolean));
+  assert(previewImageSources.every(src => new URL(src).origin === new URL(previewUrl).origin),
+    `Gemini preview must not use external images: ${previewImageSources.join("; ")}`);
+  assert(await previewPage.locator('img[src*="sample_recent_catch"]').count() === 0,
+    "Sensitive user-provided Hero source must not be embedded in the public preview");
+
+  // Figma-like structure tree ↔ canvas selection ↔ live property inspector.
+  assert(await previewPage.locator(".layer-node").count() >= 16, "NH01 structure tree must expose the registered selectable layers");
+  await previewPage.locator('.layer-node[data-target="#assetBrand"]').click();
+  const selectedBrand = await previewPage.evaluate(() => window.NH01SelectedLayer);
+  assert(selectedBrand?.target === "#assetBrand" && selectedBrand?.designNode === "Brand-Title",
+    `Selecting a tree node must update the selected design node: ${JSON.stringify(selectedBrand)}`);
+  assert(await previewPage.locator("#inspectorComposeNode").innerText() === "R.drawable.brand_title_primary",
+    "Property inspector must show the selected brand's Compose mapping");
+  assert(await previewPage.locator("#assetBrand").getAttribute("data-inspected") === "true",
+    "Selecting a tree node must highlight the corresponding canvas element");
+  await previewPage.locator('.layer-node[data-target="#mainCatchCard"]').click();
+  const selectedCard = await previewPage.evaluate(() => window.NH01SelectedLayer);
+  assert(selectedCard?.target === "#mainCatchCard" && selectedCard?.status === "BLOCKED",
+    `Hero photo provenance must remain visibly blocked on the selected card: ${JSON.stringify(selectedCard)}`);
+
+  // Five logical viewports must expose real measured geometry, not just load successfully.
+  assert(await previewPage.locator(".responsive-frame").count() === 5, "Responsive comparison must expose exactly five viewport frames");
+  await previewPage.waitForFunction(
+    () => [...document.querySelectorAll(".responsive-frame")].every(frame =>
+      frame.contentWindow?.NH01GeminiPreviewLayoutReady === true),
+    undefined,
+    { timeout: 15000 },
+  );
+  const typographyByViewport = {};
+  for (const [width, height] of [[320,480],[360,640],[390,844],[430,932],[600,960]]) {
+    const frame = previewPage.frameLocator(`iframe[data-viewport="${width}x${height}"]`);
+    await frame.locator("#device").waitFor({ state: "visible", timeout: 15000 });
+    const frameState = await frame.locator("#device").evaluate(node => {
+      const deviceRect = node.getBoundingClientRect();
+      const scaleX = deviceRect.width / Math.max(1, node.offsetWidth);
+      const scaleY = deviceRect.height / Math.max(1, node.offsetHeight);
+      const box = selector => {
+        const element = document.querySelector(selector);
+        if (!element) return null;
+        const rect = element.getBoundingClientRect();
+        return {
+          left: (rect.left - deviceRect.left) / scaleX,
+          top: (rect.top - deviceRect.top) / scaleY,
+          right: (rect.right - deviceRect.left) / scaleX,
+          bottom: (rect.bottom - deviceRect.top) / scaleY,
+          width: rect.width / scaleX, height: rect.height / scaleY
+        };
+      };
+      return {
+        width: node.offsetWidth, height: node.offsetHeight,
+        scale: getComputedStyle(document.documentElement).getPropertyValue("--font-scale").trim(),
+        nestedMatrixFrames: document.querySelectorAll('iframe[src*="mode=matrix"]').length,
+        ready: window.NH01GeminiPreviewLayoutReady === true,
+        layout: window.NH01GeminiPreviewLayout,
+        bounds: {
+          main: box(".main-card"), left: box(".neighbor-left"), right: box(".neighbor-right"),
+          footer: box("#footerSection"), camera: box("#cameraButton")
+        }
+      };
+    });
+    assert(frameState.width === width && frameState.height === height,
+      `Responsive frame ${width}x${height} must render its declared logical viewport: ${JSON.stringify(frameState)}`);
+    assert(frameState.nestedMatrixFrames === 0,
+      `Responsive frame ${width}x${height} must not recursively load another matrix: ${JSON.stringify(frameState)}`);
+    assert(frameState.ready && frameState.layout?.safe_insets_dp?.bottom === 24,
+      `Responsive frame ${width}x${height} must use current 24dp bottom safe inset: ${JSON.stringify(frameState)}`);
+    const { main, left, right, camera } = frameState.bounds;
+    assert(main && left && right &&
+      left.right <= main.left - 7 && right.left >= main.right + 7,
+      `Peek cards must not overlap the active card at ${width}x${height}: ${JSON.stringify(frameState.bounds)}`);
+    assert(left.width <= main.width * 0.35 + 1 && right.width <= main.width * 0.35 + 1,
+      `Peek cards must remain visually subordinate at ${width}x${height}: ${JSON.stringify(frameState.bounds)}`);
+    assert(Math.abs(left.top - main.top - 15) <= 1.5 &&
+      Math.abs(right.top - main.top - 15) <= 1.5 &&
+      Math.abs(left.height / main.height - 0.67) <= 0.02 &&
+      Math.abs(right.height / main.height - 0.67) <= 0.02,
+      `Peek-card geometry must preserve the 15dp top offset and 67% height at ${width}x${height}: ${JSON.stringify(frameState.bounds)}`);
+    if (width === 320 && height === 480 && frameState.scale === "1") {
+      assert(frameState.layout.needs_scroll === false,
+        `320x480 at default font scale must fit without a middle scroll viewport: ${JSON.stringify(frameState.layout)}`);
+      assert(camera && height - camera.bottom <= 27,
+        `320x480 footer must not have excess blank space below the camera target: ${JSON.stringify(frameState.bounds)}`);
+    }
+    typographyByViewport[`${width}x${height}`] = frameState.layout?.typography_sizes_dp?.species;
+  }
+  assert(typographyByViewport["390x844"] > typographyByViewport["360x640"] &&
+    typographyByViewport["430x932"] > typographyByViewport["390x844"],
+    `Species typography must grow with larger/taller viewports: ${JSON.stringify(typographyByViewport)}`);
+  await previewPage.locator("#matrixFontScale").selectOption("1.5");
+  const largestFrame = previewPage.frameLocator('iframe[data-viewport="390x844"]');
+  await largestFrame.locator("#device").waitFor({ state: "visible", timeout: 15000 });
+  const matrixScale = await largestFrame.locator("#device").evaluate(node => getComputedStyle(document.documentElement).getPropertyValue("--font-scale").trim());
+  assert(matrixScale === "1.5", `Responsive matrix font-scale control must propagate to frames; got ${matrixScale}`);
+  await previewPage.locator("#matrixFontScale").selectOption("1");
+
+  await previewPage.screenshot({ path: resolve(args.outputDir, "nh01-gemini-native-preview-desktop.png"), fullPage: true });
+
+  const previewViewportResults = [];
+  for (const [width, height] of [[1440, 1000], [768, 1024], [390, 844], [320, 720]]) {
+    await previewPage.setViewportSize({ width, height });
+    await previewPage.waitForFunction(
+      ({ expectedWidth, expectedHeight }) =>
+        window.NH01GeminiPreviewLayoutReady === true &&
+        window.NH01GeminiPreviewOuterViewport?.width === expectedWidth &&
+        window.NH01GeminiPreviewOuterViewport?.height === expectedHeight,
+      { expectedWidth: width, expectedHeight: height },
+      { timeout: 5000 }
+    );
+    const result = await previewPage.evaluate(() => ({
+      viewport: window.innerWidth,
+      document: document.documentElement.scrollWidth,
+      body: document.body.scrollWidth,
+      layout: window.NH01GeminiPreviewLayout,
+      deviceBox: (() => { const r = document.querySelector("#deviceWrap").getBoundingClientRect(); return { width: r.width, height: r.height }; })()
+    }));
+    assert(result.document <= width && result.body <= width,
+      `Gemini preview horizontal overflow at ${width}px: ${JSON.stringify(result)}`);
+    assert(result.layout?.card_height_dp > 0 && result.layout?.card_width_dp > 0,
+      `Gemini preview did not resolve card geometry at ${width}px: ${JSON.stringify(result.layout)}`);
+    previewViewportResults.push(result);
+  }
+  await previewPage.setViewportSize({ width: 1440, height: 1000 });
+  await previewPage.waitForFunction(() => window.NH01GeminiPreviewLayoutReady === true, { timeout: 5000 });
+  await previewPage.locator("#fontScale").selectOption("1.5");
+  await previewPage.waitForFunction(() => window.NH01GeminiPreviewLayoutReady === true, { timeout: 5000 });
+  assert(await previewPage.locator("html").evaluate(node => getComputedStyle(node).getPropertyValue("--font-scale").trim()) === "1.5",
+    "Gemini preview font-scale control must update the root font scale");
+  await previewPage.locator("#layoutVariant").selectOption("V3_BASELINE");
+  await previewPage.waitForFunction(() => window.NH01GeminiPreviewLayoutReady === true, { timeout: 5000 });
+  assert((await previewPage.evaluate(() => window.NH01GeminiPreviewLayout)).variant === "V3_BASELINE",
+    "Gemini preview must switch to the V3 baseline policy");
+  await previewPage.locator("#layoutVariant").selectOption("ADAPTIVE_V2");
+  await previewPage.waitForFunction(() => window.NH01GeminiPreviewLayoutReady === true, { timeout: 5000 });
+  await previewPage.locator("#viewportPreset").selectOption("320x480");
+  await previewPage.waitForFunction(() => window.NH01GeminiPreviewLayoutReady === true, { timeout: 5000 });
+  assert(await previewPage.locator("#device").evaluate(node => node.style.width) === "320px",
+    "Gemini preview viewport preset must change the logical device width");
+  const compactLayout = await previewPage.evaluate(() => window.NH01GeminiPreviewLayout);
+  assert(compactLayout?.content_min_card_height_dp > 0 && compactLayout?.card_height_dp > 0 &&
+    compactLayout?.card_height_dp <= compactLayout?.desired_card_size_dp?.[1] + 0.5,
+    `Compact/high-font layout must respect measured content minimum and never exceed the target card size: ${JSON.stringify(compactLayout)}`);
+  await previewPage.locator("#cameraButton").click();
+  assert(await previewPage.locator("#previewToast").getAttribute("data-visible") === "true",
+    "Static camera button must clearly disclose that runtime interaction is not wired");
+
+  const canvasPage = await browser.newPage({ viewport: { width: 360, height: 640 }, deviceScaleFactor: 3 });
+  canvasPage.on("console", message => { if (message.type() === "error") errors.push(message.text()); });
+  canvasPage.on("pageerror", error => errors.push(error.message));
+  canvasPage.on("requestfailed", request => failedRequests.push(`${request.url()} · ${request.failure()?.errorText || "request failed"}`));
+  canvasPage.on("response", response => {
+    if (response.status() >= 400 && response.url().startsWith(new URL(baseUrl).origin)) {
+      badResponses.push(`${response.status()} ${response.url()}`);
+    }
+  });
+  await canvasPage.goto(previewUrl + "?mode=canvas", { waitUntil: "networkidle", timeout: 45000 });
+  await canvasPage.waitForFunction(() => window.NH01GeminiPreviewReady === true, { timeout: 30000 });
+  await canvasPage.waitForFunction(() => window.NH01GeminiPreviewLayoutReady === true, { timeout: 5000 });
+  const canvasAudit = await canvasPage.evaluate(() => window.NH01GeminiPreviewAudit);
+  const canvasLayout = await canvasPage.evaluate(() => window.NH01GeminiPreviewLayout);
+  assert(canvasAudit?.status === "PASS", `Gemini canvas preview asset integrity failed: ${JSON.stringify(canvasAudit)}`);
+  assert(canvasLayout?.variant === "ADAPTIVE_V2" && canvasLayout?.layout_version === "CONTENT_FIRST_V2" && canvasLayout?.logical_viewport_dp?.join("x") === "360x640",
+    `Gemini canvas screenshot must use the content-first 360x640 logical profile: ${JSON.stringify(canvasLayout)}`);
+  assert(Math.abs(canvasLayout.card_width_dp / canvasLayout.card_height_dp - (247 / 293)) < 0.015,
+    `Adaptive V2 card must preserve the approved 247:293 aspect ratio: ${JSON.stringify(canvasLayout)}`);
+  assert(canvasLayout.top_align_middle_group === canvasLayout.needs_scroll,
+    `Adaptive V2 must center when content fits and top-align only when scrolling is required: ${JSON.stringify(canvasLayout)}`);
+  assert(canvasLayout.content_min_card_height_dp > 0 && ["FIT", "CONTENT_SCROLL"].includes(canvasLayout.layout_mode),
+    `Adaptive V2 must report content measurement and an explicit fit/scroll decision: ${JSON.stringify(canvasLayout)}`);
+  const canvasBounds = await canvasPage.evaluate(() => {
+    const selectors = {
+      brand: "#assetBrand", header: ".header-bar", stats: ".stats-bar",
+      sectionTitle: ".section-title", middle: "#middleSection", carousel: "#carouselWindow",
+      mainCard: ".main-card", leftPeek: ".neighbor-left", rightPeek: ".neighbor-right",
+      footer: "#footerSection", ctaLabel: ".cta-label", cameraButton: "#cameraButton", cameraArt: ".camera-art"
+    };
+    const result = {};
+    for (const [key, selector] of Object.entries(selectors)) {
+      const node = document.querySelector(selector);
+      if (!node) { result[key] = null; continue; }
+      const rect = node.getBoundingClientRect();
+      result[key] = {
+        left: Number(rect.left.toFixed(2)), top: Number(rect.top.toFixed(2)),
+        right: Number(rect.right.toFixed(2)), bottom: Number(rect.bottom.toFixed(2)),
+        width: Number(rect.width.toFixed(2)), height: Number(rect.height.toFixed(2))
+      };
+    }
+    return result;
+  });
+  const cardBounds = canvasBounds.mainCard;
+  const titleBounds = canvasBounds.sectionTitle;
+  const footerBounds = canvasBounds.footer;
+  const cameraBounds = canvasBounds.cameraButton;
+  const cameraArtBounds = canvasBounds.cameraArt;
+  const leftPeekBounds = canvasBounds.leftPeek;
+  const rightPeekBounds = canvasBounds.rightPeek;
+  const expectedCameraVisual = Math.max(56, Math.min(Math.min(canvasLayout.safe_width_dp, 560) * 0.18, canvasLayout.safe_height_dp * 0.10, 80));
+  const expectedCameraTouch = Math.max(72, expectedCameraVisual);
+  assert(Math.abs(canvasLayout.camera_visual_size_dp - expectedCameraVisual) <= 0.01 &&
+    Math.abs(canvasLayout.camera_touch_size_dp - expectedCameraTouch) <= 0.01,
+    `Camera sizes must follow the shared width/height policy: ${JSON.stringify(canvasLayout)}`);
+  assert(cardBounds && cardBounds.left >= 0 && cardBounds.right <= 360 &&
+    Math.abs(cardBounds.width / cardBounds.height - (247 / 293)) < 0.015,
+    `Adaptive V2 main card must remain within the canvas and preserve its aspect ratio: ${JSON.stringify(canvasBounds)}`);
+  assert(titleBounds && cardBounds.top >= titleBounds.bottom - 1,
+    `Adaptive V2 card must not overlap the section title: ${JSON.stringify(canvasBounds)}`);
+  assert(leftPeekBounds && rightPeekBounds &&
+    leftPeekBounds.right <= cardBounds.left - 7 && rightPeekBounds.left >= cardBounds.right + 7,
+    `Left/right peek cards must not overlap the active card: ${JSON.stringify(canvasBounds)}`);
+  assert(leftPeekBounds.width <= cardBounds.width * 0.35 + 1 &&
+    rightPeekBounds.width <= cardBounds.width * 0.35 + 1,
+    `Peek cards must remain visually subordinate to the active card: ${JSON.stringify(canvasBounds)}`);
+  assert(Math.abs(leftPeekBounds.top - cardBounds.top - 15) <= 1.5 &&
+    Math.abs(rightPeekBounds.top - cardBounds.top - 15) <= 1.5 &&
+    Math.abs(leftPeekBounds.height / cardBounds.height - 0.67) <= 0.02 &&
+    Math.abs(rightPeekBounds.height / cardBounds.height - 0.67) <= 0.02,
+    `Peek cards must preserve the 15dp offset and 67% height: ${JSON.stringify(canvasBounds)}`);
+  assert(footerBounds && cardBounds.bottom <= footerBounds.top + 1,
+    `Adaptive V2 scrollable content must not cover the fixed footer: ${JSON.stringify(canvasBounds)}`);
+  assert(cameraBounds && Math.abs(cameraBounds.width - expectedCameraTouch) <= 1 &&
+    Math.abs(cameraBounds.height - expectedCameraTouch) <= 1 &&
+    cameraBounds.top >= canvasBounds.ctaLabel.bottom - 1,
+    `Camera touch target must match the responsive policy and stay below the CTA label: ${JSON.stringify(canvasBounds)}`);
+  assert(cameraArtBounds && Math.abs(cameraArtBounds.width - expectedCameraVisual) <= 1 &&
+    Math.abs(cameraArtBounds.height - expectedCameraVisual) <= 1,
+    `Visible camera artwork must be measured separately from its touch target: ${JSON.stringify(canvasBounds)}`);
+  const canvasPath = resolve(args.outputDir, "nh01-gemini-native-structure-1080x1920.png");
+  await canvasPage.screenshot({ path: canvasPath, fullPage: false, scale: "device" });
+  const canvasPng = readFileSync(canvasPath);
+  assert(canvasPng.readUInt32BE(16) === 1080 && canvasPng.readUInt32BE(20) === 1920,
+    "Gemini structure screenshot artifact must be exactly 1080x1920 pixels");
+  await canvasPage.close();
+  await previewPage.close();
+
+
   const summary = {
+    gemini_native_preview: { build_sha: previewBuild, asset_audit: previewAudit, default_layout: defaultLayout, viewports: previewViewportResults, canvas_layout: canvasLayout, canvas_bounds_dp: canvasBounds, canvas_bounds_px: Object.fromEntries(Object.entries(canvasBounds).map(([key, box]) => [key, box && Object.fromEntries(Object.entries(box).map(([field, value]) => [field, Number((value * 3).toFixed(2))]))])), canvas_screenshot: "nh01-gemini-native-structure-1080x1920.png", canvas_dimensions_px: [1080, 1920], release_gate_effect: "NONE" },
     result: "PASS",
     base_url: baseUrl,
     build_sha: buildMarker,
@@ -277,7 +569,7 @@ async function main() {
     overview: overviewImageInfo,
     review: reviewImage,
     checks: ["direct Hash", "Resources submenu click and direct route", "original PNG previews/download links and manifest", "refresh", "back/forward", "modal zoom/fit/Esc/focus restore", "missing authority no fake UI", "invalid route guard", "no HTTP errors", "no console/page errors"],
-    screenshots: ["desktop-1440.png", "tablet-768.png", "mobile-390.png", "lightbox-1440.png", "overview-1440.png", "guide-resources-1440.png", "guide-resources-390.png"],
+    screenshots: ["desktop-1440.png", "tablet-768.png", "mobile-390.png", "lightbox-1440.png", "overview-1440.png", "guide-resources-1440.png", "guide-resources-390.png", "nh01-gemini-native-preview-desktop.png", "nh01-gemini-native-structure-1080x1920.png"],
     errors,
     bad_responses: badResponses,
     failed_requests: failedRequests
