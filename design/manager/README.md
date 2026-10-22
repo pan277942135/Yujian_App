@@ -175,9 +175,8 @@ Runtime、Evidence 和 Work 交接暂不进入当前 Design Manager。
 识别过程
 └── 07 · 首次拍照教学
     ├── P01 · 竖屏拍摄示意
-    ├── P02 · 竖拍鱼类拍摄示意
-    ├── P03 · 横屏拍摄示意
-    └── 资源
+    ├── P02 · 横屏拍摄示意
+    └── 资源（当前有效 P01/P02 原始 PNG；旧竖拍 P02 仅归档）
 ```
 
 注册源：`design/registry/experience_registry_v1.json` → `recognition_flow_v1_2.hifi_views.capture_first_use_guide`。
