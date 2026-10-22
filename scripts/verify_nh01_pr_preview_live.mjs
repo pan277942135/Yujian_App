@@ -187,7 +187,8 @@ async function main() {
       assert(deploymentManifest.contract_sha256===contract.sha256,'Deployment manifest contract SHA mismatch');
       assert(deploymentManifest.preview_source_sha===contract.source_sha,'Deployment manifest source SHA mismatch');
       assert(deploymentManifest.pages_deployment_sha===contract.deployment_sha,'Deployment manifest Pages SHA mismatch');
-      assert(deploymentManifest.viewport_profiles_path===profileInfo.path.slice(profileInfo.path.indexOf('/design/')),'Deployment manifest viewport profile path mismatch');
+      const relativeProfilePath=profileInfo.path.slice(profileInfo.path.indexOf('/design/')+1);
+      assert(deploymentManifest.viewport_profiles_path===relativeProfilePath,'Deployment manifest viewport profile path mismatch');
       assert(deploymentManifest.viewport_profiles_sha256===profileInfo.sha256,'Deployment manifest viewport profile SHA mismatch');
       report.checks.deployment_manifest={url:deploymentUrl,http_status:deploymentResponse.status(),...deploymentManifest};
     }
