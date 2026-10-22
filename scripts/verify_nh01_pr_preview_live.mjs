@@ -232,7 +232,8 @@ async function main() {
     assert(Math.abs(fixedResults.at(-1).measured.content_left_dp-20)<=0.5,'600dp wide content is not centered around its 560dp width cap');
 
     const font130=await setViewport(page,320,480,1.3);
-    assert(font130.text_lines.species>=1&&font130.text_lines.species<=2&&font130.text_lines.measurement<=2&&font130.text_lines.metadata<=2, 'Font scale 1.3 text wrapping exceeded the contract line limits');
+    report.checks.font_1_3=font130;
+    assert(font130.text_lines.species>=1&&font130.text_lines.species<=2&&font130.text_lines.measurement<=2&&font130.text_lines.metadata<=2, `Font scale 1.3 text wrapping exceeded the contract line limits: ${JSON.stringify(font130.text_lines)}`);
     assert(font130.measurements.horizontal_overflow_dp<=0.5, 'Font scale 1.3 caused horizontal overflow');
     await page.locator('#layoutVariant').selectOption('V3_BASELINE');
     await page.waitForFunction(()=>window.NH01GeminiPreviewLayoutReady&&window.NH01GeminiPreviewLayout.variant==='V3_BASELINE',undefined,{timeout:30000});
