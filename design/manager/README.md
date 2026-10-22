@@ -248,3 +248,6 @@ Frozen 图片按原始比例完整展示。点击可打开支持放大、缩小�
 - Chromium 报告与截图由 Design Manager Pages 工作流生成，随同一预览发布到 `nh01_acceptance/evidence/`，并记录源码 SHA 与 Workflow Run ID。
 - 响应式证据覆盖六个视口和 1.0× / 1.3× / 1.5× 字体缩放；自动化结果不替代整页视觉审查。
 - 结构预览与 Android Runtime 状态分开记录；本工作区状态为 `PREVIEW_ONLY`、视觉审查 `REQUIRED`、Android `NOT_RUN`。
+
+
+- 重新进入工作区会载入默认结构视图与响应式视口；审阅参数只改变预览，并由当前构建的浏览器证据记录。
