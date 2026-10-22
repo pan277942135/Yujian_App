@@ -1,0 +1,72 @@
+{
+  "contract_id": "YUJIAN_AI_CATCH_RECOGNITION_WEB_HIFI_V1",
+  "version": "2.0",
+  "authority_status": "VISUAL_CONTRACT_DEFINED",
+  "adoption_status": "MAIN_ADOPTED_DESIGN_ONLY",
+  "page_id": "ai_catch_recognition_web",
+  "source_ref": [
+    "Yujian_App/main@ad8bf1ba61e42a34d1fdd91de47fa386e25f11ef",
+    "Yujian_App/PR186@3b0b5848206cdea949f4bf6be7eb7cb1d19b1e34",
+    "Yujian_App/PR187@ee3bb45858183144598bc28c5bae53ae55b324e0",
+    "Yujian/PR177@655c4af07a0244fcf29441b5652c48ca74f2e6a2"
+  ],
+  "checks": [
+    {
+      "id": "A01",
+      "method": "JSON parse/schema and IDs",
+      "gate": "CONTRACT"
+    },
+    {
+      "id": "A02",
+      "method": "15 frames 2800+850=3650 R0.5=100/2900",
+      "gate": "CONTRACT"
+    },
+    {
+      "id": "A03",
+      "method": "3+2 and technical failure",
+      "gate": "CONTRACT"
+    },
+    {
+      "id": "A04",
+      "method": "all requested viewports covered",
+      "gate": "CONTRACT"
+    },
+    {
+      "id": "A05",
+      "method": "Design Manager route and assets",
+      "gate": "PREVIEW"
+    },
+    {
+      "id": "A06",
+      "method": "approved original image pixel comparison",
+      "gate": "BLOCKED_ASSET"
+    },
+    {
+      "id": "A07",
+      "method": "Web PR #177 browser visual comparison",
+      "gate": "WORK_B"
+    },
+    {
+      "id": "A08",
+      "method": "real Mask qualification and optical QA",
+      "gate": "WORK_B"
+    },
+    {
+      "id": "A09",
+      "method": "user Web visual acceptance",
+      "gate": "USER"
+    }
+  ],
+  "pass_rule": "static contract validation cannot imply runtime visual pass",
+  "acceptance_criteria": [
+    "Referenced source status remains explicit; Product PR #177 is Draft/Open/Unmerged and supplies no runtime evidence"
+  ],
+  "adoption_pr": 190,
+  "adopted_source_prs": [
+    186,
+    187
+  ],
+  "adoption_scope": "DESIGN_CONTRACT_ONLY",
+  "runtime_visual_verified": false,
+  "pixel_frozen_source": "NOT_CONFIRMED"
+}

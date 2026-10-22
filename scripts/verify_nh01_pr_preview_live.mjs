@@ -80,7 +80,15 @@ async function main() {
     const iframeCount = await page.locator(".responsive-frame").count();
     assert(iframeCount === 5, "Expected five responsive viewport preview frames, got " + iframeCount);
     await page.waitForFunction(() => Array.from(document.querySelectorAll(".responsive-frame")).every(frame => frame.contentWindow && frame.contentWindow.NH01GeminiPreviewLayoutReady === true), { timeout: 60000 });
-    const imageState = await page.locator("img[data-asset-id]").evaluateAll(images => images.map(image => ({ asset: image.dataset.assetId, src: image.currentSrc, complete: image.complete, naturalWidth: image.naturalWidth, naturalHeight: image.naturalHeight })));
+    const expectedAssetIds = ["avatar", "background", "brand", "camera"];
+    await page.waitForFunction(expectedIds => {
+      const images = Array.from(document.querySelectorAll("img[data-asset-id]"));
+      const actualIds = images.map(image => image.dataset.assetId).sort();
+      return actualIds.length === expectedIds.length &&
+        actualIds.every((id, index) => id === expectedIds[index]) &&
+        images.every(image => Boolean(image.getAttribute("src")?.trim()) && image.complete);
+    }, expectedAssetIds, { timeout: 30000 });
+    const imageState = await page.locator("img[data-asset-id]").evaluateAll(images => images.map(image => ({ asset: image.dataset.assetId, src: image.currentSrc || image.src, complete: image.complete, naturalWidth: image.naturalWidth, naturalHeight: image.naturalHeight })));
     const brokenImages = imageState.filter(image => !image.complete || image.naturalWidth <= 0);
     assert(brokenImages.length === 0, "Preview has unloaded registered image assets: " + JSON.stringify(brokenImages));
 

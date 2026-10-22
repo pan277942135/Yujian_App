@@ -2,7 +2,7 @@
 
 Role: **Capture → Record Bridge**
 
-Status: **DESIGN FROZEN — 3+2 STATE PACKAGE · RR09 MOTION V2 SPEC FROZEN / RUNTIME NOT_RUN**
+Status: **STATIC 3+2 DESIGN FROZEN · RR09 V3 MAIN-ADOPTED DESIGN ONLY / V2 HISTORICAL · RUNTIME NOT_RUN**
 
 ## Design Manager menu
 
@@ -17,7 +17,7 @@ Second-level pages:
 - `06_content_edit/` — RR06 · 内容修改（Species Selector V1 + Metadata Edit Flow V1 Authority 索引）
 - `07_decision_logic/` — **RR07 · 识别过程 · 07 · 判定逻辑**（现行 Detector / Classifier 判定链及门槛说明，不增加产品状态）
 - RR08 — `design/system_v3/10_Page_Visual_Acceptance_Contracts/Recognition_Result/` — 视觉验收合同索引（Runtime NOT_RUN）
-- `08_motion_continuation/` — **RR09 · 动效接续**（Motion V2 · FROZEN SPEC ONLY · Runtime NOT_RUN）
+- `08_motion_continuation/` — **RR09 · 动效接续 V3**（MAIN_ADOPTED_DESIGN_ONLY; V2 历史基线保留；Runtime NOT_RUN）
 
 Machine-readable menu:
 
@@ -93,15 +93,17 @@ The Frozen PNG owns Hero **container composition**. The Hero Media Contract owns
 - `spec/Recognition_Result_State_Matrix_V1.md`
 - `spec/Recognition_Result_Behavior_Spec_V1.md`
 - `spec/Recognition_Result_Visual_Spec_V1.md`
-- `motion/Recognition_Result_Motion_Spec_V2.md` — current Result-entry reveal authority
-- `motion/recognition_result_motion_contract_v2.json` — machine-readable timing and trigger contract
+- `motion/Recognition_Result_Motion_Spec_V3.md` — main-adopted design-only Result-entry reveal authority; T0 = first presented Result frame; Chinese title only
+- `motion/recognition_result_motion_contract_v3.json` — machine-readable V3 timing and trigger contract
+- `motion/Recognition_Result_Motion_Spec_V2.md` and `motion/recognition_result_motion_contract_v2.json` — unchanged historical baseline
 - `motion/Recognition_Result_Motion_Spec_V1.md` — historical baseline for non-conflicting rules
 - `media/Recognition_Result_Hero_Media_Contract_V1.md`
 - `media/hero_media_contract.json`
 - `media/hero_media_test_vectors.json`
 - `spec/Recognition_Result_Acceptance_Criteria_V1.md`
 - `08_motion_continuation/README.md` — RR09 Design Manager entry
-- `design/system_v3/10_Page_Visual_Acceptance_Contracts/Recognition_Result/Recognition_Result_Motion_Contract_V2.md` — current system-level motion contract
+- `design/system_v3/10_Page_Visual_Acceptance_Contracts/Recognition_Result/Recognition_Result_Motion_Contract_V3.md` — main-adopted design-only system-level motion contract
+- `design/system_v3/10_Page_Visual_Acceptance_Contracts/Recognition_Result/Recognition_Result_Motion_Contract_V2.md` — unchanged historical system contract
 - `authority/authority_map.json`
 - `review/Recognition_Result_Runtime_Alignment_Review_V1.md`
 - `status.json`
@@ -187,4 +189,6 @@ See `review/Recognition_Result_Design_Audit_20261010.md`. Runtime parity remains
 
 ## Motion Continuation · RR09
 
-`08_motion_continuation/README.md` is the single Design Manager entry for the frozen Motion V2 specification. The reveal is presentation-only: it does not add a Processing or Result state, modify recognition thresholds, or change CTA semantics. Runtime and visual playback remain NOT_RUN.
+`08_motion_continuation/README.md` is the Design Manager entry for main-adopted design-only RR09 V3 and its V2 historical baseline. The reveal is presentation-only: it does not add a Processing or Result state, modify recognition thresholds, or change CTA semantics. Runtime and visual playback remain NOT_RUN. V3 is canonical as a design contract on main through PR #190; runtime and visual playback remain NOT_RUN.
+
+The RR09 V3 Design Manager view links back to `识别过程 → 12 · SWOS · 静态视觉`, the main-adopted static V1.1 review workspace. It adds no product state and does not replace the historical RR09 V2 contract.

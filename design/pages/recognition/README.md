@@ -1,6 +1,6 @@
-# YuJian Recognition Processing Design Package V1.2
+# YuJian Recognition Processing Design Package — V1.2 Frozen Baseline / SWOS V1 Main-Adopted Design
 
-Status: **DESIGN FROZEN**
+Status: **V1.2 FROZEN VISUAL BASELINE · SWOS V1 / Page V3.2 MAIN-ADOPTED DESIGN ONLY**
 
 Runtime: **ACTIVE_CLOSURE**  
 Evidence: **ACTIVE_CLOSURE**
@@ -9,7 +9,7 @@ Evidence: **ACTIVE_CLOSURE**
 
 `Recognition_Design_Closure_V1_2.md`
 
-This V1.2 closure is the current Recognition Processing design authority.
+The V1.2 package remains the frozen Processing visual baseline. SWOS V1, Processing Motion V1.3 and Page Contract V3.2 are the main-adopted design authority; Android runtime remains on its existing implementation pending Stage 1.
 
 ## Frozen product flow
 
@@ -39,7 +39,18 @@ Binary hashes remain frozen in:
 
 - `design/reference_manifest.json`
 
-## Active design authorities
+## Frozen V1.2 baseline and main-adopted design authorities
+
+Frozen V1.2 photo-state references remain unchanged. PR #190 adopted the SWOS optical/timing design contracts from #186/#187. These contracts govern design only; Android implementation and runtime acceptance remain separate Stage 1 work.
+
+- Main-adopted design-only SWOS optics: `processing/optics/SWOS_Optical_Contract_V1.md`
+- Main-adopted design-only Processing timing: `processing/motion/Recognition_Processing_Motion_Spec_V1_3.md`
+- Main-adopted design-only Processing Page Contract V3.2: `design/system_v3/08_Page_Contracts/recognition/processing/Recognition_Processing_Page_Contract_V3_2.md`
+- Main-adopted design-only Processing → Result continuity: `continuity/Processing_Result_Optical_Continuity_Contract_V1.md`
+- Main-adopted design-only RR09 reveal: `result/motion/Recognition_Result_Motion_Spec_V3.md`
+- Phase 0 closure and Android gap list: `docs/execution/swos/PHASE0_CLOSURE_REPORT_V1.md`
+
+## Frozen V1.2 baseline authorities
 
 - State Timeline: `spec/Recognition_State_Timeline_Spec_V1_3.md`
 - Visual: `processing/spec/Recognition_Processing_Visual_Spec_V1_1.md`
