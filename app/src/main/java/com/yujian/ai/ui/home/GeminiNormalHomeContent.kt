@@ -848,6 +848,7 @@ private fun GeminiCatchCard(
                 )
                 if (fittedLocation.isBlank()) time else "$time\n$fittedLocation"
             }
+            time != null && location != null -> combined
             time != null -> time
             location != null -> geminiHomeEllipsizeSingleLine(
                 location, metadataTextMeasurer, metadataStyle, metadataMaxWidthPx,
@@ -1082,7 +1083,10 @@ private fun geminiHomeTextFitsSingleLine(
         maxLines = 1,
         constraints = Constraints(maxWidth = maxWidthPx),
     )
-    return !layout.hasVisualOverflow
+    // A clipped single-line layout can report no visual overflow even when its
+    // visible text range does not reach the source's final character.
+    return layout.lineCount == 1 && !layout.hasVisualOverflow &&
+        layout.getLineEnd(0, visibleEnd = true) == value.length
 }
 
 private fun geminiHomeEllipsizeSingleLine(
@@ -1104,7 +1108,7 @@ private fun geminiHomeEllipsizeSingleLine(
     while (low <= high) {
         val middle = (low + high) / 2
         val end = normalized.offsetByCodePoints(0, middle)
-        val prefix = normalized.substring(0, end).trimEnd()
+        val prefix = normalizeGeminiHomeLocation(normalized.substring(0, end))
         val candidate = prefix + ellipsis
         if (prefix.codePointCount(0, prefix.length) >= 2 &&
             geminiHomeTextFitsSingleLine(candidate, textMeasurer, style, maxWidthPx)
@@ -1117,5 +1121,5 @@ private fun geminiHomeEllipsizeSingleLine(
     }
     if (best < 2) return ""
     val end = normalized.offsetByCodePoints(0, best)
-    return normalized.substring(0, end).trimEnd() + ellipsis
+    return normalizeGeminiHomeLocation(normalized.substring(0, end)) + ellipsis
 }

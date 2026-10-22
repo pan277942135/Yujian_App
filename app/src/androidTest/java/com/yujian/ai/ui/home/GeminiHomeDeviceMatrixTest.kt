@@ -231,8 +231,13 @@ class GeminiHomeDeviceMatrixTest {
             .assertTextEquals("42.6 cm · 1.28 kg")
         compose.onNodeWithTag("gemini-home-catch-metadata-nh01-catch-001", useUnmergedTree = true)
             .assertTextContains("05月29日 04:26")
-        compose.onNodeWithTag("gemini-home-catch-metadata-nh01-catch-001", useUnmergedTree = true)
-            .assertTextContains("浙江 · 千岛湖")
+        // Location is optional on the card and may be shortened at compact
+        // widths; its full value remains in the source record and detail view.
+        // At regular widths this short fixture must still be visible when it fits.
+        if (profileId in setOf("M07", "M10") && expectedFontScaleValue == 1.0f) {
+            compose.onNodeWithTag("gemini-home-catch-metadata-nh01-catch-001", useUnmergedTree = true)
+                .assertTextContains("浙江 · 千岛湖")
+        }
         val requiredCardTextTags = listOf(
             "gemini-home-catch-species-nh01-catch-001",
             "gemini-home-catch-measurement-nh01-catch-001",
