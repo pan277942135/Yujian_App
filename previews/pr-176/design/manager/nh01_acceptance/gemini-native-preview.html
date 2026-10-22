@@ -630,6 +630,14 @@
         await nextFrame();
         await nextFrame();
         if (sequence !== layoutSequence) return;
+        const pageScaleRatio = device.getBoundingClientRect().width / Math.max(1, device.offsetWidth);
+        const renderedHeaderRect = sectionHeader.getBoundingClientRect();
+        const renderedTitleRect = document.querySelector(".section-title").getBoundingClientRect();
+        const titleBottomInsetDp = Math.max(0, (renderedHeaderRect.bottom - renderedTitleRect.bottom) / pageScaleRatio);
+        vars.titleCardGap = layout.title_to_card_gap_target_dp - titleBottomInsetDp;
+        setVariable("--title-card-gap", cssPxSigned(vars.titleCardGap));
+        await nextFrame();
+        if (sequence !== layoutSequence) return;
         const middleHeight = middleSection.clientHeight;
         const sectionHeaderHeight = sectionHeader.offsetHeight;
         const actualGapHeaderCard = vars.titleCardGap;
@@ -701,6 +709,7 @@
         };
         const layoutMetrics = {
           ...layout, card_width_dp:cardWidth, card_height_dp:cardHeight, desired_card_size_dp:[vars.desiredWidth,vars.desiredHeight],
+          title_spacing:{contract_target_dp:layout.title_to_card_gap_target_dp,rendered_title_bottom_inset_dp:titleBottomInsetDp,header_margin_dp:vars.titleCardGap,measured_gap_dp:titleToCard},
           content_min_card_height_dp:contentMinimum, actual_text_height_dp:actualTextHeightAfterResize, middle_height_dp:middleHeight,
           available_card_height_dp:availableCardHeight, needs_scroll:finalNeedsScroll, layout_mode:finalNeedsScroll?"CONTENT_SCROLL":"FIT",
           short_screen_exception_applied:shortExceptionEligible && !finalNeedsScroll,
