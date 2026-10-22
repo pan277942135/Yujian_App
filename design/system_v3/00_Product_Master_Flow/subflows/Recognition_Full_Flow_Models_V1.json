@@ -1,0 +1,380 @@
+{
+  "schema_version": "1.0",
+  "flow_id": "recognition_full_flow_models_v1",
+  "title": "识别全流程-和模型",
+  "status": "DESIGN_ONLY",
+  "scope": "end_to_end_business_flow_and_model_responsibility; not a product runtime state machine",
+  "authority": {
+    "specification": "design/system_v3/00_Product_Master_Flow/subflows/Recognition_Full_Flow_Models_V1.md",
+    "flowchart": "design/system_v3/00_Product_Master_Flow/subflows/Recognition_Full_Flow_Models_V1.svg",
+    "processing_states": "design/pages/recognition/spec/Recognition_State_Timeline_Spec_V1_3.md",
+    "result_decision": "design/pages/recognition/result/spec/Recognition_Result_3plus2_Decision_Spec_V1_1.md",
+    "result_behavior": "design/pages/recognition/result/spec/Recognition_Result_Behavior_Spec_V1.md"
+  },
+  "invariants": [
+    "DET_FISH answers fish presence/location from the complete scene image; MODEL_M1 classifies only a valid fish crop.",
+    "Fish presence confidence and species classification confidence are separate signals.",
+    "No valid box is not automatically NO_FISH when input quality or model execution is invalid.",
+    "Image quality/size rejection, crop/runtime errors, and species ambiguity must remain distinct.",
+    "The product Processing experience remains exactly three user-visible states: IMAGE_RECOGNIZING, FISH_LOCATED, SPECIES_RECOGNIZING; RESOLVE is a transition.",
+    "No new user-visible product state, classifier threshold, model default, or runtime route is frozen by this document.",
+    "Production model version is determined by exact runtime configuration; a test candidate is not automatically production default."
+  ],
+  "stages": [
+    {
+      "id": "CAPTURE_OR_SELECT",
+      "order": 1,
+      "title": "拍照 / 相册选择",
+      "owner": "Camera / Gallery",
+      "input": "用户拍摄或选择的原始完整场景图",
+      "operation": [
+        "保留原始图像引用与来源",
+        "创建可追溯的 recognition attempt"
+      ],
+      "output": [
+        "原始场景图引用",
+        "attempt ID",
+        "原图尺寸/来源元数据"
+      ],
+      "next": [
+        "PREPROCESS"
+      ]
+    },
+    {
+      "id": "PREPROCESS",
+      "order": 2,
+      "title": "图像预处理",
+      "owner": "Image preprocessing",
+      "input": "原始场景图",
+      "operation": [
+        "读取并应用 EXIF 方向",
+        "解码并记录方向归一化尺寸",
+        "记录旋转/缩放等坐标变换"
+      ],
+      "output": [
+        "方向正确的完整场景图",
+        "source-to-normalized transform"
+      ],
+      "next": [
+        "QUALITY_GATE"
+      ]
+    },
+    {
+      "id": "QUALITY_GATE",
+      "order": 3,
+      "title": "输入质量门",
+      "owner": "Quality / geometry rules",
+      "input": "标准图像、尺寸与解码状态",
+      "operation": [
+        "判定 GOOD / WARNING / INVALID",
+        "保留明确的质量原因码"
+      ],
+      "output": [
+        "质量状态",
+        "可继续处理标志"
+      ],
+      "next": [
+        "DETECTOR",
+        "IMAGE_QUALITY",
+        "TECHNICAL_FAILURE"
+      ]
+    },
+    {
+      "id": "DETECTOR",
+      "order": 4,
+      "title": "鱼体检测",
+      "owner": "DET_FISH",
+      "input": "完整场景图（不是分类 Crop）",
+      "operation": [
+        "执行鱼体目标检测",
+        "返回零个、一个或多个候选框",
+        "保留检测分数与模型版本"
+      ],
+      "output": [
+        "候选 BBox",
+        "检测分数",
+        "推理状态"
+      ],
+      "next": [
+        "BOX_DECISION",
+        "TECHNICAL_FAILURE"
+      ]
+    },
+    {
+      "id": "BOX_MAPPING_VALIDATION",
+      "order": 5,
+      "title": "BBox 映射与校验",
+      "owner": "Coordinate / geometry rules",
+      "input": "检测候选框、图像变换与 source size",
+      "operation": [
+        "将框映射到正确坐标系",
+        "检查正面积、边界与来源尺寸",
+        "保留 pixel_bbox 与 crop_rectangle 关系"
+      ],
+      "output": [
+        "有效鱼体框",
+        "坐标映射证据"
+      ],
+      "next": [
+        "SIZE_GATE",
+        "NO_FISH",
+        "TECHNICAL_FAILURE"
+      ]
+    },
+    {
+      "id": "SIZE_GATE",
+      "order": 6,
+      "title": "尺寸与可分类性",
+      "owner": "Quality / geometry rules",
+      "input": "有效 BBox、图像尺寸、质量状态",
+      "operation": [
+        "检查像素宽高与面积占比",
+        "检查边界截断和目标完整性",
+        "按当前有效合同决定是否可分类"
+      ],
+      "output": [
+        "可分类",
+        "尺寸警告",
+        "FISH_TOO_SMALL 等内部原因码"
+      ],
+      "next": [
+        "CROP",
+        "IMAGE_QUALITY"
+      ]
+    },
+    {
+      "id": "CROP",
+      "order": 7,
+      "title": "安全裁剪 Crop",
+      "owner": "Crop / image transform",
+      "input": "完整场景图与有效 BBox",
+      "operation": [
+        "依据当前 Crop 合同扩展/夹取边界",
+        "生成分类输入 Crop",
+        "记录 Crop 坐标与来源"
+      ],
+      "output": [
+        "鱼体 Crop",
+        "Crop metadata"
+      ],
+      "next": [
+        "CLASSIFIER",
+        "TECHNICAL_FAILURE"
+      ]
+    },
+    {
+      "id": "CLASSIFIER",
+      "order": 8,
+      "title": "鱼种分类",
+      "owner": "MODEL_M1",
+      "input": "有效鱼体 Crop",
+      "operation": [
+        "执行已配置分类模型",
+        "输出 Top-K 类别及分数"
+      ],
+      "output": [
+        "species candidates",
+        "classification scores",
+        "classifier version"
+      ],
+      "next": [
+        "RESULT_FUSION",
+        "TECHNICAL_FAILURE"
+      ]
+    },
+    {
+      "id": "RESULT_FUSION",
+      "order": 9,
+      "title": "结果融合与判定",
+      "owner": "Recognition result decision layer",
+      "input": "检测/质量/尺寸/分类/错误状态",
+      "operation": [
+        "优先处理技术错误与无效输入",
+        "区分无鱼证据与物种不确定",
+        "按当前 RR07 权威映射 High / Medium / Low"
+      ],
+      "output": [
+        "canonical result or issue code",
+        "decision reason"
+      ],
+      "next": [
+        "RESULT_HIGH",
+        "RESULT_MEDIUM",
+        "RESULT_LOW",
+        "NO_FISH",
+        "IMAGE_QUALITY",
+        "TECHNICAL_FAILURE"
+      ]
+    },
+    {
+      "id": "USER_CONFIRM_AND_SAVE",
+      "order": 10,
+      "title": "用户确认与鱼获记录",
+      "owner": "Result / FishRecord",
+      "input": "用户可见结果及用户操作",
+      "operation": [
+        "允许修改鱼种",
+        "Medium/Low 按现有合同完成必要确认",
+        "只有满足保存合同后才创建 FishRecord"
+      ],
+      "output": [
+        "FishRecord / correction feedback / recovery action"
+      ],
+      "next": [
+        "FISH_RECORD",
+        "RETAKE",
+        "GALLERY",
+        "PREVIOUS_SURFACE"
+      ]
+    }
+  ],
+  "model_responsibilities": [
+    {
+      "id": "DET_FISH",
+      "task": "object_detection",
+      "question": "是否存在鱼体证据？鱼在哪里？",
+      "input": "完整场景图",
+      "output": "BBox、检测分数、候选数量、检测状态",
+      "not_responsible_for": [
+        "鱼种分类",
+        "最终用户可见置信分级"
+      ],
+      "version_note": "DET_FISH_v0.3 已训练；测试页选择、独立测试集评估与真实推理需要单独验证。生产默认版本不因该设计文件改变。"
+    },
+    {
+      "id": "QUALITY_AND_SIZE_RULES",
+      "task": "quality_and_geometry_gating",
+      "question": "输入/鱼体是否具备可靠分类条件？",
+      "input": "解码/质量状态、BBox、像素尺寸、变换关系",
+      "output": "GOOD/WARNING/INVALID、尺寸原因码、分类资格",
+      "not_responsible_for": [
+        "推断鱼种",
+        "把技术失败判成无鱼"
+      ],
+      "version_note": "阈值以当前有效合同与精确源码为准；本文不新增或冻结阈值。"
+    },
+    {
+      "id": "MODEL_M1",
+      "task": "species_classification",
+      "question": "这个 Crop 像哪些已知鱼种？",
+      "input": "有效鱼体 Crop",
+      "output": "Top-K 与分类分数",
+      "not_responsible_for": [
+        "完整图找鱼",
+        "校正检测框",
+        "单独判断无鱼"
+      ],
+      "version_note": "分类器实际版本由运行配置解析，本文不擅自指定。"
+    },
+    {
+      "id": "RESULT_FUSION",
+      "task": "business_decision",
+      "question": "最终展示什么状态与动作？",
+      "input": "检测证据、质量/尺寸原因、分类候选、错误状态",
+      "output": "High/Medium/Low、No Fish、Image Quality、Technical Failure 等现有分支",
+      "not_responsible_for": [
+        "修改冻结产品状态",
+        "绕过用户确认或保存门禁"
+      ],
+      "version_note": "使用 RR07 与当前 Result 合同，不建立第二套阈值。"
+    }
+  ],
+  "branches": [
+    {
+      "id": "INVALID_INPUT",
+      "condition": "输入解码/质量门 INVALID",
+      "outcome": "ERROR_IMAGE_QUALITY",
+      "rule": "不把质量无效时的无框直接解释为无鱼。"
+    },
+    {
+      "id": "NO_FISH",
+      "condition": "输入足以判断，检测正常完成且无有效鱼体证据",
+      "outcome": "ERROR_NO_FISH",
+      "rule": "不创建 FishRecord；提供重拍/相册恢复。"
+    },
+    {
+      "id": "FISH_TOO_SMALL",
+      "condition": "检测到鱼，但尺寸/裁剪不满足当前分类资格",
+      "outcome": "ERROR_IMAGE_QUALITY",
+      "rule": "保留内部原因码；不新增独立用户可见状态。"
+    },
+    {
+      "id": "SPECIES_LOW",
+      "condition": "有鱼体证据，但没有可靠物种结论",
+      "outcome": "RESULT_LOW",
+      "rule": "不得改写成 No Fish；按现有手动选鱼合同继续。"
+    },
+    {
+      "id": "SPECIES_AMBIGUOUS",
+      "condition": "多个物种候选仍合理且当前合同判为歧义",
+      "outcome": "RESULT_MEDIUM",
+      "rule": "候选仅为建议，用户确认前不作为已确认鱼种保存。"
+    },
+    {
+      "id": "MODEL_OR_CROP_FAILURE",
+      "condition": "检测器/裁剪/分类器运行错误",
+      "outcome": "TECHNICAL_FAILURE",
+      "rule": "不责怪用户图片，不伪装为 No Fish 或 Image Quality。"
+    },
+    {
+      "id": "USER_BACK",
+      "condition": "用户主动返回",
+      "outcome": "PREVIOUS_SURFACE",
+      "rule": "Back 是独立出口，不等同于技术失败，也不自动保存。"
+    }
+  ],
+  "product_processing_states": [
+    {
+      "id": "IMAGE_RECOGNIZING",
+      "label": "图片识别中",
+      "technical_scope": [
+        "PREPROCESS",
+        "QUALITY_GATE",
+        "DETECTOR"
+      ],
+      "visual_authority": "design/pages/recognition/design/02_AI_Understanding_Frozen.png"
+    },
+    {
+      "id": "FISH_LOCATED",
+      "label": "已定位到鱼体",
+      "technical_scope": [
+        "BOX_MAPPING_VALIDATION",
+        "SIZE_GATE"
+      ],
+      "visual_authority": "design/pages/recognition/design/03_Fish_Highlight_Frozen.png"
+    },
+    {
+      "id": "SPECIES_RECOGNIZING",
+      "label": "鱼种识别中",
+      "technical_scope": [
+        "CROP",
+        "CLASSIFIER",
+        "RESULT_FUSION"
+      ],
+      "visual_authority": "design/pages/recognition/design/04_Fish_Identifying_Frozen.png"
+    },
+    {
+      "id": "RESOLVE",
+      "label": "结果转场",
+      "isProductState": false,
+      "technical_scope": [
+        "RESULT_FUSION"
+      ]
+    }
+  ],
+  "current_runtime_audit_note": "The 2026-10-10 RR07 audit documented implementation-specific DET_FISH_v0.1 and classifier rules against an older source SHA. Those numbers are historical audit evidence, not newly frozen universal thresholds; verify exact current code/config before asserting current behavior.",
+  "acceptance_scenarios": [
+    "clear single fish",
+    "clear no-fish scene",
+    "invalid/low-quality input",
+    "small distant fish",
+    "edge-truncated fish",
+    "multiple fish",
+    "night/black-background/yellow catfish",
+    "EXIF rotation and portrait/landscape images",
+    "bbox/crop coordinate alignment",
+    "low-confidence or ambiguous species",
+    "ONNX/model/crop runtime failure",
+    "user Back/retake without stale-image reuse"
+  ]
+}
