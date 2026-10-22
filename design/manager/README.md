@@ -27,6 +27,15 @@ Design Manager V1 采用两层结构：
 
 每个页面通过 `shared_system_refs` 声明使用哪些公共系统和变体。
 
+## NH01 设计工作台
+
+「有数据首页」保留 `NH01–NH07` 的 Registry、顺序与 Frozen 权威；工作台是其下单独的 Design Manager 工作区，不计入页面状态：
+
+- **结构化高保真**：复用 Gemini Native V3 预览的结构树、组件检查器和精确资产 Manifest。
+- **响应式设计**：复用同一预览逻辑，切换视口、字体缩放、当前/原有对照方案及合成内容压力样例。
+
+工作区路由与渲染模式注册在 `design/manager/workspace_registry.json`。工作区仅证明结构、静态布局和登记资产完整性；Hero / 邻卡原图若仍未获批即保持阻塞占位。Android Runtime 与整页视觉一致性分别验收，本工作台不改变 NH01 Frozen PNG 或 Android Release Gate。
+
 例如：
 
 ```text

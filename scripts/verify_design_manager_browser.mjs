@@ -108,11 +108,14 @@ async function main() {
   const errors = [];
   const failedRequests = [];
   const badResponses = [];
+  const externalRequests = [];
+  const sameOrigin = new URL(baseUrl).origin;
   const browser = await chromium.launch({ headless: true });
   activeBrowser = browser;
   const page = await browser.newPage({ viewport: { width: 1440, height: 1000 }, deviceScaleFactor: 1 });
   page.on("console", message => { if (message.type() === "error") errors.push(message.text()); });
   page.on("pageerror", error => errors.push(error.message));
+  page.on("request", request => { if (new URL(request.url()).origin !== sameOrigin) externalRequests.push(request.url()); });
   page.on("requestfailed", request => failedRequests.push(`${request.url()} · ${request.failure()?.errorText || "request failed"}`));
   page.on("response", response => {
     if (response.status() >= 400 && response.url().startsWith(new URL(baseUrl).origin)) {
@@ -132,6 +135,7 @@ async function main() {
   const previewPage = await browser.newPage({ viewport: { width: 1440, height: 1000 }, deviceScaleFactor: 1 });
   previewPage.on("console", message => { if (message.type() === "error") errors.push(message.text()); });
   previewPage.on("pageerror", error => errors.push(error.message));
+  previewPage.on("request", request => { if (new URL(request.url()).origin !== sameOrigin) externalRequests.push(request.url()); });
   previewPage.on("requestfailed", request => failedRequests.push(`${request.url()} · ${request.failure()?.errorText || "request failed"}`));
   previewPage.on("response", response => {
     if (response.status() >= 400 && response.url().startsWith(new URL(baseUrl).origin)) {
@@ -200,8 +204,10 @@ async function main() {
   assert(selectedCard?.target === "#mainCatchCard" && selectedCard?.status === "BLOCKED",
     `Hero photo provenance must remain visibly blocked on the selected card: ${JSON.stringify(selectedCard)}`);
 
-  // Five logical viewports must expose real measured geometry, not just load successfully.
-  assert(await previewPage.locator(".responsive-frame").count() === 5, "Responsive comparison must expose exactly five viewport frames");
+  // The responsive matrix retains its original 600x960 preset and covers the five required sizes.
+  const requiredResponsiveViewports = [[320,480],[360,640],[390,844],[430,932],[600,960],[1080,1920]];
+  assert(await previewPage.locator(".responsive-frame").count() === requiredResponsiveViewports.length,
+    "Responsive comparison must expose all required viewports and retain the original 600x960 preset");
   await previewPage.waitForFunction(
     () => [...document.querySelectorAll(".responsive-frame")].every(frame =>
       frame.contentWindow?.NH01GeminiPreviewLayoutReady === true),
@@ -209,7 +215,7 @@ async function main() {
     { timeout: 15000 },
   );
   const typographyByViewport = {};
-  for (const [width, height] of [[320,480],[360,640],[390,844],[430,932],[600,960]]) {
+  for (const [width, height] of requiredResponsiveViewports) {
     const frame = previewPage.frameLocator(`iframe[data-viewport="${width}x${height}"]`);
     await frame.locator("#device").waitFor({ state: "visible", timeout: 15000 });
     const frameState = await frame.locator("#device").evaluate(node => {
@@ -268,11 +274,85 @@ async function main() {
   assert(typographyByViewport["390x844"] > typographyByViewport["360x640"] &&
     typographyByViewport["430x932"] > typographyByViewport["390x844"],
     `Species typography must grow with larger/taller viewports: ${JSON.stringify(typographyByViewport)}`);
+  const responsiveMatrixEvidence = [];
+  for (const scale of ["1", "1.3", "1.5"]) {
+    await previewPage.locator("#matrixFontScale").selectOption(scale);
+    await previewPage.waitForFunction(expectedScale => [...document.querySelectorAll(".responsive-frame")].every(frame =>
+      frame.contentWindow?.NH01GeminiPreviewLayoutReady === true &&
+      frame.contentWindow?.NH01GeminiPreviewLayout?.font_scale === Number(expectedScale)), scale, { timeout: 30000 });
+    for (const [width, height] of requiredResponsiveViewports) {
+      const frameSelector = `iframe[data-viewport="${width}x${height}"]`;
+      const frameLocator = previewPage.frameLocator(frameSelector);
+      const state = await frameLocator.locator("#device").evaluate(node => {
+        const deviceRect = node.getBoundingClientRect();
+        const scaleX = deviceRect.width / Math.max(1, node.offsetWidth);
+        const box = selector => {
+          const element = document.querySelector(selector);
+          if (!element) return null;
+          const r = element.getBoundingClientRect();
+          return { left:(r.left-deviceRect.left)/scaleX, right:(r.right-deviceRect.left)/scaleX, top:(r.top-deviceRect.top)/scaleX, bottom:(r.bottom-deviceRect.top)/scaleX, width:r.width/scaleX, height:r.height/scaleX };
+        };
+        const clipping = [".stat-label",".catch-species",".catch-measure",".catch-location",".cta-label",".section-action"]
+          .map(selector => { const item=document.querySelector(selector); return {selector, clipped:!!item && item.scrollWidth > item.clientWidth + 1}; });
+        return {
+          logical_viewport:window.NH01GeminiPreviewLayout?.logical_viewport_dp,
+          font_scale:window.NH01GeminiPreviewLayout?.font_scale,
+          variant:window.NH01GeminiPreviewLayout?.variant,
+          fixture:window.NH01GeminiContentFixture || "reference",
+          layout:window.NH01GeminiPreviewLayout,
+          clipping,
+          bounds:{ main:box(".main-card"),left:box(".neighbor-left"),right:box(".neighbor-right"),footer:box("#footerSection"),cta:box("#ctaLabel"),camera:box("#cameraButton"),cameraArt:box("#assetCamera") }
+        };
+      });
+      assert(JSON.stringify(state.logical_viewport) === JSON.stringify([width,height]),
+        `Responsive screenshot label and actual logical viewport disagree: ${JSON.stringify(state)}`);
+      assert(state.font_scale === Number(scale), `Font-scale ${scale}x did not affect ${width}x${height}: ${JSON.stringify(state)}`);
+      assert(state.bounds.main && state.bounds.left && state.bounds.right && state.bounds.camera,
+        `Responsive geometry incomplete at ${width}x${height} scale ${scale}: ${JSON.stringify(state.bounds)}`);
+      assert(state.bounds.left.right <= state.bounds.main.left - 7 && state.bounds.right.left >= state.bounds.main.right + 7,
+        `Neighbor cards overlap the active card at ${width}x${height} scale ${scale}: ${JSON.stringify(state.bounds)}`);
+      assert(state.bounds.camera.width >= 72 && state.bounds.camera.height >= 72 &&
+        state.bounds.camera.bottom <= height - 24 + 1,
+        `Camera touch target or safe footer bounds invalid at ${width}x${height} scale ${scale}: ${JSON.stringify(state.bounds)}`);
+      assert(state.bounds.cameraArt.width <= state.bounds.camera.width && state.bounds.cameraArt.height <= state.bounds.camera.height,
+        `Camera artwork must remain proportionate inside its touch target: ${JSON.stringify(state.bounds)}`);
+      assert(state.clipping.every(item => !item.clipped),
+        `Key responsive text clipped at ${width}x${height} scale ${scale}: ${JSON.stringify(state.clipping)}`);
+      const evidenceScale = scale === "1" ? "1_0" : scale.replace(".", "_");
+      const evidenceName = `nh01-responsive-${width}x${height}-font-${evidenceScale}.png`;
+      await previewPage.locator(frameSelector).screenshot({ path: resolve(args.outputDir, evidenceName), animations:"disabled" });
+      responsiveMatrixEvidence.push({ ...state, screenshot:evidenceName });
+    }
+  }
+  await previewPage.locator("#contentFixture").selectOption("long_text");
   await previewPage.locator("#matrixFontScale").selectOption("1.5");
-  const largestFrame = previewPage.frameLocator('iframe[data-viewport="390x844"]');
-  await largestFrame.locator("#device").waitFor({ state: "visible", timeout: 15000 });
-  const matrixScale = await largestFrame.locator("#device").evaluate(node => getComputedStyle(document.documentElement).getPropertyValue("--font-scale").trim());
-  assert(matrixScale === "1.5", `Responsive matrix font-scale control must propagate to frames; got ${matrixScale}`);
+  await previewPage.waitForFunction(() => [...document.querySelectorAll(".responsive-frame")].every(frame =>
+    frame.contentWindow?.NH01GeminiPreviewLayoutReady === true &&
+    frame.contentWindow?.NH01GeminiContentFixture === "long_text" &&
+    frame.contentWindow?.NH01GeminiPreviewLayout?.font_scale === 1.5), undefined, { timeout:30000 });
+  const stressFrame = previewPage.frameLocator('iframe[data-viewport="390x844"]');
+  const longTextMetrics = await stressFrame.locator("#cardMetadata").evaluate(node => {
+    const device=document.querySelector("#device").getBoundingClientRect();
+    const card=document.querySelector("#mainCatchCard").getBoundingClientRect();
+    const metadata=node.getBoundingClientRect();
+    return {
+      species:document.querySelector(".catch-species").textContent,
+      location:document.querySelector(".catch-location").textContent,
+      speciesScrollWidth:document.querySelector(".catch-species").scrollWidth,
+      speciesClientWidth:document.querySelector(".catch-species").clientWidth,
+      metadataWithinCard:metadata.bottom <= card.bottom + 1 && metadata.left >= card.left - 1 && metadata.right <= card.right + 1,
+      cardWithinDevice:card.top >= device.top && card.bottom <= device.bottom
+    };
+  });
+  assert(longTextMetrics.species.includes("合成文本") && longTextMetrics.location.includes("合成测试地点"),
+    `Long-text fixture must be synthetic and actually rendered: ${JSON.stringify(longTextMetrics)}`);
+  assert(longTextMetrics.speciesScrollWidth <= longTextMetrics.speciesClientWidth + 1 && longTextMetrics.metadataWithinCard && longTextMetrics.cardWithinDevice,
+    `Long metadata stress fixture must remain within its card at 1.5x: ${JSON.stringify(longTextMetrics)}`);
+  await previewPage.locator("#contentFixture").selectOption("metadata_missing");
+  await previewPage.waitForFunction(() => [...document.querySelectorAll(".responsive-frame")].every(frame => frame.contentWindow?.NH01GeminiContentFixture === "metadata_missing"), undefined, { timeout:30000 });
+  const missingMetadataText = await stressFrame.locator("#cardMetadata").innerText();
+  assert(missingMetadataText.includes("未提供"), `Missing metadata fixture did not render explicit absence: ${missingMetadataText}`);
+  await previewPage.locator("#contentFixture").selectOption("reference");
   await previewPage.locator("#matrixFontScale").selectOption("1");
 
   await previewPage.screenshot({ path: resolve(args.outputDir, "nh01-gemini-native-preview-desktop.png"), fullPage: true });
@@ -413,6 +493,165 @@ async function main() {
   await canvasPage.close();
   await previewPage.close();
 
+  // NH01 workspaces are first-party Design Manager routes, with their own menu group,
+  // history behavior, shared renderer, asset authority, and route restoration.
+  const nhWorkspaceScreenshots = [];
+  const nhWorkspaceRoutes = {
+    structured: "#page/home_normal_v1/workspace/structured_hifi",
+    responsive: "#page/home_normal_v1/workspace/responsive_design"
+  };
+  await open("#page/home_normal_v1");
+  await page.locator(".workspace-nav-group").waitFor({ state:"visible", timeout:15000 });
+  const nhMenuOrder = await page.locator('#pageList .page-subitem[data-kind="page-hifi"][data-page-id="home_normal_v1"]')
+    .evaluateAll(nodes => nodes.map(node => node.dataset.hifiId));
+  assert(JSON.stringify(nhMenuOrder) === JSON.stringify(["NH01","NH02","NH03","NH04","NH05","NH06","NH07"]),
+    `NH01–NH07 menu order changed: ${JSON.stringify(nhMenuOrder)}`);
+  assert((await page.locator('.workspace-nav-item[data-workspace-id="structured_hifi"]').innerText()).includes("结构化高保真"),
+    "Structured Hi-Fi menu item missing from the Design Manager workbench group");
+  assert((await page.locator('.workspace-nav-item[data-workspace-id="responsive_design"]').innerText()).includes("响应式设计"),
+    "Responsive Design menu item missing from the Design Manager workbench group");
+
+  for (const id of nhMenuOrder) {
+    await page.locator(`#pageList .page-subitem[data-kind="page-hifi"][data-page-id="home_normal_v1"][data-hifi-id="${id}"]`).click();
+    await page.waitForFunction(expected => location.hash === `#page/home_normal_v1/hifi/${expected}`, id);
+    assert(await page.locator("#pageDetail").isVisible(), `Existing NH view ${id} did not remain navigable`);
+  }
+
+  await page.locator('.workspace-nav-item[data-workspace-id="structured_hifi"]').click();
+  await page.waitForFunction(expected => location.hash === expected, nhWorkspaceRoutes.structured);
+  assert(await page.locator("#workspaceDetail").isVisible(), "Structured Hi-Fi route did not render within Design Manager");
+  assert((await page.locator("#pageTitle").innerText()) === "结构化高保真", "Structured Hi-Fi title mismatch");
+  assert((await page.locator('.workspace-nav-item[data-workspace-id="structured_hifi"]').getAttribute("class")).includes("active"),
+    "Structured Hi-Fi current navigation item must be highlighted");
+  await page.frameLocator("#workspaceFrame").locator("#layerTree").waitFor({ state:"visible", timeout:30000 });
+  const structuredFrame = page.frame({ url: url => url.includes("embed=structured_hifi") });
+  assert(structuredFrame, "Structured Hi-Fi must reuse the Gemini Native V3 renderer in an internal frame");
+  await structuredFrame.waitForFunction(() => window.NH01GeminiPreviewReady === true && window.NH01GeminiPreviewAudit?.status === "PASS", undefined, { timeout:30000 });
+  await page.waitForFunction(() => document.querySelector("#workspaceRendererState")?.dataset.state === "READY", undefined, { timeout:15000 });
+  await page.waitForFunction(() => {
+    const frame=document.querySelector("#workspaceFrame");
+    return frame && frame.clientHeight >= frame.contentDocument.documentElement.scrollHeight - 1;
+  }, undefined, { timeout:15000 });
+  assert(await structuredFrame.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1),
+    "Structured Hi-Fi embed must not create horizontal overflow");
+  assert(await structuredFrame.locator(".layer-node").count() >= 16, "Structured Hi-Fi component tree is incomplete");
+  await structuredFrame.locator('.layer-node[data-target="#assetBrand"]').click();
+  const structuredNode = await structuredFrame.evaluate(() => window.NH01SelectedLayer);
+  assert(structuredNode?.target === "#assetBrand" && structuredNode?.boundsDp?.width > 0,
+    `Selecting a structure tree node must highlight measured canvas bounds: ${JSON.stringify(structuredNode)}`);
+  assert((await structuredFrame.locator("#inspectorComposeNode").innerText()).includes("brand_title_primary"),
+    "Selected component inspector must expose its Compose/asset binding");
+  const structuredAudit = await structuredFrame.evaluate(() => window.NH01GeminiPreviewAudit);
+  assert(structuredAudit.assets.filter(asset => asset.status === "PASS_SOURCE_INTEGRITY").length === 4,
+    `Structured workspace must verify approved asset SHA and dimensions: ${JSON.stringify(structuredAudit.assets)}`);
+  assert(structuredAudit.assets.find(asset => asset.id === "hero_photo")?.status === "BLOCKED_ASSET_SOURCE" &&
+    structuredAudit.assets.find(asset => asset.id === "neighbor_photos")?.status === "BLOCKED_MISSING_APPROVED_INDEPENDENT_ORIGINALS",
+    "Unapproved Hero/neighbor photos must remain visibly blocked");
+  assert((await page.locator("#workspaceAuthorities").innerText()).includes("NH01_Gemini_Native_Asset_Binding_V1.json"),
+    "Structured workspace must expose its resource authority links");
+  await structuredFrame.locator("#assetBrand").click();
+  await structuredFrame.locator("#assetZoomDialog").waitFor({ state:"visible", timeout:5000 });
+  const originalAsset = await structuredFrame.locator("#assetZoomImage").evaluate(image => ({ width:image.naturalWidth,height:image.naturalHeight }));
+  assert(originalAsset.width === 155 && originalAsset.height === 80, `Asset zoom must preserve original proportions: ${JSON.stringify(originalAsset)}`);
+  assert((await structuredFrame.locator("#assetZoomOriginal").getAttribute("href")).includes("brand_title_primary.png"),
+    "Asset zoom must link to the original source file");
+  await structuredFrame.locator("#assetZoomClose").click();
+  await page.screenshot({ path:resolve(args.outputDir,"nh01-structured-workspace-manager.png"),fullPage:true });
+  nhWorkspaceScreenshots.push("nh01-structured-workspace-manager.png");
+
+  await page.locator('.workspace-nav-item[data-workspace-id="responsive_design"]').click();
+  await page.waitForFunction(expected => location.hash === expected, nhWorkspaceRoutes.responsive);
+  assert((await page.locator("#pageTitle").innerText()) === "响应式设计", "Responsive Design title mismatch");
+  assert((await page.locator('.workspace-nav-item[data-workspace-id="responsive_design"]').getAttribute("class")).includes("active"),
+    "Responsive Design current navigation item must be highlighted");
+  await page.frameLocator("#workspaceFrame").locator(".responsive-matrix").waitFor({ state:"visible", timeout:30000 });
+  const responsiveFrame = page.frame({ url: url => url.includes("embed=responsive_design") });
+  assert(responsiveFrame, "Responsive Design must reuse the Gemini Native V3 renderer in an internal frame");
+  await responsiveFrame.waitForFunction(() => window.NH01GeminiPreviewReady === true && window.NH01GeminiPreviewAudit?.status === "PASS", undefined, { timeout:30000 });
+  await page.waitForFunction(() => document.querySelector("#workspaceRendererState")?.dataset.state === "READY", undefined, { timeout:15000 });
+  await page.waitForFunction(() => {
+    const frame=document.querySelector("#workspaceFrame");
+    return frame && frame.clientHeight >= frame.contentDocument.documentElement.scrollHeight - 1;
+  }, undefined, { timeout:30000 });
+  assert(await responsiveFrame.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1),
+    "Responsive Design embed must not create horizontal overflow");
+  assert(await responsiveFrame.locator(".responsive-frame").count() === 6, "Responsive workspace must render all six kept/required viewports");
+  await responsiveFrame.waitForFunction(() => [...document.querySelectorAll(".responsive-frame")].every(frame =>
+    frame.contentWindow?.NH01GeminiPreviewLayoutReady === true), undefined, { timeout:30000 });
+  const responsiveDefaults = await responsiveFrame.locator(".responsive-frame").evaluateAll(frames => frames.map(frame => ({
+    label:frame.dataset.viewport,
+    logical:frame.contentWindow?.NH01GeminiPreviewLayout?.logical_viewport_dp,
+    scale:frame.contentWindow?.NH01GeminiPreviewLayout?.font_scale
+  })));
+  assert(responsiveDefaults.every(item => JSON.stringify(item.logical) === JSON.stringify(item.label.split("x").map(Number)) && item.scale === 1),
+    `Responsive workspace viewports must render their exact declared sizes: ${JSON.stringify(responsiveDefaults)}`);
+
+  await responsiveFrame.locator("#layoutVariant").selectOption("V3_BASELINE");
+  await responsiveFrame.waitForFunction(() => [...document.querySelectorAll(".responsive-frame")].every(frame =>
+    frame.contentWindow?.NH01GeminiPreviewLayout?.variant === "V3_BASELINE"), undefined, { timeout:30000 });
+  await responsiveFrame.locator("#layoutVariant").selectOption("ADAPTIVE_V2");
+  await responsiveFrame.locator("#matrixFontScale").selectOption("1.3");
+  await responsiveFrame.waitForFunction(() => [...document.querySelectorAll(".responsive-frame")].every(frame =>
+    frame.contentWindow?.NH01GeminiPreviewLayout?.font_scale === 1.3), undefined, { timeout:30000 });
+  await responsiveFrame.locator("#matrixFontScale").selectOption("1.5");
+  await responsiveFrame.waitForFunction(() => [...document.querySelectorAll(".responsive-frame")].every(frame =>
+    frame.contentWindow?.NH01GeminiPreviewLayout?.font_scale === 1.5), undefined, { timeout:30000 });
+  await responsiveFrame.locator("#contentFixture").selectOption("long_text");
+  await responsiveFrame.waitForFunction(() => [...document.querySelectorAll(".responsive-frame")].every(frame =>
+    frame.contentWindow?.NH01GeminiContentFixture === "long_text"), undefined, { timeout:30000 });
+  await page.screenshot({ path:resolve(args.outputDir,"nh01-responsive-workspace-manager-390x844-font-1_5.png"),fullPage:true });
+  nhWorkspaceScreenshots.push("nh01-responsive-workspace-manager-390x844-font-1_5.png");
+  await responsiveFrame.locator("#viewportPreset").selectOption("390x844");
+  await responsiveFrame.locator("#fontScale").selectOption("1.5");
+  await responsiveFrame.waitForFunction(() => window.NH01GeminiPreviewLayoutReady === true &&
+    window.NH01GeminiPreviewLayout?.logical_viewport_dp?.[0] === 390 &&
+    window.NH01GeminiPreviewLayout?.font_scale === 1.5 && window.NH01GeminiContentFixture === "long_text", undefined, { timeout:10000 });
+  const currentViewportCapture = await responsiveFrame.locator("#device").evaluate(node => ({
+    box:{width:node.offsetWidth,height:node.offsetHeight},
+    scale:window.NH01GeminiPreviewLayout?.font_scale,
+    variant:window.NH01GeminiPreviewLayout?.variant,
+    fixture:window.NH01GeminiContentFixture,
+    species:document.querySelector(".catch-species")?.textContent
+  }));
+  assert(JSON.stringify(currentViewportCapture.box) === JSON.stringify({width:390,height:844}) &&
+    currentViewportCapture.scale === 1.5 && currentViewportCapture.species.includes("合成文本"),
+    `Current responsive viewport screenshot state must match its visible controls: ${JSON.stringify(currentViewportCapture)}`);
+  await responsiveFrame.locator("#device").screenshot({ path:resolve(args.outputDir,"nh01-responsive-current-390x844-font-1_5.png"),animations:"disabled" });
+  nhWorkspaceScreenshots.push("nh01-responsive-current-390x844-font-1_5.png");
+  await responsiveFrame.locator("#contentFixture").selectOption("metadata_missing");
+  await responsiveFrame.waitForFunction(() => window.NH01GeminiContentFixture === "metadata_missing", undefined, { timeout:10000 });
+  assert((await responsiveFrame.locator("#cardMetadata").innerText()).includes("未提供"),
+    "Responsive workspace must render explicit missing metadata without inventing values");
+
+  await page.goBack();
+  await page.waitForFunction(expected => location.hash === expected, nhWorkspaceRoutes.structured);
+  assert(await page.locator("#workspaceFrame").getAttribute("data-workspace-id").then(value => value === "structured_hifi"),
+    "Browser Back must restore the Structured Hi-Fi workspace");
+  await page.goForward();
+  await page.waitForFunction(expected => location.hash === expected, nhWorkspaceRoutes.responsive);
+  await page.reload({ waitUntil:"networkidle" });
+  await page.waitForFunction(expected => location.hash === expected, nhWorkspaceRoutes.responsive);
+  await page.locator(".responsive-matrix").waitFor({ state:"visible", timeout:30000 });
+  await page.locator("#workspaceReturn").click();
+  await page.waitForFunction(() => location.hash === "#page/home_normal_v1");
+  assert(await page.locator("#pageDetail").isVisible() && (await page.locator("#pageTitle").innerText()).includes("有数据首页"),
+    "Return to Home action must restore the existing Home overview");
+  await page.goto(baseUrl + nhWorkspaceRoutes.structured, { waitUntil:"networkidle", timeout:45000 });
+  await page.frameLocator("#workspaceFrame").locator("#layerTree").waitFor({ state:"visible", timeout:30000 });
+  await page.reload({ waitUntil:"networkidle" });
+  assert(page.url().endsWith(nhWorkspaceRoutes.structured), "Direct workspace route and refresh must preserve the internal route");
+  await page.locator("#workspaceDetail").waitFor({ state:"visible", timeout:30000 });
+  await page.frameLocator("#workspaceFrame").locator("#layerTree").waitFor({ state:"visible", timeout:30000 });
+  await open("#page/home_normal_v1/workspace/not_registered");
+  assert(await page.locator(".invalid-manager-route").isVisible(), "Unregistered workspace routes must show the manager invalid-route state");
+  const workspaceVerification = {
+    result:"PASS", routes:nhWorkspaceRoutes, nh01_to_nh07_order:nhMenuOrder,
+    responsive_viewports:responsiveDefaults, matrix_scales:[1,1.3,1.5],
+    current_viewport_capture:currentViewportCapture,
+    long_text_and_missing_metadata:"PASS_SYNTHETIC_FIXTURES", visual_review:"REQUIRED",
+    android_runtime:"NOT_RUN", screenshots:nhWorkspaceScreenshots
+  };
+
   await open(p01Hash);
   await waitForManager(page);
   const buildMarker = await page.locator('meta[name="design-manager-build"]').getAttribute("content");
@@ -524,6 +763,7 @@ async function main() {
 
   assert(badResponses.length === 0, `HTTP failures observed: ${badResponses.join("; ")}`);
   assert(failedRequests.length === 0, `Failed requests observed: ${failedRequests.join("; ")}`);
+  assert(externalRequests.length === 0, `Unexpected external requests observed: ${externalRequests.join("; ")}`);
   assert(errors.length === 0, `Browser errors observed: ${errors.join("; ")}`);
 
   const summary = {
@@ -531,15 +771,18 @@ async function main() {
     base_url: baseUrl,
     build_sha: buildMarker,
     viewports: viewportResults,
+    nh01_workspaces: workspaceVerification,
+    responsive_matrix_evidence: responsiveMatrixEvidence,
     p01: guideImageInfo,
     overview: overviewImageInfo,
     review: reviewImage,
-    checks: ["direct Hash", "refresh", "back/forward", "modal zoom/fit/Esc/focus restore", "missing authority no fake UI", "invalid route guard", "no HTTP errors", "no console/page errors"],
+    checks: ["direct Hash", "refresh", "back/forward", "NH01–NH07 retained", "internal workspaces", "structure tree and asset integrity", "six responsive viewports × three font scales", "synthetic long text and missing metadata", "modal zoom/fit/Esc/focus restore", "missing authority no fake UI", "invalid route guard", "no HTTP errors", "no console/page errors"],
     gemini_native_preview: { build_sha: previewBuild, asset_audit: previewAudit, default_layout: defaultLayout, viewports: previewViewportResults, canvas_layout: canvasLayout, canvas_bounds_dp: canvasBounds, canvas_bounds_px: Object.fromEntries(Object.entries(canvasBounds).map(([key, box]) => [key, box && Object.fromEntries(Object.entries(box).map(([field, value]) => [field, Number((value * 3).toFixed(2))]))])), canvas_screenshot: "nh01-gemini-native-structure-1080x1920.png", canvas_dimensions_px: [1080, 1920], release_gate_effect: "NONE" },
-    screenshots: ["desktop-1440.png", "tablet-768.png", "mobile-390.png", "lightbox-1440.png", "overview-1440.png", "nh01-gemini-native-preview-desktop.png", "nh01-gemini-native-structure-1080x1920.png"],
+    screenshots: ["desktop-1440.png", "tablet-768.png", "mobile-390.png", "lightbox-1440.png", "overview-1440.png", "nh01-gemini-native-preview-desktop.png", "nh01-gemini-native-structure-1080x1920.png", ...nhWorkspaceScreenshots, ...responsiveMatrixEvidence.map(item => item.screenshot)],
     errors,
     bad_responses: badResponses,
-    failed_requests: failedRequests
+    failed_requests: failedRequests,
+    external_requests:externalRequests
   };
   const { writeFile } = await import("node:fs/promises");
   await writeFile(resolve(args.outputDir, "browser-verification.json"), JSON.stringify(summary, null, 2) + "\n");

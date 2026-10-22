@@ -89,6 +89,7 @@
     .catch-species{font-size:calc(var(--catch-species-size)*var(--font-scale));font-weight:750;line-height:1.2;margin:0 0 var(--text-gap)}
     .catch-measure{font-size:calc(var(--catch-measure-size)*var(--font-scale));font-weight:600;line-height:1.2;margin:0 0 var(--text-gap)}
     .catch-location{font-size:calc(var(--catch-metadata-size)*var(--font-scale));line-height:1.3;margin:0;opacity:.9}
+    .catch-species,.catch-measure,.catch-location{max-width:100%;overflow-wrap:anywhere}
     .footer-section{flex:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:11px;padding:4px 0 10px;color:#fff;text-shadow:0 1px 8px rgba(9,30,39,.35)}
     .device[data-compact="true"] .top-section{padding-top:2px}
     .device[data-compact="true"] .stats-bar{margin-top:4px;padding:2px 0}
@@ -125,7 +126,7 @@
     .responsive-matrix-subtitle{font-size:11px;line-height:1.5;color:var(--muted);margin:0;max-width:720px}
     .matrix-scale-control{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--muted);font-weight:700}
     .matrix-scale-control select{padding:7px 9px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink)}
-    .responsive-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;align-items:start}
+    .responsive-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;align-items:start}
     .responsive-tile{min-width:0;padding:10px;border:1px solid var(--line);border-radius:12px;background:#f8fbfb}
     .responsive-tile-header{display:flex;justify-content:space-between;align-items:center;gap:5px;margin-bottom:8px}
     .responsive-tile-title{font-size:11px;font-weight:800;color:var(--ink)}
@@ -144,6 +145,32 @@
     .matrix-mode .preview-column{width:100vw;height:100dvh}
     .matrix-mode .preview-stage{width:100vw;height:100dvh;padding:0;margin:0;display:flex;justify-content:center;align-items:flex-start;overflow:hidden}
     .matrix-mode .device{border:0;border-radius:10px;box-shadow:none}
+    .embed-structured,.embed-responsive{background:#eaf0f1;overflow:visible}
+    .embed-structured .workspace,.embed-responsive .workspace{max-width:none;margin:0;padding:12px;gap:12px}
+    .embed-structured .workspace-header,.embed-responsive .workspace-header{display:none!important}
+    .embed-structured .workspace{grid-template-columns:minmax(175px,.72fr) minmax(340px,1.25fr) minmax(260px,1fr)}
+    .embed-structured .responsive-matrix{display:none!important}
+    .embed-responsive .workspace{grid-template-columns:minmax(0,1fr)}
+    .embed-responsive .layer-column{display:none!important}
+    .embed-responsive .preview-column,.embed-responsive .audit-column,.embed-responsive .responsive-matrix{grid-column:1/-1}
+    .embed-responsive .audit-column{grid-template-columns:repeat(auto-fit,minmax(270px,1fr))}
+    .embed-responsive .responsive-matrix{padding:12px}
+    .embed-responsive .responsive-grid{grid-template-columns:repeat(auto-fit,minmax(190px,1fr))}
+    .embed-responsive .preview-stage{justify-content:flex-start}
+    .embed-responsive .device{border-radius:20px}
+    .embed-structured .layer-panel{position:static;max-height:none;min-height:360px}
+    .embed-structured .workspace{align-items:start}
+    .responsive-evidence-row{margin-top:14px}
+    .responsive-check-list{display:grid;gap:5px;margin:9px 0 0;padding:0 0 0 20px;color:var(--muted);font-size:11px;line-height:1.5}
+    .asset-zoom-dialog{width:min(92vw,1100px);max-width:none;max-height:92dvh;padding:14px;border:1px solid var(--line);border-radius:14px;background:#fff;color:var(--ink)}
+    .asset-zoom-dialog::backdrop{background:rgba(10,27,34,.72)}
+    .asset-zoom-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}
+    .asset-zoom-toolbar button{padding:7px 10px;border:1px solid var(--line);border-radius:8px;background:#fff;color:var(--ink);cursor:pointer}
+    .asset-zoom-image-wrap{display:grid;place-items:center;max-height:calc(92dvh - 90px);overflow:auto;background:#eef3f3;border-radius:10px}
+    .asset-zoom-image-wrap img{display:block;max-width:100%;max-height:calc(92dvh - 125px);object-fit:contain}
+    .asset-zoom-dialog>a{display:inline-block;margin-top:9px;color:#2a6868;font-size:11px}
+    @media(max-width:1050px){.embed-structured .workspace{grid-template-columns:minmax(150px,.7fr) minmax(0,1.3fr)}.embed-structured .audit-column{grid-column:1/-1;grid-template-columns:repeat(2,minmax(0,1fr))}}
+    @media(max-width:680px){.embed-structured .workspace{grid-template-columns:minmax(0,1fr)}.embed-structured .preview-column,.embed-structured .audit-column{grid-column:1}.embed-structured .audit-column{grid-template-columns:minmax(0,1fr)}}
     @media(max-width:1350px){.workspace{grid-template-columns:200px minmax(320px,1fr) 300px;gap:12px;padding:14px}}
     @media(max-width:1150px){.workspace{grid-template-columns:200px minmax(0,1fr)}.audit-column{grid-column:1/-1;grid-template-columns:repeat(2,minmax(0,1fr))}.responsive-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.layer-panel{position:static;max-height:none}}
     @media(max-width:850px){.workspace{grid-template-columns:minmax(0,1fr);padding:14px;gap:14px}.workspace-header{margin-bottom:10px}.preview-stage{padding:0}.audit-column{grid-column:auto;grid-template-columns:minmax(0,1fr)}.responsive-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.layer-panel{max-height:420px}}
@@ -195,11 +222,12 @@
       </header>
       <section class="control-panel" aria-label="预览控制">
         <div class="controls">
-          <div class="control"><label for="layoutVariant">布局变体</label><select id="layoutVariant"><option value="ADAPTIVE_V2" selected>Adaptive V2 · 内容优先</option><option value="V3_BASELINE">V3 Baseline · 对照</option></select></div>
+          <div class="control"><label for="layoutVariant">当前 / 原有对照</label><select id="layoutVariant"><option value="ADAPTIVE_V2" selected>当前方案 · Adaptive V2</option><option value="V3_BASELINE">原有对照 · V3 Baseline</option></select></div>
           <div class="control"><label for="viewportPreset">逻辑视口</label><select id="viewportPreset">
-            <option value="360x640">360 × 640</option><option value="390x844" selected>390 × 844</option><option value="430x932">430 × 932</option><option value="320x480">320 × 480</option><option value="600x960">600 × 960</option>
+            <option value="360x640">360 × 640</option><option value="390x844" selected>390 × 844</option><option value="430x932">430 × 932</option><option value="320x480">320 × 480</option><option value="600x960">600 × 960</option><option value="1080x1920">1080 × 1920</option>
           </select></div>
           <div class="control"><label for="fontScale">字体缩放</label><select id="fontScale"><option value="1">1.0×</option><option value="1.3">1.3×</option><option value="1.5">1.5×</option></select></div>
+          <div class="control"><label for="contentFixture">内容压力样例</label><select id="contentFixture"><option value="reference">参考夹具 · 合成</option><option value="long_text">长文本 · 合成</option><option value="metadata_missing">元数据缺失 · 合成</option></select></div>
         </div>
       </section>
       <div class="preview-stage">
@@ -283,7 +311,7 @@
       <section class="audit-card">
         <div class="eyebrow">AUTHORITY BOUNDARY</div>
         <h2>验收边界</h2>
-        <p class="audit-intro">结构来源是仓库内 Gemini 结构快照与 V3 实现合同；不是 Figma 实时节点读回。原 NH01 Frozen PNG 仍不可修改，但 Gemini V3 不宣称与旧 Frozen 全页逐像素一致。</p>
+        <p class="audit-intro">结构来源是仓库内 Gemini 结构快照与 V3 实现合同；不是 Figma 实时节点读回。鱼种、尺寸和地点为合成静态参考夹具，不是用户鱼获。原 NH01 Frozen PNG 仍不可修改；Gemini V3 不宣称与旧 Frozen 全页逐像素一致。</p>
         <div class="asset-row"><div><div class="asset-name">Android Runtime</div><div class="asset-meta">精确源码 SHA 的 API 28 安装、启动、交互、截图、boundsInWindow 和响应式矩阵另行验收。</div></div><span class="asset-status" data-status="NOT_RUN">NOT RUN</span></div>
         <div class="asset-row"><div><div class="asset-name">Visual Parity</div><div class="asset-meta">本页只证明静态结构与资产可加载；动态照片 ROI 和未批准目标不参与 PASS 判定。</div></div><span class="asset-status" data-status="NOT_RUN">NOT RUN</span></div>
         <p class="audit-footer"><strong>Preview build:</strong> <code id="buildSha">__NH01_GEMINI_PREVIEW_BUILD__</code><br><strong>Release gate effect:</strong> NONE</p>
@@ -295,7 +323,7 @@
     </aside>
     <section class="responsive-matrix" aria-label="不同屏幕尺寸响应式对照">
       <div class="responsive-matrix-header">
-        <div><h2 class="responsive-matrix-title">多屏响应式对照</h2><p class="responsive-matrix-subtitle">同一套页面结构在五种逻辑视口下并排渲染。切换字体缩放，可直观看到卡片、标题、底部 CTA 与相机控件如何响应。此处是浏览器结构预览，最终仍需用同一源码 SHA 的 Android Runtime 截图验收。</p></div>
+        <div><h2 class="responsive-matrix-title">多屏响应式对照</h2><p class="responsive-matrix-subtitle">同一套页面结构在六种逻辑视口下并排渲染，保留原有 600×960 尺寸并加入 1080×1920。切换字体缩放，可检查统计、鱼获元数据、CTA、触控区域和安全区。方案可在 Adaptive V2 与原有 V3 Baseline 间切换；浏览器结果不代表 Android Runtime 验收。</p></div>
         <label class="matrix-scale-control" for="matrixFontScale">全矩阵字体缩放<select id="matrixFontScale"><option value="1" selected>1.0×</option><option value="1.3">1.3×</option><option value="1.5">1.5×</option></select></label>
       </div>
       <div class="responsive-grid">
@@ -304,17 +332,33 @@
         <article class="responsive-tile"><div class="responsive-tile-header"><span class="responsive-tile-title">基准手机</span><span class="responsive-tile-size">390×844</span></div><iframe class="responsive-frame" data-viewport="390x844" title="NH01 390×844 响应式预览" style="aspect-ratio:390/844" data-src="./gemini-native-preview.html?mode=matrix&amp;viewport=390x844&amp;fontScale=1"></iframe><p class="responsive-tile-note">检查基准页面比例与主卡几何。</p></article>
         <article class="responsive-tile"><div class="responsive-tile-header"><span class="responsive-tile-title">大屏手机</span><span class="responsive-tile-size">430×932</span></div><iframe class="responsive-frame" data-viewport="430x932" title="NH01 430×932 响应式预览" style="aspect-ratio:430/932" data-src="./gemini-native-preview.html?mode=matrix&amp;viewport=430x932&amp;fontScale=1"></iframe><p class="responsive-tile-note">检查宽屏留白与卡片最大宽度。</p></article>
         <article class="responsive-tile"><div class="responsive-tile-header"><span class="responsive-tile-title">宽视口</span><span class="responsive-tile-size">600×960</span></div><iframe class="responsive-frame" data-viewport="600x960" title="NH01 600×960 响应式预览" style="aspect-ratio:5/8" data-src="./gemini-native-preview.html?mode=matrix&amp;viewport=600x960&amp;fontScale=1"></iframe><p class="responsive-tile-note">检查宽视口下的内容宽度上限。</p></article>
+        <article class="responsive-tile"><div class="responsive-tile-header"><span class="responsive-tile-title">桌面长画布</span><span class="responsive-tile-size">1080×1920</span></div><iframe class="responsive-frame" data-viewport="1080x1920" title="NH01 1080×1920 响应式预览" style="aspect-ratio:9/16" data-src="./gemini-native-preview.html?mode=matrix&amp;viewport=1080x1920&amp;fontScale=1"></iframe><p class="responsive-tile-note">检查大画布下操作尺寸、字号与内容比例。</p></article>
       </div>
+      <div class="asset-row responsive-evidence-row"><div><div class="asset-name">问题记录与证据</div><div class="asset-meta">以下规则由当前预览与 Chromium 矩阵核验；视觉建议须先记录，再由设计评审决定是否调整。Hero / 邻卡原图仍阻塞。</div></div><span class="asset-status" data-status="VISUAL_REVIEW_REQUIRED">VISUAL REVIEW REQUIRED</span></div>
+      <ul class="responsive-check-list" aria-label="响应式检查规则">
+        <li>宽屏主操作尺寸不得小于紧凑屏；长屏字体不无理由缩小。</li>
+        <li>邻卡不得意外覆盖主卡；照片保持等比；缺失元数据不得造成错位。</li>
+        <li>短屏 CTA 与安全区可见，避免无意义内滚动和 CTA 下方留白。</li>
+        <li>1.3× / 1.5× 下检查长鱼种名、地点、统计标签与触控区域。</li>
+      </ul>
     </section>
   </main>
+  <dialog class="asset-zoom-dialog" id="assetZoomDialog" aria-label="原始资产预览">
+    <div class="asset-zoom-toolbar"><strong id="assetZoomTitle">原始资产</strong><button type="button" id="assetZoomClose">关闭</button></div>
+    <div class="asset-zoom-image-wrap"><img id="assetZoomImage" alt="原始比例资产预览"></div>
+    <a id="assetZoomOriginal" target="_blank" rel="noreferrer">打开原始资源</a>
+  </dialog>
   <script>
     (() => {
       "use strict";
       const params = new URLSearchParams(location.search);
       const canvasMode = params.get("mode") === "canvas";
       const matrixMode = params.get("mode") === "matrix";
+      const embedMode = params.get("embed");
       if (canvasMode) document.body.classList.add("canvas-mode");
       if (matrixMode) document.body.classList.add("matrix-mode");
+      if (embedMode === "structured_hifi") document.body.classList.add("embed-structured");
+      if (embedMode === "responsive_design") document.body.classList.add("embed-responsive");
       const buildSha = document.querySelector('meta[name="nh01-gemini-preview-build"]').content;
       document.getElementById("buildSha").textContent = buildSha;
       const preset = document.getElementById("viewportPreset");
@@ -322,6 +366,11 @@
       const fontScale = document.getElementById("fontScale");
       const requestedScale = params.get("fontScale");
       if (["1", "1.3", "1.5"].includes(requestedScale)) fontScale.value = requestedScale;
+      const requestedViewport = params.get("viewport");
+      if (["320x480","360x640","390x844","430x932","600x960","1080x1920"].includes(requestedViewport)) preset.value = requestedViewport;
+      const contentFixture = document.getElementById("contentFixture");
+      const requestedFixture = params.get("fixture");
+      if (["reference","long_text","metadata_missing"].includes(requestedFixture)) contentFixture.value = requestedFixture;
       const device = document.getElementById("device");
       const wrap = document.getElementById("deviceWrap");
       const topSection = document.getElementById("topSection");
@@ -519,7 +568,6 @@
         window.NH01GeminiPreviewOuterViewport = { width: window.innerWidth, height: window.innerHeight };
         // Invalidate the prior frame's readiness before changing viewport geometry; browser gates must not read stale bounds.
         window.NH01GeminiPreviewLayoutReady = false;
-        const requestedViewport = params.get("viewport");
         const widthHeight = canvasMode ? [window.innerWidth, window.innerHeight] : (matrixMode && requestedViewport ? requestedViewport.split("x").map(Number) : preset.value.split("x").map(Number));
         const width = widthHeight[0], height = widthHeight[1];
         if (canvasMode) {
@@ -539,28 +587,75 @@
           wrap.style.height = String(height * scale) + "px";
         }
         updateLayoutGeometry(width, height);
+        window.requestAnimationFrame(() => {
+          if (window.parent !== window) window.parent.postMessage({ type:"nh01-workspace-height", workspace_id:embedMode, height:document.documentElement.scrollHeight }, location.origin);
+        });
       }
       preset.addEventListener("change", applyViewport);
       layoutVariant.addEventListener("change", applyViewport);
       fontScale.addEventListener("change", applyViewport);
       const matrixFontScale = document.getElementById("matrixFontScale");
-      // Only the top-level workspace starts the five viewport previews. Matrix children must never spawn more matrices.
+      // Only the top-level workspace starts the viewport previews. Matrix children never spawn matrices.
       if (!matrixMode && !canvasMode) {
         document.querySelectorAll(".responsive-frame").forEach(frame => {
           if (frame.dataset.src) frame.src = frame.dataset.src;
         });
       }
       if (matrixFontScale) {
+        layoutVariant.addEventListener("change", () => matrixFontScale.dispatchEvent(new Event("change")));
         matrixFontScale.addEventListener("change", () => {
           document.querySelectorAll(".responsive-frame").forEach(frame => {
             const viewport = frame.dataset.viewport;
-            frame.src = "./gemini-native-preview.html?mode=matrix&viewport=" + encodeURIComponent(viewport) + "&fontScale=" + encodeURIComponent(matrixFontScale.value);
+            frame.src = "./gemini-native-preview.html?mode=matrix&viewport=" + encodeURIComponent(viewport) + "&fontScale=" + encodeURIComponent(matrixFontScale.value) + "&variant=" + encodeURIComponent(layoutVariant.value) + "&fixture=" + encodeURIComponent(contentFixture.value);
+          });
+          window.requestAnimationFrame(() => {
+            if (window.parent !== window) window.parent.postMessage({ type:"nh01-workspace-height", workspace_id:embedMode, height:document.documentElement.scrollHeight }, location.origin);
           });
         });
       }
       window.addEventListener("resize", applyViewport);
       document.getElementById("cameraButton").addEventListener("click", () => showToast("静态预览：真实拍照交互以精确 SHA 的 Android Runtime Gate 为准。"));
       document.getElementById("avatarButton").addEventListener("click", () => showToast("Gemini V3 静态预览使用注册的 V2 头像底图；真实账号头像加载由 Android 数据层处理。"));
+
+      const zoomDialog = document.getElementById("assetZoomDialog");
+      const zoomImage = document.getElementById("assetZoomImage");
+      const zoomTitle = document.getElementById("assetZoomTitle");
+      const zoomOriginal = document.getElementById("assetZoomOriginal");
+      document.getElementById("assetZoomClose").addEventListener("click", () => zoomDialog.close());
+      document.querySelectorAll(".responsive-frame").forEach(frame => frame.addEventListener("load", () => {
+        if (window.parent !== window) window.parent.postMessage({ type:"nh01-workspace-height", workspace_id:embedMode, height:document.documentElement.scrollHeight }, location.origin);
+      }));
+      if (embedMode) {
+        const workspaceResize = new ResizeObserver(() => {
+          if (window.parent !== window) window.parent.postMessage({ type:"nh01-workspace-height", workspace_id:embedMode, height:document.documentElement.scrollHeight }, location.origin);
+        });
+        workspaceResize.observe(document.getElementById("nh01GeminiPreview"));
+      }
+
+      const fixtureValues = {
+        reference: ["草鱼", "42.6 cm · 1.28 kg", "昨天 18:20 · 浙江 · 千岛湖"],
+        long_text: ["超长鱼种名称压力样本（合成文本）", "长度 123.4 cm · 重量 99.99 kg", "合成测试地点：浙江省杭州市淳安县千岛湖东南岸公开码头入口旁"],
+        metadata_missing: ["鱼种未记录", "长度未提供 · 重量未提供", "时间和地点未提供"]
+      };
+      function applyContentFixture() {
+        const values = fixtureValues[contentFixture.value] || fixtureValues.reference;
+        document.querySelector(".catch-species").textContent = values[0];
+        document.querySelector(".catch-measure").textContent = values[1];
+        document.querySelector(".catch-location").textContent = values[2];
+        window.NH01GeminiContentFixture = contentFixture.value;
+        window.requestAnimationFrame(() => {
+          if (window.parent !== window) window.parent.postMessage({ type:"nh01-workspace-height", workspace_id:embedMode, height:document.documentElement.scrollHeight }, location.origin);
+        });
+      }
+      contentFixture.addEventListener("change", () => {
+        applyContentFixture();
+        if (matrixFontScale) matrixFontScale.dispatchEvent(new Event("change"));
+      });
+      if (requestedFixture && fixtureValues[requestedFixture]) applyContentFixture();
+      if (["ADAPTIVE_V2","V3_BASELINE"].includes(params.get("variant"))) {
+        layoutVariant.value = params.get("variant");
+        applyViewport();
+      }
 
       const layerMeta = {
         "#device": {name:"Screen · NH01 Home",design:"Screen-Yujian-Home",compose:"GeminiNormalHomeContent",constraint:"全屏容器；顶部/底部安全区分别预留 24dp / 24dp，短屏不额外重复计算底部留白。",status:"MAPPED",note:"根容器。真实系统栏与窗口 inset 需由 Android Runtime 证据确认。"},
@@ -629,6 +724,13 @@
         if (button) selectLayer(button.dataset.target);
       });
       device.addEventListener("click", event => {
+        const clickedImage = event.target.closest("img[data-asset-id]");
+        if (clickedImage) {
+          zoomImage.src = clickedImage.currentSrc || clickedImage.src;
+          zoomTitle.textContent = clickedImage.dataset.assetId + " · " + clickedImage.naturalWidth + "×" + clickedImage.naturalHeight;
+          zoomOriginal.href = clickedImage.currentSrc || clickedImage.src;
+          if (typeof zoomDialog.showModal === "function") zoomDialog.showModal();
+        }
         if (event.target.closest(".camera-button") || event.target.closest(".avatar-button")) return;
         const target = event.target.closest("[data-layer], [data-asset-id], #device");
         if (!target) return;
@@ -676,10 +778,10 @@
           const actualHash = await digest(asset.preview_path);
           const dimensions = [image.naturalWidth, image.naturalHeight];
           const passed = actualHash === asset.sha256 && dimensions[0] === asset.dimensions_px[0] && dimensions[1] === asset.dimensions_px[1];
-          results.push({ id: asset.id, label: asset.label, status: passed ? "PASS_SOURCE_INTEGRITY" : "FAIL_SOURCE_INTEGRITY", expected_sha256: asset.sha256, actual_sha256: actualHash, expected_dimensions_px: asset.dimensions_px, actual_dimensions_px: dimensions, preview_path: asset.preview_path });
+          results.push({ id: asset.id, label: asset.label, status: passed ? "PASS_SOURCE_INTEGRITY" : "FAIL_SOURCE_INTEGRITY", source_path:asset.source_path, expected_sha256: asset.sha256, actual_sha256: actualHash, expected_dimensions_px: asset.dimensions_px, actual_dimensions_px: dimensions, preview_path: asset.preview_path });
         }
         for (const asset of manifest.assets.filter(item => !item.public_preview)) {
-          results.push({ id: asset.id, label: asset.label, status: asset.status, expected_sha256: asset.sha256 || null, actual_sha256: null, expected_dimensions_px: asset.dimensions_px || null, actual_dimensions_px: null, preview_path: null, reason: asset.privacy_policy || asset.render_rule });
+          results.push({ id: asset.id, label: asset.label, status: asset.status, source_path:asset.source_path, expected_sha256: asset.sha256 || null, actual_sha256: null, expected_dimensions_px: asset.dimensions_px || null, actual_dimensions_px: null, preview_path: null, reason: asset.privacy_policy || asset.render_rule });
         }
         assetList.replaceChildren();
         for (const result of results) {
@@ -687,7 +789,9 @@
           const details = document.createElement("div");
           const name = document.createElement("div"); name.className = "asset-name"; name.textContent = result.label;
           const meta = document.createElement("div"); meta.className = "asset-meta";
-          meta.textContent = result.actual_sha256 ? "SHA-256 " + result.actual_sha256 + " · " + result.actual_dimensions_px.join("×") : (result.reason || "未提供可公开预览的正式原图。");
+          meta.textContent = result.actual_sha256
+            ? "预览路径 " + result.preview_path + " · 源路径 " + result.source_path + " · " + result.actual_dimensions_px.join("×") + " px · SHA-256 " + result.actual_sha256
+            : "源路径 " + (result.source_path || "未登记") + " · " + (result.reason || "未提供可公开预览的正式原图。");
           const status = document.createElement("span"); status.className = "asset-status"; status.dataset.status = result.status; status.title = result.status; status.textContent = ({ PASS_SOURCE_INTEGRITY: "PASS · SHA + SIZE", BLOCKED_ASSET_SOURCE: "BLOCKED · PHOTO SOURCE", BLOCKED_MISSING_APPROVED_INDEPENDENT_ORIGINALS: "BLOCKED · PHOTO SET" })[result.status] || result.status;
           details.append(name, meta); row.append(details, status); assetList.append(row);
         }
@@ -696,14 +800,17 @@
         integritySummary.textContent = failures.length ? "资产完整性失败：" + failures.map(result => result.id).join(", ") + "。此预览不能用于正式验收。" : "已渲染资产 SHA-256 与尺寸均匹配登记。Hero 与邻卡照片仍为 BLOCKED；release_gate_effect=NONE。";
         window.NH01GeminiPreviewAudit = { schema: manifest.schema, build_sha: buildSha, status: failures.length ? "FAIL" : "PASS", release_gate_effect: "NONE", assets: results, checked_at_utc: new Date().toISOString() };
         window.NH01GeminiPreviewReady = true;
+        if (window.parent !== window) window.parent.postMessage({type:"nh01-workspace-status",workspace_id:embedMode,status:failures.length?"FAIL":"PASS",message:failures.map(result=>result.id).join(", ")}, location.origin);
         return window.NH01GeminiPreviewAudit;
       }
       applyViewport();
+      if (embedMode) window.addEventListener("load", () => window.parent.postMessage({type:"nh01-workspace-height",workspace_id:embedMode,height:document.documentElement.scrollHeight}, location.origin), {once:true});
       auditAssets().catch(error => {
         integritySummary.dataset.state = "FAIL";
         integritySummary.textContent = "资产核验失败：" + error.message;
         window.NH01GeminiPreviewAudit = { status: "FAIL", release_gate_effect: "NONE", error: error.message };
         window.NH01GeminiPreviewReady = true;
+        if (window.parent !== window) window.parent.postMessage({type:"nh01-workspace-status",workspace_id:embedMode,status:"FAIL",message:error.message}, location.origin);
       });
     })();
   </script>

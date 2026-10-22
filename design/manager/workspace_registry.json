@@ -1,0 +1,44 @@
+{
+  "schema": "YUJIAN_DESIGN_MANAGER_WORKSPACE_REGISTRY_V1",
+  "version": 1,
+  "parent_page_id": "home_normal_v1",
+  "navigation_group": "设计工作台",
+  "workspaces": [
+    {
+      "id": "structured_hifi",
+      "title": "结构化高保真",
+      "description": "基于 Gemini Native V3 结构快照与实现合同的交互式页面、组件层级和资产核验工作区。",
+      "route": "#page/home_normal_v1/workspace/structured_hifi",
+      "render_mode": "gemini_native_structured_embed",
+      "preview_entry": "nh01_acceptance/gemini-native-preview.html?embed=structured_hifi",
+      "status": "PREVIEW_ONLY",
+      "visual_review": "REQUIRED",
+      "android_runtime": "NOT_RUN",
+      "asset_manifest": "design/manager/nh01_acceptance/NH01_Gemini_Native_Asset_Binding_V1.json",
+      "structure_snapshot": "release/design_manager/NH01_GEMINI_STRUCTURE_ALIGNMENT_V1.json",
+      "implementation_contract": "design/pages/home/normal_home/engineering/Gemini_Native_Implementation_Contract_V3.md",
+      "evidence": [
+        {"label": "结构化工作区当前截图", "path": "nh01_acceptance/evidence/nh01-structured-workspace-manager.png"},
+        {"label": "Chromium 验收报告（含源码 SHA）", "path": "nh01_acceptance/evidence/NH01_Workspace_Browser_Verification.json"}
+      ]
+    },
+    {
+      "id": "responsive_design",
+      "title": "响应式设计",
+      "description": "切换视口、字体缩放与布局方案，比较当前预览并记录待审查偏差。",
+      "route": "#page/home_normal_v1/workspace/responsive_design",
+      "render_mode": "gemini_native_responsive_embed",
+      "preview_entry": "nh01_acceptance/gemini-native-preview.html?embed=responsive_design",
+      "status": "PREVIEW_ONLY",
+      "visual_review": "REQUIRED",
+      "android_runtime": "NOT_RUN",
+      "asset_manifest": "design/manager/nh01_acceptance/NH01_Gemini_Native_Asset_Binding_V1.json",
+      "structure_snapshot": "release/design_manager/NH01_GEMINI_STRUCTURE_ALIGNMENT_V1.json",
+      "implementation_contract": "design/pages/home/normal_home/engineering/Gemini_Native_Implementation_Contract_V3.md",
+      "evidence": [
+        {"label": "当前视口 390×844 · 字体 1.5× 截图", "path": "nh01_acceptance/evidence/nh01-responsive-current-390x844-font-1_5.png"},
+        {"label": "全部视口 / 字体矩阵与 Chromium 报告", "path": "nh01_acceptance/evidence/NH01_Workspace_Browser_Verification.json"}
+      ]
+    }
+  ]
+}

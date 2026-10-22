@@ -58,6 +58,87 @@ def validate_tree(root: Path, *, built: bool = False, expected_build: str | None
     if nav_ids != EXPECTED_NORMAL_HOME:
         fail(f"Normal Home navigation changed: {nav_ids} != {EXPECTED_NORMAL_HOME}")
 
+    # Design Manager workspaces are an independent navigation contract. They must never
+    # become NH page-state entries or mutate the frozen NH01–NH07 sequence.
+    workspace_registry_path = design / "manager" / "workspace_registry.json"
+    workspaces = load_json(workspace_registry_path)
+    expected_workspaces = [
+        ("structured_hifi", "结构化高保真", "#page/home_normal_v1/workspace/structured_hifi", "gemini_native_structured_embed", "structured_hifi"),
+        ("responsive_design", "响应式设计", "#page/home_normal_v1/workspace/responsive_design", "gemini_native_responsive_embed", "responsive_design"),
+    ]
+    if workspaces.get("schema") != "YUJIAN_DESIGN_MANAGER_WORKSPACE_REGISTRY_V1":
+        fail("Design Manager workspace registry schema missing")
+    if workspaces.get("parent_page_id") != "home_normal_v1" or workspaces.get("navigation_group") != "设计工作台":
+        fail("NH01 Design Manager workbench must be a separate home_normal_v1 navigation group")
+    registered_workspaces = workspaces.get("workspaces", [])
+    actual_workspaces = [
+        (item.get("id"), item.get("title"), item.get("route"), item.get("render_mode"),
+         item.get("preview_entry", "").split("embed=")[-1])
+        for item in registered_workspaces
+    ]
+    if actual_workspaces != expected_workspaces:
+        fail(f"Design Manager workspace IDs/routes/render modes changed: {actual_workspaces}")
+    if set(item[0] for item in expected_workspaces) & set(hifi_ids):
+        fail("Design Manager workspace IDs must not be counted as NH01–NH07 page states")
+    app_source = app_path.read_text(encoding="utf-8") if app_path.exists() else ""
+    if "WORKSPACE_REGISTRY_URL" not in app_source or "selectWorkspace" not in app_source:
+        fail("Design Manager must load the separate workspace registry and render internal workspace routes")
+    gemini_entry = design / "manager" / "nh01_acceptance" / "gemini-native-preview.html"
+    if not gemini_entry.is_file():
+        fail("Gemini Native V3 preview entry is missing")
+    manifest_path = root / registered_workspaces[0].get("asset_manifest", "")
+    manifest = load_json(manifest_path)
+    if manifest.get("schema") != "NH01_GEMINI_NATIVE_PREVIEW_ASSET_BINDING_V1":
+        fail("Gemini Native asset Manifest schema mismatch")
+    authority = manifest.get("structure_authority", {})
+    if (
+        authority.get("alignment_snapshot") != registered_workspaces[0].get("structure_snapshot")
+        or authority.get("native_implementation_contract") != registered_workspaces[0].get("implementation_contract")
+    ):
+        fail("Workspace registry and Gemini asset Manifest disagree on authoritative sources")
+    for item in registered_workspaces:
+        if item.get("asset_manifest") != registered_workspaces[0].get("asset_manifest"):
+            fail("Both workspaces must share the same Gemini asset Manifest")
+        if item.get("structure_snapshot") != registered_workspaces[0].get("structure_snapshot") or item.get("implementation_contract") != registered_workspaces[0].get("implementation_contract"):
+            fail("Both workspaces must share the same structure snapshot and implementation contract")
+        preview_name, _, query = item.get("preview_entry", "").partition("?")
+        if preview_name != "nh01_acceptance/gemini-native-preview.html" or f"embed={item['id']}" not in query:
+            fail(f"Workspace preview entry must use the shared Gemini renderer: {item.get('id')}")
+        if not (design / "manager" / preview_name).is_file():
+            fail(f"Workspace Gemini preview route missing: {preview_name}")
+    for source_path, label in [
+        (registered_workspaces[0]["structure_snapshot"], "Gemini structure snapshot"),
+        (registered_workspaces[0]["implementation_contract"], "Gemini implementation contract"),
+    ]:
+        if not (root / source_path).is_file():
+            fail(f"{label} source is missing: {source_path}")
+    if "embed-structured" not in gemini_entry.read_text(encoding="utf-8") or "embed-responsive" not in gemini_entry.read_text(encoding="utf-8"):
+        fail("Shared Gemini preview must provide both internal Design Manager embed modes")
+    asset_rows = manifest.get("assets", [])
+    expected_public_assets = {"background", "brand", "avatar", "camera"}
+    public_assets = {item.get("id"): item for item in asset_rows if item.get("public_preview")}
+    if set(public_assets) != expected_public_assets:
+        fail(f"Gemini preview public asset allowlist changed: {sorted(public_assets)}")
+    preview_dir = (design / "manager" / "nh01_acceptance").resolve()
+    for asset_id, asset in public_assets.items():
+        preview_path = (preview_dir / asset.get("preview_path", "")).resolve()
+        if not preview_path.is_file() and not built and asset_id == "avatar":
+            # The original app asset is intentionally materialized into the preview bundle by Pages.
+            preview_path = (root / asset.get("source_path", "")).resolve()
+        if root.resolve() not in preview_path.parents or not preview_path.is_file():
+            fail(f"Gemini public preview asset missing or outside site root: {asset_id} {preview_path}")
+        asset_bytes = preview_path.read_bytes()
+        if hashlib.sha256(asset_bytes).hexdigest() != asset.get("sha256"):
+            fail(f"Gemini Manifest SHA-256 mismatch for {asset_id}")
+        if asset_bytes[:8] != b"\x89PNG\r\n\x1a\n" or len(asset_bytes) < 24:
+            fail(f"Gemini preview asset is not a valid PNG: {asset_id}")
+        actual_dim = struct.unpack(">II", asset_bytes[16:24])
+        if list(actual_dim) != asset.get("dimensions_px"):
+            fail(f"Gemini Manifest dimension mismatch for {asset_id}: {actual_dim}")
+    blocked = {item.get("id"): item for item in asset_rows if not item.get("public_preview")}
+    if blocked.get("hero_photo", {}).get("status") != "BLOCKED_ASSET_SOURCE" or blocked.get("neighbor_photos", {}).get("status") != "BLOCKED_MISSING_APPROVED_INDEPENDENT_ORIGINALS":
+        fail("Unapproved Hero/neighbor photos must remain explicit blocked placeholders")
+
     recognition = next((x for x in registry.get("features", []) if x.get("id") == "recognition_flow_v1_2"), None)
     if not recognition:
         fail("recognition_flow_v1_2 missing from experience registry")
@@ -168,7 +249,7 @@ def validate_tree(root: Path, *, built: bool = False, expected_build: str | None
     if not all(token in decision for token in ("68", "59", "BG_DATA", "FishRecord")):
         fail("Record Date known data/background exceptions must be documented")
 
-    app = app_path.read_text(encoding="utf-8") if app_path.exists() else ""
+    app = app_source
     required_logic = '(selectedKey === key || selectedKey.startsWith(key + "/"))'
     if required_logic not in app:
         fail("selected page no longer auto-expands its submenu")
