@@ -203,10 +203,17 @@ async function main() {
     const fixedResults=[];
     for (const profile of fixed) {
       const layout = await setViewport(page,profile.width,profile.height,1);
+      const filename=`fixed-${profile.width}x${profile.height}.png`;
+      await page.locator('#device').screenshot({path:join(evidenceDir,filename),animations:'disabled'});
+      report.screenshots.push(join(evidenceDir,filename));
+      fixedResults.push({profile_id:profile.id,requested_viewport_dp:[profile.width,profile.height],measured:layout});
+      report.checks.fixed_viewports=fixedResults;
       assert(layout.variant === 'ADAPTIVE_V2' && layout.contract_sha256 === contract.sha256, `${profile.id} did not use the loaded V2 contract`);
       assert(layout.content_width_dp <= 560 + 0.01, `${profile.id} exceeded the contract max content width`);
       assert(layout.measurements.horizontal_overflow_dp <= 0.5, `${profile.id} has horizontal overflow`);
       assert(layout.measurements.hero_overlap_footer <= 0.5, `${profile.id} Hero overlaps Footer`);
+      assert(layout.actual_bounds_dp.footer.top+0.5>=layout.actual_bounds_dp.middle.bottom,`${profile.id} Footer enters the Middle scroll viewport`);
+      if(layout.needs_scroll)assert(layout.scroll_metrics.middle_scroll_height_dp>layout.scroll_metrics.middle_client_height_dp+0.5,`${profile.id} contract-requested Middle scroll has no scrollable overflow`);
       assert(layout.measurements.camera_bottom_safe >= -0.5 && layout.measurements.camera_touch_bottom_safe >= -0.5, `${profile.id} camera artwork or touch area intrudes into bottom safe inset`);
       assert(layout.measurements.cta_camera_visual > 0 && layout.measurements.cta_camera_touch >= -0.5, `${profile.id} CTA and camera artwork/touch target are not a clear action group`);
       assert(numericDelta(layout.measurements.cta_camera_touch,layout.footer.cta_camera_gap_dp)<=0.5, `${profile.id} CTA-to-camera touch spacing does not match the responsive contract`);
@@ -214,10 +221,6 @@ async function main() {
       assert(layout.hero_aspect_ratio && numericDelta(layout.card_width_dp/layout.card_height_dp,layout.responsive_parameters.hero.aspect_ratio_width/layout.responsive_parameters.hero.aspect_ratio_height) < 0.015, `${profile.id} Hero aspect ratio is outside contract tolerance`);
       const target=contractJson.spacing.title_to_card_anchor_targets.find(item=>item.profile_id===profile.id);
       if(target) assert(numericDelta(layout.measurements.title_to_card,target.target_dp)<=target.tolerance_dp,`${profile.id} title-to-card gap ${layout.measurements.title_to_card.toFixed(2)}dp outside ${target.target_dp}±${target.tolerance_dp}dp`);
-      const filename=`fixed-${profile.width}x${profile.height}.png`;
-      await page.locator('#device').screenshot({path:join(evidenceDir,filename),animations:'disabled'});
-      report.screenshots.push(join(evidenceDir,filename));
-      fixedResults.push({profile_id:profile.id,requested_viewport_dp:[profile.width,profile.height],measured:layout});
     }
     assert(fixedResults.at(-1).measured.content_width_dp === 560, '600dp wide view did not center at the contract width cap');
     for(let index=1;index<fixedResults.length;index++){
@@ -283,6 +286,8 @@ async function main() {
           assert(layout.variant==='ADAPTIVE_V2'&&layout.contract_sha256===contract.sha256,`${probe.id} left contract-driven Adaptive V2`);
           assert(layout.measurements.horizontal_overflow_dp<=0.5,`${probe.id} has horizontal overflow`);
           assert(layout.measurements.hero_overlap_footer<=0.5,`${probe.id} Hero/Footer overlap`);
+          assert(layout.actual_bounds_dp.footer.top+0.5>=layout.actual_bounds_dp.middle.bottom,`${probe.id} Footer enters the Middle scroll viewport`);
+          if(layout.needs_scroll)assert(layout.scroll_metrics.middle_scroll_height_dp>layout.scroll_metrics.middle_client_height_dp+0.5,`${probe.id} contract-requested Middle scroll has no scrollable overflow`);
           assert(layout.measurements.camera_bottom_safe>=-0.5&&layout.measurements.camera_touch_bottom_safe>=-0.5,`${probe.id} camera or touch area is outside bottom safe area`);
           assert(layout.measurements.cta_camera_visual>0&&layout.measurements.cta_camera_touch>=-0.5,`${probe.id} CTA/camera visual or touch bounds collide`);
           assert(numericDelta(layout.measurements.cta_camera_touch,layout.footer.cta_camera_gap_dp)<=0.5,`${probe.id} CTA-to-camera touch spacing left the contract value`);

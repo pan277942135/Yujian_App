@@ -685,12 +685,14 @@
         const statsBounds = bounds(document.getElementById("statsBar"));
         const titleBounds = bounds(document.querySelector(".section-title"));
         const heroBounds = bounds(mainCatchCard);
+        const middleBounds = bounds(middleSection);
         const footerBounds = bounds(footerSection);
         const ctaBounds = bounds(document.getElementById("ctaLabel"));
         const cameraBounds = bounds(document.getElementById("assetCamera"));
         const cameraTouchBounds = bounds(document.getElementById("cameraButton"));
         const pageBounds = bounds(document.querySelector(".page-content"));
         const titleToCard = heroBounds.top - titleBounds.bottom;
+        const visibleHeroBottom = Math.min(heroBounds.bottom, middleBounds.bottom);
         const measurements = {
           header_to_stats: statsBounds.top - headerBounds.bottom,
           stats_to_title: titleBounds.top - statsBounds.bottom,
@@ -700,7 +702,8 @@
           cta_camera_touch: cameraTouchBounds.top - ctaBounds.bottom,
           camera_bottom_safe: pageBounds.bottom - cameraBounds.bottom,
           camera_touch_bottom_safe: pageBounds.bottom - cameraTouchBounds.bottom,
-          hero_overlap_footer: Math.max(0, heroBounds.bottom - footerBounds.top),
+          hero_overlap_footer: Math.max(0, visibleHeroBottom - footerBounds.top),
+          hero_content_beyond_middle: Math.max(0, heroBounds.bottom - middleBounds.bottom),
           horizontal_overflow_dp: Math.max(0, device.scrollWidth - device.clientWidth),
           middle_height_dp: middleHeight,
           available_card_height_dp: availableCardHeight
@@ -715,7 +718,8 @@
           gaps_dp:{...(layout.gaps_dp||{}),brand_to_stats:layout.brand_to_stats_gap_dp??layout.gaps_dp?.brand_to_stats,stats_to_title:layout.stats_to_title_gap_target_dp,title_to_card_target:layout.title_to_card_gap_target_dp,card_to_footer:layout.card_to_footer_gap_dp},
           neighbor_state:{previous_record_present:false,next_record_present:false,rendered:false,maximum_width_dp:cardWidth*p.neighbor.maximum_width_fraction_of_hero},
           text_lines:{species:countTextLines(document.querySelector(".catch-species")),measurement:countTextLines(document.querySelector(".catch-measure")),metadata:countTextLines(document.querySelector(".catch-location"))},
-          actual_bounds_dp:{header:headerBounds,stats:statsBounds,title:titleBounds,hero:heroBounds,footer:footerBounds,cta:ctaBounds,camera_visual:cameraBounds,camera_touch:cameraTouchBounds},
+          actual_bounds_dp:{header:headerBounds,stats:statsBounds,title:titleBounds,hero:heroBounds,middle:middleBounds,footer:footerBounds,cta:ctaBounds,camera_visual:cameraBounds,camera_touch:cameraTouchBounds},
+          scroll_metrics:{middle_client_height_dp:middleSection.clientHeight,middle_scroll_height_dp:middleSection.scrollHeight,middle_scroll_top_dp:middleSection.scrollTop,hero_content_beyond_middle_dp:Math.max(0,heroBounds.bottom-middleBounds.bottom)},
           device_scale:deviceScale
         };
         window.NH01GeminiPreviewLayout = layoutMetrics;
