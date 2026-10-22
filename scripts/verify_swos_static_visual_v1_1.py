@@ -93,13 +93,19 @@ require(static_view is not None and static_view.get("render_mode") == "swos_stat
 require(static_view.get("status") == "DESIGN_ONLY" and static_view.get("adoption_status") == "MAIN_ADOPTED_DESIGN_ONLY" and static_view.get("adoption_pr") == 190, "static contract must be main-adopted design-only")
 
 base_branch = os.environ.get("GITHUB_BASE_REF")
-base_ref = f"origin/{base_branch}" if base_branch else "origin/pr/186"
-verified_base = subprocess.run(["git", "rev-parse", "--verify", base_ref], cwd=ROOT, capture_output=True, text=True)
-if verified_base.returncode != 0:
-    fail(f"control-scope base ref is unavailable: {base_ref}")
-changed = subprocess.run(["git", "diff", "--name-only", base_ref, "HEAD"], cwd=ROOT, check=True, capture_output=True, text=True).stdout.splitlines()
-for path in changed:
-    require(not path.startswith("app/") and not path.startswith("android/") and not path.startswith("design/manager/rr09_motion/"), f"scope boundary violated by {path}")
+if base_branch:
+    base_ref = f"origin/{base_branch}"
+    verified_base = subprocess.run(["git", "rev-parse", "--verify", base_ref], cwd=ROOT, capture_output=True, text=True)
+    if verified_base.returncode != 0:
+        fail(f"control-scope base ref is unavailable: {base_ref}")
+    changed = subprocess.run(["git", "diff", "--name-only", base_ref, "HEAD"], cwd=ROOT, check=True, capture_output=True, text=True).stdout.splitlines()
+    for path in changed:
+        require(not path.startswith("app/") and not path.startswith("android/") and not path.startswith("design/manager/rr09_motion/"), f"scope boundary violated by {path}")
+    print(f"CONTROL_SCOPE=PASS base_ref={base_ref} changed_files={len(changed)}")
+else:
+    # The allowlist compares a PR head with its fetched PR base. Push/dispatch
+    # builds have no GITHUB_BASE_REF, so there is no meaningful scope diff.
+    print("CONTROL_SCOPE=SKIP reason=no_pull_request_base")
 
 print("SWOS_STATIC_VISUAL_V1_1=CONTRACT_PASS")
 print("FRAME_COUNTS=PROCESSING:8 RR09:7 TOTAL:15")

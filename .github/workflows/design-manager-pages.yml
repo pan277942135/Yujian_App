@@ -14,6 +14,7 @@ on:
       - "scripts/verify_design_manager_hifi_release.py"
       - "scripts/verify_design_manager_browser.mjs"
       - "scripts/verify_design_manager_live.py"
+      - "scripts/verify_swos_static_visual_v1_1.py"
       - ".github/workflows/experience-governance.yml"
       - ".github/workflows/design-manager-pages.yml"
   pull_request:
