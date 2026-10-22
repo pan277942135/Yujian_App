@@ -3208,11 +3208,10 @@
               "resource_manifest": "design/pages/recognition/first_use_camera_guide/manifest.json",
               "resource_ids": [
                 "p01",
-                "p02",
-                "p03"
+                "p02"
               ],
               "runtime_visual_authority": false,
-              "summary": "首次拍照教学的三张 Frozen 原始 PNG 静态资源目录。可预览、打开或下载原文件，并查看 Manifest、尺寸、字节数与 SHA-256；仅供设计资源使用，不映射为 Android 运行时背景。"
+              "summary": "首次拍照教学的两张有效 Frozen 原始 PNG 静态资源目录。可预览、打开或下载原文件，并查看 Manifest、尺寸、字节数与 SHA-256；前竖拍鱼体 P02 仅归档，旧 P03 横屏 PNG 以相同字节转为有效 P02；仅供设计资源使用，不映射为 Android 运行时背景。"
             }
           ],
           "visual_status": "FROZEN",
