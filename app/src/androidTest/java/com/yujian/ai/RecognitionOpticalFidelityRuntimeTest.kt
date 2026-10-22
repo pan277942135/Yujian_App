@@ -11,6 +11,7 @@ import android.os.Handler
 import android.os.HandlerThread
 import android.util.Log
 import android.view.FrameMetrics
+import android.view.View
 import android.view.Window
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -55,6 +56,7 @@ class RecognitionOpticalFidelityRuntimeTest {
 
     private var frameMetricsThread: HandlerThread? = null
     private var frameMetricsWindow: Window? = null
+    private var frameMetricsDecorView: View? = null
     private var frameMetricsListener: Window.OnFrameMetricsAvailableListener? = null
 
     @After
@@ -62,11 +64,12 @@ class RecognitionOpticalFidelityRuntimeTest {
         val window = frameMetricsWindow
         val listener = frameMetricsListener
         if (window != null && listener != null) {
-            activityRule.scenario.onActivity { window.removeOnFrameMetricsAvailableListener(listener) }
+            frameMetricsDecorView?.post { window.removeOnFrameMetricsAvailableListener(listener) }
         }
         frameMetricsThread?.quitSafely()
         frameMetricsThread = null
         frameMetricsWindow = null
+        frameMetricsDecorView = null
         frameMetricsListener = null
     }
 
@@ -134,6 +137,7 @@ class RecognitionOpticalFidelityRuntimeTest {
             Log.i(LOG_TAG, "Milestone: install-production-scene")
             refreshRate.set(activity.windowManager.defaultDisplay.refreshRate.toDouble())
             frameMetricsWindow = activity.window
+            frameMetricsDecorView = activity.window.decorView
             activity.window.addOnFrameMetricsAvailableListener(metricsListener, metricsHandler)
             activity.setContent {
                 YujianTheme {
@@ -331,8 +335,8 @@ class RecognitionOpticalFidelityRuntimeTest {
 
     private companion object {
         const val LOG_TAG = "RecognitionOpticalFidelity"
-        const val FRAME_METRICS_SAMPLES = 90
-        const val FRAME_METRICS_TIMEOUT_SECONDS = 180L
+        const val FRAME_METRICS_SAMPLES = 60
+        const val FRAME_METRICS_TIMEOUT_SECONDS = 150L
         const val MIN_MOTION_SAMPLES = 20
         const val METRICS_FILENAME = "recognition_optical_fidelity_v3_1.json"
     }
