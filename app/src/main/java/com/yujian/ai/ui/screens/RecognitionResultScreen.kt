@@ -6,7 +6,6 @@ import android.content.pm.PackageManager
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -53,12 +52,16 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.State
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -70,10 +73,11 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.asAndroidBitmap
-import androidx.compose.ui.graphics.FilterQuality
+import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.layout.boundsInWindow
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
@@ -85,6 +89,7 @@ import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
@@ -96,12 +101,11 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.compose.foundation.relocation.BringIntoViewRequester
 import androidx.compose.foundation.relocation.bringIntoViewRequester
-import androidx.compose.ui.graphics.drawscope.clipRect
-import androidx.compose.ui.unit.IntOffset
-import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.draw.drawWithContent
 import com.yujian.ai.ai.ProductionRecognitionResult
 import com.yujian.ai.ai.FishInputStatus
 import com.yujian.ai.ai.subject.FishSubjectResult
@@ -132,6 +136,25 @@ import com.yujian.ai.ui.adaptive.rememberSafeDrawingInsets
 import com.yujian.ai.ui.identify.RecognitionUiState
 import com.yujian.ai.ui.identify.recognitionFeedbackType
 import com.yujian.ai.ui.identify.resolveRecognitionResultState
+import com.yujian.ai.ui.identify.NormalizedSourceRect
+import com.yujian.ai.ui.imagery.PhotoCropRect
+import com.yujian.ai.ui.recognition.rememberRecognitionMotionPolicy
+import com.yujian.ai.ui.recognition.reveal.RecognitionRevealClock
+import com.yujian.ai.ui.recognition.reveal.RecognitionRevealEligibility
+import com.yujian.ai.ui.recognition.reveal.RecognitionRevealFrame
+import com.yujian.ai.ui.recognition.reveal.RecognitionRevealGeometry
+import com.yujian.ai.ui.recognition.reveal.RecognitionRevealGeometryResolver
+import com.yujian.ai.ui.recognition.reveal.RecognitionRevealGeometryResolution
+import com.yujian.ai.ui.recognition.reveal.RecognitionRevealHandoff
+import com.yujian.ai.ui.recognition.reveal.RecognitionRevealHeroSnapshot
+import com.yujian.ai.ui.recognition.reveal.RecognitionRevealKey
+import com.yujian.ai.ui.recognition.reveal.RecognitionRevealMotionPolicy
+import com.yujian.ai.ui.recognition.reveal.RecognitionRevealOpticalOverlay
+import com.yujian.ai.ui.recognition.reveal.RecognitionRevealPhotoGeometry
+import com.yujian.ai.ui.recognition.reveal.RecognitionRevealPhase
+import com.yujian.ai.ui.recognition.reveal.RecognitionRevealTitleMode
+import com.yujian.ai.ui.recognition.reveal.RecognitionRevealWindowRect
+import com.yujian.ai.ui.recognition.reveal.resolveRecognitionScientificName
 import com.yujian.ai.ui.recognition.result.RecognitionPlace
 import com.yujian.ai.ui.recognition.result.RecognitionPlaceRecentStore
 import com.yujian.ai.ui.recognition.result.RecognitionResultGeometryResolver
@@ -148,6 +171,7 @@ import com.yujian.ai.ui.theme.MutedInk
 import com.yujian.ai.ui.theme.SoftWater
 import com.yujian.ai.ui.theme.WaterTeal
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import org.json.JSONObject
 import java.text.SimpleDateFormat
@@ -179,8 +203,26 @@ fun RecognitionResultScreen(
     onLoginRequired: () -> Unit = {},
     availableSpecies: List<FishGuideItem> = emptyList(),
     speciesCoverUrlFor: (String?) -> String? = { it },
+    revealHandoff: RecognitionRevealHandoff? = null,
+    revealAlreadyPlayed: Boolean = false,
+    onClaimReveal: (RecognitionRevealKey) -> Boolean = { true },
+    onRevealFinished: (RecognitionRevealKey) -> Unit = {},
+    revealElapsedOverrideMs: Long? = null,
+    revealMotionPolicyOverride: RecognitionRevealMotionPolicy? = null,
+    revealGeometryResolutionObserver: ((RecognitionRevealGeometryResolution?) -> Unit)? = null,
     onSave: (CatchSaveDraft, FeedbackDraft, RecognitionSaveDestination) -> Unit,
 ) {
+    var rootBounds by remember { mutableStateOf<RecognitionRevealWindowRect?>(null) }
+    var heroSnapshot by remember(image?.imageId) { mutableStateOf<RecognitionRevealHeroSnapshot?>(null) }
+    var revealTitleBounds by remember(image?.imageId) { mutableStateOf<RecognitionRevealWindowRect?>(null) }
+    val revealElapsedState = remember(revealHandoff?.key) {
+        mutableStateOf(if (revealAlreadyPlayed || revealHandoff == null) RecognitionRevealClock.TOTAL_DURATION_MS else 0L)
+    }
+    val systemMotionPolicy = rememberRecognitionMotionPolicy()
+    val revealMotionPolicy = revealMotionPolicyOverride ?: RecognitionRevealMotionPolicy(
+        reduceMotion = systemMotionPolicy.reduceMotion,
+        lowPerformance = systemMotionPolicy.lowPerformance,
+    )
     val uiState = remember(prediction) { resolveRecognitionResultState(prediction) }
     val visualState = when (uiState) {
         RecognitionUiState.RESULT_HIGH -> RecognitionResultVisualState.HIGH
@@ -222,6 +264,7 @@ fun RecognitionResultScreen(
     var selectedName by rememberSaveable(prediction, uiState) {
         mutableStateOf(if (uiState == RecognitionUiState.RESULT_HIGH) prediction.top1.speciesName else "")
     }
+    val selectedScientificName = resolveRecognitionScientificName(selectedKey, availableSpecies)
     var selectorVisible by remember(prediction, uiState) { mutableStateOf(false) }
     val selectorEntryContext = when {
         uiState == RecognitionUiState.RESULT_MEDIUM && selectedKey.isBlank() -> SpeciesSelectorEntryContext.MEDIUM_OTHER
@@ -297,6 +340,73 @@ fun RecognitionResultScreen(
     val primaryFishAmbiguous = resultAssessment?.let {
         it.status == FishInputStatus.MULTIPLE_FISH || it.strongDetections.size > 1
     } == true
+
+    val photoTransitionGeometry = remember(revealHandoff, heroSnapshot, rootBounds) {
+        if (revealHandoff == null || heroSnapshot == null || rootBounds == null) null
+        else RecognitionRevealGeometryResolver.resolvePhoto(
+            handoff = revealHandoff,
+            hero = requireNotNull(heroSnapshot),
+            rootBoundsInWindow = requireNotNull(rootBounds),
+        )
+    }
+    val revealGeometryResolution = remember(revealHandoff, heroSnapshot, revealTitleBounds, rootBounds) {
+        if (revealHandoff == null) null
+        else when {
+            rootBounds == null -> RecognitionRevealGeometryResolution(null, "LAYOUT_ROOT_PENDING")
+            heroSnapshot == null -> RecognitionRevealGeometryResolution(null, "LAYOUT_HERO_PENDING")
+            revealTitleBounds == null -> RecognitionRevealGeometryResolution(null, "LAYOUT_TITLE_PENDING")
+            else -> RecognitionRevealGeometryResolver.resolveDetailed(
+                handoff = revealHandoff,
+                hero = requireNotNull(heroSnapshot),
+                titleBoundsInWindow = requireNotNull(revealTitleBounds),
+                rootBoundsInWindow = requireNotNull(rootBounds),
+            )
+        }
+    }
+    val revealGeometry = revealGeometryResolution?.geometry
+    SideEffect {
+        if (revealHandoff != null) {
+            revealGeometryResolutionObserver?.invoke(revealGeometryResolution)
+        }
+    }
+    val visualHandoff = if (
+        revealHandoff?.eligibility == RecognitionRevealEligibility.FULL_REVEAL && revealGeometry == null
+    ) revealHandoff.copy(eligibility = RecognitionRevealEligibility.TITLE_FADE_ONLY) else revealHandoff
+    val revealFrameState = remember(visualHandoff, revealMotionPolicy, revealElapsedOverrideMs, revealElapsedState) {
+        derivedStateOf {
+            RecognitionRevealClock.evaluate(
+                elapsedMs = revealElapsedOverrideMs ?: revealElapsedState.value,
+                handoff = visualHandoff,
+                policy = revealMotionPolicy,
+            )
+        }
+    }
+
+    LaunchedEffect(revealHandoff?.key, revealAlreadyPlayed, revealMotionPolicy.reduceMotion, revealElapsedOverrideMs) {
+        val handoff = revealHandoff ?: return@LaunchedEffect
+        if (revealElapsedOverrideMs != null) return@LaunchedEffect
+        if (revealAlreadyPlayed || !onClaimReveal(handoff.key)) {
+            revealElapsedState.value = RecognitionRevealClock.TOTAL_DURATION_MS
+            onRevealFinished(handoff.key)
+            return@LaunchedEffect
+        }
+        if (revealMotionPolicy.reduceMotion) {
+            revealElapsedState.value = RecognitionRevealClock.TOTAL_DURATION_MS
+            onRevealFinished(handoff.key)
+            return@LaunchedEffect
+        }
+        val startFrameNanos = withFrameNanos { it }
+        revealElapsedState.value = 0L
+        while (isActive) {
+            val frameNanos = withFrameNanos { it }
+            val elapsed = ((frameNanos - startFrameNanos) / 1_000_000L).coerceAtLeast(0L)
+            revealElapsedState.value = elapsed.coerceAtMost(RecognitionRevealClock.TOTAL_DURATION_MS)
+            if (elapsed >= RecognitionRevealClock.TOTAL_DURATION_MS) {
+                onRevealFinished(handoff.key)
+                break
+            }
+        }
+    }
 
     fun save(destination: RecognitionSaveDestination) {
         if (saving || saveRequested) return
@@ -421,7 +531,12 @@ fun RecognitionResultScreen(
 
     val saveBusy = saving || saveRequested
     val activeLoadingDestination = requestedSaveDestination.takeIf { saveRequested }
-    Box(Modifier.fillMaxSize()) {
+    Box(
+        Modifier.fillMaxSize().onGloballyPositioned { coordinates ->
+            val bounds = coordinates.boundsInWindow()
+            rootBounds = RecognitionRevealWindowRect(bounds.left, bounds.top, bounds.right, bounds.bottom)
+        },
+    ) {
         BgContentSurface()
         Column(Modifier.fillMaxSize()) {
             YuJianBackCenterTitleTopBar(title = "识别结果", onBack = { requestExit(PendingExitAction.BACK) }, backEnabled = !saving && !saveRequested)
@@ -449,6 +564,12 @@ fun RecognitionResultScreen(
                         heightDp = geometry.heroHeightDp,
                         evidenceFirst = uiState == RecognitionUiState.ERROR_NO_FISH ||
                             uiState == RecognitionUiState.ERROR_IMAGE_QUALITY,
+                        revealFrameState = revealFrameState,
+                        sharedPhotoGeometryReady = photoTransitionGeometry != null,
+                        holdPhotoUntilReady = heroSnapshot?.renderReady == false,
+                        onHeroSnapshot = { bounds, cropRect, ready ->
+                            heroSnapshot = RecognitionRevealHeroSnapshot(bounds, cropRect, ready)
+                        },
                     )
                 }
                 Spacer(Modifier.height(12.dp))
@@ -457,9 +578,12 @@ fun RecognitionResultScreen(
                     RecognitionUiState.RESULT_HIGH -> {
                         SpeciesIdentityRow(
                             speciesName = selectedName,
+                            scientificName = selectedScientificName,
                             sideMargin = sideMargin,
                             widthDp = geometry.heroWidthDp,
                             enabled = !saveBusy,
+                            revealFrameState = revealFrameState,
+                            onTitleBounds = { revealTitleBounds = it },
                             onChange = { openSpeciesSelector() },
                         )
                         Spacer(Modifier.height(8.dp))
@@ -534,7 +658,14 @@ fun RecognitionResultScreen(
                         }
                         if (selectedKey.isNotBlank()) {
                             Spacer(Modifier.height(12.dp))
-                            SpeciesIdentityRow(selectedName, sideMargin, widthDp = geometry.heroWidthDp, enabled = !saveBusy, onChange = { openSpeciesSelector() })
+                            SpeciesIdentityRow(
+                                speciesName = selectedName,
+                                sideMargin = sideMargin,
+                                widthDp = geometry.heroWidthDp,
+                                scientificName = selectedScientificName,
+                                enabled = !saveBusy,
+                                onChange = { openSpeciesSelector() },
+                            )
                             Spacer(Modifier.height(8.dp))
                             ResultMetadataStrip(lengthText, weightText, locationText, resolvingLocation, Modifier.fillMaxWidth().padding(horizontal = sideMargin), accessibilityFontScale = adaptiveProfile.accessibilityFontScale, enabled = !saveBusy) { editField = it }
                             Spacer(Modifier.height(12.dp))
@@ -583,7 +714,14 @@ fun RecognitionResultScreen(
                                     )
                                 }
                             } else {
-                                SpeciesIdentityRow(selectedName, sideMargin, widthDp = geometry.heroWidthDp, enabled = !saveBusy) { openSpeciesSelector() }
+                                SpeciesIdentityRow(
+                                    speciesName = selectedName,
+                                    sideMargin = sideMargin,
+                                    widthDp = geometry.heroWidthDp,
+                                    scientificName = selectedScientificName,
+                                    enabled = !saveBusy,
+                                    onChange = { openSpeciesSelector() },
+                                )
                                 ResultMetadataStrip(lengthText, weightText, locationText, resolvingLocation, Modifier.fillMaxWidth(), accessibilityFontScale = adaptiveProfile.accessibilityFontScale, enabled = !saveBusy) { editField = it }
                                 ResultMemoryNote(storyText, { storyText = it.takeUnicodeCodePoints(300) }, Modifier.fillMaxWidth(), enabled = !saveBusy, accessibilityFontScale = adaptiveProfile.accessibilityFontScale)
                                 ResultInlineError(
@@ -609,6 +747,15 @@ fun RecognitionResultScreen(
                 Spacer(Modifier.height(20.dp))
             }
         }
+        RecognitionRevealOpticalOverlay(
+            modifier = Modifier.fillMaxSize(),
+            bitmap = image?.bitmap,
+            handoff = revealHandoff,
+            photoGeometry = photoTransitionGeometry,
+            geometry = revealGeometry,
+            frameState = revealFrameState,
+            holdPhotoUntilHeroReady = heroSnapshot?.renderReady == false,
+        )
     }
 
     if (selectorVisible) {
@@ -726,13 +873,36 @@ fun ResultHeroViewport(
     widthDp: Int,
     heightDp: Int,
     evidenceFirst: Boolean = false,
+    revealFrameState: State<RecognitionRevealFrame>? = null,
+    sharedPhotoGeometryReady: Boolean = false,
+    holdPhotoUntilReady: Boolean = false,
+    onHeroSnapshot: ((RecognitionRevealWindowRect, NormalizedSourceRect?, Boolean) -> Unit)? = null,
 ) {
     val shape = YuJianRadius.resultHero
+    val revealFrame = revealFrameState?.value
+    val hideForSharedPhotoTransition = sharedPhotoGeometryReady && revealFrame != null &&
+        (revealFrame.photoProgress < 1f || holdPhotoUntilReady)
+    var heroBounds by remember(bitmap) { mutableStateOf<RecognitionRevealWindowRect?>(null) }
+    var plannedCrop by remember(bitmap) { mutableStateOf<PhotoCropRect?>(null) }
+    var renderReady by remember(bitmap) { mutableStateOf(false) }
+    LaunchedEffect(heroBounds, plannedCrop, renderReady) {
+        val bounds = heroBounds ?: return@LaunchedEffect
+        onHeroSnapshot?.invoke(
+            bounds,
+            plannedCrop?.let { NormalizedSourceRect(it.left, it.top, it.right, it.bottom) },
+            renderReady,
+        )
+    }
     Box(
         Modifier
             .width(widthDp.dp)
             .height(heightDp.dp)
             .clip(shape)
+            .graphicsLayer(alpha = if (hideForSharedPhotoTransition) 0f else 1f)
+            .onGloballyPositioned { coordinates ->
+                val bounds = coordinates.boundsInWindow()
+                heroBounds = RecognitionRevealWindowRect(bounds.left, bounds.top, bounds.right, bounds.bottom)
+            }
             .background(Color(0xFF16242C), shape)
             .border(1.dp, Color.White.copy(alpha = 0.42f), shape)
             .testTag("recognition-result-hero"),
@@ -744,6 +914,10 @@ fun ResultHeroViewport(
             boundingBox = bbox,
             primaryAmbiguous = primaryAmbiguous,
             allowSubjectCrop = !evidenceFirst,
+            onRenderGeometry = { crop, ready ->
+                plannedCrop = crop
+                renderReady = ready
+            },
         )
     }
 }
@@ -753,28 +927,104 @@ private fun SpeciesIdentityRow(
     speciesName: String,
     sideMargin: Dp,
     widthDp: Int,
+    scientificName: String? = null,
     enabled: Boolean = true,
+    revealFrameState: State<RecognitionRevealFrame>? = null,
+    onTitleBounds: ((RecognitionRevealWindowRect) -> Unit)? = null,
     onChange: () -> Unit,
 ) {
     val compactTitle = widthDp <= 359
+    val revealFrame = revealFrameState?.value
+    val revealTitleMode = revealFrame?.titleMode ?: RecognitionRevealTitleMode.VISIBLE
+    val revealFormationProgress = revealFrame?.titleFormationProgress ?: 1f
+    val revealProgress = revealFrame?.titleRevealProgress ?: 1f
+    val visibleTitleAlpha = when (revealTitleMode) {
+        RecognitionRevealTitleMode.STATIC,
+        RecognitionRevealTitleMode.VISIBLE -> 1f
+        RecognitionRevealTitleMode.HIDDEN -> 0f
+        RecognitionRevealTitleMode.FORMING -> .14f
+        RecognitionRevealTitleMode.REVEALING -> revealProgress.coerceIn(0f, 1f)
+    }
     Row(
         Modifier
             .fillMaxWidth()
             .padding(horizontal = sideMargin)
             .heightIn(min = 44.dp)
+            .onGloballyPositioned { coordinates ->
+                val bounds = coordinates.boundsInWindow()
+                onTitleBounds?.invoke(RecognitionRevealWindowRect(bounds.left, bounds.top, bounds.right, bounds.bottom))
+            }
             .testTag("recognition-result-species"),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(
-            resultSpeciesDisplayName(speciesName),
-            modifier = Modifier.weight(1f),
-            color = DeepInk,
-            fontSize = if (compactTitle) 28.sp else 30.sp,
-            lineHeight = if (compactTitle) 34.sp else 36.sp,
-            fontWeight = FontWeight.SemiBold,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-        )
+        Column(Modifier.weight(1f)) {
+            Text(
+                resultSpeciesDisplayName(speciesName),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .graphicsLayer(alpha = visibleTitleAlpha)
+                    .drawWithContent {
+                        val fraction = when (revealTitleMode) {
+                            RecognitionRevealTitleMode.HIDDEN -> 0f
+                            RecognitionRevealTitleMode.FORMING -> .04f + .38f * revealFormationProgress.coerceIn(0f, 1f)
+                            RecognitionRevealTitleMode.REVEALING -> revealProgress.coerceIn(0f, 1f)
+                            RecognitionRevealTitleMode.STATIC,
+                            RecognitionRevealTitleMode.VISIBLE -> 1f
+                        }
+                        if (fraction > 0f) {
+                            val canvas = drawContext.canvas.nativeCanvas
+                            val saveCount = canvas.save()
+                            try {
+                                canvas.clipRect(0f, 0f, size.width * fraction, size.height)
+                                drawContent()
+                            } finally {
+                                canvas.restoreToCount(saveCount)
+                            }
+                        }
+                    }
+                    .testTag("recognition-result-species-name"),
+                color = DeepInk,
+                fontSize = if (compactTitle) 28.sp else 30.sp,
+                lineHeight = if (compactTitle) 34.sp else 36.sp,
+                fontWeight = FontWeight.SemiBold,
+                overflow = TextOverflow.Clip,
+            )
+            scientificName?.takeIf(String::isNotBlank)?.let { latinName ->
+                Text(
+                    latinName,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .graphicsLayer(alpha = visibleTitleAlpha)
+                        .drawWithContent {
+                            val fraction = when (revealTitleMode) {
+                                RecognitionRevealTitleMode.HIDDEN -> 0f
+                                RecognitionRevealTitleMode.FORMING -> .04f + .38f * revealFormationProgress.coerceIn(0f, 1f)
+                                RecognitionRevealTitleMode.REVEALING -> revealProgress.coerceIn(0f, 1f)
+                                RecognitionRevealTitleMode.STATIC,
+                                RecognitionRevealTitleMode.VISIBLE -> 1f
+                            }
+                            if (fraction > 0f) {
+                                val canvas = drawContext.canvas.nativeCanvas
+                                val saveCount = canvas.save()
+                                try {
+                                    canvas.clipRect(0f, 0f, size.width * fraction, size.height)
+                                    drawContent()
+                                } finally {
+                                    canvas.restoreToCount(saveCount)
+                                }
+                            }
+                        }
+                        .testTag("recognition-result-scientific-name"),
+                    color = MutedInk,
+                    fontSize = 13.sp,
+                    lineHeight = 18.sp,
+                    fontStyle = FontStyle.Italic,
+                    fontWeight = FontWeight.Normal,
+                    softWrap = true,
+                    overflow = TextOverflow.Clip,
+                )
+            }
+        }
         Row(
             modifier = Modifier
                 .clickable(enabled = enabled, role = Role.Button, onClick = onChange)

@@ -298,9 +298,14 @@ def validate_pages(data: dict, shared_by_id: dict[str, dict]) -> list[str]:
                             f"{feature_id}/{view_id}/{child_id}.secondary_authority",
                             child.get("secondary_authority"),
                         )
+                        _check_path(
+                            errors,
+                            f"{feature_id}/{view_id}/{child_id}.resource_manifest",
+                            child.get("resource_manifest"),
+                        )
 
                         authority_type = child.get("authority_type")
-                        if authority_type not in {None, "visual", "behavior"}:
+                        if authority_type not in {None, "visual", "behavior", "asset_catalog"}:
                             errors.append(
                                 f"{feature_id}/{view_id}/{child_id}: invalid authority_type {authority_type!r}"
                             )

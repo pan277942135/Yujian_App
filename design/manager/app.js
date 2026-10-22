@@ -324,15 +324,15 @@ function renderLists() {
 
       const renderNestedChild = child => {
         const childKey = viewKey + "/" + child.id;
-        const childCode = child.code || child.id.toUpperCase().replace("_"," · ");
+        const childCode = child.show_code === false ? "" : (child.code || child.id.toUpperCase().replace("_"," · "));
         const childName = child.title.replace(/^[A-Z]\d+\s*·\s*/, "");
         return '<button class="page-subsubitem' + (selectedKey === childKey ? " active" : "") +
           '" data-kind="page-hifi-child" data-page-id="' + esc(feature.id) +
           '" data-hifi-id="' + esc(view.id) +
           '" data-hifi-child-id="' + esc(child.id) + '">' +
-          '<span class="subsub-code">' + esc(childCode) + '</span>' +
+          (childCode ? '<span class="subsub-code">' + esc(childCode) + '</span>' : '') +
           '<span class="subsub-name">' + esc(childName) + '</span>' +
-          '<span class="subsub-type">' + esc(child.authority_type === "behavior" ? "行为" : "视觉") + '</span>' +
+          '<span class="subsub-type">' + esc(child.authority_type === "behavior" ? "行为" : child.authority_type === "asset_catalog" ? "资源" : "视觉") + '</span>' +
           statusBadge(child.status || view.status || "PARTIAL") +
         '</button>';
       };
@@ -349,6 +349,7 @@ function renderLists() {
         child.authority_type === "behavior" &&
         !["state","spec","visual_reference"].includes(child.menu_group)
       );
+      const resourceChildren = childItems.filter(child => child.menu_group === "resource");
       const nested = [
         visualChildren.length
           ? '<div class="subsub-group-label">高保真页面</div>' + visualChildren.map(renderNestedChild).join("")
@@ -364,7 +365,8 @@ function renderLists() {
           : "",
         behaviorChildren.length
           ? '<div class="subsub-group-label">交互规范</div>' + behaviorChildren.map(renderNestedChild).join("")
-          : ""
+          : "",
+        resourceChildren.map(renderNestedChild).join("")
       ].join("");
 
       return parentView + (nested ? '<div class="page-subsublist">' + nested + '</div>' : '');
@@ -2403,6 +2405,72 @@ function recognitionDecisionLogicCanvas(view) {
   '</div>';
 }
 
+function recognitionFullFlowModelsCanvas(view) {
+  const asText = value => Array.isArray(value) ? value.join("；") : (value || "—");
+  const flowPath = view.image || null;
+  const stepCards = (view.workflow_steps || []).map((step, index) =>
+    '<article class="authority-index-card">' +
+      '<div class="authority-index-head"><strong>' +
+        esc(String(step.order || index + 1).padStart(2, "0") + " · " + step.title) +
+      '</strong></div>' +
+      '<div class="authority-kind">' + esc(step.owner || "流程阶段") + '</div>' +
+      '<p><b>输入</b> · ' + esc(asText(step.input)) + '</p>' +
+      '<p><b>处理</b> · ' + esc(asText(step.operation)) + '</p>' +
+      '<p><b>输出</b> · ' + esc(asText(step.output)) + '</p>' +
+    '</article>'
+  ).join("");
+  const modelCards = (view.model_responsibilities || []).map(model =>
+    '<article class="authority-index-card">' +
+      '<div class="authority-index-head"><strong>' + esc(model.title) + '</strong>' +
+        statusBadge("DESIGN_ONLY") + '</div>' +
+      '<div class="authority-kind">职责 · ' + esc(model.id || "MODEL / RULE") + '</div>' +
+      '<p><b>回答</b> · ' + esc(asText(model.question)) + '</p>' +
+      '<p><b>输入</b> · ' + esc(asText(model.input)) + '</p>' +
+      '<p><b>输出</b> · ' + esc(asText(model.output)) + '</p>' +
+      '<p><b>边界</b> · ' + esc(asText(model.boundary)) + '</p>' +
+      '<p><b>版本规则</b> · ' + esc(asText(model.version_note)) + '</p>' +
+    '</article>'
+  ).join("");
+  const branchCards = (view.decision_branches || []).map((branch, index) =>
+    '<article class="authority-index-card">' +
+      '<div class="authority-index-head"><strong>' +
+        esc(String(index + 1).padStart(2, "0") + " · " + branch.title) +
+      '</strong></div>' +
+      '<div class="authority-kind">决策分支</div>' +
+      '<p><b>条件</b> · ' + esc(asText(branch.condition)) + '</p>' +
+      '<p><b>结果</b> · ' + esc(asText(branch.outcome)) + '</p>' +
+      '<p><b>规则</b> · ' + esc(asText(branch.rule)) + '</p>' +
+    '</article>'
+  ).join("");
+  const testCards = (view.acceptance_scenarios || []).map((scenario, index) =>
+    '<article class="authority-index-card">' +
+      '<div class="authority-index-head"><strong>' +
+        esc(String(index + 1).padStart(2, "0") + " · " + scenario) +
+      '</strong></div><div class="authority-kind">端到端验收场景</div>' +
+    '</article>'
+  ).join("");
+  return '<div class="authority-index recognition-full-flow-models">' +
+    '<div class="authority-index-intro"><strong>业务 / 技术全流程</strong>' +
+      '<span>' + esc(view.summary || "从原始完整场景图到检测、分类、结果融合与用户确认。") +
+      ' 本页是 DESIGN ONLY 流程权威，不是单页高保真，也不声明生产模型版本已切换。</span></div>' +
+    (flowPath && isImage(flowPath)
+      ? hifiImageFigure(flowPath, view.title || "识别全流程-和模型", view.diagram_caption || "业务 / 技术流程图 · DESIGN ONLY")
+      : '<div class="preview-empty">流程图资产尚未登记。</div>') +
+    '<div class="authority-index-intro"><strong>01 · 全流程阶段</strong>' +
+      '<span>检测、坐标映射、尺寸判断、裁剪与分类是内部技术步骤，不等同于新增产品 Processing 状态。</span></div>' +
+    '<div class="authority-index-grid">' + stepCards + '</div>' +
+    '<div class="authority-index-intro"><strong>02 · 模型与规则职责</strong>' +
+      '<span>DET_FISH 找鱼并定位；质量/尺寸门判断能否继续；MODEL_M1 对有效 Crop 分类；结果融合遵循 RR07。</span></div>' +
+    '<div class="authority-index-grid">' + modelCards + '</div>' +
+    '<div class="authority-index-intro"><strong>03 · 关键决策分支</strong>' +
+      '<span>无鱼、图像质量、物种不确定与技术失败必须区分，不能互相冒充。</span></div>' +
+    '<div class="authority-index-grid">' + branchCards + '</div>' +
+    '<div class="authority-index-intro"><strong>04 · 端到端验收矩阵</strong>' +
+      '<span>以下场景用于后续测试计划；本菜单本身不代表运行时已通过。</span></div>' +
+    '<div class="authority-index-grid">' + testCards + '</div>' +
+  '</div>';
+}
+
 function recognitionMainJourneyOverviewCanvas(view) {
   const links = (view.journey_links || []).map(link =>
     '<a class="hifi-overview-link" href="' + esc(link.route) + '">' +
@@ -2479,6 +2547,24 @@ function recognitionMasterBoardCanvas(child) {
 }
 
 function genericSpecHifiCanvas(feature, view) {
+  if (feature.id === "recognition_result_v1" && view.render_mode === "recognition_result_motion_playable") {
+    const href="./rr09_motion/";
+    const points=view.menu_points||[];
+    return '<div class="authority-index">' +
+      '<div class="authority-index-intro"><strong>RR09 · 金光转译揭晓 · 可播放原型</strong>' +
+        '<span>真实鱼获照片经 SHA-256 校验；逐帧播放、拖动时间轴、验证 Reduced Motion / 低性能回退。规格已冻结，浏览器验收与 Android Runtime 分开记录。</span></div>' +
+      '<div class="authority-index-card">' +
+        '<div class="authority-index-head"><strong>PLAYABLE REVIEW · MOTION V2</strong>' + statusBadge("FROZEN") + '</div>' +
+        '<p>六个关键帧：鱼体高亮 → 照片接续 → 金光向下转移 → 名称凝结 → 中英鱼种名揭晓 → 余辉消散。</p>' +
+        '<p><a class="primary-button" href="'+esc(href)+'" target="_blank" rel="noopener noreferrer">▶ 打开可播放原型与完整验收控制台 ↗</a></p>' +
+        '<p>照片来源：现有真实鱼获资产；鱼体轮廓为人工视觉参考，不得当作生产检测 Mask。示例鱼种名不等于模型对照片的推理结论。</p></div>' +
+      '<iframe title="RR09 · 动效接续 · 金光转译可播放原型" loading="lazy" src="'+esc(href)+'" style="width:100%;min-height:900px;border:1px solid #48636b;border-radius:14px;background:#101d25" referrerpolicy="no-referrer"></iframe>' +
+      '<div class="authority-index-grid">' +
+        points.map((p,i)=>'<article class="authority-index-card"><div class="authority-index-head"><strong>'+
+          esc(String(i+1).padStart(2,"0")+" · "+p)+'</strong></div><div class="authority-kind">FROZEN MOTION V2</div></article>').join("") +
+      '</div></div>';
+  }
+  if (view.render_mode === "recognition_full_flow_models") return recognitionFullFlowModelsCanvas(view);
   if (view.render_mode === "recognition_main_journey_overview") return recognitionMainJourneyOverviewCanvas(view);
   if (view.render_mode === "recognition_boundary_release_gate") return recognitionBoundaryReleaseGateCanvas(feature, view);
   if (view.render_mode === "recognition_decision_logic") return recognitionDecisionLogicCanvas(view);
@@ -3102,7 +3188,53 @@ function accountPrivacyGalleryCanvas(item) {
   '</div>';
 }
 
+function recognitionGuideResourcesCanvas(child, feature) {
+  const sourceView = (feature?.hifi_views || []).find(view => view.id === child.source_view_id);
+  const sourceChildren = new Map((sourceView?.children || []).map(item => [item.id, item]));
+  const resources = (child.resource_ids || []).map(id => sourceChildren.get(id)).filter(item =>
+    item && item.status === "FROZEN" && isImage(item.visual_authority || item.image)
+  );
+  const cards = resources.map(item => {
+    const path = item.visual_authority || item.image;
+    const dimensions = item.visual_authority_dimensions || {};
+    const dimensionText = dimensions.width && dimensions.height
+      ? dimensions.width + " × " + dimensions.height + " px"
+      : "尺寸未登记";
+    const filename = path.split("/").pop();
+    const sourceFilename = item.source_high_fidelity_png || filename;
+    const fileHref = repoHref(path);
+    return '<article class="authority-index-card guide-resource-card" data-resource-id="' + esc(item.id) + '">' +
+      '<div class="authority-index-head"><strong>' + esc(item.title) + '</strong>' + statusBadge("FROZEN") + '</div>' +
+      '<button type="button" class="hifi-image-open guide-resource-preview" data-image-src="' + esc(fileHref) +
+        '" data-image-title="' + esc(item.title) + '" aria-label="放大查看 ' + esc(item.title) + '">' +
+        '<img src="' + esc(fileHref) + '" alt="' + esc(item.title) + ' · 原始比例完整预览" loading="lazy" decoding="async"></button>' +
+      '<dl class="guide-resource-metadata">' +
+        '<div><dt>源文件名</dt><dd>' + esc(sourceFilename) + '</dd></div>' +
+        '<div><dt>仓库文件名</dt><dd>' + esc(filename) + '</dd></div>' +
+        '<div><dt>仓库路径</dt><dd>' + esc(path) + '</dd></div>' +
+        '<div><dt>图像尺寸</dt><dd>' + esc(dimensionText) + '</dd></div>' +
+        '<div><dt>文件大小</dt><dd>' + esc(Number(item.visual_authority_bytes || 0).toLocaleString("en-US")) + ' bytes</dd></div>' +
+        '<div><dt>SHA-256</dt><dd>' + esc(item.visual_authority_sha256 || "未登记") + '</dd></div>' +
+      '</dl>' +
+      '<div class="guide-resource-actions">' +
+        '<a href="' + esc(fileHref) + '" download="' + esc(filename) + '">下载原始 PNG</a>' +
+        '<a href="' + esc(fileHref) + '" target="_blank" rel="noreferrer">打开原始文件 ↗</a>' +
+      '</div>' +
+    '</article>';
+  }).join("");
+  const manifest = child.resource_manifest
+    ? '<a href="' + esc(repoHref(child.resource_manifest)) + '" target="_blank" rel="noreferrer">打开资源 Manifest ↗</a>'
+    : "";
+  return '<div class="authority-index guide-resource-gallery">' +
+    '<div class="authority-index-intro"><strong>页面静态资源 · Design Source</strong>' +
+      '<span>以下图片直接引用仓库中的 Frozen 原始 PNG，保持原始字节与比例。它们用于设计预览和下载，不代表 Android 运行时资源。</span></div>' +
+    (cards ? '<div class="authority-index-grid guide-resource-grid">' + cards + '</div>' : '<div class="preview-empty">资源清单没有可展示的 Frozen PNG。</div>') +
+    (manifest ? '<div class="authority-index-intro guide-resource-manifest"><strong>资源来源</strong><span>' + manifest + '</span></div>' : '') +
+  '</div>';
+}
+
 function genericSpecChildCanvas(child, feature = null) {
+  if (child.render_mode === "recognition_guide_resources") return recognitionGuideResourcesCanvas(child, feature);
   if (child.render_mode === "recognition_master_board") return recognitionMasterBoardCanvas(child);
   if (child.render_mode === "recognition_new_states_review") return recognitionNewStatesReviewCanvas(child);
   if (child.render_mode === "missing_authority") return recognitionMissingAuthorityCanvas(child);
@@ -3164,6 +3296,7 @@ function renderHifiView(feature, hifiId, hifiChildId = null) {
   panel.classList.remove("hidden");
   const authorityType = child?.authority_type || view.authority_type || "visual";
   el("hifiViewEyebrow").textContent =
+    view.render_mode === "recognition_full_flow_models" ? "业务流程与模型职责 · DESIGN ONLY" :
     view.render_mode === "recognition_main_journey_overview" ? "业务流程总览 · 不代表单页视觉 Authority" :
     view.render_mode === "recognition_boundary_release_gate" ? "主链路边界状态 · 设计与资产 Gate" :
     child?.render_mode === "recognition_new_states_review" ? "Review Source · 非 Frozen 单页 Authority" :

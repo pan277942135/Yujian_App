@@ -1,5 +1,7 @@
 # NH04 · Component & Content States / 组件状态与内容边界 · Design Spec V1
 
+> **2026-10-21 现行 Gemini NH01/NH02 局部替代说明：** 当前 Gemini NH01/NH02：原 NH04 业务含义不变；视觉细则按统一 V2.2 合同处理长文本——时间优先、地点可省略、最多两行，禁止最后独占一个汉字（如“号”）或标点。Guest/已登录缺省可以共用薄雾头像线描，但认证状态、可访问文案及点击去向不能混淆。原 NH04 Frozen 图和历史单行示例保留。
+
 Status: **FROZEN — SPEC + VISUAL**
 Scope: **Normal Home component states / content boundary behavior**  
 Output policy: **COMBINED_BOARD**

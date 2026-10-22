@@ -4,8 +4,12 @@ on:
   push:
     branches:
       - main
+      - ops/pages-recovery-nh01-preview-20261021
     paths:
       - "design/**"
+      - "previews/**"
+      - "release/design_manager/**"
+      - "scripts/verify_nh01_pr_preview_live.mjs"
       - "scripts/verify_design_manager_navigation.py"
       - "scripts/verify_design_manager_hifi_release.py"
       - "scripts/verify_design_manager_browser.mjs"
@@ -182,6 +186,7 @@ jobs:
           else
             PUBLISHED_BUILD_SHA="$BUILD_SHA"
             cp -R design _site/design
+            if [ -d previews ]; then cp -R previews _site/previews; fi
             mkdir -p _site/release/design_manager
             cp release/design_manager/NH01_GEMINI_STRUCTURE_ALIGNMENT_V1.json _site/release/design_manager/
             BUILD_SHORT="${PUBLISHED_BUILD_SHA:0:12}"
@@ -189,6 +194,12 @@ jobs:
             sed -i "s/__DESIGN_MANAGER_BUILD_SHORT__/${BUILD_SHORT}/g" _site/design/manager/index.html
             sed -i "s/__NH01_SOURCE_SHA__/${PUBLISHED_BUILD_SHA}/g" _site/design/manager/nh01_acceptance/index.html
             sed -i "s/__NH01_VIEWER_BUILD__/${PUBLISHED_BUILD_SHA}/g" _site/design/manager/nh01_acceptance/index.html
+            if [[ -f _site/previews/pr-176/index.html ]]; then
+              sed -i "s/__NH01_PREVIEW_BUILD__/${PUBLISHED_BUILD_SHA}/g" _site/previews/pr-176/index.html
+            fi
+            if [[ -f _site/previews/pr-176/design/manager/nh01_acceptance/gemini-native-preview.html ]]; then
+              sed -i "s/__NH01_GEMINI_PREVIEW_BUILD__/${PUBLISHED_BUILD_SHA}/g" _site/previews/pr-176/design/manager/nh01_acceptance/gemini-native-preview.html
+            fi
             printf '{"sha":"%s","short_sha":"%s","workflow_run_id":"%s","workflow_run_url":"%s/%s/actions/runs/%s"}\n' "${PUBLISHED_BUILD_SHA}" "${BUILD_SHORT}" "${GITHUB_RUN_ID}" "${GITHUB_SERVER_URL}" "${GITHUB_REPOSITORY}" "${GITHUB_RUN_ID}" > _site/design/manager/build.json
             touch _site/.nojekyll
             cat > _site/index.html <<'EOF'
@@ -220,6 +231,16 @@ jobs:
           else
             python3 scripts/verify_design_manager_navigation.py --site _site --expected-build "${PUBLISHED_BUILD_SHA}"
           fi
+
+      - name: Verify NH01 PR preview routes and interactions
+        shell: bash
+        run: |
+          set -euo pipefail
+          PLAYWRIGHT_MODULE_DIR="$RUNNER_TEMP/dm-playwright/node_modules" \
+            node scripts/verify_nh01_pr_preview_live.mjs \
+              --root _site \
+              --expected-build "${BUILD_SHA}" \
+              --output "$RUNNER_TEMP/nh01-pr-preview-build-report.json"
 
       - name: Verify hi-fi Pages artifact
         shell: bash
@@ -495,6 +516,16 @@ jobs:
             echo "- Pages workflow run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
             echo "- Screenshot/report links: ${PREVIEW_ROOT}/design/manager/nh01_acceptance/evidence/"
           } >> "$GITHUB_STEP_SUMMARY"
+      - name: Verify live NH01 PR preview routes and interactions
+        if: env.IS_PR_176_PREVIEW != 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          PLAYWRIGHT_MODULE_DIR="$RUNNER_TEMP/dm-playwright/node_modules" \
+            node scripts/verify_nh01_pr_preview_live.mjs \
+              --url "${{ steps.deployment.outputs.page_url }}" \
+              --expected-build "${BUILD_SHA}" \
+              --output "$RUNNER_TEMP/dm-live-evidence/nh01-pr-preview-verification.json"
 
       - name: Upload live release evidence
         uses: actions/upload-artifact@v4

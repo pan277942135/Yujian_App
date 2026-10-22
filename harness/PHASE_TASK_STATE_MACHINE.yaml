@@ -936,8 +936,8 @@ tasks:
     entry_blockers: []
     target_blockers: []
     gate_id: "G-FIRST-USE-GUIDE-ASSET"
-    evidence_required: ["P01_png_sha256_bytes_dimensions", "P02_png_sha256_bytes_dimensions", "P03_png_sha256_bytes_dimensions", "Design_Governance_PASS"]
-    completion: "Approved three-page P01/P02/P03 frozen PNG binaries are restored at the registered paths; Design Governance must pass before task closure."
+    evidence_required: ["P01_png_sha256_bytes_dimensions", "P02_png_sha256_bytes_dimensions", "P03_png_sha256_bytes_dimensions", "Design_Manager_resource_menu", "Design_Governance_PASS"]
+    completion: "Approved P01/P02/P03 Frozen PNGs remain at their registered paths and are exposed by the Design Manager Resources route with original-file links; Design Governance must pass before task closure."
     human_required: false
 
 feature_task_coverage:

@@ -68,6 +68,36 @@ case "$1" in
     # This fake checks Harness classification and evidence-validator routing;
     # it does not claim to render application screenshots or validate video.
     fixture_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)/design/pages/recognition/design"
+    if [[ "$command_line" == *cache/rr09-gold-transfer/RR09_Recognition_Flow_Recording.mp4* ]]; then
+      if [[ -n "${FAKE_RR09_VIDEO_FILE:-}" && -s "${FAKE_RR09_VIDEO_FILE}" ]]; then
+        cat "$FAKE_RR09_VIDEO_FILE"
+      fi
+      exit 0
+    fi
+    if [[ "$command_line" == *cache/rr09-gold-transfer-production/RR09_Production_Qualification_Report.json* ]]; then
+      printf '{"status":"SAFE_FALLBACK","source_asset":"synthetic_fake_adb_fixture.jpg","source_sha256":"fake-sha256","species_id":"yellow_catfish","species_confidence":0.82,"geometry_trust":"UNTRUSTED","result_geometry_status":"FAKE_FIXTURE","result_entry_mode":"TEST_CONTROLLED"}\n'
+      exit 0
+    fi
+    if [[ "$command_line" == *cache/rr09-gold-transfer-production/*RR09_Production_*.png* ]]; then
+      cat "$fixture_root/05_Result_High_Frozen.png"
+      exit 0
+    fi
+    if [[ "$command_line" == *cache/rr09-gold-transfer/* ]]; then
+      case "$command_line" in
+        *.png*) cat "$fixture_root/05_Result_High_Frozen.png" ;;
+        *RR09_Frames_Manifest.json*)
+          printf '{"frames":[{"file":"K06_850ms.png"}]}\n'
+          ;;
+        *RR09_Motion_Trace.json*) printf '[]\n' ;;
+        *RR09_API28_Test_Report.json*) printf '{"status":"PASS"}\n' ;;
+        *RR09_Performance_Report.json*) printf '{}\n' ;;
+        *RR09_Responsive_Matrix_Report.json*)
+          printf '{"status":"PASS","case_count":12}\n'
+          ;;
+        *) printf '{}\n' ;;
+      esac
+      exit 0
+    fi
     if [[ "$command_line" == *recognition_motion_trace_v3_1.json* ]]; then
       printf '{"samples":['
       for index in $(seq 0 9); do
@@ -104,27 +134,32 @@ case "$1" in
     if [[ "$command_line" == *cache/recognition-optical-fidelity/recognition_optical_fidelity_v3_1.json* ]]; then
       python3 - <<'PY'
 import json
-intervals = [16.67] * 120
+frame_duration = 1000 / 60.0
+durations = [frame_duration] * 120
 def profile(name):
     return {
         "profile": name,
         "phase": "CLASSIFYING",
-        "sample_count": len(intervals),
+        "sample_count": len(durations),
         "motion_sample_count": 120,
         "refresh_rate_hz": 60.0,
-        "interval_ms": {
-            "mean": 16.67,
-            "median": 16.67,
-            "p95": 16.67,
-            "max": 16.67,
+        "fps_estimate": 1000 / frame_duration,
+        "frame_metrics_ms": {
+            "mean": frame_duration,
+            "p95": frame_duration,
+            "p99": frame_duration,
+            "max": frame_duration,
+            "frame_budget": 1000 / 60.0,
+            "frames_over_budget": 0,
             "frames_over_32ms": 0,
+            "dropped_frames_before_callback": 0,
         },
-        "samples_ms": intervals,
+        "frame_duration_samples_ms": durations,
         "budget_policy": "MEASURED_ONLY_NO_FROZEN_THRESHOLD",
     }
 print(json.dumps({
     "contract_version": "recognition_processing_state_machine_v3_1",
-    "measurement_method": "Choreographer.FrameCallback frame intervals while production RecognitionProcessingScene is live (synthetic fake-adb contract fixture)",
+    "measurement_method": "Window.FrameMetrics TOTAL_DURATION while production RecognitionProcessingScene is live (synthetic fake-adb contract fixture)",
     "phase": "CLASSIFYING",
     "fixture": "fake",
     "refresh_rate_hz": 60.0,

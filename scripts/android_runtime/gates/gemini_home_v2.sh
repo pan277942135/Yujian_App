@@ -12,12 +12,32 @@ gate_before_instrumentation() {
   "$YUJIAN_ADB_BIN" logcat -c >/dev/null 2>&1 || true
 }
 
+gemini_v2_pull_compose_evidence() {
+  local target="$1" log="$2"
+  local external="/sdcard/Android/data/$YUJIAN_APP_PACKAGE/files/nh01-gemini-v3"
+  local subdir
+  mkdir -p "$target" "$(dirname "$log")"
+  : > "$log"
+  # Remove the old whole-root pull shape so stale nested files cannot satisfy validation.
+  rm -rf "$target/nh01-gemini-v3" "$target/compose-simulation" "$target/avatar"
+  for subdir in compose-simulation avatar; do
+    printf 'remote=%s/%s\nlocal_parent=%s\n' "$external" "$subdir" "$target" >> "$log"
+    if ! "$YUJIAN_ADB_BIN" pull "$external/$subdir" "$target" >> "$log" 2>&1; then
+      printf 'pull_failed=%s\n' "$subdir" >> "$log"
+      return 1
+    fi
+    if [[ ! -d "$target/$subdir" ]]; then
+      printf 'expected_directory_missing=%s/%s\n' "$target" "$subdir" >> "$log"
+      return 1
+    fi
+  done
+}
+
 gate_after_instrumentation() {
   local output="$YUJIAN_EVIDENCE_DIR/compose-simulation"
-  local external="/sdcard/Android/data/$YUJIAN_APP_PACKAGE/files/nh01-gemini-v3"
+  local log="$YUJIAN_EVIDENCE_DIR/android-device/compose_evidence_pull_after_instrumentation.log"
   mkdir -p "$output" "$YUJIAN_EVIDENCE_DIR/android-device"
-  "$YUJIAN_ADB_BIN" pull "$external" "$output" \
-    > "$YUJIAN_EVIDENCE_DIR/android-device/compose_evidence_pull_after_instrumentation.log" 2>&1 || true
+  gemini_v2_pull_compose_evidence "$output" "$log"
 }
 
 gemini_v2_run_seed() {
@@ -36,8 +56,17 @@ gemini_v2_run_seed() {
 
 gemini_v2_wait_for_app() {
   local expected_size="$1"
-  local attempt resumed pid screenshot
-  screenshot="$YUJIAN_EVIDENCE_DIR/android-device/readiness_${expected_size}.png"
+  local attempt resumed pid screenshot wm_size physical_size override_size logical_size
+  screenshot="$YUJIAN_EVIDENCE_DIR/android-device/readiness_"$expected_size".png"
+  wm_size="$("$YUJIAN_ADB_BIN" shell wm size 2>&1 | tr -d '\r' || true)"
+  physical_size="$(sed -n 's/^Physical size: //p' <<< "$wm_size" | head -n 1)"
+  override_size="$(sed -n 's/^Override size: //p' <<< "$wm_size" | head -n 1)"
+  logical_size="$physical_size"
+  if [[ -n "$override_size" ]]; then logical_size="$override_size"; fi
+  if [[ "$logical_size" != "$expected_size" || -z "$physical_size" ]]; then
+    printf 'expected_logical_size=%s\nreported_wm_size=%s\n' "$expected_size" "$wm_size" >&2
+    return 1
+  fi
   for attempt in $(seq 1 30); do
     resumed="$("$YUJIAN_ADB_BIN" shell dumpsys activity activities 2>/dev/null | grep -E 'mResumedActivity|ResumedActivity' | head -n 1 || true)"
     pid="$("$YUJIAN_ADB_BIN" shell pidof "$YUJIAN_APP_PACKAGE" 2>/dev/null | tr -d '\r' || true)"
@@ -45,7 +74,7 @@ gemini_v2_wait_for_app() {
       local render_attempt
       for render_attempt in $(seq 1 20); do
         "$YUJIAN_ADB_BIN" exec-out screencap -p > "$screenshot" || return 1
-        if python3 - "$screenshot" "$expected_size" <<'PY'
+        if python3 - "$screenshot" "$physical_size" <<'PY'
 from PIL import Image, ImageStat
 import sys
 path, expected = sys.argv[1], tuple(int(part) for part in sys.argv[2].split("x"))
@@ -62,6 +91,54 @@ PY
         sleep 1
       done
     fi
+    sleep 1
+  done
+  return 1
+}
+
+gemini_v2_verify_display_profile() {
+  local expected_size="$1" output="$2" wm_size physical_size override_size logical_size attempt screenshot
+  screenshot="$output/display_profile_"$expected_size".png"
+  local profile_log="$output/display_profile_"$expected_size".log"
+  wm_size="$("$YUJIAN_ADB_BIN" shell wm size 2>&1 | tr -d '\r' || true)"
+  physical_size="$(sed -n 's/^Physical size: //p' <<< "$wm_size" | head -n 1)"
+  override_size="$(sed -n 's/^Override size: //p' <<< "$wm_size" | head -n 1)"
+  logical_size="$physical_size"
+  if [[ -n "$override_size" ]]; then logical_size="$override_size"; fi
+  {
+    printf 'expected_logical_size=%s\n' "$expected_size"
+    printf 'physical_size=%s\n' "$physical_size"
+    if [[ -n "$override_size" ]]; then
+      printf 'override_size=%s\n' "$override_size"
+    else
+      printf 'override_size=NONE\n'
+    fi
+    printf 'logical_size=%s\n' "$logical_size"
+    printf 'reported_wm_size=%s\n' "$wm_size"
+  } > "$profile_log"
+  if [[ -z "$physical_size" || "$logical_size" != "$expected_size" ]]; then
+    echo "logical_display_size_mismatch=true" >> "$profile_log"
+    return 1
+  fi
+  for attempt in $(seq 1 5); do
+    if "$YUJIAN_ADB_BIN" exec-out screencap -p > "$screenshot" 2>> "$profile_log" && \
+       python3 - "$screenshot" "$physical_size" >> "$profile_log" 2>&1 <<'PY'
+from PIL import Image
+import pathlib, sys
+path = pathlib.Path(sys.argv[1])
+with Image.open(path) as image:
+    actual = f"{image.width}x{image.height}"
+expected_physical = sys.argv[2]
+print(f"screencap_size={actual}")
+print(f"expected_physical_size={expected_physical}")
+if actual != expected_physical:
+    print("screencap_physical_size_mismatch=true")
+    raise SystemExit(1)
+PY
+    then
+      return 0
+    fi
+    echo "screencap_attempt=$attempt did not match physical size" >> "$profile_log"
     sleep 1
   done
   return 1
@@ -239,6 +316,10 @@ gate_collect_evidence() {
     "$bounds_1920" false || return "$EXIT_FAIL_EVIDENCE"
 
   "$YUJIAN_ADB_BIN" shell wm size 1080x2340 > "$output/1080x2340_wm_size.log" 2>&1 || return "$EXIT_BLOCKED_INFRA"
+  if ! gemini_v2_verify_display_profile 1080x2340 "$output"; then
+    runtime_set_failure "EMULATOR_PROFILE" "API28_DISPLAY_PROFILE_UNAVAILABLE_EXPECTED_1080X2340"
+    return "$EXIT_BLOCKED_INFRA"
+  fi
   "$YUJIAN_ADB_BIN" shell am force-stop "$app_package"
   "$YUJIAN_ADB_BIN" shell monkey -p "$app_package" -c android.intent.category.LAUNCHER 1 >/dev/null
   gemini_v2_wait_for_app 1080x2340 || {
@@ -259,6 +340,10 @@ gate_collect_evidence() {
 
   "$YUJIAN_ADB_BIN" shell wm size 720x1280 > "$output/720x1280_wm_size.log" 2>&1 || return "$EXIT_BLOCKED_INFRA"
   "$YUJIAN_ADB_BIN" shell wm density 320 > "$output/720x1280_wm_density.log" 2>&1 || return "$EXIT_BLOCKED_INFRA"
+  if ! gemini_v2_verify_display_profile 720x1280 "$output"; then
+    runtime_set_failure "EMULATOR_PROFILE" "API28_DISPLAY_PROFILE_UNAVAILABLE_EXPECTED_720X1280"
+    return "$EXIT_BLOCKED_INFRA"
+  fi
   "$YUJIAN_ADB_BIN" shell am force-stop "$app_package"
   "$YUJIAN_ADB_BIN" shell monkey -p "$app_package" -c android.intent.category.LAUNCHER 1 >/dev/null
   gemini_v2_wait_for_app 720x1280 || {
@@ -284,34 +369,17 @@ gate_collect_evidence() {
   "$YUJIAN_ADB_BIN" shell settings put global transition_animation_scale 1.0 >/dev/null || true
   "$YUJIAN_ADB_BIN" shell settings put global window_animation_scale 1.0 >/dev/null || true
 
-  local external="/sdcard/Android/data/$YUJIAN_APP_PACKAGE/files/nh01-gemini-v3"
-  "$YUJIAN_ADB_BIN" pull "$external" "$YUJIAN_EVIDENCE_DIR/compose-simulation" \
-    > "$output/compose_evidence_pull.log" 2>&1 || {
-      runtime_set_failure "EVIDENCE" "GEMINI_COMPOSE_PROFILE_EVIDENCE_NOT_RETRIEVED"
-      return "$EXIT_FAIL_EVIDENCE"
-    }
-  python3 - "$YUJIAN_EVIDENCE_DIR/compose-simulation" <<'PY'
-import json, pathlib, sys
-root = pathlib.Path(sys.argv[1])
-compose = root / "compose-simulation/gemini_responsive_compose_report.json"
-avatar = root / "avatar/gemini_avatar_transition_report.json"
-carousel = root / "compose-simulation/carousel/gemini_catch_carousel_count_report.json"
-if not compose.is_file() or not avatar.is_file() or not carousel.is_file():
-    raise SystemExit("Gemini Compose, avatar, or carousel report missing")
-profile_report = json.loads(compose.read_text(encoding="utf-8"))
-avatar_report = json.loads(avatar.read_text(encoding="utf-8"))
-carousel_report = json.loads(carousel.read_text(encoding="utf-8"))
-profiles = profile_report.get("profiles", [])
-if len(profiles) != 15 or any(item.get("status") != "PASS" for item in profiles):
-    raise SystemExit("Gemini Compose constraint profile matrix is incomplete or failed")
-if any(item.get("interactions", {}).get("guest_avatar_login") != "PASS" for item in profiles):
-    raise SystemExit("Guest login click callback did not pass across Compose profiles")
-if avatar_report.get("account_switch_clears_previous_avatar") != "PASS" or avatar_report.get("logout_clears_previous_avatar") != "PASS":
-    raise SystemExit("Gemini avatar transition checks did not pass")
-cases = carousel_report.get("count_cases", [])
-if [item.get("catch_count") for item in cases] != [0, 1, 2, 3, 10]:
-    raise SystemExit("Gemini carousel count matrix is incomplete")
-PY
+  local compose_root="$YUJIAN_EVIDENCE_DIR/compose-simulation"
+  if ! gemini_v2_pull_compose_evidence "$compose_root" "$output/compose_evidence_pull.log"; then
+    runtime_set_failure "EVIDENCE" "GEMINI_COMPOSE_PROFILE_EVIDENCE_NOT_RETRIEVED"
+    return "$EXIT_FAIL_EVIDENCE"
+  fi
+  if ! python3 "$SCRIPT_DIR/android_runtime/validate_nh01_gemini_evidence.py" "$compose_root" \
+      > "$output/gemini_required_reports_validation.log" 2>&1; then
+    cat "$output/gemini_required_reports_validation.log" >&2
+    runtime_set_failure "EVIDENCE" "GEMINI_REQUIRED_REPORT_VALIDATION_FAILED"
+    return "$EXIT_FAIL_EVIDENCE"
+  fi
   local report="$YUJIAN_EVIDENCE_DIR/Gemini_NH01_Responsive_Runtime_Report_V3.json"
   python3 - "$report" "$BUILD_SHA" "$bounds_1920" "$bounds_2340" "$bounds_720" <<'PY'
 import json, pathlib, sys

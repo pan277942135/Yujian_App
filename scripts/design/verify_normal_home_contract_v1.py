@@ -111,6 +111,28 @@ def main() -> int:
             "all matrix cases have runnable method/assertion/coverage and valid status")
     require(all(c.get("acceptance_status") == "NOT_RUN" and not c.get("evidence_refs")
                 for c in cases), "no unsupported PASS or fabricated evidence in baseline checklist")
+    # Gemini current-route scope gate. Static documents never imply runtime PASS.
+    scoped = authority.get("active_gemini_nh01_override") or {}
+    spec = "design/pages/home/normal_home/engineering/NH01_GEMINI_ADAPTIVE_V2_UNIFIED_AUTHORITY_V1.md"
+    acceptance = "design/pages/home/normal_home/engineering/NH01_GEMINI_ADAPTIVE_V2_ACCEPTANCE_V1.md"
+    new_matrix_path = "design/pages/home/normal_home/engineering/NH01_GEMINI_ADAPTIVE_V2_ACCEPTANCE_MATRIX_V1.json"
+    require(all((ROOT / p).is_file() for p in (spec, acceptance, new_matrix_path)), "current Gemini authority and acceptance paths exist")
+    require(scoped.get("authority") == spec and scoped.get("acceptance") == acceptance
+            and scoped.get("matrix") == new_matrix_path and scoped.get("runtime_verdict") == "NOT_RUN",
+            "current Gemini typed authority correctly registered without claimed PASS")
+    current = read_json(ROOT / new_matrix_path)
+    actual_profiles = [(p.get("width_dp"),p.get("height_dp"),p.get("font_scale")) for p in current.get("profiles", [])]
+    expected_profiles = [(w,h,fs) for w,h in ((320,480),(360,640),(390,844),(430,932)) for fs in (1,1.3,1.5)]
+    require(actual_profiles == expected_profiles and current.get("variants") == ["ADAPTIVE_V2","V3_BASELINE"]
+            and current.get("expected_native_executions") == 24, "24 exact V2/V3 native execution profiles")
+    require(current.get("visible_gap_dp_font1") == {"M01":8,"M04":12,"M07":18,"M10":20}
+            and current.get("visible_gap_tolerance_dp") == 2, "independent 8/12/18/20 ±2dp title-to-card targets")
+    newcases = current.get("cases") or []
+    require(len(newcases) == 20 and len(set(c.get("id") for c in newcases)) == 20
+            and all(c.get("acceptance_status") == "NOT_RUN" and c.get("evidence_refs") == []
+                    and c.get("method") and c.get("assertion") for c in newcases)
+            and current.get("legacy_case_count") == 46 and current.get("runtime_verdict") == "NOT_RUN",
+            "20 current-route gates separate from historical 46, without fabricated PASS")
     pixels = read_json(ENG / "normal_home_visual_pixel_targets_v1.json")
     require(pixels.get("source_sha256")==status.get("source_sha256"), "measured pixel targets bound to Frozen SHA")
     masks={item.get("id"):item.get("bbox") for item in pixels.get("visible_masks",[])}

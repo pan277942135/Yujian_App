@@ -82,10 +82,26 @@ def main() -> int:
     guide = views.get("capture_first_use_guide")
     require(guide is not None and guide.get("title") == "07 · 首次拍照教学", "live guide entry changed")
     guide_children = {item.get("id"): item for item in guide.get("children", [])}
-    require(set(guide_children) == {"p01", "p02", "p03"}, "live guide must retain P01/P02/P03")
+    require(set(guide_children) == {"p01", "p02", "p03", "resources"}, "live guide must retain P01/P02/P03 and expose Resources")
+    resources = guide_children["resources"]
+    require(resources.get("title") == "资源" and resources.get("render_mode") == "recognition_guide_resources",
+            "live guide Resources menu definition changed")
+    require(resources.get("resource_ids") == ["p01", "p02", "p03"] and resources.get("runtime_visual_authority") is False,
+            "live guide Resources must expose the three design-only source PNGs")
 
     guide_manifest_raw, _ = fetch(urljoin(parent_url, "design/pages/recognition/first_use_camera_guide/manifest.json"))
     guide_manifest = json.loads(guide_manifest_raw)
+    require(resources.get("resource_manifest") == "design/pages/recognition/first_use_camera_guide/manifest.json",
+            "live guide Resources manifest path changed")
+    navigation_raw, _ = fetch(urljoin(parent_url, "design/pages/recognition/first_use_camera_guide/navigation.json"))
+    navigation = json.loads(navigation_raw)
+    resource_menus = navigation.get("resource_menus", [])
+    require(len(resource_menus) == 1 and resource_menus[0].get("route") ==
+            "#page/recognition_flow_v1_2/hifi/capture_first_use_guide/resources",
+            "live guide navigation manifest is missing the Resources route")
+    require(resource_menus[0].get("resource_ids") == ["p01", "p02", "p03"] and
+            resource_menus[0].get("runtime_visual_authority") is False,
+            "live guide navigation manifest resource catalog is not design-only")
     guide_assets = {asset.get("id", "").upper(): asset for asset in guide_manifest.get("assets", [])}
     for asset_id, (width, height, expected_sha) in EXPECTED_GUIDE.items():
         metadata = guide_assets.get(asset_id)
@@ -132,7 +148,7 @@ def main() -> int:
     if args.output:
         args.output.parent.mkdir(parents=True, exist_ok=True)
         args.output.write_text(json.dumps(result, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    print(f"PASS: Pages live release | build={build['sha']} | P01/P02/P03 + overview/review originals SHA-verified | expected missing paths=404")
+    print(f"PASS: Pages live release | build={build['sha']} | Resources menu + P01/P02/P03 + overview/review originals SHA-verified | expected missing paths=404")
     return 0
 
 

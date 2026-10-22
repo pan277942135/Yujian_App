@@ -1,4 +1,6 @@
 # Normal Home — Engineering Authority Index V1
+
+> **CURRENT GEMINI V3 / ADAPTIVE V2 BINDING:** [Unified authority](NH01_GEMINI_ADAPTIVE_V2_UNIFIED_AUTHORITY_V1.md) and [current acceptance](NH01_GEMINI_ADAPTIVE_V2_ACCEPTANCE_V1.md) resolve NH01–NH07 field-specific conflicts. Historical NH05 A1/A2/Frozen geometry remains valid on legacy NormalHomeContent; the rebuilt Gemini route follows its versioned content-first visual gaps, metadata, avatar and TopCenter crop. Original 46-case ledger is preserved; 20 current cases and 24 exact-SHA native runs are separate. SPEC_FROZEN != Runtime PASS.
 Status: ACTIVE_ENGINEERING_CONTRACT / DESIGN_UNCHANGED / RUNTIME_ACCEPTANCE_PENDING
 Scope: Normal Home with at least one resolved valid FishRecord, and its initial resolving/refresh continuity behavior.
 Established: 2026-10-10

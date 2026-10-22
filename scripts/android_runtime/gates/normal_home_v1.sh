@@ -461,7 +461,9 @@ gate_collect_evidence() {
   normal_home_capture_exact "$out/04_normal_home_runtime_1080x1920.png" 1080 1920
   rc=$?
   if (( rc != 0 )); then normal_home_blocked_dimension "1080X1920"; return "$EXIT_BLOCKED_INFRA"; fi
-  "$YUJIAN_ADB_BIN" shell input swipe 900 1200 180 1200 450
+  # Keep both endpoints inside the active first-page card so the gesture
+  # starts on the pager content rather than the adjacent-page peek.
+  "$YUJIAN_ADB_BIN" shell input swipe 700 950 250 950 450
   sleep 2
   normal_home_capture_exact "$out/02_normal_home_second_card.png" 1080 1920
   rc=$?

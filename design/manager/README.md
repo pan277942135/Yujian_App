@@ -185,18 +185,20 @@ Runtime、Evidence 和 Work 交接暂不进入当前 Design Manager。
 └── 07 · 首次拍照教学
     ├── P01 · 竖屏拍摄示意
     ├── P02 · 竖拍鱼类拍摄示意
-    └── P03 · 横屏拍摄示意
+    ├── P03 · 横屏拍摄示意
+    └── 资源
 ```
 
 注册源：`design/registry/experience_registry_v1.json` → `recognition_flow_v1_2.hifi_views.capture_first_use_guide`。
 
 - Parent：`FROZEN` + `authority_gallery`，展示三张 Frozen Visual Authority。
-- Children：`FROZEN` + `repo_image`，点击后直接预览对应 PNG，不生成模拟 UI。
+- P01/P02/P03：`FROZEN` + `repo_image`，点击后直接预览对应 PNG，不生成模拟 UI。
 - P01/P02 →「下一张」；P03 →「开始拍摄」。
 - Hero 为唯一正确示范；下方三个均为错误示范。
 - P02 的三个错误示例保持竖直鱼体；P03 的三个错误示例保持横向鱼体。
 - `跳过/开始拍摄` 均不自动触发快门。
 - P01/P02/P03 PNG 按原字节导入；Design Manager 导航、Manifest 与 SHA 校验分别验收。
+- 「资源」子菜单直接预览和下载这三张已上传的 Frozen 原始 PNG，并显示仓库路径、尺寸、字节数和 SHA-256；来源为 `design/pages/recognition/first_use_camera_guide/manifest.json`，不复制文件，也不把设计稿映射为 Android 运行时资源。
 
 ## Normal Home · NH07 头像状态
 
@@ -251,3 +253,13 @@ Frozen 图片按原始比例完整展示。点击可打开支持放大、缩小�
 
 
 - 重新进入工作区会载入默认结构视图与响应式视口；审阅参数只改变预览，并由当前构建的浏览器证据记录。
+
+## Recognition · 识别全流程-和模型
+
+在「识别过程」下新增 `09 · 识别全流程-和模型`，展示完整业务流程图、十个处理阶段、DET_FISH / MODEL_M1 / 质量尺寸规则 / 结果融合的职责边界、关键决策分支与端到端验收场景。
+
+- 详细规范：`design/system_v3/00_Product_Master_Flow/subflows/Recognition_Full_Flow_Models_V1.md`
+- 机器可读定义：`design/system_v3/00_Product_Master_Flow/subflows/Recognition_Full_Flow_Models_V1.json`
+- SVG 流程图：`design/system_v3/00_Product_Master_Flow/subflows/Recognition_Full_Flow_Models_V1.svg`
+
+此入口属于 DESIGN_ONLY 业务/技术说明，不增加 Android 产品状态、不修改冻结动效，也不声明 DET_FISH_v0.3 已成为生产默认模型。设计站的流程图预览与运行时/模型验收分别记录。

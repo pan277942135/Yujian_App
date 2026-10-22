@@ -69,6 +69,24 @@ jobs:
               --root "$GITHUB_WORKSPACE" \
               --output-dir "$RUNNER_TEMP/dm-governance-browser"
 
+      - name: RR09 Motion V2 six-frame real-photo browser verification
+        shell: bash
+        run: |
+          set -euo pipefail
+          PLAYWRIGHT_MODULE_DIR="$RUNNER_TEMP/dm-playwright/node_modules" \
+            node scripts/verify_rr09_motion_browser.mjs \
+              --root "$GITHUB_WORKSPACE" \
+              --output-dir "$RUNNER_TEMP/rr09-motion-evidence"
+
+      - name: Upload RR09 Motion V2 browser screenshots and video
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: RR09-Motion-V2-Review-${{ github.run_id }}-${{ github.event.pull_request.head.sha || github.sha }}
+          path: ${{ runner.temp }}/rr09-motion-evidence/
+          if-no-files-found: warn
+          retention-days: 30
+
       - name: Print design summary
         run: python3 scripts/design_manager.py summary
 

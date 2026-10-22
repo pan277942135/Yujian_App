@@ -10,6 +10,11 @@ internal enum class RecognitionGuideRuntimeAssetStatus {
     ASSET_SOURCE_BLOCKED,
 }
 
+internal fun shouldStackRecognitionGuideActions(
+    availableWidthDp: Float,
+    fontScale: Float,
+): Boolean = availableWidthDp < 380f || fontScale >= 1.5f
+
 internal enum class RecognitionFirstCaptureGuidePage(val index: Int) {
     P01(0),
     P02(1),

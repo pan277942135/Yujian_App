@@ -24,7 +24,10 @@ data class NormalizedSourceRect(
     val top: Float,
     val right: Float,
     val bottom: Float,
-)
+) {
+    val width: Float get() = right - left
+    val height: Float get() = bottom - top
+}
 
 /** One source-to-viewport transform shared by the Recognition photo and every fish overlay. */
 data class RecognitionImageTransform(
@@ -144,5 +147,50 @@ fun calculateRecognitionImageTransform(
             right = sourceRightPx / imageWidth,
             bottom = sourceBottomPx / imageHeight,
         ),
+    )
+}
+
+/**
+ * Maps the original source through an already-authorized Hero crop. The crop
+ * policy remains owned by FishPhotoCropPlanner; this adapter only expresses
+ * that crop with the same transform type used by the Processing photo.
+ */
+fun calculateRecognitionImageTransformForSourceRect(
+    containerWidth: Float,
+    containerHeight: Float,
+    imageWidth: Int,
+    imageHeight: Int,
+    sourceRect: NormalizedSourceRect,
+): RecognitionImageTransform {
+    require(containerWidth > 0f && containerHeight > 0f)
+    require(imageWidth > 0 && imageHeight > 0)
+    require(
+        sourceRect.left.isFinite() && sourceRect.top.isFinite() &&
+            sourceRect.right.isFinite() && sourceRect.bottom.isFinite() &&
+            sourceRect.left >= 0f && sourceRect.top >= 0f &&
+            sourceRect.right <= 1f && sourceRect.bottom <= 1f &&
+            sourceRect.left < sourceRect.right && sourceRect.top < sourceRect.bottom,
+    )
+    val cropWidth = sourceRect.width * imageWidth
+    val cropHeight = sourceRect.height * imageHeight
+    val scale = max(containerWidth / cropWidth, containerHeight / cropHeight)
+    val drawnWidth = imageWidth * scale
+    val drawnHeight = imageHeight * scale
+    val translationX = -sourceRect.left * drawnWidth +
+        (containerWidth - cropWidth * scale) / 2f
+    val translationY = -sourceRect.top * drawnHeight +
+        (containerHeight - cropHeight * scale) / 2f
+    return RecognitionImageTransform(
+        sourceWidthPx = imageWidth,
+        sourceHeightPx = imageHeight,
+        viewportWidthPx = containerWidth,
+        viewportHeightPx = containerHeight,
+        contentScaleMode = RecognitionContentScaleMode.CROP,
+        scale = scale,
+        translationX = translationX,
+        translationY = translationY,
+        drawnWidth = drawnWidth,
+        drawnHeight = drawnHeight,
+        visibleSourceRect = sourceRect,
     )
 }

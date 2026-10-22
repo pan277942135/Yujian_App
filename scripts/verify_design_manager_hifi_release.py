@@ -84,12 +84,52 @@ def validate_tree(root: Path, *, built: bool = False, expected_build: str | None
     overview = by_view.get("main_journey_overview")
     boundary = by_view.get("boundary_state_release_gate")
     guide_view = by_view.get("capture_first_use_guide")
-    require(overview and boundary and guide_view, "overview/boundary/existing guide view missing")
+    full_flow = by_view.get("recognition_full_flow_models")
+    require(overview and boundary and guide_view and full_flow, "overview/boundary/guide/full-flow view missing")
     require(views[0].get("id") == "main_journey_overview", "00 journey overview is not the first recognition route")
-    require(views[-1].get("id") == "boundary_state_release_gate", "08 boundary gate route missing")
+    require(
+        len(views) >= 2 and views[-2].get("id") == "boundary_state_release_gate"
+        and views[-1].get("id") == "recognition_full_flow_models",
+        "08 boundary gate must remain in place and 09 full-flow/model route must be appended",
+    )
+    require(full_flow.get("title") == "09 · 识别全流程-和模型", "09 full-flow/model menu title drift")
+    require(full_flow.get("status") == "DESIGN_ONLY" and full_flow.get("render_mode") == "recognition_full_flow_models", "09 full-flow/model must remain DESIGN_ONLY with its renderer")
+    require(
+        full_flow.get("authority") == "design/system_v3/00_Product_Master_Flow/subflows/Recognition_Full_Flow_Models_V1.md"
+        and full_flow.get("machine_authority") == "design/system_v3/00_Product_Master_Flow/subflows/Recognition_Full_Flow_Models_V1.json"
+        and full_flow.get("image") == "design/system_v3/00_Product_Master_Flow/subflows/Recognition_Full_Flow_Models_V1.svg",
+        "09 full-flow/model authority paths drift",
+    )
+    flow_machine = load_json(root / full_flow["machine_authority"])
+    require(flow_machine.get("flow_id") == "recognition_full_flow_models_v1", "full-flow machine authority identity drift")
+    require(len(flow_machine.get("stages", [])) == 10, "full-flow authority must contain ten workflow stages")
+    require(len(flow_machine.get("model_responsibilities", [])) == 4, "full-flow authority must preserve four responsibility groups")
+    require(
+        len(full_flow.get("acceptance_scenarios", [])) == len(flow_machine.get("acceptance_scenarios", [])),
+        "Design Manager acceptance scenarios must match machine authority",
+    )
+    require(
+        [step.get("title") for step in full_flow.get("workflow_steps", [])]
+        == [step.get("title") for step in flow_machine.get("stages", [])],
+        "Design Manager workflow stage titles must match machine authority",
+    )
+    require(
+        len(full_flow.get("decision_branches", [])) == len(flow_machine.get("branches", [])),
+        "Design Manager decision branches must match machine authority",
+    )
+    flow_svg_path = root / full_flow["image"]
+    require(flow_svg_path.is_file(), "full-flow SVG asset missing")
+    flow_svg = flow_svg_path.read_text(encoding="utf-8")
+    require("<svg " in flow_svg and "</svg>" in flow_svg and "DET_FISH" in flow_svg and "MODEL_M1" in flow_svg, "full-flow SVG content is incomplete")
     require(guide_view.get("title") == "07 · 首次拍照教学", "legacy 07 guide menu title changed")
     guide_children = {x.get("id"): x for x in guide_view.get("children", [])}
-    require(set(guide_children) == set(EXPECTED_GUIDE), "P01/P02/P03 direct children changed")
+    require(set(guide_children) == set(EXPECTED_GUIDE) | {"resources"}, "P01/P02/P03 and Resources direct children changed")
+    resource_view = guide_children["resources"]
+    require(resource_view.get("title") == "资源", "guide Resources submenu title changed")
+    require(resource_view.get("status") == "DESIGN_ONLY" and resource_view.get("authority_type") == "asset_catalog", "guide Resources must remain a Design Manager-only asset catalog")
+    require(resource_view.get("render_mode") == "recognition_guide_resources", "guide Resources renderer is missing")
+    require(resource_view.get("resource_ids") == ["p01", "p02", "p03"], "guide Resources must expose the three active Frozen images")
+    require(resource_view.get("runtime_visual_authority") is False, "guide Resources cannot claim Android runtime visual authority")
 
     manifest = load_json(design / GUIDE / "manifest.json")
     nav = load_json(design / GUIDE / "navigation.json")
@@ -98,8 +138,15 @@ def validate_tree(root: Path, *, built: bool = False, expected_build: str | None
     nav_children = {x.get("id"): x for x in nav.get("children", [])}
     require(nav.get("manager_parent") == "recognition_flow_v1_2", "guide manager parent changed")
     require(set(nav_children) == set(EXPECTED_GUIDE), "navigation.json must retain exactly P01/P02/P03")
+    resource_menus = nav.get("resource_menus", [])
+    require(len(resource_menus) == 1, "navigation.json must register one separate Design Manager resource menu")
+    require(resource_menus[0].get("id") == "resources" and resource_menus[0].get("title") == "资源", "guide resource menu identity changed")
+    require(resource_menus[0].get("route") == "#page/recognition_flow_v1_2/hifi/capture_first_use_guide/resources", "guide resource menu route changed")
+    require(resource_menus[0].get("manifest") == "manifest.json" and resource_menus[0].get("resource_ids") == ["p01", "p02", "p03"], "guide resource menu must use the existing manifest and frozen pages")
+    require(resource_menus[0].get("runtime_visual_authority") is False, "guide resource menu cannot claim runtime visual authority")
     manifest_children = {x.get("id"): x for x in manifest.get("assets", [])}
     require(set(manifest_children) == set(EXPECTED_GUIDE), "guide manifest P01/P02/P03 set changed")
+    require(resource_view.get("resource_manifest") == "design/" + (GUIDE / "manifest.json").as_posix(), "guide Resources must use the existing authoritative manifest")
 
     files: dict[str, dict] = {}
     for asset_id, (width, height, expected_sha) in EXPECTED_GUIDE.items():
@@ -122,10 +169,12 @@ def validate_tree(root: Path, *, built: bool = False, expected_build: str | None
         "guide P01": "#page/recognition_flow_v1_2/hifi/capture_first_use_guide/p01",
         "guide P02": "#page/recognition_flow_v1_2/hifi/capture_first_use_guide/p02",
         "guide P03": "#page/recognition_flow_v1_2/hifi/capture_first_use_guide/p03",
+        "guide Resources": "#page/recognition_flow_v1_2/hifi/capture_first_use_guide/resources",
         "master board": "#page/recognition_flow_v1_2/hifi/boundary_state_release_gate/master_board_v1",
         "review state": "#page/recognition_flow_v1_2/hifi/boundary_state_release_gate/new_states_review",
         "capture asset gate": "#page/recognition_flow_v1_2/hifi/boundary_state_release_gate/capture_portrait",
         "permission visual gate": "#page/recognition_flow_v1_2/hifi/boundary_state_release_gate/camera_permission_visual",
+        "full flow and model responsibilities": "#page/recognition_flow_v1_2/hifi/recognition_full_flow_models",
     }
     for child_id in ("p01", "p02", "p03"):
         child = guide_children[child_id]
@@ -198,6 +247,9 @@ def validate_tree(root: Path, *, built: bool = False, expected_build: str | None
     app = (design / "manager/app.js").read_text(encoding="utf-8")
     css = (design / "manager/styles.css").read_text(encoding="utf-8")
     html = (design / "manager/index.html").read_text(encoding="utf-8")
+    require("recognitionGuideResourcesCanvas" in app and "guide-resource-actions" in app, "guide Resources preview/download renderer is missing")
+    require("recognitionFullFlowModelsCanvas" in app and 'view.render_mode === "recognition_full_flow_models"' in app, "full-flow/model Design Manager renderer is missing")
+    require("guide-resource-grid" in css and "guide-resource-metadata" in css, "guide Resources responsive gallery styles are missing")
     for token in (
         "history.pushState", 'window.addEventListener("popstate", selectFromHash)',
         "renderInvalidManagerRoute", "openHifiImageLightbox", '[data-zoom="fit"]',

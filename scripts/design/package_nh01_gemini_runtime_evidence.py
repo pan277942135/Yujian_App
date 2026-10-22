@@ -156,7 +156,7 @@ def main() -> int:
         f"- Device preflight/install/instrumentation/evidence: `{runtime.get('preflight', 'NOT_RUN')}` / `{runtime.get('install', 'NOT_RUN')}` / `{runtime.get('instrumentation', 'NOT_RUN')}` / `{runtime.get('evidence', 'NOT_RUN')}`",
         "- Frozen pixel parity: `NOT_CLAIMED`; this is an intentional Gemini V3 container rebuild.",
         "- Separate visual review: `PENDING`; the runtime pass does not claim visual sign-off.",
-        f"- Adaptive 3×3 API 28 matrix: `{adaptive_matrix_summary.get('status', 'NOT_RUN')}` ({adaptive_matrix_summary.get('passed_profiles', 0)}/9 candidate profiles; paired V3 baseline captures are in the same artifact).",
+        f"- Adaptive 4×3 API 28 matrix: `{adaptive_matrix_summary.get('status', 'NOT_RUN')}` ({adaptive_matrix_summary.get('passed_profiles', 0)}/12 candidate profiles; 24 same-SHA Adaptive V2/V3 Baseline executions are required).",
         "- Physical handset verification: `NOT_RUN`; API 28 emulator evidence is labeled separately.",
         "- Matrix bounds: `evidence/NH01_BOUNDS_MATRIX_V1.json`; metrics: `evidence/NH01_LAYOUT_METRICS_V1.json`.",
         "- Two-catch assertions: `evidence/NH01_TWO_CATCH_REGRESSION_V1.json`; visual report: `evidence/NH01_VISUAL_ACCEPTANCE_REPORT_V1.md`.",

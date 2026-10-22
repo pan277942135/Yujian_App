@@ -15,6 +15,8 @@ on:
       - "scripts/run_android_runtime_gate.sh"
       - "scripts/verify_normal_home_*.py"
       - "scripts/verify_nh01_gemini_native_source.py"
+      - "scripts/verify_yujian_resource_package.py"
+      - "scripts/materialize_yujian_resource_package.py"
       - "scripts/design/**"
       - ".github/workflows/nh01-cloud-runtime.yml"
 
@@ -76,11 +78,13 @@ jobs:
           python3 scripts/design/validate_nh01_cloud_bundle.py
           python3 scripts/design/build_nh01_authority_inventory.py
           python3 scripts/design/verify_nh01_cloud_viewer.py
+          python3 scripts/verify_yujian_resource_package.py
           python3 -m unittest discover -s scripts/design/tests -p 'test_*.py' -v
-          python3 -m unittest discover -s scripts/android_runtime/tests -p 'test_nh01_adaptive_matrix.py' -v
+          python3 -m unittest discover -s scripts/android_runtime/tests -p 'test_nh01_*.py' -v
           python3 scripts/verify_nh01_gemini_native_source.py | tee "$YUJIAN_RUNTIME_EVIDENCE/source_audit.txt"
-          python3 -m py_compile scripts/design/package_nh01_gemini_runtime_evidence.py scripts/android_runtime/aggregate_nh01_adaptive_matrix.py
+          python3 -m py_compile scripts/design/package_nh01_gemini_runtime_evidence.py scripts/android_runtime/aggregate_nh01_adaptive_matrix.py scripts/android_runtime/nh01_emulator_outcome.py
           bash scripts/android_runtime/tests/test_contract.sh
+          bash scripts/android_runtime/tests/test_nh01_display_profile.sh
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
@@ -163,18 +167,21 @@ jobs:
             --insets-dump "$YUJIAN_RUNTIME_EVIDENCE/infra/window_insets_dump.txt" \
             --allow-unavailable
 
-      - name: Materialize truthful BLOCKED_INFRA when the emulator gate did not start
+      - name: Record emulator outcome when the runtime gate produced no result
         if: always() && steps.android_build.outcome == 'success'
         run: |
           set -euo pipefail
           result="$YUJIAN_RUNTIME_EVIDENCE/runtime_gate_result.json"
           if [[ ! -s "$result" ]]; then
             mkdir -p "$(dirname "$result")"
-            if [[ "${{ steps.emulator_env.outputs.available }}" != "true" ]]; then
-              reason="STANDARD_INTEL_MACOS_EMULATOR_RUNNER_UNAVAILABLE"
-            else
-              reason="ANDROID_EMULATOR_FAILED_BEFORE_GEMINI_GATE"
-            fi
+            outcome="$(python3 - "${{ steps.emulator_env.outputs.available }}" "${{ steps.emulator_runtime.outcome }}" <<'PY'
+          import sys
+          from scripts.android_runtime.nh01_emulator_outcome import classify_emulator_outcome
+          result = classify_emulator_outcome(sys.argv[1].lower() == "true", sys.argv[2])
+          print("\t".join((result.classification, result.failure_phase, result.failure_reason)))
+          PY
+            )"
+            IFS=$'\t' read -r classification failure_phase failure_reason <<< "$outcome"
             python3 scripts/android_runtime/result.py \
               --output "$result" \
               --gate gemini-home-v2 \
@@ -187,9 +194,9 @@ jobs:
               --install NOT_RUN \
               --instrumentation NOT_RUN \
               --evidence NOT_RUN \
-              --classification BLOCKED_INFRA \
-              --failure-phase EMULATOR_RUNNER \
-              --failure-reason "$reason" \
+              --classification "$classification" \
+              --failure-phase "$failure_phase" \
+              --failure-reason "$failure_reason" \
               --summary-file "$GITHUB_STEP_SUMMARY"
           fi
 

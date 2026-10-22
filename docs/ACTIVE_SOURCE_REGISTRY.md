@@ -162,7 +162,9 @@ Historical V1.1 contracts and verifier remain repository history/compatibility. 
   `design/pages/recognition/result/spec/Recognition_Result_State_Matrix_V1.md`
 - Feature / behavior / visual:
   `design/pages/recognition/result/spec/`
-- Motion:
+- Motion (current Result-entry authority):
+  `design/pages/recognition/result/motion/Recognition_Result_Motion_Spec_V2.md`
+- Motion V1 historical baseline (non-conflicting Result interaction rules):
   `design/pages/recognition/result/motion/Recognition_Result_Motion_Spec_V1.md`
 - Authority order:
   `design/pages/recognition/result/authority/authority_map.json`
@@ -179,6 +181,10 @@ Historical V1.1 contracts and verifier remain repository history/compatibility. 
 - RR03 — 低置信结果 — independent Frozen Hi-Fi
 - RR04 — 未检测到鱼 — independent Frozen Hi-Fi
 - RR05 — 图片质量不足 — independent Frozen Hi-Fi
+- RR06 — 内容修改 — Species Selector / Metadata Edit authority index
+- RR07 — 判定逻辑 — current runtime routing documented separately
+- RR08 — 视觉验收 — Visual Acceptance Contract V1; runtime NOT_RUN
+- RR09 — 动效接续 — Motion V2 FROZEN SPEC ONLY; runtime NOT_RUN
 
 ### State-level visual authority
 

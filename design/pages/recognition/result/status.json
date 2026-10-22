@@ -13,7 +13,8 @@
     "04_no_fish",
     "05_image_quality",
     "06_content_edit",
-    "07_decision_logic"
+    "07_decision_logic",
+    "08_motion_continuation"
   ],
   "state_model": "3+2",
   "result_states": [
@@ -84,5 +85,18 @@
   "decision_logic_menu_registered": true,
   "decision_logic_menu_id": "RR07",
   "decision_logic_menu_authority": "design/pages/recognition/result/07_decision_logic/README.md",
-  "decision_logic_menu_status": "CURRENT_RUNTIME_DOCUMENTED_PENDING_NEW_THRESHOLD_VALIDATION"
+  "decision_logic_menu_status": "CURRENT_RUNTIME_DOCUMENTED_PENDING_NEW_THRESHOLD_VALIDATION",
+  "motion_authority": "design/pages/recognition/result/motion/Recognition_Result_Motion_Spec_V2.md",
+  "motion_machine_contract": "design/pages/recognition/result/motion/recognition_result_motion_contract_v2.json",
+  "motion_system_contract": "design/system_v3/10_Page_Visual_Acceptance_Contracts/Recognition_Result/Recognition_Result_Motion_Contract_V2.md",
+  "motion_spec_version": "V2",
+  "motion_continuation_menu_registered": true,
+  "motion_continuation_menu_id": "RR09",
+  "motion_continuation_menu_authority": "design/pages/recognition/result/08_motion_continuation/README.md",
+  "motion_continuation_status": "FROZEN_SPEC_ONLY_RUNTIME_NOT_RUN",
+  "motion_runtime_status": "NOT_RUN",
+  "motion_playable_prototype": "design/manager/rr09_motion/",
+  "motion_playable_fixture": "design/manager/rr09_motion/fixture.json",
+  "motion_browser_evidence_status": "PENDING_EXACT_SHA_BROWSER_GATE",
+  "motion_android_runtime_status": "NOT_RUN"
 }

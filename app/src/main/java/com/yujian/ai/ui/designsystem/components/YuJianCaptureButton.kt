@@ -73,6 +73,7 @@ fun YuJianCaptureButton(
     rasterMotion: YuJianCaptureButtonRasterMotion? = null,
     visualSize: Dp? = null,
     touchTargetSize: Dp? = null,
+    visualModifier: Modifier = Modifier,
 ) {
     val haptic = rememberYuJianHaptic()
     val effectiveMotionEnabled = motionEnabled && !rememberYuJianReduceMotion()
@@ -117,6 +118,7 @@ fun YuJianCaptureButton(
         Box(
             modifier = Modifier
                 .size(resolvedVisualSize)
+                .then(visualModifier)
                 .graphicsLayer {
                     scaleX = visualScale
                     scaleY = visualScale

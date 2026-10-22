@@ -80,7 +80,18 @@ Design Manager 二级菜单：
 - P01 · 竖屏拍摄示意 — FROZEN
 - P02 · 竖拍鱼类拍摄示意 — FROZEN
 - P03 · 横屏拍摄示意 — FROZEN
+- 资源 — Design Manager 静态资源目录，预览并下载 P01/P02/P03 原始 PNG；不映射到 Android 运行时
 
 顶部 Hero 为唯一正确示范；下方固定 3 个错误示范：鱼头不在画面 / 鱼体过小 / 遮挡过多。P02 的错误示例全部使用竖直鱼体，P03 的错误示例全部使用横向鱼体。P01/P02 使用「下一张」，P03 使用「开始拍摄」；最后的「开始拍摄」仅关闭教学并回到 Capture Ready，不自动触发快门。
 
 视觉权威、源文件 SHA 与冻结规则见 `design/pages/recognition/first_use_camera_guide/manifest.json` 与 `First_Use_Camera_Guide_Spec_V1.md`。
+
+## Recognition Full Flow & Model Responsibilities
+
+The Design Manager entry is `识别过程 → 09 · 识别全流程-和模型`. It includes the flowchart, model responsibility boundaries, quality/size decision branches, and the end-to-end acceptance matrix.
+
+- `design/system_v3/00_Product_Master_Flow/subflows/Recognition_Full_Flow_Models_V1.md`
+- `design/system_v3/00_Product_Master_Flow/subflows/Recognition_Full_Flow_Models_V1.json`
+- `design/system_v3/00_Product_Master_Flow/subflows/Recognition_Full_Flow_Models_V1.svg`
+
+This is a DESIGN_ONLY technical/business flow reference. It does not add a product Processing state or change the current production model default.

@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#101d25">
+<title>RR09 · 动效接续 · 金光转译揭晓</title><link rel="stylesheet" href="./style.css"></head>
+<body><main class="workspace">
+<header class="topbar"><div><p class="eyebrow">YUJIAN · RECOGNITION RESULT · RR09 / MOTION V2</p><h1>动效接续 <span class="slash">/</span> 金光转译揭晓</h1><p class="subhead">真实鱼获照片 · Fish Focus → 照片接续 → Gold Transfer → 鱼种标题凝结 → Afterglow</p></div><a class="outline-link" href="../#page/recognition_result_v1/hifi/motion_continuation">↗ 设计系统 RR09</a></header>
+<div class="layout">
+<section class="preview-panel" aria-label="可播放原型">
+<div class="preview-top"><span class="live-mark">● PLAYABLE MOTION REVIEW</span><span id="photoState" class="source-state" role="status">正在校验真实照片…</span></div>
+<div id="stage" class="stage" data-phase="K01_FISH_FOCUS">
+  <div class="landscape" aria-hidden="true"><div class="sky"></div><div class="mountain far"></div><div class="mountain near"></div><div class="lake"></div><div class="reeds"></div></div>
+  <div class="statusbar"><span>09:41</span><span>◔　▰▰</span></div>
+  <div id="resultHead" class="result-head"><span aria-hidden="true">‹</span><strong>识别结果</strong><span aria-hidden="true">⋯</span></div>
+  <div id="photoBox" class="photo-box">
+    <img id="fishPhoto" alt="仓库登记的真实鱼获照片；保持原始画幅和裁切连续性" decoding="async">
+    <svg id="fishOverlay" class="subject-overlay" viewBox="0 0 1152 1536" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+      <defs><filter id="fishBloom" x="-70%" y="-70%" width="240%" height="240%"><feGaussianBlur stdDeviation="12"/></filter><linearGradient id="fishGold" x1="0%" y1="30%" x2="100%" y2="70%"><stop offset="0" stop-color="#dbb56e"/><stop offset=".45" stop-color="#fff0c7"/><stop offset="1" stop-color="#f0bf7f"/></linearGradient></defs>
+      <path id="haloOuter" fill="none" stroke="#f0c983" stroke-width="24" opacity=".55" filter="url(#fishBloom)"></path>
+      <path id="haloInner" fill="none" stroke="#f8d9a0" stroke-width="8" opacity=".73" filter="url(#fishBloom)"></path>
+      <path id="haloCore" fill="none" stroke="url(#fishGold)" stroke-width="3" stroke-linecap="round" opacity=".94"></path>
+      <path id="haloComet" fill="none" stroke="#fff5d8" stroke-width="4.2" stroke-linecap="round" stroke-dasharray="84 7000" opacity=".88"></path>
+    </svg>
+    <svg id="edgeField" class="edge-field" viewBox="0 0 360 490" preserveAspectRatio="none" aria-hidden="true">
+      <defs><linearGradient id="edgeBlue" x1="1" y1="0" x2="0" y2="1"><stop stop-color="#6bb5d3"/><stop offset=".7" stop-color="#adcdd3" stop-opacity=".55"/><stop offset="1" stop-color="#6bb5d3" stop-opacity="0"/></linearGradient><linearGradient id="edgeWarm"><stop stop-color="#e0bf86" stop-opacity="0"/><stop offset=".5" stop-color="#e0bf86" stop-opacity=".75"/><stop offset="1" stop-color="#e0bf86" stop-opacity="0"/></linearGradient></defs>
+      <path d="M282 -3 C340 18 363 76 353 164" stroke="url(#edgeBlue)" stroke-width="3" fill="none"/>
+      <path d="M363 295 C355 377 317 449 245 494" stroke="url(#edgeBlue)" stroke-width="2" fill="none"/>
+      <path d="M-4 100 C8 44 40 12 105 -3" stroke="url(#edgeWarm)" stroke-width="2" fill="none"/>
+      <path d="M-3 338 C12 410 43 460 129 496" stroke="url(#edgeWarm)" stroke-width="2.5" fill="none"/>
+    </svg>
+  </div>
+  <div id="processingCaption" class="processing-caption">正在识别这条鱼<span>从鱼体线索到识别结果</span></div>
+  <div id="resultBody" class="result-body">
+    <div class="result-chip">AI · 鱼获识别</div>
+    <div id="speciesArea" class="species-area">
+      <div id="formationGlyphs" class="formation-glyphs" aria-hidden="true">✧　···　✧　·</div>
+      <div id="cnSpecies" class="species-cn">翘嘴鲌</div>
+      <div id="laSpecies" class="species-la">Culter alburnus</div>
+      <span id="titleSweep" class="title-sweep" aria-hidden="true"></span>
+    </div>
+    <div id="resultMeta" class="result-meta"><div><span>长度</span><strong>待填写</strong></div><div><span>重量</span><strong>待填写</strong></div><div><span>地点</span><strong>待填写</strong></div></div>
+    <div id="storyPlaceholder" class="story-placeholder">写下这次鱼获的故事　<span>✦</span></div>
+  </div>
+  <canvas id="effects" class="fx-layer" width="720" height="1560" aria-hidden="true"></canvas>
+  <div id="resultActions" class="result-actions"><button type="button" id="continueBtn">继续记录记忆</button><button type="button" id="saveBtn" class="primary">保存本次鱼获</button></div>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <div class="home-hint" aria-hidden="true"></div>
+</div>
+<div class="stage-caption"><span id="frameCode">K01 · FISH FOCUS</span><span id="frameTime">000 / 850 ms</span></div>
+</section>
+<aside class="side-panel">
+<section class="panel control-panel"><div class="panel-label">01 / PLAYER</div><h2>逐帧验收台</h2>
+<div class="player-buttons"><button id="playBtn" class="accent-btn" type="button">▶ 播放</button><button id="pauseBtn" type="button">Ⅱ 暂停</button><button id="restartBtn" type="button">↻ 人工回看</button></div>
+<label class="range-caption" for="timeline">Motion Timeline · 毫秒</label><input id="timeline" type="range" min="0" max="850" step="1" value="0"><div class="ruler"><span>0</span><span>200</span><span>380</span><span>550</span><span>680</span><span>850</span></div>
+<div class="steps" id="steps"><button data-seek="0" type="button"><b>K01</b><span>鱼体高亮锁定</span><i>0</i></button><button data-seek="120" type="button"><b>K02</b><span>照片自然接续</span><i>0–200</i></button><button data-seek="290" type="button"><b>K03</b><span>金光向下转移</span><i>200–380</i></button><button data-seek="465" type="button"><b>K04</b><span>名称凝结中</span><i>380–550</i></button><button data-seek="610" type="button"><b>K05</b><span>鱼种名称揭晓</span><i>550–680</i></button><button data-seek="850" type="button"><b>K06</b><span>余辉完全消散</span><i>680–850</i></button></div></section>
+<section class="panel"><div class="panel-label">02 / TEST MODES</div><h2>交互与降级</h2>
+<label class="setting"><span>Reduce Motion <small>无粒子、无位移/扫光</small></span><input id="reduceMotion" type="checkbox"></label>
+<label class="setting"><span>低性能回退 <small>最大粒子数 6</small></span><input id="lowQuality" type="checkbox"></label>
+<label class="setting"><span>无可信鱼体几何 <small>仅保留淡入，不伪造光源</small></span><input id="invalidGeometry" type="checkbox"></label>
+<label class="setting"><span>模拟输出状态 <small>仅 HIGH 启动完整揭晓</small></span><select id="recognitionState"><option value="RESULT_HIGH">RESULT_HIGH</option><option value="RESULT_MEDIUM">RESULT_MEDIUM</option><option value="RESULT_LOW">RESULT_LOW</option><option value="ERROR_NO_FISH">NO_FISH</option></select></label>
+</section>
+<section class="panel authority"><div class="panel-label">03 / DATA & AUTHORITY</div><h2>资产可信边界</h2>
+<dl><dt>真实照片</dt><dd><code>real_catch_source.jpg</code> / 1152 × 1536</dd><dt>期望 SHA-256</dt><dd><code id="photoSha">6e955087108f…</code></dd><dt>鱼体路径</dt><dd>MANUAL_REFERENCE_CONTOUR · <b>非生产 Mask</b></dd><dt>演示名称</dt><dd>翘嘴鲌 / Culter alburnus · <b>示例文案，不是模型推理</b></dd><dt>冻结规范</dt><dd>Recognition Result Motion Spec V2 · <b>FROZEN</b></dd><dt>浏览器原型</dt><dd id="runtimeResult">等待浏览器验证 · 非 Android Runtime</dd></dl>
+<p class="disclaimer">播放、拖动和“人工回看”只用于设计评审；生产环境仍遵守新会话 HIGH 一次性触发。真实照片未经模型重新推理，示例鱼种不可视为照片真值。</p>
+</section>
+</aside>
+</div></main><script src="./motion.js"></script></body></html>

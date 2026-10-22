@@ -240,6 +240,7 @@ features:
       - "degradation_accessibility"
       - "runtime_evidence"
       - "capture_first_use_guide"
+      - "recognition_full_flow_models"
     design_children:
       - "ai_edge_field_v1_static_shape"
       - "ai_edge_field_v1_rendering_contract"
@@ -262,6 +263,7 @@ features:
       - "p01"
       - "p02"
       - "p03"
+      - "resources"
     child_surfaces:
       - "capture"
       - "permission"
@@ -323,7 +325,7 @@ features:
         authority: "design/pages/recognition/result/authority/authority_map.json"
       motion:
         status: "FROZEN"
-        authority: "design/pages/recognition/result/motion/Recognition_Result_Motion_Spec_V1.md"
+        authority: "design/pages/recognition/result/motion/Recognition_Result_Motion_Spec_V2.md"
       haptic:
         status: "FROZEN"
         authority: "design/pages/recognition/result/motion/Recognition_Result_Motion_Spec_V1.md"
@@ -348,6 +350,8 @@ features:
       - "image_quality"
       - "content_edit"
       - "decision_logic"
+      - "visual_acceptance"
+      - "motion_continuation"
     design_children: []
     child_surfaces:
       - "overview"
@@ -358,6 +362,8 @@ features:
       - "image_quality"
       - "content_edit"
       - "decision_logic"
+      - "visual_acceptance"
+      - "motion_continuation"
     journey_refs:
       - "J11"
       - "J12"

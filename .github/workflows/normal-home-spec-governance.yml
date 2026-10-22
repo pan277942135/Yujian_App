@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - 'design/pages/home/normal_home/**'
+      - 'design/qa/NH01_ADAPTIVE_VISUAL_BALANCE_V2.md'
       - 'scripts/design/verify_normal_home_contract_v1.py'
       - 'scripts/design/measure_normal_home_frozen_roi_v1.py'
       - 'scripts/design/audit_normal_home_real_media_v1.py'
@@ -12,6 +13,7 @@ on:
   pull_request:
     paths:
       - 'design/pages/home/normal_home/**'
+      - 'design/qa/NH01_ADAPTIVE_VISUAL_BALANCE_V2.md'
       - 'scripts/design/verify_normal_home_contract_v1.py'
       - 'design/system/core_visual_v1/reference/normal_home_v1.png'
       - 'design/system/backgrounds/morning_lake_v1/assets/Morning_Lake_Master_V1.png'
@@ -26,7 +28,7 @@ jobs:
     steps:
       - name: Checkout exact commit and immutable source pixels
         uses: actions/checkout@v4
-      - name: Check Normal Home authority, source SHA and 38-case matrix
+      - name: Check Normal Home authority, source SHA and legacy 46-case and current Gemini 20-case matrices
         run: python3 scripts/design/verify_normal_home_contract_v1.py
       - name: Measure verified Frozen CTA and Camera pixel candidates
         run: python3 scripts/design/measure_normal_home_frozen_roi_v1.py

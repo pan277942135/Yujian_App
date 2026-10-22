@@ -116,5 +116,16 @@
     "replaces_after_page_review": "app/src/main/res/drawable-nodpi/normal_home_default_avatar_v2.png",
     "guest_remains": "app/src/main/assets/normal_home_runtime_v1/avatar/guest_avatar.png",
     "preserves_page_frozen_sha": true
+  },
+  "active_gemini_nh01_override": {
+    "status": "SPEC_FROZEN_RUNTIME_PENDING",
+    "scope": "GEMINI_V3_ADAPTIVE_V2_NH01_NH02_ONLY",
+    "authority": "design/pages/home/normal_home/engineering/NH01_GEMINI_ADAPTIVE_V2_UNIFIED_AUTHORITY_V1.md",
+    "acceptance": "design/pages/home/normal_home/engineering/NH01_GEMINI_ADAPTIVE_V2_ACCEPTANCE_V1.md",
+    "matrix": "design/pages/home/normal_home/engineering/NH01_GEMINI_ADAPTIVE_V2_ACCEPTANCE_MATRIX_V1.json",
+    "candidate": "design/qa/NH01_ADAPTIVE_VISUAL_BALANCE_V2.md",
+    "legacy_frozen_sources_unchanged": true,
+    "legacy_46_case_matrix_preserved": true,
+    "runtime_verdict": "NOT_RUN"
   }
 }

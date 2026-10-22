@@ -11,21 +11,22 @@ readonly TEST_CLASS="com.yujian.ai.ui.home.GeminiHomeDeviceMatrixTest#capturesAc
 readonly APP_APK="${YUJIAN_APP_APK:-build/runtime-apks/app-debug.apk}"
 readonly TEST_APK="${YUJIAN_TEST_APK:-build/runtime-apks/app-debug-androidTest.apk}"
 readonly RAW_DIR="$YUJIAN_EVIDENCE_DIR/nh01-adaptive-raw"
-readonly RAW_CASE_DIR="$RAW_DIR/nh01-adaptive-visual-balance-v1"
+readonly RAW_CASE_DIR="$RAW_DIR/nh01-adaptive-visual-balance-v2"
 readonly MATRIX_DIR="$YUJIAN_EVIDENCE_DIR/NH01_RUNTIME_MATRIX_V1"
 readonly EXEC_DIR="$MATRIX_DIR/executions"
 readonly LOG_DIR="$MATRIX_DIR/logs"
-readonly REMOTE_DIR="/sdcard/Android/data/$YUJIAN_APP_PACKAGE/files/nh01-adaptive-visual-balance-v1"
+readonly REMOTE_DIR="/sdcard/Android/data/$YUJIAN_APP_PACKAGE/files/nh01-adaptive-visual-balance-v2"
 
 rm -rf "$RAW_DIR" "$MATRIX_DIR"
 mkdir -p "$RAW_CASE_DIR" "$EXEC_DIR" "$LOG_DIR/diagnostics"
 
 profiles=(
-  "M01 320 640 1.0" "M02 320 640 1.3" "M03 320 640 1.5"
-  "M04 393 852 1.0" "M05 393 852 1.3" "M06 393 852 1.5"
-  "M07 411 915 1.0" "M08 411 915 1.3" "M09 411 915 1.5"
+  "M01 320 480 1.0" "M02 320 480 1.3" "M03 320 480 1.5"
+  "M04 360 640 1.0" "M05 360 640 1.3" "M06 360 640 1.5"
+  "M07 390 844 1.0" "M08 390 844 1.3" "M09 390 844 1.5"
+  "M10 430 932 1.0" "M11 430 932 1.3" "M12 430 932 1.5"
 )
-variants=("ADAPTIVE_V1" "V3_BASELINE")
+variants=("ADAPTIVE_V2" "V3_BASELINE")
 all_ok=1
 matrix_setup_ok=1
 matrix_setup_reason=""
@@ -33,6 +34,9 @@ selected_serial=""
 initial_size_override=""
 initial_density_override=""
 initial_font=""
+initial_animator_scale=""
+initial_transition_scale=""
+initial_window_scale=""
 device_api="unknown"
 device_fingerprint="unknown"
 app_package_verified=0
@@ -192,13 +196,20 @@ if [[ -n "$selected_serial" ]]; then
   initial_size_override="$(sed -n 's/^Override size: //p' <<< "$initial_size_output" | head -n 1 | tr -d '\r')"
   initial_density_override="$(sed -n 's/^Override density: //p' <<< "$initial_density_output" | head -n 1 | tr -d '\r')"
   initial_font="$("${ADB[@]}" shell settings get system font_scale 2>/dev/null | tr -d '\r' || true)"
+  initial_animator_scale="$("${ADB[@]}" shell settings get global animator_duration_scale 2>/dev/null | tr -d '\r' || true)"
+  initial_transition_scale="$("${ADB[@]}" shell settings get global transition_animation_scale 2>/dev/null | tr -d '\r' || true)"
+  initial_window_scale="$("${ADB[@]}" shell settings get global window_animation_scale 2>/dev/null | tr -d '\r' || true)"
 fi
 if [[ -z "$initial_font" ]]; then initial_font="null"; fi
+if [[ -z "$initial_animator_scale" ]]; then initial_animator_scale="null"; fi
+if [[ -z "$initial_transition_scale" ]]; then initial_transition_scale="null"; fi
+if [[ -z "$initial_window_scale" ]]; then initial_window_scale="null"; fi
 
 BUILD_SHA="$BUILD_SHA" YUJIAN_ADB_BIN="$YUJIAN_ADB_BIN" YUJIAN_APP_PACKAGE="$YUJIAN_APP_PACKAGE" \
   YUJIAN_INSTRUMENTATION_TARGET="$YUJIAN_INSTRUMENTATION_TARGET" APP_APK_VALUE="$APP_APK" TEST_APK_VALUE="$TEST_APK" \
   SELECTED_SERIAL="$selected_serial" DEVICE_API="$device_api" DEVICE_FINGERPRINT="$device_fingerprint" \
   WM_SIZE_BEFORE="$wm_size_before" WM_DENSITY_BEFORE="$wm_density_before" INITIAL_FONT_SCALE="$initial_font" \
+  INITIAL_ANIMATOR_SCALE="$initial_animator_scale" INITIAL_TRANSITION_SCALE="$initial_transition_scale" INITIAL_WINDOW_SCALE="$initial_window_scale" \
   INITIAL_SIZE_OVERRIDE="$initial_size_override" INITIAL_DENSITY_OVERRIDE="$initial_density_override" \
   APP_PACKAGE_FROM_APK="$app_package_from_apk" TEST_PACKAGE_FROM_APK="$test_package_from_apk" \
   APP_PACKAGE_VERIFIED="$app_package_verified" TEST_PACKAGE_VERIFIED="$test_package_verified" \
@@ -224,6 +235,12 @@ p={
  "physical_size_before":os.environ.get("WM_SIZE_BEFORE","unknown"),"physical_density_before":os.environ.get("WM_DENSITY_BEFORE","unknown"),
  "initial_size_override":os.environ.get("INITIAL_SIZE_OVERRIDE") or None,"initial_density_override":os.environ.get("INITIAL_DENSITY_OVERRIDE") or None,
  "initial_font_scale":os.environ.get("INITIAL_FONT_SCALE","unknown"),"app_apk":os.environ.get("APP_APK_VALUE"),"app_apk_sha256":digest("APP_APK_VALUE"),
+ "initial_animation_scales":{
+   "animator_duration_scale":os.environ.get("INITIAL_ANIMATOR_SCALE"),
+   "transition_animation_scale":os.environ.get("INITIAL_TRANSITION_SCALE"),
+   "window_animation_scale":os.environ.get("INITIAL_WINDOW_SCALE"),
+ },
+ "matrix_animation_scales":{"animator_duration_scale":0.0,"transition_animation_scale":0.0,"window_animation_scale":0.0},
  "test_apk":os.environ.get("TEST_APK_VALUE"),"test_apk_sha256":digest("TEST_APK_VALUE"),"app_package_expected":os.environ.get("YUJIAN_APP_PACKAGE"),
  "app_package_from_apk":os.environ.get("APP_PACKAGE_FROM_APK"),"test_package_from_apk":os.environ.get("TEST_PACKAGE_FROM_APK"),
  "instrumentation_target":os.environ.get("YUJIAN_INSTRUMENTATION_TARGET"),"package_verified":os.environ.get("APP_PACKAGE_VERIFIED")=="1",
@@ -252,10 +269,39 @@ restore_device() {
   else
     "${ADB[@]}" shell settings put system font_scale "$initial_font" >> "$LOG_DIR/restore_device.log" 2>&1 || rc=1
   fi
+  restore_global_setting() {
+    local name="$1" value="$2"
+    if [[ "$value" == "null" ]]; then
+      "${ADB[@]}" shell settings delete global "$name" >> "$LOG_DIR/restore_device.log" 2>&1 || rc=1
+    else
+      "${ADB[@]}" shell settings put global "$name" "$value" >> "$LOG_DIR/restore_device.log" 2>&1 || rc=1
+    fi
+  }
+  restore_global_setting animator_duration_scale "$initial_animator_scale"
+  restore_global_setting transition_animation_scale "$initial_transition_scale"
+  restore_global_setting window_animation_scale "$initial_window_scale"
   {
-    echo "wm_size=$(${ADB[*]} shell wm size 2>&1 | tr '\n' ' ')"
-    echo "wm_density=$(${ADB[*]} shell wm density 2>&1 | tr '\n' ' ')"
-    echo "font_scale=$(${ADB[*]} shell settings get system font_scale 2>&1 | tr -d '\r')"
+    restored_size="$("${ADB[@]}" shell wm size 2>&1 || true)"
+    restored_density="$("${ADB[@]}" shell wm density 2>&1 || true)"
+    restored_font="$("${ADB[@]}" shell settings get system font_scale 2>&1 | tr -d '\r' || true)"
+    restored_animator="$("${ADB[@]}" shell settings get global animator_duration_scale 2>&1 | tr -d '\r' || true)"
+    restored_transition="$("${ADB[@]}" shell settings get global transition_animation_scale 2>&1 | tr -d '\r' || true)"
+    restored_window="$("${ADB[@]}" shell settings get global window_animation_scale 2>&1 | tr -d '\r' || true)"
+    restored_size_value="$(sed -n 's/^Override size: //p; s/^Physical size: //p' <<< "$restored_size" | tail -n 1 | tr -d '\r')"
+    restored_density_value="$(sed -n 's/^Override density: //p; s/^Physical density: //p' <<< "$restored_density" | tail -n 1 | tr -d '\r')"
+    expected_size_value="${initial_size_override:-$wm_size_before}"
+    expected_density_value="${initial_density_override:-$wm_density_before}"
+    printf 'wm_size=%s\n' "${restored_size//$'\n'/; }"
+    printf 'wm_density=%s\n' "${restored_density//$'\n'/; }"
+    printf 'font_scale=%s\n' "$restored_font"
+    printf 'animator_duration_scale=%s\n' "$restored_animator"
+    printf 'transition_animation_scale=%s\n' "$restored_transition"
+    printf 'window_animation_scale=%s\n' "$restored_window"
+    if [[ "$restored_size_value" != "$expected_size_value" || "$restored_density_value" != "$expected_density_value" || \
+          "$restored_font" != "$initial_font" || "$restored_animator" != "$initial_animator_scale" || \
+          "$restored_transition" != "$initial_transition_scale" || "$restored_window" != "$initial_window_scale" ]]; then
+      rc=1
+    fi
   } > "$LOG_DIR/device_settings_after_restore.txt" 2>&1 || rc=1
   return "$rc"
 }
@@ -265,6 +311,11 @@ if [[ -n "$selected_serial" ]]; then
   "${ADB[@]}" shell rm -rf "$REMOTE_DIR" > "$LOG_DIR/clear_remote_output.log" 2>&1 || {
     record_setup_failure "COULD_NOT_CLEAR_REMOTE_OUTPUT_DIRECTORY"
   }
+  for setting in animator_duration_scale transition_animation_scale window_animation_scale; do
+    "${ADB[@]}" shell settings put global "$setting" 0.0 >> "$LOG_DIR/disable_system_animations.log" 2>&1 || {
+      record_setup_failure "COULD_NOT_DISABLE_SYSTEM_ANIMATION_$setting"
+    }
+  done
 fi
 
 for row in "${profiles[@]}"; do
@@ -289,22 +340,30 @@ for row in "${profiles[@]}"; do
   actual_wm_size="unknown"
   actual_density="unknown"
   actual_font="unknown"
+  actual_animator_scale="unknown"
+  actual_transition_scale="unknown"
+  actual_window_scale="unknown"
   if [[ -n "$selected_serial" ]]; then
     actual_wm_size="$("${ADB[@]}" shell wm size 2>&1 | sed -n 's/^Override size: //p; s/^Physical size: //p' | tail -n 1 | tr -d '\r')"
     actual_density="$("${ADB[@]}" shell wm density 2>&1 | sed -n 's/^Override density: //p; s/^Physical density: //p' | tail -n 1 | tr -d '\r')"
     actual_font="$("${ADB[@]}" shell settings get system font_scale 2>&1 | tr -d '\r')"
+    actual_animator_scale="$("${ADB[@]}" shell settings get global animator_duration_scale 2>&1 | tr -d '\r')"
+    actual_transition_scale="$("${ADB[@]}" shell settings get global transition_animation_scale 2>&1 | tr -d '\r')"
+    actual_window_scale="$("${ADB[@]}" shell settings get global window_animation_scale 2>&1 | tr -d '\r')"
   fi
   profile_settings_match=true
   [[ "$size_rc" -eq 0 && "$density_rc" -eq 0 && "$font_rc" -eq 0 ]] || profile_settings_match=false
   [[ "$actual_wm_size" == "$requested" ]] || profile_settings_match=false
   [[ "$actual_density" == "160" ]] || profile_settings_match=false
   [[ "$actual_font" == "$font_scale" ]] || profile_settings_match=false
-  python3 - "$LOG_DIR/${profile}_device_settings.json" "$profile" "$requested" "$font_scale" "$actual_wm_size" "$actual_density" "$actual_font" "$size_rc" "$density_rc" "$font_rc" <<'PY'
+  [[ "$actual_animator_scale" == "0.0" && "$actual_transition_scale" == "0.0" && "$actual_window_scale" == "0.0" ]] || profile_settings_match=false
+  python3 - "$LOG_DIR/${profile}_device_settings.json" "$profile" "$requested" "$font_scale" "$actual_wm_size" "$actual_density" "$actual_font" "$actual_animator_scale" "$actual_transition_scale" "$actual_window_scale" "$size_rc" "$density_rc" "$font_rc" <<'PY'
 import json, sys
 from pathlib import Path
 p={"profile_id":sys.argv[2],"requested_size_px":sys.argv[3],"requested_density_dpi":160,"requested_font_scale":float(sys.argv[4]),
    "actual_wm_size":sys.argv[5],"actual_wm_density":sys.argv[6],"actual_font_scale":sys.argv[7],
-   "wm_size_exit":int(sys.argv[8]),"wm_density_exit":int(sys.argv[9]),"font_scale_exit":int(sys.argv[10])}
+   "android_animation_scales":{"animator_duration_scale":sys.argv[8],"transition_animation_scale":sys.argv[9],"window_animation_scale":sys.argv[10]},
+   "wm_size_exit":int(sys.argv[11]),"wm_density_exit":int(sys.argv[12]),"font_scale_exit":int(sys.argv[13])}
 Path(sys.argv[1]).write_text(json.dumps(p,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
 PY
 
@@ -432,6 +491,9 @@ PY
         echo "actual_wm_size=$actual_wm_size"
         echo "actual_density=$actual_density"
         echo "actual_font_scale=$actual_font"
+        echo "animator_duration_scale=$actual_animator_scale"
+        echo "transition_animation_scale=$actual_transition_scale"
+        echo "window_animation_scale=$actual_window_scale"
         echo "api=$device_api"
         echo "fingerprint=$device_fingerprint"
         echo "adb_serial=$selected_serial"
@@ -444,6 +506,9 @@ PY
       "${ADB[@]}" shell wm size > "$case_dir/wm_size_after_failure.log" 2>&1 || true
       "${ADB[@]}" shell wm density > "$case_dir/wm_density_after_failure.log" 2>&1 || true
       "${ADB[@]}" shell settings get system font_scale > "$case_dir/font_scale_after_failure.log" 2>&1 || true
+      "${ADB[@]}" shell settings get global animator_duration_scale > "$case_dir/animator_duration_scale_after_failure.log" 2>&1 || true
+      "${ADB[@]}" shell settings get global transition_animation_scale > "$case_dir/transition_animation_scale_after_failure.log" 2>&1 || true
+      "${ADB[@]}" shell settings get global window_animation_scale > "$case_dir/window_animation_scale_after_failure.log" 2>&1 || true
       "${ADB[@]}" shell dumpsys window windows > "$case_dir/window_after_failure.txt" 2>&1 || true
       "${ADB[@]}" logcat -d -v threadtime -t 4000 > "$case_dir/logcat_after_failure.txt" 2>&1 || true
       "${ADB[@]}" exec-out screencap -p > "$case_dir/screenshot_after_failure.png" 2> "$case_dir/screenshot_capture.stderr.log" || true
@@ -482,7 +547,7 @@ python3 scripts/android_runtime/aggregate_nh01_adaptive_matrix.py \
   --source-sha "$BUILD_SHA" \
   --run-id "${GITHUB_RUN_ID:-local}" \
   --run-url "${GITHUB_SERVER_URL:-https://github.com}/${GITHUB_REPOSITORY:-pan277942135/Yujian_App}/actions/runs/${GITHUB_RUN_ID:-local}" \
-  --contract design/qa/NH01_ADAPTIVE_VISUAL_BALANCE_V1.md || aggregate_rc=$?
+  --contract design/qa/NH01_ADAPTIVE_VISUAL_BALANCE_V2.md || aggregate_rc=$?
 if [[ "$aggregate_rc" -ne 0 ]]; then all_ok=0; fi
 
 MATRIX_STATUS="PASS"

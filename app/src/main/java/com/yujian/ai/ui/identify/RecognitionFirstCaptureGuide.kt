@@ -163,7 +163,10 @@ internal fun RecognitionFirstCaptureGuideOverlay(
             ) {
                 val isFinalPage = pagerState.currentPage == RecognitionFirstCaptureGuidePage.P03.index
                 val fontScale = LocalDensity.current.fontScale
-                val stackActions = maxWidth < 380.dp || fontScale >= 1.8f
+                val stackActions = shouldStackRecognitionGuideActions(
+                    availableWidthDp = maxWidth.value,
+                    fontScale = fontScale,
+                )
 
                 @Composable
                 fun ActionButtons() {

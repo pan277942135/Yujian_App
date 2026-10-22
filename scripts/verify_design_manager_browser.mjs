@@ -127,6 +127,8 @@ async function main() {
   const p01Hash = "#page/recognition_flow_v1_2/hifi/capture_first_use_guide/p01";
   const p02Hash = "#page/recognition_flow_v1_2/hifi/capture_first_use_guide/p02";
   const p03Hash = "#page/recognition_flow_v1_2/hifi/capture_first_use_guide/p03";
+  const resourcesHash = "#page/recognition_flow_v1_2/hifi/capture_first_use_guide/resources";
+  const fullFlowModelsHash = "#page/recognition_flow_v1_2/hifi/recognition_full_flow_models";
   const open = hash => page.goto(baseUrl + hash, { waitUntil: "networkidle", timeout: 45000 });
 
   // Gemini Native V3 is sourced from the checked-in structure snapshot and approved assets,
@@ -702,6 +704,38 @@ async function main() {
   const guideOriginalHref = await page.locator(".hifi-image-actions a").first().getAttribute("href");
   assert(guideOriginalHref?.includes("P01_First_Use_Camera_Guide_Frozen.png"), "P01 must retain a direct original PNG link");
 
+  const resourcesMenuItem = page.locator('#pageList .page-subsubitem[data-hifi-child-id="resources"]');
+  assert(await resourcesMenuItem.isVisible(), "07 guide must show its Resources submenu");
+  await resourcesMenuItem.click();
+  await page.waitForFunction(expected => location.hash === expected, resourcesHash);
+  assert((await page.locator("#hifiViewTitle").innerText()).trim() === "资源", "Resources submenu must open its registered route");
+  assert((await page.locator("#hifiViewSummary").innerText()).includes("不映射为 Android 运行时背景"), "Resources route must state its Android runtime boundary");
+  assert(await page.locator(".guide-resource-card").count() === 3, "Resources route must show exactly three Frozen source PNGs");
+  const resourceExpected = [
+    ["p01", 941, 1671, "P01_First_Use_Camera_Guide_Frozen.png", "dc731cca5470"],
+    ["p02", 941, 1671, "P02_First_Use_Camera_Guide_Frozen.png", "fb092235fd04"],
+    ["p03", 941, 1672, "P03_First_Use_Camera_Guide_Frozen.png", "1a3008483ac5"]
+  ];
+  for (const [id, width, height, filename, shaPrefix] of resourceExpected) {
+    const selector = `.guide-resource-card[data-resource-id="${id}"]`;
+    const loaded = await waitForLoadedImage(page, `${selector} img`, `${id.toUpperCase()} resource`);
+    assert(loaded.width === width && loaded.height === height,
+      `${id.toUpperCase()} resource dimensions changed: ${JSON.stringify(loaded)}`);
+    const card = page.locator(selector);
+    assert((await card.innerText()).includes(shaPrefix), `${id.toUpperCase()} resource SHA is not shown`);
+    const download = card.locator("a[download]");
+    assert(await download.getAttribute("download") === filename, `${id.toUpperCase()} original download filename changed`);
+    assert((await download.getAttribute("href"))?.includes(filename), `${id.toUpperCase()} download does not point to its original PNG`);
+  }
+  const manifestLink = page.locator(".guide-resource-manifest a");
+  assert((await manifestLink.getAttribute("href"))?.includes("first_use_camera_guide/manifest.json"), "Resources route must link to the authoritative manifest");
+  await page.screenshot({ path: resolve(args.outputDir, "guide-resources-1440.png"), fullPage: true });
+  await page.setViewportSize({ width: 390, height: 844 });
+  const resourceMobileWidth = await page.evaluate(() => ({ document: document.documentElement.scrollWidth, body: document.body.scrollWidth }));
+  assert(resourceMobileWidth.document <= 390 && resourceMobileWidth.body <= 390,
+    `Resources route overflows the mobile viewport: ${JSON.stringify(resourceMobileWidth)}`);
+  await page.screenshot({ path: resolve(args.outputDir, "guide-resources-390.png"), fullPage: true });
+
   const viewportResults = [];
   for (const [width, height, screenshotName] of [
     [1440, 1000, "desktop-1440.png"], [768, 1024, "tablet-768.png"],
@@ -763,6 +797,19 @@ async function main() {
   await page.goForward();
   await page.waitForFunction(expected => location.hash === expected, targetHash);
 
+  await open(fullFlowModelsHash);
+  await waitForManager(page);
+  assert(page.url().endsWith(fullFlowModelsHash), "full-flow/model direct Hash route did not resolve");
+  assert((await page.locator("#hifiViewTitle").innerText()).includes("识别全流程-和模型"), "full-flow/model menu title is missing");
+  const fullFlowImage = await waitForLoadedImage(page, ".recognition-full-flow-models .hifi-asset-figure img", "recognition full-flow diagram");
+  assert(fullFlowImage.complete && fullFlowImage.width === 2200 && fullFlowImage.height === 1500,
+    `full-flow SVG must load at 2200×1500: ${JSON.stringify(fullFlowImage)}`);
+  assert(await page.locator(".recognition-full-flow-models .authority-index-card").count() >= 30,
+    "full-flow/model page must render the stages, model roles, branches and acceptance cards");
+  assert((await page.locator("#hifiViewContractDetails").innerText()).includes("Recognition_Full_Flow_Models_V1.md"),
+    "full-flow/model page must expose its canonical specification link");
+  await page.screenshot({ path: resolve(args.outputDir, "recognition-full-flow-models-1440.png"), fullPage: true });
+
   await open("#page/recognition_flow_v1_2/hifi/boundary_state_release_gate/new_states_review");
   const reviewImage = await waitForLoadedImage(page, ".hifi-asset-figure img", "review source");
   assert(reviewImage.complete && reviewImage.width === 2800 && reviewImage.height === 1600,
@@ -773,6 +820,10 @@ async function main() {
   await page.reload({ waitUntil: "networkidle" });
   assert(page.url().endsWith(p01Hash), "refresh must preserve the direct Page/State Hash");
   await waitForManager(page);
+  await open(resourcesHash);
+  await page.reload({ waitUntil: "networkidle" });
+  assert(page.url().endsWith(resourcesHash), "refresh must preserve the direct Resources Hash");
+  assert(await page.locator(".guide-resource-card").count() === 3, "direct Resources Hash must render all source PNGs after refresh");
 
   const missingCases = [
     ["capture_portrait", "Recognition_Capture_Ready_Portrait_Horizontal_Fish_Frozen.png"],
@@ -812,9 +863,9 @@ async function main() {
     p01: guideImageInfo,
     overview: overviewImageInfo,
     review: reviewImage,
-    checks: ["direct Hash", "refresh", "back/forward", "NH01–NH07 retained", "internal workspaces", "structure tree and asset integrity", "six responsive viewports × three font scales", "synthetic long text and missing metadata", "modal zoom/fit/Esc/focus restore", "missing authority no fake UI", "invalid route guard", "no HTTP errors", "no console/page errors"],
+    checks: ["direct Hash", "Resources submenu click and direct route", "original PNG previews/download links and manifest", "refresh", "back/forward", "NH01–NH07 retained", "internal workspaces", "structure tree and asset integrity", "six responsive viewports × three font scales", "synthetic long text and missing metadata", "modal zoom/fit/Esc/focus restore", "missing authority no fake UI", "invalid route guard", "no HTTP errors", "no console/page errors"],
     gemini_native_preview: { build_sha: previewBuild, asset_audit: previewAudit, default_layout: defaultLayout, viewports: previewViewportResults, canvas_layout: canvasLayout, canvas_bounds_dp: canvasBounds, canvas_bounds_px: Object.fromEntries(Object.entries(canvasBounds).map(([key, box]) => [key, box && Object.fromEntries(Object.entries(box).map(([field, value]) => [field, Number((value * 3).toFixed(2))]))])), canvas_screenshot: "nh01-gemini-native-structure-1080x1920.png", canvas_dimensions_px: [1080, 1920], release_gate_effect: "NONE" },
-    screenshots: ["desktop-1440.png", "tablet-768.png", "mobile-390.png", "lightbox-1440.png", "overview-1440.png", "nh01-gemini-native-preview-desktop.png", "nh01-gemini-native-structure-1080x1920.png", ...nhWorkspaceScreenshots, ...responsiveMatrixEvidence.map(item => item.screenshot)],
+    screenshots: ["desktop-1440.png", "tablet-768.png", "mobile-390.png", "lightbox-1440.png", "overview-1440.png", "guide-resources-1440.png", "guide-resources-390.png", "nh01-gemini-native-preview-desktop.png", "nh01-gemini-native-structure-1080x1920.png", ...nhWorkspaceScreenshots, ...responsiveMatrixEvidence.map(item => item.screenshot)],
     errors,
     bad_responses: badResponses,
     failed_requests: failedRequests,

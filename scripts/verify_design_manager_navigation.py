@@ -15,10 +15,11 @@ EXPECTED_RECOGNITION_FLOW = [
     "main_journey_overview", "state_timeline", "visual_states",
     "layer_component_ownership", "motion_transition", "degradation_accessibility",
     "runtime_evidence", "capture_first_use_guide", "boundary_state_release_gate",
+    "recognition_full_flow_models",
 ]
 EXPECTED_RECOGNITION_RESULT = [
     "overview", "high", "medium", "low", "no_fish", "image_quality",
-    "content_edit", "decision_logic",
+    "content_edit", "decision_logic", "visual_acceptance", "motion_continuation",
 ]
 
 
@@ -145,13 +146,62 @@ def validate_tree(root: Path, *, built: bool = False, expected_build: str | None
     recognition_ids = [x.get("id") for x in recognition.get("hifi_views", [])]
     if recognition_ids != EXPECTED_RECOGNITION_FLOW:
         fail(f"Recognition main journey navigation changed: {recognition_ids} != {EXPECTED_RECOGNITION_FLOW}")
+    flow_models = next((x for x in recognition["hifi_views"] if x.get("id") == "recognition_full_flow_models"), None)
+    if (
+        flow_models is None
+        or flow_models.get("title") != "09 · 识别全流程-和模型"
+        or flow_models.get("status") != "DESIGN_ONLY"
+        or flow_models.get("render_mode") != "recognition_full_flow_models"
+    ):
+        fail("09 · 识别全流程-和模型 must remain a registered DESIGN_ONLY submenu")
     guide = next(x for x in recognition["hifi_views"] if x.get("id") == "capture_first_use_guide")
     guide_children = [x.get("id") for x in guide.get("children", [])]
-    if guide.get("title") != "07 · 首次拍照教学" or guide_children != ["p01", "p02", "p03"]:
-        fail("legacy 07 guide and P01/P02/P03 menu mapping must remain stable")
+    if guide.get("title") != "07 · 首次拍照教学" or guide_children != ["p01", "p02", "p03", "resources"]:
+        fail("07 guide must retain P01/P02/P03 and expose the Resources submenu")
+    resources = guide["children"][-1]
+    if (
+        resources.get("title") != "资源"
+        or resources.get("status") != "DESIGN_ONLY"
+        or resources.get("authority_type") != "asset_catalog"
+        or resources.get("render_mode") != "recognition_guide_resources"
+        or resources.get("resource_ids") != ["p01", "p02", "p03"]
+        or resources.get("runtime_visual_authority") is not False
+    ):
+        fail("guide Resources submenu must expose only its design-source P01/P02/P03 catalog")
+    guide_manifest = load_json(root / resources["resource_manifest"])
+    guide_navigation = load_json(root / "design/pages/recognition/first_use_camera_guide/navigation.json")
+    resource_menus = guide_navigation.get("resource_menus", [])
+    if (
+        len(resource_menus) != 1
+        or resource_menus[0].get("id") != "resources"
+        or resource_menus[0].get("route") != "#page/recognition_flow_v1_2/hifi/capture_first_use_guide/resources"
+        or resource_menus[0].get("resource_ids") != ["p01", "p02", "p03"]
+        or resource_menus[0].get("runtime_visual_authority") is not False
+    ):
+        fail("guide navigation manifest must register the separate Design Manager Resources submenu")
+    manifest_assets = {item.get("id"): item for item in guide_manifest.get("assets", [])}
+    frozen_children = {item.get("id"): item for item in guide.get("children", []) if item.get("id") in {"p01", "p02", "p03"}}
+    for asset_id in ("p01", "p02", "p03"):
+        child = frozen_children.get(asset_id, {})
+        asset = manifest_assets.get(asset_id, {})
+        if child.get("visual_authority") != asset.get("path") or child.get("visual_authority_sha256") != asset.get("sha256"):
+            fail(f"Resources submenu source identity drift for {asset_id.upper()}")
     journey = next((x for x in registry["features"] if x.get("id") == "recognition_result_v1"), None)
     if not journey or [x.get("id") for x in journey.get("hifi_views", [])] != EXPECTED_RECOGNITION_RESULT:
-        fail("Recognition Result existing RR01–RR08 view mapping changed")
+        fail("Recognition Result hifi views must preserve RR00–RR07 and append RR08/RR09")
+    result_views = {x.get("id"): x for x in journey.get("hifi_views", [])}
+    rr08 = result_views.get("visual_acceptance", {})
+    rr09 = result_views.get("motion_continuation", {})
+    if rr08.get("status") != "FROZEN" or rr08.get("readiness_status") != "READY_FOR_VISUAL_IMPLEMENTATION":
+        fail("RR08 visual acceptance index must be frozen while preserving its separate implementation-readiness status")
+    if rr09.get("status") != "FROZEN" or rr09.get("behavior_authority") != "design/pages/recognition/result/motion/Recognition_Result_Motion_Spec_V2.md":
+        fail("RR09 motion continuation must resolve to the frozen Motion V2 authority")
+    if rr09.get("machine_authority") != "design/pages/recognition/result/motion/recognition_result_motion_contract_v2.json":
+        fail("RR09 machine-readable Motion V2 contract is not registered")
+    result_nav = load_json(design / "pages/recognition/result/navigation.json")
+    rr09_nav = next((x for x in result_nav.get("level_2", []) if x.get("id") == "RR09"), None)
+    if not rr09_nav or rr09_nav.get("order") != 10 or rr09_nav.get("status") != "FROZEN":
+        fail("Recognition Result RR09 · 动效接续 menu contract missing or out of order")
 
     # NH07 is a design-only asset workspace: gate its source identity, not Android runtime.
     if not built:
@@ -256,6 +306,8 @@ def validate_tree(root: Path, *, built: bool = False, expected_build: str | None
 
     if "nh07-master-open" not in app or "openNh07MasterLightbox" not in app or "dialog.showModal" not in app:
         fail("NH07 must provide a clickable modal preview of its verified mother image")
+    if "recognitionGuideResourcesCanvas" not in app or "guide-resource-actions" not in app:
+        fail("guide Resources submenu must render original-file previews and download links")
 
     route_logic = (
         'window.addEventListener("popstate", selectFromHash)',

@@ -1,0 +1,121 @@
+{
+  "schema_version": "1.0",
+  "contract_id": "recognition_result_motion_continuation_v2",
+  "version": "V2",
+  "status": "FROZEN",
+  "page_id": "recognition_result_v1",
+  "menu_id": "RR09",
+  "menu_label": "动效接续",
+  "authority": "design/pages/recognition/result/motion/Recognition_Result_Motion_Spec_V2.md",
+  "system_contract": "design/system_v3/10_Page_Visual_Acceptance_Contracts/Recognition_Result/Recognition_Result_Motion_Contract_V2.md",
+  "runtime_status": "NOT_RUN",
+  "total_duration_ms": 850,
+  "timeline_origin": "start_of_existing_200ms_RESOLVE",
+  "scope": {
+    "purpose": "One-shot gold transfer reveal from real fish focus to the species title below the Result Hero.",
+    "trigger_states": [
+      "RESULT_HIGH"
+    ],
+    "requires_new_recognition_session": true,
+    "replay_once_per_session": true,
+    "excluded_states": [
+      "RESULT_MEDIUM",
+      "RESULT_LOW",
+      "ERROR_NO_FISH",
+      "ERROR_IMAGE_QUALITY",
+      "TECHNICAL_FAILURE"
+    ],
+    "adds_processing_state": false,
+    "changes_model_or_confidence_semantics": false,
+    "changes_result_routing": false
+  },
+  "authority_precedence": [
+    "Recognition Visual Fidelity V1.2 remains authoritative for the three Processing states and existing RESOLVE semantics.",
+    "Frozen Result state PNGs and Recognition Result Hero Media Contract V1 own Result layout and real-photo mapping.",
+    "Motion V2 supersedes Motion V1 only for the one-shot RESULT_HIGH Result-entry presentation; all non-conflicting V1 behavior remains active."
+  ],
+  "keyframes": [
+    {
+      "id": "K01_FISH_FOCUS",
+      "time_ms": 0,
+      "phase": "FISH_FOCUS",
+      "required": "Real fish contour/Halo is the gold-light source; no species title is visible yet."
+    },
+    {
+      "id": "K02_PHOTO_CONTINUITY",
+      "start_ms": 0,
+      "end_ms": 200,
+      "phase": "PHOTO_CONTINUITY",
+      "required": "Intermediate shared-photo handoff into the Result Hero within the existing RESOLVE window; no additional 200 ms delay."
+    },
+    {
+      "id": "K03_GOLD_TRANSFER",
+      "start_ms": 200,
+      "end_ms": 380,
+      "phase": "GOLD_TRANSFER",
+      "required": "Gold travels from real fish contour toward the species-title area below the photo."
+    },
+    {
+      "id": "K04_NAME_FORMATION",
+      "start_ms": 380,
+      "end_ms": 550,
+      "phase": "SPECIES_NAME_FORMATION",
+      "required": "Only soft particles and incomplete glyph mask; full name is not readable early."
+    },
+    {
+      "id": "K05_NAME_REVEAL",
+      "start_ms": 550,
+      "end_ms": 680,
+      "phase": "SPECIES_NAME_REVEAL",
+      "required": "Chinese species name becomes legible; validated scientific English name appears directly below when available; one restrained sweep."
+    },
+    {
+      "id": "K06_AFTERGLOW_FADE",
+      "start_ms": 680,
+      "end_ms": 850,
+      "phase": "AFTERGLOW_FADE",
+      "required": "Particles/glow disappear and normal static Result typography remains."
+    }
+  ],
+  "species_title": {
+    "placement": "Below the Result Hero photo, in the existing species-title area; never overlay the fish photo.",
+    "primary_line": "Chinese species name",
+    "secondary_line": "Validated scientific English name directly beneath the Chinese name, when available in canonical species metadata.",
+    "no_invention": true,
+    "illustrative_example_only": "翘嘴鲌 / Culter alburnus",
+    "geometry_rule": "Do not move Hero, metadata, story, or CTAs; text-fit changes must be revalidated against the frozen Result layout."
+  },
+  "rendering": {
+    "particle_budget_full_quality": 18,
+    "particle_budget_low_performance": 6,
+    "particle_budget_may_be_zero": true,
+    "continuous_motion_after_end": false,
+    "confetti": false,
+    "fireworks": false,
+    "closed_neon_border": false,
+    "full_frame_color_wash": false,
+    "sound": "NONE",
+    "haptic": "NONE"
+  },
+  "interaction": {
+    "cta_blocked_by_animation": false,
+    "result_ready_controls_remain_actionable": true,
+    "layout_shift": false,
+    "duplicate_navigation": false
+  },
+  "fallback": {
+    "when_bbox_or_subject_mapping_untrusted": "Opacity-only title resolution; do not invent a particle origin or destination.",
+    "reduce_motion": "Remove particle/transfer travel and title sweep; retain restrained opacity-only resolution and immediate readability.",
+    "low_performance": "Reduce particles to 0–6 and reduce blur/overdraw without changing result state or actions."
+  },
+  "acceptance_required": [
+    "PHOTO_CONTINUITY_VERIFIED",
+    "FISH_TO_TITLE_TRANSFER_DIRECTION_VERIFIED",
+    "NO_EARLY_READABLE_SPECIES_NAME",
+    "CHINESE_AND_VALIDATED_ENGLISH_NAME_PLACEMENT_VERIFIED",
+    "AFTERGLOW_FULLY_DISAPPEARS",
+    "CTA_NON_BLOCKING",
+    "REDUCE_MOTION_FALLBACK_VERIFIED",
+    "NO_REPLAY_ON_REENTRY_VERIFIED"
+  ]
+}
