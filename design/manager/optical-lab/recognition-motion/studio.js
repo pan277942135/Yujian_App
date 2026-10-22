@@ -1,4 +1,4 @@
-const DURATION = 1140;
+const DURATION = 2800;
 const FRAME_MS = 1000 / 30;
 const PHOTO_WIDTH = 1152;
 const PHOTO_HEIGHT = 1536;
@@ -6,8 +6,8 @@ const photoUrl = new URL("../../../../design/system/fish_media_display_v1/assets
 const configUrl = new URL("../../../../design/system/recognition_optical_v2/RecognitionOpticalConfigV2.json", import.meta.url);
 const fixtureUrl = new URL("../../nh01_acceptance/edgeglow-fish-static/fixture.json", import.meta.url);
 const ui = Object.fromEntries([
-  "runtimeStatus", "photoDigest", "buildSha", "rendererVersion", "catchPhoto", "p1Receiving",
-  "edgeMotion", "transferLayer", "transferWash", "fishHalo", "fishMid", "fishCore",
+  "runtimeStatus", "photoDigest", "buildSha", "rendererVersion", "catchPhoto",
+  "edgeMotion", "transferLayer", "transferWashTop", "transferWashRight", "transferWashBottom", "fishHalo", "fishMid", "fishCore",
   "stageName", "stageCaption", "captionStage", "currentTime", "playbackState",
   "playPause", "restart", "stepBack", "stepForward", "timeline", "speed",
   "toggleEdge", "toggleTransfer", "toggleFish", "toggleContour", "deviceFrame",
@@ -16,10 +16,10 @@ const ui = Object.fromEntries([
 ].map(id => [id, document.getElementById(id)]));
 
 const phases = [
-  { id: "CAPTURED", name: "外围光场唤醒", start: 0, end: 220 },
-  { id: "DETECTING", name: "外围光场流动", start: 220, end: 540 },
-  { id: "OUTLINE", name: "光场过渡至鱼体", start: 540, end: 890 },
-  { id: "CLASSIFYING", name: "鱼体高亮稳定", start: 890, end: 1140 }
+  { id: "CAPTURED", name: "外围光场唤醒", start: 0, end: 350 },
+  { id: "DETECTING", name: "外围光场流动", start: 350, end: 950 },
+  { id: "OUTLINE", name: "光场过渡至鱼体", start: 950, end: 1550 },
+  { id: "CLASSIFYING", name: "鱼体高亮稳定", start: 1550, end: 2800 }
 ];
 const viewportSizes = {
   "320x640": [320, 640],
@@ -35,6 +35,7 @@ let lastFrameMs = 0;
 let config = null;
 let fixture = null;
 let pathNodes = [];
+let receivingField = null;
 let reducedMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
 let contourVisible = true;
 
@@ -99,7 +100,7 @@ function updateStage(ms) {
   const phase = phases[index];
   ui.stageName.textContent = phase.id;
   ui.stageCaption.textContent = phase.name;
-  ui.captionStage.textContent = ms <= 0 ? "等待开始" : ms >= DURATION ? "识别稳定" : phase.name;
+  ui.captionStage.textContent = ms <= 0 ? "等待开始" : ms >= DURATION ? "动效稳定 · 等待真实识别事件" : phase.name;
   ui.phaseList.querySelectorAll(".phase-item").forEach((button, i) => {
     button.classList.toggle("active", i === index);
     button.setAttribute("aria-current", i === index ? "step" : "false");
@@ -107,14 +108,10 @@ function updateStage(ms) {
 }
 
 function edgeEnvelope(ms) {
-  const wake = ease((ms - 0) / 220);
-  const detecting = ease((ms - 220) / 320);
-  const transition = 1 - .58 * ease((ms - 540) / 350);
-  const stable = .42 - .28 * ease((ms - 890) / 250);
-  if (ms < 220) return wake * .78;
-  if (ms < 540) return .78 + detecting * .22;
-  if (ms < 890) return transition;
-  return Math.max(.14, stable);
+  if (ms <= 350) return .82 * ease(ms / 350);
+  if (ms <= 950) return .82 + .18 * ease((ms - 350) / 600);
+  if (ms <= 1550) return 1 - .76 * ease((ms - 950) / 600);
+  return .24;
 }
 
 function renderAt(ms) {
@@ -123,53 +120,61 @@ function renderAt(ms) {
   ui.currentTime.textContent = String(Math.round(currentMs));
   updateStage(currentMs);
   const edge = edgeEnvelope(currentMs);
-  const transition = ease((currentMs - 510) / 260) * (1 - ease((currentMs - 870) / 250));
-  const fishBuild = ease((currentMs - 540) / 350);
-  const fishStable = currentMs < 890 ? fishBuild : .88 + .08 * ease((currentMs - 890) / 250);
-  const flowProgress = clamp(currentMs / DURATION);
+  const transitionProgress = ease((currentMs - 950) / 600);
+  const transitionFade = 1 - ease((currentMs - 1380) / 170);
+  const transferOpacity = .38 * transitionProgress * transitionFade;
+  const fishHaloProgress = ease((currentMs - 960) / 590);
+  const fishMidProgress = ease((currentMs - 1015) / 535);
+  const fishCoreProgress = ease((currentMs - 1080) / 470);
+  const fieldProgress = clamp(currentMs / 1550);
+  const breathingEnvelope = Math.pow(Math.sin(Math.PI * fieldProgress), 2);
 
-  ui.p1Receiving.style.opacity = String(.68 * edge);
+  if (receivingField) {
+    receivingField.islands.forEach((island, index) => {
+      const seed = Number(island.dataset.seed || index * .19);
+      const phase = seed * Math.PI * 2;
+      const localBreath = 1 + .075 * breathingEnvelope * Math.sin(2 * Math.PI * fieldProgress + phase);
+      island.setAttribute("opacity", String(fmt(edge * localBreath)));
+    });
+  }
   pathNodes.forEach(({ island, wide, mid, ridge, flow }) => {
     const seed = Number(island.seed);
-    const weight = Number(island.strength);
     const phase = seed * Math.PI * 2;
-    const cornerBreath = .91 + .07 * Math.sin(currentMs / 640 + phase) + .035 * Math.sin(currentMs / 370 + phase * .63);
-    const delayedWake = ease((currentMs - seed * 42) / 190);
-    const local = clamp(edge * cornerBreath * (.72 + .28 * delayedWake));
+    const delayedWake = ease((currentMs - seed * 90) / 350);
+    const local = clamp(edge * (.84 + .16 * delayedWake));
     wide.setAttribute("opacity", String(fmt(Number(wide.dataset.baseOpacity) * local)));
-    mid.setAttribute("opacity", String(fmt(Number(mid.dataset.baseOpacity) * local * (.90 + .07 * Math.sin(currentMs / 520 + phase)))));
+    mid.setAttribute("opacity", String(fmt(Number(mid.dataset.baseOpacity) * local)));
     ridge.setAttribute("opacity", String(fmt(Number(ridge.dataset.baseOpacity) * local * .9)));
-    flow.setAttribute("opacity", String(fmt(Number(flow.dataset.baseOpacity) * local * (.45 + .2 * delayedWake))));
-    const travel = (flowProgress * 210 + seed * 920) % 1000;
+    flow.setAttribute("opacity", String(fmt(Number(flow.dataset.baseOpacity) * local * .42)));
+    const travel = ease(fieldProgress) * (142 + seed * 74);
     flow.setAttribute("stroke-dashoffset", String(fmt(1000 - travel)));
   });
 
-  const washX = 25 + 225 * ease((currentMs - 540) / 350);
-  const washY = 905 - 28 * ease((currentMs - 540) / 350);
-  ui.transferWash.setAttribute("cx", String(fmt(washX)));
-  ui.transferWash.setAttribute("cy", String(fmt(washY)));
-  ui.transferWash.setAttribute("rx", String(fmt(205 + 52 * transition)));
-  ui.transferWash.setAttribute("ry", String(fmt(175 + 36 * transition)));
-  ui.transferWash.setAttribute("opacity", String(fmt(.74 * transition)));
+  [ui.transferWashTop, ui.transferWashRight, ui.transferWashBottom].forEach((node, index) => {
+    const startDelay = [0, .07, .14][index];
+    const localProgress = ease((currentMs - (950 + startDelay * 600)) / (600 * (1 - startDelay)));
+    node.setAttribute("stroke-dasharray", "1000");
+    node.setAttribute("stroke-dashoffset", String(fmt(1000 * (1 - localProgress))));
+    node.setAttribute("opacity", String(fmt(transferOpacity * [1, .82, .68][index])));
+  });
 
-  const reveal = clamp((currentMs - 535) / 385);
-  const dash = String(fmt(1000 * (1 - reveal)));
   [ui.fishHalo, ui.fishMid, ui.fishCore].forEach(node => {
     node.setAttribute("d", fixture.contour.path_d);
     node.setAttribute("pathLength", "1000");
     node.setAttribute("stroke-dasharray", "1000");
-    node.setAttribute("stroke-dashoffset", dash);
   });
-  ui.fishHalo.setAttribute("opacity", String(fmt(.42 * fishStable)));
-  ui.fishMid.setAttribute("opacity", String(fmt(.46 * fishStable)));
-  ui.fishCore.setAttribute("opacity", String(fmt(.88 * fishStable)));
-  ui.fishCore.style.display = contourVisible ? "" : "none";
-  ui.edgeMotion.style.opacity = ui.toggleEdge.checked ? "1" : "0";
-  ui.p1Receiving.style.display = ui.toggleEdge.checked ? "" : "none";
+  ui.fishHalo.setAttribute("stroke-dashoffset", String(fmt(1000 * (1 - fishHaloProgress))));
+  ui.fishMid.setAttribute("stroke-dashoffset", String(fmt(1000 * (1 - fishMidProgress))));
+  ui.fishCore.setAttribute("stroke-dashoffset", String(fmt(1000 * (1 - fishCoreProgress))));
+  ui.fishHalo.setAttribute("opacity", String(fmt(.42 * fishHaloProgress)));
+  ui.fishMid.setAttribute("opacity", String(fmt(.54 * fishMidProgress)));
+  ui.fishCore.setAttribute("opacity", String(fmt(.44 * fishCoreProgress)));
+  if (receivingField) receivingField.root.style.display = ui.toggleEdge.checked ? "" : "none";
   ui.transferLayer.style.display = ui.toggleTransfer.checked ? "" : "none";
-  ui.fishHalo.style.display = ui.toggleFish.checked ? "" : "none";
-  ui.fishMid.style.display = ui.toggleFish.checked ? "" : "none";
-  if (!ui.toggleFish.checked) ui.fishCore.style.display = "none";
+  const showFishFocus = ui.toggleFish.checked && contourVisible;
+  ui.fishHalo.style.display = showFishFocus ? "" : "none";
+  ui.fishMid.style.display = showFishFocus ? "" : "none";
+  ui.fishCore.style.display = showFishFocus ? "" : "none";
 }
 
 function stopPlayback(status = "已暂停") {
@@ -248,7 +253,7 @@ function enableControls() {
   });
   ui.speed.addEventListener("change", event => {
     playbackSpeed = Number(event.currentTarget.value);
-    ui.motionPreference.textContent = "统一时钟 · " + playbackSpeed + "× · 1,140 ms";
+    ui.motionPreference.textContent = "统一时钟 · " + playbackSpeed + "× · 2,800 ms 设计节奏";
   });
   ui.phaseList.addEventListener("click", event => {
     const button = event.target.closest("[data-time]");
@@ -298,7 +303,6 @@ async function exportCurrentFrame() {
   canvas.height = PHOTO_HEIGHT;
   const ctx = canvas.getContext("2d");
   ctx.drawImage(ui.catchPhoto, 0, 0, PHOTO_WIDTH, PHOTO_HEIGHT);
-  ctx.drawImage(ui.p1Receiving, 0, 0, PHOTO_WIDTH, PHOTO_HEIGHT);
   const svgCopy = ui.motionSvg.cloneNode(true);
   svgCopy.setAttribute("width", String(PHOTO_WIDTH));
   svgCopy.setAttribute("height", String(PHOTO_HEIGHT));
@@ -356,7 +360,6 @@ async function load() {
     ui.fishCore.setAttribute("d", fixture.contour.path_d);
 
     if (!window.EdgeGlowReceivingLight) throw new Error("共享 Receiving Light 渲染器未加载");
-    const ctx = ui.p1Receiving.getContext("2d");
     const receivingOptions = {
       width: PHOTO_WIDTH,
       height: PHOTO_HEIGHT,
@@ -371,22 +374,15 @@ async function load() {
       quietGapVariant: "B",
       dpToCanvasPx: 1
     };
-    const paintResult = window.EdgeGlowReceivingLight.paint(ctx, {
+    receivingField = window.EdgeGlowReceivingLight.createReviewOnlySpatialField(ui.motionSvg, {
       ...receivingOptions,
-      onReady: () => window.EdgeGlowReceivingLight.paint(ctx, receivingOptions)
+      reviewOnlySpatialFieldExperiment: true,
+      quietGapVariant: "A"
     });
+    ui.edgeMotion.removeAttribute("clip-path");
+    receivingField.root.appendChild(ui.edgeMotion);
     ui.rendererVersion.textContent = window.EdgeGlowReceivingLight.version;
-    if (paintResult.status === "pending") {
-      await new Promise((resolve, reject) => {
-        const started = performance.now();
-        const check = () => {
-          if (ui.p1Receiving.dataset.receivingLightStatus === "ready") resolve();
-          else if (ui.p1Receiving.dataset.receivingLightStatus === "failed" || performance.now() - started > 5000) reject(new Error("共享 Receiving Light 渲染超时"));
-          else requestAnimationFrame(check);
-        };
-        check();
-      });
-    }
+    ui.rendererVersion.textContent += " · REVIEW_ONLY_SPATIAL_FIELD_V2";
     const params = new URLSearchParams(location.search);
     const metaSha = document.querySelector('meta[name="recognition-motion-source-sha"]')?.content || "";
     const sourceSha = params.get("source_sha") || (metaSha.startsWith("__") ? "" : metaSha);
@@ -405,10 +401,13 @@ async function load() {
     window.RecognitionMotionStudio = Object.freeze({
       duration: DURATION,
       phases,
+      boundaries: [0, 350, 950, 1550, 2800],
       renderAt,
       play,
       pause: stopPlayback,
-      getState: () => ({ currentMs, playing, phase: phases[Math.max(0, stageAt(currentMs))].id, speed: playbackSpeed }),
+      getState: () => ({ currentMs, playing, phase: phases[Math.max(0, stageAt(currentMs))].id, speed: playbackSpeed,
+        edgeEnvelope: edgeEnvelope(currentMs), transferOpacity: Number(ui.transferWashRight.getAttribute("opacity")),
+        fishHaloOpacity: Number(ui.fishHalo.getAttribute("opacity")), fieldVersion: receivingField.version }),
       photoSha256: digest,
       contourSource: fixture.contour.source
     });

@@ -19,7 +19,12 @@ const OUTPUT = resolve(process.env.MOTION_STUDIO_EVIDENCE_DIR || "/tmp/receiving
 const SOURCE_SHA = process.env.MOTION_STUDIO_SOURCE_SHA || process.env.GITHUB_SHA || "local-uncommitted";
 const BASE = process.env.MOTION_STUDIO_BASE || "";
 const PHOTO_SHA = "6e955087108f7463eca2dbac489699a4942028ebe1b3d456ddfca523286385ef";
-const DURATION = 1140;
+const DURATION = 2800;
+const PHASE_BOUNDARIES = [0, 350, 950, 1550, 2800];
+const KEYFRAMES = [
+  [0, "CAPTURED"], [350, "DETECTING"], [950, "OUTLINE"], [1200, "OUTLINE"],
+  [1550, "CLASSIFYING"], [2050, "CLASSIFYING"], [2800, "CLASSIFYING"]
+];
 const MOTION_PATH = "design/manager/optical-lab/recognition-motion/";
 const VIEWPORTS = [[320, 640], [390, 844], [430, 932], [1080, 1920]];
 let server = null;
@@ -75,6 +80,105 @@ async function shaFile(relativePath) {
   return sha256(await readFile(resolve(ROOT, relativePath)));
 }
 
+async function rasterizeBrowserState(page, { fieldOnly = false } = {}) {
+  return page.evaluate(async ({ fieldOnly }) => {
+    const width = 1152;
+    const height = 1536;
+    const sourceSvg = document.querySelector("#motionSvg");
+    const svg = sourceSvg.cloneNode(true);
+    svg.setAttribute("width", String(width));
+    svg.setAttribute("height", String(height));
+    if (fieldOnly) {
+      svg.querySelector("#transferLayer")?.remove();
+      svg.querySelector("#fishFocus")?.remove();
+      [...svg.children].forEach(node => {
+        if (node.localName === "g" && node.getAttribute("data-source") !== "REVIEW_ONLY_SPATIAL_FIELD_V2") node.remove();
+      });
+    }
+    const svgUrl = URL.createObjectURL(new Blob([new XMLSerializer().serializeToString(svg)], { type: "image/svg+xml;charset=utf-8" }));
+    const overlay = new Image();
+    await new Promise((resolve, reject) => {
+      overlay.onload = resolve;
+      overlay.onerror = () => reject(new Error("Chromium failed to rasterize the SVG preview layer"));
+      overlay.src = svgUrl;
+    });
+    const canvas = document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = height;
+    const context = canvas.getContext("2d", { willReadFrequently: true });
+    let sourcePixels = null;
+    if (!fieldOnly) {
+      context.drawImage(document.querySelector("#catchPhoto"), 0, 0, width, height);
+      sourcePixels = context.getImageData(0, 0, width, height).data;
+    }
+    context.drawImage(overlay, 0, 0, width, height);
+    URL.revokeObjectURL(svgUrl);
+    const pixels = context.getImageData(0, 0, width, height).data;
+    let nonzero = 0;
+    let maxAlpha = 0;
+    let outsideDepth = 0;
+    let left = width, top = height, right = -1, bottom = -1;
+    for (let offset = 3, index = 0; offset < pixels.length; offset += 4, index++) {
+      const alpha = pixels[offset];
+      if (alpha > 0) {
+        nonzero++;
+        maxAlpha = Math.max(maxAlpha, alpha);
+        const x = index % width, y = Math.floor(index / width);
+        const edgeDistance = Math.min(x + .5, y + .5, width - x - .5, height - y - .5);
+        if (fieldOnly && edgeDistance > Math.min(width, height) * .18) outsideDepth++;
+        left = Math.min(left, x); top = Math.min(top, y); right = Math.max(right, x); bottom = Math.max(bottom, y);
+      }
+    }
+    const region = (x1, y1, x2, y2) => {
+      let changed = 0, sum = 0, max = 0;
+      for (let y = Math.max(0, y1); y < Math.min(height, y2); y++) {
+        for (let x = Math.max(0, x1); x < Math.min(width, x2); x++) {
+          const offset = (y * width + x) * 4;
+          const delta = Math.abs(pixels[offset] - sourcePixels[offset]) +
+            Math.abs(pixels[offset + 1] - sourcePixels[offset + 1]) +
+            Math.abs(pixels[offset + 2] - sourcePixels[offset + 2]);
+          if (delta > 0) changed++;
+          sum += delta;
+          max = Math.max(max, delta);
+        }
+      }
+      const area = Math.max(1, (Math.min(width, x2) - Math.max(0, x1)) * (Math.min(height, y2) - Math.max(0, y1)));
+      return { changed_pixels: changed, mean_rgb_l1: Number((sum / area).toFixed(5)), peak_rgb_l1: max };
+    };
+    const gapDepth = Math.ceil(Math.min(width, height) * .18 * (1 + .18 * 3));
+    const quiet = [
+      [Math.round(width * .32), 0, Math.round(width * .68), gapDepth],
+      [0, Math.round(height * .38), gapDepth, Math.round(height * .62)],
+      [width - gapDepth, Math.round(height * .46), width, Math.round(height * .58)],
+      [Math.round(width * .40), height - gapDepth, Math.round(width * .62), height]
+    ].map(([x1, y1, x2, y2]) => {
+      let count = 0, peak = 0;
+      for (let y = Math.max(0, y1); y < Math.min(height, y2); y++) {
+        for (let x = Math.max(0, x1); x < Math.min(width, x2); x++) {
+          const alpha = pixels[(y * width + x) * 4 + 3];
+          if (alpha > 0) count++;
+          peak = Math.max(peak, alpha);
+        }
+      }
+      return { nonzero_pixels: count, peak_alpha: peak };
+    });
+    const photoDiff = sourcePixels ? {
+      full_photo: region(0, 0, width, height),
+      top_left_field: region(0, 0, Math.round(width * .32), gapDepth),
+      top_right_field: region(Math.round(width * .68), 0, width, gapDepth),
+      left_lower_field: region(0, Math.round(height * .62), gapDepth, height),
+      fish_reference_bbox: region(58, 292, 435, 1445)
+    } : null;
+    return {
+      png_data_url: canvas.toDataURL("image/png"),
+      dimensions: [width, height],
+      alpha: { nonzero_pixels: nonzero, peak: maxAlpha, outside_depth_pixels: outsideDepth, bbox: right < left ? null : [left, top, right, bottom] },
+      quiet_gaps: fieldOnly ? quiet : null,
+      photo_diff: photoDiff
+    };
+  }, { fieldOnly });
+}
+
 async function main() {
   await mkdir(OUTPUT, { recursive: true });
   let baseUrl = BASE;
@@ -111,8 +215,10 @@ async function main() {
     fixture_sha256: await shaFile("design/manager/nh01_acceptance/edgeglow-fish-static/fixture.json"),
     renderer_sha256: await shaFile("design/manager/edgeglow-receiving-light.js"),
     frame_rate_step_ms: 1000 / 30,
-    duration_ms: 1140,
-    phase_boundaries_ms: [0, 220, 540, 890, 1140],
+    duration_ms: DURATION,
+    timing_purpose: "WEB_REVIEW_DESIGN_RHYTHM_NOT_INFERENCE_TIMER",
+    phase_durations_ms: [350, 600, 600, 1250],
+    phase_boundaries_ms: PHASE_BOUNDARIES,
     screenshots: [],
     checks: [],
     errors,
@@ -132,7 +238,14 @@ async function main() {
   await page.waitForFunction(() => document.querySelector("#runtimeStatus")?.textContent?.includes("已就绪"), null, { timeout: 30000 });
   assert((await page.locator("#photoDigest").innerText()).includes("SHA-256 MATCH"), "registered photo hash must match in the browser");
   assert(await page.locator("#imageLoadError").isHidden(), "photo fallback error is visible");
-  assert((await page.locator("#rendererVersion").innerText()).includes("edgeglow-receiving-light-svg-v1"), "shared renderer did not initialize");
+  assert((await page.locator("#rendererVersion").innerText()).includes("REVIEW_ONLY_SPATIAL_FIELD_V2"), "shared spatial-field renderer did not initialize");
+  assert(await page.locator('[data-source="REVIEW_ONLY_SPATIAL_FIELD_V2"]').count() === 1, "spatial field root must be unique");
+  assert(await page.locator('[data-source="REVIEW_ONLY_SPATIAL_FIELD_V2"]').getAttribute("data-alpha-mode") === "P1_BASE_0.07_CAP_17_255", "P1 alpha cap must remain 17/255");
+  assert(await page.locator('[data-source="REVIEW_ONLY_SPATIAL_FIELD_V2"]').getAttribute("data-quiet-gap-variant") === "A", "strict Quiet Gap variant A must be active");
+  assert((await page.locator("#timeline").getAttribute("max")) === String(DURATION), "timeline max must match 2,800 ms");
+  const declaredPhases = await page.evaluate(() => window.RecognitionMotionStudio.phases.map(phase => [phase.start, phase.end]));
+  assert(JSON.stringify(declaredPhases) === JSON.stringify([[0, 350], [350, 950], [950, 1550], [1550, 2800]]), "phase durations/boundaries do not match the reviewed timeline");
+  assert((await page.locator(".intro").innerText()).includes("不代表推理结束"), "inference decoupling notice is missing");
   assert(await page.locator("#fishHalo").count() === 1, "fish Halo path ID must be unique from its SVG filter");
   assert(await page.locator("#toggleContour").isChecked(), "review contour control must be enabled by default");
   const browserPhoto = await page.locator("#catchPhoto").evaluate(image => ({
@@ -174,18 +287,61 @@ async function main() {
     assert(Math.abs(state.currentMs - ms) < 1, "timeline seek was not synchronized at " + ms + "ms");
     return state;
   };
-  for (const [ms, name] of [[0, "CAPTURED"], [220, "DETECTING"], [540, "OUTLINE"], [890, "CLASSIFYING"], [1140, "CLASSIFYING"]]) {
+  const keyframeMeasurements = [];
+  for (const [ms, name] of KEYFRAMES) {
     const state = await seek(ms);
     assert(state.phase === name, "wrong phase at " + ms + "ms: " + state.phase);
     const filename = "keyframe-" + String(ms).padStart(4, "0") + "ms-" + name.toLowerCase() + ".png";
     await page.locator("#deviceFrame").screenshot({ path: resolve(OUTPUT, filename), animations: "disabled" });
     results.screenshots.push(filename);
+    const compositeName = "photo-composite-" + String(ms).padStart(4, "0") + "ms.png";
+    const raster = await rasterizeBrowserState(page);
+    const compositeBytes = Buffer.from(raster.png_data_url.split(",")[1], "base64");
+    await writeFile(resolve(OUTPUT, compositeName), compositeBytes);
+    assert(compositeBytes.subarray(0, 8).equals(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10])), "photo composite export is not a PNG at " + ms + "ms");
+    results.screenshots.push(compositeName);
+    keyframeMeasurements.push({
+      at_ms: ms,
+      phase: name,
+      file: compositeName,
+      sha256: sha256(compositeBytes),
+      dimensions: raster.dimensions,
+      photo_rgb_difference: raster.photo_diff
+    });
   }
-  results.checks.push("four frozen timing phases seek deterministically at 0/220/540/890/1140ms");
+  results.keyframe_measurements = keyframeMeasurements;
+  assert(keyframeMeasurements[0].photo_rgb_difference.full_photo.changed_pixels === 0,
+    "0ms must remain an unchanged photo without early optical layers");
+  const stablePngHashes = keyframeMeasurements.filter(item => [1550, 2050, 2800].includes(item.at_ms)).map(item => item.sha256);
+  assert(new Set(stablePngHashes).size === 1, "stable final phase composite PNGs must be pixel-identical at 1550/2050/2800ms");
+  results.checks.push("0ms composite is unchanged photo and final stable composite is pixel-identical at 1550/2050/2800ms");
+
+  await seek(950);
+  const fieldRaster = await rasterizeBrowserState(page, { fieldOnly: true });
+  const fieldName = "receiving-spatial-field-only-0950ms.png";
+  const fieldBytes = Buffer.from(fieldRaster.png_data_url.split(",")[1], "base64");
+  await writeFile(resolve(OUTPUT, fieldName), fieldBytes);
+  assert(fieldRaster.alpha.peak <= 17, "review spatial field exceeded the P1 output alpha cap: " + fieldRaster.alpha.peak);
+  assert(fieldRaster.alpha.outside_depth_pixels === 0, "review spatial field exceeded the frozen 18% photo-edge depth: " + fieldRaster.alpha.outside_depth_pixels);
+  assert(fieldRaster.quiet_gaps.every(gap => gap.nonzero_pixels === 0 && gap.peak_alpha === 0),
+    "review spatial field contaminated a Quiet Gap: " + JSON.stringify(fieldRaster.quiet_gaps));
+  results.receiving_field = {
+    file: fieldName,
+    sha256: sha256(fieldBytes),
+    dimensions: fieldRaster.dimensions,
+    alpha: fieldRaster.alpha,
+    depth_ratio: .18,
+    quiet_gaps: fieldRaster.quiet_gaps,
+    source_mode: "REVIEW_ONLY_SPATIAL_FIELD_V2 · P1_ALPHA_0.07 · CAP_17_255 · DEPTH_0.18 · QUIET_GAP_A"
+  };
+  results.screenshots.push(fieldName);
+  results.checks.push("transparent Receiving Light PNG is browser-rendered, capped at 17/255 and zero in all four Quiet Gaps");
+  results.checks.push("2,800ms phase boundaries and seven deterministic keyframes at 0/350/950/1200/1550/2050/2800ms");
+  await seek(2800);
   const frameDownload = page.waitForEvent("download");
   await page.locator("#exportFrame").click();
   const downloadedFrame = await frameDownload;
-  const exportedFrameName = "exported-current-frame-1140ms.png";
+  const exportedFrameName = "exported-current-frame-2800ms.png";
   await downloadedFrame.saveAs(resolve(OUTPUT, exportedFrameName));
   const exportedFrameBytes = await readFile(resolve(OUTPUT, exportedFrameName));
   assert(exportedFrameBytes.subarray(0, 8).equals(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10])),
@@ -193,16 +349,16 @@ async function main() {
   results.screenshots.push(exportedFrameName);
   results.checks.push("in-page PNG export produced a real PNG file");
 
-  await seek(540);
+  await seek(950);
   await page.locator("#stepForward").click();
   const stepped = await page.evaluate(() => window.RecognitionMotionStudio.getState());
-  assert(stepped.currentMs - 540 >= 30 && stepped.currentMs - 540 <= 36,
+  assert(stepped.currentMs - 950 >= 30 && stepped.currentMs - 950 <= 36,
     "single-frame step must advance about 33ms: " + stepped.currentMs);
   await page.locator("#stepBack").click();
   const steppedBack = await page.evaluate(() => window.RecognitionMotionStudio.getState());
-  assert(Math.abs(steppedBack.currentMs - 540) < 1, "reverse frame step must restore the prior frame");
+  assert(Math.abs(steppedBack.currentMs - 950) < 1, "reverse frame step must restore the prior frame");
   await page.locator("#playPause").click();
-  await page.waitForFunction(() => window.RecognitionMotionStudio.getState().currentMs > 570, null, { timeout: 1000 });
+  await page.waitForFunction(() => window.RecognitionMotionStudio.getState().currentMs > 980, null, { timeout: 1000 });
   await page.locator("#playPause").click();
   const pausedAt = await page.evaluate(() => window.RecognitionMotionStudio.getState().currentMs);
   await page.waitForTimeout(140);
@@ -216,7 +372,39 @@ async function main() {
   const beforeResume = stillPausedAt;
   await page.locator("#playPause").click();
   await page.waitForFunction(previous => window.RecognitionMotionStudio.getState().currentMs > previous + 20, beforeResume, { timeout: 1000 });
-  results.checks.push("frame step, pause stability, resume, and 0.5x/1x/1.5x speed selectors");
+  results.checks.push("single-frame stepping, pause stability, continue, and 0.5x/1x/1.5x speed selectors");
+
+  const stableSignature = async ms => {
+    await seek(ms);
+    return page.evaluate(() => {
+      const field = document.querySelector('[data-source="REVIEW_ONLY_SPATIAL_FIELD_V2"]');
+      return {
+        edgeOpacity: field.getAttribute("opacity"),
+        islands: [...field.querySelectorAll(".review-spatial-island")].map(node => node.getAttribute("opacity")),
+        flows: [...field.querySelectorAll(".edge-flow")].map(node => [node.getAttribute("opacity"), node.getAttribute("stroke-dashoffset")]),
+        transfer: ["#transferWashTop", "#transferWashRight", "#transferWashBottom"].map(id => {
+          const node = document.querySelector(id);
+          return [node.getAttribute("opacity"), node.getAttribute("stroke-dashoffset")];
+        }),
+        fish: ["#fishHalo", "#fishMid", "#fishCore"].map(id => {
+          const node = document.querySelector(id);
+          return [node.getAttribute("opacity"), node.getAttribute("stroke-dashoffset")];
+        })
+      };
+    });
+  };
+  const stable1550 = await stableSignature(1550);
+  const stable2050 = await stableSignature(2050);
+  const stable2800 = await stableSignature(2800);
+  assert(JSON.stringify(stable1550) === JSON.stringify(stable2050) && JSON.stringify(stable2050) === JSON.stringify(stable2800),
+    "the full 1,250ms final pose must remain visually static from 1550 through 2800ms");
+  results.stable_pose_signature = stable1550;
+  results.checks.push("1550/2050/2800ms visual-layer signature is identical for the full 1,250ms stable phase");
+  await page.locator("#restart").click();
+  await page.waitForFunction(() => window.RecognitionMotionStudio.getState().currentMs > 50 && window.RecognitionMotionStudio.getState().currentMs < 2800, null, { timeout: 1000 });
+  await page.locator("#playPause").click();
+  await seek(2800);
+  results.checks.push("replay returns the timeline to zero and starts a fresh cycle without completing an inference result");
 
   const setLayer = async (id, expectedHidden) => {
     const input = page.locator("#" + id);
@@ -228,7 +416,7 @@ async function main() {
     assert(await input.evaluate(node => node.checked) === targetChecked, id + " label did not toggle its checkbox");
   };
   await setLayer("toggleEdge", true);
-  assert(await page.locator("#p1Receiving").evaluate(node => getComputedStyle(node).display === "none"), "Edge Field toggle did not hide the shared layer");
+  assert(await page.locator('[data-source="REVIEW_ONLY_SPATIAL_FIELD_V2"]').evaluate(node => getComputedStyle(node).display === "none"), "Edge Field toggle did not hide the shared layer");
   await setLayer("toggleEdge", false);
   await setLayer("toggleTransfer", true);
   assert(await page.locator("#transferLayer").evaluate(node => getComputedStyle(node).display === "none"), "Transfer Wash toggle did not hide its layer");
@@ -237,7 +425,9 @@ async function main() {
   assert(await page.locator("#fishHalo").evaluate(node => getComputedStyle(node).display === "none"), "Fish Focus toggle did not hide the fish layer");
   await setLayer("toggleFish", false);
   await setLayer("toggleContour", true);
-  assert(await page.locator("#fishCore").evaluate(node => getComputedStyle(node).display === "none"), "contour toggle did not hide the review outline");
+  assert(await page.locator("#fishHalo").evaluate(node => getComputedStyle(node).display === "none") &&
+    await page.locator("#fishMid").evaluate(node => getComputedStyle(node).display === "none") &&
+    await page.locator("#fishCore").evaluate(node => getComputedStyle(node).display === "none"), "contour toggle did not hide all manual-contour-derived layers");
   await setLayer("toggleContour", false);
   results.checks.push("Edge Field, Transfer Wash, Fish Focus, and contour layer switches");
 
@@ -303,7 +493,7 @@ async function main() {
   });
   const video = videoPage.video();
   await videoPage.locator("#playPause").click();
-  await videoPage.waitForFunction(() => document.querySelector("#currentTime")?.textContent === "1140", null, { timeout: 5000 });
+  await videoPage.waitForFunction(() => document.querySelector("#currentTime")?.textContent === "2800", null, { timeout: 8000 });
   await videoPage.waitForFunction(() => document.querySelector("#playbackState")?.textContent === "播放完成", null, { timeout: 3000 });
   await videoPage.waitForTimeout(120);
   await videoContext.close();
@@ -319,7 +509,7 @@ async function main() {
     codec: "Playwright Chromium WebM",
     duration_ms: DURATION
   };
-  results.checks.push("Chromium recorded a complete 1,140ms playback from CAPTURED through CLASSIFYING");
+  results.checks.push("Chromium recorded a complete 2,800ms design-rhythm playback from CAPTURED through the stable CLASSIFYING pose");
 
   assert(errors.length === 0, "browser console/page errors: " + errors.join(" | "));
   assert(failedRequests.length === 0, "failed requests: " + failedRequests.join(" | "));

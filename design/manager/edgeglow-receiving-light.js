@@ -30,6 +30,12 @@
     depthRatio: P1_DEPTH_RANGE[1],
     version: "perimeter-anchored-continuous-field-v1"
   });
+  const REVIEW_ONLY_SPATIAL_FIELD_EXPERIMENT = Object.freeze({
+    baseAlpha: P1_ALPHA_RANGE[1],
+    outputAlphaCap: OUTPUT_ALPHA_CAP,
+    depthRatio: P1_DEPTH_RANGE[1],
+    version: "p1-path-projected-spatial-field-v2"
+  });
   const CONTINUOUS_FIELD_PROFILE = Object.freeze({
     ambientEnergy: 0.035,
     minimumPerimeterSigma: 0.018,
@@ -106,8 +112,9 @@
     const reviewOnlyRadialFieldExperiment = options.reviewOnlyRadialFieldExperiment === true;
     const reviewOnlyEdgeRibbonExperiment = options.reviewOnlyEdgeRibbonExperiment === true;
     const reviewOnlyContinuousFieldExperiment = options.reviewOnlyContinuousFieldExperiment === true;
-    if ([reviewOnlyAlphaExperiment, reviewOnlyRadialFieldExperiment, reviewOnlyEdgeRibbonExperiment, reviewOnlyContinuousFieldExperiment].filter(Boolean).length > 1) {
-      throw new Error("Alpha-only, radial-field, edge-ribbon, and continuous-field review experiments must remain isolated.");
+    const reviewOnlySpatialFieldExperiment = options.reviewOnlySpatialFieldExperiment === true;
+    if ([reviewOnlyAlphaExperiment, reviewOnlyRadialFieldExperiment, reviewOnlyEdgeRibbonExperiment, reviewOnlyContinuousFieldExperiment, reviewOnlySpatialFieldExperiment].filter(Boolean).length > 1) {
+      throw new Error("Alpha-only, radial-field, edge-ribbon, continuous-field, and spatial-field review experiments must remain isolated.");
     }
     const quietGapVariant = String(options.quietGapVariant || "B").toUpperCase();
     if (!/^[ABC]$/.test(quietGapVariant)) throw new Error("Quiet Gap review variant must be A, B, or C.");
@@ -122,7 +129,8 @@
         (reviewOnlyAlphaExperiment && baseAlpha !== REVIEW_ONLY_ALPHA_EXPERIMENT.baseAlpha) ||
         (reviewOnlyRadialFieldExperiment && baseAlpha !== REVIEW_ONLY_RADIAL_FIELD_EXPERIMENT.baseAlpha) ||
         (reviewOnlyEdgeRibbonExperiment && baseAlpha !== REVIEW_ONLY_EDGE_RIBBON_EXPERIMENT.baseAlpha) ||
-        (reviewOnlyContinuousFieldExperiment && baseAlpha !== REVIEW_ONLY_CONTINUOUS_FIELD_EXPERIMENT.baseAlpha)) {
+        (reviewOnlyContinuousFieldExperiment && baseAlpha !== REVIEW_ONLY_CONTINUOUS_FIELD_EXPERIMENT.baseAlpha) ||
+        (reviewOnlySpatialFieldExperiment && baseAlpha !== REVIEW_ONLY_SPATIAL_FIELD_EXPERIMENT.baseAlpha)) {
       throw new Error(reviewOnlyAlphaExperiment
         ? "Review-only Alpha experiment accepts exactly base Alpha 0.10."
         : reviewOnlyRadialFieldExperiment
@@ -131,14 +139,17 @@
             ? "Review-only edge-ribbon geometry requires P1 base Alpha 0.07."
             : reviewOnlyContinuousFieldExperiment
               ? "Review-only continuous field requires P1 base Alpha 0.07."
+            : reviewOnlySpatialFieldExperiment
+              ? "Review-only spatial field requires P1 base Alpha 0.07."
             : "P1 Receiving Light base Alpha must remain in [0.03, 0.07].");
     }
     const requestedDepth = Number(options.depthRatio ?? 0.14);
     if (!Number.isFinite(requestedDepth) || requestedDepth < P1_DEPTH_RANGE[0] || requestedDepth > P1_DEPTH_RANGE[1] ||
         (reviewOnlyRadialFieldExperiment && requestedDepth !== REVIEW_ONLY_RADIAL_FIELD_EXPERIMENT.depthRatio) ||
         (reviewOnlyEdgeRibbonExperiment && requestedDepth !== REVIEW_ONLY_EDGE_RIBBON_EXPERIMENT.depthRatio) ||
-        (reviewOnlyContinuousFieldExperiment && requestedDepth !== REVIEW_ONLY_CONTINUOUS_FIELD_EXPERIMENT.depthRatio)) {
-      throw new Error("P1 Receiving Light edge depth must remain in [0.08, 0.18]; radial, edge-ribbon, and continuous-field reviews require exactly 0.18.");
+        (reviewOnlyContinuousFieldExperiment && requestedDepth !== REVIEW_ONLY_CONTINUOUS_FIELD_EXPERIMENT.depthRatio) ||
+        (reviewOnlySpatialFieldExperiment && requestedDepth !== REVIEW_ONLY_SPATIAL_FIELD_EXPERIMENT.depthRatio)) {
+      throw new Error("P1 Receiving Light edge depth must remain in [0.08, 0.18]; review field experiments require exactly 0.18.");
     }
     const colors = { ...DEFAULT_COLORS, ...(options.colors || {}) };
     for (const key of Object.keys(DEFAULT_COLORS)) {
@@ -169,7 +180,7 @@
       width, height, rect: normalizedRect, paths, colors,
       baseAlpha, depthRatio: requestedDepth,
       reviewOnlyAlphaExperiment, reviewOnlyRadialFieldExperiment, reviewOnlyEdgeRibbonExperiment,
-      reviewOnlyContinuousFieldExperiment, quietGapVariant, outputAlphaCap,
+      reviewOnlyContinuousFieldExperiment, reviewOnlySpatialFieldExperiment, quietGapVariant, outputAlphaCap,
       globalMultiplier: clamp(Number(options.globalMultiplier ?? 1), 0, 1),
       dpToCanvasPx: clamp(Number(options.dpToCanvasPx ?? 1), 0.1, 100),
       enabled: options.enabled !== false
@@ -573,6 +584,249 @@
     return corners[key] || null;
   }
 
+  let spatialFieldInstance = 0;
+
+  function createReviewOnlySpatialField(svgRoot, options) {
+    if (!svgRoot || svgRoot.namespaceURI !== SVG_NS || svgRoot.localName !== "svg") {
+      throw new Error("Review-only spatial Receiving Light requires the shared photo SVG.");
+    }
+    const config = normalizeOptions({ ...options, reviewOnlySpatialFieldExperiment: true });
+    if (config.quietGapVariant !== "A") {
+      throw new Error("Review-only spatial field requires strict Quiet Gap variant A.");
+    }
+    const width = config.width, height = config.height, rect = config.rect;
+    const photoWidth = rect.right - rect.left, photoHeight = rect.bottom - rect.top;
+    const depthPx = config.depthRatio * Math.min(photoWidth, photoHeight);
+    const outerSigma = Math.max(8, depthPx * 0.18);
+    const midSigma = Math.max(4, depthPx * 0.075);
+    const padding = Math.ceil(outerSigma * 3 + 4);
+    const prefix = "review-spatial-field-" + (++spatialFieldInstance);
+    const numberString = value => String(number(value));
+    const alphaTable = Array.from({ length: 256 }, (_, index) =>
+      numberString(Math.min(index / 255, config.outputAlphaCap))
+    ).join(" ");
+    const depthClipId = prefix + "-depth-clip";
+    const quietMaskId = prefix + "-quiet-mask";
+    const alphaCapId = prefix + "-alpha-cap";
+    const outerBlurId = prefix + "-outer-blur";
+    const midBlurId = prefix + "-mid-blur";
+    const defs = [
+      '<clipPath id="' + depthClipId + '" clipPathUnits="userSpaceOnUse">' +
+        '<rect x="' + numberString(rect.left) + '" y="' + numberString(rect.top) + '" width="' + numberString(photoWidth) + '" height="' + numberString(depthPx) + '"/>' +
+        '<rect x="' + numberString(rect.left) + '" y="' + numberString(rect.bottom - depthPx) + '" width="' + numberString(photoWidth) + '" height="' + numberString(depthPx) + '"/>' +
+        '<rect x="' + numberString(rect.left) + '" y="' + numberString(rect.top) + '" width="' + numberString(depthPx) + '" height="' + numberString(photoHeight) + '"/>' +
+        '<rect x="' + numberString(rect.right - depthPx) + '" y="' + numberString(rect.top) + '" width="' + numberString(depthPx) + '" height="' + numberString(photoHeight) + '"/>' +
+      '</clipPath>',
+      quietMaskMarkup(rect, width, height, depthPx).replace(/quiet-gaps/g, quietMaskId),
+      '<filter id="' + outerBlurId + '" filterUnits="userSpaceOnUse" primitiveUnits="userSpaceOnUse" x="' +
+        numberString(rect.left - padding) + '" y="' + numberString(rect.top - padding) + '" width="' +
+        numberString(photoWidth + padding * 2) + '" height="' + numberString(photoHeight + padding * 2) +
+        '" color-interpolation-filters="sRGB"><feGaussianBlur in="SourceGraphic" stdDeviation="' +
+        numberString(outerSigma) + '"/></filter>',
+      '<filter id="' + midBlurId + '" filterUnits="userSpaceOnUse" primitiveUnits="userSpaceOnUse" x="' +
+        numberString(rect.left - padding) + '" y="' + numberString(rect.top - padding) + '" width="' +
+        numberString(photoWidth + padding * 2) + '" height="' + numberString(photoHeight + padding * 2) +
+        '" color-interpolation-filters="sRGB"><feGaussianBlur in="SourceGraphic" stdDeviation="' +
+        numberString(midSigma) + '"/></filter>',
+      '<filter id="' + alphaCapId + '" filterUnits="userSpaceOnUse" primitiveUnits="userSpaceOnUse" x="' +
+        numberString(rect.left) + '" y="' + numberString(rect.top) + '" width="' + numberString(photoWidth) +
+        '" height="' + numberString(photoHeight) + '"><feComponentTransfer><feFuncA type="table" tableValues="' +
+        alphaTable + '"/></feComponentTransfer></filter>'
+    ];
+    const sideNormal = {
+      top: [0, 1], right: [-1, 0], bottom: [0, -1], left: [1, 0]
+    };
+    const anchorPoint = (side, t) => {
+      if (side === "top") return [rect.left + t * photoWidth, rect.top];
+      if (side === "right") return [rect.right, rect.top + t * photoHeight];
+      if (side === "bottom") return [rect.left + t * photoWidth, rect.bottom];
+      return [rect.left, rect.top + t * photoHeight];
+    };
+    const makeSample = (boundary, side, depth, energy, u) => {
+      const normal = sideNormal[side];
+      return {
+        side,
+        boundary,
+        inner: [
+          clamp(boundary[0] + normal[0] * depth, rect.left, rect.right),
+          clamp(boundary[1] + normal[1] * depth, rect.top, rect.bottom)
+        ],
+        depth,
+        energy,
+        u
+      };
+    };
+    const polygonPath = samples => {
+      const points = [...samples.map(sample => sample.boundary), ...samples.slice().reverse().map(sample => sample.inner)];
+      if (points.length < 4) return "";
+      return "M " + points.map((point, index) => (index ? "L " : "") +
+        numberString(point[0]) + " " + numberString(point[1])).join(" ") + " Z";
+    };
+    const gradientMarkup = (id, side, color, hotColor, opacityStops) => {
+      const normal = sideNormal[side];
+      const start = anchorPoint(side, 0);
+      const end = [start[0] + normal[0] * depthPx, start[1] + normal[1] * depthPx];
+      const stops = opacityStops.map(stop =>
+        '<stop offset="' + numberString(stop[0] * 100) + '%" stop-color="' +
+        (stop[1] ? hotColor : color) + '" stop-opacity="' + numberString(stop[2]) + '"/>'
+      ).join("");
+      return '<linearGradient id="' + id + '" gradientUnits="userSpaceOnUse" x1="' +
+        numberString(start[0]) + '" y1="' + numberString(start[1]) + '" x2="' +
+        numberString(end[0]) + '" y2="' + numberString(end[1]) + '">' + stops + '</linearGradient>';
+    };
+    const measureSvg = document.createElementNS(SVG_NS, "svg");
+    measureSvg.setAttribute("width", String(width));
+    measureSvg.setAttribute("height", String(height));
+    measureSvg.setAttribute("viewBox", "0 0 " + width + " " + height);
+    measureSvg.setAttribute("aria-hidden", "true");
+    measureSvg.style.cssText = "position:fixed;left:-100000px;top:-100000px;visibility:hidden;pointer-events:none;overflow:visible";
+    document.body.appendChild(measureSvg);
+    const islandMarkup = [];
+    const diagnostics = [];
+    try {
+      for (const path of config.paths) {
+        const pathNode = document.createElementNS(SVG_NS, "path");
+        pathNode.setAttribute("d", pathData(path, rect));
+        measureSvg.appendChild(pathNode);
+        const pathLength = pathNode.getTotalLength();
+        if (!(pathLength > 1)) throw new Error("Spatial-field source path is empty: " + path.id);
+        const sampleCount = Math.max(48, Math.ceil(pathLength / 7));
+        const samples = [];
+        for (let index = 0; index <= sampleCount; index++) {
+          const u = index / sampleCount;
+          const source = pathNode.getPointAtLength(pathLength * u);
+          const mapped = mapInset([source.x, source.y], rect);
+          const edge = edgeBoundaryProjection(mapped, rect);
+          const endpointFade = smoothstep(Math.min(1, Math.min(u, 1 - u) / 0.14));
+          const phase = Number(path.seed) * Math.PI * 2;
+          const depthWave = 0.5 + 0.5 * Math.sin(Math.PI * 2 * (u * 1.15 + Number(path.seed)));
+          const depthDetail = 0.5 + 0.5 * Math.sin(Math.PI * 2 * (u * 2.35 + Number(path.seed) * 0.73));
+          const energy = clamp((0.80 + 0.13 * Math.sin(Math.PI * 2 * (u * 1.35 + Number(path.seed)) + phase) +
+            0.07 * Math.sin(Math.PI * 2 * (u * 2.1 + Number(path.seed) * 0.61))) * endpointFade, 0, 1);
+          const depthScale = 0.54 + 0.27 * depthWave + 0.13 * depthDetail;
+          samples.push(makeSample(edge.boundary, edge.side, depthPx * depthScale * endpointFade, energy, u));
+        }
+        pathNode.remove();
+
+        const sideSegments = [];
+        let current = [samples[0]];
+        for (let index = 1; index < samples.length; index++) {
+          const previous = samples[index - 1];
+          const next = samples[index];
+          if (previous.side === next.side) {
+            current.push(next);
+            continue;
+          }
+          const corner = cornerBetweenEdges(previous.side, next.side, rect);
+          if (corner) {
+            const depth = Math.min(depthPx * 0.90, Math.max(previous.depth, next.depth));
+            const energy = (previous.energy + next.energy) / 2;
+            current.push(makeSample(corner, previous.side, depth, energy, (previous.u + next.u) / 2));
+            sideSegments.push({ side: previous.side, samples: current });
+            current = [makeSample(corner, next.side, depth, energy, (previous.u + next.u) / 2), next];
+          } else {
+            sideSegments.push({ side: previous.side, samples: current });
+            current = [next];
+          }
+        }
+        sideSegments.push({ side: current[0]?.side || samples[0].side, samples: current });
+
+        const family = path.family === "gold" ? "gold" : "blue";
+        const baseColor = config.colors[family];
+        const hotColor = config.colors[family === "gold" ? "goldHot" : "blueHot"];
+        const islandWeight = Math.max(MIN_PATH_WEIGHT, path.weight);
+        const baseAlpha = config.baseAlpha * islandWeight;
+        const segmentMarkup = [];
+        sideSegments.forEach((segment, segmentIndex) => {
+          if (segment.samples.length < 3) return;
+          const d = polygonPath(segment.samples);
+          if (!d) return;
+          const side = segment.side;
+          const first = segment.samples[0].boundary;
+          const last = segment.samples[segment.samples.length - 1].boundary;
+          const tangentDx = last[0] - first[0];
+          const tangentDy = last[1] - first[1];
+          const meanDepth = segment.samples.reduce((sum, sample) => sum + sample.depth, 0) / segment.samples.length;
+          const normalId = prefix + "-" + path.id + "-" + segmentIndex + "-normal";
+          const alongId = prefix + "-" + path.id + "-" + segmentIndex + "-along";
+          const maskId = prefix + "-" + path.id + "-" + segmentIndex + "-mask";
+          defs.push(gradientMarkup(normalId, side, baseColor, hotColor, [
+            [0, 0, 0.98], [0.07, 1, 0.86], [0.22, 0, 0.66], [0.48, 0, 0.34], [0.76, 0, 0.11], [1, 0, 0]
+          ]));
+          const alongStops = segment.samples.map((sample, index) => {
+            const offset = segment.samples.length > 1 ? index / (segment.samples.length - 1) : 0;
+            return '<stop offset="' + numberString(offset * 100) + '%" stop-color="#fff" stop-opacity="' +
+              numberString(sample.energy) + '"/>';
+          }).join("");
+          defs.push('<linearGradient id="' + alongId + '" gradientUnits="userSpaceOnUse" x1="' +
+            numberString(first[0]) + '" y1="' + numberString(first[1]) + '" x2="' +
+            numberString(first[0] + tangentDx) + '" y2="' + numberString(first[1] + tangentDy) + '">' +
+            alongStops + '</linearGradient>');
+          defs.push('<mask id="' + maskId + '" maskUnits="userSpaceOnUse" maskContentUnits="userSpaceOnUse" mask-type="alpha" x="' +
+            numberString(rect.left - padding) + '" y="' + numberString(rect.top - padding) + '" width="' +
+            numberString(photoWidth + padding * 2) + '" height="' + numberString(photoHeight + padding * 2) +
+            '"><path d="' + d + '" fill="url(#' + alongId + ')"/></mask>');
+          const normalX = sideNormal[side][0] * depthPx;
+          const normalY = sideNormal[side][1] * depthPx;
+          const normalIdLocal = prefix + "-" + path.id + "-" + segmentIndex + "-normal-local";
+          const localStops = [
+            [0, 0, 0.98], [0.07, 1, 0.86], [0.22, 0, 0.66], [0.48, 0, 0.34], [0.76, 0, 0.11], [1, 0, 0]
+          ].map(stop => '<stop offset="' + numberString(stop[0] * 100) + '%" stop-color="' +
+            (stop[1] ? hotColor : baseColor) + '" stop-opacity="' + numberString(stop[2]) + '"/>').join("");
+          defs.push('<linearGradient id="' + normalIdLocal + '" gradientUnits="userSpaceOnUse" x1="' +
+            numberString(first[0]) + '" y1="' + numberString(first[1]) + '" x2="' +
+            numberString(first[0] + normalX) + '" y2="' + numberString(first[1] + normalY) + '">' + localStops + '</linearGradient>');
+          const layerOpacity = baseAlpha;
+          segmentMarkup.push(
+            '<g mask="url(#' + maskId + ')">' +
+              '<path d="' + d + '" fill="url(#' + normalIdLocal + ')" filter="url(#' + outerBlurId + ')" opacity="' + numberString(layerOpacity * 0.38) + '"/>' +
+              '<path d="' + d + '" fill="url(#' + normalIdLocal + ')" filter="url(#' + midBlurId + ')" opacity="' + numberString(layerOpacity * 0.42) + '"/>' +
+              '<path d="' + d + '" fill="url(#' + normalIdLocal + ')" opacity="' + numberString(layerOpacity * 0.36) + '"/>' +
+            '</g>'
+          );
+          if (!(meanDepth >= 0)) throw new Error("Spatial field depth became invalid.");
+        });
+        islandMarkup.push('<g id="' + prefix + '-island-' + path.id + '" class="review-spatial-island" data-path="' +
+          path.id + '" data-family="' + family + '" data-weight="' + numberString(islandWeight) +
+          '" data-base-alpha="' + numberString(baseAlpha) + '" opacity="0">' + segmentMarkup.join("") + '</g>');
+        diagnostics.push({ id: path.id, family, weight: islandWeight, path_length: number(pathLength), sample_count: sampleCount, max_depth_px: number(depthPx) });
+      }
+    } finally {
+      measureSvg.remove();
+    }
+    const markup = '<defs>' + defs.join("") + '</defs>' +
+      '<g id="' + prefix + '-root" data-source="REVIEW_ONLY_SPATIAL_FIELD_V2" data-alpha-mode="P1_BASE_0.07_CAP_17_255" data-depth-ratio="0.18" data-quiet-gap-variant="A" ' +
+      'filter="url(#' + alphaCapId + ')" mask="url(#' + quietMaskId + ')" clip-path="url(#' + depthClipId + ')">' +
+      islandMarkup.join("") + '</g>';
+    const parsed = new DOMParser().parseFromString('<svg xmlns="' + SVG_NS + '">' + markup + '</svg>', "image/svg+xml");
+    if (parsed.querySelector("parsererror")) throw new Error("Review-only spatial field SVG markup is invalid.");
+    const importedDefs = document.importNode(parsed.documentElement.querySelector("defs"), true);
+    const importedRoot = document.importNode(parsed.documentElement.querySelector("g"), true);
+    svgRoot.insertBefore(importedDefs, svgRoot.firstChild);
+    svgRoot.insertBefore(importedRoot, importedDefs.nextSibling);
+    const islands = config.paths.map(path => svgRoot.querySelector("#" + prefix + "-island-" + path.id));
+    setStatus("ready", {
+      alpha_mode: "REVIEW_ONLY_SPATIAL_FIELD_V2_P1_ALPHA",
+      geometry_mode: "P1_PATH_PROJECTED_VARIABLE_DEPTH_EDGE_FIELD",
+      field_version: REVIEW_ONLY_SPATIAL_FIELD_EXPERIMENT.version,
+      base_alpha: config.baseAlpha,
+      alpha_cap: config.outputAlphaCap,
+      depth_ratio: config.depthRatio,
+      depth_px: number(depthPx),
+      quiet_gap_variant: config.quietGapVariant,
+      paths: diagnostics
+    });
+    return Object.freeze({
+      root: importedRoot,
+      islands,
+      version: REVIEW_ONLY_SPATIAL_FIELD_EXPERIMENT.version,
+      diagnostics: Object.freeze(diagnostics),
+      baseAlpha: config.baseAlpha,
+      alphaCap: config.outputAlphaCap,
+      depthRatio: config.depthRatio
+    });
+  }
+
   function radialFieldGradientMarkup(id, baseColor, hotColor) {
     const stops = [
       [0.00, hotColor, 0.88],
@@ -922,6 +1176,7 @@
       reviewOnlyRadialFieldExperiment: config.reviewOnlyRadialFieldExperiment,
       reviewOnlyEdgeRibbonExperiment: config.reviewOnlyEdgeRibbonExperiment,
       reviewOnlyContinuousFieldExperiment: config.reviewOnlyContinuousFieldExperiment,
+      reviewOnlySpatialFieldExperiment: config.reviewOnlySpatialFieldExperiment,
       quietGapVariant: config.quietGapVariant,
       continuousField: config.reviewOnlyContinuousFieldExperiment ? CONTINUOUS_FIELD_PROFILE : null,
       outputAlphaCap: config.outputAlphaCap,
@@ -1058,6 +1313,7 @@
     reviewOnlyRadialFieldExperiment: REVIEW_ONLY_RADIAL_FIELD_EXPERIMENT,
     reviewOnlyEdgeRibbonExperiment: REVIEW_ONLY_EDGE_RIBBON_EXPERIMENT,
     reviewOnlyContinuousFieldExperiment: REVIEW_ONLY_CONTINUOUS_FIELD_EXPERIMENT,
+    reviewOnlySpatialFieldExperiment: REVIEW_ONLY_SPATIAL_FIELD_EXPERIMENT,
     continuousFieldProfile: CONTINUOUS_FIELD_PROFILE,
     minPathWeight: MIN_PATH_WEIGHT,
     coverageByPath: COVERAGE_BY_PATH,
@@ -1065,6 +1321,7 @@
     quietGaps: QUIET_GAPS,
     layers: LAYERS,
     defaultColors: DEFAULT_COLORS,
-    paint
+    paint,
+    createReviewOnlySpatialField
   });
 })();
