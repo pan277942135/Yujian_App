@@ -61,6 +61,15 @@ class RecognitionOpticalFidelityRuntimeTest {
 
     @After
     fun releaseFrameMetricsListener() {
+        // The frame-metrics test intentionally keeps CLASSIFYING live while it
+        // samples FULL/LITE output. Dispose that production scene before the
+        // ActivityScenarioRule closes the activity so Compose cancels its frame
+        // loop and the API 28 emulator can finish instrumentation teardown.
+        activityRule.scenario.onActivity { activity ->
+            Log.i(LOG_TAG, "Milestone: teardown-scene-start")
+            activity.setContent { }
+            Log.i(LOG_TAG, "Milestone: teardown-scene-complete")
+        }
         val window = frameMetricsWindow
         val listener = frameMetricsListener
         if (window != null && listener != null) {
