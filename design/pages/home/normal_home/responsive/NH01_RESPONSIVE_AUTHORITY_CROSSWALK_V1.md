@@ -32,9 +32,9 @@
 1. Validate the JSON against the shared schema and verify all six frozen image hashes/canvas dimensions.
 2. Validate page-owned and control-plane references, task/gate binding and the single-authority rule.
 3. Merge the validated candidate contract to canonical `main` with status still `PROPOSED_FOR_CANONICAL_MAIN_REVIEW`; do not begin Android implementation from a candidate.
-4. P3-02 integrates the existing Design Manager workspace and keeps the static V1 renderer backward-compatible.
-5. P3-06 proves that the existing NH01 preview consumes the machine contract; fixed, wide, non-anchor and threshold-boundary checks must pass.
-6. Only after P3-06 passes may a control-plane change promote the contract to `SPEC_FROZEN`; synchronize product branches and rerun admission before Android implementation.
+4. P3-06 updates the existing registered NH01 preview route to consume the machine contract, without creating a second workspace shell, and proves fixed, wide, non-anchor and threshold-boundary behavior.
+5. Only after P3-06 passes may a control-plane change promote the contract to `SPEC_FROZEN`; synchronize product branches and rerun admission.
+6. P3-02 then integrates the shared Design Manager workspace using the frozen responsive contract and preserves the V1 static archive renderer.
 7. Run the exact-SHA Android matrix separately. Runtime remains `NOT_VERIFIED` until the native gate passes.
 
 No frozen PNG or existing V1 archive file is rewritten by this proposal.
