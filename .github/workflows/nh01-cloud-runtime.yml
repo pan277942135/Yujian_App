@@ -3,6 +3,7 @@ name: NH01 Gemini Native V3 Runtime
 on:
   pull_request:
     branches: [main]
+    types: [opened, reopened, synchronize, labeled, unlabeled]
     paths:
       - "app/**"
       - "design/pages/home/**"
@@ -34,6 +35,8 @@ env:
 
 jobs:
   runtime:
+    # Expensive API 28 evidence is opt-in via the run-nh01-api28 PR label.
+    if: ${{ contains(github.event.pull_request.labels.*.name, 'run-nh01-api28') }}
     runs-on: macos-15-intel
     timeout-minutes: 100
     outputs:
