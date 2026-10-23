@@ -52,6 +52,22 @@ if [[ "$pr_state_live" != "open" ]]; then echo "SOURCE_READINESS=BLOCKED_PR_NOT_
 if [[ "$pr_branch_live" != "feat/ai-catch-recognition-web-swos-rr09-v1" ]]; then echo "SOURCE_READINESS=BLOCKED_UNEXPECTED_BRANCH"; source_blockers=$((source_blockers+1)); fi
 if [[ "$behind_by" -gt 0 ]]; then echo "SOURCE_READINESS=BLOCKED_BEHIND_MAIN"; source_blockers=$((source_blockers+1)); fi
 
+missing_control_plane=0
+for control_path in "AGENTS.md" "CONTROL_PLANE_REGISTRY.yaml"; do
+  if api_get "repos/$PRODUCT_REPO/contents/$control_path?ref=$pr_head_live" >/dev/null 2>&1; then
+    echo "PRODUCT_CONTROL_PLANE_FILE=PRESENT $control_path"
+  else
+    echo "PRODUCT_CONTROL_PLANE_FILE=MISSING $control_path"
+    missing_control_plane=1
+  fi
+done
+if [[ "$missing_control_plane" -eq 1 ]]; then
+  echo "PRODUCT_ADMISSION=BLOCKED_MISSING_REGISTRY"
+  source_blockers=$((source_blockers+1))
+else
+  echo "PRODUCT_ADMISSION=ENTRYPOINT_FILES_PRESENT (canonical Admission must still be executed)"
+fi
+
 runs_json="$(api_get "repos/$PRODUCT_REPO/actions/runs?head_sha=$pr_head_live&event=pull_request&per_page=100")"
 ci_row="$(printf '%s' "$runs_json" | python3 -c '
 import json,sys
