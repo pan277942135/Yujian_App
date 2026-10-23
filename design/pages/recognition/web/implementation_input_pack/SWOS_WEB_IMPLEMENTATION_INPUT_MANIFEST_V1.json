@@ -17,7 +17,7 @@
       },
       {
         "path": "design/pages/recognition/web/WEB_HIFI_GAP_MATRIX_V2.md",
-        "blob_sha": "d3bd1a71b9576d86229c17229e69b1ef5979abe1",
+        "blob_sha": "ab4822627500a5342e4a52dcad016514a23a7220",
         "role": "live_gap_matrix_with_historical_baseline_labeled"
       },
       {
@@ -62,12 +62,12 @@
       },
       {
         "path": "design/pages/recognition/web/contracts/Authority_References_V2.json",
-        "blob_sha": "3cf146eb5f636b135a498c45341dc72d74afaa0a",
+        "blob_sha": "973171c7cf2915cbb131f2e535eeded01a05e0bb",
         "role": "machine_contract_with_live_audit"
       },
       {
         "path": "design/pages/recognition/web/contracts/Work_B_Implementation_Mapping_V2.json",
-        "blob_sha": "19fe422bb25065ddc094fb70c6419882c4555550",
+        "blob_sha": "952ebaf56b5ae1304006ff4ffe7b0f3fce4e5e04",
         "role": "implementation_mapping_with_live_audit"
       },
       {
@@ -132,18 +132,18 @@
       },
       {
         "path": "design/pages/recognition/web/VISUAL_REFERENCE_CLOSURE_REPORT_V1.md",
-        "blob_sha": "e1cae67153c1a35c724011d792662731f6c13bc6",
+        "blob_sha": "53e9b0bd7a314568d5806161b115a4a22e34aa79",
         "role": "asset_provenance_report"
       },
       {
         "path": "design/pages/recognition/web/SWOS_WEB_HIFI_MOTION_TECHNICAL_CONTRACT_V1_0.md",
         "role": "swos_web_hifi_motion_technical_contract_v1_0",
-        "blob_sha": "2f7b100a8c98fd029b3804a46d1d992419266170"
+        "blob_sha": "3d1a17cbc3066292c48e631edb97b02e61324214"
       },
       {
         "path": "design/pages/recognition/web/contracts/SWOS_WEB_HIFI_MOTION_TECHNICAL_CONTRACT_V1_0.json",
         "role": "swos_web_hifi_motion_machine_contract",
-        "blob_sha": "f41098bb94e1e3b7fef6e096c75a579a663cd3a9"
+        "blob_sha": "7e66ddd378273b19e69fbeb0bb5a2d0ae90ccae6"
       },
       {
         "path": "design/pages/recognition/processing/README.md",
@@ -187,7 +187,7 @@
       },
       {
         "path": "design/pages/recognition/web/implementation_input_pack/README.md",
-        "blob_sha": "c62d22b9d4aa4d5b11261fc0b082ffce67b53578",
+        "blob_sha": "e25caabb88ef1241ed6e0345a4751a64d15fea1a",
         "role": "updated_source_authority"
       },
       {
@@ -480,14 +480,15 @@
       "pr_number": 182,
       "pr_head_sha": "9d10dfce6d8f22c43917c1af849202f0c4be326f",
       "ci_run_id": 39956395808,
-      "ci_status": "IN_PROGRESS_AT_AUDIT",
+      "ci_status": "PASS_SCOPED_VALIDATE_AND_CHROMIUM_CI",
       "deployment_status": "NOT_DEPLOYED_NO_CANDIDATE_REVISION",
       "configured_main_workflow_sha": "4de911dc497c150545d938b60b2694f3c4723e37",
       "validate_job_status": "SUCCESS",
-      "chromium_job_status": "IN_PROGRESS_INSTALLING_CHROMIUM",
+      "chromium_job_status": "SUCCESS",
       "workflow_trigger_policy": "push on main paths or workflow_dispatch on refs/heads/main",
       "deploy_preflight_ref": "refs/heads/main",
-      "deployment_blocker": "The candidate workflow is defined in open PR #182, but its dispatch/preflight are main-only; it has not produced a candidate Revision."
+      "deployment_blocker": "The candidate workflow is defined in open PR #182, but its dispatch/preflight are main-only; it has not produced a candidate Revision.",
+      "ci_scope": "Offline SWOS quality-probe unit tests and Chromium UI smoke passed; no candidate deploy, live inference, or SAM probe."
     },
     "unrestricted_suite_event": "PR182 run 39955394301 completed its broad test step before cancellation took effect; result is not used as approval evidence. Latest PR182 workflow skips the unrestricted step under the existing metadata-access review."
   },

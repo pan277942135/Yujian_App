@@ -8,6 +8,7 @@ The G01–G18 rows remain a **historical code-review snapshot** of PR #177 HEAD 
 - Live product main and merge base: `6a2064c2a02a76437b6e09a5241bc199cfa05048`.
 - Exact-head CI: [run 39956274544](https://github.com/pan277942135/Yujian/actions/runs/39956274544) **PASS** on the live SHA. It records a fixture-only 3650ms WebM and frame/geometry evidence; it does not run deployed real-photo inference, production Mask qualification, frame-time acceptance, or user visual sign-off.
 - The main preview pin remains stale at `4de911dc497c150545d938b60b2694f3c4723e37`. PR #182 proposes pin `7083ae691d424b4f6d5680fb77f019c9b437505b` on a no-traffic candidate, but that configuration is open/unmerged and has not deployed. No Revision/health SHA for the current source is available. Its deployment workflow only dispatches from `main`; PR #182 cannot run the cloud deploy from its own branch, so a current-source candidate Revision remains blocked while the config PR is unmerged.
+- Product PR #182 scoped CI [run 39956395808](https://github.com/pan277942135/Yujian/actions/runs/39956395808) passed its validate and Chromium jobs; the offline probe unit tests passed, but the deployed candidate probe did not run.
 - Current production Mask: **NOT_QUALIFIED**. Deployed runtime visual acceptance: **NOT_VERIFIED**. Fixture playback is browser-verified; browser performance evidence is **NOT_RUN**.
 - The canonical control plane remains in Yujian_App; the separate product repository must not create a competing registry.
 

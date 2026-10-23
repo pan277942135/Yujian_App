@@ -220,7 +220,7 @@ G1 或 CI PASS 不自动通过 G3–G7。静态关键帧、手绘 Mask、HTTP 20
 
 - Design authority repository：pan277942135/Yujian_App，本次审计基线为 main@da9976090021232f0eec936bc4d30f9fa59d90f7。
 - Product repository：pan277942135/Yujian。
-- 本轮审计 PR #177 HEAD：7083ae691d424b4f6d5680fb77f019c9b437505b；产品 main：6a2064c2a02a76437b6e09a5241bc199cfa05048；比较结果 26 ahead / 0 behind。精确 SHA CI run 39956274544 为 PASS，包含 fixture-only 3650ms WebM、15 个 seek 点与几何截图；产品实时推理、SAM 输出和真实设备帧率未在此 CI 中运行。产品全量测试仍受既有 metadata-access review 阻塞。
+- 本轮审计 PR #177 HEAD：7083ae691d424b4f6d5680fb77f019c9b437505b；产品 main：6a2064c2a02a76437b6e09a5241bc199cfa05048；比较结果 26 ahead / 0 behind。精确 SHA CI run 39956274544 为 PASS，包含 fixture-only 3650ms WebM、15 个 seek 点与几何截图；产品实时推理、SAM 输出和真实设备帧率未在此 CI 中运行。产品全量测试仍受既有 metadata-access review 阻塞。 PR #182 的 scoped run 39956395808 中 validate 与 Chromium job 已 PASS，离线 probe 单元测试通过；该 run 未部署候选版本、未发起实时模型或 SAM 请求。
 - PR #182 在 open/unmerged 分支上提出 no-traffic preview pin 和 candidate-only SAM flag；产品 main 上实际 no-traffic workflow 仍固定在旧 SHA 4de911dc497c150545d938b60b2694f3c4723e37。当前产品 SHA 的候选 Revision/health SHA、HTTP 状态、真实照片推理、Mask 输出与默认流量快照均未验证。 该 workflow 仅在 main 的路径 push 或 main 上手动 dispatch 时运行，preflight 也限定 `refs/heads/main`；PR 分支无法直接生成候选 Revision。
 - CI fixture playback 状态 `BROWSER_VERIFIED_FIXTURE_ONLY`；部署运行视觉状态 `NOT_VERIFIED`；生产级 Mask `NOT_QUALIFIED`；性能与用户视觉验收 `NOT_RUN`。
 - 上述 SHA 是本次审计快照；后续执行必须重新读取实时 PR、main、CI 与预览健康信息，不能把本文中的历史 SHA 当成永久常量。

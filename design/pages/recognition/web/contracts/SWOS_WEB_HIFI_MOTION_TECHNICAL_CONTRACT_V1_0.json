@@ -553,13 +553,14 @@
       "pr_number": 182,
       "pr_head_sha": "9d10dfce6d8f22c43917c1af849202f0c4be326f",
       "ci_run_id": 39956395808,
-      "ci_status": "IN_PROGRESS_AT_AUDIT",
+      "ci_status": "PASS_SCOPED_VALIDATE_AND_CHROMIUM_CI",
       "deployment_status": "NOT_DEPLOYED",
       "validate_job_status": "SUCCESS",
-      "chromium_job_status": "IN_PROGRESS_INSTALLING_CHROMIUM",
+      "chromium_job_status": "SUCCESS",
       "workflow_trigger_policy": "push on main paths or workflow_dispatch on refs/heads/main",
       "deploy_preflight_ref": "refs/heads/main",
-      "deployment_blocker": "The candidate workflow is defined in open PR #182, but its dispatch/preflight are main-only; it has not produced a candidate Revision."
+      "deployment_blocker": "The candidate workflow is defined in open PR #182, but its dispatch/preflight are main-only; it has not produced a candidate Revision.",
+      "ci_scope": "Offline SWOS quality-probe unit tests and Chromium UI smoke passed; no candidate deploy, live inference, or SAM probe."
     },
     "fixture_playback": "BROWSER_VERIFIED_FIXTURE_ONLY"
   },

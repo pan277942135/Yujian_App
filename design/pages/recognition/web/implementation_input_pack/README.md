@@ -28,7 +28,7 @@
 - The canonical control plane remains in Yujian_App; do not create a competing registry in Yujian.
 - **Same-request SAM adapter implemented; runtime not yet exercised.** `POST /api/product/catch-recognition/infer` passes that request's detector primary BBox and source SHA into the existing `generate_fish_cutout` pipeline. `CATCH_SWOS_SAM_CANDIDATE_ENABLED` defaults off; the proposed no-traffic candidate alone enables it. A returned mask remains `REVIEW_PROXY`; failures degrade to `BBOX_ONLY`. The debug route is not exposed to the browser, and no duplicate segmentation service or detector pass is added.
 - Production Mask remains `NOT_QUALIFIED` until reviewed ground-truth masks, boundary metrics, difficult-case analysis and visual sign-off exist. Browser render-frame time is measured separately from SAM/API latency.
-- The unrestricted repository suite remains blocked by the existing metadata-access review. A previous unscoped PR #182 workflow attempt had already completed its broad test step before cancellation took effect; it is not used as acceptance evidence. The scoped PR #182 workflow now skips that step and records the review boundary.
+- The unrestricted repository suite remains blocked by the existing metadata-access review. A previous unscoped PR #182 workflow attempt had already completed its broad test step before cancellation took effect; it is not used as acceptance evidence. The scoped PR #182 run [39956395808](https://github.com/pan277942135/Yujian/actions/runs/39956395808) passed its validate and Chromium jobs, skips that unrestricted step, and records the review boundary. This run is pre-deployment CI; it does not execute the live candidate mask probe.
 
 ## SWOS Web Hi-Fi Motion Technical Contract V1.0
 
