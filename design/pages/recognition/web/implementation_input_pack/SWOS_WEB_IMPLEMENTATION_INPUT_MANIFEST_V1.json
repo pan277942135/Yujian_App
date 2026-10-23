@@ -202,7 +202,7 @@
       },
       {
         "path": "scripts/verify_design_manager_hifi_release.py",
-        "blob_sha": "2ea83331b08fa2d41cd90b908ee30afecb406683",
+        "blob_sha": "d4acaf2b6ddc038dd027db44731699acebcfe942",
         "role": "design_manager_hifi_release_validator"
       }
     ],
