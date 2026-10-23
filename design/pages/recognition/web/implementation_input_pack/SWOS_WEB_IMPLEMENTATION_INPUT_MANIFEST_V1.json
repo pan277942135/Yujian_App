@@ -2,7 +2,7 @@
   "schema_version": "1.0",
   "task_id": "YUJIAN_SWOS_WEB_IMPLEMENTATION_INPUT_PACK_AND_LIVE_SHA_CLOSURE_V1",
   "snapshot_date_utc": "2026-10-23",
-  "package_status": "SOURCE_SYNCED_EXACT_HEAD_CI_PASS_PENDING_DESIGN_ADOPTION",
+  "package_status": "SOURCE_SYNCED_EXACT_HEAD_CI_PASS_PRIVATE_15_FRAME_REVIEW_PROXY_AVAILABLE",
   "package_role": "IMPLEMENTATION_INPUT_SNAPSHOT_NOT_A_PARALLEL_DESIGN_AUTHORITY",
   "authority": {
     "repository": "pan277942135/Yujian_App",
@@ -312,15 +312,19 @@
     "preview_must_bind_exact_pr_head_and_health_sha": true
   },
   "private_handoff_bundle": {
-    "filename": "SWOS_WEB_PRIVATE_VISUAL_INPUTS_V2.zip",
-    "sha256": "2ffeb0014df59d646bf41c90ea98c8514185e7e96f8422e7e488b6e51d991db8",
-    "size_bytes": 4267394,
-    "status": "BYTE_VERIFIED_PRIVATE_BUNDLE",
+    "filename": "SWOS_WEB_15_FRAME_REVIEW_PROXY_V3.zip",
+    "sha256": "5227986290402f3f4fe45872efd6d433a92923a2c27c67a7af00b3aac3247fe2",
+    "size_bytes": 28939939,
+    "status": "PRIVATE_REVIEW_PROXY_BUNDLE_NOT_FROZEN",
     "public_repository_commit_allowed": false,
     "includes": [
+      "208758.jpg",
       "渔见AI鱼获识别流程展示.png",
       "渔见AI鱼获识别动画分镜海报.png",
-      "208758.jpg"
+      "15 individual 1080x1920 review-proxy frames",
+      "contact_sheet_15_frames.png",
+      "P7_R0_R0_5_R1_shared_geometry.png",
+      "P0_vs_P4_effect_comparison.png"
     ]
   },
   "frame_reference_assets": {
@@ -344,9 +348,31 @@
       "R5"
     ],
     "expected_individual_pngs": 15,
-    "current_individual_png_bundle_status": "NOT_FOUND_IN_AVAILABLE_PRIVATE_HANDOFF",
+    "current_individual_png_bundle_status": "GENERATED_REVIEW_PROXY_NOT_FROZEN",
     "historical_storyboard_asset": "渔见AI鱼获识别动画分镜海报.png",
     "historical_storyboard_role": "14_FRAME_V0_3_DIRECTION_REFERENCE_ONLY",
-    "action": "Do not mislabel the historical 14-frame poster as the current 15-frame set. Recover the previously rendered private 15-frame PNGs or generate a clearly labeled review-only 15-frame set bound to the current contract and source photo."
+    "action": "Do not mislabel the historical 14-frame poster as the current 15-frame set. Recover the previously rendered private 15-frame PNGs or generate a clearly labeled review-only 15-frame set bound to the current contract and source photo.",
+    "review_proxy_bundle": {
+      "filename": "SWOS_WEB_15_FRAME_REVIEW_PROXY_V3.zip",
+      "sha256": "5227986290402f3f4fe45872efd6d433a92923a2c27c67a7af00b3aac3247fe2",
+      "frame_size_px": [
+        1080,
+        1920
+      ],
+      "status": "REVIEW_PROXY_NOT_FROZEN",
+      "source_photo_sha256": "ab7227cf7205ee2ac342b6cd75cd899747879506c95c33b888b6adf0acb47987",
+      "current_15_frame_contract_blob_sha": "8da99533dfcc2a1673cb402913baa43c082820b2",
+      "shared_geometry_contract_blob_sha": "5c0d1e4c6b0535a862dd960fa29abb156a3daf5e",
+      "mask_trust": "MANUAL_REFERENCE_ONLY_NOT_PRODUCTION_MASK",
+      "pixel_parity": "NOT_VERIFIED",
+      "playable_animation": "NOT_INCLUDED"
+    }
+  },
+  "private_source_assets_bundle": {
+    "filename": "SWOS_WEB_PRIVATE_VISUAL_INPUTS_V2.zip",
+    "sha256": "2ffeb0014df59d646bf41c90ea98c8514185e7e96f8422e7e488b6e51d991db8",
+    "size_bytes": 4267394,
+    "status": "BYTE_VERIFIED_PRIVATE_SOURCE_ASSETS",
+    "public_repository_commit_allowed": false
   }
 }
