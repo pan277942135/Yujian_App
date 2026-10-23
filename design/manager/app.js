@@ -132,8 +132,16 @@ function nh01ResponsiveRuleCanvas(view) {
     fetch(repoHref(view.machine_authority)).then(response => {
       if (!response.ok) throw new Error('Responsive contract HTTP ' + response.status);
       return response.json();
+    }),
+    fetch(repoHref(view.authority)).then(response => {
+      if (!response.ok) throw new Error('Responsive markdown contract HTTP ' + response.status);
+      return response.text();
+    }),
+    fetch(repoHref('design/system_v3/09_Android_Implementation_Contracts/Normal_Home/Normal_Home_Resource_Binding_V1.json')).then(response => {
+      if (!response.ok) throw new Error('Normal Home resource binding HTTP ' + response.status);
+      return response.json();
     })
-  ]).then(([manifest, contract]) => {
+  ]).then(([manifest, contract, markdownContract, resourceBinding]) => {
     if (root.dataset.nh01ResponsiveToken !== token) return;
     const assets = manifest.assets || [];
     const original = manifest.original_reference || {};
@@ -212,6 +220,7 @@ function nh01ResponsiveRuleCanvas(view) {
         '<a href="' + esc(repoHref(view.native_acceptance_authority)) + '" target="_blank" rel="noreferrer">查看完整原生验收矩阵 ↗</a></section>' +
       '<footer class="nh01-static-workspace-footer">完整响应式合同与新旧权威交叉表 · <a href="' + esc(repoHref(view.machine_authority)) + '" target="_blank" rel="noreferrer">机器可读 JSON ↗</a> · <a href="' + esc(repoHref(view.authority)) + '" target="_blank" rel="noreferrer">完整 Markdown 合同 ↗</a></footer></div>';
     root.querySelectorAll('.hifi-image-open').forEach(button => button.addEventListener('click', () => openHifiImageLightbox(button)));
+    window.NH01StructuredWorkspace?.mount(root, view, contract, manifest, DESIGN_MANAGER_BUILD, markdownContract, resourceBinding);
   }).catch(error => {
     if (root.dataset.nh01ResponsiveToken !== token) return;
     root.innerHTML = '<div class="nh01-static-load-error" role="alert"><strong>冻结合同载入失败</strong><p>' + esc(error.message) + '</p>' +
