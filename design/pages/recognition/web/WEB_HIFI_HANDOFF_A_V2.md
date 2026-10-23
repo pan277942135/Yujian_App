@@ -1,6 +1,6 @@
 # Work B Handoff A — AI 渔获识别 Web 页面骨架
 
-状态：`VISUAL_CONTRACT_DEFINED`；`MAIN_ADOPTED=YES (DESIGN_CONTRACT_ONLY)`；`PIXEL_FROZEN_SOURCE=NOT_CONFIRMED`；`RUNTIME_VISUAL_VERIFIED=NO`。#186/#187 的设计合同内容经 PR #190 纳入 Main；两者仅保留来源关系，不再是阻塞依赖。审计基线为 Yujian_App `main@ad8bf1ba61e42a34d1fdd91de47fa386e25f11ef` 和 Yujian PR #177 HEAD `655c4af07a0244fcf29441b5652c48ca74f2e6a2`（Draft/Open/Unmerged）。PR #190 发布评论记录实际 adoption SHA 与 Pages 地址；本交接不代表 Work B 代码、真实 Web 视觉或 User UAT 已验收。
+状态：`VISUAL_CONTRACT_DEFINED`；`MAIN_ADOPTED=YES (DESIGN_CONTRACT_ONLY)`；`PIXEL_FROZEN_SOURCE=NOT_CONFIRMED`；`RUNTIME_VISUAL_VERIFIED=NO`。#186/#187 的设计合同内容经 PR #190 纳入 Main；两者仅保留来源关系，不再是阻塞依赖。本交接不代表 Work B 代码、真实 Web 视觉或 User UAT 已验收。SWOS Web 播放器架构与验收统一由 [SWOS Web Hi-Fi Motion Technical Contract V1.0](SWOS_WEB_HIFI_MOTION_TECHNICAL_CONTRACT_V1_0.md) 定义。当前审计：产品 PR #177 HEAD `4de911dc497c150545d938b60b2694f3c4723e37`，产品 main `6a2064c2a02a76437b6e09a5241bc199cfa05048`，22 ahead / 3 behind；精确 SHA CI [#39922218177](https://github.com/pan277942135/Yujian/actions/runs/39922218177) 通过，但实际预览、播放、Mask 和视觉验收仍未验证，实施前必须同步产品分支并重跑 Admission/CI。
 
 ## 入口与外壳
 
@@ -21,7 +21,7 @@
 1. 在 PR #177 现有模板中抽取独立 Product Shell，保留平台认证与路由，避免侧栏挤压。
 2. 保留已有上传、请求与保存逻辑；将用户主界面的模型流程/JSON 迁到默认折叠的诊断区。
 3. 用上述稳定 ID 梳理三阶段与五节点 DOM；不要触碰模型阈值或伪造分割。
-4. 等待 Handoff B 的 Token、几何、响应式、状态及验收合同再完成视觉收口。
+4. 按 Handoff B 和 SWOS Web 技术合同 V1.0 的 Token、几何、响应式、状态、15 帧播放、Mask 信任门与性能证据要求完成视觉收口；复用现有 SAM 实验链路，不新增重复分割服务。
 
 
 ## 原始视觉资产补档 V1
