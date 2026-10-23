@@ -111,13 +111,13 @@
     "product_repository": "pan277942135/Yujian",
     "product_pr_number": 177,
     "product_branch": "feat/ai-catch-recognition-web-swos-rr09-v1",
-    "live_product_pr_head_sha": "7083ae691d424b4f6d5680fb77f019c9b437505b",
+    "live_product_pr_head_sha": "a0596aaf609914e0de8a325da06b2f286a139150",
     "live_product_main_sha": "6a2064c2a02a76437b6e09a5241bc199cfa05048",
     "merge_base_sha": "6a2064c2a02a76437b6e09a5241bc199cfa05048",
-    "ahead_by": 26,
+    "ahead_by": 30,
     "behind_by": 0,
     "source_sync_status": "SYNCED_WITH_CURRENT_PRODUCT_MAIN",
-    "exact_head_ci_status": "PASS_TARGETED_CI_AND_CHROMIUM_FIXTURE_3650MS_PLAYBACK",
+    "exact_head_ci_status": "PASS_TARGETED_CI_AND_CHROMIUM_FIXTURE_3650MS_PLAYBACK_BBOX_PIXEL_DELTA_FIXTURE_ONLY",
     "previous_exact_head_ci": {
       "sha": "054d2dae09ff73e85e4c91bbdc4b9134821e3891",
       "run_id": 39954303061,
@@ -126,15 +126,15 @@
       "scope": "Targeted validation and Chromium fixture smoke before full 3650ms recording was added; not real inference or visual acceptance."
     },
     "exact_head_ci": {
-      "sha": "7083ae691d424b4f6d5680fb77f019c9b437505b",
-      "run_id": 39956274544,
-      "url": "https://github.com/pan277942135/Yujian/actions/runs/39956274544",
+      "sha": "a0596aaf609914e0de8a325da06b2f286a139150",
+      "run_id": 39963664724,
+      "url": "https://github.com/pan277942135/Yujian/actions/runs/39963664724",
       "conclusion": "success",
       "jobs": {
         "validate": "success",
         "det_fish_display_chromium": "success"
       },
-      "scope": "Exact-source targeted CI and real Chromium fixture playback: 15 seek samples, shared-photo geometry, deterministic repeated P4 pixels, water-field pixel delta, full nominal 3650ms WebM recording; 9 actual responsive-page sizes are covered by the separate UI simulation smoke. No live model request, deployed SAM candidate, mobile-device performance, or user visual acceptance."
+      "scope": "Exact-source targeted validation and Chromium UI simulation plus SWOS fixture playback: 15 seek samples, shared-photo geometry, deterministic repeated P4 pixels, water-field pixel delta, nominal 3650ms WebM, and BBOX_ONLY soft-focus report on a generated fixture (ROI mean 4.22, max 17; no precise outline). Nine responsive page sizes are UI_SIMULATION_ONLY. No live model request, deployed SAM candidate, private photo, real-device performance, or visual acceptance."
     },
     "current_head_preview_status": "CANDIDATE_CONFIG_PR_OPEN_UNMERGED_NOT_DEPLOYED",
     "configured_preview_sha": "4de911dc497c150545d938b60b2694f3c4723e37",
@@ -152,10 +152,10 @@
       "admission_status": "CANONICAL_CONTROL_PLANE_ADMISSION_PASS; PRODUCT_BRANCH_SYNCED; EXACT_HEAD_TARGETED_CI_AND_FIXTURE_PLAYBACK_PASS; CANDIDATE_CONFIG_PR_OPEN; DEPLOYMENT_NOT_RUN"
     },
     "candidate_preview_config": {
-      "product_sha": "7083ae691d424b4f6d5680fb77f019c9b437505b",
+      "product_sha": "a0596aaf609914e0de8a325da06b2f286a139150",
       "pr_number": 182,
-      "pr_head_sha": "9d10dfce6d8f22c43917c1af849202f0c4be326f",
-      "ci_run_id": 39956395808,
+      "pr_head_sha": "ca5921ef3b225fd1b3f3966590c65e02a6c5dc3b",
+      "ci_run_id": 39964210866,
       "ci_status": "PASS_SCOPED_VALIDATE_AND_CHROMIUM_CI",
       "deployment_status": "NOT_DEPLOYED_NO_CANDIDATE_REVISION",
       "validate_job_status": "SUCCESS",
@@ -163,7 +163,8 @@
       "workflow_trigger_policy": "push on main paths or workflow_dispatch on refs/heads/main",
       "deploy_preflight_ref": "refs/heads/main",
       "deployment_blocker": "The candidate workflow is defined in open PR #182, but its dispatch/preflight are main-only; it has not produced a candidate Revision.",
-      "ci_scope": "Offline SWOS quality-probe unit tests and Chromium UI smoke passed; no candidate deploy, live inference, or SAM probe."
+      "ci_scope": "Offline SWOS quality-probe unit tests and Chromium UI smoke passed at the updated source pin; no candidate deploy, live inference, or SAM probe.",
+      "configured_main_workflow_sha": "4de911dc497c150545d938b60b2694f3c4723e37"
     },
     "fixture_browser_playback_status": "BROWSER_VERIFIED_FIXTURE_ONLY",
     "unrestricted_suite_event": "PR182 run 39955394301 completed its broad test step before cancellation took effect; result is not used as approval evidence. Latest PR182 workflow adds a PR-specific scope condition and skips the unrestricted step."

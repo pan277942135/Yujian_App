@@ -534,14 +534,14 @@
   "audit_snapshot": {
     "audit_date_utc": "2026-10-23",
     "product_pr": 177,
-    "product_pr_head_sha": "7083ae691d424b4f6d5680fb77f019c9b437505b",
+    "product_pr_head_sha": "a0596aaf609914e0de8a325da06b2f286a139150",
     "product_main_sha": "6a2064c2a02a76437b6e09a5241bc199cfa05048",
     "merge_base_sha": "6a2064c2a02a76437b6e09a5241bc199cfa05048",
-    "ahead_by": 26,
+    "ahead_by": 30,
     "behind_by": 0,
     "source_sync_status": "SYNCED_WITH_CURRENT_PRODUCT_MAIN",
-    "exact_head_ci_run_id": 39956274544,
-    "exact_head_ci_status": "PASS_TARGETED_CI_AND_CHROMIUM_FIXTURE_3650MS_PLAYBACK",
+    "exact_head_ci_run_id": 39963664724,
+    "exact_head_ci_status": "PASS_TARGETED_CI_AND_CHROMIUM_FIXTURE_3650MS_PLAYBACK_BBOX_PIXEL_DELTA_FIXTURE_ONLY",
     "preview_status": "CANDIDATE_CONFIG_PR_OPEN_UNMERGED_NOT_DEPLOYED",
     "configured_preview_sha": "4de911dc497c150545d938b60b2694f3c4723e37",
     "production_mask_status": "NOT_QUALIFIED",
@@ -549,10 +549,10 @@
     "full_suite_status": "BLOCKED_BY_EXISTING_METADATA_ACCESS_REVIEW",
     "design_authority_main_sha": "da9976090021232f0eec936bc4d30f9fa59d90f7",
     "candidate_preview": {
-      "product_sha": "7083ae691d424b4f6d5680fb77f019c9b437505b",
+      "product_sha": "a0596aaf609914e0de8a325da06b2f286a139150",
       "pr_number": 182,
-      "pr_head_sha": "9d10dfce6d8f22c43917c1af849202f0c4be326f",
-      "ci_run_id": 39956395808,
+      "pr_head_sha": "ca5921ef3b225fd1b3f3966590c65e02a6c5dc3b",
+      "ci_run_id": 39964210866,
       "ci_status": "PASS_SCOPED_VALIDATE_AND_CHROMIUM_CI",
       "deployment_status": "NOT_DEPLOYED",
       "validate_job_status": "SUCCESS",
@@ -560,7 +560,7 @@
       "workflow_trigger_policy": "push on main paths or workflow_dispatch on refs/heads/main",
       "deploy_preflight_ref": "refs/heads/main",
       "deployment_blocker": "The candidate workflow is defined in open PR #182, but its dispatch/preflight are main-only; it has not produced a candidate Revision.",
-      "ci_scope": "Offline SWOS quality-probe unit tests and Chromium UI smoke passed; no candidate deploy, live inference, or SAM probe."
+      "ci_scope": "Offline SWOS quality-probe unit tests and Chromium UI smoke passed at the updated source pin; no candidate deploy, live inference, or SAM probe."
     },
     "fixture_playback": "BROWSER_VERIFIED_FIXTURE_ONLY"
   },

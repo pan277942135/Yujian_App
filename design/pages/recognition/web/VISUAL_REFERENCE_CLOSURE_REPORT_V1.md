@@ -44,8 +44,8 @@ Seven-condition visual-reference policy and validator added to existing governan
 
 ## Product execution evidence addendum — 2026-10-23
 
-- Current product source is PR #177 HEAD `7083ae691d424b4f6d5680fb77f019c9b437505b`, compared with product main `6a2064c2a02a76437b6e09a5241bc199cfa05048` (26 ahead / 0 behind). Exact-source CI [39956274544](https://github.com/pan277942135/Yujian/actions/runs/39956274544) passed.
-- The public CI artifact contains actual Chromium frame captures, a deterministic repeated-P4 pixel comparison, shared-photo geometry trace and a complete fixture-only 3650ms WebM. The separate catch UI smoke includes 9 viewport screenshots but is explicitly UI simulation. These outputs contain only public digest-pinned fixtures; no private source image or derivative is included.
+- Current product source is PR #177 HEAD `a0596aaf609914e0de8a325da06b2f286a139150`, compared with product main `6a2064c2a02a76437b6e09a5241bc199cfa05048` (30 ahead / 0 behind). Exact-source CI [39963664724](https://github.com/pan277942135/Yujian/actions/runs/39963664724) passed.
+- The public CI artifact contains actual Chromium frame captures, a deterministic repeated-P4 pixel comparison, shared-photo geometry trace, a complete fixture-only 3650ms WebM, and the BBOX_ONLY focus pixel report from a generated color-grid photo. The separate catch UI smoke includes 9 viewport screenshots but is explicitly UI simulation. The artifact contains public digest-pinned or generated fixtures; no private source image or derivative is included.
 - PR #177 now contains a same-request opt-in SAM adapter on `POST /api/product/catch-recognition/infer`. No inference or mask output was collected from a current-source deployed Revision. The candidate no-traffic configuration is still open/unmerged in PR #182; the main preview pin remains stale at `4de911dc497c150545d938b60b2694f3c4723e37`.
 - This CI evidence does not freeze the source artwork, verify pixel parity, qualify a production Mask, measure real-device frame performance or constitute user visual acceptance. Production Mask remains `NOT_QUALIFIED`; deployed runtime and visual acceptance remain `NOT_VERIFIED`.
 - The existing unrestricted repository test path remains subject to metadata-access review. The successful exact-source CI run uses the approved targeted suite; an earlier PR #182 broad test step that completed before its cancellation request is not used as acceptance evidence.
@@ -53,4 +53,4 @@ Seven-condition visual-reference policy and validator added to existing governan
 
 ### PR #182 scoped CI follow-up — 2026-10-23
 
-Product PR #182 run [39956395808](https://github.com/pan277942135/Yujian/actions/runs/39956395808) completed successfully: the validate job (including offline SWOS quality-probe unit tests and metadata-review boundary record) and Chromium job both passed. This was configuration CI only: no cloud candidate deploy, real inference, SAM mask probe, or health-SHA verification occurred.
+Product PR #182 run [39964210866](https://github.com/pan277942135/Yujian/actions/runs/39964210866) completed successfully: the validate job (including offline SWOS quality-probe unit tests and metadata-review boundary record) and Chromium job both passed. This was configuration CI only: no cloud candidate deploy, real inference, SAM mask probe, or health-SHA verification occurred.

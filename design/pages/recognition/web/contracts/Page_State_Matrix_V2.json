@@ -133,14 +133,14 @@
     "audit_date": "2026-10-23",
     "product_repository": "pan277942135/Yujian",
     "product_pr": 177,
-    "product_pr_head_sha": "7083ae691d424b4f6d5680fb77f019c9b437505b",
+    "product_pr_head_sha": "a0596aaf609914e0de8a325da06b2f286a139150",
     "product_main_sha": "6a2064c2a02a76437b6e09a5241bc199cfa05048",
     "compare": {
-      "ahead_by": 26,
+      "ahead_by": 30,
       "behind_by": 0,
       "merge_base_sha": "6a2064c2a02a76437b6e09a5241bc199cfa05048"
     },
-    "exact_head_ci_run_id": 39956274544,
-    "exact_head_ci_scope": "PASS: targeted validation plus real Chromium fixture playback, 15 seek points, exact P7/R0 and R0.5 geometry, deterministic repeated frame, full 3650ms WebM; actual responsive-page sizes are covered by UI simulation only. No live inference, deployment, Mask qualification, or visual sign-off."
+    "exact_head_ci_run_id": 39963664724,
+    "exact_head_ci_scope": "Exact-source targeted validation and Chromium UI simulation plus SWOS fixture playback: 15 seek samples, shared-photo geometry, deterministic repeated P4 pixels, water-field pixel delta, nominal 3650ms WebM, and BBOX_ONLY soft-focus report on a generated fixture (ROI mean 4.22, max 17; no precise outline). Nine responsive page sizes are UI_SIMULATION_ONLY. No live model request, deployed SAM candidate, private photo, real-device performance, or visual acceptance."
   }
 }
