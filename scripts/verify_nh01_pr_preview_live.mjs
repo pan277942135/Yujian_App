@@ -162,6 +162,8 @@ async function main() {
       hiddenNeighbors:[...document.querySelectorAll('.neighbor-card')].every(node=>node.hidden),
       visibleNeighborCount:[...document.querySelectorAll('.neighbor-card')].filter(node=>!node.hidden).length,
       heroPlaceholder:document.querySelector('#heroPlaceholder')?.dataset.status==='BLOCKED_ASSET_SOURCE',
+      heroPhotoRendered:[...document.querySelectorAll('#mainCatchCard img[data-asset-id="hero_photo"]')].some(image=>image.complete&&image.naturalWidth>0),
+      neighborPhotoCount:[...document.querySelectorAll('.neighbor-card:not([hidden]) img[data-asset-id="neighbor_photos"]')].filter(image=>image.complete&&image.naturalWidth>0).length,
       privatePhotoReferences:[...document.querySelectorAll('img')].map(image=>image.currentSrc||image.src||'').filter(src=>/sample_recent_catch\\.jpg|home_normal\\/fish_record\\//i.test(src)).length,
       layerTree:document.querySelectorAll('#layerTree button').length,
       propertyInspector:!!document.querySelector('[aria-label="所选图层属性检查器"]'),
@@ -183,11 +185,11 @@ async function main() {
     report.p3_06_status=mediaBlockers.length?'BLOCKED':'PASS';
     if(mediaBlockers.length)report.p3_06_blockers=report.checks.p3_06.media_blockers;
     if(mediaBlockers.length){
-      assert(visibleStructure.heroPlaceholder, 'Blocked Hero media must remain an explicit placeholder in PREVIEW_ONLY mode');
-      assert(visibleStructure.hiddenNeighbors && visibleStructure.visibleNeighborCount===0, 'Blocked neighboring media must remain hidden in PREVIEW_ONLY mode');
+      assert(visibleStructure.heroPlaceholder===!visibleStructure.heroPhotoRendered, 'Blocked Hero media must use a placeholder, never an unapproved photo');
+      assert(visibleStructure.hiddenNeighbors=== (visibleStructure.neighborPhotoCount===0), 'Neighbor visibility does not match the independently approved photo count');
     }else{
-      assert(!visibleStructure.heroPlaceholder, 'P3-06 cannot pass while the Hero photo is still a blocked placeholder');
-      assert(visibleStructure.visibleNeighborCount===2, 'P3-06 cannot pass until both independently approved neighbor records are rendered');
+      assert(!visibleStructure.heroPlaceholder && visibleStructure.heroPhotoRendered, 'P3-06 cannot pass until an approved Hero photo is actually rendered');
+      assert(visibleStructure.visibleNeighborCount===2 && visibleStructure.neighborPhotoCount===2, 'P3-06 cannot pass until both independently approved neighbor photos are actually rendered');
     }
     if(args.deploymentManifestPath){
       const deploymentUrl=new URL(args.deploymentManifestPath,origin).href;

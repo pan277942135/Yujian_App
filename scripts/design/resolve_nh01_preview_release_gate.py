@@ -83,8 +83,10 @@ def resolve_release_mode(
         require(all(item.get("id") in EXPECTED_BLOCKERS and EXPECTED_BLOCKERS[item.get("id")] == item.get("status") for item in blockers), "P3-06 has an unexpected blocker; fail closed.")
         require(hero_blocked or neighbors_blocked, "P3-06 blocker list does not identify the missing media.")
         require(bool(structure.get("heroPlaceholder")) == hero_blocked, "Hero placeholder does not match the Hero asset authorization state.")
+        require(bool(structure.get("heroPhotoRendered")) == (not hero_blocked), "Hero rendered-photo state does not match the authorization state.")
         require(bool(structure.get("hiddenNeighbors")) == neighbors_blocked, "Neighbor visibility does not match the independent-photo authorization state.")
-        require(structure.get("visibleNeighborCount", 0) == 0 if neighbors_blocked else structure.get("visibleNeighborCount") == 2, "Neighbor count does not match the authorization state.")
+        require(structure.get("visibleNeighborCount", 0) == 0 if neighbors_blocked else structure.get("visibleNeighborCount") == 2, "Neighbor card count does not match the authorization state.")
+        require(structure.get("neighborPhotoCount", 0) == 0 if neighbors_blocked else structure.get("neighborPhotoCount") == 2, "Neighbor photo count does not match the authorization state.")
         require('id="heroPlaceholder"' in preview_html if hero_blocked else 'id="heroPlaceholder"' not in preview_html, "Hero placeholder markup does not match the asset gate.")
         require('id="leftCatchCard"' in preview_html and 'id="rightCatchCard"' in preview_html, "Expected both neighbor slots in the preview structure.")
         if neighbors_blocked:
@@ -96,8 +98,8 @@ def resolve_release_mode(
     elif p3_status == "PASS":
         require(not blockers, "P3-06 says PASS while blockers remain.")
         require(not hero_blocked and not neighbors_blocked, "P3-06 says PASS while media remains blocked.")
-        require(not structure.get("heroPlaceholder"), "P3-06 cannot PASS while the Hero photo remains a placeholder.")
-        require(structure.get("visibleNeighborCount") == 2 and not structure.get("hiddenNeighbors"), "P3-06 cannot PASS until both independent neighbor records are rendered.")
+        require(not structure.get("heroPlaceholder") and structure.get("heroPhotoRendered") is True, "P3-06 cannot PASS until an approved Hero photo is actually rendered.")
+        require(structure.get("visibleNeighborCount") == 2 and structure.get("neighborPhotoCount") == 2 and not structure.get("hiddenNeighbors"), "P3-06 cannot PASS until both independent neighbor photos are actually rendered.")
         require(assets["hero_photo"].get("public_preview") is True and assets["neighbor_photos"].get("public_preview") is True, "P3-06 cannot PASS while Hero/neighbor assets are not explicitly public-approved.")
         if contract.get("status") == FROZEN:
             mode = "FROZEN_ACCEPTANCE"

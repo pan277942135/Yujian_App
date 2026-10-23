@@ -35,8 +35,10 @@ def fixture(contract_status="PROPOSED_FOR_CANONICAL_MAIN_REVIEW", p3_status="BLO
         ]
     structure = {
         "heroPlaceholder": p3_status == "BLOCKED",
+        "heroPhotoRendered": p3_status == "PASS",
         "hiddenNeighbors": p3_status == "BLOCKED",
         "visibleNeighborCount": 0 if p3_status == "BLOCKED" else 2,
+        "neighborPhotoCount": 0 if p3_status == "BLOCKED" else 2,
     }
     report = {
         "status": "PASS",
@@ -66,7 +68,13 @@ def fixture(contract_status="PROPOSED_FOR_CANONICAL_MAIN_REVIEW", p3_status="BLO
             {"id": "neighbor_photos", "public_preview": neighbors_public, "source_path": None},
         ]
     }
-    html = HTML if p3_status == "BLOCKED" else HTML.replace(' id="heroPlaceholder" data-status="BLOCKED_ASSET_SOURCE"', ' id="heroImage"').replace(' id="leftCatchCard" hidden', ' id="leftCatchCard"').replace(' id="rightCatchCard" hidden', ' id="rightCatchCard"')
+    html = HTML if p3_status == "BLOCKED" else """<!doctype html>
+<html><body>
+<span class="status-badge">PREVIEW ONLY · NOT VISUAL PASS</span>
+<article id="leftCatchCard"><img data-asset-id="neighbor_photos" src="/approved/left.jpg"></article>
+<article id="rightCatchCard"><img data-asset-id="neighbor_photos" src="/approved/right.jpg"></article>
+<article id="mainCatchCard"><img data-asset-id="hero_photo" src="/approved/hero.jpg"></article>
+</body></html>"""
     return report, contract, manifest, html
 
 
@@ -102,8 +110,16 @@ class PreviewReleaseGateTests(unittest.TestCase):
         with self.assertRaises(GateError):
             resolve_release_mode(report, contract, manifest, html, SHA)
 
-    def test_p3_06_pass_requires_actual_media_not_placeholders(self):
+    def test_frozen_contract_with_approved_rendered_media_can_use_frozen_acceptance_mode(self):
         report, contract, manifest, html = fixture(contract_status="SPEC_FROZEN", p3_status="PASS")
+        result = resolve_release_mode(report, contract, manifest, html, SHA)
+        self.assertTrue(result["publish"])
+        self.assertEqual(result["preview_mode"], "FROZEN_ACCEPTANCE")
+        self.assertEqual(result["release_gate_effect"], "P3_06_PASS_REQUIRED")
+
+    def test_p3_06_pass_rejects_placeholder_or_missing_photo_evidence(self):
+        report, contract, manifest, html = fixture(contract_status="SPEC_FROZEN", p3_status="PASS")
+        report["checks"]["contract"]["visible_structure"]["heroPhotoRendered"] = False
         with self.assertRaises(GateError):
             resolve_release_mode(report, contract, manifest, html, SHA)
 
