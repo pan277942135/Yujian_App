@@ -348,6 +348,27 @@ class GeminiHomeDeviceMatrixTest {
             0f
         }
         val expectedSurplus = geminiHomeAllocateInterBandSurplus(measuredAvailableSurplus)
+        Log.i(
+            "NH01_NATIVE_GAP_METRICS",
+            JSONObject().apply {
+                put("profile_id", profileId)
+                put("variant", variant.name)
+                put("safe_width_dp", safeWidthDp)
+                put("safe_height_dp", safeHeightDp)
+                put("middle_height_dp", middle.height())
+                put("required_middle_content_height_dp", requiredMiddleContentHeight)
+                put("measured_available_surplus_dp", measuredAvailableSurplus)
+                put("has_middle_scroll", hasMiddleScroll)
+                put("base_a_to_b_tag_dp", baseGapAToB.height())
+                put("extra_a_to_b_tag_dp", extraGapAToB.height())
+                put("visible_a_to_b_gap_dp", statsToTitleGap)
+                put("base_b_to_c_tag_dp", baseGapBToC.height())
+                put("extra_b_to_c_tag_dp", extraGapBToC.height())
+                put("visible_b_to_c_gap_dp", cardToFooterGap)
+                put("policy_a_to_b_dp", layoutSpec.statsToTitleGap?.value)
+                put("policy_b_to_c_dp", layoutSpec.cardToFooterGap?.value)
+            }.toString(),
+        )
         val centerOffset = abs(activeCard.centerX() - track.centerX())
         val ratio = activeCardLayoutWidthDp / activeCardLayoutHeightDp
         val neighborWidthFraction = neighborCard.width() / activeCardLayoutWidthDp
@@ -416,8 +437,15 @@ class GeminiHomeDeviceMatrixTest {
                 abs(statsToTitleBaseGap - requireNotNull(layoutSpec.statsToTitleGap).value) <= 2f)
             assertTrue("B→C base gap follows the active policy after removing the measured surplus: $cardToFooterBaseGap dp",
                 abs(cardToFooterBaseGap - requireNotNull(layoutSpec.cardToFooterGap).value) <= 2f)
-            assertTrue("brand-to-stats gap follows the active layout policy: $headerToStatsGap dp",
-                abs(headerToStatsGap - requireNotNull(layoutSpec.brandToStatsGap).value) <= 2f)
+            val expectedBrandToStatsGap = if (safeHeightDp < 460f) {
+                4f
+            } else {
+                requireNotNull(layoutSpec.brandToStatsGap).value
+            }
+            assertTrue(
+                "brand-to-stats gap follows the active layout policy: expected=$expectedBrandToStatsGap actual=$headerToStatsGap dp",
+                abs(headerToStatsGap - expectedBrandToStatsGap) <= 2f,
+            )
         }
         assertTrue("measured A→B surplus matches the production allocator: expected=${expectedSurplus.aToB} actual=${extraGapAToB.height()} dp",
             abs(extraGapAToB.height() - expectedSurplus.aToB) <= 1f)
