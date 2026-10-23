@@ -1626,6 +1626,10 @@ task_contract_bindings:
     contract_refs: ["FC-recognition_flow_v1_2", "FC-recognition_result_v1", "WEB-RECOGNITION-HIFI-V2", "G-WEB-HIFI-CONTRACT"]
     gate_id: "G-WEB-HIFI-CONTRACT"
     phase: "P3"
+  P3-07:
+    contract_refs: ["FC-recognition_flow_v1_2", "FC-recognition_result_v1", "WEB-RECOGNITION-HIFI-V2", "SWOS-WEB-HIFI-MOTION-V1", "RECOGNITION-OPTICAL-CONTINUITY", "G-SWOS-WEB-HIFI-MOTION-V1"]
+    gate_id: "G-SWOS-WEB-HIFI-MOTION-V1"
+    phase: "P3"
   P4-01:
     contract_refs: ["FC-recognition_flow_v1_2", "FC-recognition_result_v1"]
     gate_id: null
@@ -1809,9 +1813,9 @@ inventory:
   journey_count: 20
   child_surface_count: 81
   route_count: 22
-  task_count: 48
-  gate_count: 14
+  task_count: 49
+  gate_count: 15
   registry_created_from_pr_head: "ebb6b3904feaa0cf26b4fd4b83bc809a397085a2"
-  last_synced_feature_matrix_sha: "60293c35ab295d4a0b9e1c931d2d478ab78e773a"
-  last_synced_phase_task_state_machine_sha: "706c57bb9f7b185fcc33741fbaed3da7a01baeb2"
-  last_synced_experience_registry_sha: "d1995525ca3293933a183f500370403bdaaa8813"
+  last_synced_feature_matrix_sha: "81b702035ad97b25dc380e47c09cbb3d1e88263c"
+  last_synced_phase_task_state_machine_sha: "b8c55365ccee796fca5d893d29d6ae4833a8a7e2"
+  last_synced_experience_registry_sha: "47be44ca3cbce908fa676e262987fe26a8dbea32"
