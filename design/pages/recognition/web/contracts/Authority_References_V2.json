@@ -8,7 +8,8 @@
     "Yujian_App/main@ad8bf1ba61e42a34d1fdd91de47fa386e25f11ef",
     "Yujian_App/PR186@3b0b5848206cdea949f4bf6be7eb7cb1d19b1e34",
     "Yujian_App/PR187@ee3bb45858183144598bc28c5bae53ae55b324e0",
-    "Yujian/PR177@655c4af07a0244fcf29441b5652c48ca74f2e6a2"
+    "Yujian/PR177@655c4af07a0244fcf29441b5652c48ca74f2e6a2",
+    "Yujian/PR177@4de911dc497c150545d938b60b2694f3c4723e37"
   ],
   "motion_contract_ref": "design/pages/recognition/processing/optics/SWOS_15_Frame_Keyframe_Contract_V1_1.json",
   "transition_contract_ref": "design/pages/recognition/continuity/SWOS_Shared_Photo_Transition_Contract_V1.json",
@@ -110,32 +111,33 @@
     "product_repository": "pan277942135/Yujian",
     "product_pr_number": 177,
     "product_branch": "feat/ai-catch-recognition-web-swos-rr09-v1",
-    "live_product_pr_head_sha": "d8f3aabfab058d58cac84e19af095b0186df5f85",
-    "live_product_main_sha": "3c79c00db68ace94d8f6a7dcb4105d0026a09323",
+    "live_product_pr_head_sha": "4de911dc497c150545d938b60b2694f3c4723e37",
+    "live_product_main_sha": "6a2064c2a02a76437b6e09a5241bc199cfa05048",
     "merge_base_sha": "3c79c00db68ace94d8f6a7dcb4105d0026a09323",
-    "ahead_by": 19,
-    "behind_by": 0,
-    "source_sync_status": "SYNCED_TO_CURRENT_PRODUCT_MAIN",
+    "ahead_by": 22,
+    "behind_by": 3,
+    "source_sync_status": "BLOCKED_BEHIND_CURRENT_PRODUCT_MAIN",
     "exact_head_ci_status": "PASS",
     "previous_exact_head_ci": {
-      "sha": "32b9463887c6620b32a3dfdd986eccc6ff4a569b",
-      "run_id": 39874124153,
-      "url": "https://github.com/pan277942135/Yujian/actions/runs/39874124153",
-      "conclusion": "success",
-      "scope": "targeted validation plus Chromium UI simulation only"
-    },
-    "exact_head_ci": {
+      "sha": "d8f3aabfab058d58cac84e19af095b0186df5f85",
       "run_id": 39917440271,
       "url": "https://github.com/pan277942135/Yujian/actions/runs/39917440271",
+      "conclusion": "success",
+      "scope": "targeted validation and Chromium UI simulation only; not runtime visual acceptance"
+    },
+    "exact_head_ci": {
+      "sha": "4de911dc497c150545d938b60b2694f3c4723e37",
+      "run_id": 39922218177,
+      "url": "https://github.com/pan277942135/Yujian/actions/runs/39922218177",
       "conclusion": "success",
       "jobs": {
         "validate": "success",
         "det_fish_display_chromium": "success"
       },
-      "scope": "safe targeted validation and Chromium UI simulation only; no full-suite metadata access, production inference, qualified Mask, pixel parity, or user visual acceptance"
+      "scope": "safe targeted validation and Chromium UI simulation only; no production inference, qualified Mask, pixel parity, browser motion performance, or user visual acceptance"
     },
     "current_head_preview_status": "NOT_VERIFIED",
-    "configured_preview_sha": "cb9e3780afb5e2904e3dfe5148210a4ccc3747b4",
+    "configured_preview_sha": "4de911dc497c150545d938b60b2694f3c4723e37",
     "production_mask_status": "NOT_QUALIFIED",
     "runtime_visual_status": "NOT_VERIFIED",
     "full_suite_status": "NOT_RUN_BLOCKED_BY_EXISTING_METADATA_ACCESS_REVIEW",
@@ -147,7 +149,25 @@
       "product_repository_is_separate": true,
       "product_repository_root_control_plane_files": "NOT_PRESENT",
       "policy": "Use the canonical Yujian_App control plane plus this exact-SHA cross-repository source audit. Do not create a competing control plane in Yujian.",
-      "admission_status": "CANONICAL_CONTROL_PLANE_PINNED; SOURCE_SHA_CI_PASS"
+      "admission_status": "CANONICAL_CONTROL_PLANE_PINNED; EXACT_HEAD_CI_PASS; PRODUCT_BRANCH_BEHIND_MAIN"
     }
+  },
+  "swos_web_hifi_motion_contract_ref": "design/pages/recognition/web/SWOS_WEB_HIFI_MOTION_TECHNICAL_CONTRACT_V1_0.md",
+  "swos_web_hifi_motion_machine_contract_ref": "design/pages/recognition/web/contracts/SWOS_WEB_HIFI_MOTION_TECHNICAL_CONTRACT_V1_0.json",
+  "sam_experiment_reuse": {
+    "repository": "pan277942135/Yujian",
+    "endpoint": "POST /api/debug/fish-segmentation",
+    "code_paths": [
+      "app/segmentation_api.py",
+      "app/segmentation/service.py",
+      "app/segmentation/mask_generator.py",
+      "app/segmentation/quality_gate.py",
+      "app/segmentation/cutout_builder.py"
+    ],
+    "reuse_existing_pipeline": true,
+    "duplicate_service_allowed": false,
+    "public_browser_direct_access": false,
+    "qualification_status": "EXPERIMENTAL_ONLY",
+    "production_mask_status": "NOT_QUALIFIED"
   }
 }
