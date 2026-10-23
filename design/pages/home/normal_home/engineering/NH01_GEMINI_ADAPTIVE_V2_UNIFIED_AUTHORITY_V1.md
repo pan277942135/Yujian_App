@@ -20,6 +20,20 @@ Scope: only populated NH01/NH02 routed through GeminiNormalHomeContent; not Empt
 
 Only the named field is superseded on the named route. All Frozen pixels and asset hashes stay intact. Gemini is an intentional new Compose layout and does not claim 1080x1920 Frozen Pixel Parity; original product data, navigation, accessibility and safety rules remain binding. Static or design SPEC_FROZEN does not imply runtime PASS.
 
+
+## 1.1 NH01 Responsive Foundation V1 — additive frozen principle
+
+The structural and surplus-allocation foundation is frozen in `design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_MULTI_SCREEN_RESPONSIVE_CONTRACT_V1.md`, Appendix A, and its machine-readable `foundation_layout_principles` entry. Design Manager remains the single entry point.
+
+- A = brand/avatar + statistics (statistics remain a second row on the 320×480dp compact target).
+- B = Recent Catch heading/All action + Hero + eligible real-neighbor Peeks.
+- C = record-next-catch CTA + camera action.
+- Use one constraint-driven policy across viewports. For long screens, distribute only positive, otherwise-unassigned surplus after existing V2.2 dimensions, safe insets, explicit targets and base gaps are satisfied: A→B gets 2/3; B→C gets 1/3. This is the ratio of additional surplus, not the final visible gaps.
+- For 320×480dp at system fontScale=1.0, prioritize no scroll and retain the two-row header; compress nonessential whitespace and group gaps before resizing Hero within existing constraints.
+- This foundation does not alter the existing 247:293 Hero ratio, target/cap dimensions, per-viewport Title→Hero targets, typography roles, Peek rules, camera/touch sizes, safe-area handling, or runtime acceptance. No separate bottom-reserve function is introduced.
+- If the general foundation and a specific frozen rule cannot both be satisfied, mark `SPEC_CONFLICT`; do not silently override the specific rule or claim runtime PASS.
+
+
 ## 2. Section Spacing V2.2 (new explicit visual targets)
 
 Measure the rendered 最近鱼获 Text layout bottom to the actual selected Hero card outer top, via native boundsInWindow; NOT section Row bottom or center of the Pager.
