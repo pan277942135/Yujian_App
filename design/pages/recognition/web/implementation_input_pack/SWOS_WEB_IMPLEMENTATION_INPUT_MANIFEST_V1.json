@@ -150,7 +150,7 @@
     "compare_status": "diverged",
     "ahead_by": 18,
     "behind_by": 3,
-    "branch_sync_gate": "BLOCKED_UNTIL_BEHIND_BY_ZERO",
+    "branch_sync_gate": "BLOCKED_BEHIND_MAIN_AND_MISSING_CONTROL_PLANE_ENTRYPOINT",
     "exact_head_ci": {
       "run_id": 39874124153,
       "url": "https://github.com/pan277942135/Yujian/actions/runs/39874124153",
@@ -209,7 +209,17 @@
     },
     "runtime_visual_status": "NOT_VERIFIED",
     "production_mask_status": "NOT_QUALIFIED",
-    "full_suite_status": "NOT_RUN_BLOCKED_BY_EXISTING_METADATA_ACCESS_REVIEW"
+    "full_suite_status": "NOT_RUN_BLOCKED_BY_EXISTING_METADATA_ACCESS_REVIEW",
+    "control_plane_admission": {
+      "status": "BLOCKED_MISSING_REGISTRY",
+      "missing_root_files": [
+        "AGENTS.md",
+        "CONTROL_PLANE_REGISTRY.yaml"
+      ],
+      "verification": "LIVE_PRODUCT_PR177_HEAD_CONTENTS_API_404",
+      "next_action": "Resolve a canonical cross-repository admission binding; do not create a competing local control plane or claim Admission PASS."
+    },
+    "source_sync_status": "BLOCKED_BEHIND_MAIN_AND_MISSING_CONTROL_PLANE_ENTRYPOINT"
   },
   "motion_and_product_decisions": {
     "processing_duration_ms": 2800,
