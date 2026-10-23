@@ -143,6 +143,28 @@ else
   echo "CURRENT_HEAD_PREVIEW_PIN=STALE configured_sha=${preview_pin:-UNKNOWN} live_pr_head=$pr_head_live"
 fi
 
+bundle_path="${SWOS_PRIVATE_BUNDLE_PATH:-}"
+expected_bundle="$(python3 - "$MANIFEST" <<'PY'
+import json,sys
+d=json.load(open(sys.argv[1],encoding="utf-8"))
+print((d.get("private_handoff_bundle") or {}).get("sha256",""))
+PY
+)"
+if [[ -z "$bundle_path" ]]; then
+  echo "PRIVATE_BUNDLE_SHA=NOT_CHECKED (provide SWOS_PRIVATE_BUNDLE_PATH to verify the private archive)"
+elif [[ ! -f "$bundle_path" ]]; then
+  echo "PRIVATE_BUNDLE_SHA=INVALID_PATH path=$bundle_path"
+  integrity_failures=$((integrity_failures+1))
+else
+  actual_bundle="$(sha256sum "$bundle_path" | awk '{print $1}')"
+  if [[ "$actual_bundle" == "$expected_bundle" ]]; then
+    echo "PRIVATE_BUNDLE_SHA=PASS sha=$actual_bundle"
+  else
+    echo "PRIVATE_BUNDLE_SHA=FAIL expected=$expected_bundle actual=$actual_bundle"
+    integrity_failures=$((integrity_failures+1))
+  fi
+fi
+
 for asset_spec in "SWOS_WEB_REFERENCE_PATH:web-three-stage" "SWOS_STORYBOARD_PATH:swos-history" "SWOS_CATCH_PHOTO_PATH:processing-source-photo"; do
   env_name="${asset_spec%%:*}"
   asset_id="${asset_spec#*:}"
