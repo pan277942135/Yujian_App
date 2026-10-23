@@ -1,7 +1,7 @@
 # SWOS Web Implementation Input Pack V1
 
-**Task:** `YUJIAN_SWOS_WEB_IMPLEMENTATION_INPUT_PACK_AND_LIVE_SHA_CLOSURE_V1`  
-**Status:** `SWOS_V1_0_BOUND; EXACT_HEAD_CI_PASS; PRODUCT_BRANCH_BEHIND_MAIN; PLAYBACK_NOT_VERIFIED`  
+**Task:** `YUJIAN_SWOS_WEB_IMPLEMENTATION_INPUT_PACK_AND_LIVE_SHA_CLOSURE_V1`
+**Status:** `SWOS_V1_0_BOUND; SOURCE_SYNCED; EXACT_HEAD_CHROMIUM_PLAYBACK_PASS; CANDIDATE_DEPLOY_NOT_RUN; PRODUCTION_MASK_NOT_QUALIFIED; VISUAL_ACCEPTANCE_PENDING`
 **Role:** A traceable input snapshot; it does not replace or redefine the main-adopted design contracts.
 
 ## Ownership
@@ -20,15 +20,15 @@
 
 ## Live source audit (2026-10-23; refresh before every Work run)
 
-- Design authority baseline: Yujian_App/main@bc29aec091b42f84dc8f4e6fe3b268135b091a97. The contract change is being proposed on branch design/swos-web-hifi-motion-contract-v1-0.
-- Product main: Yujian/main@6a2064c2a02a76437b6e09a5241bc199cfa05048.
-- Product PR #177 HEAD: ca21e25116cebef0ed393392eb8997a2b7077689 (24 ahead / 0 behind product main).
-- Current comparison: PR #177 is 22 commits ahead and **3 commits behind** product main; merge base is 3c79c00db68ace94d8f6a7dcb4105d0026a09323. Source sync is BLOCKED until Work safely syncs the product branch and re-runs Admission/CI.
-- Exact-head CI run [39929847089](https://github.com/pan277942135/Yujian/actions/runs/39929847089) passed on SHA ca21e25116cebef0ed393392eb8997a2b7077689. Scope is targeted validation and Chromium UI simulation only; the production recognition pipeline test step was skipped. This is not real-photo inference, browser animation performance, pixel parity or user visual acceptance.
-- The no-traffic preview workflow pin is STALE at 4de911dc497c150545d938b60b2694f3c4723e37 (it does not match current PR #177 HEAD). The live preview Revision and browser playback remain **NOT_VERIFIED**; do not treat the current URL as evidence for the current source.
+- Canonical design authority: `pan277942135/Yujian_App/main@da9976090021232f0eec936bc4d30f9fa59d90f7`. The control plane was revalidated from main before this evidence refresh.
+- Product main: `pan277942135/Yujian/main@6a2064c2a02a76437b6e09a5241bc199cfa05048`.
+- Product PR #177 HEAD: `7083ae691d424b4f6d5680fb77f019c9b437505b` (**26 ahead / 0 behind**; merge base is product main). PR #177 remains Draft/Open/Unmerged.
+- Exact-head CI [run 39956274544](https://github.com/pan277942135/Yujian/actions/runs/39956274544) passed on that SHA. The CI artifact contains the 15 seek-point PNGs, geometry trace, deterministic P4 repeat-frame comparison, the 3650ms fixture-only WebM recording, and the 9 actual responsive-page screenshots from the separate Chromium UI smoke. It proves fixture rendering and controls only; it does not exercise live model inference, a deployed candidate, production Mask quality, device performance, or visual acceptance.
+- The no-traffic deployment configuration is proposed in PR #182 at head `9d10dfce6d8f22c43917c1af849202f0c4be326f`, targeting product SHA `7083ae691d424b4f6d5680fb77f019c9b437505b`. PR #182 is open/unmerged and has not deployed a candidate. The main workflow still actually pins `4de911dc497c150545d938b60b2694f3c4723e37`; no current-source preview Revision, health SHA, or live browser run is verified. Its deploy trigger and preflight both require `main` (push on `main` or `workflow_dispatch` on `refs/heads/main`), so an open PR branch cannot produce the candidate Revision; the main-only tagged no-traffic path is awaiting the configuration PR decision.
 - The canonical control plane remains in Yujian_App; do not create a competing registry in Yujian.
-- **Existing SAM experiment chain is reusable.** Product repository paths are app/segmentation_api.py, app/segmentation/service.py, app/segmentation/mask_generator.py, app/segmentation/quality_gate.py and app/segmentation/cutout_builder.py. Existing POST /api/debug/fish-segmentation is a debug/experiment interface, not a public production API. Reuse it through a server-side adapter; do not create a second SAM service or retrain the model.
-- Production Mask remains NOT_QUALIFIED until reviewed ground-truth masks, boundary metrics, difficult-case analysis and visual sign-off exist. Browser render-frame time is measured separately from SAM API latency.
+- **Same-request SAM adapter implemented; runtime not yet exercised.** `POST /api/product/catch-recognition/infer` passes that request's detector primary BBox and source SHA into the existing `generate_fish_cutout` pipeline. `CATCH_SWOS_SAM_CANDIDATE_ENABLED` defaults off; the proposed no-traffic candidate alone enables it. A returned mask remains `REVIEW_PROXY`; failures degrade to `BBOX_ONLY`. The debug route is not exposed to the browser, and no duplicate segmentation service or detector pass is added.
+- Production Mask remains `NOT_QUALIFIED` until reviewed ground-truth masks, boundary metrics, difficult-case analysis and visual sign-off exist. Browser render-frame time is measured separately from SAM/API latency.
+- The unrestricted repository suite remains blocked by the existing metadata-access review. A previous unscoped PR #182 workflow attempt had already completed its broad test step before cancellation took effect; it is not used as acceptance evidence. The scoped PR #182 workflow now skips that step and records the review boundary.
 
 ## SWOS Web Hi-Fi Motion Technical Contract V1.0
 

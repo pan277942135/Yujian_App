@@ -248,8 +248,8 @@
   "freeze_gate": "NOT_CONFIRMED: visual-reference confirmation is not pixel-freeze approval; require explicit designation of the exact source and comparison baseline.",
   "audit_snapshot": {
     "date": "2026-10-23",
-    "design_main_sha": "2c41084b423be36b06035694fe573c5e671cb4da",
-    "product_pr177_head_sha": "ca21e25116cebef0ed393392eb8997a2b7077689",
+    "design_main_sha": "da9976090021232f0eec936bc4d30f9fa59d90f7",
+    "product_pr177_head_sha": "7083ae691d424b4f6d5680fb77f019c9b437505b",
     "product_main_sha": "6a2064c2a02a76437b6e09a5241bc199cfa05048",
     "source_photo_208758": {
       "sha256": "ab7227cf7205ee2ac342b6cd75cd899747879506c95c33b888b6adf0acb47987",
@@ -262,6 +262,11 @@
       "orientation": 1,
       "byte_verification": "VERIFIED_IN_CURRENT_EXECUTION"
     },
-    "web_reference_and_historical_storyboard": "Prior private handoff verification recorded; raw bytes not rechecked in this execution."
+    "web_reference_and_historical_storyboard": "Prior private handoff verification recorded; raw bytes not rechecked in this execution.",
+    "source_code_ci_run_id": 39956274544,
+    "source_code_ci_status": "PASS_TARGETED_CHROMIUM_FIXTURE_PLAYBACK_ONLY_NOT_VISUAL_ACCEPTANCE",
+    "preview_status": "NOT_DEPLOYED_FOR_CURRENT_SOURCE",
+    "production_mask_status": "NOT_QUALIFIED",
+    "runtime_visual_status": "NOT_VERIFIED"
   }
 }

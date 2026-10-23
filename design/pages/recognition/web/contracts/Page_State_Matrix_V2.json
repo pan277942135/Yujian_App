@@ -133,14 +133,14 @@
     "audit_date": "2026-10-23",
     "product_repository": "pan277942135/Yujian",
     "product_pr": 177,
-    "product_pr_head_sha": "ca21e25116cebef0ed393392eb8997a2b7077689",
+    "product_pr_head_sha": "7083ae691d424b4f6d5680fb77f019c9b437505b",
     "product_main_sha": "6a2064c2a02a76437b6e09a5241bc199cfa05048",
     "compare": {
-      "ahead_by": 24,
+      "ahead_by": 26,
       "behind_by": 0,
       "merge_base_sha": "6a2064c2a02a76437b6e09a5241bc199cfa05048"
     },
-    "exact_head_ci_run_id": 39929847089,
-    "exact_head_ci_scope": "Targeted validation and Chromium UI simulation only; production recognition pipeline test skipped; not visual acceptance."
+    "exact_head_ci_run_id": 39956274544,
+    "exact_head_ci_scope": "PASS: targeted validation plus real Chromium fixture playback, 15 seek points, exact P7/R0 and R0.5 geometry, deterministic repeated frame, full 3650ms WebM; actual responsive-page sizes are covered by UI simulation only. No live inference, deployment, Mask qualification, or visual sign-off."
   }
 }

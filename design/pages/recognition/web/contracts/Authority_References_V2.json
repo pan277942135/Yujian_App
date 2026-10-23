@@ -111,36 +111,36 @@
     "product_repository": "pan277942135/Yujian",
     "product_pr_number": 177,
     "product_branch": "feat/ai-catch-recognition-web-swos-rr09-v1",
-    "live_product_pr_head_sha": "ca21e25116cebef0ed393392eb8997a2b7077689",
+    "live_product_pr_head_sha": "7083ae691d424b4f6d5680fb77f019c9b437505b",
     "live_product_main_sha": "6a2064c2a02a76437b6e09a5241bc199cfa05048",
     "merge_base_sha": "6a2064c2a02a76437b6e09a5241bc199cfa05048",
-    "ahead_by": 24,
+    "ahead_by": 26,
     "behind_by": 0,
     "source_sync_status": "SYNCED_WITH_CURRENT_PRODUCT_MAIN",
-    "exact_head_ci_status": "PASS_TARGETED_VALIDATION_AND_CHROMIUM_UI_SIMULATION_ONLY",
+    "exact_head_ci_status": "PASS_TARGETED_CI_AND_CHROMIUM_FIXTURE_3650MS_PLAYBACK",
     "previous_exact_head_ci": {
-      "sha": "d8f3aabfab058d58cac84e19af095b0186df5f85",
-      "run_id": 39917440271,
-      "url": "https://github.com/pan277942135/Yujian/actions/runs/39917440271",
+      "sha": "054d2dae09ff73e85e4c91bbdc4b9134821e3891",
+      "run_id": 39954303061,
+      "url": "https://github.com/pan277942135/Yujian/actions/runs/39954303061",
       "conclusion": "success",
-      "scope": "targeted validation and Chromium UI simulation only; not runtime visual acceptance"
+      "scope": "Targeted validation and Chromium fixture smoke before full 3650ms recording was added; not real inference or visual acceptance."
     },
     "exact_head_ci": {
-      "sha": "ca21e25116cebef0ed393392eb8997a2b7077689",
-      "run_id": 39929847089,
-      "url": "https://github.com/pan277942135/Yujian/actions/runs/39929847089",
+      "sha": "7083ae691d424b4f6d5680fb77f019c9b437505b",
+      "run_id": 39956274544,
+      "url": "https://github.com/pan277942135/Yujian/actions/runs/39956274544",
       "conclusion": "success",
       "jobs": {
         "validate": "success",
         "det_fish_display_chromium": "success"
       },
-      "scope": "Targeted validation and Chromium UI simulation only. The production recognition pipeline test step was SKIPPED because the existing metadata-access review remains unresolved. This is not evidence of real model inference, production-qualified SAM Mask, browser visual acceptance, or frame-time performance."
+      "scope": "Exact-source targeted CI and real Chromium fixture playback: 15 seek samples, shared-photo geometry, deterministic repeated P4 pixels, water-field pixel delta, full nominal 3650ms WebM recording; 9 actual responsive-page sizes are covered by the separate UI simulation smoke. No live model request, deployed SAM candidate, mobile-device performance, or user visual acceptance."
     },
-    "current_head_preview_status": "NOT_VERIFIED",
+    "current_head_preview_status": "CANDIDATE_CONFIG_PR_OPEN_UNMERGED_NOT_DEPLOYED",
     "configured_preview_sha": "4de911dc497c150545d938b60b2694f3c4723e37",
     "production_mask_status": "NOT_QUALIFIED",
-    "runtime_visual_status": "NOT_VERIFIED",
-    "full_suite_status": "NOT_RUN_BLOCKED_BY_EXISTING_METADATA_ACCESS_REVIEW",
+    "runtime_visual_status": "NOT_VERIFIED_DEPLOYED_REAL_INFERENCE_NOT_RUN",
+    "full_suite_status": "NOT_RUN_AS_ACCEPTANCE_BLOCKED_BY_EXISTING_METADATA_ACCESS_REVIEW",
     "canonical_cross_repo_admission": {
       "canonical_repository": "pan277942135/Yujian_App",
       "canonical_branch": "main",
@@ -149,8 +149,23 @@
       "product_repository_is_separate": true,
       "product_repository_root_control_plane_files": "NOT_PRESENT",
       "policy": "Use the canonical Yujian_App control plane plus this exact-SHA cross-repository source audit. Do not create a competing control plane in Yujian.",
-      "admission_status": "CANONICAL_CONTROL_PLANE_PINNED; PRODUCT_BRANCH_SYNCED; EXACT_HEAD_TARGETED_CI_PASS; PREVIEW_PIN_STALE"
-    }
+      "admission_status": "CANONICAL_CONTROL_PLANE_ADMISSION_PASS; PRODUCT_BRANCH_SYNCED; EXACT_HEAD_TARGETED_CI_AND_FIXTURE_PLAYBACK_PASS; CANDIDATE_CONFIG_PR_OPEN; DEPLOYMENT_NOT_RUN"
+    },
+    "candidate_preview_config": {
+      "product_sha": "7083ae691d424b4f6d5680fb77f019c9b437505b",
+      "pr_number": 182,
+      "pr_head_sha": "9d10dfce6d8f22c43917c1af849202f0c4be326f",
+      "ci_run_id": 39956395808,
+      "ci_status": "IN_PROGRESS_AT_AUDIT",
+      "deployment_status": "NOT_DEPLOYED_NO_CANDIDATE_REVISION",
+      "validate_job_status": "SUCCESS",
+      "chromium_job_status": "IN_PROGRESS_INSTALLING_CHROMIUM",
+      "workflow_trigger_policy": "push on main paths or workflow_dispatch on refs/heads/main",
+      "deploy_preflight_ref": "refs/heads/main",
+      "deployment_blocker": "The candidate workflow is defined in open PR #182, but its dispatch/preflight are main-only; it has not produced a candidate Revision."
+    },
+    "fixture_browser_playback_status": "BROWSER_VERIFIED_FIXTURE_ONLY",
+    "unrestricted_suite_event": "PR182 run 39955394301 completed its broad test step before cancellation took effect; result is not used as approval evidence. Latest PR182 workflow adds a PR-specific scope condition and skips the unrestricted step."
   },
   "swos_web_hifi_motion_contract_ref": "design/pages/recognition/web/SWOS_WEB_HIFI_MOTION_TECHNICAL_CONTRACT_V1_0.md",
   "swos_web_hifi_motion_machine_contract_ref": "design/pages/recognition/web/contracts/SWOS_WEB_HIFI_MOTION_TECHNICAL_CONTRACT_V1_0.json",
@@ -168,7 +183,12 @@
     "duplicate_service_allowed": false,
     "public_browser_direct_access": false,
     "qualification_status": "EXPERIMENTAL_ONLY",
-    "production_mask_status": "NOT_QUALIFIED"
+    "production_mask_status": "NOT_QUALIFIED",
+    "existing_pipeline_api_path": "POST /api/debug/fish-segmentation (debug only)",
+    "same_request_product_api_path": "POST /api/product/catch-recognition/infer",
+    "same_request_adapter": "app.catch_recognition_api._run_same_request_sam -> app.segmentation.service.generate_fish_cutout",
+    "candidate_enabled_by_default": false,
+    "runtime_status": "NOT_RUN_NO_CANDIDATE_REVISION"
   },
   "business_decision_resolution": {
     "status": "RESOLVED_BY_AUTHORITY_SCOPE_NO_NUMERIC_THRESHOLD_CHANGE",

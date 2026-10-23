@@ -337,7 +337,12 @@
       ]
     },
     "private_photo_upload_to_public_test_service": false,
-    "public_test_fixtures_require_license_attribution_and_digest": true
+    "public_test_fixtures_require_license_attribution_and_digest": true,
+    "product_same_request_endpoint": "POST /api/product/catch-recognition/infer",
+    "same_request_adapter": "app.catch_recognition_api._run_same_request_sam calls app.segmentation.service.generate_fish_cutout with the BBox from this request",
+    "candidate_flag": "CATCH_SWOS_SAM_CANDIDATE_ENABLED; defaults false",
+    "runtime_status": "NOT_RUN_NO_CANDIDATE_REVISION",
+    "production_mask_status": "NOT_QUALIFIED"
   },
   "glyph_transfer": {
     "start_after_photo_lands_at_R1": true,
@@ -529,20 +534,34 @@
   "audit_snapshot": {
     "audit_date_utc": "2026-10-23",
     "product_pr": 177,
-    "product_pr_head_sha": "ca21e25116cebef0ed393392eb8997a2b7077689",
+    "product_pr_head_sha": "7083ae691d424b4f6d5680fb77f019c9b437505b",
     "product_main_sha": "6a2064c2a02a76437b6e09a5241bc199cfa05048",
     "merge_base_sha": "6a2064c2a02a76437b6e09a5241bc199cfa05048",
-    "ahead_by": 24,
+    "ahead_by": 26,
     "behind_by": 0,
     "source_sync_status": "SYNCED_WITH_CURRENT_PRODUCT_MAIN",
-    "exact_head_ci_run_id": 39929847089,
-    "exact_head_ci_status": "PASS_TARGETED_VALIDATION_AND_CHROMIUM_UI_SIMULATION_ONLY",
-    "preview_status": "NOT_VERIFIED",
+    "exact_head_ci_run_id": 39956274544,
+    "exact_head_ci_status": "PASS_TARGETED_CI_AND_CHROMIUM_FIXTURE_3650MS_PLAYBACK",
+    "preview_status": "CANDIDATE_CONFIG_PR_OPEN_UNMERGED_NOT_DEPLOYED",
     "configured_preview_sha": "4de911dc497c150545d938b60b2694f3c4723e37",
     "production_mask_status": "NOT_QUALIFIED",
-    "browser_visual_acceptance": "NOT_VERIFIED",
-    "full_suite_status": "NOT_RUN_BLOCKED_BY_EXISTING_METADATA_ACCESS_REVIEW",
-    "design_authority_main_sha": "2c41084b423be36b06035694fe573c5e671cb4da"
+    "browser_visual_acceptance": "NOT_VERIFIED_DEPLOYED_REAL_INFERENCE_NOT_RUN",
+    "full_suite_status": "BLOCKED_BY_EXISTING_METADATA_ACCESS_REVIEW",
+    "design_authority_main_sha": "da9976090021232f0eec936bc4d30f9fa59d90f7",
+    "candidate_preview": {
+      "product_sha": "7083ae691d424b4f6d5680fb77f019c9b437505b",
+      "pr_number": 182,
+      "pr_head_sha": "9d10dfce6d8f22c43917c1af849202f0c4be326f",
+      "ci_run_id": 39956395808,
+      "ci_status": "IN_PROGRESS_AT_AUDIT",
+      "deployment_status": "NOT_DEPLOYED",
+      "validate_job_status": "SUCCESS",
+      "chromium_job_status": "IN_PROGRESS_INSTALLING_CHROMIUM",
+      "workflow_trigger_policy": "push on main paths or workflow_dispatch on refs/heads/main",
+      "deploy_preflight_ref": "refs/heads/main",
+      "deployment_blocker": "The candidate workflow is defined in open PR #182, but its dispatch/preflight are main-only; it has not produced a candidate Revision."
+    },
+    "fixture_playback": "BROWSER_VERIFIED_FIXTURE_ONLY"
   },
   "evidence_policy": {
     "exact_source_sha_required": true,
