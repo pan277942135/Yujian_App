@@ -117,7 +117,7 @@
     {
       "id": "SP-02",
       "method": "NATIVE_VISUAL",
-      "assertion": "whole-screen interval balance",
+      "assertion": "whole-screen interval balance; when S>0, add S/2 to each A-to-B and B-to-C gap after subtracting their base-gap formulas; S=0 adds no surplus",
       "acceptance_status": "NOT_RUN",
       "evidence_refs": []
     },
