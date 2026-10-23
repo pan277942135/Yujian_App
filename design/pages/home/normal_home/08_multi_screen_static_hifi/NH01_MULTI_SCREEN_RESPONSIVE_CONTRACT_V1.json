@@ -13,13 +13,13 @@
     "approved_date": "2026-10-23",
     "scope": "A/B/C group structure and allocation of positive long-screen surplus only; other Adaptive V2.2 numeric constraints remain binding.",
     "groups": [
-      {"id":"A","name":"Top information","members":["brand title and avatar action","three home statistics in a second row"]},
-      {"id":"B","name":"Catch content","members":["Recent Catch heading and All action","selected Hero","eligible real-neighbor Peek cards"]},
-      {"id":"C","name":"Bottom action","members":["record-next-catch CTA","primary camera action"]}
+      {"id":"A","name":"Top-information allocation band","members":["brand title and avatar action","three home statistics in a second row"],"end_boundary":"statistics row bottom","is_compose_container":false},
+      {"id":"B","name":"Catch-content allocation band","members":["Recent Catch heading and All action","selected Hero","eligible real-neighbor Peek cards"],"start_boundary":"Recent Catch heading top","end_boundary":"selected Hero outer bottom","is_compose_container":false,"layout_note":"Recent Catch heading may remain physically in the existing Top Compose region while logically belonging to allocation band B."},
+      {"id":"C","name":"Bottom-action allocation band","members":["record-next-catch CTA","primary camera action"],"start_boundary":"CTA visible-control top","is_compose_container":false}
     ],
     "single_constraint_driven_policy": true,
     "safe_height": "Actual usable content height after applying system insets exactly once.",
-    "group_height_measurement": "hA/hB/hC include each group's fixed content and internal spacing, but exclude A-to-B and B-to-C inter-group gaps.",
+    "group_height_measurement": "hA/hB/hC are logical allocation-band heights, not Compose-container bounds. hA includes brand/avatar and statistics; hB includes Recent Catch heading, internal Title-to-Hero gap and Hero/Pager; hC includes CTA, camera and existing Footer internals. All exclude A-to-B and B-to-C inter-band gaps.",
     "base_gaps": {
       "a_to_b": "Existing Adaptive V2.2 stats_to_title formula; retained as base-gap policy.",
       "b_to_c": "Existing Adaptive V2.2 card_to_footer formula; retained as base-gap policy."

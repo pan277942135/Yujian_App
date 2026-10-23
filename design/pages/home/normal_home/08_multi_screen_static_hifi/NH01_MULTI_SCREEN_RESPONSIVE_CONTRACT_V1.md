@@ -175,15 +175,15 @@ This appendix freezes the first step of the NH01 responsive specification: stabl
 
 ### A.1 One layout policy, three stable groups
 
-- **A — Top information:** brand title + profile/avatar action, followed by the three statistics in a second row. The 320×480dp compact target keeps this two-row header.
-- **B — Catch content:** “最近鱼获” heading / “全部” action + selected Hero + eligible real-neighbor Peek cards.
-- **C — Bottom action:** “记录下一条鱼” CTA + primary camera action.
+- **A — Top-information allocation band:** brand title + profile/avatar action + the three statistics. It ends at the statistics-row bottom; the 320×480dp compact target keeps this two-row header.
+- **B — Catch-content allocation band:** starts at the “最近鱼获” heading top and includes the heading / “全部” action, selected Hero, and eligible real-neighbor Peek cards. It ends at the selected Hero's outer bottom.
+- **C — Bottom-action allocation band:** starts at the CTA visible-control top and includes “记录下一条鱼” + the primary camera action.
 
-Use one constraint-driven policy across viewport sizes. Do not copy fixed screenshot coordinates into device-specific layouts. Keep relationships inside each group stable; adjust inter-group spacing before changing group internals.
+A/B/C are **logical allocation bands, not new Compose containers**. Preserve the current Top/Middle/Footer implementation hierarchy: the Recent Catch heading may remain physically rendered in Top while logically belonging to band B. Use one constraint-driven policy across viewports; do not copy screenshot coordinates into device-specific layouts. Keep within-band relationships stable and adjust inter-band spacing before changing band internals.
 
 ### A.2 Long-screen surplus allocation
 
-Measure the actual safe content height `H_safe` after applying system insets exactly once. Measure the natural heights `hA`, `hB`, and `hC` of groups A/B/C, including each group's fixed content and internal spacing but excluding the two inter-group gaps.
+Measure the actual safe content height `H_safe` after applying system insets exactly once. Measure natural heights `hA`, `hB`, and `hC` of the logical allocation bands, including their content and internal spacing but excluding the two inter-band gaps. `hA` includes brand/avatar and statistics; `hB` includes the Recent Catch heading, the internal Title→Hero gap, and Hero/Pager; `hC` includes CTA, camera, and existing Footer internals. These logical bands do not require new Compose containers.
 
 Calculate the existing base gaps:
 - `gAB_base`: the existing Adaptive V2.2 `stats_to_title` formula.

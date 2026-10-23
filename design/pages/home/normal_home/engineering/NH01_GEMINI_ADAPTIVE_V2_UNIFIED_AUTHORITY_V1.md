@@ -25,9 +25,10 @@ Only the named field is superseded on the named route. All Frozen pixels and ass
 
 The structural and surplus-allocation foundation is frozen in `design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_MULTI_SCREEN_RESPONSIVE_CONTRACT_V1.md`, Appendix A, and its machine-readable `foundation_layout_principles` entry. Design Manager remains the single entry point.
 
-- **A:** brand/avatar + three statistics (statistics remain a second row at 320×480dp).
-- **B:** Recent Catch heading/All action + selected Hero + eligible real-neighbor Peeks.
-- **C:** record-next-catch CTA + camera action.
+- **A:** brand/avatar + three statistics (statistics remain a second row at 320×480dp); boundary at the statistics-row bottom.
+- **B:** Recent Catch heading/All action + selected Hero + eligible real-neighbor Peeks; boundaries from heading top to selected Hero outer bottom.
+- **C:** record-next-catch CTA + camera action; starts at the CTA visible-control top.
+- A/B/C are logical allocation bands, not new Compose containers. Preserve the existing Top/Middle/Footer hierarchy; the Recent Catch heading may be physically rendered in Top while logically belonging to B.
 - Measure the usable content height after applying system insets once. Let hA/hB/hC include fixed content and internal spacing, excluding the two inter-group gaps. Use the existing `stats_to_title` and `card_to_footer` formulas as base gaps, gAB_base and gBC_base.
 - Calculate `S = max(0, H_safe - (hA + hB + hC + gAB_base + gBC_base))`. If S is positive, set `gAB = gAB_base + 2S/3` and `gBC = gBC_base + S/3`. The 2:1 ratio applies to added surplus, not final visible gaps. This is the explicit long-screen override to the final values of those two inter-group gaps; their formulas remain the base-gap policy.
 - This does **not** alter the internal Title→Hero gap or its four explicit viewport targets, the Hero 247:293 ratio/size limits, typography roles, Peek geometry, camera/touch sizes, safe-area handling, or runtime acceptance. No separate bottom-reserve function is introduced.

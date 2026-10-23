@@ -131,7 +131,7 @@
       "version": "V1",
       "authority": "design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_MULTI_SCREEN_RESPONSIVE_CONTRACT_V1.md",
       "machine_authority": "design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_MULTI_SCREEN_RESPONSIVE_CONTRACT_V1.json",
-      "scope": "A/B/C grouping and 2:1 allocation of positive long-screen surplus to the final A-to-B and B-to-C gaps; existing gap formulas remain base-gap policy, other Adaptive V2.2 numeric constraints remain binding."
+      "scope": "Logical A/B/C allocation bands and 2:1 positive long-screen surplus to final A-to-B/B-to-C gaps; preserve current Top/Middle/Footer Compose hierarchy (heading may remain physically in Top while logically in B); existing gap formulas remain base-gap policy and other Adaptive V2.2 numeric constraints remain binding."
     },
     "runtime_verdict": "NOT_RUN"
   }
