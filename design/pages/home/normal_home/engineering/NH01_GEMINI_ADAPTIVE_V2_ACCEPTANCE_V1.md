@@ -6,13 +6,19 @@ Status: SPEC_FROZEN / RUNTIME_PENDING. Scope and conflicts: design/pages/home/no
 
 Actual API28 native 320x480 / 360x640 / 390x844 / 430x932 dp x fontScale 1.0/1.3/1.5 x ADAPTIVE_V2/V3_BASELINE = 24 exact-git-SHA executions. Record APK and test APK SHA256, physical window screenshot dimensions/hash, actual WM overrides, density, safe insets, profile/fontScale, source commit, selected record ID, before+after swipe screenshot, all component boundsInWindow, text line ranges, pager/card/CTA/camera geometry. Host aggregator must refuse missing screenshot, missing case, missing actual device setting, nonmatching SHA or missing result. Static tests/CI build/HTML are not visual PASS.
 
+## Responsive surplus allocation — Foundation V1.1
+
+For `S = max(0, H_safe - (hA + hB + hC + gAB_base + gBC_base))`, when `S > 0`, the implementation must add `S/2` to A→B and `S/2` to B→C. Compare the added portions after subtracting their distinct base-gap formulas; do not require the final visible gaps to be equal. When `S = 0`, add no surplus and preserve existing short-screen compression rules.
+
+Source/unit-test examples: `S=0dp → 0/0dp added`; `S=90dp → 45/45dp`; `S=101dp → 50.5/50.5dp` before pixel conversion. Allow at most 1dp of native measured difference caused by pixel rounding, while the source-level calculation remains equal.
+
 ## Mandatory scoped assertions
 
 | Case | Acceptance and evidence |
 | --- | --- |
 | AUTH-01/02 | Typed current/legacy authority, no Frozen/binary asset mutation; original 46 matrix preserved |
 | SP-01 | Recent TITLE TEXT layout bottom -> selected HERO TOP: 8/12/18/20dp ±2 (320/360/390/430) at 1.0x; at 1.3x/1.5x retain >=8dp where feasible. V2 is top-aligned content-first; V3 Baseline remains a diagnostic control. The independent target is not self-reference to the previous policy |
-| SP-02 | Six adjacent interval bounds and screenshot review; no text crowding, unusable whitespace, or interactive overlap |
+| SP-02 | Six adjacent interval bounds and screenshot review; verify equal S/2 surplus additions to A→B and B→C after subtracting each base gap; no text crowding, unusable whitespace, or interactive overlap |
 | GEO-01/02 | 247:293±1%, centered±2dp, capped hero, finite Pager, neighbor width<=82%, top+15dp, no >1dp overlap, real left/right peeks |
 | SHORT-01 | 124dp floor ONLY 320x480/1.0 if width>=145dp, no Middle scroll or text clipping; other floor>=148dp; safe Footer+camera |
 | TYPO-01 | system fontScale preserved, font-role sp and main card width non-decreasing on growing viewport profiles |
