@@ -116,7 +116,7 @@
     "ahead_by": 19,
     "behind_by": 0,
     "source_sync_status": "SYNCED_TO_CURRENT_PRODUCT_MAIN",
-    "exact_head_ci_status": "PENDING_FOR_POST_SYNC_SHA",
+    "exact_head_ci_status": "PASS",
     "previous_exact_head_ci": {
       "sha": "32b9463887c6620b32a3dfdd986eccc6ff4a569b",
       "run_id": 39874124153,
@@ -124,7 +124,16 @@
       "conclusion": "success",
       "scope": "targeted validation plus Chromium UI simulation only"
     },
-    "exact_head_ci": null,
+    "exact_head_ci": {
+      "run_id": 39917440271,
+      "url": "https://github.com/pan277942135/Yujian/actions/runs/39917440271",
+      "conclusion": "success",
+      "jobs": {
+        "validate": "success",
+        "det_fish_display_chromium": "success"
+      },
+      "scope": "safe targeted validation and Chromium UI simulation only; no full-suite metadata access, production inference, qualified Mask, pixel parity, or user visual acceptance"
+    },
     "current_head_preview_status": "NOT_VERIFIED",
     "configured_preview_sha": "cb9e3780afb5e2904e3dfe5148210a4ccc3747b4",
     "production_mask_status": "NOT_QUALIFIED",
@@ -138,7 +147,7 @@
       "product_repository_is_separate": true,
       "product_repository_root_control_plane_files": "NOT_PRESENT",
       "policy": "Use the canonical Yujian_App control plane plus this exact-SHA cross-repository source audit. Do not create a competing control plane in Yujian.",
-      "admission_status": "CROSS_REPO_BINDING_FORMALIZED; EXACT_HEAD_CI_PENDING"
+      "admission_status": "CANONICAL_CONTROL_PLANE_PINNED; SOURCE_SHA_CI_PASS"
     }
   }
 }
