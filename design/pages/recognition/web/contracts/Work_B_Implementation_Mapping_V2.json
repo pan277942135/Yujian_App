@@ -61,10 +61,16 @@
     "exact_head_ci_url": "https://github.com/pan277942135/Yujian/actions/runs/39874124153",
     "exact_head_ci_conclusion": "success",
     "ci_scope": "targeted validation plus Chromium UI simulation only; not real-photo inference, production Mask, pixel parity, cloud-save or user visual acceptance",
-    "source_sync_status": "BLOCKED_BEHIND_PRODUCT_MAIN",
+    "source_sync_status": "BLOCKED_BEHIND_MAIN_AND_MISSING_CONTROL_PLANE_ENTRYPOINT",
     "next_required_action": "sync product PR branch to current main, rerun canonical Admission and exact-source CI, then refresh live audit snapshot",
     "production_mask_status": "NOT_QUALIFIED",
     "runtime_visual_status": "NOT_VERIFIED",
-    "current_head_preview_status": "NOT_VERIFIED"
+    "current_head_preview_status": "NOT_VERIFIED",
+    "control_plane_admission_status": "BLOCKED_MISSING_REGISTRY",
+    "missing_product_root_files": [
+      "AGENTS.md",
+      "CONTROL_PLANE_REGISTRY.yaml"
+    ],
+    "control_plane_next_action": "resolve a canonical cross-repository admission binding; do not create a competing local control plane or claim Admission PASS"
   }
 }
