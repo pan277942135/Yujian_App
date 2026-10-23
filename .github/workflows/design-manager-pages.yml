@@ -349,7 +349,7 @@ jobs:
           curl -fsS http://127.0.0.1:8765/previews/pr-203/source-manifest.json >/dev/null
           PLAYWRIGHT_MODULE_DIR="$RUNNER_TEMP/dm-playwright/node_modules" \
             node scripts/verify_design_manager_browser.mjs \
-              --url=http://127.0.0.1:8765/previews/pr-203/ \
+              --url http://127.0.0.1:8765/previews/pr-203/ \
               --expected-build "$BUILD_SHA" \
               --output-dir "$RUNNER_TEMP/nh01-pr203-preview-browser"
 
