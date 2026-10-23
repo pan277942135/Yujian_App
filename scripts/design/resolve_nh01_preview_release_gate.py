@@ -82,6 +82,8 @@ def resolve_release_mode(
         require(bool(blockers), "P3-06 is BLOCKED but no explicit media blockers were recorded.")
         require(all(item.get("id") in EXPECTED_BLOCKERS and EXPECTED_BLOCKERS[item.get("id")] == item.get("status") for item in blockers), "P3-06 has an unexpected blocker; fail closed.")
         require(hero_blocked or neighbors_blocked, "P3-06 blocker list does not identify the missing media.")
+        require(bool(assets["hero_photo"].get("public_preview")) == (not hero_blocked), "Hero public-preview allowlist does not match its P3-06 blocker.")
+        require(bool(assets["neighbor_photos"].get("public_preview")) == (not neighbors_blocked), "Neighbor public-preview allowlist does not match its P3-06 blocker.")
         require(bool(structure.get("heroPlaceholder")) == hero_blocked, "Hero placeholder does not match the Hero asset authorization state.")
         require(bool(structure.get("heroPhotoRendered")) == (not hero_blocked), "Hero rendered-photo state does not match the authorization state.")
         require(bool(structure.get("hiddenNeighbors")) == neighbors_blocked, "Neighbor visibility does not match the independent-photo authorization state.")

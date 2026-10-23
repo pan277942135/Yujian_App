@@ -164,7 +164,7 @@ async function main() {
       heroPlaceholder:document.querySelector('#heroPlaceholder')?.dataset.status==='BLOCKED_ASSET_SOURCE',
       heroPhotoRendered:[...document.querySelectorAll('#mainCatchCard img[data-asset-id="hero_photo"]')].some(image=>image.complete&&image.naturalWidth>0),
       neighborPhotoCount:[...document.querySelectorAll('.neighbor-card:not([hidden]) img[data-asset-id="neighbor_photos"]')].filter(image=>image.complete&&image.naturalWidth>0).length,
-      privatePhotoReferences:[...document.querySelectorAll('img')].map(image=>image.currentSrc||image.src||'').filter(src=>/sample_recent_catch\\.jpg|home_normal\\/fish_record\\//i.test(src)).length,
+      privatePhotoReferences:[...document.querySelectorAll('img')].map(image=>image.currentSrc||image.src||'').filter(src=>src.includes('sample_recent_catch.jpg')||src.includes('/home_normal/fish_record/')).length,
       layerTree:document.querySelectorAll('#layerTree button').length,
       propertyInspector:!!document.querySelector('[aria-label="所选图层属性检查器"]'),
       ruleRows:document.querySelectorAll('#responsiveRuleList .rule-row').length,
