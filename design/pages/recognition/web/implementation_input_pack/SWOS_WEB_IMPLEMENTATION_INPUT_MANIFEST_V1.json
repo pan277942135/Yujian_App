@@ -2,17 +2,17 @@
   "schema_version": "1.0",
   "task_id": "YUJIAN_SWOS_WEB_IMPLEMENTATION_INPUT_PACK_AND_LIVE_SHA_CLOSURE_V1",
   "snapshot_date_utc": "2026-10-23",
-  "package_status": "SOURCE_SYNCED_EXACT_HEAD_CI_PASS_PRIVATE_15_FRAME_REVIEW_PROXY_AVAILABLE",
+  "package_status": "SWOS_WEB_MOTION_CONTRACT_V1_0_BOUND; EXACT_HEAD_CI_PASS; PRODUCT_BRANCH_BEHIND_MAIN; PREVIEW_NOT_VERIFIED; PRODUCTION_MASK_NOT_QUALIFIED",
   "package_role": "IMPLEMENTATION_INPUT_SNAPSHOT_NOT_A_PARALLEL_DESIGN_AUTHORITY",
   "authority": {
     "repository": "pan277942135/Yujian_App",
-    "baseline_main_sha_at_audit": "01c7aec0c0e8216dd76f314f380ae3e0496bd28b",
-    "proposed_source_branch": "design/swos-web-input-pack-sha-closure-v1",
+    "baseline_main_sha_at_audit": "bc29aec091b42f84dc8f4e6fe3b268135b091a97",
+    "proposed_source_branch": "design/swos-web-hifi-motion-contract-v1-0",
     "design_contracts_are_main_authority": true,
     "contract_files": [
       {
         "path": "design/pages/recognition/web/WEB_HIFI_CONTRACT_V2.md",
-        "blob_sha": "a6e301a0c16beb6cca4f02cac622a4eed4d2d2f9",
+        "blob_sha": "30bdc11fe5d8d328e673add2e48e657ece810759",
         "role": "web_contract"
       },
       {
@@ -62,12 +62,12 @@
       },
       {
         "path": "design/pages/recognition/web/contracts/Authority_References_V2.json",
-        "blob_sha": "276018a7028a7120bf88f51858f7c398432ebc6b",
+        "blob_sha": "f22c8240c2f9acffb46ec038b4d94fc0855f8cb2",
         "role": "machine_contract_with_live_audit"
       },
       {
         "path": "design/pages/recognition/web/contracts/Work_B_Implementation_Mapping_V2.json",
-        "blob_sha": "3733d0dd7b8987ed5479045dfa6a8287b242dc16",
+        "blob_sha": "db8d1ab5e0dc7a09c56a3091971a397ca33dbf06",
         "role": "implementation_mapping_with_live_audit"
       },
       {
@@ -112,7 +112,7 @@
       },
       {
         "path": "design/pages/recognition/processing/optics/SWOS_Dynamic_Demo_Technical_Handoff_V1.md",
-        "blob_sha": "4f94e06602b82f1fd7ac8ac5e7014187a05bd953",
+        "blob_sha": "1124789f03ab1253717fd1bac9873cbfe45dbe94",
         "role": "renderer_architecture"
       },
       {
@@ -134,6 +134,21 @@
         "path": "design/pages/recognition/web/VISUAL_REFERENCE_CLOSURE_REPORT_V1.md",
         "blob_sha": "c41b3e224cd2eb84de8183ea5d7da36c0b72a1f8",
         "role": "asset_provenance_report"
+      },
+      {
+        "path": "design/pages/recognition/web/SWOS_WEB_HIFI_MOTION_TECHNICAL_CONTRACT_V1_0.md",
+        "role": "swos_web_hifi_motion_technical_contract_v1_0",
+        "blob_sha": "7ffe198a0d67a72fafc927cf9e7d62e65127e663"
+      },
+      {
+        "path": "design/pages/recognition/web/contracts/SWOS_WEB_HIFI_MOTION_TECHNICAL_CONTRACT_V1_0.json",
+        "role": "swos_web_hifi_motion_machine_contract",
+        "blob_sha": "26bcefa0f649f82857e22a34d78c79c1466d6fad"
+      },
+      {
+        "path": "design/pages/recognition/processing/README.md",
+        "role": "processing_authority_index",
+        "blob_sha": "4071184eae1ad0ed2c36b61d2b937e2a343af054"
       }
     ],
     "canonical_control_plane_files": [
@@ -164,32 +179,33 @@
     "product_repository": "pan277942135/Yujian",
     "product_pr_number": 177,
     "product_branch": "feat/ai-catch-recognition-web-swos-rr09-v1",
-    "live_product_pr_head_sha": "d8f3aabfab058d58cac84e19af095b0186df5f85",
-    "live_product_main_sha": "3c79c00db68ace94d8f6a7dcb4105d0026a09323",
+    "live_product_pr_head_sha": "4de911dc497c150545d938b60b2694f3c4723e37",
+    "live_product_main_sha": "6a2064c2a02a76437b6e09a5241bc199cfa05048",
     "merge_base_sha": "3c79c00db68ace94d8f6a7dcb4105d0026a09323",
-    "ahead_by": 19,
-    "behind_by": 0,
-    "source_sync_status": "SYNCED_TO_CURRENT_PRODUCT_MAIN",
+    "ahead_by": 22,
+    "behind_by": 3,
+    "source_sync_status": "BLOCKED_BEHIND_CURRENT_PRODUCT_MAIN",
     "exact_head_ci_status": "PASS",
     "previous_exact_head_ci": {
-      "sha": "32b9463887c6620b32a3dfdd986eccc6ff4a569b",
-      "run_id": 39874124153,
-      "url": "https://github.com/pan277942135/Yujian/actions/runs/39874124153",
-      "conclusion": "success",
-      "scope": "targeted validation plus Chromium UI simulation only"
-    },
-    "exact_head_ci": {
+      "sha": "d8f3aabfab058d58cac84e19af095b0186df5f85",
       "run_id": 39917440271,
       "url": "https://github.com/pan277942135/Yujian/actions/runs/39917440271",
+      "conclusion": "success",
+      "scope": "targeted validation and Chromium UI simulation only; not runtime visual acceptance"
+    },
+    "exact_head_ci": {
+      "sha": "4de911dc497c150545d938b60b2694f3c4723e37",
+      "run_id": 39922218177,
+      "url": "https://github.com/pan277942135/Yujian/actions/runs/39922218177",
       "conclusion": "success",
       "jobs": {
         "validate": "success",
         "det_fish_display_chromium": "success"
       },
-      "scope": "safe targeted validation and Chromium UI simulation only; no full-suite metadata access, production inference, qualified Mask, pixel parity, or user visual acceptance"
+      "scope": "safe targeted validation and Chromium UI simulation only; no production inference, qualified Mask, pixel parity, browser motion performance, or user visual acceptance"
     },
     "current_head_preview_status": "NOT_VERIFIED",
-    "configured_preview_sha": "cb9e3780afb5e2904e3dfe5148210a4ccc3747b4",
+    "configured_preview_sha": "4de911dc497c150545d938b60b2694f3c4723e37",
     "production_mask_status": "NOT_QUALIFIED",
     "runtime_visual_status": "NOT_VERIFIED",
     "full_suite_status": "NOT_RUN_BLOCKED_BY_EXISTING_METADATA_ACCESS_REVIEW",
@@ -201,12 +217,12 @@
       "product_repository_is_separate": true,
       "product_repository_root_control_plane_files": "NOT_PRESENT",
       "policy": "Use the canonical Yujian_App control plane plus this exact-SHA cross-repository source audit. Do not create a competing control plane in Yujian.",
-      "admission_status": "CANONICAL_CONTROL_PLANE_PINNED; SOURCE_SHA_CI_PASS"
+      "admission_status": "CANONICAL_CONTROL_PLANE_PINNED; EXACT_HEAD_CI_PASS; PRODUCT_BRANCH_BEHIND_MAIN"
     },
     "source_file_snapshot": [
       {
         "path": ".github/workflows/catch-recognition-pr177-no-traffic-deploy.yml",
-        "blob_sha": "99ea6e7f14e61890cf377feb5237469369d0e97d"
+        "blob_sha": "7eeee0de71ebde9a628c58fad424ae89b37e16a2"
       },
       {
         "path": "docs/catch_web_preview_pin_v2.md",
@@ -252,7 +268,22 @@
       "bbox_only": "SOFT_REGION_ONLY_NO_PRECISE_OUTLINE",
       "none": "NO_SPATIAL_FISH_FOCUS"
     },
-    "must_never_fake_result_or_success": true
+    "must_never_fake_result_or_success": true,
+    "existing_sam_pipeline_reuse": {
+      "repository": "pan277942135/Yujian",
+      "endpoint": "POST /api/debug/fish-segmentation",
+      "code_paths": [
+        "app/segmentation_api.py",
+        "app/segmentation/service.py",
+        "app/segmentation/mask_generator.py",
+        "app/segmentation/quality_gate.py",
+        "app/segmentation/cutout_builder.py"
+      ],
+      "model": "SAM_VIT_B",
+      "policy": "REUSE_EXISTING_EXPERIMENTAL_PIPELINE; NO_DUPLICATE_SERVICE; NO_RETRAIN; MASK_NOT_CLASSIFIER_INPUT",
+      "endpoint_is_public_production_api": false,
+      "production_mask_qualification": "NOT_QUALIFIED"
+    }
   },
   "private_visual_assets": [
     {
@@ -302,14 +333,30 @@
     "human_traced_contour": "REVIEW_PROXY_NOT_PRODUCTION",
     "bbox_fallback": "BBOX_ONLY_SOFT_REGION",
     "no_geometry_fallback": "NO_SPATIAL_FISH_FOCUS",
-    "promotion_gate": "REAL_PHOTO_MASK_QUALITY_AND_PROVENANCE_REQUIRED"
+    "promotion_gate": "REAL_PHOTO_MASK_QUALITY_AND_PROVENANCE_REQUIRED",
+    "existing_pipeline_reuse": "CONFIRMED_EXISTING_EXPERIMENTAL_SAM_VIT_B_PIPELINE",
+    "duplicate_service_required": false,
+    "current_qualification": "NOT_QUALIFIED",
+    "production_qualification_requirements": [
+      "reviewed_ground_truth_masks",
+      "IoU_Dice_and_boundary_metrics",
+      "night_occlusion_dark_background_hard_case_review",
+      "explicit_visual_signoff"
+    ],
+    "browser_frame_time_separate_from_sam_api_latency": true
   },
   "acceptance_boundaries": {
     "ci_pass_does_not_equal_visual_pass": true,
     "ui_simulation_does_not_equal_real_photo_inference": true,
     "no_claims_of_pixel_parity_or_user_visual_acceptance": true,
     "nine_viewport_ci_is_ui_simulation_only": true,
-    "preview_must_bind_exact_pr_head_and_health_sha": true
+    "preview_must_bind_exact_pr_head_and_health_sha": true,
+    "playable_browser_demo_required": true,
+    "real_3650ms_playback_and_15_frame_seek_required": true,
+    "browser_render_performance_must_be_measured_separately_from_sam_api_latency": true,
+    "current_product_branch_must_not_be_behind_main_before_implementation": true,
+    "production_mask_qualification_requires_ground_truth_and_visual_signoff": true,
+    "source_sha_and_preview_revision_must_match_exactly": true
   },
   "private_handoff_bundle": {
     "filename": "SWOS_WEB_15_FRAME_REVIEW_PROXY_V3.zip",
