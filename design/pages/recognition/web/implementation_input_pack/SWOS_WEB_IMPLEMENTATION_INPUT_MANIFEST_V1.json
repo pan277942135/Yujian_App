@@ -2,7 +2,7 @@
   "schema_version": "1.0",
   "task_id": "YUJIAN_SWOS_WEB_IMPLEMENTATION_INPUT_PACK_AND_LIVE_SHA_CLOSURE_V1",
   "snapshot_date_utc": "2026-10-23",
-  "package_status": "PREPARED_SOURCE_SYNC_REQUIRED",
+  "package_status": "SOURCE_SYNCED_EXACT_HEAD_CI_PENDING",
   "package_role": "IMPLEMENTATION_INPUT_SNAPSHOT_NOT_A_PARALLEL_DESIGN_AUTHORITY",
   "authority": {
     "repository": "pan277942135/Yujian_App",
@@ -17,7 +17,7 @@
       },
       {
         "path": "design/pages/recognition/web/WEB_HIFI_GAP_MATRIX_V2.md",
-        "blob_sha": "1ad14a6eaaca62710fe81692e4a3e0b58967cba5",
+        "blob_sha": "09affee0c7a31b661bb0f73adcca98cc8f95ad9f",
         "role": "live_gap_matrix_with_historical_baseline_labeled"
       },
       {
@@ -62,12 +62,12 @@
       },
       {
         "path": "design/pages/recognition/web/contracts/Authority_References_V2.json",
-        "blob_sha": "430c1a081eb2a1e31e0abfde92114207731ce3e1",
+        "blob_sha": "d2ff9f512873d56b4a895d669e0202513a667d22",
         "role": "machine_contract_with_live_audit"
       },
       {
         "path": "design/pages/recognition/web/contracts/Work_B_Implementation_Mapping_V2.json",
-        "blob_sha": "7640418a4e930679bf1269961fd0dfeeff65c8b5",
+        "blob_sha": "ca22351cd96ea6ff81c32f90a814f5b31d9cc6ea",
         "role": "implementation_mapping_with_live_audit"
       },
       {
@@ -135,91 +135,65 @@
         "blob_sha": "c41b3e224cd2eb84de8183ea5d7da36c0b72a1f8",
         "role": "asset_provenance_report"
       }
-    ]
+    ],
+    "canonical_control_plane_files": [
+      {
+        "path": "AGENTS.md",
+        "blob_sha": "215ce9a66c05de69977caed9d25786f1b8e22255",
+        "role": "canonical_work_bootstrap"
+      },
+      {
+        "path": "CONTROL_PLANE_REGISTRY.yaml",
+        "blob_sha": "3db40b1825851a9fe93c5c101e713eb0f526624f",
+        "role": "canonical_control_plane_entrypoint"
+      }
+    ],
+    "cross_repository_admission_binding": {
+      "canonical_governance_repository": "pan277942135/Yujian_App",
+      "canonical_governance_branch": "main",
+      "implementation_repository": "pan277942135/Yujian",
+      "implementation_pr": 177,
+      "implementation_pr_branch": "feat/ai-catch-recognition-web-swos-rr09-v1",
+      "local_control_plane_copy_required_in_implementation_repository": false,
+      "admission_method": "canonical Yujian_App control-plane admission plus live exact-SHA cross-repository source audit",
+      "rationale": "The implementation repository is a separate repository, not a product branch in Yujian_App. Keep one canonical control plane; bind implementation to it by exact SHA and contracts rather than creating a competing local registry."
+    }
   },
   "live_product_snapshot": {
-    "repository": "pan277942135/Yujian",
-    "main_sha_at_audit": "3c79c00db68ace94d8f6a7dcb4105d0026a09323",
-    "pr_number": 177,
-    "pr_url": "https://github.com/pan277942135/Yujian/pull/177",
-    "state": "OPEN",
-    "draft": true,
-    "branch": "feat/ai-catch-recognition-web-swos-rr09-v1",
-    "head_sha_at_audit": "32b9463887c6620b32a3dfdd986eccc6ff4a569b",
-    "merge_base_sha": "04db31548a3773aa087d34d10bdee33ec8fcd1cc",
-    "compare_status": "diverged",
-    "ahead_by": 18,
-    "behind_by": 3,
-    "branch_sync_gate": "BLOCKED_BEHIND_MAIN_AND_MISSING_CONTROL_PLANE_ENTRYPOINT",
-    "exact_head_ci": {
+    "audit_date": "2026-10-23",
+    "product_repository": "pan277942135/Yujian",
+    "product_pr_number": 177,
+    "product_branch": "feat/ai-catch-recognition-web-swos-rr09-v1",
+    "live_product_pr_head_sha": "d8f3aabfab058d58cac84e19af095b0186df5f85",
+    "live_product_main_sha": "3c79c00db68ace94d8f6a7dcb4105d0026a09323",
+    "merge_base_sha": "3c79c00db68ace94d8f6a7dcb4105d0026a09323",
+    "ahead_by": 19,
+    "behind_by": 0,
+    "source_sync_status": "SYNCED_TO_CURRENT_PRODUCT_MAIN",
+    "exact_head_ci_status": "PENDING_FOR_POST_SYNC_SHA",
+    "previous_exact_head_ci": {
+      "sha": "32b9463887c6620b32a3dfdd986eccc6ff4a569b",
       "run_id": 39874124153,
       "url": "https://github.com/pan277942135/Yujian/actions/runs/39874124153",
       "conclusion": "success",
-      "jobs": {
-        "validate": "success",
-        "det_fish_display_chromium": "success"
-      },
-      "artifacts": [
-        "https://github.com/pan277942135/Yujian/actions/runs/39874124153/artifacts/12468205504",
-        "https://github.com/pan277942135/Yujian/actions/runs/39874124153/artifacts/12467687154"
-      ],
-      "scope": "safe targeted validation and Chromium UI simulation only"
+      "scope": "targeted validation plus Chromium UI simulation only"
     },
-    "previous_reviewed_source_sha": "655c4af07a0244fcf29441b5652c48ca74f2e6a2",
-    "source_file_snapshot": [
-      {
-        "path": "docs/catch_web_hifi_v2_implementation.md",
-        "blob_sha": "4814f2d432342edb672404e4a424d67846039bc5"
-      },
-      {
-        "path": "docs/contracts/catch_web_hifi_v2_implementation.json",
-        "blob_sha": "fa313759ef8d0bd6a8212cb0fb8f43925b997a8b"
-      },
-      {
-        "path": "app/static/js/catch/swos-renderer.js",
-        "blob_sha": "b29abbe0648c043a96f37959938a18757fe7e921"
-      },
-      {
-        "path": "app/static/js/catch/photo-transition.js",
-        "blob_sha": "0697618dacbf768a3aa08e748f38aa8297cfd813"
-      },
-      {
-        "path": "app/static/js/catch/photo-session.js",
-        "blob_sha": "1cf7ac5605b3e103a9620d1f78b428ed5f39f754"
-      },
-      {
-        "path": "app/static/js/catch/recognition-controller.js",
-        "blob_sha": "b575a232f346e846dbea7407ab119b55fdc4e657"
-      },
-      {
-        "path": "app/templates/platform/catch_recognition.html",
-        "blob_sha": "38401f4ed9b1f099432880a5ce6cd6b3c3423359"
-      },
-      {
-        "path": "app/static/css/catch_recognition.css",
-        "blob_sha": "f195276c6234157b89af1e8f5a42b673b30acd7c"
-      }
-    ],
-    "preview": {
-      "infrastructure_pr_180_state": "MERGED",
-      "workflow_path": ".github/workflows/catch-recognition-pr177-no-traffic-deploy.yml",
-      "configured_target_sha": "cb9e3780afb5e2904e3dfe5148210a4ccc3747b4",
-      "current_pr_head_preview_status": "NOT_VERIFIED",
-      "reason": "Merged workflow remains pinned to a historical SHA; no current-head preview claim."
-    },
-    "runtime_visual_status": "NOT_VERIFIED",
+    "exact_head_ci": null,
+    "current_head_preview_status": "NOT_VERIFIED",
+    "configured_preview_sha": "cb9e3780afb5e2904e3dfe5148210a4ccc3747b4",
     "production_mask_status": "NOT_QUALIFIED",
+    "runtime_visual_status": "NOT_VERIFIED",
     "full_suite_status": "NOT_RUN_BLOCKED_BY_EXISTING_METADATA_ACCESS_REVIEW",
-    "control_plane_admission": {
-      "status": "BLOCKED_MISSING_REGISTRY",
-      "missing_root_files": [
-        "AGENTS.md",
-        "CONTROL_PLANE_REGISTRY.yaml"
-      ],
-      "verification": "LIVE_PRODUCT_PR177_HEAD_CONTENTS_API_404",
-      "next_action": "Resolve a canonical cross-repository admission binding; do not create a competing local control plane or claim Admission PASS."
-    },
-    "source_sync_status": "BLOCKED_BEHIND_MAIN_AND_MISSING_CONTROL_PLANE_ENTRYPOINT"
+    "canonical_cross_repo_admission": {
+      "canonical_repository": "pan277942135/Yujian_App",
+      "canonical_branch": "main",
+      "canonical_registry_path": "CONTROL_PLANE_REGISTRY.yaml",
+      "canonical_agents_path": "AGENTS.md",
+      "product_repository_is_separate": true,
+      "product_repository_root_control_plane_files": "NOT_PRESENT",
+      "policy": "Use the canonical Yujian_App control plane plus this exact-SHA cross-repository source audit. Do not create a competing control plane in Yujian.",
+      "admission_status": "CROSS_REPO_BINDING_FORMALIZED; EXACT_HEAD_CI_PENDING"
+    }
   },
   "motion_and_product_decisions": {
     "processing_duration_ms": 2800,
