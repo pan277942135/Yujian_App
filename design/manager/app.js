@@ -76,13 +76,17 @@ function hifiImageFigure(path, title, caption, sha256 = "") {
 }
 
 function hifiContractMetadataHtml(item, parentView = null) {
-  if (!item || !(item.page_id || item.state_id || item.asset_id || item.entry_conditions || item.contract_links || parentView?.contract_links)) return "";
+  if (!item || !(item.page_id || item.state_id || item.asset_id || item.entry_conditions || item.contract_links || parentView?.contract_links || item.machine_authority || parentView?.machine_authority)) return "";
   const display = value => Array.isArray(value) ? value.join(" · ") : (value || "未在当前 Authority 中规定");
   const path = item.authority_path || item.visual_authority || item.expected_asset_path || item.image || item.machine_authority || item.authority || "未提供";
   const pathMarkup = item.authority_path_available === false
     ? '<span class="hifi-contract-plain-path">' + esc(path) + '</span>'
     : '<a href="' + esc(repoHref(path)) + '" target="_blank" rel="noreferrer">' + esc(path) + '</a>';
-  const contractLinks = [...(item.contract_links || []), ...(parentView?.contract_links || [])]
+  const machineAuthorityPath = item.machine_authority || parentView?.machine_authority;
+  const machineAuthorityFallback = machineAuthorityPath
+    ? [{ label: "机器可读技术合同", path: machineAuthorityPath }]
+    : [];
+  const contractLinks = [...(item.contract_links || []), ...(parentView?.contract_links || []), ...machineAuthorityFallback]
     .filter((link, index, all) => link.path && all.findIndex(other => other.path === link.path) === index);
   const fields = [
     ["Page ID", item.page_id], ["页面名称", item.page_name || item.title || parentView?.title],
