@@ -83,7 +83,10 @@ async function main() {
   if (!origin.endsWith('/')) origin += '/';
   const previewUrl = new URL(args.previewPath, origin).href;
   const managerUrl = new URL('design/manager/#page/recognition_flow_v1_2/hifi/capture_first_use_guide/p01', origin).href;
-  const browser = await chromium.launch({ headless:true });
+  const browser = await chromium.launch({
+    headless: true,
+    ...(process.env.PLAYWRIGHT_EXECUTABLE_PATH ? { executablePath: process.env.PLAYWRIGHT_EXECUTABLE_PATH } : {})
+  });
   const errors = [];
   const failedRequests = [];
   const badResponses = [];
@@ -181,15 +184,15 @@ async function main() {
     report.checks.fixed_viewport_frames=frameContracts;
     const previewAudit=await page.evaluate(()=>window.NH01GeminiPreviewAudit);
     const mediaBlockers=(previewAudit?.assets||[]).filter(asset=>asset.status==='BLOCKED_ASSET_SOURCE'||asset.status==='BLOCKED_MISSING_APPROVED_INDEPENDENT_ORIGINALS');
-    report.checks.p3_06={status:mediaBlockers.length?'BLOCKED':'PASS',media_blockers:mediaBlockers.map(asset=>({id:asset.id,status:asset.status,reason:asset.reason||null})),rule:'P3-06 cannot claim image-level acceptance while Hero photo provenance or independent neighbor records are blocked.'};
-    report.p3_06_status=mediaBlockers.length?'BLOCKED':'PASS';
-    if(mediaBlockers.length)report.p3_06_blockers=report.checks.p3_06.media_blockers;
+    report.checks.nh01_preview_v2={status:mediaBlockers.length?'BLOCKED':'PASS',media_blockers:mediaBlockers.map(asset=>({id:asset.id,status:asset.status,reason:asset.reason||null})),rule:'G-NH01-RESPONSIVE-PREVIEW-V2 cannot claim image-level acceptance while Hero photo provenance or independent neighbor records are blocked.'};
+    report.nh01_preview_v2_status=mediaBlockers.length?'BLOCKED':'PASS';
+    if(mediaBlockers.length)report.nh01_preview_v2_blockers=report.checks.nh01_preview_v2.media_blockers;
     if(mediaBlockers.length){
       assert(visibleStructure.heroPlaceholder===!visibleStructure.heroPhotoRendered, 'Blocked Hero media must use a placeholder, never an unapproved photo');
       assert(visibleStructure.hiddenNeighbors=== (visibleStructure.neighborPhotoCount===0), 'Neighbor visibility does not match the independently approved photo count');
     }else{
-      assert(!visibleStructure.heroPlaceholder && visibleStructure.heroPhotoRendered, 'P3-06 cannot pass until an approved Hero photo is actually rendered');
-      assert(visibleStructure.visibleNeighborCount===2 && visibleStructure.neighborPhotoCount===2, 'P3-06 cannot pass until both independently approved neighbor photos are actually rendered');
+      assert(!visibleStructure.heroPlaceholder && visibleStructure.heroPhotoRendered, 'G-NH01-RESPONSIVE-PREVIEW-V2 cannot pass until an approved Hero photo is actually rendered');
+      assert(visibleStructure.visibleNeighborCount===2 && visibleStructure.neighborPhotoCount===2, 'G-NH01-RESPONSIVE-PREVIEW-V2 cannot pass until both independently approved neighbor photos are actually rendered');
     }
     if(args.deploymentManifestPath){
       const deploymentUrl=new URL(args.deploymentManifestPath,origin).href;
@@ -199,12 +202,12 @@ async function main() {
       assert(deploymentManifest.contract_id===contract.id&&deploymentManifest.contract_version===contract.version,'Deployment manifest contract identity/version mismatch');
       if(deploymentManifest.release_mode==='PREVIEW_ONLY'){
         assert(contract.status==='PROPOSED_FOR_CANONICAL_MAIN_REVIEW','PREVIEW_ONLY deployment cannot claim a frozen contract');
-        assert(deploymentManifest.release_gate_effect==='NONE'&&deploymentManifest.acceptance_status==='NOT_CLAIMED','PREVIEW_ONLY deployment must not claim P3-06 or freeze-gate PASS');
+        assert(deploymentManifest.release_gate_effect==='NONE'&&deploymentManifest.acceptance_status==='NOT_CLAIMED','PREVIEW_ONLY deployment must not claim NH01 preview or freeze-gate PASS');
         assert(deploymentManifest.media_policy?.non_public_asset_files_copied===false,'PREVIEW_ONLY must not copy non-public media');
-        if(report.p3_06_status==='BLOCKED')assert(deploymentManifest.media_policy?.hero==='PLACEHOLDER_ONLY'&&deploymentManifest.media_policy?.neighbors==='HIDDEN_UNTIL_APPROVED_INDEPENDENT_ORIGINALS','Blocked media policy is missing from the deployment manifest');
+        if(report.nh01_preview_v2_status==='BLOCKED')assert(deploymentManifest.media_policy?.hero==='PLACEHOLDER_ONLY'&&deploymentManifest.media_policy?.neighbors==='HIDDEN_UNTIL_APPROVED_INDEPENDENT_ORIGINALS','Blocked media policy is missing from the deployment manifest');
       }else if(deploymentManifest.release_mode==='FROZEN_ACCEPTANCE'){
-        assert(contract.status==='SPEC_FROZEN'&&report.p3_06_status==='PASS','FROZEN_ACCEPTANCE requires SPEC_FROZEN and P3-06 PASS');
-        assert(deploymentManifest.release_gate_effect==='P3_06_PASS_REQUIRED','Frozen release manifest must record its P3-06 gate');
+        assert(contract.status==='SPEC_FROZEN'&&report.nh01_preview_v2_status==='PASS','FROZEN_ACCEPTANCE requires SPEC_FROZEN and NH01 Responsive Preview V2 PASS');
+        assert(deploymentManifest.release_gate_effect==='G-NH01-RESPONSIVE-PREVIEW-V2_PASS_REQUIRED','Frozen release manifest must record the NH01 Responsive Preview V2 gate');
       }else{
         throw new Error('Unknown NH01 preview release mode: '+deploymentManifest.release_mode);
       }
@@ -381,7 +384,7 @@ async function main() {
     if(server) await new Promise(resolvePromise=>server.close(resolvePromise));
   }
   await writeFile(args.output,JSON.stringify(report,null,2)+'\n');
-  process.stdout.write(JSON.stringify({status:report.status,p3_06_status:report.p3_06_status,p3_06_blockers:report.p3_06_blockers||[],manager:report.checks.manager,preview_url:report.preview_url,contract:report.checks.contract&&{id:report.checks.contract.id,version:report.checks.contract.version,sha256:report.checks.contract.sha256,source_sha:report.checks.contract.source_sha,deployment_sha:report.checks.contract.deployment_sha,anchors:report.checks.contract.anchors.map(anchor=>({id:anchor.id,status:anchor.status,sha256:anchor.actual_sha256,canvas_px:anchor.actual_canvas_px,width_only_static:anchor.width_only_static}))},fixed_viewports:report.checks.fixed_viewports?.map(item=>({profile:item.profile_id,viewport:item.requested_viewport_dp,card:[item.measured.card_width_dp,item.measured.card_height_dp],title_to_card:item.measured.measurements.title_to_card,scroll:item.measured.needs_scroll})),probes:report.checks.continuity_probes,fail_closed:report.checks.fail_closed,screenshots:report.screenshots,evidence:args.output},null,2)+'\n');
+  process.stdout.write(JSON.stringify({status:report.status,nh01_preview_v2_status:report.nh01_preview_v2_status,nh01_preview_v2_blockers:report.nh01_preview_v2_blockers||[],manager:report.checks.manager,preview_url:report.preview_url,contract:report.checks.contract&&{id:report.checks.contract.id,version:report.checks.contract.version,sha256:report.checks.contract.sha256,source_sha:report.checks.contract.source_sha,deployment_sha:report.checks.contract.deployment_sha,anchors:report.checks.contract.anchors.map(anchor=>({id:anchor.id,status:anchor.status,sha256:anchor.actual_sha256,canvas_px:anchor.actual_canvas_px,width_only_static:anchor.width_only_static}))},fixed_viewports:report.checks.fixed_viewports?.map(item=>({profile:item.profile_id,viewport:item.requested_viewport_dp,card:[item.measured.card_width_dp,item.measured.card_height_dp],title_to_card:item.measured.measurements.title_to_card,scroll:item.measured.needs_scroll})),probes:report.checks.continuity_probes,fail_closed:report.checks.fail_closed,screenshots:report.screenshots,evidence:args.output},null,2)+'\n');
   if(report.status!=='PASS')throw new Error(report.failure||'NH01 responsive browser verification failed');
 }
 main().catch(error=>{console.error(error.stack||error);process.exitCode=1;});

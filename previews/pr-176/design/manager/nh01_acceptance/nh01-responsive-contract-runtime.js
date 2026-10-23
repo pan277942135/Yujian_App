@@ -128,7 +128,7 @@
     const statsToTitleRule = p.spacing.stats_to_title;
     const titleToCardRule = p.spacing.title_to_card;
     const cardToFooterRule = p.spacing.card_to_footer;
-    const statsToTitle = Math.max(
+    let statsToTitle = Math.max(
       statsToTitleRule.minimum_gap_dp,
       interpolateCurve(statsToTitleRule.base_curve, safeHeight, "safe_height_dp", "value_dp") - statsToTitleRule.font_pressure_penalty_dp * fontPressure
     );
@@ -136,7 +136,7 @@
       titleToCardRule.minimum_gap_dp,
       interpolateCurve(titleToCardRule.base_curve, safeHeight, "safe_height_dp", "value_dp") - titleToCardRule.font_pressure_penalty_dp * fontPressure
     );
-    const cardToFooter = Math.max(
+    let cardToFooter = Math.max(
       cardToFooterRule.minimum_gap_dp,
       clamp(safeHeight * cardToFooterRule.height_fraction, cardToFooterRule.base_minimum_dp, cardToFooterRule.base_maximum_dp)
         - cardToFooterRule.font_pressure_penalty_dp * fontPressure
@@ -205,6 +205,25 @@
       neighborRules.minimum_edge_peek_dp,
       neighborRules.maximum_edge_peek_dp
     );
+    const baseStatsToTitle = statsToTitle;
+    const baseCardToFooter = cardToFooter;
+    const bandAHeight = topPadding + headerHeight + brandStatsGap + content.stats_min_height_dp;
+    const bandBHeight = sectionHeaderHeight + titleToCard + heroHeight;
+    const bandCHeight = footer.topPadding + textMetrics.cta.size_sp * textMetrics.cta.line_height_ratio + footer.ctaCameraGap + cameraTouchSize + footer.bottomPadding;
+    const logicalSurplus = Math.max(0, safeHeight - (bandAHeight + bandBHeight + bandCHeight + baseStatsToTitle + baseCardToFooter));
+    statsToTitle = baseStatsToTitle + (2 * logicalSurplus) / 3;
+    cardToFooter = baseCardToFooter + logicalSurplus / 3;
+    const logicalAllocation = {
+      safe_height_dp: safeHeight,
+      band_heights_dp: { A: bandAHeight, B: bandBHeight, C: bandCHeight },
+      gAB_base_dp: baseStatsToTitle,
+      gBC_base_dp: baseCardToFooter,
+      surplus_dp: logicalSurplus,
+      final_a_to_b_dp: statsToTitle,
+      final_b_to_c_dp: cardToFooter,
+      internal_title_to_hero_dp: titleToCard,
+      safe_insets_consumed_once: true
+    };
     const cameraHorizontalRoom = contentWidth;
     return {
       variant: "ADAPTIVE_V2",
@@ -261,6 +280,7 @@
         title_to_card_target: titleToCard,
         card_to_footer: cardToFooter
       },
+      logical_allocation: logicalAllocation,
       footer: {
         cta_camera_gap_dp: footer.ctaCameraGap,
         top_padding_dp: footer.topPadding,

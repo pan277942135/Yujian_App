@@ -58,6 +58,23 @@ require(contract.get("native_acceptance",{}).get("status")=="NOT_VERIFIED","Andr
 require(contract.get("native_acceptance",{}).get("required_case_count")==24,"current native matrix must remain 24 cases")
 require(contract.get("acceptance",{}).get("runtime_status_independent") is True,"design status must be independent of runtime acceptance")
 
+logical_allocation = contract.get("logical_allocation", {})
+require(logical_allocation.get("safe_height_formula") == "H_safe = viewport_height_dp - safe_insets_top_dp - safe_insets_bottom_dp; consume each safe inset exactly once before computing H_safe.", "logical allocation must consume safe insets exactly once")
+bands = {item.get("id"): item for item in logical_allocation.get("bands", [])}
+require(set(bands) == {"A", "B", "C"}, "logical allocation must declare exactly bands A, B and C")
+require(bands.get("A", {}).get("logical_content") == ["brand", "statistics"], "band A must contain brand and statistics")
+require(bands.get("B", {}).get("logical_content") == ["recent-catch-heading", "selected-hero"], "band B must contain Recent Catch heading and Hero")
+require(bands.get("C", {}).get("logical_content") == ["footer"], "band C must contain footer")
+require(bands.get("A", {}).get("physical_region") == "top", "band A must remain in physical Top")
+require(bands.get("B", {}).get("physical_region") == "top+middle", "band B must preserve Top/Middle physical split")
+require(bands.get("C", {}).get("physical_region") == "footer", "band C must remain in physical Footer")
+require(logical_allocation.get("surplus_formula") == "S = max(0, H_safe - (hA + hB + hC + gAB_base + gBC_base))", "logical surplus formula mismatch")
+require(logical_allocation.get("allocation_when_positive_surplus", {}).get("a_to_b") == "gAB_base + 2S/3", "positive surplus A-to-B allocation mismatch")
+require(logical_allocation.get("allocation_when_positive_surplus", {}).get("b_to_c") == "gBC_base + S/3", "positive surplus B-to-C allocation mismatch")
+require(logical_allocation.get("allocation_when_zero_surplus", {}).get("a_to_b") == "gAB_base", "zero-surplus A-to-B allocation mismatch")
+require(logical_allocation.get("allocation_when_zero_surplus", {}).get("b_to_c") == "gBC_base", "zero-surplus B-to-C allocation mismatch")
+require("title_to_card_runtime remains the internal Title-to-Hero gap and is not modified by surplus allocation." in logical_allocation.get("invariants", []), "internal title-to-Hero gap invariant missing")
+
 # The interactive browser preview may execute only generic calculations whose numeric inputs
 # come from this page-level machine contract. Keep the shared schema generic and reject
 # viewport-keyed policy branches here.
@@ -121,7 +138,7 @@ for anchor in anchors:
         require(rel=="design/system/core_visual_v1/reference/normal_home_v1.png","only the original master may omit source_asset_id")
 
 global_profiles={item.get("profile_id"):item for item in profiles.get("profiles",[])}
-require(contract.get("authority",{}).get("viewport_profiles")==str(PROFILES_PATH.relative_to(ROOT)),"responsive contract must reference the page-independent viewport profile registry")
+require(contract.get("authority",{}).get("viewport_profiles")==PROFILES_PATH.relative_to(ROOT).as_posix(),"responsive contract must reference the page-independent viewport profile registry")
 registered_probes={item.get("probe_id"):item for item in profiles.get("interpolation_probes",[])}
 continuity_ids=contract.get("acceptance",{}).get("continuity_probe_ids",[])
 require(len(continuity_ids)==len(set(continuity_ids)),"continuity probe IDs must be unique")
@@ -153,38 +170,49 @@ require(all(item.get("status") in {"RESOLVED_BY_PROPOSED_CONTRACT","SCOPED_NOT_C
 
 gemini=authority.get("active_gemini_nh01_override",{})
 require(gemini.get("authority")=="design/pages/home/normal_home/engineering/NH01_GEMINI_ADAPTIVE_V2_UNIFIED_AUTHORITY_V1.md","existing Gemini non-responsive authority must remain registered")
-require(gemini.get("responsive_layout_authority")==str(CONTRACT_PATH.relative_to(ROOT)),"authority map responsive pointer mismatch")
+require(gemini.get("responsive_layout_authority")==CONTRACT_PATH.relative_to(ROOT).as_posix(),"authority map responsive pointer mismatch")
 require(gemini.get("runtime_verdict")=="NOT_RUN","authority map must not claim runtime PASS")
-require(authority.get("engineering_binding",{}).get("layout")==str(CONTRACT_PATH.relative_to(ROOT)),"engineering binding layout must point to V2 contract")
+require(authority.get("engineering_binding",{}).get("layout")==CONTRACT_PATH.relative_to(ROOT).as_posix(),"engineering binding layout must point to V2 contract")
 menu=next((item for item in navigation.get("level_2",[]) if item.get("id")=="multi_screen_static_hifi"),None)
 require(menu is not None,"NH01 static hi-fi/responsive menu entry missing")
 if menu:
     require(menu.get("machine_authority")=="design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_MULTI_SCREEN_RESPONSIVE_CONTRACT_V1.json","existing Design Manager renderer must retain the V1 static archive machine contract")
-    require(menu.get("responsive_layout_authority")==str(CONTRACT_PATH.relative_to(ROOT)),"Design Manager menu must register the V2 responsive layout authority separately")
-    require(menu.get("visual_manifest")==str(MANIFEST_PATH.relative_to(ROOT)),"Design Manager must retain frozen static manifest")
+    require(menu.get("responsive_layout_authority")==CONTRACT_PATH.relative_to(ROOT).as_posix(),"Design Manager menu must register the V2 responsive layout authority separately")
+    require(menu.get("visual_manifest")==MANIFEST_PATH.relative_to(ROOT).as_posix(),"Design Manager must retain frozen static manifest")
     require(menu.get("authority")=="design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_MULTI_SCREEN_RESPONSIVE_CONTRACT_V1.md","existing Design Manager renderer must retain the V1 static archive reading guide")
 
 fm=feature_matrix.get("features",{}).get("home_normal_v1",{})
-required_refs=[str(CONTRACT_PATH.relative_to(ROOT)),str((ROOT/"design/pages/home/normal_home/responsive/NH01_RESPONSIVE_LAYOUT_V2.md").relative_to(ROOT)),str((ROOT/"design/pages/home/normal_home/responsive/NH01_RESPONSIVE_AUTHORITY_CROSSWALK_V1.md").relative_to(ROOT)),str(SCHEMA_PATH.relative_to(ROOT)),str(PROFILES_PATH.relative_to(ROOT)),str((ROOT/"design/system_v3/07_Responsive_System/Responsive_Layout_Standard_V1.md").relative_to(ROOT))]
+required_refs=[CONTRACT_PATH.relative_to(ROOT).as_posix(),(ROOT/"design/pages/home/normal_home/responsive/NH01_RESPONSIVE_LAYOUT_V2.md").relative_to(ROOT).as_posix(),(ROOT/"design/pages/home/normal_home/responsive/NH01_RESPONSIVE_AUTHORITY_CROSSWALK_V1.md").relative_to(ROOT).as_posix(),SCHEMA_PATH.relative_to(ROOT).as_posix(),PROFILES_PATH.relative_to(ROOT).as_posix(),(ROOT/"design/system_v3/07_Responsive_System/Responsive_Layout_Standard_V1.md").relative_to(ROOT).as_posix()]
 for ref in required_refs: require(ref in (fm.get("design_archive_refs") or []),f"Feature Matrix missing ref: {ref}")
 
-phase_tasks=phase_machine.get("tasks",{}); task=phase_tasks.get("P3-05",{})
-require(task.get("gate_id")=="G-NH01-RESPONSIVE-CONTRACT","P3-05 must bind the responsive gate")
-require("home_normal_v1" in (task.get("feature_refs") or []),"P3-05 must own home_normal_v1")
-require("P3-05" in (phase_tasks.get("P3-02",{}).get("depends_on") or []),"NH01 workspace task must depend on responsive authority closure")
-require("P3-06" in (phase_machine.get("feature_closure_rollup", {}).get("home_normal_v1", {}).get("depends_on") or []), "Normal Home closure rollup must depend on responsive preview/freeze validation")
-require(phase_tasks.get("P3-06", {}).get("gate_id") == "G-NH01-RESPONSIVE-PREVIEW", "P3-06 must bind the responsive preview gate")
-require("P3-05" in (phase_tasks.get("P3-06", {}).get("depends_on") or []), "P3-06 must depend on the candidate contract task")
-require("P3-06" in (phase_tasks.get("P3-02", {}).get("depends_on") or []), "NH01 workspace implementation must wait for responsive contract freeze validation")
+phase_tasks=phase_machine.get("tasks",{})
+contract_task_id="NH01-RESPONSIVE-CONTRACT-V2"
+preview_task_id="NH01-RESPONSIVE-PREVIEW-V2"
+contract_gate_id="G-NH01-RESPONSIVE-CONTRACT-V2"
+preview_gate_id="G-NH01-RESPONSIVE-PREVIEW-V2"
+task=phase_tasks.get(contract_task_id,{})
+require(task.get("gate_id")==contract_gate_id,f"{contract_task_id} must bind the responsive contract gate")
+require("home_normal_v1" in (task.get("feature_refs") or []),f"{contract_task_id} must own home_normal_v1")
+require(contract_task_id in (phase_tasks.get("P3-02",{}).get("depends_on") or []),"NH01 workspace task must depend on responsive authority closure")
+require(preview_task_id in (phase_machine.get("feature_closure_rollup", {}).get("home_normal_v1", {}).get("depends_on") or []), "Normal Home closure rollup must depend on responsive preview/freeze validation")
+require(phase_tasks.get(preview_task_id, {}).get("gate_id") == preview_gate_id, f"{preview_task_id} must bind the responsive preview gate")
+require(contract_task_id in (phase_tasks.get(preview_task_id, {}).get("depends_on") or []), f"{preview_task_id} must depend on the candidate contract task")
+require(preview_task_id in (phase_tasks.get("P3-02",{}).get("depends_on") or []), "NH01 workspace implementation must wait for responsive contract freeze validation")
+require(phase_tasks.get("P3-05",{}).get("gate_id") == "G-SWOS-PHASE0-CONTRACT", "P3-05 SWOS gate binding must remain canonical")
+require(phase_tasks.get("P3-06",{}).get("gate_id") == "G-WEB-HIFI-CONTRACT", "P3-06 Web hi-fi gate binding must remain canonical")
+require(phase_tasks.get("P3-07",{}).get("gate_id") == "G-SWOS-WEB-HIFI-MOTION-V1", "P3-07 SWOS Web gate binding must remain canonical")
 
 fc=registry.get("feature_contracts",{}).get("home_normal_v1",{}); ps=registry.get("page_contract_sets",{}).get("home_normal_v1",{})
 require("responsive_layout" in (fc.get("page_contract_keys") or []),"Unified Contract Registry must declare responsive_layout key")
-require(ps.get("refs",{}).get("responsive_layout")==str(CONTRACT_PATH.relative_to(ROOT)),"Unified Contract Registry page set must point to responsive contract")
+require(ps.get("refs",{}).get("responsive_layout")==CONTRACT_PATH.relative_to(ROOT).as_posix(),"Unified Contract Registry page set must point to responsive contract")
 require("RESPONSIVE-LAYOUT-STANDARD-V1" in (fc.get("additional_shared_contract_refs") or []),"Normal Home must inherit shared responsive standard")
-require("P3-05" in registry.get("task_contract_bindings",{}),"Unified Contract Registry missing P3-05 binding")
-require("G-NH01-RESPONSIVE-CONTRACT" in registry.get("gate_contracts",{}),"Unified Contract Registry missing responsive gate")
-require("P3-06" in registry.get("task_contract_bindings", {}), "Unified Contract Registry missing P3-06 binding")
-require("G-NH01-RESPONSIVE-PREVIEW" in registry.get("gate_contracts", {}), "Unified Contract Registry missing responsive preview gate")
+require(contract_task_id in registry.get("task_contract_bindings",{}),"Unified Contract Registry missing NH01 responsive contract binding")
+require(contract_gate_id in registry.get("gate_contracts",{}),"Unified Contract Registry missing responsive contract gate")
+require(preview_task_id in registry.get("task_contract_bindings", {}), "Unified Contract Registry missing NH01 responsive preview binding")
+require(preview_gate_id in registry.get("gate_contracts", {}), "Unified Contract Registry missing responsive preview gate")
+require("P3-05" in registry.get("task_contract_bindings",{}) and registry.get("task_contract_bindings",{}).get("P3-05",{}).get("gate_id")=="G-SWOS-PHASE0-CONTRACT", "Unified Contract Registry SWOS P3-05 binding must remain canonical")
+require("P3-06" in registry.get("task_contract_bindings",{}) and registry.get("task_contract_bindings",{}).get("P3-06",{}).get("gate_id")=="G-WEB-HIFI-CONTRACT", "Unified Contract Registry Web P3-06 binding must remain canonical")
+require("P3-07" in registry.get("task_contract_bindings",{}) and registry.get("task_contract_bindings",{}).get("P3-07",{}).get("gate_id")=="G-SWOS-WEB-HIFI-MOTION-V1", "Unified Contract Registry SWOS Web P3-07 binding must remain canonical")
 require(registry.get("inventory",{}).get("task_count")==len(phase_tasks),"Unified Contract Registry task_count drift")
 require(registry.get("inventory",{}).get("gate_count")==len(registry.get("gate_contracts",{})),"Unified Contract Registry gate_count drift")
 

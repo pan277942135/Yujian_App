@@ -24,6 +24,10 @@ The JSON is the sole machine authority for responsive values and rules. This gui
 
 Component width/height within declared bounds, approved spacing formulas, text wrapping, card space allocation, edge-Peek exposure, and the documented local Middle-scroll fallback. The Hero keeps its readable frame and aspect ratio when short-screen space runs out; only Middle scrolls, and Footer stays pinned. Every numeric bound remains in the JSON contract.
 
+## Logical band allocation
+
+The JSON contract maps the logical bands A (brand + statistics), B (Recent Catch heading + Hero) and C (Footer) onto the unchanged physical Top / Middle / Footer structure. After safe insets are consumed once, it computes `S = max(0, H_safe - (hA + hB + hC + gAB_base + gBC_base))`. Positive surplus adds `2S/3` to A→B and `S/3` to B→C; zero surplus preserves both base gaps. The title-to-Hero gap remains internal to band B and is not modified by this allocation.
+
 ## Authority boundary
 
 - The original 1080x1920px PNG remains the frozen whole-page composition reference; its logical reference is 360x640dp at 3x.

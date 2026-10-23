@@ -169,8 +169,8 @@ def main() -> None:
         "preserved_production_site_sha": args.base_site_sha,
         "contract_status": contract["status"],
         "release_mode": "FROZEN_ACCEPTANCE" if contract["status"] == "SPEC_FROZEN" else "PREVIEW_ONLY",
-        "release_gate_effect": "P3_06_PASS_REQUIRED" if contract["status"] == "SPEC_FROZEN" else "NONE",
-        "acceptance_status": "NOT_CLAIMED" if contract["status"] != "SPEC_FROZEN" else "P3_06_PASS_REQUIRED",
+        "release_gate_effect": "G-NH01-RESPONSIVE-PREVIEW-V2_PASS_REQUIRED" if contract["status"] == "SPEC_FROZEN" else "NONE",
+        "acceptance_status": "NOT_CLAIMED" if contract["status"] != "SPEC_FROZEN" else "NH01_RESPONSIVE_PREVIEW_V2_PASS_REQUIRED",
         "media_policy": {
             "hero": "PLACEHOLDER_ONLY" if not asset_by_id["hero_photo"].get("public_preview") else "APPROVED_SOURCE_ONLY",
             "neighbors": "HIDDEN_UNTIL_APPROVED_INDEPENDENT_ORIGINALS" if not asset_by_id["neighbor_photos"].get("public_preview") else "APPROVED_INDEPENDENT_ORIGINALS",

@@ -16,6 +16,7 @@
     "visual_anchors",
     "preview_profiles",
     "layout_regions",
+    "logical_allocation",
     "components",
     "typography",
     "spacing",
@@ -246,6 +247,57 @@
             }
           }
         }
+      }
+    },
+    "logical_allocation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "safe_height_formula",
+        "bands",
+        "surplus_formula",
+        "allocation_when_positive_surplus",
+        "allocation_when_zero_surplus",
+        "base_gap_sources",
+        "invariants"
+      ],
+      "properties": {
+        "safe_height_formula": {"type": "string"},
+        "bands": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "logical_content", "physical_region"],
+            "properties": {
+              "id": {"enum": ["A", "B", "C"]},
+              "logical_content": {"type": "array", "minItems": 1, "items": {"type": "string"}},
+              "physical_region": {"type": "string"}
+            }
+          }
+        },
+        "surplus_formula": {"type": "string"},
+        "allocation_when_positive_surplus": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["a_to_b", "b_to_c"],
+          "properties": {"a_to_b": {"type": "string"}, "b_to_c": {"type": "string"}}
+        },
+        "allocation_when_zero_surplus": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["a_to_b", "b_to_c"],
+          "properties": {"a_to_b": {"type": "string"}, "b_to_c": {"type": "string"}}
+        },
+        "base_gap_sources": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["gAB_base", "gBC_base"],
+          "properties": {"gAB_base": {"type": "string"}, "gBC_base": {"type": "string"}}
+        },
+        "invariants": {"type": "array", "minItems": 4, "items": {"type": "string"}}
       }
     },
     "components": {

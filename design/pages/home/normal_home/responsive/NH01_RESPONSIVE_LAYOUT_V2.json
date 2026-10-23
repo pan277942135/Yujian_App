@@ -319,6 +319,45 @@
       ]
     }
   ],
+  "logical_allocation": {
+    "safe_height_formula": "H_safe = viewport_height_dp - safe_insets_top_dp - safe_insets_bottom_dp; consume each safe inset exactly once before computing H_safe.",
+    "bands": [
+      {
+        "id": "A",
+        "logical_content": ["brand", "statistics"],
+        "physical_region": "top"
+      },
+      {
+        "id": "B",
+        "logical_content": ["recent-catch-heading", "selected-hero"],
+        "physical_region": "top+middle"
+      },
+      {
+        "id": "C",
+        "logical_content": ["footer"],
+        "physical_region": "footer"
+      }
+    ],
+    "surplus_formula": "S = max(0, H_safe - (hA + hB + hC + gAB_base + gBC_base))",
+    "allocation_when_positive_surplus": {
+      "a_to_b": "gAB_base + 2S/3",
+      "b_to_c": "gBC_base + S/3"
+    },
+    "allocation_when_zero_surplus": {
+      "a_to_b": "gAB_base",
+      "b_to_c": "gBC_base"
+    },
+    "base_gap_sources": {
+      "gAB_base": "stats_to_title",
+      "gBC_base": "card_to_footer"
+    },
+    "invariants": [
+      "Logical bands do not create new physical Compose containers.",
+      "Recent Catch heading remains physically in Top while logically in B.",
+      "title_to_card_runtime remains the internal Title-to-Hero gap and is not modified by surplus allocation.",
+      "Safe insets are consumed exactly once before H_safe."
+    ]
+  },
   "components": [
     {
       "id": "Brand-Title",

@@ -42,8 +42,8 @@ def fixture(contract_status="PROPOSED_FOR_CANONICAL_MAIN_REVIEW", p3_status="BLO
     }
     report = {
         "status": "PASS",
-        "p3_06_status": p3_status,
-        "p3_06_blockers": blockers,
+        "nh01_preview_v2_status": p3_status,
+        "nh01_preview_v2_blockers": blockers,
         "checks": {
             "contract": {
                 "id": contract["contract_id"],
@@ -57,7 +57,7 @@ def fixture(contract_status="PROPOSED_FOR_CANONICAL_MAIN_REVIEW", p3_status="BLO
                     {"asset": "avatar", "src": "/assets/avatar.png"},
                 ],
             },
-            "p3_06": {"media_blockers": blockers},
+            "nh01_preview_v2": {"media_blockers": blockers},
         },
     }
     manifest = {
@@ -87,15 +87,15 @@ class PreviewReleaseGateTests(unittest.TestCase):
         self.assertEqual(result["release_gate_effect"], "NONE")
         self.assertEqual(result["acceptance_status"], "NOT_CLAIMED")
 
-    def test_frozen_contract_requires_actual_p3_06_pass(self):
+    def test_frozen_contract_requires_actual_nh01_preview_v2_pass(self):
         report, contract, manifest, html = fixture(contract_status="SPEC_FROZEN", p3_status="BLOCKED")
         with self.assertRaises(GateError):
             resolve_release_mode(report, contract, manifest, html, SHA)
 
     def test_unknown_media_blocker_fails_closed(self):
         report, contract, manifest, html = fixture()
-        report["checks"]["p3_06"]["media_blockers"].append({"id": "secret_asset", "status": "BLOCKED_ASSET_SOURCE"})
-        report["p3_06_blockers"] = report["checks"]["p3_06"]["media_blockers"]
+        report["checks"]["nh01_preview_v2"]["media_blockers"].append({"id": "secret_asset", "status": "BLOCKED_ASSET_SOURCE"})
+        report["nh01_preview_v2_blockers"] = report["checks"]["nh01_preview_v2"]["media_blockers"]
         with self.assertRaises(GateError):
             resolve_release_mode(report, contract, manifest, html, SHA)
 
@@ -115,9 +115,9 @@ class PreviewReleaseGateTests(unittest.TestCase):
         result = resolve_release_mode(report, contract, manifest, html, SHA)
         self.assertTrue(result["publish"])
         self.assertEqual(result["preview_mode"], "FROZEN_ACCEPTANCE")
-        self.assertEqual(result["release_gate_effect"], "P3_06_PASS_REQUIRED")
+        self.assertEqual(result["release_gate_effect"], "G-NH01-RESPONSIVE-PREVIEW-V2_PASS_REQUIRED")
 
-    def test_p3_06_pass_rejects_placeholder_or_missing_photo_evidence(self):
+    def test_nh01_preview_v2_pass_rejects_placeholder_or_missing_photo_evidence(self):
         report, contract, manifest, html = fixture(contract_status="SPEC_FROZEN", p3_status="PASS")
         report["checks"]["contract"]["visible_structure"]["heroPhotoRendered"] = False
         with self.assertRaises(GateError):

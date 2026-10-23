@@ -123,13 +123,25 @@ shared_contracts:
     domain: "EXECUTION"
     status: "ACTIVE"
     refs: ["harness/STATE_UPDATE_PROTOCOL.md", "harness/PHASE_TASK_STATE_MACHINE.yaml", "PROJECT_MASTER_STATE.yaml"]
+  RECOGNITION-OPTICAL-CONTINUITY:
+    domain: "DOMAIN"
+    status: "ACTIVE_CLOSURE"
+    refs: ["design/pages/recognition/continuity/Processing_Result_Optical_Continuity_Contract_V1.md", "design/pages/recognition/continuity/processing_result_optical_continuity_v1.json"]
+  WEB-RECOGNITION-HIFI-V2:
+    domain: "DOMAIN"
+    status: "ACTIVE_CLOSURE"
+    refs: ["design/pages/recognition/web/WEB_HIFI_CONTRACT_V2.md", "design/pages/recognition/web/contracts/Page_Structure_V2.json", "design/pages/recognition/web/WEB_HIFI_GAP_MATRIX_V2.md"]
+  SWOS-WEB-HIFI-MOTION-V1:
+    domain: "DOMAIN"
+    status: "READY"
+    refs: ["design/pages/recognition/web/SWOS_WEB_HIFI_MOTION_TECHNICAL_CONTRACT_V1_0.md", "design/pages/recognition/web/contracts/SWOS_WEB_HIFI_MOTION_TECHNICAL_CONTRACT_V1_0.json", "design/pages/recognition/processing/optics/SWOS_Dynamic_Demo_Technical_Handoff_V1.md", "design/pages/recognition/web/implementation_input_pack/SWOS_WEB_IMPLEMENTATION_INPUT_MANIFEST_V1.json"]
   DESIGN-MANAGER-PAGE-LAYER-WORKSPACE-V1:
     domain: "DOMAIN"
     status: "READY"
     refs: ["design/governance/DESIGN_MANAGER_PAGE_LAYER_WORKSPACE_V1.md"]
   RESPONSIVE-LAYOUT-STANDARD-V1:
-    domain: "DOMAIN"
-    status: "READY"
+    domain: "SHARED"
+    status: "PROPOSED_FOR_CANONICAL_MAIN_REVIEW"
     refs: ["design/system_v3/07_Responsive_System/Responsive_Layout_Standard_V1.md", "design/system_v3/07_Responsive_System/Responsive_Layout_Contract_Schema_V1.json", "design/system_v3/07_Responsive_System/Viewport_Profiles_V1.json"]
 
 feature_contracts:
@@ -210,8 +222,9 @@ feature_contracts:
       assets:
         status: "FROZEN"
         authority: "design/pages/home/normal_home/assets/asset_manifest.json"
-    page_contract_refs: ["design/system_v3/10_Page_Visual_Acceptance_Contracts/Normal_Home/Normal_Home_Visual_Contract_V1.md", "design/system_v3/09_Android_Implementation_Contracts/Normal_Home/Normal_Home_Android_Contract_V1.md", "design/system_v3/09_Android_Implementation_Contracts/Normal_Home/Normal_Home_State_Binding_V1.json", "design/system_v3/09_Android_Implementation_Contracts/Normal_Home/Normal_Home_Android_Component_Mapping_V1.json", "design/system_v3/09_Android_Implementation_Contracts/Normal_Home/Normal_Home_Resource_Binding_V1.json", "design/system_v3/09_Android_Implementation_Contracts/Normal_Home/Normal_Home_Motion_Runtime_Binding_V1.md", "design/system_v3/09_Android_Implementation_Contracts/Normal_Home/Normal_Home_Runtime_Gate_V1.md", "design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_MULTI_SCREEN_STATIC_HIFI_V1_MANIFEST.json", "design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_MULTI_SCREEN_RESPONSIVE_CONTRACT_V1.md", "design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_MULTI_SCREEN_RESPONSIVE_CONTRACT_V1.json", "design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_STATIC_HIFI_ACCEPTANCE_MATRIX_V1.json", "design/pages/home/normal_home/responsive/NH01_RESPONSIVE_LAYOUT_V2.md", "design/pages/home/normal_home/responsive/NH01_RESPONSIVE_LAYOUT_V2.json", "design/pages/home/normal_home/responsive/NH01_RESPONSIVE_AUTHORITY_CROSSWALK_V1.md"]
-    page_contract_keys: ["visual", "implementation", "state", "component_mapping", "resource_binding", "motion_runtime", "runtime_gate", "static_hifi_assets", "static_hifi_responsive", "static_hifi_acceptance", "responsive_layout"]
+    page_contract_refs: ["design/system_v3/10_Page_Visual_Acceptance_Contracts/Normal_Home/Normal_Home_Visual_Contract_V1.md", "design/system_v3/09_Android_Implementation_Contracts/Normal_Home/Normal_Home_Android_Contract_V1.md", "design/system_v3/09_Android_Implementation_Contracts/Normal_Home/Normal_Home_State_Binding_V1.json", "design/system_v3/09_Android_Implementation_Contracts/Normal_Home/Normal_Home_Android_Component_Mapping_V1.json", "design/system_v3/09_Android_Implementation_Contracts/Normal_Home/Normal_Home_Resource_Binding_V1.json", "design/system_v3/09_Android_Implementation_Contracts/Normal_Home/Normal_Home_Motion_Runtime_Binding_V1.md", "design/system_v3/09_Android_Implementation_Contracts/Normal_Home/Normal_Home_Runtime_Gate_V1.md", "design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_MULTI_SCREEN_STATIC_HIFI_V1_MANIFEST.json", "design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_MULTI_SCREEN_RESPONSIVE_CONTRACT_V1.md", "design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_MULTI_SCREEN_RESPONSIVE_CONTRACT_V1.json", "design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_STATIC_HIFI_ACCEPTANCE_MATRIX_V1.json", "design/pages/home/normal_home/engineering/NH01_GEMINI_ADAPTIVE_V2_UNIFIED_AUTHORITY_V1.md", "design/qa/NH01_ADAPTIVE_VISUAL_BALANCE_V2.md", "design/pages/home/normal_home/engineering/NH01_GEMINI_ADAPTIVE_V2_ACCEPTANCE_V1.md", "design/pages/home/normal_home/engineering/NH01_GEMINI_ADAPTIVE_V2_ACCEPTANCE_MATRIX_V1.json", "design/pages/home/normal_home/authority/authority_map.json"]
+    page_contract_keys: ["visual", "implementation", "state", "component_mapping", "resource_binding", "motion_runtime", "runtime_gate", "static_hifi_assets", "static_hifi_responsive", "static_hifi_acceptance", "gemini_v22_authority", "gemini_v22_balance", "gemini_v22_acceptance", "gemini_v22_matrix", "nh01_authority_map", "responsive_layout", "responsive_authority_crosswalk"]
+    android_layout_policy: "app/src/main/java/com/yujian/ai/ui/home/GeminiHomeAdaptiveLayoutPolicy.kt"
     shared_contract_refs: ["DS-FOUNDATION", "ANDROID-RUNTIME-HARNESS", "STATE-EVIDENCE-PROVENANCE"]
     additional_shared_contract_refs: ["RESPONSIVE-LAYOUT-STANDARD-V1"]
     required_gate_classes: ["STATIC_CONTRACT", "BUILD", "RUNTIME", "VISUAL", "MOTION_ACCESSIBILITY", "JOURNEY_E2E", "APK_PROVENANCE"]
@@ -272,11 +285,11 @@ feature_contracts:
         status: "FROZEN"
         authority: "design/pages/recognition/spec/Recognition_State_Timeline_Spec_V1_3.md"
       visual:
-        status: "FROZEN"
-        authority: "design/pages/recognition/design/Recognition_Processing_Visual_State_Set_V1_2.json"
+        status: "ACTIVE_CLOSURE"
+        authority: "design/pages/recognition/processing/optics/SWOS_Optical_Contract_V1.md"
       motion:
-        status: "FROZEN"
-        authority: "design/pages/recognition/processing/motion/Recognition_Processing_Motion_Spec_V1_2.md"
+        status: "ACTIVE_CLOSURE"
+        authority: "design/pages/recognition/processing/motion/Recognition_Processing_Motion_Spec_V1_3.md"
       haptic:
         status: "FROZEN"
         authority: "design/pages/recognition/processing/haptic/Recognition_Processing_Haptic_Spec_V1.md"
@@ -292,7 +305,7 @@ feature_contracts:
       assets:
         status: "FROZEN"
         authority: "design/pages/recognition/design/reference_manifest.json"
-    page_contract_refs: ["design/system_v3/08_Page_Contracts/recognition/capture/Recognition_Capture_Page_Contract_V3_1.md", "design/system_v3/08_Page_Contracts/recognition/capture/Layout_Contract_V3_1.json", "design/system_v3/08_Page_Contracts/recognition/capture/State_Machine_V3_1.json", "design/system_v3/08_Page_Contracts/recognition/capture/Data_Contract_V3_1.json", "design/system_v3/08_Page_Contracts/recognition/capture/Engineering_Contract_V3_1.md", "design/system_v3/08_Page_Contracts/recognition/capture/Acceptance_Contract_V3_1.json", "design/system_v3/08_Page_Contracts/recognition/capture/Capture_Accessibility_Responsive_Matrix.md", "design/system_v3/08_Page_Contracts/recognition/processing/Recognition_Processing_Page_Contract_V3_1.md", "design/system_v3/08_Page_Contracts/recognition/processing/Layout_Contract_V3_1.json", "design/system_v3/08_Page_Contracts/recognition/processing/State_Machine_V3_1.json", "design/system_v3/08_Page_Contracts/recognition/processing/Data_Contract_V3_1.json", "design/system_v3/08_Page_Contracts/recognition/processing/Engineering_Contract_V3_1.md", "design/system_v3/08_Page_Contracts/recognition/processing/Acceptance_Contract_V3_1.json"]
+    page_contract_refs: ["design/system_v3/08_Page_Contracts/recognition/capture/Recognition_Capture_Page_Contract_V3_1.md", "design/system_v3/08_Page_Contracts/recognition/capture/Layout_Contract_V3_1.json", "design/system_v3/08_Page_Contracts/recognition/capture/State_Machine_V3_1.json", "design/system_v3/08_Page_Contracts/recognition/capture/Data_Contract_V3_1.json", "design/system_v3/08_Page_Contracts/recognition/capture/Engineering_Contract_V3_1.md", "design/system_v3/08_Page_Contracts/recognition/capture/Acceptance_Contract_V3_1.json", "design/system_v3/08_Page_Contracts/recognition/capture/Capture_Accessibility_Responsive_Matrix.md", "design/system_v3/08_Page_Contracts/recognition/processing/Recognition_Processing_Page_Contract_V3_2.md", "design/system_v3/08_Page_Contracts/recognition/processing/Layout_Contract_V3_1.json", "design/system_v3/08_Page_Contracts/recognition/processing/State_Machine_V3_2.json", "design/system_v3/08_Page_Contracts/recognition/processing/Data_Contract_V3_1.json", "design/system_v3/08_Page_Contracts/recognition/processing/Engineering_Contract_V3_2.md", "design/system_v3/08_Page_Contracts/recognition/processing/Acceptance_Contract_V3_2.json"]
     page_contract_keys: ["capture_page", "capture_layout", "capture_state", "capture_data", "capture_engineering", "capture_acceptance", "capture_accessibility", "processing_page", "processing_layout", "processing_state", "processing_data", "processing_engineering", "processing_acceptance"]
     contract_extensions:
       capture_hifi:
@@ -335,9 +348,90 @@ feature_contracts:
         product_runtime_state: false
         production_default_model_changed: false
         note: "Design-only technical/business flow reference. DET_FISH owns full-scene fish detection/location; MODEL_M1 classifies valid crops; size/quality rules and RR07 own eligibility and final user-facing routing."
+      swos_static_visual_v1_1:
+        status: "DESIGN_ONLY"
+        design_status: "FROZEN_DESIGN_DIRECTION"
+        adoption_status: "MAIN_ADOPTED_DESIGN_ONLY"
+        adoption_pr: 190
+        source_prs: [186, 187]
+        runtime_visual_verified: false
+        manager_route: "#page/recognition_flow_v1_2/hifi/swos_static_visual_v1_1"
+        visual_contract: "design/pages/recognition/processing/optics/SWOS_Static_Visual_Contract_V1_1.md"
+        keyframe_contract: "design/pages/recognition/processing/optics/SWOS_15_Frame_Keyframe_Contract_V1_1.json"
+        shared_photo_transition: "design/pages/recognition/continuity/SWOS_Shared_Photo_Transition_Contract_V1.json"
+        asset_manifest: "design/pages/recognition/processing/optics/SWOS_Static_Asset_Manifest_V1_1.json"
+        dynamic_demo_handoff: "design/pages/recognition/processing/optics/SWOS_Dynamic_Demo_Technical_Handoff_V1.md"
+        related_rr09_route: "#page/recognition_result_v1/hifi/motion_continuation"
+        frame_count: 15
+        processing_duration_ms: 2800
+        rr09_duration_ms: 850
+        total_nominal_duration_ms: 3650
+        r0_5_relative_ms: 100
+        adds_product_state: false
+        changes_model_logic: false
+        android_runtime_mapping: false
+        public_photo_permission: "NOT_CONFIRMED"
+        note: "Main 已采纳的静态设计合同，仅用于评审。R0.5 是现有 0–200ms handoff 内的采样帧；Phase/Task State Machine 不变，因为未增加产品状态或执行状态。Android Runtime 未运行，照片公开许可仍未确认。"
+      web_hifi_contract_v2:
+        status: "DESIGN_ONLY"
+        authority_status: "VISUAL_CONTRACT_DEFINED"
+        adoption_status: "MAIN_ADOPTED_DESIGN_ONLY"
+        adoption_pr: 190
+        source_prs: [186, 187]
+        manager_route: "#page/recognition_flow_v1_2/hifi/web_hifi_contract_v2"
+        contract: "design/pages/recognition/web/WEB_HIFI_CONTRACT_V2.md"
+        machine_contracts:
+          - "design/pages/recognition/web/contracts/Page_Structure_V2.json"
+          - "design/pages/recognition/web/contracts/Visual_Tokens_V2.json"
+          - "design/pages/recognition/web/contracts/Component_Geometry_V2.json"
+          - "design/pages/recognition/web/contracts/Responsive_Rules_V2.json"
+          - "design/pages/recognition/web/contracts/Page_State_Matrix_V2.json"
+          - "design/pages/recognition/web/contracts/Authority_References_V2.json"
+          - "design/pages/recognition/web/contracts/Acceptance_Matrix_V2.json"
+          - "design/pages/recognition/web/contracts/Asset_Manifest_V2.json"
+          - "design/pages/recognition/web/contracts/Work_B_Implementation_Mapping_V2.json"
+        handoff_a: "design/pages/recognition/web/WEB_HIFI_HANDOFF_A_V2.md"
+        handoff_b: "design/pages/recognition/web/WEB_HIFI_HANDOFF_B_V2.md"
+        gap_matrix: "design/pages/recognition/web/WEB_HIFI_GAP_MATRIX_V2.md"
+        visual_reference_manifest: "design/pages/recognition/web/VISUAL_REFERENCE_MANIFEST_V1.json"
+        visual_reference_gate: "scripts/verify_private_visual_references.py"
+        product_repository: "pan277942135/Yujian"
+        product_pr: 177
+        product_pr_head: "655c4af07a0244fcf29441b5652c48ca74f2e6a2"
+        runtime_visual_verified: false
+        pixel_frozen_source: "NOT_CONFIRMED"
+        candidate_photo_publication_permission: "NOT_CONFIRMED"
+        product_runtime_state: false
+        product_web_deployed: false
+        note: "Main 已采纳的设计合同，不包含 Web 产品实现、生产流量切换、真实视觉 UAT 或未经授权照片。PR #177 保持 Draft/Open/Unmerged。"
+
+      swos_web_hifi_motion_contract_v1_0:
+        status: "DESIGN_ONLY"
+        authority_status: "MAIN_ADOPTED_DESIGN_ONLY"
+        runtime_status: "NOT_VERIFIED"
+        production_mask_qualification: "NOT_QUALIFIED"
+        manager_route: "#page/recognition_flow_v1_2/hifi/swos_web_hifi_motion_contract_v1_0"
+        contract: "design/pages/recognition/web/SWOS_WEB_HIFI_MOTION_TECHNICAL_CONTRACT_V1_0.md"
+        machine_contract: "design/pages/recognition/web/contracts/SWOS_WEB_HIFI_MOTION_TECHNICAL_CONTRACT_V1_0.json"
+        reused_sam_experiment:
+          repository: "pan277942135/Yujian"
+          endpoint: "POST /api/debug/fish-segmentation"
+          scope: "DEBUG_EXPERIMENT_ONLY_NOT_PUBLIC_PRODUCTION_API"
+          duplicate_service_allowed: false
+          retrain_allowed: false
+        processing_duration_ms: 2800
+        rr09_duration_ms: 850
+        total_nominal_duration_ms: 3650
+        frame_count: 15
+        species_name_language: "ZH_ONLY"
+        one_shared_photo_transform: true
+        playable_browser_demo_status: "NOT_VERIFIED"
+        production_mask_status: "NOT_QUALIFIED"
+        note: "统一 Web 可播放动效技术合同；必须复用现有 SAM 实验链路并独立验收真实播放、逐帧视觉、响应式和浏览器帧时间。"
+
 
     shared_contract_refs: ["DS-FOUNDATION", "ANDROID-RUNTIME-HARNESS", "STATE-EVIDENCE-PROVENANCE"]
-    additional_shared_contract_refs: ["MODEL-RECOGNITION", "API-DATA-BOUNDARY"]
+    additional_shared_contract_refs: ["MODEL-RECOGNITION", "API-DATA-BOUNDARY", "RECOGNITION-OPTICAL-CONTINUITY", "SWOS-WEB-HIFI-MOTION-V1"]
     required_gate_classes: ["STATIC_CONTRACT", "BUILD", "RUNTIME", "VISUAL", "MOTION_ACCESSIBILITY", "JOURNEY_E2E", "APK_PROVENANCE"]
   recognition_result_v1:
     contract_id: "FC-recognition_result_v1"
@@ -345,7 +439,7 @@ feature_contracts:
     scope: "PRIMARY_JOURNEY"
     priority: "P0"
     control_phase: "P8"
-    registry_status: "FROZEN"
+    registry_status: "ACTIVE_CLOSURE"
     owner_path: "design/pages/recognition/result"
     child_surfaces: ["overview", "high", "medium", "low", "no_fish", "image_quality", "content_edit", "decision_logic", "visual_acceptance", "motion_continuation"]
     journey_refs: ["J11", "J12", "J13", "J14", "J15", "J16"]
@@ -358,8 +452,8 @@ feature_contracts:
         status: "FROZEN"
         authority: "design/pages/recognition/result/authority/authority_map.json"
       motion:
-        status: "FROZEN"
-        authority: "design/pages/recognition/result/motion/Recognition_Result_Motion_Spec_V2.md"
+        status: "ACTIVE_CLOSURE"
+        authority: "design/pages/recognition/result/motion/Recognition_Result_Motion_Spec_V3.md"
       haptic:
         status: "FROZEN"
         authority: "design/pages/recognition/result/motion/Recognition_Result_Motion_Spec_V1.md"
@@ -375,10 +469,10 @@ feature_contracts:
       assets:
         status: "FROZEN"
         authority: "design/pages/recognition/design/reference_manifest.json"
-    page_contract_refs: ["design/system_v3/08_Page_Contracts/recognition/result/Recognition_Result_Page_Contract_V3_1.md", "design/system_v3/08_Page_Contracts/recognition/result/Layout_Contract_V3_1.json", "design/system_v3/08_Page_Contracts/recognition/result/State_Machine_V3_1.json", "design/system_v3/08_Page_Contracts/recognition/result/Data_Contract_V3_1.json", "design/system_v3/08_Page_Contracts/recognition/result/Engineering_Contract_V3_1.md", "design/system_v3/08_Page_Contracts/recognition/result/Acceptance_Contract_V3_1.json", "design/system_v3/08_Page_Contracts/recognition/result/Result_Responsive_Accessibility_Matrix_V3_1.md", "design/system_v3/09_Android_Implementation_Contracts/Android_Implementation_Contract_Registry_V1.json", "design/system_v3/09_Android_Implementation_Contracts/Recognition_Result_State_Binding_V1.json", "design/system_v3/09_Android_Implementation_Contracts/Recognition_Result_Component_Mapping_V1.json", "design/system_v3/09_Android_Implementation_Contracts/Recognition_Result_Runtime_Gate_V1.md", "design/system_v3/10_Page_Visual_Acceptance_Contracts/Recognition_Result/Recognition_Result_Visual_Contract_V1.md", "design/system_v3/10_Page_Visual_Acceptance_Contracts/Recognition_Result/Recognition_Result_Pixel_Targets_V1.json", "design/system_v3/10_Page_Visual_Acceptance_Contracts/Recognition_Result/Recognition_Result_Motion_Contract_V2.md", "design/system_v3/10_Page_Visual_Acceptance_Contracts/Recognition_Result/Recognition_Result_Accessibility_Contract_V1.md"]
+    page_contract_refs: ["design/system_v3/08_Page_Contracts/recognition/result/Recognition_Result_Page_Contract_V3_1.md", "design/system_v3/08_Page_Contracts/recognition/result/Layout_Contract_V3_1.json", "design/system_v3/08_Page_Contracts/recognition/result/State_Machine_V3_1.json", "design/system_v3/08_Page_Contracts/recognition/result/Data_Contract_V3_1.json", "design/system_v3/08_Page_Contracts/recognition/result/Engineering_Contract_V3_1.md", "design/system_v3/08_Page_Contracts/recognition/result/Acceptance_Contract_V3_1.json", "design/system_v3/08_Page_Contracts/recognition/result/Result_Responsive_Accessibility_Matrix_V3_1.md", "design/system_v3/09_Android_Implementation_Contracts/Android_Implementation_Contract_Registry_V1.json", "design/system_v3/09_Android_Implementation_Contracts/Recognition_Result_State_Binding_V1.json", "design/system_v3/09_Android_Implementation_Contracts/Recognition_Result_Component_Mapping_V1.json", "design/system_v3/09_Android_Implementation_Contracts/Recognition_Result_Runtime_Gate_V1.md", "design/system_v3/10_Page_Visual_Acceptance_Contracts/Recognition_Result/Recognition_Result_Visual_Contract_V1.md", "design/system_v3/10_Page_Visual_Acceptance_Contracts/Recognition_Result/Recognition_Result_Pixel_Targets_V1.json", "design/system_v3/10_Page_Visual_Acceptance_Contracts/Recognition_Result/Recognition_Result_Motion_Contract_V3.md", "design/system_v3/10_Page_Visual_Acceptance_Contracts/Recognition_Result/Recognition_Result_Accessibility_Contract_V1.md"]
     page_contract_keys: ["page_contract", "layout", "state", "data", "engineering", "acceptance", "responsive_accessibility", "android_registry", "android_state_binding", "android_component_mapping", "android_runtime_gate", "visual_contract", "visual_pixel_targets", "visual_motion", "visual_accessibility"]
     shared_contract_refs: ["DS-FOUNDATION", "ANDROID-RUNTIME-HARNESS", "STATE-EVIDENCE-PROVENANCE"]
-    additional_shared_contract_refs: ["MODEL-RECOGNITION", "API-DATA-BOUNDARY"]
+    additional_shared_contract_refs: ["MODEL-RECOGNITION", "API-DATA-BOUNDARY", "RECOGNITION-OPTICAL-CONTINUITY"]
     required_gate_classes: ["STATIC_CONTRACT", "BUILD", "RUNTIME", "VISUAL", "MOTION_ACCESSIBILITY", "JOURNEY_E2E", "APK_PROVENANCE"]
   fish_record_detail_v2:
     contract_id: "FC-fish_record_detail_v2"
@@ -1354,8 +1448,14 @@ page_contract_sets:
       static_hifi_assets: "design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_MULTI_SCREEN_STATIC_HIFI_V1_MANIFEST.json"
       static_hifi_responsive: "design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_MULTI_SCREEN_RESPONSIVE_CONTRACT_V1.json"
       static_hifi_acceptance: "design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_STATIC_HIFI_ACCEPTANCE_MATRIX_V1.json"
+      gemini_v22_authority: "design/pages/home/normal_home/engineering/NH01_GEMINI_ADAPTIVE_V2_UNIFIED_AUTHORITY_V1.md"
+      gemini_v22_balance: "design/qa/NH01_ADAPTIVE_VISUAL_BALANCE_V2.md"
+      gemini_v22_acceptance: "design/pages/home/normal_home/engineering/NH01_GEMINI_ADAPTIVE_V2_ACCEPTANCE_V1.md"
+      gemini_v22_matrix: "design/pages/home/normal_home/engineering/NH01_GEMINI_ADAPTIVE_V2_ACCEPTANCE_MATRIX_V1.json"
+      nh01_authority_map: "design/pages/home/normal_home/authority/authority_map.json"
       responsive_layout: "design/pages/home/normal_home/responsive/NH01_RESPONSIVE_LAYOUT_V2.json"
-    authority_rule: "The original visual key remains the frozen whole-page composition. static_hifi_assets/static_hifi_responsive/static_hifi_acceptance retain V1 frozen archive identity, static presentation and archive checks. responsive_layout is the single proposed machine authority for current Gemini responsive geometry after canonical adoption; the existing Gemini unified authority continues to own non-responsive fields. Android Runtime remains independently NOT_VERIFIED."
+      responsive_authority_crosswalk: "design/pages/home/normal_home/responsive/NH01_RESPONSIVE_AUTHORITY_CROSSWALK_V1.md"
+    authority_rule: "The existing visual key remains the original NH01 V1 whole-page authority; appended static_hifi keys own the additive archive. The Responsive Layout V2 candidate owns the logical A/B/C band surplus rule with 2S/3 to A-to-B and S/3 to B-to-C; the internal title-to-Hero gap and physical Top/Middle/Footer structure remain unchanged. Gemini Adaptive V2 and its native matrix remain the Android runtime authority."
   recognition_flow_v1_2:
     refs:
       capture_page: "design/system_v3/08_Page_Contracts/recognition/capture/Recognition_Capture_Page_Contract_V3_1.md"
@@ -1365,12 +1465,12 @@ page_contract_sets:
       capture_engineering: "design/system_v3/08_Page_Contracts/recognition/capture/Engineering_Contract_V3_1.md"
       capture_acceptance: "design/system_v3/08_Page_Contracts/recognition/capture/Acceptance_Contract_V3_1.json"
       capture_accessibility: "design/system_v3/08_Page_Contracts/recognition/capture/Capture_Accessibility_Responsive_Matrix.md"
-      processing_page: "design/system_v3/08_Page_Contracts/recognition/processing/Recognition_Processing_Page_Contract_V3_1.md"
+      processing_page: "design/system_v3/08_Page_Contracts/recognition/processing/Recognition_Processing_Page_Contract_V3_2.md"
       processing_layout: "design/system_v3/08_Page_Contracts/recognition/processing/Layout_Contract_V3_1.json"
-      processing_state: "design/system_v3/08_Page_Contracts/recognition/processing/State_Machine_V3_1.json"
+      processing_state: "design/system_v3/08_Page_Contracts/recognition/processing/State_Machine_V3_2.json"
       processing_data: "design/system_v3/08_Page_Contracts/recognition/processing/Data_Contract_V3_1.json"
-      processing_engineering: "design/system_v3/08_Page_Contracts/recognition/processing/Engineering_Contract_V3_1.md"
-      processing_acceptance: "design/system_v3/08_Page_Contracts/recognition/processing/Acceptance_Contract_V3_1.json"
+      processing_engineering: "design/system_v3/08_Page_Contracts/recognition/processing/Engineering_Contract_V3_2.md"
+      processing_acceptance: "design/system_v3/08_Page_Contracts/recognition/processing/Acceptance_Contract_V3_2.json"
     authority_rule: "Only the named source owns the declared contract dimension; absence is not inherited silently."
   recognition_result_v1:
     refs:
@@ -1387,11 +1487,26 @@ page_contract_sets:
       android_runtime_gate: "design/system_v3/09_Android_Implementation_Contracts/Recognition_Result_Runtime_Gate_V1.md"
       visual_contract: "design/system_v3/10_Page_Visual_Acceptance_Contracts/Recognition_Result/Recognition_Result_Visual_Contract_V1.md"
       visual_pixel_targets: "design/system_v3/10_Page_Visual_Acceptance_Contracts/Recognition_Result/Recognition_Result_Pixel_Targets_V1.json"
-      visual_motion: "design/system_v3/10_Page_Visual_Acceptance_Contracts/Recognition_Result/Recognition_Result_Motion_Contract_V2.md"
+      visual_motion: "design/system_v3/10_Page_Visual_Acceptance_Contracts/Recognition_Result/Recognition_Result_Motion_Contract_V3.md"
       visual_accessibility: "design/system_v3/10_Page_Visual_Acceptance_Contracts/Recognition_Result/Recognition_Result_Accessibility_Contract_V1.md"
     authority_rule: "Only the named source owns the declared contract dimension; absence is not inherited silently."
 
 gate_contracts:
+  G-NH01-WORK-B-V22-EXACT-SHA:
+    purpose: "Issue #194 V2.2 Android implementation repair including Responsive Foundation V1.1 equal long-screen surplus split (S/2 to A-to-B and S/2 to B-to-C), plus targeted API28 smoke; does not replace the full native matrix, N004 or release gates"
+    contract_refs: ["FC-home_normal_v1", "ANDROID-RUNTIME-HARNESS", "STATE-EVIDENCE-PROVENANCE"]
+    acceptance_domains: ["implementation", "runtime", "visual", "accessibility", "evidence", "apk_provenance"]
+    exact_sha_required: true
+  G-NH01-RESPONSIVE-CONTRACT-V2:
+    purpose: "NH01 Responsive Layout V2 schema, authority crosswalk, logical A/B/C band surplus policy and canonical control-plane registration; does not reuse SWOS P3-05/P3-06/P3-07."
+    contract_refs: ["FC-home_normal_v1", "RESPONSIVE-LAYOUT-STANDARD-V1", "DESIGN-MANAGER-PAGE-LAYER-WORKSPACE-V1"]
+    acceptance_domains: ["static_contract", "design_authority", "evidence"]
+    exact_sha_required: true
+  G-NH01-RESPONSIVE-PREVIEW-V2:
+    purpose: "NH01 Responsive V2 isolated preview, fixed/wide/non-anchor/boundary browser verification and exact-source deployment evidence; freeze requires approved Hero and two independent neighbor originals."
+    contract_refs: ["FC-home_normal_v1", "RESPONSIVE-LAYOUT-STANDARD-V1", "STATE-EVIDENCE-PROVENANCE"]
+    acceptance_domains: ["visual", "runtime", "evidence"]
+    exact_sha_required: true
   G-API28-MATRIX:
     purpose: "Runtime matrix against exact execution SHA"
     contract_refs: ["ANDROID-RUNTIME-HARNESS"]
@@ -1411,16 +1526,6 @@ gate_contracts:
     purpose: "Normal Home Hero fixture and camera parity"
     contract_refs: ["FC-home_normal_v1", "FC-fish_record_detail_v2"]
     acceptance_domains: ["visual", "runtime", "evidence"]
-    exact_sha_required: true
-  G-NH01-RESPONSIVE-CONTRACT:
-    purpose: "NH01 responsive contract schema, six frozen visual anchors, authority crosswalk and control-plane references; static contract gate only, not preview or Android runtime acceptance"
-    contract_refs: ["FC-home_normal_v1", "RESPONSIVE-LAYOUT-STANDARD-V1", "STATE-EVIDENCE-PROVENANCE"]
-    acceptance_domains: ["static_contract", "evidence"]
-    exact_sha_required: true
-  G-NH01-RESPONSIVE-PREVIEW:
-    purpose: "Contract-driven NH01 preview, six-anchor invariant alignment, non-anchor continuity and threshold-boundary verification; promote contract to SPEC_FROZEN only after these checks pass"
-    contract_refs: ["FC-home_normal_v1", "RESPONSIVE-LAYOUT-STANDARD-V1", "STATE-EVIDENCE-PROVENANCE"]
-    acceptance_domains: ["visual", "evidence"]
     exact_sha_required: true
   G-EVIDENCE-PACK:
     purpose: "Primary runtime/evidence package"
@@ -1452,6 +1557,23 @@ gate_contracts:
     contract_refs: ["STATE-EVIDENCE-PROVENANCE"]
     acceptance_domains: ["release"]
     exact_sha_required: true
+  G-SWOS-PHASE0-CONTRACT:
+    purpose: "Cross-contract SWOS Phase 0 authority and timing consistency"
+    contract_refs: ["FC-recognition_flow_v1_2", "FC-recognition_result_v1", "RECOGNITION-OPTICAL-CONTINUITY", "DS-FOUNDATION"]
+    acceptance_domains: ["visual", "motion", "accessibility", "evidence"]
+    exact_sha_required: true
+  G-WEB-HIFI-CONTRACT:
+    purpose: "Web hi-fi V2 contracts and private visual registration; browser evidence required, no pixel/runtime promotion"
+    visual_reference_policy: "design/governance/VISUAL_REFERENCE_CLOSURE_GATE_V1.md"
+    visual_reference_validator: "scripts/verify_private_visual_references.py"
+    contract_refs: ["FC-recognition_flow_v1_2", "FC-recognition_result_v1", "WEB-RECOGNITION-HIFI-V2"]
+    acceptance_domains: ["visual", "motion", "asset", "evidence"]
+    exact_sha_required: true
+  G-SWOS-WEB-HIFI-MOTION-V1:
+    purpose: "Exact-source Web SWOS playable motion, shared photo geometry, existing SAM experiment reuse, responsive and browser visual/performance evidence; heuristic mask quality alone cannot qualify production Mask"
+    contract_refs: ["FC-recognition_flow_v1_2", "FC-recognition_result_v1", "WEB-RECOGNITION-HIFI-V2", "SWOS-WEB-HIFI-MOTION-V1", "RECOGNITION-OPTICAL-CONTINUITY"]
+    acceptance_domains: ["visual", "motion", "asset", "runtime", "evidence"]
+    exact_sha_required: true
   G-FIRST-USE-GUIDE-ASSET:
     purpose: "First-use guide binary identity and governance"
     contract_refs: ["FC-recognition_flow_v1_2", "DS-FOUNDATION"]
@@ -1476,6 +1598,18 @@ gate_contracts:
     resource_gallery_ids: ["p01", "p02", "p03"]
     android_runtime_mapping: false
 task_contract_bindings:
+  YUJIAN_NH01_ANDROID_FROZEN_V22_IMPLEMENTATION_REPAIR_WORK_B_V1:
+    contract_refs: ["FC-home_normal_v1", "ANDROID-RUNTIME-HARNESS", "STATE-EVIDENCE-PROVENANCE", "G-NH01-WORK-B-V22-EXACT-SHA"]
+    gate_id: "G-NH01-WORK-B-V22-EXACT-SHA"
+    phase: "P6"
+  NH01-RESPONSIVE-CONTRACT-V2:
+    contract_refs: ["FC-home_normal_v1", "RESPONSIVE-LAYOUT-STANDARD-V1", "G-NH01-RESPONSIVE-CONTRACT-V2"]
+    gate_id: "G-NH01-RESPONSIVE-CONTRACT-V2"
+    phase: "P3"
+  NH01-RESPONSIVE-PREVIEW-V2:
+    contract_refs: ["FC-home_normal_v1", "RESPONSIVE-LAYOUT-STANDARD-V1", "STATE-EVIDENCE-PROVENANCE", "G-NH01-RESPONSIVE-PREVIEW-V2"]
+    gate_id: "G-NH01-RESPONSIVE-PREVIEW-V2"
+    phase: "P3"
   P0-01:
     contract_refs: ["STATE-EVIDENCE-PROVENANCE"]
     gate_id: null
@@ -1509,12 +1643,16 @@ task_contract_bindings:
     gate_id: null
     phase: "P3"
   P3-05:
-    contract_refs: ["FC-home_normal_v1", "RESPONSIVE-LAYOUT-STANDARD-V1", "STATE-EVIDENCE-PROVENANCE", "G-NH01-RESPONSIVE-CONTRACT"]
-    gate_id: "G-NH01-RESPONSIVE-CONTRACT"
+    contract_refs: ["FC-recognition_flow_v1_2", "FC-recognition_result_v1", "RECOGNITION-OPTICAL-CONTINUITY", "G-SWOS-PHASE0-CONTRACT"]
+    gate_id: "G-SWOS-PHASE0-CONTRACT"
     phase: "P3"
   P3-06:
-    contract_refs: ["FC-home_normal_v1", "RESPONSIVE-LAYOUT-STANDARD-V1", "STATE-EVIDENCE-PROVENANCE", "G-NH01-RESPONSIVE-PREVIEW"]
-    gate_id: "G-NH01-RESPONSIVE-PREVIEW"
+    contract_refs: ["FC-recognition_flow_v1_2", "FC-recognition_result_v1", "WEB-RECOGNITION-HIFI-V2", "G-WEB-HIFI-CONTRACT"]
+    gate_id: "G-WEB-HIFI-CONTRACT"
+    phase: "P3"
+  P3-07:
+    contract_refs: ["FC-recognition_flow_v1_2", "FC-recognition_result_v1", "WEB-RECOGNITION-HIFI-V2", "SWOS-WEB-HIFI-MOTION-V1", "RECOGNITION-OPTICAL-CONTINUITY", "G-SWOS-WEB-HIFI-MOTION-V1"]
+    gate_id: "G-SWOS-WEB-HIFI-MOTION-V1"
     phase: "P3"
   P4-01:
     contract_refs: ["FC-recognition_flow_v1_2", "FC-recognition_result_v1"]
@@ -1699,9 +1837,9 @@ inventory:
   journey_count: 20
   child_surface_count: 81
   route_count: 22
-  task_count: 47
-  gate_count: 13
+  task_count: 51
+  gate_count: 17
   registry_created_from_pr_head: "ebb6b3904feaa0cf26b4fd4b83bc809a397085a2"
-  last_synced_feature_matrix_sha: "42071f09795de91ebb75ba809694e2d7b1030418"
-  last_synced_phase_task_state_machine_sha: "bb94ab7c1b2bfc1204dee0d5b1ec6cd949d8712d"
-  last_synced_experience_registry_sha: "2040cc40402e909d4814f81d4aae64cae164b5f4"
+  last_synced_feature_matrix_sha: "a14a80b9cfd10f2d43ed22998ce693c28a11d441"
+  last_synced_phase_task_state_machine_sha: "e890464c27400e24f01043a1a159f0427685a32f"
+  last_synced_experience_registry_sha: "47be44ca3cbce908fa676e262987fe26a8dbea32"

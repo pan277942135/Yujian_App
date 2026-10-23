@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Resolve the NH01 isolated preview release mode without weakening P3-06."""
+"""Resolve the NH01 isolated preview release mode without weakening its V2 gate."""
 from __future__ import annotations
 
 import argparse
@@ -68,22 +68,22 @@ def resolve_release_mode(
             if not asset.get("public_preview") and asset.get("source_path"):
                 require(asset["source_path"] not in src, f"Rendered image references non-public asset: {asset_id}")
 
-    p3_status = report.get("p3_06_status")
-    p3_check = checks.get("p3_06") or {}
-    blockers = p3_check.get("media_blockers") or report.get("p3_06_blockers") or []
+    preview_status = report.get("nh01_preview_v2_status")
+    preview_check = checks.get("nh01_preview_v2") or {}
+    blockers = preview_check.get("media_blockers") or report.get("nh01_preview_v2_blockers") or []
     observed = {item.get("id"): item.get("status") for item in blockers}
-    require(len(observed) == len(blockers), "P3-06 blockers contain duplicate or malformed asset entries.")
+    require(len(observed) == len(blockers), "NH01 Responsive Preview V2 blockers contain duplicate or malformed asset entries.")
     structure = contract_check.get("visible_structure") or {}
     hero_blocked = observed.get("hero_photo") == EXPECTED_BLOCKERS["hero_photo"]
     neighbors_blocked = observed.get("neighbor_photos") == EXPECTED_BLOCKERS["neighbor_photos"]
 
-    if p3_status == "BLOCKED":
-        require(contract.get("status") == PROPOSED, "A blocked P3-06 result cannot be released as a frozen acceptance build.")
-        require(bool(blockers), "P3-06 is BLOCKED but no explicit media blockers were recorded.")
-        require(all(item.get("id") in EXPECTED_BLOCKERS and EXPECTED_BLOCKERS[item.get("id")] == item.get("status") for item in blockers), "P3-06 has an unexpected blocker; fail closed.")
-        require(hero_blocked or neighbors_blocked, "P3-06 blocker list does not identify the missing media.")
-        require(bool(assets["hero_photo"].get("public_preview")) == (not hero_blocked), "Hero public-preview allowlist does not match its P3-06 blocker.")
-        require(bool(assets["neighbor_photos"].get("public_preview")) == (not neighbors_blocked), "Neighbor public-preview allowlist does not match its P3-06 blocker.")
+    if preview_status == "BLOCKED":
+        require(contract.get("status") == PROPOSED, "A blocked NH01 Responsive Preview V2 result cannot be released as a frozen acceptance build.")
+        require(bool(blockers), "NH01 Responsive Preview V2 is BLOCKED but no explicit media blockers were recorded.")
+        require(all(item.get("id") in EXPECTED_BLOCKERS and EXPECTED_BLOCKERS[item.get("id")] == item.get("status") for item in blockers), "NH01 Responsive Preview V2 has an unexpected blocker; fail closed.")
+        require(hero_blocked or neighbors_blocked, "NH01 Responsive Preview V2 blocker list does not identify the missing media.")
+        require(bool(assets["hero_photo"].get("public_preview")) == (not hero_blocked), "Hero public-preview allowlist does not match its NH01 preview blocker.")
+        require(bool(assets["neighbor_photos"].get("public_preview")) == (not neighbors_blocked), "Neighbor public-preview allowlist does not match its NH01 preview blocker.")
         require(bool(structure.get("heroPlaceholder")) == hero_blocked, "Hero placeholder does not match the Hero asset authorization state.")
         require(bool(structure.get("heroPhotoRendered")) == (not hero_blocked), "Hero rendered-photo state does not match the authorization state.")
         require(bool(structure.get("hiddenNeighbors")) == neighbors_blocked, "Neighbor visibility does not match the independent-photo authorization state.")
@@ -97,31 +97,31 @@ def resolve_release_mode(
         mode = "PREVIEW_ONLY"
         gate_effect = "NONE"
         acceptance_status = "NOT_CLAIMED"
-    elif p3_status == "PASS":
-        require(not blockers, "P3-06 says PASS while blockers remain.")
-        require(not hero_blocked and not neighbors_blocked, "P3-06 says PASS while media remains blocked.")
-        require(not structure.get("heroPlaceholder") and structure.get("heroPhotoRendered") is True, "P3-06 cannot PASS until an approved Hero photo is actually rendered.")
-        require(structure.get("visibleNeighborCount") == 2 and structure.get("neighborPhotoCount") == 2 and not structure.get("hiddenNeighbors"), "P3-06 cannot PASS until both independent neighbor photos are actually rendered.")
-        require(assets["hero_photo"].get("public_preview") is True and assets["neighbor_photos"].get("public_preview") is True, "P3-06 cannot PASS while Hero/neighbor assets are not explicitly public-approved.")
+    elif preview_status == "PASS":
+        require(not blockers, "NH01 Responsive Preview V2 says PASS while blockers remain.")
+        require(not hero_blocked and not neighbors_blocked, "NH01 Responsive Preview V2 says PASS while media remains blocked.")
+        require(not structure.get("heroPlaceholder") and structure.get("heroPhotoRendered") is True, "NH01 Responsive Preview V2 cannot PASS until an approved Hero photo is actually rendered.")
+        require(structure.get("visibleNeighborCount") == 2 and structure.get("neighborPhotoCount") == 2 and not structure.get("hiddenNeighbors"), "NH01 Responsive Preview V2 cannot PASS until both independent neighbor photos are actually rendered.")
+        require(assets["hero_photo"].get("public_preview") is True and assets["neighbor_photos"].get("public_preview") is True, "NH01 Responsive Preview V2 cannot PASS while Hero/neighbor assets are not explicitly public-approved.")
         if contract.get("status") == FROZEN:
             mode = "FROZEN_ACCEPTANCE"
-            gate_effect = "P3_06_PASS_REQUIRED"
-            acceptance_status = "P3_06_PASS"
+            gate_effect = "G-NH01-RESPONSIVE-PREVIEW-V2_PASS_REQUIRED"
+            acceptance_status = "NH01_RESPONSIVE_PREVIEW_V2_PASS"
         else:
             mode = "PREVIEW_ONLY"
             gate_effect = "NONE"
             acceptance_status = "NOT_CLAIMED"
     else:
-        raise GateError(f"Unsupported P3-06 status: {p3_status!r}")
+        raise GateError(f"Unsupported NH01 Responsive Preview V2 status: {preview_status!r}")
 
     return {
         "publish": True,
         "preview_mode": mode,
         "contract_status": contract["status"],
-        "p3_06_status": p3_status,
+        "nh01_preview_v2_status": preview_status,
         "release_gate_effect": gate_effect,
         "acceptance_status": acceptance_status,
-        "reason": "Candidate preview is independently publishable; blocked media remains explicitly unavailable and P3-06 is not claimed." if mode == "PREVIEW_ONLY" else "Frozen acceptance release requires and has P3-06 PASS.",
+        "reason": "Candidate preview is independently publishable; blocked media remains explicitly unavailable and the NH01 Responsive Preview V2 gate is not claimed." if mode == "PREVIEW_ONLY" else "Frozen acceptance release requires and has NH01 Responsive Preview V2 PASS.",
     }
 
 

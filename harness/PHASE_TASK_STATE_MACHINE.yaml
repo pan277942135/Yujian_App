@@ -75,7 +75,7 @@ phases:
     exit_condition: "Required design authority, page contracts, assets and provenance are closed for the claimed scope."
     release_scope: "PRIMARY_PLUS_SECONDARY"
     feature_refs: ["home_empty_v2", "home_normal_v1", "recognition_flow_v1_2", "recognition_result_v1", "fish_record_detail_v2", "fish_memory_bside_v1", "share_templates_v1", "record_date_v2", "fish_guide_v2", "account_privacy_v1", "auth_login_v2", "auth_register_v2", "profile_edit_v1", "user_agreement_v1"]
-    task_refs: ["P3-01", "P3-02", "P3-03", "P3-04", "N010"]
+    task_refs: ["P3-01", "P3-02", "P3-03", "P3-04", "P3-05", "P3-06", "P3-07", "NH01-RESPONSIVE-CONTRACT-V2", "NH01-RESPONSIVE-PREVIEW-V2", "N010"]
   P4:
     name: "Architecture / API / Data Contracts"
     entry_condition: "Required product contracts exist."
@@ -95,8 +95,8 @@ phases:
     entry_condition: "Required contracts and engineering foundation exist."
     exit_condition: "Release-scope feature implementation reaches executable acceptance tasks."
     release_scope: "PRIMARY_PLUS_SECONDARY"
-    feature_refs: ["record_date_v2", "share_templates_v1", "auth_register_v2"]
-    task_refs: ["P6-01", "P6-02", "P6-03", "P6-04"]
+    feature_refs: ["home_normal_v1", "record_date_v2", "share_templates_v1", "auth_register_v2"]
+    task_refs: ["P6-01", "P6-02", "P6-03", "P6-04", "YUJIAN_NH01_ANDROID_FROZEN_V22_IMPLEMENTATION_REPAIR_WORK_B_V1"]
   P7:
     name: "Integration / Full Surface"
     entry_condition: "Feature implementation is executable."
@@ -277,7 +277,7 @@ feature_closure_rollup:
   home_normal_v1:
     task_id: "FT-home_normal_v1"
     phase: "P8"
-    depends_on: ["P3-02", "P3-06"]
+    depends_on: ["NH01-RESPONSIVE-PREVIEW-V2"]
   record_date_v2:
     task_id: "FT-record_date_v2"
     phase: "P6"
@@ -392,7 +392,7 @@ tasks:
     owner: "Work"
     feature_refs: ["home_normal_v1", "recognition_result_v1"]
     journey_refs: ["J11-J18"]
-    depends_on: ["P3-01", "P3-05", "P3-06"]
+    depends_on: ["P3-01", "NH01-RESPONSIVE-CONTRACT-V2", "NH01-RESPONSIVE-PREVIEW-V2"]
     entry_blockers: []
     target_blockers: ["B003", "B004", "B006"]
     evidence_required: ["hero_F01-F08_provenance", "camera_mask_runtime_parity", "phase_3b_provenance_resolution", "design_manager_shared_page_layer_contract", "nh01_page_owned_layer_map_and_authority_binding", "non_nh01_fixture_shell_independence", "workspace_view_back_forward_refresh_direct_route", "existing_asset_navigation_viewport_governance_checks"]
@@ -426,29 +426,67 @@ tasks:
     phase: "P3"
     priority: "P0"
     owner: "Design"
+    feature_refs: ["recognition_flow_v1_2", "recognition_result_v1"]
+    journey_refs: ["J07-J16"]
+    depends_on: ["P3-01"]
+    entry_blockers: []
+    target_blockers: []
+    evidence_required: ["swos_optical_contract_v1", "processing_result_continuity_v1", "rr09_v3_contract", "authority_reference_sync", "android_stage1_gap_report", "swos_contract_validation"]
+    completion: "Versioned SWOS/Processing/RR09 authorities and control-plane references are synchronized; Android runtime remains a Stage 1 gate."
+    human_required: false
+    gate_id: "G-SWOS-PHASE0-CONTRACT"
+  P3-06:
+    phase: "P3"
+    priority: "P0"
+    owner: "Design"
+    feature_refs: ["recognition_flow_v1_2", "recognition_result_v1"]
+    journey_refs: ["J07-J16"]
+    depends_on: ["P3-05"]
+    entry_blockers: []
+    target_blockers: []
+    evidence_required: ["web_hifi_contract_v2", "web_hifi_machine_contracts", "web_hifi_gap_matrix", "web_hifi_validator", "design_manager_navigation", "private_visual_reference_sha_dimensions", "local_viewer_browser_evidence", "visual_reference_component_mapping", "publication_exclusion_gate"]
+    completion: "Web V2 structure, optical/continuity references, responsive and state contracts are main-adopted design authority via PR #190; source image pixel authority, Work B implementation, and runtime visual evidence remain separate gates."
+    human_required: false
+    gate_id: "G-WEB-HIFI-CONTRACT"
+  P3-07:
+    phase: "P3"
+    priority: "P0"
+    owner: "Design"
+    feature_refs: ["recognition_flow_v1_2", "recognition_result_v1"]
+    journey_refs: ["J07-J16"]
+    depends_on: ["P3-06"]
+    entry_blockers: []
+    target_blockers: []
+    evidence_required: ["swos_web_hifi_motion_technical_contract_v1_0", "swos_web_hifi_motion_machine_contract", "existing_sam_pipeline_reuse_binding", "design_manager_route", "live_product_source_sha_audit", "playable_browser_demo_evidence", "nine_viewport_visual_matrix", "browser_frame_time_performance_report", "production_mask_qualification_boundary"]
+    completion: "SWOS Web playable-motion implementation contract and machine authority are registered in Design Manager and synchronized with Web V2, SWOS 15-frame/shared-photo contracts and RR09 V3. Reuse the existing SAM experiment pipeline without duplication. Browser playback, production Mask and visual/performance acceptance remain separate evidence gates."
+    human_required: false
+    gate_id: "G-SWOS-WEB-HIFI-MOTION-V1"
+  NH01-RESPONSIVE-CONTRACT-V2:
+    phase: "P3"
+    priority: "P0"
+    owner: "Design"
     feature_refs: ["home_normal_v1"]
     journey_refs: ["J17", "J18"]
     depends_on: ["P3-01"]
     entry_blockers: []
-    target_blockers: []
-    gate_id: "G-NH01-RESPONSIVE-CONTRACT"
-    evidence_required: ["responsive_standard_schema_pass", "nh01_contract_schema_pass", "six_frozen_visual_anchor_sha_pass", "authority_crosswalk_resolved", "control_plane_binding_validation_pass"]
-    completion: "NH01 responsive contract candidate has one constraint-driven rule set; six frozen visual anchors remain unchanged; authority scopes and control-plane references agree. Preview-driven freeze promotion is a separate P3-06 gate; Android Runtime remains NOT_VERIFIED."
+    target_blockers: ["B003", "B004"]
+    evidence_required: ["responsive_layout_schema", "responsive_authority_crosswalk", "logical_band_surplus_formula", "canonical_gate_registry_sync"]
+    completion: "NH01 Responsive Layout V2 machine contract, schema and crosswalk are structurally valid and registered without reusing canonical SWOS P3 gate IDs."
     human_required: false
-
-  P3-06:
+    gate_id: "G-NH01-RESPONSIVE-CONTRACT-V2"
+  NH01-RESPONSIVE-PREVIEW-V2:
     phase: "P3"
     priority: "P0"
-    owner: "Work"
+    owner: "Design"
     feature_refs: ["home_normal_v1"]
     journey_refs: ["J17", "J18"]
-    depends_on: ["P3-05"]
+    depends_on: ["NH01-RESPONSIVE-CONTRACT-V2"]
     entry_blockers: []
-    target_blockers: []
-    gate_id: "G-NH01-RESPONSIVE-PREVIEW"
-    evidence_required: ["contract_driven_preview_pass", "six_anchor_alignment_report", "non_anchor_continuity_probe_pass", "responsive_threshold_boundary_probe_pass", "no_viewport_specific_layouts", "contract_status_promoted_to_SPEC_FROZEN"]
-    completion: "The existing NH01 preview is driven by the machine contract; fixed, wide and non-anchor viewports plus threshold boundaries pass; only then promote the responsive contract to SPEC_FROZEN. Android Runtime remains NOT_VERIFIED until the native gate passes."
+    target_blockers: ["B003", "B004"]
+    evidence_required: ["isolated_preview_deployment", "browser_viewport_boundary_matrix", "approved_hero_and_neighbor_provenance", "exact_source_sha"]
+    completion: "NH01 Responsive V2 isolated preview is browser-verified at fixed, wide, non-anchor and boundary cases; freeze remains blocked until approved Hero and two independent neighbor originals are present."
     human_required: false
+    gate_id: "G-NH01-RESPONSIVE-PREVIEW-V2"
   P4-01:
     phase: "P4"
     priority: "P0"
@@ -545,6 +583,19 @@ tasks:
     evidence_required: ["secondary_feature_implementation"]
     completion: "Secondary implementation closure for expanded scope."
     human_required: false
+  YUJIAN_NH01_ANDROID_FROZEN_V22_IMPLEMENTATION_REPAIR_WORK_B_V1:
+    phase: "P6"
+    priority: "P0"
+    owner: "Work B"
+    feature_refs: ["home_normal_v1"]
+    journey_refs: ["J17", "J18"]
+    depends_on: ["P5-01", "P5-02"]
+    entry_blockers: []
+    target_blockers: []
+    gate_id: "G-NH01-WORK-B-V22-EXACT-SHA"
+    evidence_required: ["frozen_v22_authority_resolution", "nh01_android_source_repair", "nh01_equal_surplus_split_unit_tests", "build_unit_lint", "api28_targeted_runtime", "apk_sha256_provenance"]
+    completion: "Issue #194 V2.2 Android repair follows canonical NH01 Responsive Foundation V1.1: when long-screen surplus S>0, add S/2 to each A-to-B and B-to-C gap after their base-gap formulas, with source/unit tests for zero, 90dp and fractional 101dp surplus; exact-SHA build, focused tests, targeted API28 evidence and traceable debug APK are required. The full 24-case native matrix, N004 and release gates remain separate and are not promoted by this task."
+    human_required: false
 
   P7-01:
     phase: "P7"
@@ -606,7 +657,7 @@ tasks:
     owner: "Work"
     feature_refs: ["home_normal_v1"]
     journey_refs: []
-    depends_on: []
+    depends_on: ["NH01-RESPONSIVE-PREVIEW-V2"]
     entry_blockers: []
     target_blockers: ["B003", "B004"]
     evidence_required: ["feature_required_implementation_tests_runtime_evidence"]

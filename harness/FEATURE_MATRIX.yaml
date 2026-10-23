@@ -135,9 +135,9 @@ features:
       - "design/pages/home/normal_home/responsive/NH01_RESPONSIVE_LAYOUT_V2.json"
       - "design/pages/home/normal_home/responsive/NH01_RESPONSIVE_LAYOUT_V2.md"
       - "design/pages/home/normal_home/responsive/NH01_RESPONSIVE_AUTHORITY_CROSSWALK_V1.md"
-      - "design/system_v3/07_Responsive_System/Responsive_Layout_Standard_V1.md"
       - "design/system_v3/07_Responsive_System/Responsive_Layout_Contract_Schema_V1.json"
       - "design/system_v3/07_Responsive_System/Viewport_Profiles_V1.json"
+      - "design/system_v3/07_Responsive_System/Responsive_Layout_Standard_V1.md"
       - "scripts/design/validate_nh01_responsive_layout_contract_v2.py"
     design_children: []
     child_surfaces:
@@ -156,8 +156,10 @@ features:
     implementation:
       registered_runtime_status: "PARTIAL"
       runtime_authority: "app/src/main/java/com/yujian/ai/ui/home/GeminiNormalHomeContent.kt"
+      layout_policy: "app/src/main/java/com/yujian/ai/ui/home/GeminiHomeAdaptiveLayoutPolicy.kt"
     known_gaps:
       - "Runtime/evidence remain partial; Hero F01-F08 fixture matrix and camera optical parity are open (B003/B004)."
+      - "NH01 Responsive Layout V2 candidate changes positive long-screen surplus allocation to 2S/3 for A→B and S/3 for B→C; implementation and exact-SHA runtime evidence must be resynchronized and reverified."
   record_date_v2:
     sequence: 3
     name: "记录日期"
@@ -218,17 +220,17 @@ features:
     control_phase: "P8"
     owner_path: "design/pages/recognition"
     registry_overall: "ACTIVE_CLOSURE"
-    registry_design_overall: "FROZEN"
+    registry_design_overall: "ACTIVE_CLOSURE"
     registry_modalities:
       behavior:
         status: "FROZEN"
         authority: "design/pages/recognition/spec/Recognition_State_Timeline_Spec_V1_3.md"
       visual:
-        status: "FROZEN"
-        authority: "design/pages/recognition/design/Recognition_Processing_Visual_State_Set_V1_2.json"
+        status: "ACTIVE_CLOSURE"
+        authority: "design/pages/recognition/processing/optics/SWOS_Optical_Contract_V1.md"
       motion:
-        status: "FROZEN"
-        authority: "design/pages/recognition/processing/motion/Recognition_Processing_Motion_Spec_V1_2.md"
+        status: "ACTIVE_CLOSURE"
+        authority: "design/pages/recognition/processing/motion/Recognition_Processing_Motion_Spec_V1_3.md"
       haptic:
         status: "FROZEN"
         authority: "design/pages/recognition/processing/haptic/Recognition_Processing_Haptic_Spec_V1.md"
@@ -253,6 +255,11 @@ features:
       - "runtime_evidence"
       - "capture_first_use_guide"
       - "recognition_full_flow_models"
+      - "swos_optical_contract"
+      - "processing_result_continuity"
+      - "swos_static_visual_v1_1"
+      - "web_hifi_contract_v2"
+      - "swos_web_hifi_motion_technical_contract_v1_0"
     design_children:
       - "ai_edge_field_v1_static_shape"
       - "ai_edge_field_v1_rendering_contract"
@@ -276,6 +283,13 @@ features:
       - "p02"
       - "p03"
       - "resources"
+      - "swos_optical_contract_v1"
+      - "processing_result_optical_continuity_v1"
+      - "processing_page_contract_v3_2"
+      - "swos_15_frame_keyframes_v1_1"
+      - "swos_shared_photo_transition_v1"
+      - "swos_dynamic_demo_handoff_v1"
+      - "swos_web_hifi_motion_technical_contract_v1_0"
     child_surfaces:
       - "capture"
       - "permission"
@@ -318,6 +332,10 @@ features:
       - "Exact-head API28 runtime not yet accepted (B001/B002)."
       - "Capture Hi-Fi source PNG binary import remains pending."
       - "The V1 first-use guide uses the three frozen pages P01/P02/P03; exact-head API28 runtime and visual parity evidence remain pending."
+      - "SWOS V1 / Processing V3.2 and SWOS Static V1.1 are main-adopted design contracts via PR #190; Android still uses V3.1 timing and the legacy Edge Field renderer until separately authorized Stage 1 implementation."
+      - "Web/SWOS user-confirmed private visual references and local viewer: design/pages/recognition/web/VISUAL_REFERENCE_MANIFEST_V1.json; visual closure requires browser evidence and publication permission checks."
+      - "SWOS photo source has no confirmed public publication permission; public preview requires a local browser upload and static exports remain private."
+      - "Web Hi-Fi V2 is a main-adopted design contract via PR #190. Candidate source-image identity and public permission remain unverified; PIXEL_FROZEN_SOURCE=NOT_CONFIRMED and RUNTIME_VISUAL_VERIFIED=NO."
   recognition_result_v1:
     sequence: 5
     name: "识别结果"
@@ -326,8 +344,8 @@ features:
     parent_feature: null
     control_phase: "P8"
     owner_path: "design/pages/recognition/result"
-    registry_overall: "FROZEN"
-    registry_design_overall: "FROZEN"
+    registry_overall: "ACTIVE_CLOSURE"
+    registry_design_overall: "ACTIVE_CLOSURE"
     registry_modalities:
       behavior:
         status: "FROZEN"
@@ -336,8 +354,8 @@ features:
         status: "FROZEN"
         authority: "design/pages/recognition/result/authority/authority_map.json"
       motion:
-        status: "FROZEN"
-        authority: "design/pages/recognition/result/motion/Recognition_Result_Motion_Spec_V2.md"
+        status: "ACTIVE_CLOSURE"
+        authority: "design/pages/recognition/result/motion/Recognition_Result_Motion_Spec_V3.md"
       haptic:
         status: "FROZEN"
         authority: "design/pages/recognition/result/motion/Recognition_Result_Motion_Spec_V1.md"
@@ -364,6 +382,7 @@ features:
       - "decision_logic"
       - "visual_acceptance"
       - "motion_continuation"
+      - "motion_continuation_v2_history"
     design_children: []
     child_surfaces:
       - "overview"
@@ -390,6 +409,7 @@ features:
       runtime_authority: "app/src/main/java/com/yujian/ai/ui/screens/RecognitionResultScreen.kt"
     known_gaps:
       - "Current runtime/evidence are partial; exact-head runtime and current-branch provenance conflict remain open (B001/B002/B006)."
+      - "RR09 V3 is main-adopted design-only and not Android-implemented; V2 remains unchanged historical baseline; Runtime/Playback stays NOT_RUN until Stage 1 closure."
   fish_record_detail_v2:
     sequence: 6
     name: "鱼获详情"
