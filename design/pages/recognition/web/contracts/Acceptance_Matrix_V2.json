@@ -8,7 +8,8 @@
     "Yujian_App/main@ad8bf1ba61e42a34d1fdd91de47fa386e25f11ef",
     "Yujian_App/PR186@3b0b5848206cdea949f4bf6be7eb7cb1d19b1e34",
     "Yujian_App/PR187@ee3bb45858183144598bc28c5bae53ae55b324e0",
-    "Yujian/PR177@655c4af07a0244fcf29441b5652c48ca74f2e6a2"
+    "Yujian/PR177@655c4af07a0244fcf29441b5652c48ca74f2e6a2",
+    "Yujian/PR177@4de911dc497c150545d938b60b2694f3c4723e37"
   ],
   "checks": [
     {
@@ -55,11 +56,45 @@
       "id": "A09",
       "method": "user Web visual acceptance",
       "gate": "USER"
+    },
+    {
+      "id": "A10",
+      "method": "SWOS Web motion technical contract V1.0 identity and authority consistency",
+      "gate": "CONTRACT"
+    },
+    {
+      "id": "A11",
+      "method": "real 3650ms browser playback; 15 frame seek; pause/step; R0.5 geometry",
+      "gate": "WORK_B"
+    },
+    {
+      "id": "A12",
+      "method": "reuse existing SAM experiment pipeline; trust-state and fallback tests; no duplicate service",
+      "gate": "WORK_B"
+    },
+    {
+      "id": "A13",
+      "method": "licensed multi-scene photo masks; ground-truth boundary metrics; privacy gate",
+      "gate": "WORK_B"
+    },
+    {
+      "id": "A14",
+      "method": "nine viewport responsive matrix and actual browser frame-time evidence",
+      "gate": "WORK_B"
+    },
+    {
+      "id": "A15",
+      "method": "visual review of water caustics, trusted fish contour, photo continuity and gold-to-Chinese-glyph reveal",
+      "gate": "USER"
     }
   ],
   "pass_rule": "static contract validation cannot imply runtime visual pass",
   "acceptance_criteria": [
-    "Referenced source status remains explicit; Product PR #177 is Draft/Open/Unmerged and supplies no runtime evidence"
+    "Referenced source status remains explicit; Product PR #177 is Draft/Open/Unmerged and supplies no runtime evidence",
+    "The playable SWOS implementation must follow SWOS_WEB_HIFI_MOTION_TECHNICAL_CONTRACT_V1_0.md and its machine contract on the same exact source SHA.",
+    "The existing SAM ViT-B experiment chain is reused through a server-side adapter; no duplicate segmentation service or model retraining is permitted.",
+    "Production Mask remains NOT_QUALIFIED until reviewed ground-truth masks, IoU/Dice and boundary metrics, difficult-case review and visual sign-off exist.",
+    "Chromium UI simulation, SAM API latency and static 15-frame contract validation are not substitutes for browser playback, visual acceptance or frame-time performance."
   ],
   "adoption_pr": 190,
   "adopted_source_prs": [
@@ -68,5 +103,9 @@
   ],
   "adoption_scope": "DESIGN_CONTRACT_ONLY",
   "runtime_visual_verified": false,
-  "pixel_frozen_source": "NOT_CONFIRMED"
+  "pixel_frozen_source": "NOT_CONFIRMED",
+  "swos_web_motion_technical_contract_ref": "design/pages/recognition/web/SWOS_WEB_HIFI_MOTION_TECHNICAL_CONTRACT_V1_0.md",
+  "swos_web_motion_machine_contract_ref": "design/pages/recognition/web/contracts/SWOS_WEB_HIFI_MOTION_TECHNICAL_CONTRACT_V1_0.json",
+  "playable_browser_demo_status": "NOT_VERIFIED",
+  "production_mask_qualification": "NOT_QUALIFIED"
 }
