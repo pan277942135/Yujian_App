@@ -19,7 +19,8 @@
 
 - 确定用户批准 Web 高保真原图的字节身份、SHA-256 和可公开权限，再开展像素测量与对照。
 - 合同内容已通过 PR #190 纳入 Main；Work B 实施前仍须读取 PR #190 发布评论所记的实际 Main SHA，并按当前控制面重新 Admission。PR #177 保持 Draft/Open/Unmerged，设计合同采纳不等于产品代码或视觉验收通过。
-- Result CTA「继续记忆」与任务文案「继续记录记忆」、后端 0.55 与 App 0.45 的差异须由权威来源解决，不由 Web 视觉代码自行定夺。
+- **CTA 已收口：** 使用冻结 Result V1.1 页面级合同中的「继续记忆」与「保存本次鱼获」；其优先级高于通用按钮示例「继续记录记忆」。真实记忆路由未开放时禁用并解释，不假跳转。
+- **置信度规则已按接口职责收口：** Web 只消费 `POST /api/product/catch-recognition/infer` 的 `result_state`。当前 Result 状态映射的 0.45 LOW 与 0.12 MEDIUM margin 规则保持原样；`app/inference_api.py` 的 0.55 `low_confidence` 是独立诊断标记，不覆盖产品 Result 状态。本次不修改任何模型阈值、质量门或路由；未来校准需产品负责人批准及标注留出集证据。
 
 
 ## 原始视觉资产补档 V1

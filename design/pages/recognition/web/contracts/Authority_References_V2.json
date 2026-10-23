@@ -5,7 +5,7 @@
   "adoption_status": "MAIN_ADOPTED_DESIGN_ONLY",
   "page_id": "ai_catch_recognition_web",
   "source_ref": [
-    "Yujian_App/main@ad8bf1ba61e42a34d1fdd91de47fa386e25f11ef",
+    "Yujian_App/main@2c41084b423be36b06035694fe573c5e671cb4da",
     "Yujian_App/PR186@3b0b5848206cdea949f4bf6be7eb7cb1d19b1e34",
     "Yujian_App/PR187@ee3bb45858183144598bc28c5bae53ae55b324e0",
     "Yujian/PR177@655c4af07a0244fcf29441b5652c48ca74f2e6a2",
@@ -169,5 +169,41 @@
     "public_browser_direct_access": false,
     "qualification_status": "EXPERIMENTAL_ONLY",
     "production_mask_status": "NOT_QUALIFIED"
+  },
+  "business_decision_resolution": {
+    "status": "RESOLVED_BY_AUTHORITY_SCOPE_NO_NUMERIC_THRESHOLD_CHANGE",
+    "cta": {
+      "authority": "design/pages/recognition/result/engineering/layout_geometry_contract.json",
+      "blob_sha": "2df910cda117e7c8be1e211bae17899e14c3933f",
+      "continue": "继续记忆",
+      "save": "保存本次鱼获",
+      "generic_copy_override": "Page-scoped frozen Result contract takes precedence over generic shared button examples."
+    },
+    "result_state": {
+      "authority": "design/pages/recognition/result/spec/recognition_result_3plus2_decision_contract_v1_1.json",
+      "blob_sha": "a678f63082d2f045dd659ed42c36df14c475f9c1",
+      "api": "POST /api/product/catch-recognition/infer",
+      "web_uses_server_result_state": true,
+      "existing_low_threshold": 0.45,
+      "existing_medium_margin": 0.12,
+      "separate_inference_api_low_confidence_threshold": 0.55,
+      "thresholds_changed": false,
+      "future_calibration_requires": [
+        "product-owner sign-off",
+        "labeled holdout evidence"
+      ]
+    }
+  },
+  "asset_authorization": {
+    "status": "PUBLIC_RELEASE_BLOCKED_UNTIL_PERMISSION",
+    "public_permission": "NOT_CONFIRMED",
+    "public_publication_allowed": false,
+    "public_repo_commit_allowed": false,
+    "public_ci_artifact_allowed": false,
+    "public_pages_upload_allowed": false,
+    "private_local_review_allowed": true,
+    "pixel_frozen_source": "NOT_CONFIRMED",
+    "source_photo_208758_verified_this_execution": true,
+    "web_three_stage_and_storyboard_bytes_rechecked_this_execution": false
   }
 }

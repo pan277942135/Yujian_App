@@ -6,7 +6,7 @@ The observations in the G01–G18 table remain a **historical code-review snapsh
 
 - Live PR #177 HEAD: ca21e25116cebef0ed393392eb8997a2b7077689 (24 commits ahead / 0 behind product main).
 - Live product main: 6a2064c2a02a76437b6e09a5241bc199cfa05048.
-- Comparison: **22 commits ahead / 3 behind**; merge base 3c79c00db68ace94d8f6a7dcb4105d0026a09323. Source sync is **BLOCKED** until the product branch is synchronized with current main and exact-SHA Admission/CI is rerun.
+- Comparison at this audit: **24 commits ahead / 0 behind**; merge base `6a2064c2a02a76437b6e09a5241bc199cfa05048`. Product branch sync is **PASS** for this snapshot. Re-read the live PR and rerun exact-SHA Admission/CI before any later implementation or deployment; this audit snapshot is not a permanent pin.
 - Exact-head CI: [run 39929847089](https://github.com/pan277942135/Yujian/actions/runs/39929847089) **PASS** on ca21e25116cebef0ed393392eb8997a2b7077689; scope is safe targeted validation and Chromium UI simulation only. Production recognition pipeline tests were skipped because the metadata-access review remains unresolved.
 - Preview workflow pin is **STALE** at 4de911dc497c150545d938b60b2694f3c4723e37; it does not match current PR #177 HEAD ca21e25116cebef0ed393392eb8997a2b7077689. Do not use the current preview URL as evidence for the current source. Revision/health SHA and playable browser animation remain **NOT_VERIFIED**.
 - Current production Mask: **NOT_QUALIFIED**. Current runtime visual acceptance: **NOT_VERIFIED**. Browser frame-time evidence: **NOT_RUN**.

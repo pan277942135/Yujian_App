@@ -14,7 +14,7 @@
 
 底部五节点：`step.upload` 上传照片；`step.water` 水光增强；`step.fish` 鱼体高亮；`step.photo` 照片缩小接续；`step.reveal` 结果揭晓。各节点有 pending/active/done/error；它们只解释视觉进程，不能模拟模型业务进度。缩略图必须指向有授权的同源照片或无照片图示，不能加入未经授权的生成式鱼获截图。
 
-结果页复用冻结的 HIGH 结构及 3+2 状态：`design/pages/recognition/result/engineering/layout_geometry_contract.json`、`design/pages/recognition/result/media/hero_media_contract.json`。360dp 参考 HIGH Hero 322×210dp；中文鱼种名在 Hero 下方，无英文科学名及空行。两 CTA 文案以当前冻结 Result 页面为准；Web「继续记录记忆」无真实目标时呈未开放，不能假跳转。真实模型响应之前不得进入 HIGH。
+结果页复用冻结的 HIGH 结构及 3+2 状态：`design/pages/recognition/result/engineering/layout_geometry_contract.json`、`design/pages/recognition/result/media/hero_media_contract.json`。360dp 参考 HIGH Hero 322×210dp；中文鱼种名在 Hero 下方，无英文科学名及空行。CTA 文案按冻结 Result V1.1 页面级合同统一为「继续记忆」与「保存本次鱼获」；该页面级权威优先于通用按钮示例「继续记录记忆」。Web 记忆目标路由未开放时禁用并解释，不得假跳转。Web 只消费产品 API 的 result_state，不在客户端重新计算置信度状态。当前产品 Result 状态映射的 0.45 低置信与 0.12 候选差距规则保持不变；推理 API 的 0.55 low_confidence 标记属于另一接口字段，不覆盖 result_state。真实模型响应之前不得进入 HIGH。
 
 ## Work B 立即可做
 

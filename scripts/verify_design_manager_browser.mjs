@@ -468,7 +468,7 @@ async function main() {
   assert(page.url().endsWith(swosWebMotionHash), "SWOS Web motion technical contract direct Hash route did not resolve");
   assert((await page.locator("#hifiViewTitle").innerText()).includes("SWOS Web 高保真动效技术合同 V1.0"), "SWOS Web motion contract title is missing");
   assert((await page.locator("#hifiViewAuthorities").innerText()).includes("SWOS_WEB_HIFI_MOTION_TECHNICAL_CONTRACT_V1_0.md"), "SWOS Web motion contract authority link is missing");
-  assert(await page.locator('#hifiViewContractDetails a[href*="SWOS_WEB_HIFI_MOTION_TECHNICAL_CONTRACT_V1_0.json"]').count() === 1, "SWOS Web motion machine contract link is missing");
+  assert(await page.locator('#hifiViewContractDetails .hifi-contract-links a[href*="SWOS_WEB_HIFI_MOTION_TECHNICAL_CONTRACT_V1_0.json"]').count() === 1, "SWOS Web motion machine contract link is missing from the Contracts section");
   assert(await page.locator('.hifi-related-routes a[href="' + swosStaticHash + '"]').count() === 1, "SWOS Web motion contract must link to the static 15-frame workspace");
   assert((await page.locator("#hifiViewCanvas").innerText()).includes("SAM"), "SWOS Web motion contract must state existing SAM experiment reuse");
   await page.screenshot({ path: resolve(args.outputDir, "swos-web-motion-contract-1440.png"), fullPage: true });

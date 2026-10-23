@@ -5,7 +5,7 @@
   "adoption_status": "MAIN_ADOPTED_DESIGN_ONLY",
   "page_id": "ai_catch_recognition_web",
   "source_ref": [
-    "Yujian_App/main@ad8bf1ba61e42a34d1fdd91de47fa386e25f11ef",
+    "Yujian_App/main@2c41084b423be36b06035694fe573c5e671cb4da",
     "Yujian_App/PR186@3b0b5848206cdea949f4bf6be7eb7cb1d19b1e34",
     "Yujian_App/PR187@ee3bb45858183144598bc28c5bae53ae55b324e0",
     "Yujian/PR177@655c4af07a0244fcf29441b5652c48ca74f2e6a2",
@@ -118,5 +118,31 @@
     "policy": "REUSE_EXISTING_EXPERIMENTAL_PIPELINE; NO_DUPLICATE_SERVICE; NO_RETRAIN; MASK_IS_NOT_CLASSIFIER_INPUT",
     "public_production_endpoint": false,
     "production_mask_qualification": "NOT_QUALIFIED"
+  },
+  "business_decision_resolution": {
+    "status": "RESOLVED_BY_AUTHORITY_SCOPE_NO_NUMERIC_THRESHOLD_CHANGE",
+    "canonical_cta": [
+      "继续记忆",
+      "保存本次鱼获"
+    ],
+    "cta_authority": "design/pages/recognition/result/engineering/layout_geometry_contract.json",
+    "result_state_api": "POST /api/product/catch-recognition/infer",
+    "use_api_result_state_without_client_recalculation": true,
+    "preserved_result_state_mapping": {
+      "low_if_top1_below": 0.45,
+      "medium_if_margin_below": 0.12
+    },
+    "separate_inference_api_low_confidence_threshold": 0.55,
+    "threshold_values_changed": false
+  },
+  "asset_gate": {
+    "public_permission": "NOT_CONFIRMED",
+    "public_repo_commit_allowed": false,
+    "public_ci_artifact_allowed": false,
+    "public_pages_upload_allowed": false,
+    "private_local_review_allowed": true,
+    "pixel_frozen_source": "NOT_CONFIRMED",
+    "verified_private_photo_sha256": "ab7227cf7205ee2ac342b6cd75cd899747879506c95c33b888b6adf0acb47987",
+    "production_mask": "NOT_QUALIFIED"
   }
 }

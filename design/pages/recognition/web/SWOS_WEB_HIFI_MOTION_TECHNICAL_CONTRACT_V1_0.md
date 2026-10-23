@@ -31,6 +31,9 @@
 - **水光是渔见自己的自然光学语言**：清晨水面、低至中密度不规则面状焦散、柔和蓝绿与少量淡金；禁止助手唤醒框、HUD、雷达、机械扫描线、闭合霓虹边框、旧 Edge Field 七路径几何。
 - **SAM 鱼体分割实验链路复用**：复用产品仓库现有 SAM ViT-B 实验实现，不新增一套重复模型服务、不重训模型、不把分割结果当作分类输入。SAM 质量标签本身不等于生产级 Mask 认证。
 - **私有照片不公开**：208758.jpg、用户确认的原始三阶段参考图、历史分镜及其衍生帧仍受既有隐私/发布限制；公开测试只使用具有明确来源、许可证和摘要校验的测试照片。私有照片不得被上传到公共测试端点或提交进公开仓库。
+- **Result CTA 权威已统一**：使用冻结的 Result V1.1 页面级合同 `design/pages/recognition/result/engineering/layout_geometry_contract.json`（blob SHA `2df910cda117e7c8be1e211bae17899e14c3933f`）中的「继续记忆」与「保存本次鱼获」。该页面级权威覆盖通用 Action Button 示例文案；目标路由未开放时禁用并解释，不假跳转。
+- **置信度权威已按接口职责统一，数值不变**：Web 只消费 `/api/product/catch-recognition/infer` 返回的 `result_state`。现有产品 Result 状态映射为 top1 < 0.45 → LOW、top1-second < 0.12 → MEDIUM，依据 `recognition_result_3plus2_decision_contract_v1_1.json`（blob SHA `a678f63082d2f045dd659ed42c36df14c475f9c1`）；`app/inference_api.py` 的 0.55 `low_confidence` 是独立诊断字段，不覆盖产品 `result_state`。本次不修改模型阈值、质量门或路由；未来校准需产品负责人批准及标注留出集证据。
+- **资产授权与冻结状态明确**：`208758.jpg` 已于 2026-10-23 本次执行重新校验 SHA-256 `ab7227cf7205ee2ac342b6cd75cd899747879506c95c33b888b6adf0acb47987`、1152×1536、331421 bytes、JPEG、EXIF orientation 1。三阶段原图与历史海报沿用此前私有交接的 SHA/尺寸记录，本次未重新取得原始字节。所有原图/衍生帧 `PUBLIC_PERMISSION=NOT_CONFIRMED`、`PUBLIC_PUBLICATION_ALLOWED=false`；仅允许本地私有查看，不进入公共仓库、CI artifact 或 Pages。`PIXEL_FROZEN_SOURCE=NOT_CONFIRMED`：方向参考不等于像素冻结基准。
 
 ## 3. 精确时间线与揭晓行为
 
@@ -215,7 +218,7 @@ G1 或 CI PASS 不自动通过 G3–G7。静态关键帧、手绘 Mask、HTTP 20
 
 ## 11. 当前已知状态（审计快照，不是永久 SHA）
 
-- Design authority repository：pan277942135/Yujian_App，本次变更基线为 main@bc29aec091b42f84dc8f4e6fe3b268135b091a97。
+- Design authority repository：pan277942135/Yujian_App，本次变更基线为 main@2c41084b423be36b06035694fe573c5e671cb4da。
 - Product repository：pan277942135/Yujian。
 - 本轮审计 PR #177 HEAD：ca21e25116cebef0ed393392eb8997a2b7077689；产品 main：6a2064c2a02a76437b6e09a5241bc199cfa05048；比较结果 24 ahead / 0 behind。精确 SHA CI run 39929847089 为 PASS，但范围仅为定向验证与 Chromium UI simulation；生产识别流水线测试被 SKIPPED。
 - 当前产品分支已同步 main，但 no-traffic 预览工作流仍固定在旧 SHA 4de911dc497c150545d938b60b2694f3c4723e37。当前预览 Revision/health SHA、真实推理、生产 Mask 资格、浏览器逐帧视觉与性能验收仍未验证。执行前仍须重新核对实时 SHA 与准入。

@@ -38,7 +38,10 @@
     "gap_matrix": "design/pages/recognition/web/WEB_HIFI_GAP_MATRIX_V2.md",
     "authority_references": "design/pages/recognition/web/contracts/Authority_References_V2.json",
     "acceptance_matrix": "design/pages/recognition/web/contracts/Acceptance_Matrix_V2.json",
-    "work_b_implementation_mapping": "design/pages/recognition/web/contracts/Work_B_Implementation_Mapping_V2.json"
+    "work_b_implementation_mapping": "design/pages/recognition/web/contracts/Work_B_Implementation_Mapping_V2.json",
+    "result_cta_authority": "design/pages/recognition/result/engineering/layout_geometry_contract.json",
+    "result_state_decision_authority": "design/pages/recognition/result/spec/recognition_result_3plus2_decision_contract_v1_1.json",
+    "visual_reference_manifest": "design/pages/recognition/web/VISUAL_REFERENCE_MANIFEST_V1.json"
   },
   "product_decisions": {
     "optical_language": "ORIGINAL_YUJIAN_SUNLIT_WATER_CAUSTICS",
@@ -59,7 +62,15 @@
     "actual_inference_event_driven": true,
     "additional_pre_navigation_wait_ms": 0,
     "same_source_photo_and_one_shared_transform": true,
-    "private_source_photo_publication_permission": "NOT_CONFIRMED"
+    "private_source_photo_publication_permission": "NOT_CONFIRMED",
+    "cta_labels": {
+      "continue": "继续记忆",
+      "save": "保存本次鱼获",
+      "authority": "design/pages/recognition/result/engineering/layout_geometry_contract.json",
+      "authority_blob_sha": "2df910cda117e7c8be1e211bae17899e14c3933f",
+      "page_specific_authority_overrides_generic_copy": true,
+      "disable_if_destination_unavailable": true
+    }
   },
   "timing": {
     "total_nominal_duration_ms": 3650,
@@ -530,7 +541,8 @@
     "configured_preview_sha": "4de911dc497c150545d938b60b2694f3c4723e37",
     "production_mask_status": "NOT_QUALIFIED",
     "browser_visual_acceptance": "NOT_VERIFIED",
-    "full_suite_status": "NOT_RUN_BLOCKED_BY_EXISTING_METADATA_ACCESS_REVIEW"
+    "full_suite_status": "NOT_RUN_BLOCKED_BY_EXISTING_METADATA_ACCESS_REVIEW",
+    "design_authority_main_sha": "2c41084b423be36b06035694fe573c5e671cb4da"
   },
   "evidence_policy": {
     "exact_source_sha_required": true,
@@ -540,5 +552,57 @@
     "chromium_ui_simulation_does_not_imply_playable_motion_pass": true,
     "api_latency_does_not_imply_render_fps": true,
     "private_photos_must_not_enter_public_repo_or_public_ci": true
+  },
+  "business_decision_authority": {
+    "status": "RESOLVED_BY_AUTHORITY_SCOPE_NO_NUMERIC_THRESHOLD_CHANGE",
+    "result_state_api": "POST /api/product/catch-recognition/infer",
+    "web_must_consume_server_result_state": true,
+    "client_must_not_recompute_state": true,
+    "result_state_authority": "design/pages/recognition/result/spec/recognition_result_3plus2_decision_contract_v1_1.json",
+    "result_state_authority_blob_sha": "a678f63082d2f045dd659ed42c36df14c475f9c1",
+    "existing_mapping": {
+      "low_if_top1_confidence_below": 0.45,
+      "medium_if_top1_minus_second_below": 0.12
+    },
+    "separate_inference_diagnostic": {
+      "source": "app/inference_api.py",
+      "flag": "low_confidence",
+      "default_threshold": 0.55,
+      "overrides_product_result_state": false
+    },
+    "numeric_thresholds_changed": false,
+    "future_calibration_requires": [
+      "product_owner_signoff",
+      "labeled_holdout_evidence"
+    ]
+  },
+  "asset_authorization": {
+    "public_permission": "NOT_CONFIRMED",
+    "public_publication_allowed": false,
+    "public_repo_commit_allowed": false,
+    "public_ci_artifact_allowed": false,
+    "public_pages_upload_allowed": false,
+    "private_local_review_allowed": true,
+    "pixel_frozen_source": "NOT_CONFIRMED",
+    "verified_this_execution": [
+      {
+        "id": "processing-source-photo",
+        "filename": "208758.jpg",
+        "sha256": "ab7227cf7205ee2ac342b6cd75cd899747879506c95c33b888b6adf0acb47987",
+        "dimensions_px": [
+          1152,
+          1536
+        ],
+        "size_bytes": 331421,
+        "format": "JPEG",
+        "exif_orientation": 1
+      }
+    ],
+    "not_rechecked_this_execution": [
+      "web-three-stage",
+      "swos-history",
+      "private handoff bundles"
+    ],
+    "publication_gate": "BLOCKED_UNTIL_EXPLICIT_USER_PERMISSION_AND_LICENSE"
   }
 }

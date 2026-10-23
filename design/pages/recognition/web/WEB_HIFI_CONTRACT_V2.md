@@ -1,6 +1,6 @@
 # AI 渔获识别 Web 全量高保真与工程合同 V2
 
-**ID** `YUJIAN_AI_CATCH_RECOGNITION_WEB_HIFI_V1` · **状态** `VISUAL_CONTRACT_DEFINED`（Main 已采纳的设计合同） · 用户认可的三阶段与水光方向 `USER_APPROVED_VISUAL_DIRECTION`；`MAIN_ADOPTED=YES (DESIGN_CONTRACT_ONLY)`；`PIXEL_FROZEN_SOURCE=NOT_CONFIRMED`；`RUNTIME_VISUAL_VERIFIED=NO`。#186/#187 合同内容由 PR #190 纳入 Main；Work B Gap Matrix 的审计快照为 Web PR #177 HEAD `655c4af07a0244fcf29441b5652c48ca74f2e6a2`。Web PR #177 仍为 Draft/Open/Unmerged；实施前必须从 [PR #177](https://github.com/pan277942135/Yujian/pull/177) 读取最新 HEAD。该快照之后的代码变更尚未纳入 G01–G18 重审。不得声称原图像素冻结、真实 Web 视觉 PASS 或产品代码已验收。机器文件在 `contracts/`，结构先行见 `WEB_HIFI_HANDOFF_A_V2.md`。
+**ID** `YUJIAN_AI_CATCH_RECOGNITION_WEB_HIFI_V1` · **状态** `VISUAL_CONTRACT_DEFINED`（Main 已采纳的设计合同） · 用户认可的三阶段与水光方向 `USER_APPROVED_VISUAL_DIRECTION`；`MAIN_ADOPTED=YES (DESIGN_CONTRACT_ONLY)`；`PIXEL_FROZEN_SOURCE=NOT_CONFIRMED`；`RUNTIME_VISUAL_VERIFIED=NO`。#186/#187 合同内容由 PR #190 纳入 Main。G01–G18 表格仍是 `655c4af07a0244fcf29441b5652c48ca74f2e6a2` 的历史代码审查快照，不代表当前实现逐项已复核。当前跨仓库快照：Web PR #177 HEAD `ca21e25116cebef0ed393392eb8997a2b7077689`，产品 main `6a2064c2a02a76437b6e09a5241bc199cfa05048`，24 ahead / 0 behind；精确 SHA CI [#39929847089](https://github.com/pan277942135/Yujian/actions/runs/39929847089) 仅通过定向验证与 Chromium UI simulation，生产识别流水线测试被跳过。预览 pin 仍为旧 SHA `4de911dc497c150545d938b60b2694f3c4723e37`，真实预览、Mask 资格、逐帧视觉与性能验收仍未验证。产品 PR #177 保持 Draft/Open/Unmerged。不得声称原图像素冻结、真实 Web 视觉 PASS 或产品代码已验收。机器文件在 `contracts/`，结构先行见 `WEB_HIFI_HANDOFF_A_V2.md`。
 
 ## SWOS Web 可播放动效工程权威
 
@@ -10,7 +10,7 @@ SAM 复用现有产品实验链路；禁止新增重复分割服务、重训模�
 
 ## 视觉来源与边界
 
-用户确认的原始三阶段图现登记于 `VISUAL_REFERENCE_MANIFEST_V1.json`：`渔见AI鱼获识别流程展示.png`，1536×1024，SHA-256 `27c34ee5d3cf90921df433cb43c671e42b8ffa80b8f5cebfe9b397da2ee853e2`。私有交接包字节、尺寸已核验。此前 2560×1440、SHA `5f07c2f65ea33f14c8517dddbb7f8d6b7369a6ed980cba11cc92014f4e6a75f9` 候选降为历史溯源，不可替代本次原图。Design Manager 本地查看器通过 SHA、尺寸和字节数验证后显示；原图不进入仓库或 Pages。公开许可仍未确认，运行像素一致性仍未验收。
+用户确认的原始三阶段图现登记于 `VISUAL_REFERENCE_MANIFEST_V1.json`：`渔见AI鱼获识别流程展示.png`，1536×1024，SHA-256 `27c34ee5d3cf90921df433cb43c671e42b8ffa80b8f5cebfe9b397da2ee853e2`。私有交接包记录的 SHA、尺寸已核验；当前执行未重新取得该 PNG 原始字节，因此本次字节复核状态为 `NOT_RECHECKED_THIS_EXECUTION`。此前 2560×1440、SHA `5f07c2f65ea33f14c8517dddbb7f8d6b7369a6ed980cba11cc92014f4e6a75f9` 候选降为历史溯源，不可替代本次原图。Design Manager 仅在浏览器本地选择后验证 SHA、尺寸和字节数；不上传、不持久化。公开许可 `NOT_CONFIRMED`，公开仓库/Pages/CI 发布明确禁止；原图是用户确认的视觉方向参考，但 `PIXEL_FROZEN_SOURCE=NOT_CONFIRMED`，不得当作像素冻结基准或宣称像素一致。
 
 该原图确认构图方向，不自动覆盖示例文案、鱼种、模型参数、现行 Token、几何及响应式阈值。结构映射及冲突差异见同一 Manifest；数值补全仍保留 `DESIGN_COMPLETION_NOT_PIXEL_MEASURED`。14 帧 V0.3 历史海报与现行 15 帧 V1.1（含 R0.5）分别标记，3650ms 与 RR09 V3 不变。人工鱼体描线不是生产 Mask。
 
@@ -42,7 +42,9 @@ SAM 复用现有产品实验链路；禁止新增重复分割服务、重训模�
 
 ## 结果及业务
 
-3+2 状态与技术失败的文案、Hero、操作见 `Page_State_Matrix_V2.json`。HIGH 复用 Frozen Result：导航、HIGH Hero 322×210dp/360dp、Hero 下中文鱼种名、必要置信信息、长度重量时间地点、故事、双 CTA。现行冻结布局中「继续记忆」与「保存本次鱼获」为 CTA 文案；产品目标如果要求「继续记录记忆」，应先在 Result Authority 中解决措辞差异，不能擅自覆盖。英文科学名及空行都不显示。Web 记忆目标路由不存在则禁用并说明，不制造假链接。MEDIUM 候选需确认，LOW 人工选择，NO_FISH 与 IMAGE_QUALITY 提供重选，TECHNICAL_FAILURE 显示重试。阈值不在设计层重设；App 观察低置信 0.45 与后端默认 0.55 的差异保持 OPEN。
+3+2 状态与技术失败的文案、Hero、操作见 `Page_State_Matrix_V2.json`。HIGH 复用 Frozen Result：导航、HIGH Hero 322×210dp/360dp、Hero 下中文鱼种名、必要置信信息、长度重量时间地点、故事、双 CTA。**CTA 决策已收口：** 本页面严格使用冻结的 Result V1.1 页面级权威 `layout_geometry_contract.json`：继续按钮文案为「继续记忆」，保存按钮为「保存本次鱼获」。页面级冻结合同优先于通用 Action Button 示例文案「继续记录记忆」；Web 不得再混用两种标签。若真实记忆目标路由尚未开放，继续按钮必须禁用并解释，不得假跳转。英文科学名及空行都不显示。MEDIUM 候选需确认，LOW 人工选择，NO_FISH 与 IMAGE_QUALITY 提供重选，TECHNICAL_FAILURE 显示重试。
+
+**置信度决策已按职责收口，不改数值：** Web 只消费 `POST /api/product/catch-recognition/infer` 返回的 `result_state`，不得在浏览器重新计算 HIGH/MEDIUM/LOW。当前产品 Result 状态映射仍使用既有 `top1.confidence < 0.45 → LOW`、`top1-second.confidence < 0.12 → MEDIUM`；`app/inference_api.py` 中默认 `INFERENCE_LOW_CONFIDENCE_THRESHOLD=0.55` 是独立推理接口的 `low_confidence` 标记，不是 Web 3+2 状态阈值，不得覆盖服务端 `result_state`。本次只统一权威归属，不修改模型、阈值、门控或路由。任何未来阈值校准必须另有产品负责人批准和标注留出集证据。
 
 业务图像校验 → Detector/Quality → Crop → Classifier → 3+2 由真实事件驱动。Processing 光效是视觉状态，不能用时间标记模型完成。真实推理晚于 2800ms 则延长克制处理态；真实 HIGH 未就绪不揭晓。取消或新会话清除全部旧照片引用、BBox、Mask、鱼种、光效和定时器；Reduce Motion 仍保留可操作结果。
 

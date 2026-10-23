@@ -8,10 +8,26 @@
     "width": 1152,
     "height": 1536,
     "orientation": 1,
-    "source_status": "WORKSPACE_SOURCE_SHA_VERIFIED",
+    "source_status": "SHA256_AND_DIMENSIONS_VERIFIED_IN_CURRENT_EXECUTION",
     "public_permission": "NOT_CONFIRMED",
     "repository_included": false,
-    "reason": "Contains a person and Xiaohongshu watermark; no confirmed public publication permission."
+    "reason": "Contains a person and Xiaohongshu watermark; no confirmed public publication permission.",
+    "size_bytes": 331421,
+    "actual_format": "JPEG",
+    "current_execution_verification": {
+      "date": "2026-10-23",
+      "sha256": "ab7227cf7205ee2ac342b6cd75cd899747879506c95c33b888b6adf0acb47987",
+      "bytes": 331421,
+      "dimensions_px": [
+        1152,
+        1536
+      ],
+      "format": "JPEG",
+      "exif_orientation": 1
+    },
+    "public_publication_allowed": false,
+    "ci_artifact_allowed": false,
+    "pages_upload_allowed": false
   },
   "historic_direction_reference": {
     "filename": "渔见AI鱼获识别动画分镜海报.png",
@@ -29,7 +45,9 @@
     "byte_verification": "PRIVATE_HANDOFF_SHA256_AND_DIMENSIONS_VERIFIED",
     "public_permission": "NOT_CONFIRMED",
     "repository_included": false,
-    "route": "#page/recognition_flow_v1_2/hifi/swos_static_visual_v1_1"
+    "route": "#page/recognition_flow_v1_2/hifi/swos_static_visual_v1_1",
+    "public_publication_allowed": false,
+    "current_execution_byte_verification": "NOT_RECHECKED_THIS_EXECUTION"
   },
   "processing_authorities": [
     {
@@ -88,5 +106,8 @@
     187
   ],
   "photo_publication_permission": "NOT_CONFIRMED",
-  "visual_reference_manifest": "design/pages/recognition/web/VISUAL_REFERENCE_MANIFEST_V1.json"
+  "visual_reference_manifest": "design/pages/recognition/web/VISUAL_REFERENCE_MANIFEST_V1.json",
+  "pixel_frozen_source": "NOT_CONFIRMED",
+  "public_asset_publication_allowed": false,
+  "asset_authorization_gate": "BLOCKED_UNTIL_EXPLICIT_USER_PERMISSION_AND_LICENSE"
 }
