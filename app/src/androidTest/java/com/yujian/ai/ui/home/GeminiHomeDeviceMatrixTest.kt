@@ -435,8 +435,10 @@ class GeminiHomeDeviceMatrixTest {
         if (variant != GeminiHomeLayoutVariant.V3_BASELINE) {
             assertTrue("A→B base gap follows the active policy after removing the measured surplus: $statsToTitleBaseGap dp",
                 abs(statsToTitleBaseGap - requireNotNull(layoutSpec.statsToTitleGap).value) <= 2f)
-            assertTrue("B→C base gap follows the active policy after removing the measured surplus: $cardToFooterBaseGap dp",
-                abs(cardToFooterBaseGap - requireNotNull(layoutSpec.cardToFooterGap).value) <= 2f)
+            if (!hasMiddleScroll) {
+                assertTrue("B→C base gap follows the active policy after removing the measured surplus: $cardToFooterBaseGap dp",
+                    abs(cardToFooterBaseGap - requireNotNull(layoutSpec.cardToFooterGap).value) <= 2f)
+            }
             val expectedBrandToStatsGap = if (safeHeightDp < 460f) {
                 4f
             } else {

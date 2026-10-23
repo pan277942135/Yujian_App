@@ -544,6 +544,11 @@ private fun GeminiMiddleSection(
                 availableCardHeightDp = availableCardHeight.value,
                 minReadableCardHeightDp = layoutSpec.minReadableCardHeight.value,
             ).dp
+        } else if (layoutVariant == GeminiHomeLayoutVariant.V3_BASELINE) {
+            // Keep the diagnostic baseline monotonic across larger viewports.
+            // When its target Hero height cannot fit, scroll the Middle instead
+            // of shrinking the width below the same-font-scale smaller viewport.
+            desiredCardHeight
         } else if (availableCardHeight >= layoutSpec.minReadableCardHeight) {
             minOf(desiredCardHeight, availableCardHeight)
         } else {
@@ -574,8 +579,9 @@ private fun GeminiMiddleSection(
             modifier = contentModifier,
             verticalArrangement = if (adaptiveLayout || needsScroll) Arrangement.Top else Arrangement.Center,
         ) {
-            Spacer(Modifier.height(extraGapAToB).testTag("gemini-home-surplus-a-to-b"))
-            Spacer(Modifier.height(leadingGap).testTag("gemini-home-base-gap-a-to-b"))
+            // Nonzero spacer width keeps test-tag bounds visible to boundsInWindow checks.
+            Spacer(Modifier.fillMaxWidth().height(extraGapAToB).testTag("gemini-home-surplus-a-to-b"))
+            Spacer(Modifier.fillMaxWidth().height(leadingGap).testTag("gemini-home-base-gap-a-to-b"))
             GeminiSectionHeader(
                 modifier = Modifier.fillMaxWidth().height(headerHeight).testTag("gemini-home-section-header-row"),
                 safeWidth = safeWidth,
@@ -585,7 +591,7 @@ private fun GeminiMiddleSection(
                 onCatchesClick = onCatchesClick,
                 onTitleMeasuredHeight = { heightPx -> measuredTitleHeightPx.value = heightPx },
             )
-            Spacer(Modifier.height(headerGap).testTag("gemini-home-title-to-hero-gap"))
+            Spacer(Modifier.fillMaxWidth().height(headerGap).testTag("gemini-home-title-to-hero-gap"))
             if (records.isEmpty()) {
                 Box(
                     modifier = Modifier.fillMaxWidth().height(cardHeight)
@@ -618,8 +624,8 @@ private fun GeminiMiddleSection(
                     onCatchClick = onCatchClick,
                 )
             }
-            Spacer(Modifier.height(trailingGap).testTag("gemini-home-base-gap-b-to-c"))
-            Spacer(Modifier.height(extraGapBToC).testTag("gemini-home-surplus-b-to-c"))
+            Spacer(Modifier.fillMaxWidth().height(trailingGap).testTag("gemini-home-base-gap-b-to-c"))
+            Spacer(Modifier.fillMaxWidth().height(extraGapBToC).testTag("gemini-home-surplus-b-to-c"))
         }
     }
 }
