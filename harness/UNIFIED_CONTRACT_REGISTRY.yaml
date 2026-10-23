@@ -1449,7 +1449,7 @@ page_contract_sets:
       gemini_v22_acceptance: "design/pages/home/normal_home/engineering/NH01_GEMINI_ADAPTIVE_V2_ACCEPTANCE_V1.md"
       gemini_v22_matrix: "design/pages/home/normal_home/engineering/NH01_GEMINI_ADAPTIVE_V2_ACCEPTANCE_MATRIX_V1.json"
       nh01_authority_map: "design/pages/home/normal_home/authority/authority_map.json"
-    authority_rule: "The existing visual key remains the original NH01 V1 whole-page authority; appended static_hifi keys own only the additive archive, static responsive rules, and preview/asset checks. Gemini Adaptive V2 and its native matrix remain the Android runtime authority."
+    authority_rule: "The existing visual key remains the original NH01 V1 whole-page authority; appended static_hifi keys own the additive archive and Responsive Foundation V1.1 equal-split surplus rule. Gemini Adaptive V2 and its native matrix remain the Android runtime authority; implementation must prove equal S/2 additions to A-to-B and B-to-C on the exact tested SHA."
   recognition_flow_v1_2:
     refs:
       capture_page: "design/system_v3/08_Page_Contracts/recognition/capture/Recognition_Capture_Page_Contract_V3_1.md"
@@ -1487,7 +1487,7 @@ page_contract_sets:
 
 gate_contracts:
   G-NH01-WORK-B-V22-EXACT-SHA:
-    purpose: "Issue #194 frozen V2.2 Android implementation repair and targeted API28 smoke; does not replace the full native matrix, N004 or release gates"
+    purpose: "Issue #194 V2.2 Android implementation repair including Responsive Foundation V1.1 equal long-screen surplus split (S/2 to A-to-B and S/2 to B-to-C), plus targeted API28 smoke; does not replace the full native matrix, N004 or release gates"
     contract_refs: ["FC-home_normal_v1", "ANDROID-RUNTIME-HARNESS", "STATE-EVIDENCE-PROVENANCE"]
     acceptance_domains: ["implementation", "runtime", "visual", "accessibility", "evidence", "apk_provenance"]
     exact_sha_required: true
@@ -1816,6 +1816,6 @@ inventory:
   task_count: 49
   gate_count: 15
   registry_created_from_pr_head: "ebb6b3904feaa0cf26b4fd4b83bc809a397085a2"
-  last_synced_feature_matrix_sha: "81b702035ad97b25dc380e47c09cbb3d1e88263c"
-  last_synced_phase_task_state_machine_sha: "b8c55365ccee796fca5d893d29d6ae4833a8a7e2"
+  last_synced_feature_matrix_sha: "f443a675469cebfcadd9e039936f5a5ea2732935"
+  last_synced_phase_task_state_machine_sha: "7264e6c46d5546fcbf562f2d3e6c486c56a5bfd2"
   last_synced_experience_registry_sha: "47be44ca3cbce908fa676e262987fe26a8dbea32"
