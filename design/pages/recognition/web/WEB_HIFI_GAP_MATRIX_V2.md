@@ -1,5 +1,18 @@
 # Web PR #177 → Web Hi-Fi V2 Gap Matrix
 
+## Live source binding — post-sync audit 2026-10-23
+
+The original observations below are a **historical code-review snapshot** of PR #177 HEAD `655c4af07a0244fcf29441b5652c48ca74f2e6a2`; they are not proof that each gap remains identical on the live source.
+
+- Live PR #177 HEAD after main sync: `d8f3aabfab058d58cac84e19af095b0186df5f85`
+- Live product `main`: `3c79c00db68ace94d8f6a7dcb4105d0026a09323`
+- Comparison: **19 commits ahead / 0 behind**; merge base `3c79c00db68ace94d8f6a7dcb4105d0026a09323`. The latest three main commits were merged into the feature branch without rebase or force-push.
+- Exact-head CI for the post-sync SHA: [run 39917440271](https://github.com/pan277942135/Yujian/actions/runs/39917440271) **PASS** (`validate` and Chromium UI simulation). This does not prove real-photo inference, qualified Mask, pixel parity, cloud save, or visual acceptance.
+- The cross-repository control-plane binding is defined in the live input manifest: canonical governance remains in `pan277942135/Yujian_App`; the product repo is a separate implementation repo and must not create a competing registry.
+- Current-head product preview: `NOT_VERIFIED`; merged preview workflow remains pinned to historical `cb9e3780afb5e2904e3dfe5148210a4ccc3747b4`.
+- The current audit does **not** prove real-photo inference, qualified production Mask, pixel parity, cloud save, or user visual acceptance.
+- Current qualified production Mask: `NOT_QUALIFIED`; runtime visual verification: `NOT_VERIFIED`.
+
 观察源：`pan277942135/Yujian` PR #177 HEAD `655c4af07a0244fcf29441b5652c48ca74f2e6a2` 的 Product Shell 模板、CSS、识别控制器与照片会话/接续模块。这是代码审查，非运行像素差异；PR 仍 Draft/Open/Unmerged。目标合同为 Main 已采纳的 `YUJIAN_AI_CATCH_RECOGNITION_WEB_HIFI_V1` 及九份机器文件。未经授权原图比对的量化差值保持 `NOT_MEASURED`。
 
 | ID | 当前实现位置/观察 | 合同/优先级 | Work B 修复边界与简单验收 |
