@@ -33,7 +33,12 @@
     "shared_photo_transition": "design/pages/recognition/continuity/SWOS_Shared_Photo_Transition_Contract_V1.json",
     "rr09_motion": "design/pages/recognition/result/motion/recognition_result_motion_contract_v3.json",
     "hero_media": "design/pages/recognition/result/media/hero_media_contract.json",
-    "existing_technical_handoff": "design/pages/recognition/processing/optics/SWOS_Dynamic_Demo_Technical_Handoff_V1.md"
+    "existing_technical_handoff": "design/pages/recognition/processing/optics/SWOS_Dynamic_Demo_Technical_Handoff_V1.md",
+    "input_manifest": "design/pages/recognition/web/implementation_input_pack/SWOS_WEB_IMPLEMENTATION_INPUT_MANIFEST_V1.json",
+    "gap_matrix": "design/pages/recognition/web/WEB_HIFI_GAP_MATRIX_V2.md",
+    "authority_references": "design/pages/recognition/web/contracts/Authority_References_V2.json",
+    "acceptance_matrix": "design/pages/recognition/web/contracts/Acceptance_Matrix_V2.json",
+    "work_b_implementation_mapping": "design/pages/recognition/web/contracts/Work_B_Implementation_Mapping_V2.json"
   },
   "product_decisions": {
     "optical_language": "ORIGINAL_YUJIAN_SUNLIT_WATER_CAUSTICS",
@@ -226,7 +231,30 @@
       "reveal_order",
       "result_content",
       "CTA_availability"
-    ]
+    ],
+    "relative_strength_curves": {
+      "ambient_water": [
+        0,
+        10,
+        45,
+        75,
+        60,
+        35,
+        10,
+        0
+      ],
+      "fish_gold": [
+        0,
+        0,
+        15,
+        45,
+        100,
+        100,
+        100,
+        100
+      ],
+      "meaning": "Relative visual strengths from the existing SWOS keyframe contract; not CSS alpha or calibrated shader parameters."
+    }
   },
   "photo_geometry": {
     "normalize_exif_once": true,
@@ -501,5 +529,14 @@
     "preview_status": "NOT_VERIFIED",
     "production_mask_status": "NOT_QUALIFIED",
     "browser_visual_acceptance": "NOT_RUN"
+  },
+  "evidence_policy": {
+    "exact_source_sha_required": true,
+    "contract_and_input_manifest_blob_shas_required": true,
+    "current_product_branch_must_be_synced_to_main_before_implementation": true,
+    "static_contract_pass_does_not_imply_browser_visual_pass": true,
+    "chromium_ui_simulation_does_not_imply_playable_motion_pass": true,
+    "api_latency_does_not_imply_render_fps": true,
+    "private_photos_must_not_enter_public_repo_or_public_ci": true
   }
 }
