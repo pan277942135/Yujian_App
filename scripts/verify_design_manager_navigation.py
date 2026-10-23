@@ -128,6 +128,8 @@ def validate_tree(root: Path, *, built: bool = False, expected_build: str | None
             fail(f"SWOS static Design Manager {field} is missing: {path}")
     if not any(x.get("route") == "#page/recognition_result_v1/hifi/motion_continuation" for x in swos_static.get("related_routes", [])):
         fail("SWOS static submenu must link to RR09 V3")
+    if not any(x.get("route") == "#page/recognition_flow_v1_2/hifi/swos_web_hifi_motion_contract_v1_0" for x in swos_static.get("related_routes", [])):
+        fail("SWOS static submenu must link to the Web motion technical contract")
     static_frames = load_json(root / swos_static["machine_authority"])
     if static_frames.get("frame_count") != 15 or len(static_frames.get("keyframes", [])) != 15:
         fail("SWOS keyframe authority must contain exactly 15 frames")
