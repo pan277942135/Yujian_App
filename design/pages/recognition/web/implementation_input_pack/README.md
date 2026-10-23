@@ -1,7 +1,7 @@
 # SWOS Web Implementation Input Pack V1
 
 **Task:** `YUJIAN_SWOS_WEB_IMPLEMENTATION_INPUT_PACK_AND_LIVE_SHA_CLOSURE_V1`  
-**Status:** `PREPARED_SOURCE_SYNC_REQUIRED`  
+**Status:** `SOURCE_SYNCED_EXACT_HEAD_CI_PENDING`  
 **Role:** A traceable input snapshot; it does not replace or redefine the main-adopted design contracts.
 
 ## Ownership
@@ -18,14 +18,14 @@
 4. Before implementation, run `bash scripts/verify_swos_web_input_pack_live.sh --strict`. A strict block must be resolved, not bypassed.
 5. After syncing the product branch to the current product `main`, refresh the live source audit fields and re-run Admission and CI against the resulting exact product SHA.
 
-## Live audit at package creation
+## Live audit after product-main sync
 
 - Design authority baseline: `Yujian_App/main@01c7aec0c0e8216dd76f314f380ae3e0496bd28b`.
 - Product main: `Yujian/main@3c79c00db68ace94d8f6a7dcb4105d0026a09323`.
-- Product PR #177 HEAD: `32b9463887c6620b32a3dfdd986eccc6ff4a569b`.
-- Comparison: PR #177 is **18 commits ahead and 3 behind** product main. Implementation readiness is `BLOCKED_BEHIND_MAIN` until synchronized.
-- The live product PR head lacks root `AGENTS.md` and `CONTROL_PLANE_REGISTRY.yaml` (both returned 404). Product Admission remains `BLOCKED_MISSING_REGISTRY`; resolve a canonical cross-repository admission binding before claiming Admission PASS. Do not create a competing local control plane.
-- Exact-head CI run [39874124153](https://github.com/pan277942135/Yujian/actions/runs/39874124153) passed targeted validation and Chromium UI simulation only.
+- Product PR #177 HEAD: `d8f3aabfab058d58cac84e19af095b0186df5f85` (post-sync merge commit).
+- Comparison: PR #177 is **19 commits ahead and 0 behind** product main. The latest three main commits have been merged into the feature branch without rebase or force-push. Exact-head CI for the post-sync SHA is pending.
+- Canonical control-plane binding: governance remains authoritative in `Yujian_App/main`; the separate product repository `Yujian` is admitted through the exact-SHA cross-repository manifest and source audit. Do not duplicate a competing control plane in `Yujian`.
+- The previous exact-head CI run [39874124153](https://github.com/pan277942135/Yujian/actions/runs/39874124153) passed targeted validation and Chromium UI simulation on the *previous* SHA only. It is not reused as evidence for the new post-sync SHA.
 - Merged infrastructure PR #180 still pins `cb9e3780afb5e2904e3dfe5148210a4ccc3747b4`; a product preview for the current head is `NOT_VERIFIED`.
 
 ## Frozen behavior that Work must not reinterpret
@@ -47,3 +47,8 @@ The separate `208758.jpg` processing photo is referenced by the existing asset m
 ## What CI does and does not prove
 
 The exact-head CI pass is bound to the recorded product SHA and covers safe targeted checks plus Chromium UI simulation. It does not prove a production Mask, real-photo model inference, cloud save, pixel parity, animation quality or user acceptance. A preview is valid only when its deployed revision and health-reported SHA match the current reviewed PR head.
+
+
+## Cross-repository admission binding
+
+The canonical Work control plane is `pan277942135/Yujian_App/main`, pinned through `AGENTS.md` and `CONTROL_PLANE_REGISTRY.yaml`. The implementation source is maintained in the separate `pan277942135/Yujian` repository. This input pack provides the cross-repository source binding: exact PR head, live main comparison, exact-head CI, and pinned design contract blob SHAs. The product repo must not create a competing local control plane. Admission is complete only when the canonical control-plane checks and the live source audit both pass for the exact referenced SHA.
