@@ -62,12 +62,12 @@
       },
       {
         "path": "design/pages/recognition/web/contracts/Authority_References_V2.json",
-        "blob_sha": "9c44c6761b358f826fb2241a3b103bc28169db65",
+        "blob_sha": "430c1a081eb2a1e31e0abfde92114207731ce3e1",
         "role": "machine_contract_with_live_audit"
       },
       {
         "path": "design/pages/recognition/web/contracts/Work_B_Implementation_Mapping_V2.json",
-        "blob_sha": "40ae87bf1b5fcb7825ddc512d2b32a0a6e23e682",
+        "blob_sha": "7640418a4e930679bf1269961fd0dfeeff65c8b5",
         "role": "implementation_mapping_with_live_audit"
       },
       {
