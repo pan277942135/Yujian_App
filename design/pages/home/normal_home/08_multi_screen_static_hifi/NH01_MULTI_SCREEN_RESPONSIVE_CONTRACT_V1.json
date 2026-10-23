@@ -5,20 +5,63 @@
   "rules_status": "STATIC_RULES_FROZEN",
   "effective_date": "2026-10-22",
   "scope": "Additive static hi-fi archive and responsive design acceptance reference for populated NH01 Normal Home. Does not replace original NH01 V1 raster, current Gemini Adaptive V2 runtime authority, or Android acceptance evidence.",
-  "source_of_truth": "This contract owns the five static artifact identities, target viewport labels, visible static preview rules, the M05 480dp-width extension, and the Design Manager presentation. Referenced Gemini V2 authorities own Android layout and execution behavior wherever this contract does not explicitly add a static-only target.",
+  "source_of_truth": "This contract owns the five static artifact identities, target viewport labels, visible static preview rules, the M05 480dp-width extension, the Design Manager presentation, and the additive NH01 Responsive Foundation V1 (A/B/C grouping and allocation of otherwise-unassigned surplus only). It does not replace the original NH01 V1 raster, current Gemini Adaptive V2 runtime authority, or Android acceptance evidence.",
   "runtime_status": "NOT_VERIFIED",
   "viewport_profiles": [
-    {"id":"M01","asset_id":"NH01-M01-320x480dp-STATIC-HIFI-V1","width_dp":320,"height_dp":480,"kind":"fixed_viewport","font_scale_reference":1.0},
-    {"id":"M02","asset_id":"NH01-M02-360x640dp-STATIC-HIFI-V1","width_dp":360,"height_dp":640,"kind":"fixed_reference_viewport","font_scale_reference":1.0},
-    {"id":"M03","asset_id":"NH01-M03-390x844dp-STATIC-HIFI-V1","width_dp":390,"height_dp":844,"kind":"fixed_viewport","font_scale_reference":1.0},
-    {"id":"M04","asset_id":"NH01-M04-430x932dp-STATIC-HIFI-V1","width_dp":430,"height_dp":932,"kind":"fixed_viewport","font_scale_reference":1.0},
-    {"id":"M05","asset_id":"NH01-M05-480dp-WIDTH-STATIC-HIFI-V1","width_dp":480,"height_dp":null,"kind":"width_boundary_only","height_policy":"not_fixed","font_scale_reference":1.0,"native_execution":"not_added_to_existing_24_case_matrix"}
+    {
+      "id": "M01",
+      "asset_id": "NH01-M01-320x480dp-STATIC-HIFI-V1",
+      "width_dp": 320,
+      "height_dp": 480,
+      "kind": "fixed_viewport",
+      "font_scale_reference": 1
+    },
+    {
+      "id": "M02",
+      "asset_id": "NH01-M02-360x640dp-STATIC-HIFI-V1",
+      "width_dp": 360,
+      "height_dp": 640,
+      "kind": "fixed_reference_viewport",
+      "font_scale_reference": 1
+    },
+    {
+      "id": "M03",
+      "asset_id": "NH01-M03-390x844dp-STATIC-HIFI-V1",
+      "width_dp": 390,
+      "height_dp": 844,
+      "kind": "fixed_viewport",
+      "font_scale_reference": 1
+    },
+    {
+      "id": "M04",
+      "asset_id": "NH01-M04-430x932dp-STATIC-HIFI-V1",
+      "width_dp": 430,
+      "height_dp": 932,
+      "kind": "fixed_viewport",
+      "font_scale_reference": 1
+    },
+    {
+      "id": "M05",
+      "asset_id": "NH01-M05-480dp-WIDTH-STATIC-HIFI-V1",
+      "width_dp": 480,
+      "height_dp": null,
+      "kind": "width_boundary_only",
+      "height_policy": "not_fixed",
+      "font_scale_reference": 1,
+      "native_execution": "not_added_to_existing_24_case_matrix"
+    }
   ],
   "raster_mapping": {
-    "original_reference_px": {"width":1080,"height":1920},
-    "original_logical_reference_dp": {"width":360,"height":640},
-    "original_density_scale": 3.0,
-    "rule":"Target dp viewport labels and static PNG canvas pixels are separate measurements. Never infer one from the other or resample a frozen PNG to claim a different source canvas. M05 PNG aspect ratio does not establish an Android window height."
+    "original_reference_px": {
+      "width": 1080,
+      "height": 1920
+    },
+    "original_logical_reference_dp": {
+      "width": 360,
+      "height": 640
+    },
+    "original_density_scale": 3,
+    "rule": "Target dp viewport labels and static PNG canvas pixels are separate measurements. Never infer one from the other or resample a frozen PNG to claim a different source canvas. M05 PNG aspect ratio does not establish an Android window height."
   },
   "page_structure": [
     "Morning Lake background behind the complete home composition.",
@@ -30,111 +73,439 @@
     "System top/bottom safe areas; controls remain inside the usable content bounds."
   ],
   "responsive_monotonicity": {
-    "status":"FROZEN",
-    "comparison_condition":"Compare at the same system fontScale and layout variant while safe viewport width and/or height increase.",
-    "key_rule":"Key text roles, selected Hero width, and camera visual size must not decrease as viewport dimensions grow. They may remain level at their defined caps.",
-    "font_viewport_scale_formula":"min(min(safeWidthDp,560)/360,safeHeightDp/568).coerceIn(1.0,1.2)",
-    "font_base_formula":"clamp(safeHeightDp * role_ratio, role_min_sp, role_max_sp) * viewportScale; emitted as Compose sp.",
-    "hero_width_formula":"min(min(trackWidthDp,560dp) * 0.70,337.2dp)",
-    "camera_visual_formula":"min(min(safeWidthDp,560dp)*0.18,safeHeightDp*0.10,80dp), with 56dp floor",
-    "forbidden":"No legacy inverse rule where a taller/larger viewport makes a key font, Hero, or camera visual smaller; no global font shrinking to conceal overflow."
+    "status": "FROZEN",
+    "comparison_condition": "Compare at the same system fontScale and layout variant while safe viewport width and/or height increase.",
+    "key_rule": "Key text roles, selected Hero width, and camera visual size must not decrease as viewport dimensions grow. They may remain level at their defined caps.",
+    "font_viewport_scale_formula": "min(min(safeWidthDp,560)/360,safeHeightDp/568).coerceIn(1.0,1.2)",
+    "font_base_formula": "clamp(safeHeightDp * role_ratio, role_min_sp, role_max_sp) * viewportScale; emitted as Compose sp.",
+    "hero_width_formula": "min(min(trackWidthDp,560dp) * 0.70,337.2dp)",
+    "camera_visual_formula": "min(min(safeWidthDp,560dp)*0.18,safeHeightDp*0.10,80dp), with 56dp floor",
+    "forbidden": "No legacy inverse rule where a taller/larger viewport makes a key font, Hero, or camera visual smaller; no global font shrinking to conceal overflow."
   },
   "hero_and_peek": {
-    "hero_ratio":"247:293",
-    "hero_target_width_max_dp":337.2,
-    "hero_height_max_dp":400,
-    "hero_readable_height_range_dp":"148-220",
-    "short_screen_exception":{"height_dp":124,"viewport":"320x480dp only","font_scale":1.0,"min_width_dp":145,"conditions":["required text remains readable","middle content does not scroll"]},
-    "peek":{"source":"real adjacent FishRecord only","width_max_relative_to_main":0.82,"height_relative_to_main":0.667,"top_offset_dp":15,"max_geometry_overlap_dp":1,"wrap":"finite stable-ID pager; never create phantom or cloned adjacent cards"},
-    "single_record":"With one FishRecord, center the single Hero at the standard main-card size and show no fake neighbor or pager hint.",
-    "metadata_priority":["species","positive measurements with units","time","optional location"],
-    "metadata_overflow":"Preserve time; shorten or ellipsize optional location first. Do not leave a lone final CJK glyph or dangling separator. Species/auxiliary metadata may wrap to at most two lines where the existing Adaptive V2 rule allows it."
+    "hero_ratio": "247:293",
+    "hero_target_width_max_dp": 337.2,
+    "hero_height_max_dp": 400,
+    "hero_readable_height_range_dp": "148-220",
+    "short_screen_exception": {
+      "height_dp": 124,
+      "viewport": "320x480dp only",
+      "font_scale": 1,
+      "min_width_dp": 145,
+      "conditions": [
+        "required text remains readable",
+        "middle content does not scroll"
+      ]
+    },
+    "peek": {
+      "source": "real adjacent FishRecord only",
+      "width_max_relative_to_main": 0.82,
+      "height_relative_to_main": 0.667,
+      "top_offset_dp": 15,
+      "max_geometry_overlap_dp": 1,
+      "wrap": "finite stable-ID pager; never create phantom or cloned adjacent cards"
+    },
+    "single_record": "With one FishRecord, center the single Hero at the standard main-card size and show no fake neighbor or pager hint.",
+    "metadata_priority": [
+      "species",
+      "positive measurements with units",
+      "time",
+      "optional location"
+    ],
+    "metadata_overflow": "Preserve time; shorten or ellipsize optional location first. Do not leave a lone final CJK glyph or dangling separator. Species/auxiliary metadata may wrap to at most two lines where the existing Adaptive V2 rule allows it."
   },
   "typography": {
-    "font_scale_behavior":"Compose system fontScale is applied once by sp rendering. The viewport multiplier above is a separate bounded layout scale. fontScale may inform gap compression, wrapping, and measured-height budgets; do not multiply system fontScale into TextStyle a second time.",
-    "roles":[
-      {"role":"Brand title","form":"approved title artwork, not a text font","visual_size_dp":"width clamp(safeWidth*155/1080,46,70); height ratio 80:155","base_ratio":null,"minimum_sp":null,"maximum_sp":null,"line_height_ratio":null,"viewport_multiplier":"N/A to raster artwork; geometry follows existing avatar/header contract","system_font_scale":"does not resize image text as font"},
-      {"role":"Statistics number","form":"Compose text","base_ratio":0.03,"minimum_sp":17,"maximum_sp":21,"line_height_ratio":1.14,"viewport_multiplier":"bounded formula above","system_font_scale":"one Compose sp application"},
-      {"role":"Statistics label","form":"Compose text","base_ratio":0.019,"minimum_sp":11,"maximum_sp":13,"line_height_ratio":1.2,"viewport_multiplier":"bounded formula above","system_font_scale":"one Compose sp application"},
-      {"role":"Recent Catch heading","form":"Compose text","base_ratio":0.027,"minimum_sp":16,"maximum_sp":19,"line_height_ratio":1.2,"viewport_multiplier":"bounded formula above","system_font_scale":"one Compose sp application"},
-      {"role":"All entry","form":"Compose text","base_ratio":0.021,"minimum_sp":13,"maximum_sp":15,"line_height_ratio":1.2,"viewport_multiplier":"bounded formula above","system_font_scale":"one Compose sp application"},
-      {"role":"Species name","form":"Compose text","base_ratio":0.036,"minimum_sp":20,"maximum_sp":26,"line_height_ratio":1.2,"viewport_multiplier":"bounded formula above","system_font_scale":"one Compose sp application"},
-      {"role":"Measurements","form":"Compose text","base_ratio":0.023,"minimum_sp":13,"maximum_sp":16,"line_height_ratio":1.2,"viewport_multiplier":"bounded formula above","system_font_scale":"one Compose sp application"},
-      {"role":"Time and location metadata","form":"Compose text","base_ratio":0.019,"minimum_sp":11,"maximum_sp":13,"line_height_ratio":1.3,"viewport_multiplier":"bounded formula above","system_font_scale":"one Compose sp application"},
-      {"role":"Record-next-catch CTA","form":"Compose text","base_ratio":0.021,"minimum_sp":12,"maximum_sp":14,"line_height_ratio":1.25,"viewport_multiplier":"bounded formula above","system_font_scale":"one Compose sp application"}
+    "font_scale_behavior": "Compose system fontScale is applied once by sp rendering. The viewport multiplier above is a separate bounded layout scale. fontScale may inform gap compression, wrapping, and measured-height budgets; do not multiply system fontScale into TextStyle a second time.",
+    "roles": [
+      {
+        "role": "Brand title",
+        "form": "approved title artwork, not a text font",
+        "visual_size_dp": "width clamp(safeWidth*155/1080,46,70); height ratio 80:155",
+        "base_ratio": null,
+        "minimum_sp": null,
+        "maximum_sp": null,
+        "line_height_ratio": null,
+        "viewport_multiplier": "N/A to raster artwork; geometry follows existing avatar/header contract",
+        "system_font_scale": "does not resize image text as font"
+      },
+      {
+        "role": "Statistics number",
+        "form": "Compose text",
+        "base_ratio": 0.03,
+        "minimum_sp": 17,
+        "maximum_sp": 21,
+        "line_height_ratio": 1.14,
+        "viewport_multiplier": "bounded formula above",
+        "system_font_scale": "one Compose sp application"
+      },
+      {
+        "role": "Statistics label",
+        "form": "Compose text",
+        "base_ratio": 0.019,
+        "minimum_sp": 11,
+        "maximum_sp": 13,
+        "line_height_ratio": 1.2,
+        "viewport_multiplier": "bounded formula above",
+        "system_font_scale": "one Compose sp application"
+      },
+      {
+        "role": "Recent Catch heading",
+        "form": "Compose text",
+        "base_ratio": 0.027,
+        "minimum_sp": 16,
+        "maximum_sp": 19,
+        "line_height_ratio": 1.2,
+        "viewport_multiplier": "bounded formula above",
+        "system_font_scale": "one Compose sp application"
+      },
+      {
+        "role": "All entry",
+        "form": "Compose text",
+        "base_ratio": 0.021,
+        "minimum_sp": 13,
+        "maximum_sp": 15,
+        "line_height_ratio": 1.2,
+        "viewport_multiplier": "bounded formula above",
+        "system_font_scale": "one Compose sp application"
+      },
+      {
+        "role": "Species name",
+        "form": "Compose text",
+        "base_ratio": 0.036,
+        "minimum_sp": 20,
+        "maximum_sp": 26,
+        "line_height_ratio": 1.2,
+        "viewport_multiplier": "bounded formula above",
+        "system_font_scale": "one Compose sp application"
+      },
+      {
+        "role": "Measurements",
+        "form": "Compose text",
+        "base_ratio": 0.023,
+        "minimum_sp": 13,
+        "maximum_sp": 16,
+        "line_height_ratio": 1.2,
+        "viewport_multiplier": "bounded formula above",
+        "system_font_scale": "one Compose sp application"
+      },
+      {
+        "role": "Time and location metadata",
+        "form": "Compose text",
+        "base_ratio": 0.019,
+        "minimum_sp": 11,
+        "maximum_sp": 13,
+        "line_height_ratio": 1.3,
+        "viewport_multiplier": "bounded formula above",
+        "system_font_scale": "one Compose sp application"
+      },
+      {
+        "role": "Record-next-catch CTA",
+        "form": "Compose text",
+        "base_ratio": 0.021,
+        "minimum_sp": 12,
+        "maximum_sp": 14,
+        "line_height_ratio": 1.25,
+        "viewport_multiplier": "bounded formula above",
+        "system_font_scale": "one Compose sp application"
+      }
     ],
-    "system_font_scales_in_native_matrix":[1.0,1.3,1.5],
-    "overflow_policy":"Compress nonessential spacing first; use only the local wrapping rules; keep text readable. Do not apply arbitrary global shrink."
+    "system_font_scales_in_native_matrix": [
+      1,
+      1.3,
+      1.5
+    ],
+    "overflow_policy": "Compress nonessential spacing first; use only the local wrapping rules; keep text readable. Do not apply arbitrary global shrink."
   },
   "camera_and_touch": {
-    "camera_visual_size_dp":{"minimum":56,"maximum":80},
-    "camera_touch_target_dp":{"minimum_width":72,"minimum_height":72},
-    "other_action_touch_target_dp":{"minimum":48},
-    "grouping":"Record-next-catch CTA and camera belong to the same footer action group.",
-    "safe_area":"Place the complete footer group inside the usable safe bounds, avoid Hero/CTA/camera overlap, and apply system insets once."
+    "camera_visual_size_dp": {
+      "minimum": 56,
+      "maximum": 80
+    },
+    "camera_touch_target_dp": {
+      "minimum_width": 72,
+      "minimum_height": 72
+    },
+    "other_action_touch_target_dp": {
+      "minimum": 48
+    },
+    "grouping": "Record-next-catch CTA and camera belong to the same footer action group.",
+    "safe_area": "Place the complete footer group inside the usable safe bounds, avoid Hero/CTA/camera overlap, and apply system insets once."
   },
   "spacing": {
-    "title_visible_gap_definition":"Distance from the rendered 最近鱼获 text layout bottom to the selected main Hero card outer top, measured in native boundsInWindow. Do not substitute the section Row bottom or Pager center.",
-    "title_to_card_targets_dp_at_font_scale_1_0":[
-      {"viewport":"320x480dp","target":8,"tolerance":2,"authority":"Gemini Adaptive V2.2"},
-      {"viewport":"360x640dp","target":12,"tolerance":2,"authority":"Gemini Adaptive V2.2"},
-      {"viewport":"390x844dp","target":18,"tolerance":2,"authority":"Gemini Adaptive V2.2"},
-      {"viewport":"430x932dp","target":20,"tolerance":2,"authority":"Gemini Adaptive V2.2"},
-      {"viewport":"480dp width; height unspecified","target":24,"tolerance":2,"authority":"NEW STATIC WIDTH EXTENSION · V1 · 2026-10-22","scope":"static design preview only until an Android height is specified and Adaptive V2.2 formula is reconciled"}
+    "title_visible_gap_definition": "Distance from the rendered 最近鱼获 text layout bottom to the selected main Hero card outer top, measured in native boundsInWindow. Do not substitute the section Row bottom or Pager center.",
+    "title_to_card_targets_dp_at_font_scale_1_0": [
+      {
+        "viewport": "320x480dp",
+        "target": 8,
+        "tolerance": 2,
+        "authority": "Gemini Adaptive V2.2"
+      },
+      {
+        "viewport": "360x640dp",
+        "target": 12,
+        "tolerance": 2,
+        "authority": "Gemini Adaptive V2.2"
+      },
+      {
+        "viewport": "390x844dp",
+        "target": 18,
+        "tolerance": 2,
+        "authority": "Gemini Adaptive V2.2"
+      },
+      {
+        "viewport": "430x932dp",
+        "target": 20,
+        "tolerance": 2,
+        "authority": "Gemini Adaptive V2.2"
+      },
+      {
+        "viewport": "480dp width; height unspecified",
+        "target": 24,
+        "tolerance": 2,
+        "authority": "NEW STATIC WIDTH EXTENSION · V1 · 2026-10-22",
+        "scope": "static design preview only until an Android height is specified and Adaptive V2.2 formula is reconciled"
+      }
     ],
     "existing_adaptive_formulas": {
-      "font_pressure":"clamp((systemFontScale-1.0)/0.5,0,1)",
-      "short_height_pressure":"clamp((620-safeHeightDp)/220,0,1)",
-      "header_to_stats":"max(9dp, clamp(safeHeightDp*0.035,14dp,28dp) - fontPressure*3dp - shortHeightPressure*2dp)",
-      "stats_to_title":"max(12dp, base - fontPressure*2dp); base=14dp if safeHeight<700dp, 16dp if <840dp, else 18dp",
-      "title_to_card_runtime":"max(8dp, base - fontPressure*4dp); base=8dp if safeHeight<500dp, 12dp if <700dp, 18dp if <840dp, else 20dp",
-      "card_to_footer":"max(3dp, clamp(safeHeightDp*0.018,8dp,14dp) - fontPressure*3dp - shortHeightPressure*2dp)",
-      "cta_to_camera":"6dp if safeHeight<460dp, otherwise 11dp",
-      "footer_top_padding":"2dp if safeHeight<460dp, otherwise 4dp",
-      "footer_bottom_padding":"2dp if safeHeight<460dp; else 6dp if bottom safe inset>=40dp; otherwise 8dp"
+      "font_pressure": "clamp((systemFontScale-1.0)/0.5,0,1)",
+      "short_height_pressure": "clamp((620-safeHeightDp)/220,0,1)",
+      "header_to_stats": "max(9dp, clamp(safeHeightDp*0.035,14dp,28dp) - fontPressure*3dp - shortHeightPressure*2dp)",
+      "stats_to_title": "max(12dp, base - fontPressure*2dp); base=14dp if safeHeight<700dp, 16dp if <840dp, else 18dp",
+      "title_to_card_runtime": "max(8dp, base - fontPressure*4dp); base=8dp if safeHeight<500dp, 12dp if <700dp, 18dp if <840dp, else 20dp",
+      "card_to_footer": "max(3dp, clamp(safeHeightDp*0.018,8dp,14dp) - fontPressure*3dp - shortHeightPressure*2dp)",
+      "cta_to_camera": "6dp if safeHeight<460dp, otherwise 11dp",
+      "footer_top_padding": "2dp if safeHeight<460dp, otherwise 4dp",
+      "footer_bottom_padding": "2dp if safeHeight<460dp; else 6dp if bottom safe inset>=40dp; otherwise 8dp"
     },
-    "extension_conflict":"The M05 static target of 24±2dp is width-only and does not define safeHeightDp. Existing Gemini Adaptive V2.2 runtime Title-to-Card policy is height-based and caps its fontScale=1.0 targets at 20dp. Preserve both scopes explicitly; do not silently change runtime code or claim M05 native acceptance. Reconcile in a new Android contract only after the actual test-window height is defined.",
-    "required_adjacent_interval_measurements":[
-      {"id":"Header–Stats","bounds":"bottom of visible brand/avatar header content to top of statistics row","reference":"existing Adaptive V2 brandToStats formula","checks":["record actual dp gap and safe viewport","verify avatar/header does not overlap statistics"]},
-      {"id":"Stats–Title","bounds":"bottom of statistics row to top of Recent Catch text layout","reference":"existing Adaptive V2 statsToTitle formula","checks":["record actual dp gap","verify heading and All entry remain legible"]},
-      {"id":"Title–Card","bounds":"visible title glyph/layout bottom to selected Hero outer top","reference":"four existing V2.2 targets plus M05 static-only extension","checks":["boundsInWindow","fontScale recorded","do not use row/pager bounds"]},
-      {"id":"Card–CTA","bounds":"selected Hero outer bottom to visible CTA text/control top","reference":"existing Adaptive V2 cardToFooter plus footer top padding","checks":["record actual dp gap","no Hero/footer collision","footer remains outside local Middle scrolling"]},
-      {"id":"CTA–Camera","bounds":"CTA visible control bottom to camera artwork top; also record touch-target rectangles","reference":"existing footer Column gap: 6dp compact, otherwise 11dp","checks":["positive visible separation","touch bounds do not collide","same footer action group"]},
-      {"id":"Camera–BottomSafe","bounds":"camera visible artwork bottom to usable content bottom after system bottom inset","reference":"existing footer bottom padding: 2dp compact; 6dp when inset>=40dp; else 8dp","checks":["report inset once","camera touch target remains inside safe bounds","no system navigation overlap"]}
+    "extension_conflict": "The M05 static target of 24±2dp is width-only and does not define safeHeightDp. Existing Gemini Adaptive V2.2 runtime Title-to-Card policy is height-based and caps its fontScale=1.0 targets at 20dp. Preserve both scopes explicitly; do not silently change runtime code or claim M05 native acceptance. Reconcile in a new Android contract only after the actual test-window height is defined.",
+    "required_adjacent_interval_measurements": [
+      {
+        "id": "Header–Stats",
+        "bounds": "bottom of visible brand/avatar header content to top of statistics row",
+        "reference": "existing Adaptive V2 brandToStats formula",
+        "checks": [
+          "record actual dp gap and safe viewport",
+          "verify avatar/header does not overlap statistics"
+        ]
+      },
+      {
+        "id": "Stats–Title",
+        "bounds": "bottom of statistics row to top of Recent Catch text layout",
+        "reference": "existing Adaptive V2 statsToTitle formula",
+        "checks": [
+          "record actual dp gap",
+          "verify heading and All entry remain legible"
+        ]
+      },
+      {
+        "id": "Title–Card",
+        "bounds": "visible title glyph/layout bottom to selected Hero outer top",
+        "reference": "four existing V2.2 targets plus M05 static-only extension",
+        "checks": [
+          "boundsInWindow",
+          "fontScale recorded",
+          "do not use row/pager bounds"
+        ]
+      },
+      {
+        "id": "Card–CTA",
+        "bounds": "selected Hero outer bottom to visible CTA text/control top",
+        "reference": "existing Adaptive V2 cardToFooter plus footer top padding",
+        "checks": [
+          "record actual dp gap",
+          "no Hero/footer collision",
+          "footer remains outside local Middle scrolling"
+        ]
+      },
+      {
+        "id": "CTA–Camera",
+        "bounds": "CTA visible control bottom to camera artwork top; also record touch-target rectangles",
+        "reference": "existing footer Column gap: 6dp compact, otherwise 11dp",
+        "checks": [
+          "positive visible separation",
+          "touch bounds do not collide",
+          "same footer action group"
+        ]
+      },
+      {
+        "id": "Camera–BottomSafe",
+        "bounds": "camera visible artwork bottom to usable content bottom after system bottom inset",
+        "reference": "existing footer bottom padding: 2dp compact; 6dp when inset>=40dp; else 8dp",
+        "checks": [
+          "report inset once",
+          "camera touch target remains inside safe bounds",
+          "no system navigation overlap"
+        ]
+      }
     ]
   },
   "short_screen_and_safe_area": {
-    "priority_order":["compress nonessential whitespace","preserve required content and text readability","allow only existing local Middle scroll where contract permits"],
-    "forbidden":["hide required content to pass","shrink all fonts/cards globally","double-apply system insets","overlap camera/CTA with Hero or system navigation"],
-    "failure_states":["SAFE_OVERFLOW","UNSUPPORTED_WINDOW","FAIL_CONSTRAINT"],
-    "rule":"If normal layout cannot fit the real safe window under the existing contract, report the appropriate failure state; do not label the viewport passed from a static image."
+    "priority_order": [
+      "compress nonessential whitespace",
+      "preserve required content and text readability",
+      "allow only existing local Middle scroll where contract permits"
+    ],
+    "forbidden": [
+      "hide required content to pass",
+      "shrink all fonts/cards globally",
+      "double-apply system insets",
+      "overlap camera/CTA with Hero or system navigation"
+    ],
+    "failure_states": [
+      "SAFE_OVERFLOW",
+      "UNSUPPORTED_WINDOW",
+      "FAIL_CONSTRAINT"
+    ],
+    "rule": "If normal layout cannot fit the real safe window under the existing contract, report the appropriate failure state; do not label the viewport passed from a static image."
   },
   "background_avatar_photos": {
-    "background":"Retain the existing Morning Lake master and NH01 Gemini route: exact immutable asset SHA 5fba741088ea186e898cd3bee5777e35978436f427492e6e6122528ef6aa91d7; TopCenter/Crop; no added tint, blur, or screenshot-derived crop.",
-    "avatar":"Follow NH01_Avatar_Visual_Contract_V1_1_FROZEN.md. The real-person avatar visible in any recovered static screenshot is sample content only, not the default avatar; do not change guest/login state, permissions, click destination, or user-photo handling.",
-    "photo":"Keep the true FishRecord photo. Preserve existing crop/Fit and same-source backdrop constraints. Do not fabricate neighbor records or treat static sample data as runtime data."
+    "background": "Retain the existing Morning Lake master and NH01 Gemini route: exact immutable asset SHA 5fba741088ea186e898cd3bee5777e35978436f427492e6e6122528ef6aa91d7; TopCenter/Crop; no added tint, blur, or screenshot-derived crop.",
+    "avatar": "Follow NH01_Avatar_Visual_Contract_V1_1_FROZEN.md. The real-person avatar visible in any recovered static screenshot is sample content only, not the default avatar; do not change guest/login state, permissions, click destination, or user-photo handling.",
+    "photo": "Keep the true FishRecord photo. Preserve existing crop/Fit and same-source backdrop constraints. Do not fabricate neighbor records or treat static sample data as runtime data."
   },
   "native_acceptance": {
-    "status":"NOT_VERIFIED",
-    "existing_matrix_cases":24,
-    "viewports_dp":["320x480","360x640","390x844","430x932"],
-    "font_scales":[1.0,1.3,1.5],
-    "layout_variants":["ADAPTIVE_V2","V3_BASELINE"],
-    "execution_required":"24 real Android API 28 executions with viewport, fontScale, layout variant, bounds, screenshots, and logs recorded. Browser preview and static PNG review never changes NOT_RUN/NOT_VERIFIED to PASS.",
-    "m05":"Static 480dp width boundary only. Not a fifth native height profile and not part of the existing 24 cases."
+    "status": "NOT_VERIFIED",
+    "existing_matrix_cases": 24,
+    "viewports_dp": [
+      "320x480",
+      "360x640",
+      "390x844",
+      "430x932"
+    ],
+    "font_scales": [
+      1,
+      1.3,
+      1.5
+    ],
+    "layout_variants": [
+      "ADAPTIVE_V2",
+      "V3_BASELINE"
+    ],
+    "execution_required": "24 real Android API 28 executions with viewport, fontScale, layout variant, bounds, screenshots, and logs recorded. Browser preview and static PNG review never changes NOT_RUN/NOT_VERIFIED to PASS.",
+    "m05": "Static 480dp width boundary only. Not a fifth native height profile and not part of the existing 24 cases."
   },
   "authority_crosswalk": [
-    {"path":"design/system_v3/10_Page_Visual_Acceptance_Contracts/Normal_Home/Normal_Home_Responsive_Contract_V1.md","scope":"Retained legacy Normal Home responsive contract; this V1 archive does not overwrite or globally supersede it."},
-    {"path":"design/pages/home/normal_home/engineering/NH01_GEMINI_ADAPTIVE_V2_UNIFIED_AUTHORITY_V1.md","scope":"Current Gemini route authority for layout, spacing, Hero/Peek, metadata, background, avatar, motion, and 24-run acceptance; controls Android scope except the new static-only M05 label."},
-    {"path":"design/pages/home/normal_home/engineering/NH01_GEMINI_ADAPTIVE_V2_ACCEPTANCE_V1.md","scope":"Current native and route acceptance process; unchanged."},
-    {"path":"design/pages/home/normal_home/engineering/NH01_GEMINI_ADAPTIVE_V2_ACCEPTANCE_MATRIX_V1.json","scope":"Current 24-run native matrix; remains authoritative for Android execution."},
-    {"path":"design/qa/NH01_ADAPTIVE_VISUAL_BALANCE_V2.md","scope":"Current visual balance, monotonic scaling, touch geometry, and Responsive V2 authority."},
-    {"path":"design/pages/home/normal_home/05_responsive_interaction/Normal_Home_Typography_Scaling_Contract_V1.md","scope":"Legacy V1 raster/font mapping only; not the current Gemini V2 font-role source."},
-    {"path":"app/src/main/java/com/yujian/ai/ui/home/GeminiNormalHomeContent.kt","scope":"Current implementation-derived role formulas and footer geometry recorded for traceability; this design archive does not modify Android code."},
-    {"path":"app/src/main/java/com/yujian/ai/ui/home/GeminiHomeAdaptiveLayoutPolicy.kt","scope":"Current Adaptive V2 formulas recorded for traceability; this archive does not change runtime behavior."},
-    {"path":"design/pages/home/normal_home/engineering/NH01_Avatar_Visual_Contract_V1_1_FROZEN.md","scope":"Current Gemini avatar visual/accessibility behavior; static sample face is not default-avatar authority."}
+    {
+      "path": "design/system_v3/10_Page_Visual_Acceptance_Contracts/Normal_Home/Normal_Home_Responsive_Contract_V1.md",
+      "scope": "Retained legacy Normal Home responsive contract; this V1 archive does not overwrite or globally supersede it."
+    },
+    {
+      "path": "design/pages/home/normal_home/engineering/NH01_GEMINI_ADAPTIVE_V2_UNIFIED_AUTHORITY_V1.md",
+      "scope": "Current Gemini route authority for exact layout, spacing, Hero/Peek, metadata, background, avatar, motion, and 24-run acceptance. NH01 Responsive Foundation V1 adds only A/B/C grouping and allocation of otherwise-unassigned surplus; it does not supersede Adaptive V2.2 numeric targets."
+    },
+    {
+      "path": "design/pages/home/normal_home/engineering/NH01_GEMINI_ADAPTIVE_V2_ACCEPTANCE_V1.md",
+      "scope": "Current native and route acceptance process; unchanged."
+    },
+    {
+      "path": "design/pages/home/normal_home/engineering/NH01_GEMINI_ADAPTIVE_V2_ACCEPTANCE_MATRIX_V1.json",
+      "scope": "Current 24-run native matrix; remains authoritative for Android execution."
+    },
+    {
+      "path": "design/qa/NH01_ADAPTIVE_VISUAL_BALANCE_V2.md",
+      "scope": "Current visual balance, monotonic scaling, touch geometry, and Responsive V2 authority."
+    },
+    {
+      "path": "design/pages/home/normal_home/05_responsive_interaction/Normal_Home_Typography_Scaling_Contract_V1.md",
+      "scope": "Legacy V1 raster/font mapping only; not the current Gemini V2 font-role source."
+    },
+    {
+      "path": "app/src/main/java/com/yujian/ai/ui/home/GeminiNormalHomeContent.kt",
+      "scope": "Current implementation-derived role formulas and footer geometry recorded for traceability; this design archive does not modify Android code."
+    },
+    {
+      "path": "app/src/main/java/com/yujian/ai/ui/home/GeminiHomeAdaptiveLayoutPolicy.kt",
+      "scope": "Current Adaptive V2 formulas recorded for traceability; this archive does not change runtime behavior."
+    },
+    {
+      "path": "design/pages/home/normal_home/engineering/NH01_Avatar_Visual_Contract_V1_1_FROZEN.md",
+      "scope": "Current Gemini avatar visual/accessibility behavior; static sample face is not default-avatar authority."
+    }
   ],
   "change_log": [
-    {"version":"V1","date":"2026-10-22","change":"Archive the five recovered original NH01 static hi-fi images; formalize target-dp to actual-pixel mapping; register complete responsive design acceptance; add the M05 480dp static width and 24±2dp visible title-to-card target with explicit Android-height conflict scope; keep Android NOT_VERIFIED."}
-  ]
+    {
+      "version": "V1",
+      "date": "2026-10-22",
+      "change": "Archive the five recovered original NH01 static hi-fi images; formalize target-dp to actual-pixel mapping; register complete responsive design acceptance; add the M05 480dp static width and 24±2dp visible title-to-card target with explicit Android-height conflict scope; keep Android NOT_VERIFIED."
+    },
+    {
+      "version": "Responsive Foundation V1",
+      "date": "2026-10-23",
+      "change": "Freeze NH01 A/B/C group structure, single-policy rule, 2:1 allocation of otherwise-unassigned long-screen surplus, and short-screen no-scroll priority; retain all existing Adaptive V2.2 numeric authorities and runtime gates."
+    }
+  ],
+  "foundation_layout_principles": {
+    "foundation_id": "NH01_RESPONSIVE_FOUNDATION_V1",
+    "version": "V1",
+    "status": "FROZEN",
+    "approved_date": "2026-10-23",
+    "scope": "Page-group structure and allocation of otherwise-unassigned vertical surplus only; exact numeric Android rules remain under Gemini Adaptive V2.2.",
+    "groups": [
+      {
+        "id": "A",
+        "name": "Top information",
+        "members": [
+          "brand title and avatar action",
+          "three home statistics in a second row"
+        ]
+      },
+      {
+        "id": "B",
+        "name": "Catch content",
+        "members": [
+          "Recent Catch heading and All action",
+          "selected Hero",
+          "eligible real-neighbor Peek cards"
+        ]
+      },
+      {
+        "id": "C",
+        "name": "Bottom action",
+        "members": [
+          "record-next-catch CTA",
+          "primary camera action"
+        ]
+      }
+    ],
+    "single_constraint_driven_policy": true,
+    "long_screen_surplus_allocation": {
+      "a_to_b_share": 2,
+      "b_to_c_share": 1,
+      "scope": "Only positive vertical surplus left after existing component dimensions, safe insets, explicit visual targets, and base spacing constraints are satisfied.",
+      "base_gap_mapping": {
+        "a_to_b": "existing stats_to_title formula",
+        "b_to_c": "existing card_to_footer formula"
+      },
+      "note": "The 2:1 ratio applies to additional surplus, not final visible gaps. It does not override explicit per-viewport Title-to-Hero targets."
+    },
+    "short_screen_priority": {
+      "viewport": "320x480dp",
+      "system_font_scale": 1,
+      "goal": "NO_SCROLL",
+      "header": "Keep two-row header",
+      "order": [
+        "compress nonessential whitespace",
+        "compress group gaps within existing contract",
+        "adjust Hero only within existing ratio/size/readability constraints"
+      ],
+      "preserve": [
+        "required content readability",
+        "Hero ratio 247:293",
+        "existing Hero width/height limits and short-screen exception",
+        "camera touch target",
+        "Footer safe area"
+      ]
+    },
+    "forbidden": [
+      "viewport-specific copied screenshot coordinates",
+      "hide required content",
+      "clip required text",
+      "globally shrink fonts",
+      "reduce touch targets",
+      "overlap components",
+      "apply system insets twice",
+      "add a separate bottom-reserve function"
+    ],
+    "conflict_rule": "If constraints cannot be jointly satisfied, report SPEC_CONFLICT; do not silently override a more specific frozen rule or claim runtime PASS."
+  }
 }
