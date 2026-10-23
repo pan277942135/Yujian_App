@@ -2,7 +2,7 @@
   "schema_version": "1.0",
   "task_id": "YUJIAN_SWOS_WEB_IMPLEMENTATION_INPUT_PACK_AND_LIVE_SHA_CLOSURE_V1",
   "snapshot_date_utc": "2026-10-23",
-  "package_status": "SWOS_WEB_MOTION_CONTRACT_V1_0_BOUND; EXACT_HEAD_CI_PASS; PRODUCT_BRANCH_BEHIND_MAIN; PREVIEW_NOT_VERIFIED; PRODUCTION_MASK_NOT_QUALIFIED",
+  "package_status": "SWOS_WEB_MOTION_CONTRACT_V1_0_BOUND; CANONICAL_LAYERS_SHA_PINNED; EXACT_HEAD_CI_PASS; PRODUCT_BRANCH_BEHIND_MAIN; PREVIEW_NOT_VERIFIED; PRODUCTION_MASK_NOT_QUALIFIED",
   "package_role": "IMPLEMENTATION_INPUT_SNAPSHOT_NOT_A_PARALLEL_DESIGN_AUTHORITY",
   "authority": {
     "repository": "pan277942135/Yujian_App",
@@ -17,7 +17,7 @@
       },
       {
         "path": "design/pages/recognition/web/WEB_HIFI_GAP_MATRIX_V2.md",
-        "blob_sha": "1769632cefe7f33dbcf463ea9f5fa934bea16f09",
+        "blob_sha": "cc9c53400b47382b8fd0b6fb6eadbf8cce46b03d",
         "role": "live_gap_matrix_with_historical_baseline_labeled"
       },
       {
@@ -27,7 +27,7 @@
       },
       {
         "path": "design/pages/recognition/web/WEB_HIFI_HANDOFF_B_V2.md",
-        "blob_sha": "1daa1c83d964457f8223cfc5df2541e9c7b9128d",
+        "blob_sha": "ad5501ce1b3a8596dba703ba7a78c0b2db202733",
         "role": "handoff_b"
       },
       {
@@ -67,12 +67,12 @@
       },
       {
         "path": "design/pages/recognition/web/contracts/Work_B_Implementation_Mapping_V2.json",
-        "blob_sha": "db8d1ab5e0dc7a09c56a3091971a397ca33dbf06",
+        "blob_sha": "4dcba53040b6d051a4032c2010f08926fa6a0d46",
         "role": "implementation_mapping_with_live_audit"
       },
       {
         "path": "design/pages/recognition/web/contracts/Acceptance_Matrix_V2.json",
-        "blob_sha": "abaf12e2d8627fe896f213c224a8df783055bdf5",
+        "blob_sha": "489ee593d5f3d6913971152f6229fb4ad6bbbd2d",
         "role": "machine_contract"
       },
       {
@@ -107,7 +107,7 @@
       },
       {
         "path": "design/pages/recognition/phase1/Phase1_SWOS_Playable_Demo_Input_Contract_V1.md",
-        "blob_sha": "32da6840ef98bd13f3cd24c480b46f0c2699c77f",
+        "blob_sha": "487a3e5a81e4c972d6f8725eefa9a9cc9b310ef8",
         "role": "playable_demo_inputs"
       },
       {
@@ -143,12 +143,37 @@
       {
         "path": "design/pages/recognition/web/contracts/SWOS_WEB_HIFI_MOTION_TECHNICAL_CONTRACT_V1_0.json",
         "role": "swos_web_hifi_motion_machine_contract",
-        "blob_sha": "26bcefa0f649f82857e22a34d78c79c1466d6fad"
+        "blob_sha": "3c478033bbb9986e121588eff69e650fc121c3de"
       },
       {
         "path": "design/pages/recognition/processing/README.md",
         "role": "processing_authority_index",
         "blob_sha": "4071184eae1ad0ed2c36b61d2b937e2a343af054"
+      },
+      {
+        "path": "design/registry/experience_registry_v1.json",
+        "role": "design_manager_route_registration",
+        "blob_sha": "47be44ca3cbce908fa676e262987fe26a8dbea32"
+      },
+      {
+        "path": "scripts/verify_design_manager_navigation.py",
+        "role": "design_manager_navigation_validator",
+        "blob_sha": "c00476ed293e7945753fec05ddfdfbec7e29bc7d"
+      },
+      {
+        "path": "scripts/verify_design_manager_browser.mjs",
+        "role": "design_manager_browser_validator",
+        "blob_sha": "c13e7023f6f5e5a9e8d4283a25c2d507b02f7134"
+      },
+      {
+        "path": "scripts/verify_swos_static_visual_v1_1.py",
+        "role": "swos_contract_validator",
+        "blob_sha": "ed847b06f786c02652503b12970ef482f3356bcd"
+      },
+      {
+        "path": "scripts/verify_swos_web_input_pack_live.sh",
+        "role": "live_input_pack_sha_validator",
+        "blob_sha": "3bb286e73910df9dc491c2ad3cc5c7fcd7cc4209"
       }
     ],
     "canonical_control_plane_files": [
@@ -161,6 +186,101 @@
         "path": "CONTROL_PLANE_REGISTRY.yaml",
         "blob_sha": "3db40b1825851a9fe93c5c101e713eb0f526624f",
         "role": "canonical_control_plane_entrypoint"
+      },
+      {
+        "path": "CONTROL_PLANE_CHANGE_SYNC.md",
+        "blob_sha": "3d8a85b1b46e6b65a3b9d2bf80ff5fa1a91b3f84",
+        "role": "change_sync_protocol"
+      },
+      {
+        "path": "harness/FEATURE_MATRIX.yaml",
+        "blob_sha": "81b702035ad97b25dc380e47c09cbb3d1e88263c",
+        "role": "canonical_feature_matrix"
+      },
+      {
+        "path": "harness/PHASE_TASK_STATE_MACHINE.yaml",
+        "blob_sha": "b8c55365ccee796fca5d893d29d6ae4833a8a7e2",
+        "role": "canonical_phase_task_state_machine"
+      },
+      {
+        "path": "harness/UNIFIED_CONTRACT_REGISTRY.yaml",
+        "blob_sha": "ad02f9ba0d5c6aaad8817d8b4165b8281bf87eb3",
+        "role": "canonical_unified_contract_registry"
+      },
+      {
+        "path": "harness/UNIFIED_CONTRACT_SCHEMA_V1.md",
+        "blob_sha": "7a8d968f2a999b2b9b37d5072ebbdc5189802b29",
+        "role": "unified_contract_schema"
+      },
+      {
+        "path": "harness/CONTRACT_RESOLUTION_PROTOCOL.md",
+        "blob_sha": "040f25405a48639da967ee8fb20c884e680d082b",
+        "role": "contract_resolution_protocol"
+      },
+      {
+        "path": "harness/STATE_UPDATE_PROTOCOL.md",
+        "blob_sha": "00ecd7d558a71b115d80ef6caa783f086a76efb9",
+        "role": "state_update_protocol"
+      },
+      {
+        "path": "harness/WORK_EXECUTION_STATE_SCHEMA_V1.json",
+        "blob_sha": "2030e44e22432b892179275c8977765e1cdb030d",
+        "role": "work_execution_state_schema"
+      },
+      {
+        "path": "harness/WORK_EXECUTION_STATE_TEMPLATE_V1.json",
+        "blob_sha": "5cc63e18d4f30c2e9d147f35ff306dd871de6c91",
+        "role": "work_execution_state_template"
+      },
+      {
+        "path": "scripts/validate_project_master_state.py",
+        "blob_sha": "c6ef6ded167c28532958258314eaa25d622992de",
+        "role": "project_master_state_validator"
+      },
+      {
+        "path": "scripts/validate_feature_matrix.py",
+        "blob_sha": "70cf44275ad5d9a63eecdfe2d37996e7c4475736",
+        "role": "feature_matrix_validator"
+      },
+      {
+        "path": "scripts/validate_phase_task_state_machine.py",
+        "blob_sha": "7e60a79417f01c58731113b5f0f22f436018d2a4",
+        "role": "phase_task_state_machine_validator"
+      },
+      {
+        "path": "scripts/validate_unified_contract.py",
+        "blob_sha": "24d434820e9cfdbc6940bfe8da7e985586df8051",
+        "role": "unified_contract_validator"
+      },
+      {
+        "path": "scripts/validate_control_plane_registry.py",
+        "blob_sha": "f86eeb1187d5e65105359455eef01df8b202acbf",
+        "role": "control_plane_registry_validator"
+      },
+      {
+        "path": "scripts/validate_control_plane_sync.py",
+        "blob_sha": "43e9d9c881f9255fb26c771d4ebde53b9a319194",
+        "role": "control_plane_sync_validator"
+      },
+      {
+        "path": "scripts/validate_work_execution_state.py",
+        "blob_sha": "e3f0bca9da5d4e5ac58ed009b94a112d447faec2",
+        "role": "work_execution_state_validator"
+      },
+      {
+        "path": "scripts/validate_control_plane_admission.py",
+        "blob_sha": "38d08452a0de4105d9fa29b3858c746614112782",
+        "role": "control_plane_admission_validator"
+      },
+      {
+        "path": "scripts/run_android_runtime_gate.sh",
+        "blob_sha": "704eb3fad3f8d62862e1733b739b06cba2327b0c",
+        "role": "android_runtime_gate_entrypoint"
+      },
+      {
+        "path": "scripts/run_recognition_frozen_emulator_gate.sh",
+        "blob_sha": "741f3c577ffe4ffa1e9cd9e4b6d4256900f5075f",
+        "role": "recognition_runtime_gate_entrypoint"
       }
     ],
     "cross_repository_admission_binding": {
@@ -227,8 +347,55 @@
       {
         "path": "docs/catch_web_preview_pin_v2.md",
         "blob_sha": "71e43da2b59186ea1b75a09ac8ecb46e9c0397ea"
+      },
+      {
+        "path": "app/segmentation_api.py",
+        "blob_sha": "a9e1dd18f5c5fafec5692a151bd1fd7a3c457d68"
+      },
+      {
+        "path": "app/segmentation/service.py",
+        "blob_sha": "35012734cafc28f2e27387ea6ffae84f82343f66"
+      },
+      {
+        "path": "app/segmentation/mask_generator.py",
+        "blob_sha": "b351b571501b328ae12a4f05b8350b6dd06a17eb"
+      },
+      {
+        "path": "app/segmentation/quality_gate.py",
+        "blob_sha": "7885e3571c23fe8e69b56159dee53e18319cf883"
+      },
+      {
+        "path": "app/segmentation/cutout_builder.py",
+        "blob_sha": "886503cc99257fd530c21c6e77923c18f356d496"
       }
-    ]
+    ],
+    "sam_pipeline_binding": {
+      "existing_pipeline_present_at_product_main_and_pr177_head": true,
+      "source_sha_equality_verified": true,
+      "code_files": [
+        {
+          "path": "app/segmentation_api.py",
+          "blob_sha": "a9e1dd18f5c5fafec5692a151bd1fd7a3c457d68"
+        },
+        {
+          "path": "app/segmentation/service.py",
+          "blob_sha": "35012734cafc28f2e27387ea6ffae84f82343f66"
+        },
+        {
+          "path": "app/segmentation/mask_generator.py",
+          "blob_sha": "b351b571501b328ae12a4f05b8350b6dd06a17eb"
+        },
+        {
+          "path": "app/segmentation/quality_gate.py",
+          "blob_sha": "7885e3571c23fe8e69b56159dee53e18319cf883"
+        },
+        {
+          "path": "app/segmentation/cutout_builder.py",
+          "blob_sha": "886503cc99257fd530c21c6e77923c18f356d496"
+        }
+      ],
+      "policy": "REUSE_EXISTING_EXPERIMENTAL_PIPELINE; NO_DUPLICATE_SERVICE; NO_RETRAIN; DEBUG_ENDPOINT_NOT_PUBLIC_PRODUCTION_API"
+    }
   },
   "motion_and_product_decisions": {
     "processing_duration_ms": 2800,
