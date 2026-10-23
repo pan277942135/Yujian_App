@@ -391,7 +391,7 @@ async function main() {
     await page.waitForFunction(()=>window.NH01GeminiPreviewLayoutReady&&window.NH01GeminiPreviewLayout.variant==='V3_BASELINE',undefined,{timeout:30000});
     const baseline=await page.evaluate(()=>({variant:window.NH01GeminiPreviewLayout.variant,card_size:[window.NH01GeminiPreviewLayout.card_width_dp,window.NH01GeminiPreviewLayout.card_height_dp]}));
     await page.locator('#layoutVariant').selectOption('ADAPTIVE_V2');
-    const returned=await waitReady(page,320,480,1.3);
+    const returned=await waitReady(page,430,932,1.3);
     const m05Option=await page.locator('#anchorSelect option').evaluateAll(options=>{
       const option=options.find(item=>item.textContent.includes('M05'));
       return option?{value:option.value,label:option.textContent}:null;
