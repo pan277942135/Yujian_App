@@ -11,6 +11,7 @@ on:
       - audit/design-system-v3-1-phase1-master-baseline
     paths-ignore:
       - ".github/workflows/android.yml"
+      - ".github/workflows/nh01-cloud-runtime.yml"
       - ".github/workflows/control-plane-admission.yml"
       - "CONTROL_PLANE_REGISTRY.yaml"
       - "CONTROL_PLANE_CHANGE_SYNC.md"
