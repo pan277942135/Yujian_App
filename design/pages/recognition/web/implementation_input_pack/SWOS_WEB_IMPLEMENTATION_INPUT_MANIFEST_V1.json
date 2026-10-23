@@ -12,22 +12,22 @@
     "contract_files": [
       {
         "path": "design/pages/recognition/web/WEB_HIFI_CONTRACT_V2.md",
-        "blob_sha": "79f486e3286192fe0494ab6460acf7d8fe80ec3c",
+        "blob_sha": "65110df61fd9d2a92bb76c6d2618d0d350c0bc9a",
         "role": "web_contract"
       },
       {
         "path": "design/pages/recognition/web/WEB_HIFI_GAP_MATRIX_V2.md",
-        "blob_sha": "ab4822627500a5342e4a52dcad016514a23a7220",
+        "blob_sha": "1adf99d996ee7ee85ae7e28adc46f1d077522d24",
         "role": "live_gap_matrix_with_historical_baseline_labeled"
       },
       {
         "path": "design/pages/recognition/web/WEB_HIFI_HANDOFF_A_V2.md",
-        "blob_sha": "e993fcbe3664d643a6297f1d32fe71ed0516ad7d",
+        "blob_sha": "b2f480c49e2e0739d9faccbabdfb05748c16b332",
         "role": "handoff_a"
       },
       {
         "path": "design/pages/recognition/web/WEB_HIFI_HANDOFF_B_V2.md",
-        "blob_sha": "5bc368216e1ce05652c67143573f9f52e12b98e1",
+        "blob_sha": "1654a8cf495e508d8616845fd84c535a7f46eb9b",
         "role": "handoff_b"
       },
       {
@@ -47,7 +47,7 @@
       },
       {
         "path": "design/pages/recognition/web/contracts/Page_State_Matrix_V2.json",
-        "blob_sha": "c356f6e6b86f315130cd67988524f2152a19ed86",
+        "blob_sha": "c840d107902b0c9a962455f702149da6e7fca7c1",
         "role": "machine_contract"
       },
       {
@@ -62,12 +62,12 @@
       },
       {
         "path": "design/pages/recognition/web/contracts/Authority_References_V2.json",
-        "blob_sha": "973171c7cf2915cbb131f2e535eeded01a05e0bb",
+        "blob_sha": "bd0bb7c8b1780ff209155781eeb01b1b0753849f",
         "role": "machine_contract_with_live_audit"
       },
       {
         "path": "design/pages/recognition/web/contracts/Work_B_Implementation_Mapping_V2.json",
-        "blob_sha": "952ebaf56b5ae1304006ff4ffe7b0f3fce4e5e04",
+        "blob_sha": "d26dfa5477b32235441d7eb4264e9a534e1b5278",
         "role": "implementation_mapping_with_live_audit"
       },
       {
@@ -117,7 +117,7 @@
       },
       {
         "path": "design/pages/recognition/web/VISUAL_REFERENCE_MANIFEST_V1.json",
-        "blob_sha": "51053f3288ba65d2c4b632010456d7b25d5910ea",
+        "blob_sha": "534e338602bf761db6ad2fdd65132c493ccaa986",
         "role": "visual_source_manifest"
       },
       {
@@ -132,18 +132,18 @@
       },
       {
         "path": "design/pages/recognition/web/VISUAL_REFERENCE_CLOSURE_REPORT_V1.md",
-        "blob_sha": "53e9b0bd7a314568d5806161b115a4a22e34aa79",
+        "blob_sha": "d9d6e9b8f9846fb24d2edf2769e7ae042ad18d36",
         "role": "asset_provenance_report"
       },
       {
         "path": "design/pages/recognition/web/SWOS_WEB_HIFI_MOTION_TECHNICAL_CONTRACT_V1_0.md",
         "role": "swos_web_hifi_motion_technical_contract_v1_0",
-        "blob_sha": "3d1a17cbc3066292c48e631edb97b02e61324214"
+        "blob_sha": "43553fee33736fb9c03461b3764f61d66e29b556"
       },
       {
         "path": "design/pages/recognition/web/contracts/SWOS_WEB_HIFI_MOTION_TECHNICAL_CONTRACT_V1_0.json",
         "role": "swos_web_hifi_motion_machine_contract",
-        "blob_sha": "7e66ddd378273b19e69fbeb0bb5a2d0ae90ccae6"
+        "blob_sha": "beb9f462b7f20eaf323b1a75f7aa4a219341d4b5"
       },
       {
         "path": "design/pages/recognition/processing/README.md",
@@ -187,7 +187,7 @@
       },
       {
         "path": "design/pages/recognition/web/implementation_input_pack/README.md",
-        "blob_sha": "e25caabb88ef1241ed6e0345a4751a64d15fea1a",
+        "blob_sha": "6f9c0e7c168281c2c820da5353acb1c718ed34bc",
         "role": "updated_source_authority"
       },
       {
