@@ -252,6 +252,7 @@ features:
       - "processing_result_continuity"
       - "swos_static_visual_v1_1"
       - "web_hifi_contract_v2"
+      - "swos_web_hifi_motion_technical_contract_v1_0"
     design_children:
       - "ai_edge_field_v1_static_shape"
       - "ai_edge_field_v1_rendering_contract"
@@ -281,6 +282,7 @@ features:
       - "swos_15_frame_keyframes_v1_1"
       - "swos_shared_photo_transition_v1"
       - "swos_dynamic_demo_handoff_v1"
+      - "swos_web_hifi_motion_technical_contract_v1_0"
     child_surfaces:
       - "capture"
       - "permission"

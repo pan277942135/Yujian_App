@@ -5,17 +5,29 @@
   "adoption_status": "MAIN_ADOPTED_DESIGN_ONLY",
   "page_id": "ai_catch_recognition_web",
   "source_ref": [
-    "Yujian_App/main@ad8bf1ba61e42a34d1fdd91de47fa386e25f11ef",
+    "Yujian_App/main@2c41084b423be36b06035694fe573c5e671cb4da",
     "Yujian_App/PR186@3b0b5848206cdea949f4bf6be7eb7cb1d19b1e34",
     "Yujian_App/PR187@ee3bb45858183144598bc28c5bae53ae55b324e0",
-    "Yujian/PR177@655c4af07a0244fcf29441b5652c48ca74f2e6a2"
+    "Yujian/PR177@655c4af07a0244fcf29441b5652c48ca74f2e6a2",
+    "Yujian/PR177@ca21e25116cebef0ed393392eb8997a2b7077689"
   ],
   "swos_photo": {
     "name": "208758.jpg",
     "reference_sha256": "ab7227cf7205ee2ac342b6cd75cd899747879506c95c33b888b6adf0acb47987",
     "publication_permission": "NOT_CONFIRMED",
     "committed": false,
-    "role": "review only; person and watermark present"
+    "role": "review only; person and watermark present",
+    "width": 1152,
+    "height": 1536,
+    "orientation": 1,
+    "size_bytes": 331421,
+    "actual_format": "JPEG",
+    "byte_verification": "VERIFIED_IN_CURRENT_EXECUTION_2026-10-23",
+    "current_audit_sha256": "ab7227cf7205ee2ac342b6cd75cd899747879506c95c33b888b6adf0acb47987",
+    "local_private_review_allowed": true,
+    "public_publication_allowed": false,
+    "ci_artifact_allowed": false,
+    "pages_upload_allowed": false
   },
   "public_preview_photo_policy": "never bundle candidate or private photo; user-selected local browser memory only",
   "acceptance_criteria": [
@@ -45,7 +57,9 @@
       "brand platform top navigation",
       "three near-equal desktop cards",
       "five-step lower visual strip"
-    ]
+    ],
+    "public_publication_allowed": false,
+    "pixel_authority_status": "HISTORICAL_CANDIDATE_NOT_PIXEL_AUTHORITY"
   },
   "approved_web_hifi": {
     "id": "web-three-stage",
@@ -58,7 +72,29 @@
     "byte_verification": "PRIVATE_HANDOFF_SHA256_AND_DIMENSIONS_VERIFIED",
     "public_permission": "NOT_CONFIRMED",
     "repository_included": false,
-    "route": "#page/recognition_flow_v1_2/hifi/web_hifi_contract_v2"
+    "route": "#page/recognition_flow_v1_2/hifi/web_hifi_contract_v2",
+    "pixel_authority_status": "NOT_CONFIRMED",
+    "current_execution_byte_verification": "NOT_RECHECKED_THIS_EXECUTION; prior private-handoff SHA/dimensions verification remains recorded",
+    "allowed_use": "PRIVATE_LOCAL_REFERENCE_REVIEW_ONLY",
+    "public_publication_allowed": false
   },
-  "visual_reference_manifest": "design/pages/recognition/web/VISUAL_REFERENCE_MANIFEST_V1.json"
+  "visual_reference_manifest": "design/pages/recognition/web/VISUAL_REFERENCE_MANIFEST_V1.json",
+  "pixel_freeze_gate": "User-confirmed visual direction does not automatically grant pixel-authority status. Pixel freeze requires explicit source designation and approved comparison protocol.",
+  "asset_authorization_policy": {
+    "status": "PUBLIC_RELEASE_BLOCKED_UNTIL_PERMISSION",
+    "public_permission": "NOT_CONFIRMED",
+    "public_publication_allowed": false,
+    "public_repo_commit_allowed": false,
+    "public_ci_artifact_allowed": false,
+    "public_pages_upload_allowed": false,
+    "private_local_review_allowed": true,
+    "persistent_upload_allowed": false,
+    "required_to_promote": [
+      "explicit user permission for public publication",
+      "license/rights review for every source and derivative",
+      "exact source SHA-256 and dimensions",
+      "explicit pixel-baseline approval if pixel parity is claimed"
+    ],
+    "default_rule": "When permission or pixel-freeze approval is not explicit, keep assets private, allow only local review, and make no pixel-parity claim."
+  }
 }

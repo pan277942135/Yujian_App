@@ -2,6 +2,8 @@
 
 **Status:** `IMPLEMENTATION_PLAN_READY` · dynamic demo not implemented in this change
 **Design basis:** Main-adopted SWOS contracts from PR #186/#187, integrated via PR #190. Phase 1 still requires explicit entry, approved photo inputs and evidence.
+
+**Authority update:** Web playback architecture and acceptance are governed by [SWOS Web Hi-Fi Motion Technical Contract V1.0](../../web/SWOS_WEB_HIFI_MOTION_TECHNICAL_CONTRACT_V1_0.md) and its machine contract. This handoff remains a detailed implementation note, not a competing authority. The existing SAM ViT-B experiment pipeline in the separate product repository is reused through a server adapter; do not create a duplicate SAM service or expose the debug endpoint as a public production API. Production Mask remains NOT_QUALIFIED until ground-truth and visual qualification evidence exists.
 **Scope:** Design Manager / browser demo first; no Android production code or APK
 
 ## Repository evidence and technology decision

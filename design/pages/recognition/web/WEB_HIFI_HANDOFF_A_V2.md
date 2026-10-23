@@ -1,6 +1,6 @@
 # Work B Handoff A — AI 渔获识别 Web 页面骨架
 
-状态：`VISUAL_CONTRACT_DEFINED`；`MAIN_ADOPTED=YES (DESIGN_CONTRACT_ONLY)`；`PIXEL_FROZEN_SOURCE=NOT_CONFIRMED`；`RUNTIME_VISUAL_VERIFIED=NO`。#186/#187 的设计合同内容经 PR #190 纳入 Main；两者仅保留来源关系，不再是阻塞依赖。审计基线为 Yujian_App `main@ad8bf1ba61e42a34d1fdd91de47fa386e25f11ef` 和 Yujian PR #177 HEAD `655c4af07a0244fcf29441b5652c48ca74f2e6a2`（Draft/Open/Unmerged）。PR #190 发布评论记录实际 adoption SHA 与 Pages 地址；本交接不代表 Work B 代码、真实 Web 视觉或 User UAT 已验收。
+状态：`VISUAL_CONTRACT_DEFINED`；`MAIN_ADOPTED=YES (DESIGN_CONTRACT_ONLY)`；`PIXEL_FROZEN_SOURCE=NOT_CONFIRMED`；`RUNTIME_VISUAL_VERIFIED=NO`。#186/#187 的设计合同内容经 PR #190 纳入 Main；两者仅保留来源关系，不再是阻塞依赖。本交接不代表 Work B 代码、真实 Web 视觉或 User UAT 已验收。SWOS Web 播放器架构与验收统一由 [SWOS Web Hi-Fi Motion Technical Contract V1.0](SWOS_WEB_HIFI_MOTION_TECHNICAL_CONTRACT_V1_0.md) 定义。当前审计：产品 PR #177 HEAD `ca21e25116cebef0ed393392eb8997a2b7077689`，产品 main `6a2064c2a02a76437b6e09a5241bc199cfa05048`，24 ahead / 0 behind；精确 SHA CI [#39929847089](https://github.com/pan277942135/Yujian/actions/runs/39929847089) 通过，但实际预览、播放、Mask 和视觉验收仍未验证，产品分支现已同步 main；实施前仍须重新核对实时 SHA 并运行 Admission/CI。no-traffic 预览仍固定在旧 SHA 4de911dc497c150545d938b60b2694f3c4723e37，实际 Revision/health SHA、真实推理、Mask 与视觉验收仍未验证。
 
 ## 入口与外壳
 
@@ -14,14 +14,14 @@
 
 底部五节点：`step.upload` 上传照片；`step.water` 水光增强；`step.fish` 鱼体高亮；`step.photo` 照片缩小接续；`step.reveal` 结果揭晓。各节点有 pending/active/done/error；它们只解释视觉进程，不能模拟模型业务进度。缩略图必须指向有授权的同源照片或无照片图示，不能加入未经授权的生成式鱼获截图。
 
-结果页复用冻结的 HIGH 结构及 3+2 状态：`design/pages/recognition/result/engineering/layout_geometry_contract.json`、`design/pages/recognition/result/media/hero_media_contract.json`。360dp 参考 HIGH Hero 322×210dp；中文鱼种名在 Hero 下方，无英文科学名及空行。两 CTA 文案以当前冻结 Result 页面为准；Web「继续记录记忆」无真实目标时呈未开放，不能假跳转。真实模型响应之前不得进入 HIGH。
+结果页复用冻结的 HIGH 结构及 3+2 状态：`design/pages/recognition/result/engineering/layout_geometry_contract.json`、`design/pages/recognition/result/media/hero_media_contract.json`。360dp 参考 HIGH Hero 322×210dp；中文鱼种名在 Hero 下方，无英文科学名及空行。CTA 文案按冻结 Result V1.1 页面级合同统一为「继续记忆」与「保存本次鱼获」；该页面级权威优先于通用按钮示例「继续记录记忆」。Web 记忆目标路由未开放时禁用并解释，不得假跳转。Web 只消费产品 API 的 result_state，不在客户端重新计算置信度状态。当前产品 Result 状态映射的 0.45 低置信与 0.12 候选差距规则保持不变；推理 API 的 0.55 low_confidence 标记属于另一接口字段，不覆盖 result_state。真实模型响应之前不得进入 HIGH。
 
 ## Work B 立即可做
 
 1. 在 PR #177 现有模板中抽取独立 Product Shell，保留平台认证与路由，避免侧栏挤压。
 2. 保留已有上传、请求与保存逻辑；将用户主界面的模型流程/JSON 迁到默认折叠的诊断区。
 3. 用上述稳定 ID 梳理三阶段与五节点 DOM；不要触碰模型阈值或伪造分割。
-4. 等待 Handoff B 的 Token、几何、响应式、状态及验收合同再完成视觉收口。
+4. 按 Handoff B 和 SWOS Web 技术合同 V1.0 的 Token、几何、响应式、状态、15 帧播放、Mask 信任门与性能证据要求完成视觉收口；复用现有 SAM 实验链路，不新增重复分割服务。
 
 
 ## 原始视觉资产补档 V1

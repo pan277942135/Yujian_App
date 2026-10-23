@@ -16,7 +16,11 @@
       "byte_verification": "PRIVATE_HANDOFF_SHA256_AND_DIMENSIONS_VERIFIED",
       "public_permission": "NOT_CONFIRMED",
       "repository_included": false,
-      "route": "#page/recognition_flow_v1_2/hifi/web_hifi_contract_v2"
+      "route": "#page/recognition_flow_v1_2/hifi/web_hifi_contract_v2",
+      "public_publication_allowed": false,
+      "pixel_authority_status": "NOT_CONFIRMED",
+      "current_execution_byte_verification": "NOT_RECHECKED_THIS_EXECUTION",
+      "allowed_use": "PRIVATE_LOCAL_REFERENCE_REVIEW_ONLY"
     },
     {
       "id": "swos-history",
@@ -29,7 +33,11 @@
       "byte_verification": "PRIVATE_HANDOFF_SHA256_AND_DIMENSIONS_VERIFIED",
       "public_permission": "NOT_CONFIRMED",
       "repository_included": false,
-      "route": "#page/recognition_flow_v1_2/hifi/swos_static_visual_v1_1"
+      "route": "#page/recognition_flow_v1_2/hifi/swos_static_visual_v1_1",
+      "public_publication_allowed": false,
+      "pixel_authority_status": "HISTORICAL_DIRECTION_ONLY_NOT_PIXEL_AUTHORITY",
+      "current_execution_byte_verification": "NOT_RECHECKED_THIS_EXECUTION",
+      "allowed_use": "PRIVATE_LOCAL_REFERENCE_REVIEW_ONLY"
     }
   ],
   "current_frame_contract": "design/pages/recognition/processing/optics/SWOS_15_Frame_Keyframe_Contract_V1_1.json",
@@ -228,5 +236,32 @@
       "item": "图中未出现的状态与控件",
       "rule": "upload.error、processing.diagnostics、result.nav、result.confidence-candidates、result.recovery等由正式机器合同定义；区域定位仅显示所属阶段，不证明原图绘制过这些状态。"
     }
-  ]
+  ],
+  "pixel_frozen_source": "NOT_CONFIRMED",
+  "public_publication_allowed": false,
+  "public_repo_commit_allowed": false,
+  "public_ci_artifact_allowed": false,
+  "public_pages_upload_allowed": false,
+  "private_local_review_allowed": true,
+  "persistent_upload_allowed": false,
+  "authorization_gate": "BLOCKED_UNTIL_EXPLICIT_USER_PERMISSION_AND_LICENSE",
+  "freeze_gate": "NOT_CONFIRMED: visual-reference confirmation is not pixel-freeze approval; require explicit designation of the exact source and comparison baseline.",
+  "audit_snapshot": {
+    "date": "2026-10-23",
+    "design_main_sha": "2c41084b423be36b06035694fe573c5e671cb4da",
+    "product_pr177_head_sha": "ca21e25116cebef0ed393392eb8997a2b7077689",
+    "product_main_sha": "6a2064c2a02a76437b6e09a5241bc199cfa05048",
+    "source_photo_208758": {
+      "sha256": "ab7227cf7205ee2ac342b6cd75cd899747879506c95c33b888b6adf0acb47987",
+      "dimensions_px": [
+        1152,
+        1536
+      ],
+      "bytes": 331421,
+      "format": "JPEG",
+      "orientation": 1,
+      "byte_verification": "VERIFIED_IN_CURRENT_EXECUTION"
+    },
+    "web_reference_and_historical_storyboard": "Prior private handoff verification recorded; raw bytes not rechecked in this execution."
+  }
 }

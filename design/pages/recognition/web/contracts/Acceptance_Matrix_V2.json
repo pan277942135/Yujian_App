@@ -5,10 +5,11 @@
   "adoption_status": "MAIN_ADOPTED_DESIGN_ONLY",
   "page_id": "ai_catch_recognition_web",
   "source_ref": [
-    "Yujian_App/main@ad8bf1ba61e42a34d1fdd91de47fa386e25f11ef",
+    "Yujian_App/main@2c41084b423be36b06035694fe573c5e671cb4da",
     "Yujian_App/PR186@3b0b5848206cdea949f4bf6be7eb7cb1d19b1e34",
     "Yujian_App/PR187@ee3bb45858183144598bc28c5bae53ae55b324e0",
-    "Yujian/PR177@655c4af07a0244fcf29441b5652c48ca74f2e6a2"
+    "Yujian/PR177@655c4af07a0244fcf29441b5652c48ca74f2e6a2",
+    "Yujian/PR177@ca21e25116cebef0ed393392eb8997a2b7077689"
   ],
   "checks": [
     {
@@ -55,11 +56,63 @@
       "id": "A09",
       "method": "user Web visual acceptance",
       "gate": "USER"
+    },
+    {
+      "id": "A10",
+      "method": "SWOS Web motion technical contract V1.0 identity and authority consistency",
+      "gate": "CONTRACT"
+    },
+    {
+      "id": "A11",
+      "method": "real 3650ms browser playback; 15 frame seek; pause/step; R0.5 geometry",
+      "gate": "WORK_B"
+    },
+    {
+      "id": "A12",
+      "method": "reuse existing SAM experiment pipeline; trust-state and fallback tests; no duplicate service",
+      "gate": "WORK_B"
+    },
+    {
+      "id": "A13",
+      "method": "licensed multi-scene photo masks; ground-truth boundary metrics; privacy gate",
+      "gate": "WORK_B"
+    },
+    {
+      "id": "A14",
+      "method": "nine viewport responsive matrix and actual browser frame-time evidence",
+      "gate": "WORK_B"
+    },
+    {
+      "id": "A15",
+      "method": "visual review of water caustics, trusted fish contour, photo continuity and gold-to-Chinese-glyph reveal",
+      "gate": "USER"
+    },
+    {
+      "id": "A16",
+      "method": "Frozen Result CTA labels and product result_state authority are consistent; 0.45/0.12 existing state mapping and separate 0.55 diagnostic are explicitly scoped without threshold changes",
+      "gate": "CONTRACT"
+    },
+    {
+      "id": "A17",
+      "method": "Visual asset SHA/dimensions, private-review scope, public publication denial, and PIXEL_FROZEN_SOURCE status are explicit; no private asset enters public repo/CI/Pages",
+      "gate": "ASSET"
+    },
+    {
+      "id": "A18",
+      "method": "Live PR #177 source SHA, product-main comparison, design contract blob SHAs, machine contract blob SHAs and acceptance matrix source refs match the input manifest",
+      "gate": "SOURCE"
     }
   ],
   "pass_rule": "static contract validation cannot imply runtime visual pass",
   "acceptance_criteria": [
-    "Referenced source status remains explicit; Product PR #177 is Draft/Open/Unmerged and supplies no runtime evidence"
+    "Referenced source status remains explicit; Product PR #177 is Draft/Open/Unmerged and supplies no runtime evidence",
+    "The playable SWOS implementation must follow SWOS_WEB_HIFI_MOTION_TECHNICAL_CONTRACT_V1_0.md and its machine contract on the same exact source SHA.",
+    "The existing SAM ViT-B experiment chain is reused through a server-side adapter; no duplicate segmentation service or model retraining is permitted.",
+    "Production Mask remains NOT_QUALIFIED until reviewed ground-truth masks, IoU/Dice and boundary metrics, difficult-case review and visual sign-off exist.",
+    "Chromium UI simulation, SAM API latency and static 15-frame contract validation are not substitutes for browser playback, visual acceptance or frame-time performance.",
+    "The canonical Result CTA labels are exactly 继续记忆 and 保存本次鱼获; the Result page-specific frozen contract overrides generic shared button examples.",
+    "The Web client consumes the product inference response result_state and does not recalculate HIGH/MEDIUM/LOW; current 0.45/0.12 result-state rules and the separate 0.55 low_confidence diagnostic remain unchanged.",
+    "Public permission for private visual assets remains NOT_CONFIRMED, so public repository, CI artifact, and Pages publication are prohibited; pixel freeze remains NOT_CONFIRMED until explicitly approved."
   ],
   "adoption_pr": 190,
   "adopted_source_prs": [
@@ -68,5 +121,11 @@
   ],
   "adoption_scope": "DESIGN_CONTRACT_ONLY",
   "runtime_visual_verified": false,
-  "pixel_frozen_source": "NOT_CONFIRMED"
+  "pixel_frozen_source": "NOT_CONFIRMED",
+  "swos_web_motion_technical_contract_ref": "design/pages/recognition/web/SWOS_WEB_HIFI_MOTION_TECHNICAL_CONTRACT_V1_0.md",
+  "swos_web_motion_machine_contract_ref": "design/pages/recognition/web/contracts/SWOS_WEB_HIFI_MOTION_TECHNICAL_CONTRACT_V1_0.json",
+  "playable_browser_demo_status": "NOT_VERIFIED",
+  "production_mask_qualification": "NOT_QUALIFIED",
+  "business_decision_status": "RESOLVED_BY_AUTHORITY_SCOPE_NO_NUMERIC_THRESHOLD_CHANGE",
+  "asset_publication_status": "BLOCKED_PERMISSION_NOT_CONFIRMED"
 }

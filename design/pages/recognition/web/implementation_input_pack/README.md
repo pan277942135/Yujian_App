@@ -1,7 +1,7 @@
 # SWOS Web Implementation Input Pack V1
 
 **Task:** `YUJIAN_SWOS_WEB_IMPLEMENTATION_INPUT_PACK_AND_LIVE_SHA_CLOSURE_V1`  
-**Status:** `SOURCE_SYNCED_EXACT_HEAD_CI_PENDING`  
+**Status:** `SWOS_V1_0_BOUND; EXACT_HEAD_CI_PASS; PRODUCT_BRANCH_BEHIND_MAIN; PLAYBACK_NOT_VERIFIED`  
 **Role:** A traceable input snapshot; it does not replace or redefine the main-adopted design contracts.
 
 ## Ownership
@@ -18,15 +18,21 @@
 4. Before implementation, run `bash scripts/verify_swos_web_input_pack_live.sh --strict`. A strict block must be resolved, not bypassed.
 5. After syncing the product branch to the current product `main`, refresh the live source audit fields and re-run Admission and CI against the resulting exact product SHA.
 
-## Live audit after product-main sync
+## Live source audit (2026-10-23; refresh before every Work run)
 
-- Design authority baseline: `Yujian_App/main@01c7aec0c0e8216dd76f314f380ae3e0496bd28b`.
-- Product main: `Yujian/main@3c79c00db68ace94d8f6a7dcb4105d0026a09323`.
-- Product PR #177 HEAD: `d8f3aabfab058d58cac84e19af095b0186df5f85` (post-sync merge commit).
-- Comparison: PR #177 is **19 commits ahead and 0 behind** product main. The latest three main commits have been merged into the feature branch without rebase or force-push. Exact-head CI for the post-sync SHA is pending.
-- Canonical control-plane binding: governance remains authoritative in `Yujian_App/main`; the separate product repository `Yujian` is admitted through the exact-SHA cross-repository manifest and source audit. Do not duplicate a competing control plane in `Yujian`.
-- The post-sync exact-head CI [run 39917440271](https://github.com/pan277942135/Yujian/actions/runs/39917440271) passed targeted validation and Chromium UI simulation on `d8f3aab...`. It does not prove production Mask, real-photo inference, pixel parity or user visual acceptance.
-- Merged infrastructure PR #180 still pins `cb9e3780afb5e2904e3dfe5148210a4ccc3747b4`; a product preview for the current head is `NOT_VERIFIED`.
+- Design authority baseline: Yujian_App/main@bc29aec091b42f84dc8f4e6fe3b268135b091a97. The contract change is being proposed on branch design/swos-web-hifi-motion-contract-v1-0.
+- Product main: Yujian/main@6a2064c2a02a76437b6e09a5241bc199cfa05048.
+- Product PR #177 HEAD: ca21e25116cebef0ed393392eb8997a2b7077689 (24 ahead / 0 behind product main).
+- Current comparison: PR #177 is 22 commits ahead and **3 commits behind** product main; merge base is 3c79c00db68ace94d8f6a7dcb4105d0026a09323. Source sync is BLOCKED until Work safely syncs the product branch and re-runs Admission/CI.
+- Exact-head CI run [39929847089](https://github.com/pan277942135/Yujian/actions/runs/39929847089) passed on SHA ca21e25116cebef0ed393392eb8997a2b7077689. Scope is targeted validation and Chromium UI simulation only; the production recognition pipeline test step was skipped. This is not real-photo inference, browser animation performance, pixel parity or user visual acceptance.
+- The no-traffic preview workflow pin is STALE at 4de911dc497c150545d938b60b2694f3c4723e37 (it does not match current PR #177 HEAD). The live preview Revision and browser playback remain **NOT_VERIFIED**; do not treat the current URL as evidence for the current source.
+- The canonical control plane remains in Yujian_App; do not create a competing registry in Yujian.
+- **Existing SAM experiment chain is reusable.** Product repository paths are app/segmentation_api.py, app/segmentation/service.py, app/segmentation/mask_generator.py, app/segmentation/quality_gate.py and app/segmentation/cutout_builder.py. Existing POST /api/debug/fish-segmentation is a debug/experiment interface, not a public production API. Reuse it through a server-side adapter; do not create a second SAM service or retrain the model.
+- Production Mask remains NOT_QUALIFIED until reviewed ground-truth masks, boundary metrics, difficult-case analysis and visual sign-off exist. Browser render-frame time is measured separately from SAM API latency.
+
+## SWOS Web Hi-Fi Motion Technical Contract V1.0
+
+The implementation authority is [SWOS Web Hi-Fi Motion Technical Contract V1.0](../SWOS_WEB_HIFI_MOTION_TECHNICAL_CONTRACT_V1_0.md) and its [machine-readable contract](../contracts/SWOS_WEB_HIFI_MOTION_TECHNICAL_CONTRACT_V1_0.json). This contract binds the existing Web V2, SWOS 15-frame, shared-photo-transition, RR09 V3 and existing SAM experiment pipeline. It requires a real playable 3650ms browser preview, frame stepping/seeking, shared photo geometry, Chinese-only species title, nine viewports, multi-scene photos and actual frame-time evidence.
 
 ## Frozen behavior that Work must not reinterpret
 
