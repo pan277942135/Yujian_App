@@ -3371,7 +3371,17 @@ function renderHifiView(feature, hifiId, hifiChildId = null) {
     delete el("hifiViewCanvas").dataset.nh01ResponsiveToken;
   }
 
-  const contractDetails = hifiContractMetadataHtml(child || view, view);
+  const contractDetailsItem = view.id === "swos_web_hifi_motion_contract_v1_0"
+    ? {
+        ...(child || view),
+        contract_links: [
+          ...((child || view).contract_links || []),
+          ...(view.contract_links || []),
+          { label: "机器可读技术合同 V1.0", path: view.machine_authority || "design/pages/recognition/web/contracts/SWOS_WEB_HIFI_MOTION_TECHNICAL_CONTRACT_V1_0.json" }
+        ]
+      }
+    : (child || view);
+  const contractDetails = hifiContractMetadataHtml(contractDetailsItem, view);
   el("hifiViewContractDetails").innerHTML = contractDetails;
   el("hifiViewContractDetails").classList.toggle("hidden", !contractDetails);
   el("hifiViewCanvas").querySelectorAll(".hifi-image-open").forEach(button =>
