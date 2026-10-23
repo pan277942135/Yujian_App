@@ -21,6 +21,7 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.swipeLeft
+import androidx.compose.ui.test.swipeUp
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.yujian.ai.catches.CatchStatistics
@@ -501,8 +502,13 @@ class GeminiHomeDeviceMatrixTest {
         beginStep("VERIFY_CARD_TEXT_ACCESSIBILITY_AND_SCROLL")
         if (variant == GeminiHomeLayoutVariant.ADAPTIVE_V2 && profileId == "M01" && expectedFontScale == "1.0") {
             assertTrue("320×480 at default font scale must fit without middle scrolling", !hasMiddleScroll)
-            assertTrue("320×480 main card must remain readable, width=$activeCardLayoutWidthDp dp",
-                activeCardLayoutWidthDp >= 145f)
+            val minReadableHeroHeightDp = 145f / (247f / 293f)
+            assertTrue(
+                "SPEC_CONFLICT: 320×480 requires a 145dp Hero (at least ${"%.1f".format(Locale.US, minReadableHeroHeightDp)}dp high at 247:293), " +
+                    "but measured ${activeCardLayoutWidthDp}x${activeCardLayoutHeightDp}dp in a ${middle.height()}dp Middle " +
+                    "whose frozen content requires ${requiredMiddleContentHeight}dp with no surplus or scroll",
+                activeCardLayoutWidthDp >= 145f,
+            )
             val bottomClearance = root.bottom - profile.insets.bottom.value - camera.bottom
             assertTrue("320×480 footer must not add excessive blank space: $bottomClearance dp", bottomClearance <= 4f)
         }
@@ -514,7 +520,34 @@ class GeminiHomeDeviceMatrixTest {
         cardTextTags.forEach { tag ->
             val interaction = compose.onNodeWithTag(tag, useUnmergedTree = true)
             if (variant == GeminiHomeLayoutVariant.ADAPTIVE_V2) {
-                if (hasMiddleScroll) interaction.performScrollTo().assertIsDisplayed() else interaction.assertIsDisplayed()
+                var visibilityFailure = runCatching { interaction.assertIsDisplayed() }.exceptionOrNull()
+                if (hasMiddleScroll) {
+                    // First use Compose's bring-into-view action, then exercise the same
+                    // user-visible scroll path used on a short screen if the nested pager
+                    // has not exposed the text yet.
+                    runCatching { interaction.performScrollTo() }
+                    visibilityFailure = runCatching { interaction.assertIsDisplayed() }.exceptionOrNull()
+                    val scrollContainer = compose.onNodeWithTag(
+                        "gemini-home-short-screen-scroll", useUnmergedTree = true,
+                    )
+                    repeat(3) {
+                        if (visibilityFailure != null) {
+                            scrollContainer.performTouchInput { swipeUp() }
+                            visibilityFailure = runCatching { interaction.assertIsDisplayed() }.exceptionOrNull()
+                        }
+                    }
+                }
+                if (visibilityFailure != null) {
+                    val nodeDetails = runCatching {
+                        val node = interaction.fetchSemanticsNode()
+                        "size=${node.size}, boundsInRoot=${node.boundsInRoot}"
+                    }.getOrElse { "node unavailable: ${it.message}" }
+                    throw AssertionError(
+                        "required card text must be visible after the available scroll path; tag=$tag, " +
+                            "profile=$profileId, fontScale=$expectedFontScale, middleScroll=$hasMiddleScroll, $nodeDetails",
+                        visibilityFailure,
+                    )
+                }
             } else {
                 // V3 is a visual comparison control. Preserve and record its text semantics
                 // even when its historical short-screen layout requires scrolling.

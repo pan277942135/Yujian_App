@@ -140,6 +140,9 @@ class GeminiNormalHomeResponsiveTest {
             val ctaLabel = bounds("gemini-home-cta-label")
             val sectionTitle = bounds("gemini-home-section-title")
             val activeCard = bounds("gemini-home-catch-card-gemini-fixture-01")
+            val activeCardLayoutSize = compose.onNodeWithTag(
+                "gemini-home-catch-card-gemini-fixture-01", useUnmergedTree = true,
+            ).fetchSemanticsNode().size
             val rightPeek = bounds("gemini-home-card-peek-right")
             val footerContent = bounds("gemini-home-catch-footer-gemini-fixture-01")
             val species = bounds("gemini-home-catch-species-gemini-fixture-01")
@@ -203,16 +206,15 @@ class GeminiNormalHomeResponsiveTest {
             assertTrue("top must precede the flexible middle ${window.name}", top.bottom <= middle.top + 1f)
             assertTrue("middle must precede the footer ${window.name}", middle.bottom <= footer.top + 1f)
             val initiallyVisible = metadata.isInside(middle)
-            if (initiallyVisible) {
-                // boundsInRoot is clipped by the Middle scroll viewport. Check the
-                // full-card ratio only when the card/footer are not viewport-clipped.
-                assertEquals(
-                    "active Hero card keeps the Gemini 247:293 ratio ${window.name}",
-                    247f / 293f,
-                    activeCard.width() / activeCard.height(),
-                    0.015f,
-                )
-            } else {
+            // boundsInRoot is clipped by the Middle viewport; the semantics layout size
+            // retains the Hero's measured, unclipped dimensions for its frozen ratio.
+            assertEquals(
+                "active Hero card keeps the Gemini 247:293 ratio ${window.name}",
+                247f / 293f,
+                activeCardLayoutSize.width.toFloat() / activeCardLayoutSize.height.toFloat(),
+                0.015f,
+            )
+            if (!initiallyVisible) {
                 assertTrue(
                     "clipped Hero footer must have a Middle scroll path ${window.name}",
                     compose.onAllNodesWithTag("gemini-home-short-screen-scroll", useUnmergedTree = true)
