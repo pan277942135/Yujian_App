@@ -17,7 +17,7 @@ EXPECTED_RECOGNITION_FLOW = [
     "runtime_evidence", "capture_first_use_guide", "boundary_state_release_gate",
     "recognition_full_flow_models", "swos_optical_contract", "processing_result_continuity",
     "swos_static_visual_v1_1",
-    "web_hifi_contract_v2",
+    "web_hifi_contract_v2", "swos_web_hifi_motion_contract_v1_0",
 ]
 EXPECTED_RECOGNITION_RESULT = [
     "overview", "high", "medium", "low", "no_fish", "image_quality",
@@ -147,6 +147,23 @@ def validate_tree(root: Path, *, built: bool = False, expected_build: str | None
         fail("SWOS static visual workspace renderer is missing")
     if not any("swos_static_visual.js" in line for line in (root / "design/manager/index.html").read_text(encoding="utf-8").splitlines()):
         fail("Design Manager HTML does not load the SWOS static visual renderer")
+    swos_web_motion = next((x for x in recognition["hifi_views"] if x.get("id") == "swos_web_hifi_motion_contract_v1_0"), None)
+    if (
+        swos_web_motion is None
+        or swos_web_motion.get("title") != "14 · SWOS Web 高保真动效技术合同 V1.0"
+        or swos_web_motion.get("status") != "DESIGN_ONLY"
+        or swos_web_motion.get("render_mode") != "authority_index"
+        or swos_web_motion.get("authority") != "design/pages/recognition/web/SWOS_WEB_HIFI_MOTION_TECHNICAL_CONTRACT_V1_0.md"
+        or swos_web_motion.get("machine_authority") != "design/pages/recognition/web/contracts/SWOS_WEB_HIFI_MOTION_TECHNICAL_CONTRACT_V1_0.json"
+        or swos_web_motion.get("runtime_status") != "NOT_VERIFIED"
+    ):
+        fail("SWOS Web motion technical contract must be a registered design-only authority route")
+    for field in ("authority", "machine_authority"):
+        target = swos_web_motion.get(field)
+        if not target or not (root / target).is_file():
+            fail(f"SWOS Web motion technical contract is missing {field}: {target}")
+    if not any(link.get("route") == "#page/recognition_flow_v1_2/hifi/swos_static_visual_v1_1" for link in swos_web_motion.get("related_routes", [])):
+        fail("SWOS Web motion contract must link back to the 15-frame static review route")
     guide = next(x for x in recognition["hifi_views"] if x.get("id") == "capture_first_use_guide")
     guide_children = [x.get("id") for x in guide.get("children", [])]
     if guide.get("title") != "07 · 首次拍照教学" or guide_children != ["p01", "p02", "p03", "resources"]:
