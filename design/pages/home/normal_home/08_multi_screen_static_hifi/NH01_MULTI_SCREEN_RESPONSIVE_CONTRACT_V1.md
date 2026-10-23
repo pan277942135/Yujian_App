@@ -171,7 +171,7 @@ Android remains **`NOT_VERIFIED`**. The existing matrix remains 24 real native e
 
 **Status: FROZEN · Approved 2026-10-23 · Scope: foundation only**
 
-This appendix freezes the first step of the NH01 responsive specification: page-group structure and the rule for allocating otherwise-unassigned space. It does not claim Android runtime verification.
+This appendix freezes the first step of the NH01 responsive specification: stable page-group structure and a computable rule for allocating positive long-screen surplus. It does not claim Android runtime verification.
 
 ### A.1 One layout policy, three stable groups
 
@@ -179,33 +179,47 @@ This appendix freezes the first step of the NH01 responsive specification: page-
 - **B — Catch content:** “最近鱼获” heading / “全部” action + selected Hero + eligible real-neighbor Peek cards.
 - **C — Bottom action:** “记录下一条鱼” CTA + primary camera action.
 
-Use one constraint-driven policy across viewport sizes. Do not copy fixed screenshot coordinates into device-specific layouts. Keep relationships inside each group stable; adjust the group gaps before changing the group internals.
+Use one constraint-driven policy across viewport sizes. Do not copy fixed screenshot coordinates into device-specific layouts. Keep relationships inside each group stable; adjust inter-group spacing before changing group internals.
 
 ### A.2 Long-screen surplus allocation
 
-Measure the actual safe content window and actual A/B/C group bounds. Apply system insets once. Use the existing Adaptive V2.2 component dimensions, explicit visual targets, and spacing formulas as the starting constraints.
+Measure the actual safe content height (H_{safe}) after applying system insets exactly once. Measure the natural heights (h_A), (h_B), and (h_C) of groups A/B/C, including each group's fixed content and internal spacing but excluding the two inter-group gaps.
 
-After those constraints and the existing group base gaps are satisfied, distribute only the **remaining positive, otherwise-unassigned vertical space** as follows:
+Calculate the existing base gaps:
+- (g_{AB,base}): the existing Adaptive V2.2 `stats_to_title` formula.
+- (g_{BC,base}): the existing Adaptive V2.2 `card_to_footer` formula.
 
-- A→B receives **2/3** of the surplus.
-- B→C receives **1/3** of the surplus.
+Then calculate the positive unassigned surplus:
 
-This 2:1 ratio applies to the *additional surplus*, not to the final visible gaps. It must not override an explicitly fixed gap target or change the existing Title→Hero targets. If no unassigned surplus remains, do not invent extra space. Do not add a separate bottom-reserve function; keep the existing Footer padding and safe-area rules.
+[
+S = \max(0, H_{safe} - (h_A + h_B + h_C + g_{AB,base} + g_{BC,base}))
+]
+
+When (S > 0), the final inter-group gaps are:
+
+[
+g_{AB} = g_{AB,base} + \frac{2}{3}S
+\qquad
+g_{BC} = g_{BC,base} + \frac{1}{3}S
+]
+
+The **2:1 ratio applies only to the additional surplus**, not to the final visible gaps. This is the explicit long-screen rule for the final output of the two inter-group gaps: the existing formulas remain their base-gap policy and retain their short-screen pressure/minimum behavior, while positive long-screen surplus is added according to the equations above.
+
+This rule does not change the internal Title→Hero gap or its four explicit viewport targets. If (S=0), do not invent additional space. Do not add a separate bottom-reserve function; keep the existing Footer padding and safe-area rules.
 
 ### A.3 Short-screen priority
 
 For 320×480dp at system font scale 1.0, prioritize a complete **no-scroll** composition and retain the two-row header.
 
 1. Compress nonessential whitespace.
-2. Compress A→B and B→C group gaps only within the existing contract.
-3. Resize Hero only within the existing 247:293 ratio, width/height limits, readable-content requirements, and existing short-screen exception.
+2. Compress A→B and B→C gaps within the existing short-screen constraints and minimums.
+3. Resize Hero only within the existing 247:293 ratio, width/height limits, readable-content requirements, and the existing 124dp short-screen exception.
 4. Preserve required text, the camera touch target, and the Footer safe-area boundary.
 
-Do not hide required content, clip text, globally shrink fonts, reduce touch targets, overlap components, double-apply insets, or introduce a screenshot-specific layout. For larger font scales, retain the existing Adaptive V2.2 accessibility and local-scroll fallback rules.
+Do not hide required content, clip text, globally shrink fonts, reduce touch targets, overlap components, double-apply insets, or introduce a screenshot-specific layout. For larger font scales, retain the existing Adaptive V2.2 accessibility and local-scroll fallback rules. If the constrained safe window still cannot fit the required composition, report the appropriate overflow/conflict state rather than claiming PASS.
 
 ### A.4 Authority boundary and conflicts
 
-This foundation controls only group structure and allocation of otherwise-unassigned space. Existing Adaptive V2.2 authorities remain binding for exact typography, per-viewport Title→Hero gaps, Hero ratio/width/height limits, Peek geometry, camera/touch geometry, safe areas, and runtime acceptance.
+This foundation freezes group structure and long-screen surplus allocation. Existing Adaptive V2.2 authorities remain binding for exact typography, Title→Hero targets, Hero ratio/width/height limits, Peek geometry, camera/touch geometry, safe areas, and runtime acceptance. The only added long-screen override is the final value of the A→B and B→C inter-group gaps when (S>0), as defined above.
 
-If the foundation and a more specific frozen rule cannot be satisfied together, record **SPEC_CONFLICT** and resolve the authority before implementation. Do not silently alter a frozen numeric target or claim PASS from a static image.
-
+If the foundation and another specific frozen rule cannot be satisfied together, record **SPEC_CONFLICT** and resolve the authority before implementation. Do not silently alter a frozen numeric target or claim PASS from a static image.

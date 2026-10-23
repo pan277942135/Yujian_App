@@ -25,15 +25,14 @@ Only the named field is superseded on the named route. All Frozen pixels and ass
 
 The structural and surplus-allocation foundation is frozen in `design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_MULTI_SCREEN_RESPONSIVE_CONTRACT_V1.md`, Appendix A, and its machine-readable `foundation_layout_principles` entry. Design Manager remains the single entry point.
 
-- A = brand/avatar + statistics (statistics remain a second row on the 320×480dp compact target).
-- B = Recent Catch heading/All action + Hero + eligible real-neighbor Peeks.
-- C = record-next-catch CTA + camera action.
-- Use one constraint-driven policy across viewports. For long screens, distribute only positive, otherwise-unassigned surplus after existing V2.2 dimensions, safe insets, explicit targets and base gaps are satisfied: A→B gets 2/3; B→C gets 1/3. This is the ratio of additional surplus, not the final visible gaps.
-- For 320×480dp at system fontScale=1.0, prioritize no scroll and retain the two-row header; compress nonessential whitespace and group gaps before resizing Hero within existing constraints.
-- This foundation does not alter the existing 247:293 Hero ratio, target/cap dimensions, per-viewport Title→Hero targets, typography roles, Peek rules, camera/touch sizes, safe-area handling, or runtime acceptance. No separate bottom-reserve function is introduced.
-- If the general foundation and a specific frozen rule cannot both be satisfied, mark `SPEC_CONFLICT`; do not silently override the specific rule or claim runtime PASS.
-
-
+- **A:** brand/avatar + three statistics (statistics remain a second row at 320×480dp).
+- **B:** Recent Catch heading/All action + selected Hero + eligible real-neighbor Peeks.
+- **C:** record-next-catch CTA + camera action.
+- Measure the usable content height after applying system insets once. Let hA/hB/hC include fixed content and internal spacing, excluding the two inter-group gaps. Use the existing `stats_to_title` and `card_to_footer` formulas as base gaps, gAB_base and gBC_base.
+- Calculate `S = max(0, H_safe - (hA + hB + hC + gAB_base + gBC_base))`. If S is positive, set `gAB = gAB_base + 2S/3` and `gBC = gBC_base + S/3`. The 2:1 ratio applies to added surplus, not final visible gaps. This is the explicit long-screen override to the final values of those two inter-group gaps; their formulas remain the base-gap policy.
+- This does **not** alter the internal Title→Hero gap or its four explicit viewport targets, the Hero 247:293 ratio/size limits, typography roles, Peek geometry, camera/touch sizes, safe-area handling, or runtime acceptance. No separate bottom-reserve function is introduced.
+- For 320×480dp at system fontScale=1.0, prioritize no scroll and retain the two-row header; compress nonessential whitespace and group gaps within existing short-screen constraints before resizing Hero within the existing exception.
+- If a specific frozen constraint cannot be jointly satisfied, mark `SPEC_CONFLICT`; do not silently override it or claim runtime PASS.
 ## 2. Section Spacing V2.2 (new explicit visual targets)
 
 Measure the rendered 最近鱼获 Text layout bottom to the actual selected Hero card outer top, via native boundsInWindow; NOT section Row bottom or center of the Pager.
