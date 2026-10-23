@@ -25,7 +25,7 @@
 - Product PR #177 HEAD: `d8f3aabfab058d58cac84e19af095b0186df5f85` (post-sync merge commit).
 - Comparison: PR #177 is **19 commits ahead and 0 behind** product main. The latest three main commits have been merged into the feature branch without rebase or force-push. Exact-head CI for the post-sync SHA is pending.
 - Canonical control-plane binding: governance remains authoritative in `Yujian_App/main`; the separate product repository `Yujian` is admitted through the exact-SHA cross-repository manifest and source audit. Do not duplicate a competing control plane in `Yujian`.
-- The previous exact-head CI run [39874124153](https://github.com/pan277942135/Yujian/actions/runs/39874124153) passed targeted validation and Chromium UI simulation on the *previous* SHA only. It is not reused as evidence for the new post-sync SHA.
+- The post-sync exact-head CI [run 39917440271](https://github.com/pan277942135/Yujian/actions/runs/39917440271) passed targeted validation and Chromium UI simulation on `d8f3aab...`. It does not prove production Mask, real-photo inference, pixel parity or user visual acceptance.
 - Merged infrastructure PR #180 still pins `cb9e3780afb5e2904e3dfe5148210a4ccc3747b4`; a product preview for the current head is `NOT_VERIFIED`.
 
 ## Frozen behavior that Work must not reinterpret
