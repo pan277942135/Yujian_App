@@ -14,7 +14,7 @@
 
 1. Read the current `AGENTS.md` and `CONTROL_PLANE_REGISTRY.yaml` in `pan277942135/Yujian_App` and follow its indexed admission/contract rules.
 2. Read [the manifest](SWOS_WEB_IMPLEMENTATION_INPUT_MANIFEST_V1.json). Its contract list pins the expected Git blob SHA for every input.
-3. Run `bash scripts/verify_swos_web_input_pack_live.sh --report` from the design-authority repository with authenticated `gh` CLI access. Use `DESIGN_REF=main` after this input-pack PR is adopted; use the input-pack branch only to validate the proposal.
+3. Run `bash scripts/verify_swos_web_input_pack_live.sh --report` from the design-authority repository with network access to GitHub's public API. Use `DESIGN_REF=main` after this input-pack PR is adopted; use the input-pack branch only to validate the proposal.
 4. Before implementation, run `bash scripts/verify_swos_web_input_pack_live.sh --strict`. A strict block must be resolved, not bypassed.
 5. After syncing the product branch to the current product `main`, refresh the live source audit fields and re-run Admission and CI against the resulting exact product SHA.
 
@@ -23,7 +23,8 @@
 - Design authority baseline: `Yujian_App/main@01c7aec0c0e8216dd76f314f380ae3e0496bd28b`.
 - Product main: `Yujian/main@3c79c00db68ace94d8f6a7dcb4105d0026a09323`.
 - Product PR #177 HEAD: `32b9463887c6620b32a3dfdd986eccc6ff4a569b`.
-- Comparison: PR #177 is **18 commits ahead and 3 behind** product main. Implementation readiness is therefore `BLOCKED_BEHIND_MAIN` until synchronized.
+- Comparison: PR #177 is **18 commits ahead and 3 behind** product main. Implementation readiness is `BLOCKED_BEHIND_MAIN` until synchronized.
+- The live product PR head lacks root `AGENTS.md` and `CONTROL_PLANE_REGISTRY.yaml` (both returned 404). Product Admission remains `BLOCKED_MISSING_REGISTRY`; resolve a canonical cross-repository admission binding before claiming Admission PASS. Do not create a competing local control plane.
 - Exact-head CI run [39874124153](https://github.com/pan277942135/Yujian/actions/runs/39874124153) passed targeted validation and Chromium UI simulation only.
 - Merged infrastructure PR #180 still pins `cb9e3780afb5e2904e3dfe5148210a4ccc3747b4`; a product preview for the current head is `NOT_VERIFIED`.
 
