@@ -116,7 +116,7 @@ else
   echo "CURRENT_HEAD_PREVIEW_PIN=STALE configured_sha=${preview_pin:-UNKNOWN} live_pr_head=$pr_head_live"
 fi
 
-for asset_spec in "SWOS_WEB_REFERENCE_PATH:web-three-stage" "SWOS_SWOS_STORYBOARD_PATH:swos-history" "SWOS_CATCH_PHOTO_PATH:processing-source-photo"; do
+for asset_spec in "SWOS_WEB_REFERENCE_PATH:web-three-stage" "SWOS_STORYBOARD_PATH:swos-history" "SWOS_CATCH_PHOTO_PATH:processing-source-photo"; do
   env_name="${asset_spec%%:*}"
   asset_id="${asset_spec#*:}"
   asset_path="${!env_name:-}"
