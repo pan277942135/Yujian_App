@@ -3747,6 +3747,11 @@
               "label": "RR09 · 动效接续 V3",
               "route": "#page/recognition_result_v1/hifi/motion_continuation",
               "note": "Main-adopted design-only 850ms V3；V2 历史基线保留且不改写。"
+            },
+            {
+              "label": "SWOS Web 高保真动效技术合同 V1.0",
+              "route": "#page/recognition_flow_v1_2/hifi/swos_web_hifi_motion_contract_v1_0",
+              "note": "真实可播放实现、SAM 复用与浏览器验收"
             }
           ],
           "runtime_status": "NOT_RUN",
