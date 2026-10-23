@@ -460,6 +460,21 @@ async function main() {
   assert(webMobileWidth.document <= 390 && webMobileWidth.body <= 390, `Web contract workspace overflows mobile: ${JSON.stringify(webMobileWidth)}`);
   await page.setViewportSize({ width: 1440, height: 1000 });
 
+  const swosWebMotionHash = "#page/recognition_flow_v1_2/hifi/swos_web_hifi_motion_contract_v1_0";
+  await open(swosWebMotionHash);
+  await waitForHifiView(page);
+  assert(page.url().endsWith(swosWebMotionHash), "SWOS Web motion technical contract direct Hash route did not resolve");
+  assert((await page.locator("#hifiViewTitle").innerText()).includes("SWOS Web 高保真动效技术合同 V1.0"), "SWOS Web motion contract title is missing");
+  assert((await page.locator("#hifiViewAuthorities").innerText()).includes("SWOS_WEB_HIFI_MOTION_TECHNICAL_CONTRACT_V1_0.md"), "SWOS Web motion contract authority link is missing");
+  assert(await page.locator('#hifiViewContractDetails a[href*="SWOS_WEB_HIFI_MOTION_TECHNICAL_CONTRACT_V1_0.json"]').count() === 1, "SWOS Web motion machine contract link is missing");
+  assert(await page.locator('.hifi-related-routes a[href="' + swosStaticHash + '"]').count() === 1, "SWOS Web motion contract must link to the static 15-frame workspace");
+  assert((await page.locator("#hifiViewCanvas").innerText()).includes("SAM"), "SWOS Web motion contract must state existing SAM experiment reuse");
+  await page.screenshot({ path: resolve(args.outputDir, "swos-web-motion-contract-1440.png"), fullPage: true });
+  await page.setViewportSize({ width: 390, height: 844 });
+  const swosMotionMobileWidth = await page.evaluate(() => ({ document: document.documentElement.scrollWidth, body: document.body.scrollWidth }));
+  assert(swosMotionMobileWidth.document <= 390 && swosMotionMobileWidth.body <= 390, "SWOS Web motion contract overflows mobile: " + JSON.stringify(swosMotionMobileWidth));
+  await page.setViewportSize({ width: 1440, height: 1000 });
+
   const continuityHash = "#page/recognition_flow_v1_2/hifi/processing_result_continuity";
   await open(continuityHash);
   assert(page.url().endsWith(continuityHash), "Processing → Result continuity direct Hash route did not resolve");
