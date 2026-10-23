@@ -122,6 +122,90 @@ for x in d["authority"]["contract_files"]:
 PY
 )
 
+echo "=== Verify canonical cross-repository control-plane binding ==="
+while IFS=
+mapping_text="$(printf '%s' "$mapping_json" | python3 -c 'import base64,json,sys; print(base64.b64decode(json.load(sys.stdin)["content"]).decode("utf-8"))')"
+mapping_sha="$(printf '%s' "$mapping_text" | python3 -c 'import json,sys; print(json.load(sys.stdin).get("source_sha",""))')"
+authority_head_sha="$(printf '%s' "$mapping_text" | python3 -c 'import json,sys; print((json.load(sys.stdin).get("live_source_audit") or {}).get("live_product_pr_head_sha",""))')"
+if [[ "$mapping_sha" == "$pr_head_live" && "$authority_head_sha" == "$pr_head_live" ]]; then
+  echo "LIVE_SOURCE_BINDING=PASS source_sha=$mapping_sha"
+else
+  echo "LIVE_SOURCE_BINDING=STALE mapping_source_sha=$mapping_sha authority_audit_head=$authority_head_sha live_pr_head=$pr_head_live"
+  source_blockers=$((source_blockers+1))
+fi
+
+workflow_json="$(api_get "repos/$PRODUCT_REPO/contents/.github/workflows/catch-recognition-pr177-no-traffic-deploy.yml?ref=$product_main_live")"
+workflow_text="$(printf '%s' "$workflow_json" | python3 -c 'import base64,json,sys; print(base64.b64decode(json.load(sys.stdin)["content"]).decode("utf-8"))')"
+preview_pin="$(printf '%s\n' "$workflow_text" | sed -nE 's/^[[:space:]]*TARGET_SHA:[[:space:]]*([0-9a-f]{40}).*/\1/p' | head -n1)"
+if [[ "$preview_pin" == "$pr_head_live" ]]; then
+  echo "CURRENT_HEAD_PREVIEW_PIN=PASS target_sha=$preview_pin"
+else
+  echo "CURRENT_HEAD_PREVIEW_PIN=STALE configured_sha=${preview_pin:-UNKNOWN} live_pr_head=$pr_head_live"
+fi
+
+for asset_spec in "SWOS_WEB_REFERENCE_PATH:web-three-stage" "SWOS_STORYBOARD_PATH:swos-history" "SWOS_CATCH_PHOTO_PATH:processing-source-photo"; do
+  env_name="${asset_spec%%:*}"
+  asset_id="${asset_spec#*:}"
+  asset_path="${!env_name:-}"
+  expected="$(python3 - "$MANIFEST" "$asset_id" <<'PY'
+import json,sys
+d=json.load(open(sys.argv[1],encoding="utf-8"))
+for a in d["private_visual_assets"]:
+    if a["id"]==sys.argv[2]:
+        print(a["sha256"]); break
+PY
+)"
+  if [[ -z "$asset_path" ]]; then
+    echo "PRIVATE_ASSET_SHA=NOT_CHECKED asset=$asset_id (provide $env_name to verify bytes)"
+  elif [[ ! -f "$asset_path" ]]; then
+    echo "PRIVATE_ASSET_SHA=INVALID_PATH asset=$asset_id path=$asset_path"
+    integrity_failures=$((integrity_failures+1))
+  else
+    actual="$(sha256sum "$asset_path" | awk '{print $1}')"
+    if [[ "$actual" == "$expected" ]]; then echo "PRIVATE_ASSET_SHA=PASS asset=$asset_id sha=$actual"
+    else echo "PRIVATE_ASSET_SHA=FAIL asset=$asset_id expected=$expected actual=$actual"; integrity_failures=$((integrity_failures+1)); fi
+  fi
+done
+
+echo "PRODUCTION_MASK=NOT_QUALIFIED"
+echo "RUNTIME_VISUAL_ACCEPTANCE=NOT_VERIFIED"
+if [[ "$integrity_failures" -gt 0 ]]; then
+  echo "INPUT_PACK_INTEGRITY=FAIL count=$integrity_failures"
+  exit 1
+fi
+echo "INPUT_PACK_INTEGRITY=PASS"
+if [[ "$source_blockers" -gt 0 ]]; then
+  echo "LIVE_SOURCE_READINESS=BLOCKED count=$source_blockers"
+  if [[ "$MODE" == "--strict" ]]; then exit 2; fi
+else
+  echo "LIVE_SOURCE_READINESS=PASS"
+fi
+echo "AUDIT_COMPLETE=YES (source/input readiness only; not a visual-animation pass)"
+\t' read -r path expected; do
+  [[ -n "$path" ]] || continue
+  actual="$(printf '%s' "$tree_json" | python3 -c '
+import json,sys
+d=json.load(sys.stdin); path=sys.argv[1]
+row=next((x for x in d.get("tree",[]) if x.get("path")==path and x.get("type")=="blob"),None)
+print(row.get("sha","MISSING") if row else "MISSING")
+' "$path")"
+  if [[ "$actual" == "$expected" ]]; then
+    echo "CANONICAL_CONTROL_PLANE=PASS $path $actual"
+  else
+    echo "CANONICAL_CONTROL_PLANE=STALE $path expected=$expected actual=$actual"
+    integrity_failures=$((integrity_failures+1))
+  fi
+done < <(python3 - "$MANIFEST" <<'PY'
+import json,sys
+d=json.load(open(sys.argv[1],encoding="utf-8"))
+for x in d["authority"].get("canonical_control_plane_files",[]):
+    print(x["path"]+"\t"+x["blob_sha"])
+PY
+)
+
+echo "PRODUCT_REPOSITORY_CONTROL_PLANE=CROSS_REPO_CANONICAL_BINDING"
+echo "PRODUCT_REPOSITORY_CONTROL_PLANE_NOTE=Do not create a competing local registry in $PRODUCT_REPO"
+
 mapping_json="$(api_get "repos/$APP_REPO/contents/design/pages/recognition/web/contracts/Work_B_Implementation_Mapping_V2.json?ref=$design_sha")"
 mapping_text="$(printf '%s' "$mapping_json" | python3 -c 'import base64,json,sys; print(base64.b64decode(json.load(sys.stdin)["content"]).decode("utf-8"))')"
 mapping_sha="$(printf '%s' "$mapping_text" | python3 -c 'import json,sys; print(json.load(sys.stdin).get("source_sha",""))')"
