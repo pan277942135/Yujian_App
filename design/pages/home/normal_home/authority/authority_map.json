@@ -126,6 +126,13 @@
     "candidate": "design/qa/NH01_ADAPTIVE_VISUAL_BALANCE_V2.md",
     "legacy_frozen_sources_unchanged": true,
     "legacy_46_case_matrix_preserved": true,
-    "runtime_verdict": "NOT_RUN"
+    "runtime_verdict": "NOT_RUN",
+    "responsive_foundation": {
+      "status": "FROZEN",
+      "version": "V1",
+      "authority": "design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_MULTI_SCREEN_RESPONSIVE_CONTRACT_V1.md",
+      "machine_authority": "design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_MULTI_SCREEN_RESPONSIVE_CONTRACT_V1.json",
+      "scope": "A/B/C grouping and allocation of otherwise-unassigned vertical surplus only; exact Adaptive V2.2 numeric authorities remain binding."
+    }
   }
 }
