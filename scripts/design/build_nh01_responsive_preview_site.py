@@ -73,9 +73,23 @@ def main() -> None:
     # source preview subtree may acquire unrelated or private assets over time.
     copy_file(source / PREVIEW_SOURCE / PREVIEW_HTML, target / PREVIEW_HTML)
     copy_file(source / PREVIEW_SOURCE / PREVIEW_HELPER, target / PREVIEW_HELPER)
-    copy_file(source / PREVIEW_SOURCE / ASSET_MANIFEST, target / ASSET_MANIFEST)
     copied_html = target / PREVIEW_HTML
-    html = copied_html.read_text(encoding="utf-8")
+    try:
+        html = copied_html.read_bytes().decode("utf-8")
+    except UnicodeDecodeError as exc:
+        raise SystemExit(f"NH01 preview HTML is not valid UTF-8; restore a verified text blob before publishing: {exc}") from exc
+    if not html.lstrip("\ufeff \t\r\n").lower().startswith("<!doctype html>"):
+        raise SystemExit("NH01 preview HTML is not a valid HTML document; refusing to publish")
+    if "\ufffd" in html or "\x00" in html:
+        raise SystemExit("NH01 preview HTML contains replacement or NUL characters; refusing to publish")
+    if 'id="heroPlaceholder"' not in html or 'data-status="BLOCKED_ASSET_SOURCE"' not in html:
+        raise SystemExit("NH01 preview must retain the explicit blocked Hero-photo placeholder")
+    if not re.search(r'<article\b[^>]*id="leftCatchCard"[^>]*\shidden(?:\s|>)', html):
+        raise SystemExit("NH01 preview must keep the unapproved left-neighbor card hidden")
+    if not re.search(r'<article\b[^>]*id="rightCatchCard"[^>]*\shidden(?:\s|>)', html):
+        raise SystemExit("NH01 preview must keep the unapproved right-neighbor card hidden")
+    if "PREVIEW ONLY" not in html or "NOT VISUAL PASS" not in html:
+        raise SystemExit("NH01 candidate workbench must visibly disclose PREVIEW ONLY / NOT VISUAL PASS")
     html = html.replace('name="nh01-preview-root" content="../../../../../"', 'name="nh01-preview-root" content="../../../"')
     html = html.replace("__NH01_GEMINI_PREVIEW_BUILD__", args.source_sha)
     html = html.replace("__NH01_PREVIEW_DEPLOYMENT_SHA__", args.deployment_sha)
@@ -97,6 +111,17 @@ def main() -> None:
 
     asset_manifest_path = source / PREVIEW_SOURCE / ASSET_MANIFEST
     asset_manifest = json.loads(asset_manifest_path.read_text(encoding="utf-8"))
+    asset_by_id = {item.get("id"): item for item in asset_manifest.get("assets", [])}
+    for required_id in ("hero_photo", "neighbor_photos"):
+        if required_id not in asset_by_id:
+            raise SystemExit(f"Asset manifest is missing required privacy entry: {required_id}")
+    if not asset_by_id["hero_photo"].get("public_preview") and "id=\"heroPlaceholder\"" not in html:
+        raise SystemExit("A non-public Hero photo requires the visible blocked-photo placeholder")
+    if not asset_by_id["neighbor_photos"].get("public_preview") and not (
+        re.search(r'<article\b[^>]*id="leftCatchCard"[^>]*\shidden(?:\s|>)', html)
+        and re.search(r'<article\b[^>]*id="rightCatchCard"[^>]*\shidden(?:\s|>)', html)
+    ):
+        raise SystemExit("Non-public neighboring fish photos must remain hidden")
     for asset in asset_manifest.get("assets", []):
         if not asset.get("public_preview"):
             continue
@@ -112,6 +137,17 @@ def main() -> None:
             raise SystemExit(f"Public asset preview_path escapes the isolated route: {preview_path}")
         copy_file(original, target / destination_rel)
         copied_assets.append({"source_path": rel.as_posix(), "preview_path": preview_path, "sha256": asset["sha256"], "dimensions_px": asset["dimensions_px"]})
+
+    # Redact source paths and hashes for assets that are not approved for public preview.
+    public_manifest = json.loads(json.dumps(asset_manifest))
+    for item in public_manifest.get("assets", []):
+        if not item.get("public_preview"):
+            for field in ("source_path", "preview_path", "sha256", "dimensions_px"):
+                item[field] = None
+    (target / ASSET_MANIFEST).write_text(
+        json.dumps(public_manifest, indent=2, ensure_ascii=False) + "\n",
+        encoding="utf-8",
+    )
 
     copy_file(contract_file, target / CONTRACT_PATH)
     contract_sha = digest(target / CONTRACT_PATH)
@@ -132,6 +168,14 @@ def main() -> None:
         "pages_deployment_sha": args.deployment_sha,
         "preserved_production_site_sha": args.base_site_sha,
         "contract_status": contract["status"],
+        "release_mode": "FROZEN_ACCEPTANCE" if contract["status"] == "SPEC_FROZEN" else "PREVIEW_ONLY",
+        "release_gate_effect": "P3_06_PASS_REQUIRED" if contract["status"] == "SPEC_FROZEN" else "NONE",
+        "acceptance_status": "NOT_CLAIMED" if contract["status"] != "SPEC_FROZEN" else "P3_06_PASS_REQUIRED",
+        "media_policy": {
+            "hero": "PLACEHOLDER_ONLY" if not asset_by_id["hero_photo"].get("public_preview") else "APPROVED_SOURCE_ONLY",
+            "neighbors": "HIDDEN_UNTIL_APPROVED_INDEPENDENT_ORIGINALS" if not asset_by_id["neighbor_photos"].get("public_preview") else "APPROVED_INDEPENDENT_ORIGINALS",
+            "non_public_asset_files_copied": False,
+        },
         "viewport_profiles_path": profile_path.as_posix(),
         "viewport_profiles_sha256": profiles_sha,
         "route": "/previews/nh01-responsive-v2/design/manager/nh01_acceptance/gemini-native-preview.html",

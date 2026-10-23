@@ -160,6 +160,9 @@ async function main() {
       footer:!!document.querySelector('#footerSection'),
       footerOutsideMiddle:!!document.querySelector('#middleSection')&&!document.querySelector('#middleSection').contains(document.querySelector('#footerSection')),
       hiddenNeighbors:[...document.querySelectorAll('.neighbor-card')].every(node=>node.hidden),
+      visibleNeighborCount:[...document.querySelectorAll('.neighbor-card')].filter(node=>!node.hidden).length,
+      heroPlaceholder:document.querySelector('#heroPlaceholder')?.dataset.status==='BLOCKED_ASSET_SOURCE',
+      privatePhotoReferences:[...document.querySelectorAll('img')].map(image=>image.currentSrc||image.src||'').filter(src=>/sample_recent_catch\\.jpg|home_normal\\/fish_record\\//i.test(src)).length,
       layerTree:document.querySelectorAll('#layerTree button').length,
       propertyInspector:!!document.querySelector('[aria-label="所选图层属性检查器"]'),
       ruleRows:document.querySelectorAll('#responsiveRuleList .rule-row').length,
@@ -168,6 +171,7 @@ async function main() {
     assert(visibleStructure.brand && visibleStructure.stats === 3 && visibleStructure.sectionTitle && visibleStructure.hero && visibleStructure.footer, 'Brand, three statistics, Recent Catch, Hero and Footer hierarchy must render');
     assert(visibleStructure.middle&&visibleStructure.footerOutsideMiddle&&visibleStructure.layerTree>0&&visibleStructure.propertyInspector,'Footer/Middle composition or existing layer/property workspace is missing');
     assert(visibleStructure.hiddenNeighbors, 'No missing neighbor catch may be cloned or rendered');
+    assert(visibleStructure.privatePhotoReferences===0, 'An unapproved catch-photo source is referenced by a rendered image');
     assert(visibleStructure.ruleRows >= 8 && visibleStructure.referenceRendered, 'Interactive rule viewer and frozen-reference viewer must render');
     const assets = await page.locator('img[data-asset-id]').evaluateAll(images => images.map(image => ({asset:image.dataset.assetId,src:image.currentSrc,complete:image.complete,naturalWidth:image.naturalWidth,naturalHeight:image.naturalHeight})));
     assert(assets.every(image => image.complete && image.naturalWidth > 0), 'Registered preview assets did not all load: ' + JSON.stringify(assets.filter(image=>!image.complete||image.naturalWidth<=0)));
@@ -178,12 +182,30 @@ async function main() {
     report.checks.p3_06={status:mediaBlockers.length?'BLOCKED':'PASS',media_blockers:mediaBlockers.map(asset=>({id:asset.id,status:asset.status,reason:asset.reason||null})),rule:'P3-06 cannot claim image-level acceptance while Hero photo provenance or independent neighbor records are blocked.'};
     report.p3_06_status=mediaBlockers.length?'BLOCKED':'PASS';
     if(mediaBlockers.length)report.p3_06_blockers=report.checks.p3_06.media_blockers;
+    if(mediaBlockers.length){
+      assert(visibleStructure.heroPlaceholder, 'Blocked Hero media must remain an explicit placeholder in PREVIEW_ONLY mode');
+      assert(visibleStructure.hiddenNeighbors && visibleStructure.visibleNeighborCount===0, 'Blocked neighboring media must remain hidden in PREVIEW_ONLY mode');
+    }else{
+      assert(!visibleStructure.heroPlaceholder, 'P3-06 cannot pass while the Hero photo is still a blocked placeholder');
+      assert(visibleStructure.visibleNeighborCount===2, 'P3-06 cannot pass until both independently approved neighbor records are rendered');
+    }
     if(args.deploymentManifestPath){
       const deploymentUrl=new URL(args.deploymentManifestPath,origin).href;
       const deploymentResponse=await page.request.get(deploymentUrl,{timeout:30000});
       assert(deploymentResponse.status()===200,'Preview deployment manifest HTTP status is not 200');
       const deploymentManifest=await deploymentResponse.json();
       assert(deploymentManifest.contract_id===contract.id&&deploymentManifest.contract_version===contract.version,'Deployment manifest contract identity/version mismatch');
+      if(deploymentManifest.release_mode==='PREVIEW_ONLY'){
+        assert(contract.status==='PROPOSED_FOR_CANONICAL_MAIN_REVIEW','PREVIEW_ONLY deployment cannot claim a frozen contract');
+        assert(deploymentManifest.release_gate_effect==='NONE'&&deploymentManifest.acceptance_status==='NOT_CLAIMED','PREVIEW_ONLY deployment must not claim P3-06 or freeze-gate PASS');
+        assert(deploymentManifest.media_policy?.non_public_asset_files_copied===false,'PREVIEW_ONLY must not copy non-public media');
+        if(report.p3_06_status==='BLOCKED')assert(deploymentManifest.media_policy?.hero==='PLACEHOLDER_ONLY'&&deploymentManifest.media_policy?.neighbors==='HIDDEN_UNTIL_APPROVED_INDEPENDENT_ORIGINALS','Blocked media policy is missing from the deployment manifest');
+      }else if(deploymentManifest.release_mode==='FROZEN_ACCEPTANCE'){
+        assert(contract.status==='SPEC_FROZEN'&&report.p3_06_status==='PASS','FROZEN_ACCEPTANCE requires SPEC_FROZEN and P3-06 PASS');
+        assert(deploymentManifest.release_gate_effect==='P3_06_PASS_REQUIRED','Frozen release manifest must record its P3-06 gate');
+      }else{
+        throw new Error('Unknown NH01 preview release mode: '+deploymentManifest.release_mode);
+      }
       assert(deploymentManifest.contract_sha256===contract.sha256,'Deployment manifest contract SHA mismatch');
       assert(deploymentManifest.preview_source_sha===contract.source_sha,'Deployment manifest source SHA mismatch');
       assert(deploymentManifest.pages_deployment_sha===contract.deployment_sha,'Deployment manifest Pages SHA mismatch');
