@@ -183,7 +183,7 @@ Use one constraint-driven policy across viewport sizes. Do not copy fixed screen
 
 ### A.2 Long-screen surplus allocation
 
-Measure the actual safe content height `H_safe` after applying system insets exactly once. Measure the natural heights `hA`, `hB`, and `hC) of groups A/B/C, including each group's fixed content and internal spacing but excluding the two inter-group gaps.
+Measure the actual safe content height `H_safe` after applying system insets exactly once. Measure the natural heights `hA`, `hB`, and `hC` of groups A/B/C, including each group's fixed content and internal spacing but excluding the two inter-group gaps.
 
 Calculate the existing base gaps:
 - `gAB_base`: the existing Adaptive V2.2 `stats_to_title` formula.
