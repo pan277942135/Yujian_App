@@ -8,38 +8,32 @@ DESIGN_REF="${DESIGN_REF:-main}"
 APP_REPO="pan277942135/Yujian_App"
 PRODUCT_REPO="pan277942135/Yujian"
 PR_NUMBER=177
+API="https://api.github.com"
 
-command -v gh >/dev/null || { echo "ERROR: gh CLI is required and must be authenticated."; exit 69; }
+command -v curl >/dev/null || { echo "ERROR: curl is required."; exit 69; }
 command -v python3 >/dev/null || { echo "ERROR: python3 is required."; exit 69; }
 test -f "$MANIFEST" || { echo "ERROR: manifest not found: $MANIFEST"; exit 66; }
 python3 -m json.tool "$MANIFEST" >/dev/null
 
-get_manifest() {
-  python3 - "$MANIFEST" "$1" <<'PY'
-import json,sys
-obj=json.load(open(sys.argv[1],encoding="utf-8"))
-value=obj
-for part in sys.argv[2].split("."):
-    value=value[part]
-print(value)
-PY
-}
-
+api_get() { curl -fsSL --retry 2 --retry-delay 1 -H "Accept: application/vnd.github+json" "$API/$1"; }
 failures=0
 source_blockers=0
 integrity_failures=0
+
 echo "=== SWOS Web input-pack live audit ==="
 echo "manifest=$MANIFEST"
 echo "design_ref=$DESIGN_REF"
 
-app_main_live="$(gh api "repos/$APP_REPO/commits/main" --jq .sha)"
-product_main_live="$(gh api "repos/$PRODUCT_REPO/commits/main" --jq .sha)"
-pr_json="$(gh api "repos/$PRODUCT_REPO/pulls/$PR_NUMBER")"
+app_main_json="$(api_get "repos/$APP_REPO/commits/main")"
+app_main_live="$(printf '%s' "$app_main_json" | python3 -c 'import json,sys; print(json.load(sys.stdin)["sha"])')"
+product_main_json="$(api_get "repos/$PRODUCT_REPO/commits/main")"
+product_main_live="$(printf '%s' "$product_main_json" | python3 -c 'import json,sys; print(json.load(sys.stdin)["sha"])')"
+pr_json="$(api_get "repos/$PRODUCT_REPO/pulls/$PR_NUMBER")"
 pr_head_live="$(printf '%s' "$pr_json" | python3 -c 'import json,sys; print(json.load(sys.stdin)["head"]["sha"])')"
 pr_branch_live="$(printf '%s' "$pr_json" | python3 -c 'import json,sys; print(json.load(sys.stdin)["head"]["ref"])')"
 pr_state_live="$(printf '%s' "$pr_json" | python3 -c 'import json,sys; print(json.load(sys.stdin)["state"])')"
 pr_draft_live="$(printf '%s' "$pr_json" | python3 -c 'import json,sys; print(str(json.load(sys.stdin).get("draft",False)).lower())')"
-compare_json="$(gh api "repos/$PRODUCT_REPO/compare/$product_main_live...$pr_head_live")"
+compare_json="$(api_get "repos/$PRODUCT_REPO/compare/$product_main_live...$pr_head_live")"
 ahead_by="$(printf '%s' "$compare_json" | python3 -c 'import json,sys; print(json.load(sys.stdin).get("ahead_by",0))')"
 behind_by="$(printf '%s' "$compare_json" | python3 -c 'import json,sys; print(json.load(sys.stdin).get("behind_by",0))')"
 merge_base="$(printf '%s' "$compare_json" | python3 -c 'import json,sys; print((json.load(sys.stdin).get("merge_base_commit") or {}).get("sha","UNKNOWN"))')"
@@ -58,7 +52,7 @@ if [[ "$pr_state_live" != "open" ]]; then echo "SOURCE_READINESS=BLOCKED_PR_NOT_
 if [[ "$pr_branch_live" != "feat/ai-catch-recognition-web-swos-rr09-v1" ]]; then echo "SOURCE_READINESS=BLOCKED_UNEXPECTED_BRANCH"; source_blockers=$((source_blockers+1)); fi
 if [[ "$behind_by" -gt 0 ]]; then echo "SOURCE_READINESS=BLOCKED_BEHIND_MAIN"; source_blockers=$((source_blockers+1)); fi
 
-runs_json="$(gh api "repos/$PRODUCT_REPO/actions/runs?head_sha=$pr_head_live&event=pull_request&per_page=100")"
+runs_json="$(api_get "repos/$PRODUCT_REPO/actions/runs?head_sha=$pr_head_live&event=pull_request&per_page=100")"
 ci_row="$(printf '%s' "$runs_json" | python3 -c '
 import json,sys
 d=json.load(sys.stdin)
@@ -75,18 +69,33 @@ else
   source_blockers=$((source_blockers+1))
 fi
 
-echo "=== Verify design contract blob SHAs at $DESIGN_REF ==="
+# Resolve a branch name or exact commit to the design tree SHA.
+if [[ "$DESIGN_REF" == "main" ]]; then
+  design_sha="$app_main_live"
+else
+  design_ref_json="$(api_get "repos/$APP_REPO/commits/$DESIGN_REF")"
+  design_sha="$(printf '%s' "$design_ref_json" | python3 -c 'import json,sys; print(json.load(sys.stdin)["sha"])')"
+fi
+tree_json="$(api_get "repos/$APP_REPO/git/trees/$design_sha?recursive=1")"
+tree_truncated="$(printf '%s' "$tree_json" | python3 -c 'import json,sys; print(str(json.load(sys.stdin).get("truncated",False)).lower())')"
+if [[ "$tree_truncated" == "true" ]]; then
+  echo "CONTRACT_SHA=FAIL design tree response is truncated"
+  integrity_failures=$((integrity_failures+1))
+fi
+
+echo "=== Verify design contract blob SHAs at $design_sha ==="
 while IFS=$'\t' read -r path expected; do
   [[ -n "$path" ]] || continue
-  if actual="$(gh api "repos/$APP_REPO/contents/$path?ref=$DESIGN_REF" --jq .sha 2>/dev/null)"; then
-    if [[ "$actual" == "$expected" ]]; then
-      echo "CONTRACT_SHA=PASS $path $actual"
-    else
-      echo "CONTRACT_SHA=STALE $path expected=$expected actual=$actual"
-      integrity_failures=$((integrity_failures+1))
-    fi
+  actual="$(printf '%s' "$tree_json" | python3 -c '
+import json,sys
+d=json.load(sys.stdin); path=sys.argv[1]
+row=next((x for x in d.get("tree",[]) if x.get("path")==path and x.get("type")=="blob"),None)
+print(row.get("sha","MISSING") if row else "MISSING")
+' "$path")"
+  if [[ "$actual" == "$expected" ]]; then
+    echo "CONTRACT_SHA=PASS $path $actual"
   else
-    echo "CONTRACT_SHA=UNAVAILABLE $path ref=$DESIGN_REF"
+    echo "CONTRACT_SHA=STALE $path expected=$expected actual=$actual"
     integrity_failures=$((integrity_failures+1))
   fi
 done < <(python3 - "$MANIFEST" <<'PY'
@@ -97,9 +106,10 @@ for x in d["authority"]["contract_files"]:
 PY
 )
 
-mapping_json="$(gh api "repos/$APP_REPO/contents/design/pages/recognition/web/contracts/Work_B_Implementation_Mapping_V2.json?ref=$DESIGN_REF" --jq .content | tr -d '\n' | base64 --decode)"
-mapping_sha="$(printf '%s' "$mapping_json" | python3 -c 'import json,sys; print(json.load(sys.stdin).get("source_sha",""))')"
-authority_head_sha="$(printf '%s' "$mapping_json" | python3 -c 'import json,sys; print((json.load(sys.stdin).get("live_source_audit") or {}).get("live_product_pr_head_sha",""))')"
+mapping_json="$(api_get "repos/$APP_REPO/contents/design/pages/recognition/web/contracts/Work_B_Implementation_Mapping_V2.json?ref=$design_sha")"
+mapping_text="$(printf '%s' "$mapping_json" | python3 -c 'import base64,json,sys; print(base64.b64decode(json.load(sys.stdin)["content"]).decode("utf-8"))')"
+mapping_sha="$(printf '%s' "$mapping_text" | python3 -c 'import json,sys; print(json.load(sys.stdin).get("source_sha",""))')"
+authority_head_sha="$(printf '%s' "$mapping_text" | python3 -c 'import json,sys; print((json.load(sys.stdin).get("live_source_audit") or {}).get("live_product_pr_head_sha",""))')"
 if [[ "$mapping_sha" == "$pr_head_live" && "$authority_head_sha" == "$pr_head_live" ]]; then
   echo "LIVE_SOURCE_BINDING=PASS source_sha=$mapping_sha"
 else
@@ -107,7 +117,7 @@ else
   source_blockers=$((source_blockers+1))
 fi
 
-workflow_json="$(gh api "repos/$PRODUCT_REPO/contents/.github/workflows/catch-recognition-pr177-no-traffic-deploy.yml?ref=$product_main_live")"
+workflow_json="$(api_get "repos/$PRODUCT_REPO/contents/.github/workflows/catch-recognition-pr177-no-traffic-deploy.yml?ref=$product_main_live")"
 workflow_text="$(printf '%s' "$workflow_json" | python3 -c 'import base64,json,sys; print(base64.b64decode(json.load(sys.stdin)["content"]).decode("utf-8"))')"
 preview_pin="$(printf '%s\n' "$workflow_text" | sed -nE 's/^[[:space:]]*TARGET_SHA:[[:space:]]*([0-9a-f]{40}).*/\1/p' | head -n1)"
 if [[ "$preview_pin" == "$pr_head_live" ]]; then
@@ -153,4 +163,4 @@ if [[ "$source_blockers" -gt 0 ]]; then
 else
   echo "LIVE_SOURCE_READINESS=PASS"
 fi
-echo "AUDIT_COMPLETE=YES (this is source/input readiness only; not a visual-animation pass)"
+echo "AUDIT_COMPLETE=YES (source/input readiness only; not a visual-animation pass)"
