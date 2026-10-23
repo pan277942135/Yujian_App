@@ -5,10 +5,10 @@
   "rules_status": "STATIC_RULES_FROZEN",
   "effective_date": "2026-10-22",
   "scope": "Additive static hi-fi archive and responsive design acceptance reference for populated NH01 Normal Home. Does not replace original NH01 V1 raster, current Gemini Adaptive V2 runtime authority, or Android acceptance evidence.",
-  "source_of_truth": "This contract owns the five static artifact identities, target viewport labels, visible static preview rules, the M05 480dp-width extension, the Design Manager presentation, and NH01 Responsive Foundation V1. The foundation adds A/B/C grouping and a 2:1 allocation of positive long-screen surplus to the final A-to-B and B-to-C gaps; the existing stats_to_title and card_to_footer formulas remain base-gap policy. It does not replace the original NH01 V1 raster, Gemini Adaptive V2 numeric constraints outside this explicit scope, or Android acceptance evidence.",
+  "source_of_truth": "This contract owns the five static artifact identities, target viewport labels, visible static preview rules, the M05 480dp-width extension, the Design Manager presentation, and NH01 Responsive Foundation V1.1. The foundation adds A/B/C grouping and an equal 1:1 allocation of positive long-screen surplus to the final A-to-B and B-to-C gaps; the existing stats_to_title and card_to_footer formulas remain base-gap policy. It does not replace the original NH01 V1 raster, Gemini Adaptive V2 numeric constraints outside this explicit scope, or Android acceptance evidence.",
   "foundation_layout_principles": {
     "foundation_id": "NH01_RESPONSIVE_FOUNDATION_V1",
-    "version": "V1",
+    "version": "V1.1",
     "status": "FROZEN",
     "approved_date": "2026-10-23",
     "scope": "A/B/C group structure and allocation of positive long-screen surplus only; other Adaptive V2.2 numeric constraints remain binding.",
@@ -26,10 +26,10 @@
     },
     "surplus_formula": "S=max(0,H_safe-(hA+hB+hC+gAB_base+gBC_base))",
     "allocation_when_surplus_positive": {
-      "a_to_b_final": "gAB_base + 2*S/3",
-      "b_to_c_final": "gBC_base + S/3"
+      "a_to_b_final": "gAB_base + S/2",
+      "b_to_c_final": "gBC_base + S/2"
     },
-    "allocation_rule": "The 2:1 ratio applies to added surplus, not final visible gaps. It explicitly supersedes the final output of the two inter-group gap formulas only when S>0; it does not alter the internal Title-to-Hero gap or its four explicit viewport targets.",
+    "allocation_rule": "The 1:1 equal split applies only to added surplus, not final visible gaps. When S>0, add S/2 to each inter-group gap after computing its base value; verify added surplus after subtracting base gaps. It does not alter the internal Title-to-Hero gap or its four explicit viewport targets.",
     "short_screen_priority": {
       "viewport": "320x480dp",
       "system_font_scale": 1.0,
@@ -171,6 +171,7 @@
   ],
   "change_log": [
     {"version":"V1","date":"2026-10-22","change":"Archive the five recovered original NH01 static hi-fi images; formalize target-dp to actual-pixel mapping; register complete responsive design acceptance; add the M05 480dp static width and 24±2dp visible title-to-card target with explicit Android-height conflict scope; keep Android NOT_VERIFIED."},
-    {"version":"Responsive Foundation V1","date":"2026-10-23","change":"Freeze A/B/C groups and define the 2:1 allocation of positive long-screen surplus to the final A-to-B and B-to-C gaps; retain the existing formulas as base-gap policy and preserve all other numeric/runtime authorities."}
+    {"version":"Responsive Foundation V1 (superseded)","date":"2026-10-23","change":"Historical revision: froze A/B/C groups and defined the 2:1 allocation of positive long-screen surplus. Superseded by Responsive Foundation V1.1; retained for audit history only."},
+    {"version":"Responsive Foundation V1.1","date":"2026-10-23","change":"Retain A/B/C groups and replace the former 2:1 long-screen surplus split with equal S/2 additions to A-to-B and B-to-C; preserve base-gap formulas, short-screen behavior, component constraints, and all other runtime authorities."}
   ]
 }
