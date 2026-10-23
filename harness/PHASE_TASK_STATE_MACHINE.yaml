@@ -567,8 +567,8 @@ tasks:
     entry_blockers: []
     target_blockers: []
     gate_id: "G-NH01-WORK-B-V22-EXACT-SHA"
-    evidence_required: ["frozen_v22_authority_resolution", "nh01_android_source_repair", "build_unit_lint", "api28_targeted_runtime", "apk_sha256_provenance"]
-    completion: "Issue #194 V2.2 Android repair has exact-SHA build, focused tests, targeted API28 evidence and a traceable debug APK; the full 24-case native matrix, N004 and release gates remain separate and are not promoted by this task."
+    evidence_required: ["frozen_v22_authority_resolution", "nh01_android_source_repair", "nh01_equal_surplus_split_unit_tests", "build_unit_lint", "api28_targeted_runtime", "apk_sha256_provenance"]
+    completion: "Issue #194 V2.2 Android repair follows canonical NH01 Responsive Foundation V1.1: when long-screen surplus S>0, add S/2 to each A-to-B and B-to-C gap after their base-gap formulas, with source/unit tests for zero, 90dp and fractional 101dp surplus; exact-SHA build, focused tests, targeted API28 evidence and traceable debug APK are required. The full 24-case native matrix, N004 and release gates remain separate and are not promoted by this task."
     human_required: false
 
   P7-01:
