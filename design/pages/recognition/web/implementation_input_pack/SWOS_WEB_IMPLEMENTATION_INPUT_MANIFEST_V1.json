@@ -240,7 +240,6 @@
     "adds_wait_time": false,
     "actual_inference_is_event_driven": true,
     "processing_may_extend_if_real_inference_is_slow": true,
-    "never_fake_result_or_success": false,
     "species_name_language": "ZH_ONLY",
     "english_species_name_visible": false,
     "photo_continuity": "SAME_SOURCE_IMAGE_AND_ONE_SHARED_TRANSFORM",
@@ -249,7 +248,8 @@
       "trusted_mask": "THREE_LAYERS_CORE_SOFT_GLOW_HALO",
       "bbox_only": "SOFT_REGION_ONLY_NO_PRECISE_OUTLINE",
       "none": "NO_SPATIAL_FISH_FOCUS"
-    }
+    },
+    "must_never_fake_result_or_success": true
   },
   "private_visual_assets": [
     {
@@ -276,7 +276,7 @@
       "role": "HISTORICAL_14_FRAME_V0_3_DIRECTION_REFERENCE_NOT_CURRENT_15_FRAME_AUTHORITY",
       "public_permission": "NOT_CONFIRMED",
       "committed_to_public_repo": false,
-      "verification_env_var": "SWOS_SWOS_STORYBOARD_PATH"
+      "verification_env_var": "SWOS_STORYBOARD_PATH"
     },
     {
       "id": "processing-source-photo",
