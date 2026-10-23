@@ -217,8 +217,8 @@ G1 或 CI PASS 不自动通过 G3–G7。静态关键帧、手绘 Mask、HTTP 20
 
 - Design authority repository：pan277942135/Yujian_App，本次变更基线为 main@bc29aec091b42f84dc8f4e6fe3b268135b091a97。
 - Product repository：pan277942135/Yujian。
-- 审计时 PR #177 HEAD：4de911dc497c150545d938b60b2694f3c4723e37；该 SHA 的 CI run 39922218177 为 PASS（安全定向验证与 Chromium UI simulation，不等于视觉验收）。
-- 审计时产品 main 已前进到 6a2064c2a02a76437b6e09a5241bc199cfa05048；PR #177 相对产品 main **落后 3 个提交**。因此当前源同步状态为 BLOCKED_BEHIND_CURRENT_PRODUCT_MAIN，Work 在实际开发/部署前必须先同步产品分支、重新 Admission/CI 并刷新本输入包。
+- 本轮审计 PR #177 HEAD：ca21e25116cebef0ed393392eb8997a2b7077689；产品 main：6a2064c2a02a76437b6e09a5241bc199cfa05048；比较结果 24 ahead / 0 behind。精确 SHA CI run 39929847089 为 PASS，但范围仅为定向验证与 Chromium UI simulation；生产识别流水线测试被 SKIPPED。
+- 当前产品分支已同步 main，但 no-traffic 预览工作流仍固定在旧 SHA 4de911dc497c150545d938b60b2694f3c4723e37。当前预览 Revision/health SHA、真实推理、生产 Mask 资格、浏览器逐帧视觉与性能验收仍未验证。执行前仍须重新核对实时 SHA 与准入。
 - 当前预览视觉状态 NOT_VERIFIED；生产级 Mask NOT_QUALIFIED；真实浏览器逐帧验收 NOT_RUN。
 - 上述 SHA 是本次审计快照；后续执行必须重新读取实时 PR、main、CI 与预览健康信息，不能把本文中的历史 SHA 当成永久常量。
 

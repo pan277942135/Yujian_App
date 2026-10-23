@@ -2,11 +2,11 @@
   "schema_version": "1.0",
   "task_id": "YUJIAN_SWOS_WEB_IMPLEMENTATION_INPUT_PACK_AND_LIVE_SHA_CLOSURE_V1",
   "snapshot_date_utc": "2026-10-23",
-  "package_status": "SWOS_WEB_MOTION_CONTRACT_V1_0_BOUND; CANONICAL_LAYERS_SHA_PINNED; EXACT_HEAD_CI_PASS; PRODUCT_BRANCH_BEHIND_MAIN; PREVIEW_NOT_VERIFIED; PRODUCTION_MASK_NOT_QUALIFIED",
+  "package_status": "SOURCE_SYNCED_EXACT_HEAD_TARGETED_CI_PASS_PREVIEW_STALE_PRIVATE_ASSETS_NOT_CHECKED",
   "package_role": "IMPLEMENTATION_INPUT_SNAPSHOT_NOT_A_PARALLEL_DESIGN_AUTHORITY",
   "authority": {
     "repository": "pan277942135/Yujian_App",
-    "baseline_main_sha_at_audit": "bc29aec091b42f84dc8f4e6fe3b268135b091a97",
+    "baseline_main_sha_at_audit": "2c41084b423be36b06035694fe573c5e671cb4da",
     "proposed_source_branch": "design/swos-web-hifi-motion-contract-v1-0",
     "design_contracts_are_main_authority": true,
     "contract_files": [
@@ -17,17 +17,17 @@
       },
       {
         "path": "design/pages/recognition/web/WEB_HIFI_GAP_MATRIX_V2.md",
-        "blob_sha": "cc9c53400b47382b8fd0b6fb6eadbf8cce46b03d",
+        "blob_sha": "09dab59c4cb4f68ddbf3202e14a5955e11a62223",
         "role": "live_gap_matrix_with_historical_baseline_labeled"
       },
       {
         "path": "design/pages/recognition/web/WEB_HIFI_HANDOFF_A_V2.md",
-        "blob_sha": "13670b326a2d7a326d25a1a7d1fd3c301a4d4a6c",
+        "blob_sha": "b71dbdca590b9b6dc62e8aec3814caf5fde98b6f",
         "role": "handoff_a"
       },
       {
         "path": "design/pages/recognition/web/WEB_HIFI_HANDOFF_B_V2.md",
-        "blob_sha": "ad5501ce1b3a8596dba703ba7a78c0b2db202733",
+        "blob_sha": "2307a08cd8951580d29783237505a8684c1e7192",
         "role": "handoff_b"
       },
       {
@@ -62,17 +62,17 @@
       },
       {
         "path": "design/pages/recognition/web/contracts/Authority_References_V2.json",
-        "blob_sha": "f22c8240c2f9acffb46ec038b4d94fc0855f8cb2",
+        "blob_sha": "e1eddc42ea6578091245eec82e95ae46edadc258",
         "role": "machine_contract_with_live_audit"
       },
       {
         "path": "design/pages/recognition/web/contracts/Work_B_Implementation_Mapping_V2.json",
-        "blob_sha": "4dcba53040b6d051a4032c2010f08926fa6a0d46",
+        "blob_sha": "3b4aecb7e8c587af1f153caae3a7823541a1440b",
         "role": "implementation_mapping_with_live_audit"
       },
       {
         "path": "design/pages/recognition/web/contracts/Acceptance_Matrix_V2.json",
-        "blob_sha": "489ee593d5f3d6913971152f6229fb4ad6bbbd2d",
+        "blob_sha": "ffdb1438d8fb32b6bcfccc9564f447593392cc2d",
         "role": "machine_contract"
       },
       {
@@ -138,12 +138,12 @@
       {
         "path": "design/pages/recognition/web/SWOS_WEB_HIFI_MOTION_TECHNICAL_CONTRACT_V1_0.md",
         "role": "swos_web_hifi_motion_technical_contract_v1_0",
-        "blob_sha": "7ffe198a0d67a72fafc927cf9e7d62e65127e663"
+        "blob_sha": "3a2e2a1a60a3181fe6a138ccb6c82181d1391c60"
       },
       {
         "path": "design/pages/recognition/web/contracts/SWOS_WEB_HIFI_MOTION_TECHNICAL_CONTRACT_V1_0.json",
         "role": "swos_web_hifi_motion_machine_contract",
-        "blob_sha": "3c478033bbb9986e121588eff69e650fc121c3de"
+        "blob_sha": "33ddfa8cc2a0660bc47e9f4f3ad2bdf698371c96"
       },
       {
         "path": "design/pages/recognition/processing/README.md",
@@ -178,7 +178,17 @@
       {
         "path": "docs/ACTIVE_SOURCE_REGISTRY.md",
         "role": "active_source_authority_index",
-        "blob_sha": "0b23d3281e87c8674d9773cd9562f7ee662d65f1"
+        "blob_sha": "df0d931d81648adffd83a0dc5d02a85aa9cde8f8"
+      },
+      {
+        "path": "design/manager/app.js",
+        "blob_sha": "1994ec2c0ba066a5e3bc1b0e505dc0b9e28a92f1",
+        "role": "design_manager_contract_metadata_renderer"
+      },
+      {
+        "path": "design/pages/recognition/web/implementation_input_pack/README.md",
+        "blob_sha": "2f525352c1fedbfbd11ae7fb66aa4af3b1d731b5",
+        "role": "updated_source_authority"
       }
     ],
     "canonical_control_plane_files": [
@@ -199,17 +209,17 @@
       },
       {
         "path": "harness/FEATURE_MATRIX.yaml",
-        "blob_sha": "81b702035ad97b25dc380e47c09cbb3d1e88263c",
+        "blob_sha": "f443a675469cebfcadd9e039936f5a5ea2732935",
         "role": "canonical_feature_matrix"
       },
       {
         "path": "harness/PHASE_TASK_STATE_MACHINE.yaml",
-        "blob_sha": "b8c55365ccee796fca5d893d29d6ae4833a8a7e2",
+        "blob_sha": "7264e6c46d5546fcbf562f2d3e6c486c56a5bfd2",
         "role": "canonical_phase_task_state_machine"
       },
       {
         "path": "harness/UNIFIED_CONTRACT_REGISTRY.yaml",
-        "blob_sha": "a1fe0af2ef33bf0d6442740310e73b5e30df9d75",
+        "blob_sha": "14771030c60754beddac46d44105dab16a8d7eec",
         "role": "canonical_unified_contract_registry"
       },
       {
@@ -304,13 +314,13 @@
     "product_repository": "pan277942135/Yujian",
     "product_pr_number": 177,
     "product_branch": "feat/ai-catch-recognition-web-swos-rr09-v1",
-    "live_product_pr_head_sha": "4de911dc497c150545d938b60b2694f3c4723e37",
+    "live_product_pr_head_sha": "ca21e25116cebef0ed393392eb8997a2b7077689",
     "live_product_main_sha": "6a2064c2a02a76437b6e09a5241bc199cfa05048",
-    "merge_base_sha": "3c79c00db68ace94d8f6a7dcb4105d0026a09323",
-    "ahead_by": 22,
-    "behind_by": 3,
-    "source_sync_status": "BLOCKED_BEHIND_CURRENT_PRODUCT_MAIN",
-    "exact_head_ci_status": "PASS",
+    "merge_base_sha": "6a2064c2a02a76437b6e09a5241bc199cfa05048",
+    "ahead_by": 24,
+    "behind_by": 0,
+    "source_sync_status": "SYNCED_WITH_CURRENT_PRODUCT_MAIN",
+    "exact_head_ci_status": "PASS_TARGETED_VALIDATION_AND_CHROMIUM_UI_SIMULATION_ONLY",
     "previous_exact_head_ci": {
       "sha": "d8f3aabfab058d58cac84e19af095b0186df5f85",
       "run_id": 39917440271,
@@ -319,15 +329,15 @@
       "scope": "targeted validation and Chromium UI simulation only; not runtime visual acceptance"
     },
     "exact_head_ci": {
-      "sha": "4de911dc497c150545d938b60b2694f3c4723e37",
-      "run_id": 39922218177,
-      "url": "https://github.com/pan277942135/Yujian/actions/runs/39922218177",
+      "sha": "ca21e25116cebef0ed393392eb8997a2b7077689",
+      "run_id": 39929847089,
+      "url": "https://github.com/pan277942135/Yujian/actions/runs/39929847089",
       "conclusion": "success",
       "jobs": {
         "validate": "success",
         "det_fish_display_chromium": "success"
       },
-      "scope": "safe targeted validation and Chromium UI simulation only; no production inference, qualified Mask, pixel parity, browser motion performance, or user visual acceptance"
+      "scope": "Targeted validation and Chromium UI simulation only. The production recognition pipeline test step was SKIPPED because the existing metadata-access review remains unresolved. This is not evidence of real model inference, production-qualified SAM Mask, browser visual acceptance, or frame-time performance."
     },
     "current_head_preview_status": "NOT_VERIFIED",
     "configured_preview_sha": "4de911dc497c150545d938b60b2694f3c4723e37",
@@ -342,7 +352,7 @@
       "product_repository_is_separate": true,
       "product_repository_root_control_plane_files": "NOT_PRESENT",
       "policy": "Use the canonical Yujian_App control plane plus this exact-SHA cross-repository source audit. Do not create a competing control plane in Yujian.",
-      "admission_status": "CANONICAL_CONTROL_PLANE_PINNED; EXACT_HEAD_CI_PASS; PRODUCT_BRANCH_BEHIND_MAIN"
+      "admission_status": "CANONICAL_CONTROL_PLANE_PINNED; PRODUCT_BRANCH_SYNCED; EXACT_HEAD_TARGETED_CI_PASS; PREVIEW_PIN_STALE"
     },
     "source_file_snapshot": [
       {
@@ -352,6 +362,30 @@
       {
         "path": "docs/catch_web_preview_pin_v2.md",
         "blob_sha": "71e43da2b59186ea1b75a09ac8ecb46e9c0397ea"
+      },
+      {
+        "path": "app/recognition_pipeline.py",
+        "blob_sha": "8f420eda6ce56d1fb8c05e2dfb1c77d3aea2a2f5"
+      },
+      {
+        "path": "app/detector_runtime.py",
+        "blob_sha": "38eb2cad67b8ba759434b2ad0778cd8d188bee77"
+      },
+      {
+        "path": "app/catch_recognition_api.py",
+        "blob_sha": "2feea4b8a167de2e0497b491f39bdb8238caff0c"
+      },
+      {
+        "path": "app/static/js/catch/recognition-api.js",
+        "blob_sha": "a6449f574241c252c5033438f97e70f846735f77"
+      },
+      {
+        "path": "app/static/js/catch/recognition-controller.js",
+        "blob_sha": "b575a232f346e846dbea7407ab119b55fdc4e657"
+      },
+      {
+        "path": "app/templates/platform/catch_recognition.html",
+        "blob_sha": "38401f4ed9b1f099432880a5ce6cd6b3c3423359"
       },
       {
         "path": "app/segmentation_api.py",

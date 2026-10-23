@@ -22,10 +22,10 @@
 
 - Design authority baseline: Yujian_App/main@bc29aec091b42f84dc8f4e6fe3b268135b091a97. The contract change is being proposed on branch design/swos-web-hifi-motion-contract-v1-0.
 - Product main: Yujian/main@6a2064c2a02a76437b6e09a5241bc199cfa05048.
-- Product PR #177 HEAD: 4de911dc497c150545d938b60b2694f3c4723e37.
+- Product PR #177 HEAD: ca21e25116cebef0ed393392eb8997a2b7077689 (24 ahead / 0 behind product main).
 - Current comparison: PR #177 is 22 commits ahead and **3 commits behind** product main; merge base is 3c79c00db68ace94d8f6a7dcb4105d0026a09323. Source sync is BLOCKED until Work safely syncs the product branch and re-runs Admission/CI.
-- Exact-head CI run [39922218177](https://github.com/pan277942135/Yujian/actions/runs/39922218177) passed on SHA 4de911dc497c150545d938b60b2694f3c4723e37. Scope is targeted validation and Chromium UI simulation only; it is not real-photo inference, browser animation performance, pixel parity or user visual acceptance.
-- The no-traffic preview workflow pin is 4de911dc497c150545d938b60b2694f3c4723e37, but the live preview Revision and browser playback have **NOT_VERIFIED** status. A matching configured pin is not proof that a deployment completed.
+- Exact-head CI run [39929847089](https://github.com/pan277942135/Yujian/actions/runs/39929847089) passed on SHA ca21e25116cebef0ed393392eb8997a2b7077689. Scope is targeted validation and Chromium UI simulation only; the production recognition pipeline test step was skipped. This is not real-photo inference, browser animation performance, pixel parity or user visual acceptance.
+- The no-traffic preview workflow pin is STALE at 4de911dc497c150545d938b60b2694f3c4723e37 (it does not match current PR #177 HEAD). The live preview Revision and browser playback remain **NOT_VERIFIED**; do not treat the current URL as evidence for the current source.
 - The canonical control plane remains in Yujian_App; do not create a competing registry in Yujian.
 - **Existing SAM experiment chain is reusable.** Product repository paths are app/segmentation_api.py, app/segmentation/service.py, app/segmentation/mask_generator.py, app/segmentation/quality_gate.py and app/segmentation/cutout_builder.py. Existing POST /api/debug/fish-segmentation is a debug/experiment interface, not a public production API. Reuse it through a server-side adapter; do not create a second SAM service or retrain the model.
 - Production Mask remains NOT_QUALIFIED until reviewed ground-truth masks, boundary metrics, difficult-case analysis and visual sign-off exist. Browser render-frame time is measured separately from SAM API latency.

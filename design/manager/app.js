@@ -76,7 +76,7 @@ function hifiImageFigure(path, title, caption, sha256 = "") {
 }
 
 function hifiContractMetadataHtml(item, parentView = null) {
-  if (!item || !(item.page_id || item.state_id || item.asset_id || item.entry_conditions || item.contract_links)) return "";
+  if (!item || !(item.page_id || item.state_id || item.asset_id || item.entry_conditions || item.contract_links || parentView?.contract_links)) return "";
   const display = value => Array.isArray(value) ? value.join(" · ") : (value || "未在当前 Authority 中规定");
   const path = item.authority_path || item.visual_authority || item.expected_asset_path || item.image || item.machine_authority || item.authority || "未提供";
   const pathMarkup = item.authority_path_available === false

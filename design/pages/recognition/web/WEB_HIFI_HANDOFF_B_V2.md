@@ -1,6 +1,6 @@
 # Work B Handoff B — Web V2 全量视觉合同
 
-**状态** `VISUAL_CONTRACT_DEFINED`；`MAIN_ADOPTED=YES (DESIGN_CONTRACT_ONLY)`；`PIXEL_FROZEN_SOURCE=NOT_CONFIRMED`；`RUNTIME_VISUAL_VERIFIED=NO`。PR #186/#187 的合同内容由 PR #190 采纳到 Main。本页是实现交接，不是运行验收或 User UAT 报告。SWOS Web 播放器架构与验收现由 [SWOS Web Hi-Fi Motion Technical Contract V1.0](SWOS_WEB_HIFI_MOTION_TECHNICAL_CONTRACT_V1_0.md) 统一约束。当前审计的产品 PR #177 HEAD 为 `4de911dc497c150545d938b60b2694f3c4723e37`，产品 main 为 `6a2064c2a02a76437b6e09a5241bc199cfa05048`，分支 22 ahead / 3 behind；对应 CI run [39922218177](https://github.com/pan277942135/Yujian/actions/runs/39922218177) 通过，但实际预览、播放、Mask 和视觉验收仍未验证。Work B 实施前必须同步产品分支并重新 Admission/CI。
+**状态** `VISUAL_CONTRACT_DEFINED`；`MAIN_ADOPTED=YES (DESIGN_CONTRACT_ONLY)`；`PIXEL_FROZEN_SOURCE=NOT_CONFIRMED`；`RUNTIME_VISUAL_VERIFIED=NO`。PR #186/#187 的合同内容由 PR #190 采纳到 Main。本页是实现交接，不是运行验收或 User UAT 报告。SWOS Web 播放器架构与验收现由 [SWOS Web Hi-Fi Motion Technical Contract V1.0](SWOS_WEB_HIFI_MOTION_TECHNICAL_CONTRACT_V1_0.md) 统一约束。当前审计的产品 PR #177 HEAD 为 `ca21e25116cebef0ed393392eb8997a2b7077689`，产品 main 为 `6a2064c2a02a76437b6e09a5241bc199cfa05048`，分支 24 ahead / 0 behind；对应 CI run [39929847089](https://github.com/pan277942135/Yujian/actions/runs/39929847089) 通过，但实际预览、播放、Mask 和视觉验收仍未验证。产品分支现已同步 main；Work B 实施前仍须重新核对实时 SHA 并重新 Admission/CI。no-traffic 预览仍固定在旧 SHA 4de911dc497c150545d938b60b2694f3c4723e37，实际 Revision/health SHA、真实推理、Mask 与视觉验收仍未验证。
 
 ## 按顺序实施
 

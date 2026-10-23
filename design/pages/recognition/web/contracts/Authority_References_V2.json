@@ -9,7 +9,7 @@
     "Yujian_App/PR186@3b0b5848206cdea949f4bf6be7eb7cb1d19b1e34",
     "Yujian_App/PR187@ee3bb45858183144598bc28c5bae53ae55b324e0",
     "Yujian/PR177@655c4af07a0244fcf29441b5652c48ca74f2e6a2",
-    "Yujian/PR177@4de911dc497c150545d938b60b2694f3c4723e37"
+    "Yujian/PR177@ca21e25116cebef0ed393392eb8997a2b7077689"
   ],
   "motion_contract_ref": "design/pages/recognition/processing/optics/SWOS_15_Frame_Keyframe_Contract_V1_1.json",
   "transition_contract_ref": "design/pages/recognition/continuity/SWOS_Shared_Photo_Transition_Contract_V1.json",
@@ -111,13 +111,13 @@
     "product_repository": "pan277942135/Yujian",
     "product_pr_number": 177,
     "product_branch": "feat/ai-catch-recognition-web-swos-rr09-v1",
-    "live_product_pr_head_sha": "4de911dc497c150545d938b60b2694f3c4723e37",
+    "live_product_pr_head_sha": "ca21e25116cebef0ed393392eb8997a2b7077689",
     "live_product_main_sha": "6a2064c2a02a76437b6e09a5241bc199cfa05048",
-    "merge_base_sha": "3c79c00db68ace94d8f6a7dcb4105d0026a09323",
-    "ahead_by": 22,
-    "behind_by": 3,
-    "source_sync_status": "BLOCKED_BEHIND_CURRENT_PRODUCT_MAIN",
-    "exact_head_ci_status": "PASS",
+    "merge_base_sha": "6a2064c2a02a76437b6e09a5241bc199cfa05048",
+    "ahead_by": 24,
+    "behind_by": 0,
+    "source_sync_status": "SYNCED_WITH_CURRENT_PRODUCT_MAIN",
+    "exact_head_ci_status": "PASS_TARGETED_VALIDATION_AND_CHROMIUM_UI_SIMULATION_ONLY",
     "previous_exact_head_ci": {
       "sha": "d8f3aabfab058d58cac84e19af095b0186df5f85",
       "run_id": 39917440271,
@@ -126,15 +126,15 @@
       "scope": "targeted validation and Chromium UI simulation only; not runtime visual acceptance"
     },
     "exact_head_ci": {
-      "sha": "4de911dc497c150545d938b60b2694f3c4723e37",
-      "run_id": 39922218177,
-      "url": "https://github.com/pan277942135/Yujian/actions/runs/39922218177",
+      "sha": "ca21e25116cebef0ed393392eb8997a2b7077689",
+      "run_id": 39929847089,
+      "url": "https://github.com/pan277942135/Yujian/actions/runs/39929847089",
       "conclusion": "success",
       "jobs": {
         "validate": "success",
         "det_fish_display_chromium": "success"
       },
-      "scope": "safe targeted validation and Chromium UI simulation only; no production inference, qualified Mask, pixel parity, browser motion performance, or user visual acceptance"
+      "scope": "Targeted validation and Chromium UI simulation only. The production recognition pipeline test step was SKIPPED because the existing metadata-access review remains unresolved. This is not evidence of real model inference, production-qualified SAM Mask, browser visual acceptance, or frame-time performance."
     },
     "current_head_preview_status": "NOT_VERIFIED",
     "configured_preview_sha": "4de911dc497c150545d938b60b2694f3c4723e37",
@@ -149,7 +149,7 @@
       "product_repository_is_separate": true,
       "product_repository_root_control_plane_files": "NOT_PRESENT",
       "policy": "Use the canonical Yujian_App control plane plus this exact-SHA cross-repository source audit. Do not create a competing control plane in Yujian.",
-      "admission_status": "CANONICAL_CONTROL_PLANE_PINNED; EXACT_HEAD_CI_PASS; PRODUCT_BRANCH_BEHIND_MAIN"
+      "admission_status": "CANONICAL_CONTROL_PLANE_PINNED; PRODUCT_BRANCH_SYNCED; EXACT_HEAD_TARGETED_CI_PASS; PREVIEW_PIN_STALE"
     }
   },
   "swos_web_hifi_motion_contract_ref": "design/pages/recognition/web/SWOS_WEB_HIFI_MOTION_TECHNICAL_CONTRACT_V1_0.md",

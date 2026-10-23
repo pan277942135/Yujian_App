@@ -518,17 +518,19 @@
   "audit_snapshot": {
     "audit_date_utc": "2026-10-23",
     "product_pr": 177,
-    "product_pr_head_sha": "4de911dc497c150545d938b60b2694f3c4723e37",
+    "product_pr_head_sha": "ca21e25116cebef0ed393392eb8997a2b7077689",
     "product_main_sha": "6a2064c2a02a76437b6e09a5241bc199cfa05048",
-    "merge_base_sha": "3c79c00db68ace94d8f6a7dcb4105d0026a09323",
-    "ahead_by": 22,
-    "behind_by": 3,
-    "source_sync_status": "BLOCKED_BEHIND_CURRENT_PRODUCT_MAIN",
-    "exact_head_ci_run_id": 39922218177,
-    "exact_head_ci_status": "PASS_TARGETED_AND_CHROMIUM_UI_SIMULATION_ONLY",
+    "merge_base_sha": "6a2064c2a02a76437b6e09a5241bc199cfa05048",
+    "ahead_by": 24,
+    "behind_by": 0,
+    "source_sync_status": "SYNCED_WITH_CURRENT_PRODUCT_MAIN",
+    "exact_head_ci_run_id": 39929847089,
+    "exact_head_ci_status": "PASS_TARGETED_VALIDATION_AND_CHROMIUM_UI_SIMULATION_ONLY",
     "preview_status": "NOT_VERIFIED",
+    "configured_preview_sha": "4de911dc497c150545d938b60b2694f3c4723e37",
     "production_mask_status": "NOT_QUALIFIED",
-    "browser_visual_acceptance": "NOT_RUN"
+    "browser_visual_acceptance": "NOT_VERIFIED",
+    "full_suite_status": "NOT_RUN_BLOCKED_BY_EXISTING_METADATA_ACCESS_REVIEW"
   },
   "evidence_policy": {
     "exact_source_sha_required": true,
