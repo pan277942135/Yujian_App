@@ -7,7 +7,7 @@ The original observations below are a **historical code-review snapshot** of PR 
 - Live PR #177 HEAD after main sync: `d8f3aabfab058d58cac84e19af095b0186df5f85`
 - Live product `main`: `3c79c00db68ace94d8f6a7dcb4105d0026a09323`
 - Comparison: **19 commits ahead / 0 behind**; merge base `3c79c00db68ace94d8f6a7dcb4105d0026a09323`. The latest three main commits were merged into the feature branch without rebase or force-push.
-- Exact-head CI for the post-sync SHA: `PENDING`. The previous SHA's run [39874124153](https://github.com/pan277942135/Yujian/actions/runs/39874124153) is historical and is not reused as evidence for this new SHA.
+- Exact-head CI for the post-sync SHA: [run 39917440271](https://github.com/pan277942135/Yujian/actions/runs/39917440271) **PASS** (`validate` and Chromium UI simulation). This does not prove real-photo inference, qualified Mask, pixel parity, cloud save, or visual acceptance.
 - The cross-repository control-plane binding is defined in the live input manifest: canonical governance remains in `pan277942135/Yujian_App`; the product repo is a separate implementation repo and must not create a competing registry.
 - Current-head product preview: `NOT_VERIFIED`; merged preview workflow remains pinned to historical `cb9e3780afb5e2904e3dfe5148210a4ccc3747b4`.
 - The current audit does **not** prove real-photo inference, qualified production Mask, pixel parity, cloud save, or user visual acceptance.
