@@ -35,22 +35,17 @@ Seven-condition visual-reference policy and validator added to existing governan
 
 ## Current execution authorization and freeze-state addendum — 2026-10-23
 
-- Exact current product source snapshot: PR #177 HEAD `ca21e25116cebef0ed393392eb8997a2b7077689`; product main `6a2064c2a02a76437b6e09a5241bc199cfa05048`. This snapshot is a source binding, not runtime visual acceptance.
-- `208758.jpg` was re-materialized from the private Library and independently checked in this execution: SHA-256 `ab7227cf7205ee2ac342b6cd75cd899747879506c95c33b888b6adf0acb47987`, 331421 bytes, JPEG, 1152×1536, EXIF orientation 1.
-- The user-confirmed three-stage reference and historical 14-frame storyboard retain their previously recorded private-handoff SHA/dimension verification, but their raw bytes were not re-retrieved in this execution. Their declared hashes remain manifest identities; this report does not claim a new byte re-verification.
-- All private source assets and derivatives: `PUBLIC_PERMISSION=NOT_CONFIRMED`; public repository commits, public CI artifacts and Pages uploads are prohibited. Private local browser review only; no persistence or upload.
-- `PIXEL_FROZEN_SOURCE=NOT_CONFIRMED`. The 1536×1024 source is a user-confirmed visual-direction reference, not an approved pixel-exact target. Pixel-diff acceptance remains blocked until the user explicitly designates the exact source as the frozen pixel baseline.
-- Production fish Mask remains `NOT_QUALIFIED`; manual outlines remain review-only and are not part of asset authorization.
+- Current product source: PR #177 HEAD `6da640859f063d7f42ee5432e6b35ecb162802ff`, 46 ahead / 0 behind product main `6a2064c2a02a76437b6e09a5241bc199cfa05048`. Exact-source CI [39980533451](https://github.com/pan277942135/Yujian/actions/runs/39980533451) passed both required jobs.
+- The preceding Chromium diagnostic run [39980021942](https://github.com/pan277942135/Yujian/actions/runs/39980021942) showed fragment shader compile failure because GLSL reserves `patch`. The product renamed it to `causticPatch`; final exact-source Chromium confirms the product canvas selected WebGL2 and issued 73 draws at P3 with no fallback.
+- Renderer, responsive, BBox-focus and recognition-state evidence is fixture-only. The product page used UI_SIMULATION_ONLY; no real Detector/Classifier call, live SAM mask, deployed 3650ms playback or user visual sign-off has been recorded.
+- The exact CI artifacts contain public digest-pinned or generated fixtures; no private source image or derivative is included. Private source-image publication permission remains NOT_CONFIRMED; public repository commits, public CI artifacts and Pages uploads remain prohibited for those private assets.
+- `PIXEL_FROZEN_SOURCE=NOT_CONFIRMED`. The 1536×1024 source remains a visual-direction reference, not an approved pixel-exact target.
+- Production fish Mask remains `NOT_QUALIFIED`; manual outlines remain review-only.
 
 ## Product execution evidence addendum — 2026-10-23
 
-- Current product source is PR #177 HEAD `a0596aaf609914e0de8a325da06b2f286a139150`, compared with product main `6a2064c2a02a76437b6e09a5241bc199cfa05048` (30 ahead / 0 behind). Exact-source CI [39963664724](https://github.com/pan277942135/Yujian/actions/runs/39963664724) passed.
-- The public CI artifact contains actual Chromium frame captures, a deterministic repeated-P4 pixel comparison, shared-photo geometry trace, a complete fixture-only 3650ms WebM, and the BBOX_ONLY focus pixel report from a generated color-grid photo. The separate catch UI smoke includes 9 viewport screenshots but is explicitly UI simulation. The artifact contains public digest-pinned or generated fixtures; no private source image or derivative is included.
-- PR #177 now contains a same-request opt-in SAM adapter on `POST /api/product/catch-recognition/infer`. No inference or mask output was collected from a current-source deployed Revision. The candidate no-traffic configuration is still open/unmerged in PR #182; the main preview pin remains stale at `4de911dc497c150545d938b60b2694f3c4723e37`.
-- This CI evidence does not freeze the source artwork, verify pixel parity, qualify a production Mask, measure real-device frame performance or constitute user visual acceptance. Production Mask remains `NOT_QUALIFIED`; deployed runtime and visual acceptance remain `NOT_VERIFIED`.
-- The existing unrestricted repository test path remains subject to metadata-access review. The successful exact-source CI run uses the approved targeted suite; an earlier PR #182 broad test step that completed before its cancellation request is not used as acceptance evidence.
-
-
-### PR #182 scoped CI follow-up — 2026-10-23
-
-Product PR #182 run [39964210866](https://github.com/pan277942135/Yujian/actions/runs/39964210866) completed successfully: the validate job (including offline SWOS quality-probe unit tests and metadata-review boundary record) and Chromium job both passed. This was configuration CI only: no cloud candidate deploy, real inference, SAM mask probe, or health-SHA verification occurred.
+- Current product source is PR #177 HEAD `6da640859f063d7f42ee5432e6b35ecb162802ff`, compared with product main `6a2064c2a02a76437b6e09a5241bc199cfa05048` (46 ahead / 0 behind). Exact-source CI [39980533451](https://github.com/pan277942135/Yujian/actions/runs/39980533451) passed.
+- Chromium logs record actual product renderer selection as `WEBGL2`, `draw_count=73`, `fallback_reason=null`, and WebGL canvas visible / Canvas2D canvas hidden at P3. These data and the associated screenshot are marked fixture-only, with `real_inference_requested=false`; they are not real-photo animation acceptance.
+- The exact-source run covers safe targeted validation, 9 responsive UI-simulation shells, BBOX_ONLY soft-focus pixel delta on a generated fixture (ROI mean 4.22, maximum 15; no precise outline), simulated error/recovery states, and separate SWOS preview fixtures. It does not verify the deployed model, actual SAM Mask, full-suite metadata path, device frame timing, or visual quality on real photos.
+- PR #182 remains Open/Unmerged at head `2108e1df1b010239e724d4aeb4f5e98120e25588`. Its scoped CI [39979693510](https://github.com/pan277942135/Yujian/actions/runs/39979693510) passed with an older source pin `73b5070abea65186b1a31adf616f417064c2cedd`; no candidate deployment, Revision, health SHA, real inference, or SAM probe has occurred. The product main workflow still pins `4de911dc497c150545d938b60b2694f3c4723e37`.
+- The existing unrestricted test path remains NOT_RUN under the metadata-access review. This work did not access cloud metadata or read runtime credentials.

@@ -2,7 +2,7 @@
   "schema_version": "1.0",
   "task_id": "YUJIAN_SWOS_WEB_IMPLEMENTATION_INPUT_PACK_AND_LIVE_SHA_CLOSURE_V1",
   "snapshot_date_utc": "2026-10-23",
-  "package_status": "SOURCE_SYNCED_EXACT_HEAD_CI_AND_FIXTURE_PLAYBACK_PASS_CANDIDATE_DEPLOY_NOT_RUN_PRODUCTION_MASK_NOT_QUALIFIED_VISUAL_ACCEPTANCE_PENDING",
+  "package_status": "SOURCE_SYNCED_EXACT_SHA_CI_AND_WEBGL2_RENDERER_UI_SIMULATION_PASS_CANDIDATE_DEPLOY_NOT_RUN_PRODUCTION_MASK_NOT_QUALIFIED_VISUAL_ACCEPTANCE_PENDING",
   "package_role": "IMPLEMENTATION_INPUT_SNAPSHOT_NOT_A_PARALLEL_DESIGN_AUTHORITY",
   "authority": {
     "repository": "pan277942135/Yujian_App",
@@ -17,7 +17,7 @@
       },
       {
         "path": "design/pages/recognition/web/WEB_HIFI_GAP_MATRIX_V2.md",
-        "blob_sha": "1adf99d996ee7ee85ae7e28adc46f1d077522d24",
+        "blob_sha": "be0a9385b2f57c78c724656cd4b008d6eba1e865",
         "role": "live_gap_matrix_with_historical_baseline_labeled"
       },
       {
@@ -62,12 +62,12 @@
       },
       {
         "path": "design/pages/recognition/web/contracts/Authority_References_V2.json",
-        "blob_sha": "bd0bb7c8b1780ff209155781eeb01b1b0753849f",
+        "blob_sha": "1deb6132be9be3c360aeec1cab68acef725ebb11",
         "role": "machine_contract_with_live_audit"
       },
       {
         "path": "design/pages/recognition/web/contracts/Work_B_Implementation_Mapping_V2.json",
-        "blob_sha": "d26dfa5477b32235441d7eb4264e9a534e1b5278",
+        "blob_sha": "9520e40d38ca09875d03404ed1c4c155167e672b",
         "role": "implementation_mapping_with_live_audit"
       },
       {
@@ -117,7 +117,7 @@
       },
       {
         "path": "design/pages/recognition/web/VISUAL_REFERENCE_MANIFEST_V1.json",
-        "blob_sha": "534e338602bf761db6ad2fdd65132c493ccaa986",
+        "blob_sha": "bf810ab541c695eb972aad0174f6d65596e8c179",
         "role": "visual_source_manifest"
       },
       {
@@ -132,7 +132,7 @@
       },
       {
         "path": "design/pages/recognition/web/VISUAL_REFERENCE_CLOSURE_REPORT_V1.md",
-        "blob_sha": "d9d6e9b8f9846fb24d2edf2769e7ae042ad18d36",
+        "blob_sha": "ba7290a8c8e01706d72bdb0fb72abf63a1bf1747",
         "role": "asset_provenance_report"
       },
       {
@@ -187,7 +187,7 @@
       },
       {
         "path": "design/pages/recognition/web/implementation_input_pack/README.md",
-        "blob_sha": "6f9c0e7c168281c2c820da5353acb1c718ed34bc",
+        "blob_sha": "a03b56b5304ea04451af9d5fdef6d5ffb3b1133c",
         "role": "updated_source_authority"
       },
       {
@@ -329,36 +329,36 @@
     "product_repository": "pan277942135/Yujian",
     "product_pr_number": 177,
     "product_branch": "feat/ai-catch-recognition-web-swos-rr09-v1",
-    "live_product_pr_head_sha": "a0596aaf609914e0de8a325da06b2f286a139150",
+    "live_product_pr_head_sha": "6da640859f063d7f42ee5432e6b35ecb162802ff",
     "live_product_main_sha": "6a2064c2a02a76437b6e09a5241bc199cfa05048",
     "merge_base_sha": "6a2064c2a02a76437b6e09a5241bc199cfa05048",
-    "ahead_by": 30,
+    "ahead_by": 46,
     "behind_by": 0,
     "source_sync_status": "SYNCED_WITH_CURRENT_PRODUCT_MAIN",
-    "exact_head_ci_status": "PASS_TARGETED_CI_AND_CHROMIUM_FIXTURE_3650MS_PLAYBACK_BBOX_PIXEL_DELTA_FIXTURE_ONLY",
+    "exact_head_ci_status": "PASS_EXACT_SHA_VALIDATE_CHROMIUM_WEBGL2_RENDERER_AND_UI_SIMULATION",
     "previous_exact_head_ci": {
-      "sha": "054d2dae09ff73e85e4c91bbdc4b9134821e3891",
-      "run_id": 39954303061,
-      "url": "https://github.com/pan277942135/Yujian/actions/runs/39954303061",
+      "sha": "10b60e3ee3d26b3c103a5a908b005c1d54750338",
+      "run_id": 39980021942,
+      "url": "https://github.com/pan277942135/Yujian/actions/runs/39980021942",
       "conclusion": "success",
-      "scope": "Targeted validation and fixture Chromium smoke before the full 3650ms recording check was added; not real inference or visual acceptance."
+      "scope": "Both jobs were green, but renderer diagnostics showed a GLSL reserved-word compile failure and Canvas2D fallback. This follow-up fixes that failure and requires actual WebGL2 product-renderer execution."
     },
     "exact_head_ci": {
-      "sha": "a0596aaf609914e0de8a325da06b2f286a139150",
-      "run_id": 39963664724,
-      "url": "https://github.com/pan277942135/Yujian/actions/runs/39963664724",
+      "sha": "6da640859f063d7f42ee5432e6b35ecb162802ff",
+      "run_id": 39980533451,
+      "url": "https://github.com/pan277942135/Yujian/actions/runs/39980533451",
       "conclusion": "success",
       "jobs": {
         "validate": "success",
         "det_fish_display_chromium": "success"
       },
-      "scope": "Exact-source targeted validation and Chromium UI simulation plus SWOS fixture playback: 15 seek samples, shared-photo geometry, deterministic repeated P4 pixels, water-field pixel delta, nominal 3650ms WebM, and BBOX_ONLY soft-focus report on a generated fixture (ROI mean 4.22, max 17; no precise outline). Nine responsive page sizes are UI_SIMULATION_ONLY. No live model request, deployed SAM candidate, private photo, real-device performance, or visual acceptance."
+      "scope": "Exact-source safe targeted validation and Chromium. Product recognition UI used UI_SIMULATION_ONLY; the actual product water renderer selected WebGL2 and made 73 draws at P3 with no fallback. BBOX_ONLY pixel regression used generated fixtures; nine viewport shells and error-state checks are UI simulations. No real model request, deployed photo, SAM output, frame-time acceptance, or visual sign-off."
     },
-    "current_head_preview_status": "CANDIDATE_CONFIG_PR_OPEN_UNMERGED_NOT_DEPLOYED",
+    "current_head_preview_status": "NOT_DEPLOYED_NO_CURRENT_SOURCE_CANDIDATE_REVISION",
     "configured_preview_sha": "4de911dc497c150545d938b60b2694f3c4723e37",
     "production_mask_status": "NOT_QUALIFIED",
-    "runtime_visual_status": "NOT_VERIFIED_DEPLOYED_REAL_INFERENCE_NOT_RUN",
-    "full_suite_status": "NOT_RUN_AS_ACCEPTANCE_BLOCKED_BY_EXISTING_METADATA_ACCESS_REVIEW",
+    "runtime_visual_status": "NOT_VERIFIED_DEPLOYED_REAL_PHOTO_ACCEPTANCE_PENDING",
+    "full_suite_status": "NOT_RUN_BLOCKED_BY_EXISTING_METADATA_ACCESS_REVIEW",
     "canonical_cross_repo_admission": {
       "canonical_repository": "pan277942135/Yujian_App",
       "canonical_branch": "main",
@@ -367,7 +367,7 @@
       "product_repository_is_separate": true,
       "product_repository_root_control_plane_files": "NOT_PRESENT",
       "policy": "Use the canonical Yujian_App control plane plus this exact-SHA cross-repository source audit. Do not create a competing control plane in Yujian.",
-      "admission_status": "CANONICAL_CONTROL_PLANE_ADMISSION_PASS; PRODUCT_BRANCH_SYNCED; EXACT_HEAD_TARGETED_CI_AND_FIXTURE_PLAYBACK_PASS; CANDIDATE_CONFIG_PR_OPEN; DEPLOYMENT_NOT_RUN"
+      "admission_status": "CANONICAL_CONTROL_PLANE_CONFIRMED; PRODUCT_PR177_DRAFT_OPEN_UNMERGED; PRODUCT_SOURCE_SYNCED_46_AHEAD_0_BEHIND; EXACT_SHA_CI_PASS; CANDIDATE_PIN_STALE; DEPLOYMENT_NOT_RUN"
     },
     "source_file_snapshot": [
       {
@@ -428,11 +428,11 @@
       },
       {
         "path": "app/static/js/catch_recognition.js",
-        "blob_sha": "cbcc9c37da00f65579834874c0c37c5d502b35fd"
+        "blob_sha": "56d95b76e9dba90b280cc4dfe05f095ba08a082d"
       },
       {
         "path": "app/static/js/catch/swos-renderer.js",
-        "blob_sha": "443e4965a580d89b415eaea60a22d34e7cd943b3"
+        "blob_sha": "ade3f70f527783d3beac1ad2b36b2cf99f7221dc"
       },
       {
         "path": "app/static/js/catch/photo-transition.js",
@@ -448,7 +448,7 @@
       },
       {
         "path": "scripts/smoke_catch_recognition_chromium.py",
-        "blob_sha": "917ad2d7785986332e34130f433767fd1c5ec462"
+        "blob_sha": "ad0a7e67f801c16d0d5ae5b2d6627022f3300cf5"
       }
     ],
     "sam_pipeline_binding": {
@@ -485,24 +485,24 @@
       "candidate_runtime_status": "NOT_RUN_NO_CANDIDATE_REVISION",
       "production_mask_status": "NOT_QUALIFIED"
     },
-    "fixture_browser_playback_status": "BROWSER_VERIFIED_FIXTURE_ONLY",
+    "fixture_browser_playback_status": "BROWSER_VERIFIED_FIXTURE_ONLY_WEBGL2_RENDERER_RUNTIME",
     "responsive_page_status": "9_VIEWPORTS_UI_SIMULATION_ONLY",
     "candidate_preview_config": {
-      "product_sha": "a0596aaf609914e0de8a325da06b2f286a139150",
+      "product_sha": "73b5070abea65186b1a31adf616f417064c2cedd",
       "pr_number": 182,
-      "pr_head_sha": "ca5921ef3b225fd1b3f3966590c65e02a6c5dc3b",
-      "ci_run_id": 39964210866,
-      "ci_status": "PASS_SCOPED_VALIDATE_AND_CHROMIUM_CI",
+      "pr_head_sha": "2108e1df1b010239e724d4aeb4f5e98120e25588",
+      "ci_run_id": 39979693510,
+      "ci_status": "PASS_INFRA_CI_FOR_STALE_SOURCE_PIN",
       "deployment_status": "NOT_DEPLOYED_NO_CANDIDATE_REVISION",
-      "configured_main_workflow_sha": "4de911dc497c150545d938b60b2694f3c4723e37",
       "validate_job_status": "SUCCESS",
       "chromium_job_status": "SUCCESS",
       "workflow_trigger_policy": "push on main paths or workflow_dispatch on refs/heads/main",
       "deploy_preflight_ref": "refs/heads/main",
-      "deployment_blocker": "The candidate workflow is defined in open PR #182, but its dispatch/preflight are main-only; it has not produced a candidate Revision.",
-      "ci_scope": "Offline SWOS quality-probe unit tests and Chromium UI smoke passed at the updated source pin; no candidate deploy, live inference, or SAM probe."
+      "deployment_blocker": "PR #182 still targets an older product SHA. Main deploy workflow remains main-only and pins an older SHA; there is no current-source candidate Revision.",
+      "ci_scope": "Scoped validate and Chromium CI passed, but source-pin check is stale for the current PR #177 HEAD; no deploy, live inference, or SAM probe.",
+      "configured_main_workflow_sha": "4de911dc497c150545d938b60b2694f3c4723e37"
     },
-    "unrestricted_suite_event": "PR182 run 39955394301 completed its broad test step before cancellation took effect; result is not used as approval evidence. Latest PR182 workflow skips the unrestricted step under the existing metadata-access review."
+    "unrestricted_suite_event": "The unrestricted repository suite remains NOT_RUN under the existing metadata-access review. Current PR #177 CI runs the approved targeted suite and skips that path; no metadata endpoint or credential was accessed."
   },
   "motion_and_product_decisions": {
     "processing_duration_ms": 2800,

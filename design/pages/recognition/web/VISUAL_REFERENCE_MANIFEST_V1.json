@@ -249,7 +249,7 @@
   "audit_snapshot": {
     "date": "2026-10-23",
     "design_main_sha": "da9976090021232f0eec936bc4d30f9fa59d90f7",
-    "product_pr177_head_sha": "a0596aaf609914e0de8a325da06b2f286a139150",
+    "product_pr177_head_sha": "6da640859f063d7f42ee5432e6b35ecb162802ff",
     "product_main_sha": "6a2064c2a02a76437b6e09a5241bc199cfa05048",
     "source_photo_208758": {
       "sha256": "ab7227cf7205ee2ac342b6cd75cd899747879506c95c33b888b6adf0acb47987",
@@ -263,8 +263,8 @@
       "byte_verification": "VERIFIED_IN_CURRENT_EXECUTION"
     },
     "web_reference_and_historical_storyboard": "Prior private handoff verification recorded; raw bytes not rechecked in this execution.",
-    "source_code_ci_run_id": 39963664724,
-    "source_code_ci_status": "PASS_TARGETED_CHROMIUM_FIXTURE_AND_UI_SIMULATION_ONLY_NOT_VISUAL_ACCEPTANCE",
+    "source_code_ci_run_id": 39980533451,
+    "source_code_ci_status": "PASS_TARGETED_CHROMIUM_WEBGL2_RENDERER_UI_SIMULATION_ONLY_NOT_VISUAL_ACCEPTANCE",
     "preview_status": "NOT_DEPLOYED_FOR_CURRENT_SOURCE",
     "production_mask_status": "NOT_QUALIFIED",
     "runtime_visual_status": "NOT_VERIFIED"

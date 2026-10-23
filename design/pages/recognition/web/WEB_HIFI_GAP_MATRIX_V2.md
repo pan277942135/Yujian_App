@@ -2,16 +2,15 @@
 
 ## Live source binding — current audit 2026-10-23
 
-The G01–G18 rows remain a **historical code-review snapshot** of PR #177 HEAD 655c4af07a0244fcf29441b5652c48ca74f2e6a2; they are not proof that each gap remains identical on the live source. This refresh binds current source and executable fixture evidence without rewriting those historical observations.
+The G01–G18 rows remain a **historical code-review snapshot** of PR #177 HEAD 655c4af07a0244fcf29441b5652c48ca74f2e6a2; they are not proof that each gap remains identical on the live source. This binding records the current source and executable fixture evidence without rewriting those historical observations.
 
-- Live PR #177 HEAD: `a0596aaf609914e0de8a325da06b2f286a139150` (30 commits ahead / 0 behind product main).
+- Live PR #177 HEAD: `6da640859f063d7f42ee5432e6b35ecb162802ff` (46 commits ahead / 0 behind product main).
 - Live product main and merge base: `6a2064c2a02a76437b6e09a5241bc199cfa05048`.
-- Exact-head CI: [run 39963664724](https://github.com/pan277942135/Yujian/actions/runs/39963664724) **PASS** on the live SHA. Its artifact includes a fixture-only 3650ms WebM, 15 seek frames, geometry evidence, and a generated-photo BBOX_ONLY focus report (ROI mean delta 4.22, max 17; no outline). It does not run deployed real-photo inference, production Mask qualification, frame-time acceptance, or user visual sign-off.
-- The main preview pin remains stale at `4de911dc497c150545d938b60b2694f3c4723e37`. PR #182 proposes pin `a0596aaf609914e0de8a325da06b2f286a139150` on a no-traffic candidate, but that configuration is open/unmerged and has not deployed. No Revision/health SHA for the current source is available. Its deployment workflow only dispatches from `main`; PR #182 cannot run the cloud deploy from its own branch, so a current-source candidate Revision remains blocked while the config PR is unmerged.
-- Product PR #182 scoped CI [run 39964210866](https://github.com/pan277942135/Yujian/actions/runs/39964210866) passed its validate and Chromium jobs; the offline probe unit tests passed, but the deployed candidate probe did not run.
-- Current production Mask: **NOT_QUALIFIED**. Deployed runtime visual acceptance: **NOT_VERIFIED**. Fixture playback is browser-verified; browser performance evidence is **NOT_RUN**.
+- Exact-head CI: [run 39980533451](https://github.com/pan277942135/Yujian/actions/runs/39980533451) **PASS**. Runtime telemetry confirms the product page selected WebGL2 and issued 73 draws at P3 with no fallback. The product UI, 9 viewport shells, BBOX_ONLY pixel check, and recognition states use UI_SIMULATION_ONLY fixtures; they do not establish real-photo inference, SAM output, 15-frame user acceptance, or visual sign-off.
+- Prior diagnostic CI [run 39980021942](https://github.com/pan277942135/Yujian/actions/runs/39980021942) identified GLSL reserved word `patch` as the reason for fragment shader compilation failure. The follow-up renamed it and added a required WebGL2 runtime assertion.
+- The main preview pin remains stale at `4de911dc497c150545d938b60b2694f3c4723e37`. PR #182 is open/unmerged at `2108e1df1b010239e724d4aeb4f5e98120e25588`, passes its scoped CI on an older source pin `73b5070abea65186b1a31adf616f417064c2cedd`, and has not deployed. No Revision/health SHA for current source is available. The workflow dispatches only from `main`; PR #182 cannot cloud-deploy from its branch.
+- Current production Mask: **NOT_QUALIFIED**. Deployed runtime visual acceptance: **NOT_VERIFIED**. Chromium runtime renderer verification is fixture-only; real-photo browser performance and visual evidence are **NOT_RUN**.
 - The canonical control plane remains in Yujian_App; the separate product repository must not create a competing registry.
-
 
 观察源：`pan277942135/Yujian` PR #177 HEAD `655c4af07a0244fcf29441b5652c48ca74f2e6a2` 的 Product Shell 模板、CSS、识别控制器与照片会话/接续模块。这是代码审查，非运行像素差异；PR 仍 Draft/Open/Unmerged。目标合同为 Main 已采纳的 `YUJIAN_AI_CATCH_RECOGNITION_WEB_HIFI_V1` 及九份机器文件。未经授权原图比对的量化差值保持 `NOT_MEASURED`。
 
