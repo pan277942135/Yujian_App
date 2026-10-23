@@ -439,6 +439,8 @@ async function main() {
   assert(await page.locator('.hifi-related-routes a[href="' + swosStaticHash + '"]').count() === 1, "RR09 must expose the reverse link to SWOS static inspection");
   await page.locator('.hifi-related-routes a[href="' + swosStaticHash + '"]').click();
   await page.waitForFunction(expected => location.hash === expected, swosStaticHash);
+  const swosWebMotionHash = "#page/recognition_flow_v1_2/hifi/swos_web_hifi_motion_contract_v1_0";
+  assert(await page.locator('.hifi-related-routes a[href="' + swosWebMotionHash + '"]').count() === 1, "SWOS static review must link to the Web motion technical contract");
   await waitForPrivateReference(page);
   await page.setViewportSize({ width: 390, height: 844 });
   const swosMobileWidth = await page.evaluate(() => ({ document: document.documentElement.scrollWidth, body: document.body.scrollWidth }));
