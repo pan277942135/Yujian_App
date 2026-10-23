@@ -2,6 +2,12 @@
 
 **ID** `YUJIAN_AI_CATCH_RECOGNITION_WEB_HIFI_V1` · **状态** `VISUAL_CONTRACT_DEFINED`（Main 已采纳的设计合同） · 用户认可的三阶段与水光方向 `USER_APPROVED_VISUAL_DIRECTION`；`MAIN_ADOPTED=YES (DESIGN_CONTRACT_ONLY)`；`PIXEL_FROZEN_SOURCE=NOT_CONFIRMED`；`RUNTIME_VISUAL_VERIFIED=NO`。#186/#187 合同内容由 PR #190 纳入 Main；Work B Gap Matrix 的审计快照为 Web PR #177 HEAD `655c4af07a0244fcf29441b5652c48ca74f2e6a2`。Web PR #177 仍为 Draft/Open/Unmerged；实施前必须从 [PR #177](https://github.com/pan277942135/Yujian/pull/177) 读取最新 HEAD。该快照之后的代码变更尚未纳入 G01–G18 重审。不得声称原图像素冻结、真实 Web 视觉 PASS 或产品代码已验收。机器文件在 `contracts/`，结构先行见 `WEB_HIFI_HANDOFF_A_V2.md`。
 
+## SWOS Web 可播放动效工程权威
+
+三阶段页面结构、状态与响应式产品语义仍由本 V2 合同拥有。真实可播放 SWOS 动效的时钟、15 帧采样、同源照片矩阵、WebGL 2 / Canvas 2D 降级、鱼体 Mask 信任门、中文标题金光转译、评审控件、九视口和性能验收统一由 [SWOS_WEB_HIFI_MOTION_TECHNICAL_CONTRACT_V1_0.md](SWOS_WEB_HIFI_MOTION_TECHNICAL_CONTRACT_V1_0.md) 及其机器合同定义。两份合同互相引用，不互相替代。
+
+SAM 复用现有产品实验链路；禁止新增重复分割服务、重训模型或将 Mask 当作分类输入。当前浏览器播放、生产级 Mask 与像素级视觉验收状态仍需按精确 SHA 的真实证据判定。
+
 ## 视觉来源与边界
 
 用户确认的原始三阶段图现登记于 `VISUAL_REFERENCE_MANIFEST_V1.json`：`渔见AI鱼获识别流程展示.png`，1536×1024，SHA-256 `27c34ee5d3cf90921df433cb43c671e42b8ffa80b8f5cebfe9b397da2ee853e2`。私有交接包字节、尺寸已核验。此前 2560×1440、SHA `5f07c2f65ea33f14c8517dddbb7f8d6b7369a6ed980cba11cc92014f4e6a75f9` 候选降为历史溯源，不可替代本次原图。Design Manager 本地查看器通过 SHA、尺寸和字节数验证后显示；原图不进入仓库或 Pages。公开许可仍未确认，运行像素一致性仍未验收。
