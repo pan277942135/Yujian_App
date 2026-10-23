@@ -152,6 +152,7 @@ features:
       layout_policy: "app/src/main/java/com/yujian/ai/ui/home/GeminiHomeAdaptiveLayoutPolicy.kt"
     known_gaps:
       - "Runtime/evidence remain partial; Hero F01-F08 fixture matrix and camera optical parity are open (B003/B004)."
+      - "Responsive Foundation V1.1 changes positive long-screen surplus allocation to equal S/2 additions for A→B and B→C; implementation and exact-SHA runtime evidence must be resynchronized and reverified."
   record_date_v2:
     sequence: 3
     name: "记录日期"
