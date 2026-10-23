@@ -163,3 +163,49 @@ When this archive provides no explicit static-only extension, the current route-
 ## 12. Android acceptance status
 
 Android remains **`NOT_VERIFIED`**. The existing matrix remains 24 real native executions: 320×480, 360×640, 390×844, and 430×932 dp × system font scales 1.0×, 1.3×, and 1.5× × `ADAPTIVE_V2` and `V3_BASELINE`, on the current API 28 gate. M05 does not add another run because its window height is not defined. The matrix and evidence requirements remain in `NH01_GEMINI_ADAPTIVE_V2_ACCEPTANCE_V1.md` and `NH01_GEMINI_ADAPTIVE_V2_ACCEPTANCE_MATRIX_V1.json`. Static preview, Design Manager browser, and image-integrity checks do not change native `NOT_RUN` to `PASS`.
+
+
+---
+
+## Appendix A — NH01 Responsive Foundation V1
+
+**Status: FROZEN · Approved 2026-10-23 · Scope: foundation only**
+
+This appendix freezes the first step of the NH01 responsive specification: page-group structure and the rule for allocating otherwise-unassigned space. It does not claim Android runtime verification.
+
+### A.1 One layout policy, three stable groups
+
+- **A — Top information:** brand title + profile/avatar action, followed by the three statistics in a second row. The 320×480dp compact target keeps this two-row header.
+- **B — Catch content:** “最近鱼获” heading / “全部” action + selected Hero + eligible real-neighbor Peek cards.
+- **C — Bottom action:** “记录下一条鱼” CTA + primary camera action.
+
+Use one constraint-driven policy across viewport sizes. Do not copy fixed screenshot coordinates into device-specific layouts. Keep relationships inside each group stable; adjust the group gaps before changing the group internals.
+
+### A.2 Long-screen surplus allocation
+
+Measure the actual safe content window and actual A/B/C group bounds. Apply system insets once. Use the existing Adaptive V2.2 component dimensions, explicit visual targets, and spacing formulas as the starting constraints.
+
+After those constraints and the existing group base gaps are satisfied, distribute only the **remaining positive, otherwise-unassigned vertical space** as follows:
+
+- A→B receives **2/3** of the surplus.
+- B→C receives **1/3** of the surplus.
+
+This 2:1 ratio applies to the *additional surplus*, not to the final visible gaps. It must not override an explicitly fixed gap target or change the existing Title→Hero targets. If no unassigned surplus remains, do not invent extra space. Do not add a separate bottom-reserve function; keep the existing Footer padding and safe-area rules.
+
+### A.3 Short-screen priority
+
+For 320×480dp at system font scale 1.0, prioritize a complete **no-scroll** composition and retain the two-row header.
+
+1. Compress nonessential whitespace.
+2. Compress A→B and B→C group gaps only within the existing contract.
+3. Resize Hero only within the existing 247:293 ratio, width/height limits, readable-content requirements, and existing short-screen exception.
+4. Preserve required text, the camera touch target, and the Footer safe-area boundary.
+
+Do not hide required content, clip text, globally shrink fonts, reduce touch targets, overlap components, double-apply insets, or introduce a screenshot-specific layout. For larger font scales, retain the existing Adaptive V2.2 accessibility and local-scroll fallback rules.
+
+### A.4 Authority boundary and conflicts
+
+This foundation controls only group structure and allocation of otherwise-unassigned space. Existing Adaptive V2.2 authorities remain binding for exact typography, per-viewport Title→Hero gaps, Hero ratio/width/height limits, Peek geometry, camera/touch geometry, safe areas, and runtime acceptance.
+
+If the foundation and a more specific frozen rule cannot be satisfied together, record **SPEC_CONFLICT** and resolve the authority before implementation. Do not silently alter a frozen numeric target or claim PASS from a static image.
+
