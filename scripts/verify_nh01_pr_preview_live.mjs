@@ -298,7 +298,7 @@ async function main() {
       report.checks.fixed_viewports=fixedResults;
       assert(layout.variant === 'ADAPTIVE_V2' && layout.contract_sha256 === contract.sha256, `${profile.id} did not use the loaded V2 contract`);
       if(profile.width===320&&profile.height===480){
-        const exception=contractJson.responsive_parameters.hero.short_screen_exception;
+        const exception=contractJson.preview_engine.parameters.hero.short_screen_exception;
         const exactException=exception.exact_viewport_width_dp===profile.width&&exception.exact_viewport_height_dp===profile.height&&exception.exact_font_scale===1;
         assert(exactException&&exception.requires_all_copy_readable===true,'320x480dp short-screen exception must match its exact contract scope and keep copy readable');
         if(layout.needs_scroll){
