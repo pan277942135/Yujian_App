@@ -222,6 +222,25 @@ internal fun geminiHomeResolvedCardHeight(
     return minOf(desiredCardHeightDp, maxOf(minReadableCardHeightDp, availableCardHeightDp))
 }
 
+/**
+ * Allocates only positive leftover space between NH01's logical A/B/C bands.
+ * The base Top/Middle/Footer geometry and existing base gaps remain unchanged.
+ * Frozen Foundation V1 assigns 2/3 of surplus to A→B and 1/3 to B→C.
+ */
+internal data class GeminiHomeInterBandSurplus(
+    val aToB: Float,
+    val bToC: Float,
+)
+
+internal fun geminiHomeAllocateInterBandSurplus(positiveSurplusDp: Float): GeminiHomeInterBandSurplus {
+    require(positiveSurplusDp >= 0f)
+    val totalWeight = 3f
+    return GeminiHomeInterBandSurplus(
+        aToB = positiveSurplusDp * 2f / totalWeight,
+        bToC = positiveSurplusDp / totalWeight,
+    )
+}
+
 internal fun geminiHomeCardWidth(trackWidthDp: Float, spec: GeminiHomeLayoutSpec): Float =
     minOf(trackWidthDp * spec.cardWidthFraction, spec.maxCardWidth.value)
 

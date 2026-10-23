@@ -552,6 +552,16 @@ private fun GeminiMiddleSection(
         val cardWidth = cardHeight * GeminiHomeCardAspectRatio
         val groupHeight = leadingGap + headerHeight + headerGap + cardHeight + trailingGap
         val needsScroll = groupHeight > maxHeight
+        // Frozen Foundation V1 applies the 2:1 rule only to positive free space
+        // in the production Adaptive V2 layout. It never compresses required
+        // content or changes the legacy comparison layouts.
+        val interBandSurplus = if (layoutSpec.contentFirstSizing && !needsScroll) {
+            geminiHomeAllocateInterBandSurplus((maxHeight.value - groupHeight.value).coerceAtLeast(0f))
+        } else {
+            GeminiHomeInterBandSurplus(aToB = 0f, bToC = 0f)
+        }
+        val extraGapAToB = interBandSurplus.aToB.dp
+        val extraGapBToC = interBandSurplus.bToC.dp
         val scrollState = rememberScrollState()
         val contentModifier = if (needsScroll) {
             Modifier.fillMaxWidth().heightIn(min = maxHeight).verticalScroll(scrollState)
@@ -564,6 +574,7 @@ private fun GeminiMiddleSection(
             modifier = contentModifier,
             verticalArrangement = if (adaptiveLayout || needsScroll) Arrangement.Top else Arrangement.Center,
         ) {
+            Spacer(Modifier.height(extraGapAToB).testTag("gemini-home-surplus-a-to-b"))
             Spacer(Modifier.height(leadingGap))
             GeminiSectionHeader(
                 modifier = Modifier.fillMaxWidth().height(headerHeight),
@@ -608,6 +619,7 @@ private fun GeminiMiddleSection(
                 )
             }
             Spacer(Modifier.height(trailingGap))
+            Spacer(Modifier.height(extraGapBToC).testTag("gemini-home-surplus-b-to-c"))
         }
     }
 }

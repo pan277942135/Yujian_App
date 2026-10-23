@@ -5,7 +5,42 @@
   "rules_status": "STATIC_RULES_FROZEN",
   "effective_date": "2026-10-22",
   "scope": "Additive static hi-fi archive and responsive design acceptance reference for populated NH01 Normal Home. Does not replace original NH01 V1 raster, current Gemini Adaptive V2 runtime authority, or Android acceptance evidence.",
-  "source_of_truth": "This contract owns the five static artifact identities, target viewport labels, visible static preview rules, the M05 480dp-width extension, and the Design Manager presentation. Referenced Gemini V2 authorities own Android layout and execution behavior wherever this contract does not explicitly add a static-only target.",
+  "source_of_truth": "This contract owns the five static artifact identities, target viewport labels, visible static preview rules, the M05 480dp-width extension, the Design Manager presentation, and NH01 Responsive Foundation V1. The foundation adds A/B/C grouping and a 2:1 allocation of positive long-screen surplus to the final A-to-B and B-to-C gaps; the existing stats_to_title and card_to_footer formulas remain base-gap policy. It does not replace the original NH01 V1 raster, Gemini Adaptive V2 numeric constraints outside this explicit scope, or Android acceptance evidence.",
+  "foundation_layout_principles": {
+    "foundation_id": "NH01_RESPONSIVE_FOUNDATION_V1",
+    "version": "V1",
+    "status": "FROZEN",
+    "approved_date": "2026-10-23",
+    "scope": "A/B/C group structure and allocation of positive long-screen surplus only; other Adaptive V2.2 numeric constraints remain binding.",
+    "groups": [
+      {"id":"A","name":"Top-information allocation band","members":["brand title and avatar action","three home statistics in a second row"],"end_boundary":"statistics row bottom","is_compose_container":false},
+      {"id":"B","name":"Catch-content allocation band","members":["Recent Catch heading and All action","selected Hero","eligible real-neighbor Peek cards"],"start_boundary":"Recent Catch heading top","end_boundary":"selected Hero outer bottom","is_compose_container":false,"layout_note":"Recent Catch heading may remain physically in the existing Top Compose region while logically belonging to allocation band B."},
+      {"id":"C","name":"Bottom-action allocation band","members":["record-next-catch CTA","primary camera action"],"start_boundary":"CTA visible-control top","is_compose_container":false}
+    ],
+    "single_constraint_driven_policy": true,
+    "safe_height": "Actual usable content height after applying system insets exactly once.",
+    "group_height_measurement": "hA/hB/hC are logical allocation-band heights, not Compose-container bounds. hA includes brand/avatar and statistics; hB includes Recent Catch heading, internal Title-to-Hero gap and Hero/Pager; hC includes CTA, camera and existing Footer internals. All exclude A-to-B and B-to-C inter-band gaps.",
+    "base_gaps": {
+      "a_to_b": "Existing Adaptive V2.2 stats_to_title formula; retained as base-gap policy.",
+      "b_to_c": "Existing Adaptive V2.2 card_to_footer formula; retained as base-gap policy."
+    },
+    "surplus_formula": "S=max(0,H_safe-(hA+hB+hC+gAB_base+gBC_base))",
+    "allocation_when_surplus_positive": {
+      "a_to_b_final": "gAB_base + 2*S/3",
+      "b_to_c_final": "gBC_base + S/3"
+    },
+    "allocation_rule": "The 2:1 ratio applies to added surplus, not final visible gaps. It explicitly supersedes the final output of the two inter-group gap formulas only when S>0; it does not alter the internal Title-to-Hero gap or its four explicit viewport targets.",
+    "short_screen_priority": {
+      "viewport": "320x480dp",
+      "system_font_scale": 1.0,
+      "goal": "NO_SCROLL",
+      "header": "Keep two-row header",
+      "order": ["compress nonessential whitespace","compress A-to-B and B-to-C gaps within existing short-screen constraints","resize Hero only within existing ratio/size/readability constraints"],
+      "preserve": ["required content readability","Hero ratio 247:293","existing Hero limits and 124dp short-screen exception","camera touch target","Footer safe area"]
+    },
+    "forbidden": ["viewport-specific copied screenshot coordinates","hide required content","clip required text","globally shrink fonts","reduce touch targets","overlap components","apply system insets twice","add a separate bottom-reserve function"],
+    "conflict_rule": "If constraints cannot be jointly satisfied, report SPEC_CONFLICT; do not silently override other frozen numeric constraints or claim runtime PASS."
+  },
   "runtime_status": "NOT_VERIFIED",
   "viewport_profiles": [
     {"id":"M01","asset_id":"NH01-M01-320x480dp-STATIC-HIFI-V1","width_dp":320,"height_dp":480,"kind":"fixed_viewport","font_scale_reference":1.0},
@@ -135,6 +170,7 @@
     {"path":"design/pages/home/normal_home/engineering/NH01_Avatar_Visual_Contract_V1_1_FROZEN.md","scope":"Current Gemini avatar visual/accessibility behavior; static sample face is not default-avatar authority."}
   ],
   "change_log": [
-    {"version":"V1","date":"2026-10-22","change":"Archive the five recovered original NH01 static hi-fi images; formalize target-dp to actual-pixel mapping; register complete responsive design acceptance; add the M05 480dp static width and 24±2dp visible title-to-card target with explicit Android-height conflict scope; keep Android NOT_VERIFIED."}
+    {"version":"V1","date":"2026-10-22","change":"Archive the five recovered original NH01 static hi-fi images; formalize target-dp to actual-pixel mapping; register complete responsive design acceptance; add the M05 480dp static width and 24±2dp visible title-to-card target with explicit Android-height conflict scope; keep Android NOT_VERIFIED."},
+    {"version":"Responsive Foundation V1","date":"2026-10-23","change":"Freeze A/B/C groups and define the 2:1 allocation of positive long-screen surplus to the final A-to-B and B-to-C gaps; retain the existing formulas as base-gap policy and preserve all other numeric/runtime authorities."}
   ]
 }

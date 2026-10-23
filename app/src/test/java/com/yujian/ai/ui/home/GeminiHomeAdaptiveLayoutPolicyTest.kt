@@ -86,6 +86,23 @@ class GeminiHomeAdaptiveLayoutPolicyTest {
     }
 
     @Test
+    fun frozenFoundationV1AllocatesPositiveInterBandSurplusTwoToOne() {
+        val zero = geminiHomeAllocateInterBandSurplus(0f)
+        assertEquals(0f, zero.aToB, 0.001f)
+        assertEquals(0f, zero.bToC, 0.001f)
+
+        val even = geminiHomeAllocateInterBandSurplus(90f)
+        assertEquals(60f, even.aToB, 0.001f)
+        assertEquals(30f, even.bToC, 0.001f)
+        assertEquals(90f, even.aToB + even.bToC, 0.001f)
+        assertEquals(2f, even.aToB / even.bToC, 0.001f)
+
+        val fractional = geminiHomeAllocateInterBandSurplus(101f)
+        assertEquals(101f, fractional.aToB + fractional.bToC, 0.001f)
+        assertEquals(2f, fractional.aToB / fractional.bToC, 0.001f)
+    }
+
+    @Test
     fun adaptiveV2TopAlignsItsContentFirstGroupAndScrollsOnlyWhenNeeded() {
         val adaptive = resolve(393f, 852f, 1.0f)
         val baseline = resolve(
