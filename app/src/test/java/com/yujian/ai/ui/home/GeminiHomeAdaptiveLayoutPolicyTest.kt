@@ -1,6 +1,7 @@
 package com.yujian.ai.ui.home
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertThrows
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -86,20 +87,21 @@ class GeminiHomeAdaptiveLayoutPolicyTest {
     }
 
     @Test
-    fun frozenFoundationV1AllocatesPositiveInterBandSurplusTwoToOne() {
-        val zero = geminiHomeAllocateInterBandSurplus(0f)
-        assertEquals(0f, zero.aToB, 0.001f)
-        assertEquals(0f, zero.bToC, 0.001f)
-
-        val even = geminiHomeAllocateInterBandSurplus(90f)
-        assertEquals(60f, even.aToB, 0.001f)
-        assertEquals(30f, even.bToC, 0.001f)
-        assertEquals(90f, even.aToB + even.bToC, 0.001f)
-        assertEquals(2f, even.aToB / even.bToC, 0.001f)
-
-        val fractional = geminiHomeAllocateInterBandSurplus(101f)
-        assertEquals(101f, fractional.aToB + fractional.bToC, 0.001f)
-        assertEquals(2f, fractional.aToB / fractional.bToC, 0.001f)
+    fun frozenFoundationV11AllocatesPositiveInterBandSurplusEqually() {
+        listOf(
+            Triple(0f, 0f, 0f),
+            Triple(90f, 45f, 45f),
+            Triple(101f, 50.5f, 50.5f),
+        ).forEach { (surplus, expectedAToB, expectedBToC) ->
+            val result = geminiHomeAllocateInterBandSurplus(surplus)
+            assertEquals("A→B share for S=$surplus dp", expectedAToB, result.aToB, 0.001f)
+            assertEquals("B→C share for S=$surplus dp", expectedBToC, result.bToC, 0.001f)
+            assertEquals("the shares conserve S=$surplus dp", surplus, result.aToB + result.bToC, 0.001f)
+            assertEquals("the additional shares are equal for S=$surplus dp", result.aToB, result.bToC, 0.001f)
+        }
+        assertThrows(IllegalArgumentException::class.java) {
+            geminiHomeAllocateInterBandSurplus(-0.001f)
+        }
     }
 
     @Test

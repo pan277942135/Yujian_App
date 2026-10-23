@@ -167,11 +167,11 @@ Android remains **`NOT_VERIFIED`**. The existing matrix remains 24 real native e
 
 ---
 
-## Appendix A — NH01 Responsive Foundation V1
+## Appendix A — NH01 Responsive Foundation V1.1
 
-**Status: FROZEN · Approved 2026-10-23 · Scope: foundation only**
+**Status: FROZEN · Approved 2026-10-23 · Version: V1.1 · Scope: foundation only**
 
-This appendix freezes the first step of the NH01 responsive specification: stable page-group structure and a computable rule for allocating positive long-screen surplus. It does not claim Android runtime verification.
+This appendix defines the current NH01 responsive foundation revision V1.1: stable page-group structure and an explicit, computable 1:1 rule for allocating positive long-screen surplus. V1.1 supersedes V1's 2:1 allocation; all unrelated frozen constraints remain unchanged. It does not claim Android runtime verification.
 
 ### A.1 One layout policy, three stable groups
 
@@ -198,11 +198,11 @@ S = max(0, H_safe - (hA + hB + hC + gAB_base + gBC_base))
 When `S > 0`, allocate it as follows:
 
 ```text
-gAB = gAB_base + 2*S/3
-gBC = gBC_base + S/3
+gAB = gAB_base + S/2
+gBC = gBC_base + S/2
 ```
 
-The **2:1 ratio applies only to the additional surplus**, not to the final visible gaps. This is the explicit long-screen rule for the final output of the two inter-group gaps: the existing formulas remain their base-gap policy and retain their short-screen pressure/minimum behavior, while positive long-screen surplus is added according to the equations above.
+The **1:1 equal split applies only to the additional surplus**, not to the final visible gaps. When `S > 0`, add exactly `S/2` to each of A→B and B→C after calculating their existing base gaps. The existing formulas remain the base-gap policy and retain their short-screen pressure/minimum behavior. Verify the added portions after subtracting base gaps; do not require the final visible gaps themselves to be equal.
 
 When `S = 0`, do not add extra space. If the safe window is too short for the base composition, use the short-screen compression order in A.3; do not force the long-screen formula or hide overflow. This rule does not change the internal Title→Hero gap or its four explicit viewport targets. Do not add a separate bottom-reserve function; keep the existing Footer padding and safe-area rules.
 
@@ -219,6 +219,6 @@ Do not hide required content, clip text, globally shrink fonts, reduce touch tar
 
 ### A.4 Authority boundary and conflicts
 
-This foundation freezes group structure and long-screen surplus allocation. Existing Adaptive V2.2 authorities remain binding for exact typography, Title→Hero targets, Hero ratio/width/height limits, Peek geometry, camera/touch geometry, safe areas, and runtime acceptance. The only added long-screen override is the final value of the A→B and B→C inter-group gaps when (S>0), as defined above.
+This foundation retains the A/B/C group structure and sets the current long-screen surplus rule to an equal 1:1 split, superseding the former V1 2:1 allocation. Existing Adaptive V2.2 authorities remain binding for exact typography, Title→Hero targets, Hero ratio/width/height limits, Peek geometry, camera/touch geometry, safe areas, and runtime acceptance. The only added long-screen override is the final value of the A→B and B→C inter-group gaps when (S>0), with S/2 added to each gap.
 
 If the foundation and another specific frozen rule cannot be satisfied together, record **SPEC_CONFLICT** and resolve the authority before implementation. Do not silently alter a frozen numeric target or claim PASS from a static image.

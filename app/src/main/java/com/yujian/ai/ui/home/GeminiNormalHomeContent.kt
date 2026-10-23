@@ -552,9 +552,9 @@ private fun GeminiMiddleSection(
         val cardWidth = cardHeight * GeminiHomeCardAspectRatio
         val groupHeight = leadingGap + headerHeight + headerGap + cardHeight + trailingGap
         val needsScroll = groupHeight > maxHeight
-        // Frozen Foundation V1 applies the 2:1 rule only to positive free space
-        // in the production Adaptive V2 layout. It never compresses required
-        // content or changes the legacy comparison layouts.
+        // Frozen Foundation V1.1 splits positive free space equally between the
+        // A→B and B→C boundaries. Keep it out of groupHeight so it is allocated
+        // once, only for production Adaptive V2 when required content fits.
         val interBandSurplus = if (layoutSpec.contentFirstSizing && !needsScroll) {
             geminiHomeAllocateInterBandSurplus((maxHeight.value - groupHeight.value).coerceAtLeast(0f))
         } else {
@@ -575,9 +575,9 @@ private fun GeminiMiddleSection(
             verticalArrangement = if (adaptiveLayout || needsScroll) Arrangement.Top else Arrangement.Center,
         ) {
             Spacer(Modifier.height(extraGapAToB).testTag("gemini-home-surplus-a-to-b"))
-            Spacer(Modifier.height(leadingGap))
+            Spacer(Modifier.height(leadingGap).testTag("gemini-home-base-gap-a-to-b"))
             GeminiSectionHeader(
-                modifier = Modifier.fillMaxWidth().height(headerHeight),
+                modifier = Modifier.fillMaxWidth().height(headerHeight).testTag("gemini-home-section-header-row"),
                 safeWidth = safeWidth,
                 titleFontSize = titleFontSize,
                 actionFontSize = actionFontSize,
@@ -585,7 +585,7 @@ private fun GeminiMiddleSection(
                 onCatchesClick = onCatchesClick,
                 onTitleMeasuredHeight = { heightPx -> measuredTitleHeightPx.value = heightPx },
             )
-            Spacer(Modifier.height(headerGap))
+            Spacer(Modifier.height(headerGap).testTag("gemini-home-title-to-hero-gap"))
             if (records.isEmpty()) {
                 Box(
                     modifier = Modifier.fillMaxWidth().height(cardHeight)
@@ -618,7 +618,7 @@ private fun GeminiMiddleSection(
                     onCatchClick = onCatchClick,
                 )
             }
-            Spacer(Modifier.height(trailingGap))
+            Spacer(Modifier.height(trailingGap).testTag("gemini-home-base-gap-b-to-c"))
             Spacer(Modifier.height(extraGapBToC).testTag("gemini-home-surplus-b-to-c"))
         }
     }
