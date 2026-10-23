@@ -2,7 +2,7 @@
   "schema_version": "1.0",
   "task_id": "YUJIAN_SWOS_WEB_IMPLEMENTATION_INPUT_PACK_AND_LIVE_SHA_CLOSURE_V1",
   "snapshot_date_utc": "2026-10-23",
-  "package_status": "SOURCE_SYNCED_EXACT_HEAD_CI_PENDING",
+  "package_status": "SOURCE_SYNCED_EXACT_HEAD_CI_PASS_PENDING_DESIGN_ADOPTION",
   "package_role": "IMPLEMENTATION_INPUT_SNAPSHOT_NOT_A_PARALLEL_DESIGN_AUTHORITY",
   "authority": {
     "repository": "pan277942135/Yujian_App",
@@ -17,7 +17,7 @@
       },
       {
         "path": "design/pages/recognition/web/WEB_HIFI_GAP_MATRIX_V2.md",
-        "blob_sha": "09affee0c7a31b661bb0f73adcca98cc8f95ad9f",
+        "blob_sha": "1769632cefe7f33dbcf463ea9f5fa934bea16f09",
         "role": "live_gap_matrix_with_historical_baseline_labeled"
       },
       {
@@ -62,12 +62,12 @@
       },
       {
         "path": "design/pages/recognition/web/contracts/Authority_References_V2.json",
-        "blob_sha": "d2ff9f512873d56b4a895d669e0202513a667d22",
+        "blob_sha": "276018a7028a7120bf88f51858f7c398432ebc6b",
         "role": "machine_contract_with_live_audit"
       },
       {
         "path": "design/pages/recognition/web/contracts/Work_B_Implementation_Mapping_V2.json",
-        "blob_sha": "ca22351cd96ea6ff81c32f90a814f5b31d9cc6ea",
+        "blob_sha": "3733d0dd7b8987ed5479045dfa6a8287b242dc16",
         "role": "implementation_mapping_with_live_audit"
       },
       {
@@ -170,7 +170,7 @@
     "ahead_by": 19,
     "behind_by": 0,
     "source_sync_status": "SYNCED_TO_CURRENT_PRODUCT_MAIN",
-    "exact_head_ci_status": "PENDING_FOR_POST_SYNC_SHA",
+    "exact_head_ci_status": "PASS",
     "previous_exact_head_ci": {
       "sha": "32b9463887c6620b32a3dfdd986eccc6ff4a569b",
       "run_id": 39874124153,
@@ -178,7 +178,16 @@
       "conclusion": "success",
       "scope": "targeted validation plus Chromium UI simulation only"
     },
-    "exact_head_ci": null,
+    "exact_head_ci": {
+      "run_id": 39917440271,
+      "url": "https://github.com/pan277942135/Yujian/actions/runs/39917440271",
+      "conclusion": "success",
+      "jobs": {
+        "validate": "success",
+        "det_fish_display_chromium": "success"
+      },
+      "scope": "safe targeted validation and Chromium UI simulation only; no full-suite metadata access, production inference, qualified Mask, pixel parity, or user visual acceptance"
+    },
     "current_head_preview_status": "NOT_VERIFIED",
     "configured_preview_sha": "cb9e3780afb5e2904e3dfe5148210a4ccc3747b4",
     "production_mask_status": "NOT_QUALIFIED",
@@ -192,7 +201,7 @@
       "product_repository_is_separate": true,
       "product_repository_root_control_plane_files": "NOT_PRESENT",
       "policy": "Use the canonical Yujian_App control plane plus this exact-SHA cross-repository source audit. Do not create a competing control plane in Yujian.",
-      "admission_status": "CROSS_REPO_BINDING_FORMALIZED; EXACT_HEAD_CI_PENDING"
+      "admission_status": "CANONICAL_CONTROL_PLANE_PINNED; SOURCE_SHA_CI_PASS"
     },
     "source_file_snapshot": [
       {
