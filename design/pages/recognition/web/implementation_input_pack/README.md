@@ -61,3 +61,8 @@ The verified private bundle is `SWOS_WEB_PRIVATE_VISUAL_INPUTS_V2.zip`, SHA-256 
 ## 15-frame rendered references
 
 The current 15-frame authority contract is pinned in the manifest. The actual 15 individual PNGs are **not present in the available private handoff**; the available storyboard is a historical 14-frame V0.3 reference. Do not claim that the historical poster is the current 15-frame set. Recover the previously rendered 15-frame set or create a separately labeled review-only set tied to the current 15-frame contract. Production Mask remains unqualified.
+
+
+## Private 15-frame review proxy V3
+
+A private review bundle has now been generated from the byte-verified source photo and the main-adopted 15-frame/shared-geometry contracts: `SWOS_WEB_15_FRAME_REVIEW_PROXY_V3.zip`, SHA-256 `5227986290402f3f4fe45872efd6d433a92923a2c27c67a7af00b3aac3247fe2` (28,939,939 bytes). It contains 15 individual 1080×1920 samples plus contact sheets and the private source assets. The frames are **REVIEW_PROXY_NOT_FROZEN**: they are not authoritative artwork, not a playable animation, and not evidence of browser pixel parity. Their manual fish contour is explicitly `MANUAL_REFERENCE_ONLY_NOT_PRODUCTION_MASK`. The archive is provided privately outside the public repository.
