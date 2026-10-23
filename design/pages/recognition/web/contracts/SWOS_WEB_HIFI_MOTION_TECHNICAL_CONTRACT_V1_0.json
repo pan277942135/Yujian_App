@@ -1,0 +1,505 @@
+{
+  "schema_version": "1.0",
+  "contract_id": "YUJIAN-SWOS-WEB-HIFI-MOTION-TECHNICAL-V1_0",
+  "title": "渔见 AI · SWOS Web 高保真动效技术合同 V1.0",
+  "version": "1.0",
+  "authority_status": "MAIN_ADOPTED_DESIGN_ONLY",
+  "runtime_status": "NOT_VERIFIED",
+  "playable_browser_demo_status": "NOT_VERIFIED",
+  "production_mask_qualification": "NOT_QUALIFIED",
+  "scope": {
+    "product_repository": "pan277942135/Yujian",
+    "design_authority_repository": "pan277942135/Yujian_App",
+    "feature_id": "recognition_flow_v1_2",
+    "result_feature_id": "recognition_result_v1",
+    "route": "#page/recognition_flow_v1_2/hifi/swos_web_hifi_motion_contract_v1_0",
+    "purpose": "Implement and verify the actual playable Web SWOS animation without replacing existing product, timing, result, or model authorities.",
+    "supersedes_scope": "Web playback architecture, renderer fallback, review controls, SAM experiment reuse boundary, and browser acceptance only.",
+    "does_not_supersede": [
+      "WEB_HIFI_CONTRACT_V2.md and its machine contracts",
+      "SWOS_Optical_Contract_V1.md and .json",
+      "SWOS_Static_Visual_Contract_V1_1.md",
+      "SWOS_15_Frame_Keyframe_Contract_V1_1.json",
+      "SWOS_Shared_Photo_Transition_Contract_V1.json",
+      "Recognition_Result_Motion_Spec_V3.md and recognition_result_motion_contract_v3.json",
+      "Hero Media Contract"
+    ]
+  },
+  "authorities": {
+    "web_product": "design/pages/recognition/web/WEB_HIFI_CONTRACT_V2.md",
+    "optical": "design/pages/recognition/processing/optics/SWOS_Optical_Contract_V1.md",
+    "static_visual": "design/pages/recognition/processing/optics/SWOS_Static_Visual_Contract_V1_1.md",
+    "keyframes": "design/pages/recognition/processing/optics/SWOS_15_Frame_Keyframe_Contract_V1_1.json",
+    "shared_photo_transition": "design/pages/recognition/continuity/SWOS_Shared_Photo_Transition_Contract_V1.json",
+    "rr09_motion": "design/pages/recognition/result/motion/recognition_result_motion_contract_v3.json",
+    "hero_media": "design/pages/recognition/result/media/hero_media_contract.json",
+    "existing_technical_handoff": "design/pages/recognition/processing/optics/SWOS_Dynamic_Demo_Technical_Handoff_V1.md"
+  },
+  "product_decisions": {
+    "optical_language": "ORIGINAL_YUJIAN_SUNLIT_WATER_CAUSTICS",
+    "forbidden_motifs": [
+      "ASSISTANT_WAKEUP",
+      "HUD_FRAME",
+      "RADAR",
+      "MECHANICAL_SCANLINE",
+      "CLOSED_NEON_FRAME",
+      "LEGACY_EDGE_FIELD_SEVEN_PATH_GEOMETRY"
+    ],
+    "species_name_language": "ZH_ONLY",
+    "english_species_name_visible": false,
+    "nominal_processing_ms": 2800,
+    "nominal_rr09_ms": 850,
+    "nominal_total_ms": 3650,
+    "nominal_is_inference_deadline": false,
+    "actual_inference_event_driven": true,
+    "additional_pre_navigation_wait_ms": 0,
+    "same_source_photo_and_one_shared_transform": true,
+    "private_source_photo_publication_permission": "NOT_CONFIRMED"
+  },
+  "timing": {
+    "total_nominal_duration_ms": 3650,
+    "processing_duration_ms": 2800,
+    "rr09_duration_ms": 850,
+    "frame_count": 15,
+    "processing_frame_ids": [
+      "P0",
+      "P1",
+      "P2",
+      "P3",
+      "P4",
+      "P5",
+      "P6",
+      "P7"
+    ],
+    "rr09_frame_ids": [
+      "R0",
+      "R0.5",
+      "R1",
+      "R2",
+      "R3",
+      "R4",
+      "R5"
+    ],
+    "samples": [
+      {
+        "id": "P0",
+        "track": "PROCESSING",
+        "relative_ms": 0,
+        "global_ms": 0
+      },
+      {
+        "id": "P1",
+        "track": "PROCESSING",
+        "relative_ms": 350,
+        "global_ms": 350
+      },
+      {
+        "id": "P2",
+        "track": "PROCESSING",
+        "relative_ms": 950,
+        "global_ms": 950
+      },
+      {
+        "id": "P3",
+        "track": "PROCESSING",
+        "relative_ms": 1200,
+        "global_ms": 1200
+      },
+      {
+        "id": "P4",
+        "track": "PROCESSING",
+        "relative_ms": 1550,
+        "global_ms": 1550
+      },
+      {
+        "id": "P5",
+        "track": "PROCESSING",
+        "relative_ms": 2050,
+        "global_ms": 2050
+      },
+      {
+        "id": "P6",
+        "track": "PROCESSING",
+        "relative_ms": 2600,
+        "global_ms": 2600
+      },
+      {
+        "id": "P7",
+        "track": "PROCESSING",
+        "relative_ms": 2800,
+        "global_ms": 2800
+      },
+      {
+        "id": "R0",
+        "track": "RR09",
+        "relative_ms": 0,
+        "global_ms": 2800
+      },
+      {
+        "id": "R0.5",
+        "track": "RR09",
+        "relative_ms": 100,
+        "global_ms": 2900
+      },
+      {
+        "id": "R1",
+        "track": "RR09",
+        "relative_ms": 200,
+        "global_ms": 3000
+      },
+      {
+        "id": "R2",
+        "track": "RR09",
+        "relative_ms": 380,
+        "global_ms": 3180
+      },
+      {
+        "id": "R3",
+        "track": "RR09",
+        "relative_ms": 550,
+        "global_ms": 3350
+      },
+      {
+        "id": "R4",
+        "track": "RR09",
+        "relative_ms": 680,
+        "global_ms": 3480
+      },
+      {
+        "id": "R5",
+        "track": "RR09",
+        "relative_ms": 850,
+        "global_ms": 3650
+      }
+    ],
+    "single_elapsed_ms_clock": true,
+    "deterministic_seek_and_replay": true,
+    "frame_sampling_does_not_change_business_state": true,
+    "inference_delay_policy": "EXTEND_PROCESSING_WITHOUT_FAKE_PROGRESS_OR_RESULT"
+  },
+  "optical_renderer": {
+    "layer_order": [
+      "photo_base",
+      "ambient_water",
+      "caustic_field",
+      "ripple_field",
+      "peripheral_refraction",
+      "fish_focus",
+      "residual_gold_trace"
+    ],
+    "caustic_direction": "IRREGULAR_MULTI_SCALE_SOFT_AREA_PATCHES_WITH_UPWARD_PROPAGATION",
+    "fish_gold_layers": [
+      "GOLD_CORE",
+      "GOLD_SOFT_GLOW",
+      "GOLD_HALO"
+    ],
+    "all_fish_gold_layers_share_exact_trusted_geometry": true,
+    "independent_tunables": [
+      "caustic_density",
+      "caustic_scale",
+      "caustic_softness",
+      "ambient_radius",
+      "ambient_luminance",
+      "ripple_amplitude",
+      "refraction_strength",
+      "gold_core_width",
+      "gold_core_softness",
+      "gold_halo_spread"
+    ],
+    "renderers": {
+      "preferred": "WEBGL2",
+      "fallback_1": "CANVAS_2D_CACHED_LOW_RES_CAUSTICS",
+      "fallback_2": "STATIC_OPTICAL_SAMPLES_WITH_USABLE_PHOTO_AND_RESULT",
+      "reduced_motion": "STATIC_SETTLED_RESULT_NO_DECORATIVE_PROPAGATION"
+    },
+    "quality_reduction_may_change": [
+      "decorative_resolution",
+      "secondary_patch_count",
+      "blur_precision",
+      "halo_spread"
+    ],
+    "quality_reduction_must_not_change": [
+      "source_photo_identity",
+      "fish_geometry",
+      "shared_transform",
+      "frame_timing",
+      "reveal_order",
+      "result_content",
+      "CTA_availability"
+    ]
+  },
+  "photo_geometry": {
+    "normalize_exif_once": true,
+    "source_identity_fields": [
+      "source_photo_sha256",
+      "session_id",
+      "image_id",
+      "oriented_width",
+      "oriented_height"
+    ],
+    "single_shared_transform": "M(t)",
+    "transformed_layers": [
+      "photo_foreground",
+      "same_source_blurred_fallback",
+      "fish_mask",
+      "fish_contour",
+      "gold_core",
+      "gold_soft_glow",
+      "gold_halo",
+      "residual_gold_trace"
+    ],
+    "clip_rect": "photoContentRect",
+    "r05_rule": "Exact numeric midpoint of R0 and R1 outer rectangles and foreground rectangles",
+    "hero_authority": "Existing frozen HIGH Result and Hero Media Contract",
+    "forbid": [
+      "photo_stretch",
+      "photo_swap",
+      "independent_mask_transform",
+      "independent_crop_animation",
+      "generated_fill_pixels",
+      "letterbox_optical_paint"
+    ]
+  },
+  "mask_integration": {
+    "reuse_existing_experimental_pipeline": true,
+    "create_duplicate_sam_service": false,
+    "retrain_sam": false,
+    "mask_is_classifier_input": false,
+    "repository": "pan277942135/Yujian",
+    "existing_endpoint_method": "POST",
+    "existing_endpoint_path": "/api/debug/fish-segmentation",
+    "existing_endpoint_scope": "DEBUG_EXPERIMENT_ONLY_NOT_PUBLIC_PRODUCTION_API",
+    "existing_code_paths": [
+      "app/segmentation_api.py",
+      "app/segmentation/service.py",
+      "app/segmentation/mask_generator.py",
+      "app/segmentation/quality_gate.py",
+      "app/segmentation/cutout_builder.py"
+    ],
+    "model": "SAM_VIT_B",
+    "checkpoint_label": "sam_vit_b_01ec64",
+    "browser_must_call_debug_endpoint_directly": false,
+    "service_adapter_required": true,
+    "service_revision_and_source_sha_must_be_reverified": true,
+    "trust_states": {
+      "TRUSTED_MASK": "Use one verified contour for Core, Soft Glow, Halo; geometry must match image/session, oriented dimensions, detector box/confidence, mask dimensions and existing quality gate.",
+      "TRUSTED_BBOX_ONLY": "Use a soft region glow only; no precise contour, fish silhouette or contour-origin gold transfer.",
+      "NONE": "No spatial fish focus or contour-origin gold trace; keep photo transition and existing business UI usable."
+    },
+    "production_qualification": {
+      "status": "NOT_QUALIFIED",
+      "heuristic_good_is_sufficient": false,
+      "required": [
+        "reviewed_ground_truth_masks",
+        "IoU_and_Dice_metrics",
+        "boundary_quality_metrics",
+        "night_occlusion_and_dark_background_hard_cases",
+        "explicit_visual_signoff"
+      ]
+    },
+    "private_photo_upload_to_public_test_service": false,
+    "public_test_fixtures_require_license_attribution_and_digest": true
+  },
+  "glyph_transfer": {
+    "start_after_photo_lands_at_R1": true,
+    "actual_title_component_provides_target_bounds": true,
+    "use_actual_chinese_glyph_mask": true,
+    "english_species_name_row": false,
+    "R3_global_ms": 3350,
+    "R3_readable": false,
+    "R4_global_ms": 3480,
+    "R4_readable": true,
+    "R5_global_ms": 3650,
+    "afterglow_at_R5": 0,
+    "requires_real_result_high": true,
+    "placeholder_species_name_allowed_in_production": false,
+    "CTA_blocked_by_animation": false
+  },
+  "review_controls": {
+    "required": [
+      "play_pause",
+      "previous_next_frame",
+      "seek_all_15_samples",
+      "speed_0_25x_0_5x_1x",
+      "layer_toggles",
+      "bounded_intensity_controls",
+      "original_composite_compare",
+      "geometry_overlay",
+      "export_reproducible_parameter_json"
+    ],
+    "exported_metadata": [
+      "fixture_id",
+      "source_photo_sha256",
+      "contract_version",
+      "contract_sha",
+      "product_source_sha",
+      "viewport",
+      "device_pixel_ratio",
+      "browser_version",
+      "renderer",
+      "fallback_state",
+      "mask_trust_state",
+      "parameters"
+    ],
+    "controls_are_review_only": true,
+    "production_state_mutation": false,
+    "one_clock_only": true,
+    "photo_change_clears_old_mask_and_effect_cache": true
+  },
+  "responsive_matrix": {
+    "viewport_cases": [
+      "1440x1000",
+      "1280x800",
+      "1024x768",
+      "768x1024",
+      "480dp-width",
+      "430x932",
+      "390x844",
+      "360x640",
+      "320x480"
+    ],
+    "photo_cases": [
+      "portrait",
+      "landscape",
+      "EXIF-rotated",
+      "low-resolution",
+      "shore-or-grass",
+      "indoor",
+      "night-or-low-light",
+      "missing-or-untrusted-BBox"
+    ],
+    "assertions": [
+      "no_stretch",
+      "safe_crop_or_same_source_blurred_fallback",
+      "mask_photo_registration",
+      "R0_5_midpoint",
+      "Chinese_title_no_clip",
+      "keyboard_safe_area_CTA",
+      "back_navigation",
+      "reduce_motion"
+    ]
+  },
+  "performance": {
+    "status": "NOT_MEASURED",
+    "desktop_target": {
+      "p95_frame_time_ms": 16.7,
+      "over_budget_frame_ratio_max": 0.05
+    },
+    "representative_real_mobile_target": {
+      "p95_frame_time_ms": 33.3,
+      "over_budget_frame_ratio_max": 0.05
+    },
+    "warm_run_long_stall_ms_max": 100,
+    "required_metrics": [
+      "frame_time_distribution",
+      "dropped_frame_ratio",
+      "long_tasks",
+      "context_loss_count",
+      "renderer_fallback",
+      "canvas_or_texture_resolution",
+      "DPR",
+      "viewport",
+      "browser_and_device_version"
+    ],
+    "SAM_latency_is_not_browser_render_performance": true
+  },
+  "gates": [
+    {
+      "id": "G1_CONTRACT",
+      "required": [
+        "machine_contract_validation",
+        "15_frame_contract_consistency",
+        "shared_photo_geometry",
+        "Web_V2_and_RR09_V3_authority_consistency",
+        "privacy_boundary"
+      ]
+    },
+    {
+      "id": "G2_SOURCE",
+      "required": [
+        "live_PR177_HEAD",
+        "current_product_main_comparison",
+        "exact_SHA_CI",
+        "preview_revision_SHA",
+        "health_SHA",
+        "default_traffic_unchanged"
+      ],
+      "block_if_behind_main": true
+    },
+    {
+      "id": "G3_PLAYBACK",
+      "required": [
+        "actual_3650ms_browser_playback",
+        "all_15_seek_points",
+        "pause_step_seek",
+        "R0_5_geometry",
+        "Chinese_glyph_timing"
+      ]
+    },
+    {
+      "id": "G4_MASK",
+      "required": [
+        "existing_SAM_pipeline_reused",
+        "trust_gate",
+        "fallback_cases"
+      ],
+      "production_mask_qualification_requires_ground_truth": true
+    },
+    {
+      "id": "G5_RESPONSIVE",
+      "required": [
+        "nine_viewports",
+        "multi_scene_photo_matrix",
+        "keyboard_safe_area",
+        "reduce_motion"
+      ]
+    },
+    {
+      "id": "G6_PERFORMANCE",
+      "required": [
+        "browser_frame_times",
+        "dropped_frames",
+        "renderer_fallback_evidence"
+      ],
+      "SAM_API_latency_not_substitute": true
+    },
+    {
+      "id": "G7_VISUAL",
+      "required": [
+        "water_caustic_spatial_distribution",
+        "trusted_fish_contour",
+        "photo_continuity",
+        "gold_to_Chinese_glyph_transfer",
+        "afterglow_fade"
+      ]
+    }
+  ],
+  "required_deliverables": [
+    "playable_preview_url",
+    "exact_product_source_sha",
+    "preview_revision_and_health_sha",
+    "default_traffic_snapshot",
+    "3650ms_recording",
+    "15_frame_capture_set",
+    "multi_photo_mask_report",
+    "nine_viewport_screenshots",
+    "browser_performance_report",
+    "automated_test_results",
+    "contract_and_parameter_sha_manifest"
+  ],
+  "audit_snapshot": {
+    "audit_date_utc": "2026-10-23",
+    "product_pr": 177,
+    "product_pr_head_sha": "4de911dc497c150545d938b60b2694f3c4723e37",
+    "product_main_sha": "6a2064c2a02a76437b6e09a5241bc199cfa05048",
+    "merge_base_sha": "3c79c00db68ace94d8f6a7dcb4105d0026a09323",
+    "ahead_by": 22,
+    "behind_by": 3,
+    "source_sync_status": "BLOCKED_BEHIND_CURRENT_PRODUCT_MAIN",
+    "exact_head_ci_run_id": 39922218177,
+    "exact_head_ci_status": "PASS_TARGETED_AND_CHROMIUM_UI_SIMULATION_ONLY",
+    "preview_status": "NOT_VERIFIED",
+    "production_mask_status": "NOT_QUALIFIED",
+    "browser_visual_acceptance": "NOT_RUN"
+  }
+}
