@@ -329,20 +329,23 @@ async function main() {
     assert(Math.abs(fixedResults.at(-1).measured.content_left_dp-20)<=0.5,'600dp wide content is not centered around its 560dp width cap');
     report.checks.fixed_viewports=fixedResults;
 
-    if(args.privateMedia){
-      const widthBoundary=[];
-      for(const width of [479,480,481]){
-        const layout=await setViewport(page,width,844,1);
-        assert(layout.measurements.horizontal_overflow_dp<=0.5,`Width-only boundary probe ${width}dp has horizontal overflow`);
-        assert(layout.measurements.hero_overlap_footer<=0.5,`Width-only boundary probe ${width}dp overlaps Hero and Footer`);
+    const widthBoundary=[];
+    for(const width of [479,480,481]){
+      const layout=await setViewport(page,width,844,1);
+      assert(layout.content_width_dp<=560+0.01,`Width-only boundary probe ${width}dp exceeded the contract content-width cap`);
+      assert(layout.measurements.horizontal_overflow_dp<=0.5,`Width-only boundary probe ${width}dp has horizontal overflow`);
+      assert(layout.measurements.hero_overlap_footer<=0.5,`Width-only boundary probe ${width}dp overlaps Hero and Footer`);
+      let privateFit=null;
+      if(args.privateMedia){
         const geometry=await collectPrivatePhotoGeometry(page);
         assert(geometry.cards.length===3&&geometry.cards.every(card=>!card.hidden&&card.object_fit==='contain'&&card.full_photo_within_card),`Width-only boundary probe ${width}dp cropped or hid an original: ${JSON.stringify(geometry)}`);
-        widthBoundary.push({width_dp:width,height_context_dp:844,height_context_is_probe_only:true,no_M05_height_inferred:true,card_width_dp:layout.card_width_dp,card_height_dp:layout.card_height_dp,title_to_card_dp:layout.measurements.title_to_card,full_photo_fit:true});
-        if(width===480){const path=join(evidenceDir,'width-boundary-480dp-probe-only.png');await page.locator('#device').screenshot({path,animations:'disabled'});report.screenshots.push(path);}
+        privateFit=true;
       }
-      assert(widthBoundary[0].card_width_dp<=widthBoundary[1].card_width_dp+0.5&&widthBoundary[1].card_width_dp<=widthBoundary[2].card_width_dp+0.5,'Hero width is discontinuous across the 480dp width boundary');
-      report.checks.width_boundary_480dp={status:'PASS',context:'Synthetic free-resize probe at 479/480/481dp width with 844dp test harness context only; does not infer a height for the M05 width-only static reference.',cases:widthBoundary};
+      widthBoundary.push({width_dp:width,height_context_dp:844,height_context_is_probe_only:true,no_M05_height_inferred:true,card_width_dp:layout.card_width_dp,card_height_dp:layout.card_height_dp,title_to_card_dp:layout.measurements.title_to_card,private_photo_full_fit:privateFit});
+      if(width===480){const path=join(evidenceDir,'width-boundary-480dp-probe-only.png');await page.locator('#device').screenshot({path,animations:'disabled'});report.screenshots.push(path);}
     }
+    assert(widthBoundary[0].card_width_dp<=widthBoundary[1].card_width_dp+0.5&&widthBoundary[1].card_width_dp<=widthBoundary[2].card_width_dp+0.5,'Hero width is discontinuous across the 480dp width boundary');
+    report.checks.width_boundary_480dp={status:'PASS',context:'Synthetic free-resize probe at 479/480/481dp width with 844dp test harness context only; does not infer a height for the M05 width-only static reference.',cases:widthBoundary};
 
     const font130=await setViewport(page,320,480,1.3);
     report.checks.font_1_3=font130;
