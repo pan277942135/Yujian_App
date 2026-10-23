@@ -30,8 +30,8 @@ def fixture(contract_status="PROPOSED_FOR_CANONICAL_MAIN_REVIEW", p3_status="BLO
     blockers = []
     if p3_status == "BLOCKED":
         blockers = [
-            {"id": "hero_photo", "status": "BLOCKED_ASSET_SOURCE"},
-            {"id": "neighbor_photos", "status": "BLOCKED_MISSING_APPROVED_INDEPENDENT_ORIGINALS"},
+            {"id": "hero_photo", "status": "BLOCKED_PUBLIC_REDISTRIBUTION"},
+            {"id": "neighbor_photos", "status": "BLOCKED_PUBLIC_REDISTRIBUTION"},
         ]
     structure = {
         "heroPlaceholder": p3_status == "BLOCKED",
@@ -94,7 +94,7 @@ class PreviewReleaseGateTests(unittest.TestCase):
 
     def test_unknown_media_blocker_fails_closed(self):
         report, contract, manifest, html = fixture()
-        report["checks"]["nh01_preview_v2"]["media_blockers"].append({"id": "secret_asset", "status": "BLOCKED_ASSET_SOURCE"})
+        report["checks"]["nh01_preview_v2"]["media_blockers"].append({"id": "secret_asset", "status": "BLOCKED_PUBLIC_REDISTRIBUTION"})
         report["nh01_preview_v2_blockers"] = report["checks"]["nh01_preview_v2"]["media_blockers"]
         with self.assertRaises(GateError):
             resolve_release_mode(report, contract, manifest, html, SHA)
@@ -103,6 +103,14 @@ class PreviewReleaseGateTests(unittest.TestCase):
         report, contract, manifest, html = fixture()
         with self.assertRaises(GateError):
             resolve_release_mode(report, contract, manifest, html, "b" * 40)
+
+    def test_local_photo_success_does_not_grant_public_redistribution(self):
+        report, contract, manifest, html = fixture()
+        report["checks"]["private_media"] = {"status": "PASS", "public_redistribution": "NOT_CONFIRMED"}
+        result = resolve_release_mode(report, contract, manifest, html, SHA)
+        self.assertEqual(result["preview_mode"], "PREVIEW_ONLY")
+        self.assertEqual(result["nh01_preview_v2_status"], "BLOCKED")
+        self.assertIn("public photo placeholders", result["reason"])
 
     def test_candidate_must_keep_unapproved_media_hidden(self):
         report, contract, manifest, html = fixture()

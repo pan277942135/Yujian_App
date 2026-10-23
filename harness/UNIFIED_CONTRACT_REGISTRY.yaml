@@ -1455,7 +1455,7 @@ page_contract_sets:
       nh01_authority_map: "design/pages/home/normal_home/authority/authority_map.json"
       responsive_layout: "design/pages/home/normal_home/responsive/NH01_RESPONSIVE_LAYOUT_V2.json"
       responsive_authority_crosswalk: "design/pages/home/normal_home/responsive/NH01_RESPONSIVE_AUTHORITY_CROSSWALK_V1.md"
-    authority_rule: "The existing visual key remains the original NH01 V1 whole-page authority; appended static_hifi keys own the additive archive. The Responsive Layout V2 candidate owns the logical A/B/C band surplus rule with 2S/3 to A-to-B and S/3 to B-to-C; the internal title-to-Hero gap and physical Top/Middle/Footer structure remain unchanged. Gemini Adaptive V2 and its native matrix remain the Android runtime authority."
+    authority_rule: "The original NH01 V1 remains the whole-page visual authority. The additive static_hifi contract freezes Responsive Foundation V1.1 equal S/2 additions to A-to-B and B-to-C. The Responsive Layout V2 branch candidate proposes 2S/3 and S/3 as a distinct override; it remains PROPOSED_FOR_CANONICAL_MAIN_REVIEW and is not aligned, frozen or adopted until canonical Main explicitly resolves the delta. Physical Top/Middle/Footer structure, internal Title-to-Hero gap, existing base-gap formulas and Gemini Adaptive V2 numeric constraints remain binding."
   recognition_flow_v1_2:
     refs:
       capture_page: "design/system_v3/08_Page_Contracts/recognition/capture/Recognition_Capture_Page_Contract_V3_1.md"
@@ -1840,6 +1840,6 @@ inventory:
   task_count: 51
   gate_count: 17
   registry_created_from_pr_head: "ebb6b3904feaa0cf26b4fd4b83bc809a397085a2"
-  last_synced_feature_matrix_sha: "a14a80b9cfd10f2d43ed22998ce693c28a11d441"
+  last_synced_feature_matrix_sha: "9a37127ce83d646988793fb31614fc27a5337b54"
   last_synced_phase_task_state_machine_sha: "e890464c27400e24f01043a1a159f0427685a32f"
   last_synced_experience_registry_sha: "47be44ca3cbce908fa676e262987fe26a8dbea32"

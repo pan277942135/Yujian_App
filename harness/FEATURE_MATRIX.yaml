@@ -159,7 +159,7 @@ features:
       layout_policy: "app/src/main/java/com/yujian/ai/ui/home/GeminiHomeAdaptiveLayoutPolicy.kt"
     known_gaps:
       - "Runtime/evidence remain partial; Hero F01-F08 fixture matrix and camera optical parity are open (B003/B004)."
-      - "NH01 Responsive Layout V2 candidate changes positive long-screen surplus allocation to 2S/3 for A→B and S/3 for B→C; implementation and exact-SHA runtime evidence must be resynchronized and reverified."
+      - "Canonical Main Responsive Foundation V1.1 freezes equal S/2 positive-surplus additions to A→B and B→C; the NH01 Responsive Layout V2 candidate proposes 2S/3 and S/3 instead and remains pending explicit canonical review. Do not treat the candidate as aligned or frozen until this delta is resolved."
   record_date_v2:
     sequence: 3
     name: "记录日期"

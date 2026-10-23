@@ -18,8 +18,8 @@ EXPECTED_CONTRACT_VERSION = "2.0"
 PROPOSED = "PROPOSED_FOR_CANONICAL_MAIN_REVIEW"
 FROZEN = "SPEC_FROZEN"
 EXPECTED_BLOCKERS = {
-    "hero_photo": "BLOCKED_ASSET_SOURCE",
-    "neighbor_photos": "BLOCKED_MISSING_APPROVED_INDEPENDENT_ORIGINALS",
+    "hero_photo": "BLOCKED_PUBLIC_REDISTRIBUTION",
+    "neighbor_photos": "BLOCKED_PUBLIC_REDISTRIBUTION",
 }
 
 
@@ -121,7 +121,7 @@ def resolve_release_mode(
         "nh01_preview_v2_status": preview_status,
         "release_gate_effect": gate_effect,
         "acceptance_status": acceptance_status,
-        "reason": "Candidate preview is independently publishable; blocked media remains explicitly unavailable and the NH01 Responsive Preview V2 gate is not claimed." if mode == "PREVIEW_ONLY" else "Frozen acceptance release requires and has NH01 Responsive Preview V2 PASS.",
+        "reason": "Candidate preview is independently publishable with public photo placeholders; local photo evidence and public redistribution permission are tracked separately, and no frozen acceptance is claimed." if mode == "PREVIEW_ONLY" else "Frozen acceptance release requires and has NH01 Responsive Preview V2 PASS.",
     }
 
 

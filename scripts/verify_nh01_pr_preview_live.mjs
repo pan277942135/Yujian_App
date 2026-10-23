@@ -11,7 +11,7 @@ const playwrightPath = process.env.PLAYWRIGHT_PATH || (moduleRoot ? resolve(modu
 const { chromium } = require(playwrightPath);
 function assert(condition, message) { if (!condition) throw new Error(message); }
 function parseArgs(argv) {
-  const result = { root: process.cwd(), url: null, expectedBuild: null, expectedManagerBuild: null, expectedDeploymentSha: null, deploymentManifestPath: null, output: '/tmp/nh01-responsive-preview-report.json', previewPath: 'previews/pr-176/design/manager/nh01_acceptance/gemini-native-preview.html' };
+  const result = { root: process.cwd(), url: null, expectedBuild: null, expectedManagerBuild: null, expectedDeploymentSha: null, deploymentManifestPath: null, privateMedia: false, output: '/tmp/nh01-responsive-preview-report.json', previewPath: 'previews/pr-176/design/manager/nh01_acceptance/gemini-native-preview.html' };
   for (let i = 2; i < argv.length; i += 1) {
     const arg = argv[i];
     if (arg === '--root') result.root = resolve(argv[++i]);
@@ -20,6 +20,7 @@ function parseArgs(argv) {
     else if (arg === '--expected-manager-build') result.expectedManagerBuild = argv[++i];
     else if (arg === '--expected-deployment-sha') result.expectedDeploymentSha = argv[++i];
     else if (arg === '--deployment-manifest-path') result.deploymentManifestPath = argv[++i].replace(/^\/+/, '');
+    else if (arg === '--private-media') result.privateMedia = true;
     else if (arg === '--output') result.output = resolve(argv[++i]);
     else if (arg === '--preview-path') result.previewPath = argv[++i].replace(/^\/+/, '');
     else throw new Error('Unknown argument: ' + arg);
@@ -70,6 +71,20 @@ async function setSafeInsets(page, insets) {
   },insets);
   await page.waitForFunction(values=>window.NH01GeminiPreviewLayoutReady&&Object.entries(values).every(([key,value])=>window.NH01GeminiPreviewLayout.safe_insets_dp[key]===value),insets,{timeout:10000});
 }
+async function collectPrivatePhotoGeometry(page) {
+  return page.evaluate(() => {
+    const cards=[['left','#leftCatchCard'],['hero','#mainCatchCard'],['right','#rightCatchCard']].map(([role,selector])=>{
+      const card=document.querySelector(selector);const image=card.querySelector('img.catch-photo-fit[data-private-photo-id]');
+      if(!image||card.hidden)return {role,hidden:card.hidden,asset_id:image?.dataset.privatePhotoId||null};
+      const c=card.getBoundingClientRect(),r=image.getBoundingClientRect();
+      const ratio=image.naturalWidth/image.naturalHeight,boxRatio=r.width/r.height;
+      const width=boxRatio>ratio?r.height*ratio:r.width,height=boxRatio>ratio?r.height:r.width/ratio;
+      const left=r.left+(r.width-width)/2,top=r.top+(r.height-height)/2;
+      return {role,hidden:false,asset_id:image.dataset.privatePhotoId,fixture_id:image.dataset.privateFixtureId,sha256:image.dataset.sha256,object_fit:getComputedStyle(image).objectFit,natural_px:[image.naturalWidth,image.naturalHeight],card_bounds:[c.left,c.top,c.right,c.bottom],rendered_full_photo_bounds:[left,top,left+width,top+height],full_photo_within_card:left>=c.left-1&&top>=c.top-1&&left+width<=c.right+1&&top+height<=c.bottom+1,rendered_aspect_ratio:width/height,source_aspect_ratio:ratio};
+    });
+    return {cards,viewport:[window.NH01GeminiPreviewLayout?.logical_viewport_dp?.[0],window.NH01GeminiPreviewLayout?.logical_viewport_dp?.[1]],font_scale:window.NH01GeminiPreviewLayout?.system_font_scale};
+  });
+}
 function numericDelta(a, b) { return Math.abs(Number(a) - Number(b)); }
 async function main() {
   const args = parseArgs(process.argv);
@@ -81,7 +96,9 @@ async function main() {
   let origin = args.url;
   if (!origin) { const started = await startStaticServer(args.root); server = started.server; origin = started.origin; }
   if (!origin.endsWith('/')) origin += '/';
-  const previewUrl = new URL(args.previewPath, origin).href;
+  const previewAddress = new URL(args.previewPath, origin);
+  if (args.privateMedia) previewAddress.searchParams.set('privateMedia','1');
+  const previewUrl = previewAddress.href;
   const managerUrl = new URL('design/manager/#page/recognition_flow_v1_2/hifi/capture_first_use_guide/p01', origin).href;
   const browser = await chromium.launch({
     headless: true,
@@ -164,9 +181,10 @@ async function main() {
       footerOutsideMiddle:!!document.querySelector('#middleSection')&&!document.querySelector('#middleSection').contains(document.querySelector('#footerSection')),
       hiddenNeighbors:[...document.querySelectorAll('.neighbor-card')].every(node=>node.hidden),
       visibleNeighborCount:[...document.querySelectorAll('.neighbor-card')].filter(node=>!node.hidden).length,
-      heroPlaceholder:document.querySelector('#heroPlaceholder')?.dataset.status==='BLOCKED_ASSET_SOURCE',
-      heroPhotoRendered:[...document.querySelectorAll('#mainCatchCard img[data-asset-id="hero_photo"]')].some(image=>image.complete&&image.naturalWidth>0),
-      neighborPhotoCount:[...document.querySelectorAll('.neighbor-card:not([hidden]) img[data-asset-id="neighbor_photos"]')].filter(image=>image.complete&&image.naturalWidth>0).length,
+      heroPlaceholder:!!document.querySelector('#heroPlaceholder')&&!document.querySelector('#heroPlaceholder').hidden&&document.querySelector('#heroPlaceholder').dataset.status==='BLOCKED_ASSET_SOURCE',
+      heroPhotoRendered:[...document.querySelectorAll('#mainCatchCard img[data-private-photo-id]')].some(image=>image.classList.contains('catch-photo-fit')&&image.complete&&image.naturalWidth>0),
+      neighborPhotoCount:[...document.querySelectorAll('.neighbor-card:not([hidden]) img.catch-photo-fit[data-private-photo-id]')].filter(image=>image.complete&&image.naturalWidth>0).length,
+      privatePhotoIdentities:[...document.querySelectorAll('.neighbor-card:not([hidden]) img.catch-photo-fit[data-private-photo-id],#mainCatchCard img.catch-photo-fit[data-private-photo-id]')].map(image=>({id:image.dataset.privatePhotoId,fixtureId:image.dataset.privateFixtureId,sha256:image.dataset.sha256,fit:getComputedStyle(image).objectFit,naturalWidth:image.naturalWidth,naturalHeight:image.naturalHeight})),
       privatePhotoReferences:[...document.querySelectorAll('img')].map(image=>image.currentSrc||image.src||'').filter(src=>src.includes('sample_recent_catch.jpg')||src.includes('/home_normal/fish_record/')).length,
       layerTree:document.querySelectorAll('#layerTree button').length,
       propertyInspector:!!document.querySelector('[aria-label="所选图层属性检查器"]'),
@@ -175,16 +193,59 @@ async function main() {
     }));
     assert(visibleStructure.brand && visibleStructure.stats === 3 && visibleStructure.sectionTitle && visibleStructure.hero && visibleStructure.footer, 'Brand, three statistics, Recent Catch, Hero and Footer hierarchy must render');
     assert(visibleStructure.middle&&visibleStructure.footerOutsideMiddle&&visibleStructure.layerTree>0&&visibleStructure.propertyInspector,'Footer/Middle composition or existing layer/property workspace is missing');
-    assert(visibleStructure.hiddenNeighbors, 'No missing neighbor catch may be cloned or rendered');
     assert(visibleStructure.privatePhotoReferences===0, 'An unapproved catch-photo source is referenced by a rendered image');
+    if(args.privateMedia){
+      const localAudit=await page.evaluate(()=>window.NH01PrivatePhotoAudit);
+      assert(localAudit?.status==='PASS'&&localAudit.records?.length===3,'Private local photo binding did not pass SHA, size and type checks: '+JSON.stringify(localAudit));
+      assert(!visibleStructure.heroPlaceholder&&visibleStructure.heroPhotoRendered&&visibleStructure.visibleNeighborCount===2&&visibleStructure.neighborPhotoCount===2,'Local preview must show the Hero plus two distinct Peek originals');
+      assert(new Set(visibleStructure.privatePhotoIdentities.map(item=>item.id)).size===3&&new Set(visibleStructure.privatePhotoIdentities.map(item=>item.sha256)).size===3&&new Set(visibleStructure.privatePhotoIdentities.map(item=>item.fixtureId)).size===3,'Three visible cards do not have distinct asset, source hash and fixture identities');
+      assert(visibleStructure.privatePhotoIdentities.every(item=>item.fit==='contain'&&item.naturalWidth>0&&item.naturalHeight>0),'A private photo was stretched, cropped in the foreground, or failed to load');
+      report.checks.private_media=localAudit;
+    }else{
+      assert(visibleStructure.hiddenNeighbors&&visibleStructure.heroPlaceholder&&!visibleStructure.heroPhotoRendered,'Public preview must keep private photos unavailable and preserve the labeled Hero placeholder');
+      report.checks.private_media={status:'NOT_REQUESTED',public_redistribution:'NOT_CONFIRMED'};
+    }
     assert(visibleStructure.ruleRows >= 8 && visibleStructure.referenceRendered, 'Interactive rule viewer and frozen-reference viewer must render');
     const assets = await page.locator('img[data-asset-id]').evaluateAll(images => images.map(image => ({asset:image.dataset.assetId,src:image.currentSrc,complete:image.complete,naturalWidth:image.naturalWidth,naturalHeight:image.naturalHeight})));
     assert(assets.every(image => image.complete && image.naturalWidth > 0), 'Registered preview assets did not all load: ' + JSON.stringify(assets.filter(image=>!image.complete||image.naturalWidth<=0)));
     report.checks.contract = {id:contract.id,version:contract.version,path:contract.path,sha256:contract.sha256,status:contract.status,source_sha:contract.source_sha,deployment_sha:contract.deployment_sha,anchor_count:anchors.length,anchors,visible_structure:visibleStructure,registered_assets:assets};
     report.checks.fixed_viewport_frames=frameContracts;
+    if(args.privateMedia){
+      const initialTriplet=await page.evaluate(()=>({selected:window.NH01SelectedPrivatePhoto,left:document.querySelector('#leftCatchCard').querySelector('.catch-photo-fit')?.dataset.privatePhotoId||null,hero:document.querySelector('#mainCatchCard .catch-photo-fit')?.dataset.privatePhotoId||null,right:document.querySelector('#rightCatchCard').querySelector('.catch-photo-fit')?.dataset.privatePhotoId||null}));
+      assert(initialTriplet.selected?.index===1&&initialTriplet.left==='peek_left_photo'&&initialTriplet.hero==='hero_photo'&&initialTriplet.right==='peek_right_photo','Initial three-card mapping does not match the assigned Hero / Peek identities: '+JSON.stringify(initialTriplet));
+      const publicPage=await browser.newPage({viewport:{width:1600,height:1400},deviceScaleFactor:1});
+      const publicAddress=new URL(args.previewPath,origin);
+      const publicResponse=await publicPage.goto(publicAddress.href,{waitUntil:'domcontentloaded',timeout:60000});
+      assert(publicResponse?.status()===200,'Public placeholder comparison route HTTP status is not 200');
+      await publicPage.waitForFunction(()=>window.NH01GeminiPreviewReady===true&&window.NH01GeminiPreviewLayoutReady===true,undefined,{timeout:60000});
+      const publicState=await publicPage.evaluate(()=>({heroPlaceholder:!document.querySelector('#heroPlaceholder').hidden,hiddenNeighbors:[...document.querySelectorAll('.neighbor-card')].every(node=>node.hidden),photoElements:[...document.querySelectorAll('.catch-photo-fit')].filter(image=>image.complete&&image.naturalWidth>0).length}));
+      assert(publicState.heroPlaceholder&&publicState.hiddenNeighbors&&publicState.photoElements===0,'Public comparison route exposed private photos instead of the placeholder state');
+      const publicShot=join(evidenceDir,'public-placeholder-390x844.png');
+      await publicPage.locator('#device').screenshot({path:publicShot,animations:'disabled'});report.screenshots.push(publicShot);
+      await publicPage.close();
+      const tripletShot=join(evidenceDir,'three-card-initial-390x844.png');
+      await page.locator('#device').screenshot({path:tripletShot,animations:'disabled'});report.screenshots.push(tripletShot);
+      await page.locator('#leftCatchCard').click();
+      await page.waitForFunction(()=>window.NH01SelectedPrivatePhoto?.index===0&&window.NH01GeminiPreviewLayoutReady,undefined,{timeout:10000});
+      const firstTriplet=await page.evaluate(()=>({selected:window.NH01SelectedPrivatePhoto,leftHidden:document.querySelector('#leftCatchCard').hidden,hero:document.querySelector('#mainCatchCard .catch-photo-fit')?.dataset.privatePhotoId||null,right:document.querySelector('#rightCatchCard .catch-photo-fit')?.dataset.privatePhotoId||null}));
+      assert(firstTriplet.selected.asset_id==='peek_left_photo'&&firstTriplet.leftHidden&&firstTriplet.hero==='peek_left_photo'&&firstTriplet.right==='hero_photo','Selecting the left Peek did not update the finite carousel: '+JSON.stringify(firstTriplet));
+      const firstShot=join(evidenceDir,'three-card-first-record.png');await page.locator('#device').screenshot({path:firstShot,animations:'disabled'});report.screenshots.push(firstShot);
+      await page.locator('#rightCatchCard').click();await page.waitForFunction(()=>window.NH01SelectedPrivatePhoto?.index===1&&window.NH01GeminiPreviewLayoutReady,undefined,{timeout:10000});
+      await page.locator('#rightCatchCard').click();await page.waitForFunction(()=>window.NH01SelectedPrivatePhoto?.index===2&&window.NH01GeminiPreviewLayoutReady,undefined,{timeout:10000});
+      const lastTriplet=await page.evaluate(()=>({selected:window.NH01SelectedPrivatePhoto,left:document.querySelector('#leftCatchCard .catch-photo-fit')?.dataset.privatePhotoId||null,rightHidden:document.querySelector('#rightCatchCard').hidden}));
+      assert(lastTriplet.selected.asset_id==='peek_right_photo'&&lastTriplet.left==='hero_photo'&&lastTriplet.rightHidden,'Selecting the right Peek did not stop at the finite last record: '+JSON.stringify(lastTriplet));
+      await page.locator('#rightCatchCard').evaluate(node=>node.dispatchEvent(new MouseEvent('click',{bubbles:true})));
+      assert(await page.evaluate(()=>window.NH01SelectedPrivatePhoto.index===2),'Carousel wrapped past the final real record.');
+      const lastShot=join(evidenceDir,'three-card-last-record.png');await page.locator('#device').screenshot({path:lastShot,animations:'disabled'});report.screenshots.push(lastShot);
+      await page.locator('#leftCatchCard').click();await page.waitForFunction(()=>window.NH01SelectedPrivatePhoto?.index===1&&window.NH01GeminiPreviewLayoutReady,undefined,{timeout:10000});
+      await page.locator('#rightCatchCard').focus();await page.keyboard.press('Enter');await page.waitForFunction(()=>window.NH01SelectedPrivatePhoto?.index===2&&window.NH01GeminiPreviewLayoutReady,undefined,{timeout:10000});
+      await page.locator('#leftCatchCard').focus();await page.keyboard.press('Enter');await page.waitForFunction(()=>window.NH01SelectedPrivatePhoto?.index===1&&window.NH01GeminiPreviewLayoutReady,undefined,{timeout:10000});
+      report.checks.three_card_switch={status:'PASS',initial:initialTriplet,first:firstTriplet,last:lastTriplet,finite_end_no_wrap:true,mouse_click:true,keyboard_enter:true,center_restored:await page.evaluate(()=>window.NH01SelectedPrivatePhoto.asset_id)};
+      report.checks.private_photo_viewports=[];
+    }
     const previewAudit=await page.evaluate(()=>window.NH01GeminiPreviewAudit);
-    const mediaBlockers=(previewAudit?.assets||[]).filter(asset=>asset.status==='BLOCKED_ASSET_SOURCE'||asset.status==='BLOCKED_MISSING_APPROVED_INDEPENDENT_ORIGINALS');
-    report.checks.nh01_preview_v2={status:mediaBlockers.length?'BLOCKED':'PASS',media_blockers:mediaBlockers.map(asset=>({id:asset.id,status:asset.status,reason:asset.reason||null})),rule:'G-NH01-RESPONSIVE-PREVIEW-V2 cannot claim image-level acceptance while Hero photo provenance or independent neighbor records are blocked.'};
+    const mediaBlockers=(previewAudit?.assets||[]).filter(asset=>asset.status==='BLOCKED_PUBLIC_REDISTRIBUTION');
+    report.checks.nh01_preview_v2={status:mediaBlockers.length?'BLOCKED':'PASS',media_blockers:mediaBlockers.map(asset=>({id:asset.id,status:asset.status,reason:asset.reason||null})),rule:'Public image distribution remains blocked until permission is confirmed; local private photo verification is reported independently.'};
     report.nh01_preview_v2_status=mediaBlockers.length?'BLOCKED':'PASS';
     if(mediaBlockers.length)report.nh01_preview_v2_blockers=report.checks.nh01_preview_v2.media_blockers;
     if(mediaBlockers.length){
@@ -204,7 +265,7 @@ async function main() {
         assert(contract.status==='PROPOSED_FOR_CANONICAL_MAIN_REVIEW','PREVIEW_ONLY deployment cannot claim a frozen contract');
         assert(deploymentManifest.release_gate_effect==='NONE'&&deploymentManifest.acceptance_status==='NOT_CLAIMED','PREVIEW_ONLY deployment must not claim NH01 preview or freeze-gate PASS');
         assert(deploymentManifest.media_policy?.non_public_asset_files_copied===false,'PREVIEW_ONLY must not copy non-public media');
-        if(report.nh01_preview_v2_status==='BLOCKED')assert(deploymentManifest.media_policy?.hero==='PLACEHOLDER_ONLY'&&deploymentManifest.media_policy?.neighbors==='HIDDEN_UNTIL_APPROVED_INDEPENDENT_ORIGINALS','Blocked media policy is missing from the deployment manifest');
+        if(report.nh01_preview_v2_status==='BLOCKED')assert(deploymentManifest.media_policy?.hero==='PLACEHOLDER_ONLY'&&deploymentManifest.media_policy?.neighbors==='HIDDEN_UNTIL_PUBLIC_REDISTRIBUTION_AUTHORIZED','Blocked media policy is missing from the deployment manifest');
       }else if(deploymentManifest.release_mode==='FROZEN_ACCEPTANCE'){
         assert(contract.status==='SPEC_FROZEN'&&report.nh01_preview_v2_status==='PASS','FROZEN_ACCEPTANCE requires SPEC_FROZEN and NH01 Responsive Preview V2 PASS');
         assert(deploymentManifest.release_gate_effect==='G-NH01-RESPONSIVE-PREVIEW-V2_PASS_REQUIRED','Frozen release manifest must record the NH01 Responsive Preview V2 gate');
@@ -236,6 +297,7 @@ async function main() {
       fixedResults.push({profile_id:profile.id,requested_viewport_dp:[profile.width,profile.height],measured:layout});
       report.checks.fixed_viewports=fixedResults;
       assert(layout.variant === 'ADAPTIVE_V2' && layout.contract_sha256 === contract.sha256, `${profile.id} did not use the loaded V2 contract`);
+      if(profile.width===320&&profile.height===480)assert(!layout.needs_scroll, '320x480dp at fontScale 1.0 must not introduce unexpected Middle scrolling');
       assert(layout.content_width_dp <= 560 + 0.01, `${profile.id} exceeded the contract max content width`);
       assert(layout.measurements.horizontal_overflow_dp <= 0.5, `${profile.id} has horizontal overflow`);
       assert(layout.measurements.hero_overlap_footer <= 0.5, `${profile.id} Hero overlaps Footer`);
@@ -248,6 +310,11 @@ async function main() {
       assert(layout.hero_aspect_ratio && numericDelta(layout.card_width_dp/layout.card_height_dp,layout.responsive_parameters.hero.aspect_ratio_width/layout.responsive_parameters.hero.aspect_ratio_height) < 0.015, `${profile.id} Hero aspect ratio is outside contract tolerance`);
       const target=contractJson.spacing.title_to_card_anchor_targets.find(item=>item.profile_id===profile.id);
       if(target) assert(numericDelta(layout.measurements.title_to_card,target.target_dp)<=target.tolerance_dp,`${profile.id} title-to-card gap ${layout.measurements.title_to_card.toFixed(2)}dp outside ${target.target_dp}±${target.tolerance_dp}dp`);
+      if(args.privateMedia){
+        const geometry=await collectPrivatePhotoGeometry(page);
+        assert(geometry.cards.length===3&&geometry.cards.every(card=>!card.hidden&&card.object_fit==='contain'&&card.full_photo_within_card&&numericDelta(card.rendered_aspect_ratio,card.source_aspect_ratio)<0.01),`${profile.id} cropped, stretched, failed or hid a local original: ${JSON.stringify(geometry)}`);
+        report.checks.private_photo_viewports.push({profile_id:profile.id,viewport_dp:geometry.viewport,font_scale:geometry.font_scale,cards:geometry.cards.map(({role,asset_id,fixture_id,sha256,object_fit,natural_px,full_photo_within_card})=>({role,asset_id,fixture_id,sha256,object_fit,natural_px,full_photo_within_card}))});
+      }
     }
     assert(fixedResults.at(-1).measured.content_width_dp === 560, '600dp wide view did not center at the contract width cap');
     for(let index=1;index<fixedResults.length;index++){
@@ -262,6 +329,21 @@ async function main() {
     assert(Math.abs(fixedResults.at(-1).measured.content_left_dp-20)<=0.5,'600dp wide content is not centered around its 560dp width cap');
     report.checks.fixed_viewports=fixedResults;
 
+    if(args.privateMedia){
+      const widthBoundary=[];
+      for(const width of [479,480,481]){
+        const layout=await setViewport(page,width,844,1);
+        assert(layout.measurements.horizontal_overflow_dp<=0.5,`Width-only boundary probe ${width}dp has horizontal overflow`);
+        assert(layout.measurements.hero_overlap_footer<=0.5,`Width-only boundary probe ${width}dp overlaps Hero and Footer`);
+        const geometry=await collectPrivatePhotoGeometry(page);
+        assert(geometry.cards.length===3&&geometry.cards.every(card=>!card.hidden&&card.object_fit==='contain'&&card.full_photo_within_card),`Width-only boundary probe ${width}dp cropped or hid an original: ${JSON.stringify(geometry)}`);
+        widthBoundary.push({width_dp:width,height_context_dp:844,height_context_is_probe_only:true,no_M05_height_inferred:true,card_width_dp:layout.card_width_dp,card_height_dp:layout.card_height_dp,title_to_card_dp:layout.measurements.title_to_card,full_photo_fit:true});
+        if(width===480){const path=join(evidenceDir,'width-boundary-480dp-probe-only.png');await page.locator('#device').screenshot({path,animations:'disabled'});report.screenshots.push(path);}
+      }
+      assert(widthBoundary[0].card_width_dp<=widthBoundary[1].card_width_dp+0.5&&widthBoundary[1].card_width_dp<=widthBoundary[2].card_width_dp+0.5,'Hero width is discontinuous across the 480dp width boundary');
+      report.checks.width_boundary_480dp={status:'PASS',context:'Synthetic free-resize probe at 479/480/481dp width with 844dp test harness context only; does not infer a height for the M05 width-only static reference.',cases:widthBoundary};
+    }
+
     const font130=await setViewport(page,320,480,1.3);
     report.checks.font_1_3=font130;
     const fontScreenshot=join(evidenceDir,'font-1_3-320x480.png');
@@ -269,6 +351,11 @@ async function main() {
     report.screenshots.push(fontScreenshot);
     assert(font130.text_lines.species>=1&&font130.text_lines.species<=2&&font130.text_lines.measurement<=2&&font130.text_lines.metadata<=2, `Font scale 1.3 text wrapping exceeded the contract line limits: ${JSON.stringify(font130.text_lines)}`);
     assert(font130.measurements.horizontal_overflow_dp<=0.5, 'Font scale 1.3 caused horizontal overflow');
+    const font130Long=await setViewport(page,430,932,1.3);
+    assert(font130Long.text_lines.species>=1&&font130Long.text_lines.species<=2&&font130Long.text_lines.measurement<=2&&font130Long.text_lines.metadata<=2, `Long-screen font scale 1.3 text wrapping exceeded the contract line limits: ${JSON.stringify(font130Long.text_lines)}`);
+    assert(font130Long.measurements.horizontal_overflow_dp<=0.5, 'Long-screen font scale 1.3 caused horizontal overflow');
+    const fontLongScreenshot=join(evidenceDir,'font-1_3-430x932.png');
+    await page.locator('#device').screenshot({path:fontLongScreenshot,animations:'disabled'});report.screenshots.push(fontLongScreenshot);
     await page.locator('#layoutVariant').selectOption('V3_BASELINE');
     await page.waitForFunction(()=>window.NH01GeminiPreviewLayoutReady&&window.NH01GeminiPreviewLayout.variant==='V3_BASELINE',undefined,{timeout:30000});
     const baseline=await page.evaluate(()=>({variant:window.NH01GeminiPreviewLayout.variant,card_size:[window.NH01GeminiPreviewLayout.card_width_dp,window.NH01GeminiPreviewLayout.card_height_dp]}));
@@ -300,7 +387,7 @@ async function main() {
       fields.bottom.dispatchEvent(new Event('change',{bubbles:true}));
     },defaultInsets);
     await page.waitForFunction(insets=>window.NH01GeminiPreviewLayoutReady&&Object.entries(insets).every(([key,value])=>window.NH01GeminiPreviewLayout.safe_insets_dp[key]===value),defaultInsets,{timeout:10000});
-    report.checks.interactive_controls={baseline,adaptive_restored:returned.variant,free_viewport:freeWidth.logical_viewport_dp,font_scale_1_3:{font_scale:font130.system_font_scale,text_lines:font130.text_lines,card_size:[font130.card_width_dp,font130.card_height_dp]},safe_inset_adjustment:insetProbe,continuity_probe_safe_insets:defaultInsets,m05_viewer:m05ViewerText};
+    report.checks.interactive_controls={baseline,adaptive_restored:returned.variant,free_viewport:freeWidth.logical_viewport_dp,font_scale_1_3:{short_screen:{font_scale:font130.system_font_scale,text_lines:font130.text_lines,card_size:[font130.card_width_dp,font130.card_height_dp]},wide_long_screen:{font_scale:font130Long.system_font_scale,text_lines:font130Long.text_lines,card_size:[font130Long.card_width_dp,font130Long.card_height_dp]}},safe_inset_adjustment:insetProbe,continuity_probe_safe_insets:defaultInsets,m05_viewer:m05ViewerText};
 
     const probes=[];
     for(const probe of probePairs){
@@ -371,6 +458,19 @@ async function main() {
     assert(await missingFieldPage.evaluate(()=>window.NH01GeminiPreviewLayoutReady!==true),'Missing required field used a stale/fallback layout');
     await missingFieldPage.close();
     report.checks.fail_closed={missing_contract:missingFailure,version_mismatch:versionFailure,missing_required_field:missingFieldFailure,no_fallback:true};
+
+    if(args.privateMedia){
+      const missingPhotoPage=await browser.newPage({viewport:{width:1600,height:1400}});
+      await missingPhotoPage.route('**/local_media/*',route=>route.abort());
+      const missingPhotoAddress=new URL(args.previewPath,origin);missingPhotoAddress.searchParams.set('privateMedia','1');
+      const missingPhotoResponse=await missingPhotoPage.goto(missingPhotoAddress.href,{waitUntil:'domcontentloaded',timeout:60000});
+      assert(missingPhotoResponse?.status()===200,'Image-failure fallback test route HTTP status is not 200');
+      await missingPhotoPage.waitForFunction(()=>window.NH01PrivatePhotoAudit?.status==='FAIL'&&window.NH01GeminiPreviewLayoutReady===true,undefined,{timeout:60000});
+      const imageFallback=await missingPhotoPage.evaluate(()=>({status:window.NH01PrivatePhotoAudit.status,placeholder:!document.querySelector('#heroPlaceholder').hidden,neighborsHidden:[...document.querySelectorAll('.neighbor-card')].every(card=>card.hidden),photoCount:[...document.querySelectorAll('.catch-photo-fit[data-private-photo-id]')].filter(image=>image.complete&&image.naturalWidth>0).length,message:document.querySelector('#privatePhotoStatus')?.textContent||''}));
+      assert(imageFallback.placeholder&&imageFallback.neighborsHidden&&imageFallback.photoCount===0&&/回退/.test(imageFallback.message),'Image-load failure did not fail closed to the labeled public placeholder state: '+JSON.stringify(imageFallback));
+      report.checks.image_load_failure_fallback={status:'PASS',...imageFallback};
+      await missingPhotoPage.close();
+    }
 
     assert(failedRequests.length===0,'Same-origin requests failed: '+failedRequests.join('; '));
     assert(badResponses.length===0,'Same-origin responses returned errors: '+badResponses.join('; '));

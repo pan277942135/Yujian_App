@@ -27,6 +27,10 @@
 7. **Specification and runtime states are independent.** A schema or browser-preview pass cannot change Android Runtime from `NOT_VERIFIED` to `PASS`.
 8. **Code is not the authority.** Three implementation-conformance follow-ups are recorded in the machine contract. Work must resolve them against the contract in a separate implementation task; it must not weaken the contract to fit current helper behavior.
 
+## Current Main baseline delta — review required
+
+The latest Main responsive foundation is V1.1 and freezes equal positive-surplus additions (`S/2`, `S/2`). This PR's NH01 Responsive Layout V2 candidate retains the task-specified `2S/3`, `S/3` split, so it is a deliberate proposal to change that frozen foundation. The candidate does not claim that the two policies are already aligned. Keep the contract `PROPOSED_FOR_CANONICAL_MAIN_REVIEW` and the preview `PREVIEW_ONLY` until canonical Main explicitly accepts or rejects the delta. The authority map now reflects V1.1 and records the candidate delta separately.
+
 ## Canonical adoption sequence
 
 1. Validate the JSON against the shared schema and verify all six frozen image hashes/canvas dimensions.

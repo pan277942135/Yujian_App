@@ -2,6 +2,8 @@
 
 import { createServer } from "node:http";
 import { createReadStream, existsSync, statSync } from "node:fs";
+import { readFile } from "node:fs/promises";
+import { createHash } from "node:crypto";
 import { resolve, extname, sep } from "node:path";
 import { createRequire } from "node:module";
 
@@ -13,13 +15,14 @@ let activeBrowser = null;
 let activeServer = null;
 
 function parseArgs(argv) {
-  const result = { root: process.cwd(), url: null, outputDir: "/tmp/design-manager-browser-evidence", expectedBuild: null };
+  const result = { root: process.cwd(), url: null, outputDir: "/tmp/design-manager-browser-evidence", expectedBuild: null, swosPhoto: null };
   for (let i = 2; i < argv.length; i += 1) {
     const arg = argv[i];
     if (arg === "--root") result.root = resolve(argv[++i]);
     else if (arg === "--url") result.url = argv[++i];
     else if (arg === "--output-dir") result.outputDir = resolve(argv[++i]);
     else if (arg === "--expected-build") result.expectedBuild = argv[++i];
+    else if (arg === "--swos-photo") result.swosPhoto = resolve(argv[++i]);
     else throw new Error(`Unknown argument: ${arg}`);
   }
   return result;
@@ -65,6 +68,20 @@ async function waitForManager(page) {
   await page.locator("#pageList .module-item").first().waitFor({ state: "visible", timeout: 30000 });
 }
 
+async function waitForManagerShell(page) {
+  // Historical routes can intentionally hide the current title while keeping
+  // the shared navigation shell mounted. Use the shell as the readiness signal
+  // when opening arbitrary registered routes.
+  await page.locator("#pageList .module-item").first().waitFor({ state: "visible", timeout: 30000 });
+}
+
+async function waitForPrivateReference(page) {
+  const selector = 'iframe[title="原始高保真私有查看与合同对照"]';
+  if (await page.locator(selector).count()) {
+    await page.frameLocator(selector).locator("#identity").filter({hasText: /SHA-256|正式权威/}).waitFor({state: "visible", timeout: 30000});
+  }
+}
+
 async function waitForHifiView(page) {
   await page.locator("#hifiViewTitle").waitFor({ state: "visible", timeout: 30000 });
 }
@@ -105,12 +122,14 @@ async function main() {
   const errors = [];
   const failedRequests = [];
   const badResponses = [];
+  const requests = [];
   const browser = await chromium.launch({ headless: true });
   activeBrowser = browser;
   const page = await browser.newPage({ viewport: { width: 1440, height: 1000 }, deviceScaleFactor: 1 });
   page.on("console", message => { if (message.type() === "error") errors.push(message.text()); });
   page.on("pageerror", error => errors.push(error.message));
   page.on("requestfailed", request => failedRequests.push(`${request.url()} · ${request.failure()?.errorText || "request failed"}`));
+  page.on("request", request => requests.push({ url: request.url(), method: request.method() }));
   page.on("response", response => {
     if (response.status() >= 400 && response.url().startsWith(new URL(baseUrl).origin)) {
       badResponses.push(`${response.status()} ${response.url()}`);
@@ -124,7 +143,16 @@ async function main() {
   const resourcesHash = "#page/recognition_flow_v1_2/hifi/capture_first_use_guide/resources";
   const fullFlowModelsHash = "#page/recognition_flow_v1_2/hifi/recognition_full_flow_models";
   const nh01MultiScreenHash = "#page/home_normal_v1/hifi/multi_screen_static_hifi";
-  const open = hash => page.goto(baseUrl + hash, { waitUntil: "networkidle", timeout: 45000 });
+  const open = async hash => {
+    await page.goto(baseUrl + hash, { waitUntil: "domcontentloaded", timeout: 45000 });
+    await waitForManagerShell(page);
+    await page.waitForFunction(expected =>
+      location.hash === expected && Boolean(document.querySelector("#hifiViewTitle")?.textContent?.trim()),
+      hash,
+      { timeout: 30000 }
+    );
+    await waitForPrivateReference(page);
+  };
 
   await open(nh01MultiScreenHash);
   await waitForManager(page);
@@ -346,6 +374,134 @@ async function main() {
   assert((await page.locator(".hifi-state-table tbody tr").count()) > 0, "Master Board state JSON should render as a table");
   assert(await page.locator("#hifiViewCanvas img").count() === 0, "Overview must not be used as a Master Board image substitute");
 
+  const swosHash = "#page/recognition_flow_v1_2/hifi/swos_optical_contract";
+  await open(swosHash);
+  await waitForManager(page);
+  assert(page.url().endsWith(swosHash), "SWOS Optical Contract direct Hash route did not resolve");
+  assert((await page.locator("#hifiViewTitle").innerText()).includes("SWOS 光学合同"), "SWOS contract menu title is missing");
+  assert((await page.locator("#hifiViewAuthorities").innerText()).includes("SWOS_Optical_Contract_V1.md"), "SWOS contract authority link is missing");
+  await page.screenshot({ path: resolve(args.outputDir, "swos-optical-contract-1440.png"), fullPage: true });
+  await page.reload({ waitUntil: "networkidle" });
+  assert(page.url().endsWith(swosHash), "refresh must preserve the SWOS contract Hash route");
+
+  const swosStaticHash = "#page/recognition_flow_v1_2/hifi/swos_static_visual_v1_1";
+  await open(swosStaticHash);
+  await waitForManager(page);
+  assert(page.url().endsWith(swosStaticHash), "SWOS static workspace direct Hash route did not resolve");
+  assert((await page.locator("#hifiViewTitle").innerText()).includes("SWOS"), "SWOS static menu title is missing");
+  const swosWorkspace = page.locator(".swos-workspace");
+  await swosWorkspace.waitFor({ state: "visible" });
+  assert(await page.locator(".swos-frame-card").count() === 15, "static workspace must show exactly 15 clickable frames");
+  assert(await page.locator(".swos-track-row").count() === 2, "static workspace must keep Processing and RR09 on separate rows");
+  assert(await page.locator(".swos-track-row").nth(0).locator(".swos-frame-card").count() === 8, "Processing storyboard row must contain 8 frames");
+  assert(await page.locator(".swos-track-row").nth(1).locator(".swos-frame-card").count() === 7, "RR09 storyboard row must contain 7 frames");
+  const r0Frame = page.locator('.swos-frame-card[data-frame-id="R0"] .swos-phone');
+  assert(await r0Frame.locator(".swos-photo-shell").count() === 0, "R0 must not paint a full-screen blurred photo over the entering Result UI");
+  assert(await r0Frame.locator(".swos-result-authority").count() === 1, "R0 must begin with the Frozen Result page underneath the shared photo");
+  assert(await page.locator("[data-geometry-table] tbody tr").count() === 4, "P7/R0/R0.5/R1 geometry comparison must contain 4 rows");
+  assert(await page.locator("[data-geometry-table]").getAttribute("data-contract-frame-count") === "15", "geometry comparison must bind the 15-frame contract");
+  const resultSource = await waitForLoadedImage(page, ".swos-result-authority", "Frozen Result HIGH structure");
+  assert(resultSource.width === 941 && resultSource.height === 1672, `static Result preview must use the existing Frozen HIGH authority: ${JSON.stringify(resultSource)}`);
+  await page.screenshot({ path: resolve(args.outputDir, "swos-static-visual-1440.png"), fullPage: true });
+
+  const sourceRequestCount = requests.length;
+  let uploadedPhotoSha = null;
+  if (args.swosPhoto) {
+    const photoBytes = await readFile(args.swosPhoto);
+    uploadedPhotoSha = createHash("sha256").update(photoBytes).digest("hex");
+    await page.locator(".swos-photo-input").setInputFiles(args.swosPhoto);
+    await page.waitForFunction(sha => document.querySelector(".swos-photo-meta")?.textContent?.includes(sha), uploadedPhotoSha, { timeout: 30000 });
+    assert(await page.locator(".swos-photo-foreground").count() >= 15, "local photo must be composed into the static storyboard frames");
+    const r0Source = await r0Frame.locator(".swos-photo-foreground").getAttribute("src");
+    const r0BlurSource = await r0Frame.locator(".swos-r0-underlay img").getAttribute("src");
+    assert(r0Source && r0Source === r0BlurSource, "R0 foreground and emerging Hero underlay must share the same local photo URL");
+    assert(await r0Frame.locator(".swos-photo-shell").count() === 0, "R0 local photo must leave the Result page visible outside the Processing photo rect");
+    assert(!(await page.evaluate(() => Object.keys(localStorage).length)), "SWOS must not persist the local photo in localStorage");
+    assert(requests.slice(sourceRequestCount).every(request => request.method === "GET" && !request.url.includes(args.swosPhoto.split(/[\\/]/).pop())), "local photo selection must not trigger a POST or request the local filename");
+  }
+
+  const r05 = page.locator('.swos-frame-card[data-frame-id="R0.5"]');
+  await r05.click();
+  const swosDialog = page.locator(".swos-zoom-dialog");
+  await swosDialog.waitFor({ state: "visible" });
+  assert((await swosDialog.locator("[data-zoom-caption]").innerText()).includes("2900ms"), "R0.5 inspector must show its 2900ms global sample time");
+  assert(await swosDialog.locator('.swos-phone[data-frame="R0.5"]').count() === 1, "R0.5 zoom must show its mid-flight photo frame");
+  await swosDialog.locator('[data-mode="original"]').click();
+  assert(await swosDialog.locator(".swos-overlay-svg").count() === 0, "original comparison must hide optical overlays");
+  await swosDialog.locator('[data-mode="composite"]').click();
+  await page.screenshot({ path: resolve(args.outputDir, "swos-r05-zoom-1440.png"), fullPage: false });
+  await page.keyboard.press("Escape");
+  await swosDialog.waitFor({ state: "hidden" });
+
+  const rr09RelatedRoute = '#page/recognition_result_v1/hifi/motion_continuation';
+  await page.locator('.hifi-related-routes a[href="' + rr09RelatedRoute + '"]').click();
+  await page.waitForFunction(expected => location.hash === expected, rr09RelatedRoute);
+  assert(await page.locator('.hifi-related-routes a[href="' + swosStaticHash + '"]').count() === 1, "RR09 must expose the reverse link to SWOS static inspection");
+  await page.locator('.hifi-related-routes a[href="' + swosStaticHash + '"]').click();
+  await page.waitForFunction(expected => location.hash === expected, swosStaticHash);
+  const swosWebMotionRouteHash = "#page/recognition_flow_v1_2/hifi/swos_web_hifi_motion_contract_v1_0";
+  assert(await page.locator('.hifi-related-routes a[href="' + swosWebMotionRouteHash + '"]').count() === 1, "SWOS static review must link to the Web motion technical contract");
+  await waitForPrivateReference(page);
+  await page.setViewportSize({ width: 390, height: 844 });
+  const swosMobileWidth = await page.evaluate(() => ({ document: document.documentElement.scrollWidth, body: document.body.scrollWidth }));
+  assert(swosMobileWidth.document <= 390 && swosMobileWidth.body <= 390, `SWOS workspace overflows the mobile viewport: ${JSON.stringify(swosMobileWidth)}`);
+  await page.screenshot({ path: resolve(args.outputDir, "swos-static-visual-390.png"), fullPage: true });
+  await page.setViewportSize({ width: 1440, height: 1000 });
+
+  const webHifiHash = "#page/recognition_flow_v1_2/hifi/web_hifi_contract_v2";
+  await open(webHifiHash);
+  await waitForHifiView(page);
+  assert(page.url().endsWith(webHifiHash), "Web Hi-Fi V2 direct Hash route did not resolve");
+  assert((await page.locator("#hifiViewTitle").innerText()).includes("Web AI渔获识别"), "Web Hi-Fi V2 menu title is missing");
+  assert((await page.locator("#hifiViewAuthorities").innerText()).includes("WEB_HIFI_CONTRACT_V2.md"), "Web Hi-Fi V2 authority link missing");
+  assert((await page.locator("#hifiViewCanvas").innerText()).includes("原图候选尚未确认为像素权威"), "Web Hi-Fi source caveat missing");
+  assert(await page.locator('#hifiViewContractDetails a[href*="Responsive_Rules_V2.json"]').count() === 1, "Web responsive contract link missing");
+  await page.screenshot({ path: resolve(args.outputDir, "web-hifi-v2-1440.png"), fullPage: true });
+  await page.setViewportSize({ width: 390, height: 844 });
+  const webMobileWidth = await page.evaluate(() => ({ document: document.documentElement.scrollWidth, body: document.body.scrollWidth }));
+  assert(webMobileWidth.document <= 390 && webMobileWidth.body <= 390, `Web contract workspace overflows mobile: ${JSON.stringify(webMobileWidth)}`);
+  await page.setViewportSize({ width: 1440, height: 1000 });
+
+  const swosWebMotionHash = "#page/recognition_flow_v1_2/hifi/swos_web_hifi_motion_contract_v1_0";
+  await open(swosWebMotionHash);
+  await waitForHifiView(page);
+  assert(page.url().endsWith(swosWebMotionHash), "SWOS Web motion technical contract direct Hash route did not resolve");
+  assert((await page.locator("#hifiViewTitle").innerText()).includes("SWOS Web 高保真动效技术合同 V1.0"), "SWOS Web motion contract title is missing");
+  assert((await page.locator("#hifiViewAuthorities").innerText()).includes("SWOS_WEB_HIFI_MOTION_TECHNICAL_CONTRACT_V1_0.md"), "SWOS Web motion contract authority link is missing");
+  assert(await page.locator('#hifiViewContractDetails .hifi-contract-links a[href*="SWOS_WEB_HIFI_MOTION_TECHNICAL_CONTRACT_V1_0.json"]').count() === 1, "SWOS Web motion machine contract link is missing from the Contracts section");
+  assert(await page.locator('.hifi-related-routes a[href="' + swosStaticHash + '"]').count() === 1, "SWOS Web motion contract must link to the static 15-frame workspace");
+  assert((await page.locator("#hifiViewCanvas").innerText()).includes("SAM"), "SWOS Web motion contract must state existing SAM experiment reuse");
+  await page.screenshot({ path: resolve(args.outputDir, "swos-web-motion-contract-1440.png"), fullPage: true });
+  await page.setViewportSize({ width: 390, height: 844 });
+  const swosMotionMobileWidth = await page.evaluate(() => ({ document: document.documentElement.scrollWidth, body: document.body.scrollWidth }));
+  assert(swosMotionMobileWidth.document <= 390 && swosMotionMobileWidth.body <= 390, "SWOS Web motion contract overflows mobile: " + JSON.stringify(swosMotionMobileWidth));
+  await page.screenshot({ path: resolve(args.outputDir, "swos-web-motion-contract-390.png"), fullPage: true });
+  await page.setViewportSize({ width: 1440, height: 1000 });
+
+  const continuityHash = "#page/recognition_flow_v1_2/hifi/processing_result_continuity";
+  await open(continuityHash);
+  assert(page.url().endsWith(continuityHash), "Processing → Result continuity direct Hash route did not resolve");
+  assert((await page.locator("#hifiViewTitle").innerText()).includes("光学接续"), "continuity menu title is missing");
+  assert((await page.locator("#hifiViewAuthorities").innerText()).includes("Processing_Result_Optical_Continuity_Contract_V1.md"), "continuity authority link is missing");
+  await page.screenshot({ path: resolve(args.outputDir, "processing-result-continuity-1440.png"), fullPage: true });
+
+  const rr09V3Hash = "#page/recognition_result_v1/hifi/motion_continuation";
+  await open(rr09V3Hash);
+  assert(page.url().endsWith(rr09V3Hash), "RR09 V3 direct Hash route did not resolve");
+  assert((await page.locator("#hifiViewTitle").innerText()).includes("V3"), "current RR09 menu must identify V3");
+  assert((await page.locator("#hifiViewAuthorities").innerText()).includes("Recognition_Result_Motion_Spec_V3.md"), "current RR09 V3 authority link is missing");
+  assert(await page.locator("#hifiViewCanvas iframe").count() === 0, "current RR09 V3 must not render the legacy V2 playable prototype");
+  await page.screenshot({ path: resolve(args.outputDir, "rr09-v3-authority-1440.png"), fullPage: true });
+
+  const rr09V2HistoryHash = "#page/recognition_result_v1/hifi/motion_continuation_v2_history";
+  await open(rr09V2HistoryHash);
+  assert(page.url().endsWith(rr09V2HistoryHash), "RR09 V2 history direct Hash route did not resolve");
+  assert((await page.locator("#hifiViewTitle").innerText()).includes("V2 历史基线"), "RR09 V2 history label is missing");
+  assert((await page.locator("#hifiViewStatus").innerText()).includes("已废弃"), "RR09 V2 history must remain DEPRECATED");
+  assert((await page.locator("#hifiViewCanvas").innerText()).includes("历史对照"), "RR09 V2 page must explain that it is historical only");
+  assert(await page.locator("#hifiViewCanvas iframe").count() === 1, "RR09 V2 historical preview must remain separately reachable");
+  await page.screenshot({ path: resolve(args.outputDir, "rr09-v2-history-1440.png"), fullPage: true });
+
   await open("#page/recognition_flow_v1_2/hifi/invalid-release-route");
   assert(await page.locator(".invalid-manager-route").isVisible(), "invalid Hash must show an explicit error state");
   assert(await page.locator("#hifiViewCanvas img").count() === 0, "invalid Hash must not fall back to an unrelated Frozen image");
@@ -362,8 +518,10 @@ async function main() {
     p01: guideImageInfo,
     overview: overviewImageInfo,
     review: reviewImage,
-    checks: ["direct Hash", "Resources submenu click and direct route", "original PNG previews/download links and manifest", "refresh", "back/forward", "modal zoom/fit/Esc/focus restore", "missing authority no fake UI", "invalid route guard", "no HTTP errors", "no console/page errors"],
-    screenshots: ["desktop-1440.png", "tablet-768.png", "mobile-390.png", "lightbox-1440.png", "overview-1440.png", "guide-resources-1440.png", "guide-resources-390.png"],
+    checks: ["direct Hash", "Resources submenu click and direct route", "original PNG previews/download links and manifest", "refresh", "back/forward", "modal zoom/fit/Esc/focus restore", "SWOS and continuity authority routes", "15-frame static workspace and exact 8+7 count", "R0.5 2900ms zoom and original/composite toggle", "P7/R0/R0.5/R1 geometry table", "RR09 ↔ SWOS routes", "Web Hi-Fi V2 authority/resources and 390px route", "local-only photo selection without persistent/network upload", "390px SWOS responsive preview", "RR09 V3 current / V2 historical route separation", "missing authority no fake UI", "invalid route guard", "no HTTP errors", "no console/page errors"],
+    swos_local_photo_sha256: uploadedPhotoSha,
+    swos_local_photo_uploaded: Boolean(args.swosPhoto),
+    screenshots: ["desktop-1440.png", "tablet-768.png", "mobile-390.png", "lightbox-1440.png", "overview-1440.png", "guide-resources-1440.png", "guide-resources-390.png", "swos-optical-contract-1440.png", "swos-static-visual-1440.png", "swos-static-visual-390.png", "swos-r05-zoom-1440.png", "swos-web-motion-contract-1440.png", "swos-web-motion-contract-390.png", "web-hifi-v2-1440.png", "processing-result-continuity-1440.png", "rr09-v3-authority-1440.png", "rr09-v2-history-1440.png"],
     errors,
     bad_responses: badResponses,
     failed_requests: failedRequests

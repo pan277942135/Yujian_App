@@ -8,7 +8,12 @@ on:
       - "scripts/design_manager.py"
       - "scripts/verify_design_manager_navigation.py"
       - "scripts/verify_design_manager_hifi_release.py"
+      - "scripts/validate_swos_phase0_contracts.py"
+      - "scripts/validate_web_hifi_contract_v2.py"
+      - "scripts/tests/test_swos_phase0_contracts.py"
       - "scripts/verify_design_manager_browser.mjs"
+      - "scripts/verify_private_visual_references.py"
+      - "scripts/verify_private_visual_browser.mjs"
       - "scripts/verify_design_manager_live.py"
       - ".github/workflows/design-manager-pages.yml"
       - ".github/workflows/experience-governance.yml"
@@ -19,7 +24,12 @@ on:
       - "scripts/design_manager.py"
       - "scripts/verify_design_manager_navigation.py"
       - "scripts/verify_design_manager_hifi_release.py"
+      - "scripts/validate_swos_phase0_contracts.py"
+      - "scripts/validate_web_hifi_contract_v2.py"
+      - "scripts/tests/test_swos_phase0_contracts.py"
       - "scripts/verify_design_manager_browser.mjs"
+      - "scripts/verify_private_visual_references.py"
+      - "scripts/verify_private_visual_browser.mjs"
       - "scripts/verify_design_manager_live.py"
       - ".github/workflows/design-manager-pages.yml"
       - ".github/workflows/experience-governance.yml"
@@ -59,6 +69,20 @@ jobs:
 
       - name: Hi-fi release and asset integrity gate
         run: python3 scripts/verify_design_manager_hifi_release.py
+
+      - name: SWOS Phase 0 cross-contract consistency gate
+        run: |
+          python3 scripts/validate_swos_phase0_contracts.py
+          python3 scripts/tests/test_swos_phase0_contracts.py
+
+      - name: Web Hi-Fi V2 dependent contract gate
+        run: python3 scripts/validate_web_hifi_contract_v2.py
+
+      - name: Private visual reference registration and browser gate
+        shell: bash
+        run: |
+          python3 scripts/verify_private_visual_references.py
+          PLAYWRIGHT_MODULE_DIR="$RUNNER_TEMP/dm-playwright/node_modules" node scripts/verify_private_visual_browser.mjs
 
       - name: Browser navigation, modal, and responsive gate
         shell: bash

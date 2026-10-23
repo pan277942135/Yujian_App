@@ -76,13 +76,17 @@ function hifiImageFigure(path, title, caption, sha256 = "") {
 }
 
 function hifiContractMetadataHtml(item, parentView = null) {
-  if (!item || !(item.page_id || item.state_id || item.asset_id || item.entry_conditions || item.contract_links)) return "";
+  if (!item || !(item.page_id || item.state_id || item.asset_id || item.entry_conditions || item.contract_links || parentView?.contract_links || item.machine_authority || parentView?.machine_authority)) return "";
   const display = value => Array.isArray(value) ? value.join(" · ") : (value || "未在当前 Authority 中规定");
   const path = item.authority_path || item.visual_authority || item.expected_asset_path || item.image || item.machine_authority || item.authority || "未提供";
   const pathMarkup = item.authority_path_available === false
     ? '<span class="hifi-contract-plain-path">' + esc(path) + '</span>'
     : '<a href="' + esc(repoHref(path)) + '" target="_blank" rel="noreferrer">' + esc(path) + '</a>';
-  const contractLinks = [...(item.contract_links || []), ...(parentView?.contract_links || [])]
+  const machineAuthorityPath = item.machine_authority || parentView?.machine_authority;
+  const machineAuthorityFallback = machineAuthorityPath
+    ? [{ label: "机器可读技术合同", path: machineAuthorityPath }]
+    : [];
+  const contractLinks = [...(item.contract_links || []), ...(parentView?.contract_links || []), ...machineAuthorityFallback]
     .filter((link, index, all) => link.path && all.findIndex(other => other.path === link.path) === index);
   const fields = [
     ["Page ID", item.page_id], ["页面名称", item.page_name || item.title || parentView?.title],
@@ -2556,21 +2560,26 @@ function recognitionMasterBoardCanvas(child) {
 }
 
 function genericSpecHifiCanvas(feature, view) {
+  if (view.render_mode === "swos_static_visual_workspace") {
+    return window.SWOSStaticVisual?.canvas(view) ||
+      '<div class="hifi-missing-authority"><div><strong>SWOS 静态验收模块尚未加载</strong><p>Design Manager 的静态工作区脚本不可用。</p></div></div>';
+  }
   if (view.render_mode === "nh01_multi_screen_static_hifi") {
     return '<div class="nh01-static-loading" role="status">正在载入五屏冻结高保真与响应式合同…</div>';
   }
   if (feature.id === "recognition_result_v1" && view.render_mode === "recognition_result_motion_playable") {
     const href="./rr09_motion/";
     const points=view.menu_points||[];
+    const isV2History = view.id === "motion_continuation_v2_history";
     return '<div class="authority-index">' +
-      '<div class="authority-index-intro"><strong>RR09 · 金光转译揭晓 · 可播放原型</strong>' +
-        '<span>真实鱼获照片经 SHA-256 校验；逐帧播放、拖动时间轴、验证 Reduced Motion / 低性能回退。规格已冻结，浏览器验收与 Android Runtime 分开记录。</span></div>' +
+      '<div class="authority-index-intro"><strong>'+(isV2History?'RR09 V2 · 历史可播放原型':'RR09 · 可播放原型')+'</strong>' +
+        '<span>'+(isV2History?'仅作 V2 历史对照。其 Resolve-origin wording 与英文名揭晓已由 RR09 V3 提案取代，不代表当前 V3 或 Android 实现。':'当前合同提案尚无可播放 V3 Demo。')+'</span></div>' +
       '<div class="authority-index-card">' +
-        '<div class="authority-index-head"><strong>PLAYABLE REVIEW · MOTION V2</strong>' + statusBadge("FROZEN") + '</div>' +
-        '<p>六个关键帧：鱼体高亮 → 照片接续 → 金光向下转移 → 名称凝结 → 中英鱼种名揭晓 → 余辉消散。</p>' +
-        '<p><a class="primary-button" href="'+esc(href)+'" target="_blank" rel="noopener noreferrer">▶ 打开可播放原型与完整验收控制台 ↗</a></p>' +
-        '<p>照片来源：现有真实鱼获资产；鱼体轮廓为人工视觉参考，不得当作生产检测 Mask。示例鱼种名不等于模型对照片的推理结论。</p></div>' +
-      '<iframe title="RR09 · 动效接续 · 金光转译可播放原型" loading="lazy" src="'+esc(href)+'" style="width:100%;min-height:900px;border:1px solid #48636b;border-radius:14px;background:#101d25" referrerpolicy="no-referrer"></iframe>' +
+        '<div class="authority-index-head"><strong>'+(isV2History?'HISTORICAL PLAYABLE REVIEW · MOTION V2':'V3 PLAYBACK · NOT IMPLEMENTED')+'</strong>' + statusBadge(isV2History?"DEPRECATED":"NOT_RUN") + '</div>' +
+        (isV2History?'<p>V2 历史关键帧：鱼体高亮 → 照片接续 → 金光转移 → 名称凝结 → 中英鱼种名揭晓 → 余辉消散。</p>':'<p>RR09 V3 的权威时间线与输入要求见相邻合同菜单；本页面没有用 V2 原型冒充 V3 播放结果。</p>') +
+        (isV2History?'<p><a class="primary-button" href="'+esc(href)+'" target="_blank" rel="noopener noreferrer">▶ 打开 V2 历史原型 ↗</a></p>':'') +
+        '<p>照片来源：现有真实鱼获资产；参考轮廓不代表生产 Mask。示例鱼种名不等于模型对照片的推理结论。</p></div>' +
+      (isV2History?'<iframe title="RR09 V2 · 历史动效原型" loading="lazy" src="'+esc(href)+'" style="width:100%;min-height:900px;border:1px solid #48636b;border-radius:14px;background:#101d25" referrerpolicy="no-referrer"></iframe>':'') +
       '<div class="authority-index-grid">' +
         points.map((p,i)=>'<article class="authority-index-card"><div class="authority-index-head"><strong>'+
           esc(String(i+1).padStart(2,"0")+" · "+p)+'</strong></div><div class="authority-kind">FROZEN MOTION V2</div></article>').join("") +
@@ -3332,13 +3341,47 @@ function renderHifiView(feature, hifiId, hifiChildId = null) {
     ? (feature.id === "my_catches_v2" ? myCatchesSearchChildCanvas(child) : genericSpecChildCanvas(child, feature))
     : (feature.id === "my_catches_v2" ? myCatchesHifiCanvas(feature,view) : genericSpecHifiCanvas(feature,view));
 
+  if (!child && ["web_hifi_contract_v2", "swos_static_visual_v1_1"].includes(view.id)) {
+    const viewer = document.createElement("iframe");
+    viewer.src = "./private_visual_references.html?reference=" + (view.id === "web_hifi_contract_v2" ? "web-three-stage" : "swos-history");
+    viewer.title = "原始高保真私有查看与合同对照";
+    viewer.style = "width:100%;height:980px;border:1px solid #b9cdc6;border-radius:12px";
+    el("hifiViewCanvas").prepend(viewer);
+    if (view.id === "web_hifi_contract_v2") {
+      const provenance = document.createElement("p");
+      provenance.className = "hifi-source-provenance";
+      provenance.textContent = "原图候选尚未确认为像素权威：旧 2560×1440 候选仅作历史溯源。用户确认的 1536×1024 原图已登记并核验 SHA、尺寸和字节数；这不等于原图像素冻结权威（PIXEL_FROZEN_SOURCE=NOT_CONFIRMED）。公开许可 NOT_CONFIRMED；运行视觉验收 RUNTIME_VISUAL_VERIFIED=NO。原图仅可本地选择查看，不上传服务器。";
+      el("hifiViewCanvas").prepend(provenance);
+    }
+  }
+  if (!child && view.render_mode === "swos_static_visual_workspace") {
+    window.SWOSStaticVisual?.mount(el("hifiViewCanvas"), view);
+  }
+  if (!child && Array.isArray(view.related_routes) && view.related_routes.length) {
+    const related = '<nav class="hifi-related-routes" aria-label="关联 Design Manager 页面">' +
+      '<strong>关联页面</strong>' + view.related_routes.map(route =>
+        '<a href="' + esc(route.route) + '">' + esc(route.label) + ' ↗</a>' +
+        (route.note ? '<span>' + esc(route.note) + '</span>' : '')
+      ).join("") + '</nav>';
+    el("hifiViewCanvas").insertAdjacentHTML("beforeend", related);
+  }
   if (!child && view.render_mode === "nh01_multi_screen_static_hifi") {
     nh01ResponsiveRuleCanvas(view);
   } else {
     delete el("hifiViewCanvas").dataset.nh01ResponsiveToken;
   }
 
-  const contractDetails = hifiContractMetadataHtml(child || view, view);
+  const contractDetailsItem = view.id === "swos_web_hifi_motion_contract_v1_0"
+    ? {
+        ...(child || view),
+        contract_links: [
+          ...((child || view).contract_links || []),
+          ...(view.contract_links || []),
+          { label: "机器可读技术合同 V1.0", path: view.machine_authority || "design/pages/recognition/web/contracts/SWOS_WEB_HIFI_MOTION_TECHNICAL_CONTRACT_V1_0.json" }
+        ]
+      }
+    : (child || view);
+  const contractDetails = hifiContractMetadataHtml(contractDetailsItem, view);
   el("hifiViewContractDetails").innerHTML = contractDetails;
   el("hifiViewContractDetails").classList.toggle("hidden", !contractDetails);
   el("hifiViewCanvas").querySelectorAll(".hifi-image-open").forEach(button =>
@@ -3673,6 +3716,9 @@ function selectFromHash() {
   let raw;
   try { raw = decodeURIComponent(encoded); }
   catch (_) { return renderInvalidManagerRoute(encoded); }
+  // A browser hash traversal fires both popstate and hashchange. Keep the same
+  // private frame alive so duplicate notifications do not abort its bootstrap.
+  if (raw === selectedKey && el("hifiViewCanvas")?.querySelector('iframe[title="原始高保真私有查看与合同对照"]')) return;
   if (!raw) return selectShared(sharedRegistry.items[0]?.id, null, false);
   if (raw.startsWith("shared/")) {
     const parts = raw.split("/");

@@ -1,7 +1,7 @@
 {
   "schema": "NH01_GEMINI_NATIVE_PREVIEW_ASSET_BINDING_V1",
   "version": 1,
-  "status": "PREVIEW_READY_WITH_HERO_MEDIA_BLOCKED",
+  "status": "LOCAL_PHOTO_BINDINGS_VERIFIED_PUBLIC_PREVIEW_REDACTED",
   "source_commit": "6bac75e63d8ca2448d33d5dbd6d1a71e9a548188",
   "purpose": "GitHub-native NH01 responsive acceptance workbench. ADAPTIVE_V2 reads numeric layout policy from NH01_RESPONSIVE_LAYOUT_V2.json; V3_BASELINE is comparison-only. Browser evidence is not Android runtime evidence.",
   "responsive_layout_authority": "design/pages/home/normal_home/responsive/NH01_RESPONSIVE_LAYOUT_V2.json",
@@ -89,38 +89,46 @@
     },
     {
       "id": "hero_photo",
-      "label": "Real catch Hero photo fixture",
-      "source_path": "app/src/main/assets/home_normal/fish_record/sample_recent_catch.jpg",
-      "sha256": "6e955087108f7463eca2dbac489699a4942028ebe1b3d456ddfca523286385ef",
-      "dimensions_px": [
-        1152,
-        1536
-      ],
-      "status": "BLOCKED_ASSET_SOURCE",
+      "label": "User-provided Hero original · verified locally for this task",
+      "source_path": null,
+      "sha256": null,
+      "dimensions_px": null,
+      "status": "BLOCKED_PUBLIC_REDISTRIBUTION",
       "public_preview": false,
-      "photo_provenance": "NOT_VERIFIED",
-      "source_usage_rights": "NOT_VERIFIED",
-      "bbox_ground_truth": "UNVERIFIED",
-      "privacy_policy": "Sensitive user-provided source photos must not be copied or newly published to GitHub Pages. The source is intentionally not included in this preview bundle.",
-      "render_rule": "Render a labeled placeholder; do not fetch, copy, or embed the source photo."
+      "photo_provenance": "VERIFIED_USER_PROVIDED_TASK_INPUT_LOCAL_ONLY",
+      "source_usage_rights": "AUTHORIZED_FOR_NH01_TASK_DESIGN_AND_ACCEPTANCE_ONLY",
+      "bbox_ground_truth": "NOT_REQUIRED_FOR_EVIDENCE_FIT; NO SUBJECT CROP",
+      "privacy_policy": "Original bytes are used only in a restricted local acceptance run. Do not copy or publish the photo to GitHub, GitHub Pages, public CI artifacts, or other public storage.",
+      "render_rule": "Public preview: labeled placeholder. Restricted local preview: full original with object-fit:contain over a soft crop of the same source, per EVIDENCE_FIT; do not crop, retouch, stretch or remove marks.",
+      "preview_path": null,
+      "public_redistribution": "NOT_CONFIRMED"
     },
     {
       "id": "neighbor_photos",
-      "label": "Independent neighbor-card photos",
+      "label": "Two independent user-provided Peek originals · verified locally for this task",
       "source_path": null,
       "preview_path": null,
       "sha256": null,
       "dimensions_px": null,
-      "status": "BLOCKED_MISSING_APPROVED_INDEPENDENT_ORIGINALS",
+      "status": "BLOCKED_PUBLIC_REDISTRIBUTION",
       "public_preview": false,
-      "render_rule": "Do not duplicate the same photo as a separate record. Preserve explicit media placeholders until independent approved sources exist."
+      "render_rule": "Restricted local preview: each original remains a separate record and uses full-photo EVIDENCE_FIT; do not duplicate, crop, retouch, stretch or remove marks.",
+      "photo_provenance": "TWO_DISTINCT_USER_PROVIDED_TASK_INPUTS_VERIFIED_LOCALLY",
+      "source_usage_rights": "AUTHORIZED_FOR_NH01_TASK_DESIGN_AND_ACCEPTANCE_ONLY",
+      "public_redistribution": "NOT_CONFIRMED",
+      "independent_asset_ids": [
+        "peek_left_photo",
+        "peek_right_photo"
+      ],
+      "privacy_policy": "Original bytes are used only in a restricted local acceptance run. Public preview keeps both Peek cards hidden until public redistribution permission is confirmed."
     }
   ],
   "acceptance": {
     "asset_integrity_check": "REQUIRED",
-    "browser_preview": "STRUCTURE_AND_ASSET_PREVIEW_ONLY",
+    "browser_preview": "LOCAL_PRIVATE_PHOTO_FIXTURE_AND_PUBLIC_PLACEHOLDER_PREVIEW",
     "android_runtime": "SEPARATE_EXACT_SHA_GATE",
-    "visual_parity": "NOT_RUN",
-    "release_gate_effect": "NONE"
+    "visual_parity": "LOCAL_PHOTO_FIXTURE_TEST_REQUIRED",
+    "release_gate_effect": "NONE",
+    "public_asset_publication": "BLOCKED_UNTIL_EXPLICIT_REDISTRIBUTION_PERMISSION"
   }
 }

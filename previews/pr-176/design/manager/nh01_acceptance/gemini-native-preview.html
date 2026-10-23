@@ -38,6 +38,10 @@
     .contract-line strong{color:var(--ink)}
     .contract-line [data-state="PASS"]{color:var(--success)}
     .contract-line [data-state="FAIL"]{color:var(--danger)}
+    #privatePhotoStatus{display:none;flex-basis:100%;font-size:10px;line-height:1.5;color:var(--muted)}
+    .private-media-requested #privatePhotoStatus{display:block}
+    #privatePhotoStatus[data-status="PASS"]{color:#245679}
+    #privatePhotoStatus[data-status="FAIL"]{color:var(--danger)}
     .contract-error{display:none;padding:12px;border:1px solid #d99b8e;background:#fff0ed;color:var(--danger);border-radius:10px;font-size:12px;line-height:1.5;margin-bottom:12px}
     .contract-failed .contract-error{display:block}
     .contract-failed .device{visibility:hidden}
@@ -106,6 +110,16 @@
     .neighbor-left{left:calc(var(--main-card-side-inset) - var(--neighbor-width) - var(--neighbor-gap))}
     .neighbor-right{right:calc(var(--main-card-side-inset) - var(--neighbor-width) - var(--neighbor-gap))}
     .neighbor-slot{display:block;width:100%;height:100%;background:rgba(41,72,88,.58);color:transparent;font-size:0;padding:0}
+    .catch-photo-backdrop,.catch-photo-fit{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+    .catch-photo-backdrop{object-fit:cover;filter:blur(16px);transform:scale(1.08);opacity:.72}
+    .catch-photo-fit{z-index:1;object-fit:contain}
+    .catch-photo-stage{position:absolute;inset:0;overflow:hidden;background:rgba(27,59,72,.36)}
+    .catch-photo-prompt{position:absolute;z-index:5;inset:auto 6px 6px;padding:4px 6px;border-radius:6px;background:rgba(12,20,28,.68);color:#fff;font-size:8px;line-height:1.3;text-align:center}
+    .catch-card[role="button"]{cursor:pointer}
+    .catch-card[role="button"]:focus-visible{outline:3px solid #f1c56f;outline-offset:2px}
+    .private-photo-ready .catch-photo-prompt{display:none}
+    .local-photo-badge{display:none;background:#e8f4ff;color:#245679;border-color:#a8c7de;white-space:normal}
+    .private-photo-ready .local-photo-badge{display:inline-flex}
     .main-card{position:relative;z-index:2;width:var(--main-card-width);height:var(--main-card-height);flex:none;aspect-ratio:var(--hero-aspect);display:flex;flex-direction:column;justify-content:flex-end}
     .hero-placeholder{position:absolute;inset:0;display:flex;align-items:flex-start;justify-content:flex-start;padding:10px;background:linear-gradient(180deg,rgba(26,53,65,.74) 0%,rgba(26,53,65,.42) 25%,rgba(26,53,65,0) 52%);color:#eef5f6;text-align:left;pointer-events:none}
     .hero-placeholder-inner{max-width:100%;display:flex;align-items:flex-start;gap:8px}
@@ -182,7 +196,7 @@
     <aside class="layer-column" aria-label="NH01 页面结构树">
       <section class="layer-panel">
         <div class="panel-heading"><h2>页面图层</h2><span class="panel-count">NH01 · V3</span></div>
-        <p class="panel-help">选择图层查看画布边界、素材绑定与 Android 对应节点。未批准的鱼获照片保持阻塞。</p>
+        <p class="panel-help">选择图层查看画布边界、素材绑定与 Android 对应节点。用户原图只在受限本地验收模式加载，公开页面保留占位。</p>
         <div class="layer-scroll"><ul class="layer-tree" id="layerTree">
           <li><button class="layer-node" type="button" data-target="#device" aria-selected="false"><span class="node-icon">▣</span><span class="node-label">Screen · NH01 Home</span></button></li>
           <li><button class="layer-node" type="button" data-target="#assetBackground" aria-selected="false"><span class="node-icon">▧</span><span class="node-label">BG · Morning Lake</span></button></li>
@@ -200,7 +214,7 @@
             <li><button class="layer-node" type="button" data-target="#carouselWindow" aria-selected="false"><span class="node-icon">▦</span><span class="node-label">Carousel-Track</span></button></li>
             <li><button class="layer-node" type="button" data-target="#leftCatchCard" aria-selected="false"><span class="node-icon">▧</span><span class="node-label">Card-Peek-Left</span><span class="node-state">LOCK</span></button></li>
             <li><button class="layer-node" type="button" data-target="#mainCatchCard" aria-selected="true"><span class="node-icon">▣</span><span class="node-label">Card-Main-Active</span><span class="node-state">LOCK</span></button></li>
-            <li><button class="layer-node" type="button" data-target="#heroPlaceholder" aria-selected="false"><span class="node-icon">▧</span><span class="node-label">Hero-Photo</span><span class="node-state">LOCK</span></button></li>
+            <li><button class="layer-node" type="button" data-target="#heroPhoto" aria-selected="false"><span class="node-icon">▧</span><span class="node-label">Hero-Photo</span><span class="node-state">LOCK</span></button></li>
             <li><button class="layer-node" type="button" data-target="#rightCatchCard" aria-selected="false"><span class="node-icon">▧</span><span class="node-label">Card-Peek-Right</span><span class="node-state">LOCK</span></button></li>
           </ul></details></li>
           <li><details class="layer-branch" open><summary>Footer · 底部操作</summary><ul class="layer-children">
@@ -218,7 +232,7 @@
           <h1>NH01 · Gemini Native V3</h1>
       <p class="subtitle">Adaptive V2 直接读取响应式机器合同。冻结参考、组件规则和交互预览并列展示；照片来源状态会在画布中明确标记。</p>
         </div>
-        <span class="status-badge">PREVIEW ONLY · NOT VISUAL PASS</span>
+        <div style="display:flex;flex-wrap:wrap;justify-content:flex-end;gap:6px"><span class="status-badge">PREVIEW ONLY · NOT VISUAL PASS</span><span class="status-badge local-photo-badge" id="localPhotoBadge">PRIVATE LOCAL FIXTURES · NOT PUBLISHED</span></div>
       </header>
       <section class="control-panel" aria-label="预览控制">
         <div id="contractFailure" class="contract-error" role="alert"></div>
@@ -235,7 +249,7 @@
           <div class="control"><label for="safeStart">安全区起始侧 (dp)</label><input id="safeStart" type="number" min="0" max="200" step="1" value="0"></div>
           <div class="control"><label for="safeEnd">安全区结束侧 (dp)</label><input id="safeEnd" type="number" min="0" max="200" step="1" value="0"></div>
         </div>
-        <div class="contract-line"><span>响应式合同：<strong id="contractVersion">加载中</strong></span><span>合同 SHA-256：<code id="contractSha">—</code></span><span>预览源 SHA：<code id="previewSourceSha">—</code></span><span>Pages 部署 SHA：<code id="deploymentSha">—</code></span><span id="contractLoadState" data-state="PENDING">等待合同</span></div>
+        <div class="contract-line"><span>响应式合同：<strong id="contractVersion">加载中</strong></span><span>合同 SHA-256：<code id="contractSha">—</code></span><span>预览源 SHA：<code id="previewSourceSha">—</code></span><span>Pages 部署 SHA：<code id="deploymentSha">—</code></span><span id="contractLoadState" data-state="PENDING">等待合同</span><span id="privatePhotoStatus" data-status="PENDING"></span></div>
       </section>
       <div class="preview-stage">
         <div class="device-wrap" id="deviceWrap">
@@ -260,19 +274,20 @@
                   <span class="section-title">最近鱼获</span><span class="section-action">全部 ›</span>
                 </div>
                 <div class="carousel-window" id="carouselWindow" data-layer="Carousel-Track-Container">
-          <article class="catch-card neighbor-card neighbor-left" id="leftCatchCard" data-layer="Card-Peek-Left" aria-label="没有已批准的上一条鱼获素材" hidden>
-                    <div class="neighbor-slot" aria-hidden="true"></div>
+          <article class="catch-card neighbor-card neighbor-left" id="leftCatchCard" data-layer="Card-Peek-Left" aria-label="本地私有预览中的上一条鱼获" role="button" tabindex="0" aria-pressed="false" hidden>
+                    <div class="catch-photo-stage"><img class="catch-photo-backdrop" id="leftCatchBackdrop" data-private-photo-slot="left-backdrop" alt=""><img class="catch-photo-fit" id="leftCatchPhoto" data-private-photo-slot="left" alt=""><span class="catch-photo-prompt">公开预览中未发布私人照片</span></div>
                   </article>
-                  <article class="catch-card main-card" id="mainCatchCard" data-layer="Card-Main-Active" aria-label="选中鱼获静态参考夹具">
-            <div class="hero-placeholder" id="heroPlaceholder" data-layer="Hero-Photo" data-status="BLOCKED_ASSET_SOURCE" aria-label="Hero photo intentionally blocked; see asset audit panel"><div class="hero-placeholder-inner"><span class="blocked-icon" aria-hidden="true">▧</span><div class="hero-placeholder-copy"><strong>照片素材待授权</strong><span>保留占位，不公开源照片</span></div></div></div>
+                  <article class="catch-card main-card" id="mainCatchCard" data-layer="Card-Main-Active" aria-label="选中鱼获静态参考夹具" role="button" tabindex="0" aria-pressed="true">
+                    <div class="catch-photo-stage"><img class="catch-photo-backdrop" id="heroBackdrop" data-private-photo-slot="hero-backdrop" alt=""><img class="catch-photo-fit" id="heroPhoto" data-private-photo-slot="hero" data-layer="Hero-Photo" alt=""><span class="catch-photo-prompt">公开预览中使用占位，不公开源照片</span></div>
+                    <div class="hero-placeholder" id="heroPlaceholder" data-layer="Hero-Photo-Placeholder" data-status="BLOCKED_ASSET_SOURCE" aria-label="Public redistribution permission is not confirmed; see asset audit panel"><div class="hero-placeholder-inner"><span class="blocked-icon" aria-hidden="true">▧</span><div class="hero-placeholder-copy"><strong>公开预览不含原图</strong><span>原图仅限本任务本地验收</span></div></div></div>
                     <div class="card-bottom" id="cardMetadata" data-layer="Card-Metadata">
                       <p class="catch-species">草鱼</p>
                       <p class="catch-measure">42.6 cm · 1.28 kg</p>
                       <p class="catch-location">昨天 18:20 · 浙江 · 千岛湖</p>
                     </div>
                   </article>
-          <article class="catch-card neighbor-card neighbor-right" id="rightCatchCard" data-layer="Card-Peek-Right" aria-label="没有已批准的下一条鱼获素材" hidden>
-                    <div class="neighbor-slot" aria-hidden="true"></div>
+          <article class="catch-card neighbor-card neighbor-right" id="rightCatchCard" data-layer="Card-Peek-Right" aria-label="本地私有预览中的下一条鱼获" role="button" tabindex="0" aria-pressed="false" hidden>
+                    <div class="catch-photo-stage"><img class="catch-photo-backdrop" id="rightCatchBackdrop" data-private-photo-slot="right-backdrop" alt=""><img class="catch-photo-fit" id="rightCatchPhoto" data-private-photo-slot="right" alt=""><span class="catch-photo-prompt">公开预览中未发布私人照片</span></div>
                   </article>
                 </div>
               </section>
@@ -363,7 +378,9 @@
       const params = new URLSearchParams(location.search);
       const canvasMode = params.get("mode") === "canvas";
       const matrixMode = params.get("mode") === "matrix";
+      const privateMediaMode = params.get("privateMedia") === "1";
       const workspace = document.getElementById("nh01GeminiPreview");
+      if (privateMediaMode) workspace.classList.add("private-media-requested");
       workspace.classList.add("contract-pending");
       if (canvasMode) document.body.classList.add("canvas-mode");
       if (matrixMode) document.body.classList.add("matrix-mode");
@@ -383,6 +400,9 @@
       const sectionHeader = document.getElementById("sectionHeader");
       const carouselWindow = document.getElementById("carouselWindow");
       const mainCatchCard = document.getElementById("mainCatchCard");
+      const leftCatchCard = document.getElementById("leftCatchCard");
+      const rightCatchCard = document.getElementById("rightCatchCard");
+      const heroPlaceholder = document.getElementById("heroPlaceholder");
       const cardMetadata = document.getElementById("cardMetadata");
       const footerSection = document.getElementById("footerSection");
       const toast = document.getElementById("previewToast");
@@ -397,6 +417,7 @@
       const anchorImage = document.getElementById("anchorImage");
       const anchorMeta = document.getElementById("anchorMeta");
       const anchorOpen = document.getElementById("anchorOpen");
+      const privatePhotoStatus = document.getElementById("privatePhotoStatus");
       const assetNodes = {
         background: document.getElementById("assetBackground"),
         brand: document.getElementById("assetBrand"),
@@ -411,11 +432,116 @@
         return new URL(path.replace(/^(\.\.\/)+/, ""), rootPrefix).href;
       }
       let contractEnvelope = null;
+      let privatePhotoFixtures = [];
+      let privateMediaState = {status:"NOT_REQUESTED"};
+      let activePhotoIndex = 1;
+      let privatePhotoReady = false;
       let anchorAudit = [];
       let layoutSequence = 0;
       function showToast(message) {
         toast.textContent = message;
         toast.dataset.visible = "true";
+      }
+      function setPhotoLayer(prefix, fixture) {
+        const foreground = document.getElementById(prefix + "Photo");
+        const backdrop = document.getElementById(prefix + "Backdrop");
+        if (!fixture) {
+          foreground.removeAttribute("src"); backdrop.removeAttribute("src");
+          return;
+        }
+        foreground.src = fixture.url; backdrop.src = fixture.url;
+        foreground.alt = `${fixture.label} · 完整原图适配`;
+        foreground.dataset.privatePhotoId = fixture.asset_id;
+        foreground.dataset.privateFixtureId = fixture.fixture_id;
+        foreground.dataset.sha256 = fixture.sha256;
+        backdrop.alt = "";
+        backdrop.dataset.privatePhotoId = fixture.asset_id;
+      }
+      function renderPrivatePhotoTriplet() {
+        if (!privatePhotoReady || privatePhotoFixtures.length !== 3) {
+          leftCatchCard.hidden = true; rightCatchCard.hidden = true;
+          heroPlaceholder.hidden = false;
+          workspace.classList.remove("private-photo-ready");
+          return;
+        }
+        const previous = privatePhotoFixtures[activePhotoIndex - 1] || null;
+        const selected = privatePhotoFixtures[activePhotoIndex];
+        const next = privatePhotoFixtures[activePhotoIndex + 1] || null;
+        setPhotoLayer("leftCatch", previous);
+        setPhotoLayer("hero", selected);
+        setPhotoLayer("rightCatch", next);
+        leftCatchCard.hidden = !previous;
+        rightCatchCard.hidden = !next;
+        heroPlaceholder.hidden = true;
+        for (const [card, fixture, direction] of [[leftCatchCard,previous,"上一条鱼获"],[mainCatchCard,selected,"当前选中鱼获"],[rightCatchCard,next,"下一条鱼获"]]) {
+          card.dataset.privateFixtureId = fixture?.fixture_id || "";
+          card.dataset.privatePhotoId = fixture?.asset_id || "";
+          card.dataset.privatePhotoSha256 = fixture?.sha256 || "";
+          card.setAttribute("aria-label", fixture ? `${direction}：${fixture.label}，点击切换` : direction);
+          card.setAttribute("aria-pressed", String(card === mainCatchCard));
+        }
+        workspace.classList.add("private-photo-ready");
+        window.NH01SelectedPrivatePhoto = {index:activePhotoIndex,fixture_id:selected.fixture_id,asset_id:selected.asset_id,sha256:selected.sha256};
+      }
+      function selectPrivatePhoto(index) {
+        if (!privatePhotoReady || index < 0 || index >= privatePhotoFixtures.length || index === activePhotoIndex) return false;
+        activePhotoIndex = index;
+        renderPrivatePhotoTriplet();
+        if (typeof selectLayer === "function") selectLayer("#mainCatchCard");
+        applyViewport().catch(error => showToast(error.message));
+        return true;
+      }
+      async function loadPrivatePhotoFixtures() {
+        if (!privateMediaMode) return {status:"NOT_REQUESTED",public_assets_unchanged:true};
+        try {
+          const response = await fetch("./NH01_Local_Private_Fixtures.json", {cache:"no-store"});
+          if (!response.ok) {
+            const state={status:"UNAVAILABLE",reason:`local fixture manifest HTTP ${response.status}; public placeholders retained`};
+            if (privatePhotoStatus) {privatePhotoStatus.dataset.status="UNAVAILABLE";privatePhotoStatus.textContent=state.reason;}
+            return state;
+          }
+          const manifest = await response.json();
+          if (manifest.schema !== "NH01_LOCAL_PRIVATE_CATCH_FIXTURES_V1" || manifest.scope !== "NH01_TASK_DESIGN_AND_ACCEPTANCE_ONLY") throw new Error("Local fixture manifest schema/scope is not approved for this task.");
+          if (manifest.public_redistribution !== "NOT_CONFIRMED" || manifest.records?.length !== 3) throw new Error("Local fixture manifest must state the public restriction and contain three distinct records.");
+          const expectedRoles = ["peek_left","hero","peek_right"];
+          const loaded = [];
+          for (let index=0; index<manifest.records.length; index+=1) {
+            const record = manifest.records[index];
+            if (record.role !== expectedRoles[index] || !record.fixture_id || !record.asset_id || !record.label || !record.local_preview_path) throw new Error("Local photo roles/order are incomplete or mismatched.");
+            if (record.public_redistribution !== "NOT_CONFIRMED" || record.usage_scope !== manifest.scope) throw new Error(`Public rights/scope mismatch for ${record.asset_id}.`);
+            const url = new URL(record.local_preview_path, location.href);
+            if (url.origin !== location.origin || !url.pathname.includes("/local_media/")) throw new Error(`Private fixture URL escaped the local media directory: ${record.asset_id}`);
+            const assetResponse = await fetch(url, {cache:"no-store"});
+            if (!assetResponse.ok) throw new Error(`Local original HTTP ${assetResponse.status}: ${record.asset_id}`);
+            const mime = (assetResponse.headers.get("content-type") || "").split(";")[0].toLowerCase();
+            if (mime !== "image/jpeg") throw new Error(`Local original is not JPEG: ${record.asset_id}`);
+            const bytes = await assetResponse.arrayBuffer();
+            if (bytes.byteLength !== record.byte_length) throw new Error(`Local original byte length mismatch: ${record.asset_id}`);
+            const hash = await crypto.subtle.digest("SHA-256", bytes);
+            const actualSha = [...new Uint8Array(hash)].map(value => value.toString(16).padStart(2,"0")).join("");
+            if (actualSha !== record.sha256) throw new Error(`Local original SHA-256 mismatch: ${record.asset_id}`);
+            const probe = new Image(); probe.src = url.href; await waitImage(probe);
+            if (probe.naturalWidth !== record.dimensions_px[0] || probe.naturalHeight !== record.dimensions_px[1]) throw new Error(`Local original dimensions mismatch: ${record.asset_id}`);
+            loaded.push({...record,url:url.href,actual_sha256:actualSha,actual_dimensions_px:[probe.naturalWidth,probe.naturalHeight],mime});
+          }
+          if (new Set(loaded.map(item=>item.sha256)).size !== 3 || new Set(loaded.map(item=>item.url)).size !== 3 || new Set(loaded.map(item=>item.fixture_id)).size !== 3) throw new Error("Each card must bind a distinct original, URL and fixture record.");
+          privatePhotoFixtures = loaded; activePhotoIndex = 1; privatePhotoReady = true;
+          privateMediaState = {status:"PASS",scope:manifest.scope,public_redistribution:manifest.public_redistribution,records:loaded.map(({role,layer_id,fixture_id,asset_id,label,sha256,byte_length,dimensions_px,actual_sha256,actual_dimensions_px,mime})=>({role,layer_id,fixture_id,asset_id,label,sha256,byte_length,dimensions_px,actual_sha256,actual_dimensions_px,mime,object_fit:"contain",same_source_soft_crop_backdrop:true}))};
+          if (privatePhotoStatus) {privatePhotoStatus.dataset.status="PASS";privatePhotoStatus.textContent="本地三张原图独立绑定已通过 SHA / 尺寸 / JPEG 检查；公开部署仍使用占位素材。";}
+          document.querySelector(".catch-species").textContent="本地图片验收";
+          document.querySelector(".catch-measure").textContent="鱼种 / 长度 / 重量未随原图提供";
+          document.querySelector(".catch-location").textContent="仅验证原图绑定和响应式排版，不代表鱼获记录";
+          renderPrivatePhotoTriplet();
+          return privateMediaState;
+        } catch (error) {
+          privatePhotoReady = false; privatePhotoFixtures = []; renderPrivatePhotoTriplet();
+          document.querySelector(".catch-species").textContent="草鱼";
+          document.querySelector(".catch-measure").textContent="42.6 cm · 1.28 kg";
+          document.querySelector(".catch-location").textContent="昨天 18:20 · 浙江 · 千岛湖";
+          privateMediaState = {status:"FAIL",reason:error.message,public_assets_unchanged:true};
+          if (privatePhotoStatus) {privatePhotoStatus.dataset.status="FAIL";privatePhotoStatus.textContent=`本地原图验证失败；已回退到公开占位状态：${error.message}`;}
+          return privateMediaState;
+        }
       }
       function setVariable(name, value) {
         document.documentElement.style.setProperty(name, String(value));
@@ -676,7 +802,7 @@
         setVariable("--main-card-side-inset", cssPx(sideInset)); setVariable("--neighbor-gap", cssPx(neighborGap)); setVariable("--neighbor-width", cssPx(neighborWidth));
         middleSection.dataset.scrollNeeded = String(finalNeedsScroll);
         middleSection.dataset.topAlign = String(finalNeedsScroll);
-        document.querySelectorAll(".neighbor-card").forEach(node => { node.hidden = true; });
+        renderPrivatePhotoTriplet();
         const scaleRatio = device.getBoundingClientRect().width / Math.max(1, device.offsetWidth);
         const bounds = element => {
           const r = element.getBoundingClientRect();
@@ -717,7 +843,7 @@
           short_screen_exception_applied:shortExceptionEligible,
           footer:layout.footer, measurements,
           gaps_dp:{...(layout.gaps_dp||{}),brand_to_stats:layout.brand_to_stats_gap_dp??layout.gaps_dp?.brand_to_stats,stats_to_title:layout.stats_to_title_gap_target_dp,title_to_card_target:layout.title_to_card_gap_target_dp,card_to_footer:layout.card_to_footer_gap_dp},
-          neighbor_state:{previous_record_present:false,next_record_present:false,rendered:false,maximum_width_dp:cardWidth*p.neighbor.maximum_width_fraction_of_hero},
+          neighbor_state:{previous_record_present:privatePhotoReady&&activePhotoIndex>0,next_record_present:privatePhotoReady&&activePhotoIndex<privatePhotoFixtures.length-1,rendered:privatePhotoReady,maximum_width_dp:cardWidth*p.neighbor.maximum_width_fraction_of_hero},
           text_lines:{species:countTextLines(document.querySelector(".catch-species")),measurement:countTextLines(document.querySelector(".catch-measure")),metadata:countTextLines(document.querySelector(".catch-location"))},
           actual_bounds_dp:{header:headerBounds,stats:statsBounds,title:titleBounds,hero:heroBounds,middle:middleBounds,footer:footerBounds,cta:ctaBounds,camera_visual:cameraBounds,camera_touch:cameraTouchBounds},
           scroll_metrics:{middle_client_height_dp:middleSection.clientHeight,middle_scroll_height_dp:middleSection.scrollHeight,middle_scroll_top_dp:middleSection.scrollTop,hero_content_beyond_middle_dp:Math.max(0,heroBounds.bottom-middleBounds.bottom)},
@@ -776,8 +902,8 @@
         }
         const failures=results.filter(result=>result.status==="FAIL_SOURCE_INTEGRITY");
         integritySummary.dataset.state=failures.length?"FAIL":"PASS";
-        integritySummary.textContent=failures.length?`资产完整性失败：${failures.map(item=>item.id).join(", ")}`:"注册资产 SHA-256 与尺寸匹配。Hero 照片和邻卡来源仍被明确阻塞；预览不会生成虚假邻卡。";
-        window.NH01GeminiPreviewAudit={schema:manifest.schema,build_sha:buildSha,status:failures.length?"FAIL":"PASS",release_gate_effect:"NONE",assets:results,checked_at_utc:new Date().toISOString()};
+        integritySummary.textContent=failures.length?`资产完整性失败：${failures.map(item=>item.id).join(", ")}`:(privateMediaState.status==="PASS"?"公开注册资产 SHA-256 与尺寸匹配；三张原图仅在本地受限验收中绑定，未进入公开预览。":"公开注册资产 SHA-256 与尺寸匹配；用户鱼获原图不会在公开预览中显示。");
+        window.NH01GeminiPreviewAudit={schema:manifest.schema,build_sha:buildSha,status:failures.length?"FAIL":"PASS",release_gate_effect:"NONE",assets:results,private_media:privateMediaState,checked_at_utc:new Date().toISOString()};
         return window.NH01GeminiPreviewAudit;
       }
       async function initialize() {
@@ -800,6 +926,8 @@
           const requested=params.get("viewport");
           if (requested) { const [w,h]=requested.split("x").map(Number);widthInput.value=w;heightInput.value=h; }
           const initial=preset.value.split("x").map(Number); if (!requested) {widthInput.value=initial[0];heightInput.value=initial[1];}
+          privateMediaState = await loadPrivatePhotoFixtures();
+          window.NH01PrivatePhotoAudit = privateMediaState;
           const frameUrl = new URL(contractEnvelope.contractUrl);
           const deploymentSha=document.querySelector('meta[name="nh01-preview-deployment-sha"]').content;
           document.getElementById("deploymentSha").textContent=deploymentSha;
@@ -839,12 +967,13 @@
         "#middleSection": {name:"Middle-Carousel-Section",design:"Middle-Carousel-Section",compose:"GeminiMiddleSection",constraint:"占用剩余垂直空间；紧凑短屏允许该区域局部滚动。",status:"MAPPED"},
         "#sectionHeader": {name:"Section-Header-Bar",design:"Section-Header-Bar",compose:"GeminiSectionHeader",constraint:"横向标题与操作项；字号随高度及字体缩放。",status:"MAPPED"},
         "#carouselWindow": {name:"Carousel-Track-Container",design:"Carousel-Track-Container",compose:"GeminiCatchCarousel / HorizontalPager",constraint:"轨道宽度、卡片比例和边缘预览值由当前 V2 合同计算。",status:"MAPPED"},
-        "#leftCatchCard": {name:"Card-Peek-Left",design:"Card-Peek-Left",compose:"GeminiCatchCarousel / previous page",asset:"独立获批照片未登记",constraint:"只在存在真实独立鱼获记录与获批素材时显示。",status:"BLOCKED",note:"当前没有可公开的独立邻卡记录，画布隐藏该卡。不得复制 Hero 鱼获。"},
-        "#mainCatchCard": {name:"Card-Main-Active",design:"Card-Main-Active",compose:"GeminiCatchCarousel / selected page",asset:"Hero photo source approval pending",constraint:"尺寸、宽高比、文字和空间约束读取当前 V2 合同；空间不足时只允许 Middle 局部滚动。",status:"BLOCKED",note:"鱼获照片来源被资产合同阻塞；当前画布不显示非真实照片。冻结参考对照仍可查看。"},
+        "#leftCatchCard": {name:"Card-Peek-Left",design:"Card-Peek-Left",compose:"GeminiCatchCarousel / previous page",asset:"用户指定的独立左邻卡原图；公开再分发未确认",constraint:"真实独立记录存在时按 EVIDENCE_FIT 全图适配；公开部署保持隐藏。",status:"BLOCKED",note:"原图仅获准用于本任务设计和验收；公开再分发权限未确认。不得复制 Hero 图片。"},
+        "#mainCatchCard": {name:"Card-Main-Active",design:"Card-Main-Active",compose:"GeminiCatchCarousel / selected page",asset:"用户指定的 Hero 原图；公开再分发未确认",constraint:"尺寸、宽高比、文字和空间约束读取当前 V2 合同；原图完整适配，空间不足时只允许 Middle 局部滚动。",status:"BLOCKED",note:"原图仅获准用于本任务设计和验收；公开再分发权限未确认。"},
         "#cardMetadata": {name:"Card-Metadata",design:"Card-Metadata",compose:"GeminiCatchCarousel / CatchCardMetadata",constraint:"底部渐变承载鱼种、尺寸重量、时间地点；字号与卡片空间受响应式合同约束。",status:"MAPPED"},
-        "#heroPlaceholder": {name:"Hero-Photo",design:"Card-Main-Active / Hero-Photo",compose:"GeminiCatchCarousel / RemoteImage",asset:"BLOCKED_ASSET_SOURCE",constraint:"目标图像需按已批准的 Crop/Fit 合同渲染；当前仅为阻塞占位。",status:"BLOCKED",note:"此处不能推断生产鱼体 Mask 或照片裁切是否正确。"},
+        "#heroPhoto": {name:"Hero-Photo",design:"Card-Main-Active / Hero-Photo",compose:"GeminiCatchCarousel / RemoteImage",asset:"用户指定的 Hero 原图；本地 EVIDENCE_FIT",constraint:"仅在本地受限验收中以 object-fit:contain 完整呈现原图，背景使用同一原图的柔化裁切；公开部署由 Hero 占位层覆盖。",status:"BLOCKED",note:"不裁切、不变形、不修图、不去水印；公开再分发权限未确认。鱼种/测量/地点文字只标记未提供的测试数据。"},
+        "#heroPlaceholder": {name:"Hero-Photo-Placeholder",design:"Card-Main-Active / Hero-Photo-Placeholder",compose:"Public preview privacy placeholder",asset:"BLOCKED_PUBLIC_REDISTRIBUTION",constraint:"公开部署保留占位；真实用户原图仅进入受限本地验收。",status:"BLOCKED",note:"公开页面不加载原始用户照片。"},
         "#cardMetadata": {name:"Card-Metadata",design:"Card-Main-Active / metadata",compose:"GeminiCatchCarousel / CatchCardMetadata",constraint:"底部渐变承载文字；鱼种、尺寸重量、时间地点分级排布。",status:"MAPPED"},
-        "#rightCatchCard": {name:"Card-Peek-Right",design:"Card-Peek-Right",compose:"GeminiCatchCarousel / next page",asset:"独立获批照片未登记",constraint:"只在存在真实独立鱼获记录与获批素材时显示。",status:"BLOCKED",note:"当前没有可公开的独立邻卡记录，画布隐藏该卡。不得复制 Hero 鱼获。"},
+        "#rightCatchCard": {name:"Card-Peek-Right",design:"Card-Peek-Right",compose:"GeminiCatchCarousel / next page",asset:"用户指定的独立右邻卡原图；公开再分发未确认",constraint:"真实独立记录存在时按 EVIDENCE_FIT 全图适配；公开部署保持隐藏。",status:"BLOCKED",note:"原图仅获准用于本任务设计和验收；公开再分发权限未确认。不得复制 Hero 图片。"},
         "#footerSection": {name:"Footer-CTA-Section",design:"Footer-CTA-Section",compose:"GeminiFooterSection",constraint:"底部固定操作区；系统导航安全区由根容器处理。",status:"MAPPED"},
         "#ctaLabel": {name:"CTA-Label-RecordNext",design:"CTA-Label-RecordNext",compose:"GeminiFooterSection / CTA label",constraint:"文字字号跟随安全高度和字体缩放；与相机控件保持垂直间距。",status:"MAPPED"},
         "#cameraButton": {name:"CTA-Camera-Button",design:"CTA-Camera-Button",compose:"HomeCameraButton",asset:"normal_home_camera_primary_v1.png · SHA registered",constraint:"视觉尺寸与触控目标依据当前 V2 合同和安全区域计算。",status:"MAPPED"}
@@ -865,13 +994,17 @@
         document.querySelectorAll("[data-inspected='true']").forEach(el => { el.removeAttribute("data-inspected"); el.classList.remove("inspected-node"); });
         node.setAttribute("data-inspected", "true");
         node.classList.add("inspected-node");
-        const meta = layerMeta[target] || {name:node.getAttribute("data-layer") || node.id || target,design:node.getAttribute("data-layer") || target,compose:"Compose mapping not registered",constraint:"尚未登记响应式约束。",status:"REVIEW_REQUIRED",note:"需要补齐设计节点与 Android Compose 的明确映射。"};
+        let meta = layerMeta[target] || {name:node.getAttribute("data-layer") || node.id || target,design:node.getAttribute("data-layer") || target,compose:"Compose mapping not registered",constraint:"尚未登记响应式约束。",status:"REVIEW_REQUIRED",note:"需要补齐设计节点与 Android Compose 的明确映射。"};
+        if (privatePhotoReady && ["#leftCatchCard","#mainCatchCard","#rightCatchCard","#heroPhoto"].includes(target)) {
+          const fixture=privatePhotoFixtures.find(item=>item.fixture_id===node.dataset.privateFixtureId)||privatePhotoFixtures[activePhotoIndex];
+          if (fixture) meta={...meta,asset:`${fixture.asset_id} · SHA-256 ${fixture.sha256}`,status:"VERIFIED_LOCAL_ONLY",note:"用户授权本任务本地设计与验收；公开再分发权限未确认。原图用 object-fit:contain 完整呈现，未裁切、拉伸、修图或去水印。"};
+        }
         const deviceRect = device.getBoundingClientRect(), rect = node.getBoundingClientRect();
         const scale = device.offsetWidth ? deviceRect.width / device.offsetWidth : 1;
         const number = value => (Math.round(value * 100) / 100).toFixed(2);
         const x = (rect.left - deviceRect.left) / scale, y = (rect.top - deviceRect.top) / scale;
         const width = rect.width / scale, height = rect.height / scale, style = getComputedStyle(node);
-        const image = node.matches("img") ? node : node.querySelector("img");
+        const image = node.matches("img") ? node : (node.querySelector(".catch-photo-fit") || node.querySelector("img"));
         const assetText = meta.asset || (image ? (image.dataset.assetId || (image.currentSrc || image.src).split("/").pop()) : "无独立图片资产");
         inspectorFields.name.textContent = meta.name;
         inspectorFields.status.textContent = meta.status;
@@ -894,6 +1027,12 @@
         const button = event.target.closest(".layer-node");
         if (button) selectLayer(button.dataset.target);
       });
+      for (const [card,direction] of [[leftCatchCard,-1],[rightCatchCard,1]]) {
+        card.addEventListener("click",event=>{event.stopPropagation();if(privatePhotoReady)selectPrivatePhoto(activePhotoIndex+direction);});
+        card.addEventListener("keydown",event=>{if((event.key==="Enter"||event.key===" ")&&privatePhotoReady){event.preventDefault();selectPrivatePhoto(activePhotoIndex+direction);}});
+      }
+      mainCatchCard.addEventListener("click",event=>{event.stopPropagation();selectLayer("#mainCatchCard");});
+      mainCatchCard.addEventListener("keydown",event=>{if((event.key==="Enter"||event.key===" ")&&privatePhotoReady){event.preventDefault();selectLayer("#mainCatchCard");}});
       device.addEventListener("click", event => {
         if (event.target.closest(".camera-button") || event.target.closest(".avatar-button")) return;
         const target = event.target.closest("[data-layer], [data-asset-id], #device");

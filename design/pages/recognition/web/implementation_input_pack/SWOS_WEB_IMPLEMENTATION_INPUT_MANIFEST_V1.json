@@ -1,0 +1,697 @@
+{
+  "schema_version": "1.0",
+  "task_id": "YUJIAN_SWOS_WEB_IMPLEMENTATION_INPUT_PACK_AND_LIVE_SHA_CLOSURE_V1",
+  "snapshot_date_utc": "2026-10-23",
+  "package_status": "SOURCE_SYNCED_EXACT_HEAD_TARGETED_CI_PASS_BUSINESS_RULES_RESOLVED_PHOTO_SHA_VERIFIED_OTHER_PRIVATE_ASSETS_NOT_RECHECKED_PUBLIC_RELEASE_BLOCKED_PIXEL_FREEZE_NOT_CONFIRMED_PREVIEW_STALE_MASK_NOT_QUALIFIED",
+  "package_role": "IMPLEMENTATION_INPUT_SNAPSHOT_NOT_A_PARALLEL_DESIGN_AUTHORITY",
+  "authority": {
+    "repository": "pan277942135/Yujian_App",
+    "baseline_main_sha_at_audit": "2c41084b423be36b06035694fe573c5e671cb4da",
+    "proposed_source_branch": "design/swos-web-hifi-motion-contract-v1-0",
+    "design_contracts_are_main_authority": true,
+    "contract_files": [
+      {
+        "path": "design/pages/recognition/web/WEB_HIFI_CONTRACT_V2.md",
+        "blob_sha": "842eb733e14bcc4740196c0c5ee7712b34da8e19",
+        "role": "web_contract"
+      },
+      {
+        "path": "design/pages/recognition/web/WEB_HIFI_GAP_MATRIX_V2.md",
+        "blob_sha": "57f371407b1a1c226901262decb42ed2772284cc",
+        "role": "live_gap_matrix_with_historical_baseline_labeled"
+      },
+      {
+        "path": "design/pages/recognition/web/WEB_HIFI_HANDOFF_A_V2.md",
+        "blob_sha": "c0877121686a19b6096806673657721ab8352768",
+        "role": "handoff_a"
+      },
+      {
+        "path": "design/pages/recognition/web/WEB_HIFI_HANDOFF_B_V2.md",
+        "blob_sha": "0fb757708f896274c9cabee15b07fe276752e506",
+        "role": "handoff_b"
+      },
+      {
+        "path": "design/pages/recognition/web/contracts/Page_Structure_V2.json",
+        "blob_sha": "f6298ed36b24a422284469c6cb9d42fcb80660fc",
+        "role": "machine_contract"
+      },
+      {
+        "path": "design/pages/recognition/web/contracts/Component_Geometry_V2.json",
+        "blob_sha": "6c5cc966f2669084cc1f13130f6572c5bc9c50cc",
+        "role": "machine_contract"
+      },
+      {
+        "path": "design/pages/recognition/web/contracts/Visual_Tokens_V2.json",
+        "blob_sha": "3ca4b79f5ac0bbd03337778c2cdbbcf669ce69a5",
+        "role": "machine_contract"
+      },
+      {
+        "path": "design/pages/recognition/web/contracts/Page_State_Matrix_V2.json",
+        "blob_sha": "283472fcd4fc76e791ce887f91ce12a86a3ad32e",
+        "role": "machine_contract"
+      },
+      {
+        "path": "design/pages/recognition/web/contracts/Responsive_Rules_V2.json",
+        "blob_sha": "876bebcb6d5460dc3c47b282efdcccc48dabeadd",
+        "role": "machine_contract"
+      },
+      {
+        "path": "design/pages/recognition/web/contracts/Asset_Manifest_V2.json",
+        "blob_sha": "eda732f3fe83e56a017c8b7d355a56066c596f44",
+        "role": "machine_contract"
+      },
+      {
+        "path": "design/pages/recognition/web/contracts/Authority_References_V2.json",
+        "blob_sha": "6ee8ba1e4c52017a7751d061b92fe6385d68ed3e",
+        "role": "machine_contract_with_live_audit"
+      },
+      {
+        "path": "design/pages/recognition/web/contracts/Work_B_Implementation_Mapping_V2.json",
+        "blob_sha": "a6d9bc36abaf16cf5ca1ccd64c7e37372415f6d4",
+        "role": "implementation_mapping_with_live_audit"
+      },
+      {
+        "path": "design/pages/recognition/web/contracts/Acceptance_Matrix_V2.json",
+        "blob_sha": "c747fae76714d870449903036b99cf75357690ce",
+        "role": "machine_contract"
+      },
+      {
+        "path": "design/pages/recognition/processing/optics/SWOS_15_Frame_Keyframe_Contract_V1_1.json",
+        "blob_sha": "8da99533dfcc2a1673cb402913baa43c082820b2",
+        "role": "15_frame_contract"
+      },
+      {
+        "path": "design/pages/recognition/processing/optics/SWOS_Optical_Contract_V1.json",
+        "blob_sha": "22091db21d5fb74f5cfd09eafd685c549b8c7395",
+        "role": "optical_contract"
+      },
+      {
+        "path": "design/pages/recognition/continuity/SWOS_Shared_Photo_Transition_Contract_V1.json",
+        "blob_sha": "5c0d1e4c6b0535a862dd960fa29abb156a3daf5e",
+        "role": "shared_photo_geometry"
+      },
+      {
+        "path": "design/pages/recognition/processing/motion/recognition_processing_motion_contract_v1_3.json",
+        "blob_sha": "70cca85259ee678c1086f557f6cc3faf6699fbd6",
+        "role": "processing_timing"
+      },
+      {
+        "path": "design/pages/recognition/result/motion/recognition_result_motion_contract_v3.json",
+        "blob_sha": "d95dc755988be5f5cf49e7f4ac556500d118eb7a",
+        "role": "result_reveal_timing"
+      },
+      {
+        "path": "design/pages/recognition/result/media/hero_media_contract.json",
+        "blob_sha": "8833b083fbd02aa7fede2742dbc0f79a6da4c2b8",
+        "role": "result_hero_geometry"
+      },
+      {
+        "path": "design/pages/recognition/phase1/Phase1_SWOS_Playable_Demo_Input_Contract_V1.md",
+        "blob_sha": "487a3e5a81e4c972d6f8725eefa9a9cc9b310ef8",
+        "role": "playable_demo_inputs"
+      },
+      {
+        "path": "design/pages/recognition/processing/optics/SWOS_Dynamic_Demo_Technical_Handoff_V1.md",
+        "blob_sha": "1124789f03ab1253717fd1bac9873cbfe45dbe94",
+        "role": "renderer_architecture"
+      },
+      {
+        "path": "design/pages/recognition/web/VISUAL_REFERENCE_MANIFEST_V1.json",
+        "blob_sha": "c819d8e898f77dfdd1f1fef1c8c85ff30abaef11",
+        "role": "visual_source_manifest"
+      },
+      {
+        "path": "design/pages/recognition/processing/optics/SWOS_Static_Asset_Manifest_V1_1.json",
+        "blob_sha": "b331026f12a130a061e09b36b85da102d4132282",
+        "role": "static_asset_manifest"
+      },
+      {
+        "path": "design/pages/recognition/processing/optics/SWOS_Static_Visual_Contract_V1_1.md",
+        "blob_sha": "6b63fefb5a45bdadcb92dde33b8186408685dbfd",
+        "role": "static_visual_direction"
+      },
+      {
+        "path": "design/pages/recognition/web/VISUAL_REFERENCE_CLOSURE_REPORT_V1.md",
+        "blob_sha": "a345e41636b23e8f7b90e2af338ba4b48a9fa24d",
+        "role": "asset_provenance_report"
+      },
+      {
+        "path": "design/pages/recognition/web/SWOS_WEB_HIFI_MOTION_TECHNICAL_CONTRACT_V1_0.md",
+        "role": "swos_web_hifi_motion_technical_contract_v1_0",
+        "blob_sha": "ff3100bf14cd5d70c982fb67ee94ee548c0a5c35"
+      },
+      {
+        "path": "design/pages/recognition/web/contracts/SWOS_WEB_HIFI_MOTION_TECHNICAL_CONTRACT_V1_0.json",
+        "role": "swos_web_hifi_motion_machine_contract",
+        "blob_sha": "e9f5e61dc3bd0778a32527335a24fe93f04d5e26"
+      },
+      {
+        "path": "design/pages/recognition/processing/README.md",
+        "role": "processing_authority_index",
+        "blob_sha": "4071184eae1ad0ed2c36b61d2b937e2a343af054"
+      },
+      {
+        "path": "design/registry/experience_registry_v1.json",
+        "role": "design_manager_route_registration",
+        "blob_sha": "47be44ca3cbce908fa676e262987fe26a8dbea32"
+      },
+      {
+        "path": "scripts/verify_design_manager_navigation.py",
+        "role": "design_manager_navigation_validator",
+        "blob_sha": "c00476ed293e7945753fec05ddfdfbec7e29bc7d"
+      },
+      {
+        "path": "scripts/verify_design_manager_browser.mjs",
+        "role": "design_manager_browser_validator",
+        "blob_sha": "d0091baab2f4c1d3b060d0543b4dc01050d0ce1e"
+      },
+      {
+        "path": "scripts/verify_swos_static_visual_v1_1.py",
+        "role": "swos_contract_validator",
+        "blob_sha": "ed847b06f786c02652503b12970ef482f3356bcd"
+      },
+      {
+        "path": "scripts/verify_swos_web_input_pack_live.sh",
+        "role": "live_input_pack_sha_validator",
+        "blob_sha": "3bb286e73910df9dc491c2ad3cc5c7fcd7cc4209"
+      },
+      {
+        "path": "docs/ACTIVE_SOURCE_REGISTRY.md",
+        "role": "active_source_authority_index",
+        "blob_sha": "df0d931d81648adffd83a0dc5d02a85aa9cde8f8"
+      },
+      {
+        "path": "design/manager/app.js",
+        "blob_sha": "5c304e0004f9ad3f5959bfdc386fe5454e0ef9a5",
+        "role": "design_manager_contract_metadata_renderer"
+      },
+      {
+        "path": "design/pages/recognition/web/implementation_input_pack/README.md",
+        "blob_sha": "2f525352c1fedbfbd11ae7fb66aa4af3b1d731b5",
+        "role": "updated_source_authority"
+      },
+      {
+        "path": "design/pages/recognition/result/engineering/layout_geometry_contract.json",
+        "blob_sha": "2df910cda117e7c8be1e211bae17899e14c3933f",
+        "role": "frozen_result_cta_authority"
+      },
+      {
+        "path": "design/pages/recognition/result/spec/recognition_result_3plus2_decision_contract_v1_1.json",
+        "blob_sha": "a678f63082d2f045dd659ed42c36df14c475f9c1",
+        "role": "existing_result_state_decision_authority"
+      },
+      {
+        "path": "scripts/verify_design_manager_hifi_release.py",
+        "blob_sha": "d4acaf2b6ddc038dd027db44731699acebcfe942",
+        "role": "design_manager_hifi_release_validator"
+      }
+    ],
+    "canonical_control_plane_files": [
+      {
+        "path": "AGENTS.md",
+        "blob_sha": "215ce9a66c05de69977caed9d25786f1b8e22255",
+        "role": "canonical_work_bootstrap"
+      },
+      {
+        "path": "CONTROL_PLANE_REGISTRY.yaml",
+        "blob_sha": "3db40b1825851a9fe93c5c101e713eb0f526624f",
+        "role": "canonical_control_plane_entrypoint"
+      },
+      {
+        "path": "CONTROL_PLANE_CHANGE_SYNC.md",
+        "blob_sha": "3d8a85b1b46e6b65a3b9d2bf80ff5fa1a91b3f84",
+        "role": "change_sync_protocol"
+      },
+      {
+        "path": "harness/FEATURE_MATRIX.yaml",
+        "blob_sha": "f443a675469cebfcadd9e039936f5a5ea2732935",
+        "role": "canonical_feature_matrix"
+      },
+      {
+        "path": "harness/PHASE_TASK_STATE_MACHINE.yaml",
+        "blob_sha": "7264e6c46d5546fcbf562f2d3e6c486c56a5bfd2",
+        "role": "canonical_phase_task_state_machine"
+      },
+      {
+        "path": "harness/UNIFIED_CONTRACT_REGISTRY.yaml",
+        "blob_sha": "14771030c60754beddac46d44105dab16a8d7eec",
+        "role": "canonical_unified_contract_registry"
+      },
+      {
+        "path": "harness/UNIFIED_CONTRACT_SCHEMA_V1.md",
+        "blob_sha": "7a8d968f2a999b2b9b37d5072ebbdc5189802b29",
+        "role": "unified_contract_schema"
+      },
+      {
+        "path": "harness/CONTRACT_RESOLUTION_PROTOCOL.md",
+        "blob_sha": "040f25405a48639da967ee8fb20c884e680d082b",
+        "role": "contract_resolution_protocol"
+      },
+      {
+        "path": "harness/STATE_UPDATE_PROTOCOL.md",
+        "blob_sha": "00ecd7d558a71b115d80ef6caa783f086a76efb9",
+        "role": "state_update_protocol"
+      },
+      {
+        "path": "harness/WORK_EXECUTION_STATE_SCHEMA_V1.json",
+        "blob_sha": "2030e44e22432b892179275c8977765e1cdb030d",
+        "role": "work_execution_state_schema"
+      },
+      {
+        "path": "harness/WORK_EXECUTION_STATE_TEMPLATE_V1.json",
+        "blob_sha": "5cc63e18d4f30c2e9d147f35ff306dd871de6c91",
+        "role": "work_execution_state_template"
+      },
+      {
+        "path": "scripts/validate_project_master_state.py",
+        "blob_sha": "c6ef6ded167c28532958258314eaa25d622992de",
+        "role": "project_master_state_validator"
+      },
+      {
+        "path": "scripts/validate_feature_matrix.py",
+        "blob_sha": "70cf44275ad5d9a63eecdfe2d37996e7c4475736",
+        "role": "feature_matrix_validator"
+      },
+      {
+        "path": "scripts/validate_phase_task_state_machine.py",
+        "blob_sha": "7e60a79417f01c58731113b5f0f22f436018d2a4",
+        "role": "phase_task_state_machine_validator"
+      },
+      {
+        "path": "scripts/validate_unified_contract.py",
+        "blob_sha": "24d434820e9cfdbc6940bfe8da7e985586df8051",
+        "role": "unified_contract_validator"
+      },
+      {
+        "path": "scripts/validate_control_plane_registry.py",
+        "blob_sha": "f86eeb1187d5e65105359455eef01df8b202acbf",
+        "role": "control_plane_registry_validator"
+      },
+      {
+        "path": "scripts/validate_control_plane_sync.py",
+        "blob_sha": "43e9d9c881f9255fb26c771d4ebde53b9a319194",
+        "role": "control_plane_sync_validator"
+      },
+      {
+        "path": "scripts/validate_work_execution_state.py",
+        "blob_sha": "e3f0bca9da5d4e5ac58ed009b94a112d447faec2",
+        "role": "work_execution_state_validator"
+      },
+      {
+        "path": "scripts/validate_control_plane_admission.py",
+        "blob_sha": "38d08452a0de4105d9fa29b3858c746614112782",
+        "role": "control_plane_admission_validator"
+      },
+      {
+        "path": "scripts/run_android_runtime_gate.sh",
+        "blob_sha": "704eb3fad3f8d62862e1733b739b06cba2327b0c",
+        "role": "android_runtime_gate_entrypoint"
+      },
+      {
+        "path": "scripts/run_recognition_frozen_emulator_gate.sh",
+        "blob_sha": "741f3c577ffe4ffa1e9cd9e4b6d4256900f5075f",
+        "role": "recognition_runtime_gate_entrypoint"
+      }
+    ],
+    "cross_repository_admission_binding": {
+      "canonical_governance_repository": "pan277942135/Yujian_App",
+      "canonical_governance_branch": "main",
+      "implementation_repository": "pan277942135/Yujian",
+      "implementation_pr": 177,
+      "implementation_pr_branch": "feat/ai-catch-recognition-web-swos-rr09-v1",
+      "local_control_plane_copy_required_in_implementation_repository": false,
+      "admission_method": "canonical Yujian_App control-plane admission plus live exact-SHA cross-repository source audit",
+      "rationale": "The implementation repository is a separate repository, not a product branch in Yujian_App. Keep one canonical control plane; bind implementation to it by exact SHA and contracts rather than creating a competing local registry."
+    }
+  },
+  "live_product_snapshot": {
+    "audit_date": "2026-10-23",
+    "product_repository": "pan277942135/Yujian",
+    "product_pr_number": 177,
+    "product_branch": "feat/ai-catch-recognition-web-swos-rr09-v1",
+    "live_product_pr_head_sha": "ca21e25116cebef0ed393392eb8997a2b7077689",
+    "live_product_main_sha": "6a2064c2a02a76437b6e09a5241bc199cfa05048",
+    "merge_base_sha": "6a2064c2a02a76437b6e09a5241bc199cfa05048",
+    "ahead_by": 24,
+    "behind_by": 0,
+    "source_sync_status": "SYNCED_WITH_CURRENT_PRODUCT_MAIN",
+    "exact_head_ci_status": "PASS_TARGETED_VALIDATION_AND_CHROMIUM_UI_SIMULATION_ONLY",
+    "previous_exact_head_ci": {
+      "sha": "d8f3aabfab058d58cac84e19af095b0186df5f85",
+      "run_id": 39917440271,
+      "url": "https://github.com/pan277942135/Yujian/actions/runs/39917440271",
+      "conclusion": "success",
+      "scope": "targeted validation and Chromium UI simulation only; not runtime visual acceptance"
+    },
+    "exact_head_ci": {
+      "sha": "ca21e25116cebef0ed393392eb8997a2b7077689",
+      "run_id": 39929847089,
+      "url": "https://github.com/pan277942135/Yujian/actions/runs/39929847089",
+      "conclusion": "success",
+      "jobs": {
+        "validate": "success",
+        "det_fish_display_chromium": "success"
+      },
+      "scope": "Targeted validation and Chromium UI simulation only. The production recognition pipeline test step was SKIPPED because the existing metadata-access review remains unresolved. This is not evidence of real model inference, production-qualified SAM Mask, browser visual acceptance, or frame-time performance."
+    },
+    "current_head_preview_status": "STALE_PIN_NOT_VERIFIED",
+    "configured_preview_sha": "4de911dc497c150545d938b60b2694f3c4723e37",
+    "production_mask_status": "NOT_QUALIFIED",
+    "runtime_visual_status": "NOT_VERIFIED",
+    "full_suite_status": "NOT_RUN_BLOCKED_BY_EXISTING_METADATA_ACCESS_REVIEW",
+    "canonical_cross_repo_admission": {
+      "canonical_repository": "pan277942135/Yujian_App",
+      "canonical_branch": "main",
+      "canonical_registry_path": "CONTROL_PLANE_REGISTRY.yaml",
+      "canonical_agents_path": "AGENTS.md",
+      "product_repository_is_separate": true,
+      "product_repository_root_control_plane_files": "NOT_PRESENT",
+      "policy": "Use the canonical Yujian_App control plane plus this exact-SHA cross-repository source audit. Do not create a competing control plane in Yujian.",
+      "admission_status": "CANONICAL_CONTROL_PLANE_PINNED; PRODUCT_BRANCH_SYNCED; EXACT_HEAD_TARGETED_CI_PASS; PREVIEW_PIN_STALE"
+    },
+    "source_file_snapshot": [
+      {
+        "path": ".github/workflows/catch-recognition-pr177-no-traffic-deploy.yml",
+        "blob_sha": "7eeee0de71ebde9a628c58fad424ae89b37e16a2"
+      },
+      {
+        "path": "docs/catch_web_preview_pin_v2.md",
+        "blob_sha": "71e43da2b59186ea1b75a09ac8ecb46e9c0397ea"
+      },
+      {
+        "path": "app/recognition_pipeline.py",
+        "blob_sha": "8f420eda6ce56d1fb8c05e2dfb1c77d3aea2a2f5"
+      },
+      {
+        "path": "app/detector_runtime.py",
+        "blob_sha": "38eb2cad67b8ba759434b2ad0778cd8d188bee77"
+      },
+      {
+        "path": "app/catch_recognition_api.py",
+        "blob_sha": "2feea4b8a167de2e0497b491f39bdb8238caff0c"
+      },
+      {
+        "path": "app/static/js/catch/recognition-api.js",
+        "blob_sha": "a6449f574241c252c5033438f97e70f846735f77"
+      },
+      {
+        "path": "app/static/js/catch/recognition-controller.js",
+        "blob_sha": "b575a232f346e846dbea7407ab119b55fdc4e657"
+      },
+      {
+        "path": "app/templates/platform/catch_recognition.html",
+        "blob_sha": "38401f4ed9b1f099432880a5ce6cd6b3c3423359"
+      },
+      {
+        "path": "app/segmentation_api.py",
+        "blob_sha": "a9e1dd18f5c5fafec5692a151bd1fd7a3c457d68"
+      },
+      {
+        "path": "app/segmentation/service.py",
+        "blob_sha": "35012734cafc28f2e27387ea6ffae84f82343f66"
+      },
+      {
+        "path": "app/segmentation/mask_generator.py",
+        "blob_sha": "b351b571501b328ae12a4f05b8350b6dd06a17eb"
+      },
+      {
+        "path": "app/segmentation/quality_gate.py",
+        "blob_sha": "7885e3571c23fe8e69b56159dee53e18319cf883"
+      },
+      {
+        "path": "app/segmentation/cutout_builder.py",
+        "blob_sha": "886503cc99257fd530c21c6e77923c18f356d496"
+      },
+      {
+        "path": "app/inference_api.py",
+        "blob_sha": "8b19736cc5ad19d1cb2fa89f4d9554db367f396"
+      },
+      {
+        "path": "app/static/js/catch_recognition.js",
+        "blob_sha": "5299566ed1a85ab1f2ab4e7ed8a4c41709b141f8"
+      },
+      {
+        "path": "app/static/js/catch/swos-renderer.js",
+        "blob_sha": "b29abbe0648c043a96f37959938a18757fe7e921"
+      },
+      {
+        "path": "app/static/js/catch/photo-transition.js",
+        "blob_sha": "0697618dacbf768a3aa08e748f38aa8297cfd813"
+      }
+    ],
+    "sam_pipeline_binding": {
+      "existing_pipeline_present_at_product_main_and_pr177_head": true,
+      "source_sha_equality_verified": true,
+      "code_files": [
+        {
+          "path": "app/segmentation_api.py",
+          "blob_sha": "a9e1dd18f5c5fafec5692a151bd1fd7a3c457d68"
+        },
+        {
+          "path": "app/segmentation/service.py",
+          "blob_sha": "35012734cafc28f2e27387ea6ffae84f82343f66"
+        },
+        {
+          "path": "app/segmentation/mask_generator.py",
+          "blob_sha": "b351b571501b328ae12a4f05b8350b6dd06a17eb"
+        },
+        {
+          "path": "app/segmentation/quality_gate.py",
+          "blob_sha": "7885e3571c23fe8e69b56159dee53e18319cf883"
+        },
+        {
+          "path": "app/segmentation/cutout_builder.py",
+          "blob_sha": "886503cc99257fd530c21c6e77923c18f356d496"
+        }
+      ],
+      "policy": "REUSE_EXISTING_EXPERIMENTAL_PIPELINE; NO_DUPLICATE_SERVICE; NO_RETRAIN; DEBUG_ENDPOINT_NOT_PUBLIC_PRODUCTION_API"
+    }
+  },
+  "motion_and_product_decisions": {
+    "processing_duration_ms": 2800,
+    "rr09_duration_ms": 850,
+    "nominal_total_ms": 3650,
+    "processing_frame_ids": [
+      "P0",
+      "P1",
+      "P2",
+      "P3",
+      "P4",
+      "P5",
+      "P6",
+      "P7"
+    ],
+    "result_frame_ids": [
+      "R0",
+      "R0.5",
+      "R1",
+      "R2",
+      "R3",
+      "R4",
+      "R5"
+    ],
+    "r05_relative_ms": 100,
+    "r05_global_ms": 2900,
+    "r05_is_geometric_midflight_sample": true,
+    "adds_wait_time": false,
+    "actual_inference_is_event_driven": true,
+    "processing_may_extend_if_real_inference_is_slow": true,
+    "species_name_language": "ZH_ONLY",
+    "english_species_name_visible": false,
+    "photo_continuity": "SAME_SOURCE_IMAGE_AND_ONE_SHARED_TRANSFORM",
+    "optical_direction": "ORIGINAL_YUJIAN_SUNLIT_WATER_CAUSTICS; NOT_ASSISTANT_WAKEUP/HUD/SCANLINE",
+    "mask_trust_states": {
+      "trusted_mask": "THREE_LAYERS_CORE_SOFT_GLOW_HALO",
+      "bbox_only": "SOFT_REGION_ONLY_NO_PRECISE_OUTLINE",
+      "none": "NO_SPATIAL_FISH_FOCUS"
+    },
+    "must_never_fake_result_or_success": true,
+    "existing_sam_pipeline_reuse": {
+      "repository": "pan277942135/Yujian",
+      "endpoint": "POST /api/debug/fish-segmentation",
+      "code_paths": [
+        "app/segmentation_api.py",
+        "app/segmentation/service.py",
+        "app/segmentation/mask_generator.py",
+        "app/segmentation/quality_gate.py",
+        "app/segmentation/cutout_builder.py"
+      ],
+      "model": "SAM_VIT_B",
+      "policy": "REUSE_EXISTING_EXPERIMENTAL_PIPELINE; NO_DUPLICATE_SERVICE; NO_RETRAIN; MASK_NOT_CLASSIFIER_INPUT",
+      "endpoint_is_public_production_api": false,
+      "production_mask_qualification": "NOT_QUALIFIED"
+    }
+  },
+  "private_visual_assets": [
+    {
+      "id": "web-three-stage",
+      "filename": "渔见AI鱼获识别流程展示.png",
+      "sha256": "27c34ee5d3cf90921df433cb43c671e42b8ffa80b8f5cebfe9b397da2ee853e2",
+      "width": 1536,
+      "height": 1024,
+      "size_bytes": 1804497,
+      "byte_verification": "PRIOR_PRIVATE_HANDOFF_VERIFICATION_RECORDED_NOT_RECHECKED_THIS_EXECUTION",
+      "role": "USER_CONFIRMED_VISUAL_REFERENCE",
+      "public_permission": "NOT_CONFIRMED",
+      "committed_to_public_repo": false,
+      "verification_env_var": "SWOS_WEB_REFERENCE_PATH",
+      "public_publication_allowed": false,
+      "allowed_use": "PRIVATE_LOCAL_REFERENCE_REVIEW_ONLY"
+    },
+    {
+      "id": "swos-history",
+      "filename": "渔见AI鱼获识别动画分镜海报.png",
+      "sha256": "ea0cf2e5fa84aad64195487cbedaab07b1727e96e87c9b4e661dc3d0fa252c1c",
+      "width": 1672,
+      "height": 941,
+      "size_bytes": 2340788,
+      "byte_verification": "PRIOR_PRIVATE_HANDOFF_VERIFICATION_RECORDED_NOT_RECHECKED_THIS_EXECUTION",
+      "role": "HISTORICAL_14_FRAME_V0_3_DIRECTION_REFERENCE_NOT_CURRENT_15_FRAME_AUTHORITY",
+      "public_permission": "NOT_CONFIRMED",
+      "committed_to_public_repo": false,
+      "verification_env_var": "SWOS_STORYBOARD_PATH",
+      "public_publication_allowed": false,
+      "allowed_use": "PRIVATE_LOCAL_REFERENCE_REVIEW_ONLY"
+    },
+    {
+      "id": "processing-source-photo",
+      "filename": "208758.jpg",
+      "sha256": "ab7227cf7205ee2ac342b6cd75cd899747879506c95c33b888b6adf0acb47987",
+      "width": 1152,
+      "height": 1536,
+      "orientation": 1,
+      "byte_verification": "VERIFIED_IN_CURRENT_EXECUTION_2026-10-23",
+      "role": "PRIVATE_REVIEW_PHOTO",
+      "public_permission": "NOT_CONFIRMED",
+      "committed_to_public_repo": false,
+      "included_in_private_bundle": true,
+      "verification_env_var": "SWOS_CATCH_PHOTO_PATH",
+      "size_bytes": 331421,
+      "public_publication_allowed": false,
+      "allowed_use": "PRIVATE_LOCAL_REVIEW_ONLY",
+      "current_execution_verification": {
+        "sha256": "ab7227cf7205ee2ac342b6cd75cd899747879506c95c33b888b6adf0acb47987",
+        "size_bytes": 331421,
+        "width": 1152,
+        "height": 1536,
+        "format": "JPEG",
+        "exif_orientation": 1
+      }
+    }
+  ],
+  "mask_evidence": {
+    "production_mask": "NOT_QUALIFIED",
+    "human_traced_contour": "REVIEW_PROXY_NOT_PRODUCTION",
+    "bbox_fallback": "BBOX_ONLY_SOFT_REGION",
+    "no_geometry_fallback": "NO_SPATIAL_FISH_FOCUS",
+    "promotion_gate": "REAL_PHOTO_MASK_QUALITY_AND_PROVENANCE_REQUIRED",
+    "existing_pipeline_reuse": "CONFIRMED_EXISTING_EXPERIMENTAL_SAM_VIT_B_PIPELINE",
+    "duplicate_service_required": false,
+    "current_qualification": "NOT_QUALIFIED",
+    "production_qualification_requirements": [
+      "reviewed_ground_truth_masks",
+      "IoU_Dice_and_boundary_metrics",
+      "night_occlusion_dark_background_hard_case_review",
+      "explicit_visual_signoff"
+    ],
+    "browser_frame_time_separate_from_sam_api_latency": true
+  },
+  "acceptance_boundaries": {
+    "ci_pass_does_not_equal_visual_pass": true,
+    "ui_simulation_does_not_equal_real_photo_inference": true,
+    "no_claims_of_pixel_parity_or_user_visual_acceptance": true,
+    "nine_viewport_ci_is_ui_simulation_only": true,
+    "preview_must_bind_exact_pr_head_and_health_sha": true,
+    "playable_browser_demo_required": true,
+    "real_3650ms_playback_and_15_frame_seek_required": true,
+    "browser_render_performance_must_be_measured_separately_from_sam_api_latency": true,
+    "current_product_branch_must_not_be_behind_main_before_implementation": true,
+    "production_mask_qualification_requires_ground_truth_and_visual_signoff": true,
+    "source_sha_and_preview_revision_must_match_exactly": true
+  },
+  "private_handoff_bundle": {
+    "filename": "SWOS_WEB_15_FRAME_REVIEW_PROXY_V3.zip",
+    "sha256": "5227986290402f3f4fe45872efd6d433a92923a2c27c67a7af00b3aac3247fe2",
+    "size_bytes": 28939939,
+    "status": "PRIVATE_REVIEW_PROXY_BUNDLE_NOT_FROZEN",
+    "public_repository_commit_allowed": false,
+    "includes": [
+      "208758.jpg",
+      "渔见AI鱼获识别流程展示.png",
+      "渔见AI鱼获识别动画分镜海报.png",
+      "15 individual 1080x1920 review-proxy frames",
+      "contact_sheet_15_frames.png",
+      "P7_R0_R0_5_R1_shared_geometry.png",
+      "P0_vs_P4_effect_comparison.png"
+    ],
+    "current_execution_sha_verification": "NOT_CHECKED_NO_PRIVATE_BUNDLE_PATH_AVAILABLE"
+  },
+  "frame_reference_assets": {
+    "current_authority_contract": "design/pages/recognition/processing/optics/SWOS_15_Frame_Keyframe_Contract_V1_1.json",
+    "current_authority_blob_sha": "8da99533dfcc2a1673cb402913baa43c082820b2",
+    "frame_ids": [
+      "P0",
+      "P1",
+      "P2",
+      "P3",
+      "P4",
+      "P5",
+      "P6",
+      "P7",
+      "R0",
+      "R0.5",
+      "R1",
+      "R2",
+      "R3",
+      "R4",
+      "R5"
+    ],
+    "expected_individual_pngs": 15,
+    "current_individual_png_bundle_status": "GENERATED_REVIEW_PROXY_NOT_FROZEN",
+    "historical_storyboard_asset": "渔见AI鱼获识别动画分镜海报.png",
+    "historical_storyboard_role": "14_FRAME_V0_3_DIRECTION_REFERENCE_ONLY",
+    "action": "Do not mislabel the historical 14-frame poster as the current 15-frame set. Recover the previously rendered private 15-frame PNGs or generate a clearly labeled review-only 15-frame set bound to the current contract and source photo.",
+    "review_proxy_bundle": {
+      "filename": "SWOS_WEB_15_FRAME_REVIEW_PROXY_V3.zip",
+      "sha256": "5227986290402f3f4fe45872efd6d433a92923a2c27c67a7af00b3aac3247fe2",
+      "frame_size_px": [
+        1080,
+        1920
+      ],
+      "status": "REVIEW_PROXY_NOT_FROZEN",
+      "source_photo_sha256": "ab7227cf7205ee2ac342b6cd75cd899747879506c95c33b888b6adf0acb47987",
+      "current_15_frame_contract_blob_sha": "8da99533dfcc2a1673cb402913baa43c082820b2",
+      "shared_geometry_contract_blob_sha": "5c0d1e4c6b0535a862dd960fa29abb156a3daf5e",
+      "mask_trust": "MANUAL_REFERENCE_ONLY_NOT_PRODUCTION_MASK",
+      "pixel_parity": "NOT_VERIFIED",
+      "playable_animation": "NOT_INCLUDED"
+    }
+  },
+  "private_source_assets_bundle": {
+    "filename": "SWOS_WEB_PRIVATE_VISUAL_INPUTS_V2.zip",
+    "sha256": "2ffeb0014df59d646bf41c90ea98c8514185e7e96f8422e7e488b6e51d991db8",
+    "size_bytes": 4267394,
+    "status": "BYTE_VERIFIED_PRIVATE_SOURCE_ASSETS",
+    "public_repository_commit_allowed": false,
+    "current_execution_sha_verification": "NOT_CHECKED_NO_PRIVATE_BUNDLE_PATH_AVAILABLE"
+  },
+  "asset_authorization_and_freeze": {
+    "audit_date_utc": "2026-10-23",
+    "public_permission": "NOT_CONFIRMED",
+    "public_repo_commit_allowed": false,
+    "public_ci_artifact_allowed": false,
+    "public_pages_upload_allowed": false,
+    "private_local_review_allowed": true,
+    "pixel_frozen_source": "NOT_CONFIRMED",
+    "current_execution_verified_assets": [
+      "208758.jpg"
+    ],
+    "not_rechecked_this_execution": [
+      "渔见AI鱼获识别流程展示.png",
+      "渔见AI鱼获识别动画分镜海报.png",
+      "SWOS_WEB_PRIVATE_VISUAL_INPUTS_V2.zip",
+      "SWOS_WEB_15_FRAME_REVIEW_PROXY_V3.zip"
+    ],
+    "gate": "Public release remains blocked until explicit user permission and license/rights review. Pixel parity remains blocked until the exact visual reference is explicitly designated as the pixel-frozen baseline."
+  }
+}

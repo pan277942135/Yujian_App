@@ -1,0 +1,83 @@
+{
+  "contract_id": "YUJIAN_AI_CATCH_RECOGNITION_WEB_HIFI_V1",
+  "version": "2.0",
+  "authority_status": "VISUAL_CONTRACT_DEFINED",
+  "adoption_status": "MAIN_ADOPTED_DESIGN_ONLY",
+  "page_id": "ai_catch_recognition_web",
+  "source_ref": [
+    "Yujian_App/main@ad8bf1ba61e42a34d1fdd91de47fa386e25f11ef",
+    "Yujian_App/PR186@3b0b5848206cdea949f4bf6be7eb7cb1d19b1e34",
+    "Yujian_App/PR187@ee3bb45858183144598bc28c5bae53ae55b324e0",
+    "Yujian/PR177@655c4af07a0244fcf29441b5652c48ca74f2e6a2"
+  ],
+  "viewport_range": "320px and above",
+  "breakpoints": [
+    {
+      "id": "desktop-wide",
+      "min_width_px": 1280,
+      "max_width_px": null,
+      "layout_variant": "DESKTOP_THREE_STAGE",
+      "behavior": "three weighted columns; sidebar yields product width",
+      "source_class": "DESIGN_COMPLETION_NOT_PIXEL_MEASURED"
+    },
+    {
+      "id": "desktop",
+      "min_width_px": 1024,
+      "max_width_px": 1279,
+      "layout_variant": "TABLET_TWO_STAGE",
+      "behavior": "upload/processing two columns; result full row",
+      "source_class": "DESIGN_COMPLETION_NOT_PIXEL_MEASURED"
+    },
+    {
+      "id": "tablet",
+      "min_width_px": 768,
+      "max_width_px": 1023,
+      "layout_variant": "TABLET_TWO_STAGE",
+      "behavior": "two columns when actual content allows; result full row",
+      "source_class": "DESIGN_COMPLETION_NOT_PIXEL_MEASURED"
+    },
+    {
+      "id": "mobile",
+      "min_width_px": 0,
+      "max_width_px": 767,
+      "layout_variant": "MOBILE_ACTIVE_STAGE",
+      "behavior": "active stage focus; stage navigation and completed summary; five-step horizontally scrolls without body overflow",
+      "source_class": "DESIGN_COMPLETION_NOT_PIXEL_MEASURED"
+    }
+  ],
+  "acceptance_viewports": [
+    "1440x1000",
+    "1280x800",
+    "1024x768",
+    "768x1024",
+    "480dp width",
+    "430x932",
+    "390x844",
+    "360x640",
+    "320x480"
+  ],
+  "invariants": [
+    "photo object-fit contain for upload and processing",
+    "hero safe crop or same-source fallback",
+    "Chinese species wraps without English placeholder",
+    "metadata 2 columns if width permits else 1",
+    "two CTA side by side if labels fit else stack",
+    "minimum tap target 44px",
+    "keyboard and safe-area do not cover action",
+    "320x480 page scroll only; avoid nested scroll and empty slab",
+    "five step strip scrollable on mobile with visible affordance"
+  ],
+  "acceptance_criteria": [
+    "no horizontal body overflow",
+    "all actions reachable by keyboard and touch",
+    "desktop fonts/buttons do not shrink with viewport growth"
+  ],
+  "adoption_pr": 190,
+  "adopted_source_prs": [
+    186,
+    187
+  ],
+  "adoption_scope": "DESIGN_CONTRACT_ONLY",
+  "runtime_visual_verified": false,
+  "pixel_frozen_source": "NOT_CONFIRMED"
+}

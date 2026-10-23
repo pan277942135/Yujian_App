@@ -163,3 +163,62 @@ When this archive provides no explicit static-only extension, the current route-
 ## 12. Android acceptance status
 
 Android remains **`NOT_VERIFIED`**. The existing matrix remains 24 real native executions: 320×480, 360×640, 390×844, and 430×932 dp × system font scales 1.0×, 1.3×, and 1.5× × `ADAPTIVE_V2` and `V3_BASELINE`, on the current API 28 gate. M05 does not add another run because its window height is not defined. The matrix and evidence requirements remain in `NH01_GEMINI_ADAPTIVE_V2_ACCEPTANCE_V1.md` and `NH01_GEMINI_ADAPTIVE_V2_ACCEPTANCE_MATRIX_V1.json`. Static preview, Design Manager browser, and image-integrity checks do not change native `NOT_RUN` to `PASS`.
+
+
+---
+
+## Appendix A — NH01 Responsive Foundation V1.1
+
+**Status: FROZEN · Approved 2026-10-23 · Version: V1.1 · Scope: foundation only**
+
+This appendix defines the current NH01 responsive foundation revision V1.1: stable page-group structure and an explicit, computable 1:1 rule for allocating positive long-screen surplus. V1.1 supersedes V1's 2:1 allocation; all unrelated frozen constraints remain unchanged. It does not claim Android runtime verification.
+
+### A.1 One layout policy, three stable groups
+
+- **A — Top-information allocation band:** brand title + profile/avatar action + the three statistics. It ends at the statistics-row bottom; the 320×480dp compact target keeps this two-row header.
+- **B — Catch-content allocation band:** starts at the “最近鱼获” heading top and includes the heading / “全部” action, selected Hero, and eligible real-neighbor Peek cards. It ends at the selected Hero's outer bottom.
+- **C — Bottom-action allocation band:** starts at the CTA visible-control top and includes “记录下一条鱼” + the primary camera action.
+
+A/B/C are **logical allocation bands, not new Compose containers**. Preserve the current Top/Middle/Footer implementation hierarchy: the Recent Catch heading may remain physically rendered in Top while logically belonging to band B. Use one constraint-driven policy across viewports; do not copy screenshot coordinates into device-specific layouts. Keep within-band relationships stable and adjust inter-band spacing before changing band internals.
+
+### A.2 Long-screen surplus allocation
+
+Measure the actual safe content height `H_safe` after applying system insets exactly once. Measure natural heights `hA`, `hB`, and `hC` of the logical allocation bands, including their content and internal spacing but excluding the two inter-band gaps. `hA` includes brand/avatar and statistics; `hB` includes the Recent Catch heading, the internal Title→Hero gap, and Hero/Pager; `hC` includes CTA, camera, and existing Footer internals. These logical bands do not require new Compose containers.
+
+Calculate the existing base gaps:
+- `gAB_base`: the existing Adaptive V2.2 `stats_to_title` formula.
+- `gBC_base`: the existing Adaptive V2.2 `card_to_footer` formula.
+
+Calculate the positive unassigned surplus:
+
+```text
+S = max(0, H_safe - (hA + hB + hC + gAB_base + gBC_base))
+```
+
+When `S > 0`, allocate it as follows:
+
+```text
+gAB = gAB_base + S/2
+gBC = gBC_base + S/2
+```
+
+The **1:1 equal split applies only to the additional surplus**, not to the final visible gaps. When `S > 0`, add exactly `S/2` to each of A→B and B→C after calculating their existing base gaps. The existing formulas remain the base-gap policy and retain their short-screen pressure/minimum behavior. Verify the added portions after subtracting base gaps; do not require the final visible gaps themselves to be equal.
+
+When `S = 0`, do not add extra space. If the safe window is too short for the base composition, use the short-screen compression order in A.3; do not force the long-screen formula or hide overflow. This rule does not change the internal Title→Hero gap or its four explicit viewport targets. Do not add a separate bottom-reserve function; keep the existing Footer padding and safe-area rules.
+
+### A.3 Short-screen priority
+
+For 320×480dp at system font scale 1.0, prioritize a complete **no-scroll** composition and retain the two-row header.
+
+1. Compress nonessential whitespace.
+2. Compress A→B and B→C gaps within the existing short-screen constraints and minimums.
+3. Resize Hero only within the existing 247:293 ratio, width/height limits, readable-content requirements, and the existing 124dp short-screen exception.
+4. Preserve required text, the camera touch target, and the Footer safe-area boundary.
+
+Do not hide required content, clip text, globally shrink fonts, reduce touch targets, overlap components, double-apply insets, or introduce a screenshot-specific layout. For larger font scales, retain the existing Adaptive V2.2 accessibility and local-scroll fallback rules. If the constrained safe window still cannot fit the required composition, report the appropriate overflow/conflict state rather than claiming PASS.
+
+### A.4 Authority boundary and conflicts
+
+This foundation retains the A/B/C group structure and sets the current long-screen surplus rule to an equal 1:1 split, superseding the former V1 2:1 allocation. Existing Adaptive V2.2 authorities remain binding for exact typography, Title→Hero targets, Hero ratio/width/height limits, Peek geometry, camera/touch geometry, safe areas, and runtime acceptance. The only added long-screen override is the final value of the A→B and B→C inter-group gaps when (S>0), with S/2 added to each gap.
+
+If the foundation and another specific frozen rule cannot be satisfied together, record **SPEC_CONFLICT** and resolve the authority before implementation. Do not silently alter a frozen numeric target or claim PASS from a static image.

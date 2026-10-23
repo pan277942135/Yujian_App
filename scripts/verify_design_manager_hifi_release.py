@@ -166,15 +166,34 @@ def validate_tree(root: Path, *, built: bool = False, expected_build: str | None
     boundary = by_view.get("boundary_state_release_gate")
     guide_view = by_view.get("capture_first_use_guide")
     full_flow = by_view.get("recognition_full_flow_models")
-    require(overview and boundary and guide_view and full_flow, "overview/boundary/guide/full-flow view missing")
+    swos_static = by_view.get("swos_static_visual_v1_1")
+    require(overview and boundary and guide_view and full_flow and swos_static, "overview/boundary/guide/full-flow/SWOS static view missing")
     require(views[0].get("id") == "main_journey_overview", "00 journey overview is not the first recognition route")
+    view_ids = [view.get("id") for view in views]
     require(
-        len(views) >= 2 and views[-2].get("id") == "boundary_state_release_gate"
-        and views[-1].get("id") == "recognition_full_flow_models",
-        "08 boundary gate must remain in place and 09 full-flow/model route must be appended",
+        view_ids.index("boundary_state_release_gate") < view_ids.index("recognition_full_flow_models")
+        < view_ids.index("swos_optical_contract") < view_ids.index("processing_result_continuity")
+        < view_ids.index("swos_static_visual_v1_1"),
+        "08 boundary, 09 full-flow/model, SWOS, continuity and static visual routes must retain their registered order",
     )
     require(full_flow.get("title") == "09 · 识别全流程-和模型", "09 full-flow/model menu title drift")
     require(full_flow.get("status") == "DESIGN_ONLY" and full_flow.get("render_mode") == "recognition_full_flow_models", "09 full-flow/model must remain DESIGN_ONLY with its renderer")
+    require(
+        swos_static.get("status") == "DESIGN_ONLY"
+        and swos_static.get("design_status") == "FROZEN_DESIGN_DIRECTION"
+        and swos_static.get("adoption_status") == "MAIN_ADOPTED_DESIGN_ONLY"
+        and swos_static.get("adoption_pr") == 190
+        and swos_static.get("render_mode") == "swos_static_visual_workspace"
+        and swos_static.get("playback_implemented") is False,
+        "SWOS V1.1 static route must remain a non-playing dependent design review",
+    )
+    require(swos_static.get("source_prs") == [186, 187], "SWOS static route must retain its source PR provenance")
+    frames = load_json(root / swos_static["machine_authority"])
+    transition = load_json(root / swos_static["transition_authority"])
+    require(frames.get("frame_count") == 15 and len(frames.get("keyframes", [])) == 15, "SWOS static authority must render exactly 15 frames")
+    require(frames.get("total_nominal_duration_ms") == 3650, "SWOS static authority duration must stay at 3650ms")
+    require(frames.get("processing", {}).get("frame_count") == 8 and frames.get("rr09", {}).get("frame_count") == 7, "SWOS frame tracks must stay 8 + 7")
+    require(transition.get("samples", {}).get("R0.5", {}).get("relative_ms") == 100 if "relative_ms" in transition.get("samples", {}).get("R0.5", {}) else transition.get("samples", {}).get("R0.5", {}).get("global_nominal_ms") == 2900, "R0.5 geometry/time binding missing")
     require(
         full_flow.get("authority") == "design/system_v3/00_Product_Master_Flow/subflows/Recognition_Full_Flow_Models_V1.md"
         and full_flow.get("machine_authority") == "design/system_v3/00_Product_Master_Flow/subflows/Recognition_Full_Flow_Models_V1.json"
@@ -328,14 +347,27 @@ def validate_tree(root: Path, *, built: bool = False, expected_build: str | None
     app = (design / "manager/app.js").read_text(encoding="utf-8")
     css = (design / "manager/styles.css").read_text(encoding="utf-8")
     html = (design / "manager/index.html").read_text(encoding="utf-8")
+    swos_js_path = design / "manager/swos_static_visual.js"
+    require(swos_js_path.is_file(), "SWOS static visual Design Manager module is missing")
+    swos_js = swos_js_path.read_text(encoding="utf-8")
     require("recognitionGuideResourcesCanvas" in app and "guide-resource-actions" in app, "guide Resources preview/download renderer is missing")
     require("recognitionFullFlowModelsCanvas" in app and 'view.render_mode === "recognition_full_flow_models"' in app, "full-flow/model Design Manager renderer is missing")
+    require('view.render_mode === "swos_static_visual_workspace"' in app and "SWOSStaticVisual?.mount" in app, "SWOS static workspace hook is missing")
+    require("swos_static_visual.js" in html and "window.SWOSStaticVisual" in swos_js, "SWOS static workspace module is not loaded")
+    require("showModal()" in swos_js and "data-frame-id" in swos_js and "R0.5" in swos_js, "SWOS frame zoom or R0.5 inspector is missing")
+    require("crypto.subtle.digest(\"SHA-256\"" in swos_js, "local photo identity verification is missing")
+    require("localStorage" not in swos_js and "indexedDB" not in swos_js and "fetch(\"/" not in swos_js, "SWOS local photo workspace must not persist or upload selected photos")
+    require("FROZEN STATUS CARD" in swos_js and "SWOS · STATIC VISUAL REVIEW" in swos_js, "SWOS static visual reviewer labels are missing")
+    require("swos-storyboard" in css and "swos-zoom-dialog" in css and "swos-inspector-grid" in css, "SWOS static workspace styles are missing")
     require("guide-resource-grid" in css and "guide-resource-metadata" in css, "guide Resources responsive gallery styles are missing")
     for token in (
         "history.pushState", 'window.addEventListener("popstate", selectFromHash)',
         "renderInvalidManagerRoute", "openHifiImageLightbox", '[data-zoom="fit"]',
         "selectPage(id, null, hifiId, childId, false)", "selectShared(id, variantId, false)",
-        "hifiContractMetadataHtml(child || view, view)"
+        'const contractDetailsItem = view.id === "swos_web_hifi_motion_contract_v1_0"',
+        "hifiContractMetadataHtml(contractDetailsItem, view)",
+        "SWOS_WEB_HIFI_MOTION_TECHNICAL_CONTRACT_V1_0.json",
+        "parentView?.contract_links",
     ):
         require(token in app, f"manager implementation missing: {token}")
     require('id="hifiViewContractDetails"' in html, "Page/State contract metadata mount missing")

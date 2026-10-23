@@ -1,0 +1,59 @@
+# AI 渔获识别 Web 全量高保真与工程合同 V2
+
+**ID** `YUJIAN_AI_CATCH_RECOGNITION_WEB_HIFI_V1` · **状态** `VISUAL_CONTRACT_DEFINED`（Main 已采纳的设计合同） · 用户认可的三阶段与水光方向 `USER_APPROVED_VISUAL_DIRECTION`；`MAIN_ADOPTED=YES (DESIGN_CONTRACT_ONLY)`；`PIXEL_FROZEN_SOURCE=NOT_CONFIRMED`；`RUNTIME_VISUAL_VERIFIED=NO`。#186/#187 合同内容由 PR #190 纳入 Main。G01–G18 表格仍是 `655c4af07a0244fcf29441b5652c48ca74f2e6a2` 的历史代码审查快照，不代表当前实现逐项已复核。当前跨仓库快照：Web PR #177 HEAD `ca21e25116cebef0ed393392eb8997a2b7077689`，产品 main `6a2064c2a02a76437b6e09a5241bc199cfa05048`，24 ahead / 0 behind；精确 SHA CI [#39929847089](https://github.com/pan277942135/Yujian/actions/runs/39929847089) 仅通过定向验证与 Chromium UI simulation，生产识别流水线测试被跳过。预览 pin 仍为旧 SHA `4de911dc497c150545d938b60b2694f3c4723e37`，真实预览、Mask 资格、逐帧视觉与性能验收仍未验证。产品 PR #177 保持 Draft/Open/Unmerged。不得声称原图像素冻结、真实 Web 视觉 PASS 或产品代码已验收。机器文件在 `contracts/`，结构先行见 `WEB_HIFI_HANDOFF_A_V2.md`。
+
+## SWOS Web 可播放动效工程权威
+
+三阶段页面结构、状态与响应式产品语义仍由本 V2 合同拥有。真实可播放 SWOS 动效的时钟、15 帧采样、同源照片矩阵、WebGL 2 / Canvas 2D 降级、鱼体 Mask 信任门、中文标题金光转译、评审控件、九视口和性能验收统一由 [SWOS_WEB_HIFI_MOTION_TECHNICAL_CONTRACT_V1_0.md](SWOS_WEB_HIFI_MOTION_TECHNICAL_CONTRACT_V1_0.md) 及其机器合同定义。两份合同互相引用，不互相替代。
+
+SAM 复用现有产品实验链路；禁止新增重复分割服务、重训模型或将 Mask 当作分类输入。当前浏览器播放、生产级 Mask 与像素级视觉验收状态仍需按精确 SHA 的真实证据判定。
+
+## 视觉来源与边界
+
+用户确认的原始三阶段图现登记于 `VISUAL_REFERENCE_MANIFEST_V1.json`：`渔见AI鱼获识别流程展示.png`，1536×1024，SHA-256 `27c34ee5d3cf90921df433cb43c671e42b8ffa80b8f5cebfe9b397da2ee853e2`。私有交接包记录的 SHA、尺寸已核验；当前执行未重新取得该 PNG 原始字节，因此本次字节复核状态为 `NOT_RECHECKED_THIS_EXECUTION`。此前 2560×1440、SHA `5f07c2f65ea33f14c8517dddbb7f8d6b7369a6ed980cba11cc92014f4e6a75f9` 候选降为历史溯源，不可替代本次原图。Design Manager 仅在浏览器本地选择后验证 SHA、尺寸和字节数；不上传、不持久化。公开许可 `NOT_CONFIRMED`，公开仓库/Pages/CI 发布明确禁止；原图是用户确认的视觉方向参考，但 `PIXEL_FROZEN_SOURCE=NOT_CONFIRMED`，不得当作像素冻结基准或宣称像素一致。
+
+该原图确认构图方向，不自动覆盖示例文案、鱼种、模型参数、现行 Token、几何及响应式阈值。结构映射及冲突差异见同一 Manifest；数值补全仍保留 `DESIGN_COMPLETION_NOT_PIXEL_MEASURED`。14 帧 V0.3 历史海报与现行 15 帧 V1.1（含 R0.5）分别标记，3650ms 与 RR09 V3 不变。人工鱼体描线不是生产 Mask。
+
+## 页面与视觉
+
+三阶段结构、组件 ID 和底部五节点见 `Page_Structure_V2.json`。入口与认证保持 Platform V1；在产品路由采用宽阔的居中 Product Shell，侧栏让出空间，返回后恢复。桌面横向三阶段为视觉总览；当前阶段及未开始阶段必须可辨。平板两列、手机活跃阶段聚焦是设计补全，须在批准原稿完成对照后复核。底部节点不可冒充 Detector/Crop/Classifier 的实时进度。
+
+颜色、字号、间距、卡片及按钮见 `Visual_Tokens_V2.json` 和 `Component_Geometry_V2.json`。CSS 示例：`.catch-product{max-width:1280px;margin-inline:auto;padding-inline:var(--web-gutter,32px)}`；`grid-template-columns:repeat(3,minmax(0,1fr));gap:18px` 仅是待原稿校准的桌面设计补全。正文和表单不使用 10–12px 微字；系统字族 CJK fallback；最小触控目标 44px。晨光金用于有意义时刻，不覆盖所有控件。上传、重选、识别、状态、地点、时间、返回应映射共享 `Icon_Registry_V3.json` 的语义 ID；Web 无可用图标资产时标注待映射，不以 emoji 冒充冻结图标。
+
+## 上传
+
+空态提供清楚的拖放与选择入口；拖入态边界反馈、可访问的键盘选择；选择后展示原图 EXIF 正向后的完整 `contain` 预览、文件名/尺寸、重选和清除。横图/竖图/长图/窄图不拉伸、不可切鱼头鱼尾。空文件、MIME 不支持、超服务上限、解码失败、提交失败分别提供对应错误和恢复 CTA。格式/大小从前后端验证结果读取，不能单凭概念稿写死。提交时防重复、允许取消，重新选择清除旧会话结果和 bbox。示例照片入口可预留，但此版本不依赖示例素材。
+
+## SWOS 分层
+
+唯一自然水光语言：晨光入水 → 水纹扩散 → 水光寻鱼 → 鱼体浮光 → 光归于鱼。任何岸上/室内/夜间真实鱼获均采用同一种光学隐喻；不改变照片场景。七层共享原始照片坐标，参数经实际视觉校准，曲线相对值不是 CSS alpha。
+
+| 层 | 输入与区域 | 合成及降级 | 静态验收 |
+|---|---|---|---|
+| Photo Base | EXIF 正向原图；完整显示 | 正常色彩，始终可读；无补画 | P0 原图清晰 |
+| Ambient Water | 照片下缘起的宽柔低密度水光 | 弱 screen/soft-light 意图；低性能先简化 | P1 温和苏醒，不染背景 |
+| Caustic Field | 多尺度、非均匀面状焦散，向上漫延 | 独立场，边缘柔和；低性能减采样 | P2/P3 面状光斑而非蜘蛛网 |
+| Ripple Field | 少量方向性局部水纹 | 不封闭扫描环；可先关闭 | P3 局部传播可辨 |
+| Peripheral Refraction | 图片外围低亮折射 | 不强于鱼体；性能不足关闭 | P4 外围不形成蓝金边框 |
+| Fish Focus | 可信 Mask 或 BBox 信任等级 | Mask: 共用几何的 Core、Soft Glow、Halo；仅 BBox: 克制区域柔光；无几何: 关闭 | P4–P7 鱼鳍鳞片不被盖住 |
+| Residual Gold Trace | 已有鱼体光与共享照片变换 | 只对有效 HIGH、可信几何转移；无 Mask 用非精准降级 | R0–R5 同源、无凭空标题光 |
+
+水光在 P0–P7 的相对强度 `0,10,45,75,60,35,10,0`；鱼体金光 `0,0,15,45,100,100,100,100`，P4（1550ms）达峰，至 P7（2800ms）保持 1250ms。P6/P7 外围消散而鱼体金光仍为视觉中心。独立调 `caustic density/scale/softness`, `ambient radius/luminance`, `ripple amplitude`, `refraction strength`, `gold core width/softness/halo spread`，并用多真实照片验收。禁止旧七路径 Edge Field、机械扫描线、雷达/HUD、封闭霓虹框、均匀蓝蒙版。SAM ViT-B 先评估；不达标才比 SAM 3/3.1。人工参考 contour 不授予生产 Mask 资格。
+
+## 结果及业务
+
+3+2 状态与技术失败的文案、Hero、操作见 `Page_State_Matrix_V2.json`。HIGH 复用 Frozen Result：导航、HIGH Hero 322×210dp/360dp、Hero 下中文鱼种名、必要置信信息、长度重量时间地点、故事、双 CTA。**CTA 决策已收口：** 本页面严格使用冻结的 Result V1.1 页面级权威 `layout_geometry_contract.json`：继续按钮文案为「继续记忆」，保存按钮为「保存本次鱼获」。页面级冻结合同优先于通用 Action Button 示例文案「继续记录记忆」；Web 不得再混用两种标签。若真实记忆目标路由尚未开放，继续按钮必须禁用并解释，不得假跳转。英文科学名及空行都不显示。MEDIUM 候选需确认，LOW 人工选择，NO_FISH 与 IMAGE_QUALITY 提供重选，TECHNICAL_FAILURE 显示重试。
+
+**置信度决策已按职责收口，不改数值：** Web 只消费 `POST /api/product/catch-recognition/infer` 返回的 `result_state`，不得在浏览器重新计算 HIGH/MEDIUM/LOW。当前产品 Result 状态映射仍使用既有 `top1.confidence < 0.45 → LOW`、`top1-second.confidence < 0.12 → MEDIUM`；`app/inference_api.py` 中默认 `INFERENCE_LOW_CONFIDENCE_THRESHOLD=0.55` 是独立推理接口的 `low_confidence` 标记，不是 Web 3+2 状态阈值，不得覆盖服务端 `result_state`。本次只统一权威归属，不修改模型、阈值、门控或路由。任何未来阈值校准必须另有产品负责人批准和标注留出集证据。
+
+业务图像校验 → Detector/Quality → Crop → Classifier → 3+2 由真实事件驱动。Processing 光效是视觉状态，不能用时间标记模型完成。真实推理晚于 2800ms 则延长克制处理态；真实 HIGH 未就绪不揭晓。取消或新会话清除全部旧照片引用、BBox、Mask、鱼种、光效和定时器；Reduce Motion 仍保留可操作结果。
+
+## 共享照片与时序
+
+直接引用 #187 机器合同，Processing 2800ms（P0–P7 八帧），RR09 850ms（R0/R0.5/R1/R2/R3/R4/R5 七帧），总 3650ms。R0 是 Result 首个可见帧；R0.5 +100ms/全局 2900ms；R1 +200ms 落 Hero；R2 +380ms 才完成主要金光转移；R3 +550ms 笔画仍未完整；R4 +680ms 中文名可读；R5 +850ms 余辉消失。R0.5 不加等待。
+
+会话保留原图 ID/SHA、正向宽高、Processing 内容矩形、Result Hero、fit/crop、BBox/可信 Mask、session ID、goldTraceState。照片、鱼体几何与金光从同一源图坐标经同一矩阵变换；不能复制一张图交叉淡入，也不能第二次裁剪。360×640 参考 P 前景 `(0,80,360,480)`、R0.5 容器 `(9.5,26.5,341,425)`、前景 `(50.625,66.5,258.75,345)`、R1 Hero `(19,53,322,210)`、前景 `(101.25,53,157.5,210)` dp；桌面以实测源/目标 rect 推导，不硬编码手机坐标。纵图优先按可信 BBox 安全裁剪；不安全则同源完整前景+低对比同源背景。无可信 Mask 不能制造精准轮廓向标题转移。
+
+## 响应式与验收
+
+`Responsive_Rules_V2.json` 覆盖 1440×1000、1280×800、1024×768、768×1024、480dp、430×932、390×844、360×640、320×480。断点是设计补全，原稿身份确认后复核。大屏不缩字；小屏换列、表单单列、双 CTA 必要时纵排、五节点可横向滚动，正文不溢出；键盘及安全区不挡 CTA。静态合同通过不等于真实 Web 视觉通过。测试门见 `Acceptance_Matrix_V2.json`；Work B 按 `Work_B_Implementation_Mapping_V2.json` 和 `WEB_HIFI_GAP_MATRIX_V2.md` 修复既有 PR。

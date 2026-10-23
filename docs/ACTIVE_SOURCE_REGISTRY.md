@@ -95,7 +95,7 @@ Design freeze and runtime evidence status are tracked separately.
 
 ## Recognition Processing
 
-### Current design authority — V1.2
+### Frozen visual baseline — V1.2
 
 - Design closure:
   `design/pages/recognition/Recognition_Design_Closure_V1_2.md`
@@ -103,6 +103,8 @@ Design freeze and runtime evidence status are tracked separately.
   `design/pages/recognition/spec/Recognition_State_Timeline_Spec_V1_3.md`
 - Three-state visual Keyframe Set:
   `design/pages/recognition/design/Recognition_Processing_Visual_State_Set_V1_2.json`
+
+V1.2 remains the frozen photo-state visual baseline. Main-adopted SWOS V1, Processing Motion V1.3, Page Contract V3.2, continuity V1 and RR09 V3 govern current design-only timing, optical and handoff requirements.
 - Frozen binary hashes:
   `design/pages/recognition/design/reference_manifest.json`
 - Visual:
@@ -132,7 +134,7 @@ Design freeze and runtime evidence status are tracked separately.
 → Result
 ```
 
-Frozen minimum visual beats:
+V1.2 frozen visual-baseline timing reference:
 
 - 图片识别中 ≥ 900ms
 - 已定位到鱼体 ≥ 600ms
@@ -143,11 +145,41 @@ Frozen minimum visual beats:
 
 ### Closure boundary
 
-- Design: **FROZEN**
-- Runtime: **ACTIVE_CLOSURE**
+- V1.2 frozen visual baseline: **FROZEN**
+- Main-adopted SWOS/V1.3/V3.2/RR09 design contracts: **DESIGN_ONLY**
+- Android runtime: **ACTIVE_CLOSURE**
 - Evidence: **ACTIVE_CLOSURE**
 
-Historical V1.1 contracts and verifier remain repository history/compatibility. They must not override current V1.2 design authority.
+Historical V1.1 contracts and verifier remain repository history/compatibility. They must not override the frozen V1.2 visual baseline or the main-adopted design-only contracts listed below.
+
+### Main-adopted Phase 0 design authority set — PR #190
+
+The design contract content proposed through PR #186 and #187 was atomically adopted on `main` through PR #190. PRs #186 and #187 are closed-unmerged as superseded provenance; they are not active dependencies. Adoption covers design and static-review contracts only. Android implementation remains on its existing V3.1 timing and legacy Edge Field renderer until a separate Stage 1 entry, and Runtime/Playback remains NOT_RUN.
+
+- SWOS optical layers and calibration boundary:
+  `design/pages/recognition/processing/optics/SWOS_Optical_Contract_V1.md`
+- Main-adopted Processing motion design contract: 350 / 600 / 600 / 1250ms, total 2800ms; cumulative boundaries 0 / 350 / 950 / 1550 / 2800ms:
+  `design/pages/recognition/processing/motion/Recognition_Processing_Motion_Spec_V1_3.md`
+- Main-adopted Processing Page Contract V3.2 and State Machine V3.2:
+  `design/system_v3/08_Page_Contracts/recognition/processing/`
+- Main-adopted Processing → Result continuity, with no pre-navigation delay and RR09 T0 at the first presented Result frame:
+  `design/pages/recognition/continuity/Processing_Result_Optical_Continuity_Contract_V1.md`
+- Main-adopted RR09 V3 design contract: 850ms, five reveal intervals, Chinese species name only; V2 remains unchanged as historical baseline:
+  `design/pages/recognition/result/motion/Recognition_Result_Motion_Spec_V3.md`
+- Main-adopted SWOS static visual and exact 15-frame sample contract (static review only; playback NOT_RUN):
+  design/pages/recognition/processing/optics/SWOS_Static_Visual_Contract_V1_1.md
+  design/pages/recognition/processing/optics/SWOS_15_Frame_Keyframe_Contract_V1_1.json
+- Main-adopted Web V2 product/structure contract:
+  design/pages/recognition/web/WEB_HIFI_CONTRACT_V2.md
+- SWOS Web playable-motion implementation authority (V1.0; design-only, runtime NOT_VERIFIED):
+  design/pages/recognition/web/SWOS_WEB_HIFI_MOTION_TECHNICAL_CONTRACT_V1_0.md
+  design/pages/recognition/web/contracts/SWOS_WEB_HIFI_MOTION_TECHNICAL_CONTRACT_V1_0.json
+- Existing SAM experiment pipeline to reuse; no duplicate service:
+  product repository pan277942135/Yujian; app/segmentation_api.py; app/segmentation/service.py; app/segmentation/mask_generator.py; app/segmentation/quality_gate.py; app/segmentation/cutout_builder.py
+  existing endpoint POST /api/debug/fish-segmentation is debug/experiment only, not a public production API. Production Mask remains NOT_QUALIFIED until reviewed ground truth, boundary metrics, hard-case analysis and visual sign-off.
+- Current product source audit snapshot (2026-10-23): PR #177 HEAD ca21e25116cebef0ed393392eb8997a2b7077689; product main 6a2064c2a02a76437b6e09a5241bc199cfa05048; 24 ahead / 0 behind; exact-head CI run 39929847089 PASS for targeted checks and Chromium UI simulation only. The production recognition pipeline test step was SKIPPED; current no-traffic preview pin remains stale at 4de911dc497c150545d938b60b2694f3c4723e37. Preview, real inference, Mask qualification and browser visual acceptance remain NOT_VERIFIED / NOT_QUALIFIED.
+
+The nominal 3650ms is the 2800ms Processing visual rhythm plus the 850ms Result reveal, not an inference deadline. If real inference or business gates are not ready at 2800ms, the app must remain in its truthful low-intensity waiting state. Android timing, SWOS rendering, Result handoff, API 28 and runtime evidence remain Stage 1 work.
 
 
 ## Recognition Result 3+2
@@ -162,8 +194,12 @@ Historical V1.1 contracts and verifier remain repository history/compatibility. 
   `design/pages/recognition/result/spec/Recognition_Result_State_Matrix_V1.md`
 - Feature / behavior / visual:
   `design/pages/recognition/result/spec/`
-- Motion (current Result-entry authority):
+- Motion (main-adopted Result-entry design authority; Runtime NOT_RUN):
+  `design/pages/recognition/result/motion/Recognition_Result_Motion_Spec_V3.md`
+- Motion V2 (unchanged historical baseline):
   `design/pages/recognition/result/motion/Recognition_Result_Motion_Spec_V2.md`
+- Processing → Result continuity (main-adopted design-only):
+  `design/pages/recognition/continuity/Processing_Result_Optical_Continuity_Contract_V1.md`
 - Motion V1 historical baseline (non-conflicting Result interaction rules):
   `design/pages/recognition/result/motion/Recognition_Result_Motion_Spec_V1.md`
 - Authority order:
@@ -184,7 +220,7 @@ Historical V1.1 contracts and verifier remain repository history/compatibility. 
 - RR06 — 内容修改 — Species Selector / Metadata Edit authority index
 - RR07 — 判定逻辑 — current runtime routing documented separately
 - RR08 — 视觉验收 — Visual Acceptance Contract V1; runtime NOT_RUN
-- RR09 — 动效接续 — Motion V2 FROZEN SPEC ONLY; runtime NOT_RUN
+- RR09 — 动效接续 V3 — main-adopted design-only contract; V2 retained as DEPRECATED historical baseline; runtime NOT_RUN
 
 ### State-level visual authority
 

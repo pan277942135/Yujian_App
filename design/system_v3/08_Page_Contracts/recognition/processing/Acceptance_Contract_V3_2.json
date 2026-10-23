@@ -1,0 +1,63 @@
+{
+  "schema_version": "1.0",
+  "contract_id": "recognition_processing_acceptance_v3_2",
+  "page_id": "recognition.processing.v3_2",
+  "status": "MAIN_ADOPTED_DESIGN_ONLY",
+  "requirements": [
+    {
+      "id": "timeline",
+      "criterion": "Four internal beats are 350/600/600/1250ms, boundaries 0/350/950/1550/2800ms, with CAPTURED and DETECTING mapped to IMAGE_RECOGNIZING."
+    },
+    {
+      "id": "real_events",
+      "criterion": "Every advance requires its minimum beat and corresponding real pipeline event; timer-only success is impossible."
+    },
+    {
+      "id": "late_inference",
+      "criterion": "Inference beyond 2800ms stays in a quiet low-intensity CLASSIFYING hold until real result and business gates."
+    },
+    {
+      "id": "early_result",
+      "criterion": "An early real result does not shorten the minimum optical story."
+    },
+    {
+      "id": "release",
+      "criterion": "Peripheral water reaches zero during 2600–2800ms inside CLASSIFYING; no additional RESOLVE state or pre-navigation wait exists."
+    },
+    {
+      "id": "geometry",
+      "criterion": "Photo, SWOS, BBox and trusted subject geometry share EXIF-normalized RecognitionImageTransform/photoContentRect; effects do not leak into FIT letterbox."
+    },
+    {
+      "id": "swos_language",
+      "criterion": "Real-photo result reads as irregular layered sunlight/water behavior, not legacy seven-path tracing, HUD, scanner, closed neon border or full-frame tint."
+    },
+    {
+      "id": "fish_provenance",
+      "criterion": "Trusted contour only follows trust-gated real subject geometry; BBox-only fallback is regional glow and never a traced rectangle."
+    },
+    {
+      "id": "continuity",
+      "criterion": "Same photo/session/transform and residual gold source continue into RR09; RR09 T0 is first actually presented Result frame."
+    },
+    {
+      "id": "accessibility",
+      "criterion": "Reduce Motion retains state/result/actions with a static optical composition; CTA remains independent of motion completion."
+    },
+    {
+      "id": "scope",
+      "criterion": "No model threshold, confidence semantics, route, business data, frozen photo or static Result layout changes."
+    }
+  ],
+  "phase0_static_contract_validation": "REQUIRED",
+  "stage1_browser_visual_gate": "NOT_RUN",
+  "stage1_android_api28_gate": "NOT_RUN",
+  "apk_provenance": "NOT_RUN",
+  "adoption_status": "MAIN_ADOPTED_DESIGN_ONLY",
+  "adoption_pr": 190,
+  "adopted_source_prs": [
+    186,
+    187
+  ],
+  "runtime_visual_verified": false
+}

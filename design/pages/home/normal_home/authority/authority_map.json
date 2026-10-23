@@ -148,6 +148,21 @@
     "legacy_layout_contract": "design/pages/home/normal_home/engineering/Layout_Responsive_Contract_V1.md",
     "responsive_runtime_status": "NOT_VERIFIED",
     "responsive_layout_freeze_gate": "G-NH01-RESPONSIVE-PREVIEW",
-    "android_implementation_gate": "SPEC_FROZEN responsive contract plus exact-SHA native runtime gate"
+    "android_implementation_gate": "SPEC_FROZEN responsive contract plus exact-SHA native runtime gate",
+    "responsive_foundation": {
+      "status": "FROZEN",
+      "version": "V1.1",
+      "authority": "design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_MULTI_SCREEN_RESPONSIVE_CONTRACT_V1.md",
+      "machine_authority": "design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_MULTI_SCREEN_RESPONSIVE_CONTRACT_V1.json",
+      "scope": "Logical A/B/C allocation bands; frozen V1.1 adds equal S/2 to each final A-to-B and B-to-C gap; preserve physical Top/Middle/Footer structure, existing base-gap formulas and other Adaptive V2.2 numeric constraints."
+    },
+    "responsive_candidate_delta": {
+      "status": "PROPOSED_FOR_CANONICAL_MAIN_REVIEW",
+      "authority": "design/pages/home/normal_home/responsive/NH01_RESPONSIVE_LAYOUT_V2.json",
+      "baseline_version": "V1.1",
+      "baseline_positive_surplus": "gAB_base + S/2; gBC_base + S/2",
+      "candidate_positive_surplus": "gAB_base + 2S/3; gBC_base + S/3",
+      "promotion_rule": "Do not claim SPEC_FROZEN until canonical Main review explicitly resolves and adopts the candidate delta."
+    }
   }
 }

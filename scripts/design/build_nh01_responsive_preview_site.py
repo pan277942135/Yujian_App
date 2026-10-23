@@ -85,9 +85,9 @@ def main() -> None:
     if 'id="heroPlaceholder"' not in html or 'data-status="BLOCKED_ASSET_SOURCE"' not in html:
         raise SystemExit("NH01 preview must retain the explicit blocked Hero-photo placeholder")
     if not re.search(r'<article\b[^>]*id="leftCatchCard"[^>]*\shidden(?:\s|>)', html):
-        raise SystemExit("NH01 preview must keep the unapproved left-neighbor card hidden")
+        raise SystemExit("NH01 public preview must keep the non-published left-neighbor card hidden")
     if not re.search(r'<article\b[^>]*id="rightCatchCard"[^>]*\shidden(?:\s|>)', html):
-        raise SystemExit("NH01 preview must keep the unapproved right-neighbor card hidden")
+        raise SystemExit("NH01 public preview must keep the non-published right-neighbor card hidden")
     if "PREVIEW ONLY" not in html or "NOT VISUAL PASS" not in html:
         raise SystemExit("NH01 candidate workbench must visibly disclose PREVIEW ONLY / NOT VISUAL PASS")
     html = html.replace('name="nh01-preview-root" content="../../../../../"', 'name="nh01-preview-root" content="../../../"')
@@ -173,7 +173,7 @@ def main() -> None:
         "acceptance_status": "NOT_CLAIMED" if contract["status"] != "SPEC_FROZEN" else "NH01_RESPONSIVE_PREVIEW_V2_PASS_REQUIRED",
         "media_policy": {
             "hero": "PLACEHOLDER_ONLY" if not asset_by_id["hero_photo"].get("public_preview") else "APPROVED_SOURCE_ONLY",
-            "neighbors": "HIDDEN_UNTIL_APPROVED_INDEPENDENT_ORIGINALS" if not asset_by_id["neighbor_photos"].get("public_preview") else "APPROVED_INDEPENDENT_ORIGINALS",
+            "neighbors": "HIDDEN_UNTIL_PUBLIC_REDISTRIBUTION_AUTHORIZED" if not asset_by_id["neighbor_photos"].get("public_preview") else "APPROVED_INDEPENDENT_ORIGINALS",
             "non_public_asset_files_copied": False,
         },
         "viewport_profiles_path": profile_path.as_posix(),

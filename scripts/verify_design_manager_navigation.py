@@ -15,11 +15,14 @@ EXPECTED_RECOGNITION_FLOW = [
     "main_journey_overview", "state_timeline", "visual_states",
     "layer_component_ownership", "motion_transition", "degradation_accessibility",
     "runtime_evidence", "capture_first_use_guide", "boundary_state_release_gate",
-    "recognition_full_flow_models",
+    "recognition_full_flow_models", "swos_optical_contract", "processing_result_continuity",
+    "swos_static_visual_v1_1",
+    "web_hifi_contract_v2", "swos_web_hifi_motion_contract_v1_0",
 ]
 EXPECTED_RECOGNITION_RESULT = [
     "overview", "high", "medium", "low", "no_fish", "image_quality",
     "content_edit", "decision_logic", "visual_acceptance", "motion_continuation",
+    "motion_continuation_v2_history",
 ]
 
 
@@ -92,6 +95,77 @@ def validate_tree(root: Path, *, built: bool = False, expected_build: str | None
         or flow_models.get("render_mode") != "recognition_full_flow_models"
     ):
         fail("09 · 识别全流程-和模型 must remain a registered DESIGN_ONLY submenu")
+    swos_optical = next((x for x in recognition["hifi_views"] if x.get("id") == "swos_optical_contract"), None)
+    continuity = next((x for x in recognition["hifi_views"] if x.get("id") == "processing_result_continuity"), None)
+    swos_static = next((x for x in recognition["hifi_views"] if x.get("id") == "swos_static_visual_v1_1"), None)
+    if (
+        swos_optical is None or swos_optical.get("status") != "ACTIVE_CLOSURE"
+        or swos_optical.get("authority") != "design/pages/recognition/processing/optics/SWOS_Optical_Contract_V1.md"
+        or swos_optical.get("machine_authority") != "design/pages/recognition/processing/optics/SWOS_Optical_Contract_V1.json"
+    ):
+        fail("SWOS Optical Contract V1 must be a registered Processing submenu")
+    if (
+        continuity is None or continuity.get("status") != "ACTIVE_CLOSURE"
+        or continuity.get("authority") != "design/pages/recognition/continuity/Processing_Result_Optical_Continuity_Contract_V1.md"
+        or continuity.get("machine_authority") != "design/pages/recognition/continuity/processing_result_optical_continuity_v1.json"
+    ):
+        fail("Processing → Result Optical Continuity Contract V1 must be registered")
+    if not (root / swos_optical["authority"]).is_file() or not (root / continuity["authority"]).is_file():
+        fail("SWOS/continuity Design Manager authority source is missing")
+    if (
+        swos_static is None or swos_static.get("title") != "12 · SWOS · 静态视觉"
+        or swos_static.get("status") != "DESIGN_ONLY"
+        or swos_static.get("design_status") != "FROZEN_DESIGN_DIRECTION"
+        or swos_static.get("adoption_status") != "MAIN_ADOPTED_DESIGN_ONLY"
+        or swos_static.get("adoption_pr") != 190
+        or swos_static.get("render_mode") != "swos_static_visual_workspace"
+        or swos_static.get("playback_implemented") is not False
+    ):
+        fail("SWOS V1.1 must remain a main-adopted, static-only Design Manager submenu")
+    for field in ("authority", "machine_authority", "transition_authority", "asset_manifest"):
+        path = swos_static.get(field)
+        if not path or not (root / path).is_file():
+            fail(f"SWOS static Design Manager {field} is missing: {path}")
+    if not any(x.get("route") == "#page/recognition_result_v1/hifi/motion_continuation" for x in swos_static.get("related_routes", [])):
+        fail("SWOS static submenu must link to RR09 V3")
+    if not any(x.get("route") == "#page/recognition_flow_v1_2/hifi/swos_web_hifi_motion_contract_v1_0" for x in swos_static.get("related_routes", [])):
+        fail("SWOS static submenu must link to the Web motion technical contract")
+    static_frames = load_json(root / swos_static["machine_authority"])
+    if static_frames.get("frame_count") != 15 or len(static_frames.get("keyframes", [])) != 15:
+        fail("SWOS keyframe authority must contain exactly 15 frames")
+    if static_frames.get("total_nominal_duration_ms") != 3650 or static_frames.get("processing", {}).get("duration_ms") != 2800 or static_frames.get("rr09", {}).get("duration_ms") != 850:
+        fail("SWOS keyframe duration contract drift")
+    if not any(x.get("id") == "R0.5" and x.get("relative_ms") == 100 and x.get("global_nominal_ms") == 2900 for x in static_frames["keyframes"]):
+        fail("SWOS static keyframe contract must include R0.5 at 100ms / 2900ms")
+    result_feature = next((x for x in registry.get("features", []) if x.get("id") == "recognition_result_v1"), None)
+    result_rr09 = next((x for x in (result_feature or {}).get("hifi_views", []) if x.get("id") == "motion_continuation"), None)
+    if not result_rr09 or not any(x.get("route") == "#page/recognition_flow_v1_2/hifi/swos_static_visual_v1_1" for x in result_rr09.get("related_routes", [])):
+        fail("RR09 V3 must link back to the SWOS static visual workspace")
+    result_navigation = load_json(root / "design/pages/recognition/result/navigation.json")
+    rr09_navigation = next((x for x in result_navigation.get("level_2", []) if x.get("id") == "RR09"), None)
+    if not rr09_navigation or not any(x.get("route") == "#page/recognition_flow_v1_2/hifi/swos_static_visual_v1_1" for x in rr09_navigation.get("related_manager_routes", [])):
+        fail("RR09 page navigation manifest must link to SWOS static review")
+    if (root / "design/manager/swos_static_visual.js").is_file() is False:
+        fail("SWOS static visual workspace renderer is missing")
+    if not any("swos_static_visual.js" in line for line in (root / "design/manager/index.html").read_text(encoding="utf-8").splitlines()):
+        fail("Design Manager HTML does not load the SWOS static visual renderer")
+    swos_web_motion = next((x for x in recognition["hifi_views"] if x.get("id") == "swos_web_hifi_motion_contract_v1_0"), None)
+    if (
+        swos_web_motion is None
+        or swos_web_motion.get("title") != "14 · SWOS Web 高保真动效技术合同 V1.0"
+        or swos_web_motion.get("status") != "DESIGN_ONLY"
+        or swos_web_motion.get("render_mode") != "authority_index"
+        or swos_web_motion.get("authority") != "design/pages/recognition/web/SWOS_WEB_HIFI_MOTION_TECHNICAL_CONTRACT_V1_0.md"
+        or swos_web_motion.get("machine_authority") != "design/pages/recognition/web/contracts/SWOS_WEB_HIFI_MOTION_TECHNICAL_CONTRACT_V1_0.json"
+        or swos_web_motion.get("runtime_status") != "NOT_VERIFIED"
+    ):
+        fail("SWOS Web motion technical contract must be a registered design-only authority route")
+    for field in ("authority", "machine_authority"):
+        target = swos_web_motion.get(field)
+        if not target or not (root / target).is_file():
+            fail(f"SWOS Web motion technical contract is missing {field}: {target}")
+    if not any(link.get("route") == "#page/recognition_flow_v1_2/hifi/swos_static_visual_v1_1" for link in swos_web_motion.get("related_routes", [])):
+        fail("SWOS Web motion contract must link back to the 15-frame static review route")
     guide = next(x for x in recognition["hifi_views"] if x.get("id") == "capture_first_use_guide")
     guide_children = [x.get("id") for x in guide.get("children", [])]
     if guide.get("title") != "07 · 首次拍照教学" or guide_children != ["p01", "p02", "p03", "resources"]:
@@ -130,16 +204,24 @@ def validate_tree(root: Path, *, built: bool = False, expected_build: str | None
     result_views = {x.get("id"): x for x in journey.get("hifi_views", [])}
     rr08 = result_views.get("visual_acceptance", {})
     rr09 = result_views.get("motion_continuation", {})
+    rr09_v2_history = result_views.get("motion_continuation_v2_history", {})
     if rr08.get("status") != "FROZEN" or rr08.get("readiness_status") != "READY_FOR_VISUAL_IMPLEMENTATION":
         fail("RR08 visual acceptance index must be frozen while preserving its separate implementation-readiness status")
-    if rr09.get("status") != "FROZEN" or rr09.get("behavior_authority") != "design/pages/recognition/result/motion/Recognition_Result_Motion_Spec_V2.md":
-        fail("RR09 motion continuation must resolve to the frozen Motion V2 authority")
-    if rr09.get("machine_authority") != "design/pages/recognition/result/motion/recognition_result_motion_contract_v2.json":
-        fail("RR09 machine-readable Motion V2 contract is not registered")
+    if rr09.get("status") != "ACTIVE_CLOSURE" or rr09.get("render_mode") != "authority_index" or rr09.get("authority") != "design/pages/recognition/result/motion/Recognition_Result_Motion_Spec_V3.md":
+        fail("Current RR09 must resolve to the main-adopted design-only Motion V3 authority index")
+    if rr09.get("machine_authority") != "design/pages/recognition/result/motion/recognition_result_motion_contract_v3.json":
+        fail("RR09 machine-readable Motion V3 contract is not registered")
+    if rr09_v2_history.get("status") != "DEPRECATED" or rr09_v2_history.get("render_mode") != "recognition_result_motion_playable":
+        fail("RR09 V2 must remain explicitly reachable only as a deprecated historical prototype")
+    if rr09_v2_history.get("authority") != "design/pages/recognition/result/motion/Recognition_Result_Motion_Spec_V2.md" or rr09_v2_history.get("machine_authority") != "design/pages/recognition/result/motion/recognition_result_motion_contract_v2.json":
+        fail("RR09 V2 historical menu must preserve its original spec and machine contract")
     result_nav = load_json(design / "pages/recognition/result/navigation.json")
     rr09_nav = next((x for x in result_nav.get("level_2", []) if x.get("id") == "RR09"), None)
-    if not rr09_nav or rr09_nav.get("order") != 10 or rr09_nav.get("status") != "FROZEN":
-        fail("Recognition Result RR09 · 动效接续 menu contract missing or out of order")
+    rr09_v2_nav = next((x for x in result_nav.get("level_2", []) if x.get("id") == "RR09_V2_HISTORY"), None)
+    if not rr09_nav or rr09_nav.get("order") != 10 or rr09_nav.get("status") != "ACTIVE_CLOSURE" or rr09_nav.get("contract") != "design/pages/recognition/result/motion/Recognition_Result_Motion_Spec_V3.md":
+        fail("Recognition Result current RR09 V3 menu contract missing or out of order")
+    if not rr09_v2_nav or rr09_v2_nav.get("order") != 11 or rr09_v2_nav.get("status") != "DEPRECATED":
+        fail("RR09 V2 must remain visible as an explicitly historical menu entry")
 
     # NH07 is a design-only asset workspace: gate its source identity, not Android runtime.
     if not built:
