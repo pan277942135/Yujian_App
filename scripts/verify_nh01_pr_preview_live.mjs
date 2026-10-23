@@ -297,7 +297,35 @@ async function main() {
       fixedResults.push({profile_id:profile.id,requested_viewport_dp:[profile.width,profile.height],measured:layout});
       report.checks.fixed_viewports=fixedResults;
       assert(layout.variant === 'ADAPTIVE_V2' && layout.contract_sha256 === contract.sha256, `${profile.id} did not use the loaded V2 contract`);
-      if(profile.width===320&&profile.height===480)assert(!layout.needs_scroll, '320x480dp at fontScale 1.0 must not introduce unexpected Middle scrolling');
+      if(profile.width===320&&profile.height===480){
+        const exception=contractJson.responsive_parameters.hero.short_screen_exception;
+        const exactException=exception.exact_viewport_width_dp===profile.width&&exception.exact_viewport_height_dp===profile.height&&exception.exact_font_scale===1;
+        assert(exactException&&exception.requires_all_copy_readable===true,'320x480dp short-screen exception must match its exact contract scope and keep copy readable');
+        if(layout.needs_scroll){
+          assert(exception.requires_no_middle_scroll===false&&layout.short_screen_exception_applied,'320x480dp Middle scrolling is allowed only by the exact declared short-screen exception');
+          assert(layout.available_card_height_dp+0.5<exception.minimum_height_dp,'320x480dp may use Middle scrolling only when the readable Hero floor cannot fit');
+          assert(layout.card_height_dp+0.5>=exception.minimum_height_dp,'320x480dp short-screen exception must preserve the minimum readable Hero height');
+          const scrollEvidence=await page.evaluate(()=>{
+            const middle=document.querySelector('#middleSection');
+            const hero=document.querySelector('#mainCatchCard');
+            const footer=document.querySelector('#footerSection');
+            const footerTopBefore=footer.getBoundingClientRect().top;
+            const maxScroll=Math.max(0,middle.scrollHeight-middle.clientHeight);
+            middle.scrollTop=maxScroll;
+            const middleRect=middle.getBoundingClientRect();
+            const heroRect=hero.getBoundingClientRect();
+            const footerTopAfter=footer.getBoundingClientRect().top;
+            const evidence={middle_overflow_y:getComputedStyle(middle).overflowY,scrollbar_width:getComputedStyle(middle).scrollbarWidth,middle_scroll_max:maxScroll,hero_bottom_after_scroll:heroRect.bottom,middle_bottom:middleRect.bottom,footer_top_before:footerTopBefore,footer_top_after:footerTopAfter,root_scroll_y:window.scrollY,root_scroll_top:document.scrollingElement?.scrollTop??null,hero_reachable:heroRect.bottom<=middleRect.bottom+0.5,footer_stationary:Math.abs(footerTopAfter-footerTopBefore)<=0.5};
+            middle.scrollTop=0;
+            return evidence;
+          });
+          assert(scrollEvidence.middle_overflow_y==='auto'&&scrollEvidence.scrollbar_width==='none','320x480dp must keep the contract-authorized scroll local to Middle without a visible scrollbar');
+          assert(scrollEvidence.middle_scroll_max>0.5&&scrollEvidence.hero_reachable,'320x480dp readable Hero content must be fully reachable through Middle scrolling');
+          assert(scrollEvidence.footer_stationary,'320x480dp Middle scrolling must not move Footer');
+          assert(scrollEvidence.root_scroll_y===0&&(scrollEvidence.root_scroll_top===0||scrollEvidence.root_scroll_top===null),'320x480dp must not scroll the page or workbench');
+          report.checks.short_screen_scroll_exception={contract_allows_local_middle_scroll:true,available_card_height_dp:layout.available_card_height_dp,minimum_readable_height_dp:exception.minimum_height_dp,hero_height_dp:layout.card_height_dp,...scrollEvidence};
+        }
+      }
       assert(layout.content_width_dp <= 560 + 0.01, `${profile.id} exceeded the contract max content width`);
       assert(layout.measurements.horizontal_overflow_dp <= 0.5, `${profile.id} has horizontal overflow`);
       assert(layout.measurements.hero_overlap_footer <= 0.5, `${profile.id} Hero overlaps Footer`);
