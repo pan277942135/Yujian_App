@@ -1,17 +1,17 @@
 # Web PR #177 → Web Hi-Fi V2 Gap Matrix
 
-## Live source binding — post-sync audit 2026-10-23
+## Live source binding — current audit 2026-10-23
 
-The original observations below are a **historical code-review snapshot** of PR #177 HEAD `655c4af07a0244fcf29441b5652c48ca74f2e6a2`; they are not proof that each gap remains identical on the live source.
+The observations in the G01–G18 table remain a **historical code-review snapshot** of PR #177 HEAD 655c4af07a0244fcf29441b5652c48ca74f2e6a2; they are not proof that each gap remains identical on the live source.
 
-- Live PR #177 HEAD after main sync: `d8f3aabfab058d58cac84e19af095b0186df5f85`
-- Live product `main`: `3c79c00db68ace94d8f6a7dcb4105d0026a09323`
-- Comparison: **19 commits ahead / 0 behind**; merge base `3c79c00db68ace94d8f6a7dcb4105d0026a09323`. The latest three main commits were merged into the feature branch without rebase or force-push.
-- Exact-head CI for the post-sync SHA: [run 39917440271](https://github.com/pan277942135/Yujian/actions/runs/39917440271) **PASS** (`validate` and Chromium UI simulation). This does not prove real-photo inference, qualified Mask, pixel parity, cloud save, or visual acceptance.
-- The cross-repository control-plane binding is defined in the live input manifest: canonical governance remains in `pan277942135/Yujian_App`; the product repo is a separate implementation repo and must not create a competing registry.
-- Current-head product preview: `NOT_VERIFIED`; merged preview workflow remains pinned to historical `cb9e3780afb5e2904e3dfe5148210a4ccc3747b4`.
-- The current audit does **not** prove real-photo inference, qualified production Mask, pixel parity, cloud save, or user visual acceptance.
-- Current qualified production Mask: `NOT_QUALIFIED`; runtime visual verification: `NOT_VERIFIED`.
+- Live PR #177 HEAD: ca21e25116cebef0ed393392eb8997a2b7077689 (24 commits ahead / 0 behind product main).
+- Live product main: 6a2064c2a02a76437b6e09a5241bc199cfa05048.
+- Comparison at this audit: **24 commits ahead / 0 behind**; merge base `6a2064c2a02a76437b6e09a5241bc199cfa05048`. Product branch sync is **PASS** for this snapshot. Re-read the live PR and rerun exact-SHA Admission/CI before any later implementation or deployment; this audit snapshot is not a permanent pin.
+- Exact-head CI: [run 39929847089](https://github.com/pan277942135/Yujian/actions/runs/39929847089) **PASS** on ca21e25116cebef0ed393392eb8997a2b7077689; scope is safe targeted validation and Chromium UI simulation only. Production recognition pipeline tests were skipped because the metadata-access review remains unresolved.
+- Preview workflow pin is **STALE** at 4de911dc497c150545d938b60b2694f3c4723e37; it does not match current PR #177 HEAD ca21e25116cebef0ed393392eb8997a2b7077689. Do not use the current preview URL as evidence for the current source. Revision/health SHA and playable browser animation remain **NOT_VERIFIED**.
+- Current production Mask: **NOT_QUALIFIED**. Current runtime visual acceptance: **NOT_VERIFIED**. Browser frame-time evidence: **NOT_RUN**.
+- The canonical control plane remains in Yujian_App; the separate product repository must not create a competing registry.
+
 
 观察源：`pan277942135/Yujian` PR #177 HEAD `655c4af07a0244fcf29441b5652c48ca74f2e6a2` 的 Product Shell 模板、CSS、识别控制器与照片会话/接续模块。这是代码审查，非运行像素差异；PR 仍 Draft/Open/Unmerged。目标合同为 Main 已采纳的 `YUJIAN_AI_CATCH_RECOGNITION_WEB_HIFI_V1` 及九份机器文件。未经授权原图比对的量化差值保持 `NOT_MEASURED`。
 
@@ -35,3 +35,21 @@ The original observations below are a **historical code-review snapshot** of PR 
 | G16 | JS 结果分支及 `result.revealing` 需要查 HIGH-only 限制 | Page_State_Matrix / P0 | MEDIUM/LOW/恢复/技术失败均无成功庆祝；真实 HIGH 新会话一次；自动测试 |
 | G17 | 后端默认低置信 0.55 与 App 观察 0.45 未统一 | Page_State_Matrix / P0 decision | 不改阈值；标明来源和语义，提交业务决定后同步唯一判定源 |
 | G18 | 无已授权示例图，代码文本说明 | Asset_Manifest / P1 | 当前无需示例即可上传；未来仅接入有许可的一张真实示例，禁提交用户私图 |
+
+
+## SWOS Web High-Fidelity Motion Technical Contract V1.0
+
+The implementation authority is [SWOS Web Hi-Fi Motion Technical Contract V1.0](SWOS_WEB_HIFI_MOTION_TECHNICAL_CONTRACT_V1_0.md) and its machine-readable contract at [contracts/SWOS_WEB_HIFI_MOTION_TECHNICAL_CONTRACT_V1_0.json](contracts/SWOS_WEB_HIFI_MOTION_TECHNICAL_CONTRACT_V1_0.json). It binds the existing Web V2, SWOS 15-frame, shared-photo transition and RR09 V3 authorities.
+
+| Workstream | Required closure evidence | Current status |
+|---|---|---|
+| Real playable browser animation | One-clock 3650ms playback, all 15 seek points, pause/step/speed controls, real recording and exact source SHA | NOT_VERIFIED |
+| Optical renderer | Irregular water caustics, seven-layer responsibility, WebGL 2 → cached Canvas 2D → static fallback | NOT_VERIFIED |
+| Photo continuity | Same photo identity and shared transform P7 → R0 → R0.5 → R1; exact R0.5 geometry midpoint | CONTRACT_DEFINED; BROWSER_NOT_VERIFIED |
+| Fish focus | Existing SAM ViT-B experiment chain reused; trusted-mask / bbox-only / none gate; three gold layers share one contour | EXPERIMENT_REUSE_DEFINED; PRODUCTION_MASK_NOT_QUALIFIED |
+| Chinese glyph transfer | Transfer only after R1; R3 unreadable, R4 Chinese-only title readable, R5 afterglow zero | CONTRACT_DEFINED; BROWSER_NOT_VERIFIED |
+| Responsive and performance | Nine viewports, multi-scene photo matrix, desktop/mobile frame-time and dropped-frame evidence | NOT_RUN |
+
+**SAM pipeline boundary:** reuse the existing product implementation in pan277942135/Yujian: app/segmentation_api.py, app/segmentation/service.py, app/segmentation/mask_generator.py, app/segmentation/quality_gate.py and app/segmentation/cutout_builder.py. The existing POST /api/debug/fish-segmentation endpoint is an experiment/debug route, not a public production API. Use a server adapter; do not create a duplicate service, retrain SAM, treat a BBox as a contour, or promote heuristic GOOD to production qualification.
+
+**Current blocker:** PR #177 is three commits behind product main. Before implementation or deployment, synchronize the product branch, rerun Admission and exact-SHA CI, then refresh the input manifest and preview health SHA. Passing static validators or Chromium UI simulation does not close G3–G7 of the technical contract.

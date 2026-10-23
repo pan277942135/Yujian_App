@@ -439,6 +439,8 @@ async function main() {
   assert(await page.locator('.hifi-related-routes a[href="' + swosStaticHash + '"]').count() === 1, "RR09 must expose the reverse link to SWOS static inspection");
   await page.locator('.hifi-related-routes a[href="' + swosStaticHash + '"]').click();
   await page.waitForFunction(expected => location.hash === expected, swosStaticHash);
+  const swosWebMotionRouteHash = "#page/recognition_flow_v1_2/hifi/swos_web_hifi_motion_contract_v1_0";
+  assert(await page.locator('.hifi-related-routes a[href="' + swosWebMotionRouteHash + '"]').count() === 1, "SWOS static review must link to the Web motion technical contract");
   await waitForPrivateReference(page);
   await page.setViewportSize({ width: 390, height: 844 });
   const swosMobileWidth = await page.evaluate(() => ({ document: document.documentElement.scrollWidth, body: document.body.scrollWidth }));
@@ -458,6 +460,22 @@ async function main() {
   await page.setViewportSize({ width: 390, height: 844 });
   const webMobileWidth = await page.evaluate(() => ({ document: document.documentElement.scrollWidth, body: document.body.scrollWidth }));
   assert(webMobileWidth.document <= 390 && webMobileWidth.body <= 390, `Web contract workspace overflows mobile: ${JSON.stringify(webMobileWidth)}`);
+  await page.setViewportSize({ width: 1440, height: 1000 });
+
+  const swosWebMotionHash = "#page/recognition_flow_v1_2/hifi/swos_web_hifi_motion_contract_v1_0";
+  await open(swosWebMotionHash);
+  await waitForHifiView(page);
+  assert(page.url().endsWith(swosWebMotionHash), "SWOS Web motion technical contract direct Hash route did not resolve");
+  assert((await page.locator("#hifiViewTitle").innerText()).includes("SWOS Web 高保真动效技术合同 V1.0"), "SWOS Web motion contract title is missing");
+  assert((await page.locator("#hifiViewAuthorities").innerText()).includes("SWOS_WEB_HIFI_MOTION_TECHNICAL_CONTRACT_V1_0.md"), "SWOS Web motion contract authority link is missing");
+  assert(await page.locator('#hifiViewContractDetails .hifi-contract-links a[href*="SWOS_WEB_HIFI_MOTION_TECHNICAL_CONTRACT_V1_0.json"]').count() === 1, "SWOS Web motion machine contract link is missing from the Contracts section");
+  assert(await page.locator('.hifi-related-routes a[href="' + swosStaticHash + '"]').count() === 1, "SWOS Web motion contract must link to the static 15-frame workspace");
+  assert((await page.locator("#hifiViewCanvas").innerText()).includes("SAM"), "SWOS Web motion contract must state existing SAM experiment reuse");
+  await page.screenshot({ path: resolve(args.outputDir, "swos-web-motion-contract-1440.png"), fullPage: true });
+  await page.setViewportSize({ width: 390, height: 844 });
+  const swosMotionMobileWidth = await page.evaluate(() => ({ document: document.documentElement.scrollWidth, body: document.body.scrollWidth }));
+  assert(swosMotionMobileWidth.document <= 390 && swosMotionMobileWidth.body <= 390, "SWOS Web motion contract overflows mobile: " + JSON.stringify(swosMotionMobileWidth));
+  await page.screenshot({ path: resolve(args.outputDir, "swos-web-motion-contract-390.png"), fullPage: true });
   await page.setViewportSize({ width: 1440, height: 1000 });
 
   const continuityHash = "#page/recognition_flow_v1_2/hifi/processing_result_continuity";
@@ -503,7 +521,7 @@ async function main() {
     checks: ["direct Hash", "Resources submenu click and direct route", "original PNG previews/download links and manifest", "refresh", "back/forward", "modal zoom/fit/Esc/focus restore", "SWOS and continuity authority routes", "15-frame static workspace and exact 8+7 count", "R0.5 2900ms zoom and original/composite toggle", "P7/R0/R0.5/R1 geometry table", "RR09 ↔ SWOS routes", "Web Hi-Fi V2 authority/resources and 390px route", "local-only photo selection without persistent/network upload", "390px SWOS responsive preview", "RR09 V3 current / V2 historical route separation", "missing authority no fake UI", "invalid route guard", "no HTTP errors", "no console/page errors"],
     swos_local_photo_sha256: uploadedPhotoSha,
     swos_local_photo_uploaded: Boolean(args.swosPhoto),
-    screenshots: ["desktop-1440.png", "tablet-768.png", "mobile-390.png", "lightbox-1440.png", "overview-1440.png", "guide-resources-1440.png", "guide-resources-390.png", "swos-optical-contract-1440.png", "swos-static-visual-1440.png", "swos-static-visual-390.png", "swos-r05-zoom-1440.png", "web-hifi-v2-1440.png", "processing-result-continuity-1440.png", "rr09-v3-authority-1440.png", "rr09-v2-history-1440.png"],
+    screenshots: ["desktop-1440.png", "tablet-768.png", "mobile-390.png", "lightbox-1440.png", "overview-1440.png", "guide-resources-1440.png", "guide-resources-390.png", "swos-optical-contract-1440.png", "swos-static-visual-1440.png", "swos-static-visual-390.png", "swos-r05-zoom-1440.png", "swos-web-motion-contract-1440.png", "swos-web-motion-contract-390.png", "web-hifi-v2-1440.png", "processing-result-continuity-1440.png", "rr09-v3-authority-1440.png", "rr09-v2-history-1440.png"],
     errors,
     bad_responses: badResponses,
     failed_requests: failedRequests

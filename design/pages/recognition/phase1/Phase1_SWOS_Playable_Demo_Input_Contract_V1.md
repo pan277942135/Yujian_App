@@ -4,6 +4,12 @@
 **Scope:** Required inputs and evidence boundary for a future playable Web/Android SWOS demo.
 **Phase 0 disposition:** Contract only; no demo is implemented here.
 
+## Current implementation authority
+
+Use [SWOS Web Hi-Fi Motion Technical Contract V1.0](../web/SWOS_WEB_HIFI_MOTION_TECHNICAL_CONTRACT_V1_0.md) and its machine contract as the implementation and acceptance authority for browser playback, renderer fallback, review controls, photo continuity, Chinese glyph transfer, responsive tests and frame-time evidence. This does not replace the product Web V2 or the existing SWOS 15-frame/shared-photo/RR09 authorities.
+
+Reuse the existing SAM ViT-B experimental pipeline in the separate product repository; do not create a duplicate segmentation service or retrain the model. The existing POST /api/debug/fish-segmentation route is debug/experiment only and must not be exposed as a public production API. A heuristic GOOD mask remains NOT_QUALIFIED for production until ground-truth boundary metrics, hard-case review and visual sign-off exist.
+
 ## Required input bundle
 
 1. A registered set of original real catch photos with path, SHA-256, dimensions, EXIF/orientation, source identity and license/permission status. Include bright-sky, dark-water, fish near each photo edge, more than one fish, crop/letterbox and image-quality cases.

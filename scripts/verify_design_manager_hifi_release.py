@@ -364,7 +364,10 @@ def validate_tree(root: Path, *, built: bool = False, expected_build: str | None
         "history.pushState", 'window.addEventListener("popstate", selectFromHash)',
         "renderInvalidManagerRoute", "openHifiImageLightbox", '[data-zoom="fit"]',
         "selectPage(id, null, hifiId, childId, false)", "selectShared(id, variantId, false)",
-        "hifiContractMetadataHtml(child || view, view)"
+        'const contractDetailsItem = view.id === "swos_web_hifi_motion_contract_v1_0"',
+        "hifiContractMetadataHtml(contractDetailsItem, view)",
+        "SWOS_WEB_HIFI_MOTION_TECHNICAL_CONTRACT_V1_0.json",
+        "parentView?.contract_links",
     ):
         require(token in app, f"manager implementation missing: {token}")
     require('id="hifiViewContractDetails"' in html, "Page/State contract metadata mount missing")

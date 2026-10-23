@@ -3747,6 +3747,11 @@
               "label": "RR09 · 动效接续 V3",
               "route": "#page/recognition_result_v1/hifi/motion_continuation",
               "note": "Main-adopted design-only 850ms V3；V2 历史基线保留且不改写。"
+            },
+            {
+              "label": "SWOS Web 高保真动效技术合同 V1.0",
+              "route": "#page/recognition_flow_v1_2/hifi/swos_web_hifi_motion_contract_v1_0",
+              "note": "真实可播放实现、SAM 复用与浏览器验收"
             }
           ],
           "runtime_status": "NOT_RUN",
@@ -3864,6 +3869,69 @@
           "runtime_visual_verified": false,
           "pixel_frozen_source": "NOT_CONFIRMED",
           "visual_reference_manifest": "design/pages/recognition/web/VISUAL_REFERENCE_MANIFEST_V1.json"
+        },
+        {
+          "id": "swos_web_hifi_motion_contract_v1_0",
+          "title": "14 · SWOS Web 高保真动效技术合同 V1.0",
+          "status": "DESIGN_ONLY",
+          "authority_type": "technical_contract",
+          "render_mode": "authority_index",
+          "page_id": "swos.web_hifi_motion_technical_contract_v1_0",
+          "state_id": "DESIGN_ONLY",
+          "state_id_scope": "Design Manager technical contract route only; not a product runtime state",
+          "authority": "design/pages/recognition/web/SWOS_WEB_HIFI_MOTION_TECHNICAL_CONTRACT_V1_0.md",
+          "machine_authority": "design/pages/recognition/web/contracts/SWOS_WEB_HIFI_MOTION_TECHNICAL_CONTRACT_V1_0.json",
+          "runtime_status": "NOT_VERIFIED",
+          "summary": "真实可播放 Web SWOS 的统一工程合同：3650ms/15 帧、同源照片单一变换、可信鱼体 Mask、金光转译到中文名、WebGL 2/Canvas 2D 降级、九视口与真实帧时间证据。复用既有 SAM ViT-B 实验链路，不新增重复分割服务；生产 Mask 与浏览器视觉验收仍未通过。",
+          "menu_points": [
+            "01 · 单一时钟与 15 帧采样：P0–P7 + R0/R0.5/R1/R2/R3/R4/R5",
+            "02 · 同源照片、M(t) 与 R0.5 精确几何中点",
+            "03 · SWOS 七层水面光场；WebGL 2 → Canvas 2D → 静态降级",
+            "04 · 复用现有 SAM ViT-B 实验链路；不新增服务、不重训",
+            "05 · TRUSTED_MASK / TRUSTED_BBOX_ONLY / NONE 三档信任门",
+            "06 · 金光在 R1 后转移，R4 中文鱼种名可读；不显示英文名",
+            "07 · 播放/暂停/逐帧/跳转/慢放与参数导出",
+            "08 · 九视口、多场景照片、真实帧时间与逐帧视觉验收"
+          ],
+          "contract_links": [
+            {
+              "label": "机器可读技术合同 V1.0",
+              "path": "design/pages/recognition/web/contracts/SWOS_WEB_HIFI_MOTION_TECHNICAL_CONTRACT_V1_0.json"
+            },
+            {
+              "label": "Web 全量高保真合同 V2",
+              "path": "design/pages/recognition/web/WEB_HIFI_CONTRACT_V2.md"
+            },
+            {
+              "label": "SWOS 15 帧关键帧合同 V1.1",
+              "path": "design/pages/recognition/processing/optics/SWOS_15_Frame_Keyframe_Contract_V1_1.json"
+            },
+            {
+              "label": "共享照片接续合同 V1",
+              "path": "design/pages/recognition/continuity/SWOS_Shared_Photo_Transition_Contract_V1.json"
+            },
+            {
+              "label": "SWOS 动态 Demo 技术交接",
+              "path": "design/pages/recognition/processing/optics/SWOS_Dynamic_Demo_Technical_Handoff_V1.md"
+            }
+          ],
+          "related_routes": [
+            {
+              "label": "SWOS 静态视觉 / 15 帧",
+              "route": "#page/recognition_flow_v1_2/hifi/swos_static_visual_v1_1",
+              "note": "静态合同与几何核对；不代表可播放 Demo"
+            },
+            {
+              "label": "Processing → Result 光学接续",
+              "route": "#page/recognition_flow_v1_2/hifi/processing_result_continuity",
+              "note": "同源照片与共享变换"
+            },
+            {
+              "label": "Web 全量高保真合同 V2",
+              "route": "#page/recognition_flow_v1_2/hifi/web_hifi_contract_v2",
+              "note": "产品页面结构、状态与响应式权威"
+            }
+          ]
         }
       ],
       "navigation_mode": "submenu_direct",

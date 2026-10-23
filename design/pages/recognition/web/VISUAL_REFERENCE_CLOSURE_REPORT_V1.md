@@ -32,3 +32,12 @@ Local browser: BLOCKED before execution. Bundled Playwright available; Chromium 
 ## Promotion boundary
 
 Seven-condition visual-reference policy and validator added to existing governance and CI. Static JSON/registry PASS does not promote VISUAL_FROZEN. Runtime visual status remains false; public license remains NOT_CONFIRMED. Review any new derived binary separately before public release.
+
+## Current execution authorization and freeze-state addendum — 2026-10-23
+
+- Exact current product source snapshot: PR #177 HEAD `ca21e25116cebef0ed393392eb8997a2b7077689`; product main `6a2064c2a02a76437b6e09a5241bc199cfa05048`. This snapshot is a source binding, not runtime visual acceptance.
+- `208758.jpg` was re-materialized from the private Library and independently checked in this execution: SHA-256 `ab7227cf7205ee2ac342b6cd75cd899747879506c95c33b888b6adf0acb47987`, 331421 bytes, JPEG, 1152×1536, EXIF orientation 1.
+- The user-confirmed three-stage reference and historical 14-frame storyboard retain their previously recorded private-handoff SHA/dimension verification, but their raw bytes were not re-retrieved in this execution. Their declared hashes remain manifest identities; this report does not claim a new byte re-verification.
+- All private source assets and derivatives: `PUBLIC_PERMISSION=NOT_CONFIRMED`; public repository commits, public CI artifacts and Pages uploads are prohibited. Private local browser review only; no persistence or upload.
+- `PIXEL_FROZEN_SOURCE=NOT_CONFIRMED`. The 1536×1024 source is a user-confirmed visual-direction reference, not an approved pixel-exact target. Pixel-diff acceptance remains blocked until the user explicitly designates the exact source as the frozen pixel baseline.
+- Production fish Mask remains `NOT_QUALIFIED`; manual outlines remain review-only and are not part of asset authorization.
