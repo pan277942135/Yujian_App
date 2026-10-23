@@ -183,29 +183,28 @@ Use one constraint-driven policy across viewport sizes. Do not copy fixed screen
 
 ### A.2 Long-screen surplus allocation
 
-Measure the actual safe content height (H_{safe}) after applying system insets exactly once. Measure the natural heights (h_A), (h_B), and (h_C) of groups A/B/C, including each group's fixed content and internal spacing but excluding the two inter-group gaps.
+Measure the actual safe content height `H_safe` after applying system insets exactly once. Measure the natural heights `hA`, `hB`, and `hC) of groups A/B/C, including each group's fixed content and internal spacing but excluding the two inter-group gaps.
 
 Calculate the existing base gaps:
-- (g_{AB,base}): the existing Adaptive V2.2 `stats_to_title` formula.
-- (g_{BC,base}): the existing Adaptive V2.2 `card_to_footer` formula.
+- `gAB_base`: the existing Adaptive V2.2 `stats_to_title` formula.
+- `gBC_base`: the existing Adaptive V2.2 `card_to_footer` formula.
 
-Then calculate the positive unassigned surplus:
+Calculate the positive unassigned surplus:
 
-[
-S = \max(0, H_{safe} - (h_A + h_B + h_C + g_{AB,base} + g_{BC,base}))
-]
+```text
+S = max(0, H_safe - (hA + hB + hC + gAB_base + gBC_base))
+```
 
-When (S > 0), the final inter-group gaps are:
+When `S > 0`, allocate it as follows:
 
-[
-g_{AB} = g_{AB,base} + \frac{2}{3}S
-\qquad
-g_{BC} = g_{BC,base} + \frac{1}{3}S
-]
+```text
+gAB = gAB_base + 2*S/3
+gBC = gBC_base + S/3
+```
 
 The **2:1 ratio applies only to the additional surplus**, not to the final visible gaps. This is the explicit long-screen rule for the final output of the two inter-group gaps: the existing formulas remain their base-gap policy and retain their short-screen pressure/minimum behavior, while positive long-screen surplus is added according to the equations above.
 
-This rule does not change the internal Title→Hero gap or its four explicit viewport targets. If (S=0), do not invent additional space. Do not add a separate bottom-reserve function; keep the existing Footer padding and safe-area rules.
+When `S = 0`, do not add extra space. If the safe window is too short for the base composition, use the short-screen compression order in A.3; do not force the long-screen formula or hide overflow. This rule does not change the internal Title→Hero gap or its four explicit viewport targets. Do not add a separate bottom-reserve function; keep the existing Footer padding and safe-area rules.
 
 ### A.3 Short-screen priority
 
