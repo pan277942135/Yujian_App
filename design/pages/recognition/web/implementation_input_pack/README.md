@@ -52,3 +52,12 @@ The exact-head CI pass is bound to the recorded product SHA and covers safe targ
 ## Cross-repository admission binding
 
 The canonical Work control plane is `pan277942135/Yujian_App/main`, pinned through `AGENTS.md` and `CONTROL_PLANE_REGISTRY.yaml`. The implementation source is maintained in the separate `pan277942135/Yujian` repository. This input pack provides the cross-repository source binding: exact PR head, live main comparison, exact-head CI, and pinned design contract blob SHAs. The product repo must not create a competing local control plane. Admission is complete only when the canonical control-plane checks and the live source audit both pass for the exact referenced SHA.
+
+
+## Private handoff bundle V2
+
+The verified private bundle is `SWOS_WEB_PRIVATE_VISUAL_INPUTS_V2.zip`, SHA-256 `2ffeb0014df59d646bf41c90ea98c8514185e7e96f8422e7e488b6e51d991db8`. It includes the user-confirmed Web reference, historical storyboard and actual source photo. Keep it private.
+
+## 15-frame rendered references
+
+The current 15-frame authority contract is pinned in the manifest. The actual 15 individual PNGs are **not present in the available private handoff**; the available storyboard is a historical 14-frame V0.3 reference. Do not claim that the historical poster is the current 15-frame set. Recover the previously rendered 15-frame set or create a separately labeled review-only set tied to the current 15-frame contract. Production Mask remains unqualified.
