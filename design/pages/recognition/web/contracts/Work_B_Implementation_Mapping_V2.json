@@ -12,7 +12,7 @@
   ],
   "web_repo": "pan277942135/Yujian",
   "web_pr": 177,
-  "source_sha": "d8f3aabfab058d58cac84e19af095b0186df5f85",
+  "source_sha": "4de911dc497c150545d938b60b2694f3c4723e37",
   "files": [
     "app/templates/platform/catch_recognition.html",
     "app/static/js/catch_recognition.js",
@@ -26,7 +26,10 @@
     "implement approved optical layers gated by trusted geometry",
     "enforce HIGH-only RR09 and one shared photo transform",
     "apply token/geometry/responsive contracts",
-    "browser compare against approved source once verified"
+    "browser compare against approved source once verified",
+    "bind implementation to SWOS Web Hi-Fi Motion Technical Contract V1.0 and machine contract",
+    "reuse existing SAM ViT-B experiment pipeline through a server adapter; do not create a duplicate service",
+    "implement actual browser playback and collect 15-frame, shared-photo geometry, responsive, frame-time and visual evidence"
   ],
   "do_not": [
     "change model thresholds",
@@ -35,7 +38,11 @@
     "claim visual parity from UI simulation"
   ],
   "acceptance_criteria": [
-    "Referenced source status remains explicit; Product PR #177 is Draft/Open/Unmerged and supplies no runtime evidence"
+    "Referenced source status remains explicit; Product PR #177 is Draft/Open/Unmerged and supplies no runtime evidence",
+    "Actual 3650ms playable browser animation and all 15 seek points pass on the exact source SHA",
+    "SAM experiment pipeline is reused without duplicate service; mask trust states degrade safely",
+    "Production Mask stays NOT_QUALIFIED until ground-truth boundary metrics and visual sign-off are complete",
+    "Browser frame-time and visual acceptance evidence are separate from SAM API latency and Chromium UI simulation"
   ],
   "adoption_pr": 190,
   "adopted_source_prs": [
@@ -45,39 +52,40 @@
   "adoption_scope": "DESIGN_CONTRACT_ONLY",
   "runtime_visual_verified": false,
   "pixel_frozen_source": "NOT_CONFIRMED",
-  "previous_reviewed_source_sha": "32b9463887c6620b32a3dfdd986eccc6ff4a569b",
-  "source_sha_role": "LIVE_PR_HEAD_AFTER_MAIN_SYNC_2026-10-23",
+  "previous_reviewed_source_sha": "d8f3aabfab058d58cac84e19af095b0186df5f85",
+  "source_sha_role": "LIVE_PR177_HEAD_EXACT_CI_PASS_BUT_BEHIND_PRODUCT_MAIN_NOT_VISUAL_ACCEPTED",
   "live_source_audit": {
     "audit_date": "2026-10-23",
     "product_repository": "pan277942135/Yujian",
     "product_pr_number": 177,
     "product_branch": "feat/ai-catch-recognition-web-swos-rr09-v1",
-    "live_product_pr_head_sha": "d8f3aabfab058d58cac84e19af095b0186df5f85",
-    "live_product_main_sha": "3c79c00db68ace94d8f6a7dcb4105d0026a09323",
+    "live_product_pr_head_sha": "4de911dc497c150545d938b60b2694f3c4723e37",
+    "live_product_main_sha": "6a2064c2a02a76437b6e09a5241bc199cfa05048",
     "merge_base_sha": "3c79c00db68ace94d8f6a7dcb4105d0026a09323",
-    "ahead_by": 19,
-    "behind_by": 0,
-    "source_sync_status": "SYNCED_TO_CURRENT_PRODUCT_MAIN",
+    "ahead_by": 22,
+    "behind_by": 3,
+    "source_sync_status": "BLOCKED_BEHIND_CURRENT_PRODUCT_MAIN",
     "exact_head_ci_status": "PASS",
     "previous_exact_head_ci": {
-      "sha": "32b9463887c6620b32a3dfdd986eccc6ff4a569b",
-      "run_id": 39874124153,
-      "url": "https://github.com/pan277942135/Yujian/actions/runs/39874124153",
-      "conclusion": "success",
-      "scope": "targeted validation plus Chromium UI simulation only"
-    },
-    "exact_head_ci": {
+      "sha": "d8f3aabfab058d58cac84e19af095b0186df5f85",
       "run_id": 39917440271,
       "url": "https://github.com/pan277942135/Yujian/actions/runs/39917440271",
+      "conclusion": "success",
+      "scope": "targeted validation and Chromium UI simulation only; not runtime visual acceptance"
+    },
+    "exact_head_ci": {
+      "sha": "4de911dc497c150545d938b60b2694f3c4723e37",
+      "run_id": 39922218177,
+      "url": "https://github.com/pan277942135/Yujian/actions/runs/39922218177",
       "conclusion": "success",
       "jobs": {
         "validate": "success",
         "det_fish_display_chromium": "success"
       },
-      "scope": "safe targeted validation and Chromium UI simulation only; no full-suite metadata access, production inference, qualified Mask, pixel parity, or user visual acceptance"
+      "scope": "safe targeted validation and Chromium UI simulation only; no production inference, qualified Mask, pixel parity, browser motion performance, or user visual acceptance"
     },
     "current_head_preview_status": "NOT_VERIFIED",
-    "configured_preview_sha": "cb9e3780afb5e2904e3dfe5148210a4ccc3747b4",
+    "configured_preview_sha": "4de911dc497c150545d938b60b2694f3c4723e37",
     "production_mask_status": "NOT_QUALIFIED",
     "runtime_visual_status": "NOT_VERIFIED",
     "full_suite_status": "NOT_RUN_BLOCKED_BY_EXISTING_METADATA_ACCESS_REVIEW",
@@ -89,7 +97,25 @@
       "product_repository_is_separate": true,
       "product_repository_root_control_plane_files": "NOT_PRESENT",
       "policy": "Use the canonical Yujian_App control plane plus this exact-SHA cross-repository source audit. Do not create a competing control plane in Yujian.",
-      "admission_status": "CANONICAL_CONTROL_PLANE_PINNED; SOURCE_SHA_CI_PASS"
+      "admission_status": "CANONICAL_CONTROL_PLANE_PINNED; EXACT_HEAD_CI_PASS; PRODUCT_BRANCH_BEHIND_MAIN"
     }
+  },
+  "previous_audit_source_sha": "32b9463887c6620b32a3dfdd986eccc6ff4a569b",
+  "swos_web_hifi_motion_contract": "design/pages/recognition/web/SWOS_WEB_HIFI_MOTION_TECHNICAL_CONTRACT_V1_0.md",
+  "swos_web_hifi_motion_machine_contract": "design/pages/recognition/web/contracts/SWOS_WEB_HIFI_MOTION_TECHNICAL_CONTRACT_V1_0.json",
+  "sam_experiment_reuse": {
+    "existing_pipeline_repository": "pan277942135/Yujian",
+    "existing_api_path": "POST /api/debug/fish-segmentation",
+    "existing_code_paths": [
+      "app/segmentation_api.py",
+      "app/segmentation/service.py",
+      "app/segmentation/mask_generator.py",
+      "app/segmentation/quality_gate.py",
+      "app/segmentation/cutout_builder.py"
+    ],
+    "model": "SAM_VIT_B",
+    "policy": "REUSE_EXISTING_EXPERIMENTAL_PIPELINE; NO_DUPLICATE_SERVICE; NO_RETRAIN; MASK_IS_NOT_CLASSIFIER_INPUT",
+    "public_production_endpoint": false,
+    "production_mask_qualification": "NOT_QUALIFIED"
   }
 }
