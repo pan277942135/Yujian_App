@@ -8,8 +8,8 @@
     "Yujian_App/main@2c41084b423be36b06035694fe573c5e671cb4da",
     "Yujian_App/PR186@3b0b5848206cdea949f4bf6be7eb7cb1d19b1e34",
     "Yujian_App/PR187@ee3bb45858183144598bc28c5bae53ae55b324e0",
-    "Yujian/PR177@5aa44cac6c8895ab28566ba1f5f9baf40953065e",
-    "Yujian/PR177@5aa44cac6c8895ab28566ba1f5f9baf40953065e"
+    "Yujian/PR177@f5b74cc7628131863f40a1a43458026ff49a2eb5",
+    "Yujian/PR177@f5b74cc7628131863f40a1a43458026ff49a2eb5"
   ],
   "states": [
     {
@@ -133,14 +133,14 @@
     "audit_date": "2026-10-24",
     "product_repository": "pan277942135/Yujian",
     "product_pr": 177,
-    "product_pr_head_sha": "5aa44cac6c8895ab28566ba1f5f9baf40953065e",
-    "product_main_sha": "15d4d1152cce08a3786d51bf1285381ed75d97e6",
+    "product_pr_head_sha": "f5b74cc7628131863f40a1a43458026ff49a2eb5",
+    "product_main_sha": "738954105d545d9c354136b8b93f3562058fcf30",
     "compare": {
-      "ahead_by": 47,
+      "ahead_by": 48,
       "behind_by": 0,
-      "merge_base_sha": "15d4d1152cce08a3786d51bf1285381ed75d97e6"
+      "merge_base_sha": "738954105d545d9c354136b8b93f3562058fcf30"
     },
-    "exact_head_ci_run_id": 40053248593,
-    "exact_head_ci_scope": "Exact-source targeted validation and Chromium UI simulation. Run 40053248593 passed on 5aa44cac; no live model request, authenticated SAM output, real-photo visual acceptance or private-photo use."
+    "exact_head_ci_run_id": 40054890544,
+    "exact_head_ci_scope": "Exact-source CI run 40054890544 passed targeted validation, offline probe unit tests and Chromium/UI simulation; no authenticated live inference or visual acceptance."
   }
 }
