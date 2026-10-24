@@ -51,6 +51,8 @@ def main() -> int:
     structure = load(STRUCTURE_PATH)
     frozen = load(FROZEN_PATH)
     reference = load(REFERENCE_PATH)
+    registry = load(ROOT / "design/registry/experience_registry_v1.json")
+    navigation = load(GUIDE / "navigation.json")
 
     if manifest.get("schema_version") != "1.0" or manifest.get("catalog_id") != "recognition_first_use_camera_guide_frontend_assets_v1":
         fail("frontend asset manifest identity/schema drift")
@@ -68,6 +70,31 @@ def main() -> int:
         fail("structure-only candidate must not claim visual/runtime authority")
     if structure.get("geometry_policy", {}).get("exact_component_bounds_measured") is not False:
         fail("schematic structure cannot claim unmeasured exact geometry")
+
+    feature = next((item for item in registry.get("features", []) if item.get("id") == "recognition_flow_v1_2"), None)
+    if not feature:
+        fail("recognition_flow_v1_2 missing from experience registry")
+    guide = next((item for item in feature.get("hifi_views", []) if item.get("id") == "capture_first_use_guide"), None)
+    resource = next((item for item in (guide or {}).get("children", []) if item.get("id") == "resources"), None)
+    if not resource:
+        fail("Resources submenu missing from registered guide")
+    if resource.get("frontend_assets_manifest") != "design/pages/recognition/first_use_camera_guide/frontend_assets_manifest.json":
+        fail("registry frontend_assets_manifest path drift")
+    if resource.get("page_structure_contract") != "design/pages/recognition/first_use_camera_guide/page_structure.json":
+        fail("registry page_structure_contract path drift")
+    if resource.get("reference_only_package_manifest") != "design/resource_packages/MANIFEST.json":
+        fail("registry reference-only manifest path drift")
+    if resource.get("asset_catalog_status") != "PARTIAL_SOURCE_BLOCKED" or resource.get("independent_photo_sources_found") != 0:
+        fail("registry must preserve explicit source-blocked state")
+    menus = navigation.get("resource_menus", [])
+    if len(menus) != 1 or menus[0].get("id") != "resources" or menus[0].get("route") != "#page/recognition_flow_v1_2/hifi/capture_first_use_guide/resources":
+        fail("guide Resources navigation route drift")
+    if menus[0].get("frontend_assets_manifest") != "frontend_assets_manifest.json" or menus[0].get("page_structure_contract") != "page_structure.json":
+        fail("navigation does not register both new resource contracts")
+    if menus[0].get("reference_only_package_manifest") != "design/resource_packages/MANIFEST.json":
+        fail("navigation reference-only package path drift")
+    if menus[0].get("asset_catalog_status") != "PARTIAL_SOURCE_BLOCKED":
+        fail("navigation must not claim missing photo assets are complete")
 
     assets = {item.get("id"): item for item in manifest.get("assets", [])}
     if set(assets) != set(EXPECTED_ASSETS):
