@@ -3218,7 +3218,17 @@
                 "p03"
               ],
               "runtime_visual_authority": false,
-              "summary": "首次拍照教学的三张 Frozen 原始 PNG 静态资源目录。可预览、打开或下载原文件，并查看 Manifest、尺寸、字节数与 SHA-256；仅供设计资源使用，不映射为 Android 运行时背景。"
+              "summary": "资源工作区：保留三张 Frozen PNG，并新增三页结构化图层合同、8 个独立照片资源定义和 12 个页面槽位绑定。独立原始摄影素材当前未找到，照片槽保持 ASSET_SOURCE_BLOCKED；旧截图裁切仅为 REFERENCE_ONLY，不得作为前端/Android 正式素材。",
+              "frontend_assets_manifest": "design/pages/recognition/first_use_camera_guide/frontend_assets_manifest.json",
+              "page_structure_contract": "design/pages/recognition/first_use_camera_guide/page_structure.json",
+              "reference_only_package_manifest": "design/resource_packages/MANIFEST.json",
+              "structure_preview_paths": [
+                "design/pages/recognition/first_use_camera_guide/structure/P01_First_Use_Guide_Structure_Only.svg",
+                "design/pages/recognition/first_use_camera_guide/structure/P02_First_Use_Guide_Structure_Only.svg",
+                "design/pages/recognition/first_use_camera_guide/structure/P03_First_Use_Guide_Structure_Only.svg"
+              ],
+              "asset_catalog_status": "PARTIAL_SOURCE_BLOCKED",
+              "independent_photo_sources_found": 0
             }
           ],
           "visual_status": "FROZEN",
