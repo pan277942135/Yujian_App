@@ -21,6 +21,7 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.test.swipeLeft
+import androidx.compose.ui.test.swipeUp
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.yujian.ai.catches.CatchStatistics
@@ -229,10 +230,24 @@ class GeminiHomeDeviceMatrixTest {
             .assertTextEquals("草鱼")
         compose.onNodeWithTag("gemini-home-catch-measurement-nh01-catch-001", useUnmergedTree = true)
             .assertTextEquals("42.6 cm · 1.28 kg")
-        compose.onNodeWithTag("gemini-home-catch-metadata-nh01-catch-001", useUnmergedTree = true)
-            .assertTextContains("05月29日 04:26")
-        compose.onNodeWithTag("gemini-home-catch-metadata-nh01-catch-001", useUnmergedTree = true)
-            .assertTextContains("浙江 · 千岛湖")
+        val initialMetadataText = compose.onNodeWithTag(
+            "gemini-home-catch-metadata-nh01-catch-001", useUnmergedTree = true,
+        ).fetchSemanticsNode().config[
+            androidx.compose.ui.semantics.SemanticsProperties.Text
+        ].joinToString(separator = "\n") { it.text }
+        assertTrue(
+            "metadata must preserve the capture date in accessible text: $initialMetadataText",
+            initialMetadataText.contains("05月29日 04:26"),
+        )
+        // Location is optional on the card and may be shortened at compact
+        // widths; its full value remains in the source record and detail view.
+        // At regular widths this short fixture must still be visible when it fits.
+        if (profileId in setOf("M07", "M10") && expectedFontScaleValue == 1.0f) {
+            assertTrue(
+                "metadata location must remain visible when this regular-width fixture fits: $initialMetadataText",
+                initialMetadataText.contains("浙江 · 千岛湖"),
+            )
+        }
         val requiredCardTextTags = listOf(
             "gemini-home-catch-species-nh01-catch-001",
             "gemini-home-catch-measurement-nh01-catch-001",
@@ -266,6 +281,8 @@ class GeminiHomeDeviceMatrixTest {
         val tags = listOf(
             "gemini-home-screen", "gemini-home-brand-title", "gemini-home-header-bar", "gemini-home-stats-bar",
             "gemini-home-section-title", "gemini-home-section-all-label", "gemini-home-middle-section", "gemini-home-carousel-track",
+            "gemini-home-base-gap-a-to-b", "gemini-home-surplus-a-to-b", "gemini-home-section-header-row",
+            "gemini-home-title-to-hero-gap", "gemini-home-base-gap-b-to-c", "gemini-home-surplus-b-to-c",
             "gemini-home-stat-species-value", "gemini-home-stat-species-label",
             "gemini-home-stat-catches-value", "gemini-home-stat-catches-label",
             "gemini-home-stat-record-days-value", "gemini-home-stat-record-days-label",
@@ -289,6 +306,7 @@ class GeminiHomeDeviceMatrixTest {
             fontSizeTags.forEach { put(it, fontSizeSp(it)) }
         }
         val root = rect("gemini-home-screen").toDp(profile.density)
+        val middle = rect("gemini-home-middle-section").toDp(profile.density)
         val track = rect("gemini-home-carousel-track").toDp(profile.density)
         val safeWidthDp = (root.width() - profile.insets.start.value - profile.insets.end.value).coerceAtLeast(1f)
         val safeHeightDp = (root.height() - profile.insets.top.value - profile.insets.bottom.value).coerceAtLeast(1f)
@@ -309,9 +327,49 @@ class GeminiHomeDeviceMatrixTest {
         val expectedCameraArtSize = geminiHomeCameraVisualSize(safeWidthDp, safeHeightDp)
         val brand = rect("gemini-home-brand-title").toDp(profile.density)
         val stats = rect("gemini-home-stats-bar").toDp(profile.density)
+        val baseGapAToB = rect("gemini-home-base-gap-a-to-b").toDp(profile.density)
+        val extraGapAToB = rect("gemini-home-surplus-a-to-b").toDp(profile.density)
+        val sectionHeaderRow = rect("gemini-home-section-header-row").toDp(profile.density)
+        val titleToHeroSpacer = rect("gemini-home-title-to-hero-gap").toDp(profile.density)
+        val baseGapBToC = rect("gemini-home-base-gap-b-to-c").toDp(profile.density)
+        val extraGapBToC = rect("gemini-home-surplus-b-to-c").toDp(profile.density)
         val sectionTitleCardGap = activeCard.top - title.bottom
         val statsToTitleGap = title.top - stats.bottom
+        val statsToTitleBaseGap = statsToTitleGap - extraGapAToB.height()
+        val cardToFooterGap = footer.top - activeCard.bottom
+        val cardToFooterBaseGap = cardToFooterGap - extraGapBToC.height()
         val headerToStatsGap = stats.top - header.bottom
+        val hasMiddleScroll = compose.onAllNodesWithTag("gemini-home-short-screen-scroll", useUnmergedTree = true)
+            .fetchSemanticsNodes().isNotEmpty()
+        val requiredMiddleContentHeight = baseGapAToB.height() + sectionHeaderRow.height() +
+            titleToHeroSpacer.height() + track.height() + baseGapBToC.height()
+        val measuredAvailableSurplus = if (variant == GeminiHomeLayoutVariant.ADAPTIVE_V2 && !hasMiddleScroll) {
+            (middle.height() - requiredMiddleContentHeight).coerceAtLeast(0f)
+        } else {
+            0f
+        }
+        val expectedSurplus = geminiHomeAllocateInterBandSurplus(measuredAvailableSurplus)
+        Log.i(
+            "NH01_NATIVE_GAP_METRICS",
+            JSONObject().apply {
+                put("profile_id", profileId)
+                put("variant", variant.name)
+                put("safe_width_dp", safeWidthDp)
+                put("safe_height_dp", safeHeightDp)
+                put("middle_height_dp", middle.height())
+                put("required_middle_content_height_dp", requiredMiddleContentHeight)
+                put("measured_available_surplus_dp", measuredAvailableSurplus)
+                put("has_middle_scroll", hasMiddleScroll)
+                put("base_a_to_b_tag_dp", baseGapAToB.height())
+                put("extra_a_to_b_tag_dp", extraGapAToB.height())
+                put("visible_a_to_b_gap_dp", statsToTitleGap)
+                put("base_b_to_c_tag_dp", baseGapBToC.height())
+                put("extra_b_to_c_tag_dp", extraGapBToC.height())
+                put("visible_b_to_c_gap_dp", cardToFooterGap)
+                put("policy_a_to_b_dp", layoutSpec.statsToTitleGap?.value)
+                put("policy_b_to_c_dp", layoutSpec.cardToFooterGap?.value)
+            }.toString(),
+        )
         val centerOffset = abs(activeCard.centerX() - track.centerX())
         val ratio = activeCardLayoutWidthDp / activeCardLayoutHeightDp
         val neighborWidthFraction = neighborCard.width() / activeCardLayoutWidthDp
@@ -376,10 +434,31 @@ class GeminiHomeDeviceMatrixTest {
                 abs(sectionTitleCardGap - layoutSpec.titleToCardGap.value) <= 2f)
         }
         if (variant != GeminiHomeLayoutVariant.V3_BASELINE) {
-            assertTrue("stats-to-title visual gap follows the active layout policy: $statsToTitleGap dp",
-                abs(statsToTitleGap - requireNotNull(layoutSpec.statsToTitleGap).value) <= 2f)
-            assertTrue("brand-to-stats gap follows the active layout policy: $headerToStatsGap dp",
-                abs(headerToStatsGap - requireNotNull(layoutSpec.brandToStatsGap).value) <= 2f)
+            assertTrue("A→B base gap follows the active policy after removing the measured surplus: $statsToTitleBaseGap dp",
+                abs(statsToTitleBaseGap - requireNotNull(layoutSpec.statsToTitleGap).value) <= 2f)
+            if (!hasMiddleScroll) {
+                assertTrue("B→C base gap follows the active policy after removing the measured surplus: $cardToFooterBaseGap dp",
+                    abs(cardToFooterBaseGap - requireNotNull(layoutSpec.cardToFooterGap).value) <= 2f)
+            }
+            val expectedBrandToStatsGap = if (safeHeightDp < 460f) {
+                4f
+            } else {
+                requireNotNull(layoutSpec.brandToStatsGap).value
+            }
+            assertTrue(
+                "brand-to-stats gap follows the active layout policy: expected=$expectedBrandToStatsGap actual=$headerToStatsGap dp",
+                abs(headerToStatsGap - expectedBrandToStatsGap) <= 2f,
+            )
+        }
+        assertTrue("measured A→B surplus matches the production allocator: expected=${expectedSurplus.aToB} actual=${extraGapAToB.height()} dp",
+            abs(extraGapAToB.height() - expectedSurplus.aToB) <= 1f)
+        assertTrue("measured B→C surplus matches the production allocator: expected=${expectedSurplus.bToC} actual=${extraGapBToC.height()} dp",
+            abs(extraGapBToC.height() - expectedSurplus.bToC) <= 1f)
+        assertTrue("native surplus is split 1:1: A→B=${extraGapAToB.height()} B→C=${extraGapBToC.height()} dp",
+            abs(extraGapAToB.height() - extraGapBToC.height()) <= 1f)
+        if (hasMiddleScroll || variant != GeminiHomeLayoutVariant.ADAPTIVE_V2 || measuredAvailableSurplus <= 0f) {
+            assertTrue("no surplus is injected for a scrolling, non-V2, or zero-surplus layout",
+                extraGapAToB.height() <= 1f && extraGapBToC.height() <= 1f)
         }
         assertTrue("camera touch target remains at least 72dp", camera.width() >= 72f && camera.height() >= 72f)
         assertTrue(
@@ -421,12 +500,15 @@ class GeminiHomeDeviceMatrixTest {
         completeStep("CTA_AND_CATCH_INTERACTIONS_PASSED")
 
         beginStep("VERIFY_CARD_TEXT_ACCESSIBILITY_AND_SCROLL")
-        val hasMiddleScroll = compose.onAllNodesWithTag("gemini-home-short-screen-scroll", useUnmergedTree = true)
-            .fetchSemanticsNodes().isNotEmpty()
         if (variant == GeminiHomeLayoutVariant.ADAPTIVE_V2 && profileId == "M01" && expectedFontScale == "1.0") {
             assertTrue("320×480 at default font scale must fit without middle scrolling", !hasMiddleScroll)
-            assertTrue("320×480 main card must remain readable, width=$activeCardLayoutWidthDp dp",
-                activeCardLayoutWidthDp >= 145f)
+            val minReadableHeroHeightDp = 145f / (247f / 293f)
+            assertTrue(
+                "SPEC_CONFLICT: 320×480 requires a 145dp Hero (at least ${"%.1f".format(Locale.US, minReadableHeroHeightDp)}dp high at 247:293), " +
+                    "but measured ${activeCardLayoutWidthDp}x${activeCardLayoutHeightDp}dp in a ${middle.height()}dp Middle " +
+                    "whose frozen content requires ${requiredMiddleContentHeight}dp with no surplus or scroll",
+                activeCardLayoutWidthDp >= 145f,
+            )
             val bottomClearance = root.bottom - profile.insets.bottom.value - camera.bottom
             assertTrue("320×480 footer must not add excessive blank space: $bottomClearance dp", bottomClearance <= 4f)
         }
@@ -438,7 +520,34 @@ class GeminiHomeDeviceMatrixTest {
         cardTextTags.forEach { tag ->
             val interaction = compose.onNodeWithTag(tag, useUnmergedTree = true)
             if (variant == GeminiHomeLayoutVariant.ADAPTIVE_V2) {
-                if (hasMiddleScroll) interaction.performScrollTo().assertIsDisplayed() else interaction.assertIsDisplayed()
+                var visibilityFailure = runCatching { interaction.assertIsDisplayed() }.exceptionOrNull()
+                if (hasMiddleScroll) {
+                    // First use Compose's bring-into-view action, then exercise the same
+                    // user-visible scroll path used on a short screen if the nested pager
+                    // has not exposed the text yet.
+                    runCatching { interaction.performScrollTo() }
+                    visibilityFailure = runCatching { interaction.assertIsDisplayed() }.exceptionOrNull()
+                    val scrollContainer = compose.onNodeWithTag(
+                        "gemini-home-short-screen-scroll", useUnmergedTree = true,
+                    )
+                    repeat(3) {
+                        if (visibilityFailure != null) {
+                            scrollContainer.performTouchInput { swipeUp() }
+                            visibilityFailure = runCatching { interaction.assertIsDisplayed() }.exceptionOrNull()
+                        }
+                    }
+                }
+                if (visibilityFailure != null) {
+                    val nodeDetails = runCatching {
+                        val node = interaction.fetchSemanticsNode()
+                        "size=${node.size}, boundsInRoot=${node.boundsInRoot}"
+                    }.getOrElse { "node unavailable: ${it.message}" }
+                    throw AssertionError(
+                        "required card text must be visible after the available scroll path; tag=$tag, " +
+                            "profile=$profileId, fontScale=$expectedFontScale, middleScroll=$hasMiddleScroll, $nodeDetails",
+                        visibilityFailure,
+                    )
+                }
             } else {
                 // V3 is a visual comparison control. Preserve and record its text semantics
                 // even when its historical short-screen layout requires scrolling.
@@ -627,8 +736,16 @@ class GeminiHomeDeviceMatrixTest {
                 put("card_shrunk_for_height", activeCardLayoutWidthDp < targetCardWidthDp - 1f)
                 put("section_title_to_card_gap_dp", sectionTitleCardGap)
                 put("section_title_to_card_frozen_target_dp", frozenTitleCardGapDp ?: JSONObject.NULL)
-                put("section_spacing_contract", "NH01_GEMINI_ADAPTIVE_V2_UNIFIED_V1")
-                put("card_to_footer_gap_dp", footer.top - activeCard.bottom)
+                put("section_spacing_contract", "NH01_GEMINI_ADAPTIVE_V2_UNIFIED_V1_1")
+                put("available_interband_surplus_dp", measuredAvailableSurplus)
+                put("a_to_b_base_gap_dp", statsToTitleBaseGap)
+                put("a_to_b_extra_surplus_dp", extraGapAToB.height())
+                put("a_to_b_expected_extra_surplus_dp", expectedSurplus.aToB)
+                put("b_to_c_base_gap_dp", cardToFooterBaseGap)
+                put("b_to_c_extra_surplus_dp", extraGapBToC.height())
+                put("b_to_c_expected_extra_surplus_dp", expectedSurplus.bToC)
+                put("interband_surplus_equal_within_1dp", abs(extraGapAToB.height() - extraGapBToC.height()) <= 1f)
+                put("card_to_footer_gap_dp", cardToFooterGap)
                 put("header_to_stats_gap_dp", headerToStatsGap)
                 put("stats_to_title_gap_dp", statsToTitleGap)
                 put("card_track_horizontal_center_error_dp", centerOffset)

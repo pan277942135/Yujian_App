@@ -544,6 +544,11 @@ private fun GeminiMiddleSection(
                 availableCardHeightDp = availableCardHeight.value,
                 minReadableCardHeightDp = layoutSpec.minReadableCardHeight.value,
             ).dp
+        } else if (layoutVariant == GeminiHomeLayoutVariant.V3_BASELINE) {
+            // Keep the diagnostic baseline monotonic across larger viewports.
+            // When its target Hero height cannot fit, scroll the Middle instead
+            // of shrinking the width below the same-font-scale smaller viewport.
+            desiredCardHeight
         } else if (availableCardHeight >= layoutSpec.minReadableCardHeight) {
             minOf(desiredCardHeight, availableCardHeight)
         } else {
@@ -552,6 +557,16 @@ private fun GeminiMiddleSection(
         val cardWidth = cardHeight * GeminiHomeCardAspectRatio
         val groupHeight = leadingGap + headerHeight + headerGap + cardHeight + trailingGap
         val needsScroll = groupHeight > maxHeight
+        // Frozen Foundation V1.1 splits positive free space equally between the
+        // A→B and B→C boundaries. Keep it out of groupHeight so it is allocated
+        // once, only for production Adaptive V2 when required content fits.
+        val interBandSurplus = if (layoutSpec.contentFirstSizing && !needsScroll) {
+            geminiHomeAllocateInterBandSurplus((maxHeight.value - groupHeight.value).coerceAtLeast(0f))
+        } else {
+            GeminiHomeInterBandSurplus(aToB = 0f, bToC = 0f)
+        }
+        val extraGapAToB = interBandSurplus.aToB.dp
+        val extraGapBToC = interBandSurplus.bToC.dp
         val scrollState = rememberScrollState()
         val contentModifier = if (needsScroll) {
             Modifier.fillMaxWidth().heightIn(min = maxHeight).verticalScroll(scrollState)
@@ -564,9 +579,11 @@ private fun GeminiMiddleSection(
             modifier = contentModifier,
             verticalArrangement = if (adaptiveLayout || needsScroll) Arrangement.Top else Arrangement.Center,
         ) {
-            Spacer(Modifier.height(leadingGap))
+            // Nonzero spacer width keeps test-tag bounds visible to boundsInWindow checks.
+            Spacer(Modifier.fillMaxWidth().height(extraGapAToB).testTag("gemini-home-surplus-a-to-b"))
+            Spacer(Modifier.fillMaxWidth().height(leadingGap).testTag("gemini-home-base-gap-a-to-b"))
             GeminiSectionHeader(
-                modifier = Modifier.fillMaxWidth().height(headerHeight),
+                modifier = Modifier.fillMaxWidth().height(headerHeight).testTag("gemini-home-section-header-row"),
                 safeWidth = safeWidth,
                 titleFontSize = titleFontSize,
                 actionFontSize = actionFontSize,
@@ -574,7 +591,7 @@ private fun GeminiMiddleSection(
                 onCatchesClick = onCatchesClick,
                 onTitleMeasuredHeight = { heightPx -> measuredTitleHeightPx.value = heightPx },
             )
-            Spacer(Modifier.height(headerGap))
+            Spacer(Modifier.fillMaxWidth().height(headerGap).testTag("gemini-home-title-to-hero-gap"))
             if (records.isEmpty()) {
                 Box(
                     modifier = Modifier.fillMaxWidth().height(cardHeight)
@@ -607,7 +624,8 @@ private fun GeminiMiddleSection(
                     onCatchClick = onCatchClick,
                 )
             }
-            Spacer(Modifier.height(trailingGap))
+            Spacer(Modifier.fillMaxWidth().height(trailingGap).testTag("gemini-home-base-gap-b-to-c"))
+            Spacer(Modifier.fillMaxWidth().height(extraGapBToC).testTag("gemini-home-surplus-b-to-c"))
         }
     }
 }
@@ -848,6 +866,7 @@ private fun GeminiCatchCard(
                 )
                 if (fittedLocation.isBlank()) time else "$time\n$fittedLocation"
             }
+            time != null && location != null -> combined
             time != null -> time
             location != null -> geminiHomeEllipsizeSingleLine(
                 location, metadataTextMeasurer, metadataStyle, metadataMaxWidthPx,
@@ -1082,7 +1101,10 @@ private fun geminiHomeTextFitsSingleLine(
         maxLines = 1,
         constraints = Constraints(maxWidth = maxWidthPx),
     )
-    return !layout.hasVisualOverflow
+    // A clipped single-line layout can report no visual overflow even when its
+    // visible text range does not reach the source's final character.
+    return layout.lineCount == 1 && !layout.hasVisualOverflow &&
+        layout.getLineEnd(0, visibleEnd = true) == value.length
 }
 
 private fun geminiHomeEllipsizeSingleLine(
@@ -1104,7 +1126,7 @@ private fun geminiHomeEllipsizeSingleLine(
     while (low <= high) {
         val middle = (low + high) / 2
         val end = normalized.offsetByCodePoints(0, middle)
-        val prefix = normalized.substring(0, end).trimEnd()
+        val prefix = normalizeGeminiHomeLocation(normalized.substring(0, end))
         val candidate = prefix + ellipsis
         if (prefix.codePointCount(0, prefix.length) >= 2 &&
             geminiHomeTextFitsSingleLine(candidate, textMeasurer, style, maxWidthPx)
@@ -1117,5 +1139,5 @@ private fun geminiHomeEllipsizeSingleLine(
     }
     if (best < 2) return ""
     val end = normalized.offsetByCodePoints(0, best)
-    return normalized.substring(0, end).trimEnd() + ellipsis
+    return normalizeGeminiHomeLocation(normalized.substring(0, end)) + ellipsis
 }
