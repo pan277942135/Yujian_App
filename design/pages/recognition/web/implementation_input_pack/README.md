@@ -1,7 +1,7 @@
 # SWOS Web Implementation Input Pack V1
 
 **Task:** `YUJIAN_SWOS_WEB_IMPLEMENTATION_INPUT_PACK_AND_LIVE_SHA_CLOSURE_V1`
-**Status:** `SOURCE_SYNCED; EXACT_HEAD_CI_PASS; CANDIDATE_REVISION_FOR_OLD_SHA_ONLY; AUTHENTICATED_REAL_INFERENCE_PROBE_BLOCKED; PRODUCTION_MASK_NOT_QUALIFIED; VISUAL_ACCEPTANCE_PENDING`
+**Status:** `SOURCE_SYNCED; EXACT_HEAD_CI_PASS; CURRENT_HEAD_PREVIEW_NOT_YET_DISPATCHED; AUTHENTICATED_REAL_INFERENCE_PENDING; PRODUCTION_MASK_NOT_QUALIFIED; VISUAL_ACCEPTANCE_PENDING`
 **Role:** A traceable input snapshot; it does not replace or redefine the main-adopted design contracts.
 
 ## Ownership
@@ -21,12 +21,12 @@
 ## Live source audit (2026-10-24; refresh before every Work run)
 
 - Canonical design authority: `pan277942135/Yujian_App/main@da9976090021232f0eec936bc4d30f9fa59d90f7`. The control plane and frozen contract blob pins were rechecked against main before this source-evidence refresh.
-- Product main: `pan277942135/Yujian/main@15d4d1152cce08a3786d51bf1285381ed75d97e6`.
-- Product PR #177 HEAD: `5aa44cac6c8895ab28566ba1f5f9baf40953065e` (**47 ahead / 0 behind**; merge base is current product main). PR #177 remains Draft/Open/Unmerged.
-- Exact-head CI [run 40053248593](https://github.com/pan277942135/Yujian/actions/runs/40053248593) passed on `5aa44cac6c8895ab28566ba1f5f9baf40953065e`. It includes targeted validation, offline SWOS quality-probe unit tests and Chromium/UI simulation. No authenticated live model inference, SAM output or visual acceptance is established.
+- Product main: `pan277942135/Yujian/main@738954105d545d9c354136b8b93f3562058fcf30`.
+- Product PR #177 HEAD: `f5b74cc7628131863f40a1a43458026ff49a2eb5` (**48 ahead / 0 behind**; merge base is current product main). PR #177 remains Draft/Open/Unmerged.
+- Exact-head CI [run 40054890544](https://github.com/pan277942135/Yujian/actions/runs/40054890544) passed on `f5b74cc7628131863f40a1a43458026ff49a2eb5`. It includes targeted validation, offline SWOS quality-probe unit tests and Chromium/UI simulation. No authenticated live model inference, SAM output or visual acceptance is established.
 - The preceding diagnostic run [39980021942](https://github.com/pan277942135/Yujian/actions/runs/39980021942) exposed the actual WebGL failure: GLSL reserved word `patch` prevented fragment-shader compilation. PR #177 renames that variable to `causticPatch`, preserves Canvas2D fallback, and now asserts actual WebGL2 execution in this Chromium CI environment.
-- PR #182 is merged into product main. Its candidate Revision `yujian-model-factory-console-00349-hes` is deployed for old source `6da640859f063d7f42ee5432e6b35ecb162802ff`, not the current PR #177 HEAD. [Deployment run 39982073543](https://github.com/pan277942135/Yujian/actions/runs/39982073543) failed at the quality probe: 2 API requests were HTTP 401 (console login required), and 3 Wikimedia downloads were HTTP 429. The earlier 0/5 mask count is not valid model-failure evidence.
-- The main-only no-traffic workflow is pinned to `6da640859f063d7f42ee5432e6b35ecb162802ff`. The current PR #177 HEAD `5aa44cac6c8895ab28566ba1f5f9baf40953065e` has no matching candidate Revision/health SHA. The next release must authenticate the probe with a dedicated configured test credential, avoid logging the credential, add bounded fixture retries/cache, then deploy and verify the final exact SHA.
+- PR #182/#183 are merged into product main. Candidate Revision `yujian-model-factory-console-00349-hes` remains on old source `6da640859f063d7f42ee5432e6b35ecb162802ff`; the workflow is now manual-only and requires the exact current PR HEAD as target_sha. Previous probe [39982073543](https://github.com/pan277942135/Yujian/actions/runs/39982073543) failed before valid inference: 2 requests HTTP 401 (authentication) and 3 Wikimedia downloads HTTP 429 (rate limiting).
+- The main-only no-traffic workflow is manual-only with required target_sha input; it validates current PR #177 HEAD and exact-source CI before deploy. The new probe requires the CONSOLE_ACCESS_KEY Actions secret, uses bounded fixture retries, and fails closed if authentication is absent/rejected. Current HEAD `f5b74cc7628131863f40a1a43458026ff49a2eb5` has not yet been deployed.
 - The canonical control plane remains in Yujian_App; do not create a competing registry in Yujian.
 - **Same-request SAM adapter implemented; runtime not yet exercised.** `POST /api/product/catch-recognition/infer` passes that request's detector primary BBox and source SHA into the existing `generate_fish_cutout` pipeline. `CATCH_SWOS_SAM_CANDIDATE_ENABLED` defaults off; the proposed no-traffic candidate alone enables it. A returned mask remains `REVIEW_PROXY`; failures degrade to `BBOX_ONLY`. The debug route is not exposed to the browser, and no duplicate segmentation service or detector pass is added.
 - Production Mask remains `NOT_QUALIFIED` until reviewed ground-truth masks, boundary metrics, difficult-case analysis and visual sign-off exist. Chromium renderer selection is not a substitute for real-photo visual review.
