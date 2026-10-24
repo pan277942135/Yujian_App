@@ -3218,7 +3218,119 @@
                 "p03"
               ],
               "runtime_visual_authority": false,
-              "summary": "首次拍照教学的三张 Frozen 原始 PNG 静态资源目录。可预览、打开或下载原文件，并查看 Manifest、尺寸、字节数与 SHA-256；仅供设计资源使用，不映射为 Android 运行时背景。"
+              "summary": "首次拍照教学资源工作区：保留三张 Frozen 整页 PNG，并提供结构化页面合同、独立前端照片 Manifest 和 12 个素材槽位的来源状态。独立照片缺失时显示阻塞，不以整页截图代替；不映射 Android 运行时。",
+              "frontend_asset_manifest": "design/pages/recognition/first_use_camera_guide/frontend_assets_manifest.json",
+              "structured_page_manifest": "design/pages/recognition/first_use_camera_guide/structured_pages.json",
+              "frontend_asset_slots": [
+                {
+                  "id": "p01_correct_hero",
+                  "page_id": "p01",
+                  "label": "正确示范主图",
+                  "role": "correct_hero",
+                  "fish_orientation": "horizontal",
+                  "authority_state": "ASSET_SOURCE_BLOCKED",
+                  "note": "独立原始照片尚未在当前仓库权威中核验；禁止用整页冻结图或合成截图裁切替代。"
+                },
+                {
+                  "id": "p01_fish_head_out_of_frame",
+                  "page_id": "p01",
+                  "label": "鱼头不在画面",
+                  "role": "fish_head_out_of_frame",
+                  "fish_orientation": "horizontal",
+                  "authority_state": "ASSET_SOURCE_BLOCKED",
+                  "note": "独立原始照片尚未在当前仓库权威中核验；禁止用整页冻结图或合成截图裁切替代。"
+                },
+                {
+                  "id": "p01_fish_too_small",
+                  "page_id": "p01",
+                  "label": "鱼体过小",
+                  "role": "fish_too_small",
+                  "fish_orientation": "horizontal",
+                  "authority_state": "ASSET_SOURCE_BLOCKED",
+                  "note": "独立原始照片尚未在当前仓库权威中核验；禁止用整页冻结图或合成截图裁切替代。"
+                },
+                {
+                  "id": "p01_excessive_occlusion",
+                  "page_id": "p01",
+                  "label": "遮挡过多",
+                  "role": "excessive_occlusion",
+                  "fish_orientation": "horizontal",
+                  "authority_state": "ASSET_SOURCE_BLOCKED",
+                  "note": "独立原始照片尚未在当前仓库权威中核验；禁止用整页冻结图或合成截图裁切替代。"
+                },
+                {
+                  "id": "p02_correct_hero",
+                  "page_id": "p02",
+                  "label": "正确示范主图",
+                  "role": "correct_hero",
+                  "fish_orientation": "vertical",
+                  "authority_state": "ASSET_SOURCE_BLOCKED",
+                  "note": "独立原始照片尚未在当前仓库权威中核验；禁止用整页冻结图或合成截图裁切替代。"
+                },
+                {
+                  "id": "p02_fish_head_out_of_frame",
+                  "page_id": "p02",
+                  "label": "鱼头不在画面",
+                  "role": "fish_head_out_of_frame",
+                  "fish_orientation": "vertical",
+                  "authority_state": "ASSET_SOURCE_BLOCKED",
+                  "note": "独立原始照片尚未在当前仓库权威中核验；禁止用整页冻结图或合成截图裁切替代。"
+                },
+                {
+                  "id": "p02_fish_too_small",
+                  "page_id": "p02",
+                  "label": "鱼体过小",
+                  "role": "fish_too_small",
+                  "fish_orientation": "vertical",
+                  "authority_state": "ASSET_SOURCE_BLOCKED",
+                  "note": "独立原始照片尚未在当前仓库权威中核验；禁止用整页冻结图或合成截图裁切替代。"
+                },
+                {
+                  "id": "p02_excessive_occlusion",
+                  "page_id": "p02",
+                  "label": "遮挡过多",
+                  "role": "excessive_occlusion",
+                  "fish_orientation": "vertical",
+                  "authority_state": "ASSET_SOURCE_BLOCKED",
+                  "note": "独立原始照片尚未在当前仓库权威中核验；禁止用整页冻结图或合成截图裁切替代。"
+                },
+                {
+                  "id": "p03_correct_hero",
+                  "page_id": "p03",
+                  "label": "正确示范主图",
+                  "role": "correct_hero",
+                  "fish_orientation": "horizontal",
+                  "authority_state": "ASSET_SOURCE_BLOCKED",
+                  "note": "独立原始照片尚未在当前仓库权威中核验；禁止用整页冻结图或合成截图裁切替代。"
+                },
+                {
+                  "id": "p03_fish_head_out_of_frame",
+                  "page_id": "p03",
+                  "label": "鱼头不在画面",
+                  "role": "fish_head_out_of_frame",
+                  "fish_orientation": "horizontal",
+                  "authority_state": "ASSET_SOURCE_BLOCKED",
+                  "note": "独立原始照片尚未在当前仓库权威中核验；禁止用整页冻结图或合成截图裁切替代。"
+                },
+                {
+                  "id": "p03_fish_too_small",
+                  "page_id": "p03",
+                  "label": "鱼体过小",
+                  "role": "fish_too_small",
+                  "fish_orientation": "horizontal",
+                  "authority_state": "ASSET_SOURCE_BLOCKED",
+                  "note": "独立原始照片尚未在当前仓库权威中核验；禁止用整页冻结图或合成截图裁切替代。"
+                },
+                {
+                  "id": "p03_excessive_occlusion",
+                  "page_id": "p03",
+                  "label": "遮挡过多",
+                  "role": "excessive_occlusion",
+                  "fish_orientation": "horizontal",
+                  "authority_state": "ASSET_SOURCE_BLOCKED",
+                  "note": "独立原始照片尚未在当前仓库权威中核验；禁止用整页冻结图或合成截图裁切替代。"
+                }
+              ]
             }
           ],
           "visual_status": "FROZEN",
