@@ -3210,6 +3210,28 @@ function accountPrivacyGalleryCanvas(item) {
   '</div>';
 }
 
+function guideAssetStatusHtml(status) {
+  const labels = {
+    FROZEN: ["已冻结", "guide-status-frozen"],
+    CANDIDATE_NEEDS_APPROVAL: ["候选待审批", "guide-status-candidate"],
+    ASSET_SOURCE_BLOCKED: ["独立原图缺失", "guide-status-blocked"],
+    REFERENCE_ONLY: ["仅供参考", "guide-status-reference"],
+    STRUCTURE_ONLY_CANDIDATE: ["结构草图", "guide-status-candidate"]
+  };
+  const entry = labels[status] || [status || "状态未登记", "guide-status-neutral"];
+  return '<span class="guide-asset-status ' + entry[1] + '">' + esc(entry[0]) + '</span>';
+}
+
+function guideAssetRoleLabel(role) {
+  const labels = {
+    correct_hero: "正确示范主图",
+    fish_head_out_of_frame: "鱼头不在画面",
+    fish_too_small: "鱼体过小",
+    excessive_occlusion: "遮挡过多"
+  };
+  return labels[role] || role || "未登记用途";
+}
+
 function recognitionGuideResourcesCanvas(child, feature) {
   const sourceView = (feature?.hifi_views || []).find(view => view.id === child.source_view_id);
   const sourceChildren = new Map((sourceView?.children || []).map(item => [item.id, item]));
@@ -3244,15 +3266,180 @@ function recognitionGuideResourcesCanvas(child, feature) {
       '</div>' +
     '</article>';
   }).join("");
-  const manifest = child.resource_manifest
-    ? '<a href="' + esc(repoHref(child.resource_manifest)) + '" target="_blank" rel="noreferrer">打开资源 Manifest ↗</a>'
-    : "";
+  const manifestPath = child.resource_manifest || "design/pages/recognition/first_use_camera_guide/manifest.json";
+  const structurePath = child.page_structure_contract || "design/pages/recognition/first_use_camera_guide/page_structure.json";
+  const assetsPath = child.frontend_assets_manifest || "design/pages/recognition/first_use_camera_guide/frontend_assets_manifest.json";
+  const referencePath = child.reference_only_package_manifest || "design/resource_packages/MANIFEST.json";
   return '<div class="authority-index guide-resource-gallery">' +
-    '<div class="authority-index-intro"><strong>页面静态资源 · Design Source</strong>' +
-      '<span>以下图片直接引用仓库中的 Frozen 原始 PNG，保持原始字节与比例。它们用于设计预览和下载，不代表 Android 运行时资源。</span></div>' +
+    '<section class="authority-index-intro"><strong>页面高保真资源 · Frozen PNG</strong>' +
+      '<span>以下三张图片继续作为唯一页面级视觉 Authority，原始字节、尺寸和 SHA-256 不变。它们是整页参考，不是可拆用的独立摄影素材，也不映射为 Android 运行时背景。</span></section>' +
     (cards ? '<div class="authority-index-grid guide-resource-grid">' + cards + '</div>' : '<div class="preview-empty">资源清单没有可展示的 Frozen PNG。</div>') +
-    (manifest ? '<div class="authority-index-intro guide-resource-manifest"><strong>资源来源</strong><span>' + manifest + '</span></div>' : '') +
+    '<section class="guide-resource-group">' +
+      '<div class="guide-resource-group-head"><div><strong>结构化页面</strong><span>页面 → 区域 → 组件 → 图层；三份 SVG 仅为结构示意，不是冻结视觉。</span></div>' +
+        guideAssetStatusHtml("STRUCTURE_ONLY_CANDIDATE") + '</div>' +
+      '<div class="guide-structure-mount" data-guide-structure-mount data-structure-path="' + esc(structurePath) + '">' +
+        '<div class="preview-empty">正在读取 page_structure.json…</div></div>' +
+    '</section>' +
+    '<section class="guide-resource-group">' +
+      '<div class="guide-resource-group-head"><div><strong>前端开发素材 · 独立照片</strong><span>正确示范主图 + 三类错误示例。源文件缺失时明确阻塞，不用整页截图或旧裁切伪造。</span></div>' +
+        guideAssetStatusHtml("ASSET_SOURCE_BLOCKED") + '</div>' +
+      '<div class="guide-asset-catalog-summary"><strong>当前盘点：独立原图 0 张 · 唯一素材定义 8 项 · 页面绑定 12 项</strong>' +
+        '<span>横向鱼体资源可由 P01/P03 共享；P02 必须使用竖向鱼体。所有照片槽均保留缺失状态。</span></div>' +
+      '<div class="guide-frontend-assets-mount" data-guide-frontend-assets data-assets-path="' + esc(assetsPath) + '">' +
+        '<div class="preview-empty">正在读取 frontend_assets_manifest.json…</div></div>' +
+    '</section>' +
+    '<section class="guide-resource-group guide-reference-only">' +
+      '<div class="guide-resource-group-head"><div><strong>历史裁切参考 · 不可作为生产素材</strong><span>旧资源包中的示例裁切来自扁平合成截图，包含圆角/边框像素；不等于独立原始照片。</span></div>' +
+        guideAssetStatusHtml("REFERENCE_ONLY") + '</div>' +
+      '<p>当前未找到独立原图。下面的清单只用于追溯旧参考裁切，不代表这些文件可直接用于前端或 Android。</p>' +
+      '<div class="guide-resource-actions">' +
+        '<a href="' + esc(repoHref(referencePath)) + '" target="_blank" rel="noreferrer">查看历史资源包 Manifest ↗</a>' +
+        '<a href="' + esc(repoHref("design/resource_packages/README.md")) + '" target="_blank" rel="noreferrer">查看资源包说明 ↗</a>' +
+        '<a href="' + esc(repoHref("scripts/materialize_yujian_resource_package.py")) + '" target="_blank" rel="noreferrer">查看资源包重建脚本 ↗</a>' +
+        '<a href="' + esc(repoHref(manifestPath)) + '" target="_blank" rel="noreferrer">查看 Frozen PNG Manifest ↗</a>' +
+        '<a href="' + esc(repoHref(assetsPath)) + '" target="_blank" rel="noreferrer">查看前端素材 Manifest ↗</a>' +
+        '<a href="' + esc(repoHref(structurePath)) + '" target="_blank" rel="noreferrer">查看结构化页面 JSON ↗</a>' +
+      '</div>' +
+    '</section>' +
   '</div>';
+}
+
+function guideLayerTreeHtml(page) {
+  const layers = page.layers || [];
+  return '<details class="guide-layer-tree"><summary>查看图层树（' + esc(page.layer_count || layers.length) + ' 层）</summary>' +
+    '<ul>' + layers.map(layer =>
+      '<li><div><code>' + esc(layer.id) + '</code><strong>' + esc(layer.name) + '</strong></div>' +
+      '<small>' + esc(layer.kind || "layer") + ' · 父级：' + esc(layer.parent_id || "ROOT") + '</small>' +
+      (layer.asset_binding ? '<small>资源绑定：' + esc(layer.asset_binding) + '</small>' : '') +
+      '</li>'
+    ).join("") + '</ul></details>';
+}
+
+function guideStructuredPagesHtml(structure) {
+  const pages = structure.pages || [];
+  if (!pages.length) return '<div class="preview-empty">page_structure.json 没有登记页面。</div>';
+  return '<div class="guide-structure-grid">' + pages.map(page => {
+    const previewPath = page.structure_preview_path || "";
+    const previewHref = repoHref(previewPath);
+    const sourceHref = repoHref(page.source_page_png || "");
+    return '<article class="guide-structure-card" data-guide-structure-id="' + esc(page.id) + '">' +
+      '<div class="guide-structure-card-head"><div><strong>' + esc(page.title) + '</strong><span>' +
+        esc(page.capture_orientation || "") + ' 拍摄 · ' + esc(page.fish_orientation || "") + '鱼体</span></div>' +
+        guideAssetStatusHtml("STRUCTURE_ONLY_CANDIDATE") + '</div>' +
+      '<a class="guide-structure-preview" href="' + esc(previewHref) + '" target="_blank" rel="noreferrer">' +
+        '<img src="' + esc(previewHref) + '" alt="' + esc(page.title) + ' · 结构草图，不是冻结视觉" loading="lazy" decoding="async">' +
+      '</a>' +
+      '<dl class="guide-resource-metadata">' +
+        '<div><dt>结构文件</dt><dd>' + esc(previewPath.split("/").pop()) + '</dd></div>' +
+        '<div><dt>仓库路径</dt><dd>' + esc(previewPath) + '</dd></div>' +
+        '<div><dt>文件大小</dt><dd data-structure-bytes>读取中…</dd></div>' +
+        '<div><dt>SHA-256</dt><dd data-structure-sha>计算中…</dd></div>' +
+        '<div><dt>图层几何</dt><dd>语义树已建立；精确边界未测量</dd></div>' +
+        '<div><dt>视觉权威</dt><dd>仅引用 Frozen PNG：' + esc(page.source_page_dimensions_px?.width || "?") + ' × ' +
+          esc(page.source_page_dimensions_px?.height || "?") + ' px</dd></div>' +
+      '</dl>' +
+      guideLayerTreeHtml(page) +
+      '<div class="guide-resource-actions">' +
+        '<a href="' + esc(previewHref) + '" target="_blank" rel="noreferrer">打开结构 SVG ↗</a>' +
+        '<a href="' + esc(previewHref) + '" download="' + esc(previewPath.split("/").pop()) + '">下载 SVG</a>' +
+        '<a href="' + esc(sourceHref) + '" target="_blank" rel="noreferrer">查看冻结页面 PNG ↗</a>' +
+      '</div>' +
+      '<p class="guide-structure-boundary">结构草图只用于开发拆分和资源绑定；禁止替代冻结高保真或作为精确像素几何。</p>' +
+    '</article>';
+  }).join("") + '</div>';
+}
+
+function guideFrontendAssetSlotsHtml(manifest, structure) {
+  const assets = new Map((manifest.assets || []).map(asset => [asset.id, asset]));
+  const pages = structure.pages || [];
+  const bindings = manifest.bindings || [];
+  if (!bindings.length) return '<div class="preview-empty">素材 Manifest 没有页面槽位绑定。</div>';
+  return '<div class="guide-page-asset-groups">' + pages.map(page => {
+    const pageBindings = bindings.filter(binding => binding.page_id === page.id);
+    return '<section class="guide-page-asset-group" data-guide-asset-page="' + esc(page.id) + '">' +
+      '<div class="guide-page-asset-heading"><strong>' + esc(page.title) + '</strong><span>' +
+        esc(page.fish_orientation || "") + '鱼体 · ' + pageBindings.length + ' 个资源槽</span></div>' +
+      '<div class="guide-slot-grid">' + pageBindings.map(binding => {
+        const asset = assets.get(binding.asset_id) || {};
+        const status = asset.status || binding.status || "ASSET_SOURCE_BLOCKED";
+        const path = asset.path || "";
+        const pathHref = path ? repoHref(path) : "";
+        const preview = path && status !== "ASSET_SOURCE_BLOCKED"
+          ? '<a class="guide-slot-image" href="' + esc(pathHref) + '" target="_blank" rel="noreferrer"><img src="' +
+              esc(pathHref) + '" alt="' + esc(binding.label || asset.label || binding.slot_id) + '" loading="lazy" decoding="async"></a>'
+          : '<div class="guide-slot-placeholder"><span class="guide-slot-placeholder-icon">▧</span><strong>独立原图未找到</strong><small>ASSET_SOURCE_BLOCKED</small></div>';
+        const references = (binding.reference_only_entries || []).length
+          ? '<div class="guide-slot-reference"><strong>历史裁切记录（仅参考）</strong><code>' +
+              (binding.reference_only_entries || []).map(esc).join("</code><code>") +
+            '</code><span>这些路径位于旧 ZIP 包内，且来源为扁平截图裁切；不是可直接下载的独立原图。</span></div>'
+          : '<div class="guide-slot-reference"><span>未登记可用的独立照片来源。</span></div>';
+        return '<article class="guide-slot-card">' +
+          '<div class="guide-slot-card-head"><div><strong>' + esc(binding.label || asset.label || binding.slot_id) + '</strong><span>' +
+            esc(guideAssetRoleLabel(binding.role || asset.role)) + '</span></div>' + guideAssetStatusHtml(status) + '</div>' +
+          preview +
+          '<dl class="guide-resource-metadata">' +
+            '<div><dt>资源 ID</dt><dd>' + esc(binding.asset_id || "未登记") + '</dd></div>' +
+            '<div><dt>页面槽位</dt><dd>' + esc(binding.binding_id || binding.slot_id) + '</dd></div>' +
+            '<div><dt>鱼体方向</dt><dd>' + esc(binding.required_orientation || asset.orientation || "未登记") + '</dd></div>' +
+            '<div><dt>原始文件</dt><dd>' + esc(asset.source_filename || asset.path || "未找到") + '</dd></div>' +
+            '<div><dt>SHA-256</dt><dd>' + esc(asset.sha256 || "无独立原图，无法计算") + '</dd></div>' +
+            '<div><dt>前端可用</dt><dd>' + (asset.approved_for_frontend_consumption === true ? "已批准" : "否 · 待补源/审批") + '</dd></div>' +
+          '</dl>' +
+          references +
+          (path ? '<div class="guide-resource-actions"><a href="' + esc(pathHref) + '" target="_blank" rel="noreferrer">打开原图 ↗</a><a href="' +
+            esc(pathHref) + '" download="' + esc(path.split("/").pop()) + '">下载素材</a></div>' : '') +
+        '</article>';
+      }).join("") + '</div></section>';
+  }).join("") + '</div>';
+}
+
+async function guideStructureAssetIdentity(path) {
+  const response = await fetch(repoHref(path), { cache: "no-store" });
+  if (!response.ok) throw new Error("HTTP " + response.status + " for " + path);
+  const bytes = await response.arrayBuffer();
+  if (!window.crypto?.subtle) return { bytes: bytes.byteLength, sha256: null };
+  const digest = await window.crypto.subtle.digest("SHA-256", bytes);
+  const sha256 = Array.from(new Uint8Array(digest), value => value.toString(16).padStart(2, "0")).join("");
+  return { bytes: bytes.byteLength, sha256 };
+}
+
+async function loadGuideFrontendAssets(child) {
+  const canvas = el("hifiViewCanvas");
+  const structureMount = canvas?.querySelector("[data-guide-structure-mount]");
+  const assetsMount = canvas?.querySelector("[data-guide-frontend-assets]");
+  if (!structureMount || !assetsMount) return;
+  try {
+    const structurePath = child.page_structure_contract || "design/pages/recognition/first_use_camera_guide/page_structure.json";
+    const assetsPath = child.frontend_assets_manifest || "design/pages/recognition/first_use_camera_guide/frontend_assets_manifest.json";
+    const [structureResponse, assetsResponse] = await Promise.all([
+      fetch(repoHref(structurePath), { cache: "no-store" }),
+      fetch(repoHref(assetsPath), { cache: "no-store" })
+    ]);
+    if (!structureResponse.ok) throw new Error("page_structure.json HTTP " + structureResponse.status);
+    if (!assetsResponse.ok) throw new Error("frontend_assets_manifest.json HTTP " + assetsResponse.status);
+    const [structure, manifest] = await Promise.all([structureResponse.json(), assetsResponse.json()]);
+    if (!structureMount.isConnected || !assetsMount.isConnected) return;
+    structureMount.innerHTML = guideStructuredPagesHtml(structure);
+    assetsMount.innerHTML = guideFrontendAssetSlotsHtml(manifest, structure);
+    await Promise.all((structure.pages || []).map(async page => {
+      const card = structureMount.querySelector('[data-guide-structure-id="' + page.id + '"]');
+      if (!card || !page.structure_preview_path) return;
+      const bytesEl = card.querySelector("[data-structure-bytes]");
+      const shaEl = card.querySelector("[data-structure-sha]");
+      try {
+        const identity = await guideStructureAssetIdentity(page.structure_preview_path);
+        if (bytesEl) bytesEl.textContent = identity.bytes.toLocaleString("en-US") + " bytes";
+        if (shaEl) shaEl.textContent = identity.sha256 || "浏览器不支持 SHA-256";
+      } catch (error) {
+        if (bytesEl) bytesEl.textContent = "读取失败";
+        if (shaEl) shaEl.textContent = "校验失败：" + String(error.message || error);
+      }
+    }));
+  } catch (error) {
+    const message = "资源清单读取失败：" + String(error.message || error);
+    if (structureMount?.isConnected) structureMount.innerHTML = '<div class="preview-empty">' + esc(message) + '</div>';
+    if (assetsMount?.isConnected) assetsMount.innerHTML = '<div class="preview-empty">' + esc(message) + '</div>';
+  }
 }
 
 function genericSpecChildCanvas(child, feature = null) {
@@ -3388,6 +3575,7 @@ function renderHifiView(feature, hifiId, hifiChildId = null) {
   el("hifiViewCanvas").querySelectorAll(".hifi-image-open").forEach(button =>
     button.addEventListener("click", () => openHifiImageLightbox(button))
   );
+  if (child?.render_mode === "recognition_guide_resources") void loadGuideFrontendAssets(child);
 
   if (!child && view.render_mode === "nh07_avatar_states") {
     el("hifiViewCanvas").querySelectorAll(".nh07-master-open").forEach(anchor => {
