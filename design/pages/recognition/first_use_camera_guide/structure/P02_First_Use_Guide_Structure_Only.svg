@@ -25,7 +25,7 @@
     <rect x="20" y="124" width="335" height="242" rx="13" fill="url(#hero)" stroke="#789ba6" stroke-dasharray="6 4"/>
     <g opacity="0.85"><ellipse cx="187" cy="230" rx="17.92" ry="45.6" fill="#9bb2b7"/><path d="M 187 177.2 L 174.2 155.6 L 199.8 155.6 Z" fill="#9bb2b7"/><path d="M 187 280.4 L 175.48 304.4 L 198.52 304.4 Z" fill="#9bb2b7"/><circle cx="181.88" cy="215.6" r="1.7" fill="#203b45"/></g>
     <rect x="78" y="278" width="219" height="44" rx="10" fill="#f7fbfc" stroke="#d1e0e4"/>
-    <text x="187" y="295" text-anchor="middle" font-size="12" fill="#244c59" font-weight="700">正确示范主图 · 原图缺失</text>
+    <text x="187" y="295" text-anchor="middle" font-size="12" fill="#244c59" font-weight="700">正确示范主图 · 独立原图未找到</text>
     <text x="187" y="311" text-anchor="middle" font-size="9" fill="#a45d4c">ASSET_SOURCE_BLOCKED</text>
   </g>
   <g id="p02.error_examples">
