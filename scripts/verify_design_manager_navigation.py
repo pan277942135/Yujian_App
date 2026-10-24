@@ -66,7 +66,7 @@ def validate_tree(root: Path, *, built: bool = False, expected_build: str | None
     expected_route = "#page/home_normal_v1/hifi/multi_screen_static_hifi"
     if (
         multiscreen.get("id") != "multi_screen_static_hifi"
-        or multiscreen.get("title") != "多屏静态高保真 · 响应式规范"
+        or multiscreen.get("title") != "结构化高保真"
         or multiscreen.get("render_mode") != "nh01_multi_screen_static_hifi"
         or multiscreen.get("status") != "STATIC_HIFI_FROZEN"
         or multiscreen.get("design_approval_status") != "STATIC_RULES_FROZEN"

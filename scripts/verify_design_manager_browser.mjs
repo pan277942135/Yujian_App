@@ -158,9 +158,41 @@ async function main() {
   await waitForManager(page);
   await waitForHifiView(page);
   await page.locator('[data-testid="nh01-multiscreen-workspace"]').waitFor({ state: "visible", timeout: 30000 });
-  assert((await page.locator("#hifiViewTitle").innerText()).includes("多屏静态高保真"), "NH01 multi-screen workspace route did not resolve");
+  assert((await page.locator("#hifiViewTitle").innerText()).includes("结构化高保真"), "NH01 structured hi-fi workspace route did not resolve");
   assert((await page.locator("#hifiViewStatus").innerText()).includes("静态高保已冻结"), "NH01 static hi-fi frozen status is missing");
   assert(await page.locator(".nh01-static-asset").count() === 5, "NH01 route must show exactly five recovered static assets");
+  assert(await page.locator('[data-testid="nh01-structured-workspace"]').count() === 1, "NH01 route must have exactly one integrated structured workspace");
+  assert((await page.locator(".nh01-structured-heading").innerText()).includes("V1.1"), "NH01 workspace must bind the current responsive foundation version");
+  const workspace = page.locator('[data-testid="nh01-structured-workspace"]');
+  const layerTree = workspace.locator("[data-layer-tree]");
+  await layerTree.locator('[data-select="recent"]').click();
+  assert(await workspace.locator('.nh01-canvas-layer.selected[data-layer="recent"]').count() === 1, "layer tree selection must select the matching canvas layer");
+  await workspace.locator('.nh01-canvas-layer[data-layer="hero"]').click();
+  assert(await layerTree.locator('[data-select="hero"]').getAttribute("aria-pressed") === "true", "canvas selection must synchronize the layer tree");
+  assert((await workspace.locator("[data-inspector]").innerText()).includes("Hero"), "inspector must synchronize with the selected canvas layer");
+  await workspace.locator('[data-control="profile"]').selectOption("1");
+  assert(await workspace.locator('[data-control="width"]').inputValue() === "360" && await workspace.locator('[data-control="height"]').inputValue() === "640", "profile switch must set 360×640 dp");
+  await workspace.locator('[data-control="width"]').fill("390");
+  await workspace.locator('[data-control="height"]').fill("844");
+  await workspace.locator('[data-control="font"]').fill("1.3");
+  assert((await workspace.locator("[data-inspector]").innerText()).includes("390 × 844 dp · fontScale 1.3"), "free viewport and font-scale inputs must recalculate inspector data");
+  const currentContract = await page.evaluate(async () => {
+    const response = await fetch("../registry/experience_registry_v1.json");
+    const registry = await response.json();
+    const view = registry.features.find(feature => feature.id === "home_normal_v1").hifi_views.find(item => item.id === "multi_screen_static_hifi");
+    const contract = await (await fetch("../../" + view.machine_authority)).json();
+    return { view, contract };
+  });
+  const profileComputations = await page.evaluate(contract => [
+    [360,640],[390,844],[430,932],[480,844],[320,480]
+  ].map(([w,h]) => {
+    const result = window.NH01StructuredWorkspace.calculate(w,h,1,24,24,contract);
+    return {w,h,S:result.S,gapA:result.gAB-result.baseAB,gapB:result.gBC-result.baseBC,conflicts:result.conflicts};
+  }), currentContract.contract);
+  for (const result of profileComputations) {
+    assert(Math.abs(result.gapA-result.gapB) < 0.001, `V1.1 equal surplus split failed at ${result.w}×${result.h}: ${JSON.stringify(result)}`);
+    if (result.w === 320) assert(result.conflicts.some(item => item.startsWith("SPEC_CONFLICT")), "320×480 constraint conflict must remain explicit");
+  }
   const nh01ExpectedAssets = [
     ["NH01-M01-320x480dp-STATIC-HIFI-V1", 1024, 1536, "a3808f2fb93d"],
     ["NH01-M02-360x640dp-STATIC-HIFI-V1", 941, 1672, "8a6721552cec"],
