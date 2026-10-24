@@ -1,0 +1,57 @@
+{
+  "schema": "NH01_PRIVATE_PHOTO_PROVENANCE_V1",
+  "task_id": "YUJIAN_NH01_THREE_CATCH_IMAGES_AND_RESPONSIVE_V2_CLOSURE_V1",
+  "verification_scope": "LOCAL_RESTRICTED_DESIGN_AND_ACCEPTANCE",
+  "authorized_usage": "NH01 task design and acceptance only",
+  "public_redistribution": "NOT_CONFIRMED",
+  "public_preview_policy": "Keep Hero placeholder and hide both Peek images; never copy original bytes to GitHub, GitHub Pages, public CI artifacts, or other public storage.",
+  "render_policy": "EVIDENCE_FIT: preserve each full original with object-fit:contain and a soft backdrop derived from the same source; no crop, retouch, stretch, or watermark removal.",
+  "execution_provenance": "The execution environment could not read the transient /mnt/data paths directly. The original bytes were restored from the user's Library files and independently checked against the task-provided SHA-256, dimensions, byte length, and JPEG type.",
+  "records": [
+    {
+      "role": "Hero",
+      "layer_id": "Card-Main-Active",
+      "asset_id": "hero_photo",
+      "fixture_id": "NH01-LOCAL-HERO-01",
+      "task_input_filename": "b70bd977a69d5f850ff9cfed5b8e4fcf.jpg",
+      "sha256": "34e6992a594ba0a756eeee3b2784463d3a7224a5815839888d532fa344798f04",
+      "dimensions_px": [
+        1440,
+        1920
+      ],
+      "byte_length": 730637,
+      "description": "Person wearing sunglasses holding a large mottled fish beside trees.",
+      "source_reference": "Task-provided input filename; original bytes restored from the user Library and verified against the specified SHA-256."
+    },
+    {
+      "role": "Peek-Left",
+      "layer_id": "Card-Peek-Left",
+      "asset_id": "peek_left_photo",
+      "fixture_id": "NH01-LOCAL-LEFT-01",
+      "task_input_filename": "e7fbd0f1b6c10e4f5a62fad20ff2cc91.jpg",
+      "sha256": "d0c400c9854d47fdb699253a78da7b1e3b7f2394d34f0c90d91142ed35d15e88",
+      "dimensions_px": [
+        1536,
+        2048
+      ],
+      "byte_length": 672273,
+      "description": "Person beside a lake holding a large golden fish.",
+      "source_reference": "Task-provided input filename; original bytes restored from the user Library and verified against the specified SHA-256."
+    },
+    {
+      "role": "Peek-Right",
+      "layer_id": "Card-Peek-Right",
+      "asset_id": "peek_right_photo",
+      "fixture_id": "NH01-LOCAL-RIGHT-01",
+      "task_input_filename": "729ea8ccb40506d5e913b79e108615b8.jpg",
+      "sha256": "a60db3c12c2c84527af0ea803ac420d152dff3b8e7604559aaf59ffa4edf8ac4",
+      "dimensions_px": [
+        1215,
+        2048
+      ],
+      "byte_length": 284989,
+      "description": "Yellow-brown catfish held above water with floating leaves.",
+      "source_reference": "Task-provided input filename; original bytes restored from the user Library and verified against the specified SHA-256."
+    }
+  ]
+}

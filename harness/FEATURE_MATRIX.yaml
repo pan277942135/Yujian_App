@@ -132,6 +132,13 @@ features:
       - "design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_MULTI_SCREEN_RESPONSIVE_CONTRACT_V1.md"
       - "design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_MULTI_SCREEN_RESPONSIVE_CONTRACT_V1.json"
       - "design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_STATIC_HIFI_ACCEPTANCE_MATRIX_V1.json"
+      - "design/pages/home/normal_home/responsive/NH01_RESPONSIVE_LAYOUT_V2.json"
+      - "design/pages/home/normal_home/responsive/NH01_RESPONSIVE_LAYOUT_V2.md"
+      - "design/pages/home/normal_home/responsive/NH01_RESPONSIVE_AUTHORITY_CROSSWALK_V1.md"
+      - "design/system_v3/07_Responsive_System/Responsive_Layout_Contract_Schema_V1.json"
+      - "design/system_v3/07_Responsive_System/Viewport_Profiles_V1.json"
+      - "design/system_v3/07_Responsive_System/Responsive_Layout_Standard_V1.md"
+      - "scripts/design/validate_nh01_responsive_layout_contract_v2.py"
     design_children: []
     child_surfaces:
       - "NH01"
@@ -152,7 +159,7 @@ features:
       layout_policy: "app/src/main/java/com/yujian/ai/ui/home/GeminiHomeAdaptiveLayoutPolicy.kt"
     known_gaps:
       - "Runtime/evidence remain partial; Hero F01-F08 fixture matrix and camera optical parity are open (B003/B004)."
-      - "Responsive Foundation V1.1 changes positive long-screen surplus allocation to equal S/2 additions for A→B and B→C; implementation and exact-SHA runtime evidence must be resynchronized and reverified."
+      - "Canonical Main Responsive Foundation V1.1 freezes equal S/2 positive-surplus additions to A→B and B→C; the NH01 Responsive Layout V2 candidate proposes 2S/3 and S/3 instead and remains pending explicit canonical review. Do not treat the candidate as aligned or frozen until this delta is resolved."
   record_date_v2:
     sequence: 3
     name: "记录日期"

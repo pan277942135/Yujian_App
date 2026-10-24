@@ -75,7 +75,7 @@ phases:
     exit_condition: "Required design authority, page contracts, assets and provenance are closed for the claimed scope."
     release_scope: "PRIMARY_PLUS_SECONDARY"
     feature_refs: ["home_empty_v2", "home_normal_v1", "recognition_flow_v1_2", "recognition_result_v1", "fish_record_detail_v2", "fish_memory_bside_v1", "share_templates_v1", "record_date_v2", "fish_guide_v2", "account_privacy_v1", "auth_login_v2", "auth_register_v2", "profile_edit_v1", "user_agreement_v1"]
-    task_refs: ["P3-01", "P3-02", "P3-03", "P3-04", "P3-05", "P3-06", "P3-07", "N010"]
+    task_refs: ["P3-01", "P3-02", "P3-03", "P3-04", "P3-05", "P3-06", "P3-07", "NH01-RESPONSIVE-CONTRACT-V2", "NH01-RESPONSIVE-PREVIEW-V2", "N010"]
   P4:
     name: "Architecture / API / Data Contracts"
     entry_condition: "Required product contracts exist."
@@ -277,7 +277,7 @@ feature_closure_rollup:
   home_normal_v1:
     task_id: "FT-home_normal_v1"
     phase: "P8"
-    depends_on: []
+    depends_on: ["NH01-RESPONSIVE-PREVIEW-V2"]
   record_date_v2:
     task_id: "FT-record_date_v2"
     phase: "P6"
@@ -392,7 +392,7 @@ tasks:
     owner: "Work"
     feature_refs: ["home_normal_v1", "recognition_result_v1"]
     journey_refs: ["J11-J18"]
-    depends_on: ["P3-01"]
+    depends_on: ["P3-01", "NH01-RESPONSIVE-CONTRACT-V2", "NH01-RESPONSIVE-PREVIEW-V2"]
     entry_blockers: []
     target_blockers: ["B003", "B004", "B006"]
     evidence_required: ["hero_F01-F08_provenance", "camera_mask_runtime_parity", "phase_3b_provenance_resolution", "design_manager_shared_page_layer_contract", "nh01_page_owned_layer_map_and_authority_binding", "non_nh01_fixture_shell_independence", "workspace_view_back_forward_refresh_direct_route", "existing_asset_navigation_viewport_governance_checks"]
@@ -461,6 +461,32 @@ tasks:
     completion: "SWOS Web playable-motion implementation contract and machine authority are registered in Design Manager and synchronized with Web V2, SWOS 15-frame/shared-photo contracts and RR09 V3. Reuse the existing SAM experiment pipeline without duplication. Browser playback, production Mask and visual/performance acceptance remain separate evidence gates."
     human_required: false
     gate_id: "G-SWOS-WEB-HIFI-MOTION-V1"
+  NH01-RESPONSIVE-CONTRACT-V2:
+    phase: "P3"
+    priority: "P0"
+    owner: "Design"
+    feature_refs: ["home_normal_v1"]
+    journey_refs: ["J17", "J18"]
+    depends_on: ["P3-01"]
+    entry_blockers: []
+    target_blockers: ["B003", "B004"]
+    evidence_required: ["responsive_layout_schema", "responsive_authority_crosswalk", "logical_band_surplus_formula", "canonical_gate_registry_sync"]
+    completion: "NH01 Responsive Layout V2 machine contract, schema and crosswalk are structurally valid and registered without reusing canonical SWOS P3 gate IDs."
+    human_required: false
+    gate_id: "G-NH01-RESPONSIVE-CONTRACT-V2"
+  NH01-RESPONSIVE-PREVIEW-V2:
+    phase: "P3"
+    priority: "P0"
+    owner: "Design"
+    feature_refs: ["home_normal_v1"]
+    journey_refs: ["J17", "J18"]
+    depends_on: ["NH01-RESPONSIVE-CONTRACT-V2"]
+    entry_blockers: []
+    target_blockers: ["B003", "B004"]
+    evidence_required: ["isolated_preview_deployment", "browser_viewport_boundary_matrix", "approved_hero_and_neighbor_provenance", "exact_source_sha"]
+    completion: "NH01 Responsive V2 isolated preview is browser-verified at fixed, wide, non-anchor and boundary cases; freeze remains blocked until approved Hero and two independent neighbor originals are present."
+    human_required: false
+    gate_id: "G-NH01-RESPONSIVE-PREVIEW-V2"
   P4-01:
     phase: "P4"
     priority: "P0"
@@ -631,7 +657,7 @@ tasks:
     owner: "Work"
     feature_refs: ["home_normal_v1"]
     journey_refs: []
-    depends_on: []
+    depends_on: ["NH01-RESPONSIVE-PREVIEW-V2"]
     entry_blockers: []
     target_blockers: ["B003", "B004"]
     evidence_required: ["feature_required_implementation_tests_runtime_evidence"]

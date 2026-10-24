@@ -139,6 +139,10 @@ shared_contracts:
     domain: "DOMAIN"
     status: "READY"
     refs: ["design/governance/DESIGN_MANAGER_PAGE_LAYER_WORKSPACE_V1.md"]
+  RESPONSIVE-LAYOUT-STANDARD-V1:
+    domain: "SHARED"
+    status: "PROPOSED_FOR_CANONICAL_MAIN_REVIEW"
+    refs: ["design/system_v3/07_Responsive_System/Responsive_Layout_Standard_V1.md", "design/system_v3/07_Responsive_System/Responsive_Layout_Contract_Schema_V1.json", "design/system_v3/07_Responsive_System/Viewport_Profiles_V1.json"]
 
 feature_contracts:
   home_empty_v2:
@@ -219,10 +223,10 @@ feature_contracts:
         status: "FROZEN"
         authority: "design/pages/home/normal_home/assets/asset_manifest.json"
     page_contract_refs: ["design/system_v3/10_Page_Visual_Acceptance_Contracts/Normal_Home/Normal_Home_Visual_Contract_V1.md", "design/system_v3/09_Android_Implementation_Contracts/Normal_Home/Normal_Home_Android_Contract_V1.md", "design/system_v3/09_Android_Implementation_Contracts/Normal_Home/Normal_Home_State_Binding_V1.json", "design/system_v3/09_Android_Implementation_Contracts/Normal_Home/Normal_Home_Android_Component_Mapping_V1.json", "design/system_v3/09_Android_Implementation_Contracts/Normal_Home/Normal_Home_Resource_Binding_V1.json", "design/system_v3/09_Android_Implementation_Contracts/Normal_Home/Normal_Home_Motion_Runtime_Binding_V1.md", "design/system_v3/09_Android_Implementation_Contracts/Normal_Home/Normal_Home_Runtime_Gate_V1.md", "design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_MULTI_SCREEN_STATIC_HIFI_V1_MANIFEST.json", "design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_MULTI_SCREEN_RESPONSIVE_CONTRACT_V1.md", "design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_MULTI_SCREEN_RESPONSIVE_CONTRACT_V1.json", "design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_STATIC_HIFI_ACCEPTANCE_MATRIX_V1.json", "design/pages/home/normal_home/engineering/NH01_GEMINI_ADAPTIVE_V2_UNIFIED_AUTHORITY_V1.md", "design/qa/NH01_ADAPTIVE_VISUAL_BALANCE_V2.md", "design/pages/home/normal_home/engineering/NH01_GEMINI_ADAPTIVE_V2_ACCEPTANCE_V1.md", "design/pages/home/normal_home/engineering/NH01_GEMINI_ADAPTIVE_V2_ACCEPTANCE_MATRIX_V1.json", "design/pages/home/normal_home/authority/authority_map.json"]
-    page_contract_keys: ["visual", "implementation", "state", "component_mapping", "resource_binding", "motion_runtime", "runtime_gate", "static_hifi_assets", "static_hifi_responsive", "static_hifi_acceptance", "gemini_v22_authority", "gemini_v22_balance", "gemini_v22_acceptance", "gemini_v22_matrix", "nh01_authority_map"]
+    page_contract_keys: ["visual", "implementation", "state", "component_mapping", "resource_binding", "motion_runtime", "runtime_gate", "static_hifi_assets", "static_hifi_responsive", "static_hifi_acceptance", "gemini_v22_authority", "gemini_v22_balance", "gemini_v22_acceptance", "gemini_v22_matrix", "nh01_authority_map", "responsive_layout", "responsive_authority_crosswalk"]
     android_layout_policy: "app/src/main/java/com/yujian/ai/ui/home/GeminiHomeAdaptiveLayoutPolicy.kt"
     shared_contract_refs: ["DS-FOUNDATION", "ANDROID-RUNTIME-HARNESS", "STATE-EVIDENCE-PROVENANCE"]
-    additional_shared_contract_refs: []
+    additional_shared_contract_refs: ["RESPONSIVE-LAYOUT-STANDARD-V1"]
     required_gate_classes: ["STATIC_CONTRACT", "BUILD", "RUNTIME", "VISUAL", "MOTION_ACCESSIBILITY", "JOURNEY_E2E", "APK_PROVENANCE"]
   record_date_v2:
     contract_id: "FC-record_date_v2"
@@ -1457,7 +1461,9 @@ page_contract_sets:
       gemini_v22_acceptance: "design/pages/home/normal_home/engineering/NH01_GEMINI_ADAPTIVE_V2_ACCEPTANCE_V1.md"
       gemini_v22_matrix: "design/pages/home/normal_home/engineering/NH01_GEMINI_ADAPTIVE_V2_ACCEPTANCE_MATRIX_V1.json"
       nh01_authority_map: "design/pages/home/normal_home/authority/authority_map.json"
-    authority_rule: "The existing visual key remains the original NH01 V1 whole-page authority; appended static_hifi keys own the additive archive and Responsive Foundation V1.1 equal-split surplus rule. Gemini Adaptive V2 and its native matrix remain the Android runtime authority; implementation must prove equal S/2 additions to A-to-B and B-to-C on the exact tested SHA."
+      responsive_layout: "design/pages/home/normal_home/responsive/NH01_RESPONSIVE_LAYOUT_V2.json"
+      responsive_authority_crosswalk: "design/pages/home/normal_home/responsive/NH01_RESPONSIVE_AUTHORITY_CROSSWALK_V1.md"
+    authority_rule: "The original NH01 V1 remains the whole-page visual authority. The additive static_hifi contract freezes Responsive Foundation V1.1 equal S/2 additions to A-to-B and B-to-C. The Responsive Layout V2 branch candidate proposes 2S/3 and S/3 as a distinct override; it remains PROPOSED_FOR_CANONICAL_MAIN_REVIEW and is not aligned, frozen or adopted until canonical Main explicitly resolves the delta. Physical Top/Middle/Footer structure, internal Title-to-Hero gap, existing base-gap formulas and Gemini Adaptive V2 numeric constraints remain binding."
   recognition_flow_v1_2:
     refs:
       capture_page: "design/system_v3/08_Page_Contracts/recognition/capture/Recognition_Capture_Page_Contract_V3_1.md"
@@ -1498,6 +1504,16 @@ gate_contracts:
     purpose: "Issue #194 V2.2 Android implementation repair including Responsive Foundation V1.1 equal long-screen surplus split (S/2 to A-to-B and S/2 to B-to-C), plus targeted API28 smoke; does not replace the full native matrix, N004 or release gates"
     contract_refs: ["FC-home_normal_v1", "ANDROID-RUNTIME-HARNESS", "STATE-EVIDENCE-PROVENANCE"]
     acceptance_domains: ["implementation", "runtime", "visual", "accessibility", "evidence", "apk_provenance"]
+    exact_sha_required: true
+  G-NH01-RESPONSIVE-CONTRACT-V2:
+    purpose: "NH01 Responsive Layout V2 schema, authority crosswalk, logical A/B/C band surplus policy and canonical control-plane registration; does not reuse SWOS P3-05/P3-06/P3-07."
+    contract_refs: ["FC-home_normal_v1", "RESPONSIVE-LAYOUT-STANDARD-V1", "DESIGN-MANAGER-PAGE-LAYER-WORKSPACE-V1"]
+    acceptance_domains: ["static_contract", "design_authority", "evidence"]
+    exact_sha_required: true
+  G-NH01-RESPONSIVE-PREVIEW-V2:
+    purpose: "NH01 Responsive V2 isolated preview, fixed/wide/non-anchor/boundary browser verification and exact-source deployment evidence; freeze requires approved Hero and two independent neighbor originals."
+    contract_refs: ["FC-home_normal_v1", "RESPONSIVE-LAYOUT-STANDARD-V1", "STATE-EVIDENCE-PROVENANCE"]
+    acceptance_domains: ["visual", "runtime", "evidence"]
     exact_sha_required: true
   G-API28-MATRIX:
     purpose: "Runtime matrix against exact execution SHA"
@@ -1594,6 +1610,14 @@ task_contract_bindings:
     contract_refs: ["FC-home_normal_v1", "ANDROID-RUNTIME-HARNESS", "STATE-EVIDENCE-PROVENANCE", "G-NH01-WORK-B-V22-EXACT-SHA"]
     gate_id: "G-NH01-WORK-B-V22-EXACT-SHA"
     phase: "P6"
+  NH01-RESPONSIVE-CONTRACT-V2:
+    contract_refs: ["FC-home_normal_v1", "RESPONSIVE-LAYOUT-STANDARD-V1", "G-NH01-RESPONSIVE-CONTRACT-V2"]
+    gate_id: "G-NH01-RESPONSIVE-CONTRACT-V2"
+    phase: "P3"
+  NH01-RESPONSIVE-PREVIEW-V2:
+    contract_refs: ["FC-home_normal_v1", "RESPONSIVE-LAYOUT-STANDARD-V1", "STATE-EVIDENCE-PROVENANCE", "G-NH01-RESPONSIVE-PREVIEW-V2"]
+    gate_id: "G-NH01-RESPONSIVE-PREVIEW-V2"
+    phase: "P3"
   P0-01:
     contract_refs: ["STATE-EVIDENCE-PROVENANCE"]
     gate_id: null
@@ -1821,9 +1845,9 @@ inventory:
   journey_count: 20
   child_surface_count: 81
   route_count: 22
-  task_count: 49
-  gate_count: 15
+  task_count: 51
+  gate_count: 17
   registry_created_from_pr_head: "ebb6b3904feaa0cf26b4fd4b83bc809a397085a2"
-  last_synced_feature_matrix_sha: "f443a675469cebfcadd9e039936f5a5ea2732935"
-  last_synced_phase_task_state_machine_sha: "7264e6c46d5546fcbf562f2d3e6c486c56a5bfd2"
+  last_synced_feature_matrix_sha: "9a37127ce83d646988793fb31614fc27a5337b54"
+  last_synced_phase_task_state_machine_sha: "e890464c27400e24f01043a1a159f0427685a32f"
   last_synced_experience_registry_sha: "47be44ca3cbce908fa676e262987fe26a8dbea32"
