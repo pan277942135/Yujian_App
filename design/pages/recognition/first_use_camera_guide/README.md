@@ -29,3 +29,32 @@ The task-scope resolution is recorded in `Scope_Resolution_20261016.md`. The lat
 ## Design Manager resources
 
 `识别过程 → 07 · 首次拍照教学 → 资源` exposes the three existing Frozen PNGs as static design resources. Each card preserves the original image ratio and provides the repository path, source filename, repository filename, dimensions, byte count, SHA-256, and a direct original-file download. `navigation.json` records this as a separate `resource_menus` entry; its `children` list remains the P01/P02/P03 teaching sequence. The cards resolve from those registered entries and are verified against `manifest.json`; the PNGs are not duplicated and are not Android runtime resources.
+
+
+## Front-end development resources — updated 2026-10-24
+
+### Structured page decomposition
+
+- Machine-readable layer contract: `page_structure.json`
+- Independent asset slot manifest: `frontend_assets_manifest.json`
+- Schematic-only previews:
+  - `structure/P01_First_Use_Guide_Structure_Only.svg`
+  - `structure/P02_First_Use_Guide_Structure_Only.svg`
+  - `structure/P03_First_Use_Guide_Structure_Only.svg`
+
+The JSON layer contract describes the stable page/component IDs, parent-child relations, page actions, orientation requirements and 12 photo-slot bindings. Exact component bounds have **not** been measured from the Frozen PNGs; the SVGs are structure wireframes only and are not visual authorities.
+
+### Independent photo source status
+
+The current repository inventory did not locate approved independent photo originals for the correct hero and three error examples. The manifest therefore defines 8 unique orientation-specific source assets and 12 page-slot bindings, all explicitly `ASSET_SOURCE_BLOCKED`. P01/P03 may share horizontal sources only after an approved source is supplied; P02 requires vertical-fish sources.
+
+The existing `design/resource_packages/MANIFEST.json` documents legacy screenshot crops as `REFERENCE_ONLY`. They remain review references and must not be promoted to front-end production or Android runtime assets. No crop was promoted and no Frozen PNG bytes were changed.
+
+### Design Manager resource workspace
+
+The existing Resources route now separates:
+1. **页面高保真资源** — the three byte-identical Frozen PNGs;
+2. **结构化页面** — three schematic structure previews, layer IDs and contract links;
+3. **前端开发素材** — the correct-hero and three error slots per page, with source/provenance/status shown explicitly.
+
+A missing source stays visibly blocked rather than receiving a fabricated image or a false frozen label.
