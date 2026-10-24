@@ -3215,7 +3215,7 @@ function guideAssetStatusHtml(status) {
     FROZEN: ["已冻结", "guide-status-frozen"],
     CANDIDATE_NEEDS_APPROVAL: ["候选待审批", "guide-status-candidate"],
     ASSET_SOURCE_BLOCKED: ["独立原图缺失", "guide-status-blocked"],
-    REFERENCE_ONLY: ["仅供参考", "guide-status-reference"],
+    REFERENCE_ONLY: ["仅供参考 · REFERENCE_ONLY", "guide-status-reference"],
     STRUCTURE_ONLY_CANDIDATE: ["结构草图", "guide-status-candidate"]
   };
   const entry = labels[status] || [status || "状态未登记", "guide-status-neutral"];
