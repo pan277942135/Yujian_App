@@ -24,6 +24,7 @@ on:
       - "design/**"
       - "scripts/design_manager.py"
       - "scripts/verify_design_manager_navigation.py"
+      - "scripts/verify_first_use_guide_frontend_assets.py"
       - "scripts/verify_design_manager_hifi_release.py"
       - "scripts/validate_swos_phase0_contracts.py"
       - "scripts/validate_web_hifi_contract_v2.py"
