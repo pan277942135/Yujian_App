@@ -1,0 +1,293 @@
+{
+  "schema_version": "1.0",
+  "task_id": "YUJIAN_FIRST_USE_GUIDE_STRUCTURED_PAGE_SOURCE_V1",
+  "status": "STRUCTURE_DEFINED_ASSET_SOURCES_PARTIAL",
+  "authority": "design/pages/recognition/first_use_camera_guide/First_Use_Camera_Guide_Spec_V1.md",
+  "visual_authority_manifest": "design/pages/recognition/first_use_camera_guide/manifest.json",
+  "front_end_asset_manifest": "design/pages/recognition/first_use_camera_guide/frontend_assets_manifest.json",
+  "note": "Semantic structure and component ownership are defined here. Exact pixel geometry must be measured against the frozen PNG in browser/design review before being treated as pixel-accurate. This file does not replace the frozen PNG visual authority.",
+  "shared_components": [
+    {
+      "id": "guide.overlay",
+      "type": "overlay",
+      "ownership": "guide",
+      "description": "First-use teaching overlay; visible only when camera permission is granted and preview is Ready."
+    },
+    {
+      "id": "guide.header",
+      "type": "header",
+      "ownership": "guide",
+      "children": [
+        "guide.skip_action"
+      ]
+    },
+    {
+      "id": "guide.skip_action",
+      "type": "text_button",
+      "label": "跳过",
+      "action": "dismiss_without_shutter",
+      "completion_persisted_after_dismissal": true
+    },
+    {
+      "id": "guide.hero",
+      "type": "hero_photo",
+      "role": "correct_hero",
+      "asset_binding_pattern": "{page_id}_correct_hero",
+      "fit": "contain",
+      "preserve_source_aspect_ratio": true
+    },
+    {
+      "id": "guide.error_examples",
+      "type": "photo_example_group",
+      "layout": "three_items",
+      "children": [
+        "guide.error.head_out",
+        "guide.error.too_small",
+        "guide.error.occlusion"
+      ]
+    },
+    {
+      "id": "guide.error.head_out",
+      "type": "photo_example",
+      "role": "fish_head_out_of_frame",
+      "label": "鱼头不在画面"
+    },
+    {
+      "id": "guide.error.too_small",
+      "type": "photo_example",
+      "role": "fish_too_small",
+      "label": "鱼体过小"
+    },
+    {
+      "id": "guide.error.occlusion",
+      "type": "photo_example",
+      "role": "excessive_occlusion",
+      "label": "遮挡过多"
+    },
+    {
+      "id": "guide.pagination",
+      "type": "pagination_indicator",
+      "source": "active_page_index"
+    },
+    {
+      "id": "guide.previous_action",
+      "type": "text_button",
+      "label": "上一张",
+      "visibility": "P02_OR_P03",
+      "action": "previous_page"
+    },
+    {
+      "id": "guide.primary_action",
+      "type": "primary_button",
+      "labels": {
+        "p01": "下一张",
+        "p02": "下一张",
+        "p03": "开始拍摄"
+      },
+      "actions": {
+        "p01": "next_to_p02",
+        "p02": "next_to_p03",
+        "p03": "dismiss_to_capture_ready_without_shutter"
+      }
+    }
+  ],
+  "pages": [
+    {
+      "id": "p01",
+      "title": "P01 · 竖屏拍摄示意",
+      "status": "FROZEN",
+      "phone_orientation": "portrait",
+      "fish_orientation": "horizontal",
+      "sequence_index": 1,
+      "layout": {
+        "regions": [
+          {
+            "id": "header",
+            "order": 1,
+            "component_ids": [
+              "guide.header",
+              "guide.skip_action"
+            ],
+            "geometry_status": "TO_MEASURE_FROM_FROZEN_PNG"
+          },
+          {
+            "id": "hero",
+            "order": 2,
+            "component_ids": [
+              "guide.hero"
+            ],
+            "geometry_status": "TO_MEASURE_FROM_FROZEN_PNG"
+          },
+          {
+            "id": "error_examples",
+            "order": 3,
+            "component_ids": [
+              "guide.error_examples",
+              "guide.error.head_out",
+              "guide.error.too_small",
+              "guide.error.occlusion"
+            ],
+            "geometry_status": "TO_MEASURE_FROM_FROZEN_PNG"
+          },
+          {
+            "id": "pagination",
+            "order": 4,
+            "component_ids": [
+              "guide.pagination"
+            ],
+            "geometry_status": "TO_MEASURE_FROM_FROZEN_PNG"
+          },
+          {
+            "id": "actions",
+            "order": 5,
+            "component_ids": [
+              "guide.skip_action",
+              "guide.primary_action"
+            ],
+            "geometry_status": "TO_MEASURE_FROM_FROZEN_PNG"
+          }
+        ]
+      },
+      "navigation": {
+        "primary": "下一张",
+        "primary_action": "next_to_p02",
+        "previous": false,
+        "skip": "dismiss_without_shutter"
+      }
+    },
+    {
+      "id": "p02",
+      "title": "P02 · 竖拍鱼类拍摄示意",
+      "status": "FROZEN",
+      "phone_orientation": "portrait",
+      "fish_orientation": "vertical",
+      "sequence_index": 2,
+      "layout": {
+        "regions": [
+          {
+            "id": "header",
+            "order": 1,
+            "component_ids": [
+              "guide.header",
+              "guide.skip_action"
+            ],
+            "geometry_status": "TO_MEASURE_FROM_FROZEN_PNG"
+          },
+          {
+            "id": "hero",
+            "order": 2,
+            "component_ids": [
+              "guide.hero"
+            ],
+            "geometry_status": "TO_MEASURE_FROM_FROZEN_PNG"
+          },
+          {
+            "id": "error_examples",
+            "order": 3,
+            "component_ids": [
+              "guide.error_examples",
+              "guide.error.head_out",
+              "guide.error.too_small",
+              "guide.error.occlusion"
+            ],
+            "geometry_status": "TO_MEASURE_FROM_FROZEN_PNG"
+          },
+          {
+            "id": "pagination",
+            "order": 4,
+            "component_ids": [
+              "guide.pagination"
+            ],
+            "geometry_status": "TO_MEASURE_FROM_FROZEN_PNG"
+          },
+          {
+            "id": "actions",
+            "order": 5,
+            "component_ids": [
+              "guide.previous_action",
+              "guide.skip_action",
+              "guide.primary_action"
+            ],
+            "geometry_status": "TO_MEASURE_FROM_FROZEN_PNG"
+          }
+        ]
+      },
+      "navigation": {
+        "primary": "下一张",
+        "primary_action": "next_to_p03",
+        "previous": "上一张",
+        "skip": "dismiss_without_shutter"
+      }
+    },
+    {
+      "id": "p03",
+      "title": "P03 · 横屏拍摄示意",
+      "status": "FROZEN",
+      "phone_orientation": "landscape",
+      "fish_orientation": "horizontal",
+      "sequence_index": 3,
+      "layout": {
+        "regions": [
+          {
+            "id": "header",
+            "order": 1,
+            "component_ids": [
+              "guide.header",
+              "guide.skip_action"
+            ],
+            "geometry_status": "TO_MEASURE_FROM_FROZEN_PNG"
+          },
+          {
+            "id": "hero",
+            "order": 2,
+            "component_ids": [
+              "guide.hero"
+            ],
+            "geometry_status": "TO_MEASURE_FROM_FROZEN_PNG"
+          },
+          {
+            "id": "error_examples",
+            "order": 3,
+            "component_ids": [
+              "guide.error_examples",
+              "guide.error.head_out",
+              "guide.error.too_small",
+              "guide.error.occlusion"
+            ],
+            "geometry_status": "TO_MEASURE_FROM_FROZEN_PNG"
+          },
+          {
+            "id": "pagination",
+            "order": 4,
+            "component_ids": [
+              "guide.pagination"
+            ],
+            "geometry_status": "TO_MEASURE_FROM_FROZEN_PNG"
+          },
+          {
+            "id": "actions",
+            "order": 5,
+            "component_ids": [
+              "guide.previous_action",
+              "guide.skip_action",
+              "guide.primary_action"
+            ],
+            "geometry_status": "TO_MEASURE_FROM_FROZEN_PNG"
+          }
+        ]
+      },
+      "navigation": {
+        "primary": "开始拍摄",
+        "primary_action": "dismiss_to_capture_ready_without_shutter",
+        "previous": "上一张",
+        "skip": "dismiss_without_shutter"
+      }
+    }
+  ],
+  "component_contract": {
+    "stable_ids": true,
+    "asset_bindings_by_role": true,
+    "exact_pixel_geometry_status": "NOT_YET_MEASURED",
+    "runtime_implementation_status": "OUT_OF_SCOPE"
+  }
+}
