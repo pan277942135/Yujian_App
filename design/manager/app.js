@@ -3253,15 +3253,19 @@ function recognitionGuideResourcesCanvas(child, feature) {
   const slots = child.frontend_asset_slots || [];
   const slotCards = slots.map(slot => {
     const blocked = slot.authority_state === "ASSET_SOURCE_BLOCKED";
+    const referenceOnly = slot.reference_status === "REFERENCE_ONLY";
+    const stateLabel = blocked ? "× 独立主图待补" : referenceOnly ? "参考裁切 · 不可生产使用" : "候选待核验";
     return '<article class="authority-index-card guide-asset-slot" data-asset-id="' + esc(slot.id) + '">' +
       '<div class="authority-index-head"><strong>' + esc(slot.page_id.toUpperCase()) + ' · ' + esc(slot.label) + '</strong>' +
-        '<span class="badge status-' + (blocked ? 'BLOCKED_INTEGRITY' : 'PARTIAL') + '">' + (blocked ? '× 原图待补' : '候选待核验') + '</span></div>' +
+        '<span class="badge status-' + (blocked ? 'BLOCKED_INTEGRITY' : 'PARTIAL') + '">' + stateLabel + '</span></div>' +
       '<div class="authority-kind">' + esc(slot.role) + ' · 鱼体方向：' + esc(slot.fish_orientation === "vertical" ? "竖向" : "横向") + '</div>' +
       '<p>' + esc(slot.note || "独立原始照片尚未核验。") + '</p>' +
       '<dl class="guide-resource-metadata">' +
         '<div><dt>资源 ID</dt><dd>' + esc(slot.id) + '</dd></div>' +
-        '<div><dt>原始文件</dt><dd>未找到 / 未验证</dd></div>' +
-        '<div><dt>前端可用</dt><dd>否 · 来源待核验</dd></div>' +
+        '<div><dt>来源状态</dt><dd>' + (referenceOnly ? "REFERENCE_ONLY · 归档裁切" : blocked ? "ASSET_SOURCE_BLOCKED" : "CANDIDATE_NEEDS_APPROVAL") + '</dd></div>' +
+        (slot.reference_package_path ? '<div><dt>归档路径</dt><dd>' + esc(slot.reference_package_path) + '</dd></div>' : '<div><dt>原始文件</dt><dd>未找到 / 未验证</dd></div>') +
+        (slot.reference_sha256 ? '<div><dt>参考文件 SHA-256</dt><dd>' + esc(slot.reference_sha256) + '</dd></div>' : '') +
+        '<div><dt>前端可用</dt><dd>否 · ' + (referenceOnly ? "仅作布局参考" : "来源待核验") + '</dd></div>' +
       '</dl>' +
     '</article>';
   }).join("");
