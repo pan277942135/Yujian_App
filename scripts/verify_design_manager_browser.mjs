@@ -501,7 +501,22 @@ async function main() {
   assert((await page.locator("#hifiViewTitle").innerText()).includes("V2 历史基线"), "RR09 V2 history label is missing");
   assert((await page.locator("#hifiViewStatus").innerText()).includes("已废弃"), "RR09 V2 history must remain DEPRECATED");
   assert((await page.locator("#hifiViewCanvas").innerText()).includes("历史对照"), "RR09 V2 page must explain that it is historical only");
-  assert(await page.locator("#hifiViewCanvas iframe").count() === 1, "RR09 V2 historical preview must remain separately reachable");
+  const historicalMotionFrame = page.locator("#hifiViewCanvas iframe");
+  assert(await historicalMotionFrame.count() === 1, "RR09 V2 historical preview must remain separately reachable");
+  // The historical motion page is intentionally embedded. Wait for its document
+  // to finish loading before navigating to the next Hash route; otherwise Chromium
+  // reports the expected iframe teardown as net::ERR_ABORTED and the global
+  // failed-request gate misclassifies a normal route transition as a product error.
+  await page.waitForFunction(() => {
+    const frame = document.querySelector("#hifiViewCanvas iframe");
+    if (!frame) return false;
+    try {
+      const frameDocument = frame.contentDocument;
+      return Boolean(frameDocument && frameDocument.readyState === "complete" && frameDocument.querySelector("main.workspace"));
+    } catch (_) {
+      return false;
+    }
+  }, null, { timeout: 30000 });
   await page.screenshot({ path: resolve(args.outputDir, "rr09-v2-history-1440.png"), fullPage: true });
 
   await open("#page/recognition_flow_v1_2/hifi/invalid-release-route");
