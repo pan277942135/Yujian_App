@@ -35,7 +35,18 @@
         "p02",
         "p03"
       ],
-      "runtime_visual_authority": false
+      "runtime_visual_authority": false,
+      "frontend_assets_manifest": "frontend_assets_manifest.json",
+      "page_structure_contract": "page_structure.json",
+      "reference_only_package_manifest": "../../../../resource_packages/MANIFEST.json",
+      "structure_preview_paths": [
+        "structure/P01_First_Use_Guide_Structure_Only.svg",
+        "structure/P02_First_Use_Guide_Structure_Only.svg",
+        "structure/P03_First_Use_Guide_Structure_Only.svg"
+      ],
+      "asset_catalog_status": "PARTIAL_SOURCE_BLOCKED",
+      "independent_photo_sources_found": 0,
+      "note": "Frozen PNG unchanged. Structured SVGs are schematic candidates only; independent hero/error photo originals remain blocked. Historical screenshot crops are REFERENCE_ONLY."
     }
   ]
 }
