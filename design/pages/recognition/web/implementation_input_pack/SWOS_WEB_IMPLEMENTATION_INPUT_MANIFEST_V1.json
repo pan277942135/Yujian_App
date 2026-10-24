@@ -163,7 +163,7 @@
       {
         "path": "scripts/verify_design_manager_browser.mjs",
         "role": "design_manager_browser_validator",
-        "blob_sha": "ff24ca4fc65a1c0e206f84bec325ad7882ca2972"
+        "blob_sha": "24aef37523f082716ac0812ec3a38dd08da9a7c6"
       },
       {
         "path": "scripts/verify_swos_static_visual_v1_1.py",
