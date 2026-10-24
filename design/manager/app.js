@@ -3292,11 +3292,11 @@ function recognitionGuideResourcesCanvas(child, feature) {
       '<div class="guide-resource-group-head"><div><strong>历史裁切参考 · 不可作为生产素材</strong><span>旧资源包中的示例裁切来自扁平合成截图，包含圆角/边框像素；不等于独立原始照片。</span></div>' +
         guideAssetStatusHtml("REFERENCE_ONLY") + '</div>' +
       '<p>当前未找到独立原图。下面的清单只用于追溯旧参考裁切，不代表这些文件可直接用于前端或 Android。</p>' +
+      '<div class="guide-resource-manifest"><strong>页面级冻结资源 Manifest</strong><a href="' + esc(repoHref(manifestPath)) + '" target="_blank" rel="noreferrer">打开 Frozen PNG Manifest ↗</a></div>' +
       '<div class="guide-resource-actions">' +
         '<a href="' + esc(repoHref(referencePath)) + '" target="_blank" rel="noreferrer">查看历史资源包 Manifest ↗</a>' +
         '<a href="' + esc(repoHref("design/resource_packages/README.md")) + '" target="_blank" rel="noreferrer">查看资源包说明 ↗</a>' +
         '<a href="' + esc(repoHref("scripts/materialize_yujian_resource_package.py")) + '" target="_blank" rel="noreferrer">查看资源包重建脚本 ↗</a>' +
-        '<a href="' + esc(repoHref(manifestPath)) + '" target="_blank" rel="noreferrer">查看 Frozen PNG Manifest ↗</a>' +
         '<a href="' + esc(repoHref(assetsPath)) + '" target="_blank" rel="noreferrer">查看前端素材 Manifest ↗</a>' +
         '<a href="' + esc(repoHref(structurePath)) + '" target="_blank" rel="noreferrer">查看结构化页面 JSON ↗</a>' +
       '</div>' +
