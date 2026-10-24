@@ -29,3 +29,12 @@ The task-scope resolution is recorded in `Scope_Resolution_20261016.md`. The lat
 ## Design Manager resources
 
 `识别过程 → 07 · 首次拍照教学 → 资源` exposes the three existing Frozen PNGs as static design resources. Each card preserves the original image ratio and provides the repository path, source filename, repository filename, dimensions, byte count, SHA-256, and a direct original-file download. `navigation.json` records this as a separate `resource_menus` entry; its `children` list remains the P01/P02/P03 teaching sequence. The cards resolve from those registered entries and are verified against `manifest.json`; the PNGs are not duplicated and are not Android runtime resources.
+
+
+## Structured front-end handoff V1
+
+- `structured_pages.json` defines the semantic component tree and region ownership for P01/P02/P03. It does not replace the frozen page PNGs.
+- `frontend_assets_manifest.json` defines 12 independent photo slots: one correct hero and three error examples for each page. P02 requires vertical-fish examples; P01/P03 require horizontal-fish examples.
+- Each slot is currently marked `ASSET_SOURCE_BLOCKED` until an independent source photo with provenance and licensing status is found and verified. The full-page PNGs and supplied composite screenshot must not be cropped to manufacture source photos.
+- Exact pixel geometry remains `TO_MEASURE_FROM_FROZEN_PNG`; do not describe the semantic structure as pixel-perfect until browser geometry has been measured.
+- The Design Manager Resources route now separates frozen page-level authority from front-end photo slots. This is design-only and does not imply Android runtime integration.
