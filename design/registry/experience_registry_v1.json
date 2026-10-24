@@ -3218,7 +3218,7 @@
                 "p03"
               ],
               "runtime_visual_authority": false,
-              "summary": "资源工作区：保留三张 Frozen PNG，并新增三页结构化图层合同、8 个独立照片资源定义和 12 个页面槽位绑定。独立原始摄影素材当前未找到，照片槽保持 ASSET_SOURCE_BLOCKED；旧截图裁切仅为 REFERENCE_ONLY，不得作为前端/Android 正式素材。",
+              "summary": "资源工作区：保留三张 Frozen PNG，并新增三页结构化图层合同、8 个独立照片资源定义和 12 个页面槽位绑定。独立原始摄影素材当前未找到，照片槽保持 ASSET_SOURCE_BLOCKED；旧截图裁切仅为 REFERENCE_ONLY，不得作为前端/Android 正式素材。仅供设计资源使用，不映射为 Android 运行时背景。",
               "frontend_assets_manifest": "design/pages/recognition/first_use_camera_guide/frontend_assets_manifest.json",
               "page_structure_contract": "design/pages/recognition/first_use_camera_guide/page_structure.json",
               "reference_only_package_manifest": "design/resource_packages/MANIFEST.json",
