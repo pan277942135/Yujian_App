@@ -26,6 +26,7 @@ on:
       - "design/**"
       - "scripts/design/**"
       - "scripts/verify_design_manager_navigation.py"
+      - "scripts/verify_first_use_guide_frontend_assets.py"
       - "scripts/verify_design_manager_hifi_release.py"
       - "scripts/verify_design_manager_browser.mjs"
       - "scripts/verify_private_visual_references.py"
