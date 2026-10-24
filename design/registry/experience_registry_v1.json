@@ -3229,7 +3229,8 @@
                   "role": "correct_hero",
                   "fish_orientation": "horizontal",
                   "authority_state": "ASSET_SOURCE_BLOCKED",
-                  "note": "独立原始照片尚未在当前仓库权威中核验；禁止用整页冻结图或合成截图裁切替代。"
+                  "note": "正确示范独立主图尚未找到已核验的原始照片。",
+                  "reference_status": "MISSING"
                 },
                 {
                   "id": "p01_fish_head_out_of_frame",
@@ -3237,8 +3238,12 @@
                   "label": "鱼头不在画面",
                   "role": "fish_head_out_of_frame",
                   "fish_orientation": "horizontal",
-                  "authority_state": "ASSET_SOURCE_BLOCKED",
-                  "note": "独立原始照片尚未在当前仓库权威中核验；禁止用整页冻结图或合成截图裁切替代。"
+                  "authority_state": "CANDIDATE_NEEDS_APPROVAL",
+                  "note": "有归档参考裁切，但来源为合成整页图；仅作布局参考，不可标记为独立生产照片。",
+                  "reference_status": "REFERENCE_ONLY",
+                  "reference_package_path": "03_P01/images/guide_avoid_1_no_head_3x_native.png",
+                  "reference_sha256": "6b44c18f4ad44151b6af67a902468b1d1ae8ffe928b7a77c2683ff9c19e49381",
+                  "reference_bytes": 76154
                 },
                 {
                   "id": "p01_fish_too_small",
@@ -3246,8 +3251,12 @@
                   "label": "鱼体过小",
                   "role": "fish_too_small",
                   "fish_orientation": "horizontal",
-                  "authority_state": "ASSET_SOURCE_BLOCKED",
-                  "note": "独立原始照片尚未在当前仓库权威中核验；禁止用整页冻结图或合成截图裁切替代。"
+                  "authority_state": "CANDIDATE_NEEDS_APPROVAL",
+                  "note": "有归档参考裁切，但来源为合成整页图；仅作布局参考，不可标记为独立生产照片。",
+                  "reference_status": "REFERENCE_ONLY",
+                  "reference_package_path": "03_P01/images/guide_avoid_2_too_small_3x_native.png",
+                  "reference_sha256": "44f88b595f212b62587fa4427ac2a208e72706bd7229653aa3be05f72d096845",
+                  "reference_bytes": 73164
                 },
                 {
                   "id": "p01_excessive_occlusion",
@@ -3255,8 +3264,12 @@
                   "label": "遮挡过多",
                   "role": "excessive_occlusion",
                   "fish_orientation": "horizontal",
-                  "authority_state": "ASSET_SOURCE_BLOCKED",
-                  "note": "独立原始照片尚未在当前仓库权威中核验；禁止用整页冻结图或合成截图裁切替代。"
+                  "authority_state": "CANDIDATE_NEEDS_APPROVAL",
+                  "note": "有归档参考裁切，但来源为合成整页图；仅作布局参考，不可标记为独立生产照片。",
+                  "reference_status": "REFERENCE_ONLY",
+                  "reference_package_path": "03_P01/images/guide_avoid_3_occluded_3x_native.png",
+                  "reference_sha256": "77234727c42593ce00a316dfdc590307aa57ac9feef7b32b7174115fa962bfe4",
+                  "reference_bytes": 67949
                 },
                 {
                   "id": "p02_correct_hero",
@@ -3265,7 +3278,8 @@
                   "role": "correct_hero",
                   "fish_orientation": "vertical",
                   "authority_state": "ASSET_SOURCE_BLOCKED",
-                  "note": "独立原始照片尚未在当前仓库权威中核验；禁止用整页冻结图或合成截图裁切替代。"
+                  "note": "正确示范独立主图尚未找到已核验的原始照片。",
+                  "reference_status": "MISSING"
                 },
                 {
                   "id": "p02_fish_head_out_of_frame",
@@ -3273,8 +3287,12 @@
                   "label": "鱼头不在画面",
                   "role": "fish_head_out_of_frame",
                   "fish_orientation": "vertical",
-                  "authority_state": "ASSET_SOURCE_BLOCKED",
-                  "note": "独立原始照片尚未在当前仓库权威中核验；禁止用整页冻结图或合成截图裁切替代。"
+                  "authority_state": "CANDIDATE_NEEDS_APPROVAL",
+                  "note": "有归档参考裁切，但来源为合成整页图；仅作布局参考，不可标记为独立生产照片。",
+                  "reference_status": "REFERENCE_ONLY",
+                  "reference_package_path": "04_P02/images/guide_avoid_1_no_head_3x_native.png",
+                  "reference_sha256": "bc6ad4836f6e9bf94794cb1775b3eee078a88370a9f73988ae75e0a287c6eaa0",
+                  "reference_bytes": 76252
                 },
                 {
                   "id": "p02_fish_too_small",
@@ -3282,8 +3300,12 @@
                   "label": "鱼体过小",
                   "role": "fish_too_small",
                   "fish_orientation": "vertical",
-                  "authority_state": "ASSET_SOURCE_BLOCKED",
-                  "note": "独立原始照片尚未在当前仓库权威中核验；禁止用整页冻结图或合成截图裁切替代。"
+                  "authority_state": "CANDIDATE_NEEDS_APPROVAL",
+                  "note": "有归档参考裁切，但来源为合成整页图；仅作布局参考，不可标记为独立生产照片。",
+                  "reference_status": "REFERENCE_ONLY",
+                  "reference_package_path": "04_P02/images/guide_avoid_2_too_small_3x_native.png",
+                  "reference_sha256": "2cd3338a66527f77aed2a6ded40d04f54de82d5708ee9e60082c7849a2a4aaef",
+                  "reference_bytes": 73392
                 },
                 {
                   "id": "p02_excessive_occlusion",
@@ -3291,8 +3313,12 @@
                   "label": "遮挡过多",
                   "role": "excessive_occlusion",
                   "fish_orientation": "vertical",
-                  "authority_state": "ASSET_SOURCE_BLOCKED",
-                  "note": "独立原始照片尚未在当前仓库权威中核验；禁止用整页冻结图或合成截图裁切替代。"
+                  "authority_state": "CANDIDATE_NEEDS_APPROVAL",
+                  "note": "有归档参考裁切，但来源为合成整页图；仅作布局参考，不可标记为独立生产照片。",
+                  "reference_status": "REFERENCE_ONLY",
+                  "reference_package_path": "04_P02/images/guide_avoid_3_occluded_3x_native.png",
+                  "reference_sha256": "a5506afa6345d027ade22a9a34ad24120042fb9055c1cc6fbd6483db80f62a93",
+                  "reference_bytes": 64715
                 },
                 {
                   "id": "p03_correct_hero",
@@ -3301,7 +3327,8 @@
                   "role": "correct_hero",
                   "fish_orientation": "horizontal",
                   "authority_state": "ASSET_SOURCE_BLOCKED",
-                  "note": "独立原始照片尚未在当前仓库权威中核验；禁止用整页冻结图或合成截图裁切替代。"
+                  "note": "正确示范独立主图尚未找到已核验的原始照片。",
+                  "reference_status": "MISSING"
                 },
                 {
                   "id": "p03_fish_head_out_of_frame",
@@ -3309,8 +3336,12 @@
                   "label": "鱼头不在画面",
                   "role": "fish_head_out_of_frame",
                   "fish_orientation": "horizontal",
-                  "authority_state": "ASSET_SOURCE_BLOCKED",
-                  "note": "独立原始照片尚未在当前仓库权威中核验；禁止用整页冻结图或合成截图裁切替代。"
+                  "authority_state": "CANDIDATE_NEEDS_APPROVAL",
+                  "note": "有归档参考裁切，但来源为合成整页图；仅作布局参考，不可标记为独立生产照片。",
+                  "reference_status": "REFERENCE_ONLY",
+                  "reference_package_path": "05_P03/images/guide_avoid_1_no_head_3x_native.png",
+                  "reference_sha256": "5ee1fe2f6347620cb3754976882190320e85111b881979301713568e10e093e7",
+                  "reference_bytes": 77415
                 },
                 {
                   "id": "p03_fish_too_small",
@@ -3318,8 +3349,12 @@
                   "label": "鱼体过小",
                   "role": "fish_too_small",
                   "fish_orientation": "horizontal",
-                  "authority_state": "ASSET_SOURCE_BLOCKED",
-                  "note": "独立原始照片尚未在当前仓库权威中核验；禁止用整页冻结图或合成截图裁切替代。"
+                  "authority_state": "CANDIDATE_NEEDS_APPROVAL",
+                  "note": "有归档参考裁切，但来源为合成整页图；仅作布局参考，不可标记为独立生产照片。",
+                  "reference_status": "REFERENCE_ONLY",
+                  "reference_package_path": "05_P03/images/guide_avoid_2_too_small_3x_native.png",
+                  "reference_sha256": "a814a26b0c9d6177215021657f105441b06a13b60200694c077dc1a481cf697c",
+                  "reference_bytes": 73182
                 },
                 {
                   "id": "p03_excessive_occlusion",
@@ -3327,8 +3362,12 @@
                   "label": "遮挡过多",
                   "role": "excessive_occlusion",
                   "fish_orientation": "horizontal",
-                  "authority_state": "ASSET_SOURCE_BLOCKED",
-                  "note": "独立原始照片尚未在当前仓库权威中核验；禁止用整页冻结图或合成截图裁切替代。"
+                  "authority_state": "CANDIDATE_NEEDS_APPROVAL",
+                  "note": "有归档参考裁切，但来源为合成整页图；仅作布局参考，不可标记为独立生产照片。",
+                  "reference_status": "REFERENCE_ONLY",
+                  "reference_package_path": "05_P03/images/guide_avoid_3_occluded_3x_native.png",
+                  "reference_sha256": "5a003ceceb2773efb1d31628a4a8b0c61aab4fb6eb420da88b07bfd937bd8920",
+                  "reference_bytes": 71279
                 }
               ]
             }
