@@ -221,6 +221,35 @@ PY
       return "$EXIT_FAIL_EVIDENCE"
     fi
   done
+  # Reject adb's textual "cat: ... No such file" output as an artifact. A
+  # non-empty file is not sufficient evidence for a PNG frame.
+  for rr09_name in \
+    K01_processing_fixture_final.png \
+    K02_120ms.png \
+    K03_290ms.png \
+    K04_465ms.png \
+    K05_610ms.png \
+    K06_850ms.png
+  do
+    if ! python3 - "$rr09_output/$rr09_name" <<'PY'
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+try:
+    with path.open("rb") as image:
+        valid = image.read(8) == b"\x89PNG\r\n\x1a\n"
+except OSError:
+    valid = False
+if not valid:
+    raise SystemExit(f"invalid PNG evidence: {path}")
+PY
+    then
+      printf 'INVALID_EVIDENCE=%s\n' "$rr09_output/$rr09_name" >> "$YUJIAN_EVIDENCE_DIR/evidence_missing.log"
+      runtime_set_failure "EVIDENCE" "RR09_NATIVE_FRAME_EVIDENCE_INVALID"
+      return "$EXIT_FAIL_EVIDENCE"
+    fi
+  done
   local rr09_dimensions rr09_font
   for rr09_dimensions in 320x480 360x640 390x844 430x932; do
     for rr09_font in 1p0 1p3 1p5; do
