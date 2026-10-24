@@ -207,7 +207,7 @@
       },
       {
         "path": "design/pages/recognition/web/VISUAL_BASELINE_FREEZE_V1.md",
-        "blob_sha": "62990de17e645dce953f3cfd6ea3cdac276b37f2",
+        "blob_sha": "d684cb7f5569eab492b7d47e03c923480ee9e081",
         "role": "private_pixel_baseline_freeze_record"
       },
       {
@@ -693,7 +693,8 @@
     "full_suite_blocked_by_existing_metadata_access_review": true,
     "pixel_baseline_identity_frozen": true,
     "runtime_pixel_parity_still_requires_exact_source_browser_evidence": true,
-    "private_baseline_must_remain_local_memory_only": true
+    "private_baseline_must_remain_local_memory_only": true,
+    "main_adoption_status": "ADOPTED_MAIN"
   },
   "private_handoff_bundle": {
     "filename": "SWOS_WEB_15_FRAME_REVIEW_PROXY_V3.zip",
@@ -791,6 +792,7 @@
       "status": "FROZEN_PRIVATE_SHA_BOUND",
       "source_bytes_reverified_this_execution": false,
       "local_memory_comparison_only": true
-    }
+    },
+    "main_adoption_status": "ADOPTED_MAIN"
   }
 }
