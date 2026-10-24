@@ -3273,7 +3273,7 @@ function recognitionGuideResourcesCanvas(child, feature) {
     '<div class="authority-index-intro"><strong>页面高保真资源 · Frozen Visual Authority</strong>' +
       '<span>以下是三张整页冻结 PNG，仅用于视觉基准、对照和下载；不是可直接绑定到页面组件的独立鱼体照片。</span></div>' +
     (cards ? '<div class="authority-index-grid guide-resource-grid">' + cards + '</div>' : '<div class="preview-empty">资源清单没有可展示的 Frozen PNG。</div>') +
-    '<div class="authority-index-intro guide-resource-manifest"><strong>结构化开发合同</strong><span>' + [structureManifest, frontendManifest, pageManifest].filter(Boolean).join(' · ') + '</span></div>' +
+    '<div class="authority-index-intro guide-resource-manifest"><strong>结构化开发合同</strong><span>' + [pageManifest, frontendManifest, structureManifest].filter(Boolean).join(' · ') + '</span></div>' +
     '<div class="authority-index-intro guide-resource-manifest"><strong>前端独立素材 · 12 个必需槽位</strong><span>每页 1 张正确示范主图 + 3 张错误示范。已有 9 张归档错误示范裁切仅标为 REFERENCE_ONLY（源于合成整页图）；3 张正确主图仍缺独立原图。未将任何候选资源标记为生产可用。</span></div>' +
     (slotCards ? '<div class="authority-index-grid guide-resource-grid">' + slotCards + '</div>' : '<div class="preview-empty">尚未登记前端素材槽位。</div>') +
   '</div>';
