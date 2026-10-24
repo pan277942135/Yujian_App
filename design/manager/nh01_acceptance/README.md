@@ -33,3 +33,10 @@ The build script checks that the imported mapping snapshot remains byte-identica
 - Runtime screenshots, bounds, Pixel Diff, responsive reports, and motion are published with their source SHA. Instrumentation logs remain in the GitHub Actions evidence artifact and are not copied into the public Pages site.
 
 The Viewer's Release panel links to GitHub Actions and the Draft PR. It has no local-only approval control or false acceptance backend.
+
+
+## GitHub-native closure (no live Figma dependency)
+
+The GitHub-native workflow is documented in [GITHUB_NATIVE_CLOSURE_WORKFLOW_V1.md](./GITHUB_NATIVE_CLOSURE_WORKFLOW_V1.md). Use the existing GitHub Pages Viewer and Actions artifacts as the reproducible workflow; the old Figma node mapping remains provenance, not a live Figma dependency.
+
+Under **Visual Compare**, the added **本地 Android 截图对照** tool computes a local overlay, heatmap, ROI diagnostics, screenshot SHA-256, and downloadable JSON report. The selected image is processed only in the browser and is not uploaded or committed. Strict mode requires a native 1080×1920 image. Optional contain mode is diagnostic only. Both modes report `acceptance_gate_effect=NONE` and cannot close the exact-SHA Android runtime or visual acceptance gates.
