@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="375" height="667" viewBox="0 0 375 667" role="img" aria-labelledby="title desc" data-authority="STRUCTURE_ONLY_CANDIDATE">
+  <title id="title">P02 首次拍照教学结构拆分预览</title>
+  <desc id="desc">仅展示组件和资源绑定关系；不是真实照片，不是冻结高保真，也不代表精确几何。独立原始照片仍然缺失。</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#eef5f6"/><stop offset="1" stop-color="#d8e7eb"/></linearGradient>
+    <linearGradient id="hero" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#e2edf0"/><stop offset="1" stop-color="#c8dce2"/></linearGradient>
+  </defs>
+  <rect width="375" height="667" rx="28" fill="url(#bg)"/>
+  <rect x="1" y="1" width="373" height="665" rx="27" fill="none" stroke="#b6c9cf"/>
+  <rect x="14" y="14" width="347" height="27" rx="8" fill="#e6eff2"/>
+  <text x="24" y="31" font-size="9" fill="#52727d" font-weight="700">P02 · 结构拆分预览</text>
+  <text x="350" y="31" font-size="8" text-anchor="end" fill="#b05f4d">非冻结视觉</text>
+  <g id="p02.navigation">
+    <circle cx="31" cy="61" r="12" fill="#fff" stroke="#c5d7dc"/>
+    <path d="M 35 55 L 29 61 L 35 67" fill="none" stroke="#355d6a" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+    <text x="53" y="64" font-size="9" fill="#45646f">上一张</text>
+    <text x="344" y="64" font-size="10" text-anchor="end" fill="#42616b">跳过</text>
+  </g>
+  <g id="p02.title_block">
+    <text x="20" y="91" font-size="17" fill="#1e3f4b" font-weight="700">竖拍鱼类拍摄示意</text>
+    <text x="20" y="110" font-size="10" fill="#5b7780">请保持鱼体完整、清晰，并符合竖向构图要求</text>
+  </g>
+  <g id="p02.correct_hero">
+    <rect x="20" y="124" width="335" height="242" rx="13" fill="url(#hero)" stroke="#789ba6" stroke-dasharray="6 4"/>
+    <g opacity="0.85"><ellipse cx="187" cy="230" rx="17.92" ry="45.6" fill="#9bb2b7"/><path d="M 187 177.2 L 174.2 155.6 L 199.8 155.6 Z" fill="#9bb2b7"/><path d="M 187 280.4 L 175.48 304.4 L 198.52 304.4 Z" fill="#9bb2b7"/><circle cx="181.88" cy="215.6" r="1.7" fill="#203b45"/></g>
+    <rect x="78" y="278" width="219" height="44" rx="10" fill="#f7fbfc" stroke="#d1e0e4"/>
+    <text x="187" y="295" text-anchor="middle" font-size="12" fill="#244c59" font-weight="700">正确示范主图 · 原图缺失</text>
+    <text x="187" y="311" text-anchor="middle" font-size="9" fill="#a45d4c">ASSET_SOURCE_BLOCKED</text>
+  </g>
+  <g id="p02.error_examples">
+    <text x="20" y="386" font-size="12" fill="#244955" font-weight="700">请避免以下拍摄问题</text>
+    <g id="p02.error.1">
+    <rect x="20" y="395" width="104" height="103" rx="10" fill="#f8fafb" stroke="#d5e0e5"/>
+    <rect x="27" y="402" width="90" height="58" rx="6" fill="#dce8eb" stroke="#b7cbd1" stroke-dasharray="4 3"/>
+    <g opacity="0.85"><ellipse cx="72" cy="431" rx="6.16" ry="15.96" fill="#8fa8ad"/><path d="M 72 412.52 L 67.6 404.96 L 76.4 404.96 Z" fill="#8fa8ad"/><path d="M 72 448.64 L 68.04 457.04 L 75.96 457.04 Z" fill="#8fa8ad"/><circle cx="70.24" cy="425.96" r="1.7" fill="#203b45"/></g>
+    <text x="72" y="475" font-size="10" text-anchor="middle" fill="#2d4b56" font-weight="700">鱼头不在画面</text>
+    <text x="72" y="488" font-size="7" text-anchor="middle" fill="#8b5c4e">SOURCE BLOCKED</text>
+  </g><g id="p02.error.2">
+    <rect x="132" y="395" width="104" height="103" rx="10" fill="#f8fafb" stroke="#d5e0e5"/>
+    <rect x="139" y="402" width="90" height="58" rx="6" fill="#dce8eb" stroke="#b7cbd1" stroke-dasharray="4 3"/>
+    <g opacity="0.85"><ellipse cx="184" cy="431" rx="6.16" ry="15.96" fill="#8fa8ad"/><path d="M 184 412.52 L 179.6 404.96 L 188.4 404.96 Z" fill="#8fa8ad"/><path d="M 184 448.64 L 180.04 457.04 L 187.96 457.04 Z" fill="#8fa8ad"/><circle cx="182.24" cy="425.96" r="1.7" fill="#203b45"/></g>
+    <text x="184" y="475" font-size="10" text-anchor="middle" fill="#2d4b56" font-weight="700">鱼体过小</text>
+    <text x="184" y="488" font-size="7" text-anchor="middle" fill="#8b5c4e">SOURCE BLOCKED</text>
+  </g><g id="p02.error.3">
+    <rect x="244" y="395" width="104" height="103" rx="10" fill="#f8fafb" stroke="#d5e0e5"/>
+    <rect x="251" y="402" width="90" height="58" rx="6" fill="#dce8eb" stroke="#b7cbd1" stroke-dasharray="4 3"/>
+    <g opacity="0.85"><ellipse cx="296" cy="431" rx="6.16" ry="15.96" fill="#8fa8ad"/><path d="M 296 412.52 L 291.6 404.96 L 300.4 404.96 Z" fill="#8fa8ad"/><path d="M 296 448.64 L 292.04 457.04 L 299.96 457.04 Z" fill="#8fa8ad"/><circle cx="294.24" cy="425.96" r="1.7" fill="#203b45"/></g>
+    <text x="296" y="475" font-size="10" text-anchor="middle" fill="#2d4b56" font-weight="700">遮挡过多</text>
+    <text x="296" y="488" font-size="7" text-anchor="middle" fill="#8b5c4e">SOURCE BLOCKED</text>
+  </g>
+  </g>
+  <g id="p02.pagination">
+    <circle cx="171" cy="530" r="3.2" fill="#9bb2b8"/>
+    <circle cx="187" cy="530" r="3.2" fill="#2c7182"/>
+    <circle cx="203" cy="530" r="3.2" fill="#9bb2b8"/>
+    <text x="187" y="548" font-size="8" text-anchor="middle" fill="#67828a">页码 / 进度指示组件</text>
+  </g>
+  <g id="p02.footer_action">
+    <rect x="20" y="572" width="335" height="48" rx="15" fill="#244f5d"/>
+    <text x="187" y="601" font-size="14" text-anchor="middle" fill="#fff" font-weight="700">下一张</text>
+    <text x="187" y="642" font-size="8" text-anchor="middle" fill="#6b858d">结构草图 · 照片来源未补齐 · 不可作为最终视觉基准</text>
+  </g>
+</svg>
