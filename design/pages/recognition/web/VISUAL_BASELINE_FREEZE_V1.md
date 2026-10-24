@@ -2,6 +2,7 @@
 
 **Baseline ID:** `YUJIAN_SWOS_WEB_PIXEL_BASELINE_V1`  
 **Status:** `FROZEN_PRIVATE_SHA_BOUND`  
+**Main adoption:** `PENDING_PR_204_MERGE` — this record is currently on the Draft PR branch; the main Design Manager does not adopt it until the PR is merged.  
 **Owner decision:** 用户于 2026-10-24 明确要求冻结最终视觉基准  
 **Scope:** Web AI 渔获识别页面静态构图基准；不代表 Web Runtime / 动效 / Mask 已验收
 
@@ -64,4 +65,4 @@
 - `PRODUCTION_MASK=NOT_QUALIFIED`：生产级鱼体 Mask 尚未获得资格。
 - `USER_VISUAL_ACCEPTANCE=PENDING`：最终视觉验收仍由产品负责人完成。
 
-**冻结结论：** 这份记录冻结的是唯一主视觉基准的来源身份和对照规则。它不替代当前源码部署、真实照片播放、Mask 质量、性能测试或用户视觉签收。
+**冻结结论：** 这份记录冻结的是唯一主视觉基准的来源身份和对照规则。它不替代当前源码部署、真实照片播放、Mask 质量、性能测试或用户视觉签收。由于 PR #204 仍为 Draft/Open/Unmerged，正式 Main 权威和生产 Design Manager 状态须在 PR 获授权合并后才更新。
