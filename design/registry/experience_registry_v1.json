@@ -3218,7 +3218,7 @@
                 "p03"
               ],
               "runtime_visual_authority": false,
-              "summary": "首次拍照教学资源工作区：保留三张 Frozen 整页 PNG，并提供结构化页面合同、独立前端照片 Manifest 和 12 个素材槽位的来源状态。独立照片缺失时显示阻塞，不以整页截图代替；不映射 Android 运行时。",
+              "summary": "首次拍照教学资源工作区：保留三张 Frozen 整页 PNG，并提供结构化页面合同、独立前端照片 Manifest 和 12 个素材槽位的来源状态。独立照片缺失时显示阻塞，不以整页截图代替；不映射为 Android 运行时背景。",
               "frontend_asset_manifest": "design/pages/recognition/first_use_camera_guide/frontend_assets_manifest.json",
               "structured_page_manifest": "design/pages/recognition/first_use_camera_guide/structured_pages.json",
               "frontend_asset_slots": [
