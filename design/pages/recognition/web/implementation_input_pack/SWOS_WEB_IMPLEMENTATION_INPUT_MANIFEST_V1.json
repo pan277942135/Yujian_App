@@ -2,7 +2,7 @@
   "schema_version": "1.0",
   "task_id": "YUJIAN_SWOS_WEB_IMPLEMENTATION_INPUT_PACK_AND_LIVE_SHA_CLOSURE_V1",
   "snapshot_date_utc": "2026-10-24",
-  "package_status": "SOURCE_SYNCED_EXACT_HEAD_CI_PASS_CANDIDATE_REVISION_OLD_SHA_AUTH_PROBE_BLOCKED_FIXTURE_RATE_LIMIT_VISUAL_ACCEPTANCE_PENDING_MASK_NOT_QUALIFIED",
+  "package_status": "SOURCE_SYNCED_EXACT_HEAD_CI_PASS_CURRENT_HEAD_PREVIEW_NOT_DISPATCHED_AUTHENTICATED_REAL_INFERENCE_PENDING_MASK_NOT_QUALIFIED_VISUAL_ACCEPTANCE_PENDING",
   "package_role": "IMPLEMENTATION_INPUT_SNAPSHOT_NOT_A_PARALLEL_DESIGN_AUTHORITY",
   "authority": {
     "repository": "pan277942135/Yujian_App",
@@ -12,22 +12,22 @@
     "contract_files": [
       {
         "path": "design/pages/recognition/web/WEB_HIFI_CONTRACT_V2.md",
-        "blob_sha": "386dd2a3034d42189b9b6982497f86f69396d542",
+        "blob_sha": "3480c2b71823b12fd90693c045746692027e6290",
         "role": "web_contract"
       },
       {
         "path": "design/pages/recognition/web/WEB_HIFI_GAP_MATRIX_V2.md",
-        "blob_sha": "bfb113f7f1f144b18444133cbb93f9033642c952",
+        "blob_sha": "66f2d7505e16b4cdc2dd465f7ac2b0c61f8f283c",
         "role": "live_gap_matrix_with_historical_baseline_labeled"
       },
       {
         "path": "design/pages/recognition/web/WEB_HIFI_HANDOFF_A_V2.md",
-        "blob_sha": "c363dd55b0a302b28ff58782da022ee50b58ea0a",
+        "blob_sha": "2131b9209da732df8f2509c8cd778adf6a888b5d",
         "role": "handoff_a"
       },
       {
         "path": "design/pages/recognition/web/WEB_HIFI_HANDOFF_B_V2.md",
-        "blob_sha": "bc7cec2425b50d98d63bf2f4827c8b94ad08debf",
+        "blob_sha": "4c080d43cea7f33160d95727097a85b4942bec29",
         "role": "handoff_b"
       },
       {
@@ -47,7 +47,7 @@
       },
       {
         "path": "design/pages/recognition/web/contracts/Page_State_Matrix_V2.json",
-        "blob_sha": "da51833e514099b31d0f508edfa6d51aed941c5e",
+        "blob_sha": "bfe3f551111ce899079f8bd436588756f72edc34",
         "role": "machine_contract"
       },
       {
@@ -62,12 +62,12 @@
       },
       {
         "path": "design/pages/recognition/web/contracts/Authority_References_V2.json",
-        "blob_sha": "84b3c2e496e759b651be4ca6005d42b4b10808b5",
+        "blob_sha": "2eff59ee4c279baf2130b0b9986473a2be6b1cec",
         "role": "machine_contract_with_live_audit"
       },
       {
         "path": "design/pages/recognition/web/contracts/Work_B_Implementation_Mapping_V2.json",
-        "blob_sha": "5db55fbcbde3825d51730c16a89a3df75923208f",
+        "blob_sha": "150c71713187433611fa4294538595046d2ff6cd",
         "role": "implementation_mapping_with_live_audit"
       },
       {
@@ -117,7 +117,7 @@
       },
       {
         "path": "design/pages/recognition/web/VISUAL_REFERENCE_MANIFEST_V1.json",
-        "blob_sha": "a3f77fdf093b523eba39bb80c7ab82ce347aeb61",
+        "blob_sha": "bbde061e43954edaadb554b8668f06d318649d56",
         "role": "visual_source_manifest"
       },
       {
@@ -132,18 +132,18 @@
       },
       {
         "path": "design/pages/recognition/web/VISUAL_REFERENCE_CLOSURE_REPORT_V1.md",
-        "blob_sha": "f9ee2bce598df800ab97b86a403c60c78b0d0cc6",
+        "blob_sha": "55b28030254da2d4ce98be7f43d8bc00a80c0ea9",
         "role": "asset_provenance_report"
       },
       {
         "path": "design/pages/recognition/web/SWOS_WEB_HIFI_MOTION_TECHNICAL_CONTRACT_V1_0.md",
         "role": "swos_web_hifi_motion_technical_contract_v1_0",
-        "blob_sha": "675ffe32f02bda8cf9979161cda7d83f134fcb2a"
+        "blob_sha": "f7065fe0d9a4c363c770c9852eaacb9d9370122c"
       },
       {
         "path": "design/pages/recognition/web/contracts/SWOS_WEB_HIFI_MOTION_TECHNICAL_CONTRACT_V1_0.json",
         "role": "swos_web_hifi_motion_machine_contract",
-        "blob_sha": "7916942aac1a53cbd5c5c80539115f75e6a607d2"
+        "blob_sha": "dece1946dc715d90f3a033b2118d758fa10c8a86"
       },
       {
         "path": "design/pages/recognition/processing/README.md",
@@ -187,7 +187,7 @@
       },
       {
         "path": "design/pages/recognition/web/implementation_input_pack/README.md",
-        "blob_sha": "9edcc2888e635071f2746012caf3a3cd7a29bd47",
+        "blob_sha": "f5760cdee6cc94497e7a8337f5c94c8f384e6b6e",
         "role": "updated_source_authority"
       },
       {
@@ -329,13 +329,13 @@
     "product_repository": "pan277942135/Yujian",
     "product_pr_number": 177,
     "product_branch": "feat/ai-catch-recognition-web-swos-rr09-v1",
-    "live_product_pr_head_sha": "5aa44cac6c8895ab28566ba1f5f9baf40953065e",
-    "live_product_main_sha": "15d4d1152cce08a3786d51bf1285381ed75d97e6",
-    "merge_base_sha": "15d4d1152cce08a3786d51bf1285381ed75d97e6",
-    "ahead_by": 47,
+    "live_product_pr_head_sha": "f5b74cc7628131863f40a1a43458026ff49a2eb5",
+    "live_product_main_sha": "738954105d545d9c354136b8b93f3562058fcf30",
+    "merge_base_sha": "738954105d545d9c354136b8b93f3562058fcf30",
+    "ahead_by": 48,
     "behind_by": 0,
     "source_sync_status": "SYNCED_WITH_CURRENT_PRODUCT_MAIN",
-    "exact_head_ci_status": "PASS_EXACT_SHA_TARGETED_VALIDATE_CHROMIUM_AND_OFFLINE_SWOS_PROBE_UNIT_TESTS_UI_SIMULATION_ONLY_NOT_VISUAL_ACCEPTED",
+    "exact_head_ci_status": "PASS_EXACT_SHA_TARGETED_VALIDATE_CHROMIUM_AND_OFFLINE_PROBE_UNIT_TESTS_ONLY_NOT_VISUAL_ACCEPTED",
     "previous_exact_head_ci": {
       "sha": "10b60e3ee3d26b3c103a5a908b005c1d54750338",
       "run_id": 39980021942,
@@ -344,18 +344,18 @@
       "scope": "Both jobs were green, but renderer diagnostics showed a GLSL reserved-word compile failure and Canvas2D fallback. This follow-up fixes that failure and requires actual WebGL2 product-renderer execution."
     },
     "exact_head_ci": {
-      "sha": "5aa44cac6c8895ab28566ba1f5f9baf40953065e",
-      "run_id": 40053248593,
-      "url": "https://github.com/pan277942135/Yujian/actions/runs/40053248593",
+      "sha": "f5b74cc7628131863f40a1a43458026ff49a2eb5",
+      "run_id": 40054890544,
+      "url": "https://github.com/pan277942135/Yujian/actions/runs/40054890544",
       "conclusion": "success",
       "jobs": {
         "validate": "success",
         "det_fish_display_chromium": "success"
       },
-      "scope": "Exact-source targeted validation, offline SWOS quality-probe unit tests and Chromium/UI simulation only; no authenticated live inference, valid SAM probe, real-photo visual acceptance or production Mask qualification."
+      "scope": "Exact-source targeted validation, offline SWOS quality-probe unit tests and Chromium/UI simulation only; no authenticated live inference, valid deployed SAM output or visual acceptance."
     },
-    "current_head_preview_status": "CANDIDATE_REVISION_EXISTS_FOR_OLD_SOURCE_6da6408_NOT_CURRENT_HEAD_5aa44ca",
-    "configured_preview_sha": "6da640859f063d7f42ee5432e6b35ecb162802ff",
+    "current_head_preview_status": "NOT_DEPLOYED_CURRENT_HEAD_f5b74cc_EXISTING_REVISION_yujian-model-factory-console-00349-hes_USES_OLD_SOURCE_6da6408",
+    "configured_preview_sha": "DYNAMIC_INPUT_TARGET_SHA",
     "production_mask_status": "NOT_QUALIFIED",
     "runtime_visual_status": "NOT_VERIFIED_AUTHENTICATED_REAL_INFERENCE_AND_BROWSER_VISUAL_ACCEPTANCE_PENDING",
     "full_suite_status": "NOT_RUN_BLOCKED_BY_EXISTING_METADATA_ACCESS_REVIEW",
@@ -367,16 +367,16 @@
       "product_repository_is_separate": true,
       "product_repository_root_control_plane_files": "NOT_PRESENT",
       "policy": "Use the canonical Yujian_App control plane plus this exact-SHA cross-repository source audit. Do not create a competing control plane in Yujian.",
-      "admission_status": "CANONICAL_CONTROL_PLANE_CONFIRMED; PRODUCT_PR177_DRAFT_OPEN_UNMERGED; PRODUCT_SOURCE_SYNCED_47_AHEAD_0_BEHIND; EXACT_SHA_CI_PASS; CANDIDATE_REVISION_FOR_OLD_SOURCE; AUTH_PROBE_401_AND_FIXTURE_429; VISUAL_ACCEPTANCE_NOT_VERIFIED"
+      "admission_status": "CANONICAL_CONTROL_PLANE_CONFIRMED; PRODUCT_PR177_DRAFT_OPEN_UNMERGED; PRODUCT_SOURCE_SYNCED_48_AHEAD_0_BEHIND; EXACT_SHA_CI_PASS; CURRENT_SOURCE_PREVIEW_NOT_DISPATCHED; AUTHENTICATED_REAL_INFERENCE_AND_VISUAL_ACCEPTANCE_PENDING"
     },
     "source_file_snapshot": [
       {
         "path": ".github/workflows/catch-recognition-pr177-no-traffic-deploy.yml",
-        "blob_sha": "a071cf220e980899f3c7f7cd6cb86fb3eab01925"
+        "blob_sha": "4944b7236120fdea18afaea2b4b5f17c860ea962"
       },
       {
         "path": "docs/catch_web_preview_pin_v2.md",
-        "blob_sha": "bb4f0509bd487675368202cfcd07bf44b9fff835"
+        "blob_sha": "4fa667acfa29e78e2b42bcb4cf800f8815833914"
       },
       {
         "path": "app/recognition_pipeline.py",
@@ -496,13 +496,14 @@
       "deployment_status": "FAILED_POST_DEPLOY_PROBE_AUTH_AND_FIXTURE_RATE_LIMIT",
       "validate_job_status": "SUCCESS",
       "chromium_job_status": "SUCCESS",
-      "workflow_trigger_policy": "push on main paths or workflow_dispatch on refs/heads/main",
+      "workflow_trigger_policy": "manual workflow_dispatch only; exact target_sha input required",
       "deploy_preflight_ref": "refs/heads/main",
-      "deployment_blocker": "Candidate Revision yujian-model-factory-console-00349-hes was created for source 6da640859f063d7f42ee5432e6b35ecb162802ff, but that source is stale relative to current PR #177 HEAD 5aa44cac6c8895ab28566ba1f5f9baf40953065e. The probe did not authenticate: 2 requests returned HTTP 401; 3 public fixture downloads returned HTTP 429. No valid real inference/SAM evidence was collected.",
-      "ci_scope": "Exact-pin scoped CI passed offline probe unit tests and Chromium UI simulation. The deployed old source health SHA matched, but the real-photo probe failed before valid inference; no visual acceptance.",
-      "configured_main_workflow_sha": "6da640859f063d7f42ee5432e6b35ecb162802ff",
+      "deployment_blocker": "Existing candidate Revision yujian-model-factory-console-00349-hes is bound to old source 6da640859f063d7f42ee5432e6b35ecb162802ff; current PR #177 HEAD f5b74cc7628131863f40a1a43458026ff49a2eb5 has not yet been dispatched. Previous probe failed before valid inference: 2 HTTP 401 requests and 3 Wikimedia HTTP 429 fixture downloads. The new workflow requires Actions secret CONSOLE_ACCESS_KEY; if absent it fails closed as AUTH_NOT_CONFIGURED.",
+      "ci_scope": "Old candidate deployment only; no valid authenticated real-photo inference or visual acceptance.",
+      "configured_main_workflow_sha": "DYNAMIC_WORKFLOW_DISPATCH_INPUT",
       "candidate_revision": "yujian-model-factory-console-00349-hes",
-      "deployment_run_id": 39982073543
+      "deployment_run_id": 39982073543,
+      "workflow_dispatch_target_sha": "REQUIRED_INPUT_CURRENT_PR177_HEAD"
     },
     "unrestricted_suite_event": "The unrestricted repository suite remains NOT_RUN under the existing metadata-access review. Current PR #177 CI runs the approved targeted suite and skips that path; no metadata endpoint or credential was accessed."
   },
