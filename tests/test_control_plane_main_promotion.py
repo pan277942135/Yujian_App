@@ -4,6 +4,7 @@ import os
 import sys
 import tempfile
 import unittest
+import yaml
 from pathlib import Path
 from unittest import mock
 
@@ -78,6 +79,25 @@ class MainPromotionAdmissionTest(unittest.TestCase):
         self.assertEqual(0, rc)
         self.assertTrue(checked)
         self.assertNotIn("PROJECT_MASTER_STATE", names)
+
+
+    def test_green_check_merge_policy_does_not_wait_for_release_gate(self):
+        root = Path(__file__).resolve().parents[1]
+        machine = yaml.safe_load((root / "harness/PHASE_TASK_STATE_MACHINE.yaml").read_text(encoding="utf-8"))
+        registry = yaml.safe_load((root / "CONTROL_PLANE_REGISTRY.yaml").read_text(encoding="utf-8"))
+        policy = machine["execution_policy"]
+        self.assertIs(policy.get("main_merge_allowed"), True)
+        self.assertIs(policy.get("main_merge_requires_green_checks"), True)
+        self.assertEqual(
+            policy.get("main_merge_policy"),
+            "GREEN_REQUIRED_CHECKS_WITHIN_AUTHORIZED_SCOPE; NO_EXTRA_PER_PR_APPROVAL; N009_RESERVED_FOR_RELEASE",
+        )
+        for key in ("force_push_allowed", "rebase_allowed", "history_rewrite_allowed"):
+            self.assertIs(policy.get(key), False)
+        gate = registry["main_merge_gate"]
+        self.assertIs(gate.get("merge_when_checks_pass"), True)
+        self.assertIs(gate.get("exact_head_required"), True)
+        self.assertEqual(gate.get("human_authorization"), "NONE_FOR_CODE_MERGE; N009_APPLIES_TO_RELEASE_ONLY")
 
 
 if __name__ == "__main__":
