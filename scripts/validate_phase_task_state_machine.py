@@ -190,7 +190,13 @@ def main() -> int:
         errors.append("execution_policy.maximum_attempts must be 3")
     if policy.get("no_unbounded_retry") is not True:
         errors.append("execution_policy.no_unbounded_retry must be true")
-    for key in ("main_merge_allowed","force_push_allowed","rebase_allowed","history_rewrite_allowed"):
+    if policy.get("main_merge_allowed") is not True:
+        errors.append("execution_policy.main_merge_allowed must be true")
+    if policy.get("main_merge_requires_green_checks") is not True:
+        errors.append("execution_policy.main_merge_requires_green_checks must be true")
+    if policy.get("main_merge_policy") != "GREEN_REQUIRED_CHECKS_WITHIN_AUTHORIZED_SCOPE; NO_EXTRA_PER_PR_APPROVAL; N009_RESERVED_FOR_RELEASE":
+        errors.append("execution_policy.main_merge_policy mismatch")
+    for key in ("force_push_allowed","rebase_allowed","history_rewrite_allowed"):
         if policy.get(key) is not False:
             errors.append(f"execution_policy.{key} must be false")
 
