@@ -121,7 +121,35 @@ def main() -> None:
         if recorded.get("status") != "PASS" or not recorded.get("import_timestamp"):
             fail(f"report {expected['id']} must include PASS and import_timestamp")
 
-    print("PASS: P01/P02/P03 frozen guide PNG bytes, SHA-256, dimensions, and Git blob SHAs match.")
+    frontend_manifest = load_json(GUIDE / "frontend_assets_manifest.json")
+    structured_pages = load_json(GUIDE / "structured_pages.json")
+    if frontend_manifest.get("status") != "PARTIAL_SOURCE_BLOCKED":
+        fail("front-end manifest must preserve the explicit partial/source-blocked status")
+    frontend_assets = frontend_manifest.get("assets", [])
+    expected_slots = {f"{page}_{role}" for page in ("p01", "p02", "p03") for role in (
+        "correct_hero", "fish_head_out_of_frame", "fish_too_small", "excessive_occlusion"
+    )}
+    if len(frontend_assets) != 12 or {item.get("id") for item in frontend_assets} != expected_slots:
+        fail("front-end manifest must define exactly 12 unique page/role asset slots")
+    if len({item.get("id") for item in frontend_assets}) != len(frontend_assets):
+        fail("front-end asset IDs must be unique")
+    for item in frontend_assets:
+        if item.get("authority_state") != "ASSET_SOURCE_BLOCKED" or item.get("approved_for_frontend") is not False:
+            fail(f"missing-source slot must not be falsely approved: {item.get('id')}")
+        if item.get("source_path") or item.get("sha256") or item.get("bytes"):
+            fail(f"blocked source slot must not invent file metadata: {item.get('id')}")
+    pages = structured_pages.get("pages", [])
+    if [item.get("id") for item in pages] != ["p01", "p02", "p03"]:
+        fail("structured page contract must preserve the frozen P01/P02/P03 order")
+    if len({item.get("id") for item in structured_pages.get("shared_components", [])}) != len(structured_pages.get("shared_components", [])):
+        fail("structured component IDs must be unique")
+    if structured_pages.get("component_contract", {}).get("exact_pixel_geometry_status") != "NOT_YET_MEASURED":
+        fail("unmeasured pixel geometry must remain explicitly unverified")
+    if navigation.get("resource_menus", [{}])[0].get("frontend_asset_manifest") != "frontend_assets_manifest.json":
+        fail("navigation must link the front-end asset manifest")
+    print("PASS: frozen guide PNG integrity verified.")
+    print("PASS: structured page contract preserves P01/P02/P03 and unique component IDs.")
+    print("PASS: 12 independent photo slots are registered and remain explicitly source-blocked; no fake source metadata.")
 
 
 if __name__ == "__main__":
