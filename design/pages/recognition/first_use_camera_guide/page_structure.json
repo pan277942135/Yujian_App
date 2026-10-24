@@ -1,0 +1,561 @@
+{
+  "schema_version": "1.0",
+  "contract_id": "FIRST_USE_CAMERA_GUIDE_PAGE_STRUCTURE_V1",
+  "task_id": "YUJIAN_FIRST_USE_GUIDE_FRONTEND_ASSET_CATALOG_V1",
+  "status": "STRUCTURE_ONLY_CANDIDATE",
+  "visual_authority": false,
+  "runtime_visual_authority": false,
+  "page_count": 3,
+  "source_page_manifest": "design/pages/recognition/first_use_camera_guide/manifest.json",
+  "frontend_asset_manifest": "design/pages/recognition/first_use_camera_guide/frontend_assets_manifest.json",
+  "geometry_policy": {
+    "frozen_source_dimensions_are_exact": true,
+    "exact_component_bounds_measured": false,
+    "bounds_status": "NOT_MEASURED_FROM_FROZEN_PNG",
+    "preview_svg_role": "SEMANTIC_STRUCTURE_WIREFRAME_ONLY",
+    "implementation_rule": "Use the Frozen PNG as visual authority; do not treat this semantic layer tree or schematic SVG as pixel-exact geometry. Measure/approve component bounds before runtime implementation."
+  },
+  "shared_components": [
+    {
+      "id": "guide.navigation",
+      "name": "顶部导航区",
+      "kind": "navigation",
+      "reuse_scope": "page-local variant",
+      "elements": [
+        "back_button",
+        "skip_button"
+      ]
+    },
+    {
+      "id": "guide.title_block",
+      "name": "标题与说明",
+      "kind": "content_header",
+      "reuse_scope": "shared"
+    },
+    {
+      "id": "guide.correct_hero",
+      "name": "正确拍摄示范",
+      "kind": "image_slot",
+      "reuse_scope": "shared by orientation variant",
+      "asset_role": "correct_hero"
+    },
+    {
+      "id": "guide.error_examples",
+      "name": "错误示例组",
+      "kind": "example_group",
+      "reuse_scope": "shared"
+    },
+    {
+      "id": "guide.error_example",
+      "name": "错误示例卡",
+      "kind": "image_example",
+      "reuse_scope": "shared"
+    },
+    {
+      "id": "guide.pagination",
+      "name": "页码指示器",
+      "kind": "pagination",
+      "reuse_scope": "shared"
+    },
+    {
+      "id": "guide.primary_action",
+      "name": "主操作按钮",
+      "kind": "button",
+      "reuse_scope": "page-specific label"
+    },
+    {
+      "id": "guide.previous_action",
+      "name": "上一张按钮",
+      "kind": "button",
+      "reuse_scope": "P02/P03"
+    }
+  ],
+  "pages": [
+    {
+      "id": "p01",
+      "title": "P01 · 竖屏拍摄示意",
+      "source_page_png": "design/pages/recognition/first_use_camera_guide/frozen/P01_First_Use_Camera_Guide_Frozen.png",
+      "source_page_dimensions_px": {
+        "width": 941,
+        "height": 1671
+      },
+      "source_page_sha256": "dc731cca5470ef2154bb06172b9836e823ea780b0833f04e34caaf883e465c50",
+      "exported_canvas_orientation": "portrait",
+      "capture_orientation": "portrait",
+      "fish_orientation": "horizontal",
+      "structure_preview_path": "design/pages/recognition/first_use_camera_guide/structure/P01_First_Use_Guide_Structure_Only.svg",
+      "structure_status": "STRUCTURE_ONLY_CANDIDATE",
+      "runtime_visual_authority": false,
+      "geometry_status": "SEMANTIC_TREE_ONLY_BOUNDS_NOT_MEASURED",
+      "asset_bindings": [
+        "p01.hero",
+        "p01.error_head_out_of_frame",
+        "p01.error_fish_too_small",
+        "p01.error_excessive_occlusion"
+      ],
+      "layer_count": 12,
+      "layers": [
+        {
+          "id": "p01.root",
+          "parent_id": null,
+          "name": "教学页根节点",
+          "kind": "page",
+          "authority": "FROZEN_PNG",
+          "layout": "full_page_overlay",
+          "bounds": null
+        },
+        {
+          "id": "p01.navigation",
+          "parent_id": "p01.root",
+          "name": "顶部导航区",
+          "kind": "navigation",
+          "layout": "top_region",
+          "bounds": null,
+          "children": [
+            "p01.back_button",
+            "p01.skip_button"
+          ]
+        },
+        {
+          "id": "p01.back_button",
+          "parent_id": "p01.navigation",
+          "name": "返回 / 上一张",
+          "kind": "button",
+          "visibility": "NOT_PRESENT_ON_P01",
+          "label": null,
+          "bounds": null
+        },
+        {
+          "id": "p01.skip_button",
+          "parent_id": "p01.navigation",
+          "name": "跳过",
+          "kind": "button",
+          "visibility": "VISIBLE",
+          "label": "跳过",
+          "behavior": "关闭教学，不触发快门",
+          "bounds": null
+        },
+        {
+          "id": "p01.title_block",
+          "parent_id": "p01.root",
+          "name": "标题与拍摄说明",
+          "kind": "text_group",
+          "layout": "below_navigation",
+          "bounds": null
+        },
+        {
+          "id": "p01.correct_hero",
+          "parent_id": "p01.root",
+          "name": "正确示范主图",
+          "kind": "image_slot",
+          "asset_binding": "p01.hero",
+          "asset_id": "hero_horizontal",
+          "required_orientation": "horizontal",
+          "requirement": "完整鱼体、主体清晰、构图合理",
+          "bounds": null
+        },
+        {
+          "id": "p01.error_examples",
+          "parent_id": "p01.root",
+          "name": "错误示例区",
+          "kind": "example_group",
+          "layout": "three_examples",
+          "bounds": null,
+          "children": [
+            "p01.error_head_out_of_frame",
+            "p01.error_fish_too_small",
+            "p01.error_excessive_occlusion"
+          ]
+        },
+        {
+          "id": "p01.error_head_out_of_frame",
+          "parent_id": "p01.error_examples",
+          "name": "鱼头不在画面",
+          "kind": "image_slot",
+          "asset_binding": "p01.error_head_out_of_frame",
+          "asset_id": "error_head_out_horizontal",
+          "required_orientation": "horizontal",
+          "bounds": null
+        },
+        {
+          "id": "p01.error_fish_too_small",
+          "parent_id": "p01.error_examples",
+          "name": "鱼体过小",
+          "kind": "image_slot",
+          "asset_binding": "p01.error_fish_too_small",
+          "asset_id": "error_too_small_horizontal",
+          "required_orientation": "horizontal",
+          "bounds": null
+        },
+        {
+          "id": "p01.error_excessive_occlusion",
+          "parent_id": "p01.error_examples",
+          "name": "遮挡过多",
+          "kind": "image_slot",
+          "asset_binding": "p01.error_excessive_occlusion",
+          "asset_id": "error_occluded_horizontal",
+          "required_orientation": "horizontal",
+          "bounds": null
+        },
+        {
+          "id": "p01.pagination",
+          "parent_id": "p01.root",
+          "name": "页码 / 进度指示",
+          "kind": "pagination",
+          "layout": "before_footer_action",
+          "bounds": null
+        },
+        {
+          "id": "p01.primary_action",
+          "parent_id": "p01.root",
+          "name": "主操作",
+          "kind": "button",
+          "label": "下一张",
+          "behavior": "进入下一页",
+          "bounds": null
+        }
+      ],
+      "interaction_contract": {
+        "sequence": [
+          "p01",
+          "p02",
+          "p03"
+        ],
+        "skip": "关闭教学，不触发快门；只有实际关闭后记录完成",
+        "primary_action": "下一张",
+        "previous_action": "NOT_PRESENT",
+        "shutter_auto_trigger": false
+      }
+    },
+    {
+      "id": "p02",
+      "title": "P02 · 竖拍鱼类拍摄示意",
+      "source_page_png": "design/pages/recognition/first_use_camera_guide/frozen/P02_First_Use_Camera_Guide_Frozen.png",
+      "source_page_dimensions_px": {
+        "width": 941,
+        "height": 1671
+      },
+      "source_page_sha256": "fb092235fd043a42aa8250aba9dfdb91a78e96549dd5a63f8e89cf7433685f8f",
+      "exported_canvas_orientation": "portrait",
+      "capture_orientation": "portrait",
+      "fish_orientation": "vertical",
+      "structure_preview_path": "design/pages/recognition/first_use_camera_guide/structure/P02_First_Use_Guide_Structure_Only.svg",
+      "structure_status": "STRUCTURE_ONLY_CANDIDATE",
+      "runtime_visual_authority": false,
+      "geometry_status": "SEMANTIC_TREE_ONLY_BOUNDS_NOT_MEASURED",
+      "asset_bindings": [
+        "p02.hero",
+        "p02.error_head_out_of_frame",
+        "p02.error_fish_too_small",
+        "p02.error_excessive_occlusion"
+      ],
+      "layer_count": 13,
+      "layers": [
+        {
+          "id": "p02.root",
+          "parent_id": null,
+          "name": "教学页根节点",
+          "kind": "page",
+          "authority": "FROZEN_PNG",
+          "layout": "full_page_overlay",
+          "bounds": null
+        },
+        {
+          "id": "p02.navigation",
+          "parent_id": "p02.root",
+          "name": "顶部导航区",
+          "kind": "navigation",
+          "layout": "top_region",
+          "bounds": null,
+          "children": [
+            "p02.back_button",
+            "p02.skip_button"
+          ]
+        },
+        {
+          "id": "p02.back_button",
+          "parent_id": "p02.navigation",
+          "name": "返回 / 上一张",
+          "kind": "button",
+          "visibility": "VISIBLE",
+          "label": "上一张",
+          "bounds": null
+        },
+        {
+          "id": "p02.skip_button",
+          "parent_id": "p02.navigation",
+          "name": "跳过",
+          "kind": "button",
+          "visibility": "VISIBLE",
+          "label": "跳过",
+          "behavior": "关闭教学，不触发快门",
+          "bounds": null
+        },
+        {
+          "id": "p02.title_block",
+          "parent_id": "p02.root",
+          "name": "标题与拍摄说明",
+          "kind": "text_group",
+          "layout": "below_navigation",
+          "bounds": null
+        },
+        {
+          "id": "p02.correct_hero",
+          "parent_id": "p02.root",
+          "name": "正确示范主图",
+          "kind": "image_slot",
+          "asset_binding": "p02.hero",
+          "asset_id": "hero_vertical",
+          "required_orientation": "vertical",
+          "requirement": "完整鱼体、主体清晰、构图合理",
+          "bounds": null
+        },
+        {
+          "id": "p02.error_examples",
+          "parent_id": "p02.root",
+          "name": "错误示例区",
+          "kind": "example_group",
+          "layout": "three_examples",
+          "bounds": null,
+          "children": [
+            "p02.error_head_out_of_frame",
+            "p02.error_fish_too_small",
+            "p02.error_excessive_occlusion"
+          ]
+        },
+        {
+          "id": "p02.error_head_out_of_frame",
+          "parent_id": "p02.error_examples",
+          "name": "鱼头不在画面",
+          "kind": "image_slot",
+          "asset_binding": "p02.error_head_out_of_frame",
+          "asset_id": "error_head_out_vertical",
+          "required_orientation": "vertical",
+          "bounds": null
+        },
+        {
+          "id": "p02.error_fish_too_small",
+          "parent_id": "p02.error_examples",
+          "name": "鱼体过小",
+          "kind": "image_slot",
+          "asset_binding": "p02.error_fish_too_small",
+          "asset_id": "error_too_small_vertical",
+          "required_orientation": "vertical",
+          "bounds": null
+        },
+        {
+          "id": "p02.error_excessive_occlusion",
+          "parent_id": "p02.error_examples",
+          "name": "遮挡过多",
+          "kind": "image_slot",
+          "asset_binding": "p02.error_excessive_occlusion",
+          "asset_id": "error_occluded_vertical",
+          "required_orientation": "vertical",
+          "bounds": null
+        },
+        {
+          "id": "p02.pagination",
+          "parent_id": "p02.root",
+          "name": "页码 / 进度指示",
+          "kind": "pagination",
+          "layout": "before_footer_action",
+          "bounds": null
+        },
+        {
+          "id": "p02.primary_action",
+          "parent_id": "p02.root",
+          "name": "主操作",
+          "kind": "button",
+          "label": "下一张",
+          "behavior": "进入下一页",
+          "bounds": null
+        },
+        {
+          "id": "p02.previous_action",
+          "parent_id": "p02.navigation",
+          "name": "上一张",
+          "kind": "button",
+          "label": "上一张",
+          "behavior": "返回 P01",
+          "bounds": null
+        }
+      ],
+      "interaction_contract": {
+        "sequence": [
+          "p01",
+          "p02",
+          "p03"
+        ],
+        "skip": "关闭教学，不触发快门；只有实际关闭后记录完成",
+        "primary_action": "下一张",
+        "previous_action": "上一张",
+        "shutter_auto_trigger": false
+      }
+    },
+    {
+      "id": "p03",
+      "title": "P03 · 横屏拍摄示意",
+      "source_page_png": "design/pages/recognition/first_use_camera_guide/frozen/P03_First_Use_Camera_Guide_Frozen.png",
+      "source_page_dimensions_px": {
+        "width": 941,
+        "height": 1672
+      },
+      "source_page_sha256": "1a3008483ac5708a0649501cf2aef6c799d47b95bcc2c1b1272fa64e68f7f9b3",
+      "exported_canvas_orientation": "portrait",
+      "capture_orientation": "landscape",
+      "fish_orientation": "horizontal",
+      "structure_preview_path": "design/pages/recognition/first_use_camera_guide/structure/P03_First_Use_Guide_Structure_Only.svg",
+      "structure_status": "STRUCTURE_ONLY_CANDIDATE",
+      "runtime_visual_authority": false,
+      "geometry_status": "SEMANTIC_TREE_ONLY_BOUNDS_NOT_MEASURED",
+      "asset_bindings": [
+        "p03.hero",
+        "p03.error_head_out_of_frame",
+        "p03.error_fish_too_small",
+        "p03.error_excessive_occlusion"
+      ],
+      "layer_count": 13,
+      "layers": [
+        {
+          "id": "p03.root",
+          "parent_id": null,
+          "name": "教学页根节点",
+          "kind": "page",
+          "authority": "FROZEN_PNG",
+          "layout": "full_page_overlay",
+          "bounds": null
+        },
+        {
+          "id": "p03.navigation",
+          "parent_id": "p03.root",
+          "name": "顶部导航区",
+          "kind": "navigation",
+          "layout": "top_region",
+          "bounds": null,
+          "children": [
+            "p03.back_button",
+            "p03.skip_button"
+          ]
+        },
+        {
+          "id": "p03.back_button",
+          "parent_id": "p03.navigation",
+          "name": "返回 / 上一张",
+          "kind": "button",
+          "visibility": "VISIBLE",
+          "label": "上一张",
+          "bounds": null
+        },
+        {
+          "id": "p03.skip_button",
+          "parent_id": "p03.navigation",
+          "name": "跳过",
+          "kind": "button",
+          "visibility": "VISIBLE",
+          "label": "跳过",
+          "behavior": "关闭教学，不触发快门",
+          "bounds": null
+        },
+        {
+          "id": "p03.title_block",
+          "parent_id": "p03.root",
+          "name": "标题与拍摄说明",
+          "kind": "text_group",
+          "layout": "below_navigation",
+          "bounds": null
+        },
+        {
+          "id": "p03.correct_hero",
+          "parent_id": "p03.root",
+          "name": "正确示范主图",
+          "kind": "image_slot",
+          "asset_binding": "p03.hero",
+          "asset_id": "hero_horizontal",
+          "required_orientation": "horizontal",
+          "requirement": "完整鱼体、主体清晰、构图合理",
+          "bounds": null
+        },
+        {
+          "id": "p03.error_examples",
+          "parent_id": "p03.root",
+          "name": "错误示例区",
+          "kind": "example_group",
+          "layout": "three_examples",
+          "bounds": null,
+          "children": [
+            "p03.error_head_out_of_frame",
+            "p03.error_fish_too_small",
+            "p03.error_excessive_occlusion"
+          ]
+        },
+        {
+          "id": "p03.error_head_out_of_frame",
+          "parent_id": "p03.error_examples",
+          "name": "鱼头不在画面",
+          "kind": "image_slot",
+          "asset_binding": "p03.error_head_out_of_frame",
+          "asset_id": "error_head_out_horizontal",
+          "required_orientation": "horizontal",
+          "bounds": null
+        },
+        {
+          "id": "p03.error_fish_too_small",
+          "parent_id": "p03.error_examples",
+          "name": "鱼体过小",
+          "kind": "image_slot",
+          "asset_binding": "p03.error_fish_too_small",
+          "asset_id": "error_too_small_horizontal",
+          "required_orientation": "horizontal",
+          "bounds": null
+        },
+        {
+          "id": "p03.error_excessive_occlusion",
+          "parent_id": "p03.error_examples",
+          "name": "遮挡过多",
+          "kind": "image_slot",
+          "asset_binding": "p03.error_excessive_occlusion",
+          "asset_id": "error_occluded_horizontal",
+          "required_orientation": "horizontal",
+          "bounds": null
+        },
+        {
+          "id": "p03.pagination",
+          "parent_id": "p03.root",
+          "name": "页码 / 进度指示",
+          "kind": "pagination",
+          "layout": "before_footer_action",
+          "bounds": null
+        },
+        {
+          "id": "p03.primary_action",
+          "parent_id": "p03.root",
+          "name": "主操作",
+          "kind": "button",
+          "label": "开始拍摄",
+          "behavior": "关闭教学并返回 Capture Ready；不自动触发快门",
+          "bounds": null
+        },
+        {
+          "id": "p03.previous_action",
+          "parent_id": "p03.navigation",
+          "name": "上一张",
+          "kind": "button",
+          "label": "上一张",
+          "behavior": "返回 P02",
+          "bounds": null
+        }
+      ],
+      "interaction_contract": {
+        "sequence": [
+          "p01",
+          "p02",
+          "p03"
+        ],
+        "skip": "关闭教学，不触发快门；只有实际关闭后记录完成",
+        "primary_action": "开始拍摄",
+        "previous_action": "上一张",
+        "shutter_auto_trigger": false
+      }
+    }
+  ]
+}
