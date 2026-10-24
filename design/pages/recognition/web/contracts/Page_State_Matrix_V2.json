@@ -8,8 +8,8 @@
     "Yujian_App/main@2c41084b423be36b06035694fe573c5e671cb4da",
     "Yujian_App/PR186@3b0b5848206cdea949f4bf6be7eb7cb1d19b1e34",
     "Yujian_App/PR187@ee3bb45858183144598bc28c5bae53ae55b324e0",
-    "Yujian/PR177@655c4af07a0244fcf29441b5652c48ca74f2e6a2",
-    "Yujian/PR177@ca21e25116cebef0ed393392eb8997a2b7077689"
+    "Yujian/PR177@5aa44cac6c8895ab28566ba1f5f9baf40953065e",
+    "Yujian/PR177@5aa44cac6c8895ab28566ba1f5f9baf40953065e"
   ],
   "states": [
     {
@@ -130,17 +130,17 @@
   },
   "threshold_resolution_status": "RESOLVED_BY_API_OWNERSHIP_NO_NUMERIC_THRESHOLD_CHANGE",
   "source_binding": {
-    "audit_date": "2026-10-23",
+    "audit_date": "2026-10-24",
     "product_repository": "pan277942135/Yujian",
     "product_pr": 177,
-    "product_pr_head_sha": "a0596aaf609914e0de8a325da06b2f286a139150",
-    "product_main_sha": "6a2064c2a02a76437b6e09a5241bc199cfa05048",
+    "product_pr_head_sha": "5aa44cac6c8895ab28566ba1f5f9baf40953065e",
+    "product_main_sha": "15d4d1152cce08a3786d51bf1285381ed75d97e6",
     "compare": {
-      "ahead_by": 30,
+      "ahead_by": 47,
       "behind_by": 0,
-      "merge_base_sha": "6a2064c2a02a76437b6e09a5241bc199cfa05048"
+      "merge_base_sha": "15d4d1152cce08a3786d51bf1285381ed75d97e6"
     },
-    "exact_head_ci_run_id": 39963664724,
-    "exact_head_ci_scope": "Exact-source targeted validation and Chromium UI simulation plus SWOS fixture playback: 15 seek samples, shared-photo geometry, deterministic repeated P4 pixels, water-field pixel delta, nominal 3650ms WebM, and BBOX_ONLY soft-focus report on a generated fixture (ROI mean 4.22, max 17; no precise outline). Nine responsive page sizes are UI_SIMULATION_ONLY. No live model request, deployed SAM candidate, private photo, real-device performance, or visual acceptance."
+    "exact_head_ci_run_id": 40053248593,
+    "exact_head_ci_scope": "Exact-source targeted validation and Chromium UI simulation. Run 40053248593 passed on 5aa44cac; no live model request, authenticated SAM output, real-photo visual acceptance or private-photo use."
   }
 }
