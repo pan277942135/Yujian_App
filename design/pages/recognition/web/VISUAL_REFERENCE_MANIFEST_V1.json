@@ -249,7 +249,7 @@
   "audit_snapshot": {
     "date": "2026-10-24",
     "design_main_sha": "da9976090021232f0eec936bc4d30f9fa59d90f7",
-    "product_pr177_head_sha": "f5b74cc7628131863f40a1a43458026ff49a2eb5",
+    "product_pr177_head_sha": "8edce561c3b6f25263eb32f1d72706fec4e329b1",
     "product_main_sha": "738954105d545d9c354136b8b93f3562058fcf30",
     "source_photo_208758": {
       "sha256": "ab7227cf7205ee2ac342b6cd75cd899747879506c95c33b888b6adf0acb47987",
@@ -263,9 +263,9 @@
       "byte_verification": "VERIFIED_IN_CURRENT_EXECUTION"
     },
     "web_reference_and_historical_storyboard": "Prior private handoff verification recorded; raw bytes not rechecked in this execution.",
-    "source_code_ci_run_id": 40054890544,
-    "source_code_ci_status": "PASS_TARGETED_VALIDATE_CHROMIUM_AND_OFFLINE_SWOS_PROBE_UNIT_TESTS_UI_SIMULATION_ONLY_NOT_VISUAL_ACCEPTED",
-    "preview_status": "NOT_DEPLOYED_CURRENT_HEAD_f5b74cc_EXISTING_REVISION_yujian-model-factory-console-00349-hes_USES_OLD_SOURCE_6da6408",
+    "source_code_ci_run_id": 40057399157,
+    "source_code_ci_status": "PASS_EXACT_SHA_VALIDATE_AND_CHROMIUM_FIXTURE_UI_SIMULATION_ONLY_NOT_VISUAL_ACCEPTED",
+    "preview_status": "NOT_DEPLOYED_CURRENT_HEAD_8edce56_EXISTING_REVISION_yujian-model-factory-console-00349-hes_USES_OLD_SOURCE_6da6408",
     "production_mask_status": "NOT_QUALIFIED",
     "runtime_visual_status": "NOT_VERIFIED_AUTHENTICATED_REAL_INFERENCE_AND_BROWSER_VISUAL_ACCEPTANCE_PENDING"
   }

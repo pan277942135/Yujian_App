@@ -8,14 +8,14 @@
     "Yujian_App/main@2c41084b423be36b06035694fe573c5e671cb4da",
     "Yujian_App/PR186@3b0b5848206cdea949f4bf6be7eb7cb1d19b1e34",
     "Yujian_App/PR187@ee3bb45858183144598bc28c5bae53ae55b324e0",
-    "Yujian/PR177@f5b74cc7628131863f40a1a43458026ff49a2eb5",
-    "Yujian/PR177@f5b74cc7628131863f40a1a43458026ff49a2eb5",
-    "Yujian/PR177@f5b74cc7628131863f40a1a43458026ff49a2eb5",
-    "Yujian/PR177@f5b74cc7628131863f40a1a43458026ff49a2eb5"
+    "Yujian/PR177@8edce561c3b6f25263eb32f1d72706fec4e329b1",
+    "Yujian/PR177@8edce561c3b6f25263eb32f1d72706fec4e329b1",
+    "Yujian/PR177@8edce561c3b6f25263eb32f1d72706fec4e329b1",
+    "Yujian/PR177@8edce561c3b6f25263eb32f1d72706fec4e329b1"
   ],
   "web_repo": "pan277942135/Yujian",
   "web_pr": 177,
-  "source_sha": "f5b74cc7628131863f40a1a43458026ff49a2eb5",
+  "source_sha": "8edce561c3b6f25263eb32f1d72706fec4e329b1",
   "files": [
     "app/templates/platform/catch_recognition.html",
     "app/static/js/catch_recognition.js",
@@ -56,19 +56,19 @@
   "runtime_visual_verified": false,
   "pixel_frozen_source": "NOT_CONFIRMED",
   "previous_reviewed_source_sha": "054d2dae09ff73e85e4c91bbdc4b9134821e3891",
-  "source_sha_role": "LIVE_PR177_HEAD_SYNCED_TO_PRODUCT_MAIN_EXACT_SHA_CI_PASS_TARGETED_AND_CHROMIUM_UI_SIMULATION_ONLY_NOT_VISUAL_ACCEPTED",
+  "source_sha_role": "LIVE_PR177_HEAD_SYNCED_TO_PRODUCT_MAIN_EXACT_SHA_CI_PASS_TARGETED_AND_CHROMIUM_FIXTURE_UI_SIMULATION_ONLY_NOT_VISUAL_ACCEPTED",
   "live_source_audit": {
     "audit_date": "2026-10-24",
     "product_repository": "pan277942135/Yujian",
     "product_pr_number": 177,
     "product_branch": "feat/ai-catch-recognition-web-swos-rr09-v1",
-    "live_product_pr_head_sha": "f5b74cc7628131863f40a1a43458026ff49a2eb5",
+    "live_product_pr_head_sha": "8edce561c3b6f25263eb32f1d72706fec4e329b1",
     "live_product_main_sha": "738954105d545d9c354136b8b93f3562058fcf30",
     "merge_base_sha": "738954105d545d9c354136b8b93f3562058fcf30",
-    "ahead_by": 48,
+    "ahead_by": 49,
     "behind_by": 0,
     "source_sync_status": "SYNCED_WITH_CURRENT_PRODUCT_MAIN",
-    "exact_head_ci_status": "PASS_EXACT_SHA_TARGETED_VALIDATE_CHROMIUM_AND_OFFLINE_PROBE_UNIT_TESTS_ONLY_NOT_VISUAL_ACCEPTED",
+    "exact_head_ci_status": "PASS_EXACT_SHA_VALIDATE_AND_CHROMIUM_FIXTURE_UI_SIMULATION_ONLY_NOT_VISUAL_ACCEPTED",
     "previous_exact_head_ci": {
       "sha": "10b60e3ee3d26b3c103a5a908b005c1d54750338",
       "run_id": 39980021942,
@@ -77,17 +77,17 @@
       "scope": "Both jobs were green, but renderer diagnostics showed a GLSL reserved-word compile failure and Canvas2D fallback. This follow-up fixes that failure and requires actual WebGL2 product-renderer execution."
     },
     "exact_head_ci": {
-      "sha": "f5b74cc7628131863f40a1a43458026ff49a2eb5",
-      "run_id": 40054890544,
-      "url": "https://github.com/pan277942135/Yujian/actions/runs/40054890544",
+      "sha": "8edce561c3b6f25263eb32f1d72706fec4e329b1",
+      "run_id": 40057399157,
+      "url": "https://github.com/pan277942135/Yujian/actions/runs/40057399157",
       "conclusion": "success",
       "jobs": {
         "validate": "success",
         "det_fish_display_chromium": "success"
       },
-      "scope": "Targeted validation + Chromium/UI simulation + offline probe tests only; no authenticated live inference or visual acceptance."
+      "scope": "Targeted validation + offline probe unit tests + Chromium fixture/UI simulation only."
     },
-    "current_head_preview_status": "NOT_DEPLOYED_CURRENT_HEAD_f5b74cc_EXISTING_REVISION_yujian-model-factory-console-00349-hes_USES_OLD_SOURCE_6da6408",
+    "current_head_preview_status": "NOT_DEPLOYED_CURRENT_HEAD_8edce56_EXISTING_REVISION_yujian-model-factory-console-00349-hes_USES_OLD_SOURCE_6da6408",
     "configured_preview_sha": "DYNAMIC_INPUT_TARGET_SHA",
     "production_mask_status": "NOT_QUALIFIED",
     "runtime_visual_status": "NOT_VERIFIED_AUTHENTICATED_REAL_INFERENCE_AND_BROWSER_VISUAL_ACCEPTANCE_PENDING",
@@ -100,7 +100,7 @@
       "product_repository_is_separate": true,
       "product_repository_root_control_plane_files": "NOT_PRESENT",
       "policy": "Use the canonical Yujian_App control plane plus this exact-SHA cross-repository source audit. Do not create a competing control plane in Yujian.",
-      "admission_status": "CANONICAL_CONTROL_PLANE_CONFIRMED; PRODUCT_PR177_DRAFT_OPEN_UNMERGED; PRODUCT_SOURCE_SYNCED_48_AHEAD_0_BEHIND; EXACT_SHA_CI_PASS; CURRENT_SOURCE_PREVIEW_NOT_DISPATCHED; AUTHENTICATED_REAL_INFERENCE_AND_VISUAL_ACCEPTANCE_PENDING"
+      "admission_status": "CONTROL_PLANE_CONFIRMED; PR177_DRAFT_OPEN_UNMERGED; SOURCE_SYNCED_49_AHEAD_0_BEHIND; EXACT_SHA_CI_PASS; CURRENT_HEAD_PREVIEW_NOT_DISPATCHED; REAL_INFERENCE_AND_VISUAL_ACCEPTANCE_PENDING"
     },
     "candidate_preview_config": {
       "product_sha": "6da640859f063d7f42ee5432e6b35ecb162802ff",

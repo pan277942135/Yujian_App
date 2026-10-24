@@ -329,13 +329,13 @@
     "product_repository": "pan277942135/Yujian",
     "product_pr_number": 177,
     "product_branch": "feat/ai-catch-recognition-web-swos-rr09-v1",
-    "live_product_pr_head_sha": "f5b74cc7628131863f40a1a43458026ff49a2eb5",
+    "live_product_pr_head_sha": "8edce561c3b6f25263eb32f1d72706fec4e329b1",
     "live_product_main_sha": "738954105d545d9c354136b8b93f3562058fcf30",
     "merge_base_sha": "738954105d545d9c354136b8b93f3562058fcf30",
-    "ahead_by": 48,
+    "ahead_by": 49,
     "behind_by": 0,
     "source_sync_status": "SYNCED_WITH_CURRENT_PRODUCT_MAIN",
-    "exact_head_ci_status": "PASS_EXACT_SHA_TARGETED_VALIDATE_CHROMIUM_AND_OFFLINE_PROBE_UNIT_TESTS_ONLY_NOT_VISUAL_ACCEPTED",
+    "exact_head_ci_status": "PASS_EXACT_SHA_TARGETED_VALIDATE_CHROMIUM_AND_OFFLINE_PROBE_UNIT_TESTS_UI_SIMULATION_ONLY_NOT_VISUAL_ACCEPTED",
     "previous_exact_head_ci": {
       "sha": "10b60e3ee3d26b3c103a5a908b005c1d54750338",
       "run_id": 39980021942,
@@ -344,17 +344,17 @@
       "scope": "Both jobs were green, but renderer diagnostics showed a GLSL reserved-word compile failure and Canvas2D fallback. This follow-up fixes that failure and requires actual WebGL2 product-renderer execution."
     },
     "exact_head_ci": {
-      "sha": "f5b74cc7628131863f40a1a43458026ff49a2eb5",
-      "run_id": 40054890544,
-      "url": "https://github.com/pan277942135/Yujian/actions/runs/40054890544",
+      "sha": "8edce561c3b6f25263eb32f1d72706fec4e329b1",
+      "run_id": 40057399157,
+      "url": "https://github.com/pan277942135/Yujian/actions/runs/40057399157",
       "conclusion": "success",
       "jobs": {
         "validate": "success",
         "det_fish_display_chromium": "success"
       },
-      "scope": "Exact-source targeted validation, offline SWOS quality-probe unit tests and Chromium/UI simulation only; no authenticated live inference, valid deployed SAM output or visual acceptance."
+      "scope": "Targeted validation + offline probe unit tests + Chromium UI/fixture playback; no authenticated live inference, production Mask qualification or visual acceptance."
     },
-    "current_head_preview_status": "NOT_DEPLOYED_CURRENT_HEAD_f5b74cc_EXISTING_REVISION_yujian-model-factory-console-00349-hes_USES_OLD_SOURCE_6da6408",
+    "current_head_preview_status": "NOT_DEPLOYED_CURRENT_HEAD_8edce56_EXISTING_REVISION_yujian-model-factory-console-00349-hes_USES_OLD_SOURCE_6da6408",
     "configured_preview_sha": "DYNAMIC_INPUT_TARGET_SHA",
     "production_mask_status": "NOT_QUALIFIED",
     "runtime_visual_status": "NOT_VERIFIED_AUTHENTICATED_REAL_INFERENCE_AND_BROWSER_VISUAL_ACCEPTANCE_PENDING",
@@ -367,7 +367,7 @@
       "product_repository_is_separate": true,
       "product_repository_root_control_plane_files": "NOT_PRESENT",
       "policy": "Use the canonical Yujian_App control plane plus this exact-SHA cross-repository source audit. Do not create a competing control plane in Yujian.",
-      "admission_status": "CANONICAL_CONTROL_PLANE_CONFIRMED; PRODUCT_PR177_DRAFT_OPEN_UNMERGED; PRODUCT_SOURCE_SYNCED_48_AHEAD_0_BEHIND; EXACT_SHA_CI_PASS; CURRENT_SOURCE_PREVIEW_NOT_DISPATCHED; AUTHENTICATED_REAL_INFERENCE_AND_VISUAL_ACCEPTANCE_PENDING"
+      "admission_status": "CANONICAL_CONTROL_PLANE_CONFIRMED; PRODUCT_PR177_DRAFT_OPEN_UNMERGED; SOURCE_SYNCED_49_AHEAD_0_BEHIND; EXACT_SHA_CI_PASS; CURRENT_SOURCE_PREVIEW_NOT_DISPATCHED; AUTHENTICATED_REAL_INFERENCE_AND_VISUAL_ACCEPTANCE_PENDING"
     },
     "source_file_snapshot": [
       {
@@ -388,7 +388,7 @@
       },
       {
         "path": "app/catch_recognition_api.py",
-        "blob_sha": "1dca16c5953291b9070c7f759689f1e8cc8b1aed"
+        "blob_sha": "d63259929e1b81e25d7a7a315716f54fdaaee89c"
       },
       {
         "path": "app/static/js/catch/recognition-api.js",
@@ -400,7 +400,7 @@
       },
       {
         "path": "app/templates/platform/catch_recognition.html",
-        "blob_sha": "7a083f751d62d88b51057d2a289d0eb85a65d7ef"
+        "blob_sha": "e8a69a86db6ca09bfca2fdef2188eebf54018b89"
       },
       {
         "path": "app/segmentation_api.py",
@@ -428,11 +428,11 @@
       },
       {
         "path": "app/static/js/catch_recognition.js",
-        "blob_sha": "56d95b76e9dba90b280cc4dfe05f095ba08a082d"
+        "blob_sha": "173ba478aa97467248c8ed2af389fec108b29dba"
       },
       {
         "path": "app/static/js/catch/swos-renderer.js",
-        "blob_sha": "ade3f70f527783d3beac1ad2b36b2cf99f7221dc"
+        "blob_sha": "09e2d4e0e78caaa584848fdf83307f0546a9c3a5"
       },
       {
         "path": "app/static/js/catch/photo-transition.js",
@@ -449,6 +449,18 @@
       {
         "path": "scripts/smoke_catch_recognition_chromium.py",
         "blob_sha": "ad0a7e67f801c16d0d5ae5b2d6627022f3300cf5"
+      },
+      {
+        "path": "app/static/js/catch/photo-session.js",
+        "blob_sha": "8921109ef32fa99981927406ca62cec8b59db458"
+      },
+      {
+        "path": "tests/catch_geometry_v2.test.cjs",
+        "blob_sha": "61bb3bcf19f0bff752e8e4dd3ccf36daf1dbcd72"
+      },
+      {
+        "path": "tests/test_catch_recognition_product.py",
+        "blob_sha": "0ebb9dc004719cedae9282387f1c3351a43f4a43"
       }
     ],
     "sam_pipeline_binding": {
@@ -489,17 +501,17 @@
     "responsive_page_status": "9_VIEWPORTS_UI_SIMULATION_ONLY",
     "candidate_preview_config": {
       "product_sha": "6da640859f063d7f42ee5432e6b35ecb162802ff",
-      "pr_number": 182,
-      "pr_head_sha": "088fe33991f9108cd436567d92191620e54df974",
-      "ci_run_id": 39981707128,
-      "ci_status": "PASS_INFRA_CI_EXACT_PIN_6DA",
-      "deployment_status": "FAILED_POST_DEPLOY_PROBE_AUTH_AND_FIXTURE_RATE_LIMIT",
+      "pr_number": 183,
+      "pr_head_sha": "96a59e9eddead6f5fa974d90b3082ca9961ffa30",
+      "ci_run_id": 40054649505,
+      "ci_status": "PASS_INFRA_CI_AUTH_RETRY_DYNAMIC_DISPATCH",
+      "deployment_status": "OLD_CANDIDATE_PROBE_FAILED_AUTH_AND_FIXTURE_RATE_LIMIT_CURRENT_HEAD_NOT_DEPLOYED",
       "validate_job_status": "SUCCESS",
       "chromium_job_status": "SUCCESS",
       "workflow_trigger_policy": "manual workflow_dispatch only; exact target_sha input required",
       "deploy_preflight_ref": "refs/heads/main",
-      "deployment_blocker": "Existing candidate Revision yujian-model-factory-console-00349-hes is bound to old source 6da640859f063d7f42ee5432e6b35ecb162802ff; current PR #177 HEAD f5b74cc7628131863f40a1a43458026ff49a2eb5 has not yet been dispatched. Previous probe failed before valid inference: 2 HTTP 401 requests and 3 Wikimedia HTTP 429 fixture downloads. The new workflow requires Actions secret CONSOLE_ACCESS_KEY; if absent it fails closed as AUTH_NOT_CONFIGURED.",
-      "ci_scope": "Old candidate deployment only; no valid authenticated real-photo inference or visual acceptance.",
+      "deployment_blocker": "Existing candidate Revision yujian-model-factory-console-00349-hes remains on source 6da640859f063d7f42ee5432e6b35ecb162802ff; current PR #177 HEAD 8edce561c3b6f25263eb32f1d72706fec4e329b1 has not yet been dispatched. Prior probe [39982073543] failed before valid inference: 2 HTTP 401 requests and 3 Wikimedia HTTP 429 downloads. New probe requires Actions secret CONSOLE_ACCESS_KEY and fails closed if absent.",
+      "ci_scope": "Infra harness CI only; no valid authenticated inference or visual acceptance.",
       "configured_main_workflow_sha": "DYNAMIC_WORKFLOW_DISPATCH_INPUT",
       "candidate_revision": "yujian-model-factory-console-00349-hes",
       "deployment_run_id": 39982073543,

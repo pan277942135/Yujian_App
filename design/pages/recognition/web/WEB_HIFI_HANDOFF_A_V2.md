@@ -1,6 +1,6 @@
 # Work B Handoff A — AI 渔获识别 Web 页面骨架
 
-状态：`VISUAL_CONTRACT_DEFINED`；`MAIN_ADOPTED=YES (DESIGN_CONTRACT_ONLY)`；`PIXEL_FROZEN_SOURCE=NOT_CONFIRMED`；`RUNTIME_VISUAL_VERIFIED=NO`。#186/#187 合同已由 PR #190 纳入 Main。本交接不代表部署视觉、生产 Mask 或 User UAT 已验收。SWOS Web 播放器架构与验收统一由 [SWOS Web Hi-Fi Motion Technical Contract V1.0](SWOS_WEB_HIFI_MOTION_TECHNICAL_CONTRACT_V1_0.md) 定义。当前审计：产品 PR #177 HEAD `f5b74cc7628131863f40a1a43458026ff49a2eb5`，产品 main `738954105d545d9c354136b8b93f3562058fcf30`，48 ahead / 0 behind；精确 SHA CI [#40054890544](https://github.com/pan277942135/Yujian/actions/runs/40054890544) 通过定向测试、离线 probe 单测和 Chromium/UI simulation。候选 Revision `yujian-model-factory-console-00349-hes` 仍绑定旧 SHA `6da640859f063d7f42ee5432e6b35ecb162802ff`；新 workflow 需手动输入当前 HEAD 并验证认证后的真实推理，当前源的真实 Mask 与视觉验收仍未验证。产品 PR #177 保持 Draft/Open/Unmerged。
+状态：`VISUAL_CONTRACT_DEFINED`；`MAIN_ADOPTED=YES (DESIGN_CONTRACT_ONLY)`；`PIXEL_FROZEN_SOURCE=NOT_CONFIRMED`；`RUNTIME_VISUAL_VERIFIED=NO`。当前审计：产品 PR #177 HEAD `8edce561c3b6f25263eb32f1d72706fec4e329b1`，产品 main `738954105d545d9c354136b8b93f3562058fcf30`，49 ahead / 0 behind；精确 SHA CI [#40057399157](https://github.com/pan277942135/Yujian/actions/runs/40057399157) 通过 targeted validation、离线 SWOS probe 单测与 Chromium fixture/UI playback。候选 Revision `yujian-model-factory-console-00349-hes` 仍绑定旧 SHA `6da640859f063d7f42ee5432e6b35ecb162802ff`；当前源未部署，认证真实推理、生产 Mask 与视觉验收仍未验证。PR #177 保持 Draft/Open/Unmerged。
 
 ## 入口与外壳
 

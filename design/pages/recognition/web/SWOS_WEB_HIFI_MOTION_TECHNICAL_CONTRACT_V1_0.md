@@ -220,9 +220,9 @@ G1 或 CI PASS 不自动通过 G3–G7。静态关键帧、手绘 Mask、HTTP 20
 
 - Design authority repository：pan277942135/Yujian_App，本次审计基线为 main@da9976090021232f0eec936bc4d30f9fa59d90f7。
 - Product repository：pan277942135/Yujian。
-- 本轮实时审计 PR #177 HEAD：f5b74cc7628131863f40a1a43458026ff49a2eb5；产品 main：738954105d545d9c354136b8b93f3562058fcf30；比较结果 48 ahead / 0 behind。精确 SHA CI [run 40054890544](https://github.com/pan277942135/Yujian/actions/runs/40054890544) 为 PASS（validate + Chromium/UI simulation + offline SWOS probe unit tests）；不包含认证后的真实推理或视觉验收。此前候选探测 [run 39982073543](https://github.com/pan277942135/Yujian/actions/runs/39982073543) 的 0/5 Mask 结论无效：2 次请求 401 未登录、3 次 Wikimedia 下载 429，未完成有效的真实推理测试。
-- PR #182/#183 的基础设施变更已合入产品 main。当前 no-traffic workflow 为 manual-only，要求输入精确 PR #177 HEAD；旧候选 Revision `yujian-model-factory-console-00349-hes` 仍绑定 6da640859f063d7f42ee5432e6b35ecb162802ff，并非当前 HEAD f5b74cc7628131863f40a1a43458026ff49a2eb5。新探测使用 Actions secret `CONSOLE_ACCESS_KEY`，缺失时会明确失败为 `AUTH_NOT_CONFIGURED`。
-- CI fixture playback 状态仍为 `BROWSER_VERIFIED_FIXTURE_ONLY`；当前 PR #177 HEAD 尚未部署；旧候选 Revision `yujian-model-factory-console-00349-hes` 的探测为 `BLOCKED_AUTH_AND_FIXTURE_429`；新探测认证/素材重试代码已合入 main，但尚未对当前 HEAD 运行；部署运行视觉状态 `NOT_VERIFIED`；生产级 Mask `NOT_QUALIFIED`。
+- 本轮实时审计 PR #177 HEAD：8edce561c3b6f25263eb32f1d72706fec4e329b1；产品 main：738954105d545d9c354136b8b93f3562058fcf30；比较结果 49 ahead / 0 behind。精确 SHA CI [run 40057399157](https://github.com/pan277942135/Yujian/actions/runs/40057399157) PASS（validate + Chromium fixture/UI playback + offline probe tests）；不包含认证后的真实推理、生产 Mask 资格或视觉验收。
+- PR #182/#183 的基础设施变更已合入产品 main。当前 no-traffic workflow 为 manual-only，要求输入精确 PR #177 HEAD；旧候选 Revision `yujian-model-factory-console-00349-hes` 仍绑定 6da640859f063d7f42ee5432e6b35ecb162802ff，并非当前 HEAD 8edce561c3b6f25263eb32f1d72706fec4e329b1。新探测使用 Actions secret `CONSOLE_ACCESS_KEY`，缺失时会明确失败为 `AUTH_NOT_CONFIGURED`。
+- CI fixture playback 状态仍为 `BROWSER_VERIFIED_FIXTURE_ONLY`；当前 PR #177 HEAD 尚未部署；旧候选 Revision `yujian-model-factory-console-00349-hes` 仍绑定 `6da640859f063d7f42ee5432e6b35ecb162802ff`；认证真实推理与视觉验收 `NOT_VERIFIED`；生产级 Mask `NOT_QUALIFIED`。
 - 上述 SHA 是本次审计快照；后续执行必须重新读取实时 PR、main、CI 与预览健康信息，不能把本文中的历史 SHA 当成永久常量。
 
 ## 12. 权威机器合同
