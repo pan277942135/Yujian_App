@@ -10,7 +10,7 @@ const ICONS = {
   FROZEN: "✓", ACTIVE_CLOSURE: "◐", PARTIAL: "◒", MISSING: "×",
   DEFERRED: "↷", BLOCKED_INTEGRITY: "!", RUNTIME_ONLY: "↗",
   DESIGN_ONLY: "◇", DEPRECATED: "—", CANDIDATE: "◐",
-  STATIC_HIFI_FROZEN: "✓", STATIC_RULES_FROZEN: "✓"
+  STATIC_HIFI_FROZEN: "✓", STATIC_RULES_FROZEN: "✓", PIXEL_BASELINE_FROZEN_PRIVATE: "✓"
 };
 
 const STATUS_LABELS = {
@@ -18,7 +18,8 @@ const STATUS_LABELS = {
   MISSING: "缺失", DEFERRED: "已延后", BLOCKED_INTEGRITY: "完整性阻塞",
   RUNTIME_ONLY: "仅运行时", DESIGN_ONLY: "仅设计",
   DEPRECATED: "已废弃", CANDIDATE: "候选",
-  STATIC_HIFI_FROZEN: "静态高保已冻结", STATIC_RULES_FROZEN: "响应式规则已冻结"
+  STATIC_HIFI_FROZEN: "静态高保已冻结", STATIC_RULES_FROZEN: "响应式规则已冻结",
+  PIXEL_BASELINE_FROZEN_PRIVATE: "像素基准已冻结（私有源）"
 };
 
 const MODALITY_LABELS = {
@@ -3350,7 +3351,7 @@ function renderHifiView(feature, hifiId, hifiChildId = null) {
     if (view.id === "web_hifi_contract_v2") {
       const provenance = document.createElement("p");
       provenance.className = "hifi-source-provenance";
-      provenance.textContent = "原图候选尚未确认为像素权威：旧 2560×1440 候选仅作历史溯源。用户确认的 1536×1024 原图已登记并核验 SHA、尺寸和字节数；这不等于原图像素冻结权威（PIXEL_FROZEN_SOURCE=NOT_CONFIRMED）。公开许可 NOT_CONFIRMED；运行视觉验收 RUNTIME_VISUAL_VERIFIED=NO。原图仅可本地选择查看，不上传服务器。";
+      provenance.innerHTML = statusBadge("PIXEL_BASELINE_FROZEN_PRIVATE") + " 主视觉基准：web-three-stage · 1536×1024 · SHA-256 27c34ee5d3cf90921df433cb43c671e42b8ffa80b8f5cebfe9b397da2ee853e2. 冻结的是私有源身份和对照协议，不代表运行页面像素一致。原图字节本次未重新读取；本地查看器必须校验 SHA、尺寸和字节数。公开许可 NOT_CONFIRMED；RUNTIME_VISUAL_VERIFIED=NO；仅本地内存查看，不上传服务器。";
       el("hifiViewCanvas").prepend(provenance);
     }
   }

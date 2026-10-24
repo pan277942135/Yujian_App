@@ -1,6 +1,6 @@
 # Work B Handoff B — Web V2 全量视觉合同
 
-**状态** `VISUAL_CONTRACT_DEFINED`；`MAIN_ADOPTED=YES (DESIGN_CONTRACT_ONLY)`；`PIXEL_FROZEN_SOURCE=NOT_CONFIRMED`；`RUNTIME_VISUAL_VERIFIED=NO`。PR #186/#187 的合同内容由 PR #190 采纳到 Main。本页是实现交接，不是运行验收或 User UAT 报告。SWOS Web 播放器架构与验收现由 [SWOS Web Hi-Fi Motion Technical Contract V1.0](SWOS_WEB_HIFI_MOTION_TECHNICAL_CONTRACT_V1_0.md) 统一约束。当前审计的产品 PR #177 HEAD 为 `ca21e25116cebef0ed393392eb8997a2b7077689`，产品 main 为 `6a2064c2a02a76437b6e09a5241bc199cfa05048`，分支 24 ahead / 0 behind；对应 CI run [39929847089](https://github.com/pan277942135/Yujian/actions/runs/39929847089) 通过，但实际预览、播放、Mask 和视觉验收仍未验证。产品分支现已同步 main；Work B 实施前仍须重新核对实时 SHA 并重新 Admission/CI。no-traffic 预览仍固定在旧 SHA 4de911dc497c150545d938b60b2694f3c4723e37，实际 Revision/health SHA、真实推理、Mask 与视觉验收仍未验证。
+**状态** `VISUAL_CONTRACT_DEFINED`；`MAIN_ADOPTED=YES (DESIGN_CONTRACT_ONLY)`；`PIXEL_FROZEN_SOURCE=FROZEN_PRIVATE_SHA_BOUND`；`RUNTIME_VISUAL_VERIFIED=NO`。本页是实现交接，不是部署验收或 User UAT 报告。当前审计的产品 PR #177 HEAD 为 `8edce561c3b6f25263eb32f1d72706fec4e329b1`，产品 main 为 `738954105d545d9c354136b8b93f3562058fcf30`，分支 49 ahead / 0 behind；对应 CI run [40057399157](https://github.com/pan277942135/Yujian/actions/runs/40057399157) 通过 targeted validation 与 Chromium fixture/UI playback。候选 Revision `yujian-model-factory-console-00349-hes` 绑定旧 SHA `6da640859f063d7f42ee5432e6b35ecb162802ff`；当前源尚未部署，生产 Mask 与视觉验收仍未验证。PR #177 保持 Draft/Open/Unmerged。
 
 ## 按顺序实施
 
@@ -25,3 +25,7 @@
 
 ## 原始视觉资产补档 V1
 用户确认原图与历史14帧海报已核验，见 `VISUAL_REFERENCE_MANIFEST_V1.json`。使用 Design Manager 对应菜单中的本地查看器，不再用其他候选图替代原图。公开权限 NOT_CONFIRMED；像素 Runtime 未验收；机器业务合同保持。
+
+
+## 最终视觉基准冻结补充
+Web V2 主视觉基准已按 `web-three-stage` 的 SHA-256 `27c34ee5d3cf90921df433cb43c671e42b8ffa80b8f5cebfe9b397da2ee853e2` 冻结为 `FROZEN_PRIVATE_SHA_BOUND`；完整范围、历史分镜边界和本地像素对照协议见 [VISUAL_BASELINE_FREEZE_V1.md](VISUAL_BASELINE_FREEZE_V1.md)。公开许可仍 `NOT_CONFIRMED`，当前 Runtime / 像素一致性 / User UAT 不因此自动通过。

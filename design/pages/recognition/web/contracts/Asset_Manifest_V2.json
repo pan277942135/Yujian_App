@@ -31,8 +31,8 @@
   },
   "public_preview_photo_policy": "never bundle candidate or private photo; user-selected local browser memory only",
   "acceptance_criteria": [
-    "approved original identity and sha verified before pixel freeze",
-    "public license before publication"
+    "The exact private source ID, SHA-256, dimensions and byte count are frozen in VISUAL_BASELINE_FREEZE_V1.md; the local viewer must re-verify the selected file before comparison.",
+    "Public license/permission is still required before any public publication."
   ],
   "adoption_pr": 190,
   "adopted_source_prs": [
@@ -41,7 +41,7 @@
   ],
   "adoption_scope": "DESIGN_CONTRACT_ONLY",
   "runtime_visual_verified": false,
-  "pixel_frozen_source": "NOT_CONFIRMED",
+  "pixel_frozen_source": "FROZEN_PRIVATE_SHA_BOUND",
   "historical_candidate_web_hifi": {
     "status": "CANDIDATE_BYTES_VERIFIED_APPROVAL_NOT_TRACED",
     "candidate_library_path": "/yujian_ai_fish_identification_hifi_static_v1.png",
@@ -73,13 +73,14 @@
     "public_permission": "NOT_CONFIRMED",
     "repository_included": false,
     "route": "#page/recognition_flow_v1_2/hifi/web_hifi_contract_v2",
-    "pixel_authority_status": "NOT_CONFIRMED",
+    "pixel_authority_status": "FROZEN_PRIVATE_SHA_BOUND",
     "current_execution_byte_verification": "NOT_RECHECKED_THIS_EXECUTION; prior private-handoff SHA/dimensions verification remains recorded",
     "allowed_use": "PRIVATE_LOCAL_REFERENCE_REVIEW_ONLY",
-    "public_publication_allowed": false
+    "public_publication_allowed": false,
+    "pixel_baseline_id": "YUJIAN_SWOS_WEB_PIXEL_BASELINE_V1"
   },
   "visual_reference_manifest": "design/pages/recognition/web/VISUAL_REFERENCE_MANIFEST_V1.json",
-  "pixel_freeze_gate": "User-confirmed visual direction does not automatically grant pixel-authority status. Pixel freeze requires explicit source designation and approved comparison protocol.",
+  "pixel_freeze_gate": "The user explicitly designated the exact web-three-stage source by SHA as the private pixel baseline. Freeze source identity and comparison protocol only; runtime parity is a separate gate. Public publication still requires explicit permission and rights review.",
   "asset_authorization_policy": {
     "status": "PUBLIC_RELEASE_BLOCKED_UNTIL_PERMISSION",
     "public_permission": "NOT_CONFIRMED",
@@ -96,5 +97,7 @@
       "explicit pixel-baseline approval if pixel parity is claimed"
     ],
     "default_rule": "When permission or pixel-freeze approval is not explicit, keep assets private, allow only local review, and make no pixel-parity claim."
-  }
+  },
+  "pixel_baseline_id": "YUJIAN_SWOS_WEB_PIXEL_BASELINE_V1",
+  "pixel_baseline_contract": "design/pages/recognition/web/VISUAL_BASELINE_FREEZE_V1.md"
 }

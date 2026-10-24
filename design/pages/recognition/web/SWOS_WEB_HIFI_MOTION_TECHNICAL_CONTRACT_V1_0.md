@@ -29,11 +29,11 @@
 - **鱼种名称只显示中文名**：不得预留英文科学名行。真实结果必须来自真实识别输出；Demo 占位文案必须明确标记为占位，不能冒充模型预测。
 - **真实推理由事件驱动**：3650ms 不是模型推理截止时间。真实可用的 HIGH 结果尚未就绪时，不得提前揭晓；实际推理较慢时可延长克制的 Processing 状态，不得伪造进度或结果。
 - **水光是渔见自己的自然光学语言**：清晨水面、低至中密度不规则面状焦散、柔和蓝绿与少量淡金；禁止助手唤醒框、HUD、雷达、机械扫描线、闭合霓虹边框、旧 Edge Field 七路径几何。
-- **SAM 鱼体分割实验链路复用**：复用产品仓库现有 SAM ViT-B 实验实现，不新增一套重复模型服务、不重训模型、不把分割结果当作分类输入。SAM 质量标签本身不等于生产级 Mask 认证。
+- **SAM 鱼体分割实验链路复用**：PR #177 已增加同请求适配器：`POST /api/product/catch-recognition/infer` 使用本次 detector primary BBox 与原图 SHA 调用现有 `generate_fish_cutout`；候选开关 `CATCH_SWOS_SAM_CANDIDATE_ENABLED` 默认关闭。浏览器不直接访问调试 API，不新增重复服务、不重训模型、不把分割结果当作分类输入。适配代码尚未在当前源码的候选 Revision 上运行；SAM 质量标签本身不等于生产级 Mask 认证。
 - **私有照片不公开**：208758.jpg、用户确认的原始三阶段参考图、历史分镜及其衍生帧仍受既有隐私/发布限制；公开测试只使用具有明确来源、许可证和摘要校验的测试照片。私有照片不得被上传到公共测试端点或提交进公开仓库。
 - **Result CTA 权威已统一**：使用冻结的 Result V1.1 页面级合同 `design/pages/recognition/result/engineering/layout_geometry_contract.json`（blob SHA `2df910cda117e7c8be1e211bae17899e14c3933f`）中的「继续记忆」与「保存本次鱼获」。该页面级权威覆盖通用 Action Button 示例文案；目标路由未开放时禁用并解释，不假跳转。
 - **置信度权威已按接口职责统一，数值不变**：Web 只消费 `/api/product/catch-recognition/infer` 返回的 `result_state`。现有产品 Result 状态映射为 top1 < 0.45 → LOW、top1-second < 0.12 → MEDIUM，依据 `recognition_result_3plus2_decision_contract_v1_1.json`（blob SHA `a678f63082d2f045dd659ed42c36df14c475f9c1`）；`app/inference_api.py` 的 0.55 `low_confidence` 是独立诊断字段，不覆盖产品 `result_state`。本次不修改模型阈值、质量门或路由；未来校准需产品负责人批准及标注留出集证据。
-- **资产授权与冻结状态明确**：`208758.jpg` 已于 2026-10-23 本次执行重新校验 SHA-256 `ab7227cf7205ee2ac342b6cd75cd899747879506c95c33b888b6adf0acb47987`、1152×1536、331421 bytes、JPEG、EXIF orientation 1。三阶段原图与历史海报沿用此前私有交接的 SHA/尺寸记录，本次未重新取得原始字节。所有原图/衍生帧 `PUBLIC_PERMISSION=NOT_CONFIRMED`、`PUBLIC_PUBLICATION_ALLOWED=false`；仅允许本地私有查看，不进入公共仓库、CI artifact 或 Pages。`PIXEL_FROZEN_SOURCE=NOT_CONFIRMED`：方向参考不等于像素冻结基准。
+- **资产授权与冻结状态明确**：`208758.jpg` 已于 2026-10-23 本次执行重新校验 SHA-256 `ab7227cf7205ee2ac342b6cd75cd899747879506c95c33b888b6adf0acb47987`、1152×1536、331421 bytes、JPEG、EXIF orientation 1。三阶段原图与历史海报沿用此前私有交接的 SHA/尺寸记录，本次未重新取得原始字节。所有原图/衍生帧 `PUBLIC_PERMISSION=NOT_CONFIRMED`、`PUBLIC_PUBLICATION_ALLOWED=false`；仅允许本地私有查看，不进入公共仓库、CI artifact 或 Pages。`PIXEL_FROZEN_SOURCE=FROZEN_PRIVATE_SHA_BOUND`：主视觉基准身份和本地对照协议已在 [Web 最终视觉基准冻结记录 V1](VISUAL_BASELINE_FREEZE_V1.md) 冻结；本次未重新读取该 PNG 原始字节，比较前必须由本地查看器重新校验 SHA、尺寸和字节数。公开许可仍 NOT_CONFIRMED，运行时像素一致性仍 NOT_VERIFIED。
 
 ## 3. 精确时间线与揭晓行为
 
@@ -218,11 +218,11 @@ G1 或 CI PASS 不自动通过 G3–G7。静态关键帧、手绘 Mask、HTTP 20
 
 ## 11. 当前已知状态（审计快照，不是永久 SHA）
 
-- Design authority repository：pan277942135/Yujian_App，本次变更基线为 main@2c41084b423be36b06035694fe573c5e671cb4da。
+- Design authority repository：pan277942135/Yujian_App，本次审计基线为 main@da9976090021232f0eec936bc4d30f9fa59d90f7。
 - Product repository：pan277942135/Yujian。
-- 本轮审计 PR #177 HEAD：ca21e25116cebef0ed393392eb8997a2b7077689；产品 main：6a2064c2a02a76437b6e09a5241bc199cfa05048；比较结果 24 ahead / 0 behind。精确 SHA CI run 39929847089 为 PASS，但范围仅为定向验证与 Chromium UI simulation；生产识别流水线测试被 SKIPPED。
-- 当前产品分支已同步 main，但 no-traffic 预览工作流仍固定在旧 SHA 4de911dc497c150545d938b60b2694f3c4723e37。当前预览 Revision/health SHA、真实推理、生产 Mask 资格、浏览器逐帧视觉与性能验收仍未验证。执行前仍须重新核对实时 SHA 与准入。
-- 当前预览视觉状态 NOT_VERIFIED；生产级 Mask NOT_QUALIFIED；真实浏览器逐帧验收 NOT_RUN。
+- 本轮实时审计 PR #177 HEAD：8edce561c3b6f25263eb32f1d72706fec4e329b1；产品 main：738954105d545d9c354136b8b93f3562058fcf30；比较结果 49 ahead / 0 behind。精确 SHA CI [run 40057399157](https://github.com/pan277942135/Yujian/actions/runs/40057399157) PASS（validate + Chromium fixture/UI playback + offline probe tests）；不包含认证后的真实推理、生产 Mask 资格或视觉验收。
+- PR #182/#183 的基础设施变更已合入产品 main。当前 no-traffic workflow 为 manual-only，要求输入精确 PR #177 HEAD；旧候选 Revision `yujian-model-factory-console-00349-hes` 仍绑定 6da640859f063d7f42ee5432e6b35ecb162802ff，并非当前 HEAD 8edce561c3b6f25263eb32f1d72706fec4e329b1。新探测使用 Actions secret `CONSOLE_ACCESS_KEY`，缺失时会明确失败为 `AUTH_NOT_CONFIGURED`。
+- CI fixture playback 状态仍为 `BROWSER_VERIFIED_FIXTURE_ONLY`；当前 PR #177 HEAD 尚未部署；旧候选 Revision `yujian-model-factory-console-00349-hes` 仍绑定 `6da640859f063d7f42ee5432e6b35ecb162802ff`；认证真实推理与视觉验收 `NOT_VERIFIED`；生产级 Mask `NOT_QUALIFIED`。
 - 上述 SHA 是本次审计快照；后续执行必须重新读取实时 PR、main、CI 与预览健康信息，不能把本文中的历史 SHA 当成永久常量。
 
 ## 12. 权威机器合同
