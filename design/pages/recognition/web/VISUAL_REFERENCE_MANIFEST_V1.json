@@ -247,10 +247,10 @@
   "authorization_gate": "BLOCKED_UNTIL_EXPLICIT_USER_PERMISSION_AND_LICENSE",
   "freeze_gate": "NOT_CONFIRMED: visual-reference confirmation is not pixel-freeze approval; require explicit designation of the exact source and comparison baseline.",
   "audit_snapshot": {
-    "date": "2026-10-23",
+    "date": "2026-10-24",
     "design_main_sha": "da9976090021232f0eec936bc4d30f9fa59d90f7",
-    "product_pr177_head_sha": "6da640859f063d7f42ee5432e6b35ecb162802ff",
-    "product_main_sha": "6a2064c2a02a76437b6e09a5241bc199cfa05048",
+    "product_pr177_head_sha": "5aa44cac6c8895ab28566ba1f5f9baf40953065e",
+    "product_main_sha": "15d4d1152cce08a3786d51bf1285381ed75d97e6",
     "source_photo_208758": {
       "sha256": "ab7227cf7205ee2ac342b6cd75cd899747879506c95c33b888b6adf0acb47987",
       "dimensions_px": [
@@ -263,10 +263,10 @@
       "byte_verification": "VERIFIED_IN_CURRENT_EXECUTION"
     },
     "web_reference_and_historical_storyboard": "Prior private handoff verification recorded; raw bytes not rechecked in this execution.",
-    "source_code_ci_run_id": 39980533451,
-    "source_code_ci_status": "PASS_TARGETED_CHROMIUM_WEBGL2_RENDERER_UI_SIMULATION_ONLY_NOT_VISUAL_ACCEPTANCE",
-    "preview_status": "NOT_DEPLOYED_FOR_CURRENT_SOURCE",
+    "source_code_ci_run_id": 40053248593,
+    "source_code_ci_status": "PASS_TARGETED_VALIDATE_CHROMIUM_AND_OFFLINE_SWOS_PROBE_UNIT_TESTS_UI_SIMULATION_ONLY_NOT_VISUAL_ACCEPTANCE",
+    "preview_status": "CANDIDATE_REVISION_FOR_OLD_SOURCE_6da6408_NOT_CURRENT_SOURCE_5aa44ca",
     "production_mask_status": "NOT_QUALIFIED",
-    "runtime_visual_status": "NOT_VERIFIED"
+    "runtime_visual_status": "NOT_VERIFIED_AUTHENTICATED_REAL_INFERENCE_AND_BROWSER_VISUAL_ACCEPTANCE_PENDING"
   }
 }
