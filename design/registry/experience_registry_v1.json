@@ -16,7 +16,8 @@
     "SPEC_FROZEN",
     "VISUAL_MISSING",
     "STATIC_HIFI_FROZEN",
-    "STATIC_RULES_FROZEN"
+    "STATIC_RULES_FROZEN",
+    "PIXEL_BASELINE_FROZEN_PRIVATE"
   ],
   "features": [
     {
@@ -3780,6 +3781,10 @@
             {
               "label": "原始视觉参考登记与结构映射（私有本地查看）",
               "path": "design/pages/recognition/web/VISUAL_REFERENCE_MANIFEST_V1.json"
+            },
+            {
+              "label": "Web 最终视觉基准冻结记录 V1（私有 SHA 绑定）",
+              "path": "design/pages/recognition/web/VISUAL_BASELINE_FREEZE_V1.md"
             }
           ],
           "runtime_visual_verified": false,
@@ -3790,18 +3795,19 @@
           "id": "web_hifi_contract_v2",
           "title": "13 · Web AI渔获识别 · 全量高保真合同 V2",
           "status": "DESIGN_ONLY",
-          "design_status": "VISUAL_CONTRACT_DEFINED",
+          "design_status": "PIXEL_BASELINE_FROZEN_PRIVATE",
           "adoption_status": "MAIN_ADOPTED_DESIGN_ONLY",
           "render_mode": "authority_index",
           "authority": "design/pages/recognition/web/WEB_HIFI_CONTRACT_V2.md",
           "machine_authority": "design/pages/recognition/web/contracts/Page_Structure_V2.json",
-          "summary": "用户确认1536×1024原图已登记；支持本地SHA校验、结构映射和实现截图对照。三阶段/五节点与九机器合同保持；公开权限未确认，运行视觉未验收。",
+          "summary": "Web V2 主视觉基准已按 web-three-stage 精确 SHA 冻结为私有像素基准；本地查看器会在选择原图时校验 SHA、尺寸和字节数。公开许可仍未确认，当前 Runtime 像素一致性、真实动效和 Mask 资格仍未验收。",
           "menu_points": [
             "Handoff A：产品外壳、三阶段、五节点与 Result 结构",
             "全量合同：Token、几何、响应式和 3+2 状态",
-            "SWOS 七层、15 帧及 R0.5 引用 #186/#187 的来源内容，已由 PR #190 纳入 Main",
+            "SWOS 七层、15 帧及 R0.5 继续遵循独立现行合同",
             "Web PR #177 Gap Matrix 与 Work B Handoff B",
-            "用户确认原图已核验；仅浏览器本地查看，公开权限未确认，像素Runtime未验收"
+            "主视觉基准已冻结：1536×1024 · SHA-256 27c34ee5d3cf90921df433cb43c671e42b8ffa80b8f5cebfe9b397da2ee853e2",
+            "私有源仅本地内存校验；公开许可 NOT_CONFIRMED，Runtime 像素一致性与用户验收仍未通过"
           ],
           "contract_links": [
             {
@@ -3847,6 +3853,10 @@
             {
               "label": "原始视觉参考登记与结构映射（私有本地查看）",
               "path": "design/pages/recognition/web/VISUAL_REFERENCE_MANIFEST_V1.json"
+            },
+            {
+              "label": "Web 最终视觉基准冻结记录 V1（私有 SHA 绑定）",
+              "path": "design/pages/recognition/web/VISUAL_BASELINE_FREEZE_V1.md"
             }
           ],
           "related_routes": [
@@ -3860,15 +3870,17 @@
             }
           ],
           "runtime_status": "NOT_RUN",
-          "asset_pixel_authority": "NOT_CONFIRMED",
+          "asset_pixel_authority": "FROZEN_PRIVATE_SHA_BOUND",
           "adoption_pr": 190,
           "source_prs": [
             186,
             187
           ],
           "runtime_visual_verified": false,
-          "pixel_frozen_source": "NOT_CONFIRMED",
-          "visual_reference_manifest": "design/pages/recognition/web/VISUAL_REFERENCE_MANIFEST_V1.json"
+          "pixel_frozen_source": "FROZEN_PRIVATE_SHA_BOUND",
+          "visual_reference_manifest": "design/pages/recognition/web/VISUAL_REFERENCE_MANIFEST_V1.json",
+          "pixel_baseline_id": "YUJIAN_SWOS_WEB_PIXEL_BASELINE_V1",
+          "pixel_baseline_contract": "design/pages/recognition/web/VISUAL_BASELINE_FREEZE_V1.md"
         },
         {
           "id": "swos_web_hifi_motion_contract_v1_0",
@@ -3913,6 +3925,10 @@
             {
               "label": "SWOS 动态 Demo 技术交接",
               "path": "design/pages/recognition/processing/optics/SWOS_Dynamic_Demo_Technical_Handoff_V1.md"
+            },
+            {
+              "label": "Web 最终视觉基准冻结记录 V1（私有 SHA 绑定）",
+              "path": "design/pages/recognition/web/VISUAL_BASELINE_FREEZE_V1.md"
             }
           ],
           "related_routes": [

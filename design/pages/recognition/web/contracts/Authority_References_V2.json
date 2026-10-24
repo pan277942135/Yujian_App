@@ -105,7 +105,7 @@
   ],
   "adoption_scope": "DESIGN_CONTRACT_ONLY",
   "runtime_visual_verified": false,
-  "pixel_frozen_source": "NOT_CONFIRMED",
+  "pixel_frozen_source": "FROZEN_PRIVATE_SHA_BOUND",
   "live_implementation_audit": {
     "audit_date": "2026-10-24",
     "product_repository": "pan277942135/Yujian",
@@ -230,5 +230,7 @@
     "pixel_frozen_source": "NOT_CONFIRMED",
     "source_photo_208758_verified_this_execution": true,
     "web_three_stage_and_storyboard_bytes_rechecked_this_execution": false
-  }
+  },
+  "pixel_baseline_id": "YUJIAN_SWOS_WEB_PIXEL_BASELINE_V1",
+  "pixel_baseline_contract": "design/pages/recognition/web/VISUAL_BASELINE_FREEZE_V1.md"
 }

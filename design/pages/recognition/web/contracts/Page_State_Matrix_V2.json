@@ -118,7 +118,7 @@
   ],
   "adoption_scope": "DESIGN_CONTRACT_ONLY",
   "runtime_visual_verified": false,
-  "pixel_frozen_source": "NOT_CONFIRMED",
+  "pixel_frozen_source": "FROZEN_PRIVATE_SHA_BOUND",
   "cta_authority": {
     "status": "RESOLVED",
     "source": "design/pages/recognition/result/engineering/layout_geometry_contract.json",
@@ -142,5 +142,7 @@
     },
     "exact_head_ci_run_id": 40057399157,
     "exact_head_ci_scope": "Exact-source CI 40057399157 passed validate and det-fish-display-chromium. Includes offline probe unit tests and Chromium UI/fixture playback only; no authenticated live inference or visual acceptance."
-  }
+  },
+  "pixel_baseline_id": "YUJIAN_SWOS_WEB_PIXEL_BASELINE_V1",
+  "pixel_baseline_contract": "design/pages/recognition/web/VISUAL_BASELINE_FREEZE_V1.md"
 }

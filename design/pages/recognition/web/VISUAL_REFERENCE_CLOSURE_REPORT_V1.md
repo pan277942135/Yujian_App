@@ -49,3 +49,13 @@ Seven-condition visual-reference policy and validator added to existing governan
 - The exact-source run covers safe targeted validation, 9 responsive UI-simulation shells, BBOX_ONLY soft-focus pixel delta on a generated fixture (ROI mean 4.22, maximum 15; no precise outline), simulated error/recovery states, and separate SWOS preview fixtures. It does not verify the deployed model, actual SAM Mask, full-suite metadata path, device frame timing, or visual quality on real photos.
 - PR #182/#183 are merged into product main. Candidate Revision `yujian-model-factory-console-00349-hes` remains bound to old source `6da640859f063d7f42ee5432e6b35ecb162802ff`; the new main-only workflow requires manual dispatch with exact target_sha `8edce561c3b6f25263eb32f1d72706fec4e329b1`. Prior run [39982073543](https://github.com/pan277942135/Yujian/actions/runs/39982073543) failed before valid inference because 2 requests returned HTTP 401 and 3 fixture downloads returned HTTP 429. Current-source candidate deployment and real-photo visual acceptance are pending.
 - The existing unrestricted test path remains NOT_RUN under the metadata-access review. This work did not access cloud metadata or read runtime credentials.
+
+
+## Final visual baseline freeze addendum — 2026-10-24
+
+- User explicitly authorized the final Web visual baseline freeze. `web-three-stage` is now the unique private pixel baseline: `27c34ee5d3cf90921df433cb43c671e42b8ffa80b8f5cebfe9b397da2ee853e2`, 1536×1024, 1,804,497 bytes; baseline ID `YUJIAN_SWOS_WEB_PIXEL_BASELINE_V1`.
+- The prior private-handoff SHA/dimension/byte-count verification remains the recorded source evidence. The raw PNG was not re-retrieved in this execution. The Design Manager local-memory viewer must re-check SHA, byte count and decoded dimensions before every comparison.
+- The 1672×941 `swos-history` poster remains historical 14-frame V0.3 direction only. Current motion authority remains SWOS V1.1, 15 frames / 3650ms with R0.5 at global 2900ms.
+- `PIXEL_FROZEN_SOURCE=FROZEN_PRIVATE_SHA_BOUND`; this freezes source identity and comparison scope only. `RUNTIME_VISUAL_VERIFIED=NO`, playable browser acceptance remains `NOT_VERIFIED`, production Mask remains `NOT_QUALIFIED`, and user UAT remains pending.
+- `PUBLIC_PERMISSION=NOT_CONFIRMED`. No private source image or derivative may enter public repository, CI artifacts or Pages. No pixel-parity claim is made.
+- Canonical record: [VISUAL_BASELINE_FREEZE_V1.md](VISUAL_BASELINE_FREEZE_V1.md).

@@ -2,77 +2,77 @@
   "schema_version": "1.0",
   "task_id": "YUJIAN_SWOS_WEB_IMPLEMENTATION_INPUT_PACK_AND_LIVE_SHA_CLOSURE_V1",
   "snapshot_date_utc": "2026-10-24",
-  "package_status": "SOURCE_SYNCED_EXACT_HEAD_CI_PASS_CURRENT_HEAD_PREVIEW_NOT_DISPATCHED_AUTHENTICATED_REAL_INFERENCE_PENDING_MASK_NOT_QUALIFIED_VISUAL_ACCEPTANCE_PENDING",
+  "package_status": "SOURCE_SYNCED_EXACT_HEAD_CI_PASS_PRIVATE_PIXEL_BASELINE_FROZEN_PUBLIC_RELEASE_BLOCKED_CURRENT_HEAD_PREVIEW_NOT_DISPATCHED_AUTHENTICATED_REAL_INFERENCE_PENDING_MASK_NOT_QUALIFIED_RUNTIME_VISUAL_ACCEPTANCE_PENDING",
   "package_role": "IMPLEMENTATION_INPUT_SNAPSHOT_NOT_A_PARALLEL_DESIGN_AUTHORITY",
   "authority": {
     "repository": "pan277942135/Yujian_App",
     "baseline_main_sha_at_audit": "da9976090021232f0eec936bc4d30f9fa59d90f7",
-    "proposed_source_branch": "design/swos-web-hifi-motion-contract-v1-0",
+    "proposed_source_branch": "design/swos-live-source-evidence-closure-v1",
     "design_contracts_are_main_authority": true,
     "contract_files": [
       {
         "path": "design/pages/recognition/web/WEB_HIFI_CONTRACT_V2.md",
-        "blob_sha": "27809c3ffa0c393207778dc4efccfa7a01ae302c",
+        "blob_sha": "c4216460daebfd57b035bbf1d060461512eb6de8",
         "role": "web_contract"
       },
       {
         "path": "design/pages/recognition/web/WEB_HIFI_GAP_MATRIX_V2.md",
-        "blob_sha": "a355720f89d43e882fddffb6b1c572e03bad6024",
+        "blob_sha": "d90bf36a5627fe78005db9c98ae125e6554d89c5",
         "role": "live_gap_matrix_with_historical_baseline_labeled"
       },
       {
         "path": "design/pages/recognition/web/WEB_HIFI_HANDOFF_A_V2.md",
-        "blob_sha": "34689dd83947e0e82100cac9714f91ded4ba35de",
+        "blob_sha": "95697b6009638d662cb77b60c96be7599ea68bcf",
         "role": "handoff_a"
       },
       {
         "path": "design/pages/recognition/web/WEB_HIFI_HANDOFF_B_V2.md",
-        "blob_sha": "ddefecd616251a11bf84edfa6f7e3fbdff408632",
+        "blob_sha": "f8f5976ca8173530ae8374e4acf440c9632c5f0f",
         "role": "handoff_b"
       },
       {
         "path": "design/pages/recognition/web/contracts/Page_Structure_V2.json",
-        "blob_sha": "f6298ed36b24a422284469c6cb9d42fcb80660fc",
+        "blob_sha": "e2c44d83fb8d13906c91a10e6f2ad3031a3a21d8",
         "role": "machine_contract"
       },
       {
         "path": "design/pages/recognition/web/contracts/Component_Geometry_V2.json",
-        "blob_sha": "6c5cc966f2669084cc1f13130f6572c5bc9c50cc",
+        "blob_sha": "aa640257b2e8b6f17c2f58d675fe5cfb9e25c4b1",
         "role": "machine_contract"
       },
       {
         "path": "design/pages/recognition/web/contracts/Visual_Tokens_V2.json",
-        "blob_sha": "3ca4b79f5ac0bbd03337778c2cdbbcf669ce69a5",
+        "blob_sha": "fbdd42071a71aae21dc44959a48b43207a9af48d",
         "role": "machine_contract"
       },
       {
         "path": "design/pages/recognition/web/contracts/Page_State_Matrix_V2.json",
-        "blob_sha": "d3c390d72c91eeb6fc485d323fdba919128c4e88",
+        "blob_sha": "f9a0f29af8e9ab652b093a896ba2e7adb2241288",
         "role": "machine_contract"
       },
       {
         "path": "design/pages/recognition/web/contracts/Responsive_Rules_V2.json",
-        "blob_sha": "876bebcb6d5460dc3c47b282efdcccc48dabeadd",
+        "blob_sha": "88320db4efb826361e15b0181e28371366f75d47",
         "role": "machine_contract"
       },
       {
         "path": "design/pages/recognition/web/contracts/Asset_Manifest_V2.json",
-        "blob_sha": "eda732f3fe83e56a017c8b7d355a56066c596f44",
+        "blob_sha": "aabd8491cb082f4f02bb37f9ea52004ef98c60b1",
         "role": "machine_contract"
       },
       {
         "path": "design/pages/recognition/web/contracts/Authority_References_V2.json",
-        "blob_sha": "0742b0d51b016c83036fd59f5f025be4bee9e31d",
+        "blob_sha": "68fee7a73ac0933231e1e936a331c85ecb670864",
         "role": "machine_contract_with_live_audit"
       },
       {
         "path": "design/pages/recognition/web/contracts/Work_B_Implementation_Mapping_V2.json",
-        "blob_sha": "d502f1771e7308b5825bea89a065871a45307b98",
+        "blob_sha": "00db9633a1e926c5e3968c89c04b8eadad4f2355",
         "role": "implementation_mapping_with_live_audit"
       },
       {
         "path": "design/pages/recognition/web/contracts/Acceptance_Matrix_V2.json",
-        "blob_sha": "c747fae76714d870449903036b99cf75357690ce",
+        "blob_sha": "865c64fbf7e90b87cedc80546fead8776a83f695",
         "role": "machine_contract"
       },
       {
@@ -117,12 +117,12 @@
       },
       {
         "path": "design/pages/recognition/web/VISUAL_REFERENCE_MANIFEST_V1.json",
-        "blob_sha": "d18c5c334833ce16a63cd700c11d069eef58ffca",
+        "blob_sha": "24d3abc7d1c57ba35b8c7464acbebccf1ade33dd",
         "role": "visual_source_manifest"
       },
       {
         "path": "design/pages/recognition/processing/optics/SWOS_Static_Asset_Manifest_V1_1.json",
-        "blob_sha": "b331026f12a130a061e09b36b85da102d4132282",
+        "blob_sha": "7dc6a5021ef2385c2df19bfb785230b0053558d1",
         "role": "static_asset_manifest"
       },
       {
@@ -132,18 +132,18 @@
       },
       {
         "path": "design/pages/recognition/web/VISUAL_REFERENCE_CLOSURE_REPORT_V1.md",
-        "blob_sha": "2edf74044f3323695607e40b1958f9627d6b623f",
+        "blob_sha": "8fd34d30a38e419823897b5b6542e9a94ea8e489",
         "role": "asset_provenance_report"
       },
       {
         "path": "design/pages/recognition/web/SWOS_WEB_HIFI_MOTION_TECHNICAL_CONTRACT_V1_0.md",
         "role": "swos_web_hifi_motion_technical_contract_v1_0",
-        "blob_sha": "f42781660c8fd21d7fc20d55e5a7221300dc1017"
+        "blob_sha": "bd0562c4029a2ba136554ec06a30ab2738eed639"
       },
       {
         "path": "design/pages/recognition/web/contracts/SWOS_WEB_HIFI_MOTION_TECHNICAL_CONTRACT_V1_0.json",
         "role": "swos_web_hifi_motion_machine_contract",
-        "blob_sha": "72a34ece13154e8d5a921d856ade91ff541d7e62"
+        "blob_sha": "d818d4e0f74663f1c0013af9d95a1f9107f10ff3"
       },
       {
         "path": "design/pages/recognition/processing/README.md",
@@ -153,7 +153,7 @@
       {
         "path": "design/registry/experience_registry_v1.json",
         "role": "design_manager_route_registration",
-        "blob_sha": "47be44ca3cbce908fa676e262987fe26a8dbea32"
+        "blob_sha": "6753f83ee36d3039413981fe9e5a65774d8899e7"
       },
       {
         "path": "scripts/verify_design_manager_navigation.py",
@@ -163,12 +163,12 @@
       {
         "path": "scripts/verify_design_manager_browser.mjs",
         "role": "design_manager_browser_validator",
-        "blob_sha": "d0091baab2f4c1d3b060d0543b4dc01050d0ce1e"
+        "blob_sha": "ff24ca4fc65a1c0e206f84bec325ad7882ca2972"
       },
       {
         "path": "scripts/verify_swos_static_visual_v1_1.py",
         "role": "swos_contract_validator",
-        "blob_sha": "ed847b06f786c02652503b12970ef482f3356bcd"
+        "blob_sha": "e3bd9508ff8a371db76c7b4ebd57a0beae9392c2"
       },
       {
         "path": "scripts/verify_swos_web_input_pack_live.sh",
@@ -182,12 +182,12 @@
       },
       {
         "path": "design/manager/app.js",
-        "blob_sha": "5c304e0004f9ad3f5959bfdc386fe5454e0ef9a5",
+        "blob_sha": "e016a0831c5f706fbdc708314ff8f9dc7f4e45a2",
         "role": "design_manager_contract_metadata_renderer"
       },
       {
         "path": "design/pages/recognition/web/implementation_input_pack/README.md",
-        "blob_sha": "677d1502f53d2c8779ccd184defbc29f6ff88777",
+        "blob_sha": "b98b1445fec04e7d6db67f98bab693bbbdd67dab",
         "role": "updated_source_authority"
       },
       {
@@ -204,6 +204,26 @@
         "path": "scripts/verify_design_manager_hifi_release.py",
         "blob_sha": "d4acaf2b6ddc038dd027db44731699acebcfe942",
         "role": "design_manager_hifi_release_validator"
+      },
+      {
+        "path": "design/pages/recognition/web/VISUAL_BASELINE_FREEZE_V1.md",
+        "blob_sha": "77aecd0f7c03af16988a6a18524d6c22b24b03d0",
+        "role": "private_pixel_baseline_freeze_record"
+      },
+      {
+        "path": "design/manager/private_visual_references.js",
+        "blob_sha": "62f908b3054a00b1229bd011a80ae2f532bb44c1",
+        "role": "local_memory_pixel_baseline_viewer"
+      },
+      {
+        "path": "scripts/validate_web_hifi_contract_v2.py",
+        "blob_sha": "5d39d4790b6e63b3ce300c6fa4656c80d3c40a26",
+        "role": "web_contract_pixel_baseline_validator"
+      },
+      {
+        "path": "scripts/verify_private_visual_references.py",
+        "blob_sha": "5903cdce13d97ab7e38a9782703d20e7eef273c8",
+        "role": "private_pixel_baseline_and_publication_gate"
       }
     ],
     "canonical_control_plane_files": [
@@ -224,17 +244,17 @@
       },
       {
         "path": "harness/FEATURE_MATRIX.yaml",
-        "blob_sha": "f443a675469cebfcadd9e039936f5a5ea2732935",
+        "blob_sha": "93f0d5b2beb26e663f5c864521d6fd2d538929ce",
         "role": "canonical_feature_matrix"
       },
       {
         "path": "harness/PHASE_TASK_STATE_MACHINE.yaml",
-        "blob_sha": "7264e6c46d5546fcbf562f2d3e6c486c56a5bfd2",
+        "blob_sha": "794022a947c1f31343ce515016706db68a20f20d",
         "role": "canonical_phase_task_state_machine"
       },
       {
         "path": "harness/UNIFIED_CONTRACT_REGISTRY.yaml",
-        "blob_sha": "14771030c60754beddac46d44105dab16a8d7eec",
+        "blob_sha": "a363195ef0965553e26474537ae1dba4d62f7d78",
         "role": "canonical_unified_contract_registry"
       },
       {
@@ -586,12 +606,15 @@
       "height": 1024,
       "size_bytes": 1804497,
       "byte_verification": "PRIOR_PRIVATE_HANDOFF_VERIFICATION_RECORDED_NOT_RECHECKED_THIS_EXECUTION",
-      "role": "USER_CONFIRMED_VISUAL_REFERENCE",
+      "role": "FROZEN_PRIVATE_PIXEL_BASELINE",
       "public_permission": "NOT_CONFIRMED",
       "committed_to_public_repo": false,
       "verification_env_var": "SWOS_WEB_REFERENCE_PATH",
       "public_publication_allowed": false,
-      "allowed_use": "PRIVATE_LOCAL_REFERENCE_REVIEW_ONLY"
+      "allowed_use": "PRIVATE_LOCAL_REFERENCE_REVIEW_ONLY",
+      "pixel_authority_status": "FROZEN_PRIVATE_SHA_BOUND",
+      "baseline_id": "YUJIAN_SWOS_WEB_PIXEL_BASELINE_V1",
+      "source_bytes_reverified_this_execution": false
     },
     {
       "id": "swos-history",
@@ -667,7 +690,10 @@
     "deployed_model_and_sam_execution_verified": false,
     "preview_revision_and_health_sha_verified": false,
     "responsive_layout_screenshots_are_simulation_only": true,
-    "full_suite_blocked_by_existing_metadata_access_review": true
+    "full_suite_blocked_by_existing_metadata_access_review": true,
+    "pixel_baseline_identity_frozen": true,
+    "runtime_pixel_parity_still_requires_exact_source_browser_evidence": true,
+    "private_baseline_must_remain_local_memory_only": true
   },
   "private_handoff_bundle": {
     "filename": "SWOS_WEB_15_FRAME_REVIEW_PROXY_V3.zip",
@@ -742,7 +768,7 @@
     "public_ci_artifact_allowed": false,
     "public_pages_upload_allowed": false,
     "private_local_review_allowed": true,
-    "pixel_frozen_source": "NOT_CONFIRMED",
+    "pixel_frozen_source": "FROZEN_PRIVATE_SHA_BOUND",
     "current_execution_verified_assets": [
       "208758.jpg"
     ],
@@ -752,6 +778,19 @@
       "SWOS_WEB_PRIVATE_VISUAL_INPUTS_V2.zip",
       "SWOS_WEB_15_FRAME_REVIEW_PROXY_V3.zip"
     ],
-    "gate": "Public release remains blocked until explicit user permission and license/rights review. Pixel parity remains blocked until the exact visual reference is explicitly designated as the pixel-frozen baseline."
+    "gate": "Private Web pixel baseline identity and local comparison protocol are frozen by exact SHA. Public release remains blocked until explicit permission and rights review. Runtime pixel parity, live playback, Mask qualification and user visual acceptance remain separate pending gates.",
+    "pixel_baseline": {
+      "baseline_id": "YUJIAN_SWOS_WEB_PIXEL_BASELINE_V1",
+      "reference_id": "web-three-stage",
+      "sha256": "27c34ee5d3cf90921df433cb43c671e42b8ffa80b8f5cebfe9b397da2ee853e2",
+      "dimensions_px": [
+        1536,
+        1024
+      ],
+      "size_bytes": 1804497,
+      "status": "FROZEN_PRIVATE_SHA_BOUND",
+      "source_bytes_reverified_this_execution": false,
+      "local_memory_comparison_only": true
+    }
   }
 }

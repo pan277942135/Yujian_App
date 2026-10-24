@@ -1,6 +1,6 @@
 # AI 渔获识别 Web 全量高保真与工程合同 V2
 
-**ID** `YUJIAN_AI_CATCH_RECOGNITION_WEB_HIFI_V1` · **状态** `VISUAL_CONTRACT_DEFINED`（Main 已采纳的设计合同） · 用户认可的三阶段与水光方向 `USER_APPROVED_VISUAL_DIRECTION`；`MAIN_ADOPTED=YES (DESIGN_CONTRACT_ONLY)`；`PIXEL_FROZEN_SOURCE=NOT_CONFIRMED`；`RUNTIME_VISUAL_VERIFIED=NO`。#186/#187 合同内容由 PR #190 纳入 Main。G01–G18 表格仍是历史代码审查快照，不代表当前实现逐项已复核。当前跨仓库源快照：Web PR #177 HEAD `8edce561c3b6f25263eb32f1d72706fec4e329b1`，产品 main `738954105d545d9c354136b8b93f3562058fcf30`，49 ahead / 0 behind。精确 SHA CI [#40057399157](https://github.com/pan277942135/Yujian/actions/runs/40057399157) 通过定向验证、Chromium/UI simulation 和离线 SWOS probe 单测；不包含认证后的实时模型推理、真实 Mask、帧率或视觉验收。候选 Revision `yujian-model-factory-console-00349-hes` 仍绑定旧源 `6da640859f063d7f42ee5432e6b35ecb162802ff`；main workflow 已改为手动输入精确 target_sha，尚未对当前 HEAD 执行部署。此前探测因 401 登录缺失和 429 素材限流失败。PR #177 保持 Draft/Open/Unmerged。不得声称部署运行视觉 PASS 或生产 Mask 合格。机器文件在 `contracts/`，结构先行见 `WEB_HIFI_HANDOFF_A_V2.md`。
+**ID** `YUJIAN_AI_CATCH_RECOGNITION_WEB_HIFI_V1` · **状态** `VISUAL_CONTRACT_DEFINED`（Main 已采纳的设计合同） · 用户认可的三阶段与水光方向 `USER_APPROVED_VISUAL_DIRECTION`；`MAIN_ADOPTED=YES (DESIGN_CONTRACT_ONLY)`；`PIXEL_FROZEN_SOURCE=FROZEN_PRIVATE_SHA_BOUND`；`RUNTIME_VISUAL_VERIFIED=NO`。#186/#187 合同内容由 PR #190 纳入 Main。G01–G18 表格仍是历史代码审查快照，不代表当前实现逐项已复核。当前跨仓库源快照：Web PR #177 HEAD `8edce561c3b6f25263eb32f1d72706fec4e329b1`，产品 main `738954105d545d9c354136b8b93f3562058fcf30`，49 ahead / 0 behind。精确 SHA CI [#40057399157](https://github.com/pan277942135/Yujian/actions/runs/40057399157) 通过定向验证、Chromium/UI simulation 和离线 SWOS probe 单测；不包含认证后的实时模型推理、真实 Mask、帧率或视觉验收。候选 Revision `yujian-model-factory-console-00349-hes` 仍绑定旧源 `6da640859f063d7f42ee5432e6b35ecb162802ff`；main workflow 已改为手动输入精确 target_sha，尚未对当前 HEAD 执行部署。此前探测因 401 登录缺失和 429 素材限流失败。PR #177 保持 Draft/Open/Unmerged。不得声称部署运行视觉 PASS 或生产 Mask 合格。机器文件在 `contracts/`，结构先行见 `WEB_HIFI_HANDOFF_A_V2.md`。
 
 ## SWOS Web 可播放动效工程权威
 
@@ -10,7 +10,7 @@ SAM 复用现有产品实验链路；禁止新增重复分割服务、重训模�
 
 ## 视觉来源与边界
 
-用户确认的原始三阶段图现登记于 `VISUAL_REFERENCE_MANIFEST_V1.json`：`渔见AI鱼获识别流程展示.png`，1536×1024，SHA-256 `27c34ee5d3cf90921df433cb43c671e42b8ffa80b8f5cebfe9b397da2ee853e2`。私有交接包记录的 SHA、尺寸已核验；当前执行未重新取得该 PNG 原始字节，因此本次字节复核状态为 `NOT_RECHECKED_THIS_EXECUTION`。此前 2560×1440、SHA `5f07c2f65ea33f14c8517dddbb7f8d6b7369a6ed980cba11cc92014f4e6a75f9` 候选降为历史溯源，不可替代本次原图。Design Manager 仅在浏览器本地选择后验证 SHA、尺寸和字节数；不上传、不持久化。公开许可 `NOT_CONFIRMED`，公开仓库/Pages/CI 发布明确禁止；原图是用户确认的视觉方向参考，但 `PIXEL_FROZEN_SOURCE=NOT_CONFIRMED`，不得当作像素冻结基准或宣称像素一致。
+用户确认的原始三阶段图现登记于 `VISUAL_REFERENCE_MANIFEST_V1.json`：`渔见AI鱼获识别流程展示.png`，1536×1024，SHA-256 `27c34ee5d3cf90921df433cb43c671e42b8ffa80b8f5cebfe9b397da2ee853e2`。私有交接包记录的 SHA、尺寸已核验；当前执行未重新取得该 PNG 原始字节，因此本次字节复核状态为 `NOT_RECHECKED_THIS_EXECUTION`。此前 2560×1440、SHA `5f07c2f65ea33f14c8517dddbb7f8d6b7369a6ed980cba11cc92014f4e6a75f9` 候选降为历史溯源，不可替代本次原图。Design Manager 仅在浏览器本地选择后验证 SHA、尺寸和字节数；不上传、不持久化。公开许可 `NOT_CONFIRMED`，公开仓库/Pages/CI 发布明确禁止；原图已由用户明确指定为私有 SHA 绑定的主视觉基准（`FROZEN_PRIVATE_SHA_BOUND`），其身份和对照范围见 [Web 最终视觉基准冻结记录 V1](VISUAL_BASELINE_FREEZE_V1.md)。该冻结不代表当前运行页面像素一致；公开许可仍 `NOT_CONFIRMED`，Runtime 视觉验收仍 `NOT_VERIFIED`。
 
 该原图确认构图方向，不自动覆盖示例文案、鱼种、模型参数、现行 Token、几何及响应式阈值。结构映射及冲突差异见同一 Manifest；数值补全仍保留 `DESIGN_COMPLETION_NOT_PIXEL_MEASURED`。14 帧 V0.3 历史海报与现行 15 帧 V1.1（含 R0.5）分别标记，3650ms 与 RR09 V3 不变。人工鱼体描线不是生产 Mask。
 

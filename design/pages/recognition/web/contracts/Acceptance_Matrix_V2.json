@@ -39,8 +39,8 @@
     },
     {
       "id": "A06",
-      "method": "approved original image pixel comparison",
-      "gate": "BLOCKED_ASSET"
+      "method": "Compare the exact SHA-bound private Web baseline with current-source browser screenshots using the local-memory viewer; do not upload or publish the reference.",
+      "gate": "WORK_B"
     },
     {
       "id": "A07",
@@ -94,7 +94,7 @@
     },
     {
       "id": "A17",
-      "method": "Visual asset SHA/dimensions, private-review scope, public publication denial, and PIXEL_FROZEN_SOURCE status are explicit; no private asset enters public repo/CI/Pages",
+      "method": "Frozen baseline ID/SHA/dimensions, private-review scope, publication denial, and runtime-verification boundary are explicit; no private asset enters public repo/CI/Pages.",
       "gate": "ASSET"
     },
     {
@@ -112,7 +112,7 @@
     "Chromium UI simulation, SAM API latency and static 15-frame contract validation are not substitutes for browser playback, visual acceptance or frame-time performance.",
     "The canonical Result CTA labels are exactly 继续记忆 and 保存本次鱼获; the Result page-specific frozen contract overrides generic shared button examples.",
     "The Web client consumes the product inference response result_state and does not recalculate HIGH/MEDIUM/LOW; current 0.45/0.12 result-state rules and the separate 0.55 low_confidence diagnostic remain unchanged.",
-    "Public permission for private visual assets remains NOT_CONFIRMED, so public repository, CI artifact, and Pages publication are prohibited; pixel freeze remains NOT_CONFIRMED until explicitly approved."
+    "The private Web pixel baseline identity is frozen by exact SHA; public permission remains NOT_CONFIRMED and runtime pixel parity remains NOT_VERIFIED. No private asset may enter public repo, CI artifacts, or Pages."
   ],
   "adoption_pr": 190,
   "adopted_source_prs": [
@@ -121,11 +121,13 @@
   ],
   "adoption_scope": "DESIGN_CONTRACT_ONLY",
   "runtime_visual_verified": false,
-  "pixel_frozen_source": "NOT_CONFIRMED",
+  "pixel_frozen_source": "FROZEN_PRIVATE_SHA_BOUND",
   "swos_web_motion_technical_contract_ref": "design/pages/recognition/web/SWOS_WEB_HIFI_MOTION_TECHNICAL_CONTRACT_V1_0.md",
   "swos_web_motion_machine_contract_ref": "design/pages/recognition/web/contracts/SWOS_WEB_HIFI_MOTION_TECHNICAL_CONTRACT_V1_0.json",
   "playable_browser_demo_status": "NOT_VERIFIED",
   "production_mask_qualification": "NOT_QUALIFIED",
   "business_decision_status": "RESOLVED_BY_AUTHORITY_SCOPE_NO_NUMERIC_THRESHOLD_CHANGE",
-  "asset_publication_status": "BLOCKED_PERMISSION_NOT_CONFIRMED"
+  "asset_publication_status": "BLOCKED_PERMISSION_NOT_CONFIRMED",
+  "pixel_baseline_id": "YUJIAN_SWOS_WEB_PIXEL_BASELINE_V1",
+  "pixel_baseline_contract": "design/pages/recognition/web/VISUAL_BASELINE_FREEZE_V1.md"
 }

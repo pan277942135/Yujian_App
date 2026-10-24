@@ -1,7 +1,7 @@
 # SWOS Web Implementation Input Pack V1
 
 **Task:** `YUJIAN_SWOS_WEB_IMPLEMENTATION_INPUT_PACK_AND_LIVE_SHA_CLOSURE_V1`
-**Status:** `SOURCE_SYNCED; EXACT_HEAD_CI_PASS; CURRENT_HEAD_PREVIEW_NOT_YET_DISPATCHED; AUTHENTICATED_REAL_INFERENCE_PENDING; PRODUCTION_MASK_NOT_QUALIFIED; VISUAL_ACCEPTANCE_PENDING`
+**Status:** `SOURCE_SYNCED; EXACT_HEAD_CI_PASS; PRIVATE_PIXEL_BASELINE_FROZEN; CURRENT_HEAD_PREVIEW_NOT_YET_DISPATCHED; AUTHENTICATED_REAL_INFERENCE_PENDING; PRODUCTION_MASK_NOT_QUALIFIED; RUNTIME_VISUAL_ACCEPTANCE_PENDING`
 **Role:** A traceable input snapshot; it does not replace or redefine the main-adopted design contracts.
 
 ## Ownership
@@ -73,3 +73,8 @@ The current 15-frame authority contract is pinned in the manifest. The actual 15
 ## Private 15-frame review proxy V3
 
 A private review bundle has now been generated from the byte-verified source photo and the main-adopted 15-frame/shared-geometry contracts: `SWOS_WEB_15_FRAME_REVIEW_PROXY_V3.zip`, SHA-256 `5227986290402f3f4fe45872efd6d433a92923a2c27c67a7af00b3aac3247fe2` (28,939,939 bytes). It contains 15 individual 1080×1920 samples plus contact sheets and the private source assets. The frames are **REVIEW_PROXY_NOT_FROZEN**: they are not authoritative artwork, not a playable animation, and not evidence of browser pixel parity. Their manual fish contour is explicitly `MANUAL_REFERENCE_ONLY_NOT_PRODUCTION_MASK`. The archive is provided privately outside the public repository.
+
+
+## Final private pixel baseline
+
+The unique Web V2 pixel baseline is frozen by source identity only: `YUJIAN_SWOS_WEB_PIXEL_BASELINE_V1`, `web-three-stage`, SHA-256 `27c34ee5d3cf90921df433cb43c671e42b8ffa80b8f5cebfe9b397da2ee853e2`, 1536×1024, 1,804,497 bytes. See [VISUAL_BASELINE_FREEZE_V1.md](../VISUAL_BASELINE_FREEZE_V1.md). The original PNG remains private and is not committed or uploaded. Its bytes were not re-read in the current execution; the browser-local viewer must verify the selected source before comparison. Runtime pixel parity, playable 3650ms animation, production Mask and user visual acceptance remain separate pending gates.

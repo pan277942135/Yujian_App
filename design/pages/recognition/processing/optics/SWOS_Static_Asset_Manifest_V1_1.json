@@ -107,7 +107,9 @@
   ],
   "photo_publication_permission": "NOT_CONFIRMED",
   "visual_reference_manifest": "design/pages/recognition/web/VISUAL_REFERENCE_MANIFEST_V1.json",
-  "pixel_frozen_source": "NOT_CONFIRMED",
+  "pixel_frozen_source": "FROZEN_PRIVATE_SHA_BOUND",
   "public_asset_publication_allowed": false,
-  "asset_authorization_gate": "BLOCKED_UNTIL_EXPLICIT_USER_PERMISSION_AND_LICENSE"
+  "asset_authorization_gate": "PIXEL_BASELINE_SOURCE_IDENTITY_FROZEN; PUBLIC_PUBLICATION_BLOCKED_UNTIL_EXPLICIT_PERMISSION_AND_LICENSE",
+  "pixel_baseline_id": "YUJIAN_SWOS_WEB_PIXEL_BASELINE_V1",
+  "pixel_baseline_contract": "design/pages/recognition/web/VISUAL_BASELINE_FREEZE_V1.md"
 }

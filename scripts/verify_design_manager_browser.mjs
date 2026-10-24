@@ -454,7 +454,9 @@ async function main() {
   assert(page.url().endsWith(webHifiHash), "Web Hi-Fi V2 direct Hash route did not resolve");
   assert((await page.locator("#hifiViewTitle").innerText()).includes("Web AI渔获识别"), "Web Hi-Fi V2 menu title is missing");
   assert((await page.locator("#hifiViewAuthorities").innerText()).includes("WEB_HIFI_CONTRACT_V2.md"), "Web Hi-Fi V2 authority link missing");
-  assert((await page.locator("#hifiViewCanvas").innerText()).includes("原图候选尚未确认为像素权威"), "Web Hi-Fi source caveat missing");
+  assert((await page.locator("#hifiViewCanvas").innerText()).includes("像素基准已冻结（私有源）"), "Web private pixel baseline status missing");
+  assert((await page.locator("#hifiViewCanvas").innerText()).includes("27c34ee5d3cf90921df433cb43c671e42b8ffa80b8f5cebfe9b397da2ee853e2"), "Web private pixel baseline SHA missing");
+  assert(await page.locator('#hifiViewContractDetails a[href*="VISUAL_BASELINE_FREEZE_V1.md"]').count() === 1, "Web visual baseline freeze record link missing");
   assert(await page.locator('#hifiViewContractDetails a[href*="Responsive_Rules_V2.json"]').count() === 1, "Web responsive contract link missing");
   await page.screenshot({ path: resolve(args.outputDir, "web-hifi-v2-1440.png"), fullPage: true });
   await page.setViewportSize({ width: 390, height: 844 });

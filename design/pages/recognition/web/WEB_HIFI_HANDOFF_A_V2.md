@@ -1,6 +1,6 @@
 # Work B Handoff A — AI 渔获识别 Web 页面骨架
 
-状态：`VISUAL_CONTRACT_DEFINED`；`MAIN_ADOPTED=YES (DESIGN_CONTRACT_ONLY)`；`PIXEL_FROZEN_SOURCE=NOT_CONFIRMED`；`RUNTIME_VISUAL_VERIFIED=NO`。当前审计：产品 PR #177 HEAD `8edce561c3b6f25263eb32f1d72706fec4e329b1`，产品 main `738954105d545d9c354136b8b93f3562058fcf30`，49 ahead / 0 behind；精确 SHA CI [#40057399157](https://github.com/pan277942135/Yujian/actions/runs/40057399157) 通过 targeted validation、离线 SWOS probe 单测与 Chromium fixture/UI playback。候选 Revision `yujian-model-factory-console-00349-hes` 仍绑定旧 SHA `6da640859f063d7f42ee5432e6b35ecb162802ff`；当前源未部署，认证真实推理、生产 Mask 与视觉验收仍未验证。PR #177 保持 Draft/Open/Unmerged。
+状态：`VISUAL_CONTRACT_DEFINED`；`MAIN_ADOPTED=YES (DESIGN_CONTRACT_ONLY)`；`PIXEL_FROZEN_SOURCE=FROZEN_PRIVATE_SHA_BOUND`；`RUNTIME_VISUAL_VERIFIED=NO`。当前审计：产品 PR #177 HEAD `8edce561c3b6f25263eb32f1d72706fec4e329b1`，产品 main `738954105d545d9c354136b8b93f3562058fcf30`，49 ahead / 0 behind；精确 SHA CI [#40057399157](https://github.com/pan277942135/Yujian/actions/runs/40057399157) 通过 targeted validation、离线 SWOS probe 单测与 Chromium fixture/UI playback。候选 Revision `yujian-model-factory-console-00349-hes` 仍绑定旧 SHA `6da640859f063d7f42ee5432e6b35ecb162802ff`；当前源未部署，认证真实推理、生产 Mask 与视觉验收仍未验证。PR #177 保持 Draft/Open/Unmerged。
 
 ## 入口与外壳
 
@@ -26,3 +26,7 @@
 
 ## 原始视觉资产补档 V1
 用户确认原图与历史14帧海报已核验，见 `VISUAL_REFERENCE_MANIFEST_V1.json`。使用 Design Manager 对应菜单中的本地查看器，不再用其他候选图替代原图。公开权限 NOT_CONFIRMED；像素 Runtime 未验收；机器业务合同保持。
+
+
+## 最终视觉基准冻结补充
+Web V2 主视觉基准已按 `web-three-stage` 的 SHA-256 `27c34ee5d3cf90921df433cb43c671e42b8ffa80b8f5cebfe9b397da2ee853e2` 冻结为 `FROZEN_PRIVATE_SHA_BOUND`；完整范围、历史分镜边界和本地像素对照协议见 [VISUAL_BASELINE_FREEZE_V1.md](VISUAL_BASELINE_FREEZE_V1.md)。公开许可仍 `NOT_CONFIRMED`，当前 Runtime / 像素一致性 / User UAT 不因此自动通过。

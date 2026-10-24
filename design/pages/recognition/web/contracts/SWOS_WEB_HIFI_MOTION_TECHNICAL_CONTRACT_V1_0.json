@@ -41,7 +41,8 @@
     "work_b_implementation_mapping": "design/pages/recognition/web/contracts/Work_B_Implementation_Mapping_V2.json",
     "result_cta_authority": "design/pages/recognition/result/engineering/layout_geometry_contract.json",
     "result_state_decision_authority": "design/pages/recognition/result/spec/recognition_result_3plus2_decision_contract_v1_1.json",
-    "visual_reference_manifest": "design/pages/recognition/web/VISUAL_REFERENCE_MANIFEST_V1.json"
+    "visual_reference_manifest": "design/pages/recognition/web/VISUAL_REFERENCE_MANIFEST_V1.json",
+    "visual_baseline_freeze": "design/pages/recognition/web/VISUAL_BASELINE_FREEZE_V1.md"
   },
   "product_decisions": {
     "optical_language": "ORIGINAL_YUJIAN_SUNLIT_WATER_CAUSTICS",
@@ -607,7 +608,7 @@
     "public_ci_artifact_allowed": false,
     "public_pages_upload_allowed": false,
     "private_local_review_allowed": true,
-    "pixel_frozen_source": "NOT_CONFIRMED",
+    "pixel_frozen_source": "FROZEN_PRIVATE_SHA_BOUND",
     "verified_this_execution": [
       {
         "id": "processing-source-photo",
@@ -627,6 +628,11 @@
       "swos-history",
       "private handoff bundles"
     ],
-    "publication_gate": "BLOCKED_UNTIL_EXPLICIT_USER_PERMISSION_AND_LICENSE"
+    "publication_gate": "BLOCKED_UNTIL_EXPLICIT_USER_PERMISSION_AND_LICENSE",
+    "pixel_baseline_id": "YUJIAN_SWOS_WEB_PIXEL_BASELINE_V1",
+    "pixel_baseline_contract": "design/pages/recognition/web/VISUAL_BASELINE_FREEZE_V1.md",
+    "baseline_source_sha256": "27c34ee5d3cf90921df433cb43c671e42b8ffa80b8f5cebfe9b397da2ee853e2",
+    "baseline_publication_permission": "NOT_CONFIRMED",
+    "runtime_visual_verified": false
   }
 }
