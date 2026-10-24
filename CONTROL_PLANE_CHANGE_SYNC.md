@@ -63,3 +63,11 @@ Static on main: registry, Feature Matrix, Phase/Task Machine, Unified Contract, 
 Dynamic on a Work branch: PROJECT_MASTER_STATE.yaml, generic WORK_EXECUTION_STATE.json, checkpoints, CI/runtime observations, evidence manifests, APK provenance and next action.
 
 A Work status change never requires a main Control Plane commit. A task/design/contract/gate/recovery rule change requires a Control Plane change on main first, followed by branch resynchronization and re-admission.
+
+
+## Code merge and release separation V1.2
+
+- `main_merge_allowed=true` means an already authorized task may be merged to `main` when all required checks pass on the exact current PR HEAD. Do not require a separate per-PR merge approval.
+- `N009` remains the final human release-authorization gate; it does not govern ordinary code/design PR merges.
+- Keep force-push, rebase and history rewrite prohibited. Required checks, exact-SHA evidence, scope boundaries and frozen-contract protections remain mandatory.
+- If a local worktree is unavailable, use a clean remote checkout or GitHub Actions/remote execution path. The absence of a checkout is not a gate result; only the validator result on an actual repository SHA is.

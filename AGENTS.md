@@ -50,3 +50,17 @@ do not bypass it by changing source SHA or opening a different branch for the
 same failure. Reopen only with a separately evidenced, distinct root cause and
 the applicable authorization. This mechanism never promotes a gate to PASS.
 Never push sensitive dynamic state to a public destination.
+
+
+## Green-check merge policy V1.2
+
+- For code, design and control-plane PRs within an already authorized task scope, merge once all repository-required checks pass on the exact current PR HEAD. A separate per-PR merge authorization is not required.
+- `N009` is the human release-authorization gate only; it must not block ordinary code/design PR merges.
+- Never merge a failing, stale-head, out-of-scope or unresolved-conflict PR. Keep force-push, rebase and history rewrite disabled. Do not weaken required checks to make a PR mergeable.
+
+## Remote-first execution fallback V1.2
+
+- A missing repository in the current scratch directory is an execution-environment routing issue, not itself an Admission FAIL.
+- Do not run `scripts/validate_control_plane_admission.py` outside a repository checkout and treat the resulting “file not found” as a failed project gate. Obtain a clean checkout/worktree or use a supported remote runner / GitHub API workflow.
+- For remote execution, use successful admission evidence bound to the exact baseline SHA before work, then require the relevant exact-HEAD workflow checks and browser/runtime evidence for the proposed SHA. Product tasks must still satisfy their branch-local state requirements where applicable.
+- If the local checkout is unavailable, continue through the supported remote path; stop only for a real control-plane validator failure, failed required check, missing authority, or unresolved product decision—not merely because `/workspace/scratch` is not a Git repository.
