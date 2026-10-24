@@ -1,0 +1,544 @@
+{
+  "schema_version": "1.0",
+  "catalog_id": "recognition_first_use_camera_guide_frontend_assets_v1",
+  "task_id": "YUJIAN_FIRST_USE_GUIDE_FRONTEND_ASSET_CATALOG_V1",
+  "status": "PARTIAL_SOURCE_BLOCKED",
+  "authority_boundary": {
+    "frozen_page_manifest": "design/pages/recognition/first_use_camera_guide/manifest.json",
+    "page_structure_contract": "design/pages/recognition/first_use_camera_guide/page_structure.json",
+    "page_visual_authority_remains_frozen_png": true,
+    "runtime_visual_authority": false,
+    "do_not_modify_frozen_png_bytes": true,
+    "do_not_crop_composite_screenshots_for_production_assets": true
+  },
+  "source_inventory": {
+    "checked_main_sha": "c0f940c9890b7926c4db51f6b9f32daa2c01e9e7",
+    "checked_at": "2026-10-24",
+    "repository_tree_file_count": 1649,
+    "repository_raster_image_count": 262,
+    "guide_directory_result": "Only three frozen full-page PNGs, archive-only full-page PNGs, manifests and reports; no independent approved guide hero/error photos.",
+    "searched_locations": [
+      "design/pages/recognition/first_use_camera_guide/",
+      "design/resource_packages/MANIFEST.json",
+      "design/resource_packages/SHA256SUMS.txt",
+      "repository-wide raster image paths",
+      "repository code search for guide_avoid_* and first-use guide runtime asset names",
+      "prior handoff/context references available to this execution"
+    ],
+    "found_independent_original_count": 0,
+    "note": "Existing package crops are explicitly REFERENCE_ONLY and are derived from flattened composites. They are not promoted to independent source assets."
+  },
+  "reference_only_package": {
+    "manifest_path": "design/resource_packages/MANIFEST.json",
+    "readme_path": "design/resource_packages/README.md",
+    "checksums_path": "design/resource_packages/SHA256SUMS.txt",
+    "materializer_script": "scripts/materialize_yujian_resource_package.py",
+    "reconstructed_zip_sha256": "45b7d796e9eb8e9162eae111212afbd02d7e8395b9507965b49bcb3a04387689",
+    "status": "REFERENCE_ONLY_NOT_PRODUCTION",
+    "direct_image_files_available": false
+  },
+  "asset_policy": {
+    "missing_source_status": "ASSET_SOURCE_BLOCKED",
+    "candidate_status": "CANDIDATE_NEEDS_APPROVAL",
+    "frozen_status": "FROZEN",
+    "promote_candidate_requires": "explicit product approval, independent file, source/provenance, licence/privacy review, exact SHA-256/bytes/dimensions and preview validation",
+    "page_count": 3,
+    "unique_required_source_assets": 8,
+    "page_slot_binding_count": 12,
+    "p01_p03_horizontal_source_sharing_allowed": true,
+    "p02_requires_vertical_fish_assets": true
+  },
+  "assets": [
+    {
+      "id": "hero_horizontal",
+      "label": "正确示范 · 横向鱼体",
+      "role": "correct_hero",
+      "orientation": "horizontal",
+      "sharedBy": [
+        "p01",
+        "p03"
+      ],
+      "refEntries": [],
+      "path": null,
+      "source_filename": null,
+      "mime_type": null,
+      "width": null,
+      "height": null,
+      "bytes": null,
+      "sha256": null,
+      "status": "ASSET_SOURCE_BLOCKED",
+      "source_status": "NOT_FOUND_IN_CURRENT_MAIN_OR_PRIOR_HANDOFFS",
+      "provenance_status": "NO_INDEPENDENT_ORIGINAL_LOCATED",
+      "license_status": "NOT_CONFIRMED",
+      "approved_for_frontend_consumption": false,
+      "runtime_mapping": false,
+      "reference_only_package_entries": [],
+      "note": "必须补入独立原始照片或经用户批准的新候选照片；不得从 Frozen PNG/拼接截图再次裁切。"
+    },
+    {
+      "id": "error_head_out_horizontal",
+      "label": "鱼头不在画面 · 横向鱼体",
+      "role": "fish_head_out_of_frame",
+      "orientation": "horizontal",
+      "sharedBy": [
+        "p01",
+        "p03"
+      ],
+      "refEntries": [
+        "03_P01/images/guide_avoid_1_no_head_3x_native.png",
+        "05_P03/images/guide_avoid_1_no_head_3x_native.png"
+      ],
+      "path": null,
+      "source_filename": null,
+      "mime_type": null,
+      "width": null,
+      "height": null,
+      "bytes": null,
+      "sha256": null,
+      "status": "ASSET_SOURCE_BLOCKED",
+      "source_status": "NOT_FOUND_IN_CURRENT_MAIN_OR_PRIOR_HANDOFFS",
+      "provenance_status": "NO_INDEPENDENT_ORIGINAL_LOCATED",
+      "license_status": "NOT_CONFIRMED",
+      "approved_for_frontend_consumption": false,
+      "runtime_mapping": false,
+      "reference_only_package_entries": [
+        {
+          "package_path": "03_P01/images/guide_avoid_1_no_head_3x_native.png",
+          "status": "REFERENCE_ONLY",
+          "direct_repo_file": false,
+          "usage": "可用于理解历史截图中的示例位置，不得作为前端/Android正式照片素材"
+        },
+        {
+          "package_path": "05_P03/images/guide_avoid_1_no_head_3x_native.png",
+          "status": "REFERENCE_ONLY",
+          "direct_repo_file": false,
+          "usage": "可用于理解历史截图中的示例位置，不得作为前端/Android正式照片素材"
+        }
+      ],
+      "note": "必须补入独立原始照片或经用户批准的新候选照片；不得从 Frozen PNG/拼接截图再次裁切。"
+    },
+    {
+      "id": "error_too_small_horizontal",
+      "label": "鱼体过小 · 横向鱼体",
+      "role": "fish_too_small",
+      "orientation": "horizontal",
+      "sharedBy": [
+        "p01",
+        "p03"
+      ],
+      "refEntries": [
+        "03_P01/images/guide_avoid_2_too_small_3x_native.png",
+        "05_P03/images/guide_avoid_2_too_small_3x_native.png"
+      ],
+      "path": null,
+      "source_filename": null,
+      "mime_type": null,
+      "width": null,
+      "height": null,
+      "bytes": null,
+      "sha256": null,
+      "status": "ASSET_SOURCE_BLOCKED",
+      "source_status": "NOT_FOUND_IN_CURRENT_MAIN_OR_PRIOR_HANDOFFS",
+      "provenance_status": "NO_INDEPENDENT_ORIGINAL_LOCATED",
+      "license_status": "NOT_CONFIRMED",
+      "approved_for_frontend_consumption": false,
+      "runtime_mapping": false,
+      "reference_only_package_entries": [
+        {
+          "package_path": "03_P01/images/guide_avoid_2_too_small_3x_native.png",
+          "status": "REFERENCE_ONLY",
+          "direct_repo_file": false,
+          "usage": "可用于理解历史截图中的示例位置，不得作为前端/Android正式照片素材"
+        },
+        {
+          "package_path": "05_P03/images/guide_avoid_2_too_small_3x_native.png",
+          "status": "REFERENCE_ONLY",
+          "direct_repo_file": false,
+          "usage": "可用于理解历史截图中的示例位置，不得作为前端/Android正式照片素材"
+        }
+      ],
+      "note": "必须补入独立原始照片或经用户批准的新候选照片；不得从 Frozen PNG/拼接截图再次裁切。"
+    },
+    {
+      "id": "error_occluded_horizontal",
+      "label": "遮挡过多 · 横向鱼体",
+      "role": "excessive_occlusion",
+      "orientation": "horizontal",
+      "sharedBy": [
+        "p01",
+        "p03"
+      ],
+      "refEntries": [
+        "03_P01/images/guide_avoid_3_occluded_3x_native.png",
+        "05_P03/images/guide_avoid_3_occluded_3x_native.png"
+      ],
+      "path": null,
+      "source_filename": null,
+      "mime_type": null,
+      "width": null,
+      "height": null,
+      "bytes": null,
+      "sha256": null,
+      "status": "ASSET_SOURCE_BLOCKED",
+      "source_status": "NOT_FOUND_IN_CURRENT_MAIN_OR_PRIOR_HANDOFFS",
+      "provenance_status": "NO_INDEPENDENT_ORIGINAL_LOCATED",
+      "license_status": "NOT_CONFIRMED",
+      "approved_for_frontend_consumption": false,
+      "runtime_mapping": false,
+      "reference_only_package_entries": [
+        {
+          "package_path": "03_P01/images/guide_avoid_3_occluded_3x_native.png",
+          "status": "REFERENCE_ONLY",
+          "direct_repo_file": false,
+          "usage": "可用于理解历史截图中的示例位置，不得作为前端/Android正式照片素材"
+        },
+        {
+          "package_path": "05_P03/images/guide_avoid_3_occluded_3x_native.png",
+          "status": "REFERENCE_ONLY",
+          "direct_repo_file": false,
+          "usage": "可用于理解历史截图中的示例位置，不得作为前端/Android正式照片素材"
+        }
+      ],
+      "note": "必须补入独立原始照片或经用户批准的新候选照片；不得从 Frozen PNG/拼接截图再次裁切。"
+    },
+    {
+      "id": "hero_vertical",
+      "label": "正确示范 · 竖向鱼体",
+      "role": "correct_hero",
+      "orientation": "vertical",
+      "sharedBy": [
+        "p02"
+      ],
+      "refEntries": [],
+      "path": null,
+      "source_filename": null,
+      "mime_type": null,
+      "width": null,
+      "height": null,
+      "bytes": null,
+      "sha256": null,
+      "status": "ASSET_SOURCE_BLOCKED",
+      "source_status": "NOT_FOUND_IN_CURRENT_MAIN_OR_PRIOR_HANDOFFS",
+      "provenance_status": "NO_INDEPENDENT_ORIGINAL_LOCATED",
+      "license_status": "NOT_CONFIRMED",
+      "approved_for_frontend_consumption": false,
+      "runtime_mapping": false,
+      "reference_only_package_entries": [],
+      "note": "必须补入独立原始照片或经用户批准的新候选照片；不得从 Frozen PNG/拼接截图再次裁切。"
+    },
+    {
+      "id": "error_head_out_vertical",
+      "label": "鱼头不在画面 · 竖向鱼体",
+      "role": "fish_head_out_of_frame",
+      "orientation": "vertical",
+      "sharedBy": [
+        "p02"
+      ],
+      "refEntries": [
+        "04_P02/images/guide_avoid_1_no_head_3x_native.png"
+      ],
+      "path": null,
+      "source_filename": null,
+      "mime_type": null,
+      "width": null,
+      "height": null,
+      "bytes": null,
+      "sha256": null,
+      "status": "ASSET_SOURCE_BLOCKED",
+      "source_status": "NOT_FOUND_IN_CURRENT_MAIN_OR_PRIOR_HANDOFFS",
+      "provenance_status": "NO_INDEPENDENT_ORIGINAL_LOCATED",
+      "license_status": "NOT_CONFIRMED",
+      "approved_for_frontend_consumption": false,
+      "runtime_mapping": false,
+      "reference_only_package_entries": [
+        {
+          "package_path": "04_P02/images/guide_avoid_1_no_head_3x_native.png",
+          "status": "REFERENCE_ONLY",
+          "direct_repo_file": false,
+          "usage": "可用于理解历史截图中的示例位置，不得作为前端/Android正式照片素材"
+        }
+      ],
+      "note": "必须补入独立原始照片或经用户批准的新候选照片；不得从 Frozen PNG/拼接截图再次裁切。"
+    },
+    {
+      "id": "error_too_small_vertical",
+      "label": "鱼体过小 · 竖向鱼体",
+      "role": "fish_too_small",
+      "orientation": "vertical",
+      "sharedBy": [
+        "p02"
+      ],
+      "refEntries": [
+        "04_P02/images/guide_avoid_2_too_small_3x_native.png"
+      ],
+      "path": null,
+      "source_filename": null,
+      "mime_type": null,
+      "width": null,
+      "height": null,
+      "bytes": null,
+      "sha256": null,
+      "status": "ASSET_SOURCE_BLOCKED",
+      "source_status": "NOT_FOUND_IN_CURRENT_MAIN_OR_PRIOR_HANDOFFS",
+      "provenance_status": "NO_INDEPENDENT_ORIGINAL_LOCATED",
+      "license_status": "NOT_CONFIRMED",
+      "approved_for_frontend_consumption": false,
+      "runtime_mapping": false,
+      "reference_only_package_entries": [
+        {
+          "package_path": "04_P02/images/guide_avoid_2_too_small_3x_native.png",
+          "status": "REFERENCE_ONLY",
+          "direct_repo_file": false,
+          "usage": "可用于理解历史截图中的示例位置，不得作为前端/Android正式照片素材"
+        }
+      ],
+      "note": "必须补入独立原始照片或经用户批准的新候选照片；不得从 Frozen PNG/拼接截图再次裁切。"
+    },
+    {
+      "id": "error_occluded_vertical",
+      "label": "遮挡过多 · 竖向鱼体",
+      "role": "excessive_occlusion",
+      "orientation": "vertical",
+      "sharedBy": [
+        "p02"
+      ],
+      "refEntries": [
+        "04_P02/images/guide_avoid_3_occluded_3x_native.png"
+      ],
+      "path": null,
+      "source_filename": null,
+      "mime_type": null,
+      "width": null,
+      "height": null,
+      "bytes": null,
+      "sha256": null,
+      "status": "ASSET_SOURCE_BLOCKED",
+      "source_status": "NOT_FOUND_IN_CURRENT_MAIN_OR_PRIOR_HANDOFFS",
+      "provenance_status": "NO_INDEPENDENT_ORIGINAL_LOCATED",
+      "license_status": "NOT_CONFIRMED",
+      "approved_for_frontend_consumption": false,
+      "runtime_mapping": false,
+      "reference_only_package_entries": [
+        {
+          "package_path": "04_P02/images/guide_avoid_3_occluded_3x_native.png",
+          "status": "REFERENCE_ONLY",
+          "direct_repo_file": false,
+          "usage": "可用于理解历史截图中的示例位置，不得作为前端/Android正式照片素材"
+        }
+      ],
+      "note": "必须补入独立原始照片或经用户批准的新候选照片；不得从 Frozen PNG/拼接截图再次裁切。"
+    }
+  ],
+  "bindings": [
+    {
+      "binding_id": "p01.hero",
+      "page_id": "p01",
+      "page_title": "P01 · 竖屏拍摄示意",
+      "slot_id": "hero",
+      "role": "correct_hero",
+      "label": "正确示范 · 横向鱼体",
+      "required_orientation": "horizontal",
+      "asset_id": "hero_horizontal",
+      "status": "ASSET_SOURCE_BLOCKED",
+      "required": true,
+      "reference_only_entries": []
+    },
+    {
+      "binding_id": "p01.error_head_out_of_frame",
+      "page_id": "p01",
+      "page_title": "P01 · 竖屏拍摄示意",
+      "slot_id": "error_head_out_of_frame",
+      "role": "fish_head_out_of_frame",
+      "label": "鱼头不在画面 · 横向鱼体",
+      "required_orientation": "horizontal",
+      "asset_id": "error_head_out_horizontal",
+      "status": "ASSET_SOURCE_BLOCKED",
+      "required": true,
+      "reference_only_entries": [
+        "03_P01/images/guide_avoid_1_no_head_3x_native.png",
+        "05_P03/images/guide_avoid_1_no_head_3x_native.png"
+      ]
+    },
+    {
+      "binding_id": "p01.error_fish_too_small",
+      "page_id": "p01",
+      "page_title": "P01 · 竖屏拍摄示意",
+      "slot_id": "error_fish_too_small",
+      "role": "fish_too_small",
+      "label": "鱼体过小 · 横向鱼体",
+      "required_orientation": "horizontal",
+      "asset_id": "error_too_small_horizontal",
+      "status": "ASSET_SOURCE_BLOCKED",
+      "required": true,
+      "reference_only_entries": [
+        "03_P01/images/guide_avoid_2_too_small_3x_native.png",
+        "05_P03/images/guide_avoid_2_too_small_3x_native.png"
+      ]
+    },
+    {
+      "binding_id": "p01.error_excessive_occlusion",
+      "page_id": "p01",
+      "page_title": "P01 · 竖屏拍摄示意",
+      "slot_id": "error_excessive_occlusion",
+      "role": "excessive_occlusion",
+      "label": "遮挡过多 · 横向鱼体",
+      "required_orientation": "horizontal",
+      "asset_id": "error_occluded_horizontal",
+      "status": "ASSET_SOURCE_BLOCKED",
+      "required": true,
+      "reference_only_entries": [
+        "03_P01/images/guide_avoid_3_occluded_3x_native.png",
+        "05_P03/images/guide_avoid_3_occluded_3x_native.png"
+      ]
+    },
+    {
+      "binding_id": "p02.hero",
+      "page_id": "p02",
+      "page_title": "P02 · 竖拍鱼类拍摄示意",
+      "slot_id": "hero",
+      "role": "correct_hero",
+      "label": "正确示范 · 竖向鱼体",
+      "required_orientation": "vertical",
+      "asset_id": "hero_vertical",
+      "status": "ASSET_SOURCE_BLOCKED",
+      "required": true,
+      "reference_only_entries": []
+    },
+    {
+      "binding_id": "p02.error_head_out_of_frame",
+      "page_id": "p02",
+      "page_title": "P02 · 竖拍鱼类拍摄示意",
+      "slot_id": "error_head_out_of_frame",
+      "role": "fish_head_out_of_frame",
+      "label": "鱼头不在画面 · 竖向鱼体",
+      "required_orientation": "vertical",
+      "asset_id": "error_head_out_vertical",
+      "status": "ASSET_SOURCE_BLOCKED",
+      "required": true,
+      "reference_only_entries": [
+        "04_P02/images/guide_avoid_1_no_head_3x_native.png"
+      ]
+    },
+    {
+      "binding_id": "p02.error_fish_too_small",
+      "page_id": "p02",
+      "page_title": "P02 · 竖拍鱼类拍摄示意",
+      "slot_id": "error_fish_too_small",
+      "role": "fish_too_small",
+      "label": "鱼体过小 · 竖向鱼体",
+      "required_orientation": "vertical",
+      "asset_id": "error_too_small_vertical",
+      "status": "ASSET_SOURCE_BLOCKED",
+      "required": true,
+      "reference_only_entries": [
+        "04_P02/images/guide_avoid_2_too_small_3x_native.png"
+      ]
+    },
+    {
+      "binding_id": "p02.error_excessive_occlusion",
+      "page_id": "p02",
+      "page_title": "P02 · 竖拍鱼类拍摄示意",
+      "slot_id": "error_excessive_occlusion",
+      "role": "excessive_occlusion",
+      "label": "遮挡过多 · 竖向鱼体",
+      "required_orientation": "vertical",
+      "asset_id": "error_occluded_vertical",
+      "status": "ASSET_SOURCE_BLOCKED",
+      "required": true,
+      "reference_only_entries": [
+        "04_P02/images/guide_avoid_3_occluded_3x_native.png"
+      ]
+    },
+    {
+      "binding_id": "p03.hero",
+      "page_id": "p03",
+      "page_title": "P03 · 横屏拍摄示意",
+      "slot_id": "hero",
+      "role": "correct_hero",
+      "label": "正确示范 · 横向鱼体",
+      "required_orientation": "horizontal",
+      "asset_id": "hero_horizontal",
+      "status": "ASSET_SOURCE_BLOCKED",
+      "required": true,
+      "reference_only_entries": []
+    },
+    {
+      "binding_id": "p03.error_head_out_of_frame",
+      "page_id": "p03",
+      "page_title": "P03 · 横屏拍摄示意",
+      "slot_id": "error_head_out_of_frame",
+      "role": "fish_head_out_of_frame",
+      "label": "鱼头不在画面 · 横向鱼体",
+      "required_orientation": "horizontal",
+      "asset_id": "error_head_out_horizontal",
+      "status": "ASSET_SOURCE_BLOCKED",
+      "required": true,
+      "reference_only_entries": [
+        "03_P01/images/guide_avoid_1_no_head_3x_native.png",
+        "05_P03/images/guide_avoid_1_no_head_3x_native.png"
+      ]
+    },
+    {
+      "binding_id": "p03.error_fish_too_small",
+      "page_id": "p03",
+      "page_title": "P03 · 横屏拍摄示意",
+      "slot_id": "error_fish_too_small",
+      "role": "fish_too_small",
+      "label": "鱼体过小 · 横向鱼体",
+      "required_orientation": "horizontal",
+      "asset_id": "error_too_small_horizontal",
+      "status": "ASSET_SOURCE_BLOCKED",
+      "required": true,
+      "reference_only_entries": [
+        "03_P01/images/guide_avoid_2_too_small_3x_native.png",
+        "05_P03/images/guide_avoid_2_too_small_3x_native.png"
+      ]
+    },
+    {
+      "binding_id": "p03.error_excessive_occlusion",
+      "page_id": "p03",
+      "page_title": "P03 · 横屏拍摄示意",
+      "slot_id": "error_excessive_occlusion",
+      "role": "excessive_occlusion",
+      "label": "遮挡过多 · 横向鱼体",
+      "required_orientation": "horizontal",
+      "asset_id": "error_occluded_horizontal",
+      "status": "ASSET_SOURCE_BLOCKED",
+      "required": true,
+      "reference_only_entries": [
+        "03_P01/images/guide_avoid_3_occluded_3x_native.png",
+        "05_P03/images/guide_avoid_3_occluded_3x_native.png"
+      ]
+    }
+  ],
+  "required_asset_roles": [
+    {
+      "suffix": "correct_hero",
+      "label": "正确示范 · 鱼体完整",
+      "role": "correct_hero",
+      "orientation": null,
+      "description": "主体鱼体完整、清晰、占据合理画面比例"
+    },
+    {
+      "suffix": "fish_head_out_of_frame",
+      "label": "错误示范 · 鱼头不在画面",
+      "role": "fish_head_out_of_frame",
+      "orientation": null,
+      "description": "鱼头被画面边缘截断"
+    },
+    {
+      "suffix": "fish_too_small",
+      "label": "错误示范 · 鱼体过小",
+      "role": "fish_too_small",
+      "orientation": null,
+      "description": "鱼体在画面中占比过小"
+    },
+    {
+      "suffix": "excessive_occlusion",
+      "label": "错误示范 · 遮挡过多",
+      "role": "excessive_occlusion",
+      "orientation": null,
+      "description": "鱼体关键区域被手、抄网或其他物体遮挡"
+    }
+  ]
+}
