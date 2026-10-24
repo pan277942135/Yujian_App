@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "task_id": "YUJIAN_FIRST_USE_GUIDE_FRONTEND_ASSET_CATALOG_V1",
-  "status": "PARTIAL_SOURCE_BLOCKED",
+  "status": "PARTIAL_REFERENCE_ONLY_CROPS_AND_BLOCKED_HERO_SOURCES",
   "authority": "design/pages/recognition/first_use_camera_guide/First_Use_Camera_Guide_Spec_V1.md",
   "frozen_page_manifest": "design/pages/recognition/first_use_camera_guide/manifest.json",
   "structured_page_manifest": "design/pages/recognition/first_use_camera_guide/structured_pages.json",
@@ -69,7 +69,7 @@
       "height": null,
       "bytes": null,
       "sha256": null,
-      "provenance": "Repository/archive search not yet able to identify an independent approved photo source; frozen page PNG is not an acceptable substitute.",
+      "provenance": "No independent approved hero photo identified in the inspected package; frozen full-page PNG cannot substitute.",
       "license_status": "NOT_CONFIRMED",
       "authority_state": "ASSET_SOURCE_BLOCKED",
       "approved_for_frontend": false
@@ -88,10 +88,20 @@
       "height": null,
       "bytes": null,
       "sha256": null,
-      "provenance": "Independent original photo not yet located/verified. Do not crop the supplied composite screenshot or frozen page PNG.",
+      "provenance": "A matching REFERENCE_ONLY crop is listed in the existing extracted-resource package manifest; it is not an independent clean photo source and is not yet materialized as a standalone repository asset.",
       "license_status": "NOT_CONFIRMED",
-      "authority_state": "ASSET_SOURCE_BLOCKED",
-      "approved_for_frontend": false
+      "authority_state": "CANDIDATE_NEEDS_APPROVAL",
+      "approved_for_frontend": false,
+      "reference_package_asset": {
+        "package": "design/resource_packages/Yujian_NH01_P01-P03_Extracted_Resources_V1.zip.parts",
+        "internal_path": "03_P01/images/guide_avoid_1_no_head_3x_native.png",
+        "extraction_status": "ARCHIVE_PACKAGE_ONLY_NOT_MATERIALIZED_AS_STANDALONE_REPO_FILE",
+        "method": "native_pixel_crop_lossless",
+        "sha256": "6b44c18f4ad44151b6af67a902468b1d1ae8ffe928b7a77c2683ff9c19e49381",
+        "bytes": 76154,
+        "authority_state": "REFERENCE_ONLY",
+        "note": "These crops originate from flattened composited page screenshots; labels/rounded corners may be baked in. Use only as visual/layout references, not as approved independent production photography."
+      }
     },
     {
       "id": "p01_fish_too_small",
@@ -107,10 +117,20 @@
       "height": null,
       "bytes": null,
       "sha256": null,
-      "provenance": "Independent original photo not yet located/verified. Do not crop the supplied composite screenshot or frozen page PNG.",
+      "provenance": "A matching REFERENCE_ONLY crop is listed in the existing extracted-resource package manifest; it is not an independent clean photo source and is not yet materialized as a standalone repository asset.",
       "license_status": "NOT_CONFIRMED",
-      "authority_state": "ASSET_SOURCE_BLOCKED",
-      "approved_for_frontend": false
+      "authority_state": "CANDIDATE_NEEDS_APPROVAL",
+      "approved_for_frontend": false,
+      "reference_package_asset": {
+        "package": "design/resource_packages/Yujian_NH01_P01-P03_Extracted_Resources_V1.zip.parts",
+        "internal_path": "03_P01/images/guide_avoid_2_too_small_3x_native.png",
+        "extraction_status": "ARCHIVE_PACKAGE_ONLY_NOT_MATERIALIZED_AS_STANDALONE_REPO_FILE",
+        "method": "native_pixel_crop_lossless",
+        "sha256": "44f88b595f212b62587fa4427ac2a208e72706bd7229653aa3be05f72d096845",
+        "bytes": 73164,
+        "authority_state": "REFERENCE_ONLY",
+        "note": "These crops originate from flattened composited page screenshots; labels/rounded corners may be baked in. Use only as visual/layout references, not as approved independent production photography."
+      }
     },
     {
       "id": "p01_excessive_occlusion",
@@ -126,10 +146,20 @@
       "height": null,
       "bytes": null,
       "sha256": null,
-      "provenance": "Independent original photo not yet located/verified. Do not crop the supplied composite screenshot or frozen page PNG.",
+      "provenance": "A matching REFERENCE_ONLY crop is listed in the existing extracted-resource package manifest; it is not an independent clean photo source and is not yet materialized as a standalone repository asset.",
       "license_status": "NOT_CONFIRMED",
-      "authority_state": "ASSET_SOURCE_BLOCKED",
-      "approved_for_frontend": false
+      "authority_state": "CANDIDATE_NEEDS_APPROVAL",
+      "approved_for_frontend": false,
+      "reference_package_asset": {
+        "package": "design/resource_packages/Yujian_NH01_P01-P03_Extracted_Resources_V1.zip.parts",
+        "internal_path": "03_P01/images/guide_avoid_3_occluded_3x_native.png",
+        "extraction_status": "ARCHIVE_PACKAGE_ONLY_NOT_MATERIALIZED_AS_STANDALONE_REPO_FILE",
+        "method": "native_pixel_crop_lossless",
+        "sha256": "77234727c42593ce00a316dfdc590307aa57ac9feef7b32b7174115fa962bfe4",
+        "bytes": 67949,
+        "authority_state": "REFERENCE_ONLY",
+        "note": "These crops originate from flattened composited page screenshots; labels/rounded corners may be baked in. Use only as visual/layout references, not as approved independent production photography."
+      }
     },
     {
       "id": "p02_correct_hero",
@@ -144,7 +174,7 @@
       "height": null,
       "bytes": null,
       "sha256": null,
-      "provenance": "Repository/archive search not yet able to identify an independent approved photo source; frozen page PNG is not an acceptable substitute.",
+      "provenance": "No independent approved hero photo identified in the inspected package; frozen full-page PNG cannot substitute.",
       "license_status": "NOT_CONFIRMED",
       "authority_state": "ASSET_SOURCE_BLOCKED",
       "approved_for_frontend": false
@@ -163,10 +193,20 @@
       "height": null,
       "bytes": null,
       "sha256": null,
-      "provenance": "Independent original photo not yet located/verified. Do not crop the supplied composite screenshot or frozen page PNG.",
+      "provenance": "A matching REFERENCE_ONLY crop is listed in the existing extracted-resource package manifest; it is not an independent clean photo source and is not yet materialized as a standalone repository asset.",
       "license_status": "NOT_CONFIRMED",
-      "authority_state": "ASSET_SOURCE_BLOCKED",
-      "approved_for_frontend": false
+      "authority_state": "CANDIDATE_NEEDS_APPROVAL",
+      "approved_for_frontend": false,
+      "reference_package_asset": {
+        "package": "design/resource_packages/Yujian_NH01_P01-P03_Extracted_Resources_V1.zip.parts",
+        "internal_path": "04_P02/images/guide_avoid_1_no_head_3x_native.png",
+        "extraction_status": "ARCHIVE_PACKAGE_ONLY_NOT_MATERIALIZED_AS_STANDALONE_REPO_FILE",
+        "method": "native_pixel_crop_lossless",
+        "sha256": "bc6ad4836f6e9bf94794cb1775b3eee078a88370a9f73988ae75e0a287c6eaa0",
+        "bytes": 76252,
+        "authority_state": "REFERENCE_ONLY",
+        "note": "These crops originate from flattened composited page screenshots; labels/rounded corners may be baked in. Use only as visual/layout references, not as approved independent production photography."
+      }
     },
     {
       "id": "p02_fish_too_small",
@@ -182,10 +222,20 @@
       "height": null,
       "bytes": null,
       "sha256": null,
-      "provenance": "Independent original photo not yet located/verified. Do not crop the supplied composite screenshot or frozen page PNG.",
+      "provenance": "A matching REFERENCE_ONLY crop is listed in the existing extracted-resource package manifest; it is not an independent clean photo source and is not yet materialized as a standalone repository asset.",
       "license_status": "NOT_CONFIRMED",
-      "authority_state": "ASSET_SOURCE_BLOCKED",
-      "approved_for_frontend": false
+      "authority_state": "CANDIDATE_NEEDS_APPROVAL",
+      "approved_for_frontend": false,
+      "reference_package_asset": {
+        "package": "design/resource_packages/Yujian_NH01_P01-P03_Extracted_Resources_V1.zip.parts",
+        "internal_path": "04_P02/images/guide_avoid_2_too_small_3x_native.png",
+        "extraction_status": "ARCHIVE_PACKAGE_ONLY_NOT_MATERIALIZED_AS_STANDALONE_REPO_FILE",
+        "method": "native_pixel_crop_lossless",
+        "sha256": "2cd3338a66527f77aed2a6ded40d04f54de82d5708ee9e60082c7849a2a4aaef",
+        "bytes": 73392,
+        "authority_state": "REFERENCE_ONLY",
+        "note": "These crops originate from flattened composited page screenshots; labels/rounded corners may be baked in. Use only as visual/layout references, not as approved independent production photography."
+      }
     },
     {
       "id": "p02_excessive_occlusion",
@@ -201,10 +251,20 @@
       "height": null,
       "bytes": null,
       "sha256": null,
-      "provenance": "Independent original photo not yet located/verified. Do not crop the supplied composite screenshot or frozen page PNG.",
+      "provenance": "A matching REFERENCE_ONLY crop is listed in the existing extracted-resource package manifest; it is not an independent clean photo source and is not yet materialized as a standalone repository asset.",
       "license_status": "NOT_CONFIRMED",
-      "authority_state": "ASSET_SOURCE_BLOCKED",
-      "approved_for_frontend": false
+      "authority_state": "CANDIDATE_NEEDS_APPROVAL",
+      "approved_for_frontend": false,
+      "reference_package_asset": {
+        "package": "design/resource_packages/Yujian_NH01_P01-P03_Extracted_Resources_V1.zip.parts",
+        "internal_path": "04_P02/images/guide_avoid_3_occluded_3x_native.png",
+        "extraction_status": "ARCHIVE_PACKAGE_ONLY_NOT_MATERIALIZED_AS_STANDALONE_REPO_FILE",
+        "method": "native_pixel_crop_lossless",
+        "sha256": "a5506afa6345d027ade22a9a34ad24120042fb9055c1cc6fbd6483db80f62a93",
+        "bytes": 64715,
+        "authority_state": "REFERENCE_ONLY",
+        "note": "These crops originate from flattened composited page screenshots; labels/rounded corners may be baked in. Use only as visual/layout references, not as approved independent production photography."
+      }
     },
     {
       "id": "p03_correct_hero",
@@ -219,7 +279,7 @@
       "height": null,
       "bytes": null,
       "sha256": null,
-      "provenance": "Repository/archive search not yet able to identify an independent approved photo source; frozen page PNG is not an acceptable substitute.",
+      "provenance": "No independent approved hero photo identified in the inspected package; frozen full-page PNG cannot substitute.",
       "license_status": "NOT_CONFIRMED",
       "authority_state": "ASSET_SOURCE_BLOCKED",
       "approved_for_frontend": false
@@ -238,10 +298,20 @@
       "height": null,
       "bytes": null,
       "sha256": null,
-      "provenance": "Independent original photo not yet located/verified. Do not crop the supplied composite screenshot or frozen page PNG.",
+      "provenance": "A matching REFERENCE_ONLY crop is listed in the existing extracted-resource package manifest; it is not an independent clean photo source and is not yet materialized as a standalone repository asset.",
       "license_status": "NOT_CONFIRMED",
-      "authority_state": "ASSET_SOURCE_BLOCKED",
-      "approved_for_frontend": false
+      "authority_state": "CANDIDATE_NEEDS_APPROVAL",
+      "approved_for_frontend": false,
+      "reference_package_asset": {
+        "package": "design/resource_packages/Yujian_NH01_P01-P03_Extracted_Resources_V1.zip.parts",
+        "internal_path": "05_P03/images/guide_avoid_1_no_head_3x_native.png",
+        "extraction_status": "ARCHIVE_PACKAGE_ONLY_NOT_MATERIALIZED_AS_STANDALONE_REPO_FILE",
+        "method": "native_pixel_crop_lossless",
+        "sha256": "5ee1fe2f6347620cb3754976882190320e85111b881979301713568e10e093e7",
+        "bytes": 77415,
+        "authority_state": "REFERENCE_ONLY",
+        "note": "These crops originate from flattened composited page screenshots; labels/rounded corners may be baked in. Use only as visual/layout references, not as approved independent production photography."
+      }
     },
     {
       "id": "p03_fish_too_small",
@@ -257,10 +327,20 @@
       "height": null,
       "bytes": null,
       "sha256": null,
-      "provenance": "Independent original photo not yet located/verified. Do not crop the supplied composite screenshot or frozen page PNG.",
+      "provenance": "A matching REFERENCE_ONLY crop is listed in the existing extracted-resource package manifest; it is not an independent clean photo source and is not yet materialized as a standalone repository asset.",
       "license_status": "NOT_CONFIRMED",
-      "authority_state": "ASSET_SOURCE_BLOCKED",
-      "approved_for_frontend": false
+      "authority_state": "CANDIDATE_NEEDS_APPROVAL",
+      "approved_for_frontend": false,
+      "reference_package_asset": {
+        "package": "design/resource_packages/Yujian_NH01_P01-P03_Extracted_Resources_V1.zip.parts",
+        "internal_path": "05_P03/images/guide_avoid_2_too_small_3x_native.png",
+        "extraction_status": "ARCHIVE_PACKAGE_ONLY_NOT_MATERIALIZED_AS_STANDALONE_REPO_FILE",
+        "method": "native_pixel_crop_lossless",
+        "sha256": "a814a26b0c9d6177215021657f105441b06a13b60200694c077dc1a481cf697c",
+        "bytes": 73182,
+        "authority_state": "REFERENCE_ONLY",
+        "note": "These crops originate from flattened composited page screenshots; labels/rounded corners may be baked in. Use only as visual/layout references, not as approved independent production photography."
+      }
     },
     {
       "id": "p03_excessive_occlusion",
@@ -276,10 +356,20 @@
       "height": null,
       "bytes": null,
       "sha256": null,
-      "provenance": "Independent original photo not yet located/verified. Do not crop the supplied composite screenshot or frozen page PNG.",
+      "provenance": "A matching REFERENCE_ONLY crop is listed in the existing extracted-resource package manifest; it is not an independent clean photo source and is not yet materialized as a standalone repository asset.",
       "license_status": "NOT_CONFIRMED",
-      "authority_state": "ASSET_SOURCE_BLOCKED",
-      "approved_for_frontend": false
+      "authority_state": "CANDIDATE_NEEDS_APPROVAL",
+      "approved_for_frontend": false,
+      "reference_package_asset": {
+        "package": "design/resource_packages/Yujian_NH01_P01-P03_Extracted_Resources_V1.zip.parts",
+        "internal_path": "05_P03/images/guide_avoid_3_occluded_3x_native.png",
+        "extraction_status": "ARCHIVE_PACKAGE_ONLY_NOT_MATERIALIZED_AS_STANDALONE_REPO_FILE",
+        "method": "native_pixel_crop_lossless",
+        "sha256": "5a003ceceb2773efb1d31628a4a8b0c61aab4fb6eb420da88b07bfd937bd8920",
+        "bytes": 71279,
+        "authority_state": "REFERENCE_ONLY",
+        "note": "These crops originate from flattened composited page screenshots; labels/rounded corners may be baked in. Use only as visual/layout references, not as approved independent production photography."
+      }
     }
   ]
 }
