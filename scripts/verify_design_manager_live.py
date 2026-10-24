@@ -63,7 +63,7 @@ def main() -> int:
     else:
         manager_url = urljoin(base, "design/manager/")
     parent_url = urljoin(manager_url, "../../")
-    result = {"gate": "PASS", "manager_url": manager_url, "expected_build": args.expected_build, "assets": [], "missing_paths": []}
+    result = {"gate": "PASS", "manager_url": manager_url, "expected_build": args.expected_build, "assets": [], "guide_frontend_assets": [], "missing_paths": []}
 
     index_bytes, _ = fetch(manager_url)
     index = index_bytes.decode("utf-8")
@@ -116,6 +116,60 @@ def main() -> int:
                 f"live Registry SHA mismatch: {asset_id}")
         result["assets"].append({"id": asset_id, "path": path, "http": 200, "bytes": len(raw), "sha256": digest, "dimensions": list(dimensions), "status": "FROZEN"})
 
+    frontend_manifest_path = "design/pages/recognition/first_use_camera_guide/frontend_assets_manifest.json"
+    structure_contract_path = "design/pages/recognition/first_use_camera_guide/page_structure.json"
+    require(resources.get("frontend_assets_manifest") == frontend_manifest_path,
+            "live Registry frontend asset manifest path changed")
+    require(resources.get("page_structure_contract") == structure_contract_path,
+            "live Registry page structure contract path changed")
+    frontend_raw, _ = fetch(urljoin(parent_url, frontend_manifest_path))
+    frontend_manifest = json.loads(frontend_raw)
+    structure_raw, _ = fetch(urljoin(parent_url, structure_contract_path))
+    structure_contract = json.loads(structure_raw)
+    require(frontend_manifest.get("status") == "PARTIAL_SOURCE_BLOCKED",
+            "live front-end photo catalog must preserve its source-blocked status")
+    require(len(frontend_manifest.get("assets", [])) == 8 and len(frontend_manifest.get("bindings", [])) == 12,
+            "live front-end photo catalog must contain 8 unique asset definitions and 12 page bindings")
+    require(all(asset.get("status") == "ASSET_SOURCE_BLOCKED" and asset.get("path") is None and
+                asset.get("approved_for_frontend_consumption") is False
+                for asset in frontend_manifest.get("assets", [])),
+            "live front-end photo manifest must not promote missing photos")
+    require(structure_contract.get("status") == "STRUCTURE_ONLY_CANDIDATE" and
+            structure_contract.get("visual_authority") is False and
+            structure_contract.get("runtime_visual_authority") is False,
+            "live structure contract must remain candidate-only")
+    require(len(structure_contract.get("pages", [])) == 3,
+            "live structure contract must preserve P01/P02/P03")
+    require(resource_menus[0].get("frontend_assets_manifest") == "frontend_assets_manifest.json" and
+            resource_menus[0].get("page_structure_contract") == "page_structure.json",
+            "live navigation manifest does not link both new resource contracts")
+    for page in structure_contract.get("pages", []):
+        path = page.get("structure_preview_path")
+        require(bool(path), "live page structure preview path is missing")
+        raw, _ = fetch(urljoin(parent_url, quote(path, safe="/")))
+        digest = hashlib.sha256(raw).hexdigest()
+        text = raw.decode("utf-8", errors="replace")
+        require("<svg" in text and "STRUCTURE_ONLY_CANDIDATE" in text and "独立原图未找到" in text,
+                f"live structure SVG lacks candidate/missing-source labeling: {path}")
+        result["guide_frontend_assets"].append({
+            "id": page.get("id"),
+            "path": path,
+            "http": 200,
+            "bytes": len(raw),
+            "sha256": digest,
+            "status": "STRUCTURE_ONLY_CANDIDATE"
+        })
+    result["guide_frontend_asset_catalog"] = {
+        "status": frontend_manifest.get("status"),
+        "independent_originals_found": frontend_manifest.get("source_inventory", {}).get("found_independent_original_count"),
+        "unique_source_assets": len(frontend_manifest.get("assets", [])),
+        "page_bindings": len(frontend_manifest.get("bindings", [])),
+        "status_counts": {
+            "ASSET_SOURCE_BLOCKED": sum(1 for asset in frontend_manifest.get("assets", []) if asset.get("status") == "ASSET_SOURCE_BLOCKED"),
+            "CANDIDATE_NEEDS_APPROVAL": sum(1 for asset in frontend_manifest.get("assets", []) if asset.get("status") == "CANDIDATE_NEEDS_APPROVAL")
+        }
+    }
+
     asset_dir = "design/system_v3/00_Product_Master_Flow/assets/"
     source_assets = [
         ("overview_png", asset_dir + "Recognition_Main_Journey_Overview_V1.png", "2cf0ea161360888248fb42227d2a2511df64aa94a4c4d3af7c7ffd3f06a0aeea"),
@@ -148,7 +202,7 @@ def main() -> int:
     if args.output:
         args.output.parent.mkdir(parents=True, exist_ok=True)
         args.output.write_text(json.dumps(result, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    print(f"PASS: Pages live release | build={build['sha']} | Resources menu + P01/P02/P03 + overview/review originals SHA-verified | expected missing paths=404")
+    print(f"PASS: Pages live release | build={build['sha']} | Resources + 3 structure SVGs SHA-verified | photo catalog={result['guide_frontend_asset_catalog']['status']} (independent originals={result['guide_frontend_asset_catalog']['independent_originals_found']}) | expected missing paths=404")
     return 0
 
 
