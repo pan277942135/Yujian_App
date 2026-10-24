@@ -220,9 +220,9 @@ G1 或 CI PASS 不自动通过 G3–G7。静态关键帧、手绘 Mask、HTTP 20
 
 - Design authority repository：pan277942135/Yujian_App，本次审计基线为 main@da9976090021232f0eec936bc4d30f9fa59d90f7。
 - Product repository：pan277942135/Yujian。
-- 本轮审计 PR #177 HEAD：a0596aaf609914e0de8a325da06b2f286a139150；产品 main：6a2064c2a02a76437b6e09a5241bc199cfa05048；比较结果 30 ahead / 0 behind。精确 SHA CI run 39963664724 为 PASS，包含 fixture-only 3650ms WebM、15 个 seek 点、几何截图和生成测试图上的 BBOX_ONLY 柔光像素差报告（ROI mean 4.22、max 17；无精准轮廓）；该证据不等于真实照片视觉验收。产品实时推理、SAM 输出和真实设备帧率未在此 CI 中运行。产品全量测试仍受既有 metadata-access review 阻塞。PR #182 当前 head ca5921ef3b225fd1b3f3966590c65e02a6c5dc3b 的 scoped run 39964210866 中 validate 与 Chromium job 已 PASS，离线 probe 单元测试通过；该 run 未部署候选版本、未发起实时模型或 SAM 请求。
-- PR #182 在 open/unmerged 分支上提出 no-traffic preview pin 和 candidate-only SAM flag；产品 main 上实际 no-traffic workflow 仍固定在旧 SHA 4de911dc497c150545d938b60b2694f3c4723e37。当前产品 SHA 的候选 Revision/health SHA、HTTP 状态、真实照片推理、Mask 输出与默认流量快照均未验证。 该 workflow 仅在 main 的路径 push 或 main 上手动 dispatch 时运行，preflight 也限定 `refs/heads/main`；PR 分支无法直接生成候选 Revision。
-- CI fixture playback 状态 `BROWSER_VERIFIED_FIXTURE_ONLY`；部署运行视觉状态 `NOT_VERIFIED`；生产级 Mask `NOT_QUALIFIED`；性能与用户视觉验收 `NOT_RUN`。
+- 本轮实时审计 PR #177 HEAD：5aa44cac6c8895ab28566ba1f5f9baf40953065e；产品 main：15d4d1152cce08a3786d51bf1285381ed75d97e6；比较结果 47 ahead / 0 behind。精确 SHA CI [run 40053248593](https://github.com/pan277942135/Yujian/actions/runs/40053248593) 为 PASS（validate + Chromium/UI simulation + offline SWOS probe unit tests）；不包含认证后的真实推理或视觉验收。此前候选探测 [run 39982073543](https://github.com/pan277942135/Yujian/actions/runs/39982073543) 的 0/5 Mask 结论无效：2 次请求 401 未登录、3 次 Wikimedia 下载 429，未完成有效的真实推理测试。
+- PR #182 已合并为产品 main 的基础设施提交；main 当前 no-traffic workflow pin 为旧产品 SHA 6da640859f063d7f42ee5432e6b35ecb162802ff。候选 Revision `yujian-model-factory-console-00349-hes` 已存在且健康 SHA 匹配 6da640859f063d7f42ee5432e6b35ecb162802ff，但它不匹配当前 PR #177 HEAD 5aa44cac6c8895ab28566ba1f5f9baf40953065e。当前部署探测失败的直接原因是认证缺失和公共素材限流；当前源码的候选 Revision/真实推理/Mask/浏览器视觉仍未验证。
+- CI fixture playback 状态仍为 `BROWSER_VERIFIED_FIXTURE_ONLY`；候选 Revision 仅绑定旧 SHA 6da640859f063d7f42ee5432e6b35ecb162802ff；部署运行的真实推理探测 `BLOCKED_AUTH_AND_FIXTURE_429`；部署运行视觉状态 `NOT_VERIFIED`；生产级 Mask `NOT_QUALIFIED`；性能与用户视觉验收 `NOT_RUN`。
 - 上述 SHA 是本次审计快照；后续执行必须重新读取实时 PR、main、CI 与预览健康信息，不能把本文中的历史 SHA 当成永久常量。
 
 ## 12. 权威机器合同
