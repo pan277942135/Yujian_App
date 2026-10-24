@@ -46,7 +46,9 @@
     "unique_required_source_assets": 8,
     "page_slot_binding_count": 12,
     "p01_p03_horizontal_source_sharing_allowed": true,
-    "p02_requires_vertical_fish_assets": true
+    "p02_requires_vertical_fish_assets": true,
+    "do_not_crop_frozen_composites": true,
+    "do_not_crop_composite_screenshots_for_production_assets": true
   },
   "assets": [
     {
