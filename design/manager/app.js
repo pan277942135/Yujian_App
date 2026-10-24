@@ -3244,17 +3244,40 @@ function recognitionGuideResourcesCanvas(child, feature) {
       '</div>' +
     '</article>';
   }).join("");
-  const manifest = child.resource_manifest
-    ? '<a href="' + esc(repoHref(child.resource_manifest)) + '" target="_blank" rel="noreferrer">打开资源 Manifest ↗</a>'
+  const link = (path, label) => path
+    ? '<a href="' + esc(repoHref(path)) + '" target="_blank" rel="noreferrer">' + esc(label) + ' ↗</a>'
     : "";
+  const pageManifest = link(child.resource_manifest, "冻结页面图 Manifest");
+  const frontendManifest = link(child.frontend_asset_manifest, "前端独立素材 Manifest");
+  const structureManifest = link(child.structured_page_manifest, "结构化页面 JSON");
+  const slots = child.frontend_asset_slots || [];
+  const slotCards = slots.map(slot => {
+    const blocked = slot.authority_state === "ASSET_SOURCE_BLOCKED";
+    const referenceOnly = slot.reference_status === "REFERENCE_ONLY";
+    const stateLabel = blocked ? "× 独立主图待补" : referenceOnly ? "参考裁切 · 不可生产使用" : "候选待核验";
+    return '<article class="authority-index-card guide-asset-slot" data-asset-id="' + esc(slot.id) + '">' +
+      '<div class="authority-index-head"><strong>' + esc(slot.page_id.toUpperCase()) + ' · ' + esc(slot.label) + '</strong>' +
+        '<span class="badge status-' + (blocked ? 'BLOCKED_INTEGRITY' : 'PARTIAL') + '">' + stateLabel + '</span></div>' +
+      '<div class="authority-kind">' + esc(slot.role) + ' · 鱼体方向：' + esc(slot.fish_orientation === "vertical" ? "竖向" : "横向") + '</div>' +
+      '<p>' + esc(slot.note || "独立原始照片尚未核验。") + '</p>' +
+      '<dl class="guide-resource-metadata">' +
+        '<div><dt>资源 ID</dt><dd>' + esc(slot.id) + '</dd></div>' +
+        '<div><dt>来源状态</dt><dd>' + (referenceOnly ? "REFERENCE_ONLY · 归档裁切" : blocked ? "ASSET_SOURCE_BLOCKED" : "CANDIDATE_NEEDS_APPROVAL") + '</dd></div>' +
+        (slot.reference_package_path ? '<div><dt>归档路径</dt><dd>' + esc(slot.reference_package_path) + '</dd></div>' : '<div><dt>原始文件</dt><dd>未找到 / 未验证</dd></div>') +
+        (slot.reference_sha256 ? '<div><dt>参考文件 SHA-256</dt><dd>' + esc(slot.reference_sha256) + '</dd></div>' : '') +
+        '<div><dt>前端可用</dt><dd>否 · ' + (referenceOnly ? "仅作布局参考" : "来源待核验") + '</dd></div>' +
+      '</dl>' +
+    '</article>';
+  }).join("");
   return '<div class="authority-index guide-resource-gallery">' +
-    '<div class="authority-index-intro"><strong>页面静态资源 · Design Source</strong>' +
-      '<span>以下图片直接引用仓库中的 Frozen 原始 PNG，保持原始字节与比例。它们用于设计预览和下载，不代表 Android 运行时资源。</span></div>' +
+    '<div class="authority-index-intro"><strong>页面高保真资源 · Frozen Visual Authority</strong>' +
+      '<span>以下是三张整页冻结 PNG，仅用于视觉基准、对照和下载；不是可直接绑定到页面组件的独立鱼体照片。</span></div>' +
     (cards ? '<div class="authority-index-grid guide-resource-grid">' + cards + '</div>' : '<div class="preview-empty">资源清单没有可展示的 Frozen PNG。</div>') +
-    (manifest ? '<div class="authority-index-intro guide-resource-manifest"><strong>资源来源</strong><span>' + manifest + '</span></div>' : '') +
+    '<div class="authority-index-intro guide-resource-manifest"><strong>结构化开发合同</strong><span>' + [pageManifest, frontendManifest, structureManifest].filter(Boolean).join(' · ') + '</span></div>' +
+    '<div class="authority-index-intro guide-resource-manifest"><strong>前端独立素材 · 12 个必需槽位</strong><span>每页 1 张正确示范主图 + 3 张错误示范。已有 9 张归档错误示范裁切仅标为 REFERENCE_ONLY（源于合成整页图）；3 张正确主图仍缺独立原图。未将任何候选资源标记为生产可用。</span></div>' +
+    (slotCards ? '<div class="authority-index-grid guide-resource-grid">' + slotCards + '</div>' : '<div class="preview-empty">尚未登记前端素材槽位。</div>') +
   '</div>';
 }
-
 function genericSpecChildCanvas(child, feature = null) {
   if (child.render_mode === "recognition_guide_resources") return recognitionGuideResourcesCanvas(child, feature);
   if (child.render_mode === "recognition_master_board") return recognitionMasterBoardCanvas(child);

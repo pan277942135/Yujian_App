@@ -27,7 +27,7 @@
     {
       "id": "resources",
       "title": "资源",
-      "status": "DESIGN_ONLY",
+      "status": "DESIGN_ONLY_PARTIAL_ASSET_SOURCES",
       "route": "#page/recognition_flow_v1_2/hifi/capture_first_use_guide/resources",
       "manifest": "manifest.json",
       "resource_ids": [
@@ -35,7 +35,10 @@
         "p02",
         "p03"
       ],
-      "runtime_visual_authority": false
+      "runtime_visual_authority": false,
+      "frontend_asset_manifest": "frontend_assets_manifest.json",
+      "structured_page_manifest": "structured_pages.json",
+      "asset_slot_count": 12
     }
   ]
 }
