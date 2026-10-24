@@ -256,6 +256,25 @@ async function main() {
   }
   const manifestLink = page.locator(".guide-resource-manifest a");
   assert((await manifestLink.getAttribute("href"))?.includes("first_use_camera_guide/manifest.json"), "Resources route must link to the authoritative manifest");
+  await page.waitForFunction(() =>
+    document.querySelectorAll(".guide-structure-card").length === 3 &&
+    document.querySelectorAll(".guide-slot-card").length === 12
+  , null, { timeout: 15000 });
+  assert((await page.locator(".guide-slot-card .guide-status-blocked").count()) === 12,
+    "all missing independent photo sources must remain visibly ASSET_SOURCE_BLOCKED");
+  assert((await page.locator(".guide-structure-card .guide-status-candidate").count()) === 3,
+    "all three structure SVG previews must remain STRUCTURE_ONLY_CANDIDATE");
+  assert((await page.locator(".guide-resource-gallery").innerText()).includes("REFERENCE_ONLY"),
+    "resource workspace must explain the legacy screenshot-crop boundary");
+  for (const id of ["p01", "p02", "p03"]) {
+    const selector = `.guide-structure-card[data-guide-structure-id="${id}"]`;
+    const loaded = await waitForLoadedImage(page, `${selector} .guide-structure-preview img`, `${id.toUpperCase()} structure SVG`);
+    assert(loaded.width > 0 && loaded.height > 0, `${id.toUpperCase()} structure SVG did not render`);
+    const shaText = (await page.locator(`${selector} [data-structure-sha]`).innerText()).trim();
+    assert(/^[a-f0-9]{64}$/.test(shaText), `${id.toUpperCase()} structure SVG SHA-256 was not computed from served bytes: ${shaText}`);
+    const bytesText = (await page.locator(`${selector} [data-structure-bytes]`).innerText()).trim();
+    assert(/^[0-9,]+ bytes$/.test(bytesText), `${id.toUpperCase()} structure SVG byte count missing: ${bytesText}`);
+  }
   await page.screenshot({ path: resolve(args.outputDir, "guide-resources-1440.png"), fullPage: true });
   await page.setViewportSize({ width: 390, height: 844 });
   const resourceMobileWidth = await page.evaluate(() => ({ document: document.documentElement.scrollWidth, body: document.body.scrollWidth }));
@@ -353,7 +372,13 @@ async function main() {
   await open(resourcesHash);
   await page.reload({ waitUntil: "networkidle" });
   assert(page.url().endsWith(resourcesHash), "refresh must preserve the direct Resources Hash");
+  await page.waitForFunction(() =>
+    document.querySelectorAll(".guide-resource-card").length === 3 &&
+    document.querySelectorAll(".guide-structure-card").length === 3 &&
+    document.querySelectorAll(".guide-slot-card").length === 12
+  , null, { timeout: 15000 });
   assert(await page.locator(".guide-resource-card").count() === 3, "direct Resources Hash must render all source PNGs after refresh");
+  assert(await page.locator(".guide-slot-card").count() === 12, "direct Resources Hash must render all asset slots after refresh");
 
   const missingCases = [
     ["capture_portrait", "Recognition_Capture_Ready_Portrait_Horizontal_Fish_Frozen.png"],
@@ -535,7 +560,7 @@ async function main() {
     p01: guideImageInfo,
     overview: overviewImageInfo,
     review: reviewImage,
-    checks: ["direct Hash", "Resources submenu click and direct route", "original PNG previews/download links and manifest", "refresh", "back/forward", "modal zoom/fit/Esc/focus restore", "SWOS and continuity authority routes", "15-frame static workspace and exact 8+7 count", "R0.5 2900ms zoom and original/composite toggle", "P7/R0/R0.5/R1 geometry table", "RR09 ↔ SWOS routes", "Web Hi-Fi V2 authority/resources and 390px route", "local-only photo selection without persistent/network upload", "390px SWOS responsive preview", "RR09 V3 current / V2 historical route separation", "missing authority no fake UI", "invalid route guard", "no HTTP errors", "no console/page errors"],
+    checks: ["direct Hash", "Resources submenu click and direct route", "original PNG previews/download links and manifest", "three structured SVG page previews with runtime SHA/byte identity", "12 explicit blocked independent photo slots", "reference-only crop boundary", "refresh", "back/forward", "modal zoom/fit/Esc/focus restore", "SWOS and continuity authority routes", "15-frame static workspace and exact 8+7 count", "R0.5 2900ms zoom and original/composite toggle", "P7/R0/R0.5/R1 geometry table", "RR09 ↔ SWOS routes", "Web Hi-Fi V2 authority/resources and 390px route", "local-only photo selection without persistent/network upload", "390px SWOS responsive preview", "RR09 V3 current / V2 historical route separation", "missing authority no fake UI", "invalid route guard", "no HTTP errors", "no console/page errors"],
     swos_local_photo_sha256: uploadedPhotoSha,
     swos_local_photo_uploaded: Boolean(args.swosPhoto),
     screenshots: ["desktop-1440.png", "tablet-768.png", "mobile-390.png", "lightbox-1440.png", "overview-1440.png", "guide-resources-1440.png", "guide-resources-390.png", "swos-optical-contract-1440.png", "swos-static-visual-1440.png", "swos-static-visual-390.png", "swos-r05-zoom-1440.png", "swos-web-motion-contract-1440.png", "swos-web-motion-contract-390.png", "web-hifi-v2-1440.png", "processing-result-continuity-1440.png", "rr09-v3-authority-1440.png", "rr09-v2-history-1440.png"],
