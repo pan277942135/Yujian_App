@@ -28,7 +28,7 @@ The task-scope resolution is recorded in `Scope_Resolution_20261016.md`. The lat
 
 ## Design Manager workspaces
 
-`识别过程 → 07 · 首次拍照教学 → 资源` remains the existing hash route. Its three tabs share the existing Design Manager renderer and registries:
+`识别过程 → 07 · 首次拍照教学 → 资源` remains the existing hash route and opens the independent asset catalog by default. Its three tabs share the existing Design Manager renderer and registries; tab selection is preserved in `guide_workspace` and page selection in `guide_page` query parameters:
 
 - **结构化高保真**: P01/P02/P03 selector, semantic layer tree, one frozen reference canvas with selectable measured-box overlay, and pixel/normalized geometry inspector.
 - **响应式设计**: viewport preset/free-size controls, font-scale and inset simulation, responsive proposal preview, and the candidate/frozen boundary.

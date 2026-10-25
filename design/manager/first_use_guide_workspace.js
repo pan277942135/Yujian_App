@@ -207,7 +207,7 @@
   function mount(root) {
     if (!root) return;
     const state = {
-      workspace: new URLSearchParams(window.location.search).get("guide_workspace") || "structure",
+      workspace: new URLSearchParams(window.location.search).get("guide_workspace") || "resources",
       pageId: new URLSearchParams(window.location.search).get("guide_page") || "p01",
       activeLayer: "guide.hero",
       viewport: { width: 390, height: 844 },
