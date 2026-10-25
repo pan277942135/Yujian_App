@@ -278,7 +278,22 @@ async function main() {
     await waitForLoadedImage(page,selector,`NH01 render source ${selector}`);
   }
   await workspace.locator('[data-artboard]').evaluate(node=>node.querySelectorAll('.nh01-layer-selected').forEach(layer=>layer.classList.remove('nh01-layer-selected')));
-  const renderedCanvas=await workspace.locator('[data-artboard]').screenshot({scale:"css"});
+  const artboard=workspace.locator('[data-artboard]');
+  const originalArtboardStyle=await artboard.getAttribute('style');
+  let renderedCanvas;
+  try {
+    await artboard.evaluate(node=>{
+      node.style.setProperty('position','fixed','important');
+      node.style.setProperty('left','0px','important');
+      node.style.setProperty('top','0px','important');
+      node.style.setProperty('margin','0px','important');
+      node.style.setProperty('transform','none','important');
+      node.style.setProperty('z-index','2147483647','important');
+    });
+    renderedCanvas=await page.screenshot({scale:"css",clip:{x:0,y:0,width:390,height:844}});
+  } finally {
+    await artboard.evaluate((node,style)=>{if(style===null)node.removeAttribute('style');else node.setAttribute('style',style);},originalArtboardStyle);
+  }
   const canvasSize={width:renderedCanvas.readUInt32BE(16),height:renderedCanvas.readUInt32BE(20)};
   assert(canvasSize.width===390&&canvasSize.height===844,`NH01 comparison render must capture exactly 390×844 CSS px, got ${JSON.stringify(canvasSize)}`);
   const renderedCanvasPath=resolve(args.outputDir,"nh01-m03-render-390x844.png");
