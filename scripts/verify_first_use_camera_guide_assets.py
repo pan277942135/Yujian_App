@@ -333,17 +333,13 @@ def verify_registry_and_links(candidate_manifest: dict) -> None:
     required_tabs = {"structure", "responsive", "resources"}
     if {tab.get("id") for tab in resource.get("workspace_tabs", [])} != required_tabs:
         fail("resource entry must publish the three interactive workspace tabs")
-    slots = resource.get("frontend_asset_slots", [])
-    if len(slots) != 12:
-        fail("Design Manager registry must bind all 12 photo-role slots")
-    registry_map = {slot.get("id"): slot for slot in slots}
-    for asset in candidate_manifest["assets"]:
-        slot = registry_map.get(asset["id"], {})
-        for key in ("authority_state", "source_path", "source_filename", "fish_orientation", "sha256", "width", "height", "bytes"):
-            if slot.get(key) != asset.get(key):
-                fail(f"registry/manifest mismatch for {asset['id']}:{key}")
-        if slot.get("original_source_state") != "ASSET_SOURCE_BLOCKED" or slot.get("approved_for_frontend") is not False:
-            fail(f"registry falsely promotes photo slot {asset['id']}")
+    expected_manifest = "design/pages/recognition/first_use_camera_guide/frontend_assets_manifest.json"
+    if resource.get("frontend_asset_manifest") != expected_manifest:
+        fail("Design Manager registry must point to the canonical independent asset manifest")
+    if "frontend_asset_slots" in resource:
+        fail("Design Manager registry must not duplicate the canonical manifest slot data")
+    if len(candidate_manifest.get("assets", [])) != 12:
+        fail("canonical asset manifest must own all 12 page-role bindings")
     for key in ("geometry_measurement_manifest", "responsive_contract_manifest", "readiness_matrix", "freeze_decision", "workspace_module"):
         target = resource.get(key)
         if not target or not (ROOT / target).is_file():
