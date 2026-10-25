@@ -176,6 +176,8 @@ async function main() {
   });
   assert(nh01ModuleUrls.jsBuild===buildMarker&&nh01ModuleUrls.cssBuild===buildMarker&&nh01ModuleUrls.cssApplied,`NH01 JS/CSS must load with the exact build marker: ${JSON.stringify(nh01ModuleUrls)}`);
   const workspace = page.locator('[data-testid="nh01-structured-workspace"]');
+  await workspace.locator(".nh01-development-basis > summary").click();
+  assert(await workspace.locator(".nh01-development-basis").evaluate(node=>node.open),"NH01 resource audit must be reachable and opened before its visible rows are verified");
   const resourceRows=workspace.locator(".nh01-resource-table tbody tr[data-resource-id]");
   assert(await resourceRows.count()===16,`NH01 needs six formal resources and ten frozen/used images; got ${await resourceRows.count()}`);
   const resourceEvidence=await resourceRows.evaluateAll(rows=>rows.map(row=>({id:row.dataset.resourceId,status:row.cells[1]?.innerText,http:row.cells[2]?.innerText,sha:row.cells[3]?.innerText,url:row.cells[4]?.querySelector("code")?.innerText})));
