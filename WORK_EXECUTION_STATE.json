@@ -12,8 +12,8 @@
   "stage": "CANDIDATE_CI",
   "status": "RUNNING",
   "source_sha": "37b89a66ec007eba763021086ff5db252eb5bda2",
-  "checkpoint_updated_at": "2026-10-25T23:00:00+08:00",
-  "next_action": "Push the checkpointed candidate, create the PR, and inspect exact-head required CI plus Chromium artifacts.",
+  "checkpoint_updated_at": "2026-10-25T15:46:27.096Z",
+  "next_action": "Inspect exact-head required CI and Chromium artifacts for PR #212.",
   "dependencies": ["P3-01"],
   "blockers": [
     "NH01-HERO-PEEK-PROVENANCE",
@@ -41,6 +41,7 @@
       "live_source_marker": "772a206131d784d5c962a1eb62b5e43bca0f6534",
       "prechange_browser_observation": "flat semantic rows; blocked Hero/Peek media; inspector and responsive loader visible"
     },
+    "candidate_pr": {"number":212,"url":"https://github.com/pan277942135/Yujian_App/pull/212","initial_head_sha":"2f5fc468cad9934c76aff79ae8b1b252e5a4df11","base_sha":"772a206131d784d5c962a1eb62b5e43bca0f6534"},
     "local_validation": {
       "node_syntax": "PASS",
       "structured_unit": "PASS",

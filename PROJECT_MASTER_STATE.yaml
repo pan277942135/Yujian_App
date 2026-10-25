@@ -9,7 +9,7 @@ state_control:
   current_branch: "fix/nh01-structured-workspace-visual-parity-v1"
   base_branch: "main"
   base_sha: "772a206131d784d5c962a1eb62b5e43bca0f6534"
-  current_pr: null
+  current_pr: 212
 source_of_truth:
   canonical_registry: "CONTROL_PLANE_REGISTRY.yaml"
   feature_matrix: "harness/FEATURE_MATRIX.yaml"
@@ -31,6 +31,12 @@ pull_requests:
     state: "MERGED"
     head_sha: "6b41e12a6c55bab04f802a7cb165384d91b75978"
     merge_sha: "772a206131d784d5c962a1eb62b5e43bca0f6534"
+  PR212:
+    number: 212
+    state: "OPEN"
+    branch: "fix/nh01-structured-workspace-visual-parity-v1"
+    base_sha: "772a206131d784d5c962a1eb62b5e43bca0f6534"
+    role: "active_visual_parity_repair"
 phases:
   P0: {status: "NOT_CONFIRMED"}
   P1: {status: "NOT_CONFIRMED"}
@@ -116,7 +122,7 @@ completion_rules:
   - "Provide measured DOM geometry and image comparisons against frozen M01-M05."
   - "Keep asset, visual and runtime uncertainty explicitly labeled."
 state_update:
-  updated_at: "2026-10-25T23:00:00+08:00"
+  updated_at: "2026-10-25T15:46:27.095Z"
   note: "Admission passed on current Main; PR176 reuse inventory and PR203 visual differences recorded; recursive DOM-bound workspace repair and local gates are ready for exact-head candidate CI."
 agent_recovery:
   checkpoint: "stage_A_audit_and_stage_B_D_local_validation_complete"
