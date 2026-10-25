@@ -96,6 +96,11 @@ jobs:
           python3 scripts/verify_swos_static_visual_v1_1.py
           python3 scripts/verify_private_visual_references.py
 
+      - name: SWOS/RR09 V1.2 optical authority gate
+        run: |
+          python3 scripts/verify_swos_optical_v1_2.py
+          node --check design/manager/swos_optical_v1_2.js
+
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
         with:
