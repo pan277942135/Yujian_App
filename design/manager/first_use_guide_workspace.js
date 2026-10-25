@@ -139,7 +139,7 @@
     return assets.find(asset => asset.page_refs?.includes(pageId) && asset.role === role);
   }
 
-  function responsiveMarkup(page, assets, viewport, fontScale, insets) {
+  function responsiveMarkup(root, page, assets, viewport, fontScale, insets) {
     const copy = page.page_copy;
     const hero = imageByRole(assets, page.id, "correct_hero");
     const errors = ["fish_head_out_of_frame", "fish_too_small", "excessive_occlusion"].map(role => imageByRole(assets, page.id, role));
@@ -230,7 +230,7 @@
       const tabMarkup = WORKSPACES.map(([id, title]) => `<button type="button" data-guide-tab="${id}" aria-current="${state.workspace === id ? "page" : "false"}">${title}</button>`).join("");
       let workspaceContent = "";
       if (state.workspace === "structure") workspaceContent = structureWorkspace(root, page, state.data.geometry, pageAsset, state.activeLayer);
-      else if (state.workspace === "responsive") workspaceContent = responsiveMarkup(page, state.data.assetManifest.assets, state.viewport, state.fontScale, state.insets);
+      else if (state.workspace === "responsive") workspaceContent = responsiveMarkup(root, page, state.data.assetManifest.assets, state.viewport, state.fontScale, state.insets);
       else workspaceContent = resourcesWorkspace(root, page, state.data.pageManifest, state.data.assetManifest);
       root.innerHTML = `<div class="guide-workspace" data-workspace="${escapeHtml(state.workspace)}" data-current-page="${escapeHtml(page.id)}">
         <header class="guide-workspace-header"><div><span class="guide-workspace-kicker">PRE-DEV CONTRACT · ${escapeHtml(pageName)}</span><h3>首次拍照教学开发工作区</h3><p>保留三页冻结视觉权威；结构、响应式与独立候选素材使用同一资源 Manifest。</p></div><div class="guide-workspace-status"><strong>部分冻结</strong><span>候选照片未获生产批准</span></div></header>
