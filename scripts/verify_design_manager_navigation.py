@@ -50,6 +50,7 @@ def validate_tree(root: Path, *, built: bool = False, expected_build: str | None
 
     registry = load_json(registry_path)
     nav = load_json(nav_path)
+    index = index_path.read_text(encoding="utf-8") if index_path.exists() else ""
 
     feature = next((x for x in registry.get("features", []) if x.get("id") == "home_normal_v1"), None)
     if not feature:
@@ -67,7 +68,7 @@ def validate_tree(root: Path, *, built: bool = False, expected_build: str | None
     expected_route = "#page/home_normal_v1/hifi/multi_screen_static_hifi"
     if (
         multiscreen.get("id") != "multi_screen_static_hifi"
-        or multiscreen.get("title") != "多屏静态高保真 · 响应式规范"
+        or multiscreen.get("title") != "结构化高保真 · 多屏静态与响应式规范"
         or multiscreen.get("render_mode") != "nh01_multi_screen_static_hifi"
         or multiscreen.get("status") != "STATIC_HIFI_FROZEN"
         or multiscreen.get("design_approval_status") != "STATIC_RULES_FROZEN"
@@ -75,8 +76,26 @@ def validate_tree(root: Path, *, built: bool = False, expected_build: str | None
     ):
         fail("NH01 multi-screen static hi-fi route must preserve frozen design and NOT_VERIFIED runtime statuses")
     nav_view = nav["level_2"][-1]
-    if nav_view.get("id") != "multi_screen_static_hifi" or nav_view.get("route") != expected_route:
+    if nav_view.get("id") != "multi_screen_static_hifi" or nav_view.get("route") != expected_route or nav_view.get("label_zh") != multiscreen.get("title"):
         fail("NH01 multi-screen workspace must be the final direct Hash navigation entry")
+    module_path = design / "manager" / "nh01_structured_workspace.js"
+    module_css = design / "manager" / "nh01_structured_workspace.css"
+    app_source = app_path.read_text(encoding="utf-8")
+    if not module_path.is_file() or not module_css.is_file():
+        fail("NH01 structured workspace JS/CSS module is missing")
+    if "window.NH01StructuredWorkspace?.mount(" in app_source:
+        fail("NH01 structured mount must report missing module/mount prerequisites explicitly")
+    for marker in (
+        'data-resource-id="nh01-workspace-js"',
+        'data-resource-id="nh01-workspace-css"',
+        "createResourceLoader",
+        'data-testid="nh01-resource-loader"',
+        "AbortController",
+        "RETRYING",
+        "typeof window.NH01StructuredWorkspace?.mount",
+    ):
+        if marker not in index + app_source + module_path.read_text(encoding="utf-8"):
+            fail(f"NH01 load/mount failure path marker is missing: {marker}")
     for key in ("authority", "machine_authority", "visual_authority_manifest", "acceptance_matrix", "native_acceptance_authority"):
         target = multiscreen.get(key)
         if not target or not (root / target).is_file():
@@ -355,11 +374,15 @@ def validate_tree(root: Path, *, built: bool = False, expected_build: str | None
             fail(f"Pages artifact does not identify expected build {expected_build}")
         if "app.js?v=" not in index or "styles.css?v=" not in index:
             fail("Pages artifact lost cache-busted JS/CSS URLs")
+        if f'nh01_structured_workspace.js?v={expected_build}' not in index or f'nh01_structured_workspace.css?v={expected_build}' not in index:
+            fail("Pages artifact NH01 module JS/CSS cache version does not match its source SHA")
     else:
         if 'app.js?v=__DESIGN_MANAGER_BUILD__' not in index:
             fail("source index lost app.js build cache-busting placeholder")
         if 'styles.css?v=__DESIGN_MANAGER_BUILD__' not in index:
             fail("source index lost styles.css build cache-busting placeholder")
+        if 'nh01_structured_workspace.js?v=__DESIGN_MANAGER_BUILD__' not in index or 'nh01_structured_workspace.css?v=__DESIGN_MANAGER_BUILD__' not in index:
+            fail("source index lost the NH01 JS/CSS build cache-busting placeholders")
         if 'name="design-manager-build" content="__DESIGN_MANAGER_BUILD__"' not in index:
             fail("source index lost deployment build marker")
 

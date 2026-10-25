@@ -19,6 +19,7 @@ on:
       - "scripts/verify_first_use_camera_guide_assets.py"
       - "scripts/measure_first_use_camera_guide_geometry.py"
       - "scripts/verify_swos_static_visual_v1_1.py"
+      - "tests/nh01_structured_workspace.test.cjs"
       - ".github/workflows/experience-governance.yml"
       - ".github/workflows/design-manager-pages.yml"
   pull_request:
@@ -32,6 +33,7 @@ on:
       - "scripts/verify_private_visual_references.py"
       - "scripts/verify_private_visual_browser.mjs"
       - "scripts/verify_swos_static_visual_v1_1.py"
+      - "tests/nh01_structured_workspace.test.cjs"
       - "scripts/verify_design_manager_live.py"
       - "scripts/verify_first_use_camera_guide_assets.py"
       - "scripts/measure_first_use_camera_guide_geometry.py"
@@ -40,6 +42,7 @@ on:
 
 permissions:
   contents: read
+  actions: read
   pages: write
   id-token: write
 
@@ -85,6 +88,13 @@ jobs:
           set -euo pipefail
           npm install --no-save --prefix "$RUNNER_TEMP/dm-playwright" playwright@1.63.0
           "$RUNNER_TEMP/dm-playwright/node_modules/.bin/playwright" install --with-deps chromium
+
+      - name: Verify NH01 structured workspace behavior and resource state machine
+        run: |
+          node --check design/manager/app.js
+          node --check design/manager/nh01_structured_workspace.js
+          node --check scripts/verify_design_manager_browser.mjs
+          node tests/nh01_structured_workspace.test.cjs
 
       - name: Fetch PR base for changed-file scope gate
         if: github.event_name == 'pull_request'
@@ -222,6 +232,157 @@ jobs:
             --preview-screenshot "$RUNNER_TEMP/nh01-browser/NH01_Structured_Preview_1080x1920.png" \
             --preview-diff-dir "$RUNNER_TEMP/nh01-preview-diff"
 
+      - name: Resolve latest successful production Pages run
+        if: github.event_name == 'pull_request' && github.event.pull_request.number == 203
+        id: published-pages
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          selected="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs?branch=main&per_page=100" \
+            --jq '.workflow_runs | map(select(.workflow_id == 369682887 and .event == "push" and .conclusion == "success")) | sort_by(.created_at) | last | [.id, .head_sha] | @tsv')"
+          read -r production_run_id production_source_sha <<< "$selected"
+          test -n "$production_run_id"
+          test -n "$production_source_sha"
+          echo "run_id=$production_run_id" >> "$GITHUB_OUTPUT"
+          echo "source_sha=$production_source_sha" >> "$GITHUB_OUTPUT"
+
+      - name: Download current production Pages artifact
+        if: github.event_name == 'pull_request' && github.event.pull_request.number == 203
+        uses: actions/download-artifact@v4
+        with:
+          name: github-pages
+          repository: ${{ github.repository }}
+          run-id: ${{ steps.published-pages.outputs.run_id }}
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/nh01-published-pages
+
+      - name: Compose byte-preserving PR 203 preview
+        if: github.event_name == 'pull_request' && github.event.pull_request.number == 203
+        shell: bash
+        env:
+          PRODUCTION_RUN_ID: ${{ steps.published-pages.outputs.run_id }}
+          PRODUCTION_SOURCE_SHA: ${{ steps.published-pages.outputs.source_sha }}
+          CANDIDATE_SOURCE_SHA: ${{ env.BUILD_SHA }}
+        run: |
+          set -euo pipefail
+          candidate_site="$RUNNER_TEMP/nh01-pr203-candidate-site"
+          production_artifact="$RUNNER_TEMP/nh01-published-pages"
+          cp -R _site "$candidate_site"
+          rm -rf _site
+          mkdir -p _site
+          artifact_tar="$(find "$production_artifact" -maxdepth 3 -type f -name artifact.tar -print -quit)"
+          test -n "$artifact_tar"
+          tar -xf "$artifact_tar" -C _site
+          python3 - <<'PY'
+          import hashlib
+          import json
+          import os
+          import shutil
+          from pathlib import Path
+
+          site = Path("_site")
+          candidate = Path(os.environ["RUNNER_TEMP"]) / "nh01-pr203-candidate-site"
+          preview = site / "previews" / "pr-203"
+          source_sha = os.environ["CANDIDATE_SOURCE_SHA"]
+          production_sha = os.environ["PRODUCTION_SOURCE_SHA"]
+          production_run_id = os.environ["PRODUCTION_RUN_ID"]
+
+          def file_map(root):
+              out = {}
+              for path in sorted(root.rglob("*")):
+                  if not path.is_file():
+                      continue
+                  rel = path.relative_to(root).as_posix()
+                  if rel.startswith("previews/pr-203/"):
+                      continue
+                  out[rel] = hashlib.sha256(path.read_bytes()).hexdigest()
+              return out
+
+          root_before = file_map(site)
+          root_digest = hashlib.sha256(
+              json.dumps(root_before, sort_keys=True, separators=(",", ":")).encode("utf-8")
+          ).hexdigest()
+          if preview.exists():
+              shutil.rmtree(preview)
+          preview.mkdir(parents=True)
+          shutil.copytree(candidate / "design", preview / "design")
+          (preview / "index.html").write_text(
+              '<!doctype html><html lang="zh-CN"><meta charset="utf-8">'
+              '<meta name="viewport" content="width=device-width,initial-scale=1">'
+              '<meta http-equiv="refresh" content="0; url=./design/manager/#page/home_normal_v1/hifi/multi_screen_static_hifi">'
+              '<title>NH01 候选预览</title><a href="./design/manager/#page/home_normal_v1/hifi/multi_screen_static_hifi">打开 NH01 结构化高保真预览</a></html>\n',
+              encoding="utf-8",
+          )
+          (preview / "source-manifest.json").write_text(
+              json.dumps({
+                  "schema": "YUJIAN_ISOLATED_PR203_PREVIEW_V1",
+                  "candidate_source_sha": source_sha,
+                  "production_pages_source_sha": production_sha,
+                  "production_pages_run_id": production_run_id,
+                  "production_root_files": len(root_before),
+                  "production_root_manifest_sha256": root_digest,
+                  "preview_path": "previews/pr-203/",
+              }, ensure_ascii=False, indent=2) + "\n",
+              encoding="utf-8",
+          )
+          production_build = json.loads((site / "design/manager/build.json").read_text(encoding="utf-8"))
+          candidate_build = json.loads((preview / "design/manager/build.json").read_text(encoding="utf-8"))
+          if production_build.get("sha") != production_sha:
+              raise SystemExit(f"production Pages artifact/source mismatch: {production_build.get('sha')} != {production_sha}")
+          if candidate_build.get("sha") != source_sha:
+              raise SystemExit(f"candidate preview/source mismatch: {candidate_build.get('sha')} != {source_sha}")
+          root_after = file_map(site)
+          if root_before != root_after:
+              raise SystemExit("production Pages root changed while composing the isolated preview")
+          report = {
+              "status": "PASS",
+              "candidate_source_sha": source_sha,
+              "production_pages_source_sha": production_sha,
+              "production_pages_run_id": production_run_id,
+              "production_root_files": len(root_before),
+              "production_root_manifest_sha256": root_digest,
+              "production_root_byte_identical": True,
+              "preview_path": "previews/pr-203/",
+          }
+          out = Path(os.environ["RUNNER_TEMP"]) / "nh01-pr203-preview-composition.json"
+          out.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+          print(json.dumps(report, ensure_ascii=False))
+          PY
+          python3 scripts/verify_design_manager_live.py \
+            --url "https://pan277942135.github.io/Yujian_App/" \
+            --expected-build "$PRODUCTION_SOURCE_SHA" \
+            --output "$RUNNER_TEMP/nh01-pr203-prepublish-root-verification.json"
+
+      - name: Verify candidate preview under its isolated Pages path
+        if: github.event_name == 'pull_request' && github.event.pull_request.number == 203
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m http.server 8765 --directory _site > "$RUNNER_TEMP/nh01-pr203-preview-http.log" 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          for attempt in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:8765/previews/pr-203/design/manager/ >/dev/null; then break; fi
+            sleep 1
+          done
+          curl -fsS http://127.0.0.1:8765/previews/pr-203/source-manifest.json >/dev/null
+          PLAYWRIGHT_MODULE_DIR="$RUNNER_TEMP/dm-playwright/node_modules" \
+            node scripts/verify_design_manager_browser.mjs \
+              --url http://127.0.0.1:8765/previews/pr-203/ \
+              --expected-build "$BUILD_SHA" \
+              --output-dir "$RUNNER_TEMP/nh01-pr203-preview-browser"
+
+      - name: Upload preview composition evidence
+        if: github.event_name == 'pull_request' && github.event.pull_request.number == 203
+        uses: actions/upload-artifact@v4
+        with:
+          name: NH01-PR203-Preview-Composition-${{ github.run_id }}
+          path: ${{ runner.temp }}/nh01-pr203-preview-composition.json
+          if-no-files-found: error
+          retention-days: 30
+
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v4
         with:
@@ -247,6 +408,9 @@ jobs:
 
   deploy:
     if: github.event_name != 'pull_request'
+    concurrency:
+      group: design-manager-pages-publish
+      cancel-in-progress: false
     environment:
       name: design-manager-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -309,6 +473,100 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: Design-Manager-Live-Release-${{ github.run_id }}-${{ github.event.pull_request.head.sha || github.sha }}
+          path: ${{ runner.temp }}/dm-live-evidence/
+          if-no-files-found: error
+          retention-days: 30
+
+  deploy-preview:
+    if: github.event_name == 'pull_request' && github.event.pull_request.number == 203
+    concurrency:
+      # Match Main Pages workflow concurrency so a main deploy cannot race this additive publication.
+      group: design-manager-pages-refs/heads/main
+      cancel-in-progress: false
+    environment:
+      name: design-manager-pages
+      url: ${{ steps.deployment.outputs.page_url }}previews/pr-203/
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    needs: build
+    steps:
+      - name: Checkout exact PR source
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Download preview composition evidence
+        uses: actions/download-artifact@v4
+        with:
+          name: NH01-PR203-Preview-Composition-${{ github.run_id }}
+          path: ${{ runner.temp }}/nh01-pr203-composition
+
+      - name: Verify production root under the shared deployment lock
+        shell: bash
+        env:
+          PAGE_URL: https://pan277942135.github.io/Yujian_App/
+          COMPOSITION_REPORT: ${{ runner.temp }}/nh01-pr203-composition/nh01-pr203-preview-composition.json
+        run: |
+          set -euo pipefail
+          expected_sha="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["production_pages_source_sha"])' "$COMPOSITION_REPORT")"
+          live_sha="$(curl -fsS "${PAGE_URL}design/manager/build.json" | python3 -c 'import json,sys; print(json.load(sys.stdin)["sha"])')"
+          test "$live_sha" = "$expected_sha"
+          mkdir -p "$RUNNER_TEMP/dm-live-evidence"
+          python3 scripts/verify_design_manager_live.py \
+            --url "$PAGE_URL" \
+            --expected-build "$expected_sha" \
+            --output "$RUNNER_TEMP/dm-live-evidence/production-root-predeploy-verification.json"
+
+      - name: Deploy isolated PR 203 preview with unchanged production root
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+      - name: Setup Python and Node for live verification
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Setup Node for live browser verification
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install Playwright and Chromium
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm install --no-save --prefix "$RUNNER_TEMP/dm-playwright" playwright@1.63.0
+          "$RUNNER_TEMP/dm-playwright/node_modules/.bin/playwright" install --with-deps chromium
+
+      - name: Verify live production root and exact candidate workspace
+        shell: bash
+        env:
+          PAGE_URL: ${{ steps.deployment.outputs.page_url }}
+          CANDIDATE_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/dm-live-evidence"
+          curl -fsS "${PAGE_URL}previews/pr-203/source-manifest.json" > "$RUNNER_TEMP/dm-live-evidence/source-manifest.json"
+          production_sha="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["production_pages_source_sha"])' "$RUNNER_TEMP/dm-live-evidence/source-manifest.json")"
+          preview_sha="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["candidate_source_sha"])' "$RUNNER_TEMP/dm-live-evidence/source-manifest.json")"
+          test "$preview_sha" = "$CANDIDATE_SHA"
+          curl -fsS "${PAGE_URL}previews/pr-203/design/manager/build.json" > "$RUNNER_TEMP/dm-live-evidence/candidate-build.json"
+          build_sha="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["sha"])' "$RUNNER_TEMP/dm-live-evidence/candidate-build.json")"
+          test "$build_sha" = "$CANDIDATE_SHA"
+          python3 scripts/verify_design_manager_live.py \
+            --url "$PAGE_URL" \
+            --expected-build "$production_sha" \
+            --output "$RUNNER_TEMP/dm-live-evidence/production-root-verification.json"
+          PLAYWRIGHT_MODULE_DIR="$RUNNER_TEMP/dm-playwright/node_modules" \
+            node scripts/verify_design_manager_browser.mjs \
+              --url "${PAGE_URL}previews/pr-203/" \
+              --expected-build "$CANDIDATE_SHA" \
+              --output-dir "$RUNNER_TEMP/dm-live-evidence/candidate-browser"
+
+      - name: Upload independent preview live evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: NH01-PR203-Live-Preview-${{ github.run_id }}-${{ github.event.pull_request.head.sha }}
           path: ${{ runner.temp }}/dm-live-evidence/
           if-no-files-found: error
           retention-days: 30

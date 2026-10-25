@@ -513,7 +513,7 @@
         },
         {
           "id": "multi_screen_static_hifi",
-          "title": "多屏静态高保真 · 响应式规范",
+          "title": "结构化高保真 · 多屏静态与响应式规范",
           "status": "STATIC_HIFI_FROZEN",
           "design_approval_status": "STATIC_RULES_FROZEN",
           "design_version": "V1",
@@ -527,7 +527,7 @@
           "acceptance_matrix": "design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_STATIC_HIFI_ACCEPTANCE_MATRIX_V1.json",
           "native_acceptance_authority": "design/pages/home/normal_home/engineering/NH01_GEMINI_ADAPTIVE_V2_ACCEPTANCE_MATRIX_V1.json",
           "runtime_status": "NOT_VERIFIED",
-          "summary": "五张静态冻结高保真与正式响应式规则工作区。静态资产/规范冻结；Android Runtime 仍为 NOT_VERIFIED，保留当前 24 次原生验收矩阵。",
+          "summary": "NH01 结构化图层、响应式计算与五张冻结高保真对照的统一工作区。静态资产/规范冻结；Android Runtime 仍为 NOT_VERIFIED。",
           "menu_points": [
             "M01–M05 五张原始冻结 PNG",
             "目标 dp 与实际 PNG 像素尺寸分别登记",
