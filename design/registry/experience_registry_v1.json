@@ -3206,7 +3206,8 @@
               "id": "resources",
               "title": "资源",
               "show_code": false,
-              "status": "DESIGN_ONLY",
+                "status": "DESIGN_ONLY",
+                "workspace_readiness_status": "PREDEV_WORKSPACE_WITH_CANDIDATE_PHOTOS",
               "authority_type": "asset_catalog",
               "menu_group": "resource",
               "render_mode": "recognition_guide_resources",
@@ -3218,19 +3219,35 @@
                 "p03"
               ],
               "runtime_visual_authority": false,
-              "summary": "首次拍照教学资源工作区：保留三张 Frozen 整页 PNG，并提供结构化页面合同、独立前端照片 Manifest 和 12 个素材槽位的来源状态。独立照片缺失时显示阻塞，不以整页截图代替；不映射为 Android 运行时背景。",
+              "summary": "首次拍照教学开发前工作区：结构化高保真、响应式模拟与素材清单在原 Resources 路由内提供。三张 Frozen 整页 PNG 保持原样；8 张独立生成候选图绑定 12 个角色槽位，均未获生产/运行时批准。",
               "frontend_asset_manifest": "design/pages/recognition/first_use_camera_guide/frontend_assets_manifest.json",
               "structured_page_manifest": "design/pages/recognition/first_use_camera_guide/structured_pages.json",
               "frontend_asset_slots": [
                 {
                   "id": "p01_correct_hero",
                   "page_id": "p01",
-                  "label": "正确示范主图",
+                  "label": "correct_hero",
                   "role": "correct_hero",
                   "fish_orientation": "horizontal",
-                  "authority_state": "ASSET_SOURCE_BLOCKED",
-                  "note": "正确示范独立主图尚未找到已核验的原始照片。",
-                  "reference_status": "MISSING"
+                  "authority_state": "CANDIDATE_NEEDS_APPROVAL",
+                  "source_type": "GENERATED_CANDIDATE",
+                  "source_path": "design/pages/recognition/first_use_camera_guide/assets/candidates/horizontal/correct_hero_generated_candidate.png",
+                  "source_filename": "correct_hero_generated_candidate.png",
+                  "mime_type": "image/png",
+                  "width": 1448,
+                  "height": 1086,
+                  "bytes": 2160330,
+                  "sha256": "ac8098537f5a2b33fc989479650604483b32fbb161663e944aef8bb20dc98b8e",
+                  "approved_for_frontend": false,
+                  "original_source_state": "ASSET_SOURCE_BLOCKED",
+                  "reference_status": "NONE",
+                  "reference_package_path": null,
+                  "reference_sha256": null,
+                  "page_refs": [
+                    "p01",
+                    "p03"
+                  ],
+                  "note": "A complete horizontal fish held clearly above a calm dawn lake."
                 },
                 {
                   "id": "p01_fish_head_out_of_frame",
@@ -3239,11 +3256,24 @@
                   "role": "fish_head_out_of_frame",
                   "fish_orientation": "horizontal",
                   "authority_state": "CANDIDATE_NEEDS_APPROVAL",
-                  "note": "有归档参考裁切，但来源为合成整页图；仅作布局参考，不可标记为独立生产照片。",
+                  "source_type": "GENERATED_CANDIDATE",
+                  "source_path": "design/pages/recognition/first_use_camera_guide/assets/candidates/horizontal/fish_head_out_generated_candidate.png",
+                  "source_filename": "fish_head_out_generated_candidate.png",
+                  "mime_type": "image/png",
+                  "width": 1448,
+                  "height": 1086,
+                  "bytes": 2278993,
+                  "sha256": "c0491f107e19da5753b6b94f9dd980ca9dc290b5e3c710e0e9e805f3a3dcddda",
+                  "approved_for_frontend": false,
+                  "original_source_state": "ASSET_SOURCE_BLOCKED",
                   "reference_status": "REFERENCE_ONLY",
                   "reference_package_path": "03_P01/images/guide_avoid_1_no_head_3x_native.png",
                   "reference_sha256": "6b44c18f4ad44151b6af67a902468b1d1ae8ffe928b7a77c2683ff9c19e49381",
-                  "reference_bytes": 76154
+                  "page_refs": [
+                    "p01",
+                    "p03"
+                  ],
+                  "note": "The fish head is cropped completely beyond the left frame edge."
                 },
                 {
                   "id": "p01_fish_too_small",
@@ -3252,11 +3282,24 @@
                   "role": "fish_too_small",
                   "fish_orientation": "horizontal",
                   "authority_state": "CANDIDATE_NEEDS_APPROVAL",
-                  "note": "有归档参考裁切，但来源为合成整页图；仅作布局参考，不可标记为独立生产照片。",
+                  "source_type": "GENERATED_CANDIDATE",
+                  "source_path": "design/pages/recognition/first_use_camera_guide/assets/candidates/horizontal/fish_too_small_generated_candidate.png",
+                  "source_filename": "fish_too_small_generated_candidate.png",
+                  "mime_type": "image/png",
+                  "width": 1448,
+                  "height": 1086,
+                  "bytes": 1734238,
+                  "sha256": "0233634df7918b5dc9b1f1fc9a9db1c37addf28efa07c849cb5710c65a2e3a0d",
+                  "approved_for_frontend": false,
+                  "original_source_state": "ASSET_SOURCE_BLOCKED",
                   "reference_status": "REFERENCE_ONLY",
                   "reference_package_path": "03_P01/images/guide_avoid_2_too_small_3x_native.png",
                   "reference_sha256": "44f88b595f212b62587fa4427ac2a208e72706bd7229653aa3be05f72d096845",
-                  "reference_bytes": 73164
+                  "page_refs": [
+                    "p01",
+                    "p03"
+                  ],
+                  "note": "The horizontal fish is intentionally small within a wide scene."
                 },
                 {
                   "id": "p01_excessive_occlusion",
@@ -3265,21 +3308,49 @@
                   "role": "excessive_occlusion",
                   "fish_orientation": "horizontal",
                   "authority_state": "CANDIDATE_NEEDS_APPROVAL",
-                  "note": "有归档参考裁切，但来源为合成整页图；仅作布局参考，不可标记为独立生产照片。",
+                  "source_type": "GENERATED_CANDIDATE",
+                  "source_path": "design/pages/recognition/first_use_camera_guide/assets/candidates/horizontal/excessive_occlusion_generated_candidate.png",
+                  "source_filename": "excessive_occlusion_generated_candidate.png",
+                  "mime_type": "image/png",
+                  "width": 1448,
+                  "height": 1086,
+                  "bytes": 1974238,
+                  "sha256": "3d2d84ec2b2979d75ed62517f4899785b7c2641b96b3f9188b7fafd320d9bacc",
+                  "approved_for_frontend": false,
+                  "original_source_state": "ASSET_SOURCE_BLOCKED",
                   "reference_status": "REFERENCE_ONLY",
                   "reference_package_path": "03_P01/images/guide_avoid_3_occluded_3x_native.png",
                   "reference_sha256": "77234727c42593ce00a316dfdc590307aa57ac9feef7b32b7174115fa962bfe4",
-                  "reference_bytes": 67949
+                  "page_refs": [
+                    "p01",
+                    "p03"
+                  ],
+                  "note": "A hand and jacket cover a substantial part of the fish body."
                 },
                 {
                   "id": "p02_correct_hero",
                   "page_id": "p02",
-                  "label": "正确示范主图",
+                  "label": "correct_hero",
                   "role": "correct_hero",
                   "fish_orientation": "vertical",
-                  "authority_state": "ASSET_SOURCE_BLOCKED",
-                  "note": "正确示范独立主图尚未找到已核验的原始照片。",
-                  "reference_status": "MISSING"
+                  "authority_state": "CANDIDATE_NEEDS_APPROVAL",
+                  "source_type": "GENERATED_CANDIDATE",
+                  "source_path": "design/pages/recognition/first_use_camera_guide/assets/candidates/vertical/correct_hero_generated_candidate.png",
+                  "source_filename": "correct_hero_generated_candidate.png",
+                  "mime_type": "image/png",
+                  "width": 1086,
+                  "height": 1448,
+                  "bytes": 2251219,
+                  "sha256": "c2d1b3426de3466a8e38885674797bb289db50f3b2e7b30913beab82de64c292",
+                  "approved_for_frontend": false,
+                  "original_source_state": "ASSET_SOURCE_BLOCKED",
+                  "reference_status": "NONE",
+                  "reference_package_path": null,
+                  "reference_sha256": null,
+                  "page_refs": [
+                    "p02"
+                  ],
+                  "note": "The complete fish is held upright head-up and tail-down."
                 },
                 {
                   "id": "p02_fish_head_out_of_frame",
@@ -3288,11 +3359,23 @@
                   "role": "fish_head_out_of_frame",
                   "fish_orientation": "vertical",
                   "authority_state": "CANDIDATE_NEEDS_APPROVAL",
-                  "note": "有归档参考裁切，但来源为合成整页图；仅作布局参考，不可标记为独立生产照片。",
+                  "source_type": "GENERATED_CANDIDATE",
+                  "source_path": "design/pages/recognition/first_use_camera_guide/assets/candidates/vertical/fish_head_out_generated_candidate.png",
+                  "source_filename": "fish_head_out_generated_candidate.png",
+                  "mime_type": "image/png",
+                  "width": 1086,
+                  "height": 1448,
+                  "bytes": 2043188,
+                  "sha256": "ac202c85d6d2379e168521bc42994c5af82a6216f21700b71a5d07cf2dbc8b31",
+                  "approved_for_frontend": false,
+                  "original_source_state": "ASSET_SOURCE_BLOCKED",
                   "reference_status": "REFERENCE_ONLY",
                   "reference_package_path": "04_P02/images/guide_avoid_1_no_head_3x_native.png",
                   "reference_sha256": "bc6ad4836f6e9bf94794cb1775b3eee078a88370a9f73988ae75e0a287c6eaa0",
-                  "reference_bytes": 76252
+                  "page_refs": [
+                    "p02"
+                  ],
+                  "note": "The fish head is cropped beyond the top frame edge."
                 },
                 {
                   "id": "p02_fish_too_small",
@@ -3301,11 +3384,23 @@
                   "role": "fish_too_small",
                   "fish_orientation": "vertical",
                   "authority_state": "CANDIDATE_NEEDS_APPROVAL",
-                  "note": "有归档参考裁切，但来源为合成整页图；仅作布局参考，不可标记为独立生产照片。",
+                  "source_type": "GENERATED_CANDIDATE",
+                  "source_path": "design/pages/recognition/first_use_camera_guide/assets/candidates/vertical/fish_too_small_generated_candidate.png",
+                  "source_filename": "fish_too_small_generated_candidate.png",
+                  "mime_type": "image/png",
+                  "width": 1086,
+                  "height": 1448,
+                  "bytes": 2123855,
+                  "sha256": "4cb42997eb7b01ff480c0fb36db3075c1698203277755f034b0731646829730f",
+                  "approved_for_frontend": false,
+                  "original_source_state": "ASSET_SOURCE_BLOCKED",
                   "reference_status": "REFERENCE_ONLY",
                   "reference_package_path": "04_P02/images/guide_avoid_2_too_small_3x_native.png",
                   "reference_sha256": "2cd3338a66527f77aed2a6ded40d04f54de82d5708ee9e60082c7849a2a4aaef",
-                  "reference_bytes": 73392
+                  "page_refs": [
+                    "p02"
+                  ],
+                  "note": "The upright fish is intentionally tiny in a wide lake scene."
                 },
                 {
                   "id": "p02_excessive_occlusion",
@@ -3314,21 +3409,49 @@
                   "role": "excessive_occlusion",
                   "fish_orientation": "vertical",
                   "authority_state": "CANDIDATE_NEEDS_APPROVAL",
-                  "note": "有归档参考裁切，但来源为合成整页图；仅作布局参考，不可标记为独立生产照片。",
+                  "source_type": "GENERATED_CANDIDATE",
+                  "source_path": "design/pages/recognition/first_use_camera_guide/assets/candidates/vertical/excessive_occlusion_generated_candidate.png",
+                  "source_filename": "excessive_occlusion_generated_candidate.png",
+                  "mime_type": "image/png",
+                  "width": 1086,
+                  "height": 1448,
+                  "bytes": 1875691,
+                  "sha256": "d5efedc6ed1659135d25ac2205c0fc3505b0bd4100039060f51036454af0d2c3",
+                  "approved_for_frontend": false,
+                  "original_source_state": "ASSET_SOURCE_BLOCKED",
                   "reference_status": "REFERENCE_ONLY",
                   "reference_package_path": "04_P02/images/guide_avoid_3_occluded_3x_native.png",
                   "reference_sha256": "a5506afa6345d027ade22a9a34ad24120042fb9055c1cc6fbd6483db80f62a93",
-                  "reference_bytes": 64715
+                  "page_refs": [
+                    "p02"
+                  ],
+                  "note": "A hand and jacket cover most of the upright fish body."
                 },
                 {
                   "id": "p03_correct_hero",
                   "page_id": "p03",
-                  "label": "正确示范主图",
+                  "label": "correct_hero",
                   "role": "correct_hero",
                   "fish_orientation": "horizontal",
-                  "authority_state": "ASSET_SOURCE_BLOCKED",
-                  "note": "正确示范独立主图尚未找到已核验的原始照片。",
-                  "reference_status": "MISSING"
+                  "authority_state": "CANDIDATE_NEEDS_APPROVAL",
+                  "source_type": "GENERATED_CANDIDATE",
+                  "source_path": "design/pages/recognition/first_use_camera_guide/assets/candidates/horizontal/correct_hero_generated_candidate.png",
+                  "source_filename": "correct_hero_generated_candidate.png",
+                  "mime_type": "image/png",
+                  "width": 1448,
+                  "height": 1086,
+                  "bytes": 2160330,
+                  "sha256": "ac8098537f5a2b33fc989479650604483b32fbb161663e944aef8bb20dc98b8e",
+                  "approved_for_frontend": false,
+                  "original_source_state": "ASSET_SOURCE_BLOCKED",
+                  "reference_status": "NONE",
+                  "reference_package_path": null,
+                  "reference_sha256": null,
+                  "page_refs": [
+                    "p01",
+                    "p03"
+                  ],
+                  "note": "A complete horizontal fish held clearly above a calm dawn lake."
                 },
                 {
                   "id": "p03_fish_head_out_of_frame",
@@ -3337,11 +3460,24 @@
                   "role": "fish_head_out_of_frame",
                   "fish_orientation": "horizontal",
                   "authority_state": "CANDIDATE_NEEDS_APPROVAL",
-                  "note": "有归档参考裁切，但来源为合成整页图；仅作布局参考，不可标记为独立生产照片。",
+                  "source_type": "GENERATED_CANDIDATE",
+                  "source_path": "design/pages/recognition/first_use_camera_guide/assets/candidates/horizontal/fish_head_out_generated_candidate.png",
+                  "source_filename": "fish_head_out_generated_candidate.png",
+                  "mime_type": "image/png",
+                  "width": 1448,
+                  "height": 1086,
+                  "bytes": 2278993,
+                  "sha256": "c0491f107e19da5753b6b94f9dd980ca9dc290b5e3c710e0e9e805f3a3dcddda",
+                  "approved_for_frontend": false,
+                  "original_source_state": "ASSET_SOURCE_BLOCKED",
                   "reference_status": "REFERENCE_ONLY",
                   "reference_package_path": "05_P03/images/guide_avoid_1_no_head_3x_native.png",
                   "reference_sha256": "5ee1fe2f6347620cb3754976882190320e85111b881979301713568e10e093e7",
-                  "reference_bytes": 77415
+                  "page_refs": [
+                    "p01",
+                    "p03"
+                  ],
+                  "note": "The fish head is cropped completely beyond the left frame edge."
                 },
                 {
                   "id": "p03_fish_too_small",
@@ -3350,11 +3486,24 @@
                   "role": "fish_too_small",
                   "fish_orientation": "horizontal",
                   "authority_state": "CANDIDATE_NEEDS_APPROVAL",
-                  "note": "有归档参考裁切，但来源为合成整页图；仅作布局参考，不可标记为独立生产照片。",
+                  "source_type": "GENERATED_CANDIDATE",
+                  "source_path": "design/pages/recognition/first_use_camera_guide/assets/candidates/horizontal/fish_too_small_generated_candidate.png",
+                  "source_filename": "fish_too_small_generated_candidate.png",
+                  "mime_type": "image/png",
+                  "width": 1448,
+                  "height": 1086,
+                  "bytes": 1734238,
+                  "sha256": "0233634df7918b5dc9b1f1fc9a9db1c37addf28efa07c849cb5710c65a2e3a0d",
+                  "approved_for_frontend": false,
+                  "original_source_state": "ASSET_SOURCE_BLOCKED",
                   "reference_status": "REFERENCE_ONLY",
                   "reference_package_path": "05_P03/images/guide_avoid_2_too_small_3x_native.png",
                   "reference_sha256": "a814a26b0c9d6177215021657f105441b06a13b60200694c077dc1a481cf697c",
-                  "reference_bytes": 73182
+                  "page_refs": [
+                    "p01",
+                    "p03"
+                  ],
+                  "note": "The horizontal fish is intentionally small within a wide scene."
                 },
                 {
                   "id": "p03_excessive_occlusion",
@@ -3363,11 +3512,46 @@
                   "role": "excessive_occlusion",
                   "fish_orientation": "horizontal",
                   "authority_state": "CANDIDATE_NEEDS_APPROVAL",
-                  "note": "有归档参考裁切，但来源为合成整页图；仅作布局参考，不可标记为独立生产照片。",
+                  "source_type": "GENERATED_CANDIDATE",
+                  "source_path": "design/pages/recognition/first_use_camera_guide/assets/candidates/horizontal/excessive_occlusion_generated_candidate.png",
+                  "source_filename": "excessive_occlusion_generated_candidate.png",
+                  "mime_type": "image/png",
+                  "width": 1448,
+                  "height": 1086,
+                  "bytes": 1974238,
+                  "sha256": "3d2d84ec2b2979d75ed62517f4899785b7c2641b96b3f9188b7fafd320d9bacc",
+                  "approved_for_frontend": false,
+                  "original_source_state": "ASSET_SOURCE_BLOCKED",
                   "reference_status": "REFERENCE_ONLY",
                   "reference_package_path": "05_P03/images/guide_avoid_3_occluded_3x_native.png",
                   "reference_sha256": "5a003ceceb2773efb1d31628a4a8b0c61aab4fb6eb420da88b07bfd937bd8920",
-                  "reference_bytes": 71279
+                  "page_refs": [
+                    "p01",
+                    "p03"
+                  ],
+                  "note": "A hand and jacket cover a substantial part of the fish body."
+                }
+              ],
+              "geometry_measurement_manifest": "design/pages/recognition/first_use_camera_guide/geometry_measurements.json",
+              "responsive_contract_manifest": "design/pages/recognition/first_use_camera_guide/responsive_contract.json",
+              "readiness_matrix": "design/pages/recognition/first_use_camera_guide/PREDEV_READINESS_MATRIX.json",
+              "freeze_decision": "design/pages/recognition/first_use_camera_guide/Freeze_Decision.md",
+              "workspace_module": "design/manager/first_use_guide_workspace.js",
+              "workspace_tabs": [
+                {
+                  "id": "structure",
+                  "title": "结构化高保真",
+                  "status": "PASS_AFTER_EXACT_HEAD_BROWSER_CHECK"
+                },
+                {
+                  "id": "responsive",
+                  "title": "响应式设计",
+                  "status": "PASS_AFTER_EXACT_HEAD_BROWSER_CHECK"
+                },
+                {
+                  "id": "resources",
+                  "title": "资源",
+                  "status": "PASS_WITH_CANDIDATE_AND_BLOCKED_STATES"
                 }
               ]
             }

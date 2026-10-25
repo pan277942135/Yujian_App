@@ -3212,72 +3212,12 @@ function accountPrivacyGalleryCanvas(item) {
 }
 
 function recognitionGuideResourcesCanvas(child, feature) {
-  const sourceView = (feature?.hifi_views || []).find(view => view.id === child.source_view_id);
-  const sourceChildren = new Map((sourceView?.children || []).map(item => [item.id, item]));
-  const resources = (child.resource_ids || []).map(id => sourceChildren.get(id)).filter(item =>
-    item && item.status === "FROZEN" && isImage(item.visual_authority || item.image)
-  );
-  const cards = resources.map(item => {
-    const path = item.visual_authority || item.image;
-    const dimensions = item.visual_authority_dimensions || {};
-    const dimensionText = dimensions.width && dimensions.height
-      ? dimensions.width + " × " + dimensions.height + " px"
-      : "尺寸未登记";
-    const filename = path.split("/").pop();
-    const sourceFilename = item.source_high_fidelity_png || filename;
-    const fileHref = repoHref(path);
-    return '<article class="authority-index-card guide-resource-card" data-resource-id="' + esc(item.id) + '">' +
-      '<div class="authority-index-head"><strong>' + esc(item.title) + '</strong>' + statusBadge("FROZEN") + '</div>' +
-      '<button type="button" class="hifi-image-open guide-resource-preview" data-image-src="' + esc(fileHref) +
-        '" data-image-title="' + esc(item.title) + '" aria-label="放大查看 ' + esc(item.title) + '">' +
-        '<img src="' + esc(fileHref) + '" alt="' + esc(item.title) + ' · 原始比例完整预览" loading="lazy" decoding="async"></button>' +
-      '<dl class="guide-resource-metadata">' +
-        '<div><dt>源文件名</dt><dd>' + esc(sourceFilename) + '</dd></div>' +
-        '<div><dt>仓库文件名</dt><dd>' + esc(filename) + '</dd></div>' +
-        '<div><dt>仓库路径</dt><dd>' + esc(path) + '</dd></div>' +
-        '<div><dt>图像尺寸</dt><dd>' + esc(dimensionText) + '</dd></div>' +
-        '<div><dt>文件大小</dt><dd>' + esc(Number(item.visual_authority_bytes || 0).toLocaleString("en-US")) + ' bytes</dd></div>' +
-        '<div><dt>SHA-256</dt><dd>' + esc(item.visual_authority_sha256 || "未登记") + '</dd></div>' +
-      '</dl>' +
-      '<div class="guide-resource-actions">' +
-        '<a href="' + esc(fileHref) + '" download="' + esc(filename) + '">下载原始 PNG</a>' +
-        '<a href="' + esc(fileHref) + '" target="_blank" rel="noreferrer">打开原始文件 ↗</a>' +
-      '</div>' +
-    '</article>';
-  }).join("");
-  const link = (path, label) => path
-    ? '<a href="' + esc(repoHref(path)) + '" target="_blank" rel="noreferrer">' + esc(label) + ' ↗</a>'
-    : "";
-  const pageManifest = link(child.resource_manifest, "冻结页面图 Manifest");
-  const frontendManifest = link(child.frontend_asset_manifest, "前端独立素材 Manifest");
-  const structureManifest = link(child.structured_page_manifest, "结构化页面 JSON");
-  const slots = child.frontend_asset_slots || [];
-  const slotCards = slots.map(slot => {
-    const blocked = slot.authority_state === "ASSET_SOURCE_BLOCKED";
-    const referenceOnly = slot.reference_status === "REFERENCE_ONLY";
-    const stateLabel = blocked ? "× 独立主图待补" : referenceOnly ? "参考裁切 · 不可生产使用" : "候选待核验";
-    return '<article class="authority-index-card guide-asset-slot" data-asset-id="' + esc(slot.id) + '">' +
-      '<div class="authority-index-head"><strong>' + esc(slot.page_id.toUpperCase()) + ' · ' + esc(slot.label) + '</strong>' +
-        '<span class="badge status-' + (blocked ? 'BLOCKED_INTEGRITY' : 'PARTIAL') + '">' + stateLabel + '</span></div>' +
-      '<div class="authority-kind">' + esc(slot.role) + ' · 鱼体方向：' + esc(slot.fish_orientation === "vertical" ? "竖向" : "横向") + '</div>' +
-      '<p>' + esc(slot.note || "独立原始照片尚未核验。") + '</p>' +
-      '<dl class="guide-resource-metadata">' +
-        '<div><dt>资源 ID</dt><dd>' + esc(slot.id) + '</dd></div>' +
-        '<div><dt>来源状态</dt><dd>' + (referenceOnly ? "REFERENCE_ONLY · 归档裁切" : blocked ? "ASSET_SOURCE_BLOCKED" : "CANDIDATE_NEEDS_APPROVAL") + '</dd></div>' +
-        (slot.reference_package_path ? '<div><dt>归档路径</dt><dd>' + esc(slot.reference_package_path) + '</dd></div>' : '<div><dt>原始文件</dt><dd>未找到 / 未验证</dd></div>') +
-        (slot.reference_sha256 ? '<div><dt>参考文件 SHA-256</dt><dd>' + esc(slot.reference_sha256) + '</dd></div>' : '') +
-        '<div><dt>前端可用</dt><dd>否 · ' + (referenceOnly ? "仅作布局参考" : "来源待核验") + '</dd></div>' +
-      '</dl>' +
-    '</article>';
-  }).join("");
-  return '<div class="authority-index guide-resource-gallery">' +
-    '<div class="authority-index-intro"><strong>页面高保真资源 · Frozen Visual Authority</strong>' +
-      '<span>以下是三张整页冻结 PNG，仅用于视觉基准、对照和下载；不是可直接绑定到页面组件的独立鱼体照片。</span></div>' +
-    (cards ? '<div class="authority-index-grid guide-resource-grid">' + cards + '</div>' : '<div class="preview-empty">资源清单没有可展示的 Frozen PNG。</div>') +
-    '<div class="authority-index-intro guide-resource-manifest"><strong>结构化开发合同</strong><span>' + [pageManifest, frontendManifest, structureManifest].filter(Boolean).join(' · ') + '</span></div>' +
-    '<div class="authority-index-intro guide-resource-manifest"><strong>前端独立素材 · 12 个必需槽位</strong><span>每页 1 张正确示范主图 + 3 张错误示范。已有 9 张归档错误示范裁切仅标为 REFERENCE_ONLY（源于合成整页图）；3 张正确主图仍缺独立原图。未将任何候选资源标记为生产可用。</span></div>' +
-    (slotCards ? '<div class="authority-index-grid guide-resource-grid">' + slotCards + '</div>' : '<div class="preview-empty">尚未登记前端素材槽位。</div>') +
-  '</div>';
+  return '<div class="guide-workspace-root" data-testid="first-use-guide-workspace"' +
+    ' data-structured-manifest="' + esc(child.structured_page_manifest || "") + '"' +
+    ' data-geometry-manifest="' + esc(child.geometry_measurement_manifest || "") + '"' +
+    ' data-responsive-contract="' + esc(child.responsive_contract_manifest || "") + '"' +
+    ' data-asset-manifest="' + esc(child.frontend_asset_manifest || "") + '"' +
+    ' data-page-manifest="' + esc(child.resource_manifest || "") + '"></div>';
 }
 function genericSpecChildCanvas(child, feature = null) {
   if (child.render_mode === "recognition_guide_resources") return recognitionGuideResourcesCanvas(child, feature);
@@ -3365,6 +3305,10 @@ function renderHifiView(feature, hifiId, hifiChildId = null) {
   el("hifiViewCanvas").innerHTML = child
     ? (feature.id === "my_catches_v2" ? myCatchesSearchChildCanvas(child) : genericSpecChildCanvas(child, feature))
     : (feature.id === "my_catches_v2" ? myCatchesHifiCanvas(feature,view) : genericSpecHifiCanvas(feature,view));
+
+  if (child?.render_mode === "recognition_guide_resources") {
+    window.FirstUseGuideWorkspace?.mount(el("hifiViewCanvas").querySelector(".guide-workspace-root"));
+  }
 
   if (!child && ["web_hifi_contract_v2", "swos_static_visual_v1_1"].includes(view.id)) {
     const viewer = document.createElement("iframe");

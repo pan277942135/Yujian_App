@@ -321,14 +321,19 @@ def validate_tree(root: Path, *, built: bool = False, expected_build: str | None
         fail("Record Date known data/background exceptions must be documented")
 
     app = app_path.read_text(encoding="utf-8") if app_path.exists() else ""
+    guide_workspace_path = root / "design/manager/first_use_guide_workspace.js"
+    guide_workspace = guide_workspace_path.read_text(encoding="utf-8") if guide_workspace_path.exists() else ""
+    manager_index = (root / "design/manager/index.html").read_text(encoding="utf-8")
     required_logic = '(selectedKey === key || selectedKey.startsWith(key + "/"))'
     if required_logic not in app:
         fail("selected page no longer auto-expands its submenu")
 
     if "nh07-master-open" not in app or "openNh07MasterLightbox" not in app or "dialog.showModal" not in app:
         fail("NH07 must provide a clickable modal preview of its verified mother image")
-    if "recognitionGuideResourcesCanvas" not in app or "guide-resource-actions" not in app:
-        fail("guide Resources submenu must render original-file previews and download links")
+    if "recognitionGuideResourcesCanvas" not in app or "FirstUseGuideWorkspace?.mount" not in app:
+        fail("guide Resources submenu must mount the structured pre-development workspaces")
+    if "first_use_guide_workspace.js" not in manager_index or "guide-resource-actions" not in guide_workspace or "data-guide-layer" not in guide_workspace:
+        fail("guide workspaces must include interactive layers and direct original-file links")
 
     route_logic = (
         'window.addEventListener("popstate", selectFromHash)',

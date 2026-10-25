@@ -26,15 +26,25 @@ P01/P02/P03 are Design Manager visual authorities, not Android runtime backgroun
 
 The task-scope resolution is recorded in `Scope_Resolution_20261016.md`. The later two-page freeze proposal remains preserved as history and does not replace this explicitly requested V1 task scope.
 
-## Design Manager resources
+## Design Manager workspaces
 
-`识别过程 → 07 · 首次拍照教学 → 资源` exposes the three existing Frozen PNGs as static design resources. Each card preserves the original image ratio and provides the repository path, source filename, repository filename, dimensions, byte count, SHA-256, and a direct original-file download. `navigation.json` records this as a separate `resource_menus` entry; its `children` list remains the P01/P02/P03 teaching sequence. The cards resolve from those registered entries and are verified against `manifest.json`; the PNGs are not duplicated and are not Android runtime resources.
+`识别过程 → 07 · 首次拍照教学 → 资源` remains the existing hash route. Its three tabs share the existing Design Manager renderer and registries:
 
+- **结构化高保真**: P01/P02/P03 selector, semantic layer tree, one frozen reference canvas with selectable measured-box overlay, and pixel/normalized geometry inspector.
+- **响应式设计**: viewport preset/free-size controls, font-scale and inset simulation, responsive proposal preview, and the candidate/frozen boundary.
+- **资源**: the three unchanged Frozen page PNGs plus all 12 photo-role mappings to eight independent generated candidate files, with direct originals, metadata and byte-level hashes. Archive-derived example crops remain `REFERENCE_ONLY` and are not promoted.
 
-## Structured front-end handoff V1
+P03's landscape camera instruction and horizontal fish are inner teaching content; the outer page viewport remains responsive. No Android runtime background mapping is implied.
 
-- `structured_pages.json` defines the semantic component tree and region ownership for P01/P02/P03. It does not replace the frozen page PNGs.
-- `frontend_assets_manifest.json` defines 12 independent photo slots: one correct hero and three error examples for each page. P02 requires vertical-fish examples; P01/P03 require horizontal-fish examples.
-- Each slot is currently marked `ASSET_SOURCE_BLOCKED` until an independent source photo with provenance and licensing status is found and verified. The full-page PNGs and supplied composite screenshot must not be cropped to manufacture source photos.
-- Exact pixel geometry remains `TO_MEASURE_FROM_FROZEN_PNG`; do not describe the semantic structure as pixel-perfect until browser geometry has been measured.
-- The Design Manager Resources route now separates frozen page-level authority from front-end photo slots. This is design-only and does not imply Android runtime integration.
+## Structured pre-development handoff
+
+- `structured_pages.json` records three stable layer trees, parent/child links, visibility, candidate visual-order indices, shared component references and per-layer geometry status.
+- `geometry_measurements.json` records native frozen-raster bounds and normalized coordinates. Source font declarations, original z-index, layer alpha/effects, independent hero/photo layers and invisible touch targets cannot be recovered from the flattened source PNGs.
+- `responsive_contract.json` specifies inset-aware `dp` sizing, scrolling, wrapping, image containment, 48dp targets and a tested viewport × font-scale matrix. Browser simulation is not Android runtime acceptance.
+- `frontend_assets_manifest.json` binds one hero plus three error examples per page. Eight generated independent PNGs are mapped to 12 slots; every slot is `CANDIDATE_NEEDS_APPROVAL`, `approved_for_frontend=false`, `approved_for_runtime=false`, and license/privacy review remains unresolved. The three original-source hero slots and nine original-source error slots remain blocked.
+- The nine archived composite-derived error crops remain `REFERENCE_ONLY`. Neither they nor the Frozen full-page images are used as candidate source photos.
+- `PREDEV_READINESS_MATRIX.json` and `Freeze_Decision.md` distinguish frozen measurable contracts, candidate visual choices, missing approved originals, and NOT_RUN runtime scope. `PREDEV_FULL_READY` / `ALL_ASSETS_FROZEN` are not claimed.
+
+## Validation
+
+Run `python3 scripts/verify_first_use_camera_guide_assets.py`, `python3 scripts/measure_first_use_camera_guide_geometry.py --check`, and the Design Manager navigation, hi-fi release, registry, and Chromium browser verification scripts. Exact-SHA CI, browser screenshots, deployment build marker, remaining blockers, and review links are recorded in the Issue #206 execution checkpoint and the implementation PR.
