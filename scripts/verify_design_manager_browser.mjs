@@ -210,6 +210,7 @@ async function main() {
     assert((await workspace.locator("[data-inspector]").innerText()).includes(`fontScale ${fontScale}`),`fontScale ${fontScale} did not recalculate inspector values`);
   }
   await workspace.locator('[data-control="zoom"]').evaluate(node=>{node.value="0.65";node.dispatchEvent(new Event("input",{bubbles:true}));});
+  await workspace.locator(".nh01-structured-controls details > summary").click();
   await workspace.locator('[data-control="top"]').fill("30");
   await workspace.locator('[data-control="bottom"]').fill("40");
   await workspace.locator('[data-control="bottom"]').fill("24");
