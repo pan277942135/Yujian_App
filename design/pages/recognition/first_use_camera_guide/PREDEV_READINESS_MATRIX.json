@@ -2,32 +2,137 @@
   "schema_version": "1.0",
   "task_id": "YUJIAN_FIRST_USE_GUIDE_PREDEV_CONTRACT_ASSETS_RESPONSIVE_FREEZE_V1",
   "overall_status": "PARTIAL_READY; ORIGINAL_PHOTO_APPROVAL_AND_NATIVE_RUNTIME_BLOCKED",
-  "status_vocabulary": ["FROZEN", "PASS", "CANDIDATE_PENDING_REVIEW", "BLOCKED", "NOT_RUN"],
-  "source_sha": "RECORDED_PER_EXACT_HEAD_IN_ISSUE_CHECKPOINT_AND_CI_RUNS",
+  "status_vocabulary": [
+    "FROZEN",
+    "PASS",
+    "CANDIDATE_PENDING_REVIEW",
+    "BLOCKED",
+    "NOT_RUN"
+  ],
+  "source_sha": "b8fdb47985d123a08cae947065634ade2a5d451d",
   "rows": [
-    { "id": "frozen_page_count_sequence", "status": "FROZEN", "evidence": "First_Use_Camera_Guide_Spec_V1.md; manifest.json; navigation.json; immutable PNG hashes verified by scripts/verify_first_use_camera_guide_assets.py" },
-    { "id": "frozen_page_png_bytes", "status": "FROZEN", "evidence": "Three registered 941×1671/1672 PNG byte lengths and SHA-256 values; asset validator" },
-    { "id": "component_hierarchy_and_stable_ids", "status": "FROZEN", "evidence": "structured_pages.json: P01/P02/P03 node trees, parent/children, candidate visual ordering, visibility, asset bindings, and shared component references" },
-    { "id": "visible_pixel_geometry", "status": "FROZEN", "evidence": "geometry_measurements.json recomputed from native frozen PNGs; page and visible component bounds, half-open xywh and normalized values checked by geometry validator" },
-    { "id": "flattened_source_style_and_hit_targets", "status": "BLOCKED", "evidence": "Original photo/layer separation, source alpha, source font declarations, original DOM z-index, and invisible hit targets cannot be recovered from flattened PNGs" },
-    { "id": "responsive_algorithm_and_viewport_invariants", "status": "NOT_RUN", "evidence": "responsive_contract.json is implemented; exact-PR-head Chromium matrix is pending CI because this checkout has no local Chromium executable" },
-    { "id": "responsive_tuning_visual_approval", "status": "CANDIDATE_PENDING_REVIEW", "evidence": "Breakpoint-driven layout is executable and tested; candidate spacing/type/hero tuning values await one product-owner visual review" },
-    { "id": "frozen_interaction_copy", "status": "FROZEN", "evidence": "First_Use_Camera_Guide_Spec_V1.md and navigation.json; skip/previous/next/final-action behavior retained; no shutter auto-trigger" },
-    { "id": "shared_components_and_tokens", "status": "PASS", "evidence": "Existing navigation.back, navigation.top_title, action.text_action, action.primary_button, media.hero, media.image and Typography/Color/Geometry token registries reused; page-specific pagination stays scoped" },
-    { "id": "approved_independent_original_photos", "status": "BLOCKED", "evidence": "No original found in canonical Main, recorded historical branches, guide/resource archive or linked task context. Figma connection had no task-linked file key or current file selection. All 12 original-source slots remain blocked." },
-    { "id": "generated_independent_candidate_photos", "status": "CANDIDATE_PENDING_REVIEW", "evidence": "Eight raw independent PNG candidate files map to 12 page/role slots. Manifest records source, orientation, hash, dimensions, privacy/license status, preview-only use and no approval." },
-    { "id": "archived_composite_example_crops", "status": "PASS", "evidence": "Nine source-package crops remain REFERENCE_ONLY; no crop is promoted or linked as a clean production source." },
-    { "id": "asset_license_privacy_and_production_use", "status": "BLOCKED", "evidence": "Candidate generated-photo license/privacy and product match approval are unresolved; approved_for_frontend=false and approved_for_runtime=false." },
-    { "id": "design_manager_structure_responsive_resource_workspaces", "status": "NOT_RUN", "evidence": "Three existing-route workspaces are implemented; browser interaction and image loads are awaiting exact-PR-head Chromium CI." },
-    { "id": "registry_manifest_and_route_consistency", "status": "PASS", "evidence": "Resource child remains on existing hash route; experience registry, manifest, geometry contract and workspace modules are validated together." },
-    { "id": "browser_and_responsive_evidence", "status": "NOT_RUN", "evidence": "Exact-PR-head Chromium evidence has not yet been captured; do not treat source-code presence as browser verification." },
-    { "id": "android_runtime_device_acceptance", "status": "NOT_RUN", "evidence": "Out of scope for this design-preparation issue; no Android runtime implementation or device claim is made." },
-    { "id": "public_live_design_manager_deployment", "status": "NOT_RUN", "evidence": "Only becomes verifiable after exact-head CI pass, authorized merge, and Pages deployment." }
+    {
+      "id": "frozen_page_count_sequence",
+      "status": "FROZEN",
+      "evidence": "First_Use_Camera_Guide_Spec_V1.md; manifest.json; navigation.json; immutable PNG hashes verified by scripts/verify_first_use_camera_guide_assets.py"
+    },
+    {
+      "id": "frozen_page_png_bytes",
+      "status": "FROZEN",
+      "evidence": "Three registered 941×1671/1672 PNG byte lengths and SHA-256 values; asset validator"
+    },
+    {
+      "id": "component_hierarchy_and_stable_ids",
+      "status": "FROZEN",
+      "evidence": "structured_pages.json: P01/P02/P03 node trees, parent/children, candidate visual ordering, visibility, asset bindings, and shared component references"
+    },
+    {
+      "id": "visible_pixel_geometry",
+      "status": "FROZEN",
+      "evidence": "geometry_measurements.json recomputed from native frozen PNGs; page and visible component bounds, half-open xywh and normalized values checked by geometry validator"
+    },
+    {
+      "id": "flattened_source_style_and_hit_targets",
+      "status": "BLOCKED",
+      "evidence": "Original photo/layer separation, source alpha, source font declarations, original DOM z-index, and invisible hit targets cannot be recovered from flattened PNGs"
+    },
+    {
+      "id": "responsive_algorithm_and_viewport_invariants",
+      "status": "FROZEN",
+      "evidence": "responsive_contract.json; exact-head Chromium verified all 3 pages × 9 viewports × 2 font scales (54 cases) on source_sha b8fdb47985d123a08cae947065634ade2a5d451d; no horizontal overflow, clipped copy, group overlap, undersized target or unreachable primary action."
+    },
+    {
+      "id": "responsive_tuning_visual_approval",
+      "status": "CANDIDATE_PENDING_REVIEW",
+      "evidence": "Breakpoint-driven layout is executable and tested; candidate spacing/type/hero tuning values await one product-owner visual review"
+    },
+    {
+      "id": "frozen_interaction_copy",
+      "status": "FROZEN",
+      "evidence": "First_Use_Camera_Guide_Spec_V1.md and navigation.json; skip/previous/next/final-action behavior retained; no shutter auto-trigger"
+    },
+    {
+      "id": "shared_components_and_tokens",
+      "status": "PASS",
+      "evidence": "Existing navigation.back, navigation.top_title, action.text_action, action.primary_button, media.hero, media.image and Typography/Color/Geometry token registries reused; page-specific pagination stays scoped"
+    },
+    {
+      "id": "approved_independent_original_photos",
+      "status": "BLOCKED",
+      "evidence": "No original found in canonical Main, recorded historical branches, guide/resource archive or linked task context. Figma connection had no task-linked file key or current file selection. All 12 original-source slots remain blocked."
+    },
+    {
+      "id": "generated_independent_candidate_photos",
+      "status": "CANDIDATE_PENDING_REVIEW",
+      "evidence": "Eight raw independent PNG candidate files map to 12 page/role slots. Manifest records source, orientation, hash, dimensions, privacy/license status, preview-only use and no approval."
+    },
+    {
+      "id": "archived_composite_example_crops",
+      "status": "PASS",
+      "evidence": "Nine source-package crops remain REFERENCE_ONLY; no crop is promoted or linked as a clean production source."
+    },
+    {
+      "id": "asset_license_privacy_and_production_use",
+      "status": "BLOCKED",
+      "evidence": "Candidate generated-photo license/privacy and product match approval are unresolved; approved_for_frontend=false and approved_for_runtime=false."
+    },
+    {
+      "id": "design_manager_structure_responsive_resource_workspaces",
+      "status": "PASS",
+      "evidence": "Existing Resources hash route; interactive structure, responsive and asset tabs; exact-head browser artifact on b8fdb47985d123a08cae947065634ade2a5d451d with structure/assets/responsive screenshots and all original/candidate image links loaded."
+    },
+    {
+      "id": "registry_manifest_and_route_consistency",
+      "status": "PASS",
+      "evidence": "Resource child remains on existing hash route; experience registry, manifest, geometry contract and workspace modules are validated together."
+    },
+    {
+      "id": "browser_and_responsive_evidence",
+      "status": "PASS",
+      "evidence": "GitHub Actions Pages run 40157848305 and Governance run 40157848242, exact source SHA b8fdb47985d123a08cae947065634ade2a5d451d; 54 responsive cases, zero console errors, HTTP errors, or failed requests; evidence artifact Design-Manager-Browser-Build-40157848305-b8fdb47985d123a08cae947065634ade2a5d451d."
+    },
+    {
+      "id": "android_runtime_device_acceptance",
+      "status": "NOT_RUN",
+      "evidence": "Out of scope for this design-preparation issue; no Android runtime implementation or device claim is made."
+    }
   ],
   "freeze_boundary": {
-    "frozen": ["existing page PNG bytes", "three-page order and copy/action contract", "measured native-raster visible bounds", "responsive non-truncation, containment, scrolling, reachability and 48dp target invariants"],
-    "candidate_pending_owner_review": ["generated image selection/match", "candidate image privacy/license approval", "responsive spacing/typographic polish and final crop/focal tuning"],
-    "blocked": ["approved original independent photo assets", "recovering original composited source layers/fonts/alpha/hit bounds", "Android runtime acceptance"],
+    "frozen": [
+      "existing page PNG bytes",
+      "three-page order and copy/action contract",
+      "measured native-raster visible bounds",
+      "responsive non-truncation, containment, scrolling, reachability and 48dp target invariants"
+    ],
+    "candidate_pending_owner_review": [
+      "generated image selection/match",
+      "candidate image privacy/license approval",
+      "responsive spacing/typographic polish and final crop/focal tuning"
+    ],
+    "blocked": [
+      "approved original independent photo assets",
+      "recovering original composited source layers/fonts/alpha/hit bounds",
+      "Android runtime acceptance"
+    ],
     "full_ready_status": "BLOCKED_UNTIL_APPROVED_INDEPENDENT_PHOTO_SOURCE_AND_OWNER_REVIEW"
+  },
+  "verification_evidence": {
+    "source_sha": "b8fdb47985d123a08cae947065634ade2a5d451d",
+    "design_manager_pages_run_id": 40157848305,
+    "design_governance_run_id": 40157848242,
+    "control_plane_admission_run_id": 40157848222,
+    "browser_result": "PASS",
+    "responsive_matrix_cases": 54,
+    "browser_report_artifact": "Design-Manager-Browser-Build-40157848305-b8fdb47985d123a08cae947065634ade2a5d451d",
+    "screenshots": [
+      "guide-structure-1440.png",
+      "guide-assets-1440.png",
+      "guide-responsive-p03-640x360-font13.png",
+      "guide-responsive-p01-390x844.png",
+      "guide-responsive-mobile-390.png"
+    ],
+    "errors": [],
+    "bad_responses": [],
+    "failed_requests": []
   }
 }
