@@ -131,6 +131,12 @@ shared_contracts:
     domain: "DOMAIN"
     status: "ACTIVE_CLOSURE"
     refs: ["design/pages/recognition/web/WEB_HIFI_CONTRACT_V2.md", "design/pages/recognition/web/contracts/Page_Structure_V2.json", "design/pages/recognition/web/WEB_HIFI_GAP_MATRIX_V2.md"]
+  SWOS-RR09-OPTICAL-V1_2:
+    domain: "DOMAIN"
+    status: "FROZEN_CONTRACT_INPUT"
+    parameter_status: "CALIBRATION_CANDIDATE"
+    runtime_status: "NOT_VERIFIED"
+    refs: ["design/pages/recognition/processing/optics/SWOS_RR09_Optical_Rendering_Acceptance_Contract_V1_2.md", "design/pages/recognition/processing/optics/SWOS_RR09_Optical_Parameters_V1_2.json", "design/pages/recognition/processing/optics/SWOS_RR09_Visual_Acceptance_V1_2.json"]
   SWOS-WEB-HIFI-MOTION-V1:
     domain: "DOMAIN"
     status: "READY"
@@ -406,6 +412,18 @@ feature_contracts:
         product_web_deployed: false
         note: "主视觉基准身份已按精确 SHA 冻结为私有基准；当前 PR #177 源码已完成定向 CI，但候选 Revision、真实照片推理、运行像素一致性与用户视觉 UAT 仍未验证。PR #177 保持 Draft/Open/Unmerged。"
 
+      swos_rr09_optical_v1_2:
+        status: "FROZEN_CONTRACT_INPUT"
+        parameters_status: "CALIBRATION_CANDIDATE"
+        runtime_visual_verified: false
+        production_mask_qualification: "NOT_QUALIFIED"
+        manager_route: "#page/recognition_flow_v1_2/hifi/swos_rr09_optical_v1_2"
+        contract: "design/pages/recognition/processing/optics/SWOS_RR09_Optical_Rendering_Acceptance_Contract_V1_2.md"
+        optical_config: "design/pages/recognition/processing/optics/SWOS_RR09_Optical_Parameters_V1_2.json"
+        acceptance_matrix: "design/pages/recognition/processing/optics/SWOS_RR09_Visual_Acceptance_V1_2.json"
+        inherits_frozen_15_frames: true
+        adopted_runtime: false
+        note: "The V1.2 normative implementation input is frozen; specific RGB, alpha and shader values remain candidate pending owner calibrated visual acceptance."
       swos_web_hifi_motion_contract_v1_0:
         status: "DESIGN_ONLY"
         authority_status: "MAIN_ADOPTED_DESIGN_ONLY"
