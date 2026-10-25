@@ -253,6 +253,7 @@ features:
       - "swos_static_visual_v1_1"
       - "web_hifi_contract_v2"
       - "swos_web_hifi_motion_technical_contract_v1_0"
+      - "swos_rr09_optical_v1_2"
     design_children:
       - "ai_edge_field_v1_static_shape"
       - "ai_edge_field_v1_rendering_contract"
