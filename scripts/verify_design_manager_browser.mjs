@@ -296,10 +296,16 @@ async function main() {
     assert(cardText.includes("CANDIDATE_NEEDS_APPROVAL") && cardText.includes("approved_for_frontend=false") && cardText.includes("approved_for_runtime=false"), "Candidate status and production boundary must be visible");
     assert(await asset.locator("a[download]").count() === 1, "Each independent candidate needs a direct original-file download link");
   }
-  await page.screenshot({ path: resolve(args.outputDir, "guide-assets-1440.png"), fullPage: true });
+  await page.locator(".guide-workspace-tabs").scrollIntoViewIfNeeded();
+  await page.screenshot({ path: resolve(args.outputDir, "guide-assets-1440.png"), fullPage: false });
 
-  await page.locator('[data-guide-tab="responsive"]').click();
-  await page.locator('[data-testid="guide-responsive-workspace"]').waitFor({state: "visible", timeout: 30000});
+  const responsiveTab = page.locator('[data-guide-tab="responsive"]');
+  await responsiveTab.scrollIntoViewIfNeeded();
+  await responsiveTab.click({timeout: 10000});
+  await page.waitForFunction(() => new URLSearchParams(location.search).get("guide_workspace") === "responsive", null, {timeout: 10000});
+  const workspaceState = await page.locator('[data-testid="first-use-guide-workspace"]').getAttribute("data-workspace");
+  assert(workspaceState === "responsive", `Responsive tab click did not render the workspace: state=${workspaceState}; errors=${errors.join(" | ")}`);
+  await page.locator('[data-testid="guide-responsive-workspace"]').waitFor({state: "visible", timeout: 10000});
   const responsivePageTitles = {p01:"竖屏拍摄示意",p02:"竖拍鱼类拍摄示意",p03:"横屏拍摄示意"};
   const responsiveMatrix = [];
   const responsiveProfiles = [[320,480],[360,640],[390,844],[412,915],[430,932],[480,960],[640,360],[844,390],[915,412]];
