@@ -158,8 +158,11 @@ canonical_design_authorities:
 main_merge_gate:
   required_status_check: "control-plane-admission"
   required_before_merge: true
-  human_authorization: "N009"
-  enforcement_location: "GitHub branch protection or repository ruleset"
+  human_authorization: "NONE_FOR_CODE_MERGE; N009_APPLIES_TO_RELEASE_ONLY"
+  merge_when_checks_pass: true
+  exact_head_required: true
+  merge_scope: "Within the already authorized task scope; all repository-required checks must pass on the exact current PR HEAD."
+  enforcement_location: "GitHub branch protection or repository ruleset; required checks remain enforced"
 
 admission:
   script: "scripts/validate_control_plane_admission.py"
@@ -200,3 +203,11 @@ integrity:
   stale_control_plane_blocks_admission: true
   task_design_changes_require_sync: true
   work_progress_never_updates_main_control_plane: true
+
+execution_environment:
+  local_worktree_required: false
+  accepted_admission_evidence:
+    - "Validator PASS in a clean checkout on the exact source SHA."
+    - "GitHub Actions control-plane-admission PASS on the exact source SHA when a clean local checkout is unavailable."
+  missing_local_checkout_action: "Acquire a clean checkout or use a remote runner/API workflow; do not report the absence of a local repository as an Admission FAIL."
+  remote_execution_rule: "Do not edit from a non-repository scratch directory. Preserve applicable branch-local state checks and require exact-head CI before merge."

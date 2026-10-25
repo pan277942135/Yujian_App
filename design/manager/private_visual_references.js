@@ -19,7 +19,7 @@
     $('local').hidden=id==='current'; $('current').hidden=id!=='current';
     const ref=manifest.references.find(r=>r.id===id);
     $('identity').textContent=ref ? `${ref.filename} · ${ref.width}×${ref.height} · ${ref.size_bytes} bytes · SHA-256 ${ref.sha256}` : '正式权威：SWOS 15 帧 V1.1（8 Processing + 7 RR09）';
-    $('version').textContent=ref?.status==='14_FRAME_V0_3_HISTORICAL_VISUAL_REFERENCE' ? '14_FRAME_V0_3_HISTORICAL_VISUAL_REFERENCE · 用户确认的历史光学方向；不能覆盖V1.1新增R0.5。' : '用户确认的视觉参考；公开权限 NOT_CONFIRMED，运行像素一致性 NOT_VERIFIED。';
+    $('version').textContent=ref?.status==='14_FRAME_V0_3_HISTORICAL_VISUAL_REFERENCE' ? '14_FRAME_V0_3_HISTORICAL_VISUAL_REFERENCE · 历史方向参考；不能覆盖现行 V1.1 的 15 帧和 R0.5。' : (ref?.pixel_authority_status==='FROZEN_PRIVATE_SHA_BOUND' ? 'PIXEL_BASELINE_FROZEN_PRIVATE · 主视觉基准身份已冻结；选择文件时仍须精确校验 SHA、尺寸和字节数。公开权限 NOT_CONFIRMED；运行像素一致性 NOT_VERIFIED。仅浏览器本地内存。' : '用户确认的视觉参考；公开权限 NOT_CONFIRMED，运行像素一致性 NOT_VERIFIED。');
   }
   document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>select(b.dataset.tab));
   $('clear').onclick=clear;

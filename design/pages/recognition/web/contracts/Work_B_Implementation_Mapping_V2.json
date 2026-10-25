@@ -5,14 +5,17 @@
   "adoption_status": "MAIN_ADOPTED_DESIGN_ONLY",
   "page_id": "ai_catch_recognition_web",
   "source_ref": [
-    "Yujian_App/main@ad8bf1ba61e42a34d1fdd91de47fa386e25f11ef",
+    "Yujian_App/main@2c41084b423be36b06035694fe573c5e671cb4da",
     "Yujian_App/PR186@3b0b5848206cdea949f4bf6be7eb7cb1d19b1e34",
     "Yujian_App/PR187@ee3bb45858183144598bc28c5bae53ae55b324e0",
-    "Yujian/PR177@655c4af07a0244fcf29441b5652c48ca74f2e6a2"
+    "Yujian/PR177@8edce561c3b6f25263eb32f1d72706fec4e329b1",
+    "Yujian/PR177@8edce561c3b6f25263eb32f1d72706fec4e329b1",
+    "Yujian/PR177@8edce561c3b6f25263eb32f1d72706fec4e329b1",
+    "Yujian/PR177@8edce561c3b6f25263eb32f1d72706fec4e329b1"
   ],
   "web_repo": "pan277942135/Yujian",
   "web_pr": 177,
-  "source_sha": "d8f3aabfab058d58cac84e19af095b0186df5f85",
+  "source_sha": "8edce561c3b6f25263eb32f1d72706fec4e329b1",
   "files": [
     "app/templates/platform/catch_recognition.html",
     "app/static/js/catch_recognition.js",
@@ -26,7 +29,10 @@
     "implement approved optical layers gated by trusted geometry",
     "enforce HIGH-only RR09 and one shared photo transform",
     "apply token/geometry/responsive contracts",
-    "browser compare against approved source once verified"
+    "browser compare against approved source once verified",
+    "bind implementation to SWOS Web Hi-Fi Motion Technical Contract V1.0 and machine contract",
+    "reuse existing SAM ViT-B experiment pipeline through a server adapter; do not create a duplicate service",
+    "implement actual browser playback and collect 15-frame, shared-photo geometry, responsive, frame-time and visual evidence"
   ],
   "do_not": [
     "change model thresholds",
@@ -35,7 +41,11 @@
     "claim visual parity from UI simulation"
   ],
   "acceptance_criteria": [
-    "Referenced source status remains explicit; Product PR #177 is Draft/Open/Unmerged and supplies no runtime evidence"
+    "Referenced source status remains explicit; Product PR #177 is Draft/Open/Unmerged and supplies no runtime evidence",
+    "Actual 3650ms playable browser animation and all 15 seek points pass on the exact source SHA",
+    "SAM experiment pipeline is reused without duplicate service; mask trust states degrade safely",
+    "Production Mask stays NOT_QUALIFIED until ground-truth boundary metrics and visual sign-off are complete",
+    "Browser frame-time and visual acceptance evidence are separate from SAM API latency and Chromium UI simulation"
   ],
   "adoption_pr": 190,
   "adopted_source_prs": [
@@ -44,42 +54,43 @@
   ],
   "adoption_scope": "DESIGN_CONTRACT_ONLY",
   "runtime_visual_verified": false,
-  "pixel_frozen_source": "NOT_CONFIRMED",
-  "previous_reviewed_source_sha": "32b9463887c6620b32a3dfdd986eccc6ff4a569b",
-  "source_sha_role": "LIVE_PR_HEAD_AFTER_MAIN_SYNC_2026-10-23",
+  "pixel_frozen_source": "FROZEN_PRIVATE_SHA_BOUND",
+  "previous_reviewed_source_sha": "054d2dae09ff73e85e4c91bbdc4b9134821e3891",
+  "source_sha_role": "LIVE_PR177_HEAD_SYNCED_TO_PRODUCT_MAIN_EXACT_SHA_CI_PASS_TARGETED_AND_CHROMIUM_FIXTURE_UI_SIMULATION_ONLY_NOT_VISUAL_ACCEPTED",
   "live_source_audit": {
-    "audit_date": "2026-10-23",
+    "audit_date": "2026-10-24",
     "product_repository": "pan277942135/Yujian",
     "product_pr_number": 177,
     "product_branch": "feat/ai-catch-recognition-web-swos-rr09-v1",
-    "live_product_pr_head_sha": "d8f3aabfab058d58cac84e19af095b0186df5f85",
-    "live_product_main_sha": "3c79c00db68ace94d8f6a7dcb4105d0026a09323",
-    "merge_base_sha": "3c79c00db68ace94d8f6a7dcb4105d0026a09323",
-    "ahead_by": 19,
+    "live_product_pr_head_sha": "8edce561c3b6f25263eb32f1d72706fec4e329b1",
+    "live_product_main_sha": "738954105d545d9c354136b8b93f3562058fcf30",
+    "merge_base_sha": "738954105d545d9c354136b8b93f3562058fcf30",
+    "ahead_by": 49,
     "behind_by": 0,
-    "source_sync_status": "SYNCED_TO_CURRENT_PRODUCT_MAIN",
-    "exact_head_ci_status": "PASS",
+    "source_sync_status": "SYNCED_WITH_CURRENT_PRODUCT_MAIN",
+    "exact_head_ci_status": "PASS_EXACT_SHA_VALIDATE_AND_CHROMIUM_FIXTURE_UI_SIMULATION_ONLY_NOT_VISUAL_ACCEPTED",
     "previous_exact_head_ci": {
-      "sha": "32b9463887c6620b32a3dfdd986eccc6ff4a569b",
-      "run_id": 39874124153,
-      "url": "https://github.com/pan277942135/Yujian/actions/runs/39874124153",
+      "sha": "10b60e3ee3d26b3c103a5a908b005c1d54750338",
+      "run_id": 39980021942,
+      "url": "https://github.com/pan277942135/Yujian/actions/runs/39980021942",
       "conclusion": "success",
-      "scope": "targeted validation plus Chromium UI simulation only"
+      "scope": "Both jobs were green, but renderer diagnostics showed a GLSL reserved-word compile failure and Canvas2D fallback. This follow-up fixes that failure and requires actual WebGL2 product-renderer execution."
     },
     "exact_head_ci": {
-      "run_id": 39917440271,
-      "url": "https://github.com/pan277942135/Yujian/actions/runs/39917440271",
+      "sha": "8edce561c3b6f25263eb32f1d72706fec4e329b1",
+      "run_id": 40057399157,
+      "url": "https://github.com/pan277942135/Yujian/actions/runs/40057399157",
       "conclusion": "success",
       "jobs": {
         "validate": "success",
         "det_fish_display_chromium": "success"
       },
-      "scope": "safe targeted validation and Chromium UI simulation only; no full-suite metadata access, production inference, qualified Mask, pixel parity, or user visual acceptance"
+      "scope": "Targeted validation + offline probe unit tests + Chromium fixture/UI simulation only."
     },
-    "current_head_preview_status": "NOT_VERIFIED",
-    "configured_preview_sha": "cb9e3780afb5e2904e3dfe5148210a4ccc3747b4",
+    "current_head_preview_status": "NOT_DEPLOYED_CURRENT_HEAD_8edce56_EXISTING_REVISION_yujian-model-factory-console-00349-hes_USES_OLD_SOURCE_6da6408",
+    "configured_preview_sha": "DYNAMIC_INPUT_TARGET_SHA",
     "production_mask_status": "NOT_QUALIFIED",
-    "runtime_visual_status": "NOT_VERIFIED",
+    "runtime_visual_status": "NOT_VERIFIED_AUTHENTICATED_REAL_INFERENCE_AND_BROWSER_VISUAL_ACCEPTANCE_PENDING",
     "full_suite_status": "NOT_RUN_BLOCKED_BY_EXISTING_METADATA_ACCESS_REVIEW",
     "canonical_cross_repo_admission": {
       "canonical_repository": "pan277942135/Yujian_App",
@@ -89,7 +100,78 @@
       "product_repository_is_separate": true,
       "product_repository_root_control_plane_files": "NOT_PRESENT",
       "policy": "Use the canonical Yujian_App control plane plus this exact-SHA cross-repository source audit. Do not create a competing control plane in Yujian.",
-      "admission_status": "CANONICAL_CONTROL_PLANE_PINNED; SOURCE_SHA_CI_PASS"
-    }
-  }
+      "admission_status": "CONTROL_PLANE_CONFIRMED; PR177_DRAFT_OPEN_UNMERGED; SOURCE_SYNCED_49_AHEAD_0_BEHIND; EXACT_SHA_CI_PASS; CURRENT_HEAD_PREVIEW_NOT_DISPATCHED; REAL_INFERENCE_AND_VISUAL_ACCEPTANCE_PENDING"
+    },
+    "candidate_preview_config": {
+      "product_sha": "6da640859f063d7f42ee5432e6b35ecb162802ff",
+      "pr_number": 182,
+      "pr_head_sha": "088fe33991f9108cd436567d92191620e54df974",
+      "ci_run_id": 39981707128,
+      "ci_status": "PASS_INFRA_CI_EXACT_PIN_6DA",
+      "deployment_status": "FAILED_POST_DEPLOY_PROBE_AUTH_AND_FIXTURE_RATE_LIMIT",
+      "validate_job_status": "SUCCESS",
+      "chromium_job_status": "SUCCESS",
+      "workflow_trigger_policy": "manual workflow_dispatch only; exact target_sha input required",
+      "deploy_preflight_ref": "refs/heads/main",
+      "deployment_blocker": "Existing candidate Revision yujian-model-factory-console-00349-hes is bound to old source 6da640859f063d7f42ee5432e6b35ecb162802ff; current PR #177 HEAD f5b74cc7628131863f40a1a43458026ff49a2eb5 has not yet been dispatched. Previous probe failed before valid inference: 2 HTTP 401 requests and 3 Wikimedia HTTP 429 fixture downloads. The new workflow requires Actions secret CONSOLE_ACCESS_KEY; if absent it fails closed as AUTH_NOT_CONFIGURED.",
+      "ci_scope": "Old candidate deployment only; no valid authenticated real-photo inference or visual acceptance.",
+      "configured_main_workflow_sha": "DYNAMIC_WORKFLOW_DISPATCH_INPUT",
+      "candidate_revision": "yujian-model-factory-console-00349-hes",
+      "deployment_run_id": 39982073543,
+      "workflow_dispatch_target_sha": "REQUIRED_INPUT_CURRENT_PR177_HEAD"
+    },
+    "fixture_browser_playback_status": "BROWSER_VERIFIED_FIXTURE_ONLY_WEBGL2_RENDERER_RUNTIME",
+    "unrestricted_suite_event": "The unrestricted repository suite remains NOT_RUN under the existing metadata-access review. Current PR #177 CI runs the approved targeted suite and skips that path; no metadata endpoint or credential was accessed."
+  },
+  "previous_audit_source_sha": "a0596aaf609914e0de8a325da06b2f286a139150",
+  "swos_web_hifi_motion_contract": "design/pages/recognition/web/SWOS_WEB_HIFI_MOTION_TECHNICAL_CONTRACT_V1_0.md",
+  "swos_web_hifi_motion_machine_contract": "design/pages/recognition/web/contracts/SWOS_WEB_HIFI_MOTION_TECHNICAL_CONTRACT_V1_0.json",
+  "sam_experiment_reuse": {
+    "existing_pipeline_repository": "pan277942135/Yujian",
+    "existing_api_path": "POST /api/debug/fish-segmentation (existing experiment route; not browser-facing)",
+    "existing_code_paths": [
+      "app/segmentation_api.py",
+      "app/segmentation/service.py",
+      "app/segmentation/mask_generator.py",
+      "app/segmentation/quality_gate.py",
+      "app/segmentation/cutout_builder.py"
+    ],
+    "model": "SAM_VIT_B",
+    "policy": "REUSE_EXISTING_EXPERIMENTAL_PIPELINE; NO_DUPLICATE_SERVICE; NO_RETRAIN; MASK_IS_NOT_CLASSIFIER_INPUT",
+    "public_production_endpoint": false,
+    "production_mask_qualification": "NOT_QUALIFIED",
+    "product_same_request_endpoint": "POST /api/product/catch-recognition/infer",
+    "same_request_adapter": "app.catch_recognition_api._run_same_request_sam calls app.segmentation.service.generate_fish_cutout with the primary detector BBox from the same request",
+    "candidate_flag": "CATCH_SWOS_SAM_CANDIDATE_ENABLED (defaults off; preview candidate only)",
+    "runtime_status": "NOT_RUN_NO_CURRENT_SOURCE_CANDIDATE_REVISION",
+    "mask_trust_state": "REVIEW_PROXY when a candidate mask returns; BBOX_ONLY fallback"
+  },
+  "business_decision_resolution": {
+    "status": "RESOLVED_BY_AUTHORITY_SCOPE_NO_NUMERIC_THRESHOLD_CHANGE",
+    "canonical_cta": [
+      "继续记忆",
+      "保存本次鱼获"
+    ],
+    "cta_authority": "design/pages/recognition/result/engineering/layout_geometry_contract.json",
+    "result_state_api": "POST /api/product/catch-recognition/infer",
+    "use_api_result_state_without_client_recalculation": true,
+    "preserved_result_state_mapping": {
+      "low_if_top1_below": 0.45,
+      "medium_if_margin_below": 0.12
+    },
+    "separate_inference_api_low_confidence_threshold": 0.55,
+    "threshold_values_changed": false
+  },
+  "asset_gate": {
+    "public_permission": "NOT_CONFIRMED",
+    "public_repo_commit_allowed": false,
+    "public_ci_artifact_allowed": false,
+    "public_pages_upload_allowed": false,
+    "private_local_review_allowed": true,
+    "pixel_frozen_source": "NOT_CONFIRMED",
+    "verified_private_photo_sha256": "ab7227cf7205ee2ac342b6cd75cd899747879506c95c33b888b6adf0acb47987",
+    "production_mask": "NOT_QUALIFIED"
+  },
+  "pixel_baseline_id": "YUJIAN_SWOS_WEB_PIXEL_BASELINE_V1",
+  "pixel_baseline_contract": "design/pages/recognition/web/VISUAL_BASELINE_FREEZE_V1.md"
 }

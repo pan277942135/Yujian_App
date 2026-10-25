@@ -5,10 +5,11 @@
   "adoption_status": "MAIN_ADOPTED_DESIGN_ONLY",
   "page_id": "ai_catch_recognition_web",
   "source_ref": [
-    "Yujian_App/main@ad8bf1ba61e42a34d1fdd91de47fa386e25f11ef",
+    "Yujian_App/main@2c41084b423be36b06035694fe573c5e671cb4da",
     "Yujian_App/PR186@3b0b5848206cdea949f4bf6be7eb7cb1d19b1e34",
     "Yujian_App/PR187@ee3bb45858183144598bc28c5bae53ae55b324e0",
-    "Yujian/PR177@655c4af07a0244fcf29441b5652c48ca74f2e6a2"
+    "Yujian/PR177@8edce561c3b6f25263eb32f1d72706fec4e329b1",
+    "Yujian/PR177@8edce561c3b6f25263eb32f1d72706fec4e329b1"
   ],
   "states": [
     {
@@ -18,7 +19,7 @@
       "hero_reference_dp_360": "322x210",
       "edit": "可编辑",
       "save": "仅明确点击且认证后保存",
-      "primary_secondary_actions": "继续记忆未开放；保存本次鱼获",
+      "primary_secondary_actions": "继续记忆（目标路由未开放则禁用并解释）；保存本次鱼获",
       "rr09": "once if new valid session",
       "source": "design/pages/recognition/result/engineering/layout_geometry_contract.json; recognition_result_3plus2_decision_contract_v1_1.json"
     },
@@ -102,8 +103,8 @@
     "cancel_or_reupload": "abort/reset session photo, bbox, mask, species and optical residue",
     "reduce_motion": "static equivalent with identical data and controls"
   },
-  "threshold_authority": "design/pages/recognition/result/spec/recognition_result_3plus2_decision_contract_v1_1.json; do not invent threshold",
-  "known_threshold_conflict": "App observed top1 <0.45 vs backend default low confidence 0.55; business owner resolution required",
+  "threshold_authority": "POST /api/product/catch-recognition/infer response.result_state is the sole Web 3+2 state authority. Existing product result-state mapping in app/catch_recognition_api.py uses top1.confidence < 0.45 => RESULT_LOW and top1-minus-second < 0.12 => RESULT_MEDIUM. The separate app/inference_api.py INFERENCE_LOW_CONFIDENCE_THRESHOLD=0.55 marks its low_confidence diagnostic field only; it does not override result_state. Web must consume result_state and must not recompute state in the browser. No model, threshold, gate, or routing value is changed by this contract closure.",
+  "known_threshold_conflict": "RESOLVED_BY_SCOPE: 0.45/0.12 remain the existing product Result-state mapping; 0.55 remains the separate inference_api low_confidence diagnostic threshold. No numeric threshold was changed. Future calibration requires product-owner sign-off and labeled holdout evidence.",
   "acceptance_criteria": [
     "3+2 plus technical failure",
     "HIGH only RR09",
@@ -117,5 +118,31 @@
   ],
   "adoption_scope": "DESIGN_CONTRACT_ONLY",
   "runtime_visual_verified": false,
-  "pixel_frozen_source": "NOT_CONFIRMED"
+  "pixel_frozen_source": "FROZEN_PRIVATE_SHA_BOUND",
+  "cta_authority": {
+    "status": "RESOLVED",
+    "source": "design/pages/recognition/result/engineering/layout_geometry_contract.json",
+    "source_blob_sha": "2df910cda117e7c8be1e211bae17899e14c3933f",
+    "primary": "继续记忆",
+    "secondary": "保存本次鱼获",
+    "precedence": "Frozen Result page-specific CTA authority overrides generic shared Action Button examples for this page only.",
+    "unavailable_destination": "Disable and explain; never fake navigation."
+  },
+  "threshold_resolution_status": "RESOLVED_BY_API_OWNERSHIP_NO_NUMERIC_THRESHOLD_CHANGE",
+  "source_binding": {
+    "audit_date": "2026-10-24",
+    "product_repository": "pan277942135/Yujian",
+    "product_pr": 177,
+    "product_pr_head_sha": "8edce561c3b6f25263eb32f1d72706fec4e329b1",
+    "product_main_sha": "738954105d545d9c354136b8b93f3562058fcf30",
+    "compare": {
+      "ahead_by": 49,
+      "behind_by": 0,
+      "merge_base_sha": "738954105d545d9c354136b8b93f3562058fcf30"
+    },
+    "exact_head_ci_run_id": 40057399157,
+    "exact_head_ci_scope": "Exact-source CI 40057399157 passed validate and det-fish-display-chromium. Includes offline probe unit tests and Chromium UI/fixture playback only; no authenticated live inference or visual acceptance."
+  },
+  "pixel_baseline_id": "YUJIAN_SWOS_WEB_PIXEL_BASELINE_V1",
+  "pixel_baseline_contract": "design/pages/recognition/web/VISUAL_BASELINE_FREEZE_V1.md"
 }

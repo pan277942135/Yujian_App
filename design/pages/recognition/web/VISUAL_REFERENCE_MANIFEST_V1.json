@@ -16,7 +16,12 @@
       "byte_verification": "PRIVATE_HANDOFF_SHA256_AND_DIMENSIONS_VERIFIED",
       "public_permission": "NOT_CONFIRMED",
       "repository_included": false,
-      "route": "#page/recognition_flow_v1_2/hifi/web_hifi_contract_v2"
+      "route": "#page/recognition_flow_v1_2/hifi/web_hifi_contract_v2",
+      "public_publication_allowed": false,
+      "pixel_authority_status": "FROZEN_PRIVATE_SHA_BOUND",
+      "current_execution_byte_verification": "NOT_RECHECKED_THIS_EXECUTION",
+      "allowed_use": "PRIVATE_LOCAL_PIXEL_BASELINE_REVIEW_ONLY",
+      "pixel_baseline_id": "YUJIAN_SWOS_WEB_PIXEL_BASELINE_V1"
     },
     {
       "id": "swos-history",
@@ -29,7 +34,12 @@
       "byte_verification": "PRIVATE_HANDOFF_SHA256_AND_DIMENSIONS_VERIFIED",
       "public_permission": "NOT_CONFIRMED",
       "repository_included": false,
-      "route": "#page/recognition_flow_v1_2/hifi/swos_static_visual_v1_1"
+      "route": "#page/recognition_flow_v1_2/hifi/swos_static_visual_v1_1",
+      "public_publication_allowed": false,
+      "pixel_authority_status": "HISTORICAL_DIRECTION_ONLY_NOT_PIXEL_AUTHORITY",
+      "current_execution_byte_verification": "NOT_RECHECKED_THIS_EXECUTION",
+      "allowed_use": "PRIVATE_LOCAL_REFERENCE_REVIEW_ONLY",
+      "pixel_baseline_id": null
     }
   ],
   "current_frame_contract": "design/pages/recognition/processing/optics/SWOS_15_Frame_Keyframe_Contract_V1_1.json",
@@ -228,5 +238,65 @@
       "item": "图中未出现的状态与控件",
       "rule": "upload.error、processing.diagnostics、result.nav、result.confidence-candidates、result.recovery等由正式机器合同定义；区域定位仅显示所属阶段，不证明原图绘制过这些状态。"
     }
-  ]
+  ],
+  "pixel_frozen_source": "FROZEN_PRIVATE_SHA_BOUND",
+  "public_publication_allowed": false,
+  "public_repo_commit_allowed": false,
+  "public_ci_artifact_allowed": false,
+  "public_pages_upload_allowed": false,
+  "private_local_review_allowed": true,
+  "persistent_upload_allowed": false,
+  "authorization_gate": "BLOCKED_UNTIL_EXPLICIT_USER_PERMISSION_AND_LICENSE",
+  "freeze_gate": "NOT_CONFIRMED: visual-reference confirmation is not pixel-freeze approval; require explicit designation of the exact source and comparison baseline.",
+  "audit_snapshot": {
+    "date": "2026-10-24",
+    "design_main_sha": "da9976090021232f0eec936bc4d30f9fa59d90f7",
+    "product_pr177_head_sha": "8edce561c3b6f25263eb32f1d72706fec4e329b1",
+    "product_main_sha": "738954105d545d9c354136b8b93f3562058fcf30",
+    "source_photo_208758": {
+      "sha256": "ab7227cf7205ee2ac342b6cd75cd899747879506c95c33b888b6adf0acb47987",
+      "dimensions_px": [
+        1152,
+        1536
+      ],
+      "bytes": 331421,
+      "format": "JPEG",
+      "orientation": 1,
+      "byte_verification": "VERIFIED_IN_CURRENT_EXECUTION"
+    },
+    "web_reference_and_historical_storyboard": "Prior private handoff verification recorded; raw bytes not rechecked in this execution.",
+    "source_code_ci_run_id": 40057399157,
+    "source_code_ci_status": "PASS_EXACT_SHA_VALIDATE_AND_CHROMIUM_FIXTURE_UI_SIMULATION_ONLY_NOT_VISUAL_ACCEPTED",
+    "preview_status": "NOT_DEPLOYED_CURRENT_HEAD_8edce56_EXISTING_REVISION_yujian-model-factory-console-00349-hes_USES_OLD_SOURCE_6da6408",
+    "production_mask_status": "NOT_QUALIFIED",
+    "runtime_visual_status": "NOT_VERIFIED_AUTHENTICATED_REAL_INFERENCE_AND_BROWSER_VISUAL_ACCEPTANCE_PENDING"
+  },
+  "pixel_baseline": {
+    "baseline_id": "YUJIAN_SWOS_WEB_PIXEL_BASELINE_V1",
+    "status": "FROZEN_PRIVATE_SHA_BOUND",
+    "reference_id": "web-three-stage",
+    "filename": "渔见AI鱼获识别流程展示.png",
+    "sha256": "27c34ee5d3cf90921df433cb43c671e42b8ffa80b8f5cebfe9b397da2ee853e2",
+    "dimensions_px": [
+      1536,
+      1024
+    ],
+    "size_bytes": 1804497,
+    "freeze_authorization": "USER_DIRECTED_2026-10-24",
+    "source_bytes_reverified_this_execution": false,
+    "source_verification_note": "Prior private-handoff SHA/dimensions/byte-count verification is recorded. Exact bytes were not re-retrieved in this execution; the local viewer must verify the selected file before comparison.",
+    "comparison_policy": "BROWSER_LOCAL_MEMORY_ONLY_EXACT_SHA_BYTES_DIMENSIONS",
+    "scope": [
+      "Web V2 desktop three-stage composition",
+      "brand region and three-stage hierarchy",
+      "five-step strip and overall visual balance"
+    ],
+    "exclusions": [
+      "runtime pixel parity",
+      "dynamic model outputs and species text",
+      "production Mask geometry",
+      "mobile/tablet pixel identity",
+      "public publication authorization"
+    ]
+  }
 }

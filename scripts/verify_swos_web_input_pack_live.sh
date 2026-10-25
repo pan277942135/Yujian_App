@@ -142,7 +142,13 @@ fi
 workflow_json="$(api_get "repos/$PRODUCT_REPO/contents/.github/workflows/catch-recognition-pr177-no-traffic-deploy.yml?ref=$product_main_live")"
 workflow_text="$(printf '%s' "$workflow_json" | python3 -c 'import base64,json,sys; print(base64.b64decode(json.load(sys.stdin)["content"]).decode("utf-8"))')"
 preview_pin="$(printf '%s\n' "$workflow_text" | sed -nE 's/^[[:space:]]*TARGET_SHA:[[:space:]]*([0-9a-f]{40}).*/\1/p' | head -n1)"
-if [[ "$preview_pin" == "$pr_head_live" ]]; then
+if grep -Fq 'TARGET_SHA: ${{ inputs.target_sha }}' <<< "$workflow_text" \
+  && grep -Fq 'target_sha:' <<< "$workflow_text" \
+  && grep -Fq 'required: true' <<< "$workflow_text" \
+  && grep -Fq 'assert pr["head"]["sha"] == expected' <<< "$workflow_text" \
+  && grep -Fq 'Latest exact-source necessary CI has not passed' <<< "$workflow_text"; then
+  echo "CURRENT_HEAD_PREVIEW_PIN=DYNAMIC_INPUT_REQUIRED exact_live_pr_head=$pr_head_live exact_source_ci_preflight=REQUIRED"
+elif [[ "$preview_pin" == "$pr_head_live" ]]; then
   echo "CURRENT_HEAD_PREVIEW_PIN=PASS target_sha=$preview_pin"
 else
   echo "CURRENT_HEAD_PREVIEW_PIN=STALE configured_sha=${preview_pin:-UNKNOWN} live_pr_head=$pr_head_live"

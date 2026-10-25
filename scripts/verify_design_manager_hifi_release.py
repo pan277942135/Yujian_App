@@ -347,13 +347,18 @@ def validate_tree(root: Path, *, built: bool = False, expected_build: str | None
     app = (design / "manager/app.js").read_text(encoding="utf-8")
     css = (design / "manager/styles.css").read_text(encoding="utf-8")
     html = (design / "manager/index.html").read_text(encoding="utf-8")
+    guide_workspace_path = design / "manager/first_use_guide_workspace.js"
+    require(guide_workspace_path.is_file(), "first-use guide interactive workspace module is missing")
+    guide_workspace = guide_workspace_path.read_text(encoding="utf-8")
     swos_js_path = design / "manager/swos_static_visual.js"
     require(swos_js_path.is_file(), "SWOS static visual Design Manager module is missing")
     swos_js = swos_js_path.read_text(encoding="utf-8")
-    require("recognitionGuideResourcesCanvas" in app and "guide-resource-actions" in app, "guide Resources preview/download renderer is missing")
+    require("recognitionGuideResourcesCanvas" in app and "FirstUseGuideWorkspace?.mount" in app, "guide Resources workspace hook is missing")
+    require("guide-resource-actions" in guide_workspace and "CANDIDATE_NEEDS_APPROVAL" in guide_workspace and "data-guide-layer" in guide_workspace, "guide Resources preview/download and structured layer workspace are missing")
     require("recognitionFullFlowModelsCanvas" in app and 'view.render_mode === "recognition_full_flow_models"' in app, "full-flow/model Design Manager renderer is missing")
     require('view.render_mode === "swos_static_visual_workspace"' in app and "SWOSStaticVisual?.mount" in app, "SWOS static workspace hook is missing")
     require("swos_static_visual.js" in html and "window.SWOSStaticVisual" in swos_js, "SWOS static workspace module is not loaded")
+    require("first_use_guide_workspace.js" in html, "First-use guide workspace module is not loaded")
     require("showModal()" in swos_js and "data-frame-id" in swos_js and "R0.5" in swos_js, "SWOS frame zoom or R0.5 inspector is missing")
     require("crypto.subtle.digest(\"SHA-256\"" in swos_js, "local photo identity verification is missing")
     require("localStorage" not in swos_js and "indexedDB" not in swos_js and "fetch(\"/" not in swos_js, "SWOS local photo workspace must not persist or upload selected photos")
@@ -364,7 +369,10 @@ def validate_tree(root: Path, *, built: bool = False, expected_build: str | None
         "history.pushState", 'window.addEventListener("popstate", selectFromHash)',
         "renderInvalidManagerRoute", "openHifiImageLightbox", '[data-zoom="fit"]',
         "selectPage(id, null, hifiId, childId, false)", "selectShared(id, variantId, false)",
-        "hifiContractMetadataHtml(child || view, view)"
+        'const contractDetailsItem = view.id === "swos_web_hifi_motion_contract_v1_0"',
+        "hifiContractMetadataHtml(contractDetailsItem, view)",
+        "SWOS_WEB_HIFI_MOTION_TECHNICAL_CONTRACT_V1_0.json",
+        "parentView?.contract_links",
     ):
         require(token in app, f"manager implementation missing: {token}")
     require('id="hifiViewContractDetails"' in html, "Page/State contract metadata mount missing")

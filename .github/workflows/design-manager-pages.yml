@@ -16,7 +16,10 @@ on:
       - "scripts/verify_private_visual_references.py"
       - "scripts/verify_private_visual_browser.mjs"
       - "scripts/verify_design_manager_live.py"
+      - "scripts/verify_first_use_camera_guide_assets.py"
+      - "scripts/measure_first_use_camera_guide_geometry.py"
       - "scripts/verify_swos_static_visual_v1_1.py"
+      - "tests/nh01_structured_workspace.test.cjs"
       - ".github/workflows/experience-governance.yml"
       - ".github/workflows/design-manager-pages.yml"
   pull_request:
@@ -30,7 +33,10 @@ on:
       - "scripts/verify_private_visual_references.py"
       - "scripts/verify_private_visual_browser.mjs"
       - "scripts/verify_swos_static_visual_v1_1.py"
+      - "tests/nh01_structured_workspace.test.cjs"
       - "scripts/verify_design_manager_live.py"
+      - "scripts/verify_first_use_camera_guide_assets.py"
+      - "scripts/measure_first_use_camera_guide_geometry.py"
       - ".github/workflows/design-manager-pages.yml"
   workflow_dispatch:
 
@@ -83,6 +89,13 @@ jobs:
           npm install --no-save --prefix "$RUNNER_TEMP/dm-playwright" playwright@1.63.0
           "$RUNNER_TEMP/dm-playwright/node_modules/.bin/playwright" install --with-deps chromium
 
+      - name: Verify NH01 structured workspace behavior and resource state machine
+        run: |
+          node --check design/manager/app.js
+          node --check design/manager/nh01_structured_workspace.js
+          node --check scripts/verify_design_manager_browser.mjs
+          node tests/nh01_structured_workspace.test.cjs
+
       - name: Fetch PR base for changed-file scope gate
         if: github.event_name == 'pull_request'
         shell: bash
@@ -96,6 +109,14 @@ jobs:
           python3 scripts/verify_design_manager_hifi_release.py
           python3 scripts/verify_swos_static_visual_v1_1.py
           python3 scripts/verify_private_visual_references.py
+          python3 scripts/verify_first_use_camera_guide_assets.py
+          python3 scripts/measure_first_use_camera_guide_geometry.py --check
+
+      - name: SWOS/RR09 V1.2 optical authority gate
+        run: |
+          python3 scripts/verify_swos_optical_v1_2.py
+          node --check design/manager/swos_optical_v1_2.js
+          node --check design/manager/first_use_guide_workspace.js
 
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
