@@ -4115,7 +4115,7 @@
           "title": "15 · SWOS/RR09 光学参数与验收 V1.2",
           "code": "15",
           "status": "FROZEN",
-          "render_mode": "authority_index",
+          "render_mode": "swos_optical_parameters_v1_2",
           "authority_type": "technical_contract",
           "page_id": "swos.rr09.optical_rendering_acceptance.v1_2",
           "state_id": "DESIGN_ONLY",
