@@ -157,8 +157,10 @@ async function main() {
   await open(nh01MultiScreenHash);
   await waitForManager(page);
   await waitForHifiView(page);
+  await page.waitForFunction(()=>["READY","ERROR"].includes(document.querySelector("#hifiViewCanvas")?.dataset.nh01LoadState),null,{timeout:30000});
+  const nh01LoadSnapshot=await page.evaluate(()=>({state:document.querySelector("#hifiViewCanvas")?.dataset.nh01LoadState,text:document.querySelector("#hifiViewCanvas")?.innerText?.slice(0,12000),resources:[...document.querySelectorAll("#hifiViewCanvas [data-resource-id]")].map(node=>({id:node.dataset.resourceId,status:node.cells?.[1]?.innerText,http:node.cells?.[2]?.innerText,detail:node.innerText})),scripts:[...document.scripts].filter(node=>node.dataset.resourceId?.startsWith("nh01-")).map(node=>({id:node.dataset.resourceId,src:node.src,loaded:node.dataset.loaded||null})),styles:[...document.querySelectorAll('link[data-resource-id="nh01-workspace-css"]')].map(node=>({href:node.href,applied:!!node.sheet}))}));
+  if(nh01LoadSnapshot.state!=="READY")fail(`NH01 structured resource state did not reach READY: ${JSON.stringify({...nh01LoadSnapshot,errors,failedRequests,badResponses})}`);
   await page.locator('[data-testid="nh01-multiscreen-workspace"]').waitFor({ state: "visible", timeout: 30000 });
-  await page.waitForFunction(()=>document.querySelector("#hifiViewCanvas")?.dataset.nh01LoadState==="READY",null,{timeout:30000});
   const buildMarker = await page.locator('meta[name="design-manager-build"]').getAttribute("content");
   if (args.expectedBuild) assert(buildMarker === args.expectedBuild, `NH01 build marker mismatch: ${buildMarker} != ${args.expectedBuild}`);
   assert((await page.locator("#hifiViewTitle").innerText()).includes("结构化高保真"), "NH01 structured hi-fi workspace route did not resolve");
