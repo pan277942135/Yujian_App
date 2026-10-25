@@ -309,7 +309,8 @@ function nh01ResponsiveRuleCanvas(view) {
     if (active.cancelled || root.dataset.nh01ResponsiveToken !== token) return;
     if (baseResult.state !== "READY") {
       renderProgress("ERROR",baseResult.resources,"至少一个权威合同、组件资源或工作区模块未通过请求/内容校验。");
-      root.querySelector('[data-action="retry"]')?.addEventListener("click",()=>run(true));
+      const failedBootstrapAsset=baseResult.resources.some(item=>["workspace-js","workspace-css"].includes(item.id)&&item.status!=="READY");
+      root.querySelector('[data-action="retry"]')?.addEventListener("click",()=>failedBootstrapAsset?location.reload():run(true));
       return;
     }
     const manifest=baseResult.data["frozen-manifest"];
