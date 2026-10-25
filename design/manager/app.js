@@ -2561,6 +2561,7 @@ function recognitionMasterBoardCanvas(child) {
 }
 
 function genericSpecHifiCanvas(feature, view) {
+  if (view.render_mode === "swos_optical_parameters_v1_2") return '<div data-swos-v12-panel class="swos-v12-panel" role="region" aria-label="SWOS 光学标定参数">正在读取 V1.2 机器参数…</div>';
   if (view.render_mode === "swos_static_visual_workspace") {
     return window.SWOSStaticVisual?.canvas(view) ||
       '<div class="hifi-missing-authority"><div><strong>SWOS 静态验收模块尚未加载</strong><p>Design Manager 的静态工作区脚本不可用。</p></div></div>';
@@ -3377,6 +3378,9 @@ function renderHifiView(feature, hifiId, hifiChildId = null) {
       provenance.innerHTML = statusBadge("PIXEL_BASELINE_FROZEN_PRIVATE") + " 主视觉基准：web-three-stage · 1536×1024 · SHA-256 27c34ee5d3cf90921df433cb43c671e42b8ffa80b8f5cebfe9b397da2ee853e2. 冻结的是私有源身份和对照协议，不代表运行页面像素一致。原图字节本次未重新读取；本地查看器必须校验 SHA、尺寸和字节数。公开许可 NOT_CONFIRMED；RUNTIME_VISUAL_VERIFIED=NO；仅本地内存查看，不上传服务器。";
       el("hifiViewCanvas").prepend(provenance);
     }
+  }
+  if (!child && view.render_mode === "swos_optical_parameters_v1_2") {
+    window.SWOSOpticalV12?.mount(el("hifiViewCanvas"), view);
   }
   if (!child && view.render_mode === "swos_static_visual_workspace") {
     window.SWOSStaticVisual?.mount(el("hifiViewCanvas"), view);

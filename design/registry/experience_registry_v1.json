@@ -3904,6 +3904,11 @@
               "label": "SWOS Web 高保真动效技术合同 V1.0",
               "route": "#page/recognition_flow_v1_2/hifi/swos_web_hifi_motion_contract_v1_0",
               "note": "真实可播放实现、SAM 复用与浏览器验收"
+            },
+            {
+              "label": "15 · SWOS/RR09 光学数值标定与验收 V1.2",
+              "route": "#page/recognition_flow_v1_2/hifi/swos_rr09_optical_v1_2",
+              "note": "正式冻结时序继承；新增数值待用户校准"
             }
           ],
           "runtime_status": "NOT_RUN",
@@ -4097,6 +4102,87 @@
               "label": "Web 全量高保真合同 V2",
               "route": "#page/recognition_flow_v1_2/hifi/web_hifi_contract_v2",
               "note": "产品页面结构、状态与响应式权威"
+            },
+            {
+              "label": "15 · SWOS/RR09 光学数值标定与验收 V1.2",
+              "route": "#page/recognition_flow_v1_2/hifi/swos_rr09_optical_v1_2",
+              "note": "正式冻结时序继承；新增数值待用户校准"
+            }
+          ]
+        },
+        {
+          "id": "swos_rr09_optical_v1_2",
+          "title": "15 · SWOS/RR09 光学参数与验收 V1.2",
+          "code": "15",
+          "status": "FROZEN",
+          "render_mode": "swos_optical_parameters_v1_2",
+          "authority_type": "technical_contract",
+          "page_id": "swos.rr09.optical_rendering_acceptance.v1_2",
+          "state_id": "DESIGN_ONLY",
+          "state_id_scope": "Contract frozen as implementation input; numeric calibration candidate, NOT runtime/visual PASS",
+          "authority": "design/pages/recognition/processing/optics/SWOS_RR09_Optical_Rendering_Acceptance_Contract_V1_2.md",
+          "machine_authority": "design/pages/recognition/processing/optics/SWOS_RR09_Optical_Parameters_V1_2.json",
+          "secondary_authority": "design/pages/recognition/processing/optics/SWOS_RR09_Visual_Acceptance_V1_2.json",
+          "contract_freeze_status": "FROZEN_CONTRACT_INPUT",
+          "existing_anchors_status": "FROZEN_EXISTING",
+          "numeric_calibration_status": "CALIBRATION_CANDIDATE_NOT_VISUALLY_APPROVED",
+          "runtime_visual_status": "NOT_VERIFIED",
+          "production_mask_status": "NOT_QUALIFIED",
+          "summary": "V1.2 实施合同已冻结入 Design Manager：15 帧/两条相对强度/三层金光/R0.5 继承既有正式冻结；颜色/Alpha/覆盖率/速度/羽化/折射/混合均是首轮候选，未获用户视觉签核；真实照片/Mask/迁移/中文揭晓/性能必须另行实测，不能误报 PASS。",
+          "menu_points": [
+            "01 · 已冻结：P0–P7 + R0/R0.5/R1–R5 / 2800+850=3650ms",
+            "02 · 已冻结：水光相对强度 0/10/45/75/60/35/10/0",
+            "03 · 已冻结：鱼体金光 0/0/15/45/100/100/100/100",
+            "04 · 候选色板：水青 #67BDCA / 银蓝 #C1E9EE / 核心金 #FFE3A6",
+            "05 · 候选焦散：10–18 不规则柔斑；传播 0.30–0.40 H/s；P3 覆盖 25–38%",
+            "06 · 候选聚焦：早期距轮廓 0.22–0.28 L，峰值 Halo 0.06–0.10 L",
+            "07 · 候选三层：Core 1–2.5px、Glow 4–10px、Halo 12–28px",
+            "08 · 独立退场：P4→P7 环境 60→35→10→0；鱼体始终 100",
+            "09 · R0.5：同一照片、统一 M(t)、真实迁移中点；R2 Bézier→中文 Glyph Mask",
+            "10 · 验收未完成：真实照片/Mask/九视口/连续录屏/真实性能/用户视觉签核"
+          ],
+          "contract_links": [
+            {
+              "label": "正式 V1.2 光学与验收合同",
+              "path": "design/pages/recognition/processing/optics/SWOS_RR09_Optical_Rendering_Acceptance_Contract_V1_2.md"
+            },
+            {
+              "label": "机器光学参数 V1.2 · 含候选数值",
+              "path": "design/pages/recognition/processing/optics/SWOS_RR09_Optical_Parameters_V1_2.json"
+            },
+            {
+              "label": "机器验收矩阵 V1.2 · NOT_RUN",
+              "path": "design/pages/recognition/processing/optics/SWOS_RR09_Visual_Acceptance_V1_2.json"
+            },
+            {
+              "label": "已冻结 SWOS 15 帧 V1.1",
+              "path": "design/pages/recognition/processing/optics/SWOS_15_Frame_Keyframe_Contract_V1_1.json"
+            },
+            {
+              "label": "共享照片迁移 V1",
+              "path": "design/pages/recognition/continuity/SWOS_Shared_Photo_Transition_Contract_V1.json"
+            },
+            {
+              "label": "RR09 Motion V3",
+              "path": "design/pages/recognition/result/motion/Recognition_Result_Motion_Spec_V3.md"
+            }
+          ],
+          "related_routes": [
+            {
+              "label": "10 · SWOS 光学合同",
+              "route": "#page/recognition_flow_v1_2/hifi/swos_optical_contract"
+            },
+            {
+              "label": "12 · SWOS 15 帧静态视觉",
+              "route": "#page/recognition_flow_v1_2/hifi/swos_static_visual_v1_1"
+            },
+            {
+              "label": "14 · SWOS Web 高保真技术合同",
+              "route": "#page/recognition_flow_v1_2/hifi/swos_web_hifi_motion_contract_v1_0"
+            },
+            {
+              "label": "RR09 V3",
+              "route": "#page/recognition_result_v1/hifi/motion_continuation"
             }
           ]
         }
