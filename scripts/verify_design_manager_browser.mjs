@@ -2,7 +2,7 @@
 
 import { createServer } from "node:http";
 import { createReadStream, existsSync, statSync } from "node:fs";
-import { readFile } from "node:fs/promises";
+import { readFile, writeFile } from "node:fs/promises";
 import { createHash } from "node:crypto";
 import { resolve, extname, sep } from "node:path";
 import { createRequire } from "node:module";
@@ -179,19 +179,47 @@ async function main() {
   await workspace.locator(".nh01-development-basis > summary").click();
   assert(await workspace.locator(".nh01-development-basis").evaluate(node=>node.open),"NH01 resource audit must be reachable and opened before its visible rows are verified");
   const resourceRows=workspace.locator(".nh01-resource-table tbody tr[data-resource-id]");
-  assert(await resourceRows.count()===16,`NH01 needs six formal resources and ten frozen/used images; got ${await resourceRows.count()}`);
-  const resourceEvidence=await resourceRows.evaluateAll(rows=>rows.map(row=>{const detail=row.cells[4]?.innerText||"";return{id:row.dataset.resourceId,status:row.cells[1]?.innerText,http:row.cells[2]?.innerText,sha:detail.match(/SHA-256\s+([0-9a-f]{64})/i)?.[1],url:row.cells[4]?.querySelector("code")?.innerText};}));
+  assert(await resourceRows.count()===21,`NH01 needs nine contract/module resources and twelve verified frozen/used images; got ${await resourceRows.count()}`);
+  const resourceEvidence=await resourceRows.evaluateAll(rows=>rows.map(row=>{
+    const cells=[...row.cells];
+    const text=cells.map(cell=>cell.innerText).join("\n");
+    const sha=text.match(/SHA-256\s+([0-9a-f]{64})/i)?.[1]||"";
+    return {id:row.dataset.resourceId,status:cells[1]?.innerText,http:cells[2]?.innerText,parse:cells[3]?.innerText||"",sha,url:row.querySelector("code")?.innerText||""};
+  }));
   assert(resourceEvidence.every(item=>item.status==="READY"&&item.http==="200"&&/^[0-9a-f]{64}$/i.test(item.sha)),`NH01 resource request evidence is incomplete: ${JSON.stringify(resourceEvidence)}`);
   const layerTree = workspace.locator("[data-layer-tree]");
-  await layerTree.locator('[data-select="recent"]').click();
-  assert(await workspace.locator('.nh01-canvas-layer.selected[data-layer="recent"]').count() === 1, "layer tree selection must select the matching canvas layer");
-  await workspace.locator('.nh01-canvas-layer[data-layer="hero"]').click();
+  const nestedTreeEvidence=await workspace.evaluate(()=>{
+    const board=document.querySelector('[data-artboard]');
+    const tree=[...document.querySelectorAll('[data-tree-node]')].map(node=>({id:node.dataset.treeNode,parent:node.parentElement.closest('[data-tree-node]')?.dataset.treeNode??null}));
+    const dom=[board,...board.querySelectorAll('[data-layer]')].map(node=>({id:node.dataset.layer,parent:node===board?null:node.parentElement.closest('[data-layer]')?.dataset.layer??null,rect:(()=>{const r=node.getBoundingClientRect(),b=board.getBoundingClientRect();return{x:+(r.left-b.left).toFixed(3),y:+(r.top-b.top).toFixed(3),w:+r.width.toFixed(3),h:+r.height.toFixed(3)}})(),tag:node.tagName,assetStatus:node.dataset.assetStatus||'ROOT'}));
+    const domById=new Map(dom.map(item=>[item.id,item]));
+    return {tree,dom,unmapped:tree.filter(node=>!domById.has(node.id)),parentMismatches:tree.filter(node=>node.id!=='page'&&domById.get(node.id)?.parent!==node.parent),htmlParentIds:tree.map(node=>node.id)};
+  });
+  assert(nestedTreeEvidence.unmapped.length===0,`every registered tree node must have a real canvas element: ${JSON.stringify(nestedTreeEvidence.unmapped)}`);
+  assert(nestedTreeEvidence.parentMismatches.length===0,`tree hierarchy must match nearest real DOM parents: ${JSON.stringify(nestedTreeEvidence.parentMismatches)}`);
+  assert(nestedTreeEvidence.tree.some(node=>node.id==='header')&&nestedTreeEvidence.tree.some(node=>node.id==='background'),"the tree must expose the true nested page structure");
+  assert(!nestedTreeEvidence.tree.some(node=>['top','footer'].includes(node.id)),"logical bands and empty overlays must not appear as fake DOM layers");
+  assert(await layerTree.locator('[data-select="avatar"]').getAttribute('data-source-asset-id')==='avatar_default_nh07',"the legacy Figma avatar binding must remain explicitly recorded beside the approved V2 asset");
+  assert((await layerTree.locator('[data-tree-node="avatar"]').innerText()).includes('APPROVED_NH01_HOME_V2_FROZEN'),"avatar layer must disclose its current approved NH01 V2 source");
+  await layerTree.locator('[data-toggle="stats"]').click();
+  assert(await layerTree.locator('[data-children-of="stats"]').isHidden(),"parent layers must collapse their child rows");
+  await layerTree.locator('[data-toggle="stats"]').click();
+  await layerTree.locator('[data-select="recent-header"]').click();
+  assert(await workspace.locator('[data-testid="nh01-canvas-recent-header"].nh01-layer-selected').count() === 1, "layer tree selection must select the matching canvas layer");
+  assert((await workspace.locator('[data-testid="nh01-inspector-layer"]').getAttribute('data-layer-id'))==='recent-header',"inspector must display the selected registered layer id");
+  await workspace.locator('[data-testid="nh01-canvas-hero"]').click();
   assert(await layerTree.locator('[data-select="hero"]').getAttribute("aria-pressed") === "true", "canvas selection must synchronize the layer tree");
   assert((await workspace.locator("[data-inspector]").innerText()).includes("Hero"), "inspector must synchronize with the selected canvas layer");
   await layerTree.locator('[data-select="peek-left"]').click();
-  assert(await workspace.locator('.nh01-canvas-layer.selected[data-layer="peek-left"]').count()===1,"Peek tree selection must highlight its canvas layer");
+  assert(await workspace.locator('[data-testid="nh01-canvas-peek-left"].nh01-layer-selected').count()===1,"Peek tree selection must highlight its canvas layer");
   assert((await workspace.locator("[data-inspector]").innerText()).includes("BLOCKED_MISSING_APPROVED_INDEPENDENT_ORIGINALS"),"Peek inspector must preserve the missing-approved-photo blocker");
-  assert((await workspace.locator('.nh01-canvas-layer[data-layer="peek-left"]').innerText()).includes("BLOCKED"),"Peek must render a truthful placeholder instead of a fabricated photo");
+  assert((await workspace.locator('[data-testid="nh01-canvas-peek-left"]').innerText()).includes("BLOCKED"),"Peek must render a truthful placeholder instead of a fabricated photo");
+  assert(await workspace.locator('[data-testid="nh01-canvas-hero"] [data-testid="nh01-hero-media-blocked"]').isVisible(),"Hero must retain the explicit blocked-media state");
+  assert((await workspace.locator('[data-testid="nh01-canvas-avatar"] img').getAttribute('src')).includes('normal_home_default_avatar_v2.png'),"the approved Home-specific fallback avatar must be used instead of the historical shared binding");
+  const heroMetadataLayout=await workspace.locator('.nh01-hero-metadata').evaluate(node=>({position:getComputedStyle(node).position,bottom:getComputedStyle(node).bottom,box:node.getBoundingClientRect().toJSON(),hero:node.parentElement.getBoundingClientRect().toJSON()}));
+  assert(heroMetadataLayout.position==="absolute"&&heroMetadataLayout.bottom==="0px",`Hero metadata must anchor to its true card bottom: ${JSON.stringify(heroMetadataLayout)}`);
+  const backgroundObjectPosition=await workspace.locator('[data-testid="nh01-canvas-background"]').evaluate(node=>getComputedStyle(node).objectPosition);
+  assert(backgroundObjectPosition==="50% 0%",`NH01 Morning Lake background must follow registered TopCenter/Crop framing: ${backgroundObjectPosition}`);
   const presetChecks=[["0",320,480],["1",360,640],["2",390,844],["3",430,932],["4",480,null]];
   for(const [index,width,height] of presetChecks){
     const retainedHeight=await workspace.locator('[data-control="height"]').inputValue();
@@ -248,6 +276,115 @@ async function main() {
     assert(loaded.width === width && loaded.height === height, `${assetId} source PNG dimensions changed: ${JSON.stringify(loaded)}`);
     assert((await card.innerText()).includes(shaPrefix), `${assetId} SHA is not visible in its card`);
   }
+  await workspace.locator('[data-control="font"]').evaluate(node=>{node.value="1";node.dispatchEvent(new Event("input",{bubbles:true}));});
+  await workspace.locator('[data-control="zoom"]').evaluate(node=>{node.value="1";node.dispatchEvent(new Event("input",{bubbles:true}));});
+  for(const selector of ['[data-testid="nh01-canvas-background"]','[data-testid="nh01-canvas-brand"]','[data-testid="nh01-canvas-avatar"] img','[data-testid="nh01-canvas-camera"] img']){
+    await waitForLoadedImage(page,selector,`NH01 render source ${selector}`);
+  }
+  await workspace.locator('[data-artboard]').evaluate(node=>node.querySelectorAll('.nh01-layer-selected').forEach(layer=>layer.classList.remove('nh01-layer-selected')));
+  const artboard=workspace.locator('[data-artboard]');
+  const originalArtboardStyle=await artboard.getAttribute('style');
+  let renderedCanvas;
+  try {
+    await artboard.evaluate(node=>{
+      node.style.setProperty('position','fixed','important');
+      node.style.setProperty('left','0px','important');
+      node.style.setProperty('top','0px','important');
+      node.style.setProperty('margin','0px','important');
+      node.style.setProperty('transform','none','important');
+      node.style.setProperty('z-index','2147483647','important');
+    });
+    renderedCanvas=await page.screenshot({scale:"css",clip:{x:0,y:0,width:390,height:844}});
+  } finally {
+    await artboard.evaluate((node,style)=>{if(style===null)node.removeAttribute('style');else node.setAttribute('style',style);},originalArtboardStyle);
+  }
+  const canvasSize={width:renderedCanvas.readUInt32BE(16),height:renderedCanvas.readUInt32BE(20)};
+  assert(canvasSize.width===390&&canvasSize.height===844,`NH01 comparison render must capture exactly 390×844 CSS px, got ${JSON.stringify(canvasSize)}`);
+  const renderedCanvasPath=resolve(args.outputDir,"nh01-m03-render-390x844.png");
+  await writeFile(renderedCanvasPath,renderedCanvas);
+  const domEvidence=await workspace.evaluate(()=>{
+    const board=document.querySelector('[data-artboard]');
+    const origin=board.getBoundingClientRect();
+    const tree=[...document.querySelectorAll('[data-tree-node]')].map(node=>({id:node.dataset.treeNode,parent:node.parentElement.closest('[data-tree-node]')?.dataset.treeNode??null,name:node.querySelector('[data-select] .nh01-tree-copy>span')?.textContent?.trim()||null,sourceNodeId:node.querySelector('[data-select]')?.dataset.sourceNodeId||null,sourceAssetId:node.querySelector('[data-select]')?.dataset.sourceAssetId||null,status:node.querySelector('[data-select] .nh01-tree-copy small')?.textContent?.trim()||null}));
+    const dom=[board,...board.querySelectorAll('[data-layer]')].map(node=>{const r=node.getBoundingClientRect();return{id:node.dataset.layer,parent:node===board?null:node.parentElement.closest('[data-layer]')?.dataset.layer??null,rect:{x:+(r.left-origin.left).toFixed(3),y:+(r.top-origin.top).toFixed(3),w:+r.width.toFixed(3),h:+r.height.toFixed(3)},tag:node.tagName,assetStatus:node.dataset.assetStatus||'ROOT',mappingStatus:node.dataset.mappingStatus||'ROOT'};});
+    const imageNodes=[...board.querySelectorAll('img')].map(image=>({alt:image.alt,src:image.currentSrc,naturalWidth:image.naturalWidth,naturalHeight:image.naturalHeight,complete:image.complete,objectFit:getComputedStyle(image).objectFit}));
+    const domById=new Map(dom.map(item=>[item.id,item]));
+    return {viewport:{width:390,height:844,fontScale:1,zoom:1},tree,dom,imageNodes,unmapped:tree.filter(node=>!domById.has(node.id)),parentMismatches:tree.filter(node=>node.id!=='page'&&domById.get(node.id)?.parent!==node.parent)};
+  });
+  assert(domEvidence.unmapped.length===0&&domEvidence.parentMismatches.length===0,`NH01 DOM measurement report must reflect all real source-parent relationships: ${JSON.stringify({unmapped:domEvidence.unmapped,parentMismatches:domEvidence.parentMismatches})}`);
+  await writeFile(resolve(args.outputDir,"nh01-m03-dom-bounds.json"),JSON.stringify({build_sha:buildMarker,load_state:nh01LoadSnapshot.state,canvas_png:{path:renderedCanvasPath,...canvasSize},frozen_reference:{asset_id:"NH01-M03-390x844dp-STATIC-HIFI-V1",path:"design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_M03_390x844dp_STATIC_HIFI_V1.png",sha256:"6a5e2e9fd18d2b06f9452b6a6c95802e41cfc0450b7ec77cf0d1500c6b3932ff"},...domEvidence},null,2)+"\n");
+  const domFormulaComparison=await page.evaluate(({contract,measuredLayers})=>{
+    const calculated=window.NH01StructuredWorkspace.calculate(390,844,1,24,24,contract,false);
+    const actual=new Map(measuredLayers.map(layer=>[layer.id,layer.rect]));
+    const ids=['page','environment','background','header','brand','avatar','stats','recent-header','pager','hero','peek-left','peek-right','capture-action-group','cta','camera'];
+    return ids.map(id=>{const expected=calculated.rects[id]||{x:0,y:0,w:390,h:844},seen=actual.get(id);return{id,expected:{x:expected.x,y:expected.y,w:expected.w,h:expected.h},actual:seen,delta:seen?{x:+(seen.x-expected.x).toFixed(3),y:+(seen.y-expected.y).toFixed(3),w:+(seen.w-expected.w).toFixed(3),h:+(seen.h-expected.h).toFixed(3)}:null};});
+  },{contract:currentContract.contract,measuredLayers:domEvidence.dom});
+  assert(domFormulaComparison.every(row=>row.actual&&row.delta&&Object.values(row.delta).every(delta=>Math.abs(delta)<0.1)),`the rendered DOM must use the formal 390×844 contract rectangles: ${JSON.stringify(domFormulaComparison)}`);
+  const profileGeometryComparisons=[{profile:"M03",viewport:{width:390,height:844,fontScale:1,topInset:24,bottomInset:24},layers:domFormulaComparison}];
+  const additionalFrozenProfiles=[
+    {index:"0",prefix:"m01",assetId:"NH01-M01-320x480dp-STATIC-HIFI-V1",path:"design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_M01_320x480dp_STATIC_HIFI_V1.png",width:320,height:480},
+    {index:"1",prefix:"m02",assetId:"NH01-M02-360x640dp-STATIC-HIFI-V1",path:"design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_M02_360x640dp_STATIC_HIFI_V1.png",width:360,height:640},
+    {index:"3",prefix:"m04",assetId:"NH01-M04-430x932dp-STATIC-HIFI-V1",path:"design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_M04_430x932dp_STATIC_HIFI_V1.png",width:430,height:932}
+  ];
+  for(const profile of additionalFrozenProfiles){
+    await workspace.locator('[data-control="profile"]').selectOption(profile.index);
+    await workspace.locator('[data-control="font"]').evaluate(node=>{node.value="1";node.dispatchEvent(new Event("input",{bubbles:true}));});
+    await workspace.locator('[data-control="zoom"]').evaluate(node=>{node.value="1";node.dispatchEvent(new Event("input",{bubbles:true}));});
+    const canvas=workspace.locator('[data-artboard]');
+    await canvas.evaluate(node=>{node.classList.remove('nh01-layer-selected');node.querySelectorAll('.nh01-layer-selected').forEach(layer=>layer.classList.remove('nh01-layer-selected'));});
+    const originalCanvasStyle=await canvas.getAttribute("style");
+    let imageBytes;
+    try {
+      await canvas.evaluate(node=>{
+        node.style.setProperty("position","fixed","important");
+        node.style.setProperty("left","0px","important");
+        node.style.setProperty("top","0px","important");
+        node.style.setProperty("margin","0px","important");
+        node.style.setProperty("transform","none","important");
+        node.style.setProperty("z-index","2147483647","important");
+      });
+      imageBytes=await page.screenshot({scale:"css",clip:{x:0,y:0,width:profile.width,height:profile.height}});
+    } finally {
+      await canvas.evaluate((node,style)=>{if(style===null)node.removeAttribute("style");else node.setAttribute("style",style);},originalCanvasStyle);
+    }
+    const dimensions={width:imageBytes.readUInt32BE(16),height:imageBytes.readUInt32BE(20)};
+    assert(dimensions.width===profile.width&&dimensions.height===profile.height,`${profile.assetId} must capture its free viewport size: ${JSON.stringify(dimensions)}`);
+    const imagePath=resolve(args.outputDir,`nh01-${profile.prefix}-render-${profile.width}x${profile.height}.png`);
+    await writeFile(imagePath,imageBytes);
+    const measured=await workspace.evaluate(()=>{
+      const board=document.querySelector('[data-artboard]'),origin=board.getBoundingClientRect();
+      const tree=[...document.querySelectorAll('[data-tree-node]')].map(node=>({id:node.dataset.treeNode,parent:node.parentElement.closest('[data-tree-node]')?.dataset.treeNode??null,name:node.querySelector('[data-select] .nh01-tree-copy>span')?.textContent?.trim()||null,sourceNodeId:node.querySelector('[data-select]')?.dataset.sourceNodeId||null,sourceAssetId:node.querySelector('[data-select]')?.dataset.sourceAssetId||null,status:node.querySelector('[data-select] .nh01-tree-copy small')?.textContent?.trim()||null}));
+      const dom=[board,...board.querySelectorAll('[data-layer]')].map(node=>{const r=node.getBoundingClientRect();return{id:node.dataset.layer,parent:node===board?null:node.parentElement.closest('[data-layer]')?.dataset.layer??null,rect:{x:+(r.left-origin.left).toFixed(3),y:+(r.top-origin.top).toFixed(3),w:+r.width.toFixed(3),h:+r.height.toFixed(3)},tag:node.tagName,assetStatus:node.dataset.assetStatus||'ROOT',mappingStatus:node.dataset.mappingStatus||'ROOT'};});
+      const imageNodes=[...board.querySelectorAll('img')].map(image=>({alt:image.alt,src:image.currentSrc,naturalWidth:image.naturalWidth,naturalHeight:image.naturalHeight,complete:image.complete,objectFit:getComputedStyle(image).objectFit}));
+      const domById=new Map(dom.map(item=>[item.id,item]));
+      return {viewport:{width:Number(document.querySelector('[data-control="width"]').value),height:Number(document.querySelector('[data-control="height"]').value),fontScale:Number(document.querySelector('[data-control="font"]').value),zoom:Number(document.querySelector('[data-control="zoom"]').value)},tree,dom,imageNodes,unmapped:tree.filter(node=>!domById.has(node.id)),parentMismatches:tree.filter(node=>node.id!=='page'&&domById.get(node.id)?.parent!==node.parent)};
+    });
+    assert(measured.unmapped.length===0&&measured.parentMismatches.length===0,`${profile.assetId} tree/DOM mapping must remain intact`);
+    const profileGeometry=await page.evaluate(({contract,measured,profile})=>{
+      const calculated=window.NH01StructuredWorkspace.calculate(profile.width,profile.height,1,24,24,contract,false);
+      const actual=new Map(measured.dom.map(layer=>[layer.id,layer.rect]));
+      const ids=['page','environment','background','header','brand','avatar','stats','recent-header','pager','hero','peek-left','peek-right','capture-action-group','cta','camera'];
+      return ids.map(id=>{const expected=calculated.rects[id]||{x:0,y:0,w:profile.width,h:profile.height},seen=actual.get(id);return{id,expected:{x:expected.x,y:expected.y,w:expected.w,h:expected.h},actual:seen,delta:seen?{x:+(seen.x-expected.x).toFixed(3),y:+(seen.y-expected.y).toFixed(3),w:+(seen.w-expected.w).toFixed(3),h:+(seen.h-expected.h).toFixed(3)}:null};});
+    },{contract:currentContract.contract,measured,profile});
+    assert(profileGeometry.every(row=>row.actual&&row.delta&&Object.values(row.delta).every(delta=>Math.abs(delta)<0.1)),`${profile.assetId} measured bounds must equal the formal responsive contract: ${JSON.stringify(profileGeometry)}`);
+    profileGeometryComparisons.push({profile:profile.prefix.toUpperCase(),viewport:{width:profile.width,height:profile.height,fontScale:1,topInset:24,bottomInset:24},layers:profileGeometry});
+    const referenceResource=resourceEvidence.find(resource=>resource.id===profile.assetId);
+    assert(referenceResource?.sha,`${profile.assetId} frozen asset SHA evidence is required`);
+    await writeFile(resolve(args.outputDir,`nh01-${profile.prefix}-dom-bounds.json`),JSON.stringify({build_sha:buildMarker,load_state:nh01LoadSnapshot.state,canvas_png:{path:imagePath,...dimensions},frozen_reference:{asset_id:profile.assetId,path:profile.path,sha256:referenceResource.sha},...measured,formal_contract_geometry:profileGeometry},null,2)+"\n");
+  }
+  await workspace.locator('[data-control="profile"]').selectOption("4");
+  const widthBoundaryEvidence=await page.evaluate(contract=>{
+    const width=Number(document.querySelector('[data-control="width"]').value),height=Number(document.querySelector('[data-control="height"]').value),font=Number(document.querySelector('[data-control="font"]').value),zoom=Number(document.querySelector('[data-control="zoom"]').value);
+    const board=document.querySelector('[data-artboard]'),origin=board.getBoundingClientRect();
+    const layers=[board,...board.querySelectorAll('[data-layer]')].map(node=>{const r=node.getBoundingClientRect();return{id:node.dataset.layer,rect:{x:+(r.left-origin.left).toFixed(3),y:+(r.top-origin.top).toFixed(3),w:+r.width.toFixed(3),h:+r.height.toFixed(3)}};});
+    const result=window.NH01StructuredWorkspace.calculate(width,height,font,24,24,contract);
+    return {viewport:{width,height,fontScale:font,zoom,height_authority:"UNSPECIFIED_BY_M05"},contract_status:result.conflicts,dom_layers:layers};
+  },currentContract.contract);
+  assert(widthBoundaryEvidence.viewport.width===480&&widthBoundaryEvidence.viewport.height===932,`M05 must preserve the current free height rather than freeze it: ${JSON.stringify(widthBoundaryEvidence.viewport)}`);
+  await writeFile(resolve(args.outputDir,"nh01-m05-width-only-bounds.json"),JSON.stringify({build_sha:buildMarker,frozen_reference:{asset_id:"NH01-M05-480dp-WIDTH-STATIC-HIFI-V1",path:"design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_M05_480dp_WIDTH_STATIC_HIFI_V1.png",height_authority:"UNSPECIFIED"},...widthBoundaryEvidence},null,2)+"\n");
+  await workspace.locator('[data-control="profile"]').selectOption("2");
+  await workspace.locator('[data-control="font"]').evaluate(node=>{node.value="1";node.dispatchEvent(new Event("input",{bubbles:true}));});
+  await workspace.locator('[data-control="zoom"]').evaluate(node=>{node.value="0.7";node.dispatchEvent(new Event("input",{bubbles:true}));});
   const nh01ContractText = await page.locator("#hifiViewCanvas").innerText();
   for (const phrase of ["480dp width; height unspecified", "24±2 dp", "fontScale", "六组相邻区域验收", "24 次 API 28 原生执行", "NOT_VERIFIED"]) {
     assert(nh01ContractText.includes(phrase), `NH01 responsive contract detail is missing: ${phrase}`);
@@ -863,6 +1000,14 @@ async function main() {
       state: "READY",
       module_builds: nh01ModuleUrls,
       resources: resourceEvidence,
+      canvas_comparison_input: {screenshot:renderedCanvasPath,dom_bounds:"nh01-m03-dom-bounds.json",dimensions:canvasSize},
+      nested_tree: {nodes:domEvidence.tree.length,parent_matches:domEvidence.parentMismatches.length,unmapped:domEvidence.unmapped.length},
+      frozen_reference_renders: [{profile:"M01",width:320,height:480},{profile:"M02",width:360,height:640},{profile:"M03",width:390,height:844},{profile:"M04",width:430,height:932}],
+      width_only_boundary: widthBoundaryEvidence,
+      formal_390x844_dom_geometry_delta: domFormulaComparison,
+      formal_geometry_comparison_by_profile: profileGeometryComparisons,
+      hero_metadata_layout: heroMetadataLayout,
+      background_object_position: backgroundObjectPosition,
       formula_profile_results: profileComputations,
       injected_failure_recovery: faultEvidence,
       layer_selection: ["recent tree→canvas", "hero canvas→tree/inspector", "peek-left tree→canvas/inspector blocked state"],
@@ -873,15 +1018,14 @@ async function main() {
     p01: guideImageInfo,
     overview: overviewImageInfo,
     review: reviewImage,
-    checks: ["NH01 structured workspace READY", "six source dependencies and ten PNGs with HTTP/SHA evidence", "layer tree/canvas/inspector bidirectional selection", "five dp presets including width-only M05 conflict", "free viewport/font 1.0/1.3/1.5/zoom/safe area", "Manifest/contract 404, invalid JSON, JS/CSS 404, timeout and recovery", "stale route cancellation", "direct Hash", "Resources submenu click and direct route", "original PNG previews/download links and manifest", "refresh", "back/forward", "modal zoom/fit/Esc/focus restore", "SWOS and continuity authority routes", "15-frame static workspace and exact 8+7 count", "R0.5 2900ms zoom and original/composite toggle", "P7/R0/R0.5/R1 geometry table", "RR09 ↔ SWOS routes", "Web Hi-Fi V2 authority/resources and 390px route", "local-only photo selection without persistent/network upload", "390px SWOS responsive preview", "RR09 V3 current / V2 historical route separation", "missing authority no fake UI", "invalid route guard", "no HTTP errors", "no console/page errors"],
+    checks: ["NH01 structured workspace READY", "21 source and frozen/used resources with HTTP/SHA evidence", "source layer tree matches real nested DOM parentage", "layer tree/canvas/inspector bidirectional selection", "M01-M04 CSS canvas PNGs and DOM bounds; M05 width-only geometry without assumed height", "formal 390×844 contract rectangles equal measured DOM geometry", "five dp presets", "free viewport/font 1.0/1.3/1.5/zoom/safe area", "Manifest/contract 404, invalid JSON, JS/CSS 404, timeout and recovery", "stale route cancellation", "direct Hash", "Resources submenu click and direct route", "original PNG previews/download links and manifest", "refresh", "back/forward", "modal zoom/fit/Esc/focus restore", "SWOS and continuity authority routes", "15-frame static workspace and exact 8+7 count", "R0.5 2900ms zoom and original/composite toggle", "P7/R0/R0.5/R1 geometry table", "RR09 ↔ SWOS routes", "Web Hi-Fi V2 authority/resources and 390px route", "local-only photo selection without persistent/network upload", "390px SWOS responsive preview", "RR09 V3 current / V2 historical route separation", "missing authority no fake UI", "invalid route guard", "no HTTP errors", "no console/page errors"],
     swos_local_photo_sha256: uploadedPhotoSha,
     swos_local_photo_uploaded: Boolean(args.swosPhoto),
-    screenshots: ["desktop-1440.png", "tablet-768.png", "mobile-390.png", "lightbox-1440.png", "overview-1440.png", "guide-resources-1440.png", "guide-resources-390.png", "swos-optical-contract-1440.png", "swos-static-visual-1440.png", "swos-static-visual-390.png", "swos-r05-zoom-1440.png", "swos-web-motion-contract-1440.png", "swos-web-motion-contract-390.png", "web-hifi-v2-1440.png", "processing-result-continuity-1440.png", "rr09-v3-authority-1440.png", "rr09-v2-history-1440.png"],
+    screenshots: ["nh01-m01-render-320x480.png", "nh01-m02-render-360x640.png", "nh01-m03-render-390x844.png", "nh01-m04-render-430x932.png", "nh01-m01-dom-bounds.json", "nh01-m02-dom-bounds.json", "nh01-m03-dom-bounds.json", "nh01-m04-dom-bounds.json", "nh01-m05-width-only-bounds.json", "desktop-1440.png", "tablet-768.png", "mobile-390.png", "lightbox-1440.png", "overview-1440.png", "guide-resources-1440.png", "guide-resources-390.png", "swos-optical-contract-1440.png", "swos-static-visual-1440.png", "swos-static-visual-390.png", "swos-r05-zoom-1440.png", "swos-web-motion-contract-1440.png", "swos-web-motion-contract-390.png", "web-hifi-v2-1440.png", "processing-result-continuity-1440.png", "rr09-v3-authority-1440.png", "rr09-v2-history-1440.png"],
     errors,
     bad_responses: badResponses,
     failed_requests: failedRequests
   };
-  const { writeFile } = await import("node:fs/promises");
   await writeFile(resolve(args.outputDir, "browser-verification.json"), JSON.stringify(summary, null, 2) + "\n");
   process.stdout.write(`PASS: Design Manager browser verification | ${viewportResults.map(x => x.viewport).join(",")}px | ${summary.checks.join(" | ")}\n`);
 

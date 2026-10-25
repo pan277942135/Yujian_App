@@ -223,6 +223,11 @@ function nh01ResponsiveRuleCanvas(view) {
   const workspacePath = "design/manager/nh01_structured_workspace.js";
   const stylePath = "design/manager/nh01_structured_workspace.css";
   const bindingPath = "design/system_v3/09_Android_Implementation_Contracts/Normal_Home/Normal_Home_Resource_Binding_V1.json";
+  const componentTreePath = "design/manager/nh01_acceptance/data/NH01_Component_Tree_V1.json";
+  const structurePath = "design/manager/nh01_acceptance/data/NH01_Structure_V1.json";
+  const avatarAuthorityPath = "design/pages/home/normal_home/engineering/Visual_Anchor_Asset_Resolution_V1.md";
+  const avatarV2Path = "app/src/main/res/drawable-nodpi/normal_home_default_avatar_v2.png";
+  const avatarV2Sha256 = "fe94b11ba9f6c0635cd230bcc786fd2ea9a64d1a6f512dc6078556379676f528";
   const timeoutMs = Number(window.__NH01_TEST_TIMEOUT_MS__) || 20000;
   const urlFor = path => path.startsWith("http") ? path : repoHref(path);
   const responseMime = pattern => ({ mime: pattern });
@@ -230,6 +235,9 @@ function nh01ResponsiveRuleCanvas(view) {
     { id:"frozen-manifest", label:"冻结资产 Manifest", url:urlFor(view.visual_authority_manifest), type:"json", ...responseMime(/application\/json|\+json/i), validate:value => Array.isArray(value?.assets) && value.assets.length === 5 && value.status === "STATIC_HIFI_FROZEN" && value.original_reference?.path && value.original_reference?.historical_sha256 && value.assets.every(asset=>asset.path&&asset.sha256) || "Manifest 缺少 5 张冻结资产、原始参考 SHA 或必要路径" },
     { id:"machine-contract", label:"响应式机器合同 JSON", url:urlFor(view.machine_authority), type:"json", ...responseMime(/application\/json|\+json/i), validate:value => Boolean(value?.contract_id && value?.foundation_layout_principles && value?.spacing?.existing_adaptive_formulas) || "响应式机器合同结构不完整" },
     { id:"markdown-contract", label:"正式 Markdown 合同", url:urlFor(view.authority), type:"text", ...responseMime(/text\//i), validate:value => value.includes("A.2 Long-screen surplus allocation") || "Markdown 合同缺少 A.2 正式公式段落" },
+    { id:"component-tree", label:"NH01 组件父子树", url:urlFor(componentTreePath), type:"json", ...responseMime(/application\/json|\+json/i), validate:value => value?.document_type === "component_tree" && value?.root?.id === "41:30" && Array.isArray(value.root.children) || "NH01 组件树缺少已登记页面根节点及子节点" },
+    { id:"structure-reference", label:"NH01 结构与样例文本", url:urlFor(structurePath), type:"json", ...responseMime(/application\/json|\+json/i), validate:value => Boolean(value?.document_type === "structure" && value?.frame?.id === "41:30" && Array.isArray(value?.preview_fixture?.statistics) && value?.preview_fixture?.hero) || "NH01 结构样例缺少页面结构、统计或 Hero 样例数据" },
+    { id:"avatar-authority", label:"NH01 专用头像视觉锚点", url:urlFor(avatarAuthorityPath), type:"text", ...responseMime(/text\//i), validate:value => value.includes(avatarV2Path) && value.includes(avatarV2Sha256) && value.includes("approved visual identity for Normal Home") || "NH01 专用头像批准原图或视觉权威记录缺失" },
     { id:"resource-binding", label:"Normal Home 资源绑定", url:urlFor(bindingPath), type:"json", ...responseMime(/application\/json|\+json/i), validate:value => value?.brand_title_binding?.registry_path && value?.camera_primary_binding?.registry_path && Array.isArray(value.resources) || "资源绑定缺少品牌、相机或资源列表" },
     { id:"workspace-js", label:"结构化工作区 JavaScript", url:urlFor(workspacePath), type:"bytes", ...responseMime(/javascript|ecmascript/i), validate:() => typeof window.NH01StructuredWorkspace?.mount === "function" && typeof window.NH01StructuredWorkspace?.createResourceLoader === "function" || "JS 请求已成功，但 NH01StructuredWorkspace.mount/createResourceLoader 未执行或缺失" },
     { id:"workspace-css", label:"结构化工作区 CSS", url:urlFor(stylePath), type:"bytes", ...responseMime(/text\/css/i), validate:() => { const link=document.querySelector('link[data-resource-id="nh01-workspace-css"]'); return !!link?.sheet || "CSS 请求已成功，但正式样式表未应用"; } }
@@ -298,7 +306,7 @@ function nh01ResponsiveRuleCanvas(view) {
   const update = snapshot => renderProgress(snapshot.state === "READY" ? "LOADING" : snapshot.state, [...baseDiagnostics,...assetDiagnostics], null, snapshot.state === "RETRYING");
   active.base = window.NH01StructuredWorkspace.createResourceLoader({ timeoutMs, onUpdate:snapshot=>{baseDiagnostics=snapshot.resources;update(snapshot);} });
   active.assets = window.NH01StructuredWorkspace.createResourceLoader({ timeoutMs, onUpdate:snapshot=>{assetDiagnostics=snapshot.resources;update(snapshot);} });
-  const toAssetSpec=(id,label,path,sha)=>({ id,label,url:urlFor(path),type:"bytes",mime:/image\/png/i,expectedSha256:sha,validate:value=>value?.sha256===sha || `PNG bytes SHA-256 mismatch for ${path}` });
+  const toAssetSpec=(id,label,path,sha,mime=/image\/png/i)=>({ id,label,url:urlFor(path),type:"bytes",mime,expectedSha256:sha,validate:value=>value?.sha256===sha || `Asset bytes SHA-256 mismatch for ${path}` });
   async function run(retrying=false) {
     if (active.cancelled || root.dataset.nh01ResponsiveToken !== token) return;
     baseDiagnostics=[]; assetDiagnostics=[];
@@ -323,10 +331,13 @@ function nh01ResponsiveRuleCanvas(view) {
       const background=(resourceBinding.resources||[]).find(item=>item.path?.endsWith("Morning_Lake_Master_V1.png"));
       specs=manifest.assets.map(asset=>toAssetSpec(asset.asset_id,`冻结静态图 · ${asset.asset_id}`,asset.path,asset.sha256));
       specs.push(toAssetSpec("original-reference","NH01 原始冻结参考",manifest.original_reference.path,manifest.original_reference.historical_sha256));
-      for (const item of [background,avatar]) {
-        if (!item) throw new Error("Resource Binding 中缺少画布使用的冻结背景或默认头像");
+      const chevron=(resourceBinding.resources||[]).find(item=>item.path?.endsWith("/ic_chevron_right_v1.svg"));
+      for (const item of [background,avatar,chevron]) {
+        if (!item) throw new Error("Resource Binding 中缺少冻结背景、已登记组件资产或历史头像校验项");
         specs.push(toAssetSpec(item.asset_id,item.role||item.asset_id,item.path,item.sha256));
       }
+      specs[specs.length-1].mime=/image\/svg\+xml/i;
+      specs.push(toAssetSpec("normal_home_default_avatar_v2","NH01 专用批准头像 V2",avatarV2Path,avatarV2Sha256));
       const brand=resourceBinding.brand_title_binding, camera=resourceBinding.camera_primary_binding;
       specs.push(toAssetSpec(brand.asset_id,"品牌标题冻结 PNG",brand.registry_path,brand.sha256));
       specs.push(toAssetSpec(camera.asset_id,"相机按钮冻结 PNG",camera.registry_path,camera.sha256));
@@ -351,7 +362,7 @@ function nh01ResponsiveRuleCanvas(view) {
       root.innerHTML=nh01StaticWorkspaceMarkup(view,manifest,contract);
       const staticRoot=root.querySelector(".nh01-static-workspace");
       if (!staticRoot) throw new Error("NH01 static contract workspace container is missing");
-      window.NH01StructuredWorkspace.mount(root,view,contract,manifest,DESIGN_MANAGER_BUILD,markdownContract,resourceBinding,diagnostics);
+      window.NH01StructuredWorkspace.mount(root,view,contract,manifest,DESIGN_MANAGER_BUILD,markdownContract,resourceBinding,diagnostics,baseResult.data["component-tree"],baseResult.data["structure-reference"],baseResult.data["avatar-authority"]);
       if (!root.querySelector('[data-testid="nh01-structured-workspace"]') || !root.querySelector("[data-layer-tree]") || !root.querySelector("[data-artboard]") || !root.querySelector("[data-inspector]")) {
         throw new Error("mount() returned without rendering the layer tree, canvas, and property inspector");
       }
