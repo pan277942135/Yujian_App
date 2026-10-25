@@ -267,9 +267,10 @@ async function main() {
   assert(nh01Narrow.assetCount === 5, "NH01 narrow workspace lost one or more assets");
   await page.screenshot({ path: resolve(args.outputDir, "nh01-multiscreen-390.png"), fullPage: true });
   await page.setViewportSize({ width: 1440, height: 1000 });
-  await open(nh01MultiScreenHash);
+  assert(page.url().endsWith(nh01MultiScreenHash), "NH01 route must remain active before refresh verification");
   await page.reload({ waitUntil: "networkidle" });
   await page.locator('[data-testid="nh01-multiscreen-workspace"]').waitFor({ state: "visible", timeout: 30000 });
+  await page.waitForFunction(()=>document.querySelector("#hifiViewCanvas")?.dataset.nh01LoadState==="READY",null,{timeout:30000});
   assert(page.url().endsWith(nh01MultiScreenHash), "NH01 deep link did not survive refresh");
   await open("#page/home_normal_v1");
   await waitForManager(page);
