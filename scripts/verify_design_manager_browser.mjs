@@ -345,10 +345,9 @@ async function main() {
   await invalidJsonPage.close();
 
   const moduleFailurePage=await browser.newPage({viewport:{width:1440,height:1000}});
-  let module404Responses=0;
+  let allowModuleRecovery=false;
   await moduleFailurePage.route("**/nh01_structured_workspace.js*",async route=>{
-    module404Responses++;
-    if(module404Responses<=3)await route.fulfill({status:404,contentType:"text/plain",body:"synthetic module 404"});
+    if(!allowModuleRecovery)await route.fulfill({status:404,contentType:"text/plain",body:"synthetic module 404"});
     else await route.continue();
   });
   await openFaultPage(moduleFailurePage);
@@ -356,22 +355,23 @@ async function main() {
   const moduleFailure=await moduleFailurePage.locator('#hifiViewCanvas [data-resource-id="workspace-js"]').innerText();
   assert(moduleFailure.includes("404")&&moduleFailure.includes("nh01_structured_workspace.js"),`Failed module script must report exact URL/status: ${moduleFailure}`);
   await moduleFailurePage.screenshot({path:resolve(args.outputDir,"nh01-module-404-error.png"),fullPage:false});
+  allowModuleRecovery=true;
   await moduleFailurePage.locator('#hifiViewCanvas [data-action="retry"]').click();
   await waitForNH01State(moduleFailurePage,"READY");
   faultEvidence.push({case:"workspace-js-404-and-reload-retry",state:"ERROR→READY",resource:moduleFailure});
   await moduleFailurePage.close();
 
   const styleFailurePage=await browser.newPage({viewport:{width:1440,height:1000}});
-  let style404Responses=0;
+  let allowStyleRecovery=false;
   await styleFailurePage.route("**/nh01_structured_workspace.css*",async route=>{
-    style404Responses++;
-    if(style404Responses<=3)await route.fulfill({status:404,contentType:"text/plain",body:"synthetic style 404"});
+    if(!allowStyleRecovery)await route.fulfill({status:404,contentType:"text/plain",body:"synthetic style 404"});
     else await route.continue();
   });
   await openFaultPage(styleFailurePage);
   await waitForNH01State(styleFailurePage,"ERROR");
   const styleFailure=await styleFailurePage.locator('#hifiViewCanvas [data-resource-id="workspace-css"]').innerText();
   assert(styleFailure.includes("404")&&styleFailure.includes("nh01_structured_workspace.css"),`Failed module CSS must report exact URL/status: ${styleFailure}`);
+  allowStyleRecovery=true;
   await styleFailurePage.locator('#hifiViewCanvas [data-action="retry"]').click();
   await waitForNH01State(styleFailurePage,"READY");
   faultEvidence.push({case:"workspace-css-404-and-retry",state:"ERROR→READY",resource:styleFailure});
