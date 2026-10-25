@@ -254,8 +254,15 @@ async function main() {
     assert(await download.getAttribute("download") === filename, `${id.toUpperCase()} original download filename changed`);
     assert((await download.getAttribute("href"))?.includes(filename), `${id.toUpperCase()} download does not point to its original PNG`);
   }
-  const manifestLink = page.locator(".guide-resource-manifest a");
-  assert((await manifestLink.getAttribute("href"))?.includes("first_use_camera_guide/manifest.json"), "Resources route must link to the authoritative manifest");
+  const manifestLinks = page.locator(".guide-resource-manifest a");
+  assert(await manifestLinks.count() === 3, "Resources route must link the frozen, front-end and structured manifests");
+  const manifestHrefs = await manifestLinks.evaluateAll(nodes => nodes.map(node => node.getAttribute("href")));
+  assert(manifestHrefs.some(href => href?.includes("first_use_camera_guide/manifest.json")), "Resources route must link to the frozen authoritative manifest");
+  assert(manifestHrefs.some(href => href?.includes("first_use_camera_guide/frontend_assets_manifest.json")), "Resources route must link to the front-end asset manifest");
+  assert(manifestHrefs.some(href => href?.includes("first_use_camera_guide/structured_pages.json")), "Resources route must link to the structured page contract");
+  assert(await page.locator(".guide-asset-slot").count() === 12, "Resources route must list exactly 12 photo slots");
+  assert(await page.locator(".guide-asset-slot").filter({hasText: "参考裁切 · 不可生产使用"}).count() === 9, "Nine archived error crops must remain reference-only");
+  assert(await page.locator(".guide-asset-slot").filter({hasText: "独立主图待补"}).count() === 3, "Three hero sources must remain blocked");
   await page.screenshot({ path: resolve(args.outputDir, "guide-resources-1440.png"), fullPage: true });
   await page.setViewportSize({ width: 390, height: 844 });
   const resourceMobileWidth = await page.evaluate(() => ({ document: document.documentElement.scrollWidth, body: document.body.scrollWidth }));
