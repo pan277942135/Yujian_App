@@ -279,11 +279,13 @@ async function main() {
   await nh01Menu.click();
   await page.waitForFunction(expected => location.hash === expected, nh01MultiScreenHash);
   await waitForHifiView(page);
+  await page.waitForFunction(()=>document.querySelector("#hifiViewCanvas")?.dataset.nh01LoadState==="READY",null,{timeout:30000});
   assert(page.url().endsWith(nh01MultiScreenHash), "NH01 menu item did not open its registered deep route");
   await page.goBack();
   await page.waitForFunction(() => location.hash === "#page/home_normal_v1", null, { timeout: 15000 });
   await page.goForward();
   await page.waitForFunction(expected => location.hash === expected, nh01MultiScreenHash, { timeout: 15000 });
+  await page.waitForFunction(()=>document.querySelector("#hifiViewCanvas")?.dataset.nh01LoadState==="READY",null,{timeout:30000});
   await page.locator(".nh01-static-asset").first().locator(".hifi-image-open").click();
   assert(await page.locator(".hifi-image-lightbox[open]").isVisible(), "NH01 source image did not open in the existing lightbox");
   await page.locator(".hifi-image-lightbox .hifi-lightbox-close").click();
