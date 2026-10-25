@@ -303,7 +303,7 @@ async function main() {
   await responsiveTab.scrollIntoViewIfNeeded();
   await responsiveTab.click({timeout: 10000});
   await page.waitForFunction(() => new URLSearchParams(location.search).get("guide_workspace") === "responsive", null, {timeout: 10000});
-  const workspaceState = await page.locator('[data-testid="first-use-guide-workspace"]').getAttribute("data-workspace");
+  const workspaceState = await page.locator(".guide-workspace").getAttribute("data-workspace");
   assert(workspaceState === "responsive", `Responsive tab click did not render the workspace: state=${workspaceState}; errors=${errors.join(" | ")}`);
   await page.locator('[data-testid="guide-responsive-workspace"]').waitFor({state: "visible", timeout: 10000});
   const responsivePageTitles = {p01:"竖屏拍摄示意",p02:"竖拍鱼类拍摄示意",p03:"横屏拍摄示意"};
