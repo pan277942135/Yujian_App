@@ -262,10 +262,11 @@ async function main() {
   ];
   for (const [id, width, height, filename, shaPrefix] of resourceExpected) {
     const selector = `.guide-frozen-resource[data-resource-id="${id}"]`;
+    const card = page.locator(selector);
+    await card.scrollIntoViewIfNeeded();
     const loaded = await waitForLoadedImage(page, `${selector} img`, `${id.toUpperCase()} resource`);
     assert(loaded.width === width && loaded.height === height,
       `${id.toUpperCase()} resource dimensions changed: ${JSON.stringify(loaded)}`);
-    const card = page.locator(selector);
     assert((await card.innerText()).includes(shaPrefix), `${id.toUpperCase()} resource SHA is not shown`);
     const download = card.locator("a[download]");
     assert(await download.getAttribute("download") === filename, `${id.toUpperCase()} original download filename changed`);
@@ -284,9 +285,10 @@ async function main() {
   const candidatePaths = await page.locator(".guide-asset-slot").evaluateAll(nodes => nodes.map(node => node.dataset.sourcePath));
   assert(new Set(candidatePaths).size === 8, `12 page/role bindings must reuse exactly eight original candidate files: ${new Set(candidatePaths).size}`);
   for (const asset of await page.locator(".guide-asset-slot").all()) {
+    await asset.scrollIntoViewIfNeeded();
     const preview = asset.locator(".guide-candidate-preview img");
     const dimensions = await preview.evaluate(image => new Promise(resolve => {
-      if (image.complete) resolve({width: image.naturalWidth, height: image.naturalHeight});
+      if (image.complete && image.naturalWidth > 0) resolve({width: image.naturalWidth, height: image.naturalHeight});
       else { image.addEventListener("load", () => resolve({width: image.naturalWidth, height: image.naturalHeight}), {once:true}); image.addEventListener("error", () => resolve({width:0,height:0}), {once:true}); }
     }));
     assert(dimensions.width > 0 && dimensions.height > 0, `Independent candidate image did not load: ${await asset.getAttribute("data-asset-id")}`);
