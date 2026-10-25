@@ -180,7 +180,7 @@ async function main() {
   assert(await workspace.locator(".nh01-development-basis").evaluate(node=>node.open),"NH01 resource audit must be reachable and opened before its visible rows are verified");
   const resourceRows=workspace.locator(".nh01-resource-table tbody tr[data-resource-id]");
   assert(await resourceRows.count()===16,`NH01 needs six formal resources and ten frozen/used images; got ${await resourceRows.count()}`);
-  const resourceEvidence=await resourceRows.evaluateAll(rows=>rows.map(row=>({id:row.dataset.resourceId,status:row.cells[1]?.innerText,http:row.cells[2]?.innerText,sha:row.cells[3]?.innerText,url:row.cells[4]?.querySelector("code")?.innerText})));
+  const resourceEvidence=await resourceRows.evaluateAll(rows=>rows.map(row=>{const detail=row.cells[4]?.innerText||"";return{id:row.dataset.resourceId,status:row.cells[1]?.innerText,http:row.cells[2]?.innerText,sha:detail.match(/SHA-256\s+([0-9a-f]{64})/i)?.[1],url:row.cells[4]?.querySelector("code")?.innerText};}));
   assert(resourceEvidence.every(item=>item.status==="READY"&&item.http==="200"&&/^[0-9a-f]{64}$/i.test(item.sha)),`NH01 resource request evidence is incomplete: ${JSON.stringify(resourceEvidence)}`);
   const layerTree = workspace.locator("[data-layer-tree]");
   await layerTree.locator('[data-select="recent"]').click();
