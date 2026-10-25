@@ -19,6 +19,7 @@ on:
       - "scripts/verify_first_use_camera_guide_assets.py"
       - "scripts/measure_first_use_camera_guide_geometry.py"
       - "scripts/verify_swos_static_visual_v1_1.py"
+      - "scripts/design/compare_nh01_workspace_visual_v1.py"
       - "tests/nh01_structured_workspace.test.cjs"
       - ".github/workflows/experience-governance.yml"
       - ".github/workflows/design-manager-pages.yml"
@@ -131,6 +132,8 @@ jobs:
           mkdir -p _site
           cp -R design _site/design
           if [ -d previews ]; then cp -R previews _site/previews; fi
+          mkdir -p _site/app/src/main/res/drawable-nodpi
+          cp app/src/main/res/drawable-nodpi/normal_home_default_avatar_v2.png _site/app/src/main/res/drawable-nodpi/normal_home_default_avatar_v2.png
           BUILD_SHORT="${BUILD_SHA:0:12}"
           sed -i "s/__DESIGN_MANAGER_BUILD__/${BUILD_SHA}/g" _site/design/manager/index.html
           sed -i "s/__DESIGN_MANAGER_BUILD_SHORT__/${BUILD_SHORT}/g" _site/design/manager/index.html
@@ -184,6 +187,30 @@ jobs:
               --root _site \
               --expected-build "${BUILD_SHA}" \
               --output-dir "$RUNNER_TEMP/dm-build-browser"
+          python3 scripts/design/compare_nh01_workspace_visual_v1.py \
+            --profile-prefix NH01_M01 \
+            --render "$RUNNER_TEMP/dm-build-browser/nh01-m01-render-320x480.png" \
+            --reference "design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_M01_320x480dp_STATIC_HIFI_V1.png" \
+            --dom-json "$RUNNER_TEMP/dm-build-browser/nh01-m01-dom-bounds.json" \
+            --output-dir "$RUNNER_TEMP/dm-build-browser/nh01-visual-comparison/m01"
+          python3 scripts/design/compare_nh01_workspace_visual_v1.py \
+            --profile-prefix NH01_M02 \
+            --render "$RUNNER_TEMP/dm-build-browser/nh01-m02-render-360x640.png" \
+            --reference "design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_M02_360x640dp_STATIC_HIFI_V1.png" \
+            --dom-json "$RUNNER_TEMP/dm-build-browser/nh01-m02-dom-bounds.json" \
+            --output-dir "$RUNNER_TEMP/dm-build-browser/nh01-visual-comparison/m02"
+          python3 scripts/design/compare_nh01_workspace_visual_v1.py \
+            --profile-prefix NH01_M03 \
+            --render "$RUNNER_TEMP/dm-build-browser/nh01-m03-render-390x844.png" \
+            --reference "design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_M03_390x844dp_STATIC_HIFI_V1.png" \
+            --dom-json "$RUNNER_TEMP/dm-build-browser/nh01-m03-dom-bounds.json" \
+            --output-dir "$RUNNER_TEMP/dm-build-browser/nh01-visual-comparison/m03"
+          python3 scripts/design/compare_nh01_workspace_visual_v1.py \
+            --profile-prefix NH01_M04 \
+            --render "$RUNNER_TEMP/dm-build-browser/nh01-m04-render-430x932.png" \
+            --reference "design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_M04_430x932dp_STATIC_HIFI_V1.png" \
+            --dom-json "$RUNNER_TEMP/dm-build-browser/nh01-m04-dom-bounds.json" \
+            --output-dir "$RUNNER_TEMP/dm-build-browser/nh01-visual-comparison/m04"
 
       - name: Serve and verify NH01 Acceptance Center
         shell: bash
@@ -435,6 +462,9 @@ jobs:
         with:
           node-version: "22"
 
+      - name: Install Pillow for frozen visual comparison evidence
+        run: python3 -m pip install --disable-pip-version-check Pillow==11.3.0
+
       - name: Install Playwright and Chromium
         shell: bash
         run: |
@@ -458,6 +488,30 @@ jobs:
               --url "${{ steps.deployment.outputs.page_url }}" \
               --expected-build "${BUILD_SHA}" \
               --output-dir "$RUNNER_TEMP/dm-live-evidence/browser"
+          python3 scripts/design/compare_nh01_workspace_visual_v1.py \
+            --profile-prefix NH01_M01 \
+            --render "$RUNNER_TEMP/dm-live-evidence/browser/nh01-m01-render-320x480.png" \
+            --reference "design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_M01_320x480dp_STATIC_HIFI_V1.png" \
+            --dom-json "$RUNNER_TEMP/dm-live-evidence/browser/nh01-m01-dom-bounds.json" \
+            --output-dir "$RUNNER_TEMP/dm-live-evidence/browser/nh01-visual-comparison/m01"
+          python3 scripts/design/compare_nh01_workspace_visual_v1.py \
+            --profile-prefix NH01_M02 \
+            --render "$RUNNER_TEMP/dm-live-evidence/browser/nh01-m02-render-360x640.png" \
+            --reference "design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_M02_360x640dp_STATIC_HIFI_V1.png" \
+            --dom-json "$RUNNER_TEMP/dm-live-evidence/browser/nh01-m02-dom-bounds.json" \
+            --output-dir "$RUNNER_TEMP/dm-live-evidence/browser/nh01-visual-comparison/m02"
+          python3 scripts/design/compare_nh01_workspace_visual_v1.py \
+            --profile-prefix NH01_M03 \
+            --render "$RUNNER_TEMP/dm-live-evidence/browser/nh01-m03-render-390x844.png" \
+            --reference "design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_M03_390x844dp_STATIC_HIFI_V1.png" \
+            --dom-json "$RUNNER_TEMP/dm-live-evidence/browser/nh01-m03-dom-bounds.json" \
+            --output-dir "$RUNNER_TEMP/dm-live-evidence/browser/nh01-visual-comparison/m03"
+          python3 scripts/design/compare_nh01_workspace_visual_v1.py \
+            --profile-prefix NH01_M04 \
+            --render "$RUNNER_TEMP/dm-live-evidence/browser/nh01-m04-render-430x932.png" \
+            --reference "design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_M04_430x932dp_STATIC_HIFI_V1.png" \
+            --dom-json "$RUNNER_TEMP/dm-live-evidence/browser/nh01-m04-dom-bounds.json" \
+            --output-dir "$RUNNER_TEMP/dm-live-evidence/browser/nh01-visual-comparison/m04"
 
       - name: Verify live NH01 PR preview routes and interactions
         shell: bash

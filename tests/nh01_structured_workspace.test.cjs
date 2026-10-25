@@ -6,10 +6,13 @@ const sandbox={window:{},AbortController,TextEncoder,crypto:crypto.webcrypto,set
 vm.runInNewContext(fs.readFileSync('design/manager/nh01_structured_workspace.js','utf8'),sandbox);
 const calculate=sandbox.window.NH01StructuredWorkspace.calculate;
 const createResourceLoader=sandbox.window.NH01StructuredWorkspace.createResourceLoader;
+const {createLayerTree,flattenLayerTree,findLayer,measuredLayerBounds}=sandbox.window.NH01StructuredWorkspace;
 const contract=JSON.parse(fs.readFileSync('design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_MULTI_SCREEN_RESPONSIVE_CONTRACT_V1.json'));
 const markdown=fs.readFileSync('design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_MULTI_SCREEN_RESPONSIVE_CONTRACT_V1.md','utf8');
 const manifest=JSON.parse(fs.readFileSync('design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_MULTI_SCREEN_STATIC_HIFI_V1_MANIFEST.json'));
 const resourceBinding=JSON.parse(fs.readFileSync('design/system_v3/09_Android_Implementation_Contracts/Normal_Home/Normal_Home_Resource_Binding_V1.json'));
+const componentTree=JSON.parse(fs.readFileSync('design/manager/nh01_acceptance/data/NH01_Component_Tree_V1.json'));
+const structure=JSON.parse(fs.readFileSync('design/manager/nh01_acceptance/data/NH01_Structure_V1.json'));
 function assertFileHash(path, expected, label) {
   const bytes=fs.readFileSync(path);
   assert.equal(crypto.createHash('sha256').update(bytes).digest('hex'),expected,`${label} SHA-256 must match its authority`);
@@ -21,8 +24,29 @@ for(const asset of [
   ...resourceBinding.resources.filter(item=>item.path?.endsWith('/Morning_Lake_Master_V1.png')||item.path?.endsWith('/nh07_default_avatar_1x_64.png')),
   resourceBinding.brand_title_binding,
   resourceBinding.camera_primary_binding,
+  {asset_id:'approved Normal Home V2 avatar',path:'app/src/main/res/drawable-nodpi/normal_home_default_avatar_v2.png',sha256:'fe94b11ba9f6c0635cd230bcc786fd2ea9a64d1a6f512dc6078556379676f528'},
   {asset_id:'NH01 original visual reference',path:manifest.original_reference.path,sha256:manifest.original_reference.historical_sha256}
 ]) assertFileHash(asset.path||asset.registry_path,asset.sha256,asset.asset_id);
+
+const layerRoot=createLayerTree(componentTree,structure);
+const layers=Array.from(flattenLayerTree(layerRoot));
+const layerIds=layers.map(layer=>layer.id);
+assert.equal(new Set(layerIds).size,layerIds.length,'NH01 tree must have unique stable layer IDs');
+assert.equal(layerRoot.id,'page');
+assert.deepEqual(Array.from(layerRoot.children,node=>node.id),['environment','header','stats','recent-header','pager','capture-action-group']);
+assert.deepEqual(Array.from(findLayer(layerRoot,'environment').children,node=>node.id),['background']);
+assert.deepEqual(Array.from(findLayer(layerRoot,'header').children,node=>node.id),['brand','avatar']);
+assert.deepEqual(Array.from(findLayer(layerRoot,'stats').children,node=>node.id),['stat-species','stat-catch','stat-days']);
+assert.deepEqual(Array.from(findLayer(layerRoot,'recent-header').children,node=>node.id),['recent-title','recent-all','recent-chevron']);
+assert.deepEqual(Array.from(findLayer(layerRoot,'pager').children,node=>node.id),['peek-left','hero','peek-right']);
+assert.deepEqual(Array.from(findLayer(layerRoot,'capture-action-group').children,node=>node.id),['cta','camera']);
+assert.equal(findLayer(layerRoot,'cta').parentId,'capture-action-group');
+assert.equal(findLayer(layerRoot,'cta').sourceNodeId,null,'CTA must not reuse its parent’s Figma node ID as a fake child mapping');
+assert.equal(findLayer(layerRoot,'stat-species').mappingStatus,'NOT_IN_MAPPING_SNAPSHOT');
+assert.equal(findLayer(layerRoot,'avatar').sourceAssetId,'avatar_default_nh07','the historical Figma asset mapping must remain visible beside the approved V2 active source');
+assert.ok(!layerIds.includes('top')&&!layerIds.includes('footer'),'the logical A band and an empty Footer overlay are not real DOM components');
+const measured=measuredLayerBounds({getBoundingClientRect:()=>({left:170,top:120,width:40,height:20})},{getBoundingClientRect:()=>({left:100,top:50})},.5);
+assert.deepEqual({...measured},{x:140,y:140,w:80,h:40},'DOM measurements must normalize viewport zoom around the artboard origin');
 const authorityConflict=sandbox.window.NH01StructuredWorkspace.hasAuthorityConflict(markdown,contract);
 assert.equal(authorityConflict,false,'current NH01 V1.1 Markdown and machine contract agree on equal split');
 const staleMarkdown=markdown.replace('gAB = gAB_base + S/2','gAB = gAB_base + 2S/3').replace('gBC = gBC_base + S/2','gBC = gBC_base + S/3');
@@ -113,4 +137,4 @@ async function runLoaderCases(){
   assert.equal(stale.state,'CANCELLED','an aborted route generation cannot report READY');
 }
 
-runLoaderCases().then(()=>console.log('NH01_STRUCTURED=PASS 5 profiles × 3 font scales; frozen asset hashes verified; contract formulas, Peek bounds, HTTP/JSON/timeout/retry/stale-route states verified')).catch(error=>{console.error(error);process.exitCode=1;});
+runLoaderCases().then(()=>console.log('NH01_STRUCTURED=PASS recursive source-mapped layer tree; 5 profiles × 3 font scales; frozen asset hashes; formula agreement; DOM bounds; HTTP/JSON/timeout/retry/stale-route states')).catch(error=>{console.error(error);process.exitCode=1;});
