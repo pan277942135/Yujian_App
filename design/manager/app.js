@@ -3831,9 +3831,10 @@ function selectFromHash() {
   let raw;
   try { raw = decodeURIComponent(encoded); }
   catch (_) { return renderInvalidManagerRoute(encoded); }
-  // A browser hash traversal fires both popstate and hashchange. Keep the same
-  // private frame alive so duplicate notifications do not abort its bootstrap.
-  if (raw === selectedKey && el("hifiViewCanvas")?.querySelector('iframe[title="原始高保真私有查看与合同对照"]')) return;
+  // A browser hash traversal fires both popstate and hashchange. The first
+  // event renders the route; ignoring its duplicate prevents active resource
+  // loaders on non-iframe pages from being cancelled and restarted.
+  if (raw === selectedKey) return;
   if (!raw) return selectShared(sharedRegistry.items[0]?.id, null, false);
   if (raw.startsWith("shared/")) {
     const parts = raw.split("/");
