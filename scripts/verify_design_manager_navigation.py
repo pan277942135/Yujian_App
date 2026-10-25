@@ -18,6 +18,7 @@ EXPECTED_RECOGNITION_FLOW = [
     "recognition_full_flow_models", "swos_optical_contract", "processing_result_continuity",
     "swos_static_visual_v1_1",
     "web_hifi_contract_v2", "swos_web_hifi_motion_contract_v1_0",
+    "swos_rr09_optical_v1_2",
 ]
 EXPECTED_RECOGNITION_RESULT = [
     "overview", "high", "medium", "low", "no_fish", "image_quality",
