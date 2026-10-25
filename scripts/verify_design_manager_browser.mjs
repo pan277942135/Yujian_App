@@ -373,8 +373,12 @@ async function main() {
   await page.locator("[data-guide-font-scale]").selectOption("1.3");
   assert((await page.locator("[data-testid='guide-simulator-viewport']").evaluate(node => getComputedStyle(node).getPropertyValue("--guide-base-font").trim())) === "18.2px", "Font scale control must update the responsive preview typography");
   await page.locator("[data-guide-font-scale]").selectOption("1");
-  await page.locator('[data-guide-inset="top"]').fill("32");
-  assert((await page.locator("[data-testid='guide-simulator-viewport']").evaluate(node => getComputedStyle(node).getPropertyValue("--guide-inset-top").trim())) === "32px", "Insets controls must update the simulator safe-area padding");
+  const topInset = page.locator('[data-guide-inset="top"]');
+  await topInset.fill("32");
+  await topInset.press("Tab");
+  await page.waitForFunction(() => getComputedStyle(document.querySelector("[data-testid='guide-simulator-viewport']")).getPropertyValue("--guide-inset-top").trim() === "32px", null, {timeout: 5000});
+  const topInsetCss = await page.locator("[data-testid='guide-simulator-viewport']").evaluate(node => getComputedStyle(node).getPropertyValue("--guide-inset-top").trim());
+  assert(topInsetCss === "32px", `Insets controls must update the simulator safe-area padding: ${topInsetCss}`);
   await page.screenshot({ path: resolve(args.outputDir, "guide-responsive-p01-390x844.png"), fullPage: true });
   assert(new URL(page.url()).searchParams.get("guide_workspace") === "responsive", "Workspace tab choice must survive a refreshable query deep link");
   assert(new URL(page.url()).searchParams.get("guide_page") === "p01", "Selected guide page must be stored in the workspace URL");
