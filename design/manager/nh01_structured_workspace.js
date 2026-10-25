@@ -323,6 +323,7 @@
     const layers=flattenLayerTree(layerRoot);
     if (new Set(layers.map(layer=>layer.id)).size!==layers.length) throw new Error('NH01 layer IDs must be unique');
     const workspace=document.createElement('section');
+    const safeText=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
     workspace.className='nh01-structured';
     workspace.dataset.testid='nh01-structured-workspace';
     const options=profiles.map(([w,h],i)=>`<option value="${i}" ${i===2?'selected':''}>${i===4?'480 dp 宽度边界 · 高度保持当前值':`${w} × ${h} dp`}</option>`).join('');
@@ -345,7 +346,6 @@
     const chevronAsset=bindingResources.find(item=>item.path?.endsWith('/ic_chevron_right_v1.svg'));
     const brandAsset=resourceBinding.brand_title_binding;
     const cameraAsset=resourceBinding.camera_primary_binding;
-    const safeText=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
     const assetUrl=path=>'../../'+path+'?v='+encodeURIComponent(build);
     const resourceByPath=path=>path?resourceDiagnostics.find(item=>item.url?.includes(path)):null;
     const resourceStatusMarkup=()=>resourceDiagnostics.map(item=>`<tr data-resource-id="${safeText(item.id)}"><td>${safeText(item.label||item.id)}</td><td>${safeText(item.status)}</td><td>${safeText(item.http_status??'—')}</td><td>${safeText(item.sha256||'—')}</td><td>Content-Type ${safeText(item.content_type||'未返回')}<br><code>${safeText(item.url)}</code><br>开始 ${safeText(item.started_at||'未开始')} · 完成 ${safeText(item.completed_at||'进行中')}<br>${safeText(item.failure_reason||'')}</td></tr>`).join('');
