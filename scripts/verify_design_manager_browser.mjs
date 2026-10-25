@@ -327,7 +327,21 @@ async function main() {
     await workspace.locator('[data-control="zoom"]').evaluate(node=>{node.value="1";node.dispatchEvent(new Event("input",{bubbles:true}));});
     const canvas=workspace.locator('[data-artboard]');
     await canvas.evaluate(node=>{node.classList.remove('nh01-layer-selected');node.querySelectorAll('.nh01-layer-selected').forEach(layer=>layer.classList.remove('nh01-layer-selected'));});
-    const imageBytes=await canvas.screenshot({scale:"css"});
+    const originalCanvasStyle=await canvas.getAttribute("style");
+    let imageBytes;
+    try {
+      await canvas.evaluate(node=>{
+        node.style.setProperty("position","fixed","important");
+        node.style.setProperty("left","0px","important");
+        node.style.setProperty("top","0px","important");
+        node.style.setProperty("margin","0px","important");
+        node.style.setProperty("transform","none","important");
+        node.style.setProperty("z-index","2147483647","important");
+      });
+      imageBytes=await page.screenshot({scale:"css",clip:{x:0,y:0,width:profile.width,height:profile.height}});
+    } finally {
+      await canvas.evaluate((node,style)=>{if(style===null)node.removeAttribute("style");else node.setAttribute("style",style);},originalCanvasStyle);
+    }
     const dimensions={width:imageBytes.readUInt32BE(16),height:imageBytes.readUInt32BE(20)};
     assert(dimensions.width===profile.width&&dimensions.height===profile.height,`${profile.assetId} must capture its free viewport size: ${JSON.stringify(dimensions)}`);
     const imagePath=resolve(args.outputDir,`nh01-${profile.prefix}-render-${profile.width}x${profile.height}.png`);
