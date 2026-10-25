@@ -345,9 +345,10 @@ async function main() {
   await invalidJsonPage.close();
 
   const moduleFailurePage=await browser.newPage({viewport:{width:1440,height:1000}});
-  let injectModule404=true;
+  let module404Responses=0;
   await moduleFailurePage.route("**/nh01_structured_workspace.js*",async route=>{
-    if(injectModule404){injectModule404=false;await route.fulfill({status:404,contentType:"text/plain",body:"synthetic module 404"});}
+    module404Responses++;
+    if(module404Responses<=3)await route.fulfill({status:404,contentType:"text/plain",body:"synthetic module 404"});
     else await route.continue();
   });
   await openFaultPage(moduleFailurePage);
@@ -361,9 +362,10 @@ async function main() {
   await moduleFailurePage.close();
 
   const styleFailurePage=await browser.newPage({viewport:{width:1440,height:1000}});
-  let injectStyle404=true;
+  let style404Responses=0;
   await styleFailurePage.route("**/nh01_structured_workspace.css*",async route=>{
-    if(injectStyle404){injectStyle404=false;await route.fulfill({status:404,contentType:"text/plain",body:"synthetic style 404"});}
+    style404Responses++;
+    if(style404Responses<=3)await route.fulfill({status:404,contentType:"text/plain",body:"synthetic style 404"});
     else await route.continue();
   });
   await openFaultPage(styleFailurePage);
