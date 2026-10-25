@@ -237,38 +237,159 @@ async function main() {
   await waitForHifiView(page);
   assert((await page.locator("#hifiViewTitle").innerText()).trim() === "资源", "Resources submenu must open its registered route");
   assert((await page.locator("#hifiViewSummary").innerText()).includes("不映射为 Android 运行时背景"), "Resources route must state its Android runtime boundary");
-  assert(await page.locator(".guide-resource-card").count() === 3, "Resources route must show exactly three Frozen source PNGs");
+  await page.locator('[data-testid="first-use-guide-workspace"]').waitFor({state: "visible", timeout: 30000});
+  await page.locator('[data-guide-tab="structure"]').waitFor({state: "visible", timeout: 30000});
+  assert(await page.locator(".guide-workspace-tabs [data-guide-tab]").count() === 3, "Resources route must expose structure, responsive and assets workspaces");
+
+  await page.locator('[data-guide-tab="structure"]').click();
+  await page.locator('[data-testid="guide-structure-workspace"]').waitFor({state: "visible", timeout: 30000});
+  await page.locator(".guide-layer-row[data-guide-layer='guide.hero']").waitFor({state: "visible"});
+  assert(await page.locator(".guide-layer-row").count() === 25, "P01 structured page must expose its complete stable layer tree");
+  await page.locator(".guide-layer-row[data-guide-layer='guide.error.too_small']").click();
+  assert((await page.locator('[data-testid="guide-layer-inspector"]').innerText()).includes("guide.error.too_small"), "Layer selection must update the property inspector");
+  assert((await page.locator('[data-testid="guide-layer-inspector"]').innerText()).includes("Native 像素边界"), "Inspector must expose exact measured pixel geometry");
+  await page.locator('[data-guide-compare]').evaluate(node => { node.value = "0"; node.dispatchEvent(new Event("input", {bubbles:true})); });
+  assert((await page.locator("[data-guide-compare-value]").innerText()) === "0%", "Frozen/geometry comparison control must update overlay visibility");
+  await page.screenshot({ path: resolve(args.outputDir, "guide-structure-1440.png"), fullPage: true });
+
+  await page.locator('[data-guide-tab="resources"]').click();
+  await page.locator('[data-testid="guide-resources-workspace"]').waitFor({state: "visible", timeout: 30000});
+  assert(await page.locator(".guide-resource-card").count() === 3, "Resources workspace must show the three unchanged Frozen source PNGs");
   const resourceExpected = [
     ["p01", 941, 1671, "P01_First_Use_Camera_Guide_Frozen.png", "dc731cca5470"],
     ["p02", 941, 1671, "P02_First_Use_Camera_Guide_Frozen.png", "fb092235fd04"],
     ["p03", 941, 1672, "P03_First_Use_Camera_Guide_Frozen.png", "1a3008483ac5"]
   ];
   for (const [id, width, height, filename, shaPrefix] of resourceExpected) {
-    const selector = `.guide-resource-card[data-resource-id="${id}"]`;
+    const selector = `.guide-frozen-resource[data-resource-id="${id}"]`;
+    const card = page.locator(selector);
+    await card.scrollIntoViewIfNeeded();
     const loaded = await waitForLoadedImage(page, `${selector} img`, `${id.toUpperCase()} resource`);
     assert(loaded.width === width && loaded.height === height,
       `${id.toUpperCase()} resource dimensions changed: ${JSON.stringify(loaded)}`);
-    const card = page.locator(selector);
     assert((await card.innerText()).includes(shaPrefix), `${id.toUpperCase()} resource SHA is not shown`);
     const download = card.locator("a[download]");
     assert(await download.getAttribute("download") === filename, `${id.toUpperCase()} original download filename changed`);
     assert((await download.getAttribute("href"))?.includes(filename), `${id.toUpperCase()} download does not point to its original PNG`);
   }
-  const manifestLinks = page.locator(".guide-resource-manifest a");
-  assert(await manifestLinks.count() === 3, "Resources route must link the frozen, front-end and structured manifests");
+  const manifestLinks = page.locator(".guide-workspace-authorities a");
   const manifestHrefs = await manifestLinks.evaluateAll(nodes => nodes.map(node => node.getAttribute("href")));
-  assert(manifestHrefs.some(href => href?.includes("first_use_camera_guide/manifest.json")), "Resources route must link to the frozen authoritative manifest");
-  assert(manifestHrefs.some(href => href?.includes("first_use_camera_guide/frontend_assets_manifest.json")), "Resources route must link to the front-end asset manifest");
-  assert(manifestHrefs.some(href => href?.includes("first_use_camera_guide/structured_pages.json")), "Resources route must link to the structured page contract");
-  assert(await page.locator(".guide-asset-slot").count() === 12, "Resources route must list exactly 12 photo slots");
-  assert(await page.locator(".guide-asset-slot").filter({hasText: "参考裁切 · 不可生产使用"}).count() === 9, "Nine archived error crops must remain reference-only");
-  assert(await page.locator(".guide-asset-slot").filter({hasText: "独立主图待补"}).count() === 3, "Three hero sources must remain blocked");
-  await page.screenshot({ path: resolve(args.outputDir, "guide-resources-1440.png"), fullPage: true });
+  for (const path of ["manifest.json", "frontend_assets_manifest.json", "structured_pages.json", "geometry_measurements.json", "responsive_contract.json", "PREDEV_READINESS_MATRIX.json", "Freeze_Decision.md"]) {
+    assert(manifestHrefs.some(href => href?.includes(`first_use_camera_guide/${path}`)), `Resources workspace must link ${path}`);
+  }
+  assert(await page.locator(".guide-asset-slot").count() === 12, "Resources workspace must display all 12 page/role photo slots");
+  assert(await page.locator(".guide-asset-slot[data-authority='CANDIDATE_NEEDS_APPROVAL']").count() === 12, "All generated images must remain candidate assets");
+  assert(await page.locator(".guide-asset-slot[data-asset-id$='_correct_hero']").filter({hasText: "ASSET_SOURCE_BLOCKED"}).count() === 3, "Three original Hero source slots must remain explicitly blocked");
+  assert(await page.locator(".guide-reference-only").count() === 9, "Nine archived composite crops must remain REFERENCE_ONLY");
+  assert(await page.locator(".guide-asset-slot[data-asset-id^='p02_']").count() === 4, "P02 must have four vertical-orientation candidate bindings");
+  const candidatePaths = await page.locator(".guide-asset-slot").evaluateAll(nodes => nodes.map(node => node.dataset.sourcePath));
+  assert(new Set(candidatePaths).size === 8, `12 page/role bindings must reuse exactly eight original candidate files: ${new Set(candidatePaths).size}`);
+  for (const asset of await page.locator(".guide-asset-slot").all()) {
+    await asset.scrollIntoViewIfNeeded();
+    const preview = asset.locator(".guide-candidate-preview img");
+    const dimensions = await preview.evaluate(image => new Promise(resolve => {
+      if (image.complete && image.naturalWidth > 0) resolve({width: image.naturalWidth, height: image.naturalHeight});
+      else { image.addEventListener("load", () => resolve({width: image.naturalWidth, height: image.naturalHeight}), {once:true}); image.addEventListener("error", () => resolve({width:0,height:0}), {once:true}); }
+    }));
+    assert(dimensions.width > 0 && dimensions.height > 0, `Independent candidate image did not load: ${await asset.getAttribute("data-asset-id")}`);
+    const cardText = await asset.innerText();
+    assert(cardText.includes("CANDIDATE_NEEDS_APPROVAL") && cardText.includes("approved_for_frontend=false") && cardText.includes("approved_for_runtime=false"), "Candidate status and production boundary must be visible");
+    assert(await asset.locator("a[download]").count() === 1, "Each independent candidate needs a direct original-file download link");
+  }
+  await page.locator(".guide-workspace-tabs").scrollIntoViewIfNeeded();
+  await page.screenshot({ path: resolve(args.outputDir, "guide-assets-1440.png"), fullPage: false });
+
+  const responsiveTab = page.locator('[data-guide-tab="responsive"]');
+  await responsiveTab.scrollIntoViewIfNeeded();
+  await responsiveTab.click({timeout: 10000});
+  await page.waitForFunction(() => new URLSearchParams(location.search).get("guide_workspace") === "responsive", null, {timeout: 10000});
+  const workspaceState = await page.locator(".guide-workspace").getAttribute("data-workspace");
+  assert(workspaceState === "responsive", `Responsive tab click did not render the workspace: state=${workspaceState}; errors=${errors.join(" | ")}`);
+  await page.locator('[data-testid="guide-responsive-workspace"]').waitFor({state: "visible", timeout: 10000});
+  const responsivePageTitles = {p01:"竖屏拍摄示意",p02:"竖拍鱼类拍摄示意",p03:"横屏拍摄示意"};
+  const responsiveMatrix = [];
+  const responsiveProfiles = [[320,480],[360,640],[390,844],[412,915],[430,932],[480,960],[640,360],[844,390],[915,412]];
+  for (const pageId of ["p01", "p02", "p03"]) {
+    await page.locator(`[data-guide-page="${pageId}"]`).click();
+    assert((await page.locator(".guide-sim-title").innerText()).includes(responsivePageTitles[pageId]), `${pageId} responsive page copy failed to update`);
+    for (const [width, height] of responsiveProfiles) {
+      for (const fontScale of ["1", "1.3"]) {
+        await page.locator("[data-testid='guide-simulator-viewport']").evaluate((viewport, profile) => {
+          const [width,height,fontScale]=profile;
+          viewport.dataset.guideViewportWidth=String(width);
+          viewport.dataset.guideViewportHeight=String(height);
+          viewport.style.width=`${width}px`;
+          viewport.style.height=`${height}px`;
+          viewport.style.setProperty("--guide-viewport-h",`${height}px`);
+          viewport.style.setProperty("--guide-base-font",`${14*fontScale}px`);
+          viewport.style.setProperty("--guide-small-font",`${12*fontScale}px`);
+          viewport.style.setProperty("--guide-title-font",`${22*fontScale}px`);
+        },[width,height,Number(fontScale)]);
+        const loadedHero = await waitForLoadedImage(page, ".guide-sim-hero img", `${pageId} hero ${width}x${height} font ${fontScale}`);
+        const result = await page.locator("[data-testid='guide-simulator-viewport']").evaluate(async viewport => {
+          const content = viewport.querySelector(".guide-sim-page");
+          const selectors = [".guide-sim-header", ".guide-sim-hero", ".guide-sim-intro", ".guide-sim-examples", ".guide-sim-completion", ".guide-sim-pagination", ".guide-sim-actions"];
+          const boxes = selectors.map(selector => { const rect = content.querySelector(selector).getBoundingClientRect(); return {selector,top:rect.top,bottom:rect.bottom}; });
+          const textNodes = [...content.querySelectorAll(".guide-sim-text,.guide-sim-example span,.guide-sim-masthead span")];
+          const textOverflow = textNodes.filter(node => node.scrollWidth > node.clientWidth + 1).map(node => node.textContent);
+          const targets = [...content.querySelectorAll(".guide-sim-back,.guide-sim-actions button")].map(node => { const rect = node.getBoundingClientRect(); return {width:rect.width,height:rect.height}; });
+          viewport.scrollTop = viewport.scrollHeight;
+          await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+          const primary = content.querySelector(".guide-sim-primary").getBoundingClientRect();
+          const outer = viewport.getBoundingClientRect();
+          const sourceOrientations = [...content.querySelectorAll("img[data-fish-orientation]")].map(node => node.dataset.fishOrientation);
+          return {
+            viewportWidth:viewport.getBoundingClientRect().width,viewportHeight:viewport.getBoundingClientRect().height,
+            selectedWidth:Number(viewport.dataset.guideViewportWidth),selectedHeight:Number(viewport.dataset.guideViewportHeight),
+            viewportClientWidth:viewport.clientWidth,viewportClientHeight:viewport.clientHeight,
+            viewportScrollWidth:viewport.scrollWidth,contentWidth:content.clientWidth,contentScrollWidth:content.scrollWidth,
+            scrollHeight:viewport.scrollHeight,scrollTop:viewport.scrollTop,
+            horizontalOverflow:textOverflow,targets,boxes,primaryReachable:primary.top>=outer.top-1 && primary.bottom<=outer.bottom+1,
+            orientation:sourceOrientations,gridColumns:getComputedStyle(content.querySelector(".guide-sim-examples")).gridTemplateColumns,
+            gridColumnCount:getComputedStyle(content.querySelector(".guide-sim-examples")).gridTemplateColumns.split(/\s+/).filter(Boolean).length
+          };
+        });
+        assert(result.viewportWidth === width && result.viewportHeight === height && result.selectedWidth === width && result.selectedHeight === height, `Simulator must preserve selected outer viewport for ${pageId} ${width}x${height}: ${JSON.stringify(result)}`);
+        assert(result.viewportScrollWidth <= result.viewportWidth && result.contentScrollWidth <= result.contentWidth,
+          `Responsive horizontal overflow at ${pageId} ${width}x${height} font ${fontScale}: ${JSON.stringify(result)}`);
+        assert(result.horizontalOverflow.length === 0, `Responsive text clipped at ${pageId} ${width}x${height} font ${fontScale}: ${JSON.stringify(result.horizontalOverflow)}`);
+        assert(result.targets.every(target => target.width >= 48 && target.height >= 48), `A responsive action target is below 48dp at ${pageId} ${width}x${height}: ${JSON.stringify(result.targets)}`);
+        assert(result.boxes.every((box,index) => index === 0 || box.top >= result.boxes[index-1].bottom-1), `Responsive content groups overlap at ${pageId} ${width}x${height}: ${JSON.stringify(result.boxes)}`);
+        assert(result.primaryReachable, `Primary action is not scroll-reachable at ${pageId} ${width}x${height} font ${fontScale}: ${JSON.stringify(result)}`);
+        assert(result.orientation.length === 4 && result.orientation.every(value => value === (pageId === "p02" ? "vertical" : "horizontal")), `Fish orientation binding mismatch for ${pageId}: ${JSON.stringify(result.orientation)}`);
+        assert(result.gridColumnCount === (width >= 384 ? 3 : 2), `Example grid breakpoint mismatch at ${pageId} ${width}x${height}: ${JSON.stringify(result.gridColumns)}`);
+        assert(loadedHero.width > 0 && loadedHero.height > 0, `Candidate hero is missing at ${pageId} ${width}x${height}`);
+        responsiveMatrix.push({pageId,width,height,fontScale,...result});
+        if (pageId === "p03" && width === 640 && fontScale === "1.3") {
+          await page.screenshot({ path: resolve(args.outputDir, "guide-responsive-p03-640x360-font13.png"), fullPage: false });
+        }
+      }
+    }
+  }
+  assert(responsiveMatrix.length === 54, `Expected 54 page × viewport × font-scale cases, got ${responsiveMatrix.length}`);
+  await page.locator('[data-guide-page="p01"]').click();
+  await page.locator('[data-guide-preset="390x844"]').click();
+  assert(await page.locator("[data-testid='guide-simulator-viewport']").getAttribute("data-guide-viewport-width") === "390", "Responsive preset control must update simulator width");
+  await page.locator("[data-guide-font-scale]").selectOption("1.3");
+  assert((await page.locator("[data-testid='guide-simulator-viewport']").evaluate(node => getComputedStyle(node).getPropertyValue("--guide-base-font").trim())) === "18.2px", "Font scale control must update the responsive preview typography");
+  await page.locator("[data-guide-font-scale]").selectOption("1");
+  const topInset = page.locator('[data-guide-inset="top"]');
+  await topInset.fill("32");
+  await topInset.press("Tab");
+  await page.waitForFunction(() => getComputedStyle(document.querySelector("[data-testid='guide-simulator-viewport']")).getPropertyValue("--guide-inset-top").trim() === "32px", null, {timeout: 5000});
+  const topInsetCss = await page.locator("[data-testid='guide-simulator-viewport']").evaluate(node => getComputedStyle(node).getPropertyValue("--guide-inset-top").trim());
+  assert(topInsetCss === "32px", `Insets controls must update the simulator safe-area padding: ${topInsetCss}`);
+  await page.screenshot({ path: resolve(args.outputDir, "guide-responsive-p01-390x844.png"), fullPage: true });
+  assert(new URL(page.url()).searchParams.get("guide_workspace") === "responsive", "Workspace tab choice must survive a refreshable query deep link");
+  assert(new URL(page.url()).searchParams.get("guide_page") === "p01", "Selected guide page must be stored in the workspace URL");
+  await page.reload({waitUntil:"networkidle"});
+  await page.locator('[data-testid="guide-responsive-workspace"]').waitFor({state:"visible",timeout:30000});
+  assert(await page.locator(".guide-sim-title").innerText().then(text => text.includes(responsivePageTitles.p01)), "Responsive workspace/page selection did not survive refresh");
   await page.setViewportSize({ width: 390, height: 844 });
   const resourceMobileWidth = await page.evaluate(() => ({ document: document.documentElement.scrollWidth, body: document.body.scrollWidth }));
   assert(resourceMobileWidth.document <= 390 && resourceMobileWidth.body <= 390,
-    `Resources route overflows the mobile viewport: ${JSON.stringify(resourceMobileWidth)}`);
-  await page.screenshot({ path: resolve(args.outputDir, "guide-resources-390.png"), fullPage: true });
+    `Guide workspace overflows the mobile viewport: ${JSON.stringify(resourceMobileWidth)}`);
+  await page.screenshot({ path: resolve(args.outputDir, "guide-responsive-mobile-390.png"), fullPage: true });
 
   const viewportResults = [];
   for (const [width, height, screenshotName] of [

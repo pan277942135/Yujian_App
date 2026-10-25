@@ -16,6 +16,8 @@ on:
       - "scripts/verify_private_visual_references.py"
       - "scripts/verify_private_visual_browser.mjs"
       - "scripts/verify_design_manager_live.py"
+      - "scripts/verify_first_use_camera_guide_assets.py"
+      - "scripts/measure_first_use_camera_guide_geometry.py"
       - "scripts/verify_swos_static_visual_v1_1.py"
       - ".github/workflows/experience-governance.yml"
       - ".github/workflows/design-manager-pages.yml"
@@ -31,6 +33,8 @@ on:
       - "scripts/verify_private_visual_browser.mjs"
       - "scripts/verify_swos_static_visual_v1_1.py"
       - "scripts/verify_design_manager_live.py"
+      - "scripts/verify_first_use_camera_guide_assets.py"
+      - "scripts/measure_first_use_camera_guide_geometry.py"
       - ".github/workflows/design-manager-pages.yml"
   workflow_dispatch:
 
@@ -95,11 +99,14 @@ jobs:
           python3 scripts/verify_design_manager_hifi_release.py
           python3 scripts/verify_swos_static_visual_v1_1.py
           python3 scripts/verify_private_visual_references.py
+          python3 scripts/verify_first_use_camera_guide_assets.py
+          python3 scripts/measure_first_use_camera_guide_geometry.py --check
 
       - name: SWOS/RR09 V1.2 optical authority gate
         run: |
           python3 scripts/verify_swos_optical_v1_2.py
           node --check design/manager/swos_optical_v1_2.js
+          node --check design/manager/first_use_guide_workspace.js
 
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5

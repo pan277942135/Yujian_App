@@ -1,7 +1,7 @@
 {
-  "schema_version": "1.0",
-  "task_id": "YUJIAN_FIRST_USE_GUIDE_FRONTEND_ASSET_CATALOG_V1",
-  "status": "PARTIAL_REFERENCE_ONLY_CROPS_AND_BLOCKED_HERO_SOURCES",
+  "schema_version": "1.1",
+  "task_id": "YUJIAN_FIRST_USE_GUIDE_PREDEV_CONTRACT_ASSETS_RESPONSIVE_FREEZE_V1",
+  "status": "GENERATED_CANDIDATES_AVAILABLE; ORIGINAL_PHOTOS_AND_APPROVAL_BLOCKED",
   "authority": "design/pages/recognition/first_use_camera_guide/First_Use_Camera_Guide_Spec_V1.md",
   "frozen_page_manifest": "design/pages/recognition/first_use_camera_guide/manifest.json",
   "structured_page_manifest": "design/pages/recognition/first_use_camera_guide/structured_pages.json",
@@ -11,7 +11,10 @@
     "composite_screenshot_crop_allowed": false,
     "frozen_page_png_crop_allowed": false,
     "generated_or_candidate_assets_must_not_be_marked_frozen": true,
-    "source_license_and_privacy_must_be_confirmed_before_public_release": true
+    "source_license_and_privacy_must_be_confirmed_before_public_release": true,
+    "generated_candidates_must_not_be_marked_frozen": true,
+    "generated_candidates_are_not_approved_frontend_or_runtime_assets": true,
+    "candidate_png_bytes_are_preserved_without_resizing_or_reencoding": true
   },
   "roles": [
     {
@@ -62,17 +65,42 @@
       "page_title": "P01 · 竖屏拍摄示意",
       "role": "correct_hero",
       "fish_orientation": "horizontal",
-      "source_path": null,
-      "source_filename": null,
-      "mime_type": null,
-      "width": null,
-      "height": null,
-      "bytes": null,
-      "sha256": null,
-      "provenance": "No independent approved hero photo identified in the inspected package; frozen full-page PNG cannot substitute.",
-      "license_status": "NOT_CONFIRMED",
-      "authority_state": "ASSET_SOURCE_BLOCKED",
-      "approved_for_frontend": false
+      "source_path": "design/pages/recognition/first_use_camera_guide/assets/candidates/horizontal/correct_hero_generated_candidate.png",
+      "source_filename": "correct_hero_generated_candidate.png",
+      "mime_type": "image/png",
+      "width": 1448,
+      "height": 1086,
+      "bytes": 2160330,
+      "sha256": "ac8098537f5a2b33fc989479650604483b32fbb161663e944aef8bb20dc98b8e",
+      "provenance": "Generated with ChatGPT ImageGen on 2026-10-25 for a development proposal. It is a new independent generated image, not cropped, derived, or pixel-matched from the frozen P01/P02/P03 reference PNGs or screenshot crops.",
+      "license_status": "NOT_CONFIRMED; product owner review required before production use or asset freeze",
+      "authority_state": "CANDIDATE_NEEDS_APPROVAL",
+      "approved_for_frontend": false,
+      "page_refs": [
+        "p01",
+        "p03"
+      ],
+      "source_type": "GENERATED_CANDIDATE",
+      "semantic_description": "A complete horizontal fish held clearly above a calm dawn lake.",
+      "privacy_status": "Generated image; no identifiable face is visible; visible hands/arms still need owner review before production use.",
+      "candidate_type": "GENERATED_CANDIDATE",
+      "approved_for_runtime": false,
+      "allowed_use": [
+        "Design Manager candidate preview",
+        "layout and responsive development discussion"
+      ],
+      "fit": "contain",
+      "semantic_crop": "No crop applied; preserve original generated file and intrinsic aspect ratio.",
+      "focal_point_normalized": [
+        0.5,
+        0.52
+      ],
+      "shared_file_rule": "P01/P03 share this horizontal candidate file by manifest reference; no duplicate binary is stored.",
+      "original_source_status": "ASSET_SOURCE_BLOCKED",
+      "candidate_status": "CANDIDATE_NEEDS_APPROVAL",
+      "original_source_found": false,
+      "generated_candidate_allowed_use": "Design Manager review and layout/responsive development discussion only",
+      "production_or_runtime_use": "BLOCKED_PENDING_OWNER_APPROVAL_AND_LICENSE_PRIVACY_REVIEW"
     },
     {
       "id": "p01_fish_head_out_of_frame",
@@ -81,15 +109,15 @@
       "role": "fish_head_out_of_frame",
       "label": "鱼头不在画面",
       "fish_orientation": "horizontal",
-      "source_path": null,
-      "source_filename": null,
-      "mime_type": null,
-      "width": null,
-      "height": null,
-      "bytes": null,
-      "sha256": null,
-      "provenance": "A matching REFERENCE_ONLY crop is listed in the existing extracted-resource package manifest; it is not an independent clean photo source and is not yet materialized as a standalone repository asset.",
-      "license_status": "NOT_CONFIRMED",
+      "source_path": "design/pages/recognition/first_use_camera_guide/assets/candidates/horizontal/fish_head_out_generated_candidate.png",
+      "source_filename": "fish_head_out_generated_candidate.png",
+      "mime_type": "image/png",
+      "width": 1448,
+      "height": 1086,
+      "bytes": 2278993,
+      "sha256": "c0491f107e19da5753b6b94f9dd980ca9dc290b5e3c710e0e9e805f3a3dcddda",
+      "provenance": "Generated with ChatGPT ImageGen on 2026-10-25 for a development proposal. It is a new independent generated image, not cropped, derived, or pixel-matched from the frozen P01/P02/P03 reference PNGs or screenshot crops.",
+      "license_status": "NOT_CONFIRMED; product owner review required before production use or asset freeze",
       "authority_state": "CANDIDATE_NEEDS_APPROVAL",
       "approved_for_frontend": false,
       "reference_package_asset": {
@@ -100,8 +128,34 @@
         "sha256": "6b44c18f4ad44151b6af67a902468b1d1ae8ffe928b7a77c2683ff9c19e49381",
         "bytes": 76154,
         "authority_state": "REFERENCE_ONLY",
-        "note": "These crops originate from flattened composited page screenshots; labels/rounded corners may be baked in. Use only as visual/layout references, not as approved independent production photography."
-      }
+        "note": "These crops originate from flattened composited page screenshots; labels/rounded corners may be baked in. Use only as visual/layout references, not as approved independent production photography.",
+        "display_boundary": "Archive-only comparison crop; not downloaded as an independent production image and not linked as a usable source file."
+      },
+      "page_refs": [
+        "p01",
+        "p03"
+      ],
+      "source_type": "GENERATED_CANDIDATE",
+      "semantic_description": "The fish head is cropped completely beyond the left frame edge.",
+      "privacy_status": "Generated image; no identifiable face is visible; visible hands/arms still need owner review before production use.",
+      "candidate_type": "GENERATED_CANDIDATE",
+      "approved_for_runtime": false,
+      "allowed_use": [
+        "Design Manager candidate preview",
+        "layout and responsive development discussion"
+      ],
+      "fit": "contain",
+      "semantic_crop": "No crop applied; preserve original generated file and intrinsic aspect ratio.",
+      "focal_point_normalized": [
+        0.5,
+        0.52
+      ],
+      "shared_file_rule": "P01/P03 share this horizontal candidate file by manifest reference; no duplicate binary is stored.",
+      "original_source_status": "ASSET_SOURCE_BLOCKED",
+      "candidate_status": "CANDIDATE_NEEDS_APPROVAL",
+      "original_source_found": false,
+      "generated_candidate_allowed_use": "Design Manager review and layout/responsive development discussion only",
+      "production_or_runtime_use": "BLOCKED_PENDING_OWNER_APPROVAL_AND_LICENSE_PRIVACY_REVIEW"
     },
     {
       "id": "p01_fish_too_small",
@@ -110,15 +164,15 @@
       "role": "fish_too_small",
       "label": "鱼体过小",
       "fish_orientation": "horizontal",
-      "source_path": null,
-      "source_filename": null,
-      "mime_type": null,
-      "width": null,
-      "height": null,
-      "bytes": null,
-      "sha256": null,
-      "provenance": "A matching REFERENCE_ONLY crop is listed in the existing extracted-resource package manifest; it is not an independent clean photo source and is not yet materialized as a standalone repository asset.",
-      "license_status": "NOT_CONFIRMED",
+      "source_path": "design/pages/recognition/first_use_camera_guide/assets/candidates/horizontal/fish_too_small_generated_candidate.png",
+      "source_filename": "fish_too_small_generated_candidate.png",
+      "mime_type": "image/png",
+      "width": 1448,
+      "height": 1086,
+      "bytes": 1734238,
+      "sha256": "0233634df7918b5dc9b1f1fc9a9db1c37addf28efa07c849cb5710c65a2e3a0d",
+      "provenance": "Generated with ChatGPT ImageGen on 2026-10-25 for a development proposal. It is a new independent generated image, not cropped, derived, or pixel-matched from the frozen P01/P02/P03 reference PNGs or screenshot crops.",
+      "license_status": "NOT_CONFIRMED; product owner review required before production use or asset freeze",
       "authority_state": "CANDIDATE_NEEDS_APPROVAL",
       "approved_for_frontend": false,
       "reference_package_asset": {
@@ -129,8 +183,34 @@
         "sha256": "44f88b595f212b62587fa4427ac2a208e72706bd7229653aa3be05f72d096845",
         "bytes": 73164,
         "authority_state": "REFERENCE_ONLY",
-        "note": "These crops originate from flattened composited page screenshots; labels/rounded corners may be baked in. Use only as visual/layout references, not as approved independent production photography."
-      }
+        "note": "These crops originate from flattened composited page screenshots; labels/rounded corners may be baked in. Use only as visual/layout references, not as approved independent production photography.",
+        "display_boundary": "Archive-only comparison crop; not downloaded as an independent production image and not linked as a usable source file."
+      },
+      "page_refs": [
+        "p01",
+        "p03"
+      ],
+      "source_type": "GENERATED_CANDIDATE",
+      "semantic_description": "The horizontal fish is intentionally small within a wide scene.",
+      "privacy_status": "Generated image; no identifiable face is visible; visible hands/arms still need owner review before production use.",
+      "candidate_type": "GENERATED_CANDIDATE",
+      "approved_for_runtime": false,
+      "allowed_use": [
+        "Design Manager candidate preview",
+        "layout and responsive development discussion"
+      ],
+      "fit": "contain",
+      "semantic_crop": "No crop applied; preserve original generated file and intrinsic aspect ratio.",
+      "focal_point_normalized": [
+        0.5,
+        0.52
+      ],
+      "shared_file_rule": "P01/P03 share this horizontal candidate file by manifest reference; no duplicate binary is stored.",
+      "original_source_status": "ASSET_SOURCE_BLOCKED",
+      "candidate_status": "CANDIDATE_NEEDS_APPROVAL",
+      "original_source_found": false,
+      "generated_candidate_allowed_use": "Design Manager review and layout/responsive development discussion only",
+      "production_or_runtime_use": "BLOCKED_PENDING_OWNER_APPROVAL_AND_LICENSE_PRIVACY_REVIEW"
     },
     {
       "id": "p01_excessive_occlusion",
@@ -139,15 +219,15 @@
       "role": "excessive_occlusion",
       "label": "遮挡过多",
       "fish_orientation": "horizontal",
-      "source_path": null,
-      "source_filename": null,
-      "mime_type": null,
-      "width": null,
-      "height": null,
-      "bytes": null,
-      "sha256": null,
-      "provenance": "A matching REFERENCE_ONLY crop is listed in the existing extracted-resource package manifest; it is not an independent clean photo source and is not yet materialized as a standalone repository asset.",
-      "license_status": "NOT_CONFIRMED",
+      "source_path": "design/pages/recognition/first_use_camera_guide/assets/candidates/horizontal/excessive_occlusion_generated_candidate.png",
+      "source_filename": "excessive_occlusion_generated_candidate.png",
+      "mime_type": "image/png",
+      "width": 1448,
+      "height": 1086,
+      "bytes": 1974238,
+      "sha256": "3d2d84ec2b2979d75ed62517f4899785b7c2641b96b3f9188b7fafd320d9bacc",
+      "provenance": "Generated with ChatGPT ImageGen on 2026-10-25 for a development proposal. It is a new independent generated image, not cropped, derived, or pixel-matched from the frozen P01/P02/P03 reference PNGs or screenshot crops.",
+      "license_status": "NOT_CONFIRMED; product owner review required before production use or asset freeze",
       "authority_state": "CANDIDATE_NEEDS_APPROVAL",
       "approved_for_frontend": false,
       "reference_package_asset": {
@@ -158,8 +238,34 @@
         "sha256": "77234727c42593ce00a316dfdc590307aa57ac9feef7b32b7174115fa962bfe4",
         "bytes": 67949,
         "authority_state": "REFERENCE_ONLY",
-        "note": "These crops originate from flattened composited page screenshots; labels/rounded corners may be baked in. Use only as visual/layout references, not as approved independent production photography."
-      }
+        "note": "These crops originate from flattened composited page screenshots; labels/rounded corners may be baked in. Use only as visual/layout references, not as approved independent production photography.",
+        "display_boundary": "Archive-only comparison crop; not downloaded as an independent production image and not linked as a usable source file."
+      },
+      "page_refs": [
+        "p01",
+        "p03"
+      ],
+      "source_type": "GENERATED_CANDIDATE",
+      "semantic_description": "A hand and jacket cover a substantial part of the fish body.",
+      "privacy_status": "Generated image; no identifiable face is visible; visible hands/arms still need owner review before production use.",
+      "candidate_type": "GENERATED_CANDIDATE",
+      "approved_for_runtime": false,
+      "allowed_use": [
+        "Design Manager candidate preview",
+        "layout and responsive development discussion"
+      ],
+      "fit": "contain",
+      "semantic_crop": "No crop applied; preserve original generated file and intrinsic aspect ratio.",
+      "focal_point_normalized": [
+        0.5,
+        0.52
+      ],
+      "shared_file_rule": "P01/P03 share this horizontal candidate file by manifest reference; no duplicate binary is stored.",
+      "original_source_status": "ASSET_SOURCE_BLOCKED",
+      "candidate_status": "CANDIDATE_NEEDS_APPROVAL",
+      "original_source_found": false,
+      "generated_candidate_allowed_use": "Design Manager review and layout/responsive development discussion only",
+      "production_or_runtime_use": "BLOCKED_PENDING_OWNER_APPROVAL_AND_LICENSE_PRIVACY_REVIEW"
     },
     {
       "id": "p02_correct_hero",
@@ -167,17 +273,41 @@
       "page_title": "P02 · 竖拍鱼类拍摄示意",
       "role": "correct_hero",
       "fish_orientation": "vertical",
-      "source_path": null,
-      "source_filename": null,
-      "mime_type": null,
-      "width": null,
-      "height": null,
-      "bytes": null,
-      "sha256": null,
-      "provenance": "No independent approved hero photo identified in the inspected package; frozen full-page PNG cannot substitute.",
-      "license_status": "NOT_CONFIRMED",
-      "authority_state": "ASSET_SOURCE_BLOCKED",
-      "approved_for_frontend": false
+      "source_path": "design/pages/recognition/first_use_camera_guide/assets/candidates/vertical/correct_hero_generated_candidate.png",
+      "source_filename": "correct_hero_generated_candidate.png",
+      "mime_type": "image/png",
+      "width": 1086,
+      "height": 1448,
+      "bytes": 2251219,
+      "sha256": "c2d1b3426de3466a8e38885674797bb289db50f3b2e7b30913beab82de64c292",
+      "provenance": "Generated with ChatGPT ImageGen on 2026-10-25 for a development proposal. It is a new independent generated image, not cropped, derived, or pixel-matched from the frozen P01/P02/P03 reference PNGs or screenshot crops.",
+      "license_status": "NOT_CONFIRMED; product owner review required before production use or asset freeze",
+      "authority_state": "CANDIDATE_NEEDS_APPROVAL",
+      "approved_for_frontend": false,
+      "page_refs": [
+        "p02"
+      ],
+      "source_type": "GENERATED_CANDIDATE",
+      "semantic_description": "The complete fish is held upright head-up and tail-down.",
+      "privacy_status": "Generated image; no identifiable face is visible; visible hands/arms still need owner review before production use.",
+      "candidate_type": "GENERATED_CANDIDATE",
+      "approved_for_runtime": false,
+      "allowed_use": [
+        "Design Manager candidate preview",
+        "layout and responsive development discussion"
+      ],
+      "fit": "contain",
+      "semantic_crop": "No crop applied; preserve original generated file and intrinsic aspect ratio.",
+      "focal_point_normalized": [
+        0.5,
+        0.52
+      ],
+      "shared_file_rule": "P02 references a vertical candidate file.",
+      "original_source_status": "ASSET_SOURCE_BLOCKED",
+      "candidate_status": "CANDIDATE_NEEDS_APPROVAL",
+      "original_source_found": false,
+      "generated_candidate_allowed_use": "Design Manager review and layout/responsive development discussion only",
+      "production_or_runtime_use": "BLOCKED_PENDING_OWNER_APPROVAL_AND_LICENSE_PRIVACY_REVIEW"
     },
     {
       "id": "p02_fish_head_out_of_frame",
@@ -186,15 +316,15 @@
       "role": "fish_head_out_of_frame",
       "label": "鱼头不在画面",
       "fish_orientation": "vertical",
-      "source_path": null,
-      "source_filename": null,
-      "mime_type": null,
-      "width": null,
-      "height": null,
-      "bytes": null,
-      "sha256": null,
-      "provenance": "A matching REFERENCE_ONLY crop is listed in the existing extracted-resource package manifest; it is not an independent clean photo source and is not yet materialized as a standalone repository asset.",
-      "license_status": "NOT_CONFIRMED",
+      "source_path": "design/pages/recognition/first_use_camera_guide/assets/candidates/vertical/fish_head_out_generated_candidate.png",
+      "source_filename": "fish_head_out_generated_candidate.png",
+      "mime_type": "image/png",
+      "width": 1086,
+      "height": 1448,
+      "bytes": 2043188,
+      "sha256": "ac202c85d6d2379e168521bc42994c5af82a6216f21700b71a5d07cf2dbc8b31",
+      "provenance": "Generated with ChatGPT ImageGen on 2026-10-25 for a development proposal. It is a new independent generated image, not cropped, derived, or pixel-matched from the frozen P01/P02/P03 reference PNGs or screenshot crops.",
+      "license_status": "NOT_CONFIRMED; product owner review required before production use or asset freeze",
       "authority_state": "CANDIDATE_NEEDS_APPROVAL",
       "approved_for_frontend": false,
       "reference_package_asset": {
@@ -205,8 +335,33 @@
         "sha256": "bc6ad4836f6e9bf94794cb1775b3eee078a88370a9f73988ae75e0a287c6eaa0",
         "bytes": 76252,
         "authority_state": "REFERENCE_ONLY",
-        "note": "These crops originate from flattened composited page screenshots; labels/rounded corners may be baked in. Use only as visual/layout references, not as approved independent production photography."
-      }
+        "note": "These crops originate from flattened composited page screenshots; labels/rounded corners may be baked in. Use only as visual/layout references, not as approved independent production photography.",
+        "display_boundary": "Archive-only comparison crop; not downloaded as an independent production image and not linked as a usable source file."
+      },
+      "page_refs": [
+        "p02"
+      ],
+      "source_type": "GENERATED_CANDIDATE",
+      "semantic_description": "The fish head is cropped beyond the top frame edge.",
+      "privacy_status": "Generated image; no identifiable face is visible; visible hands/arms still need owner review before production use.",
+      "candidate_type": "GENERATED_CANDIDATE",
+      "approved_for_runtime": false,
+      "allowed_use": [
+        "Design Manager candidate preview",
+        "layout and responsive development discussion"
+      ],
+      "fit": "contain",
+      "semantic_crop": "No crop applied; preserve original generated file and intrinsic aspect ratio.",
+      "focal_point_normalized": [
+        0.5,
+        0.52
+      ],
+      "shared_file_rule": "P02 references a vertical candidate file.",
+      "original_source_status": "ASSET_SOURCE_BLOCKED",
+      "candidate_status": "CANDIDATE_NEEDS_APPROVAL",
+      "original_source_found": false,
+      "generated_candidate_allowed_use": "Design Manager review and layout/responsive development discussion only",
+      "production_or_runtime_use": "BLOCKED_PENDING_OWNER_APPROVAL_AND_LICENSE_PRIVACY_REVIEW"
     },
     {
       "id": "p02_fish_too_small",
@@ -215,15 +370,15 @@
       "role": "fish_too_small",
       "label": "鱼体过小",
       "fish_orientation": "vertical",
-      "source_path": null,
-      "source_filename": null,
-      "mime_type": null,
-      "width": null,
-      "height": null,
-      "bytes": null,
-      "sha256": null,
-      "provenance": "A matching REFERENCE_ONLY crop is listed in the existing extracted-resource package manifest; it is not an independent clean photo source and is not yet materialized as a standalone repository asset.",
-      "license_status": "NOT_CONFIRMED",
+      "source_path": "design/pages/recognition/first_use_camera_guide/assets/candidates/vertical/fish_too_small_generated_candidate.png",
+      "source_filename": "fish_too_small_generated_candidate.png",
+      "mime_type": "image/png",
+      "width": 1086,
+      "height": 1448,
+      "bytes": 2123855,
+      "sha256": "4cb42997eb7b01ff480c0fb36db3075c1698203277755f034b0731646829730f",
+      "provenance": "Generated with ChatGPT ImageGen on 2026-10-25 for a development proposal. It is a new independent generated image, not cropped, derived, or pixel-matched from the frozen P01/P02/P03 reference PNGs or screenshot crops.",
+      "license_status": "NOT_CONFIRMED; product owner review required before production use or asset freeze",
       "authority_state": "CANDIDATE_NEEDS_APPROVAL",
       "approved_for_frontend": false,
       "reference_package_asset": {
@@ -234,8 +389,33 @@
         "sha256": "2cd3338a66527f77aed2a6ded40d04f54de82d5708ee9e60082c7849a2a4aaef",
         "bytes": 73392,
         "authority_state": "REFERENCE_ONLY",
-        "note": "These crops originate from flattened composited page screenshots; labels/rounded corners may be baked in. Use only as visual/layout references, not as approved independent production photography."
-      }
+        "note": "These crops originate from flattened composited page screenshots; labels/rounded corners may be baked in. Use only as visual/layout references, not as approved independent production photography.",
+        "display_boundary": "Archive-only comparison crop; not downloaded as an independent production image and not linked as a usable source file."
+      },
+      "page_refs": [
+        "p02"
+      ],
+      "source_type": "GENERATED_CANDIDATE",
+      "semantic_description": "The upright fish is intentionally tiny in a wide lake scene.",
+      "privacy_status": "Generated image; no identifiable face is visible; visible hands/arms still need owner review before production use.",
+      "candidate_type": "GENERATED_CANDIDATE",
+      "approved_for_runtime": false,
+      "allowed_use": [
+        "Design Manager candidate preview",
+        "layout and responsive development discussion"
+      ],
+      "fit": "contain",
+      "semantic_crop": "No crop applied; preserve original generated file and intrinsic aspect ratio.",
+      "focal_point_normalized": [
+        0.5,
+        0.52
+      ],
+      "shared_file_rule": "P02 references a vertical candidate file.",
+      "original_source_status": "ASSET_SOURCE_BLOCKED",
+      "candidate_status": "CANDIDATE_NEEDS_APPROVAL",
+      "original_source_found": false,
+      "generated_candidate_allowed_use": "Design Manager review and layout/responsive development discussion only",
+      "production_or_runtime_use": "BLOCKED_PENDING_OWNER_APPROVAL_AND_LICENSE_PRIVACY_REVIEW"
     },
     {
       "id": "p02_excessive_occlusion",
@@ -244,15 +424,15 @@
       "role": "excessive_occlusion",
       "label": "遮挡过多",
       "fish_orientation": "vertical",
-      "source_path": null,
-      "source_filename": null,
-      "mime_type": null,
-      "width": null,
-      "height": null,
-      "bytes": null,
-      "sha256": null,
-      "provenance": "A matching REFERENCE_ONLY crop is listed in the existing extracted-resource package manifest; it is not an independent clean photo source and is not yet materialized as a standalone repository asset.",
-      "license_status": "NOT_CONFIRMED",
+      "source_path": "design/pages/recognition/first_use_camera_guide/assets/candidates/vertical/excessive_occlusion_generated_candidate.png",
+      "source_filename": "excessive_occlusion_generated_candidate.png",
+      "mime_type": "image/png",
+      "width": 1086,
+      "height": 1448,
+      "bytes": 1875691,
+      "sha256": "d5efedc6ed1659135d25ac2205c0fc3505b0bd4100039060f51036454af0d2c3",
+      "provenance": "Generated with ChatGPT ImageGen on 2026-10-25 for a development proposal. It is a new independent generated image, not cropped, derived, or pixel-matched from the frozen P01/P02/P03 reference PNGs or screenshot crops.",
+      "license_status": "NOT_CONFIRMED; product owner review required before production use or asset freeze",
       "authority_state": "CANDIDATE_NEEDS_APPROVAL",
       "approved_for_frontend": false,
       "reference_package_asset": {
@@ -263,8 +443,33 @@
         "sha256": "a5506afa6345d027ade22a9a34ad24120042fb9055c1cc6fbd6483db80f62a93",
         "bytes": 64715,
         "authority_state": "REFERENCE_ONLY",
-        "note": "These crops originate from flattened composited page screenshots; labels/rounded corners may be baked in. Use only as visual/layout references, not as approved independent production photography."
-      }
+        "note": "These crops originate from flattened composited page screenshots; labels/rounded corners may be baked in. Use only as visual/layout references, not as approved independent production photography.",
+        "display_boundary": "Archive-only comparison crop; not downloaded as an independent production image and not linked as a usable source file."
+      },
+      "page_refs": [
+        "p02"
+      ],
+      "source_type": "GENERATED_CANDIDATE",
+      "semantic_description": "A hand and jacket cover most of the upright fish body.",
+      "privacy_status": "Generated image; no identifiable face is visible; visible hands/arms still need owner review before production use.",
+      "candidate_type": "GENERATED_CANDIDATE",
+      "approved_for_runtime": false,
+      "allowed_use": [
+        "Design Manager candidate preview",
+        "layout and responsive development discussion"
+      ],
+      "fit": "contain",
+      "semantic_crop": "No crop applied; preserve original generated file and intrinsic aspect ratio.",
+      "focal_point_normalized": [
+        0.5,
+        0.52
+      ],
+      "shared_file_rule": "P02 references a vertical candidate file.",
+      "original_source_status": "ASSET_SOURCE_BLOCKED",
+      "candidate_status": "CANDIDATE_NEEDS_APPROVAL",
+      "original_source_found": false,
+      "generated_candidate_allowed_use": "Design Manager review and layout/responsive development discussion only",
+      "production_or_runtime_use": "BLOCKED_PENDING_OWNER_APPROVAL_AND_LICENSE_PRIVACY_REVIEW"
     },
     {
       "id": "p03_correct_hero",
@@ -272,17 +477,42 @@
       "page_title": "P03 · 横屏拍摄示意",
       "role": "correct_hero",
       "fish_orientation": "horizontal",
-      "source_path": null,
-      "source_filename": null,
-      "mime_type": null,
-      "width": null,
-      "height": null,
-      "bytes": null,
-      "sha256": null,
-      "provenance": "No independent approved hero photo identified in the inspected package; frozen full-page PNG cannot substitute.",
-      "license_status": "NOT_CONFIRMED",
-      "authority_state": "ASSET_SOURCE_BLOCKED",
-      "approved_for_frontend": false
+      "source_path": "design/pages/recognition/first_use_camera_guide/assets/candidates/horizontal/correct_hero_generated_candidate.png",
+      "source_filename": "correct_hero_generated_candidate.png",
+      "mime_type": "image/png",
+      "width": 1448,
+      "height": 1086,
+      "bytes": 2160330,
+      "sha256": "ac8098537f5a2b33fc989479650604483b32fbb161663e944aef8bb20dc98b8e",
+      "provenance": "Generated with ChatGPT ImageGen on 2026-10-25 for a development proposal. It is a new independent generated image, not cropped, derived, or pixel-matched from the frozen P01/P02/P03 reference PNGs or screenshot crops.",
+      "license_status": "NOT_CONFIRMED; product owner review required before production use or asset freeze",
+      "authority_state": "CANDIDATE_NEEDS_APPROVAL",
+      "approved_for_frontend": false,
+      "page_refs": [
+        "p01",
+        "p03"
+      ],
+      "source_type": "GENERATED_CANDIDATE",
+      "semantic_description": "A complete horizontal fish held clearly above a calm dawn lake.",
+      "privacy_status": "Generated image; no identifiable face is visible; visible hands/arms still need owner review before production use.",
+      "candidate_type": "GENERATED_CANDIDATE",
+      "approved_for_runtime": false,
+      "allowed_use": [
+        "Design Manager candidate preview",
+        "layout and responsive development discussion"
+      ],
+      "fit": "contain",
+      "semantic_crop": "No crop applied; preserve original generated file and intrinsic aspect ratio.",
+      "focal_point_normalized": [
+        0.5,
+        0.52
+      ],
+      "shared_file_rule": "P01/P03 share this horizontal candidate file by manifest reference; no duplicate binary is stored.",
+      "original_source_status": "ASSET_SOURCE_BLOCKED",
+      "candidate_status": "CANDIDATE_NEEDS_APPROVAL",
+      "original_source_found": false,
+      "generated_candidate_allowed_use": "Design Manager review and layout/responsive development discussion only",
+      "production_or_runtime_use": "BLOCKED_PENDING_OWNER_APPROVAL_AND_LICENSE_PRIVACY_REVIEW"
     },
     {
       "id": "p03_fish_head_out_of_frame",
@@ -291,15 +521,15 @@
       "role": "fish_head_out_of_frame",
       "label": "鱼头不在画面",
       "fish_orientation": "horizontal",
-      "source_path": null,
-      "source_filename": null,
-      "mime_type": null,
-      "width": null,
-      "height": null,
-      "bytes": null,
-      "sha256": null,
-      "provenance": "A matching REFERENCE_ONLY crop is listed in the existing extracted-resource package manifest; it is not an independent clean photo source and is not yet materialized as a standalone repository asset.",
-      "license_status": "NOT_CONFIRMED",
+      "source_path": "design/pages/recognition/first_use_camera_guide/assets/candidates/horizontal/fish_head_out_generated_candidate.png",
+      "source_filename": "fish_head_out_generated_candidate.png",
+      "mime_type": "image/png",
+      "width": 1448,
+      "height": 1086,
+      "bytes": 2278993,
+      "sha256": "c0491f107e19da5753b6b94f9dd980ca9dc290b5e3c710e0e9e805f3a3dcddda",
+      "provenance": "Generated with ChatGPT ImageGen on 2026-10-25 for a development proposal. It is a new independent generated image, not cropped, derived, or pixel-matched from the frozen P01/P02/P03 reference PNGs or screenshot crops.",
+      "license_status": "NOT_CONFIRMED; product owner review required before production use or asset freeze",
       "authority_state": "CANDIDATE_NEEDS_APPROVAL",
       "approved_for_frontend": false,
       "reference_package_asset": {
@@ -310,8 +540,34 @@
         "sha256": "5ee1fe2f6347620cb3754976882190320e85111b881979301713568e10e093e7",
         "bytes": 77415,
         "authority_state": "REFERENCE_ONLY",
-        "note": "These crops originate from flattened composited page screenshots; labels/rounded corners may be baked in. Use only as visual/layout references, not as approved independent production photography."
-      }
+        "note": "These crops originate from flattened composited page screenshots; labels/rounded corners may be baked in. Use only as visual/layout references, not as approved independent production photography.",
+        "display_boundary": "Archive-only comparison crop; not downloaded as an independent production image and not linked as a usable source file."
+      },
+      "page_refs": [
+        "p01",
+        "p03"
+      ],
+      "source_type": "GENERATED_CANDIDATE",
+      "semantic_description": "The fish head is cropped completely beyond the left frame edge.",
+      "privacy_status": "Generated image; no identifiable face is visible; visible hands/arms still need owner review before production use.",
+      "candidate_type": "GENERATED_CANDIDATE",
+      "approved_for_runtime": false,
+      "allowed_use": [
+        "Design Manager candidate preview",
+        "layout and responsive development discussion"
+      ],
+      "fit": "contain",
+      "semantic_crop": "No crop applied; preserve original generated file and intrinsic aspect ratio.",
+      "focal_point_normalized": [
+        0.5,
+        0.52
+      ],
+      "shared_file_rule": "P01/P03 share this horizontal candidate file by manifest reference; no duplicate binary is stored.",
+      "original_source_status": "ASSET_SOURCE_BLOCKED",
+      "candidate_status": "CANDIDATE_NEEDS_APPROVAL",
+      "original_source_found": false,
+      "generated_candidate_allowed_use": "Design Manager review and layout/responsive development discussion only",
+      "production_or_runtime_use": "BLOCKED_PENDING_OWNER_APPROVAL_AND_LICENSE_PRIVACY_REVIEW"
     },
     {
       "id": "p03_fish_too_small",
@@ -320,15 +576,15 @@
       "role": "fish_too_small",
       "label": "鱼体过小",
       "fish_orientation": "horizontal",
-      "source_path": null,
-      "source_filename": null,
-      "mime_type": null,
-      "width": null,
-      "height": null,
-      "bytes": null,
-      "sha256": null,
-      "provenance": "A matching REFERENCE_ONLY crop is listed in the existing extracted-resource package manifest; it is not an independent clean photo source and is not yet materialized as a standalone repository asset.",
-      "license_status": "NOT_CONFIRMED",
+      "source_path": "design/pages/recognition/first_use_camera_guide/assets/candidates/horizontal/fish_too_small_generated_candidate.png",
+      "source_filename": "fish_too_small_generated_candidate.png",
+      "mime_type": "image/png",
+      "width": 1448,
+      "height": 1086,
+      "bytes": 1734238,
+      "sha256": "0233634df7918b5dc9b1f1fc9a9db1c37addf28efa07c849cb5710c65a2e3a0d",
+      "provenance": "Generated with ChatGPT ImageGen on 2026-10-25 for a development proposal. It is a new independent generated image, not cropped, derived, or pixel-matched from the frozen P01/P02/P03 reference PNGs or screenshot crops.",
+      "license_status": "NOT_CONFIRMED; product owner review required before production use or asset freeze",
       "authority_state": "CANDIDATE_NEEDS_APPROVAL",
       "approved_for_frontend": false,
       "reference_package_asset": {
@@ -339,8 +595,34 @@
         "sha256": "a814a26b0c9d6177215021657f105441b06a13b60200694c077dc1a481cf697c",
         "bytes": 73182,
         "authority_state": "REFERENCE_ONLY",
-        "note": "These crops originate from flattened composited page screenshots; labels/rounded corners may be baked in. Use only as visual/layout references, not as approved independent production photography."
-      }
+        "note": "These crops originate from flattened composited page screenshots; labels/rounded corners may be baked in. Use only as visual/layout references, not as approved independent production photography.",
+        "display_boundary": "Archive-only comparison crop; not downloaded as an independent production image and not linked as a usable source file."
+      },
+      "page_refs": [
+        "p01",
+        "p03"
+      ],
+      "source_type": "GENERATED_CANDIDATE",
+      "semantic_description": "The horizontal fish is intentionally small within a wide scene.",
+      "privacy_status": "Generated image; no identifiable face is visible; visible hands/arms still need owner review before production use.",
+      "candidate_type": "GENERATED_CANDIDATE",
+      "approved_for_runtime": false,
+      "allowed_use": [
+        "Design Manager candidate preview",
+        "layout and responsive development discussion"
+      ],
+      "fit": "contain",
+      "semantic_crop": "No crop applied; preserve original generated file and intrinsic aspect ratio.",
+      "focal_point_normalized": [
+        0.5,
+        0.52
+      ],
+      "shared_file_rule": "P01/P03 share this horizontal candidate file by manifest reference; no duplicate binary is stored.",
+      "original_source_status": "ASSET_SOURCE_BLOCKED",
+      "candidate_status": "CANDIDATE_NEEDS_APPROVAL",
+      "original_source_found": false,
+      "generated_candidate_allowed_use": "Design Manager review and layout/responsive development discussion only",
+      "production_or_runtime_use": "BLOCKED_PENDING_OWNER_APPROVAL_AND_LICENSE_PRIVACY_REVIEW"
     },
     {
       "id": "p03_excessive_occlusion",
@@ -349,15 +631,15 @@
       "role": "excessive_occlusion",
       "label": "遮挡过多",
       "fish_orientation": "horizontal",
-      "source_path": null,
-      "source_filename": null,
-      "mime_type": null,
-      "width": null,
-      "height": null,
-      "bytes": null,
-      "sha256": null,
-      "provenance": "A matching REFERENCE_ONLY crop is listed in the existing extracted-resource package manifest; it is not an independent clean photo source and is not yet materialized as a standalone repository asset.",
-      "license_status": "NOT_CONFIRMED",
+      "source_path": "design/pages/recognition/first_use_camera_guide/assets/candidates/horizontal/excessive_occlusion_generated_candidate.png",
+      "source_filename": "excessive_occlusion_generated_candidate.png",
+      "mime_type": "image/png",
+      "width": 1448,
+      "height": 1086,
+      "bytes": 1974238,
+      "sha256": "3d2d84ec2b2979d75ed62517f4899785b7c2641b96b3f9188b7fafd320d9bacc",
+      "provenance": "Generated with ChatGPT ImageGen on 2026-10-25 for a development proposal. It is a new independent generated image, not cropped, derived, or pixel-matched from the frozen P01/P02/P03 reference PNGs or screenshot crops.",
+      "license_status": "NOT_CONFIRMED; product owner review required before production use or asset freeze",
       "authority_state": "CANDIDATE_NEEDS_APPROVAL",
       "approved_for_frontend": false,
       "reference_package_asset": {
@@ -368,8 +650,70 @@
         "sha256": "5a003ceceb2773efb1d31628a4a8b0c61aab4fb6eb420da88b07bfd937bd8920",
         "bytes": 71279,
         "authority_state": "REFERENCE_ONLY",
-        "note": "These crops originate from flattened composited page screenshots; labels/rounded corners may be baked in. Use only as visual/layout references, not as approved independent production photography."
-      }
+        "note": "These crops originate from flattened composited page screenshots; labels/rounded corners may be baked in. Use only as visual/layout references, not as approved independent production photography.",
+        "display_boundary": "Archive-only comparison crop; not downloaded as an independent production image and not linked as a usable source file."
+      },
+      "page_refs": [
+        "p01",
+        "p03"
+      ],
+      "source_type": "GENERATED_CANDIDATE",
+      "semantic_description": "A hand and jacket cover a substantial part of the fish body.",
+      "privacy_status": "Generated image; no identifiable face is visible; visible hands/arms still need owner review before production use.",
+      "candidate_type": "GENERATED_CANDIDATE",
+      "approved_for_runtime": false,
+      "allowed_use": [
+        "Design Manager candidate preview",
+        "layout and responsive development discussion"
+      ],
+      "fit": "contain",
+      "semantic_crop": "No crop applied; preserve original generated file and intrinsic aspect ratio.",
+      "focal_point_normalized": [
+        0.5,
+        0.52
+      ],
+      "shared_file_rule": "P01/P03 share this horizontal candidate file by manifest reference; no duplicate binary is stored.",
+      "original_source_status": "ASSET_SOURCE_BLOCKED",
+      "candidate_status": "CANDIDATE_NEEDS_APPROVAL",
+      "original_source_found": false,
+      "generated_candidate_allowed_use": "Design Manager review and layout/responsive development discussion only",
+      "production_or_runtime_use": "BLOCKED_PENDING_OWNER_APPROVAL_AND_LICENSE_PRIVACY_REVIEW"
     }
-  ]
+  ],
+  "source_search": {
+    "status": "COMPLETE_NO_APPROVED_INDEPENDENT_ORIGINAL_PHOTO_FOUND",
+    "searched": [
+      {
+        "source": "canonical Main current tree at 4399681db67501214429411b4908694f3e984144",
+        "result": "Frozen page PNGs, guide specs and manifests found; no approved independent hero/error originals."
+      },
+      {
+        "source": "historical branch design/recognition-guide-resources-menu (1550 files)",
+        "result": "Guide paths contain frozen page PNGs/archive variants; no independent original photo files."
+      },
+      {
+        "source": "historical branch control/first-use-guide-two-page-20261016 (1333 files)",
+        "result": "Superseded two-page proposal; no approved independent original photos."
+      },
+      {
+        "source": "design/resource_packages/Yujian_NH01_P01-P03_Extracted_Resources_V1.zip.parts and design/resource_packages/MANIFEST.json",
+        "result": "Nine archived error example crops; each is flattened composite-derived and remains REFERENCE_ONLY. Three hero originals not found."
+      },
+      {
+        "source": "available repository history/archive and current Work scratch",
+        "result": "No independent approved original photo found. Generated files in this change are separate CANDIDATE assets only."
+      }
+    ],
+    "figma_originals": "Figma account connection confirmed; no task-linked fileKey/URL was present in the issue or repository and opening the Figma thread had no current file selection. No specific source file could therefore be inspected; this is not a claim that all Figma files were searched.",
+    "searched_by": "Stage A source inventory recorded in Issue #206 comment 6384719528 and historical-branch follow-up 6384905355."
+  },
+  "counts": {
+    "required_slots": 12,
+    "candidate_slot_mappings": 12,
+    "approved_independent_original_slots": 0,
+    "blocked_original_source_slots": 12,
+    "unique_candidate_files": 8,
+    "reference_only_archived_error_crops": 9
+  },
+  "asset_authority_note": "The 12 manifest entries are page/role bindings to eight independent generated candidates. No entry is approved, frozen, licensed, or production-ready. The three frozen full-page PNGs remain unchanged and are never used as front-end photo slots."
 }
