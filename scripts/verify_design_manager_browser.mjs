@@ -216,6 +216,10 @@ async function main() {
   assert((await workspace.locator('[data-testid="nh01-canvas-peek-left"]').innerText()).includes("BLOCKED"),"Peek must render a truthful placeholder instead of a fabricated photo");
   assert(await workspace.locator('[data-testid="nh01-canvas-hero"] [data-testid="nh01-hero-media-blocked"]').isVisible(),"Hero must retain the explicit blocked-media state");
   assert((await workspace.locator('[data-testid="nh01-canvas-avatar"] img').getAttribute('src')).includes('normal_home_default_avatar_v2.png'),"the approved Home-specific fallback avatar must be used instead of the historical shared binding");
+  const heroMetadataLayout=await workspace.locator('.nh01-hero-metadata').evaluate(node=>({position:getComputedStyle(node).position,bottom:getComputedStyle(node).bottom,box:node.getBoundingClientRect().toJSON(),hero:node.parentElement.getBoundingClientRect().toJSON()}));
+  assert(heroMetadataLayout.position==="absolute"&&heroMetadataLayout.bottom==="0px",`Hero metadata must anchor to its true card bottom: ${JSON.stringify(heroMetadataLayout)}`);
+  const backgroundObjectPosition=await workspace.locator('[data-testid="nh01-canvas-background"]').evaluate(node=>getComputedStyle(node).objectPosition);
+  assert(backgroundObjectPosition==="50% 0%",`NH01 Morning Lake background must follow registered TopCenter/Crop framing: ${backgroundObjectPosition}`);
   const presetChecks=[["0",320,480],["1",360,640],["2",390,844],["3",430,932],["4",480,null]];
   for(const [index,width,height] of presetChecks){
     const retainedHeight=await workspace.locator('[data-control="height"]').inputValue();
@@ -316,6 +320,7 @@ async function main() {
     return ids.map(id=>{const expected=calculated.rects[id]||{x:0,y:0,w:390,h:844},seen=actual.get(id);return{id,expected:{x:expected.x,y:expected.y,w:expected.w,h:expected.h},actual:seen,delta:seen?{x:+(seen.x-expected.x).toFixed(3),y:+(seen.y-expected.y).toFixed(3),w:+(seen.w-expected.w).toFixed(3),h:+(seen.h-expected.h).toFixed(3)}:null};});
   },{contract:currentContract.contract,measuredLayers:domEvidence.dom});
   assert(domFormulaComparison.every(row=>row.actual&&row.delta&&Object.values(row.delta).every(delta=>Math.abs(delta)<0.1)),`the rendered DOM must use the formal 390×844 contract rectangles: ${JSON.stringify(domFormulaComparison)}`);
+  const profileGeometryComparisons=[{profile:"M03",viewport:{width:390,height:844,fontScale:1,topInset:24,bottomInset:24},layers:domFormulaComparison}];
   const additionalFrozenProfiles=[
     {index:"0",prefix:"m01",assetId:"NH01-M01-320x480dp-STATIC-HIFI-V1",path:"design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_M01_320x480dp_STATIC_HIFI_V1.png",width:320,height:480},
     {index:"1",prefix:"m02",assetId:"NH01-M02-360x640dp-STATIC-HIFI-V1",path:"design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_M02_360x640dp_STATIC_HIFI_V1.png",width:360,height:640},
@@ -355,9 +360,17 @@ async function main() {
       return {viewport:{width:Number(document.querySelector('[data-control="width"]').value),height:Number(document.querySelector('[data-control="height"]').value),fontScale:Number(document.querySelector('[data-control="font"]').value),zoom:Number(document.querySelector('[data-control="zoom"]').value)},tree,dom,imageNodes,unmapped:tree.filter(node=>!domById.has(node.id)),parentMismatches:tree.filter(node=>node.id!=='page'&&domById.get(node.id)?.parent!==node.parent)};
     });
     assert(measured.unmapped.length===0&&measured.parentMismatches.length===0,`${profile.assetId} tree/DOM mapping must remain intact`);
+    const profileGeometry=await page.evaluate(({contract,measured,profile})=>{
+      const calculated=window.NH01StructuredWorkspace.calculate(profile.width,profile.height,1,24,24,contract,false);
+      const actual=new Map(measured.dom.map(layer=>[layer.id,layer.rect]));
+      const ids=['page','environment','background','header','brand','avatar','stats','recent-header','pager','hero','peek-left','peek-right','capture-action-group','cta','camera'];
+      return ids.map(id=>{const expected=calculated.rects[id]||{x:0,y:0,w:profile.width,h:profile.height},seen=actual.get(id);return{id,expected:{x:expected.x,y:expected.y,w:expected.w,h:expected.h},actual:seen,delta:seen?{x:+(seen.x-expected.x).toFixed(3),y:+(seen.y-expected.y).toFixed(3),w:+(seen.w-expected.w).toFixed(3),h:+(seen.h-expected.h).toFixed(3)}:null};});
+    },{contract:currentContract.contract,measured,profile});
+    assert(profileGeometry.every(row=>row.actual&&row.delta&&Object.values(row.delta).every(delta=>Math.abs(delta)<0.1)),`${profile.assetId} measured bounds must equal the formal responsive contract: ${JSON.stringify(profileGeometry)}`);
+    profileGeometryComparisons.push({profile:profile.prefix.toUpperCase(),viewport:{width:profile.width,height:profile.height,fontScale:1,topInset:24,bottomInset:24},layers:profileGeometry});
     const referenceResource=resourceEvidence.find(resource=>resource.id===profile.assetId);
     assert(referenceResource?.sha,`${profile.assetId} frozen asset SHA evidence is required`);
-    await writeFile(resolve(args.outputDir,`nh01-${profile.prefix}-dom-bounds.json`),JSON.stringify({build_sha:buildMarker,load_state:nh01LoadSnapshot.state,canvas_png:{path:imagePath,...dimensions},frozen_reference:{asset_id:profile.assetId,path:profile.path,sha256:referenceResource.sha},...measured},null,2)+"\n");
+    await writeFile(resolve(args.outputDir,`nh01-${profile.prefix}-dom-bounds.json`),JSON.stringify({build_sha:buildMarker,load_state:nh01LoadSnapshot.state,canvas_png:{path:imagePath,...dimensions},frozen_reference:{asset_id:profile.assetId,path:profile.path,sha256:referenceResource.sha},...measured,formal_contract_geometry:profileGeometry},null,2)+"\n");
   }
   await workspace.locator('[data-control="profile"]').selectOption("4");
   const widthBoundaryEvidence=await page.evaluate(contract=>{
@@ -992,6 +1005,9 @@ async function main() {
       frozen_reference_renders: [{profile:"M01",width:320,height:480},{profile:"M02",width:360,height:640},{profile:"M03",width:390,height:844},{profile:"M04",width:430,height:932}],
       width_only_boundary: widthBoundaryEvidence,
       formal_390x844_dom_geometry_delta: domFormulaComparison,
+      formal_geometry_comparison_by_profile: profileGeometryComparisons,
+      hero_metadata_layout: heroMetadataLayout,
+      background_object_position: backgroundObjectPosition,
       formula_profile_results: profileComputations,
       injected_failure_recovery: faultEvidence,
       layer_selection: ["recent tree→canvas", "hero canvas→tree/inspector", "peek-left tree→canvas/inspector blocked state"],
