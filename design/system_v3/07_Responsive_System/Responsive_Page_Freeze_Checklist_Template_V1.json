@@ -205,5 +205,12 @@
     "build_run_id": null,
     "apk_sha256": null,
     "artifact_url": null
+  },
+  "validation_tool": {
+    "path": "scripts/design/validate_responsive_page_freeze_checklist.py",
+    "template_command": "python scripts/design/validate_responsive_page_freeze_checklist.py --checklist <checklist.json> --mode template",
+    "freeze_command": "python scripts/design/validate_responsive_page_freeze_checklist.py --checklist <checklist.json> --mode freeze",
+    "runtime_command": "python scripts/design/validate_responsive_page_freeze_checklist.py --checklist <checklist.json> --mode runtime",
+    "scope_note": "Validates checklist and evidence completeness only; page geometry and contract conformance remain page-specific."
   }
 }
