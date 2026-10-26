@@ -10,7 +10,7 @@
 
 This document defines the browser-based high-fidelity design and interactive structured prototype integrated into the existing Yujian Design Manager. It is not a production Sites change, a second Sites project, a parallel product, or a claim of real model inference.
 
-- The high-fidelity view covers entry, source choice, photo preview, Processing, result and recoverable error.
+- The high-fidelity view covers entry, source choice, photo preview, Processing, RR09 result reveal, result and recoverable error.
 - The structured prototype exposes a selectable layer tree, layer properties, responsive viewport switch, state navigation, local photo selection and motion-timeline preview.
 - The same user-approved Sites contract governs the prototype: immersive single scene, source choice first, desktop photo-left/result-right, phone photo-top/result-below.
 - The existing public design asset real_catch_source.jpg is used only as a labeled visual fixture. It is not represented as a new user upload or an inference result.
@@ -56,9 +56,16 @@ This document defines the browser-based high-fidelity design and interactive str
 - The same source image remains visible. The background may use restrained water-light / caustic overlays, but the prototype has no trusted Mask for its fixture and must not draw a fish-shaped contour.
 - Status is restrained and truthful about this being a visual prototype; there is no fake percent or false detector/classifier completion.
 - The editor provides P0–P7 timeline controls for inspecting the nominal 2800 ms Processing optical rhythm. This is a visual-timeline demonstration, not model-work telemetry.
-- RR09 timing remains 850 ms and the nominal total remains 3650 ms in the contract. The current prototype does not claim production-grade Mask-to-glyph rendering.
+- RR09 timing remains 850 ms and the nominal total remains 3650 ms in the contract. The current prototype does not claim production-grade Mask-to-glyph rendering; with Mask trust NONE, the RR09 fallback is a restrained Chinese title fade.
 
-### E. Result
+### E. RR09 result reveal
+
+- Show the same source photo through the 850 ms RR09 window; keep photo identity and geometry continuous.
+- Expose R0, R0.5, R1, R2, R3, R4 and R5 in the structured timeline inspector, with global times 2800, 2900, 3000, 3180, 3350, 3480 and 3650 ms.
+- The fixture has Mask trust NONE. Therefore the high-fidelity fallback is a restrained Chinese species-name fade only; no fish contour, rectangular outline or fabricated gold transfer.
+- The reveal uses clearly labeled demo content and transitions to the result screen only as a visual-prototype interaction, not as real inference evidence.
+
+### F. Result
 
 - At desktop widths >=1024 CSS px, photo on the left and result content on the right, 58:42 with a 24 px gap.
 - At widths below 1024 CSS px, photo first and result below.
@@ -66,7 +73,7 @@ This document defines the browser-based high-fidelity design and interactive str
 - Result hierarchy: state label, Chinese species-name slot, confidence/summary, only-present-if-real metadata, primary retry action and source replacement actions.
 - Technical provenance and Mask state belong in a secondary/collapsed detail disclosure, not the consumer-facing hero.
 
-### F. Error / recovery
+### G. Error / recovery
 
 - One focused error scene with a clear explanation, retry and source replacement.
 - Camera permission failure must leave gallery available.
@@ -80,7 +87,7 @@ The JSON machine contract defines each scene's layer tree and property metadata.
 - Inspect layer role, description, state, geometry and token references.
 - Switch between layer, property and flow panels.
 - Switch Desktop / Phone preview without changing the frozen layout decision.
-- Navigate Entry, Source Choice, Photo Preview, Processing, Result and Error.
+- Navigate Entry, Source Choice, Photo Preview, Processing, RR09 Reveal, Result and Error.
 - Choose a local photo from the file picker and preview it in memory.
 - Inspect Processing frames P0–P7 and replay the nominal visual rhythm.
 - Reset to the entry state.
