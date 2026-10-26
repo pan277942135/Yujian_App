@@ -22,7 +22,6 @@ on:
       - "scripts/verify_swos_static_visual_v1_1.py"
       - "scripts/verify_nh01_pr_preview_live.mjs"
       - "scripts/design/validate_nh01_responsive_layout_contract_v2.py"
-      - "scripts/design/build_nh01_responsive_preview_site.py"
       - "scripts/design/compare_nh01_workspace_visual_v1.py"
       - "tests/nh01_structured_workspace.test.cjs"
       - ".github/workflows/experience-governance.yml"
@@ -34,7 +33,6 @@ on:
       - "previews/**"
       - "scripts/design/**"
       - "scripts/verify_nh01_pr_preview_live.mjs"
-      - "scripts/design/build_nh01_responsive_preview_site.py"
       - "scripts/verify_design_manager_navigation.py"
       - "scripts/verify_design_manager_hifi_release.py"
       - "scripts/verify_design_manager_browser.mjs"
@@ -66,8 +64,6 @@ jobs:
   build:
     outputs:
       site_build_sha: ${{ steps.site_build.outputs.site_sha }}
-      publish_preview: ${{ steps.publish_gate.outputs.publish }}
-      preview_mode: ${{ steps.publish_gate.outputs.preview_mode }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -75,13 +71,6 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
-
-      - name: Checkout production Pages baseline for isolated NH01 preview
-        if: github.event_name == 'push' && github.ref == 'refs/heads/design/nh01-responsive-authority-consolidation-v1'
-        uses: actions/checkout@v4
-        with:
-          ref: main
-          path: production-baseline
 
       - name: Set up Python for NH01 schema validation
         uses: actions/setup-python@v6
@@ -153,45 +142,25 @@ jobs:
           rm -rf _site
           mkdir -p _site
           SITE_BUILD_SHA="${BUILD_SHA}"
-          ISOLATED_NH01_PUSH=false
-          if [ "${GITHUB_EVENT_NAME}" = "push" ] && [ "${GITHUB_REF}" = "refs/heads/design/nh01-responsive-authority-consolidation-v1" ]; then
-            ISOLATED_NH01_PUSH=true
-            SITE_BUILD_SHA="$(git -C production-baseline rev-parse HEAD)"
-            cp -R production-baseline/design _site/design
-            if [ -d production-baseline/previews ]; then cp -R production-baseline/previews _site/previews; fi
-            mkdir -p _site/app/src/main/res/drawable-nodpi
-            cp production-baseline/app/src/main/res/drawable-nodpi/normal_home_default_avatar_v2.png _site/app/src/main/res/drawable-nodpi/normal_home_default_avatar_v2.png
-          else
-            cp -R design _site/design
-            if [ -d previews ]; then cp -R previews _site/previews; fi
-            mkdir -p _site/app/src/main/res/drawable-nodpi
-            cp app/src/main/res/drawable-nodpi/normal_home_default_avatar_v2.png _site/app/src/main/res/drawable-nodpi/normal_home_default_avatar_v2.png
-          fi
+          cp -R design _site/design
+          if [ -d previews ]; then cp -R previews _site/previews; fi
+          mkdir -p _site/app/src/main/res/drawable-nodpi
+          cp app/src/main/res/drawable-nodpi/normal_home_default_avatar_v2.png _site/app/src/main/res/drawable-nodpi/normal_home_default_avatar_v2.png
           echo "SITE_BUILD_SHA=${SITE_BUILD_SHA}" >> "$GITHUB_ENV"
-          echo "ISOLATED_NH01_PUSH=${ISOLATED_NH01_PUSH}" >> "$GITHUB_ENV"
           echo "site_sha=${SITE_BUILD_SHA}" >> "$GITHUB_OUTPUT"
           BUILD_SHORT="${SITE_BUILD_SHA:0:12}"
           sed -i "s/__DESIGN_MANAGER_BUILD__/${SITE_BUILD_SHA}/g" _site/design/manager/index.html
           sed -i "s/__DESIGN_MANAGER_BUILD_SHORT__/${BUILD_SHORT}/g" _site/design/manager/index.html
           sed -i "s/__NH01_SOURCE_SHA__/${SITE_BUILD_SHA}/g" _site/design/manager/nh01_acceptance/index.html
           sed -i "s/__NH01_VIEWER_BUILD__/${SITE_BUILD_SHA}/g" _site/design/manager/nh01_acceptance/index.html
-          if [ "${ISOLATED_NH01_PUSH}" = false ] && [ -f _site/previews/pr-176/index.html ]; then
+          if [ -f _site/previews/pr-176/index.html ]; then
             sed -i "s/__NH01_PREVIEW_BUILD__/${BUILD_SHA}/g" _site/previews/pr-176/index.html
           fi
-          if [ "${ISOLATED_NH01_PUSH}" = false ] && [ -f _site/previews/pr-176/design/manager/nh01_acceptance/gemini-native-preview.html ]; then
+          if [ -f _site/previews/pr-176/design/manager/nh01_acceptance/gemini-native-preview.html ]; then
             sed -i "s/__NH01_GEMINI_PREVIEW_BUILD__/${BUILD_SHA}/g" _site/previews/pr-176/design/manager/nh01_acceptance/gemini-native-preview.html
             sed -i "s/__NH01_PREVIEW_DEPLOYMENT_SHA__/${SITE_BUILD_SHA}/g" _site/previews/pr-176/design/manager/nh01_acceptance/gemini-native-preview.html
           fi
-          # The isolated packager checks all production manager entry metadata
-          # before and after adding its route. Materialize the baseline build
-          # marker before that check, using the same main SHA as the manager.
           printf '{"sha":"%s","short_sha":"%s"}\n' "${SITE_BUILD_SHA}" "${BUILD_SHORT}" > _site/design/manager/build.json
-          if [ "${ISOLATED_NH01_PUSH}" = true ]; then
-            python3 scripts/design/build_nh01_responsive_preview_site.py \
-              --source-root . --site-root _site \
-              --source-sha "${BUILD_SHA}" --deployment-sha "${BUILD_SHA}" --base-site-sha "${SITE_BUILD_SHA}" \
-              --workflow-run-url "${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
-          fi
           touch _site/.nojekyll
           cat > _site/index.html <<'EOF'
           <!doctype html>
@@ -207,96 +176,37 @@ jobs:
           </body>
           </html>
           EOF
-
       - name: Verify Design Manager navigation artifact
-        shell: bash
-        run: |
-          set -euo pipefail
-          verifier=scripts/verify_design_manager_navigation.py
-          if [ "${ISOLATED_NH01_PUSH}" = true ]; then
-            verifier=production-baseline/scripts/verify_design_manager_navigation.py
-          fi
-          python3 "${verifier}" --site _site --expected-build "${SITE_BUILD_SHA}"
+        run: python3 scripts/verify_design_manager_navigation.py --site _site --expected-build "${SITE_BUILD_SHA}"
 
       - name: Verify NH01 PR preview routes and interactions
         shell: bash
         run: |
           set -euo pipefail
-          PREVIEW_PATH="previews/pr-176/design/manager/nh01_acceptance/gemini-native-preview.html"
-          MANIFEST_ARGS=()
-          if [ "${ISOLATED_NH01_PUSH}" = true ]; then
-            PREVIEW_PATH="previews/nh01-responsive-v2/design/manager/nh01_acceptance/gemini-native-preview.html"
-            MANIFEST_ARGS+=(--deployment-manifest-path "previews/nh01-responsive-v2/NH01_RESPONSIVE_PREVIEW_DEPLOYMENT_V1.json")
-          fi
           PLAYWRIGHT_MODULE_DIR="$RUNNER_TEMP/dm-playwright/node_modules" \
             node scripts/verify_nh01_pr_preview_live.mjs \
               --root _site \
-              --expected-build "${BUILD_SHA}" \
-              --expected-manager-build "${SITE_BUILD_SHA}" \
-              --expected-deployment-sha "${BUILD_SHA}" \
-              --output "$RUNNER_TEMP/nh01-pr-preview-build-report.json" \
-              --preview-path "${PREVIEW_PATH}" \
-              "${MANIFEST_ARGS[@]}"
-
-      - name: Upload NH01 responsive browser evidence
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: NH01-Responsive-Preview-${{ github.run_id }}-${{ github.event.pull_request.head.sha || github.sha }}
-          path: |
-            ${{ runner.temp }}/nh01-pr-preview-build-report.json
-            ${{ runner.temp }}/nh01-responsive-preview/
-          if-no-files-found: warn
-          retention-days: 30
-
-      - name: Resolve PREVIEW_ONLY versus SPEC_FROZEN release mode
-        id: publish_gate
-        shell: bash
-        run: |
-          set -euo pipefail
-          if [ "${GITHUB_EVENT_NAME}" = "push" ] && [ "${GITHUB_REF}" = "refs/heads/design/nh01-responsive-authority-consolidation-v1" ]; then
-            python3 scripts/design/resolve_nh01_preview_release_gate.py \
-              --report "$RUNNER_TEMP/nh01-pr-preview-build-report.json" \
-              --contract design/pages/home/normal_home/responsive/NH01_RESPONSIVE_LAYOUT_V2.json \
-              --asset-manifest previews/pr-176/design/manager/nh01_acceptance/NH01_Gemini_Native_Asset_Binding_V1.json \
-              --preview-html previews/pr-176/design/manager/nh01_acceptance/gemini-native-preview.html \
-              --expected-source-sha "${BUILD_SHA}" \
-              --github-output "$GITHUB_OUTPUT"
-          else
-            echo "publish=false" >> "$GITHUB_OUTPUT"
-            echo "preview_mode=NONE" >> "$GITHUB_OUTPUT"
-          fi
+              --expected-build "${SITE_BUILD_SHA}" \
+              --output "$RUNNER_TEMP/nh01-pr-preview-build-report.json"
 
       - name: Verify hi-fi Pages artifact
-        shell: bash
-        run: |
-          set -euo pipefail
-          verifier=scripts/verify_design_manager_hifi_release.py
-          if [ "${ISOLATED_NH01_PUSH}" = true ]; then
-            verifier=production-baseline/scripts/verify_design_manager_hifi_release.py
-          fi
-          python3 "${verifier}" --site _site --expected-build "${SITE_BUILD_SHA}"
+        run: python3 scripts/verify_design_manager_hifi_release.py --site _site --expected-build "${SITE_BUILD_SHA}"
 
       - name: Verify browser routes and responsive preview
         shell: bash
         run: |
           set -euo pipefail
-          verifier=scripts/verify_design_manager_browser.mjs
-          if [ "${ISOLATED_NH01_PUSH}" = true ]; then
-            verifier=production-baseline/scripts/verify_design_manager_browser.mjs
-          fi
-          if [ "${ISOLATED_NH01_PUSH}" = false ]; then
-            PLAYWRIGHT_MODULE_DIR="$RUNNER_TEMP/dm-playwright/node_modules" \
+          PLAYWRIGHT_MODULE_DIR="$RUNNER_TEMP/dm-playwright/node_modules" \
             node scripts/verify_nh01_structured_responsive_layout.mjs \
               --root _site \
               --expected-build "${SITE_BUILD_SHA}" \
               --output-dir "$RUNNER_TEMP/dm-build-browser"
-          fi
           PLAYWRIGHT_MODULE_DIR="$RUNNER_TEMP/dm-playwright/node_modules" \
-            node "${verifier}" \
+            node scripts/verify_design_manager_browser.mjs \
               --root _site \
               --expected-build "${SITE_BUILD_SHA}" \
               --output-dir "$RUNNER_TEMP/dm-build-browser"
+
           python3 scripts/design/compare_nh01_workspace_visual_v1.py \
             --profile-prefix NH01_M01 \
             --render "$RUNNER_TEMP/dm-build-browser/nh01-m01-render-320x480.png" \
@@ -561,15 +471,13 @@ jobs:
             ${{ runner.temp }}/nh01-browser-final/
             ${{ runner.temp }}/nh01-preview-diff/
             ${{ runner.temp }}/nh01-pr-preview-build-report.json
-            ${{ runner.temp }}/nh01-responsive-preview/
           if-no-files-found: error
           retention-days: 30
 
   deploy:
     if: >-
       (github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/ops/pages-recovery-nh01-preview-20261021')) ||
-      (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') ||
-      (github.event_name == 'push' && github.ref == 'refs/heads/design/nh01-responsive-authority-consolidation-v1' && needs.build.outputs.publish_preview == 'true')
+      (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main')
     concurrency:
       group: design-manager-pages-publish
       cancel-in-progress: false
@@ -584,13 +492,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Checkout production browser verifier for isolated candidate
-        if: github.event_name == 'push' && github.ref == 'refs/heads/design/nh01-responsive-authority-consolidation-v1'
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ needs.build.outputs.site_build_sha }}
-          path: production-baseline-live
 
       - name: Deploy to GitHub Pages
         id: deployment
@@ -627,15 +528,12 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          verifier=scripts/verify_design_manager_browser.mjs
-          if [ "${GITHUB_EVENT_NAME}" = "push" ] && [ "${GITHUB_REF}" = "refs/heads/design/nh01-responsive-authority-consolidation-v1" ]; then
-            verifier=production-baseline-live/scripts/verify_design_manager_browser.mjs
-          fi
           PLAYWRIGHT_MODULE_DIR="$RUNNER_TEMP/dm-playwright/node_modules" \
-            node "${verifier}" \
+            node scripts/verify_design_manager_browser.mjs \
               --url "${{ steps.deployment.outputs.page_url }}" \
               --expected-build "${SITE_BUILD_SHA}" \
               --output-dir "$RUNNER_TEMP/dm-live-evidence/browser"
+
           python3 scripts/design/compare_nh01_workspace_visual_v1.py \
             --profile-prefix NH01_M01 \
             --render "$RUNNER_TEMP/dm-live-evidence/browser/nh01-m01-render-320x480.png" \
@@ -665,21 +563,11 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          PREVIEW_PATH="previews/pr-176/design/manager/nh01_acceptance/gemini-native-preview.html"
-          MANIFEST_ARGS=()
-          if [ "${GITHUB_REF}" = "refs/heads/design/nh01-responsive-authority-consolidation-v1" ]; then
-            PREVIEW_PATH="previews/nh01-responsive-v2/design/manager/nh01_acceptance/gemini-native-preview.html"
-            MANIFEST_ARGS+=(--deployment-manifest-path "previews/nh01-responsive-v2/NH01_RESPONSIVE_PREVIEW_DEPLOYMENT_V1.json")
-          fi
           PLAYWRIGHT_MODULE_DIR="$RUNNER_TEMP/dm-playwright/node_modules" \
             node scripts/verify_nh01_pr_preview_live.mjs \
               --url "${{ steps.deployment.outputs.page_url }}" \
-              --expected-build "${BUILD_SHA}" \
-              --expected-manager-build "${SITE_BUILD_SHA}" \
-              --expected-deployment-sha "${BUILD_SHA}" \
-              --preview-path "${PREVIEW_PATH}" \
-              --output "$RUNNER_TEMP/dm-live-evidence/nh01-pr-preview-verification.json" \
-              "${MANIFEST_ARGS[@]}"
+              --expected-build "${SITE_BUILD_SHA}" \
+              --output "$RUNNER_TEMP/dm-live-evidence/nh01-pr-preview-verification.json"
 
       - name: Upload live release evidence
         uses: actions/upload-artifact@v4
