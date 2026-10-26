@@ -1,45 +1,41 @@
 # NH01 Responsive Layout V2
 
-**Status:** `PROPOSED_FOR_CANONICAL_MAIN_REVIEW`  
+**Status:** `SPEC_FROZEN` (PR #191 candidate; canonical on Main after merge)  
+**Contract version:** `2.0`  
 **Machine authority:** [NH01_RESPONSIVE_LAYOUT_V2.json](NH01_RESPONSIVE_LAYOUT_V2.json)  
-**Global standard:** [Responsive Layout Standard V1](../../../../system_v3/07_Responsive_System/Responsive_Layout_Standard_V1.md)  
 **Authority crosswalk:** [NH01_RESPONSIVE_AUTHORITY_CROSSWALK_V1.md](NH01_RESPONSIVE_AUTHORITY_CROSSWALK_V1.md)  
 **Android Runtime:** `NOT_VERIFIED`
 
 ## Purpose
 
-NH01 uses one constraint-driven responsive policy, not a collection of layouts copied from individual viewport screenshots. The six frozen visual anchors validate brand identity, content hierarchy, component relationships and visual proportions. They are evidence anchors, not six independent layout algorithms.
+NH01 uses one constraint-driven responsive policy. The five frozen M01–M05 images validate identity, hierarchy, relationships, proportions and balance; they are visual anchors, not separate layouts to copy.
 
-The JSON is the sole machine authority for responsive values and rules, including the structured browser preview. This guide is explanatory; do not maintain a second set of numeric values here. The existing V1 responsive archive keeps static image identity and history; it is not a second browser layout calculator.
+The JSON file is the only machine-readable source for responsive values and rules. This guide explains how to apply that contract and intentionally does not repeat its numeric parameters. The structured-preview rules file contains presentation metadata only. The shared responsive standard remains a generic proposed reference and does not override NH01's page-owned contract.
 
-## What is fixed
+## Scope and current Android route
 
-- Brand title and approved avatar visual semantics.
-- Top / Middle / Footer hierarchy and the meaning/order of page content.
-- The selected Hero's declared aspect ratio and role, real-record-only neighboring Peeks, finite pager behavior, and single-record behavior.
-- Morning Lake background source/treatment and real FishRecord photo safety contract.
-- Required text/data priority, system font-scale behavior, action semantics, touch bounds and safe-area protection.
+The contract applies to the existing multi-record NH01 Home and single-record NH02 Home states on the Gemini route. The current Android call chain is `YujianApp.kt → HomeScreen.kt → GeminiNormalHomeContent`; the policy is resolved by `GeminiHomeAdaptiveLayoutPolicy.kt`. The existing Design Manager route remains the browser preview entry. Empty Home, the legacy `NormalHomeContent` route, other pages, and separately owned motion/avatar/background/data rules stay outside this contract.
 
-## What may adapt
+## Fixed structure and adapting behavior
 
-Component width/height within declared bounds, approved spacing formulas, text wrapping, card space allocation, edge-Peek exposure, and the documented local Middle-scroll fallback. Footer stays pinned outside Middle scrolling. Exact M01 320×480 / fontScale 1.0 is `NO_SCROLL`; if its ratio, minimum width, readable copy, and safe bounds cannot fit together, report a constraint failure. Every numeric bound remains in the JSON contract.
+Keep the existing physical Top / Middle / Footer hierarchy. Logical bands A, B and C describe space allocation and do not add Compose containers. The Recent Catch title belongs to the catch-content band even where the current tree renders it in Top. Footer remains outside any Middle/Pager scroll container.
 
-## Logical band allocation
+The contract resolves positive free space by adding equal portions to the two existing inter-band base gaps. It does not cap those additions or reserve extra outside space. The title-to-Hero gap remains internal to the catch-content band. The JSON also owns all Hero, Peek, Pager, width-cap, text-wrap, camera-art, touch-target and safe-area parameters.
 
-The JSON contract maps logical bands A (brand + statistics), B (Recent Catch heading + Hero/Pager) and C (Footer) onto the unchanged physical Top / Middle / Footer structure. After safe insets are consumed once, it computes `S = max(0, H_safe - (hA + hB + hC + gAB_base + gBC_base))`. Positive surplus adds `S/2` to each base gap; zero surplus preserves both base gaps. There are no extra gap caps, outer-breathing remainder, or separate footer reserve. The title-to-Hero gap remains internal to band B and is not modified by this allocation.
+Use actual safe dimensions, parent constraints, system font scale, content state and measured text. Consume each system inset once. Keep real records and stable IDs in the finite pager; a single-record state has one centered Hero without invented neighbors. Image failure preserves geometry and controls and uses the declared safe fallback.
 
-The `124dp` M01 exception is a minimum-readable floor, not a forced final Hero height. The final card also preserves its ratio, is at least `145dp` wide, keeps required copy readable, and does not scroll. If this exact profile cannot satisfy all four constraints after compressing nonessential whitespace, it fails rather than silently weakening one condition.
+## Short screens, text and constraint conflicts
 
-The “记录下一条鱼” copy is a static label under the current interaction contract. It receives no independent touch rectangle. The camera artwork sits centered inside its separately measured touch target; the complete Footer height counts the CTA line, camera target, one CTA-to-camera gap, and existing outer padding once.
+Apply the contract's ordered short-screen response: compress nonessential whitespace, reduce declared gaps only within their allowed bounds, use the declared wrapping/reflow, then allow only the documented local Middle/Pager scroll. Preserve Footer placement. For the exact M01 default-font condition, the contract requires the declared Hero geometry, readable copy and no Middle scroll; if those constraints cannot coexist, record `FAIL_CONSTRAINT` with actual measurements. Do not hide content, globally shrink text, or weaken a minimum to manufacture a pass.
 
-## Authority boundary
+The record-next-catch CTA is static text under the existing interaction contract. Measure the camera artwork separately from its touch target using the values and bounds in the machine contract. Keep required species, measurements and time readable, and apply system font scaling once.
 
-- The original 1080x1920px PNG remains the frozen whole-page composition reference; its logical reference is 360x640dp at 3x.
-- M01-M05 remain byte-identical frozen visual anchors. Their canvas pixels are not logical dp dimensions.
-- The static archive V1 owns frozen-image identity and archive presentation. Its M05 480dp-width-only spacing target is not an Android runtime target.
-- The existing Gemini unified authority continues to own non-responsive fields such as avatar, motion, background and photo behavior. The legacy fixed-coordinate layout contract is not the current Gemini route's responsive layout authority.
-- ADAPTIVE_V2 is the target policy. V3_BASELINE is a comparison control; ADAPTIVE_V1 is non-authoritative for this route.
+## Frozen anchors and M05
 
-## Required review
+Keep the original whole-page visual and all five source PNGs unchanged. Their raster pixels are not Android dp values. M05 remains a static width-only anchor. If the Android task probes that width boundary, it must record a separate explicit runtime height; that result applies only to that test pair and does not infer or redefine an M05 anchor height.
 
-The contract and control-plane references must validate before canonical adoption. Runtime conformance gaps are explicitly recorded in the JSON and are not hidden by changing the design rules. The Android matrix remains `NOT_VERIFIED` until exact-SHA evidence passes. Generated Hero/neighbor images remain `GENERATED_ILLUSTRATIVE_ONLY`; source authenticity and real-catch provenance do not gate this geometry freeze, while independent files, manifest status, and layout-stable failure fallback remain required.
+## Freeze and runtime evidence
+
+The candidate passed the registered exact-source browser matrix, isolated deployment and live-route verification on source `e6df12c74d971ce6ed9e465d33689b95a931d9cc` in [Design Manager Pages run 40302990272](https://github.com/pan277942135/Yujian_App/actions/runs/40302990272). This freeze-status commit must pass fresh required checks on its own exact SHA before merge.
+
+A frozen responsive specification does not establish Android runtime acceptance. Android remains `NOT_VERIFIED` until the registered exact-SHA Android build, unit/static checks, measured device matrix, screenshots/logs and APK provenance all pass. Illustrative fish media may fail to load without blocking geometry acceptance, provided the layout-safe fallback remains in place.

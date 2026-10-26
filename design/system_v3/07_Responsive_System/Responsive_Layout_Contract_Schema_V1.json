@@ -881,6 +881,7 @@
         "status": {
           "enum": [
             "RESOLVED_BY_PROPOSED_CONTRACT",
+            "RESOLVED_BY_FROZEN_CONTRACT",
             "SCOPED_NOT_CONFLICTING"
           ]
         }

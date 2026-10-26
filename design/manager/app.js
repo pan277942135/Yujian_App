@@ -226,6 +226,10 @@ function nh01ResponsiveRuleCanvas(view) {
   const componentTreePath = "design/manager/nh01_acceptance/data/NH01_Component_Tree_V1.json";
   const structurePath = "design/manager/nh01_acceptance/data/NH01_Structure_V1.json";
   const avatarAuthorityPath = "design/pages/home/normal_home/engineering/Visual_Anchor_Asset_Resolution_V1.md";
+  const responsiveContractPath = view.responsive_layout_authority || "design/pages/home/normal_home/responsive/NH01_RESPONSIVE_LAYOUT_V2.json";
+  const responsiveMarkdownPath = view.responsive_layout_guide || "design/pages/home/normal_home/responsive/NH01_RESPONSIVE_LAYOUT_V2.md";
+  const structuredPreviewRulesPath = "design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_STRUCTURED_PREVIEW_LAYOUT_RULES_V2.json";
+  const structuredPreviewMediaPath = "design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_STRUCTURED_PREVIEW_MEDIA_V1.json";
   const avatarV2Path = "app/src/main/res/drawable-nodpi/normal_home_default_avatar_v2.png";
   const avatarV2Sha256 = "fe94b11ba9f6c0635cd230bcc786fd2ea9a64d1a6f512dc6078556379676f528";
   const timeoutMs = Number(window.__NH01_TEST_TIMEOUT_MS__) || 20000;
@@ -233,14 +237,18 @@ function nh01ResponsiveRuleCanvas(view) {
   const responseMime = pattern => ({ mime: pattern });
   const baseSpecs = [
     { id:"frozen-manifest", label:"冻结资产 Manifest", url:urlFor(view.visual_authority_manifest), type:"json", ...responseMime(/application\/json|\+json/i), validate:value => Array.isArray(value?.assets) && value.assets.length === 5 && value.status === "STATIC_HIFI_FROZEN" && value.original_reference?.path && value.original_reference?.historical_sha256 && value.assets.every(asset=>asset.path&&asset.sha256) || "Manifest 缺少 5 张冻结资产、原始参考 SHA 或必要路径" },
-    { id:"machine-contract", label:"响应式机器合同 JSON", url:urlFor(view.machine_authority), type:"json", ...responseMime(/application\/json|\+json/i), validate:value => Boolean(value?.contract_id && value?.foundation_layout_principles && value?.spacing?.existing_adaptive_formulas) || "响应式机器合同结构不完整" },
-    { id:"markdown-contract", label:"正式 Markdown 合同", url:urlFor(view.authority), type:"text", ...responseMime(/text\//i), validate:value => value.includes("A.2 Long-screen surplus allocation") || "Markdown 合同缺少 A.2 正式公式段落" },
+    { id:"machine-contract", label:"冻结静态归档合同 JSON", url:urlFor(view.machine_authority), type:"json", ...responseMime(/application\/json|\+json/i), validate:value => Boolean(value?.contract_id && value?.foundation_layout_principles && value?.spacing?.existing_adaptive_formulas) || "冻结静态归档合同结构不完整" },
+    { id:"markdown-contract", label:"冻结静态归档说明 Markdown", url:urlFor(view.authority), type:"text", ...responseMime(/text\//i), validate:value => value.includes("A.2 Long-screen surplus allocation") || "静态归档说明缺少 A.2 历史公式段落" },
+    { id:"responsive-contract", label:"唯一响应式机器合同 V2", url:urlFor(responsiveContractPath), type:"json", ...responseMime(/application\/json|\+json/i), validate:value => value?.contract_id==="NH01_RESPONSIVE_LAYOUT_V2" && value?.logical_allocation?.allocation_when_positive_surplus?.a_to_b==="gAB_base + S/2" && value?.logical_allocation?.allocation_when_positive_surplus?.b_to_c==="gBC_base + S/2" && Boolean(value?.preview_engine?.parameters?.hero && value?.preview_engine?.parameters?.spacing) || "唯一响应式 V2 合同缺少正确的 1:1 分配或执行参数" },
+    { id:"responsive-markdown-contract", label:"响应式 V2 规则说明", url:urlFor(responsiveMarkdownPath), type:"text", ...responseMime(/text\//i), validate:value => String(value||"").toLowerCase().includes("equal portions") && !/2s\/3|s\/3|2:1 split/i.test(value) || "响应式 Markdown 与唯一机器合同不一致" },
     { id:"component-tree", label:"NH01 组件父子树", url:urlFor(componentTreePath), type:"json", ...responseMime(/application\/json|\+json/i), validate:value => value?.document_type === "component_tree" && value?.root?.id === "41:30" && Array.isArray(value.root.children) || "NH01 组件树缺少已登记页面根节点及子节点" },
     { id:"structure-reference", label:"NH01 结构与样例文本", url:urlFor(structurePath), type:"json", ...responseMime(/application\/json|\+json/i), validate:value => Boolean(value?.document_type === "structure" && value?.frame?.id === "41:30" && Array.isArray(value?.preview_fixture?.statistics) && value?.preview_fixture?.hero) || "NH01 结构样例缺少页面结构、统计或 Hero 样例数据" },
     { id:"avatar-authority", label:"NH01 专用头像视觉锚点", url:urlFor(avatarAuthorityPath), type:"text", ...responseMime(/text\//i), validate:value => value.includes(avatarV2Path) && value.includes(avatarV2Sha256) && value.includes("approved visual identity for Normal Home") || "NH01 专用头像批准原图或视觉权威记录缺失" },
     { id:"resource-binding", label:"Normal Home 资源绑定", url:urlFor(bindingPath), type:"json", ...responseMime(/application\/json|\+json/i), validate:value => value?.brand_title_binding?.registry_path && value?.camera_primary_binding?.registry_path && Array.isArray(value.resources) || "资源绑定缺少品牌、相机或资源列表" },
     { id:"workspace-js", label:"结构化工作区 JavaScript", url:urlFor(workspacePath), type:"bytes", ...responseMime(/javascript|ecmascript/i), validate:() => typeof window.NH01StructuredWorkspace?.mount === "function" && typeof window.NH01StructuredWorkspace?.createResourceLoader === "function" || "JS 请求已成功，但 NH01StructuredWorkspace.mount/createResourceLoader 未执行或缺失" },
-    { id:"workspace-css", label:"结构化工作区 CSS", url:urlFor(stylePath), type:"bytes", ...responseMime(/text\/css/i), validate:() => { const link=document.querySelector('link[data-resource-id="nh01-workspace-css"]'); return !!link?.sheet || "CSS 请求已成功，但正式样式表未应用"; } }
+    { id:"workspace-css", label:"结构化工作区 CSS", url:urlFor(stylePath), type:"bytes", ...responseMime(/text\/css/i), validate:() => { const link=document.querySelector('link[data-resource-id="nh01-workspace-css"]'); return !!link?.sheet || "CSS 请求已成功，但正式样式表未应用"; } },
+    { id:"structured-preview-rules", label:"PREVIEW_ONLY 展示元数据", url:urlFor(structuredPreviewRulesPath), type:"json", ...responseMime(/application\/json|\+json/i), validate:value => value?.rules_id === "NH01_STRUCTURED_PREVIEW_LAYOUT_RULES_V2" && value.status === "PREVIEW_ONLY" && value.responsive_authority === responsiveContractPath && value.numeric_authority === "NONE" && value.no_numeric_overrides === true && !value.hero && !value.pager && !value.vertical_allocation && !value.capture_action_group || "PREVIEW_ONLY 文件必须仅保留展示元数据，不得包含第二套数值规则" },
+    { id:"structured-preview-media", label:"GENERATED_ILLUSTRATIVE_ONLY 示意媒体清单", url:urlFor(structuredPreviewMediaPath), type:"json", ...responseMime(/application\/json|\+json/i), validate:value => value?.manifest_id === "NH01_STRUCTURED_PREVIEW_MEDIA_V1" && Array.isArray(value.assets) && value.assets.length === 3 && value.assets.every(item=>item.path&&item.sha256&&item.asset_status === "GENERATED_ILLUSTRATIVE_ONLY") || "结构化预览媒体清单缺少 3 张独立示意素材、路径或 SHA-256" }
   ];
   const script = document.querySelector('script[data-resource-id="nh01-workspace-js"]');
   const link = document.querySelector('link[data-resource-id="nh01-workspace-css"]');
@@ -362,7 +370,7 @@ function nh01ResponsiveRuleCanvas(view) {
       root.innerHTML=nh01StaticWorkspaceMarkup(view,manifest,contract);
       const staticRoot=root.querySelector(".nh01-static-workspace");
       if (!staticRoot) throw new Error("NH01 static contract workspace container is missing");
-      window.NH01StructuredWorkspace.mount(root,view,contract,manifest,DESIGN_MANAGER_BUILD,markdownContract,resourceBinding,diagnostics,baseResult.data["component-tree"],baseResult.data["structure-reference"],baseResult.data["avatar-authority"]);
+      window.NH01StructuredWorkspace.mount(root,view,contract,manifest,DESIGN_MANAGER_BUILD,markdownContract,resourceBinding,diagnostics,baseResult.data["component-tree"],baseResult.data["structure-reference"],baseResult.data["avatar-authority"],baseResult.data["structured-preview-rules"],baseResult.data["structured-preview-media"],baseResult.data["responsive-contract"],baseResult.data["responsive-markdown-contract"]);
       if (!root.querySelector('[data-testid="nh01-structured-workspace"]') || !root.querySelector("[data-layer-tree]") || !root.querySelector("[data-artboard]") || !root.querySelector("[data-inspector]")) {
         throw new Error("mount() returned without rendering the layer tree, canvas, and property inspector");
       }

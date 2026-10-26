@@ -98,7 +98,7 @@ phases:
     exit_condition: "Release-scope feature implementation reaches executable acceptance tasks."
     release_scope: "PRIMARY_PLUS_SECONDARY"
     feature_refs: ["home_normal_v1", "record_date_v2", "share_templates_v1", "auth_register_v2"]
-    task_refs: ["P6-01", "P6-02", "P6-03", "P6-04", "YUJIAN_NH01_ANDROID_FROZEN_V22_IMPLEMENTATION_REPAIR_WORK_B_V1"]
+    task_refs: ["P6-01", "P6-02", "P6-03", "P6-04", "YUJIAN_NH01_ANDROID_FROZEN_V22_IMPLEMENTATION_REPAIR_WORK_B_V1", "YUJIAN_NH01_RESPONSIVE_V2_ANDROID_IMPLEMENTATION_AND_RUNTIME_ACCEPTANCE_V1"]
   P7:
     name: "Integration / Full Surface"
     entry_condition: "Feature implementation is executable."
@@ -279,7 +279,7 @@ feature_closure_rollup:
   home_normal_v1:
     task_id: "FT-home_normal_v1"
     phase: "P8"
-    depends_on: ["NH01-RESPONSIVE-PREVIEW-V2"]
+    depends_on: ["NH01-RESPONSIVE-PREVIEW-V2", "YUJIAN_NH01_RESPONSIVE_V2_ANDROID_IMPLEMENTATION_AND_RUNTIME_ACCEPTANCE_V1"]
   record_date_v2:
     task_id: "FT-record_date_v2"
     phase: "P6"
@@ -599,6 +599,20 @@ tasks:
     completion: "Issue #194 V2.2 Android repair follows canonical NH01 Responsive Foundation V1.1: when long-screen surplus S>0, add S/2 to each A-to-B and B-to-C gap after their base-gap formulas, with source/unit tests for zero, 90dp and fractional 101dp surplus; exact-SHA build, focused tests, targeted API28 evidence and traceable debug APK are required. The full 24-case native matrix, N004 and release gates remain separate and are not promoted by this task."
     human_required: false
 
+  YUJIAN_NH01_RESPONSIVE_V2_ANDROID_IMPLEMENTATION_AND_RUNTIME_ACCEPTANCE_V1:
+    phase: "P6"
+    priority: "P0"
+    owner: "Work"
+    feature_refs: ["home_normal_v1"]
+    journey_refs: ["J17", "J18"]
+    depends_on: ["NH01-RESPONSIVE-PREVIEW-V2"]
+    entry_blockers: []
+    target_blockers: []
+    gate_id: "G-NH01-RESPONSIVE-V2-ANDROID-RUNTIME-V1"
+    evidence_required: ["frozen_v2_main_sha", "existing_gemini_route_and_policy", "android_build_unit_lint_exact_sha", "57_api28_runtime_cases", "actual_insets_bounds_text_and_touch_metrics", "single_record_and_media_failure_fallback", "screenshots_and_device_logs", "installable_apk_sha256"]
+    completion: "Implement the SPEC_FROZEN NH01 Responsive Layout V2 on the existing Gemini Home route and current Compose policy. Preserve the 24-case V2.2 baseline unchanged, add V2 runtime coverage for the seven named viewport pairs at all three font scales (with the M05 width test using a separately recorded explicit height), and exercise both sides of the four specified height-continuity boundaries at all three scales: 57 API 28 viewport executions total. Verify actual measured bounds, insets, text line ranges, Hero/Peek/Pager geometry, touch targets, M01 no-scroll, Footer outside Middle scroll, single-record state, media-failure fallback and exact-SHA APK provenance. Build, unit, instrumentation and Lint failures remain failures; a constraint conflict must be reported with measurements. This task does not close N004 or authorize release."
+    human_required: false
+
   P7-01:
     phase: "P7"
     priority: "P0"
@@ -659,7 +673,7 @@ tasks:
     owner: "Work"
     feature_refs: ["home_normal_v1"]
     journey_refs: []
-    depends_on: ["NH01-RESPONSIVE-PREVIEW-V2"]
+    depends_on: ["NH01-RESPONSIVE-PREVIEW-V2", "YUJIAN_NH01_RESPONSIVE_V2_ANDROID_IMPLEMENTATION_AND_RUNTIME_ACCEPTANCE_V1"]
     entry_blockers: []
     target_blockers: ["B003", "B004"]
     evidence_required: ["feature_required_implementation_tests_runtime_evidence"]

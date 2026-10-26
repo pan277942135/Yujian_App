@@ -556,7 +556,11 @@
               "label": "Static Hi-Fi Browser/Asset Acceptance Matrix",
               "path": "design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_STATIC_HIFI_ACCEPTANCE_MATRIX_V1.json"
             }
-          ]
+          ],
+          "responsive_layout_authority": "design/pages/home/normal_home/responsive/NH01_RESPONSIVE_LAYOUT_V2.json",
+          "responsive_layout_guide": "design/pages/home/normal_home/responsive/NH01_RESPONSIVE_LAYOUT_V2.md",
+          "structured_preview_rules": "design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_STRUCTURED_PREVIEW_LAYOUT_RULES_V2.json",
+          "responsive_rules_status": "SPEC_FROZEN"
         }
       ]
     },

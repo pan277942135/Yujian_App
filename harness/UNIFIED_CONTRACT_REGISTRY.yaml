@@ -1499,7 +1499,7 @@ page_contract_sets:
       nh01_authority_map: "design/pages/home/normal_home/authority/authority_map.json"
       responsive_layout: "design/pages/home/normal_home/responsive/NH01_RESPONSIVE_LAYOUT_V2.json"
       responsive_authority_crosswalk: "design/pages/home/normal_home/responsive/NH01_RESPONSIVE_AUTHORITY_CROSSWALK_V1.md"
-    authority_rule: "The original NH01 V1 remains the whole-page visual authority. The additive static_hifi contract and Responsive Layout V2 use the same Responsive Foundation V1.1 equal S/2 additions to A-to-B and B-to-C; V2 does not introduce a split override, added-gap cap, or outer-breathing remainder. V2 remains PROPOSED_FOR_CANONICAL_MAIN_REVIEW until its existing Design Manager route integration and exact-source browser freeze gate pass. Physical Top/Middle/Footer structure, internal Title-to-Hero gap, existing base-gap formulas and Gemini Adaptive V2.2 component constraints remain binding; Android Runtime stays NOT_VERIFIED."
+    authority_rule: "The original NH01 V1 remains the whole-page visual authority. Frozen Responsive Layout V2 JSON is the sole responsive machine authority for current Gemini NH01/NH02 geometry, spacing, typography, safe-area, overflow and preview values; the structured-preview JSON is metadata-only and static_hifi V1 remains an immutable image/archive record. Logical Top/Middle/Footer structure, non-responsive product authorities and their declared scopes remain binding; Android Runtime stays NOT_VERIFIED until the exact-SHA native gate passes."
   recognition_flow_v1_2:
     refs:
       capture_page: "design/system_v3/08_Page_Contracts/recognition/capture/Recognition_Capture_Page_Contract_V3_1.md"
@@ -1540,6 +1540,11 @@ gate_contracts:
     purpose: "Issue #194 V2.2 Android implementation repair including Responsive Foundation V1.1 equal long-screen surplus split (S/2 to A-to-B and S/2 to B-to-C), plus targeted API28 smoke; does not replace the full native matrix, N004 or release gates"
     contract_refs: ["FC-home_normal_v1", "ANDROID-RUNTIME-HARNESS", "STATE-EVIDENCE-PROVENANCE"]
     acceptance_domains: ["implementation", "runtime", "visual", "accessibility", "evidence", "apk_provenance"]
+    exact_sha_required: true
+  G-NH01-RESPONSIVE-V2-ANDROID-RUNTIME-V1:
+    purpose: "Exact-SHA native implementation and Android runtime acceptance for the frozen NH01 V2 contract: preserve the 24-case V2.2 baseline and add a 57-case API 28 viewport/font/boundary matrix, scoped state/fallback checks, measured evidence and installable APK provenance."
+    contract_refs: ["FC-home_normal_v1", "ANDROID-RUNTIME-HARNESS", "STATE-EVIDENCE-PROVENANCE"]
+    acceptance_domains: ["implementation", "build", "unit_test", "lint", "runtime", "visual", "accessibility", "evidence", "apk_provenance"]
     exact_sha_required: true
   G-NH01-RESPONSIVE-CONTRACT-V2:
     purpose: "NH01 Responsive Layout V2 schema, authority crosswalk, logical A/B/C band surplus policy and canonical control-plane registration; does not reuse SWOS P3-05/P3-06/P3-07."
@@ -1645,6 +1650,10 @@ task_contract_bindings:
   YUJIAN_NH01_ANDROID_FROZEN_V22_IMPLEMENTATION_REPAIR_WORK_B_V1:
     contract_refs: ["FC-home_normal_v1", "ANDROID-RUNTIME-HARNESS", "STATE-EVIDENCE-PROVENANCE", "G-NH01-WORK-B-V22-EXACT-SHA"]
     gate_id: "G-NH01-WORK-B-V22-EXACT-SHA"
+    phase: "P6"
+  YUJIAN_NH01_RESPONSIVE_V2_ANDROID_IMPLEMENTATION_AND_RUNTIME_ACCEPTANCE_V1:
+    contract_refs: ["FC-home_normal_v1", "ANDROID-RUNTIME-HARNESS", "STATE-EVIDENCE-PROVENANCE", "G-NH01-RESPONSIVE-V2-ANDROID-RUNTIME-V1"]
+    gate_id: "G-NH01-RESPONSIVE-V2-ANDROID-RUNTIME-V1"
     phase: "P6"
   NH01-RESPONSIVE-CONTRACT-V2:
     contract_refs: ["FC-home_normal_v1", "RESPONSIVE-LAYOUT-STANDARD-V1", "G-NH01-RESPONSIVE-CONTRACT-V2"]
@@ -1881,8 +1890,8 @@ inventory:
   journey_count: 20
   child_surface_count: 81
   route_count: 22
-  task_count: 51
-  gate_count: 17
+  task_count: 52
+  gate_count: 18
   registry_created_from_pr_head: "ebb6b3904feaa0cf26b4fd4b83bc809a397085a2"
   last_synced_feature_matrix_sha: "9a37127ce83d646988793fb31614fc27a5337b54"
   last_synced_phase_task_state_machine_sha: "e890464c27400e24f01043a1a159f0427685a32f"

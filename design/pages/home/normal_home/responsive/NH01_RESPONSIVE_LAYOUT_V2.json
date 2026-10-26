@@ -2,7 +2,7 @@
   "schema_version": "1.0",
   "contract_id": "NH01_RESPONSIVE_LAYOUT_V2",
   "contract_version": "2.0",
-  "status": "PROPOSED_FOR_CANONICAL_MAIN_REVIEW",
+  "status": "SPEC_FROZEN",
   "page_id": "normal_home_v1",
   "scope": {
     "route": "home",
@@ -610,7 +610,7 @@
         "target_dp": 24,
         "tolerance_dp": 2,
         "native_runtime_authority": false,
-        "reason": "Historical V1 static-preview extension only. The profile has no fixed height, and the current runtime policy derives this gap from actual safeHeightDp. Do not claim native acceptance or invent a height."
+        "reason": "The M05 anchor itself has no fixed height and remains static-only. A separately named native width-boundary test may use an explicit test height; it tests that declared pair only and cannot infer an anchor height or claim native acceptance for M05."
       }
     ],
     "required_interval_measurements": [
@@ -694,49 +694,49 @@
       "id": "C01",
       "topic": "Frozen master raster versus responsive runtime geometry",
       "decision": "The original PNG owns the approved visible composition and hierarchy at its reference; responsive geometry is resolved from this contract and actual constraints, not by scaling absolute coordinates to every viewport.",
-      "status": "RESOLVED_BY_PROPOSED_CONTRACT"
+      "status": "RESOLVED_BY_FROZEN_CONTRACT"
     },
     {
       "id": "C02",
       "topic": "Static archive V1 versus active Gemini route",
-      "decision": "V1 retains frozen image identity, provenance, labels and static archive presentation. V2 is the proposed single responsive behavior contract for generated previews and the current Gemini route after canonical adoption.",
-      "status": "RESOLVED_BY_PROPOSED_CONTRACT"
+      "decision": "V1 retains frozen image identity, provenance, labels and static archive presentation. V2 is the frozen single responsive behavior contract for the existing Design Manager preview and the current Gemini route.",
+      "status": "RESOLVED_BY_FROZEN_CONTRACT"
     },
     {
       "id": "C03",
       "topic": "Legacy fixed-coordinate Layout Responsive Contract versus Gemini V3",
       "decision": "The legacy Layout_Responsive_Contract_V1 applies only to the legacy NormalHomeContent route and pixel/touch anchor evidence. Gemini V3 uses the Top/Middle/Footer content-first model defined here.",
-      "status": "RESOLVED_BY_PROPOSED_CONTRACT"
+      "status": "RESOLVED_BY_FROZEN_CONTRACT"
     },
     {
       "id": "C04",
       "topic": "M05 480dp width-only static target versus Android runtime",
-      "decision": "The 480dp M05 target is static-only and excluded from the 24-case Android matrix until a real native height is explicitly defined and the runtime contract is revised.",
-      "status": "RESOLVED_BY_PROPOSED_CONTRACT"
+      "decision": "The 480dp M05 target remains static-only and does not imply a native window height. A supplemental Android width-boundary test may use an explicitly recorded height; that tests only the declared width/height pair and does not establish an M05 native profile.",
+      "status": "RESOLVED_BY_FROZEN_CONTRACT"
     },
     {
       "id": "C05",
       "topic": "ADAPTIVE_V1, ADAPTIVE_V2 and V3 Baseline",
       "decision": "ADAPTIVE_V2 is the production target; V3_BASELINE remains a comparison arm; ADAPTIVE_V1 is non-authoritative for this route.",
-      "status": "RESOLVED_BY_PROPOSED_CONTRACT"
+      "status": "RESOLVED_BY_FROZEN_CONTRACT"
     },
     {
       "id": "C06",
       "topic": "Responsive numeric rules duplicated between Markdown and machine contract",
       "decision": "This JSON is the only machine authority for responsive numeric parameters. The Markdown guide explains it; the static V1 documents remain immutable provenance and archive records.",
-      "status": "RESOLVED_BY_PROPOSED_CONTRACT"
+      "status": "RESOLVED_BY_FROZEN_CONTRACT"
     },
     {
       "id": "C07",
       "topic": "Design freeze versus runtime acceptance",
       "decision": "Specification status and Android runtime status are independent. This contract cannot change NOT_VERIFIED to PASS; only exact-SHA native evidence can.",
-      "status": "RESOLVED_BY_PROPOSED_CONTRACT"
+      "status": "RESOLVED_BY_FROZEN_CONTRACT"
     },
     {
       "id": "C08",
       "topic": "Viewport screenshot dimensions versus logical dp",
       "decision": "Source PNG canvas pixels, browser preview pixels and logical dp are distinct coordinate spaces. The 1080x1920px master maps to 360x640dp at 3x; it is not a 1080x1920dp runtime profile.",
-      "status": "RESOLVED_BY_PROPOSED_CONTRACT"
+      "status": "RESOLVED_BY_FROZEN_CONTRACT"
     }
   ],
   "implementation_conformance_followups": [
@@ -829,6 +829,17 @@
       "version": "V2.0",
       "date": "2026-10-26",
       "change": "Align the proposed contract with Main Responsive Foundation V1.1 (equal S/2 additions); remove capped-gap/outer-breathing behavior, define one contract-owned Peek and footer calculation, clarify the 124dp floor semantics and exact M01 NO_SCROLL conditions, and allow generated illustrative media to remain non-blocking for geometry acceptance."
+    },
+    {
+      "version": "V2.0",
+      "date": "2026-10-26",
+      "change": "Structured browser preview integration: single V2 machine source, equal S/2 surplus allocation, contract-defined exact-M01 compact spacing, grid-flow page regions, and contract-hash-bound browser evidence.",
+      "status": "SPEC_FROZEN"
+    },
+    {
+      "version": "V2.0",
+      "date": "2026-10-26",
+      "change": "Promote unchanged V2.0 rules to SPEC_FROZEN after exact-source candidate preview, matrix, isolated deployment and live-route verification passed on e6df12c74d971ce6ed9e465d33689b95a931d9cc (Design Manager Pages run 40302990272). This status/control-plane update changes no responsive formulas or frozen visual anchors; current-head gates must pass before Main merge."
     }
   ],
   "preview_engine": {
@@ -911,7 +922,18 @@
           "minimum_width_dp": 145,
           "requires_no_middle_scroll": true,
           "requires_all_copy_readable": true,
-          "meaning": "124dp is the permitted minimum-readable floor, not a forced final card height. The final card must still preserve the 247:293 ratio and be at least 145dp wide. If the exact M01 constraints cannot fit without scrolling after nonessential whitespace compression, report FAIL_CONSTRAINT/SPEC_CONFLICT."
+          "meaning": "124dp is the permitted minimum-readable floor, not a forced final card height. The final card must still preserve the 247:293 ratio and be at least 145dp wide. If the exact M01 constraints cannot fit without scrolling after nonessential whitespace compression, report FAIL_CONSTRAINT/SPEC_CONFLICT.",
+          "compact_layout": {
+            "top_padding_dp": 0,
+            "header_to_stats_gap_dp": 9,
+            "stats_height_dp": 48,
+            "stats_to_title_gap_dp": 12,
+            "title_to_card_gap_dp": 8,
+            "card_to_footer_gap_dp": 3,
+            "footer_top_padding_dp": 0,
+            "footer_bottom_padding_dp": 0,
+            "cta_camera_gap_dp": 6
+          }
         }
       },
       "neighbor": {
@@ -932,7 +954,8 @@
         "peek_visible_width_formula": "min(neighborWidthDp, max(0, (trackWidthDp - heroWidthDp) / 2 - peekGapDp))",
         "indicator_height_dp": 8,
         "indicator_gap_after_hero_dp": 8,
-        "pager_height_formula": "heroHeightDp + indicator_gap_after_hero_dp + indicator_height_dp"
+        "pager_height_formula": "heroHeightDp + indicator_gap_after_hero_dp + indicator_height_dp",
+        "indicator_width_dp": 40
       },
       "camera": {
         "width_fraction_of_capped_safe_width": 0.18,

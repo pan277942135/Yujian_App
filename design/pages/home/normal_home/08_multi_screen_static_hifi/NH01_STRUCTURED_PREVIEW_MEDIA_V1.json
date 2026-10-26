@@ -1,0 +1,50 @@
+{
+  "schema_version": "1.0",
+  "manifest_id": "NH01_STRUCTURED_PREVIEW_MEDIA_V1",
+  "status": "PREVIEW_ONLY",
+  "runtime_effect": "NONE",
+  "assets": [
+    {
+      "id": "nh01-preview-hero-illustrative-v1",
+      "role": "hero",
+      "label": "Hero 示意图",
+      "path": "design/pages/home/normal_home/08_multi_screen_static_hifi/assets/preview_illustrative/hero_generated_illustrative_only.png",
+      "mime_type": "image/png",
+      "width_px": 1151,
+      "height_px": 1367,
+      "bytes": 2414215,
+      "sha256": "4ee7e9f3e1dac0aaf29259a8b3df8b3b9fa60f5de8fc15e16a4f1804d3476ac0",
+      "asset_status": "GENERATED_ILLUSTRATIVE_ONLY",
+      "allowed_use": "FishCatchPager preview media only",
+      "provenance": "Generated with built-in imagegen for this responsive layout task; not a real catch, species claim, licensed production asset, or Android runtime mapping."
+    },
+    {
+      "id": "nh01-preview-previous-illustrative-v1",
+      "role": "neighbor_previous",
+      "label": "Previous 示意图",
+      "path": "design/pages/home/normal_home/08_multi_screen_static_hifi/assets/preview_illustrative/previous_generated_illustrative_only.png",
+      "mime_type": "image/png",
+      "width_px": 1151,
+      "height_px": 1367,
+      "bytes": 2048956,
+      "sha256": "4823466c81d87a99068579bc6dfab06e69eac701bd73f874f89e6398e43afdb8",
+      "asset_status": "GENERATED_ILLUSTRATIVE_ONLY",
+      "allowed_use": "FishCatchPager preview media only",
+      "provenance": "Generated with built-in imagegen for this responsive layout task; not a real catch, species claim, licensed production asset, or Android runtime mapping."
+    },
+    {
+      "id": "nh01-preview-next-illustrative-v1",
+      "role": "neighbor_next",
+      "label": "Next 示意图",
+      "path": "design/pages/home/normal_home/08_multi_screen_static_hifi/assets/preview_illustrative/next_generated_illustrative_only.png",
+      "mime_type": "image/png",
+      "width_px": 1151,
+      "height_px": 1367,
+      "bytes": 2004497,
+      "sha256": "c896b71c2379b0878e54aa91c3e427499a3877b97c72bf8b01c0c55d35752498",
+      "asset_status": "GENERATED_ILLUSTRATIVE_ONLY",
+      "allowed_use": "FishCatchPager preview media only",
+      "provenance": "Generated with built-in imagegen for this responsive layout task; not a real catch, species claim, licensed production asset, or Android runtime mapping."
+    }
+  ]
+}
