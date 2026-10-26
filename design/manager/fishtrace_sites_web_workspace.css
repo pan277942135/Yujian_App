@@ -281,14 +281,6 @@ button[disabled]{opacity:.48;cursor:not-allowed}
   .prototype-warning a{margin-left:30px}
   .workspace-statebar{padding:13px}
   .viewport-canvas{min-height:600px;padding:10px}
-  .scene-entry{grid-template-columns:1fr;min-height:auto;padding:32px 0 24px}
-  .entry-copy{padding:0 2px}
-  .water-hero{min-height:260px}
-  .product-layout,.error-layout{grid-template-columns:1fr}
-  .photo-media,.photo-foreground{min-height:330px;max-height:440px}
-  .preview-info{padding:10px 3px}
-  .preview-actions{margin-top:10px}
-  .result-summary{padding:20px}
 }
 @media(max-width:560px){
   .workspace-root{padding:7px}
