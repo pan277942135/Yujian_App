@@ -1,0 +1,95 @@
+schema_version: "1.0"
+state_id: "NH01-RESPONSIVE-V2-ANDROID-IMPLEMENTATION"
+project:
+  name: "Yujian App"
+  repository: "pan277942135/Yujian_App"
+  status: "IN_PROGRESS"
+state_control:
+  current_branch: "fix/nh01-responsive-v2-android-runtime-v1"
+  execution_baseline_sha: "7aa7fb5e93d0b61b3d9598306dbb4c92f225400d"
+  current_head: "7aa7fb5e93d0b61b3d9598306dbb4c92f225400d"
+  base_branch: "main"
+  base_sha: "7aa7fb5e93d0b61b3d9598306dbb4c92f225400d"
+  control_plane_revision: "7aa7fb5e93d0b61b3d9598306dbb4c92f225400d"
+  current_pr: null
+source_of_truth:
+  canonical_control_plane: "main:CONTROL_PLANE_REGISTRY.yaml"
+  responsive_contract: "main:design/pages/home/normal_home/responsive/NH01_RESPONSIVE_LAYOUT_V2.json"
+  current_work_state: "WORK_EXECUTION_STATE.json"
+repositories:
+  main:
+    branch: "main"
+    sha: "7aa7fb5e93d0b61b3d9598306dbb4c92f225400d"
+pull_requests: {}
+phases:
+  P0: { status: "NOT_CONFIRMED" }
+  P1: { status: "NOT_CONFIRMED" }
+  P2: { status: "NOT_CONFIRMED" }
+  P3: { status: "FROZEN" }
+  P4: { status: "NOT_CONFIRMED" }
+  P5: { status: "NOT_CONFIRMED" }
+  P6: { status: "IN_PROGRESS" }
+  P7: { status: "NOT_STARTED" }
+  P8: { status: "NOT_STARTED" }
+  P9: { status: "NOT_STARTED" }
+recognition_main_journey:
+  contract_status: "FROZEN"
+  route:
+    - "J01"
+    - "J02"
+    - "J03"
+    - "J04"
+    - "J05"
+    - "J06"
+    - "J07"
+    - "J08"
+    - "J09"
+    - "J10"
+    - "J11"
+    - "J12"
+    - "J13"
+    - "J14"
+    - "J15"
+    - "J16"
+    - "J17"
+    - "J18"
+    - "J19"
+    - "J20"
+runtime_gates:
+  exact_head:
+    sha: "7aa7fb5e93d0b61b3d9598306dbb4c92f225400d"
+    status: "NOT_RUN"
+  historical_runtime_run:
+    status: "NOT_CONFIRMED"
+    rule: "Historical results cannot promote current exact HEAD to PASS."
+apk_and_evidence:
+  apk_status: "NOT_RUN"
+  runtime_status: "NOT_VERIFIED"
+current_work:
+  id: "YUJIAN_NH01_RESPONSIVE_V2_ANDROID_IMPLEMENTATION_AND_RUNTIME_ACCEPTANCE_V1"
+  phase: "P6"
+  task_id: "YUJIAN_NH01_RESPONSIVE_V2_ANDROID_IMPLEMENTATION_AND_RUNTIME_ACCEPTANCE_V1"
+  exact_head: "7aa7fb5e93d0b61b3d9598306dbb4c92f225400d"
+  status: "READY"
+blockers: []
+protected_invariants:
+  frozen_responsive_contract:
+    - "NH01_RESPONSIVE_LAYOUT_V2.json is the only machine-readable responsive rule source."
+    - "Do not change frozen responsive values or five anchor checksums during Android implementation."
+  page_scope:
+    - "Reuse GeminiNormalHomeContent and GeminiHomeAdaptiveLayoutPolicy on the existing Android route."
+    - "Do not add a parallel home page or a second responsive policy."
+next_actions:
+  - id: "NH01-V2-ANDROID-ADMISSION"
+    status: "READY"
+    action: "Validate branch-local state and canonical control-plane admission before implementation."
+completion_rules:
+  - "Do not mark Android runtime passed without exact-SHA API 28 device evidence."
+  - "Do not close N004 or authorize release from this task."
+state_update:
+  checkpoint_updated_at: "2026-10-26T15:47:09.797Z"
+  rule: "Update branch-local state at every stage boundary and preserve failure history."
+agent_recovery:
+  last_completed_stage: "A_SPEC_FREEZE"
+  current_stage: "E0_ADMISSION"
+  next_action: "Run exact-branch control-plane admission; then inspect route and policy before implementation."

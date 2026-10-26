@@ -1,0 +1,35 @@
+{
+  "$schema": "./harness/WORK_EXECUTION_STATE_SCHEMA_V1.json",
+  "schema_version": "1.0",
+  "work_id": "YUJIAN_NH01_RESPONSIVE_V2_ANDROID_IMPLEMENTATION_AND_RUNTIME_ACCEPTANCE_V1",
+  "repository": "pan277942135/Yujian_App",
+  "branch": "fix/nh01-responsive-v2-android-runtime-v1",
+  "control_plane_revision": "7aa7fb5e93d0b61b3d9598306dbb4c92f225400d",
+  "base_branch": "main",
+  "base_sha": "7aa7fb5e93d0b61b3d9598306dbb4c92f225400d",
+  "phase": "P6",
+  "task_id": "YUJIAN_NH01_RESPONSIVE_V2_ANDROID_IMPLEMENTATION_AND_RUNTIME_ACCEPTANCE_V1",
+  "stage": "E0",
+  "status": "READY",
+  "source_sha": "7aa7fb5e93d0b61b3d9598306dbb4c92f225400d",
+  "checkpoint_updated_at": "2026-10-26T15:47:09.797Z",
+  "next_action": "Run exact-branch control-plane admission for the state-only checkpoint before any Android implementation.",
+  "dependencies": [
+    "NH01-RESPONSIVE-PREVIEW-V2"
+  ],
+  "blockers": [],
+  "evidence": {
+    "frozen_v2_main_sha": "7aa7fb5e93d0b61b3d9598306dbb4c92f225400d",
+    "pr_191": {
+      "status": "MERGED",
+      "url": "https://github.com/pan277942135/Yujian_App/pull/191",
+      "merge_sha": "7aa7fb5e93d0b61b3d9598306dbb4c92f225400d"
+    },
+    "main_control_plane_admission": {
+      "run_id": 40351715200,
+      "status": "PASS",
+      "sha": "7aa7fb5e93d0b61b3d9598306dbb4c92f225400d"
+    },
+    "native_runtime": "NOT_VERIFIED"
+  }
+}
