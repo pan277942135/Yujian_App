@@ -8,6 +8,8 @@ const calculate=sandbox.window.NH01StructuredWorkspace.calculate;
 const createResourceLoader=sandbox.window.NH01StructuredWorkspace.createResourceLoader;
 const {createLayerTree,flattenLayerTree,findLayer,measuredLayerBounds}=sandbox.window.NH01StructuredWorkspace;
 const contract=JSON.parse(fs.readFileSync('design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_MULTI_SCREEN_RESPONSIVE_CONTRACT_V1.json'));
+const previewRules=JSON.parse(fs.readFileSync('design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_STRUCTURED_PREVIEW_LAYOUT_RULES_V2.json'));
+const previewMedia=JSON.parse(fs.readFileSync('design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_STRUCTURED_PREVIEW_MEDIA_V1.json'));
 const markdown=fs.readFileSync('design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_MULTI_SCREEN_RESPONSIVE_CONTRACT_V1.md','utf8');
 const manifest=JSON.parse(fs.readFileSync('design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_MULTI_SCREEN_STATIC_HIFI_V1_MANIFEST.json'));
 const resourceBinding=JSON.parse(fs.readFileSync('design/system_v3/09_Android_Implementation_Contracts/Normal_Home/Normal_Home_Resource_Binding_V1.json'));
@@ -27,6 +29,10 @@ for(const asset of [
   {asset_id:'approved Normal Home V2 avatar',path:'app/src/main/res/drawable-nodpi/normal_home_default_avatar_v2.png',sha256:'fe94b11ba9f6c0635cd230bcc786fd2ea9a64d1a6f512dc6078556379676f528'},
   {asset_id:'NH01 original visual reference',path:manifest.original_reference.path,sha256:manifest.original_reference.historical_sha256}
 ]) assertFileHash(asset.path||asset.registry_path,asset.sha256,asset.asset_id);
+for(const asset of previewMedia.assets) assertFileHash(asset.path,asset.sha256,asset.id);
+assert.equal(previewRules.status,'PREVIEW_ONLY');
+assert.equal(previewMedia.assets.length,3);
+assert.ok(previewMedia.assets.every(asset=>asset.asset_status==='GENERATED_ILLUSTRATIVE_ONLY'));
 
 const layerRoot=createLayerTree(componentTree,structure);
 const layers=Array.from(flattenLayerTree(layerRoot));
@@ -38,7 +44,7 @@ assert.deepEqual(Array.from(findLayer(layerRoot,'environment').children,node=>no
 assert.deepEqual(Array.from(findLayer(layerRoot,'header').children,node=>node.id),['brand','avatar']);
 assert.deepEqual(Array.from(findLayer(layerRoot,'stats').children,node=>node.id),['stat-species','stat-catch','stat-days']);
 assert.deepEqual(Array.from(findLayer(layerRoot,'recent-header').children,node=>node.id),['recent-title','recent-all','recent-chevron']);
-assert.deepEqual(Array.from(findLayer(layerRoot,'pager').children,node=>node.id),['peek-left','hero','peek-right']);
+assert.deepEqual(Array.from(findLayer(layerRoot,'pager').children,node=>node.id),['peek-left','hero','peek-right','pager-indicator']);
 assert.deepEqual(Array.from(findLayer(layerRoot,'capture-action-group').children,node=>node.id),['cta','camera']);
 assert.equal(findLayer(layerRoot,'cta').parentId,'capture-action-group');
 assert.equal(findLayer(layerRoot,'cta').sourceNodeId,null,'CTA must not reuse its parent’s Figma node ID as a fake child mapping');
@@ -51,30 +57,44 @@ const authorityConflict=sandbox.window.NH01StructuredWorkspace.hasAuthorityConfl
 assert.equal(authorityConflict,false,'current NH01 V1.1 Markdown and machine contract agree on equal split');
 const staleMarkdown=markdown.replace('gAB = gAB_base + S/2','gAB = gAB_base + 2S/3').replace('gBC = gBC_base + S/2','gBC = gBC_base + S/3');
 assert.equal(sandbox.window.NH01StructuredWorkspace.hasAuthorityConflict(staleMarkdown,contract),true,'a stale Markdown 2:1 rule must remain an explicit authority conflict');
-const profiles=[[320,480],[360,640],[390,844],[430,932],[480,844]];
-let prior=null;
+const profiles=[[320,480],[360,640],[390,844],[430,932],[480,480],[480,700],[480,1100],[412,915]];
 let observedPositiveSurplus=false;
 for(const [width,height] of profiles){
   for(const font of [1,1.3,1.5]){
-    const r=calculate(width,height,font,24,24,contract,authorityConflict);
+    const r=calculate(width,height,font,24,24,contract,authorityConflict,previewRules);
     assert.equal(r.safeHeight,height-48);
-    assert.ok(Math.abs((r.gAB-r.baseAB)-(r.gBC-r.baseBC))<1e-5);
-    assert.ok(Math.abs(r.S-Math.max(0,r.safeHeight-(r.hA+r.hB+r.hC+r.baseAB+r.baseBC)))<1e-5);
-    if(r.S>0){observedPositiveSurplus=true;assert.ok(Math.abs((r.gAB-r.baseAB)-r.S/2)<1e-5);}
-    assert.ok(r.actualHeroWidth<=337.2+1e-5);
+    assert.ok(r.gAB-r.baseAB<=previewRules.vertical_allocation.additional_gap_ab_max_dp+1e-5);
+    assert.ok(r.gBC-r.baseBC<=previewRules.vertical_allocation.additional_gap_bc_max_dp+1e-5);
+    assert.ok(r.outerBreathing>=-1e-5);
+    if(r.S>0){observedPositiveSurplus=true;assert.ok(r.outerBreathing>=0);}
+    assert.ok(r.targetHeroWidth<=337.2+1e-5);
+    assert.ok(r.actualHeroWidth<=r.targetHeroWidth+1e-5);
+    assert.ok(Math.abs(r.actualHeroWidth/r.heroHeight-247/293)<1e-5,'Hero width and height must preserve the shared 247:293 ratio');
     assert.ok(r.cameraSize>=56&&r.cameraSize<=80);
     assert.ok(r.cameraTouchSize>=72);
     assert.equal(r.contractId,'NH01_RESPONSIVE_FOUNDATION_V1');
     assert.ok(r.rects['peek-left']&&r.rects['peek-right'],'both real-neighbor slots need measurable geometry');
-    if(width===320 && height===480 && font===1) assert.ok(r.conflicts.some(x=>x.includes('145dp')));
+    assert.ok(Math.abs((r.rects['peek-right'].x-r.rects.hero.x-r.rects.hero.w)-r.peekGap)<1e-7,'right Peek visual gap must be distinct from maximum overlap');
+    assert.ok(Math.abs((r.rects.hero.x-r.rects['peek-left'].x-r.rects['peek-left'].w)-r.peekGap)<1e-7,'left Peek visual gap must match the right gap');
+    assert.ok(r.peekGap>=8&&r.peekGap<=12);
+    assert.ok(r.pagerContentHeight>=r.heroHeight+previewRules.pager.indicator_gap_after_hero_dp+previewRules.pager.indicator_height_dp-1e-5);
+    assert.ok(r.rects['capture-action-group'].y+r.hC<=height-24+.5,'Footer must stay inside the bottom safe inset');
+    if(font===1)assert.ok(r.hC<130,'Removing the redundant 48dp static CTA touch box must reduce the standard-scale footer height');
+    else assert.ok(r.hC<146,'large accessible text must fit without the former redundant CTA touch container');
+    if(width===320 && height===480 && font===1){
+      assert.ok(r.actualHeroWidth>=145-1e-5,'Short M01 retains its width floor without distorting the ratio');
+      assert.ok(r.pagerNeedsScroll,'short-screen minimum may use local Pager scrolling rather than being reduced');
+      assert.ok(r.conflicts.some(x=>x.includes('PREVIEW_LOCAL_SCROLL')));
+    }
   }
-  const current=calculate(width,height,1,24,24,contract,authorityConflict);
-  if(prior) { assert.ok(current.fontSp>=prior.fontSp); assert.ok(current.cameraSize>=prior.cameraSize); assert.ok(current.actualHeroWidth>=prior.actualHeroWidth); }
-  prior=current;
 }
-assert.ok(observedPositiveSurplus,'profile set must exercise a positive surplus allocation');
-assert.ok(calculate(390,844,1,24,24,contract,true).conflicts.some(x=>x.includes('SPEC_CONFLICT')&&x.includes('Markdown A.2')));
-assert.ok(calculate(390,844,1,24,24,{...contract,foundation_layout_principles:{...contract.foundation_layout_principles,allocation_when_surplus_positive:{a_to_b_final:'unparseable',b_to_c_final:'unparseable'}}}).conflicts.some(x=>x.includes('表达式')));
+assert.ok(observedPositiveSurplus,'profile set must exercise capped long-screen spacing and outer breathing margins');
+const normal=calculate(390,844,1,24,24,contract,authorityConflict,previewRules);
+assert.equal(normal.actualHeroWidth,273);
+assert.ok(normal.hC>=100&&normal.hC<=120,'normal CaptureActionGroup should fit its measured visible CTA line and camera target');
+assert.ok(normal.gapABExtra<=24&&normal.gapBCExtra<=40);
+assert.ok(calculate(390,844,1,24,24,contract,true,previewRules).conflicts.some(x=>x.includes('SPEC_CONFLICT')&&x.includes('Markdown A.2')));
+assert.ok(calculate(390,844,1,24,24,{...contract,foundation_layout_principles:{...contract.foundation_layout_principles,allocation_when_surplus_positive:{a_to_b_final:'unparseable',b_to_c_final:'unparseable'}}},false,previewRules).actualHeroWidth>0,'preview-only vertical allocation does not parse or overwrite frozen runtime A/B/C allocation');
 
 const response=(body,{status=200,type='application/json'}={})=>new Response(body,{status,headers:{'content-type':type}});
 const digestBytes=async bytes=>crypto.createHash('sha256').update(Buffer.from(bytes)).digest('hex');
@@ -137,4 +157,4 @@ async function runLoaderCases(){
   assert.equal(stale.state,'CANCELLED','an aborted route generation cannot report READY');
 }
 
-runLoaderCases().then(()=>console.log('NH01_STRUCTURED=PASS recursive source-mapped layer tree; 5 profiles × 3 font scales; frozen asset hashes; formula agreement; DOM bounds; HTTP/JSON/timeout/retry/stale-route states')).catch(error=>{console.error(error);process.exitCode=1;});
+runLoaderCases().then(()=>console.log('NH01_STRUCTURED=PASS source-mapped component tree; 8 viewport cases × 3 font scales; frozen and illustrative asset hashes; Hero ratio; Peek spacing/visibility inputs; bounded gaps; footer hit geometry; HTTP/JSON/timeout/retry/stale-route states')).catch(error=>{console.error(error);process.exitCode=1;});

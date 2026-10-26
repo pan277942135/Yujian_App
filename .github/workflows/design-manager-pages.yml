@@ -13,6 +13,7 @@ on:
       - "scripts/verify_design_manager_navigation.py"
       - "scripts/verify_design_manager_hifi_release.py"
       - "scripts/verify_design_manager_browser.mjs"
+      - "scripts/verify_nh01_structured_responsive_layout.mjs"
       - "scripts/verify_private_visual_references.py"
       - "scripts/verify_private_visual_browser.mjs"
       - "scripts/verify_design_manager_live.py"
@@ -31,6 +32,7 @@ on:
       - "scripts/verify_design_manager_navigation.py"
       - "scripts/verify_design_manager_hifi_release.py"
       - "scripts/verify_design_manager_browser.mjs"
+      - "scripts/verify_nh01_structured_responsive_layout.mjs"
       - "scripts/verify_private_visual_references.py"
       - "scripts/verify_private_visual_browser.mjs"
       - "scripts/verify_swos_static_visual_v1_1.py"
@@ -95,6 +97,7 @@ jobs:
           node --check design/manager/app.js
           node --check design/manager/nh01_structured_workspace.js
           node --check scripts/verify_design_manager_browser.mjs
+          node --check scripts/verify_nh01_structured_responsive_layout.mjs
           node tests/nh01_structured_workspace.test.cjs
 
       - name: Fetch PR base for changed-file scope gate
@@ -182,6 +185,11 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          PLAYWRIGHT_MODULE_DIR="$RUNNER_TEMP/dm-playwright/node_modules" \
+            node scripts/verify_nh01_structured_responsive_layout.mjs \
+              --root _site \
+              --expected-build "${BUILD_SHA}" \
+              --output-dir "$RUNNER_TEMP/dm-build-browser"
           PLAYWRIGHT_MODULE_DIR="$RUNNER_TEMP/dm-playwright/node_modules" \
             node scripts/verify_design_manager_browser.mjs \
               --root _site \
@@ -629,6 +637,11 @@ jobs:
               --url "${PAGE_URL}${preview_path}/" \
               --expected-build "$CANDIDATE_SHA" \
               --output-dir "$RUNNER_TEMP/dm-live-evidence/candidate-browser"
+          PLAYWRIGHT_MODULE_DIR="$RUNNER_TEMP/dm-playwright/node_modules" \
+            node scripts/verify_nh01_structured_responsive_layout.mjs \
+              --url "${PAGE_URL}${preview_path}/" \
+              --expected-build "$CANDIDATE_SHA" \
+              --output-dir "$RUNNER_TEMP/dm-live-evidence/nh01-responsive-layout-v2"
 
       - name: Upload independent preview live evidence
         uses: actions/upload-artifact@v4

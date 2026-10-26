@@ -226,6 +226,8 @@ function nh01ResponsiveRuleCanvas(view) {
   const componentTreePath = "design/manager/nh01_acceptance/data/NH01_Component_Tree_V1.json";
   const structurePath = "design/manager/nh01_acceptance/data/NH01_Structure_V1.json";
   const avatarAuthorityPath = "design/pages/home/normal_home/engineering/Visual_Anchor_Asset_Resolution_V1.md";
+  const structuredPreviewRulesPath = "design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_STRUCTURED_PREVIEW_LAYOUT_RULES_V2.json";
+  const structuredPreviewMediaPath = "design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_STRUCTURED_PREVIEW_MEDIA_V1.json";
   const avatarV2Path = "app/src/main/res/drawable-nodpi/normal_home_default_avatar_v2.png";
   const avatarV2Sha256 = "fe94b11ba9f6c0635cd230bcc786fd2ea9a64d1a6f512dc6078556379676f528";
   const timeoutMs = Number(window.__NH01_TEST_TIMEOUT_MS__) || 20000;
@@ -240,7 +242,9 @@ function nh01ResponsiveRuleCanvas(view) {
     { id:"avatar-authority", label:"NH01 专用头像视觉锚点", url:urlFor(avatarAuthorityPath), type:"text", ...responseMime(/text\//i), validate:value => value.includes(avatarV2Path) && value.includes(avatarV2Sha256) && value.includes("approved visual identity for Normal Home") || "NH01 专用头像批准原图或视觉权威记录缺失" },
     { id:"resource-binding", label:"Normal Home 资源绑定", url:urlFor(bindingPath), type:"json", ...responseMime(/application\/json|\+json/i), validate:value => value?.brand_title_binding?.registry_path && value?.camera_primary_binding?.registry_path && Array.isArray(value.resources) || "资源绑定缺少品牌、相机或资源列表" },
     { id:"workspace-js", label:"结构化工作区 JavaScript", url:urlFor(workspacePath), type:"bytes", ...responseMime(/javascript|ecmascript/i), validate:() => typeof window.NH01StructuredWorkspace?.mount === "function" && typeof window.NH01StructuredWorkspace?.createResourceLoader === "function" || "JS 请求已成功，但 NH01StructuredWorkspace.mount/createResourceLoader 未执行或缺失" },
-    { id:"workspace-css", label:"结构化工作区 CSS", url:urlFor(stylePath), type:"bytes", ...responseMime(/text\/css/i), validate:() => { const link=document.querySelector('link[data-resource-id="nh01-workspace-css"]'); return !!link?.sheet || "CSS 请求已成功，但正式样式表未应用"; } }
+    { id:"workspace-css", label:"结构化工作区 CSS", url:urlFor(stylePath), type:"bytes", ...responseMime(/text\/css/i), validate:() => { const link=document.querySelector('link[data-resource-id="nh01-workspace-css"]'); return !!link?.sheet || "CSS 请求已成功，但正式样式表未应用"; } },
+    { id:"structured-preview-rules", label:"PREVIEW_ONLY 结构化布局规则 V2", url:urlFor(structuredPreviewRulesPath), type:"json", ...responseMime(/application\/json|\+json/i), validate:value => value?.rules_id === "NH01_STRUCTURED_PREVIEW_LAYOUT_RULES_V2" && value.status === "PREVIEW_ONLY" && value.hero?.ratio === "247:293" && value.pager?.peek_gap_formula && value.capture_action_group?.camera_touch_target_minimum_dp >= 72 || "PREVIEW_ONLY 布局规则缺少范围、比例或 Pager/Camera 约束" },
+    { id:"structured-preview-media", label:"GENERATED_ILLUSTRATIVE_ONLY 示意媒体清单", url:urlFor(structuredPreviewMediaPath), type:"json", ...responseMime(/application\/json|\+json/i), validate:value => value?.manifest_id === "NH01_STRUCTURED_PREVIEW_MEDIA_V1" && Array.isArray(value.assets) && value.assets.length === 3 && value.assets.every(item=>item.path&&item.sha256&&item.asset_status === "GENERATED_ILLUSTRATIVE_ONLY") || "结构化预览媒体清单缺少 3 张独立示意素材、路径或 SHA-256" }
   ];
   const script = document.querySelector('script[data-resource-id="nh01-workspace-js"]');
   const link = document.querySelector('link[data-resource-id="nh01-workspace-css"]');
@@ -362,7 +366,7 @@ function nh01ResponsiveRuleCanvas(view) {
       root.innerHTML=nh01StaticWorkspaceMarkup(view,manifest,contract);
       const staticRoot=root.querySelector(".nh01-static-workspace");
       if (!staticRoot) throw new Error("NH01 static contract workspace container is missing");
-      window.NH01StructuredWorkspace.mount(root,view,contract,manifest,DESIGN_MANAGER_BUILD,markdownContract,resourceBinding,diagnostics,baseResult.data["component-tree"],baseResult.data["structure-reference"],baseResult.data["avatar-authority"]);
+      window.NH01StructuredWorkspace.mount(root,view,contract,manifest,DESIGN_MANAGER_BUILD,markdownContract,resourceBinding,diagnostics,baseResult.data["component-tree"],baseResult.data["structure-reference"],baseResult.data["avatar-authority"],baseResult.data["structured-preview-rules"],baseResult.data["structured-preview-media"]);
       if (!root.querySelector('[data-testid="nh01-structured-workspace"]') || !root.querySelector("[data-layer-tree]") || !root.querySelector("[data-artboard]") || !root.querySelector("[data-inspector]")) {
         throw new Error("mount() returned without rendering the layer tree, canvas, and property inspector");
       }
