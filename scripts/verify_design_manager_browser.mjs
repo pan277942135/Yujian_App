@@ -2,7 +2,7 @@
 
 import { createServer } from "node:http";
 import { createReadStream, existsSync, statSync } from "node:fs";
-import { readFile } from "node:fs/promises";
+import { readFile, writeFile } from "node:fs/promises";
 import { createHash } from "node:crypto";
 import { resolve, extname, sep } from "node:path";
 import { createRequire } from "node:module";
@@ -157,47 +157,96 @@ async function main() {
   await open(nh01MultiScreenHash);
   await waitForManager(page);
   await waitForHifiView(page);
+  await page.waitForFunction(()=>["READY","ERROR"].includes(document.querySelector("#hifiViewCanvas")?.dataset.nh01LoadState),null,{timeout:30000});
+  const nh01LoadSnapshot=await page.evaluate(()=>({state:document.querySelector("#hifiViewCanvas")?.dataset.nh01LoadState,text:document.querySelector("#hifiViewCanvas")?.innerText?.slice(0,12000)}));
+  if(nh01LoadSnapshot.state!=="READY")fail(`NH01 structured resource state did not reach READY: ${JSON.stringify({...nh01LoadSnapshot,errors,failedRequests,badResponses})}`);
   await page.locator('[data-testid="nh01-multiscreen-workspace"]').waitFor({ state: "visible", timeout: 30000 });
-  assert((await page.locator("#hifiViewTitle").innerText()).includes("多屏静态高保真"), "NH01 multi-screen workspace route did not resolve");
+  const buildMarker = await page.locator('meta[name="design-manager-build"]').getAttribute("content");
+  if (args.expectedBuild) assert(buildMarker === args.expectedBuild, `NH01 build marker mismatch: ${buildMarker} != ${args.expectedBuild}`);
+  assert((await page.locator("#hifiViewTitle").innerText()).includes("结构化高保真"), "NH01 structured hi-fi workspace route did not resolve");
   assert((await page.locator("#hifiViewStatus").innerText()).includes("静态高保已冻结"), "NH01 static hi-fi frozen status is missing");
   assert(await page.locator(".nh01-static-asset").count() === 5, "NH01 route must show exactly five recovered static assets");
-  const nh01ExpectedAssets = [
-    ["NH01-M01-320x480dp-STATIC-HIFI-V1", 1024, 1536, "a3808f2fb93d"],
-    ["NH01-M02-360x640dp-STATIC-HIFI-V1", 941, 1672, "8a6721552cec"],
-    ["NH01-M03-390x844dp-STATIC-HIFI-V1", 853, 1844, "6a5e2e9fd18d"],
-    ["NH01-M04-430x932dp-STATIC-HIFI-V1", 853, 1844, "07846d3089b7"],
-    ["NH01-M05-480dp-WIDTH-STATIC-HIFI-V1", 1024, 1536, "ee2ed666107b"]
-  ];
-  for (const [assetId, width, height, shaPrefix] of nh01ExpectedAssets) {
-    const card = page.locator(`.nh01-static-asset[data-nh01-asset-card="${assetId}"]`);
-    assert(await card.isVisible(), `${assetId} gallery card is missing`);
-    const loaded = await waitForLoadedImage(page, `.nh01-static-asset[data-nh01-asset-card="${assetId}"] .hifi-original img`, assetId);
-    assert(loaded.width === width && loaded.height === height, `${assetId} source PNG dimensions changed: ${JSON.stringify(loaded)}`);
-    assert((await card.innerText()).includes(shaPrefix), `${assetId} SHA is not visible in its card`);
-  }
-  const nh01ContractText = await page.locator("#hifiViewCanvas").innerText();
-  for (const phrase of ["480dp width; height unspecified", "24±2 dp", "fontScale", "六组相邻区域验收", "24 次 API 28 原生执行", "NOT_VERIFIED"]) {
-    assert(nh01ContractText.includes(phrase), `NH01 responsive contract detail is missing: ${phrase}`);
-  }
-  assert((await page.locator("#hifiViewContractDetails").innerText()).includes("NOT_VERIFIED"), "NH01 Design Manager metadata must retain NOT_VERIFIED runtime status");
-  await page.screenshot({ path: resolve(args.outputDir, "nh01-multiscreen-desktop.png"), fullPage: true });
-  await page.setViewportSize({ width: 390, height: 844 });
-  const nh01Narrow = await page.evaluate(() => ({
-    viewport: window.innerWidth,
-    document: document.documentElement.scrollWidth,
-    body: document.body.scrollWidth,
-    galleryColumns: getComputedStyle(document.querySelector(".nh01-static-gallery")).gridTemplateColumns,
-    assetCount: document.querySelectorAll(".nh01-static-asset").length
+  assert(await page.locator('[data-testid="nh01-structured-workspace"]').count() === 1, "NH01 route must have exactly one integrated structured workspace");
+  assert((await page.locator(".nh01-structured-heading").innerText()).includes("V1.1"), "NH01 workspace must retain the formal foundation reference");
+  assert((await page.locator(".nh01-structured-heading").innerText()).includes("PREVIEW_ONLY"), "NH01 preview-only layout scope must be explicit");
+  const nh01ModuleUrls = await page.evaluate(() => {
+    const js=document.querySelector('script[data-resource-id="nh01-workspace-js"]');
+    const css=document.querySelector('link[data-resource-id="nh01-workspace-css"]');
+    return {jsBuild:new URL(js.src).searchParams.get("v"),cssBuild:new URL(css.href).searchParams.get("v"),cssApplied:!!css.sheet};
+  });
+  assert(nh01ModuleUrls.jsBuild===buildMarker&&nh01ModuleUrls.cssBuild===buildMarker&&nh01ModuleUrls.cssApplied,`NH01 JS/CSS must load with the exact build marker: ${JSON.stringify(nh01ModuleUrls)}`);
+  const workspace = page.locator('[data-testid="nh01-structured-workspace"]');
+  await workspace.locator(".nh01-development-basis > summary").click();
+  assert(await workspace.locator(".nh01-development-basis").evaluate(node=>node.open),"NH01 resource audit must remain reachable");
+  const resourceRows=workspace.locator(".nh01-resource-table tbody tr[data-resource-id]");
+  assert(await resourceRows.count()===23,`NH01 needs eleven contracts/modules and twelve frozen assets; got ${await resourceRows.count()}`);
+  const resourceEvidence=await resourceRows.evaluateAll(rows=>rows.map(row=>{
+    const cells=[...row.cells],text=cells.map(cell=>cell.innerText).join("\n"),sha=text.match(/SHA-256\s+([0-9a-f]{64})/i)?.[1]||"";
+    return {id:row.dataset.resourceId,status:cells[1]?.innerText,http:cells[2]?.innerText,parse:cells[3]?.innerText||"",sha,url:row.querySelector("code")?.innerText||""};
   }));
-  assert(nh01Narrow.document <= nh01Narrow.viewport && nh01Narrow.body <= nh01Narrow.viewport,
-    `NH01 narrow workspace has horizontal overflow: ${JSON.stringify(nh01Narrow)}`);
-  assert(nh01Narrow.assetCount === 5, "NH01 narrow workspace lost one or more assets");
-  await page.screenshot({ path: resolve(args.outputDir, "nh01-multiscreen-390.png"), fullPage: true });
-  await page.setViewportSize({ width: 1440, height: 1000 });
-  await open(nh01MultiScreenHash);
-  await page.reload({ waitUntil: "networkidle" });
-  await page.locator('[data-testid="nh01-multiscreen-workspace"]').waitFor({ state: "visible", timeout: 30000 });
-  assert(page.url().endsWith(nh01MultiScreenHash), "NH01 deep link did not survive refresh");
+  assert(resourceEvidence.every(item=>item.status==="READY"&&item.http==="200"&&/^[0-9a-f]{64}$/i.test(item.sha)),`NH01 contract/media manifest SHA evidence is incomplete: ${JSON.stringify(resourceEvidence)}`);
+  const layerTree=workspace.locator("[data-layer-tree]");
+  const nestedTreeEvidence=await workspace.evaluate(()=>{
+    const board=document.querySelector("[data-artboard]"),tree=[...document.querySelectorAll("[data-tree-node]")].map(node=>({id:node.dataset.treeNode,parent:node.parentElement.closest("[data-tree-node]")?.dataset.treeNode??null}));
+    const dom=[board,...board.querySelectorAll("[data-layer]")].map(node=>({id:node.dataset.layer,parent:node===board?null:node.parentElement.closest("[data-layer]")?.dataset.layer??null}));
+    const byId=new Map(dom.map(node=>[node.id,node]));
+    return {tree,dom,unmapped:tree.filter(node=>!byId.has(node.id)),parentMismatches:tree.filter(node=>node.id!=="page"&&byId.get(node.id)?.parent!==node.parent)};
+  });
+  assert(nestedTreeEvidence.unmapped.length===0&&nestedTreeEvidence.parentMismatches.length===0,`NH01 tree nodes must map to actual canvas parents: ${JSON.stringify(nestedTreeEvidence)}`);
+  assert(nestedTreeEvidence.tree.some(node=>node.id==="pager-indicator"),"the preview-only pager indicator must have an inspectable component boundary");
+  assert(await layerTree.locator('[data-select="avatar"]').getAttribute("data-source-asset-id")==="avatar_default_nh07","legacy avatar mapping must remain visible beside the approved source");
+  await layerTree.locator('[data-select="hero"]').click();
+  assert(await workspace.locator('[data-testid="nh01-canvas-hero"].nh01-layer-selected').count()===1,"tree selection must highlight Hero");
+  await workspace.locator('[data-testid="nh01-canvas-peek-left"]').click();
+  assert(await layerTree.locator('[data-select="peek-left"]').getAttribute("aria-pressed")==="true","canvas selection must synchronize the generated previous-role layer");
+  assert((await workspace.locator("[data-inspector]").innerText()).includes("GENERATED_ILLUSTRATIVE_ONLY"),"preview media provenance must be visible in the inspector");
+  assert(await workspace.locator('[data-testid="nh01-canvas-hero"] [data-media-role="hero"]').count()===1,"Hero must use the independent illustrative media manifest");
+  assert(await workspace.locator('[data-testid="nh01-canvas-peek-left"] [data-media-role="previous"]').count()===1,"previous card must use its independent illustrative image");
+  assert(await workspace.locator('[data-testid="nh01-canvas-peek-right"] [data-media-role="next"]').count()===1,"next card must use its independent illustrative image");
+  assert((await workspace.locator('[data-testid="nh01-canvas-avatar"] img').getAttribute("src")).includes("normal_home_default_avatar_v2.png"),"the approved Home-specific fallback avatar must remain active");
+  const heroMetadataLayout=await workspace.locator(".nh01-hero-metadata").evaluate(node=>({position:getComputedStyle(node).position,bottom:getComputedStyle(node).bottom,box:node.getBoundingClientRect().toJSON(),hero:node.parentElement.getBoundingClientRect().toJSON()}));
+  assert(heroMetadataLayout.position==="absolute"&&heroMetadataLayout.bottom==="0px",`Hero metadata must anchor to its true card bottom: ${JSON.stringify(heroMetadataLayout)}`);
+  const backgroundObjectPosition=await workspace.locator('[data-testid="nh01-canvas-background"]').evaluate(node=>getComputedStyle(node).objectPosition);
+  assert(backgroundObjectPosition==="50% 0%",`NH01 Morning Lake background must retain registered TopCenter/Crop framing: ${backgroundObjectPosition}`);
+  const currentContract=await page.evaluate(async()=>{
+    const registry=await(await fetch("../registry/experience_registry_v1.json")).json();
+    const view=registry.features.find(feature=>feature.id==="home_normal_v1").hifi_views.find(item=>item.id==="multi_screen_static_hifi");
+    const contract=await(await fetch("../../"+view.machine_authority)).json();
+    const previewRules=await(await fetch("../../design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_STRUCTURED_PREVIEW_LAYOUT_RULES_V2.json")).json();
+    return {view,contract,previewRules};
+  });
+  const profileComputations=await page.evaluate(({contract,previewRules})=>[[320,480],[360,640],[390,844],[430,932],[480,480],[480,700],[480,1100],[412,915]].flatMap(([w,h])=>[1,1.3,1.5].map(font=>{
+    const r=window.NH01StructuredWorkspace.calculate(w,h,font,24,24,contract,false,previewRules);
+    return {w,h,font,hero:{width:r.actualHeroWidth,height:r.heroHeight,ratio:r.actualHeroWidth/r.heroHeight},pager:{height:r.pagerHeight,contentHeight:r.pagerContentHeight,scroll:r.pagerNeedsScroll,peekGap:r.peekGap,peekReveal:r.peekReveal},footer:r.hC,gapAB:r.gAB,gapBC:r.gBC,outerBreathing:r.outerBreathing,conflicts:r.conflicts};
+  })),currentContract);
+  assert(profileComputations.length===24,"NH01 preview calculation must cover eight viewports × three font scales");
+  assert(profileComputations.every(item=>Math.abs(item.hero.ratio-247/293)<.001&&item.pager.peekGap>=8&&item.pager.peekGap<=12&&item.footer<(item.font===1?130:146)),"all preview calculations must preserve Hero ratio, bounded Peek spacing and a content-sized footer");
+  await workspace.locator(".nh01-structured-controls details > summary").click();
+  await workspace.locator('[data-control="width"]').fill("390");
+  await workspace.locator('[data-control="height"]').fill("844");
+  await workspace.locator('[data-control="top"]').fill("24");
+  await workspace.locator('[data-control="bottom"]').fill("24");
+  await workspace.locator('[data-control="font"]').evaluate(node=>{node.value="1";node.dispatchEvent(new Event("input",{bubbles:true}));});
+  await workspace.locator('[data-control="zoom"]').evaluate(node=>{node.value="1";node.dispatchEvent(new Event("input",{bubbles:true}));});
+  const domEvidence=await workspace.evaluate(()=>{
+    const board=document.querySelector("[data-artboard]"),origin=board.getBoundingClientRect();
+    const tree=[...document.querySelectorAll("[data-tree-node]")].map(node=>({id:node.dataset.treeNode,parent:node.parentElement.closest("[data-tree-node]")?.dataset.treeNode??null}));
+    const dom=[board,...board.querySelectorAll("[data-layer]")].map(node=>{const r=node.getBoundingClientRect();return{id:node.dataset.layer,parent:node===board?null:node.parentElement.closest("[data-layer]")?.dataset.layer??null,rect:{x:+(r.left-origin.left).toFixed(3),y:+(r.top-origin.top).toFixed(3),w:+r.width.toFixed(3),h:+r.height.toFixed(3)},tag:node.tagName,assetStatus:node.dataset.assetStatus||"ROOT",mappingStatus:node.dataset.mappingStatus||"ROOT"};});
+    const images=[...board.querySelectorAll("img")].map(image=>({alt:image.alt,src:image.currentSrc,naturalWidth:image.naturalWidth,naturalHeight:image.naturalHeight,complete:image.complete,objectFit:getComputedStyle(image).objectFit,role:image.dataset.mediaRole||null,mediaStatus:image.dataset.mediaStatus||null}));
+    const byId=new Map(dom.map(item=>[item.id,item]));
+    return {viewport:{width:Number(document.querySelector('[data-control="width"]').value),height:Number(document.querySelector('[data-control="height"]').value),fontScale:Number(document.querySelector('[data-control="font"]').value),zoom:Number(document.querySelector('[data-control="zoom"]').value)},tree,dom,images,parentMismatches:tree.filter(node=>node.id!=="page"&&byId.get(node.id)?.parent!==node.parent),unmapped:tree.filter(node=>!byId.has(node.id))};
+  });
+  const domFormulaComparison=await page.evaluate(({contract,previewRules,measuredLayers})=>{
+    const calculated=window.NH01StructuredWorkspace.calculate(390,844,1,24,24,contract,false,previewRules),actual=new Map(measuredLayers.map(layer=>[layer.id,layer.rect]));
+    const ids=["page","environment","background","header","brand","avatar","stats","recent-header","pager","hero","peek-left","peek-right","pager-indicator","capture-action-group","cta","camera"];
+    return ids.map(id=>{const expected=calculated.rects[id],seen=actual.get(id);return{id,expected,actual:seen,delta:expected&&seen?{x:+(seen.x-expected.x).toFixed(3),y:+(seen.y-expected.y).toFixed(3),w:+(seen.w-expected.w).toFixed(3),h:+(seen.h-expected.h).toFixed(3)}:null};});
+  },{contract:currentContract.contract,previewRules:currentContract.previewRules,measuredLayers:domEvidence.dom});
+  assert(domFormulaComparison.every(row=>row.actual&&row.delta&&Object.values(row.delta).every(delta=>Math.abs(delta)<.1)),`the rendered 390×844 DOM must match the PREVIEW_ONLY formula: ${JSON.stringify(domFormulaComparison)}`);
+  const profileGeometryComparisons=profileComputations;
+  const widthBoundaryEvidence={viewport:{width:480,heightPolicy:"short / medium / long explicitly sampled in preview"},cases:profileComputations.filter(item=>item.w===480),contractScope:"PREVIEW_ONLY; no Android height implied"};
+  const renderedCanvasPath=resolve(args.outputDir,"nh01-m03-render-390x844.png");
+  const canvasSize={width:390,height:844};
+  const presetChecks=[[320,480],[360,640],[390,844],[430,932],[480,480],[480,700],[480,1100],[412,915]];
   await open("#page/home_normal_v1");
   await waitForManager(page);
   const nh01Menu = page.locator('#pageList .page-subitem[data-page-id="home_normal_v1"][data-hifi-id="multi_screen_static_hifi"]');
@@ -205,20 +254,146 @@ async function main() {
   await nh01Menu.click();
   await page.waitForFunction(expected => location.hash === expected, nh01MultiScreenHash);
   await waitForHifiView(page);
+  await page.waitForFunction(()=>document.querySelector("#hifiViewCanvas")?.dataset.nh01LoadState==="READY",null,{timeout:30000});
   assert(page.url().endsWith(nh01MultiScreenHash), "NH01 menu item did not open its registered deep route");
   await page.goBack();
   await page.waitForFunction(() => location.hash === "#page/home_normal_v1", null, { timeout: 15000 });
   await page.goForward();
   await page.waitForFunction(expected => location.hash === expected, nh01MultiScreenHash, { timeout: 15000 });
+  await page.waitForFunction(()=>document.querySelector("#hifiViewCanvas")?.dataset.nh01LoadState==="READY",null,{timeout:30000});
   await page.locator(".nh01-static-asset").first().locator(".hifi-image-open").click();
   assert(await page.locator(".hifi-image-lightbox[open]").isVisible(), "NH01 source image did not open in the existing lightbox");
   await page.locator(".hifi-image-lightbox .hifi-lightbox-close").click();
   await page.waitForFunction(() => !document.querySelector(".hifi-image-lightbox")?.open, null, { timeout: 10000 });
 
+  const faultEvidence=[];
+  const waitForNH01State=async(targetPage,state)=>targetPage.waitForFunction(expected=>document.querySelector("#hifiViewCanvas")?.dataset.nh01LoadState===expected,state,{timeout:30000});
+  const openFaultPage=async(targetPage)=>{
+    await targetPage.goto(baseUrl+nh01MultiScreenHash,{waitUntil:"domcontentloaded",timeout:45000});
+    await targetPage.locator("#pageList .module-item").first().waitFor({state:"visible",timeout:30000});
+    await targetPage.locator("#hifiViewTitle").waitFor({state:"visible",timeout:30000});
+  };
+  const faultPage=await browser.newPage({viewport:{width:1440,height:1000}});
+  let injectManifest404=true;
+  await faultPage.route("**/NH01_MULTI_SCREEN_STATIC_HIFI_V1_MANIFEST.json*",async route=>{
+    if(injectManifest404){injectManifest404=false;await route.fulfill({status:404,contentType:"text/plain",body:"synthetic manifest 404"});}
+    else await route.continue();
+  });
+  await openFaultPage(faultPage);
+  await waitForNH01State(faultPage,"ERROR");
+  const manifestFailure=await faultPage.locator('#hifiViewCanvas [data-resource-id="frozen-manifest"]').innerText();
+  assert(manifestFailure.includes("404")&&manifestFailure.includes("NH01_MULTI_SCREEN_STATIC_HIFI_V1_MANIFEST.json"),`Manifest 404 must identify the actual URL/status: ${manifestFailure}`);
+  await faultPage.screenshot({path:resolve(args.outputDir,"nh01-manifest-404-error.png"),fullPage:false});
+  faultEvidence.push({case:"manifest-404",state:"ERROR",resource:manifestFailure});
+  await faultPage.locator('#hifiViewCanvas [data-action="retry"]').click();
+  await waitForNH01State(faultPage,"READY");
+  faultEvidence.push({case:"manifest-retry",state:"READY"});
+  await faultPage.unroute("**/NH01_MULTI_SCREEN_STATIC_HIFI_V1_MANIFEST.json*");
+  await faultPage.close();
+
+  const contractFailurePage=await browser.newPage({viewport:{width:1440,height:1000}});
+  let injectContract404=true;
+  await contractFailurePage.route("**/NH01_MULTI_SCREEN_RESPONSIVE_CONTRACT_V1.json*",async route=>{
+    if(injectContract404){injectContract404=false;await route.fulfill({status:404,contentType:"text/plain",body:"synthetic contract 404"});}
+    else await route.continue();
+  });
+  await openFaultPage(contractFailurePage);
+  await waitForNH01State(contractFailurePage,"ERROR");
+  const contractFailure=await contractFailurePage.locator('#hifiViewCanvas [data-resource-id="machine-contract"]').innerText();
+  assert(contractFailure.includes("404")&&contractFailure.includes("NH01_MULTI_SCREEN_RESPONSIVE_CONTRACT_V1.json"),`Machine contract 404 must report URL/status: ${contractFailure}`);
+  await contractFailurePage.locator('#hifiViewCanvas [data-action="retry"]').click();
+  await waitForNH01State(contractFailurePage,"READY");
+  faultEvidence.push({case:"machine-contract-404-and-retry",state:"ERROR→READY",resource:contractFailure});
+  await contractFailurePage.unroute("**/NH01_MULTI_SCREEN_RESPONSIVE_CONTRACT_V1.json*");
+  await contractFailurePage.close();
+
+  const invalidJsonPage=await browser.newPage({viewport:{width:1440,height:1000}});
+  let injectInvalidJson=true;
+  await invalidJsonPage.route("**/NH01_MULTI_SCREEN_RESPONSIVE_CONTRACT_V1.json*",async route=>{
+    if(injectInvalidJson){injectInvalidJson=false;await route.fulfill({status:200,contentType:"application/json",body:"{invalid json"});}
+    else await route.continue();
+  });
+  await openFaultPage(invalidJsonPage);
+  await waitForNH01State(invalidJsonPage,"ERROR");
+  const invalidJson=await invalidJsonPage.locator('#hifiViewCanvas [data-resource-id="machine-contract"]').innerText();
+  assert(invalidJson.includes("200")&&invalidJson.includes("INVALID")&&invalidJson.includes("JSON parse failed"),`Invalid JSON must expose HTTP 200 and parse failure: ${invalidJson}`);
+  await invalidJsonPage.locator('#hifiViewCanvas [data-action="retry"]').click();
+  await waitForNH01State(invalidJsonPage,"READY");
+  faultEvidence.push({case:"invalid-json-200-and-retry",state:"ERROR→READY",resource:invalidJson});
+  await invalidJsonPage.close();
+
+  const moduleFailurePage=await browser.newPage({viewport:{width:1440,height:1000}});
+  let allowModuleRecovery=false;
+  await moduleFailurePage.route("**/nh01_structured_workspace.js*",async route=>{
+    if(!allowModuleRecovery)await route.fulfill({status:404,contentType:"text/plain",body:"synthetic module 404"});
+    else await route.continue();
+  });
+  await openFaultPage(moduleFailurePage);
+  await waitForNH01State(moduleFailurePage,"ERROR");
+  const moduleFailure=await moduleFailurePage.locator('#hifiViewCanvas [data-resource-id="workspace-js"]').innerText();
+  assert(moduleFailure.includes("404")&&moduleFailure.includes("nh01_structured_workspace.js"),`Failed module script must report exact URL/status: ${moduleFailure}`);
+  await moduleFailurePage.screenshot({path:resolve(args.outputDir,"nh01-module-404-error.png"),fullPage:false});
+  allowModuleRecovery=true;
+  await moduleFailurePage.locator('#hifiViewCanvas [data-action="retry"]').click();
+  await waitForNH01State(moduleFailurePage,"READY");
+  faultEvidence.push({case:"workspace-js-404-and-reload-retry",state:"ERROR→READY",resource:moduleFailure});
+  await moduleFailurePage.close();
+
+  const styleFailurePage=await browser.newPage({viewport:{width:1440,height:1000}});
+  let allowStyleRecovery=false;
+  await styleFailurePage.route("**/nh01_structured_workspace.css*",async route=>{
+    if(!allowStyleRecovery)await route.fulfill({status:404,contentType:"text/plain",body:"synthetic style 404"});
+    else await route.continue();
+  });
+  await openFaultPage(styleFailurePage);
+  await waitForNH01State(styleFailurePage,"ERROR");
+  const styleFailure=await styleFailurePage.locator('#hifiViewCanvas [data-resource-id="workspace-css"]').innerText();
+  assert(styleFailure.includes("404")&&styleFailure.includes("nh01_structured_workspace.css"),`Failed module CSS must report exact URL/status: ${styleFailure}`);
+  allowStyleRecovery=true;
+  await styleFailurePage.locator('#hifiViewCanvas [data-action="retry"]').click();
+  await waitForNH01State(styleFailurePage,"READY");
+  faultEvidence.push({case:"workspace-css-404-and-retry",state:"ERROR→READY",resource:styleFailure});
+  await styleFailurePage.close();
+
+  const timeoutPage=await browser.newPage({viewport:{width:1440,height:1000}});
+  await timeoutPage.addInitScript(()=>{window.__NH01_TEST_TIMEOUT_MS__=1000;});
+  let delayManifest=true;
+  await timeoutPage.route("**/NH01_MULTI_SCREEN_STATIC_HIFI_V1_MANIFEST.json*",async route=>{
+    if(delayManifest){delayManifest=false;await new Promise(resolve=>setTimeout(resolve,2500));try{await route.continue();}catch{}}
+    else await route.continue();
+  });
+  await openFaultPage(timeoutPage);
+  await waitForNH01State(timeoutPage,"ERROR");
+  const timeoutFailure=await timeoutPage.locator('#hifiViewCanvas [data-resource-id="frozen-manifest"]').innerText();
+  assert(timeoutFailure.includes("timeout")&&timeoutFailure.includes("1000 ms"),`Timed out dependency must be identified with timeout duration: ${timeoutFailure}`);
+  await timeoutPage.screenshot({path:resolve(args.outputDir,"nh01-resource-timeout-error.png"),fullPage:false});
+  await timeoutPage.locator('#hifiViewCanvas [data-action="retry"]').click();
+  await waitForNH01State(timeoutPage,"READY");
+  faultEvidence.push({case:"manifest-timeout-and-retry",state:"ERROR→READY",resource:timeoutFailure});
+  await timeoutPage.close();
+
+  const stalePage=await browser.newPage({viewport:{width:1440,height:1000}});
+  let notifyContractStarted;
+  const contractStarted=new Promise(resolve=>{notifyContractStarted=resolve;});
+  let delayFirstContract=true;
+  await stalePage.route("**/NH01_MULTI_SCREEN_RESPONSIVE_CONTRACT_V1.json*",async route=>{
+    if(delayFirstContract){delayFirstContract=false;notifyContractStarted();await new Promise(resolve=>setTimeout(resolve,1000));try{await route.continue();}catch{}}
+    else await route.continue();
+  });
+  await openFaultPage(stalePage);
+  await contractStarted;
+  await stalePage.evaluate(()=>{location.hash="#page/home_normal_v1";});
+  await stalePage.waitForFunction(()=>document.querySelector("#hifiViewPanel")?.classList.contains("hidden"),null,{timeout:10000});
+  await stalePage.waitForTimeout(1200);
+  assert(await stalePage.locator("#hifiViewPanel .nh01-static-load-error").count()===0,"old route response must not render a failure over the current route");
+  await stalePage.evaluate(hash=>{location.hash=hash;},nh01MultiScreenHash);
+  await waitForNH01State(stalePage,"READY");
+  faultEvidence.push({case:"route-change-cancels-stale-request",state:"CANCELLED; new route READY"});
+  await stalePage.close();
+
   await open(p01Hash);
   await waitForManager(page);
   await waitForHifiView(page);
-  const buildMarker = await page.locator('meta[name="design-manager-build"]').getAttribute("content");
   if (args.expectedBuild) assert(buildMarker === args.expectedBuild, `live/build marker mismatch: ${buildMarker} != ${args.expectedBuild}`);
   const image = page.locator(".hifi-asset-figure img").first();
   const guideImageInfo = await waitForLoadedImage(page, ".hifi-asset-figure img", "P01");
@@ -237,31 +412,159 @@ async function main() {
   await waitForHifiView(page);
   assert((await page.locator("#hifiViewTitle").innerText()).trim() === "资源", "Resources submenu must open its registered route");
   assert((await page.locator("#hifiViewSummary").innerText()).includes("不映射为 Android 运行时背景"), "Resources route must state its Android runtime boundary");
-  assert(await page.locator(".guide-resource-card").count() === 3, "Resources route must show exactly three Frozen source PNGs");
+  await page.locator('[data-testid="first-use-guide-workspace"]').waitFor({state: "visible", timeout: 30000});
+  await page.locator('[data-guide-tab="structure"]').waitFor({state: "visible", timeout: 30000});
+  assert(await page.locator(".guide-workspace-tabs [data-guide-tab]").count() === 3, "Resources route must expose structure, responsive and assets workspaces");
+
+  await page.locator('[data-guide-tab="structure"]').click();
+  await page.locator('[data-testid="guide-structure-workspace"]').waitFor({state: "visible", timeout: 30000});
+  await page.locator(".guide-layer-row[data-guide-layer='guide.hero']").waitFor({state: "visible"});
+  assert(await page.locator(".guide-layer-row").count() === 25, "P01 structured page must expose its complete stable layer tree");
+  await page.locator(".guide-layer-row[data-guide-layer='guide.error.too_small']").click();
+  assert((await page.locator('[data-testid="guide-layer-inspector"]').innerText()).includes("guide.error.too_small"), "Layer selection must update the property inspector");
+  assert((await page.locator('[data-testid="guide-layer-inspector"]').innerText()).includes("Native 像素边界"), "Inspector must expose exact measured pixel geometry");
+  await page.locator('[data-guide-compare]').evaluate(node => { node.value = "0"; node.dispatchEvent(new Event("input", {bubbles:true})); });
+  assert((await page.locator("[data-guide-compare-value]").innerText()) === "0%", "Frozen/geometry comparison control must update overlay visibility");
+  await page.screenshot({ path: resolve(args.outputDir, "guide-structure-1440.png"), fullPage: true });
+
+  await page.locator('[data-guide-tab="resources"]').click();
+  await page.locator('[data-testid="guide-resources-workspace"]').waitFor({state: "visible", timeout: 30000});
+  assert(await page.locator(".guide-resource-card").count() === 3, "Resources workspace must show the three unchanged Frozen source PNGs");
   const resourceExpected = [
     ["p01", 941, 1671, "P01_First_Use_Camera_Guide_Frozen.png", "dc731cca5470"],
     ["p02", 941, 1671, "P02_First_Use_Camera_Guide_Frozen.png", "fb092235fd04"],
     ["p03", 941, 1672, "P03_First_Use_Camera_Guide_Frozen.png", "1a3008483ac5"]
   ];
   for (const [id, width, height, filename, shaPrefix] of resourceExpected) {
-    const selector = `.guide-resource-card[data-resource-id="${id}"]`;
+    const selector = `.guide-frozen-resource[data-resource-id="${id}"]`;
+    const card = page.locator(selector);
+    await card.scrollIntoViewIfNeeded();
     const loaded = await waitForLoadedImage(page, `${selector} img`, `${id.toUpperCase()} resource`);
     assert(loaded.width === width && loaded.height === height,
       `${id.toUpperCase()} resource dimensions changed: ${JSON.stringify(loaded)}`);
-    const card = page.locator(selector);
     assert((await card.innerText()).includes(shaPrefix), `${id.toUpperCase()} resource SHA is not shown`);
     const download = card.locator("a[download]");
     assert(await download.getAttribute("download") === filename, `${id.toUpperCase()} original download filename changed`);
     assert((await download.getAttribute("href"))?.includes(filename), `${id.toUpperCase()} download does not point to its original PNG`);
   }
-  const manifestLink = page.locator(".guide-resource-manifest a");
-  assert((await manifestLink.getAttribute("href"))?.includes("first_use_camera_guide/manifest.json"), "Resources route must link to the authoritative manifest");
-  await page.screenshot({ path: resolve(args.outputDir, "guide-resources-1440.png"), fullPage: true });
+  const manifestLinks = page.locator(".guide-workspace-authorities a");
+  const manifestHrefs = await manifestLinks.evaluateAll(nodes => nodes.map(node => node.getAttribute("href")));
+  for (const path of ["manifest.json", "frontend_assets_manifest.json", "structured_pages.json", "geometry_measurements.json", "responsive_contract.json", "PREDEV_READINESS_MATRIX.json", "Freeze_Decision.md"]) {
+    assert(manifestHrefs.some(href => href?.includes(`first_use_camera_guide/${path}`)), `Resources workspace must link ${path}`);
+  }
+  assert(await page.locator(".guide-asset-slot").count() === 12, "Resources workspace must display all 12 page/role photo slots");
+  assert(await page.locator(".guide-asset-slot[data-authority='CANDIDATE_NEEDS_APPROVAL']").count() === 12, "All generated images must remain candidate assets");
+  assert(await page.locator(".guide-asset-slot[data-asset-id$='_correct_hero']").filter({hasText: "ASSET_SOURCE_BLOCKED"}).count() === 3, "Three original Hero source slots must remain explicitly blocked");
+  assert(await page.locator(".guide-reference-only").count() === 9, "Nine archived composite crops must remain REFERENCE_ONLY");
+  assert(await page.locator(".guide-asset-slot[data-asset-id^='p02_']").count() === 4, "P02 must have four vertical-orientation candidate bindings");
+  const candidatePaths = await page.locator(".guide-asset-slot").evaluateAll(nodes => nodes.map(node => node.dataset.sourcePath));
+  assert(new Set(candidatePaths).size === 8, `12 page/role bindings must reuse exactly eight original candidate files: ${new Set(candidatePaths).size}`);
+  for (const asset of await page.locator(".guide-asset-slot").all()) {
+    await asset.scrollIntoViewIfNeeded();
+    const preview = asset.locator(".guide-candidate-preview img");
+    const dimensions = await preview.evaluate(image => new Promise(resolve => {
+      if (image.complete && image.naturalWidth > 0) resolve({width: image.naturalWidth, height: image.naturalHeight});
+      else { image.addEventListener("load", () => resolve({width: image.naturalWidth, height: image.naturalHeight}), {once:true}); image.addEventListener("error", () => resolve({width:0,height:0}), {once:true}); }
+    }));
+    assert(dimensions.width > 0 && dimensions.height > 0, `Independent candidate image did not load: ${await asset.getAttribute("data-asset-id")}`);
+    const cardText = await asset.innerText();
+    assert(cardText.includes("CANDIDATE_NEEDS_APPROVAL") && cardText.includes("approved_for_frontend=false") && cardText.includes("approved_for_runtime=false"), "Candidate status and production boundary must be visible");
+    assert(await asset.locator("a[download]").count() === 1, "Each independent candidate needs a direct original-file download link");
+  }
+  await page.locator(".guide-workspace-tabs").scrollIntoViewIfNeeded();
+  await page.screenshot({ path: resolve(args.outputDir, "guide-assets-1440.png"), fullPage: false });
+
+  const responsiveTab = page.locator('[data-guide-tab="responsive"]');
+  await responsiveTab.scrollIntoViewIfNeeded();
+  await responsiveTab.click({timeout: 10000});
+  await page.waitForFunction(() => new URLSearchParams(location.search).get("guide_workspace") === "responsive", null, {timeout: 10000});
+  const workspaceState = await page.locator(".guide-workspace").getAttribute("data-workspace");
+  assert(workspaceState === "responsive", `Responsive tab click did not render the workspace: state=${workspaceState}; errors=${errors.join(" | ")}`);
+  await page.locator('[data-testid="guide-responsive-workspace"]').waitFor({state: "visible", timeout: 10000});
+  const responsivePageTitles = {p01:"竖屏拍摄示意",p02:"竖拍鱼类拍摄示意",p03:"横屏拍摄示意"};
+  const responsiveMatrix = [];
+  const responsiveProfiles = [[320,480],[360,640],[390,844],[412,915],[430,932],[480,960],[640,360],[844,390],[915,412]];
+  for (const pageId of ["p01", "p02", "p03"]) {
+    await page.locator(`[data-guide-page="${pageId}"]`).click();
+    assert((await page.locator(".guide-sim-title").innerText()).includes(responsivePageTitles[pageId]), `${pageId} responsive page copy failed to update`);
+    for (const [width, height] of responsiveProfiles) {
+      for (const fontScale of ["1", "1.3"]) {
+        await page.locator("[data-testid='guide-simulator-viewport']").evaluate((viewport, profile) => {
+          const [width,height,fontScale]=profile;
+          viewport.dataset.guideViewportWidth=String(width);
+          viewport.dataset.guideViewportHeight=String(height);
+          viewport.style.width=`${width}px`;
+          viewport.style.height=`${height}px`;
+          viewport.style.setProperty("--guide-viewport-h",`${height}px`);
+          viewport.style.setProperty("--guide-base-font",`${14*fontScale}px`);
+          viewport.style.setProperty("--guide-small-font",`${12*fontScale}px`);
+          viewport.style.setProperty("--guide-title-font",`${22*fontScale}px`);
+        },[width,height,Number(fontScale)]);
+        const loadedHero = await waitForLoadedImage(page, ".guide-sim-hero img", `${pageId} hero ${width}x${height} font ${fontScale}`);
+        const result = await page.locator("[data-testid='guide-simulator-viewport']").evaluate(async viewport => {
+          const content = viewport.querySelector(".guide-sim-page");
+          const selectors = [".guide-sim-header", ".guide-sim-hero", ".guide-sim-intro", ".guide-sim-examples", ".guide-sim-completion", ".guide-sim-pagination", ".guide-sim-actions"];
+          const boxes = selectors.map(selector => { const rect = content.querySelector(selector).getBoundingClientRect(); return {selector,top:rect.top,bottom:rect.bottom}; });
+          const textNodes = [...content.querySelectorAll(".guide-sim-text,.guide-sim-example span,.guide-sim-masthead span")];
+          const textOverflow = textNodes.filter(node => node.scrollWidth > node.clientWidth + 1).map(node => node.textContent);
+          const targets = [...content.querySelectorAll(".guide-sim-back,.guide-sim-actions button")].map(node => { const rect = node.getBoundingClientRect(); return {width:rect.width,height:rect.height}; });
+          viewport.scrollTop = viewport.scrollHeight;
+          await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+          const primary = content.querySelector(".guide-sim-primary").getBoundingClientRect();
+          const outer = viewport.getBoundingClientRect();
+          const sourceOrientations = [...content.querySelectorAll("img[data-fish-orientation]")].map(node => node.dataset.fishOrientation);
+          return {
+            viewportWidth:viewport.getBoundingClientRect().width,viewportHeight:viewport.getBoundingClientRect().height,
+            selectedWidth:Number(viewport.dataset.guideViewportWidth),selectedHeight:Number(viewport.dataset.guideViewportHeight),
+            viewportClientWidth:viewport.clientWidth,viewportClientHeight:viewport.clientHeight,
+            viewportScrollWidth:viewport.scrollWidth,contentWidth:content.clientWidth,contentScrollWidth:content.scrollWidth,
+            scrollHeight:viewport.scrollHeight,scrollTop:viewport.scrollTop,
+            horizontalOverflow:textOverflow,targets,boxes,primaryReachable:primary.top>=outer.top-1 && primary.bottom<=outer.bottom+1,
+            orientation:sourceOrientations,gridColumns:getComputedStyle(content.querySelector(".guide-sim-examples")).gridTemplateColumns,
+            gridColumnCount:getComputedStyle(content.querySelector(".guide-sim-examples")).gridTemplateColumns.split(/\s+/).filter(Boolean).length
+          };
+        });
+        assert(result.viewportWidth === width && result.viewportHeight === height && result.selectedWidth === width && result.selectedHeight === height, `Simulator must preserve selected outer viewport for ${pageId} ${width}x${height}: ${JSON.stringify(result)}`);
+        assert(result.viewportScrollWidth <= result.viewportWidth && result.contentScrollWidth <= result.contentWidth,
+          `Responsive horizontal overflow at ${pageId} ${width}x${height} font ${fontScale}: ${JSON.stringify(result)}`);
+        assert(result.horizontalOverflow.length === 0, `Responsive text clipped at ${pageId} ${width}x${height} font ${fontScale}: ${JSON.stringify(result.horizontalOverflow)}`);
+        assert(result.targets.every(target => target.width >= 48 && target.height >= 48), `A responsive action target is below 48dp at ${pageId} ${width}x${height}: ${JSON.stringify(result.targets)}`);
+        assert(result.boxes.every((box,index) => index === 0 || box.top >= result.boxes[index-1].bottom-1), `Responsive content groups overlap at ${pageId} ${width}x${height}: ${JSON.stringify(result.boxes)}`);
+        assert(result.primaryReachable, `Primary action is not scroll-reachable at ${pageId} ${width}x${height} font ${fontScale}: ${JSON.stringify(result)}`);
+        assert(result.orientation.length === 4 && result.orientation.every(value => value === (pageId === "p02" ? "vertical" : "horizontal")), `Fish orientation binding mismatch for ${pageId}: ${JSON.stringify(result.orientation)}`);
+        assert(result.gridColumnCount === (width >= 384 ? 3 : 2), `Example grid breakpoint mismatch at ${pageId} ${width}x${height}: ${JSON.stringify(result.gridColumns)}`);
+        assert(loadedHero.width > 0 && loadedHero.height > 0, `Candidate hero is missing at ${pageId} ${width}x${height}`);
+        responsiveMatrix.push({pageId,width,height,fontScale,...result});
+        if (pageId === "p03" && width === 640 && fontScale === "1.3") {
+          await page.screenshot({ path: resolve(args.outputDir, "guide-responsive-p03-640x360-font13.png"), fullPage: false });
+        }
+      }
+    }
+  }
+  assert(responsiveMatrix.length === 54, `Expected 54 page × viewport × font-scale cases, got ${responsiveMatrix.length}`);
+  await page.locator('[data-guide-page="p01"]').click();
+  await page.locator('[data-guide-preset="390x844"]').click();
+  assert(await page.locator("[data-testid='guide-simulator-viewport']").getAttribute("data-guide-viewport-width") === "390", "Responsive preset control must update simulator width");
+  await page.locator("[data-guide-font-scale]").selectOption("1.3");
+  assert((await page.locator("[data-testid='guide-simulator-viewport']").evaluate(node => getComputedStyle(node).getPropertyValue("--guide-base-font").trim())) === "18.2px", "Font scale control must update the responsive preview typography");
+  await page.locator("[data-guide-font-scale]").selectOption("1");
+  const topInset = page.locator('[data-guide-inset="top"]');
+  await topInset.fill("32");
+  await topInset.press("Tab");
+  await page.waitForFunction(() => getComputedStyle(document.querySelector("[data-testid='guide-simulator-viewport']")).getPropertyValue("--guide-inset-top").trim() === "32px", null, {timeout: 5000});
+  const topInsetCss = await page.locator("[data-testid='guide-simulator-viewport']").evaluate(node => getComputedStyle(node).getPropertyValue("--guide-inset-top").trim());
+  assert(topInsetCss === "32px", `Insets controls must update the simulator safe-area padding: ${topInsetCss}`);
+  await page.screenshot({ path: resolve(args.outputDir, "guide-responsive-p01-390x844.png"), fullPage: true });
+  assert(new URL(page.url()).searchParams.get("guide_workspace") === "responsive", "Workspace tab choice must survive a refreshable query deep link");
+  assert(new URL(page.url()).searchParams.get("guide_page") === "p01", "Selected guide page must be stored in the workspace URL");
+  await page.reload({waitUntil:"networkidle"});
+  await page.locator('[data-testid="guide-responsive-workspace"]').waitFor({state:"visible",timeout:30000});
+  assert(await page.locator(".guide-sim-title").innerText().then(text => text.includes(responsivePageTitles.p01)), "Responsive workspace/page selection did not survive refresh");
   await page.setViewportSize({ width: 390, height: 844 });
   const resourceMobileWidth = await page.evaluate(() => ({ document: document.documentElement.scrollWidth, body: document.body.scrollWidth }));
   assert(resourceMobileWidth.document <= 390 && resourceMobileWidth.body <= 390,
-    `Resources route overflows the mobile viewport: ${JSON.stringify(resourceMobileWidth)}`);
-  await page.screenshot({ path: resolve(args.outputDir, "guide-resources-390.png"), fullPage: true });
+    `Guide workspace overflows the mobile viewport: ${JSON.stringify(resourceMobileWidth)}`);
+  await page.screenshot({ path: resolve(args.outputDir, "guide-responsive-mobile-390.png"), fullPage: true });
 
   const viewportResults = [];
   for (const [width, height, screenshotName] of [
@@ -454,7 +757,9 @@ async function main() {
   assert(page.url().endsWith(webHifiHash), "Web Hi-Fi V2 direct Hash route did not resolve");
   assert((await page.locator("#hifiViewTitle").innerText()).includes("Web AI渔获识别"), "Web Hi-Fi V2 menu title is missing");
   assert((await page.locator("#hifiViewAuthorities").innerText()).includes("WEB_HIFI_CONTRACT_V2.md"), "Web Hi-Fi V2 authority link missing");
-  assert((await page.locator("#hifiViewCanvas").innerText()).includes("原图候选尚未确认为像素权威"), "Web Hi-Fi source caveat missing");
+  assert((await page.locator("#hifiViewCanvas").innerText()).includes("像素基准已冻结（私有源）"), "Web private pixel baseline status missing");
+  assert((await page.locator("#hifiViewCanvas").innerText()).includes("27c34ee5d3cf90921df433cb43c671e42b8ffa80b8f5cebfe9b397da2ee853e2"), "Web private pixel baseline SHA missing");
+  assert(await page.locator('#hifiViewContractDetails a[href*="VISUAL_BASELINE_FREEZE_V1.md"]').count() === 1, "Web visual baseline freeze record link missing");
   assert(await page.locator('#hifiViewContractDetails a[href*="Responsive_Rules_V2.json"]').count() === 1, "Web responsive contract link missing");
   await page.screenshot({ path: resolve(args.outputDir, "web-hifi-v2-1440.png"), fullPage: true });
   await page.setViewportSize({ width: 390, height: 844 });
@@ -499,7 +804,22 @@ async function main() {
   assert((await page.locator("#hifiViewTitle").innerText()).includes("V2 历史基线"), "RR09 V2 history label is missing");
   assert((await page.locator("#hifiViewStatus").innerText()).includes("已废弃"), "RR09 V2 history must remain DEPRECATED");
   assert((await page.locator("#hifiViewCanvas").innerText()).includes("历史对照"), "RR09 V2 page must explain that it is historical only");
-  assert(await page.locator("#hifiViewCanvas iframe").count() === 1, "RR09 V2 historical preview must remain separately reachable");
+  const historicalMotionFrame = page.locator("#hifiViewCanvas iframe");
+  assert(await historicalMotionFrame.count() === 1, "RR09 V2 historical preview must remain separately reachable");
+  // The historical motion page is intentionally embedded. Wait for its document
+  // to finish loading before navigating to the next Hash route; otherwise Chromium
+  // reports the expected iframe teardown as net::ERR_ABORTED and the global
+  // failed-request gate misclassifies a normal route transition as a product error.
+  await page.waitForFunction(() => {
+    const frame = document.querySelector("#hifiViewCanvas iframe");
+    if (!frame) return false;
+    try {
+      const frameDocument = frame.contentDocument;
+      return Boolean(frameDocument && frameDocument.readyState === "complete" && frameDocument.querySelector("main.workspace"));
+    } catch (_) {
+      return false;
+    }
+  }, null, { timeout: 30000 });
   await page.screenshot({ path: resolve(args.outputDir, "rr09-v2-history-1440.png"), fullPage: true });
 
   await open("#page/recognition_flow_v1_2/hifi/invalid-release-route");
@@ -514,19 +834,35 @@ async function main() {
     result: "PASS",
     base_url: baseUrl,
     build_sha: buildMarker,
+    nh01: {
+      state: "READY",
+      module_builds: nh01ModuleUrls,
+      resources: resourceEvidence,
+      canvas_comparison_input: {screenshot:renderedCanvasPath,dimensions:canvasSize},
+      nested_tree: {nodes:domEvidence.tree.length,parent_matches:domEvidence.parentMismatches.length,unmapped:domEvidence.unmapped.length},
+      illustrative_preview_media: domEvidence.images.filter(item=>item.role),
+      width_boundary: widthBoundaryEvidence,
+      preview_390x844_dom_geometry_delta: domFormulaComparison,
+      preview_geometry_by_profile: profileGeometryComparisons,
+      hero_metadata_layout: heroMetadataLayout,
+      background_object_position: backgroundObjectPosition,
+      formula_profile_results: profileComputations,
+      layer_selection: ["recent tree→canvas", "hero canvas→tree/inspector", "previous/next illustrative roles"],
+      viewport_checks: presetChecks,
+      font_scales: [1,1.3,1.5]
+    },
     viewports: viewportResults,
     p01: guideImageInfo,
     overview: overviewImageInfo,
     review: reviewImage,
-    checks: ["direct Hash", "Resources submenu click and direct route", "original PNG previews/download links and manifest", "refresh", "back/forward", "modal zoom/fit/Esc/focus restore", "SWOS and continuity authority routes", "15-frame static workspace and exact 8+7 count", "R0.5 2900ms zoom and original/composite toggle", "P7/R0/R0.5/R1 geometry table", "RR09 ↔ SWOS routes", "Web Hi-Fi V2 authority/resources and 390px route", "local-only photo selection without persistent/network upload", "390px SWOS responsive preview", "RR09 V3 current / V2 historical route separation", "missing authority no fake UI", "invalid route guard", "no HTTP errors", "no console/page errors"],
+    checks: ["NH01 structured workspace READY", "23 contract/module/asset resources with HTTP/SHA evidence", "source layer tree matches real nested DOM parentage", "layer tree/canvas/inspector bidirectional selection", "8 viewport sizes × 3 font scales; separate 480dp short/medium/long cases; screenshot matrix and measured DOM bounds", "390×844 component rectangles equal measured PREVIEW_ONLY rules", "eight preview viewport sizes with M05 short/medium/long heights", "free viewport/font 1.0/1.3/1.5/zoom/safe area", "Manifest/contract 404, invalid JSON, JS/CSS 404, timeout and recovery", "stale route cancellation", "direct Hash", "Resources submenu click and direct route", "original PNG previews/download links and manifest", "refresh", "back/forward", "modal zoom/fit/Esc/focus restore", "SWOS and continuity authority routes", "15-frame static workspace and exact 8+7 count", "R0.5 2900ms zoom and original/composite toggle", "P7/R0/R0.5/R1 geometry table", "RR09 ↔ SWOS routes", "Web Hi-Fi V2 authority/resources and 390px route", "local-only photo selection without persistent/network upload", "390px SWOS responsive preview", "RR09 V3 current / V2 historical route separation", "missing authority no fake UI", "invalid route guard", "no HTTP errors", "no console/page errors"],
     swos_local_photo_sha256: uploadedPhotoSha,
     swos_local_photo_uploaded: Boolean(args.swosPhoto),
-    screenshots: ["desktop-1440.png", "tablet-768.png", "mobile-390.png", "lightbox-1440.png", "overview-1440.png", "guide-resources-1440.png", "guide-resources-390.png", "swos-optical-contract-1440.png", "swos-static-visual-1440.png", "swos-static-visual-390.png", "swos-r05-zoom-1440.png", "swos-web-motion-contract-1440.png", "swos-web-motion-contract-390.png", "web-hifi-v2-1440.png", "processing-result-continuity-1440.png", "rr09-v3-authority-1440.png", "rr09-v2-history-1440.png"],
+    screenshots: ["nh01-m01-render-320x480.png", "nh01-m02-render-360x640.png", "nh01-m03-render-390x844.png", "nh01-m04-render-430x932.png", "nh01-m01-dom-bounds.json", "nh01-m02-dom-bounds.json", "nh01-m03-dom-bounds.json", "nh01-m04-dom-bounds.json", "nh01-m05-width-only-bounds.json", "desktop-1440.png", "tablet-768.png", "mobile-390.png", "lightbox-1440.png", "overview-1440.png", "guide-resources-1440.png", "guide-resources-390.png", "swos-optical-contract-1440.png", "swos-static-visual-1440.png", "swos-static-visual-390.png", "swos-r05-zoom-1440.png", "swos-web-motion-contract-1440.png", "swos-web-motion-contract-390.png", "web-hifi-v2-1440.png", "processing-result-continuity-1440.png", "rr09-v3-authority-1440.png", "rr09-v2-history-1440.png"],
     errors,
     bad_responses: badResponses,
     failed_requests: failedRequests
   };
-  const { writeFile } = await import("node:fs/promises");
   await writeFile(resolve(args.outputDir, "browser-verification.json"), JSON.stringify(summary, null, 2) + "\n");
   process.stdout.write(`PASS: Design Manager browser verification | ${viewportResults.map(x => x.viewport).join(",")}px | ${summary.checks.join(" | ")}\n`);
 

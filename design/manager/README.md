@@ -243,3 +243,10 @@ Frozen 图片按原始比例完整展示。点击可打开支持放大、缩小�
 - SVG 流程图：`design/system_v3/00_Product_Master_Flow/subflows/Recognition_Full_Flow_Models_V1.svg`
 
 此入口属于 DESIGN_ONLY 业务/技术说明，不增加 Android 产品状态、不修改冻结动效，也不声明 DET_FISH_v0.3 已成为生产默认模型。设计站的流程图预览与运行时/模型验收分别记录。
+
+
+### 首次拍照教学 · 结构化资源工作区
+
+入口：`#page/recognition_flow_v1_2/hifi/capture_first_use_guide/resources`
+
+资源页分为「页面高保真资源」和「前端独立素材」两组，并在直接打开时默认显示资源工作区；结构化高保真与响应式工作区可通过页签切换，选择会保存在 `guide_workspace` 查询参数中。前端独立素材通过 `design/pages/recognition/first_use_camera_guide/frontend_assets_manifest.json` 登记每个页面的正确主图与三个错误示范，并链接 `structured_pages.json` 的组件结构合同。独立照片未核验时显示明确候选/阻塞状态；整页 PNG 不可代替独立照片，也不映射为 Android 运行时背景。

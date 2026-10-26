@@ -27,7 +27,9 @@ execution_policy:
   total_attempts_per_gate: 3
   parallel_execution: "Only tasks explicitly marked PARALLEL may run independently; phase advancement never bypasses dependency gates."
   final_human_gate: "N009"
-  main_merge_allowed: false
+  main_merge_allowed: true
+  main_merge_requires_green_checks: true
+  main_merge_policy: "GREEN_REQUIRED_CHECKS_WITHIN_AUTHORIZED_SCOPE; NO_EXTRA_PER_PR_APPROVAL; N009_RESERVED_FOR_RELEASE"
   force_push_allowed: false
   rebase_allowed: false
   history_rewrite_allowed: false
@@ -444,8 +446,8 @@ tasks:
     depends_on: ["P3-05"]
     entry_blockers: []
     target_blockers: []
-    evidence_required: ["web_hifi_contract_v2", "web_hifi_machine_contracts", "web_hifi_gap_matrix", "web_hifi_validator", "design_manager_navigation", "private_visual_reference_sha_dimensions", "local_viewer_browser_evidence", "visual_reference_component_mapping", "publication_exclusion_gate"]
-    completion: "Web V2 structure, optical/continuity references, responsive and state contracts are main-adopted design authority via PR #190; source image pixel authority, Work B implementation, and runtime visual evidence remain separate gates."
+    evidence_required: ["web_hifi_contract_v2", "web_hifi_machine_contracts", "web_hifi_gap_matrix", "web_hifi_validator", "design_manager_navigation", "private_visual_reference_sha_dimensions", "private_pixel_baseline_freeze_record", "baseline_exact_sha_and_dimensions", "local_memory_comparison_protocol", "local_viewer_browser_evidence", "visual_reference_component_mapping", "publication_exclusion_gate", "fishtrace_sites_web_interaction_contract_v1", "fishtrace_sites_web_interaction_machine_contract", "fishtrace_sites_web_acceptance_matrix", "sites_scope_separation_from_yujian_web_pr177"]
+    completion: "Yujian Web V2 remains adopted for its own product scope; the user-approved FishTrace Sites V1 flow is registered as a separate Sites-only layout/interaction authority. The Sites contract freeze does not imply runtime visual acceptance, model/Mask qualification or deployment PASS."
     human_required: false
     gate_id: "G-WEB-HIFI-CONTRACT"
   P3-07:

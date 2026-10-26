@@ -20,7 +20,7 @@ def main():
         check(document['contract_id'] == 'YUJIAN_AI_CATCH_RECOGNITION_WEB_HIFI_V1', f'{name}: ID')
         check(document['authority_status'] == 'VISUAL_CONTRACT_DEFINED', f'{name}: authority')
         check(document['adoption_status'] == 'MAIN_ADOPTED_DESIGN_ONLY' and document['adoption_pr'] == 190 and document['adopted_source_prs'] == [186, 187] and document['adoption_scope'] == 'DESIGN_CONTRACT_ONLY', f'{name}: main design adoption')
-        check(document['runtime_visual_verified'] is False and document['pixel_frozen_source'] == 'NOT_CONFIRMED', f'{name}: runtime/pixel authority boundary')
+        check(document['runtime_visual_verified'] is False and document['pixel_frozen_source'] == 'FROZEN_PRIVATE_SHA_BOUND' and document.get('pixel_baseline_id') == 'YUJIAN_SWOS_WEB_PIXEL_BASELINE_V1' and document.get('pixel_baseline_contract') == 'design/pages/recognition/web/VISUAL_BASELINE_FREEZE_V1.md', f'{name}: runtime/pixel authority boundary')
         check(document['page_id'] == 'ai_catch_recognition_web', f'{name}: page ID')
         check(bool(document['acceptance_criteria']), f'{name}: acceptance criteria')
     structure = docs['Page_Structure']
@@ -49,16 +49,21 @@ def main():
     for ref in [times[k] for k in ['motion_contract_ref','transition_contract_ref','optical_contract_ref','result_motion_ref','result_media_ref']]:
         check((ROOT / ref).is_file(), f'missing authority {ref}')
     assets = docs['Asset_Manifest']
-    check(assets['approved_web_hifi']['sha256'] == '27c34ee5d3cf90921df433cb43c671e42b8ffa80b8f5cebfe9b397da2ee853e2' and assets['approved_web_hifi']['public_permission'] == 'NOT_CONFIRMED' and assets['approved_web_hifi']['status'] == 'USER_CONFIRMED_VISUAL_REFERENCE', 'confirmed private source and publication gate')
+    check(assets['approved_web_hifi']['sha256'] == '27c34ee5d3cf90921df433cb43c671e42b8ffa80b8f5cebfe9b397da2ee853e2' and assets['approved_web_hifi']['public_permission'] == 'NOT_CONFIRMED' and assets['approved_web_hifi']['status'] == 'USER_CONFIRMED_VISUAL_REFERENCE' and assets['approved_web_hifi']['pixel_authority_status'] == 'FROZEN_PRIVATE_SHA_BOUND', 'frozen private source and publication gate')
+    baseline = load(ROOT / 'design/pages/recognition/web/VISUAL_REFERENCE_MANIFEST_V1.json')['pixel_baseline']
+    check(baseline['baseline_id'] == 'YUJIAN_SWOS_WEB_PIXEL_BASELINE_V1' and baseline['status'] == 'FROZEN_PRIVATE_SHA_BOUND' and baseline['sha256'] == '27c34ee5d3cf90921df433cb43c671e42b8ffa80b8f5cebfe9b397da2ee853e2' and baseline['source_bytes_reverified_this_execution'] is False, 'exact private pixel baseline identity and verification scope')
+    check(assets['pixel_frozen_source'] == 'FROZEN_PRIVATE_SHA_BOUND' and assets['pixel_baseline_id'] == 'YUJIAN_SWOS_WEB_PIXEL_BASELINE_V1' and assets['pixel_baseline_contract'] == 'design/pages/recognition/web/VISUAL_BASELINE_FREEZE_V1.md', 'asset manifest baseline binding')
     registry = load(ROOT / 'design/registry/experience_registry_v1.json')
     feature = next(f for f in registry['features'] if f['id']=='recognition_flow_v1_2')
     view = next(v for v in feature['hifi_views'] if v['id']=='web_hifi_contract_v2')
     check(view['authority'] == 'design/pages/recognition/web/WEB_HIFI_CONTRACT_V2.md', 'Design Manager authority')
     for link in view['contract_links']:
         check((ROOT / link['path']).is_file(), f'missing menu resource {link["path"]}')
-    check(all((ROOT / f'design/pages/recognition/web/{name}').is_file() for name in ['WEB_HIFI_HANDOFF_A_V2.md','WEB_HIFI_GAP_MATRIX_V2.md']), 'handoff/gap')
+    check(all((ROOT / f'design/pages/recognition/web/{name}').is_file() for name in ['WEB_HIFI_HANDOFF_A_V2.md','WEB_HIFI_GAP_MATRIX_V2.md','VISUAL_BASELINE_FREEZE_V1.md']), 'handoff/gap/baseline freeze')
+    check(view.get('pixel_frozen_source') == 'FROZEN_PRIVATE_SHA_BOUND' and view.get('pixel_baseline_id') == 'YUJIAN_SWOS_WEB_PIXEL_BASELINE_V1' and view.get('pixel_baseline_contract') == 'design/pages/recognition/web/VISUAL_BASELINE_FREEZE_V1.md', 'Design Manager baseline binding')
+    check(any(link['path'] == 'design/pages/recognition/web/VISUAL_BASELINE_FREEZE_V1.md' for link in view['contract_links']), 'Design Manager baseline freeze link missing')
     print('WEB_HIFI_CONTRACT_V2=PASS contract_files=9 stages=3 steps=5 states=6 frames=15 duration_ms=3650 responsive_widths=9')
-    print('PIXEL_FROZEN_SOURCE=NOT_CONFIRMED MAIN_ADOPTED=YES_SCOPE=DESIGN_CONTRACT_ONLY RUNTIME_VISUAL_VERIFIED=NO')
+    print('PIXEL_FROZEN_SOURCE=FROZEN_PRIVATE_SHA_BOUND MAIN_ADOPTED=YES_SCOPE=DESIGN_CONTRACT_ONLY RUNTIME_VISUAL_VERIFIED=NO')
 
 if __name__ == '__main__':
     main()

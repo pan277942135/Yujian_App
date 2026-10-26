@@ -2,16 +2,15 @@
 
 ## Live source binding — current audit 2026-10-23
 
-The observations in the G01–G18 table remain a **historical code-review snapshot** of PR #177 HEAD 655c4af07a0244fcf29441b5652c48ca74f2e6a2; they are not proof that each gap remains identical on the live source.
+The G01–G18 rows remain a **historical code-review snapshot** of PR #177 HEAD 655c4af07a0244fcf29441b5652c48ca74f2e6a2; they are not proof that each gap remains identical on the live source. This binding records the current source and executable fixture evidence without rewriting those historical observations.
 
-- Live PR #177 HEAD: ca21e25116cebef0ed393392eb8997a2b7077689 (24 commits ahead / 0 behind product main).
-- Live product main: 6a2064c2a02a76437b6e09a5241bc199cfa05048.
-- Comparison at this audit: **24 commits ahead / 0 behind**; merge base `6a2064c2a02a76437b6e09a5241bc199cfa05048`. Product branch sync is **PASS** for this snapshot. Re-read the live PR and rerun exact-SHA Admission/CI before any later implementation or deployment; this audit snapshot is not a permanent pin.
-- Exact-head CI: [run 39929847089](https://github.com/pan277942135/Yujian/actions/runs/39929847089) **PASS** on ca21e25116cebef0ed393392eb8997a2b7077689; scope is safe targeted validation and Chromium UI simulation only. Production recognition pipeline tests were skipped because the metadata-access review remains unresolved.
-- Preview workflow pin is **STALE** at 4de911dc497c150545d938b60b2694f3c4723e37; it does not match current PR #177 HEAD ca21e25116cebef0ed393392eb8997a2b7077689. Do not use the current preview URL as evidence for the current source. Revision/health SHA and playable browser animation remain **NOT_VERIFIED**.
-- Current production Mask: **NOT_QUALIFIED**. Current runtime visual acceptance: **NOT_VERIFIED**. Browser frame-time evidence: **NOT_RUN**.
+- Live PR #177 HEAD: `8edce561c3b6f25263eb32f1d72706fec4e329b1` (49 commits ahead / 0 behind product main).
+- Live product main and merge base: `738954105d545d9c354136b8b93f3562058fcf30`.
+- Exact-head CI: [run 40057399157](https://github.com/pan277942135/Yujian/actions/runs/40057399157) **PASS**. It includes targeted validation, offline SWOS probe unit tests and Chromium/UI simulation; it does not establish authenticated real-photo inference, SAM output, visual acceptance or production Mask qualification.
+- Prior diagnostic CI [run 39980021942](https://github.com/pan277942135/Yujian/actions/runs/39980021942) identified GLSL reserved word `patch` as the reason for fragment shader compilation failure. The follow-up renamed it and added a required WebGL2 runtime assertion.
+- The current workflow is manual-only with required exact target_sha input. Existing Candidate Revision `yujian-model-factory-console-00349-hes` remains on old source `6da640859f063d7f42ee5432e6b35ecb162802ff`; current PR #177 HEAD `8edce561c3b6f25263eb32f1d72706fec4e329b1` has not yet been deployed. Previous probe [39982073543](https://github.com/pan277942135/Yujian/actions/runs/39982073543) failed before valid inference: 2 requests HTTP 401, 3 fixture downloads HTTP 429.
+- Current production Mask: **NOT_QUALIFIED**. Deployed runtime visual acceptance: **NOT_VERIFIED**. Chromium runtime renderer verification is fixture-only; real-photo browser performance and visual evidence are **NOT_RUN**.
 - The canonical control plane remains in Yujian_App; the separate product repository must not create a competing registry.
-
 
 观察源：`pan277942135/Yujian` PR #177 HEAD `655c4af07a0244fcf29441b5652c48ca74f2e6a2` 的 Product Shell 模板、CSS、识别控制器与照片会话/接续模块。这是代码审查，非运行像素差异；PR 仍 Draft/Open/Unmerged。目标合同为 Main 已采纳的 `YUJIAN_AI_CATCH_RECOGNITION_WEB_HIFI_V1` 及九份机器文件。未经授权原图比对的量化差值保持 `NOT_MEASURED`。
 
@@ -52,4 +51,9 @@ The implementation authority is [SWOS Web Hi-Fi Motion Technical Contract V1.0](
 
 **SAM pipeline boundary:** reuse the existing product implementation in pan277942135/Yujian: app/segmentation_api.py, app/segmentation/service.py, app/segmentation/mask_generator.py, app/segmentation/quality_gate.py and app/segmentation/cutout_builder.py. The existing POST /api/debug/fish-segmentation endpoint is an experiment/debug route, not a public production API. Use a server adapter; do not create a duplicate service, retrain SAM, treat a BBox as a contour, or promote heuristic GOOD to production qualification.
 
-**Current blocker:** PR #177 is three commits behind product main. Before implementation or deployment, synchronize the product branch, rerun Admission and exact-SHA CI, then refresh the input manifest and preview health SHA. Passing static validators or Chromium UI simulation does not close G3–G7 of the technical contract.
+**Current blocker:** Product source is synced with main and exact-source targeted CI passes. The current PR HEAD `8edce561c3b6f25263eb32f1d72706fec4e329b1` has not yet been deployed. The previous probe was invalid due to missing authentication and fixture rate limits; authenticated live inference/SAM, current-source Revision, real-photo browser playback, production Mask qualification and visual acceptance remain pending.
+
+
+## Final visual baseline freeze addendum — 2026-10-24
+
+The source-identity blocker is closed: `web-three-stage` is the unique private Web V2 pixel baseline, SHA-256 `27c34ee5d3cf90921df433cb43c671e42b8ffa80b8f5cebfe9b397da2ee853e2`, 1536×1024, 1,804,497 bytes. The freeze record is [VISUAL_BASELINE_FREEZE_V1.md](VISUAL_BASELINE_FREEZE_V1.md). The historical 14-frame poster remains direction-only; current timing authority is SWOS V1.1, 15 frames / 3650ms. This closes baseline identity and comparison-protocol definition only. Runtime screenshot parity, current-source deployment, real-photo playback, production Mask, performance evidence and user visual acceptance remain open. Public permission is still `NOT_CONFIRMED`; private assets stay local-only.

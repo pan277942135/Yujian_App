@@ -5,9 +5,54 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="design-manager-build" content="__DESIGN_MANAGER_BUILD__">
   <title>渔见设计管理</title>
-  <link rel="stylesheet" href="./styles.css?v=__DESIGN_MANAGER_BUILD__">
+  <script>
+    (() => {
+      const failures = [];
+      const isManagerAsset = target => target instanceof Element &&
+        (target.matches('script[data-resource-id],link[data-resource-id]'));
+      const display = async failure => {
+        let result = 'HTTP 状态未知';
+        try {
+          const response = await fetch(failure.url, { cache: 'no-store' });
+          result = `HTTP ${response.status} · ${response.headers.get('content-type') || 'Content-Type 未提供'}`;
+        } catch (error) {
+          result = `${error.name || 'NetworkError'} · ${error.message || '资源请求失败'}`;
+        }
+        const report = document.getElementById('design-manager-bootstrap-error');
+        if (!report) return;
+        report.hidden = false;
+        report.replaceChildren();
+        const heading = document.createElement('strong');
+        heading.textContent = 'Design Manager 资源加载失败';
+        const details = document.createElement('p');
+        details.textContent = `${failure.id} · ${result}`;
+        const url = document.createElement('code');
+        url.textContent = failure.url;
+        const reason = document.createElement('p');
+        reason.textContent = failure.reason;
+        const retry = document.createElement('button');
+        retry.type = 'button';
+        retry.textContent = '重新加载页面';
+        retry.addEventListener('click', () => location.reload());
+        report.append(heading, details, url, reason, retry);
+      };
+      window.addEventListener('error', event => {
+        const target = event.target;
+        if (isManagerAsset(target)) {
+          const failure = { id: target.dataset.resourceId, url: target.href || target.src, reason: '浏览器报告外部脚本或样式资源加载失败。' };
+          failures.push(failure);
+          if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => display(failure), { once: true });
+          else display(failure);
+        }
+      }, true);
+      window.addEventListener('DOMContentLoaded', () => failures.forEach(display), { once: true });
+    })();
+  </script>
+  <link rel="stylesheet" href="./styles.css?v=__DESIGN_MANAGER_BUILD__" data-resource-id="manager-css">
+  <link rel="stylesheet" href="./nh01_structured_workspace.css?v=__DESIGN_MANAGER_BUILD__" data-resource-id="nh01-workspace-css">
 </head>
 <body>
+  <section id="design-manager-bootstrap-error" class="dm-bootstrap-error" role="alert" aria-live="assertive" hidden></section>
   <div class="app-shell">
     <aside class="sidebar">
       <div class="brand">
@@ -388,7 +433,10 @@
     </main>
   </div>
 
-  <script src="./swos_static_visual.js?v=__DESIGN_MANAGER_BUILD__"></script>
-  <script src="./app.js?v=__DESIGN_MANAGER_BUILD__"></script>
+  <script src="./swos_static_visual.js?v=__DESIGN_MANAGER_BUILD__" data-resource-id="swos-static-js"></script>
+  <script src="./swos_optical_v1_2.js?v=__DESIGN_MANAGER_BUILD__" data-resource-id="swos-optical-js"></script>
+  <script src="./first_use_guide_workspace.js?v=__DESIGN_MANAGER_BUILD__" data-resource-id="first-use-guide-js"></script>
+  <script src="./nh01_structured_workspace.js?v=__DESIGN_MANAGER_BUILD__" data-resource-id="nh01-workspace-js"></script>
+  <script src="./app.js?v=__DESIGN_MANAGER_BUILD__" data-resource-id="manager-app-js"></script>
 </body>
 </html>

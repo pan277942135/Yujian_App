@@ -16,7 +16,8 @@
     "SPEC_FROZEN",
     "VISUAL_MISSING",
     "STATIC_HIFI_FROZEN",
-    "STATIC_RULES_FROZEN"
+    "STATIC_RULES_FROZEN",
+    "PIXEL_BASELINE_FROZEN_PRIVATE"
   ],
   "features": [
     {
@@ -512,7 +513,7 @@
         },
         {
           "id": "multi_screen_static_hifi",
-          "title": "多屏静态高保真 · 响应式规范",
+          "title": "结构化高保真 · 多屏静态与响应式规范",
           "status": "STATIC_HIFI_FROZEN",
           "design_approval_status": "STATIC_RULES_FROZEN",
           "design_version": "V1",
@@ -526,7 +527,7 @@
           "acceptance_matrix": "design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_STATIC_HIFI_ACCEPTANCE_MATRIX_V1.json",
           "native_acceptance_authority": "design/pages/home/normal_home/engineering/NH01_GEMINI_ADAPTIVE_V2_ACCEPTANCE_MATRIX_V1.json",
           "runtime_status": "NOT_VERIFIED",
-          "summary": "五张静态冻结高保真与正式响应式规则工作区。静态资产/规范冻结；Android Runtime 仍为 NOT_VERIFIED，保留当前 24 次原生验收矩阵。",
+          "summary": "NH01 结构化图层、响应式计算与五张冻结高保真对照的统一工作区。静态资产/规范冻结；Android Runtime 仍为 NOT_VERIFIED。",
           "menu_points": [
             "M01–M05 五张原始冻结 PNG",
             "目标 dp 与实际 PNG 像素尺寸分别登记",
@@ -3206,6 +3207,7 @@
               "title": "资源",
               "show_code": false,
               "status": "DESIGN_ONLY",
+              "workspace_readiness_status": "PREDEV_WORKSPACE_WITH_CANDIDATE_PHOTOS",
               "authority_type": "asset_catalog",
               "menu_group": "resource",
               "render_mode": "recognition_guide_resources",
@@ -3217,7 +3219,31 @@
                 "p03"
               ],
               "runtime_visual_authority": false,
-              "summary": "首次拍照教学的三张 Frozen 原始 PNG 静态资源目录。可预览、打开或下载原文件，并查看 Manifest、尺寸、字节数与 SHA-256；仅供设计资源使用，不映射为 Android 运行时背景。"
+              "summary": "首次拍照教学开发前工作区：结构化高保真、响应式模拟与素材清单在原 Resources 路由内提供。该素材工作区仅用于 Design Manager 资产目录，不映射为 Android 运行时背景，也不构成 Android 运行时页面实现。三张 Frozen 整页 PNG 保持原样；8 张独立生成候选图绑定 12 个角色槽位，均未获生产/运行时批准。",
+              "frontend_asset_manifest": "design/pages/recognition/first_use_camera_guide/frontend_assets_manifest.json",
+              "structured_page_manifest": "design/pages/recognition/first_use_camera_guide/structured_pages.json",
+              "geometry_measurement_manifest": "design/pages/recognition/first_use_camera_guide/geometry_measurements.json",
+              "responsive_contract_manifest": "design/pages/recognition/first_use_camera_guide/responsive_contract.json",
+              "readiness_matrix": "design/pages/recognition/first_use_camera_guide/PREDEV_READINESS_MATRIX.json",
+              "freeze_decision": "design/pages/recognition/first_use_camera_guide/Freeze_Decision.md",
+              "workspace_module": "design/manager/first_use_guide_workspace.js",
+              "workspace_tabs": [
+                {
+                  "id": "structure",
+                  "title": "结构化高保真",
+                  "status": "PASS_AFTER_EXACT_HEAD_BROWSER_CHECK"
+                },
+                {
+                  "id": "responsive",
+                  "title": "响应式设计",
+                  "status": "PASS_AFTER_EXACT_HEAD_BROWSER_CHECK"
+                },
+                {
+                  "id": "resources",
+                  "title": "资源",
+                  "status": "PASS_WITH_CANDIDATE_AND_BLOCKED_STATES"
+                }
+              ]
             }
           ],
           "visual_status": "FROZEN",
@@ -3752,6 +3778,11 @@
               "label": "SWOS Web 高保真动效技术合同 V1.0",
               "route": "#page/recognition_flow_v1_2/hifi/swos_web_hifi_motion_contract_v1_0",
               "note": "真实可播放实现、SAM 复用与浏览器验收"
+            },
+            {
+              "label": "15 · SWOS/RR09 光学数值标定与验收 V1.2",
+              "route": "#page/recognition_flow_v1_2/hifi/swos_rr09_optical_v1_2",
+              "note": "正式冻结时序继承；新增数值待用户校准"
             }
           ],
           "runtime_status": "NOT_RUN",
@@ -3780,6 +3811,10 @@
             {
               "label": "原始视觉参考登记与结构映射（私有本地查看）",
               "path": "design/pages/recognition/web/VISUAL_REFERENCE_MANIFEST_V1.json"
+            },
+            {
+              "label": "Web 最终视觉基准冻结记录 V1（私有 SHA 绑定）",
+              "path": "design/pages/recognition/web/VISUAL_BASELINE_FREEZE_V1.md"
             }
           ],
           "runtime_visual_verified": false,
@@ -3790,18 +3825,19 @@
           "id": "web_hifi_contract_v2",
           "title": "13 · Web AI渔获识别 · 全量高保真合同 V2",
           "status": "DESIGN_ONLY",
-          "design_status": "VISUAL_CONTRACT_DEFINED",
+          "design_status": "PIXEL_BASELINE_FROZEN_PRIVATE",
           "adoption_status": "MAIN_ADOPTED_DESIGN_ONLY",
           "render_mode": "authority_index",
           "authority": "design/pages/recognition/web/WEB_HIFI_CONTRACT_V2.md",
           "machine_authority": "design/pages/recognition/web/contracts/Page_Structure_V2.json",
-          "summary": "用户确认1536×1024原图已登记；支持本地SHA校验、结构映射和实现截图对照。三阶段/五节点与九机器合同保持；公开权限未确认，运行视觉未验收。",
+          "summary": "Web V2 主视觉基准已按 web-three-stage 精确 SHA 冻结为私有像素基准；本地查看器会在选择原图时校验 SHA、尺寸和字节数。公开许可仍未确认，当前 Runtime 像素一致性、真实动效和 Mask 资格仍未验收。",
           "menu_points": [
             "Handoff A：产品外壳、三阶段、五节点与 Result 结构",
             "全量合同：Token、几何、响应式和 3+2 状态",
-            "SWOS 七层、15 帧及 R0.5 引用 #186/#187 的来源内容，已由 PR #190 纳入 Main",
+            "SWOS 七层、15 帧及 R0.5 继续遵循独立现行合同",
             "Web PR #177 Gap Matrix 与 Work B Handoff B",
-            "用户确认原图已核验；仅浏览器本地查看，公开权限未确认，像素Runtime未验收"
+            "主视觉基准已冻结：1536×1024 · SHA-256 27c34ee5d3cf90921df433cb43c671e42b8ffa80b8f5cebfe9b397da2ee853e2",
+            "私有源仅本地内存校验；公开许可 NOT_CONFIRMED，Runtime 像素一致性与用户验收仍未通过"
           ],
           "contract_links": [
             {
@@ -3847,6 +3883,10 @@
             {
               "label": "原始视觉参考登记与结构映射（私有本地查看）",
               "path": "design/pages/recognition/web/VISUAL_REFERENCE_MANIFEST_V1.json"
+            },
+            {
+              "label": "Web 最终视觉基准冻结记录 V1（私有 SHA 绑定）",
+              "path": "design/pages/recognition/web/VISUAL_BASELINE_FREEZE_V1.md"
             }
           ],
           "related_routes": [
@@ -3860,15 +3900,17 @@
             }
           ],
           "runtime_status": "NOT_RUN",
-          "asset_pixel_authority": "NOT_CONFIRMED",
+          "asset_pixel_authority": "FROZEN_PRIVATE_SHA_BOUND",
           "adoption_pr": 190,
           "source_prs": [
             186,
             187
           ],
           "runtime_visual_verified": false,
-          "pixel_frozen_source": "NOT_CONFIRMED",
-          "visual_reference_manifest": "design/pages/recognition/web/VISUAL_REFERENCE_MANIFEST_V1.json"
+          "pixel_frozen_source": "FROZEN_PRIVATE_SHA_BOUND",
+          "visual_reference_manifest": "design/pages/recognition/web/VISUAL_REFERENCE_MANIFEST_V1.json",
+          "pixel_baseline_id": "YUJIAN_SWOS_WEB_PIXEL_BASELINE_V1",
+          "pixel_baseline_contract": "design/pages/recognition/web/VISUAL_BASELINE_FREEZE_V1.md"
         },
         {
           "id": "swos_web_hifi_motion_contract_v1_0",
@@ -3913,6 +3955,10 @@
             {
               "label": "SWOS 动态 Demo 技术交接",
               "path": "design/pages/recognition/processing/optics/SWOS_Dynamic_Demo_Technical_Handoff_V1.md"
+            },
+            {
+              "label": "Web 最终视觉基准冻结记录 V1（私有 SHA 绑定）",
+              "path": "design/pages/recognition/web/VISUAL_BASELINE_FREEZE_V1.md"
             }
           ],
           "related_routes": [
@@ -3930,6 +3976,87 @@
               "label": "Web 全量高保真合同 V2",
               "route": "#page/recognition_flow_v1_2/hifi/web_hifi_contract_v2",
               "note": "产品页面结构、状态与响应式权威"
+            },
+            {
+              "label": "15 · SWOS/RR09 光学数值标定与验收 V1.2",
+              "route": "#page/recognition_flow_v1_2/hifi/swos_rr09_optical_v1_2",
+              "note": "正式冻结时序继承；新增数值待用户校准"
+            }
+          ]
+        },
+        {
+          "id": "swos_rr09_optical_v1_2",
+          "title": "15 · SWOS/RR09 光学参数与验收 V1.2",
+          "code": "15",
+          "status": "FROZEN",
+          "render_mode": "swos_optical_parameters_v1_2",
+          "authority_type": "technical_contract",
+          "page_id": "swos.rr09.optical_rendering_acceptance.v1_2",
+          "state_id": "DESIGN_ONLY",
+          "state_id_scope": "Contract frozen as implementation input; numeric calibration candidate, NOT runtime/visual PASS",
+          "authority": "design/pages/recognition/processing/optics/SWOS_RR09_Optical_Rendering_Acceptance_Contract_V1_2.md",
+          "machine_authority": "design/pages/recognition/processing/optics/SWOS_RR09_Optical_Parameters_V1_2.json",
+          "secondary_authority": "design/pages/recognition/processing/optics/SWOS_RR09_Visual_Acceptance_V1_2.json",
+          "contract_freeze_status": "FROZEN_CONTRACT_INPUT",
+          "existing_anchors_status": "FROZEN_EXISTING",
+          "numeric_calibration_status": "CALIBRATION_CANDIDATE_NOT_VISUALLY_APPROVED",
+          "runtime_visual_status": "NOT_VERIFIED",
+          "production_mask_status": "NOT_QUALIFIED",
+          "summary": "V1.2 实施合同已冻结入 Design Manager：15 帧/两条相对强度/三层金光/R0.5 继承既有正式冻结；颜色/Alpha/覆盖率/速度/羽化/折射/混合均是首轮候选，未获用户视觉签核；真实照片/Mask/迁移/中文揭晓/性能必须另行实测，不能误报 PASS。",
+          "menu_points": [
+            "01 · 已冻结：P0–P7 + R0/R0.5/R1–R5 / 2800+850=3650ms",
+            "02 · 已冻结：水光相对强度 0/10/45/75/60/35/10/0",
+            "03 · 已冻结：鱼体金光 0/0/15/45/100/100/100/100",
+            "04 · 候选色板：水青 #67BDCA / 银蓝 #C1E9EE / 核心金 #FFE3A6",
+            "05 · 候选焦散：10–18 不规则柔斑；传播 0.30–0.40 H/s；P3 覆盖 25–38%",
+            "06 · 候选聚焦：早期距轮廓 0.22–0.28 L，峰值 Halo 0.06–0.10 L",
+            "07 · 候选三层：Core 1–2.5px、Glow 4–10px、Halo 12–28px",
+            "08 · 独立退场：P4→P7 环境 60→35→10→0；鱼体始终 100",
+            "09 · R0.5：同一照片、统一 M(t)、真实迁移中点；R2 Bézier→中文 Glyph Mask",
+            "10 · 验收未完成：真实照片/Mask/九视口/连续录屏/真实性能/用户视觉签核"
+          ],
+          "contract_links": [
+            {
+              "label": "正式 V1.2 光学与验收合同",
+              "path": "design/pages/recognition/processing/optics/SWOS_RR09_Optical_Rendering_Acceptance_Contract_V1_2.md"
+            },
+            {
+              "label": "机器光学参数 V1.2 · 含候选数值",
+              "path": "design/pages/recognition/processing/optics/SWOS_RR09_Optical_Parameters_V1_2.json"
+            },
+            {
+              "label": "机器验收矩阵 V1.2 · NOT_RUN",
+              "path": "design/pages/recognition/processing/optics/SWOS_RR09_Visual_Acceptance_V1_2.json"
+            },
+            {
+              "label": "已冻结 SWOS 15 帧 V1.1",
+              "path": "design/pages/recognition/processing/optics/SWOS_15_Frame_Keyframe_Contract_V1_1.json"
+            },
+            {
+              "label": "共享照片迁移 V1",
+              "path": "design/pages/recognition/continuity/SWOS_Shared_Photo_Transition_Contract_V1.json"
+            },
+            {
+              "label": "RR09 Motion V3",
+              "path": "design/pages/recognition/result/motion/Recognition_Result_Motion_Spec_V3.md"
+            }
+          ],
+          "related_routes": [
+            {
+              "label": "10 · SWOS 光学合同",
+              "route": "#page/recognition_flow_v1_2/hifi/swos_optical_contract"
+            },
+            {
+              "label": "12 · SWOS 15 帧静态视觉",
+              "route": "#page/recognition_flow_v1_2/hifi/swos_static_visual_v1_1"
+            },
+            {
+              "label": "14 · SWOS Web 高保真技术合同",
+              "route": "#page/recognition_flow_v1_2/hifi/swos_web_hifi_motion_contract_v1_0"
+            },
+            {
+              "label": "RR09 V3",
+              "route": "#page/recognition_result_v1/hifi/motion_continuation"
             }
           ]
         }

@@ -10,7 +10,7 @@ const ICONS = {
   FROZEN: "✓", ACTIVE_CLOSURE: "◐", PARTIAL: "◒", MISSING: "×",
   DEFERRED: "↷", BLOCKED_INTEGRITY: "!", RUNTIME_ONLY: "↗",
   DESIGN_ONLY: "◇", DEPRECATED: "—", CANDIDATE: "◐",
-  STATIC_HIFI_FROZEN: "✓", STATIC_RULES_FROZEN: "✓"
+  STATIC_HIFI_FROZEN: "✓", STATIC_RULES_FROZEN: "✓", PIXEL_BASELINE_FROZEN_PRIVATE: "✓"
 };
 
 const STATUS_LABELS = {
@@ -18,7 +18,8 @@ const STATUS_LABELS = {
   MISSING: "缺失", DEFERRED: "已延后", BLOCKED_INTEGRITY: "完整性阻塞",
   RUNTIME_ONLY: "仅运行时", DESIGN_ONLY: "仅设计",
   DEPRECATED: "已废弃", CANDIDATE: "候选",
-  STATIC_HIFI_FROZEN: "静态高保已冻结", STATIC_RULES_FROZEN: "响应式规则已冻结"
+  STATIC_HIFI_FROZEN: "静态高保已冻结", STATIC_RULES_FROZEN: "响应式规则已冻结",
+  PIXEL_BASELINE_FROZEN_PRIVATE: "像素基准已冻结（私有源）"
 };
 
 const MODALITY_LABELS = {
@@ -123,104 +124,261 @@ function nh01RuleList(items) {
   return '<ul>' + (items || []).map(item => '<li>' + esc(item) + '</li>').join('') + '</ul>';
 }
 
+function nh01StaticWorkspaceMarkup(view, manifest, contract) {
+  const assets = manifest.assets || [];
+  const original = manifest.original_reference || {};
+  const assetCards = assets.map(asset => {
+    const target = asset.target_viewport_dp || {};
+    const pixels = asset.actual_canvas_px || {};
+    const targetLabel = target.height == null
+      ? (asset.viewport_note || (target.width + ' dp 宽；高度未固定'))
+      : target.width + '×' + target.height + ' dp';
+    return '<article class="nh01-static-asset" data-nh01-asset-card="' + esc(asset.asset_id) + '">' +
+      '<div class="nh01-static-asset-head"><div><span class="nh01-static-asset-id">' + esc(asset.asset_id) + '</span>' +
+        '<h3>' + esc(targetLabel) + '</h3></div>' + statusBadge(asset.status) + '</div>' +
+      '<p class="nh01-static-dimensions">目标视口：' + esc(targetLabel) + '<br>实际画布：' + esc(pixels.width + '×' + pixels.height + ' px') + '</p>' +
+      hifiImageFigure(asset.path, asset.asset_id, targetLabel + ' · PNG ' + pixels.width + '×' + pixels.height + ' px', asset.sha256) +
+      '<dl class="nh01-static-asset-facts"><div><dt>Asset ID</dt><dd>' + esc(asset.asset_id) + '</dd></div>' +
+        '<div><dt>SHA-256</dt><dd><code>' + esc(asset.sha256) + '</code></dd></div>' +
+        '<div><dt>冻结版本</dt><dd>' + esc(asset.version || 'V1') + ' · ' + esc(asset.status) + '</dd></div></dl>' +
+    '</article>';
+  }).join('');
+  const typographyRows = (contract.typography?.roles || []).map(role =>
+    '<tr><th scope="row">' + esc(role.role) + '</th><td>' + esc(role.base_ratio == null ? role.visual_size_dp : 'safeHeight×' + role.base_ratio) + '</td>' +
+      '<td>' + esc(role.minimum_sp == null ? '—' : role.minimum_sp + '–' + role.maximum_sp + ' sp') + '</td>' +
+      '<td>' + esc(role.line_height_ratio == null ? '—' : role.line_height_ratio + '×') + '</td>' +
+      '<td>' + esc(role.system_font_scale) + '</td></tr>'
+  ).join('');
+  const spacingRows = (contract.spacing?.title_to_card_targets_dp_at_font_scale_1_0 || []).map(row =>
+    '<tr><th scope="row">' + esc(row.viewport) + '</th><td>' + esc(row.target + '±' + row.tolerance + ' dp') + '</td><td>' + esc(row.authority) + '</td></tr>'
+  ).join('');
+  const intervals = (contract.spacing?.required_adjacent_interval_measurements || []).map(row =>
+    '<tr><th scope="row">' + esc(row.id) + '</th><td>' + esc(row.bounds) + '</td><td>' + esc(row.reference) + '</td><td>' + nh01RuleList(row.checks) + '</td></tr>'
+  ).join('');
+  const structure = (contract.page_structure || []).map(item => '<li>' + esc(item) + '</li>').join('');
+  const hero = contract.hero_and_peek || {};
+  const camera = contract.camera_and_touch || {};
+  const bg = contract.background_avatar_photos || {};
+  const native = contract.native_acceptance || {};
+  return '<div class="nh01-static-workspace" data-testid="nh01-multiscreen-workspace">' +
+    '<section class="nh01-static-freeze-banner"><div><span class="nh01-static-eyebrow">NH01 · 有数据首页 · V1</span>' +
+      '<h2>五屏静态高保真与响应式合同</h2><p>五张原始冻结稿按原始比例展示。目标 dp 视口与 PNG 实际像素尺寸分别登记。</p></div>' +
+      '<div class="nh01-static-statuses">' + statusBadge(manifest.status) + statusBadge(manifest.rules_status) +
+        '<span class="nh01-runtime-pill">Android · ' + esc(manifest.android_runtime_status) + '</span></div></section>' +
+    '<section class="nh01-static-original"><div class="nh01-static-original-copy"><span class="nh01-static-eyebrow">原始参考 · 保持不变</span>' +
+      '<h3>1080×1920 px → 360×640 dp 逻辑参考</h3><p>原始 NH01 V1 整页冻结图继续是原始视觉 Authority；M01–M05 是新增样本，不替换它。</p>' +
+      '<code>' + esc(original.path) + '</code><p>SHA-256 · <code>' + esc(original.historical_sha256) + '</code></p></div>' +
+      hifiImageFigure(original.path, 'NH01 原始冻结参考 V1', '原始画布 1080×1920 px · 逻辑参考 360×640 dp', original.historical_sha256) + '</section>' +
+    '<section class="nh01-static-section"><div class="nh01-static-section-head"><div><span class="nh01-static-eyebrow">ASSET REGISTER</span><h2>五张冻结设计稿</h2></div><p>逐张登记目标逻辑视口、Asset ID、冻结状态与实际 PNG 尺寸</p></div>' +
+      '<div class="nh01-static-gallery">' + assetCards + '</div></section>' +
+    '<section class="nh01-static-section"><div class="nh01-static-section-head"><div><span class="nh01-static-eyebrow">RESPONSIVE CONTRACT</span><h2>页面结构与单调响应式</h2></div></div>' +
+      '<div class="nh01-static-two-col"><article class="nh01-static-rule-card"><h3>页面结构</h3><ol>' + structure + '</ol></article>' +
+      '<article class="nh01-static-rule-card"><h3>尺寸变化</h3><p>' + esc(contract.responsive_monotonicity.key_rule) + '</p>' +
+        '<p><strong>文字倍率：</strong><code>' + esc(contract.responsive_monotonicity.font_viewport_scale_formula) + '</code></p>' +
+        '<p><strong>Hero 主卡：</strong><code>' + esc(contract.responsive_monotonicity.hero_width_formula) + '</code></p>' +
+        '<p><strong>相机视觉：</strong><code>' + esc(contract.responsive_monotonicity.camera_visual_formula) + '</code></p>' +
+        '<p>' + esc(contract.responsive_monotonicity.forbidden) + '</p></article></div></section>' +
+    '<section class="nh01-static-section"><div class="nh01-static-section-head"><div><span class="nh01-static-eyebrow">TYPE SCALE</span><h2>字体角色</h2></div><p>系统 fontScale 由 Compose sp 应用一次</p></div>' +
+      '<div class="nh01-static-table-wrap"><table><thead><tr><th>角色</th><th>基准字号来源</th><th>范围</th><th>行高</th><th>fontScale 行为</th></tr></thead><tbody>' + typographyRows + '</tbody></table></div>' +
+      '<div class="nh01-static-note">' + esc(contract.typography.font_scale_behavior) + '</div></section>' +
+    '<section class="nh01-static-section"><div class="nh01-static-section-head"><div><span class="nh01-static-eyebrow">HERO · PEEK · TOUCH</span><h2>主卡、邻卡与底部触控</h2></div></div>' +
+      '<div class="nh01-static-facts-grid"><article><span>主 Hero</span><strong>' + esc(hero.hero_ratio) + '</strong><small>最大目标宽 ' + esc(hero.hero_target_width_max_dp) + ' dp · 最大高 ' + esc(hero.hero_height_max_dp) + ' dp</small></article>' +
+        '<article><span>真实 Peek</span><strong>宽 ≤' + esc(Math.round(hero.peek.width_max_relative_to_main * 100)) + '%</strong><small>高 ' + esc(Math.round(hero.peek.height_relative_to_main * 100)) + '% · 顶偏移 ' + esc(hero.peek.top_offset_dp) + ' dp · 重叠 ≤' + esc(hero.peek.max_geometry_overlap_dp) + ' dp</small></article>' +
+        '<article><span>相机视觉 / 触控</span><strong>' + esc(camera.camera_visual_size_dp.minimum + '–' + camera.camera_visual_size_dp.maximum) + ' dp / ≥' + esc(camera.camera_touch_target_dp.minimum_width) + '×' + esc(camera.camera_touch_target_dp.minimum_height) + ' dp</strong><small>其他动作触控 ≥' + esc(camera.other_action_touch_target_dp.minimum) + ' dp</small></article></div>' +
+      '<div class="nh01-static-note">' + esc(hero.single_record) + ' ' + esc(camera.grouping) + ' ' + esc(camera.safe_area) + '</div></section>' +
+    '<section class="nh01-static-section"><div class="nh01-static-section-head"><div><span class="nh01-static-eyebrow">VISIBLE GAP TARGETS</span><h2>Recent Catch 标题到主卡片</h2></div><p>fontScale 1.0× · 原生 boundsInWindow 测量定义</p></div>' +
+      '<div class="nh01-static-table-wrap"><table><thead><tr><th>目标视口</th><th>可见间距</th><th>权威范围</th></tr></thead><tbody>' + spacingRows + '</tbody></table></div>' +
+      '<div class="nh01-static-note nh01-static-note-warning">' + esc(contract.spacing.extension_conflict) + '</div></section>' +
+    '<section class="nh01-static-section"><div class="nh01-static-section-head"><div><span class="nh01-static-eyebrow">MEASUREMENT METHOD</span><h2>六组相邻区域验收</h2></div><p>每次记录真实 dp、fontScale、布局和截图/bounds</p></div>' +
+      '<div class="nh01-static-table-wrap"><table><thead><tr><th>区域</th><th>测量边界</th><th>当前引用</th><th>检查项</th></tr></thead><tbody>' + intervals + '</tbody></table></div></section>' +
+    '<section class="nh01-static-two-col"><article class="nh01-static-rule-card"><span class="nh01-static-eyebrow">SHORT WINDOW</span><h2>短屏与安全区</h2>' +
+      nh01RuleList(contract.short_screen_and_safe_area.priority_order.concat(contract.short_screen_and_safe_area.forbidden)) +
+      '<p>真实窗口不满足时，记录 ' + esc(contract.short_screen_and_safe_area.failure_states.join(' / ')) + '；静态图不是原生通过证据。</p></article>' +
+      '<article class="nh01-static-rule-card"><span class="nh01-static-eyebrow">BACKGROUND · AVATAR · PHOTO</span><h2>背景与头像边界</h2>' +
+        '<p>' + esc(bg.background) + '</p><p>' + esc(bg.avatar) + '</p><p>' + esc(bg.photo) + '</p></article></section>' +
+    '<section class="nh01-static-native-status"><div><span class="nh01-static-eyebrow">ANDROID NATIVE ACCEPTANCE</span><h2>状态：' + esc(native.status) + '</h2>' +
+      '<p>现行矩阵仍是 ' + esc(native.existing_matrix_cases) + ' 次 API 28 原生执行：4 个窗口 × 3 种系统字体缩放 × 2 种布局。实际证据齐全前保持 NOT_VERIFIED。</p>' +
+      '<p>M05 是 480 dp 宽度边界，不指定窗口高度，也不追加第五组原生测试。</p></div>' +
+      '<a href="' + esc(repoHref(view.native_acceptance_authority)) + '" target="_blank" rel="noreferrer">查看完整原生验收矩阵 ↗</a></section>' +
+    '<footer class="nh01-static-workspace-footer">完整响应式合同与新旧权威交叉表 · <a href="' + esc(repoHref(view.machine_authority)) + '" target="_blank" rel="noreferrer">机器可读 JSON ↗</a> · <a href="' + esc(repoHref(view.authority)) + '" target="_blank" rel="noreferrer">完整 Markdown 合同 ↗</a></footer></div>';
+}
+
+const nh01LoadHandles = new WeakMap();
+
+function cancelNH01ResourceLoad(root = el("hifiViewCanvas")) {
+  const active = root && nh01LoadHandles.get(root);
+  if (!active) return;
+  active.base?.abort();
+  active.assets?.abort();
+  active.cancelled = true;
+  nh01LoadHandles.delete(root);
+}
+
 function nh01ResponsiveRuleCanvas(view) {
-  const root = el('hifiViewCanvas');
-  const token = view.id + ':' + (view.visual_authority_manifest || '');
+  const root = el("hifiViewCanvas");
+  cancelNH01ResourceLoad(root);
+  const token = `${view.id}:${view.visual_authority_manifest}:${Date.now()}:${Math.random()}`;
   root.dataset.nh01ResponsiveToken = token;
-  root.innerHTML = '<div class="nh01-static-loading" role="status">正在载入冻结资产清单与响应式合同…</div>';
-  Promise.all([
-    fetch(repoHref(view.visual_authority_manifest)).then(response => {
-      if (!response.ok) throw new Error('Asset manifest HTTP ' + response.status);
-      return response.json();
-    }),
-    fetch(repoHref(view.machine_authority)).then(response => {
-      if (!response.ok) throw new Error('Responsive contract HTTP ' + response.status);
-      return response.json();
-    })
-  ]).then(([manifest, contract]) => {
+  root.dataset.nh01LoadState = "IDLE";
+  const workspacePath = "design/manager/nh01_structured_workspace.js";
+  const stylePath = "design/manager/nh01_structured_workspace.css";
+  const bindingPath = "design/system_v3/09_Android_Implementation_Contracts/Normal_Home/Normal_Home_Resource_Binding_V1.json";
+  const componentTreePath = "design/manager/nh01_acceptance/data/NH01_Component_Tree_V1.json";
+  const structurePath = "design/manager/nh01_acceptance/data/NH01_Structure_V1.json";
+  const avatarAuthorityPath = "design/pages/home/normal_home/engineering/Visual_Anchor_Asset_Resolution_V1.md";
+  const structuredPreviewRulesPath = "design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_STRUCTURED_PREVIEW_LAYOUT_RULES_V2.json";
+  const structuredPreviewMediaPath = "design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_STRUCTURED_PREVIEW_MEDIA_V1.json";
+  const avatarV2Path = "app/src/main/res/drawable-nodpi/normal_home_default_avatar_v2.png";
+  const avatarV2Sha256 = "fe94b11ba9f6c0635cd230bcc786fd2ea9a64d1a6f512dc6078556379676f528";
+  const timeoutMs = Number(window.__NH01_TEST_TIMEOUT_MS__) || 20000;
+  const urlFor = path => path.startsWith("http") ? path : repoHref(path);
+  const responseMime = pattern => ({ mime: pattern });
+  const baseSpecs = [
+    { id:"frozen-manifest", label:"冻结资产 Manifest", url:urlFor(view.visual_authority_manifest), type:"json", ...responseMime(/application\/json|\+json/i), validate:value => Array.isArray(value?.assets) && value.assets.length === 5 && value.status === "STATIC_HIFI_FROZEN" && value.original_reference?.path && value.original_reference?.historical_sha256 && value.assets.every(asset=>asset.path&&asset.sha256) || "Manifest 缺少 5 张冻结资产、原始参考 SHA 或必要路径" },
+    { id:"machine-contract", label:"响应式机器合同 JSON", url:urlFor(view.machine_authority), type:"json", ...responseMime(/application\/json|\+json/i), validate:value => Boolean(value?.contract_id && value?.foundation_layout_principles && value?.spacing?.existing_adaptive_formulas) || "响应式机器合同结构不完整" },
+    { id:"markdown-contract", label:"正式 Markdown 合同", url:urlFor(view.authority), type:"text", ...responseMime(/text\//i), validate:value => value.includes("A.2 Long-screen surplus allocation") || "Markdown 合同缺少 A.2 正式公式段落" },
+    { id:"component-tree", label:"NH01 组件父子树", url:urlFor(componentTreePath), type:"json", ...responseMime(/application\/json|\+json/i), validate:value => value?.document_type === "component_tree" && value?.root?.id === "41:30" && Array.isArray(value.root.children) || "NH01 组件树缺少已登记页面根节点及子节点" },
+    { id:"structure-reference", label:"NH01 结构与样例文本", url:urlFor(structurePath), type:"json", ...responseMime(/application\/json|\+json/i), validate:value => Boolean(value?.document_type === "structure" && value?.frame?.id === "41:30" && Array.isArray(value?.preview_fixture?.statistics) && value?.preview_fixture?.hero) || "NH01 结构样例缺少页面结构、统计或 Hero 样例数据" },
+    { id:"avatar-authority", label:"NH01 专用头像视觉锚点", url:urlFor(avatarAuthorityPath), type:"text", ...responseMime(/text\//i), validate:value => value.includes(avatarV2Path) && value.includes(avatarV2Sha256) && value.includes("approved visual identity for Normal Home") || "NH01 专用头像批准原图或视觉权威记录缺失" },
+    { id:"resource-binding", label:"Normal Home 资源绑定", url:urlFor(bindingPath), type:"json", ...responseMime(/application\/json|\+json/i), validate:value => value?.brand_title_binding?.registry_path && value?.camera_primary_binding?.registry_path && Array.isArray(value.resources) || "资源绑定缺少品牌、相机或资源列表" },
+    { id:"workspace-js", label:"结构化工作区 JavaScript", url:urlFor(workspacePath), type:"bytes", ...responseMime(/javascript|ecmascript/i), validate:() => typeof window.NH01StructuredWorkspace?.mount === "function" && typeof window.NH01StructuredWorkspace?.createResourceLoader === "function" || "JS 请求已成功，但 NH01StructuredWorkspace.mount/createResourceLoader 未执行或缺失" },
+    { id:"workspace-css", label:"结构化工作区 CSS", url:urlFor(stylePath), type:"bytes", ...responseMime(/text\/css/i), validate:() => { const link=document.querySelector('link[data-resource-id="nh01-workspace-css"]'); return !!link?.sheet || "CSS 请求已成功，但正式样式表未应用"; } },
+    { id:"structured-preview-rules", label:"PREVIEW_ONLY 结构化布局规则 V2", url:urlFor(structuredPreviewRulesPath), type:"json", ...responseMime(/application\/json|\+json/i), validate:value => value?.rules_id === "NH01_STRUCTURED_PREVIEW_LAYOUT_RULES_V2" && value.status === "PREVIEW_ONLY" && value.hero?.ratio === "247:293" && value.pager?.peek_gap_formula && value.capture_action_group?.camera_touch_target_minimum_dp >= 72 || "PREVIEW_ONLY 布局规则缺少范围、比例或 Pager/Camera 约束" },
+    { id:"structured-preview-media", label:"GENERATED_ILLUSTRATIVE_ONLY 示意媒体清单", url:urlFor(structuredPreviewMediaPath), type:"json", ...responseMime(/application\/json|\+json/i), validate:value => value?.manifest_id === "NH01_STRUCTURED_PREVIEW_MEDIA_V1" && Array.isArray(value.assets) && value.assets.length === 3 && value.assets.every(item=>item.path&&item.sha256&&item.asset_status === "GENERATED_ILLUSTRATIVE_ONLY") || "结构化预览媒体清单缺少 3 张独立示意素材、路径或 SHA-256" }
+  ];
+  const script = document.querySelector('script[data-resource-id="nh01-workspace-js"]');
+  const link = document.querySelector('link[data-resource-id="nh01-workspace-css"]');
+  const wantedBuild = new URL(urlFor(workspacePath), document.baseURI).searchParams.get("v");
+  const actualScriptBuild = script ? new URL(script.src).searchParams.get("v") : null;
+  const actualStyleBuild = link ? new URL(link.href).searchParams.get("v") : null;
+  root.innerHTML = '<div class="nh01-static-loading" data-testid="nh01-resource-loader" role="status" aria-live="polite"><strong>正在载入冻结资产清单与响应式合同…</strong><p>逐项校验正式依赖、HTTP 状态与冻结素材 SHA-256。请求超时后会显示错误和重试入口。</p><div data-resource-report></div></div>';
+  const renderProgress = (state, resources, error = null, retry = false) => {
     if (root.dataset.nh01ResponsiveToken !== token) return;
-    const assets = manifest.assets || [];
-    const original = manifest.original_reference || {};
-    const assetCards = assets.map(asset => {
-      const target = asset.target_viewport_dp || {};
-      const pixels = asset.actual_canvas_px || {};
-      const targetLabel = target.height == null
-        ? (asset.viewport_note || (target.width + ' dp 宽；高度未固定'))
-        : target.width + '×' + target.height + ' dp';
-      return '<article class="nh01-static-asset" data-nh01-asset-card="' + esc(asset.asset_id) + '">' +
-        '<div class="nh01-static-asset-head"><div><span class="nh01-static-asset-id">' + esc(asset.asset_id) + '</span>' +
-          '<h3>' + esc(targetLabel) + '</h3></div>' + statusBadge(asset.status) + '</div>' +
-        '<p class="nh01-static-dimensions">目标视口：' + esc(targetLabel) + '<br>实际画布：' + esc(pixels.width + '×' + pixels.height + ' px') + '</p>' +
-        hifiImageFigure(asset.path, asset.asset_id, targetLabel + ' · PNG ' + pixels.width + '×' + pixels.height + ' px', asset.sha256) +
-        '<dl class="nh01-static-asset-facts"><div><dt>Asset ID</dt><dd>' + esc(asset.asset_id) + '</dd></div>' +
-          '<div><dt>SHA-256</dt><dd><code>' + esc(asset.sha256) + '</code></dd></div>' +
-          '<div><dt>冻结版本</dt><dd>' + esc(asset.version || 'V1') + ' · ' + esc(asset.status) + '</dd></div></dl>' +
-      '</article>';
-    }).join('');
-    const typographyRows = (contract.typography?.roles || []).map(role =>
-      '<tr><th scope="row">' + esc(role.role) + '</th><td>' + esc(role.base_ratio == null ? role.visual_size_dp : 'safeHeight×' + role.base_ratio) + '</td>' +
-        '<td>' + esc(role.minimum_sp == null ? '—' : role.minimum_sp + '–' + role.maximum_sp + ' sp') + '</td>' +
-        '<td>' + esc(role.line_height_ratio == null ? '—' : role.line_height_ratio + '×') + '</td>' +
-        '<td>' + esc(role.system_font_scale) + '</td></tr>'
-    ).join('');
-    const spacingRows = (contract.spacing?.title_to_card_targets_dp_at_font_scale_1_0 || []).map(row =>
-      '<tr><th scope="row">' + esc(row.viewport) + '</th><td>' + esc(row.target + '±' + row.tolerance + ' dp') + '</td><td>' + esc(row.authority) + '</td></tr>'
-    ).join('');
-    const intervals = (contract.spacing?.required_adjacent_interval_measurements || []).map(row =>
-      '<tr><th scope="row">' + esc(row.id) + '</th><td>' + esc(row.bounds) + '</td><td>' + esc(row.reference) + '</td><td>' + nh01RuleList(row.checks) + '</td></tr>'
-    ).join('');
-    const structure = (contract.page_structure || []).map(item => '<li>' + esc(item) + '</li>').join('');
-    const hero = contract.hero_and_peek || {};
-    const camera = contract.camera_and_touch || {};
-    const bg = contract.background_avatar_photos || {};
-    const native = contract.native_acceptance || {};
-    root.innerHTML = '<div class="nh01-static-workspace" data-testid="nh01-multiscreen-workspace">' +
-      '<section class="nh01-static-freeze-banner"><div><span class="nh01-static-eyebrow">NH01 · 有数据首页 · V1</span>' +
-        '<h2>五屏静态高保真与响应式合同</h2><p>五张原始冻结稿按原始比例展示。目标 dp 视口与 PNG 实际像素尺寸分别登记。</p></div>' +
-        '<div class="nh01-static-statuses">' + statusBadge(manifest.status) + statusBadge(manifest.rules_status) +
-          '<span class="nh01-runtime-pill">Android · ' + esc(manifest.android_runtime_status) + '</span></div></section>' +
-      '<section class="nh01-static-original"><div class="nh01-static-original-copy"><span class="nh01-static-eyebrow">原始参考 · 保持不变</span>' +
-        '<h3>1080×1920 px → 360×640 dp 逻辑参考</h3><p>原始 NH01 V1 整页冻结图继续是原始视觉 Authority；M01–M05 是新增样本，不替换它。</p>' +
-        '<code>' + esc(original.path) + '</code><p>SHA-256 · <code>' + esc(original.historical_sha256) + '</code></p></div>' +
-        hifiImageFigure(original.path, 'NH01 原始冻结参考 V1', '原始画布 1080×1920 px · 逻辑参考 360×640 dp', original.historical_sha256) + '</section>' +
-      '<section class="nh01-static-section"><div class="nh01-static-section-head"><div><span class="nh01-static-eyebrow">ASSET REGISTER</span><h2>五张冻结设计稿</h2></div><p>逐张登记目标逻辑视口、Asset ID、冻结状态与实际 PNG 尺寸</p></div>' +
-        '<div class="nh01-static-gallery">' + assetCards + '</div></section>' +
-      '<section class="nh01-static-section"><div class="nh01-static-section-head"><div><span class="nh01-static-eyebrow">RESPONSIVE CONTRACT</span><h2>页面结构与单调响应式</h2></div></div>' +
-        '<div class="nh01-static-two-col"><article class="nh01-static-rule-card"><h3>页面结构</h3><ol>' + structure + '</ol></article>' +
-        '<article class="nh01-static-rule-card"><h3>尺寸变化</h3><p>' + esc(contract.responsive_monotonicity.key_rule) + '</p>' +
-          '<p><strong>文字倍率：</strong><code>' + esc(contract.responsive_monotonicity.font_viewport_scale_formula) + '</code></p>' +
-          '<p><strong>Hero 主卡：</strong><code>' + esc(contract.responsive_monotonicity.hero_width_formula) + '</code></p>' +
-          '<p><strong>相机视觉：</strong><code>' + esc(contract.responsive_monotonicity.camera_visual_formula) + '</code></p>' +
-          '<p>' + esc(contract.responsive_monotonicity.forbidden) + '</p></article></div></section>' +
-      '<section class="nh01-static-section"><div class="nh01-static-section-head"><div><span class="nh01-static-eyebrow">TYPE SCALE</span><h2>字体角色</h2></div><p>系统 fontScale 由 Compose sp 应用一次</p></div>' +
-        '<div class="nh01-static-table-wrap"><table><thead><tr><th>角色</th><th>基准字号来源</th><th>范围</th><th>行高</th><th>fontScale 行为</th></tr></thead><tbody>' + typographyRows + '</tbody></table></div>' +
-        '<div class="nh01-static-note">' + esc(contract.typography.font_scale_behavior) + '</div></section>' +
-      '<section class="nh01-static-section"><div class="nh01-static-section-head"><div><span class="nh01-static-eyebrow">HERO · PEEK · TOUCH</span><h2>主卡、邻卡与底部触控</h2></div></div>' +
-        '<div class="nh01-static-facts-grid"><article><span>主 Hero</span><strong>' + esc(hero.hero_ratio) + '</strong><small>最大目标宽 ' + esc(hero.hero_target_width_max_dp) + ' dp · 最大高 ' + esc(hero.hero_height_max_dp) + ' dp</small></article>' +
-          '<article><span>真实 Peek</span><strong>宽 ≤' + esc(Math.round(hero.peek.width_max_relative_to_main * 100)) + '%</strong><small>高 ' + esc(Math.round(hero.peek.height_relative_to_main * 100)) + '% · 顶偏移 ' + esc(hero.peek.top_offset_dp) + ' dp · 重叠 ≤' + esc(hero.peek.max_geometry_overlap_dp) + ' dp</small></article>' +
-          '<article><span>相机视觉 / 触控</span><strong>' + esc(camera.camera_visual_size_dp.minimum + '–' + camera.camera_visual_size_dp.maximum) + ' dp / ≥' + esc(camera.camera_touch_target_dp.minimum_width) + '×' + esc(camera.camera_touch_target_dp.minimum_height) + ' dp</strong><small>其他动作触控 ≥' + esc(camera.other_action_touch_target_dp.minimum) + ' dp</small></article></div>' +
-        '<div class="nh01-static-note">' + esc(hero.single_record) + ' ' + esc(camera.grouping) + ' ' + esc(camera.safe_area) + '</div></section>' +
-      '<section class="nh01-static-section"><div class="nh01-static-section-head"><div><span class="nh01-static-eyebrow">VISIBLE GAP TARGETS</span><h2>Recent Catch 标题到主卡片</h2></div><p>fontScale 1.0× · 原生 boundsInWindow 测量定义</p></div>' +
-        '<div class="nh01-static-table-wrap"><table><thead><tr><th>目标视口</th><th>可见间距</th><th>权威范围</th></tr></thead><tbody>' + spacingRows + '</tbody></table></div>' +
-        '<div class="nh01-static-note nh01-static-note-warning">' + esc(contract.spacing.extension_conflict) + '</div></section>' +
-      '<section class="nh01-static-section"><div class="nh01-static-section-head"><div><span class="nh01-static-eyebrow">MEASUREMENT METHOD</span><h2>六组相邻区域验收</h2></div><p>每次记录真实 dp、fontScale、布局和截图/bounds</p></div>' +
-        '<div class="nh01-static-table-wrap"><table><thead><tr><th>区域</th><th>测量边界</th><th>当前引用</th><th>检查项</th></tr></thead><tbody>' + intervals + '</tbody></table></div></section>' +
-      '<section class="nh01-static-two-col"><article class="nh01-static-rule-card"><span class="nh01-static-eyebrow">SHORT WINDOW</span><h2>短屏与安全区</h2>' +
-        nh01RuleList(contract.short_screen_and_safe_area.priority_order.concat(contract.short_screen_and_safe_area.forbidden)) +
-        '<p>真实窗口不满足时，记录 ' + esc(contract.short_screen_and_safe_area.failure_states.join(' / ')) + '；静态图不是原生通过证据。</p></article>' +
-        '<article class="nh01-static-rule-card"><span class="nh01-static-eyebrow">BACKGROUND · AVATAR · PHOTO</span><h2>背景与头像边界</h2>' +
-          '<p>' + esc(bg.background) + '</p><p>' + esc(bg.avatar) + '</p><p>' + esc(bg.photo) + '</p></article></section>' +
-      '<section class="nh01-static-native-status"><div><span class="nh01-static-eyebrow">ANDROID NATIVE ACCEPTANCE</span><h2>状态：' + esc(native.status) + '</h2>' +
-        '<p>现行矩阵仍是 ' + esc(native.existing_matrix_cases) + ' 次 API 28 原生执行：4 个窗口 × 3 种系统字体缩放 × 2 种布局。实际证据齐全前保持 NOT_VERIFIED。</p>' +
-        '<p>M05 是 480 dp 宽度边界，不指定窗口高度，也不追加第五组原生测试。</p></div>' +
-        '<a href="' + esc(repoHref(view.native_acceptance_authority)) + '" target="_blank" rel="noreferrer">查看完整原生验收矩阵 ↗</a></section>' +
-      '<footer class="nh01-static-workspace-footer">完整响应式合同与新旧权威交叉表 · <a href="' + esc(repoHref(view.machine_authority)) + '" target="_blank" rel="noreferrer">机器可读 JSON ↗</a> · <a href="' + esc(repoHref(view.authority)) + '" target="_blank" rel="noreferrer">完整 Markdown 合同 ↗</a></footer></div>';
-    root.querySelectorAll('.hifi-image-open').forEach(button => button.addEventListener('click', () => openHifiImageLightbox(button)));
-  }).catch(error => {
-    if (root.dataset.nh01ResponsiveToken !== token) return;
-    root.innerHTML = '<div class="nh01-static-load-error" role="alert"><strong>冻结合同载入失败</strong><p>' + esc(error.message) + '</p>' +
-      '<a href="' + esc(repoHref(view.visual_authority_manifest)) + '" target="_blank" rel="noreferrer">打开资产清单 ↗</a></div>';
-  });
+    root.dataset.nh01LoadState = state;
+    const rows = resources.map(item => `<tr data-resource-id="${esc(item.id)}"><td>${esc(item.label)}</td><td>${esc(item.status)}</td><td>${esc(item.http_status ?? "—")}</td><td>${esc(item.parse_result || "—")}</td><td><code>${esc(item.url)}</code><br>Content-Type ${esc(item.content_type||"未返回")} · SHA-256 ${esc(item.sha256||"未计算")}<br>开始 ${esc(item.started_at||"未开始")} · 完成 ${esc(item.completed_at||"进行中")}${item.failure_reason ? `<br><strong>${esc(item.failure_kind)} · ${esc(item.failure_reason)}</strong>` : ""}</td></tr>`).join("");
+    const report = `<table class="nh01-resource-table"><thead><tr><th>资源</th><th>状态</th><th>HTTP</th><th>解析</th><th>URL / SHA / 原因</th></tr></thead><tbody>${rows || '<tr><td colspan="5">等待首个资源状态…</td></tr>'}</tbody></table>`;
+    const loading = state === "LOADING" || state === "RETRYING";
+    const title = state === "READY" ? "资源核验完成" : state === "IDLE" ? "等待开始资源校验" : loading ? (state === "RETRYING" ? "正在重试资源…" : "正在载入冻结资产清单与响应式合同…") : "冻结资产与响应式合同载入失败";
+    const button = state === "ERROR" ? '<button type="button" data-action="retry">重试全部资源</button>' : "";
+    const body = `<div class="nh01-static-${state === "ERROR" ? "load-error" : "loading"}" data-testid="nh01-resource-loader" role="${state === "ERROR" ? "alert" : "status"}" aria-live="polite"><strong>${title}</strong>${error ? `<p>${esc(error)}</p>` : `<p>${loading ? "逐项校验 HTTP、内容类型、JSON 与冻结素材 SHA-256。" : "已核验必要合同、工作区模块、样式及冻结/正式图片资源。"}</p>`}${report}${button}</div>`;
+    const current = root.querySelector('[data-testid="nh01-multiscreen-workspace"]');
+    if (current && state === "READY") {
+      const details = current.querySelector("[data-resource-report]");
+      if (details) details.innerHTML = report;
+    } else root.innerHTML = body;
+  };
+  renderProgress("IDLE",[]);
+  const missingModuleFallback = async () => {
+    const url = script?.src || urlFor(workspacePath);
+    const record = { id:"workspace-js", label:"结构化工作区 JavaScript", url, status:"LOADING", http_status:null, parse_result:"NOT_STARTED", sha256:null, failure_kind:null, failure_reason:null };
+    renderProgress("LOADING", [record]);
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      const response = await fetch(url, { cache:"no-store", signal:controller.signal });
+      record.http_status = response.status;
+      if (!response.ok) throw Object.assign(new Error(`HTTP ${response.status}`), { kind:"http" });
+      throw new Error("文件已返回 2xx，但脚本未执行并未暴露 mount()；检查脚本语法、执行顺序和控制台错误。");
+    } catch (error) {
+      record.status="ERROR";
+      record.failure_kind=controller.signal.aborted ? "timeout" : (error.kind || "script_execution");
+      record.failure_reason=controller.signal.aborted ? `请求超时（${timeoutMs} ms）` : String(error.message || error);
+      record.completed_at=new Date().toISOString();
+      renderProgress("ERROR",[record],"工作区模块无法挂载。修复后点击重试即可重新载入页面依赖。");
+      root.querySelector('[data-action="retry"]')?.addEventListener("click", () => location.reload());
+    } finally { clearTimeout(timer); }
+  };
+  if (wantedBuild !== DESIGN_MANAGER_BUILD || actualScriptBuild !== DESIGN_MANAGER_BUILD || actualStyleBuild !== DESIGN_MANAGER_BUILD) {
+    const mismatch = [{ id:"workspace-build", label:"工作区 JS/CSS 构建标识", url:script?.src || urlFor(workspacePath), status:"ERROR", http_status:null, parse_result:"BUILD_MISMATCH", sha256:null, failure_kind:"version", failure_reason:`HTML=${DESIGN_MANAGER_BUILD}; JS=${actualScriptBuild}; CSS=${actualStyleBuild}` }];
+    renderProgress("ERROR", mismatch, "结构化资源与当前 Design Manager 构建 SHA 不一致；请清除旧缓存后重试。");
+    root.querySelector('[data-action="retry"]')?.addEventListener("click", () => location.reload());
+    return;
+  }
+  if (typeof window.NH01StructuredWorkspace?.createResourceLoader !== "function" || typeof window.NH01StructuredWorkspace?.mount !== "function") {
+    missingModuleFallback();
+    return;
+  }
+  const active = {
+    cancelled:false,
+    base:null,
+    assets:null,
+    abort(){ this.cancelled=true; this.base?.abort(); this.assets?.abort(); }
+  };
+  nh01LoadHandles.set(root, active);
+  let baseDiagnostics=[];
+  let assetDiagnostics=[];
+  const update = snapshot => renderProgress(snapshot.state === "READY" ? "LOADING" : snapshot.state, [...baseDiagnostics,...assetDiagnostics], null, snapshot.state === "RETRYING");
+  active.base = window.NH01StructuredWorkspace.createResourceLoader({ timeoutMs, onUpdate:snapshot=>{baseDiagnostics=snapshot.resources;update(snapshot);} });
+  active.assets = window.NH01StructuredWorkspace.createResourceLoader({ timeoutMs, onUpdate:snapshot=>{assetDiagnostics=snapshot.resources;update(snapshot);} });
+  const toAssetSpec=(id,label,path,sha,mime=/image\/png/i)=>({ id,label,url:urlFor(path),type:"bytes",mime,expectedSha256:sha,validate:value=>value?.sha256===sha || `Asset bytes SHA-256 mismatch for ${path}` });
+  async function run(retrying=false) {
+    if (active.cancelled || root.dataset.nh01ResponsiveToken !== token) return;
+    baseDiagnostics=[]; assetDiagnostics=[];
+    renderProgress(retrying ? "RETRYING" : "LOADING", []);
+    let baseResult;
+    try { baseResult=await active.base.load(baseSpecs,{retry:retrying}); }
+    catch (error) { renderProgress("ERROR",baseDiagnostics,String(error)); root.querySelector('[data-action="retry"]')?.addEventListener("click",()=>run(true)); return; }
+    if (active.cancelled || root.dataset.nh01ResponsiveToken !== token) return;
+    if (baseResult.state !== "READY") {
+      renderProgress("ERROR",baseResult.resources,"至少一个权威合同、组件资源或工作区模块未通过请求/内容校验。");
+      const failedBootstrapAsset=baseResult.resources.some(item=>["workspace-js","workspace-css"].includes(item.id)&&item.status!=="READY");
+      root.querySelector('[data-action="retry"]')?.addEventListener("click",()=>failedBootstrapAsset?location.reload():run(true));
+      return;
+    }
+    const manifest=baseResult.data["frozen-manifest"];
+    const contract=baseResult.data["machine-contract"];
+    const markdownContract=baseResult.data["markdown-contract"];
+    const resourceBinding=baseResult.data["resource-binding"];
+    let specs=[];
+    try {
+      const avatar=(resourceBinding.resources||[]).find(item=>item.path?.endsWith("nh07_default_avatar_1x_64.png"));
+      const background=(resourceBinding.resources||[]).find(item=>item.path?.endsWith("Morning_Lake_Master_V1.png"));
+      specs=manifest.assets.map(asset=>toAssetSpec(asset.asset_id,`冻结静态图 · ${asset.asset_id}`,asset.path,asset.sha256));
+      specs.push(toAssetSpec("original-reference","NH01 原始冻结参考",manifest.original_reference.path,manifest.original_reference.historical_sha256));
+      const chevron=(resourceBinding.resources||[]).find(item=>item.path?.endsWith("/ic_chevron_right_v1.svg"));
+      for (const item of [background,avatar,chevron]) {
+        if (!item) throw new Error("Resource Binding 中缺少冻结背景、已登记组件资产或历史头像校验项");
+        specs.push(toAssetSpec(item.asset_id,item.role||item.asset_id,item.path,item.sha256));
+      }
+      specs[specs.length-1].mime=/image\/svg\+xml/i;
+      specs.push(toAssetSpec("normal_home_default_avatar_v2","NH01 专用批准头像 V2",avatarV2Path,avatarV2Sha256));
+      const brand=resourceBinding.brand_title_binding, camera=resourceBinding.camera_primary_binding;
+      specs.push(toAssetSpec(brand.asset_id,"品牌标题冻结 PNG",brand.registry_path,brand.sha256));
+      specs.push(toAssetSpec(camera.asset_id,"相机按钮冻结 PNG",camera.registry_path,camera.sha256));
+      if(specs.some(item=>!item.url||!item.expectedSha256)) throw new Error("Manifest 或 Resource Binding 中有缺少 URL/SHA-256 的图片资产");
+    } catch(error) {
+      renderProgress("ERROR",baseResult.resources,String(error.message||error));
+      root.querySelector('[data-action="retry"]')?.addEventListener("click",()=>run(true));
+      return;
+    }
+    let assetResult;
+    try { assetResult=await active.assets.load(specs,{retry:retrying}); }
+    catch (error) { renderProgress("ERROR",[...baseResult.resources,...assetDiagnostics],String(error)); return; }
+    if (active.cancelled || root.dataset.nh01ResponsiveToken !== token) return;
+    if (assetResult.state !== "READY") {
+      renderProgress("ERROR",[...baseResult.resources,...assetResult.resources],"至少一个冻结 PNG 缺失或 SHA-256 与正式 Manifest/Resource Binding 不一致。");
+      root.querySelector('[data-action="retry"]')?.addEventListener("click",()=>run(true));
+      return;
+    }
+    const diagnostics=[...baseResult.resources,...assetResult.resources];
+    try {
+      if (typeof window.NH01StructuredWorkspace?.mount !== "function") throw new Error("NH01StructuredWorkspace.mount is not callable after dependency loading");
+      root.innerHTML=nh01StaticWorkspaceMarkup(view,manifest,contract);
+      const staticRoot=root.querySelector(".nh01-static-workspace");
+      if (!staticRoot) throw new Error("NH01 static contract workspace container is missing");
+      window.NH01StructuredWorkspace.mount(root,view,contract,manifest,DESIGN_MANAGER_BUILD,markdownContract,resourceBinding,diagnostics,baseResult.data["component-tree"],baseResult.data["structure-reference"],baseResult.data["avatar-authority"],baseResult.data["structured-preview-rules"],baseResult.data["structured-preview-media"]);
+      if (!root.querySelector('[data-testid="nh01-structured-workspace"]') || !root.querySelector("[data-layer-tree]") || !root.querySelector("[data-artboard]") || !root.querySelector("[data-inspector]")) {
+        throw new Error("mount() returned without rendering the layer tree, canvas, and property inspector");
+      }
+      root.dataset.nh01LoadState="READY";
+      renderProgress("READY",diagnostics);
+      root.querySelectorAll(".hifi-image-open").forEach(button=>button.addEventListener("click",()=>openHifiImageLightbox(button)));
+    } catch (error) {
+      renderProgress("ERROR",diagnostics,`工作区挂载失败：${error.message}`);
+      root.querySelector('[data-action="retry"]')?.addEventListener("click",()=>run(true));
+    }
+  }
+  run(false);
 }
 
 function currentVersion(feature) {
@@ -2560,6 +2718,7 @@ function recognitionMasterBoardCanvas(child) {
 }
 
 function genericSpecHifiCanvas(feature, view) {
+  if (view.render_mode === "swos_optical_parameters_v1_2") return '<div data-swos-v12-panel class="swos-v12-panel" role="region" aria-label="SWOS 光学标定参数">正在读取 V1.2 机器参数…</div>';
   if (view.render_mode === "swos_static_visual_workspace") {
     return window.SWOSStaticVisual?.canvas(view) ||
       '<div class="hifi-missing-authority"><div><strong>SWOS 静态验收模块尚未加载</strong><p>Design Manager 的静态工作区脚本不可用。</p></div></div>';
@@ -3210,50 +3369,13 @@ function accountPrivacyGalleryCanvas(item) {
 }
 
 function recognitionGuideResourcesCanvas(child, feature) {
-  const sourceView = (feature?.hifi_views || []).find(view => view.id === child.source_view_id);
-  const sourceChildren = new Map((sourceView?.children || []).map(item => [item.id, item]));
-  const resources = (child.resource_ids || []).map(id => sourceChildren.get(id)).filter(item =>
-    item && item.status === "FROZEN" && isImage(item.visual_authority || item.image)
-  );
-  const cards = resources.map(item => {
-    const path = item.visual_authority || item.image;
-    const dimensions = item.visual_authority_dimensions || {};
-    const dimensionText = dimensions.width && dimensions.height
-      ? dimensions.width + " × " + dimensions.height + " px"
-      : "尺寸未登记";
-    const filename = path.split("/").pop();
-    const sourceFilename = item.source_high_fidelity_png || filename;
-    const fileHref = repoHref(path);
-    return '<article class="authority-index-card guide-resource-card" data-resource-id="' + esc(item.id) + '">' +
-      '<div class="authority-index-head"><strong>' + esc(item.title) + '</strong>' + statusBadge("FROZEN") + '</div>' +
-      '<button type="button" class="hifi-image-open guide-resource-preview" data-image-src="' + esc(fileHref) +
-        '" data-image-title="' + esc(item.title) + '" aria-label="放大查看 ' + esc(item.title) + '">' +
-        '<img src="' + esc(fileHref) + '" alt="' + esc(item.title) + ' · 原始比例完整预览" loading="lazy" decoding="async"></button>' +
-      '<dl class="guide-resource-metadata">' +
-        '<div><dt>源文件名</dt><dd>' + esc(sourceFilename) + '</dd></div>' +
-        '<div><dt>仓库文件名</dt><dd>' + esc(filename) + '</dd></div>' +
-        '<div><dt>仓库路径</dt><dd>' + esc(path) + '</dd></div>' +
-        '<div><dt>图像尺寸</dt><dd>' + esc(dimensionText) + '</dd></div>' +
-        '<div><dt>文件大小</dt><dd>' + esc(Number(item.visual_authority_bytes || 0).toLocaleString("en-US")) + ' bytes</dd></div>' +
-        '<div><dt>SHA-256</dt><dd>' + esc(item.visual_authority_sha256 || "未登记") + '</dd></div>' +
-      '</dl>' +
-      '<div class="guide-resource-actions">' +
-        '<a href="' + esc(fileHref) + '" download="' + esc(filename) + '">下载原始 PNG</a>' +
-        '<a href="' + esc(fileHref) + '" target="_blank" rel="noreferrer">打开原始文件 ↗</a>' +
-      '</div>' +
-    '</article>';
-  }).join("");
-  const manifest = child.resource_manifest
-    ? '<a href="' + esc(repoHref(child.resource_manifest)) + '" target="_blank" rel="noreferrer">打开资源 Manifest ↗</a>'
-    : "";
-  return '<div class="authority-index guide-resource-gallery">' +
-    '<div class="authority-index-intro"><strong>页面静态资源 · Design Source</strong>' +
-      '<span>以下图片直接引用仓库中的 Frozen 原始 PNG，保持原始字节与比例。它们用于设计预览和下载，不代表 Android 运行时资源。</span></div>' +
-    (cards ? '<div class="authority-index-grid guide-resource-grid">' + cards + '</div>' : '<div class="preview-empty">资源清单没有可展示的 Frozen PNG。</div>') +
-    (manifest ? '<div class="authority-index-intro guide-resource-manifest"><strong>资源来源</strong><span>' + manifest + '</span></div>' : '') +
-  '</div>';
+  return '<div class="guide-workspace-root" data-testid="first-use-guide-workspace"' +
+    ' data-structured-manifest="' + esc(child.structured_page_manifest || "") + '"' +
+    ' data-geometry-manifest="' + esc(child.geometry_measurement_manifest || "") + '"' +
+    ' data-responsive-contract="' + esc(child.responsive_contract_manifest || "") + '"' +
+    ' data-asset-manifest="' + esc(child.frontend_asset_manifest || "") + '"' +
+    ' data-page-manifest="' + esc(child.resource_manifest || "") + '"></div>';
 }
-
 function genericSpecChildCanvas(child, feature = null) {
   if (child.render_mode === "recognition_guide_resources") return recognitionGuideResourcesCanvas(child, feature);
   if (child.render_mode === "recognition_master_board") return recognitionMasterBoardCanvas(child);
@@ -3309,6 +3431,7 @@ function genericSpecChildCanvas(child, feature = null) {
 }
 
 function renderHifiView(feature, hifiId, hifiChildId = null) {
+  cancelNH01ResourceLoad(el("hifiViewCanvas"));
   const panel=el("hifiViewPanel");
   if(!hifiId){ panel.classList.add("hidden"); return; }
   const view=(feature.hifi_views||[]).find(x=>x.id===hifiId);
@@ -3341,6 +3464,10 @@ function renderHifiView(feature, hifiId, hifiChildId = null) {
     ? (feature.id === "my_catches_v2" ? myCatchesSearchChildCanvas(child) : genericSpecChildCanvas(child, feature))
     : (feature.id === "my_catches_v2" ? myCatchesHifiCanvas(feature,view) : genericSpecHifiCanvas(feature,view));
 
+  if (child?.render_mode === "recognition_guide_resources") {
+    window.FirstUseGuideWorkspace?.mount(el("hifiViewCanvas").querySelector(".guide-workspace-root"));
+  }
+
   if (!child && ["web_hifi_contract_v2", "swos_static_visual_v1_1"].includes(view.id)) {
     const viewer = document.createElement("iframe");
     viewer.src = "./private_visual_references.html?reference=" + (view.id === "web_hifi_contract_v2" ? "web-three-stage" : "swos-history");
@@ -3350,9 +3477,12 @@ function renderHifiView(feature, hifiId, hifiChildId = null) {
     if (view.id === "web_hifi_contract_v2") {
       const provenance = document.createElement("p");
       provenance.className = "hifi-source-provenance";
-      provenance.textContent = "原图候选尚未确认为像素权威：旧 2560×1440 候选仅作历史溯源。用户确认的 1536×1024 原图已登记并核验 SHA、尺寸和字节数；这不等于原图像素冻结权威（PIXEL_FROZEN_SOURCE=NOT_CONFIRMED）。公开许可 NOT_CONFIRMED；运行视觉验收 RUNTIME_VISUAL_VERIFIED=NO。原图仅可本地选择查看，不上传服务器。";
+      provenance.innerHTML = statusBadge("PIXEL_BASELINE_FROZEN_PRIVATE") + " 主视觉基准：web-three-stage · 1536×1024 · SHA-256 27c34ee5d3cf90921df433cb43c671e42b8ffa80b8f5cebfe9b397da2ee853e2. 冻结的是私有源身份和对照协议，不代表运行页面像素一致。原图字节本次未重新读取；本地查看器必须校验 SHA、尺寸和字节数。公开许可 NOT_CONFIRMED；RUNTIME_VISUAL_VERIFIED=NO；仅本地内存查看，不上传服务器。";
       el("hifiViewCanvas").prepend(provenance);
     }
+  }
+  if (!child && view.render_mode === "swos_optical_parameters_v1_2") {
+    window.SWOSOpticalV12?.mount(el("hifiViewCanvas"), view);
   }
   if (!child && view.render_mode === "swos_static_visual_workspace") {
     window.SWOSStaticVisual?.mount(el("hifiViewCanvas"), view);
@@ -3716,9 +3846,10 @@ function selectFromHash() {
   let raw;
   try { raw = decodeURIComponent(encoded); }
   catch (_) { return renderInvalidManagerRoute(encoded); }
-  // A browser hash traversal fires both popstate and hashchange. Keep the same
-  // private frame alive so duplicate notifications do not abort its bootstrap.
-  if (raw === selectedKey && el("hifiViewCanvas")?.querySelector('iframe[title="原始高保真私有查看与合同对照"]')) return;
+  // A browser hash traversal fires both popstate and hashchange. The first
+  // event renders the route; ignoring its duplicate prevents active resource
+  // loaders on non-iframe pages from being cancelled and restarted.
+  if (raw === selectedKey) return;
   if (!raw) return selectShared(sharedRegistry.items[0]?.id, null, false);
   if (raw.startsWith("shared/")) {
     const parts = raw.split("/");
