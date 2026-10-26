@@ -1029,12 +1029,12 @@ async function main() {
   assert(await fishtraceFrame.locator('[data-scene="result"]').isVisible(), "Result state must be inspectable");
   assert((await fishtraceFrame.locator('[data-scene="result"] .demo-chip').innerText()).includes("样例数据"), "Result must label the sample data explicitly");
   assert((await fishtraceFrame.locator(".result-disclaimer").innerText()).includes("视觉样例"), "Result must not imply real model inference");
-  const desktopResultColumns = await fishtraceFrame.locator(".result-layout").evaluate(node => getComputedStyle(node).gridTemplateColumns);
+  const desktopResultColumns = await fishtraceFrame.locator('[data-scene="result"] .result-layout').evaluate(node => getComputedStyle(node).gridTemplateColumns);
   assert(desktopResultColumns.includes(" "), "Desktop result must render photo-left/result-right columns");
   await page.screenshot({ path: resolve(args.outputDir, "fishtrace-sites-web-hifi-desktop.png"), fullPage: true });
   await fishtraceFrame.locator('button[data-device="phone"]').click();
   assert((await fishtraceFrame.locator(".product-device").getAttribute("data-device")) === "phone", "Phone viewport toggle did not activate");
-  const phoneResultColumns = await fishtraceFrame.locator(".result-layout").evaluate(node => getComputedStyle(node).gridTemplateColumns);
+  const phoneResultColumns = await fishtraceFrame.locator('[data-scene="result"] .result-layout').evaluate(node => getComputedStyle(node).gridTemplateColumns);
   assert(!phoneResultColumns.includes(" "), "Phone result must stack photo above result");
   await page.screenshot({ path: resolve(args.outputDir, "fishtrace-sites-web-hifi-phone.png"), fullPage: true });
   await fishtraceFrame.locator('.state-tab[data-state="processing"]').click();
