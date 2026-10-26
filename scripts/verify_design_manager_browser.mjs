@@ -197,7 +197,16 @@ async function main() {
   assert(await layerTree.locator('[data-select="avatar"]').getAttribute("data-source-asset-id")==="avatar_default_nh07","legacy avatar mapping must remain visible beside the approved source");
   await layerTree.locator('[data-select="hero"]').click();
   assert(await workspace.locator('[data-testid="nh01-canvas-hero"].nh01-layer-selected').count()===1,"tree selection must highlight Hero");
-  await workspace.locator('[data-testid="nh01-canvas-peek-left"]').click();
+  const previousPeek=workspace.locator('[data-testid="nh01-canvas-peek-left"]');
+  const previousPeekHitPoint=await previousPeek.evaluate(node=>{
+    const card=node.getBoundingClientRect(),pager=node.closest('[data-testid="nh01-pager"]').getBoundingClientRect();
+    const left=Math.max(card.left,pager.left),right=Math.min(card.right,pager.right);
+    const top=Math.max(card.top,pager.top),bottom=Math.min(card.bottom,pager.bottom);
+    if(right-left<1||bottom-top<1)return null;
+    return {x:(left+right)/2-card.left,y:(top+bottom)/2-card.top};
+  });
+  assert(previousPeekHitPoint!==null,"previous Peek must expose a clickable region inside the pager");
+  await previousPeek.click({position:previousPeekHitPoint});
   assert(await layerTree.locator('[data-select="peek-left"]').getAttribute("aria-pressed")==="true","canvas selection must synchronize the generated previous-role layer");
   assert((await workspace.locator("[data-inspector]").innerText()).includes("GENERATED_ILLUSTRATIVE_ONLY"),"preview media provenance must be visible in the inspector");
   assert(await workspace.locator('[data-testid="nh01-canvas-hero"] [data-media-role="hero"]').count()===1,"Hero must use the independent illustrative media manifest");
