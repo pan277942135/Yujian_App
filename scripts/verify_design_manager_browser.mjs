@@ -1300,10 +1300,22 @@ async function main() {
   assert(compositeMetrics.P3.p2_to_p3_spatial_change?.normalized_structure_pixel_ratio_abs_delta_gte_0_15>0.10,"P2 to P3 normalized light maps must differ spatially after removing global intensity scaling");
   assert(compositeMetrics.P5.water_roi_mean_rgb_abs_diff_255<compositeMetrics.P3.water_roi_mean_rgb_abs_diff_255&&compositeMetrics.P5.water_roi_mean_rgb_abs_diff_255>0,"P5 water light must remain visible but weaker than P3");
   assert(compositeMetrics.P6.water_roi_mean_rgb_abs_diff_255<compositeMetrics.P5.water_roi_mean_rgb_abs_diff_255,"P6 must further reduce the water light toward exit");
-  const p2Repeat=await fishtraceFrame.locator("#water-overlay").evaluate(node=>node.toDataURL("image/png"));
-  await fishtraceFrame.locator('[data-water-frame="P2"]').click();
-  const p2RepeatAgain=await fishtraceFrame.locator("#water-overlay").evaluate(node=>node.toDataURL("image/png"));
-  assert(p2Repeat===p2RepeatAgain,"Repeated P2 seeks must reproduce the same deterministic Canvas frame");
+  const captureP2CanvasHash=async()=>{
+    await fishtraceFrame.locator('[data-water-frame="P2"]').click();
+    return fishtraceFrame.locator("#water-overlay").evaluate(async node=>{
+      const canvas=node,context=canvas.getContext("2d");
+      const pixels=context.getImageData(0,0,canvas.width,canvas.height).data;
+      const digest=await crypto.subtle.digest("SHA-256",pixels);
+      const sha256=Array.from(new Uint8Array(digest),byte=>byte.toString(16).padStart(2,"0")).join("");
+      let visiblePixels=0;
+      for(let i=3;i<pixels.length;i+=4)if(pixels[i])visiblePixels++;
+      return {time_ms:Number(canvas.dataset.currentTime),width:canvas.width,height:canvas.height,sha256,visible_pixels:visiblePixels};
+    });
+  };
+  const p2Repeat=await captureP2CanvasHash();
+  assert(p2Repeat.time_ms===950&&p2Repeat.visible_pixels>0,"The first determinism sample must be a visible, exact P2 frame");
+  const p2RepeatAgain=await captureP2CanvasHash();
+  assert(p2RepeatAgain.time_ms===950&&p2Repeat.sha256===p2RepeatAgain.sha256&&p2Repeat.width===p2RepeatAgain.width&&p2Repeat.height===p2RepeatAgain.height,"Repeated P2 seeks must reproduce the same deterministic Canvas pixels and backing dimensions");
   const p3FullMotionPixels=await fishtraceFrame.locator("#water-overlay").evaluate(node=>{
     const button=document.querySelector('[data-water-frame="P3"]');button.click();return node.toDataURL("image/png");
   });
@@ -1476,6 +1488,7 @@ async function main() {
     source_native_water_region:{version:debugOverlayState.version,polygon_count:debugOverlayState.polygons.length,validation_status:debugOverlayState.validation_status||"manual annotation; browser boundary review in this run",debug_screenshot:"fishtrace-canvas-water-region-debug.png"},
     exact_frame_jumps:waterFrameJumpEvidence,
     deterministic_p2_repeat:true,
+    p2_repeat_pixels:{time_ms:p2Repeat.time_ms,width:p2Repeat.width,height:p2Repeat.height,visible_pixels:p2Repeat.visible_pixels,sha256:p2Repeat.sha256,repeated_sha256:p2RepeatAgain.sha256},
     stale_transition_overlay_cleared:true,
     pause_time:pausedWaterTime,
     scrubbed_time_ms:1375,
