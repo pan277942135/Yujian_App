@@ -137,6 +137,12 @@ shared_contracts:
     scope: "FishTrace Sites project appgprj_6a50a71561708191a6ea8c6194ce68d4 only; separate from Yujian Web PR #177"
     runtime_status: "NOT_VERIFIED"
     refs: ["design/pages/recognition/web/FISHTRACE_SITES_WEB_VISUAL_INTERACTION_CONTRACT_V1.md", "design/pages/recognition/web/contracts/FishTrace_Sites_Web_Interaction_V1.json", "design/pages/recognition/web/contracts/FishTrace_Sites_Web_Acceptance_V1.json"]
+  FISHTRACE-SITES-WEB-HIFI-VISUAL-V1:
+    domain: "DOMAIN"
+    status: "DESIGN_ONLY"
+    scope: "Design Manager high-fidelity visual and structured prototype for FishTrace Sites only; no Sites source changes"
+    runtime_status: "NOT_VERIFIED"
+    refs: ["design/pages/recognition/web/FISHTRACE_SITES_WEB_HIFI_VISUAL_SPEC_V1.md", "design/pages/recognition/web/contracts/FishTrace_Sites_Web_Structured_Prototype_V1.json", "design/manager/fishtrace_sites_web_workspace.html", "design/manager/fishtrace_sites_web_workspace.css", "design/manager/fishtrace_sites_web_workspace.js"]
   SWOS-RR09-OPTICAL-V1_2:
     domain: "DOMAIN"
     status: "FROZEN_CONTRACT_INPUT"
@@ -430,6 +436,20 @@ feature_contracts:
         layout_scope: "Sites-specific immersive single scene; desktop photo-left/result-right; below-1024px photo-top/result-below"
         supersedes_scope: "FishTrace Sites previous three-column workbench and persistent five-node strip only; does not alter Yujian Web V2 or PR #177"
         runtime_visual_verified: false
+      fishtrace_sites_web_hifi_visual_v1:
+        status: "DESIGN_ONLY"
+        authority_status: "MAIN_ADOPTION_PENDING"
+        adoption_status: "DESIGN_PR_CANDIDATE"
+        target_sites_project_id: "appgprj_6a50a71561708191a6ea8c6194ce68d4"
+        target_url: "https://fishtrace-ai.pan277942135.chatgpt.site/"
+        manager_route: "#page/recognition_flow_v1_2/hifi/fishtrace_sites_web_hifi_workspace"
+        visual_spec: "design/pages/recognition/web/FISHTRACE_SITES_WEB_HIFI_VISUAL_SPEC_V1.md"
+        machine_contract: "design/pages/recognition/web/contracts/FishTrace_Sites_Web_Structured_Prototype_V1.json"
+        prototype_html: "design/manager/fishtrace_sites_web_workspace.html"
+        prototype_css: "design/manager/fishtrace_sites_web_workspace.css"
+        prototype_js: "design/manager/fishtrace_sites_web_workspace.js"
+        runtime_visual_verified: false
+        production_inference_connected: false
       swos_rr09_optical_v1_2:
         status: "FROZEN_CONTRACT_INPUT"
         parameters_status: "CALIBRATION_CANDIDATE"
@@ -471,7 +491,7 @@ feature_contracts:
 
 
     shared_contract_refs: ["DS-FOUNDATION", "ANDROID-RUNTIME-HARNESS", "STATE-EVIDENCE-PROVENANCE"]
-    additional_shared_contract_refs: ["MODEL-RECOGNITION", "API-DATA-BOUNDARY", "RECOGNITION-OPTICAL-CONTINUITY", "SWOS-WEB-HIFI-MOTION-V1", "FISHTRACE-SITES-WEB-INTERACTION-V1"]
+    additional_shared_contract_refs: ["MODEL-RECOGNITION", "API-DATA-BOUNDARY", "RECOGNITION-OPTICAL-CONTINUITY", "SWOS-WEB-HIFI-MOTION-V1", "FISHTRACE-SITES-WEB-INTERACTION-V1", "FISHTRACE-SITES-WEB-HIFI-VISUAL-V1"]
     required_gate_classes: ["STATIC_CONTRACT", "BUILD", "RUNTIME", "VISUAL", "MOTION_ACCESSIBILITY", "JOURNEY_E2E", "APK_PROVENANCE"]
   recognition_result_v1:
     contract_id: "FC-recognition_result_v1"
@@ -1594,7 +1614,7 @@ gate_contracts:
     purpose: "Yujian Web V2 contract plus the separately scoped FishTrace Sites interaction contract; browser evidence required, no pixel/runtime promotion"
     visual_reference_policy: "design/governance/VISUAL_REFERENCE_CLOSURE_GATE_V1.md"
     visual_reference_validator: "scripts/verify_private_visual_references.py"
-    contract_refs: ["FC-recognition_flow_v1_2", "FC-recognition_result_v1", "WEB-RECOGNITION-HIFI-V2", "FISHTRACE-SITES-WEB-INTERACTION-V1"]
+    contract_refs: ["FC-recognition_flow_v1_2", "FC-recognition_result_v1", "WEB-RECOGNITION-HIFI-V2", "FISHTRACE-SITES-WEB-INTERACTION-V1", "FISHTRACE-SITES-WEB-HIFI-VISUAL-V1"]
     acceptance_domains: ["visual", "motion", "interaction", "responsive", "asset", "evidence"]
     exact_sha_required: true
   G-SWOS-WEB-HIFI-MOTION-V1:
@@ -1667,7 +1687,7 @@ task_contract_bindings:
     gate_id: "G-SWOS-PHASE0-CONTRACT"
     phase: "P3"
   P3-06:
-    contract_refs: ["FC-recognition_flow_v1_2", "FC-recognition_result_v1", "WEB-RECOGNITION-HIFI-V2", "FISHTRACE-SITES-WEB-INTERACTION-V1", "G-WEB-HIFI-CONTRACT"]
+    contract_refs: ["FC-recognition_flow_v1_2", "FC-recognition_result_v1", "WEB-RECOGNITION-HIFI-V2", "FISHTRACE-SITES-WEB-INTERACTION-V1", "FISHTRACE-SITES-WEB-HIFI-VISUAL-V1", "G-WEB-HIFI-CONTRACT"]
     gate_id: "G-WEB-HIFI-CONTRACT"
     phase: "P3"
   P3-07:
