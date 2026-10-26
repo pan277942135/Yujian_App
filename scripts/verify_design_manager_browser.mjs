@@ -1046,6 +1046,10 @@ async function main() {
   await fishtraceFrame.locator('[data-rr09-frame="R4"]').click();
   assert((await fishtraceFrame.locator("#rr09-status-copy").innerText()).includes("R4"), "RR09 R4 frame selection did not update status");
   assert((await fishtraceFrame.locator(".rr09-timeline-inspector .timeline-note").innerText()).includes("NONE"), "RR09 reveal must disclose missing trusted Mask");
+  await fishtraceFrame.waitForFunction(() => {
+    const node = document.querySelector("#reveal-title-card");
+    return Boolean(node && Number(getComputedStyle(node).opacity) > 0.7);
+  }, null, { timeout: 3000 });
   const revealTitleOpacity = await fishtraceFrame.locator("#reveal-title-card").evaluate(node => getComputedStyle(node).opacity);
   assert(Number(revealTitleOpacity) > 0.7, "RR09 R4 should reveal the Chinese title fallback");
   await page.screenshot({ path: resolve(args.outputDir, "fishtrace-sites-web-hifi-reveal.png"), fullPage: true });
