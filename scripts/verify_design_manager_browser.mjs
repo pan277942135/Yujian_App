@@ -1643,7 +1643,7 @@ async function main() {
   await videoFrame.locator("#water-source-image").scrollIntoViewIfNeeded();
   await videoFrame.locator("#water-stage").scrollIntoViewIfNeeded();
   await videoPage.locator(fishtraceFrameSelector).scrollIntoViewIfNeeded();
-  const videoPhotoPreflight=await videoPage.evaluate(selector=>{
+  const measureVideoPhotoLayout=()=>videoPage.evaluate(selector=>{
     const iframe=document.querySelector(selector);
     const doc=iframe?.contentDocument;
     const stage=doc?.querySelector("#water-stage");
@@ -1659,6 +1659,9 @@ async function main() {
     const insideOuter=onOuter.x>=0&&onOuter.y>=0&&onOuter.x+onOuter.width<=outer.width&&onOuter.y+onOuter.height<=outer.height;
     return {available:true,viewport:{outer,inner},frame:{x:frameBox.x,y:frameBox.y,width:frameBox.width,height:frameBox.height},stage:{x:stageBox.x,y:stageBox.y,width:stageBox.width,height:stageBox.height},photo_content_rect_in_frame:photo,photo_content_rect_in_recording_viewport:onOuter,fully_visible_in_frame:insideInner,fully_visible_in_recording_viewport:insideOuter,scroll:{outer_x:window.scrollX,outer_y:window.scrollY,inner_x:doc.defaultView.scrollX,inner_y:doc.defaultView.scrollY},renderer:canvas.dataset.rendererStatus,debug:canvas.dataset.debugRegion};
   },fishtraceFrameSelector);
+  const videoImageReferencePath=resolve(args.outputDir,"fishtrace-canvas-water-recording-image-reference.png");
+  await videoFrame.locator("#water-source-image").screenshot({path:videoImageReferencePath});
+  const videoPhotoPreflight=await measureVideoPhotoLayout();
   assert(videoPhotoPreflight.available&&videoPhotoPreflight.fully_visible_in_frame&&videoPhotoPreflight.fully_visible_in_recording_viewport,"Full fixed photo must fit inside the actual iframe and recording viewport before WebM playback; geometry="+JSON.stringify(videoPhotoPreflight));
   await videoPage.screenshot({path:resolve(args.outputDir,"fishtrace-canvas-water-video-preflight.png")});
   assert(await videoFrame.locator("#water-stage").isVisible(), "The recorded page must visibly be in the Canvas Water Lab stage");
@@ -1666,11 +1669,26 @@ async function main() {
   assert(videoStartState.time===0&&videoStartState.renderer==="READY"&&videoStartState.alphaPixels===0&&videoStartState.debug==="false", "Full playback recording must start at clean P0 on the READY Canvas Water Lab without the debug outline");
   const waterPlaybackStartedAt=new Date().toISOString();
   const waterPlaybackStartEpochMs=Date.now();
-  await videoFrame.locator("#water-play").click();
+  await videoFrame.evaluate(()=>{
+    const button=document.querySelector("#water-play");
+    if(!button)throw new Error("Canvas Water Lab play button is missing");
+    button.click();
+  });
   const waterPlaybackStarted = Date.now();
+  const videoPhotoAfterPlay=await measureVideoPhotoLayout();
+  const photoRectStable=(before,after)=>{
+    const a=before?.photo_content_rect_in_recording_viewport;
+    const b=after?.photo_content_rect_in_recording_viewport;
+    return Boolean(a&&b&&["x","y","width","height"].every(key=>Math.abs(a[key]-b[key])<=1));
+  };
+  assert(videoPhotoAfterPlay.available&&videoPhotoAfterPlay.fully_visible_in_frame&&videoPhotoAfterPlay.fully_visible_in_recording_viewport&&photoRectStable(videoPhotoPreflight,videoPhotoAfterPlay),
+    "Play must not scroll or crop the full photo after recording starts; preflight="+JSON.stringify(videoPhotoPreflight)+" postStart="+JSON.stringify(videoPhotoAfterPlay));
   await videoFrame.waitForFunction(() => Number(document.querySelector("#water-current-time")?.textContent.match(/\d+/)?.[0]) === 2800,null,{timeout:8000});
   const waterPlaybackWallMs = Date.now()-waterPlaybackStarted;
   const waterPlaybackCompletedAt=new Date().toISOString();
+  const videoPhotoAfterPlayback=await measureVideoPhotoLayout();
+  assert(videoPhotoAfterPlayback.available&&videoPhotoAfterPlayback.fully_visible_in_frame&&videoPhotoAfterPlayback.fully_visible_in_recording_viewport&&photoRectStable(videoPhotoAfterPlay,videoPhotoAfterPlayback),
+    "The full photo must remain visible through the complete 2800ms recording; postStart="+JSON.stringify(videoPhotoAfterPlay)+" atEnd="+JSON.stringify(videoPhotoAfterPlayback));
   assert(waterPlaybackWallMs >= 2400 && waterPlaybackWallMs < 8000, "Full timeline playback must run through the 2800ms duration without stalling");
   assert(videoErrors.length === 0, "Canvas recording browser reported errors: " + videoErrors.join("; "));
   assert(videoRequests.every(request => request.method === "GET" || request.method === "HEAD") &&
@@ -1688,6 +1706,53 @@ async function main() {
   const videoFrameDirectory=resolve(args.outputDir,"fishtrace-canvas-water-video-frames");
   await mkdir(videoFrameDirectory,{recursive:true});
   const extractedVideoFrames=[];
+  const photoFrameVerifier=await browser.newPage({viewport:{width:1440,height:1000},deviceScaleFactor:1});
+  const photoReferenceDataUrl="data:image/png;base64,"+(await readFile(videoImageReferencePath)).toString("base64");
+  async function inspectRecordedPhotoCrop(framePath,frameId){
+    const frameDataUrl="data:image/png;base64,"+(await readFile(framePath)).toString("base64");
+    return photoFrameVerifier.evaluate(async payload=>{
+      const loadImage=src=>new Promise((resolveImage,rejectImage)=>{const image=new Image();image.onload=()=>resolveImage(image);image.onerror=rejectImage;image.src=src;});
+      const [frameImage,referenceImage]=await Promise.all([loadImage(payload.frameDataUrl),loadImage(payload.referenceDataUrl)]);
+      const width=referenceImage.naturalWidth,height=referenceImage.naturalHeight;
+      const actualCanvas=document.createElement("canvas"),referenceCanvas=document.createElement("canvas");
+      actualCanvas.width=referenceCanvas.width=width;actualCanvas.height=referenceCanvas.height=height;
+      const actualContext=actualCanvas.getContext("2d",{willReadFrequently:true}),referenceContext=referenceCanvas.getContext("2d",{willReadFrequently:true});
+      actualContext.drawImage(frameImage,payload.photoRect.x,payload.photoRect.y,payload.photoRect.width,payload.photoRect.height,0,0,width,height);
+      referenceContext.drawImage(referenceImage,0,0);
+      const actual=actualContext.getImageData(0,0,width,height).data,reference=referenceContext.getImageData(0,0,width,height).data;
+      const pointInside=(points,x,y)=>{let inside=false;for(let i=0,j=points.length-1;i<points.length;j=i++){const xi=points[i][0],yi=points[i][1],xj=points[j][0],yj=points[j][1];if((yi>y)!==(yj>y)&&x<(xj-xi)*(y-yi)/(yj-yi)+xi)inside=!inside;}return inside;};
+      let fullSum=0,fullHigh=0,fullCount=0,nonWaterSum=0,nonWaterHigh=0,nonWaterCount=0;
+      for(let y=0;y<height;y+=1){
+        const sourceY=(y+.5)*payload.assetHeight/height;
+        for(let x=0;x<width;x+=1){
+          const sourceX=(x+.5)*payload.assetWidth/width;
+          const offset=(y*width+x)*4,dr=Math.abs(actual[offset]-reference[offset]),dg=Math.abs(actual[offset+1]-reference[offset+1]),db=Math.abs(actual[offset+2]-reference[offset+2]);
+          const peak=Math.max(dr,dg,db);fullSum+=dr+dg+db;fullCount++;
+          if(peak>24)fullHigh++;
+          const inWater=payload.polygons.some(polygon=>pointInside(polygon,sourceX,sourceY));
+          if(!inWater){nonWaterSum+=dr+dg+db;nonWaterCount++;if(peak>24)nonWaterHigh++;}
+        }
+      }
+      return {
+        frame_id:payload.frameId,
+        crop_css_px:payload.photoRect,
+        reference_pixels:{width,height},
+        captured_pixels:{width:frameImage.naturalWidth,height:frameImage.naturalHeight},
+        full_photo_mean_rgb_abs_diff_255:fullSum/(fullCount*3),
+        full_photo_pixel_ratio_max_channel_diff_gt_24:fullHigh/fullCount,
+        non_water_mean_rgb_abs_diff_255:nonWaterSum/(nonWaterCount*3),
+        non_water_pixel_ratio_max_channel_diff_gt_24:nonWaterHigh/nonWaterCount
+      };
+    },{
+      frameDataUrl,
+      referenceDataUrl:photoReferenceDataUrl,
+      photoRect:videoPhotoAfterPlayback.photo_content_rect_in_recording_viewport,
+      assetWidth:waterAsset.naturalWidth,
+      assetHeight:waterAsset.naturalHeight,
+      polygons:[...debugOverlayState.zones.A,...debugOverlayState.zones.B,...debugOverlayState.zones.C].map(region=>region.points.map(([x,y])=>[x*waterAsset.naturalWidth,y*waterAsset.naturalHeight])),
+      frameId
+    });
+  }
   for(const frame of allWaterFrames){
     const [frameId,frameMs]=frame;
     const outputPath=resolve(videoFrameDirectory,frameId+"-"+frameMs+"ms.png");
@@ -1695,9 +1760,14 @@ async function main() {
     execFileSync("ffmpeg",["-hide_banner","-loglevel","error","-y","-ss",seekSeconds.toFixed(3),"-i",playbackVideoPath,"-frames:v","1",outputPath],{stdio:"pipe"});
     const frameBytes=await readFile(outputPath);
     assert(frameBytes.length>24&&frameBytes.toString("ascii",1,4)==="PNG","WebM frame extraction failed at "+frameId+"; offset="+seekSeconds.toFixed(3));
-    extractedVideoFrames.push({id:frameId,target_ms:frameMs,video_timestamp_s:Number(seekSeconds.toFixed(3)),path:"fishtrace-canvas-water-video-frames/"+frameId+"-"+frameMs+"ms.png",sha256:createHash("sha256").update(frameBytes).digest("hex"),dimensions:{width:frameBytes.readUInt32BE(16),height:frameBytes.readUInt32BE(20)},photo_fully_visible_in_recording_viewport:videoPhotoPreflight.fully_visible_in_recording_viewport});
+    const photoFrameVisual=await inspectRecordedPhotoCrop(outputPath,frameId);
+    const photoCropPass=photoFrameVisual.non_water_mean_rgb_abs_diff_255<=8&&photoFrameVisual.non_water_pixel_ratio_max_channel_diff_gt_24<=.25;
+    assert(photoCropPass,"Actual "+frameId+" WebM frame does not retain the full photo outside the water overlay; measured crop="+JSON.stringify(photoFrameVisual));
+    if(frameId==="P0"||frameId==="P7")assert(photoFrameVisual.full_photo_mean_rgb_abs_diff_255<=8&&photoFrameVisual.full_photo_pixel_ratio_max_channel_diff_gt_24<=.25,"Actual "+frameId+" WebM frame must match the complete unlit photo; measured crop="+JSON.stringify(photoFrameVisual));
+    extractedVideoFrames.push({id:frameId,target_ms:frameMs,video_timestamp_s:Number(seekSeconds.toFixed(3)),path:"fishtrace-canvas-water-video-frames/"+frameId+"-"+frameMs+"ms.png",sha256:createHash("sha256").update(frameBytes).digest("hex"),dimensions:{width:frameBytes.readUInt32BE(16),height:frameBytes.readUInt32BE(20)},photo_fully_visible_in_recording_viewport:photoCropPass,photo_frame_visual_check:photoFrameVisual});
   }
-  assert(extractedVideoFrames.length===8&&extractedVideoFrames.every(frame=>frame.dimensions.width===1440&&frame.dimensions.height===1000&&frame.photo_fully_visible_in_recording_viewport),"Every extracted WebM sample must be a full-size viewport frame from a preflight-verified full-photo recording");
+  assert(extractedVideoFrames.length===8&&extractedVideoFrames.every(frame=>frame.dimensions.width===1440&&frame.dimensions.height===1000&&frame.photo_fully_visible_in_recording_viewport),"Every extracted WebM sample must retain the full photo in a full-size viewport; actual frame crop comparison failed");
+  await photoFrameVerifier.close();
   waterCanvasEvidence.full_playback = {
     video:"fishtrace-canvas-water-full-2800ms.webm",
     frame_duration_ms:2800,
@@ -1706,6 +1776,9 @@ async function main() {
     observed_playback_wall_ms:waterPlaybackWallMs,
     start_state:videoStartState,
     photo_visibility_preflight:videoPhotoPreflight,
+    photo_visibility_after_start:videoPhotoAfterPlay,
+    photo_visibility_after_playback:videoPhotoAfterPlayback,
+    image_reference:"fishtrace-canvas-water-recording-image-reference.png",
     recording_start_epoch_ms:videoRecordingStartEpochMs,
     playback_start_offset_ms:playbackStartOffsetMs,
     container_duration_s:Number(videoProbe.format.duration),

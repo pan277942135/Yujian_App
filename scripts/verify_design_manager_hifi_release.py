@@ -372,6 +372,9 @@ def validate_tree(root: Path, *, built: bool = False, expected_build: str | None
     water_lab_css_path = design / "manager/fishtrace_canvas_water_lab.css"
     water_lab_contract_path = design / "pages/recognition/web/candidates/FISHTRACE_SWOS_CANVAS_WATER_LAB_V1_CANDIDATE.json"
     require(water_lab_js_path.is_file() and water_lab_css_path.is_file() and water_lab_contract_path.is_file(), "FishTrace Canvas Water Lab module, styles or candidate contract are missing")
+    water_lab_browser_test_path = root / "scripts/verify_design_manager_browser.mjs"
+    require(water_lab_browser_test_path.is_file(), "FishTrace Canvas Water Lab browser verifier is missing")
+    water_lab_browser_test = water_lab_browser_test_path.read_text(encoding="utf-8")
     water_lab_js = water_lab_js_path.read_text(encoding="utf-8")
     water_lab_css = water_lab_css_path.read_text(encoding="utf-8")
     water_lab = load_json(water_lab_contract_path)
@@ -461,6 +464,7 @@ def validate_tree(root: Path, *, built: bool = False, expected_build: str | None
     )
     require(water_lab.get("boundaries",{}).get("production_sites_runtime_modified") is False and water_lab.get("boundaries",{}).get("inference_api_requested") is False and water_lab.get("boundaries",{}).get("photo_upload_implemented") is False and water_lab.get("boundaries",{}).get("fish_mask_or_gold_contour_drawn") is False and water_lab.get("boundaries",{}).get("webgl_used") is False, "Canvas Water Lab scope crossed a production or forbidden visual boundary")
     require("object-fit:contain" in water_lab_css and "mix-blend-mode:screen" in water_lab_css, "Canvas Water Lab image/overlay layout is missing")
+    require(all(token in water_lab_browser_test for token in ("inspectRecordedPhotoCrop", "videoPhotoAfterPlay", "videoPhotoAfterPlayback", "photo_frame_visual_check")), "Canvas Water Lab WebM must verify the complete photo in extracted real-playback frames")
     require("swos_static_visual.js" in html and "window.SWOSStaticVisual" in swos_js, "SWOS static workspace module is not loaded")
     require("first_use_guide_workspace.js" in html, "First-use guide workspace module is not loaded")
     require("showModal()" in swos_js and "data-frame-id" in swos_js and "R0.5" in swos_js, "SWOS frame zoom or R0.5 inspector is missing")
