@@ -438,8 +438,8 @@ feature_contracts:
         runtime_visual_verified: false
       fishtrace_sites_web_hifi_visual_v1:
         status: "DESIGN_ONLY"
-        authority_status: "MAIN_ADOPTION_PENDING"
-        adoption_status: "DESIGN_PR_CANDIDATE"
+        authority_status: "MAIN_ADOPTED_DESIGN_ONLY"
+        adoption_status: "MAIN_ADOPTED_DESIGN_ONLY"
         target_sites_project_id: "appgprj_6a50a71561708191a6ea8c6194ce68d4"
         target_url: "https://fishtrace-ai.pan277942135.chatgpt.site/"
         manager_route: "#page/recognition_flow_v1_2/hifi/fishtrace_sites_web_hifi_workspace"
