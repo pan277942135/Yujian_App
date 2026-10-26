@@ -1605,7 +1605,7 @@ async function main() {
     candidate_source_sha:buildMarker,
     route:fishtraceSitesHash,
     contract_id:"FISHTRACE_SWOS_CANVAS_WATER_LAB_V1_CANDIDATE",
-    contract_version:"CANDIDATE_V2",
+    contract_version:"CANDIDATE_V3",
     fixture:{path:"design/system/fish_media_display_v1/assets/real_catch_source.jpg",sha256:"6e955087108f7463eca2dbac489699a4942028ebe1b3d456ddfca523286385ef",decoded_dimensions:{width:waterAsset.naturalWidth,height:waterAsset.naturalHeight},exif_orientation:"none"},
     water_region:{version:debugOverlayState.version,trust:"FIXED_DEMO_GEOMETRY_NOT_AI_MASK_NOT_PRODUCTION_ASSET",validation_status:debugOverlayState.validation_status,polygons:debugOverlayState.polygons},
     files:sourceManifestFiles
