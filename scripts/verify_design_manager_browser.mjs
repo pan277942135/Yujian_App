@@ -1123,8 +1123,9 @@ async function main() {
   assert(ambientCalibration.calibration?.revision==="A_LINE_P1_AMBIENT_RESPONSE_02"&&ambientCalibration.p3_single_field_opacity_max===0.10&&ambientCalibration.field_opacity_response_multiplier===0.68&&ambientCalibration.radial_gradient_opacity_stops?.join(",")==="1,0.92,0.72","Ambient P1 opacity correction must use the recorded candidate calibration while retaining the 0.10 per-field cap");
   const causticCalibration=waterContract.rendering.caustics;
   const faceOpacityProfile=causticCalibration.face_opacity_profile;
-  assert(causticCalibration.calibration?.revision==="A_LINE_P2_P3_FACE_EXPANSION_03"&&causticCalibration.field_opacity_response_multiplier===0.42&&causticCalibration.gradient_half_extent_multiplier===0.9&&causticCalibration.edge_softness_blur_w===0.0016&&causticCalibration.primary_opacity_max_p3===0.22&&causticCalibration.secondary_opacity_max_p3===0.14,"P2/P3 face-expansion calibration must preserve A/B per-patch opacity caps");
-  assert(faceOpacityProfile?.expand_start_ms===950&&faceOpacityProfile?.expand_end_ms===1200&&faceOpacityProfile.initial_stops.length===6&&faceOpacityProfile.expanded_stops.length===6&&faceOpacityProfile.expanded_stops.every(stop=>stop[1]<=1),"P2-P3 organic face profile must interpolate continuously and remain within unit opacity");
+  assert(causticCalibration.calibration?.revision==="A_LINE_P2_P3_PEAK_AND_P6_RETREAT_04"&&causticCalibration.field_opacity_response_multiplier===0.42&&causticCalibration.gradient_half_extent_multiplier===0.9&&causticCalibration.edge_softness_blur_w===0.0016&&causticCalibration.primary_opacity_max_p3===0.22&&causticCalibration.secondary_opacity_max_p3===0.14,"P2/P3 peak and P6 retreat calibration must preserve A/B per-patch opacity caps");
+  assert(faceOpacityProfile?.expand_start_ms===950&&faceOpacityProfile?.expand_end_ms===1200&&faceOpacityProfile?.settle_start_ms===1200&&faceOpacityProfile?.settle_end_ms===2050&&faceOpacityProfile.initial_stops.length===6&&faceOpacityProfile.expanded_stops.length===6&&faceOpacityProfile.settled_stops.length===6&&faceOpacityProfile.expanded_stops.every(stop=>stop[1]<=1)&&faceOpacityProfile.settled_stops.every(stop=>stop[1]<=1),"P2-P3 organic face profile must peak at P3 then settle continuously by P5 within unit opacity");
+  assert(waterContract.water_field.zone_exit.A.start_ms===2250&&waterContract.water_field.zone_exit.A.end_ms===2800,"Region A retreat must begin after P5 and clear at P7");
   const waterAsset = await fishtraceFrame.locator("#water-source-image").evaluate(image => ({
     naturalWidth:image.naturalWidth,naturalHeight:image.naturalHeight,
     sha256:image.dataset.sha256,src:image.currentSrc,complete:image.complete
@@ -1322,10 +1323,13 @@ async function main() {
     assert(shownTime===ms+" ms"&&shownIntensity===intensity,id+" must jump to its exact time and frozen baseline intensity");
     const actualLayerStrengths=JSON.parse(await fishtraceFrame.locator("#water-overlay").getAttribute("data-layer-strengths"));
     const faceExpansion=Number(await fishtraceFrame.locator("#water-overlay").getAttribute("data-caustic-face-expansion"));
+    const faceSettlement=Number(await fishtraceFrame.locator("#water-overlay").getAttribute("data-caustic-face-settlement"));
     const expectedLayerStrengths=waterContract.timeline.frames.find(frame=>frame.id===id).layers;
     for(const channel of ["ambient","caustic","highlight"])assert(Math.abs(actualLayerStrengths[channel]-expectedLayerStrengths[channel])<1e-9,id+" "+channel+" multiplier must match the frozen A-line curve");
-    if(id==="P0"||id==="P1"||id==="P2")assert(faceExpansion===0,id+" face geometry must not reveal the P3-expanded profile before 950ms");
-    if(id==="P3"||id==="P4"||id==="P5"||id==="P6"||id==="P7")assert(faceExpansion===1,id+" face geometry must retain the expanded profile continuously after 1200ms");
+    if(id==="P0"||id==="P1"||id==="P2")assert(faceExpansion===0&&faceSettlement===0,id+" face geometry must retain the initial profile through P2");
+    if(id==="P3")assert(faceExpansion===1&&faceSettlement===0,id+" face geometry must reach the expanded peak at P3");
+    if(id==="P4")assert(faceExpansion===1&&faceSettlement>0&&faceSettlement<1,id+" face geometry must settle continuously after the P3 peak");
+    if(id==="P5"||id==="P6"||id==="P7")assert(faceExpansion===1&&faceSettlement===1,id+" face geometry must settle back to the P5 tail profile");
     const state=await waterCanvasState();
     const metrics=await measureComposite(id);
     assert(state.outside_active_zone_alpha_pixels===0,id+" Canvas alpha must remain inside the union of A/B/C; got "+state.outside_active_zone_alpha_pixels);
@@ -1335,7 +1339,7 @@ async function main() {
     await waterStageShot("fishtrace-canvas-water-"+id+".png");
     compositeMetrics[id]=metrics;
     waterFrameStates[id]=state;
-    waterFrameJumpEvidence.push({id,ms,intensity_percent:shownIntensity,layer_strengths:actualLayerStrengths,caustic_face_expansion:faceExpansion,canvas_visible_pixels:state.visible,canvas_alpha_pixels_outside_active_zones:state.outside_active_zone_alpha_pixels,water_roi_mean_rgb_abs_diff_255:metrics.water_roi_mean_rgb_abs_diff_255});
+    waterFrameJumpEvidence.push({id,ms,intensity_percent:shownIntensity,layer_strengths:actualLayerStrengths,caustic_face_expansion:faceExpansion,caustic_face_settlement:faceSettlement,canvas_visible_pixels:state.visible,canvas_alpha_pixels_outside_active_zones:state.outside_active_zone_alpha_pixels,water_roi_mean_rgb_abs_diff_255:metrics.water_roi_mean_rgb_abs_diff_255});
   }
   const continuityCheckTimes=[0,50,300,350,400,900,950,1000,1150,1200,1250,2000,2050,2100,2550,2600,2650,2750,2800];
   const continuityLabels=[];
