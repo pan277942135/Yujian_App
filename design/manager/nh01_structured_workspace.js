@@ -182,9 +182,10 @@
   function hasAuthorityConflict(markdownContract, contract) {
     const allocation=contract?.logical_allocation?.allocation_when_positive_surplus||{};
     const md=String(markdownContract||'').replaceAll(String.fromCharCode(96),'').replace(/\s+/g,'').toLowerCase();
+    const explainsEqualAllocation=md.includes('equalportions');
+    const contradictsMachineRule=md.includes('2s/3')||md.includes('s/3')||md.includes('2:1')||md.includes('unequalportions');
     return allocation.a_to_b!=='gAB_base + S/2'||allocation.b_to_c!=='gBC_base + S/2'||
-      !md.includes('gab=gab_base+s/2')||!md.includes('gbc=gbc_base+s/2')||
-      md.includes('gab=gab_base+2s/3')||md.includes('gbc=gbc_base+s/3');
+      !explainsEqualAllocation||contradictsMachineRule;
   }
   function curveValue(points,x,field,xField='safe_height_dp') {
     if(!Array.isArray(points)||!points.length)return 0;

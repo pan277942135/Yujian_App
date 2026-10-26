@@ -55,7 +55,8 @@ assert.ok(!layerIds.includes('top')&&!layerIds.includes('footer'),'the logical A
 const measured=measuredLayerBounds({getBoundingClientRect:()=>({left:170,top:120,width:40,height:20})},{getBoundingClientRect:()=>({left:100,top:50})},.5);
 assert.deepEqual({...measured},{x:140,y:140,w:80,h:40},'DOM measurements must normalize viewport zoom around the artboard origin');
 const authorityConflict=sandbox.window.NH01StructuredWorkspace.hasAuthorityConflict(markdown,contract);
-assert.equal(authorityConflict,false,'V2 Markdown and machine contract agree on equal S/2 allocation');
+assert.equal(authorityConflict,false,'V2 Markdown explains the equal allocation without duplicating machine values');
+assert.ok(!markdown.includes('gAB_base + S/2')&&!markdown.includes('gBC_base + S/2'),'Markdown must not duplicate machine formula values');
 assert.equal(contract.contract_id,'NH01_RESPONSIVE_LAYOUT_V2');
 assert.equal(contract.logical_allocation.allocation_when_positive_surplus.a_to_b,'gAB_base + S/2');
 assert.equal(contract.logical_allocation.allocation_when_positive_surplus.b_to_c,'gBC_base + S/2');
@@ -64,7 +65,7 @@ assert.equal(previewRules.numeric_authority,'NONE');
 assert.equal(previewRules.no_numeric_overrides,true);
 assert.ok(!('hero' in previewRules)&&!('pager' in previewRules)&&!('vertical_allocation' in previewRules),'preview metadata must not define a second numeric rule set');
 assert.equal(staticArchiveContract.contract_id,'NH01_MULTI_SCREEN_STATIC_HIFI_V1');
-const staleMarkdown=markdown.replace('gAB_base + S/2','gAB_base + 2S/3').replace('gBC_base + S/2','gBC_base + S/3');
+const staleMarkdown=markdown.replace('equal portions to the two existing inter-band base gaps','unequal portions 2S/3 and S/3 across the inter-band base gaps');
 assert.equal(sandbox.window.NH01StructuredWorkspace.hasAuthorityConflict(staleMarkdown,contract),true,'stale 2:1 Markdown must remain an explicit authority conflict');
 const profiles=[[320,480],[360,640],[390,844],[430,932],[480,480],[480,700],[480,1100],[412,915]];
 let observedPositiveSurplus=false;
