@@ -46,9 +46,9 @@ button[disabled]{opacity:.48;cursor:not-allowed}
 .live-dot{background:#5c9d83;box-shadow:0 0 0 3px rgba(92,157,131,.12)}
 .viewport-canvas{padding:16px;background:radial-gradient(ellipse at 50% 0%,#f6faf7 0,#e9f1ed 75%);min-height:660px;display:flex;align-items:flex-start;justify-content:center;overflow:auto}
 .product-device{width:100%;min-width:0;max-width:1280px;border-radius:13px;border:1px solid #d4e0da;overflow:hidden;background:var(--page);box-shadow:0 12px 32px rgba(21,53,48,.1);transition:width .2s ease}
-.product-device.is-phone{width:390px;max-width:100%;height:760px;overflow:auto;border-radius:26px;border:7px solid #203b3a;box-shadow:0 14px 36px rgba(17,43,40,.18)}
+.product-device.is-phone{width:390px;max-width:100%;height:844px;overflow:auto;border-radius:26px;border:7px solid #203b3a;box-shadow:0 14px 36px rgba(17,43,40,.18)}
 .product-page{min-height:680px;background:linear-gradient(180deg,#f4f8f5 0%,#fbfcfa 45%,#f6f8f4 100%);position:relative;overflow:hidden}
-.product-device.is-phone .product-page{min-height:746px}
+.product-device.is-phone .product-page{min-height:830px}
 .product-header{height:72px;display:flex;align-items:center;justify-content:space-between;padding:0 32px;border-bottom:1px solid rgba(208,224,216,.75);background:rgba(255,255,255,.76)}
 .product-device.is-phone .product-header{height:60px;padding:0 17px}
 .product-brand{display:flex;align-items:center;gap:8px;min-width:0}
