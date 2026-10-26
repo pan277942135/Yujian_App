@@ -1,6 +1,3 @@
-Warning: truncated output (original token count: 25024)
-Total output lines: 1889
-
 # UNIFIED_CONTRACT_REGISTRY.yaml — 渔见 Contract Layer V1
 schema_version: "1.0"
 registry_id: "yujian-unified-contract-registry"
@@ -693,7 +690,471 @@ feature_contracts:
     control_phase: "P7"
     registry_status: "PARTIAL"
     owner_path: "design/pages/fish_guide"
-    child_surfaces: ["home", "species_detail", "species_sta…5024 tokens truncated…]
+    child_surfaces: ["home", "species_detail", "species_states", "knowledge_content_assets", "motion_interaction", "responsive_accessibility"]
+    journey_refs: []
+    route_refs: ["guide", "species/{key}"]
+    domain_contracts:
+      behavior:
+        status: "FROZEN"
+        authority: "design/pages/fish_guide/README.md"
+      visual:
+        status: "FROZEN"
+        authority: "design/system/core_visual_v1/reference/fish_guide_v2.png"
+      motion:
+        status: "FROZEN"
+        authority: "design/pages/fish_guide/motion/Fish_Guide_Motion_Interaction_Spec_V1.md"
+      haptic:
+        status: "FROZEN"
+        authority: "design/pages/fish_guide/motion/Fish_Guide_Motion_Interaction_Spec_V1.md"
+      sound:
+        status: "FROZEN"
+        authority: "design/pages/fish_guide/motion/Fish_Guide_Motion_Interaction_Spec_V1.md"
+      runtime:
+        status: "PARTIAL"
+        authority: "app/src/main/java/com/yujian/ai/ui/screens/FishGuideHomeScreen.kt"
+      evidence:
+        status: "MISSING"
+        authority: null
+      assets:
+        status: "FROZEN"
+        authority: "design/pages/fish_guide/content/Fish_Guide_Knowledge_Card_Content_Asset_Contract_V1.md"
+    page_contract_refs: []
+    page_contract_keys: []
+    shared_contract_refs: ["DS-FOUNDATION", "ANDROID-RUNTIME-HARNESS", "STATE-EVIDENCE-PROVENANCE"]
+    additional_shared_contract_refs: []
+    required_gate_classes: ["STATIC_CONTRACT", "BUILD", "RUNTIME", "APK_PROVENANCE"]
+  account_privacy_v1:
+    contract_id: "FC-account_privacy_v1"
+    name: "账号与隐私"
+    scope: "SECONDARY"
+    priority: "P1"
+    control_phase: "P7"
+    registry_status: "PARTIAL"
+    owner_path: "design/pages/account_privacy"
+    child_surfaces: ["01_login_register", "02_my_profile", "03_account_login", "04_data_privacy", "05_legal_about"]
+    journey_refs: []
+    route_refs: ["my", "account_login", "change_password", "data_privacy", "about", "privacy_policy"]
+    domain_contracts:
+      behavior:
+        status: "FROZEN"
+        authority: "design/pages/account_privacy/spec/FLOW_SPEC.md"
+      visual:
+        status: "FROZEN"
+        authority: "design/pages/account_privacy/authority_manifest_v2.json"
+      motion:
+        status: "FROZEN"
+        authority: "design/pages/account_privacy/spec/Account_Privacy_Interaction_Feedback_Spec_V1.md"
+      haptic:
+        status: "FROZEN"
+        authority: "design/pages/account_privacy/spec/Account_Privacy_Interaction_Feedback_Spec_V1.md"
+      sound:
+        status: "FROZEN"
+        authority: "design/pages/account_privacy/spec/Account_Privacy_Interaction_Feedback_Spec_V1.md"
+      runtime:
+        status: "PARTIAL"
+        authority: "app/src/main/java/com/yujian/ai/ui/screens/AccountPrivacyScreens.kt"
+      evidence:
+        status: "FROZEN"
+        authority: "design/pages/account_privacy/Account_Privacy_Design_Freeze_Review_V1.md"
+      assets:
+        status: "FROZEN"
+        authority: "design/pages/account_privacy/authority_manifest_v2.json"
+    page_contract_refs: []
+    page_contract_keys: []
+    shared_contract_refs: ["DS-FOUNDATION", "ANDROID-RUNTIME-HARNESS", "STATE-EVIDENCE-PROVENANCE"]
+    additional_shared_contract_refs: []
+    required_gate_classes: ["STATIC_CONTRACT", "BUILD", "RUNTIME", "APK_PROVENANCE"]
+  auth_login_v2:
+    contract_id: "FC-auth_login_v2"
+    name: "登录 · 欢迎回来"
+    scope: "SECONDARY"
+    priority: "P1"
+    control_phase: "P8"
+    registry_status: "ACTIVE_CLOSURE"
+    owner_path: "design/pages/account_privacy/Login"
+    child_surfaces: ["login_form"]
+    journey_refs: []
+    route_refs: ["login", "auth/login"]
+    domain_contracts:
+      behavior:
+        status: "FROZEN"
+        authority: "design/pages/account_privacy/Login/Login_V2_Closure.md"
+      visual:
+        status: "FROZEN"
+        authority: "design/pages/account_privacy/Login/frozen/Login_V2_1_Frozen_Final.png"
+      motion:
+        status: "FROZEN"
+        authority: "design/pages/account_privacy/Login/Login_V2_BG_CONTENT_Revision_V2_1.md"
+      haptic:
+        status: "FROZEN"
+        authority: "design/pages/account_privacy/Login/Login_V2_BG_CONTENT_Revision_V2_1.md"
+      sound:
+        status: "FROZEN"
+        authority: "design/pages/account_privacy/Login/Login_V2_BG_CONTENT_Revision_V2_1.md"
+      runtime:
+        status: "FROZEN"
+        authority: "app/src/main/java/com/yujian/ai/ui/auth/LoginV2Screen.kt"
+      evidence:
+        status: "PARTIAL"
+        authority: "app/src/androidTest/java/com/yujian/ai/LoginV2RuntimeTest.kt"
+      assets:
+        status: "FROZEN"
+        authority: "design/pages/account_privacy/Login/frozen/manifest.json"
+    page_contract_refs: []
+    page_contract_keys: []
+    shared_contract_refs: ["DS-FOUNDATION", "ANDROID-RUNTIME-HARNESS", "STATE-EVIDENCE-PROVENANCE"]
+    additional_shared_contract_refs: []
+    required_gate_classes: ["STATIC_CONTRACT", "BUILD", "RUNTIME", "APK_PROVENANCE"]
+  auth_register_v2:
+    contract_id: "FC-auth_register_v2"
+    name: "注册 · 创建账号"
+    scope: "SECONDARY"
+    priority: "P1"
+    control_phase: "P6"
+    registry_status: "PARTIAL"
+    owner_path: "design/pages/account_privacy/Register"
+    child_surfaces: ["register_form"]
+    journey_refs: []
+    route_refs: ["register"]
+    domain_contracts:
+      behavior:
+        status: "FROZEN"
+        authority: "design/pages/account_privacy/Register/Register_V2_Design_Spec_V1.md"
+      visual:
+        status: "FROZEN"
+        authority: "design/pages/account_privacy/Register/frozen/Register_V2_Frozen_Final.png"
+      motion:
+        status: "FROZEN"
+        authority: "design/pages/account_privacy/Register/Register_V2_Design_Spec_V1.md"
+      haptic:
+        status: "FROZEN"
+        authority: "design/pages/account_privacy/Register/Register_V2_Design_Spec_V1.md"
+      sound:
+        status: "FROZEN"
+        authority: "design/pages/account_privacy/Register/Register_V2_Design_Spec_V1.md"
+      runtime:
+        status: "RUNTIME_ONLY"
+        authority: "app/src/main/java/com/yujian/ai/ui/auth/RegisterV2Screen.kt"
+      evidence:
+        status: "MISSING"
+        authority: null
+      assets:
+        status: "FROZEN"
+        authority: "design/pages/account_privacy/Register/frozen/manifest.json"
+    page_contract_refs: []
+    page_contract_keys: []
+    shared_contract_refs: ["DS-FOUNDATION", "ANDROID-RUNTIME-HARNESS", "STATE-EVIDENCE-PROVENANCE"]
+    additional_shared_contract_refs: []
+    required_gate_classes: ["STATIC_CONTRACT", "BUILD", "RUNTIME", "APK_PROVENANCE"]
+  profile_edit_v1:
+    contract_id: "FC-profile_edit_v1"
+    name: "编辑资料"
+    scope: "SECONDARY"
+    priority: "P1"
+    control_phase: "P8"
+    registry_status: "ACTIVE_CLOSURE"
+    owner_path: "design/pages/account_privacy/My/Edit_Profile"
+    child_surfaces: ["01_profile_home", "02_avatar_edit", "03_nickname_edit", "04_save_feedback", "05_edge_states", "06_interaction_adaptation"]
+    journey_refs: []
+    route_refs: ["edit_profile"]
+    domain_contracts:
+      behavior:
+        status: "FROZEN"
+        authority: "design/pages/account_privacy/My/Edit_Profile/Edit_Profile_State_Interaction_Spec_V1.md"
+      visual:
+        status: "FROZEN"
+        authority: "design/pages/account_privacy/My/Edit_Profile/README.md"
+      motion:
+        status: "FROZEN"
+        authority: "design/pages/account_privacy/My/Edit_Profile/Edit_Profile_State_Interaction_Spec_V1.md"
+      haptic:
+        status: "FROZEN"
+        authority: "design/pages/account_privacy/My/Edit_Profile/Edit_Profile_State_Interaction_Spec_V1.md"
+      sound:
+        status: "FROZEN"
+        authority: "design/pages/account_privacy/My/Edit_Profile/Edit_Profile_State_Interaction_Spec_V1.md"
+      runtime:
+        status: "RUNTIME_ONLY"
+        authority: "app/src/main/java/com/yujian/ai/ui/screens/AccountPrivacyScreens.kt"
+      evidence:
+        status: "MISSING"
+        authority: null
+      assets:
+        status: "FROZEN"
+        authority: "design/pages/account_privacy/My/Edit_Profile/README.md"
+    page_contract_refs: []
+    page_contract_keys: []
+    shared_contract_refs: ["DS-FOUNDATION", "ANDROID-RUNTIME-HARNESS", "STATE-EVIDENCE-PROVENANCE"]
+    additional_shared_contract_refs: []
+    required_gate_classes: ["STATIC_CONTRACT", "BUILD", "RUNTIME", "APK_PROVENANCE"]
+  user_agreement_v1:
+    contract_id: "FC-user_agreement_v1"
+    name: "用户协议"
+    scope: "SECONDARY"
+    priority: "P1"
+    control_phase: "P8"
+    registry_status: "PARTIAL"
+    owner_path: "design/pages/account_privacy/legal"
+    child_surfaces: ["legal_document_shell", "agreement_content"]
+    journey_refs: []
+    route_refs: ["user_agreement"]
+    domain_contracts:
+      behavior:
+        status: "FROZEN"
+        authority: "design/pages/account_privacy/legal/User_Agreement_Content_Draft_V1.md"
+      visual:
+        status: "FROZEN"
+        authority: "design/pages/account_privacy/legal/Legal_Document_Shell_Spec_V1.md"
+      motion:
+        status: "MISSING"
+        authority: null
+      haptic:
+        status: "MISSING"
+        authority: null
+      sound:
+        status: "MISSING"
+        authority: null
+      runtime:
+        status: "RUNTIME_ONLY"
+        authority: "app/src/main/java/com/yujian/ai/ui/screens/AccountPrivacyScreens.kt"
+      evidence:
+        status: "FROZEN"
+        authority: "design/pages/account_privacy/Account_Privacy_Design_Freeze_Review_V1.md"
+      assets:
+        status: "FROZEN"
+        authority: "design/pages/account_privacy/My/Account_Login/Data_Privacy/04_Privacy_Policy.png"
+    page_contract_refs: []
+    page_contract_keys: []
+    shared_contract_refs: ["DS-FOUNDATION", "ANDROID-RUNTIME-HARNESS", "STATE-EVIDENCE-PROVENANCE"]
+    additional_shared_contract_refs: []
+    required_gate_classes: ["STATIC_CONTRACT", "BUILD", "RUNTIME", "APK_PROVENANCE"]
+
+journey_contracts:
+  J01:
+    name: "Empty Home"
+    feature_refs: ["home_empty_v2"]
+    contract_refs: ["FC-home_empty_v2"]
+    acceptance_owner: "N003"
+  J02:
+    name: "Tap Camera"
+    feature_refs: ["home_empty_v2"]
+    contract_refs: ["FC-home_empty_v2"]
+    acceptance_owner: "N003"
+  J03:
+    name: "Camera Permission"
+    feature_refs: ["recognition_flow_v1_2"]
+    contract_refs: ["FC-recognition_flow_v1_2"]
+    acceptance_owner: "N003"
+  J04:
+    name: "First Capture Guide"
+    feature_refs: ["recognition_flow_v1_2"]
+    contract_refs: ["FC-recognition_flow_v1_2"]
+    acceptance_owner: "N003"
+  J05:
+    name: "Camera Capture"
+    feature_refs: ["recognition_flow_v1_2"]
+    contract_refs: ["FC-recognition_flow_v1_2"]
+    acceptance_owner: "N003"
+  J06:
+    name: "Preview Ready"
+    feature_refs: ["recognition_flow_v1_2"]
+    contract_refs: ["FC-recognition_flow_v1_2"]
+    acceptance_owner: "N003"
+  J07:
+    name: "Recognition Processing"
+    feature_refs: ["recognition_flow_v1_2"]
+    contract_refs: ["FC-recognition_flow_v1_2"]
+    acceptance_owner: "N003"
+  J08:
+    name: "Detection"
+    feature_refs: ["recognition_flow_v1_2"]
+    contract_refs: ["FC-recognition_flow_v1_2"]
+    acceptance_owner: "N003"
+  J09:
+    name: "Outline"
+    feature_refs: ["recognition_flow_v1_2"]
+    contract_refs: ["FC-recognition_flow_v1_2"]
+    acceptance_owner: "N003"
+  J10:
+    name: "Classification"
+    feature_refs: ["recognition_flow_v1_2"]
+    contract_refs: ["FC-recognition_flow_v1_2"]
+    acceptance_owner: "N003"
+  J11:
+    name: "Recognition Result"
+    feature_refs: ["recognition_result_v1"]
+    contract_refs: ["FC-recognition_result_v1"]
+    acceptance_owner: "N003"
+  J12:
+    name: "High Confidence Result"
+    feature_refs: ["recognition_result_v1"]
+    contract_refs: ["FC-recognition_result_v1"]
+    acceptance_owner: "N003"
+  J13:
+    name: "Medium/Low Confidence Result"
+    feature_refs: ["recognition_result_v1"]
+    contract_refs: ["FC-recognition_result_v1"]
+    acceptance_owner: "N003"
+  J14:
+    name: "No Fish / Invalid Image"
+    feature_refs: ["recognition_result_v1"]
+    contract_refs: ["FC-recognition_result_v1"]
+    acceptance_owner: "N003"
+  J15:
+    name: "Save Catch"
+    feature_refs: ["recognition_result_v1"]
+    contract_refs: ["FC-recognition_result_v1"]
+    acceptance_owner: "N003"
+  J16:
+    name: "Continue / Edit Catch"
+    feature_refs: ["recognition_result_v1"]
+    contract_refs: ["FC-recognition_result_v1"]
+    acceptance_owner: "N003"
+  J17:
+    name: "Return Home"
+    feature_refs: ["home_normal_v1"]
+    contract_refs: ["FC-home_normal_v1"]
+    acceptance_owner: "N003"
+  J18:
+    name: "Recent Catch"
+    feature_refs: ["home_normal_v1"]
+    contract_refs: ["FC-home_normal_v1"]
+    acceptance_owner: "N003"
+  J19:
+    name: "FishRecordDetail A"
+    feature_refs: ["fish_record_detail_v2"]
+    contract_refs: ["FC-fish_record_detail_v2"]
+    acceptance_owner: "N003"
+  J20:
+    name: "FishRecordDetail B / Memory"
+    feature_refs: ["fish_memory_bside_v1"]
+    contract_refs: ["FC-fish_memory_bside_v1"]
+    acceptance_owner: "N003"
+
+child_surface_contracts:
+  "empty_state":
+    owner_features: ["home_empty_v2"]
+    contract_refs: ["FC-home_empty_v2"]
+    resolution_rule: "Resolve child surface through its owner feature contract; page-owned authority wins over shared fallback."
+  "primary_capture":
+    owner_features: ["home_empty_v2"]
+    contract_refs: ["FC-home_empty_v2"]
+    resolution_rule: "Resolve child surface through its owner feature contract; page-owned authority wins over shared fallback."
+  "NH01":
+    owner_features: ["home_normal_v1"]
+    contract_refs: ["FC-home_normal_v1"]
+    resolution_rule: "Resolve child surface through its owner feature contract; page-owned authority wins over shared fallback."
+  "NH02":
+    owner_features: ["home_normal_v1"]
+    contract_refs: ["FC-home_normal_v1"]
+    resolution_rule: "Resolve child surface through its owner feature contract; page-owned authority wins over shared fallback."
+  "NH03":
+    owner_features: ["home_normal_v1"]
+    contract_refs: ["FC-home_normal_v1"]
+    resolution_rule: "Resolve child surface through its owner feature contract; page-owned authority wins over shared fallback."
+  "NH04":
+    owner_features: ["home_normal_v1"]
+    contract_refs: ["FC-home_normal_v1"]
+    resolution_rule: "Resolve child surface through its owner feature contract; page-owned authority wins over shared fallback."
+  "NH05":
+    owner_features: ["home_normal_v1"]
+    contract_refs: ["FC-home_normal_v1"]
+    resolution_rule: "Resolve child surface through its owner feature contract; page-owned authority wins over shared fallback."
+  "NH06":
+    owner_features: ["home_normal_v1"]
+    contract_refs: ["FC-home_normal_v1"]
+    resolution_rule: "Resolve child surface through its owner feature contract; page-owned authority wins over shared fallback."
+  "NH07":
+    owner_features: ["home_normal_v1"]
+    contract_refs: ["FC-home_normal_v1"]
+    resolution_rule: "Resolve child surface through its owner feature contract; page-owned authority wins over shared fallback."
+  "RD01":
+    owner_features: ["record_date_v2"]
+    contract_refs: ["FC-record_date_v2"]
+    resolution_rule: "Resolve child surface through its owner feature contract; page-owned authority wins over shared fallback."
+  "RD02":
+    owner_features: ["record_date_v2"]
+    contract_refs: ["FC-record_date_v2"]
+    resolution_rule: "Resolve child surface through its owner feature contract; page-owned authority wins over shared fallback."
+  "RD03":
+    owner_features: ["record_date_v2"]
+    contract_refs: ["FC-record_date_v2"]
+    resolution_rule: "Resolve child surface through its owner feature contract; page-owned authority wins over shared fallback."
+  "capture":
+    owner_features: ["recognition_flow_v1_2"]
+    contract_refs: ["FC-recognition_flow_v1_2"]
+    resolution_rule: "Resolve child surface through its owner feature contract; page-owned authority wins over shared fallback."
+  "permission":
+    owner_features: ["recognition_flow_v1_2"]
+    contract_refs: ["FC-recognition_flow_v1_2"]
+    resolution_rule: "Resolve child surface through its owner feature contract; page-owned authority wins over shared fallback."
+  "first_use_guide":
+    owner_features: ["recognition_flow_v1_2"]
+    contract_refs: ["FC-recognition_flow_v1_2"]
+    resolution_rule: "Resolve child surface through its owner feature contract; page-owned authority wins over shared fallback."
+  "first_use_guide_portrait_horizontal":
+    owner_features: ["recognition_flow_v1_2"]
+    contract_refs: ["FC-recognition_flow_v1_2"]
+    resolution_rule: "Resolve child surface through its owner feature contract; page-owned authority wins over shared fallback."
+  "first_use_guide_landscape_horizontal":
+    owner_features: ["recognition_flow_v1_2"]
+    contract_refs: ["FC-recognition_flow_v1_2"]
+    resolution_rule: "Resolve child surface through its owner feature contract; page-owned authority wins over shared fallback."
+  "preview_ready":
+    owner_features: ["recognition_flow_v1_2"]
+    contract_refs: ["FC-recognition_flow_v1_2"]
+    resolution_rule: "Resolve child surface through its owner feature contract; page-owned authority wins over shared fallback."
+  "capture_ready_portrait_horizontal":
+    owner_features: ["recognition_flow_v1_2"]
+    contract_refs: ["FC-recognition_flow_v1_2"]
+    resolution_rule: "Resolve child surface through its owner feature contract; page-owned authority wins over shared fallback."
+  "capture_ready_landscape_horizontal":
+    owner_features: ["recognition_flow_v1_2"]
+    contract_refs: ["FC-recognition_flow_v1_2"]
+    resolution_rule: "Resolve child surface through its owner feature contract; page-owned authority wins over shared fallback."
+  "processing":
+    owner_features: ["recognition_flow_v1_2"]
+    contract_refs: ["FC-recognition_flow_v1_2"]
+    resolution_rule: "Resolve child surface through its owner feature contract; page-owned authority wins over shared fallback."
+  "issue_retry":
+    owner_features: ["recognition_flow_v1_2"]
+    contract_refs: ["FC-recognition_flow_v1_2"]
+    resolution_rule: "Resolve child surface through its owner feature contract; page-owned authority wins over shared fallback."
+  "gallery_entry":
+    owner_features: ["recognition_flow_v1_2"]
+    contract_refs: ["FC-recognition_flow_v1_2"]
+    resolution_rule: "Resolve child surface through its owner feature contract; page-owned authority wins over shared fallback."
+  "overview":
+    owner_features: ["recognition_result_v1", "fish_record_detail_v2", "my_catches_v2"]
+    contract_refs: ["FC-recognition_result_v1", "FC-fish_record_detail_v2", "FC-my_catches_v2"]
+    resolution_rule: "Resolve child surface through its owner feature contract; page-owned authority wins over shared fallback."
+  "high":
+    owner_features: ["recognition_result_v1"]
+    contract_refs: ["FC-recognition_result_v1"]
+    resolution_rule: "Resolve child surface through its owner feature contract; page-owned authority wins over shared fallback."
+  "medium":
+    owner_features: ["recognition_result_v1"]
+    contract_refs: ["FC-recognition_result_v1"]
+    resolution_rule: "Resolve child surface through its owner feature contract; page-owned authority wins over shared fallback."
+  "low":
+    owner_features: ["recognition_result_v1"]
+    contract_refs: ["FC-recognition_result_v1"]
+    resolution_rule: "Resolve child surface through its owner feature contract; page-owned authority wins over shared fallback."
+  "no_fish":
+    owner_features: ["recognition_result_v1"]
+    contract_refs: ["FC-recognition_result_v1"]
+    resolution_rule: "Resolve child surface through its owner feature contract; page-owned authority wins over shared fallback."
+  "image_quality":
+    owner_features: ["recognition_result_v1"]
+    contract_refs: ["FC-recognition_result_v1"]
+    resolution_rule: "Resolve child surface through its owner feature contract; page-owned authority wins over shared fallback."
+  "content_edit":
+    owner_features: ["recognition_result_v1"]
+    contract_refs: ["FC-recognition_result_v1"]
+    resolution_rule: "Resolve child surface through its owner feature contract; page-owned authority wins over shared fallback."
+  "decision_logic":
+    owner_features: ["recognition_result_v1"]
+    contract_refs: ["FC-recognition_result_v1"]
     resolution_rule: "Resolve child surface through its owner feature contract; page-owned authority wins over shared fallback."
   "visual_acceptance":
     owner_features: ["recognition_result_v1"]
