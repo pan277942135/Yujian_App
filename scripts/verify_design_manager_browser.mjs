@@ -199,7 +199,7 @@ async function main() {
   assert(await workspace.locator('[data-testid="nh01-canvas-hero"].nh01-layer-selected').count()===1,"tree selection must highlight Hero");
   const previousPeek=workspace.locator('[data-testid="nh01-canvas-peek-left"]');
   const previousPeekHitPoint=await previousPeek.evaluate(node=>{
-    const card=node.getBoundingClientRect(),pager=node.closest('[data-testid="nh01-pager"]').getBoundingClientRect();
+    const card=node.getBoundingClientRect(),pager=node.closest('[data-layer="pager"]').getBoundingClientRect();
     const left=Math.max(card.left,pager.left),right=Math.min(card.right,pager.right);
     const top=Math.max(card.top,pager.top),bottom=Math.min(card.bottom,pager.bottom);
     if(right-left<1||bottom-top<1)return null;

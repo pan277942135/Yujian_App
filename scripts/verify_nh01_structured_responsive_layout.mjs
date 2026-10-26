@@ -65,7 +65,7 @@ async function measure(page,profile,fontScale){
     const board=document.querySelector('[data-artboard]');
     const origin=board.getBoundingClientRect();
     const rect=node=>{const r=node.getBoundingClientRect();return{x:+(r.left-origin.left).toFixed(3),y:+(r.top-origin.top).toFixed(3),w:+r.width.toFixed(3),h:+r.height.toFixed(3),right:+(r.right-origin.left).toFixed(3),bottom:+(r.bottom-origin.top).toFixed(3)};};
-    const pick=id=>document.querySelector(`[data-testid="nh01-canvas-${id}"]`);
+    const pick=id=>board.querySelector(`[data-layer="${id}"]`);
     const header=rect(document.querySelector('[data-testid="nh01-header"]'));
     const stats=rect(document.querySelector('[data-testid="nh01-stats"]'));
     const recent=rect(document.querySelector('[data-testid="nh01-recent-header"]'));
@@ -110,6 +110,7 @@ function validate(result){
   if(b.hero.w>result.heroTargetWidth+.5)failures.push("Hero exceeded target width");
   if(Math.abs(p.peekGapLeft-p.peekGapRight)>.5)failures.push("left/right Peek gap is asymmetric");
   if(Math.abs(p.neighborPreviousVisibleWidth-p.neighborNextVisibleWidth)>.5)failures.push("left/right Peek reveal is asymmetric");
+  if(p.neighborPreviousVisibleWidth<1||p.neighborNextVisibleWidth<1)failures.push("both Neighbor cards must have a measurable visible Peek segment");
   if(p.maxGeometryOverlap>p.maxGeometryOverlapLimit+.01)failures.push("Peek geometry exceeds the overlap cap");
   if(p.peekGapLeft<7.9||p.peekGapLeft>12.1)failures.push("actual Peek gap is outside the 8–12dp preview clamp");
   if(p.pagerHeight<p.indicatorHeight)failures.push("Pager indicator is outside the Pager height budget");
