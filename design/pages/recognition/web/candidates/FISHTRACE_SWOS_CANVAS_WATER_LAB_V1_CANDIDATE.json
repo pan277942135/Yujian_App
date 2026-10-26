@@ -400,6 +400,36 @@
         0.78
       ],
       "p3_single_field_opacity_max": 0.1,
+      "field_opacity_response_multiplier": 0.68,
+      "large_radius_sampling_w": [
+        0.22,
+        0.26
+      ],
+      "medium_radius_sampling_w": [
+        0.12,
+        0.14
+      ],
+      "aspect_ratio": [
+        0.68,
+        0.83
+      ],
+      "radial_gradient_opacity_stops": [
+        1.0,
+        0.92,
+        0.72
+      ],
+      "calibration": {
+        "revision": "A_LINE_P1_AMBIENT_RESPONSE_02",
+        "root_cause": "Per-field opacity was multiplied by both Canvas globalAlpha and low-alpha radial color stops (0.34, 0.28, 0.13), reducing the P1 ambient field to an almost imperceptible composite.",
+        "change": "Use the per-field opacity cap as the sole layer opacity, with opaque-to-soft radial color stops and deterministic sampling near the upper end of the already permitted field-size ranges.",
+        "preserved": [
+          "five fields with three large and two medium",
+          "original large and medium radius bounds",
+          "P0-P7 layer multipliers and all timestamps",
+          "0.10 per-field opacity maximum",
+          "A/B/C/D normalized geometry and source image identity"
+        ]
+      },
       "colors_rgba": [
         "rgba(102,224,214,1)",
         "rgba(132,238,232,1)",

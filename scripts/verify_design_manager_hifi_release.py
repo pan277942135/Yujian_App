@@ -421,6 +421,11 @@ def validate_tree(root: Path, *, built: bool = False, expected_build: str | None
         and water_field.get("edge_fade_width_w",0) > 0
     )
     water_rendering = water_lab.get("rendering",{})
+    ambient_spec = water_rendering.get("ambient",{})
+    large_sample = ambient_spec.get("large_radius_sampling_w",[])
+    medium_sample = ambient_spec.get("medium_radius_sampling_w",[])
+    large_bounds = ambient_spec.get("large_radius_w",[])
+    medium_bounds = ambient_spec.get("medium_radius_w",[])
     water_motion = water_lab.get("motion",{})
     timeline_frames = water_lab.get("timeline",{}).get("frames",[])
     expected_channels = [
@@ -438,6 +443,14 @@ def validate_tree(root: Path, *, built: bool = False, expected_build: str | None
         and water_rendering.get("ambient",{}).get("count") == 5
         and water_rendering.get("ambient",{}).get("large_count") == 3
         and water_rendering.get("ambient",{}).get("medium_count") == 2
+        and water_rendering.get("ambient",{}).get("field_opacity_response_multiplier") == .68
+        and water_rendering.get("ambient",{}).get("large_radius_sampling_w") == [.22,.26]
+        and water_rendering.get("ambient",{}).get("medium_radius_sampling_w") == [.12,.14]
+        and water_rendering.get("ambient",{}).get("aspect_ratio") == [.68,.83]
+        and water_rendering.get("ambient",{}).get("radial_gradient_opacity_stops") == [1,.92,.72]
+        and water_rendering.get("ambient",{}).get("p3_single_field_opacity_max") == .10
+        and len(large_sample) == len(large_bounds) == 2 and large_bounds[0] <= large_sample[0] <= large_sample[1] <= large_bounds[1]
+        and len(medium_sample) == len(medium_bounds) == 2 and medium_bounds[0] <= medium_sample[0] <= medium_sample[1] <= medium_bounds[1]
         and water_rendering.get("caustics",{}).get("geometry_model") == "a_line_organic_face_patches_v1"
         and water_rendering.get("caustics",{}).get("patch_count") == 18
         and water_rendering.get("caustics",{}).get("groups") == {"A":4,"B":4,"C":4,"D":3,"E":3}
@@ -466,6 +479,12 @@ def validate_tree(root: Path, *, built: bool = False, expected_build: str | None
         and water_lab.get("visual_reference",{}).get("name") == "SWOS 高保真总图 V0.3"
         and water_lab.get("visual_reference",{}).get("visibility") == "PRIVATE_REFERENCE_NOT_EMBEDDED_OR_PUBLISHED",
         "Canvas Water Lab A-line normalized regions, three-channel strengths and patch geometry must match the candidate contract"
+    )
+    require(
+        water_rendering.get("ambient",{}).get("calibration",{}).get("revision") == "A_LINE_P1_AMBIENT_RESPONSE_02"
+        and "low-alpha radial color stops" in water_rendering.get("ambient",{}).get("calibration",{}).get("root_cause","")
+        and "0.10 per-field opacity maximum" in water_rendering.get("ambient",{}).get("calibration",{}).get("preserved",[]),
+        "Canvas Water Lab ambient P1 response calibration must record the double-alpha root cause and preserve the .10 per-field cap"
     )
     require(water_lab.get("boundaries",{}).get("production_sites_runtime_modified") is False and water_lab.get("boundaries",{}).get("inference_api_requested") is False and water_lab.get("boundaries",{}).get("photo_upload_implemented") is False and water_lab.get("boundaries",{}).get("fish_mask_or_gold_contour_drawn") is False and water_lab.get("boundaries",{}).get("webgl_used") is False, "Canvas Water Lab scope crossed a production or forbidden visual boundary")
     require("object-fit:contain" in water_lab_css and "mix-blend-mode:screen" in water_lab_css, "Canvas Water Lab image/overlay layout is missing")

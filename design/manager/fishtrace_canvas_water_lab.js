@@ -251,11 +251,11 @@
       const zones=[...Array(distribution.A).fill("A"),...Array(distribution.B).fill("B"),...Array(distribution.C).fill("C")];
       return zones.map((zone,index)=>{
         const large=index<spec.large_count;
-        const range=large?spec.large_radius_w:spec.medium_radius_w;
+        const range=large?spec.large_radius_sampling_w:spec.medium_radius_sampling_w;
         return {
           id:index+1,zone,center:sampleZonePoint(this.zones[zone],random),
           radiusW:range[0]+random()*(range[1]-range[0]),
-          aspect:.48+random()*.35,angle:random()*Math.PI*2,
+          aspect:spec.aspect_ratio[0]+random()*(spec.aspect_ratio[1]-spec.aspect_ratio[0]),angle:random()*Math.PI*2,
           phase:random()*Math.PI*2,weight:.84+random()*.16,
           feather:spec.edge_feather_fraction[0]+random()*(spec.edge_feather_fraction[1]-spec.edge_feather_fraction[0]),
           lobe:Array.from({length:12},()=>random()*2-1),
@@ -353,7 +353,7 @@
         const zone=this.field.regions[field.zone];
         const zoneCoefficient=zone.strength_coefficient;
         const temporal=this.activation(field.zone,timeMs)*(1-this.exit(field.zone,timeMs,field.id*16));
-        const alpha=Math.min(spec.p3_single_field_opacity_max,intensity*strengthValue*.30*field.weight)*zoneCoefficient*temporal;
+        const alpha=Math.min(spec.p3_single_field_opacity_max,intensity*strengthValue*spec.field_opacity_response_multiplier*field.weight)*zoneCoefficient*temporal;
         if(alpha<.002)continue;
         const offset=this.groupOffset({group:field.zone==="A"?"A":field.zone==="B"?"D":"E"},timeMs,motionScale);
         const center={x:field.center.x+offset.x,y:field.center.y+offset.y};
@@ -378,9 +378,10 @@
         ctx.rotate(field.angle);
         ctx.scale(rx,ry);
         const gradient=ctx.createRadialGradient(0,0,0,0,0,1);
-        gradient.addColorStop(0,rgbaWithAlpha(spec.colors_rgba[field.colorIndex],.34));
-        gradient.addColorStop(.34,rgbaWithAlpha(spec.colors_rgba[(field.colorIndex+1)%spec.colors_rgba.length],.28));
-        gradient.addColorStop(.68,rgbaWithAlpha(spec.colors_rgba[(field.colorIndex+2)%spec.colors_rgba.length],.13));
+        const opacityStops=spec.radial_gradient_opacity_stops;
+        gradient.addColorStop(0,rgbaWithAlpha(spec.colors_rgba[field.colorIndex],opacityStops[0]));
+        gradient.addColorStop(.34,rgbaWithAlpha(spec.colors_rgba[(field.colorIndex+1)%spec.colors_rgba.length],opacityStops[1]));
+        gradient.addColorStop(.68,rgbaWithAlpha(spec.colors_rgba[(field.colorIndex+2)%spec.colors_rgba.length],opacityStops[2]));
         gradient.addColorStop(1,"rgba(102,224,214,0)");
         ctx.fillStyle=gradient;
         ctx.fillRect(-1.2,-1.2,2.4,2.4);
@@ -538,6 +539,7 @@
       this.canvas.dataset.waterRegionSourceAreaPx=String(Math.round(allActivePolygons(this.scene.zones).reduce((sum,polygon)=>sum+polygonArea(polygon.points),0)*this.scene.asset.width*this.scene.asset.height));
       this.canvas.dataset.sourceDimensions=JSON.stringify({width:this.scene.asset.width,height:this.scene.asset.height});
       const patches=this.scene.patches;
+      const ambientFields=this.scene.ambientFields;
       const directionBinCount=this.scene.rendering.caustics.direction_distribution.angular_bins;
       const angleBins=new Set(patches.map(patch=>Math.floor((((patch.angle%(Math.PI))+Math.PI)%(Math.PI))/(Math.PI)*directionBinCount)));
       const nearHorizontal=patches.filter(patch=>Math.min(Math.abs(((patch.angle%(Math.PI))+Math.PI)%(Math.PI)),Math.PI-Math.abs(((patch.angle%(Math.PI))+Math.PI)%(Math.PI)))<=Math.PI/18).length/Math.max(1,patches.length);
@@ -547,6 +549,8 @@
       this.canvas.dataset.causticDirectionBins=String(angleBins.size);
       this.canvas.dataset.causticNearHorizontalFraction=String(nearHorizontal);
       this.canvas.dataset.causticGroupCounts=JSON.stringify(patches.reduce((out,patch)=>{out[patch.group]=(out[patch.group]||0)+1;return out;},{}));
+      this.canvas.dataset.ambientFieldCount=String(ambientFields.length);
+      this.canvas.dataset.ambientFieldZoneCounts=JSON.stringify(ambientFields.reduce((out,field)=>{out[field.zone]=(out[field.zone]||0)+1;return out;},{}));
       this.canvas.dataset.highlightSegmentCount=String(this.scene.highlights.length);
       this.canvas.dataset.rendererStatus="READY";
       this.render(controller?controller.timeMs:0,layerStrengthsAt(controller?controller.timeMs:0),true,false);
