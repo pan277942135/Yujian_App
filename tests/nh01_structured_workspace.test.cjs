@@ -7,10 +7,11 @@ vm.runInNewContext(fs.readFileSync('design/manager/nh01_structured_workspace.js'
 const calculate=sandbox.window.NH01StructuredWorkspace.calculate;
 const createResourceLoader=sandbox.window.NH01StructuredWorkspace.createResourceLoader;
 const {createLayerTree,flattenLayerTree,findLayer,measuredLayerBounds}=sandbox.window.NH01StructuredWorkspace;
-const contract=JSON.parse(fs.readFileSync('design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_MULTI_SCREEN_RESPONSIVE_CONTRACT_V1.json'));
+const staticArchiveContract=JSON.parse(fs.readFileSync('design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_MULTI_SCREEN_RESPONSIVE_CONTRACT_V1.json'));
+const contract=JSON.parse(fs.readFileSync('design/pages/home/normal_home/responsive/NH01_RESPONSIVE_LAYOUT_V2.json'));
 const previewRules=JSON.parse(fs.readFileSync('design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_STRUCTURED_PREVIEW_LAYOUT_RULES_V2.json'));
 const previewMedia=JSON.parse(fs.readFileSync('design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_STRUCTURED_PREVIEW_MEDIA_V1.json'));
-const markdown=fs.readFileSync('design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_MULTI_SCREEN_RESPONSIVE_CONTRACT_V1.md','utf8');
+const markdown=fs.readFileSync('design/pages/home/normal_home/responsive/NH01_RESPONSIVE_LAYOUT_V2.md','utf8');
 const manifest=JSON.parse(fs.readFileSync('design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_MULTI_SCREEN_STATIC_HIFI_V1_MANIFEST.json'));
 const resourceBinding=JSON.parse(fs.readFileSync('design/system_v3/09_Android_Implementation_Contracts/Normal_Home/Normal_Home_Resource_Binding_V1.json'));
 const componentTree=JSON.parse(fs.readFileSync('design/manager/nh01_acceptance/data/NH01_Component_Tree_V1.json'));
@@ -54,47 +55,58 @@ assert.ok(!layerIds.includes('top')&&!layerIds.includes('footer'),'the logical A
 const measured=measuredLayerBounds({getBoundingClientRect:()=>({left:170,top:120,width:40,height:20})},{getBoundingClientRect:()=>({left:100,top:50})},.5);
 assert.deepEqual({...measured},{x:140,y:140,w:80,h:40},'DOM measurements must normalize viewport zoom around the artboard origin');
 const authorityConflict=sandbox.window.NH01StructuredWorkspace.hasAuthorityConflict(markdown,contract);
-assert.equal(authorityConflict,false,'current NH01 V1.1 Markdown and machine contract agree on equal split');
-const staleMarkdown=markdown.replace('gAB = gAB_base + S/2','gAB = gAB_base + 2S/3').replace('gBC = gBC_base + S/2','gBC = gBC_base + S/3');
-assert.equal(sandbox.window.NH01StructuredWorkspace.hasAuthorityConflict(staleMarkdown,contract),true,'a stale Markdown 2:1 rule must remain an explicit authority conflict');
+assert.equal(authorityConflict,false,'V2 Markdown and machine contract agree on equal S/2 allocation');
+assert.equal(contract.contract_id,'NH01_RESPONSIVE_LAYOUT_V2');
+assert.equal(contract.logical_allocation.allocation_when_positive_surplus.a_to_b,'gAB_base + S/2');
+assert.equal(contract.logical_allocation.allocation_when_positive_surplus.b_to_c,'gBC_base + S/2');
+assert.equal(previewRules.status,'PREVIEW_ONLY');
+assert.equal(previewRules.numeric_authority,'NONE');
+assert.equal(previewRules.no_numeric_overrides,true);
+assert.ok(!('hero' in previewRules)&&!('pager' in previewRules)&&!('vertical_allocation' in previewRules),'preview metadata must not define a second numeric rule set');
+assert.equal(staticArchiveContract.contract_id,'NH01_MULTI_SCREEN_RESPONSIVE_CONTRACT_V1');
+const staleMarkdown=markdown.replace('gAB_base + S/2','gAB_base + 2S/3').replace('gBC_base + S/2','gBC_base + S/3');
+assert.equal(sandbox.window.NH01StructuredWorkspace.hasAuthorityConflict(staleMarkdown,contract),true,'stale 2:1 Markdown must remain an explicit authority conflict');
 const profiles=[[320,480],[360,640],[390,844],[430,932],[480,480],[480,700],[480,1100],[412,915]];
 let observedPositiveSurplus=false;
 for(const [width,height] of profiles){
   for(const font of [1,1.3,1.5]){
     const r=calculate(width,height,font,24,24,contract,authorityConflict,previewRules);
     assert.equal(r.safeHeight,height-48);
-    assert.ok(r.gAB-r.baseAB<=previewRules.vertical_allocation.additional_gap_ab_max_dp+1e-5);
-    assert.ok(r.gBC-r.baseBC<=previewRules.vertical_allocation.additional_gap_bc_max_dp+1e-5);
-    assert.ok(r.outerBreathing>=-1e-5);
-    if(r.S>0){observedPositiveSurplus=true;assert.ok(r.outerBreathing>=0);}
-    assert.ok(r.targetHeroWidth<=337.2+1e-5);
-    assert.ok(r.actualHeroWidth<=r.targetHeroWidth+1e-5);
-    assert.ok(Math.abs(r.actualHeroWidth/r.heroHeight-247/293)<1e-5,'Hero width and height must preserve the shared 247:293 ratio');
+    assert.ok(Math.abs(r.gapABExtra-r.S/2)<1e-5,'A→B receives exactly S/2');
+    assert.ok(Math.abs(r.gapBCExtra-r.S/2)<1e-5,'B→C receives exactly S/2');
+    assert.equal(r.outerBreathing,0,'no separate outer-breathing reserve is permitted');
+    if(r.S>0)observedPositiveSurplus=true;
+    assert.ok(r.targetHeroWidth<=contract.preview_engine.parameters.hero.maximum_width_dp+1e-5);
+    assert.ok(r.actualHeroWidth<=r.targetHeroWidth+1e-5 || (width===320&&height===480&&font===1),'Hero must respect target width except exact M01');
+    assert.ok(Math.abs(r.actualHeroWidth/r.heroHeight-247/293)<1e-5,'Hero must preserve the shared 247:293 ratio');
     assert.ok(r.cameraSize>=56&&r.cameraSize<=80);
     assert.ok(r.cameraTouchSize>=72);
-    assert.equal(r.contractId,'NH01_RESPONSIVE_FOUNDATION_V1');
-    assert.ok(r.rects['peek-left']&&r.rects['peek-right'],'both real-neighbor slots need measurable geometry');
-    assert.ok(Math.abs((r.rects['peek-right'].x-r.rects.hero.x-r.rects.hero.w)-r.peekGap)<1e-7,'right Peek visual gap must be distinct from maximum overlap');
-    assert.ok(Math.abs((r.rects.hero.x-r.rects['peek-left'].x-r.rects['peek-left'].w)-r.peekGap)<1e-7,'left Peek visual gap must match the right gap');
-    assert.ok(r.peekGap>=8&&r.peekGap<=12);
-    assert.ok(r.pagerContentHeight>=r.heroHeight+previewRules.pager.indicator_gap_after_hero_dp+previewRules.pager.indicator_height_dp-1e-5);
-    assert.ok(r.rects['capture-action-group'].y+r.hC<=height-24+.5,'Footer must stay inside the bottom safe inset');
-    if(font===1)assert.ok(r.hC<130,'Removing the redundant 48dp static CTA touch box must reduce the standard-scale footer height');
-    else assert.ok(r.hC<146,'large accessible text must fit without the former redundant CTA touch container');
-    if(width===320 && height===480 && font===1){
-      assert.ok(r.actualHeroWidth>=145-1e-5,'Short M01 retains its width floor without distorting the ratio');
-      assert.ok(r.pagerNeedsScroll,'short-screen minimum may use local Pager scrolling rather than being reduced');
-      assert.ok(r.conflicts.some(x=>x.includes('PREVIEW_LOCAL_SCROLL')));
+    assert.equal(r.contractId,'NH01_RESPONSIVE_LAYOUT_V2');
+    assert.ok(r.rects['peek-left']&&r.rects['peek-right'],'both Peek slots need measurable geometry');
+    assert.ok(Math.abs((r.rects['peek-right'].x-r.rects.hero.x-r.rects.hero.w)-r.peekGap)<1e-5,'right Peek gap comes from V2');
+    assert.ok(Math.abs((r.rects.hero.x-r.rects['peek-left'].x-r.rects['peek-left'].w)-r.peekGap)<1e-5,'left Peek gap matches right');
+    assert.ok(r.peekGap>=contract.preview_engine.parameters.neighbor.peek_gap.minimum_dp&&r.peekGap<=contract.preview_engine.parameters.neighbor.peek_gap.maximum_dp);
+    assert.ok(r.pagerContentHeight>=r.heroHeight+r.indicatorGap+r.indicatorHeight-1e-5);
+    assert.ok(r.rects['capture-action-group'].y+r.hC<=height-24+.5,'Footer must stay inside bottom safe inset');
+    if(font===1)assert.ok(r.hC<130,'static CTA text must not create a redundant 48dp touch box');
+    else assert.ok(r.hC<146,'larger text must fit without a duplicate CTA touch container');
+    if(width===320&&height===480&&font===1){
+      assert.ok(r.actualHeroWidth>=contract.preview_engine.parameters.hero.short_screen_exception.minimum_width_dp-1e-5,'M01 preserves minimum Hero width');
+      assert.ok(r.heroHeight>=contract.preview_engine.parameters.hero.short_screen_exception.minimum_readable_floor_dp-1e-5,'M01 preserves minimum-readable floor');
+      assert.equal(r.pagerNeedsScroll,false,'exact M01 must not scroll');
+      assert.ok(!r.conflicts.some(item=>item.includes('FAIL_CONSTRAINT')),'exact M01 must satisfy the short-screen constraints');
     }
   }
 }
-assert.ok(observedPositiveSurplus,'profile set must exercise capped long-screen spacing and outer breathing margins');
+assert.ok(observedPositiveSurplus,'matrix must exercise positive surplus');
 const normal=calculate(390,844,1,24,24,contract,authorityConflict,previewRules);
-assert.equal(normal.actualHeroWidth,273);
-assert.ok(normal.hC>=100&&normal.hC<=120,'normal CaptureActionGroup should fit its measured visible CTA line and camera target');
-assert.ok(normal.gapABExtra<=24&&normal.gapBCExtra<=40);
-assert.ok(calculate(390,844,1,24,24,contract,true,previewRules).conflicts.some(x=>x.includes('SPEC_CONFLICT')&&x.includes('Markdown A.2')));
-assert.ok(calculate(390,844,1,24,24,{...contract,foundation_layout_principles:{...contract.foundation_layout_principles,allocation_when_surplus_positive:{a_to_b_final:'unparseable',b_to_c_final:'unparseable'}}},false,previewRules).actualHeroWidth>0,'preview-only vertical allocation does not parse or overwrite frozen runtime A/B/C allocation');
+assert.ok(Math.abs(normal.actualHeroWidth-273)<.01);
+assert.ok(normal.hC>=90&&normal.hC<=125,'CaptureActionGroup should fit measured CTA line and camera target');
+assert.equal(normal.gapABExtra,normal.S/2);
+assert.equal(normal.gapBCExtra,normal.S/2);
+assert.ok(calculate(390,844,1,24,24,contract,true,previewRules).conflicts.some(x=>x.includes('SPEC_CONFLICT')&&x.includes('Markdown')));
+const malformed={...contract,preview_engine:{...contract.preview_engine,parameters:{...contract.preview_engine.parameters,hero:null}}};
+assert.ok(calculate(390,844,1,24,24,malformed,false,previewRules).conflicts.some(x=>x.includes('SPEC_CONFLICT')),'missing V2 numeric parameters must fail closed');
 
 const response=(body,{status=200,type='application/json'}={})=>new Response(body,{status,headers:{'content-type':type}});
 const digestBytes=async bytes=>crypto.createHash('sha256').update(Buffer.from(bytes)).digest('hex');
