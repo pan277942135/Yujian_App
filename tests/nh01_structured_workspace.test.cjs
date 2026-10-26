@@ -63,7 +63,7 @@ assert.equal(previewRules.status,'PREVIEW_ONLY');
 assert.equal(previewRules.numeric_authority,'NONE');
 assert.equal(previewRules.no_numeric_overrides,true);
 assert.ok(!('hero' in previewRules)&&!('pager' in previewRules)&&!('vertical_allocation' in previewRules),'preview metadata must not define a second numeric rule set');
-assert.equal(staticArchiveContract.contract_id,'NH01_MULTI_SCREEN_RESPONSIVE_CONTRACT_V1');
+assert.equal(staticArchiveContract.contract_id,'NH01_MULTI_SCREEN_STATIC_HIFI_V1');
 const staleMarkdown=markdown.replace('gAB_base + S/2','gAB_base + 2S/3').replace('gBC_base + S/2','gBC_base + S/3');
 assert.equal(sandbox.window.NH01StructuredWorkspace.hasAuthorityConflict(staleMarkdown,contract),true,'stale 2:1 Markdown must remain an explicit authority conflict');
 const profiles=[[320,480],[360,640],[390,844],[430,932],[480,480],[480,700],[480,1100],[412,915]];
