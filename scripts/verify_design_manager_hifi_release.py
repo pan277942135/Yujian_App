@@ -383,7 +383,38 @@ def validate_tree(root: Path, *, built: bool = False, expected_build: str | None
     require(water_lab.get("contract_id") == "FISHTRACE_SWOS_CANVAS_WATER_LAB_V1_CANDIDATE" and water_lab.get("status") == "CANDIDATE_NOT_VISUALLY_APPROVED", "Canvas Water Lab must remain an unapproved candidate contract")
     require(water_lab.get("asset",{}).get("sha256") == "6e955087108f7463eca2dbac489699a4942028ebe1b3d456ddfca523286385ef" and [water_lab.get("asset",{}).get("width"),water_lab.get("asset",{}).get("height")] == [1152,1536], "Canvas Water Lab fixed asset identity or dimensions changed")
     require([(frame.get("id"),frame.get("ms"),frame.get("intensity_percent")) for frame in water_lab.get("timeline",{}).get("frames",[])] == [("P0",0,0),("P1",350,10),("P2",950,45),("P3",1200,75),("P4",1550,60),("P5",2050,35),("P6",2600,10),("P7",2800,0)], "Canvas Water Lab must reuse the unchanged P0-P7 frozen timeline")
-    require(water_lab.get("motion",{}).get("shape_morph_blend") == [0.16,0.34] and water_lab.get("rendering",{}).get("texture_profile",{}).get("vertices") == 10 and len(water_lab.get("rendering",{}).get("layers",[])) == 3, "Canvas Water Lab candidate optical geometry/shape-drift parameters must be recorded")
+    water_region = water_lab.get("water_region",{})
+    water_polygons = water_region.get("polygons",[])
+    water_points_valid = len(water_polygons) == 2 and all(
+        len(polygon.get("points",[])) >= 3
+        and all(
+            isinstance(point,list) and len(point) == 2
+            and isinstance(point[0],(int,float)) and isinstance(point[1],(int,float))
+            and 0 <= point[0] <= water_lab.get("asset",{}).get("width",0)
+            and 0 <= point[1] <= water_lab.get("asset",{}).get("height",0)
+            for point in polygon.get("points",[])
+        )
+        for polygon in water_polygons
+    )
+    water_rendering = water_lab.get("rendering",{})
+    water_motion = water_lab.get("motion",{})
+    require(
+        water_region.get("schema") == "FISHTRACE_FIXED_DEMO_WATER_REGION_V1"
+        and water_region.get("coordinate_system") == "source_image_pixels_top_left"
+        and water_region.get("asset_sha256") == water_lab.get("asset",{}).get("sha256")
+        and water_region.get("trust") == "FIXED_DEMO_GEOMETRY_NOT_AI_MASK_NOT_PRODUCTION_ASSET"
+        and water_region.get("edge_fade_source_px",0) > 0
+        and water_points_valid
+        and water_motion.get("reveal_start_ms",0) < water_motion.get("reveal_end_ms",0)
+        and water_rendering.get("backend") == "Canvas 2D"
+        and water_rendering.get("ambient_alpha",0) > 0
+        and water_rendering.get("mesh_cell_width_source_px",0) > 0
+        and water_rendering.get("mesh_cell_height_source_px",0) > 0
+        and water_rendering.get("caustic_cell_alpha",0) > 0
+        and water_rendering.get("refraction_alpha",0) > 0
+        and all(token in water_lab_js for token in ("water_region","destination-in","traceGridEdge","drawHighlights")),
+        "Canvas Water Lab water-region geometry and candidate optical layer/motion parameters must be recorded"
+    )
     require(water_lab.get("boundaries",{}).get("production_sites_runtime_modified") is False and water_lab.get("boundaries",{}).get("inference_api_requested") is False and water_lab.get("boundaries",{}).get("photo_upload_implemented") is False and water_lab.get("boundaries",{}).get("fish_mask_or_gold_contour_drawn") is False and water_lab.get("boundaries",{}).get("webgl_used") is False, "Canvas Water Lab scope crossed a production or forbidden visual boundary")
     require("object-fit:contain" in water_lab_css and "mix-blend-mode:screen" in water_lab_css, "Canvas Water Lab image/overlay layout is missing")
     require("swos_static_visual.js" in html and "window.SWOSStaticVisual" in swos_js, "SWOS static workspace module is not loaded")
