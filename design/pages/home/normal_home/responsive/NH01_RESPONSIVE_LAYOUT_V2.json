@@ -831,6 +831,7 @@
       "change": "Align the proposed contract with Main Responsive Foundation V1.1 (equal S/2 additions); remove capped-gap/outer-breathing behavior, define one contract-owned Peek and footer calculation, clarify the 124dp floor semantics and exact M01 NO_SCROLL conditions, and allow generated illustrative media to remain non-blocking for geometry acceptance."
     },
     {
+      "version": "V2.0",
       "date": "2026-10-26",
       "change": "Structured browser preview integration: single V2 machine source, equal S/2 surplus allocation, contract-defined exact-M01 compact spacing, grid-flow page regions, and contract-hash-bound browser evidence.",
       "status": "WORKING_BASELINE"
