@@ -1,0 +1,176 @@
+{
+  "contract_id": "FISHTRACE_SWOS_CANVAS_WATER_LAB_V1_CANDIDATE",
+  "task_id": "FISHTRACE_SWOS_CANVAS_WATER_LAB_V1",
+  "status": "CANDIDATE_NOT_VISUALLY_APPROVED",
+  "purpose": "Phase 1 independent Canvas 2D water-light direction, motion, strength and exit review",
+  "authority": "Candidate implementation baseline; frozen SWOS timing is reused and unchanged. Candidate optical values require product owner visual review.",
+  "boundaries": {
+    "production_sites_runtime_modified": false,
+    "detector_classifier_sam_used": false,
+    "inference_api_requested": false,
+    "photo_upload_implemented": false,
+    "fish_mask_or_gold_contour_drawn": false,
+    "webgl_used": false,
+    "original_image_replaced_or_reencoded": false
+  },
+  "asset": {
+    "path": "design/system/fish_media_display_v1/assets/real_catch_source.jpg",
+    "git_blob_sha": "674bbe8eb1985702aa61c2aeca32579690ab068f",
+    "sha256": "6e955087108f7463eca2dbac489699a4942028ebe1b3d456ddfca523286385ef",
+    "byte_size": 292222,
+    "width": 1152,
+    "height": 1536,
+    "exif_orientation": "No EXIF orientation tag detected; decoded dimensions match stored pixel orientation.",
+    "display": {
+      "element": "HTML img",
+      "object_fit": "contain",
+      "object_position": "center",
+      "crop": "none",
+      "canvas_overlay": "same stage; clip to computed contain content rectangle"
+    },
+    "note": "The previously recorded 1024×1365 dimensions were not present in the verified asset; measured dimensions are 1152×1536."
+  },
+  "timeline": {
+    "duration_ms": 2800,
+    "interpolation": "smoothstep",
+    "frames": [
+      {
+        "id": "P0",
+        "ms": 0,
+        "intensity_percent": 0
+      },
+      {
+        "id": "P1",
+        "ms": 350,
+        "intensity_percent": 10
+      },
+      {
+        "id": "P2",
+        "ms": 950,
+        "intensity_percent": 45
+      },
+      {
+        "id": "P3",
+        "ms": 1200,
+        "intensity_percent": 75
+      },
+      {
+        "id": "P4",
+        "ms": 1550,
+        "intensity_percent": 60
+      },
+      {
+        "id": "P5",
+        "ms": 2050,
+        "intensity_percent": 35
+      },
+      {
+        "id": "P6",
+        "ms": 2600,
+        "intensity_percent": 10
+      },
+      {
+        "id": "P7",
+        "ms": 2800,
+        "intensity_percent": 0
+      }
+    ]
+  },
+  "motion": {
+    "expansion_start_ms": 700,
+    "expansion_peak_ms": 1200,
+    "expansion_scale": 0.24,
+    "upward_start_ms": 700,
+    "upward_peak_ms": 1200,
+    "upward_fraction": 0.085,
+    "recollection_start_ms": 1200,
+    "recollection_end_ms": 2050,
+    "recollection_scale_reduction": 0.13,
+    "recollection_downward_fraction": 0.024,
+    "exit_start_ms": 2050,
+    "exit_end_ms": 2800,
+    "peripheral_exit_fraction": 0.08,
+    "reduced_motion_scale": 0.12,
+    "max_rotation_radians": 0.055
+  },
+  "rendering": {
+    "backend": "Canvas 2D",
+    "deterministic_seed": 20261026,
+    "blend_mode": "screen",
+    "image_dpr": "devicePixelRatio",
+    "texture_generation": "fixed-seed irregular Bézier masks and gradients generated once at initialization",
+    "layers": [
+      {
+        "id": "broad",
+        "count": 5,
+        "size_x": [
+          0.34,
+          0.48
+        ],
+        "size_y": [
+          0.15,
+          0.25
+        ],
+        "alpha": 0.19,
+        "texture_alpha": 0.28,
+        "colors": [
+          "#c7e7d2",
+          "#a7d7cb"
+        ],
+        "texture_width": 320,
+        "texture_height": 180,
+        "ribbon_count": 0,
+        "ribbon_alpha": 0
+      },
+      {
+        "id": "caustic",
+        "count": 17,
+        "size_x": [
+          0.16,
+          0.28
+        ],
+        "size_y": [
+          0.065,
+          0.145
+        ],
+        "alpha": 0.28,
+        "texture_alpha": 0.37,
+        "colors": [
+          "#d2ead7",
+          "#acdcca",
+          "#d8e2bd"
+        ],
+        "texture_width": 240,
+        "texture_height": 150,
+        "ribbon_count": 0,
+        "ribbon_alpha": 0
+      },
+      {
+        "id": "refracted",
+        "count": 8,
+        "size_x": [
+          0.15,
+          0.28
+        ],
+        "size_y": [
+          0.028,
+          0.064
+        ],
+        "alpha": 0.18,
+        "texture_alpha": 0.3,
+        "colors": [
+          "#e9e5c9",
+          "#c6e5d4"
+        ],
+        "texture_width": 280,
+        "texture_height": 90,
+        "ribbon_count": 2,
+        "ribbon_alpha": 0.15
+      }
+    ]
+  },
+  "visual_acceptance": {
+    "state": "NOT_YET_VISUALLY_SIGNED_OFF",
+    "review_required": true
+  }
+}

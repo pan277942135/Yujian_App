@@ -341,3 +341,14 @@ button[disabled]{opacity:.48;cursor:not-allowed}
 @media(prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition-duration:.01ms!important}
 }
+
+
+/* Canvas Water Lab: photo pixels remain an ordinary img; diagnostics stay outside its stage. */
+.workspace-root[hidden],[data-workspace-panel][hidden]{display:none!important}
+.workspace-subnav{display:flex;align-items:center;gap:7px;margin:14px 0 12px;padding:6px;background:#e7efeb;border:1px solid #d8e4de;border-radius:13px;width:max-content;max-width:100%}
+.workspace-view-tab{border:1px solid transparent;border-radius:9px;background:transparent;color:#4f6a64;padding:10px 14px;font-size:12px;font-weight:750;white-space:nowrap}
+.workspace-view-tab:hover{color:#1f5d54;background:rgba(255,255,255,.55)}
+.workspace-view-tab.is-active{background:#fff;border-color:#d5e2dc;color:#1f5d54;box-shadow:0 2px 8px rgba(26,70,62,.06)}
+.workspace-root[data-workspace-view="canvas-water"] .workspace-actions [data-device],
+.workspace-root[data-workspace-view="canvas-water"] .workspace-actions .reset-button{display:none}
+@media(max-width:560px){.workspace-subnav{width:100%;overflow-x:auto}.workspace-view-tab{flex:1;padding:9px 8px;font-size:10px}}

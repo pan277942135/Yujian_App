@@ -366,6 +366,24 @@ def validate_tree(root: Path, *, built: bool = False, expected_build: str | None
     require('view.render_mode === "fishtrace_sites_web_hifi_workspace"' in app and "fishtrace_sites_web_workspace.html" in app, "FishTrace Sites prototype iframe renderer is missing")
     require("FISHTRACE-SITES-WEB-HIFI-V1" in sites_workspace_html.read_text(encoding="utf-8") and "fishtrace_sites_web_workspace.css" in sites_workspace_html.read_text(encoding="utf-8") and "fishtrace_sites_web_workspace.js" in sites_workspace_html.read_text(encoding="utf-8"), "FishTrace Sites workspace asset references are missing")
     require("layer_tree_by_state" in sites_workspace_js.read_text(encoding="utf-8") or "FishTrace_Sites_Web_Structured_Prototype_V1.json" in sites_workspace_js.read_text(encoding="utf-8"), "FishTrace Sites structured layer contract is not loaded")
+
+    water_lab_html = sites_workspace_html.read_text(encoding="utf-8")
+    water_lab_js_path = design / "manager/fishtrace_canvas_water_lab.js"
+    water_lab_css_path = design / "manager/fishtrace_canvas_water_lab.css"
+    water_lab_contract_path = design / "pages/recognition/web/candidates/FISHTRACE_SWOS_CANVAS_WATER_LAB_V1_CANDIDATE.json"
+    require(water_lab_js_path.is_file() and water_lab_css_path.is_file() and water_lab_contract_path.is_file(), "FishTrace Canvas Water Lab module, styles or candidate contract are missing")
+    water_lab_js = water_lab_js_path.read_text(encoding="utf-8")
+    water_lab_css = water_lab_css_path.read_text(encoding="utf-8")
+    water_lab = load_json(water_lab_contract_path)
+    require('data-water-view="canvas-water"' in water_lab_html and 'data-testid="canvas-water-lab"' in water_lab_html and 'id="water-overlay"' in water_lab_html, "FishTrace Canvas Water Lab is not registered inside the existing workspace")
+    require("fishtrace_canvas_water_lab.js" in water_lab_html and "fishtrace_canvas_water_lab.css" in water_lab_html, "FishTrace Canvas Water Lab assets are not loaded by the existing workspace")
+    require("CanvasWaterRenderer" in water_lab_js and "WaterCausticsScene" in water_lab_js and "WaterTimelineController" in water_lab_js, "Canvas Water Lab module boundaries are incomplete")
+    require("requestAnimationFrame" in water_lab_js and "createRadialGradient" in water_lab_js and "devicePixelRatio" in water_lab_js and "objectFit" in water_lab_js, "Canvas Water Lab deterministic 2D renderer geometry/time handling is missing")
+    require(water_lab.get("contract_id") == "FISHTRACE_SWOS_CANVAS_WATER_LAB_V1_CANDIDATE" and water_lab.get("status") == "CANDIDATE_NOT_VISUALLY_APPROVED", "Canvas Water Lab must remain an unapproved candidate contract")
+    require(water_lab.get("asset",{}).get("sha256") == "6e955087108f7463eca2dbac489699a4942028ebe1b3d456ddfca523286385ef" and [water_lab.get("asset",{}).get("width"),water_lab.get("asset",{}).get("height")] == [1152,1536], "Canvas Water Lab fixed asset identity or dimensions changed")
+    require([(frame.get("id"),frame.get("ms"),frame.get("intensity_percent")) for frame in water_lab.get("timeline",{}).get("frames",[])] == [("P0",0,0),("P1",350,10),("P2",950,45),("P3",1200,75),("P4",1550,60),("P5",2050,35),("P6",2600,10),("P7",2800,0)], "Canvas Water Lab must reuse the unchanged P0-P7 frozen timeline")
+    require(water_lab.get("boundaries",{}).get("production_sites_runtime_modified") is False and water_lab.get("boundaries",{}).get("inference_api_requested") is False and water_lab.get("boundaries",{}).get("photo_upload_implemented") is False and water_lab.get("boundaries",{}).get("fish_mask_or_gold_contour_drawn") is False and water_lab.get("boundaries",{}).get("webgl_used") is False, "Canvas Water Lab scope crossed a production or forbidden visual boundary")
+    require("object-fit:contain" in water_lab_css and "mix-blend-mode:screen" in water_lab_css, "Canvas Water Lab image/overlay layout is missing")
     require("swos_static_visual.js" in html and "window.SWOSStaticVisual" in swos_js, "SWOS static workspace module is not loaded")
     require("first_use_guide_workspace.js" in html, "First-use guide workspace module is not loaded")
     require("showModal()" in swos_js and "data-frame-id" in swos_js and "R0.5" in swos_js, "SWOS frame zoom or R0.5 inspector is missing")

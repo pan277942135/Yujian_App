@@ -6,6 +6,7 @@
   <meta name="robots" content="noindex">
   <title>FishTrace Sites · 高保真交互原型 V1.1</title>
   <link rel="stylesheet" href="./fishtrace_sites_web_workspace.css?v=FISHTRACE-SITES-WEB-HIFI-V1-1">
+  <link rel="stylesheet" href="./fishtrace_canvas_water_lab.css?v=FISHTRACE-CANVAS-WATER-LAB-V1">
 </head>
 <body>
   <main class="workspace-root" data-testid="fishtrace-sites-web-workspace">
@@ -31,6 +32,12 @@
       <a href="../pages/recognition/web/FISHTRACE_SITES_WEB_VISUAL_INTERACTION_CONTRACT_V1.md" target="_blank" rel="noopener">查看冻结合同 ↗</a>
     </div>
 
+    <nav class="workspace-subnav" aria-label="FishTrace 子工作区" data-testid="fishtrace-workspace-subnav">
+      <button type="button" class="workspace-view-tab is-active" data-water-view="prototype" aria-pressed="true">高保真交互原型</button>
+      <button type="button" class="workspace-view-tab" data-water-view="canvas-water" aria-pressed="false">01 · Canvas 水光验证</button>
+    </nav>
+
+    <div class="workspace-view" data-workspace-panel="prototype">
     <section class="workspace-statebar" aria-label="原型状态选择">
       <div class="statebar-copy">
         <span class="section-kicker">PROTOTYPE FLOW</span>
@@ -347,6 +354,65 @@
         </div>
       </aside>
     </div>
+    </div>
+    <section id="canvas-water-lab" class="canvas-water-lab" data-testid="canvas-water-lab" data-workspace-panel="canvas-water" hidden aria-labelledby="water-lab-title">
+      <header class="water-lab-heading">
+        <div>
+          <span class="section-kicker">PHASE 1 · CANVAS 2D</span>
+          <h2 id="water-lab-title">Canvas 水光验证</h2>
+          <p>固定原图上的程序化水面折射样例。所有参数仅作用于当前预览。</p>
+        </div>
+        <span class="water-candidate-badge">CANDIDATE · 待视觉验收</span>
+      </header>
+      <div class="water-lab-layout">
+        <section class="water-preview-column" aria-label="固定照片与水光预览">
+          <div class="water-stage" id="water-stage" data-testid="water-stage">
+            <img id="water-source-image" class="water-source-image" src="../system/fish_media_display_v1/assets/real_catch_source.jpg" alt="固定演示原图，Canvas 水光叠加" decoding="async" fetchpriority="high">
+            <canvas id="water-overlay" class="water-overlay" aria-hidden="true"></canvas>
+          </div>
+        </section>
+        <aside class="water-controls-panel" aria-label="水光播放控制与开发检查">
+          <div class="water-transport water-control-group" aria-label="播放控制">
+            <button type="button" id="water-play" class="water-button water-button-primary water-control" data-testid="water-play" disabled>播放</button>
+            <button type="button" id="water-pause" class="water-button water-control" data-testid="water-pause" disabled>暂停</button>
+            <button type="button" id="water-reset" class="water-button water-control" data-testid="water-reset" disabled>重置</button>
+          </div>
+          <div class="water-time-readout"><strong id="water-current-stage">加载中</strong><span id="water-current-time">0 ms</span></div>
+          <label class="water-range-label" for="water-timeline"><span>时间轴</span><output id="water-progress-label">0%</output></label>
+          <input id="water-timeline" class="water-range water-control" type="range" min="0" max="2800" step="1" value="0" aria-label="水光时间轴" disabled>
+          <div class="water-frame-grid" role="group" aria-label="P0 至 P7 单帧跳转">
+            <button type="button" class="water-frame-button water-control" data-water-frame="P0" disabled>P0</button>
+            <button type="button" class="water-frame-button water-control" data-water-frame="P1" disabled>P1</button>
+            <button type="button" class="water-frame-button water-control" data-water-frame="P2" disabled>P2</button>
+            <button type="button" class="water-frame-button water-control" data-water-frame="P3" disabled>P3</button>
+            <button type="button" class="water-frame-button water-control" data-water-frame="P4" disabled>P4</button>
+            <button type="button" class="water-frame-button water-control" data-water-frame="P5" disabled>P5</button>
+            <button type="button" class="water-frame-button water-control" data-water-frame="P6" disabled>P6</button>
+            <button type="button" class="water-frame-button water-control" data-water-frame="P7" disabled>P7</button>
+          </div>
+          <div class="water-option-row">
+            <label class="water-toggle"><input id="water-enabled" class="water-control" type="checkbox" checked disabled><span>水光图层</span></label>
+            <label class="water-strength-control" for="water-strength"><span>预览强度</span><output id="water-strength-value">100%</output></label>
+          </div>
+          <input id="water-strength" class="water-range water-control" type="range" min="0" max="150" step="1" value="100" aria-label="开发用水光强度" disabled>
+          <section class="water-dev-checks" aria-label="开发阶段检查信息">
+            <h3>开发检查</h3>
+            <dl>
+              <div><dt>当前阶段</dt><dd id="water-debug-stage">加载中</dd></div>
+              <div><dt>播放时间</dt><dd id="water-debug-time">0 ms / 2800 ms</dd></div>
+              <div><dt>水光强度</dt><dd id="water-debug-intensity">0%</dd></div>
+              <div><dt>播放状态</dt><dd id="water-play-state">已暂停</dd></div>
+              <div><dt>固定素材</dt><dd id="water-asset-status">SHA-256 校验中</dd></div>
+              <div><dt>Canvas</dt><dd id="water-renderer-status">初始化中</dd></div>
+              <div><dt>Reduced motion</dt><dd id="water-motion-status">检查中</dd></div>
+            </dl>
+            <p id="water-load-error" class="water-load-error" role="alert" hidden></p>
+            <button type="button" id="water-retry" class="water-button water-retry" hidden>重试加载</button>
+          </section>
+        </aside>
+      </div>
+      <p class="water-lab-boundary">演示素材仅在本机浏览器显示；本工作区不请求识别 API、不上传照片、不生成鱼体轮廓。</p>
+    </section>
     <div class="photo-transition-overlay" id="photo-transition-overlay" hidden aria-hidden="true">
       <div class="photo-transition-backdrop"><img id="photo-transition-backdrop-image" alt=""></div>
       <img class="photo-transition-foreground" id="photo-transition-image" alt="">
@@ -359,5 +425,6 @@
     <input id="camera-input" type="file" accept="image/*" capture="environment" hidden>
   </main>
   <script src="./fishtrace_sites_web_workspace.js?v=FISHTRACE-SITES-WEB-HIFI-V1-1"></script>
+  <script src="./fishtrace_canvas_water_lab.js?v=FISHTRACE-CANVAS-WATER-LAB-V1"></script>
 </body>
 </html>

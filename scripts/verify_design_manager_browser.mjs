@@ -2,7 +2,7 @@
 
 import { createServer } from "node:http";
 import { createReadStream, existsSync, statSync } from "node:fs";
-import { readFile, writeFile } from "node:fs/promises";
+import { readFile, writeFile, rename } from "node:fs/promises";
 import { createHash } from "node:crypto";
 import { resolve, extname, sep } from "node:path";
 import { createRequire } from "node:module";
@@ -1075,6 +1075,210 @@ async function main() {
   assert(await fishtraceFrame.locator('[data-scene="entry"]').isVisible(), "Prototype reset must return to entry");
   await fishtraceFrame.waitForFunction(() => [...document.querySelectorAll(".photo-foreground")].every(image => image.complete && image.naturalWidth > 0), null, { timeout: 30000 });
 
+
+  const waterTab = fishtraceFrame.locator('[data-water-view="canvas-water"]');
+  await waterTab.click();
+  const waterLab = fishtraceFrame.locator('[data-testid="canvas-water-lab"]');
+  await waterLab.waitFor({state:"visible",timeout:10000});
+  await fishtraceFrame.waitForFunction(() => {
+    const lab = document.querySelector('[data-testid="canvas-water-lab"]');
+    const image = document.querySelector("#water-source-image");
+    const canvas = document.querySelector("#water-overlay");
+    return lab?.dataset.rendererStatus === "READY" && image?.dataset.assetVerified === "true" &&
+      canvas?.dataset.rendererStatus === "READY" && canvas.width > 1 && canvas.height > 1;
+  }, null, {timeout:30000});
+  const waterAsset = await fishtraceFrame.locator("#water-source-image").evaluate(image => ({
+    naturalWidth:image.naturalWidth,naturalHeight:image.naturalHeight,
+    sha256:image.dataset.sha256,src:image.currentSrc,complete:image.complete
+  }));
+  assert(waterAsset.naturalWidth === 1152 && waterAsset.naturalHeight === 1536, "Canvas Water Lab must load the verified 1152×1536 fixed photo");
+  assert(waterAsset.sha256 === "6e955087108f7463eca2dbac489699a4942028ebe1b3d456ddfca523286385ef", "Canvas Water Lab fixed photo SHA-256 mismatch");
+  const waterStageStructure = await fishtraceFrame.locator("#water-stage").evaluate(node => ({
+    children:[...node.children].map(child => child.tagName.toLowerCase()),
+    text:node.textContent.trim(),
+    objectFit:getComputedStyle(document.querySelector("#water-source-image")).objectFit
+  }));
+  assert(waterStageStructure.children.join(",") === "img,canvas" && waterStageStructure.text === "", "Photo stage must contain only the ordinary image and transparent Canvas with no in-photo labels/HUD");
+  assert(waterStageStructure.objectFit === "contain", "Fixed photo must use object-fit:contain");
+  const waterNetworkStart = requests.length;
+  const waterScreenshots = [];
+  const waterCanvasState = async () => fishtraceFrame.locator("#water-overlay").evaluate(canvas => {
+    const context = canvas.getContext("2d");
+    const pixels = context.getImageData(0,0,canvas.width,canvas.height).data;
+    let visible = 0;
+    let outside = 0;
+    const rect = JSON.parse(canvas.dataset.contentRect);
+    const dpr = Number(canvas.dataset.dpr || 1);
+    for (let pixel=0;pixel<pixels.length;pixel+=4) {
+      if (pixels[pixel+3] <= 2) continue;
+      visible += 1;
+      const index = pixel/4;
+      const x = (index % canvas.width)/dpr;
+      const y = Math.floor(index/canvas.width)/dpr;
+      if (x < rect.x-1 || y < rect.y-1 || x > rect.x+rect.width+1 || y > rect.y+rect.height+1) outside += 1;
+    }
+    return {visible,outside,width:canvas.width,height:canvas.height,dpr,rect,time:canvas.dataset.currentTime};
+  });
+  const waterStageShot = async name => {
+    await fishtraceFrame.locator("#water-stage").screenshot({path:resolve(args.outputDir,name)});
+    waterScreenshots.push(name);
+  };
+  await fishtraceFrame.locator('[data-water-frame="P0"]').click();
+  const p0Water = await waterCanvasState();
+  assert(Number(p0Water.time) === 0 && p0Water.visible === 0, "P0 must be the exact clear original with zero Canvas alpha");
+  await waterStageShot("fishtrace-canvas-water-P0.png");
+  await fishtraceFrame.locator('[data-water-frame="P2"]').click();
+  const p2Water = await waterCanvasState();
+  const p2Intensity = Number((await fishtraceFrame.locator("#water-debug-intensity").innerText()).replace("%",""));
+  assert(Number(p2Water.time) === 950 && p2Water.visible > 0 && p2Water.outside === 0, "P2 must draw visible water light strictly within the image content");
+  const p2Repeat = await fishtraceFrame.locator("#water-overlay").evaluate(canvas => canvas.toDataURL("image/png"));
+  await fishtraceFrame.locator('[data-water-frame="P2"]').click();
+  const p2RepeatAgain = await fishtraceFrame.locator("#water-overlay").evaluate(canvas => canvas.toDataURL("image/png"));
+  assert(p2Repeat === p2RepeatAgain, "Seeking to P2 twice must reproduce the same deterministic Canvas frame");
+  await waterStageShot("fishtrace-canvas-water-P2.png");
+  await fishtraceFrame.locator('[data-water-frame="P3"]').click();
+  const p3Water = await waterCanvasState();
+  const p3Intensity = Number((await fishtraceFrame.locator("#water-debug-intensity").innerText()).replace("%",""));
+  assert(Number(p3Water.time) === 1200 && p3Water.visible > 0 && p3Water.outside === 0, "P3 must render at the exact 1200ms time inside the photo");
+  assert(p3Intensity >= p2Intensity, "P3 baseline strength must be at least as strong as P2");
+  await waterStageShot("fishtrace-canvas-water-P3.png");
+  await fishtraceFrame.locator('[data-water-frame="P5"]').click();
+  const p5Water = await waterCanvasState();
+  assert(Number(p5Water.time) === 2050 && p5Water.visible > 0 && p5Water.outside === 0, "P5 must retain a reduced water field within the photo");
+  await waterStageShot("fishtrace-canvas-water-P5.png");
+  await fishtraceFrame.locator('[data-water-frame="P7"]').click();
+  const p7Water = await waterCanvasState();
+  assert(Number(p7Water.time) === 2800 && p7Water.visible === 0, "P7 must clear every nontransparent Canvas pixel");
+  await waterStageShot("fishtrace-canvas-water-P7.png");
+
+  await fishtraceFrame.locator('[data-water-frame="P0"]').click();
+  await fishtraceFrame.locator("#water-play").click();
+  await fishtraceFrame.waitForFunction(() => Number(document.querySelector("#water-current-time")?.textContent.match(/\d+/)?.[0]) > 0, null, {timeout:2000});
+  await fishtraceFrame.locator("#water-pause").click();
+  const pausedWaterTime = await fishtraceFrame.locator("#water-current-time").innerText();
+  await fishtraceFrame.waitForTimeout(180);
+  assert((await fishtraceFrame.locator("#water-current-time").innerText()) === pausedWaterTime, "Pause must freeze the displayed time and Canvas scene");
+  await fishtraceFrame.locator("#water-timeline").evaluate(input => {
+    input.value = "1375";
+    input.dispatchEvent(new Event("input",{bubbles:true}));
+  });
+  assert((await fishtraceFrame.locator("#water-current-time").innerText()) === "1375 ms", "Scrubbing must pause and render an arbitrary time immediately");
+  await fishtraceFrame.locator('[data-water-frame="P3"]').click();
+  const beforeWaterOff = await waterCanvasState();
+  await fishtraceFrame.locator("#water-enabled").uncheck();
+  const afterWaterOff = await waterCanvasState();
+  assert(afterWaterOff.visible === 0 && afterWaterOff.time === beforeWaterOff.time, "Water toggle must clear only the water layer and preserve timeline time");
+  await fishtraceFrame.locator("#water-enabled").check();
+  assert((await waterCanvasState()).visible > 0, "Water toggle must restore the current deterministic frame");
+  await fishtraceFrame.locator("#water-strength").evaluate(input => {
+    input.value = "125";
+    input.dispatchEvent(new Event("input",{bubbles:true}));
+  });
+  assert((await fishtraceFrame.locator("#water-strength-value").innerText()) === "125%", "Development strength slider must update the preview only");
+  await fishtraceFrame.locator("#water-reset").click();
+  assert((await fishtraceFrame.locator("#water-current-time").innerText()) === "0 ms", "Reset must return to P0");
+  assert((await fishtraceFrame.locator("#water-strength").inputValue()) === "100" && await fishtraceFrame.locator("#water-enabled").isChecked(), "Reset must restore frozen intensity baseline and enable the water channel");
+  assert((await waterCanvasState()).visible === 0, "Reset must restore the clear original image");
+
+  const waterViewportChecks = [];
+  for (const viewport of [{width:1440,height:1000},{width:390,height:844},{width:430,height:932}]) {
+    await page.setViewportSize(viewport);
+    await page.waitForTimeout(120);
+    await fishtraceFrame.locator('[data-water-frame="P3"]').click();
+    const geometry = await fishtraceFrame.locator("#water-overlay").evaluate(canvas => {
+      const stage = document.querySelector("#water-stage").getBoundingClientRect();
+      const image = document.querySelector("#water-source-image").getBoundingClientRect();
+      const layer = canvas.getBoundingClientRect();
+      const dpr = Number(canvas.dataset.dpr || 1);
+      const mapped = JSON.parse(canvas.dataset.contentRect);
+      const pixels = canvas.getContext("2d").getImageData(0,0,canvas.width,canvas.height).data;
+      let visible = 0, outside = 0;
+      for (let pixel=0;pixel<pixels.length;pixel+=4) {
+        if (pixels[pixel+3] <= 2) continue;
+        visible += 1;
+        const index=pixel/4, x=(index%canvas.width)/dpr, y=Math.floor(index/canvas.width)/dpr;
+        if (x < mapped.x-1 || y < mapped.y-1 || x > mapped.x+mapped.width+1 || y > mapped.y+mapped.height+1) outside += 1;
+      }
+      return {
+        stage:{x:stage.x,y:stage.y,width:stage.width,height:stage.height},
+        image:{x:image.x,y:image.y,width:image.width,height:image.height},
+        canvas:{x:layer.x,y:layer.y,width:layer.width,height:layer.height},
+        backing:{width:canvas.width,height:canvas.height},dpr,content:mapped,visible,outside
+      };
+    });
+    assert(geometry.visible > 0 && geometry.outside === 0, "Water must remain visible and clipped within the fixed photo at " + viewport.width + "×" + viewport.height);
+    for (const edge of ["x","y","width","height"]) {
+      assert(Math.abs(geometry.stage[edge]-geometry.image[edge]) < 1.1 && Math.abs(geometry.stage[edge]-geometry.canvas[edge]) < 1.1, "Photo and Canvas geometry must align at " + viewport.width + "×" + viewport.height);
+    }
+    assert(Math.abs(geometry.backing.width-geometry.stage.width*geometry.dpr) <= 1.5 && Math.abs(geometry.backing.height-geometry.stage.height*geometry.dpr) <= 1.5, "Canvas backing store must match CSS dimensions at devicePixelRatio");
+    waterViewportChecks.push({viewport:viewport.width+"×"+viewport.height,geometry:geometry});
+  }
+  await page.setViewportSize({width:1440,height:1000});
+  await fishtraceFrame.locator("#water-reset").click();
+  const waterTraffic = requests.slice(waterNetworkStart);
+  const forbiddenWaterTraffic = waterTraffic.filter(request =>
+    request.method !== "GET" && request.method !== "HEAD" ||
+    /inference|detector|classifier|upload/i.test(request.url)
+  );
+  assert(forbiddenWaterTraffic.length === 0, "Canvas Water Lab must make no photo upload or real inference requests");
+  await page.emulateMedia({reducedMotion:"reduce"});
+  const reducedMotionScale = await fishtraceFrame.locator("#water-overlay").getAttribute("data-motion-scale");
+  assert(reducedMotionScale === "0.12", "Reduced-motion must reduce dynamic movement while retaining frame seeking");
+  await page.emulateMedia({reducedMotion:"no-preference"});
+  const waterCanvasEvidence = {
+    fixed_asset:waterAsset,
+    p0:p0Water,p2:p2Water,p3:p3Water,p5:p5Water,p7:p7Water,
+    baseline_intensity_percent:{P2:p2Intensity,P3:p3Intensity},
+    deterministic_p2_repeat:true,
+    pause_time:pausedWaterTime,
+    scrubbed_time_ms:1375,
+    reset_time_ms:0,
+    responsive_geometry:waterViewportChecks,
+    reduced_motion_scale:reducedMotionScale,
+    requests:waterTraffic.map(request=>({method:request.method,url:request.url})),
+    photo_upload_or_inference_requests:forbiddenWaterTraffic.length,
+    screenshots:waterScreenshots
+  };
+
+  const videoContext = await browser.newContext({
+    viewport:{width:1440,height:1000},
+    deviceScaleFactor:1,
+    reducedMotion:"no-preference",
+    recordVideo:{dir:args.outputDir,size:{width:1440,height:1000}}
+  });
+  const videoPage = await videoContext.newPage();
+  const videoErrors = [];
+  const videoRequests = [];
+  videoPage.on("console",message => {if(message.type()==="error") videoErrors.push(message.text());});
+  videoPage.on("pageerror",error => videoErrors.push(error.message));
+  videoPage.on("request",request => videoRequests.push({url:request.url(),method:request.method()}));
+  await videoPage.goto(new URL(fishtraceSitesHash,baseUrl).href,{waitUntil:"domcontentloaded"});
+  const videoFrame = videoPage.frame({url:/fishtrace_sites_web_workspace\.html/});
+  assert(Boolean(videoFrame), "Canvas playback recording could not reach the real candidate iframe");
+  await videoFrame.locator('[data-testid="fishtrace-sites-web-workspace"]').waitFor({state:"visible",timeout:30000});
+  await videoFrame.locator('[data-water-view="canvas-water"]').click();
+  await videoFrame.waitForFunction(() => document.querySelector('[data-testid="canvas-water-lab"]')?.dataset.rendererStatus === "READY",null,{timeout:30000});
+  await videoFrame.locator("#water-play").click();
+  const waterPlaybackStarted = Date.now();
+  await videoFrame.waitForFunction(() => Number(document.querySelector("#water-current-time")?.textContent.match(/\d+/)?.[0]) === 2800,null,{timeout:8000});
+  const waterPlaybackWallMs = Date.now()-waterPlaybackStarted;
+  assert(waterPlaybackWallMs >= 2400 && waterPlaybackWallMs < 8000, "Full timeline playback must run through the 2800ms duration without stalling");
+  assert(videoErrors.length === 0, "Canvas recording browser reported errors: " + videoErrors.join("; "));
+  assert(videoRequests.every(request => request.method === "GET" || request.method === "HEAD") &&
+    !videoRequests.some(request => /inference|detector|classifier|upload/i.test(request.url)), "Recorded Canvas playback must not request upload or inference endpoints");
+  const playbackVideo = await videoPage.video();
+  await videoContext.close();
+  const playbackVideoPath = resolve(args.outputDir,"fishtrace-canvas-water-full-2800ms.webm");
+  await rename(await playbackVideo.path(),playbackVideoPath);
+  waterCanvasEvidence.full_playback = {
+    video:"fishtrace-canvas-water-full-2800ms.webm",
+    frame_duration_ms:2800,
+    observed_playback_wall_ms:waterPlaybackWallMs,
+    final_time_ms:2800,
+    errors:videoErrors,
+    photo_upload_or_inference_requests:videoRequests.filter(request => /inference|detector|classifier|upload/i.test(request.url)).length
+  };
+
   await open("#page/recognition_flow_v1_2/hifi/invalid-release-route");
   assert(await page.locator(".invalid-manager-route").isVisible(), "invalid Hash must show an explicit error state");
   assert(await page.locator("#hifiViewCanvas img").count() === 0, "invalid Hash must not fall back to an unrelated Frozen image");
@@ -1118,12 +1322,13 @@ async function main() {
       desktop_result_columns: desktopResultColumns,
       phone_result_columns: phoneResultColumns,
       mask_trust_state: "NONE",
-      rr09_reveal: {frame: "R4", title_opacity: Number(revealTitleOpacity), fallback: "CHINESE_TITLE_FADE_ONLY"}
+      rr09_reveal: {frame: "R4", title_opacity: Number(revealTitleOpacity), fallback: "CHINESE_TITLE_FADE_ONLY"},
+      canvas_water_lab: waterCanvasEvidence
     },
-    checks: ["FishTrace Sites Hi-Fi route and iframe load", "entry CTA → source choice before camera/gallery", "camera and gallery source cards visible", "local photo preview uses blob URL without POST/inference API", "structured photo layer selection opens properties", "desktop result photo-left/result-right", "phone result photo-top/result-below", "P0-P7 timeline selection and explicit NONE Mask trust", "RR09 R0-R5 timeline and Chinese-title fallback at R4", "single-source Processing→RR09 photo geometry transition and final result state", "error recovery retry/source replacement", "prototype reset and DEMO_DATA_ONLY boundary", "NH01 structured workspace READY", "21 source and frozen/used resources with HTTP/SHA evidence", "source layer tree matches real nested DOM parentage", "layer tree/canvas/inspector bidirectional selection", "M01-M04 CSS canvas PNGs and DOM bounds; M05 width-only geometry without assumed height", "formal 390×844 contract rectangles equal measured DOM geometry", "five dp presets", "free viewport/font 1.0/1.3/1.5/zoom/safe area", "Manifest/contract 404, invalid JSON, JS/CSS 404, timeout and recovery", "stale route cancellation", "direct Hash", "Resources submenu click and direct route", "original PNG previews/download links and manifest", "refresh", "back/forward", "modal zoom/fit/Esc/focus restore", "SWOS and continuity authority routes", "15-frame static workspace and exact 8+7 count", "R0.5 2900ms zoom and original/composite toggle", "P7/R0/R0.5/R1 geometry table", "RR09 ↔ SWOS routes", "Web Hi-Fi V2 authority/resources and 390px route", "local-only photo selection without persistent/network upload", "390px SWOS responsive preview", "RR09 V3 current / V2 historical route separation", "missing authority no fake UI", "invalid route guard", "no HTTP errors", "no console/page errors"],
+    checks: ["FishTrace Sites Hi-Fi route and iframe load", "entry CTA → source choice before camera/gallery", "camera and gallery source cards visible", "local photo preview uses blob URL without POST/inference API", "structured photo layer selection opens properties", "desktop result photo-left/result-right", "phone result photo-top/result-below", "P0-P7 timeline selection and explicit NONE Mask trust", "RR09 R0-R5 timeline and Chinese-title fallback at R4", "single-source Processing→RR09 photo geometry transition and final result state", "error recovery retry/source replacement", "prototype reset and DEMO_DATA_ONLY boundary", "Canvas Water Lab fixed asset SHA-256 and decoded dimensions", "P0/P7 exact transparent Canvas evidence", "P2/P3/P5 visible deterministic in-photo caustics", "play/pause/reset/scrub/P0-P7/strength/water toggle controls", "desktop/390×844/430×932 Canvas-photo alignment and DPR geometry", "reduced-motion behavior", "complete 2800ms playback WebM", "no photo upload or inference network request", "NH01 structured workspace READY", "21 source and frozen/used resources with HTTP/SHA evidence", "source layer tree matches real nested DOM parentage", "layer tree/canvas/inspector bidirectional selection", "M01-M04 CSS canvas PNGs and DOM bounds; M05 width-only geometry without assumed height", "formal 390×844 contract rectangles equal measured DOM geometry", "five dp presets", "free viewport/font 1.0/1.3/1.5/zoom/safe area", "Manifest/contract 404, invalid JSON, JS/CSS 404, timeout and recovery", "stale route cancellation", "direct Hash", "Resources submenu click and direct route", "original PNG previews/download links and manifest", "refresh", "back/forward", "modal zoom/fit/Esc/focus restore", "SWOS and continuity authority routes", "15-frame static workspace and exact 8+7 count", "R0.5 2900ms zoom and original/composite toggle", "P7/R0/R0.5/R1 geometry table", "RR09 ↔ SWOS routes", "Web Hi-Fi V2 authority/resources and 390px route", "local-only photo selection without persistent/network upload", "390px SWOS responsive preview", "RR09 V3 current / V2 historical route separation", "missing authority no fake UI", "invalid route guard", "no HTTP errors", "no console/page errors"],
     swos_local_photo_sha256: uploadedPhotoSha,
     swos_local_photo_uploaded: Boolean(args.swosPhoto),
-    screenshots: ["fishtrace-sites-web-hifi-desktop.png", "fishtrace-sites-web-hifi-phone.png", "fishtrace-sites-web-hifi-processing.png", "fishtrace-sites-web-hifi-reveal.png", "fishtrace-sites-web-hifi-error.png", "fishtrace-sites-web-hifi-continuous-result.png", "nh01-m01-render-320x480.png", "nh01-m02-render-360x640.png", "nh01-m03-render-390x844.png", "nh01-m04-render-430x932.png", "nh01-m01-dom-bounds.json", "nh01-m02-dom-bounds.json", "nh01-m03-dom-bounds.json", "nh01-m04-dom-bounds.json", "nh01-m05-width-only-bounds.json", "desktop-1440.png", "tablet-768.png", "mobile-390.png", "lightbox-1440.png", "overview-1440.png", "guide-resources-1440.png", "guide-resources-390.png", "swos-optical-contract-1440.png", "swos-static-visual-1440.png", "swos-static-visual-390.png", "swos-r05-zoom-1440.png", "swos-web-motion-contract-1440.png", "swos-web-motion-contract-390.png", "web-hifi-v2-1440.png", "processing-result-continuity-1440.png", "rr09-v3-authority-1440.png", "rr09-v2-history-1440.png"],
+    screenshots: ["fishtrace-sites-web-hifi-desktop.png", "fishtrace-sites-web-hifi-phone.png", "fishtrace-sites-web-hifi-processing.png", "fishtrace-sites-web-hifi-reveal.png", "fishtrace-sites-web-hifi-error.png", "fishtrace-sites-web-hifi-continuous-result.png", "fishtrace-canvas-water-P0.png", "fishtrace-canvas-water-P2.png", "fishtrace-canvas-water-P3.png", "fishtrace-canvas-water-P5.png", "fishtrace-canvas-water-P7.png", "fishtrace-canvas-water-full-2800ms.webm", "nh01-m01-render-320x480.png", "nh01-m02-render-360x640.png", "nh01-m03-render-390x844.png", "nh01-m04-render-430x932.png", "nh01-m01-dom-bounds.json", "nh01-m02-dom-bounds.json", "nh01-m03-dom-bounds.json", "nh01-m04-dom-bounds.json", "nh01-m05-width-only-bounds.json", "desktop-1440.png", "tablet-768.png", "mobile-390.png", "lightbox-1440.png", "overview-1440.png", "guide-resources-1440.png", "guide-resources-390.png", "swos-optical-contract-1440.png", "swos-static-visual-1440.png", "swos-static-visual-390.png", "swos-r05-zoom-1440.png", "swos-web-motion-contract-1440.png", "swos-web-motion-contract-390.png", "web-hifi-v2-1440.png", "processing-result-continuity-1440.png", "rr09-v3-authority-1440.png", "rr09-v2-history-1440.png"],
     errors,
     bad_responses: badResponses,
     failed_requests: failedRequests
