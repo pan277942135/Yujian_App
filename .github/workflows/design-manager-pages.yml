@@ -94,6 +94,7 @@ jobs:
         run: |
           node --check design/manager/app.js
           node --check design/manager/nh01_structured_workspace.js
+          node --check design/manager/fishtrace_sites_web_workspace.js
           node --check scripts/verify_design_manager_browser.mjs
           node tests/nh01_structured_workspace.test.cjs
 
