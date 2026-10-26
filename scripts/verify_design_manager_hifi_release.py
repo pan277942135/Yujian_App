@@ -412,6 +412,7 @@ def validate_tree(root: Path, *, built: bool = False, expected_build: str | None
         and regions.get("A",{}).get("strength_coefficient") == 1
         and regions.get("B",{}).get("strength_coefficient") == .48
         and regions.get("C",{}).get("strength_coefficient") == .16
+        and regions.get("C",{}).get("clear_caustic_texture") is True
         and regions.get("D",{}).get("no_draw") is True
         and water_field.get("coordinate_system") == "source_image_normalized_top_left_0_1"
         and water_field.get("source_width") == 1152 and water_field.get("source_height") == 1536
@@ -440,7 +441,10 @@ def validate_tree(root: Path, *, built: bool = False, expected_build: str | None
         and water_rendering.get("caustics",{}).get("patch_count") == 18
         and water_rendering.get("caustics",{}).get("groups") == {"A":4,"B":4,"C":4,"D":3,"E":3}
         and water_rendering.get("caustics",{}).get("realized_zone_patch_count") == {"A":13,"B":4,"C":1}
+        and water_rendering.get("caustics",{}).get("region_c_texture_opacity_scale") == 0
         and water_rendering.get("caustics",{}).get("near_horizontal_patch_fraction_max") == .45
+        and water_rendering.get("caustics",{}).get("direction_distribution",{}).get("angular_bins") == 12
+        and water_rendering.get("caustics",{}).get("direction_distribution",{}).get("minimum_occupied_bins") == 5
         and water_rendering.get("highlights",{}).get("segment_count") == 24
         and water_rendering.get("highlights",{}).get("warm_segment_fraction_max") == .2
         and water_rendering.get("blend_mode") == "screen"

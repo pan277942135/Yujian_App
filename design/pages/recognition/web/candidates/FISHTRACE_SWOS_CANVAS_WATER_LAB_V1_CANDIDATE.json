@@ -194,7 +194,7 @@
             ]
           ]
         },
-        "clear_caustic_texture": false,
+        "clear_caustic_texture": true,
         "activation": {
           "start_ms": 950,
           "full_ms": 1200
@@ -456,6 +456,11 @@
       ],
       "near_horizontal_abs_angle_deg_max": 10,
       "near_horizontal_patch_fraction_max": 0.45,
+      "direction_distribution": {
+        "angular_bins": 12,
+        "minimum_occupied_bins": 5,
+        "note": "Direction bins are a spread diagnostic only; the deterministic patch angles remain within the fixed -38° to +32° range."
+      },
       "primary_opacity_max_p3": 0.22,
       "secondary_opacity_max_p3": 0.14,
       "colors": [
@@ -470,7 +475,8 @@
       "blend_mode": "screen",
       "deterministic_geometry": true,
       "interior_brightness_levels": 3,
-      "region_c_texture_opacity_scale": 0.08
+      "region_c_texture_opacity_scale": 0,
+      "region_c_texture_note": "The 5% C patch slot is retained for count accounting but not drawn; Region C supports only its low-opacity ambient field."
     },
     "highlights": {
       "name": "Subtle Refraction Highlights",

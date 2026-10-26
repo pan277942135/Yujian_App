@@ -1107,9 +1107,10 @@ async function main() {
     return lab?.dataset.rendererStatus === "READY" && image?.dataset.assetVerified === "true" &&
       canvas?.dataset.rendererStatus === "READY" && canvas.width > 1 && canvas.height > 1;
   }, null, {timeout:30000});
-  const causticModelState=await fishtraceFrame.locator("#water-overlay").evaluate(canvas=>({model:canvas.dataset.causticGeometryModel,patchCount:Number(canvas.dataset.causticPatchCount),directionBins:Number(canvas.dataset.causticDirectionBins),nearHorizontalFraction:Number(canvas.dataset.causticNearHorizontalFraction)}));
+  const causticModelState=await fishtraceFrame.locator("#water-overlay").evaluate(canvas=>({model:canvas.dataset.causticGeometryModel,patchCount:Number(canvas.dataset.causticPatchCount),directionBins:Number(canvas.dataset.causticDirectionBins),directionBinCount:Number(canvas.dataset.causticDirectionBinCount),nearHorizontalFraction:Number(canvas.dataset.causticNearHorizontalFraction)}));
   assert(causticModelState.model==="a_line_organic_face_patches_v1"&&causticModelState.patchCount===18,"V5 must render a deterministic local organic-patch field; observed "+JSON.stringify(causticModelState));
-  assert(causticModelState.directionBins>=5&&causticModelState.nearHorizontalFraction<=.45,"V5 patch directions must not collapse into parallel horizontal bands; observed "+JSON.stringify(causticModelState));
+  const directionGate=waterContract.rendering.caustics.direction_distribution;
+  assert(causticModelState.directionBinCount===directionGate.angular_bins&&causticModelState.directionBins>=directionGate.minimum_occupied_bins&&causticModelState.nearHorizontalFraction<=waterContract.rendering.caustics.near_horizontal_patch_fraction_max,"V5 patch directions must not collapse into parallel horizontal bands; observed "+JSON.stringify(causticModelState));
   const waterAsset = await fishtraceFrame.locator("#water-source-image").evaluate(image => ({
     naturalWidth:image.naturalWidth,naturalHeight:image.naturalHeight,
     sha256:image.dataset.sha256,src:image.currentSrc,complete:image.complete

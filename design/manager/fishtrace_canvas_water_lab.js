@@ -538,10 +538,12 @@
       this.canvas.dataset.waterRegionSourceAreaPx=String(Math.round(allActivePolygons(this.scene.zones).reduce((sum,polygon)=>sum+polygonArea(polygon.points),0)*this.scene.asset.width*this.scene.asset.height));
       this.canvas.dataset.sourceDimensions=JSON.stringify({width:this.scene.asset.width,height:this.scene.asset.height});
       const patches=this.scene.patches;
-      const angleBins=new Set(patches.map(patch=>Math.floor((((patch.angle%(Math.PI))+Math.PI)%(Math.PI))/(Math.PI)*8)));
+      const directionBinCount=this.scene.rendering.caustics.direction_distribution.angular_bins;
+      const angleBins=new Set(patches.map(patch=>Math.floor((((patch.angle%(Math.PI))+Math.PI)%(Math.PI))/(Math.PI)*directionBinCount)));
       const nearHorizontal=patches.filter(patch=>Math.min(Math.abs(((patch.angle%(Math.PI))+Math.PI)%(Math.PI)),Math.PI-Math.abs(((patch.angle%(Math.PI))+Math.PI)%(Math.PI)))<=Math.PI/18).length/Math.max(1,patches.length);
       this.canvas.dataset.causticGeometryModel=this.scene.rendering.caustics.geometry_model;
       this.canvas.dataset.causticPatchCount=String(patches.length);
+      this.canvas.dataset.causticDirectionBinCount=String(directionBinCount);
       this.canvas.dataset.causticDirectionBins=String(angleBins.size);
       this.canvas.dataset.causticNearHorizontalFraction=String(nearHorizontal);
       this.canvas.dataset.causticGroupCounts=JSON.stringify(patches.reduce((out,patch)=>{out[patch.group]=(out[patch.group]||0)+1;return out;},{}));
