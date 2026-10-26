@@ -89,7 +89,7 @@ async function measure(page,profile,fontScale){
     const leftGap=hero.x-previous.right,rightGap=next.x-hero.right;
     const cameraArtInside={left:cameraArtwork.x-camera.x,top:cameraArtwork.y-camera.y,right:camera.right-cameraArtwork.right,bottom:camera.bottom-cameraArtwork.bottom};
     const metrics=JSON.parse(board.dataset.layoutMetrics);
-    return {
+    return {contractId:metrics.contractId,contractVersion:metrics.contractVersion,contractStatus:metrics.contractStatus,contractSha256:metrics.contractSha256,allocation:metrics.allocation,
       id:profile.id,viewport:{width:profile.width,height:profile.height,fontScale,topInset:24,bottomInset:24,zoom:1},previewRulesId:metrics.rulesId,
       bounds:{header,stats,recentCatchHeader:recent,recentTitle:title,pager,hero,neighborPrevious:previous,neighborNext:next,pagerIndicator:indicator,captureActionGroup:footer,cta,cameraTouchTarget:camera,cameraArtwork},
       intervals:{headerToStats:stats.y-header.bottom,statsToTitle:title.y-stats.bottom,titleToHero:hero.y-title.bottom,heroBottomToFooterTop:footer.y-hero.bottom,visibleHeroBottomToFooterTop:footer.y-Math.min(hero.bottom,pager.bottom),pagerBottomToFooterTop:footer.y-pager.bottom,heroBottomToCtaTop:cta.y-hero.bottom,ctaToCameraTouch:camera.y-cta.bottom,ctaToCameraArtwork:cameraArtwork.y-cta.bottom,cameraTouchToSafeBottom:safeBottom-camera.bottom,footerToSafeBottom:safeBottom-footer.bottom},
@@ -106,13 +106,17 @@ async function measure(page,profile,fontScale){
 function validate(result){
   const b=result.bounds,p=result.pager,i=result.intervals;
   const failures=[];
+  if(result.contractId!=="NH01_RESPONSIVE_LAYOUT_V2")failures.push("The existing route is not calculating from NH01_RESPONSIVE_LAYOUT_V2");
+  if(!/^[a-f0-9]{64}$/.test(result.contractSha256||""))failures.push("V2 contract SHA-256 is missing from live layout metrics");
+  if(!result.allocation||Math.abs(result.allocation.gABExtra-result.allocation.S/2)>.02||Math.abs(result.allocation.gBCExtra-result.allocation.S/2)>.02)failures.push("Live layout does not allocate positive surplus equally as S/2 + S/2");
+  if(Math.abs(Number(result.allocation?.outerBreathing||0))>.02)failures.push("A duplicate outer-breathing reserve remains in the layout engine");
   if(Math.abs(result.heroRatio-247/293)>.001)failures.push(`Hero ratio ${result.heroRatio}`);
   if(b.hero.w>result.heroTargetWidth+.5)failures.push("Hero exceeded target width");
   if(Math.abs(p.peekGapLeft-p.peekGapRight)>.5)failures.push("left/right Peek gap is asymmetric");
   if(Math.abs(p.neighborPreviousVisibleWidth-p.neighborNextVisibleWidth)>.5)failures.push("left/right Peek reveal is asymmetric");
   if(p.neighborPreviousVisibleWidth<1||p.neighborNextVisibleWidth<1)failures.push("both Neighbor cards must have a measurable visible Peek segment");
   if(p.maxGeometryOverlap>p.maxGeometryOverlapLimit+.01)failures.push("Peek geometry exceeds the overlap cap");
-  if(p.peekGapLeft<7.9||p.peekGapLeft>12.1)failures.push("actual Peek gap is outside the 8–12dp preview clamp");
+  if(p.peekGapLeft<7.9||p.peekGapLeft>12.1)failures.push("actual Peek gap is outside the V2 contract 8–12dp bounds");
   if(p.pagerHeight<p.indicatorHeight)failures.push("Pager indicator is outside the Pager height budget");
   if(i.headerToStats<0||i.statsToTitle<0||i.titleToHero<0||i.pagerBottomToFooterTop<0)failures.push("adjacent layout regions overlap");
   if(i.ctaToCameraTouch<5.9)failures.push("CTA text collides with camera touch target");
@@ -130,9 +134,15 @@ async function main(){
   const args=parseArgs(process.argv);
   await mkdir(args.outputDir,{recursive:true});
   const rules=JSON.parse(await readFile(resolve(args.root,"design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_STRUCTURED_PREVIEW_LAYOUT_RULES_V2.json"),"utf8"));
+  const contractPath="design/pages/home/normal_home/responsive/NH01_RESPONSIVE_LAYOUT_V2.json";
+  const contractBytes=await readFile(resolve(args.root,contractPath));
+  const contract=JSON.parse(contractBytes.toString("utf8"));
+  const expectedContractSha=createHash("sha256").update(contractBytes).digest("hex");
   const media=JSON.parse(await readFile(resolve(args.root,"design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_STRUCTURED_PREVIEW_MEDIA_V1.json"),"utf8"));
   const mediaHashes=media.assets.map(asset=>({id:asset.id,sha256:createHash("sha256").update(require("node:fs").readFileSync(resolve(args.root,asset.path))).digest("hex")}));
-  assert(rules.status==="PREVIEW_ONLY"&&media.assets.length===3,"preview rules and 3-item illustrative media manifest are required");
+  assert(rules.status==="PREVIEW_ONLY"&&rules.responsive_authority===contractPath&&rules.numeric_authority==="NONE"&&rules.no_numeric_overrides===true,"preview file must be metadata-only and reference the V2 machine contract");
+  assert(contract.contract_id==="NH01_RESPONSIVE_LAYOUT_V2"&&contract.logical_allocation?.allocation_when_positive_surplus?.a_to_b==="gAB_base + S/2"&&contract.logical_allocation?.allocation_when_positive_surplus?.b_to_c==="gBC_base + S/2","V2 contract must be the only active responsive numeric authority and use equal S/2 allocation");
+  assert(media.assets.length===3,"3-item illustrative media manifest is required");
   assert(mediaHashes.every((item,index)=>item.sha256===media.assets[index].sha256),"illustrative media SHA-256 does not match its manifest");
   const {server,url}=args.url?{server:null,url:args.url.endsWith("/")?args.url:`${args.url}/`}:await startServer(args.root);
   const errors=[],badResponses=[],illustrativeMediaFailures=[];
@@ -161,6 +171,12 @@ async function main(){
         await configure(page,profile.width,profile.height,fontScale);
         const result=await measure(page,profile,fontScale);
         const failures=validate(result);
+        if(profile.width===320&&profile.height===480&&fontScale===1){
+          if(result.bounds.hero.w<145-.5)failures.push("Exact M01 Hero width is below 145dp");
+          if(result.pager.localScroll||result.pager.scrollNeeded)failures.push("Exact M01 requires NO_SCROLL");
+          if(result.layoutConflicts.includes("FAIL_CONSTRAINT"))failures.push("Exact M01 reports a constraint failure");
+        }
+        if(result.contractSha256!==expectedContractSha)failures.push("Live layout contract SHA does not match the checked V2 source file");
         result.status=failures.length?"FAIL":"PASS";
         result.failures=failures;
         result.screenshot=`${profile.id}-font-${String(fontScale).replace(".","_")}x.png`;
@@ -225,11 +241,13 @@ async function main(){
     assert(mediaGeometryStable,"illustrative image failures changed layout geometry");
     await probePage.close();
     const summary={
+      responsive_contract:{path:contractPath,id:contract.contract_id,version:contract.contract_version,status:contract.status,sha256:expectedContractSha,allocation:contract.logical_allocation.allocation_when_positive_surplus},
       task_id:"YUJIAN_NH01_STRUCTURED_HIFI_RESPONSIVE_LAYOUT_REPAIR_V2",
       route:"#page/home_normal_v1/hifi/multi_screen_static_hifi",
       source_sha:buildSha,
       browser:{name:"Chromium",version:browser.version(),device_scale_factor:1},
       preview_rules_id:rules.rules_id,
+      responsive_contract_sha256:expectedContractSha,
       status:results.every(result=>result.status==="PASS")&&mediaGeometryStable&&errors.length===0&&badResponses.length===0?"PASS":"FAIL",
       matrix:{viewport_count:viewports.length,font_scales:fontScales,case_count:results.length,pass_count:results.filter(result=>result.status==="PASS").length,fail_count:results.filter(result=>result.status==="FAIL").length},
       generated_illustrative_media:mediaHashes,
