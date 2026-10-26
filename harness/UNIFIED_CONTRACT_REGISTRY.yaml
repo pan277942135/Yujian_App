@@ -1890,8 +1890,8 @@ inventory:
   journey_count: 20
   child_surface_count: 81
   route_count: 22
-  task_count: 51
-  gate_count: 17
+  task_count: 52
+  gate_count: 18
   registry_created_from_pr_head: "ebb6b3904feaa0cf26b4fd4b83bc809a397085a2"
   last_synced_feature_matrix_sha: "9a37127ce83d646988793fb31614fc27a5337b54"
   last_synced_phase_task_state_machine_sha: "e890464c27400e24f01043a1a159f0427685a32f"

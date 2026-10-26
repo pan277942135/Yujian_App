@@ -605,7 +605,7 @@ tasks:
     owner: "Work"
     feature_refs: ["home_normal_v1"]
     journey_refs: ["J17", "J18"]
-    depends_on: ["NH01-RESPONSIVE-PREVIEW-V2", "YUJIAN_NH01_RESPONSIVE_V2_ANDROID_IMPLEMENTATION_AND_RUNTIME_ACCEPTANCE_V1"]
+    depends_on: ["NH01-RESPONSIVE-PREVIEW-V2"]
     entry_blockers: []
     target_blockers: []
     gate_id: "G-NH01-RESPONSIVE-V2-ANDROID-RUNTIME-V1"

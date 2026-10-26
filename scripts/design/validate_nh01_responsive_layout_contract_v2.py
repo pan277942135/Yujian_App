@@ -203,7 +203,7 @@ require(global_profiles.get("WIDTH-BOUNDARY-480DP",{}).get("height_dp") is None,
 
 conflicts=contract.get("conflict_resolution",[])
 require(len(conflicts)>=7,"authority conflict register must cover required domains")
-require(all(item.get("status") in {"RESOLVED_BY_PROPOSED_CONTRACT","SCOPED_NOT_CONFLICTING"} for item in conflicts),"unresolved authority conflict remains")
+require(all(item.get("status") in {"RESOLVED_BY_PROPOSED_CONTRACT","RESOLVED_BY_FROZEN_CONTRACT","SCOPED_NOT_CONFLICTING"} for item in conflicts),"unresolved authority conflict remains")
 
 gemini=authority.get("active_gemini_nh01_override",{})
 require(gemini.get("authority")=="design/pages/home/normal_home/engineering/NH01_GEMINI_ADAPTIVE_V2_UNIFIED_AUTHORITY_V1.md","existing Gemini non-responsive authority must remain registered")
