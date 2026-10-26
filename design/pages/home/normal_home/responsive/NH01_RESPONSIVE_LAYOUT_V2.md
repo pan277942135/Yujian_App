@@ -10,7 +10,7 @@
 
 NH01 uses one constraint-driven responsive policy, not a collection of layouts copied from individual viewport screenshots. The six frozen visual anchors validate brand identity, content hierarchy, component relationships and visual proportions. They are evidence anchors, not six independent layout algorithms.
 
-The JSON is the sole machine authority for responsive values and rules. This guide is explanatory; do not maintain a second set of numeric values here.
+The JSON is the sole machine authority for responsive values and rules, including the structured browser preview. This guide is explanatory; do not maintain a second set of numeric values here. The existing V1 responsive archive keeps static image identity and history; it is not a second browser layout calculator.
 
 ## What is fixed
 
@@ -22,11 +22,19 @@ The JSON is the sole machine authority for responsive values and rules. This gui
 
 ## What may adapt
 
-Component width/height within declared bounds, approved spacing formulas, text wrapping, card space allocation, edge-Peek exposure, and the documented local Middle-scroll fallback. The Hero keeps its readable frame and aspect ratio when short-screen space runs out; only Middle scrolls, and Footer stays pinned. Every numeric bound remains in the JSON contract.
+Component width/height within declared bounds, approved spacing formulas, text wrapping, card space allocation, edge-Peek exposure, and the documented local Middle-scroll fallback. Footer stays pinned outside Middle scrolling. Exact M01 320×480 / fontScale 1.0 is `NO_SCROLL`; if its ratio, minimum width, readable copy, and safe bounds cannot fit together, report a constraint failure. Every numeric bound remains in the JSON contract.
 
 ## Logical band allocation
 
-The JSON contract maps the logical bands A (brand + statistics), B (Recent Catch heading + Hero) and C (Footer) onto the unchanged physical Top / Middle / Footer structure. After safe insets are consumed once, it computes `S = max(0, H_safe - (hA + hB + hC + gAB_base + gBC_base))`. Positive surplus adds `2S/3` to A→B and `S/3` to B→C; zero surplus preserves both base gaps. The title-to-Hero gap remains internal to band B and is not modified by this allocation.
+The JSON contract maps logical bands A (brand + statistics), B (Recent Catch heading + Hero/Pager) and C (Footer) onto the unchanged physical Top / Middle / Footer structure. After safe insets are consumed once, it computes `S = max(0, H_safe - (hA + hB + hC + gAB_base + gBC_base))`. Positive surplus adds `S/2` to each base gap; zero surplus preserves both base gaps. There are no extra gap caps, outer-breathing remainder, or separate footer reserve. The title-to-Hero gap remains internal to band B and is not modified by this allocation.
+
+The `124dp` M01 exception is a minimum-readable floor, not a forced final Hero height. The final card also preserves its ratio, is at least `145dp` wide, keeps required copy readable, and does not scroll. If this exact profile cannot satisfy all four constraints after compressing nonessential whitespace, it fails rather than silently weakening one condition.
+
+The “记录下一条鱼” copy is a static label under the current interaction contract. It receives no independent touch rectangle. The camera artwork sits centered inside its separately measured touch target; the complete Footer height counts the CTA line, camera target, one CTA-to-camera gap, and existing outer padding once.
+
+## Exact M01 compact constraint
+
+For exactly 320×480dp at system fontScale 1.0, use the contract's `preview_engine.parameters.hero.short_screen_exception.compact_layout` values to compress only nonessential top/footer whitespace and declared gap floors. The final Hero height is derived from the available Pager budget while preserving the `247:293` ratio and minimum width of 145dp. Do not scroll the Middle/Pager in this exact profile. If the readable copy, minimum width, ratio and `NO_SCROLL` cannot all fit, report `FAIL_CONSTRAINT`; do not weaken the contract.
 
 ## Authority boundary
 
@@ -38,4 +46,4 @@ The JSON contract maps the logical bands A (brand + statistics), B (Recent Catch
 
 ## Required review
 
-The contract and control-plane references must validate before canonical adoption. Runtime conformance gaps are explicitly recorded in the JSON and are not hidden by changing the design rules. The Android matrix remains `NOT_VERIFIED` until exact-SHA evidence passes.
+The contract and control-plane references must validate before canonical adoption. Runtime conformance gaps are explicitly recorded in the JSON and are not hidden by changing the design rules. The Android matrix remains `NOT_VERIFIED` until exact-SHA evidence passes. Generated Hero/neighbor images remain `GENERATED_ILLUSTRATIVE_ONLY`; source authenticity and real-catch provenance do not gate this geometry freeze, while independent files, manifest status, and layout-stable failure fallback remain required.
