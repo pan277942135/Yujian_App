@@ -1042,6 +1042,7 @@ async function main() {
   await page.screenshot({ path: resolve(args.outputDir, "fishtrace-sites-web-hifi-processing.png"), fullPage: true });
   await fishtraceFrame.locator('[data-action="reset"]').click();
   assert(await fishtraceFrame.locator('[data-scene="entry"]').isVisible(), "Prototype reset must return to entry");
+  await fishtraceFrame.waitForFunction(() => [...document.querySelectorAll(".photo-foreground")].every(image => image.complete && image.naturalWidth > 0), null, { timeout: 30000 });
 
   await open("#page/recognition_flow_v1_2/hifi/invalid-release-route");
   assert(await page.locator(".invalid-manager-route").isVisible(), "invalid Hash must show an explicit error state");
