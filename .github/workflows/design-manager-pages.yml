@@ -77,6 +77,7 @@ jobs:
           python3 scripts/design/build_nh01_authority_inventory.py
           python3 scripts/design/verify_nh01_cloud_viewer.py
           python3 -m unittest discover -s scripts/design/tests -p 'test_*.py' -v
+          python3 scripts/design/validate_responsive_page_freeze_checklist.py --checklist design/system_v3/07_Responsive_System/Responsive_Page_Freeze_Checklist_Template_V1.json --mode template
 
       - name: Setup Node for browser verification
         uses: actions/setup-node@v4
