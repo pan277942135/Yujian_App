@@ -1,55 +1,13 @@
 {
   "rules_id": "NH01_STRUCTURED_PREVIEW_LAYOUT_RULES_V2",
   "status": "PREVIEW_ONLY",
-  "scope": "Existing Design Manager route #page/home_normal_v1/hifi/multi_screen_static_hifi. These rules define the browser candidate composition only and do not change Android Runtime or the frozen A/B/C runtime allocation.",
-  "source_contracts": [
-    "NH01_MULTI_SCREEN_RESPONSIVE_CONTRACT_V1.json",
-    "NH01_GEMINI_ADAPTIVE_V2_UNIFIED_AUTHORITY_V1.md",
-    "Normal_Home_Motion_Contract_V1.md"
-  ],
-  "hero": {
-    "ratio": "247:293",
-    "target_width_formula": "min(min(trackWidthDp,560dp)*0.70,337.2dp)",
-    "maximum_height_dp": 400,
-    "minimum_readable_height_dp": 148,
-    "short_320x480_font_1_minimum_width_dp": 145,
-    "constrain_width_and_height_by_same_ratio": true,
-    "when_minimum_does_not_fit": "Keep Hero at the minimum size and allow local vertical scrolling within FishCatchPager; do not overlap Header, Stats, title, Footer or safe bounds."
-  },
-  "pager": {
-    "peek_gap_formula": "clamp(8dp,trackWidthDp*0.025,12dp)",
-    "max_geometry_overlap_dp": 1,
-    "neighbor_width_max_relative_to_hero": 0.82,
-    "neighbor_height_relative_to_hero": 0.667,
-    "neighbor_top_offset_dp": 15,
-    "peek_visible_width_formula": "min(peekWidthDp,max(0,(trackWidthDp-heroWidthDp)/2-peekGapDp))",
-    "left_right_symmetric": true,
-    "indicator_height_dp": 8,
-    "indicator_gap_after_hero_dp": 8,
-    "indicator_semantics": "Generated illustrative pager state only; does not represent live FishRecord count or navigation."
-  },
-  "capture_action_group": {
-    "cta_role": "STATIC_TEXT_LABEL_NOT_AN_INDEPENDENT_ACTION",
-    "cta_touch_target_dp": null,
-    "cta_layout_height_formula": "measured CTA line-height = rendered font size * 1.25",
-    "camera_visual_formula": "existing machine-contract responsive camera formula",
-    "camera_touch_target_minimum_dp": 72,
-    "keep_camera_visual_centered_in_touch_target": true,
-    "footer_padding_and_gap": "Use existing contract values once; never stack artwork and touch target vertically."
-  },
-  "vertical_allocation": {
-    "safe_insets_owner": "layout calculator; subtract top and bottom inset exactly once",
-    "fixed_content": "Measure Header, Stats, RecentCatchHeader, and CaptureActionGroup from their own contract-derived content bounds before calculating pager space.",
-    "base_inter_group_gaps": "Reuse existing stats_to_title and card_to_footer formulas.",
-    "additional_gap_ab_max_dp": 12,
-    "additional_gap_bc_max_dp": 16,
-    "long_screen_remainder": "After Hero reaches target size and added A/B and B/C gaps reach their caps, split remaining space equally as outer top and bottom breathing margins.",
-    "short_screen_behavior": "Compress only existing contract gaps down to their floors; keep the minimum readable Hero ratio and camera touch target, and use FishCatchPager-local scrolling for any remaining height deficit.",
-    "footer_behavior": "Keep Footer pinned in the safe content region and outside FishCatchPager scrolling."
-  },
+  "scope": "Presentation metadata only for the existing Design Manager route #page/home_normal_v1/hifi/multi_screen_static_hifi. This file is not a responsive numeric authority.",
+  "responsive_authority": "design/pages/home/normal_home/responsive/NH01_RESPONSIVE_LAYOUT_V2.json",
+  "numeric_authority": "NONE",
+  "no_numeric_overrides": true,
   "illustrative_media": {
     "manifest": "NH01_STRUCTURED_PREVIEW_MEDIA_V1.json",
     "status": "GENERATED_ILLUSTRATIVE_ONLY",
-    "use": "Hero, previous and next image content/cropping only; geometry is independent of image load status."
+    "use": "Hero, previous and next media content/cropping only; geometry is independent of image load status."
   }
 }
