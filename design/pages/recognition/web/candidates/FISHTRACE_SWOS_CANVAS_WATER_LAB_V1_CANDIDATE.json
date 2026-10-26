@@ -91,14 +91,29 @@
     "exit_end_ms": 2800,
     "peripheral_exit_fraction": 0.08,
     "reduced_motion_scale": 0.12,
-    "max_rotation_radians": 0.055
+    "max_rotation_radians": 0.055,
+    "shape_morph_frequency_rad_s": 0.68,
+    "shape_morph_blend": [
+      0.16,
+      0.34
+    ],
+    "sway_x_fraction": 0.014,
+    "sway_y_fraction": 0.009,
+    "sway_y_frequency_ratio": 0.73,
+    "upward_top_bias": 0.66,
+    "intensity_wave_base": 0.9,
+    "intensity_wave_amplitude": 0.1,
+    "intensity_wave_frequency_ratio": 0.9,
+    "rotation_frequency_ratio": 0.45,
+    "exit_alpha_reduction": 0.38,
+    "exit_scale_reduction": 0.16
   },
   "rendering": {
     "backend": "Canvas 2D",
     "deterministic_seed": 20261026,
     "blend_mode": "screen",
     "image_dpr": "devicePixelRatio",
-    "texture_generation": "fixed-seed irregular Bézier masks and gradients generated once at initialization",
+    "texture_generation": "Two fixed-seed irregular Bézier mask/gradient variants are precomputed once per patch and crossfaded at low frequency for continuous shape drift.",
     "layers": [
       {
         "id": "broad",
@@ -167,7 +182,44 @@
         "ribbon_count": 2,
         "ribbon_alpha": 0.15
       }
-    ]
+    ],
+    "texture_profile": {
+      "vertices": 10,
+      "radius_range": [
+        0.72,
+        1.2
+      ],
+      "x_radius_fraction": 0.46,
+      "y_radius_fraction": 0.45,
+      "gradient_center_x": [
+        0.4,
+        0.6
+      ],
+      "gradient_center_y": [
+        0.38,
+        0.62
+      ],
+      "gradient_radius_scale": 0.78,
+      "gradient_stops": [
+        0,
+        0.47,
+        0.82,
+        1
+      ]
+    },
+    "animation_rate_range": [
+      0.25,
+      0.9
+    ],
+    "patch_weight_range": [
+      0.78,
+      1.13
+    ],
+    "patch_position_range": [
+      0.08,
+      0.92
+    ],
+    "max_canvas_alpha": 0.72
   },
   "visual_acceptance": {
     "state": "NOT_YET_VISUALLY_SIGNED_OFF",

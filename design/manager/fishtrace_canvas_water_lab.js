@@ -84,16 +84,16 @@
     return "rgba(" + r + "," + g + "," + b + "," + Math.max(0,Math.min(1,alpha)) + ")";
   }
   function midpoint(a,b) { return {x:(a.x+b.x)/2,y:(a.y+b.y)/2}; }
-  function traceSoftIrregularPath(context,width,height,random) {
+  function traceSoftIrregularPath(context,width,height,random,profile) {
     const points = [];
-    const count = 10;
+    const count = profile.vertices;
     const rotation = random() * Math.PI * 2;
     for (let i=0;i<count;i+=1) {
       const angle = rotation + (Math.PI * 2 * i / count);
-      const radius = 0.72 + random() * 0.48;
+      const radius = profile.radius_range[0] + random() * (profile.radius_range[1]-profile.radius_range[0]);
       points.push({
-        x:width/2 + Math.cos(angle) * width * 0.46 * radius,
-        y:height/2 + Math.sin(angle) * height * 0.45 * radius
+        x:width/2 + Math.cos(angle) * width * profile.x_radius_fraction * radius,
+        y:height/2 + Math.sin(angle) * height * profile.y_radius_fraction * radius
       });
     }
     context.beginPath();
@@ -105,24 +105,24 @@
     }
     context.closePath();
   }
-  function makeTexture(layer,index,seed) {
+  function makeTexture(layer,index,seed,profile) {
     const texture = document.createElement("canvas");
     texture.width = layer.texture_width;
     texture.height = layer.texture_height;
     const textureContext = texture.getContext("2d");
     const random = seeded(seed + index * 7919 + layer.id.length * 101);
-    traceSoftIrregularPath(textureContext,texture.width,texture.height,random);
+    traceSoftIrregularPath(textureContext,texture.width,texture.height,random,profile);
     textureContext.save();
     textureContext.clip();
-    const centerX = texture.width * (0.40 + random() * 0.20);
-    const centerY = texture.height * (0.38 + random() * 0.24);
-    const outerRadius = Math.max(texture.width,texture.height) * 0.78;
+    const centerX = texture.width * (profile.gradient_center_x[0] + random() * (profile.gradient_center_x[1]-profile.gradient_center_x[0]));
+    const centerY = texture.height * (profile.gradient_center_y[0] + random() * (profile.gradient_center_y[1]-profile.gradient_center_y[0]));
+    const outerRadius = Math.max(texture.width,texture.height) * profile.gradient_radius_scale;
     const gradient = textureContext.createRadialGradient(centerX,centerY,outerRadius*0.05,centerX,centerY,outerRadius);
     const color = layer.colors[index % layer.colors.length];
-    gradient.addColorStop(0,colorWithAlpha(color,layer.texture_alpha));
-    gradient.addColorStop(0.47,colorWithAlpha(color,layer.texture_alpha*0.58));
-    gradient.addColorStop(0.82,colorWithAlpha(color,layer.texture_alpha*0.17));
-    gradient.addColorStop(1,colorWithAlpha(color,0));
+    gradient.addColorStop(profile.gradient_stops[0],colorWithAlpha(color,layer.texture_alpha));
+    gradient.addColorStop(profile.gradient_stops[1],colorWithAlpha(color,layer.texture_alpha*0.58));
+    gradient.addColorStop(profile.gradient_stops[2],colorWithAlpha(color,layer.texture_alpha*0.17));
+    gradient.addColorStop(profile.gradient_stops[3],colorWithAlpha(color,0));
     textureContext.fillStyle = gradient;
     textureContext.fillRect(0,0,texture.width,texture.height);
     for (let ribbon=0;ribbon<layer.ribbon_count;ribbon+=1) {
@@ -156,15 +156,17 @@
           const sizeY = sample(layer.size_y);
           this.patches.push({
             layer:layer,
-            texture:makeTexture(layer,index,value.rendering.deterministic_seed + serial * 104729),
-            x:0.08 + patchRandom()*0.84,
-            y:0.08 + patchRandom()*0.84,
+            textures:[
+              makeTexture(layer,index,value.rendering.deterministic_seed + serial * 104729,value.rendering.texture_profile),
+              makeTexture(layer,index,value.rendering.deterministic_seed + serial * 104729 + 5381,value.rendering.texture_profile)
+            ],
+            x:sample(value.rendering.patch_position_range),
+            y:sample(value.rendering.patch_position_range),
             width:sizeX,
             height:sizeY,
             phase:patchRandom()*Math.PI*2,
-            rate:0.25 + patchRandom()*0.65,
-            weight:0.78 + patchRandom()*0.35,
-            direction:patchRandom() < 0.5 ? -1 : 1
+            rate:sample(value.rendering.animation_rate_range),
+            weight:sample(value.rendering.patch_weight_range)
           });
           serial += 1;
         }
@@ -178,32 +180,34 @@
       const returnToWater = smooth(timeMs,motion.recollection_start_ms,motion.recollection_end_ms) * motionScale;
       const exit = smooth(timeMs,motion.exit_start_ms,motion.exit_end_ms);
       const exitMove = exit * motionScale;
-      const centerX = rect.x + rect.width/2;
-      const centerY = rect.y + rect.height/2;
       for (const patch of this.patches) {
         const layer = patch.layer;
-        const swayX = Math.sin(t*patch.rate + patch.phase) * rect.width * 0.014 * motionScale;
-        const swayY = Math.cos(t*patch.rate*0.73 + patch.phase) * rect.height * 0.009 * motionScale;
-        const upY = upward * motion.upward_fraction * rect.height * (0.66 + patch.y*0.34) * motionScale;
+        const swayX = Math.sin(t*patch.rate + patch.phase) * rect.width * motion.sway_x_fraction * motionScale;
+        const swayY = Math.cos(t*patch.rate*motion.sway_y_frequency_ratio + patch.phase) * rect.height * motion.sway_y_fraction * motionScale;
+        const upY = upward * motion.upward_fraction * rect.height * (motion.upward_top_bias + patch.y*(1-motion.upward_top_bias)) * motionScale;
         const returnY = returnToWater * motion.recollection_downward_fraction * rect.height;
         const outX = (patch.x-0.5) * motion.peripheral_exit_fraction * rect.width * exitMove;
         const outY = (patch.y-0.5) * motion.peripheral_exit_fraction * rect.height * exitMove;
         const scale = (1 + expansion * motion.expansion_scale) *
           (1 - returnToWater * motion.recollection_scale_reduction) *
-          (1 - exitMove * 0.16);
-        const modulation = 0.90 + 0.10*Math.sin(t*patch.rate*0.9+patch.phase);
-        const opacity = baselineIntensity * strengthValue * layer.alpha * patch.weight * modulation * (1-exit*0.38);
+          (1 - exitMove * motion.exit_scale_reduction);
+        const modulation = motion.intensity_wave_base + motion.intensity_wave_amplitude*Math.sin(t*patch.rate*motion.intensity_wave_frequency_ratio+patch.phase);
+        const opacity = baselineIntensity * strengthValue * layer.alpha * patch.weight * modulation * (1-exit*motion.exit_alpha_reduction);
         if (opacity <= 0.001) continue;
         const width = rect.width * patch.width * scale;
         const height = rect.height * patch.height * scale;
         const x = rect.x + patch.x*rect.width + swayX + outX;
         const y = rect.y + patch.y*rect.height - upY + returnY + swayY + outY;
+        const morphWave = 0.5 + 0.5*Math.sin(t*motion.shape_morph_frequency_rad_s*patch.rate+patch.phase);
+        const morph = motion.shape_morph_blend[0] + morphWave*(motion.shape_morph_blend[1]-motion.shape_morph_blend[0]);
         context.save();
         context.globalCompositeOperation = this.contract.rendering.blend_mode;
-        context.globalAlpha = Math.min(0.72,opacity);
         context.translate(x,y);
-        context.rotate(Math.sin(t*patch.rate*0.45+patch.phase) * motion.max_rotation_radians * motionScale);
-        context.drawImage(patch.texture,-width/2,-height/2,width,height);
+        context.rotate(Math.sin(t*patch.rate*motion.rotation_frequency_ratio+patch.phase) * motion.max_rotation_radians * motionScale);
+        context.globalAlpha = Math.min(this.contract.rendering.max_canvas_alpha,opacity)*(1-morph);
+        context.drawImage(patch.textures[0],-width/2,-height/2,width,height);
+        context.globalAlpha = Math.min(this.contract.rendering.max_canvas_alpha,opacity)*morph;
+        context.drawImage(patch.textures[1],-width/2,-height/2,width,height);
         context.restore();
       }
     }
@@ -437,8 +441,9 @@
     });
     timelineInput.addEventListener("input",() => {
       if (!controller) return;
+      const requestedTime = Number(timelineInput.value);
       controller.pause();
-      controller.seek(Number(timelineInput.value));
+      controller.seek(requestedTime);
     });
     lab.querySelectorAll("[data-water-frame]").forEach(button => {
       button.addEventListener("click",() => {

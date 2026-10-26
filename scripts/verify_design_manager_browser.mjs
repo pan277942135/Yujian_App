@@ -1124,6 +1124,15 @@ async function main() {
     waterScreenshots.push(name);
   };
   await fishtraceFrame.locator('[data-water-frame="P0"]').click();
+  const allWaterFrames = [["P0",0,0],["P1",350,10],["P2",950,45],["P3",1200,75],["P4",1550,60],["P5",2050,35],["P6",2600,10],["P7",2800,0]];
+  const waterFrameJumpEvidence = [];
+  for (const [id,ms,intensity] of allWaterFrames) {
+    await fishtraceFrame.locator('[data-water-frame="' + id + '"]').click();
+    const shownTime = await fishtraceFrame.locator("#water-current-time").innerText();
+    const shownIntensity = Number((await fishtraceFrame.locator("#water-debug-intensity").innerText()).replace("%",""));
+    assert(shownTime === ms + " ms" && shownIntensity === intensity, id + " must jump to its exact time and baseline intensity");
+    waterFrameJumpEvidence.push({id,ms,intensity_percent:shownIntensity});
+  }
   const p0Water = await waterCanvasState();
   assert(Number(p0Water.time) === 0 && p0Water.visible === 0, "P0 must be the exact clear original with zero Canvas alpha");
   await waterStageShot("fishtrace-canvas-water-P0.png");
@@ -1139,6 +1148,7 @@ async function main() {
   await fishtraceFrame.locator('[data-water-frame="P3"]').click();
   const p3Water = await waterCanvasState();
   const p3Intensity = Number((await fishtraceFrame.locator("#water-debug-intensity").innerText()).replace("%",""));
+  const p3FullMotionPixels = await fishtraceFrame.locator("#water-overlay").evaluate(canvas => canvas.toDataURL("image/png"));
   assert(Number(p3Water.time) === 1200 && p3Water.visible > 0 && p3Water.outside === 0, "P3 must render at the exact 1200ms time inside the photo");
   assert(p3Intensity >= p2Intensity, "P3 baseline strength must be at least as strong as P2");
   await waterStageShot("fishtrace-canvas-water-P3.png");
@@ -1222,22 +1232,52 @@ async function main() {
   );
   assert(forbiddenWaterTraffic.length === 0, "Canvas Water Lab must make no photo upload or real inference requests");
   await page.emulateMedia({reducedMotion:"reduce"});
+  await fishtraceFrame.locator('[data-water-frame="P3"]').click();
   const reducedMotionScale = await fishtraceFrame.locator("#water-overlay").getAttribute("data-motion-scale");
-  assert(reducedMotionScale === "0.12", "Reduced-motion must reduce dynamic movement while retaining frame seeking");
+  const p3ReducedMotionPixels = await fishtraceFrame.locator("#water-overlay").evaluate(canvas => canvas.toDataURL("image/png"));
+  assert(reducedMotionScale === "0.12" && p3ReducedMotionPixels !== p3FullMotionPixels, "Reduced-motion must reduce dynamic movement while retaining static frame seeking");
   await page.emulateMedia({reducedMotion:"no-preference"});
   const waterCanvasEvidence = {
     fixed_asset:waterAsset,
     p0:p0Water,p2:p2Water,p3:p3Water,p5:p5Water,p7:p7Water,
     baseline_intensity_percent:{P2:p2Intensity,P3:p3Intensity},
+    exact_frame_jumps:waterFrameJumpEvidence,
     deterministic_p2_repeat:true,
     pause_time:pausedWaterTime,
     scrubbed_time_ms:1375,
     reset_time_ms:0,
     responsive_geometry:waterViewportChecks,
     reduced_motion_scale:reducedMotionScale,
+    reduced_motion_changes_frame:p3ReducedMotionPixels !== p3FullMotionPixels,
     requests:waterTraffic.map(request=>({method:request.method,url:request.url})),
     photo_upload_or_inference_requests:forbiddenWaterTraffic.length,
     screenshots:waterScreenshots
+  };
+
+
+  const failedContext = await browser.newContext({viewport:{width:1440,height:1000},deviceScaleFactor:1});
+  const failedPage = await failedContext.newPage();
+  const failedPageErrors = [];
+  failedPage.on("pageerror",error => failedPageErrors.push(error.message));
+  const blockedContract = "**/FISHTRACE_SWOS_CANVAS_WATER_LAB_V1_CANDIDATE.json*";
+  await failedPage.route(blockedContract,route => route.abort());
+  await failedPage.goto(new URL(fishtraceSitesHash,baseUrl).href,{waitUntil:"domcontentloaded"});
+  const failedFrame = failedPage.frame({url:/fishtrace_sites_web_workspace\.html/});
+  assert(Boolean(failedFrame), "Canvas failure-recovery check could not reach the existing FishTrace iframe");
+  await failedFrame.locator('[data-testid="fishtrace-sites-web-workspace"]').waitFor({state:"visible",timeout:30000});
+  await failedFrame.locator('[data-water-view="canvas-water"]').click();
+  await failedFrame.waitForFunction(() => document.querySelector('[data-testid="canvas-water-lab"]')?.dataset.rendererStatus === "ERROR",null,{timeout:15000});
+  assert(await failedFrame.locator("#water-load-error").isVisible() && await failedFrame.locator("#water-retry").isVisible(), "A failed candidate contract load must show a clear error and retry entry");
+  await failedPage.unroute(blockedContract);
+  await failedFrame.locator("#water-retry").click();
+  await failedFrame.waitForFunction(() => document.querySelector('[data-testid="canvas-water-lab"]')?.dataset.rendererStatus === "READY",null,{timeout:30000});
+  assert(failedPageErrors.length === 0, "Canvas load failure/retry must not create uncaught browser errors");
+  await failedContext.close();
+  const waterFailureEvidence = {
+    injected_candidate_contract_failure:true,
+    explicit_error_and_retry_visible:true,
+    retry_loaded_verified_asset:true,
+    uncaught_errors:failedPageErrors
   };
 
   const videoContext = await browser.newContext({
@@ -1323,9 +1363,9 @@ async function main() {
       phone_result_columns: phoneResultColumns,
       mask_trust_state: "NONE",
       rr09_reveal: {frame: "R4", title_opacity: Number(revealTitleOpacity), fallback: "CHINESE_TITLE_FADE_ONLY"},
-      canvas_water_lab: waterCanvasEvidence
+      canvas_water_lab: Object.assign(waterCanvasEvidence,{failure_recovery:waterFailureEvidence})
     },
-    checks: ["FishTrace Sites Hi-Fi route and iframe load", "entry CTA → source choice before camera/gallery", "camera and gallery source cards visible", "local photo preview uses blob URL without POST/inference API", "structured photo layer selection opens properties", "desktop result photo-left/result-right", "phone result photo-top/result-below", "P0-P7 timeline selection and explicit NONE Mask trust", "RR09 R0-R5 timeline and Chinese-title fallback at R4", "single-source Processing→RR09 photo geometry transition and final result state", "error recovery retry/source replacement", "prototype reset and DEMO_DATA_ONLY boundary", "Canvas Water Lab fixed asset SHA-256 and decoded dimensions", "P0/P7 exact transparent Canvas evidence", "P2/P3/P5 visible deterministic in-photo caustics", "play/pause/reset/scrub/P0-P7/strength/water toggle controls", "desktop/390×844/430×932 Canvas-photo alignment and DPR geometry", "reduced-motion behavior", "complete 2800ms playback WebM", "no photo upload or inference network request", "NH01 structured workspace READY", "21 source and frozen/used resources with HTTP/SHA evidence", "source layer tree matches real nested DOM parentage", "layer tree/canvas/inspector bidirectional selection", "M01-M04 CSS canvas PNGs and DOM bounds; M05 width-only geometry without assumed height", "formal 390×844 contract rectangles equal measured DOM geometry", "five dp presets", "free viewport/font 1.0/1.3/1.5/zoom/safe area", "Manifest/contract 404, invalid JSON, JS/CSS 404, timeout and recovery", "stale route cancellation", "direct Hash", "Resources submenu click and direct route", "original PNG previews/download links and manifest", "refresh", "back/forward", "modal zoom/fit/Esc/focus restore", "SWOS and continuity authority routes", "15-frame static workspace and exact 8+7 count", "R0.5 2900ms zoom and original/composite toggle", "P7/R0/R0.5/R1 geometry table", "RR09 ↔ SWOS routes", "Web Hi-Fi V2 authority/resources and 390px route", "local-only photo selection without persistent/network upload", "390px SWOS responsive preview", "RR09 V3 current / V2 historical route separation", "missing authority no fake UI", "invalid route guard", "no HTTP errors", "no console/page errors"],
+    checks: ["FishTrace Sites Hi-Fi route and iframe load", "entry CTA → source choice before camera/gallery", "camera and gallery source cards visible", "local photo preview uses blob URL without POST/inference API", "structured photo layer selection opens properties", "desktop result photo-left/result-right", "phone result photo-top/result-below", "P0-P7 timeline selection and explicit NONE Mask trust", "Canvas Water Lab P0-P7 exact timestamp and baseline intensity", "Canvas contract failure message and retry recovery", "RR09 R0-R5 timeline and Chinese-title fallback at R4", "single-source Processing→RR09 photo geometry transition and final result state", "error recovery retry/source replacement", "prototype reset and DEMO_DATA_ONLY boundary", "Canvas Water Lab fixed asset SHA-256 and decoded dimensions", "P0/P7 exact transparent Canvas evidence", "P2/P3/P5 visible deterministic in-photo caustics", "play/pause/reset/scrub/P0-P7/strength/water toggle controls", "desktop/390×844/430×932 Canvas-photo alignment and DPR geometry", "reduced-motion behavior", "complete 2800ms playback WebM", "no photo upload or inference network request", "NH01 structured workspace READY", "21 source and frozen/used resources with HTTP/SHA evidence", "source layer tree matches real nested DOM parentage", "layer tree/canvas/inspector bidirectional selection", "M01-M04 CSS canvas PNGs and DOM bounds; M05 width-only geometry without assumed height", "formal 390×844 contract rectangles equal measured DOM geometry", "five dp presets", "free viewport/font 1.0/1.3/1.5/zoom/safe area", "Manifest/contract 404, invalid JSON, JS/CSS 404, timeout and recovery", "stale route cancellation", "direct Hash", "Resources submenu click and direct route", "original PNG previews/download links and manifest", "refresh", "back/forward", "modal zoom/fit/Esc/focus restore", "SWOS and continuity authority routes", "15-frame static workspace and exact 8+7 count", "R0.5 2900ms zoom and original/composite toggle", "P7/R0/R0.5/R1 geometry table", "RR09 ↔ SWOS routes", "Web Hi-Fi V2 authority/resources and 390px route", "local-only photo selection without persistent/network upload", "390px SWOS responsive preview", "RR09 V3 current / V2 historical route separation", "missing authority no fake UI", "invalid route guard", "no HTTP errors", "no console/page errors"],
     swos_local_photo_sha256: uploadedPhotoSha,
     swos_local_photo_uploaded: Boolean(args.swosPhoto),
     screenshots: ["fishtrace-sites-web-hifi-desktop.png", "fishtrace-sites-web-hifi-phone.png", "fishtrace-sites-web-hifi-processing.png", "fishtrace-sites-web-hifi-reveal.png", "fishtrace-sites-web-hifi-error.png", "fishtrace-sites-web-hifi-continuous-result.png", "fishtrace-canvas-water-P0.png", "fishtrace-canvas-water-P2.png", "fishtrace-canvas-water-P3.png", "fishtrace-canvas-water-P5.png", "fishtrace-canvas-water-P7.png", "fishtrace-canvas-water-full-2800ms.webm", "nh01-m01-render-320x480.png", "nh01-m02-render-360x640.png", "nh01-m03-render-390x844.png", "nh01-m04-render-430x932.png", "nh01-m01-dom-bounds.json", "nh01-m02-dom-bounds.json", "nh01-m03-dom-bounds.json", "nh01-m04-dom-bounds.json", "nh01-m05-width-only-bounds.json", "desktop-1440.png", "tablet-768.png", "mobile-390.png", "lightbox-1440.png", "overview-1440.png", "guide-resources-1440.png", "guide-resources-390.png", "swos-optical-contract-1440.png", "swos-static-visual-1440.png", "swos-static-visual-390.png", "swos-r05-zoom-1440.png", "swos-web-motion-contract-1440.png", "swos-web-motion-contract-390.png", "web-hifi-v2-1440.png", "processing-result-continuity-1440.png", "rr09-v3-authority-1440.png", "rr09-v2-history-1440.png"],
