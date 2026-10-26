@@ -249,6 +249,11 @@ jobs:
               --expected-source-sha="$BUILD_SHA" \
               --require-browser-diff \
               --output-dir "$RUNNER_TEMP/nh01-browser-final"
+          PLAYWRIGHT_MODULE_DIR="$RUNNER_TEMP/dm-playwright/node_modules" \
+            node scripts/design/verify_nh01_local_compare.mjs \
+              --base-url=http://127.0.0.1:8765 \
+              --expected-source-sha="$BUILD_SHA" \
+              --output-dir "$RUNNER_TEMP/nh01-local-compare-test"
           python3 scripts/design/record_nh01_browser_evidence.py \
             --report "$RUNNER_TEMP/nh01-browser-final/NH01_Browser_Viewer_Report.json" \
             --site-root _site \
@@ -441,6 +446,7 @@ jobs:
           path: |
             ${{ runner.temp }}/nh01-browser-final/
             ${{ runner.temp }}/nh01-preview-diff/
+            ${{ runner.temp }}/nh01-local-compare-test/
           if-no-files-found: error
           retention-days: 30
 
