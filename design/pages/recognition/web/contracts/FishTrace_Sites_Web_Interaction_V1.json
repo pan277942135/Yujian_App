@@ -39,7 +39,7 @@
     ],
     "yujian_web_v2_unchanged": true,
     "private_three_stage_reference_not_sites_pixel_authority": true,
-    "adoption_status": "PENDING_DESIGN_MAIN_ADOPTION"
+    "adoption_status": "MAIN_ADOPTED_DESIGN_ONLY"
   },
   "layout": {
     "max_content_width_css_px": 1280,
