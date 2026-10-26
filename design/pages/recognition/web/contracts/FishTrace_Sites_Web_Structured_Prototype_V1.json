@@ -1,0 +1,746 @@
+{
+  "schema_version": "1.0",
+  "prototype_id": "FISHTRACE-SITES-WEB-STRUCTURED-PROTOTYPE-V1",
+  "title": "FishTrace Sites Web 高保真与结构化原型",
+  "status": "DESIGN_ONLY_INTERACTIVE_PROTOTYPE",
+  "runtime_visual_verified": false,
+  "production_inference_connected": false,
+  "sites_source_modified": false,
+  "target": {
+    "sites_project_id": "appgprj_6a50a71561708191a6ea8c6194ce68d4",
+    "public_url": "https://fishtrace-ai.pan277942135.chatgpt.site/",
+    "existing_route": "/",
+    "design_manager_route": "#page/recognition_flow_v1_2/hifi/fishtrace_sites_web_hifi_workspace"
+  },
+  "authority_refs": {
+    "interaction_contract": "design/pages/recognition/web/FISHTRACE_SITES_WEB_VISUAL_INTERACTION_CONTRACT_V1.md",
+    "interaction_machine_contract": "design/pages/recognition/web/contracts/FishTrace_Sites_Web_Interaction_V1.json",
+    "acceptance_matrix": "design/pages/recognition/web/contracts/FishTrace_Sites_Web_Acceptance_V1.json",
+    "visual_spec": "design/pages/recognition/web/FISHTRACE_SITES_WEB_HIFI_VISUAL_SPEC_V1.md",
+    "motion_contract": "design/pages/recognition/web/SWOS_WEB_HIFI_MOTION_TECHNICAL_CONTRACT_V1_0.md",
+    "optical_contract": "design/pages/recognition/processing/optics/SWOS_RR09_Optical_Rendering_Acceptance_Contract_V1_2.md",
+    "shared_photo_transition": "design/pages/recognition/continuity/SWOS_Shared_Photo_Transition_Contract_V1.json"
+  },
+  "design_decisions": {
+    "experience": "IMMERSIVE_SINGLE_SCENE",
+    "source_choice_first": [
+      "现场拍照",
+      "从相册选择"
+    ],
+    "desktop_result_layout": "PHOTO_LEFT_RESULT_RIGHT",
+    "phone_result_layout": "PHOTO_TOP_RESULT_BELOW",
+    "breakpoint_css_px": 1024,
+    "product_scene_has_no_editor_layer_panel": true
+  },
+  "visual_tokens": {
+    "page": "#F7FAF8",
+    "page_alt": "#EEF5F2",
+    "surface": "#FFFFFF",
+    "deep_text": "#173A3B",
+    "secondary_text": "#6D8180",
+    "teal": "#286B63",
+    "teal_dark": "#184C4A",
+    "pale_teal": "#DCECE8",
+    "morning_gold": "#D9AE62",
+    "border": "#D9E5E0",
+    "warning": "#9A6B34",
+    "desktop_gutter_px": 32,
+    "tablet_gutter_px": 24,
+    "phone_gutter_px": 16,
+    "max_width_px": 1280,
+    "desktop_result_columns": [
+      58,
+      42
+    ],
+    "desktop_result_gap_px": 24,
+    "min_target_px": 44
+  },
+  "source_asset": {
+    "path": "design/system/fish_media_display_v1/assets/real_catch_source.jpg",
+    "use": "DESIGN_FIXTURE_ONLY",
+    "public_design_asset_already_registered": true,
+    "is_user_photo": false,
+    "is_inference_evidence": false,
+    "foreground_fit": "contain",
+    "backdrop_rule": "same source, blurred and low contrast",
+    "no_remote_photo_upload": true
+  },
+  "scenes": [
+    {
+      "id": "entry",
+      "label": "入口",
+      "state_ref": "S0_LANDING_ENTRY",
+      "product_description": "Single immersive entry scene with one primary CTA.",
+      "primary_action": "拍照识鱼开始",
+      "next": "source-choice"
+    },
+    {
+      "id": "source-choice",
+      "label": "来源选择",
+      "state_ref": "S1_SOURCE_CHOICE",
+      "product_description": "Show camera and gallery options before opening either source.",
+      "primary_actions": [
+        "现场拍照",
+        "从相册选择"
+      ],
+      "next": "preview"
+    },
+    {
+      "id": "preview",
+      "label": "照片预览",
+      "state_ref": "S3_PHOTO_PREVIEW",
+      "product_description": "One complete sharp source photo, secondary metadata and recognition CTA.",
+      "primary_action": "开始识别",
+      "next": "processing"
+    },
+    {
+      "id": "processing",
+      "label": "识别中",
+      "state_ref": "S5_PROCESSING_SWOS",
+      "product_description": "One photo-led scene, restrained ambient water light and truthful status.",
+      "timeline": "P0-P7 / nominal 2800ms; demo only",
+      "next": "result"
+    },
+    {
+      "id": "result",
+      "label": "识别结果",
+      "state_ref": "S7_RESULT",
+      "product_description": "Desktop photo-left/result-right; phone photo-top/result-below.",
+      "demo_data_only": true,
+      "primary_action": "重新识别"
+    },
+    {
+      "id": "error",
+      "label": "异常恢复",
+      "state_ref": "S8_ERROR_RECOVERY",
+      "product_description": "Clear recovery copy, retry and source replacement.",
+      "primary_actions": [
+        "重试",
+        "从相册选择"
+      ]
+    }
+  ],
+  "transitions": [
+    {
+      "from": "entry",
+      "action": "拍照识鱼开始",
+      "to": "source-choice"
+    },
+    {
+      "from": "source-choice",
+      "action": "现场拍照",
+      "to": "local-camera-input"
+    },
+    {
+      "from": "source-choice",
+      "action": "从相册选择",
+      "to": "local-gallery-input"
+    },
+    {
+      "from": "local-camera-input",
+      "action": "photo-selected",
+      "to": "preview"
+    },
+    {
+      "from": "local-gallery-input",
+      "action": "photo-selected",
+      "to": "preview"
+    },
+    {
+      "from": "preview",
+      "action": "开始识别",
+      "to": "processing"
+    },
+    {
+      "from": "processing",
+      "action": "demo-timeline-complete",
+      "to": "result",
+      "qualification": "visual prototype only; no model inference"
+    },
+    {
+      "from": "result",
+      "action": "重新识别",
+      "to": "processing"
+    },
+    {
+      "from": "result",
+      "action": "重新拍摄/从相册选择",
+      "to": "source-choice"
+    },
+    {
+      "from": "any",
+      "action": "关闭/重置",
+      "to": "entry"
+    }
+  ],
+  "layer_definitions": {
+    "page-shell": {
+      "label": "页面场景",
+      "role": "Root",
+      "description": "The user-facing product scene; does not include editor controls.",
+      "geometry": "max-width 1280px",
+      "tokens": [
+        "page"
+      ],
+      "status": "DESIGN_ONLY"
+    },
+    "ambient-background": {
+      "label": "环境底色",
+      "role": "Background",
+      "description": "Quiet lake-white / pale-teal surface with restrained morning atmosphere.",
+      "geometry": "full scene",
+      "tokens": [
+        "page",
+        "page_alt"
+      ],
+      "status": "DESIGN_ONLY"
+    },
+    "header": {
+      "label": "品牌与返回",
+      "role": "Navigation",
+      "description": "Compact brand identity and close/back action.",
+      "geometry": "full width; 72px desktop / 64px phone",
+      "tokens": [
+        "deep_text",
+        "border"
+      ],
+      "status": "DESIGN_ONLY"
+    },
+    "brand": {
+      "label": "渔见品牌",
+      "role": "Brand",
+      "description": "Wordmark and AI recognition descriptor.",
+      "geometry": "left aligned",
+      "tokens": [
+        "deep_text",
+        "teal"
+      ],
+      "status": "DESIGN_ONLY"
+    },
+    "close-button": {
+      "label": "关闭按钮",
+      "role": "Action",
+      "description": "Returns the prototype scene to entry.",
+      "geometry": "44×44px minimum target",
+      "tokens": [
+        "surface",
+        "border"
+      ],
+      "status": "INTERACTIVE_DEMO"
+    },
+    "entry-copy": {
+      "label": "入口主文案",
+      "role": "Content",
+      "description": "Short headline and supporting copy for the entry scene.",
+      "geometry": "desktop two-column; phone single column",
+      "tokens": [
+        "deep_text",
+        "secondary_text"
+      ],
+      "status": "DESIGN_ONLY"
+    },
+    "entry-title": {
+      "label": "入口标题",
+      "role": "Typography",
+      "description": "Primary product proposition.",
+      "geometry": "36px desktop / 28px phone",
+      "tokens": [
+        "deep_text"
+      ],
+      "status": "DESIGN_ONLY"
+    },
+    "entry-cta": {
+      "label": "开始识鱼主按钮",
+      "role": "Primary Action",
+      "description": "Enters source choice; must not open camera or gallery directly.",
+      "geometry": "48px high minimum",
+      "tokens": [
+        "teal",
+        "surface"
+      ],
+      "status": "INTERACTIVE_DEMO"
+    },
+    "water-hero": {
+      "label": "清晨水光视觉",
+      "role": "Illustration",
+      "description": "Abstract soft-water visual; no fake fish contour or extra sharp photo.",
+      "geometry": "responsive rounded panel",
+      "tokens": [
+        "teal_dark",
+        "pale_teal",
+        "morning_gold"
+      ],
+      "status": "DESIGN_ONLY"
+    },
+    "source-choice-title": {
+      "label": "选择来源标题",
+      "role": "Typography",
+      "description": "Explains that source choice precedes opening a native picker.",
+      "geometry": "full width",
+      "tokens": [
+        "deep_text"
+      ],
+      "status": "DESIGN_ONLY"
+    },
+    "camera-card": {
+      "label": "现场拍照选项",
+      "role": "Source Action",
+      "description": "Opens browser camera capture intent where supported; local-only preview.",
+      "geometry": "equal-priority source card",
+      "tokens": [
+        "surface",
+        "teal",
+        "border"
+      ],
+      "status": "INTERACTIVE_DEMO"
+    },
+    "gallery-card": {
+      "label": "从相册选择选项",
+      "role": "Source Action",
+      "description": "Opens local file picker directly; does not require prior camera capture.",
+      "geometry": "equal-priority source card",
+      "tokens": [
+        "surface",
+        "teal",
+        "border"
+      ],
+      "status": "INTERACTIVE_DEMO"
+    },
+    "photo-container": {
+      "label": "原图容器",
+      "role": "Media",
+      "description": "Only one sharp foreground source image, complete and contained.",
+      "geometry": "58:42 result layout on desktop; stacked below 1024px",
+      "tokens": [
+        "surface",
+        "border"
+      ],
+      "status": "DESIGN_ONLY"
+    },
+    "photo-backdrop": {
+      "label": "同源柔化背景",
+      "role": "Media Treatment",
+      "description": "Optional same-source blurred low-contrast background only.",
+      "geometry": "cover + blur; non-interactive",
+      "tokens": [
+        "page_alt"
+      ],
+      "status": "DESIGN_ONLY"
+    },
+    "photo-foreground": {
+      "label": "完整原图前景",
+      "role": "Primary Media",
+      "description": "Full oriented source photo, object-fit contain; never stretch or crop head/tail.",
+      "geometry": "contain; width/height preserve intrinsic ratio",
+      "tokens": [
+        "surface"
+      ],
+      "status": "DESIGN_ONLY"
+    },
+    "photo-metadata": {
+      "label": "照片信息",
+      "role": "Metadata",
+      "description": "Filename, normalized dimensions and source type are secondary.",
+      "geometry": "compact metadata row",
+      "tokens": [
+        "secondary_text"
+      ],
+      "status": "DESIGN_ONLY"
+    },
+    "preview-actions": {
+      "label": "预览操作",
+      "role": "Action Group",
+      "description": "Start recognition, replace photo or close.",
+      "geometry": "primary + secondary actions",
+      "tokens": [
+        "teal",
+        "border"
+      ],
+      "status": "INTERACTIVE_DEMO"
+    },
+    "processing-status": {
+      "label": "识别状态文案",
+      "role": "Status",
+      "description": "Truthful visual-demo status; not model telemetry.",
+      "geometry": "single compact status block",
+      "tokens": [
+        "deep_text",
+        "secondary_text"
+      ],
+      "status": "DESIGN_ONLY"
+    },
+    "ambient-caustics": {
+      "label": "水面焦散",
+      "role": "Optical Layer",
+      "description": "Low-density diffuse water light; no fish-shaped outline while Mask trust is NONE.",
+      "geometry": "soft radial gradients",
+      "tokens": [
+        "pale_teal",
+        "morning_gold"
+      ],
+      "status": "CALIBRATION_CANDIDATE"
+    },
+    "result-summary": {
+      "label": "结果摘要",
+      "role": "Result Content",
+      "description": "Visual sample only; the prototype is not connected to inference.",
+      "geometry": "right column on desktop / below photo on phone",
+      "tokens": [
+        "surface",
+        "deep_text"
+      ],
+      "status": "DEMO_DATA_ONLY"
+    },
+    "species-title": {
+      "label": "鱼种名称",
+      "role": "Result Typography",
+      "description": "Sample species label for layout inspection only.",
+      "geometry": "large title",
+      "tokens": [
+        "deep_text"
+      ],
+      "status": "DEMO_DATA_ONLY"
+    },
+    "confidence-meter": {
+      "label": "置信度摘要",
+      "role": "Result Metadata",
+      "description": "Sample value is labeled as demo data and must never be used as model evidence.",
+      "geometry": "compact meter",
+      "tokens": [
+        "teal",
+        "pale_teal"
+      ],
+      "status": "DEMO_DATA_ONLY"
+    },
+    "result-actions": {
+      "label": "结果操作",
+      "role": "Action Group",
+      "description": "Retry or replace the source photo.",
+      "geometry": "stacked primary/secondary actions",
+      "tokens": [
+        "teal",
+        "border"
+      ],
+      "status": "INTERACTIVE_DEMO"
+    },
+    "error-message": {
+      "label": "错误说明",
+      "role": "Error Content",
+      "description": "Explains that the current visual prototype has no inference backend.",
+      "geometry": "single focused panel",
+      "tokens": [
+        "warning",
+        "deep_text"
+      ],
+      "status": "DESIGN_ONLY"
+    },
+    "recovery-actions": {
+      "label": "恢复操作",
+      "role": "Recovery Action Group",
+      "description": "Retry or select a different photo.",
+      "geometry": "primary + secondary actions",
+      "tokens": [
+        "teal",
+        "border"
+      ],
+      "status": "INTERACTIVE_DEMO"
+    }
+  },
+  "layer_tree_by_state": {
+    "entry": [
+      {
+        "id": "page-shell",
+        "children": [
+          {
+            "id": "ambient-background"
+          },
+          {
+            "id": "header",
+            "children": [
+              {
+                "id": "brand"
+              },
+              {
+                "id": "close-button"
+              }
+            ]
+          },
+          {
+            "id": "entry-copy",
+            "children": [
+              {
+                "id": "entry-title"
+              },
+              {
+                "id": "entry-cta"
+              }
+            ]
+          },
+          {
+            "id": "water-hero"
+          }
+        ]
+      }
+    ],
+    "source-choice": [
+      {
+        "id": "page-shell",
+        "children": [
+          {
+            "id": "ambient-background"
+          },
+          {
+            "id": "header",
+            "children": [
+              {
+                "id": "brand"
+              },
+              {
+                "id": "close-button"
+              }
+            ]
+          },
+          {
+            "id": "source-choice-title"
+          },
+          {
+            "id": "camera-card"
+          },
+          {
+            "id": "gallery-card"
+          }
+        ]
+      }
+    ],
+    "preview": [
+      {
+        "id": "page-shell",
+        "children": [
+          {
+            "id": "ambient-background"
+          },
+          {
+            "id": "header",
+            "children": [
+              {
+                "id": "brand"
+              },
+              {
+                "id": "close-button"
+              }
+            ]
+          },
+          {
+            "id": "photo-container",
+            "children": [
+              {
+                "id": "photo-backdrop"
+              },
+              {
+                "id": "photo-foreground"
+              }
+            ]
+          },
+          {
+            "id": "photo-metadata"
+          },
+          {
+            "id": "preview-actions"
+          }
+        ]
+      }
+    ],
+    "processing": [
+      {
+        "id": "page-shell",
+        "children": [
+          {
+            "id": "ambient-background"
+          },
+          {
+            "id": "header",
+            "children": [
+              {
+                "id": "brand"
+              },
+              {
+                "id": "close-button"
+              }
+            ]
+          },
+          {
+            "id": "photo-container",
+            "children": [
+              {
+                "id": "photo-backdrop"
+              },
+              {
+                "id": "photo-foreground"
+              },
+              {
+                "id": "ambient-caustics"
+              }
+            ]
+          },
+          {
+            "id": "processing-status"
+          }
+        ]
+      }
+    ],
+    "result": [
+      {
+        "id": "page-shell",
+        "children": [
+          {
+            "id": "ambient-background"
+          },
+          {
+            "id": "header",
+            "children": [
+              {
+                "id": "brand"
+              },
+              {
+                "id": "close-button"
+              }
+            ]
+          },
+          {
+            "id": "photo-container",
+            "children": [
+              {
+                "id": "photo-backdrop"
+              },
+              {
+                "id": "photo-foreground"
+              }
+            ]
+          },
+          {
+            "id": "result-summary",
+            "children": [
+              {
+                "id": "species-title"
+              },
+              {
+                "id": "confidence-meter"
+              },
+              {
+                "id": "result-actions"
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "error": [
+      {
+        "id": "page-shell",
+        "children": [
+          {
+            "id": "ambient-background"
+          },
+          {
+            "id": "header",
+            "children": [
+              {
+                "id": "brand"
+              },
+              {
+                "id": "close-button"
+              }
+            ]
+          },
+          {
+            "id": "photo-container",
+            "children": [
+              {
+                "id": "photo-backdrop"
+              },
+              {
+                "id": "photo-foreground"
+              }
+            ]
+          },
+          {
+            "id": "error-message"
+          },
+          {
+            "id": "recovery-actions"
+          }
+        ]
+      }
+    ]
+  },
+  "interaction_rules": {
+    "entry_cta": "must show source choice first",
+    "camera_and_gallery": "both converge to the same preview state; gallery works independently",
+    "local_file_handling": "Object URL / browser memory only; revoke old object URLs on replacement/reset",
+    "photo_upload": false,
+    "inference": "not connected; never claim a real model result",
+    "sample_result": "DEMO_DATA_ONLY; outer prototype banner stays visible",
+    "mask_trust": "NONE for fixture; no precise fish contour or gold transfer",
+    "animation": "editor timeline preview only; not production timing evidence",
+    "reset": "clears selected file and returns to entry",
+    "keyboard": "all controls are buttons/links with visible focus and accessible labels"
+  },
+  "acceptance_checks": [
+    {
+      "id": "H01",
+      "check": "Design Manager route opens the interactive workspace without changing the Sites project."
+    },
+    {
+      "id": "H02",
+      "check": "Entry CTA opens source choice before camera/gallery."
+    },
+    {
+      "id": "H03",
+      "check": "Camera and gallery choices are equally visible and operable."
+    },
+    {
+      "id": "H04",
+      "check": "Local file selection previews in browser memory only; no remote photo upload."
+    },
+    {
+      "id": "H05",
+      "check": "Desktop result uses photo-left/result-right composition."
+    },
+    {
+      "id": "H06",
+      "check": "Phone result uses photo-top/result-below composition."
+    },
+    {
+      "id": "H07",
+      "check": "Only one sharp source photo is visible; any backdrop is the same source blurred."
+    },
+    {
+      "id": "H08",
+      "check": "Layer tree selection highlights the corresponding layer and shows properties."
+    },
+    {
+      "id": "H09",
+      "check": "All six design states can be inspected directly."
+    },
+    {
+      "id": "H10",
+      "check": "Processing timeline exposes P0-P7 without fabricating model telemetry."
+    },
+    {
+      "id": "H11",
+      "check": "Result content remains clearly labeled DEMO_DATA_ONLY."
+    },
+    {
+      "id": "H12",
+      "check": "At viewport widths below 1024px, result layout stacks."
+    },
+    {
+      "id": "H13",
+      "check": "Reduced-motion preference suppresses continuous motion."
+    },
+    {
+      "id": "H14",
+      "check": "Prototype reports runtime visual and production inference as NOT_VERIFIED / false."
+    }
+  ]
+}
