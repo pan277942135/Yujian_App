@@ -1182,7 +1182,7 @@ async function main() {
     const ref=refContext.getImageData(0,0,width,height).data;
     const out=compositeContext.getImageData(0,0,width,height).data;
     const mask=roiContext.getImageData(0,0,width,height).data;
-    const diffMap=compositeContext.createImageData(width,height);
+    const diffMapPixels=compositeContext.createImageData(width,height);
     let roiPixels=0,nonWaterPixels=0,channelDiffSum=0,waterPixelsDiff2=0,waterPixelsDiff6=0;
     let nonWaterLeakPixels=0,nonWaterDiffSum=0,maxDiff=0,changedPixels=0;
     let diffPixels=0;
@@ -1198,10 +1198,10 @@ async function main() {
         if(peak>=6)waterPixelsDiff6++;
         if(peak>0)diffPixels++;
         if(peak>=2){
-          diffMap.data[i]=Math.min(255,dr*4+14);
-          diffMap.data[i+1]=Math.min(255,dg*4+82);
-          diffMap.data[i+2]=Math.min(255,db*4+44);
-          diffMap.data[i+3]=255;
+          diffMapPixels.data[i]=Math.min(255,dr*4+14);
+          diffMapPixels.data[i+1]=Math.min(255,dg*4+82);
+          diffMapPixels.data[i+2]=Math.min(255,db*4+44);
+          diffMapPixels.data[i+3]=255;
         }
       }else{
         nonWaterPixels++;
@@ -1209,6 +1209,8 @@ async function main() {
         if(peak>2)nonWaterLeakPixels++;
       }
     }
+    const diffMapCanvas=document.createElement("canvas");diffMapCanvas.width=width;diffMapCanvas.height=height;
+    diffMapCanvas.getContext("2d").putImageData(diffMapPixels,0,0);
     const frames=window.__fishtraceWaterCompositeFrames||(window.__fishtraceWaterCompositeFrames={});
     frames[label]={data:frameData,width,height};
     let p2p3=null;
@@ -1246,7 +1248,7 @@ async function main() {
       non_water_roi_mean_rgb_abs_diff_255:nonWaterPixels?nonWaterDiffSum/nonWaterPixels/255:0,
       non_water_pixels_max_channel_diff_gt_2:nonWaterLeakPixels,
       max_channel_diff:Math.round(maxDiff),p2_to_p3_spatial_change:p2p3,
-      difference_map_png:label==="P3"?diffMap.toDataURL("image/png"):null
+      difference_map_png:label==="P3"?diffMapCanvas.toDataURL("image/png"):null
     };
   },label);
 
