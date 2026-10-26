@@ -146,6 +146,23 @@
     }
     return {x:(bounds.minX+bounds.maxX)/2,y:(bounds.minY+bounds.maxY)/2};
   }
+  function sampleSpreadZonePoint(polygons,random,existing,aspect) {
+    if(!existing.length)return sampleZonePoint(polygons,random);
+    const bounds=polygonBounds(polygons);
+    let best=null,bestScore=-1;
+    for(let attempt=0;attempt<48;attempt++){
+      const candidate=sampleZonePoint(polygons,random);
+      let nearest=Infinity;
+      for(const point of existing){
+        const dx=(candidate.x-point.x)*aspect,dy=candidate.y-point.y;
+        nearest=Math.min(nearest,dx*dx+dy*dy);
+      }
+      const edgeDistance=Math.min(candidate.x-bounds.minX,bounds.maxX-candidate.x,candidate.y-bounds.minY,bounds.maxY-candidate.y);
+      const score=nearest*(.92+random()*.16)+Math.max(0,edgeDistance)*.001;
+      if(score>bestScore){best=candidate;bestScore=score;}
+    }
+    return best||sampleZonePoint(polygons,random);
+  }
   function zoneSequence(rendering) {
     return [
       ...Array(rendering.groups.A).fill({group:"A",zone:"A"}),
@@ -201,13 +218,15 @@
     createPatches(random) {
       const sequence=zoneSequence(this.rendering.caustics);
       const angles=[-34,-27,-19,-7,15,23,31,-31,-25,-15,4,24,28,-38,-20,13,26,30].map(value=>value*Math.PI/180);
+      const placed={A:[],B:[],C:[]};
       return sequence.map((item,index)=>{
-        const center=sampleZonePoint(this.zones[item.zone],random);
-        const longW=this.rendering.caustics.lengths_w[0]+random()*(this.rendering.caustics.lengths_w[1]-this.rendering.caustics.lengths_w[0]);
-        const ratioMin=Math.max(this.rendering.caustics.aspect_ratio[0],longW/.065);
-        const ratioMax=Math.min(this.rendering.caustics.aspect_ratio[1],longW/.018);
-        const ratio=ratioMin+random()*Math.max(.001,ratioMax-ratioMin);
-        const shortW=clamp(longW/ratio,.018,.065);
+        const sizeRange=this.rendering.caustics.patch_sampling;
+        const longW=sizeRange.length_w[0]+random()*(sizeRange.length_w[1]-sizeRange.length_w[0]);
+        const shortW=sizeRange.short_axis_w[0]+random()*(sizeRange.short_axis_w[1]-sizeRange.short_axis_w[0]);
+        const ratio=longW/shortW;
+        if(ratio<this.rendering.caustics.aspect_ratio[0]||ratio>this.rendering.caustics.aspect_ratio[1])throw new Error("A-line caustic patch aspect ratio fell outside its contract");
+        const center=sampleSpreadZonePoint(this.zones[item.zone],random,placed[item.zone],this.asset.width/this.asset.height);
+        placed[item.zone].push(center);
         const group=item.group;
         const offsets=Array.from({length:13},()=>random()*2-1);
         const widthNoise=Array.from({length:13},()=>random()*2-1);
@@ -327,15 +346,15 @@
       const centerline=[],positive=[],negative=[];
       for(let index=0;index<patch.offsets.length;index++){
         const u=index/(patch.offsets.length-1);
-        const envelope=Math.pow(Math.max(0,Math.sin(Math.PI*u)),.46+zoneExit*.34);
+        const envelope=Math.pow(Math.max(0,Math.sin(Math.PI*u)),.34+zoneExit*.25);
         const wave=Math.sin(phase+u*patch.waveCycles+patch.phase)*.035;
         const bend=(patch.offsets[index]*patch.irregularity*.12+wave)*patch.longW*scale;
         const longitudinal=(u-.5)*patch.longW*scale;
         const x=center.x+tangent.x*longitudinal+normal.x*bend;
         const y=center.y+tangent.y*longitudinal+normal.y*bend;
-        const broad=Math.sin(u*Math.PI*2+patch.phase+phase*.14)*.18;
-        const fine=Math.sin(u*Math.PI*4.5+patch.phase*.7+phase*.10)*.10;
-        const widthProfile=clamp(.74+broad+fine+patch.widthNoise[index]*patch.irregularity*.45,.34,1.20);
+        const broad=Math.sin(u*Math.PI*2+patch.phase+phase*.14)*.14;
+        const fine=Math.sin(u*Math.PI*4.5+patch.phase*.7+phase*.10)*.08;
+        const widthProfile=clamp(.90+broad+fine+patch.widthNoise[index]*patch.irregularity*.40,.40,1.20);
         const neck=1-.12*Math.exp(-Math.pow((u-.47)/.13,2));
         const half=patch.shortW*scale*envelope*widthProfile*neck*.5;
         const sideA=half*(1+patch.edgeNoise[index]*patch.irregularity*.40);
@@ -545,6 +564,7 @@
       const nearHorizontal=patches.filter(patch=>Math.min(Math.abs(((patch.angle%(Math.PI))+Math.PI)%(Math.PI)),Math.PI-Math.abs(((patch.angle%(Math.PI))+Math.PI)%(Math.PI)))<=Math.PI/18).length/Math.max(1,patches.length);
       this.canvas.dataset.causticGeometryModel=this.scene.rendering.caustics.geometry_model;
       this.canvas.dataset.causticPatchCount=String(patches.length);
+      this.canvas.dataset.causticPatchSizes=JSON.stringify(patches.map(patch=>({id:patch.id,zone:patch.zone,length_w:patch.longW,short_axis_w:patch.shortW,aspect_ratio:patch.ratio})));
       this.canvas.dataset.causticDirectionBinCount=String(directionBinCount);
       this.canvas.dataset.causticDirectionBins=String(angleBins.size);
       this.canvas.dataset.causticNearHorizontalFraction=String(nearHorizontal);

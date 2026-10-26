@@ -486,6 +486,18 @@
       ],
       "near_horizontal_abs_angle_deg_max": 10,
       "near_horizontal_patch_fraction_max": 0.45,
+      "patch_sampling": {
+        "length_w": [
+          0.16,
+          0.18
+        ],
+        "short_axis_w": [
+          0.052,
+          0.065
+        ],
+        "placement": "deterministic_maximin_48_candidates_per_patch_with_seeded_8_percent_score_jitter",
+        "note": "Sampling stays inside the frozen 0.06–0.18 W and 0.018–0.065 W bounds; length/short-axis ratios remain inside 2.4–4.8. The high-end range counters low active coverage without adding patches or widening the water regions."
+      },
       "direction_distribution": {
         "angular_bins": 12,
         "minimum_occupied_bins": 5,
@@ -493,15 +505,15 @@
       },
       "primary_opacity_max_p3": 0.22,
       "secondary_opacity_max_p3": 0.14,
-      "field_opacity_response_multiplier": 0.55,
+      "field_opacity_response_multiplier": 0.42,
       "gradient_half_extent_multiplier": 0.9,
       "calibration": {
-        "revision": "A_LINE_P2_CAUSTIC_RESPONSE_01",
-        "root_cause": "At P2 the measured Region A composite was 3.336/255 against the 5.5–8.5/255 target. The draw path used only 0.34 of the prescribed channel multiplier and limited the color gradient to 0.62 of the patch short axis, leaving most patch interiors at weak gradient opacity.",
-        "change": "Increase the per-patch response while keeping existing A/B opacity caps, and widen only the internal gradient to 0.90 of the short axis so the existing face geometry is filled by its graded interior.",
+        "revision": "A_LINE_P2_P3_COVERAGE_AND_HEADROOM_02",
+        "root_cause": "On candidate source 3948db673be4aead852a82cd3c4ddba6b4305c2f (Pages browser run 40354907421), Region A composite mean was 3.873/255 at P2 and 3.940/255 at P3. The 0.55 response made 0.42×0.55=0.231 before patch weight, so both P2 and P3 commonly hit the 0.22 per-patch cap. This collapsed the intended P2-to-P3 intensity rise; the default size sampler also spent most patches away from the upper end of the permitted area range.",
+        "change": "Set the response to 0.42: P2 remains below its 0.22 cap while P3 reaches the cap. Sample length and short axis near their existing upper bounds, select deterministic spatially spread centers, and broaden the tapered face profile within the existing 18-patch and size contracts. The P0–P7 channel values and timestamps are unchanged.",
         "preserved": [
           "P0-P7 layer multipliers and all timestamps",
-          "18 deterministic patch geometries and all angle limits",
+          "18 deterministic patch geometries, size ranges, aspect ratios and all angle limits",
           "0.22 A / 0.14 B single-patch opacity caps",
           "A/B/C/D normalized geometry and source image identity"
         ]

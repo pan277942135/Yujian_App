@@ -438,11 +438,12 @@ jobs:
           path: _site
 
       - name: Upload build browser evidence
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: Design-Manager-Browser-Build-${{ github.run_id }}-${{ github.event.pull_request.head.sha || github.sha }}
           path: ${{ runner.temp }}/dm-build-browser/
-          if-no-files-found: error
+          if-no-files-found: warn
           retention-days: 14
 
       - name: Upload NH01 structured preview comparison evidence
