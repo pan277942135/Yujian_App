@@ -382,45 +382,82 @@ def validate_tree(root: Path, *, built: bool = False, expected_build: str | None
     require("requestAnimationFrame" in water_lab_js and "createRadialGradient" in water_lab_js and "devicePixelRatio" in water_lab_js and "objectFit" in water_lab_js, "Canvas Water Lab deterministic 2D renderer geometry/time handling is missing")
     require(water_lab.get("contract_id") == "FISHTRACE_SWOS_CANVAS_WATER_LAB_V1_CANDIDATE" and water_lab.get("status") == "CANDIDATE_NOT_VISUALLY_APPROVED", "Canvas Water Lab must remain an unapproved candidate contract")
     require(water_lab.get("asset",{}).get("sha256") == "6e955087108f7463eca2dbac489699a4942028ebe1b3d456ddfca523286385ef" and [water_lab.get("asset",{}).get("width"),water_lab.get("asset",{}).get("height")] == [1152,1536], "Canvas Water Lab fixed asset identity or dimensions changed")
-    require([(frame.get("id"),frame.get("ms"),frame.get("intensity_percent")) for frame in water_lab.get("timeline",{}).get("frames",[])] == [("P0",0,0),("P1",350,10),("P2",950,45),("P3",1200,75),("P4",1550,60),("P5",2050,35),("P6",2600,10),("P7",2800,0)], "Canvas Water Lab must reuse the unchanged P0-P7 frozen timeline")
-    water_region = water_lab.get("water_region",{})
-    water_polygons = water_region.get("polygons",[])
-    water_points_valid = len(water_polygons) == 2 and all(
-        len(polygon.get("points",[])) >= 3
-        and all(
+    require(water_lab.get("task_id") == "FISHTRACE_SWOS_A_LINE_CANVAS_WATER_FIDELITY_V1", "Canvas Water Lab candidate task ID is not the current A-line task")
+    require([(frame.get("id"),frame.get("ms"),frame.get("intensity_percent")) for frame in water_lab.get("timeline",{}).get("frames",[])] == [("P0",0,0),("P1",350,8),("P2",950,42),("P3",1200,68),("P4",1550,58),("P5",2050,28),("P6",2600,8),("P7",2800,0)], "Canvas Water Lab must reuse exact A-line P0-P7 times and caustic channel values")
+    water_field = water_lab.get("water_field",{})
+    regions = water_field.get("regions",{})
+    expected_a = [
+        {"id":"A1","points":[[0,.66],[0,.95],[.38,.95],[.46,.79],[.33,.60],[.10,.58]]},
+        {"id":"A2","points":[[.38,.61],[.57,.57],[.98,.59],[.98,.93],[.52,.93],[.39,.77]]},
+    ]
+    expected_b = {"id":"B1","points":[[.06,.44],[.24,.40],[.47,.45],[.80,.43],[.95,.50],[.92,.64],[.57,.69],[.23,.65],[.08,.56]]}
+    expected_c = {"id":"C1","points":[[.10,.34],[.92,.34],[.92,.47],[.10,.47]]}
+    def normalized_polygon_valid(polygon):
+        points = polygon.get("points",[])
+        return len(points) >= 3 and all(
             isinstance(point,list) and len(point) == 2
             and isinstance(point[0],(int,float)) and isinstance(point[1],(int,float))
-            and 0 <= point[0] <= water_lab.get("asset",{}).get("width",0)
-            and 0 <= point[1] <= water_lab.get("asset",{}).get("height",0)
-            for point in polygon.get("points",[])
+            and 0 <= point[0] <= 1 and 0 <= point[1] <= 1
+            for point in points
         )
-        for polygon in water_polygons
+    a_polygons = regions.get("A",{}).get("polygons",[])
+    b_polygon = regions.get("B",{}).get("polygon",{})
+    c_polygon = regions.get("C",{}).get("polygon",{})
+    region_geometry_valid = (
+        a_polygons == expected_a and b_polygon == expected_b and c_polygon == expected_c
+        and all(normalized_polygon_valid(polygon) for polygon in a_polygons+[b_polygon,c_polygon])
+        and regions.get("A",{}).get("strength_coefficient") == 1
+        and regions.get("B",{}).get("strength_coefficient") == .48
+        and regions.get("C",{}).get("strength_coefficient") == .16
+        and regions.get("D",{}).get("no_draw") is True
+        and water_field.get("coordinate_system") == "source_image_normalized_top_left_0_1"
+        and water_field.get("source_width") == 1152 and water_field.get("source_height") == 1536
+        and water_field.get("asset_sha256") == water_lab.get("asset",{}).get("sha256")
+        and water_field.get("edge_fade_width_w",0) > 0
     )
     water_rendering = water_lab.get("rendering",{})
     water_motion = water_lab.get("motion",{})
+    timeline_frames = water_lab.get("timeline",{}).get("frames",[])
+    expected_channels = [
+        {"ambient":0,"caustic":0,"highlight":0},
+        {"ambient":.18,"caustic":.08,"highlight":0},
+        {"ambient":.40,"caustic":.42,"highlight":.16},
+        {"ambient":.50,"caustic":.68,"highlight":.34},
+        {"ambient":.44,"caustic":.58,"highlight":.28},
+        {"ambient":.22,"caustic":.28,"highlight":.10},
+        {"ambient":.08,"caustic":.08,"highlight":.02},
+        {"ambient":0,"caustic":0,"highlight":0},
+    ]
+    rendering_valid = (
+        water_rendering.get("backend") == "Canvas 2D"
+        and water_rendering.get("ambient",{}).get("count") == 5
+        and water_rendering.get("ambient",{}).get("large_count") == 3
+        and water_rendering.get("ambient",{}).get("medium_count") == 2
+        and water_rendering.get("caustics",{}).get("geometry_model") == "a_line_organic_face_patches_v1"
+        and water_rendering.get("caustics",{}).get("patch_count") == 18
+        and water_rendering.get("caustics",{}).get("groups") == {"A":4,"B":4,"C":4,"D":3,"E":3}
+        and water_rendering.get("caustics",{}).get("realized_zone_patch_count") == {"A":13,"B":4,"C":1}
+        and water_rendering.get("caustics",{}).get("near_horizontal_patch_fraction_max") == .45
+        and water_rendering.get("highlights",{}).get("segment_count") == 24
+        and water_rendering.get("highlights",{}).get("warm_segment_fraction_max") == .2
+        and water_rendering.get("blend_mode") == "screen"
+        and water_motion.get("p5_to_p7",{}).get("exit_order") == ["C","B","A"]
+        and water_motion.get("p5_to_p7",{}).get("global_alpha_only") is False
+        and len(timeline_frames) == 8
+        and all(frame.get("layers") == expected_channels[index] for index,frame in enumerate(timeline_frames))
+        and all(token in water_lab_js for token in ("water_field","destination-in","createPatches","patchGeometry","drawOrganicCaustics","drawHighlights","layerStrengthsAt","a_line_organic_face_patches_v1"))
+        and "createCausticRibbons" not in water_lab_js and "ribbonGeometry" not in water_lab_js and "drawRibbons" not in water_lab_js
+    )
     require(
-        water_region.get("schema") == "FISHTRACE_FIXED_DEMO_WATER_REGION_V1"
-        and water_region.get("coordinate_system") == "source_image_pixels_top_left"
-        and water_region.get("asset_sha256") == water_lab.get("asset",{}).get("sha256")
-        and water_region.get("trust") == "FIXED_DEMO_GEOMETRY_NOT_AI_MASK_NOT_PRODUCTION_ASSET"
-        and water_region.get("edge_fade_source_px",0) > 0
-        and water_points_valid
-        and water_motion.get("reveal_start_ms",0) < water_motion.get("reveal_end_ms",0)
-        and water_lab.get("contract_version") == "CANDIDATE_V5"
-        and water_rendering.get("backend") == "Canvas 2D"
-        and water_rendering.get("ambient_alpha",0) > 0
-        and water_rendering.get("caustic_geometry_model") == "organic_anisotropic_face_patches_v5"
-        and water_rendering.get("patch_density_target_area_source_px2",0) > 0
-        and water_rendering.get("patch_curve_segments",0) >= 8
-        and water_rendering.get("patch_length_min_source_px",0) > 0
-        and water_rendering.get("patch_length_max_source_px",0) >= water_rendering.get("patch_length_min_source_px",0)
-        and water_rendering.get("patch_width_min_source_px",0) > 0
-        and water_rendering.get("patch_width_max_source_px",0) >= water_rendering.get("patch_width_min_source_px",0)
-        and water_rendering.get("caustic_patch_alpha",0) > 0
-        and water_rendering.get("patch_exit_shrink_fraction",0) > 0
-        and water_rendering.get("refraction_alpha",0) > 0
-        and all(token in water_lab_js for token in ("water_region","destination-in","createCausticPatches","patchGeometry","drawOrganicCaustics","drawHighlights")),
-        "Canvas Water Lab water-region geometry and deterministic V5 organic patch parameters must be recorded"
+        water_field.get("schema") == "FISHTRACE_A_LINE_NORMALIZED_WATER_FIELD_V1"
+        and water_field.get("version") == "A_LINE_WATER_FIELD_V1"
+        and water_field.get("provenance","").startswith("User-specified fixed-demo environmental field geometry")
+        and region_geometry_valid and rendering_valid
+        and water_lab.get("contract_version") == "CANDIDATE_A_LINE_V1"
+        and water_lab.get("status") == "CANDIDATE_NOT_VISUALLY_APPROVED"
+        and water_lab.get("visual_reference",{}).get("name") == "SWOS 高保真总图 V0.3"
+        and water_lab.get("visual_reference",{}).get("visibility") == "PRIVATE_REFERENCE_NOT_EMBEDDED_OR_PUBLISHED",
+        "Canvas Water Lab A-line normalized regions, three-channel strengths and patch geometry must match the candidate contract"
     )
     require(water_lab.get("boundaries",{}).get("production_sites_runtime_modified") is False and water_lab.get("boundaries",{}).get("inference_api_requested") is False and water_lab.get("boundaries",{}).get("photo_upload_implemented") is False and water_lab.get("boundaries",{}).get("fish_mask_or_gold_contour_drawn") is False and water_lab.get("boundaries",{}).get("webgl_used") is False, "Canvas Water Lab scope crossed a production or forbidden visual boundary")
     require("object-fit:contain" in water_lab_css and "mix-blend-mode:screen" in water_lab_css, "Canvas Water Lab image/overlay layout is missing")

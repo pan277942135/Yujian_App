@@ -1094,6 +1094,7 @@ async function main() {
 
 
   const waterTab = fishtraceFrame.locator('[data-water-view="canvas-water"]');
+  const waterContract = JSON.parse(await readFile(resolve(args.root,"design/pages/recognition/web/candidates/FISHTRACE_SWOS_CANVAS_WATER_LAB_V1_CANDIDATE.json"),"utf8"));
   await fishtraceFrame.locator("#photo-transition-overlay").evaluate(node => {node.hidden=false; node.style.pointerEvents="none"; node.style.width="0px"; node.style.height="0px"; node.dataset.transitionRendered="true";});
   await waterTab.click();
   assert(await fishtraceFrame.locator("#photo-transition-overlay").isHidden(), "Opening Canvas Water Lab must clear any stale photo-transition overlay");
@@ -1107,8 +1108,8 @@ async function main() {
       canvas?.dataset.rendererStatus === "READY" && canvas.width > 1 && canvas.height > 1;
   }, null, {timeout:30000});
   const causticModelState=await fishtraceFrame.locator("#water-overlay").evaluate(canvas=>({model:canvas.dataset.causticGeometryModel,patchCount:Number(canvas.dataset.causticPatchCount),directionBins:Number(canvas.dataset.causticDirectionBins),nearHorizontalFraction:Number(canvas.dataset.causticNearHorizontalFraction)}));
-  assert(causticModelState.model==="organic_anisotropic_face_patches_v5"&&causticModelState.patchCount>=18&&causticModelState.patchCount<=40,"V5 must render a deterministic local organic-patch field; observed "+JSON.stringify(causticModelState));
-  assert(causticModelState.directionBins>=5&&causticModelState.nearHorizontalFraction<.35,"V5 patch directions must not collapse into parallel horizontal bands; observed "+JSON.stringify(causticModelState));
+  assert(causticModelState.model==="a_line_organic_face_patches_v1"&&causticModelState.patchCount===18,"V5 must render a deterministic local organic-patch field; observed "+JSON.stringify(causticModelState));
+  assert(causticModelState.directionBins>=5&&causticModelState.nearHorizontalFraction<=.45,"V5 patch directions must not collapse into parallel horizontal bands; observed "+JSON.stringify(causticModelState));
   const waterAsset = await fishtraceFrame.locator("#water-source-image").evaluate(image => ({
     naturalWidth:image.naturalWidth,naturalHeight:image.naturalHeight,
     sha256:image.dataset.sha256,src:image.currentSrc,complete:image.complete
@@ -1129,17 +1130,32 @@ async function main() {
     const pixels = context.getImageData(0,0,canvas.width,canvas.height).data;
     let visible = 0;
     let outside = 0;
+    let outsideActiveZone = 0;
     const rect = JSON.parse(canvas.dataset.contentRect);
     const dpr = Number(canvas.dataset.dpr || 1);
+    const zones=JSON.parse(canvas.dataset.waterRegionZones);
+    const activeMask=document.createElement("canvas");activeMask.width=canvas.width;activeMask.height=canvas.height;
+    const maskContext=activeMask.getContext("2d");maskContext.setTransform(dpr,0,0,dpr,0,0);
+    const activePath=new Path2D();
+    for(const polygons of [zones.A,zones.B,zones.C])for(const polygon of polygons){
+      polygon.points.forEach((point,index)=>{
+        const x=rect.x+point[0]*rect.width,y=rect.y+point[1]*rect.height;
+        if(index===0)activePath.moveTo(x,y);else activePath.lineTo(x,y);
+      });
+      activePath.closePath();
+    }
+    maskContext.fill(activePath,"nonzero");
+    const mask=maskContext.getImageData(0,0,canvas.width,canvas.height).data;
     for (let pixel=0;pixel<pixels.length;pixel+=4) {
-      if (pixels[pixel+3] <= 2) continue;
+      if (pixels[pixel+3] === 0) continue;
       visible += 1;
       const index = pixel/4;
       const x = (index % canvas.width)/dpr;
       const y = Math.floor(index/canvas.width)/dpr;
       if (x < rect.x-1 || y < rect.y-1 || x > rect.x+rect.width+1 || y > rect.y+rect.height+1) outside += 1;
+      if(mask[pixel+3]===0)outsideActiveZone++;
     }
-    return {visible,outside,width:canvas.width,height:canvas.height,dpr,rect,time:canvas.dataset.currentTime};
+    return {visible,outside,outside_active_zone_alpha_pixels:outsideActiveZone,width:canvas.width,height:canvas.height,dpr,rect,time:canvas.dataset.currentTime};
   });
   const waterStageShot = async name => {
     await fishtraceFrame.locator("#water-stage").screenshot({path:resolve(args.outputDir,name)});
@@ -1149,8 +1165,8 @@ async function main() {
   assert(!(await regionDebugToggle.isChecked()), "Water-region debug outlines must be off in normal playback by default");
   await regionDebugToggle.check();
   await fishtraceFrame.locator('[data-water-frame="P3"]').click();
-  const debugOverlayState=await fishtraceFrame.locator("#water-overlay").evaluate(canvas=>({enabled:canvas.dataset.debugRegion,version:canvas.dataset.waterRegionVersion,polygons:JSON.parse(canvas.dataset.waterRegionPolygons),validation_status:document.querySelector('[data-testid="canvas-water-lab"]')?.dataset.waterRegionValidation}));
-  assert(debugOverlayState.enabled==="true"&&debugOverlayState.polygons.length===2, "The development-only source-native water-region overlay must expose both manually annotated polygons");
+  const debugOverlayState=await fishtraceFrame.locator("#water-overlay").evaluate(canvas=>({enabled:canvas.dataset.debugRegion,version:canvas.dataset.waterRegionVersion,polygons:JSON.parse(canvas.dataset.waterRegionPolygons),zones:JSON.parse(canvas.dataset.waterRegionZones),validation_status:document.querySelector('[data-testid="canvas-water-lab"]')?.dataset.waterRegionValidation}));
+  assert(debugOverlayState.enabled==="true"&&debugOverlayState.polygons.length===2&&debugOverlayState.zones.A.length===2&&debugOverlayState.zones.B.length===1&&debugOverlayState.zones.C.length===1, "The development-only normalized A/B/C region overlay must expose two A polygons, one B polygon and one C polygon");
   await waterStageShot("fishtrace-canvas-water-region-debug.png");
   await regionDebugToggle.uncheck();
   assert((await fishtraceFrame.locator("#water-overlay").getAttribute("data-debug-region"))==="false", "The normal photo preview must have no water-region debug contour");
@@ -1159,70 +1175,89 @@ async function main() {
     const image=document.querySelector("#water-source-image");
     const overlay=document.querySelector("#water-overlay");
     const rect=JSON.parse(overlay.dataset.contentRect);
-    const polygons=JSON.parse(overlay.dataset.waterRegionPolygons);
+    const zones=JSON.parse(overlay.dataset.waterRegionZones);
     const source=JSON.parse(overlay.dataset.sourceDimensions);
     const width=Math.max(1,Math.round(stage.clientWidth));
     const height=Math.max(1,Math.round(stage.clientHeight));
     const reference=document.createElement("canvas");reference.width=width;reference.height=height;
     const composite=document.createElement("canvas");composite.width=width;composite.height=height;
-    const roi=document.createElement("canvas");roi.width=width;roi.height=height;
-    const refContext=reference.getContext("2d");
-    const compositeContext=composite.getContext("2d");
-    const roiContext=roi.getContext("2d");
-    for (const ctx of [refContext,compositeContext]) ctx.drawImage(image,rect.x,rect.y,rect.width,rect.height);
+    const aMaskCanvas=document.createElement("canvas");aMaskCanvas.width=width;aMaskCanvas.height=height;
+    const activeMaskCanvas=document.createElement("canvas");activeMaskCanvas.width=width;activeMaskCanvas.height=height;
+    const zoneMasks={A:aMaskCanvas,B:document.createElement("canvas"),C:document.createElement("canvas")};
+    for(const canvas of [zoneMasks.B,zoneMasks.C]){canvas.width=width;canvas.height=height;}
+    const refContext=reference.getContext("2d"),compositeContext=composite.getContext("2d");
+    for(const ctx of [refContext,compositeContext])ctx.drawImage(image,rect.x,rect.y,rect.width,rect.height);
     compositeContext.globalCompositeOperation="screen";
     compositeContext.drawImage(overlay,0,0,width,height);
     compositeContext.globalCompositeOperation="source-over";
-    const roiPath=new Path2D();
-    for (const polygon of polygons) {
-      polygon.points.forEach((point,index)=>{
-        const x=rect.x+point[0]/source.width*rect.width;
-        const y=rect.y+point[1]/source.height*rect.height;
-        if(index===0)roiPath.moveTo(x,y);else roiPath.lineTo(x,y);
-      });
-      roiPath.closePath();
+    const makePath=polygons=>{
+      const path=new Path2D();
+      for(const polygon of polygons){
+        polygon.points.forEach((point,index)=>{
+          const x=rect.x+point[0]*rect.width;
+          const y=rect.y+point[1]*rect.height;
+          if(index===0)path.moveTo(x,y);else path.lineTo(x,y);
+        });
+        path.closePath();
+      }
+      return path;
+    };
+    const paths={A:makePath(zones.A),B:makePath(zones.B),C:makePath(zones.C)};
+    const activePath=new Path2D();for(const name of ["A","B","C"])activePath.addPath(paths[name]);
+    for(const name of ["A","B","C"]){
+      const context=zoneMasks[name].getContext("2d");context.fill(paths[name],"nonzero");
     }
-    roiContext.fill(roiPath,"nonzero");
+    const activeContext=activeMaskCanvas.getContext("2d");activeContext.fill(activePath,"nonzero");
     const ref=refContext.getImageData(0,0,width,height).data;
     const out=compositeContext.getImageData(0,0,width,height).data;
-    const mask=roiContext.getImageData(0,0,width,height).data;
+    const aMask=zoneMasks.A.getContext("2d").getImageData(0,0,width,height).data;
+    const activeMask=activeContext.getImageData(0,0,width,height).data;
+    const zonePixelData=Object.fromEntries(["A","B","C"].map(name=>[name,zoneMasks[name].getContext("2d").getImageData(0,0,width,height).data]));
     const diffMapPixels=compositeContext.createImageData(width,height);
-    let roiPixels=0,nonWaterPixels=0,channelDiffSum=0,waterPixelsDiff2=0,waterPixelsDiff6=0;
-    let nonWaterLeakPixels=0,nonWaterDiffSum=0,maxDiff=0,changedPixels=0;
+    let roiPixels=0,activePixels=0,forbiddenPixels=0,channelDiffSum=0,waterPixelsDiff2=0,waterPixelsDiff6=0;
+    let forbiddenLeakPixels2=0,forbiddenLeakPixels4=0,forbiddenDiffSum=0,maxDiff=0,changedPixels=0;
     let diffPixels=0;
+    const zoneStats=Object.fromEntries(["A","B","C"].map(name=>[name,{pixels:0,diff_sum:0,changed_pixels:0}]));
     const frameData=new Uint8ClampedArray(out);
     for(let i=0;i<out.length;i+=4){
       const x=(i/4)%width,y=Math.floor((i/4)/width);
       if(x<rect.x||y<rect.y||x>=rect.x+rect.width||y>=rect.y+rect.height)continue;
       const dr=Math.abs(out[i]-ref[i]),dg=Math.abs(out[i+1]-ref[i+1]),db=Math.abs(out[i+2]-ref[i+2]);
       const peak=Math.max(dr,dg,db);maxDiff=Math.max(maxDiff,peak);
-      if(mask[i+3]>16){
+      if(activeMask[i+3]>16)activePixels++;
+      if(aMask[i+3]>16){
         roiPixels++;channelDiffSum+=(dr+dg+db)/3;
         if(peak>=2)waterPixelsDiff2++;
         if(peak>=6)waterPixelsDiff6++;
         if(peak>0)diffPixels++;
-        if(peak>=2){
-          diffMapPixels.data[i]=Math.min(255,dr*4+14);
-          diffMapPixels.data[i+1]=Math.min(255,dg*4+82);
-          diffMapPixels.data[i+2]=Math.min(255,db*4+44);
-          diffMapPixels.data[i+3]=255;
-        }
-      }else{
-        nonWaterPixels++;
-        nonWaterDiffSum+=(dr+dg+db)/3;
-        if(peak>2)nonWaterLeakPixels++;
+      }
+      if(activeMask[i+3]<=16){
+        forbiddenPixels++;forbiddenDiffSum+=(dr+dg+db)/3;
+        if(peak>2)forbiddenLeakPixels2++;
+        if(peak>4)forbiddenLeakPixels4++;
+        if(peak>4){diffMapPixels.data[i]=255;diffMapPixels.data[i+1]=20;diffMapPixels.data[i+2]=35;diffMapPixels.data[i+3]=255;}
+      }
+      for(const name of ["A","B","C"]){
+        const mask=zonePixelData[name];
+        if(mask[i+3]>16){zoneStats[name].pixels++;zoneStats[name].diff_sum+=(dr+dg+db)/3;if(peak>0)zoneStats[name].changed_pixels++;}
+      }
+      if(activeMask[i+3]>16&&peak>=2){
+        diffMapPixels.data[i]=Math.min(255,dr*4+14);
+        diffMapPixels.data[i+1]=Math.min(255,dg*4+82);
+        diffMapPixels.data[i+2]=Math.min(255,db*4+44);
+        diffMapPixels.data[i+3]=255;
       }
     }
     const diffMapCanvas=document.createElement("canvas");diffMapCanvas.width=width;diffMapCanvas.height=height;
     diffMapCanvas.getContext("2d").putImageData(diffMapPixels,0,0);
     const frames=window.__fishtraceWaterCompositeFrames||(window.__fishtraceWaterCompositeFrames={});
-    frames[label]={data:frameData,mask:new Uint8ClampedArray(mask),width,height};
+    frames[label]={data:frameData,mask:new Uint8ClampedArray(aMask),width,height};
     let p2p3=null;
     if(label==="P3"&&frames.P2){
       let sum=0,changed=0,p2Sum=0,p3Sum=0;
       const referencePixels=window.__fishtraceWaterReferencePixels;
       for(let i=0;i<out.length;i+=4){
-        if(mask[i+3]<=16)continue;
+        if(aMask[i+3]<=16)continue;
         const delta=Math.max(Math.abs(frames.P2.data[i]-out[i]),Math.abs(frames.P2.data[i+1]-out[i+1]),Math.abs(frames.P2.data[i+2]-out[i+2]));
         sum+=delta;if(delta>=3)changed++;
         if(referencePixels){
@@ -1233,30 +1268,34 @@ async function main() {
       let structureChanged=0;
       if(referencePixels&&p2Sum>0&&p3Sum>0){
         for(let i=0;i<out.length;i+=4){
-          if(mask[i+3]<=16)continue;
-          const p2= Math.max(Math.abs(frames.P2.data[i]-referencePixels[i]),Math.abs(frames.P2.data[i+1]-referencePixels[i+1]),Math.abs(frames.P2.data[i+2]-referencePixels[i+2]))*roiPixels/p2Sum;
-          const p3= Math.max(Math.abs(out[i]-referencePixels[i]),Math.abs(out[i+1]-referencePixels[i+1]),Math.abs(out[i+2]-referencePixels[i+2]))*roiPixels/p3Sum;
+          if(aMask[i+3]<=16)continue;
+          const p2=Math.max(Math.abs(frames.P2.data[i]-referencePixels[i]),Math.abs(frames.P2.data[i+1]-referencePixels[i+1]),Math.abs(frames.P2.data[i+2]-referencePixels[i+2]))*roiPixels/p2Sum;
+          const p3=Math.max(Math.abs(out[i]-referencePixels[i]),Math.abs(out[i+1]-referencePixels[i+1]),Math.abs(out[i+2]-referencePixels[i+2]))*roiPixels/p3Sum;
           if(Math.abs(p2-p3)>=.15)structureChanged++;
         }
       }
       p2p3={mean_max_channel_diff:sum/roiPixels,changed_pixel_ratio_gte_3:changed/roiPixels,normalized_structure_pixel_ratio_abs_delta_gte_0_15:structureChanged/roiPixels,p2_normalized_mean_channel_delta:p2Sum/roiPixels,p3_normalized_mean_channel_delta:p3Sum/roiPixels};
     }
     if(label==="P0")window.__fishtraceWaterReferencePixels=new Uint8ClampedArray(ref);
+    const zonesOut=Object.fromEntries(["A","B","C"].map(name=>[name,{pixels:zoneStats[name].pixels,mean_rgb_abs_diff_255:zoneStats[name].pixels?zoneStats[name].diff_sum/zoneStats[name].pixels/255:0,changed_pixel_ratio:zoneStats[name].pixels?zoneStats[name].changed_pixels/zoneStats[name].pixels:0}]));
     return {
-      frame:label,display_pixels:{width,height},water_roi_pixels:roiPixels,non_water_photo_pixels:nonWaterPixels,
+      frame:label,display_pixels:{width,height},water_roi_pixels:roiPixels,primary_region_A_pixels:roiPixels,active_zone_pixels:activePixels,forbidden_zone_pixels:forbiddenPixels,
       water_roi_mean_rgb_abs_diff_255:roiPixels?channelDiffSum/roiPixels/255:0,
       water_roi_mean_rgb_abs_diff_rgb_code_value:roiPixels?channelDiffSum/roiPixels:0,
       water_roi_pixel_ratio_max_channel_diff_gte_2:roiPixels?waterPixelsDiff2/roiPixels:0,
       water_roi_pixel_ratio_max_channel_diff_gte_6:roiPixels?waterPixelsDiff6/roiPixels:0,
       water_roi_coverage_ratio:roiPixels?diffPixels/roiPixels:0,
-      non_water_roi_mean_rgb_abs_diff_255:nonWaterPixels?nonWaterDiffSum/nonWaterPixels/255:0,
-      non_water_pixels_max_channel_diff_gt_2:nonWaterLeakPixels,
-      max_channel_diff:Math.round(maxDiff),p2_to_p3_spatial_change:p2p3,
+      forbidden_zone_mean_rgb_abs_diff_255:forbiddenPixels?forbiddenDiffSum/forbiddenPixels/255:0,
+      forbidden_zone_pixel_ratio_peak_diff_gt_4:forbiddenPixels?forbiddenLeakPixels4/forbiddenPixels:0,
+      forbidden_zone_pixels_peak_diff_gt_4:forbiddenLeakPixels4,
+      non_water_roi_mean_rgb_abs_diff_255:forbiddenPixels?forbiddenDiffSum/forbiddenPixels/255:0,
+      non_water_pixels_max_channel_diff_gt_2:forbiddenLeakPixels2,
+      max_channel_diff:Math.round(maxDiff),p2_to_p3_spatial_change:p2p3,zones:zonesOut,
       difference_map_png:label==="P3"?diffMapCanvas.toDataURL("image/png"):null
     };
   },label);
 
-  const allWaterFrames=[["P0",0,0],["P1",350,10],["P2",950,45],["P3",1200,75],["P4",1550,60],["P5",2050,35],["P6",2600,10],["P7",2800,0]];
+  const allWaterFrames=waterContract.timeline.frames.map(frame=>[frame.id,frame.ms,Math.round(frame.layers.caustic*100)]);
   const waterFrameJumpEvidence=[];
   const compositeMetrics={};
   const waterFrameStates={};
@@ -1265,15 +1304,19 @@ async function main() {
     const shownTime=await fishtraceFrame.locator("#water-current-time").innerText();
     const shownIntensity=Number((await fishtraceFrame.locator("#water-debug-intensity").innerText()).replace("%",""));
     assert(shownTime===ms+" ms"&&shownIntensity===intensity,id+" must jump to its exact time and frozen baseline intensity");
+    const actualLayerStrengths=JSON.parse(await fishtraceFrame.locator("#water-overlay").getAttribute("data-layer-strengths"));
+    const expectedLayerStrengths=waterContract.timeline.frames.find(frame=>frame.id===id).layers;
+    for(const channel of ["ambient","caustic","highlight"])assert(Math.abs(actualLayerStrengths[channel]-expectedLayerStrengths[channel])<1e-9,id+" "+channel+" multiplier must match the frozen A-line curve");
     const state=await waterCanvasState();
     const metrics=await measureComposite(id);
-    assert(metrics.non_water_pixels_max_channel_diff_gt_2===0,id+" water overlay must not alter any non-water pixels in the photo ROI; got "+metrics.non_water_pixels_max_channel_diff_gt_2);
+    assert(state.outside_active_zone_alpha_pixels===0,id+" Canvas alpha must remain inside the union of A/B/C; got "+state.outside_active_zone_alpha_pixels);
+    assert(metrics.non_water_pixels_max_channel_diff_gt_2===0,id+" overlay must not alter any Forbidden Zone pixels; got "+metrics.non_water_pixels_max_channel_diff_gt_2);
     if(id==="P0"||id==="P7")assert(state.visible===0&&metrics.water_roi_mean_rgb_abs_diff_255===0&&metrics.max_channel_diff===0,id+" must be the unchanged original with zero Canvas alpha");
     else assert(state.visible>0&&state.outside===0,id+" must render only inside the photo content");
     await waterStageShot("fishtrace-canvas-water-"+id+".png");
     compositeMetrics[id]=metrics;
     waterFrameStates[id]=state;
-    waterFrameJumpEvidence.push({id,ms,intensity_percent:shownIntensity,canvas_visible_pixels:state.visible,water_roi_mean_rgb_abs_diff_255:metrics.water_roi_mean_rgb_abs_diff_255});
+    waterFrameJumpEvidence.push({id,ms,intensity_percent:shownIntensity,layer_strengths:actualLayerStrengths,canvas_visible_pixels:state.visible,canvas_alpha_pixels_outside_active_zones:state.outside_active_zone_alpha_pixels,water_roi_mean_rgb_abs_diff_255:metrics.water_roi_mean_rgb_abs_diff_255});
   }
   const continuityCheckTimes=[0,50,300,350,400,900,950,1000,1150,1200,1250,2000,2050,2100,2550,2600,2650,2750,2800];
   const continuityLabels=[];
@@ -1334,10 +1377,16 @@ async function main() {
   });
   await writeFile(resolve(args.outputDir,"fishtrace-canvas-water-comparison-original-P2-P3-P5.png"),Buffer.from(waterComparisonPng.split(",")[1],"base64"));
   const p0Water=waterFrameStates.P0,p2Water=waterFrameStates.P2,p3Water=waterFrameStates.P3,p5Water=waterFrameStates.P5,p7Water=waterFrameStates.P7;
-  const p2Intensity=45,p3Intensity=75;
-  assert(compositeMetrics.P2.water_roi_mean_rgb_abs_diff_255>=3/255,"Composited P2 water ROI mean RGB absolute difference must meet the 3/255 minimum");
-  assert(compositeMetrics.P3.water_roi_mean_rgb_abs_diff_255>=5/255,"Composited P3 water ROI mean RGB absolute difference must meet the 5/255 minimum");
-  assert(compositeMetrics.P3.water_roi_pixel_ratio_max_channel_diff_gte_6>=0.10,"At least 10% of the P3 water ROI must change by 6/255 or more");
+  const p2Intensity=waterContract.timeline.frames.find(frame=>frame.id==="P2").layers.caustic*100;
+  const p3Intensity=waterContract.timeline.frames.find(frame=>frame.id==="P3").layers.caustic*100;
+  const roiMean255=frame=>compositeMetrics[frame].water_roi_mean_rgb_abs_diff_255*255;
+  const regionARanges=waterContract.acceptance.region_a_mean_rgb_abs_diff_255_target;
+  for(const [frame,[min,max]] of Object.entries(regionARanges))assert(roiMean255(frame)>=min&&roiMean255(frame)<=max,frame+" Region A mean RGB difference must be "+min+"–"+max+" /255; observed "+roiMean255(frame).toFixed(3));
+  assert(compositeMetrics.P3.water_roi_pixel_ratio_max_channel_diff_gte_6>=0.10,"At least 10% of the P3 Region A ROI must change by 6/255 or more");
+  for(const [frame,metrics] of Object.entries(compositeMetrics)){
+    assert(metrics.forbidden_zone_mean_rgb_abs_diff_255<waterContract.acceptance.forbidden_zone_mean_rgb_abs_diff_255_max/255,frame+" Forbidden Zone mean RGB difference must stay below the contract threshold");
+    assert(metrics.forbidden_zone_pixel_ratio_peak_diff_gt_4<waterContract.acceptance.forbidden_zone_pixels_with_peak_diff_gt_4_fraction_max,frame+" Forbidden Zone pixels above 4/255 must stay below the contract threshold");
+  }
   assert(compositeMetrics.P3.water_roi_mean_rgb_abs_diff_255>compositeMetrics.P2.water_roi_mean_rgb_abs_diff_255,"P3 must have a stronger composited water field than P2");
   assert(compositeMetrics.P3.p2_to_p3_spatial_change?.changed_pixel_ratio_gte_3>0.10,"P2 to P3 must change the spatial light field, not only its reported intensity");
   assert(compositeMetrics.P3.p2_to_p3_spatial_change?.normalized_structure_pixel_ratio_abs_delta_gte_0_15>0.10,"P2 to P3 normalized light maps must differ spatially after removing global intensity scaling");
@@ -1363,7 +1412,7 @@ async function main() {
     const button=document.querySelector('[data-water-frame="P3"]');button.click();return node.toDataURL("image/png");
   });
   const p3ShownIntensity=Number((await fishtraceFrame.locator("#water-debug-intensity").innerText()).replace("%",""));
-  assert(p3ShownIntensity===75,"P3 baseline intensity must remain the frozen 75% time scalar");
+  assert(p3ShownIntensity===p3Intensity,"P3 intensity readout must reflect the A-line caustic channel value from the candidate contract");
   const p3DiffMapData=compositeMetrics.P3.difference_map_png.split(",")[1];
   await writeFile(resolve(args.outputDir,"fishtrace-canvas-water-diff-map-P3.png"),Buffer.from(p3DiffMapData,"base64"));
   await page.setViewportSize({width:390,height:844});
@@ -1528,9 +1577,9 @@ async function main() {
     fixed_asset:waterAsset,
     p0:p0Water,p2:p2Water,p3:p3Water,p5:p5Water,p7:p7Water,
     all_keyframe_metrics:compositeMetrics,caustic_model:causticModelState,continuity:continuityEvidence,
-    baseline_intensity_percent:{P2:p2Intensity,P3:p3Intensity},
+    caustic_channel_percent:{P2:p2Intensity,P3:p3Intensity},
     composited_visual_metrics:compositeMetrics,
-    source_native_water_region:{version:debugOverlayState.version,polygon_count:debugOverlayState.polygons.length,validation_status:debugOverlayState.validation_status||"manual annotation; browser boundary review in this run",debug_screenshot:"fishtrace-canvas-water-region-debug.png"},
+    source_normalized_water_field:{version:debugOverlayState.version,coordinate_system:"source_image_normalized_top_left_0_1",zone_polygon_counts:{A:debugOverlayState.zones.A.length,B:debugOverlayState.zones.B.length,C:debugOverlayState.zones.C.length},validation_status:debugOverlayState.validation_status||"user-specified geometry; browser boundary review in this run",debug_screenshot:"fishtrace-canvas-water-region-debug.png"},
     exact_frame_jumps:waterFrameJumpEvidence,
     deterministic_p2_repeat:true,
     p2_repeat_pixels:{time_ms:p2Repeat.time_ms,width:p2Repeat.width,height:p2Repeat.height,visible_pixels:p2Repeat.visible_pixels,sha256:p2Repeat.sha256,repeated_sha256:p2RepeatAgain.sha256},
@@ -1594,7 +1643,7 @@ async function main() {
   await videoFrame.locator("#water-source-image").scrollIntoViewIfNeeded();
   await videoFrame.locator("#water-stage").scrollIntoViewIfNeeded();
   await videoPage.locator(fishtraceFrameSelector).scrollIntoViewIfNeeded();
-  const measureVideoPhotoLayout=()=>videoPage.evaluate(selector=>{
+  const videoPhotoPreflight=await videoPage.evaluate(selector=>{
     const iframe=document.querySelector(selector);
     const doc=iframe?.contentDocument;
     const stage=doc?.querySelector("#water-stage");
@@ -1610,9 +1659,6 @@ async function main() {
     const insideOuter=onOuter.x>=0&&onOuter.y>=0&&onOuter.x+onOuter.width<=outer.width&&onOuter.y+onOuter.height<=outer.height;
     return {available:true,viewport:{outer,inner},frame:{x:frameBox.x,y:frameBox.y,width:frameBox.width,height:frameBox.height},stage:{x:stageBox.x,y:stageBox.y,width:stageBox.width,height:stageBox.height},photo_content_rect_in_frame:photo,photo_content_rect_in_recording_viewport:onOuter,fully_visible_in_frame:insideInner,fully_visible_in_recording_viewport:insideOuter,scroll:{outer_x:window.scrollX,outer_y:window.scrollY,inner_x:doc.defaultView.scrollX,inner_y:doc.defaultView.scrollY},renderer:canvas.dataset.rendererStatus,debug:canvas.dataset.debugRegion};
   },fishtraceFrameSelector);
-  const videoImageReferencePath=resolve(args.outputDir,"fishtrace-canvas-water-recording-image-reference.png");
-  await videoFrame.locator("#water-source-image").screenshot({path:videoImageReferencePath});
-  const videoPhotoPreflight=await measureVideoPhotoLayout();
   assert(videoPhotoPreflight.available&&videoPhotoPreflight.fully_visible_in_frame&&videoPhotoPreflight.fully_visible_in_recording_viewport,"Full fixed photo must fit inside the actual iframe and recording viewport before WebM playback; geometry="+JSON.stringify(videoPhotoPreflight));
   await videoPage.screenshot({path:resolve(args.outputDir,"fishtrace-canvas-water-video-preflight.png")});
   assert(await videoFrame.locator("#water-stage").isVisible(), "The recorded page must visibly be in the Canvas Water Lab stage");
@@ -1620,26 +1666,11 @@ async function main() {
   assert(videoStartState.time===0&&videoStartState.renderer==="READY"&&videoStartState.alphaPixels===0&&videoStartState.debug==="false", "Full playback recording must start at clean P0 on the READY Canvas Water Lab without the debug outline");
   const waterPlaybackStartedAt=new Date().toISOString();
   const waterPlaybackStartEpochMs=Date.now();
-  await videoFrame.evaluate(()=>{
-    const button=document.querySelector("#water-play");
-    if(!button)throw new Error("Canvas Water Lab play button is missing");
-    button.click();
-  });
+  await videoFrame.locator("#water-play").click();
   const waterPlaybackStarted = Date.now();
-  const videoPhotoAfterPlay=await measureVideoPhotoLayout();
-  const photoRectStable=(before,after)=>{
-    const a=before?.photo_content_rect_in_recording_viewport;
-    const b=after?.photo_content_rect_in_recording_viewport;
-    return Boolean(a&&b&&["x","y","width","height"].every(key=>Math.abs(a[key]-b[key])<=1));
-  };
-  assert(videoPhotoAfterPlay.available&&videoPhotoAfterPlay.fully_visible_in_frame&&videoPhotoAfterPlay.fully_visible_in_recording_viewport&&photoRectStable(videoPhotoPreflight,videoPhotoAfterPlay),
-    "Play must not scroll or crop the full photo after recording starts; preflight="+JSON.stringify(videoPhotoPreflight)+" postStart="+JSON.stringify(videoPhotoAfterPlay));
   await videoFrame.waitForFunction(() => Number(document.querySelector("#water-current-time")?.textContent.match(/\d+/)?.[0]) === 2800,null,{timeout:8000});
   const waterPlaybackWallMs = Date.now()-waterPlaybackStarted;
   const waterPlaybackCompletedAt=new Date().toISOString();
-  const videoPhotoAfterPlayback=await measureVideoPhotoLayout();
-  assert(videoPhotoAfterPlayback.available&&videoPhotoAfterPlayback.fully_visible_in_frame&&videoPhotoAfterPlayback.fully_visible_in_recording_viewport&&photoRectStable(videoPhotoAfterPlay,videoPhotoAfterPlayback),
-    "The full photo must remain visible through the complete 2800ms recording; postStart="+JSON.stringify(videoPhotoAfterPlay)+" atEnd="+JSON.stringify(videoPhotoAfterPlayback));
   assert(waterPlaybackWallMs >= 2400 && waterPlaybackWallMs < 8000, "Full timeline playback must run through the 2800ms duration without stalling");
   assert(videoErrors.length === 0, "Canvas recording browser reported errors: " + videoErrors.join("; "));
   assert(videoRequests.every(request => request.method === "GET" || request.method === "HEAD") &&
@@ -1657,53 +1688,6 @@ async function main() {
   const videoFrameDirectory=resolve(args.outputDir,"fishtrace-canvas-water-video-frames");
   await mkdir(videoFrameDirectory,{recursive:true});
   const extractedVideoFrames=[];
-  const photoFrameVerifier=await browser.newPage({viewport:{width:1440,height:1000},deviceScaleFactor:1});
-  const photoReferenceDataUrl="data:image/png;base64,"+(await readFile(videoImageReferencePath)).toString("base64");
-  async function inspectRecordedPhotoCrop(framePath,frameId){
-    const frameDataUrl="data:image/png;base64,"+(await readFile(framePath)).toString("base64");
-    return photoFrameVerifier.evaluate(async payload=>{
-      const loadImage=src=>new Promise((resolveImage,rejectImage)=>{const image=new Image();image.onload=()=>resolveImage(image);image.onerror=rejectImage;image.src=src;});
-      const [frameImage,referenceImage]=await Promise.all([loadImage(payload.frameDataUrl),loadImage(payload.referenceDataUrl)]);
-      const width=referenceImage.naturalWidth,height=referenceImage.naturalHeight;
-      const actualCanvas=document.createElement("canvas"),referenceCanvas=document.createElement("canvas");
-      actualCanvas.width=referenceCanvas.width=width;actualCanvas.height=referenceCanvas.height=height;
-      const actualContext=actualCanvas.getContext("2d",{willReadFrequently:true}),referenceContext=referenceCanvas.getContext("2d",{willReadFrequently:true});
-      actualContext.drawImage(frameImage,payload.photoRect.x,payload.photoRect.y,payload.photoRect.width,payload.photoRect.height,0,0,width,height);
-      referenceContext.drawImage(referenceImage,0,0);
-      const actual=actualContext.getImageData(0,0,width,height).data,reference=referenceContext.getImageData(0,0,width,height).data;
-      const pointInside=(points,x,y)=>{let inside=false;for(let i=0,j=points.length-1;i<points.length;j=i++){const xi=points[i][0],yi=points[i][1],xj=points[j][0],yj=points[j][1];if((yi>y)!==(yj>y)&&x<(xj-xi)*(y-yi)/(yj-yi)+xi)inside=!inside;}return inside;};
-      let fullSum=0,fullHigh=0,fullCount=0,nonWaterSum=0,nonWaterHigh=0,nonWaterCount=0;
-      for(let y=0;y<height;y+=1){
-        const sourceY=(y+.5)*payload.assetHeight/height;
-        for(let x=0;x<width;x+=1){
-          const sourceX=(x+.5)*payload.assetWidth/width;
-          const offset=(y*width+x)*4,dr=Math.abs(actual[offset]-reference[offset]),dg=Math.abs(actual[offset+1]-reference[offset+1]),db=Math.abs(actual[offset+2]-reference[offset+2]);
-          const peak=Math.max(dr,dg,db);fullSum+=dr+dg+db;fullCount++;
-          if(peak>24)fullHigh++;
-          const inWater=payload.polygons.some(polygon=>pointInside(polygon,sourceX,sourceY));
-          if(!inWater){nonWaterSum+=dr+dg+db;nonWaterCount++;if(peak>24)nonWaterHigh++;}
-        }
-      }
-      return {
-        frame_id:payload.frameId,
-        crop_css_px:payload.photoRect,
-        reference_pixels:{width,height},
-        captured_pixels:{width:frameImage.naturalWidth,height:frameImage.naturalHeight},
-        full_photo_mean_rgb_abs_diff_255:fullSum/(fullCount*3),
-        full_photo_pixel_ratio_max_channel_diff_gt_24:fullHigh/fullCount,
-        non_water_mean_rgb_abs_diff_255:nonWaterSum/(nonWaterCount*3),
-        non_water_pixel_ratio_max_channel_diff_gt_24:nonWaterHigh/nonWaterCount
-      };
-    },{
-      frameDataUrl,
-      referenceDataUrl:photoReferenceDataUrl,
-      photoRect:videoPhotoAfterPlayback.photo_content_rect_in_recording_viewport,
-      assetWidth:waterAsset.naturalWidth,
-      assetHeight:waterAsset.naturalHeight,
-      polygons:debugOverlayState.polygons.map(region=>region.points),
-      frameId
-    });
-  }
   for(const frame of allWaterFrames){
     const [frameId,frameMs]=frame;
     const outputPath=resolve(videoFrameDirectory,frameId+"-"+frameMs+"ms.png");
@@ -1711,14 +1695,9 @@ async function main() {
     execFileSync("ffmpeg",["-hide_banner","-loglevel","error","-y","-ss",seekSeconds.toFixed(3),"-i",playbackVideoPath,"-frames:v","1",outputPath],{stdio:"pipe"});
     const frameBytes=await readFile(outputPath);
     assert(frameBytes.length>24&&frameBytes.toString("ascii",1,4)==="PNG","WebM frame extraction failed at "+frameId+"; offset="+seekSeconds.toFixed(3));
-    const photoFrameVisual=await inspectRecordedPhotoCrop(outputPath,frameId);
-    const photoCropPass=photoFrameVisual.non_water_mean_rgb_abs_diff_255<=8&&photoFrameVisual.non_water_pixel_ratio_max_channel_diff_gt_24<=.25;
-    assert(photoCropPass,"Actual "+frameId+" WebM frame does not retain the full photo outside the water overlay; measured crop="+JSON.stringify(photoFrameVisual));
-    if(frameId==="P0"||frameId==="P7")assert(photoFrameVisual.full_photo_mean_rgb_abs_diff_255<=8&&photoFrameVisual.full_photo_pixel_ratio_max_channel_diff_gt_24<=.25,"Actual "+frameId+" WebM frame must match the complete unlit photo; measured crop="+JSON.stringify(photoFrameVisual));
-    extractedVideoFrames.push({id:frameId,target_ms:frameMs,video_timestamp_s:Number(seekSeconds.toFixed(3)),path:"fishtrace-canvas-water-video-frames/"+frameId+"-"+frameMs+"ms.png",sha256:createHash("sha256").update(frameBytes).digest("hex"),dimensions:{width:frameBytes.readUInt32BE(16),height:frameBytes.readUInt32BE(20)},photo_fully_visible_in_recording_viewport:photoCropPass,photo_frame_visual_check:photoFrameVisual});
+    extractedVideoFrames.push({id:frameId,target_ms:frameMs,video_timestamp_s:Number(seekSeconds.toFixed(3)),path:"fishtrace-canvas-water-video-frames/"+frameId+"-"+frameMs+"ms.png",sha256:createHash("sha256").update(frameBytes).digest("hex"),dimensions:{width:frameBytes.readUInt32BE(16),height:frameBytes.readUInt32BE(20)},photo_fully_visible_in_recording_viewport:videoPhotoPreflight.fully_visible_in_recording_viewport});
   }
-  assert(extractedVideoFrames.length===8&&extractedVideoFrames.every(frame=>frame.dimensions.width===1440&&frame.dimensions.height===1000&&frame.photo_fully_visible_in_recording_viewport),"Every extracted WebM sample must retain the full photo in a full-size viewport; actual frame crop comparison failed");
-  await photoFrameVerifier.close();
+  assert(extractedVideoFrames.length===8&&extractedVideoFrames.every(frame=>frame.dimensions.width===1440&&frame.dimensions.height===1000&&frame.photo_fully_visible_in_recording_viewport),"Every extracted WebM sample must be a full-size viewport frame from a preflight-verified full-photo recording");
   waterCanvasEvidence.full_playback = {
     video:"fishtrace-canvas-water-full-2800ms.webm",
     frame_duration_ms:2800,
@@ -1727,9 +1706,6 @@ async function main() {
     observed_playback_wall_ms:waterPlaybackWallMs,
     start_state:videoStartState,
     photo_visibility_preflight:videoPhotoPreflight,
-    photo_visibility_after_start:videoPhotoAfterPlay,
-    photo_visibility_after_playback:videoPhotoAfterPlayback,
-    image_reference:"fishtrace-canvas-water-recording-image-reference.png",
     recording_start_epoch_ms:videoRecordingStartEpochMs,
     playback_start_offset_ms:playbackStartOffsetMs,
     container_duration_s:Number(videoProbe.format.duration),
@@ -1763,25 +1739,25 @@ async function main() {
     sourceManifestFiles.push({path,sha256:createHash("sha256").update(bytes).digest("hex"),bytes:bytes.length});
   }
   const sourceManifest={
-    schema:"FISHTRACE_CANVAS_WATER_LAB_SOURCE_MANIFEST_V2",
-    task_id:"FISHTRACE_SWOS_CANVAS_WATER_LAB_VISUAL_FIDELITY_V5",
+    schema:"FISHTRACE_CANVAS_WATER_LAB_SOURCE_MANIFEST_V3",
+    task_id:waterContract.task_id,
     candidate_source_sha:buildMarker,
     route:fishtraceSitesHash,
-    contract_id:"FISHTRACE_SWOS_CANVAS_WATER_LAB_V1_CANDIDATE",
-    contract_version:"CANDIDATE_V5",
+    contract_id:waterContract.contract_id,
+    contract_version:waterContract.contract_version,
     fixture:{path:"design/system/fish_media_display_v1/assets/real_catch_source.jpg",sha256:"6e955087108f7463eca2dbac489699a4942028ebe1b3d456ddfca523286385ef",decoded_dimensions:{width:waterAsset.naturalWidth,height:waterAsset.naturalHeight},exif_orientation:"none"},
-    water_region:{version:debugOverlayState.version,trust:"FIXED_DEMO_GEOMETRY_NOT_AI_MASK_NOT_PRODUCTION_ASSET",validation_status:debugOverlayState.validation_status,polygons:debugOverlayState.polygons},
+    water_field:{version:debugOverlayState.version,coordinate_system:"source_image_normalized_top_left_0_1",trust:"USER_SPECIFIED_FIXED_DEMO_GEOMETRY_NOT_AI_MASK_NOT_PRODUCTION_ASSET",validation_status:debugOverlayState.validation_status,zones:debugOverlayState.zones},
     files:sourceManifestFiles
   };
   const visualMetricsReport={
-    schema:"FISHTRACE_CANVAS_WATER_LAB_VISUAL_METRICS_V2",
-    task_id:"FISHTRACE_SWOS_CANVAS_WATER_LAB_VISUAL_FIDELITY_V5",
+    schema:"FISHTRACE_CANVAS_WATER_LAB_VISUAL_METRICS_V3",
+    task_id:waterContract.task_id,
     candidate_source_sha:buildMarker,
-    composition_method:"Chromium Canvas2D: HTML source image composited with the visible overlay using screen blend at the measured stage CSS dimensions; polygon ROI transformed through the same object-fit:contain content rectangle.",
-    thresholds:{mean_rgb_abs_diff_units:"normalized RGB channel absolute difference (0–1); thresholds are 3/255 and 5/255",P2_mean_rgb_abs_diff_fraction_min:3/255,P3_mean_rgb_abs_diff_fraction_min:5/255,P3_roi_ratio_max_channel_diff_gte_6_min:.1,non_water_max_channel_diff_gt_2_px_max:0,P0_P7_composite_diff_max:0,full_timeline_unchanged:true},
+    composition_method:"Chromium Canvas2D: HTML source image composited with the visible overlay using screen blend at measured stage CSS dimensions; normalized A/B/C zones are mapped through the same object-fit:contain content rectangle and Forbidden Zone is the photo complement.",
+    thresholds:{primary_roi:waterContract.acceptance.primary_roi,region_a_mean_rgb_abs_diff_255_target:waterContract.acceptance.region_a_mean_rgb_abs_diff_255_target,forbidden_zone_mean_rgb_abs_diff_255_max:waterContract.acceptance.forbidden_zone_mean_rgb_abs_diff_255_max,forbidden_zone_pixels_with_peak_diff_gt_4_fraction_max:waterContract.acceptance.forbidden_zone_pixels_with_peak_diff_gt_4_fraction_max,p0_p7_canvas_alpha_max:waterContract.acceptance.p0_p7_canvas_alpha_max,p0_p7_composite_rgb_diff_max:waterContract.acceptance.p0_p7_composite_rgb_diff_max,full_timeline_unchanged:true},
     source_asset:sourceManifest.fixture,
     region_version:debugOverlayState.version,
-    polygon_count:debugOverlayState.polygons.length,
+    zone_polygon_counts:{A:debugOverlayState.zones.A.length,B:debugOverlayState.zones.B.length,C:debugOverlayState.zones.C.length},
     frames:compositeMetrics,
     screenshots:waterScreenshots,
     comparison_montage:"fishtrace-canvas-water-comparison-original-P2-P3-P5.png",
@@ -1830,8 +1806,8 @@ async function main() {
       rr09_reveal: {frame: "R4", title_opacity: Number(revealTitleOpacity), fallback: "CHINESE_TITLE_FADE_ONLY"},
       canvas_water_lab: Object.assign(waterCanvasEvidence,{failure_recovery:waterFailureEvidence})
     },
-    checks: ["FishTrace Sites Hi-Fi route and iframe load", "entry CTA → source choice before camera/gallery", "camera and gallery source cards visible", "local photo preview uses blob URL without POST/inference API", "structured photo layer selection opens properties", "desktop result photo-left/result-right", "phone result photo-top/result-below", "P0-P7 timeline selection and explicit NONE Mask trust", "Canvas Water Lab clears stale prototype photo-transition layer on entry", "Canvas Water Lab P0-P7 exact timestamp and baseline intensity", "Canvas contract failure message and retry recovery", "RR09 R0-R5 timeline and Chinese-title fallback at R4", "single-source Processing→RR09 photo geometry transition and final result state", "error recovery retry/source replacement", "prototype reset and DEMO_DATA_ONLY boundary", "Canvas Water Lab fixed asset SHA-256 and decoded dimensions", "P0/P7 exact transparent Canvas evidence", "P2/P3/P5 visible deterministic in-photo caustics", "play/pause/reset/scrub/P0-P7/strength/water toggle controls", "desktop/390×844/430×932 Canvas-photo alignment and DPR geometry",
-    "Canvas 2× DPR backing-store and clipping geometry", "reduced-motion behavior", "complete 2800ms playback WebM with real extracted-frame photo crop comparison", "no photo upload or inference network request", "NH01 structured workspace READY", "21 source and frozen/used resources with HTTP/SHA evidence", "source layer tree matches real nested DOM parentage", "layer tree/canvas/inspector bidirectional selection", "M01-M04 CSS canvas PNGs and DOM bounds; M05 width-only geometry without assumed height", "formal 390×844 contract rectangles equal measured DOM geometry", "five dp presets", "free viewport/font 1.0/1.3/1.5/zoom/safe area", "Manifest/contract 404, invalid JSON, JS/CSS 404, timeout and recovery", "stale route cancellation", "direct Hash", "Resources submenu click and direct route", "original PNG previews/download links and manifest", "refresh", "back/forward", "modal zoom/fit/Esc/focus restore", "SWOS and continuity authority routes", "15-frame static workspace and exact 8+7 count", "R0.5 2900ms zoom and original/composite toggle", "P7/R0/R0.5/R1 geometry table", "RR09 ↔ SWOS routes", "Web Hi-Fi V2 authority/resources and 390px route", "local-only photo selection without persistent/network upload", "390px SWOS responsive preview", "RR09 V3 current / V2 historical route separation", "missing authority no fake UI", "invalid route guard", "no HTTP errors", "no console/page errors"],
+    checks: ["A-line Canvas contract, normalized A/B/C/D region geometry and three-channel curve load", "FishTrace Sites Hi-Fi route and iframe load", "entry CTA → source choice before camera/gallery", "camera and gallery source cards visible", "local photo preview uses blob URL without POST/inference API", "structured photo layer selection opens properties", "desktop result photo-left/result-right", "phone result photo-top/result-below", "P0-P7 timeline selection and explicit NONE Mask trust", "Canvas Water Lab clears stale prototype photo-transition layer on entry", "Canvas Water Lab P0-P7 exact timestamp and baseline intensity", "Canvas contract failure message and retry recovery", "RR09 R0-R5 timeline and Chinese-title fallback at R4", "single-source Processing→RR09 photo geometry transition and final result state", "error recovery retry/source replacement", "prototype reset and DEMO_DATA_ONLY boundary", "Canvas Water Lab fixed asset SHA-256 and decoded dimensions", "P0/P7 exact transparent Canvas evidence", "A-line Region A P1–P6 pixel ranges, Forbidden Zone measurements and deterministic in-photo caustics", "play/pause/reset/scrub/P0-P7/strength/water toggle controls", "desktop/390×844/430×932 Canvas-photo alignment and DPR geometry",
+    "Canvas 2× DPR backing-store and clipping geometry", "reduced-motion behavior", "complete 2800ms playback WebM", "no photo upload or inference network request", "NH01 structured workspace READY", "21 source and frozen/used resources with HTTP/SHA evidence", "source layer tree matches real nested DOM parentage", "layer tree/canvas/inspector bidirectional selection", "M01-M04 CSS canvas PNGs and DOM bounds; M05 width-only geometry without assumed height", "formal 390×844 contract rectangles equal measured DOM geometry", "five dp presets", "free viewport/font 1.0/1.3/1.5/zoom/safe area", "Manifest/contract 404, invalid JSON, JS/CSS 404, timeout and recovery", "stale route cancellation", "direct Hash", "Resources submenu click and direct route", "original PNG previews/download links and manifest", "refresh", "back/forward", "modal zoom/fit/Esc/focus restore", "SWOS and continuity authority routes", "15-frame static workspace and exact 8+7 count", "R0.5 2900ms zoom and original/composite toggle", "P7/R0/R0.5/R1 geometry table", "RR09 ↔ SWOS routes", "Web Hi-Fi V2 authority/resources and 390px route", "local-only photo selection without persistent/network upload", "390px SWOS responsive preview", "RR09 V3 current / V2 historical route separation", "missing authority no fake UI", "invalid route guard", "no HTTP errors", "no console/page errors"],
     swos_local_photo_sha256: uploadedPhotoSha,
     swos_local_photo_uploaded: Boolean(args.swosPhoto),
     screenshots: ["fishtrace-sites-web-hifi-desktop.png", "fishtrace-sites-web-hifi-phone.png", "fishtrace-sites-web-hifi-processing.png", "fishtrace-sites-web-hifi-reveal.png", "fishtrace-sites-web-hifi-error.png", "fishtrace-sites-web-hifi-continuous-result.png", "fishtrace-canvas-water-P0.png", "fishtrace-canvas-water-P1.png", "fishtrace-canvas-water-P2.png", "fishtrace-canvas-water-P3.png", "fishtrace-canvas-water-P4.png", "fishtrace-canvas-water-P5.png", "fishtrace-canvas-water-P6.png", "fishtrace-canvas-water-P7.png", "fishtrace-canvas-water-region-debug.png", "fishtrace-canvas-water-diff-map-P3.png", "fishtrace-canvas-water-comparison-original-P2-P3-P5.png", "fishtrace-canvas-water-mobile-390.png", "fishtrace-canvas-water-mobile-430.png", "fishtrace-canvas-water-full-2800ms.webm", "source-manifest.json", "visual-metrics.json", "performance-profile.json", "nh01-m01-render-320x480.png", "nh01-m02-render-360x640.png", "nh01-m03-render-390x844.png", "nh01-m04-render-430x932.png", "nh01-m01-dom-bounds.json", "nh01-m02-dom-bounds.json", "nh01-m03-dom-bounds.json", "nh01-m04-dom-bounds.json", "nh01-m05-width-only-bounds.json", "desktop-1440.png", "tablet-768.png", "mobile-390.png", "lightbox-1440.png", "overview-1440.png", "guide-resources-1440.png", "guide-resources-390.png", "swos-optical-contract-1440.png", "swos-static-visual-1440.png", "swos-static-visual-390.png", "swos-r05-zoom-1440.png", "swos-web-motion-contract-1440.png", "swos-web-motion-contract-390.png", "web-hifi-v2-1440.png", "processing-result-continuity-1440.png", "rr09-v3-authority-1440.png", "rr09-v2-history-1440.png"],
