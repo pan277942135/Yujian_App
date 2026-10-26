@@ -1,0 +1,297 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>FishTrace Sites · 高保真与结构化原型 V1</title>
+  <link rel="stylesheet" href="./fishtrace_sites_web_workspace.css?v=FISHTRACE-SITES-WEB-HIFI-V1">
+</head>
+<body>
+  <main class="workspace-root" data-testid="fishtrace-sites-web-workspace">
+    <header class="workspace-header">
+      <div class="workspace-brand">
+        <div class="workspace-mark">渔见</div>
+        <div>
+          <div class="workspace-eyebrow">FISHTRACE SITES · WEB HI-FI V1</div>
+          <h1>拍照识鱼 · 高保真与结构化原型</h1>
+        </div>
+      </div>
+      <div class="workspace-actions">
+        <div class="prototype-status"><span class="status-dot"></span> DESIGN ONLY · NOT RUNTIME</div>
+        <button type="button" class="tool-button" data-device="desktop" aria-pressed="true">桌面预览</button>
+        <button type="button" class="tool-button" data-device="phone" aria-pressed="false">手机预览</button>
+        <button type="button" class="tool-button reset-button" data-action="reset">重置流程</button>
+      </div>
+    </header>
+
+    <div class="prototype-warning" role="note">
+      <span class="warning-icon">i</span>
+      <span><strong>交互原型，不是线上 Sites 页面。</strong> 结果区使用演示数据，不调用真实模型；本地照片仅在当前浏览器预览，不会上传。</span>
+      <a href="../pages/recognition/web/FISHTRACE_SITES_WEB_VISUAL_INTERACTION_CONTRACT_V1.md" target="_blank" rel="noopener">查看冻结合同 ↗</a>
+    </div>
+
+    <section class="workspace-statebar" aria-label="原型状态选择">
+      <div class="statebar-copy">
+        <span class="section-kicker">PROTOTYPE FLOW</span>
+        <strong>页面状态</strong>
+      </div>
+      <nav class="state-tabs" aria-label="切换页面状态">
+        <button type="button" class="state-tab is-active" data-state="entry"><span>01</span>入口</button>
+        <button type="button" class="state-tab" data-state="source-choice"><span>02</span>来源选择</button>
+        <button type="button" class="state-tab" data-state="preview"><span>03</span>照片预览</button>
+        <button type="button" class="state-tab" data-state="processing"><span>04</span>识别中</button>
+        <button type="button" class="state-tab" data-state="result"><span>05</span>识别结果</button>
+        <button type="button" class="state-tab" data-state="error"><span>06</span>异常恢复</button>
+      </nav>
+    </section>
+
+    <div class="workspace-grid">
+      <section class="preview-panel" aria-label="高保真页面预览">
+        <div class="panel-heading">
+          <div>
+            <span class="section-kicker">HIGH-FIDELITY CANVAS</span>
+            <h2 id="preview-heading">01 · 入口</h2>
+          </div>
+          <div class="preview-meta"><span class="live-dot"></span><span id="viewport-caption">桌面 · ≥1024 CSS px</span></div>
+        </div>
+        <div class="viewport-canvas" id="viewport-canvas">
+          <div class="product-device is-desktop" id="product-device" data-device="desktop">
+            <div class="product-page" data-layer-id="page-shell">
+              <header class="product-header" data-layer-id="header">
+                <div class="product-brand" data-layer-id="brand">
+                  <span class="brand-glyph" aria-hidden="true">渔</span>
+                  <span class="brand-word">渔见</span>
+                  <span class="brand-divider"></span>
+                  <span class="brand-caption">AI 渔获识别</span>
+                </div>
+                <button type="button" class="product-close" data-layer-id="close-button" data-action="close" aria-label="关闭识别流程">×</button>
+              </header>
+
+              <div class="product-body" data-layer-id="ambient-background">
+                <section class="product-scene scene-entry" data-scene="entry">
+                  <div class="entry-copy" data-layer-id="entry-copy">
+                    <div class="product-kicker"><span></span> FIELD NOTES · 识鱼记录</div>
+                    <h2 class="entry-title" data-layer-id="entry-title">让每一次渔获，<br><em>都有迹可循。</em></h2>
+                    <p class="entry-description">从一张照片开始，认识鱼种，留住这次出钓的细节。</p>
+                    <button type="button" class="primary-cta" data-layer-id="entry-cta" data-action="start">
+                      <span>拍照识鱼开始</span><span class="cta-arrow" aria-hidden="true">↗</span>
+                    </button>
+                    <div class="entry-privacy"><span class="privacy-icon">◇</span> 先选择照片来源，再开始识别</div>
+                  </div>
+                  <div class="water-hero" data-layer-id="water-hero" aria-label="清晨湖面水光视觉">
+                    <div class="water-sun"></div><div class="water-ripple ripple-one"></div><div class="water-ripple ripple-two"></div><div class="water-ripple ripple-three"></div>
+                    <div class="water-shore"></div>
+                    <div class="water-caption"><span>01 / 05</span><span>清晨 · 水光</span></div>
+                  </div>
+                </section>
+
+                <section class="product-scene scene-source" data-scene="source-choice" hidden>
+                  <div class="scene-heading" data-layer-id="source-choice-title">
+                    <span class="product-kicker"><span></span> CHOOSE SOURCE</span>
+                    <h2>照片从哪里来？</h2>
+                    <p>选择一种方式，我们会在同一流程中继续识别。</p>
+                  </div>
+                  <div class="source-options">
+                    <button type="button" class="source-card" data-layer-id="camera-card" data-action="camera">
+                      <span class="source-icon camera-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M5 10.5h5l2-3h8l2 3h5.5v15H5z"/><circle cx="16" cy="17.5" r="5.2"/></svg></span>
+                      <span class="source-card-title">现场拍照</span>
+                      <span class="source-card-copy">现在拍下这尾鱼</span>
+                      <span class="source-card-arrow" aria-hidden="true">↗</span>
+                    </button>
+                    <button type="button" class="source-card" data-layer-id="gallery-card" data-action="gallery">
+                      <span class="source-icon gallery-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><rect x="5" y="5" width="22" height="22" rx="4"/><circle cx="12" cy="12" r="2.4"/><path d="m7 23 6.5-6.5 4.3 4.3 3.4-3.4L26 24"/></svg></span>
+                      <span class="source-card-title">从相册选择</span>
+                      <span class="source-card-copy">使用已经拍好的照片</span>
+                      <span class="source-card-arrow" aria-hidden="true">↗</span>
+                    </button>
+                  </div>
+                  <p class="source-footnote">两种方式使用同一张照片预览与识别流程。</p>
+                  <button type="button" class="text-action" data-action="back-entry">返回上一步</button>
+                </section>
+
+                <section class="product-scene scene-preview" data-scene="preview" hidden>
+                  <div class="scene-heading preview-heading">
+                    <span class="product-kicker"><span></span> PHOTO PREVIEW</span>
+                    <h2>确认这张照片</h2>
+                    <p>完整显示原图。确认后开始识别。</p>
+                  </div>
+                  <div class="product-layout">
+                    <div class="photo-container" data-layer-id="photo-container">
+                      <div class="photo-media">
+                        <div class="photo-backdrop" data-layer-id="photo-backdrop"><img id="photo-backdrop-preview" alt="" aria-hidden="true"></div>
+                        <img class="photo-foreground" id="photo-foreground-preview" data-layer-id="photo-foreground" alt="当前选择的鱼获照片" src="../system/fish_media_display_v1/assets/real_catch_source.jpg">
+                        <div class="photo-fixture-tag" id="preview-fixture-tag">设计样例照片</div>
+                      </div>
+                    </div>
+                    <div class="preview-info">
+                      <div class="photo-ready-mark"><span>✓</span> 照片已就绪</div>
+                      <h3>这就是本次识别的原图</h3>
+                      <p class="preview-info-copy">不会自动裁掉鱼头、鱼尾或照片边缘。识别阶段继续使用同一张照片。</p>
+                      <div class="photo-metadata" data-layer-id="photo-metadata">
+                        <div><span>文件</span><strong id="photo-file-name">real_catch_source.jpg</strong></div>
+                        <div><span>来源</span><strong id="photo-source-label">设计样例</strong></div>
+                        <div><span>尺寸</span><strong id="photo-dimensions">原图完整显示</strong></div>
+                      </div>
+                      <div class="preview-actions" data-layer-id="preview-actions">
+                        <button type="button" class="primary-cta" data-action="recognize"><span>开始识别</span><span class="cta-arrow">↗</span></button>
+                        <button type="button" class="secondary-cta" data-action="gallery">重新选择照片</button>
+                      </div>
+                    </div>
+                  </div>
+                </section>
+
+                <section class="product-scene scene-processing" data-scene="processing" hidden>
+                  <div class="processing-head">
+                    <span class="product-kicker"><span></span> SWOS · PROCESSING</span>
+                    <h2>正在理解这张照片</h2>
+                    <p>让水面的光，慢慢收敛到真正的识别线索。</p>
+                  </div>
+                  <div class="processing-photo photo-container" data-layer-id="photo-container">
+                    <div class="photo-media">
+                      <div class="photo-backdrop" data-layer-id="photo-backdrop"><img id="photo-backdrop-processing" alt="" aria-hidden="true"></div>
+                      <img class="photo-foreground" id="photo-foreground-processing" data-layer-id="photo-foreground" alt="当前识别照片" src="../system/fish_media_display_v1/assets/real_catch_source.jpg">
+                      <div class="ambient-caustics" data-layer-id="ambient-caustics" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
+                      <div class="processing-status" data-layer-id="processing-status">
+                        <span class="processing-spinner" aria-hidden="true"></span>
+                        <div><strong id="processing-status-title">正在理解照片</strong><span id="processing-status-copy">水面光场 · P0</span></div>
+                      </div>
+                    </div>
+                  </div>
+                  <p class="processing-disclaimer">设计原型动效预览 · 不连接真实 Detector / Classifier，也不表示模型处理进度。</p>
+                </section>
+
+                <section class="product-scene scene-result" data-scene="result" hidden>
+                  <div class="scene-heading result-heading">
+                    <span class="product-kicker"><span></span> RECOGNITION RESULT</span>
+                    <h2>这次的识别结果</h2>
+                    <p>真实页面只展示当前识别会话返回的数据。</p>
+                  </div>
+                  <div class="product-layout result-layout">
+                    <div class="photo-container" data-layer-id="photo-container">
+                      <div class="photo-media">
+                        <div class="photo-backdrop" data-layer-id="photo-backdrop"><img id="photo-backdrop-result" alt="" aria-hidden="true"></div>
+                        <img class="photo-foreground" id="photo-foreground-result" data-layer-id="photo-foreground" alt="识别结果对应的完整原图" src="../system/fish_media_display_v1/assets/real_catch_source.jpg">
+                        <div class="photo-fixture-tag">同一张原图</div>
+                      </div>
+                    </div>
+                    <article class="result-summary" data-layer-id="result-summary">
+                      <div class="result-status"><span class="result-status-dot"></span> 识别完成 <span class="demo-chip">样例数据</span></div>
+                      <div class="result-label">识别鱼种</div>
+                      <h3 class="species-title" data-layer-id="species-title">黄颡鱼</h3>
+                      <p class="species-latin">Pelteobagrus fulvidraco <span>· 仅为设计样例</span></p>
+                      <div class="confidence-card" data-layer-id="confidence-meter">
+                        <div class="confidence-top"><span>样例置信度</span><strong>92%</strong></div>
+                        <div class="confidence-track"><span></span></div>
+                        <p>此数值仅用于检查视觉层级，不是模型输出。</p>
+                      </div>
+                      <div class="result-details">
+                        <div><span>体长</span><strong>未提供</strong></div>
+                        <div><span>体重</span><strong>未提供</strong></div>
+                        <div><span>地点</span><strong>未提供</strong></div>
+                      </div>
+                      <div class="result-actions" data-layer-id="result-actions">
+                        <button type="button" class="primary-cta" data-action="recognize"><span>重新识别</span><span class="cta-arrow">↗</span></button>
+                        <button type="button" class="secondary-cta" data-action="source-choice">重新拍摄 / 选择照片</button>
+                      </div>
+                    </article>
+                  </div>
+                  <p class="result-disclaimer">本页结果是视觉样例，不可作为真实识别或模型质量证据。</p>
+                </section>
+
+                <section class="product-scene scene-error" data-scene="error" hidden>
+                  <div class="error-layout">
+                    <div class="error-photo photo-container" data-layer-id="photo-container">
+                      <div class="photo-media">
+                        <div class="photo-backdrop" data-layer-id="photo-backdrop"><img id="photo-backdrop-error" alt="" aria-hidden="true"></div>
+                        <img class="photo-foreground" id="photo-foreground-error" data-layer-id="photo-foreground" alt="当前照片" src="../system/fish_media_display_v1/assets/real_catch_source.jpg">
+                      </div>
+                    </div>
+                    <div class="error-card">
+                      <div class="error-symbol" aria-hidden="true">!</div>
+                      <div class="product-kicker">RECOVERY</div>
+                      <h2 data-layer-id="error-message">暂时无法识别这张照片</h2>
+                      <p>你可以重试，或选择另一张清晰、完整的鱼获照片。</p>
+                      <div class="recovery-actions" data-layer-id="recovery-actions">
+                        <button type="button" class="primary-cta" data-action="recognize"><span>重试</span><span class="cta-arrow">↗</span></button>
+                        <button type="button" class="secondary-cta" data-action="source-choice">重新拍摄 / 选择照片</button>
+                      </div>
+                    </div>
+                  </div>
+                </section>
+              </div>
+              <footer class="product-footer"><span>渔见 · 让每次出钓有迹可循</span><span>FISHTRACE</span></footer>
+            </div>
+          </div>
+        </div>
+
+        <div class="timeline-inspector" id="timeline-inspector" hidden>
+          <div class="timeline-head">
+            <div><span class="section-kicker">SWOS PROCESSING</span><strong>Processing 关键帧 · 设计预览</strong></div>
+            <button type="button" class="tool-button" data-action="play-motion">播放 2800ms</button>
+          </div>
+          <div class="timeline-frames" id="timeline-frames">
+            <button type="button" data-frame="P0" class="is-active"><b>P0</b><span>0ms</span></button>
+            <button type="button" data-frame="P1"><b>P1</b><span>350ms</span></button>
+            <button type="button" data-frame="P2"><b>P2</b><span>950ms</span></button>
+            <button type="button" data-frame="P3"><b>P3</b><span>1200ms</span></button>
+            <button type="button" data-frame="P4"><b>P4</b><span>1550ms</span></button>
+            <button type="button" data-frame="P5"><b>P5</b><span>2050ms</span></button>
+            <button type="button" data-frame="P6"><b>P6</b><span>2600ms</span></button>
+            <button type="button" data-frame="P7"><b>P7</b><span>2800ms</span></button>
+          </div>
+          <div class="timeline-note">Mask 信任状态：NONE（无可信鱼体 Mask）· 仅显示克制水光，不绘制鱼体轮廓。</div>
+        </div>
+      </section>
+
+      <aside class="inspector-panel" aria-label="结构化图层与属性检查器">
+        <div class="panel-heading inspector-heading">
+          <div><span class="section-kicker">STRUCTURED LAYERS</span><h2>页面结构</h2></div>
+          <span class="inspector-count" id="layer-count">— 层</span>
+        </div>
+        <div class="inspector-tabs" role="tablist" aria-label="检查器模式">
+          <button type="button" class="inspector-tab is-active" data-inspector="layers" role="tab" aria-selected="true">图层树</button>
+          <button type="button" class="inspector-tab" data-inspector="properties" role="tab" aria-selected="false">属性</button>
+          <button type="button" class="inspector-tab" data-inspector="flow" role="tab" aria-selected="false">交互</button>
+        </div>
+        <section class="inspector-view is-active" data-inspector-view="layers">
+          <div class="tree-summary"><span class="tree-status-dot"></span><span id="tree-state-label">入口 · 页面场景</span></div>
+          <div id="layer-tree" class="layer-tree" role="tree" aria-label="当前页面图层"><div class="tree-loading">正在载入结构合同…</div></div>
+        </section>
+        <section class="inspector-view" data-inspector-view="properties" hidden>
+          <div id="layer-properties" class="layer-properties"><p>选择一个图层以查看属性。</p></div>
+        </section>
+        <section class="inspector-view" data-inspector-view="flow" hidden>
+          <div class="flow-inspector">
+            <div class="flow-step"><span>01</span><div><strong>入口</strong><small>拍照识鱼开始</small></div></div>
+            <div class="flow-connector"></div>
+            <div class="flow-step"><span>02</span><div><strong>来源选择</strong><small>现场拍照 / 从相册选择</small></div></div>
+            <div class="flow-connector"></div>
+            <div class="flow-step"><span>03</span><div><strong>照片预览</strong><small>完整原图 · 单一 PhotoSession</small></div></div>
+            <div class="flow-connector"></div>
+            <div class="flow-step"><span>04</span><div><strong>识别中</strong><small>SWOS · 2800ms 设计时间线</small></div></div>
+            <div class="flow-connector"></div>
+            <div class="flow-step"><span>05</span><div><strong>结果页</strong><small>桌面左图右结果 / 手机上图下结果</small></div></div>
+            <div class="flow-connector"></div>
+            <div class="flow-step"><span>06</span><div><strong>异常恢复</strong><small>重试 / 重新选择照片</small></div></div>
+            <p class="flow-note">这是设计原型状态流，不是线上 Sites 运行状态。</p>
+          </div>
+        </section>
+        <div class="inspector-footer">
+          <div class="selected-layer-meta"><span>当前选中</span><strong id="selected-layer-label">页面场景</strong></div>
+          <div class="layer-status" id="selected-layer-status">DESIGN ONLY</div>
+          <p id="selected-layer-description">选择图层以检查对应视觉区域和设计规则。</p>
+          <a href="../pages/recognition/web/contracts/FishTrace_Sites_Web_Structured_Prototype_V1.json" target="_blank" rel="noopener">打开机器结构合同 ↗</a>
+        </div>
+      </aside>
+    </div>
+    <footer class="workspace-footer">
+      <span>FISHTRACE SITES WEB · HI-FI V1</span>
+      <span>Contract frozen · Prototype interactive · Runtime not verified</span>
+    </footer>
+    <input id="gallery-input" type="file" accept="image/*" hidden>
+    <input id="camera-input" type="file" accept="image/*" capture="environment" hidden>
+  </main>
+  <script src="./fishtrace_sites_web_workspace.js?v=FISHTRACE-SITES-WEB-HIFI-V1"></script>
+</body>
+</html>
