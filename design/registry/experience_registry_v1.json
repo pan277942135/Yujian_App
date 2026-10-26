@@ -4090,11 +4090,6 @@
           "target_url": "https://fishtrace-ai.pan277942135.chatgpt.site/",
           "related_routes": [
             {
-              "label": "Sites 视觉与交互合同 V1",
-              "route": "#page/recognition_flow_v1_2/hifi/fishtrace_sites_web_hifi_workspace",
-              "note": "本页结构与布局遵守已冻结合同"
-            },
-            {
               "label": "SWOS 静态视觉 / 15 帧",
               "route": "#page/recognition_flow_v1_2/hifi/swos_static_visual_v1_1",
               "note": "正式时序与照片连续性权威"
