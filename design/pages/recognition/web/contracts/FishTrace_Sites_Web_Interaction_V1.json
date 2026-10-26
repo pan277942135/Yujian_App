@@ -1,0 +1,364 @@
+{
+  "schema_version": "1.0",
+  "contract_id": "FISHTRACE-SITES-WEB-INTERACTION-V1",
+  "title": "FishTrace Sites Web Visual and Interaction Contract V1",
+  "status": "USER_DECISIONS_FROZEN_DESIGN_ONLY",
+  "runtime_visual_verified": false,
+  "target": {
+    "sites_project_id": "appgprj_6a50a71561708191a6ea8c6194ce68d4",
+    "public_url": "https://fishtrace-ai.pan277942135.chatgpt.site/",
+    "route": "/",
+    "entry_cta": "拍照识鱼开始",
+    "scope": "existing FishTrace Sites project only",
+    "explicitly_excludes": [
+      "pan277942135/Yujian PR #177 implementation",
+      "new Sites project",
+      "parallel demo",
+      "second PhotoSession",
+      "second recognition state machine"
+    ]
+  },
+  "user_decisions": {
+    "primary_experience": "IMMERSIVE_SINGLE_SCENE",
+    "first_action": "SHOW_CAMERA_AND_GALLERY_CHOICES",
+    "result_layout_desktop": "PHOTO_LEFT_RESULT_RIGHT",
+    "result_layout_phone": "PHOTO_TOP_RESULT_BELOW"
+  },
+  "authority": {
+    "supersedes_scope": [
+      "previous FishTrace Sites three-column workbench layout",
+      "persistent five-node workbench strip",
+      "manual model-import controls in normal user flow"
+    ],
+    "preserves": [
+      "SWOS 15-frame V1.1 timing",
+      "SWOS/RR09 V1.2 optical safety rules",
+      "shared photo transform M(t)",
+      "existing model thresholds and result-state authority",
+      "privacy and no-photo-upload policy"
+    ],
+    "yujian_web_v2_unchanged": true,
+    "private_three_stage_reference_not_sites_pixel_authority": true,
+    "adoption_status": "PENDING_DESIGN_MAIN_ADOPTION"
+  },
+  "layout": {
+    "max_content_width_css_px": 1280,
+    "outer_gutter_css_px": {
+      "desktop": 32,
+      "tablet": 24,
+      "phone": 16
+    },
+    "desktop_result_min_width_css_px": 1024,
+    "desktop_result_columns_ratio": [
+      58,
+      42
+    ],
+    "desktop_result_gap_css_px": 24,
+    "below_1024_result_layout": "STACKED_PHOTO_FIRST",
+    "processing_layout": "ONE_CENTERED_PHOTO_LED_SCENE",
+    "entry_layout": "ONE_SCENE_TWO_SOURCE_ACTIONS",
+    "no_persistent_three_stage_columns": true,
+    "no_persistent_five_node_workbench_strip": true,
+    "no_nested_scrollbars": true,
+    "sharp_foreground_photo_count": 1,
+    "primary_photo_fit": "contain",
+    "background_photo_rule": "same source only; strongly blurred and low contrast; never a second sharp crop",
+    "image_must_not_stretch_or_crop_fish_head_tail": true
+  },
+  "colors": {
+    "page_background": "#F7FAFB",
+    "primary_teal": "#245D50",
+    "deep_text": "#0B2D4B",
+    "muted_text": "#748897",
+    "morning_gold": "#D6A541",
+    "optical_palette": [
+      "#2D7C89",
+      "#67BDCA",
+      "#C1E9EE",
+      "#F2D29B"
+    ],
+    "optical_numeric_parameters_status": "CALIBRATION_CANDIDATE"
+  },
+  "flow": [
+    {
+      "id": "S0_LANDING_ENTRY",
+      "trigger": "click existing CTA 拍照识鱼开始",
+      "actions": [
+        "enter existing in-page recognition scene",
+        "begin background automatic model preparation"
+      ],
+      "session_created": false
+    },
+    {
+      "id": "S1_SOURCE_CHOICE",
+      "visible_actions": [
+        "现场拍照",
+        "从相册选择",
+        "返回/关闭"
+      ],
+      "must_show_both_sources_first": true
+    },
+    {
+      "id": "S2_CAMERA_PERMISSION",
+      "trigger": "explicit camera action",
+      "success_next": "S3_PHOTO_PREVIEW",
+      "failure_fallback": "keep gallery available"
+    },
+    {
+      "id": "S3_PHOTO_PREVIEW",
+      "requirements": [
+        "EXIF normalized",
+        "full contain photo",
+        "source SHA and dimensions recorded",
+        "start recognition",
+        "reselect",
+        "back/close"
+      ],
+      "on_reselect": "invalidate previous session and clear all derived data"
+    },
+    {
+      "id": "S4_MODEL_PREPARATION",
+      "requirements": [
+        "automatic public static model loading",
+        "SHA/spec verification",
+        "versioned local cache",
+        "no manual model upload"
+      ],
+      "failure": "clear error and retry; never fabricate result"
+    },
+    {
+      "id": "S5_PROCESSING_SWOS",
+      "duration_ms": 2800,
+      "frames": [
+        "P0",
+        "P1",
+        "P2",
+        "P3",
+        "P4",
+        "P5",
+        "P6",
+        "P7"
+      ],
+      "requirements": [
+        "same PhotoSession",
+        "same source SHA",
+        "same transform M(t)",
+        "real lifecycle status only",
+        "keep full photo visible"
+      ]
+    },
+    {
+      "id": "S6_RESULT_REVEAL_RR09",
+      "duration_ms": 850,
+      "frames": [
+        "R0",
+        "R0.5",
+        "R1",
+        "R2",
+        "R3",
+        "R4",
+        "R5"
+      ],
+      "eligibility": "real valid HIGH result only; full transfer requires TRUSTED_MASK; otherwise restrained title fallback"
+    },
+    {
+      "id": "S7_RESULT",
+      "desktop": "photo left, result right",
+      "below_1024": "photo top, result below",
+      "actions": [
+        "重新识别",
+        "重新拍摄",
+        "从相册选择",
+        "关闭"
+      ]
+    },
+    {
+      "id": "S8_ERROR_RECOVERY",
+      "states": [
+        "NO_FISH",
+        "IMAGE_QUALITY",
+        "MEDIUM",
+        "LOW",
+        "TECHNICAL_FAILURE",
+        "CAMERA_PERMISSION_DENIED",
+        "UNSUPPORTED_FILE",
+        "EMPTY_FILE",
+        "DECODE_FAILURE",
+        "OVERSIZE",
+        "MODEL_FETCH_FAILURE",
+        "MODEL_HASH_FAILURE",
+        "MODEL_RUNTIME_FAILURE",
+        "INFERENCE_FAILURE"
+      ]
+    }
+  ],
+  "photo_session": {
+    "single_source_identity": true,
+    "exif_orientation_normalized": true,
+    "required_metadata": [
+      "photoSha256",
+      "normalizedWidth",
+      "normalizedHeight",
+      "sessionId",
+      "modelVersion",
+      "bbox",
+      "maskTrustState",
+      "elapsedMs"
+    ],
+    "single_transform": "M(t)",
+    "animation_replay_reruns_inference": false,
+    "cancel_or_reselect_invalidates_previous_session": true
+  },
+  "model_runtime": {
+    "detector": "DET_FISH_v0.3",
+    "classifier": "MODEL_CROP_M1_v0.2",
+    "loading": "AUTOMATIC_PUBLIC_STATIC_ASSET",
+    "hash_verification": true,
+    "local_cache_by_version_and_hash": true,
+    "manual_import_in_normal_flow": false,
+    "photo_upload": false,
+    "sam_checkpoint_publication": false,
+    "change_thresholds": false,
+    "new_paid_backend": false
+  },
+  "motion": {
+    "processing_ms": 2800,
+    "rr09_ms": 850,
+    "nominal_total_ms": 3650,
+    "processing_frames": [
+      {
+        "id": "P0",
+        "global_ms": 0,
+        "water": 0,
+        "gold": 0
+      },
+      {
+        "id": "P1",
+        "global_ms": 350,
+        "water": 10,
+        "gold": 0
+      },
+      {
+        "id": "P2",
+        "global_ms": 950,
+        "water": 45,
+        "gold": 15
+      },
+      {
+        "id": "P3",
+        "global_ms": 1200,
+        "water": 75,
+        "gold": 45
+      },
+      {
+        "id": "P4",
+        "global_ms": 1550,
+        "water": 60,
+        "gold": 100
+      },
+      {
+        "id": "P5",
+        "global_ms": 2050,
+        "water": 35,
+        "gold": 100
+      },
+      {
+        "id": "P6",
+        "global_ms": 2600,
+        "water": 10,
+        "gold": 100
+      },
+      {
+        "id": "P7",
+        "global_ms": 2800,
+        "water": 0,
+        "gold": 100
+      }
+    ],
+    "result_frames": [
+      {
+        "id": "R0",
+        "global_ms": 2800,
+        "relative_ms": 0
+      },
+      {
+        "id": "R0.5",
+        "global_ms": 2900,
+        "relative_ms": 100,
+        "geometry": "REAL_NUMERIC_MIDPOINT"
+      },
+      {
+        "id": "R1",
+        "global_ms": 3000,
+        "relative_ms": 200
+      },
+      {
+        "id": "R2",
+        "global_ms": 3180,
+        "relative_ms": 380
+      },
+      {
+        "id": "R3",
+        "global_ms": 3350,
+        "relative_ms": 550
+      },
+      {
+        "id": "R4",
+        "global_ms": 3480,
+        "relative_ms": 680
+      },
+      {
+        "id": "R5",
+        "global_ms": 3650,
+        "relative_ms": 850
+      }
+    ],
+    "late_inference": "extend truthful restrained processing; do not fabricate result or compress reveal",
+    "trusted_mask": "full fish-focus and gold-to-glyph transfer",
+    "bbox_only": "no rectangle outline; restrained regional hint only",
+    "none_or_stale_mask": "no precise fish glow; restrained species-title fallback",
+    "result_states_without_high": "no celebratory RR09",
+    "reduced_motion": "static or shortened equivalent preserving data and controls"
+  },
+  "result_states": {
+    "HIGH": "real Chinese species name and current confidence; optional measurements only when real; technical details collapsed",
+    "MEDIUM": "existing candidate-confirmation behavior; never auto-promote",
+    "LOW": "state uncertainty and allow retry/replacement; no invented species",
+    "NO_FISH": "state no fish detected; camera/gallery recovery",
+    "IMAGE_QUALITY": "explain image quality issue; camera/gallery recovery",
+    "TECHNICAL_FAILURE": "clear error and retry/source replacement"
+  },
+  "responsive": {
+    "breakpoints": [
+      1024,
+      768,
+      480,
+      430,
+      390,
+      360,
+      320
+    ],
+    "acceptance_viewports": [
+      "1440x1000",
+      "1280x800",
+      "1024x768",
+      "768x1024",
+      "480px width",
+      "430x932",
+      "390x844",
+      "360x640",
+      "320x480"
+    ],
+    "result_layout_rule": ">=1024 split; <1024 stacked",
+    "no_horizontal_body_overflow": true,
+    "all_actions_reachable": true,
+    "min_touch_target_css_px": 44
+  },
+  "privacy": {
+    "source_photo_network_upload": false,
+    "model_asset_download_allowed": true,
+    "public_model_asset_authorization": "USER_EXPLICITLY_GRANTED",
+    "sam_checkpoint_publication": false,
+    "cloud_billing_change": false
+  }
+}
