@@ -229,7 +229,18 @@ button[disabled]{opacity:.48;cursor:not-allowed}
 .inspector-footer a:hover{text-decoration:underline}
 .workspace-footer{display:flex;justify-content:space-between;gap:10px;padding:14px 3px 0;color:#8a9d94;font-size:9px;letter-spacing:.04em}
 [data-layer-id].layer-highlight{outline:2px dashed #d5a74e!important;outline-offset:3px;position:relative}
-.product-page[data-current-state=processing] .ambient-caustics{opacity:var(--water-alpha,.12)}
+.product-page[data-current-state=processing] .ambient-caustics,.product-page[data-current-state=reveal] .ambient-caustics{opacity:var(--water-alpha,.12)}
+.scene-reveal{padding:26px 0 12px}
+.reveal-head{margin-bottom:18px}
+.reveal-photo .photo-media{min-height:480px;background:#173e43}
+.reveal-photo .photo-foreground{min-height:480px;max-height:620px;background:rgba(16,47,50,.15)}
+.reveal-photo .photo-backdrop{opacity:.15;filter:blur(22px) saturate(.55)}
+.reveal-title-card{position:absolute;z-index:4;right:20px;bottom:20px;display:grid;gap:6px;min-width:180px;padding:15px 18px;border:1px solid rgba(239,244,226,.36);border-radius:14px;background:rgba(21,57,56,.78);color:#fff;backdrop-filter:blur(16px);opacity:var(--reveal-title-opacity,0);transform:translateY(var(--reveal-title-offset,10px));transition:opacity .18s,transform .18s}
+.reveal-title-card>span{font-size:9px;color:#d6e4dc;letter-spacing:.06em}
+.reveal-title-card>strong{font-size:28px;letter-spacing:-.04em}
+.reveal-title-card>small{font-size:9px;color:#e1c995}
+.rr09-timeline-frames{grid-template-columns:repeat(7,minmax(0,1fr))}
+.rr09-timeline-inspector .timeline-note{color:#8f7d59}
 .product-device.is-phone .scene-entry{display:grid;grid-template-columns:1fr;gap:20px;min-height:auto;padding:27px 0 24px}
 .product-device.is-phone .entry-copy{padding:0 1px}
 .product-device.is-phone .entry-title{font-size:29px;margin:15px 0 11px}
@@ -255,6 +266,11 @@ button[disabled]{opacity:.48;cursor:not-allowed}
 .product-device.is-phone .result-layout .photo-media,.product-device.is-phone .result-layout .photo-foreground{min-height:290px;max-height:390px}
 .product-device.is-phone .processing-photo .photo-media,.product-device.is-phone .processing-photo .photo-foreground{min-height:320px;max-height:450px}
 .product-device.is-phone .processing-head{margin-bottom:15px}
+.product-device.is-phone .scene-reveal{padding:22px 0 10px}
+.product-device.is-phone .reveal-photo .photo-media,.product-device.is-phone .reveal-photo .photo-foreground{min-height:320px;max-height:450px}
+.product-device.is-phone .reveal-title-card{right:10px;bottom:10px;min-width:150px;padding:11px 13px}
+.product-device.is-phone .reveal-title-card>strong{font-size:23px}
+.product-device.is-phone .rr09-timeline-frames{grid-template-columns:repeat(4,minmax(0,1fr))}
 .product-device.is-phone .processing-status{left:10px;bottom:10px;min-width:0;padding:10px}
 .product-device.is-phone .processing-status strong{font-size:10px}
 .product-device.is-phone .processing-status div>span{font-size:9px}
