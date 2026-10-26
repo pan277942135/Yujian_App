@@ -241,7 +241,10 @@ async function main(){
     for(const item of results)lines.push(`| ${item.id} | ${item.viewport.width}×${item.viewport.height} | ${item.viewport.fontScale}× | ${item.bounds.hero.w.toFixed(1)}×${item.bounds.hero.h.toFixed(1)} | ${item.heroRatio.toFixed(4)} | ${item.pager.peekGapLeft.toFixed(1)} / ${item.pager.neighborPreviousVisibleWidth.toFixed(1)}dp | ${item.pager.localScroll?"yes":"no"} | ${item.bounds.captureActionGroup.h.toFixed(1)}dp | ${item.status} |`);
     lines.push("",`Illustrative image failure probe: ${mediaGeometryStable?"PASS — layout bounds unchanged":"FAIL"}; ${failedMediaImages}/3 illustrative images failed as injected.`,`Workspace errors: ${errors.length}; HTTP errors: ${badResponses.length}.`,"","Screenshots are Chromium renderings of the Design Manager artboard. Frozen PNG comparisons are not used as a pass/fail threshold.");
     await writeFile(resolve(args.outputDir,"NH01_STRUCTURED_RESPONSIVE_LAYOUT_V2_REPORT.md"),lines.join("\n")+"\n");
-    if(summary.status!=="PASS")throw new Error(`Responsive matrix failed; see ${resolve(args.outputDir,"NH01_STRUCTURED_RESPONSIVE_LAYOUT_V2_REPORT.json")}`);
+    if(summary.status!=="PASS"){
+      console.error(JSON.stringify({NH01_STRUCTURED_RESPONSIVE_LAYOUT_V2_FAILURE:{source_sha:buildSha,browser:summary.browser,matrix:summary.matrix,failed_cases:results.filter(result=>result.status!=="PASS").map(result=>({id:result.id,viewport:result.viewport,failures:result.failures,bounds:result.bounds,intervals:result.intervals,pager:result.pager,heroRatio:result.heroRatio,heroTargetWidth:result.heroTargetWidth,layoutConflicts:result.layoutConflicts})),image_failure_probe:summary.image_failure_probe,errors,bad_responses:badResponses}}));
+      throw new Error(`Responsive matrix failed; see ${resolve(args.outputDir,"NH01_STRUCTURED_RESPONSIVE_LAYOUT_V2_REPORT.json")}`);
+    }
     console.log(`NH01_STRUCTURED_RESPONSIVE_LAYOUT_V2=${summary.status} source=${buildSha} cases=${summary.matrix.pass_count}/${summary.matrix.case_count} chromium=${browser.version()} output=${args.outputDir}`);
   }finally{await browser.close();if(server)server.close();}
 }

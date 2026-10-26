@@ -322,6 +322,15 @@ jobs:
             --dom-json "$RUNNER_TEMP/dm-build-browser/nh01-m04-dom-bounds.json" \
             --output-dir "$RUNNER_TEMP/dm-build-browser/nh01-visual-comparison/m04"
 
+      - name: Upload NH01 structured responsive matrix evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: NH01-Structured-Responsive-Matrix-${{ github.run_id }}-${{ github.event.pull_request.head.sha || github.sha }}
+          path: ${{ runner.temp }}/dm-build-browser/
+          if-no-files-found: warn
+          retention-days: 30
+
       - name: Serve and verify NH01 Acceptance Center
         shell: bash
         run: |
