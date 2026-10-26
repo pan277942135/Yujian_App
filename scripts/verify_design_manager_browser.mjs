@@ -1303,7 +1303,8 @@ async function main() {
   for(const [id,ms,intensity] of allWaterFrames){
     await fishtraceFrame.locator('[data-water-frame="'+id+'"]').click();
     const shownTime=await fishtraceFrame.locator("#water-current-time").innerText();
-    const shownIntensity=Number((await fishtraceFrame.locator("#water-debug-intensity").innerText()).replace("%",""));
+    const shownIntensityText=await fishtraceFrame.locator("#water-debug-intensity").innerText();
+    const shownIntensity=Number(shownIntensityText.match(/^\s*(\d+(?:\.\d+)?)%/)?.[1]);
     assert(shownTime===ms+" ms"&&shownIntensity===intensity,id+" must jump to its exact time and frozen baseline intensity");
     const actualLayerStrengths=JSON.parse(await fishtraceFrame.locator("#water-overlay").getAttribute("data-layer-strengths"));
     const expectedLayerStrengths=waterContract.timeline.frames.find(frame=>frame.id===id).layers;
