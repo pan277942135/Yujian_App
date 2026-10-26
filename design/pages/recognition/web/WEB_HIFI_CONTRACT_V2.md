@@ -1,5 +1,7 @@
 # AI 渔获识别 Web 全量高保真与工程合同 V2
 
+> **Scope clarification (2026-10-26):** This V2 contract continues to govern the separate Yujian Web product and PR #177. The existing FishTrace Sites project `appgprj_6a50a71561708191a6ea8c6194ce68d4` has its own user-frozen layout/interaction authority at [FishTrace Sites Web Visual & Interaction Contract V1](FISHTRACE_SITES_WEB_VISUAL_INTERACTION_CONTRACT_V1.md). For Sites, do not reuse V2's three-stage desktop workbench or persistent five-node strip. Shared SWOS/RR09 timing, photo continuity and Mask trust rules remain inherited; no Sites runtime PASS is implied.
+
 **ID** `YUJIAN_AI_CATCH_RECOGNITION_WEB_HIFI_V1` · **状态** `VISUAL_CONTRACT_DEFINED`（Main 已采纳的设计合同） · 用户认可的三阶段与水光方向 `USER_APPROVED_VISUAL_DIRECTION`；`MAIN_ADOPTED=YES (DESIGN_CONTRACT_ONLY)`；`PIXEL_FROZEN_SOURCE=FROZEN_PRIVATE_SHA_BOUND`；`RUNTIME_VISUAL_VERIFIED=NO`。#186/#187 合同内容由 PR #190 纳入 Main。G01–G18 表格仍是历史代码审查快照，不代表当前实现逐项已复核。当前跨仓库源快照：Web PR #177 HEAD `8edce561c3b6f25263eb32f1d72706fec4e329b1`，产品 main `738954105d545d9c354136b8b93f3562058fcf30`，49 ahead / 0 behind。精确 SHA CI [#40057399157](https://github.com/pan277942135/Yujian/actions/runs/40057399157) 通过定向验证、Chromium/UI simulation 和离线 SWOS probe 单测；不包含认证后的实时模型推理、真实 Mask、帧率或视觉验收。候选 Revision `yujian-model-factory-console-00349-hes` 仍绑定旧源 `6da640859f063d7f42ee5432e6b35ecb162802ff`；main workflow 已改为手动输入精确 target_sha，尚未对当前 HEAD 执行部署。此前探测因 401 登录缺失和 429 素材限流失败。PR #177 保持 Draft/Open/Unmerged。不得声称部署运行视觉 PASS 或生产 Mask 合格。机器文件在 `contracts/`，结构先行见 `WEB_HIFI_HANDOFF_A_V2.md`。
 
 ## SWOS Web 可播放动效工程权威

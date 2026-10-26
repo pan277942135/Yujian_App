@@ -131,6 +131,12 @@ shared_contracts:
     domain: "DOMAIN"
     status: "ACTIVE_CLOSURE"
     refs: ["design/pages/recognition/web/WEB_HIFI_CONTRACT_V2.md", "design/pages/recognition/web/contracts/Page_Structure_V2.json", "design/pages/recognition/web/WEB_HIFI_GAP_MATRIX_V2.md"]
+  FISHTRACE-SITES-WEB-INTERACTION-V1:
+    domain: "DOMAIN"
+    status: "FROZEN_CONTRACT_INPUT"
+    scope: "FishTrace Sites project appgprj_6a50a71561708191a6ea8c6194ce68d4 only; separate from Yujian Web PR #177"
+    runtime_status: "NOT_VERIFIED"
+    refs: ["design/pages/recognition/web/FISHTRACE_SITES_WEB_VISUAL_INTERACTION_CONTRACT_V1.md", "design/pages/recognition/web/contracts/FishTrace_Sites_Web_Interaction_V1.json", "design/pages/recognition/web/contracts/FishTrace_Sites_Web_Acceptance_V1.json"]
   SWOS-RR09-OPTICAL-V1_2:
     domain: "DOMAIN"
     status: "FROZEN_CONTRACT_INPUT"
@@ -412,6 +418,18 @@ feature_contracts:
         product_web_deployed: false
         note: "主视觉基准身份已按精确 SHA 冻结为私有基准；当前 PR #177 源码已完成定向 CI，但候选 Revision、真实照片推理、运行像素一致性与用户视觉 UAT 仍未验证。PR #177 保持 Draft/Open/Unmerged。"
 
+      fishtrace_sites_web_interaction_v1:
+        status: "DESIGN_ONLY"
+        authority_status: "USER_DECISIONS_FROZEN"
+        adoption_status: "MAIN_ADOPTED_DESIGN_ONLY"
+        target_sites_project_id: "appgprj_6a50a71561708191a6ea8c6194ce68d4"
+        target_url: "https://fishtrace-ai.pan277942135.chatgpt.site/"
+        contract: "design/pages/recognition/web/FISHTRACE_SITES_WEB_VISUAL_INTERACTION_CONTRACT_V1.md"
+        machine_contract: "design/pages/recognition/web/contracts/FishTrace_Sites_Web_Interaction_V1.json"
+        acceptance_matrix: "design/pages/recognition/web/contracts/FishTrace_Sites_Web_Acceptance_V1.json"
+        layout_scope: "Sites-specific immersive single scene; desktop photo-left/result-right; below-1024px photo-top/result-below"
+        supersedes_scope: "FishTrace Sites previous three-column workbench and persistent five-node strip only; does not alter Yujian Web V2 or PR #177"
+        runtime_visual_verified: false
       swos_rr09_optical_v1_2:
         status: "FROZEN_CONTRACT_INPUT"
         parameters_status: "CALIBRATION_CANDIDATE"
@@ -453,7 +471,7 @@ feature_contracts:
 
 
     shared_contract_refs: ["DS-FOUNDATION", "ANDROID-RUNTIME-HARNESS", "STATE-EVIDENCE-PROVENANCE"]
-    additional_shared_contract_refs: ["MODEL-RECOGNITION", "API-DATA-BOUNDARY", "RECOGNITION-OPTICAL-CONTINUITY", "SWOS-WEB-HIFI-MOTION-V1"]
+    additional_shared_contract_refs: ["MODEL-RECOGNITION", "API-DATA-BOUNDARY", "RECOGNITION-OPTICAL-CONTINUITY", "SWOS-WEB-HIFI-MOTION-V1", "FISHTRACE-SITES-WEB-INTERACTION-V1"]
     required_gate_classes: ["STATIC_CONTRACT", "BUILD", "RUNTIME", "VISUAL", "MOTION_ACCESSIBILITY", "JOURNEY_E2E", "APK_PROVENANCE"]
   recognition_result_v1:
     contract_id: "FC-recognition_result_v1"
@@ -1573,11 +1591,11 @@ gate_contracts:
     acceptance_domains: ["visual", "motion", "accessibility", "evidence"]
     exact_sha_required: true
   G-WEB-HIFI-CONTRACT:
-    purpose: "Web hi-fi V2 contracts and private visual registration; browser evidence required, no pixel/runtime promotion"
+    purpose: "Yujian Web V2 contract plus the separately scoped FishTrace Sites interaction contract; browser evidence required, no pixel/runtime promotion"
     visual_reference_policy: "design/governance/VISUAL_REFERENCE_CLOSURE_GATE_V1.md"
     visual_reference_validator: "scripts/verify_private_visual_references.py"
-    contract_refs: ["FC-recognition_flow_v1_2", "FC-recognition_result_v1", "WEB-RECOGNITION-HIFI-V2"]
-    acceptance_domains: ["visual", "motion", "asset", "evidence"]
+    contract_refs: ["FC-recognition_flow_v1_2", "FC-recognition_result_v1", "WEB-RECOGNITION-HIFI-V2", "FISHTRACE-SITES-WEB-INTERACTION-V1"]
+    acceptance_domains: ["visual", "motion", "interaction", "responsive", "asset", "evidence"]
     exact_sha_required: true
   G-SWOS-WEB-HIFI-MOTION-V1:
     purpose: "Exact-source Web SWOS playable motion, shared photo geometry, existing SAM experiment reuse, responsive and browser visual/performance evidence; heuristic mask quality alone cannot qualify production Mask"
@@ -1649,7 +1667,7 @@ task_contract_bindings:
     gate_id: "G-SWOS-PHASE0-CONTRACT"
     phase: "P3"
   P3-06:
-    contract_refs: ["FC-recognition_flow_v1_2", "FC-recognition_result_v1", "WEB-RECOGNITION-HIFI-V2", "G-WEB-HIFI-CONTRACT"]
+    contract_refs: ["FC-recognition_flow_v1_2", "FC-recognition_result_v1", "WEB-RECOGNITION-HIFI-V2", "FISHTRACE-SITES-WEB-INTERACTION-V1", "G-WEB-HIFI-CONTRACT"]
     gate_id: "G-WEB-HIFI-CONTRACT"
     phase: "P3"
   P3-07:
