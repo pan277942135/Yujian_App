@@ -1591,8 +1591,6 @@ async function main() {
     "design/manager/fishtrace_sites_web_workspace.css",
     "design/manager/fishtrace_sites_web_workspace.js",
     "design/pages/recognition/web/candidates/FISHTRACE_SWOS_CANVAS_WATER_LAB_V1_CANDIDATE.json",
-    "scripts/verify_design_manager_hifi_release.py",
-    "scripts/verify_design_manager_browser.mjs",
     "design/system/fish_media_display_v1/assets/real_catch_source.jpg"
   ];
   const sourceManifestFiles=[];
