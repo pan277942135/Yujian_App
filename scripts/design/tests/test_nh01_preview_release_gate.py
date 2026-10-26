@@ -87,10 +87,15 @@ class PreviewReleaseGateTests(unittest.TestCase):
         self.assertEqual(result["release_gate_effect"], "NONE")
         self.assertEqual(result["acceptance_status"], "NOT_CLAIMED")
 
-    def test_frozen_contract_requires_actual_nh01_preview_v2_pass(self):
+    def test_frozen_responsive_rules_do_not_require_media_acceptance_for_preview_publication(self):
         report, contract, manifest, html = fixture(contract_status="SPEC_FROZEN", p3_status="BLOCKED")
-        with self.assertRaises(GateError):
-            resolve_release_mode(report, contract, manifest, html, SHA)
+        result = gate.resolve_release_mode(report, contract, manifest, html, SHA)
+        self.assertTrue(result["publish"])
+        self.assertEqual(result["contract_status"], "SPEC_FROZEN")
+        self.assertEqual(result["nh01_preview_v2_status"], "BLOCKED")
+        self.assertEqual(result["preview_mode"], "PREVIEW_ONLY")
+        self.assertEqual(result["release_gate_effect"], "NONE")
+        self.assertEqual(result["acceptance_status"], "NOT_CLAIMED")
 
     def test_unknown_media_blocker_fails_closed(self):
         report, contract, manifest, html = fixture()
