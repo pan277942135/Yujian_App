@@ -1,0 +1,323 @@
+{
+  "template_id": "RESPONSIVE_PAGE_FREEZE_CHECKLIST_V1",
+  "template_version": "1.1",
+  "status": "TEMPLATE_NOT_A_PAGE_CONTRACT",
+  "purpose": "Reusable gate/evidence checklist for freezing and implementing any registered page's responsive contract.",
+  "lifecycle_status_values": [
+    "NOT_RUN",
+    "RUNNING",
+    "PASS",
+    "FAIL",
+    "BLOCKED",
+    "NOT_VERIFIED",
+    "NOT_APPLICABLE"
+  ],
+  "page": {
+    "page_id": "REPLACE_WITH_PAGE_ID",
+    "route": "REPLACE_WITH_EXISTING_ROUTE",
+    "implementation_entrypoints": [],
+    "included_states": [],
+    "excluded_states": [],
+    "contract_path": "REPLACE_WITH_PAGE_OWNED_MACHINE_CONTRACT",
+    "contract_version": "REPLACE_WITH_VERSION",
+    "exact_source_sha": null
+  },
+  "authority_audit": {
+    "global_standard_path": "design/system_v3/07_Responsive_System/Responsive_Layout_Standard_V1.md",
+    "shared_schema_path": "design/system_v3/07_Responsive_System/Responsive_Layout_Contract_Schema_V1.json",
+    "visual_master": {
+      "path": null,
+      "sha256": null
+    },
+    "visual_anchors": [],
+    "behavior_state_data_contracts": [],
+    "legacy_or_conflicting_authorities": [],
+    "conflict_decisions": [],
+    "result": "NOT_RUN",
+    "evidence": []
+  },
+  "gates": [
+    {
+      "id": "G0_ADMISSION_AND_SCOPE",
+      "required": true,
+      "result": "NOT_RUN",
+      "criteria": [
+        "canonical control plane read",
+        "Admission PASS",
+        "page scope and route fixed",
+        "durable checkpoint exists"
+      ],
+      "evidence": [],
+      "depends_on": []
+    },
+    {
+      "id": "G1_AUTHORITY_AND_PROVENANCE",
+      "required": true,
+      "result": "NOT_RUN",
+      "criteria": [
+        "all authority references resolve",
+        "visual anchor hashes verified",
+        "coordinate spaces distinguished",
+        "conflicts have recorded decisions"
+      ],
+      "evidence": [],
+      "depends_on": [
+        "G0_ADMISSION_AND_SCOPE"
+      ]
+    },
+    {
+      "id": "G2_CONTRACT_SCHEMA_AND_CONSTRAINTS",
+      "required": true,
+      "result": "NOT_RUN",
+      "criteria": [
+        "machine contract validates against applicable shared schema and page profile",
+        "single numeric authority",
+        "no viewport-keyed full-layout overrides",
+        "hard constraints are mutually consistent or explicitly blocked"
+      ],
+      "evidence": [],
+      "depends_on": [
+        "G1_AUTHORITY_AND_PROVENANCE"
+      ]
+    },
+    {
+      "id": "G3_EXISTING_PREVIEW_INTEGRATION",
+      "required": true,
+      "result": "NOT_RUN",
+      "criteria": [
+        "existing route reused",
+        "preview consumes exact machine contract",
+        "media failure does not alter geometry",
+        "contract/build identity is inspectable"
+      ],
+      "evidence": [],
+      "depends_on": [
+        "G2_CONTRACT_SCHEMA_AND_CONSTRAINTS"
+      ]
+    },
+    {
+      "id": "G4_BROWSER_GEOMETRY_MATRIX",
+      "required": true,
+      "result": "NOT_RUN",
+      "criteria": [
+        "all anchor viewports tested",
+        "interpolation viewports tested",
+        "threshold boundary probes tested",
+        "required font scales and states tested",
+        "bounds/text/overlap/touch/safe-area assertions pass"
+      ],
+      "evidence": [],
+      "depends_on": [
+        "G3_EXISTING_PREVIEW_INTEGRATION"
+      ]
+    },
+    {
+      "id": "G5_CANDIDATE_DEPLOY_AND_HUMAN_ACCEPTANCE",
+      "required": true,
+      "result": "NOT_RUN",
+      "criteria": [
+        "candidate HTTP 200",
+        "exact contract/source SHA match",
+        "resources and direct route verified",
+        "product owner records ACCEPT"
+      ],
+      "evidence": [],
+      "depends_on": [
+        "G4_BROWSER_GEOMETRY_MATRIX"
+      ]
+    },
+    {
+      "id": "G6_CANONICAL_FREEZE",
+      "required": true,
+      "result": "NOT_RUN",
+      "criteria": [
+        "contract status SPEC_FROZEN",
+        "all registries and gate bindings synchronized",
+        "required exact-HEAD gates PASS",
+        "Main merge SHA recorded"
+      ],
+      "evidence": [],
+      "depends_on": [
+        "G5_CANDIDATE_DEPLOY_AND_HUMAN_ACCEPTANCE"
+      ]
+    },
+    {
+      "id": "G7_NATIVE_IMPLEMENTATION",
+      "required": true,
+      "result": "NOT_RUN",
+      "criteria": [
+        "existing native page/route reused",
+        "same contract consumed",
+        "no duplicate responsive numeric authority",
+        "unit/static checks pass"
+      ],
+      "evidence": [],
+      "depends_on": [
+        "G6_CANONICAL_FREEZE"
+      ]
+    },
+    {
+      "id": "G8_NATIVE_RUNTIME_ACCEPTANCE",
+      "required": true,
+      "result": "NOT_VERIFIED",
+      "criteria": [
+        "exact-SHA build identity",
+        "real device or reproducible emulator evidence",
+        "native viewport/font/state/boundary matrix",
+        "measured geometry and screenshot/log artifacts",
+        "APK hash if an APK is delivered"
+      ],
+      "evidence": [],
+      "depends_on": [
+        "G7_NATIVE_IMPLEMENTATION"
+      ]
+    }
+  ],
+  "test_matrix": {
+    "anchor_viewports": [],
+    "interpolation_viewports": [],
+    "threshold_boundary_probes": [],
+    "font_scales": [
+      1,
+      1.3,
+      1.5
+    ],
+    "required_states": [],
+    "page_specific_assertions": [],
+    "generic_assertions": [
+      "insets consumed once",
+      "no required content clipped or fabricated",
+      "touch targets remain safe and non-overlapping",
+      "exact source SHA attached to every PASS",
+      "preview/build/runtime evidence kept separate"
+    ]
+  },
+  "evidence_record_template": {
+    "page_id": "REPLACE_WITH_PAGE_ID",
+    "contract_version": "REPLACE_WITH_VERSION",
+    "source_sha": null,
+    "workflow_or_command": null,
+    "run_id": null,
+    "result": "NOT_RUN",
+    "report_url": null,
+    "artifact_urls": [],
+    "failure_root_cause": null,
+    "next_action": null
+  },
+  "freeze_rules": {
+    "pass_requires_exact_source_sha": true,
+    "candidate_deployment_is_not_production_release": true,
+    "browser_pass_is_not_native_runtime_pass": true,
+    "build_pass_is_not_runtime_pass": true,
+    "human_visual_acceptance_required": true,
+    "generic_validator_batch_ready": false,
+    "batch_ready_blocker": "W1 must deliver a generic contract envelope/profile validator and W2 must deliver page-owned resource bindings; this template alone does not implement either.",
+    "validator_fail_closed": true,
+    "required_gate_sequence": [
+      "G0_ADMISSION_AND_SCOPE",
+      "G1_AUTHORITY_AND_PROVENANCE",
+      "G2_CONTRACT_SCHEMA_AND_CONSTRAINTS",
+      "G3_EXISTING_PREVIEW_INTEGRATION",
+      "G4_BROWSER_GEOMETRY_MATRIX",
+      "G5_CANDIDATE_DEPLOY_AND_HUMAN_ACCEPTANCE",
+      "G6_CANONICAL_FREEZE",
+      "G7_NATIVE_IMPLEMENTATION",
+      "G8_NATIVE_RUNTIME_ACCEPTANCE"
+    ],
+    "canonical_freeze_does_not_imply_native_runtime_acceptance": true
+  },
+  "product_owner_acceptance": {
+    "decision": "NOT_REVIEWED",
+    "reviewer": null,
+    "reviewed_at": null,
+    "notes": null,
+    "source_sha": null,
+    "evidence_url": null
+  },
+  "canonical_freeze": {
+    "status": "NOT_FROZEN",
+    "main_sha": null,
+    "merge_commit_sha": null
+  },
+  "native_runtime": {
+    "status": "NOT_VERIFIED",
+    "source_sha": null,
+    "build_run_id": null,
+    "apk_sha256": null,
+    "artifact_url": null
+  },
+  "validation_tool": {
+    "path": "scripts/design/validate_responsive_page_freeze_checklist.py",
+    "template_command": "python scripts/design/validate_responsive_page_freeze_checklist.py --checklist <checklist.json> --mode template",
+    "freeze_command": "python scripts/design/validate_responsive_page_freeze_checklist.py --checklist <checklist.json> --mode freeze",
+    "runtime_command": "python scripts/design/validate_responsive_page_freeze_checklist.py --checklist <checklist.json> --mode runtime",
+    "scope_note": "Validates checklist and evidence completeness only; page geometry and contract conformance remain page-specific."
+  },
+  "status_semantics": {
+    "template_status": "TEMPLATE_NOT_A_PAGE_CONTRACT",
+    "gate_result_values": [
+      "NOT_RUN",
+      "RUNNING",
+      "PASS",
+      "FAIL",
+      "BLOCKED",
+      "NOT_VERIFIED",
+      "NOT_APPLICABLE"
+    ],
+    "rule": "Only PASS with matching exact-SHA evidence closes a gate. NOT_RUN, RUNNING, FAIL, BLOCKED, NOT_VERIFIED, and NOT_APPLICABLE are not PASS. G6 canonical freeze never implies G7/G8 native completion."
+  },
+  "execution_order": [
+    {
+      "id": "G0_ADMISSION_AND_SCOPE",
+      "depends_on": []
+    },
+    {
+      "id": "G1_AUTHORITY_AND_PROVENANCE",
+      "depends_on": [
+        "G0_ADMISSION_AND_SCOPE"
+      ]
+    },
+    {
+      "id": "G2_CONTRACT_SCHEMA_AND_CONSTRAINTS",
+      "depends_on": [
+        "G1_AUTHORITY_AND_PROVENANCE"
+      ]
+    },
+    {
+      "id": "G3_EXISTING_PREVIEW_INTEGRATION",
+      "depends_on": [
+        "G2_CONTRACT_SCHEMA_AND_CONSTRAINTS"
+      ]
+    },
+    {
+      "id": "G4_BROWSER_GEOMETRY_MATRIX",
+      "depends_on": [
+        "G3_EXISTING_PREVIEW_INTEGRATION"
+      ]
+    },
+    {
+      "id": "G5_CANDIDATE_DEPLOY_AND_HUMAN_ACCEPTANCE",
+      "depends_on": [
+        "G4_BROWSER_GEOMETRY_MATRIX"
+      ]
+    },
+    {
+      "id": "G6_CANONICAL_FREEZE",
+      "depends_on": [
+        "G5_CANDIDATE_DEPLOY_AND_HUMAN_ACCEPTANCE"
+      ]
+    },
+    {
+      "id": "G7_NATIVE_IMPLEMENTATION",
+      "depends_on": [
+        "G6_CANONICAL_FREEZE"
+      ]
+    },
+    {
+      "id": "G8_NATIVE_RUNTIME_ACCEPTANCE",
+      "depends_on": [
+        "G7_NATIVE_IMPLEMENTATION"
+      ]
+    }
+  ]
+}

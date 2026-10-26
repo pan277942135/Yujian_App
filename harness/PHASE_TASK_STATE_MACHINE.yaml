@@ -1034,6 +1034,161 @@ tasks:
     completion: "Approved P01/P02/P03 Frozen PNGs remain at their registered paths and are exposed by the Design Manager Resources route with original-file links; Design Governance must pass before task closure."
     human_required: false
 
+  YUJIAN_PAGE_FREEZE_PIPELINE_W0_GOVERNANCE_V1:
+    phase: "P3"
+    priority: "P0"
+    owner: "Work"
+    feature_refs: []
+    journey_refs: []
+    depends_on: []
+    entry_blockers: []
+    target_blockers: []
+    gate_id: "G-PAGE-FREEZE-PIPELINE-W0-GOVERNANCE"
+    evidence_required: ["reuse_inventory_v1", "exact_head_admission_run_id", "control_plane_and_schema_report", "governance_run_id", "related_ci_run_ids", "merge_commit_sha"]
+    completion: "Register and verify the cross-page W0 governance baseline, reuse boundaries and W1-W6 static topology; registration does not assert that any W1-W6 implementation is complete."
+    human_required: false
+    workstream_id: "PAGE_FREEZE_PIPELINE_V1"
+    execution_scope: "CROSS_PAGE_DESIGN_TOOLING"
+    phase_rollup: false
+    release_blocking: false
+    android_release_blocking: false
+    issue_ref: "https://github.com/pan277942135/Yujian_App/issues/219"
+  YUJIAN_PAGE_FREEZE_PIPELINE_W1_CONTRACT_SCHEMA_V1:
+    phase: "P3"
+    priority: "P0"
+    owner: "Work"
+    feature_refs: []
+    journey_refs: []
+    depends_on: ["YUJIAN_PAGE_FREEZE_PIPELINE_W0_GOVERNANCE_V1"]
+    entry_blockers: []
+    target_blockers: []
+    gate_id: "G-PAGE-FREEZE-PIPELINE-W1-CONTRACT"
+    evidence_required: ["generic_contract_envelope_schema", "page_conformance_profile_schema", "validator_interface", "schema_tests", "exact_source_sha", "admission_run_id"]
+    completion: "Deliver the generic contract envelope, page-owned conformance profile and validator boundary without making NH01-only fields universally required."
+    human_required: false
+    workstream_id: "PAGE_FREEZE_PIPELINE_V1"
+    execution_scope: "CROSS_PAGE_DESIGN_TOOLING"
+    phase_rollup: false
+    release_blocking: false
+    android_release_blocking: false
+    issue_ref: "https://github.com/pan277942135/Yujian_App/issues/220"
+  YUJIAN_PAGE_FREEZE_PIPELINE_W2_ASSET_BINDING_V1:
+    phase: "P3"
+    priority: "P0"
+    owner: "Work"
+    feature_refs: []
+    journey_refs: []
+    depends_on: ["YUJIAN_PAGE_FREEZE_PIPELINE_W0_GOVERNANCE_V1"]
+    entry_blockers: []
+    target_blockers: []
+    gate_id: "G-PAGE-FREEZE-PIPELINE-W2-RESOURCES"
+    evidence_required: ["page_resource_binding_schema", "asset_provenance_and_sha_validation", "publication_permission_rules", "schema_tests", "exact_source_sha", "admission_run_id"]
+    completion: "Deliver page-owned resource binding, provenance, integrity and publication-permission interfaces without changing or publishing frozen private assets."
+    human_required: false
+    workstream_id: "PAGE_FREEZE_PIPELINE_V1"
+    execution_scope: "CROSS_PAGE_DESIGN_TOOLING"
+    phase_rollup: false
+    release_blocking: false
+    android_release_blocking: false
+    issue_ref: "https://github.com/pan277942135/Yujian_App/issues/221"
+  YUJIAN_PAGE_FREEZE_PIPELINE_W3_DESIGN_MANAGER_ADAPTER_V1:
+    phase: "P3"
+    priority: "P0"
+    owner: "Work"
+    feature_refs: []
+    journey_refs: []
+    depends_on: ["YUJIAN_PAGE_FREEZE_PIPELINE_W1_CONTRACT_SCHEMA_V1", "YUJIAN_PAGE_FREEZE_PIPELINE_W2_ASSET_BINDING_V1"]
+    entry_blockers: []
+    target_blockers: []
+    gate_id: "G-PAGE-FREEZE-PIPELINE-W3-WORKSPACE"
+    evidence_required: ["page_workspace_adapter_interface", "component_tree_and_inspector_boundary", "responsive_diagnostics", "design_manager_pages_run_id", "exact_source_sha"]
+    completion: "Connect page-owned renderers through the existing Design Manager shell and adapter interface; no second manager or parallel site."
+    human_required: false
+    workstream_id: "PAGE_FREEZE_PIPELINE_V1"
+    execution_scope: "CROSS_PAGE_DESIGN_TOOLING"
+    phase_rollup: false
+    release_blocking: false
+    android_release_blocking: false
+    issue_ref: "https://github.com/pan277942135/Yujian_App/issues/222"
+  YUJIAN_PAGE_FREEZE_PIPELINE_W4_TEST_EVIDENCE_V1:
+    phase: "P3"
+    priority: "P0"
+    owner: "Work"
+    feature_refs: []
+    journey_refs: []
+    depends_on: ["YUJIAN_PAGE_FREEZE_PIPELINE_W1_CONTRACT_SCHEMA_V1", "YUJIAN_PAGE_FREEZE_PIPELINE_W2_ASSET_BINDING_V1"]
+    entry_blockers: []
+    target_blockers: []
+    gate_id: "G-PAGE-FREEZE-PIPELINE-W4-TEST-EVIDENCE"
+    evidence_required: ["page_test_matrix", "generic_runner_result", "visual_diagnostic", "evidence_manifest", "run_id_and_exact_sha", "validator_tests"]
+    completion: "Deliver a generic test/evidence interface while retaining NH01 browser, geometry and visual checks as page-specific adapters."
+    human_required: false
+    workstream_id: "PAGE_FREEZE_PIPELINE_V1"
+    execution_scope: "CROSS_PAGE_DESIGN_TOOLING"
+    phase_rollup: false
+    release_blocking: false
+    android_release_blocking: false
+    issue_ref: "https://github.com/pan277942135/Yujian_App/issues/223"
+  YUJIAN_PAGE_FREEZE_PIPELINE_W5_EMPTY_HOME_PILOT_V1:
+    phase: "P3"
+    priority: "P0"
+    owner: "Work"
+    feature_refs: []
+    journey_refs: []
+    depends_on: ["YUJIAN_PAGE_FREEZE_PIPELINE_W3_DESIGN_MANAGER_ADAPTER_V1", "YUJIAN_PAGE_FREEZE_PIPELINE_W4_TEST_EVIDENCE_V1"]
+    entry_blockers: []
+    target_blockers: []
+    gate_id: "G-PAGE-FREEZE-PIPELINE-W5-EMPTY-HOME-PILOT"
+    evidence_required: ["empty_home_page_adapter", "independent_matrix", "asset_binding_evidence", "human_acceptance", "exact_source_sha"]
+    completion: "Pilot the generic page pipeline on empty home after W3 and W4; keep product feature and Android release status independent."
+    human_required: true
+    workstream_id: "PAGE_FREEZE_PIPELINE_V1"
+    execution_scope: "CROSS_PAGE_DESIGN_TOOLING"
+    phase_rollup: false
+    release_blocking: false
+    android_release_blocking: false
+    issue_ref: "https://github.com/pan277942135/Yujian_App/issues/224"
+  YUJIAN_PAGE_FREEZE_PIPELINE_W6_LOGIN_PILOT_AND_ACCEPTANCE_V1:
+    phase: "P3"
+    priority: "P0"
+    owner: "Work"
+    feature_refs: []
+    journey_refs: []
+    depends_on: ["YUJIAN_PAGE_FREEZE_PIPELINE_W5_EMPTY_HOME_PILOT_V1"]
+    entry_blockers: []
+    target_blockers: []
+    gate_id: "G-PAGE-FREEZE-PIPELINE-W6-LOGIN-PILOT"
+    evidence_required: ["login_page_adapter", "independent_matrix", "asset_binding_evidence", "human_acceptance", "exact_source_sha"]
+    completion: "Pilot and accept login after W5 with independent page evidence; do not promote Android runtime or release state without its own gates."
+    human_required: true
+    workstream_id: "PAGE_FREEZE_PIPELINE_V1"
+    execution_scope: "CROSS_PAGE_DESIGN_TOOLING"
+    phase_rollup: false
+    release_blocking: false
+    android_release_blocking: false
+    issue_ref: "https://github.com/pan277942135/Yujian_App/issues/225"
+
+workstreams:
+  PAGE_FREEZE_PIPELINE_V1:
+    purpose: "Cross-page responsive specification freeze and delivery verification; design tooling only."
+    task_ids: ["YUJIAN_PAGE_FREEZE_PIPELINE_W0_GOVERNANCE_V1", "YUJIAN_PAGE_FREEZE_PIPELINE_W1_CONTRACT_SCHEMA_V1", "YUJIAN_PAGE_FREEZE_PIPELINE_W2_ASSET_BINDING_V1", "YUJIAN_PAGE_FREEZE_PIPELINE_W3_DESIGN_MANAGER_ADAPTER_V1", "YUJIAN_PAGE_FREEZE_PIPELINE_W4_TEST_EVIDENCE_V1", "YUJIAN_PAGE_FREEZE_PIPELINE_W5_EMPTY_HOME_PILOT_V1", "YUJIAN_PAGE_FREEZE_PIPELINE_W6_LOGIN_PILOT_AND_ACCEPTANCE_V1"]
+    static_dependencies:
+      YUJIAN_PAGE_FREEZE_PIPELINE_W0_GOVERNANCE_V1: []
+      YUJIAN_PAGE_FREEZE_PIPELINE_W1_CONTRACT_SCHEMA_V1: ["YUJIAN_PAGE_FREEZE_PIPELINE_W0_GOVERNANCE_V1"]
+      YUJIAN_PAGE_FREEZE_PIPELINE_W2_ASSET_BINDING_V1: ["YUJIAN_PAGE_FREEZE_PIPELINE_W0_GOVERNANCE_V1"]
+      YUJIAN_PAGE_FREEZE_PIPELINE_W3_DESIGN_MANAGER_ADAPTER_V1: ["YUJIAN_PAGE_FREEZE_PIPELINE_W1_CONTRACT_SCHEMA_V1", "YUJIAN_PAGE_FREEZE_PIPELINE_W2_ASSET_BINDING_V1"]
+      YUJIAN_PAGE_FREEZE_PIPELINE_W4_TEST_EVIDENCE_V1: ["YUJIAN_PAGE_FREEZE_PIPELINE_W1_CONTRACT_SCHEMA_V1", "YUJIAN_PAGE_FREEZE_PIPELINE_W2_ASSET_BINDING_V1"]
+      YUJIAN_PAGE_FREEZE_PIPELINE_W5_EMPTY_HOME_PILOT_V1: ["YUJIAN_PAGE_FREEZE_PIPELINE_W3_DESIGN_MANAGER_ADAPTER_V1", "YUJIAN_PAGE_FREEZE_PIPELINE_W4_TEST_EVIDENCE_V1"]
+      YUJIAN_PAGE_FREEZE_PIPELINE_W6_LOGIN_PILOT_AND_ACCEPTANCE_V1: ["YUJIAN_PAGE_FREEZE_PIPELINE_W5_EMPTY_HOME_PILOT_V1"]
+    phase_classification: "P3_CROSS_PAGE_DESIGN_TOOLING"
+    phase_rollup: false
+    feature_refs: []
+    journey_refs: []
+    included_in_n001_n010_queue: false
+    release_blocking: false
+    android_release_blocking: false
+    recovery_policy_ref: "PHASE_TASK_STATE_MACHINE.yaml:recovery"
+
 feature_task_coverage:
   required_feature_count: 15
   covered_feature_ids:
