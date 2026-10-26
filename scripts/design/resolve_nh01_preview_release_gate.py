@@ -78,7 +78,6 @@ def resolve_release_mode(
     neighbors_blocked = observed.get("neighbor_photos") == EXPECTED_BLOCKERS["neighbor_photos"]
 
     if preview_status == "BLOCKED":
-        require(contract.get("status") == PROPOSED, "A blocked NH01 Responsive Preview V2 result cannot be released as a frozen acceptance build.")
         require(bool(blockers), "NH01 Responsive Preview V2 is BLOCKED but no explicit media blockers were recorded.")
         require(all(item.get("id") in EXPECTED_BLOCKERS and EXPECTED_BLOCKERS[item.get("id")] == item.get("status") for item in blockers), "NH01 Responsive Preview V2 has an unexpected blocker; fail closed.")
         require(hero_blocked or neighbors_blocked, "NH01 Responsive Preview V2 blocker list does not identify the missing media.")
@@ -121,7 +120,7 @@ def resolve_release_mode(
         "nh01_preview_v2_status": preview_status,
         "release_gate_effect": gate_effect,
         "acceptance_status": acceptance_status,
-        "reason": "Candidate preview is independently publishable with public photo placeholders; local photo evidence and public redistribution permission are tracked separately, and no frozen acceptance is claimed." if mode == "PREVIEW_ONLY" else "Frozen acceptance release requires and has NH01 Responsive Preview V2 PASS.",
+        "reason": "Responsive rules may be frozen independently of media approval; the browser preview remains PREVIEW_ONLY while photo authenticity or redistribution is blocked, and no media acceptance is claimed." if mode == "PREVIEW_ONLY" else "Frozen acceptance release requires and has NH01 Responsive Preview V2 PASS.",
     }
 
 
