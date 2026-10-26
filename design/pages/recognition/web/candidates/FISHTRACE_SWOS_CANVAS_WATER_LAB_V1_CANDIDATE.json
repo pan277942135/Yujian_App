@@ -1,7 +1,7 @@
 {
   "contract_id": "FISHTRACE_SWOS_CANVAS_WATER_LAB_V1_CANDIDATE",
   "task_id": "FISHTRACE_SWOS_CANVAS_WATER_LAB_VISUAL_FIDELITY_REPAIR_V2",
-  "contract_version": "CANDIDATE_V3",
+  "contract_version": "CANDIDATE_V4",
   "status": "CANDIDATE_NOT_VISUALLY_APPROVED",
   "purpose": "Phase 1 independent Canvas 2D water-light direction, motion, strength and exit review",
   "authority": "Candidate implementation baseline; frozen SWOS timing is reused and unchanged. Candidate optical values require product owner visual review.",
@@ -301,8 +301,8 @@
     "image_dpr": "devicePixelRatio",
     "water_region_clip": "source-native polygon path plus precomputed blurred-inward alpha mask; clip is rebuilt from the shared object-fit:contain content rectangle on resize",
     "texture_generation": "A deterministic seeded set of smoothly deforming, horizontally flowing curvilinear caustic ribbons is precomputed per source-native water polygon. Ribbon centerlines, local width, color and motion are evaluated from elapsed time; no frame-local random geometry or polygon-cell mesh is used.",
-    "ambient_alpha": 0.18,
-    "ambient_bloom_alpha": 0.09,
+    "ambient_alpha": 0.22,
+    "ambient_bloom_alpha": 0.11,
     "ambient_colors": [
       "rgba(150,181,143,.72)",
       "rgba(171,203,169,.72)",
@@ -319,13 +319,13 @@
       "#b9d8c8",
       "#e0e3c6"
     ],
-    "refraction_alpha": 0.13,
+    "refraction_alpha": 0.17,
     "refraction_colors": [
       "#e6e6c8",
       "#cfe4d1",
       "#e6ebd4"
     ],
-    "max_layer_alpha": 0.24,
+    "max_layer_alpha": 0.34,
     "diagnostics": {
       "previous_v1_root_cause": "Irregular soft patches were distributed across the full photo coordinate rectangle; no water-region polygon restricted the overlay.",
       "v2_change": "Replace full-photo blobs with a water-region-clipped ambient field, shared-edge organic caustic mesh and sparse refraction curves. Keep the frozen timeline unchanged.",
@@ -365,6 +365,12 @@
           "before": "Per-ribbon blur filtering on 28–31 broad bands, with 10-segment curves.",
           "after": "20–21 source-native ribbons for the fixed polygons, eight curve segments, gradient-softened edges without per-ribbon blur filters.",
           "reason": "Chromium playback profiling showed the initial ribbon composite missed the minimum sample rate; remove repeated filter passes and reduce path work while retaining enough spatial coverage for the measured visibility gates."
+        },
+        {
+          "parameter": "live_composite_visibility_calibration",
+          "before": "ambient_alpha 0.18; ambient_bloom_alpha 0.09; refraction_alpha 0.13; max_layer_alpha 0.24; caustic_ribbon_alpha 0.74; ribbon edge/core alpha 0.25/0.62; refraction width 1.45 source px",
+          "after": "ambient_alpha 0.22; ambient_bloom_alpha 0.11; refraction_alpha 0.17; max_layer_alpha 0.34; caustic_ribbon_alpha 0.90; ribbon edge/core alpha 0.32/0.80; refraction width 1.7 source px",
+          "reason": "Live exact-SHA P0/P3 browser screenshots showed that pixel metrics and the difference map passed while the caustic peak remained too subdued at normal display size. Increase the water-only ribbon contrast and restrained refraction highlights; keep color family, geometry, motion, polygon clipping and frozen P0-P7 timings unchanged. Recheck the composited screenshot for naturalness and overexposure."
         }
       ],
       "p2_visibility_baseline_mean_rgb_abs_diff_min_255": 3,
@@ -375,7 +381,8 @@
       "p3_to_p5_mean_diff_must_decrease": true,
       "p5_to_p6_mean_diff_must_decrease": true,
       "p2_to_p3_spatial_map_change_required": true,
-      "v3_change": "Replace the visible polygon-cell mosaic and grid-aligned edge highlights with a deterministic curved ribbon field: soft cross-ribbon alpha gradients create face-like caustics without per-ribbon blur filters; a few aligned low-alpha centerline glints form layer C. The water-only mask and P0–P7 timeline are unchanged."
+      "v3_change": "Replace the visible polygon-cell mosaic and grid-aligned edge highlights with a deterministic curved ribbon field: soft cross-ribbon alpha gradients create face-like caustics without per-ribbon blur filters; a few aligned low-alpha centerline glints form layer C. The water-only mask and P0–P7 timeline are unchanged.",
+      "v4_change": "Calibrate water-only mid-stage composite visibility after reviewing paired live P0/P3 screenshots at the normal 1440x1000 browser viewport. Only rendering-layer alpha and refraction width changed; topology, water geometry, elapsed-time motion, original image and frozen timeline remain unchanged."
     },
     "ribbon_spacing_source_px": 78,
     "ribbon_min_count": 7,
@@ -396,17 +403,17 @@
     "ribbon_shape_variation_fraction": 0.12,
     "ribbon_expansion_fraction": 0.34,
     "ribbon_recollection_fraction": 0.15,
-    "caustic_ribbon_alpha": 0.74,
-    "ribbon_edge_alpha": 0.25,
-    "ribbon_core_alpha": 0.62,
+    "caustic_ribbon_alpha": 0.9,
+    "ribbon_edge_alpha": 0.32,
+    "ribbon_core_alpha": 0.8,
     "highlight_ribbon_weight_threshold": 0.86,
-    "refraction_width_source_px": 1.45
+    "refraction_width_source_px": 1.7
   },
   "visual_acceptance": {
     "state": "NOT_YET_VISUALLY_SIGNED_OFF",
     "review_required": true,
     "product_owner_visual_signoff_required": true,
-    "candidate_parameter_changes": "No visual freeze is claimed in this version. The original frame times and baseline intensity values are preserved; renderer parameters remain candidate values until visual review.",
+    "candidate_parameter_changes": "CANDIDATE_V4 optical coefficients are provisional; original P0-P7 frame times and baseline intensity values are preserved. Recalibration addresses low live-screen perceptibility. Product owner must still visually approve the rendered naturalness, intensity, expansion and exit before freeze.",
     "browser_evidence_required": [
       "P0-P7 composited screenshots",
       "source-native water-region debug overlay",
