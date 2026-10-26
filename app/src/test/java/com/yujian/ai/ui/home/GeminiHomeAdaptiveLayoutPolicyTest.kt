@@ -1,6 +1,7 @@
 package com.yujian.ai.ui.home
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertThrows
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -83,6 +84,24 @@ class GeminiHomeAdaptiveLayoutPolicyTest {
         assertEquals(168f, geminiHomeResolvedCardHeight(320f, 110f, 168f), 0.001f)
         assertEquals(250f, geminiHomeResolvedCardHeight(320f, 250f, 168f), 0.001f)
         assertEquals(168f, geminiHomeResolvedCardHeight(190f, 110f, 168f), 0.001f)
+    }
+
+    @Test
+    fun frozenFoundationV11AllocatesPositiveInterBandSurplusEqually() {
+        listOf(
+            Triple(0f, 0f, 0f),
+            Triple(90f, 45f, 45f),
+            Triple(101f, 50.5f, 50.5f),
+        ).forEach { (surplus, expectedAToB, expectedBToC) ->
+            val result = geminiHomeAllocateInterBandSurplus(surplus)
+            assertEquals("A→B share for S=$surplus dp", expectedAToB, result.aToB, 0.001f)
+            assertEquals("B→C share for S=$surplus dp", expectedBToC, result.bToC, 0.001f)
+            assertEquals("the shares conserve S=$surplus dp", surplus, result.aToB + result.bToC, 0.001f)
+            assertEquals("the additional shares are equal for S=$surplus dp", result.aToB, result.bToC, 0.001f)
+        }
+        assertThrows(IllegalArgumentException::class.java) {
+            geminiHomeAllocateInterBandSurplus(-0.001f)
+        }
     }
 
     @Test
