@@ -240,7 +240,7 @@ button[disabled]{opacity:.48;cursor:not-allowed}
 .reveal-photo .photo-media{min-height:480px;background:#e8efeb}
 .reveal-photo .photo-foreground{min-height:480px;max-height:570px;background:rgba(247,250,248,.38)}
 .reveal-photo .photo-backdrop{opacity:.3;filter:blur(20px) saturate(.6)}
-.reveal-species-title{opacity:var(--reveal-title-opacity,0);transform:translateY(var(--reveal-title-offset,10px));transition:none;will-change:opacity,transform}.reveal-summary .reveal-detail{opacity:var(--reveal-details-opacity,0);visibility:var(--reveal-details-visibility,hidden);transition:none}.reveal-summary .result-actions{grid-template-columns:1fr}
+.reveal-species-title{opacity:var(--reveal-title-opacity,0);transform:translateY(var(--reveal-title-offset,10px));transition:none;will-change:opacity,transform}.reveal-summary .reveal-detail{opacity:var(--reveal-details-opacity,0);visibility:var(--reveal-details-visibility,hidden);transition:none}
 /* The fallback name is revealed in the result summary, not over a fabricated fish contour. */
 /* result title sizing is inherited from .species-title */
 /* no extra reveal badge on the photo */

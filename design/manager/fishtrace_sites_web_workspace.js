@@ -274,7 +274,7 @@
       summary.style.setProperty('--reveal-details-visibility', sampleTime >= 850 ? 'visible' : 'hidden');
     }
     const resultStatus = $('#reveal-result-status');
-    if (resultStatus) resultStatus.textContent = sampleTime < 680 ? '识别结果正在揭晓' : '识别结果已揭晓 · 样例';
+    if (resultStatus) resultStatus.textContent = sampleTime < 680 ? '识别结果正在揭晓' : '识别完成';
     const statusTitle = $('#rr09-status-title');
     const statusCopy = $('#rr09-status-copy');
     if (statusTitle) statusTitle.textContent = frame.label;

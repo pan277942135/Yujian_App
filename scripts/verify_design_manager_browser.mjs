@@ -1055,6 +1055,8 @@ async function main() {
   const revealTitleOpacity = await fishtraceFrame.locator("#reveal-species-title").evaluate(node => getComputedStyle(node).opacity);
   assert(Number(revealTitleOpacity) > 0.7, "RR09 R4 should reveal the Chinese title fallback");
   await page.screenshot({ path: resolve(args.outputDir, "fishtrace-sites-web-hifi-reveal.png"), fullPage: true });
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  assert(!(await fishtraceFrame.locator("body").evaluate(() => window.matchMedia("(prefers-reduced-motion: reduce)").matches)), "Full-motion acceptance must run with reduced motion disabled");
   await fishtraceFrame.locator('.state-tab[data-state="preview"]').click();
   await fishtraceFrame.locator('[data-scene="preview"] [data-action="recognize"]').click();
   await fishtraceFrame.locator('#photo-transition-overlay').waitFor({ state: 'visible', timeout: 4000 });
