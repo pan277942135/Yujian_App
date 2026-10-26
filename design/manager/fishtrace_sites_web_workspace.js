@@ -12,22 +12,22 @@
     'error':'07 · 异常恢复'
   };
   const frames = [
-    {id:'P0',ms:0,water:0,gold:0,label:'照片进入 · 原始光场'},
+    {id:'P0',ms:0,water:0,gold:0,label:'原图进入 · 光场归零'},
     {id:'P1',ms:350,water:10,gold:0,label:'晨光出现'},
-    {id:'P2',ms:950,water:45,gold:15,label:'面状焦散'},
-    {id:'P3',ms:1200,water:75,gold:45,label:'光场聚焦候选'},
-    {id:'P4',ms:1550,water:60,gold:100,label:'金光峰值候选'},
-    {id:'P5',ms:2050,water:35,gold:100,label:'稳定阶段'},
-    {id:'P6',ms:2600,water:10,gold:100,label:'外围退场'},
-    {id:'P7',ms:2800,water:0,gold:100,label:'外围归零'}
+    {id:'P2',ms:950,water:45,gold:15,label:'面状焦散扩散'},
+    {id:'P3',ms:1200,water:75,gold:45,label:'水光向上扩散'},
+    {id:'P4',ms:1550,water:60,gold:100,label:'金光目标峰值 · Mask NONE'},
+    {id:'P5',ms:2050,water:35,gold:100,label:'外围水光回落 · 鱼体描光关闭'},
+    {id:'P6',ms:2600,water:10,gold:100,label:'外围水光退场'},
+    {id:'P7',ms:2800,water:0,gold:100,label:'外围水光归零'}
   ];
   const rr09Frames = [
-    {id:'R0',ms:0,globalMs:2800,titleOpacity:0,offset:12,label:'光场接续'},
-    {id:'R0.5',ms:100,globalMs:2900,titleOpacity:0,offset:12,label:'几何中点'},
-    {id:'R1',ms:200,globalMs:3000,titleOpacity:0.05,offset:10,label:'结果位置落定'},
-    {id:'R2',ms:380,globalMs:3180,titleOpacity:0.12,offset:8,label:'名称承接'},
-    {id:'R3',ms:550,globalMs:3350,titleOpacity:0.35,offset:5,label:'中文名称凝结'},
-    {id:'R4',ms:680,globalMs:3480,titleOpacity:0.8,offset:2,label:'中文名称揭晓'},
+    {id:'R0',ms:0,globalMs:2800,titleOpacity:0,offset:12,label:'原图接续'},
+    {id:'R0.5',ms:100,globalMs:2900,titleOpacity:0,offset:12,label:'照片几何中点'},
+    {id:'R1',ms:200,globalMs:3000,titleOpacity:0,offset:10,label:'结果 Hero 落位'},
+    {id:'R2',ms:380,globalMs:3180,titleOpacity:0,offset:8,label:'名称区域准备'},
+    {id:'R3',ms:550,globalMs:3350,titleOpacity:0.18,offset:5,label:'中文名称渐显（未完整）'},
+    {id:'R4',ms:680,globalMs:3480,titleOpacity:1,offset:2,label:'中文名称揭晓'},
     {id:'R5',ms:850,globalMs:3650,titleOpacity:1,offset:0,label:'稳定结果状态'}
   ];
   let contract = null;
@@ -44,6 +44,7 @@
   let motionHandle = 0;
   let motionStart = 0;
   let transitionTimer = 0;
+  const maskTrustState = "NONE"; // Public design fixture: no production-qualified Mask.
 
   const $ = selector => root.querySelector(selector);
   const $$ = selector => Array.from(root.querySelectorAll(selector));
@@ -180,7 +181,8 @@
   function setState(state, options) {
     if (!stateLabels[state]) return;
     clearTimeout(transitionTimer);
-    if (state !== 'processing') stopMotion();
+    if (state !== 'processing' && !options?.preserveMotion) stopMotion();
+    if (!options?.preserveTransition) clearPhotoTransition();
     activeState = state;
     if (['preview','processing','reveal','result','error'].includes(state)) ensurePhoto();
     $$('.product-scene').forEach(scene => { scene.hidden = scene.dataset.scene !== state; });
@@ -196,30 +198,134 @@
     switchInspector(inspectorMode);
     if (options?.scrollPreview) $('#viewport-canvas').scrollIntoView({behavior:'smooth',block:'nearest'});
   }
+  function frameIndexAt(samples, elapsed) {
+    let index = 0;
+    for (let i = 0; i < samples.length; i++) {
+      if (elapsed >= samples[i].ms) index = i;
+      else break;
+    }
+    return index;
+  }
+  function interpolateAt(samples, elapsed, field) {
+    if (elapsed <= samples[0].ms) return samples[0][field];
+    for (let i = 1; i < samples.length; i++) {
+      const right = samples[i];
+      if (elapsed <= right.ms) {
+        const left = samples[i - 1];
+        const span = Math.max(1, right.ms - left.ms);
+        const ratio = Math.max(0, Math.min(1, (elapsed - left.ms) / span));
+        return left[field] + (right[field] - left[field]) * ratio;
+      }
+    }
+    return samples[samples.length - 1][field];
+  }
+  function setWaterField(intensity, elapsed) {
+    const bounded = Math.max(0, Math.min(1, Number(intensity) || 0));
+    const phase = Math.max(0, Math.min(1, elapsed / 2800));
+    const opacity = bounded * 0.20;
+    const shiftX = Math.sin(phase * Math.PI * 2) * 7;
+    const shiftY = Math.cos(phase * Math.PI * 2) * 4;
+    $$('.ambient-caustics').forEach(layer => {
+      layer.style.setProperty('--water-opacity', opacity.toFixed(4));
+      layer.style.setProperty('--water-opacity-soft', (opacity * 0.68).toFixed(4));
+      layer.style.setProperty('--water-front', Math.round(18 + 52 * phase) + '%');
+      layer.style.setProperty('--water-shift-x', shiftX.toFixed(2) + 'px');
+      layer.style.setProperty('--water-shift-y', shiftY.toFixed(2) + 'px');
+      layer.style.setProperty('--water-shift-x-alt', (-shiftX * 0.62).toFixed(2) + 'px');
+      layer.style.setProperty('--water-shift-y-alt', (shiftY * 0.7).toFixed(2) + 'px');
+      layer.style.setProperty('--fish-gold-opacity', maskTrustState === 'TRUSTED_MASK' ? '0.18' : '0');
+    });
+  }
   function setFrame(index) {
     motionFrame = Math.max(0, Math.min(frames.length - 1, Number(index) || 0));
     const frame = frames[motionFrame];
     $$('#timeline-frames [data-frame]').forEach(button => button.classList.toggle('is-active', button.dataset.frame === frame.id));
-    $$('.ambient-caustics').forEach(layer => layer.style.setProperty('--water-alpha', String(frame.water / 100)));
+    setWaterField(frame.water / 100, frame.ms);
     const title = $('#processing-status-title');
     const copy = $('#processing-status-copy');
     if (title) title.textContent = frame.label;
     if (copy) copy.textContent = '水面光场 · ' + frame.id + ' · ' + frame.ms + 'ms';
   }
-  function setRevealFrame(index) {
+  function setProcessingElapsed(elapsed) {
+    const bounded = Math.max(0, Math.min(2800, elapsed));
+    motionFrame = frameIndexAt(frames, bounded);
+    const frame = frames[motionFrame];
+    $$('#timeline-frames [data-frame]').forEach(button => button.classList.toggle('is-active', button.dataset.frame === frame.id));
+    setWaterField(interpolateAt(frames, bounded, 'water') / 100, bounded);
+    const title = $('#processing-status-title');
+    const copy = $('#processing-status-copy');
+    if (title) title.textContent = frame.label;
+    if (copy) copy.textContent = '水面光场 · ' + frame.id + ' · ' + Math.round(bounded) + 'ms';
+  }
+  function setRevealFrame(index, elapsedOverride) {
     revealFrame = Math.max(0, Math.min(rr09Frames.length - 1, Number(index) || 0));
     const frame = rr09Frames[revealFrame];
-    $('#rr09-timeline-frames [data-rr09-frame]').forEach(button => button.classList.toggle('is-active', button.dataset.rr09Frame === frame.id));
-    $('.ambient-caustics').forEach(layer => layer.style.setProperty('--water-alpha', '0'));
-    const titleCard = $('#reveal-title-card');
-    if (titleCard) {
-      titleCard.style.setProperty('--reveal-title-opacity', String(frame.titleOpacity));
-      titleCard.style.setProperty('--reveal-title-offset', frame.offset + 'px');
+    const sampleTime = elapsedOverride == null ? frame.ms : Math.max(0, Math.min(850, Number(elapsedOverride) || 0));
+    $$('#rr09-timeline-frames [data-rr09-frame]').forEach(button => button.classList.toggle('is-active', button.dataset.rr09Frame === frame.id));
+    setWaterField(0, 2800 + sampleTime);
+    const title = $('#reveal-species-title');
+    if (title) {
+      title.style.setProperty('--reveal-title-opacity', String(interpolateAt(rr09Frames, sampleTime, 'titleOpacity')));
+      title.style.setProperty('--reveal-title-offset', interpolateAt(rr09Frames, sampleTime, 'offset') + 'px');
     }
-    const title = $('#rr09-status-title');
-    const copy = $('#rr09-status-copy');
-    if (title) title.textContent = frame.label;
-    if (copy) copy.textContent = 'RR09 · ' + frame.id + ' · ' + frame.globalMs + 'ms';
+    const summary = $('.reveal-summary');
+    if (summary) {
+      summary.style.setProperty('--reveal-details-opacity', sampleTime >= 850 ? '1' : '0');
+      summary.style.setProperty('--reveal-details-visibility', sampleTime >= 850 ? 'visible' : 'hidden');
+    }
+    const resultStatus = $('#reveal-result-status');
+    if (resultStatus) resultStatus.textContent = sampleTime < 680 ? '识别结果正在揭晓' : '识别结果已揭晓 · 样例';
+    const statusTitle = $('#rr09-status-title');
+    const statusCopy = $('#rr09-status-copy');
+    if (statusTitle) statusTitle.textContent = frame.label;
+    if (statusCopy) statusCopy.textContent = 'RR09 · ' + frame.id + ' · ' + Math.round(2800 + sampleTime) + 'ms';
+  }
+  function setRevealElapsed(elapsed) {
+    const bounded = Math.max(0, Math.min(850, elapsed));
+    setRevealFrame(frameIndexAt(rr09Frames, bounded), bounded);
+  }
+  function clearPhotoTransition() {
+    const overlay = $('#photo-transition-overlay');
+    if (overlay) {
+      overlay.hidden = true;
+      overlay.removeAttribute('data-progress');
+      overlay.style.cssText = '';
+    }
+    const targetMedia = $('.reveal-photo .photo-media');
+    if (targetMedia) targetMedia.style.visibility = '';
+  }
+  function renderPhotoTransition(transition, progress) {
+    if (!transition || !transition.overlay) return;
+    const p = Math.max(0, Math.min(1, progress));
+    const lerp = (a, b) => a + (b - a) * p;
+    transition.overlay.style.left = lerp(transition.from.left, transition.to.left).toFixed(2) + 'px';
+    transition.overlay.style.top = lerp(transition.from.top, transition.to.top).toFixed(2) + 'px';
+    transition.overlay.style.width = lerp(transition.from.width, transition.to.width).toFixed(2) + 'px';
+    transition.overlay.style.height = lerp(transition.from.height, transition.to.height).toFixed(2) + 'px';
+    transition.overlay.dataset.progress = p.toFixed(3);
+  }
+  function startPhotoTransition(fromRect) {
+    const target = $('.reveal-photo');
+    const targetMedia = target?.querySelector('.photo-media');
+    const targetRect = target?.getBoundingClientRect();
+    const overlay = $('#photo-transition-overlay');
+    const foreground = $('#photo-transition-image');
+    const backdrop = $('#photo-transition-backdrop-image');
+    if (!fromRect || !targetRect || targetRect.width <= 0 || targetRect.height <= 0 || !overlay || !foreground || !backdrop) return null;
+    foreground.src = photoUrl;
+    backdrop.src = photoUrl;
+    if (targetMedia) targetMedia.style.visibility = 'hidden';
+    overlay.hidden = false;
+    overlay.style.borderRadius = '17px';
+    const transition = {overlay,targetMedia,from:{left:fromRect.left,top:fromRect.top,width:fromRect.width,height:fromRect.height},to:{left:targetRect.left,top:targetRect.top,width:targetRect.width,height:targetRect.height}};
+    renderPhotoTransition(transition, 0);
+    return transition;
+  }
+  function finishPhotoTransition(transition) {
+    const overlay = transition?.overlay || $('#photo-transition-overlay');
+    if (overlay) { overlay.hidden = true; overlay.removeAttribute('data-progress'); overlay.style.cssText = ''; }
+    const targetMedia = transition?.targetMedia || $('.reveal-photo .photo-media');
+    if (targetMedia) targetMedia.style.visibility = '';
   }
   function stopMotion() {
     if (motionHandle) cancelAnimationFrame(motionHandle);
@@ -230,18 +336,13 @@
     setState('processing');
     motionFrame = 0;
     setFrame(0);
-    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      setFrame(7);
-      return;
-    }
-    motionStart = performance.now();
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) { setFrame(7); return; }
+    const start = performance.now();
     const tick = now => {
-      const elapsed = Math.max(0, Math.min(2800, now - motionStart));
-      let index = 0;
-      for (let i = 0; i < frames.length; i++) if (elapsed >= frames[i].ms) index = i;
-      setFrame(index);
+      const elapsed = Math.max(0, Math.min(2800, now - start));
+      setProcessingElapsed(elapsed);
       if (elapsed < 2800) motionHandle = requestAnimationFrame(tick);
-      else motionHandle = 0;
+      else { setFrame(7); motionHandle = 0; }
     };
     motionHandle = requestAnimationFrame(tick);
   }
@@ -251,46 +352,53 @@
     revealFrame = 0;
     setState('reveal');
     setRevealFrame(0);
-    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      setRevealFrame(6);
-      transitionTimer = setTimeout(() => setState('result'), 120);
-      return;
-    }
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) { setRevealFrame(6,850); setState('result'); return; }
     const start = performance.now();
     const tick = now => {
-      const elapsed = Math.min(850, now - start);
-      let index = 0;
-      for (let i = 0; i < rr09Frames.length; i++) if (elapsed >= rr09Frames[i].ms) index = i;
-      setRevealFrame(index);
+      const elapsed = Math.max(0, Math.min(850, now - start));
+      setRevealElapsed(elapsed);
       if (elapsed < 850) motionHandle = requestAnimationFrame(tick);
-      else {
-        motionHandle = 0;
-        transitionTimer = setTimeout(() => setState('result'), 120);
-      }
+      else { setRevealFrame(6,850); motionHandle = 0; setState('result'); }
     };
     motionHandle = requestAnimationFrame(tick);
   }
   function beginDemoRecognition() {
     clearTimeout(transitionTimer);
     stopMotion();
+    clearPhotoTransition();
     motionFrame = 0;
+    revealFrame = 0;
     setState('processing');
     if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      setFrame(7);
-      transitionTimer = setTimeout(() => playReveal(), 120);
-      return;
+      setFrame(7); setState('reveal',{preserveMotion:true}); setRevealFrame(6,850); setState('result'); return;
     }
     const start = performance.now();
+    let phase = 'processing';
+    let photoTransition = null;
     const tick = now => {
-      const elapsed = Math.min(2800, now - start);
-      let index = 0;
-      for (let i = 0; i < frames.length; i++) if (elapsed >= frames[i].ms) index = i;
-      setFrame(index);
-      if (elapsed < 2800) {
-        motionHandle = requestAnimationFrame(tick);
-      } else {
+      const elapsed = Math.max(0, Math.min(3650, now - start));
+      if (elapsed < 2800) setProcessingElapsed(elapsed);
+      else {
+        const revealElapsed = elapsed - 2800;
+        if (phase !== 'reveal') {
+          const sourcePhoto = $('.processing-photo');
+          const fromRect = sourcePhoto ? sourcePhoto.getBoundingClientRect() : null;
+          phase = 'reveal';
+          setState('reveal',{preserveMotion:true});
+          photoTransition = fromRect ? startPhotoTransition(fromRect) : null;
+        }
+        setRevealElapsed(revealElapsed);
+        if (photoTransition) {
+          renderPhotoTransition(photoTransition, Math.min(1,revealElapsed/200));
+          if (revealElapsed >= 200) { finishPhotoTransition(photoTransition); photoTransition = null; }
+        }
+      }
+      if (elapsed < 3650) motionHandle = requestAnimationFrame(tick);
+      else {
+        if (photoTransition) finishPhotoTransition(photoTransition);
+        setRevealFrame(6,850);
         motionHandle = 0;
-        playReveal();
+        setState('result');
       }
     };
     motionHandle = requestAnimationFrame(tick);
@@ -298,6 +406,7 @@
   function reset() {
     clearTimeout(transitionTimer);
     stopMotion();
+    clearPhotoTransition();
     revokePhotoUrl();
     selectedFile = null;
     photoObjectUrl = null;

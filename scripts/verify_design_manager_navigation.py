@@ -189,7 +189,7 @@ def validate_tree(root: Path, *, built: bool = False, expected_build: str | None
     sites_hifi = next((x for x in recognition["hifi_views"] if x.get("id") == "fishtrace_sites_web_hifi_workspace"), None)
     if (
         sites_hifi is None
-        or sites_hifi.get("title") != "16 · FishTrace Sites Web 高保真与结构化原型 V1"
+        or sites_hifi.get("title") != "16 · FishTrace Sites Web 高保真交互体验 V1.1"
         or sites_hifi.get("status") != "DESIGN_ONLY"
         or sites_hifi.get("render_mode") != "fishtrace_sites_web_hifi_workspace"
         or sites_hifi.get("runtime_status") != "NOT_VERIFIED"

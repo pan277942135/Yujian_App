@@ -2,7 +2,7 @@
 
 **Design ID:** FISHTRACE-SITES-WEB-HIFI-VISUAL-V1  
 **Prototype route:** #page/recognition_flow_v1_2/hifi/fishtrace_sites_web_hifi_workspace  
-**Status:** DESIGN_ONLY / INTERACTIVE_PROTOTYPE  
+**Status:** DESIGN_ONLY / INTERACTIVE_PROTOTYPE · revision V1.1  
 **Product runtime:** NOT_VERIFIED  
 **Sites project:** appgprj_6a50a71561708191a6ea8c6194ce68d4
 
@@ -16,6 +16,13 @@ This document defines the browser-based high-fidelity design and interactive str
 - The existing public design asset real_catch_source.jpg is used only as a labeled visual fixture. It is not represented as a new user upload or an inference result.
 
 ## 2. Visual direction
+
+### 2.1 Reconcile the supplied references with frozen authority
+
+- The dark 14-frame storyboard is a visual-direction reference, not a replacement for the frozen 15-sample timeline. The implementation retains P0–P7 and R0/R0.5/R1/R2/R3/R4/R5; R0.5 is the required geometric midpoint at global 2900ms.
+- The three-stage desktop board is a functional inventory, not the product layout. The final user experience remains an immersive in-page scene; no three-column dashboard or persistent step strip is added to the product surface.
+- Gold fish-focus and transfer are permitted only with `TRUSTED_MASK`. This public design fixture has Mask trust `NONE`, so the prototype must not draw a fish contour or pretend gold transfer occurred; it uses ambient water light and the restrained Chinese-name fallback.
+
 
 - Documentary, natural lake-water atmosphere; quiet teal, lake-white, slate text and restrained morning gold.
 - Main surface: #F7FAF8; deep text: #173A3B; teal action: #286B63; pale teal: #DCECE8; morning gold: #D9AE62; secondary text: #6D8180.
@@ -60,10 +67,11 @@ This document defines the browser-based high-fidelity design and interactive str
 
 ### E. RR09 result reveal
 
-- Show the same source photo through the 850 ms RR09 window; keep photo identity and geometry continuous.
-- Expose R0, R0.5, R1, R2, R3, R4 and R5 in the structured timeline inspector, with global times 2800, 2900, 3000, 3180, 3350, 3480 and 3650 ms.
-- The fixture has Mask trust NONE. Therefore the high-fidelity fallback is a restrained Chinese species-name fade only; no fish contour, rectangular outline or fabricated gold transfer.
-- The reveal uses clearly labeled demo content and transitions to the result screen only as a visual-prototype interaction, not as real inference evidence.
+- The reveal scene uses the same result-layout geometry as the final result: desktop photo-left/result-right; phone photo-top/result-below. This prevents a second layout jump at R5.
+- At global 2800ms (R0), capture the Processing photo rectangle. Over the 200ms R0→R1 interval, animate a transient visual of that same source photo into the result hero. The container rectangle and contained foreground are interpolated linearly; R0.5 at global 2900ms is the numerical midpoint; R1 at 3000ms reaches the target hero rectangle.
+- The transition overlay uses the current in-memory source URL, and the destination photo is hidden while it moves. Only one sharp foreground photo is visible; the photo is not swapped, stretched, or cross-faded with a second sharp crop. The transition overlay is removed at R1.
+- R2–R4 reveal the Chinese species-name slot. With Mask trust NONE, the prototype does not draw a fish contour or claim gold transfer; it uses the restrained Chinese-title fallback. A real TRUSTED_MASK is a prerequisite for the full gold-transfer effect.
+- The structured timeline retains R0/R0.5/R1/R2/R3/R4/R5 at global 2800/2900/3000/3180/3350/3480/3650ms. Demo labels and values remain explicitly non-inference content.
 
 ### F. Result
 
@@ -111,3 +119,11 @@ Layer selection and state changes are design-tool interactions. The layer inspec
 - No production Sites source is modified by this design task.
 - No real inference, detector/classifier result, trusted Mask, deployment parity, or visual UAT is claimed.
 - Product implementation must be a later task against the exact Main-adopted contract and this prototype, then verified on the exact deployed Sites source SHA.
+
+
+## 8. Revision V1.1 — continuous photo geometry and optical fallback
+
+- Replaced the photo-overlay ellipses with low-density, irregular, diffuse caustic patches. The field is driven by the deterministic elapsed clock and fades from the lower photo region upward; no ring, radar line, closed contour, or uniform full-screen tint is used.
+- The Processing curve is interpolated between frozen sample times. Its water intensity reaches zero at P7. The fixture's fish-gold channel remains disabled because Mask trust is NONE.
+- RR09 now shares the final result composition and performs an explicit R0→R0.5→R1 geometric photo transition. The R0.5 frame is linearly interpolated at 100ms, not represented by a crossfade.
+- This is still a Design Manager interactive prototype. It does not call Detector/Classifier, does not prove production Mask qualification, and does not modify or deploy the Sites runtime.

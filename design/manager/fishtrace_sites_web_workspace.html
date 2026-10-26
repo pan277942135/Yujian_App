@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="robots" content="noindex">
-  <title>FishTrace Sites · 高保真与结构化原型 V1</title>
-  <link rel="stylesheet" href="./fishtrace_sites_web_workspace.css?v=FISHTRACE-SITES-WEB-HIFI-V1">
+  <title>FishTrace Sites · 高保真交互原型 V1.1</title>
+  <link rel="stylesheet" href="./fishtrace_sites_web_workspace.css?v=FISHTRACE-SITES-WEB-HIFI-V1-1">
 </head>
 <body>
   <main class="workspace-root" data-testid="fishtrace-sites-web-workspace">
@@ -13,8 +13,8 @@
       <div class="workspace-brand">
         <div class="workspace-mark">渔见</div>
         <div>
-          <div class="workspace-eyebrow">FISHTRACE SITES · WEB HI-FI V1</div>
-          <h1>拍照识鱼 · 高保真与结构化原型</h1>
+          <div class="workspace-eyebrow">FISHTRACE SITES · WEB HI-FI V1.1</div>
+          <h1>拍照识鱼 · 高保真交互体验 V1.1</h1>
         </div>
       </div>
       <div class="workspace-actions">
@@ -159,32 +159,50 @@
                       </div>
                     </div>
                   </div>
-                  <p class="processing-disclaimer">设计原型动效预览 · 不连接真实 Detector / Classifier，也不表示模型处理进度。</p>
+                  <p class="processing-disclaimer">设计原型动效预览 · 当前 Mask 为 NONE：仅预览水光，鱼体描光与金光转移关闭；不连接真实 Detector / Classifier。</p>
                 </section>
 
                 <section class="product-scene scene-reveal" data-scene="reveal" hidden>
-                  <div class="processing-head reveal-head">
-                    <span class="product-kicker"><span></span> RR09 · RESULT REVEAL</span>
-                    <h2>让识别结果，自然浮现</h2>
-                    <p>同一张照片继续留在画面中；无可信 Mask 时，只使用克制的中文名称淡入。</p>
+                  <div class="scene-heading result-heading reveal-head">
+                    <span class="product-kicker"><span></span> RECOGNITION RESULT · RR09</span>
+                    <h2>这次的识别结果</h2>
+                    <p>结果仅对应当前照片与识别会话；当前为视觉样例。</p>
                   </div>
-                  <div class="reveal-photo photo-container" data-layer-id="photo-container">
-                    <div class="photo-media">
-                      <div class="photo-backdrop" data-layer-id="photo-backdrop"><img id="photo-backdrop-reveal" alt="" aria-hidden="true"></div>
-                      <img class="photo-foreground" id="photo-foreground-reveal" data-layer-id="photo-foreground" alt="结果揭晓阶段的同一张原图" src="../system/fish_media_display_v1/assets/real_catch_source.jpg">
-                      <div class="ambient-caustics" data-layer-id="ambient-caustics" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
-                      <div class="reveal-title-card" data-layer-id="result-reveal-title" id="reveal-title-card">
-                        <span data-layer-id="result-reveal-status">识别结果揭晓 · 设计样例</span>
-                        <strong>黄颡鱼</strong>
-                        <small>无可信 Mask · 克制名称淡入</small>
-                      </div>
-                      <div class="processing-status reveal-status" data-layer-id="processing-status">
-                        <span class="reveal-status-mark" aria-hidden="true">✦</span>
-                        <div><strong id="rr09-status-title">光场接续</strong><span id="rr09-status-copy">RR09 · R0 · 0ms</span></div>
+                  <div class="product-layout result-layout reveal-layout">
+                    <div class="photo-container reveal-photo" data-layer-id="photo-container">
+                      <div class="photo-media">
+                        <div class="photo-backdrop" data-layer-id="photo-backdrop"><img id="photo-backdrop-reveal" alt="" aria-hidden="true"></div>
+                        <img class="photo-foreground" id="photo-foreground-reveal" data-layer-id="photo-foreground" alt="结果揭晓阶段的同一张原图" src="../system/fish_media_display_v1/assets/real_catch_source.jpg">
+                        <div class="ambient-caustics" data-layer-id="ambient-caustics" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
+                        <div class="photo-fixture-tag">同一张原图</div>
+                        <div class="processing-status reveal-status" data-layer-id="processing-status" role="status" aria-live="polite">
+                          <span class="reveal-status-mark" aria-hidden="true">✦</span>
+                          <div><strong id="rr09-status-title">照片几何接续</strong><span id="rr09-status-copy">RR09 · R0 · 2800ms</span></div>
+                        </div>
                       </div>
                     </div>
+                    <article class="result-summary reveal-summary" data-layer-id="result-summary">
+                      <div class="result-status"><span class="result-status-dot"></span><span id="reveal-result-status">识别结果正在揭晓</span><span class="demo-chip">样例数据</span></div>
+                      <div class="result-label">识别鱼种</div>
+                      <h3 class="species-title reveal-species-title" data-layer-id="result-reveal-title" id="reveal-species-title">中文鱼种名</h3>
+                      <p class="species-subtitle">名称为设计占位内容，不是模型输出。</p>
+                      <div class="confidence-card reveal-detail" data-layer-id="confidence-meter">
+                        <div class="confidence-top"><span>样例置信度（演示）</span><strong>92%</strong></div>
+                        <div class="confidence-track"><span></span></div>
+                        <p>此数值仅用于检查视觉层级，不是模型输出。</p>
+                      </div>
+                      <div class="result-details reveal-detail">
+                        <div><span>体长</span><strong>未提供</strong></div>
+                        <div><span>体重</span><strong>未提供</strong></div>
+                        <div><span>地点</span><strong>未提供</strong></div>
+                      </div>
+                      <div class="result-actions reveal-detail" data-layer-id="result-actions">
+                        <button type="button" class="primary-cta" data-action="recognize"><span>重新识别</span><span class="cta-arrow">↗</span></button>
+                        <button type="button" class="secondary-cta" data-action="source-choice">重新拍摄 / 选择照片</button>
+                      </div>
+                    </article>
                   </div>
-                  <p class="processing-disclaimer">RR09 时间线为设计预览 · R0.5 为几何中点；当前样例 Mask 状态为 NONE，不绘制鱼体轮廓。</p>
+                  <p class="processing-disclaimer">RR09 · 850ms；R0.5 为同源照片几何中点。当前 Mask 为 NONE，不绘制鱼体轮廓，也不伪造金光转移。</p>
                 </section>
 
                 <section class="product-scene scene-result" data-scene="result" hidden>
@@ -204,8 +222,8 @@
                     <article class="result-summary" data-layer-id="result-summary">
                       <div class="result-status"><span class="result-status-dot"></span> 识别完成 <span class="demo-chip">样例数据</span></div>
                       <div class="result-label">识别鱼种</div>
-                      <h3 class="species-title" data-layer-id="species-title">黄颡鱼</h3>
-                      <p class="species-subtitle">中文鱼种名 · 仅为设计样例</p>
+                      <h3 class="species-title" data-layer-id="species-title">中文鱼种名</h3>
+                      <p class="species-subtitle">名称为设计占位内容，不是模型输出。</p>
                       <div class="confidence-card" data-layer-id="confidence-meter">
                         <div class="confidence-top"><span>样例置信度</span><strong>92%</strong></div>
                         <div class="confidence-track"><span></span></div>
@@ -329,13 +347,17 @@
         </div>
       </aside>
     </div>
+    <div class="photo-transition-overlay" id="photo-transition-overlay" hidden aria-hidden="true">
+      <div class="photo-transition-backdrop"><img id="photo-transition-backdrop-image" alt=""></div>
+      <img class="photo-transition-foreground" id="photo-transition-image" alt="">
+    </div>
     <footer class="workspace-footer">
-      <span>FISHTRACE SITES WEB · HI-FI V1</span>
+      <span>FISHTRACE SITES WEB · HI-FI V1.1</span>
       <span>Contract frozen · Prototype interactive · Runtime not verified</span>
     </footer>
     <input id="gallery-input" type="file" accept="image/*" hidden>
     <input id="camera-input" type="file" accept="image/*" capture="environment" hidden>
   </main>
-  <script src="./fishtrace_sites_web_workspace.js?v=FISHTRACE-SITES-WEB-HIFI-V1"></script>
+  <script src="./fishtrace_sites_web_workspace.js?v=FISHTRACE-SITES-WEB-HIFI-V1-1"></script>
 </body>
 </html>

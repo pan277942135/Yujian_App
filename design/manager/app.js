@@ -2721,8 +2721,8 @@ function genericSpecHifiCanvas(feature, view) {
   }
   if (view.render_mode === "fishtrace_sites_web_hifi_workspace") {
     return '<div class="fishtrace-sites-workspace-embed" data-testid="fishtrace-sites-workspace-embed">' +
-      '<iframe title="FishTrace Sites Web 高保真与结构化原型 V1" loading="lazy" ' +
-      'src="./fishtrace_sites_web_workspace.html?v=FISHTRACE-SITES-WEB-HIFI-V1" ' +
+      '<iframe title="FishTrace Sites Web 高保真交互体验 V1.1" loading="lazy" ' +
+      'src="./fishtrace_sites_web_workspace.html?v=FISHTRACE-SITES-WEB-HIFI-V1-1" ' +
       'style="display:block;width:100%;height:1320px;border:1px solid #d9e5e0;border-radius:16px;background:#edf3f0" ' +
       'referrerpolicy="no-referrer"></iframe></div>';
   }

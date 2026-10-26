@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "prototype_id": "FISHTRACE-SITES-WEB-STRUCTURED-PROTOTYPE-V1",
-  "title": "FishTrace Sites Web 高保真与结构化原型",
+  "title": "FishTrace Sites Web 高保真交互原型 V1.1",
   "status": "DESIGN_ONLY_INTERACTIVE_PROTOTYPE",
   "runtime_visual_verified": false,
   "production_inference_connected": false,
@@ -105,7 +105,7 @@
       "id": "reveal",
       "label": "结果揭晓",
       "state_ref": "S6_RESULT_REVEAL_RR09",
-      "product_description": "Same source photo through the RR09 850ms reveal; because the fixture has no trusted Mask, only a restrained Chinese title fade is shown.",
+      "product_description": "The same source photo moves linearly from the Processing rectangle into the final result hero over R0→R1; R0.5 at global 2900ms is the geometric midpoint. Result layout is shared with the final result. Mask trust NONE uses Chinese title fade only; no fish contour or gold transfer is rendered.",
       "timeline": "R0/R0.5/R1/R2/R3/R4/R5 / nominal 850ms; demo only",
       "mask_trust_state": "NONE",
       "next": "result"
@@ -463,8 +463,8 @@
     "result-reveal-title": {
       "label": "中文名称揭晓",
       "role": "Reveal Typography",
-      "description": "A restrained Chinese-name fade is the fallback while Mask trust is NONE; no fish contour or gold transfer is fabricated.",
-      "geometry": "lower-right translucent card; opacity follows R0-R5",
+      "description": "A restrained Chinese-name fade in the result summary panel is the fallback while Mask trust is NONE; no fish contour or gold transfer is fabricated.",
+      "geometry": "result summary title slot; opacity follows R0-R5",
       "tokens": [
         "surface",
         "deep_text",
@@ -473,10 +473,10 @@
       "status": "DEMO_DATA_ONLY"
     },
     "result-reveal-status": {
-      "label": "RR09 状态说明",
+      "label": "结果区揭晓状态",
       "role": "Status",
-      "description": "Shows the current RR09 frame and global nominal time; not model telemetry.",
-      "geometry": "compact status pill over the same source photo",
+      "description": "Truthful sample status in the result panel; not model telemetry.",
+      "geometry": "result summary status row",
       "tokens": [
         "surface",
         "secondary_text"
@@ -739,14 +739,26 @@
               },
               {
                 "id": "ambient-caustics"
+              },
+              {
+                "id": "processing-status"
               }
             ]
           },
           {
-            "id": "result-reveal-title",
+            "id": "result-summary",
             "children": [
               {
                 "id": "result-reveal-status"
+              },
+              {
+                "id": "result-reveal-title"
+              },
+              {
+                "id": "confidence-meter"
+              },
+              {
+                "id": "result-actions"
               }
             ]
           }
@@ -781,7 +793,8 @@
       "fallback": "restrained Chinese title fade only",
       "fabricated_fish_contour": false,
       "fabricated_gold_transfer": false,
-      "transition_to_result": "after demo timeline completes; not real inference evidence"
+      "transition_to_result": "after demo timeline completes; not real inference evidence",
+      "photo_transition": "Same source photo; linear container/foreground geometry from Processing to Result hero; R0.5 is the exact 100ms midpoint."
     }
   },
   "acceptance_checks": [
@@ -852,6 +865,31 @@
     {
       "id": "H17",
       "check": "Processing-to-reveal-to-result is explicitly demo-only and never represents real model telemetry."
+    },
+    {
+      "id": "H18",
+      "check": "The full demo playback moves the same photo into the result hero over R0-R1; R0.5 is the geometric midpoint and only one sharp photo is visible."
+    },
+    {
+      "id": "H19",
+      "check": "Mask trust NONE uses diffuse ambient water light and Chinese title fade only; no fish contour or gold transfer is fabricated."
     }
-  ]
+  ],
+  "revision": "1.1",
+  "photo_transition": {
+    "from": "processing.photo-container",
+    "to": "reveal.photo-container",
+    "source_identity": "same in-memory source URL and PhotoSession visual",
+    "r0_global_ms": 2800,
+    "r05_global_ms": 2900,
+    "r1_global_ms": 3000,
+    "interpolation": "LINEAR_RECT_INTERPOLATION",
+    "foreground_fit": "CONTAIN",
+    "visible_sharp_foreground_count": 1,
+    "overlay_hidden_at_r1": true,
+    "mask_trust_state": "NONE",
+    "fish_contour_rendered": false,
+    "gold_transfer_rendered": false,
+    "fallback": "CHINESE_TITLE_FADE_ONLY"
+  }
 }
