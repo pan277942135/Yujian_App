@@ -239,6 +239,7 @@ button[disabled]{opacity:.48;cursor:not-allowed}
 .reveal-title-card>span{font-size:9px;color:#d6e4dc;letter-spacing:.06em}
 .reveal-title-card>strong{font-size:28px;letter-spacing:-.04em}
 .reveal-title-card>small{font-size:9px;color:#e1c995}
+.reveal-status-mark{display:grid;place-items:center;flex:0 0 23px;width:23px;height:23px;border:1px solid rgba(224,199,130,.55);border-radius:50%;color:#e6ca86;font-size:13px}
 .rr09-timeline-frames{grid-template-columns:repeat(7,minmax(0,1fr))}
 .rr09-timeline-inspector .timeline-note{color:#8f7d59}
 .product-device.is-phone .scene-entry{display:grid;grid-template-columns:1fr;gap:20px;min-height:auto;padding:27px 0 24px}
