@@ -536,9 +536,11 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          PUBLISHED_MANAGER_URL="${{ steps.deployment.outputs.page_url }}"
+          PUBLISHED_MANAGER_URL="${PUBLISHED_MANAGER_URL%/}/design/manager/"
           PLAYWRIGHT_MODULE_DIR="$RUNNER_TEMP/dm-playwright/node_modules" \
             node scripts/verify_nh01_structured_responsive_layout.mjs \
-              --url "${{ steps.deployment.outputs.page_url }}" \
+              --url "$PUBLISHED_MANAGER_URL" \
               --expected-build "${SITE_BUILD_SHA}" \
               --output-dir "$RUNNER_TEMP/dm-live-evidence/nh01-responsive-layout-v2"
 
