@@ -90,10 +90,21 @@ jobs:
           npm install --no-save --prefix "$RUNNER_TEMP/dm-playwright" playwright@1.63.0
           "$RUNNER_TEMP/dm-playwright/node_modules/.bin/playwright" install --with-deps chromium
 
+      - name: Install ffmpeg tools for real WebM frame verification
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install --yes --no-install-recommends ffmpeg
+          ffmpeg -version
+          ffprobe -version
+
       - name: Verify NH01 structured workspace behavior and resource state machine
         run: |
           node --check design/manager/app.js
           node --check design/manager/nh01_structured_workspace.js
+          node --check design/manager/fishtrace_sites_web_workspace.js
+          node --check design/manager/fishtrace_canvas_water_lab.js
           node --check scripts/verify_design_manager_browser.mjs
           node tests/nh01_structured_workspace.test.cjs
 
@@ -260,7 +271,7 @@ jobs:
             --preview-diff-dir "$RUNNER_TEMP/nh01-preview-diff"
 
       - name: Resolve latest successful production Pages run
-        if: github.event_name == 'pull_request' && contains(fromJSON('[203,212]'), github.event.pull_request.number)
+        if: github.event_name == 'pull_request' && contains(fromJSON('[203,212,214]'), github.event.pull_request.number)
         id: published-pages
         shell: bash
         env:
@@ -276,7 +287,7 @@ jobs:
           echo "source_sha=$production_source_sha" >> "$GITHUB_OUTPUT"
 
       - name: Download current production Pages artifact
-        if: github.event_name == 'pull_request' && contains(fromJSON('[203,212]'), github.event.pull_request.number)
+        if: github.event_name == 'pull_request' && contains(fromJSON('[203,212,214]'), github.event.pull_request.number)
         uses: actions/download-artifact@v4
         with:
           name: github-pages
@@ -286,7 +297,7 @@ jobs:
           path: ${{ runner.temp }}/nh01-published-pages
 
       - name: Compose byte-preserving isolated PR preview
-        if: github.event_name == 'pull_request' && contains(fromJSON('[203,212]'), github.event.pull_request.number)
+        if: github.event_name == 'pull_request' && contains(fromJSON('[203,212,214]'), github.event.pull_request.number)
         shell: bash
         env:
           PRODUCTION_RUN_ID: ${{ steps.published-pages.outputs.run_id }}
@@ -391,7 +402,7 @@ jobs:
             --output "$RUNNER_TEMP/nh01-pr${PREVIEW_PR_NUMBER}-prepublish-root-verification.json"
 
       - name: Verify candidate preview under its isolated Pages path
-        if: github.event_name == 'pull_request' && contains(fromJSON('[203,212]'), github.event.pull_request.number)
+        if: github.event_name == 'pull_request' && contains(fromJSON('[203,212,214]'), github.event.pull_request.number)
         shell: bash
         env:
           PREVIEW_PR_NUMBER: ${{ github.event.pull_request.number }}
@@ -413,7 +424,7 @@ jobs:
               --output-dir "$RUNNER_TEMP/nh01-pr${PREVIEW_PR_NUMBER}-preview-browser"
 
       - name: Upload preview composition evidence
-        if: github.event_name == 'pull_request' && contains(fromJSON('[203,212]'), github.event.pull_request.number)
+        if: github.event_name == 'pull_request' && contains(fromJSON('[203,212,214]'), github.event.pull_request.number)
         uses: actions/upload-artifact@v4
         with:
           name: NH01-PR${{ github.event.pull_request.number }}-Preview-Composition-${{ github.run_id }}
@@ -483,6 +494,15 @@ jobs:
           npm install --no-save --prefix "$RUNNER_TEMP/dm-playwright" playwright@1.63.0
           "$RUNNER_TEMP/dm-playwright/node_modules/.bin/playwright" install --with-deps chromium
 
+      - name: Install ffmpeg tools for real WebM frame verification
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install --yes --no-install-recommends ffmpeg
+          ffmpeg -version
+          ffprobe -version
+
       - name: Verify published SHA and original asset bytes
         run: |
           python3 scripts/verify_design_manager_live.py \
@@ -543,7 +563,7 @@ jobs:
           retention-days: 30
 
   deploy-preview:
-    if: github.event_name == 'pull_request' && contains(fromJSON('[203,212]'), github.event.pull_request.number)
+    if: github.event_name == 'pull_request' && contains(fromJSON('[203,212,214]'), github.event.pull_request.number)
     concurrency:
       # Match Main Pages workflow concurrency so a main deploy cannot race this additive publication.
       group: design-manager-pages-publish
@@ -602,6 +622,15 @@ jobs:
           set -euo pipefail
           npm install --no-save --prefix "$RUNNER_TEMP/dm-playwright" playwright@1.63.0
           "$RUNNER_TEMP/dm-playwright/node_modules/.bin/playwright" install --with-deps chromium
+
+      - name: Install ffmpeg tools for real WebM frame verification
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install --yes --no-install-recommends ffmpeg
+          ffmpeg -version
+          ffprobe -version
 
       - name: Verify live production root and exact candidate workspace
         shell: bash

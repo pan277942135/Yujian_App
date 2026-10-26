@@ -2719,6 +2719,13 @@ function genericSpecHifiCanvas(feature, view) {
     return window.SWOSStaticVisual?.canvas(view) ||
       '<div class="hifi-missing-authority"><div><strong>SWOS 静态验收模块尚未加载</strong><p>Design Manager 的静态工作区脚本不可用。</p></div></div>';
   }
+  if (view.render_mode === "fishtrace_sites_web_hifi_workspace") {
+    return '<div class="fishtrace-sites-workspace-embed" data-testid="fishtrace-sites-workspace-embed">' +
+      '<iframe title="FishTrace Sites Web 高保真交互体验 V1.1" loading="lazy" ' +
+      'src="./fishtrace_sites_web_workspace.html?v=FISHTRACE-SITES-WEB-HIFI-V5" ' +
+      'style="display:block;width:100%;height:1320px;border:1px solid #d9e5e0;border-radius:16px;background:#edf3f0" ' +
+      'referrerpolicy="no-referrer"></iframe></div>';
+  }
   if (view.render_mode === "nh01_multi_screen_static_hifi") {
     return '<div class="nh01-static-loading" role="status">正在载入五屏冻结高保真与响应式合同…</div>';
   }
@@ -3437,6 +3444,7 @@ function renderHifiView(feature, hifiId, hifiChildId = null) {
   const authorityType = child?.authority_type || view.authority_type || "visual";
   el("hifiViewEyebrow").textContent =
     view.render_mode === "recognition_full_flow_models" ? "业务流程与模型职责 · DESIGN ONLY" :
+    view.render_mode === "fishtrace_sites_web_hifi_workspace" ? "高保真与结构化交互原型 · DESIGN ONLY · Runtime NOT_VERIFIED" :
     view.render_mode === "nh01_multi_screen_static_hifi" ? "STATIC_HIFI_FROZEN · STATIC_RULES_FROZEN · Android NOT_VERIFIED" :
     view.render_mode === "recognition_main_journey_overview" ? "业务流程总览 · 不代表单页视觉 Authority" :
     view.render_mode === "recognition_boundary_release_gate" ? "主链路边界状态 · 设计与资产 Gate" :

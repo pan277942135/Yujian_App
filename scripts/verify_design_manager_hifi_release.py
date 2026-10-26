@@ -167,14 +167,15 @@ def validate_tree(root: Path, *, built: bool = False, expected_build: str | None
     guide_view = by_view.get("capture_first_use_guide")
     full_flow = by_view.get("recognition_full_flow_models")
     swos_static = by_view.get("swos_static_visual_v1_1")
-    require(overview and boundary and guide_view and full_flow and swos_static, "overview/boundary/guide/full-flow/SWOS static view missing")
+    sites_hifi = by_view.get("fishtrace_sites_web_hifi_workspace")
+    require(overview and boundary and guide_view and full_flow and swos_static and sites_hifi, "overview/boundary/guide/full-flow/SWOS static/FishTrace Sites Hi-Fi view missing")
     require(views[0].get("id") == "main_journey_overview", "00 journey overview is not the first recognition route")
     view_ids = [view.get("id") for view in views]
     require(
         view_ids.index("boundary_state_release_gate") < view_ids.index("recognition_full_flow_models")
         < view_ids.index("swos_optical_contract") < view_ids.index("processing_result_continuity")
-        < view_ids.index("swos_static_visual_v1_1"),
-        "08 boundary, 09 full-flow/model, SWOS, continuity and static visual routes must retain their registered order",
+        < view_ids.index("swos_static_visual_v1_1") < view_ids.index("fishtrace_sites_web_hifi_workspace"),
+        "08 boundary, 09 full-flow/model, SWOS, continuity, static visual and FishTrace Sites prototype routes must retain their registered order",
     )
     require(full_flow.get("title") == "09 · 识别全流程-和模型", "09 full-flow/model menu title drift")
     require(full_flow.get("status") == "DESIGN_ONLY" and full_flow.get("render_mode") == "recognition_full_flow_models", "09 full-flow/model must remain DESIGN_ONLY with its renderer")
@@ -275,6 +276,7 @@ def validate_tree(root: Path, *, built: bool = False, expected_build: str | None
         "capture asset gate": "#page/recognition_flow_v1_2/hifi/boundary_state_release_gate/capture_portrait",
         "permission visual gate": "#page/recognition_flow_v1_2/hifi/boundary_state_release_gate/camera_permission_visual",
         "full flow and model responsibilities": "#page/recognition_flow_v1_2/hifi/recognition_full_flow_models",
+        "FishTrace Sites high-fidelity structured prototype": "#page/recognition_flow_v1_2/hifi/fishtrace_sites_web_hifi_workspace",
     }
     for child_id in ("p01", "p02", "p03"):
         child = guide_children[child_id]
@@ -357,6 +359,136 @@ def validate_tree(root: Path, *, built: bool = False, expected_build: str | None
     require("guide-resource-actions" in guide_workspace and "CANDIDATE_NEEDS_APPROVAL" in guide_workspace and "data-guide-layer" in guide_workspace, "guide Resources preview/download and structured layer workspace are missing")
     require("recognitionFullFlowModelsCanvas" in app and 'view.render_mode === "recognition_full_flow_models"' in app, "full-flow/model Design Manager renderer is missing")
     require('view.render_mode === "swos_static_visual_workspace"' in app and "SWOSStaticVisual?.mount" in app, "SWOS static workspace hook is missing")
+    sites_workspace_html = design / "manager/fishtrace_sites_web_workspace.html"
+    sites_workspace_css = design / "manager/fishtrace_sites_web_workspace.css"
+    sites_workspace_js = design / "manager/fishtrace_sites_web_workspace.js"
+    require(sites_workspace_html.is_file() and sites_workspace_css.is_file() and sites_workspace_js.is_file(), "FishTrace Sites high-fidelity workspace HTML/CSS/JS is missing")
+    require('view.render_mode === "fishtrace_sites_web_hifi_workspace"' in app and "fishtrace_sites_web_workspace.html" in app, "FishTrace Sites prototype iframe renderer is missing")
+    require("FISHTRACE-SITES-WEB-HIFI-V1" in sites_workspace_html.read_text(encoding="utf-8") and "fishtrace_sites_web_workspace.css" in sites_workspace_html.read_text(encoding="utf-8") and "fishtrace_sites_web_workspace.js" in sites_workspace_html.read_text(encoding="utf-8"), "FishTrace Sites workspace asset references are missing")
+    require("layer_tree_by_state" in sites_workspace_js.read_text(encoding="utf-8") or "FishTrace_Sites_Web_Structured_Prototype_V1.json" in sites_workspace_js.read_text(encoding="utf-8"), "FishTrace Sites structured layer contract is not loaded")
+
+    water_lab_html = sites_workspace_html.read_text(encoding="utf-8")
+    water_lab_js_path = design / "manager/fishtrace_canvas_water_lab.js"
+    water_lab_css_path = design / "manager/fishtrace_canvas_water_lab.css"
+    water_lab_contract_path = design / "pages/recognition/web/candidates/FISHTRACE_SWOS_CANVAS_WATER_LAB_V1_CANDIDATE.json"
+    require(water_lab_js_path.is_file() and water_lab_css_path.is_file() and water_lab_contract_path.is_file(), "FishTrace Canvas Water Lab module, styles or candidate contract are missing")
+    source_root = Path(__file__).resolve().parents[1] if built else root
+    water_lab_browser_test_path = source_root / "scripts/verify_design_manager_browser.mjs"
+    require(water_lab_browser_test_path.is_file(), "FishTrace Canvas Water Lab browser verifier is missing")
+    water_lab_browser_test = water_lab_browser_test_path.read_text(encoding="utf-8")
+    water_lab_js = water_lab_js_path.read_text(encoding="utf-8")
+    water_lab_css = water_lab_css_path.read_text(encoding="utf-8")
+    water_lab = load_json(water_lab_contract_path)
+    require('data-water-view="canvas-water"' in water_lab_html and 'data-testid="canvas-water-lab"' in water_lab_html and 'id="water-overlay"' in water_lab_html, "FishTrace Canvas Water Lab is not registered inside the existing workspace")
+    require("fishtrace_canvas_water_lab.js" in water_lab_html and "fishtrace_canvas_water_lab.css" in water_lab_html, "FishTrace Canvas Water Lab assets are not loaded by the existing workspace")
+    require("CanvasWaterRenderer" in water_lab_js and "WaterCausticsScene" in water_lab_js and "WaterTimelineController" in water_lab_js, "Canvas Water Lab module boundaries are incomplete")
+    require("workspaceViewButton" in sites_workspace_js.read_text(encoding="utf-8") and "clearPhotoTransition()" in sites_workspace_js.read_text(encoding="utf-8"), "Entering Canvas Water Lab must stop the existing photo transition overlay")
+    require("requestAnimationFrame" in water_lab_js and "createRadialGradient" in water_lab_js and "devicePixelRatio" in water_lab_js and "objectFit" in water_lab_js, "Canvas Water Lab deterministic 2D renderer geometry/time handling is missing")
+    require(water_lab.get("contract_id") == "FISHTRACE_SWOS_CANVAS_WATER_LAB_V1_CANDIDATE" and water_lab.get("status") == "CANDIDATE_NOT_VISUALLY_APPROVED", "Canvas Water Lab must remain an unapproved candidate contract")
+    require(water_lab.get("asset",{}).get("sha256") == "6e955087108f7463eca2dbac489699a4942028ebe1b3d456ddfca523286385ef" and [water_lab.get("asset",{}).get("width"),water_lab.get("asset",{}).get("height")] == [1152,1536], "Canvas Water Lab fixed asset identity or dimensions changed")
+    require(water_lab.get("task_id") == "FISHTRACE_SWOS_A_LINE_CANVAS_WATER_FIDELITY_V1", "Canvas Water Lab candidate task ID is not the current A-line task")
+    require([(frame.get("id"),frame.get("ms"),frame.get("intensity_percent")) for frame in water_lab.get("timeline",{}).get("frames",[])] == [("P0",0,0),("P1",350,8),("P2",950,42),("P3",1200,68),("P4",1550,58),("P5",2050,28),("P6",2600,8),("P7",2800,0)], "Canvas Water Lab must reuse exact A-line P0-P7 times and caustic channel values")
+    water_field = water_lab.get("water_field",{})
+    regions = water_field.get("regions",{})
+    expected_a = [
+        {"id":"A1","points":[[0,.66],[0,.95],[.38,.95],[.46,.79],[.33,.60],[.10,.58]]},
+        {"id":"A2","points":[[.38,.61],[.57,.57],[.98,.59],[.98,.93],[.52,.93],[.39,.77]]},
+    ]
+    expected_b = {"id":"B1","points":[[.06,.44],[.24,.40],[.47,.45],[.80,.43],[.95,.50],[.92,.64],[.57,.69],[.23,.65],[.08,.56]]}
+    expected_c = {"id":"C1","points":[[.10,.34],[.92,.34],[.92,.47],[.10,.47]]}
+    def normalized_polygon_valid(polygon):
+        points = polygon.get("points",[])
+        return len(points) >= 3 and all(
+            isinstance(point,list) and len(point) == 2
+            and isinstance(point[0],(int,float)) and isinstance(point[1],(int,float))
+            and 0 <= point[0] <= 1 and 0 <= point[1] <= 1
+            for point in points
+        )
+    a_polygons = regions.get("A",{}).get("polygons",[])
+    b_polygon = regions.get("B",{}).get("polygon",{})
+    c_polygon = regions.get("C",{}).get("polygon",{})
+    region_geometry_valid = (
+        a_polygons == expected_a and b_polygon == expected_b and c_polygon == expected_c
+        and all(normalized_polygon_valid(polygon) for polygon in a_polygons+[b_polygon,c_polygon])
+        and regions.get("A",{}).get("strength_coefficient") == 1
+        and regions.get("B",{}).get("strength_coefficient") == .48
+        and regions.get("C",{}).get("strength_coefficient") == .16
+        and regions.get("C",{}).get("clear_caustic_texture") is True
+        and regions.get("D",{}).get("no_draw") is True
+        and water_field.get("coordinate_system") == "source_image_normalized_top_left_0_1"
+        and water_field.get("source_width") == 1152 and water_field.get("source_height") == 1536
+        and water_field.get("asset_sha256") == water_lab.get("asset",{}).get("sha256")
+        and water_field.get("edge_fade_width_w",0) > 0
+    )
+    water_rendering = water_lab.get("rendering",{})
+    ambient_spec = water_rendering.get("ambient",{})
+    large_sample = ambient_spec.get("large_radius_sampling_w",[])
+    medium_sample = ambient_spec.get("medium_radius_sampling_w",[])
+    large_bounds = ambient_spec.get("large_radius_w",[])
+    medium_bounds = ambient_spec.get("medium_radius_w",[])
+    water_motion = water_lab.get("motion",{})
+    timeline_frames = water_lab.get("timeline",{}).get("frames",[])
+    expected_channels = [
+        {"ambient":0,"caustic":0,"highlight":0},
+        {"ambient":.18,"caustic":.08,"highlight":0},
+        {"ambient":.40,"caustic":.42,"highlight":.16},
+        {"ambient":.50,"caustic":.68,"highlight":.34},
+        {"ambient":.44,"caustic":.58,"highlight":.28},
+        {"ambient":.22,"caustic":.28,"highlight":.10},
+        {"ambient":.08,"caustic":.08,"highlight":.02},
+        {"ambient":0,"caustic":0,"highlight":0},
+    ]
+    rendering_valid = (
+        water_rendering.get("backend") == "Canvas 2D"
+        and water_rendering.get("ambient",{}).get("count") == 5
+        and water_rendering.get("ambient",{}).get("large_count") == 3
+        and water_rendering.get("ambient",{}).get("medium_count") == 2
+        and water_rendering.get("ambient",{}).get("field_opacity_response_multiplier") == .68
+        and water_rendering.get("ambient",{}).get("large_radius_sampling_w") == [.22,.26]
+        and water_rendering.get("ambient",{}).get("medium_radius_sampling_w") == [.12,.14]
+        and water_rendering.get("ambient",{}).get("aspect_ratio") == [.68,.83]
+        and water_rendering.get("ambient",{}).get("radial_gradient_opacity_stops") == [1,.92,.72]
+        and water_rendering.get("ambient",{}).get("p3_single_field_opacity_max") == .10
+        and len(large_sample) == len(large_bounds) == 2 and large_bounds[0] <= large_sample[0] <= large_sample[1] <= large_bounds[1]
+        and len(medium_sample) == len(medium_bounds) == 2 and medium_bounds[0] <= medium_sample[0] <= medium_sample[1] <= medium_bounds[1]
+        and water_rendering.get("caustics",{}).get("geometry_model") == "a_line_organic_face_patches_v1"
+        and water_rendering.get("caustics",{}).get("patch_count") == 18
+        and water_rendering.get("caustics",{}).get("groups") == {"A":4,"B":4,"C":4,"D":3,"E":3}
+        and water_rendering.get("caustics",{}).get("realized_zone_patch_count") == {"A":13,"B":4,"C":1}
+        and water_rendering.get("caustics",{}).get("region_c_texture_opacity_scale") == 0
+        and water_rendering.get("caustics",{}).get("near_horizontal_patch_fraction_max") == .45
+        and water_rendering.get("caustics",{}).get("direction_distribution",{}).get("angular_bins") == 12
+        and water_rendering.get("caustics",{}).get("direction_distribution",{}).get("minimum_occupied_bins") == 5
+        and water_rendering.get("highlights",{}).get("segment_count") == 24
+        and water_rendering.get("highlights",{}).get("warm_segment_fraction_max") == .2
+        and water_rendering.get("blend_mode") == "screen"
+        and water_motion.get("p5_to_p7",{}).get("exit_order") == ["C","B","A"]
+        and water_motion.get("p5_to_p7",{}).get("global_alpha_only") is False
+        and len(timeline_frames) == 8
+        and all(frame.get("layers") == expected_channels[index] for index,frame in enumerate(timeline_frames))
+        and all(token in water_lab_js for token in ("water_field","destination-in","createPatches","patchGeometry","drawOrganicCaustics","drawHighlights","layerStrengthsAt","a_line_organic_face_patches_v1"))
+        and "createCausticRibbons" not in water_lab_js and "ribbonGeometry" not in water_lab_js and "drawRibbons" not in water_lab_js
+    )
+    require(
+        water_field.get("schema") == "FISHTRACE_A_LINE_NORMALIZED_WATER_FIELD_V1"
+        and water_field.get("version") == "A_LINE_WATER_FIELD_V1"
+        and water_field.get("provenance","").startswith("User-specified fixed-demo environmental field geometry")
+        and region_geometry_valid and rendering_valid
+        and water_lab.get("contract_version") == "CANDIDATE_A_LINE_V1"
+        and water_lab.get("status") == "CANDIDATE_NOT_VISUALLY_APPROVED"
+        and water_lab.get("visual_reference",{}).get("name") == "SWOS 高保真总图 V0.3"
+        and water_lab.get("visual_reference",{}).get("visibility") == "PRIVATE_REFERENCE_NOT_EMBEDDED_OR_PUBLISHED",
+        "Canvas Water Lab A-line normalized regions, three-channel strengths and patch geometry must match the candidate contract"
+    )
+    require(
+        water_rendering.get("ambient",{}).get("calibration",{}).get("revision") == "A_LINE_P1_AMBIENT_RESPONSE_02"
+        and "low-alpha radial color stops" in water_rendering.get("ambient",{}).get("calibration",{}).get("root_cause","")
+        and "0.10 per-field opacity maximum" in water_rendering.get("ambient",{}).get("calibration",{}).get("preserved",[]),
+        "Canvas Water Lab ambient P1 response calibration must record the double-alpha root cause and preserve the .10 per-field cap"
+    )
+    require(water_lab.get("boundaries",{}).get("production_sites_runtime_modified") is False and water_lab.get("boundaries",{}).get("inference_api_requested") is False and water_lab.get("boundaries",{}).get("photo_upload_implemented") is False and water_lab.get("boundaries",{}).get("fish_mask_or_gold_contour_drawn") is False and water_lab.get("boundaries",{}).get("webgl_used") is False, "Canvas Water Lab scope crossed a production or forbidden visual boundary")
+    require("object-fit:contain" in water_lab_css and "mix-blend-mode:screen" in water_lab_css, "Canvas Water Lab image/overlay layout is missing")
+    require(all(token in water_lab_browser_test for token in ("inspectRecordedPhotoCrop", "videoPhotoAfterPlay", "videoPhotoAfterPlayback", "photo_frame_visual_check")), "Canvas Water Lab WebM must verify the complete photo in extracted real-playback frames")
     require("swos_static_visual.js" in html and "window.SWOSStaticVisual" in swos_js, "SWOS static workspace module is not loaded")
     require("first_use_guide_workspace.js" in html, "First-use guide workspace module is not loaded")
     require("showModal()" in swos_js and "data-frame-id" in swos_js and "R0.5" in swos_js, "SWOS frame zoom or R0.5 inspector is missing")
@@ -364,6 +496,13 @@ def validate_tree(root: Path, *, built: bool = False, expected_build: str | None
     require("localStorage" not in swos_js and "indexedDB" not in swos_js and "fetch(\"/" not in swos_js, "SWOS local photo workspace must not persist or upload selected photos")
     require("FROZEN STATUS CARD" in swos_js and "SWOS · STATIC VISUAL REVIEW" in swos_js, "SWOS static visual reviewer labels are missing")
     require("swos-storyboard" in css and "swos-zoom-dialog" in css and "swos-inspector-grid" in css, "SWOS static workspace styles are missing")
+    sites_visual = load_json(root / sites_hifi["machine_authority"])
+    require(sites_hifi.get("status") == "DESIGN_ONLY" and sites_hifi.get("runtime_status") == "NOT_VERIFIED" and sites_hifi.get("production_inference_connected") is False, "FishTrace Sites prototype must remain DESIGN_ONLY and not connected to production inference")
+    require(sites_visual.get("prototype_id") == "FISHTRACE-SITES-WEB-STRUCTURED-PROTOTYPE-V1" and sites_visual.get("production_inference_connected") is False and sites_visual.get("sites_source_modified") is False, "FishTrace Sites prototype machine contract identity/scope changed")
+    require(len(sites_visual.get("scenes", [])) == 7 and len(sites_visual.get("acceptance_checks", [])) >= 15, "FishTrace Sites prototype must include seven states including RR09 reveal and structured acceptance checks")
+    rr09_reveal = sites_visual.get("interaction_rules", {}).get("rr09_reveal", {})
+    require(rr09_reveal.get("frames") == ["R0", "R0.5", "R1", "R2", "R3", "R4", "R5"] and rr09_reveal.get("mask_trust_state") == "NONE" and rr09_reveal.get("fabricated_fish_contour") is False, "FishTrace Sites RR09 reveal must preserve frame order and NONE-Mask fallback")
+    require("DEMO_DATA_ONLY" in json.dumps(sites_visual) and "photo_upload" in json.dumps(sites_visual), "FishTrace Sites sample-result or privacy boundary is missing")
     require("guide-resource-grid" in css and "guide-resource-metadata" in css, "guide Resources responsive gallery styles are missing")
     for token in (
         "history.pushState", 'window.addEventListener("popstate", selectFromHash)',
@@ -467,3 +606,4 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
+
