@@ -8,6 +8,7 @@ import android.provider.Settings
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.test.assertHasClickAction
 import androidx.compose.ui.test.assertIsDisplayed
@@ -113,9 +114,13 @@ class GeminiHomeDeviceMatrixTest {
     val rules = RuleChain.outerRule(compose).around(evidenceWatcher)
 
     @Test
-    fun capturesActualWindowWithTwoUniqueCatches() {
+    fun capturesActualWindowForScenario() {
         val args = InstrumentationRegistry.getArguments()
         val profileId = requireNotNull(args.getString("profile_id")) { "profile_id is required" }
+        val scenario = args.getString("scenario") ?: "two_unique_catches"
+        require(scenario in setOf("two_unique_catches", "single_record", "image_failure")) {
+            "unsupported NH01 runtime scenario: $scenario"
+        }
         val variant = GeminiHomeLayoutVariant.valueOf(
             args.getString("layout_variant") ?: GeminiHomeLayoutVariant.ADAPTIVE_V2.name,
         )
@@ -127,7 +132,9 @@ class GeminiHomeDeviceMatrixTest {
                 outputStream().use { sink -> input.copyTo(sink) }
             }
         }
-        val catches = fixtureCatches(photo.absolutePath)
+        val fixture = fixtureCatches(photo.absolutePath)
+        val catches = if (scenario == "single_record") fixture.take(1) else fixture
+        val catchesState = mutableStateOf(catches)
         activeProfileId = profileId
         activeVariantName = variant.name
         sourceSha = args.getString("source_sha") ?: "UNKNOWN_SOURCE_SHA"
@@ -181,8 +188,11 @@ class GeminiHomeDeviceMatrixTest {
             }
             HomeScreen(
                 nickname = "",
-                statistics = CatchStatistics(totalCatches = 2, speciesCount = 2),
-                recentCatches = catches,
+                statistics = CatchStatistics(
+                    totalCatches = catchesState.value.size,
+                    speciesCount = catchesState.value.map(RemoteCatch::speciesId).distinct().size,
+                ),
+                recentCatches = catchesState.value,
                 resolveImageUrl = { it },
                 accessToken = "",
                 isLoggedIn = false,
@@ -224,7 +234,8 @@ class GeminiHomeDeviceMatrixTest {
             ?: throw AssertionError("font_scale is required")
         beginStep("ASSERT_FONT_SCALE_AND_REQUIRED_CONTENT")
         assertEquals("system font_scale must reach Compose unchanged", expectedFontScaleValue, profile.fontScale, 0.02f)
-        compose.onNodeWithTag("gemini-home-stat-catches-value", useUnmergedTree = true).assertTextEquals("2")
+        compose.onNodeWithTag("gemini-home-stat-catches-value", useUnmergedTree = true)
+            .assertTextEquals(if (scenario == "single_record") "1" else "2")
         compose.onNodeWithTag("gemini-home-catch-species-nh01-catch-001", useUnmergedTree = true)
             .assertTextEquals("草鱼")
         compose.onNodeWithTag("gemini-home-catch-measurement-nh01-catch-001", useUnmergedTree = true)
@@ -248,24 +259,111 @@ class GeminiHomeDeviceMatrixTest {
 
         beginStep("ASSERT_TWO_CATCH_IDENTITY_AND_PAGER_COUNT")
         val pager = compose.onNodeWithTag("gemini-home-catch-pager", useUnmergedTree = true).fetchSemanticsNode()
-        assertEquals("two real catches must be exactly two finite pager pages", 2,
+        val expectedPageCount = if (scenario == "single_record") 1 else 2
+        assertEquals("pager contains only the real finite record set", expectedPageCount,
             pager.config[androidx.compose.ui.semantics.SemanticsProperties.CollectionInfo].columnCount)
         val pageState = pager.config[androidx.compose.ui.semantics.SemanticsProperties.StateDescription]
         assertTrue("initial page is the first real stable id: $pageState", pageState.contains("nh01-catch-001"))
         assertSingleNode("gemini-home-catch-card-nh01-catch-001")
-        assertSingleNode("gemini-home-catch-neighbor-nh01-catch-002")
-        assertEquals("the second catch may not be duplicated as a main card", 0,
-            compose.onAllNodesWithTag("gemini-home-catch-card-nh01-catch-002", useUnmergedTree = true)
-                .fetchSemanticsNodes().size)
-        assertEquals("the first catch may not be duplicated as a neighbor", 0,
-            compose.onAllNodesWithTag("gemini-home-catch-neighbor-nh01-catch-001", useUnmergedTree = true)
-                .fetchSemanticsNodes().size)
+        if (scenario == "single_record") {
+            assertEquals("single-record state must not create a fake adjacent catch", 0,
+                compose.onAllNodesWithTag("gemini-home-catch-neighbor-nh01-catch-002", useUnmergedTree = true)
+                    .fetchSemanticsNodes().size)
+            assertEquals("single-record state has no second main card", 0,
+                compose.onAllNodesWithTag("gemini-home-catch-card-nh01-catch-002", useUnmergedTree = true)
+                    .fetchSemanticsNodes().size)
+            assertTrue("single-record state remains centered", abs(rect("gemini-home-catch-card-nh01-catch-001").centerX() -
+                rect("gemini-home-carousel-track").centerX()) <= 2f * (densityProbe.get()?.density ?: 1f))
+            val root = rect("gemini-home-screen").toDp(densityProbe.get()!!.density)
+            val card = rect("gemini-home-catch-card-nh01-catch-001").toDp(densityProbe.get()!!.density)
+            val middleScroll = compose.onAllNodesWithTag("gemini-home-short-screen-scroll", useUnmergedTree = true)
+                .fetchSemanticsNodes().isNotEmpty()
+            if (variant == GeminiHomeLayoutVariant.ADAPTIVE_V2 && profileId == "M01" && expectedFontScale == "1.0") {
+                assertFalse("single-record M01 must not scroll", middleScroll)
+                assertTrue("single-record M01 Hero remains at least 145dp wide", card.width() >= 145f)
+            }
+            assertTrue("single-record Hero keeps the frozen ratio", abs(card.width() / card.height() - (247f / 293f)) <= 0.01f)
+            val avatar = rect("gemini-home-avatar-button").toDp(densityProbe.get()!!.density)
+            val camera = rect("gemini-home-camera").toDp(densityProbe.get()!!.density)
+            val cta = rect("gemini-home-cta-label").toDp(densityProbe.get()!!.density)
+            assertTrue("single-record avatar target remains at least 48dp", avatar.width() >= 48f && avatar.height() >= 48f)
+            assertTrue("single-record camera target remains at least 72dp", camera.width() >= 72f && camera.height() >= 72f)
+            assertTrue("single-record CTA does not overlap the camera", cta.bottom <= camera.top + 1f)
+            val singleBoundsTags = listOf(
+                "gemini-home-screen", "gemini-home-top-section", "gemini-home-avatar-button", "gemini-home-middle-section", "gemini-home-section-title",
+                "gemini-home-carousel-track", "gemini-home-catch-card-nh01-catch-001", "gemini-home-footer-cta",
+                "gemini-home-cta-label", "gemini-home-camera", "gemini-home-camera-art",
+            )
+            val singleBounds = JSONObject().apply { singleBoundsTags.forEach { put(it, rect(it).toJson()) } }
+            val density = compose.activity.resources.displayMetrics.density
+            val windowManager = compose.activity.windowManager
+            val displayMetrics = DisplayMetrics()
+            @Suppress("DEPRECATION")
+            windowManager.defaultDisplay.getRealMetrics(displayMetrics)
+            val screenshotName = "$profileId-${variant.name.lowercase(Locale.US)}.png"
+            val bitmap = InstrumentationRegistry.getInstrumentation().uiAutomation.takeScreenshot()
+            File(output, screenshotName).outputStream().use { sink ->
+                assertTrue("single-record screenshot must save", bitmap.compress(Bitmap.CompressFormat.PNG, 100, sink))
+            }
+            bitmap.recycle()
+            val singleReport = JSONObject().apply {
+                put("schema", "NH01_ADAPTIVE_VISUAL_BALANCE_DEVICE_CASE_V1")
+                put("execution_mode", "ANDROID_API28_RUNTIME")
+                put("status", "PASS")
+                put("profile_id", profileId)
+                put("layout_variant", variant.name)
+                put("source_commit", sourceSha)
+                put("target_application_id", targetContext.packageName)
+                put("system_font_scale", densityProbe.get()!!.fontScale)
+                put("density", density)
+                put("density_dpi", displayMetrics.densityDpi)
+                put("display_resolution_px", JSONArray(listOf(displayMetrics.widthPixels, displayMetrics.heightPixels)))
+                put("window_bounds_dp", root.toJson())
+                put("safe_insets_dp", JSONObject().apply {
+                    put("top", densityProbe.get()!!.insets.top.value); put("bottom", densityProbe.get()!!.insets.bottom.value)
+                    put("start", densityProbe.get()!!.insets.start.value); put("end", densityProbe.get()!!.insets.end.value)
+                })
+                put("scenario", scenario)
+                put("data", JSONObject().apply {
+                    put("catch_ids", JSONArray(listOf("nh01-catch-001")))
+                    put("unique_catch_count", 1)
+                    put("pager_page_count", 1)
+                    put("single_record_state", "PASS_ONE_CENTERED_HERO_NO_NEIGHBOR")
+                    put("middle_scroll_enabled", middleScroll)
+                })
+                put("metrics", JSONObject().apply {
+                    put("card_bounds_dp", card.toJson())
+                    put("card_aspect_ratio", card.width() / card.height())
+                    put("card_actual_width_dp", card.width())
+                    put("card_actual_height_dp", card.height())
+                    put("avatar_touch_bounds_dp", avatar.toJson())
+                    put("camera_touch_bounds_dp", camera.toJson())
+                    put("cta_bounds_dp", cta.toJson())
+                    put("safe_width_dp", (root.width() - densityProbe.get()!!.insets.start.value - densityProbe.get()!!.insets.end.value))
+                    put("safe_height_dp", (root.height() - densityProbe.get()!!.insets.top.value - densityProbe.get()!!.insets.bottom.value))
+                })
+                put("bounds_in_window_px", singleBounds)
+                put("screenshots", JSONObject().put("initial", screenshotName)
+                    .put("capture", "UiAutomation.takeScreenshot full Android runtime window"))
+            }
+            File(output, "$profileId-${variant.name.lowercase(Locale.US)}.json").writeText(singleReport.toString(2) + "\n")
+            writeCaseStatus("PASS", "SINGLE_RECORD_CENTERED_HERO_AND_NO_FAKE_PEEK")
+            return
+        } else {
+            assertSingleNode("gemini-home-catch-neighbor-nh01-catch-002")
+            assertEquals("the second catch may not be duplicated as a main card", 0,
+                compose.onAllNodesWithTag("gemini-home-catch-card-nh01-catch-002", useUnmergedTree = true)
+                    .fetchSemanticsNodes().size)
+            assertEquals("the first catch may not be duplicated as a neighbor", 0,
+                compose.onAllNodesWithTag("gemini-home-catch-neighbor-nh01-catch-001", useUnmergedTree = true)
+                    .fetchSemanticsNodes().size)
+        }
         completeStep("TWO_CATCH_UNIQUENESS_ASSERTIONS_PASSED")
 
         beginStep("CAPTURE_COMPONENT_BOUNDS_AND_LAYOUT_METRICS")
         val tags = listOf(
-            "gemini-home-screen", "gemini-home-brand-title", "gemini-home-header-bar", "gemini-home-stats-bar",
-            "gemini-home-section-title", "gemini-home-section-all-label", "gemini-home-middle-section", "gemini-home-carousel-track",
+            "gemini-home-screen", "gemini-home-top-section", "gemini-home-avatar-button", "gemini-home-brand-title", "gemini-home-header-bar", "gemini-home-stats-bar",
+            "gemini-home-section-title", "gemini-home-section-all", "gemini-home-section-all-label", "gemini-home-middle-section", "gemini-home-carousel-track",
             "gemini-home-stat-species-value", "gemini-home-stat-species-label",
             "gemini-home-stat-catches-value", "gemini-home-stat-catches-label",
             "gemini-home-stat-record-days-value", "gemini-home-stat-record-days-label",
@@ -292,7 +390,13 @@ class GeminiHomeDeviceMatrixTest {
         val track = rect("gemini-home-carousel-track").toDp(profile.density)
         val safeWidthDp = (root.width() - profile.insets.start.value - profile.insets.end.value).coerceAtLeast(1f)
         val safeHeightDp = (root.height() - profile.insets.top.value - profile.insets.bottom.value).coerceAtLeast(1f)
-        val layoutSpec = resolveGeminiHomeLayoutSpec(safeWidthDp, safeHeightDp, profile.fontScale, variant)
+        args.getString("expected_safe_height_dp")?.toFloatOrNull()?.let { expectedSafeHeight ->
+            assertEquals("boundary case must land on the requested measured safe height", expectedSafeHeight, safeHeightDp, 0.25f)
+        }
+        val exactM01Exception = profileId == "M01" && expectedFontScaleValue == 1f
+        val layoutSpec = resolveGeminiHomeLayoutSpec(
+            safeWidthDp, safeHeightDp, profile.fontScale, variant, exactM01Exception = exactM01Exception,
+        )
         val header = rect("gemini-home-header-bar").toDp(profile.density)
         val activeNodeSize = compose.onNodeWithTag(
             "gemini-home-catch-card-nh01-catch-001", useUnmergedTree = true,
@@ -303,7 +407,11 @@ class GeminiHomeDeviceMatrixTest {
         val neighborCard = rect("gemini-home-catch-neighbor-nh01-catch-002").toDp(profile.density)
         val title = rect("gemini-home-section-title").toDp(profile.density)
         val footer = rect("gemini-home-footer-cta").toDp(profile.density)
+        val topSection = rect("gemini-home-top-section").toDp(profile.density)
+        val middleSection = rect("gemini-home-middle-section").toDp(profile.density)
+        val avatar = rect("gemini-home-avatar-button").toDp(profile.density)
         val cta = rect("gemini-home-cta-label").toDp(profile.density)
+        val sectionAction = rect("gemini-home-section-all").toDp(profile.density)
         val camera = rect("gemini-home-camera").toDp(profile.density)
         val cameraArt = rect("gemini-home-camera-art").toDp(profile.density)
         val expectedCameraArtSize = geminiHomeCameraVisualSize(safeWidthDp, safeHeightDp)
@@ -312,6 +420,16 @@ class GeminiHomeDeviceMatrixTest {
         val sectionTitleCardGap = activeCard.top - title.bottom
         val statsToTitleGap = title.top - stats.bottom
         val headerToStatsGap = stats.top - header.bottom
+        val cardToFooterGap = footer.top - activeCard.bottom
+        val hA = topSection.height()
+        val hB = activeCard.bottom - title.top
+        val hC = footer.height()
+        val baseGapBefore = layoutSpec.statsToTitleGap?.value ?: statsToTitleGap
+        val baseGapAfter = layoutSpec.cardToFooterGap?.value ?: cardToFooterGap
+        val contractSurplus = (safeHeightDp - (hA + hB + hC + baseGapBefore + baseGapAfter)).coerceAtLeast(0f)
+        val expectedEqualGapAddition = contractSurplus / 2f
+        val actualGapBeforeAddition = statsToTitleGap - baseGapBefore
+        val actualGapAfterAddition = cardToFooterGap - baseGapAfter
         val centerOffset = abs(activeCard.centerX() - track.centerX())
         val ratio = activeCardLayoutWidthDp / activeCardLayoutHeightDp
         val neighborWidthFraction = neighborCard.width() / activeCardLayoutWidthDp
@@ -380,7 +498,18 @@ class GeminiHomeDeviceMatrixTest {
                 abs(statsToTitleGap - requireNotNull(layoutSpec.statsToTitleGap).value) <= 2f)
             assertTrue("brand-to-stats gap follows the active layout policy: $headerToStatsGap dp",
                 abs(headerToStatsGap - requireNotNull(layoutSpec.brandToStatsGap).value) <= 2f)
+            assertTrue("both inter-band gaps receive equal S/2 additions: before=$actualGapBeforeAddition after=$actualGapAfterAddition",
+                abs(actualGapBeforeAddition - actualGapAfterAddition) <= 2f)
+            assertTrue("Stats-to-title gap reflects measured safe-area surplus: expected=$expectedEqualGapAddition actual=$actualGapBeforeAddition",
+                abs(actualGapBeforeAddition - expectedEqualGapAddition) <= 2f)
+            assertTrue("Hero-to-Footer gap reflects measured safe-area surplus: expected=$expectedEqualGapAddition actual=$actualGapAfterAddition",
+                abs(actualGapAfterAddition - expectedEqualGapAddition) <= 2f)
         }
+        assertTrue("Footer stays outside the Middle region: middle=$middleSection footer=$footer",
+            middleSection.bottom <= footer.top + 1f)
+        assertTrue("section action retains its 48dp touch target",
+            sectionAction.width() >= 48f && sectionAction.height() >= 48f)
+        assertTrue("avatar action retains its 48dp touch target", avatar.width() >= 48f && avatar.height() >= 48f)
         assertTrue("camera touch target remains at least 72dp", camera.width() >= 72f && camera.height() >= 72f)
         assertTrue(
             "visible camera artwork follows width/height-aware policy: expected=$expectedCameraArtSize dp actual=$cameraArt",
@@ -388,6 +517,7 @@ class GeminiHomeDeviceMatrixTest {
                 abs(cameraArt.height() - expectedCameraArtSize) <= 2f,
         )
         assertTrue("CTA and camera must not overlap", cta.bottom <= camera.top + 1f)
+        assertFalse("CTA text must not truncate", hasVisualOverflow("gemini-home-cta-label"))
         assertTrue("camera stays above the actual bottom safe inset",
             camera.bottom <= root.bottom - profile.insets.bottom.value + 1f)
         assertTrue("footer remains on screen", footer.bottom <= root.bottom - profile.insets.bottom.value + 1f)
@@ -411,6 +541,91 @@ class GeminiHomeDeviceMatrixTest {
         imageCapture.recycle()
         completeStep("INITIAL_SCREENSHOT_CAPTURED")
 
+        if (scenario == "image_failure") {
+            val geometryTags = listOf(
+                "gemini-home-top-section", "gemini-home-middle-section", "gemini-home-section-title",
+                "gemini-home-carousel-track", "gemini-home-catch-card-nh01-catch-001",
+                "gemini-home-footer-cta", "gemini-home-cta-label", "gemini-home-camera",
+            )
+            val beforeFailure = geometryTags.associateWith { rect(it).toDp(profile.density) }
+            beginStep("INJECT_IMAGE_DECODE_FAILURE_AFTER_VALID_RENDER")
+            val missingPhotoPath = "/data/local/tmp/nh01-intentionally-missing-fish-photo.jpg"
+            compose.runOnIdle {
+                catchesState.value = catchesState.value.map { it.copy(imageUrl = missingPhotoPath) }
+            }
+            advanceFramesUntil(20_000) {
+                runCatching {
+                    val node = compose.onNodeWithTag(
+                        "gemini-home-catch-image-placeholder-nh01-catch-001", useUnmergedTree = true,
+                    ).fetchSemanticsNode()
+                    node.config[GeminiHomeImageLoadStatus] == "FALLBACK"
+                }.getOrDefault(false)
+            }
+            val fallbackNode = compose.onNodeWithTag(
+                "gemini-home-catch-image-placeholder-nh01-catch-001", useUnmergedTree = true,
+            ).fetchSemanticsNode()
+            assertEquals("failed fish-photo loading must render the safe placeholder", "FALLBACK",
+                fallbackNode.config[GeminiHomeImageLoadStatus])
+            assertEquals("failed media may not retain the rendered-image state", 0,
+                compose.onAllNodesWithTag("home-evidence-backdrop-ready", useUnmergedTree = true)
+                    .fetchSemanticsNodes().size)
+            val afterFailure = geometryTags.associateWith { rect(it).toDp(profile.density) }
+            geometryTags.forEach { tag ->
+                val before = requireNotNull(beforeFailure[tag])
+                val after = requireNotNull(afterFailure[tag])
+                assertTrue("image failure may not change $tag geometry: before=$before after=$after",
+                    abs(before.left - after.left) <= 1f && abs(before.top - after.top) <= 1f &&
+                        abs(before.right - after.right) <= 1f && abs(before.bottom - after.bottom) <= 1f)
+            }
+            val fallbackName = "$profileId-${variant.name.lowercase(Locale.US)}-fallback.png"
+            val fallbackBitmap = InstrumentationRegistry.getInstrumentation().uiAutomation.takeScreenshot()
+            File(output, fallbackName).outputStream().use { sink ->
+                assertTrue("image fallback screenshot must save", fallbackBitmap.compress(Bitmap.CompressFormat.PNG, 100, sink))
+            }
+            fallbackBitmap.recycle()
+            val imageFailureReport = JSONObject().apply {
+                put("schema", "NH01_ADAPTIVE_VISUAL_BALANCE_DEVICE_CASE_V1")
+                put("execution_mode", "ANDROID_API28_RUNTIME")
+                put("status", "PASS")
+                put("profile_id", profileId)
+                put("layout_variant", variant.name)
+                put("source_commit", sourceSha)
+                put("target_application_id", targetContext.packageName)
+                put("system_font_scale", profile.fontScale)
+                put("density", profile.density)
+                put("density_dpi", compose.activity.resources.displayMetrics.densityDpi)
+                put("scenario", scenario)
+                put("data", JSONObject().apply {
+                    put("catch_ids", JSONArray(catches.map(RemoteCatch::id)))
+                    put("unique_catch_count", catches.map(RemoteCatch::id).toSet().size)
+                    put("pager_page_count", 2)
+                    put("image_failure_fallback", "PASS_FALLBACK_RENDERED")
+                    put("fallback_tag_status", fallbackNode.config[GeminiHomeImageLoadStatus])
+                    put("rendered_image_nodes_after_failure", 0)
+                })
+                put("metrics", JSONObject().apply {
+                    put("geometry_unchanged_after_image_failure", true)
+                    put("max_component_edge_delta_dp", 1f)
+                    put("geometry_tags", JSONArray(geometryTags))
+                    put("before_failure_bounds_dp", JSONObject().apply {
+                        beforeFailure.forEach { (tag, bounds) -> put(tag, bounds.toJson()) }
+                    })
+                    put("after_failure_bounds_dp", JSONObject().apply {
+                        afterFailure.forEach { (tag, bounds) -> put(tag, bounds.toJson()) }
+                    })
+                })
+                put("screenshots", JSONObject().apply {
+                    put("initial", screenshotName)
+                    put("image_failure_fallback", fallbackName)
+                    put("failure_source", missingPhotoPath)
+                })
+            }
+            File(output, "$profileId-${variant.name.lowercase(Locale.US)}.json")
+                .writeText(imageFailureReport.toString(2) + "\n")
+            writeCaseStatus("PASS", "IMAGE_FAILURE_FALLBACK_PRESERVED_LAYOUT_GEOMETRY")
+            return
+        }
+
         beginStep("VERIFY_CTA_AND_CATCH_INTERACTIONS")
         compose.onNodeWithTag("gemini-home-camera", useUnmergedTree = true).performClick()
         assertEquals("camera action remains available", 1, identifyClicks.get())
@@ -427,6 +642,7 @@ class GeminiHomeDeviceMatrixTest {
             assertTrue("320×480 at default font scale must fit without middle scrolling", !hasMiddleScroll)
             assertTrue("320×480 main card must remain readable, width=$activeCardLayoutWidthDp dp",
                 activeCardLayoutWidthDp >= 145f)
+            assertTrue("320×480 Hero keeps the 247:293 ratio", abs(ratio / (247f / 293f) - 1f) <= 0.01f)
             val bottomClearance = root.bottom - profile.insets.bottom.value - camera.bottom
             assertTrue("320×480 footer must not add excessive blank space: $bottomClearance dp", bottomClearance <= 4f)
         }
@@ -452,6 +668,30 @@ class GeminiHomeDeviceMatrixTest {
         assertTrue("required first-catch text semantics must exist", initialCardTextSemanticsPresent)
         val firstMetadataLineCount = textLineCount("gemini-home-catch-metadata-nh01-catch-001")
         val firstMetadataLastLineLength = textLastLineCharacterCount("gemini-home-catch-metadata-nh01-catch-001")
+        listOf(
+            "gemini-home-catch-species-nh01-catch-001",
+            "gemini-home-catch-measurement-nh01-catch-001",
+            "gemini-home-catch-metadata-nh01-catch-001",
+        ).forEach { tag ->
+            assertTrue("required text must expose measured line ranges: $tag", textLineRanges(tag).isNotBlank())
+            assertTrue("required text may occupy only the contract two-line budget: $tag", textLineCount(tag) in 1..2)
+        }
+        assertEquals("static CTA label remains a single readable line", 1, textLineCount("gemini-home-cta-label"))
+        assertTrue("CTA line range must be recorded", textLineRanges("gemini-home-cta-label").isNotBlank())
+        val initialTextLayouts = JSONObject().apply {
+            listOf(
+                "gemini-home-catch-species-nh01-catch-001",
+                "gemini-home-catch-measurement-nh01-catch-001",
+                "gemini-home-catch-metadata-nh01-catch-001",
+                "gemini-home-cta-label",
+            ).forEach { tag ->
+                put(tag, JSONObject().apply {
+                    put("line_count", textLineCount(tag))
+                    put("line_ranges", textLineRanges(tag))
+                    put("visual_overflow", hasVisualOverflow(tag))
+                })
+            }
+        }
         if (variant == GeminiHomeLayoutVariant.ADAPTIVE_V2) {
             assertTrue("metadata must occupy one or two lines", firstMetadataLineCount in 1..2)
             assertTrue("metadata last line must not be an orphan glyph", firstMetadataLastLineLength >= 2)
@@ -512,6 +752,18 @@ class GeminiHomeDeviceMatrixTest {
         }
         val secondMetadataLineCount = textLineCount(secondMetadataTag)
         val secondMetadataLastLineLength = textLastLineCharacterCount(secondMetadataTag)
+        advanceFramesUntil(3_000) {
+            secondCardTextTags.all { tag -> runCatching { textLineRanges(tag).isNotBlank() }.getOrDefault(false) }
+        }
+        val secondTextLayouts = JSONObject().apply {
+            secondCardTextTags.forEach { tag ->
+                put(tag, JSONObject().apply {
+                    put("line_count", textLineCount(tag))
+                    put("line_ranges", textLineRanges(tag))
+                    put("visual_overflow", hasVisualOverflow(tag))
+                })
+            }
+        }
         if (variant == GeminiHomeLayoutVariant.ADAPTIVE_V2) {
             assertTrue("long metadata must occupy at most two lines", secondMetadataLineCount in 1..2)
             assertTrue("long metadata cannot end in one isolated CJK glyph or punctuation",
@@ -602,6 +854,10 @@ class GeminiHomeDeviceMatrixTest {
                 put("metadata_last_line_character_count_initial", firstMetadataLastLineLength)
                 put("metadata_line_count_after_swipe", secondMetadataLineCount)
                 put("metadata_last_line_character_count_after_swipe", secondMetadataLastLineLength)
+                put("scenario", "two_unique_catches")
+                put("safe_width_dp", safeWidthDp)
+                put("safe_height_dp", safeHeightDp)
+                put("footer_outside_middle", middleSection.bottom <= footer.top + 1f)
             })
             put("metrics", JSONObject().apply {
                 put("card_bounds_dp", activeCard.toJson())
@@ -628,9 +884,18 @@ class GeminiHomeDeviceMatrixTest {
                 put("section_title_to_card_gap_dp", sectionTitleCardGap)
                 put("section_title_to_card_frozen_target_dp", frozenTitleCardGapDp ?: JSONObject.NULL)
                 put("section_spacing_contract", "NH01_GEMINI_ADAPTIVE_V2_UNIFIED_V1")
-                put("card_to_footer_gap_dp", footer.top - activeCard.bottom)
+                put("card_to_footer_gap_dp", cardToFooterGap)
                 put("header_to_stats_gap_dp", headerToStatsGap)
                 put("stats_to_title_gap_dp", statsToTitleGap)
+                put("surplus_contract_dp", contractSurplus)
+                put("expected_equal_gap_addition_dp", expectedEqualGapAddition)
+                put("actual_stats_to_title_addition_dp", actualGapBeforeAddition)
+                put("actual_card_to_footer_addition_dp", actualGapAfterAddition)
+                put("hA_top_dp", hA)
+                put("hB_middle_dp", hB)
+                put("hC_footer_dp", hC)
+                put("base_gAB_dp", baseGapBefore)
+                put("base_gBC_dp", baseGapAfter)
                 put("card_track_horizontal_center_error_dp", centerOffset)
                 put("cta_camera_overlap", cta.bottom > camera.top)
                 put("camera_safe_bottom_clearance_dp", root.bottom - profile.insets.bottom.value - camera.bottom)
@@ -638,6 +903,13 @@ class GeminiHomeDeviceMatrixTest {
                 put("stats_bounds_dp", stats.toJson())
                 put("footer_bounds_dp", footer.toJson())
                 put("camera_bounds_dp", camera.toJson())
+                put("cta_bounds_dp", cta.toJson())
+                put("section_action_bounds_dp", sectionAction.toJson())
+                put("avatar_touch_bounds_dp", avatar.toJson())
+                put("middle_bounds_dp", middleSection.toJson())
+                put("top_bounds_dp", topSection.toJson())
+                put("text_layouts", initialTextLayouts)
+                put("text_layouts_after_swipe", secondTextLayouts)
             })
             put("bounds_in_window_px", boundsPx)
             put("bounds_after_swipe_in_window_px", afterSwipeBoundsPx)
@@ -792,6 +1064,11 @@ class GeminiHomeDeviceMatrixTest {
     private fun textLastLineCharacterCount(tag: String): Int {
         val node = compose.onNodeWithTag(tag, useUnmergedTree = true).fetchSemanticsNode()
         return node.config[GeminiHomeTextLastLineCharacterCount]
+    }
+
+    private fun textLineRanges(tag: String): String {
+        val node = compose.onNodeWithTag(tag, useUnmergedTree = true).fetchSemanticsNode()
+        return node.config[GeminiHomeTextLineRanges]
     }
 
     private fun advanceFramesUntil(timeoutMillis: Long, condition: () -> Boolean) {

@@ -102,6 +102,8 @@ internal val GeminiHomeTextHasVisualOverflow = SemanticsPropertyKey<Boolean>("Ge
 internal val GeminiHomeRenderedFontSizeSp = SemanticsPropertyKey<Float>("GeminiHomeRenderedFontSizeSp")
 internal val GeminiHomeTextLineCount = SemanticsPropertyKey<Int>("GeminiHomeTextLineCount")
 internal val GeminiHomeTextLastLineCharacterCount = SemanticsPropertyKey<Int>("GeminiHomeTextLastLineCharacterCount")
+internal val GeminiHomeTextLineRanges = SemanticsPropertyKey<String>("GeminiHomeTextLineRanges")
+internal val GeminiHomeImageLoadStatus = SemanticsPropertyKey<String>("GeminiHomeImageLoadStatus")
 
 /**
  * NH01 Gemini V3 page. The Compose tree follows Gemini's Top / Middle / Footer
@@ -133,12 +135,14 @@ internal fun GeminiNormalHomeContent(
         val safeWidth = (maxWidth - safeInsets.start - safeInsets.end).coerceAtLeast(1.dp)
         val safeHeight = (maxHeight - safeInsets.top - safeInsets.bottom).coerceAtLeast(1.dp)
         val fontScale = LocalDensity.current.fontScale
-        val layoutSpec = remember(safeWidth, safeHeight, fontScale, layoutVariant) {
+        val exactM01Exception = maxWidth.value == 320f && maxHeight.value == 480f && fontScale == 1f
+        val layoutSpec = remember(safeWidth, safeHeight, fontScale, layoutVariant, exactM01Exception) {
             resolveGeminiHomeLayoutSpec(
                 safeWidthDp = safeWidth.value,
                 safeHeightDp = safeHeight.value,
                 fontScale = fontScale,
                 variant = layoutVariant,
+                exactM01Exception = exactM01Exception,
             )
         }
         val avatarSize = geminiHomeAvatarVisualSize(safeWidth.value).dp
@@ -178,17 +182,16 @@ internal fun GeminiNormalHomeContent(
                     safeHeight = safeHeight,
                     statistics = statistics,
                     catches = records,
+                    topPadding = if (layoutVariant == GeminiHomeLayoutVariant.ADAPTIVE_V2) {
+                        layoutSpec.contentTopPadding
+                    } else if (safeHeight.value < 460f) 2.dp else 8.dp,
                     isResolving = isResolving,
                     isLoggedIn = isLoggedIn,
                     avatarUrl = avatarUrl,
                     resolveImageUrl = resolveImageUrl,
                     accessToken = accessToken,
                     avatarSize = avatarSize,
-                    brandToStatsGap = if (safeHeight.value < 460f) {
-                        4.dp
-                    } else {
-                        layoutSpec.brandToStatsGap ?: clampDp(safeHeight.value * 0.042f, 18f, 34f)
-                    },
+                    brandToStatsGap = layoutSpec.brandToStatsGap ?: clampDp(safeHeight.value * 0.042f, 18f, 34f),
                     onLoginClick = onLoginClick,
                     onProfileClick = onProfileClick,
                     onSpeciesClick = onSpeciesClick,
@@ -220,6 +223,8 @@ internal fun GeminiNormalHomeContent(
                     runtimeAssets = runtimeAssets,
                     cameraVisualSize = cameraVisualSize,
                     cameraTouchSize = cameraTouchSize,
+                    layoutSpec = layoutSpec,
+                    layoutVariant = layoutVariant,
                     onIdentify = onIdentify,
                 )
             }
@@ -234,6 +239,7 @@ private fun GeminiTopSection(
     safeHeight: Dp,
     statistics: CatchStatistics,
     catches: List<RemoteCatch>,
+    topPadding: Dp,
     isResolving: Boolean,
     isLoggedIn: Boolean,
     avatarUrl: String?,
@@ -248,7 +254,6 @@ private fun GeminiTopSection(
 ) {
     // Keep a stable status-area buffer; the policy bounds the header-to-stats
     // gap. System safe insets are already applied by the parent.
-    val topInset = if (safeHeight.value < 460f) 2.dp else 8.dp
     val horizontalInset = clampDp(safeWidth.value * 0.075f, 24f, 40f)
     val avatarTargetSize = maxOf(48.dp, avatarSize + 4.dp)
     val brandWidth = clampDp(safeWidth.value * (155f / 1080f), 46f, 70f)
@@ -257,7 +262,7 @@ private fun GeminiTopSection(
     Column(
         modifier = modifier.testTag("gemini-home-top-section")
             .padding(horizontal = horizontalInset)
-            .padding(top = topInset),
+            .padding(top = topPadding),
     ) {
         Row(
             modifier = Modifier.fillMaxWidth().heightIn(min = avatarTargetSize)
@@ -528,13 +533,15 @@ private fun GeminiMiddleSection(
             (it.value - titleRowInset).coerceAtLeast(0f)
         } ?: clampDp(safeHeight.value * 0.01f, 4f, 10f).value
         val cardShiftUp = (-cardVerticalOffset.value).coerceAtLeast(0f)
-        // Keep the button's 48dp target above the card, and never overlap the Stats row.
-        val leadingGap = maxOf(configuredLeadingGap, cardShiftUp).dp
+        // The title text is centered in its measured 48dp row. Keep the visual
+        // Stats-to-title gap at its contract value; move the card and its action
+        // target together when the title-to-card gap requires it.
+        val baseLeadingGap = configuredLeadingGap.dp
         val configuredTrailingGap = layoutSpec.cardToFooterGap ?: clampDp(safeHeight.value * 0.01f, 4f, 10f)
         // The visual card is offset up, so reduce the reserved trailing spacer by the same
         // amount; this preserves the card-to-CTA breathing room instead of creating blank space.
-        val trailingGap = (configuredTrailingGap.value - cardShiftUp).coerceAtLeast(0f).dp
-        val availableCardHeight = (maxHeight - leadingGap - headerHeight - headerGap - trailingGap)
+        val baseTrailingGap = (configuredTrailingGap.value - cardShiftUp).coerceAtLeast(0f).dp
+        val availableCardHeight = (maxHeight - baseLeadingGap - headerHeight - headerGap - baseTrailingGap)
             .coerceAtLeast(0.dp)
         // Compute against the actual height left after Top and Footer have
         // been measured by the parent Column. Keep the ratio when reducing.
@@ -549,6 +556,16 @@ private fun GeminiMiddleSection(
         } else {
             desiredCardHeight
         }
+        val surplusGapAddition = if (layoutSpec.contentFirstSizing) {
+            geminiHomeEqualSurplusGapAddition(
+                middleHeightDp = maxHeight.value,
+                contentHeightDp = headerHeight.value + headerGap.value + cardHeight.value,
+                baseGapBeforeDp = baseLeadingGap.value,
+                baseGapAfterDp = baseTrailingGap.value,
+            ).dp
+        } else 0.dp
+        val leadingGap = baseLeadingGap + surplusGapAddition
+        val trailingGap = baseTrailingGap + surplusGapAddition
         val cardWidth = cardHeight * GeminiHomeCardAspectRatio
         val groupHeight = leadingGap + headerHeight + headerGap + cardHeight + trailingGap
         val needsScroll = groupHeight > maxHeight
@@ -793,6 +810,7 @@ private fun GeminiCatchCard(
 ) {
     val textGap = clampDp(safeHeight.value * 0.006f, 2f, 5f)
     val currentFontScale = LocalDensity.current.fontScale
+    val imageLoadStatus = remember(item.id, imageUrl) { mutableStateOf("LOADING") }
     val allowAuxiliaryWrapping = geminiHomeShouldWrapAuxiliaryText(
         cardWidthDp = cardWidth.value,
         fontScale = currentFontScale,
@@ -859,8 +877,13 @@ private fun GeminiCatchCard(
     val speciesTextOverflow = remember(item.id) { mutableStateOf(false) }
     val measurementTextOverflow = remember(item.id) { mutableStateOf(false) }
     val metadataTextOverflow = remember(item.id) { mutableStateOf(false) }
+    val speciesLineCount = remember(item.id) { mutableStateOf(0) }
+    val speciesLineRanges = remember(item.id) { mutableStateOf("") }
+    val measurementLineCount = remember(item.id) { mutableStateOf(0) }
+    val measurementLineRanges = remember(item.id) { mutableStateOf("") }
     val metadataLineCount = remember(item.id) { mutableStateOf(0) }
     val metadataLastLineCharacterCount = remember(item.id) { mutableStateOf(0) }
+    val metadataLineRanges = remember(item.id) { mutableStateOf("") }
 
     YuJianHeroCard(
         title = species,
@@ -893,10 +916,18 @@ private fun GeminiCatchCard(
                     ),
                     maxLines = if (allowSpeciesWrapping) 2 else 1,
                     overflow = TextOverflow.Ellipsis,
-                    onTextLayout = { speciesTextOverflow.value = it.hasVisualOverflow },
+                    onTextLayout = {
+                        speciesTextOverflow.value = it.hasVisualOverflow
+                        speciesLineCount.value = it.lineCount
+                        speciesLineRanges.value = (0 until it.lineCount).joinToString(";") { line ->
+                            "${it.getLineStart(line)}:${it.getLineEnd(line, visibleEnd = true)}"
+                        }
+                    },
                     modifier = Modifier
                         .semantics {
                             this[GeminiHomeTextHasVisualOverflow] = speciesTextOverflow.value
+                            this[GeminiHomeTextLineCount] = speciesLineCount.value
+                            this[GeminiHomeTextLineRanges] = speciesLineRanges.value
                             this[GeminiHomeRenderedFontSizeSp] = speciesSize.value
                         }
                         .testTag("gemini-home-catch-species-${item.id}"),
@@ -912,11 +943,19 @@ private fun GeminiCatchCard(
                         ),
                         maxLines = if (allowAuxiliaryWrapping) 2 else 1,
                         overflow = TextOverflow.Ellipsis,
-                        onTextLayout = { measurementTextOverflow.value = it.hasVisualOverflow },
+                        onTextLayout = {
+                            measurementTextOverflow.value = it.hasVisualOverflow
+                            measurementLineCount.value = it.lineCount
+                            measurementLineRanges.value = (0 until it.lineCount).joinToString(";") { line ->
+                                "${it.getLineStart(line)}:${it.getLineEnd(line, visibleEnd = true)}"
+                            }
+                        },
                         modifier = Modifier.padding(top = textGap)
                             .semantics {
-                            this[GeminiHomeTextHasVisualOverflow] = measurementTextOverflow.value
-                            this[GeminiHomeRenderedFontSizeSp] = measurementSize.value
+                                this[GeminiHomeTextHasVisualOverflow] = measurementTextOverflow.value
+                                this[GeminiHomeTextLineCount] = measurementLineCount.value
+                                this[GeminiHomeTextLineRanges] = measurementLineRanges.value
+                                this[GeminiHomeRenderedFontSizeSp] = measurementSize.value
                         }
                             .testTag("gemini-home-catch-measurement-${item.id}"),
                     )
@@ -936,6 +975,9 @@ private fun GeminiCatchCard(
                             } else {
                                 0
                             }
+                            metadataLineRanges.value = (0 until it.lineCount).joinToString(";") { line ->
+                                "${it.getLineStart(line)}:${it.getLineEnd(line, visibleEnd = true)}"
+                            }
                         },
                         modifier = Modifier.padding(top = textGap)
                             .semantics {
@@ -943,6 +985,7 @@ private fun GeminiCatchCard(
                                 this[GeminiHomeRenderedFontSizeSp] = metadataSize.value
                                 this[GeminiHomeTextLineCount] = metadataLineCount.value
                                 this[GeminiHomeTextLastLineCharacterCount] = metadataLastLineCharacterCount.value
+                                this[GeminiHomeTextLineRanges] = metadataLineRanges.value
                             }
                             .testTag("gemini-home-catch-metadata-${item.id}"),
                     )
@@ -956,13 +999,15 @@ private fun GeminiCatchCard(
                     authToken = accessToken,
                     modifier = Modifier.fillMaxSize().testTag("gemini-home-catch-media-${item.id}"),
                     contentDescription = "${presentationSpeciesName(item.speciesName)} 鱼获照片",
+                    onLoadResult = { loaded -> imageLoadStatus.value = if (loaded) "READY" else "FALLBACK" },
                     smartFishPhoto = true,
                     fishPhotoSourceVersion = item.id,
                     placeholder = {
                         Box(
                             Modifier.fillMaxSize()
                                 .background(Color(0xFF294858).copy(alpha = 0.50f))
-                                .testTag("gemini-home-catch-image-placeholder"),
+                                .semantics { this[GeminiHomeImageLoadStatus] = imageLoadStatus.value }
+                                .testTag("gemini-home-catch-image-placeholder-${item.id}"),
                         )
                     },
                 )
@@ -985,21 +1030,31 @@ private fun GeminiFooterSection(
     runtimeAssets: GeminiNormalHomeRuntimeAssets?,
     cameraVisualSize: Dp,
     cameraTouchSize: Dp,
+    layoutSpec: GeminiHomeLayoutSpec,
+    layoutVariant: GeminiHomeLayoutVariant,
     onIdentify: () -> Unit,
 ) {
     val compactViewport = safeHeight.value < 460f
-    val verticalPadding = when {
+    val adaptiveV2 = layoutVariant == GeminiHomeLayoutVariant.ADAPTIVE_V2
+    val verticalPadding = if (adaptiveV2) {
+        if (safeBottomInset >= 40.dp) layoutSpec.footerBottomPaddingLargeInset
+        else layoutSpec.footerBottomPaddingSmallInset
+    } else when {
         compactViewport -> 2.dp
         safeBottomInset >= 40.dp -> 6.dp
         else -> 8.dp
     }
-    val gap = if (compactViewport) 6.dp else 11.dp
+    val topPadding = if (adaptiveV2) layoutSpec.footerTopPadding else if (compactViewport) 2.dp else 4.dp
+    val gap = if (adaptiveV2) layoutSpec.ctaCameraGap else if (compactViewport) 6.dp else 11.dp
     val labelSize = responsiveSp(safeHeight, safeWidth, 0.021f, 12f, 14f)
     val horizontalInset = clampDp(safeHeight.value * 0.01f, 8f, 12f)
+    val ctaTextOverflow = remember(labelSize) { mutableStateOf(false) }
+    val ctaLineCount = remember(labelSize) { mutableStateOf(0) }
+    val ctaLineRanges = remember(labelSize) { mutableStateOf("") }
     Column(
         modifier = modifier.testTag("gemini-home-footer-cta")
             .padding(horizontal = horizontalInset)
-            .padding(top = if (compactViewport) 2.dp else 4.dp, bottom = verticalPadding),
+            .padding(top = topPadding, bottom = verticalPadding),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(gap),
     ) {
@@ -1015,8 +1070,20 @@ private fun GeminiFooterSection(
                 textAlign = TextAlign.Center,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
+                onTextLayout = {
+                    ctaTextOverflow.value = it.hasVisualOverflow
+                    ctaLineCount.value = it.lineCount
+                    ctaLineRanges.value = (0 until it.lineCount).joinToString(";") { line ->
+                        "${it.getLineStart(line)}:${it.getLineEnd(line, visibleEnd = true)}"
+                    }
+                },
                 modifier = Modifier
-                    .semantics { this[GeminiHomeRenderedFontSizeSp] = labelSize.value }
+                    .semantics {
+                        this[GeminiHomeRenderedFontSizeSp] = labelSize.value
+                        this[GeminiHomeTextHasVisualOverflow] = ctaTextOverflow.value
+                        this[GeminiHomeTextLineCount] = ctaLineCount.value
+                        this[GeminiHomeTextLineRanges] = ctaLineRanges.value
+                    }
                     .testTag("gemini-home-cta-label"),
             )
         }

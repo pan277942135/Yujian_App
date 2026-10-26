@@ -184,7 +184,14 @@ if (( instrumentation_rc == EXIT_PASS )) && declare -F gate_additional_test_clas
 fi
 
 if declare -F gate_after_instrumentation >/dev/null 2>&1; then
-  gate_after_instrumentation || true
+  gate_after_instrumentation
+  after_instrumentation_rc=$?
+  if (( after_instrumentation_rc != EXIT_PASS )); then
+    instrumentation_rc=$after_instrumentation_rc
+    if [[ -z "$YUJIAN_FAILURE_PHASE" ]]; then
+      runtime_set_failure "INSTRUMENTATION" "POST_INSTRUMENTATION_GATE_FAILED"
+    fi
+  fi
 fi
 
 if (( instrumentation_rc != EXIT_PASS )); then
