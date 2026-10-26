@@ -1,7 +1,7 @@
 {
   "contract_id": "FISHTRACE_SWOS_CANVAS_WATER_LAB_V1_CANDIDATE",
   "task_id": "FISHTRACE_SWOS_CANVAS_WATER_LAB_VISUAL_FIDELITY_REPAIR_V2",
-  "contract_version": "CANDIDATE_V2",
+  "contract_version": "CANDIDATE_V3",
   "status": "CANDIDATE_NOT_VISUALLY_APPROVED",
   "purpose": "Phase 1 independent Canvas 2D water-light direction, motion, strength and exit review",
   "authority": "Candidate implementation baseline; frozen SWOS timing is reused and unchanged. Candidate optical values require product owner visual review.",
@@ -42,39 +42,239 @@
     "trust": "FIXED_DEMO_GEOMETRY_NOT_AI_MASK_NOT_PRODUCTION_ASSET",
     "safety_margin": "Conservative inset of approximately 20–40 source pixels beside the person and fish where the visible boundary permits; shoreline inset at least 16 source pixels. The geometry and browser overlay remain subject to review.",
     "edge_fade_source_px": 16,
-    "excluded_regions": ["sky", "fish", "person", "shoreline", "land", "rocks", "foreground_bank"],
+    "excluded_regions": [
+      "sky",
+      "fish",
+      "person",
+      "shoreline",
+      "land",
+      "rocks",
+      "foreground_bank"
+    ],
     "polygons": [
       {
         "id": "left_water_lane",
         "description": "Open water along the left photo edge beside the fish; the polygon follows a conservative gap around the fish and widens below its tail while remaining left of the person.",
-        "points": [[0,718],[56,718],[50,770],[34,820],[28,900],[35,990],[55,1080],[77,1170],[99,1265],[121,1355],[110,1405],[105,1435],[130,1470],[190,1510],[270,1536],[0,1536]]
+        "points": [
+          [
+            0,
+            718
+          ],
+          [
+            56,
+            718
+          ],
+          [
+            50,
+            770
+          ],
+          [
+            34,
+            820
+          ],
+          [
+            28,
+            900
+          ],
+          [
+            35,
+            990
+          ],
+          [
+            55,
+            1080
+          ],
+          [
+            77,
+            1170
+          ],
+          [
+            99,
+            1265
+          ],
+          [
+            121,
+            1355
+          ],
+          [
+            110,
+            1405
+          ],
+          [
+            105,
+            1435
+          ],
+          [
+            130,
+            1470
+          ],
+          [
+            190,
+            1510
+          ],
+          [
+            270,
+            1536
+          ],
+          [
+            0,
+            1536
+          ]
+        ]
       },
       {
         "id": "main_right_water",
         "description": "Open lake surface to the right of the person, with an inset below the rocky far bank, around the extended forearm and hand, and above the foreground rocks.",
-        "points": [[845,795],[1152,795],[1152,1390],[760,1390],[740,1320],[720,1250],[690,1180],[685,1150],[730,1134],[790,1125],[850,1118],[900,1110],[925,1085],[930,1055],[915,1025],[898,995],[878,965],[860,935],[840,910],[830,880],[828,840],[830,810]]
+        "points": [
+          [
+            845,
+            795
+          ],
+          [
+            1152,
+            795
+          ],
+          [
+            1152,
+            1390
+          ],
+          [
+            760,
+            1390
+          ],
+          [
+            740,
+            1320
+          ],
+          [
+            720,
+            1250
+          ],
+          [
+            690,
+            1180
+          ],
+          [
+            685,
+            1150
+          ],
+          [
+            730,
+            1134
+          ],
+          [
+            790,
+            1125
+          ],
+          [
+            850,
+            1118
+          ],
+          [
+            900,
+            1110
+          ],
+          [
+            925,
+            1085
+          ],
+          [
+            930,
+            1055
+          ],
+          [
+            915,
+            1025
+          ],
+          [
+            898,
+            995
+          ],
+          [
+            878,
+            965
+          ],
+          [
+            860,
+            935
+          ],
+          [
+            840,
+            910
+          ],
+          [
+            830,
+            880
+          ],
+          [
+            828,
+            840
+          ],
+          [
+            830,
+            810
+          ]
+        ]
       }
     ],
     "validation": {
-      "status": "MANUAL_SOURCE_REVIEW_COMPLETE_BROWSER_BOUNDARY_REVIEW_PENDING",
+      "status": "MANUAL_SOURCE_AND_BROWSER_BOUNDARY_REVIEW_COMPLETE",
       "source_visual_review": "Original 1152×1536 JPEG inspected with source-pixel grid; water polygons deliberately avoid fish, person, visible far shoreline and foreground bank.",
       "browser_debug_overlay_required": true,
       "normal_playback_debug_overlay": false,
-      "review_date": "2026-10-26"
+      "review_date": "2026-10-26",
+      "browser_review": {
+        "source_commit": "4071bdca77cf0d0aa5add21b8077f6259363dae1",
+        "workflow_run": 40308191268,
+        "screenshot": "fishtrace-canvas-water-region-debug.png",
+        "result": "Both polygons remain inside visibly open water; the fish, person, shoreline, foreground bank, sky and land are excluded in the browser-rendered overlay. Automated composite leak count is zero."
+      }
     }
   },
   "timeline": {
     "duration_ms": 2800,
     "interpolation": "smoothstep",
     "frames": [
-      {"id":"P0","ms":0,"intensity_percent":0},
-      {"id":"P1","ms":350,"intensity_percent":10},
-      {"id":"P2","ms":950,"intensity_percent":45},
-      {"id":"P3","ms":1200,"intensity_percent":75},
-      {"id":"P4","ms":1550,"intensity_percent":60},
-      {"id":"P5","ms":2050,"intensity_percent":35},
-      {"id":"P6","ms":2600,"intensity_percent":10},
-      {"id":"P7","ms":2800,"intensity_percent":0}
+      {
+        "id": "P0",
+        "ms": 0,
+        "intensity_percent": 0
+      },
+      {
+        "id": "P1",
+        "ms": 350,
+        "intensity_percent": 10
+      },
+      {
+        "id": "P2",
+        "ms": 950,
+        "intensity_percent": 45
+      },
+      {
+        "id": "P3",
+        "ms": 1200,
+        "intensity_percent": 75
+      },
+      {
+        "id": "P4",
+        "ms": 1550,
+        "intensity_percent": 60
+      },
+      {
+        "id": "P5",
+        "ms": 2050,
+        "intensity_percent": 35
+      },
+      {
+        "id": "P6",
+        "ms": 2600,
+        "intensity_percent": 10
+      },
+      {
+        "id": "P7",
+        "ms": 2800,
+        "intensity_percent": 0
+      }
     ]
   },
   "motion": {
@@ -92,11 +292,7 @@
     "recollection_downward_fraction": 0.018,
     "exit_start_ms": 2050,
     "exit_end_ms": 2800,
-    "reduced_motion_scale": 0.12,
-    "sway_rate_rad_s": 0.58,
-    "vertical_sway_rate_rad_s": 0.43,
-    "cell_wave_rate_rad_s": 0.72,
-    "highlight_wave_rate_rad_s": 0.51
+    "reduced_motion_scale": 0.12
   },
   "rendering": {
     "backend": "Canvas 2D",
@@ -104,36 +300,66 @@
     "blend_mode": "screen",
     "image_dpr": "devicePixelRatio",
     "water_region_clip": "source-native polygon path plus precomputed blurred-inward alpha mask; clip is rebuilt from the shared object-fit:contain content rectangle on resize",
-    "texture_generation": "A deterministic jittered curvilinear cell mesh is generated once per water polygon. Adjacent cells share the same cubic edge geometry; slow time functions deform the precomputed mesh continuously.",
+    "texture_generation": "A deterministic seeded set of smoothly deforming, horizontally flowing curvilinear caustic ribbons is precomputed per source-native water polygon. Ribbon centerlines, local width, color and motion are evaluated from elapsed time; no frame-local random geometry or polygon-cell mesh is used.",
     "ambient_alpha": 0.16,
     "ambient_bloom_alpha": 0.08,
-    "ambient_colors": ["rgba(150,181,143,.72)","rgba(171,203,169,.72)","rgba(195,218,197,.60)","rgba(211,226,211,.10)"],
-    "ambient_bloom_colors": ["rgba(202,220,184,.48)","rgba(193,215,191,.24)"],
-    "mesh_cell_width_source_px": 112,
-    "mesh_cell_height_source_px": 104,
-    "node_jitter_fraction": 0.27,
-    "node_motion_x_source_px": 5.8,
-    "node_motion_y_source_px": 7.2,
-    "edge_wave_rate_rad_s": 0.67,
-    "edge_bend_max_source_px": 13,
-    "edge_bend_fraction": 0.085,
-    "caustic_cell_alpha": 0.15,
-    "cell_alpha_wave_base": 0.88,
-    "cell_alpha_wave_amplitude": 0.12,
-    "caustic_colors": ["#c9dfce","#d8e4cc","#b9d8c8","#e0e3c6"],
-    "highlight_edge_threshold": 0.72,
-    "refraction_alpha": 0.19,
-    "refraction_width_source_px": 2.2,
-    "refraction_colors": ["#e6e6c8","#cfe4d1","#e6ebd4"],
+    "ambient_colors": [
+      "rgba(150,181,143,.72)",
+      "rgba(171,203,169,.72)",
+      "rgba(195,218,197,.60)",
+      "rgba(211,226,211,.10)"
+    ],
+    "ambient_bloom_colors": [
+      "rgba(202,220,184,.48)",
+      "rgba(193,215,191,.24)"
+    ],
+    "caustic_colors": [
+      "#c9dfce",
+      "#d8e4cc",
+      "#b9d8c8",
+      "#e0e3c6"
+    ],
+    "refraction_alpha": 0.13,
+    "refraction_colors": [
+      "#e6e6c8",
+      "#cfe4d1",
+      "#e6ebd4"
+    ],
     "max_layer_alpha": 0.24,
     "diagnostics": {
       "previous_v1_root_cause": "Irregular soft patches were distributed across the full photo coordinate rectangle; no water-region polygon restricted the overlay.",
       "v2_change": "Replace full-photo blobs with a water-region-clipped ambient field, shared-edge organic caustic mesh and sparse refraction curves. Keep the frozen timeline unchanged.",
       "parameter_change_log": [
-        {"parameter":"spatial_domain","before":"0.08–0.92 of full image width and height; all 30 textured patches could cover non-water content","after":"Two source-native hand-marked water polygons; every layer is clipped to the water region","reason":"The first proven failure was full-frame light spill onto sky, fish, person and bank."},
-        {"parameter":"optical_layers","before":"5 broad + 17 caustic + 8 refracted soft irregular textures; layer alpha 0.19 / 0.28 / 0.18","after":"Water-only ambient field alpha 0.16 + bloom 0.08; shared-edge caustic cell alpha 0.15; sparse refraction curve alpha 0.19","reason":"Replace detached blurred blobs with a connected, smoothly deforming water-surface field; these coefficients belong to the new composition model and are candidate values, not a one-to-one brightness mapping."},
-        {"parameter":"motion_amplitude","before":"expansion 0.24; upward movement 0.085 of full photo height; recollection scale reduction 0.13","after":"mesh expansion 0.055 and upward movement 0.055 of each water polygon height; recollection scale reduction 0.045","reason":"Drive movement inside the annotated water shape and reduce whole-patch displacement that made the old fields float over the photograph."},
-        {"parameter":"time_contract","before":"P0–P7 0–2800ms with 0/10/45/75/60/35/10/0 intensity","after":"unchanged","reason":"Preserve frozen SWOS timings and business decisions; calibrate only candidate rendering structure and layer parameters."}
+        {
+          "parameter": "spatial_domain",
+          "before": "0.08–0.92 of full image width and height; all 30 textured patches could cover non-water content",
+          "after": "Two source-native hand-marked water polygons; every layer is clipped to the water region",
+          "reason": "The first proven failure was full-frame light spill onto sky, fish, person and bank."
+        },
+        {
+          "parameter": "optical_layers",
+          "before": "5 broad + 17 caustic + 8 refracted soft irregular textures; layer alpha 0.19 / 0.28 / 0.18",
+          "after": "Water-only ambient field alpha 0.16 + bloom 0.08; shared-edge caustic cell alpha 0.15; sparse refraction curve alpha 0.19",
+          "reason": "Replace detached blurred blobs with a connected, smoothly deforming water-surface field; these coefficients belong to the new composition model and are candidate values, not a one-to-one brightness mapping."
+        },
+        {
+          "parameter": "motion_amplitude",
+          "before": "expansion 0.24; upward movement 0.085 of full photo height; recollection scale reduction 0.13",
+          "after": "mesh expansion 0.055 and upward movement 0.055 of each water polygon height; recollection scale reduction 0.045",
+          "reason": "Drive movement inside the annotated water shape and reduce whole-patch displacement that made the old fields float over the photograph."
+        },
+        {
+          "parameter": "time_contract",
+          "before": "P0–P7 0–2800ms with 0/10/45/75/60/35/10/0 intensity",
+          "after": "unchanged",
+          "reason": "Preserve frozen SWOS timings and business decisions; calibrate only candidate rendering structure and layer parameters."
+        },
+        {
+          "parameter": "caustic_topology",
+          "before": "Jittered mesh cells with visible shared polygon seams and connected grid-edge highlights.",
+          "after": "8–22 source-native smooth, elongated ribbons per water polygon, 18–46 source-pixel width, slowly deforming from precomputed deterministic control samples; sparse ribbon-aligned refraction glints.",
+          "reason": "Browser composite screenshots showed the mesh read as a geometric polygon grid and was too subtle as natural caustics. Curved bands retain deterministic continuity while removing cell seams."
+        }
       ],
       "p2_visibility_baseline_mean_rgb_abs_diff_min_255": 3,
       "p3_visibility_baseline_mean_rgb_abs_diff_min_255": 5,
@@ -142,15 +368,49 @@
       "p0_p7_composite_pixel_difference_max": 0,
       "p3_to_p5_mean_diff_must_decrease": true,
       "p5_to_p6_mean_diff_must_decrease": true,
-      "p2_to_p3_spatial_map_change_required": true
-    }
+      "p2_to_p3_spatial_map_change_required": true,
+      "v3_change": "Replace the visible polygon-cell mosaic and grid-aligned edge highlights with a sparse seeded ribbon field: smooth curved area bands for layer B and a few aligned low-alpha centerline glints for layer C. The water-only mask and P0–P7 timeline are unchanged."
+    },
+    "ribbon_spacing_source_px": 54,
+    "ribbon_min_count": 8,
+    "ribbon_max_count": 22,
+    "ribbon_curve_segments": 10,
+    "ribbon_spacing_jitter_fraction": 0.24,
+    "ribbon_thickness_min_source_px": 18,
+    "ribbon_thickness_max_source_px": 46,
+    "ribbon_amplitude_min_source_px": 6,
+    "ribbon_amplitude_max_source_px": 20,
+    "ribbon_frequency_min": 1.1,
+    "ribbon_frequency_max": 2.8,
+    "ribbon_speed_min": 0.72,
+    "ribbon_speed_max": 1.28,
+    "ribbon_wave_rate_rad_s": 0.58,
+    "ribbon_pulse_rate_rad_s": 0.33,
+    "ribbon_lateral_motion_source_px": 5.8,
+    "ribbon_shape_variation_fraction": 0.12,
+    "ribbon_expansion_fraction": 0.34,
+    "ribbon_recollection_fraction": 0.15,
+    "caustic_ribbon_alpha": 0.72,
+    "ribbon_edge_alpha": 0.22,
+    "ribbon_core_alpha": 0.58,
+    "ribbon_edge_blur_source_px": 2.8,
+    "highlight_ribbon_weight_threshold": 0.86,
+    "refraction_width_source_px": 1.45,
+    "highlight_edge_blur_source_px": 0.75
   },
   "visual_acceptance": {
     "state": "NOT_YET_VISUALLY_SIGNED_OFF",
     "review_required": true,
     "product_owner_visual_signoff_required": true,
     "candidate_parameter_changes": "No visual freeze is claimed in this version. The original frame times and baseline intensity values are preserved; renderer parameters remain candidate values until visual review.",
-    "browser_evidence_required": ["P0-P7 composited screenshots", "source-native water-region debug overlay", "composited ROI pixel metrics", "water-only leak measurement", "full 2800ms live Canvas recording", "frame interval profile"]
+    "browser_evidence_required": [
+      "P0-P7 composited screenshots",
+      "source-native water-region debug overlay",
+      "composited ROI pixel metrics",
+      "water-only leak measurement",
+      "full 2800ms live Canvas recording",
+      "frame interval profile"
+    ]
   },
   "performance_targets": {
     "frame_interval_median_ms_max": 16.7,
