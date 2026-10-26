@@ -1126,15 +1126,6 @@ async function main() {
     waterScreenshots.push(name);
   };
   await fishtraceFrame.locator('[data-water-frame="P0"]').click();
-  const allWaterFrames = [["P0",0,0],["P1",350,10],["P2",950,45],["P3",1200,75],["P4",1550,60],["P5",2050,35],["P6",2600,10],["P7",2800,0]];
-  const waterFrameJumpEvidence = [];
-  for (const [id,ms,intensity] of allWaterFrames) {
-    await fishtraceFrame.locator('[data-water-frame="' + id + '"]').click();
-    const shownTime = await fishtraceFrame.locator("#water-current-time").innerText();
-    const shownIntensity = Number((await fishtraceFrame.locator("#water-debug-intensity").innerText()).replace("%",""));
-    assert(shownTime === ms + " ms" && shownIntensity === intensity, id + " must jump to its exact time and baseline intensity");
-    waterFrameJumpEvidence.push({id,ms,intensity_percent:shownIntensity});
-  }
   const p0Water = await waterCanvasState();
   assert(Number(p0Water.time) === 0 && p0Water.visible === 0, "P0 must be the exact clear original with zero Canvas alpha");
   await waterStageShot("fishtrace-canvas-water-P0.png");
@@ -1162,6 +1153,16 @@ async function main() {
   const p7Water = await waterCanvasState();
   assert(Number(p7Water.time) === 2800 && p7Water.visible === 0, "P7 must clear every nontransparent Canvas pixel");
   await waterStageShot("fishtrace-canvas-water-P7.png");
+
+  const allWaterFrames = [["P0",0,0],["P1",350,10],["P2",950,45],["P3",1200,75],["P4",1550,60],["P5",2050,35],["P6",2600,10],["P7",2800,0]];
+  const waterFrameJumpEvidence = [];
+  for (const [id,ms,intensity] of allWaterFrames) {
+    await fishtraceFrame.locator('[data-water-frame="' + id + '"]').click();
+    const shownTime = await fishtraceFrame.locator("#water-current-time").innerText();
+    const shownIntensity = Number((await fishtraceFrame.locator("#water-debug-intensity").innerText()).replace("%",""));
+    assert(shownTime === ms + " ms" && shownIntensity === intensity, id + " must jump to its exact time and baseline intensity");
+    waterFrameJumpEvidence.push({id,ms,intensity_percent:shownIntensity});
+  }
 
   await fishtraceFrame.locator('[data-water-frame="P0"]').click();
   await fishtraceFrame.locator("#water-play").click();
