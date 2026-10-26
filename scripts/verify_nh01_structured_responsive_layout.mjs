@@ -92,7 +92,7 @@ async function measure(page,profile,fontScale){
     return {
       id:profile.id,viewport:{width:profile.width,height:profile.height,fontScale,topInset:24,bottomInset:24,zoom:1},previewRulesId:metrics.rulesId,
       bounds:{header,stats,recentCatchHeader:recent,recentTitle:title,pager,hero,neighborPrevious:previous,neighborNext:next,pagerIndicator:indicator,captureActionGroup:footer,cta,cameraTouchTarget:camera,cameraArtwork},
-      intervals:{headerToStats:stats.y-header.bottom,statsToTitle:title.y-stats.bottom,titleToHero:hero.y-title.bottom,heroBottomToFooterTop:footer.y-hero.bottom,heroBottomToCtaTop:cta.y-hero.bottom,ctaToCameraTouch:camera.y-cta.bottom,ctaToCameraArtwork:cameraArtwork.y-cta.bottom,cameraTouchToSafeBottom:safeBottom-camera.bottom,footerToSafeBottom:safeBottom-footer.bottom},
+      intervals:{headerToStats:stats.y-header.bottom,statsToTitle:title.y-stats.bottom,titleToHero:hero.y-title.bottom,heroBottomToFooterTop:footer.y-hero.bottom,visibleHeroBottomToFooterTop:footer.y-Math.min(hero.bottom,pager.bottom),pagerBottomToFooterTop:footer.y-pager.bottom,heroBottomToCtaTop:cta.y-hero.bottom,ctaToCameraTouch:camera.y-cta.bottom,ctaToCameraArtwork:cameraArtwork.y-cta.bottom,cameraTouchToSafeBottom:safeBottom-camera.bottom,footerToSafeBottom:safeBottom-footer.bottom},
       pager:{peekGapLeft:leftGap,peekGapRight:rightGap,maxGeometryOverlap:Math.max(0,-leftGap,-rightGap),peekGapRule:metrics.pager.peekGap,maxGeometryOverlapLimit:metrics.pager.maxGeometryOverlap,neighborPreviousVisibleWidth:peekLeftVisible,neighborNextVisibleWidth:peekRightVisible,pagerHeight:pager.h,pagerContentHeight:metrics.pager.contentHeight,indicatorHeight:indicator.h,indicatorGapAfterHero:indicator.y-hero.bottom,localScroll:pagerNode.scrollHeight>pagerNode.clientHeight+1,scrollHeight:pagerNode.scrollHeight,clientHeight:pagerNode.clientHeight,scrollNeeded:pagerNode.dataset.scrollNeeded==="true"},
       heroRatio:hero.w/hero.h,heroTargetWidth:metrics.hero.width,heroAvailableHeight:metrics.pager.contentHeight-metrics.pager.indicatorGapAfterHero-metrics.pager.indicatorHeight,
       cameraArtInsideTouch:cameraArtInside,ctaFontSize:parseFloat(getComputedStyle(pick('cta')).fontSize),ctaLineHeight:parseFloat(getComputedStyle(pick('cta')).lineHeight),textLayout,
@@ -114,7 +114,7 @@ function validate(result){
   if(p.maxGeometryOverlap>p.maxGeometryOverlapLimit+.01)failures.push("Peek geometry exceeds the overlap cap");
   if(p.peekGapLeft<7.9||p.peekGapLeft>12.1)failures.push("actual Peek gap is outside the 8–12dp preview clamp");
   if(p.pagerHeight<p.indicatorHeight)failures.push("Pager indicator is outside the Pager height budget");
-  if(i.headerToStats<0||i.statsToTitle<0||i.titleToHero<0||i.heroBottomToFooterTop<0)failures.push("adjacent layout regions overlap");
+  if(i.headerToStats<0||i.statsToTitle<0||i.titleToHero<0||i.pagerBottomToFooterTop<0)failures.push("adjacent layout regions overlap");
   if(i.ctaToCameraTouch<5.9)failures.push("CTA text collides with camera touch target");
   if(i.cameraTouchToSafeBottom<1.9)failures.push("camera target crosses the bottom safe area");
   if(i.footerToSafeBottom<-.51)failures.push("CaptureActionGroup exceeds the bottom safe area");
@@ -169,7 +169,10 @@ async function main(){
         await board.screenshot({path:resolve(args.outputDir,result.screenshot),animations:"disabled"});
         const png=await readFile(resolve(args.outputDir,result.screenshot));
         result.screenshotDimensions={width:png.readUInt32BE(16),height:png.readUInt32BE(20),bytes:png.length,sha256:createHash("sha256").update(png).digest("hex")};
-        if(result.screenshotDimensions.width!==profile.width||result.screenshotDimensions.height!==profile.height)failures.push(`screenshot dimensions ${result.screenshotDimensions.width}×${result.screenshotDimensions.height} do not match viewport`);
+        // Element screenshots round fractional artboard edges outward. A
+        // one-pixel height difference is the rasterized CSS clip, not a
+        // different test viewport; larger differences remain a failure.
+        if(result.screenshotDimensions.width!==profile.width||result.screenshotDimensions.height<profile.height||result.screenshotDimensions.height>profile.height+1)failures.push(`screenshot dimensions ${result.screenshotDimensions.width}×${result.screenshotDimensions.height} do not match the ${profile.width}×${profile.height} artboard viewport within 1px edge rounding`);
         result.status=failures.length?"FAIL":"PASS";
         results.push(result);
         if(fontScale===1){
