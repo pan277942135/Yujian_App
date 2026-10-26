@@ -590,7 +590,9 @@
     });
     timelineInput.addEventListener("input",()=>{
       if (!controller) return;
-      controller.pause();controller.seek(Number(timelineInput.value));
+      const requestedTimeMs=Number(timelineInput.value);
+      controller.pause();
+      controller.seek(requestedTimeMs);
     });
     lab.querySelectorAll("[data-water-frame]").forEach(button=>button.addEventListener("click",()=>{
       if (!controller) return;
