@@ -187,5 +187,23 @@
     "human_visual_acceptance_required": true,
     "generic_validator_batch_ready": false,
     "batch_ready_blocker": "Generalize the shared schema/validator so generic contract-envelope checks are separate from page-specific conformance profiles; do not reuse NH01-specific assertions for other pages."
+  },
+  "product_owner_acceptance": {
+    "decision": "NOT_REVIEWED",
+    "reviewer": null,
+    "reviewed_at": null,
+    "notes": null
+  },
+  "canonical_freeze": {
+    "status": "NOT_FROZEN",
+    "main_sha": null,
+    "merge_commit_sha": null
+  },
+  "native_runtime": {
+    "status": "NOT_VERIFIED",
+    "source_sha": null,
+    "build_run_id": null,
+    "apk_sha256": null,
+    "artifact_url": null
   }
 }
