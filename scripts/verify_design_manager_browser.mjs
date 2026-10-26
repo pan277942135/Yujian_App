@@ -1004,6 +1004,7 @@ async function main() {
 
   const waitForFreshFishtraceFrame = async targetPage => {
     await targetPage.locator(fishtraceFrameSelector).waitFor({state:"visible",timeout:30000});
+    await targetPage.locator(fishtraceFrameSelector).scrollIntoViewIfNeeded();
     await targetPage.waitForFunction(selector => {
       const frame = document.querySelector(selector);
       try {
