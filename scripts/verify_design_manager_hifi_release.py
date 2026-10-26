@@ -377,6 +377,8 @@ def validate_tree(root: Path, *, built: bool = False, expected_build: str | None
     require(sites_hifi.get("status") == "DESIGN_ONLY" and sites_hifi.get("runtime_status") == "NOT_VERIFIED" and sites_hifi.get("production_inference_connected") is False, "FishTrace Sites prototype must remain DESIGN_ONLY and not connected to production inference")
     require(sites_visual.get("prototype_id") == "FISHTRACE-SITES-WEB-STRUCTURED-PROTOTYPE-V1" and sites_visual.get("production_inference_connected") is False and sites_visual.get("sites_source_modified") is False, "FishTrace Sites prototype machine contract identity/scope changed")
     require(len(sites_visual.get("scenes", [])) == 7 and len(sites_visual.get("acceptance_checks", [])) >= 15, "FishTrace Sites prototype must include seven states including RR09 reveal and structured acceptance checks")
+    rr09_reveal = sites_visual.get("interaction_rules", {}).get("rr09_reveal", {})
+    require(rr09_reveal.get("frames") == ["R0", "R0.5", "R1", "R2", "R3", "R4", "R5"] and rr09_reveal.get("mask_trust_state") == "NONE" and rr09_reveal.get("fabricated_fish_contour") is False, "FishTrace Sites RR09 reveal must preserve frame order and NONE-Mask fallback")
     require("DEMO_DATA_ONLY" in json.dumps(sites_visual) and "photo_upload" in json.dumps(sites_visual), "FishTrace Sites sample-result or privacy boundary is missing")
     require("guide-resource-grid" in css and "guide-resource-metadata" in css, "guide Resources responsive gallery styles are missing")
     for token in (
