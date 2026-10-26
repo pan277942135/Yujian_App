@@ -18,7 +18,7 @@ EXPECTED_RECOGNITION_FLOW = [
     "recognition_full_flow_models", "swos_optical_contract", "processing_result_continuity",
     "swos_static_visual_v1_1",
     "web_hifi_contract_v2", "swos_web_hifi_motion_contract_v1_0",
-    "swos_rr09_optical_v1_2",
+    "swos_rr09_optical_v1_2", "fishtrace_sites_web_hifi_workspace",
 ]
 EXPECTED_RECOGNITION_RESULT = [
     "overview", "high", "medium", "low", "no_fish", "image_quality",
@@ -186,6 +186,35 @@ def validate_tree(root: Path, *, built: bool = False, expected_build: str | None
             fail(f"SWOS Web motion technical contract is missing {field}: {target}")
     if not any(link.get("route") == "#page/recognition_flow_v1_2/hifi/swos_static_visual_v1_1" for link in swos_web_motion.get("related_routes", [])):
         fail("SWOS Web motion contract must link back to the 15-frame static review route")
+    sites_hifi = next((x for x in recognition["hifi_views"] if x.get("id") == "fishtrace_sites_web_hifi_workspace"), None)
+    if (
+        sites_hifi is None
+        or sites_hifi.get("title") != "16 · FishTrace Sites Web 高保真与结构化原型 V1"
+        or sites_hifi.get("status") != "DESIGN_ONLY"
+        or sites_hifi.get("render_mode") != "fishtrace_sites_web_hifi_workspace"
+        or sites_hifi.get("runtime_status") != "NOT_VERIFIED"
+        or sites_hifi.get("runtime_visual_verified") is not False
+        or sites_hifi.get("production_inference_connected") is not False
+    ):
+        fail("FishTrace Sites Web high-fidelity prototype must remain a design-only, non-runtime route")
+    for field in ("authority", "machine_authority", "acceptance_matrix"):
+        target = sites_hifi.get(field)
+        if not target or not (root / target).is_file():
+            fail(f"FishTrace Sites Web prototype is missing {field}: {target}")
+    prototype = load_json(root / sites_hifi["machine_authority"])
+    if prototype.get("prototype_id") != "FISHTRACE-SITES-WEB-STRUCTURED-PROTOTYPE-V1":
+        fail("FishTrace Sites structured prototype machine ID mismatch")
+    if prototype.get("production_inference_connected") is not False or prototype.get("sites_source_modified") is not False:
+        fail("FishTrace Sites design prototype must not claim production inference or Sites source changes")
+    for rel in (
+        "design/manager/fishtrace_sites_web_workspace.html",
+        "design/manager/fishtrace_sites_web_workspace.css",
+        "design/manager/fishtrace_sites_web_workspace.js",
+    ):
+        if not (root / rel).is_file():
+            fail(f"FishTrace Sites interactive prototype resource missing: {rel}")
+    if "fishtrace_sites_web_hifi_workspace" not in app_source or "fishtrace_sites_web_workspace.html" not in app_source:
+        fail("Design Manager FishTrace Sites prototype iframe renderer is missing")
     guide = next(x for x in recognition["hifi_views"] if x.get("id") == "capture_first_use_guide")
     guide_children = [x.get("id") for x in guide.get("children", [])]
     if guide.get("title") != "07 · 首次拍照教学" or guide_children != ["p01", "p02", "p03", "resources"]:
