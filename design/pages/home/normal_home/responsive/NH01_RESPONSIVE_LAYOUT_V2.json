@@ -324,24 +324,32 @@
     "bands": [
       {
         "id": "A",
-        "logical_content": ["brand", "statistics"],
+        "logical_content": [
+          "brand",
+          "statistics"
+        ],
         "physical_region": "top"
       },
       {
         "id": "B",
-        "logical_content": ["recent-catch-heading", "selected-hero"],
+        "logical_content": [
+          "recent-catch-heading",
+          "selected-hero"
+        ],
         "physical_region": "top+middle"
       },
       {
         "id": "C",
-        "logical_content": ["footer"],
+        "logical_content": [
+          "footer"
+        ],
         "physical_region": "footer"
       }
     ],
     "surplus_formula": "S = max(0, H_safe - (hA + hB + hC + gAB_base + gBC_base))",
     "allocation_when_positive_surplus": {
-      "a_to_b": "gAB_base + 2S/3",
-      "b_to_c": "gBC_base + S/3"
+      "a_to_b": "gAB_base + S/2",
+      "b_to_c": "gBC_base + S/2"
     },
     "allocation_when_zero_surplus": {
       "a_to_b": "gAB_base",
@@ -355,7 +363,8 @@
       "Logical bands do not create new physical Compose containers.",
       "Recent Catch heading remains physically in Top while logically in B.",
       "title_to_card_runtime remains the internal Title-to-Hero gap and is not modified by surplus allocation.",
-      "Safe insets are consumed exactly once before H_safe."
+      "Safe insets are consumed exactly once before H_safe.",
+      "All positive surplus is assigned to the two inter-band gaps as equal S/2 additions; no cap or outer-breathing remainder is permitted."
     ]
   },
   "components": [
@@ -415,11 +424,8 @@
         "No fabricated zero/unknown values and no global shrink to hide overflow."
       ],
       "constraints": [
-        "aspect ratio = 247:293",
-        "target width = min(trackWidthDp * 0.70, 337.2dp)",
-        "target height = min(targetWidthDp * 293 / 247, 400dp)",
-        "readable height target range = 148-220dp",
-        "124dp exception only for the exact 320x480dp profile at fontScale=1.0, width >=145dp, required copy readable and no Middle scrolling."
+        "Use preview_engine.parameters.hero as the sole numeric source for target width, aspect ratio, height cap, readable-height bounds, and the exact M01 exception.",
+        "When height limits the Hero, derive width from the same 247:293 ratio; never distort the card."
       ]
     },
     {
@@ -431,22 +437,21 @@
         "No overlap beyond 1dp."
       ],
       "constraints": [
-        "neighbor width <= 82% of main Hero width",
-        "neighbor height = 66.7% of main Hero height",
-        "neighbor top offset = 15dp",
-        "target edge peek = clamp(trackWidthDp * 0.05, 12dp, 28dp) when geometrically feasible"
+        "Use preview_engine.parameters.neighbor as the sole numeric source for width, height, offset, peek gap, visible width, indicator, and overlap bounds."
       ]
     },
     {
       "id": "Footer-CTA-Section",
       "role": "Record-next-catch action",
       "rules": [
-        "Keep CTA above the camera touch target and inside the bottom safe content area.",
-        "Preserve the approved CTA visual asset and text style."
+        "The record-next-catch copy is a static text label under the current interaction contract, not an independent action.",
+        "Measure the rendered CTA line height once; do not add a duplicate 48dp CTA touch target.",
+        "Keep the CTA label and camera control in one action group inside the bottom safe content area."
       ],
       "constraints": [
-        "touch target >= 48x48dp",
-        "CTA and camera remain one action group."
+        "CTA has no independent touch target; its height is the measured rendered text line height.",
+        "The camera artwork is centered inside its separately measured touch target.",
+        "Use preview_engine.parameters.capture_action_group as the sole numeric source for footer internals."
       ]
     },
     {
@@ -457,9 +462,8 @@
         "Keep the full touch target within safe bounds and clear of CTA and system navigation."
       ],
       "constraints": [
-        "visualSize = min(min(safeWidthDp,560dp)*0.18, safeHeightDp*0.10, 80dp), bounded to 56-80dp",
-        "touch target = max(72dp, visualSize)",
-        "CTA-camera gap = 6dp if safeHeightDp < 460, otherwise 11dp."
+        "Use preview_engine.parameters.camera and preview_engine.parameters.capture_action_group for artwork size, touch target, and CTA-to-camera spacing.",
+        "Keep the complete touch target inside safe bounds."
       ]
     }
   ],
@@ -562,13 +566,13 @@
     "formulas": {
       "font_pressure": "clamp((systemFontScale - 1.0) / 0.5, 0, 1)",
       "short_height_pressure": "clamp((620 - safeHeightDp) / 220, 0, 1)",
-      "brand_to_stats": "max(9dp, clamp(safeHeightDp*0.035,14dp,28dp) - 3dp*fontPressure - 2dp*shortHeightPressure)",
-      "stats_to_title": "max(minimum_gap_dp, interpolate(base_curve over safeHeightDp) - font_pressure_penalty_dp*fontPressure); the configured curve is continuous at its control points.",
-      "title_to_card_runtime": "max(minimum_gap_dp, interpolate(base_curve over safeHeightDp) - font_pressure_penalty_dp*fontPressure); the configured curve passes through the four declared static anchor targets and is continuous between them.",
-      "card_to_footer": "max(3dp, clamp(safeHeightDp*0.018,8dp,14dp) - 3dp*fontPressure - 2dp*shortHeightPressure)",
-      "cta_to_camera": "Piecewise-linear interpolation of preview_engine.parameters.spacing.footer.transition_curve over safeHeightDp; clamp to endpoint values.",
-      "footer_top_padding": "Piecewise-linear interpolation of preview_engine.parameters.spacing.footer.transition_curve over safeHeightDp; clamp to endpoint values.",
-      "footer_bottom_padding": "Piecewise-linear interpolation of the inset-appropriate bottom-padding values in preview_engine.parameters.spacing.footer.transition_curve over safeHeightDp; clamp to endpoint values."
+      "brand_to_stats": "Read preview_engine.parameters.spacing.brand_to_stats; the nested values are the sole executable source.",
+      "stats_to_title": "Read preview_engine.parameters.spacing.stats_to_title; the nested values are the sole executable source.",
+      "title_to_card_runtime": "Read preview_engine.parameters.spacing.title_to_card_runtime; the nested values are the sole executable source.",
+      "card_to_footer": "Read preview_engine.parameters.spacing.card_to_footer; the nested values are the sole executable source.",
+      "cta_to_camera": "Read preview_engine.parameters.spacing.cta_to_camera; the nested values are the sole executable source.",
+      "footer_top_padding": "Read preview_engine.parameters.spacing.footer_top_padding; the nested values are the sole executable source.",
+      "footer_bottom_padding": "Read preview_engine.parameters.spacing.footer_bottom_padding; the nested values are the sole executable source."
     },
     "title_to_card_anchor_targets": [
       {
@@ -674,7 +678,7 @@
     "resolution_steps": [
       "Compress nonessential spacing first.",
       "Apply only the declared local wrapping/reflow rules; preserve required content and system font scale.",
-      "If the readable Hero/group cannot fit, enable the documented local Middle scroll while keeping Footer outside it.",
+      "Outside exact M01 at fontScale 1.0, if the readable Hero/group cannot fit, enable the declared local Middle scroll while keeping Footer outside it; for exact M01, do not scroll and report FAIL_CONSTRAINT if the ratio, width, readable-copy, and safe-area requirements cannot fit together.",
       "If required controls/content still cannot fit, report UNSUPPORTED_WINDOW or FAIL_CONSTRAINT with measured bounds; do not claim a pass."
     ],
     "footer_fixed_outside_middle": true,
@@ -820,6 +824,16 @@
       "version": "V2.0",
       "date": "2026-10-22",
       "change": "Browser audit showed short-screen height pressure shrinking the Hero below its declared width floor and 1.3x metadata occupying three lines. Raise the readable Hero floor to 220dp (185dp at the declared aspect ratio) and permit Middle-only scrolling while Footer remains pinned; keep frozen image assets unchanged."
+    },
+    {
+      "version": "V2.0",
+      "date": "2026-10-26",
+      "change": "Align the proposed contract with Main Responsive Foundation V1.1 (equal S/2 additions); remove capped-gap/outer-breathing behavior, define one contract-owned Peek and footer calculation, clarify the 124dp floor semantics and exact M01 NO_SCROLL conditions, and allow generated illustrative media to remain non-blocking for geometry acceptance."
+    },
+    {
+      "date": "2026-10-26",
+      "change": "Structured browser preview integration: single V2 machine source, equal S/2 surplus allocation, contract-defined exact-M01 compact spacing, grid-flow page regions, and contract-hash-bound browser evidence.",
+      "status": "WORKING_BASELINE"
     }
   ],
   "preview_engine": {
@@ -892,16 +906,28 @@
         "target_width_fraction": 0.7,
         "maximum_width_dp": 337.2,
         "maximum_height_dp": 400,
-        "minimum_readable_height_dp": 220,
+        "minimum_readable_height_dp": 148,
         "maximum_readable_height_dp": 220,
         "short_screen_exception": {
-          "minimum_height_dp": 220,
-          "minimum_width_dp": 185,
           "exact_viewport_width_dp": 320,
           "exact_viewport_height_dp": 480,
           "exact_font_scale": 1,
-          "requires_no_middle_scroll": false,
-          "requires_all_copy_readable": true
+          "minimum_readable_floor_dp": 124,
+          "minimum_width_dp": 145,
+          "requires_no_middle_scroll": true,
+          "requires_all_copy_readable": true,
+          "meaning": "124dp is the permitted minimum-readable floor, not a forced final card height. The final card must still preserve the 247:293 ratio and be at least 145dp wide. If the exact M01 constraints cannot fit without scrolling after nonessential whitespace compression, report FAIL_CONSTRAINT/SPEC_CONFLICT.",
+          "compact_layout": {
+            "top_padding_dp": 0,
+            "header_to_stats_gap_dp": 9,
+            "stats_height_dp": 48,
+            "stats_to_title_gap_dp": 12,
+            "title_to_card_gap_dp": 8,
+            "card_to_footer_gap_dp": 3,
+            "footer_top_padding_dp": 0,
+            "footer_bottom_padding_dp": 0,
+            "cta_camera_gap_dp": 6
+          }
         }
       },
       "neighbor": {
@@ -911,7 +937,19 @@
         "edge_peek_width_fraction_of_track": 0.05,
         "minimum_edge_peek_dp": 12,
         "maximum_edge_peek_dp": 28,
-        "maximum_overlap_dp": 1
+        "maximum_overlap_dp": 1,
+        "peek_gap": {
+          "minimum_dp": 8,
+          "track_width_fraction": 0.025,
+          "maximum_dp": 12,
+          "formula": "clamp(8dp, trackWidthDp * 0.025, 12dp)"
+        },
+        "maximum_geometry_overlap_dp": 1,
+        "peek_visible_width_formula": "min(neighborWidthDp, max(0, (trackWidthDp - heroWidthDp) / 2 - peekGapDp))",
+        "indicator_height_dp": 8,
+        "indicator_gap_after_hero_dp": 8,
+        "pager_height_formula": "heroHeightDp + indicator_gap_after_hero_dp + indicator_height_dp",
+        "indicator_width_dp": 40
       },
       "camera": {
         "width_fraction_of_capped_safe_width": 0.18,
@@ -1018,7 +1056,23 @@
             }
           ],
           "large_bottom_inset_threshold_dp": 40
+        },
+        "surplus_allocation": {
+          "formula": "S = max(0, H_safe - (hA + hB + hC + gAB_base + gBC_base))",
+          "a_to_b_added": "S/2",
+          "b_to_c_added": "S/2",
+          "additional_gap_cap_dp": null,
+          "outer_breathing_remainder_dp": 0
         }
+      },
+      "capture_action_group": {
+        "cta_semantics": "STATIC_TEXT_LABEL_NOT_AN_INDEPENDENT_ACTION",
+        "cta_touch_target_dp": null,
+        "cta_height": "Measure the rendered CTA line height once from its declared typography role.",
+        "camera_artwork_inside_touch_target": true,
+        "cta_camera_gap": "Use preview_engine.parameters.spacing.cta_to_camera.",
+        "footer_outer_padding": "Use preview_engine.parameters.spacing.footer_top_padding and footer_bottom_padding once.",
+        "footer_height_formula": "footer_top_padding + measured_cta_line_height + cta_to_camera + camera_touch_target_height + footer_bottom_padding"
       }
     },
     "role_bindings": {
