@@ -90,6 +90,15 @@ jobs:
           npm install --no-save --prefix "$RUNNER_TEMP/dm-playwright" playwright@1.63.0
           "$RUNNER_TEMP/dm-playwright/node_modules/.bin/playwright" install --with-deps chromium
 
+      - name: Install ffmpeg tools for real WebM frame verification
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install --yes --no-install-recommends ffmpeg
+          ffmpeg -version
+          ffprobe -version
+
       - name: Verify NH01 structured workspace behavior and resource state machine
         run: |
           node --check design/manager/app.js
@@ -485,6 +494,15 @@ jobs:
           npm install --no-save --prefix "$RUNNER_TEMP/dm-playwright" playwright@1.63.0
           "$RUNNER_TEMP/dm-playwright/node_modules/.bin/playwright" install --with-deps chromium
 
+      - name: Install ffmpeg tools for real WebM frame verification
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install --yes --no-install-recommends ffmpeg
+          ffmpeg -version
+          ffprobe -version
+
       - name: Verify published SHA and original asset bytes
         run: |
           python3 scripts/verify_design_manager_live.py \
@@ -604,6 +622,15 @@ jobs:
           set -euo pipefail
           npm install --no-save --prefix "$RUNNER_TEMP/dm-playwright" playwright@1.63.0
           "$RUNNER_TEMP/dm-playwright/node_modules/.bin/playwright" install --with-deps chromium
+
+      - name: Install ffmpeg tools for real WebM frame verification
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install --yes --no-install-recommends ffmpeg
+          ffmpeg -version
+          ffprobe -version
 
       - name: Verify live production root and exact candidate workspace
         shell: bash

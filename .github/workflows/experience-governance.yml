@@ -70,6 +70,15 @@ jobs:
           npm install --no-save --prefix "$RUNNER_TEMP/dm-playwright" playwright@1.63.0
           "$RUNNER_TEMP/dm-playwright/node_modules/.bin/playwright" install --with-deps chromium
 
+      - name: Install ffmpeg tools for real WebM frame verification
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install --yes --no-install-recommends ffmpeg
+          ffmpeg -version
+          ffprobe -version
+
       - name: Compile Design Manager
         run: python3 -m py_compile scripts/design_manager.py
 
