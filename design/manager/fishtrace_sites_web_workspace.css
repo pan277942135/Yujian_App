@@ -149,7 +149,7 @@ button[disabled]{opacity:.48;cursor:not-allowed}
 .demo-chip{margin-left:auto;padding:5px 7px;border-radius:999px;background:#fff3d9;color:#8c6a30;font-size:9px}
 .result-label{margin-top:27px;color:#7a8d85;font-size:10px}
 .species-title{margin:7px 0 3px;font-size:34px;line-height:1.2;letter-spacing:-.05em;color:#173a3b}
-.species-latin{margin:0;color:#81918a;font-size:10px}
+.species-subtitle{margin:0;color:#81918a;font-size:10px}
 .species-latin span{color:#b28b4a}
 .confidence-card{margin-top:22px;padding:14px;border:1px solid #e1ebe5;border-radius:12px;background:#f8fbf9}
 .confidence-top{display:flex;align-items:center;justify-content:space-between;font-size:10px;color:#7c8e87}
@@ -271,7 +271,7 @@ button[disabled]{opacity:.48;cursor:not-allowed}
   .product-body{padding-left:24px;padding-right:24px}
   .product-header{padding-left:24px;padding-right:24px}
 }
-@media(max-width:920px){
+@media(max-width:1023px){
   .workspace-grid{grid-template-columns:1fr}
   .inspector-panel{display:grid;grid-template-columns:1fr}
   .inspector-view{max-height:360px}
