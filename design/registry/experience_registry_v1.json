@@ -4074,13 +4074,13 @@
           "authority": "design/pages/recognition/web/FISHTRACE_SITES_WEB_HIFI_VISUAL_SPEC_V1.md",
           "machine_authority": "design/pages/recognition/web/contracts/FishTrace_Sites_Web_Structured_Prototype_V1.json",
           "acceptance_matrix": "design/pages/recognition/web/contracts/FishTrace_Sites_Web_Acceptance_V1.json",
-          "summary": "Sites 专属高保真与结构化交互原型：入口、来源选择、照片预览、Processing、结果与异常恢复；支持桌面/手机切换、图层树、属性检查、局部选图与 P0–P7 时间线。此原型使用演示数据，不连接真实推理；线上 Sites 与 Runtime 保持 NOT_VERIFIED。",
+          "summary": "Sites 专属高保真与结构化交互原型：入口、来源选择、照片预览、Processing、RR09 结果揭晓、结果与异常恢复；支持桌面/手机切换、图层树、属性检查、本机选图与 P0–P7 / R0–R5 时间线。演示数据不连接真实推理；线上 Sites 与 Runtime 保持 NOT_VERIFIED。",
           "menu_points": [
-            "01 · 高保真页面：入口、来源选择、照片预览、识别中、结果、异常恢复",
+            "01 · 高保真页面：入口、来源选择、照片预览、识别中、RR09 结果揭晓、结果、异常恢复",
             "02 · 结构化图层树：选择图层、对应画布高亮、属性与 Token 检查",
             "03 · 响应式预览：桌面照片左 / 结果右；手机照片上 / 结果下",
             "04 · 本机选图：仅浏览器内预览，不上传照片、不触发真实推理",
-            "05 · SWOS P0–P7 时间线预览；无可信 Mask 时不绘制鱼体轮廓",
+            "05 · SWOS P0–P7 与 RR09 R0–R5 时间线；无可信 Mask 时不绘制鱼体轮廓",
             "06 · Design-only；生产 Sites 源码、真实推理、部署和视觉 UAT 均未验收"
           ],
           "runtime_status": "NOT_VERIFIED",
