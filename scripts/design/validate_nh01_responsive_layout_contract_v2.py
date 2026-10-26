@@ -15,6 +15,9 @@ ROOT = Path(__file__).resolve().parents[2]
 SCHEMA_PATH = ROOT / "design/system_v3/07_Responsive_System/Responsive_Layout_Contract_Schema_V1.json"
 CONTRACT_PATH = ROOT / "design/pages/home/normal_home/responsive/NH01_RESPONSIVE_LAYOUT_V2.json"
 PROFILES_PATH = ROOT / "design/system_v3/07_Responsive_System/Viewport_Profiles_V1.json"
+STRUCTURED_PREVIEW_RULES_PATH = ROOT / "design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_STRUCTURED_PREVIEW_LAYOUT_RULES_V2.json"
+STRUCTURED_WORKSPACE_PATH = ROOT / "design/manager/nh01_structured_workspace.js"
+DESIGN_MANAGER_APP_PATH = ROOT / "design/manager/app.js"
 MANIFEST_PATH = ROOT / "design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_MULTI_SCREEN_STATIC_HIFI_V1_MANIFEST.json"
 AUTHORITY_PATH = ROOT / "design/pages/home/normal_home/authority/authority_map.json"
 NAV_PATH = ROOT / "design/pages/home/normal_home/navigation.json"
@@ -139,6 +142,12 @@ def find_forbidden_policy_keys(value, path="preview_engine.parameters"):
         for index,item in enumerate(value): find_forbidden_policy_keys(item,f"{path}[{index}]")
 find_forbidden_policy_keys(preview_parameters)
 
+
+workspace_source=STRUCTURED_WORKSPACE_PATH.read_text(encoding="utf-8") if STRUCTURED_WORKSPACE_PATH.is_file() else ""
+manager_source=DESIGN_MANAGER_APP_PATH.read_text(encoding="utf-8") if DESIGN_MANAGER_APP_PATH.is_file() else ""
+require("layoutContract?.preview_engine?.parameters" in workspace_source,"structured workspace must calculate from the V2 preview_engine parameters")
+require("previewRules.vertical_allocation" not in workspace_source and "previewRules.pager?." not in workspace_source,"structured workspace must not read duplicate PREVIEW_ONLY numeric rules")
+require('id:"responsive-contract"' in manager_source and 'baseResult.data["responsive-contract"]' in manager_source,"Design Manager loader must load and pass the V2 responsive contract")
 
 workspace_source=STRUCTURED_WORKSPACE_PATH.read_text(encoding="utf-8") if STRUCTURED_WORKSPACE_PATH.is_file() else ""
 manager_source=DESIGN_MANAGER_APP_PATH.read_text(encoding="utf-8") if DESIGN_MANAGER_APP_PATH.is_file() else ""
