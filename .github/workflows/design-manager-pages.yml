@@ -40,6 +40,14 @@ on:
       - "scripts/measure_first_use_camera_guide_geometry.py"
       - ".github/workflows/design-manager-pages.yml"
   workflow_dispatch:
+    inputs:
+      preview_pr:
+        description: "Isolated candidate preview PR number"
+        type: choice
+        required: true
+        default: "214"
+        options:
+          - "214"
 
 permissions:
   contents: read
@@ -271,7 +279,9 @@ jobs:
             --preview-diff-dir "$RUNNER_TEMP/nh01-preview-diff"
 
       - name: Resolve latest successful production Pages run
-        if: github.event_name == 'pull_request' && contains(fromJSON('[203,212,214]'), github.event.pull_request.number)
+        if: >-
+          (github.event_name == 'pull_request' && contains(fromJSON('[203,212,214]'), github.event.pull_request.number)) ||
+          (github.event_name == 'workflow_dispatch' && inputs.preview_pr == '214')
         id: published-pages
         shell: bash
         env:
@@ -287,7 +297,9 @@ jobs:
           echo "source_sha=$production_source_sha" >> "$GITHUB_OUTPUT"
 
       - name: Download current production Pages artifact
-        if: github.event_name == 'pull_request' && contains(fromJSON('[203,212,214]'), github.event.pull_request.number)
+        if: >-
+          (github.event_name == 'pull_request' && contains(fromJSON('[203,212,214]'), github.event.pull_request.number)) ||
+          (github.event_name == 'workflow_dispatch' && inputs.preview_pr == '214')
         uses: actions/download-artifact@v4
         with:
           name: github-pages
@@ -297,13 +309,15 @@ jobs:
           path: ${{ runner.temp }}/nh01-published-pages
 
       - name: Compose byte-preserving isolated PR preview
-        if: github.event_name == 'pull_request' && contains(fromJSON('[203,212,214]'), github.event.pull_request.number)
+        if: >-
+          (github.event_name == 'pull_request' && contains(fromJSON('[203,212,214]'), github.event.pull_request.number)) ||
+          (github.event_name == 'workflow_dispatch' && inputs.preview_pr == '214')
         shell: bash
         env:
           PRODUCTION_RUN_ID: ${{ steps.published-pages.outputs.run_id }}
           PRODUCTION_SOURCE_SHA: ${{ steps.published-pages.outputs.source_sha }}
           CANDIDATE_SOURCE_SHA: ${{ env.BUILD_SHA }}
-          PREVIEW_PR_NUMBER: ${{ github.event.pull_request.number }}
+          PREVIEW_PR_NUMBER: ${{ github.event.pull_request.number || inputs.preview_pr }}
         run: |
           set -euo pipefail
           candidate_site="$RUNNER_TEMP/nh01-pr${PREVIEW_PR_NUMBER}-candidate-site"
@@ -402,10 +416,12 @@ jobs:
             --output "$RUNNER_TEMP/nh01-pr${PREVIEW_PR_NUMBER}-prepublish-root-verification.json"
 
       - name: Verify candidate preview under its isolated Pages path
-        if: github.event_name == 'pull_request' && contains(fromJSON('[203,212,214]'), github.event.pull_request.number)
+        if: >-
+          (github.event_name == 'pull_request' && contains(fromJSON('[203,212,214]'), github.event.pull_request.number)) ||
+          (github.event_name == 'workflow_dispatch' && inputs.preview_pr == '214')
         shell: bash
         env:
-          PREVIEW_PR_NUMBER: ${{ github.event.pull_request.number }}
+          PREVIEW_PR_NUMBER: ${{ github.event.pull_request.number || inputs.preview_pr }}
         run: |
           set -euo pipefail
           preview_path="previews/pr-${PREVIEW_PR_NUMBER}"
@@ -424,11 +440,13 @@ jobs:
               --output-dir "$RUNNER_TEMP/nh01-pr${PREVIEW_PR_NUMBER}-preview-browser"
 
       - name: Upload preview composition evidence
-        if: github.event_name == 'pull_request' && contains(fromJSON('[203,212,214]'), github.event.pull_request.number)
+        if: >-
+          (github.event_name == 'pull_request' && contains(fromJSON('[203,212,214]'), github.event.pull_request.number)) ||
+          (github.event_name == 'workflow_dispatch' && inputs.preview_pr == '214')
         uses: actions/upload-artifact@v4
         with:
-          name: NH01-PR${{ github.event.pull_request.number }}-Preview-Composition-${{ github.run_id }}
-          path: ${{ runner.temp }}/nh01-pr${{ github.event.pull_request.number }}-preview-composition.json
+          name: NH01-PR${{ github.event.pull_request.number || inputs.preview_pr }}-Preview-Composition-${{ github.run_id }}
+          path: ${{ runner.temp }}/nh01-pr${{ github.event.pull_request.number || inputs.preview_pr }}-preview-composition.json
           if-no-files-found: error
           retention-days: 30
 
@@ -569,14 +587,16 @@ jobs:
           retention-days: 30
 
   deploy-preview:
-    if: github.event_name == 'pull_request' && contains(fromJSON('[203,212,214]'), github.event.pull_request.number)
+    if: >-
+      (github.event_name == 'pull_request' && contains(fromJSON('[203,212,214]'), github.event.pull_request.number)) ||
+      (github.event_name == 'workflow_dispatch' && inputs.preview_pr == '214')
     concurrency:
       # Match Main Pages workflow concurrency so a main deploy cannot race this additive publication.
       group: design-manager-pages-publish
       cancel-in-progress: false
     environment:
       name: design-manager-pages
-      url: ${{ steps.deployment.outputs.page_url }}previews/pr-${{ github.event.pull_request.number }}/
+      url: ${{ steps.deployment.outputs.page_url }}previews/pr-${{ github.event.pull_request.number || inputs.preview_pr }}/
     runs-on: ubuntu-latest
     timeout-minutes: 30
     needs: build
@@ -584,19 +604,19 @@ jobs:
       - name: Checkout exact PR source
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.head.sha }}
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
 
       - name: Download preview composition evidence
         uses: actions/download-artifact@v4
         with:
-          name: NH01-PR${{ github.event.pull_request.number }}-Preview-Composition-${{ github.run_id }}
-          path: ${{ runner.temp }}/nh01-pr${{ github.event.pull_request.number }}-composition
+          name: NH01-PR${{ github.event.pull_request.number || inputs.preview_pr }}-Preview-Composition-${{ github.run_id }}
+          path: ${{ runner.temp }}/nh01-pr${{ github.event.pull_request.number || inputs.preview_pr }}-composition
 
       - name: Verify production root under the shared deployment lock
         shell: bash
         env:
           PAGE_URL: https://pan277942135.github.io/Yujian_App/
-          COMPOSITION_REPORT: ${{ runner.temp }}/nh01-pr${{ github.event.pull_request.number }}-composition/nh01-pr${{ github.event.pull_request.number }}-preview-composition.json
+          COMPOSITION_REPORT: ${{ runner.temp }}/nh01-pr${{ github.event.pull_request.number || inputs.preview_pr }}-composition/nh01-pr${{ github.event.pull_request.number || inputs.preview_pr }}-preview-composition.json
         run: |
           set -euo pipefail
           expected_sha="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["production_pages_source_sha"])' "$COMPOSITION_REPORT")"
@@ -642,8 +662,8 @@ jobs:
         shell: bash
         env:
           PAGE_URL: ${{ steps.deployment.outputs.page_url }}
-          CANDIDATE_SHA: ${{ github.event.pull_request.head.sha }}
-          PREVIEW_PR_NUMBER: ${{ github.event.pull_request.number }}
+          CANDIDATE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          PREVIEW_PR_NUMBER: ${{ github.event.pull_request.number || inputs.preview_pr }}
         run: |
           set -euo pipefail
           mkdir -p "$RUNNER_TEMP/dm-live-evidence"
@@ -668,7 +688,7 @@ jobs:
       - name: Upload independent preview live evidence
         uses: actions/upload-artifact@v4
         with:
-          name: NH01-PR${{ github.event.pull_request.number }}-Live-Preview-${{ github.run_id }}-${{ github.event.pull_request.head.sha }}
+          name: NH01-PR${{ github.event.pull_request.number || inputs.preview_pr }}-Live-Preview-${{ github.run_id }}-${{ github.event.pull_request.head.sha || github.sha }}
           path: ${{ runner.temp }}/dm-live-evidence/
           if-no-files-found: error
           retention-days: 30
