@@ -19,19 +19,17 @@ This archive is additive to NH01. It does not replace the original whole-page vi
 
 The photos and real-person avatar shown in recovered mockups remain sample content. No default-avatar identity, auth state, permission, tap behavior, or runtime FishRecord is derived from these images.
 
-## Structured responsive preview V2 (`PREVIEW_ONLY`)
-
-The existing Design Manager route now calculates Header, Stats, Recent Catch, FishCatchPager, and CaptureActionGroup as separate component boundaries. Its browser-only rule set is [`NH01_STRUCTURED_PREVIEW_LAYOUT_RULES_V2.json`](NH01_STRUCTURED_PREVIEW_LAYOUT_RULES_V2.json); it preserves the shared 247:293 Hero ratio, bounds extra group spacing, separates `peekGap` from the 1 dp overlap cap, and keeps any short-screen scroll inside FishCatchPager. It does not supersede the frozen runtime A/B/C rule or change Android code.
-
-The capture prompt is a static label in the audited NH01 implementation and motion contract. The preview sizes it by its rendered line height, then lays out the camera's visible artwork inside its independent 72 dp minimum touch target. The action group does not add a second prompt touch box.
-
-Three separate card images are registered in [`NH01_STRUCTURED_PREVIEW_MEDIA_V1.json`](NH01_STRUCTURED_PREVIEW_MEDIA_V1.json) as `GENERATED_ILLUSTRATIVE_ONLY`. They demonstrate image cropping and card layout only; failed image requests leave the CSS fallback and all measured component geometry intact. The pager marks and previous/next imagery are preview fixtures, not live record count or product data.
-
-The Chromium verifier is [`scripts/verify_nh01_structured_responsive_layout.mjs`](../../../../../scripts/verify_nh01_structured_responsive_layout.mjs). It captures 8 viewport sizes × 3 font scales, measures component bounds and intervals, tests media-failure independence, and writes JSON/Markdown reports plus real rendered screenshots into the workflow artifact. Pixel difference from the frozen PNGs is not an acceptance threshold. Android Runtime remains `NOT_VERIFIED`.
-
 ## Change record
 
 | Version | Date | Change |
 | --- | --- | --- |
 | V1 | 2026-10-22 | Registered the five source PNGs; froze target viewport mapping, full responsive review rules, and Design Manager workspace; added the M05 static 480 dp width boundary and recorded its Android scope conflict. Kept runtime `NOT_VERIFIED`. |
-| Structured preview V2 | 2026-10-26 | Added the `PREVIEW_ONLY` component layout calculator, proportional short-screen Pager scrolling, bounded long-screen spacing, separate peek-gap/overlap measures, content-sized static CTA, 72 dp camera target, three illustrative-only card images, and 24-case Chromium evidence workflow. Android authority remains unchanged. |
+
+## Responsive rules working baseline (2026-10-26)
+
+The current development decision checkpoint is [NH01_RESPONSIVE_RULES_DECISION_CHECKPOINT_2026-10-26.md](../responsive/NH01_RESPONSIVE_RULES_DECISION_CHECKPOINT_2026-10-26.md). It records the user-approved constraint-driven approach, five frozen visual anchors, A/B/C logical bands, the 1:1 positive-surplus allocation decision, Hero/Peek safety constraints, and the unresolved numeric conflicts that must be consolidated into one machine-readable rule source. This is a working checkpoint, not a freeze claim; Android Runtime remains `NOT_VERIFIED`.
+
+
+## Structured preview integration — 2026-10-26
+
+The existing `#page/home_normal_v1/hifi/multi_screen_static_hifi` route uses `responsive/NH01_RESPONSIVE_LAYOUT_V2.json` as the only machine source for responsive numeric values. `NH01_STRUCTURED_PREVIEW_LAYOUT_RULES_V2.json` is presentation metadata only and must not contain a second numeric layout policy. The five frozen M01–M05 images remain visual anchors, not per-viewport coordinate templates. Browser evidence is separate from Android Runtime; Android remains `NOT_VERIFIED` until its native gate passes.
