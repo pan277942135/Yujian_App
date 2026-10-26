@@ -217,11 +217,11 @@
         "end_ms": 2600
       },
       "A": {
-        "start_ms": 2500,
+        "start_ms": 2250,
         "end_ms": 2800
       }
     },
-    "zone_exit_rationale": "Region C exits first, Region B exits next, and Region A begins its staggered structural exit after P5 so the P6 tail remains visible before P7 clears exactly."
+    "zone_exit_rationale": "Region C exits first, Region B exits next, and Region A begins its delayed structural exit after P5 (2250ms) so P6 is a faint tail and P7 clears exactly."
   },
   "timeline": {
     "duration_ms": 2800,
@@ -512,18 +512,22 @@
         "expand_start_ms": 950,
         "expand_end_ms": 1200,
         "initial_stops": [[0, 0], [0.18, 0.23], [0.38, 0.61], [0.58, 0.86], [0.8, 0.42], [1, 0]],
-        "expanded_stops": [[0, 0], [0.16, 0.66], [0.36, 0.94], [0.58, 1], [0.81, 0.78], [1, 0]],
-        "note": "Interpolate the deterministic cross-face light profile from P2 to P3; the shape and peak opacity remain inside the fixed patch geometry and per-patch cap."
+        "expanded_stops": [[0, 0], [0.015, 0.92], [0.06, 0.99], [0.5, 1], [0.94, 0.95], [1, 0]],
+        "settle_start_ms": 1200,
+        "settle_end_ms": 2050,
+        "settled_stops": [[0, 0], [0.16, 0.66], [0.36, 0.94], [0.58, 1], [0.81, 0.78], [1, 0]],
+        "note": "Interpolate the cross-face profile from the original P2 field to a broad, three-level P3 field, then settle it continuously back by P5; the patch shape and per-patch alpha cap remain fixed."
       },
       "calibration": {
-        "revision": "A_LINE_P2_P3_FACE_EXPANSION_03",
-        "root_cause": "On candidate source 628b3334023e445c49319300055766b5a0086bb2 (Pages browser run 40359862842), Region A mean was 6.297/255 at P2 and 7.061/255 at P3, below the P3 target of 10.5–14.5/255. The fixed cross-axis linear gradient kept most patches ribbon-like, while its low interior opacity stops and near-saturated P2 geometry limited the P2-to-P3 visual expansion.",
-        "change": "Interpolate a higher-coverage, three-level face-opacity profile continuously from P2 to P3, gently soften the irregular patch edge, strengthen seeded contour deformation, and ease patch growth so P2 is smaller while P3 remains at 1.10. Keep the exact 18 patches, source image, zone polygons, color family, 0.22/0.14 opacity caps, layer multipliers, P0–P7 timestamps, and 2800ms duration.",
+        "revision": "A_LINE_P2_P3_PEAK_AND_P6_RETREAT_04",
+        "root_cause": "Exact-head Chromium run 40362967238 on d6d4234c373ff24d9eb43001f62ee9c5b690b19b measured Region A means P1 4.115/255, P2 6.085/255, P3 8.003/255, P4 7.630/255, P5 5.844/255 and P6 2.132/255; P0/P7 and forbidden-zone leakage were zero. P3/P4 remained below their minimums because the P2-to-P3 cross-face light profile still concentrated most energy in a narrow central span. P6 remained too bright because Region A structural exit began at 2500ms and staggered patches had barely entered retreat by 2600ms.",
+        "change": "Expand the deterministic P3 cross-face profile to a broad three-level interior while retaining zero-alpha edges and the 0.22/0.14 patch caps; interpolate from P3 to the prior lower-coverage profile by P5 so P5 remains subdued. Begin staggered Region A structural retreat at 2250ms, after the P5 keyframe, so P6 reaches the measured tail target and P7 still clears exactly. Keep the fixed photo, polygons, 18 patches, 24 highlights, layer strengths, all keyframe times and 2800ms duration.",
         "preserved": [
           "P0-P7 layer multipliers and all timestamps",
           "18 deterministic patch geometries, size ranges, aspect ratios and all angle limits",
           "0.22 A / 0.14 B single-patch opacity caps",
-          "A/B/C/D normalized geometry and source image identity"
+          "A/B/C/D normalized geometry and source image identity",
+          "24 highlight segments and their opacity, size and warm-color bounds"
         ]
       },
       "colors": [
