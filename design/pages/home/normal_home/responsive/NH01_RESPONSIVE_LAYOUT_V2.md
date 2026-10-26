@@ -32,6 +32,10 @@ The `124dp` M01 exception is a minimum-readable floor, not a forced final Hero h
 
 The “记录下一条鱼” copy is a static label under the current interaction contract. It receives no independent touch rectangle. The camera artwork sits centered inside its separately measured touch target; the complete Footer height counts the CTA line, camera target, one CTA-to-camera gap, and existing outer padding once.
 
+## Exact M01 compact constraint
+
+For exactly 320×480dp at system fontScale 1.0, use the contract's `preview_engine.parameters.hero.short_screen_exception.compact_layout` values to compress only nonessential top/footer whitespace and declared gap floors. The final Hero height is derived from the available Pager budget while preserving the `247:293` ratio and minimum width of 145dp. Do not scroll the Middle/Pager in this exact profile. If the readable copy, minimum width, ratio and `NO_SCROLL` cannot all fit, report `FAIL_CONSTRAINT`; do not weaken the contract.
+
 ## Authority boundary
 
 - The original 1080x1920px PNG remains the frozen whole-page composition reference; its logical reference is 360x640dp at 3x.
@@ -43,3 +47,14 @@ The “记录下一条鱼” copy is a static label under the current interactio
 ## Required review
 
 The contract and control-plane references must validate before canonical adoption. Runtime conformance gaps are explicitly recorded in the JSON and are not hidden by changing the design rules. The Android matrix remains `NOT_VERIFIED` until exact-SHA evidence passes. Generated Hero/neighbor images remain `GENERATED_ILLUSTRATIVE_ONLY`; source authenticity and real-catch provenance do not gate this geometry freeze, while independent files, manifest status, and layout-stable failure fallback remain required.
+
+
+### Canonical executable surplus formula
+
+The single approved formula is:
+
+`gAB = gAB_base + S/2`
+
+`gBC = gBC_base + S/2`
+
+The two additions are equal. No other gap cap, 2:1 split, or outer-breathing reserve may override these equations. The machine-readable source is `NH01_RESPONSIVE_LAYOUT_V2.json`.

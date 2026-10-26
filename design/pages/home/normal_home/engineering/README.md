@@ -1,5 +1,8 @@
 # Normal Home — Engineering Authority Index V1
 
+> **RESPONSIVE AUTHORITY CONSOLIDATION PROPOSAL:** [NH01 Responsive Layout V2](../responsive/NH01_RESPONSIVE_LAYOUT_V2.md) and its [machine contract](../responsive/NH01_RESPONSIVE_LAYOUT_V2.json) define one constraint-driven rule set for the current Gemini route. This proposal is not canonical until merged to main; until then, the existing Gemini responsive authority remains canonical. The [authority crosswalk](../responsive/NH01_RESPONSIVE_AUTHORITY_CROSSWALK_V1.md) scopes the static V1 archive, legacy fixed-coordinate contract, current Gemini authority and M05 width-only exception. Android Runtime remains `NOT_VERIFIED`.
+
+
 > **CURRENT GEMINI V3 / ADAPTIVE V2 BINDING:** [Unified authority](NH01_GEMINI_ADAPTIVE_V2_UNIFIED_AUTHORITY_V1.md) and [current acceptance](NH01_GEMINI_ADAPTIVE_V2_ACCEPTANCE_V1.md) resolve NH01–NH07 field-specific conflicts. Historical NH05 A1/A2/Frozen geometry remains valid on legacy NormalHomeContent; the rebuilt Gemini route follows its versioned content-first visual gaps, metadata, avatar and TopCenter crop. Original 46-case ledger is preserved; 20 current cases and 24 exact-SHA native runs are separate. SPEC_FROZEN != Runtime PASS.
 Status: ACTIVE_ENGINEERING_CONTRACT / DESIGN_UNCHANGED / RUNTIME_ACCEPTANCE_PENDING
 Scope: Normal Home with at least one resolved valid FishRecord, and its initial resolving/refresh continuity behavior.
@@ -55,7 +58,11 @@ Product owner: only versioned design decisions / genuinely conflicting immutable
 
 ## File index
 
-- Layout_Responsive_Contract_V1.md — P0, sole implementation mapping and accessibility overflow rules.
+- [NH01_RESPONSIVE_LAYOUT_V2.json](../responsive/NH01_RESPONSIVE_LAYOUT_V2.json) — proposed sole responsive geometry source for current Gemini NH01/NH02 after canonical adoption.
+- [NH01_RESPONSIVE_LAYOUT_V2.md](../responsive/NH01_RESPONSIVE_LAYOUT_V2.md) — human-readable contract guide; numeric values remain in JSON.
+- [NH01_RESPONSIVE_AUTHORITY_CROSSWALK_V1.md](../responsive/NH01_RESPONSIVE_AUTHORITY_CROSSWALK_V1.md) — explicit field-scoped authority and conflict decisions.
+- [Responsive Layout Standard V1](../../../../system_v3/07_Responsive_System/Responsive_Layout_Standard_V1.md) — shared page-independent responsive rules.
+- Layout_Responsive_Contract_V1.md — legacy NormalHomeContent route and raster/touch-anchor evidence; not the current Gemini responsive source.
 - State_Interaction_Contract_V1.md — P1, state machine, navigation and data-content behavior.
 - Motion_Feedback_Contract_V1.md — P1, motion, haptic, sound and lifecycle.
 - Visual_Runtime_Acceptance_V1.md — P1, independent test matrix and evidence gates.
@@ -79,3 +86,15 @@ These four are active specialized bindings and supersede any contrary interim st
 
 - [normal_home_visual_pixel_targets_v1.json](normal_home_visual_pixel_targets_v1.json): SHA-verified original CTA/Camera XY pixel mask boxes and explicit separation from Kotlin touch/container frames.
 - [hero_real_photo_fixture_register_v1.json](hero_real_photo_fixture_register_v1.json): eight required F01–F08 real-photo cases with source/provenance statuses; current repository images do not yet certify all eight independent photo sources.
+
+
+## Responsive authority references
+
+- Machine authority candidate: `../responsive/NH01_RESPONSIVE_LAYOUT_V2.json`
+- Human guide: `../responsive/NH01_RESPONSIVE_LAYOUT_V2.md`
+- Authority conflict crosswalk: `../responsive/NH01_RESPONSIVE_AUTHORITY_CROSSWALK_V1.md`
+- Shared standard: `../../../../system_v3/07_Responsive_System/Responsive_Layout_Standard_V1.md`
+- Schema: `../../../../system_v3/07_Responsive_System/Responsive_Layout_Contract_Schema_V1.json`
+- Global viewport profiles: `../../../../system_v3/07_Responsive_System/Viewport_Profiles_V1.json`
+
+The proposal preserves all frozen assets and the existing 24-case native matrix. Its status is a design/control-plane proposal; do not begin implementation from the candidate branch and do not infer Android Runtime PASS from schema or browser checks.

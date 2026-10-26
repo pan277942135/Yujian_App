@@ -55,3 +55,17 @@ Out-of-scope: Empty Home, global typography, Recognition, FishRecordDetail, back
 ## Finalized specialized normatives
 
 2026-10-10 post-audit bindings: Visual_Anchor_Asset_Resolution_V1.md; Short_Window_Adaptive_Freeze_V1.md; Hero_Real_Photo_EvidenceFit_Contract_V1.md; Quantitative_Visual_Acceptance_Contract_V1.md. These are *active*, not historical. An interim statement that Frozen CTA/Camera ROI bytes could not be inspected is superseded by verified GitHub Actions ROI decoding. Existing legacy assets and rejected alternatives remain physically present and must not be deleted merely to silence an inconsistency. The Android runtime correction for Guest/default avatar and real photo acceptance is independent, still unverified.
+
+
+## Responsive authority consolidation proposal (2026-10-22)
+
+A field-scoped responsive authority is proposed at `../responsive/NH01_RESPONSIVE_LAYOUT_V2.json`, with a reading guide and conflict crosswalk beside it. This proposal does not rewrite any frozen PNG, the V1 static manifest, or the V1 static archive contract.
+
+- After canonical adoption, V2 owns responsive geometry for the current Gemini V3 / Adaptive V2 NH01/NH02 route.
+- The V1 static contract remains the immutable source for the five recovered static image identities and their archive/presentation metadata; it is not a per-viewport runtime algorithm.
+- The original `normal_home_v1.png` remains the frozen composition anchor; its 1080x1920px canvas maps to 360x640dp at 3x.
+- `Layout_Responsive_Contract_V1.md` remains applicable to the legacy `NormalHomeContent` route and verified raster/touch-anchor semantics. It does not define the Gemini V3 layout tree.
+- The current Gemini unified authority continues to own non-responsive fields such as avatar, motion, background, photo handling and state semantics.
+- M05's 480dp width-only target remains static-only; no Android height is inferred. Android Runtime stays `NOT_VERIFIED`.
+
+The V2 contract records three implementation-conformance follow-ups. Those are not unresolved authority conflicts and must be addressed in a separate implementation task against the contract. Until the control-plane proposal is merged to canonical `main`, the existing canonical authority remains in force.

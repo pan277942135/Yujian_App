@@ -15,6 +15,9 @@ ROOT = Path(__file__).resolve().parents[2]
 SCHEMA_PATH = ROOT / "design/system_v3/07_Responsive_System/Responsive_Layout_Contract_Schema_V1.json"
 CONTRACT_PATH = ROOT / "design/pages/home/normal_home/responsive/NH01_RESPONSIVE_LAYOUT_V2.json"
 PROFILES_PATH = ROOT / "design/system_v3/07_Responsive_System/Viewport_Profiles_V1.json"
+STRUCTURED_PREVIEW_RULES_PATH = ROOT / "design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_STRUCTURED_PREVIEW_LAYOUT_RULES_V2.json"
+STRUCTURED_WORKSPACE_PATH = ROOT / "design/manager/nh01_structured_workspace.js"
+DESIGN_MANAGER_APP_PATH = ROOT / "design/manager/app.js"
 MANIFEST_PATH = ROOT / "design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_MULTI_SCREEN_STATIC_HIFI_V1_MANIFEST.json"
 AUTHORITY_PATH = ROOT / "design/pages/home/normal_home/authority/authority_map.json"
 NAV_PATH = ROOT / "design/pages/home/normal_home/navigation.json"
@@ -39,7 +42,7 @@ def png_size(path: Path):
     if len(data)<24 or data[:8]!=b"\x89PNG\r\n\x1a\n": return None
     return struct.unpack(">II",data[16:24])
 
-schema=read_json(SCHEMA_PATH); contract=read_json(CONTRACT_PATH); profiles=read_json(PROFILES_PATH)
+schema=read_json(SCHEMA_PATH); contract=read_json(CONTRACT_PATH); profiles=read_json(PROFILES_PATH); preview_rules=read_json(STRUCTURED_PREVIEW_RULES_PATH)
 manifest=read_json(MANIFEST_PATH); authority=read_json(AUTHORITY_PATH); navigation=read_json(NAV_PATH)
 feature_matrix=read_yaml(FEATURE_PATH); phase_machine=read_yaml(PHASE_PATH); registry=read_yaml(REGISTRY_PATH)
 try:
@@ -53,6 +56,11 @@ require(contract.get("contract_id")=="NH01_RESPONSIVE_LAYOUT_V2","contract_id mi
 require(contract.get("status") in {"PROPOSED_FOR_CANONICAL_MAIN_REVIEW","SPEC_FROZEN"},"contract status invalid")
 require(contract.get("responsive_model",{}).get("model")=="CONSTRAINT_DRIVEN_SINGLE_POLICY","must use one constraint-driven policy")
 require(contract.get("responsive_model",{}).get("viewport_keyed_layout_overrides") is False,"per-viewport full-layout overrides are forbidden")
+require(preview_rules.get("rules_id")=="NH01_STRUCTURED_PREVIEW_LAYOUT_RULES_V2","structured preview metadata ID mismatch")
+require(preview_rules.get("status")=="PREVIEW_ONLY","structured preview metadata must remain PREVIEW_ONLY")
+require(preview_rules.get("responsive_authority")==CONTRACT_PATH.relative_to(ROOT).as_posix(),"structured preview must reference the V2 machine contract")
+require(preview_rules.get("numeric_authority")=="NONE" and preview_rules.get("no_numeric_overrides") is True,"structured preview file must not contain duplicate responsive numeric rules")
+require(not any(key in preview_rules for key in ("hero","pager","vertical_allocation","capture_action_group")),"structured preview file contains a duplicate numeric rule section")
 require(contract.get("native_acceptance",{}).get("status")=="NOT_VERIFIED","Android runtime must remain NOT_VERIFIED")
 require(contract.get("native_acceptance",{}).get("required_case_count")==24,"current native matrix must remain 24 cases")
 require(contract.get("acceptance",{}).get("runtime_status_independent") is True,"design status must be independent of runtime acceptance")
@@ -133,6 +141,19 @@ def find_forbidden_policy_keys(value, path="preview_engine.parameters"):
     elif isinstance(value,list):
         for index,item in enumerate(value): find_forbidden_policy_keys(item,f"{path}[{index}]")
 find_forbidden_policy_keys(preview_parameters)
+
+
+workspace_source=STRUCTURED_WORKSPACE_PATH.read_text(encoding="utf-8") if STRUCTURED_WORKSPACE_PATH.is_file() else ""
+manager_source=DESIGN_MANAGER_APP_PATH.read_text(encoding="utf-8") if DESIGN_MANAGER_APP_PATH.is_file() else ""
+require("layoutContract?.preview_engine?.parameters" in workspace_source,"structured workspace must calculate from the V2 preview_engine parameters")
+require("previewRules.vertical_allocation" not in workspace_source and "previewRules.pager?." not in workspace_source,"structured workspace must not read duplicate PREVIEW_ONLY numeric rules")
+require('id:"responsive-contract"' in manager_source and 'baseResult.data["responsive-contract"]' in manager_source,"Design Manager loader must load and pass the V2 responsive contract")
+
+workspace_source=STRUCTURED_WORKSPACE_PATH.read_text(encoding="utf-8") if STRUCTURED_WORKSPACE_PATH.is_file() else ""
+manager_source=DESIGN_MANAGER_APP_PATH.read_text(encoding="utf-8") if DESIGN_MANAGER_APP_PATH.is_file() else ""
+require("layoutContract?.preview_engine?.parameters" in workspace_source,"structured workspace must calculate from the V2 preview_engine parameters")
+require("previewRules.vertical_allocation" not in workspace_source and "previewRules.pager?." not in workspace_source,"structured workspace must not read duplicate PREVIEW_ONLY numeric rules")
+require('id:"responsive-contract"' in manager_source and 'baseResult.data["responsive-contract"]' in manager_source,"Design Manager loader must load and pass the V2 responsive contract")
 
 anchors=contract.get("visual_anchors",[])
 require(len(anchors)==6,"exactly six frozen visual anchors must be registered (original + M01-M05)")

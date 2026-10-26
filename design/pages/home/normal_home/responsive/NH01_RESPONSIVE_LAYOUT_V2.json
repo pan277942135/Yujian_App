@@ -829,6 +829,12 @@
       "version": "V2.0",
       "date": "2026-10-26",
       "change": "Align the proposed contract with Main Responsive Foundation V1.1 (equal S/2 additions); remove capped-gap/outer-breathing behavior, define one contract-owned Peek and footer calculation, clarify the 124dp floor semantics and exact M01 NO_SCROLL conditions, and allow generated illustrative media to remain non-blocking for geometry acceptance."
+    },
+    {
+      "version": "V2.0",
+      "date": "2026-10-26",
+      "change": "Structured browser preview integration: single V2 machine source, equal S/2 surplus allocation, contract-defined exact-M01 compact spacing, grid-flow page regions, and contract-hash-bound browser evidence.",
+      "status": "WORKING_BASELINE"
     }
   ],
   "preview_engine": {
@@ -911,7 +917,18 @@
           "minimum_width_dp": 145,
           "requires_no_middle_scroll": true,
           "requires_all_copy_readable": true,
-          "meaning": "124dp is the permitted minimum-readable floor, not a forced final card height. The final card must still preserve the 247:293 ratio and be at least 145dp wide. If the exact M01 constraints cannot fit without scrolling after nonessential whitespace compression, report FAIL_CONSTRAINT/SPEC_CONFLICT."
+          "meaning": "124dp is the permitted minimum-readable floor, not a forced final card height. The final card must still preserve the 247:293 ratio and be at least 145dp wide. If the exact M01 constraints cannot fit without scrolling after nonessential whitespace compression, report FAIL_CONSTRAINT/SPEC_CONFLICT.",
+          "compact_layout": {
+            "top_padding_dp": 0,
+            "header_to_stats_gap_dp": 9,
+            "stats_height_dp": 48,
+            "stats_to_title_gap_dp": 12,
+            "title_to_card_gap_dp": 8,
+            "card_to_footer_gap_dp": 3,
+            "footer_top_padding_dp": 0,
+            "footer_bottom_padding_dp": 0,
+            "cta_camera_gap_dp": 6
+          }
         }
       },
       "neighbor": {
@@ -932,7 +949,8 @@
         "peek_visible_width_formula": "min(neighborWidthDp, max(0, (trackWidthDp - heroWidthDp) / 2 - peekGapDp))",
         "indicator_height_dp": 8,
         "indicator_gap_after_hero_dp": 8,
-        "pager_height_formula": "heroHeightDp + indicator_gap_after_hero_dp + indicator_height_dp"
+        "pager_height_formula": "heroHeightDp + indicator_gap_after_hero_dp + indicator_height_dp",
+        "indicator_width_dp": 40
       },
       "camera": {
         "width_fraction_of_capped_safe_width": 0.18,

@@ -28,3 +28,8 @@ The photos and real-person avatar shown in recovered mockups remain sample conte
 ## Responsive rules working baseline (2026-10-26)
 
 The current development decision checkpoint is [NH01_RESPONSIVE_RULES_DECISION_CHECKPOINT_2026-10-26.md](../responsive/NH01_RESPONSIVE_RULES_DECISION_CHECKPOINT_2026-10-26.md). It records the user-approved constraint-driven approach, five frozen visual anchors, A/B/C logical bands, the 1:1 positive-surplus allocation decision, Hero/Peek safety constraints, and the unresolved numeric conflicts that must be consolidated into one machine-readable rule source. This is a working checkpoint, not a freeze claim; Android Runtime remains `NOT_VERIFIED`.
+
+
+## Structured preview integration — 2026-10-26
+
+The existing `#page/home_normal_v1/hifi/multi_screen_static_hifi` route uses `responsive/NH01_RESPONSIVE_LAYOUT_V2.json` as the only machine source for responsive numeric values. `NH01_STRUCTURED_PREVIEW_LAYOUT_RULES_V2.json` is presentation metadata only and must not contain a second numeric layout policy. The five frozen M01–M05 images remain visual anchors, not per-viewport coordinate templates. Browser evidence is separate from Android Runtime; Android remains `NOT_VERIFIED` until its native gate passes.
