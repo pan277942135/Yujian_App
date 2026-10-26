@@ -400,11 +400,11 @@
         const cap=patch.zone==="B"?spec.secondary_opacity_max_p3:patch.zone==="C"?spec.primary_opacity_max_p3*spec.region_c_texture_opacity_scale:spec.primary_opacity_max_p3;
         const reveal=geometry.appear;
         const pulse=.98+.02*Math.sin(geometry.phase*.36+patch.phase);
-        const alpha=Math.min(cap,intensity*strengthValue*.34*patch.weight)*zone.strength_coefficient*activation*zoneFade*zoneScale*reveal*pulse;
+        const alpha=Math.min(cap,intensity*strengthValue*spec.field_opacity_response_multiplier*patch.weight)*zone.strength_coefficient*activation*zoneFade*zoneScale*reveal*pulse;
         if(alpha<.002||geometry.scale<.08)continue;
         const center=normalizedPoint([geometry.center.x,geometry.center.y],rect);
         const xScale=rect.width;
-        const width=patch.shortW*geometry.scale*xScale*.62;
+        const width=patch.shortW*geometry.scale*xScale*spec.gradient_half_extent_multiplier;
         const normalX=-Math.sin(geometry.angle),normalY=Math.cos(geometry.angle);
         const gradient=ctx.createLinearGradient(
           center.x-normalX*width,center.y-normalY*width,center.x+normalX*width,center.y+normalY*width

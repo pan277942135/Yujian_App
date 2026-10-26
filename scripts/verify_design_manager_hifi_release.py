@@ -455,6 +455,10 @@ def validate_tree(root: Path, *, built: bool = False, expected_build: str | None
         and water_rendering.get("caustics",{}).get("patch_count") == 18
         and water_rendering.get("caustics",{}).get("groups") == {"A":4,"B":4,"C":4,"D":3,"E":3}
         and water_rendering.get("caustics",{}).get("realized_zone_patch_count") == {"A":13,"B":4,"C":1}
+        and water_rendering.get("caustics",{}).get("field_opacity_response_multiplier") == .55
+        and water_rendering.get("caustics",{}).get("gradient_half_extent_multiplier") == .9
+        and water_rendering.get("caustics",{}).get("primary_opacity_max_p3") == .22
+        and water_rendering.get("caustics",{}).get("secondary_opacity_max_p3") == .14
         and water_rendering.get("caustics",{}).get("region_c_texture_opacity_scale") == 0
         and water_rendering.get("caustics",{}).get("near_horizontal_patch_fraction_max") == .45
         and water_rendering.get("caustics",{}).get("direction_distribution",{}).get("angular_bins") == 12
@@ -485,6 +489,12 @@ def validate_tree(root: Path, *, built: bool = False, expected_build: str | None
         and "low-alpha radial color stops" in water_rendering.get("ambient",{}).get("calibration",{}).get("root_cause","")
         and "0.10 per-field opacity maximum" in water_rendering.get("ambient",{}).get("calibration",{}).get("preserved",[]),
         "Canvas Water Lab ambient P1 response calibration must record the double-alpha root cause and preserve the .10 per-field cap"
+    )
+    require(
+        water_rendering.get("caustics",{}).get("calibration",{}).get("revision") == "A_LINE_P2_CAUSTIC_RESPONSE_01"
+        and "3.336/255" in water_rendering.get("caustics",{}).get("calibration",{}).get("root_cause","")
+        and "0.22 A / 0.14 B single-patch opacity caps" in water_rendering.get("caustics",{}).get("calibration",{}).get("preserved",[]),
+        "Canvas Water Lab P2 calibration must record the measured under-response and preserve the A/B patch opacity caps"
     )
     require(water_lab.get("boundaries",{}).get("production_sites_runtime_modified") is False and water_lab.get("boundaries",{}).get("inference_api_requested") is False and water_lab.get("boundaries",{}).get("photo_upload_implemented") is False and water_lab.get("boundaries",{}).get("fish_mask_or_gold_contour_drawn") is False and water_lab.get("boundaries",{}).get("webgl_used") is False, "Canvas Water Lab scope crossed a production or forbidden visual boundary")
     require("object-fit:contain" in water_lab_css and "mix-blend-mode:screen" in water_lab_css, "Canvas Water Lab image/overlay layout is missing")

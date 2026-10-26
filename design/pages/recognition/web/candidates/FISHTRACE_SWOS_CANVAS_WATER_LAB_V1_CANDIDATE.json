@@ -493,6 +493,19 @@
       },
       "primary_opacity_max_p3": 0.22,
       "secondary_opacity_max_p3": 0.14,
+      "field_opacity_response_multiplier": 0.55,
+      "gradient_half_extent_multiplier": 0.9,
+      "calibration": {
+        "revision": "A_LINE_P2_CAUSTIC_RESPONSE_01",
+        "root_cause": "At P2 the measured Region A composite was 3.336/255 against the 5.5–8.5/255 target. The draw path used only 0.34 of the prescribed channel multiplier and limited the color gradient to 0.62 of the patch short axis, leaving most patch interiors at weak gradient opacity.",
+        "change": "Increase the per-patch response while keeping existing A/B opacity caps, and widen only the internal gradient to 0.90 of the short axis so the existing face geometry is filled by its graded interior.",
+        "preserved": [
+          "P0-P7 layer multipliers and all timestamps",
+          "18 deterministic patch geometries and all angle limits",
+          "0.22 A / 0.14 B single-patch opacity caps",
+          "A/B/C/D normalized geometry and source image identity"
+        ]
+      },
       "colors": [
         "#89F3EB",
         "#55D9CF",

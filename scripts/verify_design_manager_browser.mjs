@@ -1115,6 +1115,8 @@ async function main() {
   assert(ambientRuntimeState.count===5&&ambientRuntimeState.zones.A===3&&ambientRuntimeState.zones.B===1&&ambientRuntimeState.zones.C===1,"A-line ambient runtime must retain the five deterministic fields in the specified regions: "+JSON.stringify(ambientRuntimeState));
   const ambientCalibration=waterContract.rendering.ambient;
   assert(ambientCalibration.calibration?.revision==="A_LINE_P1_AMBIENT_RESPONSE_02"&&ambientCalibration.p3_single_field_opacity_max===0.10&&ambientCalibration.field_opacity_response_multiplier===0.68&&ambientCalibration.radial_gradient_opacity_stops?.join(",")==="1,0.92,0.72","Ambient P1 opacity correction must use the recorded candidate calibration while retaining the 0.10 per-field cap");
+  const causticCalibration=waterContract.rendering.caustics;
+  assert(causticCalibration.calibration?.revision==="A_LINE_P2_CAUSTIC_RESPONSE_01"&&causticCalibration.field_opacity_response_multiplier===0.55&&causticCalibration.gradient_half_extent_multiplier===0.9&&causticCalibration.primary_opacity_max_p3===0.22&&causticCalibration.secondary_opacity_max_p3===0.14,"P2 caustic response calibration must preserve A/B per-patch opacity caps");
   const waterAsset = await fishtraceFrame.locator("#water-source-image").evaluate(image => ({
     naturalWidth:image.naturalWidth,naturalHeight:image.naturalHeight,
     sha256:image.dataset.sha256,src:image.currentSrc,complete:image.complete
@@ -1385,6 +1387,7 @@ async function main() {
   const p0Water=waterFrameStates.P0,p2Water=waterFrameStates.P2,p3Water=waterFrameStates.P3,p5Water=waterFrameStates.P5,p7Water=waterFrameStates.P7;
   const p2Intensity=waterContract.timeline.frames.find(frame=>frame.id==="P2").layers.caustic*100;
   const p3Intensity=waterContract.timeline.frames.find(frame=>frame.id==="P3").layers.caustic*100;
+  console.log("FISHTRACE_WATER_COMPOSITE_FRAME_METRICS="+JSON.stringify(Object.fromEntries(Object.entries(compositeMetrics).map(([id,metrics])=>[id,{region_a_mean_rgb_abs_diff_255:metrics.water_roi_mean_rgb_abs_diff_255*255,changed_pixel_ratio:metrics.water_roi_coverage_ratio,forbidden_zone_mean_rgb_abs_diff_255:metrics.forbidden_zone_mean_rgb_abs_diff_255*255,forbidden_pixels_over_4:metrics.forbidden_zone_pixels_peak_diff_gt_4,p2_to_p3_spatial_change:metrics.p2_to_p3_spatial_change}]))));
   const roiMean255=frame=>compositeMetrics[frame].water_roi_mean_rgb_abs_diff_255*255;
   const regionARanges=waterContract.acceptance.region_a_mean_rgb_abs_diff_255_target;
   for(const [frame,[min,max]] of Object.entries(regionARanges))assert(roiMean255(frame)>=min&&roiMean255(frame)<=max,frame+" Region A mean RGB difference must be "+min+"–"+max+" /255; observed "+roiMean255(frame).toFixed(3));
@@ -1835,6 +1838,7 @@ async function main() {
     composition_method:"Chromium Canvas2D: HTML source image composited with the visible overlay using screen blend at measured stage CSS dimensions; normalized A/B/C zones are mapped through the same object-fit:contain content rectangle and Forbidden Zone is the photo complement.",
     thresholds:{primary_roi:waterContract.acceptance.primary_roi,region_a_mean_rgb_abs_diff_255_target:waterContract.acceptance.region_a_mean_rgb_abs_diff_255_target,forbidden_zone_mean_rgb_abs_diff_255_max:waterContract.acceptance.forbidden_zone_mean_rgb_abs_diff_255_max,forbidden_zone_pixels_with_peak_diff_gt_4_fraction_max:waterContract.acceptance.forbidden_zone_pixels_with_peak_diff_gt_4_fraction_max,p0_p7_canvas_alpha_max:waterContract.acceptance.p0_p7_canvas_alpha_max,p0_p7_composite_rgb_diff_max:waterContract.acceptance.p0_p7_composite_rgb_diff_max,full_timeline_unchanged:true},
     ambient_calibration:{...waterContract.rendering.ambient.calibration,field_opacity_response_multiplier:waterContract.rendering.ambient.field_opacity_response_multiplier,radial_gradient_opacity_stops:waterContract.rendering.ambient.radial_gradient_opacity_stops,large_radius_sampling_w:waterContract.rendering.ambient.large_radius_sampling_w,medium_radius_sampling_w:waterContract.rendering.ambient.medium_radius_sampling_w,aspect_ratio:waterContract.rendering.ambient.aspect_ratio},
+    caustic_calibration:{...waterContract.rendering.caustics.calibration,field_opacity_response_multiplier:waterContract.rendering.caustics.field_opacity_response_multiplier,gradient_half_extent_multiplier:waterContract.rendering.caustics.gradient_half_extent_multiplier},
     source_asset:sourceManifest.fixture,
     region_version:debugOverlayState.version,
     zone_polygon_counts:{A:debugOverlayState.zones.A.length,B:debugOverlayState.zones.B.length,C:debugOverlayState.zones.C.length},
