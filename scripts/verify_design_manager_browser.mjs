@@ -179,7 +179,7 @@ async function main() {
   await workspace.locator(".nh01-development-basis > summary").click();
   assert(await workspace.locator(".nh01-development-basis").evaluate(node=>node.open),"NH01 resource audit must remain reachable");
   const resourceRows=workspace.locator(".nh01-resource-table tbody tr[data-resource-id]");
-  assert(await resourceRows.count()===23,`NH01 needs eleven contracts/modules and twelve frozen assets; got ${await resourceRows.count()}`);
+  assert(await resourceRows.count()===25,`NH01 needs thirteen contracts/modules and twelve frozen assets; got ${await resourceRows.count()}`);
   const resourceEvidence=await resourceRows.evaluateAll(rows=>rows.map(row=>{
     const cells=[...row.cells],text=cells.map(cell=>cell.innerText).join("\n"),sha=text.match(/SHA-256\s+([0-9a-f]{64})/i)?.[1]||"";
     return {id:row.dataset.resourceId,status:cells[1]?.innerText,http:cells[2]?.innerText,parse:cells[3]?.innerText||"",sha,url:row.querySelector("code")?.innerText||""};
