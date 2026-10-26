@@ -261,7 +261,7 @@ jobs:
             --preview-diff-dir "$RUNNER_TEMP/nh01-preview-diff"
 
       - name: Resolve latest successful production Pages run
-        if: github.event_name == 'pull_request' && contains(fromJSON('[203,212]'), github.event.pull_request.number)
+        if: github.event_name == 'pull_request' && contains(fromJSON('[203,212,214]'), github.event.pull_request.number)
         id: published-pages
         shell: bash
         env:
@@ -277,7 +277,7 @@ jobs:
           echo "source_sha=$production_source_sha" >> "$GITHUB_OUTPUT"
 
       - name: Download current production Pages artifact
-        if: github.event_name == 'pull_request' && contains(fromJSON('[203,212]'), github.event.pull_request.number)
+        if: github.event_name == 'pull_request' && contains(fromJSON('[203,212,214]'), github.event.pull_request.number)
         uses: actions/download-artifact@v4
         with:
           name: github-pages
@@ -287,7 +287,7 @@ jobs:
           path: ${{ runner.temp }}/nh01-published-pages
 
       - name: Compose byte-preserving isolated PR preview
-        if: github.event_name == 'pull_request' && contains(fromJSON('[203,212]'), github.event.pull_request.number)
+        if: github.event_name == 'pull_request' && contains(fromJSON('[203,212,214]'), github.event.pull_request.number)
         shell: bash
         env:
           PRODUCTION_RUN_ID: ${{ steps.published-pages.outputs.run_id }}
@@ -392,7 +392,7 @@ jobs:
             --output "$RUNNER_TEMP/nh01-pr${PREVIEW_PR_NUMBER}-prepublish-root-verification.json"
 
       - name: Verify candidate preview under its isolated Pages path
-        if: github.event_name == 'pull_request' && contains(fromJSON('[203,212]'), github.event.pull_request.number)
+        if: github.event_name == 'pull_request' && contains(fromJSON('[203,212,214]'), github.event.pull_request.number)
         shell: bash
         env:
           PREVIEW_PR_NUMBER: ${{ github.event.pull_request.number }}
@@ -414,7 +414,7 @@ jobs:
               --output-dir "$RUNNER_TEMP/nh01-pr${PREVIEW_PR_NUMBER}-preview-browser"
 
       - name: Upload preview composition evidence
-        if: github.event_name == 'pull_request' && contains(fromJSON('[203,212]'), github.event.pull_request.number)
+        if: github.event_name == 'pull_request' && contains(fromJSON('[203,212,214]'), github.event.pull_request.number)
         uses: actions/upload-artifact@v4
         with:
           name: NH01-PR${{ github.event.pull_request.number }}-Preview-Composition-${{ github.run_id }}
@@ -544,7 +544,7 @@ jobs:
           retention-days: 30
 
   deploy-preview:
-    if: github.event_name == 'pull_request' && contains(fromJSON('[203,212]'), github.event.pull_request.number)
+    if: github.event_name == 'pull_request' && contains(fromJSON('[203,212,214]'), github.event.pull_request.number)
     concurrency:
       # Match Main Pages workflow concurrency so a main deploy cannot race this additive publication.
       group: design-manager-pages-publish
