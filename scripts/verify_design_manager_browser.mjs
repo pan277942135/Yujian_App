@@ -1027,7 +1027,7 @@ async function main() {
   assert((await fishtraceFrame.locator("#selected-layer-label").innerText()).includes("完整原图"), "Selected layer label must identify the full foreground photo");
   await fishtraceFrame.locator('.state-tab[data-state="result"]').click();
   assert(await fishtraceFrame.locator('[data-scene="result"]').isVisible(), "Result state must be inspectable");
-  assert((await fishtraceFrame.locator(".demo-chip").innerText()).includes("样例数据"), "Result must label the sample data explicitly");
+  assert((await fishtraceFrame.locator('[data-scene="result"] .demo-chip').innerText()).includes("样例数据"), "Result must label the sample data explicitly");
   assert((await fishtraceFrame.locator(".result-disclaimer").innerText()).includes("视觉样例"), "Result must not imply real model inference");
   const desktopResultColumns = await fishtraceFrame.locator(".result-layout").evaluate(node => getComputedStyle(node).gridTemplateColumns);
   assert(desktopResultColumns.includes(" "), "Desktop result must render photo-left/result-right columns");
