@@ -172,184 +172,149 @@
     return {x:(rect.left-origin.left)/scale,y:(rect.top-origin.top)/scale,w:rect.width/scale,h:rect.height/scale};
   }
   const profiles = [[320,480],[360,640],[390,844],[430,932],[480,null]];
-  function normalizeFormula(value) {
-    return String(value || '').toLowerCase().replace(/[`$\s*]/g,'').replace(/\\times/g,'');
-  }
-  function allocationFormula(markdownContract, name) {
-    const sectionA2 = String(markdownContract || '').match(/### A\.2 Long-screen surplus allocation([\s\S]*?)(?=\n### A\.3)/)?.[1] || '';
-    return sectionA2.match(new RegExp(`^\\s*${name}\\s*=\\s*([^\\r\\n]+)$`, 'im'))?.[1]?.trim() || null;
-  }
+  function normalizeFormula(value) { return String(value || '').replace(/\s+/g,'').toLowerCase(); }
   function allocationShare(formula, baseName) {
-    const normalized = normalizeFormula(formula);
-    const prefix = `${String(baseName).toLowerCase()}+`;
-    if (!normalized.startsWith(prefix)) return null;
-    const match = normalized.slice(prefix.length).match(/^(\d+(?:\.\d+)?)?s(?:\/(\d+(?:\.\d+)?))?$/i);
-    if (!match) return null;
-    const numerator = Number(match[1] || 1), denominator = Number(match[2] || 1);
-    return denominator > 0 ? numerator / denominator : null;
-  }
-  function parseSpacingFormulae(contract) {
-    const f=contract?.spacing?.existing_adaptive_formulas || {};
-    const n='([0-9]+(?:\\.[0-9]+)?)';
-    const parse=(value, pattern, map)=>{const m=String(value||'').match(pattern);return m?map(m.slice(1).map(Number)):null;};
-    const pressure=parse(f.font_pressure,/^clamp\(\(systemFontScale-([\d.]+)\)\/([\d.]+),([\d.]+),([\d.]+)\)$/,([origin,range,lo,hi])=>({origin,range,lo,hi}));
-    const shortPressure=parse(f.short_height_pressure,/^clamp\(\(([\d.]+)-safeHeightDp\)\/([\d.]+),([\d.]+),([\d.]+)\)$/,([limit,range,lo,hi])=>({limit,range,lo,hi}));
-    const header=parse(f.header_to_stats,new RegExp('^max\\('+n+'dp, clamp\\(safeHeightDp\\*'+n+','+n+'dp,'+n+'dp\\) - fontPressure\\*'+n+'dp - shortHeightPressure\\*'+n+'dp\\)$'),([floor,mult,min,max,fontWeight,shortWeight])=>({floor,mult,min,max,fontWeight,shortWeight}));
-    const statsTitle=parse(f.stats_to_title,new RegExp('^max\\('+n+'dp, base - fontPressure\\*'+n+'dp\\); base='+n+'dp if safeHeight<'+n+'dp, '+n+'dp if <'+n+'dp, else '+n+'dp$'),([floor,weight,short,threshold1,medium,threshold2,tall])=>({floor,weight,short,threshold1,medium,threshold2,tall}));
-    const titleCard=parse(f.title_to_card_runtime,new RegExp('^max\\('+n+'dp, base - fontPressure\\*'+n+'dp\\); base='+n+'dp if safeHeight<'+n+'dp, '+n+'dp if <'+n+'dp, '+n+'dp if <'+n+'dp, else '+n+'dp$'),([floor,weight,short,threshold1,medium,threshold2,tall,threshold3,largest])=>({floor,weight,short,threshold1,medium,threshold2,tall,threshold3,largest}));
-    const cardFooter=parse(f.card_to_footer,new RegExp('^max\\('+n+'dp, clamp\\(safeHeightDp\\*'+n+','+n+'dp,'+n+'dp\\) - fontPressure\\*'+n+'dp - shortHeightPressure\\*'+n+'dp\\)$'),([floor,mult,min,max,fontWeight,shortWeight])=>({floor,mult,min,max,fontWeight,shortWeight}));
-    const cta=parse(f.cta_to_camera,new RegExp('^'+n+'dp if safeHeight<'+n+'dp, otherwise '+n+'dp$'),([compact,threshold,regular])=>({compact,threshold,regular}));
-    const footerTop=parse(f.footer_top_padding,new RegExp('^'+n+'dp if safeHeight<'+n+'dp, otherwise '+n+'dp$'),([compact,threshold,regular])=>({compact,threshold,regular}));
-    const footerBottom=parse(f.footer_bottom_padding,new RegExp('^'+n+'dp if safeHeight<'+n+'dp; else '+n+'dp if bottom safe inset>='+n+'dp; otherwise '+n+'dp$'),([compact,threshold,inset,regular])=>({compact,threshold,inset,regular}));
-    return {pressure,shortPressure,header,statsTitle,titleCard,cardFooter,cta,footerTop,footerBottom};
+    const normalized=normalizeFormula(formula), prefix=String(baseName).toLowerCase()+'+';
+    if(!normalized.startsWith(prefix))return null;
+    const match=normalized.slice(prefix.length).match(/^(?:(\d+(?:\.\d+)?)\*)?s(?:\/(\d+(?:\.\d+)?))?$/i);
+    return match?Number(match[1]||1)/Number(match[2]||1):null;
   }
   function hasAuthorityConflict(markdownContract, contract) {
-    const allocation = contract?.foundation_layout_principles?.allocation_when_surplus_positive;
-    const markdownAB = allocationFormula(markdownContract, 'gAB');
-    const markdownBC = allocationFormula(markdownContract, 'gBC');
-    return !allocation || !markdownAB || !markdownBC ||
-      normalizeFormula(markdownAB) !== normalizeFormula(allocation.a_to_b_final) ||
-      normalizeFormula(markdownBC) !== normalizeFormula(allocation.b_to_c_final);
+    const allocation=contract?.logical_allocation?.allocation_when_positive_surplus||{};
+    const md=String(markdownContract||'').replaceAll(String.fromCharCode(96),'').replace(/\s+/g,'').toLowerCase();
+    return allocation.a_to_b!=='gAB_base + S/2'||allocation.b_to_c!=='gBC_base + S/2'||
+      !md.includes('gab=gab_base+s/2')||!md.includes('gbc=gbc_base+s/2')||
+      md.includes('gab=gab_base+2s/3')||md.includes('gbc=gbc_base+s/3');
   }
-  function resultLineHeight(size, ratio, fallback) {
-    const value=Number(ratio);
-    return Number(size)*(Number.isFinite(value)&&value>0?value:fallback);
+  function curveValue(points,x,field,xField='safe_height_dp') {
+    if(!Array.isArray(points)||!points.length)return 0;
+    if(x<=Number(points[0][xField]))return Number(points[0][field]);
+    const last=points[points.length-1]; if(x>=Number(last[xField]))return Number(last[field]);
+    for(let i=1;i<points.length;i+=1){const left=points[i-1],right=points[i];if(x<=Number(right[xField])){
+      const span=Number(right[xField])-Number(left[xField]),t=span>0?(x-Number(left[xField]))/span:0;
+      return Number(left[field])+(Number(right[field])-Number(left[field]))*t;
+    }}
+    return Number(last[field]);
   }
-  function calculate(width, height, fontScale, topInset, bottomInset, contract, authorityConflict = false, previewRules = {}) {
-    const safeWidth = clamp(Number(width), 280, 900);
-    const safeHeight = Math.max(0, Number(height) - Number(topInset) - Number(bottomInset));
-    const rules=parseSpacingFormulae(contract), pressureRule=rules.pressure, shortRule=rules.shortPressure;
-    const pressure=pressureRule?clamp((fontScale-pressureRule.origin)/pressureRule.range,pressureRule.lo,pressureRule.hi):0;
-    const short=shortRule?clamp((shortRule.limit-safeHeight)/shortRule.range,shortRule.lo,shortRule.hi):0;
-    const fontFormula=String(contract.responsive_monotonicity.font_viewport_scale_formula||'').match(/^min\(min\(safeWidthDp,([\d.]+)\)\/([\d.]+),safeHeightDp\/([\d.]+)\)\.coerceIn\(([\d.]+),([\d.]+)\)$/);
-    const fontViewport=fontFormula?clamp(Math.min(Math.min(safeWidth,Number(fontFormula[1]))/Number(fontFormula[2]),safeHeight/Number(fontFormula[3])),Number(fontFormula[4]),Number(fontFormula[5])):1;
-    const gap=(spec,fallback)=>spec?Math.max(spec.floor,clamp(safeHeight*spec.mult,spec.min,spec.max)-pressure*spec.fontWeight-short*spec.shortWeight):fallback;
-    const headerGap=gap(rules.header,9);
-    const baseAB=rules.statsTitle?Math.max(rules.statsTitle.floor,(safeHeight<rules.statsTitle.threshold1?rules.statsTitle.short:safeHeight<rules.statsTitle.threshold2?rules.statsTitle.medium:rules.statsTitle.tall)-pressure*rules.statsTitle.weight):12;
-    const baseBC=gap(rules.cardFooter,3);
-    const titleGap=rules.titleCard?Math.max(rules.titleCard.floor,(safeHeight<rules.titleCard.threshold1?rules.titleCard.short:safeHeight<rules.titleCard.threshold2?rules.titleCard.medium:safeHeight<rules.titleCard.threshold3?rules.titleCard.tall:rules.titleCard.largest)-pressure*rules.titleCard.weight):8;
-    const heroFormula=String(contract.responsive_monotonicity.hero_width_formula||'').match(/^min\(min\(trackWidthDp,([\d.]+)dp\) \* ([\d.]+),([\d.]+)dp\)$/);
-    const heroWidth=heroFormula?Math.min(Math.min(safeWidth,Number(heroFormula[1]))*Number(heroFormula[2]),Number(heroFormula[3])):0;
-    const formulaConflict=!pressureRule||!shortRule||!rules.header||!rules.statsTitle||!rules.titleCard||!rules.cardFooter||!rules.cta||!rules.footerTop||!rules.footerBottom||!fontFormula||!heroFormula;
-    const ratio = String(contract.hero_and_peek.hero_ratio || '247:293').split(':').map(Number);
-    const desiredHeroHeight = Math.min(heroWidth * ratio[1] / ratio[0], Number(contract.hero_and_peek.hero_height_max_dp));
-    const heading=(contract.typography.roles||[]).find(role=>role.role==='Recent Catch heading')||{};
-    const headingSp=clamp(safeHeight*Number(heading.base_ratio||.027),Number(heading.minimum_sp||16),Number(heading.maximum_sp||19))*fontViewport*fontScale;
-    const recentHeight=Math.max(19,headingSp*Number(heading.line_height_ratio||1.2));
-    const roleSize=(name,fallback,min,max)=>{
-      const role=(contract.typography.roles||[]).find(item=>item.role===name)||{};
-      return clamp(safeHeight*Number(role.base_ratio||fallback),Number(role.minimum_sp||min),Number(role.maximum_sp||max))*fontViewport*fontScale;
-    };
+  function calculate(width,height,fontScale,topInset,bottomInset,contract,authorityConflict=false,previewRules={}) {
+    const p=contract?.preview_engine?.parameters, allocation=contract?.logical_allocation, conflicts=[];
+    if(!p?.content||!p.hero||!p.neighbor||!p.camera||!p.spacing||!allocation)return {
+      safeWidth:Number(width)||0,safeHeight:Math.max(0,(Number(height)||0)-(Number(topInset)||0)-(Number(bottomInset)||0)),hA:0,hB:0,hC:0,
+      baseAB:0,baseBC:0,S:0,gapABExtra:0,gapBCExtra:0,outerBreathing:0,gAB:0,gBC:0,titleGap:0,
+      heroHeight:0,targetHeroWidth:0,actualHeroWidth:0,desiredHeroHeight:0,availableHero:0,pagerHeight:0,pagerContentHeight:0,pagerNeedsScroll:false,
+      peekWidth:0,peekHeight:0,peekGap:0,peekReveal:0,maxGeometryOverlap:0,indicatorHeight:0,indicatorGap:0,ctaLineHeight:0,rects:{},
+      conflicts:['SPEC_CONFLICT · V2 responsive machine contract is missing required preview_engine.parameters or logical_allocation fields'],
+      contractId:contract?.contract_id||'MISSING',contractVersion:contract?.contract_version||'MISSING',previewRulesId:previewRules?.rules_id||'MISSING'};
+    const viewportWidth=Math.max(0,Number(width)||0), viewportHeight=Math.max(0,Number(height)||0);
+    const safeWidth=viewportWidth,safeHeight=Math.max(0,viewportHeight-Number(topInset||0)-Number(bottomInset||0));
+    const content=p.content,scaleRule=p.viewport_scale,spacing=p.spacing,hero=p.hero,neighbor=p.neighbor,camera=p.camera;
+    const contentWidth=Math.min(safeWidth,Number(content.max_width_dp||560)),trackX=(safeWidth-contentWidth)/2;
+    const fs=Number(fontScale)||1,pr=spacing.font_pressure||{base_font_scale:1,range:.5},sh=spacing.short_height_pressure||{reference_height_dp:620,range_dp:220};
+    const pressure=clamp((fs-Number(pr.base_font_scale))/Number(pr.range),0,1);
+    const shortPressure=clamp((Number(sh.reference_height_dp)-safeHeight)/Number(sh.range_dp),0,1);
+    const fontViewport=clamp(Math.min(Math.min(contentWidth,Number(scaleRule.width_reference_dp))/Number(scaleRule.width_reference_dp),safeHeight/Number(scaleRule.height_reference_dp)),Number(scaleRule.minimum),Number(scaleRule.maximum));
+    const roles=contract.typography?.roles||[],role=id=>roles.find(item=>item.id===id)||{};
+    const roleSize=(id,fallback,min,max)=>{const item=role(id);return clamp(safeHeight*Number(item.base_ratio??fallback),Number(item.min_sp??min),Number(item.max_sp??max))*fontViewport*fs;};
     const fontSizes={
-      statisticsValue:roleSize('Statistics number',.03,17,21),
-      statisticsLabel:roleSize('Statistics label',.019,11,13),
-      recentHeading:headingSp,
-      recentAction:roleSize('All entry',.021,13,15),
-      heroSpecies:roleSize('Species name',.036,20,26),
-      heroMeasurement:roleSize('Measurements',.023,13,16),
-      heroMetadata:roleSize('Time and location metadata',.019,11,13),
-      cta:roleSize('Record-next-catch CTA',.021,12,14)
+      statisticsValue:roleSize('statistics-number',.03,17,21),statisticsLabel:roleSize('statistics-label',.019,11,13),
+      recentHeading:roleSize('recent-catch-heading',.027,16,19),recentAction:roleSize('all-entry',.021,13,15),
+      heroSpecies:roleSize('species-name',.036,20,26),heroMeasurement:roleSize('measurements',.023,13,16),
+      heroMetadata:roleSize('time-location',.019,11,13),cta:roleSize('record-next-catch-cta',.021,12,14)
     };
-    const brandWidth=clamp(safeWidth*(155/1080),46,70);
-    const brandHeight=brandWidth*(80/155);
-    const avatarSize=clamp(safeWidth*.10,36,40);
-    const avatarTouchSize=Math.max(48,avatarSize);
-    const cameraFormula=String(contract.responsive_monotonicity.camera_visual_formula||'').match(/^min\(min\(safeWidthDp,([\d.]+)dp\)\*([\d.]+),safeHeightDp\*([\d.]+),([\d.]+)dp\), with ([\d.]+)dp floor$/);
-    const cameraSize=cameraFormula?Math.max(Number(cameraFormula[5]),Math.min(Math.min(safeWidth,Number(cameraFormula[1]))*Number(cameraFormula[2]),safeHeight*Number(cameraFormula[3]),Number(cameraFormula[4]))):Number(contract.camera_and_touch.camera_visual_size_dp.minimum);
-    const cameraTouchSize=Math.max(cameraSize,Number(contract.camera_and_touch.camera_touch_target_dp.minimum_width),Number(contract.camera_and_touch.camera_touch_target_dp.minimum_height));
-    const ctaCameraGap=rules.cta?(safeHeight<rules.cta.threshold?rules.cta.compact:rules.cta.regular):6;
-    const footerTopPadding=rules.footerTop?(safeHeight<rules.footerTop.threshold?rules.footerTop.compact:rules.footerTop.regular):2;
-    const footerBottomPadding=rules.footerBottom?(safeHeight<rules.footerBottom.threshold?rules.footerBottom.compact:Number(bottomInset)>=rules.footerBottom.inset?rules.footerBottom.inset:rules.footerBottom.regular):2;
-    const ctaRole=(contract.typography.roles||[]).find(role=>role.role==='Record-next-catch CTA')||{};
-    const ctaLineHeight=resultLineHeight(fontSizes.cta,ctaRole.line_height_ratio,1.25);
+    const exactM01=viewportWidth===Number(hero.short_screen_exception?.exact_viewport_width_dp)&&viewportHeight===Number(hero.short_screen_exception?.exact_viewport_height_dp)&&fs===Number(hero.short_screen_exception?.exact_font_scale);
+    const compact=hero.short_screen_exception?.compact_layout||{};
+    const topPadding=exactM01?Number(compact.top_padding_dp??0):Number(content.top_padding_dp||0);
+    const headerHeight=Number(content.header_min_height_dp||48);
+    const headerGap=exactM01?Number(compact.header_to_stats_gap_dp??spacing.brand_to_stats.minimum_gap_dp):
+      Math.max(Number(spacing.brand_to_stats.minimum_gap_dp),clamp(safeHeight*Number(spacing.brand_to_stats.height_fraction),Number(spacing.brand_to_stats.base_minimum_dp),Number(spacing.brand_to_stats.base_maximum_dp))-pressure*Number(spacing.brand_to_stats.font_pressure_penalty_dp)-shortPressure*Number(spacing.brand_to_stats.short_height_pressure_penalty_dp));
+    const statsMeasuredHeight=fontSizes.statisticsValue*Number(role('statistics-number').line_height_ratio||1.14)+fontSizes.statisticsLabel*Number(role('statistics-label').line_height_ratio||1.2)+Number(content.stats_vertical_padding_dp||0)*2;
+    const statsHeight=exactM01?Number(compact.stats_height_dp??content.stats_min_height_dp):Math.max(Number(content.stats_min_height_dp||48),statsMeasuredHeight);
+    const st=spacing.stats_to_title,tc=spacing.title_to_card,cf=spacing.card_to_footer;
+    const baseAB=exactM01?Number(compact.stats_to_title_gap_dp??st.minimum_gap_dp):Math.max(Number(st.minimum_gap_dp),curveValue(st.base_curve,safeHeight,'value_dp')-Number(st.font_pressure_penalty_dp)*pressure);
+    const baseBC=exactM01?Number(compact.card_to_footer_gap_dp??cf.minimum_gap_dp):Math.max(Number(cf.minimum_gap_dp),clamp(safeHeight*Number(cf.height_fraction),Number(cf.base_minimum_dp),Number(cf.base_maximum_dp))-pressure*Number(cf.font_pressure_penalty_dp)-shortPressure*Number(cf.short_height_pressure_penalty_dp));
+    const titleGap=exactM01?Number(compact.title_to_card_gap_dp??tc.minimum_gap_dp):Math.max(Number(tc.minimum_gap_dp),curveValue(tc.base_curve,safeHeight,'value_dp')-Number(tc.font_pressure_penalty_dp)*pressure);
+    const recentHeight=Math.max(fontSizes.recentHeading*Number(role('recent-catch-heading').line_height_ratio||1.2),fontSizes.recentAction*Number(role('all-entry').line_height_ratio||1.2));
+    const brandWidth=clamp(safeWidth*Number(p.brand_title.width_ratio_numerator)/Number(p.brand_title.width_ratio_denominator),Number(p.brand_title.min_width_dp),Number(p.brand_title.max_width_dp));
+    const brandHeight=brandWidth*Number(p.brand_title.height_ratio_numerator)/Number(p.brand_title.width_ratio_numerator);
+    const avatarSize=clamp(safeWidth*Number(p.avatar.width_ratio),Number(p.avatar.min_visual_dp),Number(p.avatar.max_visual_dp));
+    const avatarTouchSize=Math.max(Number(p.avatar.minimum_touch_dp),avatarSize);
+    const cameraSize=Math.max(Number(camera.minimum_visual_dp),Math.min(contentWidth*Number(camera.width_fraction_of_capped_safe_width),safeHeight*Number(camera.height_fraction_of_safe_height),Number(camera.maximum_visual_dp)));
+    const cameraTouchSize=Math.max(cameraSize,Number(camera.minimum_touch_dp));
+    const footerCurve=spacing.footer.transition_curve||[],footerThreshold=Number(spacing.footer.large_bottom_inset_threshold_dp||40);
+    const ctaCameraGap=exactM01?Number(compact.cta_camera_gap_dp??curveValue(footerCurve,safeHeight,'cta_camera_gap_dp')):curveValue(footerCurve,safeHeight,'cta_camera_gap_dp');
+    const footerTopPadding=exactM01?Number(compact.footer_top_padding_dp??0):curveValue(footerCurve,safeHeight,'top_padding_dp');
+    const bottomField=Number(bottomInset)>=footerThreshold?'bottom_padding_large_inset_dp':'bottom_padding_small_inset_dp';
+    const footerBottomPadding=exactM01?Number(compact.footer_bottom_padding_dp??0):curveValue(footerCurve,safeHeight,bottomField);
+    const ctaLineHeight=resultLineHeight(fontSizes.cta,role('record-next-catch-cta').line_height_ratio,1.25);
     const footerHeight=footerTopPadding+ctaLineHeight+ctaCameraGap+cameraTouchSize+footerBottomPadding;
-    const topHeight = 48 + headerGap + 55 * fontScale;
-    const footerFormula=String(contract.responsive_monotonicity.camera_visual_formula||'');
-    const cameraFormulaConflict=!cameraFormula||!footerFormula;
-    const indicatorHeight=Number(previewRules.pager?.indicator_height_dp??8);
-    const indicatorGap=Number(previewRules.pager?.indicator_gap_after_hero_dp??8);
+    const rw=Number(hero.aspect_ratio_width),rh=Number(hero.aspect_ratio_height);
+    const targetHeroWidth=Math.min(contentWidth*Number(hero.target_width_fraction),Number(hero.maximum_width_dp));
+    const desiredHeroHeight=Math.min(targetHeroWidth*rh/rw,Number(hero.maximum_height_dp));
+    const indicatorHeight=Number(neighbor.indicator_height_dp),indicatorGap=Number(neighbor.indicator_gap_after_hero_dp),indicatorWidth=Number(neighbor.indicator_width_dp||40);
     const indicatorStack=indicatorHeight+indicatorGap;
-    const pagerGapRule=String(previewRules.pager?.peek_gap_formula||'').match(/^clamp\(([\d.]+)dp,trackWidthDp\*([\d.]+),([\d.]+)dp\)$/);
-    const peekGap=pagerGapRule?clamp(safeWidth*Number(pagerGapRule[2]),Number(pagerGapRule[1]),Number(pagerGapRule[3])):clamp(safeWidth*.025,8,12);
-    const maxGeometryOverlap=Number(previewRules.pager?.max_geometry_overlap_dp??1);
-    const gapABCap=Number(previewRules.vertical_allocation?.additional_gap_ab_max_dp??24);
-    const gapBCCap=Number(previewRules.vertical_allocation?.additional_gap_bc_max_dp??40);
-    const pagerVisibleWidthFormula=String(previewRules.pager?.peek_visible_width_formula||'');
-    const previewRulesConflict=!previewRules.rules_id||previewRules.status!=='PREVIEW_ONLY'||!pagerGapRule||pagerVisibleWidthFormula!=='min(peekWidthDp,max(0,(trackWidthDp-heroWidthDp)/2-peekGapDp))'||!Number.isFinite(indicatorHeight)||!Number.isFinite(indicatorGap);
-    const fixedBeforePager=topHeight+recentHeight+titleGap+footerHeight+baseAB+baseBC;
-    const pagerBudgetRaw=safeHeight-fixedBeforePager;
-    const pagerBudget=Math.max(0,pagerBudgetRaw);
-    const availableHero=Math.max(0,pagerBudget-indicatorStack);
-    const readableRange = String(contract.hero_and_peek.hero_readable_height_range_dp || '148-220').match(/(\d+(?:\.\d+)?)-(\d+(?:\.\d+)?)/);
-    const minimumHeroBase = readableRange ? Number(readableRange[1]) : 148;
-    const exception = contract.hero_and_peek.short_screen_exception || {};
-    const exceptionViewport = String(exception.viewport || '').match(/(\d+)x(\d+)/i);
-    const usesShortScreenException = !!exceptionViewport && safeWidth === Number(exceptionViewport[1]) &&
-      Number(height) === Number(exceptionViewport[2]) && fontScale === Number(exception.font_scale);
-    const previewHeroMinWidth=Number(previewRules.hero?.short_320x480_font_1_minimum_width_dp??exception.min_width_dp??0);
-    const minimumHero=Math.max(minimumHeroBase,usesShortScreenException?previewHeroMinWidth*ratio[1]/ratio[0]:0);
-    const heroHeight=pagerBudget<=0?minimumHero:Math.min(desiredHeroHeight,Math.max(minimumHero,availableHero));
-    const actualHeroWidth = heroHeight * ratio[0] / ratio[1];
-    const targetPagerContentHeight=desiredHeroHeight+indicatorStack;
-    const targetTotal=topHeight+baseAB+recentHeight+titleGap+baseBC+footerHeight+targetPagerContentHeight;
-    const targetSurplus=safeHeight-targetTotal;
-    const S=Math.max(0,targetSurplus);
-    const gapABExtra=Math.min(S/2,gapABCap);
-    const gapBCExtra=Math.min(Math.max(0,S-gapABExtra),gapBCCap);
-    const outerBreathing=(S-gapABExtra-gapBCExtra)/2;
-    const gAB=baseAB+gapABExtra;
-    const gBC=baseBC+gapBCExtra;
-    const pagerHeight=targetSurplus>=0?targetPagerContentHeight:pagerBudget;
-    const pagerContentHeight=heroHeight+indicatorStack;
-    const pagerNeedsScroll=pagerContentHeight>pagerHeight+.1;
-    const hA=topHeight,hB=recentHeight+titleGap+pagerHeight,hC=footerHeight;
-    const recentY=Number(topInset)+outerBreathing+hA+gAB;
-    const heroY = recentY + recentHeight + titleGap;
-    const footerY = heroY + pagerHeight + gBC;
-    const peek = contract.hero_and_peek.peek;
-    const peekWidth = actualHeroWidth * peek.width_max_relative_to_main;
-    const peekHeight = heroHeight * peek.height_relative_to_main;
-    const peekY = heroY + peek.top_offset_dp;
-    const peekReveal=Math.min(peekWidth,Math.max(0,(safeWidth-actualHeroWidth)/2-peekGap));
-    const indicatorWidth=40;
-    const rects = {
-      page:{x:0,y:0,w:safeWidth,h:Number(height)},
-      environment:{x:0,y:0,w:safeWidth,h:Number(height)},
-      background:{x:0,y:0,w:safeWidth,h:Number(height)},
-      header:{x:0,y:Number(topInset)+outerBreathing,w:safeWidth,h:48},
-      brand:{x:20,y:Number(topInset)+outerBreathing+(48-brandHeight)/2,w:brandWidth,h:brandHeight},
-      avatar:{x:safeWidth-20-avatarTouchSize,y:Number(topInset)+outerBreathing+(48-avatarTouchSize)/2,w:avatarTouchSize,h:avatarTouchSize},
-      stats:{x:20,y:Number(topInset)+outerBreathing+48+headerGap,w:safeWidth-40,h:55*fontScale},
-      recent:{x:20,y:recentY,w:safeWidth-40,h:recentHeight},
-      'recent-header':{x:20,y:recentY,w:safeWidth-40,h:recentHeight},
-      pager:{x:0,y:heroY,w:safeWidth,h:pagerHeight},
-      hero:{x:(safeWidth-actualHeroWidth)/2,y:heroY,w:actualHeroWidth,h:heroHeight},
-      'peek-left':{x:(safeWidth-actualHeroWidth)/2-peekWidth-peekGap,y:peekY,w:peekWidth,h:peekHeight},
-      'peek-right':{x:(safeWidth+actualHeroWidth)/2+peekGap,y:peekY,w:peekWidth,h:peekHeight},
-      'pager-indicator':{x:(safeWidth-indicatorWidth)/2,y:heroY+heroHeight+indicatorGap,w:indicatorWidth,h:indicatorHeight},
-      footer:{x:0,y:footerY,w:safeWidth,h:footerHeight},
-      'capture-action-group':{x:0,y:footerY,w:safeWidth,h:footerHeight},
-      cta:{x:20,y:footerY+footerTopPadding,w:safeWidth-40,h:ctaLineHeight},
-      camera:{x:(safeWidth-cameraTouchSize)/2,y:footerY+footerTopPadding+ctaLineHeight+ctaCameraGap,w:cameraTouchSize,h:cameraTouchSize},
-      'camera-artwork':{x:(safeWidth-cameraSize)/2,y:footerY+footerTopPadding+ctaLineHeight+ctaCameraGap+(cameraTouchSize-cameraSize)/2,w:cameraSize,h:cameraSize}
+    const minM01HeroHeight=Math.max(Number(hero.short_screen_exception?.minimum_readable_floor_dp||0),Number(hero.short_screen_exception?.minimum_width_dp||0)*rh/rw);
+    let heroHeight=desiredHeroHeight;
+    if(exactM01){
+      const budget=safeHeight-(topPadding+headerHeight+headerGap+statsHeight+baseAB+recentHeight+titleGap+baseBC+footerHeight+indicatorStack);
+      if(budget>=minM01HeroHeight)heroHeight=Math.min(desiredHeroHeight,budget);
+      else{heroHeight=minM01HeroHeight;conflicts.push('FAIL_CONSTRAINT · M01 NO_SCROLL cannot fit minimum Hero width, 247:293 ratio, readable content, Footer and safe insets together');}
+    }
+    const actualHeroWidth=heroHeight*rw/rh;
+    const peekGap=clamp(contentWidth*Number(neighbor.peek_gap.track_width_fraction),Number(neighbor.peek_gap.minimum_dp),Number(neighbor.peek_gap.maximum_dp));
+    const peekWidth=actualHeroWidth*Number(neighbor.maximum_width_fraction_of_hero),peekHeight=heroHeight*Number(neighbor.height_fraction_of_hero);
+    const maxGeometryOverlap=Number(neighbor.maximum_overlap_dp),pagerContentHeight=heroHeight+indicatorStack;
+    const targetTotal=topPadding+headerHeight+headerGap+statsHeight+baseAB+recentHeight+titleGap+pagerContentHeight+baseBC+footerHeight;
+    const targetSurplus=safeHeight-targetTotal,S=Math.max(0,targetSurplus),gapABExtra=S/2,gapBCExtra=S/2,outerBreathing=0;
+    const gAB=baseAB+gapABExtra,gBC=baseBC+gapBCExtra;
+    let pagerHeight;
+    if(targetSurplus>=-0.001||exactM01)pagerHeight=pagerContentHeight;
+    else pagerHeight=Math.max(0,safeHeight-(topPadding+headerHeight+headerGap+statsHeight+baseAB+recentHeight+titleGap+baseBC+footerHeight));
+    const pagerNeedsScroll=pagerContentHeight>pagerHeight+.1&&!exactM01;
+    const hA=topPadding+headerHeight+headerGap+statsHeight,hB=recentHeight+titleGap+pagerContentHeight,hC=footerHeight;
+    const recentY=Number(topInset)+hA+gAB,heroY=recentY+recentHeight+titleGap,footerY=heroY+pagerHeight+gBC;
+    const sectionPad=clamp(safeWidth*Number(content.section_horizontal_padding.ratio),Number(content.section_horizontal_padding.min_dp),Number(content.section_horizontal_padding.max_dp));
+    const topPad=clamp(safeWidth*Number(content.top_horizontal_padding.ratio),Number(content.top_horizontal_padding.min_dp),Number(content.top_horizontal_padding.max_dp));
+    const rects={
+      page:{x:0,y:0,w:viewportWidth,h:viewportHeight},environment:{x:0,y:0,w:viewportWidth,h:viewportHeight},background:{x:0,y:0,w:viewportWidth,h:viewportHeight},
+      header:{x:trackX,y:Number(topInset)+topPadding,w:contentWidth,h:headerHeight},
+      brand:{x:trackX+topPad,y:Number(topInset)+topPadding+(headerHeight-brandHeight)/2,w:brandWidth,h:brandHeight},
+      avatar:{x:trackX+contentWidth-topPad-avatarTouchSize,y:Number(topInset)+topPadding+(headerHeight-avatarTouchSize)/2,w:avatarTouchSize,h:avatarTouchSize},
+      stats:{x:trackX+sectionPad,y:Number(topInset)+topPadding+headerHeight+headerGap,w:Math.max(0,contentWidth-2*sectionPad),h:statsHeight},
+      recent:{x:trackX+sectionPad,y:recentY,w:Math.max(0,contentWidth-2*sectionPad),h:recentHeight},
+      'recent-header':{x:trackX+sectionPad,y:recentY,w:Math.max(0,contentWidth-2*sectionPad),h:recentHeight},
+      pager:{x:trackX,y:heroY,w:contentWidth,h:pagerHeight},
+      hero:{x:trackX+(contentWidth-actualHeroWidth)/2,y:heroY,w:actualHeroWidth,h:heroHeight},
+      'peek-left':{x:trackX+(contentWidth-actualHeroWidth)/2-peekWidth-peekGap,y:heroY+Number(neighbor.top_offset_dp),w:peekWidth,h:peekHeight},
+      'peek-right':{x:trackX+(contentWidth+actualHeroWidth)/2+peekGap,y:heroY+Number(neighbor.top_offset_dp),w:peekWidth,h:peekHeight},
+      'pager-indicator':{x:trackX+(contentWidth-indicatorWidth)/2,y:heroY+heroHeight+indicatorGap,w:indicatorWidth,h:indicatorHeight},
+      footer:{x:trackX,y:footerY,w:contentWidth,h:footerHeight},'capture-action-group':{x:trackX,y:footerY,w:contentWidth,h:footerHeight},
+      cta:{x:trackX+sectionPad,y:footerY+footerTopPadding,w:Math.max(0,contentWidth-2*sectionPad),h:ctaLineHeight},
+      camera:{x:trackX+(contentWidth-cameraTouchSize)/2,y:footerY+footerTopPadding+ctaLineHeight+ctaCameraGap,w:cameraTouchSize,h:cameraTouchSize},
+      'camera-artwork':{x:trackX+(contentWidth-cameraSize)/2,y:footerY+footerTopPadding+ctaLineHeight+ctaCameraGap+(cameraTouchSize-cameraSize)/2,w:cameraSize,h:cameraSize}
     };
-    const conflicts = [];
-    if (authorityConflict) conflicts.push('SPEC_CONFLICT · 正式 Markdown A.2 与机器合同的剩余空间公式不一致或无法解析');
-    if (formulaConflict) conflicts.push('SPEC_CONFLICT · 正式机器合同中的响应式公式无法解析；当前回退仅供诊断，不是合同计算结果');
-    if (cameraFormulaConflict) conflicts.push('SPEC_CONFLICT · 正式机器合同相机尺寸公式无法解析');
-    if (previewRulesConflict) conflicts.push('PREVIEW_RULES_ERROR · 缺少有效 PREVIEW_ONLY 结构化布局规则');
-    if (pagerNeedsScroll) conflicts.push('PREVIEW_LOCAL_SCROLL · FishCatchPager 内容按可读 Hero 比例保留并在 Pager 内部滚动');
-    if (pagerBudgetRaw<0) conflicts.push('SAFE_OVERFLOW · 固定 Header/Stats/标题/Footer 已超过 safeContentHeight');
-    if (heroHeight<minimumHero-.1) conflicts.push('FAIL_HERO_MINIMUM · Hero 低于最小可读高度');
-    if (footerY + footerHeight > height - bottomInset + .5) conflicts.push('SPEC_CONFLICT · Footer 超出底部安全区');
-    return {safeWidth,safeHeight,hA,hB,hC,baseAB,baseBC,S,targetSurplus,gapABExtra,gapBCExtra,outerBreathing,gAB,gBC,titleGap,
-      heroHeight,targetHeroWidth:heroWidth,actualHeroWidth,desiredHeroHeight,availableHero,pagerHeight,pagerContentHeight,pagerNeedsScroll,
-      peekWidth,peekHeight,peekGap,peekReveal,maxGeometryOverlap,indicatorHeight,indicatorGap,ctaLineHeight,rects,conflicts,
-      fontViewport,fontSp:headingSp,fontSizes,brandWidth,brandHeight,avatarSize,avatarTouchSize,headerGap,cameraSize,cameraTouchSize,ctaCameraGap,footerTopPadding,footerBottomPadding,contractId:contract.foundation_layout_principles.foundation_id,previewRulesId:previewRules.rules_id};
+    if(authorityConflict)conflicts.push('SPEC_CONFLICT · V2 Markdown 与机器合同的唯一剩余空间公式不一致');
+    if(allocation.allocation_when_positive_surplus?.a_to_b!=='gAB_base + S/2'||allocation.allocation_when_positive_surplus?.b_to_c!=='gBC_base + S/2')conflicts.push('SPEC_CONFLICT · V2 contract must assign positive surplus equally as S/2 + S/2');
+    if(previewRules?.status!=='PREVIEW_ONLY'||previewRules?.responsive_authority!=='design/pages/home/normal_home/responsive/NH01_RESPONSIVE_LAYOUT_V2.json'||previewRules?.numeric_authority!=='NONE'||previewRules?.no_numeric_overrides!==true||['hero','pager','vertical_allocation','capture_action_group'].some(key=>Object.prototype.hasOwnProperty.call(previewRules,key)))conflicts.push('PREVIEW_RULES_ERROR · preview metadata must not define duplicate responsive numeric rules');
+    if(exactM01&&actualHeroWidth<Number(hero.short_screen_exception.minimum_width_dp)-.1)conflicts.push('FAIL_CONSTRAINT · M01 Hero width is below the 145dp minimum');
+    if(exactM01&&pagerNeedsScroll)conflicts.push('FAIL_CONSTRAINT · exact M01 requires NO_SCROLL');
+    if(pagerNeedsScroll)conflicts.push('PREVIEW_LOCAL_SCROLL · FishCatchPager retains the target Hero ratio while only its viewport scrolls');
+    if(!exactM01&&targetSurplus<0&&pagerHeight<=0)conflicts.push('SAFE_OVERFLOW · no space remains for the Pager viewport after required fixed content');
+    if(rects['capture-action-group'].y+hC>viewportHeight-Number(bottomInset)+.5)conflicts.push('SAFE_OVERFLOW · Footer exceeds the bottom safe area');
+    if(rects['capture-action-group'].y<rects.pager.y+rects.pager.h-.5&&pagerNeedsScroll)conflicts.push('SAFE_OVERFLOW · Footer overlaps the Pager viewport');
+    const gridRows=[Number(topInset)+topPadding,headerHeight,headerGap,statsHeight,gAB,recentHeight,titleGap,pagerHeight,gBC,footerHeight,Number(bottomInset)];
+    return {safeWidth,safeHeight,contentWidth,trackX,topPadding,headerHeight,hA,hB,hC,baseAB,baseBC,S,targetSurplus,gapABExtra,gapBCExtra,outerBreathing,gAB,gBC,titleGap,
+      heroHeight,targetHeroWidth,actualHeroWidth,desiredHeroHeight,availableHero:Math.max(0,safeHeight-(hA+baseAB+recentHeight+titleGap+baseBC+footerHeight+indicatorStack)),pagerHeight,pagerContentHeight,pagerNeedsScroll,
+      peekWidth,peekHeight,peekGap,peekReveal:Math.min(peekWidth,Math.max(0,(contentWidth-actualHeroWidth)/2-peekGap)),maxGeometryOverlap,indicatorHeight,indicatorGap,ctaLineHeight,rects,gridRows,conflicts,
+      fontViewport,fontSp:fontSizes.recentHeading,fontSizes,brandWidth,brandHeight,avatarSize,avatarTouchSize,headerGap,cameraSize,cameraTouchSize,ctaCameraGap,footerTopPadding,footerBottomPadding,
+      contractId:contract.contract_id,contractVersion:contract.contract_version,contractStatus:contract.status,previewRulesId:previewRules?.rules_id||'MISSING',layoutMode:exactM01?'M01_NO_SCROLL_COMPACT':(targetSurplus>=0?'FLOW_FIT':'PAGER_LOCAL_SCROLL')};
   }
-  function mount(root, view, contract, manifest, build, markdownContract = '', resourceBinding = {}, resourceDiagnostics = [], componentTree = {}, structure = {}, avatarAuthority = '', previewRules = {}, previewMedia = {}) {
-    const authorityConflict = hasAuthorityConflict(markdownContract, contract);
-    if (!root || !contract?.foundation_layout_principles || !Array.isArray(manifest?.assets) || !structure?.preview_fixture || !avatarAuthority || previewRules?.status!=='PREVIEW_ONLY') {
+  function resultLineHeight(size,ratio,fallback) {
+    const value=Number(ratio);return Number(size)*(Number.isFinite(value)&&value>0?value:fallback);
+  }
+  function mount(root, view, contract, manifest, build, markdownContract = '', resourceBinding = {}, resourceDiagnostics = [], componentTree = {}, structure = {}, avatarAuthority = '', previewRules = {}, previewMedia = {}, responsiveContract = null, responsiveMarkdown = '') {
+    const layoutContract = responsiveContract;
+    const authorityConflict = hasAuthorityConflict(responsiveMarkdown, layoutContract);
+    if (!root || !contract?.foundation_layout_principles || !layoutContract?.preview_engine?.parameters || !layoutContract?.logical_allocation || !Array.isArray(manifest?.assets) || !structure?.preview_fixture || !avatarAuthority || previewRules?.status!=='PREVIEW_ONLY' || previewRules?.numeric_authority!=='NONE') {
       throw new Error('NH01 workspace mount dependencies are incomplete');
     }
     const layerRoot=createLayerTree(componentTree,structure);
@@ -360,10 +325,10 @@
     workspace.className='nh01-structured';
     workspace.dataset.testid='nh01-structured-workspace';
     const options=profiles.map(([w,h],i)=>`<option value="${i}" ${i===2?'selected':''}>${i===4?'480 dp 宽度边界 · 高度保持当前值':`${w} × ${h} dp`}</option>`).join('');
-    workspace.innerHTML=`<header class="nh01-structured-heading"><div><small>DESIGN WORKSPACE · ${contract.foundation_layout_principles.foundation_id} ${contract.foundation_layout_principles.version}</small><h2>结构化高保真 · 多屏静态与响应式规范</h2><p>布局绑定现行组件与响应式合同；未冻结的 Pager 空间规则标注 PREVIEW_ONLY。Hero、previous、next 三张图均为 GENERATED_ILLUSTRATIVE_ONLY，不代表真实鱼获或记录数量。Android Runtime = NOT_VERIFIED。</p>${authorityConflict?'<p class="nh01-authority-conflict" role="alert">SPEC_CONFLICT · 正式 Markdown A.2 与机器合同的剩余空间公式不一致或无法解析；画布按可读取的机器合同计算并保留冲突标记。</p>':''}</div><code>源码 ${build}</code></header>
+    workspace.innerHTML=`<header class="nh01-structured-heading"><div><small>DESIGN WORKSPACE · ${contract.foundation_layout_principles.foundation_id} ${contract.foundation_layout_principles.version}</small><h2>结构化高保真 · 多屏静态与响应式规范</h2><p>布局数值由唯一响应式机器合同驱动；独立 PREVIEW_ONLY 文件仅保留展示元数据。Hero、previous、next 三张图均为 GENERATED_ILLUSTRATIVE_ONLY，不代表真实鱼获或记录数量。Android Runtime = NOT_VERIFIED。</p>${authorityConflict?'<p class="nh01-authority-conflict" role="alert">SPEC_CONFLICT · 正式 Markdown A.2 与机器合同的剩余空间公式不一致或无法解析；画布按可读取的机器合同计算并保留冲突标记。</p>':''}</div><code>源码 ${build}</code></header>
       <div class="nh01-structured-controls"><label>视口 <select data-control="profile">${options}</select></label><label>宽 <input data-control="width" type="number" min="280" max="900" value="390"> dp</label><label>高 <input data-control="height" type="number" min="400" max="1400" value="844"> dp</label><label>字体 <input data-control="font" type="range" min="1" max="1.5" step="0.05" value="1"><output data-output="font">1.00×</output></label><label>画布 <input data-control="zoom" type="range" min="0.4" max="1.2" step="0.05" value="0.7"><output data-output="zoom">70%</output></label><details><summary>安全区输入</summary><label>上 <input data-control="top" type="number" min="0" max="80" value="24"> dp</label><label>下 <input data-control="bottom" type="number" min="0" max="80" value="24"> dp</label></details></div>
       <div class="nh01-structured-grid"><nav class="nh01-layer-tree" aria-label="NH01 图层树"><h3>页面图层 <small>${safeText(componentTree.status||'SOURCE TREE')}</small></h3><div data-layer-tree></div></nav><div class="nh01-canvas-area"><div class="nh01-canvas-scroll"><div class="nh01-artboard" data-artboard data-layer="page" data-testid="nh01-canvas-page"></div></div><div class="nh01-comparison" data-comparison></div></div><aside class="nh01-inspector" aria-label="图层属性检查器"><h3>属性与响应式规则</h3><div data-inspector></div></aside></div>
-      <details class="nh01-development-basis"><summary>开发依据与验收要求</summary><p>正式响应式合同：${contract.contract_id} ${contract.contract_version} / ${contract.foundation_layout_principles.foundation_id}；组件父子树：${componentTree.document_type} · ${componentTree.status||'REVIEW_REQUIRED'}；静态参考：${manifest.contract_id}。Android Runtime：NOT_VERIFIED。</p><p><a href="${'../../'+view.machine_authority}" target="_blank" rel="noreferrer">机器合同</a> · <a href="${'../../'+view.authority}" target="_blank" rel="noreferrer">正式文字合同</a> · <a href="../../design/manager/nh01_acceptance/data/NH01_Component_Tree_V1.json" target="_blank" rel="noreferrer">NH01 组件父子树</a> · <a href="../../design/pages/home/normal_home/engineering/Visual_Anchor_Asset_Resolution_V1.md" target="_blank" rel="noreferrer">NH01 头像视觉权威</a></p><div data-basis></div><details open><summary>资源加载审计</summary><div data-resource-report></div></details></details>`;
+      <details class="nh01-development-basis"><summary>开发依据与验收要求</summary><p>冻结静态归档合同：${contract.contract_id} ${contract.contract_version}；唯一响应式机器合同：${layoutContract.contract_id} V${layoutContract.contract_version}（${layoutContract.status}）；组件父子树：${componentTree.document_type} · ${componentTree.status||'REVIEW_REQUIRED'}；静态参考：${manifest.contract_id}。Android Runtime：NOT_VERIFIED。</p><p><a href="${'../../'+view.machine_authority}" target="_blank" rel="noreferrer">机器合同</a> · <a href="${'../../'+view.authority}" target="_blank" rel="noreferrer">正式文字合同</a> · <a href="../../design/manager/nh01_acceptance/data/NH01_Component_Tree_V1.json" target="_blank" rel="noreferrer">NH01 组件父子树</a> · <a href="../../design/pages/home/normal_home/engineering/Visual_Anchor_Asset_Resolution_V1.md" target="_blank" rel="noreferrer">NH01 头像视觉权威</a></p><div data-basis></div><details open><summary>资源加载审计</summary><div data-resource-report></div></details></details>`;
     const staticRoot=root.querySelector('.nh01-static-workspace');
     if (!staticRoot) throw new Error('NH01 static reference workspace container is missing');
     staticRoot.prepend(workspace);
@@ -426,8 +391,8 @@
         'stat-catch':'样例值来自 NH01_Structure_V1.preview_fixture；只用于设计参考，不是实时产品数据。',
         'stat-days':'样例值来自 NH01_Structure_V1.preview_fixture；只用于设计参考，不是实时产品数据。',
         'recent-header':'Stats→Title 使用 stats_to_title；Title→Hero 使用 title_to_card_runtime。',
-        pager:`Hero 比例 ${contract.hero_and_peek.hero_ratio}；左右 Peek 对称；peekGap=clamp(8dp,trackWidth×2.5%,12dp)；最大几何重叠 ${result.maxGeometryOverlap}dp；Pager 高度含 ${result.indicatorHeight}dp 示意指示器。PREVIEW_ONLY。`,
-        hero:`Hero 目标宽 ${result.targetHeroWidth.toFixed(1)}dp；按 ${contract.hero_and_peek.hero_ratio} 比例受 Pager 可用高度约束；实算 ${result.actualHeroWidth.toFixed(1)}×${result.heroHeight.toFixed(1)}dp。示意媒体加载失败不改变几何。`,
+        pager:`Hero 比例 ${layoutContract.preview_engine.parameters.hero.aspect_ratio_width}:${layoutContract.preview_engine.parameters.hero.aspect_ratio_height}；左右 Peek 对称；peekGap 使用唯一 V2 合同参数；最大几何重叠 ${result.maxGeometryOverlap}dp；Pager 高度含 ${result.indicatorHeight}dp 示意指示器。`,
+        hero:`Hero 目标宽 ${result.targetHeroWidth.toFixed(1)}dp；按 ${layoutContract.preview_engine.parameters.hero.aspect_ratio_width}:${layoutContract.preview_engine.parameters.hero.aspect_ratio_height} 比例由唯一 V2 合同计算；实算 ${result.actualHeroWidth.toFixed(1)}×${result.heroHeight.toFixed(1)}dp。示意媒体加载失败不改变几何。`,
         'peek-left':`Previous 示意卡；宽 ${result.peekWidth.toFixed(1)}dp / 实际露出 ${result.peekReveal.toFixed(1)}dp；与 Hero 实际 gap ${result.peekGap.toFixed(1)}dp。素材只作 GENERATED_ILLUSTRATIVE_ONLY。`,
         'peek-right':`Next 示意卡；宽 ${result.peekWidth.toFixed(1)}dp / 实际露出 ${result.peekReveal.toFixed(1)}dp；与 Hero 实际 gap ${result.peekGap.toFixed(1)}dp。素材只作 GENERATED_ILLUSTRATIVE_ONLY。`,
         'pager-indicator':'仅显示结构化预览的示意 Pager 状态；不表示真实记录数、选中记录或可分页数据。',
@@ -462,12 +427,12 @@
     function render() {
       const profile=Number(get('profile').value), w=Number(get('width').value), h=Number(get('height').value), font=Number(get('font').value), zoom=Number(get('zoom').value);
       const top=Number(get('top').value), bottom=Number(get('bottom').value);
-      const result=calculate(w,h,font,top,bottom,contract,authorityConflict,previewRules);
+      const result=calculate(w,h,font,top,bottom,layoutContract,authorityConflict,previewRules);
       workspace.dataset.loadState='READY';
       workspace.dataset.selectedLayer=selected;
       workspace.querySelector('[data-output="font"]').textContent=font.toFixed(2)+'×';
       workspace.querySelector('[data-output="zoom"]').textContent=Math.round(zoom*100)+'%';
-      board.style.width=result.safeWidth+'px';board.style.height=h+'px';board.style.transform=`scale(${zoom})`;board.style.transformOrigin='top left';
+      board.style.width=result.safeWidth+'px';board.style.height=h+'px';board.style.display='grid';board.style.gridTemplateColumns='minmax(0,1fr)';board.style.gridTemplateRows=result.gridRows.map(value=>Math.max(0,value)+'px').join(' ');board.style.rowGap='0';board.style.columnGap='0';board.style.position='relative';board.style.transform=`scale(${zoom})`;board.style.transformOrigin='top left';
       workspace.querySelector('.nh01-canvas-scroll').style.minHeight=(h*zoom+24)+'px';
       const fixture=structure.preview_fixture;
       const stats=Array.isArray(fixture.statistics)?fixture.statistics:[];
@@ -478,6 +443,7 @@
         return `data-layer="${safeText(id)}" data-testid="nh01-canvas-${safeText(id)}" data-logical-group="${safeText(meta?.logicalGroup||'UNASSIGNED')}" data-source-node-id="${safeText(meta?.sourceNodeId||'NOT_MAPPED')}" data-mapping-status="${safeText(meta?.mappingStatus||'NOT_MAPPED')}" data-asset-status="${safeText(assetStatusFor(id))}" tabindex="0"`;
       };
       const positioned=(rect,origin={x:0,y:0})=>`left:${rect.x-origin.x}px;top:${rect.y-origin.y}px;width:${rect.w}px;height:${rect.h}px`;
+      const flowPositioned=(rect,row)=>`grid-row:${row};grid-column:1;position:relative;left:auto;top:auto;width:${rect.w}px;height:${rect.h}px;margin-left:${rect.x}px;min-width:0;min-height:0;`;
       const header=result.rects.header, brandRect=result.rects.brand, avatarRect=result.rects.avatar, statsRect=result.rects.stats, recentRect=result.rects['recent-header'], pager=result.rects.pager, heroRect=result.rects.hero, footer=result.rects['capture-action-group'];
       const peekLeft=result.rects['peek-left'],peekRight=result.rects['peek-right'];
       const brandSrc=assetUrl(brandAsset.registry_path),backgroundSrc=assetUrl(backgroundAsset.path),chevronSrc=assetUrl(chevronAsset.path),cameraSrc=assetUrl(cameraAsset.registry_path),avatarSrc=assetUrl(avatarAsset.path);
@@ -491,13 +457,14 @@
       }).join('');
       const hero=fixture.hero||{};
       board.dataset.previewOnly='true';
-      board.dataset.layoutMetrics=JSON.stringify({rulesId:result.previewRulesId,viewport:{width:w,height:h,fontScale:font,topInset:top,bottomInset:bottom},pager:{height:result.pagerHeight,contentHeight:result.pagerContentHeight,scroll:result.pagerNeedsScroll,peekGap:result.peekGap,maxGeometryOverlap:result.maxGeometryOverlap,peekVisibleWidth:result.peekReveal},hero:{width:result.actualHeroWidth,height:result.heroHeight,ratio:result.actualHeroWidth/result.heroHeight},footer:{height:result.hC,cameraTouch:result.cameraTouchSize,cameraArtwork:result.cameraSize}});
+      const responsiveContractMeta=resourceDiagnostics.find(item=>item.id==='responsive-contract');
+      board.dataset.layoutMetrics=JSON.stringify({rulesId:result.previewRulesId,contractId:result.contractId,contractVersion:result.contractVersion,contractStatus:result.contractStatus,contractSha256:responsiveContractMeta?.sha256||null,allocation:{S:result.S,gABExtra:result.gapABExtra,gBCExtra:result.gapBCExtra,outerBreathing:result.outerBreathing,gAB:result.gAB,gBC:result.gBC},viewport:{width:w,height:h,fontScale:font,topInset:top,bottomInset:bottom},pager:{height:result.pagerHeight,contentHeight:result.pagerContentHeight,scroll:result.pagerNeedsScroll,peekGap:result.peekGap,maxGeometryOverlap:result.maxGeometryOverlap,peekVisibleWidth:result.peekReveal,indicatorGapAfterHero:result.indicatorGap,indicatorHeight:result.indicatorHeight},hero:{width:result.actualHeroWidth,height:result.heroHeight,targetWidth:result.targetHeroWidth,ratio:result.actualHeroWidth/result.heroHeight},footer:{height:result.hC,cameraTouch:result.cameraTouchSize,cameraArtwork:result.cameraSize}});
       board.innerHTML=`<div class="nh01-environment" ${layerAttrs('environment')} style="${positioned(result.rects.environment)}"><img class="nh01-background" ${layerAttrs('background')} src="${backgroundSrc}" alt="Morning Lake background · frozen source" draggable="false"></div>
-        <header class="nh01-header" ${layerAttrs('header')} data-testid="nh01-header" style="${positioned(header)}"><img class="nh01-brand" ${layerAttrs('brand')} src="${brandSrc}" alt="渔见品牌标题 · frozen artwork" style="${positioned(brandRect,{x:header.x,y:header.y})}"><div class="nh01-avatar-touch" ${layerAttrs('avatar')} data-testid="nh01-avatar" aria-label="NH01 approved default-avatar V2 fallback" title="NH01_HOME_AVATAR_V2 · source-approved bitmap" style="${positioned(avatarRect,{x:header.x,y:header.y})}"><img class="nh01-avatar-image" style="width:${result.avatarSize}px;height:${result.avatarSize}px" src="${avatarSrc}" alt="Normal Home V2 默认头像 · 已批准视觉资产" draggable="false"></div></header>
-        <section class="nh01-stats" ${layerAttrs('stats')} data-testid="nh01-stats" style="${positioned(statsRect)}">${statMarkup}</section>
-        <section class="nh01-recent" ${layerAttrs('recent-header')} data-testid="nh01-recent-header" style="${positioned(recentRect)}"><span class="nh01-recent-title" ${layerAttrs('recent-title')} data-testid="nh01-recent-title" style="font-size:${result.fontSizes.recentHeading}px">最近鱼获</span><span class="nh01-recent-all" ${layerAttrs('recent-all')} data-testid="nh01-recent-all" style="font-size:${result.fontSizes.recentAction}px">全部</span><img class="nh01-recent-chevron" ${layerAttrs('recent-chevron')} src="${chevronSrc}" alt="" aria-hidden="true"></section>
-        <section class="nh01-pager ${result.pagerNeedsScroll?'nh01-pager-scrollable':''}" ${layerAttrs('pager')} data-testid="nh01-pager" data-scroll-needed="${result.pagerNeedsScroll}" data-max-geometry-overlap-dp="${result.maxGeometryOverlap}" style="${positioned(pager)}"><div class="nh01-pager-content" style="height:${result.pagerContentHeight}px"><div class="nh01-peek nh01-peek-left" ${layerAttrs('peek-left')} data-testid="nh01-peek-left" data-role="previous" style="${positioned(peekLeft,{x:pager.x,y:pager.y})}" aria-label="Previous generated illustrative card">${cardMedia(mediaForRole('neighbor_previous'),'previous')}</div><article class="nh01-hero" ${layerAttrs('hero')} data-testid="nh01-hero" style="${positioned(heroRect,{x:pager.x,y:pager.y})}">${cardMedia(mediaForRole('hero'),'hero')}<div class="nh01-hero-metadata" data-sample-copy="SOURCE_SAMPLE_TEXT_NOT_LIVE_PRODUCT_DATA"><strong style="font-size:${result.fontSizes.heroSpecies}px">${safeText(hero.species||'鱼种未提供')}</strong><span style="font-size:${result.fontSizes.heroMeasurement}px">${safeText(hero.measurement||'尺寸样例未提供')}</span><span style="font-size:${result.fontSizes.heroMetadata}px">${safeText(hero.context||'时间与位置样例未提供')}</span></div></article><div class="nh01-peek nh01-peek-right" ${layerAttrs('peek-right')} data-testid="nh01-peek-right" data-role="next" style="${positioned(peekRight,{x:pager.x,y:pager.y})}" aria-label="Next generated illustrative card">${cardMedia(mediaForRole('neighbor_next'),'next')}</div><div class="nh01-pager-indicator" ${layerAttrs('pager-indicator')} data-testid="nh01-pager-indicator" data-preview-only="true" role="img" aria-label="Illustrative pager indicator; not a live record count" style="${positioned(result.rects['pager-indicator'],{x:pager.x,y:pager.y})}"><i></i><i class="active"></i><i></i></div></div></section>
-        <section class="nh01-capture-action-group" ${layerAttrs('capture-action-group')} data-testid="nh01-capture-action-group" style="${positioned(footer)}"><div class="nh01-cta" ${layerAttrs('cta')} data-testid="nh01-cta" data-interaction="static-label" style="left:${result.rects.cta.x}px;top:${result.rects.cta.y-footer.y}px;width:${result.rects.cta.w}px;height:${result.rects.cta.h}px;font-size:${result.fontSizes.cta}px;line-height:${result.ctaLineHeight}px">记录下一条鱼</div><div class="nh01-camera" ${layerAttrs('camera')} data-testid="nh01-camera" data-preview-only-hit-area="true" aria-label="Camera touch target preview · ${result.cameraTouchSize} dp · no runtime interaction" style="left:${result.rects.camera.x}px;top:${result.rects.camera.y-footer.y}px;width:${result.cameraTouchSize}px;height:${result.cameraTouchSize}px"><img data-testid="nh01-camera-artwork" style="width:${result.cameraSize}px;height:${result.cameraSize}px" src="${cameraSrc}" alt="拍照图案示意 · 可见图案 ${result.cameraSize.toFixed(1)}dp；触控区域 ${result.cameraTouchSize}dp" draggable="false"></div></section>`;
+        <header class="nh01-header" ${layerAttrs('header')} data-testid="nh01-header" style="${flowPositioned(header,2)}"><img class="nh01-brand" ${layerAttrs('brand')} src="${brandSrc}" alt="渔见品牌标题 · frozen artwork" style="${positioned(brandRect,{x:header.x,y:header.y})}"><div class="nh01-avatar-touch" ${layerAttrs('avatar')} data-testid="nh01-avatar" aria-label="NH01 approved default-avatar V2 fallback" title="NH01_HOME_AVATAR_V2 · source-approved bitmap" style="${positioned(avatarRect,{x:header.x,y:header.y})}"><img class="nh01-avatar-image" style="width:${result.avatarSize}px;height:${result.avatarSize}px" src="${avatarSrc}" alt="Normal Home V2 默认头像 · 已批准视觉资产" draggable="false"></div></header>
+        <section class="nh01-stats" ${layerAttrs('stats')} data-testid="nh01-stats" style="${flowPositioned(statsRect,4)}">${statMarkup}</section>
+        <section class="nh01-recent" ${layerAttrs('recent-header')} data-testid="nh01-recent-header" style="${flowPositioned(recentRect,6)}"><span class="nh01-recent-title" ${layerAttrs('recent-title')} data-testid="nh01-recent-title" style="font-size:${result.fontSizes.recentHeading}px">最近鱼获</span><span class="nh01-recent-all" ${layerAttrs('recent-all')} data-testid="nh01-recent-all" style="font-size:${result.fontSizes.recentAction}px">全部</span><img class="nh01-recent-chevron" ${layerAttrs('recent-chevron')} src="${chevronSrc}" alt="" aria-hidden="true"></section>
+        <section class="nh01-pager ${result.pagerNeedsScroll?'nh01-pager-scrollable':''}" ${layerAttrs('pager')} data-testid="nh01-pager" data-scroll-needed="${result.pagerNeedsScroll}" data-max-geometry-overlap-dp="${result.maxGeometryOverlap}" style="${flowPositioned(pager,8)};overflow-x:hidden;overflow-y:${result.pagerNeedsScroll?'auto':'hidden'};"><div class="nh01-pager-content" style="height:${result.pagerContentHeight}px"><div class="nh01-peek nh01-peek-left" ${layerAttrs('peek-left')} data-testid="nh01-peek-left" data-role="previous" style="${positioned(peekLeft,{x:pager.x,y:pager.y})}" aria-label="Previous generated illustrative card">${cardMedia(mediaForRole('neighbor_previous'),'previous')}</div><article class="nh01-hero" ${layerAttrs('hero')} data-testid="nh01-hero" style="${positioned(heroRect,{x:pager.x,y:pager.y})}">${cardMedia(mediaForRole('hero'),'hero')}<div class="nh01-hero-metadata" data-sample-copy="SOURCE_SAMPLE_TEXT_NOT_LIVE_PRODUCT_DATA"><strong style="font-size:${result.fontSizes.heroSpecies}px">${safeText(hero.species||'鱼种未提供')}</strong><span style="font-size:${result.fontSizes.heroMeasurement}px">${safeText(hero.measurement||'尺寸样例未提供')}</span><span style="font-size:${result.fontSizes.heroMetadata}px">${safeText(hero.context||'时间与位置样例未提供')}</span></div></article><div class="nh01-peek nh01-peek-right" ${layerAttrs('peek-right')} data-testid="nh01-peek-right" data-role="next" style="${positioned(peekRight,{x:pager.x,y:pager.y})}" aria-label="Next generated illustrative card">${cardMedia(mediaForRole('neighbor_next'),'next')}</div><div class="nh01-pager-indicator" ${layerAttrs('pager-indicator')} data-testid="nh01-pager-indicator" data-preview-only="true" role="img" aria-label="Illustrative pager indicator; not a live record count" style="${positioned(result.rects['pager-indicator'],{x:pager.x,y:pager.y})}"><i></i><i class="active"></i><i></i></div></div></section>
+        <section class="nh01-capture-action-group" ${layerAttrs('capture-action-group')} data-testid="nh01-capture-action-group" style="${flowPositioned(footer,10)}"><div class="nh01-cta" ${layerAttrs('cta')} data-testid="nh01-cta" data-interaction="static-label" style="left:${result.rects.cta.x}px;top:${result.rects.cta.y-footer.y}px;width:${result.rects.cta.w}px;height:${result.rects.cta.h}px;font-size:${result.fontSizes.cta}px;line-height:${result.ctaLineHeight}px">记录下一条鱼</div><div class="nh01-camera" ${layerAttrs('camera')} data-testid="nh01-camera" data-preview-only-hit-area="true" aria-label="Camera touch target preview · ${result.cameraTouchSize} dp · no runtime interaction" style="left:${result.rects.camera.x}px;top:${result.rects.camera.y-footer.y}px;width:${result.cameraTouchSize}px;height:${result.cameraTouchSize}px"><img data-testid="nh01-camera-artwork" style="width:${result.cameraSize}px;height:${result.cameraSize}px" src="${cameraSrc}" alt="拍照图案示意 · 可见图案 ${result.cameraSize.toFixed(1)}dp；触控区域 ${result.cameraTouchSize}dp" draggable="false"></div></section>`;
       board.querySelectorAll('.nh01-card-media').forEach(image=>image.addEventListener('error',()=>{image.dataset.mediaStatus='PREVIEW_PLACEHOLDER';image.style.opacity='0';},{once:true}));
       board.classList.toggle('nh01-layer-selected',selected==='page');
       board.querySelectorAll('[data-layer]').forEach(node=>node.classList.toggle('nh01-layer-selected',node.dataset.layer===selected));
@@ -517,16 +484,17 @@
         return `<p data-asset-row><strong>${safeText(item?.asset_id||item?.id||item?.component||'未登记')}</strong> · ${safeText(fileStatus)} · 请求 ${safeText(diagnostic?.status||(path?'由画布 img 加载':'未请求'))}<br><code>${safeText(path||'没有独立原图路径')}</code><br>SHA-256 ${safeText(hash)}</p>`;
       }).join('')||'<p>独立位图：不适用。组件由登记的页面结构和正式布局合同呈现。</p>';
       const referenceRow=asset?`<p><strong>冻结静态对照</strong> · ${safeText(asset.status)} · version ${safeText(asset.version||'未提供')}<br><code>${safeText(asset.path)}</code><br>SHA-256 ${safeText(asset.sha256)}</p>`:'';
-      const contractMeta=resourceDiagnostics.find(item=>item.id==='machine-contract');
+      const archiveContractMeta=resourceDiagnostics.find(item=>item.id==='machine-contract');
+       const contractMeta=resourceDiagnostics.find(item=>item.id==='responsive-contract');
       const manifestMeta=resourceDiagnostics.find(item=>item.id==='frozen-manifest');
       const treeMeta=resourceDiagnostics.find(item=>item.id==='component-tree');
       const formulaText=formula?`${formula.x.toFixed(1)}, ${formula.y.toFixed(1)} · ${formula.w.toFixed(1)} × ${formula.h.toFixed(1)} dp`:'DOM 实测；正式机器合同未提供独立子节点矩形';
       const boundsText=measured?`${measured.x.toFixed(1)}, ${measured.y.toFixed(1)} · ${measured.w.toFixed(1)} × ${measured.h.toFixed(1)} CSS px（相对画布，已除画布缩放）`:'不可测量';
       const metadataNote=selected.startsWith('stat-')||selected==='hero'?'<p class="nh01-sample-disclosure">静态参考样例，不是实时鱼获或账户数据。</p>':'';
       const illustrativeMediaSelected=['hero','peek-left','peek-right'].includes(selected);
-      workspace.querySelector('[data-inspector]').innerHTML=`<dl data-testid="nh01-inspector"><dt>选中图层</dt><dd data-testid="nh01-inspector-layer" data-layer-id="${safeText(selected)}">${safeText(selectedLayer.name)}</dd><dt>稳定 ID / 组件 ID</dt><dd>${safeText(selectedLayer.id)} · ${safeText(selectedLayer.componentId||'未映射组件 ID')}</dd><dt>父图层 / 来源映射</dt><dd>${safeText(selectedLayer.parentId||'NH01 Home')} · ${safeText(selectedLayer.sourceNodeId||'未映射到 Figma 节点')} · ${safeText(selectedLayer.mappingStatus)}${selectedLayer.sourceReference?` · implementation reference ${safeText(selectedLayer.sourceReference)}`:''}</dd><dt>逻辑组</dt><dd>${safeText(selectedLayer.logicalGroup)} · ${safeText(assetStatusFor(selected))}</dd><dt>视口 / 安全区 / 字体</dt><dd>${w} × ${h} dp · fontScale ${font.toFixed(2)} · top ${top} / bottom ${bottom} dp · zoom ${Math.round(zoom*100)}%</dd><dt>合同计算边界</dt><dd data-testid="nh01-inspector-formula-bounds">${safeText(formulaText)}</dd><dt>浏览器实测 DOM 边界</dt><dd data-testid="nh01-inspector-measured-bounds">${safeText(boundsText)}</dd><dt>字号 / 相机</dt><dd>${['recent-header','recent-title','hero','cta'].includes(selected)?`${result.fontSizes[ selected==='hero'?'heroSpecies':selected==='cta'?'cta':'recentHeading'].toFixed(1)} CSS px`:'—'} · 相机视觉 ${result.cameraSize.toFixed(1)} / 触控 ${result.cameraTouchSize} dp</dd><dt>资产来源 / SHA-256</dt><dd>${assetRows}${referenceRow}${metadataNote}${illustrativeMediaSelected?'<p class="nh01-sample-disclosure">GENERATED_ILLUSTRATIVE_ONLY · 仅用于展示卡片裁切与布局，不代表真实鱼获或可分页记录。</p>':''}</dd><dt>正式合同 / Manifest SHA</dt><dd>${safeText(contract.contract_id)} · ${safeText(result.contractId)} ${safeText(contract.foundation_layout_principles.version)}<br><code>${safeText(view.machine_authority)}</code> · SHA-256 ${safeText(contractMeta?.sha256||'未验证')}<br><code>${safeText(view.visual_authority_manifest)}</code> · SHA-256 ${safeText(manifestMeta?.sha256||'未验证')}<br><code>design/manager/nh01_acceptance/data/NH01_Component_Tree_V1.json</code> · SHA-256 ${safeText(treeMeta?.sha256||'未验证')}</dd><dt>本图层布局规则</dt><dd>${safeText(formulaForLayer(selected,result))}</dd><dt>布局冲突</dt><dd>${result.conflicts.length?result.conflicts.join('; '):'当前计算未发现约束冲突'} · Android NOT_VERIFIED</dd></dl><h4>A/B/C · PREVIEW_ONLY 剩余空间</h4><code>H_safe=${result.safeHeight.toFixed(1)}<br>hA=${result.hA.toFixed(1)}, hB=${result.hB.toFixed(1)}, hC=${result.hC.toFixed(1)}<br>gAB=${result.baseAB.toFixed(1)}+${result.gapABExtra.toFixed(1)}=${result.gAB.toFixed(1)}<br>gBC=${result.baseBC.toFixed(1)}+${result.gapBCExtra.toFixed(1)}=${result.gBC.toFixed(1)}<br>Outer breathing=${result.outerBreathing.toFixed(1)}dp each<br>Pager budget/content=${result.pagerHeight.toFixed(1)}/${result.pagerContentHeight.toFixed(1)}dp · local scroll ${result.pagerNeedsScroll?'ON':'OFF'}</code><p>Stats→Title ${result.baseAB.toFixed(1)} dp · Title→Hero ${result.titleGap.toFixed(1)} dp · Peek gap ${result.peekGap.toFixed(1)} dp (overlap cap ${result.maxGeometryOverlap.toFixed(1)} dp) · CTA line ${result.ctaLineHeight.toFixed(1)} dp · CTA→Camera ${result.ctaCameraGap} dp · Footer ${result.hC.toFixed(1)} dp · Camera art/touch ${result.cameraSize.toFixed(1)}/${result.cameraTouchSize} dp</p>`;
+      workspace.querySelector('[data-inspector]').innerHTML=`<dl data-testid="nh01-inspector"><dt>选中图层</dt><dd data-testid="nh01-inspector-layer" data-layer-id="${safeText(selected)}">${safeText(selectedLayer.name)}</dd><dt>稳定 ID / 组件 ID</dt><dd>${safeText(selectedLayer.id)} · ${safeText(selectedLayer.componentId||'未映射组件 ID')}</dd><dt>父图层 / 来源映射</dt><dd>${safeText(selectedLayer.parentId||'NH01 Home')} · ${safeText(selectedLayer.sourceNodeId||'未映射到 Figma 节点')} · ${safeText(selectedLayer.mappingStatus)}${selectedLayer.sourceReference?` · implementation reference ${safeText(selectedLayer.sourceReference)}`:''}</dd><dt>逻辑组</dt><dd>${safeText(selectedLayer.logicalGroup)} · ${safeText(assetStatusFor(selected))}</dd><dt>视口 / 安全区 / 字体</dt><dd>${w} × ${h} dp · fontScale ${font.toFixed(2)} · top ${top} / bottom ${bottom} dp · zoom ${Math.round(zoom*100)}%</dd><dt>合同计算边界</dt><dd data-testid="nh01-inspector-formula-bounds">${safeText(formulaText)}</dd><dt>浏览器实测 DOM 边界</dt><dd data-testid="nh01-inspector-measured-bounds">${safeText(boundsText)}</dd><dt>字号 / 相机</dt><dd>${['recent-header','recent-title','hero','cta'].includes(selected)?`${result.fontSizes[ selected==='hero'?'heroSpecies':selected==='cta'?'cta':'recentHeading'].toFixed(1)} CSS px`:'—'} · 相机视觉 ${result.cameraSize.toFixed(1)} / 触控 ${result.cameraTouchSize} dp</dd><dt>资产来源 / SHA-256</dt><dd>${assetRows}${referenceRow}${metadataNote}${illustrativeMediaSelected?'<p class="nh01-sample-disclosure">GENERATED_ILLUSTRATIVE_ONLY · 仅用于展示卡片裁切与布局，不代表真实鱼获或可分页记录。</p>':''}</dd><dt>正式合同 / Manifest SHA</dt><dd>${safeText(result.contractId)} · V${safeText(result.contractVersion)} · ${safeText(result.contractStatus)}<br><code>${safeText(view.responsive_layout_authority||'design/pages/home/normal_home/responsive/NH01_RESPONSIVE_LAYOUT_V2.json')}</code> · SHA-256 ${safeText(contractMeta?.sha256||'未验证')}<br><strong>冻结静态归档合同</strong> · <code>${safeText(view.machine_authority)}</code> · SHA-256 ${safeText(archiveContractMeta?.sha256||'未验证')}<br><code>${safeText(view.visual_authority_manifest)}</code> · SHA-256 ${safeText(manifestMeta?.sha256||'未验证')}<br><code>design/manager/nh01_acceptance/data/NH01_Component_Tree_V1.json</code> · SHA-256 ${safeText(treeMeta?.sha256||'未验证')}</dd><dt>本图层布局规则</dt><dd>${safeText(formulaForLayer(selected,result))}</dd><dt>布局冲突</dt><dd>${result.conflicts.length?result.conflicts.join('; '):'当前计算未发现约束冲突'} · Android NOT_VERIFIED</dd></dl><h4>A/B/C · PREVIEW_ONLY 剩余空间</h4><code>H_safe=${result.safeHeight.toFixed(1)}<br>hA=${result.hA.toFixed(1)}, hB=${result.hB.toFixed(1)}, hC=${result.hC.toFixed(1)}<br>gAB=${result.baseAB.toFixed(1)}+${result.gapABExtra.toFixed(1)}=${result.gAB.toFixed(1)}<br>gBC=${result.baseBC.toFixed(1)}+${result.gapBCExtra.toFixed(1)}=${result.gBC.toFixed(1)}<br>新增剩余空间 S=${result.S.toFixed(1)}dp · A→B 新增 ${result.gapABExtra.toFixed(1)}dp · B→C 新增 ${result.gapBCExtra.toFixed(1)}dp · 外侧留白=${result.outerBreathing.toFixed(1)}dp<br>Pager 可视/内容=${result.pagerHeight.toFixed(1)}/${result.pagerContentHeight.toFixed(1)}dp · ${result.layoutMode} · local scroll ${result.pagerNeedsScroll?'ON':'OFF'}</code><p>Stats→Title ${result.baseAB.toFixed(1)} dp · Title→Hero ${result.titleGap.toFixed(1)} dp · Peek gap ${result.peekGap.toFixed(1)} dp (overlap cap ${result.maxGeometryOverlap.toFixed(1)} dp) · CTA line ${result.ctaLineHeight.toFixed(1)} dp · CTA→Camera ${result.ctaCameraGap} dp · Footer ${result.hC.toFixed(1)} dp · Camera art/touch ${result.cameraSize.toFixed(1)}/${result.cameraTouchSize} dp</p>`;
       workspace.querySelector('[data-comparison]').innerHTML=asset?`<strong>冻结高保真对照 · ${safeText(asset.asset_id)}</strong><span>目标 ${asset.target_viewport_dp.width} × ${asset.target_viewport_dp.height??'高度未冻结'} dp · 原图 ${asset.actual_canvas_px.width} × ${asset.actual_canvas_px.height} px · 原图只读</span><img src="${assetUrl(asset.path)}" alt="${safeText(asset.asset_id)} 冻结参考">`:'<span>无对应冻结稿</span>';
-      workspace.querySelector('[data-basis]').textContent=`当前冻结参考 ${asset?.path||'未提供'} · SHA-256 ${asset?.sha256||'未提供'}；父子树来源 ${componentTree.status||'REVIEW_REQUIRED'}；布局边界来自 ${previewRules.rules_id}（PREVIEW_ONLY），三张媒体只作构图示意，非实时记录、非 PNG 像素验收、非 Android Runtime 结果。源码 ${build}。`;
+      workspace.querySelector('[data-basis]').textContent=`当前冻结参考 ${asset?.path||'未提供'} · SHA-256 ${asset?.sha256||'未提供'}；父子树来源 ${componentTree.status||'REVIEW_REQUIRED'}；布局数值唯一来自 ${layoutContract.contract_id} V${layoutContract.contract_version}（${layoutContract.status}），PREVIEW_ONLY 文件仅提供展示元数据；三张媒体只作构图示意，非实时记录、非 PNG 像素验收、非 Android Runtime 结果。源码 ${build}。`;
     }
     get('profile').onchange=()=>{const [w,h]=profiles[Number(get('profile').value)];get('width').value=w;if(h!==null)get('height').value=h;render();};
     ['width','height','font','zoom','top','bottom'].forEach(name=>get(name).addEventListener('input',render));
