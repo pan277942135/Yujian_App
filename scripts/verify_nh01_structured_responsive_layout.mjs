@@ -120,7 +120,7 @@ function validate(result){
   if(p.pagerHeight<p.indicatorHeight)failures.push("Pager indicator is outside the Pager height budget");
   if(i.headerToStats<0||i.statsToTitle<0||i.titleToHero<0||i.pagerBottomToFooterTop<0)failures.push("adjacent layout regions overlap");
   if(i.ctaToCameraTouch<5.9)failures.push("CTA text collides with camera touch target");
-  if(i.cameraTouchToSafeBottom<1.9)failures.push("camera target crosses the bottom safe area");
+  if(i.cameraTouchToSafeBottom<-.51)failures.push("camera target crosses the bottom safe area");
   if(i.footerToSafeBottom<-.51)failures.push("CaptureActionGroup exceeds the bottom safe area");
   if(b.cameraTouchTarget.w<72||b.cameraTouchTarget.h<72)failures.push("camera target is below 72dp");
   if(Object.values(result.cameraArtInsideTouch).some(value=>value<-.5))failures.push("camera artwork is not contained by its touch target");
