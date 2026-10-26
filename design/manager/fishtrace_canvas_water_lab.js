@@ -585,6 +585,7 @@
       this.canvas.dataset.causticGroupCounts=JSON.stringify(patches.reduce((out,patch)=>{out[patch.group]=(out[patch.group]||0)+1;return out;},{}));
       this.canvas.dataset.ambientFieldCount=String(ambientFields.length);
       this.canvas.dataset.ambientFieldZoneCounts=JSON.stringify(ambientFields.reduce((out,field)=>{out[field.zone]=(out[field.zone]||0)+1;return out;},{}));
+      this.canvas.dataset.ambientFieldGeometry=JSON.stringify(ambientFields.map(field=>({id:field.id,zone:field.zone,center:{x:field.center.x,y:field.center.y},radius_w:field.radiusW,aspect:field.aspect,feather:field.feather})));
       this.canvas.dataset.highlightSegmentCount=String(this.scene.highlights.length);
       this.canvas.dataset.highlightSegments=JSON.stringify(this.scene.highlights.map(segment=>({id:segment.id,length_w:segment.lengthW,width_w:segment.widthW,warm:segment.warm})));
       this.canvas.dataset.rendererStatus="READY";
