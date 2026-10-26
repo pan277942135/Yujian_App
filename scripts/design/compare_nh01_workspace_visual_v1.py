@@ -89,13 +89,23 @@ def main() -> int:
     args.output_dir.mkdir(parents=True, exist_ok=True)
     prefix = args.profile_prefix
 
-    rendered = Image.open(args.render).convert("RGB")
+    rendered_source = Image.open(args.render).convert("RGB")
     source = Image.open(args.reference).convert("RGB")
     dom = json.loads(args.dom_json.read_text(encoding="utf-8"))
     viewport = dom.get("viewport", {})
     expected_size = (int(viewport.get("width", 0)), int(viewport.get("height", 0)))
-    if rendered.size != expected_size:
-        raise SystemExit(f"Expected a {expected_size[0]}x{expected_size[1]} CSS canvas screenshot; got {rendered.size}")
+    rendered_capture_size = rendered_source.size
+    if rendered_capture_size == expected_size:
+        rendered = rendered_source
+        render_edge_crop = None
+    elif rendered_capture_size == (expected_size[0], expected_size[1] + 1):
+        # Chromium rounds a fractional element screenshot edge outward. Keep
+        # the original rendered capture intact and crop only this diagnostic
+        # comparison copy to the exact CSS viewport.
+        rendered = rendered_source.crop((0, 0, expected_size[0], expected_size[1]))
+        render_edge_crop = "bottom 1 raster row from fractional element screenshot edge"
+    else:
+        raise SystemExit(f"Expected a {expected_size[0]}x{expected_size[1]} CSS canvas screenshot (or 1px subpixel edge rounding); got {rendered_capture_size}")
     reference = source.resize(rendered.size, Image.Resampling.LANCZOS)
 
     side = Image.new("RGB", (rendered.width * 2, rendered.height), "white")
@@ -170,9 +180,11 @@ def main() -> int:
         "render": str(args.render),
         "render_sha256": render_sha256,
         "build_sha": dom.get("build_sha"),
-        "viewport_css_px": {"width": rendered.width, "height": rendered.height},
+        "viewport_css_px": {"width": expected_size[0], "height": expected_size[1]},
+        "rendered_artboard_capture_px": {"width": rendered_capture_size[0], "height": rendered_capture_size[1]},
         "comparison": {
             "reference_resize": f"Pillow LANCZOS to {rendered.width}x{rendered.height} CSS pixels; reference originals remain unchanged",
+            "render_edge_crop": render_edge_crop,
             "mean_absolute_rgb_error_0_255": round(mean_abs_error, 4),
             "changed_pixel_count_max_channel_threshold": threshold_counts,
             "changed_pixel_ratio": {key: round(value / pixel_count, 6) for key, value in threshold_counts.items()},
