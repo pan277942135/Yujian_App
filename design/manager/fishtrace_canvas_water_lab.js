@@ -113,107 +113,77 @@
     return path;
   }
 
-  function createMesh(region,rendering,serial) {
-    const bounds = nativeBounds(region.points);
-    const width = bounds.maxX-bounds.minX;
-    const height = bounds.maxY-bounds.minY;
-    const cols = clamp(Math.round(width/rendering.mesh_cell_width_source_px),3,10);
-    const rows = clamp(Math.round(height/rendering.mesh_cell_height_source_px),5,12);
-    const random = seeded(rendering.deterministic_seed + serial*104729);
-    const nodes = [];
-    for (let row=0;row<=rows;row+=1) {
-      for (let col=0;col<=cols;col+=1) {
-        const u = col/cols;
-        const v = row/rows;
-        const pitchX = width/cols;
-        const pitchY = height/rows;
-        const edge = col===0 || col===cols || row===0 || row===rows;
-        nodes.push({
-          id:row*(cols+1)+col,row,col,u,v,
-          x:bounds.minX + u*width + (edge?0:(random()-.5)*pitchX*rendering.node_jitter_fraction),
-          y:bounds.minY + v*height + (edge?0:(random()-.5)*pitchY*rendering.node_jitter_fraction),
-          phase:random()*Math.PI*2,
-          motionX:rendering.node_motion_x_source_px*(0.55+random()*0.9),
-          motionY:rendering.node_motion_y_source_px*(0.55+random()*0.9)
-        });
-      }
+  function createCausticRibbons(region,rendering,serial) {
+    const bounds=nativeBounds(region.points);
+    const width=bounds.maxX-bounds.minX;
+    const height=bounds.maxY-bounds.minY;
+    const random=seeded(rendering.deterministic_seed+serial*104729);
+    const count=clamp(Math.round(height/rendering.ribbon_spacing_source_px),rendering.ribbon_min_count,rendering.ribbon_max_count);
+    const ribbons=[];
+    for(let index=0;index<count;index+=1){
+      const nodes=Array.from({length:rendering.ribbon_curve_segments+1},()=> (random()-.5)*2);
+      ribbons.push({
+        id:serial*100+index,
+        v:clamp((index+.5+(random()-.5)*rendering.ribbon_spacing_jitter_fraction)/count,.02,.98),
+        thickness:rendering.ribbon_thickness_min_source_px+random()*(rendering.ribbon_thickness_max_source_px-rendering.ribbon_thickness_min_source_px),
+        amplitude:rendering.ribbon_amplitude_min_source_px+random()*(rendering.ribbon_amplitude_max_source_px-rendering.ribbon_amplitude_min_source_px),
+        frequency:rendering.ribbon_frequency_min+random()*(rendering.ribbon_frequency_max-rendering.ribbon_frequency_min),
+        phase:random()*Math.PI*2,
+        speed:rendering.ribbon_speed_min+random()*(rendering.ribbon_speed_max-rendering.ribbon_speed_min),
+        weight:.55+random()*.45,
+        color:Math.floor(random()*rendering.caustic_colors.length),
+        nodeOffsets:nodes,
+        xAmplitude:rendering.ribbon_lateral_motion_source_px*(.35+random()*.65)
+      });
     }
-    const cells = [];
-    for (let row=0;row<rows;row+=1) {
-      for (let col=0;col<cols;col+=1) {
-        const a=row*(cols+1)+col,b=a+1,c=b+cols+1,d=a+cols+1;
-        cells.push({nodes:[a,b,c,d],row,col,u:(col+.5)/cols,v:(row+.5)/rows,weight:random(),color:Math.floor(random()*rendering.caustic_colors.length),phase:random()*Math.PI*2});
-      }
+    return {id:region.id,bounds,width,height,ribbons};
+  }
+  function rgbaFromHex(hex,alpha) {
+    const value=hex.replace("#","");
+    const number=parseInt(value,16);
+    return "rgba("+((number>>16)&255)+","+((number>>8)&255)+","+(number&255)+","+alpha+")";
+  }
+  function traceSmoothPoints(context,points,rect,asset,startNewSubpath=true) {
+    const mapped=points.map(point=>({x:rect.x+point.x/asset.width*rect.width,y:rect.y+point.y/asset.height*rect.height}));
+    if(!mapped.length)return;
+    if(startNewSubpath)context.moveTo(mapped[0].x,mapped[0].y);else context.lineTo(mapped[0].x,mapped[0].y);
+    for(let index=1;index<mapped.length-1;index+=1){
+      const point=mapped[index],next=mapped[index+1];
+      context.quadraticCurveTo(point.x,point.y,(point.x+next.x)/2,(point.y+next.y)/2);
     }
-    const edgeMap = new Map();
-    for (const cell of cells) {
-      for (let side=0;side<4;side+=1) {
-        const a=cell.nodes[side],b=cell.nodes[(side+1)%4];
-        const key=Math.min(a,b)+":"+Math.max(a,b);
-        if (!edgeMap.has(key)) edgeMap.set(key,{a:Math.min(a,b),b:Math.max(a,b),weight:random(),phase:random()*Math.PI*2});
-      }
-    }
-    return {id:region.id,bounds,width,height,nodes,cells,edges:[...edgeMap.values()]};
-  }
-  function edgeControlPoints(a,b,edge,time,rendering) {
-    const dx=b.x-a.x,dy=b.y-a.y;
-    const length=Math.max(1,Math.hypot(dx,dy));
-    const wave=Math.sin(time/1000*rendering.edge_wave_rate_rad_s+edge.phase);
-    const bend=wave*Math.min(rendering.edge_bend_max_source_px,length*rendering.edge_bend_fraction);
-    const nx=-dy/length,ny=dx/length;
-    return [
-      {x:a.x+dx/3+nx*bend,y:a.y+dy/3+ny*bend},
-      {x:a.x+dx*2/3+nx*bend,y:a.y+dy*2/3+ny*bend}
-    ];
-  }
-  function traceGridEdge(context,nodes,fromId,toId,edge,time,rendering,rect,asset) {
-    const forward=fromId<toId;
-    const first=nodes[forward?fromId:toId];
-    const last=nodes[forward?toId:fromId];
-    const [control1,control2]=edgeControlPoints(first,last,edge,time,rendering);
-    const toDisplay=point=>({x:rect.x+point.x/asset.width*rect.width,y:rect.y+point.y/asset.height*rect.height});
-    const c1=toDisplay(forward?control1:control2);
-    const c2=toDisplay(forward?control2:control1);
-    const end=toDisplay(nodes[toId]);
-    context.bezierCurveTo(c1.x,c1.y,c2.x,c2.y,end.x,end.y);
-  }
-  function edgeRecord(region,a,b) {
-    const low=Math.min(a,b),high=Math.max(a,b);
-    return region.edgeMap.get(low+":"+high);
+    if(mapped.length>1)context.lineTo(mapped[mapped.length-1].x,mapped[mapped.length-1].y);
   }
 
   class WaterCausticsScene {
     constructor(value) {
       this.contract=value;
       this.rendering=value.rendering;
-      this.regions=value.water_region.polygons.map((region,index)=>createMesh(region,this.rendering,index+1));
-      for (const region of this.regions) {
-        region.edgeMap=new Map(region.edges.map(edge=>[edge.a+":"+edge.b,edge]));
-      }
+      this.regions=value.water_region.polygons.map((region,index)=>createCausticRibbons(region,this.rendering,index+1));
       this.waterRegionPath=null;
     }
     setDisplayGeometry(rect) {
       this.waterRegionPath=makeRegionPath(this.contract.water_region.polygons,rect,this.contract.asset);
     }
-    nodePositions(region,timeMs,motionScale,expansion) {
+    ribbonGeometry(region,ribbon,timeMs,motionScale,expansion,recollection) {
       const motion=this.contract.motion;
-      const t=timeMs/1000;
-      const centerX=(region.bounds.minX+region.bounds.maxX)/2;
-      const centerY=(region.bounds.minY+region.bounds.maxY)/2;
-      const recollection=smooth(timeMs,motion.recollection_start_ms,motion.recollection_end_ms)*motionScale;
-      const returnScale=1-recollection*motion.recollection_scale_reduction;
-      return region.nodes.map(node=>{
-        const swayX=Math.sin(t*motion.sway_rate_rad_s+node.phase)*node.motionX*motionScale;
-        const swayY=Math.cos(t*motion.vertical_sway_rate_rad_s+node.phase*.79)*node.motionY*motionScale;
-        const upward=smooth(timeMs,motion.upward_start_ms,motion.upward_peak_ms)*motion.upward_fraction*region.height*(.58+node.v*.42)*motionScale;
-        const scale=(1+expansion*motion.expansion_scale)*returnScale;
-        const driftDown=recollection*motion.recollection_downward_fraction*region.height*node.v;
-        return {
-          x:centerX+(node.x-centerX)*scale+swayX,
-          y:centerY+(node.y-centerY)*scale-upward+driftDown+swayY,
-          u:node.u,v:node.v,phase:node.phase
-        };
-      });
+      const points=[];
+      const thicknesses=[];
+      const phase=timeMs/1000*this.rendering.ribbon_wave_rate_rad_s*ribbon.speed*motionScale+ribbon.phase;
+      const scale=(1+expansion*motion.expansion_scale)*(1-recollection*motion.recollection_scale_reduction);
+      const upward=smooth(timeMs,motion.upward_start_ms,motion.upward_peak_ms)*motion.upward_fraction*region.height*(.58+ribbon.v*.42)*motionScale;
+      const downward=recollection*motion.recollection_downward_fraction*region.height*ribbon.v;
+      for(let index=0;index<ribbon.nodeOffsets.length;index+=1){
+        const u=index/(ribbon.nodeOffsets.length-1);
+        const angle=u*Math.PI*2*ribbon.frequency+phase;
+        const broadWave=Math.sin(angle)*ribbon.amplitude;
+        const shortWave=Math.sin(angle*.47-phase*.63+1.4)*ribbon.amplitude*.34;
+        const localBend=ribbon.nodeOffsets[index]*ribbon.amplitude*this.rendering.ribbon_shape_variation_fraction;
+        const x=region.bounds.minX+u*region.width+Math.sin(phase+u*Math.PI*2.1)*ribbon.xAmplitude;
+        const y=region.bounds.minY+region.height*(.5+(ribbon.v-.5)*scale)+broadWave+shortWave+localBend-upward+downward;
+        const thickness=ribbon.thickness*(1+expansion*this.rendering.ribbon_expansion_fraction)*(1-recollection*this.rendering.ribbon_recollection_fraction)*(.78+.22*Math.sin(angle*.43+ribbon.phase));
+        points.push({x,y});thicknesses.push(thickness);
+      }
+      return {points,thicknesses,phase};
     }
     drawAmbient(context,region,rect,timeMs,intensity,motionScale) {
       const rendering=this.rendering;
@@ -244,73 +214,78 @@
       context.fillRect(x,y,width,height);
       context.restore();
     }
-    drawCells(context,region,positions,rect,timeMs,intensity,motionScale,expansion,recollection,exit) {
-      const rendering=this.rendering;
-      const motion=this.contract.motion;
-      const asset=this.contract.asset;
-      const revealDuration=smooth(timeMs,motion.reveal_start_ms,motion.reveal_end_ms);
-      context.save();
-      context.globalCompositeOperation="screen";
-      for (const cell of region.cells) {
-        const [topLeft,topRight,bottomRight,bottomLeft]=cell.nodes;
-        const midU=cell.u,midV=cell.v;
-        const revealThreshold=1-revealDuration;
-        const reveal=smooth(midV,revealThreshold-.22,revealThreshold+.16);
-        const middleDistance=Math.abs(midV-.5)*2;
-        const peripheral=clamp(middleDistance*.64+Math.abs(midU-.5)*.36,0,1);
-        const exitWeight=1-exit*(1-peripheral*.82);
-        const recovery=1-recollection*.08;
-        const wave=rendering.cell_alpha_wave_base+rendering.cell_alpha_wave_amplitude*Math.sin(timeMs/1000*motion.cell_wave_rate_rad_s+cell.phase);
-        const opacity=intensity*rendering.caustic_cell_alpha*(.45+cell.weight*.75)*wave*reveal*exitWeight*recovery;
-        if (opacity<.002) continue;
-        const ids=[topLeft,topRight,bottomRight,bottomLeft];
-        const first=positions[topLeft];
-        const firstPoint={x:rect.x+first.x/asset.width*rect.width,y:rect.y+first.y/asset.height*rect.height};
-        context.beginPath();
-        context.moveTo(firstPoint.x,firstPoint.y);
-        for (let side=0;side<4;side+=1) {
-          const a=ids[side],b=ids[(side+1)%4];
-          traceGridEdge(context,positions,a,b,edgeRecord(region,a,b),timeMs,rendering,rect,asset);
-        }
-        context.closePath();
-        const tint=rendering.caustic_colors[cell.color];
-        context.fillStyle=tint;
-        context.globalAlpha=clamp(opacity,0,rendering.max_layer_alpha);
-        context.fill();
-      }
-      context.restore();
-      this.drawHighlights(context,region,positions,rect,timeMs,intensity,motionScale,exit);
+    ribbonReveal(ribbon,timeMs) {
+      const revealDuration=smooth(timeMs,this.contract.motion.reveal_start_ms,this.contract.motion.reveal_end_ms);
+      const threshold=1-revealDuration;
+      return smooth(ribbon.v,threshold-.24,threshold+.22);
     }
-    drawHighlights(context,region,positions,rect,timeMs,intensity,motionScale,exit) {
+    ribbonExitWeight(ribbon,exit) {
+      const peripheral=clamp(Math.abs(ribbon.v-.5)*1.28,0,1);
+      return 1-exit*(1-peripheral*.88);
+    }
+    drawRibbons(context,region,rect,timeMs,intensity,motionScale,expansion,recollection,exit) {
       const rendering=this.rendering;
-      const motion=this.contract.motion;
       const asset=this.contract.asset;
-      context.save();
-      context.globalCompositeOperation="screen";
-      context.lineCap="round";
-      context.lineJoin="round";
-      for (const edge of region.edges) {
-        if (edge.weight<rendering.highlight_edge_threshold) continue;
-        const a=positions[edge.a],b=positions[edge.b];
-        const averageV=(a.v+b.v)/2;
-        const reveal=smooth(timeMs,motion.reveal_start_ms+80,motion.reveal_end_ms+80);
-        const peripheral=clamp(Math.abs(averageV-.5)*1.45,0,1);
-        const exitWeight=1-exit*(1-peripheral*.88);
-        const drift=.82+.18*Math.sin(timeMs/1000*motion.highlight_wave_rate_rad_s+edge.phase);
-        const alpha=intensity*rendering.refraction_alpha*edge.weight*drift*reveal*exitWeight;
-        if (alpha<.004) continue;
-        const [control1,control2]=edgeControlPoints(a,b,edge,timeMs,rendering);
-        const toDisplay=point=>({x:rect.x+point.x/asset.width*rect.width,y:rect.y+point.y/asset.height*rect.height});
-        const start=toDisplay(a),end=toDisplay(b),c1=toDisplay(control1),c2=toDisplay(control2);
+      const xScale=rect.width/asset.width,yScale=rect.height/asset.height;
+      for(const ribbon of region.ribbons){
+        const reveal=this.ribbonReveal(ribbon,timeMs);
+        const exitWeight=this.ribbonExitWeight(ribbon,exit);
+        const pulse=.9+.1*Math.sin(timeMs/1000*rendering.ribbon_pulse_rate_rad_s*ribbon.speed+ribbon.phase);
+        const alpha=clamp(intensity*rendering.caustic_ribbon_alpha*ribbon.weight*pulse*reveal*exitWeight,0,rendering.max_layer_alpha);
+        if(alpha<.004)continue;
+        const geometry=this.ribbonGeometry(region,ribbon,timeMs,motionScale,expansion,recollection);
+        const top=[],bottom=[];
+        geometry.points.forEach((point,index)=>{
+          const half=geometry.thicknesses[index]/2;
+          top.push({x:point.x,y:point.y-half});
+          bottom.push({x:point.x,y:point.y+half});
+        });
+        const mapped=geometry.points.map(point=>({x:rect.x+point.x/asset.width*rect.width,y:rect.y+point.y/asset.height*rect.height}));
+        const centerY=mapped.reduce((sum,point)=>sum+point.y,0)/mapped.length;
+        const halfDisplay=Math.max(1,Math.max(...geometry.thicknesses)*yScale/2);
+        const gradient=context.createLinearGradient(mapped[0].x,centerY-halfDisplay,mapped[0].x,centerY+halfDisplay);
+        const tint=rendering.caustic_colors[ribbon.color];
+        gradient.addColorStop(0,rgbaFromHex(tint,0));
+        gradient.addColorStop(.2,rgbaFromHex(tint,rendering.ribbon_edge_alpha));
+        gradient.addColorStop(.5,rgbaFromHex(tint,rendering.ribbon_core_alpha));
+        gradient.addColorStop(.8,rgbaFromHex(tint,rendering.ribbon_edge_alpha));
+        gradient.addColorStop(1,rgbaFromHex(tint,0));
+        context.save();
+        context.globalCompositeOperation="screen";
+        context.globalAlpha=alpha;
+        context.filter="blur("+(rendering.ribbon_edge_blur_source_px*xScale)+"px)";
         context.beginPath();
-        context.moveTo(start.x,start.y);
-        context.bezierCurveTo(c1.x,c1.y,c2.x,c2.y,end.x,end.y);
-        context.strokeStyle=rendering.refraction_colors[edge.a%rendering.refraction_colors.length];
-        context.lineWidth=rendering.refraction_width_source_px/asset.width*rect.width;
-        context.globalAlpha=clamp(alpha,0,rendering.max_layer_alpha);
-        context.stroke();
+        traceSmoothPoints(context,top,rect,asset);
+        context.lineTo(rect.x+bottom[bottom.length-1].x/asset.width*rect.width,rect.y+bottom[bottom.length-1].y/asset.height*rect.height);
+        traceSmoothPoints(context,bottom.slice().reverse(),rect,asset,false);
+        context.closePath();
+        context.fillStyle=gradient;
+        context.fill();
+        context.restore();
       }
-      context.restore();
+    }
+    drawHighlights(context,region,rect,timeMs,intensity,motionScale,expansion,recollection,exit) {
+      const rendering=this.rendering;
+      const asset=this.contract.asset;
+      for(const ribbon of region.ribbons){
+        if(ribbon.weight<rendering.highlight_ribbon_weight_threshold)continue;
+        const reveal=this.ribbonReveal(ribbon,timeMs);
+        const exitWeight=this.ribbonExitWeight(ribbon,exit);
+        const alpha=clamp(intensity*rendering.refraction_alpha*ribbon.weight*reveal*exitWeight,0,rendering.max_layer_alpha);
+        if(alpha<.004)continue;
+        const geometry=this.ribbonGeometry(region,ribbon,timeMs,motionScale,expansion,recollection);
+        context.save();
+        context.globalCompositeOperation="screen";
+        context.globalAlpha=alpha;
+        context.strokeStyle=rendering.refraction_colors[ribbon.color%rendering.refraction_colors.length];
+        context.lineWidth=rendering.refraction_width_source_px/asset.width*rect.width;
+        context.lineCap="round";
+        context.filter="blur("+(rendering.highlight_edge_blur_source_px*rect.width/asset.width)+"px)";
+        context.beginPath();
+        traceSmoothPoints(context,geometry.points,rect,asset);
+        context.stroke();
+        context.restore();
+      }
     }
     draw(context,rect,timeMs,baselineIntensity,strengthValue,motionScale) {
       const motion=this.contract.motion;
@@ -318,16 +293,15 @@
       const expansion=smooth(timeMs,motion.expansion_start_ms,motion.expansion_peak_ms)*motionScale;
       const recollection=smooth(timeMs,motion.recollection_start_ms,motion.recollection_end_ms)*motionScale;
       const exit=smooth(timeMs,motion.exit_start_ms,motion.exit_end_ms);
-      for (const region of this.regions) {
+      for(const region of this.regions){
         context.save();
         this.drawAmbient(context,region,rect,timeMs,intensity,motionScale);
-        const positions=this.nodePositions(region,timeMs,motionScale,expansion);
-        this.drawCells(context,region,positions,rect,timeMs,intensity,motionScale,expansion,recollection,exit);
+        this.drawRibbons(context,region,rect,timeMs,intensity,motionScale,expansion,recollection,exit);
+        this.drawHighlights(context,region,rect,timeMs,intensity,motionScale,expansion,recollection,exit);
         context.restore();
       }
     }
   }
-
   class CanvasWaterRenderer {
     constructor(stageElement,imageElement,canvasElement,sceneValue) {
       this.stage=stageElement;
