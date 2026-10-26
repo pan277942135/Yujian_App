@@ -78,6 +78,55 @@ def compare_bbox(reference: dict | None, rendered: dict | None) -> dict | None:
     return {key: rendered[key] - reference[key] for key in ("x", "y", "width", "height")}
 
 
+def normalize_rendered_image(rendered: Image.Image, dom: dict) -> tuple[Image.Image, dict]:
+    """Normalize only the known one-pixel bottom-edge screenshot rounding case.
+
+    The DOM measurement is the sole source of the target CSS canvas dimensions.
+    The input image is never mutated; callers retain the original render as evidence.
+    """
+    viewport = dom.get("viewport") if isinstance(dom, dict) else None
+    if not isinstance(viewport, dict):
+        raise ValueError("DOM JSON must contain a viewport object with target CSS width and height")
+
+    def positive_css_dimension(name: str) -> int:
+        value = viewport.get(name)
+        if type(value) is not int or value <= 0:
+            raise ValueError(
+                f"DOM viewport {name} must be a positive integer CSS pixel size; got {value!r}"
+            )
+        return value
+
+    target_width = positive_css_dimension("width")
+    target_height = positive_css_dimension("height")
+    actual_width, actual_height = rendered.size
+
+    if actual_width != target_width:
+        raise ValueError(
+            f"Rendered screenshot width must exactly match DOM CSS canvas width "
+            f"{target_width}px; got {actual_width}px"
+        )
+
+    if (actual_width, actual_height) == (target_width, target_height):
+        normalized = rendered.copy()
+        method = "identity"
+    elif actual_height == target_height + 1:
+        normalized = rendered.crop((0, 0, target_width, target_height))
+        method = "crop_bottom_1px"
+    else:
+        raise ValueError(
+            f"Rendered screenshot height must exactly match DOM CSS canvas height "
+            f"{target_height}px or be exactly 1px taller for bottom-edge rounding; "
+            f"got {actual_height}px"
+        )
+
+    return normalized, {
+        "raw_size_px": {"width": actual_width, "height": actual_height},
+        "target_size_css_px": {"width": target_width, "height": target_height},
+        "normalized_size_px": {"width": normalized.width, "height": normalized.height},
+        "method": method,
+    }
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--render", required=True, type=Path)
@@ -89,13 +138,18 @@ def main() -> int:
     args.output_dir.mkdir(parents=True, exist_ok=True)
     prefix = args.profile_prefix
 
-    rendered = Image.open(args.render).convert("RGB")
+    raw_render_sha256 = hashlib.sha256(args.render.read_bytes()).hexdigest()
+    rendered_raw = Image.open(args.render).convert("RGB")
     source = Image.open(args.reference).convert("RGB")
     dom = json.loads(args.dom_json.read_text(encoding="utf-8"))
-    viewport = dom.get("viewport", {})
-    expected_size = (int(viewport.get("width", 0)), int(viewport.get("height", 0)))
-    if rendered.size != expected_size:
-        raise SystemExit(f"Expected a {expected_size[0]}x{expected_size[1]} CSS canvas screenshot; got {rendered.size}")
+    try:
+        rendered, normalization = normalize_rendered_image(rendered_raw, dom)
+    except ValueError as error:
+        raise SystemExit(str(error)) from error
+
+    normalized_render_path = args.output_dir / f"{prefix}_Render_Normalized.png"
+    rendered.save(normalized_render_path, optimize=True)
+    normalized_render_sha256 = hashlib.sha256(normalized_render_path.read_bytes()).hexdigest()
     reference = source.resize(rendered.size, Image.Resampling.LANCZOS)
 
     side = Image.new("RGB", (rendered.width * 2, rendered.height), "white")
@@ -159,7 +213,6 @@ def main() -> int:
         }
 
     reference_sha256 = hashlib.sha256(args.reference.read_bytes()).hexdigest()
-    render_sha256 = hashlib.sha256(args.render.read_bytes()).hexdigest()
     if reference_sha256 != dom["frozen_reference"]["sha256"]:
         raise SystemExit(f"Frozen M03 SHA mismatch: {reference_sha256} != {dom['frozen_reference']['sha256']}")
     report = {
@@ -168,9 +221,19 @@ def main() -> int:
         "reference": str(args.reference),
         "reference_sha256": reference_sha256,
         "render": str(args.render),
-        "render_sha256": render_sha256,
+        "render_sha256": raw_render_sha256,
+        "render_normalization": {
+            **normalization,
+            "raw_render_sha256": raw_render_sha256,
+            "normalized_render_sha256": normalized_render_sha256,
+            "normalized_render_file": normalized_render_path.name,
+            "raw_render_preserved": True,
+        },
         "build_sha": dom.get("build_sha"),
-        "viewport_css_px": {"width": rendered.width, "height": rendered.height},
+        "viewport_css_px": {
+            "width": normalization["target_size_css_px"]["width"],
+            "height": normalization["target_size_css_px"]["height"],
+        },
         "comparison": {
             "reference_resize": f"Pillow LANCZOS to {rendered.width}x{rendered.height} CSS pixels; reference originals remain unchanged",
             "mean_absolute_rgb_error_0_255": round(mean_abs_error, 4),
@@ -186,6 +249,7 @@ def main() -> int:
             "Differences are expected while those distinct photo sources are unavailable; this report does not certify visual parity.",
         ],
         "artifacts": [
+            normalized_render_path.name,
             f"{prefix}_Frozen_Left_Render_Right.png",
             f"{prefix}_Overlay_50pct.png",
             f"{prefix}_Pixel_Difference_3x.png",
