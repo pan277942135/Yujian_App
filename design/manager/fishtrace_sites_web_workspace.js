@@ -200,7 +200,13 @@
   function playMotion() {
     stopMotion();
     setState('processing');
-    motionStart = performance.now() - frames[motionFrame].ms;
+    motionFrame = 0;
+    setFrame(0);
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      setFrame(7);
+      return;
+    }
+    motionStart = performance.now();
     const tick = now => {
       const elapsed = Math.max(0, Math.min(2800, now - motionStart));
       let index = 0;
@@ -216,6 +222,11 @@
     stopMotion();
     motionFrame = 0;
     setState('processing');
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      setFrame(7);
+      transitionTimer = setTimeout(() => setState('result'), 120);
+      return;
+    }
     const start = performance.now();
     const tick = now => {
       const elapsed = Math.min(2800, now - start);
