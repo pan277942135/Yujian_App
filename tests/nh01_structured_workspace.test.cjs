@@ -12,6 +12,7 @@ const contract=JSON.parse(fs.readFileSync('design/pages/home/normal_home/respons
 const previewRules=JSON.parse(fs.readFileSync('design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_STRUCTURED_PREVIEW_LAYOUT_RULES_V2.json'));
 const previewMedia=JSON.parse(fs.readFileSync('design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_STRUCTURED_PREVIEW_MEDIA_V1.json'));
 const markdown=fs.readFileSync('design/pages/home/normal_home/responsive/NH01_RESPONSIVE_LAYOUT_V2.md','utf8');
+const managerAppSource=fs.readFileSync('design/manager/app.js','utf8');
 const manifest=JSON.parse(fs.readFileSync('design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_MULTI_SCREEN_STATIC_HIFI_V1_MANIFEST.json'));
 const resourceBinding=JSON.parse(fs.readFileSync('design/system_v3/09_Android_Implementation_Contracts/Normal_Home/Normal_Home_Resource_Binding_V1.json'));
 const componentTree=JSON.parse(fs.readFileSync('design/manager/nh01_acceptance/data/NH01_Component_Tree_V1.json'));
@@ -57,6 +58,7 @@ assert.deepEqual({...measured},{x:140,y:140,w:80,h:40},'DOM measurements must no
 const authorityConflict=sandbox.window.NH01StructuredWorkspace.hasAuthorityConflict(markdown,contract);
 assert.equal(authorityConflict,false,'V2 Markdown explains the equal allocation without duplicating machine values');
 assert.ok(!markdown.includes('gAB_base + S/2')&&!markdown.includes('gBC_base + S/2'),'Markdown must not duplicate machine formula values');
+assert.ok(managerAppSource.includes('equal portions')&&!managerAppSource.includes('value.includes("gAB_base + S/2")'),'Design Manager resource validation must accept explanatory Markdown without copied formula values');
 assert.equal(contract.contract_id,'NH01_RESPONSIVE_LAYOUT_V2');
 assert.equal(contract.logical_allocation.allocation_when_positive_surplus.a_to_b,'gAB_base + S/2');
 assert.equal(contract.logical_allocation.allocation_when_positive_surplus.b_to_c,'gBC_base + S/2');
