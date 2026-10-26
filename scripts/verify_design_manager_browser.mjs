@@ -984,6 +984,63 @@ async function main() {
   }, null, { timeout: 30000 });
   await page.screenshot({ path: resolve(args.outputDir, "rr09-v2-history-1440.png"), fullPage: true });
 
+
+  const fishtraceSitesHash = "#page/recognition_flow_v1_2/hifi/fishtrace_sites_web_hifi_workspace";
+  await open(fishtraceSitesHash);
+  assert(page.url().endsWith(fishtraceSitesHash), "FishTrace Sites high-fidelity workspace direct Hash route did not resolve");
+  assert((await page.locator("#hifiViewTitle").innerText()).includes("FishTrace Sites"), "FishTrace Sites prototype title is missing");
+  const fishtraceFrameSelector = 'iframe[title="FishTrace Sites Web 高保真与结构化原型 V1"]';
+  await page.locator(fishtraceFrameSelector).waitFor({ state: "visible", timeout: 30000 });
+  await page.waitForFunction(selector => {
+    const frame = document.querySelector(selector);
+    try {
+      return Boolean(frame && frame.contentDocument && frame.contentDocument.readyState === "complete" &&
+        frame.contentDocument.querySelector('[data-testid="fishtrace-sites-web-workspace"]'));
+    } catch (_) { return false; }
+  }, fishtraceFrameSelector, { timeout: 30000 });
+  const fishtraceFrame = page.frame({ url: /fishtrace_sites_web_workspace.html/ });
+  assert(Boolean(fishtraceFrame), "FishTrace Sites prototype iframe document is not reachable");
+  await fishtraceFrame.locator('[data-testid="fishtrace-sites-web-workspace"]').waitFor({ state: "visible", timeout: 30000 });
+  assert((await fishtraceFrame.locator(".prototype-warning").innerText()).includes("不调用真实模型"), "FishTrace Sites prototype demo-only disclaimer is missing");
+  assert((await fishtraceFrame.locator(".product-device").getAttribute("data-device")) === "desktop", "FishTrace Sites prototype must start in desktop preview");
+  await fishtraceFrame.locator('[data-action="start"]').click();
+  assert(await fishtraceFrame.locator('[data-scene="source-choice"]').isVisible(), "Entry CTA must show source choice first");
+  assert(await fishtraceFrame.locator('[data-layer-id="camera-card"]').isVisible(), "Camera source option is missing");
+  assert(await fishtraceFrame.locator('[data-layer-id="gallery-card"]').isVisible(), "Gallery source option is missing");
+  const localPhotoRequestStart = requests.length;
+  await fishtraceFrame.locator('[data-action="gallery"]').first().click();
+  await fishtraceFrame.locator("#gallery-input").setInputFiles(resolve(args.root, "design/system/fish_media_display_v1/assets/real_catch_source.jpg"));
+  await fishtraceFrame.waitForFunction(() => document.querySelector("#photo-source-label")?.textContent === "本机选择", null, { timeout: 30000 });
+  await fishtraceFrame.waitForFunction(() => {
+    const image = document.querySelector("#photo-foreground-preview");
+    return Boolean(image && image.complete && image.naturalWidth > 0 && image.currentSrc.startsWith("blob:"));
+  }, null, { timeout: 30000 });
+  const localPhotoRequests = requests.slice(localPhotoRequestStart).filter(item =>
+    item.method === "POST" || item.url.includes("/api/product/catch-recognition/infer")
+  );
+  assert(localPhotoRequests.length === 0, "FishTrace Sites design prototype must not upload local photos or call the inference API");
+  assert(await fishtraceFrame.locator('[data-scene="preview"]').isVisible(), "Gallery selection must converge to the shared photo preview");
+  await fishtraceFrame.locator('.layer-node[data-layer-id="photo-foreground"]').click();
+  assert(await fishtraceFrame.locator('[data-inspector-view="properties"]').isVisible(), "Selecting a photo layer must open its property inspector");
+  assert((await fishtraceFrame.locator("#selected-layer-label").innerText()).includes("完整原图"), "Selected layer label must identify the full foreground photo");
+  await fishtraceFrame.locator('.state-tab[data-state="result"]').click();
+  assert(await fishtraceFrame.locator('[data-scene="result"]').isVisible(), "Result state must be inspectable");
+  const desktopResultColumns = await fishtraceFrame.locator(".result-layout").evaluate(node => getComputedStyle(node).gridTemplateColumns);
+  assert(desktopResultColumns.includes(" "), "Desktop result must render photo-left/result-right columns");
+  await page.screenshot({ path: resolve(args.outputDir, "fishtrace-sites-web-hifi-desktop.png"), fullPage: true });
+  await fishtraceFrame.locator('button[data-device="phone"]').click();
+  assert((await fishtraceFrame.locator(".product-device").getAttribute("data-device")) === "phone", "Phone viewport toggle did not activate");
+  const phoneResultColumns = await fishtraceFrame.locator(".result-layout").evaluate(node => getComputedStyle(node).gridTemplateColumns);
+  assert(!phoneResultColumns.includes(" "), "Phone result must stack photo above result");
+  await page.screenshot({ path: resolve(args.outputDir, "fishtrace-sites-web-hifi-phone.png"), fullPage: true });
+  await fishtraceFrame.locator('.state-tab[data-state="processing"]').click();
+  await fishtraceFrame.locator('[data-frame="P4"]').click();
+  assert((await fishtraceFrame.locator("#processing-status-copy").innerText()).includes("P4"), "Processing timeline frame selection did not update status");
+  assert((await fishtraceFrame.locator(".timeline-note").innerText()).includes("NONE"), "Prototype must state that the fixture has no trusted Mask");
+  await page.screenshot({ path: resolve(args.outputDir, "fishtrace-sites-web-hifi-processing.png"), fullPage: true });
+  await fishtraceFrame.locator('[data-action="reset"]').click();
+  assert(await fishtraceFrame.locator('[data-scene="entry"]').isVisible(), "Prototype reset must return to entry");
+
   await open("#page/recognition_flow_v1_2/hifi/invalid-release-route");
   assert(await page.locator(".invalid-manager-route").isVisible(), "invalid Hash must show an explicit error state");
   assert(await page.locator("#hifiViewCanvas img").count() === 0, "invalid Hash must not fall back to an unrelated Frozen image");
@@ -1018,10 +1075,20 @@ async function main() {
     p01: guideImageInfo,
     overview: overviewImageInfo,
     review: reviewImage,
-    checks: ["NH01 structured workspace READY", "21 source and frozen/used resources with HTTP/SHA evidence", "source layer tree matches real nested DOM parentage", "layer tree/canvas/inspector bidirectional selection", "M01-M04 CSS canvas PNGs and DOM bounds; M05 width-only geometry without assumed height", "formal 390×844 contract rectangles equal measured DOM geometry", "five dp presets", "free viewport/font 1.0/1.3/1.5/zoom/safe area", "Manifest/contract 404, invalid JSON, JS/CSS 404, timeout and recovery", "stale route cancellation", "direct Hash", "Resources submenu click and direct route", "original PNG previews/download links and manifest", "refresh", "back/forward", "modal zoom/fit/Esc/focus restore", "SWOS and continuity authority routes", "15-frame static workspace and exact 8+7 count", "R0.5 2900ms zoom and original/composite toggle", "P7/R0/R0.5/R1 geometry table", "RR09 ↔ SWOS routes", "Web Hi-Fi V2 authority/resources and 390px route", "local-only photo selection without persistent/network upload", "390px SWOS responsive preview", "RR09 V3 current / V2 historical route separation", "missing authority no fake UI", "invalid route guard", "no HTTP errors", "no console/page errors"],
+    fishtrace_sites: {
+      route: fishtraceSitesHash,
+      iframe_title: "FishTrace Sites Web 高保真与结构化原型 V1",
+      states_verified: ["entry", "source-choice", "preview", "processing", "result"],
+      local_photo_preview: true,
+      local_photo_upload_requests: localPhotoRequests.length,
+      desktop_result_columns: desktopResultColumns,
+      phone_result_columns: phoneResultColumns,
+      mask_trust_state: "NONE"
+    },
+    checks: ["FishTrace Sites Hi-Fi route and iframe load", "entry CTA → source choice before camera/gallery", "camera and gallery source cards visible", "local photo preview uses blob URL without POST/inference API", "structured photo layer selection opens properties", "desktop result photo-left/result-right", "phone result photo-top/result-below", "P0-P7 timeline selection and explicit NONE Mask trust", "prototype reset and DEMO_DATA_ONLY boundary", "NH01 structured workspace READY", "21 source and frozen/used resources with HTTP/SHA evidence", "source layer tree matches real nested DOM parentage", "layer tree/canvas/inspector bidirectional selection", "M01-M04 CSS canvas PNGs and DOM bounds; M05 width-only geometry without assumed height", "formal 390×844 contract rectangles equal measured DOM geometry", "five dp presets", "free viewport/font 1.0/1.3/1.5/zoom/safe area", "Manifest/contract 404, invalid JSON, JS/CSS 404, timeout and recovery", "stale route cancellation", "direct Hash", "Resources submenu click and direct route", "original PNG previews/download links and manifest", "refresh", "back/forward", "modal zoom/fit/Esc/focus restore", "SWOS and continuity authority routes", "15-frame static workspace and exact 8+7 count", "R0.5 2900ms zoom and original/composite toggle", "P7/R0/R0.5/R1 geometry table", "RR09 ↔ SWOS routes", "Web Hi-Fi V2 authority/resources and 390px route", "local-only photo selection without persistent/network upload", "390px SWOS responsive preview", "RR09 V3 current / V2 historical route separation", "missing authority no fake UI", "invalid route guard", "no HTTP errors", "no console/page errors"],
     swos_local_photo_sha256: uploadedPhotoSha,
     swos_local_photo_uploaded: Boolean(args.swosPhoto),
-    screenshots: ["nh01-m01-render-320x480.png", "nh01-m02-render-360x640.png", "nh01-m03-render-390x844.png", "nh01-m04-render-430x932.png", "nh01-m01-dom-bounds.json", "nh01-m02-dom-bounds.json", "nh01-m03-dom-bounds.json", "nh01-m04-dom-bounds.json", "nh01-m05-width-only-bounds.json", "desktop-1440.png", "tablet-768.png", "mobile-390.png", "lightbox-1440.png", "overview-1440.png", "guide-resources-1440.png", "guide-resources-390.png", "swos-optical-contract-1440.png", "swos-static-visual-1440.png", "swos-static-visual-390.png", "swos-r05-zoom-1440.png", "swos-web-motion-contract-1440.png", "swos-web-motion-contract-390.png", "web-hifi-v2-1440.png", "processing-result-continuity-1440.png", "rr09-v3-authority-1440.png", "rr09-v2-history-1440.png"],
+    screenshots: ["fishtrace-sites-web-hifi-desktop.png", "fishtrace-sites-web-hifi-phone.png", "fishtrace-sites-web-hifi-processing.png", "nh01-m01-render-320x480.png", "nh01-m02-render-360x640.png", "nh01-m03-render-390x844.png", "nh01-m04-render-430x932.png", "nh01-m01-dom-bounds.json", "nh01-m02-dom-bounds.json", "nh01-m03-dom-bounds.json", "nh01-m04-dom-bounds.json", "nh01-m05-width-only-bounds.json", "desktop-1440.png", "tablet-768.png", "mobile-390.png", "lightbox-1440.png", "overview-1440.png", "guide-resources-1440.png", "guide-resources-390.png", "swos-optical-contract-1440.png", "swos-static-visual-1440.png", "swos-static-visual-390.png", "swos-r05-zoom-1440.png", "swos-web-motion-contract-1440.png", "swos-web-motion-contract-390.png", "web-hifi-v2-1440.png", "processing-result-continuity-1440.png", "rr09-v3-authority-1440.png", "rr09-v2-history-1440.png"],
     errors,
     bad_responses: badResponses,
     failed_requests: failedRequests
