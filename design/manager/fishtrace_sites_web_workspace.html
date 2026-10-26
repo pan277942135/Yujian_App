@@ -6,7 +6,7 @@
   <meta name="robots" content="noindex">
   <title>FishTrace Sites · 高保真交互原型 V1.1</title>
   <link rel="stylesheet" href="./fishtrace_sites_web_workspace.css?v=FISHTRACE-SITES-WEB-HIFI-V1-1">
-  <link rel="stylesheet" href="./fishtrace_canvas_water_lab.css?v=FISHTRACE-CANVAS-WATER-LAB-V1">
+  <link rel="stylesheet" href="./fishtrace_canvas_water_lab.css?v=FISHTRACE-CANVAS-WATER-LAB-V2">
 </head>
 <body>
   <main class="workspace-root" data-testid="fishtrace-sites-web-workspace">
@@ -395,6 +395,7 @@
             <label class="water-strength-control" for="water-strength"><span>预览强度</span><output id="water-strength-value">100%</output></label>
           </div>
           <input id="water-strength" class="water-range water-control" type="range" min="0" max="150" step="1" value="100" aria-label="开发用水光强度" disabled>
+          <label class="water-region-debug-toggle"><input id="water-region-debug" class="water-control" type="checkbox" disabled><span>开发检查 · 水面区域轮廓</span></label>
           <section class="water-dev-checks" aria-label="开发阶段检查信息">
             <h3>开发检查</h3>
             <dl>
@@ -425,6 +426,6 @@
     <input id="camera-input" type="file" accept="image/*" capture="environment" hidden>
   </main>
   <script src="./fishtrace_sites_web_workspace.js?v=FISHTRACE-SITES-WEB-HIFI-V1-1"></script>
-  <script src="./fishtrace_canvas_water_lab.js?v=FISHTRACE-CANVAS-WATER-LAB-V1"></script>
+  <script src="./fishtrace_canvas_water_lab.js?v=FISHTRACE-CANVAS-WATER-LAB-V2"></script>
 </body>
 </html>

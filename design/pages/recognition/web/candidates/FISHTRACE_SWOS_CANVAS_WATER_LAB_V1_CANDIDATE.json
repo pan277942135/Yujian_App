@@ -1,6 +1,7 @@
 {
   "contract_id": "FISHTRACE_SWOS_CANVAS_WATER_LAB_V1_CANDIDATE",
-  "task_id": "FISHTRACE_SWOS_CANVAS_WATER_LAB_V1",
+  "task_id": "FISHTRACE_SWOS_CANVAS_WATER_LAB_VISUAL_FIDELITY_REPAIR_V2",
+  "contract_version": "CANDIDATE_V2",
   "status": "CANDIDATE_NOT_VISUALLY_APPROVED",
   "purpose": "Phase 1 independent Canvas 2D water-light direction, motion, strength and exit review",
   "authority": "Candidate implementation baseline; frozen SWOS timing is reused and unchanged. Candidate optical values require product owner visual review.",
@@ -26,203 +27,134 @@
       "object_fit": "contain",
       "object_position": "center",
       "crop": "none",
-      "canvas_overlay": "same stage; clip to computed contain content rectangle"
+      "canvas_overlay": "same stage; one shared contain content rectangle and source-native water_region transform"
     },
-    "note": "The previously recorded 1024×1365 dimensions were not present in the verified asset; measured dimensions are 1152×1536."
+    "note": "Execution-time SHA-256 and decoded dimensions must match before the region renderer is enabled."
+  },
+  "water_region": {
+    "schema": "FISHTRACE_FIXED_DEMO_WATER_REGION_V1",
+    "version": "WATER_REGION_REAL_CATCH_V1",
+    "coordinate_system": "source_image_pixels_top_left",
+    "source_width": 1152,
+    "source_height": 1536,
+    "asset_sha256": "6e955087108f7463eca2dbac489699a4942028ebe1b3d456ddfca523286385ef",
+    "annotation_method": "Manual polygon annotation by full-resolution visual inspection of the fixed original photo. Polygon edges were placed conservatively inside visibly open water and away from the fish, person, shoreline, rocks and sky.",
+    "trust": "FIXED_DEMO_GEOMETRY_NOT_AI_MASK_NOT_PRODUCTION_ASSET",
+    "safety_margin": "Conservative inset of approximately 20–40 source pixels beside the person and fish where the visible boundary permits; shoreline inset at least 16 source pixels. The geometry and browser overlay remain subject to review.",
+    "edge_fade_source_px": 16,
+    "excluded_regions": ["sky", "fish", "person", "shoreline", "land", "rocks", "foreground_bank"],
+    "polygons": [
+      {
+        "id": "left_water_lane",
+        "description": "Open water along the left photo edge beside the fish; the polygon follows a conservative gap around the fish and widens below its tail while remaining left of the person.",
+        "points": [[0,718],[56,718],[50,770],[34,820],[28,900],[35,990],[55,1080],[77,1170],[99,1265],[121,1355],[110,1405],[105,1435],[130,1470],[190,1510],[270,1536],[0,1536]]
+      },
+      {
+        "id": "main_right_water",
+        "description": "Open lake surface to the right of the person, with an inset below the rocky far bank, around the extended forearm and hand, and above the foreground rocks.",
+        "points": [[845,795],[1152,795],[1152,1390],[760,1390],[740,1320],[720,1250],[690,1180],[685,1150],[730,1134],[790,1125],[850,1118],[900,1110],[925,1085],[930,1055],[915,1025],[898,995],[878,965],[860,935],[840,910],[830,880],[828,840],[830,810]]
+      }
+    ],
+    "validation": {
+      "status": "MANUAL_SOURCE_REVIEW_COMPLETE_BROWSER_BOUNDARY_REVIEW_PENDING",
+      "source_visual_review": "Original 1152×1536 JPEG inspected with source-pixel grid; water polygons deliberately avoid fish, person, visible far shoreline and foreground bank.",
+      "browser_debug_overlay_required": true,
+      "normal_playback_debug_overlay": false,
+      "review_date": "2026-10-26"
+    }
   },
   "timeline": {
     "duration_ms": 2800,
     "interpolation": "smoothstep",
     "frames": [
-      {
-        "id": "P0",
-        "ms": 0,
-        "intensity_percent": 0
-      },
-      {
-        "id": "P1",
-        "ms": 350,
-        "intensity_percent": 10
-      },
-      {
-        "id": "P2",
-        "ms": 950,
-        "intensity_percent": 45
-      },
-      {
-        "id": "P3",
-        "ms": 1200,
-        "intensity_percent": 75
-      },
-      {
-        "id": "P4",
-        "ms": 1550,
-        "intensity_percent": 60
-      },
-      {
-        "id": "P5",
-        "ms": 2050,
-        "intensity_percent": 35
-      },
-      {
-        "id": "P6",
-        "ms": 2600,
-        "intensity_percent": 10
-      },
-      {
-        "id": "P7",
-        "ms": 2800,
-        "intensity_percent": 0
-      }
+      {"id":"P0","ms":0,"intensity_percent":0},
+      {"id":"P1","ms":350,"intensity_percent":10},
+      {"id":"P2","ms":950,"intensity_percent":45},
+      {"id":"P3","ms":1200,"intensity_percent":75},
+      {"id":"P4","ms":1550,"intensity_percent":60},
+      {"id":"P5","ms":2050,"intensity_percent":35},
+      {"id":"P6","ms":2600,"intensity_percent":10},
+      {"id":"P7","ms":2800,"intensity_percent":0}
     ]
   },
   "motion": {
-    "expansion_start_ms": 700,
+    "expansion_start_ms": 650,
     "expansion_peak_ms": 1200,
-    "expansion_scale": 0.24,
-    "upward_start_ms": 700,
+    "expansion_scale": 0.055,
+    "upward_start_ms": 650,
     "upward_peak_ms": 1200,
-    "upward_fraction": 0.085,
+    "upward_fraction": 0.055,
+    "reveal_start_ms": 620,
+    "reveal_end_ms": 1180,
     "recollection_start_ms": 1200,
     "recollection_end_ms": 2050,
-    "recollection_scale_reduction": 0.13,
-    "recollection_downward_fraction": 0.024,
+    "recollection_scale_reduction": 0.045,
+    "recollection_downward_fraction": 0.018,
     "exit_start_ms": 2050,
     "exit_end_ms": 2800,
-    "peripheral_exit_fraction": 0.08,
     "reduced_motion_scale": 0.12,
-    "max_rotation_radians": 0.055,
-    "shape_morph_frequency_rad_s": 0.68,
-    "shape_morph_blend": [
-      0.16,
-      0.34
-    ],
-    "sway_x_fraction": 0.014,
-    "sway_y_fraction": 0.009,
-    "sway_y_frequency_ratio": 0.73,
-    "upward_top_bias": 0.66,
-    "intensity_wave_base": 0.9,
-    "intensity_wave_amplitude": 0.1,
-    "intensity_wave_frequency_ratio": 0.9,
-    "rotation_frequency_ratio": 0.45,
-    "exit_alpha_reduction": 0.38,
-    "exit_scale_reduction": 0.16
+    "sway_rate_rad_s": 0.58,
+    "vertical_sway_rate_rad_s": 0.43,
+    "cell_wave_rate_rad_s": 0.72,
+    "highlight_wave_rate_rad_s": 0.51
   },
   "rendering": {
     "backend": "Canvas 2D",
     "deterministic_seed": 20261026,
     "blend_mode": "screen",
     "image_dpr": "devicePixelRatio",
-    "texture_generation": "Two fixed-seed irregular Bézier mask/gradient variants are precomputed once per patch and crossfaded at low frequency for continuous shape drift.",
-    "layers": [
-      {
-        "id": "broad",
-        "count": 5,
-        "size_x": [
-          0.34,
-          0.48
-        ],
-        "size_y": [
-          0.15,
-          0.25
-        ],
-        "alpha": 0.19,
-        "texture_alpha": 0.28,
-        "colors": [
-          "#c7e7d2",
-          "#a7d7cb"
-        ],
-        "texture_width": 320,
-        "texture_height": 180,
-        "ribbon_count": 0,
-        "ribbon_alpha": 0
-      },
-      {
-        "id": "caustic",
-        "count": 17,
-        "size_x": [
-          0.16,
-          0.28
-        ],
-        "size_y": [
-          0.065,
-          0.145
-        ],
-        "alpha": 0.28,
-        "texture_alpha": 0.37,
-        "colors": [
-          "#d2ead7",
-          "#acdcca",
-          "#d8e2bd"
-        ],
-        "texture_width": 240,
-        "texture_height": 150,
-        "ribbon_count": 0,
-        "ribbon_alpha": 0
-      },
-      {
-        "id": "refracted",
-        "count": 8,
-        "size_x": [
-          0.15,
-          0.28
-        ],
-        "size_y": [
-          0.028,
-          0.064
-        ],
-        "alpha": 0.18,
-        "texture_alpha": 0.3,
-        "colors": [
-          "#e9e5c9",
-          "#c6e5d4"
-        ],
-        "texture_width": 280,
-        "texture_height": 90,
-        "ribbon_count": 2,
-        "ribbon_alpha": 0.15
-      }
-    ],
-    "texture_profile": {
-      "vertices": 10,
-      "radius_range": [
-        0.72,
-        1.2
+    "water_region_clip": "source-native polygon path plus precomputed blurred-inward alpha mask; clip is rebuilt from the shared object-fit:contain content rectangle on resize",
+    "texture_generation": "A deterministic jittered curvilinear cell mesh is generated once per water polygon. Adjacent cells share the same cubic edge geometry; slow time functions deform the precomputed mesh continuously.",
+    "ambient_alpha": 0.16,
+    "ambient_bloom_alpha": 0.08,
+    "ambient_colors": ["rgba(150,181,143,.72)","rgba(171,203,169,.72)","rgba(195,218,197,.60)","rgba(211,226,211,.10)"],
+    "ambient_bloom_colors": ["rgba(202,220,184,.48)","rgba(193,215,191,.24)"],
+    "mesh_cell_width_source_px": 112,
+    "mesh_cell_height_source_px": 104,
+    "node_jitter_fraction": 0.27,
+    "node_motion_x_source_px": 5.8,
+    "node_motion_y_source_px": 7.2,
+    "edge_wave_rate_rad_s": 0.67,
+    "edge_bend_max_source_px": 13,
+    "edge_bend_fraction": 0.085,
+    "caustic_cell_alpha": 0.15,
+    "cell_alpha_wave_base": 0.88,
+    "cell_alpha_wave_amplitude": 0.12,
+    "caustic_colors": ["#c9dfce","#d8e4cc","#b9d8c8","#e0e3c6"],
+    "highlight_edge_threshold": 0.72,
+    "refraction_alpha": 0.19,
+    "refraction_width_source_px": 2.2,
+    "refraction_colors": ["#e6e6c8","#cfe4d1","#e6ebd4"],
+    "max_layer_alpha": 0.24,
+    "diagnostics": {
+      "previous_v1_root_cause": "Irregular soft patches were distributed across the full photo coordinate rectangle; no water-region polygon restricted the overlay.",
+      "v2_change": "Replace full-photo blobs with a water-region-clipped ambient field, shared-edge organic caustic mesh and sparse refraction curves. Keep the frozen timeline unchanged.",
+      "parameter_change_log": [
+        {"parameter":"spatial_domain","before":"0.08–0.92 of full image width and height; all 30 textured patches could cover non-water content","after":"Two source-native hand-marked water polygons; every layer is clipped to the water region","reason":"The first proven failure was full-frame light spill onto sky, fish, person and bank."},
+        {"parameter":"optical_layers","before":"5 broad + 17 caustic + 8 refracted soft irregular textures; layer alpha 0.19 / 0.28 / 0.18","after":"Water-only ambient field alpha 0.16 + bloom 0.08; shared-edge caustic cell alpha 0.15; sparse refraction curve alpha 0.19","reason":"Replace detached blurred blobs with a connected, smoothly deforming water-surface field; these coefficients belong to the new composition model and are candidate values, not a one-to-one brightness mapping."},
+        {"parameter":"motion_amplitude","before":"expansion 0.24; upward movement 0.085 of full photo height; recollection scale reduction 0.13","after":"mesh expansion 0.055 and upward movement 0.055 of each water polygon height; recollection scale reduction 0.045","reason":"Drive movement inside the annotated water shape and reduce whole-patch displacement that made the old fields float over the photograph."},
+        {"parameter":"time_contract","before":"P0–P7 0–2800ms with 0/10/45/75/60/35/10/0 intensity","after":"unchanged","reason":"Preserve frozen SWOS timings and business decisions; calibrate only candidate rendering structure and layer parameters."}
       ],
-      "x_radius_fraction": 0.46,
-      "y_radius_fraction": 0.45,
-      "gradient_center_x": [
-        0.4,
-        0.6
-      ],
-      "gradient_center_y": [
-        0.38,
-        0.62
-      ],
-      "gradient_radius_scale": 0.78,
-      "gradient_stops": [
-        0,
-        0.47,
-        0.82,
-        1
-      ]
-    },
-    "animation_rate_range": [
-      0.25,
-      0.9
-    ],
-    "patch_weight_range": [
-      0.78,
-      1.13
-    ],
-    "patch_position_range": [
-      0.08,
-      0.92
-    ],
-    "max_canvas_alpha": 0.72
+      "p2_visibility_baseline_mean_rgb_abs_diff_min_255": 3,
+      "p3_visibility_baseline_mean_rgb_abs_diff_min_255": 5,
+      "p3_roi_pixel_ratio_max_channel_diff_gte_6_min": 0.1,
+      "non_water_leak_max_channel_diff_gt_2_px_max": 0,
+      "p0_p7_composite_pixel_difference_max": 0,
+      "p3_to_p5_mean_diff_must_decrease": true,
+      "p5_to_p6_mean_diff_must_decrease": true,
+      "p2_to_p3_spatial_map_change_required": true
+    }
   },
   "visual_acceptance": {
     "state": "NOT_YET_VISUALLY_SIGNED_OFF",
-    "review_required": true
+    "review_required": true,
+    "product_owner_visual_signoff_required": true,
+    "candidate_parameter_changes": "No visual freeze is claimed in this version. The original frame times and baseline intensity values are preserved; renderer parameters remain candidate values until visual review.",
+    "browser_evidence_required": ["P0-P7 composited screenshots", "source-native water-region debug overlay", "composited ROI pixel metrics", "water-only leak measurement", "full 2800ms live Canvas recording", "frame interval profile"]
+  },
+  "performance_targets": {
+    "frame_interval_median_ms_max": 16.7,
+    "frame_interval_p95_ms_max": 33.3,
+    "measurement_environment": "Chromium browser in the existing GitHub Actions candidate preview workflow; recorded separately from simulated mobile viewport checks."
   }
 }
