@@ -159,6 +159,22 @@ Build PASS is not Runtime PASS. Browser preview PASS is not Runtime PASS. If run
 
 ## 4. Required evidence record
 
+The reusable checklist is `design/system_v3/07_Responsive_System/Responsive_Page_Freeze_Checklist_Template_V1.json`. Validate its structure and gate/evidence semantics with:
+
+```bash
+python scripts/design/validate_responsive_page_freeze_checklist.py \\
+  --checklist design/system_v3/07_Responsive_System/Responsive_Page_Freeze_Checklist_Template_V1.json \\
+  --mode template
+```
+
+The validator supports three modes:
+- `template`: checks checklist structure, required gates, unique gate IDs, legal result values, and evidence requirements for any gate marked PASS.
+- `freeze`: additionally requires G0–G6 PASS, exact-SHA evidence, explicit product-owner ACCEPT, and a recorded canonical Main SHA.
+- `runtime`: additionally requires G7–G8 PASS and exact-source native build/APK evidence.
+
+This checklist validator validates process/evidence completeness. It does **not** replace the page-specific machine-contract schema, geometry assertions, browser matrix, or native runtime tests. A passing checklist cannot manufacture missing evidence or turn a failed/unrun gate into PASS.
+
+
 Every gate result must include:
 - page ID and contract version;
 - exact source SHA;
