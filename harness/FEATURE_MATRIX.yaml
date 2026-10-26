@@ -333,7 +333,7 @@ features:
       - "SWOS photo source has no confirmed public publication permission; public preview requires a local browser upload and static exports remain private."
       - "Web Hi-Fi V2 is a main-adopted design-only contract via PR #190. Primary visual baseline web-three-stage is FROZEN_PRIVATE_SHA_BOUND by exact SHA; public permission remains NOT_CONFIRMED; runtime pixel parity remains unverified."
       - "FishTrace Sites has a separate user-frozen Web interaction contract V1: immersive single scene, camera/gallery choice first, desktop photo-left/result-right, below-1024px photo-top/result-below. This is Sites-only and does not alter Yujian Web V2/PR #177; Sites runtime remains unverified until exact-deployment evidence."
-      - "FishTrace Sites Web Hi-Fi V1 is a Design Manager-only interactive prototype with a structured layer tree, responsive preview and local-only photo selection. The sample result is DEMO_DATA_ONLY; production inference, Mask qualification, Sites source changes and runtime visual parity remain NOT_VERIFIED."
+      - "FishTrace Sites Web Hi-Fi V1 is a Design Manager-only interactive prototype with a structured layer tree, responsive preview, local-only photo selection, SWOS P0-P7 and RR09 R0-R5 reveal. The sample result is DEMO_DATA_ONLY; production inference, Mask qualification, Sites source changes and runtime visual parity remain NOT_VERIFIED."
   recognition_result_v1:
     sequence: 5
     name: "识别结果"
