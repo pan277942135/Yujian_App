@@ -174,8 +174,28 @@ async function main(){
         if(fontScale===1){
           const legacy={"M01-short":"m01","M02-standard":"m02","M03-medium-large":"m03","M04-large":"m04"}[profile.id];
           if(legacy){
+            const frozenReference={
+              m01:"NH01_M01_320x480dp_STATIC_HIFI_V1.png",
+              m02:"NH01_M02_360x640dp_STATIC_HIFI_V1.png",
+              m03:"NH01_M03_390x844dp_STATIC_HIFI_V1.png",
+              m04:"NH01_M04_430x932dp_STATIC_HIFI_V1.png"
+            }[legacy];
+            const frozenReferencePath=`design/pages/home/normal_home/08_multi_screen_static_hifi/${frozenReference}`;
+            const frozenReferenceSha=createHash("sha256").update(require("node:fs").readFileSync(resolve(args.root,frozenReferencePath))).digest("hex");
             await copyFile(resolve(args.outputDir,result.screenshot),resolve(args.outputDir,`nh01-${legacy}-render-${profile.width}x${profile.height}.png`));
-            await writeFile(resolve(args.outputDir,`nh01-${legacy}-dom-bounds.json`),JSON.stringify({build_sha:buildSha,preview_rules_id:rules.rules_id,viewport:result.viewport,bounds:result.bounds,intervals:result.intervals,pager:result.pager,hero_ratio:result.heroRatio,footer_height:result.bounds.captureActionGroup.h,status:result.status,failures:result.failures},null,2)+"\n");
+            await writeFile(resolve(args.outputDir,`nh01-${legacy}-dom-bounds.json`),JSON.stringify({
+              build_sha:buildSha,
+              preview_rules_id:rules.rules_id,
+              viewport:{width:profile.width,height:profile.height},
+              frozen_reference:{path:frozenReferencePath,sha256:frozenReferenceSha},
+              dom:result.bounds,
+              intervals:result.intervals,
+              pager:result.pager,
+              hero_ratio:result.heroRatio,
+              footer_height:result.bounds.captureActionGroup.h,
+              status:result.status,
+              failures:result.failures
+            },null,2)+"\n");
           }
         }
       }
