@@ -1478,7 +1478,8 @@ async function main() {
     complete_playback_observed:Number((await fishtraceFrame.locator("#water-current-time").innerText()).match(/\d+/)?.[0])===2800,
     instrumentation:"rAF interval and CanvasWaterRenderer measured draw duration sampled in the actual 2800ms playback"
   };
-  assert(performanceProfile.complete_playback_observed&&performanceProfile.playback_frame_count>=100,"Performance profile must include a complete 2800ms playback with at least 100 sampled frames");
+  process.stdout.write("FISHTRACE_CANVAS_WATER_PERFORMANCE="+JSON.stringify(performanceProfile)+"\n");
+  assert(performanceProfile.complete_playback_observed&&performanceProfile.playback_frame_count>=100,"Performance profile must include a complete 2800ms playback with at least 100 sampled frames; observed "+JSON.stringify(performanceProfile));
   assert(performanceProfile.frame_interval_ms.median<=16.7&&performanceProfile.frame_interval_ms.p95<=33.3,"Canvas playback frame interval must meet median 16.7ms and P95 33.3ms targets; observed "+JSON.stringify(performanceProfile.frame_interval_ms));
   const waterCanvasEvidence = {
     fixed_asset:waterAsset,
