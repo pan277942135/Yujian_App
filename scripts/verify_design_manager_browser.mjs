@@ -1387,7 +1387,9 @@ async function main() {
   const p0Water=waterFrameStates.P0,p2Water=waterFrameStates.P2,p3Water=waterFrameStates.P3,p5Water=waterFrameStates.P5,p7Water=waterFrameStates.P7;
   const p2Intensity=waterContract.timeline.frames.find(frame=>frame.id==="P2").layers.caustic*100;
   const p3Intensity=waterContract.timeline.frames.find(frame=>frame.id==="P3").layers.caustic*100;
-  console.log("FISHTRACE_WATER_COMPOSITE_FRAME_METRICS="+JSON.stringify(Object.fromEntries(Object.entries(compositeMetrics).map(([id,metrics])=>[id,{region_a_mean_rgb_abs_diff_255:metrics.water_roi_mean_rgb_abs_diff_255*255,changed_pixel_ratio:metrics.water_roi_coverage_ratio,forbidden_zone_mean_rgb_abs_diff_255:metrics.forbidden_zone_mean_rgb_abs_diff_255*255,forbidden_pixels_over_4:metrics.forbidden_zone_pixels_peak_diff_gt_4,p2_to_p3_spatial_change:metrics.p2_to_p3_spatial_change}]))));
+  const frameMetricsForLog=Object.fromEntries(Object.entries(compositeMetrics).map(([id,metrics])=>[id,{region_a_mean_rgb_abs_diff_255:metrics.water_roi_mean_rgb_abs_diff_255*255,changed_pixel_ratio:metrics.water_roi_coverage_ratio,forbidden_zone_mean_rgb_abs_diff_255:metrics.forbidden_zone_mean_rgb_abs_diff_255*255,forbidden_pixels_over_4:metrics.forbidden_zone_pixels_peak_diff_gt_4,p2_to_p3_spatial_change:metrics.p2_to_p3_spatial_change}]));
+  console.log("FISHTRACE_WATER_COMPOSITE_FRAME_METRICS="+JSON.stringify(frameMetricsForLog));
+  await writeFile(resolve(args.outputDir,"visual-metrics-pre-gate.json"),JSON.stringify({schema:"FISHTRACE_WATER_PRE_GATE_METRICS_V1",task_id:waterContract.task_id,candidate_source_sha:buildMarker,frames:frameMetricsForLog},null,2)+"\n");
   const roiMean255=frame=>compositeMetrics[frame].water_roi_mean_rgb_abs_diff_255*255;
   const regionARanges=waterContract.acceptance.region_a_mean_rgb_abs_diff_255_target;
   for(const [frame,[min,max]] of Object.entries(regionARanges))assert(roiMean255(frame)>=min&&roiMean255(frame)<=max,frame+" Region A mean RGB difference must be "+min+"–"+max+" /255; observed "+roiMean255(frame).toFixed(3));
