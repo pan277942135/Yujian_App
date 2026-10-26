@@ -387,8 +387,8 @@
         {
           "parameter": "recording_viewport_v5",
           "before": "V4 1440x1000 WebM captured the Canvas workbench with the photo's upper portion clipped by nested page scrolling.",
-          "after": "Before playback, scroll the exact Canvas stage into view and measure the photo's transformed content rectangle against both iframe and recording viewport; reject the recording if any photo edge falls outside.",
-          "reason": "Make the full fixed photo and overlay reviewable in the actual continuous WebM."
+          "after": "Before playback, scroll the fixed photo into the capture viewport, click Play without locator-driven auto-scroll, assert the photo content rectangle is stable at playback start and end, then extract P0–P7 from the actual WebM and compare each recorded crop with an unlit source reference (full-photo comparison for P0/P7, non-water comparison for every frame).",
+          "reason": "V4 clipped the upper photo area; V5's initial preflight-only check missed a scroll caused by the Playwright locator click. Post-start geometry and extracted-frame pixel comparisons now verify that the full photo remains visible during the actual recording."
         }
       ],
       "p2_visibility_baseline_mean_rgb_abs_diff_min_255": 3,
@@ -401,7 +401,7 @@
       "p2_to_p3_spatial_map_change_required": true,
       "v3_change": "Replace the visible polygon-cell mosaic and grid-aligned edge highlights with a deterministic curved ribbon field: soft cross-ribbon alpha gradients create face-like caustics without per-ribbon blur filters; a few aligned low-alpha centerline glints form layer C. The water-only mask and P0–P7 timeline are unchanged.",
       "v4_change": "Calibrate water-only mid-stage composite visibility after reviewing paired live P0/P3 screenshots at the normal 1440x1000 browser viewport. Only rendering-layer alpha and refraction width changed; topology, water geometry, elapsed-time motion, original image and frozen timeline remain unchanged.",
-      "v5_change": "Replace the V4 ribbon-based caustic topology and movement with deterministic organic anisotropic face patches; keep the original photo, manual water polygons, Canvas 2D mask, controls, 2800ms duration, P0-P7 timings/intensities, and reduced-motion boundary."
+      "v5_change": "Replace the V4 ribbon-based caustic topology and movement with deterministic organic anisotropic face patches; keep the original photo, manual water polygons, Canvas 2D mask, controls, 2800ms duration, P0-P7 timings/intensities, and reduced-motion boundary. The actual WebM is checked by extracting all eight frames and comparing their photo crops to the unlit source."
     },
     "refraction_width_source_px": 1.7,
     "caustic_geometry_model": "organic_anisotropic_face_patches_v5",
