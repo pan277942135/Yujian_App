@@ -41,8 +41,9 @@
         <button type="button" class="state-tab" data-state="source-choice"><span>02</span>来源选择</button>
         <button type="button" class="state-tab" data-state="preview"><span>03</span>照片预览</button>
         <button type="button" class="state-tab" data-state="processing"><span>04</span>识别中</button>
-        <button type="button" class="state-tab" data-state="result"><span>05</span>识别结果</button>
-        <button type="button" class="state-tab" data-state="error"><span>06</span>异常恢复</button>
+        <button type="button" class="state-tab" data-state="reveal"><span>05</span>结果揭晓</button>
+        <button type="button" class="state-tab" data-state="result"><span>06</span>识别结果</button>
+        <button type="button" class="state-tab" data-state="error"><span>07</span>异常恢复</button>
       </nav>
     </section>
 
@@ -161,6 +162,31 @@
                   <p class="processing-disclaimer">设计原型动效预览 · 不连接真实 Detector / Classifier，也不表示模型处理进度。</p>
                 </section>
 
+                <section class="product-scene scene-reveal" data-scene="reveal" hidden>
+                  <div class="processing-head reveal-head">
+                    <span class="product-kicker"><span></span> RR09 · RESULT REVEAL</span>
+                    <h2>让识别结果，自然浮现</h2>
+                    <p>同一张照片继续留在画面中；无可信 Mask 时，只使用克制的中文名称淡入。</p>
+                  </div>
+                  <div class="reveal-photo photo-container" data-layer-id="photo-container">
+                    <div class="photo-media">
+                      <div class="photo-backdrop" data-layer-id="photo-backdrop"><img id="photo-backdrop-reveal" alt="" aria-hidden="true"></div>
+                      <img class="photo-foreground" id="photo-foreground-reveal" data-layer-id="photo-foreground" alt="结果揭晓阶段的同一张原图" src="../system/fish_media_display_v1/assets/real_catch_source.jpg">
+                      <div class="ambient-caustics" data-layer-id="ambient-caustics" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
+                      <div class="reveal-title-card" data-layer-id="result-reveal-title" id="reveal-title-card">
+                        <span data-layer-id="result-reveal-status">识别结果揭晓 · 设计样例</span>
+                        <strong>黄颡鱼</strong>
+                        <small>无可信 Mask · 克制名称淡入</small>
+                      </div>
+                      <div class="processing-status reveal-status" data-layer-id="processing-status">
+                        <span class="processing-spinner" aria-hidden="true"></span>
+                        <div><strong id="rr09-status-title">光场接续</strong><span id="rr09-status-copy">RR09 · R0 · 0ms</span></div>
+                      </div>
+                    </div>
+                  </div>
+                  <p class="processing-disclaimer">RR09 时间线为设计预览 · R0.5 为几何中点；当前样例 Mask 状态为 NONE，不绘制鱼体轮廓。</p>
+                </section>
+
                 <section class="product-scene scene-result" data-scene="result" hidden>
                   <div class="scene-heading result-heading">
                     <span class="product-kicker"><span></span> RECOGNITION RESULT</span>
@@ -241,6 +267,22 @@
             <button type="button" data-frame="P7"><b>P7</b><span>2800ms</span></button>
           </div>
           <div class="timeline-note">Mask 信任状态：NONE（无可信鱼体 Mask）· 仅显示克制水光，不绘制鱼体轮廓。</div>
+        </div>
+        <div class="timeline-inspector rr09-timeline-inspector" id="rr09-timeline-inspector" hidden>
+          <div class="timeline-head">
+            <div><span class="section-kicker">RR09 RESULT REVEAL</span><strong>RR09 关键帧 · 设计预览</strong></div>
+            <button type="button" class="tool-button" data-action="play-reveal">播放 850ms</button>
+          </div>
+          <div class="timeline-frames rr09-timeline-frames" id="rr09-timeline-frames">
+            <button type="button" data-rr09-frame="R0" class="is-active"><b>R0</b><span>2800ms</span></button>
+            <button type="button" data-rr09-frame="R0.5"><b>R0.5</b><span>2900ms</span></button>
+            <button type="button" data-rr09-frame="R1"><b>R1</b><span>3000ms</span></button>
+            <button type="button" data-rr09-frame="R2"><b>R2</b><span>3180ms</span></button>
+            <button type="button" data-rr09-frame="R3"><b>R3</b><span>3350ms</span></button>
+            <button type="button" data-rr09-frame="R4"><b>R4</b><span>3480ms</span></button>
+            <button type="button" data-rr09-frame="R5"><b>R5</b><span>3650ms</span></button>
+          </div>
+          <div class="timeline-note">Mask 信任状态：NONE（无可信鱼体 Mask）· R3–R5 只揭晓中文名称，不伪造鱼体轮廓或金光转移。</div>
         </div>
       </section>
 
