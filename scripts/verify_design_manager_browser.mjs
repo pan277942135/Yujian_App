@@ -1115,10 +1115,16 @@ async function main() {
   assert(causticModelState.patchSizes.length===18&&causticModelState.patchSizes.every(patch=>patch.length_w>=patchSampling.length_w[0]&&patch.length_w<=patchSampling.length_w[1]&&patch.short_axis_w>=patchSampling.short_axis_w[0]&&patch.short_axis_w<=patchSampling.short_axis_w[1]&&patch.aspect_ratio>=waterContract.rendering.caustics.aspect_ratio[0]&&patch.aspect_ratio<=waterContract.rendering.caustics.aspect_ratio[1]),"Runtime caustic patch geometry must use the candidate high-coverage ranges without exceeding frozen patch bounds");
   const ambientRuntimeState=await fishtraceFrame.locator("#water-overlay").evaluate(canvas=>({count:Number(canvas.dataset.ambientFieldCount),zones:JSON.parse(canvas.dataset.ambientFieldZoneCounts||"{}")}));
   assert(ambientRuntimeState.count===5&&ambientRuntimeState.zones.A===3&&ambientRuntimeState.zones.B===1&&ambientRuntimeState.zones.C===1,"A-line ambient runtime must retain the five deterministic fields in the specified regions: "+JSON.stringify(ambientRuntimeState));
+  const highlightRuntimeState=await fishtraceFrame.locator("#water-overlay").evaluate(canvas=>({count:Number(canvas.dataset.highlightSegmentCount),segments:JSON.parse(canvas.dataset.highlightSegments||"[]")}));
+  const highlightSampling=waterContract.rendering.highlights.sampling_fraction;
+  const highlightSpec=waterContract.rendering.highlights;
+  assert(highlightRuntimeState.count===24&&highlightRuntimeState.segments.length===24&&highlightRuntimeState.segments.every(segment=>segment.length_w>=highlightSpec.segment_length_w[0]+highlightSampling.length[0]*(highlightSpec.segment_length_w[1]-highlightSpec.segment_length_w[0])-1e-9&&segment.length_w<=highlightSpec.segment_length_w[1]&&segment.width_w>=highlightSpec.segment_width_w[0]+highlightSampling.width[0]*(highlightSpec.segment_width_w[1]-highlightSpec.segment_width_w[0])-1e-9&&segment.width_w<=highlightSpec.segment_width_w[1]),"A-line highlights must stay within the deterministic high-end sample bounds and fixed 24-segment contract");
   const ambientCalibration=waterContract.rendering.ambient;
   assert(ambientCalibration.calibration?.revision==="A_LINE_P1_AMBIENT_RESPONSE_02"&&ambientCalibration.p3_single_field_opacity_max===0.10&&ambientCalibration.field_opacity_response_multiplier===0.68&&ambientCalibration.radial_gradient_opacity_stops?.join(",")==="1,0.92,0.72","Ambient P1 opacity correction must use the recorded candidate calibration while retaining the 0.10 per-field cap");
   const causticCalibration=waterContract.rendering.caustics;
-  assert(causticCalibration.calibration?.revision==="A_LINE_P2_P3_COVERAGE_AND_HEADROOM_02"&&causticCalibration.field_opacity_response_multiplier===0.42&&causticCalibration.gradient_half_extent_multiplier===0.9&&causticCalibration.primary_opacity_max_p3===0.22&&causticCalibration.secondary_opacity_max_p3===0.14,"P2/P3 caustic headroom calibration must preserve A/B per-patch opacity caps");
+  const faceOpacityProfile=causticCalibration.face_opacity_profile;
+  assert(causticCalibration.calibration?.revision==="A_LINE_P2_P3_FACE_EXPANSION_03"&&causticCalibration.field_opacity_response_multiplier===0.42&&causticCalibration.gradient_half_extent_multiplier===0.9&&causticCalibration.edge_softness_blur_w===0.0016&&causticCalibration.primary_opacity_max_p3===0.22&&causticCalibration.secondary_opacity_max_p3===0.14,"P2/P3 face-expansion calibration must preserve A/B per-patch opacity caps");
+  assert(faceOpacityProfile?.expand_start_ms===950&&faceOpacityProfile?.expand_end_ms===1200&&faceOpacityProfile.initial_stops.length===6&&faceOpacityProfile.expanded_stops.length===6&&faceOpacityProfile.expanded_stops.every(stop=>stop[1]<=1),"P2-P3 organic face profile must interpolate continuously and remain within unit opacity");
   const waterAsset = await fishtraceFrame.locator("#water-source-image").evaluate(image => ({
     naturalWidth:image.naturalWidth,naturalHeight:image.naturalHeight,
     sha256:image.dataset.sha256,src:image.currentSrc,complete:image.complete
@@ -1315,8 +1321,11 @@ async function main() {
     const shownIntensity=Number(shownIntensityText.match(/^\s*(\d+(?:\.\d+)?)%/)?.[1]);
     assert(shownTime===ms+" ms"&&shownIntensity===intensity,id+" must jump to its exact time and frozen baseline intensity");
     const actualLayerStrengths=JSON.parse(await fishtraceFrame.locator("#water-overlay").getAttribute("data-layer-strengths"));
+    const faceExpansion=Number(await fishtraceFrame.locator("#water-overlay").getAttribute("data-caustic-face-expansion"));
     const expectedLayerStrengths=waterContract.timeline.frames.find(frame=>frame.id===id).layers;
     for(const channel of ["ambient","caustic","highlight"])assert(Math.abs(actualLayerStrengths[channel]-expectedLayerStrengths[channel])<1e-9,id+" "+channel+" multiplier must match the frozen A-line curve");
+    if(id==="P0"||id==="P1"||id==="P2")assert(faceExpansion===0,id+" face geometry must not reveal the P3-expanded profile before 950ms");
+    if(id==="P3"||id==="P4"||id==="P5"||id==="P6"||id==="P7")assert(faceExpansion===1,id+" face geometry must retain the expanded profile continuously after 1200ms");
     const state=await waterCanvasState();
     const metrics=await measureComposite(id);
     assert(state.outside_active_zone_alpha_pixels===0,id+" Canvas alpha must remain inside the union of A/B/C; got "+state.outside_active_zone_alpha_pixels);
@@ -1326,7 +1335,7 @@ async function main() {
     await waterStageShot("fishtrace-canvas-water-"+id+".png");
     compositeMetrics[id]=metrics;
     waterFrameStates[id]=state;
-    waterFrameJumpEvidence.push({id,ms,intensity_percent:shownIntensity,layer_strengths:actualLayerStrengths,canvas_visible_pixels:state.visible,canvas_alpha_pixels_outside_active_zones:state.outside_active_zone_alpha_pixels,water_roi_mean_rgb_abs_diff_255:metrics.water_roi_mean_rgb_abs_diff_255});
+    waterFrameJumpEvidence.push({id,ms,intensity_percent:shownIntensity,layer_strengths:actualLayerStrengths,caustic_face_expansion:faceExpansion,canvas_visible_pixels:state.visible,canvas_alpha_pixels_outside_active_zones:state.outside_active_zone_alpha_pixels,water_roi_mean_rgb_abs_diff_255:metrics.water_roi_mean_rgb_abs_diff_255});
   }
   const continuityCheckTimes=[0,50,300,350,400,900,950,1000,1150,1200,1250,2000,2050,2100,2550,2600,2650,2750,2800];
   const continuityLabels=[];

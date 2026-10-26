@@ -507,10 +507,18 @@
       "secondary_opacity_max_p3": 0.14,
       "field_opacity_response_multiplier": 0.42,
       "gradient_half_extent_multiplier": 0.9,
+      "edge_softness_blur_w": 0.0016,
+      "face_opacity_profile": {
+        "expand_start_ms": 950,
+        "expand_end_ms": 1200,
+        "initial_stops": [[0, 0], [0.18, 0.23], [0.38, 0.61], [0.58, 0.86], [0.8, 0.42], [1, 0]],
+        "expanded_stops": [[0, 0], [0.16, 0.66], [0.36, 0.94], [0.58, 1], [0.81, 0.78], [1, 0]],
+        "note": "Interpolate the deterministic cross-face light profile from P2 to P3; the shape and peak opacity remain inside the fixed patch geometry and per-patch cap."
+      },
       "calibration": {
-        "revision": "A_LINE_P2_P3_COVERAGE_AND_HEADROOM_02",
-        "root_cause": "On candidate source 3948db673be4aead852a82cd3c4ddba6b4305c2f (Pages browser run 40354907421), Region A composite mean was 3.873/255 at P2 and 3.940/255 at P3. The 0.55 response made 0.42×0.55=0.231 before patch weight, so both P2 and P3 commonly hit the 0.22 per-patch cap. This collapsed the intended P2-to-P3 intensity rise; the default size sampler also spent most patches away from the upper end of the permitted area range.",
-        "change": "Set the response to 0.42: P2 remains below its 0.22 cap while P3 reaches the cap. Sample length and short axis near their existing upper bounds, select deterministic spatially spread centers, and broaden the tapered face profile within the existing 18-patch and size contracts. The P0–P7 channel values and timestamps are unchanged.",
+        "revision": "A_LINE_P2_P3_FACE_EXPANSION_03",
+        "root_cause": "On candidate source 628b3334023e445c49319300055766b5a0086bb2 (Pages browser run 40359862842), Region A mean was 6.297/255 at P2 and 7.061/255 at P3, below the P3 target of 10.5–14.5/255. The fixed cross-axis linear gradient kept most patches ribbon-like, while its low interior opacity stops and near-saturated P2 geometry limited the P2-to-P3 visual expansion.",
+        "change": "Interpolate a higher-coverage, three-level face-opacity profile continuously from P2 to P3, gently soften the irregular patch edge, strengthen seeded contour deformation, and ease patch growth so P2 is smaller while P3 remains at 1.10. Keep the exact 18 patches, source image, zone polygons, color family, 0.22/0.14 opacity caps, layer multipliers, P0–P7 timestamps, and 2800ms duration.",
         "preserved": [
           "P0-P7 layer multipliers and all timestamps",
           "18 deterministic patch geometries, size ranges, aspect ratios and all angle limits",
@@ -540,6 +548,10 @@
         0.03,
         0.09
       ],
+      "sampling_fraction": {
+        "length": [0.7, 1],
+        "width": [0.7, 1]
+      },
       "segment_width_w": [
         0.003,
         0.01

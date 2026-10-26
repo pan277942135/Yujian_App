@@ -290,11 +290,15 @@
       return zones.map((zone,index)=>{
         const candidates=this.patches.filter(patch=>patch.zone===zone&&patch.zone!=="C");
         const parent=candidates[index%candidates.length]||this.patches[index%this.patches.length];
+        const lengthFractionRange=spec.sampling_fraction?.length||[0,1];
+        const widthFractionRange=spec.sampling_fraction?.width||[0,1];
+        const lengthFraction=lengthFractionRange[0]+random()*(lengthFractionRange[1]-lengthFractionRange[0]);
+        const widthFraction=widthFractionRange[0]+random()*(widthFractionRange[1]-widthFractionRange[0]);
         return {
           id:index+1,zone,parentId:parent.id,
           positionU:.18+random()*.64,
-          lengthW:spec.segment_length_w[0]+random()*(spec.segment_length_w[1]-spec.segment_length_w[0]),
-          widthW:spec.segment_width_w[0]+random()*(spec.segment_width_w[1]-spec.segment_width_w[0]),
+          lengthW:spec.segment_length_w[0]+lengthFraction*(spec.segment_length_w[1]-spec.segment_length_w[0]),
+          widthW:spec.segment_width_w[0]+widthFraction*(spec.segment_width_w[1]-spec.segment_width_w[0]),
           blurW:spec.blur_w[0]+random()*(spec.blur_w[1]-spec.blur_w[0]),
           angleDelta:(random()*2-1)*.22,
           bendW:(random()*2-1)*.004,
@@ -328,9 +332,11 @@
     }
     patchGeometry(patch,timeMs,motionScale) {
       const appear=smooth(timeMs,260,950);
-      const growth=smooth(timeMs,350,1200);
+      const growth=Math.pow(smooth(timeMs,350,1200),1.85);
       const returnScale=smooth(timeMs,1200,2050);
       const exitScale=smooth(timeMs,2050,2800);
+      const faceProfile=this.rendering.caustics.face_opacity_profile;
+      const faceExpansion=smooth(timeMs,faceProfile.expand_start_ms,faceProfile.expand_end_ms);
       const zoneExit=this.exit(patch.zone,timeMs,patch.exitDelayMs+patch.peripheral*80);
       let scale=.72+.38*growth;
       if(timeMs>1200)scale=1.10-.14*returnScale;
@@ -347,23 +353,24 @@
       for(let index=0;index<patch.offsets.length;index++){
         const u=index/(patch.offsets.length-1);
         const envelope=Math.pow(Math.max(0,Math.sin(Math.PI*u)),.34+zoneExit*.25);
-        const wave=Math.sin(phase+u*patch.waveCycles+patch.phase)*.035;
-        const bend=(patch.offsets[index]*patch.irregularity*.12+wave)*patch.longW*scale;
+        const wave=(Math.sin(phase+u*patch.waveCycles+patch.phase)*.052+Math.sin(phase*.63+u*patch.waveCycles*1.91+patch.phase*.41)*.027);
+        const bend=(patch.offsets[index]*patch.irregularity*.31+wave)*patch.longW*scale;
         const longitudinal=(u-.5)*patch.longW*scale;
         const x=center.x+tangent.x*longitudinal+normal.x*bend;
         const y=center.y+tangent.y*longitudinal+normal.y*bend;
-        const broad=Math.sin(u*Math.PI*2+patch.phase+phase*.14)*.14;
-        const fine=Math.sin(u*Math.PI*4.5+patch.phase*.7+phase*.10)*.08;
-        const widthProfile=clamp(.90+broad+fine+patch.widthNoise[index]*patch.irregularity*.40,.40,1.20);
-        const neck=1-.12*Math.exp(-Math.pow((u-.47)/.13,2));
+        const broad=Math.sin(u*Math.PI*2+patch.phase+phase*.14)*.19;
+        const fine=Math.sin(u*Math.PI*4.5+patch.phase*.7+phase*.10)*.11;
+        const detail=Math.sin(u*Math.PI*6.8+patch.phase*1.3+phase*.07)*.055;
+        const widthProfile=clamp(.91+broad+fine+detail+patch.widthNoise[index]*patch.irregularity*.66,.38,1.24);
+        const neck=1-.18*Math.exp(-Math.pow((u-.47)/.13,2));
         const half=patch.shortW*scale*envelope*widthProfile*neck*.5;
-        const sideA=half*(1+patch.edgeNoise[index]*patch.irregularity*.40);
-        const sideB=half*(1-patch.edgeNoise[index]*patch.irregularity*.38);
+        const sideA=half*(1+patch.edgeNoise[index]*patch.irregularity*.72);
+        const sideB=half*(1-patch.edgeNoise[index]*patch.irregularity*.61);
         centerline.push({x,y});
         positive.push({x:x+normal.x*sideA,y:y+normal.y*sideA});
         negative.push({x:x-normal.x*sideB,y:y-normal.y*sideB});
       }
-      return {center,centerline,positive,negative,scale,angle,phase,appear,zoneExit};
+      return {center,centerline,positive,negative,scale,angle,phase,appear,zoneExit,faceExpansion};
     }
     drawAmbient(ctx,rect,timeMs,intensity,strengthValue,motionScale,zoneName) {
       const spec=this.rendering.ambient;
@@ -429,15 +436,18 @@
           center.x-normalX*width,center.y-normalY*width,center.x+normalX*width,center.y+normalY*width
         );
         const color=spec.colors[patch.colorIndex];
-        gradient.addColorStop(0,rgbaFromHex(color,0));
-        gradient.addColorStop(.18,rgbaFromHex(color,.23));
-        gradient.addColorStop(.38,rgbaFromHex(color,.61));
-        gradient.addColorStop(.58,rgbaFromHex(color,.86));
-        gradient.addColorStop(.80,rgbaFromHex(color,.42));
-        gradient.addColorStop(1,rgbaFromHex(color,0));
+        const profile=spec.face_opacity_profile;
+        for(let stopIndex=0;stopIndex<profile.initial_stops.length;stopIndex++){
+          const initial=profile.initial_stops[stopIndex];
+          const expanded=profile.expanded_stops[stopIndex];
+          const offset=initial[0]+(expanded[0]-initial[0])*geometry.faceExpansion;
+          const opacity=initial[1]+(expanded[1]-initial[1])*geometry.faceExpansion;
+          gradient.addColorStop(offset,rgbaFromHex(color,opacity));
+        }
         ctx.save();
         ctx.globalCompositeOperation="screen";
         ctx.globalAlpha=alpha;
+        ctx.filter="blur("+(rect.width*spec.edge_softness_blur_w)+"px)";
         ctx.beginPath();
         traceSmoothPoints(ctx,geometry.positive,rect,this.asset,true);
         const last=geometry.negative[geometry.negative.length-1];
@@ -572,6 +582,7 @@
       this.canvas.dataset.ambientFieldCount=String(ambientFields.length);
       this.canvas.dataset.ambientFieldZoneCounts=JSON.stringify(ambientFields.reduce((out,field)=>{out[field.zone]=(out[field.zone]||0)+1;return out;},{}));
       this.canvas.dataset.highlightSegmentCount=String(this.scene.highlights.length);
+      this.canvas.dataset.highlightSegments=JSON.stringify(this.scene.highlights.map(segment=>({id:segment.id,length_w:segment.lengthW,width_w:segment.widthW,warm:segment.warm})));
       this.canvas.dataset.rendererStatus="READY";
       this.render(controller?controller.timeMs:0,layerStrengthsAt(controller?controller.timeMs:0),true,false);
       return true;
@@ -641,6 +652,8 @@
       const motionScale=reducedMotion.matches?this.scene.contract.motion.reduced_motion_scale:1;
       this.canvas.dataset.activeIntensity=String(Math.round(strengthEnabled&&waterEnabled?layers.caustic*strength*100:0));
       this.canvas.dataset.layerStrengths=JSON.stringify(Object.fromEntries(Object.entries(layers).map(([key,value])=>[key,value*strength])));
+      const faceProfile=this.scene.rendering.caustics.face_opacity_profile;
+      this.canvas.dataset.causticFaceExpansion=String(smooth(timeMs,faceProfile.expand_start_ms,faceProfile.expand_end_ms));
       this.canvas.dataset.currentTime=String(Math.round(timeMs));
       this.canvas.dataset.waterOn=String(waterEnabled);
       this.canvas.dataset.motionScale=String(motionScale);
