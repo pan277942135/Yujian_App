@@ -15,7 +15,6 @@ ROOT = Path(__file__).resolve().parents[2]
 SCHEMA_PATH = ROOT / "design/system_v3/07_Responsive_System/Responsive_Layout_Contract_Schema_V1.json"
 CONTRACT_PATH = ROOT / "design/pages/home/normal_home/responsive/NH01_RESPONSIVE_LAYOUT_V2.json"
 PROFILES_PATH = ROOT / "design/system_v3/07_Responsive_System/Viewport_Profiles_V1.json"
-PREVIEW_RUNTIME_PATH = ROOT / "previews/pr-176/design/manager/nh01_acceptance/nh01-responsive-contract-runtime.js"
 MANIFEST_PATH = ROOT / "design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_MULTI_SCREEN_STATIC_HIFI_V1_MANIFEST.json"
 AUTHORITY_PATH = ROOT / "design/pages/home/normal_home/authority/authority_map.json"
 NAV_PATH = ROOT / "design/pages/home/normal_home/navigation.json"
@@ -40,7 +39,7 @@ def png_size(path: Path):
     if len(data)<24 or data[:8]!=b"\x89PNG\r\n\x1a\n": return None
     return struct.unpack(">II",data[16:24])
 
-schema=read_json(SCHEMA_PATH); contract=read_json(CONTRACT_PATH); profiles=read_json(PROFILES_PATH)
+schema=read_json(SCHEMA_PATH); contract=read_json(CONTRACT_PATH); profiles=read_json(PROFILES_PATH); preview_rules=read_json(STRUCTURED_PREVIEW_RULES_PATH)
 manifest=read_json(MANIFEST_PATH); authority=read_json(AUTHORITY_PATH); navigation=read_json(NAV_PATH)
 feature_matrix=read_yaml(FEATURE_PATH); phase_machine=read_yaml(PHASE_PATH); registry=read_yaml(REGISTRY_PATH)
 try:
@@ -54,6 +53,11 @@ require(contract.get("contract_id")=="NH01_RESPONSIVE_LAYOUT_V2","contract_id mi
 require(contract.get("status") in {"PROPOSED_FOR_CANONICAL_MAIN_REVIEW","SPEC_FROZEN"},"contract status invalid")
 require(contract.get("responsive_model",{}).get("model")=="CONSTRAINT_DRIVEN_SINGLE_POLICY","must use one constraint-driven policy")
 require(contract.get("responsive_model",{}).get("viewport_keyed_layout_overrides") is False,"per-viewport full-layout overrides are forbidden")
+require(preview_rules.get("rules_id")=="NH01_STRUCTURED_PREVIEW_LAYOUT_RULES_V2","structured preview metadata ID mismatch")
+require(preview_rules.get("status")=="PREVIEW_ONLY","structured preview metadata must remain PREVIEW_ONLY")
+require(preview_rules.get("responsive_authority")==CONTRACT_PATH.relative_to(ROOT).as_posix(),"structured preview must reference the V2 machine contract")
+require(preview_rules.get("numeric_authority")=="NONE" and preview_rules.get("no_numeric_overrides") is True,"structured preview file must not contain duplicate responsive numeric rules")
+require(not any(key in preview_rules for key in ("hero","pager","vertical_allocation","capture_action_group")),"structured preview file contains a duplicate numeric rule section")
 require(contract.get("native_acceptance",{}).get("status")=="NOT_VERIFIED","Android runtime must remain NOT_VERIFIED")
 require(contract.get("native_acceptance",{}).get("required_case_count")==24,"current native matrix must remain 24 cases")
 require(contract.get("acceptance",{}).get("runtime_status_independent") is True,"design status must be independent of runtime acceptance")
@@ -69,8 +73,8 @@ require(bands.get("A", {}).get("physical_region") == "top", "band A must remain 
 require(bands.get("B", {}).get("physical_region") == "top+middle", "band B must preserve Top/Middle physical split")
 require(bands.get("C", {}).get("physical_region") == "footer", "band C must remain in physical Footer")
 require(logical_allocation.get("surplus_formula") == "S = max(0, H_safe - (hA + hB + hC + gAB_base + gBC_base))", "logical surplus formula mismatch")
-require(logical_allocation.get("allocation_when_positive_surplus", {}).get("a_to_b") == "gAB_base + 2S/3", "positive surplus A-to-B allocation mismatch")
-require(logical_allocation.get("allocation_when_positive_surplus", {}).get("b_to_c") == "gBC_base + S/3", "positive surplus B-to-C allocation mismatch")
+require(logical_allocation.get("allocation_when_positive_surplus", {}).get("a_to_b") == "gAB_base + S/2", "positive surplus A-to-B allocation mismatch")
+require(logical_allocation.get("allocation_when_positive_surplus", {}).get("b_to_c") == "gBC_base + S/2", "positive surplus B-to-C allocation mismatch")
 require(logical_allocation.get("allocation_when_zero_surplus", {}).get("a_to_b") == "gAB_base", "zero-surplus A-to-B allocation mismatch")
 require(logical_allocation.get("allocation_when_zero_surplus", {}).get("b_to_c") == "gBC_base", "zero-surplus B-to-C allocation mismatch")
 require("title_to_card_runtime remains the internal Title-to-Hero gap and is not modified by surplus allocation." in logical_allocation.get("invariants", []), "internal title-to-Hero gap invariant missing")
@@ -94,6 +98,24 @@ card_content=preview_parameters.get("card_content",{})
 require(card_content.get("species_wrap_width_threshold_dp")==240,"preview engine must use the contract species wrap width threshold")
 require(card_content.get("large_font_scale_threshold")==1.3,"preview engine must use the contract large-font wrap threshold")
 require(card_content.get("maximum_lines_species")==2 and card_content.get("maximum_lines_measurements")==2 and card_content.get("maximum_lines_metadata")==2,"preview engine text wrap line limits must match the contract")
+hero_policy=preview_parameters.get("hero",{})
+short_exception=hero_policy.get("short_screen_exception",{})
+require(hero_policy.get("minimum_readable_height_dp")==148 and hero_policy.get("maximum_readable_height_dp")==220,"normal Hero readable-height range must remain 148-220dp")
+require(short_exception.get("minimum_readable_floor_dp")==124 and short_exception.get("minimum_width_dp")==145,"M01 124dp exception floor and 145dp width minimum must remain explicit")
+require(short_exception.get("exact_viewport_width_dp")==320 and short_exception.get("exact_viewport_height_dp")==480 and short_exception.get("exact_font_scale")==1,"M01 short-screen exception must match only 320x480 at fontScale 1.0")
+require(short_exception.get("requires_no_middle_scroll") is True and short_exception.get("requires_all_copy_readable") is True,"M01 must preserve NO_SCROLL and readable required copy")
+neighbor_policy=preview_parameters.get("neighbor",{})
+peek_gap=neighbor_policy.get("peek_gap",{})
+require(peek_gap.get("minimum_dp")==8 and peek_gap.get("track_width_fraction")==0.025 and peek_gap.get("maximum_dp")==12,"Peek gap must be the declared 8-12dp clamp of 2.5% track width")
+require(neighbor_policy.get("maximum_geometry_overlap_dp")==1,"maximum geometry overlap must remain separate from peek gap")
+require(bool(neighbor_policy.get("peek_visible_width_formula")),"neighbor visible-width formula is required")
+require(neighbor_policy.get("indicator_height_dp",0)>0 and neighbor_policy.get("indicator_gap_after_hero_dp",0)>=0,"Pager indicator must be explicitly included in the pager budget")
+allocation=preview_parameters.get("spacing",{}).get("surplus_allocation",{})
+require(allocation.get("a_to_b_added")=="S/2" and allocation.get("b_to_c_added")=="S/2","preview engine must apply the equal 1:1 surplus split")
+require(allocation.get("additional_gap_cap_dp") is None and allocation.get("outer_breathing_remainder_dp")==0,"preview may not cap added gaps or create outer-breathing remainder")
+action=preview_parameters.get("capture_action_group",{})
+require(action.get("cta_semantics")=="STATIC_TEXT_LABEL_NOT_AN_INDEPENDENT_ACTION" and action.get("cta_touch_target_dp") is None,"CTA label must not receive a duplicate touch target")
+require(action.get("camera_artwork_inside_touch_target") is True,"camera artwork must be centered within its separate touch target")
 
 def check_sorted_curve(points, x_key, label):
     require(isinstance(points,list) and len(points)>=2,f"{label} interpolation curve must have at least two points")
@@ -116,6 +138,13 @@ def find_forbidden_policy_keys(value, path="preview_engine.parameters"):
     elif isinstance(value,list):
         for index,item in enumerate(value): find_forbidden_policy_keys(item,f"{path}[{index}]")
 find_forbidden_policy_keys(preview_parameters)
+
+
+workspace_source=STRUCTURED_WORKSPACE_PATH.read_text(encoding="utf-8") if STRUCTURED_WORKSPACE_PATH.is_file() else ""
+manager_source=DESIGN_MANAGER_APP_PATH.read_text(encoding="utf-8") if DESIGN_MANAGER_APP_PATH.is_file() else ""
+require("layoutContract?.preview_engine?.parameters" in workspace_source,"structured workspace must calculate from the V2 preview_engine parameters")
+require("previewRules.vertical_allocation" not in workspace_source and "previewRules.pager?." not in workspace_source,"structured workspace must not read duplicate PREVIEW_ONLY numeric rules")
+require('id:"responsive-contract"' in manager_source and 'baseResult.data["responsive-contract"]' in manager_source,"Design Manager loader must load and pass the V2 responsive contract")
 
 anchors=contract.get("visual_anchors",[])
 require(len(anchors)==6,"exactly six frozen visual anchors must be registered (original + M01-M05)")
@@ -152,7 +181,6 @@ for profile in contract.get("preview_profiles",[]):
 require(global_profiles.get("WIDTH-BOUNDARY-480DP",{}).get("height_dp") is None,"M05 must remain width-only")
 require(global_profiles.get("WIDTH-BOUNDARY-480DP",{}).get("native_matrix") is False,"M05 must not enter native matrix")
 require(global_profiles.get("WIDE-PREVIEW-600x960",{}).get("native_matrix") is False,"600x960 preview must remain outside current native matrix")
-require(PREVIEW_RUNTIME_PATH.is_file(),"contract-driven browser runtime module is missing")
 default_insets=coordinate_space.get("default_safe_insets_dp",{})
 inset_total=default_insets.get("top",0)+default_insets.get("bottom",0)
 title_curve={item.get("safe_height_dp"):item.get("value_dp") for item in preview_parameters.get("spacing",{}).get("title_to_card",{}).get("base_curve",[])}
