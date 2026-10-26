@@ -1113,7 +1113,7 @@ async function main() {
   assert(causticModelState.directionBinCount===directionGate.angular_bins&&causticModelState.directionBins>=directionGate.minimum_occupied_bins&&causticModelState.nearHorizontalFraction<=waterContract.rendering.caustics.near_horizontal_patch_fraction_max,"A-line patch directions must not collapse into parallel horizontal bands; observed "+JSON.stringify(causticModelState));
   const patchSampling=waterContract.rendering.caustics.patch_sampling;
   assert(causticModelState.patchSizes.length===18&&causticModelState.patchSizes.every(patch=>patch.length_w>=patchSampling.length_w[0]&&patch.length_w<=patchSampling.length_w[1]&&patch.short_axis_w>=patchSampling.short_axis_w[0]&&patch.short_axis_w<=patchSampling.short_axis_w[1]&&patch.aspect_ratio>=waterContract.rendering.caustics.aspect_ratio[0]&&patch.aspect_ratio<=waterContract.rendering.caustics.aspect_ratio[1]),"Runtime caustic patch geometry must use the candidate high-coverage ranges without exceeding frozen patch bounds");
-  const ambientRuntimeState=await fishtraceFrame.locator("#water-overlay").evaluate(canvas=>({count:Number(canvas.dataset.ambientFieldCount),zones:JSON.parse(canvas.dataset.ambientFieldZoneCounts||"{}")}));
+  const ambientRuntimeState=await fishtraceFrame.locator("#water-overlay").evaluate(canvas=>({count:Number(canvas.dataset.ambientFieldCount),zones:JSON.parse(canvas.dataset.ambientFieldZoneCounts||"{}"),fields:JSON.parse(canvas.dataset.ambientFieldGeometry||"[]")}));
   assert(ambientRuntimeState.count===5&&ambientRuntimeState.zones.A===3&&ambientRuntimeState.zones.B===1&&ambientRuntimeState.zones.C===1,"A-line ambient runtime must retain the five deterministic fields in the specified regions: "+JSON.stringify(ambientRuntimeState));
   const highlightRuntimeState=await fishtraceFrame.locator("#water-overlay").evaluate(canvas=>({count:Number(canvas.dataset.highlightSegmentCount),segments:JSON.parse(canvas.dataset.highlightSegments||"[]")}));
   const highlightSampling=waterContract.rendering.highlights.sampling_fraction;
@@ -1404,7 +1404,7 @@ async function main() {
   const p3Intensity=waterContract.timeline.frames.find(frame=>frame.id==="P3").layers.caustic*100;
   const frameMetricsForLog=Object.fromEntries(Object.entries(compositeMetrics).map(([id,metrics])=>[id,{region_a_mean_rgb_abs_diff_255:metrics.water_roi_mean_rgb_abs_diff_255*255,changed_pixel_ratio:metrics.water_roi_coverage_ratio,forbidden_zone_mean_rgb_abs_diff_255:metrics.forbidden_zone_mean_rgb_abs_diff_255*255,forbidden_pixels_over_4:metrics.forbidden_zone_pixels_peak_diff_gt_4,p2_to_p3_spatial_change:metrics.p2_to_p3_spatial_change}]));
   console.log("FISHTRACE_WATER_COMPOSITE_FRAME_METRICS="+JSON.stringify(frameMetricsForLog));
-  await writeFile(resolve(args.outputDir,"visual-metrics-pre-gate.json"),JSON.stringify({schema:"FISHTRACE_WATER_PRE_GATE_METRICS_V1",task_id:waterContract.task_id,candidate_source_sha:buildMarker,frames:frameMetricsForLog},null,2)+"\n");
+  await writeFile(resolve(args.outputDir,"visual-metrics-pre-gate.json"),JSON.stringify({schema:"FISHTRACE_WATER_PRE_GATE_METRICS_V1",task_id:waterContract.task_id,candidate_source_sha:buildMarker,ambient_field_geometry:ambientRuntimeState,frames:frameMetricsForLog},null,2)+"\n");
   const roiMean255=frame=>compositeMetrics[frame].water_roi_mean_rgb_abs_diff_255*255;
   const regionARanges=waterContract.acceptance.region_a_mean_rgb_abs_diff_255_target;
   for(const [frame,[min,max]] of Object.entries(regionARanges))assert(roiMean255(frame)>=min&&roiMean255(frame)<=max,frame+" Region A mean RGB difference must be "+min+"–"+max+" /255; observed "+roiMean255(frame).toFixed(3));
@@ -1858,6 +1858,7 @@ async function main() {
     caustic_calibration:{...waterContract.rendering.caustics.calibration,field_opacity_response_multiplier:waterContract.rendering.caustics.field_opacity_response_multiplier,gradient_half_extent_multiplier:waterContract.rendering.caustics.gradient_half_extent_multiplier},
     source_asset:sourceManifest.fixture,
     region_version:debugOverlayState.version,
+    ambient_field_geometry:ambientRuntimeState,
     zone_polygon_counts:{A:debugOverlayState.zones.A.length,B:debugOverlayState.zones.B.length,C:debugOverlayState.zones.C.length},
     frames:compositeMetrics,
     screenshots:waterScreenshots,
