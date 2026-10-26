@@ -47,3 +47,14 @@ For exactly 320×480dp at system fontScale 1.0, use the contract's `preview_engi
 ## Required review
 
 The contract and control-plane references must validate before canonical adoption. Runtime conformance gaps are explicitly recorded in the JSON and are not hidden by changing the design rules. The Android matrix remains `NOT_VERIFIED` until exact-SHA evidence passes. Generated Hero/neighbor images remain `GENERATED_ILLUSTRATIVE_ONLY`; source authenticity and real-catch provenance do not gate this geometry freeze, while independent files, manifest status, and layout-stable failure fallback remain required.
+
+
+### Canonical executable surplus formula
+
+The single approved formula is:
+
+`gAB = gAB_base + S/2`
+
+`gBC = gBC_base + S/2`
+
+The two additions are equal. No other gap cap, 2:1 split, or outer-breathing reserve may override these equations. The machine-readable source is `NH01_RESPONSIVE_LAYOUT_V2.json`.
