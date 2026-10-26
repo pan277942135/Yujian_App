@@ -376,7 +376,7 @@ def validate_tree(root: Path, *, built: bool = False, expected_build: str | None
     sites_visual = load_json(root / sites_hifi["machine_authority"])
     require(sites_hifi.get("status") == "DESIGN_ONLY" and sites_hifi.get("runtime_status") == "NOT_VERIFIED" and sites_hifi.get("production_inference_connected") is False, "FishTrace Sites prototype must remain DESIGN_ONLY and not connected to production inference")
     require(sites_visual.get("prototype_id") == "FISHTRACE-SITES-WEB-STRUCTURED-PROTOTYPE-V1" and sites_visual.get("production_inference_connected") is False and sites_visual.get("sites_source_modified") is False, "FishTrace Sites prototype machine contract identity/scope changed")
-    require(len(sites_visual.get("scenes", [])) == 6 and len(sites_visual.get("acceptance_checks", [])) >= 12, "FishTrace Sites prototype must include six states and structured acceptance checks")
+    require(len(sites_visual.get("scenes", [])) == 7 and len(sites_visual.get("acceptance_checks", [])) >= 15, "FishTrace Sites prototype must include seven states including RR09 reveal and structured acceptance checks")
     require("DEMO_DATA_ONLY" in json.dumps(sites_visual) and "photo_upload" in json.dumps(sites_visual), "FishTrace Sites sample-result or privacy boundary is missing")
     require("guide-resource-grid" in css and "guide-resource-metadata" in css, "guide Resources responsive gallery styles are missing")
     for token in (
