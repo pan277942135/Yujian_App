@@ -253,7 +253,6 @@
         context.save();
         context.globalCompositeOperation="screen";
         context.globalAlpha=alpha;
-        context.filter="blur("+(rendering.ribbon_edge_blur_source_px*xScale)+"px)";
         context.beginPath();
         traceSmoothPoints(context,top,rect,asset);
         context.lineTo(rect.x+bottom[bottom.length-1].x/asset.width*rect.width,rect.y+bottom[bottom.length-1].y/asset.height*rect.height);
@@ -280,7 +279,6 @@
         context.strokeStyle=rendering.refraction_colors[ribbon.color%rendering.refraction_colors.length];
         context.lineWidth=rendering.refraction_width_source_px/asset.width*rect.width;
         context.lineCap="round";
-        context.filter="blur("+(rendering.highlight_edge_blur_source_px*rect.width/asset.width)+"px)";
         context.beginPath();
         traceSmoothPoints(context,geometry.points,rect,asset);
         context.stroke();
