@@ -301,8 +301,8 @@
     "image_dpr": "devicePixelRatio",
     "water_region_clip": "source-native polygon path plus precomputed blurred-inward alpha mask; clip is rebuilt from the shared object-fit:contain content rectangle on resize",
     "texture_generation": "A deterministic seeded set of smoothly deforming, horizontally flowing curvilinear caustic ribbons is precomputed per source-native water polygon. Ribbon centerlines, local width, color and motion are evaluated from elapsed time; no frame-local random geometry or polygon-cell mesh is used.",
-    "ambient_alpha": 0.16,
-    "ambient_bloom_alpha": 0.08,
+    "ambient_alpha": 0.18,
+    "ambient_bloom_alpha": 0.09,
     "ambient_colors": [
       "rgba(150,181,143,.72)",
       "rgba(171,203,169,.72)",
@@ -359,6 +359,12 @@
           "before": "Jittered mesh cells with visible shared polygon seams and connected grid-edge highlights.",
           "after": "8–22 source-native smooth, elongated ribbons per water polygon, 18–46 source-pixel width, slowly deforming from precomputed deterministic control samples; sparse ribbon-aligned refraction glints.",
           "reason": "Browser composite screenshots showed the mesh read as a geometric polygon grid and was too subtle as natural caustics. Curved bands retain deterministic continuity while removing cell seams."
+        },
+        {
+          "parameter": "canvas_cost_and_ribbon_density",
+          "before": "Per-ribbon blur filtering on 28–31 broad bands, with 10-segment curves.",
+          "after": "20–21 source-native ribbons for the fixed polygons, eight curve segments, gradient-softened edges without per-ribbon blur filters.",
+          "reason": "Chromium playback profiling showed the initial ribbon composite missed the minimum sample rate; remove repeated filter passes and reduce path work while retaining enough spatial coverage for the measured visibility gates."
         }
       ],
       "p2_visibility_baseline_mean_rgb_abs_diff_min_255": 3,
@@ -369,15 +375,15 @@
       "p3_to_p5_mean_diff_must_decrease": true,
       "p5_to_p6_mean_diff_must_decrease": true,
       "p2_to_p3_spatial_map_change_required": true,
-      "v3_change": "Replace the visible polygon-cell mosaic and grid-aligned edge highlights with a sparse seeded ribbon field: smooth curved area bands for layer B and a few aligned low-alpha centerline glints for layer C. The water-only mask and P0–P7 timeline are unchanged."
+      "v3_change": "Replace the visible polygon-cell mosaic and grid-aligned edge highlights with a deterministic curved ribbon field: soft cross-ribbon alpha gradients create face-like caustics without per-ribbon blur filters; a few aligned low-alpha centerline glints form layer C. The water-only mask and P0–P7 timeline are unchanged."
     },
-    "ribbon_spacing_source_px": 54,
-    "ribbon_min_count": 8,
-    "ribbon_max_count": 22,
-    "ribbon_curve_segments": 10,
+    "ribbon_spacing_source_px": 78,
+    "ribbon_min_count": 7,
+    "ribbon_max_count": 15,
+    "ribbon_curve_segments": 8,
     "ribbon_spacing_jitter_fraction": 0.24,
-    "ribbon_thickness_min_source_px": 18,
-    "ribbon_thickness_max_source_px": 46,
+    "ribbon_thickness_min_source_px": 22,
+    "ribbon_thickness_max_source_px": 52,
     "ribbon_amplitude_min_source_px": 6,
     "ribbon_amplitude_max_source_px": 20,
     "ribbon_frequency_min": 1.1,
@@ -390,13 +396,11 @@
     "ribbon_shape_variation_fraction": 0.12,
     "ribbon_expansion_fraction": 0.34,
     "ribbon_recollection_fraction": 0.15,
-    "caustic_ribbon_alpha": 0.72,
-    "ribbon_edge_alpha": 0.22,
-    "ribbon_core_alpha": 0.58,
-    "ribbon_edge_blur_source_px": 2.8,
+    "caustic_ribbon_alpha": 0.74,
+    "ribbon_edge_alpha": 0.25,
+    "ribbon_core_alpha": 0.62,
     "highlight_ribbon_weight_threshold": 0.86,
-    "refraction_width_source_px": 1.45,
-    "highlight_edge_blur_source_px": 0.75
+    "refraction_width_source_px": 1.45
   },
   "visual_acceptance": {
     "state": "NOT_YET_VISUALLY_SIGNED_OFF",
