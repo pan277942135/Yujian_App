@@ -2,6 +2,7 @@
 
 **Status:** `WORKING_BASELINE`  
 **Freeze status:** `NOT_FROZEN`  
+**Machine contract:** `responsive/NH01_RESPONSIVE_LAYOUT_V2.json` (proposed; sole numeric source for the structured browser preview)
 **Android Runtime:** `NOT_VERIFIED`  
 **Target workspace:** `#page/home_normal_v1/hifi/multi_screen_static_hifi`  
 **Purpose:** Persist the current product decision to canonical `main` during development. This is a durable decision checkpoint, not a claim that the browser workspace or Android runtime already conforms.
@@ -56,7 +57,7 @@ gBC = gBC_base + S/2
 
 The added portions are equal; the final visible gaps need not be equal because their base values differ. The candidate formula `2S/3` for A→B and `S/3` for B→C is not accepted. Do not silently restore it.
 
-The structured browser preview currently has additional gap caps and outer-breathing behavior. Those values must be reconciled with the 1:1 allocation decision in the next implementation pass; they must not become an unregistered second responsive authority. Any refinement to cap gaps must be recorded here and synchronized to the single machine contract before implementation.
+The browser candidate's extra gap caps and outer-breathing behavior are rejected. The structured preview applies the full positive surplus through the two base gaps: each receives exactly `S/2`; there is no added-gap cap, outer-breathing reserve, or separate footer reserve. The machine contract and validator must keep this rule executable and test its actual added portions.
 
 ## 6. Hero and Neighbor geometry
 
@@ -67,6 +68,7 @@ The structured browser preview currently has additional gap caps and outer-breat
 - Maximum Hero height: 400dp.
 - Preserve readable content and the approved source-photo treatment.
 - The existing 124dp short-screen exception is limited to exactly 320×480dp at system fontScale 1.0, with width at least 145dp, all required copy readable, and no Middle scrolling.
+- `124dp` is the short-screen minimum-readable floor, not a forced final card height. The final Hero must also preserve 247:293, be at least 145dp wide, keep required copy readable, and have no Middle/Pager scroll. If those conditions cannot fit together after allowed whitespace compression, report `SPEC_CONFLICT`/`FAIL_CONSTRAINT`; do not relax any one condition.
 - Under height pressure, compress nonessential spacing first. If the required Hero and content still cannot fit, use local Middle/Pager scrolling while keeping Footer outside it. Do not globally shrink the Hero or fonts to conceal overflow.
 
 The normal readable-height range (148–220dp), ratio-derived target size, 400dp cap, and short-screen exception must be reconciled into one executable calculation before freeze. A constraint conflict must be reported, not silently overridden.
@@ -86,6 +88,7 @@ The normal readable-height range (148–220dp), ratio-derived target size, 400dp
 - Apply system fontScale exactly once. Measure actual rendered line ranges; do not rely on a boolean overflow flag alone.
 - Preserve species, positive measurement values/units, and time before optional location. Do not fabricate zero/unknown values or leave a lone final CJK glyph or dangling separator.
 - Keep the CTA and camera in one Footer action group.
+- `记录下一条鱼` is a static text label in the current interaction contract/runtime; it has no independent touch target. Only the camera action owns the >=72dp target in this group.
 - Measure camera artwork separately from its touch rectangle. Camera touch target is at least 72dp; other interactive targets are at least 48×48dp.
 - Keep Footer within the safe area and outside Middle scrolling. Never overlap CTA, camera, cards, or system navigation.
 
@@ -112,6 +115,8 @@ A scroll fallback is not an automatic visual pass. Do not hide required content,
 
 ## 10. Immediate next step
 
-Align the existing PR #191 candidate and its structured workspace with this decision checkpoint: remove the rejected 2:1 surplus split, consolidate Hero/Peek/spacing/Footer numeric values into one machine-readable rule source, and make the existing preview consume that source. Keep the candidate editable during development. Promote to a frozen contract only after the actual browser preview is reviewed and the required checks pass.
+Align the existing PR #191 candidate and its structured workspace with this checkpoint: make the V2 machine contract the single numeric source, have the existing Design Manager route consume it directly, and remove the independent preview-rule values. Keep the contract proposed while the exact-source browser matrix is verified. Promote it to `SPEC_FROZEN` only after the contract, M01 short-screen behavior, browser matrix, boundary probes, and candidate deployment pass their registered gates.
+
+The `P3-05` and `P3-06` task IDs remain assigned to their existing SWOS/Web scopes. NH01 responsive work uses `NH01-RESPONSIVE-CONTRACT-V2` / `G-NH01-RESPONSIVE-CONTRACT-V2` and `NH01-RESPONSIVE-PREVIEW-V2` / `G-NH01-RESPONSIVE-PREVIEW-V2`; do not repurpose the canonical P3 gates. Generated illustrative media is checked only for independent files, manifest status, stable geometry, and failure fallback; photo authenticity, real-catch provenance, and rights are outside this layout freeze.
 
 This checkpoint records the current working decision on `main`; it does not claim that the implementation, browser preview, or Android runtime has already passed.
