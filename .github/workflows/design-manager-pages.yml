@@ -457,7 +457,12 @@ jobs:
           retention-days: 30
 
   deploy:
-    if: github.event_name != 'pull_request'
+    # Production Pages is deployed only by an explicit branch push. A manual
+    # workflow_dispatch on a candidate branch must never replace production.
+    if: >-
+      github.event_name == 'push' &&
+      (github.ref == 'refs/heads/main' ||
+       github.ref == 'refs/heads/ops/pages-recovery-nh01-preview-20261021')
     concurrency:
       group: design-manager-pages-publish
       cancel-in-progress: false
