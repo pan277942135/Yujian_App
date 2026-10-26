@@ -435,6 +435,13 @@
     setState('preview');
   }
   root.addEventListener('click', event => {
+    const workspaceViewButton = event.target.closest('[data-water-view]');
+    if (workspaceViewButton && workspaceViewButton.dataset.waterView === 'canvas-water') {
+      clearTimeout(transitionTimer);
+      stopMotion();
+      clearPhotoTransition();
+      return;
+    }
     const stateButton = event.target.closest('[data-state]');
     if (stateButton && stateButton.classList.contains('state-tab')) {
       const state = stateButton.dataset.state;
