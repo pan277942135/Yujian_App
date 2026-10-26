@@ -20,7 +20,13 @@ repositories:
   main:
     branch: "main"
     sha: "7aa7fb5e93d0b61b3d9598306dbb4c92f225400d"
-pull_requests: {}
+pull_requests:
+  PR217:
+    number: 217
+    branch: "fix/nh01-responsive-v2-android-runtime-v1"
+    base_sha: "7aa7fb5e93d0b61b3d9598306dbb4c92f225400d"
+    state: "CLOSED"
+    reason: "State-only draft closed; final Main promotion must exclude branch-local state."
 phases:
   P0: { status: "NOT_CONFIRMED" }
   P1: { status: "NOT_CONFIRMED" }
@@ -70,8 +76,12 @@ current_work:
   phase: "P6"
   task_id: "YUJIAN_NH01_RESPONSIVE_V2_ANDROID_IMPLEMENTATION_AND_RUNTIME_ACCEPTANCE_V1"
   exact_head: "7aa7fb5e93d0b61b3d9598306dbb4c92f225400d"
-  status: "READY"
-blockers: []
+  status: "RECOVERING"
+blockers:
+  - id: "B-NH01-ADMISSION-PROMOTION-MODE"
+    status: "RECOVERING"
+    run_id: 40352845021
+    detail: "PR promotion validation rejects branch-local Work state; run product-work Admission through workflow_dispatch."
 protected_invariants:
   frozen_responsive_contract:
     - "NH01_RESPONSIVE_LAYOUT_V2.json is the only machine-readable responsive rule source."
@@ -82,14 +92,14 @@ protected_invariants:
 next_actions:
   - id: "NH01-V2-ANDROID-ADMISSION"
     status: "READY"
-    action: "Validate branch-local state and canonical control-plane admission before implementation."
+    action: "Run product-work control-plane admission by workflow_dispatch on the Work branch before implementation."
 completion_rules:
   - "Do not mark Android runtime passed without exact-SHA API 28 device evidence."
   - "Do not close N004 or authorize release from this task."
 state_update:
-  checkpoint_updated_at: "2026-10-26T15:47:09.797Z"
+  checkpoint_updated_at: "2026-10-26T15:56:35.347Z"
   rule: "Update branch-local state at every stage boundary and preserve failure history."
 agent_recovery:
   last_completed_stage: "A_SPEC_FREEZE"
-  current_stage: "E0_ADMISSION"
-  next_action: "Run exact-branch control-plane admission; then inspect route and policy before implementation."
+  current_stage: "E0_ADMISSION_RECOVERY"
+  next_action: "Dispatch product-work Admission on this state branch; after PASS, inspect route and policy before implementation."

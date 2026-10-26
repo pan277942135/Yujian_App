@@ -1,35 +1,66 @@
 {
   "$schema": "./harness/WORK_EXECUTION_STATE_SCHEMA_V1.json",
-  "schema_version": "1.0",
-  "work_id": "YUJIAN_NH01_RESPONSIVE_V2_ANDROID_IMPLEMENTATION_AND_RUNTIME_ACCEPTANCE_V1",
-  "repository": "pan277942135/Yujian_App",
-  "branch": "fix/nh01-responsive-v2-android-runtime-v1",
-  "control_plane_revision": "7aa7fb5e93d0b61b3d9598306dbb4c92f225400d",
   "base_branch": "main",
   "base_sha": "7aa7fb5e93d0b61b3d9598306dbb4c92f225400d",
-  "phase": "P6",
-  "task_id": "YUJIAN_NH01_RESPONSIVE_V2_ANDROID_IMPLEMENTATION_AND_RUNTIME_ACCEPTANCE_V1",
-  "stage": "E0",
-  "status": "READY",
-  "source_sha": "7aa7fb5e93d0b61b3d9598306dbb4c92f225400d",
-  "checkpoint_updated_at": "2026-10-26T15:47:09.797Z",
-  "next_action": "Run exact-branch control-plane admission for the state-only checkpoint before any Android implementation.",
+  "blockers": [],
+  "branch": "fix/nh01-responsive-v2-android-runtime-v1",
+  "checkpoint_updated_at": "2026-10-26T15:56:35.347Z",
+  "control_plane_revision": "7aa7fb5e93d0b61b3d9598306dbb4c92f225400d",
   "dependencies": [
     "NH01-RESPONSIVE-PREVIEW-V2"
   ],
-  "blockers": [],
   "evidence": {
     "frozen_v2_main_sha": "7aa7fb5e93d0b61b3d9598306dbb4c92f225400d",
-    "pr_191": {
-      "status": "MERGED",
-      "url": "https://github.com/pan277942135/Yujian_App/pull/191",
-      "merge_sha": "7aa7fb5e93d0b61b3d9598306dbb4c92f225400d"
-    },
     "main_control_plane_admission": {
       "run_id": 40351715200,
-      "status": "PASS",
-      "sha": "7aa7fb5e93d0b61b3d9598306dbb4c92f225400d"
+      "sha": "7aa7fb5e93d0b61b3d9598306dbb4c92f225400d",
+      "status": "PASS"
     },
-    "native_runtime": "NOT_VERIFIED"
-  }
+    "native_runtime": "NOT_VERIFIED",
+    "pr_191": {
+      "merge_sha": "7aa7fb5e93d0b61b3d9598306dbb4c92f225400d",
+      "status": "MERGED",
+      "url": "https://github.com/pan277942135/Yujian_App/pull/191"
+    },
+    "pr_217": {
+      "status": "CLOSED",
+      "url": "https://github.com/pan277942135/Yujian_App/pull/217",
+      "reason": "State-only draft PR closed because Main promotion validation forbids branch-local state in the merge tree."
+    },
+    "admission_failure": {
+      "run_id": 40352845021,
+      "head_sha": "d6e7ca6e27a4d2e95981cb2f63e8732acaa3426d",
+      "status": "FAIL",
+      "failure_id": "598932ef73a8fb9b7733",
+      "reason": "CANONICAL_PROMOTION_TREE forbids branch-local Work state in a PR merge tree.",
+      "workflow_dispatch_mode": "PRODUCT_WORK"
+    }
+  },
+  "execution_v2": {
+    "issues": {
+      "598932ef73a8fb9b7733": {
+        "closed": false,
+        "failures": [
+          {
+            "evidence": "Exact run 40352845021 at PR merge SHA for branch head d6e7ca6e27a4d2e95981cb2f63e8732acaa3426d failed: static validators PASS, then CANONICAL_PROMOTION_TREE=FAIL forbidden_branch_state=PROJECT_MASTER_STATE.yaml,WORK_EXECUTION_STATE.json. Validator code confirms each pull_request to main is a Main promotion; workflow_dispatch on the branch selects product-work mode.",
+            "hypothesis": "The PR-target admission checks the proposed Main tree and rejects branch-local state; use product-work admission on the state branch and keep state out of the final Main promotion tree.",
+            "source_sha": "7aa7fb5e93d0b61b3d9598306dbb4c92f225400d"
+          }
+        ],
+        "gate_id": "G-CONTROL-PLANE-ADMISSION",
+        "symptom_key": "pull-request-main-promotion-rejects-branch-local-work-state",
+        "task_id": "YUJIAN_NH01_RESPONSIVE_V2_ANDROID_IMPLEMENTATION_AND_RUNTIME_ACCEPTANCE_V1"
+      }
+    },
+    "schema_version": "1.0"
+  },
+  "next_action": "Run workflow_dispatch control-plane-admission on this Work branch, confirm product-work Admission PASS, then proceed with NH01 implementation.",
+  "phase": "P6",
+  "repository": "pan277942135/Yujian_App",
+  "schema_version": "1.0",
+  "source_sha": "7aa7fb5e93d0b61b3d9598306dbb4c92f225400d",
+  "stage": "E0",
+  "status": "RECOVERING",
+  "task_id": "YUJIAN_NH01_RESPONSIVE_V2_ANDROID_IMPLEMENTATION_AND_RUNTIME_ACCEPTANCE_V1",
+  "work_id": "YUJIAN_NH01_RESPONSIVE_V2_ANDROID_IMPLEMENTATION_AND_RUNTIME_ACCEPTANCE_V1"
 }
