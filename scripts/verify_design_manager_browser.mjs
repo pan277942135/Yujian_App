@@ -1001,6 +1001,21 @@ async function main() {
   const fishtraceFrame = page.frame({ url: /fishtrace_sites_web_workspace.html/ });
   assert(Boolean(fishtraceFrame), "FishTrace Sites prototype iframe document is not reachable");
   await fishtraceFrame.locator('[data-testid="fishtrace-sites-web-workspace"]').waitFor({ state: "visible", timeout: 30000 });
+
+  const waitForFreshFishtraceFrame = async targetPage => {
+    await targetPage.locator(fishtraceFrameSelector).waitFor({state:"visible",timeout:30000});
+    await targetPage.waitForFunction(selector => {
+      const frame = document.querySelector(selector);
+      try {
+        return Boolean(frame && frame.contentDocument && frame.contentDocument.readyState === "complete" &&
+          frame.contentDocument.querySelector('[data-testid="fishtrace-sites-web-workspace"]'));
+      } catch (_) { return false; }
+    },fishtraceFrameSelector,{timeout:30000});
+    const targetFrame = targetPage.frame({url:/fishtrace_sites_web_workspace\.html/});
+    assert(Boolean(targetFrame),"FishTrace workspace iframe did not finish loading in the browser context");
+    await targetFrame.locator('[data-testid="fishtrace-sites-web-workspace"]').waitFor({state:"visible",timeout:30000});
+    return targetFrame;
+  };
   assert((await fishtraceFrame.locator(".prototype-warning").innerText()).includes("不调用真实模型"), "FishTrace Sites prototype demo-only disclaimer is missing");
   assert((await fishtraceFrame.locator(".product-device").getAttribute("data-device")) === "desktop", "FishTrace Sites prototype must start in desktop preview");
   await fishtraceFrame.locator('[data-action="start"]').click();
@@ -1266,9 +1281,7 @@ async function main() {
   const blockedContract = "**/FISHTRACE_SWOS_CANVAS_WATER_LAB_V1_CANDIDATE.json*";
   await failedPage.route(blockedContract,route => route.abort());
   await failedPage.goto(new URL(fishtraceSitesHash,baseUrl).href,{waitUntil:"domcontentloaded"});
-  const failedFrame = failedPage.frame({url:/fishtrace_sites_web_workspace\.html/});
-  assert(Boolean(failedFrame), "Canvas failure-recovery check could not reach the existing FishTrace iframe");
-  await failedFrame.locator('[data-testid="fishtrace-sites-web-workspace"]').waitFor({state:"visible",timeout:30000});
+  const failedFrame = await waitForFreshFishtraceFrame(failedPage);
   await failedFrame.locator('[data-water-view="canvas-water"]').click();
   await failedFrame.waitForFunction(() => document.querySelector('[data-testid="canvas-water-lab"]')?.dataset.rendererStatus === "ERROR",null,{timeout:15000});
   assert(await failedFrame.locator("#water-load-error").isVisible() && await failedFrame.locator("#water-retry").isVisible(), "A failed candidate contract load must show a clear error and retry entry");
@@ -1297,9 +1310,7 @@ async function main() {
   videoPage.on("pageerror",error => videoErrors.push(error.message));
   videoPage.on("request",request => videoRequests.push({url:request.url(),method:request.method()}));
   await videoPage.goto(new URL(fishtraceSitesHash,baseUrl).href,{waitUntil:"domcontentloaded"});
-  const videoFrame = videoPage.frame({url:/fishtrace_sites_web_workspace\.html/});
-  assert(Boolean(videoFrame), "Canvas playback recording could not reach the real candidate iframe");
-  await videoFrame.locator('[data-testid="fishtrace-sites-web-workspace"]').waitFor({state:"visible",timeout:30000});
+  const videoFrame = await waitForFreshFishtraceFrame(videoPage);
   await videoFrame.locator('[data-water-view="canvas-water"]').click();
   await videoFrame.waitForFunction(() => document.querySelector('[data-testid="canvas-water-lab"]')?.dataset.rendererStatus === "READY",null,{timeout:30000});
   await videoFrame.locator("#water-play").click();
