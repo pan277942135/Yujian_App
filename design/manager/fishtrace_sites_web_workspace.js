@@ -303,6 +303,7 @@
     transition.overlay.style.width = lerp(transition.from.width, transition.to.width).toFixed(2) + 'px';
     transition.overlay.style.height = lerp(transition.from.height, transition.to.height).toFixed(2) + 'px';
     transition.overlay.dataset.progress = p.toFixed(3);
+    transition.overlay.dataset.transitionRendered = "true";
   }
   function startPhotoTransition(fromRect) {
     const target = $('.reveal-photo');
@@ -366,6 +367,8 @@
     clearTimeout(transitionTimer);
     stopMotion();
     clearPhotoTransition();
+    const transitionOverlay = $('#photo-transition-overlay');
+    if (transitionOverlay) transitionOverlay.removeAttribute('data-transition-rendered');
     motionFrame = 0;
     revealFrame = 0;
     setState('processing');

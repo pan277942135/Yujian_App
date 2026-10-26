@@ -1059,12 +1059,12 @@ async function main() {
   assert(!(await fishtraceFrame.locator("body").evaluate(() => window.matchMedia("(prefers-reduced-motion: reduce)").matches)), "Full-motion acceptance must run with reduced motion disabled");
   await fishtraceFrame.locator('.state-tab[data-state="preview"]').click();
   await fishtraceFrame.locator('[data-scene="preview"] [data-action="recognize"]').click();
-  await fishtraceFrame.locator('#photo-transition-overlay').waitFor({ state: 'visible', timeout: 4000 });
+  await fishtraceFrame.locator('[data-scene="result"]').waitFor({ state: 'visible', timeout: 5000 });
   const transitionPhotoSource = await fishtraceFrame.locator('#photo-transition-image').evaluate(node => node.currentSrc);
   const revealPhotoSource = await fishtraceFrame.locator('#photo-foreground-reveal').evaluate(node => node.currentSrc);
-  assert(transitionPhotoSource === revealPhotoSource, "RR09 photo transition must reuse the same source photo");
-  await fishtraceFrame.locator('#photo-transition-overlay').waitFor({ state: 'hidden', timeout: 1500 });
-  await fishtraceFrame.locator('[data-scene="result"]').waitFor({ state: 'visible', timeout: 1500 });
+  assert(transitionPhotoSource && transitionPhotoSource === revealPhotoSource, "RR09 photo transition must reuse the same source photo");
+  const transitionRendered = await fishtraceFrame.locator('#photo-transition-overlay').evaluate(node => node.dataset.transitionRendered === 'true');
+  assert(transitionRendered, "The full playback must execute the photo-geometry transition renderer");
   assert(await fishtraceFrame.locator('#photo-transition-overlay').isHidden(), "Photo transition overlay must be removed after R1");
   await page.screenshot({ path: resolve(args.outputDir, "fishtrace-sites-web-hifi-continuous-result.png"), fullPage: true });
   await fishtraceFrame.locator('.state-tab[data-state="error"]').click();
