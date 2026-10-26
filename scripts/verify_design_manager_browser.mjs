@@ -220,16 +220,24 @@ async function main() {
   const currentContract=await page.evaluate(async()=>{
     const registry=await(await fetch("../registry/experience_registry_v1.json")).json();
     const view=registry.features.find(feature=>feature.id==="home_normal_v1").hifi_views.find(item=>item.id==="multi_screen_static_hifi");
-    const contract=await(await fetch("../../"+view.machine_authority)).json();
-    const previewRules=await(await fetch("../../design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_STRUCTURED_PREVIEW_LAYOUT_RULES_V2.json")).json();
-    return {view,contract,previewRules};
+    const contractUrl="../../"+view.responsive_layout_authority;
+    const contractResponse=await fetch(contractUrl); if(!contractResponse.ok)throw new Error("V2 responsive contract HTTP "+contractResponse.status);
+    const contractText=await contractResponse.text(); const contract=JSON.parse(contractText);
+    const markdown=await(await fetch("../../"+view.responsive_layout_guide)).text();
+    const previewRules=await(await fetch("../../"+view.structured_preview_rules)).json();
+    const digest=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(contractText));
+    const contractSha256=[...new Uint8Array(digest)].map(byte=>byte.toString(16).padStart(2,"0")).join("");
+    return {view,contract,markdown,previewRules,contractSha256};
   });
-  const profileComputations=await page.evaluate(({contract,previewRules})=>[[320,480],[360,640],[390,844],[430,932],[480,480],[480,700],[480,1100],[412,915]].flatMap(([w,h])=>[1,1.3,1.5].map(font=>{
-    const r=window.NH01StructuredWorkspace.calculate(w,h,font,24,24,contract,false,previewRules);
-    return {w,h,font,hero:{width:r.actualHeroWidth,height:r.heroHeight,ratio:r.actualHeroWidth/r.heroHeight},pager:{height:r.pagerHeight,contentHeight:r.pagerContentHeight,scroll:r.pagerNeedsScroll,peekGap:r.peekGap,peekReveal:r.peekReveal},footer:r.hC,gapAB:r.gAB,gapBC:r.gBC,outerBreathing:r.outerBreathing,conflicts:r.conflicts};
+  const profileComputations=await page.evaluate(({contract,markdown,previewRules})=>[[320,480],[360,640],[390,844],[430,932],[480,480],[480,700],[480,1100],[412,915]].flatMap(([w,h])=>[1,1.3,1.5].map(font=>{
+      const conflict=window.NH01StructuredWorkspace.hasAuthorityConflict(markdown,contract); const r=window.NH01StructuredWorkspace.calculate(w,h,font,24,24,contract,conflict,previewRules);
+      return {w,h,font,contractId:r.contractId,hero:{width:r.actualHeroWidth,height:r.heroHeight,ratio:r.actualHeroWidth/r.heroHeight},pager:{height:r.pagerHeight,contentHeight:r.pagerContentHeight,scroll:r.pagerNeedsScroll,peekGap:r.peekGap,peekReveal:r.peekReveal},footer:r.hC,S:r.S,gapAB:r.gAB,gapBC:r.gBC,gapABExtra:r.gapABExtra,gapBCExtra:r.gapBCExtra,outerBreathing:r.outerBreathing,conflicts:r.conflicts};
   })),currentContract);
   assert(profileComputations.length===24,"NH01 preview calculation must cover eight viewports × three font scales");
-  assert(profileComputations.every(item=>Math.abs(item.hero.ratio-247/293)<.001&&item.pager.peekGap>=8&&item.pager.peekGap<=12&&item.footer<(item.font===1?130:146)),"all preview calculations must preserve Hero ratio, bounded Peek spacing and a content-sized footer");
+  assert(currentContract.contract.contract_id==="NH01_RESPONSIVE_LAYOUT_V2"&&currentContract.previewRules.numeric_authority==="NONE","existing structured route must use V2 as the only numeric authority");
+  assert(profileComputations.every(item=>item.contractId==="NH01_RESPONSIVE_LAYOUT_V2"&&Math.abs(item.hero.ratio-247/293)<.001&&item.pager.peekGap>=currentContract.contract.preview_engine.parameters.neighbor.peek_gap.minimum_dp&&item.pager.peekGap<=currentContract.contract.preview_engine.parameters.neighbor.peek_gap.maximum_dp&&Math.abs(item.gapABExtra-item.S/2)<.02&&Math.abs(item.gapBCExtra-item.S/2)<.02&&item.outerBreathing===0&&item.footer<(item.font===1?130:146)),"all preview calculations must consume V2, preserve Hero ratio, and use equal S/2 surplus allocation");
+  const m01=profileComputations.find(item=>item.w===320&&item.h===480&&item.font===1);
+  assert(m01.hero.width>=145&&m01.pager.scroll===false&&!m01.conflicts.some(item=>item.includes("FAIL_CONSTRAINT")),"exact M01 must preserve 145dp Hero minimum and NO_SCROLL");
   await workspace.locator(".nh01-structured-controls details > summary").click();
   await workspace.locator('[data-control="width"]').fill("390");
   await workspace.locator('[data-control="height"]').fill("844");
@@ -243,14 +251,15 @@ async function main() {
     const dom=[board,...board.querySelectorAll("[data-layer]")].map(node=>{const r=node.getBoundingClientRect();return{id:node.dataset.layer,parent:node===board?null:node.parentElement.closest("[data-layer]")?.dataset.layer??null,rect:{x:+(r.left-origin.left).toFixed(3),y:+(r.top-origin.top).toFixed(3),w:+r.width.toFixed(3),h:+r.height.toFixed(3)},tag:node.tagName,assetStatus:node.dataset.assetStatus||"ROOT",mappingStatus:node.dataset.mappingStatus||"ROOT"};});
     const images=[...board.querySelectorAll("img")].map(image=>({alt:image.alt,src:image.currentSrc,naturalWidth:image.naturalWidth,naturalHeight:image.naturalHeight,complete:image.complete,objectFit:getComputedStyle(image).objectFit,role:image.dataset.mediaRole||null,mediaStatus:image.dataset.mediaStatus||null}));
     const byId=new Map(dom.map(item=>[item.id,item]));
-    return {viewport:{width:Number(document.querySelector('[data-control="width"]').value),height:Number(document.querySelector('[data-control="height"]').value),fontScale:Number(document.querySelector('[data-control="font"]').value),zoom:Number(document.querySelector('[data-control="zoom"]').value)},tree,dom,images,parentMismatches:tree.filter(node=>node.id!=="page"&&byId.get(node.id)?.parent!==node.parent),unmapped:tree.filter(node=>!byId.has(node.id))};
+    return {viewport:{width:Number(document.querySelector('[data-control="width"]').value),height:Number(document.querySelector('[data-control="height"]').value),fontScale:Number(document.querySelector('[data-control="font"]').value),zoom:Number(document.querySelector('[data-control="zoom"]').value)},metrics:JSON.parse(board.dataset.layoutMetrics),tree,dom,images,parentMismatches:tree.filter(node=>node.id!=="page"&&byId.get(node.id)?.parent!==node.parent),unmapped:tree.filter(node=>!byId.has(node.id))};
   });
-  const domFormulaComparison=await page.evaluate(({contract,previewRules,measuredLayers})=>{
-    const calculated=window.NH01StructuredWorkspace.calculate(390,844,1,24,24,contract,false,previewRules),actual=new Map(measuredLayers.map(layer=>[layer.id,layer.rect]));
+  assert(domEvidence.metrics.contractId==="NH01_RESPONSIVE_LAYOUT_V2"&&domEvidence.metrics.contractSha256===currentContract.contractSha256,"live DOM must report the exact V2 contract SHA");
+  const domFormulaComparison=await page.evaluate(({contract,markdown,previewRules,measuredLayers})=>{
+    const conflict=window.NH01StructuredWorkspace.hasAuthorityConflict(markdown,contract); const calculated=window.NH01StructuredWorkspace.calculate(390,844,1,24,24,contract,conflict,previewRules),actual=new Map(measuredLayers.map(layer=>[layer.id,layer.rect]));
     const ids=["page","environment","background","header","brand","avatar","stats","recent-header","pager","hero","peek-left","peek-right","pager-indicator","capture-action-group","cta","camera"];
     return ids.map(id=>{const expected=calculated.rects[id],seen=actual.get(id);return{id,expected,actual:seen,delta:expected&&seen?{x:+(seen.x-expected.x).toFixed(3),y:+(seen.y-expected.y).toFixed(3),w:+(seen.w-expected.w).toFixed(3),h:+(seen.h-expected.h).toFixed(3)}:null};});
-  },{contract:currentContract.contract,previewRules:currentContract.previewRules,measuredLayers:domEvidence.dom});
-  assert(domFormulaComparison.every(row=>row.actual&&row.delta&&Object.values(row.delta).every(delta=>Math.abs(delta)<.1)),`the rendered 390×844 DOM must match the PREVIEW_ONLY formula: ${JSON.stringify(domFormulaComparison)}`);
+  },{contract:currentContract.contract,markdown:currentContract.markdown,previewRules:currentContract.previewRules,measuredLayers:domEvidence.dom});
+  assert(domFormulaComparison.every(row=>row.actual&&row.delta&&Object.values(row.delta).every(delta=>Math.abs(delta)<.1)),`the rendered 390×844 DOM must match the V2 machine-contract calculation: ${JSON.stringify(domFormulaComparison)}`);
   const profileGeometryComparisons=profileComputations;
   const widthBoundaryEvidence={viewport:{width:480,heightPolicy:"short / medium / long explicitly sampled in preview"},cases:profileComputations.filter(item=>item.w===480),contractScope:"PREVIEW_ONLY; no Android height implied"};
   const renderedCanvasPath=resolve(args.outputDir,"nh01-m03-render-390x844.png");
