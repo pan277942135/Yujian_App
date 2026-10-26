@@ -1008,8 +1008,10 @@ async function main() {
   assert(await fishtraceFrame.locator('[data-layer-id="camera-card"]').isVisible(), "Camera source option is missing");
   assert(await fishtraceFrame.locator('[data-layer-id="gallery-card"]').isVisible(), "Gallery source option is missing");
   const localPhotoRequestStart = requests.length;
+  const galleryChooserPromise = page.waitForEvent("filechooser");
   await fishtraceFrame.locator('[data-action="gallery"]').first().click();
-  await fishtraceFrame.locator("#gallery-input").setInputFiles(resolve(args.root, "design/system/fish_media_display_v1/assets/real_catch_source.jpg"));
+  const galleryChooser = await galleryChooserPromise;
+  await galleryChooser.setFiles(resolve(args.root, "design/system/fish_media_display_v1/assets/real_catch_source.jpg"));
   await fishtraceFrame.waitForFunction(() => document.querySelector("#photo-source-label")?.textContent === "本机选择", null, { timeout: 30000 });
   await fishtraceFrame.waitForFunction(() => {
     const image = document.querySelector("#photo-foreground-preview");
