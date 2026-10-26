@@ -1005,8 +1005,8 @@ async function main() {
   assert((await fishtraceFrame.locator(".product-device").getAttribute("data-device")) === "desktop", "FishTrace Sites prototype must start in desktop preview");
   await fishtraceFrame.locator('[data-action="start"]').click();
   assert(await fishtraceFrame.locator('[data-scene="source-choice"]').isVisible(), "Entry CTA must show source choice first");
-  assert(await fishtraceFrame.locator('[data-layer-id="camera-card"]').isVisible(), "Camera source option is missing");
-  assert(await fishtraceFrame.locator('[data-layer-id="gallery-card"]').isVisible(), "Gallery source option is missing");
+  assert(await fishtraceFrame.locator('.source-options .source-card[data-layer-id="camera-card"]').isVisible(), "Camera source option is missing");
+  assert(await fishtraceFrame.locator('.source-options .source-card[data-layer-id="gallery-card"]').isVisible(), "Gallery source option is missing");
   const localPhotoRequestStart = requests.length;
   const galleryChooserPromise = page.waitForEvent("filechooser");
   await fishtraceFrame.locator('[data-action="gallery"]').first().click();
