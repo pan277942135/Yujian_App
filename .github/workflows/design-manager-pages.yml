@@ -576,6 +576,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Checkout production browser verifier for isolated candidate
+        if: github.event_name == 'push' && github.ref == 'refs/heads/design/nh01-responsive-authority-consolidation-v1'
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.build.outputs.site_build_sha }}
+          path: production-baseline-live
+
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
@@ -611,8 +618,12 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          verifier=scripts/verify_design_manager_browser.mjs
+          if [ "${GITHUB_EVENT_NAME}" = "push" ] && [ "${GITHUB_REF}" = "refs/heads/design/nh01-responsive-authority-consolidation-v1" ]; then
+            verifier=production-baseline-live/scripts/verify_design_manager_browser.mjs
+          fi
           PLAYWRIGHT_MODULE_DIR="$RUNNER_TEMP/dm-playwright/node_modules" \
-            node scripts/verify_design_manager_browser.mjs \
+            node "${verifier}" \
               --url "${{ steps.deployment.outputs.page_url }}" \
               --expected-build "${SITE_BUILD_SHA}" \
               --output-dir "$RUNNER_TEMP/dm-live-evidence/browser"
