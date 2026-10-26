@@ -113,30 +113,72 @@
     return path;
   }
 
-  function createCausticRibbons(region,rendering,serial) {
+  function pointInsidePolygon(points,x,y) {
+    let inside=false;
+    for(let i=0,j=points.length-1;i<points.length;j=i++){
+      const xi=points[i][0],yi=points[i][1],xj=points[j][0],yj=points[j][1];
+      const crosses=(yi>y)!==(yj>y);
+      if(crosses&&x<(xj-xi)*(y-yi)/(yj-yi)+xi)inside=!inside;
+    }
+    return inside;
+  }
+  function createCausticPatches(region,rendering,serial) {
     const bounds=nativeBounds(region.points);
     const width=bounds.maxX-bounds.minX;
     const height=bounds.maxY-bounds.minY;
+    const area=polygonArea(region.points);
     const random=seeded(rendering.deterministic_seed+serial*104729);
-    const count=clamp(Math.round(height/rendering.ribbon_spacing_source_px),rendering.ribbon_min_count,rendering.ribbon_max_count);
-    const ribbons=[];
+    const count=clamp(Math.round(area/rendering.patch_density_target_area_source_px2),rendering.patch_min_count,rendering.patch_max_count);
+    const centerX=(bounds.minX+bounds.maxX)/2,centerY=(bounds.minY+bounds.maxY)/2;
+    const patches=[];
+    const minimumSpacing=Math.sqrt(area/count)*.30;
     for(let index=0;index<count;index+=1){
-      const nodes=Array.from({length:rendering.ribbon_curve_segments+1},()=> (random()-.5)*2);
-      ribbons.push({
+      let chosen=null,best=null,bestScore=-1;
+      for(let attempt=0;attempt<56;attempt+=1){
+        const candidate={x:bounds.minX+random()*width,y:bounds.minY+random()*height};
+        if(!pointInsidePolygon(region.points,candidate.x,candidate.y))continue;
+        let nearest=Infinity;
+        for(const existing of patches)nearest=Math.min(nearest,Math.hypot(candidate.x-existing.x,candidate.y-existing.y));
+        const score=nearest+random()*2;
+        if(score>bestScore){best=candidate;bestScore=score;}
+        if(nearest>=minimumSpacing){chosen=candidate;break;}
+      }
+      const center=chosen||best||{x:centerX,y:centerY};
+      const direction=random()*Math.PI*2;
+      const radialX=center.x-centerX,radialY=center.y-centerY;
+      const radialLength=Math.hypot(radialX,radialY)||1;
+      const segments=rendering.patch_curve_segments;
+      const centerlineOffsets=Array.from({length:segments+1},()=>random()*2-1);
+      const widthOffsets=Array.from({length:segments+1},()=>random()*2-1);
+      const leftEdgeOffsets=Array.from({length:segments+1},()=>random()*2-1);
+      const rightEdgeOffsets=Array.from({length:segments+1},()=>random()*2-1);
+      patches.push({
         id:serial*100+index,
-        v:clamp((index+.5+(random()-.5)*rendering.ribbon_spacing_jitter_fraction)/count,.02,.98),
-        thickness:rendering.ribbon_thickness_min_source_px+random()*(rendering.ribbon_thickness_max_source_px-rendering.ribbon_thickness_min_source_px),
-        amplitude:rendering.ribbon_amplitude_min_source_px+random()*(rendering.ribbon_amplitude_max_source_px-rendering.ribbon_amplitude_min_source_px),
-        frequency:rendering.ribbon_frequency_min+random()*(rendering.ribbon_frequency_max-rendering.ribbon_frequency_min),
+        x:center.x,y:center.y,
+        angle:direction,
+        length:rendering.patch_length_min_source_px+random()*(rendering.patch_length_max_source_px-rendering.patch_length_min_source_px),
+        width:rendering.patch_width_min_source_px+random()*(rendering.patch_width_max_source_px-rendering.patch_width_min_source_px),
+        bend:rendering.patch_center_bend_min_source_px+random()*(rendering.patch_center_bend_max_source_px-rendering.patch_center_bend_min_source_px),
         phase:random()*Math.PI*2,
-        speed:rendering.ribbon_speed_min+random()*(rendering.ribbon_speed_max-rendering.ribbon_speed_min),
-        weight:.55+random()*.45,
+        phase2:random()*Math.PI*2,
+        speed:.72+random()*.56,
+        waveCycles:2.8+random()*2.7,
+        deformationAmplitude:rendering.patch_deform_amplitude_source_px*(.55+random()*.75),
+        widthVariation:rendering.patch_width_variation_fraction*(.55+random()*.8),
+        edgeVariation:rendering.patch_edge_variation_fraction*(.55+random()*.8),
+        neckU:.30+random()*.42,
+        neckDepth:rendering.patch_neck_depth_fraction*(.35+random()*.9),
+        weight:.62+random()*.38,
         color:Math.floor(random()*rendering.caustic_colors.length),
-        nodeOffsets:nodes,
-        xAmplitude:rendering.ribbon_lateral_motion_source_px*(.35+random()*.65)
+        radialX:radialX/radialLength,radialY:radialY/radialLength,
+        peripheral:clamp(radialLength/(Math.hypot(width,height)*.43),0,1),
+        revealDelayMs:random()*rendering.patch_reveal_delay_max_ms,
+        exitDelayMs:random()*rendering.patch_exit_delay_max_ms,
+        highlightScore:random(),
+        centerlineOffsets,widthOffsets,leftEdgeOffsets,rightEdgeOffsets
       });
     }
-    return {id:region.id,bounds,width,height,ribbons};
+    return {id:region.id,bounds,width,height,centerX,centerY,area,patches};
   }
   function rgbaFromHex(hex,alpha) {
     const value=hex.replace("#","");
@@ -158,46 +200,70 @@
     constructor(value) {
       this.contract=value;
       this.rendering=value.rendering;
-      this.regions=value.water_region.polygons.map((region,index)=>createCausticRibbons(region,this.rendering,index+1));
+      this.regions=value.water_region.polygons.map((region,index)=>createCausticPatches(region,this.rendering,index+1));
       this.waterRegionPath=null;
     }
     setDisplayGeometry(rect) {
       this.waterRegionPath=makeRegionPath(this.contract.water_region.polygons,rect,this.contract.asset);
     }
-    ribbonGeometry(region,ribbon,timeMs,motionScale,expansion,recollection) {
-      const motion=this.contract.motion;
-      const points=[];
-      const thicknesses=[];
-      const phase=timeMs/1000*this.rendering.ribbon_wave_rate_rad_s*ribbon.speed*motionScale+ribbon.phase;
-      const scale=(1+expansion*motion.expansion_scale)*(1-recollection*motion.recollection_scale_reduction);
-      const upward=smooth(timeMs,motion.upward_start_ms,motion.upward_peak_ms)*motion.upward_fraction*region.height*(.58+ribbon.v*.42)*motionScale;
-      const downward=recollection*motion.recollection_downward_fraction*region.height*ribbon.v;
-      for(let index=0;index<ribbon.nodeOffsets.length;index+=1){
-        const u=index/(ribbon.nodeOffsets.length-1);
-        const angle=u*Math.PI*2*ribbon.frequency+phase;
-        const broadWave=Math.sin(angle)*ribbon.amplitude;
-        const shortWave=Math.sin(angle*.47-phase*.63+1.4)*ribbon.amplitude*.34;
-        const localBend=ribbon.nodeOffsets[index]*ribbon.amplitude*this.rendering.ribbon_shape_variation_fraction;
-        const x=region.bounds.minX+u*region.width+Math.sin(phase+u*Math.PI*2.1)*ribbon.xAmplitude;
-        const y=region.bounds.minY+region.height*(.5+(ribbon.v-.5)*scale)+broadWave+shortWave+localBend-upward+downward;
-        const thickness=ribbon.thickness*(1+expansion*this.rendering.ribbon_expansion_fraction)*(1-recollection*this.rendering.ribbon_recollection_fraction)*(.78+.22*Math.sin(angle*.43+ribbon.phase));
-        points.push({x,y});thicknesses.push(thickness);
+    patchGeometry(region,patch,timeMs,motionScale,recollection) {
+      const rendering=this.rendering;
+      const grow=smooth(timeMs,rendering.patch_growth_start_ms,rendering.patch_growth_peak_ms);
+      const spread=smooth(timeMs,rendering.patch_spread_start_ms,rendering.patch_spread_end_ms);
+      const reveal=smooth(timeMs,rendering.patch_reveal_start_ms+patch.revealDelayMs,rendering.patch_reveal_end_ms+patch.revealDelayMs);
+      const exit=smooth(timeMs,rendering.patch_exit_start_ms+patch.exitDelayMs,rendering.patch_exit_end_ms);
+      const rawScale=rendering.patch_growth_min_scale+(1-rendering.patch_growth_min_scale)*grow+rendering.patch_midstage_spread_fraction*spread;
+      const scale=rawScale*(1-recollection*rendering.patch_recollection_shrink_fraction)*(1-exit*rendering.patch_exit_shrink_fraction*(.4+patch.peripheral*.6));
+      const outward=grow*.36+spread*.64;
+      const radialTravel=Math.max(region.width,region.height)*(
+        rendering.patch_spread_distance_fraction*outward-
+        rendering.patch_recollection_distance_fraction*recollection-
+        rendering.patch_exit_distance_fraction*exit
+      )*motionScale;
+      const centerX=patch.x+patch.radialX*radialTravel;
+      const centerY=patch.y+patch.radialY*radialTravel;
+      const phase=patch.phase+timeMs/1000*rendering.patch_deform_rate_rad_s*patch.speed*motionScale;
+      const movementScale=motionScale*(.20+.80*Math.max(grow,spread))*(1-recollection*.42)*(1-exit*.58);
+      const angle=patch.angle+Math.sin(phase*.34+patch.phase2)*rendering.patch_angle_drift_rad*movementScale;
+      const tangentX=Math.cos(angle),tangentY=Math.sin(angle);
+      const normalX=-tangentY,normalY=tangentX;
+      const points=[],positive=[],negative=[];
+      for(let index=0;index<patch.centerlineOffsets.length;index+=1){
+        const u=index/(patch.centerlineOffsets.length-1);
+        const envelope=Math.pow(Math.max(0,Math.sin(Math.PI*u)),.58);
+        const temporalBend=Math.sin(phase+u*patch.waveCycles+patch.phase2)*patch.deformationAmplitude*movementScale;
+        const bend=(patch.centerlineOffsets[index]*patch.bend+temporalBend)*scale;
+        const longitudinal=(u-.5)*patch.length*scale;
+        const x=centerX+tangentX*longitudinal+normalX*bend;
+        const y=centerY+tangentY*longitudinal+normalY*bend;
+        const broad=Math.sin(u*Math.PI*2+patch.phase2+phase*.18)*.15;
+        const fine=Math.sin(u*Math.PI*5+patch.phase+phase*.11)*.10;
+        const widthShape=clamp(.72+broad+fine+patch.widthOffsets[index]*patch.widthVariation,.30,1.18);
+        const neck=1-patch.neckDepth*Math.exp(-Math.pow((u-patch.neckU)/.105,2));
+        const half=patch.width*scale*envelope*widthShape*neck*.5;
+        const sideA=half*(1+patch.leftEdgeOffsets[index]*patch.edgeVariation);
+        const sideB=half*(1+patch.rightEdgeOffsets[index]*patch.edgeVariation);
+        const point={x,y};
+        points.push(point);
+        positive.push({x:x+normalX*sideA,y:y+normalY*sideA});
+        negative.push({x:x-normalX*sideB,y:y-normalY*sideB});
       }
-      return {points,thicknesses,phase};
+      return {points,positive,negative,centerX,centerY,normalX,normalY,scale,reveal,exit,phase};
     }
-    drawAmbient(context,region,rect,timeMs,intensity,motionScale) {
+    drawAmbient(context,region,rect,timeMs,intensity,motionScale,exit) {
       const rendering=this.rendering;
       const bounds=region.bounds;
       const x=rect.x+bounds.minX/this.contract.asset.width*rect.width;
       const y=rect.y+bounds.minY/this.contract.asset.height*rect.height;
       const width=region.width/this.contract.asset.width*rect.width;
       const height=region.height/this.contract.asset.height*rect.height;
-      const drift=smooth(timeMs,this.contract.motion.expansion_start_ms,this.contract.motion.expansion_peak_ms)*this.contract.motion.upward_fraction*height;
-      const centerX=x+width*(.46+.035*Math.sin(timeMs/1000*.42)*motionScale);
+      const drift=smooth(timeMs,rendering.patch_growth_start_ms,rendering.patch_growth_peak_ms)*height*.025*motionScale;
+      const centerX=x+width*(.46+.025*Math.sin(timeMs/1000*.32)*motionScale);
       const centerY=y+height*.67-drift;
+      const exitDamping=1-exit*.62;
       context.save();
       context.globalCompositeOperation="screen";
-      context.globalAlpha=intensity*rendering.ambient_alpha;
+      context.globalAlpha=intensity*rendering.ambient_alpha*exitDamping;
       const gradient=context.createLinearGradient(x,y+height,x+width*.18,y);
       gradient.addColorStop(0,rendering.ambient_colors[0]);
       gradient.addColorStop(.34,rendering.ambient_colors[1]);
@@ -205,8 +271,9 @@
       gradient.addColorStop(1,rendering.ambient_colors[3]);
       context.fillStyle=gradient;
       context.fillRect(x,y,width,height);
-      context.globalAlpha=intensity*rendering.ambient_bloom_alpha;
-      const bloom=context.createRadialGradient(centerX,centerY,0,centerX,centerY,Math.max(width,height)*.78);
+      context.globalAlpha=intensity*rendering.ambient_bloom_alpha*exitDamping;
+      const bloomRadius=Math.max(width,height)*(.78-exit*.18);
+      const bloom=context.createRadialGradient(centerX,centerY,0,centerX,centerY,bloomRadius);
       bloom.addColorStop(0,rendering.ambient_bloom_colors[0]);
       bloom.addColorStop(.52,rendering.ambient_bloom_colors[1]);
       bloom.addColorStop(1,"rgba(221,237,218,0)");
@@ -214,88 +281,76 @@
       context.fillRect(x,y,width,height);
       context.restore();
     }
-    ribbonReveal(ribbon,timeMs) {
-      const revealDuration=smooth(timeMs,this.contract.motion.reveal_start_ms,this.contract.motion.reveal_end_ms);
-      const threshold=1-revealDuration;
-      return smooth(ribbon.v,threshold-.24,threshold+.22);
-    }
-    ribbonExitWeight(ribbon,exit) {
-      const peripheral=clamp(Math.abs(ribbon.v-.5)*1.28,0,1);
-      return 1-exit*(1-peripheral*.88);
-    }
-    drawRibbons(context,region,rect,timeMs,intensity,motionScale,expansion,recollection,exit) {
-      const rendering=this.rendering;
-      const asset=this.contract.asset;
-      const xScale=rect.width/asset.width,yScale=rect.height/asset.height;
-      for(const ribbon of region.ribbons){
-        const reveal=this.ribbonReveal(ribbon,timeMs);
-        const exitWeight=this.ribbonExitWeight(ribbon,exit);
-        const pulse=.9+.1*Math.sin(timeMs/1000*rendering.ribbon_pulse_rate_rad_s*ribbon.speed+ribbon.phase);
-        const alpha=clamp(intensity*rendering.caustic_ribbon_alpha*ribbon.weight*pulse*reveal*exitWeight,0,rendering.max_layer_alpha);
-        if(alpha<.004)continue;
-        const geometry=this.ribbonGeometry(region,ribbon,timeMs,motionScale,expansion,recollection);
-        const top=[],bottom=[];
-        geometry.points.forEach((point,index)=>{
-          const half=geometry.thicknesses[index]/2;
-          top.push({x:point.x,y:point.y-half});
-          bottom.push({x:point.x,y:point.y+half});
-        });
-        const mapped=geometry.points.map(point=>({x:rect.x+point.x/asset.width*rect.width,y:rect.y+point.y/asset.height*rect.height}));
-        const centerY=mapped.reduce((sum,point)=>sum+point.y,0)/mapped.length;
-        const halfDisplay=Math.max(1,Math.max(...geometry.thicknesses)*yScale/2);
-        const gradient=context.createLinearGradient(mapped[0].x,centerY-halfDisplay,mapped[0].x,centerY+halfDisplay);
-        const tint=rendering.caustic_colors[ribbon.color];
+    drawOrganicCaustics(context,region,rect,intensity,patchFrames) {
+      const rendering=this.rendering,asset=this.contract.asset;
+      const xScale=rect.width/asset.width;
+      for(const item of patchFrames){
+        const {patch,geometry}=item;
+        const pulse=.94+.06*Math.sin(geometry.phase*.42+patch.phase2);
+        const exitWeight=1-geometry.exit*rendering.patch_exit_alpha_fraction*(.35+patch.peripheral*.65);
+        const alpha=clamp(intensity*rendering.caustic_patch_alpha*patch.weight*pulse*geometry.reveal*exitWeight,0,rendering.max_layer_alpha);
+        if(alpha<.003||geometry.scale<.08)continue;
+        const centerX=rect.x+geometry.centerX/asset.width*rect.width;
+        const centerY=rect.y+geometry.centerY/asset.height*rect.height;
+        const halfDisplay=patch.width*geometry.scale*xScale*.62;
+        const gradient=context.createLinearGradient(
+          centerX-geometry.normalX*halfDisplay,centerY-geometry.normalY*halfDisplay,
+          centerX+geometry.normalX*halfDisplay,centerY+geometry.normalY*halfDisplay
+        );
+        const tint=rendering.caustic_colors[patch.color];
         gradient.addColorStop(0,rgbaFromHex(tint,0));
-        gradient.addColorStop(.2,rgbaFromHex(tint,rendering.ribbon_edge_alpha));
-        gradient.addColorStop(.5,rgbaFromHex(tint,rendering.ribbon_core_alpha));
-        gradient.addColorStop(.8,rgbaFromHex(tint,rendering.ribbon_edge_alpha));
+        gradient.addColorStop(.22,rgbaFromHex(tint,rendering.patch_edge_alpha));
+        gradient.addColorStop(.50,rgbaFromHex(tint,rendering.patch_core_alpha));
+        gradient.addColorStop(.78,rgbaFromHex(tint,rendering.patch_edge_alpha*.92));
         gradient.addColorStop(1,rgbaFromHex(tint,0));
         context.save();
         context.globalCompositeOperation="screen";
         context.globalAlpha=alpha;
         context.beginPath();
-        traceSmoothPoints(context,top,rect,asset);
-        context.lineTo(rect.x+bottom[bottom.length-1].x/asset.width*rect.width,rect.y+bottom[bottom.length-1].y/asset.height*rect.height);
-        traceSmoothPoints(context,bottom.slice().reverse(),rect,asset,false);
+        traceSmoothPoints(context,geometry.positive,rect,asset);
+        const last=geometry.negative[geometry.negative.length-1];
+        context.lineTo(rect.x+last.x/asset.width*rect.width,rect.y+last.y/asset.height*rect.height);
+        traceSmoothPoints(context,geometry.negative.slice().reverse(),rect,asset,false);
         context.closePath();
         context.fillStyle=gradient;
         context.fill();
         context.restore();
       }
     }
-    drawHighlights(context,region,rect,timeMs,intensity,motionScale,expansion,recollection,exit) {
-      const rendering=this.rendering;
-      const asset=this.contract.asset;
-      for(const ribbon of region.ribbons){
-        if(ribbon.weight<rendering.highlight_ribbon_weight_threshold)continue;
-        const reveal=this.ribbonReveal(ribbon,timeMs);
-        const exitWeight=this.ribbonExitWeight(ribbon,exit);
-        const alpha=clamp(intensity*rendering.refraction_alpha*ribbon.weight*reveal*exitWeight,0,rendering.max_layer_alpha);
-        if(alpha<.004)continue;
-        const geometry=this.ribbonGeometry(region,ribbon,timeMs,motionScale,expansion,recollection);
+    drawHighlights(context,rect,intensity,patchFrames) {
+      const rendering=this.rendering,asset=this.contract.asset;
+      for(const item of patchFrames){
+        const {patch,geometry}=item;
+        if(patch.highlightScore<rendering.highlight_patch_weight_threshold)continue;
+        const exitWeight=1-geometry.exit*(rendering.patch_exit_alpha_fraction+.08*patch.peripheral);
+        const alpha=clamp(intensity*rendering.refraction_alpha*patch.weight*geometry.reveal*exitWeight*.64,0,rendering.max_layer_alpha*.60);
+        if(alpha<.003||geometry.scale<.08)continue;
+        const start=Math.max(1,Math.floor(geometry.points.length*.20));
+        const end=Math.min(geometry.points.length-1,Math.ceil(geometry.points.length*.78));
         context.save();
         context.globalCompositeOperation="screen";
         context.globalAlpha=alpha;
-        context.strokeStyle=rendering.refraction_colors[ribbon.color%rendering.refraction_colors.length];
+        context.strokeStyle=rendering.refraction_colors[patch.color%rendering.refraction_colors.length];
         context.lineWidth=rendering.refraction_width_source_px/asset.width*rect.width;
         context.lineCap="round";
+        context.lineJoin="round";
         context.beginPath();
-        traceSmoothPoints(context,geometry.points,rect,asset);
+        traceSmoothPoints(context,geometry.points.slice(start,end+1),rect,asset);
         context.stroke();
         context.restore();
       }
     }
     draw(context,rect,timeMs,baselineIntensity,strengthValue,motionScale) {
-      const motion=this.contract.motion;
+      const rendering=this.rendering;
       const intensity=baselineIntensity*strengthValue;
-      const expansion=smooth(timeMs,motion.expansion_start_ms,motion.expansion_peak_ms)*motionScale;
-      const recollection=smooth(timeMs,motion.recollection_start_ms,motion.recollection_end_ms)*motionScale;
-      const exit=smooth(timeMs,motion.exit_start_ms,motion.exit_end_ms);
+      const recollection=smooth(timeMs,rendering.patch_recollection_start_ms,rendering.patch_recollection_end_ms);
+      const exit=smooth(timeMs,rendering.patch_exit_start_ms,rendering.patch_exit_end_ms);
       for(const region of this.regions){
         context.save();
-        this.drawAmbient(context,region,rect,timeMs,intensity,motionScale);
-        this.drawRibbons(context,region,rect,timeMs,intensity,motionScale,expansion,recollection,exit);
-        this.drawHighlights(context,region,rect,timeMs,intensity,motionScale,expansion,recollection,exit);
+        this.drawAmbient(context,region,rect,timeMs,intensity,motionScale,exit);
+        const patchFrames=region.patches.map(patch=>({patch,geometry:this.patchGeometry(region,patch,timeMs,motionScale,recollection)}));
+        this.drawOrganicCaustics(context,region,rect,intensity,patchFrames);
+        this.drawHighlights(context,rect,intensity,patchFrames);
         context.restore();
       }
     }
@@ -353,6 +408,13 @@
       this.canvas.dataset.waterRegionSourceAreaPx=String(Math.round(this.scene.contract.water_region.polygons.reduce((sum,region)=>sum+polygonArea(region.points),0)));
       this.canvas.dataset.waterRegionPolygons=JSON.stringify(this.scene.contract.water_region.polygons.map(region=>({id:region.id,points:region.points})));
       this.canvas.dataset.sourceDimensions=JSON.stringify({width:this.scene.contract.asset.width,height:this.scene.contract.asset.height});
+      const patches=this.scene.regions.flatMap(region=>region.patches);
+      const angleBins=new Set(patches.map(patch=>Math.floor((((patch.angle%Math.PI)+Math.PI)%Math.PI)/Math.PI*8)));
+      const nearHorizontal=patches.filter(patch=>{const angle=((patch.angle%Math.PI)+Math.PI)%Math.PI;return Math.min(angle,Math.PI-angle)<.30;}).length/Math.max(1,patches.length);
+      this.canvas.dataset.causticGeometryModel=this.scene.rendering.caustic_geometry_model;
+      this.canvas.dataset.causticPatchCount=String(patches.length);
+      this.canvas.dataset.causticDirectionBins=String(angleBins.size);
+      this.canvas.dataset.causticNearHorizontalFraction=String(nearHorizontal);
       this.canvas.dataset.rendererStatus="READY";
       this.render(controller?controller.timeMs:0,0,true,false);
       return true;
@@ -587,10 +649,12 @@
     loading=true;setControlsDisabled(true);retryButton.hidden=true;loadError.hidden=true;setStatus("加载中");
     $("water-asset-status").textContent="SHA-256 校验中";
     try {
-      const response=await timeoutFetch("../pages/recognition/web/candidates/FISHTRACE_SWOS_CANVAS_WATER_LAB_V1_CANDIDATE.json?v=2",{cache:"no-cache",credentials:"same-origin"});
+      const response=await timeoutFetch("../pages/recognition/web/candidates/FISHTRACE_SWOS_CANVAS_WATER_LAB_V1_CANDIDATE.json?v=5",{cache:"no-cache",credentials:"same-origin"});
       if (!response.ok) throw new Error("候选水光合同加载失败 HTTP "+response.status);
       const loaded=await response.json();
       if (loaded.contract_id!=="FISHTRACE_SWOS_CANVAS_WATER_LAB_V1_CANDIDATE"||
+          loaded.contract_version!=="CANDIDATE_V5"||
+          loaded.rendering?.caustic_geometry_model!=="organic_anisotropic_face_patches_v5"||
           loaded.asset.path!=="design/system/fish_media_display_v1/assets/real_catch_source.jpg"||
           loaded.asset.width!==1152||loaded.asset.height!==1536||loaded.timeline.duration_ms!==2800||
           loaded.status!=="CANDIDATE_NOT_VISUALLY_APPROVED"||

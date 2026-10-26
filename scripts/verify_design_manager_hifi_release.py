@@ -406,16 +406,21 @@ def validate_tree(root: Path, *, built: bool = False, expected_build: str | None
         and water_region.get("edge_fade_source_px",0) > 0
         and water_points_valid
         and water_motion.get("reveal_start_ms",0) < water_motion.get("reveal_end_ms",0)
+        and water_lab.get("contract_version") == "CANDIDATE_V5"
         and water_rendering.get("backend") == "Canvas 2D"
         and water_rendering.get("ambient_alpha",0) > 0
-        and water_rendering.get("ribbon_spacing_source_px",0) > 0
-        and water_rendering.get("ribbon_curve_segments",0) >= 8
-        and water_rendering.get("ribbon_thickness_min_source_px",0) > 0
-        and water_rendering.get("ribbon_thickness_max_source_px",0) >= water_rendering.get("ribbon_thickness_min_source_px",0)
-        and water_rendering.get("caustic_ribbon_alpha",0) > 0
+        and water_rendering.get("caustic_geometry_model") == "organic_anisotropic_face_patches_v5"
+        and water_rendering.get("patch_density_target_area_source_px2",0) > 0
+        and water_rendering.get("patch_curve_segments",0) >= 8
+        and water_rendering.get("patch_length_min_source_px",0) > 0
+        and water_rendering.get("patch_length_max_source_px",0) >= water_rendering.get("patch_length_min_source_px",0)
+        and water_rendering.get("patch_width_min_source_px",0) > 0
+        and water_rendering.get("patch_width_max_source_px",0) >= water_rendering.get("patch_width_min_source_px",0)
+        and water_rendering.get("caustic_patch_alpha",0) > 0
+        and water_rendering.get("patch_exit_shrink_fraction",0) > 0
         and water_rendering.get("refraction_alpha",0) > 0
-        and all(token in water_lab_js for token in ("water_region","destination-in","createCausticRibbons","ribbonGeometry","drawRibbons","drawHighlights")),
-        "Canvas Water Lab water-region geometry and deterministic candidate caustic-ribbon optical parameters must be recorded"
+        and all(token in water_lab_js for token in ("water_region","destination-in","createCausticPatches","patchGeometry","drawOrganicCaustics","drawHighlights")),
+        "Canvas Water Lab water-region geometry and deterministic V5 organic patch parameters must be recorded"
     )
     require(water_lab.get("boundaries",{}).get("production_sites_runtime_modified") is False and water_lab.get("boundaries",{}).get("inference_api_requested") is False and water_lab.get("boundaries",{}).get("photo_upload_implemented") is False and water_lab.get("boundaries",{}).get("fish_mask_or_gold_contour_drawn") is False and water_lab.get("boundaries",{}).get("webgl_used") is False, "Canvas Water Lab scope crossed a production or forbidden visual boundary")
     require("object-fit:contain" in water_lab_css and "mix-blend-mode:screen" in water_lab_css, "Canvas Water Lab image/overlay layout is missing")

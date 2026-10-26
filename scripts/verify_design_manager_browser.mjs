@@ -4,6 +4,7 @@ import { createServer } from "node:http";
 import { createReadStream, existsSync, statSync } from "node:fs";
 import { readFile, writeFile, rename } from "node:fs/promises";
 import { createHash } from "node:crypto";
+import { execFileSync } from "node:child_process";
 import { resolve, extname, sep } from "node:path";
 import { createRequire } from "node:module";
 
@@ -1105,6 +1106,9 @@ async function main() {
     return lab?.dataset.rendererStatus === "READY" && image?.dataset.assetVerified === "true" &&
       canvas?.dataset.rendererStatus === "READY" && canvas.width > 1 && canvas.height > 1;
   }, null, {timeout:30000});
+  const causticModelState=await fishtraceFrame.locator("#water-overlay").evaluate(canvas=>({model:canvas.dataset.causticGeometryModel,patchCount:Number(canvas.dataset.causticPatchCount),directionBins:Number(canvas.dataset.causticDirectionBins),nearHorizontalFraction:Number(canvas.dataset.causticNearHorizontalFraction)}));
+  assert(causticModelState.model==="organic_anisotropic_face_patches_v5"&&causticModelState.patchCount>=18&&causticModelState.patchCount<=40,"V5 must render a deterministic local organic-patch field; observed "+JSON.stringify(causticModelState));
+  assert(causticModelState.directionBins>=5&&causticModelState.nearHorizontalFraction<.35,"V5 patch directions must not collapse into parallel horizontal bands; observed "+JSON.stringify(causticModelState));
   const waterAsset = await fishtraceFrame.locator("#water-source-image").evaluate(image => ({
     naturalWidth:image.naturalWidth,naturalHeight:image.naturalHeight,
     sha256:image.dataset.sha256,src:image.currentSrc,complete:image.complete
@@ -1212,7 +1216,7 @@ async function main() {
     const diffMapCanvas=document.createElement("canvas");diffMapCanvas.width=width;diffMapCanvas.height=height;
     diffMapCanvas.getContext("2d").putImageData(diffMapPixels,0,0);
     const frames=window.__fishtraceWaterCompositeFrames||(window.__fishtraceWaterCompositeFrames={});
-    frames[label]={data:frameData,width,height};
+    frames[label]={data:frameData,mask:new Uint8ClampedArray(mask),width,height};
     let p2p3=null;
     if(label==="P3"&&frames.P2){
       let sum=0,changed=0,p2Sum=0,p3Sum=0;
@@ -1271,6 +1275,45 @@ async function main() {
     waterFrameStates[id]=state;
     waterFrameJumpEvidence.push({id,ms,intensity_percent:shownIntensity,canvas_visible_pixels:state.visible,water_roi_mean_rgb_abs_diff_255:metrics.water_roi_mean_rgb_abs_diff_255});
   }
+  const continuityCheckTimes=[0,50,300,350,400,900,950,1000,1150,1200,1250,2000,2050,2100,2550,2600,2650,2750,2800];
+  const continuityLabels=[];
+  for(const timeMs of continuityCheckTimes){
+    const label="C"+timeMs;
+    await fishtraceFrame.locator("#water-timeline").evaluate((input,value)=>{
+      input.value=String(value);
+      input.dispatchEvent(new Event("input",{bubbles:true}));
+    },timeMs);
+    assert((await fishtraceFrame.locator("#water-current-time").innerText())===timeMs+" ms","Continuity sample seek must show exact "+timeMs+"ms");
+    await measureComposite(label);
+    continuityLabels.push({time_ms:timeMs,label});
+  }
+  const continuityPairs=[];
+  for(let index=1;index<continuityLabels.length;index+=1){
+    const before=continuityLabels[index-1],after=continuityLabels[index];
+    if(after.time_ms-before.time_ms===50)continuityPairs.push({from:before.label,to:after.label,from_ms:before.time_ms,to_ms:after.time_ms});
+  }
+  const continuityResults=await fishtraceFrame.evaluate(pairs=>{
+    const frames=window.__fishtraceWaterCompositeFrames;
+    return pairs.map(pair=>{
+      const before=frames[pair.from],after=frames[pair.to];
+      let sum=0,count=0,max=0,changed=0;
+      for(let i=0;i<before.data.length;i+=4){
+        if(before.mask[i+3]<=16)continue;
+        const dr=Math.abs(before.data[i]-after.data[i]);
+        const dg=Math.abs(before.data[i+1]-after.data[i+1]);
+        const db=Math.abs(before.data[i+2]-after.data[i+2]);
+        const peak=Math.max(dr,dg,db);
+        sum+=(dr+dg+db)/3;count++;max=Math.max(max,peak);
+        if(peak>=3)changed++;
+      }
+      return {from_ms:pair.from_ms,to_ms:pair.to_ms,water_roi_mean_rgb_abs_delta_255:count?sum/count:0,changed_pixel_ratio_gte_3:count?changed/count:0,max_channel_delta:Math.round(max)};
+    });
+  },continuityPairs);
+  const maxContinuityDelta=Math.max(...continuityResults.map(result=>result.water_roi_mean_rgb_abs_delta_255));
+  assert(continuityResults.length>=12&&maxContinuityDelta<=6.5,"Canvas composite must change continuously around fixed timing nodes; 50ms ROI mean delta exceeded 6.5/255: "+JSON.stringify(continuityResults));
+  await fishtraceFrame.locator('[data-water-frame="P0"]').click();
+  const continuityEvidence={sample_times_ms:continuityCheckTimes,pairs:continuityResults,maximum_50ms_mean_rgb_abs_delta_255:maxContinuityDelta,threshold_mean_rgb_abs_delta_255:6.5};
+
   const p0ScreenshotSha=createHash("sha256").update(await readFile(resolve(args.outputDir,"fishtrace-canvas-water-P0.png"))).digest("hex");
   const p7ScreenshotSha=createHash("sha256").update(await readFile(resolve(args.outputDir,"fishtrace-canvas-water-P7.png"))).digest("hex");
   assert(p0ScreenshotSha===p7ScreenshotSha,"P0 and P7 actual browser stage screenshots must be byte-identical when the water layer has fully exited");
@@ -1484,6 +1527,7 @@ async function main() {
   const waterCanvasEvidence = {
     fixed_asset:waterAsset,
     p0:p0Water,p2:p2Water,p3:p3Water,p5:p5Water,p7:p7Water,
+    all_keyframe_metrics:compositeMetrics,caustic_model:causticModelState,continuity:continuityEvidence,
     baseline_intensity_percent:{P2:p2Intensity,P3:p3Intensity},
     composited_visual_metrics:compositeMetrics,
     source_native_water_region:{version:debugOverlayState.version,polygon_count:debugOverlayState.polygons.length,validation_status:debugOverlayState.validation_status||"manual annotation; browser boundary review in this run",debug_screenshot:"fishtrace-canvas-water-region-debug.png"},
@@ -1536,6 +1580,7 @@ async function main() {
     reducedMotion:"no-preference",
     recordVideo:{dir:args.outputDir,size:{width:1440,height:1000}}
   });
+  const videoRecordingStartEpochMs=Date.now();
   const videoPage = await videoContext.newPage();
   const videoErrors = [];
   const videoRequests = [];
@@ -1546,10 +1591,32 @@ async function main() {
   const videoFrame = await waitForFreshFishtraceFrame(videoPage);
   await videoFrame.locator('[data-water-view="canvas-water"]').click();
   await videoFrame.waitForFunction(() => document.querySelector('[data-testid="canvas-water-lab"]')?.dataset.rendererStatus === "READY",null,{timeout:30000});
+  await videoFrame.locator("#water-source-image").scrollIntoViewIfNeeded();
+  await videoFrame.locator("#water-stage").scrollIntoViewIfNeeded();
+  await videoPage.locator(fishtraceFrameSelector).scrollIntoViewIfNeeded();
+  const videoPhotoPreflight=await videoPage.evaluate(selector=>{
+    const iframe=document.querySelector(selector);
+    const doc=iframe?.contentDocument;
+    const stage=doc?.querySelector("#water-stage");
+    const canvas=doc?.querySelector("#water-overlay");
+    if(!iframe||!doc||!stage||!canvas)return {available:false};
+    const frameBox=iframe.getBoundingClientRect(),stageBox=stage.getBoundingClientRect(),content=JSON.parse(canvas.dataset.contentRect);
+    const photo={x:stageBox.x+content.x,y:stageBox.y+content.y,width:content.width,height:content.height};
+    const frameClient={x:frameBox.x+iframe.clientLeft,y:frameBox.y+iframe.clientTop};
+    const onOuter={x:frameClient.x+photo.x,y:frameClient.y+photo.y,width:photo.width,height:photo.height};
+    const inner={width:doc.documentElement.clientWidth,height:doc.documentElement.clientHeight};
+    const outer={width:window.innerWidth,height:window.innerHeight};
+    const insideInner=photo.x>=0&&photo.y>=0&&photo.x+photo.width<=inner.width&&photo.y+photo.height<=inner.height;
+    const insideOuter=onOuter.x>=0&&onOuter.y>=0&&onOuter.x+onOuter.width<=outer.width&&onOuter.y+onOuter.height<=outer.height;
+    return {available:true,viewport:{outer,inner},frame:{x:frameBox.x,y:frameBox.y,width:frameBox.width,height:frameBox.height},stage:{x:stageBox.x,y:stageBox.y,width:stageBox.width,height:stageBox.height},photo_content_rect_in_frame:photo,photo_content_rect_in_recording_viewport:onOuter,fully_visible_in_frame:insideInner,fully_visible_in_recording_viewport:insideOuter,scroll:{outer_x:window.scrollX,outer_y:window.scrollY,inner_x:doc.defaultView.scrollX,inner_y:doc.defaultView.scrollY},renderer:canvas.dataset.rendererStatus,debug:canvas.dataset.debugRegion};
+  },fishtraceFrameSelector);
+  assert(videoPhotoPreflight.available&&videoPhotoPreflight.fully_visible_in_frame&&videoPhotoPreflight.fully_visible_in_recording_viewport,"Full fixed photo must fit inside the actual iframe and recording viewport before WebM playback; geometry="+JSON.stringify(videoPhotoPreflight));
+  await videoPage.screenshot({path:resolve(args.outputDir,"fishtrace-canvas-water-video-preflight.png")});
   assert(await videoFrame.locator("#water-stage").isVisible(), "The recorded page must visibly be in the Canvas Water Lab stage");
   const videoStartState=await videoFrame.locator("#water-overlay").evaluate(canvas=>({time:Number(canvas.dataset.currentTime),renderer:canvas.dataset.rendererStatus,alphaPixels:(()=>{const data=canvas.getContext("2d").getImageData(0,0,canvas.width,canvas.height).data;let n=0;for(let i=3;i<data.length;i+=4)if(data[i])n++;return n;})(),debug:canvas.dataset.debugRegion}));
   assert(videoStartState.time===0&&videoStartState.renderer==="READY"&&videoStartState.alphaPixels===0&&videoStartState.debug==="false", "Full playback recording must start at clean P0 on the READY Canvas Water Lab without the debug outline");
   const waterPlaybackStartedAt=new Date().toISOString();
+  const waterPlaybackStartEpochMs=Date.now();
   await videoFrame.locator("#water-play").click();
   const waterPlaybackStarted = Date.now();
   await videoFrame.waitForFunction(() => Number(document.querySelector("#water-current-time")?.textContent.match(/\d+/)?.[0]) === 2800,null,{timeout:8000});
@@ -1559,10 +1626,29 @@ async function main() {
   assert(videoErrors.length === 0, "Canvas recording browser reported errors: " + videoErrors.join("; "));
   assert(videoRequests.every(request => request.method === "GET" || request.method === "HEAD") &&
     !videoRequests.some(request => /inference|detector|classifier|upload/i.test(request.url)), "Recorded Canvas playback must not request upload or inference endpoints");
+  await videoPage.waitForTimeout(180);
   const playbackVideo = await videoPage.video();
   await videoContext.close();
   const playbackVideoPath = resolve(args.outputDir,"fishtrace-canvas-water-full-2800ms.webm");
   await rename(await playbackVideo.path(),playbackVideoPath);
+  const videoProbe=JSON.parse(execFileSync("ffprobe",["-v","error","-show_entries","format=duration:stream=width,height","-of","json",playbackVideoPath],{encoding:"utf8"}));
+  const videoStream=videoProbe.streams?.find(stream=>stream.width&&stream.height);
+  assert(videoStream&&videoStream.width===1440&&videoStream.height===1000,"Recorded WebM must retain the actual 1440x1000 viewport; metadata="+JSON.stringify(videoProbe));
+  const playbackStartOffsetMs=Math.max(0,waterPlaybackStartEpochMs-videoRecordingStartEpochMs);
+  assert(Number(videoProbe.format.duration)>=playbackStartOffsetMs/1000+2.8,"WebM must contain the full 2800ms playback interval; probe="+JSON.stringify(videoProbe.format));
+  const videoFrameDirectory=resolve(args.outputDir,"fishtrace-canvas-water-video-frames");
+  await mkdir(videoFrameDirectory,{recursive:true});
+  const extractedVideoFrames=[];
+  for(const frame of allWaterFrames){
+    const [frameId,frameMs]=frame;
+    const outputPath=resolve(videoFrameDirectory,frameId+"-"+frameMs+"ms.png");
+    const seekSeconds=(playbackStartOffsetMs+frameMs)/1000;
+    execFileSync("ffmpeg",["-hide_banner","-loglevel","error","-y","-ss",seekSeconds.toFixed(3),"-i",playbackVideoPath,"-frames:v","1",outputPath],{stdio:"pipe"});
+    const frameBytes=await readFile(outputPath);
+    assert(frameBytes.length>24&&frameBytes.toString("ascii",1,4)==="PNG","WebM frame extraction failed at "+frameId+"; offset="+seekSeconds.toFixed(3));
+    extractedVideoFrames.push({id:frameId,target_ms:frameMs,video_timestamp_s:Number(seekSeconds.toFixed(3)),path:"fishtrace-canvas-water-video-frames/"+frameId+"-"+frameMs+"ms.png",sha256:createHash("sha256").update(frameBytes).digest("hex"),dimensions:{width:frameBytes.readUInt32BE(16),height:frameBytes.readUInt32BE(20)},photo_fully_visible_in_recording_viewport:videoPhotoPreflight.fully_visible_in_recording_viewport});
+  }
+  assert(extractedVideoFrames.length===8&&extractedVideoFrames.every(frame=>frame.dimensions.width===1440&&frame.dimensions.height===1000&&frame.photo_fully_visible_in_recording_viewport),"Every extracted WebM sample must be a full-size viewport frame from a preflight-verified full-photo recording");
   waterCanvasEvidence.full_playback = {
     video:"fishtrace-canvas-water-full-2800ms.webm",
     frame_duration_ms:2800,
@@ -1570,6 +1656,11 @@ async function main() {
     playback_completed_at_utc:waterPlaybackCompletedAt,
     observed_playback_wall_ms:waterPlaybackWallMs,
     start_state:videoStartState,
+    photo_visibility_preflight:videoPhotoPreflight,
+    recording_start_epoch_ms:videoRecordingStartEpochMs,
+    playback_start_offset_ms:playbackStartOffsetMs,
+    container_duration_s:Number(videoProbe.format.duration),
+    extracted_frames:extractedVideoFrames,
     final_time_ms:2800,
     errors:videoErrors,
     photo_upload_or_inference_requests:videoRequests.filter(request => /inference|detector|classifier|upload/i.test(request.url)).length
@@ -1600,18 +1691,18 @@ async function main() {
   }
   const sourceManifest={
     schema:"FISHTRACE_CANVAS_WATER_LAB_SOURCE_MANIFEST_V2",
-    task_id:"FISHTRACE_SWOS_CANVAS_WATER_LAB_VISUAL_FIDELITY_REPAIR_V2",
+    task_id:"FISHTRACE_SWOS_CANVAS_WATER_LAB_VISUAL_FIDELITY_V5",
     candidate_source_sha:buildMarker,
     route:fishtraceSitesHash,
     contract_id:"FISHTRACE_SWOS_CANVAS_WATER_LAB_V1_CANDIDATE",
-    contract_version:"CANDIDATE_V3",
+    contract_version:"CANDIDATE_V5",
     fixture:{path:"design/system/fish_media_display_v1/assets/real_catch_source.jpg",sha256:"6e955087108f7463eca2dbac489699a4942028ebe1b3d456ddfca523286385ef",decoded_dimensions:{width:waterAsset.naturalWidth,height:waterAsset.naturalHeight},exif_orientation:"none"},
     water_region:{version:debugOverlayState.version,trust:"FIXED_DEMO_GEOMETRY_NOT_AI_MASK_NOT_PRODUCTION_ASSET",validation_status:debugOverlayState.validation_status,polygons:debugOverlayState.polygons},
     files:sourceManifestFiles
   };
   const visualMetricsReport={
     schema:"FISHTRACE_CANVAS_WATER_LAB_VISUAL_METRICS_V2",
-    task_id:"FISHTRACE_SWOS_CANVAS_WATER_LAB_VISUAL_FIDELITY_REPAIR_V2",
+    task_id:"FISHTRACE_SWOS_CANVAS_WATER_LAB_VISUAL_FIDELITY_V5",
     candidate_source_sha:buildMarker,
     composition_method:"Chromium Canvas2D: HTML source image composited with the visible overlay using screen blend at the measured stage CSS dimensions; polygon ROI transformed through the same object-fit:contain content rectangle.",
     thresholds:{mean_rgb_abs_diff_units:"normalized RGB channel absolute difference (0–1); thresholds are 3/255 and 5/255",P2_mean_rgb_abs_diff_fraction_min:3/255,P3_mean_rgb_abs_diff_fraction_min:5/255,P3_roi_ratio_max_channel_diff_gte_6_min:.1,non_water_max_channel_diff_gt_2_px_max:0,P0_P7_composite_diff_max:0,full_timeline_unchanged:true},
