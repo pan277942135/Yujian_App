@@ -34,7 +34,7 @@ button[disabled]{opacity:.48;cursor:not-allowed}
 .statebar-copy strong{font-size:14px}
 .state-tabs{display:flex;gap:6px;align-items:center;flex:1;min-width:0}
 .state-tab{display:flex;align-items:center;gap:7px;border:1px solid transparent;background:transparent;color:#70837e;padding:10px 12px;border-radius:10px;font-size:12px;font-weight:700;white-space:nowrap}
-.state-tab span{font-size:10px;font-weight:800;color:#9aac a4;letter-spacing:.02em}
+.state-tab span{font-size:10px;font-weight:800;color:#9aacaa;letter-spacing:.02em}
 .state-tab:hover{background:#f5f8f6}
 .state-tab.is-active{background:#e7f1ed;border-color:#c6ddd4;color:#245d54}
 .state-tab.is-active span{color:#4e8475}
