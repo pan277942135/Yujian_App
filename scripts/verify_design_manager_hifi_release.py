@@ -493,14 +493,17 @@ def validate_tree(root: Path, *, built: bool = False, expected_build: str | None
         "Canvas Water Lab ambient P1 response calibration must record the double-alpha root cause and preserve the .10 per-field cap"
     )
     caustic_calibration = water_rendering.get("caustics",{}).get("calibration",{})
+    face_profile = water_rendering.get("caustics",{}).get("face_opacity_profile",{})
     require(
-        caustic_calibration.get("revision") == "A_LINE_P2_P3_FACE_EXPANSION_03"
-        and "Region A mean was 6.297/255 at P2 and 7.061/255 at P3" in caustic_calibration.get("root_cause","")
-        and "fixed cross-axis linear gradient kept most patches ribbon-like" in caustic_calibration.get("root_cause","")
+        caustic_calibration.get("revision") == "A_LINE_P2_P3_PEAK_AND_P6_RETREAT_04"
+        and "P3 8.003/255" in caustic_calibration.get("root_cause","")
+        and "P6 2.132/255" in caustic_calibration.get("root_cause","")
         and "0.22 A / 0.14 B single-patch opacity caps" in caustic_calibration.get("preserved",[])
-        and water_rendering.get("caustics",{}).get("face_opacity_profile",{}).get("expand_start_ms") == 950
-        and water_rendering.get("caustics",{}).get("face_opacity_profile",{}).get("expand_end_ms") == 1200,
-        "Canvas Water Lab P2/P3 calibration must record the measured face-expansion root cause, interpolation, and A/B patch opacity caps"
+        and face_profile.get("settle_start_ms") == 1200
+        and face_profile.get("settle_end_ms") == 2050
+        and len(face_profile.get("settled_stops",[])) == 6
+        and water_field.get("zone_exit",{}).get("A",{}).get("start_ms") == 2250,
+        "Canvas Water Lab calibration must record the measured P3/P6 failures, P3-to-P5 profile settlement, delayed Region A retreat, and preserved opacity caps"
     )
     require(water_lab.get("boundaries",{}).get("production_sites_runtime_modified") is False and water_lab.get("boundaries",{}).get("inference_api_requested") is False and water_lab.get("boundaries",{}).get("photo_upload_implemented") is False and water_lab.get("boundaries",{}).get("fish_mask_or_gold_contour_drawn") is False and water_lab.get("boundaries",{}).get("webgl_used") is False, "Canvas Water Lab scope crossed a production or forbidden visual boundary")
     require("object-fit:contain" in water_lab_css and "mix-blend-mode:screen" in water_lab_css, "Canvas Water Lab image/overlay layout is missing")
