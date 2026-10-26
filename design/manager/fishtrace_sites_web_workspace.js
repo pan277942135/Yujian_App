@@ -7,8 +7,9 @@
     'source-choice':'02 · 来源选择',
     'preview':'03 · 照片预览',
     'processing':'04 · 识别中',
-    'result':'05 · 识别结果',
-    'error':'06 · 异常恢复'
+    'reveal':'05 · 结果揭晓',
+    'result':'06 · 识别结果',
+    'error':'07 · 异常恢复'
   };
   const frames = [
     {id:'P0',ms:0,water:0,gold:0,label:'照片进入 · 原始光场'},
@@ -20,6 +21,15 @@
     {id:'P6',ms:2600,water:10,gold:100,label:'外围退场'},
     {id:'P7',ms:2800,water:0,gold:100,label:'外围归零'}
   ];
+  const rr09Frames = [
+    {id:'R0',ms:0,globalMs:2800,titleOpacity:0,offset:12,label:'光场接续'},
+    {id:'R0.5',ms:100,globalMs:2900,titleOpacity:0,offset:12,label:'几何中点'},
+    {id:'R1',ms:200,globalMs:3000,titleOpacity:0.05,offset:10,label:'结果位置落定'},
+    {id:'R2',ms:380,globalMs:3180,titleOpacity:0.12,offset:8,label:'名称承接'},
+    {id:'R3',ms:550,globalMs:3350,titleOpacity:0.35,offset:5,label:'中文名称凝结'},
+    {id:'R4',ms:680,globalMs:3480,titleOpacity:0.8,offset:2,label:'中文名称揭晓'},
+    {id:'R5',ms:850,globalMs:3650,titleOpacity:1,offset:0,label:'稳定结果状态'}
+  ];
   let contract = null;
   let activeState = 'entry';
   let activeLayer = 'page-shell';
@@ -30,6 +40,7 @@
   let photoObjectUrl = null;
   let selectedFile = null;
   let motionFrame = 0;
+  let revealFrame = 0;
   let motionHandle = 0;
   let motionStart = 0;
   let transitionTimer = 0;
@@ -60,7 +71,7 @@
     updatePhotoMetadata();
   }
   function syncPhotoNodes() {
-    ['preview','processing','result','error'].forEach(scene => {
+    ['preview','processing','reveal','result','error'].forEach(scene => {
       const foreground = $('#photo-foreground-' + scene);
       const backdrop = $('#photo-backdrop-' + scene);
       if (foreground) foreground.src = photoUrl;
@@ -171,13 +182,15 @@
     clearTimeout(transitionTimer);
     if (state !== 'processing') stopMotion();
     activeState = state;
-    if (['preview','processing','result','error'].includes(state)) ensurePhoto();
+    if (['preview','processing','reveal','result','error'].includes(state)) ensurePhoto();
     $$('.product-scene').forEach(scene => { scene.hidden = scene.dataset.scene !== state; });
     $$('.state-tab').forEach(button => button.classList.toggle('is-active', button.dataset.state === state));
     $('#preview-heading').textContent = stateLabels[state];
     $('#timeline-inspector').hidden = state !== 'processing';
+    $('#rr09-timeline-inspector').hidden = state !== 'reveal';
     $('#product-device').querySelector('.product-page').dataset.currentState = state;
     if (state === 'processing') setFrame(motionFrame);
+    if (state === 'reveal') setRevealFrame(revealFrame);
     renderTree();
     selectLayer(layerTree()[0]?.id || 'page-shell');
     switchInspector(inspectorMode);
@@ -192,6 +205,21 @@
     const copy = $('#processing-status-copy');
     if (title) title.textContent = frame.label;
     if (copy) copy.textContent = '水面光场 · ' + frame.id + ' · ' + frame.ms + 'ms';
+  }
+  function setRevealFrame(index) {
+    revealFrame = Math.max(0, Math.min(rr09Frames.length - 1, Number(index) || 0));
+    const frame = rr09Frames[revealFrame];
+    $('#rr09-timeline-frames [data-rr09-frame]').forEach(button => button.classList.toggle('is-active', button.dataset.rr09Frame === frame.id));
+    $('.ambient-caustics').forEach(layer => layer.style.setProperty('--water-alpha', '0'));
+    const titleCard = $('#reveal-title-card');
+    if (titleCard) {
+      titleCard.style.setProperty('--reveal-title-opacity', String(frame.titleOpacity));
+      titleCard.style.setProperty('--reveal-title-offset', frame.offset + 'px');
+    }
+    const title = $('#rr09-status-title');
+    const copy = $('#rr09-status-copy');
+    if (title) title.textContent = frame.label;
+    if (copy) copy.textContent = 'RR09 · ' + frame.id + ' · ' + frame.globalMs + 'ms';
   }
   function stopMotion() {
     if (motionHandle) cancelAnimationFrame(motionHandle);
@@ -217,6 +245,31 @@
     };
     motionHandle = requestAnimationFrame(tick);
   }
+  function playReveal() {
+    clearTimeout(transitionTimer);
+    stopMotion();
+    revealFrame = 0;
+    setState('reveal');
+    setRevealFrame(0);
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      setRevealFrame(6);
+      transitionTimer = setTimeout(() => setState('result'), 120);
+      return;
+    }
+    const start = performance.now();
+    const tick = now => {
+      const elapsed = Math.min(850, now - start);
+      let index = 0;
+      for (let i = 0; i < rr09Frames.length; i++) if (elapsed >= rr09Frames[i].ms) index = i;
+      setRevealFrame(index);
+      if (elapsed < 850) motionHandle = requestAnimationFrame(tick);
+      else {
+        motionHandle = 0;
+        transitionTimer = setTimeout(() => setState('result'), 120);
+      }
+    };
+    motionHandle = requestAnimationFrame(tick);
+  }
   function beginDemoRecognition() {
     clearTimeout(transitionTimer);
     stopMotion();
@@ -224,7 +277,7 @@
     setState('processing');
     if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
       setFrame(7);
-      transitionTimer = setTimeout(() => setState('result'), 120);
+      transitionTimer = setTimeout(() => playReveal(), 120);
       return;
     }
     const start = performance.now();
@@ -237,7 +290,7 @@
         motionHandle = requestAnimationFrame(tick);
       } else {
         motionHandle = 0;
-        transitionTimer = setTimeout(() => setState('result'), 850);
+        playReveal();
       }
     };
     motionHandle = requestAnimationFrame(tick);
@@ -251,6 +304,7 @@
     photoUrl = samplePhoto;
     sourceKind = 'design-sample';
     motionFrame = 0;
+    revealFrame = 0;
     syncPhotoNodes();
     updatePhotoMetadata();
     setDevice('desktop');
@@ -272,7 +326,7 @@
     const stateButton = event.target.closest('[data-state]');
     if (stateButton && stateButton.classList.contains('state-tab')) {
       const state = stateButton.dataset.state;
-      if (state === 'preview' || state === 'processing' || state === 'result' || state === 'error') ensurePhoto();
+      if (state === 'preview' || state === 'processing' || state === 'reveal' || state === 'result' || state === 'error') ensurePhoto();
       setState(state);
       return;
     }
@@ -291,6 +345,11 @@
       setFrame(frames.findIndex(frame => frame.id === frameButton.dataset.frame));
       return;
     }
+    const revealFrameButton = event.target.closest('[data-rr09-frame]');
+    if (revealFrameButton) {
+      setRevealFrame(rr09Frames.findIndex(frame => frame.id === revealFrameButton.dataset.rr09Frame));
+      return;
+    }
     const action = event.target.closest('[data-action]')?.dataset.action;
     if (!action) return;
     if (action === 'start') setState('source-choice');
@@ -300,6 +359,7 @@
     else if (action === 'source-choice') setState('source-choice');
     else if (action === 'back-entry' || action === 'close' || action === 'reset') reset();
     else if (action === 'play-motion') playMotion();
+    else if (action === 'play-reveal') playReveal();
   });
   $('#gallery-input').addEventListener('change', () => handleFile($('#gallery-input'),'local-file'));
   $('#camera-input').addEventListener('change', () => handleFile($('#camera-input'),'camera-input'));
