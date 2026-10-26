@@ -163,7 +163,7 @@ button[disabled]{opacity:.48;cursor:not-allowed}
 .result-details span{font-size:9px;color:#91a098}
 .result-details strong{margin-top:5px;font-size:10px;color:#617970}
 .result-actions{display:grid;gap:8px}
-.result-disclaimer{text-align:center;margin:12px 0 0;color:#9b8a68;font-size:9px}
+.result-disclaimer,.reveal-disclaimer{text-align:center;margin:12px 0 0;color:#9b8a68;font-size:9px}
 .scene-error{padding:34px 0}
 .error-layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(300px,.8fr);gap:24px;align-items:center}
 .error-photo .photo-media,.error-photo .photo-foreground{min-height:340px;max-height:440px}

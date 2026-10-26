@@ -1028,7 +1028,7 @@ async function main() {
   await fishtraceFrame.locator('.state-tab[data-state="result"]').click();
   assert(await fishtraceFrame.locator('[data-scene="result"]').isVisible(), "Result state must be inspectable");
   assert((await fishtraceFrame.locator('[data-scene="result"] .demo-chip').innerText()).includes("样例数据"), "Result must label the sample data explicitly");
-  assert((await fishtraceFrame.locator(".result-disclaimer").innerText()).includes("视觉样例"), "Result must not imply real model inference");
+  assert((await fishtraceFrame.locator('[data-scene="result"] .result-disclaimer').innerText()).includes("视觉样例"), "Result must not imply real model inference");
   const desktopResultColumns = await fishtraceFrame.locator('[data-scene="result"] .result-layout').evaluate(node => getComputedStyle(node).gridTemplateColumns);
   assert(desktopResultColumns.includes(" "), "Desktop result must render photo-left/result-right columns");
   await page.screenshot({ path: resolve(args.outputDir, "fishtrace-sites-web-hifi-desktop.png"), fullPage: true });
