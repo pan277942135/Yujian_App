@@ -25,3 +25,10 @@ This note records the evidence motivating the candidate change. The new candidat
 The exact-head browser run 40359862842 on `628b3334023e445c49319300055766b5a0086bb2` passed P1, P2, P0/P7, and Forbidden Zone pixel gates but failed the P3 Region A target: P2 was 6.297/255 and P3 was 7.061/255 against the P3 minimum of 10.5/255. The run artifact is `Design-Manager-Browser-Build-40359862842-628b3334023e445c49319300055766b5a0086bb2` (artifact ID 12668460380).
 
 The V1 calibration update interpolates the face opacity profile from P2 to P3, eases patch growth so the P2 field remains visibly earlier than the P3 field, increases the seeded local contour and edge variation, and samples the existing 24 refraction segments near the upper end of their already permitted size ranges. It keeps the exact region geometry, asset, 18-patch count, layer timeline, 2800ms total, colors, maximum per-patch opacity, and three-layer structure. The same-head browser metrics must establish whether this fixes P3 without pushing P2 or P1 outside their target ranges; visual naturalness remains subject to owner review.
+
+
+## A-line visual calibration update 04
+
+Exact-head Chromium run 40362967238 on `d6d4234c373ff24d9eb43001f62ee9c5b690b19b` measured Region A means P1 4.115/255, P2 6.085/255, P3 8.003/255, P4 7.630/255, P5 5.844/255 and P6 2.132/255. P0/P7 were zero and Forbidden Zone leakage was zero. P2-to-P3 spatial change was present, but P3 and P4 were below their pixel target; P6 remained above its tail target.
+
+The next candidate broadens the three-level patch-face profile only at P3, transitions through a partial settlement at P4, and returns to the prior lower-coverage profile by P5. Region A structural retreat starts at 2250ms, after the P5 keyframe, with per-patch stagger continuing through P7. It preserves the fixed layer multipliers, image, A/B/C/D polygons, 18 patches, 24 highlights, patch limits, per-patch opacity caps, keyframe timestamps and 2800ms duration. This update is a candidate and requires same-head browser results.
