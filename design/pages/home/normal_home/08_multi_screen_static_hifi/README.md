@@ -25,9 +25,9 @@ The photos and real-person avatar shown in recovered mockups remain sample conte
 | --- | --- | --- |
 | V1 | 2026-10-22 | Registered the five source PNGs; froze target viewport mapping, full responsive review rules, and Design Manager workspace; added the M05 static 480 dp width boundary and recorded its Android scope conflict. Kept runtime `NOT_VERIFIED`. |
 
-## Responsive rules working baseline (2026-10-26)
+## Responsive Layout V2 freeze (2026-10-26)
 
-The current development decision checkpoint is [NH01_RESPONSIVE_RULES_DECISION_CHECKPOINT_2026-10-26.md](../responsive/NH01_RESPONSIVE_RULES_DECISION_CHECKPOINT_2026-10-26.md). It records the user-approved constraint-driven approach, five frozen visual anchors, A/B/C logical bands, the 1:1 positive-surplus allocation decision, Hero/Peek safety constraints, and the unresolved numeric conflicts that must be consolidated into one machine-readable rule source. This is a working checkpoint, not a freeze claim; Android Runtime remains `NOT_VERIFIED`.
+[NH01_RESPONSIVE_LAYOUT_V2.json](../responsive/NH01_RESPONSIVE_LAYOUT_V2.json) is the frozen sole responsive machine contract for the existing route. The linked decision checkpoint records the gate basis and exact status. The structured-preview rules file remains metadata-only. All five source PNGs and the V1 archive remain unchanged; Android Runtime remains `NOT_VERIFIED` until the exact-SHA native gate passes.
 
 
 ## Structured preview integration — 2026-10-26

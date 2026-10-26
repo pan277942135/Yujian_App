@@ -1,11 +1,11 @@
 # NH01 Responsive Rules — Decision Checkpoint (2026-10-26)
 
-**Status:** `WORKING_BASELINE`  
-**Freeze status:** `NOT_FROZEN`  
-**Machine contract:** `responsive/NH01_RESPONSIVE_LAYOUT_V2.json` (proposed; sole numeric source for the structured browser preview)
+**Status:** `SPEC_FROZEN` (PR #191 candidate; canonical on Main after merge)  
+**Freeze status:** `FROZEN`  
+**Machine contract:** `responsive/NH01_RESPONSIVE_LAYOUT_V2.json` (V2.0, SPEC_FROZEN; sole responsive numeric source)
 **Android Runtime:** `NOT_VERIFIED`  
 **Target workspace:** `#page/home_normal_v1/hifi/multi_screen_static_hifi`  
-**Purpose:** Persist the current product decision to canonical `main` during development. This is a durable decision checkpoint, not a claim that the browser workspace or Android runtime already conforms.
+**Purpose:** Record the frozen NH01 responsive decision and exact-source browser evidence. The Design Manager matrix, isolated candidate deployment and live-route verification passed on candidate SHA `e6df12c74d971ce6ed9e465d33689b95a931d9cc` in run `40302990272`; Android Runtime remains `NOT_VERIFIED`. The updated freeze commit must pass fresh exact-head gates before Main merge.
 
 ## 1. Product decision
 
@@ -115,8 +115,8 @@ A scroll fallback is not an automatic visual pass. Do not hide required content,
 
 ## 10. Immediate next step
 
-Align the existing PR #191 candidate and its structured workspace with this checkpoint: make the V2 machine contract the single numeric source, have the existing Design Manager route consume it directly, and remove the independent preview-rule values. Keep the contract proposed while the exact-source browser matrix is verified. Promote it to `SPEC_FROZEN` only after the contract, M01 short-screen behavior, browser matrix, boundary probes, and candidate deployment pass their registered gates.
+The existing Design Manager route consumes the V2 machine contract directly, the structured-preview JSON is metadata-only, and the exact-source browser matrix/deployment gate passed on the candidate SHA above. Promote the unchanged V2.0 rules to `SPEC_FROZEN` in PR #191. This control-plane status commit changes no numeric rule or frozen asset and must pass required gates on its own exact head before normal merge. After merge, V2 is the canonical NH01 responsive authority; Android implementation starts from that Main SHA and remains `NOT_VERIFIED` until the separate native gate passes.
 
-The `P3-05` and `P3-06` task IDs remain assigned to their existing SWOS/Web scopes. NH01 responsive work uses `NH01-RESPONSIVE-CONTRACT-V2` / `G-NH01-RESPONSIVE-CONTRACT-V2` and `NH01-RESPONSIVE-PREVIEW-V2` / `G-NH01-RESPONSIVE-PREVIEW-V2`; do not repurpose the canonical P3 gates. Generated illustrative media is checked only for independent files, manifest status, stable geometry, and failure fallback; photo authenticity, real-catch provenance, and rights are outside this layout freeze.
+The `P3-05` and `P3-06` task IDs remain assigned to their existing SWOS/Web scopes. NH01 responsive work uses `NH01-RESPONSIVE-CONTRACT-V2` / `G-NH01-RESPONSIVE-CONTRACT-V2` and `NH01-RESPONSIVE-PREVIEW-V2` / `G-NH01-RESPONSIVE-PREVIEW-V2`; do not repurpose the canonical P3 gates. Android implementation and runtime acceptance use `YUJIAN_NH01_RESPONSIVE_V2_ANDROID_IMPLEMENTATION_AND_RUNTIME_ACCEPTANCE_V1` / `G-NH01-RESPONSIVE-V2-ANDROID-RUNTIME-V1` in P6. The 480dp M05 native boundary test is supplemental and must record its explicit runtime height without redefining the static anchor. Generated illustrative media authenticity, real-catch provenance, and rights remain outside this responsive geometry freeze; stable fallback geometry is required.
 
-This checkpoint records the current working decision on `main`; it does not claim that the implementation, browser preview, or Android runtime has already passed.
+This PR checkpoint records a frozen responsive specification candidate. The candidate browser gate passed on the SHA above; Main adoption waits for fresh exact-head checks and normal merge. Android implementation, build, matrix and runtime remain `NOT_VERIFIED` until separate exact-SHA evidence passes.

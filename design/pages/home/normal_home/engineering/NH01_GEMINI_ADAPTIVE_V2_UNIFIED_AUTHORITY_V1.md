@@ -4,12 +4,14 @@ Contract ID: NH01_GEMINI_ADAPTIVE_V2_UNIFIED_V1
 Status: SPEC_FROZEN; Android Runtime: NOT_VERIFIED
 Scope: only populated NH01/NH02 routed through GeminiNormalHomeContent; not Empty Home, shared Profile, or legacy NormalHomeContent.
 
+Responsive geometry, typography sizing/wrapping, spacing, insets, Hero/Peek/Pager and camera/touch bounds are owned exclusively by the frozen `NH01_RESPONSIVE_LAYOUT_V2.json`. This document retains non-responsive product semantics. Its earlier Adaptive V2.2 responsive measurements below are historical and do not override the frozen machine contract.
+
 ## 1. 规范权威和版本替代
 
 | Field | Current NH01 Gemini route | Retained legacy authority |
 | --- | --- | --- |
 | Page IA, state, navigation | NH01/NH02 feature and NH03 state; current Gemini Top/Middle/Footer | Original NH01 1080x1920 and NH02 immutable reference images |
-| Layout, geometry, fonts, page gaps | Adaptive V2.2, as defined here and in design/qa/NH01_ADAPTIVE_VISUAL_BALANCE_V2.md | NH05 historical A1/A2 frozen coordinates, valid on legacy NormalHomeContent only |
+| Layout, geometry, fonts, page gaps | Frozen machine contract `design/pages/home/normal_home/responsive/NH01_RESPONSIVE_LAYOUT_V2.json` | NH05 historical A1/A2 frozen coordinates, valid on legacy NormalHomeContent only |
 | Real catch metadata | NH04 identity/omission plus V2.2 anti-orphan override below | NH04 single-line specimen remains for legacy route |
 | Lake background | NH06 immutable Morning_Lake_Master source, Gemini viewport TopCenter Crop | NH06 legacy center-Crop viewport rule, not current Gemini crop |
 | Header avatar | NH01_Avatar_Visual_Contract_V1_1_FROZEN.md, mist silhouette | NH07 fisherman bitmap and V2 default asset retained byte-identically; not current Gemini fallback |
@@ -21,44 +23,26 @@ Scope: only populated NH01/NH02 routed through GeminiNormalHomeContent; not Empt
 Only the named field is superseded on the named route. All Frozen pixels and asset hashes stay intact. Gemini is an intentional new Compose layout and does not claim 1080x1920 Frozen Pixel Parity; original product data, navigation, accessibility and safety rules remain binding. Static or design SPEC_FROZEN does not imply runtime PASS.
 
 
-## 1.1 NH01 Responsive Foundation V1.1 — additive frozen principle
+## 1.1 Responsive authority boundary
 
-The structural and surplus-allocation foundation V1.1 is frozen in `design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_MULTI_SCREEN_RESPONSIVE_CONTRACT_V1.md`, Appendix A, and its machine-readable `foundation_layout_principles` entry. V1.1 supersedes the former 2:1 split with equal allocation of positive long-screen surplus. Design Manager remains the single entry point.
+The static V1.1 archive preserves historical frozen image identities and presentation metadata. It is not a current Gemini runtime calculator. The V2.0 machine contract is the sole source for the current Gemini route's logical allocation, safe dimensions, responsive component parameters and acceptance bounds. Values below in this historical authority are not active responsive rules.
 
-- **A:** brand/avatar + three statistics (statistics remain a second row at 320×480dp); boundary at the statistics-row bottom.
-- **B:** Recent Catch heading/All action + selected Hero + eligible real-neighbor Peeks; boundaries from heading top to selected Hero outer bottom.
-- **C:** record-next-catch CTA + camera action; starts at the CTA visible-control top.
-- A/B/C are logical allocation bands, not new Compose containers. Preserve the existing Top/Middle/Footer hierarchy; the Recent Catch heading may be physically rendered in Top while logically belonging to B.
-- Measure the usable content height after applying system insets once. Let hA/hB/hC include fixed content and internal spacing, excluding the two inter-group gaps. Use the existing `stats_to_title` and `card_to_footer` formulas as base gaps, gAB_base and gBC_base.
-- Calculate `S = max(0, H_safe - (hA + hB + hC + gAB_base + gBC_base))`. If S is positive, set `gAB = gAB_base + S/2` and `gBC = gBC_base + S/2`. The 1:1 equal split applies to added surplus, not final visible gaps. Subtract each base gap before comparing the added portions; the final visible gaps need not be equal. This is the explicit long-screen override to the final values of those two inter-group gaps; their formulas remain the base-gap policy.
-- This does **not** alter the internal Title→Hero gap or its four explicit viewport targets, the Hero 247:293 ratio/size limits, typography roles, Peek geometry, camera/touch sizes, safe-area handling, or runtime acceptance. No separate bottom-reserve function is introduced.
-- For 320×480dp at system fontScale=1.0, prioritize no scroll and retain the two-row header; compress nonessential whitespace and group gaps within existing short-screen constraints before resizing Hero within the existing exception.
-- If a specific frozen constraint cannot be jointly satisfied, mark `SPEC_CONFLICT`; do not silently override it or claim runtime PASS.
-## 2. Section Spacing V2.2 (new explicit visual targets)
+## 2. Section spacing — delegated
 
-Measure the rendered 最近鱼获 Text layout bottom to the actual selected Hero card outer top, via native boundsInWindow; NOT section Row bottom or center of the Pager.
+The previous V2.2 section-spacing table is historical implementation evidence. Current spacing targets, formulas, measurement anchors, font-scale behavior and continuity bounds are defined only by `NH01_RESPONSIVE_LAYOUT_V2.json`. No value in the historical table overrides that machine contract.
 
-| Native logical viewport profile | Visible gap at system fontScale=1.0 |
-| --- | --- |
-| 320x480dp | 8dp ±2 |
-| 360x640dp | 12dp ±2 |
-| 390x844dp | 18dp ±2 |
-| 430x932dp | 20dp ±2 |
+## 3. Adaptive Hero/Peek and short viewport — delegated
 
-At system 1.3x/1.5x, compress nonessential spacing before shrinking readable content, retain >=8dp where feasible, otherwise accessible local Middle scroll; no text/CTA collisions. Record six intervals Header-Stats, Stats-Title, Title-Card, Card-CTA, CTA-Camera, Camera-BottomSafe. Do NOT pass a test merely because measured gap equals its own old layout policy (7-12dp). Environmental whitespace on long screens is legitimate; unbalanced tightly stacked Title/Hero is not.
-
-## 3. Adaptive Hero/Peek / short viewport
-
-247:293 card ratio, target width min(min(trackWidth,560dp)*0.70,337.2dp), height cap 400dp, normal readable-height floor 148-220dp. 124dp exception ONLY at 320x480dp, fontScale exactly 1.0 and only when card width >=145dp, required text readable and Middle does not scroll. Peek real neighbor: width <=82% main, height 66.7%, top +15dp, no overlap beyond 1dp, no infinite wrap or phantom NH02 side card. Footer outside Middle scroll, camera target >=72dp, all other actions >=48dp, no camera/CTA collision and safe inset applied once. At fixed font scale, larger width/height must not reduce key sp roles or hero width.
+The prior Hero/Peek sizing and compact-window rules are retained as historical evidence only. The frozen V2 machine contract owns the current ratio, target width, size caps, Peek geometry, stable-record pager behavior, safe-area handling and exact short-screen acceptance. If measured native constraints cannot satisfy that contract, report the required failure state with bounds; do not weaken the contract.
 
 ## 4. NH04 metadata priority and one-character orphan rule
 
-Actual sanitized species first; positive measurement only; time outranks optional location. Omit missing rows and separators; never fake zero/unknown. Species normally one line, may use max 2 if card<240dp or system fontScale>=1.3; measurements preserve values and units. Location should be succinct on card; full value remains in FishRecordDetail. Standard metadata prefer one line, max two if legible; optional location is ellipsized/shortened before time is lost. NEVER leave a lone final CJK glyph (e.g. 号) or dangling punctuation. hasVisualOverflow=false alone is insufficient; test actual TextLayoutResult line ranges and native screenshots.
+Show the actual sanitized species first, positive measurements only, and time ahead of optional location. Omit missing rows and separators; never fabricate values or leave an isolated final CJK glyph or dangling punctuation. Shorten or ellipsize optional location before required time is lost. Responsive line wrapping, line limits and font-scale behavior come from the V2 machine contract. Validate actual `TextLayoutResult` line ranges and native screenshots; `hasVisualOverflow=false` alone is insufficient.
 
 ## 5. NH06 / NH07 / photo / motion
 
-Exact immutable Morning Lake master SHA256 5fba741088ea186e898cd3bee5777e35978436f427492e6e6122528ef6aa91d7. Current Gemini viewport TopCenter/Crop with no extra recolor, global blur or screenshot-cropped master. Current avatar V1.1: 36-40dp thin mist glass, >=48dp touch, head/shoulder line, no glossy ring. Guest and signed-in missing photo may share ARTWORK but not account state, accessible label, click destination or user photo data; old NH07/V2 assets remain stored unchanged. Fish source remains real; use trusted BBox safety or full-photo same-source soft backdrop with no hard rectangular front-image seam. Selected Hero idle only when resumed and motion allowed: 6000ms scale 1.000->1.008->1.000, Y 0->-2dp->0; no auto-page, no new haptic except shared Capture, no ambient audio.
+The immutable Morning Lake source and its Gemini crop behavior, the approved avatar appearance, Guest versus signed-in identity semantics, same-source photo safety and existing motion/lifecycle behavior remain in this non-responsive authority. Responsive component and touch bounds are resolved from the V2 machine contract. Preserve current reduced-motion behavior and do not introduce new page audio or unrelated effects.
 
 ## 6. Independent admission
 
-Acceptance: design/pages/home/normal_home/engineering/NH01_GEMINI_ADAPTIVE_V2_ACCEPTANCE_V1.md. Machine source: design/pages/home/normal_home/engineering/NH01_GEMINI_ADAPTIVE_V2_ACCEPTANCE_MATRIX_V1.json. Same exact git SHA, V2/V3 4 viewports x 3 fonts x 2 variants = 24 Android API28 executions plus 20 scoped cases and applicable 46 historical behavior/motion/photo domains. Missing or unverified evidence is NOT_RUN/REVIEW_REQUIRED, never PASS. Do not merge main or claim release approval.
+The existing V2.2 acceptance matrix and its 24 Android API28 executions remain unchanged as a baseline. The current responsive task adds the specified native viewport/font-scale and continuity-boundary probes without weakening that matrix; the 480dp width-boundary probe records an explicit test height and does not redefine M05. Require the same exact source SHA, measured bounds/text/insets/touch evidence, screenshots/logs and APK provenance. Missing evidence remains NOT_RUN/REVIEW_REQUIRED, never PASS. A build or browser preview is not Android Runtime PASS.

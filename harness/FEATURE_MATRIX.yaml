@@ -159,7 +159,7 @@ features:
       layout_policy: "app/src/main/java/com/yujian/ai/ui/home/GeminiHomeAdaptiveLayoutPolicy.kt"
     known_gaps:
       - "Runtime/evidence remain partial; Hero F01-F08 fixture matrix and camera optical parity are open (B003/B004)."
-      - "NH01 Responsive Layout V2 is aligned with canonical Responsive Foundation V1.1 equal S/2 additions to A→B and B→C; its Design Manager integration and exact-source browser freeze evidence remain pending. Android runtime remains NOT_VERIFIED."
+      - "NH01 Responsive Layout V2 is SPEC_FROZEN as the sole current Gemini responsive machine contract. The V1 static archive remains immutable; the remaining Normal Home gap is exact-SHA Android implementation and runtime evidence, which is still NOT_VERIFIED."
   record_date_v2:
     sequence: 3
     name: "记录日期"
