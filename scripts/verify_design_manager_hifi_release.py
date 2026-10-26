@@ -167,14 +167,15 @@ def validate_tree(root: Path, *, built: bool = False, expected_build: str | None
     guide_view = by_view.get("capture_first_use_guide")
     full_flow = by_view.get("recognition_full_flow_models")
     swos_static = by_view.get("swos_static_visual_v1_1")
-    require(overview and boundary and guide_view and full_flow and swos_static, "overview/boundary/guide/full-flow/SWOS static view missing")
+    sites_hifi = by_view.get("fishtrace_sites_web_hifi_workspace")
+    require(overview and boundary and guide_view and full_flow and swos_static and sites_hifi, "overview/boundary/guide/full-flow/SWOS static/FishTrace Sites Hi-Fi view missing")
     require(views[0].get("id") == "main_journey_overview", "00 journey overview is not the first recognition route")
     view_ids = [view.get("id") for view in views]
     require(
         view_ids.index("boundary_state_release_gate") < view_ids.index("recognition_full_flow_models")
         < view_ids.index("swos_optical_contract") < view_ids.index("processing_result_continuity")
-        < view_ids.index("swos_static_visual_v1_1"),
-        "08 boundary, 09 full-flow/model, SWOS, continuity and static visual routes must retain their registered order",
+        < view_ids.index("swos_static_visual_v1_1") < view_ids.index("fishtrace_sites_web_hifi_workspace"),
+        "08 boundary, 09 full-flow/model, SWOS, continuity, static visual and FishTrace Sites prototype routes must retain their registered order",
     )
     require(full_flow.get("title") == "09 · 识别全流程-和模型", "09 full-flow/model menu title drift")
     require(full_flow.get("status") == "DESIGN_ONLY" and full_flow.get("render_mode") == "recognition_full_flow_models", "09 full-flow/model must remain DESIGN_ONLY with its renderer")
@@ -275,6 +276,7 @@ def validate_tree(root: Path, *, built: bool = False, expected_build: str | None
         "capture asset gate": "#page/recognition_flow_v1_2/hifi/boundary_state_release_gate/capture_portrait",
         "permission visual gate": "#page/recognition_flow_v1_2/hifi/boundary_state_release_gate/camera_permission_visual",
         "full flow and model responsibilities": "#page/recognition_flow_v1_2/hifi/recognition_full_flow_models",
+        "FishTrace Sites high-fidelity structured prototype": "#page/recognition_flow_v1_2/hifi/fishtrace_sites_web_hifi_workspace",
     }
     for child_id in ("p01", "p02", "p03"):
         child = guide_children[child_id]
@@ -357,6 +359,13 @@ def validate_tree(root: Path, *, built: bool = False, expected_build: str | None
     require("guide-resource-actions" in guide_workspace and "CANDIDATE_NEEDS_APPROVAL" in guide_workspace and "data-guide-layer" in guide_workspace, "guide Resources preview/download and structured layer workspace are missing")
     require("recognitionFullFlowModelsCanvas" in app and 'view.render_mode === "recognition_full_flow_models"' in app, "full-flow/model Design Manager renderer is missing")
     require('view.render_mode === "swos_static_visual_workspace"' in app and "SWOSStaticVisual?.mount" in app, "SWOS static workspace hook is missing")
+    sites_workspace_html = design / "manager/fishtrace_sites_web_workspace.html"
+    sites_workspace_css = design / "manager/fishtrace_sites_web_workspace.css"
+    sites_workspace_js = design / "manager/fishtrace_sites_web_workspace.js"
+    require(sites_workspace_html.is_file() and sites_workspace_css.is_file() and sites_workspace_js.is_file(), "FishTrace Sites high-fidelity workspace HTML/CSS/JS is missing")
+    require('view.render_mode === "fishtrace_sites_web_hifi_workspace"' in app and "fishtrace_sites_web_workspace.html" in app, "FishTrace Sites prototype iframe renderer is missing")
+    require("FISHTRACE-SITES-WEB-HIFI-V1" in sites_workspace_html.read_text(encoding="utf-8") and "fishtrace_sites_web_workspace.css" in sites_workspace_html.read_text(encoding="utf-8") and "fishtrace_sites_web_workspace.js" in sites_workspace_html.read_text(encoding="utf-8"), "FishTrace Sites workspace asset references are missing")
+    require("layer_tree_by_state" in sites_workspace_js.read_text(encoding="utf-8") or "FishTrace_Sites_Web_Structured_Prototype_V1.json" in sites_workspace_js.read_text(encoding="utf-8"), "FishTrace Sites structured layer contract is not loaded")
     require("swos_static_visual.js" in html and "window.SWOSStaticVisual" in swos_js, "SWOS static workspace module is not loaded")
     require("first_use_guide_workspace.js" in html, "First-use guide workspace module is not loaded")
     require("showModal()" in swos_js and "data-frame-id" in swos_js and "R0.5" in swos_js, "SWOS frame zoom or R0.5 inspector is missing")
@@ -364,6 +373,11 @@ def validate_tree(root: Path, *, built: bool = False, expected_build: str | None
     require("localStorage" not in swos_js and "indexedDB" not in swos_js and "fetch(\"/" not in swos_js, "SWOS local photo workspace must not persist or upload selected photos")
     require("FROZEN STATUS CARD" in swos_js and "SWOS · STATIC VISUAL REVIEW" in swos_js, "SWOS static visual reviewer labels are missing")
     require("swos-storyboard" in css and "swos-zoom-dialog" in css and "swos-inspector-grid" in css, "SWOS static workspace styles are missing")
+    sites_visual = load_json(root / sites_hifi["machine_authority"])
+    require(sites_hifi.get("status") == "DESIGN_ONLY" and sites_hifi.get("runtime_status") == "NOT_VERIFIED" and sites_hifi.get("production_inference_connected") is False, "FishTrace Sites prototype must remain DESIGN_ONLY and not connected to production inference")
+    require(sites_visual.get("prototype_id") == "FISHTRACE-SITES-WEB-STRUCTURED-PROTOTYPE-V1" and sites_visual.get("production_inference_connected") is False and sites_visual.get("sites_source_modified") is False, "FishTrace Sites prototype machine contract identity/scope changed")
+    require(len(sites_visual.get("scenes", [])) == 6 and len(sites_visual.get("acceptance_checks", [])) >= 12, "FishTrace Sites prototype must include six states and structured acceptance checks")
+    require("DEMO_DATA_ONLY" in json.dumps(sites_visual) and "photo_upload" in json.dumps(sites_visual), "FishTrace Sites sample-result or privacy boundary is missing")
     require("guide-resource-grid" in css and "guide-resource-metadata" in css, "guide Resources responsive gallery styles are missing")
     for token in (
         "history.pushState", 'window.addEventListener("popstate", selectFromHash)',
