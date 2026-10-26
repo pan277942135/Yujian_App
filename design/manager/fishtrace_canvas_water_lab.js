@@ -337,6 +337,7 @@
       const exitScale=smooth(timeMs,2050,2800);
       const faceProfile=this.rendering.caustics.face_opacity_profile;
       const faceExpansion=smooth(timeMs,faceProfile.expand_start_ms,faceProfile.expand_end_ms);
+      const faceSettlement=smooth(timeMs,faceProfile.settle_start_ms,faceProfile.settle_end_ms);
       const zoneExit=this.exit(patch.zone,timeMs,patch.exitDelayMs+patch.peripheral*80);
       let scale=.72+.38*growth;
       if(timeMs>1200)scale=1.10-.14*returnScale;
@@ -370,7 +371,7 @@
         positive.push({x:x+normal.x*sideA,y:y+normal.y*sideA});
         negative.push({x:x-normal.x*sideB,y:y-normal.y*sideB});
       }
-      return {center,centerline,positive,negative,scale,angle,phase,appear,zoneExit,faceExpansion};
+      return {center,centerline,positive,negative,scale,angle,phase,appear,zoneExit,faceExpansion,faceSettlement};
     }
     drawAmbient(ctx,rect,timeMs,intensity,strengthValue,motionScale,zoneName) {
       const spec=this.rendering.ambient;
@@ -440,8 +441,11 @@
         for(let stopIndex=0;stopIndex<profile.initial_stops.length;stopIndex++){
           const initial=profile.initial_stops[stopIndex];
           const expanded=profile.expanded_stops[stopIndex];
-          const offset=initial[0]+(expanded[0]-initial[0])*geometry.faceExpansion;
-          const opacity=initial[1]+(expanded[1]-initial[1])*geometry.faceExpansion;
+          const settled=profile.settled_stops[stopIndex];
+          const expandedOffset=initial[0]+(expanded[0]-initial[0])*geometry.faceExpansion;
+          const expandedOpacity=initial[1]+(expanded[1]-initial[1])*geometry.faceExpansion;
+          const offset=expandedOffset+(settled[0]-expandedOffset)*geometry.faceSettlement;
+          const opacity=expandedOpacity+(settled[1]-expandedOpacity)*geometry.faceSettlement;
           gradient.addColorStop(offset,rgbaFromHex(color,opacity));
         }
         ctx.save();
@@ -654,6 +658,7 @@
       this.canvas.dataset.layerStrengths=JSON.stringify(Object.fromEntries(Object.entries(layers).map(([key,value])=>[key,value*strength])));
       const faceProfile=this.scene.rendering.caustics.face_opacity_profile;
       this.canvas.dataset.causticFaceExpansion=String(smooth(timeMs,faceProfile.expand_start_ms,faceProfile.expand_end_ms));
+      this.canvas.dataset.causticFaceSettlement=String(smooth(timeMs,faceProfile.settle_start_ms,faceProfile.settle_end_ms));
       this.canvas.dataset.currentTime=String(Math.round(timeMs));
       this.canvas.dataset.waterOn=String(waterEnabled);
       this.canvas.dataset.motionScale=String(motionScale);
