@@ -408,12 +408,14 @@ def validate_tree(root: Path, *, built: bool = False, expected_build: str | None
         and water_motion.get("reveal_start_ms",0) < water_motion.get("reveal_end_ms",0)
         and water_rendering.get("backend") == "Canvas 2D"
         and water_rendering.get("ambient_alpha",0) > 0
-        and water_rendering.get("mesh_cell_width_source_px",0) > 0
-        and water_rendering.get("mesh_cell_height_source_px",0) > 0
-        and water_rendering.get("caustic_cell_alpha",0) > 0
+        and water_rendering.get("ribbon_spacing_source_px",0) > 0
+        and water_rendering.get("ribbon_curve_segments",0) >= 8
+        and water_rendering.get("ribbon_thickness_min_source_px",0) > 0
+        and water_rendering.get("ribbon_thickness_max_source_px",0) >= water_rendering.get("ribbon_thickness_min_source_px",0)
+        and water_rendering.get("caustic_ribbon_alpha",0) > 0
         and water_rendering.get("refraction_alpha",0) > 0
-        and all(token in water_lab_js for token in ("water_region","destination-in","traceGridEdge","drawHighlights")),
-        "Canvas Water Lab water-region geometry and candidate optical layer/motion parameters must be recorded"
+        and all(token in water_lab_js for token in ("water_region","destination-in","createCausticRibbons","ribbonGeometry","drawRibbons","drawHighlights")),
+        "Canvas Water Lab water-region geometry and deterministic candidate caustic-ribbon optical parameters must be recorded"
     )
     require(water_lab.get("boundaries",{}).get("production_sites_runtime_modified") is False and water_lab.get("boundaries",{}).get("inference_api_requested") is False and water_lab.get("boundaries",{}).get("photo_upload_implemented") is False and water_lab.get("boundaries",{}).get("fish_mask_or_gold_contour_drawn") is False and water_lab.get("boundaries",{}).get("webgl_used") is False, "Canvas Water Lab scope crossed a production or forbidden visual boundary")
     require("object-fit:contain" in water_lab_css and "mix-blend-mode:screen" in water_lab_css, "Canvas Water Lab image/overlay layout is missing")
@@ -534,3 +536,4 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
+
