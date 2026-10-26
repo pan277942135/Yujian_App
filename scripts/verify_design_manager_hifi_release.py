@@ -372,7 +372,8 @@ def validate_tree(root: Path, *, built: bool = False, expected_build: str | None
     water_lab_css_path = design / "manager/fishtrace_canvas_water_lab.css"
     water_lab_contract_path = design / "pages/recognition/web/candidates/FISHTRACE_SWOS_CANVAS_WATER_LAB_V1_CANDIDATE.json"
     require(water_lab_js_path.is_file() and water_lab_css_path.is_file() and water_lab_contract_path.is_file(), "FishTrace Canvas Water Lab module, styles or candidate contract are missing")
-    water_lab_browser_test_path = root / "scripts/verify_design_manager_browser.mjs"
+    source_root = Path(__file__).resolve().parents[1] if built else root
+    water_lab_browser_test_path = source_root / "scripts/verify_design_manager_browser.mjs"
     require(water_lab_browser_test_path.is_file(), "FishTrace Canvas Water Lab browser verifier is missing")
     water_lab_browser_test = water_lab_browser_test_path.read_text(encoding="utf-8")
     water_lab_js = water_lab_js_path.read_text(encoding="utf-8")
