@@ -102,6 +102,15 @@
       "next": "result"
     },
     {
+      "id": "reveal",
+      "label": "结果揭晓",
+      "state_ref": "S6_RESULT_REVEAL_RR09",
+      "product_description": "Same source photo through the RR09 850ms reveal; because the fixture has no trusted Mask, only a restrained Chinese title fade is shown.",
+      "timeline": "R0/R0.5/R1/R2/R3/R4/R5 / nominal 850ms; demo only",
+      "mask_trust_state": "NONE",
+      "next": "result"
+    },
+    {
       "id": "result",
       "label": "识别结果",
       "state_ref": "S7_RESULT",
@@ -152,12 +161,6 @@
       "to": "processing"
     },
     {
-      "from": "processing",
-      "action": "demo-timeline-complete",
-      "to": "result",
-      "qualification": "visual prototype only; no model inference"
-    },
-    {
       "from": "result",
       "action": "重新识别",
       "to": "processing"
@@ -171,6 +174,18 @@
       "from": "any",
       "action": "关闭/重置",
       "to": "entry"
+    },
+    {
+      "from": "processing",
+      "action": "demo-processing-timeline-complete",
+      "to": "reveal",
+      "qualification": "visual prototype only; no model inference"
+    },
+    {
+      "from": "reveal",
+      "action": "RR09-demo-timeline-complete",
+      "to": "result",
+      "qualification": "visual prototype only; DEMO_DATA_ONLY"
     }
   ],
   "layer_definitions": {
@@ -444,6 +459,29 @@
         "border"
       ],
       "status": "INTERACTIVE_DEMO"
+    },
+    "result-reveal-title": {
+      "label": "中文名称揭晓",
+      "role": "Reveal Typography",
+      "description": "A restrained Chinese-name fade is the fallback while Mask trust is NONE; no fish contour or gold transfer is fabricated.",
+      "geometry": "lower-right translucent card; opacity follows R0-R5",
+      "tokens": [
+        "surface",
+        "deep_text",
+        "morning_gold"
+      ],
+      "status": "DEMO_DATA_ONLY"
+    },
+    "result-reveal-status": {
+      "label": "RR09 状态说明",
+      "role": "Status",
+      "description": "Shows the current RR09 frame and global nominal time; not model telemetry.",
+      "geometry": "compact status pill over the same source photo",
+      "tokens": [
+        "surface",
+        "secondary_text"
+      ],
+      "status": "DESIGN_ONLY"
     }
   },
   "layer_tree_by_state": {
@@ -671,6 +709,49 @@
           }
         ]
       }
+    ],
+    "reveal": [
+      {
+        "id": "page-shell",
+        "children": [
+          {
+            "id": "ambient-background"
+          },
+          {
+            "id": "header",
+            "children": [
+              {
+                "id": "brand"
+              },
+              {
+                "id": "close-button"
+              }
+            ]
+          },
+          {
+            "id": "photo-container",
+            "children": [
+              {
+                "id": "photo-backdrop"
+              },
+              {
+                "id": "photo-foreground"
+              },
+              {
+                "id": "ambient-caustics"
+              }
+            ]
+          },
+          {
+            "id": "result-reveal-title",
+            "children": [
+              {
+                "id": "result-reveal-status"
+              }
+            ]
+          }
+        ]
+      }
     ]
   },
   "interaction_rules": {
@@ -683,7 +764,25 @@
     "mask_trust": "NONE for fixture; no precise fish contour or gold transfer",
     "animation": "editor timeline preview only; not production timing evidence",
     "reset": "clears selected file and returns to entry",
-    "keyboard": "all controls are buttons/links with visible focus and accessible labels"
+    "keyboard": "all controls are buttons/links with visible focus and accessible labels",
+    "rr09_reveal": {
+      "duration_ms": 850,
+      "frames": [
+        "R0",
+        "R0.5",
+        "R1",
+        "R2",
+        "R3",
+        "R4",
+        "R5"
+      ],
+      "r05_global_time_ms": 2900,
+      "mask_trust_state": "NONE",
+      "fallback": "restrained Chinese title fade only",
+      "fabricated_fish_contour": false,
+      "fabricated_gold_transfer": false,
+      "transition_to_result": "after demo timeline completes; not real inference evidence"
+    }
   },
   "acceptance_checks": [
     {
@@ -741,6 +840,18 @@
     {
       "id": "H14",
       "check": "Prototype reports runtime visual and production inference as NOT_VERIFIED / false."
+    },
+    {
+      "id": "H15",
+      "check": "RR09 reveal state exposes R0/R0.5/R1/R2/R3/R4/R5 at 2800/2900/3000/3180/3350/3480/3650ms."
+    },
+    {
+      "id": "H16",
+      "check": "With Mask trust NONE, reveal uses a restrained Chinese title fade and draws no fish-shaped contour or gold transfer."
+    },
+    {
+      "id": "H17",
+      "check": "Processing-to-reveal-to-result is explicitly demo-only and never represents real model telemetry."
     }
   ]
 }
