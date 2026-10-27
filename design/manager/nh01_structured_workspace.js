@@ -325,10 +325,16 @@
     const safeText=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
     workspace.className='nh01-structured';
     workspace.dataset.testid='nh01-structured-workspace';
+    workspace.setAttribute('data-page-workspace-root','');
+    workspace.dataset.pageId='home_normal_v1';
+    workspace.dataset.sourceSha=build;
+    workspace.dataset.viewState='LOADING';
+    workspace.dataset.workspaceKind='nh01-structured-preview';
+    const adapterAbortController=new AbortController();
     const options=profiles.map(([w,h],i)=>`<option value="${i}" ${i===2?'selected':''}>${i===4?'480 dp 宽度边界 · 高度保持当前值':`${w} × ${h} dp`}</option>`).join('');
     workspace.innerHTML=`<header class="nh01-structured-heading"><div><small>DESIGN WORKSPACE · 静态归档 ${contract.foundation_layout_principles.version} · Responsive V${layoutContract.contract_version} ${layoutContract.status}</small><h2>结构化高保真 · 多屏静态与响应式规范</h2><p>布局数值由唯一响应式机器合同驱动；独立 PREVIEW_ONLY 文件仅保留展示元数据。Hero、previous、next 三张图均为 GENERATED_ILLUSTRATIVE_ONLY，不代表真实鱼获或记录数量。Android Runtime = NOT_VERIFIED。</p>${authorityConflict?'<p class="nh01-authority-conflict" role="alert">SPEC_CONFLICT · 响应式 V2 Markdown 与机器合同的剩余空间公式不一致；画布保留冲突标记。</p>':''}</div><code>源码 ${build}</code></header>
       <div class="nh01-structured-controls"><label>视口 <select data-control="profile">${options}</select></label><label>宽 <input data-control="width" type="number" min="280" max="900" value="390"> dp</label><label>高 <input data-control="height" type="number" min="400" max="1400" value="844"> dp</label><label>字体 <input data-control="font" type="range" min="1" max="1.5" step="0.05" value="1"><output data-output="font">1.00×</output></label><label>画布 <input data-control="zoom" type="range" min="0.4" max="1.2" step="0.05" value="0.7"><output data-output="zoom">70%</output></label><details><summary>安全区输入</summary><label>上 <input data-control="top" type="number" min="0" max="80" value="24"> dp</label><label>下 <input data-control="bottom" type="number" min="0" max="80" value="24"> dp</label></details></div>
-      <div class="nh01-structured-grid"><nav class="nh01-layer-tree" aria-label="NH01 图层树"><h3>页面图层 <small>${safeText(componentTree.status||'SOURCE TREE')}</small></h3><div data-layer-tree></div></nav><div class="nh01-canvas-area"><div class="nh01-canvas-scroll"><div class="nh01-artboard" data-artboard data-layer="page" data-testid="nh01-canvas-page"></div></div><div class="nh01-comparison" data-comparison></div></div><aside class="nh01-inspector" aria-label="图层属性检查器"><h3>属性与响应式规则</h3><div data-inspector></div></aside></div>
+      <div class="nh01-structured-grid"><nav class="nh01-layer-tree" aria-label="NH01 图层树"><h3>页面图层 <small>${safeText(componentTree.status||'SOURCE TREE')}</small></h3><div data-layer-tree></div></nav><div class="nh01-canvas-area"><div class="nh01-canvas-scroll"><div class="nh01-artboard" data-artboard data-layer="page" data-workspace-rendered-node="page" data-testid="nh01-canvas-page"></div></div><div class="nh01-comparison" data-comparison></div></div><aside class="nh01-inspector" aria-label="图层属性检查器"><h3>属性与响应式规则</h3><div data-inspector></div></aside></div>
       <details class="nh01-development-basis"><summary>开发依据与验收要求</summary><p>冻结静态归档合同：${contract.contract_id} ${contract.contract_version}；唯一响应式机器合同：${layoutContract.contract_id} V${layoutContract.contract_version}（${layoutContract.status}）；组件父子树：${componentTree.document_type} · ${componentTree.status||'REVIEW_REQUIRED'}；静态参考：${manifest.contract_id}。Android Runtime：NOT_VERIFIED。</p><p><a href="${'../../'+view.machine_authority}" target="_blank" rel="noreferrer">机器合同</a> · <a href="${'../../'+view.authority}" target="_blank" rel="noreferrer">正式文字合同</a> · <a href="../../design/manager/nh01_acceptance/data/NH01_Component_Tree_V1.json" target="_blank" rel="noreferrer">NH01 组件父子树</a> · <a href="../../design/pages/home/normal_home/engineering/Visual_Anchor_Asset_Resolution_V1.md" target="_blank" rel="noreferrer">NH01 头像视觉权威</a></p><div data-basis></div><details open><summary>资源加载审计</summary><div data-resource-report></div></details></details>`;
     const staticRoot=root.querySelector('.nh01-static-workspace');
     if (!staticRoot) throw new Error('NH01 static reference workspace container is missing');
@@ -337,6 +343,8 @@
     const treeContainer=workspace.querySelector('[data-layer-tree]');
     const board=workspace.querySelector('[data-artboard]');
     let selected='hero';
+    let lastResult=null;
+    let lastInputs=null;
     const expanded=new Set(layers.filter(layer=>layer.children.length).map(layer=>layer.id));
     const assetByProfile=manifest.assets||[];
     const bindingResources=resourceBinding.resources||[];
@@ -373,7 +381,7 @@
     function treeNodeMarkup(layer,depth=0) {
       const hasChildren=layer.children.length>0, isOpen=expanded.has(layer.id), status=assetStatusFor(layer.id);
       const icon=layer.kind==='IMAGE_LAYER'?'▧':layer.kind==='FRAME'?'▱':layer.kind==='BUTTON'?'◉':'◦';
-      return `<li class="nh01-tree-node" data-tree-node="${safeText(layer.id)}"><div class="nh01-tree-row" style="--tree-depth:${depth}"><button type="button" class="nh01-tree-select ${selected===layer.id?'selected':''}" data-select="${safeText(layer.id)}" data-testid="nh01-layer-${safeText(layer.id)}" data-source-node-id="${safeText(layer.sourceNodeId||'NOT_MAPPED')}" data-source-asset-id="${safeText(layer.sourceAssetId||'NOT_MAPPED')}" aria-pressed="${selected===layer.id}"><span class="nh01-tree-icon" aria-hidden="true">${icon}</span><span class="nh01-tree-copy"><span>${safeText(layer.name)}</span><small>${safeText(layer.logicalGroup)} · ${safeText(status)}${layer.sourceAssetId?` · source ${safeText(layer.sourceAssetId)}`:''}</small></span></button>${hasChildren?`<button type="button" class="nh01-tree-toggle" data-toggle="${safeText(layer.id)}" aria-label="${isOpen?'折叠':'展开'} ${safeText(layer.name)}" aria-expanded="${isOpen}">${isOpen?'▾':'▸'}</button>`:''}</div>${hasChildren?`<ul class="nh01-tree-children" data-children-of="${safeText(layer.id)}" ${isOpen?'':'hidden'}>${layer.children.map(child=>treeNodeMarkup(child,depth+1)).join('')}</ul>`:''}</li>`;
+      return `<li class="nh01-tree-node" data-tree-node="${safeText(layer.id)}"><div class="nh01-tree-row" style="--tree-depth:${depth}"><button type="button" class="nh01-tree-select ${selected===layer.id?'selected':''}" data-select="${safeText(layer.id)}" data-workspace-tree-node data-node-id="${safeText(layer.id)}" data-testid="nh01-layer-${safeText(layer.id)}" data-source-node-id="${safeText(layer.sourceNodeId||'NOT_MAPPED')}" data-source-asset-id="${safeText(layer.sourceAssetId||'NOT_MAPPED')}" aria-pressed="${selected===layer.id}"><span class="nh01-tree-icon" aria-hidden="true">${icon}</span><span class="nh01-tree-copy"><span>${safeText(layer.name)}</span><small>${safeText(layer.logicalGroup)} · ${safeText(status)}${layer.sourceAssetId?` · source ${safeText(layer.sourceAssetId)}`:''}</small></span></button>${hasChildren?`<button type="button" class="nh01-tree-toggle" data-toggle="${safeText(layer.id)}" aria-label="${isOpen?'折叠':'展开'} ${safeText(layer.name)}" aria-expanded="${isOpen}">${isOpen?'▾':'▸'}</button>`:''}</div>${hasChildren?`<ul class="nh01-tree-children" data-children-of="${safeText(layer.id)}" ${isOpen?'':'hidden'}>${layer.children.map(child=>treeNodeMarkup(child,depth+1)).join('')}</ul>`:''}</li>`;
     }
     function renderTree() {
       treeContainer.innerHTML=`<ul class="nh01-tree-root">${treeNodeMarkup(layerRoot)}</ul>`;
@@ -410,13 +418,13 @@
       selected=node.dataset.layer;
       expandParents(selected);
       render();
-    });
+    },{signal:adapterAbortController.signal});
     board.addEventListener('keydown',event=>{
       if(event.key!=='Enter'&&event.key!==' ')return;
       const node=event.target.closest('[data-layer]');
       if(!node)return;
       event.preventDefault();selected=node.dataset.layer;expandParents(selected);render();
-    });
+    },{signal:adapterAbortController.signal});
     treeContainer.addEventListener('click',event=>{
       const toggle=event.target.closest('[data-toggle]');
       if(toggle){const id=toggle.dataset.toggle;if(expanded.has(id))expanded.delete(id);else expanded.add(id);renderTree();return;}
@@ -424,13 +432,16 @@
       if(!button)return;
       selected=button.dataset.select;expandParents(selected);render();
       board.querySelector(`[data-layer="${selected}"]`)?.scrollIntoView({block:'nearest',inline:'nearest'});
-    });
+    },{signal:adapterAbortController.signal});
     function render() {
       const profile=Number(get('profile').value), w=Number(get('width').value), h=Number(get('height').value), font=Number(get('font').value), zoom=Number(get('zoom').value);
       const top=Number(get('top').value), bottom=Number(get('bottom').value);
       const result=calculate(w,h,font,top,bottom,layoutContract,authorityConflict,previewRules);
+      lastResult=result;
+      lastInputs={profile,w,h,font,zoom,top,bottom};
       workspace.dataset.loadState='READY';
       workspace.dataset.selectedLayer=selected;
+      workspace.dataset.viewState='READY';
       workspace.querySelector('[data-output="font"]').textContent=font.toFixed(2)+'×';
       workspace.querySelector('[data-output="zoom"]').textContent=Math.round(zoom*100)+'%';
       board.style.width=result.safeWidth+'px';board.style.height=h+'px';board.style.display='grid';board.style.gridTemplateColumns='minmax(0,1fr)';board.style.gridTemplateRows=result.gridRows.map(value=>Math.max(0,value)+'px').join(' ');board.style.rowGap='0';board.style.columnGap='0';board.style.position='relative';board.style.transform=`scale(${zoom})`;board.style.transformOrigin='top left';
@@ -441,7 +452,7 @@
       const layer=layerId=>findLayer(layerRoot,layerId);
       const layerAttrs=id=>{
         const meta=layer(id);
-        return `data-layer="${safeText(id)}" data-testid="nh01-canvas-${safeText(id)}" data-logical-group="${safeText(meta?.logicalGroup||'UNASSIGNED')}" data-source-node-id="${safeText(meta?.sourceNodeId||'NOT_MAPPED')}" data-mapping-status="${safeText(meta?.mappingStatus||'NOT_MAPPED')}" data-asset-status="${safeText(assetStatusFor(id))}" tabindex="0"`;
+        return `data-layer="${safeText(id)}" data-workspace-rendered-node="${safeText(id)}" data-testid="nh01-canvas-${safeText(id)}" data-logical-group="${safeText(meta?.logicalGroup||'UNASSIGNED')}" data-source-node-id="${safeText(meta?.sourceNodeId||'NOT_MAPPED')}" data-mapping-status="${safeText(meta?.mappingStatus||'NOT_MAPPED')}" data-asset-status="${safeText(assetStatusFor(id))}" tabindex="0"`;
       };
       const positioned=(rect,origin={x:0,y:0})=>`left:${rect.x-origin.x}px;top:${rect.y-origin.y}px;width:${rect.w}px;height:${rect.h}px`;
       const flowPositioned=(rect,row)=>`grid-row:${row};grid-column:1;position:relative;left:auto;top:auto;width:${rect.w}px;height:${rect.h}px;margin-left:${rect.x}px;min-width:0;min-height:0;`;
@@ -466,7 +477,7 @@
         <section class="nh01-recent" ${layerAttrs('recent-header')} data-testid="nh01-recent-header" style="${flowPositioned(recentRect,6)}"><span class="nh01-recent-title" ${layerAttrs('recent-title')} data-testid="nh01-recent-title" style="font-size:${result.fontSizes.recentHeading}px">最近鱼获</span><span class="nh01-recent-all" ${layerAttrs('recent-all')} data-testid="nh01-recent-all" style="font-size:${result.fontSizes.recentAction}px">全部</span><img class="nh01-recent-chevron" ${layerAttrs('recent-chevron')} src="${chevronSrc}" alt="" aria-hidden="true"></section>
         <section class="nh01-pager ${result.pagerNeedsScroll?'nh01-pager-scrollable':''}" ${layerAttrs('pager')} data-testid="nh01-pager" data-scroll-needed="${result.pagerNeedsScroll}" data-max-geometry-overlap-dp="${result.maxGeometryOverlap}" style="${flowPositioned(pager,8)};overflow-x:hidden;overflow-y:${result.pagerNeedsScroll?'auto':'hidden'};"><div class="nh01-pager-content" style="height:${result.pagerContentHeight}px"><div class="nh01-peek nh01-peek-left" ${layerAttrs('peek-left')} data-testid="nh01-peek-left" data-role="previous" style="${positioned(peekLeft,{x:pager.x,y:pager.y})}" aria-label="Previous generated illustrative card">${cardMedia(mediaForRole('neighbor_previous'),'previous')}</div><article class="nh01-hero" ${layerAttrs('hero')} data-testid="nh01-hero" style="${positioned(heroRect,{x:pager.x,y:pager.y})}">${cardMedia(mediaForRole('hero'),'hero')}<div class="nh01-hero-metadata" data-sample-copy="SOURCE_SAMPLE_TEXT_NOT_LIVE_PRODUCT_DATA"><strong style="font-size:${result.fontSizes.heroSpecies}px">${safeText(hero.species||'鱼种未提供')}</strong><span style="font-size:${result.fontSizes.heroMeasurement}px">${safeText(hero.measurement||'尺寸样例未提供')}</span><span style="font-size:${result.fontSizes.heroMetadata}px">${safeText(hero.context||'时间与位置样例未提供')}</span></div></article><div class="nh01-peek nh01-peek-right" ${layerAttrs('peek-right')} data-testid="nh01-peek-right" data-role="next" style="${positioned(peekRight,{x:pager.x,y:pager.y})}" aria-label="Next generated illustrative card">${cardMedia(mediaForRole('neighbor_next'),'next')}</div><div class="nh01-pager-indicator" ${layerAttrs('pager-indicator')} data-testid="nh01-pager-indicator" data-preview-only="true" role="img" aria-label="Illustrative pager indicator; not a live record count" style="${positioned(result.rects['pager-indicator'],{x:pager.x,y:pager.y})}"><i></i><i class="active"></i><i></i></div></div></section>
         <section class="nh01-capture-action-group" ${layerAttrs('capture-action-group')} data-testid="nh01-capture-action-group" style="${flowPositioned(footer,10)}"><div class="nh01-cta" ${layerAttrs('cta')} data-testid="nh01-cta" data-interaction="static-label" style="left:${result.rects.cta.x-footer.x}px;top:${result.rects.cta.y-footer.y}px;width:${result.rects.cta.w}px;height:${result.rects.cta.h}px;font-size:${result.fontSizes.cta}px;line-height:${result.ctaLineHeight}px">记录下一条鱼</div><div class="nh01-camera" ${layerAttrs('camera')} data-testid="nh01-camera" data-preview-only-hit-area="true" aria-label="Camera touch target preview · ${result.cameraTouchSize} dp · no runtime interaction" style="left:${result.rects.camera.x-footer.x}px;top:${result.rects.camera.y-footer.y}px;width:${result.cameraTouchSize}px;height:${result.cameraTouchSize}px"><img data-testid="nh01-camera-artwork" style="width:${result.cameraSize}px;height:${result.cameraSize}px" src="${cameraSrc}" alt="拍照图案示意 · 可见图案 ${result.cameraSize.toFixed(1)}dp；触控区域 ${result.cameraTouchSize}dp" draggable="false"></div></section>`;
-      board.querySelectorAll('.nh01-card-media').forEach(image=>image.addEventListener('error',()=>{image.dataset.mediaStatus='PREVIEW_PLACEHOLDER';image.style.opacity='0';},{once:true}));
+      board.querySelectorAll('.nh01-card-media').forEach(image=>image.addEventListener('error',()=>{image.dataset.mediaStatus='PREVIEW_PLACEHOLDER';image.style.opacity='0';},{once:true,signal:adapterAbortController.signal}));
       board.classList.toggle('nh01-layer-selected',selected==='page');
       board.querySelectorAll('[data-layer]').forEach(node=>node.classList.toggle('nh01-layer-selected',node.dataset.layer===selected));
       renderTree();
@@ -493,13 +504,57 @@
       const boundsText=measured?`${measured.x.toFixed(1)}, ${measured.y.toFixed(1)} · ${measured.w.toFixed(1)} × ${measured.h.toFixed(1)} CSS px（相对画布，已除画布缩放）`:'不可测量';
       const metadataNote=selected.startsWith('stat-')||selected==='hero'?'<p class="nh01-sample-disclosure">静态参考样例，不是实时鱼获或账户数据。</p>':'';
       const illustrativeMediaSelected=['hero','peek-left','peek-right'].includes(selected);
-      workspace.querySelector('[data-inspector]').innerHTML=`<dl data-testid="nh01-inspector"><dt>选中图层</dt><dd data-testid="nh01-inspector-layer" data-layer-id="${safeText(selected)}">${safeText(selectedLayer.name)}</dd><dt>稳定 ID / 组件 ID</dt><dd>${safeText(selectedLayer.id)} · ${safeText(selectedLayer.componentId||'未映射组件 ID')}</dd><dt>父图层 / 来源映射</dt><dd>${safeText(selectedLayer.parentId||'NH01 Home')} · ${safeText(selectedLayer.sourceNodeId||'未映射到 Figma 节点')} · ${safeText(selectedLayer.mappingStatus)}${selectedLayer.sourceReference?` · implementation reference ${safeText(selectedLayer.sourceReference)}`:''}</dd><dt>逻辑组</dt><dd>${safeText(selectedLayer.logicalGroup)} · ${safeText(assetStatusFor(selected))}</dd><dt>视口 / 安全区 / 字体</dt><dd>${w} × ${h} dp · fontScale ${font.toFixed(2)} · top ${top} / bottom ${bottom} dp · zoom ${Math.round(zoom*100)}%</dd><dt>合同计算边界</dt><dd data-testid="nh01-inspector-formula-bounds">${safeText(formulaText)}</dd><dt>浏览器实测 DOM 边界</dt><dd data-testid="nh01-inspector-measured-bounds">${safeText(boundsText)}</dd><dt>字号 / 相机</dt><dd>${['recent-header','recent-title','hero','cta'].includes(selected)?`${result.fontSizes[ selected==='hero'?'heroSpecies':selected==='cta'?'cta':'recentHeading'].toFixed(1)} CSS px`:'—'} · 相机视觉 ${result.cameraSize.toFixed(1)} / 触控 ${result.cameraTouchSize} dp</dd><dt>资产来源 / SHA-256</dt><dd>${assetRows}${referenceRow}${metadataNote}${illustrativeMediaSelected?'<p class="nh01-sample-disclosure">GENERATED_ILLUSTRATIVE_ONLY · 仅用于展示卡片裁切与布局，不代表真实鱼获或可分页记录。</p>':''}</dd><dt>正式合同 / Manifest SHA</dt><dd>${safeText(result.contractId)} · V${safeText(result.contractVersion)} · ${safeText(result.contractStatus)}<br><code>${safeText(view.responsive_layout_authority||'design/pages/home/normal_home/responsive/NH01_RESPONSIVE_LAYOUT_V2.json')}</code> · SHA-256 ${safeText(contractMeta?.sha256||'未验证')}<br><strong>冻结静态归档合同</strong> · <code>${safeText(view.machine_authority)}</code> · SHA-256 ${safeText(archiveContractMeta?.sha256||'未验证')}<br><code>${safeText(view.visual_authority_manifest)}</code> · SHA-256 ${safeText(manifestMeta?.sha256||'未验证')}<br><code>design/manager/nh01_acceptance/data/NH01_Component_Tree_V1.json</code> · SHA-256 ${safeText(treeMeta?.sha256||'未验证')}</dd><dt>本图层布局规则</dt><dd>${safeText(formulaForLayer(selected,result))}</dd><dt>布局冲突</dt><dd>${result.conflicts.length?result.conflicts.join('; '):'当前计算未发现约束冲突'} · Android NOT_VERIFIED</dd></dl><h4>A/B/C · PREVIEW_ONLY 剩余空间</h4><code>H_safe=${result.safeHeight.toFixed(1)}<br>hA=${result.hA.toFixed(1)}, hB=${result.hB.toFixed(1)}, hC=${result.hC.toFixed(1)}<br>gAB=${result.baseAB.toFixed(1)}+${result.gapABExtra.toFixed(1)}=${result.gAB.toFixed(1)}<br>gBC=${result.baseBC.toFixed(1)}+${result.gapBCExtra.toFixed(1)}=${result.gBC.toFixed(1)}<br>新增剩余空间 S=${result.S.toFixed(1)}dp · A→B 新增 ${result.gapABExtra.toFixed(1)}dp · B→C 新增 ${result.gapBCExtra.toFixed(1)}dp · 外侧留白=${result.outerBreathing.toFixed(1)}dp<br>Pager 可视/内容=${result.pagerHeight.toFixed(1)}/${result.pagerContentHeight.toFixed(1)}dp · ${result.layoutMode} · local scroll ${result.pagerNeedsScroll?'ON':'OFF'}</code><p>Stats→Title ${result.baseAB.toFixed(1)} dp · Title→Hero ${result.titleGap.toFixed(1)} dp · Peek gap ${result.peekGap.toFixed(1)} dp (overlap cap ${result.maxGeometryOverlap.toFixed(1)} dp) · CTA line ${result.ctaLineHeight.toFixed(1)} dp · CTA→Camera ${result.ctaCameraGap} dp · Footer ${result.hC.toFixed(1)} dp · Camera art/touch ${result.cameraSize.toFixed(1)}/${result.cameraTouchSize} dp</p>`;
+      const inspector=workspace.querySelector('[data-inspector]');
+      inspector.dataset.workspaceInspector='';
+      inspector.dataset.selectedNodeId=selected;
+      inspector.innerHTML=`<dl data-testid="nh01-inspector"><dt>选中图层</dt><dd data-testid="nh01-inspector-layer" data-layer-id="${safeText(selected)}">${safeText(selectedLayer.name)}</dd><dt>稳定 ID / 组件 ID</dt><dd>${safeText(selectedLayer.id)} · ${safeText(selectedLayer.componentId||'未映射组件 ID')}</dd><dt>父图层 / 来源映射</dt><dd>${safeText(selectedLayer.parentId||'NH01 Home')} · ${safeText(selectedLayer.sourceNodeId||'未映射到 Figma 节点')} · ${safeText(selectedLayer.mappingStatus)}${selectedLayer.sourceReference?` · implementation reference ${safeText(selectedLayer.sourceReference)}`:''}</dd><dt>逻辑组</dt><dd>${safeText(selectedLayer.logicalGroup)} · ${safeText(assetStatusFor(selected))}</dd><dt>视口 / 安全区 / 字体</dt><dd>${w} × ${h} dp · fontScale ${font.toFixed(2)} · top ${top} / bottom ${bottom} dp · zoom ${Math.round(zoom*100)}%</dd><dt>合同计算边界</dt><dd data-testid="nh01-inspector-formula-bounds">${safeText(formulaText)}</dd><dt>浏览器实测 DOM 边界</dt><dd data-testid="nh01-inspector-measured-bounds">${safeText(boundsText)}</dd><dt>字号 / 相机</dt><dd>${['recent-header','recent-title','hero','cta'].includes(selected)?`${result.fontSizes[ selected==='hero'?'heroSpecies':selected==='cta'?'cta':'recentHeading'].toFixed(1)} CSS px`:'—'} · 相机视觉 ${result.cameraSize.toFixed(1)} / 触控 ${result.cameraTouchSize} dp</dd><dt>资产来源 / SHA-256</dt><dd>${assetRows}${referenceRow}${metadataNote}${illustrativeMediaSelected?'<p class="nh01-sample-disclosure">GENERATED_ILLUSTRATIVE_ONLY · 仅用于展示卡片裁切与布局，不代表真实鱼获或可分页记录。</p>':''}</dd><dt>正式合同 / Manifest SHA</dt><dd>${safeText(result.contractId)} · V${safeText(result.contractVersion)} · ${safeText(result.contractStatus)}<br><code>${safeText(view.responsive_layout_authority||'design/pages/home/normal_home/responsive/NH01_RESPONSIVE_LAYOUT_V2.json')}</code> · SHA-256 ${safeText(contractMeta?.sha256||'未验证')}<br><strong>冻结静态归档合同</strong> · <code>${safeText(view.machine_authority)}</code> · SHA-256 ${safeText(archiveContractMeta?.sha256||'未验证')}<br><code>${safeText(view.visual_authority_manifest)}</code> · SHA-256 ${safeText(manifestMeta?.sha256||'未验证')}<br><code>design/manager/nh01_acceptance/data/NH01_Component_Tree_V1.json</code> · SHA-256 ${safeText(treeMeta?.sha256||'未验证')}</dd><dt>本图层布局规则</dt><dd>${safeText(formulaForLayer(selected,result))}</dd><dt>布局冲突</dt><dd>${result.conflicts.length?result.conflicts.join('; '):'当前计算未发现约束冲突'} · Android NOT_VERIFIED</dd></dl><h4>A/B/C · PREVIEW_ONLY 剩余空间</h4><code>H_safe=${result.safeHeight.toFixed(1)}<br>hA=${result.hA.toFixed(1)}, hB=${result.hB.toFixed(1)}, hC=${result.hC.toFixed(1)}<br>gAB=${result.baseAB.toFixed(1)}+${result.gapABExtra.toFixed(1)}=${result.gAB.toFixed(1)}<br>gBC=${result.baseBC.toFixed(1)}+${result.gapBCExtra.toFixed(1)}=${result.gBC.toFixed(1)}<br>新增剩余空间 S=${result.S.toFixed(1)}dp · A→B 新增 ${result.gapABExtra.toFixed(1)}dp · B→C 新增 ${result.gapBCExtra.toFixed(1)}dp · 外侧留白=${result.outerBreathing.toFixed(1)}dp<br>Pager 可视/内容=${result.pagerHeight.toFixed(1)}/${result.pagerContentHeight.toFixed(1)}dp · ${result.layoutMode} · local scroll ${result.pagerNeedsScroll?'ON':'OFF'}</code><p>Stats→Title ${result.baseAB.toFixed(1)} dp · Title→Hero ${result.titleGap.toFixed(1)} dp · Peek gap ${result.peekGap.toFixed(1)} dp (overlap cap ${result.maxGeometryOverlap.toFixed(1)} dp) · CTA line ${result.ctaLineHeight.toFixed(1)} dp · CTA→Camera ${result.ctaCameraGap} dp · Footer ${result.hC.toFixed(1)} dp · Camera art/touch ${result.cameraSize.toFixed(1)}/${result.cameraTouchSize} dp</p>`;
       workspace.querySelector('[data-comparison]').innerHTML=asset?`<strong>冻结高保真对照 · ${safeText(asset.asset_id)}</strong><span>目标 ${asset.target_viewport_dp.width} × ${asset.target_viewport_dp.height??'高度未冻结'} dp · 原图 ${asset.actual_canvas_px.width} × ${asset.actual_canvas_px.height} px · 原图只读</span><img src="${assetUrl(asset.path)}" alt="${safeText(asset.asset_id)} 冻结参考">`:'<span>无对应冻结稿</span>';
       workspace.querySelector('[data-basis]').textContent=`当前冻结参考 ${asset?.path||'未提供'} · SHA-256 ${asset?.sha256||'未提供'}；父子树来源 ${componentTree.status||'REVIEW_REQUIRED'}；布局数值唯一来自 ${layoutContract.contract_id} V${layoutContract.contract_version}（${layoutContract.status}），PREVIEW_ONLY 文件仅提供展示元数据；三张媒体只作构图示意，非实时记录、非 PNG 像素验收、非 Android Runtime 结果。源码 ${build}。`;
     }
-    get('profile').onchange=()=>{const [w,h]=profiles[Number(get('profile').value)];get('width').value=w;if(h!==null)get('height').value=h;render();};
-    ['width','height','font','zoom','top','bottom'].forEach(name=>get(name).addEventListener('input',render));
+    get('profile').addEventListener('change',()=>{const [w,h]=profiles[Number(get('profile').value)];get('width').value=w;if(h!==null)get('height').value=h;render();},{signal:adapterAbortController.signal});
+    ['width','height','font','zoom','top','bottom'].forEach(name=>get(name).addEventListener('input',render,{signal:adapterAbortController.signal}));
     render();
+    const adapter={
+      pageId:'home_normal_v1',
+      sourceSha:build,
+      loadAuthority:async sha=>{
+        if(sha!==build)throw new Error(`SOURCE_SHA_MISMATCH: expected ${build}, got ${sha}`);
+        return {page_id:'home_normal_v1',source_sha:build,contract,manifest,resource_binding:resourceBinding,
+          responsive_contract:layoutContract,profile_status:'FROZEN_BINDING',page_acceptance:'NOT_VERIFIED'};
+      },
+      loadComponentTree:async()=>({document_type:componentTree.document_type,status:componentTree.status||'SOURCE_TREE',page_id:'home_normal_v1',root:layerRoot}),
+      renderPreview:(viewport,fontScale,state)=>{
+        if(state!==undefined&&state!==null)throw new Error('PAGE_STATE_UNSUPPORTED: NH01 preview state is owned by the existing page matrix runner.');
+        if(viewport){if(Number.isFinite(viewport.width))get('width').value=viewport.width;if(Number.isFinite(viewport.height))get('height').value=viewport.height;}
+        if(Number.isFinite(fontScale))get('font').value=fontScale;
+        render();
+        return {viewport:{width:lastInputs.w,height:lastInputs.h,unit:'dp'},font_scale:lastInputs.font,state:null,rendering:'NH01_CONTRACT_DRIVEN_PREVIEW'};
+      },
+      measureElements:()=>layers.map(layer=>{
+        const node=board.querySelector(`[data-layer="${CSS.escape(layer.id)}"]`);
+        if(!node)throw new Error(`COMPONENT_NODE_NOT_MAPPED: ${layer.id}`);
+        const bounds=node.getBoundingClientRect();
+        return {node_id:layer.id,bounds:{x:bounds.x,y:bounds.y,width:bounds.width,height:bounds.height,right:bounds.right,bottom:bounds.bottom}};
+      }),
+      selectLayer:nodeId=>{
+        if(!findLayer(layerRoot,nodeId))throw new Error(`COMPONENT_NODE_NOT_REGISTERED: ${nodeId}`);
+        selected=nodeId;expandParents(nodeId);render();
+        return adapter.getInspector(nodeId);
+      },
+      getInspector:(nodeId=selected)=>{
+        if(nodeId!==selected)throw new Error(`INSPECTOR_SELECTION_MISMATCH: expected ${selected}, got ${nodeId}`);
+        const node=board.querySelector(`[data-layer="${CSS.escape(nodeId)}"]`);
+        if(!node)throw new Error(`COMPONENT_NODE_NOT_MAPPED: ${nodeId}`);
+        const bounds=node.getBoundingClientRect();
+        return {page_id:'home_normal_v1',node_id:nodeId,bounds:{x:bounds.x,y:bounds.y,width:bounds.width,height:bounds.height,
+          right:bounds.right,bottom:bounds.bottom},layer:findLayer(layerRoot,nodeId),selected_node_id:workspace.querySelector('[data-inspector]').dataset.selectedNodeId};
+      },
+      getResponsiveDiagnostics:()=>({page_id:'home_normal_v1',contract_id:layoutContract.contract_id,contract_version:layoutContract.contract_version,
+        contract_status:layoutContract.status,layout_metrics:lastResult?JSON.parse(board.dataset.layoutMetrics||'{}'):null,
+        preview_conflicts:lastResult?.conflicts||[],page_acceptance:'NOT_VERIFIED',native_runtime:'NOT_VERIFIED'}),
+      dispose:()=>{adapterAbortController.abort();workspace.remove();}
+    };
+    return adapter;
   }
   window.NH01StructuredWorkspace={mount,calculate,hasAuthorityConflict,allocationShare,createResourceLoader,createLayerTree,flattenLayerTree,findLayer,measuredLayerBounds};
 })();
