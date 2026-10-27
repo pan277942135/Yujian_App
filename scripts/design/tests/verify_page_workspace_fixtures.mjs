@@ -63,6 +63,7 @@ async function main() {
       : fixture === "reference-only" ? shellHtml({ kind: "reference-image-only", viewState: "REFERENCE_IMAGE_ONLY" })
       : fixture === "reference-only-error" ? shellHtml({ kind: "reference-image-only", viewState: "ERROR", errorText: "authority load failed", throwing: true })
       : fixture === "reference-only-bad-response" ? shellHtml({ kind: "reference-image-only", viewState: "LOADING", badResource: true })
+      : fixture === "structured-error" ? shellHtml({ viewState: "ERROR", errorText: "renderer failed" })
       : fixture === "disabled-node" ? shellHtml({ disabled: true })
       : fixture === "page-error" ? shellHtml({ throwing: true })
       : shellHtml();
@@ -74,7 +75,7 @@ async function main() {
   const root = await mkdtemp(join(tmpdir(), "page-workspace-w4-test-"));
   let infrastructureBlocked = false;
   try {
-    for (const fixture of ["ok", "missing", "wrong-page", "missing-layer", "reference-only", "disabled-node", "page-error"]) {
+    for (const fixture of ["ok", "missing", "wrong-page", "missing-layer", "reference-only", "structured-error", "disabled-node", "page-error"]) {
       const outputDir = join(root, fixture);
       const code = await runVerifier(serverUrl, fixture, outputDir);
       const report = JSON.parse(await readFile(join(outputDir, "workspace-browser-report.json"), "utf8"));
