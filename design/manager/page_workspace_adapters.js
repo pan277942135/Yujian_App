@@ -310,6 +310,402 @@
       selectLayer, getInspector, getResponsiveDiagnostics, dispose };
   }
 
+  function normalizeStructuredTree(pageId, rootNode) {
+    assert(rootNode && typeof rootNode === "object", "COMPONENT_TREE_ROOT_MISSING");
+    const nodes = [];
+    const ids = new Set();
+    const domIds = new Set();
+    function visit(source, parentId = null) {
+      assert(source && typeof source === "object", "COMPONENT_TREE_NODE_INVALID");
+      const nodeId = source.nodeId || source.id;
+      assert(typeof nodeId === "string" && nodeId.length > 0, "COMPONENT_NODE_ID_MISSING");
+      assert(!ids.has(nodeId), `COMPONENT_NODE_ID_DUPLICATE: ${nodeId}`);
+      ids.add(nodeId);
+      const page = source.pageId || pageId;
+      assert(page === pageId, `COMPONENT_NODE_PAGE_ID_MISMATCH: ${nodeId}`);
+      const renderedDomId = source.renderedDomId || nodeId;
+      assert(typeof renderedDomId === "string" && renderedDomId.length > 0, `RENDERED_DOM_ID_MISSING: ${nodeId}`);
+      assert(!domIds.has(renderedDomId), `RENDERED_DOM_ID_DUPLICATE: ${renderedDomId}`);
+      domIds.add(renderedDomId);
+      const declaredParent = source.parentId ?? parentId;
+      assert(declaredParent === parentId, `COMPONENT_PARENT_MISMATCH: ${nodeId}`);
+      const node = {
+        nodeId,
+        pageId: page,
+        parentId: declaredParent,
+        componentType: source.componentType || "UNSPECIFIED",
+        renderedDomId,
+        authorityRef: source.authorityRef || null,
+        resourceRef: source.resourceRef || null,
+        layoutRuleRef: source.layoutRuleRef || null,
+        state: source.state || "DEFAULT",
+        stateProfiles: source.stateProfiles || source.state_profiles || null,
+        visible: source.visible !== false,
+        selectable: source.selectable !== false,
+        measurable: source.measurable !== false,
+        label: source.label || source.name || nodeId,
+        expectedBounds: source.expectedBounds || source.expected_bounds || null,
+        children: []
+      };
+      nodes.push(node);
+      node.children = (Array.isArray(source.children) ? source.children : []).map(child => visit(child, nodeId));
+      return node;
+    }
+    const root = visit(rootNode, null);
+    return { root, nodes };
+  }
+
+  function createStructuredDomAdapter({
+    root, pageId, sourceSha, componentTree, renderer, viewportProfiles = [], fontScaleProfiles = [1],
+    stateProfiles = ["DEFAULT"], fetchImpl = window.fetch.bind(window), repoHref, feature,
+    authorityLoader, displayName = pageId, coordinateUnit = "css_px"
+  }) {
+    assert(root instanceof HTMLElement, "WORKSPACE_ROOT_INVALID");
+    assert(SHA1.test(sourceSha || ""), "SOURCE_SHA_INVALID: a full source SHA is required");
+    assert(typeof renderer === "function", "PAGE_RENDERER_MISSING");
+    assert(Array.isArray(fontScaleProfiles) && fontScaleProfiles.length > 0 && fontScaleProfiles.every(value => Number.isFinite(value) && value > 0),
+      "FONT_SCALE_PROFILE_INVALID");
+    assert(Array.isArray(stateProfiles) && stateProfiles.length > 0, "STATE_PROFILE_MISSING");
+    const registeredFeature = feature || (authorityLoader ? null : getRegisteredPage(pageId));
+    if (authorityLoader) {
+      assert(typeof pageId === "string" && pageId.startsWith("test_") && !pageIds.has(pageId),
+        "CUSTOM_AUTHORITY_RESOLVER_TEST_FIXTURE_ONLY");
+    }
+    const resolveAuthority = authorityLoader || (sha => resolvePageAuthority({
+      pageId, sourceSha: sha, feature: registeredFeature, fetchImpl, repoHref, signal
+    }));
+    assert(typeof resolveAuthority === "function", "PAGE_AUTHORITY_RESOLVER_MISSING");
+
+    const abortController = new AbortController();
+    const signal = abortController.signal;
+    const listenerDisposers = [];
+    let authority = null;
+    let tree = null;
+    let canvas = null;
+    let selectedNodeId = null;
+    let currentViewport = null;
+    let currentFontScale = fontScaleProfiles[0];
+    let currentState = typeof stateProfiles[0] === "string" ? stateProfiles[0] : stateProfiles[0]?.state_id;
+    let disposed = false;
+
+    function requireLive() {
+      if (disposed) throw new Error("WORKSPACE_DISPOSED");
+      if (!authority) throw new Error("AUTHORITY_NOT_LOADED");
+      if (!tree) throw new Error("COMPONENT_TREE_NOT_LOADED");
+    }
+
+    function listen(node, type, handler) {
+      node.addEventListener(type, handler);
+      listenerDisposers.push(() => node.removeEventListener(type, handler));
+    }
+
+    function treeMarkup(node) {
+      const children = node.children.map(treeMarkup).join("");
+      const treeButton = `<button type="button" data-workspace-tree-node data-node-id="${escapeHtml(node.nodeId)}" data-node-state="${escapeHtml(node.state)}" aria-pressed="false"${node.selectable ? "" : " disabled"}>${escapeHtml(node.label)} <small>${escapeHtml(node.componentType)} · ${escapeHtml(node.state)}</small></button>`;
+      const childrenToggle = children
+        ? `<button type="button" data-workspace-tree-toggle aria-expanded="true" aria-label="折叠 ${escapeHtml(node.label)} 的子图层">−</button>` : "";
+      return `<li data-workspace-tree-item="${escapeHtml(node.nodeId)}"><div class="page-ws-tree-row">${treeButton}${childrenToggle}</div>${children ? `<ul data-workspace-tree-children>${children}</ul>` : ""}</li>`;
+    }
+
+    function findNode(nodeId) {
+      return tree?.nodes.find(node => node.nodeId === nodeId) || null;
+    }
+
+    function renderedElement(node) {
+      const matches = [...root.querySelectorAll("[data-workspace-rendered-node]")]
+        .filter(element => element.dataset.workspaceRenderedNode === node.nodeId);
+      assert(matches.length === 1, matches.length === 0
+        ? `COMPONENT_DOM_MAPPING_MISSING: ${node.nodeId}`
+        : `COMPONENT_DOM_MAPPING_AMBIGUOUS: ${node.nodeId}`);
+      assert(matches[0].id === node.renderedDomId,
+        `COMPONENT_DOM_ID_MISMATCH: ${node.nodeId} expected ${node.renderedDomId}, got ${matches[0].id || "(empty)"}`);
+      return matches[0];
+    }
+
+    function measureElements() {
+      requireLive();
+      const boardRect = root.querySelector("[data-workspace-artboard]").getBoundingClientRect();
+      return tree.nodes.filter(node => node.visible && node.measurable).map(node => {
+        const element = renderedElement(node);
+        const rect = element.getBoundingClientRect();
+        const style = getComputedStyle(element);
+        const bounds = {
+          x: rect.left - boardRect.left,
+          y: rect.top - boardRect.top,
+          width: rect.width,
+          height: rect.height,
+          right: rect.right - boardRect.left,
+          bottom: rect.bottom - boardRect.top,
+          unit: "css_px"
+        };
+        const expected = node.expectedBounds;
+        return {
+          node_id: node.nodeId,
+          page_id: node.pageId,
+          rendered_dom_id: element.id,
+          component_type: node.componentType,
+          state: node.state,
+          visible: node.visible,
+          bounds,
+          expected_bounds: expected,
+          deviation: expected && ["x", "y", "width", "height"].every(key => Number.isFinite(expected[key]))
+            ? Object.fromEntries(["x", "y", "width", "height"].map(key => [key, bounds[key] - expected[key]])) : null,
+          typography: { font_size: style.fontSize, line_height: style.lineHeight, font_family: style.fontFamily },
+          layer: { z_index: style.zIndex, transform: style.transform },
+          authority_ref: node.authorityRef,
+          resource_ref: node.resourceRef,
+          resource_status: element.dataset.resourceStatus || node.resourceRef?.status || "NOT_APPLICABLE",
+          layout_rule_ref: node.layoutRuleRef
+        };
+      });
+    }
+
+    function inspectorData(nodeId = selectedNodeId) {
+      requireLive();
+      const node = findNode(nodeId);
+      assert(node, `COMPONENT_NODE_NOT_FOUND: ${nodeId}`);
+      const measured = measureElements().find(row => row.node_id === nodeId);
+      assert(measured, `COMPONENT_NOT_MEASURABLE: ${nodeId}`);
+      return {
+        page_id: pageId,
+        node_id: node.nodeId,
+        parent_id: node.parentId,
+        component_type: node.componentType,
+        bounds: measured.bounds,
+        expected_bounds: measured.expected_bounds,
+        deviation: measured.deviation,
+        typography: measured.typography,
+        layer: measured.layer,
+        authority_ref: node.authorityRef,
+        resource_ref: node.resourceRef,
+        resource_status: measured.resource_status,
+        layout_rule_ref: node.layoutRuleRef,
+        source_sha: sourceSha,
+        profile_status: authority.profile?.status || "UNVERIFIED"
+      };
+    }
+
+    function showInspector(nodeId) {
+      selectedNodeId = nodeId;
+      const inspector = root.querySelector("[data-workspace-inspector]");
+      if (!inspector) return;
+      const data = inspectorData(nodeId);
+      inspector.dataset.selectedNodeId = nodeId;
+      inspector.replaceChildren();
+      for (const [label, value] of Object.entries({
+        "组件 ID": data.node_id,
+        "组件类型": data.component_type,
+        "父组件": data.parent_id || "ROOT",
+        "实际 DOM 边界": `${data.bounds.x.toFixed(1)}, ${data.bounds.y.toFixed(1)} · ${data.bounds.width.toFixed(1)} × ${data.bounds.height.toFixed(1)} CSS px`,
+        "合同期望边界": data.expected_bounds ? JSON.stringify(data.expected_bounds) : "未登记",
+        "偏差": data.deviation ? JSON.stringify(data.deviation) : "不可计算",
+        "字体 / 行高": `${data.typography.font_size} / ${data.typography.line_height}`,
+        "层级 / Transform": `${data.layer.z_index} / ${data.layer.transform}`,
+        "资源状态": data.resource_status,
+        "资源来源": data.resource_ref?.source_path || data.resource_ref?.path || "无",
+        "资源 SHA-256": data.resource_ref?.sha256 || "无",
+        "合同来源": data.authority_ref?.path || data.authority_ref?.authority_id || "未登记",
+        "响应规则": data.layout_rule_ref?.path || data.layout_rule_ref?.rule_id || "未登记",
+        "源码 SHA": data.source_sha,
+        "页面规范状态": data.profile_status
+      })) {
+        const row = document.createElement("div");
+        row.dataset.inspectorField = label;
+        const name = document.createElement("dt");
+        name.textContent = label;
+        const content = document.createElement("dd");
+        content.textContent = value;
+        row.append(name, content);
+        inspector.append(row);
+      }
+      root.querySelectorAll("[data-workspace-tree-node]").forEach(button => {
+        const selected = button.dataset.nodeId === nodeId;
+        button.classList.toggle("selected", selected);
+        button.setAttribute("aria-pressed", selected ? "true" : "false");
+      });
+      root.querySelectorAll("[data-workspace-rendered-node]").forEach(element => {
+        element.toggleAttribute("data-workspace-selected", element.dataset.workspaceRenderedNode === nodeId);
+      });
+    }
+
+    async function loadAuthority(sha = sourceSha) {
+      assert(sha === sourceSha, `SOURCE_SHA_MISMATCH: expected ${sourceSha}, got ${sha}`);
+      authority = await resolveAuthority(sha);
+      assert(authority?.page_id === pageId, `AUTHORITY_PAGE_ID_MISMATCH: ${pageId}`);
+      if (authority.source_sha && authority.source_sha !== sourceSha) {
+        throw new Error(`AUTHORITY_SOURCE_SHA_MISMATCH: expected ${sourceSha}, got ${authority.source_sha}`);
+      }
+      if (root.firstElementChild) root.firstElementChild.dataset.authorityMode = authorityLoader ? "TEST_FIXTURE_ONLY" : "W1_W2_RESOLVED";
+      return authority;
+    }
+
+    async function loadComponentTree() {
+      requireLive();
+      if (!tree) tree = normalizeStructuredTree(pageId, typeof componentTree === "function" ? componentTree(authority) : componentTree);
+      return { document_type: "page_component_tree", status: "STRUCTURED_DOM", page_id: pageId, root: tree.root, nodes: tree.nodes };
+    }
+
+    async function renderPreview(viewport, fontScale, state) {
+      requireLive();
+      if (viewport != null) {
+        assert(Number.isFinite(viewport.width) && viewport.width > 0 && Number.isFinite(viewport.height) && viewport.height > 0,
+          "VIEWPORT_INPUT_INVALID");
+        currentViewport = { width: viewport.width, height: viewport.height, unit: viewport.unit || coordinateUnit };
+      }
+      if (fontScale != null) {
+        assert(Number.isFinite(fontScale) && fontScale > 0, "FONT_SCALE_INVALID");
+        currentFontScale = fontScale;
+      }
+      if (state != null) currentState = typeof state === "string" ? state : state.state_id;
+      const supportedStates = stateProfiles.map(item => typeof item === "string" ? item : item?.state_id).filter(Boolean);
+      assert(supportedStates.includes(currentState), `VIEW_STATE_UNSUPPORTED: ${currentState}`);
+      tree.nodes.forEach(node => {
+        if (node.stateProfiles && typeof node.stateProfiles === "object" && node.stateProfiles[currentState]) {
+          node.state = node.stateProfiles[currentState];
+          const treeButton = root.querySelector(`[data-workspace-tree-node][data-node-id="${CSS.escape(node.nodeId)}"]`);
+          if (treeButton) treeButton.dataset.nodeState = node.state;
+        }
+      });
+      const artboard = root.querySelector("[data-workspace-artboard]");
+      artboard.style.width = `${currentViewport.width}px`;
+      artboard.style.minHeight = `${currentViewport.height}px`;
+      artboard.dataset.viewport = `${currentViewport.width}x${currentViewport.height}`;
+      artboard.dataset.inputViewportUnit = currentViewport.unit;
+      root.style.setProperty("--page-workspace-font-scale", String(currentFontScale));
+      root.firstElementChild.dataset.viewState = currentState;
+      root.firstElementChild.dataset.fontScale = String(currentFontScale);
+      root.firstElementChild.dataset.logicalViewportUnit = currentViewport.unit;
+      const controls = root.querySelector("[data-workspace-viewport-summary]");
+      if (controls) controls.textContent = `${currentViewport.width} × ${currentViewport.height} ${currentViewport.unit} 输入视口 · DOM 测量为 CSS px`;
+      root.querySelector("[data-workspace-width]").value = String(currentViewport.width);
+      root.querySelector("[data-workspace-height]").value = String(currentViewport.height);
+      root.querySelector("[data-workspace-font-scale]").value = String(currentFontScale);
+      root.querySelector("[data-workspace-state]").value = currentState;
+      await renderer({ root, canvas, viewport: currentViewport, fontScale: currentFontScale, state: currentState, authority, componentTree: tree.root });
+      root.firstElementChild.dataset.workspaceKind = "structured-dom-candidate";
+      measureElements();
+      if (selectedNodeId) showInspector(selectedNodeId);
+      return { viewport: currentViewport, font_scale: currentFontScale, state: currentState, rendering: "STRUCTURED_DOM" };
+    }
+
+    function selectLayer(nodeId) {
+      requireLive();
+      const node = findNode(nodeId);
+      assert(node && node.selectable, `COMPONENT_NODE_NOT_SELECTABLE: ${nodeId}`);
+      renderedElement(node);
+      showInspector(nodeId);
+      return renderedElement(node);
+    }
+
+    function getInspector(nodeId = selectedNodeId) {
+      requireLive();
+      assert(nodeId && nodeId === selectedNodeId, `INSPECTOR_SELECTION_MISMATCH: ${nodeId}`);
+      return inspectorData(nodeId);
+    }
+
+    function getResourceDiagnostics() {
+      requireLive();
+      return tree.nodes.filter(node => node.resourceRef).map(node => {
+        let status = node.resourceRef.status || "UNVERIFIED";
+        try { status = renderedElement(node).dataset.resourceStatus || status; } catch { /* missing node is reported by geometry validation */ }
+        return { node_id: node.nodeId, resource_ref: node.resourceRef, status };
+      });
+    }
+
+    function getResponsiveDiagnostics() {
+      requireLive();
+      return {
+        page_id: pageId,
+        profile_status: authority.profile?.status || "UNVERIFIED",
+        coordinate_unit: currentViewport?.unit || coordinateUnit,
+        dom_measurement_unit: "css_px",
+        viewport: currentViewport,
+        font_scale: currentFontScale,
+        state: currentState,
+        layout_validation: "MEASUREMENT_ONLY_NOT_VISUAL_PASS",
+        browser_acceptance: "NOT_VERIFIED",
+        native_runtime: "NOT_VERIFIED",
+        resources: getResourceDiagnostics()
+      };
+    }
+
+    async function mount() {
+      root.innerHTML = `<section class="page-workspace-root" data-page-workspace-root data-page-id="${escapeHtml(pageId)}" data-source-sha="${escapeHtml(sourceSha)}" data-view-state="LOADING" data-workspace-kind="structured-dom-candidate"><header class="page-ws-heading"><div><small>STRUCTURED PAGE WORKSPACE · CANDIDATE</small><h2>${escapeHtml(displayName)}</h2><p>Page-owned renderer with shared tree, viewport, measurement, selection, and Inspector shell.</p></div><code>Source SHA ${escapeHtml(sourceSha)}</code></header><div class="page-ws-controls"><label>宽 <input data-workspace-width type="number" min="1" value="${Number(viewportProfiles[0]?.width || 390)}"></label><label>高 <input data-workspace-height type="number" min="1" value="${Number(viewportProfiles[0]?.height || 844)}"></label><label>字体缩放 <select data-workspace-font-scale>${fontScaleProfiles.map(value => `<option value="${value}">${value}×</option>`).join("")}</select></label><label>页面状态 <select data-workspace-state>${stateProfiles.map(item => { const id = typeof item === "string" ? item : item.state_id; const label = typeof item === "string" ? item : item.label || item.state_id; return `<option value="${escapeHtml(id)}">${escapeHtml(label)}</option>`; }).join("")}</select></label><button type="button" data-workspace-apply-viewport>应用视口</button><span data-workspace-viewport-summary></span></div><div class="page-ws-grid"><nav class="page-ws-tree" aria-label="页面组件树"><h3>组件树</h3><ul data-workspace-tree></ul></nav><div class="page-ws-canvas-area"><div class="page-ws-canvas-scroll"><div class="page-ws-artboard" data-workspace-artboard></div></div></div><aside class="page-ws-inspector-panel" aria-label="组件 Inspector"><h3>Inspector</h3><dl data-workspace-inspector data-selected-node-id="" aria-live="polite"></dl></aside></div><div data-workspace-error role="alert" hidden></div></section>`;
+      const shell = root.firstElementChild;
+      canvas = root.querySelector("[data-workspace-artboard]");
+      try {
+        await loadAuthority(sourceSha);
+        await loadComponentTree();
+        root.querySelector("[data-workspace-tree]").innerHTML = treeMarkup(tree.root);
+        listen(root, "click", event => {
+          const toggle = event.target.closest?.("[data-workspace-tree-toggle]");
+          if (toggle) {
+            const item = toggle.closest("[data-workspace-tree-item]");
+            const childList = item?.querySelector(":scope > [data-workspace-tree-children]");
+            if (!childList) return;
+            const expanded = toggle.getAttribute("aria-expanded") === "true";
+            toggle.setAttribute("aria-expanded", expanded ? "false" : "true");
+            toggle.setAttribute("aria-label", `${expanded ? "展开" : "折叠"} ${item.dataset.workspaceTreeItem} 的子图层`);
+            toggle.textContent = expanded ? "+" : "−";
+            childList.hidden = expanded;
+            return;
+          }
+          const treeButton = event.target.closest?.("[data-workspace-tree-node]");
+          if (treeButton) {
+            selectLayer(treeButton.dataset.nodeId);
+            return;
+          }
+          const rendered = event.target.closest?.("[data-workspace-rendered-node]");
+          if (rendered) selectLayer(rendered.dataset.workspaceRenderedNode);
+        });
+        listen(root.querySelector("[data-workspace-apply-viewport]"), "click", () => {
+          renderPreview({ width: Number(root.querySelector("[data-workspace-width]").value),
+            height: Number(root.querySelector("[data-workspace-height]").value), unit: coordinateUnit },
+          Number(root.querySelector("[data-workspace-font-scale]").value), root.querySelector("[data-workspace-state]").value)
+            .catch(setError);
+        });
+        listen(root.querySelector("[data-workspace-font-scale]"), "change", () => {
+          renderPreview(currentViewport, Number(root.querySelector("[data-workspace-font-scale]").value), currentState).catch(setError);
+        });
+        listen(root.querySelector("[data-workspace-state]"), "change", () => {
+          renderPreview(currentViewport, currentFontScale, root.querySelector("[data-workspace-state]").value).catch(setError);
+        });
+        const firstViewport = viewportProfiles[0] || { width: 390, height: 844, unit: coordinateUnit };
+        currentViewport = { width: firstViewport.width, height: firstViewport.height, unit: firstViewport.unit || coordinateUnit };
+        currentFontScale = fontScaleProfiles[0];
+        currentState = typeof stateProfiles[0] === "string" ? stateProfiles[0] : stateProfiles[0]?.state_id;
+        root.querySelector("[data-workspace-font-scale]").value = String(currentFontScale);
+        root.querySelector("[data-workspace-state]").value = currentState;
+        await renderPreview(currentViewport, currentFontScale, currentState);
+        const firstSelectable = tree.nodes.find(node => node.selectable && node.visible && node.measurable);
+        if (firstSelectable) selectLayer(firstSelectable.nodeId);
+        return this;
+      } catch (error) {
+        setError(error);
+        throw error;
+      }
+    }
+
+    function setError(error) {
+      const message = error instanceof Error ? error.message : String(error);
+      const shell = root.querySelector("[data-page-workspace-root]") || root.firstElementChild;
+      if (shell) shell.dataset.viewState = "ERROR";
+      const errorNode = root.querySelector("[data-workspace-error]");
+      if (errorNode) { errorNode.hidden = false; errorNode.textContent = `Workspace validation failed · ${message}`; }
+    }
+
+    function dispose() {
+      if (disposed) return;
+      disposed = true;
+      abortController.abort();
+      listenerDisposers.splice(0).forEach(disposeListener => disposeListener());
+      root.replaceChildren();
+    }
+
+    return { pageId, sourceSha, root, mount, loadAuthority, loadComponentTree, renderPreview, measureElements,
+      selectLayer, getInspector, getResourceDiagnostics, getResponsiveDiagnostics, dispose };
+  }
+
   function setActiveAdapter(adapter) {
     if (activeAdapter && activeAdapter !== adapter) activeAdapter.dispose?.();
     activeAdapter = adapter || null;
@@ -336,8 +732,11 @@
     getRegisteredPage,
     supportsPage(pageId) { return pageIds.has(pageId) && Boolean(registry?.features?.some(row => row?.id === pageId)); },
     createReferenceAdapter,
+    createStructuredDomAdapter,
     mount(root, options) {
-      const adapter = createReferenceAdapter({ root, ...options });
+      const adapter = typeof options?.renderer === "function"
+        ? createStructuredDomAdapter({ root, ...options })
+        : createReferenceAdapter({ root, ...options });
       setActiveAdapter(adapter);
       return adapter.mount();
     },

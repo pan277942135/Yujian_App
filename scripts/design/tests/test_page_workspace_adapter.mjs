@@ -21,6 +21,7 @@ vm.runInNewContext(source, {
   console
 });
 const api = window.PageWorkspaceAdapters;
+assert.equal(typeof api.createStructuredDomAdapter, "function", "shared Workspace must expose a renderer-neutral structured DOM adapter");
 const contentType = path => ({
   ".json": "application/json; charset=utf-8",
   ".png": "image/png",

@@ -107,9 +107,29 @@ jobs:
         run: |
           node --check design/manager/app.js
           node --check design/manager/nh01_structured_workspace.js
+          node --check design/manager/page_workspace_adapters.js
           node --check scripts/verify_design_manager_browser.mjs
           node --check scripts/verify_nh01_structured_responsive_layout.mjs
           node tests/nh01_structured_workspace.test.cjs
+
+      - name: Verify neutral non-NH01 structured DOM workspace fixture
+        env:
+          PLAYWRIGHT_MODULE_DIR: ${{ runner.temp }}/dm-playwright/node_modules
+        run: |
+          node --check scripts/design/tests/fixtures/non_nh01_workspace_fixture.js
+          node --check scripts/design/tests/verify_non_nh01_workspace_fixture.mjs
+          node scripts/design/tests/verify_non_nh01_workspace_fixture.mjs \
+            --source-sha "$BUILD_SHA" \
+            --output-dir "$RUNNER_TEMP/non-nh01-workspace-fixture"
+
+      - name: Upload neutral non-NH01 workspace fixture evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: W3-Non-NH01-Workspace-Fixture-${{ github.run_id }}-${{ github.event.pull_request.head.sha || github.sha }}
+          path: ${{ runner.temp }}/non-nh01-workspace-fixture/
+          if-no-files-found: warn
+          retention-days: 30
 
       - name: Validate responsive page freeze checklist template
         run: |

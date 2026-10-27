@@ -136,3 +136,19 @@
 .nh01-artboard .nh01-recent .nh01-recent-title{grid-column:1;justify-self:start}
 .nh01-artboard .nh01-recent .nh01-recent-all{grid-column:2}
 .nh01-artboard .nh01-recent .nh01-recent-chevron{grid-column:3;width:10px;height:14px;flex:none;object-fit:contain;filter:brightness(0) invert(1)}
+
+/* Generic structured renderer surface; scoped away from the NH01 renderer. */
+.page-workspace-root[data-workspace-kind="structured-dom-candidate"] .page-ws-tree ul{list-style:none;margin:4px 0 4px 10px;padding-left:10px;border-left:1px solid #dce8e1}
+.page-workspace-root[data-workspace-kind="structured-dom-candidate"] .page-ws-tree>ul{margin:0;padding:0;border:0}
+.page-workspace-root[data-workspace-kind="structured-dom-candidate"] .page-ws-tree [data-workspace-tree-node]{display:grid;gap:3px}
+.page-workspace-root[data-workspace-kind="structured-dom-candidate"] .page-ws-tree [data-workspace-tree-node] small{color:#75877e;font-size:9px}
+.page-workspace-root[data-workspace-kind="structured-dom-candidate"] .page-ws-tree-row{display:flex;align-items:stretch;gap:3px}
+.page-workspace-root[data-workspace-kind="structured-dom-candidate"] .page-ws-tree-row [data-workspace-tree-node]{flex:1;min-width:0}
+.page-workspace-root[data-workspace-kind="structured-dom-candidate"] [data-workspace-tree-toggle]{flex:none;width:28px;border:1px solid #d5e4dd;border-radius:7px;background:#f6faf7;color:#385d58;cursor:pointer}
+.page-workspace-root[data-workspace-kind="structured-dom-candidate"] [data-workspace-tree-toggle]:hover{background:#e8f2ec}
+.page-workspace-root[data-workspace-kind="structured-dom-candidate"] .page-ws-canvas-scroll{display:block;place-items:unset}
+.page-workspace-root[data-workspace-kind="structured-dom-candidate"] .page-ws-artboard{display:block;max-width:none;min-height:0;height:auto;margin:0;overflow:visible;box-shadow:0 12px 25px #25413a36}
+.page-workspace-root[data-workspace-kind="structured-dom-candidate"] [data-workspace-inspector]{display:grid;gap:6px;margin:0;font-size:10px}
+.page-workspace-root[data-workspace-kind="structured-dom-candidate"] [data-workspace-inspector]>div{display:grid;grid-template-columns:minmax(110px,.8fr) minmax(0,1.5fr);gap:8px;padding-bottom:5px;border-bottom:1px solid #edf1ee}
+.page-workspace-root[data-workspace-kind="structured-dom-candidate"] [data-workspace-inspector] dt{color:#71867d}
+.page-workspace-root[data-workspace-kind="structured-dom-candidate"] [data-workspace-inspector] dd{min-width:0;margin:0;overflow-wrap:anywhere;line-height:1.4}
