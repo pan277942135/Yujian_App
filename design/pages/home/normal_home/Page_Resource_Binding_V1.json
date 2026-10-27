@@ -1,0 +1,1074 @@
+{
+  "schema_version": "1.0",
+  "binding_id": "home_normal_v1_resource_binding_v1",
+  "page_id": "home_normal_v1",
+  "page_id_aliases": [
+    "normal_home_v1"
+  ],
+  "owner_path": "design/pages/home/normal_home",
+  "authority_version": "2.0",
+  "page_identity_authority": {
+    "authority_id": "experience",
+    "json_pointer": "/features/1",
+    "field_pointer": "/id",
+    "expected_value": "home_normal_v1"
+  },
+  "authority_version_source": {
+    "authority_id": "nhresponsive",
+    "json_pointer": "",
+    "field_pointer": "/contract_version",
+    "expected_value": "2.0"
+  },
+  "source_authorities": [
+    {
+      "authority_id": "experience",
+      "path": "design/registry/experience_registry_v1.json",
+      "sha256": "05fce37aaaa5157149eab018605b83afc28c300457484b1bf637bf3a36649e24",
+      "purpose": "experience"
+    },
+    {
+      "authority_id": "workflow",
+      "path": ".github/workflows/design-manager-pages.yml",
+      "sha256": "cc05f644675595a923c616b2cc3e7b110cf568faf92f0ff6d7a3b2cb942e8073",
+      "purpose": "workflow"
+    },
+    {
+      "authority_id": "w0",
+      "path": "design/system_v3/07_Responsive_System/Page_Pipeline_Reuse_Inventory_V1.md",
+      "sha256": "38ebfae34c8ab7aa196f1d9967bd1e950eb9025609b2847fd701abf700705b67",
+      "purpose": "w0"
+    },
+    {
+      "authority_id": "assetreg",
+      "path": "design/system_v3/06_Asset_System/Asset_Registry_V3_FINAL.json",
+      "sha256": "6f08c77ed07c3080062ec4f07c091bd15f0b3961d15012eb3ebb0dd8c7d292f9",
+      "purpose": "assetreg"
+    },
+    {
+      "authority_id": "bgreg",
+      "path": "design/system_v3/08_Background_System/Background_Registry_V3.json",
+      "sha256": "fd806869c0ccb4b9788c360d6a6618dcb8c805c2b0cdce077ccc83d0190a0bb9",
+      "purpose": "bgreg"
+    },
+    {
+      "authority_id": "nhbind",
+      "path": "design/system_v3/09_Android_Implementation_Contracts/Normal_Home/Normal_Home_Resource_Binding_V1.json",
+      "sha256": "959b753875d6c43aa5bc440995836e7345814e3c0737d169de4f3a79f4206209",
+      "purpose": "nhbind"
+    },
+    {
+      "authority_id": "nhresponsive",
+      "path": "design/pages/home/normal_home/responsive/NH01_RESPONSIVE_LAYOUT_V2.json",
+      "sha256": "2de1fae0c958fd29cdc69f27cc94297438e71c07108f0146f0ff3352a9ba2c6f",
+      "purpose": "nhresponsive"
+    },
+    {
+      "authority_id": "nhstatic",
+      "path": "design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_MULTI_SCREEN_STATIC_HIFI_V1_MANIFEST.json",
+      "sha256": "bf03b83869099a85588c12c818b1f00e5f4879fdb7d2378a42934358f68f0214",
+      "purpose": "nhstatic"
+    },
+    {
+      "authority_id": "nhassets",
+      "path": "design/pages/home/normal_home/assets/asset_manifest.json",
+      "sha256": "682afb7800883ce7c520a8afb3dcf125141efaae2ac13eb147d66418212c3991",
+      "purpose": "nhassets"
+    },
+    {
+      "authority_id": "nhavatar",
+      "path": "design/pages/home/normal_home/assets/normal_home_default_avatar_v2_manifest.json",
+      "sha256": "09c2727981f72d26dc23c53eae36e72777c6fd802eaf877dd3cf26b43fac6ec4",
+      "purpose": "nhavatar"
+    },
+    {
+      "authority_id": "nh07",
+      "path": "design/pages/home/normal_home/07_avatar_states/assets/avatar_asset_manifest_v1.json",
+      "sha256": "15c76593fd18c88bae781efc3bca66d5cb716a6f37ab6a032763db230f9c46c9",
+      "purpose": "nh07"
+    },
+    {
+      "authority_id": "nhpreview",
+      "path": "design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_STRUCTURED_PREVIEW_MEDIA_V1.json",
+      "sha256": "6511b033dcba1ef9e051d6462aebc9046a8cddcbe4510bb19251da4ce0183d0f",
+      "purpose": "nhpreview"
+    },
+    {
+      "authority_id": "private_reference_manifest",
+      "path": "design/pages/recognition/web/VISUAL_REFERENCE_MANIFEST_V1.json",
+      "sha256": "d4447f4132c29beb4c7e6b8414fce19b47c57114286c758e36e6866352f5f83d",
+      "purpose": "Pinned private visual filename/SHA denylist for the final Pages artifact scan."
+    },
+    {
+      "authority_id": "private_photo_mapping",
+      "path": "design/pages/recognition/web/contracts/Work_B_Implementation_Mapping_V2.json",
+      "sha256": "1a2dce6a4fabd01c122c7bd3c746145234130afc2733521e3d5aed59ceec4f5b",
+      "purpose": "Pinned private photo SHA and public publication permissions for the Pages artifact scan."
+    },
+    {
+      "authority_id": "private_input_manifest",
+      "path": "design/pages/recognition/web/implementation_input_pack/SWOS_WEB_IMPLEMENTATION_INPUT_MANIFEST_V1.json",
+      "sha256": "10bd86f55e41704ca621da8e82568ae6d8ad7a61002d51012ff630bb9b38df4a",
+      "purpose": "Pinned private bundle names and SHA values for the actual Pages artifact scan."
+    }
+  ],
+  "publication_policy": {
+    "authority_id": "workflow",
+    "public_scope_marker": "cp -R design _site/design"
+  },
+  "page_notes": [
+    "Experience Registry page_id home_normal_v1 is canonical; legacy normal_home_v1 from the existing resource binding remains an evidenced alias.",
+    "Six frozen NH01 visual anchors keep source SHA and dimensions; no NH01 images are assigned to Empty Home or Login.",
+    "Private runtime photo/avatar rows contain no user bytes.",
+    "NH07 standalone assets remain design-only and do not replace the active NH01 V2 avatar fallback."
+  ],
+  "asset_bindings": [
+    {
+      "asset_id": "NH01-ORIGINAL-REFERENCE",
+      "asset_role": "frozen_page_visual_authority",
+      "source_path": "design/system/core_visual_v1/reference/normal_home_v1.png",
+      "source_authorities": [
+        {
+          "authority_id": "nhresponsive",
+          "json_pointer": "/visual_anchors/0",
+          "field_map": {
+            "source_path": "/path",
+            "sha256": "/sha256",
+            "pixel_dimensions.width": "/canvas_px/width",
+            "pixel_dimensions.height": "/canvas_px/height"
+          }
+        },
+        {
+          "authority_id": "assetreg",
+          "json_pointer": "/entries/580",
+          "field_map": {
+            "source_path": "/path",
+            "sha256": "/sha256",
+            "bytes": "/size",
+            "lifecycle_status": "/status"
+          }
+        }
+      ],
+      "media_type": "image/png",
+      "bytes": 2157565,
+      "sha256": "6ab9d3348b4a9a7e77ddca3a06235b4991798a309bd3512cc6fb9ea7aeb1d377",
+      "pixel_dimensions": {
+        "width": 1080,
+        "height": 1920
+      },
+      "coordinate_space": "canvas_px 1080x1920; logical viewport 360x640 dp",
+      "fit_crop_policy": "Frozen reference only; do not crop, rewrite or infer responsive geometry from pixels",
+      "lifecycle_status": "FROZEN",
+      "asset_designation": "REFERENCE_ONLY",
+      "publication_permission": {
+        "state": "PUBLIC_BY_EXISTING_PAGES_RULE",
+        "authority_id": "workflow",
+        "scope": "Existing Pages rule includes frozen NH01 reference and its responsive static anchors.",
+        "policy_marker": "cp -R design _site/design"
+      },
+      "requiredness": "REQUIRED",
+      "notes": [
+        "Primary whole-page composition and visible brand/content hierarchy. Raster pixels do not define all responsive runtime coordinates."
+      ],
+      "page_id": "home_normal_v1"
+    },
+    {
+      "asset_id": "NH01-M01-320x480dp-STATIC-HIFI-V1",
+      "asset_role": "responsive_static_visual_anchor",
+      "source_path": "design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_M01_320x480dp_STATIC_HIFI_V1.png",
+      "source_authorities": [
+        {
+          "authority_id": "nhresponsive",
+          "json_pointer": "/visual_anchors/1",
+          "field_map": {
+            "source_path": "/path",
+            "sha256": "/sha256",
+            "pixel_dimensions.width": "/canvas_px/width",
+            "pixel_dimensions.height": "/canvas_px/height"
+          }
+        },
+        {
+          "authority_id": "nhstatic",
+          "json_pointer": "/assets/0",
+          "field_map": {
+            "source_path": "/path",
+            "sha256": "/sha256",
+            "bytes": "/size_bytes",
+            "pixel_dimensions.width": "/actual_canvas_px/width",
+            "pixel_dimensions.height": "/actual_canvas_px/height",
+            "lifecycle_status": "/status"
+          }
+        }
+      ],
+      "media_type": "image/png",
+      "bytes": 2009020,
+      "sha256": "a3808f2fb93d48494eafbb6ba061dbd9c1dd019348488355780c8f4504636692",
+      "pixel_dimensions": {
+        "width": 1024,
+        "height": 1536
+      },
+      "coordinate_space": "asset_canvas_px 1024x1536; target viewport 320x480 dp (height null = width-only boundary)",
+      "fit_crop_policy": "Static Hi-Fi reference; preserve source bytes and do not treat viewport as runtime geometry",
+      "lifecycle_status": "STATIC_HIFI_FROZEN",
+      "asset_designation": "REFERENCE_ONLY",
+      "publication_permission": {
+        "state": "PUBLIC_BY_EXISTING_PAGES_RULE",
+        "authority_id": "workflow",
+        "scope": "Existing Pages rule includes frozen NH01 reference and its responsive static anchors.",
+        "policy_marker": "cp -R design _site/design"
+      },
+      "requiredness": "REQUIRED",
+      "notes": [
+        "Short-screen visual anchor; use to check invariant hierarchy and allowed compact spacing, not as an absolute-coordinate layout."
+      ],
+      "page_id": "home_normal_v1"
+    },
+    {
+      "asset_id": "NH01-M02-360x640dp-STATIC-HIFI-V1",
+      "asset_role": "responsive_static_visual_anchor",
+      "source_path": "design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_M02_360x640dp_STATIC_HIFI_V1.png",
+      "source_authorities": [
+        {
+          "authority_id": "nhresponsive",
+          "json_pointer": "/visual_anchors/2",
+          "field_map": {
+            "source_path": "/path",
+            "sha256": "/sha256",
+            "pixel_dimensions.width": "/canvas_px/width",
+            "pixel_dimensions.height": "/canvas_px/height"
+          }
+        },
+        {
+          "authority_id": "nhstatic",
+          "json_pointer": "/assets/1",
+          "field_map": {
+            "source_path": "/path",
+            "sha256": "/sha256",
+            "bytes": "/size_bytes",
+            "pixel_dimensions.width": "/actual_canvas_px/width",
+            "pixel_dimensions.height": "/actual_canvas_px/height",
+            "lifecycle_status": "/status"
+          }
+        }
+      ],
+      "media_type": "image/png",
+      "bytes": 2056059,
+      "sha256": "8a6721552cec97113c2a77200a07bb76b954c1a16f4e0f10d8410b9e873a90c0",
+      "pixel_dimensions": {
+        "width": 941,
+        "height": 1672
+      },
+      "coordinate_space": "asset_canvas_px 941x1672; target viewport 360x640 dp (height null = width-only boundary)",
+      "fit_crop_policy": "Static Hi-Fi reference; preserve source bytes and do not treat viewport as runtime geometry",
+      "lifecycle_status": "STATIC_HIFI_FROZEN",
+      "asset_designation": "REFERENCE_ONLY",
+      "publication_permission": {
+        "state": "PUBLIC_BY_EXISTING_PAGES_RULE",
+        "authority_id": "workflow",
+        "scope": "Existing Pages rule includes frozen NH01 reference and its responsive static anchors.",
+        "policy_marker": "cp -R design _site/design"
+      },
+      "requiredness": "REQUIRED",
+      "notes": [
+        "Additional 360x640 visual reference; not byte-identical to the original 1080x1920 source."
+      ],
+      "page_id": "home_normal_v1"
+    },
+    {
+      "asset_id": "NH01-M03-390x844dp-STATIC-HIFI-V1",
+      "asset_role": "responsive_static_visual_anchor",
+      "source_path": "design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_M03_390x844dp_STATIC_HIFI_V1.png",
+      "source_authorities": [
+        {
+          "authority_id": "nhresponsive",
+          "json_pointer": "/visual_anchors/3",
+          "field_map": {
+            "source_path": "/path",
+            "sha256": "/sha256",
+            "pixel_dimensions.width": "/canvas_px/width",
+            "pixel_dimensions.height": "/canvas_px/height"
+          }
+        },
+        {
+          "authority_id": "nhstatic",
+          "json_pointer": "/assets/2",
+          "field_map": {
+            "source_path": "/path",
+            "sha256": "/sha256",
+            "bytes": "/size_bytes",
+            "pixel_dimensions.width": "/actual_canvas_px/width",
+            "pixel_dimensions.height": "/actual_canvas_px/height",
+            "lifecycle_status": "/status"
+          }
+        }
+      ],
+      "media_type": "image/png",
+      "bytes": 2070873,
+      "sha256": "6a5e2e9fd18d2b06f9452b6a6c95802e41cfc0450b7ec77cf0d1500c6b3932ff",
+      "pixel_dimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "coordinate_space": "asset_canvas_px 853x1844; target viewport 390x844 dp (height null = width-only boundary)",
+      "fit_crop_policy": "Static Hi-Fi reference; preserve source bytes and do not treat viewport as runtime geometry",
+      "lifecycle_status": "STATIC_HIFI_FROZEN",
+      "asset_designation": "REFERENCE_ONLY",
+      "publication_permission": {
+        "state": "PUBLIC_BY_EXISTING_PAGES_RULE",
+        "authority_id": "workflow",
+        "scope": "Existing Pages rule includes frozen NH01 reference and its responsive static anchors.",
+        "policy_marker": "cp -R design _site/design"
+      },
+      "requiredness": "REQUIRED",
+      "notes": [
+        "Long-phone visual anchor; verify typography growth, Hero proportions and vertical balance."
+      ],
+      "page_id": "home_normal_v1"
+    },
+    {
+      "asset_id": "NH01-M04-430x932dp-STATIC-HIFI-V1",
+      "asset_role": "responsive_static_visual_anchor",
+      "source_path": "design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_M04_430x932dp_STATIC_HIFI_V1.png",
+      "source_authorities": [
+        {
+          "authority_id": "nhresponsive",
+          "json_pointer": "/visual_anchors/4",
+          "field_map": {
+            "source_path": "/path",
+            "sha256": "/sha256",
+            "pixel_dimensions.width": "/canvas_px/width",
+            "pixel_dimensions.height": "/canvas_px/height"
+          }
+        },
+        {
+          "authority_id": "nhstatic",
+          "json_pointer": "/assets/3",
+          "field_map": {
+            "source_path": "/path",
+            "sha256": "/sha256",
+            "bytes": "/size_bytes",
+            "pixel_dimensions.width": "/actual_canvas_px/width",
+            "pixel_dimensions.height": "/actual_canvas_px/height",
+            "lifecycle_status": "/status"
+          }
+        }
+      ],
+      "media_type": "image/png",
+      "bytes": 1981778,
+      "sha256": "07846d3089b7c2a0b0e6c858dbd3f97890121b225092dde7d7622f0a461b9893",
+      "pixel_dimensions": {
+        "width": 853,
+        "height": 1844
+      },
+      "coordinate_space": "asset_canvas_px 853x1844; target viewport 430x932 dp (height null = width-only boundary)",
+      "fit_crop_policy": "Static Hi-Fi reference; preserve source bytes and do not treat viewport as runtime geometry",
+      "lifecycle_status": "STATIC_HIFI_FROZEN",
+      "asset_designation": "REFERENCE_ONLY",
+      "publication_permission": {
+        "state": "PUBLIC_BY_EXISTING_PAGES_RULE",
+        "authority_id": "workflow",
+        "scope": "Existing Pages rule includes frozen NH01 reference and its responsive static anchors.",
+        "policy_marker": "cp -R design _site/design"
+      },
+      "requiredness": "REQUIRED",
+      "notes": [
+        "Large long-phone visual anchor; no inverse shrink of key fonts, Hero or camera."
+      ],
+      "page_id": "home_normal_v1"
+    },
+    {
+      "asset_id": "NH01-M05-480DP-WIDTH-STATIC-HIFI-V1",
+      "asset_role": "responsive_static_visual_anchor",
+      "source_path": "design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_M05_480dp_WIDTH_STATIC_HIFI_V1.png",
+      "source_authorities": [
+        {
+          "authority_id": "nhresponsive",
+          "json_pointer": "/visual_anchors/5",
+          "field_map": {
+            "source_path": "/path",
+            "sha256": "/sha256",
+            "pixel_dimensions.width": "/canvas_px/width",
+            "pixel_dimensions.height": "/canvas_px/height"
+          }
+        },
+        {
+          "authority_id": "nhstatic",
+          "json_pointer": "/assets/4",
+          "field_map": {
+            "source_path": "/path",
+            "sha256": "/sha256",
+            "bytes": "/size_bytes",
+            "pixel_dimensions.width": "/actual_canvas_px/width",
+            "pixel_dimensions.height": "/actual_canvas_px/height",
+            "lifecycle_status": "/status"
+          }
+        }
+      ],
+      "media_type": "image/png",
+      "bytes": 2027806,
+      "sha256": "ee2ed666107bd7f4263cf140438a5a1cbb171af0199e57646372e2e1d8cc8de2",
+      "pixel_dimensions": {
+        "width": 1024,
+        "height": 1536
+      },
+      "coordinate_space": "asset_canvas_px 1024x1536; target viewport 480xNone dp (height null = width-only boundary)",
+      "fit_crop_policy": "Static Hi-Fi reference; preserve source bytes and do not treat viewport as runtime geometry",
+      "lifecycle_status": "STATIC_HIFI_FROZEN",
+      "asset_designation": "REFERENCE_ONLY",
+      "publication_permission": {
+        "state": "PUBLIC_BY_EXISTING_PAGES_RULE",
+        "authority_id": "workflow",
+        "scope": "Existing Pages rule includes frozen NH01 reference and its responsive static anchors.",
+        "policy_marker": "cp -R design _site/design"
+      },
+      "requiredness": "REQUIRED",
+      "notes": [
+        "Width-only static anchor. Its PNG aspect ratio does not assign a native window height or create a native acceptance profile."
+      ],
+      "page_id": "home_normal_v1"
+    },
+    {
+      "asset_id": "system_backgrounds_morning_lake_v1_assets_morning_lake_master_v1_png",
+      "asset_role": "Normal Home BG_ENV_HERO background; centered crop, no added treatment.",
+      "source_path": "design/system/backgrounds/morning_lake_v1/assets/Morning_Lake_Master_V1.png",
+      "source_authorities": [
+        {
+          "authority_id": "nhbind",
+          "json_pointer": "/resources/0",
+          "field_map": {
+            "source_path": "/path",
+            "sha256": "/sha256",
+            "lifecycle_status": "/status"
+          }
+        },
+        {
+          "authority_id": "assetreg",
+          "json_pointer": "/entries/458",
+          "field_map": {
+            "source_path": "/path",
+            "sha256": "/sha256",
+            "bytes": "/size",
+            "lifecycle_status": "/status"
+          }
+        },
+        {
+          "authority_id": "bgreg",
+          "json_pointer": "/backgrounds/0",
+          "field_map": {
+            "source_path": "/master_path",
+            "sha256": "/sha256",
+            "lifecycle_status": "/status"
+          }
+        }
+      ],
+      "media_type": "image/png",
+      "bytes": 2255291,
+      "sha256": "5fba741088ea186e898cd3bee5777e35978436f427492e6e6122528ef6aa91d7",
+      "pixel_dimensions": {
+        "width": 941,
+        "height": 1672
+      },
+      "coordinate_space": "master_canvas_px 941x1672",
+      "fit_crop_policy": "Centered crop; no added treatment",
+      "lifecycle_status": "FROZEN",
+      "asset_designation": "ORIGINAL",
+      "publication_permission": {
+        "state": "PUBLIC_BY_EXISTING_PAGES_RULE",
+        "authority_id": "workflow",
+        "scope": "Existing Pages rule includes this referenced visual resource.",
+        "policy_marker": "cp -R design _site/design"
+      },
+      "requiredness": "REQUIRED",
+      "notes": [
+        "Normal Home BG_ENV_HERO background; centered crop, no added treatment."
+      ],
+      "page_id": "home_normal_v1"
+    },
+    {
+      "asset_id": "brand_title_primary",
+      "asset_role": "Frozen Normal Home header brand artwork; source is the approved deterministic raster derivation, not Compose text.",
+      "source_path": "design/system_v3/06_Asset_System/derived/brand_title_primary/brand_title_primary.png",
+      "source_authorities": [
+        {
+          "authority_id": "nhbind",
+          "json_pointer": "/resources/21",
+          "field_map": {
+            "source_path": "/path",
+            "sha256": "/sha256",
+            "lifecycle_status": "/status"
+          }
+        },
+        {
+          "authority_id": "assetreg",
+          "json_pointer": "/entries/662",
+          "field_map": {
+            "source_path": "/path",
+            "sha256": "/sha256",
+            "bytes": "/size",
+            "lifecycle_status": "/status"
+          }
+        }
+      ],
+      "media_type": "image/png",
+      "bytes": 11763,
+      "sha256": "2dd41f5138e88e3bd48178dd26a15dfbb29c434536e4e3cc887fe2db13bdfddc",
+      "pixel_dimensions": {
+        "width": 155,
+        "height": 80
+      },
+      "coordinate_space": null,
+      "fit_crop_policy": "Fit",
+      "lifecycle_status": "FROZEN",
+      "asset_designation": "ORIGINAL",
+      "publication_permission": {
+        "state": "PUBLIC_BY_EXISTING_PAGES_RULE",
+        "authority_id": "workflow",
+        "scope": "Existing Pages rule includes this referenced visual resource.",
+        "policy_marker": "cp -R design _site/design"
+      },
+      "requiredness": "REQUIRED",
+      "notes": [
+        "Frozen Normal Home header brand artwork; source is the approved deterministic raster derivation, not Compose text."
+      ],
+      "page_id": "home_normal_v1"
+    },
+    {
+      "asset_id": "normal_home_camera_primary_v1",
+      "asset_role": "Normal Home Camera base; authorized Frozen source derivative.",
+      "source_path": "design/system_v3/06_Asset_System/derived/normal_home_camera_primary_v1/normal_home_camera_primary_v1.png",
+      "source_authorities": [
+        {
+          "authority_id": "nhbind",
+          "json_pointer": "/resources/22",
+          "field_map": {
+            "source_path": "/path",
+            "sha256": "/sha256",
+            "lifecycle_status": "/status"
+          }
+        },
+        {
+          "authority_id": "assetreg",
+          "json_pointer": "/entries/666",
+          "field_map": {
+            "source_path": "/path",
+            "sha256": "/sha256",
+            "bytes": "/size",
+            "lifecycle_status": "/status"
+          }
+        }
+      ],
+      "media_type": "image/png",
+      "bytes": 53887,
+      "sha256": "fb6417e372d08328ac8559d004d1c6f5b03fc17551646be46031df641660e8f2",
+      "pixel_dimensions": {
+        "width": 208,
+        "height": 208
+      },
+      "coordinate_space": null,
+      "fit_crop_policy": null,
+      "lifecycle_status": "FROZEN",
+      "asset_designation": "ORIGINAL",
+      "publication_permission": {
+        "state": "PUBLIC_BY_EXISTING_PAGES_RULE",
+        "authority_id": "workflow",
+        "scope": "Existing Pages rule includes this referenced visual resource.",
+        "policy_marker": "cp -R design _site/design"
+      },
+      "requiredness": "REQUIRED",
+      "notes": [
+        "Normal Home Camera base; authorized Frozen source derivative."
+      ],
+      "page_id": "home_normal_v1"
+    },
+    {
+      "asset_id": "normal_home_guest_avatar",
+      "asset_role": "Independent Guest identity; do not substitute signed-in default avatar.",
+      "source_path": "app/src/main/assets/normal_home_runtime_v1/avatar/guest_avatar.png",
+      "source_authorities": [
+        {
+          "authority_id": "nhbind",
+          "json_pointer": "/resources/19",
+          "field_map": {
+            "source_path": "/path",
+            "sha256": "/sha256",
+            "lifecycle_status": "/status"
+          }
+        }
+      ],
+      "media_type": "image/png",
+      "bytes": 2250,
+      "sha256": "8a6219ee213af8693e7ca4ff39684fad607c0be891c6c5f31872f96a6ca0120b",
+      "pixel_dimensions": {
+        "width": 160,
+        "height": 160
+      },
+      "coordinate_space": null,
+      "fit_crop_policy": null,
+      "lifecycle_status": "WARNING_NOT_REGISTERED_NON_BLOCKING",
+      "asset_designation": "ORIGINAL",
+      "publication_permission": {
+        "state": "NOT_IN_PAGES_SCOPE",
+        "authority_id": "workflow",
+        "scope": "Android guest avatar is outside the current Pages copy set.",
+        "reason": "Workflow copies only the signed-in default avatar drawable."
+      },
+      "requiredness": "REQUIRED",
+      "notes": [
+        "Independent Guest identity; do not substitute signed-in default avatar."
+      ],
+      "page_id": "home_normal_v1"
+    },
+    {
+      "asset_id": "normal_home_default_avatar_v2",
+      "asset_role": "signed_in_default_avatar",
+      "source_path": "app/src/main/res/drawable-nodpi/normal_home_default_avatar_v2.png",
+      "source_authorities": [
+        {
+          "authority_id": "nhavatar",
+          "json_pointer": "",
+          "field_map": {
+            "sha256": "/source/sha256",
+            "lifecycle_status": "/status"
+          }
+        },
+        {
+          "authority_id": "nhavatar",
+          "json_pointer": "",
+          "field_map": {
+            "source_path": "/android_resource/path",
+            "sha256": "/android_resource/sha256",
+            "lifecycle_status": "/status"
+          }
+        }
+      ],
+      "media_type": "image/png",
+      "bytes": 1215362,
+      "sha256": "fe94b11ba9f6c0635cd230bcc786fd2ea9a64d1a6f512dc6078556379676f528",
+      "pixel_dimensions": {
+        "width": 1254,
+        "height": 1254
+      },
+      "coordinate_space": null,
+      "fit_crop_policy": "Fit; CircleShape",
+      "lifecycle_status": "FROZEN_HOME_V2_VISUAL_CONSUMER__GUEST_SOURCE_SEPARATE",
+      "asset_designation": "ORIGINAL",
+      "publication_permission": {
+        "state": "PUBLIC_BY_EXISTING_PAGES_RULE",
+        "authority_id": "workflow",
+        "scope": "Explicit existing Pages copy for the signed-in Normal Home default avatar.",
+        "policy_marker": "cp app/src/main/res/drawable-nodpi/normal_home_default_avatar_v2.png _site/app/src/main/res/drawable-nodpi/normal_home_default_avatar_v2.png"
+      },
+      "requiredness": "OPTIONAL",
+      "notes": [
+        "Home-specific V2 fallback; not a cross-page avatar definition."
+      ],
+      "degradation_policy": "If unavailable, preserve avatar slot geometry and do not synthesize replacement media.",
+      "page_id": "home_normal_v1"
+    },
+    {
+      "asset_id": "normal_home_fishrecord_photo_runtime",
+      "asset_role": "runtime_user_fish_photo",
+      "source_path": null,
+      "source_authorities": [
+        {
+          "authority_id": "nhbind",
+          "json_pointer": "/resources/20"
+        }
+      ],
+      "media_type": null,
+      "bytes": null,
+      "sha256": null,
+      "pixel_dimensions": null,
+      "coordinate_space": null,
+      "fit_crop_policy": null,
+      "lifecycle_status": "RUNTIME_USER_MEDIA_NOT_STATIC",
+      "asset_designation": "NOT_APPLICABLE",
+      "publication_permission": {
+        "state": "PRIVATE_NOT_DISTRIBUTABLE",
+        "authority_id": "w0",
+        "scope": "User FishRecord photos are private runtime media and must never enter Git, Pages or CI artifacts.",
+        "reason": "Frozen W0 boundary prohibits publishing private fish photos and model assets."
+      },
+      "requiredness": "NOT_VERIFIED",
+      "missing_reason": "Runtime FishRecord media has no repository path, static SHA or fixed dimensions.",
+      "notes": [
+        "Metadata only; never serialize actual user image bytes."
+      ],
+      "page_id": "home_normal_v1"
+    },
+    {
+      "asset_id": "normal_home_account_avatar_runtime",
+      "asset_role": "runtime_user_avatar",
+      "source_path": null,
+      "source_authorities": [
+        {
+          "authority_id": "nhassets",
+          "json_pointer": "/runtime_media/1"
+        }
+      ],
+      "media_type": null,
+      "bytes": null,
+      "sha256": null,
+      "pixel_dimensions": null,
+      "coordinate_space": null,
+      "fit_crop_policy": null,
+      "lifecycle_status": "RUNTIME_USER_MEDIA_NOT_STATIC",
+      "asset_designation": "NOT_APPLICABLE",
+      "publication_permission": {
+        "state": "PRIVATE_NOT_DISTRIBUTABLE",
+        "authority_id": "w0",
+        "scope": "Account profile photos are private runtime media and must never enter Git, Pages or CI artifacts.",
+        "reason": "Frozen W0 boundary prohibits publishing private fish photos and model assets."
+      },
+      "requiredness": "NOT_VERIFIED",
+      "missing_reason": "Account avatar is runtime media; no repository source bytes are present.",
+      "notes": [
+        "Metadata only; no profile image bytes or URLs in the binding."
+      ],
+      "page_id": "home_normal_v1"
+    },
+    {
+      "asset_id": "nh07_default_avatar_export_1x",
+      "asset_role": "nh07_design_only_export_1x",
+      "source_path": "design/pages/home/normal_home/07_avatar_states/assets/nh07_default_avatar_1x_64.png",
+      "source_authorities": [
+        {
+          "authority_id": "nh07",
+          "json_pointer": "/exports/0",
+          "field_map": {
+            "source_path": "/path",
+            "sha256": "/sha256",
+            "bytes": "/bytes",
+            "pixel_dimensions.width": "/width",
+            "pixel_dimensions.height": "/height"
+          }
+        },
+        {
+          "authority_id": "assetreg",
+          "json_pointer": "/entries/243",
+          "field_map": {
+            "source_path": "/path",
+            "sha256": "/sha256",
+            "bytes": "/size",
+            "lifecycle_status": "/status"
+          }
+        }
+      ],
+      "media_type": "image/png",
+      "bytes": 1311,
+      "sha256": "8fe5772bd85cfb55a9d607ecb1dd2e8f5510bb9c54870de7e2a254b0293a908b",
+      "pixel_dimensions": {
+        "width": 64,
+        "height": 64
+      },
+      "coordinate_space": null,
+      "fit_crop_policy": "Avatar contract owns circle/container geometry",
+      "lifecycle_status": "FROZEN",
+      "asset_designation": "ORIGINAL",
+      "publication_permission": {
+        "state": "PUBLIC_BY_EXISTING_PAGES_RULE",
+        "authority_id": "workflow",
+        "scope": "Existing Pages rule includes page-owned NH07 design-only assets.",
+        "policy_marker": "cp -R design _site/design"
+      },
+      "requiredness": "OPTIONAL",
+      "notes": [
+        "NH07 manifest says Android runtime is not implemented."
+      ],
+      "degradation_policy": "If missing, preserve current NH01 V2 fallback and slot geometry.",
+      "page_id": "home_normal_v1"
+    },
+    {
+      "asset_id": "nh07_default_avatar_export_2x",
+      "asset_role": "nh07_design_only_export_2x",
+      "source_path": "design/pages/home/normal_home/07_avatar_states/assets/nh07_default_avatar_2x_128.png",
+      "source_authorities": [
+        {
+          "authority_id": "nh07",
+          "json_pointer": "/exports/1",
+          "field_map": {
+            "source_path": "/path",
+            "sha256": "/sha256",
+            "bytes": "/bytes",
+            "pixel_dimensions.width": "/width",
+            "pixel_dimensions.height": "/height"
+          }
+        },
+        {
+          "authority_id": "assetreg",
+          "json_pointer": "/entries/244",
+          "field_map": {
+            "source_path": "/path",
+            "sha256": "/sha256",
+            "bytes": "/size",
+            "lifecycle_status": "/status"
+          }
+        }
+      ],
+      "media_type": "image/png",
+      "bytes": 2386,
+      "sha256": "0d2c0c29e957e899c0c94dff2a3cdfff1da62c25b8b38296ec6f9788ec08f860",
+      "pixel_dimensions": {
+        "width": 128,
+        "height": 128
+      },
+      "coordinate_space": null,
+      "fit_crop_policy": "Avatar contract owns circle/container geometry",
+      "lifecycle_status": "FROZEN",
+      "asset_designation": "ORIGINAL",
+      "publication_permission": {
+        "state": "PUBLIC_BY_EXISTING_PAGES_RULE",
+        "authority_id": "workflow",
+        "scope": "Existing Pages rule includes page-owned NH07 design-only assets.",
+        "policy_marker": "cp -R design _site/design"
+      },
+      "requiredness": "OPTIONAL",
+      "notes": [
+        "NH07 manifest says Android runtime is not implemented."
+      ],
+      "degradation_policy": "If missing, preserve current NH01 V2 fallback and slot geometry.",
+      "page_id": "home_normal_v1"
+    },
+    {
+      "asset_id": "nh07_default_avatar_export_3x",
+      "asset_role": "nh07_design_only_export_3x",
+      "source_path": "design/pages/home/normal_home/07_avatar_states/assets/nh07_default_avatar_3x_192.png",
+      "source_authorities": [
+        {
+          "authority_id": "nh07",
+          "json_pointer": "/exports/2",
+          "field_map": {
+            "source_path": "/path",
+            "sha256": "/sha256",
+            "bytes": "/bytes",
+            "pixel_dimensions.width": "/width",
+            "pixel_dimensions.height": "/height"
+          }
+        },
+        {
+          "authority_id": "assetreg",
+          "json_pointer": "/entries/245",
+          "field_map": {
+            "source_path": "/path",
+            "sha256": "/sha256",
+            "bytes": "/size",
+            "lifecycle_status": "/status"
+          }
+        }
+      ],
+      "media_type": "image/png",
+      "bytes": 4101,
+      "sha256": "b79dc7eaa6da78722cedb240b35985871c422531b3d452efaa5fba9aa3eeb7c2",
+      "pixel_dimensions": {
+        "width": 192,
+        "height": 192
+      },
+      "coordinate_space": null,
+      "fit_crop_policy": "Avatar contract owns circle/container geometry",
+      "lifecycle_status": "FROZEN",
+      "asset_designation": "ORIGINAL",
+      "publication_permission": {
+        "state": "PUBLIC_BY_EXISTING_PAGES_RULE",
+        "authority_id": "workflow",
+        "scope": "Existing Pages rule includes page-owned NH07 design-only assets.",
+        "policy_marker": "cp -R design _site/design"
+      },
+      "requiredness": "OPTIONAL",
+      "notes": [
+        "NH07 manifest says Android runtime is not implemented."
+      ],
+      "degradation_policy": "If missing, preserve current NH01 V2 fallback and slot geometry.",
+      "page_id": "home_normal_v1"
+    },
+    {
+      "asset_id": "nh07_default_avatar_master_1254",
+      "asset_role": "nh07_design_only_master",
+      "source_path": "design/pages/home/normal_home/07_avatar_states/assets/nh07_default_avatar_master_1254.png",
+      "source_authorities": [
+        {
+          "authority_id": "nh07",
+          "json_pointer": "/source",
+          "field_map": {
+            "source_path": "/path",
+            "sha256": "/sha256",
+            "bytes": "/bytes",
+            "pixel_dimensions.width": "/dimensions/0",
+            "pixel_dimensions.height": "/dimensions/1"
+          }
+        },
+        {
+          "authority_id": "assetreg",
+          "json_pointer": "/entries/246",
+          "field_map": {
+            "source_path": "/path",
+            "sha256": "/sha256",
+            "bytes": "/size",
+            "lifecycle_status": "/status"
+          }
+        }
+      ],
+      "media_type": "image/png",
+      "bytes": 1255352,
+      "sha256": "12ec5fc8c1a08723ea461edf327870df19b7dfe309587b18b6de28c9f701b643",
+      "pixel_dimensions": {
+        "width": 1254,
+        "height": 1254
+      },
+      "coordinate_space": null,
+      "fit_crop_policy": "Avatar contract owns circle/container geometry",
+      "lifecycle_status": "FROZEN",
+      "asset_designation": "ORIGINAL",
+      "publication_permission": {
+        "state": "PUBLIC_BY_EXISTING_PAGES_RULE",
+        "authority_id": "workflow",
+        "scope": "Existing Pages rule includes page-owned NH07 design-only master.",
+        "policy_marker": "cp -R design _site/design"
+      },
+      "requiredness": "OPTIONAL",
+      "notes": [
+        "Design source only; NH07 manifest says Android runtime is not implemented."
+      ],
+      "degradation_policy": "If missing, preserve current NH01 V2 fallback and slot geometry.",
+      "page_id": "home_normal_v1"
+    },
+    {
+      "asset_id": "nh01-preview-hero-illustrative-v1",
+      "asset_role": "preview_illustrative:hero",
+      "source_path": "design/pages/home/normal_home/08_multi_screen_static_hifi/assets/preview_illustrative/hero_generated_illustrative_only.png",
+      "source_authorities": [
+        {
+          "authority_id": "nhpreview",
+          "json_pointer": "/assets/0",
+          "field_map": {
+            "source_path": "/path",
+            "media_type": "/mime_type",
+            "bytes": "/bytes",
+            "sha256": "/sha256",
+            "pixel_dimensions.width": "/width_px",
+            "pixel_dimensions.height": "/height_px",
+            "lifecycle_status": "/asset_status"
+          }
+        }
+      ],
+      "media_type": "image/png",
+      "bytes": 2414215,
+      "sha256": "4ee7e9f3e1dac0aaf29259a8b3df8b3b9fa60f5de8fc15e16a4f1804d3476ac0",
+      "pixel_dimensions": {
+        "width": 1151,
+        "height": 1367
+      },
+      "coordinate_space": null,
+      "fit_crop_policy": null,
+      "lifecycle_status": "GENERATED_ILLUSTRATIVE_ONLY",
+      "asset_designation": "ILLUSTRATIVE_ONLY",
+      "publication_permission": {
+        "state": "PUBLIC_BY_EXISTING_PAGES_RULE",
+        "authority_id": "workflow",
+        "scope": "Preview only; source manifest limits usage to FishCatchPager preview and labels it illustrative.",
+        "policy_marker": "cp -R design _site/design"
+      },
+      "requiredness": "OPTIONAL",
+      "notes": [
+        "FishCatchPager preview media only",
+        "Generated with built-in imagegen for this responsive layout task; not a real catch, species claim, licensed production asset, or Android runtime mapping."
+      ],
+      "degradation_policy": "If missing, omit preview media only; keep page geometry unchanged and do not represent it as a real catch.",
+      "page_id": "home_normal_v1"
+    },
+    {
+      "asset_id": "nh01-preview-previous-illustrative-v1",
+      "asset_role": "preview_illustrative:neighbor_previous",
+      "source_path": "design/pages/home/normal_home/08_multi_screen_static_hifi/assets/preview_illustrative/previous_generated_illustrative_only.png",
+      "source_authorities": [
+        {
+          "authority_id": "nhpreview",
+          "json_pointer": "/assets/1",
+          "field_map": {
+            "source_path": "/path",
+            "media_type": "/mime_type",
+            "bytes": "/bytes",
+            "sha256": "/sha256",
+            "pixel_dimensions.width": "/width_px",
+            "pixel_dimensions.height": "/height_px",
+            "lifecycle_status": "/asset_status"
+          }
+        }
+      ],
+      "media_type": "image/png",
+      "bytes": 2048956,
+      "sha256": "4823466c81d87a99068579bc6dfab06e69eac701bd73f874f89e6398e43afdb8",
+      "pixel_dimensions": {
+        "width": 1151,
+        "height": 1367
+      },
+      "coordinate_space": null,
+      "fit_crop_policy": null,
+      "lifecycle_status": "GENERATED_ILLUSTRATIVE_ONLY",
+      "asset_designation": "ILLUSTRATIVE_ONLY",
+      "publication_permission": {
+        "state": "PUBLIC_BY_EXISTING_PAGES_RULE",
+        "authority_id": "workflow",
+        "scope": "Preview only; source manifest limits usage to FishCatchPager preview and labels it illustrative.",
+        "policy_marker": "cp -R design _site/design"
+      },
+      "requiredness": "OPTIONAL",
+      "notes": [
+        "FishCatchPager preview media only",
+        "Generated with built-in imagegen for this responsive layout task; not a real catch, species claim, licensed production asset, or Android runtime mapping."
+      ],
+      "degradation_policy": "If missing, omit preview media only; keep page geometry unchanged and do not represent it as a real catch.",
+      "page_id": "home_normal_v1"
+    },
+    {
+      "asset_id": "nh01-preview-next-illustrative-v1",
+      "asset_role": "preview_illustrative:neighbor_next",
+      "source_path": "design/pages/home/normal_home/08_multi_screen_static_hifi/assets/preview_illustrative/next_generated_illustrative_only.png",
+      "source_authorities": [
+        {
+          "authority_id": "nhpreview",
+          "json_pointer": "/assets/2",
+          "field_map": {
+            "source_path": "/path",
+            "media_type": "/mime_type",
+            "bytes": "/bytes",
+            "sha256": "/sha256",
+            "pixel_dimensions.width": "/width_px",
+            "pixel_dimensions.height": "/height_px",
+            "lifecycle_status": "/asset_status"
+          }
+        }
+      ],
+      "media_type": "image/png",
+      "bytes": 2004497,
+      "sha256": "c896b71c2379b0878e54aa91c3e427499a3877b97c72bf8b01c0c55d35752498",
+      "pixel_dimensions": {
+        "width": 1151,
+        "height": 1367
+      },
+      "coordinate_space": null,
+      "fit_crop_policy": null,
+      "lifecycle_status": "GENERATED_ILLUSTRATIVE_ONLY",
+      "asset_designation": "ILLUSTRATIVE_ONLY",
+      "publication_permission": {
+        "state": "PUBLIC_BY_EXISTING_PAGES_RULE",
+        "authority_id": "workflow",
+        "scope": "Preview only; source manifest limits usage to FishCatchPager preview and labels it illustrative.",
+        "policy_marker": "cp -R design _site/design"
+      },
+      "requiredness": "OPTIONAL",
+      "notes": [
+        "FishCatchPager preview media only",
+        "Generated with built-in imagegen for this responsive layout task; not a real catch, species claim, licensed production asset, or Android runtime mapping."
+      ],
+      "degradation_policy": "If missing, omit preview media only; keep page geometry unchanged and do not represent it as a real catch.",
+      "page_id": "home_normal_v1"
+    }
+  ],
+  "page_id_alias_sources": [
+    {
+      "authority_id": "nhbind",
+      "json_pointer": "",
+      "field_pointer": "/page_id",
+      "expected_value": "normal_home_v1"
+    }
+  ]
+}

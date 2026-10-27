@@ -22,7 +22,9 @@ on:
       - "scripts/verify_swos_static_visual_v1_1.py"
       - "scripts/verify_nh01_pr_preview_live.mjs"
       - "scripts/design/validate_nh01_responsive_layout_contract_v2.py"
+      - "scripts/design/validate_page_resource_binding.py"
       - "scripts/design/validate_responsive_page_freeze_checklist.py"
+      - "scripts/design/tests/test_page_resource_binding.py"
       - "scripts/design/tests/test_responsive_page_freeze_checklist.py"
       - "scripts/design/compare_nh01_workspace_visual_v1.py"
       - "tests/nh01_structured_workspace.test.cjs"
@@ -455,6 +457,27 @@ jobs:
         with:
           name: NH01-PR${{ github.event.pull_request.number }}-Preview-Composition-${{ github.run_id }}
           path: ${{ runner.temp }}/nh01-pr${{ github.event.pull_request.number }}-preview-composition.json
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Validate W2 page resource bindings against final Pages bundle
+        run: |
+          python3 scripts/design/validate_page_resource_binding.py \
+            --all-pages \
+            --required-page-id home_normal_v1 \
+            --required-page-id home_empty_v2 \
+            --required-page-id auth_login_v2 \
+            --site-root _site \
+            --source-sha "${SITE_BUILD_SHA}" \
+            --run-id "${GITHUB_RUN_ID}" \
+            --report "$RUNNER_TEMP/page-resource-binding-report.json"
+
+      - name: Upload W2 page resource binding report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: W2-Page-Resource-Binding-${{ github.run_id }}-${{ github.event.pull_request.head.sha || github.sha }}
+          path: ${{ runner.temp }}/page-resource-binding-report.json
           if-no-files-found: error
           retention-days: 30
 
