@@ -70,11 +70,12 @@ runs:
         PLAYWRIGHT_MODULE_DIR: ${{ runner.temp }}/dm-playwright/node_modules
       run: |
         set -euo pipefail
-        chromium_path="$(node -e 'const {chromium}=require(process.env.PLAYWRIGHT_MODULE_DIR); process.stdout.write(chromium.executablePath())')"
+        chromium_path="$(node -e 'const path=require("node:path"); const {chromium}=require(path.join(process.env.PLAYWRIGHT_MODULE_DIR,"playwright")); process.stdout.write(chromium.executablePath())')"
         test -x "$chromium_path"
         "$chromium_path" --version
         node <<'NODE'
-        const { chromium } = require(process.env.PLAYWRIGHT_MODULE_DIR);
+        const path = require('node:path');
+        const { chromium } = require(path.join(process.env.PLAYWRIGHT_MODULE_DIR, 'playwright'));
         (async () => {
           const browser = await chromium.launch({ headless: true });
           const page = await browser.newPage();
@@ -91,3 +92,4 @@ runs:
         dirname "$ffmpeg_path" >> "$GITHUB_PATH"
         "$ffmpeg_path" -version
         printf '\n- FFmpeg: bundled Playwright binary; separate apt install skipped.\n' >> "$GITHUB_STEP_SUMMARY"
+
