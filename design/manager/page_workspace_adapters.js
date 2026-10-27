@@ -388,9 +388,13 @@
     let currentState = typeof stateProfiles[0] === "string" ? stateProfiles[0] : stateProfiles[0]?.state_id;
     let disposed = false;
 
-    function requireLive() {
+    function requireAuthority() {
       if (disposed) throw new Error("WORKSPACE_DISPOSED");
       if (!authority) throw new Error("AUTHORITY_NOT_LOADED");
+    }
+
+    function requireLive() {
+      requireAuthority();
       if (!tree) throw new Error("COMPONENT_TREE_NOT_LOADED");
     }
 
@@ -540,7 +544,7 @@
     }
 
     async function loadComponentTree() {
-      requireLive();
+      requireAuthority();
       if (!tree) tree = normalizeStructuredTree(pageId, typeof componentTree === "function" ? componentTree(authority) : componentTree);
       return { document_type: "page_component_tree", status: "STRUCTURED_DOM", page_id: pageId, root: tree.root, nodes: tree.nodes };
     }
