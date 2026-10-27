@@ -5,7 +5,7 @@ runs:
   steps:
     - name: Restore pinned Playwright package cache
       id: playwright-package-cache
-      uses: actions/cache@v4
+      uses: actions/cache/restore@v4
       with:
         path: ${{ runner.temp }}/dm-playwright/node_modules
         key: ${{ runner.os }}-node22-playwright-1.63.0-package
@@ -45,7 +45,7 @@ runs:
 
     - name: Restore exact Chromium and FFmpeg browser cache
       id: browser-cache
-      uses: actions/cache@v4
+      uses: actions/cache/restore@v4
       with:
         path: ~/.cache/ms-playwright
         key: ${{ runner.os }}-playwright-${{ steps.playwright-meta.outputs.version }}-chromium-${{ steps.playwright-meta.outputs.chromium_revision }}
@@ -93,3 +93,16 @@ runs:
         "$ffmpeg_path" -version
         printf '\n- FFmpeg: bundled Playwright binary; separate apt install skipped.\n' >> "$GITHUB_STEP_SUMMARY"
 
+    - name: Save verified Playwright package cache
+      if: steps.playwright-package-cache.outputs.cache-hit != 'true'
+      uses: actions/cache/save@v4
+      with:
+        path: ${{ runner.temp }}/dm-playwright/node_modules
+        key: ${{ runner.os }}-node22-playwright-1.63.0-package
+
+    - name: Save verified Chromium and FFmpeg browser cache
+      if: steps.browser-cache.outputs.cache-hit != 'true'
+      uses: actions/cache/save@v4
+      with:
+        path: ~/.cache/ms-playwright
+        key: ${{ runner.os }}-playwright-${{ steps.playwright-meta.outputs.version }}-chromium-${{ steps.playwright-meta.outputs.chromium_revision }}
