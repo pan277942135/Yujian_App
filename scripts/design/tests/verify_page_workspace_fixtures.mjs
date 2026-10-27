@@ -25,10 +25,10 @@ function shellHtml({ page = pageId, source = sourceSha, node = true, throwing = 
   </body></html>`;
 }
 
-async function runVerifier(serverUrl, fixtureName, outputDir) {
+async function runVerifier(serverUrl, fixtureName, outputDir, unconnectedPolicy = "fail") {
   const candidateUrl = `${serverUrl}/design/manager/?fixture=${fixtureName}`;
   const args = [verifier, "--page-id", pageId, "--candidate-url", candidateUrl, "--source-sha", sourceSha,
-    "--output-dir", outputDir, "--readiness-timeout-ms", "300"];
+    "--output-dir", outputDir, "--readiness-timeout-ms", "300", "--unconnected-policy", unconnectedPolicy];
   return await new Promise((resolvePromise, reject) => {
     const child = spawn("node", args, { stdio: "ignore", env: process.env });
     child.once("error", reject);
@@ -83,12 +83,20 @@ async function main() {
         }
       }
     }
+    const referenceOnlyOutput = join(root, "reference-only-core-not-run");
+    const referenceOnlyCode = await runVerifier(serverUrl, "reference-only", referenceOnlyOutput, "not-run");
+    const referenceOnlyReport = JSON.parse(await readFile(join(referenceOnlyOutput, "workspace-browser-report.json"), "utf8"));
+    if (referenceOnlyCode !== 0 || referenceOnlyReport.result !== "NOT_RUN"
+      || referenceOnlyReport.reason !== "REFERENCE_IMAGE_ONLY_NOT_CONNECTED"
+      || referenceOnlyReport.page_acceptance !== "NOT_VERIFIED") {
+      throw new Error(`core tools must preserve reference-only page status as NOT_RUN; report=${JSON.stringify(referenceOnlyReport)}`);
+    }
     if (infrastructureBlocked) {
       console.error("PAGE_WORKSPACE_VERIFIER_FIXTURES=BLOCKED_INFRA browser launch unavailable");
       process.exitCode = 2;
       return;
     }
-    console.log("PAGE_WORKSPACE_VERIFIER_FIXTURES=PASS cases=7");
+    console.log("PAGE_WORKSPACE_VERIFIER_FIXTURES=PASS cases=8 reference_only=NOT_RUN");
   } finally {
     await new Promise(resolvePromise => browser.close(resolvePromise));
     await rm(root, { recursive: true, force: true });

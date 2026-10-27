@@ -9,7 +9,7 @@ const playwrightRoot = process.env.PLAYWRIGHT_MODULE_DIR;
 const playwrightPath = process.env.PLAYWRIGHT_PATH || (playwrightRoot ? resolve(playwrightRoot, "playwright") : "playwright");
 
 function parseArgs(argv) {
-  const args = { pageId: null, candidateUrl: null, sourceSha: null, outputDir: "/tmp/page-workspace-evidence", readinessTimeoutMs: 30000 };
+  const args = { pageId: null, candidateUrl: null, sourceSha: null, outputDir: "/tmp/page-workspace-evidence", readinessTimeoutMs: 30000, unconnectedPolicy: "fail" };
   for (let i = 2; i < argv.length; i += 1) {
     const key = argv[i];
     if (key === "--page-id") args.pageId = argv[++i];
@@ -17,6 +17,7 @@ function parseArgs(argv) {
     else if (key === "--source-sha") args.sourceSha = argv[++i];
     else if (key === "--output-dir") args.outputDir = resolve(argv[++i]);
     else if (key === "--readiness-timeout-ms") args.readinessTimeoutMs = Number(argv[++i]);
+    else if (key === "--unconnected-policy") args.unconnectedPolicy = argv[++i];
     else throw new Error(`Unknown argument: ${key}`);
   }
   if (!args.pageId || !args.candidateUrl || !/^[0-9a-f]{40}$/.test(args.sourceSha || "")) {
@@ -25,6 +26,7 @@ function parseArgs(argv) {
   if (!Number.isInteger(args.readinessTimeoutMs) || args.readinessTimeoutMs < 100 || args.readinessTimeoutMs > 60000) {
     throw new Error("--readiness-timeout-ms must be an integer from 100 to 60000");
   }
+  if (!["fail", "not-run"].includes(args.unconnectedPolicy)) throw new Error("--unconnected-policy must be fail or not-run");
   return args;
 }
 
@@ -75,6 +77,16 @@ async function main() {
     assert(rootInfo.pageId === args.pageId, `workspace page_id mismatch: expected ${args.pageId}, got ${rootInfo.pageId}`);
     assert(rootInfo.sourceSha === args.sourceSha, `workspace source/build SHA mismatch: expected ${args.sourceSha}, got ${rootInfo.sourceSha}`);
     assert(rootInfo.workspaceKind, "workspace is missing its adapter/rendering kind marker");
+    if (rootInfo.workspaceKind === "reference-image-only" && args.unconnectedPolicy === "not-run") {
+      report = {
+        schema_version: "1.0", page_id: args.pageId, source_sha: args.sourceSha, candidate_url: route,
+        result: "NOT_RUN", reason: "REFERENCE_IMAGE_ONLY_NOT_CONNECTED",
+        visual_result: "MEASUREMENT_ONLY_NOT_VISUAL_PASS", page_acceptance: "NOT_VERIFIED",
+        workspace: rootInfo, console_errors: errors, failed_requests: failedRequests, bad_responses: badResponses,
+        screenshot_path: null, screenshot_sha256: null, dom_path: null, dom_sha256: null,
+        run_id: process.env.GITHUB_RUN_ID || null
+      };
+    } else {
     assert(rootInfo.workspaceKind !== "reference-image-only", "workspace exposes only a reference raster; page component DOM mapping is unavailable");
 
     const nodes = await page.locator("[data-workspace-tree-node]").evaluateAll(elements => elements.map(node => ({
@@ -122,6 +134,7 @@ async function main() {
       dom_path: domPath, dom_sha256: hash(await readFile(domPath)),
       run_id: process.env.GITHUB_RUN_ID || null
     };
+    }
   } catch (error) {
     const status = browser ? "FAIL" : "BLOCKED";
     report = {
@@ -138,7 +151,7 @@ async function main() {
   }
   await writeFile(reportPath, `${JSON.stringify(report, null, 2)}\n`, "utf8");
   console.log(JSON.stringify({ result: report.result, page_id: report.page_id, source_sha: report.source_sha, report_path: reportPath }, null, 2));
-  if (report.result !== "PASS") process.exitCode = 1;
+  if (report.result !== "PASS" && !(report.result === "NOT_RUN" && args.unconnectedPolicy === "not-run")) process.exitCode = 1;
 }
 
 main().catch(error => { console.error(error instanceof Error ? error.stack : String(error)); process.exitCode = 2; });

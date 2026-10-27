@@ -54,6 +54,10 @@ To bind that report and its raw screenshot/DOM bytes into the page manifest, inv
 
 This browser command records route/build identity, actual DOM bounds, component-tree-to-DOM selection, console/network errors, horizontal overflow, a raw screenshot and DOM JSON. Its visual classification is always `MEASUREMENT_ONLY_NOT_VISUAL_PASS`; this command cannot accept a page or promote Android Runtime.
 
+The command is fail-closed by default. `--unconnected-policy not-run` is reserved for the W3 core-tools job: it records `NOT_RUN` only when the exact page route and source SHA load and the workspace explicitly reports `reference-image-only`. Any structured renderer still runs the full DOM mapping checks; a missing/duplicate node, route error, source mismatch, browser failure, or `structured-dom-candidate` error remains `FAIL`. A `NOT_RUN` report is bound to the same source SHA and CI Run ID and cannot be upgraded by the manifest validator. Page-specific W5/W6 checks must use the default `fail` policy.
+
+The neutral non-NH01 fixture at `scripts/design/tests/fixtures/non_nh01_workspace_fixture.html` exercises the W3 shared adapter with a test-only synthetic authority. It is deliberately excluded from the Experience Registry and is not a Home Empty or Login renderer. W4 runs the fixture under Chromium and retains its DOM geometry, screenshots, error-resource status, and expected missing-node failure under the exact source SHA.
+
 ## Matrix behavior
 
 The planned matrix is derived from the page's bound numeric authority and any page-owned matrix file. It never adds a viewport, font scale, state, or expected count that the authority does not declare. Planned but unexecuted cases are explicitly `NOT_RUN`.
@@ -76,3 +80,4 @@ Empty Home and Login W1 profiles remain `DRAFT`. Their schema-valid static check
 - `page_acceptance` is fixed at `NOT_VERIFIED`; `native_runtime` is fixed at `NOT_VERIFIED`.
 - A matrix `PASS` requires per-case exact-SHA evidence; planned cases or a screenshot alone cannot promote it.
 - The W2 Pages bundle report is copied into each page's evidence directory so its denylist, permission, and published-file scan can be inspected with the manifest.
+- Gate A/B may pass while an unconnected page remains `NOT_RUN`; this does not satisfy a later page-specific W5/W6 or user-visual-acceptance gate.

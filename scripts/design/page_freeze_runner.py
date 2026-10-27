@@ -513,6 +513,24 @@ def validate_manifest(root: Path, manifest: dict[str, Any], expected_source_sha:
                     errors.append("browser report must remain measurement-only")
             except PipelineError as exc:
                 errors.append(f"browser report cannot be verified: {exc}")
+    elif browser.get("status") == "NOT_RUN" and browser.get("report_path"):
+        try:
+            report_path = browser.get("report_path")
+            report_file = _resolve_evidence_file(root, report_path, evidence_dir)
+            if not report_file.is_file() or sha256_file(report_file) != browser.get("report_sha256"):
+                raise PipelineError("NOT_RUN browser report is missing or its SHA-256 does not match")
+            not_run_report = read_json(report_file)
+            workspace = not_run_report.get("workspace", {})
+            if (not_run_report.get("result") != "NOT_RUN"
+                    or not_run_report.get("reason") != "REFERENCE_IMAGE_ONLY_NOT_CONNECTED"
+                    or workspace.get("workspaceKind") != "reference-image-only"
+                    or not_run_report.get("page_id") != manifest.get("page_id")
+                    or not_run_report.get("source_sha") != expected_source_sha):
+                errors.append("browser NOT_RUN is allowed only for an exact-SHA reference-image-only, unconnected workspace")
+            if str(not_run_report.get("run_id")) != str(expected_run_id):
+                errors.append("browser NOT_RUN report Run ID does not match the observed workflow Run ID")
+        except (OSError, PipelineError, json.JSONDecodeError) as exc:
+            errors.append(f"browser NOT_RUN report cannot be verified: {exc}")
     for case in matrix.get("cases", []) if isinstance(matrix.get("cases"), list) else []:
         if isinstance(case, dict) and case.get("result") == "PASS":
             path_text = case.get("evidence_path")
@@ -554,6 +572,21 @@ def validate_browser_report(root: Path, page_id: str, source_sha: str, run_id: s
              "run_id": str(browser_report.get("run_id")) if browser_report.get("run_id") is not None else None},
             "browser workspace verification is BLOCKED_INFRA",
         )
+    if browser_report.get("result") == "NOT_RUN":
+        workspace = browser_report.get("workspace", {})
+        if (browser_report.get("reason") != "REFERENCE_IMAGE_ONLY_NOT_CONNECTED"
+                or workspace.get("workspaceKind") != "reference-image-only"):
+            return "FAIL", {**empty, "status": "FAIL"}, "NOT_RUN is reserved for a declared reference-image-only, unconnected page"
+        if str(browser_report.get("run_id")) != str(run_id):
+            return "FAIL", {**empty, "status": "FAIL"}, "browser NOT_RUN report Run ID does not match the current CI Run ID"
+        target_report = evidence_dir / "workspace-browser-report.json"
+        shutil.copyfile(source_report_path, target_report)
+        return "NOT_RUN", {
+            **empty, "status": "NOT_RUN", "report_path": target_report.name,
+            "report_sha256": sha256_file(target_report),
+            "candidate_url": browser_report.get("candidate_url"), "source_sha": source_sha,
+            "run_id": str(run_id) if run_id is not None else None
+        }, "Structured page renderer is not connected; browser page evidence remains NOT_RUN."
     if browser_report.get("result") != "PASS":
         return (
             "FAIL",
@@ -742,7 +775,8 @@ def verify_workspace(args: argparse.Namespace) -> int:
     if not script.is_file():
         raise PipelineError("generic browser workspace verifier is missing")
     command = ["node", str(script), "--page-id", args.page_id, "--candidate-url", args.candidate_url,
-               "--source-sha", args.source_sha, "--output-dir", str(args.output_dir.resolve())]
+               "--source-sha", args.source_sha, "--output-dir", str(args.output_dir.resolve()),
+               "--unconnected-policy", args.unconnected_policy]
     try:
         result = subprocess.run(command, cwd=args.root)
     except OSError as exc:
@@ -770,6 +804,8 @@ def main() -> int:
     workspace.add_argument("--candidate-url", required=True)
     workspace.add_argument("--source-sha", required=True)
     workspace.add_argument("--output-dir", type=Path, default=Path("/tmp/page-freeze-w4-workspace"))
+    workspace.add_argument("--unconnected-policy", choices=("fail", "not-run"), default="fail",
+                           help="not-run is only for the core-tools job; page acceptance remains fail-closed")
     manifest = sub.add_parser("validate-manifest", help="fail-closed exact-SHA and Run-ID validation")
     manifest.add_argument("--root", type=Path, default=ROOT)
     manifest.add_argument("--manifest", type=Path, required=True)

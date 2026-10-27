@@ -180,6 +180,55 @@ class PageFreezeRunnerTests(unittest.TestCase):
         errors = runner.validate_manifest(ROOT, manifest, self.source_sha, self.run_id)
         self.assertTrue(any("missing or its SHA-256" in error or "cannot be verified" in error for error in errors))
 
+    def test_unconnected_reference_image_workspace_stays_not_run(self):
+        report_path = self.temp_root / "reference-only-browser-report.json"
+        report = {
+            "result": "NOT_RUN",
+            "reason": "REFERENCE_IMAGE_ONLY_NOT_CONNECTED",
+            "page_id": "home_empty_v2",
+            "source_sha": self.source_sha,
+            "candidate_url": "https://example.invalid/design/manager/#page/home_empty_v2/hifi/structured_workspace",
+            "visual_result": "MEASUREMENT_ONLY_NOT_VISUAL_PASS",
+            "page_acceptance": "NOT_VERIFIED",
+            "workspace": {"workspaceKind": "reference-image-only"},
+            "run_id": self.run_id,
+        }
+        report_path.write_text(json.dumps(report), encoding="utf-8")
+        evidence_dir = self.temp_root / "empty-home-evidence"
+        evidence_dir.mkdir(parents=True, exist_ok=True)
+        status, evidence, error = runner.validate_browser_report(
+            ROOT, "home_empty_v2", self.source_sha, self.run_id, str(report_path), evidence_dir
+        )
+        self.assertEqual(status, "NOT_RUN")
+        self.assertEqual(error, "Structured page renderer is not connected; browser page evidence remains NOT_RUN.")
+        self.assertEqual(evidence["source_sha"], self.source_sha)
+        self.assertEqual(evidence["run_id"], self.run_id)
+        manifest = self.make_manifest("home_empty_v2")
+        manifest["checks"]["browser_geometry"] = status
+        manifest["checks"]["browser_evidence"] = evidence
+        self.assertEqual(runner.validate_manifest(ROOT, manifest, self.source_sha, self.run_id, evidence_dir), [])
+
+    def test_structured_renderer_cannot_hide_behind_not_run(self):
+        report_path = self.temp_root / "structured-not-run-browser-report.json"
+        report_path.write_text(json.dumps({
+            "result": "NOT_RUN",
+            "reason": "REFERENCE_IMAGE_ONLY_NOT_CONNECTED",
+            "page_id": "home_empty_v2",
+            "source_sha": self.source_sha,
+            "candidate_url": "https://example.invalid/design/manager/",
+            "visual_result": "MEASUREMENT_ONLY_NOT_VISUAL_PASS",
+            "page_acceptance": "NOT_VERIFIED",
+            "workspace": {"workspaceKind": "structured-dom-candidate"},
+            "run_id": self.run_id,
+        }), encoding="utf-8")
+        evidence_dir = self.temp_root / "structured-evidence"
+        evidence_dir.mkdir(parents=True, exist_ok=True)
+        status, _, error = runner.validate_browser_report(
+            ROOT, "home_empty_v2", self.source_sha, self.run_id, str(report_path), evidence_dir
+        )
+        self.assertEqual(status, "FAIL")
+        self.assertIn("NOT_RUN is reserved", error)
+
     def test_unexecuted_matrix_and_browser_remain_not_run(self):
         manifest = self.make_manifest()
         self.assertEqual(runner.validate_manifest(ROOT, manifest, self.source_sha, self.run_id), [])

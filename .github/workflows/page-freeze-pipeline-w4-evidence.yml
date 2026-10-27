@@ -88,6 +88,22 @@ jobs:
           node --check scripts/design/tests/verify_page_workspace_fixtures.mjs
           node scripts/design/tests/verify_page_workspace_fixtures.mjs
 
+      - name: W3 non-NH01 shared DOM fixture
+        env:
+          PLAYWRIGHT_MODULE_DIR: ${{ runner.temp }}/page-workspace-playwright/node_modules
+        run: |
+          if [ -f scripts/design/tests/verify_non_nh01_workspace_fixture.mjs ]; then
+            node --check scripts/design/tests/fixtures/non_nh01_workspace_fixture.js
+            node --check scripts/design/tests/verify_non_nh01_workspace_fixture.mjs
+            node scripts/design/tests/verify_non_nh01_workspace_fixture.mjs \
+              --source-sha "$BUILD_SHA" \
+              --output-dir "$RUNNER_TEMP/page-freeze-w4-evidence/non-nh01-core-fixture"
+          else
+            mkdir -p "$RUNNER_TEMP/page-freeze-w4-evidence/non-nh01-core-fixture"
+            python -c 'import json,os; p=os.path.join(os.environ["RUNNER_TEMP"],"page-freeze-w4-evidence/non-nh01-core-fixture/report.json"); json.dump({"result":"NOT_RUN","source_sha":os.environ["BUILD_SHA"],"reason":"W3 non-NH01 fixture is not present on this source SHA","native_runtime":"NOT_VERIFIED"},open(p,"w"),indent=2)'
+            echo "W3 non-NH01 fixture is NOT_RUN on this source SHA; it will be required after W3 is integrated."
+          fi
+
       - name: Prepare exact candidate Pages bundle without deployment
         shell: bash
         run: |
@@ -141,7 +157,7 @@ jobs:
             --run-id "$GITHUB_RUN_ID" \
             --report "$RUNNER_TEMP/page-resource-binding-report.json"
 
-      - name: Verify actual staged Design Manager workspace when W3 adapter exists
+      - name: Verify staged Design Manager workspace; retain only unconnected pages as NOT_RUN
         shell: bash
         env:
           PLAYWRIGHT_MODULE_DIR: ${{ runner.temp }}/page-workspace-playwright/node_modules
@@ -164,11 +180,19 @@ jobs:
           failed=0
           for page_id in home_normal_v1 home_empty_v2 auth_login_v2; do
             output_dir="$evidence_root/$page_id"
+            unconnected_policy=fail
+            if [ "$page_id" = "home_empty_v2" ] || [ "$page_id" = "auth_login_v2" ]; then
+              # These page renderers are not declared structured in the W3 core PR.
+              # The verifier's default remains fail-closed; only the core-tools
+              # job may preserve an explicit reference-image-only state as NOT_RUN.
+              unconnected_policy=not-run
+            fi
             if ! python scripts/design/page_freeze_runner.py verify-page-workspace \
               --page-id "$page_id" \
               --candidate-url http://127.0.0.1:8765/design/manager/ \
               --source-sha "$BUILD_SHA" \
-              --output-dir "$output_dir"; then
+              --output-dir "$output_dir" \
+              --unconnected-policy "$unconnected_policy"; then
               failed=1
             fi
           done
