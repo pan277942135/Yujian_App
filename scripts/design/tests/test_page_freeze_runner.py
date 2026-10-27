@@ -4,6 +4,7 @@ import hashlib
 import json
 import sys
 import tempfile
+import shutil
 import unittest
 from pathlib import Path
 
@@ -201,6 +202,16 @@ class PageFreezeRunnerTests(unittest.TestCase):
                 runner.require_clean_source_tree(ROOT)
         finally:
             path.unlink(missing_ok=True)
+
+    def test_generated_pages_bundle_with_unicode_paths_is_allowed(self):
+        generated_root = ROOT / "_site" / "w4-unicode-path-check"
+        generated = generated_root / "设计" / "资源图.png"
+        generated.parent.mkdir(parents=True, exist_ok=True)
+        generated.write_bytes(b"generated")
+        try:
+            runner.require_clean_source_tree(ROOT)
+        finally:
+            shutil.rmtree(generated_root, ignore_errors=True)
 
 
 if __name__ == "__main__":

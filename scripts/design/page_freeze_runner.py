@@ -76,20 +76,39 @@ def current_sha(root: Path) -> str:
 def require_clean_source_tree(root: Path) -> None:
     """Bind reports to a clean source tree, allowing only known generated runtime output."""
     result = subprocess.run(
-        ["git", "status", "--porcelain=v1", "--untracked-files=all"],
+        ["git", "status", "--porcelain=v1", "--untracked-files=all", "-z"],
         cwd=root, capture_output=True, text=True,
     )
     if result.returncode:
         raise PipelineError(f"cannot inspect source worktree: {result.stderr.strip()}")
     unexpected: list[str] = []
-    for row in result.stdout.splitlines():
-        path = row[3:].split(" -> ")[-1].replace("\\", "/")
-        if (path in {"PROJECT_MASTER_STATE.yaml", "WORK_EXECUTION_STATE.json"}
-                or path == "_site" or path.startswith("_site/")
-                or "__pycache__/" in path or path.endswith("/__pycache__")
-                or path.endswith((".pyc", ".pyo"))):
+    records = result.stdout.split("\0")
+    index = 0
+    while index < len(records):
+        row = records[index]
+        index += 1
+        if not row:
             continue
-        unexpected.append(path)
+        if len(row) < 4:
+            unexpected.append(row)
+            continue
+        status, path = row[:2], row[3:]
+        paths = [path]
+        # NUL-delimited rename/copy records carry a second path. Treat either
+        # side as dirty so a rename into an allowed generated directory cannot
+        # conceal a source-tree change.
+        if "R" in status or "C" in status:
+            if index < len(records):
+                paths.append(records[index])
+                index += 1
+        for candidate in paths:
+            candidate = candidate.replace("\\", "/")
+            if (candidate in {"PROJECT_MASTER_STATE.yaml", "WORK_EXECUTION_STATE.json"}
+                    or candidate == "_site" or candidate.startswith("_site/")
+                    or "__pycache__/" in candidate or candidate.endswith("/__pycache__")
+                    or candidate.endswith((".pyc", ".pyo"))):
+                continue
+            unexpected.append(candidate)
     if unexpected:
         raise PipelineError("source worktree is dirty; exact-SHA evidence requires a clean checkout: "
                             + ", ".join(sorted(set(unexpected))))
