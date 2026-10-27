@@ -522,4 +522,171 @@
       "calibration": {
         "revision": "A_LINE_P3_CLUSTERED_FIELD_CALIBRATION_05",
         "root_cause": "Exact-head Chromium run 40364766919 on 5c888a8f256a4227b97af094b80ef981a5e5607a measured Region A means P1 4.115/255, P2 6.085/255, P3 8.258/255, P4 7.819/255, P5 5.844/255 and P6 0.823/255; P0/P7 and forbidden-zone leakage were zero. The P3/P4 means remained below their minima, and the P3 screenshot read as disconnected patch islands because all 18 patch centers were independently selected by a maximin spread; five group labels only affected later motion and did not create group-local spatial structure.",
-        "
+        "change": "Retain the fixed 18 deterministic organic patches, but sample spatially distributed anchors by group and region, then place group members with seeded local offsets inside the configured cluster radius. This gives the existing five groups real spatial structure without adding patches, changing the zones, or altering the timeline and layer multipliers.",
+        "change": "Expand the deterministic P3 cross-face profile to a broad three-level interior while retaining zero-alpha edges and the 0.22/0.14 patch caps; interpolate from P3 to the prior lower-coverage profile by P5 so P5 remains subdued. Begin staggered Region A structural retreat at 2250ms, after the P5 keyframe, so P6 reaches the measured tail target and P7 still clears exactly. Keep the fixed photo, polygons, 18 patches, 24 highlights, layer strengths, all keyframe times and 2800ms duration.",
+        "preserved": [
+          "P0-P7 layer multipliers and all timestamps",
+          "18 deterministic patch geometries, size ranges, aspect ratios and all angle limits",
+          "0.22 A / 0.14 B single-patch opacity caps",
+          "A/B/C/D normalized geometry and source image identity",
+          "24 highlight segments and their opacity, size and warm-color bounds"
+        ]
+      },
+      "colors": [
+        "#89F3EB",
+        "#55D9CF",
+        "#66E0D6",
+        "#84EEE8",
+        "#F1DE9C"
+      ],
+      "max_single_patch_width_w": 0.25,
+      "warm_highlight_pixel_fraction_max": 0.12,
+      "blend_mode": "screen",
+      "deterministic_geometry": true,
+      "interior_brightness_levels": 3,
+      "region_c_texture_opacity_scale": 0,
+      "region_c_texture_note": "The 5% C patch slot is retained for count accounting but not drawn; Region C supports only its low-opacity ambient field."
+    },
+    "highlights": {
+      "name": "Subtle Refraction Highlights",
+      "segment_count": 24,
+      "segment_length_w": [
+        0.03,
+        0.09
+      ],
+      "sampling_fraction": {
+        "length": [0.7, 1],
+        "width": [0.7, 1]
+      },
+      "segment_width_w": [
+        0.003,
+        0.01
+      ],
+      "blur_w": [
+        0.004,
+        0.008
+      ],
+      "segment_opacity_max_p3": 0.11,
+      "colors": [
+        "rgba(220,252,247,1)",
+        "rgba(255,229,172,1)"
+      ],
+      "warm_segment_count_max": 4,
+      "warm_segment_fraction_max": 0.2,
+      "zone_distribution": {
+        "A": 17,
+        "B": 7,
+        "C": 0
+      },
+      "blend_mode": "lighter",
+      "no_outline_connection": true
+    },
+    "photo_content_clip": "A union B union C path; softened inward by edge_fade_width_w; never draw outside active zones.",
+    "source_image_dpr": "devicePixelRatio",
+    "no_frame_local_randomness": true
+  },
+  "visual_acceptance": {
+    "reference": {
+      "id": "SWOS_V0_3_PRIVATE_DIRECTION_REFERENCE",
+      "sha256": "ea0cf2e5fa84aad64195487cbedaab07b1727e96e87c9b4e661dc3d0fa252c1c",
+      "access": "PRIVATE_LOCAL_REVIEW_ONLY",
+      "publication": "NO_SOURCE_OR_DERIVATIVE_IN_PUBLIC_REPO_CI_PAGES"
+    },
+    "main_active_roi": "Region A = A1 ∪ A2",
+    "main_active_roi_mean_rgb_abs_diff_255": {
+      "P1": [
+        2,
+        4.5
+      ],
+      "P2": [
+        5.5,
+        8.5
+      ],
+      "P3": [
+        10.5,
+        14.5
+      ],
+      "P4": [
+        8,
+        12
+      ],
+      "P5": [
+        4.5,
+        7
+      ],
+      "P6": [
+        0.4,
+        1.5
+      ],
+      "P7": [
+        0,
+        0
+      ]
+    },
+    "forbidden_zone": {
+      "mean_rgb_abs_diff_255_max": 1.5,
+      "pixels_max_channel_diff_gt_4_fraction_max": 0.003
+    },
+    "p0_p7_canvas_alpha_zero": true,
+    "p0_p7_composite_identical_to_source": true,
+    "p1_p3_spatial_expansion_and_structure_change_required": true,
+    "p5_p7_zone_staggered_retreat_required": true,
+    "visual_owner_signoff_required": true
+  },
+  "performance_targets": {
+    "canvas_draw_p95_ms_max": 10,
+    "frame_interval_median_ms_max": 16.7,
+    "frame_interval_p95_ms_max": 33.3
+  },
+  "visual_reference": {
+    "name": "SWOS 高保真总图 V0.3",
+    "scope": "上排 Recognition Processing 2800ms；P1–P4 方向对照，P5–P7 退场验收",
+    "relationship": "视觉方向参考，不覆盖本候选的时间与业务合同",
+    "visibility": "PRIVATE_REFERENCE_NOT_EMBEDDED_OR_PUBLISHED"
+  },
+  "history": {
+    "engineering_baseline_v4_sha": "573292c6c6bcace1eaf26a5430de9f1739f332eb",
+    "previous_candidate_v5_sha": "c20cfe7321afb091879aab86db42e76fce1be6b8"
+  },
+  "acceptance": {
+    "primary_roi": "Region A (union of A1 and A2)",
+    "region_a_mean_rgb_abs_diff_255_target": {
+      "P1": [
+        2.0,
+        4.5
+      ],
+      "P2": [
+        5.5,
+        8.5
+      ],
+      "P3": [
+        10.5,
+        14.5
+      ],
+      "P4": [
+        8.0,
+        12.0
+      ],
+      "P5": [
+        4.5,
+        7.0
+      ],
+      "P6": [
+        0.4,
+        1.5
+      ],
+      "P7": [
+        0,
+        0
+      ]
+    },
+    "forbidden_zone_mean_rgb_abs_diff_255_max": 1.5,
+    "forbidden_zone_pixels_with_peak_diff_gt_4_fraction_max": 0.003,
+    "p0_p7_canvas_alpha_max": 0,
+    "p0_p7_composite_rgb_diff_max": 0,
+    "p2_to_p3_spatial_field_change_required": true,
+    "repeat_seek_canvas_pixel_hash_equal": true,
+    "no_outside_active_field_alpha": true,
+    "manual_visual_review_required": true
+  }
+}

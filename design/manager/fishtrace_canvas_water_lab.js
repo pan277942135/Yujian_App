@@ -677,4 +677,229 @@
       output.globalAlpha=1;
       output.setTransform(1,0,0,1,0,0);
       const motionScale=reducedMotion.matches?this.scene.contract.motion.reduced_motion_scale:1;
-      this.canvas.dataset.activeIntensity=String(Math.round(strengthEnabled&&waterEnabled?layers.c
+      this.canvas.dataset.activeIntensity=String(Math.round(strengthEnabled&&waterEnabled?layers.caustic*strength*100:0));
+      this.canvas.dataset.layerStrengths=JSON.stringify(Object.fromEntries(Object.entries(layers).map(([key,value])=>[key,value*strength])));
+      const faceProfile=this.scene.rendering.caustics.face_opacity_profile;
+      this.canvas.dataset.causticFaceExpansion=String(smooth(timeMs,faceProfile.expand_start_ms,faceProfile.expand_end_ms));
+      this.canvas.dataset.causticFaceSettlement=String(smooth(timeMs,faceProfile.settle_start_ms,faceProfile.settle_end_ms));
+      this.canvas.dataset.currentTime=String(Math.round(timeMs));
+      this.canvas.dataset.waterOn=String(waterEnabled);
+      this.canvas.dataset.motionScale=String(motionScale);
+      this.canvas.dataset.debugRegion=String(debugRegion);
+      this.canvas.dataset.renderDurationMs=(performance.now()-started).toFixed(3);
+      if(playing){
+        if(interval!==null)this.performanceSamples.push({frame_interval_ms:interval,draw_ms:Number(this.canvas.dataset.renderDurationMs)});
+      }else if(this.previousRenderStart!==null){
+        this.previousRenderStart=null;
+        this.canvas.dataset.performanceSampleCount=String(this.performanceSamples.length);
+        this.canvas.dataset.performanceSamples=JSON.stringify(this.performanceSamples);
+      }
+    }
+    drawDebugRegion(context) {
+      context.save();
+      context.setTransform(this.dpr,0,0,this.dpr,0,0);
+      const colors={A:"rgba(41,170,157,.95)",B:"rgba(66,127,205,.95)",C:"rgba(222,164,73,.95)"};
+      for(const zone of ["A","B","C"]){
+        context.fillStyle=zone==="A"?"rgba(42,185,166,.10)":zone==="B"?"rgba(81,151,222,.09)":"rgba(232,183,89,.08)";
+        context.strokeStyle=colors[zone];
+        context.lineWidth=1.7;
+        context.setLineDash(zone==="C"?[3,3]:[7,4]);
+        context.fill(this.scene.zonePaths[zone],"nonzero");
+        context.stroke(this.scene.zonePaths[zone]);
+      }
+      context.restore();
+    }
+    inspect(){return {width:this.width,height:this.height,dpr:this.dpr,contentRect:this.contentRect};}
+  }
+  function parsePosition(value) {
+    if(!value||value==="center")return .5;
+    if(value.endsWith("%"))return clamp(parseFloat(value)/100,0,1);
+    const amount=parseFloat(value);
+    return Number.isFinite(amount)?clamp(amount/100,0,1):.5;
+  }
+  class WaterTimelineController {
+    constructor(value,onFrame) {
+      this.duration=value.timeline.duration_ms;
+      this.frames=value.timeline.frames;
+      this.onFrame=onFrame;
+      this.timeMs=0;
+      this.playing=false;
+      this.rafId=0;
+      this.lastTick=null;
+      this.tick=this.tick.bind(this);
+      document.addEventListener("visibilitychange",()=>{
+        if(document.hidden){this.cancelFrame();this.lastTick=null;}
+        else if(this.playing){this.lastTick=null;this.rafId=requestAnimationFrame(this.tick);}
+      });
+    }
+    cancelFrame(){if(this.rafId)cancelAnimationFrame(this.rafId);this.rafId=0;}
+    emit(){this.onFrame(this.timeMs,this.playing);}
+    seek(timeMs){this.timeMs=clamp(timeMs,0,this.duration);this.emit();}
+    play(){
+      if(this.playing||this.timeMs>=this.duration)return;
+      this.playing=true;this.lastTick=null;this.emit();
+      if(!document.hidden)this.rafId=requestAnimationFrame(this.tick);
+    }
+    pause(){this.playing=false;this.lastTick=null;this.cancelFrame();this.emit();}
+    reset(){this.pause();this.seek(0);}
+    tick(now){
+      if(!this.playing||document.hidden)return;
+      if(this.lastTick===null)this.lastTick=now;
+      else{this.timeMs+=Math.min(50,Math.max(0,now-this.lastTick));this.lastTick=now;}
+      if(this.timeMs>=this.duration){this.timeMs=this.duration;this.playing=false;this.cancelFrame();}
+      this.emit();
+      if(this.playing)this.rafId=requestAnimationFrame(this.tick);else this.rafId=0;
+    }
+  }
+  function layerStrengthsAt(timeMs) {
+    const frames=contract.timeline.frames;
+    for(let i=0;i<frames.length-1;i++){
+      const from=frames[i],to=frames[i+1];
+      if(timeMs<=to.ms){
+        const p=smooth(timeMs,from.ms,to.ms);
+        return {
+          ambient:from.layers.ambient+(to.layers.ambient-from.layers.ambient)*p,
+          caustic:from.layers.caustic+(to.layers.caustic-from.layers.caustic)*p,
+          highlight:from.layers.highlight+(to.layers.highlight-from.layers.highlight)*p
+        };
+      }
+    }
+    return Object.assign({},frames[frames.length-1].layers);
+  }
+  function percentAt(timeMs){return layerStrengthsAt(timeMs).caustic;}
+  function activeFrameLabel(timeMs) {
+    const exact=contract.timeline.frames.find(frame=>Math.abs(frame.ms-timeMs)<.5);
+    if(exact)return exact.id;
+    for(let i=0;i<contract.timeline.frames.length-1;i++)if(timeMs<contract.timeline.frames[i+1].ms)return contract.timeline.frames[i].id+" → "+contract.timeline.frames[i+1].id;
+    return "P7";
+  }
+  function updateReadout(timeMs,playing) {
+    const layers=layerStrengthsAt(timeMs);
+    const amount=layers.caustic*strength;
+    const stageLabel=activeFrameLabel(timeMs);
+    $("water-current-stage").textContent=stageLabel;
+    $("water-current-time").textContent=Math.round(timeMs)+" ms";
+    $("water-debug-stage").textContent=stageLabel;
+    $("water-debug-time").textContent=Math.round(timeMs)+" ms / "+contract.timeline.duration_ms+" ms";
+    $("water-debug-intensity").textContent=Math.round(amount*100)+"% caustic";
+    $("water-progress-label").textContent=Math.round(timeMs/contract.timeline.duration_ms*100)+"%";
+    $("water-play-state").textContent=playing?"播放中":"已暂停";
+    timelineInput.value=String(Math.round(timeMs));
+    playButton.setAttribute("aria-pressed",String(playing));
+    pauseButton.setAttribute("aria-pressed",String(!playing));
+    const exact=contract.timeline.frames.find(frame=>frame.ms===Math.round(timeMs));
+    lab.querySelectorAll("[data-water-frame]").forEach(button=>{
+      const active=Boolean(exact&&exact.id===button.dataset.waterFrame);
+      button.classList.toggle("is-active",active);
+      button.setAttribute("aria-pressed",String(active));
+    });
+  }
+  function renderAt(timeMs,playing) {
+    updateReadout(timeMs,playing);
+    if(renderer)renderer.render(timeMs,layerStrengthsAt(timeMs),true,playing);
+  }
+  function bindControls() {
+    root.querySelectorAll("[data-water-view]").forEach(button=>{
+      button.addEventListener("click",()=>{
+        const view=button.dataset.waterView;
+        root.dataset.workspaceView=view;
+        root.querySelectorAll("[data-water-view]").forEach(tab=>{
+          const active=tab===button;
+          tab.classList.toggle("is-active",active);
+          tab.setAttribute("aria-pressed",String(active));
+        });
+        root.querySelectorAll("[data-workspace-panel]").forEach(panel=>{panel.hidden=panel.dataset.workspacePanel!==view;});
+        if(view==="canvas-water"&&renderer)requestAnimationFrame(()=>{
+          renderer.resize();renderer.render(controller.timeMs,layerStrengthsAt(controller.timeMs),true,controller.playing);
+        });
+      });
+    });
+    playButton.addEventListener("click",()=>controller?.play());
+    pauseButton.addEventListener("click",()=>controller?.pause());
+    resetButton.addEventListener("click",()=>{
+      if(!controller)return;
+      controller.reset();
+      strength=1;strengthInput.value="100";$("water-strength-value").textContent="100%";
+      waterEnabled=true;enabledInput.checked=true;
+      debugRegion=false;debugRegionInput.checked=false;
+      renderAt(0,false);
+    });
+    timelineInput.addEventListener("input",()=>{
+      if(!controller)return;
+      const selectedTime=Number(timelineInput.value);
+      controller.pause();controller.seek(selectedTime);
+    });
+    lab.querySelectorAll("[data-water-frame]").forEach(button=>button.addEventListener("click",()=>{
+      if(!controller)return;
+      controller.pause();
+      const frame=contract.timeline.frames.find(item=>item.id===button.dataset.waterFrame);
+      if(frame)controller.seek(frame.ms);
+    }));
+    enabledInput.addEventListener("change",()=>{waterEnabled=enabledInput.checked;if(controller)renderAt(controller.timeMs,controller.playing);});
+    debugRegionInput.addEventListener("change",()=>{debugRegion=debugRegionInput.checked;if(controller)renderAt(controller.timeMs,controller.playing);});
+    strengthInput.addEventListener("input",()=>{
+      strength=Number(strengthInput.value)/100;
+      $("water-strength-value").textContent=strengthInput.value+"%";
+      if(controller)renderAt(controller.timeMs,controller.playing);
+    });
+    retryButton.addEventListener("click",()=>init());
+    reducedMotion.addEventListener?.("change",()=>{setMotionStatus();if(controller)renderAt(controller.timeMs,controller.playing);});
+  }
+  async function init() {
+    if(loading)return;
+    loading=true;setControlsDisabled(true);retryButton.hidden=true;loadError.hidden=true;setStatus("加载中");
+    $("water-asset-status").textContent="SHA-256 校验中";
+    try{
+      const response=await timeoutFetch("../pages/recognition/web/candidates/FISHTRACE_SWOS_CANVAS_WATER_LAB_V1_CANDIDATE.json?v=a-line-1",{cache:"no-cache",credentials:"same-origin"});
+      if(!response.ok)throw new Error("候选水光合同加载失败 HTTP "+response.status);
+      const loaded=await response.json();
+      if(loaded.contract_id!=="FISHTRACE_SWOS_CANVAS_WATER_LAB_V1_CANDIDATE"||
+         loaded.task_id!=="FISHTRACE_SWOS_A_LINE_CANVAS_WATER_FIDELITY_V1"||
+         loaded.contract_version!=="CANDIDATE_A_LINE_V1"||
+         loaded.rendering?.caustics?.geometry_model!=="a_line_organic_face_patches_v2_grouped"||
+         loaded.asset.path!=="design/system/fish_media_display_v1/assets/real_catch_source.jpg"||
+         loaded.asset.width!==1152||loaded.asset.height!==1536||loaded.timeline.duration_ms!==2800||
+         loaded.status!=="CANDIDATE_NOT_VISUALLY_APPROVED"||
+         loaded.water_field?.coordinate_system!=="source_image_normalized_top_left_0_1"||
+         loaded.water_field?.asset_sha256!==loaded.asset.sha256||
+         loaded.rendering?.caustics?.patch_count!==18||
+         loaded.rendering?.highlights?.segment_count!==24||
+         loaded.timeline.frames.length!==8||
+         loaded.timeline.frames.some(frame=>!frame.layers||typeof frame.layers.ambient!=="number"||typeof frame.layers.caustic!=="number"||typeof frame.layers.highlight!=="number")){
+        throw new Error("候选 A 线合同、素材身份、区域或图层参数不符");
+      }
+      contract=loaded;
+      canvas.width=1;canvas.height=1;
+      await verifyAsset();
+      scene=new WaterCausticsScene(contract);
+      renderer=new CanvasWaterRenderer(stage,image,canvas,scene);
+      controller=new WaterTimelineController(contract,renderAt);
+      controller.timeMs=0;
+      if(!resizeObserver){
+        resizeObserver=new ResizeObserver(()=>{
+          if(renderer){renderer.resize();renderer.render(controller?controller.timeMs:0,layerStrengthsAt(controller?controller.timeMs:0),true,controller?.playing||false);}
+        });
+        resizeObserver.observe(stage);
+        window.addEventListener("resize",()=>{if(renderer)renderer.resize();},{passive:true});
+      }
+      strength=1;waterEnabled=true;debugRegion=false;
+      timelineInput.max=String(contract.timeline.duration_ms);timelineInput.value="0";
+      strengthInput.value="100";enabledInput.checked=true;debugRegionInput.checked=false;
+      $("water-strength-value").textContent="100%";
+      setMotionStatus();renderer.resize();renderAt(0,false);
+      setControlsDisabled(false);setStatus("READY · Canvas 2D · DPR "+renderer.dpr);
+      lab.dataset.rendererStatus="READY";
+      lab.dataset.assetSha256=image.dataset.sha256;
+      lab.dataset.durationMs=String(contract.timeline.duration_ms);
+      lab.dataset.waterRegionVersion=contract.water_field.version;
+      lab.dataset.waterRegionValidation="USER_SPECIFIED_GEOMETRY_BROWSER_CHECK_REQUIRED";
+    }catch(error){
+      setStatus("加载失败");$("water-asset-status").textContent="未通过 SHA-256 / 尺寸校验";
+      loadError.textContent="水光工作区加载失败："+(error?.message||String(error))+"。请检查网络后重试。";
+      loadError.hidden=false;retryButton.hidden=false;lab.dataset.rendererStatus="ERROR";lab.dataset.loadError=error?.message||String(error);
+    }finally{loading=false;}
+  }
+
+  bindControls();
+  init();
+})();

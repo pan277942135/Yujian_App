@@ -542,4 +542,155 @@ jobs:
           set -euo pipefail
           PLAYWRIGHT_MODULE_DIR="$RUNNER_TEMP/dm-playwright/node_modules" \
             node scripts/verify_design_manager_browser.mjs \
-           
+              --url "${{ steps.deployment.outputs.page_url }}" \
+              --expected-build "${BUILD_SHA}" \
+              --output-dir "$RUNNER_TEMP/dm-live-evidence/browser"
+          python3 scripts/design/compare_nh01_workspace_visual_v1.py \
+            --profile-prefix NH01_M01 \
+            --render "$RUNNER_TEMP/dm-live-evidence/browser/nh01-m01-render-320x480.png" \
+            --reference "design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_M01_320x480dp_STATIC_HIFI_V1.png" \
+            --dom-json "$RUNNER_TEMP/dm-live-evidence/browser/nh01-m01-dom-bounds.json" \
+            --output-dir "$RUNNER_TEMP/dm-live-evidence/browser/nh01-visual-comparison/m01"
+          python3 scripts/design/compare_nh01_workspace_visual_v1.py \
+            --profile-prefix NH01_M02 \
+            --render "$RUNNER_TEMP/dm-live-evidence/browser/nh01-m02-render-360x640.png" \
+            --reference "design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_M02_360x640dp_STATIC_HIFI_V1.png" \
+            --dom-json "$RUNNER_TEMP/dm-live-evidence/browser/nh01-m02-dom-bounds.json" \
+            --output-dir "$RUNNER_TEMP/dm-live-evidence/browser/nh01-visual-comparison/m02"
+          python3 scripts/design/compare_nh01_workspace_visual_v1.py \
+            --profile-prefix NH01_M03 \
+            --render "$RUNNER_TEMP/dm-live-evidence/browser/nh01-m03-render-390x844.png" \
+            --reference "design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_M03_390x844dp_STATIC_HIFI_V1.png" \
+            --dom-json "$RUNNER_TEMP/dm-live-evidence/browser/nh01-m03-dom-bounds.json" \
+            --output-dir "$RUNNER_TEMP/dm-live-evidence/browser/nh01-visual-comparison/m03"
+          python3 scripts/design/compare_nh01_workspace_visual_v1.py \
+            --profile-prefix NH01_M04 \
+            --render "$RUNNER_TEMP/dm-live-evidence/browser/nh01-m04-render-430x932.png" \
+            --reference "design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_M04_430x932dp_STATIC_HIFI_V1.png" \
+            --dom-json "$RUNNER_TEMP/dm-live-evidence/browser/nh01-m04-dom-bounds.json" \
+            --output-dir "$RUNNER_TEMP/dm-live-evidence/browser/nh01-visual-comparison/m04"
+
+      - name: Verify live NH01 PR preview routes and interactions
+        shell: bash
+        run: |
+          set -euo pipefail
+          PLAYWRIGHT_MODULE_DIR="$RUNNER_TEMP/dm-playwright/node_modules" \
+            node scripts/verify_nh01_pr_preview_live.mjs \
+              --url "${{ steps.deployment.outputs.page_url }}" \
+              --expected-build "${BUILD_SHA}" \
+              --output "$RUNNER_TEMP/dm-live-evidence/nh01-pr-preview-verification.json"
+
+      - name: Upload live release evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: Design-Manager-Live-Release-${{ github.run_id }}-${{ github.event.pull_request.head.sha || github.sha }}
+          path: ${{ runner.temp }}/dm-live-evidence/
+          if-no-files-found: error
+          retention-days: 30
+
+  deploy-preview:
+    if: >-
+      (github.event_name == 'pull_request' && contains(fromJSON('[203,212,214]'), github.event.pull_request.number)) ||
+      (github.event_name == 'workflow_dispatch' && inputs.preview_pr == '214')
+    concurrency:
+      # Match Main Pages workflow concurrency so a main deploy cannot race this additive publication.
+      group: design-manager-pages-publish
+      cancel-in-progress: false
+    environment:
+      name: design-manager-pages
+      url: ${{ steps.deployment.outputs.page_url }}previews/pr-${{ github.event.pull_request.number || inputs.preview_pr }}/
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    needs: build
+    steps:
+      - name: Checkout exact PR source
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Download preview composition evidence
+        uses: actions/download-artifact@v4
+        with:
+          name: NH01-PR${{ github.event.pull_request.number || inputs.preview_pr }}-Preview-Composition-${{ github.run_id }}
+          path: ${{ runner.temp }}/nh01-pr${{ github.event.pull_request.number || inputs.preview_pr }}-composition
+
+      - name: Verify production root under the shared deployment lock
+        shell: bash
+        env:
+          PAGE_URL: https://pan277942135.github.io/Yujian_App/
+          COMPOSITION_REPORT: ${{ runner.temp }}/nh01-pr${{ github.event.pull_request.number || inputs.preview_pr }}-composition/nh01-pr${{ github.event.pull_request.number || inputs.preview_pr }}-preview-composition.json
+        run: |
+          set -euo pipefail
+          expected_sha="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["production_pages_source_sha"])' "$COMPOSITION_REPORT")"
+          live_sha="$(curl -fsS "${PAGE_URL}design/manager/build.json" | python3 -c 'import json,sys; print(json.load(sys.stdin)["sha"])')"
+          test "$live_sha" = "$expected_sha"
+          mkdir -p "$RUNNER_TEMP/dm-live-evidence"
+          python3 scripts/verify_design_manager_live.py \
+            --url "$PAGE_URL" \
+            --expected-build "$expected_sha" \
+            --output "$RUNNER_TEMP/dm-live-evidence/production-root-predeploy-verification.json"
+
+      - name: Deploy isolated PR preview with unchanged production root
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+      - name: Setup Python and Node for live verification
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Setup Node for live browser verification
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install Playwright and Chromium
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm install --no-save --prefix "$RUNNER_TEMP/dm-playwright" playwright@1.63.0
+          "$RUNNER_TEMP/dm-playwright/node_modules/.bin/playwright" install --with-deps chromium
+
+      - name: Install ffmpeg tools for real WebM frame verification
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install --yes --no-install-recommends ffmpeg
+          ffmpeg -version
+          ffprobe -version
+
+      - name: Verify live production root and exact candidate workspace
+        shell: bash
+        env:
+          PAGE_URL: ${{ steps.deployment.outputs.page_url }}
+          CANDIDATE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          PREVIEW_PR_NUMBER: ${{ github.event.pull_request.number || inputs.preview_pr }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/dm-live-evidence"
+          preview_path="previews/pr-${PREVIEW_PR_NUMBER}"
+          curl -fsS "${PAGE_URL}${preview_path}/source-manifest.json" > "$RUNNER_TEMP/dm-live-evidence/source-manifest.json"
+          production_sha="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["production_pages_source_sha"])' "$RUNNER_TEMP/dm-live-evidence/source-manifest.json")"
+          preview_sha="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["candidate_source_sha"])' "$RUNNER_TEMP/dm-live-evidence/source-manifest.json")"
+          test "$preview_sha" = "$CANDIDATE_SHA"
+          curl -fsS "${PAGE_URL}${preview_path}/design/manager/build.json" > "$RUNNER_TEMP/dm-live-evidence/candidate-build.json"
+          build_sha="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["sha"])' "$RUNNER_TEMP/dm-live-evidence/candidate-build.json")"
+          test "$build_sha" = "$CANDIDATE_SHA"
+          python3 scripts/verify_design_manager_live.py \
+            --url "$PAGE_URL" \
+            --expected-build "$production_sha" \
+            --output "$RUNNER_TEMP/dm-live-evidence/production-root-verification.json"
+          PLAYWRIGHT_MODULE_DIR="$RUNNER_TEMP/dm-playwright/node_modules" \
+            node scripts/verify_design_manager_browser.mjs \
+              --url "${PAGE_URL}${preview_path}/" \
+              --expected-build "$CANDIDATE_SHA" \
+              --output-dir "$RUNNER_TEMP/dm-live-evidence/candidate-browser"
+
+      - name: Upload independent preview live evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: NH01-PR${{ github.event.pull_request.number || inputs.preview_pr }}-Live-Preview-${{ github.run_id }}-${{ github.event.pull_request.head.sha || github.sha }}
+          path: ${{ runner.temp }}/dm-live-evidence/
+          if-no-files-found: error
+          retention-days: 30
