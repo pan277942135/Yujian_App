@@ -15,13 +15,13 @@ from validate_nh01_supplemental_matrix import (  # noqa: E402
 
 
 class Nh01SupplementalMatrixTest(unittest.TestCase):
-    def test_contract_adds_33_v2_cases_and_three_scoped_state_runs(self) -> None:
+    def test_contract_adds_33_v2_cases_and_four_scoped_state_runs(self) -> None:
         self.assertEqual(33, len(MATRIX_CASES))
-        self.assertEqual(3, len(STATE_CASES))
+        self.assertEqual(4, len(STATE_CASES))
         self.assertEqual({1.0, 1.3, 1.5}, {case["font_scale"] for case in MATRIX_CASES})
         self.assertEqual({459, 460, 499, 500, 699, 700, 839, 840}, set(BOUNDARY_HEIGHTS))
         self.assertEqual(57, 24 + len(MATRIX_CASES))
-        self.assertEqual(60, 24 + len(MATRIX_CASES) + len(STATE_CASES))
+        self.assertEqual(61, 24 + len(MATRIX_CASES) + len(STATE_CASES))
 
     def test_every_expected_profile_is_registered_in_the_runtime_runner(self) -> None:
         runner = Path(__file__).resolve().parents[1] / "gates" / "run_nh01_adaptive_device_matrix.sh"

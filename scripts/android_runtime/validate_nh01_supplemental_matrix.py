@@ -39,6 +39,7 @@ MATRIX_CASES: tuple[dict[str, Any], ...] = tuple(
 )
 STATE_CASES = (
     ("SUP-SINGLE-M01", "single_record"),
+    ("SUP-SINGLE-M03", "single_record"),
     ("SUP-IMAGEFAIL-M01", "image_failure"),
     ("SUP-THREE-M03", "three_unique_catches"),
 )
@@ -236,7 +237,7 @@ def validate_state_case(
         if float(camera.get("width", 0)) < 72 or float(camera.get("height", 0)) < 72:
             errors.append("single-record camera touch target is below 72dp")
         if data.get("middle_scroll_enabled") is not False:
-            errors.append("single-record M01 middle scrolling is not proven disabled")
+            errors.append("single-record middle scrolling is not proven disabled")
     elif expected_scenario == "image_failure":
         if data.get("image_failure_fallback") != "PASS_FALLBACK_RENDERED":
             errors.append("image failure fallback was not rendered")
@@ -361,7 +362,7 @@ def main() -> int:
         row, row_errors = validate_state_case(raw_dir, execution_dir, profile, scenario, args.source_sha)
         state_rows.append(row)
         errors.extend(f"{profile}: {error}" for error in row_errors)
-    status = "PASS" if len(rows) == 33 and len(state_rows) == 3 and not errors else "FAIL"
+    status = "PASS" if len(rows) == 33 and len(state_rows) == 4 and not errors else "FAIL"
     report = {
         "schema": "NH01_ADAPTIVE_SUPPLEMENTAL_MATRIX_V1",
         "status": status,
@@ -390,7 +391,7 @@ def main() -> int:
         f"- API 28 workflow: [{args.run_id}]({args.run_url})",
         "- The original 24-run matrix remains unchanged.",
         "- Supplemental matrix: 33 V2 runs (explicit 480×840, 412×915, 375×720 pairs; eight measured safe-height boundaries at three font scales).",
-        "- Scoped runtime states: single record and image-load failure on M01, plus three real records with the center page selected on M03 (390×844dp).",
+        "- Scoped runtime states: single record on M01 and M03; image-load failure on M01; and three records with the center page selected on M03 (390×844dp). M03 single/two/three-record runs share the same viewport and font scale.",
         "",
         "| Profile | Width | Display height | Measured safe height | Font scale | Result |",
         "|---|---:|---:|---:|---:|---|",
