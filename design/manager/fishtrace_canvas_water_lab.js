@@ -303,8 +303,8 @@
       if(!fieldContext||!highlightContext)throw new Error("连续焦散纹理的 Canvas 2D 缓冲区初始化失败");
       const pixels=fieldContext.createImageData(width,height);
       const highlights=highlightContext.createImageData(width,height);
-      const threshold=spec.derived_layers.highlight_alpha_threshold;
-      const highlightOpacity=spec.derived_layers.highlight_opacity;
+      const threshold=previewSpec.derived_layers.highlight_alpha_threshold;
+      const highlightOpacity=previewSpec.derived_layers.highlight_opacity;
       const sampleTime=spec.speed===0?0:(spec.time_ms/1000)*spec.speed;
       for(let y=0;y<height;y++)for(let x=0;x<width;x++){
         const sample=sampleCaustic(x+.5,height-y-.5,width,height,sampleTime,spec.scale,spec.intensity,color,tint,spec.tintStrength);
