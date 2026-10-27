@@ -282,32 +282,150 @@ class GeminiHomeDeviceMatrixTest {
             val middleScroll = compose.onAllNodesWithTag("gemini-home-short-screen-scroll", useUnmergedTree = true)
                 .fetchSemanticsNodes().isNotEmpty()
             val exactM01Window = root.width() == 320f && root.height() == 480f && profile.fontScale == 1f
+            val singleSafeWidthDp = root.width() - profile.insets.start.value - profile.insets.end.value
+            val singleSafeHeightDp = root.height() - profile.insets.top.value - profile.insets.bottom.value
+            val singleLayoutSpec = resolveGeminiHomeLayoutSpec(
+                singleSafeWidthDp, singleSafeHeightDp, profile.fontScale, variant, exactM01Exception = exactM01Window,
+            )
+            val singleBoundsTags = listOf(
+                "gemini-home-screen", "gemini-home-background", "gemini-home-top-section",
+                "gemini-home-header-bar", "gemini-home-brand-title", "gemini-home-avatar-button",
+                "gemini-home-avatar-visual", "gemini-home-stats-bar", "gemini-home-stat-species-value",
+                "gemini-home-stat-species-label", "gemini-home-stats-divider",
+                "gemini-home-stat-catches-value", "gemini-home-stat-catches-label",
+                "gemini-home-stat-record-days-value", "gemini-home-stat-record-days-label",
+                "gemini-home-middle-section", "gemini-home-section-title", "gemini-home-section-all",
+                "gemini-home-section-all-label", "gemini-home-carousel-track",
+                "gemini-home-catch-card-nh01-catch-001", "gemini-home-catch-media-nh01-catch-001",
+                "gemini-home-catch-species-nh01-catch-001",
+                "gemini-home-catch-measurement-nh01-catch-001",
+                "gemini-home-catch-metadata-nh01-catch-001", "gemini-home-footer-cta",
+                "gemini-home-cta-label", "gemini-home-camera", "gemini-home-camera-art",
+            ).distinct()
+            val singleBoundsPx = JSONObject().apply { singleBoundsTags.filter { it != "gemini-home-stats-divider" }.forEach { put(it, rect(it).toJson()) } }
+            val singleBoundsDp = JSONObject().apply {
+                singleBoundsTags.filter { it != "gemini-home-stats-divider" }.forEach {
+                    put(it, rect(it).toDp(profile.density).toJson())
+                }
+            }
+            val singleStats = rect("gemini-home-stats-bar").toDp(profile.density)
+            val singleTitle = rect("gemini-home-section-title").toDp(profile.density)
+            val singleHeader = rect("gemini-home-header-bar").toDp(profile.density)
+            val singleTop = rect("gemini-home-top-section").toDp(profile.density)
+            val singleMiddle = rect("gemini-home-middle-section").toDp(profile.density)
+            val singleFooter = rect("gemini-home-footer-cta").toDp(profile.density)
+            val singleCamera = rect("gemini-home-camera").toDp(profile.density)
+            val singleCameraArt = rect("gemini-home-camera-art").toDp(profile.density)
+            val singleCta = rect("gemini-home-cta-label").toDp(profile.density)
+            val singleAvatarVisual = rect("gemini-home-avatar-visual").toDp(profile.density)
+            val singleBrand = rect("gemini-home-brand-title").toDp(profile.density)
+            val singleCard = card
+            val singleHADp = singleTop.height()
+            val singleHBDp = singleCard.bottom - singleTitle.top
+            val singleHCDp = singleFooter.height()
+            val singleGABBaseDp = singleLayoutSpec.statsToTitleGap?.value ?: (singleTitle.top - singleStats.bottom)
+            val singleGBCBaseDp = singleLayoutSpec.cardToFooterGap?.value ?: (singleFooter.top - singleCard.bottom)
+            val singleGABActualDp = singleTitle.top - singleStats.bottom
+            val singleGBCActualDp = singleFooter.top - singleCard.bottom
+            val singleSurplusDp = (singleSafeHeightDp -
+                (singleHADp + singleHBDp + singleHCDp + singleGABBaseDp + singleGBCBaseDp)).coerceAtLeast(0f)
+            val singleExpectedHalfSurplusDp = singleSurplusDp / 2f
+            val singleTextTags = listOf(
+                "gemini-home-catch-species-nh01-catch-001",
+                "gemini-home-catch-measurement-nh01-catch-001",
+                "gemini-home-catch-metadata-nh01-catch-001",
+                "gemini-home-cta-label",
+            )
+            val singleTextLayouts = JSONObject().apply {
+                singleTextTags.forEach { tag ->
+                    put(tag, JSONObject().apply {
+                        put("line_count", runCatching { textLineCount(tag) }.getOrNull() ?: JSONObject.NULL)
+                        put("line_ranges", runCatching { textLineRanges(tag) }.getOrNull() ?: JSONObject.NULL)
+                        put("visual_overflow", runCatching { hasVisualOverflow(tag) }.getOrNull() ?: JSONObject.NULL)
+                        put("font_size_sp", runCatching { fontSizeSp(tag) }.getOrNull() ?: JSONObject.NULL)
+                    })
+                }
+            }
+            val repeatedBoundsTags = listOf("gemini-home-stats-divider", "home-evidence-fit-foreground",
+                "home-evidence-backdrop-ready", "home-evidence-backdrop-crop-fallback", "fish-photo-subject-crop")
+            val repeatedBounds = JSONObject().apply {
+                repeatedBoundsTags.forEach { tag ->
+                    val nodes = compose.onAllNodesWithTag(tag, useUnmergedTree = true).fetchSemanticsNodes()
+                    put(tag, JSONArray().apply {
+                        nodes.forEach { node ->
+                            val bounds = node.boundsInWindow
+                            put(JSONObject().apply {
+                                put("left", bounds.left); put("top", bounds.top)
+                                put("right", bounds.right); put("bottom", bounds.bottom)
+                                put("width", bounds.width); put("height", bounds.height)
+                            })
+                        }
+                    })
+                }
+            }
             val singleDiagnostic = JSONObject().apply {
                 put("schema", "NH01_ADAPTIVE_VISUAL_BALANCE_GEOMETRY_DIAGNOSTIC_V1")
                 put("status", "MEASURED_BEFORE_ASSERTIONS")
                 put("profile_id", profileId)
                 put("layout_variant", variant.name)
                 put("source_commit", sourceSha)
+                put("scenario", scenario)
                 put("system_font_scale", profile.fontScale)
-                put("density", densityProbe.get()!!.density)
+                put("density", profile.density)
+                put("density_dpi", compose.activity.resources.displayMetrics.densityDpi)
+                put("android_api", Build.VERSION.SDK_INT)
+                put("device_model", Build.MODEL)
+                put("app_package", targetContext.packageName)
+                put("display_resolution_px", JSONArray(listOf(root.width() * profile.density, root.height() * profile.density)))
                 put("window_bounds_dp", root.toJson())
                 put("safe_insets_dp", JSONObject().apply {
-                    put("top", densityProbe.get()!!.insets.top.value)
-                    put("bottom", densityProbe.get()!!.insets.bottom.value)
-                    put("start", densityProbe.get()!!.insets.start.value)
-                    put("end", densityProbe.get()!!.insets.end.value)
+                    put("top", profile.insets.top.value); put("bottom", profile.insets.bottom.value)
+                    put("start", profile.insets.start.value); put("end", profile.insets.end.value)
                 })
-                put("scenario", scenario)
-                put("data_count", 1)
-                put("metrics", JSONObject().apply {
-                    put("hero_bounds_dp", card.toJson())
-                    put("hero_width_dp", card.width())
-                    put("hero_height_dp", card.height())
-                    put("hero_aspect_ratio", card.width() / card.height())
+                put("data", JSONObject().apply {
+                    put("catch_ids", JSONArray(listOf("nh01-catch-001")))
+                    put("unique_catch_count", 1); put("pager_page_count", 1)
                     put("middle_scroll_enabled", middleScroll)
+                    put("single_record_state", "ONE_CENTERED_HERO_NO_NEIGHBOR")
                 })
-                put("contract_evaluation", if (exactM01Window && (middleScroll || card.width() < 145f))
-                    "FAIL_CONSTRAINT/SPEC_CONFLICT" else "MEASURED")
+                put("metrics", JSONObject().apply {
+                    put("safe_width_dp", singleSafeWidthDp); put("safe_height_dp", singleSafeHeightDp)
+                    put("hA_top_dp", singleHADp); put("hB_middle_dp", singleHBDp); put("hC_footer_dp", singleHCDp)
+                    put("gAB_base_dp", singleGABBaseDp); put("gBC_base_dp", singleGBCBaseDp)
+                    put("gAB_actual_dp", singleGABActualDp); put("gBC_actual_dp", singleGBCActualDp)
+                    put("surplus_S_dp", singleSurplusDp); put("expected_S_over_2_dp", singleExpectedHalfSurplusDp)
+                    put("actual_gAB_increment_dp", singleGABActualDp - singleGABBaseDp)
+                    put("actual_gBC_increment_dp", singleGBCActualDp - singleGBCBaseDp)
+                    put("gAB_error_dp", (singleGABActualDp - singleGABBaseDp) - singleExpectedHalfSurplusDp)
+                    put("gBC_error_dp", (singleGBCActualDp - singleGBCBaseDp) - singleExpectedHalfSurplusDp)
+                    put("hero_bounds_dp", singleCard.toJson())
+                    put("hero_width_dp", singleCard.width()); put("hero_height_dp", singleCard.height())
+                    put("hero_aspect_ratio", singleCard.width() / singleCard.height())
+                    put("hero_minimum_readable_height_dp", singleLayoutSpec.minReadableCardHeight.value)
+                    put("stats_bounds_dp", singleStats.toJson()); put("title_bounds_dp", singleTitle.toJson())
+                    put("top_bounds_dp", singleTop.toJson()); put("middle_bounds_dp", singleMiddle.toJson())
+                    put("footer_bounds_dp", singleFooter.toJson())
+                    put("brand_bounds_dp", singleBrand.toJson()); put("avatar_visual_bounds_dp", singleAvatarVisual.toJson())
+                    put("avatar_touch_bounds_dp", rect("gemini-home-avatar-button").toDp(profile.density).toJson())
+                    put("camera_art_bounds_dp", singleCameraArt.toJson()); put("camera_touch_bounds_dp", singleCamera.toJson())
+                    put("cta_bounds_dp", singleCta.toJson())
+                    put("text_layouts", singleTextLayouts)
+                    put("repeated_bounds_window_px", repeatedBounds)
+                    put("bounds_window_px", singleBoundsPx)
+                    put("bounds_dp", singleBoundsDp)
+                })
+                put("spacing_s2_status", if (variant != GeminiHomeLayoutVariant.V3_BASELINE &&
+                    abs((singleGABActualDp - singleGABBaseDp) - singleExpectedHalfSurplusDp) <= 2f &&
+                    abs((singleGBCActualDp - singleGBCBaseDp) - singleExpectedHalfSurplusDp) <= 2f)
+                    "PASS" else if (variant == GeminiHomeLayoutVariant.V3_BASELINE) "NOT_APPLICABLE" else "FAIL")
+                put("contract_evaluation", when {
+                    exactM01Window && (middleScroll || card.width() < 145f) -> "FAIL_CONSTRAINT/SPEC_CONFLICT"
+                    variant != GeminiHomeLayoutVariant.V3_BASELINE &&
+                        (abs((singleGABActualDp - singleGABBaseDp) - singleExpectedHalfSurplusDp) > 2f ||
+                            abs((singleGBCActualDp - singleGBCBaseDp) - singleExpectedHalfSurplusDp) > 2f) -> "FAIL_S2_ALLOCATION"
+                    else -> "MEASURED"
+                })
+                put("screenshot", "$profileId-${variant.name.lowercase(Locale.US)}.png")
             }
             File(output, "$profileId-${variant.name.lowercase(Locale.US)}-geometry-diagnostic.json")
                 .writeText(singleDiagnostic.toString(2) + "\n")
@@ -317,6 +435,14 @@ class GeminiHomeDeviceMatrixTest {
                 assertTrue("single-record screenshot must save", bitmap.compress(Bitmap.CompressFormat.PNG, 100, sink))
             }
             bitmap.recycle()
+            if (variant != GeminiHomeLayoutVariant.V3_BASELINE) {
+                assertTrue("single-record inter-band additions must be equal S/2: before=${singleGABActualDp - singleGABBaseDp} after=${singleGBCActualDp - singleGBCBaseDp}",
+                    abs((singleGABActualDp - singleGABBaseDp) - (singleGBCActualDp - singleGBCBaseDp)) <= 2f)
+                assertTrue("single-record A-to-B gap must equal base plus S/2",
+                    abs((singleGABActualDp - singleGABBaseDp) - singleExpectedHalfSurplusDp) <= 2f)
+                assertTrue("single-record B-to-C gap must equal base plus S/2",
+                    abs((singleGBCActualDp - singleGBCBaseDp) - singleExpectedHalfSurplusDp) <= 2f)
+            }
             if (variant == GeminiHomeLayoutVariant.ADAPTIVE_V2 && exactM01Window) {
                 assertFalse("FAIL_CONSTRAINT/SPEC_CONFLICT: exact 320×480dp M01 must not scroll", middleScroll)
                 assertTrue("FAIL_CONSTRAINT/SPEC_CONFLICT: exact 320×480dp M01 Hero requires at least 145dp width; actual=${card.width()} dp", card.width() >= 145f)
@@ -328,12 +454,7 @@ class GeminiHomeDeviceMatrixTest {
             assertTrue("single-record avatar target remains at least 48dp", avatar.width() >= 48f && avatar.height() >= 48f)
             assertTrue("single-record camera target remains at least 72dp", camera.width() >= 72f && camera.height() >= 72f)
             assertTrue("single-record CTA does not overlap the camera", cta.bottom <= camera.top + 1f)
-            val singleBoundsTags = listOf(
-                "gemini-home-screen", "gemini-home-top-section", "gemini-home-avatar-button", "gemini-home-middle-section", "gemini-home-section-title",
-                "gemini-home-carousel-track", "gemini-home-catch-card-nh01-catch-001", "gemini-home-footer-cta",
-                "gemini-home-cta-label", "gemini-home-camera", "gemini-home-camera-art",
-            )
-            val singleBounds = JSONObject().apply { singleBoundsTags.forEach { put(it, rect(it).toJson()) } }
+            val singleBounds = singleBoundsPx
             val density = compose.activity.resources.displayMetrics.density
             val windowManager = compose.activity.windowManager
             val displayMetrics = DisplayMetrics()
@@ -372,8 +493,19 @@ class GeminiHomeDeviceMatrixTest {
                     put("avatar_touch_bounds_dp", avatar.toJson())
                     put("camera_touch_bounds_dp", camera.toJson())
                     put("cta_bounds_dp", cta.toJson())
-                    put("safe_width_dp", (root.width() - densityProbe.get()!!.insets.start.value - densityProbe.get()!!.insets.end.value))
-                    put("safe_height_dp", (root.height() - densityProbe.get()!!.insets.top.value - densityProbe.get()!!.insets.bottom.value))
+                    put("safe_width_dp", singleSafeWidthDp)
+                    put("safe_height_dp", singleSafeHeightDp)
+                    put("hA_top_dp", singleHADp); put("hB_middle_dp", singleHBDp); put("hC_footer_dp", singleHCDp)
+                    put("gAB_base_dp", singleGABBaseDp); put("gBC_base_dp", singleGBCBaseDp)
+                    put("gAB_actual_dp", singleGABActualDp); put("gBC_actual_dp", singleGBCActualDp)
+                    put("surplus_S_dp", singleSurplusDp); put("expected_S_over_2_dp", singleExpectedHalfSurplusDp)
+                    put("actual_gAB_increment_dp", singleGABActualDp - singleGABBaseDp)
+                    put("actual_gBC_increment_dp", singleGBCActualDp - singleGBCBaseDp)
+                    put("gAB_error_dp", (singleGABActualDp - singleGABBaseDp) - singleExpectedHalfSurplusDp)
+                    put("gBC_error_dp", (singleGBCActualDp - singleGBCBaseDp) - singleExpectedHalfSurplusDp)
+                    put("hero_minimum_readable_height_dp", singleLayoutSpec.minReadableCardHeight.value)
+                    put("text_layouts", singleTextLayouts)
+                    put("photo_renderer_bounds_window_px", repeatedBounds)
                 })
                 put("bounds_in_window_px", singleBounds)
                 put("screenshots", JSONObject().put("initial", screenshotName)
@@ -395,12 +527,14 @@ class GeminiHomeDeviceMatrixTest {
 
         beginStep("CAPTURE_COMPONENT_BOUNDS_AND_LAYOUT_METRICS")
         val tags = listOf(
-            "gemini-home-screen", "gemini-home-top-section", "gemini-home-avatar-button", "gemini-home-brand-title", "gemini-home-header-bar", "gemini-home-stats-bar",
+            "gemini-home-screen", "gemini-home-background", "gemini-home-top-section", "gemini-home-avatar-button",
+            "gemini-home-avatar-visual", "gemini-home-brand-title", "gemini-home-header-bar", "gemini-home-stats-bar",
             "gemini-home-section-title", "gemini-home-section-all", "gemini-home-section-all-label", "gemini-home-middle-section", "gemini-home-carousel-track",
             "gemini-home-stat-species-value", "gemini-home-stat-species-label",
             "gemini-home-stat-catches-value", "gemini-home-stat-catches-label",
             "gemini-home-stat-record-days-value", "gemini-home-stat-record-days-label",
-            "gemini-home-catch-card-nh01-catch-001", "gemini-home-catch-neighbor-nh01-catch-002",
+            "gemini-home-catch-card-nh01-catch-001", "gemini-home-catch-media-nh01-catch-001",
+            "gemini-home-catch-neighbor-nh01-catch-002",
             "gemini-home-footer-cta", "gemini-home-cta-label", "gemini-home-camera", "gemini-home-camera-art",
             "gemini-home-catch-species-nh01-catch-001", "gemini-home-catch-measurement-nh01-catch-001",
             "gemini-home-catch-metadata-nh01-catch-001",
@@ -489,6 +623,25 @@ class GeminiHomeDeviceMatrixTest {
         val targetCardWidthDp = minOf(minOf(track.width(), 560f) * cardWidthFraction, cardWidthCap)
         val middleScrollEnabled = compose.onAllNodesWithTag("gemini-home-short-screen-scroll", useUnmergedTree = true)
             .fetchSemanticsNodes().isNotEmpty()
+        val diagnosticRepeatedTags = listOf(
+            "gemini-home-stats-divider", "home-evidence-fit-foreground", "home-evidence-backdrop-ready",
+            "home-evidence-backdrop-crop-fallback", "fish-photo-subject-crop",
+        )
+        val diagnosticRepeatedBounds = JSONObject().apply {
+            diagnosticRepeatedTags.forEach { tag ->
+                val nodes = compose.onAllNodesWithTag(tag, useUnmergedTree = true).fetchSemanticsNodes()
+                put(tag, JSONArray().apply {
+                    nodes.forEach { node ->
+                        val bounds = node.boundsInWindow
+                        put(JSONObject().apply {
+                            put("left", bounds.left); put("top", bounds.top)
+                            put("right", bounds.right); put("bottom", bounds.bottom)
+                            put("width", bounds.width); put("height", bounds.height)
+                        })
+                    }
+                })
+            }
+        }
         val diagnosticTextTags = listOf(
             "gemini-home-catch-species-nh01-catch-001",
             "gemini-home-catch-measurement-nh01-catch-001",
@@ -539,6 +692,8 @@ class GeminiHomeDeviceMatrixTest {
                 put("card_actual_height_dp", activeCardLayoutHeightDp)
                 put("card_aspect_ratio", ratio)
                 put("minimum_readable_card_height_dp", layoutSpec.minReadableCardHeight.value)
+                put("rendered_font_sizes_sp", renderedFontSizesSp)
+                put("photo_renderer_bounds_window_px", diagnosticRepeatedBounds)
                 put("title_bounds_dp", title.toJson())
                 put("stats_bounds_dp", stats.toJson())
                 put("top_bounds_dp", topSection.toJson())
