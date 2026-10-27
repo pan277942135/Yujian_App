@@ -29,7 +29,7 @@
     {
       "authority_id": "workflow",
       "path": ".github/workflows/design-manager-pages.yml",
-      "sha256": "cc05f644675595a923c616b2cc3e7b110cf568faf92f0ff6d7a3b2cb942e8073",
+      "sha256": "5db2a231c19590ba2c87c3462444e07b3f0ed2952a37a14e8375416a46e0d4be",
       "purpose": "workflow"
     },
     {

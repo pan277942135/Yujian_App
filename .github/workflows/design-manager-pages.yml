@@ -23,6 +23,7 @@ on:
       - "scripts/verify_nh01_pr_preview_live.mjs"
       - "scripts/design/validate_nh01_responsive_layout_contract_v2.py"
       - "scripts/design/validate_page_resource_binding.py"
+      - "scripts/design/verify_empty_home_structured_hifi.mjs"
       - "scripts/design/validate_responsive_page_freeze_checklist.py"
       - "scripts/design/tests/test_page_resource_binding.py"
       - "scripts/design/tests/test_responsive_page_freeze_checklist.py"
@@ -299,7 +300,7 @@ jobs:
             --preview-diff-dir "$RUNNER_TEMP/nh01-preview-diff"
 
       - name: Resolve latest successful production Pages run
-        if: github.event_name == 'pull_request' && contains(fromJSON('[191,203,212]'), github.event.pull_request.number)
+        if: github.event_name == 'pull_request' && contains(fromJSON('[191,203,212,234]'), github.event.pull_request.number)
         id: published-pages
         shell: bash
         env:
@@ -315,7 +316,7 @@ jobs:
           echo "source_sha=$production_source_sha" >> "$GITHUB_OUTPUT"
 
       - name: Download current production Pages artifact
-        if: github.event_name == 'pull_request' && contains(fromJSON('[191,203,212]'), github.event.pull_request.number)
+        if: github.event_name == 'pull_request' && contains(fromJSON('[191,203,212,234]'), github.event.pull_request.number)
         uses: actions/download-artifact@v4
         with:
           name: github-pages
@@ -325,7 +326,7 @@ jobs:
           path: ${{ runner.temp }}/nh01-published-pages
 
       - name: Compose byte-preserving isolated PR preview
-        if: github.event_name == 'pull_request' && contains(fromJSON('[191,203,212]'), github.event.pull_request.number)
+        if: github.event_name == 'pull_request' && contains(fromJSON('[191,203,212,234]'), github.event.pull_request.number)
         shell: bash
         env:
           PRODUCTION_RUN_ID: ${{ steps.published-pages.outputs.run_id }}
@@ -430,7 +431,7 @@ jobs:
             --output "$RUNNER_TEMP/nh01-pr${PREVIEW_PR_NUMBER}-prepublish-root-verification.json"
 
       - name: Verify candidate preview under its isolated Pages path
-        if: github.event_name == 'pull_request' && contains(fromJSON('[191,203,212]'), github.event.pull_request.number)
+        if: github.event_name == 'pull_request' && contains(fromJSON('[191,203,212,234]'), github.event.pull_request.number)
         shell: bash
         env:
           PREVIEW_PR_NUMBER: ${{ github.event.pull_request.number }}
@@ -452,7 +453,7 @@ jobs:
               --output-dir "$RUNNER_TEMP/nh01-pr${PREVIEW_PR_NUMBER}-preview-browser"
 
       - name: Upload preview composition evidence
-        if: github.event_name == 'pull_request' && contains(fromJSON('[191,203,212]'), github.event.pull_request.number)
+        if: github.event_name == 'pull_request' && contains(fromJSON('[191,203,212,234]'), github.event.pull_request.number)
         uses: actions/upload-artifact@v4
         with:
           name: NH01-PR${{ github.event.pull_request.number }}-Preview-Composition-${{ github.run_id }}
@@ -478,6 +479,32 @@ jobs:
         with:
           name: W2-Page-Resource-Binding-${{ github.run_id }}-${{ github.event.pull_request.head.sha || github.sha }}
           path: ${{ runner.temp }}/page-resource-binding-report.json
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Run Empty Home V2.2 real DOM matrix and negative checks
+        if: github.event_name == 'pull_request' && github.event.pull_request.number == 234 && hashFiles('scripts/design/verify_empty_home_structured_hifi.mjs') != ''
+        shell: bash
+        env:
+          PLAYWRIGHT_MODULE_DIR: ${{ runner.temp }}/dm-playwright/node_modules
+          PREVIEW_PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+          output_dir="$RUNNER_TEMP/empty-home-structured-hifi-build"
+          preview_path="previews/pr-${PREVIEW_PR_NUMBER}"
+          mkdir -p "$output_dir"
+          PLAYWRIGHT_MODULE_DIR="$PLAYWRIGHT_MODULE_DIR" \
+            node scripts/design/verify_empty_home_structured_hifi.mjs \
+              --root "_site/${preview_path}" \
+              --expected-sha "$SITE_BUILD_SHA" \
+              --output-dir "$output_dir"
+
+      - name: Upload Empty Home build evidence
+        if: always() && github.event_name == 'pull_request' && github.event.pull_request.number == 234 && hashFiles('scripts/design/verify_empty_home_structured_hifi.mjs') != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: Empty-Home-Structured-Hifi-Build-${{ github.run_id }}-${{ github.event.pull_request.head.sha }}
+          path: ${{ runner.temp }}/empty-home-structured-hifi-build/
           if-no-files-found: error
           retention-days: 30
 
@@ -617,7 +644,7 @@ jobs:
           retention-days: 30
 
   deploy-preview:
-    if: github.event_name == 'pull_request' && contains(fromJSON('[191,203,212]'), github.event.pull_request.number)
+    if: github.event_name == 'pull_request' && contains(fromJSON('[191,203,212,234]'), github.event.pull_request.number)
     concurrency:
       # Match Main Pages workflow concurrency so a main deploy cannot race this additive publication.
       group: design-manager-pages-publish
@@ -708,6 +735,24 @@ jobs:
               --url "${PAGE_URL}${preview_path}/" \
               --expected-build "$CANDIDATE_SHA" \
               --output-dir "$RUNNER_TEMP/dm-live-evidence/nh01-responsive-layout-v2"
+
+      - name: Verify Empty Home live structured matrix and negative checks
+        if: github.event_name == 'pull_request' && github.event.pull_request.number == 234 && hashFiles('scripts/design/verify_empty_home_structured_hifi.mjs') != ''
+        shell: bash
+        env:
+          PAGE_URL: ${{ steps.deployment.outputs.page_url }}
+          CANDIDATE_SHA: ${{ github.event.pull_request.head.sha }}
+          DEPLOY_SHA: ${{ github.event.pull_request.head.sha }}
+          PREVIEW_PR_NUMBER: ${{ github.event.pull_request.number }}
+          PLAYWRIGHT_MODULE_DIR: ${{ runner.temp }}/dm-playwright/node_modules
+        run: |
+          set -euo pipefail
+          preview_path="previews/pr-${PREVIEW_PR_NUMBER}"
+          test -n "$PAGE_URL"
+          node scripts/design/verify_empty_home_structured_hifi.mjs \
+            --url "${PAGE_URL}${preview_path}/" \
+            --expected-sha "$CANDIDATE_SHA" \
+            --output-dir "$RUNNER_TEMP/dm-live-evidence/empty-home-structured-hifi"
 
       - name: Upload independent preview live evidence
         uses: actions/upload-artifact@v4
