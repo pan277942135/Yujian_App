@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate the 33 supplemental V2 runtime cases and two scoped NH01 states."""
+"""Validate the 33 supplemental V2 runtime cases and three scoped NH01 states."""
 from __future__ import annotations
 
 import argparse
@@ -40,6 +40,7 @@ MATRIX_CASES: tuple[dict[str, Any], ...] = tuple(
 STATE_CASES = (
     ("SUP-SINGLE-M01", "single_record"),
     ("SUP-IMAGEFAIL-M01", "image_failure"),
+    ("SUP-THREE-M03", "three_unique_catches"),
 )
 REQUIRED_BOUNDS = (
     "gemini-home-screen",
@@ -236,7 +237,7 @@ def validate_state_case(
             errors.append("single-record camera touch target is below 72dp")
         if data.get("middle_scroll_enabled") is not False:
             errors.append("single-record M01 middle scrolling is not proven disabled")
-    else:
+    elif expected_scenario == "image_failure":
         if data.get("image_failure_fallback") != "PASS_FALLBACK_RENDERED":
             errors.append("image failure fallback was not rendered")
         if data.get("fallback_tag_status") != "FALLBACK" or data.get("rendered_image_nodes_after_failure") != 0:
@@ -251,7 +252,46 @@ def validate_state_case(
             for tag in before:
                 if any(abs(float(before[tag][edge]) - float(after[tag][edge])) > 1 for edge in ("left", "top", "right", "bottom")):
                     errors.append(f"{tag} changed by more than 1dp after image failure")
-    for screenshot_key in (("initial",) if expected_scenario == "single_record" else ("initial", "image_failure_fallback")):
+    else:
+        if data.get("catch_ids") != ["nh01-catch-001", "nh01-catch-002", "nh01-catch-003"]:
+            errors.append("three-record case does not contain three unique stable record IDs in order")
+        if data.get("unique_catch_count") != 3 or data.get("pager_page_count") != 3:
+            errors.append("three-record pager count or stable record count is incorrect")
+        if data.get("swipe_reached_second_id") is not True or data.get("selected_record_after_swipe") != "nh01-catch-002":
+            errors.append("three-record case did not select its real center record")
+        if data.get("left_neighbor_after_swipe") != "nh01-catch-001" or data.get("right_neighbor_after_swipe") != "nh01-catch-003":
+            errors.append("three-record center page does not bind distinct real left/right neighbors")
+        if data.get("both_real_neighbors_after_swipe") is not True:
+            errors.append("three-record center state does not prove both real neighbors are visible")
+        if metrics.get("hero_geometry_unchanged_after_swipe") is not True:
+            errors.append("three-record Hero geometry changed when selecting another real record")
+        if float(metrics.get("left_peek_after_swipe_overlap_dp", 999)) > 1:
+            errors.append("three-record left neighbor overlaps the selected Hero by more than 1dp")
+        if float(metrics.get("right_peek_after_swipe_overlap_dp", 999)) > 1:
+            errors.append("three-record right neighbor overlaps the selected Hero by more than 1dp")
+        if float(metrics.get("left_peek_after_swipe_visible_width_dp", 0)) <= 0:
+            errors.append("three-record left neighbor is not visible inside the track")
+        if float(metrics.get("right_peek_after_swipe_visible_width_dp", 0)) <= 0:
+            errors.append("three-record right neighbor is not visible inside the track")
+        if not math.isclose(float(metrics.get("card_aspect_ratio", 0)), 247 / 293, abs_tol=0.01):
+            errors.append("three-record Hero ratio is outside 247:293 tolerance")
+        after_swipe_text = metrics.get("text_layouts_after_swipe", {})
+        for tag in (
+            "gemini-home-catch-species-nh01-catch-002",
+            "gemini-home-catch-measurement-nh01-catch-002",
+            "gemini-home-catch-metadata-nh01-catch-002",
+        ):
+            text = after_swipe_text.get(tag, {})
+            if not isinstance(text.get("line_ranges"), str) or not text.get("line_ranges"):
+                errors.append(f"three-record selected text line ranges missing for {tag}")
+            if text.get("visual_overflow") is not False:
+                errors.append(f"three-record selected text overflowed or was not disproven for {tag}")
+    if expected_scenario == "single_record":
+        screenshot_keys = ("initial",)
+    elif expected_scenario == "image_failure":
+        screenshot_keys = ("initial", "image_failure_fallback")
+    else:
+        screenshot_keys = ("initial", "after_swipe")
         if not exists_screenshot(raw_dir, report, screenshot_key):
             errors.append(f"scenario screenshot missing: {screenshot_key}")
     row = {
@@ -321,7 +361,7 @@ def main() -> int:
         row, row_errors = validate_state_case(raw_dir, execution_dir, profile, scenario, args.source_sha)
         state_rows.append(row)
         errors.extend(f"{profile}: {error}" for error in row_errors)
-    status = "PASS" if len(rows) == 33 and len(state_rows) == 2 and not errors else "FAIL"
+    status = "PASS" if len(rows) == 33 and len(state_rows) == 3 and not errors else "FAIL"
     report = {
         "schema": "NH01_ADAPTIVE_SUPPLEMENTAL_MATRIX_V1",
         "status": status,
@@ -350,7 +390,7 @@ def main() -> int:
         f"- API 28 workflow: [{args.run_id}]({args.run_url})",
         "- The original 24-run matrix remains unchanged.",
         "- Supplemental matrix: 33 V2 runs (explicit 480×840, 412×915, 375×720 pairs; eight measured safe-height boundaries at three font scales).",
-        "- Scoped runtime states: single record and image-load failure, each on the exact M01 canvas.",
+        "- Scoped runtime states: single record and image-load failure on M01, plus three real records with the center page selected on M03 (390×844dp).",
         "",
         "| Profile | Width | Display height | Measured safe height | Font scale | Result |",
         "|---|---:|---:|---:|---:|---|",
@@ -368,7 +408,7 @@ def main() -> int:
     (output_dir / "NH01_ADAPTIVE_SUPPLEMENTAL_MATRIX_V1.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
     print(
         f"NH01_ADAPTIVE_SUPPLEMENTAL_MATRIX={status} cases={sum(r['status'] == 'PASS' for r in rows)}/33 "
-        f"scenarios={sum(r['status'] == 'PASS' for r in state_rows)}/2 total=59 source_sha={args.source_sha}"
+        f"scenarios={sum(r['status'] == 'PASS' for r in state_rows)}/3 total=60 source_sha={args.source_sha}"
     )
     for error in errors:
         print(f"FAIL {error}")
