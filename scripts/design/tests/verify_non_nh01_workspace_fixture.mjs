@@ -73,7 +73,10 @@ try {
   const fixturePath = "/scripts/design/tests/fixtures/non_nh01_workspace_fixture.html";
   const fixtureUrl = `${origin}${fixturePath}?source=${args.sourceSha}`;
   await page.goto(fixtureUrl, { waitUntil: "domcontentloaded" });
-  await page.locator("#fixture-workspace[data-fixture-status='READY']").waitFor({ state: "attached", timeout: 10000 });
+  await page.locator("#fixture-workspace[data-fixture-status]").waitFor({ state: "attached", timeout: 10000 });
+  const fixtureStatus = await page.locator("#fixture-workspace").getAttribute("data-fixture-status");
+  const fixtureError = await page.locator("#fixture-workspace").getAttribute("data-fixture-error");
+  assert.equal(fixtureStatus, "READY", `fixture mount failed: ${fixtureError || fixtureStatus}`);
   await page.locator("#fixture-resource-dom[data-resource-status='ERROR']").waitFor({ state: "visible", timeout: 10000 });
 
   const rootInfo = await page.locator("[data-page-workspace-root]").evaluate(element => ({
