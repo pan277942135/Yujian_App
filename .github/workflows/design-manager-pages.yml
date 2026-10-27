@@ -13,6 +13,7 @@ on:
       - "scripts/verify_design_manager_navigation.py"
       - "scripts/verify_design_manager_hifi_release.py"
       - "scripts/verify_design_manager_browser.mjs"
+      - "scripts/verify_design_manager_preview_smoke.mjs"
       - "scripts/verify_private_visual_references.py"
       - "scripts/verify_private_visual_browser.mjs"
       - "scripts/verify_design_manager_live.py"
@@ -32,6 +33,7 @@ on:
       - "scripts/verify_design_manager_navigation.py"
       - "scripts/verify_design_manager_hifi_release.py"
       - "scripts/verify_design_manager_browser.mjs"
+      - "scripts/verify_design_manager_preview_smoke.mjs"
       - "scripts/verify_private_visual_references.py"
       - "scripts/verify_private_visual_browser.mjs"
       - "scripts/verify_swos_static_visual_v1_1.py"
@@ -103,6 +105,7 @@ jobs:
           node --check design/manager/fishtrace_sites_web_workspace.js
           node --check design/manager/fishtrace_canvas_water_lab.js
           node --check scripts/verify_design_manager_browser.mjs
+          node --check scripts/verify_design_manager_preview_smoke.mjs
           node tests/nh01_structured_workspace.test.cjs
 
       - name: Fetch PR base for changed-file scope gate
@@ -187,6 +190,10 @@ jobs:
         run: python3 scripts/verify_design_manager_hifi_release.py --site _site --expected-build "${BUILD_SHA}"
 
       - name: Verify browser routes and responsive preview
+        # Manual PR #214 dispatch is preview-only; normal PR and production paths retain the full optical/video gate.
+        if: >-
+          github.event_name != 'workflow_dispatch' ||
+          inputs.preview_pr != '214'
         shell: bash
         run: |
           set -euo pipefail
@@ -406,8 +413,8 @@ jobs:
 
       - name: Verify candidate preview under its isolated Pages path
         if: >-
-          (github.event_name == 'pull_request' && contains(fromJSON('[203,212,214]'), github.event.pull_request.number)) ||
-          (github.event_name == 'workflow_dispatch' && inputs.preview_pr == '214')
+          github.event_name == 'pull_request' &&
+          contains(fromJSON('[203,212,214]'), github.event.pull_request.number)
         shell: bash
         env:
           PREVIEW_PR_NUMBER: ${{ github.event.pull_request.number || inputs.preview_pr }}
@@ -427,6 +434,28 @@ jobs:
               --url "http://127.0.0.1:8765/${preview_path}/" \
               --expected-build "$BUILD_SHA" \
               --output-dir "$RUNNER_TEMP/nh01-pr${PREVIEW_PR_NUMBER}-preview-browser"
+
+      - name: Smoke-test PR 214 candidate workspace before upload
+        if: github.event_name == 'workflow_dispatch' && inputs.preview_pr == '214'
+        shell: bash
+        env:
+          PREVIEW_PR_NUMBER: ${{ github.event.pull_request.number || inputs.preview_pr }}
+        run: |
+          set -euo pipefail
+          preview_path="previews/pr-${PREVIEW_PR_NUMBER}"
+          python3 -m http.server 8765 --directory _site > "$RUNNER_TEMP/nh01-pr${PREVIEW_PR_NUMBER}-preview-http.log" 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          for attempt in $(seq 1 30); do
+            if curl -fsS "http://127.0.0.1:8765/${preview_path}/source-manifest.json" >/dev/null; then break; fi
+            sleep 1
+          done
+          preview_url="http://127.0.0.1:8765/${preview_path}/design/manager/index.html?preview=${BUILD_SHA}#page/recognition_flow_v1_2/hifi/fishtrace_sites_web_hifi_workspace"
+          PLAYWRIGHT_MODULE_DIR="$RUNNER_TEMP/dm-playwright/node_modules" \
+            node scripts/verify_design_manager_preview_smoke.mjs \
+              --url "$preview_url" \
+              --expected-build "$BUILD_SHA" \
+              --output "$RUNNER_TEMP/nh01-pr${PREVIEW_PR_NUMBER}-candidate-runtime-smoke.json"
 
       - name: Upload preview composition evidence
         if: >-
@@ -642,11 +671,41 @@ jobs:
             --url "$PAGE_URL" \
             --expected-build "$production_sha" \
             --output "$RUNNER_TEMP/dm-live-evidence/production-root-verification.json"
+
+      - name: Verify live candidate with the full browser suite
+        if: >-
+          github.event_name == 'pull_request' &&
+          contains(fromJSON('[203,212,214]'), github.event.pull_request.number)
+        shell: bash
+        env:
+          PAGE_URL: ${{ steps.deployment.outputs.page_url }}
+          CANDIDATE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          PREVIEW_PR_NUMBER: ${{ github.event.pull_request.number || inputs.preview_pr }}
+        run: |
+          set -euo pipefail
+          preview_path="previews/pr-${PREVIEW_PR_NUMBER}"
           PLAYWRIGHT_MODULE_DIR="$RUNNER_TEMP/dm-playwright/node_modules" \
             node scripts/verify_design_manager_browser.mjs \
               --url "${PAGE_URL}${preview_path}/" \
               --expected-build "$CANDIDATE_SHA" \
               --output-dir "$RUNNER_TEMP/dm-live-evidence/candidate-browser"
+
+      - name: Smoke-test live PR 214 Canvas candidate
+        if: github.event_name == 'workflow_dispatch' && inputs.preview_pr == '214'
+        shell: bash
+        env:
+          PAGE_URL: ${{ steps.deployment.outputs.page_url }}
+          CANDIDATE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          PREVIEW_PR_NUMBER: ${{ github.event.pull_request.number || inputs.preview_pr }}
+        run: |
+          set -euo pipefail
+          preview_path="previews/pr-${PREVIEW_PR_NUMBER}"
+          candidate_url="${PAGE_URL}${preview_path}/design/manager/index.html?preview=${CANDIDATE_SHA}#page/recognition_flow_v1_2/hifi/fishtrace_sites_web_hifi_workspace"
+          PLAYWRIGHT_MODULE_DIR="$RUNNER_TEMP/dm-playwright/node_modules" \
+            node scripts/verify_design_manager_preview_smoke.mjs \
+              --url "$candidate_url" \
+              --expected-build "$CANDIDATE_SHA" \
+              --output "$RUNNER_TEMP/dm-live-evidence/candidate-runtime-smoke.json"
 
       - name: Upload independent preview live evidence
         uses: actions/upload-artifact@v4
