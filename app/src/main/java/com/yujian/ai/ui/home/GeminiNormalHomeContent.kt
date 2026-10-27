@@ -104,6 +104,16 @@ internal val GeminiHomeTextLineCount = SemanticsPropertyKey<Int>("GeminiHomeText
 internal val GeminiHomeTextLastLineCharacterCount = SemanticsPropertyKey<Int>("GeminiHomeTextLastLineCharacterCount")
 internal val GeminiHomeTextLineRanges = SemanticsPropertyKey<String>("GeminiHomeTextLineRanges")
 internal val GeminiHomeImageLoadStatus = SemanticsPropertyKey<String>("GeminiHomeImageLoadStatus")
+internal val GeminiHomePagerCurrentPage = SemanticsPropertyKey<Int>("GeminiHomePagerCurrentPage")
+internal val GeminiHomePagerTargetPage = SemanticsPropertyKey<Int>("GeminiHomePagerTargetPage")
+internal val GeminiHomePagerSettledPage = SemanticsPropertyKey<Int>("GeminiHomePagerSettledPage")
+internal val GeminiHomePagerScrollInProgress = SemanticsPropertyKey<Boolean>("GeminiHomePagerScrollInProgress")
+internal val GeminiHomePagerOffsetFraction = SemanticsPropertyKey<Float>("GeminiHomePagerOffsetFraction")
+internal val GeminiHomePagerCurrentRecordId = SemanticsPropertyKey<String>("GeminiHomePagerCurrentRecordId")
+internal val GeminiHomePagerLeftRecordId = SemanticsPropertyKey<String>("GeminiHomePagerLeftRecordId")
+internal val GeminiHomePagerRightRecordId = SemanticsPropertyKey<String>("GeminiHomePagerRightRecordId")
+internal val GeminiHomeScrollOffsetPx = SemanticsPropertyKey<Int>("GeminiHomeScrollOffsetPx")
+internal val GeminiHomeScrollMaximumPx = SemanticsPropertyKey<Int>("GeminiHomeScrollMaximumPx")
 
 /**
  * NH01 Gemini V3 page. The Compose tree follows Gemini's Top / Middle / Footer
@@ -131,7 +141,8 @@ internal fun GeminiNormalHomeContent(
     modifier: Modifier = Modifier,
 ) {
     val records = remember(recentCatches) { orderedHomeRecords(recentCatches) }
-    BoxWithConstraints(modifier = modifier.testTag("gemini-home-screen")) {
+    BoxWithConstraints(modifier = modifier.testTag("gemini-home-screen")
+        .captureGeminiHomeBounds("gemini-home-screen")) {
         val safeWidth = (maxWidth - safeInsets.start - safeInsets.end).coerceAtLeast(1.dp)
         val safeHeight = (maxHeight - safeInsets.top - safeInsets.bottom).coerceAtLeast(1.dp)
         val fontScale = LocalDensity.current.fontScale
@@ -156,13 +167,15 @@ internal fun GeminiNormalHomeContent(
                         Image(
                             bitmap = scene.asImageBitmap(),
                             contentDescription = null,
-                            modifier = Modifier.fillMaxSize().testTag("gemini-home-background"),
+                            modifier = Modifier.fillMaxSize().testTag("gemini-home-background")
+                                .captureGeminiHomeBounds("gemini-home-background"),
                             contentScale = ContentScale.Crop,
                             alignment = Alignment.TopCenter,
                         )
                     } ?: AssetImage(
                         GeminiHomeBackground,
-                        Modifier.fillMaxSize().testTag("gemini-home-background"),
+                        Modifier.fillMaxSize().testTag("gemini-home-background")
+                            .captureGeminiHomeBounds("gemini-home-background"),
                         contentDescription = null,
                         contentScale = ContentScale.Crop,
                         alignment = Alignment.TopCenter,
@@ -200,7 +213,8 @@ internal fun GeminiNormalHomeContent(
                 GeminiMiddleSection(
                     modifier = Modifier.weight(1f).widthIn(max = 560.dp).fillMaxWidth()
                         .align(Alignment.CenterHorizontally)
-                        .testTag("gemini-home-middle-section"),
+                        .testTag("gemini-home-middle-section")
+                        .captureGeminiHomeBounds("gemini-home-middle-section"),
                     safeWidth = safeWidth,
                     safeHeight = safeHeight,
                     records = records,
@@ -261,12 +275,14 @@ private fun GeminiTopSection(
 
     Column(
         modifier = modifier.testTag("gemini-home-top-section")
+            .captureGeminiHomeBounds("gemini-home-top-section")
             .padding(horizontal = horizontalInset)
             .padding(top = topPadding),
     ) {
         Row(
             modifier = Modifier.fillMaxWidth().heightIn(min = avatarTargetSize)
-                .testTag("gemini-home-header-bar"),
+                .testTag("gemini-home-header-bar")
+                .captureGeminiHomeBounds("gemini-home-header-bar"),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
@@ -274,7 +290,8 @@ private fun GeminiTopSection(
                 painter = painterResource(R.drawable.brand_title_primary),
                 contentDescription = "渔见",
                 modifier = Modifier.width(brandWidth).height(brandHeight)
-                    .testTag("gemini-home-brand-title"),
+                    .testTag("gemini-home-brand-title")
+                    .captureGeminiHomeBounds("gemini-home-brand-title"),
                 contentScale = ContentScale.Fit,
             )
             GeminiAvatarButton(
@@ -333,13 +350,15 @@ private fun GeminiAvatarButton(
                 stateDescription = stateLabel
             }
             .clickable(role = Role.Button, onClick = click)
-            .testTag("gemini-home-avatar-button"),
+            .testTag("gemini-home-avatar-button")
+            .captureGeminiHomeBounds("gemini-home-avatar-button"),
         contentAlignment = Alignment.Center,
     ) {
         Box(
             modifier = Modifier.size(avatarSize).clip(CircleShape)
                 .background(GeminiMistAvatarFill)
-                .testTag("gemini-home-avatar-visual"),
+                .testTag("gemini-home-avatar-visual")
+                .captureGeminiHomeBounds("gemini-home-avatar-visual"),
         ) {
             // NH01-only fallback; the registered legacy V2 bitmap is left untouched.
             Canvas(Modifier.fillMaxSize().testTag("gemini-home-default-avatar-mist")) {
@@ -408,7 +427,8 @@ private fun GeminiStatsBar(
 ) {
     val values = remember(statistics, catches) { resolveHomeStatValues(statistics, catches) }
     Row(
-        modifier = Modifier.fillMaxWidth().testTag("gemini-home-stats-bar"),
+        modifier = Modifier.fillMaxWidth().testTag("gemini-home-stats-bar")
+            .captureGeminiHomeBounds("gemini-home-stats-bar"),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceEvenly,
     ) {
@@ -454,7 +474,8 @@ private fun RowScope.GeminiStatItem(
         modifier = Modifier.weight(1f).requiredSizeIn(minWidth = 48.dp, minHeight = 48.dp)
             .then(action)
             .semantics { if (onClick != null) role = Role.Button }
-            .testTag("gemini-home-stat-$tag"),
+            .testTag("gemini-home-stat-$tag")
+            .captureGeminiHomeBounds("gemini-home-stat-$tag"),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
@@ -469,7 +490,8 @@ private fun RowScope.GeminiStatItem(
             overflow = TextOverflow.Ellipsis,
             modifier = Modifier
                 .semantics { this[GeminiHomeRenderedFontSizeSp] = valueFontSize.value }
-                .testTag("gemini-home-stat-$tag-value"),
+                .testTag("gemini-home-stat-$tag-value")
+                .captureGeminiHomeBounds("gemini-home-stat-$tag-value"),
         )
         Text(
             text = label,
@@ -483,7 +505,8 @@ private fun RowScope.GeminiStatItem(
             overflow = TextOverflow.Ellipsis,
             modifier = Modifier.padding(top = 2.dp)
                 .semantics { this[GeminiHomeRenderedFontSizeSp] = labelFontSize.value }
-                .testTag("gemini-home-stat-$tag-label"),
+                .testTag("gemini-home-stat-$tag-label")
+                .captureGeminiHomeBounds("gemini-home-stat-$tag-label"),
         )
     }
 }
@@ -572,9 +595,15 @@ private fun GeminiMiddleSection(
         val scrollState = rememberScrollState()
         val contentModifier = if (needsScroll) {
             Modifier.fillMaxWidth().heightIn(min = maxHeight).verticalScroll(scrollState)
+                .semantics {
+                    this[GeminiHomeScrollOffsetPx] = scrollState.value
+                    this[GeminiHomeScrollMaximumPx] = scrollState.maxValue
+                }
                 .testTag("gemini-home-short-screen-scroll")
+                .captureGeminiHomeBounds("gemini-home-short-screen-scroll")
         } else {
             Modifier.fillMaxSize().testTag("gemini-home-middle-layout")
+                .captureGeminiHomeBounds("gemini-home-middle-layout")
         }
 
         Column(
@@ -611,7 +640,8 @@ private fun GeminiMiddleSection(
             } else {
                 GeminiCatchCarousel(
                     modifier = Modifier.offset(y = cardVerticalOffset).fillMaxWidth().height(cardHeight)
-                        .testTag("gemini-home-carousel-track"),
+                        .testTag("gemini-home-carousel-track")
+                        .captureGeminiHomeBounds("gemini-home-carousel-track"),
                     records = records,
                     resolveImageUrl = resolveImageUrl,
                     accessToken = accessToken,
@@ -641,7 +671,8 @@ private fun GeminiSectionHeader(
 ) {
     val horizontalInset = clampDp(safeWidth.value * 0.088f, 24f, 42f)
     Row(
-        modifier = modifier.padding(horizontal = horizontalInset).testTag("gemini-home-section-header"),
+        modifier = modifier.padding(horizontal = horizontalInset).testTag("gemini-home-section-header")
+            .captureGeminiHomeBounds("gemini-home-section-header"),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween,
     ) {
@@ -658,7 +689,8 @@ private fun GeminiSectionHeader(
             onTextLayout = { onTitleMeasuredHeight(it.size.height) },
             modifier = Modifier
                 .semantics { this[GeminiHomeRenderedFontSizeSp] = titleFontSize.value }
-                .testTag("gemini-home-section-title"),
+                .testTag("gemini-home-section-title")
+                .captureGeminiHomeBounds("gemini-home-section-title"),
         )
         Row(
             modifier = Modifier.requiredSizeIn(minWidth = 48.dp, minHeight = 48.dp)
@@ -668,7 +700,8 @@ private fun GeminiSectionHeader(
                     role = Role.Button
                 }
                 .clickable(role = Role.Button, onClick = onCatchesClick)
-                .testTag("gemini-home-section-all"),
+                .testTag("gemini-home-section-all")
+                .captureGeminiHomeBounds("gemini-home-section-all"),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(4.dp),
         ) {
@@ -683,7 +716,8 @@ private fun GeminiSectionHeader(
                 maxLines = 1,
                 modifier = Modifier
                     .semantics { this[GeminiHomeRenderedFontSizeSp] = actionFontSize.value }
-                    .testTag("gemini-home-section-all-label"),
+                    .testTag("gemini-home-section-all-label")
+                    .captureGeminiHomeBounds("gemini-home-section-all-label"),
             )
             Text(
                 text = "›",
@@ -738,7 +772,15 @@ private fun GeminiCatchCarousel(
             collectionInfo = CollectionInfo(rowCount = 1, columnCount = pageCount)
             stateDescription = activeId?.let { "当前鱼获 $it，第 ${pagerState.currentPage + 1} 条，共 $pageCount 条" }
                 ?: "暂无鱼获，0 条记录"
-        },
+            this[GeminiHomePagerCurrentPage] = pagerState.currentPage
+            this[GeminiHomePagerTargetPage] = pagerState.targetPage
+            this[GeminiHomePagerSettledPage] = pagerState.settledPage
+            this[GeminiHomePagerScrollInProgress] = pagerState.isScrollInProgress
+            this[GeminiHomePagerOffsetFraction] = pagerState.currentPageOffsetFraction
+            activeId?.let { this[GeminiHomePagerCurrentRecordId] = it }
+            records.getOrNull(pagerState.currentPage - 1)?.id?.let { this[GeminiHomePagerLeftRecordId] = it }
+            records.getOrNull(pagerState.currentPage + 1)?.id?.let { this[GeminiHomePagerRightRecordId] = it }
+        }.captureGeminiHomeBounds("gemini-home-catch-carousel"),
         contentAlignment = Alignment.TopCenter,
     ) {
         HorizontalPager(
@@ -749,8 +791,17 @@ private fun GeminiCatchCarousel(
                     stateDescription = activeId?.let {
                         "当前鱼获 $it，第 ${pagerState.currentPage + 1} 条，共 $pageCount 条"
                     } ?: "暂无鱼获，0 条记录"
+                    this[GeminiHomePagerCurrentPage] = pagerState.currentPage
+                    this[GeminiHomePagerTargetPage] = pagerState.targetPage
+                    this[GeminiHomePagerSettledPage] = pagerState.settledPage
+                    this[GeminiHomePagerScrollInProgress] = pagerState.isScrollInProgress
+                    this[GeminiHomePagerOffsetFraction] = pagerState.currentPageOffsetFraction
+                    activeId?.let { this[GeminiHomePagerCurrentRecordId] = it }
+                    records.getOrNull(pagerState.currentPage - 1)?.id?.let { this[GeminiHomePagerLeftRecordId] = it }
+                    records.getOrNull(pagerState.currentPage + 1)?.id?.let { this[GeminiHomePagerRightRecordId] = it }
                 }
-                .testTag("gemini-home-catch-pager"),
+                .testTag("gemini-home-catch-pager")
+                .captureGeminiHomeBounds("gemini-home-catch-pager"),
             pageSize = PageSize.Fixed(cardWidth),
             contentPadding = PaddingValues(horizontal = contentInset),
             pageSpacing = pageSpacing,
@@ -773,7 +824,7 @@ private fun GeminiCatchCarousel(
                     scaleY = 1f - distance * (1f - sideScaleY)
                     translationY = if (active) 0f else neighborTranslationY
                     alpha = 1f - distance * 0.08f
-                }.testTag(pageTag),
+                }.testTag(pageTag).captureGeminiHomeBounds("$pageTag-${record.id}"),
                 contentAlignment = Alignment.TopCenter,
             ) {
                 GeminiCatchCard(
@@ -889,7 +940,9 @@ private fun GeminiCatchCard(
         title = species,
         metadata = emptyList(),
         variant = YuJianHeroVariant.HOME,
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize().captureGeminiHomeBounds(
+            if (isActive) "gemini-home-catch-card-${item.id}" else "gemini-home-catch-neighbor-${item.id}",
+        ),
         heightOverride = cardHeight,
         cornerRadius = 22.dp,
         footerPaddingHorizontal = footerHorizontalPadding,
@@ -930,7 +983,8 @@ private fun GeminiCatchCard(
                             this[GeminiHomeTextLineRanges] = speciesLineRanges.value
                             this[GeminiHomeRenderedFontSizeSp] = speciesSize.value
                         }
-                        .testTag("gemini-home-catch-species-${item.id}"),
+                        .testTag("gemini-home-catch-species-${item.id}")
+                        .captureGeminiHomeBounds("gemini-home-catch-species-${item.id}"),
                 )
                 if (measurements.isNotBlank()) {
                     Text(
@@ -957,7 +1011,8 @@ private fun GeminiCatchCard(
                                 this[GeminiHomeTextLineRanges] = measurementLineRanges.value
                                 this[GeminiHomeRenderedFontSizeSp] = measurementSize.value
                         }
-                            .testTag("gemini-home-catch-measurement-${item.id}"),
+                            .testTag("gemini-home-catch-measurement-${item.id}")
+                            .captureGeminiHomeBounds("gemini-home-catch-measurement-${item.id}"),
                     )
                 }
                 if (metadata.isNotBlank()) {
@@ -987,17 +1042,20 @@ private fun GeminiCatchCard(
                                 this[GeminiHomeTextLastLineCharacterCount] = metadataLastLineCharacterCount.value
                                 this[GeminiHomeTextLineRanges] = metadataLineRanges.value
                             }
-                            .testTag("gemini-home-catch-metadata-${item.id}"),
+                            .testTag("gemini-home-catch-metadata-${item.id}")
+                            .captureGeminiHomeBounds("gemini-home-catch-metadata-${item.id}"),
                     )
                 }
             }
         },
         media = {
-            Box(Modifier.fillMaxSize()) {
+            Box(Modifier.fillMaxSize().testTag("gemini-home-catch-media-${item.id}")
+                .captureGeminiHomeBounds("gemini-home-catch-media-${item.id}")
+                .semantics { this[GeminiHomeImageLoadStatus] = imageLoadStatus.value }) {
                 RemoteImage(
                     url = imageUrl,
                     authToken = accessToken,
-                    modifier = Modifier.fillMaxSize().testTag("gemini-home-catch-media-${item.id}"),
+                    modifier = Modifier.fillMaxSize(),
                     contentDescription = "${presentationSpeciesName(item.speciesName)} 鱼获照片",
                     onLoadResult = { loaded -> imageLoadStatus.value = if (loaded) "READY" else "FALLBACK" },
                     smartFishPhoto = true,
@@ -1007,7 +1065,8 @@ private fun GeminiCatchCard(
                             Modifier.fillMaxSize()
                                 .background(Color(0xFF294858).copy(alpha = 0.50f))
                                 .semantics { this[GeminiHomeImageLoadStatus] = imageLoadStatus.value }
-                                .testTag("gemini-home-catch-image-placeholder-${item.id}"),
+                                .testTag("gemini-home-catch-image-placeholder-${item.id}")
+                                .captureGeminiHomeBounds("gemini-home-catch-image-placeholder-${item.id}"),
                         )
                     },
                 )
@@ -1053,6 +1112,7 @@ private fun GeminiFooterSection(
     val ctaLineRanges = remember(labelSize) { mutableStateOf("") }
     Column(
         modifier = modifier.testTag("gemini-home-footer-cta")
+            .captureGeminiHomeBounds("gemini-home-footer-cta")
             .padding(horizontal = horizontalInset)
             .padding(top = topPadding, bottom = verticalPadding),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -1084,13 +1144,15 @@ private fun GeminiFooterSection(
                         this[GeminiHomeTextLineCount] = ctaLineCount.value
                         this[GeminiHomeTextLineRanges] = ctaLineRanges.value
                     }
-                    .testTag("gemini-home-cta-label"),
+                    .testTag("gemini-home-cta-label")
+                    .captureGeminiHomeBounds("gemini-home-cta-label"),
             )
         }
         if (runtimeAssets != null) {
             HomeCameraButton(
                 onClick = onIdentify,
-                modifier = Modifier.testTag("gemini-home-camera"),
+                modifier = Modifier.testTag("gemini-home-camera")
+                    .captureGeminiHomeBounds("gemini-home-camera"),
                 motionState = motionState,
                 runtimeAssets = runtimeAssets,
                 visualSize = cameraVisualSize,
@@ -1106,13 +1168,15 @@ private fun GeminiFooterSection(
                         role = Role.Button
                     }
                     .clickable(role = Role.Button, onClick = onIdentify)
-                    .testTag("gemini-home-camera"),
+                    .testTag("gemini-home-camera")
+                    .captureGeminiHomeBounds("gemini-home-camera"),
                 contentAlignment = Alignment.Center,
             ) {
                 Image(
                     painter = painterResource(R.drawable.normal_home_camera_primary_v1),
                     contentDescription = null,
-                    modifier = Modifier.size(cameraVisualSize).testTag("gemini-home-camera-art"),
+                    modifier = Modifier.size(cameraVisualSize).testTag("gemini-home-camera-art")
+                        .captureGeminiHomeBounds("gemini-home-camera-art"),
                     contentScale = ContentScale.Fit,
                 )
             }
