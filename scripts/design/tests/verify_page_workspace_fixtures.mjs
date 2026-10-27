@@ -14,7 +14,7 @@ function shellHtml({ page = pageId, source = sourceSha, node = true, throwing = 
   const rendered = node ? `<div data-workspace-rendered-node="empty-scene" style="width:120px;height:80px">scene</div>` : "";
   return `<!doctype html><html><head><meta charset="utf-8"></head><body>
     <main data-page-workspace-root data-page-id="${page}" data-source-sha="${source}" data-workspace-kind="${kind}">
-      ${tree}${rendered}<aside data-workspace-inspector data-selected-node-id=""></aside>
+      ${tree}${rendered}<aside data-workspace-inspector data-selected-node-id="">Inspector</aside>
     </main>
     <script>
       document.querySelector('[data-workspace-tree-node]').addEventListener('click', () => {
