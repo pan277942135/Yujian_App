@@ -9,18 +9,28 @@ const sourceSha = "42ad0d3fef23ea6576fd43dee781d253dcc11251";
 const pageId = "home_empty_v2";
 const verifier = resolve("scripts/design/verify_page_workspace.mjs");
 
-function shellHtml({ page = pageId, source = sourceSha, node = true, throwing = false, kind = "structured-page-adapter", disabled = false } = {}) {
+function shellHtml({ page = pageId, source = sourceSha, node = true, throwing = false, kind = "structured-page-adapter", disabled = false, viewState = "READY", errorText = null, badResource = false } = {}) {
   const tree = `<button data-workspace-tree-node data-node-id="empty-scene" ${disabled ? "disabled" : ""}>Empty scene</button>`;
   const rendered = node ? `<div data-workspace-rendered-node="empty-scene" style="width:120px;height:80px">scene</div>` : "";
   return `<!doctype html><html><head><meta charset="utf-8"></head><body>
-    <main data-page-workspace-root data-page-id="${page}" data-source-sha="${source}" data-workspace-kind="${kind}">
+    <main data-page-workspace-root data-page-id="${page}" data-source-sha="${source}" data-workspace-kind="${kind}" data-view-state="${viewState}">
       ${tree}${rendered}<aside data-workspace-inspector data-selected-node-id="">Inspector</aside>
+      ${errorText ? `<p data-workspace-error role="alert">${errorText}</p>` : ""}
     </main>
     <script>
       document.querySelector('[data-workspace-tree-node]').addEventListener('click', () => {
         document.querySelector('[data-workspace-inspector]').dataset.selectedNodeId = 'empty-scene';
       });
       ${throwing ? "throw new Error('fixture page error');" : ""}
+      ${badResource ? `fetch('/broken-workspace-resource.png').then(response => {
+        const workspace = document.querySelector('[data-page-workspace-root]');
+        workspace.dataset.viewState = 'ERROR';
+        const error = document.createElement('p');
+        error.dataset.workspaceError = '';
+        error.setAttribute('role', 'alert');
+        error.textContent = 'authority resource HTTP ' + response.status;
+        workspace.append(error);
+      });` : ""}
     </script>
   </body></html>`;
 }
@@ -50,7 +60,9 @@ async function main() {
     }
     const html = fixture === "wrong-page" ? shellHtml({ page: "auth_login_v2" })
       : fixture === "missing-layer" ? shellHtml({ node: false })
-      : fixture === "reference-only" ? shellHtml({ kind: "reference-image-only" })
+      : fixture === "reference-only" ? shellHtml({ kind: "reference-image-only", viewState: "REFERENCE_IMAGE_ONLY" })
+      : fixture === "reference-only-error" ? shellHtml({ kind: "reference-image-only", viewState: "ERROR", errorText: "authority load failed", throwing: true })
+      : fixture === "reference-only-bad-response" ? shellHtml({ kind: "reference-image-only", viewState: "LOADING", badResource: true })
       : fixture === "disabled-node" ? shellHtml({ disabled: true })
       : fixture === "page-error" ? shellHtml({ throwing: true })
       : shellHtml();
@@ -91,12 +103,20 @@ async function main() {
       || referenceOnlyReport.page_acceptance !== "NOT_VERIFIED") {
       throw new Error(`core tools must preserve reference-only page status as NOT_RUN; report=${JSON.stringify(referenceOnlyReport)}`);
     }
+    for (const fixture of ["reference-only-error", "reference-only-bad-response"]) {
+      const outputDir = join(root, fixture);
+      const code = await runVerifier(serverUrl, fixture, outputDir, "not-run");
+      const report = JSON.parse(await readFile(join(outputDir, "workspace-browser-report.json"), "utf8"));
+      if (report.result !== "FAIL" || code === 0) {
+        throw new Error(`${fixture}: broken reference-only authority must not be masked as NOT_RUN; report=${JSON.stringify(report)}`);
+      }
+    }
     if (infrastructureBlocked) {
       console.error("PAGE_WORKSPACE_VERIFIER_FIXTURES=BLOCKED_INFRA browser launch unavailable");
       process.exitCode = 2;
       return;
     }
-    console.log("PAGE_WORKSPACE_VERIFIER_FIXTURES=PASS cases=8 reference_only=NOT_RUN");
+    console.log("PAGE_WORKSPACE_VERIFIER_FIXTURES=PASS cases=10 reference_only=NOT_RUN reference_only_errors=FAIL");
   } finally {
     await new Promise(resolvePromise => browser.close(resolvePromise));
     await rm(root, { recursive: true, force: true });

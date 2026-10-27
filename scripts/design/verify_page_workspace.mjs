@@ -67,17 +67,32 @@ async function main() {
     const route = managerRoute(args.candidateUrl, args.pageId);
     await page.goto(route, { waitUntil: "domcontentloaded", timeout: 45000 });
     await page.locator("[data-page-workspace-root]").waitFor({ state: "visible", timeout: args.readinessTimeoutMs });
+    await page.waitForFunction(() => {
+      const node = document.querySelector("[data-page-workspace-root]");
+      if (!node) return false;
+      if (node.dataset.workspaceKind !== "reference-image-only") return Boolean(node.dataset.workspaceKind);
+      return ["REFERENCE_IMAGE_ONLY", "ERROR"].includes(node.dataset.viewState);
+    }, null, { timeout: args.readinessTimeoutMs });
     const rootInfo = await page.locator("[data-page-workspace-root]").evaluate(node => ({
       pageId: node.dataset.pageId || null,
       sourceSha: node.dataset.sourceSha || node.dataset.buildSha || null,
       workspaceKind: node.dataset.workspaceKind || null,
       viewState: node.dataset.viewState || null,
+      errorText: (() => {
+        const error = node.querySelector("[data-workspace-error]");
+        return error && !error.hidden ? error.textContent?.trim() || "WORKSPACE_ERROR" : null;
+      })(),
       rect: (() => { const r = node.getBoundingClientRect(); return { x: r.x, y: r.y, width: r.width, height: r.height }; })()
     }));
     assert(rootInfo.pageId === args.pageId, `workspace page_id mismatch: expected ${args.pageId}, got ${rootInfo.pageId}`);
     assert(rootInfo.sourceSha === args.sourceSha, `workspace source/build SHA mismatch: expected ${args.sourceSha}, got ${rootInfo.sourceSha}`);
     assert(rootInfo.workspaceKind, "workspace is missing its adapter/rendering kind marker");
     if (rootInfo.workspaceKind === "reference-image-only" && args.unconnectedPolicy === "not-run") {
+      assert(rootInfo.viewState === "REFERENCE_IMAGE_ONLY", `reference-only workspace is not ready: ${rootInfo.viewState || "missing state"}`);
+      assert(!rootInfo.errorText, `reference-only workspace reports an authority/render error: ${rootInfo.errorText}`);
+      assert(errors.length === 0, `reference-only workspace emitted browser console errors: ${errors.join(" | ")}`);
+      assert(failedRequests.length === 0, `reference-only workspace has failed requests: ${failedRequests.join(" | ")}`);
+      assert(badResponses.length === 0, `reference-only workspace has HTTP failures: ${badResponses.join(" | ")}`);
       report = {
         schema_version: "1.0", page_id: args.pageId, source_sha: args.sourceSha, candidate_url: route,
         result: "NOT_RUN", reason: "REFERENCE_IMAGE_ONLY_NOT_CONNECTED",
