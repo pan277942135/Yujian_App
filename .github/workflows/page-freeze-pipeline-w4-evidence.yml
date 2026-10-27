@@ -4,8 +4,6 @@ on:
   push:
     branches:
       - main
-      - "work/w4-*"
-      - "work/w3-w4-integration-*"
     paths:
       - "design/**"
       - "scripts/design/**"
