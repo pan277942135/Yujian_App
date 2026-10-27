@@ -32,6 +32,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -80,6 +81,7 @@ import com.yujian.ai.presentation.sanitizeOptionalText
 import com.yujian.ai.ui.adaptive.SafeDrawingInsetsDp
 import com.yujian.ai.ui.components.AssetImage
 import com.yujian.ai.ui.components.RemoteImage
+import com.yujian.ai.ui.components.RemoteImageRuntimeProbe
 import com.yujian.ai.ui.designsystem.color.YuJianColors
 import com.yujian.ai.ui.designsystem.components.YuJianHeroCard
 import com.yujian.ai.ui.designsystem.components.YuJianHeroDecoration
@@ -593,6 +595,11 @@ private fun GeminiMiddleSection(
         val groupHeight = leadingGap + headerHeight + headerGap + cardHeight + trailingGap
         val needsScroll = groupHeight > maxHeight
         val scrollState = rememberScrollState()
+        SideEffect {
+            GeminiHomeGeometryProbe.recordScrollState(
+                GeminiHomeGeometryProbe.ScrollState(scrollState.value, scrollState.maxValue),
+            )
+        }
         val contentModifier = if (needsScroll) {
             Modifier.fillMaxWidth().heightIn(min = maxHeight).verticalScroll(scrollState)
                 .semantics {
@@ -624,6 +631,7 @@ private fun GeminiMiddleSection(
             if (records.isEmpty()) {
                 Box(
                     modifier = Modifier.fillMaxWidth().height(cardHeight)
+                        .captureGeminiHomeBounds("gemini-home-empty-carousel")
                         .semantics {
                             collectionInfo = CollectionInfo(rowCount = 1, columnCount = 0)
                             stateDescription = "暂无鱼获，0 条记录"
@@ -767,6 +775,21 @@ private fun GeminiCatchCarousel(
     val contentInset = ((trackWidth - cardWidth) / 2).coerceAtLeast(0.dp)
 
     val activeId = records.getOrNull(pagerState.currentPage)?.id
+    SideEffect {
+        GeminiHomeGeometryProbe.recordPagerState(
+            GeminiHomeGeometryProbe.PagerState(
+                currentPage = pagerState.currentPage,
+                targetPage = pagerState.targetPage,
+                settledPage = pagerState.settledPage,
+                isScrollInProgress = pagerState.isScrollInProgress,
+                offsetFraction = pagerState.currentPageOffsetFraction,
+                currentId = activeId,
+                leftId = records.getOrNull(pagerState.currentPage - 1)?.id,
+                rightId = records.getOrNull(pagerState.currentPage + 1)?.id,
+                pageCount = pageCount,
+            ),
+        )
+    }
     Box(
         modifier = modifier.semantics {
             collectionInfo = CollectionInfo(rowCount = 1, columnCount = pageCount)
@@ -862,6 +885,7 @@ private fun GeminiCatchCard(
     val textGap = clampDp(safeHeight.value * 0.006f, 2f, 5f)
     val currentFontScale = LocalDensity.current.fontScale
     val imageLoadStatus = remember(item.id, imageUrl) { mutableStateOf("LOADING") }
+    SideEffect { RemoteImageRuntimeProbe.recordLoadStatus(item.id, imageLoadStatus.value) }
     val allowAuxiliaryWrapping = geminiHomeShouldWrapAuxiliaryText(
         cardWidthDp = cardWidth.value,
         fontScale = currentFontScale,
@@ -1057,7 +1081,11 @@ private fun GeminiCatchCard(
                     authToken = accessToken,
                     modifier = Modifier.fillMaxSize(),
                     contentDescription = "${presentationSpeciesName(item.speciesName)} 鱼获照片",
-                    onLoadResult = { loaded -> imageLoadStatus.value = if (loaded) "READY" else "FALLBACK" },
+                    onLoadResult = { loaded ->
+                        val status = if (loaded) "READY" else "FALLBACK"
+                        imageLoadStatus.value = status
+                        RemoteImageRuntimeProbe.recordLoadStatus(item.id, status)
+                    },
                     smartFishPhoto = true,
                     fishPhotoSourceVersion = item.id,
                     placeholder = {

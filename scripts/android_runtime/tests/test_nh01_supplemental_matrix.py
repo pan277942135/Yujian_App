@@ -1,6 +1,9 @@
 from __future__ import annotations
 
+import os
+import subprocess
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -40,8 +43,54 @@ class Nh01SupplementalMatrixTest(unittest.TestCase):
         runtime_source = runtime.read_text(encoding="utf-8")
         self.assertIn("run_nh01_adaptive_device_matrix.sh", normal_home_source)
         self.assertIn("NH01_ADAPTIVE_V2_DEVICE_MATRIX_FAILED", normal_home_source)
-        self.assertIn("after_instrumentation_rc=$?", runtime_source)
-        self.assertIn("instrumentation_rc=$after_instrumentation_rc", runtime_source)
+        self.assertIn('instrumentation_rc="$EXIT_FAIL_TEST"', normal_home_source)
+        self.assertIn("if (( instrumentation_rc != EXIT_PASS )); then", runtime_source)
+
+    def test_matrix_failure_survives_diagnostic_only_post_hook(self) -> None:
+        gate = Path(__file__).resolve().parents[1] / "gates" / "normal_home_v1.sh"
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            adb = root / "fake-adb"
+            adb.write_text("#!/usr/bin/env bash\nexit 0\n", encoding="utf-8")
+            adb.chmod(0o755)
+            runtime = root / "runtime"
+            (runtime / "gates").mkdir(parents=True)
+            matrix = runtime / "gates" / "run_nh01_adaptive_device_matrix.sh"
+            matrix.write_text("#!/usr/bin/env bash\nexit \"${NH01_MATRIX_EXIT:-0}\"\n", encoding="utf-8")
+            matrix.chmod(0o755)
+
+            harness = """\
+runtime_set_failure() { :; }
+source "$NORMAL_HOME_GATE"
+instrumentation_rc=0
+gate_after_instrumentation || true
+printf '%s\\n' "$instrumentation_rc"
+"""
+            environment = {
+                **os.environ,
+                "NORMAL_HOME_GATE": str(gate),
+                "YUJIAN_ADB_BIN": str(adb),
+                "YUJIAN_RUNTIME_DIR": str(runtime),
+                "YUJIAN_EVIDENCE_DIR": str(root / "evidence"),
+                "YUJIAN_APP_PACKAGE": "com.yujian.ai",
+                "YUJIAN_INSTRUMENTATION_TARGET": "com.yujian.ai.test/androidx.test.runner.AndroidJUnitRunner",
+                "YUJIAN_BUILD_SHA": "test-sha",
+                "APP_APK": "app-debug.apk",
+                "TEST_APK": "app-debug-androidTest.apk",
+                "EXIT_FAIL_TEST": "30",
+            }
+            passed = subprocess.run(
+                ["bash", "-c", harness], env={**environment, "NH01_MATRIX_EXIT": "0"},
+                check=False, capture_output=True, text=True,
+            )
+            failed = subprocess.run(
+                ["bash", "-c", harness], env={**environment, "NH01_MATRIX_EXIT": "1"},
+                check=False, capture_output=True, text=True,
+            )
+            self.assertEqual(0, passed.returncode, passed.stderr)
+            self.assertEqual("0", passed.stdout.strip().splitlines()[-1])
+            self.assertEqual(0, failed.returncode, failed.stderr)
+            self.assertEqual("30", failed.stdout.strip().splitlines()[-1])
 
     def test_continuity_gate_rejects_a_runtime_discontinuity(self) -> None:
         rows = {}
