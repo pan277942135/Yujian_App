@@ -415,9 +415,14 @@ def validate_illustrative_designation(root: Path, asset: dict[str, Any], authori
 def site_file_index(site_root: Path) -> tuple[dict[str, Path], dict[str, list[str]]]:
     paths: dict[str, Path] = {}
     hashes: dict[str, list[str]] = {}
+    if site_root.is_symlink():
+        raise BindingError(f"PAGES_SYMLINK_NOT_ALLOWED: site root is a symbolic link: {site_root}")
     if not site_root.is_dir():
         raise BindingError(f"published Pages root does not exist: {site_root}")
     for path in site_root.rglob("*"):
+        if path.is_symlink():
+            relative = path.relative_to(site_root).as_posix()
+            raise BindingError(f"PAGES_SYMLINK_NOT_ALLOWED: symbolic link in published Pages bundle: {relative}")
         if not path.is_file():
             continue
         rel = path.relative_to(site_root).as_posix()
@@ -484,7 +489,17 @@ def private_reference_denylist(root: Path) -> tuple[set[str], set[str]]:
 def validate_publication(root: Path, binding: dict[str, Any], authorities: dict[str, dict[str, Any]], site_root: Path) -> tuple[list[str], list[str], dict[str, Any]]:
     errors: list[str] = []
     warnings: list[str] = []
-    site_paths, site_hashes = site_file_index(site_root)
+    try:
+        site_paths, site_hashes = site_file_index(site_root)
+    except BindingError as exc:
+        return [str(exc)], warnings, {
+            "site_root": str(site_root),
+            "file_count": 0,
+            "public_bound_resource_count": 0,
+            "restricted_bound_resource_count": 0,
+            "private_reference_name_count": 0,
+            "private_reference_sha_count": 0,
+        }
     policy = binding.get("publication_policy", {})
     policy_authority = authorities.get(policy.get("authority_id"))
     marker = policy.get("public_scope_marker")
@@ -531,13 +546,14 @@ def validate_publication(root: Path, binding: dict[str, Any], authorities: dict[
             if permission == "NOT_CONFIRMED" and not source_path and not expected_sha:
                 warnings.append(f"PUBLICATION_PERMISSION_NOT_CONFIRMED_WITHOUT_BYTES: {asset.get('asset_id')}")
     denied_names, denied_hashes = private_reference_denylist(root)
-    for rel, path in site_paths.items():
+    for rel in site_paths:
         if Path(rel).name in denied_names:
             errors.append(f"PRIVATE_REFERENCE_NAME_IN_PAGES: {rel}")
-        if path.suffix.lower() in {".png", ".jpg", ".jpeg", ".webp", ".zip"}:
-            digest = sha256_file(path)
-            if digest in denied_hashes:
-                errors.append(f"PRIVATE_REFERENCE_BYTES_IN_PAGES: {rel}")
+    # Hash every published file. A private image or bundle can be renamed or
+    # assigned an unrelated extension, so suffix-based filtering is unsafe.
+    for digest in denied_hashes.intersection(site_hashes):
+        for rel in site_hashes[digest]:
+            errors.append(f"PRIVATE_REFERENCE_BYTES_IN_PAGES: {rel}")
     return errors, warnings, {
         "site_root": str(site_root),
         "file_count": len(site_paths),

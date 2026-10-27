@@ -51,7 +51,7 @@ python3 scripts/design/validate_page_resource_binding.py \
   --report page-resource-binding-report.json
 ```
 
-The Pages workflow runs this gate against the final `_site` directory immediately before `upload-pages-artifact`. Public resources must cite a marker present in the existing Pages workflow. Private, out-of-scope, and unconfirmed resources are checked by path and SHA against the actual site tree; known private reference names and photo hashes are also scanned across the full bundle. The source SHA must match the clean checked-out commit.
+The Pages workflow runs this gate against the final `_site` directory immediately before `upload-pages-artifact`. Public resources must cite a marker present in the existing Pages workflow. Private, out-of-scope, and unconfirmed resources are checked by path and SHA against the actual site tree; known private reference names and photo hashes are scanned across every file in the full bundle regardless of extension. Symbolic links in the published tree fail closed so files cannot be hidden behind linked directories or files. The source SHA must match the clean checked-out commit.
 
 ## Page-owned notes
 

@@ -348,6 +348,43 @@ class PageResourceBindingTests(unittest.TestCase):
         self.assertEqual(report["status"], "FAIL")
         self.assertTrue(any("PRIVATE_REFERENCE_BYTES_IN_PAGES" in error for error in report["errors"]))
 
+    def test_private_reference_bytes_with_unknown_extension_fail_publication_scan(self):
+        content = b"registered private bytes copied into a Pages artifact"
+        private_hash = hashlib.sha256(content).hexdigest()
+        manifest_path = self.root / self.private_manifest_rel
+        manifest_path.write_text(json.dumps({"references": [{
+            "filename": "private-source.bin",
+            "sha256": private_hash,
+            "public_publication_allowed": False,
+        }]}), encoding="utf-8")
+        data = self.read_binding()
+        data["source_authorities"].append(self.source_authority(
+            "private_policy", self.private_manifest_rel, "Private image denylist"
+        ))
+        self.write_binding(data)
+        self.add_site_file("media/renamed-private.bin", content)
+
+        report = self.validate()
+
+        self.assertEqual(report["status"], "FAIL")
+        self.assertTrue(any(
+            "PRIVATE_REFERENCE_BYTES_IN_PAGES: media/renamed-private.bin" in error
+            for error in report["errors"]
+        ), report["errors"])
+
+    def test_symlinked_directory_in_published_bundle_fails_closed(self):
+        outside = self.root / "private-outside"
+        outside.mkdir()
+        (outside / "private-photo.bin").write_bytes(b"private photo bytes")
+        linked_directory = self.site / "assets/private-alias"
+        linked_directory.parent.mkdir(parents=True, exist_ok=True)
+        linked_directory.symlink_to(outside, target_is_directory=True)
+
+        report = self.validate()
+
+        self.assertEqual(report["status"], "FAIL")
+        self.assertTrue(any("PAGES_SYMLINK_NOT_ALLOWED" in error for error in report["errors"]))
+
     def test_missing_public_permission_cannot_publish(self):
         data = self.read_binding()
         data["asset_bindings"][0]["publication_permission"]["state"] = "NOT_CONFIRMED"
