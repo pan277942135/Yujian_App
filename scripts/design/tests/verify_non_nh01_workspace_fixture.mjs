@@ -48,6 +48,7 @@ const server = createServer(async (request, response) => {
 let browser;
 const consoleErrors = [];
 const unexpectedHttpErrors = [];
+const intentionalResourceErrors = [];
 const screenshotPaths = [];
 try {
   await new Promise((resolvePromise, reject) => {
@@ -61,12 +62,16 @@ try {
   browser = await chromium.launch({ headless: true });
   const page = await browser.newPage({ viewport: { width: 1440, height: 1100 }, deviceScaleFactor: 1 });
   page.on("console", message => {
-    if (message.type() === "error" && !message.text().includes("__missing_fixture_resource__.png")) consoleErrors.push(message.text());
+    if (message.type() === "error" && !message.text().startsWith("Failed to load resource:")) consoleErrors.push(message.text());
   });
   page.on("pageerror", error => consoleErrors.push(error.message));
   page.on("response", response => {
-    if (response.status() >= 400 && !new URL(response.url()).pathname.includes("__missing_fixture_resource__.png")) {
-      unexpectedHttpErrors.push(`${response.status()} ${response.url()}`);
+    if (response.status() >= 400) {
+      if (new URL(response.url()).pathname.includes("__missing_fixture_resource__.png")) {
+        intentionalResourceErrors.push(`${response.status()} ${new URL(response.url()).pathname}`);
+      } else {
+        unexpectedHttpErrors.push(`${response.status()} ${response.url()}`);
+      }
     }
   });
 
@@ -212,6 +217,7 @@ try {
 
   assert.deepEqual(consoleErrors, [], `unexpected browser console errors: ${consoleErrors.join(" | ")}`);
   assert.deepEqual(unexpectedHttpErrors, [], `unexpected same-origin HTTP failures: ${unexpectedHttpErrors.join(" | ")}`);
+  assert(intentionalResourceErrors.length > 0, "the fixture must record its explicitly missing resource response");
   const dom = {
     schema_version: "1.0",
     gate_id: "GATE_A_W3_NON_NH01_DOM_FIXTURE",
@@ -225,6 +231,7 @@ try {
     compact_layout: compactLayout,
     font_scale: { before: beforeFontScale, after: afterFontScale },
     resource_state: "ERROR",
+    intentional_resource_http_errors: intentionalResourceErrors,
     missing_component_negative: { result: "EXPECTED_FAIL", reason: missingReason },
     browser_history: "PASS",
     console_errors: consoleErrors,
@@ -252,6 +259,7 @@ try {
     dom_report: { path: "non-nh01-fixture-dom-report.json", sha256: createHash("sha256").update(domBytes).digest("hex") },
     screenshots: screenshotPaths,
     console_errors: consoleErrors,
+    intentional_resource_http_errors: intentionalResourceErrors,
     unexpected_http_errors: unexpectedHttpErrors
   };
   await writeFile(resolve(args.outputDir, "non-nh01-fixture-report.json"), `${JSON.stringify(report, null, 2)}\n`, "utf8");
