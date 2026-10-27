@@ -210,6 +210,31 @@ Runtime、Evidence 和 Work 交接暂不进入当前 Design Manager。
 
 GitHub Pages 仅复制 `design/`。合并到 main 并完成 Pages 部署后，上述规则才会出现在公开 Design Manager 页面。
 
+## Structured Page Workspace Adapter
+
+跨页面工作区入口使用现有 Design Manager 路由：
+
+```text
+#page/{page_id}/hifi/structured_workspace
+```
+
+页面身份从 Experience Registry 解析；W1 Envelope/Profile 路径从 W1 validation matrix 解析；资源身份、SHA、尺寸、MIME 和发布权限从页面自己的 W2 `Page_Resource_Binding_V1.json` 解析。不会创建第二份页面注册表或共享页面视觉素材。
+
+`window.PageWorkspaceAdapters` 提供统一接口：
+
+| 方法 | 输入 | 输出 / 失败语义 |
+|---|---|---|
+| `getRegisteredPage(pageId)` | Registry `page_id` | Experience Registry 页面描述；缺失时 `PAGE_NOT_REGISTERED`。 |
+| `loadAuthority(sourceSha)` | 完整页面构建 SHA | 本页 Envelope、Profile、W2 binding 和视觉资源 descriptor；SHA、身份、来源、权限或字节校验失败时拒绝加载。 |
+| `loadComponentTree()` | 无 | 页面拥有的组件树。NH01 使用已存在的冻结组件树；当前静态视觉引用 Adapter 只登记一个真实图片 DOM 节点，并明确标出未映射的 Profile 组件。 |
+| `renderPreview(viewport, fontScale, state)` | 调用方参数 | 重新渲染页面拥有的预览；不支持或未解析的状态返回明确错误/`NOT_RUN`。 |
+| `measureElements()` | 无 | 从当前 DOM 读取节点 bounds；缺少映射时 `COMPONENT_NODE_NOT_MAPPED`。 |
+| `selectLayer(nodeId)` / `getInspector(nodeId)` | 稳定节点 ID | 选择实际渲染节点并返回 Inspector；未注册、无 DOM 映射或选中不一致时失败。 |
+| `getResponsiveDiagnostics()` | 无 | 当前 Profile、页面布局和 Native Runtime 状态；浏览器检查不提升页面或原生验收状态。 |
+| `dispose()` | 无 | 终止当前页面请求、移除页面事件监听器并释放预览 URL。 |
+
+NH01 继续通过原有 `multi_screen_static_hifi` 入口使用自己的冻结合同、组件树和资源；原有直接 Hash 保持有效。Empty Home 与 Login 从各自 W2 视觉权威创建只读参考图 Adapter。参考图的子组件 DOM、Login 输入/键盘行为及未机器化状态不会由像素反推；这些检查保持 `NOT_RUN` / `NOT_VERIFIED`，不代表页面正式验收。
+
 ## NH07 高清母图
 
 「有数据首页」→「NH07 · 头像状态」现提供已 SHA-256 校验的 **1254×1254 原始 RGBA PNG** 预览：点击可在 Design Manager 中放大，Esc / 关闭按钮返回；原图链接保留原始分辨率。该资产是 Design Source，不改 Android 运行时资源。请以 `design/pages/home/normal_home/07_avatar_states/assets/avatar_asset_manifest_v1.json` 的 SHA 为准。
