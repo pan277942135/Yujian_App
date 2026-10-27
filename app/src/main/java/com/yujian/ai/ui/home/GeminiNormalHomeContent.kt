@@ -719,7 +719,7 @@ private fun GeminiCatchCarousel(
     val hasNeighborPages = pageCount > 1
     val pagerState = rememberPagerState(initialPage = 0, pageCount = { pageCount })
     val trackWidth = safeWidth.coerceAtMost(560.dp)
-    val pageSpacing = clampDp(trackWidth.value * 0.032f, 10f, 16f)
+    val pageSpacing = clampDp(trackWidth.value * 0.025f, 8f, 12f)
     val neighborWidth = (if (layoutVariant == GeminiHomeLayoutVariant.ADAPTIVE_V2) {
         geminiHomeNeighborWidthAdaptiveV2(trackWidth.value, cardWidth.value, pageSpacing.value)
     } else {

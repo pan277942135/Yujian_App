@@ -436,7 +436,7 @@ class GeminiHomeDeviceMatrixTest {
         val neighborWidthFraction = neighborCard.width() / activeCardLayoutWidthDp
         val neighborOverlapDp = maxOf(0f, activeCard.right - neighborCard.left)
         val targetPeekWidthDp = (track.width() * 0.05f).coerceIn(12f, 28f)
-        val pageSpacingDp = (track.width() * 0.032f).coerceIn(10f, 16f)
+        val pageSpacingDp = (track.width() * 0.025f).coerceIn(8f, 12f)
         val widthForTargetEdgePeek = 2f * targetPeekWidthDp + 2f * pageSpacingDp +
             2f * activeCardLayoutWidthDp - track.width()
         val minimumWidthToTouchEdge = (track.width() - 2f * activeCardLayoutWidthDp - 2f * pageSpacingDp).coerceAtLeast(0f)
