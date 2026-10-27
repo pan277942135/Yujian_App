@@ -5,7 +5,7 @@ project:
   repository: pan277942135/Yujian_App
   scope: NH01 frozen responsive V2 Android implementation and runtime acceptance
 state_control:
-  execution_baseline_sha: 387c91f445407b148f4de29c7644662da3dea161
+  execution_baseline_sha: 63401a62bd26132462df2fd9752ae9011353042b
   current_branch: feature/nh01-responsive-v2-android-runtime-v1
   current_pr: 226
   base_branch: main
@@ -92,7 +92,7 @@ runtime_gates:
     pr_remote_head_before_push: 58bb84a088ad864d6901216cefccd3aa7488365f
     pr_state: OPEN_DRAFT_UNMERGED
   exact_head:
-    sha: 387c91f445407b148f4de29c7644662da3dea161
+    sha: 63401a62bd26132462df2fd9752ae9011353042b
     status: NOT_RUN
     note: Targeted geometry, scroll reconstruction, image state and Pager stability
       instrumentation committed. Static source audit passed; exact-SHA Android build/runtime
@@ -113,11 +113,11 @@ current_work:
   id: YUJIAN_NH01_FROZEN_CONTRACT_ANDROID_RUNTIME_GEOMETRY_RECONCILIATION_V1
   phase: P6
   task_id: YUJIAN_NH01_RESPONSIVE_V2_ANDROID_IMPLEMENTATION_AND_RUNTIME_ACCEPTANCE_V1
-  exact_head: 387c91f445407b148f4de29c7644662da3dea161
+  exact_head: 63401a62bd26132462df2fd9752ae9011353042b
   status: RUNNING
-  stage: E3_ADMISSION_PASS_PR_PUSH
+  stage: E5_GITHUB_REF_UPDATE_AND_CI_PENDING
   source_changes:
-    static_audit: "PASS, 33 checks at 387c91f445407b148f4de29c7644662da3dea161"
+    static_audit: "PASS, 33 checks at 63401a62bd26132462df2fd9752ae9011353042b"
     android_build: NOT_RUN_LOCAL_NO_GRADLE_WRAPPER_OR_INSTALLED_GRADLE
     runtime: NOT_RUN_ON_EXACT_HEAD
     measurement: "Full and clipped Compose bounds are now distinct; scroll offset reconstruction and stable Pager/image state assertions added."
@@ -158,11 +158,11 @@ next_actions:
 - id: NH01-PUSH-PR226
   owner: Work
   status: READY
-  action: Push the admitted branch by normal fast-forward to existing PR #226 and inspect the exact-SHA Android checks.
+  action: Advance existing PR #226 from the verified old head by normal fast-forward to the Main-merge checkpoint.
 - id: NH01-REPAIR-TEST-HARNESS
   owner: Work
   status: BLOCKED
-  action: Inspect exact-SHA native geometry/runtime results and classify M01 feasibility without changing frozen constraints.
+  action: After the ref update, inspect exact-SHA native geometry/runtime results and classify M01 feasibility without changing frozen constraints.
 - id: NH01-BUILD-APK
   owner: Work
   status: BLOCKED
@@ -175,9 +175,11 @@ completion_rules:
   explicit.
 state_update:
   protocol: harness/STATE_UPDATE_PROTOCOL.md
-  checkpoint_updated_at: '2026-10-27T07:11:58+00:00'
+  checkpoint_updated_at: '2026-10-27T07:20:07.589Z'
 agent_recovery:
   resume_from: WORK_EXECUTION_STATE.json
   task_id: YUJIAN_NH01_FROZEN_CONTRACT_ANDROID_RUNTIME_GEOMETRY_RECONCILIATION_V1
   execution_branch: feature/nh01-responsive-v2-android-runtime-v1
-  last_recorded_source_sha: 387c91f445407b148f4de29c7644662da3dea161
+  last_recorded_source_sha: 63401a62bd26132462df2fd9752ae9011353042b
+
+# GitHub-side object checkpoint: merge commit 63401a62bd26132462df2fd9752ae9011353042b points to the locally verified content tree 6a6fd40a40c0bd3e3b7592bd827a20d385080909; branch-ref update is pending.

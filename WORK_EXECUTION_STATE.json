@@ -7,7 +7,7 @@
     "NH01-API28-ASYNC-WAITS"
   ],
   "branch": "feature/nh01-responsive-v2-android-runtime-v1",
-  "checkpoint_updated_at": "2026-10-27T07:14:53+00:00",
+  "checkpoint_updated_at": "2026-10-27T07:20:07.589Z",
   "control_plane_revision": "42ad0d3fef23ea6576fd43dee781d253dcc11251",
   "dependencies": [
     "NH01-RESPONSIVE-PREVIEW-V2"
@@ -36,8 +36,8 @@
     },
     "source_baseline_after_sync": "bbb7c85847f02f38c834f494169bc9ddcb5b49f3",
     "current_source_checkpoint": {
-      "source_sha": "387c91f445407b148f4de29c7644662da3dea161",
-      "commit": "387c91f445407b148f4de29c7644662da3dea161",
+      "source_sha": "63401a62bd26132462df2fd9752ae9011353042b",
+      "commit": "63401a62bd26132462df2fd9752ae9011353042b",
       "changes": [
         "added test-only unclipped and clipped LayoutCoordinates bounds capture",
         "separated layout, visible and Semantics touch bounds",
@@ -107,12 +107,12 @@
     },
     "schema_version": "1.0"
   },
-  "next_action": "Push the admitted branch by normal fast-forward to existing PR #226 and inspect exact-SHA build, lint, unit-test and API28 runtime results.",
+  "next_action": "Advance the existing PR #226 branch by a normal fast-forward to the Main-merge checkpoint, then verify exact-SHA GitHub Admission, Android build and runtime results.",
   "phase": "P6",
   "repository": "pan277942135/Yujian_App",
   "schema_version": "1.0",
-  "source_sha": "387c91f445407b148f4de29c7644662da3dea161",
-  "stage": "E3_ADMISSION_PASS_PR_PUSH",
+  "source_sha": "63401a62bd26132462df2fd9752ae9011353042b",
+  "stage": "E5_GITHUB_REF_UPDATE_AND_CI_PENDING",
   "status": "RUNNING",
   "task_id": "YUJIAN_NH01_RESPONSIVE_V2_ANDROID_IMPLEMENTATION_AND_RUNTIME_ACCEPTANCE_V1",
   "work_id": "YUJIAN_NH01_FROZEN_CONTRACT_ANDROID_RUNTIME_GEOMETRY_RECONCILIATION_V1"
