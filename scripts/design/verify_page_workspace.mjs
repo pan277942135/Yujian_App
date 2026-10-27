@@ -103,6 +103,8 @@ async function main() {
       };
     } else {
     assert(rootInfo.workspaceKind !== "reference-image-only", "workspace exposes only a reference raster; page component DOM mapping is unavailable");
+    assert(rootInfo.viewState !== "ERROR", "structured workspace reports an ERROR state");
+    assert(!rootInfo.errorText, `structured workspace reports a visible error: ${rootInfo.errorText}`);
 
     const nodes = await page.locator("[data-workspace-tree-node]").evaluateAll(elements => elements.map(node => ({
       nodeId: node.dataset.nodeId || node.dataset.workspaceNodeId || null,
