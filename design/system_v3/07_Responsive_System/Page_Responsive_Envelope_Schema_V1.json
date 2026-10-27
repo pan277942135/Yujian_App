@@ -1,0 +1,219 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/pan277942135/Yujian_App/blob/main/design/system_v3/07_Responsive_System/Page_Responsive_Envelope_Schema_V1.json",
+  "title": "YuJian Page Responsive Contract Envelope V1",
+  "description": "Page-neutral identity, authority, input, validation, and evidence bindings. Page layout rules remain in a page-owned conformance profile and its named authorities.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_ref",
+    "schema_version",
+    "contract_id",
+    "contract_version",
+    "status",
+    "page",
+    "authority_refs",
+    "state_scope",
+    "coordinate_space",
+    "safe_area",
+    "viewport_inputs",
+    "conformance_profile_ref",
+    "validator_binding",
+    "resource_binding_refs",
+    "validation_bindings",
+    "acceptance",
+    "evidence_refs"
+  ],
+  "properties": {
+    "schema_ref": {"$ref": "#/$defs/repository_path"},
+    "schema_version": {"const": "1.0"},
+    "contract_id": {"type": "string", "pattern": "^[A-Z][A-Z0-9_-]{2,127}$"},
+    "contract_version": {"type": "string", "pattern": "^[0-9]+\\.[0-9]+(?:\\.[0-9]+)?$"},
+    "status": {"enum": ["DRAFT", "PROPOSED_FOR_CANONICAL_MAIN_REVIEW", "SPEC_FROZEN", "DEPRECATED"]},
+    "page": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["page_id", "route", "owner_path", "implementation_entrypoints"],
+      "properties": {
+        "page_id": {"type": "string", "minLength": 1},
+        "route": {"type": "string", "minLength": 1},
+        "owner_path": {"$ref": "#/$defs/repository_path"},
+        "implementation_entrypoints": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["kind", "path"],
+            "properties": {
+              "kind": {"enum": ["runtime", "preview", "test"]},
+              "path": {"$ref": "#/$defs/repository_path"}
+            }
+          }
+        }
+      }
+    },
+    "authority_refs": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/authority_ref"},
+      "contains": {
+        "type": "object",
+        "properties": {"role": {"const": "PAGE_VISUAL_AUTHORITY"}},
+        "required": ["role"]
+      },
+      "minContains": 1
+    },
+    "state_scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["included_state_refs", "excluded_scope_refs", "status"],
+      "properties": {
+        "included_state_refs": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/authority_binding"}},
+        "excluded_scope_refs": {"type": "array", "items": {"$ref": "#/$defs/authority_binding"}},
+        "status": {"enum": ["DECLARED", "NOT_VERIFIED"]}
+      }
+    },
+    "coordinate_space": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["space_id", "unit", "origin", "transform_owner"],
+      "properties": {
+        "space_id": {"type": "string", "minLength": 1},
+        "unit": {"enum": ["dp", "css_px", "px", "logical_unit", "page_defined"]},
+        "origin": {"enum": ["top_start", "top_left", "page_defined"]},
+        "transform_owner": {"enum": ["page_implementation", "page_adapter", "workspace_preview", "page_defined"]}
+      }
+    },
+    "safe_area": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["policy_ref", "preview_inset_owner", "runtime_inset_owner", "consume_each_inset_once"],
+      "properties": {
+        "policy_ref": {"$ref": "#/$defs/authority_binding"},
+        "preview_inset_owner": {"enum": ["workspace_fixture", "page_adapter", "none", "unverified"]},
+        "runtime_inset_owner": {"enum": ["platform_root", "page_implementation", "none", "unverified"]},
+        "consume_each_inset_once": {"type": "boolean"}
+      }
+    },
+    "viewport_inputs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["width_input", "height_input", "dimension_unit", "font_scale_input", "viewport_authority_ref_id"],
+      "properties": {
+        "width_input": {"type": "string", "minLength": 1},
+        "height_input": {"type": "string", "minLength": 1},
+        "dimension_unit": {"enum": ["dp", "css_px", "px", "logical_unit", "page_defined"]},
+        "font_scale_input": {"type": "string", "minLength": 1},
+        "orientation_input": {"type": ["string", "null"]},
+        "viewport_authority_ref_id": {"type": "string", "minLength": 1}
+      }
+    },
+    "conformance_profile_ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["profile_id", "path", "sha256"],
+      "properties": {
+        "profile_id": {"type": "string", "minLength": 1},
+        "path": {"$ref": "#/$defs/repository_path"},
+        "sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "validator_binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["adapter_id", "adapter_path", "adapter_version"],
+      "properties": {
+        "adapter_id": {"type": "string", "minLength": 1},
+        "adapter_path": {"$ref": "#/$defs/repository_path"},
+        "adapter_version": {"type": "string", "minLength": 1}
+      }
+    },
+    "resource_binding_refs": {
+      "type": "array",
+      "description": "Structural references only. W2 owns resource provenance, asset SHA-256 validation, lifecycle, and publication permission.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["binding_id", "manifest_path", "owner_task", "validation_scope"],
+        "properties": {
+          "binding_id": {"type": "string", "minLength": 1},
+          "manifest_path": {"$ref": "#/$defs/repository_path"},
+          "owner_task": {"const": "W2"},
+          "validation_scope": {"const": "STRUCTURE_ONLY"}
+        }
+      }
+    },
+    "validation_bindings": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["envelope_schema", "profile_schema", "generic_validator", "gate_id"],
+      "properties": {
+        "envelope_schema": {"$ref": "#/$defs/repository_path"},
+        "profile_schema": {"$ref": "#/$defs/repository_path"},
+        "generic_validator": {"$ref": "#/$defs/repository_path"},
+        "gate_id": {"type": "string", "minLength": 1}
+      }
+    },
+    "acceptance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contract", "browser", "native_runtime", "evidence", "assets", "page_state"],
+      "properties": {
+        "contract": {"$ref": "#/$defs/acceptance_status"},
+        "browser": {"$ref": "#/$defs/acceptance_status"},
+        "native_runtime": {"$ref": "#/$defs/acceptance_status"},
+        "evidence": {"$ref": "#/$defs/acceptance_status"},
+        "assets": {"$ref": "#/$defs/acceptance_status"},
+        "page_state": {"$ref": "#/$defs/acceptance_status"}
+      }
+    },
+    "evidence_refs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["evidence_id", "evidence_type", "status"],
+        "properties": {
+          "evidence_id": {"type": "string", "minLength": 1},
+          "evidence_type": {"type": "string", "minLength": 1},
+          "status": {"$ref": "#/$defs/acceptance_status"},
+          "source_sha": {"$ref": "#/$defs/git_sha"},
+          "run_id": {"type": ["string", "null"]},
+          "path": {"$ref": "#/$defs/repository_path"}
+        }
+      }
+    }
+  },
+  "$defs": {
+    "repository_path": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$))(?!.*\\\\).+$"
+    },
+    "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "git_sha": {"type": "string", "pattern": "^[a-f0-9]{40}$"},
+    "acceptance_status": {"enum": ["NOT_STARTED", "NOT_VERIFIED", "PASS", "FAIL", "BLOCKED"]},
+    "authority_ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["authority_ref_id", "role", "path", "sha256"],
+      "properties": {
+        "authority_ref_id": {"type": "string", "minLength": 1},
+        "role": {"enum": ["GLOBAL_STANDARD", "VIEWPORT_INPUT_AUTHORITY", "PAGE_BEHAVIOR", "PAGE_VISUAL_SPEC", "PAGE_VISUAL_AUTHORITY", "RESPONSIVE_NUMERIC_AUTHORITY", "PAGE_IMPLEMENTATION", "OTHER"]},
+        "path": {"$ref": "#/$defs/repository_path"},
+        "sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "authority_binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["authority_ref_id", "locator", "resolution_mode"],
+      "properties": {
+        "authority_ref_id": {"type": "string", "minLength": 1},
+        "locator": {"type": "string", "minLength": 1},
+        "resolution_mode": {"const": "REFERENCE_ONLY"}
+      }
+    }
+  }
+}
