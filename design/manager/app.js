@@ -3853,7 +3853,7 @@ function selectPage(id, scenarioId = null, hifiId = null, hifiChildId = null, wr
   applyPageDetailMode(detailMode);
 }
 
-function openPageStructuredWorkspace(id, routeKey, writeHistory = false) {
+async function openPageStructuredWorkspace(id, routeKey, writeHistory = false) {
   const pageAdapters = window.PageWorkspaceAdapters;
   const feature = pageAdapters?.getRegisteredPage(id);
   if (!feature || !pageAdapters?.supportsPage(id)) return renderInvalidManagerRoute(routeKey);
@@ -3881,16 +3881,36 @@ function openPageStructuredWorkspace(id, routeKey, writeHistory = false) {
   el("hifiViewContractDetails").innerHTML = `<section class="hifi-contract-details"><div class="hifi-contract-heading"><strong>页面专属合同与资源绑定</strong><span>W1 / W2 Authority · page_id ${esc(id)}</span></div><div class="hifi-contract-links"><span>状态</span><b>Profile 与页面验收状态由工作区逐项读取；Native Runtime NOT_VERIFIED。</b></div></section>`;
   el("hifiViewContractDetails").classList.remove("hidden");
   el("hifiViewAuthorities").innerHTML = [feature.design_versions?.find(version => version.current)?.visual_authority,
-    `${feature.owner_path}/Page_Resource_Binding_V1.json`].filter(Boolean).map(path =>
+    `${feature.owner_path}/Page_Resource_Binding_V1.json`,
+    ...(id === "home_empty_v2" ? [
+      "design/pages/home/empty_home/shared/contracts/anchor_contract.json",
+      "design/pages/home/empty_home/shared/contracts/responsive_mapping_contract.json",
+      "design/pages/home/empty_home/shared/contracts/layer_contract.json",
+      "design/manager/empty_home_v22_component_mapping.json"
+    ] : [])].filter(Boolean).map(path =>
       `<a class="authority-row" href="${esc(repoHref(path))}" target="_blank" rel="noreferrer">${esc(path)}</a>`).join("");
   el("hifiViewScenarios").innerHTML = '<span class="preview-empty compact">页面状态 ID 未由机器权威解析 · NOT_RUN</span>';
-  window.PageWorkspaceAdapters.mount(el("hifiViewCanvas"), {
+  const workspaceOptions = {
     pageId: id,
     sourceSha: DESIGN_MANAGER_BUILD,
     feature,
     repoHref,
     fetchImpl: window.fetch.bind(window)
-  }).catch(() => {});
+  };
+  if (id === "home_empty_v2") {
+    el("hifiViewEyebrow").textContent = "EMPTY HOME V2.2 · STRUCTURED HI-FI CANDIDATE";
+    el("hifiViewTitle").textContent = "空首页 · 结构化高保真候选";
+    el("hifiViewSummary").textContent = "页面由 Empty Home 自有 Renderer 生成真实 DOM，继续使用公共 W3 工作区和 W2 资源绑定。V2.2 冻结原图保持只读；视觉验收待产品负责人。";
+    try {
+      const pageOptions = await window.EmptyHomeV22Workspace.createOptions(workspaceOptions);
+      await pageAdapters.mount(el("hifiViewCanvas"), { ...workspaceOptions, ...pageOptions });
+    } catch (error) {
+      const canvas = el("hifiViewCanvas");
+      canvas.innerHTML = `<div class="page-ws-load-error" role="alert"><strong>Empty Home 结构化候选加载失败</strong><code>${esc(error?.message || error)}</code><span>资源、SHA、来源或页面权威未通过时保持 Fail Closed。</span></div>`;
+    }
+    return;
+  }
+  window.PageWorkspaceAdapters.mount(el("hifiViewCanvas"), workspaceOptions).catch(() => {});
 }
 
 function renderInvalidManagerRoute(raw) {

@@ -41,6 +41,38 @@
     return Array.from(new Uint8Array(digest), value => value.toString(16).padStart(2, "0")).join("");
   }
 
+  function safeAuthorityPath(path) {
+    assert(typeof path === "string" && path.length > 0 && !path.startsWith("/") && !path.includes("\\") &&
+      !path.includes(":") && !path.includes("?") && !path.includes("#") &&
+      !path.split("/").some(part => part === ".." || part === "."), `AUTHORITY_PATH_UNSAFE: ${String(path)}`);
+    return path;
+  }
+
+  function pointerValue(value, pointer) {
+    if (pointer === "") return value;
+    assert(typeof pointer === "string" && pointer.startsWith("/"), `AUTHORITY_JSON_POINTER_INVALID: ${String(pointer)}`);
+    return pointer.slice(1).split("/").map(part => part.replace(/~1/g, "/").replace(/~0/g, "~")).reduce((current, part) => {
+      if (Array.isArray(current)) return current[Number(part)];
+      return current && typeof current === "object" ? current[part] : undefined;
+    }, value);
+  }
+
+  function dottedValue(value, path) {
+    if (!path) return value;
+    return path.split(".").reduce((current, part) => current && typeof current === "object" ? current[part] : undefined, value);
+  }
+
+  function sniffMediaType(bytes, path) {
+    const view = new Uint8Array(bytes);
+    const starts = (...prefix) => prefix.every((byte, index) => view[index] === byte);
+    if (starts(0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a)) return "image/png";
+    if (starts(0xff, 0xd8, 0xff)) return "image/jpeg";
+    if (view.length >= 12 && String.fromCharCode(...view.slice(0, 4)) === "RIFF" && String.fromCharCode(...view.slice(8, 12)) === "WEBP") return "image/webp";
+    const head = new TextDecoder().decode(view.slice(0, 512)).trimStart();
+    if (head.startsWith("<svg") || (path.toLowerCase().endsWith(".svg") && head.includes("<svg"))) return "image/svg+xml";
+    return null;
+  }
+
   async function readJson(path, context) {
     const fetched = await responseBytes(path, context);
     let value;
@@ -111,6 +143,8 @@
       page_case: pageCase,
       envelope,
       profile,
+      envelope_sha256: envelopeResult.sha256,
+      profile_sha256: profileResult.sha256,
       binding,
       binding_sha256: bindingResult.sha256,
       visual_asset: asset,
@@ -379,6 +413,9 @@
     const abortController = new AbortController();
     const signal = abortController.signal;
     const listenerDisposers = [];
+    const resourceCache = new Map();
+    const sourceAuthorityCache = new Map();
+    const objectUrls = new Set();
     let authority = null;
     let tree = null;
     let canvas = null;
@@ -459,6 +496,10 @@
           authority_ref: node.authorityRef,
           resource_ref: node.resourceRef,
           resource_status: element.dataset.resourceStatus || node.resourceRef?.status || "NOT_APPLICABLE",
+          resource_lifecycle: element.dataset.assetLifecycle || node.resourceRef?.lifecycle_status || "NOT_APPLICABLE",
+          resource_designation: element.dataset.assetDesignation || node.resourceRef?.asset_designation || "NOT_APPLICABLE",
+          publication_permission: element.dataset.publicationPermission || node.resourceRef?.publication_permission?.state || "NOT_APPLICABLE",
+          resource_sha256: element.dataset.sha256 || node.resourceRef?.sha256 || null,
           layout_rule_ref: node.layoutRuleRef
         };
       });
@@ -469,20 +510,26 @@
       const node = findNode(nodeId);
       assert(node, `COMPONENT_NODE_NOT_FOUND: ${nodeId}`);
       const measured = measureElements().find(row => row.node_id === nodeId);
-      assert(measured, `COMPONENT_NOT_MEASURABLE: ${nodeId}`);
+      assert(measured || !node.measurable, `COMPONENT_NOT_MEASURABLE: ${nodeId}`);
+      const element = renderedElement(node);
+      const style = getComputedStyle(element);
       return {
         page_id: pageId,
         node_id: node.nodeId,
         parent_id: node.parentId,
         component_type: node.componentType,
-        bounds: measured.bounds,
-        expected_bounds: measured.expected_bounds,
-        deviation: measured.deviation,
-        typography: measured.typography,
-        layer: measured.layer,
+        bounds: measured?.bounds || null,
+        expected_bounds: measured?.expected_bounds || node.expectedBounds || null,
+        deviation: measured?.deviation || null,
+        typography: measured?.typography || { font_size: style.fontSize, line_height: style.lineHeight, font_family: style.fontFamily },
+        layer: measured?.layer || { z_index: style.zIndex, transform: style.transform },
         authority_ref: node.authorityRef,
         resource_ref: node.resourceRef,
-        resource_status: measured.resource_status,
+        resource_status: measured?.resource_status || node.resourceRef?.status || "NOT_APPLICABLE",
+        resource_lifecycle: measured?.resource_lifecycle || node.resourceRef?.lifecycle_status || "NOT_APPLICABLE",
+        resource_designation: measured?.resource_designation || node.resourceRef?.asset_designation || "NOT_APPLICABLE",
+        publication_permission: measured?.publication_permission || node.resourceRef?.publication_permission?.state || "NOT_APPLICABLE",
+        resource_sha256: measured?.resource_sha256 || node.resourceRef?.sha256 || null,
         layout_rule_ref: node.layoutRuleRef,
         source_sha: sourceSha,
         profile_status: authority.profile?.status || "UNVERIFIED"
@@ -500,12 +547,14 @@
         "组件 ID": data.node_id,
         "组件类型": data.component_type,
         "父组件": data.parent_id || "ROOT",
-        "实际 DOM 边界": `${data.bounds.x.toFixed(1)}, ${data.bounds.y.toFixed(1)} · ${data.bounds.width.toFixed(1)} × ${data.bounds.height.toFixed(1)} CSS px`,
+        "实际 DOM 边界": data.bounds ? `${data.bounds.x.toFixed(1)}, ${data.bounds.y.toFixed(1)} · ${data.bounds.width.toFixed(1)} × ${data.bounds.height.toFixed(1)} CSS px` : "NOT_MEASURABLE · 当前没有冻结静态几何权威",
         "合同期望边界": data.expected_bounds ? JSON.stringify(data.expected_bounds) : "未登记",
         "偏差": data.deviation ? JSON.stringify(data.deviation) : "不可计算",
         "字体 / 行高": `${data.typography.font_size} / ${data.typography.line_height}`,
         "层级 / Transform": `${data.layer.z_index} / ${data.layer.transform}`,
         "资源状态": data.resource_status,
+        "资源生命周期 / designation": `${data.resource_lifecycle} / ${data.resource_designation}`,
+        "发布权限": data.publication_permission,
         "资源来源": data.resource_ref?.source_path || data.resource_ref?.path || "无",
         "资源 SHA-256": data.resource_ref?.sha256 || "无",
         "合同来源": data.authority_ref?.path || data.authority_ref?.authority_id || "未登记",
@@ -541,6 +590,111 @@
       }
       if (root.firstElementChild) root.firstElementChild.dataset.authorityMode = authorityLoader ? "TEST_FIXTURE_ONLY" : "W1_W2_RESOLVED";
       return authority;
+    }
+
+    async function loadSourceAuthority(authorityId) {
+      requireAuthority();
+      const descriptor = authority.binding?.source_authorities?.find(row => row?.authority_id === authorityId);
+      assert(descriptor, `SOURCE_AUTHORITY_UNKNOWN: ${authorityId}`);
+      if (!sourceAuthorityCache.has(authorityId)) sourceAuthorityCache.set(authorityId, (async () => {
+        const path = safeAuthorityPath(descriptor.path);
+        const fetched = await responseBytes(path, { fetchImpl, repoHref, signal });
+        const actualSha = await sha256(fetched.bytes);
+        assert(actualSha === descriptor.sha256, `SOURCE_AUTHORITY_SHA_MISMATCH: ${path} expected=${descriptor.sha256} actual=${actualSha}`);
+        let value;
+        try { value = JSON.parse(new TextDecoder().decode(fetched.bytes)); }
+        catch (error) { throw new Error(`SOURCE_AUTHORITY_JSON_INVALID: ${path}: ${error.message}`); }
+        return { descriptor, value, bytes: fetched.bytes, sha256: actualSha };
+      })());
+      return sourceAuthorityCache.get(authorityId);
+    }
+
+    async function loadAuthorityDocument(path, expectedSha256 = null) {
+      requireAuthority();
+      const safePath = safeAuthorityPath(path);
+      const pinned = authority.binding?.source_authorities?.find(row => row?.path === safePath);
+      const expected = expectedSha256 || pinned?.sha256;
+      assert(expected && SHA256.test(expected), `SOURCE_AUTHORITY_NOT_PINNED: ${safePath}`);
+      if (pinned) {
+        assert(pinned.sha256 === expected, `AUTHORITY_DOCUMENT_PIN_CONFLICT: ${safePath}`);
+        return (await loadSourceAuthority(pinned.authority_id)).value;
+      }
+      const fetched = await responseBytes(safePath, { fetchImpl, repoHref, signal });
+      const actualSha = await sha256(fetched.bytes);
+      assert(actualSha === expected, `AUTHORITY_DOCUMENT_SHA_MISMATCH: ${safePath} expected=${expected} actual=${actualSha}`);
+      try { return JSON.parse(new TextDecoder().decode(fetched.bytes)); }
+      catch (error) { throw new Error(`AUTHORITY_DOCUMENT_JSON_INVALID: ${safePath}: ${error.message}`); }
+    }
+
+    async function loadBoundResource(assetId) {
+      requireAuthority();
+      assert(typeof assetId === "string" && assetId.length > 0, "RESOURCE_ASSET_ID_MISSING");
+      if (resourceCache.has(assetId)) return resourceCache.get(assetId);
+      const pending = (async () => {
+        const matches = (authority.binding?.asset_bindings || []).filter(row => row?.asset_id === assetId);
+        assert(matches.length === 1, matches.length ? `RESOURCE_BINDING_AMBIGUOUS: ${assetId}` : `RESOURCE_BINDING_MISSING: ${assetId}`);
+        const asset = matches[0];
+        assert(asset.page_id === pageId, `RESOURCE_PAGE_ID_MISMATCH: ${assetId}`);
+        if (!asset.source_path) {
+          if (asset.requiredness === "OPTIONAL" && asset.degradation_policy) return { asset, status: "MISSING", objectUrl: null, reason: asset.missing_reason || "OPTIONAL_RESOURCE_MISSING", degradation: asset.degradation_policy };
+          throw new Error(`REQUIRED_RESOURCE_MISSING: ${assetId}: ${asset.missing_reason || "source path missing"}`);
+        }
+        const permission = asset.publication_permission || {};
+        const policy = authority.binding?.publication_policy || {};
+        assert(permission.state === "PUBLIC_BY_EXISTING_PAGES_RULE", `RESOURCE_PUBLICATION_NOT_AUTHORIZED: ${assetId} state=${permission.state || "NOT_CONFIRMED"}`);
+        assert(permission.authority_id === policy.authority_id, `RESOURCE_PUBLICATION_AUTHORITY_MISMATCH: ${assetId}`);
+        const policyAuthority = await loadSourceAuthority(policy.authority_id);
+        const marker = permission.policy_marker || policy.public_scope_marker;
+        assert(marker && marker === policy.public_scope_marker, `RESOURCE_PUBLICATION_MARKER_MISMATCH: ${assetId}`);
+        const policyText = new TextDecoder().decode(policyAuthority.bytes);
+        assert(policyText.includes(marker), `RESOURCE_PUBLICATION_POLICY_NOT_EXPLICIT: ${assetId}`);
+        for (const source of asset.source_authorities || []) {
+          const sourceAuthority = await loadSourceAuthority(source.authority_id);
+          const record = pointerValue(sourceAuthority.value, source.json_pointer || "");
+          assert(record !== undefined, `RESOURCE_SOURCE_RECORD_MISSING: ${assetId} authority=${source.authority_id}`);
+          for (const [bindingField, sourcePointer] of Object.entries(source.field_map || {})) {
+            const expectedValue = dottedValue(asset, bindingField);
+            const actualValue = pointerValue(record, sourcePointer);
+            assert(expectedValue !== undefined && actualValue === expectedValue,
+              `RESOURCE_SOURCE_FIELD_MISMATCH: ${assetId} field=${bindingField} authority=${source.authority_id}`);
+          }
+        }
+        const path = safeAuthorityPath(asset.source_path);
+        const fetched = await responseBytes(path, { fetchImpl, repoHref, signal });
+        assert(Number.isInteger(asset.bytes) && fetched.bytes.byteLength === asset.bytes,
+          `RESOURCE_BYTE_COUNT_MISMATCH: ${assetId} expected=${asset.bytes} actual=${fetched.bytes.byteLength}`);
+        const actualSha = await sha256(fetched.bytes);
+        assert(SHA256.test(asset.sha256 || "") && actualSha === asset.sha256,
+          `RESOURCE_SHA256_MISMATCH: ${assetId} expected=${asset.sha256 || "UNPINNED"} actual=${actualSha}`);
+        const actualMime = sniffMediaType(fetched.bytes, path);
+        assert(actualMime && actualMime === asset.media_type, `RESOURCE_MEDIA_TYPE_MISMATCH: ${assetId} expected=${asset.media_type} actual=${actualMime || fetched.contentType || "UNKNOWN"}`);
+        assert((fetched.contentType || "").toLowerCase().includes(asset.media_type.toLowerCase()),
+          `RESOURCE_HTTP_MIME_MISMATCH: ${assetId} expected=${asset.media_type} actual=${fetched.contentType || "MISSING"}`);
+        if (asset.lifecycle_status === "MISSING" || asset.lifecycle_status === "NOT_VERIFIED") {
+          throw new Error(`RESOURCE_LIFECYCLE_UNVERIFIED: ${assetId} status=${asset.lifecycle_status}`);
+        }
+        const blobUrl = URL.createObjectURL(new Blob([fetched.bytes], { type: asset.media_type }));
+        objectUrls.add(blobUrl);
+        if (asset.media_type.startsWith("image/")) {
+          const image = new Image();
+          image.src = blobUrl;
+          try { await image.decode(); }
+          catch (error) { throw new Error(`RESOURCE_IMAGE_DECODE_FAILED: ${assetId}: ${error.message}`); }
+          if (asset.pixel_dimensions) assert(image.naturalWidth === asset.pixel_dimensions.width && image.naturalHeight === asset.pixel_dimensions.height,
+            `RESOURCE_DIMENSIONS_MISMATCH: ${assetId} expected=${asset.pixel_dimensions.width}x${asset.pixel_dimensions.height} actual=${image.naturalWidth}x${image.naturalHeight}`);
+        }
+        const status = asset.asset_designation === "ILLUSTRATIVE_ONLY" ? "ILLUSTRATIVE_ONLY" : asset.lifecycle_status;
+        const treeNode = tree?.nodes.find(node => node.resourceRef?.asset_id === assetId);
+        if (treeNode) treeNode.resourceRef = { ...asset, status, verification: { bytes: fetched.bytes.byteLength, sha256: actualSha, media_type: actualMime,
+          pixel_dimensions: asset.pixel_dimensions || null, source_authorities: (asset.source_authorities || []).map(source => source.authority_id),
+          publication_permission: permission.state } };
+        return { asset, status, objectUrl: blobUrl,
+          verified: { bytes: fetched.bytes.byteLength, sha256: actualSha, media_type: actualMime, pixel_dimensions: asset.pixel_dimensions || null,
+            source_authorities: (asset.source_authorities || []).map(source => source.authority_id), publication_permission: permission.state } };
+      })();
+      resourceCache.set(assetId, pending);
+      try { return await pending; }
+      catch (error) { resourceCache.delete(assetId); throw error; }
     }
 
     async function loadComponentTree() {
@@ -585,7 +739,8 @@
       root.querySelector("[data-workspace-height]").value = String(currentViewport.height);
       root.querySelector("[data-workspace-font-scale]").value = String(currentFontScale);
       root.querySelector("[data-workspace-state]").value = currentState;
-      await renderer({ root, canvas, viewport: currentViewport, fontScale: currentFontScale, state: currentState, authority, componentTree: tree.root });
+      await renderer({ root, canvas, viewport: currentViewport, fontScale: currentFontScale, state: currentState, authority,
+        componentTree: tree.root, loadBoundResource, loadAuthorityDocument });
       root.firstElementChild.dataset.workspaceKind = "structured-dom-candidate";
       measureElements();
       if (selectedNodeId) showInspector(selectedNodeId);
@@ -703,10 +858,12 @@
       disposed = true;
       abortController.abort();
       listenerDisposers.splice(0).forEach(disposeListener => disposeListener());
+      objectUrls.forEach(url => URL.revokeObjectURL(url));
+      objectUrls.clear();
       root.replaceChildren();
     }
 
-    return { pageId, sourceSha, root, mount, loadAuthority, loadComponentTree, renderPreview, measureElements,
+    return { pageId, sourceSha, root, mount, loadAuthority, loadAuthorityDocument, loadBoundResource, loadComponentTree, renderPreview, measureElements,
       selectLayer, getInspector, getResourceDiagnostics, getResponsiveDiagnostics, dispose };
   }
 
