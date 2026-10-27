@@ -5,6 +5,7 @@ import shutil
 import sys
 import tempfile
 import unittest
+from contextlib import redirect_stderr, redirect_stdout
 from pathlib import Path
 
 from PIL import Image
@@ -382,6 +383,25 @@ class PageResourceBindingTests(unittest.TestCase):
 
         report = self.validate()
 
+        self.assertEqual(report["status"], "FAIL")
+        self.assertTrue(any("PAGES_SYMLINK_NOT_ALLOWED" in error for error in report["errors"]))
+
+    def test_symlinked_pages_root_fails_closed_through_cli(self):
+        linked_site = Path(self.temp.name) / "site-alias"
+        linked_site.symlink_to(self.site, target_is_directory=True)
+        stdout = io.StringIO()
+        stderr = io.StringIO()
+
+        with redirect_stdout(stdout), redirect_stderr(stderr):
+            exit_code = binding.main([
+                "--root", str(self.root),
+                "--all-pages",
+                "--required-page-id", "test_home",
+                "--site-root", str(linked_site),
+            ])
+
+        report = json.loads(stdout.getvalue())
+        self.assertEqual(exit_code, 1)
         self.assertEqual(report["status"], "FAIL")
         self.assertTrue(any("PAGES_SYMLINK_NOT_ALLOWED" in error for error in report["errors"]))
 

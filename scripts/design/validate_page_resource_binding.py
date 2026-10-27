@@ -805,7 +805,7 @@ def main(argv: list[str] | None = None) -> int:
             result = validate_all(
                 root,
                 tuple(args.required_page_id),
-                args.site_root.resolve() if args.site_root else None,
+                args.site_root.absolute() if args.site_root else None,
                 args.source_sha,
                 args.run_id,
             )
