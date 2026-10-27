@@ -281,9 +281,45 @@ class GeminiHomeDeviceMatrixTest {
             val card = rect("gemini-home-catch-card-nh01-catch-001").toDp(densityProbe.get()!!.density)
             val middleScroll = compose.onAllNodesWithTag("gemini-home-short-screen-scroll", useUnmergedTree = true)
                 .fetchSemanticsNodes().isNotEmpty()
-            if (variant == GeminiHomeLayoutVariant.ADAPTIVE_V2 && profileId == "M01" && expectedFontScale == "1.0") {
-                assertFalse("single-record M01 must not scroll", middleScroll)
-                assertTrue("single-record M01 Hero remains at least 145dp wide", card.width() >= 145f)
+            val exactM01Window = root.width() == 320f && root.height() == 480f && profile.fontScale == 1f
+            val singleDiagnostic = JSONObject().apply {
+                put("schema", "NH01_ADAPTIVE_VISUAL_BALANCE_GEOMETRY_DIAGNOSTIC_V1")
+                put("status", "MEASURED_BEFORE_ASSERTIONS")
+                put("profile_id", profileId)
+                put("layout_variant", variant.name)
+                put("source_commit", sourceSha)
+                put("system_font_scale", profile.fontScale)
+                put("density", densityProbe.get()!!.density)
+                put("window_bounds_dp", root.toJson())
+                put("safe_insets_dp", JSONObject().apply {
+                    put("top", densityProbe.get()!!.insets.top.value)
+                    put("bottom", densityProbe.get()!!.insets.bottom.value)
+                    put("start", densityProbe.get()!!.insets.start.value)
+                    put("end", densityProbe.get()!!.insets.end.value)
+                })
+                put("scenario", scenario)
+                put("data_count", 1)
+                put("metrics", JSONObject().apply {
+                    put("hero_bounds_dp", card.toJson())
+                    put("hero_width_dp", card.width())
+                    put("hero_height_dp", card.height())
+                    put("hero_aspect_ratio", card.width() / card.height())
+                    put("middle_scroll_enabled", middleScroll)
+                })
+                put("contract_evaluation", if (exactM01Window && (middleScroll || card.width() < 145f))
+                    "FAIL_CONSTRAINT/SPEC_CONFLICT" else "MEASURED")
+            }
+            File(output, "$profileId-${variant.name.lowercase(Locale.US)}-geometry-diagnostic.json")
+                .writeText(singleDiagnostic.toString(2) + "\n")
+            val screenshotName = "$profileId-${variant.name.lowercase(Locale.US)}.png"
+            val bitmap = InstrumentationRegistry.getInstrumentation().uiAutomation.takeScreenshot()
+            File(output, screenshotName).outputStream().use { sink ->
+                assertTrue("single-record screenshot must save", bitmap.compress(Bitmap.CompressFormat.PNG, 100, sink))
+            }
+            bitmap.recycle()
+            if (variant == GeminiHomeLayoutVariant.ADAPTIVE_V2 && exactM01Window) {
+                assertFalse("FAIL_CONSTRAINT/SPEC_CONFLICT: exact 320×480dp M01 must not scroll", middleScroll)
+                assertTrue("FAIL_CONSTRAINT/SPEC_CONFLICT: exact 320×480dp M01 Hero requires at least 145dp width; actual=${card.width()} dp", card.width() >= 145f)
             }
             assertTrue("single-record Hero keeps the frozen ratio", abs(card.width() / card.height() - (247f / 293f)) <= 0.01f)
             val avatar = rect("gemini-home-avatar-button").toDp(densityProbe.get()!!.density)
@@ -303,12 +339,6 @@ class GeminiHomeDeviceMatrixTest {
             val displayMetrics = DisplayMetrics()
             @Suppress("DEPRECATION")
             windowManager.defaultDisplay.getRealMetrics(displayMetrics)
-            val screenshotName = "$profileId-${variant.name.lowercase(Locale.US)}.png"
-            val bitmap = InstrumentationRegistry.getInstrumentation().uiAutomation.takeScreenshot()
-            File(output, screenshotName).outputStream().use { sink ->
-                assertTrue("single-record screenshot must save", bitmap.compress(Bitmap.CompressFormat.PNG, 100, sink))
-            }
-            bitmap.recycle()
             val singleReport = JSONObject().apply {
                 put("schema", "NH01_ADAPTIVE_VISUAL_BALANCE_DEVICE_CASE_V1")
                 put("execution_mode", "ANDROID_API28_RUNTIME")
@@ -396,7 +426,7 @@ class GeminiHomeDeviceMatrixTest {
         args.getString("expected_safe_height_dp")?.toFloatOrNull()?.let { expectedSafeHeight ->
             assertEquals("boundary case must land on the requested measured safe height", expectedSafeHeight, safeHeightDp, 0.25f)
         }
-        val exactM01Exception = profileId == "M01" && expectedFontScaleValue == 1f
+        val exactM01Exception = safeWidthDp == 320f && root.height() == 480f && expectedFontScaleValue == 1f
         val layoutSpec = resolveGeminiHomeLayoutSpec(
             safeWidthDp, safeHeightDp, profile.fontScale, variant, exactM01Exception = exactM01Exception,
         )
@@ -457,6 +487,75 @@ class GeminiHomeDeviceMatrixTest {
         }
         val cardWidthCap = if (variant == GeminiHomeLayoutVariant.ADAPTIVE_V1) 360f else 337.2f
         val targetCardWidthDp = minOf(minOf(track.width(), 560f) * cardWidthFraction, cardWidthCap)
+        val middleScrollEnabled = compose.onAllNodesWithTag("gemini-home-short-screen-scroll", useUnmergedTree = true)
+            .fetchSemanticsNodes().isNotEmpty()
+        val diagnosticTextTags = listOf(
+            "gemini-home-catch-species-nh01-catch-001",
+            "gemini-home-catch-measurement-nh01-catch-001",
+            "gemini-home-catch-metadata-nh01-catch-001",
+        )
+        val diagnosticTextLayouts = JSONObject().apply {
+            diagnosticTextTags.forEach { tag ->
+                put(tag, JSONObject().apply {
+                    put("line_count", runCatching { textLineCount(tag) }.getOrNull() ?: JSONObject.NULL)
+                    put("line_ranges", runCatching { textLineRanges(tag) }.getOrNull() ?: JSONObject.NULL)
+                    put("visual_overflow", runCatching { hasVisualOverflow(tag) }.getOrNull() ?: JSONObject.NULL)
+                })
+            }
+        }
+        val geometryDiagnostic = JSONObject().apply {
+            put("schema", "NH01_ADAPTIVE_VISUAL_BALANCE_GEOMETRY_DIAGNOSTIC_V1")
+            put("status", "MEASURED_BEFORE_ASSERTIONS")
+            put("profile_id", profileId)
+            put("layout_variant", variant.name)
+            put("source_commit", args.getString("source_sha") ?: "MISSING_SOURCE_SHA")
+            put("scenario", scenario)
+            put("system_font_scale", profile.fontScale)
+            put("density", profile.density)
+            put("window_bounds_dp", root.toJson())
+            put("safe_insets_dp", JSONObject().apply {
+                put("top", profile.insets.top.value); put("bottom", profile.insets.bottom.value)
+                put("start", profile.insets.start.value); put("end", profile.insets.end.value)
+            })
+            put("data", JSONObject().apply {
+                put("catch_ids", JSONArray(catches.map(RemoteCatch::id)))
+                put("unique_catch_count", catches.map(RemoteCatch::id).toSet().size)
+                put("pager_page_count", catchesState.value.size)
+                put("middle_scroll_enabled", middleScrollEnabled)
+            })
+            put("metrics", JSONObject().apply {
+                put("safe_width_dp", safeWidthDp); put("safe_height_dp", safeHeightDp)
+                put("hA_top_dp", hA); put("hB_middle_dp", hB); put("hC_footer_dp", hC)
+                put("gAB_base_dp", baseGapBefore); put("gBC_base_dp", baseGapAfter)
+                put("gAB_actual_dp", statsToTitleGap); put("gBC_actual_dp", cardToFooterGap)
+                put("surplus_S_dp", contractSurplus); put("expected_S_over_2_dp", expectedEqualGapAddition)
+                put("actual_gAB_increment_dp", actualGapBeforeAddition)
+                put("actual_gBC_increment_dp", actualGapAfterAddition)
+                put("gAB_error_dp", actualGapBeforeAddition - expectedEqualGapAddition)
+                put("gBC_error_dp", actualGapAfterAddition - expectedEqualGapAddition)
+                put("card_bounds_dp", activeCard.toJson())
+                put("card_target_width_dp", targetCardWidthDp)
+                put("card_actual_width_dp", activeCardLayoutWidthDp)
+                put("card_actual_height_dp", activeCardLayoutHeightDp)
+                put("card_aspect_ratio", ratio)
+                put("minimum_readable_card_height_dp", layoutSpec.minReadableCardHeight.value)
+                put("title_bounds_dp", title.toJson())
+                put("stats_bounds_dp", stats.toJson())
+                put("top_bounds_dp", topSection.toJson())
+                put("middle_bounds_dp", middleSection.toJson())
+                put("footer_bounds_dp", footer.toJson())
+                put("hero_neighbor_bounds_dp", neighborCard.toJson())
+                put("text_layouts", diagnosticTextLayouts)
+                put("bounds_in_window_px", boundsPx)
+            })
+            put("contract_evaluation", when {
+                exactM01Exception && (middleScrollEnabled || activeCardLayoutWidthDp < 145f) ->
+                    "FAIL_CONSTRAINT/SPEC_CONFLICT"
+                else -> "MEASURED"
+            })
+        }
+        File(output, "$profileId-${variant.name.lowercase(Locale.US)}-geometry-diagnostic.json")
+            .writeText(geometryDiagnostic.toString(2) + "\n")
 
         assertTrue("card aspect ratio stays within 1% of the frozen 247:293 contract: $ratio",
             abs(ratio / (247f / 293f) - 1f) <= 0.01f)
@@ -497,8 +596,8 @@ class GeminiHomeDeviceMatrixTest {
                 abs(sectionTitleCardGap - layoutSpec.titleToCardGap.value) <= 2f)
         }
         if (variant != GeminiHomeLayoutVariant.V3_BASELINE) {
-            assertTrue("stats-to-title visual gap follows the active layout policy: $statsToTitleGap dp",
-                abs(statsToTitleGap - requireNotNull(layoutSpec.statsToTitleGap).value) <= 2f)
+            assertTrue("stats-to-title visual gap equals its base plus the contract S/2 addition: actual=$statsToTitleGap dp expected=${baseGapBefore + expectedEqualGapAddition} dp",
+                abs(statsToTitleGap - (baseGapBefore + expectedEqualGapAddition)) <= 2f)
             assertTrue("brand-to-stats gap follows the active layout policy: $headerToStatsGap dp",
                 abs(headerToStatsGap - requireNotNull(layoutSpec.brandToStatsGap).value) <= 2f)
             assertTrue("both inter-band gaps receive equal S/2 additions: before=$actualGapBeforeAddition after=$actualGapAfterAddition",
@@ -639,11 +738,10 @@ class GeminiHomeDeviceMatrixTest {
         completeStep("CTA_AND_CATCH_INTERACTIONS_PASSED")
 
         beginStep("VERIFY_CARD_TEXT_ACCESSIBILITY_AND_SCROLL")
-        val hasMiddleScroll = compose.onAllNodesWithTag("gemini-home-short-screen-scroll", useUnmergedTree = true)
-            .fetchSemanticsNodes().isNotEmpty()
-        if (variant == GeminiHomeLayoutVariant.ADAPTIVE_V2 && profileId == "M01" && expectedFontScale == "1.0") {
+        val hasMiddleScroll = middleScrollEnabled
+        if (variant == GeminiHomeLayoutVariant.ADAPTIVE_V2 && exactM01Exception) {
             assertTrue("320×480 at default font scale must fit without middle scrolling", !hasMiddleScroll)
-            assertTrue("320×480 main card must remain readable, width=$activeCardLayoutWidthDp dp",
+            assertTrue("FAIL_CONSTRAINT/SPEC_CONFLICT: exact 320×480dp M01 requires a 145dp Hero width; actual=$activeCardLayoutWidthDp dp",
                 activeCardLayoutWidthDp >= 145f)
             assertTrue("320×480 Hero keeps the 247:293 ratio", abs(ratio / (247f / 293f) - 1f) <= 0.01f)
             val bottomClearance = root.bottom - profile.insets.bottom.value - camera.bottom
