@@ -195,3 +195,5 @@ SH
 }
 
 run_adaptive_matrix_even_when_legacy_suite_fails
+
+python3 "$ROOT_DIR/scripts/android_runtime/tests/test_nh01_supplemental_matrix.py"
