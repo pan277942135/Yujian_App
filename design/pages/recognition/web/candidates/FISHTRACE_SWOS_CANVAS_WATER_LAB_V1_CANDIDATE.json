@@ -414,7 +414,7 @@
         0.83
       ],
       "radial_gradient_opacity_stops": [
-        1.0,
+        1,
         0.92,
         0.72
       ],
@@ -496,7 +496,10 @@
           0.065
         ],
         "placement": "deterministic_spread_group_anchors_with_seeded_local_offsets",
-        "group_cluster_radius_w": [0.025, 0.07],
+        "group_cluster_radius_w": [
+          0.025,
+          0.07
+        ],
         "note": "Group-zone anchors are deterministically spread across each permitted region; members use seeded local offsets within 0.025–0.07 W so the fixed 18 patches form interlocking spatial clusters instead of being maximally separated as stickers. Sampling stays inside the frozen 0.06–0.18 W and 0.018–0.065 W bounds; length/short-axis ratios remain inside 2.4–4.8."
       },
       "direction_distribution": {
@@ -512,17 +515,91 @@
       "face_opacity_profile": {
         "expand_start_ms": 950,
         "expand_end_ms": 1200,
-        "initial_stops": [[0, 0], [0.18, 0.23], [0.38, 0.61], [0.58, 0.86], [0.8, 0.42], [1, 0]],
-        "expanded_stops": [[0, 0], [0.015, 0.92], [0.06, 0.99], [0.5, 1], [0.94, 0.95], [1, 0]],
+        "initial_stops": [
+          [
+            0,
+            0
+          ],
+          [
+            0.18,
+            0.23
+          ],
+          [
+            0.38,
+            0.61
+          ],
+          [
+            0.58,
+            0.86
+          ],
+          [
+            0.8,
+            0.42
+          ],
+          [
+            1,
+            0
+          ]
+        ],
+        "expanded_stops": [
+          [
+            0,
+            0
+          ],
+          [
+            0.015,
+            0.92
+          ],
+          [
+            0.06,
+            0.99
+          ],
+          [
+            0.5,
+            1
+          ],
+          [
+            0.94,
+            0.95
+          ],
+          [
+            1,
+            0
+          ]
+        ],
         "settle_start_ms": 1200,
         "settle_end_ms": 2050,
-        "settled_stops": [[0, 0], [0.16, 0.66], [0.36, 0.94], [0.58, 1], [0.81, 0.78], [1, 0]],
+        "settled_stops": [
+          [
+            0,
+            0
+          ],
+          [
+            0.16,
+            0.66
+          ],
+          [
+            0.36,
+            0.94
+          ],
+          [
+            0.58,
+            1
+          ],
+          [
+            0.81,
+            0.78
+          ],
+          [
+            1,
+            0
+          ]
+        ],
         "note": "Interpolate the cross-face profile from the original P2 field to a broad, three-level P3 field, then settle it continuously back by P5; the patch shape and per-patch alpha cap remain fixed."
       },
       "calibration": {
         "revision": "A_LINE_P3_CLUSTERED_FIELD_CALIBRATION_05",
         "root_cause": "Exact-head Chromium run 40364766919 on 5c888a8f256a4227b97af094b80ef981a5e5607a measured Region A means P1 4.115/255, P2 6.085/255, P3 8.258/255, P4 7.819/255, P5 5.844/255 and P6 0.823/255; P0/P7 and forbidden-zone leakage were zero. The P3/P4 means remained below their minima, and the P3 screenshot read as disconnected patch islands because all 18 patch centers were independently selected by a maximin spread; five group labels only affected later motion and did not create group-local spatial structure.",
-        "change": "Retain the fixed 18 deterministic organic patches, but sample spatially distributed anchors by group and region, then place group members with seeded local offsets inside the configured cluster radius. This gives the existing five groups real spatial structure without adding patches, changing the zones, or altering the timeline and layer multipliers.",
         "change": "Expand the deterministic P3 cross-face profile to a broad three-level interior while retaining zero-alpha edges and the 0.22/0.14 patch caps; interpolate from P3 to the prior lower-coverage profile by P5 so P5 remains subdued. Begin staggered Region A structural retreat at 2250ms, after the P5 keyframe, so P6 reaches the measured tail target and P7 still clears exactly. Keep the fixed photo, polygons, 18 patches, 24 highlights, layer strengths, all keyframe times and 2800ms duration.",
         "preserved": [
           "P0-P7 layer multipliers and all timestamps",
@@ -555,8 +632,14 @@
         0.09
       ],
       "sampling_fraction": {
-        "length": [0.7, 1],
-        "width": [0.7, 1]
+        "length": [
+          0.7,
+          1
+        ],
+        "width": [
+          0.7,
+          1
+        ]
       },
       "segment_width_w": [
         0.003,
@@ -583,7 +666,53 @@
     },
     "photo_content_clip": "A union B union C path; softened inward by edge_fade_width_w; never draw outside active zones.",
     "source_image_dpr": "devicePixelRatio",
-    "no_frame_local_randomness": true
+    "no_frame_local_randomness": true,
+    "p3_static_preview": {
+      "enabled": true,
+      "stage_task_id": "FISHTRACE_SWOS_A_LINE_OPENSOURCE_CANVAS2D_CAUSTIC_P3_V1",
+      "status": "P3_STATIC_ONLY_WAITING_FOR_PRODUCT_OWNER_VISUAL_ACCEPTANCE",
+      "algorithm": "ethanfox_sampleCaustic_canvas2d",
+      "time_ms": 1200,
+      "paused": true,
+      "parameters": {
+        "scale": 1,
+        "intensity": 1,
+        "speed": 0,
+        "color": "#DFFFF5",
+        "tint": "#159B9E",
+        "tintStrength": 0,
+        "maxDpr": 2,
+        "blendMode": "screen",
+        "compute_width": 220
+      },
+      "spatial_gradient": {
+        "coordinate_system": "source_image_normalized_top_left_0_1",
+        "visible_body_start_y": 0.7,
+        "feather_start": 0.54,
+        "feather_end": 0.7,
+        "feather_height": 0.16,
+        "body_height": 0.3,
+        "direction": "bottom_to_top"
+      },
+      "derived_layers": {
+        "ambient_opacity": 0.12,
+        "ambient_blur_fraction_w": 0.014,
+        "caustic_opacity": 0.92,
+        "highlight_opacity": 0.18,
+        "highlight_alpha_threshold": [
+          0.43,
+          0.78
+        ],
+        "highlight_blend_mode": "lighter",
+        "derivation": "all three layers are derived from the same upstream sampleCaustic RGBA field",
+        "calibration": "INITIAL_CANDIDATE_NOT_VISUALLY_APPROVED"
+      },
+      "deferred_animation": {
+        "timeline_source": "existing contract.timeline (P0-P7, 2800 ms), unchanged",
+        "integration_status": "WAITING_FOR_P3_PRODUCT_OWNER_VISUAL_ACCEPTANCE",
+        "legacy_patch_path": "preserved for later comparison; not called in the P3 static render path"
+      }
+    }
   },
   "visual_acceptance": {
     "reference": {
@@ -646,13 +775,16 @@
   },
   "history": {
     "engineering_baseline_v4_sha": "573292c6c6bcace1eaf26a5430de9f1739f332eb",
-    "previous_candidate_v5_sha": "c20cfe7321afb091879aab86db42e76fce1be6b8"
+    "previous_candidate_v5_sha": "c20cfe7321afb091879aab86db42e76fce1be6b8",
+    "p3_static_preview_task": "FISHTRACE_SWOS_A_LINE_OPENSOURCE_CANVAS2D_CAUSTIC_P3_V1",
+    "p3_static_preview_algorithm_commit": "de856eec62819b7c4176366db73b8fd37a1b1455",
+    "p3_static_preview_contract_status": "CANDIDATE_NOT_VISUALLY_APPROVED"
   },
   "acceptance": {
     "primary_roi": "Region A (union of A1 and A2)",
     "region_a_mean_rgb_abs_diff_255_target": {
       "P1": [
-        2.0,
+        2,
         4.5
       ],
       "P2": [
@@ -664,12 +796,12 @@
         14.5
       ],
       "P4": [
-        8.0,
-        12.0
+        8,
+        12
       ],
       "P5": [
         4.5,
-        7.0
+        7
       ],
       "P6": [
         0.4,
@@ -688,5 +820,34 @@
     "repeat_seek_canvas_pixel_hash_equal": true,
     "no_outside_active_field_alpha": true,
     "manual_visual_review_required": true
+  },
+  "stage_one_task_id": "FISHTRACE_SWOS_A_LINE_OPENSOURCE_CANVAS2D_CAUSTIC_P3_V1",
+  "third_party_algorithm": {
+    "name": "water-caustics",
+    "repository": "https://github.com/ethanfox/water-caustics",
+    "upstream_default_branch": "master",
+    "upstream_commit": "de856eec62819b7c4176366db73b8fd37a1b1455",
+    "license": "MIT",
+    "license_file": "design/manager/third_party/water-caustics/LICENSE",
+    "copyright": "Copyright (c) 2026 water-caustics contributors",
+    "source_files": [
+      {
+        "path": "src/caustic-field.ts",
+        "git_blob_sha": "5b5a67298a8631892d5153f134ae3a17a348ec6b",
+        "role": "continuous multi-scale caustic field sampler; adapted sampleCaustic() core"
+      },
+      {
+        "path": "src/canvas2d.ts",
+        "git_blob_sha": "441d39fb0aa8fd3f0960577713b0705c0423e598",
+        "role": "Canvas 2D sampling, transparent pixel buffer and scaled draw method; no WebGL path imported"
+      }
+    ],
+    "local_adaptations": [
+      "Removed TypeScript-only type annotations while preserving the upstream sampleCaustic field equations.",
+      "Evaluated the field into a deterministic 220-pixel-wide transparent Canvas 2D buffer.",
+      "Derived a subdued ambient blur and thresholded highlights from the same continuous field.",
+      "Applied the candidate's bottom-up normalized fade mask; P3 remains static at 1200 ms."
+    ],
+    "attribution_policy": "The continuous caustic field is adapted from the upstream MIT-licensed project; it is not represented as original FishTrace algorithm work."
   }
 }

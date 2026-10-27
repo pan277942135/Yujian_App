@@ -1,5 +1,14 @@
 (() => {
   "use strict";
+  /*
+   * Third-party algorithm adaptation: ethanfox/water-caustics, MIT.
+   * Pinned upstream commit: de856eec62819b7c4176366db73b8fd37a1b1455.
+   * Sources: src/caustic-field.ts (blob 5b5a67298a8631892d5153f134ae3a17a348ec6b); src/canvas2d.ts (blob 441d39fb0aa8fd3f0960577713b0705c0423e598).
+   * Copyright (c) 2026 water-caustics contributors; full license: design/manager/third_party/water-caustics/LICENSE.
+   * This port removes TypeScript-only annotations and evaluates the original continuous sampleCaustic field
+   * into a deterministic Canvas 2D texture. Local additions: same-field ambient/highlight derivations and
+   * the contract-bound bottom-up reveal mask. The P3 preview does not call the preserved patch renderer.
+   */
   const root = document.querySelector('[data-testid="fishtrace-sites-web-workspace"]');
   const lab = document.querySelector('[data-testid="canvas-water-lab"]');
   if (!root || !lab) return;
@@ -90,6 +99,57 @@
   function rgbaWithAlpha(value,alpha) {
     const match=value.match(/rgba?\(\s*([\d.]+)\s*,\s*([\d.]+)\s*,\s*([\d.]+)/i);
     return match ? "rgba("+match[1]+","+match[2]+","+match[3]+","+alpha+")" : value;
+  }
+  function waterCausticRotate(x,y,a) {
+    const c=Math.cos(a),s=Math.sin(a);
+    return [c*x-s*y,s*x+c*y];
+  }
+  function waterCausticOctave(uvx,uvy,t,fi) {
+    let [px,py]=waterCausticRotate(uvx,uvy,0.41+fi*2.39996323);
+    for(let k=0;k<2;k++){
+      const fk=k;
+      const wx=Math.sin(py*(1.17+fi*.19+fk*.13)+px*(.23+fi*.07)+t*(.31+fi*.05)+fi*1.61+fk);
+      const wy=Math.cos(px*(.89+fi*.17+fk*.11)-py*(.29+fi*.09)-t*(.27+fi*.04)+fi*1.13);
+      const amp=.46/(1+fi*.16+fk*.11);
+      px+=wx*amp;py+=wy*amp;
+    }
+    const d1x=1+fi*.21,d1y=.33+fi*.13,d2x=-.51-fi*.11,d2y=1.09+fi*.08;
+    const ridge=Math.sin(px*d1x+py*d1y+t*.09)*Math.sin(px*d2x+py*d2y-t*.07);
+    return .165/(Math.abs(ridge)*5.6+.22);
+  }
+  function waterCausticField(uvx,uvy,t) {
+    const px=uvx+Math.sin(uvy*.37+t*.19)*.42;
+    const py=uvy+Math.cos(uvx*.31-t*.15)*.42;
+    const a=waterCausticOctave(px,py,t,0);
+    const p2=waterCausticRotate(px*1.61803399+1.83,py*1.61803399-1.27,1.17809725);
+    const b=waterCausticOctave(p2[0],p2[1],t*.79,1);
+    const p3=waterCausticRotate(px*2.61803399+2.54,py*2.61803399-.74,1.54809725);
+    const c=waterCausticOctave(p3[0],p3[1],t*.62,2);
+    const acc=Math.max(a*1.12,b*.78)+c*.34;
+    return Math.pow(clamp(acc,0,1.95),1.45);
+  }
+  function waterCausticSmoothstep(edge0,edge1,x) {
+    const t=clamp((x-edge0)/(edge1-edge0),0,1);
+    return t*t*(3-2*t);
+  }
+  function waterCausticRgb(hex) {
+    const raw=hex.replace("#","");
+    return [parseInt(raw.slice(0,2),16)/255,parseInt(raw.slice(2,4),16)/255,parseInt(raw.slice(4,6),16)/255];
+  }
+  function sampleCaustic(fragX,fragY,resX,resY,time,scale,intensity,color,tint,tintStrength) {
+    const denom=Math.max(resY,1);
+    const uvx=((fragX*2-resX)/denom)*1.72*scale;
+    const uvy=((fragY*2-resY)/denom)*1.72*scale;
+    const c=waterCausticField(uvx,uvy,time*.36);
+    const veins=waterCausticSmoothstep(.15,1.08,c);
+    const haze=waterCausticSmoothstep(.03,.78,c)*.3;
+    const glow=(veins*.9+haze)*intensity;
+    const mix=clamp(glow,0,1);
+    const r=tint[0]+(color[0]-tint[0])*mix;
+    const g=tint[1]+(color[1]-tint[1])*mix;
+    const b=tint[2]+(color[2]-tint[2])*mix;
+    const alpha=clamp(tintStrength+glow*(.88-tintStrength*.35),0,1);
+    return [r,g,b,alpha];
   }
   function normalizedPoint(point,rect) {
     return {x:rect.x+point[0]*rect.width,y:rect.y+point[1]*rect.height};
@@ -223,6 +283,62 @@
       this.groupMotion=this.createGroupMotion(random);
       this.ambientFields=this.createAmbientFields(random);
       this.highlights=this.createHighlights(random);
+      this.p3FieldCanvas=null;
+      this.p3HighlightCanvas=null;
+      this.p3FieldKey="";
+    }
+    prepareP3Field(previewSpec) {
+      const spec=previewSpec.parameters;
+      const key=JSON.stringify(previewSpec);
+      if(this.p3FieldCanvas&&this.p3FieldKey===key)return;
+      const width=spec.compute_width;
+      const height=Math.max(1,Math.round(width*this.asset.height/this.asset.width));
+      const color=waterCausticRgb(spec.color),tint=waterCausticRgb(spec.tint);
+      const fieldCanvas=document.createElement("canvas");
+      fieldCanvas.width=width;fieldCanvas.height=height;
+      const fieldContext=fieldCanvas.getContext("2d",{alpha:true,willReadFrequently:true});
+      const highlightCanvas=document.createElement("canvas");
+      highlightCanvas.width=width;highlightCanvas.height=height;
+      const highlightContext=highlightCanvas.getContext("2d",{alpha:true,willReadFrequently:true});
+      if(!fieldContext||!highlightContext)throw new Error("连续焦散纹理的 Canvas 2D 缓冲区初始化失败");
+      const pixels=fieldContext.createImageData(width,height);
+      const highlights=highlightContext.createImageData(width,height);
+      const threshold=spec.derived_layers.highlight_alpha_threshold;
+      const highlightOpacity=spec.derived_layers.highlight_opacity;
+      const sampleTime=spec.speed===0?0:(spec.time_ms/1000)*spec.speed;
+      for(let y=0;y<height;y++)for(let x=0;x<width;x++){
+        const sample=sampleCaustic(x+.5,height-y-.5,width,height,sampleTime,spec.scale,spec.intensity,color,tint,spec.tintStrength);
+        const offset=(y*width+x)*4;
+        pixels.data[offset]=Math.round(sample[0]*255);
+        pixels.data[offset+1]=Math.round(sample[1]*255);
+        pixels.data[offset+2]=Math.round(sample[2]*255);
+        pixels.data[offset+3]=Math.round(sample[3]*255);
+        const highlight=waterCausticSmoothstep(threshold[0],threshold[1],sample[3])*highlightOpacity;
+        highlights.data[offset]=220;highlights.data[offset+1]=252;highlights.data[offset+2]=247;
+        highlights.data[offset+3]=Math.round(highlight*255);
+      }
+      fieldContext.putImageData(pixels,0,0);
+      highlightContext.putImageData(highlights,0,0);
+      this.p3FieldCanvas=fieldCanvas;
+      this.p3HighlightCanvas=highlightCanvas;
+      this.p3FieldKey=key;
+    }
+    drawP3(ctx,rect,strengthValue,previewSpec) {
+      this.prepareP3Field(previewSpec);
+      const layers=previewSpec.derived_layers;
+      const params=previewSpec.parameters;
+      ctx.save();
+      ctx.globalCompositeOperation=params.blendMode;
+      ctx.filter="blur("+(rect.width*layers.ambient_blur_fraction_w)+"px)";
+      ctx.globalAlpha=strengthValue*layers.ambient_opacity;
+      ctx.drawImage(this.p3FieldCanvas,rect.x,rect.y,rect.width,rect.height);
+      ctx.filter="none";
+      ctx.globalAlpha=strengthValue*layers.caustic_opacity;
+      ctx.drawImage(this.p3FieldCanvas,rect.x,rect.y,rect.width,rect.height);
+      ctx.globalCompositeOperation=layers.highlight_blend_mode;
+      ctx.globalAlpha=strengthValue;
+      ctx.drawImage(this.p3HighlightCanvas,rect.x,rect.y,rect.width,rect.height);
+      ctx.restore();
     }
     createPatches(random) {
       const sequence=zoneSequence(this.rendering.caustics);
@@ -565,7 +681,8 @@
       if(!bounds.width||!bounds.height||!this.image.naturalWidth||!this.image.naturalHeight)return false;
       this.width=bounds.width;
       this.height=bounds.height;
-      this.dpr=Math.max(1,window.devicePixelRatio||1);
+      const p3Spec=this.scene.rendering.p3_static_preview;
+      this.dpr=p3Spec?.enabled?Math.min(p3Spec.parameters.maxDpr,Math.max(1,window.devicePixelRatio||1)):Math.max(1,window.devicePixelRatio||1);
       const backingWidth=Math.max(1,Math.round(this.width*this.dpr));
       const backingHeight=Math.max(1,Math.round(this.height*this.dpr));
       for(const surface of [this.canvas,this.effectsCanvas,this.maskCanvas,this.softMaskCanvas]){
@@ -615,6 +732,7 @@
       return true;
     }
     buildRegionMask() {
+      if(this.scene.rendering.p3_static_preview?.enabled){this.buildP3BottomGradientMask();return;}
       const dpr=this.dpr,hard=this.maskContext,soft=this.softMaskContext;
       hard.setTransform(1,0,0,1,0,0);
       soft.setTransform(1,0,0,1,0,0);
@@ -635,6 +753,23 @@
       hard.setTransform(1,0,0,1,0,0);
       soft.setTransform(1,0,0,1,0,0);
     }
+    buildP3BottomGradientMask() {
+      const hard=this.maskContext,rect=this.contentRect,spec=this.scene.rendering.p3_static_preview;
+      hard.setTransform(1,0,0,1,0,0);
+      hard.clearRect(0,0,this.maskCanvas.width,this.maskCanvas.height);
+      hard.setTransform(this.dpr,0,0,this.dpr,0,0);
+      const gradient=hard.createLinearGradient(0,rect.y,0,rect.y+rect.height);
+      gradient.addColorStop(0,"rgba(255,255,255,0)");
+      gradient.addColorStop(spec.spatial_gradient.feather_start,"rgba(255,255,255,0)");
+      gradient.addColorStop(spec.spatial_gradient.feather_start+.03,"rgba(255,255,255,.12)");
+      gradient.addColorStop(spec.spatial_gradient.feather_start+.07,"rgba(255,255,255,.48)");
+      gradient.addColorStop(spec.spatial_gradient.feather_start+.12,"rgba(255,255,255,.86)");
+      gradient.addColorStop(spec.spatial_gradient.feather_end,"rgba(255,255,255,1)");
+      gradient.addColorStop(1,"rgba(255,255,255,1)");
+      hard.fillStyle=gradient;
+      hard.fillRect(0,0,this.width,this.height);
+      hard.setTransform(1,0,0,1,0,0);
+    }
     render(timeMs,layers,strengthEnabled,playing) {
       if(!this.width||!this.height)this.resize();
       if(!this.width||!this.height)return;
@@ -648,15 +783,19 @@
       effect.globalAlpha=1;
       effect.globalCompositeOperation="source-over";
       effect.filter="none";
-      const hasEnergy=layers.ambient>0||layers.caustic>0||layers.highlight>0;
+      const p3Static=Boolean(this.scene.rendering.p3_static_preview?.enabled);
+      const hasEnergy=p3Static?true:(layers.ambient>0||layers.caustic>0||layers.highlight>0);
       if(strengthEnabled&&hasEnergy&&waterEnabled&&this.contentRect.width){
         effect.save();
         effect.beginPath();
         effect.rect(this.contentRect.x,this.contentRect.y,this.contentRect.width,this.contentRect.height);
         effect.clip();
-        effect.clip(this.regionPath,"nonzero");
-        const motionScale=reducedMotion.matches?this.scene.contract.motion.reduced_motion_scale:1;
-        this.scene.draw(effect,this.contentRect,timeMs,layers,strength,motionScale);
+        if(p3Static)this.scene.drawP3(effect,this.contentRect,strength,this.scene.rendering.p3_static_preview);
+        else{
+          effect.clip(this.regionPath,"nonzero");
+          const motionScale=reducedMotion.matches?this.scene.contract.motion.reduced_motion_scale:1;
+          this.scene.draw(effect,this.contentRect,timeMs,layers,strength,motionScale);
+        }
         effect.restore();
         effect.setTransform(1,0,0,1,0,0);
         effect.globalCompositeOperation="destination-in";
@@ -677,12 +816,15 @@
       output.globalAlpha=1;
       output.setTransform(1,0,0,1,0,0);
       const motionScale=reducedMotion.matches?this.scene.contract.motion.reduced_motion_scale:1;
-      this.canvas.dataset.activeIntensity=String(Math.round(strengthEnabled&&waterEnabled?layers.caustic*strength*100:0));
-      this.canvas.dataset.layerStrengths=JSON.stringify(Object.fromEntries(Object.entries(layers).map(([key,value])=>[key,value*strength])));
+      this.canvas.dataset.activeIntensity=String(Math.round(strengthEnabled&&waterEnabled?(p3Static?strength:layers.caustic*strength)*100:0));
+      this.canvas.dataset.layerStrengths=JSON.stringify(p3Static?{ambient:strength,caustic:strength,highlight:strength}:Object.fromEntries(Object.entries(layers).map(([key,value])=>[key,value*strength])));
+      this.canvas.dataset.canvasBackend="2d";
+      this.canvas.dataset.activeAlgorithm=p3Static?this.scene.rendering.p3_static_preview.algorithm:"legacy_a_line_patch_path";
+      this.canvas.dataset.previewMode=p3Static?"P3_STATIC_1200MS":"TIMELINE";
       const faceProfile=this.scene.rendering.caustics.face_opacity_profile;
-      this.canvas.dataset.causticFaceExpansion=String(smooth(timeMs,faceProfile.expand_start_ms,faceProfile.expand_end_ms));
-      this.canvas.dataset.causticFaceSettlement=String(smooth(timeMs,faceProfile.settle_start_ms,faceProfile.settle_end_ms));
-      this.canvas.dataset.currentTime=String(Math.round(timeMs));
+      this.canvas.dataset.causticFaceExpansion=String(p3Static?1:smooth(timeMs,faceProfile.expand_start_ms,faceProfile.expand_end_ms));
+      this.canvas.dataset.causticFaceSettlement=String(p3Static?0:smooth(timeMs,faceProfile.settle_start_ms,faceProfile.settle_end_ms));
+      this.canvas.dataset.currentTime=String(Math.round(p3Static?this.scene.rendering.p3_static_preview.time_ms:timeMs));
       this.canvas.dataset.waterOn=String(waterEnabled);
       this.canvas.dataset.motionScale=String(motionScale);
       this.canvas.dataset.debugRegion=String(debugRegion);
@@ -776,15 +918,18 @@
   function updateReadout(timeMs,playing) {
     const layers=layerStrengthsAt(timeMs);
     const amount=layers.caustic*strength;
-    const stageLabel=activeFrameLabel(timeMs);
+    const p3Static=Boolean(contract?.rendering?.p3_static_preview?.enabled);
+    const displayTime=p3Static?contract.rendering.p3_static_preview.time_ms:timeMs;
+    const stageLabel=p3Static?"P3 静态验收":activeFrameLabel(displayTime);
+    const displayAmount=p3Static?strength:amount;
     $("water-current-stage").textContent=stageLabel;
-    $("water-current-time").textContent=Math.round(timeMs)+" ms";
+    $("water-current-time").textContent=Math.round(displayTime)+" ms";
     $("water-debug-stage").textContent=stageLabel;
-    $("water-debug-time").textContent=Math.round(timeMs)+" ms / "+contract.timeline.duration_ms+" ms";
-    $("water-debug-intensity").textContent=Math.round(amount*100)+"% caustic";
-    $("water-progress-label").textContent=Math.round(timeMs/contract.timeline.duration_ms*100)+"%";
-    $("water-play-state").textContent=playing?"播放中":"已暂停";
-    timelineInput.value=String(Math.round(timeMs));
+    $("water-debug-time").textContent=p3Static?"1200 ms · 静态预览 / "+contract.timeline.duration_ms+" ms":Math.round(displayTime)+" ms / "+contract.timeline.duration_ms+" ms";
+    $("water-debug-intensity").textContent=Math.round(displayAmount*100)+"% · P3 静态水光";
+    $("water-progress-label").textContent=Math.round(displayTime/contract.timeline.duration_ms*100)+"%";
+    $("water-play-state").textContent=p3Static?"P3 静态预览 · 已暂停":(playing?"播放中":"已暂停");
+    timelineInput.value=String(Math.round(displayTime));
     playButton.setAttribute("aria-pressed",String(playing));
     pauseButton.setAttribute("aria-pressed",String(!playing));
     const exact=contract.timeline.frames.find(frame=>frame.ms===Math.round(timeMs));
@@ -795,8 +940,11 @@
     });
   }
   function renderAt(timeMs,playing) {
-    updateReadout(timeMs,playing);
-    if(renderer)renderer.render(timeMs,layerStrengthsAt(timeMs),true,playing);
+    const p3Static=Boolean(contract?.rendering?.p3_static_preview?.enabled);
+    const displayTime=p3Static?contract.rendering.p3_static_preview.time_ms:timeMs;
+    if(p3Static&&controller){controller.timeMs=displayTime;controller.playing=false;}
+    updateReadout(displayTime,p3Static?false:playing);
+    if(renderer)renderer.render(displayTime,layerStrengthsAt(displayTime),true,p3Static?false:playing);
   }
   function bindControls() {
     root.querySelectorAll("[data-water-view]").forEach(button=>{
@@ -818,11 +966,12 @@
     pauseButton.addEventListener("click",()=>controller?.pause());
     resetButton.addEventListener("click",()=>{
       if(!controller)return;
-      controller.reset();
+      const p3Static=Boolean(contract?.rendering?.p3_static_preview?.enabled);
+      controller.pause();controller.timeMs=p3Static?contract.rendering.p3_static_preview.time_ms:0;
       strength=1;strengthInput.value="100";$("water-strength-value").textContent="100%";
       waterEnabled=true;enabledInput.checked=true;
       debugRegion=false;debugRegionInput.checked=false;
-      renderAt(0,false);
+      renderAt(controller.timeMs,false);
     });
     timelineInput.addEventListener("input",()=>{
       if(!controller)return;
@@ -850,13 +999,22 @@
     loading=true;setControlsDisabled(true);retryButton.hidden=true;loadError.hidden=true;setStatus("加载中");
     $("water-asset-status").textContent="SHA-256 校验中";
     try{
-      const response=await timeoutFetch("../pages/recognition/web/candidates/FISHTRACE_SWOS_CANVAS_WATER_LAB_V1_CANDIDATE.json?v=a-line-1",{cache:"no-cache",credentials:"same-origin"});
+      const response=await timeoutFetch("../pages/recognition/web/candidates/FISHTRACE_SWOS_CANVAS_WATER_LAB_V1_CANDIDATE.json?v=a-line-open-source-p3-1",{cache:"no-cache",credentials:"same-origin"});
       if(!response.ok)throw new Error("候选水光合同加载失败 HTTP "+response.status);
       const loaded=await response.json();
       if(loaded.contract_id!=="FISHTRACE_SWOS_CANVAS_WATER_LAB_V1_CANDIDATE"||
          loaded.task_id!=="FISHTRACE_SWOS_A_LINE_CANVAS_WATER_FIDELITY_V1"||
          loaded.contract_version!=="CANDIDATE_A_LINE_V1"||
          loaded.rendering?.caustics?.geometry_model!=="a_line_organic_face_patches_v2_grouped"||
+         loaded.rendering?.p3_static_preview?.enabled!==true||
+         loaded.rendering?.p3_static_preview?.algorithm!=="ethanfox_sampleCaustic_canvas2d"||
+         loaded.rendering?.p3_static_preview?.time_ms!==1200||
+         loaded.rendering?.p3_static_preview?.parameters?.scale!==1||
+         loaded.rendering?.p3_static_preview?.parameters?.intensity!==1||
+         loaded.rendering?.p3_static_preview?.parameters?.speed!==0||
+         loaded.third_party_algorithm?.upstream_commit!=="de856eec62819b7c4176366db73b8fd37a1b1455"||
+         loaded.third_party_algorithm?.source_files?.[0]?.git_blob_sha!=="5b5a67298a8631892d5153f134ae3a17a348ec6b"||
+         loaded.third_party_algorithm?.source_files?.[1]?.git_blob_sha!=="441d39fb0aa8fd3f0960577713b0705c0423e598"||
          loaded.asset.path!=="design/system/fish_media_display_v1/assets/real_catch_source.jpg"||
          loaded.asset.width!==1152||loaded.asset.height!==1536||loaded.timeline.duration_ms!==2800||
          loaded.status!=="CANDIDATE_NOT_VISUALLY_APPROVED"||
@@ -883,11 +1041,23 @@
         window.addEventListener("resize",()=>{if(renderer)renderer.resize();},{passive:true});
       }
       strength=1;waterEnabled=true;debugRegion=false;
-      timelineInput.max=String(contract.timeline.duration_ms);timelineInput.value="0";
+      const staticP3=contract.rendering.p3_static_preview.enabled;
+      const initialTime=staticP3?contract.rendering.p3_static_preview.time_ms:0;
+      timelineInput.max=String(contract.timeline.duration_ms);timelineInput.value=String(initialTime);
       strengthInput.value="100";enabledInput.checked=true;debugRegionInput.checked=false;
       $("water-strength-value").textContent="100%";
-      setMotionStatus();renderer.resize();renderAt(0,false);
-      setControlsDisabled(false);setStatus("READY · Canvas 2D · DPR "+renderer.dpr);
+      controller.timeMs=initialTime;controller.playing=false;
+      setMotionStatus();renderer.resize();renderAt(initialTime,false);
+      setControlsDisabled(false);
+      if(staticP3){
+        playButton.disabled=true;pauseButton.disabled=true;timelineInput.disabled=true;
+        lab.querySelectorAll("[data-water-frame]").forEach(button=>{button.disabled=true;});
+        debugRegionInput.disabled=true;
+        resetButton.disabled=false;enabledInput.disabled=false;strengthInput.disabled=false;
+        lab.dataset.previewMode="P3_STATIC_1200MS";
+        lab.dataset.visualApprovalStatus="CANDIDATE_NOT_VISUALLY_APPROVED";
+      }
+      setStatus("READY · Canvas 2D · DPR "+renderer.dpr);
       lab.dataset.rendererStatus="READY";
       lab.dataset.assetSha256=image.dataset.sha256;
       lab.dataset.durationMs=String(contract.timeline.duration_ms);

@@ -2,7 +2,7 @@
 
 import { createRequire } from "node:module";
 import { mkdir, writeFile } from "node:fs/promises";
-import { dirname, resolve } from "node:path";
+import { dirname, join, resolve } from "node:path";
 
 const require = createRequire(import.meta.url);
 const moduleRoot = process.env.PLAYWRIGHT_MODULE_DIR;
@@ -129,62 +129,72 @@ async function run() {
 
     const canvasState = () => frame.locator("#water-overlay").evaluate(canvas => {
       const data = canvas.getContext("2d").getImageData(0, 0, canvas.width, canvas.height).data;
-      let alpha_pixels = 0;
-      for (let index = 3; index < data.length; index += 4) if (data[index] !== 0) alpha_pixels += 1;
-      return {
-        renderer: canvas.dataset.rendererStatus,
-        current_time_ms: Number(canvas.dataset.currentTime),
-        alpha_pixels,
-        width: canvas.width,
-        height: canvas.height,
-        debug_region: canvas.dataset.debugRegion
-      };
+      let alpha_pixels = 0, hash = 2166136261;
+      for (let index = 0; index < data.length; index += 1) {
+        if (index % 4 === 3 && data[index] !== 0) alpha_pixels += 1;
+        hash = Math.imul(hash ^ data[index], 16777619);
+      }
+      return { renderer: canvas.dataset.rendererStatus, current_time_ms: Number(canvas.dataset.currentTime), alpha_pixels,
+        width: canvas.width, height: canvas.height, debug_region: canvas.dataset.debugRegion,
+        backend: canvas.dataset.canvasBackend, algorithm: canvas.dataset.activeAlgorithm,
+        preview_mode: canvas.dataset.previewMode, pixel_hash: (hash >>> 0).toString(16).padStart(8, "0") };
     });
-
     const controls = {
-      play: await frame.locator("#water-play").count(),
-      pause: await frame.locator("#water-pause").count(),
-      reset: await frame.locator("#water-reset").count(),
-      timeline: await frame.locator("#water-timeline").count(),
-      p0: await frame.locator('[data-water-frame="P0"]').count(),
-      p2: await frame.locator('[data-water-frame="P2"]').count()
+      play: await frame.locator("#water-play").count(), pause: await frame.locator("#water-pause").count(),
+      reset: await frame.locator("#water-reset").count(), timeline: await frame.locator("#water-timeline").count(),
+      p3: await frame.locator('[data-water-frame="P3"]').count(), enabled: await frame.locator("#water-enabled").count(),
+      strength: await frame.locator("#water-strength").count()
     };
-    assert(Object.values(controls).every(value => value === 1), "Playback, reset, timeline, or frame-jump control is missing");
-    assert(await frame.locator("#water-play").isEnabled() && await frame.locator("#water-pause").isEnabled() &&
-      await frame.locator("#water-reset").isEnabled() && await frame.locator("#water-timeline").isEnabled(),
-      "Playback controls are disabled after Canvas initialization");
-
-    await frame.locator('[data-water-frame="P0"]').click();
-    const p0 = await canvasState();
-    assert(p0.renderer === "READY" && p0.current_time_ms === 0 && p0.alpha_pixels === 0, "P0 must render the original photo with a clear Canvas");
-    assert(p0.debug_region === "false", "Normal preview must have water-region debugging disabled");
-
-    await frame.locator('[data-water-frame="P2"]').click();
-    await frame.waitForFunction(() => Number(document.querySelector("#water-overlay")?.dataset.currentTime) === 950, null, { timeout: 3000 });
-    const p2 = await canvasState();
-    assert(p2.alpha_pixels > 0, "P2 Canvas must contain the current rendered water effect");
+    assert(Object.values(controls).every(value => value === 1), "P3 preview must preserve transport, timeline, frame, and layer controls");
+    assert(!(await frame.locator("#water-play").isEnabled()) && !(await frame.locator("#water-pause").isEnabled()) &&
+      !(await frame.locator("#water-timeline").isEnabled()) && !(await frame.locator('[data-water-frame="P3"]').isEnabled()),
+      "P3 static acceptance must keep the P0-P7 animation controls frozen");
+    assert(await frame.locator("#water-reset").isEnabled() && await frame.locator("#water-enabled").isEnabled() &&
+      await frame.locator("#water-strength").isEnabled(), "Static preview reset and optical comparison controls must remain usable");
+    const labMode = await frame.locator('[data-testid="canvas-water-lab"]').evaluate(node => ({
+      mode: node.dataset.previewMode, approval: node.dataset.visualApprovalStatus,
+      stage: document.querySelector("#water-current-stage")?.textContent,
+      time: document.querySelector("#water-current-time")?.textContent,
+      playing: document.querySelector("#water-play-state")?.textContent
+    }));
+    assert(labMode.mode === "P3_STATIC_1200MS" && labMode.approval === "CANDIDATE_NOT_VISUALLY_APPROVED", "P3 static candidate mode is missing");
+    assert(labMode.stage === "P3 静态验收" && labMode.time === "1200 ms" && labMode.playing.includes("已暂停"), "P3 time and paused state are not shown outside the photo");
+    const p3 = await canvasState();
+    assert(p3.renderer === "READY" && p3.current_time_ms === 1200 && p3.alpha_pixels > 0, "P3 must render a visible static caustic field at 1200 ms");
+    assert(p3.backend === "2d" && p3.algorithm === "ethanfox_sampleCaustic_canvas2d" && p3.preview_mode === "P3_STATIC_1200MS", "The active renderer is not the pinned continuous Canvas 2D sampler");
+    assert(p3.debug_region === "false", "Normal P3 preview must have water-region debugging disabled");
+    assert((await frame.locator("#water-timeline").inputValue()) === "1200", "The existing timeline control must remain visibly fixed at P3");
     report.checks.canvas_renderer_ready = true;
     report.checks.fixed_photo_sha_and_dimensions = true;
-    report.checks.clean_p0_and_nonempty_p2 = true;
-
-    await frame.locator('[data-water-frame="P0"]').click();
-    await frame.locator("#water-play").click();
-    await frame.waitForFunction(() => Number(document.querySelector("#water-overlay")?.dataset.currentTime) > 0, null, { timeout: 2500 });
-    await frame.locator("#water-pause").click();
-    const pausedText = await frame.locator("#water-current-time").innerText();
-    await page.waitForTimeout(150);
-    assert((await frame.locator("#water-current-time").innerText()) === pausedText, "Pause must freeze the timeline");
-    await frame.locator("#water-timeline").evaluate(input => {
-      input.value = "950";
-      input.dispatchEvent(new Event("input", { bubbles: true }));
+    report.checks.p3_static_renderer_and_timeline_frozen = true;
+    const rendererSource = await frame.evaluate(async () => {
+      const url = new URL("fishtrace_canvas_water_lab.js", location.href);
+      const response = await fetch(url);
+      return response.ok ? response.text() : "";
     });
-    await frame.waitForFunction(() => Number(document.querySelector("#water-overlay")?.dataset.currentTime) === 950, null, { timeout: 3000 });
+    assert(rendererSource.includes("sampleCaustic") && rendererSource.includes("de856eec62819b7c4176366db73b8fd37a1b1455") &&
+      rendererSource.includes('getContext("2d"') && !/getContext\s*\(\s*["']webgl2?["']/.test(rendererSource),
+      "Canvas source attribution or 2D-only renderer check failed");
+    report.checks.pinned_upstream_sampler_and_canvas_2d_only = true;
+    if (args.output) {
+      const evidenceDir = dirname(resolve(args.output));
+      await mkdir(evidenceDir, { recursive: true });
+      const photoOverlay = join(evidenceDir, "fishtrace-p3-photo-overlay.png");
+      const transparentCanvas = join(evidenceDir, "fishtrace-p3-transparent-canvas.png");
+      await frame.locator("#water-stage").screenshot({ path: photoOverlay });
+      await frame.locator("#water-overlay").screenshot({ path: transparentCanvas, omitBackground: true });
+      report.checks.screenshots = { photo_overlay: photoOverlay, transparent_canvas: transparentCanvas };
+    }
+    await frame.locator("#water-enabled").uncheck();
+    const disabledWater = await canvasState();
+    assert(disabledWater.alpha_pixels === 0 && disabledWater.current_time_ms === 1200, "Disabling water must clear only the static P3 optical overlay");
+    await frame.locator("#water-enabled").check();
+    const repeatedP3 = await canvasState();
+    assert(repeatedP3.pixel_hash === p3.pixel_hash, "Repeated static P3 render must be deterministic");
     await frame.locator("#water-reset").click();
-    await frame.waitForFunction(() => Number(document.querySelector("#water-overlay")?.dataset.currentTime) === 0, null, { timeout: 3000 });
     const resetState = await canvasState();
-    assert(resetState.alpha_pixels === 0, "Reset must return to a transparent P0 Canvas");
-    report.checks.play_pause_reset_and_timeline = true;
-
+    assert(resetState.current_time_ms === 1200 && resetState.pixel_hash === p3.pixel_hash, "Reset must restore the original P3 preview state");
+    report.checks.p3_toggle_repeatability_and_reset = true;
     const waterRequests = report.network_requests.slice(requestsBeforeWater);
     const forbidden = waterRequests.filter(item =>
       item.method !== "GET" && item.method !== "HEAD" ||
@@ -196,8 +206,9 @@ async function run() {
     report.checks.no_uncaught_browser_errors = true;
     report.checks.controls = controls;
     report.checks.photo = asset;
-    report.checks.p0 = p0;
-    report.checks.p2 = p2;
+    report.checks.p3 = p3;
+    report.checks.toggle_off = disabledWater;
+    report.checks.repeated_p3 = repeatedP3;
     report.checks.reset = resetState;
     report.status = "PASS";
     await page.close();

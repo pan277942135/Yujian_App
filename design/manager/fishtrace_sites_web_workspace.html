@@ -360,9 +360,9 @@
         <div>
           <span class="section-kicker">PHASE 1 · CANVAS 2D</span>
           <h2 id="water-lab-title">Canvas 水光验证</h2>
-          <p>固定原图上的程序化水面折射样例。所有参数仅作用于当前预览。</p>
+          <p>固定原图上的连续水光焦散。当前冻结在 P3 / 1200ms，动画待产品负责人确认后再接入。</p>
         </div>
-        <span class="water-candidate-badge">CANDIDATE · 待视觉验收</span>
+        <span class="water-candidate-badge">P3 静态验收 · 1200ms · CANDIDATE</span>
       </header>
       <div class="water-lab-layout">
         <section class="water-preview-column" aria-label="固定照片与水光预览">
@@ -395,7 +395,7 @@
             <label class="water-strength-control" for="water-strength"><span>预览强度</span><output id="water-strength-value">100%</output></label>
           </div>
           <input id="water-strength" class="water-range water-control" type="range" min="0" max="150" step="1" value="100" aria-label="开发用水光强度" disabled>
-          <label class="water-region-debug-toggle"><input id="water-region-debug" class="water-control" type="checkbox" disabled><span>开发检查 · 水面区域轮廓</span></label>
+          <label class="water-region-debug-toggle"><input id="water-region-debug" class="water-control" type="checkbox" disabled><span>开发检查 · 上一阶段水面区域轮廓（本预览不启用）</span></label>
           <section class="water-dev-checks" aria-label="开发阶段检查信息">
             <h3>开发检查</h3>
             <dl>
@@ -426,6 +426,6 @@
     <input id="camera-input" type="file" accept="image/*" capture="environment" hidden>
   </main>
   <script src="./fishtrace_sites_web_workspace.js?v=FISHTRACE-SITES-WEB-HIFI-V1-1"></script>
-  <script src="./fishtrace_canvas_water_lab.js?v=FISHTRACE-CANVAS-WATER-LAB-A-LINE-V1"></script>
+  <script src="./fishtrace_canvas_water_lab.js?v=FISHTRACE-CANVAS-WATER-LAB-OPEN-SOURCE-P3-V1"></script>
 </body>
 </html>
