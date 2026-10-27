@@ -19,6 +19,7 @@ on:
       - "scripts/measure_first_use_camera_guide_geometry.py"
       - ".github/workflows/design-manager-pages.yml"
       - ".github/workflows/experience-governance.yml"
+      - ".github/actions/setup-playwright/**"
   pull_request:
     branches: [main]
     paths:
@@ -37,6 +38,7 @@ on:
       - "scripts/measure_first_use_camera_guide_geometry.py"
       - ".github/workflows/design-manager-pages.yml"
       - ".github/workflows/experience-governance.yml"
+      - ".github/actions/setup-playwright/**"
   workflow_dispatch:
 
 permissions:
@@ -63,21 +65,8 @@ jobs:
         with:
           node-version: "22"
 
-      - name: Install Playwright and Chromium
-        shell: bash
-        run: |
-          set -euo pipefail
-          npm install --no-save --prefix "$RUNNER_TEMP/dm-playwright" playwright@1.63.0
-          "$RUNNER_TEMP/dm-playwright/node_modules/.bin/playwright" install --with-deps chromium
-
-      - name: Install ffmpeg tools for real WebM frame verification
-        shell: bash
-        run: |
-          set -euo pipefail
-          sudo apt-get update
-          sudo apt-get install --yes --no-install-recommends ffmpeg
-          ffmpeg -version
-          ffprobe -version
+      - name: Setup cached Playwright, Chromium, and bundled FFmpeg
+        uses: ./.github/actions/setup-playwright
 
       - name: Compile Design Manager
         run: python3 -m py_compile scripts/design_manager.py

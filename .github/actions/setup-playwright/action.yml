@@ -1,0 +1,93 @@
+name: Setup cached Playwright, Chromium, and bundled FFmpeg
+description: Reuse pinned Playwright package and browser binaries with bounded installs and runtime checks
+runs:
+  using: composite
+  steps:
+    - name: Restore pinned Playwright package cache
+      id: playwright-package-cache
+      uses: actions/cache@v4
+      with:
+        path: ${{ runner.temp }}/dm-playwright/node_modules
+        key: ${{ runner.os }}-node22-playwright-1.63.0-package
+
+    - name: Install pinned Playwright package on cache miss
+      if: steps.playwright-package-cache.outputs.cache-hit != 'true'
+      shell: bash
+      run: |
+        set -euo pipefail
+        started=$SECONDS
+        set +e
+        timeout --signal=TERM 10m npm install --no-save --prefix "$RUNNER_TEMP/dm-playwright" --prefer-offline --no-audit --no-fund playwright@1.63.0
+        status=$?
+        set -e
+        elapsed=$((SECONDS-started))
+        echo "Playwright package install: ${elapsed}s (exit ${status})"
+        echo "- Playwright package install: ${elapsed}s (exit ${status})" >> "$GITHUB_STEP_SUMMARY"
+        if (( status != 0 )); then exit "$status"; fi
+
+    - name: Read Playwright and Chromium revisions
+      id: playwright-meta
+      shell: bash
+      run: |
+        set -euo pipefail
+        node - "$RUNNER_TEMP/dm-playwright/node_modules" <<'NODE'
+        const fs = require('node:fs');
+        const path = require('node:path');
+        const root = process.argv[2];
+        const playwright = require(path.join(root, 'playwright/package.json'));
+        const registry = require(path.join(root, 'playwright-core/browsers.json'));
+        const chromium = registry.browsers.find(browser => browser.name === 'chromium');
+        if (!chromium?.revision) throw new Error('Pinned Playwright package has no Chromium revision');
+        const output = `version=${playwright.version}\nchromium_revision=${chromium.revision}\n`;
+        fs.appendFileSync(process.env.GITHUB_OUTPUT, output);
+        console.log(`playwright=${playwright.version}; chromium_revision=${chromium.revision}`);
+        NODE
+
+    - name: Restore exact Chromium and FFmpeg browser cache
+      id: browser-cache
+      uses: actions/cache@v4
+      with:
+        path: ~/.cache/ms-playwright
+        key: ${{ runner.os }}-playwright-${{ steps.playwright-meta.outputs.version }}-chromium-${{ steps.playwright-meta.outputs.chromium_revision }}
+
+    - name: Install missing Chromium and bundled FFmpeg with timeout
+      shell: bash
+      run: |
+        set -euo pipefail
+        started=$SECONDS
+        set +e
+        timeout --signal=TERM 15m "$RUNNER_TEMP/dm-playwright/node_modules/.bin/playwright" install chromium
+        status=$?
+        set -e
+        elapsed=$((SECONDS-started))
+        echo "Chromium install: ${elapsed}s (cache ${{ steps.browser-cache.outputs.cache-hit == 'true' && 'hit' || 'miss' }}, exit ${status})"
+        echo "- Chromium install: ${elapsed}s; browser cache ${{ steps.browser-cache.outputs.cache-hit == 'true' && 'hit' || 'miss' }} (exit ${status})" >> "$GITHUB_STEP_SUMMARY"
+        if (( status != 0 )); then exit "$status"; fi
+
+    - name: Verify Chromium launch and expose bundled FFmpeg
+      shell: bash
+      env:
+        PLAYWRIGHT_MODULE_DIR: ${{ runner.temp }}/dm-playwright/node_modules
+      run: |
+        set -euo pipefail
+        chromium_path="$(node -e 'const {chromium}=require(process.env.PLAYWRIGHT_MODULE_DIR); process.stdout.write(chromium.executablePath())')"
+        test -x "$chromium_path"
+        "$chromium_path" --version
+        node <<'NODE'
+        const { chromium } = require(process.env.PLAYWRIGHT_MODULE_DIR);
+        (async () => {
+          const browser = await chromium.launch({ headless: true });
+          const page = await browser.newPage();
+          await page.setContent('<main id="runtime-smoke">Chromium ready</main>');
+          const text = await page.locator('#runtime-smoke').innerText();
+          if (text !== 'Chromium ready') throw new Error('Chromium smoke page did not render');
+          await browser.close();
+          console.log('PASS: cached Chromium launch and page render');
+        })().catch(error => { console.error(error); process.exitCode = 1; });
+        NODE
+        ffmpeg_path="$(find "$HOME/.cache/ms-playwright" -maxdepth 2 -type f -name ffmpeg-linux -print -quit)"
+        test -n "$ffmpeg_path"
+        test -x "$ffmpeg_path"
+        dirname "$ffmpeg_path" >> "$GITHUB_PATH"
+        "$ffmpeg_path" -version
+        printf '\n- FFmpeg: bundled Playwright binary; separate apt install skipped.\n' >> "$GITHUB_STEP_SUMMARY"

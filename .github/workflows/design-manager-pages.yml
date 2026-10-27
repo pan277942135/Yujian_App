@@ -23,6 +23,7 @@ on:
       - "tests/nh01_structured_workspace.test.cjs"
       - ".github/workflows/experience-governance.yml"
       - ".github/workflows/design-manager-pages.yml"
+      - ".github/actions/setup-playwright/**"
   pull_request:
     branches: [main, design/swos-phase0-audit-optical-contract-v1]
     paths:
@@ -39,6 +40,7 @@ on:
       - "scripts/verify_first_use_camera_guide_assets.py"
       - "scripts/measure_first_use_camera_guide_geometry.py"
       - ".github/workflows/design-manager-pages.yml"
+      - ".github/actions/setup-playwright/**"
   workflow_dispatch:
     inputs:
       preview_pr:
@@ -91,23 +93,8 @@ jobs:
         with:
           node-version: "22"
 
-      - name: Install Playwright and Chromium
-        shell: bash
-        run: |
-          set -euo pipefail
-          npm install --no-save --prefix "$RUNNER_TEMP/dm-playwright" playwright@1.63.0
-          "$RUNNER_TEMP/dm-playwright/node_modules/.bin/playwright" install --with-deps chromium
-
-      - name: Use Playwright FFmpeg for real WebM frame verification
-        shell: bash
-        run: |
-          set -euo pipefail
-          browser_cache="${PLAYWRIGHT_BROWSERS_PATH:-${HOME}/.cache/ms-playwright}"
-          ffmpeg_path="$(find "$browser_cache" -maxdepth 2 -type f -name ffmpeg-linux -print -quit)"
-          test -n "$ffmpeg_path"
-          test -x "$ffmpeg_path"
-          dirname "$ffmpeg_path" >> "$GITHUB_PATH"
-          "$ffmpeg_path" -version
+      - name: Setup cached Playwright, Chromium, and bundled FFmpeg
+        uses: ./.github/actions/setup-playwright
 
       - name: Verify NH01 structured workspace behavior and resource state machine
         run: |
@@ -513,21 +500,8 @@ jobs:
       - name: Install Pillow for frozen visual comparison evidence
         run: python3 -m pip install --disable-pip-version-check Pillow==11.3.0
 
-      - name: Install Playwright and Chromium
-        shell: bash
-        run: |
-          set -euo pipefail
-          npm install --no-save --prefix "$RUNNER_TEMP/dm-playwright" playwright@1.63.0
-          "$RUNNER_TEMP/dm-playwright/node_modules/.bin/playwright" install --with-deps chromium
-
-      - name: Install ffmpeg tools for real WebM frame verification
-        shell: bash
-        run: |
-          set -euo pipefail
-          sudo apt-get update
-          sudo apt-get install --yes --no-install-recommends ffmpeg
-          ffmpeg -version
-          ffprobe -version
+      - name: Setup cached Playwright, Chromium, and bundled FFmpeg
+        uses: ./.github/actions/setup-playwright
 
       - name: Verify published SHA and original asset bytes
         run: |
@@ -644,21 +618,8 @@ jobs:
         with:
           node-version: "22"
 
-      - name: Install Playwright and Chromium
-        shell: bash
-        run: |
-          set -euo pipefail
-          npm install --no-save --prefix "$RUNNER_TEMP/dm-playwright" playwright@1.63.0
-          "$RUNNER_TEMP/dm-playwright/node_modules/.bin/playwright" install --with-deps chromium
-
-      - name: Install ffmpeg tools for real WebM frame verification
-        shell: bash
-        run: |
-          set -euo pipefail
-          sudo apt-get update
-          sudo apt-get install --yes --no-install-recommends ffmpeg
-          ffmpeg -version
-          ffprobe -version
+      - name: Setup cached Playwright, Chromium, and bundled FFmpeg
+        uses: ./.github/actions/setup-playwright
 
       - name: Verify live production root and exact candidate workspace
         shell: bash
