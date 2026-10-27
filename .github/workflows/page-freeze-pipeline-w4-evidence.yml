@@ -3,6 +3,7 @@ name: Page Freeze Pipeline W4 Evidence
 on:
   push:
     branches:
+      - main
       - "work/w4-*"
       - "work/w3-w4-integration-*"
     paths:
@@ -30,7 +31,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: page-freeze-w4-${{ github.event.pull_request.head.ref || github.ref_name }}
+  group: page-freeze-w4-${{ github.event.pull_request.head.sha || github.sha }}
   cancel-in-progress: false
 
 env:
