@@ -49,6 +49,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
 
       - name: Setup Python for guide geometry verification
         uses: actions/setup-python@v6
@@ -69,6 +71,25 @@ jobs:
           set -euo pipefail
           npm install --no-save --prefix "$RUNNER_TEMP/dm-playwright" playwright@1.63.0
           "$RUNNER_TEMP/dm-playwright/node_modules/.bin/playwright" install --with-deps chromium
+
+      - name: Verify neutral non-NH01 structured DOM workspace fixture
+        env:
+          PLAYWRIGHT_MODULE_DIR: ${{ runner.temp }}/dm-playwright/node_modules
+        run: |
+          node --check scripts/design/tests/fixtures/non_nh01_workspace_fixture.js
+          node --check scripts/design/tests/verify_non_nh01_workspace_fixture.mjs
+          node scripts/design/tests/verify_non_nh01_workspace_fixture.mjs \
+            --source-sha "${{ github.event.pull_request.head.sha || github.sha }}" \
+            --output-dir "$RUNNER_TEMP/non-nh01-workspace-fixture"
+
+      - name: Upload neutral non-NH01 workspace fixture evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: W3-Non-NH01-Workspace-Fixture-${{ github.run_id }}-${{ github.event.pull_request.head.sha || github.sha }}
+          path: ${{ runner.temp }}/non-nh01-workspace-fixture/
+          if-no-files-found: warn
+          retention-days: 30
 
       - name: Compile Design Manager
         run: python3 -m py_compile scripts/design_manager.py
@@ -139,7 +160,7 @@ jobs:
       - name: Upload Design Manager
         uses: actions/upload-artifact@v4
         with:
-          name: YuJian-Design-Manager-${{ github.sha }}
+          name: YuJian-Design-Manager-${{ github.event.pull_request.head.sha || github.sha }}
           path: |
             design/manager/
             design/registry/experience_registry_v1.json
@@ -149,7 +170,7 @@ jobs:
       - name: Upload browser evidence
         uses: actions/upload-artifact@v4
         with:
-          name: Design-Manager-Browser-${{ github.sha }}
+          name: Design-Manager-Browser-${{ github.event.pull_request.head.sha || github.sha }}
           path: ${{ runner.temp }}/dm-governance-browser/
           if-no-files-found: error
           retention-days: 14

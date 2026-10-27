@@ -370,7 +370,8 @@ function nh01ResponsiveRuleCanvas(view) {
       root.innerHTML=nh01StaticWorkspaceMarkup(view,manifest,contract);
       const staticRoot=root.querySelector(".nh01-static-workspace");
       if (!staticRoot) throw new Error("NH01 static contract workspace container is missing");
-      window.NH01StructuredWorkspace.mount(root,view,contract,manifest,DESIGN_MANAGER_BUILD,markdownContract,resourceBinding,diagnostics,baseResult.data["component-tree"],baseResult.data["structure-reference"],baseResult.data["avatar-authority"],baseResult.data["structured-preview-rules"],baseResult.data["structured-preview-media"],baseResult.data["responsive-contract"],baseResult.data["responsive-markdown-contract"]);
+      const adapter = window.NH01StructuredWorkspace.mount(root,view,contract,manifest,DESIGN_MANAGER_BUILD,markdownContract,resourceBinding,diagnostics,baseResult.data["component-tree"],baseResult.data["structure-reference"],baseResult.data["avatar-authority"],baseResult.data["structured-preview-rules"],baseResult.data["structured-preview-media"],baseResult.data["responsive-contract"],baseResult.data["responsive-markdown-contract"]);
+      window.PageWorkspaceAdapters?.setActiveAdapter(adapter);
       if (!root.querySelector('[data-testid="nh01-structured-workspace"]') || !root.querySelector("[data-layer-tree]") || !root.querySelector("[data-artboard]") || !root.querySelector("[data-inspector]")) {
         throw new Error("mount() returned without rendering the layer tree, canvas, and property inspector");
       }
@@ -1406,6 +1407,8 @@ function writeManagerRoute(route, writeHistory = true) {
 }
 
 function selectShared(id, variantId = null, writeHistory = true) {
+  window.PageWorkspaceAdapters?.dispose();
+  cancelNH01ResourceLoad(el("hifiViewCanvas"));
   const item = sharedRegistry.items.find(x => x.id === id);
   if (!item) return;
 
@@ -1591,7 +1594,7 @@ function setPanelHidden(id, hidden) {
 
 function applyPageDetailMode(mode) {
   const overview = mode === "overview";
-  const hifi = mode === "visual" || mode === "behavior" || mode === "hifi-index";
+  const hifi = mode === "visual" || mode === "behavior" || mode === "hifi-index" || mode === "workspace";
   const scenario = mode === "scenario";
 
   setPanelHidden("pageOverviewHero", !overview);
@@ -1605,12 +1608,27 @@ function applyPageDetailMode(mode) {
 function renderPagePreview(feature) {
   if (feature.live_preview?.type === "auth_page") {
     el("visualPreview").innerHTML = authLivePreviewHtml(feature);
+    appendPageWorkspaceLauncher(feature);
     return;
   }
 
   const version = currentVersion(feature);
   const visual = version?.visual_authority || feature.modalities?.visual?.authority;
   el("visualPreview").innerHTML = previewHtml(visual, feature.display_name || feature.id);
+  appendPageWorkspaceLauncher(feature);
+}
+
+function appendPageWorkspaceLauncher(feature) {
+  if (!window.PageWorkspaceAdapters?.supportsPage(feature.id)) return;
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = "page-workspace-launch";
+  button.dataset.pageWorkspaceLaunch = feature.id;
+  button.textContent = "在结构化工作区打开此页";
+  button.addEventListener("click", () => {
+    location.hash = `#page/${encodeURIComponent(feature.id)}/hifi/structured_workspace`;
+  });
+  el("visualPreview").append(button);
 }
 
 function renderSharedRefs(feature) {
@@ -3770,6 +3788,7 @@ function renderVersions(feature) {
 }
 
 function selectPage(id, scenarioId = null, hifiId = null, hifiChildId = null, writeHistory = true) {
+  window.PageWorkspaceAdapters?.dispose();
   const feature = pageRegistry.features.find(f => f.id === id);
   if (!feature) return;
   const scene = scenarioId ? (feature.scenario_pages || []).find(x => x.id === scenarioId) : null;
@@ -3834,7 +3853,49 @@ function selectPage(id, scenarioId = null, hifiId = null, hifiChildId = null, wr
   applyPageDetailMode(detailMode);
 }
 
+function openPageStructuredWorkspace(id, routeKey, writeHistory = false) {
+  const pageAdapters = window.PageWorkspaceAdapters;
+  const feature = pageAdapters?.getRegisteredPage(id);
+  if (!feature || !pageAdapters?.supportsPage(id)) return renderInvalidManagerRoute(routeKey);
+  pageAdapters.dispose();
+
+  if (id === "home_normal_v1") {
+    const view = (feature.hifi_views || []).find(item => item.render_mode === "nh01_multi_screen_static_hifi");
+    if (!view) return renderInvalidManagerRoute(routeKey);
+    selectPage(id, null, view.id, null, false);
+    selectedKey = routeKey;
+    if (writeHistory) writeManagerRoute(`#${routeKey}`, true);
+    return;
+  }
+
+  selectPage(id, null, null, null, false);
+  selectedKey = routeKey;
+  if (writeHistory) writeManagerRoute(`#${routeKey}`, true);
+  applyPageDetailMode("workspace");
+  el("hifiViewPanel").classList.remove("hidden");
+  el("hifiViewEyebrow").textContent = "结构化页面工作区 · Reference Preview";
+  el("hifiViewTitle").textContent = `${feature.display_name || id} · 资源与组件检查`;
+  el("hifiViewStatus").innerHTML = statusBadge(feature.design_overall || "PARTIAL");
+  el("hifiViewSummary").textContent = "此视图通过公共适配接口加载本页 W1 Envelope/Profile 与 W2 Resource Binding。未机器映射的组件、交互状态及页面几何保持未验证。";
+  el("hifiViewSummary").classList.remove("hidden");
+  el("hifiViewContractDetails").innerHTML = `<section class="hifi-contract-details"><div class="hifi-contract-heading"><strong>页面专属合同与资源绑定</strong><span>W1 / W2 Authority · page_id ${esc(id)}</span></div><div class="hifi-contract-links"><span>状态</span><b>Profile 与页面验收状态由工作区逐项读取；Native Runtime NOT_VERIFIED。</b></div></section>`;
+  el("hifiViewContractDetails").classList.remove("hidden");
+  el("hifiViewAuthorities").innerHTML = [feature.design_versions?.find(version => version.current)?.visual_authority,
+    `${feature.owner_path}/Page_Resource_Binding_V1.json`].filter(Boolean).map(path =>
+      `<a class="authority-row" href="${esc(repoHref(path))}" target="_blank" rel="noreferrer">${esc(path)}</a>`).join("");
+  el("hifiViewScenarios").innerHTML = '<span class="preview-empty compact">页面状态 ID 未由机器权威解析 · NOT_RUN</span>';
+  window.PageWorkspaceAdapters.mount(el("hifiViewCanvas"), {
+    pageId: id,
+    sourceSha: DESIGN_MANAGER_BUILD,
+    feature,
+    repoHref,
+    fetchImpl: window.fetch.bind(window)
+  }).catch(() => {});
+}
+
 function renderInvalidManagerRoute(raw) {
+  window.PageWorkspaceAdapters?.dispose();
+  cancelNH01ResourceLoad(el("hifiViewCanvas"));
   selectedKey = null;
   renderLists();
   hideAllDetails();
@@ -3870,6 +3931,9 @@ function selectFromHash() {
     const id = parts[1];
     const feature = pageRegistry.features.find(x => x.id === id);
     if (feature) {
+      if (parts[2] === "hifi" && parts[3] === "structured_workspace" && parts.length === 4) {
+        return openPageStructuredWorkspace(id, raw, false);
+      }
       if (parts[2] === "hifi" && parts[3] && (parts.length === 4 || parts.length === 5)) {
         const hifiId = parts[3];
         const view = (feature.hifi_views || []).find(x => x.id === hifiId);
@@ -3901,6 +3965,9 @@ async function init() {
     if (!pageResponse.ok || !sharedResponse.ok) throw new Error("Registry HTTP error");
     pageRegistry = await pageResponse.json();
     sharedRegistry = await sharedResponse.json();
+    await window.PageWorkspaceAdapters?.initialize(pageRegistry, {
+      fetchImpl: window.fetch.bind(window), repoHref
+    });
     const mainJourneyBoard = pageRegistry.features.find(x => x.id === "recognition_flow_v1_2")
       ?.hifi_views?.find(x => x.id === "boundary_state_release_gate")
       ?.children?.find(x => x.id === "master_board_v1");
