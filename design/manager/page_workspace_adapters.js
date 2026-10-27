@@ -253,7 +253,7 @@
         root.querySelector("[data-preview-disclosure]").textContent = `REFERENCE_IMAGE_ONLY · ${authority.visual_asset.asset_designation} · 生命周期 ${authority.visual_asset.lifecycle_status} · 发布权限 ${permission.state}。组件、交互和页面状态没有独立 DOM 权威，故不作推断。`;
         const viewportAuthorityId = authority.envelope?.viewport_inputs?.viewport_authority_ref_id;
         const viewportRef = (authority.envelope?.authority_refs || []).find(row => row.authority_ref_id === viewportAuthorityId);
-        if (viewportRef?.path) {
+        if (viewportRef?.path?.toLowerCase().endsWith(".json")) {
           const viewportDoc = await readJson(viewportRef.path, { fetchImpl, repoHref, signal });
           const profiles = viewportDoc.value?.responsive_profiles_to_verify || [];
           if (profiles.length) {
