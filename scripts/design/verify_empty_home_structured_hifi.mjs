@@ -390,9 +390,32 @@ async function main() {
       await mutate(page.route.bind(page));
       await page.goto(url,{waitUntil:"domcontentloaded",timeout:45000});
       await page.locator("#pageList .module-item").first().waitFor({state:"visible",timeout:30000});
-      await page.locator("[data-page-workspace-root]").waitFor({state:"visible",timeout:30000});
-      await page.waitForFunction(()=>document.querySelector("[data-page-workspace-root]")?.dataset.viewState==="ERROR",null,{timeout:45000});
-      const message=await page.locator("[data-workspace-error]").innerText();
+      await page.waitForFunction(()=>{
+        const host=window.PageWorkspaceAdapters?.active?.root;
+        const workspace=host?.querySelector("[data-page-workspace-root]");
+        return workspace?.getClientRects().length>0;
+      },null,{timeout:30000});
+      try {
+        await page.waitForFunction(()=>{
+          const host=window.PageWorkspaceAdapters?.active?.root;
+          const workspace=host?.querySelector("[data-page-workspace-root]");
+          const error=host?.querySelector("[data-workspace-error]");
+          return workspace?.dataset.viewState==="ERROR"&&error&&!error.hidden;
+        },null,{timeout:45000});
+      } catch(error) {
+        const diagnostic=await page.evaluate(()=>{
+          const adapter=window.PageWorkspaceAdapters?.active;
+          const host=adapter?.root;
+          const workspace=host?.querySelector("[data-page-workspace-root]");
+          const errorNode=host?.querySelector("[data-workspace-error]");
+          return {page_id:adapter?.pageId||null,source_sha:adapter?.sourceSha||null,
+            active_root_connected:Boolean(host?.isConnected),workspace_count:document.querySelectorAll("[data-page-workspace-root]").length,
+            view_state:workspace?.dataset.viewState||null,error_visible:Boolean(errorNode&&!errorNode.hidden),
+            error_text:errorNode?.innerText||null};
+        });
+        throw new Error(`${label}: expected active workspace fail-closed state was not observed: ${error.message}; diagnostics=${JSON.stringify(diagnostic)}`);
+      }
+      const message=await page.evaluate(()=>window.PageWorkspaceAdapters.active.root.querySelector("[data-workspace-error]").innerText);
       assert(message.length>0,`${label}: no explicit fail-closed reason was reported`);
       baseEvidence.negative_cases.push({case:label,result:"EXPECTED_FAIL_CLOSED",error:message});
       await page.unrouteAll({behavior:"ignoreErrors"});
