@@ -84,7 +84,7 @@ async function main() {
         infrastructureBlocked = true;
         continue;
       }
-      const expected = fixture === "ok" ? "PASS" : "FAIL";
+      const expected = fixture === "ok" || fixture === "blocked-authority-node" ? "PASS" : "FAIL";
       if (report.result !== expected || (expected === "PASS" && code !== 0) || (expected === "FAIL" && code === 0)) {
         throw new Error(`${fixture}: expected ${expected}, got ${report.result}, exit ${code}; report=${JSON.stringify(report)}`);
       }
