@@ -1,0 +1,13 @@
+{
+  "contract": "recognition_result_metadata_edit_flow",
+  "version": "V1.1",
+  "status": "FROZEN",
+  "navigation": "same_result_page_bottom_sheets",
+  "fields": {
+    "length": { "title": "鱼获长度", "keyboard": "decimal", "commit": "valid_only", "clear": true },
+    "weight": { "title": "鱼获重量", "keyboard": "decimal", "commit": "valid_only", "clear": true },
+    "location": { "title": "鱼获地点", "search": true, "current_location": "explicit_action_only", "recent_max": 3, "commit": "immediate_selection", "clear": true }
+  },
+  "low_before_species": { "editable": true, "persist": "draft_only" },
+  "invalid_input": { "stay_in_sheet": true, "show_error": true }
+}

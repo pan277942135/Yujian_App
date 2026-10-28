@@ -1,0 +1,27 @@
+{
+  "version": "1.2",
+  "strategy": [
+    "foreground Fit",
+    "same-photo blurred background fill",
+    "never raw CenterCrop"
+  ],
+  "foreground": {
+    "content_scale": "Fit"
+  },
+  "blur_background": {
+    "blur_radius_dp": 18,
+    "scale": 1.08,
+    "overlay_alpha": 0.12
+  },
+  "supported": [
+    "9:16",
+    "16:9",
+    "4:3",
+    "1:1"
+  ],
+  "protect": [
+    "fish body",
+    "face",
+    "holding hand"
+  ]
+}

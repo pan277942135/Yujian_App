@@ -1,0 +1,20 @@
+{
+  "version": "My_Catches_Growth_Mark_V1",
+  "id": "my_catches_growth_mark_v1",
+  "status": "FROZEN",
+  "freeze_date": "2026-09-30",
+  "filename": "My_Catches_Growth_Mark_V1_Frozen.png",
+  "path": "design/pages/fish_records/list/frozen/growth_mark_v1/My_Catches_Growth_Mark_V1_Frozen.png",
+  "width": 1448,
+  "height": 1086,
+  "bytes": 1870439,
+  "sha256": "25b8eebb71249c4fe24863ba8faca44a1f33f6830832365d08cec2e2de49fbfb",
+  "git_blob_sha": "0175a4d5ceaeeedd9fa055a4cb65be6cf5a4728e",
+  "source_type": "GENERATED_HIGH_FIDELITY_PNG",
+  "source_reference": "与自然相遇：Growth Mark V1 设计稿.png",
+  "authority_type": "VISUAL_AUTHORITY",
+  "reencode_allowed": false,
+  "output_policy": "Preserve and publish the exact source PNG bytes. Do not replace it with SVG, HTML/CSS reconstruction, a screenshot derivative, or a re-encoded image.",
+  "frozen_spec": "design/pages/fish_records/list/My_Catches_Growth_Mark_Spec_V1.md",
+  "behavior_authority": "design/pages/fish_records/list/My_Catches_Growth_Mark_Spec_V1.md"
+}

@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" color="#0B2D4B" role="img" aria-labelledby="title">
+  <title id="title">说明 / 疑问</title>
+  <!-- YuJian Design Candidate V0.1 | 24x24 | stroke=1.75 | not frozen -->
+  <g stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="12" r="8.65"/><path d="M9.45 9C9.75 7.55 10.85 6.9 12.25 6.9C13.85 6.9 14.95 7.9 14.95 9.3C14.95 10.5 14.3 11.2 13.1 12.05C12.25 12.65 12 13.05 12 14"/><circle cx="12" cy="17.2" r=".95" stroke="none" fill="currentColor"/>
+  </g>
+</svg>

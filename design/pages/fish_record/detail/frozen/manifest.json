@@ -1,0 +1,13 @@
+{
+  "id": "fish_record_detail_b_side_v1",
+  "status": "FROZEN",
+  "filename": "FishRecordDetail_B_Side_V1_Frozen.png",
+  "width": 941,
+  "height": 1672,
+  "bytes": 2095527,
+  "sha256": "c07e684f6068e71ac2188819f9f69297343116a0c5db5b1089ef97be2f15582b",
+  "git_blob_sha": "9c7c697d7bbdd2e6439ce3cc0ae1646431c6e450",
+  "freeze_date": "2026-09-30",
+  "authority_type": "VISUAL_AUTHORITY",
+  "reencode_allowed": false
+}

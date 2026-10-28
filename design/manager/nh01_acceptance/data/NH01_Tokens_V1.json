@@ -1,0 +1,80 @@
+{
+  "schema_version": 1,
+  "document_type": "tokens",
+  "status": "REVIEW_REQUIRED",
+  "source": {
+    "pr164_head_sha": "77a9aabc2648bda2942575d6600b74c9fe7d3ad7",
+    "mapping_sha256": "0a9880d1250969d85104641686efe1b1f85c965b8d9b2f7954d387d3b72c0b6a"
+  },
+  "figma_collection": {
+    "id": "VariableCollectionId:37:26",
+    "name": "YuJian Design System V3.1 / NH01",
+    "mode": "NH01 Default",
+    "variable_count": 21,
+    "collection_status": "RECORDED_IN_PR164_MAPPING_NOT_CURRENTLY_RE_READ"
+  },
+  "colors": [
+    {
+      "name": "color/deep_lake_blue",
+      "value": "#0B2D4B",
+      "evidence_status": "BOUND_COLOR_RECORDED_IN_PR164_MAPPING"
+    },
+    {
+      "name": "color/lake_white",
+      "value": "#F7FAFB",
+      "evidence_status": "BOUND_COLOR_RECORDED_IN_PR164_MAPPING"
+    },
+    {
+      "name": "color/mist_blue_gray",
+      "value": "#748897",
+      "evidence_status": "BOUND_COLOR_RECORDED_IN_PR164_MAPPING"
+    }
+  ],
+  "text_styles": [
+    {
+      "name": "Statistics Value 36/42",
+      "id": "S:24a2ed7d762d4841a897e9166e7197edcbd21230",
+      "status": "RECORDED_IN_PR164_MAPPING"
+    },
+    {
+      "name": "Statistics Label 28/32",
+      "id": "S:d6db0e1d5f22b909ff6ad77abb498f188e88a88e",
+      "status": "RECORDED_IN_PR164_MAPPING"
+    },
+    {
+      "name": "Recent Title 48/52",
+      "id": "S:5138d80f719c1de2da1aa99a04090c5402eb93dc",
+      "status": "RECORDED_IN_PR164_MAPPING"
+    },
+    {
+      "name": "Recent Action 40/44",
+      "id": "S:2bba567766db56d42c7953f3936e3e781b148556",
+      "status": "RECORDED_IN_PR164_MAPPING"
+    },
+    {
+      "name": "Hero Title 56/64",
+      "id": "S:965db469a3d33ea459e81e691859c7b0add96b14",
+      "status": "RECORDED_IN_PR164_MAPPING"
+    },
+    {
+      "name": "Measurement 46/52",
+      "id": "S:5cf5980f31da35e919f858541b527ff06ebf04ee",
+      "status": "RECORDED_IN_PR164_MAPPING"
+    },
+    {
+      "name": "Metadata 36/42",
+      "id": "S:8020e72ee3a19160af7100d32040c0993c22ddb0",
+      "status": "RECORDED_IN_PR164_MAPPING"
+    },
+    {
+      "name": "CTA 36/40",
+      "id": "S:09fcf1ffd6c4b9066fe638f8eec556de92f3435a",
+      "status": "RECORDED_IN_PR164_MAPPING"
+    }
+  ],
+  "font": {
+    "candidate": "Noto Sans SC Regular/Medium",
+    "status": "REVIEW_REQUIRED",
+    "note": "No font substitution is promoted to verified."
+  }
+}

@@ -1,0 +1,105 @@
+{
+  "system": "RECOGNITION_PROCESSING",
+  "component": "AI_EDGE_FIELD_V1",
+  "version": "1.0",
+  "status": "FROZEN_QUALITY_LEVELS",
+  "authority": "design/pages/recognition/processing/accessibility/Recognition_Quality_Levels_V1.md",
+  "profiles": {
+    "FULL": {
+      "quality_multiplier": 1,
+      "receiving_light": 1,
+      "primary_core": 1,
+      "mid_glow": 1,
+      "outer_bloom": 1,
+      "companion_hairline": [
+        "B_UR",
+        "G_UL",
+        "B_LR",
+        "G_LL"
+      ],
+      "micro_hairline": [
+        "B_UR"
+      ],
+      "secondary_fragments": true,
+      "hot_nodes": {
+        "main": "B_UR",
+        "secondary_max": 1
+      },
+      "particle_anchors": 8,
+      "strongly_visible_particles_max": 3
+    },
+    "BALANCED": {
+      "quality_multiplier": 0.92,
+      "receiving_light": 0.85,
+      "primary_core": 1,
+      "mid_glow": 0.9,
+      "outer_bloom": 0.75,
+      "companion_hairline": [
+        "B_UR",
+        "G_UL"
+      ],
+      "micro_hairline": [],
+      "secondary_fragments": false,
+      "hot_nodes": {
+        "main": "B_UR",
+        "secondary_max": 0
+      },
+      "particle_anchors": 4,
+      "strongly_visible_particles_max": 2
+    },
+    "LITE": {
+      "quality_multiplier": 0.82,
+      "receiving_light": 0.7,
+      "primary_core": 1,
+      "mid_glow": 0.8,
+      "outer_bloom": 0.5,
+      "companion_hairline": [],
+      "micro_hairline": [],
+      "secondary_fragments": false,
+      "hot_nodes": {
+        "main": null,
+        "secondary_max": 0
+      },
+      "particle_anchors": 0,
+      "strongly_visible_particles_max": 0
+    }
+  },
+  "invariants": [
+    "four_primary_energy_islands",
+    "mandatory_quiet_gaps",
+    "primary_geometry",
+    "per_path_core_width",
+    "island_hierarchy",
+    "state_strength_semantics",
+    "segment_offset_semantics",
+    "resolve_strength_semantics",
+    "photo_dominance",
+    "three_state_product_story"
+  ],
+  "degradation_priority": [
+    "micro_hairline",
+    "secondary_fragments",
+    "lower_island_companion_hairlines",
+    "particles_8_to_4",
+    "secondary_hot_node",
+    "remaining_companion_hairlines",
+    "particles_4_to_0",
+    "outer_bloom_strength",
+    "receiving_light_strength"
+  ],
+  "identity_floor": [
+    "original_photo",
+    "four_primary_energy_islands",
+    "primary_core",
+    "primary_mid_glow",
+    "local_receiving_light",
+    "quiet_gaps"
+  ],
+  "switching": {
+    "reset_motion_clock": false,
+    "preserve_segment_offset": true,
+    "user_visible_event": false,
+    "exact_thresholds": "platform_implementation_owned"
+  },
+  "fish_focus_coupling": "none"
+}

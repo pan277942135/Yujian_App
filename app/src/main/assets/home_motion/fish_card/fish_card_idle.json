@@ -1,0 +1,17 @@
+{
+  "name": "fish_card_idle",
+  "loop": true,
+  "duration_ms": 6000,
+  "animation": {
+    "scale": [
+      1.0,
+      1.008,
+      1.0
+    ],
+    "translateY": [
+      0,
+      -3,
+      0
+    ]
+  }
+}

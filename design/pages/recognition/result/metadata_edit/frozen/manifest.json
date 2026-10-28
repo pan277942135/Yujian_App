@@ -1,0 +1,40 @@
+{
+  "version": "Recognition_Result_Metadata_Edit_Flow_V1",
+  "id": "recognition_result_metadata_edit_flow_v1",
+  "status": "FROZEN",
+  "freeze_date": "2026-09-30",
+  "filename": "Recognition_Result_Metadata_Edit_Flow_V1_Frozen.png",
+  "path": "design/pages/recognition/result/metadata_edit/frozen/Recognition_Result_Metadata_Edit_Flow_V1_Frozen.png",
+  "width": 1312,
+  "height": 1199,
+  "bytes": 1596034,
+  "sha256": "2c62281a82a145ac2958a81927c30a7c4eb8d96c2e57caa1a99c16a7515ad27a",
+  "git_blob_sha": "5e6c278017f83acad89ea1f118de7835a4da31fe",
+  "source_type": "UPLOADED_HIGH_FIDELITY_PNG",
+  "source_reference": "钓鱼记录轻量录入流程展示.png",
+  "authority_type": "INTERACTION_VISUAL_AUTHORITY",
+  "asset_kind": "INTERACTION_VISUAL_AUTHORITY",
+  "shipping_asset": false,
+  "reencode_allowed": false,
+  "authority_scope": [
+    "numeric_bottom_sheet",
+    "location_bottom_sheet",
+    "keyboard_intent",
+    "validation_state",
+    "clear_reedit",
+    "location_search",
+    "current_location",
+    "recent_locations"
+  ],
+  "excluded_scope": [
+    "recognition_result_page_layout",
+    "confidence_badge",
+    "legacy_result_cta",
+    "legacy_metadata_list",
+    "legacy_species_tag",
+    "legacy_gold_action"
+  ],
+  "output_policy": "Preserve the exact uploaded PNG bytes. This board is an interaction authority, not a shipping asset; it cannot replace or redesign the frozen Recognition Result page composition.",
+  "bound_behavior_spec": "design/pages/recognition/result/engineering/Recognition_Result_Metadata_Edit_Flow_V1.md",
+  "bound_machine_contract": "design/pages/recognition/result/engineering/metadata_edit_flow_contract.json"
+}

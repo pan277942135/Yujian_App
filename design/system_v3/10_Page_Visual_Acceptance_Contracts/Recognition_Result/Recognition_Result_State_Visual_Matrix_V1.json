@@ -1,0 +1,279 @@
+{
+  "schema_version": "1.0",
+  "contract_id": "recognition_result_state_visual_matrix_v1",
+  "page_id": "recognition_result_v1",
+  "status": "FROZEN_CONTRACT",
+  "required_states": [
+    "HIGH_CONFIDENCE",
+    "MEDIUM_CONFIDENCE",
+    "LOW_CONFIDENCE",
+    "NO_FISH",
+    "IMAGE_QUALITY_WARNING"
+  ],
+  "states": [
+    {
+      "state": "HIGH_CONFIDENCE",
+      "authority_asset": {
+        "asset_id": "pages_recognition_design_05_result_high_frozen_png",
+        "path": "design/pages/recognition/design/05_Result_High_Frozen.png",
+        "type": "PNG",
+        "size_bytes": 1732983,
+        "dimensions": "941x1672",
+        "sha256": "f540ddc4b3844a453170537eaa70f506dc0eb1c312fc3410a960ad6cd87ba156",
+        "asset_registry_status": "REVIEW",
+        "page_visual_authority_status": "FROZEN"
+      },
+      "components": [
+        "navigation.back",
+        "navigation.top_title",
+        "media.hero",
+        "surface.glass_surface",
+        "data.metadata_row",
+        "action.text_action",
+        "action.primary_button"
+      ],
+      "layout": "Centered content cap 322dp at 360dp. Hero is 322×210dp. Preserve the Frozen order; outer content scrolls when height, keyboard or font scale requires it.",
+      "typography": [
+        "type.title",
+        "type.headline",
+        "type.body",
+        "type.caption",
+        "type.button",
+        "type.numeric"
+      ],
+      "color_tokens": [
+        "color.deep_lake_blue",
+        "color.mist_blue_gray",
+        "color.glass_white",
+        "color.glass_border",
+        "color.morning_gold"
+      ],
+      "geometry_tokens": [
+        "viewport.360",
+        "touch.minimum",
+        "geometry.media.cover",
+        "geometry.media.evidence_fit",
+        "geometry.space.12"
+      ],
+      "interaction": "Top-1 species is shown from model data; species correction and optional Length/Weight/Location/Story follow the Frozen order. Frozen image has no separate numeric confidence badge; do not add one. Continue Memory and Save Catch remain distinct.",
+      "animation": "Use inherited Result entry fade only; no stagger, celebration, pulse or automatic candidate cycling.",
+      "accessibility": "Task-order TalkBack traversal; semantic labels and state; 44dp minimum target; primary actions 48dp; fontScale 1.0/1.3/1.5/2.0; no clipped text or obscured actions.",
+      "data_authority": "design/system_v3/08_Page_Contracts/recognition/result/Recognition_Result_Data_Lineage_V1.json",
+      "state_authority": "design/system_v3/08_Page_Contracts/recognition/result/State_Machine_V3_1.json",
+      "copy_authority": "design/system_v3/08_Page_Contracts/recognition/result/ImageQualityCopy_V1.json"
+    },
+    {
+      "state": "MEDIUM_CONFIDENCE",
+      "authority_asset": {
+        "asset_id": "pages_recognition_design_06_result_medium_frozen_png",
+        "path": "design/pages/recognition/design/06_Result_Medium_Frozen.png",
+        "type": "PNG",
+        "size_bytes": 1659693,
+        "dimensions": "941x1672",
+        "sha256": "5a334f8deef344910865d43057a2df3d6d5137ca8ebfad3eef7557120586fcd3",
+        "asset_registry_status": "REVIEW",
+        "page_visual_authority_status": "FROZEN"
+      },
+      "components": [
+        "navigation.back",
+        "navigation.top_title",
+        "media.hero",
+        "surface.glass_surface",
+        "surface.card",
+        "input.selector",
+        "data.metadata_row",
+        "action.text_action",
+        "action.primary_button"
+      ],
+      "layout": "Centered content cap 322dp at 360dp. Hero is 322×178dp. Preserve the Frozen order; outer content scrolls when height, keyboard or font scale requires it.",
+      "typography": [
+        "type.title",
+        "type.headline",
+        "type.body",
+        "type.caption",
+        "type.button",
+        "type.numeric"
+      ],
+      "color_tokens": [
+        "color.deep_lake_blue",
+        "color.mist_blue_gray",
+        "color.glass_white",
+        "color.glass_border",
+        "color.morning_gold"
+      ],
+      "geometry_tokens": [
+        "viewport.360",
+        "touch.minimum",
+        "geometry.media.cover",
+        "geometry.media.evidence_fit",
+        "geometry.space.12"
+      ],
+      "interaction": "Candidates are suggestions until an explicit tap. Use the shown idle cards at entry and gold-selected treatment only after explicit selection. Other Species opens the registered selector; post-confirmation record flow follows the Frozen contract.",
+      "animation": "Use inherited Result entry fade only; no stagger, celebration, pulse or automatic candidate cycling.",
+      "accessibility": "Task-order TalkBack traversal; semantic labels and state; 44dp minimum target; primary actions 48dp; fontScale 1.0/1.3/1.5/2.0; no clipped text or obscured actions.",
+      "data_authority": "design/system_v3/08_Page_Contracts/recognition/result/Recognition_Result_Data_Lineage_V1.json",
+      "state_authority": "design/system_v3/08_Page_Contracts/recognition/result/State_Machine_V3_1.json",
+      "copy_authority": "design/system_v3/08_Page_Contracts/recognition/result/ImageQualityCopy_V1.json"
+    },
+    {
+      "state": "LOW_CONFIDENCE",
+      "authority_asset": {
+        "asset_id": "pages_recognition_design_07_result_low_frozen_png",
+        "path": "design/pages/recognition/design/07_Result_Low_Frozen.png",
+        "type": "PNG",
+        "size_bytes": 1730696,
+        "dimensions": "941x1672",
+        "sha256": "b767965028786374bcadf9dd1b219b7b61f698edade323d8557293ebcec1d6e1",
+        "asset_registry_status": "REVIEW",
+        "page_visual_authority_status": "FROZEN"
+      },
+      "components": [
+        "navigation.back",
+        "navigation.top_title",
+        "media.hero",
+        "surface.glass_surface",
+        "surface.card",
+        "input.selector",
+        "data.metadata_row",
+        "action.text_action",
+        "action.primary_button"
+      ],
+      "layout": "Centered content cap 322dp at 360dp. Hero is 322×178dp. Preserve the Frozen order; outer content scrolls when height, keyboard or font scale requires it.",
+      "typography": [
+        "type.title",
+        "type.headline",
+        "type.body",
+        "type.caption",
+        "type.button",
+        "type.numeric"
+      ],
+      "color_tokens": [
+        "color.deep_lake_blue",
+        "color.mist_blue_gray",
+        "color.glass_white",
+        "color.glass_border",
+        "color.morning_gold"
+      ],
+      "geometry_tokens": [
+        "viewport.360",
+        "touch.minimum",
+        "geometry.media.cover",
+        "geometry.media.evidence_fit",
+        "geometry.space.12"
+      ],
+      "interaction": "Keep the frozen low-confidence message, manual selection, retake, metadata and Story. Unresolved Save/Continue enters LOW_MANUAL and cannot persist before explicit species selection.",
+      "animation": "Use inherited Result entry fade only; no stagger, celebration, pulse or automatic candidate cycling.",
+      "accessibility": "Task-order TalkBack traversal; semantic labels and state; 44dp minimum target; primary actions 48dp; fontScale 1.0/1.3/1.5/2.0; no clipped text or obscured actions.",
+      "data_authority": "design/system_v3/08_Page_Contracts/recognition/result/Recognition_Result_Data_Lineage_V1.json",
+      "state_authority": "design/system_v3/08_Page_Contracts/recognition/result/State_Machine_V3_1.json",
+      "copy_authority": "design/system_v3/08_Page_Contracts/recognition/result/ImageQualityCopy_V1.json"
+    },
+    {
+      "state": "NO_FISH",
+      "authority_asset": {
+        "asset_id": "pages_recognition_design_08_error_no_fish_frozen_png",
+        "path": "design/pages/recognition/design/08_Error_No_Fish_Frozen.png",
+        "type": "PNG",
+        "size_bytes": 1730109,
+        "dimensions": "941x1672",
+        "sha256": "3952e2f8eb8e42124e8554f6c1481351ff7cb7bb200180613787c4448bf2d8d2",
+        "asset_registry_status": "REVIEW",
+        "page_visual_authority_status": "FROZEN"
+      },
+      "components": [
+        "navigation.back",
+        "navigation.top_title",
+        "media.image",
+        "surface.glass_surface",
+        "action.primary_button",
+        "action.text_action"
+      ],
+      "layout": "Centered content cap 322dp at 360dp. Hero is 322×245dp. Preserve the Frozen order; outer content scrolls when height, keyboard or font scale requires it.",
+      "typography": [
+        "type.title",
+        "type.headline",
+        "type.body",
+        "type.caption",
+        "type.button",
+        "type.numeric"
+      ],
+      "color_tokens": [
+        "color.deep_lake_blue",
+        "color.mist_blue_gray",
+        "color.glass_white",
+        "color.glass_border",
+        "color.morning_gold"
+      ],
+      "geometry_tokens": [
+        "viewport.360",
+        "touch.minimum",
+        "geometry.media.cover",
+        "geometry.media.evidence_fit",
+        "geometry.space.12"
+      ],
+      "interaction": "Use full Evidence Fit and one recovery panel containing frozen heading, guidance, Retake and Gallery. No record is created.",
+      "animation": "Static recovery; shared control feedback only.",
+      "accessibility": "Task-order TalkBack traversal; semantic labels and state; 44dp minimum target; primary actions 48dp; fontScale 1.0/1.3/1.5/2.0; no clipped text or obscured actions.",
+      "data_authority": "design/system_v3/08_Page_Contracts/recognition/result/Recognition_Result_Data_Lineage_V1.json",
+      "state_authority": "design/system_v3/08_Page_Contracts/recognition/result/State_Machine_V3_1.json",
+      "copy_authority": "design/system_v3/08_Page_Contracts/recognition/result/ImageQualityCopy_V1.json"
+    },
+    {
+      "state": "IMAGE_QUALITY_WARNING",
+      "authority_asset": {
+        "asset_id": "pages_recognition_design_09_error_image_quality_frozen_png",
+        "path": "design/pages/recognition/design/09_Error_Image_Quality_Frozen.png",
+        "type": "PNG",
+        "size_bytes": 1618477,
+        "dimensions": "941x1672",
+        "sha256": "965be5b37ce4c41e8a5b758f2f94bac16fa0b99dc135e25b114c2943d35b1a0d",
+        "asset_registry_status": "REVIEW",
+        "page_visual_authority_status": "FROZEN"
+      },
+      "components": [
+        "navigation.back",
+        "navigation.top_title",
+        "media.image",
+        "surface.glass_surface",
+        "action.primary_button",
+        "action.text_action"
+      ],
+      "layout": "Centered content cap 322dp at 360dp. Hero is 322×214dp. Preserve the Frozen order; outer content scrolls when height, keyboard or font scale requires it.",
+      "typography": [
+        "type.title",
+        "type.headline",
+        "type.body",
+        "type.caption",
+        "type.button",
+        "type.numeric"
+      ],
+      "color_tokens": [
+        "color.deep_lake_blue",
+        "color.mist_blue_gray",
+        "color.glass_white",
+        "color.glass_border",
+        "color.morning_gold"
+      ],
+      "geometry_tokens": [
+        "viewport.360",
+        "touch.minimum",
+        "geometry.media.cover",
+        "geometry.media.evidence_fit",
+        "geometry.space.12"
+      ],
+      "interaction": "Use only ImageQualityCopy_V1.json guidance; retain one recovery panel and the distinct Image Quality state. No record is created.",
+      "animation": "Static recovery; shared control feedback only.",
+      "accessibility": "Task-order TalkBack traversal; semantic labels and state; 44dp minimum target; primary actions 48dp; fontScale 1.0/1.3/1.5/2.0; no clipped text or obscured actions.",
+      "data_authority": "design/system_v3/08_Page_Contracts/recognition/result/Recognition_Result_Data_Lineage_V1.json",
+      "state_authority": "design/system_v3/08_Page_Contracts/recognition/result/State_Machine_V3_1.json",
+      "copy_authority": "design/system_v3/08_Page_Contracts/recognition/result/ImageQualityCopy_V1.json"
+    }
+  ],
+  "shared_rules": {
+    "priority": "State PNG owns composition, hierarchy and visible copy; Shared Foundation supplies only registered shared properties.",
+    "medium_candidate": "Medium Frozen PNG includes idle and gold-selected card styles. Initial candidates are uncommitted suggestions; selected style follows explicit tap per State Machine.",
+    "confidence": "Confidence routes the state; no numeric confidence chip is defined by the five Frozen Result PNGs.",
+    "media": "HIGH/MEDIUM/LOW use original oriented user photo and subject-safe Hero policy. NO_FISH/IMAGE_QUALITY_WARNING use complete Evidence Fit. No stretch, generated fill, blur duplicate, detector crop or screenshot crop.",
+    "recovery": "NO_FISH and IMAGE_QUALITY_WARNING are distinct static states; neither persists a record."
+  }
+}

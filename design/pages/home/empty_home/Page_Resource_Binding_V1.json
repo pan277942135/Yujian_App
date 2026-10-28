@@ -1,0 +1,980 @@
+{
+  "schema_version": "1.0",
+  "binding_id": "home_empty_v2_resource_binding_v1",
+  "page_id": "home_empty_v2",
+  "page_id_aliases": [],
+  "owner_path": "design/pages/home/empty_home",
+  "authority_version": "V2.2",
+  "page_identity_authority": {
+    "authority_id": "experience",
+    "json_pointer": "/features/0",
+    "field_pointer": "/id",
+    "expected_value": "home_empty_v2"
+  },
+  "authority_version_source": {
+    "authority_id": "emptyauthority",
+    "json_pointer": "",
+    "field_pointer": "/visual_revision",
+    "expected_value": "V2.2"
+  },
+  "source_authorities": [
+    {
+      "authority_id": "experience",
+      "path": "design/registry/experience_registry_v1.json",
+      "sha256": "05fce37aaaa5157149eab018605b83afc28c300457484b1bf637bf3a36649e24",
+      "purpose": "experience"
+    },
+    {
+      "authority_id": "workflow",
+      "path": ".github/workflows/design-manager-pages.yml",
+      "sha256": "1d7a5b06fc22a6ff6322e5d6fd5f777158a6b62beb3990daaae68014eabf3557",
+      "purpose": "workflow"
+    },
+    {
+      "authority_id": "w0",
+      "path": "design/system_v3/07_Responsive_System/Page_Pipeline_Reuse_Inventory_V1.md",
+      "sha256": "38ebfae34c8ab7aa196f1d9967bd1e950eb9025609b2847fd701abf700705b67",
+      "purpose": "w0"
+    },
+    {
+      "authority_id": "assetreg",
+      "path": "design/system_v3/06_Asset_System/Asset_Registry_V3_FINAL.json",
+      "sha256": "6f08c77ed07c3080062ec4f07c091bd15f0b3961d15012eb3ebb0dd8c7d292f9",
+      "purpose": "assetreg"
+    },
+    {
+      "authority_id": "capturebutton",
+      "path": "design/system/components/primary_capture_button/manifest.json",
+      "sha256": "d05bc992e66ab486a29df84f1b889d2d44f74412e0c381da7c3c0eb966b505d9",
+      "purpose": "frozen_shared_component"
+    },
+    {
+      "authority_id": "bgreg",
+      "path": "design/system_v3/08_Background_System/Background_Registry_V3.json",
+      "sha256": "fd806869c0ccb4b9788c360d6a6618dcb8c805c2b0cdce077ccc83d0190a0bb9",
+      "purpose": "bgreg"
+    },
+    {
+      "authority_id": "emptyauthority",
+      "path": "design/pages/home/empty_home/shared/contracts/authority_manifest.json",
+      "sha256": "796961d61ef89a101fff0af9ad3e43b1dffb97df12ab69dfbed74f535b4c03df",
+      "purpose": "emptyauthority"
+    },
+    {
+      "authority_id": "emptyassets",
+      "path": "design/pages/home/empty_home/shared/contracts/asset_manifest.json",
+      "sha256": "d71ac0ade690dbc0b86fb2dd7a3946049eef6757c04bcaaae9ad8389217ad8ad",
+      "purpose": "emptyassets"
+    },
+    {
+      "authority_id": "emptyruntime",
+      "path": "design/pages/home/empty_home/shared/contracts/runtime_manifest.json",
+      "sha256": "aaae66f44473f497bffcd2f98165942f5442d8df141e2932ba336ad35065f4e8",
+      "purpose": "emptyruntime"
+    },
+    {
+      "authority_id": "emptysource",
+      "path": "design/pages/home/empty_home/source/provenance/source_manifest.json",
+      "sha256": "86055e36faa8cf7f4fa597d5d0919e0ef0b2fd54104b8818053126513795efb5",
+      "purpose": "emptysource"
+    },
+    {
+      "authority_id": "private_reference_manifest",
+      "path": "design/pages/recognition/web/VISUAL_REFERENCE_MANIFEST_V1.json",
+      "sha256": "d4447f4132c29beb4c7e6b8414fce19b47c57114286c758e36e6866352f5f83d",
+      "purpose": "Pinned private visual filename/SHA denylist for the final Pages artifact scan."
+    },
+    {
+      "authority_id": "private_photo_mapping",
+      "path": "design/pages/recognition/web/contracts/Work_B_Implementation_Mapping_V2.json",
+      "sha256": "1a2dce6a4fabd01c122c7bd3c746145234130afc2733521e3d5aed59ceec4f5b",
+      "purpose": "Pinned private photo SHA and public publication permissions for the Pages artifact scan."
+    },
+    {
+      "authority_id": "private_input_manifest",
+      "path": "design/pages/recognition/web/implementation_input_pack/SWOS_WEB_IMPLEMENTATION_INPUT_MANIFEST_V1.json",
+      "sha256": "10bd86f55e41704ca621da8e82568ae6d8ad7a61002d51012ff630bb9b38df4a",
+      "purpose": "Pinned private bundle names and SHA values for the actual Pages artifact scan."
+    }
+  ],
+  "publication_policy": {
+    "authority_id": "workflow",
+    "public_scope_marker": "cp -R design _site/design"
+  },
+  "page_notes": [
+    "Empty Home uses its own V2 base, approved V2.2 increment and 13-resource asset manifest.",
+    "No NH01 page-specific visual asset is reused.",
+    "The full-page PNGs carry Asset Registry REVIEW while page authorities remain FROZEN; the discrepancy is preserved, not promoted."
+  ],
+  "asset_bindings": [
+    {
+      "asset_id": "empty_home_v2_frozen_visual",
+      "asset_role": "page_visual_authority_base",
+      "source_path": "design/system/core_visual_v1/reference/empty_home_v2.png",
+      "source_authorities": [
+        {
+          "authority_id": "experience",
+          "json_pointer": "/features/0",
+          "field_map": {
+            "source_path": "/modalities/visual/authority"
+          }
+        },
+        {
+          "authority_id": "emptysource",
+          "json_pointer": "/frozen_input",
+          "field_map": {
+            "sha256": "/sha256"
+          }
+        },
+        {
+          "authority_id": "assetreg",
+          "json_pointer": "/entries/576",
+          "field_map": {
+            "source_path": "/path",
+            "sha256": "/sha256",
+            "bytes": "/size",
+            "lifecycle_status": "/status"
+          }
+        }
+      ],
+      "media_type": "image/png",
+      "bytes": 1978353,
+      "sha256": "30f95fc68b65d5a55552ba279753cac1fd979216679217377e43cea8e33cb85b",
+      "pixel_dimensions": {
+        "width": 941,
+        "height": 1672
+      },
+      "coordinate_space": "canvas_px 941x1672",
+      "fit_crop_policy": "Direct visual authority; do not crop or rewrite source bytes",
+      "lifecycle_status": "REVIEW",
+      "asset_designation": "REFERENCE_ONLY",
+      "publication_permission": {
+        "state": "PUBLIC_BY_EXISTING_PAGES_RULE",
+        "authority_id": "workflow",
+        "scope": "Existing Pages rule includes Empty Home frozen visual authority files.",
+        "policy_marker": "cp -R design _site/design"
+      },
+      "requiredness": "REQUIRED",
+      "notes": [
+        "Experience Registry page is FROZEN; Asset Registry lifecycle remains REVIEW."
+      ],
+      "page_id": "home_empty_v2"
+    },
+    {
+      "asset_id": "empty_home_v2_2_frozen_visual",
+      "asset_role": "page_visual_authority_v2_2_delta",
+      "source_path": "design/pages/home/empty_home/source/frozen/Empty_Home_Frozen_Visual_V2_2.png",
+      "source_authorities": [
+        {
+          "authority_id": "emptyauthority",
+          "json_pointer": "/reference_canvas/approved_delta_artwork",
+          "field_map": {
+            "source_path": "/repository_copy",
+            "sha256": "/sha256"
+          }
+        },
+        {
+          "authority_id": "emptysource",
+          "json_pointer": "/active_visual_revision",
+          "field_map": {
+            "sha256": "/sha256"
+          }
+        },
+        {
+          "authority_id": "assetreg",
+          "json_pointer": "/entries/207",
+          "field_map": {
+            "source_path": "/path",
+            "sha256": "/sha256",
+            "bytes": "/size",
+            "lifecycle_status": "/status"
+          }
+        }
+      ],
+      "media_type": "image/png",
+      "bytes": 2000872,
+      "sha256": "3071481ed7e58106381cdd5321267792491c21fd1a357e4362db1dad8e08e7ec",
+      "pixel_dimensions": {
+        "width": 941,
+        "height": 1672
+      },
+      "coordinate_space": "canvas_px 941x1672",
+      "fit_crop_policy": "Direct visual authority; do not crop or rewrite source bytes",
+      "lifecycle_status": "REVIEW",
+      "asset_designation": "REFERENCE_ONLY",
+      "publication_permission": {
+        "state": "PUBLIC_BY_EXISTING_PAGES_RULE",
+        "authority_id": "workflow",
+        "scope": "Existing Pages rule includes Empty Home frozen visual authority files.",
+        "policy_marker": "cp -R design _site/design"
+      },
+      "requiredness": "REQUIRED",
+      "notes": [
+        "V2.2 is APPROVED_FROZEN; Asset Registry lifecycle remains REVIEW."
+      ],
+      "page_id": "home_empty_v2"
+    },
+    {
+      "asset_id": "morning_lake_sunrise_hero_v1",
+      "asset_role": "background_bg_env_hero_sunrise_override",
+      "source_path": "design/system/backgrounds/morning_lake_v1/assets/Morning_Lake_Sunrise_Hero_V1.png",
+      "source_authorities": [
+        {
+          "authority_id": "bgreg",
+          "json_pointer": "/backgrounds/0",
+          "field_map": {
+            "source_path": "/page_override/master_path",
+            "sha256": "/page_override/sha256",
+            "lifecycle_status": "/status"
+          }
+        },
+        {
+          "authority_id": "assetreg",
+          "json_pointer": "/entries/459",
+          "field_map": {
+            "source_path": "/path",
+            "sha256": "/sha256",
+            "bytes": "/size",
+            "lifecycle_status": "/status"
+          }
+        }
+      ],
+      "media_type": "image/png",
+      "bytes": 2101397,
+      "sha256": "28313d84c8cf3fb9db52196874e9c4d55483c99ff61cf579cac3ecc69af6cc50",
+      "pixel_dimensions": {
+        "width": 941,
+        "height": 1672
+      },
+      "coordinate_space": "master_canvas_px 941x1672",
+      "fit_crop_policy": null,
+      "lifecycle_status": "FROZEN",
+      "asset_designation": "ORIGINAL",
+      "publication_permission": {
+        "state": "PUBLIC_BY_EXISTING_PAGES_RULE",
+        "authority_id": "workflow",
+        "scope": "Background Registry explicitly assigns this sunrise override to Empty Home.",
+        "policy_marker": "cp -R design _site/design"
+      },
+      "requiredness": "REQUIRED",
+      "notes": [
+        "Sunrise is embedded; do not add a second sun layer."
+      ],
+      "page_id": "home_empty_v2"
+    },
+    {
+      "asset_id": "home_empty_v2_scene_base_master",
+      "asset_role": "runtime_static",
+      "source_path": "design/pages/home/empty_home/shared/assets/background/scene_base_master.png",
+      "source_authorities": [
+        {
+          "authority_id": "emptyassets",
+          "json_pointer": "/assets/0",
+          "field_map": {
+            "source_path": "/path",
+            "sha256": "/sha256",
+            "coordinate_space": "/coordinate_space",
+            "pixel_dimensions.width": "/width",
+            "pixel_dimensions.height": "/height"
+          }
+        },
+        {
+          "authority_id": "assetreg",
+          "json_pointer": "/entries/186",
+          "field_map": {
+            "source_path": "/path",
+            "sha256": "/sha256",
+            "bytes": "/size",
+            "lifecycle_status": "/status"
+          }
+        }
+      ],
+      "media_type": "image/png",
+      "bytes": 2507301,
+      "sha256": "48956004ca9fad9573156f90f3423efd33e9e2dfe1e1260985fd4caa43b01a22",
+      "pixel_dimensions": {
+        "width": 1080,
+        "height": 1920
+      },
+      "coordinate_space": "reference_1080x1920",
+      "fit_crop_policy": null,
+      "lifecycle_status": "REVIEW",
+      "asset_designation": "ORIGINAL",
+      "publication_permission": {
+        "state": "PUBLIC_BY_EXISTING_PAGES_RULE",
+        "authority_id": "workflow",
+        "scope": "Existing Pages rule includes this Empty Home manifest asset; system-owned components retain their shared-system path.",
+        "policy_marker": "cp -R design _site/design"
+      },
+      "requiredness": "REQUIRED",
+      "notes": [
+        "version=2.0",
+        "source=Empty_Home_Final_Design_V2"
+      ],
+      "page_id": "home_empty_v2"
+    },
+    {
+      "asset_id": "home_empty_v2_rod_master",
+      "asset_role": "runtime_dynamic",
+      "source_path": "design/pages/home/empty_home/shared/assets/fishing/rod_master.png",
+      "source_authorities": [
+        {
+          "authority_id": "emptyassets",
+          "json_pointer": "/assets/1",
+          "field_map": {
+            "source_path": "/path",
+            "sha256": "/sha256",
+            "coordinate_space": "/coordinate_space",
+            "pixel_dimensions.width": "/width",
+            "pixel_dimensions.height": "/height"
+          }
+        },
+        {
+          "authority_id": "assetreg",
+          "json_pointer": "/entries/191",
+          "field_map": {
+            "source_path": "/path",
+            "sha256": "/sha256",
+            "bytes": "/size",
+            "lifecycle_status": "/status"
+          }
+        }
+      ],
+      "media_type": "image/png",
+      "bytes": 102721,
+      "sha256": "d79a848c396168343148e9ce690a2934ce11d56332d05b5677c71c9131adb00c",
+      "pixel_dimensions": {
+        "width": 340,
+        "height": 206
+      },
+      "coordinate_space": "reference_1080x1920",
+      "fit_crop_policy": null,
+      "lifecycle_status": "REVIEW",
+      "asset_designation": "ORIGINAL",
+      "publication_permission": {
+        "state": "PUBLIC_BY_EXISTING_PAGES_RULE",
+        "authority_id": "workflow",
+        "scope": "Existing Pages rule includes this Empty Home manifest asset; system-owned components retain their shared-system path.",
+        "policy_marker": "cp -R design _site/design"
+      },
+      "requiredness": "REQUIRED",
+      "notes": [
+        "version=2.2",
+        "source=Empty_Home_Frozen_Visual_V2_2"
+      ],
+      "page_id": "home_empty_v2"
+    },
+    {
+      "asset_id": "home_empty_v2_line_master",
+      "asset_role": "runtime_dynamic",
+      "source_path": "design/pages/home/empty_home/shared/assets/fishing/line_master.png",
+      "source_authorities": [
+        {
+          "authority_id": "emptyassets",
+          "json_pointer": "/assets/2",
+          "field_map": {
+            "source_path": "/path",
+            "sha256": "/sha256",
+            "coordinate_space": "/coordinate_space",
+            "pixel_dimensions.width": "/width",
+            "pixel_dimensions.height": "/height"
+          }
+        },
+        {
+          "authority_id": "assetreg",
+          "json_pointer": "/entries/189",
+          "field_map": {
+            "source_path": "/path",
+            "sha256": "/sha256",
+            "bytes": "/size",
+            "lifecycle_status": "/status"
+          }
+        }
+      ],
+      "media_type": "image/png",
+      "bytes": 56660,
+      "sha256": "3979a8b8aad8962f59be722b71665ff7b3428c1019c97e39319047b2bb420ca2",
+      "pixel_dimensions": {
+        "width": 170,
+        "height": 250
+      },
+      "coordinate_space": "reference_1080x1920",
+      "fit_crop_policy": null,
+      "lifecycle_status": "REVIEW",
+      "asset_designation": "ORIGINAL",
+      "publication_permission": {
+        "state": "PUBLIC_BY_EXISTING_PAGES_RULE",
+        "authority_id": "workflow",
+        "scope": "Existing Pages rule includes this Empty Home manifest asset; system-owned components retain their shared-system path.",
+        "policy_marker": "cp -R design _site/design"
+      },
+      "requiredness": "REQUIRED",
+      "notes": [
+        "version=2.0",
+        "source=Empty_Home_Final_Design_V2"
+      ],
+      "page_id": "home_empty_v2"
+    },
+    {
+      "asset_id": "home_empty_v2_bobber_master",
+      "asset_role": "runtime_dynamic",
+      "source_path": "design/pages/home/empty_home/shared/assets/fishing/bobber_master.png",
+      "source_authorities": [
+        {
+          "authority_id": "emptyassets",
+          "json_pointer": "/assets/3",
+          "field_map": {
+            "source_path": "/path",
+            "sha256": "/sha256",
+            "coordinate_space": "/coordinate_space",
+            "pixel_dimensions.width": "/width",
+            "pixel_dimensions.height": "/height"
+          }
+        },
+        {
+          "authority_id": "assetreg",
+          "json_pointer": "/entries/187",
+          "field_map": {
+            "source_path": "/path",
+            "sha256": "/sha256",
+            "bytes": "/size",
+            "lifecycle_status": "/status"
+          }
+        }
+      ],
+      "media_type": "image/png",
+      "bytes": 4057,
+      "sha256": "2878f57c5e2ec9fab34230f985bb2ae3474270b2444a6d5621dba0679ea976ae",
+      "pixel_dimensions": {
+        "width": 24,
+        "height": 78
+      },
+      "coordinate_space": "reference_1080x1920",
+      "fit_crop_policy": null,
+      "lifecycle_status": "REVIEW",
+      "asset_designation": "ORIGINAL",
+      "publication_permission": {
+        "state": "PUBLIC_BY_EXISTING_PAGES_RULE",
+        "authority_id": "workflow",
+        "scope": "Existing Pages rule includes this Empty Home manifest asset; system-owned components retain their shared-system path.",
+        "policy_marker": "cp -R design _site/design"
+      },
+      "requiredness": "REQUIRED",
+      "notes": [
+        "version=2.2",
+        "source=Empty_Home_Frozen_Visual_V2_2"
+      ],
+      "page_id": "home_empty_v2"
+    },
+    {
+      "asset_id": "home_empty_v2_ripple_master_mask",
+      "asset_role": "runtime_dynamic",
+      "source_path": "design/pages/home/empty_home/shared/assets/fishing/ripple_master_mask.png",
+      "source_authorities": [
+        {
+          "authority_id": "emptyassets",
+          "json_pointer": "/assets/4",
+          "field_map": {
+            "source_path": "/path",
+            "sha256": "/sha256",
+            "coordinate_space": "/coordinate_space",
+            "pixel_dimensions.width": "/width",
+            "pixel_dimensions.height": "/height"
+          }
+        },
+        {
+          "authority_id": "assetreg",
+          "json_pointer": "/entries/190",
+          "field_map": {
+            "source_path": "/path",
+            "sha256": "/sha256",
+            "bytes": "/size",
+            "lifecycle_status": "/status"
+          }
+        }
+      ],
+      "media_type": "image/png",
+      "bytes": 12729,
+      "sha256": "252fedfe3952559c8908686cb09c4f6812745b17200355f253c43915794b381d",
+      "pixel_dimensions": {
+        "width": 238,
+        "height": 82
+      },
+      "coordinate_space": "reference_1080x1920",
+      "fit_crop_policy": null,
+      "lifecycle_status": "REVIEW",
+      "asset_designation": "ORIGINAL",
+      "publication_permission": {
+        "state": "PUBLIC_BY_EXISTING_PAGES_RULE",
+        "authority_id": "workflow",
+        "scope": "Existing Pages rule includes this Empty Home manifest asset; system-owned components retain their shared-system path.",
+        "policy_marker": "cp -R design _site/design"
+      },
+      "requiredness": "REQUIRED",
+      "notes": [
+        "version=2.0",
+        "source=Empty_Home_Final_Design_V2"
+      ],
+      "page_id": "home_empty_v2"
+    },
+    {
+      "asset_id": "home_empty_v2_cloud_master",
+      "asset_role": "runtime_dynamic",
+      "source_path": "design/pages/home/empty_home/shared/assets/atmosphere/cloud_master.png",
+      "source_authorities": [
+        {
+          "authority_id": "emptyassets",
+          "json_pointer": "/assets/5",
+          "field_map": {
+            "source_path": "/path",
+            "sha256": "/sha256",
+            "coordinate_space": "/coordinate_space",
+            "pixel_dimensions.width": "/width",
+            "pixel_dimensions.height": "/height"
+          }
+        },
+        {
+          "authority_id": "assetreg",
+          "json_pointer": "/entries/183",
+          "field_map": {
+            "source_path": "/path",
+            "sha256": "/sha256",
+            "bytes": "/size",
+            "lifecycle_status": "/status"
+          }
+        }
+      ],
+      "media_type": "image/png",
+      "bytes": 22240,
+      "sha256": "73fd9b549c5d81ccdddca813e2491436e49f48db317d4584c5399893890bb4b3",
+      "pixel_dimensions": {
+        "width": 620,
+        "height": 180
+      },
+      "coordinate_space": "reference_1080x1920",
+      "fit_crop_policy": null,
+      "lifecycle_status": "REVIEW",
+      "asset_designation": "ORIGINAL",
+      "publication_permission": {
+        "state": "PUBLIC_BY_EXISTING_PAGES_RULE",
+        "authority_id": "workflow",
+        "scope": "Existing Pages rule includes this Empty Home manifest asset; system-owned components retain their shared-system path.",
+        "policy_marker": "cp -R design _site/design"
+      },
+      "requiredness": "REQUIRED",
+      "notes": [
+        "version=2.0",
+        "source=Empty_Home_Final_Design_V2"
+      ],
+      "page_id": "home_empty_v2"
+    },
+    {
+      "asset_id": "home_empty_v2_sun_beam_master_mask",
+      "asset_role": "runtime_dynamic",
+      "source_path": "design/pages/home/empty_home/shared/assets/atmosphere/sun_beam_master_mask.png",
+      "source_authorities": [
+        {
+          "authority_id": "emptyassets",
+          "json_pointer": "/assets/6",
+          "field_map": {
+            "source_path": "/path",
+            "sha256": "/sha256",
+            "coordinate_space": "/coordinate_space",
+            "pixel_dimensions.width": "/width",
+            "pixel_dimensions.height": "/height"
+          }
+        },
+        {
+          "authority_id": "assetreg",
+          "json_pointer": "/entries/185",
+          "field_map": {
+            "source_path": "/path",
+            "sha256": "/sha256",
+            "bytes": "/size",
+            "lifecycle_status": "/status"
+          }
+        }
+      ],
+      "media_type": "image/png",
+      "bytes": 22975,
+      "sha256": "9a200b932b88959024891ed3fbeb536a51ec98186f462b7eb0762ade3ed2d337",
+      "pixel_dimensions": {
+        "width": 340,
+        "height": 520
+      },
+      "coordinate_space": "reference_1080x1920",
+      "fit_crop_policy": null,
+      "lifecycle_status": "REVIEW",
+      "asset_designation": "ORIGINAL",
+      "publication_permission": {
+        "state": "PUBLIC_BY_EXISTING_PAGES_RULE",
+        "authority_id": "workflow",
+        "scope": "Existing Pages rule includes this Empty Home manifest asset; system-owned components retain their shared-system path.",
+        "policy_marker": "cp -R design _site/design"
+      },
+      "requiredness": "REQUIRED",
+      "notes": [
+        "version=2.0",
+        "source=Empty_Home_Final_Design_V2"
+      ],
+      "page_id": "home_empty_v2"
+    },
+    {
+      "asset_id": "home_empty_v2_particle_master_mask",
+      "asset_role": "runtime_dynamic",
+      "source_path": "design/pages/home/empty_home/shared/assets/atmosphere/particle_master_mask.png",
+      "source_authorities": [
+        {
+          "authority_id": "emptyassets",
+          "json_pointer": "/assets/7",
+          "field_map": {
+            "source_path": "/path",
+            "sha256": "/sha256",
+            "coordinate_space": "/coordinate_space",
+            "pixel_dimensions.width": "/width",
+            "pixel_dimensions.height": "/height"
+          }
+        },
+        {
+          "authority_id": "assetreg",
+          "json_pointer": "/entries/184",
+          "field_map": {
+            "source_path": "/path",
+            "sha256": "/sha256",
+            "bytes": "/size",
+            "lifecycle_status": "/status"
+          }
+        }
+      ],
+      "media_type": "image/png",
+      "bytes": 584,
+      "sha256": "c5d7cd1946cb5553db95283ba6a2ece7676b570abe986f8dcafde546fc2b6c52",
+      "pixel_dimensions": {
+        "width": 28,
+        "height": 28
+      },
+      "coordinate_space": "reference_1080x1920",
+      "fit_crop_policy": null,
+      "lifecycle_status": "REVIEW",
+      "asset_designation": "ORIGINAL",
+      "publication_permission": {
+        "state": "PUBLIC_BY_EXISTING_PAGES_RULE",
+        "authority_id": "workflow",
+        "scope": "Existing Pages rule includes this Empty Home manifest asset; system-owned components retain their shared-system path.",
+        "policy_marker": "cp -R design _site/design"
+      },
+      "requiredness": "REQUIRED",
+      "notes": [
+        "version=2.0",
+        "source=Empty_Home_Final_Design_V2"
+      ],
+      "page_id": "home_empty_v2"
+    },
+    {
+      "asset_id": "home_empty_v2_capture_button_base",
+      "asset_role": "runtime_dynamic",
+      "source_path": "design/system/components/primary_capture_button/assets/capture_button_base.png",
+      "source_authorities": [
+        {
+          "authority_id": "emptyassets",
+          "json_pointer": "/assets/8",
+          "field_map": {
+            "source_path": "/path",
+            "sha256": "/sha256",
+            "coordinate_space": "/coordinate_space",
+            "pixel_dimensions.width": "/width",
+            "pixel_dimensions.height": "/height"
+          }
+        },
+        {
+          "authority_id": "assetreg",
+          "json_pointer": "/entries/500",
+          "field_map": {
+            "source_path": "/path",
+            "sha256": "/sha256",
+            "bytes": "/size",
+            "lifecycle_status": "/status"
+          }
+        }
+      ],
+      "media_type": "image/png",
+      "bytes": 39099,
+      "sha256": "2d15c1bfa187aecb0d7c572235f9e28476a39f341c9df468012066efc9bec69d",
+      "pixel_dimensions": {
+        "width": 208,
+        "height": 208
+      },
+      "coordinate_space": "reference_1080x1920",
+      "fit_crop_policy": null,
+      "lifecycle_status": "REVIEW",
+      "asset_designation": "ORIGINAL",
+      "publication_permission": {
+        "state": "PUBLIC_BY_EXISTING_PAGES_RULE",
+        "authority_id": "workflow",
+        "scope": "Existing Pages rule includes this Empty Home manifest asset; system-owned components retain their shared-system path.",
+        "policy_marker": "cp -R design _site/design"
+      },
+      "requiredness": "REQUIRED",
+      "notes": [
+        "version=2.1",
+        "source=Empty_Home_Final_Design_V2"
+      ],
+      "page_id": "home_empty_v2"
+    },
+    {
+      "asset_id": "home_empty_v2_capture_button_gold_rim",
+      "asset_role": "runtime_dynamic",
+      "source_path": "design/system/components/primary_capture_button/assets/capture_button_gold_rim.png",
+      "source_authorities": [
+        {
+          "authority_id": "emptyassets",
+          "json_pointer": "/assets/9",
+          "field_map": {
+            "source_path": "/path",
+            "sha256": "/sha256",
+            "coordinate_space": "/coordinate_space",
+            "pixel_dimensions.width": "/width",
+            "pixel_dimensions.height": "/height"
+          }
+        },
+        {
+          "authority_id": "assetreg",
+          "json_pointer": "/entries/502",
+          "field_map": {
+            "source_path": "/path",
+            "sha256": "/sha256",
+            "bytes": "/size",
+            "lifecycle_status": "/status"
+          }
+        }
+      ],
+      "media_type": "image/png",
+      "bytes": 2491,
+      "sha256": "9cbee62354d015dfe3d003de2bdc43b3336a621635f88d4bde36fe10c7e7a43d",
+      "pixel_dimensions": {
+        "width": 208,
+        "height": 208
+      },
+      "coordinate_space": "reference_1080x1920",
+      "fit_crop_policy": null,
+      "lifecycle_status": "REVIEW",
+      "asset_designation": "ORIGINAL",
+      "publication_permission": {
+        "state": "PUBLIC_BY_EXISTING_PAGES_RULE",
+        "authority_id": "workflow",
+        "scope": "Existing Pages rule includes this Empty Home manifest asset; system-owned components retain their shared-system path.",
+        "policy_marker": "cp -R design _site/design"
+      },
+      "requiredness": "REQUIRED",
+      "notes": [
+        "version=2.0",
+        "source=Empty_Home_Final_Design_V2"
+      ],
+      "page_id": "home_empty_v2"
+    },
+    {
+      "asset_id": "home_empty_v2_capture_button_breath_glow",
+      "asset_role": "runtime_dynamic",
+      "source_path": "design/system/components/primary_capture_button/assets/capture_button_breath_glow.png",
+      "source_authorities": [
+        {
+          "authority_id": "emptyassets",
+          "json_pointer": "/assets/10",
+          "field_map": {
+            "source_path": "/path",
+            "sha256": "/sha256",
+            "coordinate_space": "/coordinate_space",
+            "pixel_dimensions.width": "/width",
+            "pixel_dimensions.height": "/height"
+          }
+        },
+        {
+          "authority_id": "assetreg",
+          "json_pointer": "/entries/501",
+          "field_map": {
+            "source_path": "/path",
+            "sha256": "/sha256",
+            "bytes": "/size",
+            "lifecycle_status": "/status"
+          }
+        }
+      ],
+      "media_type": "image/png",
+      "bytes": 18906,
+      "sha256": "de989d9c4021220198370b535e8e4c8c3fbba2db53547771fc52d6cdbc0ac00e",
+      "pixel_dimensions": {
+        "width": 208,
+        "height": 208
+      },
+      "coordinate_space": "reference_1080x1920",
+      "fit_crop_policy": null,
+      "lifecycle_status": "REVIEW",
+      "asset_designation": "ORIGINAL",
+      "publication_permission": {
+        "state": "PUBLIC_BY_EXISTING_PAGES_RULE",
+        "authority_id": "workflow",
+        "scope": "Existing Pages rule includes this Empty Home manifest asset; system-owned components retain their shared-system path.",
+        "policy_marker": "cp -R design _site/design"
+      },
+      "requiredness": "REQUIRED",
+      "notes": [
+        "version=2.0",
+        "source=Empty_Home_Final_Design_V2"
+      ],
+      "page_id": "home_empty_v2"
+    },
+    {
+      "asset_id": "home_empty_v2_hero",
+      "asset_role": "runtime_static",
+      "source_path": "design/pages/home/empty_home/shared/assets/hero/empty_home_hero_v2_2.png",
+      "source_authorities": [
+        {
+          "authority_id": "emptyassets",
+          "json_pointer": "/assets/11",
+          "field_map": {
+            "source_path": "/path",
+            "sha256": "/sha256",
+            "coordinate_space": "/coordinate_space",
+            "pixel_dimensions.width": "/width",
+            "pixel_dimensions.height": "/height"
+          }
+        },
+        {
+          "authority_id": "assetreg",
+          "json_pointer": "/entries/192",
+          "field_map": {
+            "source_path": "/path",
+            "sha256": "/sha256",
+            "bytes": "/size",
+            "lifecycle_status": "/status"
+          }
+        }
+      ],
+      "media_type": "image/png",
+      "bytes": 98833,
+      "sha256": "5561e3b577234ceba41487dd3705e82fa910e96cc6a6cc2d89942f13a629c9ff",
+      "pixel_dimensions": {
+        "width": 625,
+        "height": 311
+      },
+      "coordinate_space": "hero_local",
+      "fit_crop_policy": null,
+      "lifecycle_status": "REVIEW",
+      "asset_designation": "ORIGINAL",
+      "publication_permission": {
+        "state": "PUBLIC_BY_EXISTING_PAGES_RULE",
+        "authority_id": "workflow",
+        "scope": "Existing Pages rule includes this Empty Home manifest asset; system-owned components retain their shared-system path.",
+        "policy_marker": "cp -R design _site/design"
+      },
+      "requiredness": "REQUIRED",
+      "notes": [
+        "version=2.2",
+        "source=Empty_Home_Final_Design_V2"
+      ],
+      "page_id": "home_empty_v2"
+    },
+    {
+      "asset_id": "home_empty_v2_bobber_reflection_master",
+      "asset_role": "runtime_dynamic",
+      "source_path": "design/pages/home/empty_home/shared/assets/fishing/bobber_reflection_master.png",
+      "source_authorities": [
+        {
+          "authority_id": "emptyassets",
+          "json_pointer": "/assets/12",
+          "field_map": {
+            "source_path": "/path",
+            "sha256": "/sha256",
+            "coordinate_space": "/coordinate_space",
+            "pixel_dimensions.width": "/width",
+            "pixel_dimensions.height": "/height"
+          }
+        },
+        {
+          "authority_id": "assetreg",
+          "json_pointer": "/entries/188",
+          "field_map": {
+            "source_path": "/path",
+            "sha256": "/sha256",
+            "bytes": "/size",
+            "lifecycle_status": "/status"
+          }
+        }
+      ],
+      "media_type": "image/png",
+      "bytes": 1574,
+      "sha256": "e9cd8132e08149c57f0af85d86a1c15b42bbb325ef3a9789b5b6a5cf40ae0b05",
+      "pixel_dimensions": {
+        "width": 12,
+        "height": 52
+      },
+      "coordinate_space": "reference_1080x1920",
+      "fit_crop_policy": null,
+      "lifecycle_status": "REVIEW",
+      "asset_designation": "ORIGINAL",
+      "publication_permission": {
+        "state": "PUBLIC_BY_EXISTING_PAGES_RULE",
+        "authority_id": "workflow",
+        "scope": "Existing Pages rule includes this Empty Home manifest asset; system-owned components retain their shared-system path.",
+        "policy_marker": "cp -R design _site/design"
+      },
+      "requiredness": "REQUIRED",
+      "notes": [
+        "version=2.2",
+        "source=Empty_Home_Frozen_Visual_V2_2"
+      ],
+      "page_id": "home_empty_v2"
+    },
+    {
+      "page_id": "home_empty_v2",
+      "asset_id": "home_empty_v2_capture_button_v1_1",
+      "asset_role": "runtime_static",
+      "source_path": "design/system/components/primary_capture_button/assets/capture_button_main_v1.png",
+      "source_authorities": [
+        {
+          "authority_id": "capturebutton",
+          "json_pointer": "",
+          "field_map": {
+            "source_path": "/canonical_asset/path",
+            "sha256": "/canonical_asset/sha256",
+            "bytes": "/canonical_asset/bytes",
+            "pixel_dimensions.width": "/canonical_asset/width",
+            "pixel_dimensions.height": "/canonical_asset/height",
+            "lifecycle_status": "/status"
+          }
+        },
+        {
+          "authority_id": "assetreg",
+          "json_pointer": "/entries/503",
+          "field_map": {
+            "source_path": "/path",
+            "sha256": "/sha256",
+            "bytes": "/size",
+            "lifecycle_status": "/status"
+          }
+        }
+      ],
+      "media_type": "image/png",
+      "bytes": 58154,
+      "sha256": "501abcc58a65263dd879ad198a0a033630ab4bdcaf945eb02599e4f1249ca327",
+      "pixel_dimensions": {
+        "width": 208,
+        "height": 208
+      },
+      "coordinate_space": "image_px_208x208",
+      "fit_crop_policy": "Preserve source bytes; render with object-fit contain and no crop.",
+      "lifecycle_status": "FROZEN",
+      "asset_designation": "ORIGINAL",
+      "publication_permission": {
+        "state": "PUBLIC_BY_EXISTING_PAGES_RULE",
+        "authority_id": "workflow",
+        "scope": "Existing Pages rule copies design/**, including this frozen shared system component asset.",
+        "policy_marker": "cp -R design _site/design"
+      },
+      "requiredness": "REQUIRED",
+      "notes": [
+        "Primary Capture Button V1.1 frozen canonical asset; referenced from shared system path and not copied into page-owned visual assets."
+      ]
+    }
+  ]
+}

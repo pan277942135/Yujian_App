@@ -1,0 +1,14 @@
+{
+  "layer": "cloud_layer",
+  "type": "drift",
+  "source_layer": "runtime_layers/environment/cloud_layer.png",
+  "motion_safe_asset": "animation/cloud_layer_motion_safe.png",
+  "axis": "x",
+  "speed_px_s": 0.2,
+  "max_offset_px": 6,
+  "implemented_amplitude_px": 1.9099,
+  "duration_s": 60.0,
+  "loop": true,
+  "cloud_shape_change": false,
+  "weather_change": false
+}

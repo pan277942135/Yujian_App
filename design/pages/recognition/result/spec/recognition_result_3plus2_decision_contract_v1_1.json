@@ -1,0 +1,184 @@
+{
+  "contract": "recognition_result_3plus2_decision_contract",
+  "version": "V1.1",
+  "status": "RUNTIME_AUDIT_WITH_UNAPPROVED_DESIGN_PROPOSAL",
+  "design_scope": "decision_semantics_only",
+  "runtime_snapshot": "Yujian_App/main@88209f8d2e824252d75fe88636f74625aaf7981f",
+  "product_result_states": [
+    "RESULT_HIGH",
+    "RESULT_MEDIUM",
+    "RESULT_LOW"
+  ],
+  "product_recovery_states": [
+    "ERROR_NO_FISH",
+    "ERROR_IMAGE_QUALITY"
+  ],
+  "separate_nonproduct_fallback": "TECHNICAL_FAILURE",
+  "authority_document": "design/pages/recognition/result/spec/Recognition_Result_3plus2_Decision_Spec_V1_1.md",
+  "current_observed_runtime": {
+    "precedence": [
+      {
+        "order": 1,
+        "condition": "failureCode != null",
+        "result": "TECHNICAL_FAILURE"
+      },
+      {
+        "order": 2,
+        "condition": "status == NO_FISH",
+        "result": "ERROR_NO_FISH"
+      },
+      {
+        "order": 3,
+        "condition": "!assessment.isClassifierEligible || prediction == null",
+        "result": "ERROR_IMAGE_QUALITY"
+      },
+      {
+        "order": 4,
+        "condition": "top1.confidence < 0.45",
+        "result": "RESULT_LOW"
+      },
+      {
+        "order": 5,
+        "condition": "second != null && top1.confidence - second.confidence < 0.12",
+        "result": "RESULT_MEDIUM"
+      },
+      {
+        "order": 6,
+        "condition": "otherwise",
+        "result": "RESULT_HIGH"
+      }
+    ],
+    "detector": {
+      "model": "DET_FISH_v0.1",
+      "weak_confidence_inclusive": 0.2,
+      "strong_confidence_inclusive": 0.35,
+      "nms_iou": 0.45,
+      "min_primary_bbox_area_ratio": 0.08,
+      "incomplete_edge_margin_ratio": 0.015,
+      "crop_expand_ratio": 0.15,
+      "orientation_retry_only_if_original_status": "NO_FISH",
+      "retry_rotations": [
+        "CW90",
+        "CCW90"
+      ],
+      "gate_precedence": [
+        "NO_STRONG_WITH_WEAK->WARNING_UNCERTAIN_AND_CLASSIFIER_ELIGIBLE",
+        "NO_STRONG_NO_WEAK->INVALID_NO_FISH",
+        "MULTIPLE_STRONG->WARNING_MULTIPLE_FISH_AND_CLASSIFIER_ELIGIBLE",
+        "EDGE_TOUCH->WARNING_INCOMPLETE_FISH_AND_CLASSIFIER_ELIGIBLE",
+        "SINGLE_STRONG_AREA_BELOW_0.08->INVALID_FISH_TOO_SMALL",
+        "OTHER_SINGLE_STRONG->GOOD_READY"
+      ],
+      "classifier_eligible_levels": [
+        "GOOD",
+        "WARNING"
+      ],
+      "image_pixel_blur_exposure_occlusion_assessment_implemented": false
+    },
+    "classifier": {
+      "top1_low_below": 0.45,
+      "medium_margin_below": 0.12,
+      "high_requires_detector_quality_good": false,
+      "output_type": "SOFTMAX_KNOWN_CLASSES",
+      "calibrated_correctness_probability_verified": false,
+      "supports_unknown_species_abstention": false,
+      "duplicated_classification_threshold_code": true
+    },
+    "fallback_eligible_but_missing_prediction": "ERROR_IMAGE_QUALITY"
+  },
+  "proposed_design_review": {
+    "implementation_authorized": false,
+    "cutoff_changes_authorized": false,
+    "no_new_product_states": true,
+    "gates": [
+      {
+        "id": "P0_DETECTOR_WARNING",
+        "severity": "P0",
+        "proposal": "Do not assign High from weak-only or multiple-strong fish evidence on Softmax alone; preserve manual selection."
+      },
+      {
+        "id": "P0_AREA_PRECEDENCE",
+        "severity": "P0",
+        "proposal": "Enforce minimum relevant subject area consistently across weak/multiple/edge cases while protecting realistic border-clipped photos."
+      },
+      {
+        "id": "P0_HIGH_CALIBRATION",
+        "severity": "P0",
+        "proposal": "Calibrate High thresholds using real field-photo precision vs coverage with known and out-of-catalog fish; do not choose new cutoff by intuition."
+      },
+      {
+        "id": "P1_QUALITY_REASON",
+        "severity": "P1",
+        "proposal": "Support condition-specific recovery guidance; do not claim image blur when only a small fish box was detected."
+      },
+      {
+        "id": "P1_FALLBACK",
+        "severity": "P1",
+        "proposal": "Eligible-with-null-prediction is a technical invariant failure, not image-quality evidence."
+      },
+      {
+        "id": "P1_SINGLE_DECISION_SOURCE",
+        "severity": "P1",
+        "proposal": "Use one shared classifier decision authority in any future runtime implementation."
+      }
+    ],
+    "acceptance_metrics": [
+      "high_precision_at_coverage",
+      "medium_topk_coverage",
+      "low_manual_recovery",
+      "false_no_fish",
+      "false_image_quality",
+      "calibration_ece_or_brier",
+      "quality_warning_stratified_error",
+      "out_of_catalog_error"
+    ],
+    "requires_product_owner_signoff": true,
+    "requires_labeled_holdout_evidence": true
+  },
+  "verified_examples": [
+    {
+      "detector": "GOOD",
+      "p1": 0.8,
+      "p2": 0.1,
+      "result": "RESULT_HIGH"
+    },
+    {
+      "detector": "GOOD",
+      "p1": 0.46,
+      "p2": 0.3,
+      "result": "RESULT_HIGH",
+      "risk": "low_p1_high_state"
+    },
+    {
+      "detector": "GOOD",
+      "p1": 0.46,
+      "p2": 0.42,
+      "result": "RESULT_MEDIUM"
+    },
+    {
+      "detector": "GOOD",
+      "p1": 0.31,
+      "p2": 0.21,
+      "result": "RESULT_LOW"
+    },
+    {
+      "detector": "WARNING_WEAK_ONLY",
+      "p1": 0.8,
+      "p2": 0.1,
+      "result": "RESULT_HIGH",
+      "risk": "quality_warning_ignored"
+    },
+    {
+      "detector": "INVALID_FISH_TOO_SMALL",
+      "p1": null,
+      "p2": null,
+      "result": "ERROR_IMAGE_QUALITY"
+    },
+    {
+      "detector": "NO_FISH",
+      "p1": null,
+      "p2": null,
+      "result": "ERROR_NO_FISH"
+    }
+  ]
+}

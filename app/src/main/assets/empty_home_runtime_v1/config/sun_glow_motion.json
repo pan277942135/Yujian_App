@@ -1,0 +1,23 @@
+{
+  "layer": "sun_glow",
+  "type": "glow_breathe",
+  "source_asset": "runtime_layers/lighting/sun_glow.png",
+  "motion_safe_asset": "animation/sun_glow_motion_safe.png",
+  "anchor": {
+    "x": 845,
+    "y": 680
+  },
+  "alpha": {
+    "from": 0.95,
+    "peak": 1.0,
+    "to": 0.95
+  },
+  "scale": {
+    "from": 1.0,
+    "peak": 1.02,
+    "to": 1.0
+  },
+  "duration_s": 20.0,
+  "loop": true,
+  "sun_position_locked": true
+}

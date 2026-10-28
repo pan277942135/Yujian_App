@@ -1,0 +1,351 @@
+{
+  "schema_version": "3.1",
+  "system_id": "geometry_v3_1",
+  "status": "READY",
+  "reference_canvas": {
+    "width_px": 1080,
+    "height_px": 1920,
+    "aspect": "9:16",
+    "note": "Design source coordinate reference, never device dp."
+  },
+  "baseline_widths_dp": [
+    360,
+    393,
+    412,
+    480
+  ],
+  "units": {
+    "layout": "dp",
+    "type": "sp",
+    "source_raster": "physical source px converted only through its named page authority"
+  },
+  "tokens": [
+    {
+      "id": "viewport.360",
+      "name": "Compact baseline",
+      "value": "360dp"
+    },
+    {
+      "id": "viewport.393",
+      "name": "Common baseline",
+      "value": "393dp"
+    },
+    {
+      "id": "viewport.412",
+      "name": "Wide phone baseline",
+      "value": "412dp"
+    },
+    {
+      "id": "viewport.480",
+      "name": "Maximum baseline",
+      "value": "480dp"
+    },
+    {
+      "id": "touch.minimum",
+      "name": "Action target",
+      "value": "44×44dp"
+    },
+    {
+      "id": "navigation.back_title.min_height",
+      "name": "Back Title minimum",
+      "value": "56dp"
+    },
+    {
+      "id": "space.reference",
+      "name": "Core spacing",
+      "value": "8px unit; 8,16,24,32,40,48,64,80px; page-specific conversion"
+    },
+    {
+      "id": "geometry.space.4",
+      "name": "Spacing 4",
+      "value": "4dp",
+      "unit": "dp",
+      "usage": "Shared component spacing scale; use only where component/page authority has no conflicting frozen geometry."
+    },
+    {
+      "id": "geometry.space.8",
+      "name": "Spacing 8",
+      "value": "8dp",
+      "unit": "dp",
+      "usage": "Shared component spacing scale; use only where component/page authority has no conflicting frozen geometry."
+    },
+    {
+      "id": "geometry.space.12",
+      "name": "Spacing 12",
+      "value": "12dp",
+      "unit": "dp",
+      "usage": "Shared component spacing scale; use only where component/page authority has no conflicting frozen geometry."
+    },
+    {
+      "id": "geometry.space.16",
+      "name": "Spacing 16",
+      "value": "16dp",
+      "unit": "dp",
+      "usage": "Shared component spacing scale; use only where component/page authority has no conflicting frozen geometry."
+    },
+    {
+      "id": "geometry.space.20",
+      "name": "Spacing 20",
+      "value": "20dp",
+      "unit": "dp",
+      "usage": "Shared component spacing scale; use only where component/page authority has no conflicting frozen geometry."
+    },
+    {
+      "id": "geometry.space.24",
+      "name": "Spacing 24",
+      "value": "24dp",
+      "unit": "dp",
+      "usage": "Shared component spacing scale; use only where component/page authority has no conflicting frozen geometry."
+    },
+    {
+      "id": "geometry.space.32",
+      "name": "Spacing 32",
+      "value": "32dp",
+      "unit": "dp",
+      "usage": "Shared component spacing scale; use only where component/page authority has no conflicting frozen geometry."
+    },
+    {
+      "id": "geometry.space.40",
+      "name": "Spacing 40",
+      "value": "40dp",
+      "unit": "dp",
+      "usage": "Shared component spacing scale; use only where component/page authority has no conflicting frozen geometry."
+    },
+    {
+      "id": "geometry.space.48",
+      "name": "Spacing 48",
+      "value": "48dp",
+      "unit": "dp",
+      "usage": "Shared component spacing scale; use only where component/page authority has no conflicting frozen geometry."
+    },
+    {
+      "id": "geometry.space.64",
+      "name": "Spacing 64",
+      "value": "64dp",
+      "unit": "dp",
+      "usage": "Shared component spacing scale; use only where component/page authority has no conflicting frozen geometry."
+    },
+    {
+      "id": "geometry.radius.8",
+      "name": "Radius 8",
+      "value": "8dp",
+      "unit": "dp",
+      "usage": "Shared component radius scale for new/shared geometry; does not rewrite Frozen page radii."
+    },
+    {
+      "id": "geometry.radius.12",
+      "name": "Radius 12",
+      "value": "12dp",
+      "unit": "dp",
+      "usage": "Shared component radius scale for new/shared geometry; does not rewrite Frozen page radii."
+    },
+    {
+      "id": "geometry.radius.16",
+      "name": "Radius 16",
+      "value": "16dp",
+      "unit": "dp",
+      "usage": "Shared component radius scale for new/shared geometry; does not rewrite Frozen page radii."
+    },
+    {
+      "id": "geometry.radius.24",
+      "name": "Radius 24",
+      "value": "24dp",
+      "unit": "dp",
+      "usage": "Shared component radius scale for new/shared geometry; does not rewrite Frozen page radii."
+    },
+    {
+      "id": "geometry.radius.32",
+      "name": "Radius 32",
+      "value": "32dp",
+      "unit": "dp",
+      "usage": "Shared component radius scale for new/shared geometry; does not rewrite Frozen page radii."
+    },
+    {
+      "id": "geometry.radius.primary_button_28",
+      "name": "Primary Button frozen radius exception",
+      "value": "28dp",
+      "unit": "dp",
+      "usage": "Existing Action Button V1.1 frozen component only.",
+      "source": "design/system/components/action_button/Action_Button_Spec_V1_1.md",
+      "classification": "FROZEN_EXCEPTION"
+    },
+    {
+      "id": "geometry.media.fill",
+      "name": "Media Fill",
+      "value": "Aspect-preserving scale to fill; crop overflow only when the page authority explicitly allows it.",
+      "unit": "rule",
+      "usage": "Media scale contract: Aspect-preserving scale to fill; crop overflow only when the page authority explicitly allows it."
+    },
+    {
+      "id": "geometry.media.fit",
+      "name": "Media Fit",
+      "value": "Aspect-preserving scale inside the frame; retain full source and expose unused frame area.",
+      "unit": "rule",
+      "usage": "Media scale contract: Aspect-preserving scale inside the frame; retain full source and expose unused frame area."
+    },
+    {
+      "id": "geometry.media.cover",
+      "name": "Media Cover",
+      "value": "Aspect-preserving scale to cover the frame; crop only inside an approved safe crop rectangle.",
+      "unit": "rule",
+      "usage": "Media scale contract: Aspect-preserving scale to cover the frame; crop only inside an approved safe crop rectangle."
+    },
+    {
+      "id": "geometry.media.contain",
+      "name": "Media Contain",
+      "value": "Aspect-preserving scale to contain the full source; unused area remains visible.",
+      "unit": "rule",
+      "usage": "Media scale contract: Aspect-preserving scale to contain the full source; unused area remains visible."
+    },
+    {
+      "id": "geometry.media.evidence_fit",
+      "name": "Media Evidence Fit",
+      "value": "Show the complete user evidence; never crop facts or subject.",
+      "unit": "rule",
+      "usage": "Media scale contract: Show the complete user evidence; never crop facts or subject."
+    },
+    {
+      "id": "geometry.media.letterbox",
+      "name": "Media Letterbox",
+      "value": "Use the registered parent surface in unused areas; do not duplicate or distort source pixels.",
+      "unit": "rule",
+      "usage": "Media scale contract: Use the registered parent surface in unused areas; do not duplicate or distort source pixels."
+    },
+    {
+      "id": "geometry.media.blur_background",
+      "name": "Media Blur Background",
+      "value": "Use the same source as a low-salience ambient layer behind the fitted evidence; no substitute imagery.",
+      "unit": "rule",
+      "usage": "Media scale contract: Use the same source as a low-salience ambient layer behind the fitted evidence; no substitute imagery."
+    },
+    {
+      "id": "geometry.radius.circle",
+      "name": "Circle",
+      "value": "50% of min(width,height)",
+      "unit": "ratio",
+      "usage": "Circular avatar/camera geometry when the source component declares a circle."
+    },
+    {
+      "id": "geometry.video.aspect_policy",
+      "name": "Video aspect ratio policy",
+      "value": "ORIENTED_SOURCE_OR_CALLER_FRAME",
+      "unit": "policy",
+      "usage": "Preserve the oriented source aspect ratio. A caller may supply a frozen page frame; the shared video surface contains the full source and letterboxes unused area. Never stretch or crop video pixels."
+    }
+  ],
+  "coordinate_system": [
+    {
+      "layer": "Screen",
+      "rule": "Whole logical window in dp, before any child applies insets."
+    },
+    {
+      "layer": "Window Insets",
+      "rule": "Host reports status bar/cutout, navigation/gesture bar and IME. Apply each inset exactly once."
+    },
+    {
+      "layer": "Content Root",
+      "rule": "Origin begins after the declared safe top/bottom insets; page contract declares edge-to-edge or inset-content behavior."
+    },
+    {
+      "layer": "Component Layout",
+      "rule": "Components use dp geometry and sp text. Frozen raster coordinates convert through the page-specific formula and never add a second window offset."
+    }
+  ],
+  "layout_rules": {
+    "fixed": "Keep the component in its registered frozen slot. Fixed does not mean window-sticky unless the page authority explicitly says so.",
+    "flexible": "Grow within declared constraints; never stretch an image or glass surface to consume spare height.",
+    "scrollable": "Scroll dense/detail content before compressing facts, actions, or touch targets.",
+    "adaptive": "Allow cards/rows to grow or reflow while preserving semantic order and source-specific crop policy.",
+    "hidden": "No layout slot or hit target is exposed in the declared state; do not leave an invisible interactive target."
+  },
+  "insets": {
+    "safe_area": "Status bar and display cutout are host-provided top safe insets; consume once.",
+    "navigation_bar": "Host-provided bottom gesture/navigation inset; primary action remains above it.",
+    "keyboard": "IME recalculates the usable viewport; resize/scroll focused field and primary action into view.",
+    "origin": "Declare one window/content origin. Do not combine safeDrawing inset with a second full-window offset."
+  },
+  "font_scale": {
+    "rule": "Honor OS fontScale. Let containers grow and long screens scroll; do not silently reduce or cancel scale.",
+    "reviewed": [
+      "1.0",
+      "1.15",
+      "1.3"
+    ]
+  },
+  "spacing_scope": {
+    "shared_dp": "geometry.space.* values are dp defaults for shared/new component geometry.",
+    "frozen_page_reference_px": "Core Visual V1 spacing values are 8,16,24,32,40,48,64,80 reference px and continue to use each page's existing conversion formula.",
+    "conflict": "A dp token is not a 1:1 replacement for a source-px value. Preserve Frozen page geometry."
+  },
+  "radius_scope": {
+    "shared_dp": "8,12,16,24,32dp and Circle are shared radius defaults.",
+    "frozen_page_reference_px": "Core Visual V1 radius values are source reference px and continue to use their page conversion.",
+    "conflict": "Do not rewrite existing page/frame radii to match the shared dp scale."
+  },
+  "media_rules": {
+    "Fill": "Aspect-preserving fill. Crop overflow only if page authority allows it; otherwise use Fit.",
+    "Fit": "Aspect-preserving fit with full image visible.",
+    "Cover": "Aspect-preserving cover with crop confined to an approved safe rect.",
+    "Contain": "Show full source in the inner frame; letterbox if ratios differ.",
+    "Evidence_Fit": "Show all user evidence, no crop.",
+    "Letterbox": "Fill unused area from registered surface/background token.",
+    "Blur_Background": "Same-source, low-salience ambient behind Fit; foreground remains legible and unchanged."
+  },
+  "responsive_classes": [
+    "Fixed",
+    "Flexible",
+    "Scrollable",
+    "Adaptive",
+    "Hidden"
+  ],
+  "conflicts": [
+    {
+      "id": "GEOMETRY_V1_REFERENCE_PX_VS_V3_1_DP",
+      "source_paths": [
+        "design/system/core_visual_v1/tokens/spacing_tokens.json",
+        "design/system/core_visual_v1/tokens/radius_tokens.json"
+      ],
+      "resolution": "Record both units with separate scopes; Frozen page formulas remain authoritative. No asset or page geometry changed."
+    },
+    {
+      "id": "GEOMETRY_PRIMARY_BUTTON_RADIUS_28DP",
+      "source_paths": [
+        "design/system/components/action_button/Action_Button_Spec_V1_1.md"
+      ],
+      "resolution": "Keep the frozen 28dp button radius as an explicit component exception alongside the required shared radius scale."
+    }
+  ],
+  "historical_issues": [
+    {
+      "id": "NORMAL_HOME_COORDINATE_OFFSET",
+      "page": "Normal Home",
+      "rule": "Approved NH05 whole-page offset min(E×0.36,180×S), E=max(0,(H−T−B)−1920S); one physical window origin; consume insets once.",
+      "phase2": "Rule is recorded; anchor measurement remains a page contract/runtime task."
+    },
+    {
+      "id": "RESULT_GLASS_STRETCH",
+      "page": "Recognition Result",
+      "rule": "Keep state-specific Hero and Mist Glass geometry; size to content and scroll; never stretch glass to fill spare viewport.",
+      "phase2": "Rule frozen; page-level confirmation remains in Page Contract."
+    },
+    {
+      "id": "DETAIL_HERO_FIT",
+      "page": "FishRecordDetail",
+      "rule": "Use approved safe Fill or same-source Safe Fit plus low-salience ambient; no arbitrary crop.",
+      "phase2": "Rule frozen; no device run in this phase."
+    },
+    {
+      "id": "LOGIN_IME",
+      "page": "Login",
+      "rule": "Dynamic IME inset plus resize/scroll; focused input and primary action remain reachable.",
+      "phase2": "Rule frozen; page-level confirmation remains in Page Contract."
+    }
+  ],
+  "acceptance_rules": [
+    "All layout measurements cite dp tokens or a page Frozen authority with a conversion formula.",
+    "Apply status/cutout/navigation/IME insets once and record the content origin.",
+    "At 360/393/412/480dp, no image non-uniform stretch; no action is hidden by the navigation inset or IME.",
+    "At fontScale 1.0/1.15/1.3, semantic order and readability remain; containers grow or scroll.",
+    "Each media slot declares one of the registered scale modes and the crop authority."
+  ]
+}

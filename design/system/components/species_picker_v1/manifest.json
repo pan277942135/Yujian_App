@@ -1,0 +1,24 @@
+{
+  "version": "Species_Picker_V1",
+  "id": "species_picker_v1",
+  "status": "PARTIAL",
+  "visual_status": "FROZEN_SINGLE_SELECT_BASELINE",
+  "freeze_date": "2026-09-30",
+  "filename": "Species_Picker_V1_Reference_Board.png",
+  "path": "design/system/components/species_picker_v1/visual/authority/Species_Picker_V1_Reference_Board.png",
+  "width": 941,
+  "height": 1672,
+  "bytes": 1660583,
+  "sha256": "3c5a1ed62f8f55e2aad2cee01bce98b9e92e0f06e6ebfc799b85d24f6650d98d",
+  "git_blob_sha": "19504163b7de0cff0481d048f3dcf362ce479733",
+  "source_type": "GENERATED_HIGH_FIDELITY_PNG",
+  "source_reference": "中文鱼种选择界面设计规范展板.png",
+  "authority_type": "SHARED_COMPONENT_VISUAL_BASELINE",
+  "reencode_allowed": false,
+  "output_policy": "Preserve and publish the exact source PNG bytes. Do not replace it with SVG, HTML/CSS reconstruction, a screenshot derivative, or a re-encoded image.",
+  "frozen_spec": "design/system/components/species_picker_v1/Species_Picker_Spec_V1.md",
+  "coverage": {
+    "SINGLE_SELECT": "FROZEN_VISUAL_BASELINE",
+    "MULTI_SELECT": "PARTIAL_BEHAVIOR_ONLY"
+  }
+}

@@ -1,0 +1,316 @@
+package com.yujian.ai.ui.home
+
+import android.graphics.Bitmap
+import android.graphics.ColorMatrix
+import android.graphics.ColorMatrixColorFilter
+import android.graphics.Paint
+import android.graphics.Rect
+import android.graphics.RectF
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
+import androidx.compose.ui.layout.ContentScale
+import com.yujian.ai.ui.components.AssetImage
+import kotlin.math.roundToInt
+
+private const val FALLBACK_BACKGROUND =
+    "empty_home_runtime_v2/static/scene_base.webp"
+
+// The frozen mask is authored with translucent alpha. Normalize only this
+// mask before applying the contract alpha so the contact edge remains legible
+// without changing the 0.30 -> 0 ripple contract.
+private val RippleAlphaNormalizationFilter = ColorMatrixColorFilter(
+    ColorMatrix(
+        floatArrayOf(
+            1f, 0f, 0f, 0f, 0f,
+            0f, 1f, 0f, 0f, 0f,
+            0f, 0f, 1f, 0f, 0f,
+            0f, 0f, 0f, 1.7f, 0f,
+        ),
+    ),
+)
+
+@Composable
+internal fun EmptyHomeSceneRenderer(
+    modifier: Modifier,
+    motionState: HomeMotionState,
+    runtimeAssets: EmptyHomeRuntimeAssets?,
+    sceneTransform: ReferenceSceneTransform,
+) {
+    Box(modifier.clipToBounds()) {
+        AssetImage(
+            FALLBACK_BACKGROUND,
+            Modifier.fillMaxSize(),
+            contentDescription = null,
+            contentScale = ContentScale.Crop,
+        )
+        if (runtimeAssets != null) {
+            val particles = remember { createSunParticleSpecs() }
+            val paint = remember {
+                Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG)
+            }
+            val destination = remember { RectF() }
+            Canvas(Modifier.fillMaxSize()) {
+                drawRuntimeOverlays(
+                    assets = runtimeAssets,
+                    motionState = motionState,
+                    particles = particles,
+                    paint = paint,
+                    destination = destination,
+                    transform = sceneTransform,
+                )
+            }
+        }
+    }
+}
+
+private fun DrawScope.drawRuntimeOverlays(
+    assets: EmptyHomeRuntimeAssets,
+    motionState: HomeMotionState,
+    particles: List<SunParticleSpec>,
+    paint: Paint,
+    destination: RectF,
+    transform: ReferenceSceneTransform,
+) {
+    val time = if (motionState.running) motionState.sceneTimeSeconds else 0f
+
+    drawReferenceBitmap(
+        bitmap = assets.sceneBase,
+        x = 0f,
+        y = 0f,
+        width = REFERENCE_SCENE_WIDTH,
+        height = REFERENCE_SCENE_HEIGHT,
+        alpha = 1f,
+        transform = transform,
+        paint = paint,
+        destination = destination,
+    )
+
+    // Remove the former full-page and bottom color veils. V2 does not authorize
+    // an additional grade over the frozen Sunrise Hero surface.
+
+    drawReferenceBitmap(
+        bitmap = assets.cloud,
+        x = 214f + cloudOffsetPx(time + CLOUD_PHASE_OFFSET_SECONDS),
+        y = 92f,
+        width = assets.cloud.width.toFloat(),
+        height = assets.cloud.height.toFloat(),
+        alpha = 0.45f,
+        transform = transform,
+        paint = paint,
+        destination = destination,
+    )
+
+    if (motionState.running && !motionState.reduceMotion) {
+        drawReferenceBitmap(
+            bitmap = assets.sunBeam,
+            x = 654f,
+            y = 474f,
+            width = assets.sunBeam.width.toFloat(),
+            height = assets.sunBeam.height.toFloat(),
+            alpha = 0.18f * sunBeamEnvelope(time + SUN_BEAM_PHASE_OFFSET_SECONDS),
+            transform = transform,
+            paint = paint,
+            destination = destination,
+        )
+        drawSunParticles(
+            time = time,
+            envelope = sunBeamEnvelope(time + SUN_BEAM_PHASE_OFFSET_SECONDS),
+            particles = particles,
+            transform = transform,
+            particleBitmap = assets.particle,
+            paint = paint,
+            destination = destination,
+        )
+    }
+
+    drawReferenceBitmap(
+        bitmap = assets.rod,
+        x = EMPTY_HOME_V2_ROD_X,
+        y = EMPTY_HOME_V2_ROD_Y,
+        width = assets.rod.width.toFloat(),
+        height = assets.rod.height.toFloat(),
+        alpha = 1f,
+        transform = transform,
+        paint = paint,
+        destination = destination,
+    )
+    drawFrozenFishingLine(transform)
+
+    val bobberMotionActive = emptyHomeMotionActive(
+        running = motionState.running,
+        reduceMotion = motionState.reduceMotion,
+    )
+    val bobberOffset = if (bobberMotionActive) {
+        bobberOffsetPx(time + BOBBER_PHASE_OFFSET_SECONDS)
+    } else {
+        0f
+    }
+    val bobberSplit = calculateBobberWaterSplit(
+        bitmapHeight = assets.bobber.height,
+        bobberTopY = EMPTY_HOME_V2_BOBBER_Y + bobberOffset,
+        waterContactY = EMPTY_HOME_V2_WATER_CONTACT_Y,
+    )
+
+    // Keep V2.2's narrow optical continuation separate from the bobber body.
+    // This layer is independently faint/faded and never renders a second float.
+    drawReferenceBitmap(
+        bitmap = assets.bobberReflection,
+        x = EMPTY_HOME_V2_REFLECTION_X,
+        y = EMPTY_HOME_V2_REFLECTION_Y,
+        width = assets.bobberReflection.width.toFloat(),
+        height = assets.bobberReflection.height.toFloat(),
+        alpha = 1f,
+        transform = transform,
+        paint = paint,
+        destination = destination,
+    )
+
+    drawReferenceBitmap(
+        bitmap = assets.ripple,
+        x = EMPTY_HOME_V2_RIPPLE_X,
+        // The ripple belongs to the water plane; only the bobber receives Y
+        // motion, so the contact point never rides up and down with it.
+        y = EMPTY_HOME_V2_RIPPLE_Y,
+        width = assets.ripple.width.toFloat(),
+        height = assets.ripple.height.toFloat(),
+        // Reduce Motion freezes the contact state rather than removing it:
+        // the lake still reads as a correctly seated bobber at rest.
+        alpha = if (bobberMotionActive) rippleAlpha(time + RIPPLE_PHASE_OFFSET_SECONDS) else 0.30f,
+        scale = if (bobberMotionActive) rippleScale(time + RIPPLE_PHASE_OFFSET_SECONDS) else 1f,
+        pivotX = EMPTY_HOME_V2_WATER_CONTACT_X,
+        pivotY = EMPTY_HOME_V2_WATER_CONTACT_Y,
+        colorFilter = RippleAlphaNormalizationFilter,
+        transform = transform,
+        paint = paint,
+        destination = destination,
+    )
+    drawReferenceBitmap(
+        bitmap = assets.bobber,
+        x = EMPTY_HOME_V2_BOBBER_X,
+        y = EMPTY_HOME_V2_BOBBER_Y + bobberOffset,
+        width = assets.bobber.width.toFloat(),
+        height = bobberSplit.splitY.toFloat(),
+        alpha = 1f,
+        transform = transform,
+        paint = paint,
+        destination = destination,
+        source = Rect(0, 0, assets.bobber.width, bobberSplit.splitY),
+    )
+}
+
+internal data class BobberWaterSplit(
+    val splitY: Int,
+    val underwaterHeight: Int,
+    val underwaterAlpha: Float,
+)
+
+internal fun calculateBobberWaterSplit(
+    bitmapHeight: Int,
+    bobberTopY: Float,
+    waterContactY: Float,
+): BobberWaterSplit {
+    require(bitmapHeight > 0)
+    val splitY = (waterContactY - bobberTopY).roundToInt().coerceIn(0, bitmapHeight)
+    // The reflection is a separate low-alpha layer; the body is clipped at the
+    // fixed water plane and no submerged copy is composited.
+    return BobberWaterSplit(splitY = splitY, underwaterHeight = 0, underwaterAlpha = 0f)
+}
+
+private fun DrawScope.drawFrozenFishingLine(
+    transform: ReferenceSceneTransform,
+) {
+    fun sx(value: Float): Float = transform.offsetX + value * transform.scale
+    fun sy(value: Float): Float = transform.offsetY + value * transform.scale
+
+    val linePath = Path().apply {
+        moveTo(sx(EMPTY_HOME_V2_LINE_START_X), sy(EMPTY_HOME_V2_LINE_START_Y))
+        cubicTo(
+            sx(EMPTY_HOME_V2_LINE_C1_X),
+            sy(EMPTY_HOME_V2_LINE_C1_Y),
+            sx(EMPTY_HOME_V2_LINE_C2_X),
+            sy(EMPTY_HOME_V2_LINE_C2_Y),
+            sx(EMPTY_HOME_V2_LINE_END_X),
+            sy(EMPTY_HOME_V2_LINE_END_Y),
+        )
+    }
+
+    drawPath(
+        path = linePath,
+        color = Color(0xFFD5E1E3).copy(alpha = 0.78f),
+        style = Stroke(width = 1.35f * transform.scale, cap = StrokeCap.Round),
+    )
+}
+
+private fun DrawScope.drawSunParticles(
+    time: Float,
+    envelope: Float,
+    particles: List<SunParticleSpec>,
+    transform: ReferenceSceneTransform,
+    particleBitmap: Bitmap,
+    paint: Paint,
+    destination: RectF,
+) {
+    particles.forEach { particle ->
+        val progress = (time / 4.8f + particle.phase) % 1f
+        val x = particle.x + particle.driftX * progress
+        val y = particle.y + particle.travelY * progress
+        drawReferenceBitmap(
+            bitmap = particleBitmap,
+            x = x - particle.radius,
+            y = y - particle.radius,
+            width = particle.radius * 2f,
+            height = particle.radius * 2f,
+            alpha = particle.alpha * envelope,
+            transform = transform,
+            paint = paint,
+            destination = destination,
+        )
+    }
+}
+
+private fun DrawScope.drawReferenceBitmap(
+    bitmap: Bitmap,
+    x: Float,
+    y: Float,
+    width: Float,
+    height: Float,
+    alpha: Float,
+    transform: ReferenceSceneTransform,
+    paint: Paint,
+    destination: RectF,
+    scale: Float = 1f,
+    pivotX: Float = x + width / 2f,
+    pivotY: Float = y + height / 2f,
+    colorFilter: ColorMatrixColorFilter? = null,
+    source: Rect? = null,
+) {
+    if (alpha <= 0f) return
+    val scaledWidth = width * scale
+    val scaledHeight = height * scale
+    val left = pivotX + (x - pivotX) * scale
+    val top = pivotY + (y - pivotY) * scale
+    destination.set(
+        transform.offsetX + left * transform.scale,
+        transform.offsetY + top * transform.scale,
+        transform.offsetX + (left + scaledWidth) * transform.scale,
+        transform.offsetY + (top + scaledHeight) * transform.scale,
+    )
+    paint.alpha = (alpha.coerceIn(0f, 1f) * 255f).roundToInt()
+    paint.colorFilter = colorFilter
+    drawIntoCanvas { canvas ->
+        canvas.nativeCanvas.drawBitmap(bitmap, source, destination, paint)
+    }
+    paint.colorFilter = null
+}

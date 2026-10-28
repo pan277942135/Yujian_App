@@ -1,0 +1,8 @@
+{
+  "species": {"id": "grass_carp", "name_cn": "草鱼", "status": "ACTIVE", "cover_image": "https://cdn.example/legacy-only.webp"},
+  "cards": [
+    {"id": 1, "species_id": "grass_carp", "card_type": "HERO", "image_url": "/legacy/active.webp", "status": "ACTIVE"},
+    {"id": 2, "species_id": "grass_carp", "card_type": "IDENTIFICATION", "image_url": "/legacy/draft.webp", "status": "DRAFT"}
+  ],
+  "gallery": {"images": []}, "profile": {}, "fishing": {}, "videos": [], "similarity": [], "knowledge": {}
+}

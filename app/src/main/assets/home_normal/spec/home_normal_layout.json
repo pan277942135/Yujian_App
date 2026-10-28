@@ -1,0 +1,103 @@
+{
+  "page": "home_normal",
+  "canvas": {
+    "width": 1080,
+    "height": 1920
+  },
+  "depends_on_common": {
+    "background": "home_empty/background/empty_home_bg.webp",
+    "camera_outer": "home_empty/camera/camera_outer.png",
+    "camera_inner": "home_empty/camera/camera_inner.png",
+    "camera_icon": "home_empty/camera/camera_icon.svg",
+    "camera_breath": "home_empty/animation/camera_breath.json",
+    "ambient_audio": "home_empty/audio/lake_morning.mp3"
+  },
+  "header": {
+    "title": {
+      "text": "我的鱼获",
+      "x": 56,
+      "y": 88,
+      "font_size": 28,
+      "color": "#233949"
+    },
+    "avatar": {
+      "x": 956,
+      "y": 74,
+      "size": 96
+    }
+  },
+  "summary": {
+    "top": 250,
+    "height": 96,
+    "columns": [
+      {
+        "label": "鱼种",
+        "value": "12",
+        "center_x": 220
+      },
+      {
+        "label": "鱼获",
+        "value": "38",
+        "center_x": 540
+      },
+      {
+        "label": "记录天数",
+        "value": "7",
+        "center_x": 860
+      }
+    ],
+    "divider_x": [
+      380,
+      700
+    ]
+  },
+  "section_recent": {
+    "title": "最近鱼获",
+    "all_text": "全部 >",
+    "y": 430
+  },
+  "recent_card": {
+    "x": 160,
+    "y": 515,
+    "width": 760,
+    "height": 640,
+    "radius": 38,
+    "image_safe_padding": 18,
+    "bottom_gradient_asset": "fish_card/fish_card_gradient.png",
+    "outline_asset": "fish_card/fish_card_outline.png",
+    "shadow_asset": "fish_card/fish_card_shadow.png"
+  },
+  "recent_card_text": {
+    "species": {
+      "text": "黄骨鱼",
+      "x": 190,
+      "y": 980,
+      "font_size": 32
+    },
+    "measure": {
+      "text": "42.6 cm · 1.28 kg",
+      "x": 190,
+      "y": 1035,
+      "font_size": 22
+    },
+    "meta": {
+      "text": "昨天 18:20 · 浙江千岛湖",
+      "x": 190,
+      "y": 1090,
+      "font_size": 18
+    }
+  },
+  "cta": {
+    "label": {
+      "text": "记录下一条鱼",
+      "center_x": 540,
+      "y": 1255,
+      "font_size": 24
+    },
+    "button_center": {
+      "x": 540,
+      "y": 1420
+    },
+    "button_size": 188
+  }
+}

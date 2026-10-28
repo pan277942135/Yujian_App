@@ -1,0 +1,44 @@
+{
+  "schema_version": "3.1",
+  "page_id": "recognition.capture.v3_1",
+  "fields": [
+    {
+      "field": "camera.permission_state",
+      "source": "Android runtime camera permission; observed route authority design/pages/recognition/README.md and app/src/main/java/com/yujian/ai/ui/screens/IdentifyScreen.kt",
+      "required": "required for camera preview only",
+      "fallback": "Permission-denied state; Gallery may be offered through the independent picker route.",
+      "error_behavior": "Do not start preview or capture. Exact denial/settings copy stays unresolved under CAP-003."
+    },
+    {
+      "field": "camera.provider_state",
+      "source": "CameraX readiness guard in design/system_v3/00_Product_Master_Flow/master_flow_v3_1.json#capture_camera",
+      "required": "required for camera capture",
+      "fallback": "CAMERA_UNAVAILABLE; retain Gallery and Back recovery.",
+      "error_behavior": "Do not create a partial image or enter Processing."
+    },
+    {
+      "field": "media.selected_image",
+      "source": "Camera or Gallery selection normalized at Identify handoff; master flow capture_camera/capture_gallery",
+      "required": "required to leave Capture",
+      "fallback": "No image selected keeps the page in EMPTY/READY.",
+      "error_behavior": "Unreadable media stays on Capture with a retryable Gallery/camera path."
+    },
+    {
+      "field": "media.normalized_image",
+      "source": "Identify normalized-image handoff to RecognitionStateMachine; design/system_v3/00_Product_Master_Flow/master_flow_v3_1.json#captured",
+      "required": "required for Processing entry",
+      "fallback": "No fallback image is fabricated.",
+      "error_behavior": "Failed normalization remains in a recoverable capture state; no FishRecord is written."
+    }
+  ],
+  "coverage": {
+    "empty": "No still image committed: remain on Capture; no recognition or record is started.",
+    "loading": "Permission, provider initialization, capture and picker handoff are separate loading states; prevent duplicate capture.",
+    "error": "Permission/provider/read failure remains recoverable; exact UI copy and camera visual are blocked.",
+    "partial": "A picker selection that cannot be decoded is not treated as a usable partial image.",
+    "network_failure": "NOT_APPLICABLE: Capture has no registered network data dependency. A later pipeline connectivity failure is handled by Processing as a technical failure only if reported by the pipeline."
+  },
+  "field_lineage_status": "Camera runtime source is identified; Gallery/permission UX is not fully page-authorized.",
+  "state_authority": "design/system_v3/08_Page_Contracts/recognition/capture/Recognition_Capture_V3_Authority.md",
+  "policy": "System permission and Photo Picker remain platform-owned. Camera permission is required only for the camera stream; Gallery remains independent. No backend/API schema is asserted."
+}

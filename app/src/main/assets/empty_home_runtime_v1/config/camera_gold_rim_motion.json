@@ -1,0 +1,18 @@
+{
+  "type": "gold_rim_sweep",
+  "enabled": true,
+  "source_asset": "animation/support/camera_gold_rim_mask.png",
+  "initial_delay_s": 3.0,
+  "sweep_duration_s": 1.4,
+  "repeat_interval_s": 9.0,
+  "arc_degree": 65,
+  "rotation_degree": 330,
+  "alpha_peak": 0.38,
+  "loop": true,
+  "pivot": {
+    "x": 540.0,
+    "y": 1612.5
+  },
+  "color_source": "master_sun_reflection_sample",
+  "generated_color": false
+}

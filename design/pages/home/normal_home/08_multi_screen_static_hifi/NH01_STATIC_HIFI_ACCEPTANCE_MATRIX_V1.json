@@ -1,0 +1,321 @@
+{
+  "schema_version": "1.0",
+  "contract_id": "NH01_MULTI_SCREEN_STATIC_HIFI_V1",
+  "design_status": "STATIC_HIFI_FROZEN",
+  "rules_status": "STATIC_RULES_FROZEN",
+  "android_runtime_status": "NOT_VERIFIED",
+  "browser_preview_status": "NOT_RUN",
+  "asset_checks": [
+    {
+      "asset_id": "NH01-M01-320x480dp-STATIC-HIFI-V1",
+      "path": "design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_M01_320x480dp_STATIC_HIFI_V1.png",
+      "expected_sha256": "a3808f2fb93d48494eafbb6ba061dbd9c1dd019348488355780c8f4504636692",
+      "expected_canvas_px": {
+        "width": 1024,
+        "height": 1536
+      },
+      "status": "NOT_RUN"
+    },
+    {
+      "asset_id": "NH01-M02-360x640dp-STATIC-HIFI-V1",
+      "path": "design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_M02_360x640dp_STATIC_HIFI_V1.png",
+      "expected_sha256": "8a6721552cec97113c2a77200a07bb76b954c1a16f4e0f10d8410b9e873a90c0",
+      "expected_canvas_px": {
+        "width": 941,
+        "height": 1672
+      },
+      "status": "NOT_RUN"
+    },
+    {
+      "asset_id": "NH01-M03-390x844dp-STATIC-HIFI-V1",
+      "path": "design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_M03_390x844dp_STATIC_HIFI_V1.png",
+      "expected_sha256": "6a5e2e9fd18d2b06f9452b6a6c95802e41cfc0450b7ec77cf0d1500c6b3932ff",
+      "expected_canvas_px": {
+        "width": 853,
+        "height": 1844
+      },
+      "status": "NOT_RUN"
+    },
+    {
+      "asset_id": "NH01-M04-430x932dp-STATIC-HIFI-V1",
+      "path": "design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_M04_430x932dp_STATIC_HIFI_V1.png",
+      "expected_sha256": "07846d3089b7c2a0b0e6c858dbd3f97890121b225092dde7d7622f0a461b9893",
+      "expected_canvas_px": {
+        "width": 853,
+        "height": 1844
+      },
+      "status": "NOT_RUN"
+    },
+    {
+      "asset_id": "NH01-M05-480dp-WIDTH-STATIC-HIFI-V1",
+      "path": "design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_M05_480dp_WIDTH_STATIC_HIFI_V1.png",
+      "expected_sha256": "ee2ed666107bd7f4263cf140438a5a1cbb171af0199e57646372e2e1d8cc8de2",
+      "expected_canvas_px": {
+        "width": 1024,
+        "height": 1536
+      },
+      "status": "NOT_RUN"
+    }
+  ],
+  "browser_checks": [
+    {
+      "id": "asset_integrity",
+      "description": "All five original PNGs match manifest byte count, dimensions and SHA-256.",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "desktop_gallery",
+      "description": "Five complete images, target dp labels, Asset IDs, frozen state and rule tables render at desktop width.",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "narrow_gallery",
+      "description": "Gallery and rule tables reflow at narrow browser width without horizontal overflow.",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "deep_link_refresh",
+      "description": "Direct hash route and browser refresh preserve the registered workspace.",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "back_forward",
+      "description": "Browser Back/Forward returns between workspace and home registry without stale view.",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "image_open",
+      "description": "Each source image loads and opens in the existing full-image lightbox.",
+      "status": "NOT_RUN"
+    },
+    {
+      "id": "console_network",
+      "description": "No new console error or failed contract/image resource on the workspace route.",
+      "status": "NOT_RUN"
+    }
+  ],
+  "android_matrix": {
+    "matrix_id": "NH01_GEMINI_ADAPTIVE_V2_ACCEPTANCE_MATRIX_V1",
+    "required_case_count": 24,
+    "native_status": "NOT_VERIFIED",
+    "cases": [
+      {
+        "case_id": "API28-320x480-FS1.0-ADAPTIVE_V2",
+        "api_level": 28,
+        "viewport_dp": "320x480",
+        "system_font_scale": 1.0,
+        "layout_variant": "ADAPTIVE_V2",
+        "execution_status": "NOT_RUN",
+        "evidence": null
+      },
+      {
+        "case_id": "API28-320x480-FS1.0-V3_BASELINE",
+        "api_level": 28,
+        "viewport_dp": "320x480",
+        "system_font_scale": 1.0,
+        "layout_variant": "V3_BASELINE",
+        "execution_status": "NOT_RUN",
+        "evidence": null
+      },
+      {
+        "case_id": "API28-320x480-FS1.3-ADAPTIVE_V2",
+        "api_level": 28,
+        "viewport_dp": "320x480",
+        "system_font_scale": 1.3,
+        "layout_variant": "ADAPTIVE_V2",
+        "execution_status": "NOT_RUN",
+        "evidence": null
+      },
+      {
+        "case_id": "API28-320x480-FS1.3-V3_BASELINE",
+        "api_level": 28,
+        "viewport_dp": "320x480",
+        "system_font_scale": 1.3,
+        "layout_variant": "V3_BASELINE",
+        "execution_status": "NOT_RUN",
+        "evidence": null
+      },
+      {
+        "case_id": "API28-320x480-FS1.5-ADAPTIVE_V2",
+        "api_level": 28,
+        "viewport_dp": "320x480",
+        "system_font_scale": 1.5,
+        "layout_variant": "ADAPTIVE_V2",
+        "execution_status": "NOT_RUN",
+        "evidence": null
+      },
+      {
+        "case_id": "API28-320x480-FS1.5-V3_BASELINE",
+        "api_level": 28,
+        "viewport_dp": "320x480",
+        "system_font_scale": 1.5,
+        "layout_variant": "V3_BASELINE",
+        "execution_status": "NOT_RUN",
+        "evidence": null
+      },
+      {
+        "case_id": "API28-360x640-FS1.0-ADAPTIVE_V2",
+        "api_level": 28,
+        "viewport_dp": "360x640",
+        "system_font_scale": 1.0,
+        "layout_variant": "ADAPTIVE_V2",
+        "execution_status": "NOT_RUN",
+        "evidence": null
+      },
+      {
+        "case_id": "API28-360x640-FS1.0-V3_BASELINE",
+        "api_level": 28,
+        "viewport_dp": "360x640",
+        "system_font_scale": 1.0,
+        "layout_variant": "V3_BASELINE",
+        "execution_status": "NOT_RUN",
+        "evidence": null
+      },
+      {
+        "case_id": "API28-360x640-FS1.3-ADAPTIVE_V2",
+        "api_level": 28,
+        "viewport_dp": "360x640",
+        "system_font_scale": 1.3,
+        "layout_variant": "ADAPTIVE_V2",
+        "execution_status": "NOT_RUN",
+        "evidence": null
+      },
+      {
+        "case_id": "API28-360x640-FS1.3-V3_BASELINE",
+        "api_level": 28,
+        "viewport_dp": "360x640",
+        "system_font_scale": 1.3,
+        "layout_variant": "V3_BASELINE",
+        "execution_status": "NOT_RUN",
+        "evidence": null
+      },
+      {
+        "case_id": "API28-360x640-FS1.5-ADAPTIVE_V2",
+        "api_level": 28,
+        "viewport_dp": "360x640",
+        "system_font_scale": 1.5,
+        "layout_variant": "ADAPTIVE_V2",
+        "execution_status": "NOT_RUN",
+        "evidence": null
+      },
+      {
+        "case_id": "API28-360x640-FS1.5-V3_BASELINE",
+        "api_level": 28,
+        "viewport_dp": "360x640",
+        "system_font_scale": 1.5,
+        "layout_variant": "V3_BASELINE",
+        "execution_status": "NOT_RUN",
+        "evidence": null
+      },
+      {
+        "case_id": "API28-390x844-FS1.0-ADAPTIVE_V2",
+        "api_level": 28,
+        "viewport_dp": "390x844",
+        "system_font_scale": 1.0,
+        "layout_variant": "ADAPTIVE_V2",
+        "execution_status": "NOT_RUN",
+        "evidence": null
+      },
+      {
+        "case_id": "API28-390x844-FS1.0-V3_BASELINE",
+        "api_level": 28,
+        "viewport_dp": "390x844",
+        "system_font_scale": 1.0,
+        "layout_variant": "V3_BASELINE",
+        "execution_status": "NOT_RUN",
+        "evidence": null
+      },
+      {
+        "case_id": "API28-390x844-FS1.3-ADAPTIVE_V2",
+        "api_level": 28,
+        "viewport_dp": "390x844",
+        "system_font_scale": 1.3,
+        "layout_variant": "ADAPTIVE_V2",
+        "execution_status": "NOT_RUN",
+        "evidence": null
+      },
+      {
+        "case_id": "API28-390x844-FS1.3-V3_BASELINE",
+        "api_level": 28,
+        "viewport_dp": "390x844",
+        "system_font_scale": 1.3,
+        "layout_variant": "V3_BASELINE",
+        "execution_status": "NOT_RUN",
+        "evidence": null
+      },
+      {
+        "case_id": "API28-390x844-FS1.5-ADAPTIVE_V2",
+        "api_level": 28,
+        "viewport_dp": "390x844",
+        "system_font_scale": 1.5,
+        "layout_variant": "ADAPTIVE_V2",
+        "execution_status": "NOT_RUN",
+        "evidence": null
+      },
+      {
+        "case_id": "API28-390x844-FS1.5-V3_BASELINE",
+        "api_level": 28,
+        "viewport_dp": "390x844",
+        "system_font_scale": 1.5,
+        "layout_variant": "V3_BASELINE",
+        "execution_status": "NOT_RUN",
+        "evidence": null
+      },
+      {
+        "case_id": "API28-430x932-FS1.0-ADAPTIVE_V2",
+        "api_level": 28,
+        "viewport_dp": "430x932",
+        "system_font_scale": 1.0,
+        "layout_variant": "ADAPTIVE_V2",
+        "execution_status": "NOT_RUN",
+        "evidence": null
+      },
+      {
+        "case_id": "API28-430x932-FS1.0-V3_BASELINE",
+        "api_level": 28,
+        "viewport_dp": "430x932",
+        "system_font_scale": 1.0,
+        "layout_variant": "V3_BASELINE",
+        "execution_status": "NOT_RUN",
+        "evidence": null
+      },
+      {
+        "case_id": "API28-430x932-FS1.3-ADAPTIVE_V2",
+        "api_level": 28,
+        "viewport_dp": "430x932",
+        "system_font_scale": 1.3,
+        "layout_variant": "ADAPTIVE_V2",
+        "execution_status": "NOT_RUN",
+        "evidence": null
+      },
+      {
+        "case_id": "API28-430x932-FS1.3-V3_BASELINE",
+        "api_level": 28,
+        "viewport_dp": "430x932",
+        "system_font_scale": 1.3,
+        "layout_variant": "V3_BASELINE",
+        "execution_status": "NOT_RUN",
+        "evidence": null
+      },
+      {
+        "case_id": "API28-430x932-FS1.5-ADAPTIVE_V2",
+        "api_level": 28,
+        "viewport_dp": "430x932",
+        "system_font_scale": 1.5,
+        "layout_variant": "ADAPTIVE_V2",
+        "execution_status": "NOT_RUN",
+        "evidence": null
+      },
+      {
+        "case_id": "API28-430x932-FS1.5-V3_BASELINE",
+        "api_level": 28,
+        "viewport_dp": "430x932",
+        "system_font_scale": 1.5,
+        "layout_variant": "V3_BASELINE",
+        "execution_status": "NOT_RUN",
+        "evidence": null
+      }
+    ],
+    "m05_policy": "480dp width only; no fixed native height; not in these 24 cases."
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "species": {
+    "id": "grass_carp",
+    "name_cn": "草鱼",
+    "summary": "生活在湖泊与河流中的鱼类。",
+    "status": "ACTIVE",
+    "cover_image": "https://cdn.example/species-cover.webp"
+  },
+  "knowledge_assets": {
+    "HERO": {"asset_role": "HERO", "asset_id": "grass-hero-2", "version": "v2", "image_url": "/api/v1/fish/knowledge-media/grass_carp/hero/v2.webp", "status": "ACTIVE"},
+    "IDENTIFICATION": {"asset_role": "IDENTIFICATION", "asset_id": "grass-id-2", "version": "v2", "image_url": "/api/v1/fish/knowledge-media/grass_carp/identification/v2.webp", "status": "ACTIVE"},
+    "ECO": {"asset_role": "ECO", "asset_id": "grass-eco-2", "version": "v2", "image_url": "/api/v1/fish/knowledge-media/grass_carp/eco/v2.webp", "status": "ACTIVE"},
+    "GEAR": {"asset_role": "GEAR", "asset_id": "grass-gear-2", "version": "v2", "image_url": "/api/v1/fish/knowledge-media/grass_carp/gear/v2.webp", "status": "ACTIVE"},
+    "SKILL": {"asset_role": "SKILL", "asset_id": "grass-skill-2", "version": "v2", "image_url": "/api/v1/fish/knowledge-media/grass_carp/skill/v2.webp", "status": "ACTIVE"}
+  },
+  "cards": [
+    {"id": 51, "species_id": "grass_carp", "card_type": "HERO", "title": "草鱼名片", "image_url": "/api/v1/fish/knowledge-media/grass_carp/hero/draft.webp", "sort_order": 0, "status": "DRAFT"},
+    {"id": 52, "species_id": "grass_carp", "card_type": "HERO", "title": "草鱼名片", "image_url": "/api/v1/fish/knowledge-media/grass_carp/hero/active.webp", "sort_order": 0, "status": "ACTIVE"}
+  ],
+  "gallery": {"images": []},
+  "profile": {},
+  "fishing": {},
+  "videos": [],
+  "similarity": [],
+  "knowledge": {}
+}

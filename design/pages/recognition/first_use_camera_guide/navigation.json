@@ -1,0 +1,44 @@
+{
+  "version": "1.0",
+  "status": "FROZEN",
+  "manager_parent": "recognition_flow_v1_2",
+  "manager_title": "07 · 首次拍照教学",
+  "children": [
+    {
+      "id": "p01",
+      "title": "P01 · 竖屏拍摄示意",
+      "status": "FROZEN",
+      "visual_authority": "frozen/P01_First_Use_Camera_Guide_Frozen.png"
+    },
+    {
+      "id": "p02",
+      "title": "P02 · 竖拍鱼类拍摄示意",
+      "status": "FROZEN",
+      "visual_authority": "frozen/P02_First_Use_Camera_Guide_Frozen.png"
+    },
+    {
+      "id": "p03",
+      "title": "P03 · 横屏拍摄示意",
+      "status": "FROZEN",
+      "visual_authority": "frozen/P03_First_Use_Camera_Guide_Frozen.png"
+    }
+  ],
+  "resource_menus": [
+    {
+      "id": "resources",
+      "title": "资源",
+      "status": "DESIGN_ONLY_PARTIAL_ASSET_SOURCES",
+      "route": "#page/recognition_flow_v1_2/hifi/capture_first_use_guide/resources",
+      "manifest": "manifest.json",
+      "resource_ids": [
+        "p01",
+        "p02",
+        "p03"
+      ],
+      "runtime_visual_authority": false,
+      "frontend_asset_manifest": "frontend_assets_manifest.json",
+      "structured_page_manifest": "structured_pages.json",
+      "asset_slot_count": 12
+    }
+  ]
+}

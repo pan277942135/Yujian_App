@@ -1,0 +1,27 @@
+{
+  "feature": "home_empty_v2",
+  "version": "1.0",
+  "status": "FROZEN",
+  "playback_enabled": false,
+  "autoplay": "prohibited",
+  "triggers": {
+    "page_enter": "none",
+    "idle": "none",
+    "bobber_motion": "none",
+    "ripple_motion": "none",
+    "camera_breath": "none",
+    "camera_gold_rim": "none",
+    "camera_tap": "none",
+    "album_tap": "none",
+    "account_tap": "none"
+  },
+  "deferred_assets": [
+    {
+      "path": "app/src/main/res/raw/lake_morning.mp3",
+      "state": "PACKAGED_DISABLED_NOT_AUTHORITY",
+      "activation_requires_new_contract_version": true
+    }
+  ],
+  "settings_required": false,
+  "note": "Presence of a packaged audio resource does not authorize runtime playback."
+}

@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" color="#0B2D4B" role="img" aria-labelledby="title">
+  <title id="title">日期</title>
+  <!-- YuJian ic_date V1; FROZEN DESIGN; same 24-unit/1.75 rounded-outline master -->
+  <rect x="3.25" y="5.45" width="17.5" height="15.25" rx="2.5" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M7.75 3.3V7.6M16.25 3.3V7.6M3.25 10.1H20.75" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M8.1 14.2H9.3M12.6 14.2H13.8M8.1 17.3H9.3" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>
+</svg>

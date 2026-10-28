@@ -1,0 +1,187 @@
+name: W5 Empty Home Chromium Matrix
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review]
+    branches: [main]
+    paths:
+      - "design/pages/home/empty_home/**"
+      - "design/manager/**"
+      - "scripts/design/verify_empty_home_structured_hifi.mjs"
+      - "scripts/design/validate_page_resource_binding.py"
+      - "scripts/design/validate_page_responsive_contract.py"
+      - "harness/**"
+      - "scripts/validate_control_plane_*.py"
+      - "scripts/validate_feature_matrix.py"
+      - "scripts/validate_phase_task_state_machine.py"
+      - "scripts/validate_unified_contract.py"
+      - ".github/workflows/w5-empty-home-matrix.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: w5-empty-home-matrix-${{ github.event.pull_request.head.sha || github.sha }}
+  cancel-in-progress: false
+
+env:
+  BUILD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+
+jobs:
+  empty-home-matrix:
+    name: W5 exact-SHA Chromium matrix
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout exact candidate source
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Install page validation dependencies
+        run: python -m pip install --disable-pip-version-check -r scripts/design/requirements_nh01_cloud.txt PyYAML==6.0.3
+
+      - name: Control Plane Admission and registries
+        run: |
+          set -euo pipefail
+          python scripts/validate_control_plane_admission.py
+          python scripts/validate_control_plane_registry.py
+          python scripts/validate_feature_matrix.py
+          python scripts/validate_phase_task_state_machine.py
+          python scripts/validate_unified_contract.py
+
+      - name: W1 page contract validation
+        run: |
+          set -euo pipefail
+          python -m unittest discover -s scripts/design/tests -p 'test_page_responsive_contract.py' -v
+          python scripts/design/validate_page_responsive_contract.py \
+            --expected-source-sha "$BUILD_SHA" \
+            --report "$RUNNER_TEMP/w5-page-responsive-contract-report.json"
+          python scripts/design/validate_nh01_responsive_layout_contract_v2.py
+
+      - name: Prepare isolated static site from the checked-out source
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf _site
+          mkdir -p _site
+          cp -R design _site/design
+          if [ -d previews ]; then cp -R previews _site/previews; fi
+          mkdir -p _site/app/src/main/res/drawable-nodpi
+          cp app/src/main/res/drawable-nodpi/normal_home_default_avatar_v2.png \
+            _site/app/src/main/res/drawable-nodpi/normal_home_default_avatar_v2.png
+          BUILD_SHORT="${BUILD_SHA:0:12}"
+          sed -i "s/__DESIGN_MANAGER_BUILD__/${BUILD_SHA}/g" _site/design/manager/index.html
+          sed -i "s/__DESIGN_MANAGER_BUILD_SHORT__/${BUILD_SHORT}/g" _site/design/manager/index.html
+          sed -i "s/__NH01_SOURCE_SHA__/${BUILD_SHA}/g" _site/design/manager/nh01_acceptance/index.html
+          sed -i "s/__NH01_VIEWER_BUILD__/${BUILD_SHA}/g" _site/design/manager/nh01_acceptance/index.html
+          printf '{"sha":"%s","short_sha":"%s"}\n' "${BUILD_SHA}" "${BUILD_SHORT}" > _site/design/manager/build.json
+          touch _site/.nojekyll
+          git diff --quiet HEAD --
+
+      - name: W2 scan the staged source bundle
+        run: |
+          python scripts/design/validate_page_resource_binding.py \
+            --all-pages \
+            --required-page-id home_normal_v1 \
+            --required-page-id home_empty_v2 \
+            --required-page-id auth_login_v2 \
+            --site-root _site \
+            --source-sha "$BUILD_SHA" \
+            --run-id "$GITHUB_RUN_ID" \
+            --report "$RUNNER_TEMP/w5-page-resource-binding-report.json"
+
+      - name: Set up Node and Chromium
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install Playwright and Chromium
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm install --no-save --prefix "$RUNNER_TEMP/w5-playwright" playwright@1.63.0
+          "$RUNNER_TEMP/w5-playwright/node_modules/.bin/playwright" install --with-deps chromium
+
+      - name: Run W5 structured Empty Home DOM matrix
+        id: w5_matrix
+        shell: bash
+        env:
+          PLAYWRIGHT_MODULE_DIR: ${{ runner.temp }}/w5-playwright/node_modules
+        run: |
+          set -euo pipefail
+          node --check scripts/design/verify_empty_home_structured_hifi.mjs
+          node scripts/design/verify_empty_home_structured_hifi.mjs \
+            --root _site \
+            --expected-sha "$BUILD_SHA" \
+            --output-dir "$RUNNER_TEMP/w5-empty-home-evidence"
+
+      - name: Validate exact-SHA W5 matrix evidence
+        if: always() && steps.w5_matrix.outcome == 'success'
+        env:
+          EXPECTED_BUILD_SHA: ${{ env.BUILD_SHA }}
+          EXPECTED_RUN_ID: ${{ github.run_id }}
+          EVIDENCE_DIR: ${{ runner.temp }}/w5-empty-home-evidence
+        run: |
+          python - <<'PY'
+          import hashlib, json, os, struct
+          from pathlib import Path
+
+          root = Path(os.environ["EVIDENCE_DIR"])
+          evidence_path = root / "EmptyHome_Structured_HiFi_Evidence_V1.json"
+          bounds_path = root / "EmptyHome_Component_Bounds_Report_V1.json"
+          evidence = json.loads(evidence_path.read_text())
+          summary = evidence.get("matrix_summary", {})
+          cases = evidence.get("matrix", [])
+          expected_sha = os.environ["EXPECTED_BUILD_SHA"]
+          expected_run = str(os.environ["EXPECTED_RUN_ID"])
+
+          assert evidence.get("status") == "PASS_STRUCTURAL_MATRIX_VISUAL_REVIEW_PENDING", evidence.get("status")
+          assert evidence.get("source_sha") == expected_sha, (evidence.get("source_sha"), expected_sha)
+          assert str(evidence.get("github_run_id")) == expected_run, (evidence.get("github_run_id"), expected_run)
+          assert summary.get("expected") == len(cases), (summary, len(cases))
+          assert summary.get("executed") == summary.get("expected")
+          assert summary.get("pass") == summary.get("expected")
+          assert summary.get("fail") == 0 and summary.get("not_run") == 0, summary
+          assert summary.get("source_path") == evidence.get("matrix_authority", {}).get("path")
+          assert summary.get("source_sha256") == evidence.get("matrix_authority", {}).get("sha256")
+          assert cases, "formal matrix is empty"
+          for case in cases:
+              assert case.get("result") == "PASS", case.get("case_id")
+              assert case.get("page_id") == "home_empty_v2"
+              assert case.get("source_sha") == expected_sha
+              assert str(case.get("run_id")) == expected_run
+              assert case.get("matrix_source_path") == summary.get("source_path")
+              assert case.get("matrix_source_sha256") == summary.get("source_sha256")
+              assert case.get("node_bounds"), case.get("case_id")
+              rendered = case.get("screenshot_rendered", {})
+              screenshot = root / rendered.get("path", "")
+              assert screenshot.is_file(), screenshot
+              digest = hashlib.sha256(screenshot.read_bytes()).hexdigest()
+              assert digest == rendered.get("sha256"), (screenshot.name, digest, rendered.get("sha256"))
+              data = screenshot.read_bytes()
+              assert data[:8] == b"\x89PNG\r\n\x1a\n"
+              width, height = struct.unpack(">II", data[16:24])
+              assert (width, height) == (case["viewport_width"] * 3, case["viewport_height"] * 3)
+          bounds = json.loads(bounds_path.read_text())
+          assert bounds.get("source_sha") == expected_sha
+          assert len(bounds.get("viewports", [])) == summary.get("expected")
+          print(json.dumps({"status": "PASS", "source_sha": expected_sha, "run_id": expected_run,
+                            "matrix_summary": summary}, indent=2))
+          PY
+
+      - name: Upload W5 exact-SHA evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Empty-Home-W5-Matrix-${{ github.run_id }}-${{ env.BUILD_SHA }}
+          path: ${{ runner.temp }}/w5-empty-home-evidence/
+          if-no-files-found: warn
+          retention-days: 30

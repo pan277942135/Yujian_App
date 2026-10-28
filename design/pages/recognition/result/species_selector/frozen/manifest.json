@@ -1,0 +1,21 @@
+{
+  "version": "Recognition_Result_Species_Selector_V1",
+  "id": "recognition_result_species_selector_v1",
+  "status": "FROZEN",
+  "freeze_date": "2026-09-30",
+  "filename": "Recognition_Result_Species_Selector_V1_Frozen.png",
+  "path": "design/pages/recognition/result/species_selector/frozen/Recognition_Result_Species_Selector_V1_Frozen.png",
+  "width": 941,
+  "height": 1672,
+  "bytes": 1660583,
+  "sha256": "3c5a1ed62f8f55e2aad2cee01bce98b9e92e0f06e6ebfc799b85d24f6650d98d",
+  "git_blob_sha": "19504163b7de0cff0481d048f3dcf362ce479733",
+  "source_type": "UPLOADED_HIGH_FIDELITY_PNG",
+  "source_reference": "中文鱼种选择界面设计规范展板.png",
+  "authority_type": "VISUAL_AUTHORITY",
+  "asset_kind": "DESIGN_AUTHORITY_ONLY",
+  "shipping_asset": false,
+  "reencode_allowed": false,
+  "output_policy": "Preserve the exact uploaded PNG bytes. This composite board is not a runtime asset and may not be replaced by SVG, HTML/CSS reconstruction, screenshots, crops, or regenerated imagery.",
+  "frozen_spec": "design/pages/recognition/result/species_selector/Species_Selector_Spec_V1.md"
+}

@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" color="#0B2D4B" role="img" aria-labelledby="title">
+  <title id="title">添加视频</title>
+  <!-- YuJian ic_add_video V0.1 CANDIDATE — NOT FROZEN. Shared 24-unit source, 1.75 rounded outline, currentColor. -->
+  <rect x="3.1" y="8.3" width="12.0" height="12" rx="2.2" stroke="currentColor" stroke-width="1.75" stroke-linejoin="round"/>
+  <path d="M15.1 12.15L19.65 9.95C20.28 9.65 20.9 10.09 20.9 10.77V17.83C20.9 18.51 20.28 18.95 19.65 18.65L15.1 16.45" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M17.5 3.2V7.25M15.475 5.225H19.525" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>
+</svg>

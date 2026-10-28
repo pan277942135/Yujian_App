@@ -1,0 +1,278 @@
+#!/usr/bin/env bash
+
+# Minimal fake adb used by test_contract.sh.  It models only the transport,
+# package, instrumentation and evidence calls made by the unified Harness.
+set -u
+
+MODE="${FAKE_ADB_MODE:-ready}"
+RESTART_LOG="${FAKE_ADB_RESTART_LOG:-}"
+
+record_restart() {
+  if [[ -n "$RESTART_LOG" ]]; then
+    printf '%s\n' "$1" >> "$RESTART_LOG"
+  fi
+}
+
+if [[ $# -eq 0 ]]; then
+  exit 0
+fi
+
+case "$1" in
+  devices)
+    if [[ "$MODE" == "offline" ]]; then
+      printf 'List of devices attached\nemulator-5554 offline\n'
+    else
+      printf 'List of devices attached\nemulator-5554 device product:fake model:fake transport_id:1\n'
+    fi
+    exit 0
+    ;;
+  get-state)
+    if [[ "$MODE" == "offline" ]]; then printf 'offline\n'; else printf 'device\n'; fi
+    exit 0
+    ;;
+  kill-server)
+    record_restart kill-server
+    exit 0
+    ;;
+  start-server)
+    record_restart start-server
+    exit 0
+    ;;
+  wait-for-device)
+    [[ "$MODE" != "offline" ]]
+    exit $?
+    ;;
+  install)
+    if [[ "$MODE" == "invalid-apk" ]]; then
+      printf 'Failure [INSTALL_FAILED_INVALID_APK]\n'
+      exit 1
+    fi
+    printf 'Success\n'
+    exit 0
+    ;;
+  uninstall)
+    printf 'Failure [DELETE_FAILED_INTERNAL_ERROR]\n'
+    exit 1
+    ;;
+  exec-out)
+    if [[ "$MODE" == "missing-evidence" ]]; then
+      exit 0
+    fi
+    command_line="$*"
+    if [[ "$command_line" == *cache/recognition-first-use-camera-guide/first_use_camera_guide_runtime_report.json* ]]; then
+      # The evidence contract binds this report to the exact host APK supplied
+      # by test_contract.sh. Other fake evidence remains clearly synthetic.
+      printf '{"apk_sha256":"%s"}\n' "${FAKE_APP_APK_SHA256:-}"
+      exit 0
+    fi
+    # This fake checks Harness classification and evidence-validator routing;
+    # it does not claim to render application screenshots or validate video.
+    fixture_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)/design/pages/recognition/design"
+    if [[ "$command_line" == *cache/rr09-gold-transfer/RR09_Recognition_Flow_Recording.mp4* ]]; then
+      if [[ -n "${FAKE_RR09_VIDEO_FILE:-}" && -s "${FAKE_RR09_VIDEO_FILE}" ]]; then
+        cat "$FAKE_RR09_VIDEO_FILE"
+      fi
+      exit 0
+    fi
+    if [[ "$command_line" == *cache/rr09-gold-transfer-production/RR09_Production_Qualification_Report.json* ]]; then
+      printf '{"status":"SAFE_FALLBACK","source_asset":"synthetic_fake_adb_fixture.jpg","source_sha256":"fake-sha256","species_id":"yellow_catfish","species_confidence":0.82,"geometry_trust":"UNTRUSTED","result_geometry_status":"FAKE_FIXTURE","result_entry_mode":"TEST_CONTROLLED"}\n'
+      exit 0
+    fi
+    if [[ "$command_line" == *cache/rr09-gold-transfer-production/*RR09_Production_*.png* ]]; then
+      cat "$fixture_root/05_Result_High_Frozen.png"
+      exit 0
+    fi
+    if [[ "$command_line" == *cache/rr09-gold-transfer/* ]]; then
+      case "$command_line" in
+        *.png*) cat "$fixture_root/05_Result_High_Frozen.png" ;;
+        *RR09_Frames_Manifest.json*)
+          printf '{"frames":[{"file":"K06_850ms.png"}]}\n'
+          ;;
+        *RR09_Motion_Trace.json*) printf '[]\n' ;;
+        *RR09_API28_Test_Report.json*) printf '{"status":"PASS"}\n' ;;
+        *RR09_Performance_Report.json*) printf '{}\n' ;;
+        *RR09_Responsive_Matrix_Report.json*)
+          printf '{"status":"PASS","case_count":12}\n'
+          ;;
+        *) printf '{}\n' ;;
+      esac
+      exit 0
+    fi
+    if [[ "$command_line" == *recognition_motion_trace_v3_1.json* ]]; then
+      printf '{"samples":['
+      for index in $(seq 0 9); do
+        if (( index > 0 )); then printf ','; fi
+        phase=CAPTURED
+        (( index >= 2 )) && phase=DETECTING
+        (( index >= 4 )) && phase=OUTLINE
+        (( index >= 6 )) && phase=CLASSIFYING
+        printf '{"uptime_ms":%s,"phase":"%s","segment_offset":0.%s,"segment_speed":0.5,"state_strength":0.5,"detail_motion_time_ms":%s,"reduce_motion":false,"quality":"FULL"}' "$((1000 + index))" "$phase" "$index" "$((1000 + index))"
+      done
+      printf ']}\n'
+      exit 0
+    fi
+    if [[ "$command_line" == *recognition_production_flow_trace_v3_1.json* ]]; then
+      printf '{"contract_version":"recognition_processing_state_machine_v3_1","visual_state_sequence":["CAPTURED","DETECTING","OUTLINE","CLASSIFYING","RESULT_READY"],"pipeline_phases":["CAPTURED","DETECTING","OUTLINE","CLASSIFYING","RESULT"],"presentation_events":[{"state":"CAPTURED","at_ms":0},{"state":"DETECTING","at_ms":220},{"state":"OUTLINE","at_ms":540},{"state":"CLASSIFYING","at_ms":890},{"state":"RESULT_READY","at_ms":1140}],"result_ready":true,"source":{"width":1080,"height":1920},"quality_gate":{"classifier_eligible":true},"focus":{"level":"A"},"bbox":{"x1":0.1,"y1":0.1,"x2":0.8,"y2":0.9}}\n'
+      exit 0
+    fi
+    if [[ "$command_line" == *recognition_processing_timing_v3_1.txt* ]]; then
+      printf 'Contract: CAPTURED>=220ms DETECTING>=320ms OUTLINE>=350ms CLASSIFYING>=250ms RESULT_READY=immediate\nRuntime CAPTURED duration: 220ms\nRuntime DETECTING duration: 320ms\nRuntime OUTLINE duration: 350ms\nRuntime CLASSIFYING duration: 250ms\n'
+      exit 0
+    fi
+    if [[ "$command_line" == *recognition_visual_qa_v1_3.json* ]]; then
+      printf '{"findings":{"F01":{"status":"UNREVIEWED"},"F02":{"status":"UNREVIEWED"},"F03":{"status":"UNREVIEWED"},"F04":{"status":"UNREVIEWED"},"F05":{"status":"UNREVIEWED"},"F06":{"status":"UNREVIEWED"}}}\n'
+      exit 0
+    fi
+    if [[ "$command_line" == *recognition_accessibility_trace_v3_1.json* ]]; then
+      printf '{"degradation":{"D0":"FULL+A","D1":"BALANCED+A","D2":"LITE+A","D3":"LITE+B","D4":"LITE+C"}}\n'
+      exit 0
+    fi
+    if [[ "$command_line" == *fish_focus_bbox_mapping.json* ]]; then
+      printf '{"detector_bbox_normalized":{"x1":0.1,"y1":0.1,"x2":0.8,"y2":0.9}}\n'
+      exit 0
+    fi
+    if [[ "$command_line" == *cache/recognition-optical-fidelity/recognition_optical_fidelity_v3_1.json* ]]; then
+      python3 - <<'PY'
+import json
+frame_duration = 1000 / 60.0
+durations = [frame_duration] * 120
+def profile(name):
+    return {
+        "profile": name,
+        "phase": "CLASSIFYING",
+        "sample_count": len(durations),
+        "motion_sample_count": 120,
+        "refresh_rate_hz": 60.0,
+        "fps_estimate": 1000 / frame_duration,
+        "frame_metrics_ms": {
+            "mean": frame_duration,
+            "p95": frame_duration,
+            "p99": frame_duration,
+            "max": frame_duration,
+            "frame_budget": 1000 / 60.0,
+            "frames_over_budget": 0,
+            "frames_over_32ms": 0,
+            "dropped_frames_before_callback": 0,
+        },
+        "frame_duration_samples_ms": durations,
+        "budget_policy": "MEASURED_ONLY_NO_FROZEN_THRESHOLD",
+    }
+print(json.dumps({
+    "contract_version": "recognition_processing_state_machine_v3_1",
+    "measurement_method": "Window.FrameMetrics TOTAL_DURATION while production RecognitionProcessingScene is live (synthetic fake-adb contract fixture)",
+    "phase": "CLASSIFYING",
+    "fixture": "fake",
+    "refresh_rate_hz": 60.0,
+    "budget_policy": "MEASURED_ONLY_NO_FROZEN_THRESHOLD",
+    "profiles": [profile("FULL"), profile("LITE")],
+    "presented_phases": ["CAPTURED", "DETECTING", "OUTLINE", "CLASSIFYING"],
+    "result_ready": False,
+}))
+PY
+      exit 0
+    fi
+    if [[ "$command_line" =~ cache/recognition-optical-fidelity/([A-Za-z0-9_.-]+\.png) ]]; then
+      cat "$fixture_root/05_Result_High_Frozen.png"
+      exit 0
+    fi
+    if [[ "$command_line" =~ cache/recognition-evidence/([A-Za-z0-9_.-]+\.png) ]]; then
+      name="${BASH_REMATCH[1]}"
+      case "$name" in
+        01_image_recognizing_early.png) cat "$fixture_root/02_AI_Understanding_Frozen.png" ;; # legacy CAPTURED diagnostic only
+        02_image_recognizing_late.png) cat "$fixture_root/02_AI_Understanding_Frozen.png" ;;
+        03_fish_located.png) cat "$fixture_root/03_Fish_Highlight_Frozen.png" ;;
+        04_species_recognizing.png) cat "$fixture_root/04_Fish_Identifying_Frozen.png" ;;
+        05_result_high.png) cat "$fixture_root/05_Result_High_Frozen.png" ;;
+        06_result_medium.png) cat "$fixture_root/06_Result_Medium_Frozen.png" ;;
+        07_result_low.png) cat "$fixture_root/07_Result_Low_Frozen.png" ;;
+        08_error_no_fish.png) cat "$fixture_root/08_Error_No_Fish_Frozen.png" ;;
+        09_error_image_quality.png) cat "$fixture_root/09_Error_Image_Quality_Frozen.png" ;;
+        10_issue_technical_failure.png) cat "$fixture_root/09_Error_Image_Quality_Frozen.png" ;;
+        *) cat "$fixture_root/05_Result_High_Frozen.png" ;;
+      esac
+      exit 0
+    fi
+    printf 'fake-evidence\n'
+    exit 0
+    ;;
+  pull)
+    if [[ "$MODE" == "missing-evidence" ]]; then
+      exit 1
+    fi
+    destination="${!#}"
+    mkdir -p "$(dirname "$destination")"
+    printf 'fake-video\n' > "$destination"
+    exit 0
+    ;;
+  logcat)
+    exit 0
+    ;;
+  shell)
+    shift
+    command_line="$*"
+    if [[ "$MODE" == "offline" ]]; then
+      printf 'error: device offline\n' >&2
+      exit 1
+    fi
+    if [[ "$command_line" == *'getprop sys.boot_completed'* ]]; then
+      if [[ "$MODE" == "boot-timeout" ]]; then printf '0\n'; else printf '1\n'; fi
+      exit 0
+    fi
+    if [[ "$command_line" == *'pm list packages'* || "$command_line" == *'cmd package list packages'* ]]; then
+      printf 'package:com.example.fake\n'
+      exit 0
+    fi
+    if [[ "$command_line" == *'df -k /data'* ]]; then
+      if [[ "$MODE" == "low-disk" ]]; then
+        printf 'Filesystem 1K-blocks Used Available Use%% Mounted on\n/dev/fake 1000000 999900 100 100%% /data\n'
+      else
+        printf 'Filesystem 1K-blocks Used Available Use%% Mounted on\n/dev/fake 1000000 100000 900000 10%% /data\n'
+      fi
+      exit 0
+    fi
+    if [[ "$command_line" == *'df -h /data'* ]]; then
+      printf 'Filesystem Size Used Avail Use%% Mounted on\n/dev/fake 1G 100M 900M 10%% /data\n'
+      exit 0
+    fi
+    if [[ "$command_line" == *'wc -c'*'recognition_processing_runtime_host.mp4'* ]]; then
+      if [[ "$MODE" == "missing-evidence" ]]; then
+        printf '0\n'
+      else
+        printf '4096\n'
+      fi
+      exit 0
+    fi
+    if [[ "$command_line" == *'pm path com.yujian.ai.uiv2.test'* || "$command_line" == *'pm path com.yujian.ai.uiv2'* ]]; then
+      printf 'package:/data/app/fake/base.apk\n'
+      exit 0
+    fi
+    if [[ "$command_line" == *'am instrument'* ]]; then
+      if [[ "$MODE" == "camera-closed" ]]; then
+        printf 'INSTRUMENTATION_STATUS: numtests=1\nINSTRUMENTATION_STATUS: stack=androidx.camera.core.ImageCaptureException: Camera is closed.\nFAILURES!!!\nINSTRUMENTATION_CODE: -1\n'
+        exit 1
+      fi
+      if [[ "$MODE" == "test-fail" ]]; then
+        printf 'INSTRUMENTATION_STATUS: numtests=1\nFAILURES!!!\nINSTRUMENTATION_CODE: -1\n'
+        exit 1
+      fi
+      if [[ "$MODE" == "process-crash" ]]; then
+        printf 'INSTRUMENTATION_RESULT: shortMsg=Process crashed.\nINSTRUMENTATION_CODE: 0\n'
+        exit 0
+      fi
+      printf 'INSTRUMENTATION_RESULT: stream=\nOK (1 test)\nINSTRUMENTATION_CODE: 0\n'
+      exit 0
+    fi
+    if [[ "$command_line" == *'getprop'* ]]; then
+      printf '[ro.build.version.sdk]: [28]\n'
+      exit 0
+    fi
+    if [[ "$command_line" == *'pidof'* || "$command_line" == *'monkey'* || "$command_line" == *'screenrecord'* || "$command_line" == *'screencap'* || "$command_line" == *'pm clear'* || "$command_line" == *'settings put'* || "$command_line" == *'wm size'* ]]; then
+      printf 'fake-shell-command\n'
+      exit 0
+    fi
+    exit 0
+    ;;
+  *)
+    exit 0
+    ;;
+esac

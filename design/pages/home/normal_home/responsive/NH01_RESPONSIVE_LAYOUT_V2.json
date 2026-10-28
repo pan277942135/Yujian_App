@@ -1,0 +1,1095 @@
+{
+  "schema_version": "1.0",
+  "contract_id": "NH01_RESPONSIVE_LAYOUT_V2",
+  "contract_version": "2.0",
+  "status": "SPEC_FROZEN",
+  "page_id": "normal_home_v1",
+  "scope": {
+    "route": "home",
+    "implementation_route": "GeminiNormalHomeContent.kt + GeminiHomeAdaptiveLayoutPolicy.kt",
+    "included_states": [
+      "NH01 multi-record home with a finite real-record pager",
+      "NH02 single-record home with one centered Hero and no fake neighboring cards"
+    ],
+    "excluded_scopes": [
+      "Empty Home",
+      "legacy NormalHomeContent route",
+      "other product pages",
+      "motion/avatar/background/data contracts except by explicit reference"
+    ]
+  },
+  "authority": {
+    "global_standard": "design/system_v3/07_Responsive_System/Responsive_Layout_Standard_V1.md",
+    "schema": "design/system_v3/07_Responsive_System/Responsive_Layout_Contract_Schema_V1.json",
+    "viewport_profiles": "design/system_v3/07_Responsive_System/Viewport_Profiles_V1.json",
+    "visual_master": {
+      "path": "design/system/core_visual_v1/reference/normal_home_v1.png",
+      "sha256": "6ab9d3348b4a9a7e77ddca3a06235b4991798a309bd3512cc6fb9ea7aeb1d377"
+    },
+    "static_archive_manifest": "design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_MULTI_SCREEN_STATIC_HIFI_V1_MANIFEST.json",
+    "static_archive_contract": "design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_MULTI_SCREEN_RESPONSIVE_CONTRACT_V1.json",
+    "nonresponsive_authority": "design/pages/home/normal_home/engineering/NH01_GEMINI_ADAPTIVE_V2_UNIFIED_AUTHORITY_V1.md",
+    "legacy_layout_contract": "design/pages/home/normal_home/engineering/Layout_Responsive_Contract_V1.md",
+    "implementation_sources": [
+      "app/src/main/java/com/yujian/ai/ui/home/GeminiNormalHomeContent.kt",
+      "app/src/main/java/com/yujian/ai/ui/home/GeminiHomeAdaptiveLayoutPolicy.kt"
+    ]
+  },
+  "responsive_model": {
+    "model": "CONSTRAINT_DRIVEN_SINGLE_POLICY",
+    "active_variant": "ADAPTIVE_V2",
+    "comparison_only_variants": [
+      "V3_BASELINE"
+    ],
+    "non_authoritative_variants": [
+      "ADAPTIVE_V1"
+    ],
+    "inputs": [
+      "safeWidthDp",
+      "safeHeightDp",
+      "systemFontScale",
+      "actual parent/track constraints",
+      "content and FishRecord state",
+      "measured text layout/line ranges",
+      "system inset values and inset-consumption owner",
+      "registered asset ratios and crop-safety signals"
+    ],
+    "viewport_keyed_layout_overrides": false,
+    "breakpoint_policy": "Use one deterministic policy over actual safe dimensions and content constraints. Named piecewise thresholds are permitted only where listed below and in the global standard; a threshold may adjust a declared parameter or activate the documented local scroll fallback, never select a complete layout copied from a screenshot.",
+    "explicit_thresholds": [
+      {
+        "id": "compact-footer",
+        "condition": "safeHeightDp is measured around the 460dp footer transition control point",
+        "purpose": "Interpolate compact to standard CTA-camera gap and Footer padding continuously; the 459/460 probe must not trigger a layout-mode switch."
+      },
+      {
+        "id": "title-card-compact",
+        "condition": "safeHeightDp is measured on the corresponding title_to_card interpolation interval",
+        "purpose": "Use the declared continuous title-to-card spacing curve; this probe is not a viewport-keyed layout branch."
+      },
+      {
+        "id": "title-card-medium",
+        "condition": "safeHeightDp is measured on the corresponding title_to_card interpolation interval",
+        "purpose": "Use the declared continuous title-to-card spacing curve; this probe is not a viewport-keyed layout branch."
+      },
+      {
+        "id": "title-card-long",
+        "condition": "safeHeightDp is measured on the corresponding title_to_card interpolation interval",
+        "purpose": "Use the declared continuous title-to-card spacing curve; this probe is not a viewport-keyed layout branch."
+      },
+      {
+        "id": "title-card-extra-long",
+        "condition": "safeHeightDp is measured on the corresponding title_to_card interpolation interval",
+        "purpose": "Use the declared continuous title-to-card spacing curve; this probe is not a viewport-keyed layout branch."
+      },
+      {
+        "id": "font-wrap",
+        "condition": "systemFontScale >= 1.3 OR targetCardWidthDp < 240",
+        "purpose": "Permit the local two-line wrap behavior defined for constrained card content."
+      },
+      {
+        "id": "wide-content-cap",
+        "condition": "safeWidthDp > 560",
+        "purpose": "Keep page content centered and capped at 560dp rather than stretching the entire composition."
+      }
+    ]
+  },
+  "visual_anchors": [
+    {
+      "id": "NH01-ORIGINAL-REFERENCE",
+      "role": "PRIMARY_FROZEN_COMPOSITION",
+      "path": "design/system/core_visual_v1/reference/normal_home_v1.png",
+      "sha256": "6ab9d3348b4a9a7e77ddca3a06235b4991798a309bd3512cc6fb9ea7aeb1d377",
+      "canvas_px": {
+        "width": 1080,
+        "height": 1920
+      },
+      "logical_viewport_dp": {
+        "width": 360,
+        "height": 640,
+        "density_relation": "3x"
+      },
+      "source_asset_id": null,
+      "status": "FROZEN",
+      "rule": "Primary whole-page composition and visible brand/content hierarchy. Raster pixels do not define all responsive runtime coordinates."
+    },
+    {
+      "id": "NH01-M01-320x480dp-STATIC-HIFI-V1",
+      "role": "RESPONSIVE_VISUAL_ANCHOR",
+      "path": "design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_M01_320x480dp_STATIC_HIFI_V1.png",
+      "sha256": "a3808f2fb93d48494eafbb6ba061dbd9c1dd019348488355780c8f4504636692",
+      "canvas_px": {
+        "width": 1024,
+        "height": 1536
+      },
+      "logical_viewport_dp": {
+        "width": 320,
+        "height": 480
+      },
+      "source_asset_id": "NH01-M01-320x480dp-STATIC-HIFI-V1",
+      "status": "FROZEN",
+      "rule": "Short-screen visual anchor; use to check invariant hierarchy and allowed compact spacing, not as an absolute-coordinate layout."
+    },
+    {
+      "id": "NH01-M02-360x640dp-STATIC-HIFI-V1",
+      "role": "RESPONSIVE_VISUAL_ANCHOR",
+      "path": "design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_M02_360x640dp_STATIC_HIFI_V1.png",
+      "sha256": "8a6721552cec97113c2a77200a07bb76b954c1a16f4e0f10d8410b9e873a90c0",
+      "canvas_px": {
+        "width": 941,
+        "height": 1672
+      },
+      "logical_viewport_dp": {
+        "width": 360,
+        "height": 640
+      },
+      "source_asset_id": "NH01-M02-360x640dp-STATIC-HIFI-V1",
+      "status": "FROZEN",
+      "rule": "Additional 360x640 visual reference; not byte-identical to the original 1080x1920 source."
+    },
+    {
+      "id": "NH01-M03-390x844dp-STATIC-HIFI-V1",
+      "role": "RESPONSIVE_VISUAL_ANCHOR",
+      "path": "design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_M03_390x844dp_STATIC_HIFI_V1.png",
+      "sha256": "6a5e2e9fd18d2b06f9452b6a6c95802e41cfc0450b7ec77cf0d1500c6b3932ff",
+      "canvas_px": {
+        "width": 853,
+        "height": 1844
+      },
+      "logical_viewport_dp": {
+        "width": 390,
+        "height": 844
+      },
+      "source_asset_id": "NH01-M03-390x844dp-STATIC-HIFI-V1",
+      "status": "FROZEN",
+      "rule": "Long-phone visual anchor; verify typography growth, Hero proportions and vertical balance."
+    },
+    {
+      "id": "NH01-M04-430x932dp-STATIC-HIFI-V1",
+      "role": "RESPONSIVE_VISUAL_ANCHOR",
+      "path": "design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_M04_430x932dp_STATIC_HIFI_V1.png",
+      "sha256": "07846d3089b7c2a0b0e6c858dbd3f97890121b225092dde7d7622f0a461b9893",
+      "canvas_px": {
+        "width": 853,
+        "height": 1844
+      },
+      "logical_viewport_dp": {
+        "width": 430,
+        "height": 932
+      },
+      "source_asset_id": "NH01-M04-430x932dp-STATIC-HIFI-V1",
+      "status": "FROZEN",
+      "rule": "Large long-phone visual anchor; no inverse shrink of key fonts, Hero or camera."
+    },
+    {
+      "id": "NH01-M05-480DP-WIDTH-STATIC-HIFI-V1",
+      "role": "WIDTH_BOUNDARY_STATIC_ANCHOR",
+      "path": "design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_M05_480dp_WIDTH_STATIC_HIFI_V1.png",
+      "sha256": "ee2ed666107bd7f4263cf140438a5a1cbb171af0199e57646372e2e1d8cc8de2",
+      "canvas_px": {
+        "width": 1024,
+        "height": 1536
+      },
+      "logical_viewport_dp": {
+        "width": 480,
+        "height": null
+      },
+      "source_asset_id": "NH01-M05-480dp-WIDTH-STATIC-HIFI-V1",
+      "status": "FROZEN",
+      "rule": "Width-only static anchor. Its PNG aspect ratio does not assign a native window height or create a native acceptance profile."
+    }
+  ],
+  "preview_profiles": [
+    {
+      "profile_id": "PHONE-COMPACT-320x480",
+      "profile_kind": "FIXED_LOGICAL_DP",
+      "width_dp": 320,
+      "height_dp": 480,
+      "preview_enabled": true,
+      "native_matrix": true,
+      "anchor_ids": [
+        "NH01-M01-320x480dp-STATIC-HIFI-V1"
+      ],
+      "purpose": "Short-screen responsive generation and anchor review."
+    },
+    {
+      "profile_id": "PHONE-REFERENCE-360x640",
+      "profile_kind": "FIXED_LOGICAL_DP",
+      "width_dp": 360,
+      "height_dp": 640,
+      "preview_enabled": true,
+      "native_matrix": true,
+      "anchor_ids": [
+        "NH01-ORIGINAL-REFERENCE",
+        "NH01-M02-360x640dp-STATIC-HIFI-V1"
+      ],
+      "purpose": "Reference logical viewport; original source canvas remains 1080x1920 pixels."
+    },
+    {
+      "profile_id": "PHONE-LONG-390x844",
+      "profile_kind": "FIXED_LOGICAL_DP",
+      "width_dp": 390,
+      "height_dp": 844,
+      "preview_enabled": true,
+      "native_matrix": true,
+      "anchor_ids": [
+        "NH01-M03-390x844dp-STATIC-HIFI-V1"
+      ],
+      "purpose": "Long-phone responsive generation and anchor review."
+    },
+    {
+      "profile_id": "PHONE-LARGE-LONG-430x932",
+      "profile_kind": "FIXED_LOGICAL_DP",
+      "width_dp": 430,
+      "height_dp": 932,
+      "preview_enabled": true,
+      "native_matrix": true,
+      "anchor_ids": [
+        "NH01-M04-430x932dp-STATIC-HIFI-V1"
+      ],
+      "purpose": "Large long-phone responsive generation and anchor review."
+    },
+    {
+      "profile_id": "WIDE-PREVIEW-600x960",
+      "profile_kind": "FIXED_LOGICAL_DP",
+      "width_dp": 600,
+      "height_dp": 960,
+      "preview_enabled": true,
+      "native_matrix": false,
+      "anchor_ids": [],
+      "purpose": "Design Manager wide preview only; content remains capped and centered. Not part of the existing native matrix."
+    },
+    {
+      "profile_id": "WIDTH-BOUNDARY-480DP",
+      "profile_kind": "WIDTH_BOUNDARY_ONLY",
+      "width_dp": 480,
+      "height_dp": null,
+      "preview_enabled": false,
+      "native_matrix": false,
+      "anchor_ids": [
+        "NH01-M05-480DP-WIDTH-STATIC-HIFI-V1"
+      ],
+      "purpose": "Frozen static width-boundary reference only; do not infer or invent a height."
+    }
+  ],
+  "layout_regions": [
+    {
+      "id": "background",
+      "role": "Full-window environment",
+      "rules": [
+        "Fills the actual app window edge-to-edge.",
+        "Use the registered Morning Lake master and the current Gemini TopCenter/Crop treatment.",
+        "Do not apply safe insets to the background and do not add a new tint, blur, or screenshot-derived crop."
+      ]
+    },
+    {
+      "id": "safe-content",
+      "role": "Interactive content canvas",
+      "rules": [
+        "Use the actual safe drawing width and height after insets are consumed once.",
+        "Center the content canvas horizontally and cap its width at 560dp.",
+        "Do not infer logical dp from source-raster pixels or browser CSS pixels."
+      ]
+    },
+    {
+      "id": "top",
+      "role": "Brand, avatar, statistics and Recent Catch header",
+      "rules": [
+        "Preserve brand title, avatar, three statistics, Recent Catch heading and All entry hierarchy.",
+        "Keep the brand/avatar row, statistics row and section header within the same Top hierarchy.",
+        "Use the declared width-derived artwork sizes and the single spacing function."
+      ]
+    },
+    {
+      "id": "middle",
+      "role": "Selected Hero and finite catch pager",
+      "rules": [
+        "Consume the remaining flexible space between Top and Footer.",
+        "Keep the selected Hero centered and preserve its aspect ratio.",
+        "Use local Middle scrolling only when the required readable content cannot fit; vertical scroll must not be hijacked by the horizontal pager."
+      ]
+    },
+    {
+      "id": "footer",
+      "role": "Record-next-catch CTA and camera",
+      "rules": [
+        "Keep CTA and camera in one action group inside safe bounds.",
+        "Footer remains outside Middle scrolling.",
+        "Record camera visible-artwork bounds and touch-target bounds separately."
+      ]
+    }
+  ],
+  "logical_allocation": {
+    "safe_height_formula": "H_safe = viewport_height_dp - safe_insets_top_dp - safe_insets_bottom_dp; consume each safe inset exactly once before computing H_safe.",
+    "bands": [
+      {
+        "id": "A",
+        "logical_content": [
+          "brand",
+          "statistics"
+        ],
+        "physical_region": "top"
+      },
+      {
+        "id": "B",
+        "logical_content": [
+          "recent-catch-heading",
+          "selected-hero"
+        ],
+        "physical_region": "top+middle"
+      },
+      {
+        "id": "C",
+        "logical_content": [
+          "footer"
+        ],
+        "physical_region": "footer"
+      }
+    ],
+    "surplus_formula": "S = max(0, H_safe - (hA + hB + hC + gAB_base + gBC_base))",
+    "allocation_when_positive_surplus": {
+      "a_to_b": "gAB_base + S/2",
+      "b_to_c": "gBC_base + S/2"
+    },
+    "allocation_when_zero_surplus": {
+      "a_to_b": "gAB_base",
+      "b_to_c": "gBC_base"
+    },
+    "base_gap_sources": {
+      "gAB_base": "stats_to_title",
+      "gBC_base": "card_to_footer"
+    },
+    "invariants": [
+      "Logical bands do not create new physical Compose containers.",
+      "Recent Catch heading remains physically in Top while logically in B.",
+      "title_to_card_runtime remains the internal Title-to-Hero gap and is not modified by surplus allocation.",
+      "Safe insets are consumed exactly once before H_safe.",
+      "All positive surplus is assigned to the two inter-band gaps as equal S/2 additions; no cap or outer-breathing remainder is permitted."
+    ]
+  },
+  "components": [
+    {
+      "id": "Brand-Title",
+      "role": "Approved brand title artwork",
+      "rules": [
+        "Use the registered frozen brand artwork; never replace it with typed text or a generated approximation."
+      ],
+      "constraints": [
+        "width = clamp(safeWidthDp * 155 / 1080, 46dp, 70dp)",
+        "height = width * 80 / 155",
+        "Artwork does not receive Android system font scaling."
+      ]
+    },
+    {
+      "id": "User-Avatar-Btn",
+      "role": "Profile/login entry",
+      "rules": [
+        "Use NH01_Avatar_Visual_Contract_V1_1_FROZEN.md for current Gemini avatar visuals and semantics.",
+        "Guest and signed-in fallback may share artwork but must retain distinct accessible labels, account data and click destinations."
+      ],
+      "constraints": [
+        "visualSize = clamp(safeWidthDp * 0.10, 36dp, 40dp)",
+        "touch target >= 48x48dp",
+        "Sizing derives from safe width, never window height."
+      ]
+    },
+    {
+      "id": "Stats-Bar",
+      "role": "Three home statistics",
+      "rules": [
+        "Keep the three statistics and their semantic order.",
+        "The statistics divider height is 26dp.",
+        "Do not use a different row order to fit a viewport."
+      ],
+      "constraints": [
+        "Use declared responsive text roles and single system fontScale application."
+      ]
+    },
+    {
+      "id": "Recent-Catch-Header",
+      "role": "Recent Catch heading and All entry",
+      "rules": [
+        "Keep heading and All entry aligned within the page content width.",
+        "Measure the title-to-card gap from the actual rendered text bottom to the selected Hero outer top."
+      ],
+      "constraints": [
+        "No row-container bottom or pager-center proxy for title gap."
+      ]
+    },
+    {
+      "id": "Card-Main-Active",
+      "role": "Selected FishRecord Hero",
+      "rules": [
+        "Preserve true FishRecord content, species/measurements/time/location priority and approved EVIDENCE_FIT photo handling.",
+        "No fabricated zero/unknown values and no global shrink to hide overflow."
+      ],
+      "constraints": [
+        "Use preview_engine.parameters.hero as the sole numeric source for target width, aspect ratio, height cap, readable-height bounds, and the exact M01 exception.",
+        "When height limits the Hero, derive width from the same 247:293 ratio; never distort the card."
+      ]
+    },
+    {
+      "id": "Card-Peek-Left-Right",
+      "role": "Real adjacent FishRecord previews",
+      "rules": [
+        "Show only real neighboring FishRecords; never clone a record or create phantom side cards.",
+        "Use a finite stable-ID pager; one record means one centered Hero and no pager hint.",
+        "No overlap beyond 1dp."
+      ],
+      "constraints": [
+        "Use preview_engine.parameters.neighbor as the sole numeric source for width, height, offset, peek gap, visible width, indicator, and overlap bounds."
+      ]
+    },
+    {
+      "id": "Footer-CTA-Section",
+      "role": "Record-next-catch action",
+      "rules": [
+        "The record-next-catch copy is a static text label under the current interaction contract, not an independent action.",
+        "Measure the rendered CTA line height once; do not add a duplicate 48dp CTA touch target.",
+        "Keep the CTA label and camera control in one action group inside the bottom safe content area."
+      ],
+      "constraints": [
+        "CTA has no independent touch target; its height is the measured rendered text line height.",
+        "The camera artwork is centered inside its separately measured touch target.",
+        "Use preview_engine.parameters.capture_action_group as the sole numeric source for footer internals."
+      ]
+    },
+    {
+      "id": "CTA-Camera-Button",
+      "role": "Primary camera control",
+      "rules": [
+        "Do not confuse camera artwork, outer touch box and visible rim bounds.",
+        "Keep the full touch target within safe bounds and clear of CTA and system navigation."
+      ],
+      "constraints": [
+        "Use preview_engine.parameters.camera and preview_engine.parameters.capture_action_group for artwork size, touch target, and CTA-to-camera spacing.",
+        "Keep the complete touch target inside safe bounds."
+      ]
+    }
+  ],
+  "typography": {
+    "viewport_scale_formula": "min(min(safeWidthDp, 560dp) / 360dp, safeHeightDp / 568dp).coerceIn(1.0, 1.2)",
+    "base_size_formula": "clamp(safeHeightDp * role_ratio, role_min_sp, role_max_sp) * viewportScale; emit as Compose sp",
+    "system_font_scale_rule": "Compose applies system fontScale once through sp rendering. fontScale may inform wrapping, gap pressure and measured-height budgets, but must not be multiplied into TextStyle a second time.",
+    "roles": [
+      {
+        "id": "brand-title",
+        "base_ratio": null,
+        "min_sp": null,
+        "max_sp": null,
+        "line_height_ratio": null,
+        "size_formula": "Approved image artwork; width clamp(safeWidthDp*155/1080,46,70)dp; height ratio 80:155.",
+        "system_font_scale": "No font scaling of image artwork."
+      },
+      {
+        "id": "statistics-number",
+        "base_ratio": 0.03,
+        "min_sp": 17,
+        "max_sp": 21,
+        "line_height_ratio": 1.14,
+        "size_formula": "clamp(safeHeightDp*0.03,17sp,21sp)*viewportScale",
+        "system_font_scale": "Applied once by Compose sp."
+      },
+      {
+        "id": "statistics-label",
+        "base_ratio": 0.019,
+        "min_sp": 11,
+        "max_sp": 13,
+        "line_height_ratio": 1.2,
+        "size_formula": "clamp(safeHeightDp*0.019,11sp,13sp)*viewportScale",
+        "system_font_scale": "Applied once by Compose sp."
+      },
+      {
+        "id": "recent-catch-heading",
+        "base_ratio": 0.027,
+        "min_sp": 16,
+        "max_sp": 19,
+        "line_height_ratio": 1.2,
+        "size_formula": "clamp(safeHeightDp*0.027,16sp,19sp)*viewportScale",
+        "system_font_scale": "Applied once by Compose sp."
+      },
+      {
+        "id": "all-entry",
+        "base_ratio": 0.021,
+        "min_sp": 13,
+        "max_sp": 15,
+        "line_height_ratio": 1.2,
+        "size_formula": "clamp(safeHeightDp*0.021,13sp,15sp)*viewportScale",
+        "system_font_scale": "Applied once by Compose sp."
+      },
+      {
+        "id": "species-name",
+        "base_ratio": 0.036,
+        "min_sp": 20,
+        "max_sp": 26,
+        "line_height_ratio": 1.2,
+        "size_formula": "clamp(safeHeightDp*0.036,20sp,26sp)*viewportScale",
+        "system_font_scale": "Applied once by Compose sp."
+      },
+      {
+        "id": "measurements",
+        "base_ratio": 0.023,
+        "min_sp": 13,
+        "max_sp": 16,
+        "line_height_ratio": 1.2,
+        "size_formula": "clamp(safeHeightDp*0.023,13sp,16sp)*viewportScale",
+        "system_font_scale": "Applied once by Compose sp."
+      },
+      {
+        "id": "time-location",
+        "base_ratio": 0.019,
+        "min_sp": 11,
+        "max_sp": 13,
+        "line_height_ratio": 1.3,
+        "size_formula": "clamp(safeHeightDp*0.019,11sp,13sp)*viewportScale",
+        "system_font_scale": "Applied once by Compose sp."
+      },
+      {
+        "id": "record-next-catch-cta",
+        "base_ratio": 0.021,
+        "min_sp": 12,
+        "max_sp": 14,
+        "line_height_ratio": 1.25,
+        "size_formula": "clamp(safeHeightDp*0.021,12sp,14sp)*viewportScale",
+        "system_font_scale": "Applied once by Compose sp."
+      }
+    ],
+    "wrapping_rules": [
+      "Species may wrap to at most two lines when target card width < 240dp or systemFontScale >= 1.3; otherwise use the existing single-line policy unless content measurement requires the declared local wrap.",
+      "Measurements and auxiliary metadata may use up to two lines in the constrained/high-font cases. A long metadata string may require two lines even when its width/font threshold alone does not trigger wrapping.",
+      "Preserve species, positive measurement values with units, and time before optional location. Shorten/ellipsize optional location first.",
+      "Never leave a lone final CJK glyph or dangling separator. hasVisualOverflow=false alone is not proof that the final line is visually acceptable."
+    ],
+    "global_shrink_forbidden": true
+  },
+  "spacing": {
+    "formulas": {
+      "font_pressure": "clamp((systemFontScale - 1.0) / 0.5, 0, 1)",
+      "short_height_pressure": "clamp((620 - safeHeightDp) / 220, 0, 1)",
+      "brand_to_stats": "Read preview_engine.parameters.spacing.brand_to_stats; the nested values are the sole executable source.",
+      "stats_to_title": "Read preview_engine.parameters.spacing.stats_to_title; the nested values are the sole executable source.",
+      "title_to_card_runtime": "Read preview_engine.parameters.spacing.title_to_card_runtime; the nested values are the sole executable source.",
+      "card_to_footer": "Read preview_engine.parameters.spacing.card_to_footer; the nested values are the sole executable source.",
+      "cta_to_camera": "Read preview_engine.parameters.spacing.cta_to_camera; the nested values are the sole executable source.",
+      "footer_top_padding": "Read preview_engine.parameters.spacing.footer_top_padding; the nested values are the sole executable source.",
+      "footer_bottom_padding": "Read preview_engine.parameters.spacing.footer_bottom_padding; the nested values are the sole executable source."
+    },
+    "title_to_card_anchor_targets": [
+      {
+        "profile_id": "PHONE-COMPACT-320x480",
+        "target_dp": 8,
+        "tolerance_dp": 2,
+        "font_scale": 1,
+        "measurement": "Rendered Recent Catch text-layout bottom to selected Hero outer top, using native boundsInWindow."
+      },
+      {
+        "profile_id": "PHONE-REFERENCE-360x640",
+        "target_dp": 12,
+        "tolerance_dp": 2,
+        "font_scale": 1,
+        "measurement": "Rendered Recent Catch text-layout bottom to selected Hero outer top, using native boundsInWindow."
+      },
+      {
+        "profile_id": "PHONE-LONG-390x844",
+        "target_dp": 18,
+        "tolerance_dp": 2,
+        "font_scale": 1,
+        "measurement": "Rendered Recent Catch text-layout bottom to selected Hero outer top, using native boundsInWindow."
+      },
+      {
+        "profile_id": "PHONE-LARGE-LONG-430x932",
+        "target_dp": 20,
+        "tolerance_dp": 2,
+        "font_scale": 1,
+        "measurement": "Rendered Recent Catch text-layout bottom to selected Hero outer top, using native boundsInWindow."
+      }
+    ],
+    "static_only_targets": [
+      {
+        "profile_id": "WIDTH-BOUNDARY-480DP",
+        "target_dp": 24,
+        "tolerance_dp": 2,
+        "native_runtime_authority": false,
+        "reason": "The M05 anchor itself has no fixed height and remains static-only. A separately named native width-boundary test may use an explicit test height; it tests that declared pair only and cannot infer an anchor height or claim native acceptance for M05."
+      }
+    ],
+    "required_interval_measurements": [
+      {
+        "id": "Header-Stats",
+        "measurement": "Visible brand/avatar header content bottom to statistics row top.",
+        "checks": [
+          "record safe width/height and system fontScale",
+          "verify header and statistics do not overlap"
+        ]
+      },
+      {
+        "id": "Stats-Title",
+        "measurement": "Statistics row bottom to Recent Catch text-layout top.",
+        "checks": [
+          "record actual dp gap",
+          "verify heading and All entry remain legible"
+        ]
+      },
+      {
+        "id": "Title-Card",
+        "measurement": "Recent Catch text-layout bottom to selected Hero outer top.",
+        "checks": [
+          "use boundsInWindow",
+          "do not substitute row bottom or pager center"
+        ]
+      },
+      {
+        "id": "Card-CTA",
+        "measurement": "Selected Hero outer bottom to CTA visible control top.",
+        "checks": [
+          "record actual dp gap",
+          "no Hero/Footer collision",
+          "Footer remains outside Middle scroll"
+        ]
+      },
+      {
+        "id": "CTA-Camera",
+        "measurement": "CTA visible control bottom to camera artwork top, plus both touch rectangles.",
+        "checks": [
+          "positive visual separation",
+          "touch rectangles do not collide",
+          "camera target >=72dp"
+        ]
+      },
+      {
+        "id": "Camera-BottomSafe",
+        "measurement": "Camera visible artwork bottom to usable content bottom after bottom inset.",
+        "checks": [
+          "report actual inset once",
+          "touch rectangle stays in safe bounds",
+          "no system navigation overlap"
+        ]
+      }
+    ]
+  },
+  "overflow_policy": {
+    "priority_order": [
+      "safe areas and required touch targets",
+      "required content and readable text",
+      "page hierarchy and primary component proportions",
+      "nonessential spacing",
+      "decorative whitespace"
+    ],
+    "resolution_steps": [
+      "Compress nonessential spacing first.",
+      "Apply only the declared local wrapping/reflow rules; preserve required content and system font scale.",
+      "Outside exact M01 at fontScale 1.0, if the readable Hero/group cannot fit, enable the declared local Middle scroll while keeping Footer outside it; for exact M01, do not scroll and report FAIL_CONSTRAINT if the ratio, width, readable-copy, and safe-area requirements cannot fit together.",
+      "If required controls/content still cannot fit, report UNSUPPORTED_WINDOW or FAIL_CONSTRAINT with measured bounds; do not claim a pass."
+    ],
+    "footer_fixed_outside_middle": true,
+    "no_global_shrink": true,
+    "failure_states": [
+      "SAFE_OVERFLOW",
+      "UNSUPPORTED_WINDOW",
+      "FAIL_CONSTRAINT"
+    ]
+  },
+  "conflict_resolution": [
+    {
+      "id": "C01",
+      "topic": "Frozen master raster versus responsive runtime geometry",
+      "decision": "The original PNG owns the approved visible composition and hierarchy at its reference; responsive geometry is resolved from this contract and actual constraints, not by scaling absolute coordinates to every viewport.",
+      "status": "RESOLVED_BY_FROZEN_CONTRACT"
+    },
+    {
+      "id": "C02",
+      "topic": "Static archive V1 versus active Gemini route",
+      "decision": "V1 retains frozen image identity, provenance, labels and static archive presentation. V2 is the frozen single responsive behavior contract for the existing Design Manager preview and the current Gemini route.",
+      "status": "RESOLVED_BY_FROZEN_CONTRACT"
+    },
+    {
+      "id": "C03",
+      "topic": "Legacy fixed-coordinate Layout Responsive Contract versus Gemini V3",
+      "decision": "The legacy Layout_Responsive_Contract_V1 applies only to the legacy NormalHomeContent route and pixel/touch anchor evidence. Gemini V3 uses the Top/Middle/Footer content-first model defined here.",
+      "status": "RESOLVED_BY_FROZEN_CONTRACT"
+    },
+    {
+      "id": "C04",
+      "topic": "M05 480dp width-only static target versus Android runtime",
+      "decision": "The 480dp M05 target remains static-only and does not imply a native window height. A supplemental Android width-boundary test may use an explicitly recorded height; that tests only the declared width/height pair and does not establish an M05 native profile.",
+      "status": "RESOLVED_BY_FROZEN_CONTRACT"
+    },
+    {
+      "id": "C05",
+      "topic": "ADAPTIVE_V1, ADAPTIVE_V2 and V3 Baseline",
+      "decision": "ADAPTIVE_V2 is the production target; V3_BASELINE remains a comparison arm; ADAPTIVE_V1 is non-authoritative for this route.",
+      "status": "RESOLVED_BY_FROZEN_CONTRACT"
+    },
+    {
+      "id": "C06",
+      "topic": "Responsive numeric rules duplicated between Markdown and machine contract",
+      "decision": "This JSON is the only machine authority for responsive numeric parameters. The Markdown guide explains it; the static V1 documents remain immutable provenance and archive records.",
+      "status": "RESOLVED_BY_FROZEN_CONTRACT"
+    },
+    {
+      "id": "C07",
+      "topic": "Design freeze versus runtime acceptance",
+      "decision": "Specification status and Android runtime status are independent. This contract cannot change NOT_VERIFIED to PASS; only exact-SHA native evidence can.",
+      "status": "RESOLVED_BY_FROZEN_CONTRACT"
+    },
+    {
+      "id": "C08",
+      "topic": "Viewport screenshot dimensions versus logical dp",
+      "decision": "Source PNG canvas pixels, browser preview pixels and logical dp are distinct coordinate spaces. The 1080x1920px master maps to 360x640dp at 3x; it is not a 1080x1920dp runtime profile.",
+      "status": "RESOLVED_BY_FROZEN_CONTRACT"
+    }
+  ],
+  "implementation_conformance_followups": [
+    {
+      "id": "IMPL-01",
+      "issue": "The current helper selects the 124dp minimum floor using a broad safeHeight/fontScale predicate; the normative exception is limited to the exact 320x480dp profile at fontScale=1.0 with width/readability/no-scroll conditions.",
+      "required_action": "During implementation conformance, align the helper with the exact exception and prove it with boundary tests; do not broaden the contract to match the helper.",
+      "status": "PENDING_IMPLEMENTATION"
+    },
+    {
+      "id": "IMPL-02",
+      "issue": "Long metadata can receive two rendered lines from the metadata-length rule while the current minimum-height estimate is primarily driven by the font/width wrap flag.",
+      "required_action": "Include the actual permitted metadata line budget in Hero readability sizing and verify real TextLayoutResult line ranges.",
+      "status": "PENDING_IMPLEMENTATION"
+    },
+    {
+      "id": "IMPL-03",
+      "issue": "The native acceptance matrix must prove monotonicity for all key text roles, Hero width and camera artwork at the same system fontScale; static preview alone is insufficient.",
+      "required_action": "Retain and extend exact-SHA native assertions and record computed role sizes and bounds for each matrix case.",
+      "status": "PENDING_IMPLEMENTATION"
+    }
+  ],
+  "native_acceptance": {
+    "status": "NOT_VERIFIED",
+    "matrix_path": "design/pages/home/normal_home/engineering/NH01_GEMINI_ADAPTIVE_V2_ACCEPTANCE_MATRIX_V1.json",
+    "required_case_count": 24,
+    "viewports": [
+      "320x480dp",
+      "360x640dp",
+      "390x844dp",
+      "430x932dp"
+    ],
+    "font_scales": [
+      1,
+      1.3,
+      1.5
+    ],
+    "variants": [
+      {
+        "id": "ADAPTIVE_V2",
+        "role": "Production target; must pass the current native matrix."
+      },
+      {
+        "id": "V3_BASELINE",
+        "role": "Comparison-only control; must not replace the production target."
+      }
+    ],
+    "m05_excluded_from_native_matrix": true,
+    "pass_requires": [
+      "exact source SHA and APK provenance",
+      "all 24 current API 28 matrix executions and required scoped cases",
+      "screenshots, boundsInWindow, TextLayoutResult/line ranges, touch rectangles and runtime logs",
+      "all required assertions executed; missing evidence remains NOT_RUN",
+      "independent runtime/visual review; design freeze is not runtime PASS"
+    ]
+  },
+  "acceptance": {
+    "no_per_viewport_layouts": true,
+    "exact_sha_required": true,
+    "runtime_status_independent": true,
+    "required_gates": [
+      "JSON Schema validation",
+      "six frozen visual-anchor SHA/canvas checks",
+      "page and control-plane authority binding validation",
+      "generated previews at fixed and wide profiles",
+      "non-anchor continuity and threshold boundary probes",
+      "responsive invariant, safe-area, overlap, touch-target and text-line assertions",
+      "separate exact-SHA Android runtime gate"
+    ],
+    "continuity_probe_ids": [
+      "RESPONSIVE-CONTINUITY-375x720",
+      "RESPONSIVE-HEIGHT-BOUNDARY-499-500",
+      "RESPONSIVE-HEIGHT-BOUNDARY-699-700",
+      "RESPONSIVE-HEIGHT-BOUNDARY-839-840",
+      "RESPONSIVE-FOOTER-BOUNDARY-459-460"
+    ]
+  },
+  "change_log": [
+    {
+      "version": "V2.0",
+      "date": "2026-10-22",
+      "change": "Consolidate one constraint-driven responsive policy; bind all six frozen visual anchors; resolve static/archive, legacy-layout, Gemini runtime, M05 width-only and status semantics; define deterministic browser preview parameters, continuous spacing curves and contract-owned text-wrap thresholds; retain Android runtime as NOT_VERIFIED."
+    },
+    {
+      "version": "V2.0",
+      "date": "2026-10-22",
+      "change": "Browser audit showed short-screen height pressure shrinking the Hero below its declared width floor and 1.3x metadata occupying three lines. Raise the readable Hero floor to 220dp (185dp at the declared aspect ratio) and permit Middle-only scrolling while Footer remains pinned; keep frozen image assets unchanged."
+    },
+    {
+      "version": "V2.0",
+      "date": "2026-10-26",
+      "change": "Align the proposed contract with Main Responsive Foundation V1.1 (equal S/2 additions); remove capped-gap/outer-breathing behavior, define one contract-owned Peek and footer calculation, clarify the 124dp floor semantics and exact M01 NO_SCROLL conditions, and allow generated illustrative media to remain non-blocking for geometry acceptance."
+    },
+    {
+      "version": "V2.0",
+      "date": "2026-10-26",
+      "change": "Structured browser preview integration: single V2 machine source, equal S/2 surplus allocation, contract-defined exact-M01 compact spacing, grid-flow page regions, and contract-hash-bound browser evidence.",
+      "status": "SPEC_FROZEN"
+    },
+    {
+      "version": "V2.0",
+      "date": "2026-10-26",
+      "change": "Promote unchanged V2.0 rules to SPEC_FROZEN after exact-source candidate preview, matrix, isolated deployment and live-route verification passed on e6df12c74d971ce6ed9e465d33689b95a931d9cc (Design Manager Pages run 40302990272). This status/control-plane update changes no responsive formulas or frozen visual anchors; current-head gates must pass before Main merge."
+    }
+  ],
+  "preview_engine": {
+    "schema_version": "1.0",
+    "engine_id": "NH01_ADAPTIVE_V2_CONTRACT_PREVIEW_V1",
+    "coordinate_space": {
+      "logical_dp_to_css_px": 1,
+      "default_safe_insets_dp": {
+        "top": 24,
+        "bottom": 24,
+        "start": 0,
+        "end": 0
+      },
+      "default_insets_are_browser_fixture": true,
+      "runtime_evidence": false
+    },
+    "inputs": [
+      "logicalViewportWidthDp",
+      "logicalViewportHeightDp",
+      "safeInsetsDp",
+      "systemFontScale",
+      "actualMeasuredTextBounds",
+      "contentAndRecordState"
+    ],
+    "parameters": {
+      "content": {
+        "max_width_dp": 560,
+        "top_horizontal_padding": {
+          "ratio": 0.075,
+          "min_dp": 24,
+          "max_dp": 40
+        },
+        "section_horizontal_padding": {
+          "ratio": 0.088,
+          "min_dp": 24,
+          "max_dp": 42
+        },
+        "top_padding_dp": 8,
+        "header_min_height_dp": 48,
+        "header_horizontal_gap_dp": 12,
+        "stats_min_height_dp": 48,
+        "stats_vertical_padding_dp": 4,
+        "stats_item_gap_dp": 2,
+        "section_vertical_padding_dp": 2,
+        "section_horizontal_gap_dp": 12
+      },
+      "viewport_scale": {
+        "width_reference_dp": 360,
+        "height_reference_dp": 568,
+        "minimum": 1,
+        "maximum": 1.2
+      },
+      "brand_title": {
+        "width_ratio_numerator": 155,
+        "width_ratio_denominator": 1080,
+        "min_width_dp": 46,
+        "max_width_dp": 70,
+        "height_ratio_numerator": 80,
+        "height_ratio_denominator": 155
+      },
+      "avatar": {
+        "width_ratio": 0.1,
+        "min_visual_dp": 36,
+        "max_visual_dp": 40,
+        "minimum_touch_dp": 48
+      },
+      "hero": {
+        "aspect_ratio_width": 247,
+        "aspect_ratio_height": 293,
+        "target_width_fraction": 0.7,
+        "maximum_width_dp": 337.2,
+        "maximum_height_dp": 400,
+        "minimum_readable_height_dp": 148,
+        "maximum_readable_height_dp": 220,
+        "short_screen_exception": {
+          "exact_viewport_width_dp": 320,
+          "exact_viewport_height_dp": 480,
+          "exact_font_scale": 1,
+          "minimum_readable_floor_dp": 124,
+          "minimum_width_dp": 145,
+          "requires_no_middle_scroll": true,
+          "requires_all_copy_readable": true,
+          "meaning": "124dp is the permitted minimum-readable floor, not a forced final card height. The final card must still preserve the 247:293 ratio and be at least 145dp wide. If the exact M01 constraints cannot fit without scrolling after nonessential whitespace compression, report FAIL_CONSTRAINT/SPEC_CONFLICT.",
+          "compact_layout": {
+            "top_padding_dp": 0,
+            "header_to_stats_gap_dp": 9,
+            "stats_height_dp": 48,
+            "stats_to_title_gap_dp": 12,
+            "title_to_card_gap_dp": 8,
+            "card_to_footer_gap_dp": 3,
+            "footer_top_padding_dp": 0,
+            "footer_bottom_padding_dp": 0,
+            "cta_camera_gap_dp": 6
+          }
+        }
+      },
+      "neighbor": {
+        "maximum_width_fraction_of_hero": 0.82,
+        "height_fraction_of_hero": 0.667,
+        "top_offset_dp": 15,
+        "edge_peek_width_fraction_of_track": 0.05,
+        "minimum_edge_peek_dp": 12,
+        "maximum_edge_peek_dp": 28,
+        "maximum_overlap_dp": 1,
+        "peek_gap": {
+          "minimum_dp": 8,
+          "track_width_fraction": 0.025,
+          "maximum_dp": 12,
+          "formula": "clamp(8dp, trackWidthDp * 0.025, 12dp)"
+        },
+        "maximum_geometry_overlap_dp": 1,
+        "peek_visible_width_formula": "min(neighborWidthDp, max(0, (trackWidthDp - heroWidthDp) / 2 - peekGapDp))",
+        "indicator_height_dp": 8,
+        "indicator_gap_after_hero_dp": 8,
+        "pager_height_formula": "heroHeightDp + indicator_gap_after_hero_dp + indicator_height_dp",
+        "indicator_width_dp": 40
+      },
+      "camera": {
+        "width_fraction_of_capped_safe_width": 0.18,
+        "height_fraction_of_safe_height": 0.1,
+        "minimum_visual_dp": 56,
+        "maximum_visual_dp": 80,
+        "minimum_touch_dp": 72
+      },
+      "card_content": {
+        "padding_horizontal_dp": 20,
+        "text_gap_height_fraction": 0.006,
+        "minimum_text_gap_dp": 2,
+        "maximum_text_gap_dp": 5,
+        "footer_padding_height_fraction": 0.07,
+        "minimum_footer_padding_dp": 10,
+        "maximum_footer_padding_dp": 20,
+        "species_wrap_width_threshold_dp": 240,
+        "large_font_scale_threshold": 1.3,
+        "maximum_lines_species": 2,
+        "maximum_lines_measurements": 2,
+        "maximum_lines_metadata": 2
+      },
+      "spacing": {
+        "font_pressure": {
+          "base_font_scale": 1,
+          "range": 0.5
+        },
+        "short_height_pressure": {
+          "reference_height_dp": 620,
+          "range_dp": 220
+        },
+        "brand_to_stats": {
+          "height_fraction": 0.035,
+          "base_minimum_dp": 14,
+          "base_maximum_dp": 28,
+          "minimum_gap_dp": 9,
+          "font_pressure_penalty_dp": 3,
+          "short_height_pressure_penalty_dp": 2
+        },
+        "stats_to_title": {
+          "minimum_gap_dp": 12,
+          "font_pressure_penalty_dp": 2,
+          "base_curve": [
+            {
+              "safe_height_dp": 500,
+              "value_dp": 14
+            },
+            {
+              "safe_height_dp": 700,
+              "value_dp": 16
+            },
+            {
+              "safe_height_dp": 840,
+              "value_dp": 18
+            }
+          ]
+        },
+        "title_to_card": {
+          "minimum_gap_dp": 8,
+          "font_pressure_penalty_dp": 4,
+          "base_curve": [
+            {
+              "safe_height_dp": 432,
+              "value_dp": 8
+            },
+            {
+              "safe_height_dp": 592,
+              "value_dp": 12
+            },
+            {
+              "safe_height_dp": 796,
+              "value_dp": 18
+            },
+            {
+              "safe_height_dp": 884,
+              "value_dp": 20
+            }
+          ],
+          "curve_rule": "PIECEWISE_LINEAR_CLAMP_TO_ENDPOINTS"
+        },
+        "card_to_footer": {
+          "height_fraction": 0.018,
+          "base_minimum_dp": 8,
+          "base_maximum_dp": 14,
+          "minimum_gap_dp": 3,
+          "font_pressure_penalty_dp": 3,
+          "short_height_pressure_penalty_dp": 2
+        },
+        "footer": {
+          "transition_curve": [
+            {
+              "safe_height_dp": 430,
+              "cta_camera_gap_dp": 6,
+              "top_padding_dp": 2,
+              "bottom_padding_small_inset_dp": 2,
+              "bottom_padding_large_inset_dp": 2
+            },
+            {
+              "safe_height_dp": 460,
+              "cta_camera_gap_dp": 11,
+              "top_padding_dp": 4,
+              "bottom_padding_small_inset_dp": 8,
+              "bottom_padding_large_inset_dp": 6
+            }
+          ],
+          "large_bottom_inset_threshold_dp": 40
+        },
+        "surplus_allocation": {
+          "formula": "S = max(0, H_safe - (hA + hB + hC + gAB_base + gBC_base))",
+          "a_to_b_added": "S/2",
+          "b_to_c_added": "S/2",
+          "additional_gap_cap_dp": null,
+          "outer_breathing_remainder_dp": 0
+        }
+      },
+      "capture_action_group": {
+        "cta_semantics": "STATIC_TEXT_LABEL_NOT_AN_INDEPENDENT_ACTION",
+        "cta_touch_target_dp": null,
+        "cta_height": "Measure the rendered CTA line height once from its declared typography role.",
+        "camera_artwork_inside_touch_target": true,
+        "cta_camera_gap": "Use preview_engine.parameters.spacing.cta_to_camera.",
+        "footer_outer_padding": "Use preview_engine.parameters.spacing.footer_top_padding and footer_bottom_padding once.",
+        "footer_height_formula": "footer_top_padding + measured_cta_line_height + cta_to_camera + camera_touch_target_height + footer_bottom_padding"
+      }
+    },
+    "role_bindings": {
+      "stat_value": "statistics-number",
+      "stat_label": "statistics-label",
+      "section_title": "recent-catch-heading",
+      "section_action": "all-entry",
+      "cta": "record-next-catch-cta",
+      "species": "species-name",
+      "measurement": "measurements",
+      "metadata": "time-location"
+    }
+  }
+}

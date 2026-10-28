@@ -1,0 +1,27 @@
+{
+  "version": "1.0",
+  "status": "FROZEN",
+  "page_id": "NH02",
+  "title": "NH02 First Catch Home V1",
+  "visual_authority": "design/pages/home/normal_home/02_first_catch/frozen/NH02_First_Catch_Home_V1_Frozen.png",
+  "format": "PNG",
+  "color_mode": "RGB",
+  "dimensions": {
+    "width": 941,
+    "height": 1672
+  },
+  "byte_size": 1876377,
+  "sha256": "377e8e24d11d11428345c129129a26ca03477f83672723b47e3ec1ef01482e7b",
+  "git_blob_sha": "47bbdb604751db7f06b7c894727b25666192d168",
+  "original_source_filename": "a_vertical_mobile_app_ui_mockup_phone_screen_phot.png",
+  "source_type": "ACTUAL_GENERATED_HIFI_RASTER",
+  "approval": "USER_EXPLICIT_FREEZE",
+  "parent_system_authority": "design/system/core_visual_v1/reference/normal_home_v1.png",
+  "design_spec": "design/pages/home/normal_home/02_first_catch/README.md",
+  "avatar_contract": "design/pages/home/normal_home/02_first_catch/default_avatar_contract.json",
+  "integrity_rules": [
+    "Use the exact frozen PNG bytes referenced by sha256/git_blob_sha.",
+    "Do not replace with SVG, HTML/CSS reconstruction, screenshot recreation, or programmatic redraw.",
+    "Any future visual change requires a new versioned frozen asset and manifest."
+  ]
+}

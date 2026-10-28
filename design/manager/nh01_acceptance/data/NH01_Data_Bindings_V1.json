@@ -1,0 +1,282 @@
+{
+  "schema_version": 1,
+  "document_type": "data_bindings",
+  "status": "PASS",
+  "source": {
+    "pr164_head_sha": "77a9aabc2648bda2942575d6600b74c9fe7d3ad7",
+    "mapping_sha256": "0a9880d1250969d85104641686efe1b1f85c965b8d9b2f7954d387d3b72c0b6a",
+    "android_source_baseline_sha": "0d3238e8a41b87363e9a17b04c9cc45fca4c426d"
+  },
+  "bindings": [
+    {
+      "figma_node": "41:30",
+      "figma_component_node": null,
+      "design_contract": "Normal Home Visual Spec / Geometry / responsive contract",
+      "compose_symbol_and_path": "NormalHomeContent — app/src/main/java/com/yujian/ai/ui/home/NormalHomeContent.kt",
+      "source_files": [
+        "app/src/main/java/com/yujian/ai/ui/home/NormalHomeContent.kt"
+      ],
+      "source_symbols": [
+        "NormalHomeContent"
+      ],
+      "source_path_exists": true,
+      "source_symbol_readback": "PASS",
+      "runtime_bounds": "NOT_RUN",
+      "status": "PASS",
+      "source_status": "MAPPED_IN_PR164"
+    },
+    {
+      "figma_node": "41:33",
+      "figma_component_node": null,
+      "design_contract": "Normal Home Header anchor and avatar state contract",
+      "compose_symbol_and_path": "NormalHomeHeader + NormalHomeDefaultAvatar — NormalHomeContent.kt",
+      "source_files": [
+        "app/src/main/java/com/yujian/ai/ui/home/NormalHomeContent.kt"
+      ],
+      "source_symbols": [
+        "NormalHomeHeader",
+        "NormalHomeDefaultAvatar"
+      ],
+      "source_path_exists": true,
+      "source_symbol_readback": "PASS",
+      "runtime_bounds": "NOT_RUN",
+      "status": "PASS",
+      "source_status": "MAPPED_IN_PR164"
+    },
+    {
+      "figma_node": "41:37",
+      "figma_component_node": "38:3",
+      "design_contract": "Normal Home Statistics anchor/pixel target",
+      "compose_symbol_and_path": "HomeStats — app/src/main/java/com/yujian/ai/ui/home/HomeStats.kt",
+      "source_files": [
+        "app/src/main/java/com/yujian/ai/ui/home/HomeStats.kt"
+      ],
+      "source_symbols": [
+        "HomeStats"
+      ],
+      "source_path_exists": true,
+      "source_symbol_readback": "PASS",
+      "runtime_bounds": "NOT_RUN",
+      "status": "PASS",
+      "source_status": "MAPPED_IN_PR164"
+    },
+    {
+      "figma_node": "41:49",
+      "figma_component_node": null,
+      "design_contract": "RecentCatchHeader anchor and icon registry",
+      "compose_symbol_and_path": "RecentCatchSectionHeader — NormalHomeContent.kt",
+      "source_files": [
+        "app/src/main/java/com/yujian/ai/ui/home/NormalHomeContent.kt"
+      ],
+      "source_symbols": [
+        "RecentCatchSectionHeader"
+      ],
+      "source_path_exists": true,
+      "source_symbol_readback": "PASS",
+      "runtime_bounds": "NOT_RUN",
+      "status": "PASS",
+      "source_status": "MAPPED_IN_PR164"
+    },
+    {
+      "figma_node": "41:56",
+      "figma_component_node": "38:24",
+      "design_contract": "FishCatchPager / Hero EvidenceFit / crop contract",
+      "compose_symbol_and_path": "RecentCatchPager — NormalHomeContent.kt; RecentFishCard — app/src/main/java/com/yujian/ai/ui/home/RecentFishCard.kt; YuJianHeroCard — app/src/main/java/com/yujian/ai/ui/designsystem/components/YuJianHeroCard.kt",
+      "source_files": [
+        "app/src/main/java/com/yujian/ai/ui/home/NormalHomeContent.kt",
+        "app/src/main/java/com/yujian/ai/ui/home/RecentFishCard.kt",
+        "app/src/main/java/com/yujian/ai/ui/designsystem/components/YuJianHeroCard.kt"
+      ],
+      "source_symbols": [
+        "RecentCatchPager",
+        "RecentFishCard",
+        "YuJianHeroCard"
+      ],
+      "source_path_exists": true,
+      "source_symbol_readback": "PASS",
+      "runtime_bounds": "NOT_RUN",
+      "status": "PASS",
+      "source_status": "MAPPED_IN_PR164"
+    },
+    {
+      "figma_node": "41:67",
+      "figma_component_node": "38:24",
+      "design_contract": "YuJianCatchHeroCard / HOME State=Selected; 740x880; 32px",
+      "compose_symbol_and_path": "RecentFishCard → YuJianHeroCard(variant=HOME)",
+      "source_files": [
+        "app/src/main/java/com/yujian/ai/ui/home/RecentFishCard.kt",
+        "app/src/main/java/com/yujian/ai/ui/designsystem/components/YuJianHeroCard.kt"
+      ],
+      "source_symbols": [
+        "RecentFishCard",
+        "YuJianHeroCard"
+      ],
+      "source_path_exists": true,
+      "source_symbol_readback": "PASS",
+      "runtime_bounds": "NOT_RUN",
+      "status": "PASS",
+      "source_status": "MAPPED_IN_PR164"
+    },
+    {
+      "figma_node": "41:58",
+      "figma_component_node": "38:24",
+      "design_contract": "YuJianCatchHeroCard / HOME State=Neighbor",
+      "compose_symbol_and_path": "RecentCatchPager neighbor card",
+      "source_files": [
+        "app/src/main/java/com/yujian/ai/ui/home/NormalHomeContent.kt",
+        "app/src/main/java/com/yujian/ai/ui/home/RecentFishCard.kt"
+      ],
+      "source_symbols": [
+        "RecentCatchPager",
+        "RecentFishCard"
+      ],
+      "source_path_exists": true,
+      "source_symbol_readback": "PASS",
+      "runtime_bounds": "NOT_RUN",
+      "status": "PASS",
+      "source_status": "MAPPED_IN_PR164"
+    },
+    {
+      "figma_node": "41:76",
+      "figma_component_node": "38:24",
+      "design_contract": "YuJianCatchHeroCard / HOME State=Neighbor",
+      "compose_symbol_and_path": "RecentCatchPager neighbor card",
+      "source_files": [
+        "app/src/main/java/com/yujian/ai/ui/home/NormalHomeContent.kt",
+        "app/src/main/java/com/yujian/ai/ui/home/RecentFishCard.kt"
+      ],
+      "source_symbols": [
+        "RecentCatchPager",
+        "RecentFishCard"
+      ],
+      "source_path_exists": true,
+      "source_symbol_readback": "PASS",
+      "runtime_bounds": "NOT_RUN",
+      "status": "PASS",
+      "source_status": "MAPPED_IN_PR164"
+    },
+    {
+      "figma_node": "41:85",
+      "figma_component_node": "38:28",
+      "design_contract": "Capture CTA geometry, typography, motion contract",
+      "compose_symbol_and_path": "CTA Text in NormalHomeContent.kt; HomeCameraButton — app/src/main/java/com/yujian/ai/ui/home/HomeCameraButton.kt",
+      "source_files": [
+        "app/src/main/java/com/yujian/ai/ui/home/NormalHomeContent.kt"
+      ],
+      "source_symbols": [
+        "NormalHomeContent"
+      ],
+      "source_path_exists": true,
+      "source_symbol_readback": "PASS",
+      "runtime_bounds": "NOT_RUN",
+      "status": "PASS",
+      "source_status": "MAPPED_IN_PR164"
+    },
+    {
+      "figma_node": "41:86",
+      "figma_component_node": "38:28",
+      "design_contract": "CaptureActionGroup instance with nested camera component",
+      "compose_symbol_and_path": "HomeCameraButton → YuJianCaptureButton — ui/designsystem/components/YuJianCaptureButton.kt",
+      "source_files": [
+        "app/src/main/java/com/yujian/ai/ui/home/HomeCameraButton.kt",
+        "app/src/main/java/com/yujian/ai/ui/designsystem/components/YuJianCaptureButton.kt"
+      ],
+      "source_symbols": [
+        "HomeCameraButton",
+        "YuJianCaptureButton"
+      ],
+      "source_path_exists": true,
+      "source_symbol_readback": "PASS",
+      "runtime_bounds": "NOT_RUN",
+      "status": "PASS",
+      "source_status": "MAPPED_IN_PR164"
+    },
+    {
+      "figma_node": "41:32",
+      "figma_component_node": null,
+      "design_contract": "Morning Lake background source",
+      "compose_symbol_and_path": "NormalHomeContent runtime assets background layer",
+      "source_files": [
+        "app/src/main/java/com/yujian/ai/ui/home/NormalHomeContent.kt"
+      ],
+      "source_symbols": [
+        "NormalHomeContent"
+      ],
+      "source_path_exists": true,
+      "source_symbol_readback": "PASS",
+      "runtime_bounds": "NOT_RUN",
+      "status": "PASS",
+      "source_status": "BLOCKED_ENV_NOT_IMPORTED"
+    },
+    {
+      "figma_node": "41:34",
+      "figma_component_node": null,
+      "design_contract": "Frozen brand title source",
+      "compose_symbol_and_path": "NormalHomeHeader brand image",
+      "source_files": [
+        "app/src/main/java/com/yujian/ai/ui/home/NormalHomeContent.kt"
+      ],
+      "source_symbols": [
+        "NormalHomeHeader"
+      ],
+      "source_path_exists": true,
+      "source_symbol_readback": "PASS",
+      "runtime_bounds": "NOT_RUN",
+      "status": "PASS",
+      "source_status": "IMAGE_FILL_READBACK_CONFIRMED"
+    },
+    {
+      "figma_node": "41:35",
+      "figma_component_node": null,
+      "design_contract": "Avatar master and runtime 3x export",
+      "compose_symbol_and_path": "NormalHomeDefaultAvatar",
+      "source_files": [
+        "app/src/main/java/com/yujian/ai/ui/home/NormalHomeContent.kt"
+      ],
+      "source_symbols": [
+        "NormalHomeDefaultAvatar"
+      ],
+      "source_path_exists": true,
+      "source_symbol_readback": "PASS",
+      "runtime_bounds": "NOT_RUN",
+      "status": "PASS",
+      "source_status": "REVIEW_REQUIRED_AUTHORITY_CONFLICT"
+    }
+  ],
+  "runtime_bounds_contract": "boundsInWindow and accessibility semantics must be captured on Android API28; NOT_RUN until exact-SHA Runtime run.",
+  "business_binding_summary": [
+    {
+      "component": "Statistics",
+      "data": [
+        "CatchStatistics.speciesCount",
+        "CatchStatistics.totalCatchCount",
+        "CatchStatistics.recordDays"
+      ],
+      "interaction": "species and catch totals navigate; recordDays is read-only",
+      "source": "HomeStats.kt / State Interaction Contract",
+      "status": "MAPPED"
+    },
+    {
+      "component": "Recent Catch Hero",
+      "data": [
+        "RemoteCatch.id",
+        "RemoteCatch.imageUrl",
+        "species",
+        "length",
+        "weight",
+        "timestamp",
+        "location"
+      ],
+      "interaction": "manual pager; tap routes by stable recordId",
+      "source": "RecentCatchPager + RecentFishCard",
+      "status": "MAPPED"
+    },
+    {
+      "component": "Capture action",
+      "data": [],
+      "interaction": "onIdentify; camera target >=48dp",
+      "source": "NormalHomeContent.kt + HomeCameraButton.kt",
+      "status": "MAPPED"
+    }
+  ]
+}

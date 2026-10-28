@@ -1,0 +1,12 @@
+{
+  "gate": "ASSET_PRODUCTION_GATE",
+  "known_allowed_difference": "local clean-plate reconstruction beneath independently composited runtime layers",
+  "metrics": {
+    "mean_absolute_error": 14.9305,
+    "status": "PASS",
+    "threshold": 18.0
+  },
+  "reference": "source/frozen/Empty_Home_Final_Design_V2.png",
+  "static_recompose": "static_recompose.png",
+  "status": "PASS"
+}

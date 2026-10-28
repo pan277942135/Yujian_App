@@ -1,0 +1,28 @@
+{
+  "id": "populated",
+  "status": "FROZEN",
+  "authority_type": "VISUAL_AUTHORITY",
+  "path": "design/pages/fish_record/detail/frozen/states/FishRecordDetail_State_Populated_Memory_V1_Frozen.png",
+  "dimensions_px": {
+    "width": 1840,
+    "height": 1240
+  },
+  "bytes": 391197,
+  "sha256": "d1e688916c3c1e61f7023f8e0fa11f05bf8077fa08c553b638810e6ebfdcab41",
+  "authority_spec": "design/pages/fish_record/detail/FishRecordDetail_Populated_Media_Spec_V1.md",
+  "freeze_date": "2026-10-07",
+  "raster_format": "image/png",
+  "source_media": {
+    "path": "app/src/main/assets/home_normal/fish_record/sample_recent_catch.jpg",
+    "sha256": "6e955087108f7463eca2dbac489699a4942028ebe1b3d456ddfca523286385ef",
+    "source_bytes_unchanged": true
+  },
+  "parent": "FishRecordDetail 02 B-side",
+  "states": [
+    "ONE_PHOTO",
+    "MULTIPLE_PHOTOS",
+    "PHOTOS_AND_VIDEO",
+    "OVERFLOW_GRID_CONTINUATION"
+  ],
+  "media_fixture_policy": "one genuine repository photo; remaining positions are neutral source-filled slots"
+}

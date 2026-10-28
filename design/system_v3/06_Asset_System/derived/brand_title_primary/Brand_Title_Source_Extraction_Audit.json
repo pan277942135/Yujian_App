@@ -1,0 +1,75 @@
+{
+  "source_path": "design/system/core_visual_v1/reference/normal_home_v1.png",
+  "source_sha256": "6ab9d3348b4a9a7e77ddca3a06235b4991798a309bd3512cc6fb9ea7aeb1d377",
+  "source_resolution": [
+    1080,
+    1920
+  ],
+  "source_mode": "RGB",
+  "color_space": "RGB; no embedded ICC profile; treated as sRGB without profile conversion",
+  "extraction_roi_bounds_xyxy": [
+    95,
+    116,
+    250,
+    196
+  ],
+  "roi_dimensions": [
+    155,
+    80
+  ],
+  "visible_ink_bounds_xyxy": [
+    103,
+    125,
+    242,
+    188
+  ],
+  "visible_ink_detection": "max(R,G,B) < 150 within expected Normal Home wordmark region",
+  "visible_ink_expected_bbox": [
+    103,
+    125,
+    242,
+    188
+  ],
+  "matte_bounds_xyxy": [
+    102,
+    123,
+    243,
+    192
+  ],
+  "background_sample_policy": {
+    "top_band_y": [
+      116,
+      124
+    ],
+    "bottom_band_y": [
+      190,
+      198
+    ],
+    "horizontal_neighborhood_radius_px": 4,
+    "per_channel_statistic": "median",
+    "interpolation": "linear by source y between sample band centers 119.5 and 193.5"
+  },
+  "foreground_anchor_rgb": [
+    4,
+    23,
+    53
+  ],
+  "alpha_matte": {
+    "algorithm_version": "normal-home-brand-title-local-median-linear-matte-v1",
+    "method": "least-squares projection between local estimated background and opaque ink anchor; stable unmatting for semi-transparent edge pixels",
+    "opacity_floor": 0.018,
+    "background_delta_floor": 4.0,
+    "non_unique_alpha_note": "The frozen page is pre-composited. The matte is an explicit deterministic approximation, not recovered original alpha or vector source."
+  },
+  "asset_sha256": "2dd41f5138e88e3bd48178dd26a15dfbb29c434536e4e3cc887fe2db13bdfddc",
+  "asset_dimensions": [
+    155,
+    80
+  ],
+  "alpha_pixel_counts": {
+    "transparent": 7877,
+    "partial": 3373,
+    "opaque": 1150
+  },
+  "review_status": "APPROVED_VISUALLY"
+}

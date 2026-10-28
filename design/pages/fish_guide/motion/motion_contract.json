@@ -1,0 +1,155 @@
+{
+  "version": "1.0",
+  "status": "FROZEN",
+  "date": "2026-09-29",
+  "scope": "Fish Guide · 07 · Motion & Interaction",
+  "principle": "alive, not animated; user-driven by default",
+  "home_species_carousel": {
+    "direct_manipulation": true,
+    "circular_loop": false,
+    "autoplay": false,
+    "auto_flip": false,
+    "active": {
+      "scale": 1,
+      "alpha": 1
+    },
+    "adjacent": {
+      "scale": 0.94,
+      "alpha": 0.58
+    },
+    "settle": {
+      "typical_duration_ms": [
+        220,
+        320
+      ],
+      "visible_bounce": false,
+      "max_overshoot_dp": 2
+    },
+    "tap": {
+      "centered": "OPEN_SPECIES_DETAIL",
+      "adjacent": "CENTER_ONLY"
+    },
+    "selection_update": "AFTER_SETTLE"
+  },
+  "discover_hint": {
+    "frequency": "ONCE_PER_LOCAL_USER_PROFILE",
+    "eligible_min_species": 2,
+    "delay_ms": 600,
+    "nudge_dp": 14,
+    "outward_ms": 180,
+    "return_ms": 260,
+    "hold_ms": 0,
+    "changes_selection": false,
+    "cancel_on_user_input": true,
+    "reduce_motion": "DISABLED",
+    "haptic": "NONE",
+    "sound": "NONE"
+  },
+  "knowledge_carousel": {
+    "positions": 5,
+    "direct_manipulation": true,
+    "circular_loop": false,
+    "autoplay": false,
+    "auto_flip": false,
+    "timed_rotation": false,
+    "artwork_fit": "FIT_NO_CROP_NO_STRETCH",
+    "settle": {
+      "typical_duration_ms": [
+        220,
+        300
+      ],
+      "visible_bounce": false
+    },
+    "indicator_update": "AFTER_SETTLE",
+    "adjacent_tap": "CENTER_ONLY"
+  },
+  "gesture_arbitration": {
+    "touch_slop": "PLATFORM",
+    "horizontal_lock_ratio": 1.2,
+    "lock_rule": "abs(dx) >= 1.2 * abs(dy)",
+    "axis_switch_after_lock": false
+  },
+  "navigation": {
+    "card_press": {
+      "scale_to": 0.985,
+      "press_in_ms": 70,
+      "release_ms": 100,
+      "haptic": "NONE"
+    },
+    "forward": {
+      "duration_ms": 220,
+      "alpha_from": 0.94,
+      "alpha_to": 1,
+      "translation_x_dp": 12
+    },
+    "back": {
+      "duration_ms": 200,
+      "restore_home_selection": true
+    },
+    "utility_press": {
+      "opacity_to": 0.92,
+      "press_in_ms": 70,
+      "release_ms": 100
+    }
+  },
+  "committed_state_transition": {
+    "unlit_to_lit": {
+      "visible_only": true,
+      "mist_lift_ms": 420,
+      "metadata_fade_ms": 180,
+      "metadata_delay_ms": 180,
+      "progress_ms": 300,
+      "card_scale_burst": false,
+      "gold_burst": false,
+      "confetti": false,
+      "auto_navigation": false,
+      "haptic": "NONE",
+      "sound": "NONE"
+    },
+    "lit_to_unlit": {
+      "visible_only": true,
+      "crossfade_ms": 260,
+      "progress_ms": 240,
+      "lock_animation": false
+    },
+    "lit_count_increment": {
+      "count_crossfade_ms": 160,
+      "preview_crossfade_ms": 180
+    },
+    "offscreen_replay": false
+  },
+  "loading_error": {
+    "looping_shimmer_required": false,
+    "content_crossfade_ms": 180,
+    "retry_crossfade_ms": 160,
+    "shake": false
+  },
+  "reduce_motion": {
+    "discover_hint": "DISABLED",
+    "direct_user_drag": "RETAINED",
+    "settle_max_ms": 120,
+    "navigation_translation": false,
+    "navigation_crossfade_max_ms": 120,
+    "state_crossfade_max_ms": 120,
+    "delayed_sequences": false
+  },
+  "haptic_sound": {
+    "carousel_snap_haptic": false,
+    "discover_hint_haptic": false,
+    "state_change_haptic": false,
+    "unlock_sound": false,
+    "page_entry_sound": false,
+    "ambient_audio": false
+  },
+  "performance": {
+    "preferred_properties": [
+      "translation",
+      "scale",
+      "alpha"
+    ],
+    "runtime_blur_animation": false,
+    "full_screen_color_grade_animation": false,
+    "background_parallax": false,
+    "synchronized_loops": false
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "species": {"id": "grass_carp", "name_cn": "草鱼", "status": "ACTIVE"},
+  "knowledge_assets": {
+    "HERO": {"asset_role": "HERO", "species_id": "grass_carp", "version_id": 1, "image_url": "/draft.webp", "status": "DRAFT"},
+    "IDENTIFICATION": {"asset_role": "IDENTIFICATION", "species_id": "grass_carp", "version_id": 2, "image_url": "/archived.webp", "status": "ARCHIVED"},
+    "ECO": {"asset_role": "GEAR", "species_id": "grass_carp", "version_id": 3, "image_url": "/wrong-role.webp", "status": "ACTIVE"},
+    "GEAR": {"asset_role": "GEAR", "species_id": "another-fish", "version_id": 4, "image_url": "/wrong-species.webp", "status": "ACTIVE"},
+    "SKILL": {"asset_role": "SKILL", "species_id": "grass_carp", "asset_id": "missing-version", "image_url": "javascript:alert(1)", "status": "ACTIVE"},
+    "UNEXPECTED": {"asset_role": "HERO", "species_id": "grass_carp", "version_id": 6, "image_url": "/unexpected-role.webp", "status": "ACTIVE"}
+  },
+  "cards": [{"id": 99, "species_id": "grass_carp", "card_type": "HERO", "image_url": "/legacy-active.webp", "status": "ACTIVE"}],
+  "gallery": {"images": []}, "profile": {}, "fishing": {}, "videos": [], "similarity": [], "knowledge": {}
+}

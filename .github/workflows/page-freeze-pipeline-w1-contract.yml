@@ -1,0 +1,84 @@
+name: Page Freeze Pipeline W1 Contract
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review]
+    branches: [main]
+    paths:
+      - "design/system_v3/07_Responsive_System/**"
+      - "design/pages/**"
+      - "design/registry/experience_registry_v1.json"
+      - "harness/FEATURE_MATRIX.yaml"
+      - "harness/UNIFIED_CONTRACT_REGISTRY.yaml"
+      - "scripts/design/**"
+      - "scripts/validate_control_plane_admission.py"
+      - "scripts/validate_control_plane_registry.py"
+      - "scripts/validate_feature_matrix.py"
+      - "scripts/validate_phase_task_state_machine.py"
+      - "scripts/validate_unified_contract.py"
+      - ".github/workflows/page-freeze-pipeline-w1-contract.yml"
+  push:
+    branches: [main]
+    paths:
+      - "design/system_v3/07_Responsive_System/**"
+      - "design/pages/**"
+      - "design/registry/experience_registry_v1.json"
+      - "harness/FEATURE_MATRIX.yaml"
+      - "harness/UNIFIED_CONTRACT_REGISTRY.yaml"
+      - "scripts/design/**"
+      - "scripts/validate_control_plane_admission.py"
+      - "scripts/validate_control_plane_registry.py"
+      - "scripts/validate_feature_matrix.py"
+      - "scripts/validate_phase_task_state_machine.py"
+      - "scripts/validate_unified_contract.py"
+      - ".github/workflows/page-freeze-pipeline-w1-contract.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  page-contract:
+    name: G-PAGE-FREEZE-PIPELINE-W1-CONTRACT
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      EXPECTED_SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+    steps:
+      - name: Checkout exact source SHA
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Install schema dependencies
+        run: python -m pip install --disable-pip-version-check -r scripts/design/requirements_nh01_cloud.txt PyYAML==6.0.3
+
+      - name: Control Plane Admission
+        run: python scripts/validate_control_plane_admission.py
+
+      - name: W1 negative and cross-page schema tests
+        run: python -m unittest discover -s scripts/design/tests -p 'test_page_responsive_contract.py' -v
+
+      - name: Validate exact-SHA page contract matrix and NH01 adapter
+        run: |
+          python scripts/design/validate_page_responsive_contract.py \
+            --expected-source-sha "$EXPECTED_SOURCE_SHA" \
+            --report "$RUNNER_TEMP/page-responsive-contract-report.json"
+
+      - name: Confirm unchanged NH01 contract regression validator
+        run: python scripts/design/validate_nh01_responsive_layout_contract_v2.py
+
+      - name: Upload exact-SHA W1 validation report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Page-Contract-W1-${{ github.run_id }}-${{ env.EXPECTED_SOURCE_SHA }}
+          path: ${{ runner.temp }}/page-responsive-contract-report.json
+          if-no-files-found: warn
+          retention-days: 30

@@ -1,0 +1,273 @@
+{
+  "contract_id": "YUJIAN_AI_CATCH_RECOGNITION_WEB_HIFI_V1",
+  "version": "2.0",
+  "authority_status": "VISUAL_CONTRACT_DEFINED",
+  "adoption_status": "MAIN_ADOPTED_DESIGN_ONLY",
+  "page_id": "ai_catch_recognition_web",
+  "source_ref": [
+    "Yujian_App/main@ad8bf1ba61e42a34d1fdd91de47fa386e25f11ef",
+    "Yujian_App/PR186@3b0b5848206cdea949f4bf6be7eb7cb1d19b1e34",
+    "Yujian_App/PR187@ee3bb45858183144598bc28c5bae53ae55b324e0",
+    "Yujian/PR177@655c4af07a0244fcf29441b5652c48ca74f2e6a2"
+  ],
+  "tokens": {
+    "colors": [
+      {
+        "id": "web.color.background",
+        "hex": "#F7FAFB",
+        "usage": "page",
+        "source": "shared color.lake_white",
+        "provenance": "SHARED_FROZEN"
+      },
+      {
+        "id": "web.color.water",
+        "hex": "#7CAAA2",
+        "usage": "ambient accent",
+        "source": "PR177 CSS direction; design completion",
+        "provenance": "DESIGN_COMPLETION_NOT_PIXEL_MEASURED"
+      },
+      {
+        "id": "web.color.primary",
+        "hex": "#245D50",
+        "usage": "primary control",
+        "source": "PR177 CSS direction; design completion",
+        "provenance": "DESIGN_COMPLETION_NOT_PIXEL_MEASURED"
+      },
+      {
+        "id": "web.color.glass",
+        "hex": "#FFFFFF",
+        "usage": "card surface with 0.92 opacity",
+        "source": "PR177 CSS direction; design completion",
+        "provenance": "DESIGN_COMPLETION_NOT_PIXEL_MEASURED"
+      },
+      {
+        "id": "web.color.line",
+        "hex": "#DCE7E1",
+        "usage": "separator",
+        "source": "PR177 CSS direction; design completion",
+        "provenance": "DESIGN_COMPLETION_NOT_PIXEL_MEASURED"
+      },
+      {
+        "id": "web.color.gold",
+        "hex": "#D6A541",
+        "usage": "moment accent only",
+        "source": "shared color.morning_gold",
+        "provenance": "SHARED_FROZEN"
+      },
+      {
+        "id": "web.color.text",
+        "hex": "#0B2D4B",
+        "usage": "primary text",
+        "source": "shared color.deep_lake_blue",
+        "provenance": "SHARED_FROZEN"
+      },
+      {
+        "id": "web.color.muted",
+        "hex": "#748897",
+        "usage": "secondary text",
+        "source": "shared color.mist_blue_gray",
+        "provenance": "SHARED_FROZEN"
+      },
+      {
+        "id": "web.color.success",
+        "hex": "#317151",
+        "usage": "success",
+        "source": "PR177 CSS direction; design completion",
+        "provenance": "DESIGN_COMPLETION_NOT_PIXEL_MEASURED"
+      },
+      {
+        "id": "web.color.warning",
+        "hex": "#8B6625",
+        "usage": "review",
+        "source": "PR177 CSS direction; design completion",
+        "provenance": "DESIGN_COMPLETION_NOT_PIXEL_MEASURED"
+      },
+      {
+        "id": "web.color.failure",
+        "hex": "#9E433C",
+        "usage": "failure",
+        "source": "PR177 CSS direction; design completion",
+        "provenance": "DESIGN_COMPLETION_NOT_PIXEL_MEASURED"
+      },
+      {
+        "id": "web.color.disabled",
+        "hex": "#82918B",
+        "usage": "disabled",
+        "source": "PR177 CSS direction; design completion",
+        "provenance": "DESIGN_COMPLETION_NOT_PIXEL_MEASURED"
+      }
+    ],
+    "typography": [
+      {
+        "id": "web.type.brand",
+        "font_family": "system-ui, -apple-system, sans-serif",
+        "font_size_px": 30,
+        "font_weight": 500,
+        "line_height_px": 36,
+        "letter_spacing_em": 0,
+        "minimum_px": 14,
+        "responsive": "do not shrink below minimum; wrap Chinese naturally",
+        "source": "design/system_v3/04_Design_Tokens/Typography/Typography_Tokens_V3_FINAL.json",
+        "provenance": "WEB_DESIGN_COMPLETION_NOT_SOURCE_PIXEL_MEASUREMENT"
+      },
+      {
+        "id": "web.type.page-title",
+        "font_family": "system-ui, -apple-system, sans-serif",
+        "font_size_px": 28,
+        "font_weight": 500,
+        "line_height_px": 34,
+        "letter_spacing_em": 0,
+        "minimum_px": 14,
+        "responsive": "do not shrink below minimum; wrap Chinese naturally",
+        "source": "design/system_v3/04_Design_Tokens/Typography/Typography_Tokens_V3_FINAL.json",
+        "provenance": "WEB_DESIGN_COMPLETION_NOT_SOURCE_PIXEL_MEASUREMENT"
+      },
+      {
+        "id": "web.type.stage-title",
+        "font_family": "system-ui, -apple-system, sans-serif",
+        "font_size_px": 20,
+        "font_weight": 500,
+        "line_height_px": 26,
+        "letter_spacing_em": 0,
+        "minimum_px": 14,
+        "responsive": "do not shrink below minimum; wrap Chinese naturally",
+        "source": "design/system_v3/04_Design_Tokens/Typography/Typography_Tokens_V3_FINAL.json",
+        "provenance": "WEB_DESIGN_COMPLETION_NOT_SOURCE_PIXEL_MEASUREMENT"
+      },
+      {
+        "id": "web.type.stage-number",
+        "font_family": "system-ui, -apple-system, sans-serif",
+        "font_size_px": 16,
+        "font_weight": 600,
+        "line_height_px": 24,
+        "letter_spacing_em": 0,
+        "minimum_px": 14,
+        "responsive": "do not shrink below minimum; wrap Chinese naturally",
+        "source": "design/system_v3/04_Design_Tokens/Typography/Typography_Tokens_V3_FINAL.json",
+        "provenance": "WEB_DESIGN_COMPLETION_NOT_SOURCE_PIXEL_MEASUREMENT"
+      },
+      {
+        "id": "web.type.image-caption",
+        "font_family": "system-ui, -apple-system, sans-serif",
+        "font_size_px": 14,
+        "font_weight": 400,
+        "line_height_px": 20,
+        "letter_spacing_em": 0,
+        "minimum_px": 14,
+        "responsive": "do not shrink below minimum; wrap Chinese naturally",
+        "source": "design/system_v3/04_Design_Tokens/Typography/Typography_Tokens_V3_FINAL.json",
+        "provenance": "WEB_DESIGN_COMPLETION_NOT_SOURCE_PIXEL_MEASUREMENT"
+      },
+      {
+        "id": "web.type.status",
+        "font_family": "system-ui, -apple-system, sans-serif",
+        "font_size_px": 16,
+        "font_weight": 400,
+        "line_height_px": 24,
+        "letter_spacing_em": 0,
+        "minimum_px": 14,
+        "responsive": "do not shrink below minimum; wrap Chinese naturally",
+        "source": "design/system_v3/04_Design_Tokens/Typography/Typography_Tokens_V3_FINAL.json",
+        "provenance": "WEB_DESIGN_COMPLETION_NOT_SOURCE_PIXEL_MEASUREMENT"
+      },
+      {
+        "id": "web.type.species-zh",
+        "font_family": "system-ui, -apple-system, sans-serif",
+        "font_size_px": 28,
+        "font_weight": 600,
+        "line_height_px": 34,
+        "letter_spacing_em": 0,
+        "minimum_px": 14,
+        "responsive": "do not shrink below minimum; wrap Chinese naturally",
+        "source": "design/system_v3/04_Design_Tokens/Typography/Typography_Tokens_V3_FINAL.json",
+        "provenance": "WEB_DESIGN_COMPLETION_NOT_SOURCE_PIXEL_MEASUREMENT"
+      },
+      {
+        "id": "web.type.form-label",
+        "font_family": "system-ui, -apple-system, sans-serif",
+        "font_size_px": 14,
+        "font_weight": 500,
+        "line_height_px": 20,
+        "letter_spacing_em": 0,
+        "minimum_px": 14,
+        "responsive": "do not shrink below minimum; wrap Chinese naturally",
+        "source": "design/system_v3/04_Design_Tokens/Typography/Typography_Tokens_V3_FINAL.json",
+        "provenance": "WEB_DESIGN_COMPLETION_NOT_SOURCE_PIXEL_MEASUREMENT"
+      },
+      {
+        "id": "web.type.input",
+        "font_family": "system-ui, -apple-system, sans-serif",
+        "font_size_px": 16,
+        "font_weight": 400,
+        "line_height_px": 24,
+        "letter_spacing_em": 0,
+        "minimum_px": 14,
+        "responsive": "do not shrink below minimum; wrap Chinese naturally",
+        "source": "design/system_v3/04_Design_Tokens/Typography/Typography_Tokens_V3_FINAL.json",
+        "provenance": "WEB_DESIGN_COMPLETION_NOT_SOURCE_PIXEL_MEASUREMENT"
+      },
+      {
+        "id": "web.type.helper",
+        "font_family": "system-ui, -apple-system, sans-serif",
+        "font_size_px": 14,
+        "font_weight": 400,
+        "line_height_px": 20,
+        "letter_spacing_em": 0,
+        "minimum_px": 14,
+        "responsive": "do not shrink below minimum; wrap Chinese naturally",
+        "source": "design/system_v3/04_Design_Tokens/Typography/Typography_Tokens_V3_FINAL.json",
+        "provenance": "WEB_DESIGN_COMPLETION_NOT_SOURCE_PIXEL_MEASUREMENT"
+      },
+      {
+        "id": "web.type.cta",
+        "font_family": "system-ui, -apple-system, sans-serif",
+        "font_size_px": 16,
+        "font_weight": 600,
+        "line_height_px": 24,
+        "letter_spacing_em": 0,
+        "minimum_px": 14,
+        "responsive": "do not shrink below minimum; wrap Chinese naturally",
+        "source": "design/system_v3/04_Design_Tokens/Typography/Typography_Tokens_V3_FINAL.json",
+        "provenance": "WEB_DESIGN_COMPLETION_NOT_SOURCE_PIXEL_MEASUREMENT"
+      }
+    ],
+    "space_px": [
+      4,
+      8,
+      12,
+      16,
+      20,
+      24,
+      32,
+      40
+    ],
+    "radius_px": {
+      "small": 8,
+      "medium": 12,
+      "card": 18
+    },
+    "shadow": "0 8px 24px rgba(39,75,65,.08)"
+  },
+  "forbidden": [
+    "10–12px normal product text",
+    "emoji as product icons",
+    "gold as all control state color"
+  ],
+  "icon_source": "design/system_v3/09_Icon_System/Icon_Registry_V3.json",
+  "acceptance_criteria": [
+    "AA text contrast to be measured in implementation",
+    "all normal text >=14px",
+    "shared semantic color usage preserved"
+  ],
+  "candidate_source_sha256": "5f07c2f65ea33f14c8517dddbb7f8d6b7369a6ed980cba11cc92014f4e6a75f9",
+  "adoption_pr": 190,
+  "adopted_source_prs": [
+    186,
+    187
+  ],
+  "adoption_scope": "DESIGN_CONTRACT_ONLY",
+  "runtime_visual_verified": false,
+  "pixel_frozen_source": "FROZEN_PRIVATE_SHA_BOUND",
+  "pixel_baseline_id": "YUJIAN_SWOS_WEB_PIXEL_BASELINE_V1",
+  "pixel_baseline_contract": "design/pages/recognition/web/VISUAL_BASELINE_FREEZE_V1.md"
+}

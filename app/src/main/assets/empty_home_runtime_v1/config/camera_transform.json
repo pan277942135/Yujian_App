@@ -1,0 +1,30 @@
+{
+  "layer": "camera_button",
+  "source": "runtime_layers/content/ui_content.png",
+  "bbox": {
+    "x": 420,
+    "y": 1490,
+    "width": 241,
+    "height": 246
+  },
+  "center": {
+    "x": 540.0,
+    "y": 1612.5
+  },
+  "pivot": {
+    "x": 540.0,
+    "y": 1612.5
+  },
+  "effect_bbox": {
+    "x": 413,
+    "y": 1483,
+    "width": 255,
+    "height": 260
+  },
+  "component_pixel_count": 46514,
+  "animation_capability": {
+    "base_scale": true,
+    "breath": true,
+    "gold_rim_sweep": true
+  }
+}

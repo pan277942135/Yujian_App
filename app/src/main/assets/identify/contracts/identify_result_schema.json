@@ -1,0 +1,13 @@
+{
+  "input": {
+    "image": "string",
+    "bbox": "optional",
+    "mask": "optional"
+  },
+  "output": {
+    "state": "SUCCESS|CONFIRM|UNKNOWN|NO_FISH|TOO_FAR",
+    "species": "string",
+    "confidence": "float",
+    "candidates": "array"
+  }
+}
