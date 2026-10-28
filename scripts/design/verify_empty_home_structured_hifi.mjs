@@ -109,7 +109,9 @@ async function main() {
   const args = parseArgs(process.argv);
   await mkdir(args.outputDir,{recursive:true});
   const expectedSha = args.expectedSha || (await import("node:child_process")).execFileSync("git",["rev-parse","HEAD"],{encoding:"utf8"}).trim();
+  const runId = process.env.GITHUB_RUN_ID || "LOCAL_UNTRACKED";
   let server = null;
+  let activeMatrixRow = null;
   let base = args.url;
   if (!base) { const started = await startServer(args.root); server = started.server; base = started.url; }
   const managerUrl = base.endsWith("/design/manager/") ? base : new URL("design/manager/",base.endsWith("/")?base:`${base}/`).href;
@@ -188,6 +190,20 @@ async function main() {
     baseEvidence.matrix_authority=preflight.viewportAuthority;
     baseEvidence.formal_matrix_definition={viewports:preflight.formalViewports,font_scales:preflight.fontScales,
       source_path:preflight.viewportAuthority.path,source_sha256:preflight.viewportAuthority.sha256};
+    const formalCases=preflight.formalViewports.flatMap(({width,height})=>preflight.fontScales.map(fontScale=>({width,height,fontScale})));
+    baseEvidence.matrix=formalCases.map(({width,height,fontScale})=>({
+      case_id:`EMPTY_HOME_${width}x${height}_FONT_${fontScale}`,
+      page_id:"home_empty_v2",
+      viewport:{width,height},
+      font_scale:fontScale,
+      source_sha:expectedSha,
+      run_id:runId,
+      matrix_source_path:preflight.viewportAuthority.path,
+      matrix_source_sha256:preflight.viewportAuthority.sha256,
+      result:"NOT_RUN"
+    }));
+    baseEvidence.matrix_summary={expected:formalCases.length,executed:0,pass:0,fail:0,not_run:formalCases.length,
+      source_path:preflight.viewportAuthority.path,source_sha256:preflight.viewportAuthority.sha256};
     baseEvidence.resource_statuses=preflight.resources;
     baseEvidence.browser_url=args.url?`${managerUrl}${ROUTE}`:"LOCAL_SITE_BUILD_ONLY_NOT_DEPLOYED";
     baseEvidence.authority_gaps=AUTHORITY_GAPS_FOR_REPORT();
@@ -208,7 +224,18 @@ async function main() {
     await page.locator("#eh-HeroCopy").click({position:{x:12,y:12}});
     assert(await page.locator('[data-workspace-inspector]').getAttribute("data-selected-node-id")==="HeroCopy","canvas click must locate the corresponding tree layer");
 
-    for (const {width,height} of preflight.formalViewports) for (const fontScale of preflight.fontScales) {
+    const updateMatrixSummary=()=>{
+      const pass=baseEvidence.matrix.filter(row=>row.result==="PASS").length;
+      const fail=baseEvidence.matrix.filter(row=>row.result==="FAIL").length;
+      const executed=pass+fail;
+      baseEvidence.matrix_summary={...baseEvidence.matrix_summary,expected:formalCases.length,executed,pass,fail,
+        not_run:formalCases.length-executed};
+    };
+    for (const {width,height,fontScale} of formalCases) {
+      activeMatrixRow=baseEvidence.matrix.find(row=>row.case_id===`EMPTY_HOME_${width}x${height}_FONT_${fontScale}`);
+      activeMatrixRow.result="IN_PROGRESS";
+      activeMatrixRow.started_at=new Date().toISOString();
+      updateMatrixSummary();
       await page.setViewportSize({width,height});
       await page.waitForFunction(({w,h})=>window.innerWidth===w&&window.innerHeight===h,{w:width,h:height});
       const preset=page.locator("[data-empty-viewport-preset]");
@@ -256,6 +283,7 @@ async function main() {
           promptTypography:byId.CapturePrompt?.typography,sourceSha:root.dataset.sourceSha,unit:byId.FishingRod?.bounds.unit,
           node_bounds:rows, cameraTouch:{width:byId.PrimaryCaptureButton?.bounds.width,height:byId.PrimaryCaptureButton?.bounds.height},boardOrigin:{x:boardBounds.x,y:boardBounds.y}};
       });
+      Object.assign(activeMatrixRow,caseEvidence);
       assert(caseEvidence.overflow.outside_viewport.length===0&&caseEvidence.overflow.text_overflow.length===0,`responsive UI overflow at ${width}x${height} @${fontScale}: ${JSON.stringify(caseEvidence.overflow)}`);
       assert(caseEvidence.unit==="css_px","DOM measurements must be reported as CSS px");
       assert(caseEvidence.inspectorNode==="HeroCopy","viewport changes must retain a measurable current selection");
@@ -273,29 +301,32 @@ async function main() {
       await page.locator("[data-workspace-artboard]").screenshot({path:shot,animations:"disabled"});
       const shotSize=await pngDimensions(shot);
       assert(shotSize.width===width*3&&shotSize.height===height*3,`MATRIX_SCREENSHOT_PIXEL_SCALE_MISMATCH: ${width}x${height}: ${JSON.stringify(shotSize)}`);
-      caseEvidence.state_id="EMPTY_DEFAULT";
-      caseEvidence.browser_url=args.url?page.url():"LOCAL_SITE_BUILD_ONLY_NOT_DEPLOYED";
-      caseEvidence.browser_viewport_css_px=await page.evaluate(()=>({width:window.innerWidth,height:window.innerHeight,device_scale_factor:window.devicePixelRatio}));
-      caseEvidence.viewport_width=width;
-      caseEvidence.viewport_height=height;
-      caseEvidence.font_scale=fontScale;
-      caseEvidence.candidate_source_sha=expectedSha;
-      caseEvidence.site_build_sha=expectedSha;
-      caseEvidence.dom_report="EmptyHome_Component_Bounds_Report_V1.json";
-      caseEvidence.screenshot_rendered={path:shot.split("/").at(-1),sha256:await sha256File(shot),pixel_width:shotSize.width,pixel_height:shotSize.height,device_scale_factor:3};
-      caseEvidence.screenshot_reference={path:"design/pages/home/empty_home/source/frozen/Empty_Home_Frozen_Visual_V2_2.png",sha256:preflight.referenceSha};
-      caseEvidence.geometry_result="PASS_DOM_MEASURED_VISUAL_REVIEW_PENDING";
-      caseEvidence.resource_result="PASS_W2_BOUND_RESOURCES_VERIFIED";
-      caseEvidence.responsive_result="PASS_NO_DECLARED_UI_OVERFLOW";
-      caseEvidence.visual_review_status="USER_VISUAL_ACCEPTANCE_PENDING";
-      caseEvidence.native_runtime_status="NOT_VERIFIED";
-      caseEvidence.user_acceptance_status="USER_VISUAL_ACCEPTANCE_PENDING";
-      screenshotRefs.push(caseEvidence.screenshot_rendered);
-      componentBounds.viewports.push({viewport:caseEvidence.viewport,font_scale:caseEvidence.font_scale,node_bounds:caseEvidence.node_bounds});
-      baseEvidence.matrix.push(caseEvidence);
+      Object.assign(activeMatrixRow,caseEvidence,{
+        case_id:activeMatrixRow.case_id,page_id:"home_empty_v2",source_sha:expectedSha,run_id:runId,
+        matrix_source_path:preflight.viewportAuthority.path,matrix_source_sha256:preflight.viewportAuthority.sha256,
+        state_id:"EMPTY_DEFAULT",
+        browser_url:args.url?page.url():"LOCAL_SITE_BUILD_ONLY_NOT_DEPLOYED",
+        browser_viewport_css_px:await page.evaluate(()=>({width:window.innerWidth,height:window.innerHeight,device_scale_factor:window.devicePixelRatio})),
+        viewport_width:width,viewport_height:height,font_scale:fontScale,
+        candidate_source_sha:expectedSha,site_build_sha:expectedSha,
+        dom_report:"EmptyHome_Component_Bounds_Report_V1.json",
+        screenshot_rendered:{path:shot.split("/").at(-1),sha256:await sha256File(shot),pixel_width:shotSize.width,pixel_height:shotSize.height,device_scale_factor:3},
+        screenshot_reference:{path:"design/pages/home/empty_home/source/frozen/Empty_Home_Frozen_Visual_V2_2.png",sha256:preflight.referenceSha},
+        geometry_result:"PASS_DOM_MEASURED_VISUAL_REVIEW_PENDING",
+        resource_result:"PASS_W2_BOUND_RESOURCES_VERIFIED",
+        responsive_result:"PASS_NO_DECLARED_UI_OVERFLOW",
+        visual_review_status:"USER_VISUAL_ACCEPTANCE_PENDING",
+        native_runtime_status:"NOT_VERIFIED",
+        user_acceptance_status:"USER_VISUAL_ACCEPTANCE_PENDING",
+        result:"PASS",completed_at:new Date().toISOString()
+      });
+      screenshotRefs.push(activeMatrixRow.screenshot_rendered);
+      componentBounds.viewports.push({viewport:activeMatrixRow.viewport,font_scale:activeMatrixRow.font_scale,node_bounds:activeMatrixRow.node_bounds});
+      updateMatrixSummary();
+      activeMatrixRow=null;
     }
-    assert(baseEvidence.matrix.length===preflight.formalViewports.length*preflight.fontScales.length,
-      `FORMAL_MATRIX_CASE_COUNT_MISMATCH: expected=${preflight.formalViewports.length*preflight.fontScales.length} actual=${baseEvidence.matrix.length}`);
+    assert(baseEvidence.matrix_summary.expected===baseEvidence.matrix_summary.pass&&baseEvidence.matrix_summary.fail===0&&baseEvidence.matrix_summary.not_run===0,
+      `FORMAL_MATRIX_CASE_COUNT_MISMATCH: ${JSON.stringify(baseEvidence.matrix_summary)}`);
 
     await page.locator("[data-empty-viewport-preset]").selectOption("360x640@1");
     await page.waitForFunction(()=>document.querySelector("[data-workspace-artboard]")?.dataset.viewport==="360x640");
@@ -437,6 +468,15 @@ async function main() {
   } catch(error) {
     baseEvidence.status="FAIL";
     baseEvidence.failure=error?.stack||String(error);
+    if(activeMatrixRow){
+      activeMatrixRow.result="FAIL";
+      activeMatrixRow.failure=error?.message||String(error);
+      activeMatrixRow.completed_at=new Date().toISOString();
+      const pass=baseEvidence.matrix.filter(row=>row.result==="PASS").length;
+      const fail=baseEvidence.matrix.filter(row=>row.result==="FAIL").length;
+      const expected=baseEvidence.matrix_summary?.expected??baseEvidence.matrix.length;
+      baseEvidence.matrix_summary={...baseEvidence.matrix_summary,expected,executed:pass+fail,pass,fail,not_run:expected-pass-fail};
+    }
     baseEvidence.console_errors=consoleErrors;
     baseEvidence.page_errors=pageErrors;
     baseEvidence.failed_requests=failedRequests;
