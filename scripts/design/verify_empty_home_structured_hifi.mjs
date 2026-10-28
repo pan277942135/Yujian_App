@@ -63,6 +63,18 @@ async function waitReady(page, expectedSha) {
   }
   const actualSha = await page.locator("[data-page-workspace-root]").getAttribute("data-source-sha");
   assert(actualSha === expectedSha, `SOURCE_SHA_MISMATCH: ${actualSha} != ${expectedSha}`);
+  await page.waitForFunction(({sha})=>{
+    const adapter=window.PageWorkspaceAdapters?.active;
+    const adapterRoot=adapter?.root;
+    const workspace=adapterRoot?.querySelector("[data-page-workspace-root]");
+    const board=adapterRoot?.querySelector("[data-workspace-artboard]");
+    const rendered=board?.querySelector("#eh-EmptyHomeRoot");
+    return adapter?.sourceSha===sha && workspace?.dataset.sourceSha===sha &&
+      workspace.dataset.workspaceKind==="structured-dom-candidate" &&
+      workspace.dataset.viewState==="EMPTY_DEFAULT" && board?.dataset.layoutMetrics &&
+      rendered?.dataset.sourceSha===sha &&
+      [...board.querySelectorAll("img")].every(image=>image.complete&&image.naturalWidth>0&&image.naturalHeight>0);
+  },{sha:expectedSha},{timeout:30000});
 }
 
 async function main() {
@@ -98,7 +110,12 @@ async function main() {
     await waitReady(page,expectedSha);
     const preflight=await page.evaluate(async()=>{
       const need=(condition,message)=>{if(!condition)throw new Error(message);};
-      const root=document.querySelector("[data-page-workspace-root]"),board=root.querySelector("[data-workspace-artboard]"),page=board.querySelector("#eh-EmptyHomeRoot");
+      const adapter=window.PageWorkspaceAdapters.active,adapterRoot=adapter?.root;
+      const root=adapterRoot?.querySelector("[data-page-workspace-root]"),board=adapterRoot?.querySelector("[data-workspace-artboard]"),page=board?.querySelector("#eh-EmptyHomeRoot");
+      const rootCount=document.querySelectorAll("[data-page-workspace-root]").length;
+      need(adapter&&root&&board&&page,`ACTIVE_WORKSPACE_DOM_MISSING: adapter=${Boolean(adapter)} adapter_root=${adapterRoot?.id||adapterRoot?.className||"missing"} root_count=${rootCount} adapter_root_html=${adapterRoot?.innerHTML?.slice(0,1200)||""}`);
+      need(rootCount===1,`WORKSPACE_ROOT_AMBIGUOUS: count=${rootCount}`);
+      need(adapter.sourceSha===root.dataset.sourceSha&&root.dataset.sourceSha===expectedSha,`ACTIVE_WORKSPACE_SHA_MISMATCH: adapter=${adapter.sourceSha} root=${root.dataset.sourceSha} expected=${expectedSha}`);
       const tree=await window.PageWorkspaceAdapters.loadComponentTree();
       const authority=await window.PageWorkspaceAdapters.loadAuthority(root.dataset.sourceSha);
       const viewportAuthorityId=authority.envelope.viewport_inputs?.viewport_authority_ref_id;
@@ -109,6 +126,8 @@ async function main() {
       const responsive=await window.PageWorkspaceAdapters.active.loadAuthorityDocument(viewportAuthority.path,viewportAuthority.sha256);
       need(Array.isArray(responsive.responsive_profiles_to_verify)&&responsive.responsive_profiles_to_verify.length>0,"PAGE_VIEWPORT_PROFILE_MISSING");
       need(Array.isArray(responsive.font_scale_profiles)&&responsive.font_scale_profiles.length>0,"PAGE_FONT_SCALE_PROFILE_MISSING");
+      const liveBoard=adapterRoot.querySelector("[data-workspace-artboard]");
+      need(liveBoard===board&&board.isConnected,`ACTIVE_WORKSPACE_ARTBOARD_CHANGED: connected=${Boolean(board.isConnected)} active_board=${Boolean(liveBoard)} root_count=${document.querySelectorAll("[data-page-workspace-root]").length}`);
       const rows=window.PageWorkspaceAdapters.measureElements();
       const resources=window.PageWorkspaceAdapters.getResourceDiagnostics();
       const imageLoads=[...board.querySelectorAll("img")].map(image=>({id:image.id||null,complete:image.complete,natural_width:image.naturalWidth,natural_height:image.naturalHeight}));
