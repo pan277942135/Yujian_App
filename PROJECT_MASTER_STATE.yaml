@@ -91,7 +91,7 @@ apk_and_evidence:
 current_work:
   id: W5 Empty Home P0 screenshot, geometry and authority repair
   phase: P3
-  task_id: YUJIAN_PAGE_FREEZE_PIPELINE_W5_EMPTY_HOME_PILOT_V1
+  task_id: YUJIAN_W5_EMPTY_HOME_P0_CAPTURE_PROMPT_BUTTON_BOBBER_REPAIR_V1
   exact_head: ea24bb36e3e970cd5cd03a7f58cec2bff1ce6bba
 blockers:
 - id: W2_WORKFLOW_SHA_AUTHORITY_MISMATCH
@@ -131,10 +131,30 @@ completion_rules:
   acceptance: Keep USER_VISUAL_ACCEPTANCE_PENDING until explicit product-owner approval.
   native: Keep NATIVE_RUNTIME_NOT_VERIFIED.
 state_update:
-  updated_at: '2026-10-28T00:00:00Z'
-  reason: W5 screenshot capture method, camera fit, typography/brand disclosure, matrix,
-    DOM geometry and authority audit prepared for exact-source CI.
+  updated_at: '2026-10-28T07:30:28Z'
+  reason: Corrected isolated screenshot capture, font matrix, clean selection state, live DOM geometry, icon/brand authority and lifecycle report prepared for exact-source CI; browser execution remains pending.
 agent_recovery:
-  checkpoint: G5
-  resume_from: Validate exact source SHA through GitHub Actions; preserve W2 and brand/icon
-    authority blockers.
+  checkpoint: G5_SUPPLEMENT
+  resume_from: Run exact-HEAD W1/W2/W4/W5 and PR-only Pages checks; preserve W2, icon and brand authority blockers.
+
+visual_evidence:
+  formal_viewports:
+  - 320x640
+  - 360x780
+  - 393x852
+  - 411x891
+  font_scales:
+  - 1.0
+  - 1.3
+  - 1.5
+  expected_cases: 36
+  status: NOT_RUN
+  clean_screenshot_capture: IMPLEMENTED_PENDING_EXACT_SHA_CI
+  overlay_and_difference: NOT_RUN
+  actual_dom_geometry: NOT_RUN
+  visual_acceptance: USER_VISUAL_ACCEPTANCE_PENDING
+resource_authority:
+  brand_wordmark: BLOCKED_AUTHORITY_GAP
+  gallery_icon_sha256: 5798abbdaad45305fe9ed5a578868247925d2d95644c8ea2559f446c1f069fda
+  chevron_right_icon_sha256: 3d8c0bf43500c40b636a08f50d6fedf4d5f0ae2fd984a7e6c16cd03f4130d4a9
+  lifecycle_conflict: REVIEW_CONFLICT_WITH_APPROVED_V22_AUTHORITY
