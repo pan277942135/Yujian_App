@@ -524,7 +524,7 @@ async function main() {
         const lineStart=linePath&&lineLength?pointToBoard(linePath.getPointAtLength(0)):null;
         const lineEnd=linePath&&lineLength?pointToBoard(linePath.getPointAtLength(lineLength)):null;
         const contactRect=document.querySelector("#eh-WaterContact")?.getBoundingClientRect();
-        const contactPoint=contactRect?{left:contactRect.left-boardRect.left,top:contactRect.top-boardRect.top}:null;
+        const contactPoint=contactRect?{x:contactRect.left-boardRect.left,y:contactRect.top-boardRect.top}:null;
         const lineEndContactGap=lineEnd&&contactPoint?Math.hypot(lineEnd.x-contactPoint.x,lineEnd.y-contactPoint.y):null;
         const bobberContact={horizontal_inside:contact&&bobber?contact.x>=bobber.x-.5&&contact.x<=bobber.right+.5:false,
           vertical_gap:contact&&bobber?Math.abs(contact.y-bobber.bottom):null};
