@@ -136,7 +136,7 @@ async function main() {
     baseEvidence.candidate_url=args.url?`${managerUrl}${ROUTE}`:null;
     await page.goto(`${managerUrl}${ROUTE}`,{waitUntil:"domcontentloaded",timeout:45000});
     await waitReady(page,expectedSha);
-    const preflight=await page.evaluate(async()=>{
+    const preflight=await page.evaluate(async expectedSha=>{
       const need=(condition,message)=>{if(!condition)throw new Error(message);};
       const adapter=window.PageWorkspaceAdapters.active,adapterRoot=adapter?.root;
       const root=adapterRoot?.querySelector("[data-page-workspace-root]"),board=adapterRoot?.querySelector("[data-workspace-artboard]"),page=board?.querySelector("#eh-EmptyHomeRoot");
@@ -169,7 +169,7 @@ async function main() {
         treeNodeCount:tree.nodes.length,measuredCount:rows.length,treeNodes:tree.nodes.map(node=>({id:node.nodeId,parent:node.parentId,visible:node.visible,measurable:node.measurable,renderedDomId:node.renderedDomId})),
         measurements:rows,resources,imageLoads,brokenImages,layoutMetrics:JSON.parse(board.dataset.layoutMetrics),rippleCount:Number(board.dataset.rippleCount),
         authorityGaps:Number(board.querySelector("#eh-EmptyHomeRoot").dataset.authorityGaps),referenceSha:board.dataset.visualReferenceSha};
-    });
+    },expectedSha);
     assert(preflight.pageId==="home_empty_v2"&&preflight.workspaceKind==="structured-dom-candidate","the page must be rendered by the shared structured DOM adapter");
     assert(preflight.treeNodeCount>=20,`expected full component tree, got ${preflight.treeNodeCount}`);
     assert(preflight.measuredCount===preflight.treeNodes.filter(node=>node.visible&&node.measurable).length,"every visible measurable tree node must map to actual DOM");
