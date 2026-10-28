@@ -98,7 +98,7 @@ phases:
     exit_condition: "Release-scope feature implementation reaches executable acceptance tasks."
     release_scope: "PRIMARY_PLUS_SECONDARY"
     feature_refs: ["home_normal_v1", "record_date_v2", "share_templates_v1", "auth_register_v2"]
-    task_refs: ["P6-01", "P6-02", "P6-03", "P6-04", "YUJIAN_NH01_ANDROID_FROZEN_V22_IMPLEMENTATION_REPAIR_WORK_B_V1", "YUJIAN_NH01_RESPONSIVE_V2_ANDROID_IMPLEMENTATION_AND_RUNTIME_ACCEPTANCE_V1"]
+    task_refs: ["P6-01", "P6-02", "P6-03", "P6-04", "YUJIAN_NH01_ANDROID_FROZEN_V22_IMPLEMENTATION_REPAIR_WORK_B_V1", "YUJIAN_NH01_RESPONSIVE_V2_ANDROID_IMPLEMENTATION_AND_RUNTIME_ACCEPTANCE_V1", "YUJIAN_ANDROID_FISH_CATCH_EFFECT01_UPWARD_SCAN_SHAKE_V1"]
   P7:
     name: "Integration / Full Surface"
     entry_condition: "Feature implementation is executable."
@@ -561,6 +561,19 @@ tasks:
     target_blockers: []
     evidence_required: ["camera_capture_handoff", "recognition_processing_state_sequence"]
     completion: "Recognition feature implementation is executable on the current baseline."
+    human_required: false
+  YUJIAN_ANDROID_FISH_CATCH_EFFECT01_UPWARD_SCAN_SHAKE_V1:
+    phase: "P6"
+    priority: "P0"
+    owner: "Work"
+    feature_refs: ["recognition_flow_v1_2"]
+    journey_refs: ["J05-J10"]
+    depends_on: ["P3-05", "P5-02"]
+    entry_blockers: []
+    target_blockers: []
+    gate_id: "G-ANDROID-EFFECT01-UPWARD-SCAN-SHAKE-V1"
+    evidence_required: ["frozen_effect01_parameter_contract", "native_equivalent_source_provenance", "shared_processing_clock_binding", "photo_session_lifecycle_regression_tests", "api28_canvas_compatibility", "build_unit_lint", "targeted_api28_runtime", "exact_head_apk_provenance"]
+    completion: "Integrate native Effect 01, the natural upward caustic surge and one photo shockwave into the existing Android recognition Processing scene; preserve event-gated Processing/RR09 authority and produce exact-head build, test, runtime and APK evidence. This task does not claim product-owner visual approval or release."
     human_required: false
   P6-03:
     phase: "P6"
