@@ -96,7 +96,7 @@ internal fun photoShockwaveTransform(
 ): PhotoShockwaveTransform {
     if (reduceMotion) return PhotoShockwaveTransform()
     val localMs = processingElapsedMs - PhotoShockwaveCalibration.triggerMs
-    if (localMs < 0L || localMs >= PhotoShockwaveCalibration.durationMs) {
+    if (localMs <= 0L || localMs >= PhotoShockwaveCalibration.durationMs) {
         return PhotoShockwaveTransform()
     }
 
