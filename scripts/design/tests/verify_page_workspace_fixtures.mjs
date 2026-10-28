@@ -9,9 +9,13 @@ const sourceSha = "42ad0d3fef23ea6576fd43dee781d253dcc11251";
 const pageId = "home_empty_v2";
 const verifier = resolve("scripts/design/verify_page_workspace.mjs");
 
-function shellHtml({ page = pageId, source = sourceSha, node = true, throwing = false, kind = "structured-page-adapter", disabled = false, viewState = "READY", errorText = null, badResource = false } = {}) {
-  const tree = `<button data-workspace-tree-node data-node-id="empty-scene" ${disabled ? "disabled" : ""}>Empty scene</button>`;
-  const rendered = node ? `<div data-workspace-rendered-node="empty-scene" style="width:120px;height:80px">scene</div>` : "";
+function shellHtml({ page = pageId, source = sourceSha, node = true, throwing = false, kind = "structured-page-adapter", disabled = false, blockedAuthority = false, viewState = "READY", errorText = null, badResource = false } = {}) {
+  const treeState = blockedAuthority ? "BLOCKED_AUTHORITY_GAP" : "READY";
+  const authorityStatus = blockedAuthority ? "BLOCKED_AUTHORITY_GAP" : "CURRENT";
+  const tree = `<button data-workspace-tree-node data-node-id="empty-scene" data-node-state="${treeState}" data-node-authority-status="${authorityStatus}" data-node-visible="${blockedAuthority ? "false" : "true"}" data-node-measurable="${blockedAuthority ? "false" : "true"}" data-node-selectable="${blockedAuthority || disabled ? "false" : "true"}" ${disabled || blockedAuthority ? "disabled" : ""}>Empty scene</button>`;
+  const rendered = node ? blockedAuthority
+    ? `<span hidden aria-hidden="true" data-workspace-rendered-node="empty-scene"></span>`
+    : `<div data-workspace-rendered-node="empty-scene" style="width:120px;height:80px">scene</div>` : "";
   return `<!doctype html><html><head><meta charset="utf-8"></head><body>
     <main data-page-workspace-root data-page-id="${page}" data-source-sha="${source}" data-workspace-kind="${kind}" data-view-state="${viewState}">
       ${tree}${rendered}<aside data-workspace-inspector data-selected-node-id="">Inspector</aside>
@@ -65,6 +69,7 @@ async function main() {
       : fixture === "reference-only-bad-response" ? shellHtml({ kind: "reference-image-only", viewState: "LOADING", badResource: true })
       : fixture === "structured-error" ? shellHtml({ viewState: "ERROR", errorText: "renderer failed" })
       : fixture === "disabled-node" ? shellHtml({ disabled: true })
+      : fixture === "blocked-authority-node" ? shellHtml({ blockedAuthority: true })
       : fixture === "page-error" ? shellHtml({ throwing: true })
       : shellHtml();
     response.writeHead(200, { "content-type": "text/html; charset=utf-8" }).end(html);
@@ -75,7 +80,7 @@ async function main() {
   const root = await mkdtemp(join(tmpdir(), "page-workspace-w4-test-"));
   let infrastructureBlocked = false;
   try {
-    for (const fixture of ["ok", "missing", "wrong-page", "missing-layer", "reference-only", "structured-error", "disabled-node", "page-error"]) {
+    for (const fixture of ["ok", "missing", "wrong-page", "missing-layer", "reference-only", "structured-error", "disabled-node", "blocked-authority-node", "page-error"]) {
       const outputDir = join(root, fixture);
       const code = await runVerifier(serverUrl, fixture, outputDir);
       const report = JSON.parse(await readFile(join(outputDir, "workspace-browser-report.json"), "utf8"));
@@ -93,6 +98,13 @@ async function main() {
         }
         if (!(await stat(join(outputDir, "workspace.png"))).size || !(await stat(join(outputDir, "workspace-dom.json"))).size) {
           throw new Error("successful workspace inspection omitted screenshot or DOM evidence");
+        }
+      }
+      if (fixture === "blocked-authority-node") {
+        if (report.result !== "PASS" || report.measured_node_count !== 0 || report.blocked_authority_nodes?.length !== 1
+          || report.blocked_authority_nodes[0].state !== "BLOCKED_AUTHORITY_GAP"
+          || report.page_acceptance !== "NOT_VERIFIED") {
+          throw new Error(`explicit hidden authority gap must remain recorded without becoming visual acceptance; report=${JSON.stringify(report)}`);
         }
       }
     }
@@ -117,7 +129,7 @@ async function main() {
       process.exitCode = 2;
       return;
     }
-    console.log("PAGE_WORKSPACE_VERIFIER_FIXTURES=PASS cases=10 reference_only=NOT_RUN reference_only_errors=FAIL");
+    console.log("PAGE_WORKSPACE_VERIFIER_FIXTURES=PASS cases=11 reference_only=NOT_RUN reference_only_errors=FAIL");
   } finally {
     await new Promise(resolvePromise => browser.close(resolvePromise));
     await rm(root, { recursive: true, force: true });

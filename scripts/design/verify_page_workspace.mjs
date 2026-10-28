@@ -122,15 +122,37 @@ async function main() {
     const nodes = await page.locator("[data-workspace-tree-node]").evaluateAll(elements => elements.map(node => ({
       nodeId: node.dataset.nodeId || node.dataset.workspaceNodeId || null,
       label: node.textContent?.trim() || null,
+      state: node.dataset.nodeState || null,
+      authorityStatus: node.dataset.nodeAuthorityStatus || null,
+      visible: node.dataset.nodeVisible === "true",
+      measurable: node.dataset.nodeMeasurable === "true",
+      selectable: node.dataset.nodeSelectable === "true",
       disabled: Boolean(node.disabled)
     })));
     assert(nodes.length > 0, "workspace component tree is empty");
     const measured = [];
+    const blockedAuthorityNodes = [];
     for (const row of nodes) {
       assert(row.nodeId, "component tree contains a node without a stable node ID");
-      assert(!row.disabled, `component tree node ${row.nodeId} is disabled and cannot be selected in the actual workspace`);
       const target = page.locator(`[data-workspace-rendered-node="${row.nodeId.replaceAll('"', '\\"')}"]`);
       assert(await target.count() === 1, `tree node ${row.nodeId} does not map to exactly one rendered DOM node`);
+      if (row.state === "BLOCKED_AUTHORITY_GAP") {
+        assert(row.disabled && !row.selectable && !row.visible && !row.measurable
+          && row.authorityStatus === "BLOCKED_AUTHORITY_GAP",
+        `blocked node ${row.nodeId} must remain explicitly hidden, unmeasurable, unselectable, and authority-blocked`);
+        const availability = await target.first().evaluate(node => {
+          const style = getComputedStyle(node);
+          const rect = node.getBoundingClientRect();
+          return { hidden: node.hidden, ariaHidden: node.getAttribute("aria-hidden"), display: style.display,
+            visibility: style.visibility, width: rect.width, height: rect.height };
+        });
+        assert(availability.hidden || availability.ariaHidden === "true" || availability.display === "none"
+          || availability.visibility === "hidden" || (availability.width === 0 && availability.height === 0),
+        `blocked node ${row.nodeId} is rendered visibly despite its authority status`);
+        blockedAuthorityNodes.push({ ...row, renderedDomId: await target.first().getAttribute("id"), availability });
+        continue;
+      }
+      assert(!row.disabled && row.selectable, `component tree node ${row.nodeId} is disabled and cannot be selected in the actual workspace`);
       await page.locator(`[data-workspace-tree-node][data-node-id="${row.nodeId.replaceAll('"', '\\"')}"]`).first().click();
       const inspector = page.locator("[data-workspace-inspector]");
       await inspector.waitFor({ state: "visible", timeout: 10000 });
@@ -149,7 +171,7 @@ async function main() {
       horizontalOverflow: document.documentElement.scrollWidth > window.innerWidth
     }));
     await page.screenshot({ path: screenshotPath, fullPage: true });
-    const dom = { page_id: args.pageId, source_sha: args.sourceSha, route, viewport: { width: 1440, height: 1000, unit: "css_px" }, workspace: rootInfo, nodes: measured, overflow };
+    const dom = { page_id: args.pageId, source_sha: args.sourceSha, route, viewport: { width: 1440, height: 1000, unit: "css_px" }, workspace: rootInfo, nodes: measured, blocked_authority_nodes: blockedAuthorityNodes, overflow };
     await writeFile(domPath, `${JSON.stringify(dom, null, 2)}\n`, "utf8");
     if (overflow.horizontalOverflow) errors.push(`horizontal overflow: document ${overflow.documentWidth}px > viewport ${overflow.viewportWidth}px`);
     if (failedRequests.length) errors.push(`failed browser requests: ${failedRequests.length}`);
@@ -158,7 +180,7 @@ async function main() {
       schema_version: "1.0", page_id: args.pageId, source_sha: args.sourceSha, candidate_url: route,
       result: errors.length ? "FAIL" : "PASS", visual_result: "MEASUREMENT_ONLY_NOT_VISUAL_PASS",
       page_acceptance: "NOT_VERIFIED", workspace: rootInfo, tree_node_count: nodes.length,
-      measured_node_count: measured.length, overflow, console_errors: errors,
+      measured_node_count: measured.length, blocked_authority_nodes: blockedAuthorityNodes, overflow, console_errors: errors,
       failed_requests: failedRequests, bad_responses: badResponses,
       screenshot_path: screenshotPath, screenshot_sha256: hash(await readFile(screenshotPath)),
       dom_path: domPath, dom_sha256: hash(await readFile(domPath)),

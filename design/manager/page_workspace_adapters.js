@@ -442,7 +442,7 @@
 
     function treeMarkup(node) {
       const children = node.children.map(treeMarkup).join("");
-      const treeButton = `<button type="button" data-workspace-tree-node data-node-id="${escapeHtml(node.nodeId)}" data-node-state="${escapeHtml(node.state)}" aria-pressed="false"${node.selectable ? "" : " disabled"}>${escapeHtml(node.label)} <small>${escapeHtml(node.componentType)} · ${escapeHtml(node.state)}</small></button>`;
+      const treeButton = `<button type="button" data-workspace-tree-node data-node-id="${escapeHtml(node.nodeId)}" data-node-state="${escapeHtml(node.state)}" data-node-authority-status="${escapeHtml(node.authorityRef?.status || "UNVERIFIED")}" data-node-visible="${node.visible ? "true" : "false"}" data-node-measurable="${node.measurable ? "true" : "false"}" data-node-selectable="${node.selectable ? "true" : "false"}" aria-pressed="false"${node.selectable ? "" : " disabled"}>${escapeHtml(node.label)} <small>${escapeHtml(node.componentType)} · ${escapeHtml(node.state)}</small></button>`;
       const childrenToggle = children
         ? `<button type="button" data-workspace-tree-toggle aria-expanded="true" aria-label="折叠 ${escapeHtml(node.label)} 的子图层">−</button>` : "";
       return `<li data-workspace-tree-item="${escapeHtml(node.nodeId)}"><div class="page-ws-tree-row">${treeButton}${childrenToggle}</div>${children ? `<ul data-workspace-tree-children>${children}</ul>` : ""}</li>`;
