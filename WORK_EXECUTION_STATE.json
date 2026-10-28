@@ -1,0 +1,61 @@
+{
+  "$schema": "./harness/WORK_EXECUTION_STATE_SCHEMA_V1.json",
+  "schema_version": "1.0",
+  "work_id": "YUJIAN_PAGE_FREEZE_PIPELINE_W5_W4_EVIDENCE_AND_ISOLATED_PREVIEW_RECOVERY_V3",
+  "repository": "pan277942135/Yujian_App",
+  "branch": "work-state/w5-empty-home-pilot-v1",
+  "related_pr": 234,
+  "control_plane_revision": "632cada103bf022adeb873bd6e66464555b509e4",
+  "base_branch": "main",
+  "base_sha": "632cada103bf022adeb873bd6e66464555b509e4",
+  "phase": "P3",
+  "task_id": "YUJIAN_PAGE_FREEZE_PIPELINE_W5_EMPTY_HOME_PILOT_V1",
+  "stage": "G0_STATE_RECOVERY_AND_PRODUCT_ADMISSION",
+  "status": "BLOCKED",
+  "source_sha": "5ba86fd8d1142d4708d1b8f9e6ddc81cbc96ccf6",
+  "checkpoint_updated_at": "2026-10-28T09:53:07.090Z",
+  "next_action": "Run workflow_dispatch for .github/workflows/control-plane-admission.yml with ref work-state/w5-empty-home-pilot-v1. Require PRODUCT_WORK mode and CONTROL_PLANE_ADMISSION=PASS on this state branch, whose source_sha is the exact PR #234 candidate SHA 5ba86fd8d1142d4708d1b8f9e6ddc81cbc96ccf6. Only then apply the W4 workspace-scope repair to PR #234 and rerun exact-SHA browser verification.",
+  "dependencies": [
+    "YUJIAN_PAGE_FREEZE_PIPELINE_W3_DESIGN_MANAGER_ADAPTER_V1",
+    "YUJIAN_PAGE_FREEZE_PIPELINE_W4_TEST_EVIDENCE_V1"
+  ],
+  "blockers": [
+    "Product-work Admission has not been run in PRODUCT_WORK mode; the PR pull_request event runs canonical-promotion mode and cannot substitute for it.",
+    "W4 exact-SHA evidence run 40657928278 failed on old candidate SHA dae5e54c761cb424eee4144f4009436a12e2cb80 because the workspace tree selected a disabled page node; preserve this failure and repair the verifier scope.",
+    "Main SHA 632cada103bf022adeb873bd6e66464555b509e4 has a cancelled Design Manager Pages run 40666041684; latest Main is not yet confirmed deployed to the production root."
+  ],
+  "evidence": {
+    "candidate_pr": 234,
+    "candidate_source_sha": "5ba86fd8d1142d4708d1b8f9e6ddc81cbc96ccf6",
+    "candidate_pr_url": "https://github.com/pan277942135/Yujian_App/pull/234",
+    "current_w4_run": {
+      "run_id": 40667570169,
+      "status": "IN_PROGRESS_AT_CHECKPOINT",
+      "url": "https://github.com/pan277942135/Yujian_App/actions/runs/40667570169",
+      "source_sha": "5ba86fd8d1142d4708d1b8f9e6ddc81cbc96ccf6"
+    },
+    "current_w5_run": {
+      "run_id": 40667570176,
+      "status": "IN_PROGRESS_AT_CHECKPOINT",
+      "url": "https://github.com/pan277942135/Yujian_App/actions/runs/40667570176",
+      "source_sha": "5ba86fd8d1142d4708d1b8f9e6ddc81cbc96ccf6"
+    },
+    "previous_w4_failure": {
+      "run_id": 40657928278,
+      "status": "FAIL",
+      "url": "https://github.com/pan277942135/Yujian_App/actions/runs/40657928278",
+      "source_sha": "dae5e54c761cb424eee4144f4009436a12e2cb80"
+    },
+    "previous_w5_matrix": {
+      "run_id": 40657928162,
+      "status": "HISTORICAL_PASS",
+      "url": "https://github.com/pan277942135/Yujian_App/actions/runs/40657928162",
+      "source_sha": "dae5e54c761cb424eee4144f4009436a12e2cb80"
+    },
+    "main_authority_sync": {
+      "merge_commit_sha": "5ba86fd8d1142d4708d1b8f9e6ddc81cbc96ccf6",
+      "main_sha": "632cada103bf022adeb873bd6e66464555b509e4",
+      "status": "MERGED_AS_NON_FORCE_MERGE"
+    }
+  }
+}
