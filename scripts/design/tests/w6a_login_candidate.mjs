@@ -190,7 +190,22 @@ async function main() {
     });
     await page.addInitScript(({ exactSourceSha }) => { document.documentElement.dataset.sourceSha = exactSourceSha; }, { exactSourceSha: sourceSha });
     await page.goto(candidateUrl, { waitUntil: "networkidle" });
-    await page.waitForFunction(() => document.documentElement.dataset.loginCandidateReady === "true", { timeout: 30000 });
+    try {
+      await page.waitForFunction(() => document.documentElement.dataset.loginCandidateReady === "true", { timeout: 30000 });
+    } catch (error) {
+      const bootFailure = await page.evaluate(() => ({
+        url: location.href,
+        ready: document.documentElement.dataset.loginCandidateReady || null,
+        status: document.querySelector("#login-boot-status")?.textContent || null,
+        mount_text: document.querySelector("#workspace-mount")?.innerText || null,
+        page_title: document.title
+      }));
+      const diagnostic = { page_id: "auth_login_v2", source_sha: sourceSha, run_id: runId,
+        error: String(error?.stack || error), boot_failure: bootFailure, browser_errors: browserErrors };
+      await fs.writeFile(path.join(evidenceDir, "login-candidate-boot-failure.json"), `${JSON.stringify(diagnostic, null, 2)}\n`);
+      await page.screenshot({ path: path.join(screenshotDir, "login-candidate-boot-failure.png"), fullPage: true }).catch(() => {});
+      throw new Error(`LOGIN_CANDIDATE_BOOT_FAILED ${JSON.stringify(diagnostic)}`);
+    }
     await page.evaluate(() => document.fonts.ready);
     await page.locator("#login-LoginPageRoot").waitFor({ state: "visible" });
 
