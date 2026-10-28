@@ -391,33 +391,46 @@ async function main() {
       await page.goto(url,{waitUntil:"domcontentloaded",timeout:45000});
       await page.locator("#pageList .module-item").first().waitFor({state:"visible",timeout:30000});
       await page.waitForFunction(()=>{
-        const host=window.PageWorkspaceAdapters?.active?.root;
-        const workspace=host?.querySelector("[data-page-workspace-root]");
-        return workspace?.getClientRects().length>0;
+        const canvas=document.querySelector("#hifiViewCanvas");
+        return Boolean(canvas?.getClientRects().length>0);
       },null,{timeout:30000});
       try {
         await page.waitForFunction(()=>{
-          const host=window.PageWorkspaceAdapters?.active?.root;
-          const workspace=host?.querySelector("[data-page-workspace-root]");
-          const error=host?.querySelector("[data-workspace-error]");
-          return workspace?.dataset.viewState==="ERROR"&&error&&!error.hidden;
+          const canvas=document.querySelector("#hifiViewCanvas");
+          const workspace=canvas?.querySelector("[data-page-workspace-root]");
+          const workspaceError=canvas?.querySelector("[data-workspace-error]");
+          const loadError=canvas?.querySelector(".page-ws-load-error");
+          const workspaceFailed=workspace?.dataset.viewState==="ERROR"&&workspaceError&&!workspaceError.hidden;
+          const loadFailed=loadError&&loadError.getClientRects().length>0&&loadError.innerText.trim().length>0;
+          return Boolean(workspaceFailed||loadFailed);
         },null,{timeout:45000});
       } catch(error) {
         const diagnostic=await page.evaluate(()=>{
           const adapter=window.PageWorkspaceAdapters?.active;
-          const host=adapter?.root;
-          const workspace=host?.querySelector("[data-page-workspace-root]");
-          const errorNode=host?.querySelector("[data-workspace-error]");
+          const canvas=document.querySelector("#hifiViewCanvas");
+          const workspace=canvas?.querySelector("[data-page-workspace-root]");
+          const errorNode=canvas?.querySelector("[data-workspace-error]");
+          const loadError=canvas?.querySelector(".page-ws-load-error");
           return {page_id:adapter?.pageId||null,source_sha:adapter?.sourceSha||null,
-            active_root_connected:Boolean(host?.isConnected),workspace_count:document.querySelectorAll("[data-page-workspace-root]").length,
+            active_root_connected:Boolean(adapter?.root?.isConnected),workspace_count:document.querySelectorAll("[data-page-workspace-root]").length,
             view_state:workspace?.dataset.viewState||null,error_visible:Boolean(errorNode&&!errorNode.hidden),
-            error_text:errorNode?.innerText||null};
+            error_text:errorNode?.innerText||null,load_error_visible:Boolean(loadError?.getClientRects().length),
+            load_error_text:loadError?.innerText||null,canvas_text:canvas?.innerText?.slice(0,1200)||null};
         });
         throw new Error(`${label}: expected active workspace fail-closed state was not observed: ${error.message}; diagnostics=${JSON.stringify(diagnostic)}`);
       }
-      const message=await page.evaluate(()=>window.PageWorkspaceAdapters.active.root.querySelector("[data-workspace-error]").innerText);
+      const failure=await page.evaluate(()=>{
+        const canvas=document.querySelector("#hifiViewCanvas");
+        const workspace=canvas?.querySelector("[data-page-workspace-root]");
+        const workspaceError=canvas?.querySelector("[data-workspace-error]");
+        const loadError=canvas?.querySelector(".page-ws-load-error");
+        return workspace?.dataset.viewState==="ERROR"&&workspaceError&&!workspaceError.hidden
+          ? {scope:"structured_workspace",message:workspaceError.innerText}
+          : {scope:"page_loader",message:loadError?.innerText||""};
+      });
+      const message=failure.message;
       assert(message.length>0,`${label}: no explicit fail-closed reason was reported`);
-      baseEvidence.negative_cases.push({case:label,result:"EXPECTED_FAIL_CLOSED",error:message});
+      baseEvidence.negative_cases.push({case:label,result:"EXPECTED_FAIL_CLOSED",error_scope:failure.scope,error:message});
       await page.unrouteAll({behavior:"ignoreErrors"});
     };
     const routeForAsset=(pattern,handler)=>async route=>{
