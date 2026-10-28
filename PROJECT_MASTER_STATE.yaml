@@ -14,7 +14,7 @@ state_control:
   current_head: "5ba86fd8d1142d4708d1b8f9e6ddc81cbc96ccf6"
   current_main_head_sha: "632cada103bf022adeb873bd6e66464555b509e4"
   state_status: "BLOCKED"
-  updated_at: "2026-10-28T09:53:45.714Z"
+  updated_at: "2026-10-28T09:57:32.748Z"
 source_of_truth:
   current_work_state: "WORK_EXECUTION_STATE.json"
   canonical_control_plane: "CONTROL_PLANE_REGISTRY.yaml"
@@ -107,11 +107,11 @@ runtime_gates:
     note: "Current PR #234 code candidate; state-only commits on the Work branch do not promote browser or runtime evidence."
   page_evidence:
     w4:
-      status: "IN_PROGRESS"
+      status: "FAIL"
       run_id: 40667570169
       source_sha: "5ba86fd8d1142d4708d1b8f9e6ddc81cbc96ccf6"
     w5_matrix:
-      status: "IN_PROGRESS"
+      status: "PASS"
       run_id: 40667570176
       source_sha: "5ba86fd8d1142d4708d1b8f9e6ddc81cbc96ccf6"
     historical_w4_failure:
@@ -146,16 +146,16 @@ blockers:
   - id: "W5-BLOCKER-W4-WORKSPACE-SCOPE"
     severity: "P0"
     area: "W4 Evidence"
-    condition: "W4 exact-HEAD run 40657928278 failed on prior candidate SHA dae5e54c761cb424eee4144f4009436a12e2cb80 after selecting a disabled page tree node."
+    condition: "W4 run 40667570169 on exact candidate SHA 5ba86fd8d1142d4708d1b8f9e6ddc81cbc96ccf6 failed: home_normal_v1 browser report FAIL, home_empty_v2 PASS, auth_login_v2 NOT_RUN. The 11 verifier fixture tests passed, but that is not the actual page workspace gate."
     affected_gate: "G-PAGE-FREEZE-PIPELINE-W4-TEST-EVIDENCE"
-    unblock_condition: "After product-work Admission PASS, apply the preserved scope-repair patch; real Chromium fixtures and W4 Evidence must pass on the new exact SHA."
+    unblock_condition: "After product-work Admission PASS, apply the preserved scope-repair patch; rerun real Chromium workspace checks and W4 Evidence on the new exact SHA."
     status: "OPEN"
   - id: "W5-BLOCKER-MAIN-PAGES-SHA"
     severity: "P1"
     area: "Production Pages"
-    condition: "Main SHA 632cada103bf022adeb873bd6e66464555b509e4 has a cancelled Design Manager Pages run 40666041684; current production root has not been confirmed at this Main SHA."
+    condition: "Main SHA 632cada103bf022adeb873bd6e66464555b509e4 has a cancelled Design Manager Pages run 40666041684; PR candidate Pages run 40667570170 is queued. Current production root is not confirmed at latest Main."
     affected_gate: "Live root SHA and isolated preview integrity"
-    unblock_condition: "Confirm live build.json and matching Main Pages artifact before any preview step that requires the current Main root; do not infer deployment from build success."
+    unblock_condition: "Observe candidate Pages run and verify its live-root SHA/artifact match before declaring isolated preview delivered; do not infer deployment from a queued build."
     status: "OPEN"
 protected_invariants:
   evidence_integrity:
