@@ -127,6 +127,13 @@ shared_contracts:
     domain: "DOMAIN"
     status: "ACTIVE_CLOSURE"
     refs: ["design/pages/recognition/continuity/Processing_Result_Optical_Continuity_Contract_V1.md", "design/pages/recognition/continuity/processing_result_optical_continuity_v1.json"]
+  ANDROID-EFFECT01-UPWARD-SCAN-SHAKE-V1:
+    domain: "DOMAIN"
+    status: "ACTIVE_CLOSURE"
+    implementation_values_status: "FROZEN"
+    runtime_status: "NOT_VERIFIED"
+    owner_visual_acceptance: "CANDIDATE_NOT_VISUALLY_APPROVED"
+    refs: ["design/pages/recognition/processing/optics/Android_Effect01_Upward_Caustic_Integration_V1.md", "design/pages/recognition/processing/optics/SWOS_Optical_Contract_V1.md", "design/pages/recognition/processing/motion/Recognition_Processing_Motion_Spec_V1_3.md"]
   WEB-RECOGNITION-HIFI-V2:
     domain: "DOMAIN"
     status: "ACTIVE_CLOSURE"
@@ -480,7 +487,7 @@ feature_contracts:
 
 
     shared_contract_refs: ["DS-FOUNDATION", "ANDROID-RUNTIME-HARNESS", "STATE-EVIDENCE-PROVENANCE"]
-    additional_shared_contract_refs: ["MODEL-RECOGNITION", "API-DATA-BOUNDARY", "RECOGNITION-OPTICAL-CONTINUITY", "SWOS-WEB-HIFI-MOTION-V1", "FISHTRACE-SITES-WEB-INTERACTION-V1"]
+    additional_shared_contract_refs: ["MODEL-RECOGNITION", "API-DATA-BOUNDARY", "RECOGNITION-OPTICAL-CONTINUITY", "SWOS-WEB-HIFI-MOTION-V1", "FISHTRACE-SITES-WEB-INTERACTION-V1", "ANDROID-EFFECT01-UPWARD-SCAN-SHAKE-V1"]
     required_gate_classes: ["STATIC_CONTRACT", "BUILD", "RUNTIME", "VISUAL", "MOTION_ACCESSIBILITY", "JOURNEY_E2E", "APK_PROVENANCE"]
   recognition_result_v1:
     contract_id: "FC-recognition_result_v1"
@@ -1627,6 +1634,11 @@ gate_contracts:
     contract_refs: ["FC-recognition_flow_v1_2", "FC-recognition_result_v1", "MODEL-RECOGNITION"]
     acceptance_domains: ["runtime", "evidence"]
     exact_sha_required: true
+  G-ANDROID-EFFECT01-UPWARD-SCAN-SHAKE-V1:
+    purpose: "Exact-source Android implementation and targeted runtime evidence for the supplementary Effect 01, natural upward caustic surge and bounded photo shockwave contract; does not replace owner visual review, N002, N001 or release gates."
+    contract_refs: ["FC-recognition_flow_v1_2", "ANDROID-EFFECT01-UPWARD-SCAN-SHAKE-V1", "ANDROID-RUNTIME-HARNESS", "STATE-EVIDENCE-PROVENANCE"]
+    acceptance_domains: ["implementation", "build", "unit_test", "lint", "runtime", "evidence", "apk_provenance"]
+    exact_sha_required: true
   G-J01-J20:
     purpose: "End-to-end primary journey J01-J20"
     contract_refs: ["FC-home_empty_v2", "FC-home_normal_v1", "FC-recognition_flow_v1_2", "FC-recognition_result_v1", "FC-fish_record_detail_v2", "FC-fish_memory_bside_v1"]
@@ -1715,6 +1727,10 @@ task_contract_bindings:
   YUJIAN_NH01_RESPONSIVE_V2_ANDROID_IMPLEMENTATION_AND_RUNTIME_ACCEPTANCE_V1:
     contract_refs: ["FC-home_normal_v1", "ANDROID-RUNTIME-HARNESS", "STATE-EVIDENCE-PROVENANCE", "G-NH01-RESPONSIVE-V2-ANDROID-RUNTIME-V1"]
     gate_id: "G-NH01-RESPONSIVE-V2-ANDROID-RUNTIME-V1"
+    phase: "P6"
+  YUJIAN_ANDROID_FISH_CATCH_EFFECT01_UPWARD_SCAN_SHAKE_V1:
+    contract_refs: ["FC-recognition_flow_v1_2", "ANDROID-EFFECT01-UPWARD-SCAN-SHAKE-V1", "ANDROID-RUNTIME-HARNESS", "STATE-EVIDENCE-PROVENANCE", "G-ANDROID-EFFECT01-UPWARD-SCAN-SHAKE-V1"]
+    gate_id: "G-ANDROID-EFFECT01-UPWARD-SCAN-SHAKE-V1"
     phase: "P6"
   NH01-RESPONSIVE-CONTRACT-V2:
     contract_refs: ["FC-home_normal_v1", "RESPONSIVE-LAYOUT-STANDARD-V1", "G-NH01-RESPONSIVE-CONTRACT-V2"]
@@ -1984,9 +2000,9 @@ inventory:
   journey_count: 20
   child_surface_count: 81
   route_count: 22
-  task_count: 60
-  gate_count: 26
+  task_count: 61
+  gate_count: 27
   registry_created_from_pr_head: "ebb6b3904feaa0cf26b4fd4b83bc809a397085a2"
-  last_synced_feature_matrix_sha: "9a37127ce83d646988793fb31614fc27a5337b54"
-  last_synced_phase_task_state_machine_sha: "e890464c27400e24f01043a1a159f0427685a32f"
+  last_synced_feature_matrix_sha: "b1bebf9e662c45aa748b2649bf844b64a3798d94"
+  last_synced_phase_task_state_machine_sha: "5202c858651603659e33cf85ef946914383b6b90"
   last_synced_experience_registry_sha: "47be44ca3cbce908fa676e262987fe26a8dbea32"
