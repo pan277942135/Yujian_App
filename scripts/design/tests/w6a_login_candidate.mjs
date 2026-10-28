@@ -176,7 +176,7 @@ async function main() {
   let browser;
   try {
     browser = await chromium.launch({ headless: true });
-    const context = await browser.newContext({ viewport: { width: 1800, height: 1700 }, deviceScaleFactor: 1 });
+    const context = await browser.newContext({ viewport: { width: 1800, height: 2500 }, deviceScaleFactor: 1 });
     const page = await context.newPage();
     page.on("console", message => { if (message.type() === "error") browserErrors.console.push(message.text()); });
     page.on("pageerror", error => browserErrors.page.push(String(error?.stack || error)));
@@ -381,6 +381,12 @@ async function main() {
     if (!comparisonBounds || comparisonBounds.width !== 864 || comparisonBounds.height !== 1536) {
       throw new Error(`LOGIN_COMPARISON_CANVAS_BOUNDS_INVALID ${JSON.stringify(comparisonBounds)}`);
     }
+    const captureViewport = page.viewportSize();
+    if (comparisonBounds.x < 0 || comparisonBounds.y < 0 ||
+        comparisonBounds.x + comparisonBounds.width > captureViewport.width ||
+        comparisonBounds.y + comparisonBounds.height > captureViewport.height) {
+      throw new Error(`LOGIN_COMPARISON_CANVAS_CLIPPED_BY_CAPTURE_VIEWPORT ${JSON.stringify({ comparisonBounds, captureViewport })}`);
+    }
     // Capture the exact measured artboard rectangle. Locator screenshots round
     // fractional document coordinates outward, which can add a spurious pixel
     // even when the rendered canvas is exactly 864x1536 CSS px. This clip keeps
@@ -389,6 +395,7 @@ async function main() {
     const comparisonCapture = {
       method: "browser screenshot clipped to measured LoginPageRoot CSS bounds",
       css_bounds: comparisonBounds,
+      capture_viewport_css_px: captureViewport,
       output_canvas_css_px: [864, 1536],
       resizing: "NONE",
       visual_review_status: "MEASUREMENT_ONLY_NOT_VISUAL_PASS"
