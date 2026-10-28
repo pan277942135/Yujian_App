@@ -13,7 +13,7 @@
   "stage": "G0_STATE_RECOVERY_AND_PRODUCT_ADMISSION",
   "status": "BLOCKED",
   "source_sha": "5ba86fd8d1142d4708d1b8f9e6ddc81cbc96ccf6",
-  "checkpoint_updated_at": "2026-10-28T09:57:32.748Z",
+  "checkpoint_updated_at": "2026-10-28T10:00:47.687Z",
   "next_action": "Run workflow_dispatch for .github/workflows/control-plane-admission.yml with ref work-state/w5-empty-home-pilot-v1. Require PRODUCT_WORK mode and CONTROL_PLANE_ADMISSION=PASS on this state branch, whose source_sha is the exact PR #234 candidate SHA 5ba86fd8d1142d4708d1b8f9e6ddc81cbc96ccf6. Only then apply the W4 workspace-scope repair to PR #234 and rerun exact-SHA browser verification.",
   "dependencies": [
     "YUJIAN_PAGE_FREEZE_PIPELINE_W3_DESIGN_MANAGER_ADAPTER_V1",
@@ -72,9 +72,17 @@
     },
     "isolated_preview": {
       "run_id": 40667570170,
-      "status": "QUEUED",
+      "status": "IN_PROGRESS",
       "url": "https://github.com/pan277942135/Yujian_App/actions/runs/40667570170",
-      "source_sha": "5ba86fd8d1142d4708d1b8f9e6ddc81cbc96ccf6"
+      "source_sha": "5ba86fd8d1142d4708d1b8f9e6ddc81cbc96ccf6",
+      "checkpoint": {
+        "live_root_sha_matched_artifact": "PASS",
+        "candidate_preview_composition": "PASS",
+        "candidate_preview_path_verification": "PASS",
+        "w2_final_bundle_resource_validation": "PASS",
+        "empty_home_real_dom_matrix": "IN_PROGRESS",
+        "deployment": "NOT_YET_CONFIRMED"
+      }
     },
     "current_main_pages": {
       "run_id": 40666041684,
