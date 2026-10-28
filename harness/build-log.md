@@ -42,4 +42,13 @@
 - Stage start: E1 implementation, perimeter-only GLES2 photo compositor bound to the existing PhotoSession, `RecognitionImageTransform`, and `processingElapsedMs` / `visualClockMs`. Acceptance gate: `G-ANDROID-AISTUDIO-PERIMETER-SHADER-PORT-V1`.
 - `source_browser_geometry`, `coordinate_mapping`, and `overlay_alpha_comparison`: NOT_RUN. The current browser has no source tab; the repository exposes no homepage or GitHub Pages deployment.
 - `api28_device_runtime`, seven-timestamp comparison, APK provenance and visual acceptance: NOT_RUN. This execution environment has no attached API 28 device.
-- Next: implement the renderer and continue seeking the exact source preview/runtime geometry; do not claim visual PASS until source comparison and a real API 28 device run exist.
+- Next at stage start: implement the renderer and continue seeking the exact source preview/runtime geometry; do not claim visual PASS until source comparison and a real API 28 device run exist.
+
+## 2026-10-28 — Perimeter GLES2 candidate validation
+
+- Android implementation source SHA `3ad7b0257ec67807f4d5fe124ea98ea7a6a8624a` was submitted as Draft PR #244 against Main `632cada103bf022adeb873bd6e66464555b509e4`; source authority remains AI Studio SHA `794e7f2698525761bbb2f3e5d775b5dae8d7a25a`.
+- Android CI run `40669933101` completed successfully: unit tests, runtime harness contract tests, `assembleDebug`, `assembleDebugAndroidTest`, packaged asset/model checks, model trace export, and `lintDebug` all passed. This CI did not run the GLES renderer or device runtime.
+- Runtime APK artifact `12807628530` was downloaded for verification. `app-debug.apk` SHA-256 is `1fe5b10a47478c00876fb26c159cc9470df5d52212aa7e5ecf6632aa46eff6b8`; it matched the artifact `SHA256SUMS` and an independent streamed hash of the APK ZIP entry. The SHA-256 of the artifact ZIP is not used as the APK hash.
+- Control-plane Admission `40669933102`, W1 contract `40669933153`, W4 evidence `40669933113`, and Design Governance `40669933218` succeeded on that candidate. Design Manager Pages `40669933158` failed because its design-only changed-file gate saw Android app paths in a PR that also added an evidence document under `design/`; the report has been moved to `harness/evidence/` so the final PR diff contains no `design/**` changes.
+- `source_browser_geometry`, `coordinate_mapping`, Overlay alpha comparison, GLES compile/link runtime logs, API 28 physical-device acceptance, seven-frame comparison, full recording, lifecycle captures, and same-input Detector/Classifier trace remain `NOT_RUN`.
+- Next: rerun the PR checks on the current branch head, then obtain the exact-source browser geometry and a physical API 28 device. Keep visual acceptance and task completion blocked until those captures exist.
