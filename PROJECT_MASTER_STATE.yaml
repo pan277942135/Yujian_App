@@ -1,0 +1,143 @@
+schema_version: "1.0"
+state_id: YUJIAN_ANDROID_FISH_CATCH_EFFECT01_UPWARD_SCAN_SHAKE_V1
+project:
+  name: Yujian_App
+  repository: pan277942135/Yujian_App
+  scope: Android recognition Processing optical supplement
+state_control:
+  execution_baseline_sha: 9b517628518826b02ce35e5546ef5589e5358b57
+  current_branch: work/android-effect01-upward-scan-shake-v1
+  current_pr: null
+  base_sha: 9b517628518826b02ce35e5546ef5589e5358b57
+  control_plane_revision: 9b517628518826b02ce35e5546ef5589e5358b57
+  updated_at: "2026-10-28T06:21:52.041Z"
+source_of_truth:
+  control_plane_registry: CONTROL_PLANE_REGISTRY.yaml
+  phase_task_machine: harness/PHASE_TASK_STATE_MACHINE.yaml
+  unified_contract_registry: harness/UNIFIED_CONTRACT_REGISTRY.yaml
+  current_work_state: WORK_EXECUTION_STATE.json
+repositories:
+  primary:
+    name: pan277942135/Yujian_App
+    base_branch: main
+    base_sha: 9b517628518826b02ce35e5546ef5589e5358b57
+pull_requests:
+  PR240:
+    number: 240
+    branch: control/yujian-android-effect01-upward-scan-shake-v1
+    base_sha: 874beafb9cb865e2577f72888a380ff5aee9c1a0
+    head_sha: 5de9ae30a773de750eb5e0e6c4fd01f0ca89473b
+    merge_sha: 9b517628518826b02ce35e5546ef5589e5358b57
+    status: MERGED
+    url: https://github.com/pan277942135/Yujian_App/pull/240
+phases:
+  P0:
+    status: NOT_CONFIRMED
+    note: Not reassessed in this Work checkpoint.
+  P1:
+    status: NOT_CONFIRMED
+    note: Not reassessed in this Work checkpoint.
+  P2:
+    status: NOT_CONFIRMED
+    note: Not reassessed in this Work checkpoint.
+  P3:
+    status: NOT_CONFIRMED
+    note: Not reassessed in this Work checkpoint.
+  P4:
+    status: NOT_CONFIRMED
+    note: Not reassessed in this Work checkpoint.
+  P5:
+    status: NOT_CONFIRMED
+    note: Not reassessed in this Work checkpoint.
+  P6:
+    status: READY_FOR_WORK
+    note: Not reassessed in this Work checkpoint.
+  P7:
+    status: NOT_CONFIRMED
+    note: Not reassessed in this Work checkpoint.
+  P8:
+    status: NOT_CONFIRMED
+    note: Not reassessed in this Work checkpoint.
+  P9:
+    status: NOT_CONFIRMED
+    note: Not reassessed in this Work checkpoint.
+recognition_main_journey:
+  contract_status: FROZEN
+  status: NOT_CONFIRMED
+  route:
+    - "J01 Open app"
+    - "J02 Home visible"
+    - "J03 Start fish recognition"
+    - "J04 Capture or select photo"
+    - "J05 PhotoSession created"
+    - "J06 Processing presented"
+    - "J07 Detection event"
+    - "J08 Fish focus available"
+    - "J09 Classification event"
+    - "J10 Result ready"
+    - "J11 Result first frame"
+    - "J12 RR09 reveal starts"
+    - "J13 Species name revealed"
+    - "J14 Result accepted"
+    - "J15 Save fish record"
+    - "J16 Record detail"
+    - "J17 Share fish record"
+    - "J18 Return home"
+    - "J19 Recover from failure"
+    - "J20 Complete main journey"
+  note: No end-to-end acceptance is inferred from control-plane registration.
+runtime_gates:
+  exact_head:
+    sha: 9b517628518826b02ce35e5546ef5589e5358b57
+    status: NOT_RUN
+    device: NOT_RUN
+    api_level: 28
+  historical_runtime_run:
+    rule: "Historical results cannot promote current exact HEAD to PASS."
+apk_and_evidence:
+  status: NOT_RUN
+  apk_sha256: null
+  source_sha: null
+current_work:
+  exact_head: 9b517628518826b02ce35e5546ef5589e5358b57
+  id: YUJIAN_ANDROID_FISH_CATCH_EFFECT01_UPWARD_SCAN_SHAKE_V1
+  phase: P6
+  task_id: YUJIAN_ANDROID_FISH_CATCH_EFFECT01_UPWARD_SCAN_SHAKE_V1
+  stage: E0_ADMISSION
+  status: READY
+blockers: []
+protected_invariants:
+  recognition_state:
+    - Existing event-gated Processing and Result state machine remains authoritative.
+    - No timer may synthesize a recognition result.
+  photo_session:
+    - Reuse the current PhotoSession and source photo.
+    - A new photo or cancelled job must not retain prior visual animation state.
+  effect01:
+    - Frozen Effect 01 values remain unchanged.
+    - New optical layers are native-equivalent additions and do not alter model or threshold behavior.
+  release:
+    - No production release or unrelated surface changes before required gates.
+next_actions:
+  - id: A-EFFECT01-ADMISSION
+    status: READY
+    owner: Work
+    action: Run exact-head Work Execution State, Project Master State, Unified Contract and Control Plane Admission before Android source changes.
+completion_rules:
+  implementation: Exact-source checks, build, unit/lint, API28 runtime and APK provenance required where available.
+  visual_acceptance: Product owner performs final real-device visual review; remains pending.
+  merge: Merge only after exact-head required CI and governance checks pass.
+state_update:
+  updated_at: "2026-10-28T06:21:52.041Z"
+  source_sha: 9b517628518826b02ce35e5546ef5589e5358b57
+  reason: Initialize branch-local task checkpoint after control-plane registration PR #240 merged.
+agent_recovery:
+  read_order:
+    - AGENTS.md
+    - PROJECT_MASTER_STATE.yaml
+    - WORK_EXECUTION_STATE.json
+    - harness/FEATURE_MATRIX.yaml
+    - harness/UNIFIED_CONTRACT_REGISTRY.yaml
+    - harness/PHASE_TASK_STATE_MACHINE.yaml
+    - harness/build-log.md
+  next_action: A-EFFECT01-ADMISSION

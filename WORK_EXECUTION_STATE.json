@@ -1,0 +1,32 @@
+{
+  "$schema": "./harness/WORK_EXECUTION_STATE_SCHEMA_V1.json",
+  "schema_version": "1.0",
+  "work_id": "YUJIAN_ANDROID_FISH_CATCH_EFFECT01_UPWARD_SCAN_SHAKE_V1",
+  "repository": "pan277942135/Yujian_App",
+  "branch": "work/android-effect01-upward-scan-shake-v1",
+  "control_plane_revision": "9b517628518826b02ce35e5546ef5589e5358b57",
+  "base_branch": "main",
+  "base_sha": "9b517628518826b02ce35e5546ef5589e5358b57",
+  "phase": "P6",
+  "task_id": "YUJIAN_ANDROID_FISH_CATCH_EFFECT01_UPWARD_SCAN_SHAKE_V1",
+  "stage": "E0_ADMISSION",
+  "status": "READY",
+  "source_sha": "9b517628518826b02ce35e5546ef5589e5358b57",
+  "checkpoint_updated_at": "2026-10-28T06:21:52.041Z",
+  "next_action": "Run exact-head Work Execution State, Project Master State, Unified Contract and Control Plane Admission on this branch before Android source changes.",
+  "dependencies": [
+    "P3-05",
+    "P5-02"
+  ],
+  "blockers": [],
+  "evidence": {
+    "control_plane_pr": {
+      "number": 240,
+      "head_sha": "5de9ae30a773de750eb5e0e6c4fd01f0ca89473b",
+      "merge_commit_sha": "9b517628518826b02ce35e5546ef5589e5358b57",
+      "admission_run": "https://github.com/pan277942135/Yujian_App/actions/runs/40642921019"
+    },
+    "contract": "design/pages/recognition/processing/optics/Android_Effect01_Upward_Caustic_Integration_V1.md",
+    "source_provenance": "Original renderer NOT_FOUND at baseline; implementation must be labeled native equivalent."
+  }
+}
