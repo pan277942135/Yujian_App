@@ -36,7 +36,10 @@ async function screenshotRootViewport(page, path, width, height, timeout = 45000
   const locator = page.locator("#eh-EmptyHomeRoot");
   await locator.waitFor({ state: "visible", timeout });
   await locator.scrollIntoViewIfNeeded({ timeout });
-  const bounds = await locator.boundingBox();
+  const bounds = await page.evaluate(() => {
+    const rect = document.querySelector("#eh-EmptyHomeRoot")?.getBoundingClientRect();
+    return rect ? { x: rect.left, y: rect.top, width: rect.width, height: rect.height } : null;
+  });
   assert(bounds && Math.abs(bounds.width - width) < 0.01 && Math.abs(bounds.height - height) < 0.01,
     `MATRIX_ROOT_BOUNDS_MISMATCH: requested=${width}x${height} actual=${JSON.stringify(bounds)}`);
   await page.screenshot({ path, clip: { x: bounds.x, y: bounds.y, width, height }, scale: "device", animations: "disabled", timeout });
@@ -308,7 +311,7 @@ async function main() {
       const shot=resolve(args.outputDir,`EmptyHome_${width}x${height}_font-${fontScale}.png`);
       const capture=await screenshotRootViewport(page,shot,width,height);
       const shotSize=capture.size;
-      assert(shotSize.width===width*3&&shotSize.height===height*3,`MATRIX_SCREENSHOT_PIXEL_SCALE_MISMATCH: ${width}x${height}: ${JSON.stringify(shotSize)}`);
+      assert(shotSize.width===width*3&&shotSize.height===height*3,`MATRIX_SCREENSHOT_PIXEL_SCALE_MISMATCH: ${width}x${height}: ${JSON.stringify({shotSize,captureBounds:capture.bounds_css_px})}`);
       Object.assign(activeMatrixRow,caseEvidence,{
         case_id:activeMatrixRow.case_id,page_id:"home_empty_v2",source_sha:expectedSha,run_id:runId,
         matrix_source_path:preflight.viewportAuthority.path,matrix_source_sha256:preflight.viewportAuthority.sha256,
