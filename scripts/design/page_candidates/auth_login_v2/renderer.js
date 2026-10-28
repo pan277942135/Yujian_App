@@ -160,7 +160,7 @@
                 ${iconNode("VisibilityIcon", icon, "login-visibility-icon", "")}
               </button>
             </div>
-            <div class="login-forgot-row"><button id="login-ForgotPasswordAction" data-workspace-rendered-node="ForgotPasswordAction" class="login-text-action" type="button" aria-disabled="true" title="视觉候选；找回密码服务未接入">忘记密码？</button></div>
+            <div class="login-forgot-row"><button id="login-ForgotPasswordAction" data-workspace-rendered-node="ForgotPasswordAction" class="login-text-action" type="button" title="视觉候选；找回密码服务未接入">忘记密码？</button></div>
             ${showError ? `<p class="login-error-message" role="alert" data-login-error>候选错误状态 · 未连接认证服务</p>` : ""}
           </section>
           <button id="login-LoginPrimaryButton" data-workspace-rendered-node="LoginPrimaryButton" class="login-submit" type="submit" ${disabled ? "disabled" : ""}>${state === "LOADING" || liveModel.submitState === "LOADING" ? "登录中…" : "登录"}</button>
