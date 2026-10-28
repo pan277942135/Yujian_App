@@ -1,0 +1,197 @@
+schema_version: "1.0"
+state_id: "YUJIAN_W5_RECOVERY_2026-10-28"
+project:
+  name: "渔见 AI"
+  repository: "pan277942135/Yujian_App"
+  scope: "Page Freeze Pipeline W5 Empty Home V2.2; product-work Admission, W4 evidence repair, Chromium verification, and isolated preview."
+  state_classification: "RECOVERY_SNAPSHOT_NOT_PRODUCT_ACCEPTANCE"
+state_control:
+  current_branch: "work-state/w5-empty-home-pilot-v1"
+  current_pr: null
+  related_pr: 234
+  base_sha: "632cada103bf022adeb873bd6e66464555b509e4"
+  execution_baseline_sha: "5ba86fd8d1142d4708d1b8f9e6ddc81cbc96ccf6"
+  current_head: "5ba86fd8d1142d4708d1b8f9e6ddc81cbc96ccf6"
+  current_main_head_sha: "632cada103bf022adeb873bd6e66464555b509e4"
+  state_status: "BLOCKED"
+  updated_at: "2026-10-28T09:53:45.714Z"
+source_of_truth:
+  current_work_state: "WORK_EXECUTION_STATE.json"
+  canonical_control_plane: "CONTROL_PLANE_REGISTRY.yaml"
+  phase_task_state_machine: "harness/PHASE_TASK_STATE_MACHINE.yaml"
+  unified_contract_registry: "harness/UNIFIED_CONTRACT_REGISTRY.yaml"
+  state_update_protocol: "harness/STATE_UPDATE_PROTOCOL.md"
+  current_work_log: "harness/build-log.md"
+repositories:
+  Yujian_App:
+    branch: "work-state/w5-empty-home-pilot-v1"
+    execution_baseline_sha: "5ba86fd8d1142d4708d1b8f9e6ddc81cbc96ccf6"
+    current_main_head_sha: "632cada103bf022adeb873bd6e66464555b509e4"
+    control_plane_sync:
+      status: "MERGE_SYNCED_TO_CURRENT_MAIN"
+      main_sync_commit: "5ba86fd8d1142d4708d1b8f9e6ddc81cbc96ccf6"
+      synced_main_sha: "632cada103bf022adeb873bd6e66464555b509e4"
+pull_requests:
+  PR234:
+    number: 234
+    branch: "work/w5-empty-home-pilot-v1"
+    base_sha: "632cada103bf022adeb873bd6e66464555b509e4"
+    head_sha: "5ba86fd8d1142d4708d1b8f9e6ddc81cbc96ccf6"
+    status: "DRAFT_OPEN_UNMERGED"
+    task_id: "YUJIAN_PAGE_FREEZE_PIPELINE_W5_W4_EVIDENCE_AND_ISOLATED_PREVIEW_RECOVERY_V3"
+  PR242:
+    number: 242
+    branch: "design/w5-root-integrity-resource-authority-v1"
+    head_sha: "1477e7ab023aa0eb4f238c347d289a6f0771fe2f"
+    merge_sha: "80c55961059b95fd8dd52eea4b52a37bd91705e8"
+    status: "MERGED"
+phases:
+  P0:
+    status: "NOT_CONFIRMED"
+    note: "Not re-established by this narrow W5 recovery checkpoint."
+  P1:
+    status: "NOT_CONFIRMED"
+    note: "Not re-established by this narrow W5 recovery checkpoint."
+  P2:
+    status: "NOT_CONFIRMED"
+    note: "Not re-established by this narrow W5 recovery checkpoint."
+  P3:
+    status: "BLOCKED"
+    note: "W5 depends on W3 and W4; product-work Admission has not yet passed and W4 workspace scope needs repair."
+  P4:
+    status: "NOT_CONFIRMED"
+    note: "Not re-established by this narrow W5 recovery checkpoint."
+  P5:
+    status: "NOT_CONFIRMED"
+    note: "Not re-established by this narrow W5 recovery checkpoint."
+  P6:
+    status: "NOT_CONFIRMED"
+    note: "Not re-established by this narrow W5 recovery checkpoint."
+  P7:
+    status: "NOT_CONFIRMED"
+    note: "Not re-established by this narrow W5 recovery checkpoint."
+  P8:
+    status: "NOT_CONFIRMED"
+    note: "Not re-established by this narrow W5 recovery checkpoint."
+  P9:
+    status: "NOT_CONFIRMED"
+    note: "No release or human acceptance is implied."
+recognition_main_journey:
+  contract_status: "FROZEN"
+  route:
+    - "J01"
+    - "J02"
+    - "J03"
+    - "J04"
+    - "J05"
+    - "J06"
+    - "J07"
+    - "J08"
+    - "J09"
+    - "J10"
+    - "J11"
+    - "J12"
+    - "J13"
+    - "J14"
+    - "J15"
+    - "J16"
+    - "J17"
+    - "J18"
+    - "J19"
+    - "J20"
+  note: "Journey identifiers are retained in canonical order; this checkpoint does not alter journey semantics."
+runtime_gates:
+  exact_head:
+    sha: "5ba86fd8d1142d4708d1b8f9e6ddc81cbc96ccf6"
+    status: "NOT_VERIFIED"
+    note: "Current PR #234 code candidate; state-only commits on the Work branch do not promote browser or runtime evidence."
+  page_evidence:
+    w4:
+      status: "IN_PROGRESS"
+      run_id: 40667570169
+      source_sha: "5ba86fd8d1142d4708d1b8f9e6ddc81cbc96ccf6"
+    w5_matrix:
+      status: "IN_PROGRESS"
+      run_id: 40667570176
+      source_sha: "5ba86fd8d1142d4708d1b8f9e6ddc81cbc96ccf6"
+    historical_w4_failure:
+      status: "FAIL"
+      run_id: 40657928278
+      source_sha: "dae5e54c761cb424eee4144f4009436a12e2cb80"
+  android_runtime:
+    status: "NOT_VERIFIED"
+    note: "A skipped native runtime gate is not a PASS."
+  historical_runtime_run:
+    rule: "Historical results cannot promote current exact HEAD to PASS."
+apk_and_evidence:
+  status: "NOT_VERIFIED"
+  apk_sha256: null
+  note: "Android runtime and APK acceptance are outside this W5 recovery checkpoint."
+current_work:
+  id: "YUJIAN_PAGE_FREEZE_PIPELINE_W5_W4_EVIDENCE_AND_ISOLATED_PREVIEW_RECOVERY_V3"
+  related_pr: 234
+  exact_head: "5ba86fd8d1142d4708d1b8f9e6ddc81cbc96ccf6"
+  phase: "P3"
+  task_id: "YUJIAN_PAGE_FREEZE_PIPELINE_W5_EMPTY_HOME_PILOT_V1"
+  status: "BLOCKED"
+  next_action: "Run product-work Admission by workflow_dispatch on work-state/w5-empty-home-pilot-v1; only after PASS may the W4 verifier repair proceed."
+blockers:
+  - id: "W5-BLOCKER-PRODUCT-WORK-ADMISSION"
+    severity: "P0"
+    area: "Control Plane Admission"
+    condition: "PR pull_request event uses CANONICAL_MAIN_PROMOTION mode and rejects branch-local state by design; the product-work mode has not yet been run on the isolated Work-state branch."
+    affected_gate: "CONTROL_PLANE_ADMISSION"
+    unblock_condition: "Dispatch control-plane-admission.yml on ref work-state/w5-empty-home-pilot-v1 and require PRODUCT_WORK mode plus CONTROL_PLANE_ADMISSION=PASS."
+    status: "OPEN"
+  - id: "W5-BLOCKER-W4-WORKSPACE-SCOPE"
+    severity: "P0"
+    area: "W4 Evidence"
+    condition: "W4 exact-HEAD run 40657928278 failed on prior candidate SHA dae5e54c761cb424eee4144f4009436a12e2cb80 after selecting a disabled page tree node."
+    affected_gate: "G-PAGE-FREEZE-PIPELINE-W4-TEST-EVIDENCE"
+    unblock_condition: "After product-work Admission PASS, apply the preserved scope-repair patch; real Chromium fixtures and W4 Evidence must pass on the new exact SHA."
+    status: "OPEN"
+  - id: "W5-BLOCKER-MAIN-PAGES-SHA"
+    severity: "P1"
+    area: "Production Pages"
+    condition: "Main SHA 632cada103bf022adeb873bd6e66464555b509e4 has a cancelled Design Manager Pages run 40666041684; current production root has not been confirmed at this Main SHA."
+    affected_gate: "Live root SHA and isolated preview integrity"
+    unblock_condition: "Confirm live build.json and matching Main Pages artifact before any preview step that requires the current Main root; do not infer deployment from build success."
+    status: "OPEN"
+protected_invariants:
+  evidence_integrity:
+    - "Never promote a historical run or another SHA to PASS for the current candidate."
+    - "Retain W4 run 40657928278 as FAIL; do not rewrite its result."
+  resource_lifecycle:
+    - "Gallery and Chevron page bindings remain REVIEW; the Asset Registry lifecycle conflict is not resolved by this recovery."
+    - "Do not modify frozen image bytes or promote review-only resources to FROZEN."
+  release_boundary:
+    - "PR #234 remains Draft/Open/Unmerged."
+    - "USER_VISUAL_ACCEPTANCE_PENDING remains independent from CI."
+    - "Native runtime remains NOT_VERIFIED."
+next_actions:
+  - id: "W5-RECOVERY-ADMISSION-01"
+    owner: "Work"
+    status: "READY"
+    action: "Run the control-plane-admission workflow manually on ref work-state/w5-empty-home-pilot-v1 and verify PRODUCT_WORK mode plus exact current control-plane and state validators."
+    dependency: "Branch-local state files committed to the isolated Work-state branch."
+  - id: "W5-RECOVERY-W4-02"
+    owner: "Work"
+    status: "BLOCKED"
+    action: "Apply the preserved W4 workspace-scope patch and run real Chromium fixtures after product-work Admission PASS."
+    dependency: "W5-RECOVERY-ADMISSION-01"
+completion_rules:
+  - "Product-work Admission must pass against the current exact PR candidate source SHA."
+  - "W4 Chromium fixtures and W4 Evidence must pass on the repaired exact SHA."
+  - "W5 matrix and isolated preview must be rerun on the same repaired exact SHA."
+  - "User visual acceptance remains pending until the product owner confirms it."
+state_update:
+  updated_at: "2026-10-28T09:53:45.714Z"
+  reason: "Isolate Work state from the canonical promotion PR tree while retaining the exact PR candidate SHA and current Main revision."
+  protocol: "harness/STATE_UPDATE_PROTOCOL.md"
+agent_recovery:
+  resume_order:
+    - "Read AGENTS.md and CONTROL_PLANE_REGISTRY.yaml from current Main."
+    - "Dispatch product-work Admission on the isolated Work-state branch."
+    - "If Admission passes, apply W4 scope repair to PR #234."
+    - "Rerun W4 Evidence, W5 matrix, and isolated preview on the exact new PR SHA."
+    - "Keep PR #234 Draft/Open/Unmerged and visual acceptance pending."
