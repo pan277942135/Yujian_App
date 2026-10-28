@@ -245,7 +245,7 @@ class PageFreezeRunnerTests(unittest.TestCase):
                             for row in matrix["cases"]))
 
     def test_w4_rejects_missing_or_misclassified_1_5x_supplemental_case(self):
-        mutations = ["missing", "wrong-scale"]
+        mutations = ["missing", "wrong-scale", "null-viewports"]
         for mutation in mutations:
             with self.subTest(mutation=mutation):
                 source, matrix = self.make_w5_matrix_report(self.temp_root / f"w5-matrix-supplemental-{mutation}")
@@ -255,7 +255,10 @@ class PageFreezeRunnerTests(unittest.TestCase):
                 if mutation == "missing":
                     report["matrix"].remove(supplemental[-1])
                 else:
-                    supplemental[-1]["font_scale"] = 1.3
+                    if mutation == "wrong-scale":
+                        supplemental[-1]["font_scale"] = 1.3
+                    else:
+                        report["supplemental_matrix_definition"]["viewports"] = None
                 source.write_text(json.dumps(report), encoding="utf-8")
                 errors = runner.import_structured_matrix_report(ROOT, "home_empty_v2", self.source_sha, self.run_id,
                                                                  str(source), matrix,

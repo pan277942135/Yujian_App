@@ -456,6 +456,10 @@ def import_structured_matrix_report(root: Path, page_id: str, source_sha: str, r
     }
     supplemental_definition = report.get("supplemental_matrix_definition")
     supplemental_scale = supplemental_definition.get("font_scale") if isinstance(supplemental_definition, dict) else None
+    supplemental_viewport_rows = supplemental_definition.get("viewports") if isinstance(supplemental_definition, dict) else None
+    if not isinstance(supplemental_viewport_rows, list):
+        supplemental_viewport_rows = []
+    supplemental_viewports = {(row.get("width"), row.get("height")) for row in supplemental_viewport_rows if isinstance(row, dict)}
     expected_supplemental_count = len(expected_viewports)
     if (summary.get("expected") != expected_count or summary.get("executed") != expected_count
             or summary.get("pass") != expected_count or summary.get("fail") != 0 or summary.get("not_run") != 0
@@ -463,13 +467,12 @@ def import_structured_matrix_report(root: Path, page_id: str, source_sha: str, r
             or summary.get("formal_pass") != expected_count or summary.get("formal_fail") != 0
             or summary.get("formal_not_run") != 0 or len(formal_rows) != expected_count):
         errors.append("W5 formal EXPECTED_CASES and EXECUTED_CASES do not match the W4 page-specific matrix")
-    if (not isinstance(supplemental_definition, dict)
+    supplemental_header_valid = not (not isinstance(supplemental_definition, dict)
             or supplemental_definition.get("status") != "SUPPLEMENTAL_CANDIDATE_NOT_IN_FROZEN_AUTHORITY"
             or supplemental_scale != 1.5
             or supplemental_definition.get("source_path") != matrix.get("source_path")
             or supplemental_definition.get("source_sha256") != matrix.get("source_sha256")
-            or {(row.get("width"), row.get("height")) for row in supplemental_definition.get("viewports", [])
-                if isinstance(row, dict)} != expected_viewports
+            or supplemental_viewports != expected_viewports
             or len(supplemental_rows) != expected_supplemental_count
             or summary.get("supplemental_expected") != expected_supplemental_count
             or summary.get("supplemental_executed") != expected_supplemental_count
@@ -479,7 +482,8 @@ def import_structured_matrix_report(root: Path, page_id: str, source_sha: str, r
             or summary.get("total_executed") != expected_count + expected_supplemental_count
             or summary.get("total_pass") != expected_count + expected_supplemental_count
             or summary.get("total_fail") != 0 or summary.get("total_not_run") != 0
-            or len(rows) != expected_count + expected_supplemental_count):
+            or len(rows) != expected_count + expected_supplemental_count)
+    if not supplemental_header_valid:
         errors.append("W5 1.5x supplemental cases do not exactly cover the W4 viewport set as separate candidate evidence")
     state_mapping = report.get("behavior_state_mapping") if isinstance(report.get("behavior_state_mapping"), dict) else {}
     expected_states = {row.get("state_id") for row in matrix.get("cases", []) if isinstance(row, dict)}
@@ -690,7 +694,8 @@ def import_structured_matrix_report(root: Path, page_id: str, source_sha: str, r
             supplemental_case["evidence_path"]=evidence_path.relative_to(evidence_dir).as_posix()
             supplemental_case["evidence_sha256"]=sha256_file(evidence_path)
         supplemental_cases.append(supplemental_case)
-    supplemental_pass = len(supplemental_cases) == expected_supplemental_count and all(row.get("result") == "PASS" for row in supplemental_cases)
+    supplemental_pass = supplemental_header_valid and len(supplemental_cases) == expected_supplemental_count and all(
+        row.get("result") == "PASS" for row in supplemental_cases)
     matrix["supplemental"] = {
         "status":"PASS" if supplemental_pass else "FAIL","classification":"SUPPLEMENTAL_CANDIDATE_NOT_IN_FROZEN_AUTHORITY",
         "font_scale":1.5,"source_path":matrix.get("source_path"),"source_sha256":matrix.get("source_sha256"),
