@@ -473,12 +473,13 @@
     const mapping = loadedMapping.value;
     const cachedByRoot = new WeakMap();
     const renderer = async ctx => {
+      const pageContext = { ...ctx, repoHref };
       let cached = cachedByRoot.get(ctx.root);
       if (!cached) {
-        cached = await ensureControlsAndResources(ctx, mapping);
+        cached = await ensureControlsAndResources(pageContext, mapping);
         cachedByRoot.set(ctx.root, cached);
       }
-      await renderEmptyHome({ ...ctx, repoHref }, mapping, cached);
+      await renderEmptyHome(pageContext, mapping, cached);
     };
     return {
       pageId, sourceSha, feature, fetchImpl, repoHref,
