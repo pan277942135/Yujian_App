@@ -1,7 +1,16 @@
 name: W6-A Login Structured Candidate
 
 on:
+  push:
+    branches:
+      - "work/w6a-login-structured-hifi-v1"
+    paths:
+      - "scripts/design/page_candidates/auth_login_v2/**"
+      - "scripts/design/tests/w6a_login_candidate.mjs"
+      - "scripts/design/compare_login_candidate_visual.py"
+      - ".github/workflows/w6a-login-candidate.yml"
   pull_request:
+    types: [opened, reopened, synchronize, ready_for_review]
     branches: [main]
     paths:
       - "scripts/design/page_candidates/auth_login_v2/**"
