@@ -3,11 +3,12 @@
 **Task:** `YUJIAN_ANDROID_AISTUDIO_PERIMETER_SHADER_PORT_V1`
 **State:** Draft implementation; source-browser and physical API 28 visual gates remain `NOT_RUN`.
 **AI Studio source SHA:** `794e7f2698525761bbb2f3e5d775b5dae8d7a25a`
-**Initial Android implementation / CI-tested source SHA:** `3ad7b0257ec67807f4d5fe124ea98ea7a6a8624a`
+**Initial Android implementation source SHA:** `3ad7b0257ec67807f4d5fe124ea98ea7a6a8624a`
+**Lifecycle-corrected Android implementation source SHA:** `e1bda4f568225b4349e247e204e2157912668a06`
 **PR:** [#244](https://github.com/pan277942135/Yujian_App/pull/244)
-**Android CI run:** [40669933101](https://github.com/pan277942135/Yujian_App/actions/runs/40669933101)
+**Latest exact-code Android CI run:** [40672019980](https://github.com/pan277942135/Yujian_App/actions/runs/40672019980)
 
-The latest Android implementation SHA is the current non-document PR head. A follow-up initializes the GLSurfaceView paused and lets the existing LifecycleOwner resume it only when the recognition page reaches `RESUMED`; the initial baseline results below remain historical for that follow-up. The current exact-head CI status and source SHA are maintained in the PR and `harness/build-log.md`.
+The latest Android product-code SHA is `e1bda4f568225b4349e247e204e2157912668a06`. A lifecycle correction initializes the GLSurfaceView paused and lets the existing LifecycleOwner resume it only when the recognition page reaches `RESUMED`. The PR CI run below tested that exact code head; the earlier run on `3ad7b0257ec67807f4d5fe124ea98ea7a6a8624a` is historical.
 
 ## Candidate changes
 
@@ -54,19 +55,34 @@ The 16-node accent pass first screens each halo/core into a transparent accumula
 | Initial baseline `app-debug.apk` SHA-256 | `VERIFIED` | `1fe5b10a47478c00876fb26c159cc9470df5d52212aa7e5ecf6632aa46eff6b8`; matched both the artifact's `SHA256SUMS` and an independent streamed hash of the APK entry. |
 | Local Gradle build/tests | `NOT_RUN` | The local workspace has no Gradle wrapper or Gradle executable; exact-source Android CI provided the build and test results above. |
 
+
+## Lifecycle-corrected exact-code build and APK
+
+| Gate | Status | Evidence |
+|---|---|---|
+| Current Android product-code source | `VERIFIED` | `e1bda4f568225b4349e247e204e2157912668a06`; PR #244 run `40672019980` used this exact head with refreshed Main `632cada103bf022adeb873bd6e66464555b509e4`. |
+| Control-plane Admission | `PASS` | Run `40672019998` on current code head; six static layers and 733 synchronized paths. |
+| Android unit tests and camera harness contract tests | `PASS` | Run `40672019980`. |
+| Debug APK and AndroidTest APK compilation | `PASS` | Run `40672019980`; AndroidTest was compiled, not executed on a device. |
+| Packaged assets, model trace export, and lint | `PASS` | Run `40672019980`. |
+| Exact-code runtime APK | `AVAILABLE` | Artifact ID `12809162079`, `YuJian-runtime-apks-85f2ee06cfa4b08d952ab32d03d9fdb130f6fb6c-MODEL_CROP_M1_v0.2`; the artifact was produced from PR merge SHA `85f2ee06cfa4b08d952ab32d03d9fdb130f6fb6c` containing the exact code head and base SHA above. |
+| `app-debug.apk` SHA-256 | `VERIFIED` | `1cf66279ed4622b653412a672ce74a7a87ec83fc4a2f97e517de41e6200c9a8f`; matches the artifact `SHA256SUMS` and an independent streamed ZIP-entry hash. |
+| Model package identity | `PASS` | `MODEL_CROP_M1_v0.2`; model SHA-256 `29c2f2fd1608178f023b8e35edf632c0dd685df4a7ae1c3562220a7352ccce18`; class map and tensor contract hashes are recorded in `harness/build-log.md`. This does not substitute for a same-photo model-output comparison. |
+| Android runtime job / GLES shader compile | `NOT_RUN` | PR runtime job was skipped; CI build and AndroidTest compilation do not instantiate the renderer. |
+
 ## Runtime and visual gates
 
 | Gate | Status | Evidence |
 |---|---|---|
 | GLES compile/link log and runtime backend | `NOT_RUN` | Android build CI does not instantiate the recognition renderer. Candidate logs GLES version, renderer, Shader compile/link, photo bounds, and coordinate scale when executed. |
-| Source browser DPR / CSS / backing dimensions | `NOT_RUN` | No reachable exact-source AI Studio preview is available. |
+| Source browser DPR / CSS / backing dimensions | `NOT_RUN` | The exact-source repo builds locally, but the cloud-browser URL policy rejected the local preview HTTP URL; no public preview is configured. |
 | Coordinate mapping and Overlay alpha comparison | `NOT_RUN` | Candidate formulas are implemented, but reference geometry and source-browser pixels are unavailable. |
 | Seven-timestamp comparison and complete recording | `NOT_RUN` | Requires a usable source browser and Android runtime capture. |
 | API 28 physical-device installation/runtime | `NOT_RUN` | No attached physical API 28 device. The PR Android runtime job was skipped; emulator execution would not satisfy the physical-device gate. |
 | Lifecycle runtime cases | `NOT_RUN` | Session-key replacement, page resume/pause, disposal, and terminal phase handling are implemented; photo switch, cancel/exit, retry, success, and failure still need device capture. |
-| Detector / Classifier output comparison | `NOT_RUN` | The implementation diff does not edit the recognition pipeline or model input path; no same-input runtime trace has been captured. |
+| Detector / Classifier output comparison | `NOT_RUN` | The implementation diff does not edit the recognition pipeline or model input path, and the packaged model identity/tensor contract are unchanged. No same-photo input/output runtime trace has been captured. |
 
-The lifecycle follow-up requires a fresh exact-head Android CI run before its APK and test evidence can replace the initial baseline evidence above.
+The initial implementation run and its APK remain historical. The lifecycle-corrected exact-code run and APK provenance are recorded below.
 
 ## Non-app workflow note
 

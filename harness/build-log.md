@@ -58,3 +58,13 @@
 - Code review found that `GLSurfaceView` starts resumed by default. The candidate now calls `onPause()` immediately after `setRenderer`; the existing `LifecycleOwner` observer is the only path that resumes GLES rendering.
 - The previous successful Android CI and APK hash above belong to the initial implementation source SHA `3ad7b0257ec67807f4d5fe124ea98ea7a6a8624a` and are historical for this lifecycle correction.
 - Latest exact-head build/tests and APK provenance are pending the PR #244 synchronization run. Source-browser geometry, GLES runtime logs, and physical API 28 validation remain `NOT_RUN`.
+
+
+## 2026-10-28 — Lifecycle-corrected Android candidate CI and APK provenance
+
+- Current Android implementation source SHA: `e1bda4f568225b4349e247e204e2157912668a06`; PR #244 exact-head Android CI run `40672019980` completed successfully. The PR workflow built merge SHA `85f2ee06cfa4b08d952ab32d03d9fdb130f6fb6c` from this head and refreshed Main `632cada103bf022adeb873bd6e66464555b509e4`.
+- Passed: Android unit tests, camera runtime harness contract tests, `:app:assembleDebug`, `:app:assembleDebugAndroidTest`, packaged launcher/recognition asset checks, model trace export, lint, and runtime APK artifact upload. The `android-runtime` job was skipped; these results do not compile the GLES shader on a device or constitute API 28 runtime acceptance.
+- Runtime APK artifact `12809162079` (`YuJian-runtime-apks-85f2ee06cfa4b08d952ab32d03d9fdb130f6fb6c-MODEL_CROP_M1_v0.2`) contains `app-debug.apk`. Its SHA-256 is `1cf66279ed4622b653412a672ce74a7a87ec83fc4a2f97e517de41e6200c9a8f`; it matches the artifact `SHA256SUMS` and an independent streamed hash of the ZIP entry.
+- Model trace package metadata reports model `MODEL_CROP_M1_v0.2`, model SHA-256 `29c2f2fd1608178f023b8e35edf632c0dd685df4a7ae1c3562220a7352ccce18`, class-map SHA-256 `5f88d39dc7d61b2bc4a9c13b7279a0ad1fff726dc6cf22363d2be17bc3ef40db`, and tensor-contract SHA-256 `9da0cc2c943a181fa66689bb6ecf092e9e68ab3dd72a41a3baf4d3fa446bca8`. This confirms packaged model identity and tensor contract; it is not a same-photo Detector/Classifier output comparison.
+- The source repo at `794e7f2698525761bbb2f3e5d775b5dae8d7a25a` builds locally. The local preview HTTP URL was rejected by the cloud-browser URL policy, so source-browser dimensions and captures remain `NOT_RUN`.
+- No `adb`, local Gradle, GLES compiler, or attached API 28 device is available. Shader compile/link logs, API 28 install/runtime, visual frames/recording, and lifecycle cases remain `NOT_RUN`.
