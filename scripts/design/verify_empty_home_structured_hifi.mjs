@@ -42,8 +42,14 @@ async function screenshotRootViewport(page, path, width, height, timeout = 45000
   });
   assert(bounds && Math.abs(bounds.width - width) < 0.01 && Math.abs(bounds.height - height) < 0.01,
     `MATRIX_ROOT_BOUNDS_MISMATCH: requested=${width}x${height} actual=${JSON.stringify(bounds)}`);
-  await page.screenshot({ path, clip: { x: bounds.x, y: bounds.y, width, height }, scale: "device", animations: "disabled", timeout });
+  await locator.screenshot({ path, scale: "device", animations: "disabled", timeout });
   return { size: await pngDimensions(path), bounds_css_px: { x: bounds.x, y: bounds.y, width, height } };
+}
+function assertScreenshotCaptureEnvelope(size, width, height, label) {
+  const minimum = { width: width * 3, height: height * 3 };
+  const maximum = { width: (width + 1) * 3, height: (height + 1) * 3 };
+  assert(size.width >= minimum.width && size.width <= maximum.width && size.height >= minimum.height && size.height <= maximum.height,
+    `MATRIX_SCREENSHOT_CAPTURE_BOUNDS_INVALID: ${label}: ${JSON.stringify({ size, minimum, maximum })}`);
 }
 
 function startServer(root) {
@@ -142,7 +148,7 @@ async function main() {
     differences:[],
     geometry_result:"NOT_RUN",resource_result:"NOT_RUN",responsive_result:"NOT_RUN",dom_report:null,screenshot_reference:null,screenshot_rendered:null,
     overlay_reference:null,difference_reference:null,browser_url:null,
-    browser_screenshot_pixel_scale:3,browser_screenshot_scale_disclosure:"Chromium DPR 3 screenshot pixels; DOM geometry remains CSS px and is not Native density."};
+    browser_screenshot_pixel_scale:3,browser_screenshot_scale_disclosure:"Chromium DPR 3 element screenshot; up to 1 CSS px at the capture edge may be added by device-pixel rounding and the actual PNG size is recorded. DOM geometry remains CSS px and is not Native density."};
   try {
     baseEvidence.github_run_id=process.env.GITHUB_RUN_ID||null;
     baseEvidence.site_build_sha=expectedSha;
@@ -311,7 +317,7 @@ async function main() {
       const shot=resolve(args.outputDir,`EmptyHome_${width}x${height}_font-${fontScale}.png`);
       const capture=await screenshotRootViewport(page,shot,width,height);
       const shotSize=capture.size;
-      assert(shotSize.width===width*3&&shotSize.height===height*3,`MATRIX_SCREENSHOT_PIXEL_SCALE_MISMATCH: ${width}x${height}: ${JSON.stringify({shotSize,captureBounds:capture.bounds_css_px})}`);
+      assertScreenshotCaptureEnvelope(shotSize,width,height,`${width}x${height}@${fontScale}`);
       Object.assign(activeMatrixRow,caseEvidence,{
         case_id:activeMatrixRow.case_id,page_id:"home_empty_v2",source_sha:expectedSha,run_id:runId,
         matrix_source_path:preflight.viewportAuthority.path,matrix_source_sha256:preflight.viewportAuthority.sha256,
@@ -349,13 +355,13 @@ async function main() {
     const compareStructured=resolve(args.outputDir,"EmptyHome_Structured_1080x1920.png");
     const compareCapture=await screenshotRootViewport(page,compareStructured,360,640,45000);
     const compareSize=compareCapture.size;
-    assert(compareSize.width===1080&&compareSize.height===1920,`REFERENCE_COMPARISON_PIXEL_SIZE_MISMATCH: ${JSON.stringify(compareSize)}`);
+    assertScreenshotCaptureEnvelope(compareSize,360,640,"reference-comparison structured");
     for (const mode of ["frozen","overlay","difference"]) {
       await page.locator("[data-empty-compare-mode]").selectOption(mode);
       const comparePath=resolve(args.outputDir,`EmptyHome_Compare_${mode}_1080x1920.png`);
       const capture=await screenshotRootViewport(page,comparePath,360,640,45000);
       const size=capture.size;
-      assert(size.width===1080&&size.height===1920,`REFERENCE_COMPARISON_PIXEL_SIZE_MISMATCH: ${mode}: ${JSON.stringify(size)}`);
+      assertScreenshotCaptureEnvelope(size,360,640,`reference-comparison ${mode}`);
     }
     await page.locator("[data-empty-compare-mode]").selectOption("structured");
     const comparisonFiles=[];
