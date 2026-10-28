@@ -63,18 +63,46 @@ async function waitReady(page, expectedSha) {
   }
   const actualSha = await page.locator("[data-page-workspace-root]").getAttribute("data-source-sha");
   assert(actualSha === expectedSha, `SOURCE_SHA_MISMATCH: ${actualSha} != ${expectedSha}`);
-  await page.waitForFunction(({sha})=>{
-    const adapter=window.PageWorkspaceAdapters?.active;
-    const adapterRoot=adapter?.root;
-    const workspace=adapterRoot?.querySelector("[data-page-workspace-root]");
-    const board=adapterRoot?.querySelector("[data-workspace-artboard]");
-    const rendered=board?.querySelector("#eh-EmptyHomeRoot");
-    return adapter?.sourceSha===sha && workspace?.dataset.sourceSha===sha &&
-      workspace.dataset.workspaceKind==="structured-dom-candidate" &&
-      workspace.dataset.viewState==="EMPTY_DEFAULT" && board?.dataset.layoutMetrics &&
-      rendered?.dataset.sourceSha===sha &&
-      [...board.querySelectorAll("img")].every(image=>image.complete&&image.naturalWidth>0&&image.naturalHeight>0);
-  },{sha:expectedSha},{timeout:30000});
+  try {
+    await page.waitForFunction(({sha})=>{
+      const adapter=window.PageWorkspaceAdapters?.active;
+      const adapterRoot=adapter?.root;
+      const workspace=adapterRoot?.querySelector("[data-page-workspace-root]");
+      const board=adapterRoot?.querySelector("[data-workspace-artboard]");
+      const rendered=board?.querySelector("#eh-EmptyHomeRoot");
+      return adapter?.sourceSha===sha && workspace?.dataset.sourceSha===sha &&
+        workspace.dataset.workspaceKind==="structured-dom-candidate" &&
+        workspace.dataset.viewState==="EMPTY_DEFAULT" && board?.dataset.layoutMetrics &&
+        rendered?.dataset.sourceSha===sha &&
+        [...board.querySelectorAll("img")].every(image=>image.complete&&image.naturalWidth>0&&image.naturalHeight>0);
+    },{sha:expectedSha},{timeout:30000});
+  } catch (error) {
+    const diagnostic = await page.evaluate(() => {
+      const adapter=window.PageWorkspaceAdapters?.active;
+      const adapterRoot=adapter?.root;
+      const workspace=adapterRoot?.querySelector("[data-page-workspace-root]");
+      const board=adapterRoot?.querySelector("[data-workspace-artboard]");
+      const rendered=board?.querySelector("#eh-EmptyHomeRoot");
+      return {
+        active_adapter_page_id:adapter?.pageId||null,
+        active_adapter_source_sha:adapter?.sourceSha||null,
+        active_root_connected:Boolean(adapterRoot?.isConnected),
+        workspace_count:document.querySelectorAll("[data-page-workspace-root]").length,
+        workspace:{source_sha:workspace?.dataset.sourceSha||null,kind:workspace?.dataset.workspaceKind||null,
+          view_state:workspace?.dataset.viewState||null,font_scale:workspace?.dataset.fontScale||null},
+        board_connected:Boolean(board?.isConnected),
+        board_viewport:board?.dataset.viewport||null,
+        has_layout_metrics:Boolean(board?.dataset.layoutMetrics),
+        rendered_source_sha:rendered?.dataset.sourceSha||null,
+        images:[...(board?.querySelectorAll("img")||[])].map(image=>({id:image.id||null,
+          complete:image.complete,natural_width:image.naturalWidth,natural_height:image.naturalHeight,
+          src:image.currentSrc||image.src||null,display:getComputedStyle(image).display,
+          visibility:getComputedStyle(image).visibility})),
+        error:adapterRoot?.querySelector("[data-workspace-error]")?.innerText||null
+      };
+    });
+    throw new Error(`EMPTY_HOME_RUNTIME_STABILITY_TIMEOUT: ${error.message}; diagnostics=${JSON.stringify(diagnostic)}`);
+  }
 }
 
 async function main() {
@@ -181,6 +209,8 @@ async function main() {
     assert(await page.locator('[data-workspace-inspector]').getAttribute("data-selected-node-id")==="HeroCopy","canvas click must locate the corresponding tree layer");
 
     for (const {width,height} of preflight.formalViewports) for (const fontScale of preflight.fontScales) {
+      await page.setViewportSize({width,height});
+      await page.waitForFunction(({w,h})=>window.innerWidth===w&&window.innerHeight===h,{w:width,h:height});
       const preset=page.locator("[data-empty-viewport-preset]");
       await preset.selectOption(`${width}x${height}@${fontScale}`);
       await page.waitForFunction(({w,h,f})=>{
@@ -245,6 +275,7 @@ async function main() {
       assert(shotSize.width===width*3&&shotSize.height===height*3,`MATRIX_SCREENSHOT_PIXEL_SCALE_MISMATCH: ${width}x${height}: ${JSON.stringify(shotSize)}`);
       caseEvidence.state_id="EMPTY_DEFAULT";
       caseEvidence.browser_url=args.url?page.url():"LOCAL_SITE_BUILD_ONLY_NOT_DEPLOYED";
+      caseEvidence.browser_viewport_css_px=await page.evaluate(()=>({width:window.innerWidth,height:window.innerHeight,device_scale_factor:window.devicePixelRatio}));
       caseEvidence.viewport_width=width;
       caseEvidence.viewport_height=height;
       caseEvidence.font_scale=fontScale;
