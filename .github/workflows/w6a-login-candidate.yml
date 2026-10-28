@@ -1,0 +1,106 @@
+name: W6-A Login Structured Candidate
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "design/pages/account_privacy/Login/structured_hifi_candidate/**"
+      - "scripts/design/tests/w6a_login_candidate.mjs"
+      - "scripts/design/compare_login_candidate_visual.py"
+      - ".github/workflows/w6a-login-candidate.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: w6a-login-candidate-${{ github.event.pull_request.head.ref || github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  login-candidate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+    steps:
+      - name: Checkout exact source SHA
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Install W1/W2 validation dependencies
+        run: python -m pip install --disable-pip-version-check -r scripts/design/requirements_nh01_cloud.txt PyYAML==6.0.3
+
+      - name: Prepare isolated evidence directory
+        run: mkdir -p "$RUNNER_TEMP/w6a-login-evidence/resources" "$RUNNER_TEMP/w6a-pages-bundle"
+
+      - name: Validate generic W1 contracts on exact source SHA
+        run: python scripts/design/validate_page_responsive_contract.py --expected-source-sha "${SOURCE_SHA}" --report "$RUNNER_TEMP/w6a-login-evidence/w1-contract-report.json"
+
+      - name: Resolve Login frozen visual and BG_CONTENT through W2
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp -R design "$RUNNER_TEMP/w6a-pages-bundle/design"
+          python scripts/design/validate_page_resource_binding.py \
+            --all-pages --required-page-id auth_login_v2 --site-root "$RUNNER_TEMP/w6a-pages-bundle" \
+            --source-sha "${SOURCE_SHA}" --run-id "${GITHUB_RUN_ID}" \
+            --report "$RUNNER_TEMP/w6a-login-evidence/resources/pages-bundle-w2.json"
+          python scripts/design/validate_page_resource_binding.py \
+            --page-id auth_login_v2 --asset-role page_visual_authority_v2_1 --authority-version V2.1 \
+            --run-id "${GITHUB_RUN_ID}" \
+            --report "$RUNNER_TEMP/w6a-login-evidence/resources/login-frozen-visual-w2.json"
+          python scripts/design/validate_page_resource_binding.py \
+            --page-id auth_login_v2 --asset-role background_bg_content --authority-version V2.1 \
+            --run-id "${GITHUB_RUN_ID}" \
+            --report "$RUNNER_TEMP/w6a-login-evidence/resources/login-bg-content-w2.json"
+
+      - name: Set up Node and Chromium
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install Playwright Chromium
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm install --no-save --prefix "$RUNNER_TEMP/w6a-playwright" playwright@1.63.0
+          "$RUNNER_TEMP/w6a-playwright/node_modules/.bin/playwright" install --with-deps chromium
+
+      - name: Validate page-owned candidate JSON and syntax
+        run: |
+          python -m json.tool design/pages/account_privacy/Login/structured_hifi_candidate/authority_audit_v1.json >/dev/null
+          python -m json.tool design/pages/account_privacy/Login/structured_hifi_candidate/component_mapping_v1.json >/dev/null
+          python -m json.tool design/pages/account_privacy/Login/structured_hifi_candidate/responsive_candidate_v1.json >/dev/null
+          node --check design/pages/account_privacy/Login/structured_hifi_candidate/renderer.js
+          node --check scripts/design/tests/w6a_login_candidate.mjs
+
+      - name: Run real Chromium candidate matrix and interactions
+        run: |
+          mkdir -p "$RUNNER_TEMP/w6a-login-evidence"
+          PLAYWRIGHT_MODULE_DIR="$RUNNER_TEMP/w6a-playwright/node_modules" \
+            node scripts/design/tests/w6a_login_candidate.mjs --output-dir "$RUNNER_TEMP/w6a-login-evidence"
+
+      - name: Compare frozen and rendered Login at native canvas size
+        run: |
+          python scripts/design/compare_login_candidate_visual.py \
+            --reference design/pages/account_privacy/Login/frozen/Login_V2_1_Frozen_Final.png \
+            --render "$RUNNER_TEMP/w6a-login-evidence/evidence/screenshots/login-v2_1-structured-864x1536.png" \
+            --output-dir "$RUNNER_TEMP/w6a-login-evidence/evidence/visual-comparison" \
+            --source-sha "${SOURCE_SHA}" --run-id "${GITHUB_RUN_ID}"
+
+      - name: Upload isolated Login candidate evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: W6A-Login-Candidate-${{ github.run_id }}-${{ github.event.pull_request.head.sha || github.sha }}
+          path: ${{ runner.temp }}/w6a-login-evidence/
+          if-no-files-found: warn
+          retention-days: 30

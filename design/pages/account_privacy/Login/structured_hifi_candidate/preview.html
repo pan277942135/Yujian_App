@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <link rel="icon" href="data:,">
+  <title>Login V2.1 · isolated structured candidate</title>
+  <link rel="stylesheet" href="../../../../manager/nh01_structured_workspace.css">
+  <link rel="stylesheet" href="./renderer.css">
+</head>
+<body>
+  <main class="login-candidate-lab">
+    <header class="login-lab-header">
+      <p>W6-A · LOCAL CANDIDATE TEST HARNESS</p>
+      <h1>Login V2.1 · 结构化高保真候选</h1>
+      <p>使用共享 W3 workspace shell 与 W2 权威解析。该本地测试页不是 Design Manager 产品路由，也不是公开预览。</p>
+    </header>
+    <div id="workspace-mount" aria-live="polite"></div>
+    <section class="login-reference-only" aria-labelledby="login-reference-title">
+      <div>
+        <p class="login-reference-tag">FROZEN_VISUAL_AUTHORITY · REFERENCE ONLY</p>
+        <h2 id="login-reference-title">Login V2.1 冻结原图（独立对照）</h2>
+        <p>这张图只用于对照和差异计算，不作为结构化页面底图。</p>
+      </div>
+      <img id="login-frozen-reference" alt="Login V2.1 frozen visual reference" width="864" height="1536">
+    </section>
+    <pre id="login-boot-status" role="status">LOADING · resolving W1/W2 authority…</pre>
+  </main>
+
+  <script src="../../../../manager/page_workspace_adapters.js"></script>
+  <script src="./renderer.js"></script>
+  <script>
+    (async () => {
+      const candidateBase = new URL("../../../../../", location.href);
+      const repoHref = path => new URL(path, candidateBase).href;
+      window.LoginRepoHref = repoHref;
+      const status = document.querySelector("#login-boot-status");
+      const mount = document.querySelector("#workspace-mount");
+      try {
+        const registryResponse = await fetch(repoHref("design/registry/experience_registry_v1.json"), { cache: "no-store" });
+        if (!registryResponse.ok) throw new Error(`EXPERIENCE_REGISTRY_HTTP_${registryResponse.status}`);
+        const registry = await registryResponse.json();
+        const supported = await PageWorkspaceAdapters.initialize(registry, { repoHref });
+        if (!supported.includes("auth_login_v2") || !PageWorkspaceAdapters.supportsPage("auth_login_v2")) {
+          throw new Error("LOGIN_PAGE_NOT_REGISTERED_IN_SHARED_WORKSPACE");
+        }
+        const feature = PageWorkspaceAdapters.getRegisteredPage("auth_login_v2");
+        document.querySelector("#login-frozen-reference").src = repoHref("design/pages/account_privacy/Login/frozen/Login_V2_1_Frozen_Final.png");
+        const profile = await fetch(repoHref("design/pages/account_privacy/Login/structured_hifi_candidate/responsive_candidate_v1.json"), { cache: "no-store" }).then(response => {
+          if (!response.ok) throw new Error(`CANDIDATE_PROFILE_HTTP_${response.status}`);
+          return response.json();
+        });
+        const mapping = await fetch(repoHref("design/pages/account_privacy/Login/structured_hifi_candidate/component_mapping_v1.json"), { cache: "no-store" }).then(response => {
+          if (!response.ok) throw new Error(`COMPONENT_MAPPING_HTTP_${response.status}`);
+          return response.json();
+        });
+        if (profile.page_id !== "auth_login_v2" || mapping.page_id !== "auth_login_v2") throw new Error("LOGIN_CANDIDATE_PAGE_ID_MISMATCH");
+        const options = await LoginV21Candidate.createOptions({ repoHref, mapping, profile });
+        const adapter = PageWorkspaceAdapters.createStructuredDomAdapter({
+          root: mount,
+          pageId: "auth_login_v2",
+          sourceSha: document.documentElement.dataset.sourceSha || "__SOURCE_SHA__",
+          feature,
+          repoHref,
+          displayName: "Login V2.1 · structured candidate",
+          coordinateUnit: "css_px",
+          componentTree: mapping.component_tree,
+          viewportProfiles: profile.viewport_matrix.viewports_css_px.map(row => ({ width: row.width, height: row.height, unit: "css_px" })),
+          fontScaleProfiles: profile.viewport_matrix.font_scales,
+          stateProfiles: profile.state_profiles.map(row => ({ state_id: row.state_id, label: `${row.state_id} · ${row.status}` })),
+          renderer: context => LoginV21Candidate.render({ ...context, adapter, options })
+        });
+        window.LoginV21Workspace = adapter;
+        await adapter.mount();
+        await LoginV21Candidate.assertLocalCandidateOnly();
+        const ready = { page_id: "auth_login_v2", status: "STRUCTURED_DOM_CANDIDATE", source_sha: adapter.sourceSha,
+          w1: "W1_DRAFT_PROFILE_RESOLVED", w2: "W2_REQUIRED_VISUAL_AND_BG_CONTENT_RESOLVED",
+          visual_acceptance: "USER_VISUAL_ACCEPTANCE_PENDING", native_runtime: "NOT_VERIFIED" };
+        document.documentElement.dataset.loginCandidateReady = "true";
+        status.textContent = JSON.stringify(ready, null, 2);
+        window.dispatchEvent(new CustomEvent("login-candidate-ready", { detail: ready }));
+      } catch (error) {
+        document.documentElement.dataset.loginCandidateReady = "false";
+        status.textContent = `FAIL_CLOSED · ${error?.message || error}`;
+        mount.innerHTML = `<div role="alert" class="login-candidate-error">Login candidate blocked · ${String(error?.message || error).replace(/[&<>"']/g, "")}</div>`;
+        window.dispatchEvent(new CustomEvent("login-candidate-failed", { detail: { message: error?.message || String(error) } }));
+      }
+    })();
+  </script>
+</body>
+</html>

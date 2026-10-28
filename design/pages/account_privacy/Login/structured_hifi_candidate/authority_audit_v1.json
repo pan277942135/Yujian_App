@@ -1,0 +1,169 @@
+{
+  "audit_id": "AUTH_LOGIN_V2_1_STRUCTURED_HIFI_AUTHORITY_AUDIT_V1",
+  "page_id": "auth_login_v2",
+  "authority_version": "V2.1",
+  "candidate_status": "CANDIDATE_ONLY",
+  "visual_acceptance": "USER_VISUAL_ACCEPTANCE_PENDING",
+  "native_runtime": "NOT_VERIFIED",
+  "sources": [
+    {
+      "authority_id": "experience_registry",
+      "path": "design/registry/experience_registry_v1.json",
+      "sha256": "05fce37aaaa5157149eab018605b83afc28c300457484b1bf637bf3a36649e24",
+      "role": "page identity, current version, route visibility and visual authority pointer",
+      "status": "CURRENT"
+    },
+    {
+      "authority_id": "login_v21_frozen_visual",
+      "path": "design/pages/account_privacy/Login/frozen/Login_V2_1_Frozen_Final.png",
+      "sha256": "c9323f11a9d935f8e98b95276a73930b549b20262eddb5a57968a10835c7486e",
+      "dimensions_px": { "width": 864, "height": 1536 },
+      "role": "visual comparison authority only; never a renderer background",
+      "lifecycle": "FROZEN",
+      "designation": "REFERENCE_ONLY",
+      "publication": "PUBLIC_BY_EXISTING_PAGES_RULE"
+    },
+    {
+      "authority_id": "login_v21_revision",
+      "path": "design/pages/account_privacy/Login/Login_V2_BG_CONTENT_Revision_V2_1.md",
+      "sha256": "ca088c4f131095c7160cc1d88a532c967e244704d6337340c8889ced2dec7bf5",
+      "role": "current V2.1 approved visual decisions",
+      "status": "FROZEN"
+    },
+    {
+      "authority_id": "login_closure_behavior_reference",
+      "path": "design/pages/account_privacy/Login/Login_V2_Closure.md",
+      "sha256": "e0979ad8df0faa11f9c3471a54d80ac460fe32fd9bf53a80cf42061b9008f5d1",
+      "role": "behavior reference only where not superseded by V2.1",
+      "status": "HISTORICAL_VISUAL_VERSION_MISMATCH",
+      "notes": [
+        "Closure points at old 00_Login.png and a 1080x1920/360x640 reference; it does not replace the current V2.1 864x1536 visual authority.",
+        "Production authentication semantics are out of scope for this design candidate."
+      ]
+    },
+    {
+      "authority_id": "login_frozen_manifest",
+      "path": "design/pages/account_privacy/Login/frozen/manifest.json",
+      "sha256": "edadb777bd167559774eb251428a7fc15c699333e1ec2c26b81f2795836c008a",
+      "role": "frozen-image identity and missing-source metadata",
+      "status": "FROZEN"
+    },
+    {
+      "authority_id": "login_w2_resource_binding",
+      "path": "design/pages/account_privacy/Login/Page_Resource_Binding_V1.json",
+      "sha256": "df91cfb156dc5fdf71a7fdf6af3e066abf8d01d46f2b81229edd4a2c1dba5e6a",
+      "role": "W2 resource resolution and publication boundary",
+      "status": "CURRENT"
+    },
+    {
+      "authority_id": "morning_lake_background_registry",
+      "path": "design/system/backgrounds/morning_lake_v1/manifest.json",
+      "sha256": "37343530e24f4d9757dca52e53f11e7b5b72a8370a497a889da104983ff5e57e",
+      "role": "shared BG_CONTENT master identity and Login permission",
+      "status": "CURRENT"
+    },
+    {
+      "authority_id": "w1_envelope_sample",
+      "path": "design/system_v3/07_Responsive_System/page_contract_examples/auth_login_v2.envelope.json",
+      "sha256": "91195ed22924085fcd285de9b1e01ccccd4a6ddb7d7e0b179a955294a5811bee",
+      "role": "generic W1 envelope; schema-valid draft only",
+      "status": "DRAFT_NOT_PAGE_ACCEPTANCE"
+    },
+    {
+      "authority_id": "w1_profile_sample",
+      "path": "design/system_v3/07_Responsive_System/page_contract_examples/auth_login_v2.profile.json",
+      "sha256": "1afcf7b14239aa87496ecb465759989e689d258bdf12ea20fd82c6708028c2d8",
+      "role": "generic W1 profile; no bound numeric authority",
+      "status": "UNBOUND_DRAFT"
+    }
+  ],
+  "w2_resolution": {
+    "authority_version": "V2.1",
+    "frozen_visual": {
+      "asset_role": "page_visual_authority_v2_1",
+      "status": "RESOLVED",
+      "sha256": "c9323f11a9d935f8e98b95276a73930b549b20262eddb5a57968a10835c7486e"
+    },
+    "background": {
+      "asset_role": "background_bg_content",
+      "status": "RESOLVED",
+      "sha256": "5fba741088ea186e898cd3bee5777e35978436f427492e6e6122528ef6aa91d7"
+    },
+    "approved_upload_source": {
+      "asset_role": "login_v2_1_approved_upload_source",
+      "status": "MISSING",
+      "reason": "NO_BINDING_MATCH",
+      "publication": "NOT_CONFIRMED",
+      "effect": "Cannot restore or publish source attachment; the frozen repository PNG remains the visual reference."
+    },
+    "footer_grass": {
+      "asset_role": "login_footer_grass_semantic",
+      "status": "MISSING",
+      "reason": "NO_BINDING_MATCH",
+      "publication": "NOT_IN_PAGES_SCOPE",
+      "effect": "Renderer uses a locally marked temporary CSS expression only; it is not a real approved resource and blocks public preview publication."
+    }
+  },
+  "shared_icons": {
+    "registry_path": "design/system/icon_library_v0_1/frozen_assets_v1.json",
+    "registry_sha256": "cef68880232ac7441a774b72203064fc697931b36984a3024e195906fb6d5aa1",
+    "registry_status": "FROZEN_DESIGN_43_SVG",
+    "assets": [
+      {
+        "asset_id": "PERSON",
+        "path": "design/system/icon_library_v0_1/assets/ic_person_v1.svg",
+        "sha256": "e2dbc2eb3111622590836fd1cda051736dc75611d041f17c6ae1b46aff22d189",
+        "asset_status": "FROZEN_DESIGN",
+        "publication": "NOT_CONFIRMED_IN_LOGIN_W2_BINDING"
+      },
+      {
+        "asset_id": "LOCK",
+        "path": "design/system/icon_library_v0_1/assets/ic_lock_v1.svg",
+        "sha256": "4b0bac26e9c7b8c24f91effbd15e3a987b93cd4b146d17919e265ef33eed00cd",
+        "asset_status": "FROZEN_DESIGN",
+        "publication": "NOT_CONFIRMED_IN_LOGIN_W2_BINDING"
+      },
+      {
+        "asset_id": "VISIBILITY",
+        "path": "design/system/icon_library_v0_1/assets/ic_visibility_v1.svg",
+        "sha256": "5c05ab9421590ae2b02c46f68b3adf9261ff7d10758db9b9371d80eb310e3cbe",
+        "asset_status": "FROZEN_DESIGN",
+        "publication": "NOT_CONFIRMED_IN_LOGIN_W2_BINDING"
+      },
+      {
+        "asset_id": "VISIBILITY_OFF",
+        "path": "design/system/icon_library_v0_1/assets/ic_visibility_off_v1.svg",
+        "sha256": "6e12ca6dcc7316e9ba323c0c64f1d81b1a2a72f3fb858a9f25337ecdb1c41dfe",
+        "asset_status": "FROZEN_DESIGN",
+        "publication": "NOT_CONFIRMED_IN_LOGIN_W2_BINDING"
+      }
+    ],
+    "render_scope": "Isolated local candidate only until W2 page binding and Pages publication are confirmed."
+  },
+  "explicit_authority_gaps": [
+    {
+      "id": "LOGIN_SOURCE_UPLOAD_MISSING",
+      "status": "MISSING",
+      "blocks": ["source attachment provenance", "public candidate package"],
+      "does_not_block": ["local candidate rendering from W2-verified frozen background", "browser DOM tests"]
+    },
+    {
+      "id": "LOGIN_FOOTER_ASSET_MISSING",
+      "status": "UNVERIFIED",
+      "blocks": ["claim of complete V2.1 asset conformance", "public Pages preview"],
+      "does_not_block": ["isolated renderer and form interaction tests"]
+    },
+    {
+      "id": "LOGIN_RESPONSIVE_NUMERIC_AUTHORITY_UNBOUND",
+      "status": "REVIEW_REQUIRED",
+      "source": "W1 profile remains UNBOUND_DRAFT and the current V2.1 visual spec has no complete numeric viewport matrix.",
+      "does_not_block": ["candidate viewport/font matrix execution"]
+    },
+    {
+      "id": "LOGIN_FROZEN_CANVAS_TO_DP_MAPPING_UNBOUND",
+      "status": "AUTHORITY_GAP",
+      "source": "Frozen canvas is 864x1536 px; a current approved px-to-dp mapping is not registered.",
+      "does_not_block": ["CSS-pixel comparison at the exact frozen canvas", "candidate responsive experiments"]
+    }
+  ]
+}
