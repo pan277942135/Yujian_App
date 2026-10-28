@@ -172,7 +172,10 @@
       const reference = artboard?.querySelector("[data-empty-frozen-reference]");
       const mode = event.target.value;
       if (!page || !reference) return;
-      page.style.visibility = mode === "frozen" ? "hidden" : "visible";
+      // Keep the DOM root visible in every comparison mode. The opaque frozen
+      // reference is layered above the page in "frozen" mode; hiding the root
+      // also hid that child image and made exact-root capture time out.
+      page.style.visibility = "visible";
       reference.style.display = mode === "structured" ? "none" : "block";
       reference.style.opacity = mode === "overlay" ? ".5" : "1";
       reference.style.mixBlendMode = mode === "difference" ? "difference" : "normal";
@@ -471,7 +474,9 @@
     setExpectedBounds(componentTree, actual);
     const mode = ctx.root.querySelector("[data-empty-compare-mode]")?.value || "structured";
     if (mode !== "structured") {
-      pageRoot.style.visibility = mode === "frozen" ? "hidden" : "visible";
+      // The reference image is a child of pageRoot. Keep the root visible so
+      // frozen mode can capture the opaque reference layered above its content.
+      pageRoot.style.visibility = "visible";
       referenceImage.style.display = "block";
       referenceImage.style.opacity = mode === "overlay" ? ".5" : "1";
       referenceImage.style.mixBlendMode = mode === "difference" ? "difference" : "normal";
