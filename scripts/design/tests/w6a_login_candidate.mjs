@@ -410,6 +410,28 @@ async function main() {
       inspector: window.LoginV21Workspace.getInspector("LoginPageRoot"),
       privacy: { real_auth_service_connected: false, test_credentials_real: false, native_runtime: "NOT_VERIFIED" }
     }));
+    const finalBoundsByNode = new Map(finalDom.bounds.map(row => [row.node_id, row]));
+    const boxOf = nodeId => finalBoundsByNode.get(nodeId)?.bounds;
+    const backgroundBox = boxOf("Background");
+    const backgroundImageBox = boxOf("MorningLakeBGContent");
+    const visibilityBox = boxOf("VisibilityIcon");
+    if (!backgroundBox || !backgroundImageBox ||
+        Math.abs(backgroundImageBox.width - backgroundBox.width) > 0.1 ||
+        Math.abs(backgroundImageBox.height - backgroundBox.height) > 0.1) {
+      throw new Error(`LOGIN_BACKGROUND_ASSET_DOM_BOUNDS_INVALID ${JSON.stringify({ backgroundBox, backgroundImageBox })}`);
+    }
+    if (!visibilityBox || visibilityBox.width !== 27 || visibilityBox.height !== 27) {
+      throw new Error(`LOGIN_VISIBILITY_ICON_DOM_BOUNDS_INVALID ${JSON.stringify(visibilityBox)}`);
+    }
+    const debugOverlayPresent = await page.locator("#login-LoginPageRoot .login-state-chip").count();
+    if (debugOverlayPresent !== 0) throw new Error("LOGIN_DEBUG_STATE_OVERLAY_LEAKED_INTO_PAGE_ARTBOARD");
+    const rendererIntegrity = {
+      background_asset_matches_background_dom_box: true,
+      visibility_icon_css_px: [visibilityBox.width, visibilityBox.height],
+      page_debug_state_overlay: "ABSENT_FROM_ARTBOARD",
+      candidate_resource_status_remains_in_dom: finalDom.profile.resources.some(row => row.status === "CANDIDATE_UNAPPROVED_ASSET"),
+      status: "PASS"
+    };
     await fs.writeFile(finalDomPath, `${JSON.stringify(finalDom, null, 2)}\n`);
 
     await page.evaluate(async () => window.LoginV21Workspace.renderPreview({ width: 390, height: 844, unit: "css_px" }, 1, "DEFAULT"));
@@ -419,6 +441,52 @@ async function main() {
     if (fontOne === fontOneFive) throw new Error("LOGIN_FONT_SCALE_DID_NOT_CHANGE_TEXT_MEASUREMENT");
 
     const sourceImage = path.join(REPO_ROOT, "design/pages/account_privacy/Login/frozen/Login_V2_1_Frozen_Final.png");
+    const referenceSha256 = sha256Bytes(await fs.readFile(sourceImage));
+    const differenceNodeIds = {
+      CROP_MISMATCH: ["Background", "MorningLakeBGContent", "LakeToWhiteTransition", "WhiteContentSurface"],
+      GEOMETRY_MISMATCH: ["MainContent", "WelcomeTitle", "WelcomeSubtitle", "AccountGroup", "AccountField", "PasswordGroup", "PasswordField", "ForgotPasswordAction", "LoginPrimaryButton", "RegisterActionGroup", "Footer"],
+      TYPOGRAPHY_MISMATCH: ["WelcomeTitle", "WelcomeSubtitle", "AccountLabel", "PasswordLabel"],
+      ASSET_MISMATCH: ["WatersideGrassDecoration"]
+    };
+    const differenceRootCauses = {
+      CROP_MISMATCH: "The candidate uses the W2-verified BG_CONTENT master with provisional scene clipping and a white transition; no approved source-to-frozen crop mapping is registered.",
+      GEOMETRY_MISMATCH: "The measured candidate geometry is compared with raster-derived approximate bounds; no numeric responsive profile is frozen for Login.",
+      TYPOGRAPHY_MISMATCH: "The browser renders live text with the candidate font stack; the reference typography is raster-authored and no exact web font profile is registered.",
+      ASSET_MISMATCH: "No independent approved footer grass asset is present; the isolated candidate retains its explicitly unapproved CSS expression."
+    };
+    const visualDifferenceReview = {
+      schema_version: "1.0",
+      page_id: "auth_login_v2",
+      authority_version: "V2.1",
+      candidate_source_sha: sourceSha,
+      github_run_id: runId,
+      reference: { path: "design/pages/account_privacy/Login/frozen/Login_V2_1_Frozen_Final.png", sha256: referenceSha256, dimensions_px: [864, 1536] },
+      candidate_canvas: { dimensions_css_px: [864, 1536], coordinate_unit: "css_px", native_runtime: "NOT_VERIFIED" },
+      difference_policy: "Measurements and pixels are diagnostic. No numeric visual acceptance threshold is inferred; product owner visual acceptance remains required.",
+      items: Object.entries(differenceNodeIds).flatMap(([category, nodeIds]) => nodeIds.map(nodeId => {
+        const row = finalBoundsByNode.get(nodeId);
+        return {
+          category,
+          page_id: "auth_login_v2",
+          component_id: nodeId,
+          authority_ref: row?.authority_ref?.path || "design/pages/account_privacy/Login/frozen/Login_V2_1_Frozen_Final.png",
+          actual: row ? { bounds_css_px: row.bounds, typography: row.typography, resource_ref: row.resource_ref, resource_status: row.resource_status } : null,
+          expected: row?.expected_bounds || "See frozen visual authority and V2.1 page composition rule.",
+          measured_deviation_css_px: row?.deviation || null,
+          root_cause: differenceRootCauses[category],
+          repair_status: category === "ASSET_MISMATCH" ? "UNVERIFIED_CANDIDATE_ASSET" : "CANDIDATE_REVIEW_REQUIRED",
+          user_approval_required: true
+        };
+      })),
+      authority_gaps: [
+        { id: "LOGIN_FROZEN_CANVAS_TO_DP_MAPPING_UNBOUND", status: "AUTHORITY_GAP", source: "scripts/design/page_candidates/auth_login_v2/authority_audit_v1.json" },
+        { id: "LOGIN_RESPONSIVE_NUMERIC_AUTHORITY_UNBOUND", status: "REVIEW_REQUIRED", source: "scripts/design/page_candidates/auth_login_v2/responsive_candidate_v1.json" },
+        { id: "LOGIN_FOOTER_ASSET_MISSING", status: "UNVERIFIED", source: "scripts/design/page_candidates/auth_login_v2/authority_audit_v1.json" }
+      ],
+      status: "USER_VISUAL_ACCEPTANCE_PENDING"
+    };
+    const visualDifferencePath = path.join(evidenceDir, "login-candidate-visual-differences.json");
+    await fs.writeFile(visualDifferencePath, `${JSON.stringify(visualDifferenceReview, null, 2)}\n`);
     const summary = {
       schema_version: "1.0",
       page_id: "auth_login_v2",
@@ -439,7 +507,9 @@ async function main() {
       states: { accountFocus: accountFocus.focused, passwordFocus: passwordFocus.focused, passwordShown: "PASS", passwordHidden: "PASS", error: "PASS", loading: "PASS", disabledAction: "PASS", keyboardSimulation: "PASS", localSubmitSimulation: "LOADING_THEN_CANDIDATE_ERROR", noBackend: true },
       negative_resource_tests: negativeResults,
       interaction: { component_tree_to_dom: "PASS", dom_to_tree: "PASS", inspector_actual_bounds: "PASS", missing_node_fail_closed: "PASS", visibility_button: "PASS", forgot_action_no_navigation: "PASS", register_action_no_navigation: "PASS" },
-      visuals: { frozen_reference_path: "design/pages/account_privacy/Login/frozen/Login_V2_1_Frozen_Final.png", frozen_sha256: sha256Bytes(await fs.readFile(sourceImage)), rendered_path: path.relative(evidenceDir, referenceCanvasPath).replaceAll(path.sep, "/"), rendered_sha256: sha256Bytes(await fs.readFile(referenceCanvasPath)), overlay: "generated by compare_login_candidate_visual.py; no resizing", diff: "generated by compare_login_candidate_visual.py; measurement only", visual_result: "MEASUREMENT_ONLY_NOT_VISUAL_PASS" },
+      renderer_integrity: rendererIntegrity,
+      visual_difference_review: { path: path.basename(visualDifferencePath), sha256: sha256Bytes(await fs.readFile(visualDifferencePath)), status: "USER_VISUAL_ACCEPTANCE_PENDING", item_count: visualDifferenceReview.items.length },
+      visuals: { frozen_reference_path: "design/pages/account_privacy/Login/frozen/Login_V2_1_Frozen_Final.png", frozen_sha256: referenceSha256, rendered_path: path.relative(evidenceDir, referenceCanvasPath).replaceAll(path.sep, "/"), rendered_sha256: sha256Bytes(await fs.readFile(referenceCanvasPath)), overlay: "generated by compare_login_candidate_visual.py; no resizing", diff: "generated by compare_login_candidate_visual.py; measurement only", visual_result: "MEASUREMENT_ONLY_NOT_VISUAL_PASS" },
       errors: (() => {
         const expectedMissing404 = browserErrors.http.filter(row => row.status === 404 && row.url.includes("__w6a_missing.png"));
         const remainingConsole = browserErrors.console.slice();
@@ -473,6 +543,7 @@ async function main() {
       upstream_validation_evidence: upstreamEvidence,
       browser_matrix: { result: "PASS_MEASUREMENT_ONLY", expected_case_count: 12, recorded_case_count: matrixRows.length },
       browser_report: { path: "login-candidate-browser-report.json", sha256: sha256Bytes(await fs.readFile(path.join(evidenceDir, "login-candidate-browser-report.json"))) },
+      visual_difference_review: { path: path.basename(visualDifferencePath), sha256: sha256Bytes(await fs.readFile(visualDifferencePath)) },
       screenshot: { path: path.relative(evidenceDir, referenceCanvasPath).replaceAll(path.sep, "/"), sha256: sha256Bytes(await fs.readFile(referenceCanvasPath)), capture: comparisonCapture },
       dom: { path: path.basename(finalDomPath), sha256: sha256Bytes(await fs.readFile(finalDomPath)) },
       visual_comparison: "MEASUREMENT_ONLY_NOT_VISUAL_PASS", public_preview: "BLOCKED_BY_W5",

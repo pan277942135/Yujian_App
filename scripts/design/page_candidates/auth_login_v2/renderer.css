@@ -15,6 +15,12 @@ body{margin:0}
 .login-page [data-workspace-selected="true"]{outline:2px solid rgba(15,122,120,.9)!important;outline-offset:2px!important;z-index:20!important}
 .login-background{position:absolute!important;inset:0 0 auto!important;width:100%;height:calc(var(--login-vh)*.47);overflow:hidden;pointer-events:none;z-index:0}
 .login-lake-image{position:absolute!important;inset:0 0 auto!important;width:100%;height:100%;max-width:none!important;max-height:none!important;object-fit:cover;object-position:center top;display:block}
+/* The shared workspace has a generic `.page-ws-artboard img` rule with higher
+   specificity than page-owned class selectors. Keep Login asset dimensions
+   bound to the actual candidate layers instead of the image's intrinsic size. */
+.page-workspace-root[data-workspace-kind="structured-dom-candidate"] .login-page .login-background img.login-lake-image{width:100%;height:100%;object-fit:cover;object-position:center top}
+.page-workspace-root[data-workspace-kind="structured-dom-candidate"] .login-page img.login-leading-icon{width:clamp(22px,calc(var(--login-vw)*.035),31px);height:clamp(22px,calc(var(--login-vw)*.037),34px);object-fit:contain}
+.page-workspace-root[data-workspace-kind="structured-dom-candidate"] .login-page img.login-visibility-icon{width:27px;height:27px;object-fit:contain}
 .login-lake-transition{position:absolute!important;inset:calc(var(--login-vh)*.30) 0 0!important;width:100%;height:calc(var(--login-vh)*.17);background:linear-gradient(to bottom,rgba(255,255,255,0) 0%,rgba(255,255,255,.38) 40%,rgba(255,255,255,.88) 78%,#fff 100%);pointer-events:none}
 .login-white-surface{position:absolute!important;inset:calc(var(--login-vh)*.34) 0 0!important;width:100%;height:calc(var(--login-page-height,var(--login-vh)) - var(--login-vh)*.34);background:linear-gradient(to bottom,rgba(255,255,255,.06) 0%,#fff 11%,#fff 100%);z-index:1;pointer-events:none}
 .login-main-content{position:absolute!important;z-index:2;top:calc(var(--login-vh)*.448);left:8%;width:84%;height:auto;display:block}
@@ -43,14 +49,12 @@ body{margin:0}
 .login-footer{position:absolute!important;left:0;right:0;bottom:0;width:100%;height:calc(var(--login-page-height,var(--login-vh))*.105);min-height:48px;background:linear-gradient(to top,rgba(194,222,228,.54),rgba(232,244,246,.34) 46%,rgba(255,255,255,0) 100%);z-index:3;pointer-events:none;overflow:hidden}
 .login-grass-sketch{position:absolute!important;inset:auto 0 0!important;width:100%;height:88%;background:linear-gradient(to top,rgba(117,149,108,.28),rgba(117,149,108,0) 72%);clip-path:polygon(0 37%,3% 7%,4% 54%,7% 18%,9% 50%,11% 6%,13% 46%,16% 14%,17% 58%,20% 23%,22% 56%,24% 5%,26% 60%,29% 17%,31% 50%,34% 8%,36% 62%,40% 20%,43% 54%,47% 10%,50% 61%,54% 18%,57% 57%,60% 5%,63% 56%,67% 18%,70% 63%,73% 13%,76% 58%,80% 4%,83% 55%,87% 15%,90% 60%,94% 11%,97% 53%,100% 21%,100% 100%,0 100%)}
 .login-waterline{position:absolute!important;left:0;right:0;bottom:19%;height:1px;background:rgba(130,174,186,.25)}
-.login-footer[data-resource-status="CANDIDATE_UNAPPROVED_ASSET"]::after{content:"";position:absolute;inset:0;border:1px dashed rgba(178,114,48,.35);pointer-events:none}
 .login-keyboard-overlay{position:absolute!important;left:0;right:0;top:calc(var(--login-vh) - 220px);height:220px;z-index:8;padding:10px 12px 18px;border-radius:14px 14px 0 0;background:#e8edf1;box-shadow:0 -4px 20px rgba(18,54,74,.15);color:#5b6c77;font-size:12px;}
 .login-keyboard-overlay[hidden]{display:none!important}
 .login-keyboard-toolbar{display:flex;justify-content:space-between;padding:0 6px 10px}
 .login-keyboard-keys{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:6px}
 .login-keyboard-keys span{display:grid;place-items:center;min-height:30px;border-radius:5px;background:#fff;color:#53636e;font-size:11px}
 .login-error-message{margin:8px 0 0;color:#a33d36;font-size:13px;line-height:1.4}
-.login-state-chip{position:absolute!important;top:8px;right:8px;z-index:10;padding:3px 7px;border:1px solid rgba(117,149,108,.35);border-radius:20px;background:rgba(255,255,255,.76);color:#587265;font:9px/1.2 ui-monospace,monospace}
 @container login-artboard (max-width:360px){.login-main-content{left:7%;width:86%}.login-register-row{gap:5px}.login-keyboard-overlay{top:calc(var(--login-vh) - 200px);height:200px}}
 @media(prefers-reduced-motion:reduce){.login-page *{scroll-behavior:auto!important;transition:none!important;animation:none!important}}
 @media(max-width:760px){.login-reference-only{grid-template-columns:1fr}.login-candidate-lab{padding:12px}}

@@ -175,7 +175,6 @@
         <div class="login-keyboard-toolbar"><span>浏览器键盘模拟</span><span>⌄</span></div>
         <div class="login-keyboard-keys">${"qwertyuiopasdfghjklzxcvbnm".split("").slice(0, 20).map(letter => `<span>${letter}</span>`).join("")}</div>
       </div>
-      <output class="login-state-chip" aria-live="polite">${escapeHtml(visibleState)} · candidate</output>
     </div>`;
   }
 
