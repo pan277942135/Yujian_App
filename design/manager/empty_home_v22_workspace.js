@@ -498,7 +498,7 @@
     const mapping = loadedMapping.value;
     const cachedByRoot = new WeakMap();
     const renderer = async ctx => {
-      const pageContext = { ...ctx, repoHref: pageRepoHref };
+      const pageContext = { ...ctx, fetchImpl, repoHref: pageRepoHref };
       let cached = cachedByRoot.get(ctx.root);
       if (!cached) {
         cached = await ensureControlsAndResources(pageContext, mapping);
