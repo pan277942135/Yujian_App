@@ -35,6 +35,7 @@ async function pngDimensions(path) {
 async function screenshotRootViewport(page, path, width, height, timeout = 45000) {
   const locator = page.locator("#eh-EmptyHomeRoot");
   await locator.waitFor({ state: "visible", timeout });
+  await locator.scrollIntoViewIfNeeded({ timeout });
   const bounds = await locator.boundingBox();
   assert(bounds && Math.abs(bounds.width - width) < 0.01 && Math.abs(bounds.height - height) < 0.01,
     `MATRIX_ROOT_BOUNDS_MISMATCH: requested=${width}x${height} actual=${JSON.stringify(bounds)}`);
