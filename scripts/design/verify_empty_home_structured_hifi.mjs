@@ -27,6 +27,75 @@ function parseArgs(argv) {
 
 function assert(condition, message) { if (!condition) throw new Error(message); }
 async function sha256File(path) { return createHash("sha256").update(await readFile(path)).digest("hex"); }
+async function readJson(root, path) { return JSON.parse(await readFile(resolve(root, path), "utf8")); }
+async function buildAuthorityAudit(root, preflight) {
+  const paths={authorityManifest:"design/pages/home/empty_home/shared/contracts/authority_manifest.json",
+    assetManifest:"design/pages/home/empty_home/shared/contracts/asset_manifest.json",
+    registry:"design/system_v3/06_Asset_System/Asset_Registry_V3_FINAL.json",
+    iconInventory:"design/system/icon_library_v0_1/icon_inventory_v0_1.json",
+    pageBinding:"design/pages/home/empty_home/Page_Resource_Binding_V1.json",
+    typography:"design/system_v3/04_Design_Tokens/Typography/Typography_Tokens_V3_FINAL.json",
+    typographySystem:"design/system_v3/04_Design_Tokens/Typography/Typography_System_V3_FINAL.md",
+    featureSpec:"design/pages/home/empty_home/spec/Empty_Home_Feature_Spec_V2.md",
+    experienceRegistry:"design/registry/experience_registry_v1.json",
+    brandManifest:"design/system_v3/06_Asset_System/derived/brand_title_primary/brand_title_primary_manifest.json",
+    brandAsset:"design/system_v3/06_Asset_System/derived/brand_title_primary/brand_title_primary.png"};
+  const [authority,manifest,registry,icons,binding,typography,brandManifest,experience]=await Promise.all([
+    readJson(root,paths.authorityManifest),readJson(root,paths.assetManifest),readJson(root,paths.registry),readJson(root,paths.iconInventory),
+    readJson(root,paths.pageBinding),readJson(root,paths.typography),readJson(root,paths.brandManifest),readJson(root,paths.experienceRegistry)]);
+  const registryRows=registry.assets||[];
+  const lifecycleTargets={
+    SceneBase:"design/pages/home/empty_home/shared/assets/background/scene_base_master.png",
+    CloudAtmosphere:"design/pages/home/empty_home/shared/assets/atmosphere/cloud_master.png",
+    FishingRod:"design/pages/home/empty_home/shared/assets/fishing/rod_master.png",
+    BobberBody:"design/pages/home/empty_home/shared/assets/fishing/bobber_master.png",
+    Ripple:"design/pages/home/empty_home/shared/assets/fishing/ripple_master_mask.png"};
+  const lifecycle=Object.entries(lifecycleTargets).map(([componentId,path])=>{
+    const pageAsset=(manifest.assets||[]).find(row=>row.path===path);
+    const registryAsset=registryRows.find(row=>row.path===path);
+    return {component_id:componentId,path,asset_id:pageAsset?.asset_id||registryAsset?.asset_id||null,
+      sha256:pageAsset?.sha256||registryAsset?.sha256||null,registry_lifecycle:registryAsset?.status||registryAsset?.lifecycle_status||"UNRESOLVED",
+      page_manifest_status:pageAsset?.status||pageAsset?.lifecycle_status||"NOT_DECLARED",
+      visual_authority_status:authority.visual_revision_status,
+      conflict:authority.visual_revision_status==="APPROVED_FROZEN"&&["REVIEW","UNRESOLVED"].includes(registryAsset?.status||registryAsset?.lifecycle_status)};
+  });
+  const iconIds={GALLERY:"design/system/icon_library_v0_1/assets/ic_gallery_v1.svg",CHEVRON_RIGHT:"design/system/icon_library_v0_1/assets/ic_chevron_right_v1.svg"};
+  const iconEntries=icons.entries||[];
+  const iconAudit={};
+  for(const [id,path] of Object.entries(iconIds)){
+    const entry=iconEntries.find(row=>row.id===id)||null;
+    const registryAsset=registryRows.find(row=>row.path===path);
+    const bindingAsset=(binding.asset_bindings||[]).find(row=>row.source_path===path||row.asset_id===registryAsset?.asset_id);
+    iconAudit[id]={path,sha256:await sha256File(resolve(root,path)),inventory_state:entry?.asset_state||"NOT_LISTED",
+      registry_lifecycle:registryAsset?.status||registryAsset?.lifecycle_status||"UNRESOLVED",w2_binding_status:bindingAsset?"BOUND":"NOT_BOUND",
+      render_status:bindingAsset?"RESOLVER_REQUIRED":"BLOCKED_AUTHORITY_GAP"};
+  }
+  const bodyToken=(typography.tokens||[]).find(row=>row.id==="type.body")||null;
+  const buttonToken=(typography.tokens||[]).find(row=>row.id==="type.button")||null;
+  const normalHome=(experience.features||[]).find(row=>row.id==="home_normal_v1")||null;
+  const emptyHome=(experience.features||[]).find(row=>row.id==="home_empty_v2")||null;
+  const brandAssetSha=await sha256File(resolve(root,brandManifest.derived_path));
+  return {visual_authority:{path:paths.authorityManifest,sha256:await sha256File(resolve(root,paths.authorityManifest)),status:authority.visual_revision_status,
+      design_version:authority.design_version,visual_revision:authority.visual_revision},
+    resource_lifecycle_conflicts:lifecycle,
+    icons:{authority_path:paths.iconInventory,items:iconAudit,
+      status:Object.values(iconAudit).some(row=>row.registry_lifecycle==="REVIEW"||row.w2_binding_status!=="BOUND")?"BLOCKED_W2_AUTHORITY_RECONCILIATION":"RESOLVED"},
+    brand:{status:"BLOCKED_AUTHORITY_GAP",typography_rule:"FROZEN_ARTWORK_ASSET",typography_authority:paths.typographySystem,
+      standalone_asset:{path:brandManifest.derived_path,sha256:brandAssetSha,status:brandManifest.status,approval_status:brandManifest.approval_status,
+        usage:brandManifest.usage,source_path:brandManifest.source_path,source_sha256:brandManifest.source_sha256},
+      empty_home_authorized:brandManifest.usage?.includes("home_empty_v2")||false,
+      required_resource:"Independent approved Empty Home wordmark asset/binding or explicit approved placement scope",
+      approver:"Product Owner / Brand Design Authority (no named approver is recorded in the repository)"},
+    typography:{authority_path:paths.typography,sha256:await sha256File(resolve(root,paths.typography)),body_token:bodyToken,button_token:buttonToken,
+      browser_font_mapping:"system-ui, sans-serif; browser-only representative",android_font_status:"NOT_VERIFIED",
+      subtitle_status:"AUTHORITY_GAP: no explicit Empty Home page typography token or override"},
+    content_state_boundary:{result:"NOT_APPLICABLE",state:"CONTENT_PRESENT",authority_path:paths.featureSpec,
+      authority_sha256:await sha256File(resolve(root,paths.featureSpec)),reason:"Empty Home Feature Spec selects EMPTY when fishRecords.isEmpty(); normal Home owns the non-empty state. This W5 adapter renders EMPTY only.",
+      empty_page_registry_entry:emptyHome?.id||null,normal_page_registry_entry:normalHome?.id||null,executed:false},
+    system_bars:{browser_status_bar:"NOT_SIMULATED",browser_safe_insets:{top:0,bottom:0,status:"BROWSER_ASSUMED_ZERO_NOT_NATIVE"},
+      frozen_reference_status_bar:"PRESENT_IN_RASTER; boundary has no page-owned machine-readable authority",header_measurement:"Recorded per matrix case in CSS px",native_runtime_status:"NOT_VERIFIED"},
+    measured_dom_preflight:{resource_count:preflight.resources?.length||0,resources:preflight.resources||[],w2_binding_sha256:preflight.w2BindingSha||null}};
+}
 async function resolveBehaviorState(root) {
   const envelopePath=resolve(root,"design/system_v3/07_Responsive_System/page_contract_examples/home_empty_v2.envelope.json");
   const envelope=JSON.parse(await readFile(envelopePath,"utf8"));
@@ -79,18 +148,100 @@ async function pngDimensions(path) {
   assert(bytes.length >= 24 && bytes.subarray(1, 4).toString("ascii") === "PNG", `EVIDENCE_SCREENSHOT_NOT_PNG: ${path}`);
   return { width: bytes.readUInt32BE(16), height: bytes.readUInt32BE(20) };
 }
-async function screenshotRootViewport(page, path, width, height, timeout = 45000) {
+async function screenshotRootViewport(page, path, width, height, promptTextPath, timeout = 45000) {
   const locator = page.locator("#eh-EmptyHomeRoot");
   await locator.waitFor({ state: "visible", timeout });
-  await locator.scrollIntoViewIfNeeded({ timeout });
-  const bounds = await page.evaluate(() => {
-    const rect = document.querySelector("#eh-EmptyHomeRoot")?.getBoundingClientRect();
-    return rect ? { x: rect.left, y: rect.top, width: rect.width, height: rect.height } : null;
-  });
-  assert(bounds && Math.abs(bounds.width - width) < 0.01 && Math.abs(bounds.height - height) < 0.01,
-    `MATRIX_ROOT_BOUNDS_MISMATCH: requested=${width}x${height} actual=${JSON.stringify(bounds)}`);
-  await locator.screenshot({ path, scale: "device", animations: "disabled", timeout });
-  return { size: await pngDimensions(path), bounds_css_px: { x: bounds.x, y: bounds.y, width, height } };
+  const isolation = await page.evaluate(({ width, height }) => {
+    const root = document.querySelector("#eh-EmptyHomeRoot");
+    const rectJSON = rect => ({ x: rect.left, y: rect.top, right: rect.right, bottom: rect.bottom, width: rect.width, height: rect.height });
+    if (!root) return { error: "ROOT_MISSING" };
+    const workspaceRect = rectJSON(root.getBoundingClientRect());
+    const clipAncestors = [];
+    for (let parent = root.parentElement; parent && parent !== document.body; parent = parent.parentElement) {
+      const style = getComputedStyle(parent);
+      const clipX = ["hidden", "clip", "auto", "scroll"].includes(style.overflowX);
+      const clipY = ["hidden", "clip", "auto", "scroll"].includes(style.overflowY);
+      if (clipX || clipY) {
+        const r = parent.getBoundingClientRect();
+        const left = r.left + parent.clientLeft, top = r.top + parent.clientTop;
+        const right = left + parent.clientWidth, bottom = top + parent.clientHeight;
+        clipAncestors.push({ selector: parent.id ? `#${parent.id}` : parent.className?.toString?.().slice(0, 100) || parent.tagName,
+          overflow_x: style.overflowX, overflow_y: style.overflowY,
+          clips_root: (clipX && (workspaceRect.x < left - .5 || workspaceRect.right > right + .5)) ||
+            (clipY && (workspaceRect.y < top - .5 || workspaceRect.bottom > bottom + .5)) });
+      }
+    }
+    const required = ["eh-EnvironmentScene", "eh-CaptureActionGroup", "eh-PrimaryCaptureButton", "eh-AlbumAction"];
+    const visible = id => {
+      const node = root.querySelector(`#${CSS.escape(id)}`);
+      if (!node) return false;
+      const r = node.getBoundingClientRect(), style = getComputedStyle(node);
+      return r.width > 0 && r.height > 0 && style.display !== "none" && style.visibility !== "hidden" && Number(style.opacity) > 0;
+    };
+    const missing = required.filter(id => !visible(id));
+    const targetRect = root.getBoundingClientRect();
+    if (Math.abs(targetRect.width - width) >= .01 || Math.abs(targetRect.height - height) >= .01) {
+      return { error: "MATRIX_ROOT_BOUNDS_MISMATCH", workspaceRect, clipAncestors, missing };
+    }
+    const parent = root.parentNode;
+    const marker = document.createComment("empty-home-capture-root-placeholder");
+    parent.insertBefore(marker, root);
+    const oldStyle = root.getAttribute("style"), hadCapture = root.hasAttribute("data-visual-capture");
+    const oldCapture = root.getAttribute("data-visual-capture");
+    const clean = root.querySelectorAll("[data-workspace-selected]");
+    const overlay = document.createElement("div");
+    overlay.className = "page-ws-artboard eh-v22-capture-isolation";
+    overlay.dataset.emptyHomeCaptureIsolation = "true";
+    Object.assign(overlay.style, { position: "fixed", left: "0", top: "0", width: `${width}px`, height: `${height}px`,
+      overflow: "visible", transform: "none", zoom: "1", zIndex: "2147483647", background: "transparent", pointerEvents: "none" });
+    root.dataset.visualCapture = "true";
+    root.style.position = "absolute"; root.style.left = "0"; root.style.top = "0"; root.style.right = "auto"; root.style.bottom = "auto";
+    overlay.appendChild(root); document.body.appendChild(overlay);
+    window.__restoreEmptyHomeCaptureRoot = () => {
+      marker.parentNode?.insertBefore(root, marker);
+      marker.remove(); overlay.remove();
+      if (oldStyle === null) root.removeAttribute("style"); else root.setAttribute("style", oldStyle);
+      if (!hadCapture) root.removeAttribute("data-visual-capture"); else root.setAttribute("data-visual-capture", oldCapture);
+      delete window.__restoreEmptyHomeCaptureRoot;
+    };
+    return { workspaceRect, clipAncestors, required_visible: required.filter(visible), missing, isolation_used: true,
+      outside_workspace_chrome_included: false, selected_nodes_suppressed_for_visual_capture: clean.length };
+  }, { width, height });
+  assert(!isolation.error, `${isolation.error || "MATRIX_ROOT_ISOLATION_FAILED"}: ${JSON.stringify(isolation)}`);
+  assert(isolation.missing.length === 0, `MATRIX_CAPTURE_CONTENT_MISSING: ${JSON.stringify(isolation.missing)}`);
+  try {
+    const isolatedBounds = await page.evaluate(() => {
+      const root = document.querySelector("body > .eh-v22-capture-isolation #eh-EmptyHomeRoot");
+      const rect = root?.getBoundingClientRect();
+      const viewport = { width: innerWidth, height: innerHeight };
+      return rect ? { x: rect.left, y: rect.top, right: rect.right, bottom: rect.bottom, width: rect.width, height: rect.height,
+        viewport, fully_visible: rect.left >= 0 && rect.top >= 0 && rect.right <= viewport.width && rect.bottom <= viewport.height,
+        prompt_text_visible: Boolean(root.querySelector("#eh-CapturePromptText")?.getClientRects().length),
+        capture_visible: Boolean(root.querySelector("#eh-PrimaryCaptureButton")?.getClientRects().length),
+        album_visible: Boolean(root.querySelector("#eh-AlbumAction")?.getClientRects().length) } : null;
+    });
+    assert(isolatedBounds?.fully_visible && isolatedBounds.prompt_text_visible && isolatedBounds.capture_visible && isolatedBounds.album_visible,
+      `MATRIX_CAPTURE_ROOT_NOT_FULLY_VISIBLE: ${JSON.stringify(isolatedBounds)}`);
+    await locator.screenshot({ path, scale: "device", animations: "disabled", timeout });
+    const promptTextBounds = await page.evaluate(() => {
+      const node = document.querySelector("#eh-CapturePromptText");
+      if (!node) return null;
+      const range = document.createRange(); range.selectNodeContents(node);
+      const r = range.getBoundingClientRect(); const style = getComputedStyle(node.parentElement);
+      return { x: r.x, y: r.y, width: r.width, height: r.height, font_size_css_px: style.fontSize,
+        line_height_css_px: style.lineHeight, font_family_browser_mapping: style.fontFamily, text: node.textContent };
+    });
+    assert(promptTextBounds?.width > 0 && promptTextBounds?.height > 0, "CAPTURE_PROMPT_TEXT_RANGE_NOT_MEASURABLE");
+    if (promptTextPath) await page.locator("#eh-CapturePromptText").screenshot({ path: promptTextPath, scale: "device", animations: "disabled", timeout });
+    return { size: await pngDimensions(path), bounds_css_px: { x: isolatedBounds.x, y: isolatedBounds.y, width, height },
+      visible_content: { scene: true, prompt_text: true, camera_button: true, album_entry: true }, prompt_text_bounds_css_px: promptTextBounds,
+      workspace_visibility_before_isolation: { root_bounds_css_px: isolation.workspaceRect, clipping_ancestors: isolation.clipAncestors,
+        clipped_in_workspace: isolation.clipAncestors.some(row => row.clips_root) },
+      capture_isolation_used: true, outside_workspace_chrome_included: false,
+      selected_overlay_suppressed: isolation.selected_nodes_suppressed_for_visual_capture };
+  } finally {
+    await page.evaluate(() => window.__restoreEmptyHomeCaptureRoot?.());
+  }
 }
 function assertScreenshotCaptureEnvelope(size, width, height, label) {
   const minimum = { width: width * 3, height: height * 3 };
@@ -263,12 +414,18 @@ async function main() {
     baseEvidence.matrix_authority=preflight.viewportAuthority;
     baseEvidence.formal_matrix_definition={viewports:preflight.formalViewports,font_scales:preflight.fontScales,
       source_path:preflight.viewportAuthority.path,source_sha256:preflight.viewportAuthority.sha256};
-    const formalCases=preflight.formalViewports.flatMap(({width,height})=>preflight.fontScales.map(fontScale=>({width,height,fontScale})));
+    const formalCases=preflight.formalViewports.flatMap(({width,height})=>preflight.fontScales.map(fontScale=>({width,height,fontScale})))
+      .map(row=>({...row,matrix_classification:"FORMAL_AUTHORITY_CASE"}));
+    const supplementalCases=preflight.formalViewports.flatMap(({width,height})=>
+      preflight.fontScales.includes(1.5)?[]:[{width,height,fontScale:1.5,matrix_classification:"SUPPLEMENTAL_CANDIDATE_NOT_IN_FROZEN_AUTHORITY"}]);
+    const matrixCases=[...formalCases,...supplementalCases];
+    baseEvidence.supplemental_matrix_definition={font_scale:1.5,viewports:preflight.formalViewports,
+      status:"SUPPLEMENTAL_CANDIDATE_NOT_IN_FROZEN_AUTHORITY",authority_path:preflight.viewportAuthority.path,authority_sha256:preflight.viewportAuthority.sha256};
     const behaviorState=await resolveBehaviorState(args.root);
     assert(behaviorState.behavior_state_id==="EMPTY","the declared W5 behavior state must resolve to the EMPTY state selected by the approved behavior authority");
     assert(typeof preflight.rendererStateId==="string"&&preflight.rendererStateId.length>0,"the actual structured renderer must report its current renderer state");
     baseEvidence.behavior_state_mapping={...behaviorState,renderer_state_id:preflight.rendererStateId};
-    baseEvidence.matrix=formalCases.map(({width,height,fontScale})=>({
+    baseEvidence.matrix=matrixCases.map(({width,height,fontScale,matrix_classification})=>({
       case_id:`EMPTY_HOME_${width}x${height}_FONT_${fontScale}`,
       page_id:"home_empty_v2",
       viewport:{width,height},
@@ -279,11 +436,16 @@ async function main() {
       run_id:runId,
       matrix_source_path:preflight.viewportAuthority.path,
       matrix_source_sha256:preflight.viewportAuthority.sha256,
+      matrix_classification,
       result:"NOT_RUN"
     }));
-    baseEvidence.matrix_summary={expected:formalCases.length,executed:0,pass:0,fail:0,not_run:formalCases.length,
+    baseEvidence.matrix_summary={formal_expected:formalCases.length,formal_executed:0,formal_pass:0,formal_fail:0,formal_not_run:formalCases.length,
+      supplemental_expected:supplementalCases.length,supplemental_executed:0,supplemental_pass:0,supplemental_fail:0,supplemental_not_run:supplementalCases.length,
+      total_expected:matrixCases.length,total_executed:0,total_pass:0,total_fail:0,total_not_run:matrixCases.length,
       source_path:preflight.viewportAuthority.path,source_sha256:preflight.viewportAuthority.sha256};
     baseEvidence.resource_statuses=preflight.resources;
+    baseEvidence.authority_audit=await buildAuthorityAudit(args.root,preflight);
+    baseEvidence.state_boundary_coverage=baseEvidence.authority_audit.content_state_boundary;
     baseEvidence.browser_url=args.url?`${managerUrl}${ROUTE}`:"LOCAL_SITE_BUILD_ONLY_NOT_DEPLOYED";
     baseEvidence.authority_gaps=AUTHORITY_GAPS_FOR_REPORT();
     assert(preflight.authorityGaps===baseEvidence.authority_gaps.length,"authority gap report count differs from the page renderer");
@@ -303,20 +465,28 @@ async function main() {
     await page.locator("#eh-HeroCopy").click({position:{x:12,y:12}});
     assert(await page.locator('[data-workspace-inspector]').getAttribute("data-selected-node-id")==="HeroCopy","canvas click must locate the corresponding tree layer");
 
+    const workspaceBrowserViewport=await page.evaluate(()=>({width:innerWidth,height:innerHeight,device_scale_factor:devicePixelRatio}));
+    assert(workspaceBrowserViewport.width>=1440&&workspaceBrowserViewport.height>=1200,
+      `WORKSPACE_BROWSER_VIEWPORT_TOO_SMALL_FOR_CAPTURE: ${JSON.stringify(workspaceBrowserViewport)}`);
+    baseEvidence.workspace_capture_browser_viewport=workspaceBrowserViewport;
     const updateMatrixSummary=()=>{
-      const pass=baseEvidence.matrix.filter(row=>row.result==="PASS").length;
-      const fail=baseEvidence.matrix.filter(row=>row.result==="FAIL").length;
-      const executed=pass+fail;
-      baseEvidence.matrix_summary={...baseEvidence.matrix_summary,expected:formalCases.length,executed,pass,fail,
-        not_run:formalCases.length-executed};
+      const group=classification=>baseEvidence.matrix.filter(row=>row.matrix_classification===classification);
+      const summarize=rows=>{const pass=rows.filter(row=>row.result==="PASS").length;const fail=rows.filter(row=>row.result==="FAIL").length;
+        return {expected:rows.length,executed:pass+fail,pass,fail,not_run:rows.length-pass-fail};};
+      const formal=summarize(group("FORMAL_AUTHORITY_CASE"));
+      const supplemental=summarize(group("SUPPLEMENTAL_CANDIDATE_NOT_IN_FROZEN_AUTHORITY"));
+      const total=summarize(baseEvidence.matrix);
+      baseEvidence.matrix_summary={formal_expected:formal.expected,formal_executed:formal.executed,formal_pass:formal.pass,formal_fail:formal.fail,formal_not_run:formal.not_run,
+        supplemental_expected:supplemental.expected,supplemental_executed:supplemental.executed,supplemental_pass:supplemental.pass,supplemental_fail:supplemental.fail,supplemental_not_run:supplemental.not_run,
+        total_expected:total.expected,total_executed:total.executed,total_pass:total.pass,total_fail:total.fail,total_not_run:total.not_run,
+        source_path:preflight.viewportAuthority.path,source_sha256:preflight.viewportAuthority.sha256};
     };
-    for (const {width,height,fontScale} of formalCases) {
+    const promptTextScreenshotHashes={};
+    for (const {width,height,fontScale,matrix_classification} of matrixCases) {
       activeMatrixRow=baseEvidence.matrix.find(row=>row.case_id===`EMPTY_HOME_${width}x${height}_FONT_${fontScale}`);
       activeMatrixRow.result="IN_PROGRESS";
       activeMatrixRow.started_at=new Date().toISOString();
       updateMatrixSummary();
-      await page.setViewportSize({width,height});
-      await page.waitForFunction(({w,h})=>window.innerWidth===w&&window.innerHeight===h,{w:width,h:height});
       const preset=page.locator("[data-empty-viewport-preset]");
       await preset.selectOption(`${width}x${height}@${fontScale}`);
       await page.waitForFunction(({w,h,f})=>{
@@ -345,7 +515,13 @@ async function main() {
         });
         const line=byId.FishingLine?.bounds,rod=byId.FishingRod?.bounds,bobber=byId.BobberBody?.bounds;
         const contact=byId.WaterContact?.bounds,reflection=byId.BobberReflection?.bounds,ripple=byId.Ripple?.bounds;
-        const lineEndContactGap=line&&contact?Math.hypot(contact.x-line.right,contact.y-line.bottom):null;
+        const linePath=document.querySelector("#eh-FishingLine path");
+        const pointToScreen=(point)=>{const matrix=document.querySelector("#eh-FishingLine").getScreenCTM();return new DOMPoint(point.x,point.y).matrixTransform(matrix);};
+        const lineLength=linePath?.getTotalLength()||0;
+        const lineStart=linePath&&lineLength?pointToScreen(linePath.getPointAtLength(0)):null;
+        const lineEnd=linePath&&lineLength?pointToScreen(linePath.getPointAtLength(lineLength)):null;
+        const contactPoint=document.querySelector("#eh-WaterContact")?.getBoundingClientRect();
+        const lineEndContactGap=lineEnd&&contactPoint?Math.hypot(lineEnd.x-contactPoint.x,lineEnd.y-contactPoint.y):null;
         const bobberContact={horizontal_inside:contact&&bobber?contact.x>=bobber.x-.5&&contact.x<=bobber.right+.5:false,
           vertical_gap:contact&&bobber?Math.abs(contact.y-bobber.bottom):null};
         const reflectionGap=contact&&reflection?Math.abs(reflection.y-contact.y):null;
@@ -355,12 +531,17 @@ async function main() {
         const boardBounds=board.getBoundingClientRect();
         return {viewport:metrics.viewport,font_scale:metrics.font_scale,scene_transform:metrics.scene_transform,profile_width_class:board.dataset.profileWidthClass,
           root_size:{width:root.getBoundingClientRect().width,height:root.getBoundingClientRect().height},overflow,ui_bounds:ui,
-          fishing:{rod:rod,line,bobber,contact,ripple,reflection,composition_outside_viewport:fishingOutside,line_end_contact_gap:lineEndContactGap,
+          fishing:{rod:rod,line,bobber,contact,ripple,reflection,line_path_start:{x:lineStart?.x,y:lineStart?.y},line_path_end:{x:lineEnd?.x,y:lineEnd?.y},composition_outside_viewport:fishingOutside,line_end_contact_gap:lineEndContactGap,
             bobber_contact_alignment:bobberContact,reflection_contact_gap:reflectionGap,ripple_contains_contact:rippleContainsContact,layer_order:layerOrder},
           hero:byId.HeroCopy?.bounds,prompt:byId.CapturePrompt?.bounds,camera:byId.PrimaryCaptureButton?.bounds,album:byId.AlbumAction?.bounds,
           deviations:Object.fromEntries(Object.entries(byId).map(([key,row])=>[key,row.deviation])),inspectorNode:document.querySelector("[data-workspace-inspector]").dataset.selectedNodeId,
           promptTypography:byId.CapturePrompt?.typography,sourceSha:root.dataset.sourceSha,unit:byId.FishingRod?.bounds.unit,
-          node_bounds:rows, cameraTouch:{width:byId.PrimaryCaptureButton?.bounds.width,height:byId.PrimaryCaptureButton?.bounds.height},boardOrigin:{x:boardBounds.x,y:boardBounds.y}};
+          node_bounds:rows, cameraTouch:{width:byId.PrimaryCaptureButton?.bounds.width,height:byId.PrimaryCaptureButton?.bounds.height},
+          cameraVisualAsset:(()=>{const r=document.querySelector("#eh-PrimaryCaptureButton img")?.getBoundingClientRect();return r?{x:r.x,y:r.y,width:r.width,height:r.height,ratio:r.width/(byId.PrimaryCaptureButton?.bounds.width||1)}:null})(),
+          promptTypographyAuthority:{token:document.querySelector("#eh-CapturePrompt")?.dataset.typographyToken||null,
+            authority:document.querySelector("#eh-CapturePrompt")?.dataset.typographyAuthority||null,
+            native_font_status:root.dataset.nativeFontStatus||"NOT_VERIFIED"},
+          brand_status:root.dataset.brandStatus||"NOT_REPORTED",boardOrigin:{x:boardBounds.x,y:boardBounds.y}};
       });
       Object.assign(activeMatrixRow,caseEvidence);
       assert(caseEvidence.overflow.outside_viewport.length===0&&caseEvidence.overflow.text_overflow.length===0,`responsive UI overflow at ${width}x${height} @${fontScale}: ${JSON.stringify(caseEvidence.overflow)}`);
@@ -368,29 +549,37 @@ async function main() {
       assert(caseEvidence.inspectorNode==="HeroCopy","viewport changes must retain a measurable current selection");
       assert(caseEvidence.fishing.rod&&caseEvidence.fishing.line&&caseEvidence.fishing.bobber&&caseEvidence.fishing.contact&&caseEvidence.fishing.ripple,"fishing composition must map to separate measured DOM nodes");
       assert(caseEvidence.fishing.composition_outside_viewport.length===0,`fishing composition clipped at ${width}x${height}: ${JSON.stringify(caseEvidence.fishing.composition_outside_viewport)}`);
-      assert(Math.abs(caseEvidence.fishing.line.x-(caseEvidence.fishing.rod.x+337*caseEvidence.scene_transform.scale))<1.5,"fishing line must use the same scene transform as the rod");
-      assert(Math.abs(caseEvidence.fishing.line.y-(caseEvidence.fishing.rod.y+4*caseEvidence.scene_transform.scale))<1.5,"fishing line start must align with the registered rod-tip point");
+      assert(caseEvidence.fishing.line_path_start&&Math.abs(caseEvidence.fishing.line_path_start.x-(caseEvidence.fishing.rod.x+337*caseEvidence.scene_transform.scale))<1.5,"measured SVG path start must align with the registered rod-tip point");
+      assert(Math.abs(caseEvidence.fishing.line_path_start.y-(caseEvidence.fishing.rod.y+4*caseEvidence.scene_transform.scale))<1.5,"measured SVG path start must align with the registered rod-tip point");
       assert(caseEvidence.fishing.line_end_contact_gap<=5*caseEvidence.scene_transform.scale,`fishing line endpoint misses water-contact anchor at ${width}x${height}`);
       assert(caseEvidence.fishing.bobber_contact_alignment.horizontal_inside&&caseEvidence.fishing.bobber_contact_alignment.vertical_gap<=1.5,`bobber does not meet water contact at ${width}x${height}`);
       assert(caseEvidence.fishing.reflection_contact_gap<=2*caseEvidence.scene_transform.scale,`bobber reflection is detached from water contact at ${width}x${height}`);
       assert(caseEvidence.fishing.ripple_contains_contact,`water ripple does not contain contact point at ${width}x${height}`);
       assert(caseEvidence.fishing.layer_order[0]<caseEvidence.fishing.layer_order[1]&&caseEvidence.fishing.layer_order[1]<caseEvidence.fishing.layer_order[2]&&caseEvidence.fishing.layer_order[2]<caseEvidence.fishing.layer_order[3],`fishing layer occlusion order is invalid: ${caseEvidence.fishing.layer_order}`);
       assert(caseEvidence.cameraTouch.width>0&&caseEvidence.cameraTouch.height>0,"camera button actual DOM bounds must be measured");
+      assert(Math.abs(caseEvidence.cameraVisualAsset.ratio-(208/220))<0.002,"frozen 208px camera artwork must be uniformly fitted in the 220px target");
       const shot=resolve(args.outputDir,`EmptyHome_${width}x${height}_font-${fontScale}.png`);
-      const capture=await screenshotRootViewport(page,shot,width,height);
+      const promptTextShot=resolve(args.outputDir,`EmptyHomePrompt_${width}x${height}_font-${fontScale}.png`);
+      const capture=await screenshotRootViewport(page,shot,width,height,promptTextShot);
       const shotSize=capture.size;
       assertScreenshotCaptureEnvelope(shotSize,width,height,`${width}x${height}@${fontScale}`);
+      const promptTextSha=await sha256File(promptTextShot);
+      promptTextScreenshotHashes[`${width}x${height}`]??={};
+      promptTextScreenshotHashes[`${width}x${height}`][String(fontScale)]=promptTextSha;
       Object.assign(activeMatrixRow,caseEvidence,{
         case_id:activeMatrixRow.case_id,page_id:"home_empty_v2",source_sha:expectedSha,run_id:runId,
         matrix_source_path:preflight.viewportAuthority.path,matrix_source_sha256:preflight.viewportAuthority.sha256,
         state_id:behaviorState.behavior_state_id,
         renderer_state_id:preflight.rendererStateId,
         browser_url:args.url?page.url():"LOCAL_SITE_BUILD_ONLY_NOT_DEPLOYED",
-        browser_viewport_css_px:await page.evaluate(()=>({width:window.innerWidth,height:window.innerHeight,device_scale_factor:window.devicePixelRatio})),
+        browser_viewport_css_px:workspaceBrowserViewport,
         viewport_width:width,viewport_height:height,font_scale:fontScale,
         candidate_source_sha:expectedSha,site_build_sha:expectedSha,
         dom_report:"EmptyHome_Component_Bounds_Report_V1.json",
-        screenshot_rendered:{path:shot.split("/").at(-1),sha256:await sha256File(shot),pixel_width:shotSize.width,pixel_height:shotSize.height,device_scale_factor:3,capture_bounds_css_px:capture.bounds_css_px},
+        screenshot_rendered:{path:shot.split("/").at(-1),sha256:await sha256File(shot),pixel_width:shotSize.width,pixel_height:shotSize.height,device_scale_factor:3,capture_bounds_css_px:capture.bounds_css_px,
+          visible_content:capture.visible_content,capture_isolation_used:capture.capture_isolation_used,outside_workspace_chrome_included:capture.outside_workspace_chrome_included,
+          workspace_visibility_before_isolation:capture.workspace_visibility_before_isolation,selected_overlay_suppressed:capture.selected_overlay_suppressed},
+        prompt_text_measurement:{...capture.prompt_text_bounds_css_px,screenshot_path:promptTextShot.split("/").at(-1),screenshot_sha256:promptTextSha},
         screenshot_reference:{path:"design/pages/home/empty_home/source/frozen/Empty_Home_Frozen_Visual_V2_2.png",sha256:preflight.referenceSha},
         geometry_result:"PASS_DOM_MEASURED_VISUAL_REVIEW_PENDING",
         resource_result:"PASS_W2_BOUND_RESOURCES_VERIFIED",
@@ -405,8 +594,14 @@ async function main() {
       updateMatrixSummary();
       activeMatrixRow=null;
     }
-    assert(baseEvidence.matrix_summary.expected===baseEvidence.matrix_summary.pass&&baseEvidence.matrix_summary.fail===0&&baseEvidence.matrix_summary.not_run===0,
+    assert(baseEvidence.matrix_summary.formal_expected===baseEvidence.matrix_summary.formal_pass&&baseEvidence.matrix_summary.formal_fail===0&&baseEvidence.matrix_summary.formal_not_run===0&&
+      baseEvidence.matrix_summary.supplemental_expected===baseEvidence.matrix_summary.supplemental_pass&&baseEvidence.matrix_summary.supplemental_fail===0&&baseEvidence.matrix_summary.supplemental_not_run===0,
       `FORMAL_MATRIX_CASE_COUNT_MISMATCH: ${JSON.stringify(baseEvidence.matrix_summary)}`);
+    for (const [viewport,hashes] of Object.entries(promptTextScreenshotHashes)) {
+      assert(Object.keys(hashes).length===3&&new Set(Object.values(hashes)).size===3,
+        `FONT_SCALE_SCREENSHOT_HASH_NOT_DISTINCT: viewport=${viewport} hashes=${JSON.stringify(hashes)}`);
+    }
+    baseEvidence.prompt_text_screenshot_hashes=promptTextScreenshotHashes;
 
     await page.locator("[data-empty-viewport-preset]").selectOption("360x640@1");
     await page.waitForFunction(()=>document.querySelector("[data-workspace-artboard]")?.dataset.viewport==="360x640");
@@ -416,13 +611,13 @@ async function main() {
     await copyFile(originalFrozen,frozenCopy);
     assert(await sha256File(frozenCopy)===preflight.referenceSha,"frozen V2.2 evidence copy SHA differs from the W2-verified reference");
     const compareStructured=resolve(args.outputDir,"EmptyHome_Structured_1080x1920.png");
-    const compareCapture=await screenshotRootViewport(page,compareStructured,360,640,45000);
+    const compareCapture=await screenshotRootViewport(page,compareStructured,360,640,null,45000);
     const compareSize=compareCapture.size;
     assertScreenshotCaptureEnvelope(compareSize,360,640,"reference-comparison structured");
     for (const mode of ["frozen","overlay","difference"]) {
       await page.locator("[data-empty-compare-mode]").selectOption(mode);
       const comparePath=resolve(args.outputDir,`EmptyHome_Compare_${mode}_1080x1920.png`);
-      const capture=await screenshotRootViewport(page,comparePath,360,640,45000);
+      const capture=await screenshotRootViewport(page,comparePath,360,640,null,45000);
       const size=capture.size;
       assertScreenshotCaptureEnvelope(size,360,640,`reference-comparison ${mode}`);
     }
@@ -432,9 +627,18 @@ async function main() {
       const path=resolve(args.outputDir,mode==="structured"?"EmptyHome_Structured_1080x1920.png":`EmptyHome_Compare_${mode}_1080x1920.png`);
       comparisonFiles.push({mode,path:path.split("/").at(-1),sha256:await sha256File(path)});
     }
-    baseEvidence.frozen_visual={path:frozenCopy.split("/").at(-1),sha256:await sha256File(frozenCopy),authority_sha256:preflight.referenceSha};
-    baseEvidence.reference_comparison={logical_viewport_css_px:{width:360,height:640},browser_device_scale_factor:3,capture_bounds_css_px:compareCapture.bounds_css_px,screenshot_pixels:compareSize,
-      native_density_claim:false,source_ratio_preserved:true};
+    baseEvidence.frozen_visual={path:frozenCopy.split("/").at(-1),sha256:await sha256File(frozenCopy),authority_sha256:preflight.referenceSha,
+      pixel_dimensions:await pngDimensions(frozenCopy),original_bytes_unchanged:true};
+    const comparisonCase=baseEvidence.matrix.find(row=>row.viewport?.width===360&&row.viewport?.height===780&&row.font_scale===1) ||
+      baseEvidence.matrix.find(row=>row.viewport?.width===360&&row.viewport?.height===640&&row.font_scale===1);
+    baseEvidence.reference_comparison={logical_viewport_css_px:{width:360,height:640},frozen_reference_pixel_size:{width:941,height:1672},
+      browser_device_scale_factor:3,capture_bounds_css_px:compareCapture.bounds_css_px,screenshot_pixels:compareSize,
+      comparison_region:"full page canvas with identical aspect-ratio contain; browser screenshot is isolated to rendered root, reference bytes are unmodified",
+      native_density_claim:false,source_ratio_preserved:true,
+      system_bar_comparison:{browser_status_bar:"NOT_SIMULATED",browser_safe_insets:{top:0,bottom:0,status:"BROWSER_ASSUMED_ZERO_NOT_NATIVE"},
+        frozen_reference_status_bar:"PIXELS_PRESENT_IN_FROZEN_RASTER; boundary has no page-owned machine-readable authority",reference_status_bar_bounds:"NOT_VERIFIED",
+        header_actual_dom_bounds_css_px:comparisonCase?.ui_bounds?.Header||null,
+        status:"AUTHORITY_GAP; system chrome difference is reported separately and is not treated as Native validation"}};
     baseEvidence.comparison_images=comparisonFiles;
     baseEvidence.screenshot_references=screenshotRefs;
 
@@ -602,8 +806,14 @@ async function main() {
       activeMatrixRow.completed_at=new Date().toISOString();
       const pass=baseEvidence.matrix.filter(row=>row.result==="PASS").length;
       const fail=baseEvidence.matrix.filter(row=>row.result==="FAIL").length;
-      const expected=baseEvidence.matrix_summary?.expected??baseEvidence.matrix.length;
-      baseEvidence.matrix_summary={...baseEvidence.matrix_summary,expected,executed:pass+fail,pass,fail,not_run:expected-pass-fail};
+      const formalRows=baseEvidence.matrix.filter(row=>row.matrix_classification==="FORMAL_AUTHORITY_CASE");
+      const supplementalRows=baseEvidence.matrix.filter(row=>row.matrix_classification==="SUPPLEMENTAL_CANDIDATE_NOT_IN_FROZEN_AUTHORITY");
+      const summarize=rows=>{const p=rows.filter(row=>row.result==="PASS").length;const f=rows.filter(row=>row.result==="FAIL").length;
+        return {expected:rows.length,executed:p+f,pass:p,fail:f,not_run:rows.length-p-f};};
+      const formal=summarize(formalRows),supplemental=summarize(supplementalRows),total=summarize(baseEvidence.matrix);
+      baseEvidence.matrix_summary={formal_expected:formal.expected,formal_executed:formal.executed,formal_pass:formal.pass,formal_fail:formal.fail,formal_not_run:formal.not_run,
+        supplemental_expected:supplemental.expected,supplemental_executed:supplemental.executed,supplemental_pass:supplemental.pass,supplemental_fail:supplemental.fail,supplemental_not_run:supplemental.not_run,
+        total_expected:total.expected,total_executed:total.executed,total_pass:total.pass,total_fail:total.fail,total_not_run:total.not_run};
     }
     baseEvidence.console_errors=consoleErrorEvents.filter(event=>event.text!==expectedMissingResourceConsoleText).map(event=>event.text);
     baseEvidence.expected_negative_console_errors=consoleErrorEvents.filter(event=>event.text===expectedMissingResourceConsoleText);
@@ -620,8 +830,8 @@ async function main() {
 }
 
 function AUTHORITY_GAPS_FOR_REPORT(){return [
-  "No approved standalone brand wordmark is bound; the current DOM text remains a candidate representation.",
-  "Approved account and album icons are not bound; the candidate omits those icons.",
+  "Brand wordmark is FROZEN_ARTWORK_ASSET. The existing standalone brand artwork is scoped to normal_home; Empty Home has no approved independent wordmark binding, so the candidate suppresses dynamic text and remains BLOCKED_AUTHORITY_GAP.",
+  "GALLERY and CHEVRON_RIGHT are listed as FROZEN_DESIGN in the icon inventory, but their Asset Registry lifecycle is REVIEW and they are absent from the current Empty Home W2 binding; icons remain blocked pending W2 authority reconciliation.",
   "Frozen reference includes Android system chrome; Chromium preview does not simulate Native status/navigation bars.",
   "Sun particle coordinates have no frozen static authority; the motion layer is NOT_RUN in this static candidate.",
   "Cloud position and alpha follow the existing Android Renderer implementation reference and need visual review.",
@@ -630,8 +840,9 @@ function AUTHORITY_GAPS_FOR_REPORT(){return [
 ];}
 
 function AUTHORITY_DIFFERENCE_REPORT(){return [
-  {page_id:"home_empty_v2",component_id:"Brand",category:"AUTHORITY_GAP",authority:"design/pages/home/empty_home/shared/contracts/asset_manifest.json",expected:"Approved standalone brand asset or confirmed DOM-text rule",actual:"DOM text candidate; no W2-bound logo asset",numeric_deviation:null,root_cause:"No page-owned approved brand source is registered.",correction_status:"REVIEW_REQUIRED",approval_required:true},
-  {page_id:"home_empty_v2",component_id:"AccountEntry / AlbumAction",category:"EVIDENCE_MISSING",authority:"design/pages/home/empty_home/shared/contracts/asset_manifest.json",expected:"Approved account and album icons if required by V2.2",actual:"Icons omitted; real DOM buttons remain",numeric_deviation:null,root_cause:"No approved icon bindings are present.",correction_status:"REVIEW_REQUIRED",approval_required:true},
+  {page_id:"home_empty_v2",component_id:"Brand",category:"AUTHORITY_GAP",authority:"design/system_v3/04_Design_Tokens/Typography/Typography_System_V3_FINAL.md",expected:"FROZEN_ARTWORK_ASSET authorized for home_empty_v2",actual:"Standalone brand asset usage is normal_home only; DOM text is suppressed",numeric_deviation:null,root_cause:"No Empty Home approved independent wordmark binding exists.",correction_status:"BLOCKED_AUTHORITY_GAP",approval_required:true},
+  {page_id:"home_empty_v2",component_id:"AccountEntry / AlbumAction",category:"AUTHORITY_GAP",authority:"design/system/icon_library_v0_1/icon_inventory_v0_1.json + W2 Page Resource Binding",expected:"GALLERY and CHEVRON_RIGHT resolved through W2",actual:"Icon inventory lists FROZEN_DESIGN; Asset Registry says REVIEW; page binding has no icon entries",numeric_deviation:null,root_cause:"W2 authority does not authorize these assets for this page yet.",correction_status:"BLOCKED_W2_AUTHORITY_RECONCILIATION",approval_required:true},
+  {page_id:"home_empty_v2",component_id:"PrimaryCaptureButton",category:"ASSET_MISMATCH",authority:"design/system/components/primary_capture_button/manifest.json + anchor_contract.json",expected:"208×208 frozen artwork centered uniformly in 220×220 hit target",actual:"Renderer now uses centered uniform 208/220 fit; DOM dimensions require new Chromium evidence",numeric_deviation:null,root_cause:"Previous renderer stretched 208px asset to the 220px target.",correction_status:"IMPLEMENTED_AWAITING_EXACT_SHA_BROWSER_RUN",approval_required:false},
   {page_id:"home_empty_v2",component_id:"EnvironmentScene",category:"AUTHORITY_GAP",authority:"Design Manager browser preview",expected:"Frozen visual including Android system chrome",actual:"Page content rendered without Android status/navigation bars",numeric_deviation:null,root_cause:"Browser CSS viewport does not provide Native system bars or safe drawing insets.",correction_status:"NOT_SIMULATED",approval_required:true},
   {page_id:"home_empty_v2",component_id:"SunParticles",category:"AUTHORITY_GAP",authority:"design/pages/home/empty_home/shared/contracts/motion_contract.json",expected:"Motion-generated particle positions only in an authorized motion state",actual:"Static candidate does not render particles",numeric_deviation:null,root_cause:"No frozen static particle coordinates exist.",correction_status:"NOT_RUN",approval_required:true},
   {page_id:"home_empty_v2",component_id:"CloudAtmosphere",category:"AUTHORITY_GAP",authority:"app/src/main/java/com/yujian/ai/ui/home/EmptyHomeSceneRenderer.kt",expected:"Page-specific frozen cloud bounds and alpha",actual:"Existing Android renderer reference used in candidate",numeric_deviation:null,root_cause:"No independent page anchor for static cloud placement is registered.",correction_status:"REVIEW_REQUIRED",approval_required:true},

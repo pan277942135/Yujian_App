@@ -4,14 +4,14 @@
 
   const PAGE_ID = "home_empty_v2";
   const MAPPING_PATH = "design/manager/empty_home_v22_component_mapping.json";
-  const MAPPING_SHA256 = "26de904691b8ebfa42caf0aecceae4eb482215fb720ef40dc8a5b34939964b5a";
+  const MAPPING_SHA256 = "e3d902709058b71ebfb1504b9c29606af908b886438f3ba128fb0e89539af6f6";
   const CONTRACT_ROOT = "design/pages/home/empty_home/shared/contracts/";
   const RUNTIME_MANIFEST_SHA256 = "aaae66f44473f497bffcd2f98165942f5442d8df141e2932ba336ad35065f4e8";
   const SHARED_ADAPTIVE_INSET_DP = { COMPACT: 16, STANDARD: 20, MEDIUM: 22, WIDE: 24 };
   const CANDIDATE_PROMPT_LINE_HEIGHT_SP = 24;
   const AUTHORITY_GAPS = [
-    "品牌字样使用 DOM 文本；本页没有批准的独立 Logo 资源绑定。",
-    "登录页眉和相册入口的批准图标未在本页资源绑定中；候选暂不渲染图标。",
+    "品牌字样是 FROZEN_ARTWORK_ASSET。现有独立资源仅批准用于 Normal Home；Empty Home 不存在明确授权的独立品牌素材，已阻止动态文本替代，状态 BLOCKED_AUTHORITY_GAP。",
+    "GALLERY 与 CHEVRON_RIGHT 已在图标清单列为 FROZEN_DESIGN，但 Asset Registry 仍为 REVIEW 且不在当前 Main 的本页 W2 绑定内；候选不绕过 Resolver 加载，图标待 W2 权威更新。",
     "原图包含系统状态栏，本浏览器候选不模拟 Android 系统栏。",
     "太阳粒子仅有运动资源，没有冻结静态坐标权威；静态候选不渲染粒子。",
     "云层静态位置和透明度沿用现有 Android Renderer 实现参考，尚无独立页面锚点。",
@@ -130,9 +130,14 @@
       const value = `${viewport.width_dp}x${viewport.height_dp}@${fontScale}`;
       return `<option value="${value}">${viewport.width_dp} × ${viewport.height_dp} dp · ${fontScale}× · contract matrix</option>`;
     })).join("");
+    const supplementalOptions = responsive.responsive_profiles_to_verify.map(viewport => {
+      const value = `${viewport.width_dp}x${viewport.height_dp}@1.5`;
+      return `<option value="${value}">${viewport.width_dp} × ${viewport.height_dp} dp · 1.5× · supplemental candidate</option>`;
+    }).join("");
     const diagnosticOptions = [[320,480],[360,640],[390,844],[430,932]].map(([width,height]) =>
       `<option value="${width}x${height}@1">${width} × ${height} CSS px · diagnostic only</option>`).join("");
     control.innerHTML = `<label>权威视口 <select data-empty-viewport-preset><optgroup label="Profile 合同矩阵">${formalOptions}</optgroup>
+      <optgroup label="候选补充 · 1.5×（不在冻结矩阵）">${supplementalOptions}</optgroup>
       <optgroup label="图像对照 / 诊断">${diagnosticOptions}</optgroup>
     </select></label><label>视觉对照 <select data-empty-compare-mode>
       <option value="structured">结构化页面</option><option value="frozen">冻结原图</option>
@@ -235,16 +240,20 @@
     assert(workflowSource?.path === ".github/workflows/design-manager-pages.yml" && /^[0-9a-f]{64}$/.test(workflowSource.sha256 || ""),
       "EMPTY_HOME_PAGES_WORKFLOW_AUTHORITY_MISSING");
     assert(policySource?.path && /^[0-9a-f]{64}$/.test(policySource.sha256 || ""), "EMPTY_HOME_PAGES_POLICY_AUTHORITY_MISSING");
-    const policyDocument = await ctx.loadAuthorityDocument(policySource.path, policySource.sha256);
-    assert(policyDocument.schema_version === "1.0" && policyDocument.workflow_path === workflowSource.path &&
-      policyDocument.workflow_sha256 === workflowSource.sha256 && policyDocument.public_scope_marker === policy.public_scope_marker,
-    "EMPTY_HOME_PAGES_POLICY_BINDING_MISMATCH");
     const response = await ctx.fetchImpl(ctx.repoHref(workflowSource.path), { cache: "no-store" });
     assert(response.ok, `EMPTY_HOME_PAGES_WORKFLOW_HTTP_ERROR: ${response.status}`);
     const bytes = await response.arrayBuffer();
     const actualSha = await sha256(bytes);
     assert(actualSha === workflowSource.sha256, `EMPTY_HOME_PAGES_WORKFLOW_SHA_MISMATCH: expected=${workflowSource.sha256} actual=${actualSha}`);
     const sourceText = new TextDecoder().decode(bytes);
+    if (policySource.authority_id === "workflow") {
+      assert(policy.authority_id === "workflow", "EMPTY_HOME_PAGES_POLICY_AUTHORITY_MISMATCH");
+    } else {
+      const policyDocument = await ctx.loadAuthorityDocument(policySource.path, policySource.sha256);
+      assert(policyDocument.schema_version === "1.0" && policyDocument.workflow_path === workflowSource.path &&
+        policyDocument.workflow_sha256 === workflowSource.sha256 && policyDocument.public_scope_marker === policy.public_scope_marker,
+      "EMPTY_HOME_PAGES_POLICY_BINDING_MISMATCH");
+    }
     assert(policy.public_scope_marker && sourceText.includes(policy.public_scope_marker), "EMPTY_HOME_PAGES_POLICY_MARKER_NOT_IN_WORKFLOW");
   }
 
@@ -402,7 +411,7 @@
     canvas.style.height = `${height}px`;
     canvas.style.minHeight = `${height}px`;
     const loaded = cached.loaded;
-    canvas.innerHTML = `<div id="eh-EmptyHomeRoot" data-workspace-rendered-node="EmptyHomeRoot" class="eh-v22-root" style="width:${width}px;height:${height}px" data-page-id="${PAGE_ID}" data-source-sha="${html(ctx.authority.source_sha)}" data-state="${html(state)}">
+    canvas.innerHTML = `<div id="eh-EmptyHomeRoot" data-workspace-rendered-node="EmptyHomeRoot" class="eh-v22-root" style="width:${width}px;height:${height}px" data-page-id="${PAGE_ID}" data-source-sha="${html(ctx.authority.source_sha)}" data-state="${html(state)}" data-body-typography-token="type.body" data-body-typography-authority="design/system_v3/04_Design_Tokens/Typography/Typography_Tokens_V3_FINAL.json">
       <section id="eh-EnvironmentScene" data-workspace-rendered-node="EnvironmentScene" class="eh-v22-environment" style="width:${width}px;height:${height}px">
         <div class="eh-v22-scene-transform" data-scene-transform style="left:${transform.offsetX}px;top:${transform.offsetY}px;width:${ROOT_W}px;height:${ROOT_H}px;transform:scale(${transform.scale});">
           <img id="eh-SceneBase" data-workspace-rendered-node="SceneBase" data-resource-status="${html(loaded.SceneBase.resource.status)}" data-asset-id="${html(loaded.SceneBase.resource.asset.asset_id)}" data-sha256="${html(loaded.SceneBase.resource.verified.sha256)}" data-source-path="${html(loaded.SceneBase.resource.asset.source_path)}" alt="" src="${html(loaded.SceneBase.resource.objectUrl)}" style="position:absolute;left:0;top:0;width:${ROOT_W}px;height:${ROOT_H}px;z-index:0;object-fit:fill;pointer-events:none;user-select:none">
@@ -422,14 +431,14 @@
         </div>
       </section>
       <header id="eh-Header" data-workspace-rendered-node="Header" class="eh-v22-header" style="left:${headerLeft}px;top:${headerTop}px;width:${headerWidth}px;height:${responsive.groups.safe_top_ui.minimum_touch_target_dp}px;--eh-header-inset:${profile.inset}px;z-index:12">
-        <div class="eh-v22-brand-copy"><span id="eh-Brand" data-workspace-rendered-node="Brand">渔见</span><span id="eh-Subtitle" data-workspace-rendered-node="Subtitle">拍照收藏每次渔获</span></div>
-        <button id="eh-AccountEntry" data-workspace-rendered-node="AccountEntry" class="eh-v22-login-action" type="button" aria-label="登录 · 候选按钮，无导航逻辑">登录</button>
+        <div class="eh-v22-brand-copy"><span id="eh-Brand" data-workspace-rendered-node="Brand" data-authority-status="BLOCKED_AUTHORITY_GAP" aria-hidden="true" hidden></span><span id="eh-Subtitle" data-workspace-rendered-node="Subtitle" data-typography-status="AUTHORITY_GAP" style="font-size:${9 * fontScale}px;line-height:${12 * fontScale}px">拍照收藏每次渔获</span></div>
+        <button id="eh-AccountEntry" data-workspace-rendered-node="AccountEntry" data-typography-token="type.button" data-typography-authority="design/system/components/text_action/Text_Action_Spec_V1.md" class="eh-v22-login-action" type="button" aria-label="登录 · 候选按钮，无导航逻辑" style="font-size:${16 * fontScale}px;line-height:${20 * fontScale}px">登录</button>
       </header>
       <img id="eh-HeroCopy" data-workspace-rendered-node="HeroCopy" data-resource-status="${html(loaded.HeroCopy.resource.status)}" data-asset-id="${html(loaded.HeroCopy.resource.asset.asset_id)}" data-sha256="${html(loaded.HeroCopy.resource.verified.sha256)}" data-source-path="${html(loaded.HeroCopy.resource.asset.source_path)}" alt="现在，轮到你，记录第一条鱼。" src="${html(loaded.HeroCopy.resource.objectUrl)}" class="eh-v22-hero" style="left:${heroBox.x}px;top:${heroBox.y}px;width:${heroBox.width}px;height:${heroBox.height}px;z-index:10;object-fit:contain;pointer-events:auto">
       <div id="eh-CaptureActionGroup" data-workspace-rendered-node="CaptureActionGroup" class="eh-v22-cta-group" style="left:${safeLeft}px;top:${promptBox.y}px;width:${safeWidth}px;height:${Math.max(albumTop + albumTouchSize - promptBox.y, 0)}px;z-index:20">
-        <div id="eh-CapturePrompt" data-workspace-rendered-node="CapturePrompt" class="eh-v22-prompt" style="left:0;top:0;width:${safeWidth}px;height:${promptHeight}px;font-size:${16 * fontScale}px;line-height:${promptLineHeight}px">对准鱼获，拍一张</div>
-        <button id="eh-PrimaryCaptureButton" data-workspace-rendered-node="PrimaryCaptureButton" data-resource-status="${html(loaded.PrimaryCaptureButton.resource.status)}" data-asset-id="${html(loaded.PrimaryCaptureButton.resource.asset.asset_id)}" data-sha256="${html(loaded.PrimaryCaptureButton.resource.verified.sha256)}" data-source-path="${html(loaded.PrimaryCaptureButton.resource.asset.source_path)}" class="eh-v22-camera-action" type="button" aria-label="拍照 · 视觉候选，不连接业务流程" style="left:${cameraBox.x - safeLeft}px;top:${cameraBox.y - promptBox.y}px;width:${cameraBox.width}px;height:${cameraBox.height}px"><img src="${html(loaded.PrimaryCaptureButton.resource.objectUrl)}" alt="" draggable="false"></button>
-        <button id="eh-AlbumAction" data-workspace-rendered-node="AlbumAction" class="eh-v22-album-action" type="button" aria-label="从相册选择 · 候选按钮，无系统相册逻辑" style="left:50%;top:${albumTop - promptBox.y}px;min-width:${albumTouchSize}px;height:${albumTouchSize}px;font-size:${13 * albumTextScale}px">从相册选择</button>
+        <div id="eh-CapturePrompt" data-workspace-rendered-node="CapturePrompt" data-typography-token="type.body" data-typography-authority="design/system_v3/04_Design_Tokens/Typography/Typography_Tokens_V3_FINAL.json" class="eh-v22-prompt" style="left:0;top:0;width:${safeWidth}px;height:${promptHeight}px;font-size:${16 * fontScale}px;line-height:${promptLineHeight}px"><span id="eh-CapturePromptText">对准鱼获，拍一张</span></div>
+        <button id="eh-PrimaryCaptureButton" data-workspace-rendered-node="PrimaryCaptureButton" data-resource-status="${html(loaded.PrimaryCaptureButton.resource.status)}" data-asset-id="${html(loaded.PrimaryCaptureButton.resource.asset.asset_id)}" data-sha256="${html(loaded.PrimaryCaptureButton.resource.verified.sha256)}" data-source-path="${html(loaded.PrimaryCaptureButton.resource.asset.source_path)}" data-touch-target-reference-px="220x220" data-visual-asset-reference-px="208x208" class="eh-v22-camera-action" type="button" aria-label="拍照 · 视觉候选，不连接业务流程" style="left:${cameraBox.x - safeLeft}px;top:${cameraBox.y - promptBox.y}px;width:${cameraBox.width}px;height:${cameraBox.height}px"><img src="${html(loaded.PrimaryCaptureButton.resource.objectUrl)}" alt="" draggable="false"></button>
+        <button id="eh-AlbumAction" data-workspace-rendered-node="AlbumAction" data-typography-token="type.button" data-typography-authority="design/system_v3/04_Design_Tokens/Typography/Typography_Tokens_V3_FINAL.json" class="eh-v22-album-action" type="button" aria-label="从相册选择 · 候选按钮，无系统相册逻辑" style="left:50%;top:${albumTop - promptBox.y}px;min-width:${albumTouchSize}px;height:${albumTouchSize}px;font-size:${16 * albumTextScale}px;line-height:${20 * albumTextScale}px">从相册选择</button>
       </div>
       <img data-empty-frozen-reference="true" alt="Empty Home V2.2 frozen visual authority · original ratio preserved" src="${html(loaded.FrozenReference.resource.objectUrl)}" class="eh-v22-frozen-reference" style="display:none" data-resource-status="${html(loaded.FrozenReference.resource.status)}" data-sha256="${html(loaded.FrozenReference.resource.verified.sha256)}">
     </div>`;
@@ -458,6 +467,9 @@
     pageRoot.dataset.rippleCount = String(layers.rules.ripple_count);
     pageRoot.dataset.sceneTransform = JSON.stringify(transform);
     pageRoot.dataset.authorityGaps = String(AUTHORITY_GAPS.length);
+    pageRoot.dataset.brandStatus = "BLOCKED_AUTHORITY_GAP";
+    pageRoot.dataset.nativeFontStatus = "NOT_VERIFIED";
+    pageRoot.dataset.captureButtonFit = "208x208 frozen asset centered without stretch in 220x220 target";
     for (const button of canvas.querySelectorAll("button")) button.addEventListener("click", event => event.preventDefault());
     const rootSummary = ctx.root.querySelector("[data-empty-resource-summary]");
     if (rootSummary) rootSummary.dataset.authoritySha = await sha256(new TextEncoder().encode(JSON.stringify(responsive)));

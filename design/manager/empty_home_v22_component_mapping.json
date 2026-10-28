@@ -637,21 +637,21 @@
             "nodeId": "Brand",
             "pageId": "home_empty_v2",
             "parentId": "Header",
-            "componentType": "TEXT",
+            "componentType": "ARTWORK_ASSET",
             "renderedDomId": "eh-Brand",
-            "label": "Brand · 渔见",
+            "label": "Brand wordmark · BLOCKED_AUTHORITY_GAP",
             "layer_order": 10,
             "visual_asset": null,
             "authority": {
-              "path": "design/pages/home/empty_home/source/frozen/Empty_Home_Frozen_Visual_V2_2.png",
-              "status": "CURRENT_OR_IMPLEMENTATION_REFERENCE"
+              "path": "design/system_v3/04_Design_Tokens/Typography/Typography_System_V3_FINAL.md",
+              "status": "BLOCKED_AUTHORITY_GAP"
             },
             "reference_bounds_px": null,
             "responsive_rule": {
               "path": "design/pages/home/empty_home/shared/contracts/responsive_mapping_contract.json",
               "rule_id": "SAFE_TOP_ANCHORED"
             },
-            "render_method": "Text",
+            "render_method": "Blocked placeholder; dynamic text is prohibited",
             "dom_mapping": "eh-Brand",
             "inspector_fields": [
               "actual_dom_bounds_css_px",
@@ -662,11 +662,11 @@
               "lifecycle_status",
               "publication_permission"
             ],
-            "verification_rule": "DOM text uses the current Android text as a candidate; no Empty Home-approved logo asset is bound. AUTHORITY_GAP.",
-            "visible": true,
-            "measurable": true,
-            "selectable": true,
-            "state": "CANDIDATE_PREVIEW"
+            "verification_rule": "Typography authority requires FROZEN_ARTWORK_ASSET. Existing standalone brand artwork is scoped to normal_home and is not authorized for home_empty_v2.",
+            "visible": false,
+            "measurable": false,
+            "selectable": false,
+            "state": "BLOCKED_AUTHORITY_GAP"
           },
           {
             "nodeId": "Subtitle",
@@ -847,7 +847,7 @@
               "lifecycle_status",
               "publication_permission"
             ],
-            "verification_rule": "Anchor top and minimum line-height use anchor/responsive contracts; content height is measured from the rendered text.",
+            "verification_rule": "Uses shared type.body (16sp/24sp) with fontScale. Browser CSS uses a system sans representative; Android glyph fallback remains NOT_VERIFIED.",
             "visible": true,
             "measurable": true,
             "selectable": true,
@@ -890,7 +890,7 @@
               "lifecycle_status",
               "publication_permission"
             ],
-            "verification_rule": "Compare actual browser DOM bounds to the active page contract; browser values are CSS px and do not imply Native runtime verification.",
+            "verification_rule": "The verified 208x208 frozen asset is centered at uniform scale inside the 220x220 contract hit target; no crop or non-uniform stretch.",
             "visible": true,
             "measurable": true,
             "selectable": true,
@@ -941,5 +941,19 @@
     "Native status/navigation bars are platform chrome and are not rendered by this browser candidate.",
     "Sun particle positions are motion-generated without a frozen static coordinate profile; the optional particle layer is not rendered in this candidate.",
     "Cloud and sun-beam positions currently follow the Android renderer implementation reference; these positions are not independently anchored in the page contract."
-  ]
+  ],
+  "typography_binding": {
+    "authority_path": "design/system_v3/04_Design_Tokens/Typography/Typography_Tokens_V3_FINAL.json",
+    "browser_font_mapping": "system-ui, sans-serif; browser-only representative mapping",
+    "native_font_status": "NOT_VERIFIED",
+    "native_fallback_claim": false,
+    "tokens": {
+      "CapturePrompt": "type.body",
+      "AccountEntry": "type.button",
+      "AlbumAction": "type.button"
+    },
+    "unresolved": [
+      "Subtitle has no explicit Empty Home page token or font-size authority."
+    ]
+  }
 }

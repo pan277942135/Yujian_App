@@ -8,7 +8,7 @@
 .eh-v22-candidate-notes strong{color:#785e2d}
 .eh-v22-candidate-notes ul{margin:0;padding-left:18px}
 .eh-v22-candidate-notes a{color:#315d50;overflow-wrap:anywhere}
-.page-ws-artboard .eh-v22-root{position:absolute;inset:0;overflow:hidden;isolation:isolate;background:#dce9ed;color:#17364f;font-family:"Noto Sans CJK SC","PingFang SC","Microsoft YaHei",system-ui,sans-serif}
+.page-ws-artboard .eh-v22-root{position:absolute;inset:0;overflow:hidden;isolation:isolate;background:#dce9ed;color:#17364f;font-family:system-ui,sans-serif}
 .page-ws-artboard .eh-v22-root img{max-width:none;max-height:none;width:auto;height:auto}
 .eh-v22-environment{position:absolute;left:0;top:0;overflow:hidden;z-index:0}
 .eh-v22-scene-transform{position:absolute;transform-origin:top left;overflow:visible}
@@ -21,15 +21,16 @@
 .eh-v22-brand-copy{display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:1px;min-width:0}
 .eh-v22-brand-copy [data-workspace-rendered-node="Brand"]{position:relative;display:block;color:rgba(18,48,72,.84);font-size:19px;font-weight:400;line-height:23px;white-space:nowrap}
 .eh-v22-brand-copy [data-workspace-rendered-node="Subtitle"]{position:relative;display:block;color:rgba(18,48,72,.62);font-size:9px;font-weight:400;line-height:12px;letter-spacing:.4px;white-space:nowrap}
-.eh-v22-login-action{position:relative;display:grid;place-items:center;min-width:48px;min-height:48px;padding:0;border:0;background:transparent;color:rgba(18,48,72,.84);font-family:inherit;font-size:14px;font-weight:400;cursor:pointer}
+.eh-v22-login-action{position:relative;display:grid;place-items:center;min-width:48px;min-height:48px;padding:0;border:0;background:transparent;color:rgba(18,48,72,.84);font-family:inherit;font-size:16px;font-weight:400;line-height:20px;cursor:pointer}
 .eh-v22-hero{position:absolute;display:block}
 .eh-v22-cta-group{position:absolute}
 .eh-v22-prompt{position:absolute;display:grid;place-items:center;color:rgba(255,255,255,.94);font-weight:400;text-align:center;white-space:nowrap;text-shadow:0 1px 3px rgba(0,0,0,.28);pointer-events:auto}
 .eh-v22-camera-action{position:absolute;display:grid;place-items:center;padding:0;border:0;border-radius:50%;background:transparent;cursor:pointer}
-.eh-v22-camera-action img{display:block;width:100%;height:100%;object-fit:contain;pointer-events:none}
+.eh-v22-camera-action img{display:block;width:94.5454545%;height:94.5454545%;object-fit:contain;pointer-events:none}
 .eh-v22-album-action{position:absolute;display:grid;place-items:center;transform:translateX(-50%);padding:0 7px;border:0;border-radius:24px;background:transparent;color:rgba(255,255,255,.92);font-family:inherit;font-weight:400;white-space:nowrap;text-shadow:0 1px 2px rgba(0,0,0,.24);cursor:pointer}
 .eh-v22-root [data-workspace-rendered-node][data-workspace-selected]{outline:2px solid #c69345;outline-offset:-2px;box-shadow:0 0 0 1px rgba(255,255,255,.8)}
 .eh-v22-root [data-workspace-rendered-node]:focus-visible{outline:2px solid #c69345;outline-offset:-2px}
+.eh-v22-root[data-visual-capture="true"] [data-workspace-rendered-node][data-workspace-selected],.eh-v22-root[data-visual-capture="true"] [data-workspace-rendered-node]:focus-visible{outline:none!important;outline-offset:0!important;box-shadow:none!important}
 .eh-v22-frozen-reference{object-fit:contain;object-position:center}
 .page-ws-load-error{display:grid;gap:10px;margin:12px;padding:18px;border:2px solid #bd674d;border-radius:10px;background:#fff8f3;color:#663b2a;overflow-wrap:anywhere}
 .page-ws-load-error code{white-space:normal;word-break:break-word}
