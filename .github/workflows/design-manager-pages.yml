@@ -299,7 +299,7 @@ jobs:
             --preview-screenshot "$RUNNER_TEMP/nh01-browser/NH01_Structured_Preview_1080x1920.png" \
             --preview-diff-dir "$RUNNER_TEMP/nh01-preview-diff"
 
-      - name: Resolve latest successful production Pages run
+      - name: Resolve exact-current-main Pages artifact with successful build and deployment
         if: github.event_name == 'pull_request' && contains(fromJSON('[191,203,212,234]'), github.event.pull_request.number)
         id: published-pages
         shell: bash
@@ -307,11 +307,27 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          selected="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs?branch=main&per_page=100" \
-            --jq '.workflow_runs | map(select(.workflow_id == 369682887 and .event == "push" and .conclusion == "success")) | sort_by(.created_at) | last | [.id, .head_sha] | @tsv')"
-          read -r production_run_id production_source_sha <<< "$selected"
+          latest_main_sha="$(gh api "repos/${GITHUB_REPOSITORY}/git/ref/heads/main" --jq '.object.sha')"
+          run_info="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs?branch=main&per_page=100" \
+            --jq '.workflow_runs | map(select(.workflow_id == 369682887 and .event == "push" and .head_branch == "main")) | sort_by(.run_number) | last | [.id, .head_sha] | @tsv')"
+          production_run_id=""
+          production_source_sha=""
+          read -r production_run_id production_source_sha <<< "$run_info"
           test -n "$production_run_id"
           test -n "$production_source_sha"
+          if [ "$production_source_sha" != "$latest_main_sha" ]; then
+            echo "Latest Main Pages run is stale: run=$production_run_id source=$production_source_sha main=$latest_main_sha" >&2
+            exit 1
+          fi
+          jobs="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${production_run_id}/jobs?per_page=100")"
+          build_ok="$(jq -r '[.jobs[] | select(.name == "build" and .conclusion == "success")] | length > 0' <<< "$jobs")"
+          deploy_ok="$(jq -r '[.jobs[] | select(.name == "deploy") | .steps[]? | select(.name == "Deploy to GitHub Pages" and .conclusion == "success")] | length > 0' <<< "$jobs")"
+          artifacts="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${production_run_id}/artifacts?per_page=100")"
+          artifact_ok="$(jq -r '[.artifacts[] | select(.name == "github-pages" and .expired == false)] | length > 0' <<< "$artifacts")"
+          if [ "$build_ok" != "true" ] || [ "$deploy_ok" != "true" ] || [ "$artifact_ok" != "true" ]; then
+            echo "Current Main Pages run lacks a successful build, deployment step, or unexpired github-pages artifact: run=$production_run_id" >&2
+            exit 1
+          fi
           echo "run_id=$production_run_id" >> "$GITHUB_OUTPUT"
           echo "source_sha=$production_source_sha" >> "$GITHUB_OUTPUT"
 
