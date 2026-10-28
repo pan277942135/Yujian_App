@@ -51,3 +51,10 @@
 - PR #234 canonical-promotion Admission Run [40667570171](https://github.com/pan277942135/Yujian_App/actions/runs/40667570171) PASS in `CANONICAL_MAIN_PROMOTION` mode only. Product-work Admission has not run; the manual dispatch must target `work-state/w5-empty-home-pilot-v1`.
 - PR candidate Pages run [40667570170](https://github.com/pan277942135/Yujian_App/actions/runs/40667570170) is queued at this checkpoint. Main SHA `632cada103bf022adeb873bd6e66464555b509e4` Pages run [40666041684](https://github.com/pan277942135/Yujian_App/actions/runs/40666041684) is cancelled; live root SHA relative to current Main remains unconfirmed.
 - No W4 source repair has been pushed. Continue only after product-work Admission PASS, then apply the preserved workspace-scope fix and rerun W4/W5 on the new exact SHA.
+
+
+## 2026-10-28 — Isolated preview composition progress
+
+- PR #234 candidate SHA `5ba86fd8d1142d4708d1b8f9e6ddc81cbc96ccf6`, Design Manager Pages Run [40667570170](https://github.com/pan277942135/Yujian_App/actions/runs/40667570170): live-root SHA-matched artifact resolution PASS; current production artifact download PASS; byte-preserving isolated preview composition PASS; candidate preview verification under its isolated Pages path PASS; final W2 resource-binding validation PASS.
+- The build job is still running `Run Empty Home V2.2 real DOM matrix and negative checks`. Artifact upload and the `deploy-preview` job have not yet been confirmed. Do not call the isolated preview deployed until the run completes and its deploy job passes.
+- W4 Evidence Run `40667570169` remains FAIL on this SHA; W5 Chromium Matrix Run `40667570176` remains PASS (12/12). Product-work Admission still requires manual dispatch on `work-state/w5-empty-home-pilot-v1` before any W4 source patch.
