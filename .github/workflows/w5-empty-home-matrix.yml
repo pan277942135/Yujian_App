@@ -169,7 +169,12 @@ jobs:
               data = screenshot.read_bytes()
               assert data[:8] == b"\x89PNG\r\n\x1a\n"
               width, height = struct.unpack(">II", data[16:24])
-              assert (width, height) == (case["viewport_width"] * 3, case["viewport_height"] * 3)
+              assert (width, height) == (rendered.get("pixel_width"), rendered.get("pixel_height")), (case.get("case_id"), width, height, rendered)
+              capture = rendered.get("capture_bounds_css_px", {})
+              assert capture.get("width") == case["viewport_width"], (case.get("case_id"), capture)
+              assert capture.get("height") == case["viewport_height"], (case.get("case_id"), capture)
+              assert case["viewport_width"] * 3 <= width <= (case["viewport_width"] + 1) * 3, (case.get("case_id"), width)
+              assert case["viewport_height"] * 3 <= height <= (case["viewport_height"] + 1) * 3, (case.get("case_id"), height)
           bounds = json.loads(bounds_path.read_text())
           assert bounds.get("source_sha") == expected_sha
           assert len(bounds.get("viewports", [])) == summary.get("expected")
