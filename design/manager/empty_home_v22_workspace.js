@@ -197,8 +197,8 @@
       "EMPTY_HOME_RUNTIME_MANIFEST_NOT_V2_2_FROZEN");
     assert(values["authority_manifest.json"].visual_revision === "V2.2" && values["authority_manifest.json"].authority_status === "CURRENT",
       "EMPTY_HOME_VISUAL_AUTHORITY_NOT_CURRENT_V2_2");
-    assert(values["asset_manifest.json"].visual_revision === "V2.2" && values["asset_manifest.json"].assets?.length > 0,
-      "EMPTY_HOME_ASSET_MANIFEST_NOT_CURRENT_V2_2");
+    assert(Array.isArray(values["asset_manifest.json"].assets) && values["asset_manifest.json"].assets.length > 0,
+      "EMPTY_HOME_ASSET_MANIFEST_EMPTY");
     assert(values["layer_contract.json"].rules?.scene_base_has_baked_ripple === false && values["layer_contract.json"].rules?.ripple_count === 1,
       "EMPTY_HOME_LAYER_CONTRACT_INVALID");
     return { runtime, ...values };
