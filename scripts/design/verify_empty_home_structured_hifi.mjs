@@ -134,12 +134,21 @@ async function main() {
   const managerUrl = base.endsWith("/design/manager/") ? base : new URL("design/manager/",base.endsWith("/")?base:`${base}/`).href;
   const browser = await chromium.launch({headless:true});
   const page = await browser.newPage({viewport:{width:1600,height:1350},deviceScaleFactor:3});
-  const consoleErrors=[];
+  const consoleErrorEvents=[];
   const pageErrors=[];
   const failedRequests=[];
-  page.on("console",message=>{if(message.type()==="error")consoleErrors.push(message.text());});
+  const httpErrors=[];
+  let activeNegativeCase=null;
+  const expectedMissingResourcePath="/design/pages/home/empty_home/shared/assets/fishing/rod_master.png";
+  const expectedMissingResourceConsoleText="Failed to load resource: the server responded with a status of 404 (Not Found)";
+  page.on("console",message=>{
+    if(message.type()==="error")consoleErrorEvents.push({text:message.text(),negative_case:activeNegativeCase});
+  });
   page.on("pageerror",error=>pageErrors.push(error.message));
   page.on("requestfailed",request=>failedRequests.push({url:request.url(),failure:request.failure()?.errorText||"failed"}));
+  page.on("response",response=>{
+    if(response.status()>=400)httpErrors.push({url:response.url(),status:response.status(),negative_case:activeNegativeCase});
+  });
   const baseEvidence={schema:"YUJIAN_PAGE_EVIDENCE_MANIFEST_V1",page_id:"home_empty_v2",source_sha:expectedSha,candidate_source_sha:expectedSha,
     contract_id:null,contract_version:null,contract_sha256:null,profile_id:null,profile_sha256:null,resource_binding_sha256:null,
     site_build_sha:expectedSha,deploy_sha:process.env.DEPLOY_SHA||"NOT_RUN",github_run_id:process.env.GITHUB_RUN_ID||null,route:ROUTE,
@@ -388,6 +397,7 @@ async function main() {
     const negative=async(label, mutate) => {
       const url=`${managerUrl}?negative=${encodeURIComponent(label)}${ROUTE}`;
       await mutate(page.route.bind(page));
+      activeNegativeCase=label;
       await page.goto(url,{waitUntil:"domcontentloaded",timeout:45000});
       await page.locator("#pageList .module-item").first().waitFor({state:"visible",timeout:30000});
       await page.waitForFunction(()=>{
@@ -431,6 +441,7 @@ async function main() {
       const message=failure.message;
       assert(message.length>0,`${label}: no explicit fail-closed reason was reported`);
       baseEvidence.negative_cases.push({case:label,result:"EXPECTED_FAIL_CLOSED",error_scope:failure.scope,error:message});
+      activeNegativeCase=null;
       await page.unrouteAll({behavior:"ignoreErrors"});
     };
     const routeForAsset=(pattern,handler)=>async route=>{
@@ -508,10 +519,20 @@ async function main() {
     baseEvidence.geometry_result="PASS_DOM_MEASURED_VISUAL_REVIEW_PENDING";
     baseEvidence.resource_result="PASS_W2_BOUND_RESOURCES_VERIFIED";
     baseEvidence.responsive_result="PASS_PAGE_PROFILE_MATRIX_EXECUTED";
-    assert(consoleErrors.length===0,`Chromium console errors: ${consoleErrors.join(" | ")}`);
+    const expectedMissingResource404s=httpErrors.filter(event=>event.negative_case==="required_resource_missing"&&event.status===404&&
+      new URL(event.url).pathname.endsWith(expectedMissingResourcePath));
+    assert(expectedMissingResource404s.length===1,`required_resource_missing must return one targeted 404: ${JSON.stringify(httpErrors)}`);
+    const unexpectedHttpErrors=httpErrors.filter(event=>!expectedMissingResource404s.includes(event));
+    assert(unexpectedHttpErrors.length===0,`Unexpected HTTP error responses: ${JSON.stringify(unexpectedHttpErrors)}`);
+    const expectedNegativeConsoleErrors=consoleErrorEvents.filter(event=>event.text===expectedMissingResourceConsoleText);
+    assert(expectedNegativeConsoleErrors.length<=1,`Repeated resource 404 console events: ${JSON.stringify(expectedNegativeConsoleErrors)}`);
+    const unexpectedConsoleErrors=consoleErrorEvents.filter(event=>!expectedNegativeConsoleErrors.includes(event));
+    assert(unexpectedConsoleErrors.length===0,`Chromium console errors: ${unexpectedConsoleErrors.map(event=>event.text).join(" | ")}`);
     assert(pageErrors.length===0,`Chromium page errors: ${pageErrors.join(" | ")}`);
     assert(failedRequests.length===0,`Chromium failed requests: ${JSON.stringify(failedRequests)}`);
-    baseEvidence.console_errors=consoleErrors;
+    baseEvidence.console_errors=unexpectedConsoleErrors.map(event=>event.text);
+    baseEvidence.expected_negative_console_errors=expectedNegativeConsoleErrors;
+    baseEvidence.http_errors=httpErrors;
     baseEvidence.page_errors=pageErrors;
     baseEvidence.failed_requests=failedRequests;
     baseEvidence.status="PASS_STRUCTURAL_MATRIX_VISUAL_REVIEW_PENDING";
@@ -530,7 +551,9 @@ async function main() {
       const expected=baseEvidence.matrix_summary?.expected??baseEvidence.matrix.length;
       baseEvidence.matrix_summary={...baseEvidence.matrix_summary,expected,executed:pass+fail,pass,fail,not_run:expected-pass-fail};
     }
-    baseEvidence.console_errors=consoleErrors;
+    baseEvidence.console_errors=consoleErrorEvents.filter(event=>event.text!==expectedMissingResourceConsoleText).map(event=>event.text);
+    baseEvidence.expected_negative_console_errors=consoleErrorEvents.filter(event=>event.text===expectedMissingResourceConsoleText);
+    baseEvidence.http_errors=httpErrors;
     baseEvidence.page_errors=pageErrors;
     baseEvidence.failed_requests=failedRequests;
     baseEvidence.completed_at=new Date().toISOString();
