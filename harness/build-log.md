@@ -42,3 +42,12 @@
 - PR #234 W4 Evidence Run `40667570169` and W5 Matrix Run `40667570176` were in progress at checkpoint time on the exact candidate SHA `5ba86fd8d1142d4708d1b8f9e6ddc81cbc96ccf6`; their final results must be re-read, not inferred.
 - Main Pages run `40666041684` for Main SHA `632cada103bf022adeb873bd6e66464555b509e4` is `cancelled`; Main's prior Pages run at `80c55961059b95fd8dd52eea4b52a37bd91705e8` had succeeded. Current production root SHA remains unconfirmed relative to latest Main.
 - Product-work Admission must be manually dispatched on ref `work-state/w5-empty-home-pilot-v1` via `.github/workflows/control-plane-admission.yml`. PR event admission is intentionally canonical-promotion mode and is not a substitute. No W4 source patch is authorized until the product-work Admission result is PASS.
+
+
+## 2026-10-28 — Exact-HEAD W4/W5 browser results
+
+- PR #234 candidate SHA `5ba86fd8d1142d4708d1b8f9e6ddc81cbc96ccf6`: W5 Chromium Matrix Run [40667570176](https://github.com/pan277942135/Yujian_App/actions/runs/40667570176) PASS, 12/12 cases (8 formal + 4 supplemental), 8 negative cases; visual review remains pending.
+- W4 Evidence Run [40667570169](https://github.com/pan277942135/Yujian_App/actions/runs/40667570169) FAIL on the same SHA. Workspace verifier fixture suite reports 11 cases PASS, but the actual page workspace report is `home_normal_v1=FAIL`, `home_empty_v2=PASS`, `auth_login_v2=NOT_RUN`; therefore W4 is not PASS.
+- PR #234 canonical-promotion Admission Run [40667570171](https://github.com/pan277942135/Yujian_App/actions/runs/40667570171) PASS in `CANONICAL_MAIN_PROMOTION` mode only. Product-work Admission has not run; the manual dispatch must target `work-state/w5-empty-home-pilot-v1`.
+- PR candidate Pages run [40667570170](https://github.com/pan277942135/Yujian_App/actions/runs/40667570170) is queued at this checkpoint. Main SHA `632cada103bf022adeb873bd6e66464555b509e4` Pages run [40666041684](https://github.com/pan277942135/Yujian_App/actions/runs/40666041684) is cancelled; live root SHA relative to current Main remains unconfirmed.
+- No W4 source repair has been pushed. Continue only after product-work Admission PASS, then apply the preserved workspace-scope fix and rerun W4/W5 on the new exact SHA.
