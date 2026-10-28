@@ -14,7 +14,7 @@ state_control:
   current_head: "5ba86fd8d1142d4708d1b8f9e6ddc81cbc96ccf6"
   current_main_head_sha: "632cada103bf022adeb873bd6e66464555b509e4"
   state_status: "BLOCKED"
-  updated_at: "2026-10-28T13:58:42.380Z"
+  updated_at: "2026-10-28T14:00:17.715Z"
 source_of_truth:
   current_work_state: "WORK_EXECUTION_STATE.json"
   canonical_control_plane: "CONTROL_PLANE_REGISTRY.yaml"
@@ -114,7 +114,7 @@ runtime_gates:
       status: "PASS"
       run_id: 40667570176
       source_sha: "5ba86fd8d1142d4708d1b8f9e6ddc81cbc96ccf6"
-    isolated_preview:
+  isolated_preview:
     status: "PASS"
     run_id: 40667570170
     source_sha: "5ba86fd8d1142d4708d1b8f9e6ddc81cbc96ccf6"
@@ -132,9 +132,9 @@ runtime_gates:
     source_sha: "632cada103bf022adeb873bd6e66464555b509e4"
     live_production_root_sha: "80c55961059b95fd8dd52eea4b52a37bd91705e8"
   historical_w4_failure:
-      status: "FAIL"
-      run_id: 40657928278
-      source_sha: "dae5e54c761cb424eee4144f4009436a12e2cb80"
+    status: "FAIL"
+    run_id: 40657928278
+    source_sha: "dae5e54c761cb424eee4144f4009436a12e2cb80"
   android_runtime:
     status: "NOT_VERIFIED"
     note: "A skipped native runtime gate is not a PASS."
@@ -202,7 +202,7 @@ completion_rules:
   - "W5 matrix and isolated preview must be rerun on the same repaired exact SHA."
   - "User visual acceptance remains pending until the product owner confirms it."
 state_update:
-  updated_at: "2026-10-28T09:53:45.714Z"
+  updated_at: "2026-10-28T14:00:17.715Z"
   reason: "Isolate Work state from the canonical promotion PR tree while retaining the exact PR candidate SHA and current Main revision."
   protocol: "harness/STATE_UPDATE_PROTOCOL.md"
 agent_recovery:
