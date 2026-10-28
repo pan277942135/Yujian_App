@@ -101,12 +101,9 @@ The entries below are frozen inputs for later issues. They define ownership and 
 | W3 workspace adapter | #222 | W1, W2 | G-PAGE-FREEZE-PIPELINE-W3-WORKSPACE |
 | W4 test and evidence | #223 | W1, W2 | G-PAGE-FREEZE-PIPELINE-W4-TEST-EVIDENCE |
 | W5 empty-home pilot | #224 | W3, W4 | G-PAGE-FREEZE-PIPELINE-W5-EMPTY-HOME-PILOT |
-| W6-A Login structured module | #237 | W3, W4 | G-PAGE-FREEZE-PIPELINE-W6A-LOGIN-MODULE |
-| W6 login integration and acceptance | #225 | W5, W6-A | G-PAGE-FREEZE-PIPELINE-W6-LOGIN-PILOT |
+| W6 login pilot and acceptance | #225 | W5 | G-PAGE-FREEZE-PIPELINE-W6-LOGIN-PILOT |
 
 These tasks are registered static scope, not status assertions. They have empty product feature/journey refs, remain outside phase rollups and the N001–N010 release queue, and are explicitly non-blocking for the Android release chain. Work status and exact current SHA remain in branch-local execution state and Actions evidence.
-
-W6-A is an explicitly bounded Login-owned module task that may proceed alongside W5 after W3/W4. It does not own shared Design Manager routing or cross-page integration. W6 #225 still requires both W5 and W6-A, including the W5 user acceptance dependency, before final integration or acceptance can be recorded.
 
 ## 6. Out of scope for W0
 
