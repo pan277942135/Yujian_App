@@ -469,11 +469,14 @@
 
   async function createOptions({ pageId, sourceSha, feature, fetchImpl = window.fetch.bind(window), repoHref }) {
     assert(pageId === PAGE_ID, `EMPTY_HOME_ADAPTER_PAGE_ID_INVALID: ${pageId}`);
-    const loadedMapping = await loadMapping({ fetchImpl, repoHref });
+    const pageRepoHref = path => path === ".github/workflows/design-manager-pages.yml"
+      ? `https://raw.githubusercontent.com/pan277942135/Yujian_App/${sourceSha}/${path}`
+      : repoHref(path);
+    const loadedMapping = await loadMapping({ fetchImpl, repoHref: pageRepoHref });
     const mapping = loadedMapping.value;
     const cachedByRoot = new WeakMap();
     const renderer = async ctx => {
-      const pageContext = { ...ctx, repoHref };
+      const pageContext = { ...ctx, repoHref: pageRepoHref };
       let cached = cachedByRoot.get(ctx.root);
       if (!cached) {
         cached = await ensureControlsAndResources(pageContext, mapping);
@@ -482,7 +485,7 @@
       await renderEmptyHome(pageContext, mapping, cached);
     };
     return {
-      pageId, sourceSha, feature, fetchImpl, repoHref,
+      pageId, sourceSha, feature, fetchImpl, repoHref: pageRepoHref,
       displayName: "Empty Home V2.2 · Structured Hi-Fi Candidate",
       coordinateUnit: "dp",
       componentTree: () => makeReferenceTree(mapping),
