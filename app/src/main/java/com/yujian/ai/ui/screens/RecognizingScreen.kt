@@ -28,9 +28,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.graphics.TransformOrigin
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
@@ -47,14 +44,10 @@ import com.yujian.ai.ai.subject.FishSubjectQuality
 import com.yujian.ai.ai.subject.SubjectStatus
 import com.yujian.ai.model.SelectedImage
 import com.yujian.ai.ui.identify.RecognitionImageTransform
-import com.yujian.ai.ui.identify.RecognitionSourcePhoto
 import com.yujian.ai.ui.identify.NormalizedSourceRect
-import com.yujian.ai.ui.recognition.PhotoShockwaveTransform
-import com.yujian.ai.ui.recognition.RecognitionAmbientField
-import com.yujian.ai.ui.recognition.photoShockwaveTransform
 import com.yujian.ai.ui.recognition.RecognitionContourSegment
-import com.yujian.ai.ui.recognition.RecognitionFishFocus
 import com.yujian.ai.ui.recognition.RecognitionFishFocusLevel
+import com.yujian.ai.ui.recognition.RecognitionPerimeterShaderOverlay
 import com.yujian.ai.ui.recognition.RecognitionMotionPolicy
 import com.yujian.ai.ui.recognition.RecognitionMotionTraceSample
 import com.yujian.ai.ui.recognition.RecognitionStatusOverlay
@@ -270,7 +263,6 @@ fun RecognitionProcessingScene(
     } else {
         processingStartedAtMs?.let { (visualClockMs - it).coerceAtLeast(0L) } ?: 0L
     }
-    val photoShockwave = photoShockwaveTransform(processingElapsedMs, motionPolicy.reduceMotion)
     val phaseElapsedMs = if (phaseOverride != null) 1_000L else controller.phaseElapsedMs(visualNowMs)
     val levelAAvailable = subjectBitmap != null && subjectBox != null && contour.isNotEmpty()
     val displayedFocusLevel = recognitionDisplayedFishFocusLevel(
@@ -312,9 +304,12 @@ fun RecognitionProcessingScene(
     }
     Box(Modifier.fillMaxSize().background(Color(0xFF102D35))) {
         if (image != null) RecognitionPhoto(
-            image.bitmap, rendered, assessment?.primary?.box, subjectBitmap, subjectBox, contour,
-            visualClockMs, deterministicMotion, processingElapsedMs, photoShockwave, image.imageId, phaseElapsedMs, motionPolicy, onMotionFrame,
-            displayedFocusLevel, onFishFocusTransform, Modifier.fillMaxSize(),
+            bitmap = image.bitmap,
+            phase = rendered,
+            processingElapsedMs = processingElapsedMs,
+            motionSessionKey = image.imageId,
+            onFishFocusTransform = onFishFocusTransform,
+            modifier = Modifier.fillMaxSize(),
             onProcessingPhotoSnapshot = { transform, bounds ->
                 onProcessingPhotoSnapshot(
                     RecognitionProcessingPhotoSnapshot(
@@ -354,12 +349,10 @@ fun RecognitionProcessingScene(
 }
 @Composable
 private fun RecognitionPhoto(
-    bitmap: Bitmap, phase: RecognitionPhase, focusBox: NormalizedFishBox?, subjectBitmap: Bitmap?,
-    subjectBox: NormalizedFishBox?, contour: List<RecognitionContourSegment>, visualClockMs: Long,
-    deterministicMotion: Boolean, processingElapsedMs: Long, photoShockwave: PhotoShockwaveTransform,
-    motionSessionKey: Any?, phaseElapsedMs: Long, motionPolicy: RecognitionMotionPolicy,
-    onMotionFrame: ((RecognitionMotionTraceSample) -> Unit)?,
-    focusLevel: RecognitionFishFocusLevel,
+    bitmap: Bitmap,
+    phase: RecognitionPhase,
+    processingElapsedMs: Long,
+    motionSessionKey: Any?,
     onFishFocusTransform: ((RecognitionImageTransform) -> Unit)?, modifier: Modifier,
     onProcessingPhotoSnapshot: (RecognitionImageTransform, RecognitionRevealWindowRect) -> Unit,
 ) = BoxWithConstraints(modifier) {
@@ -373,12 +366,6 @@ private fun RecognitionPhoto(
         )
     }
     val transform = mediaPlan.primaryTransform
-    val viewportWidthPx = with(density) { maxWidth.toPx() }.coerceAtLeast(1f)
-    val viewportHeightPx = with(density) { maxHeight.toPx() }.coerceAtLeast(1f)
-    val photoPivot = TransformOrigin(
-        pivotFractionX = ((transform.photoContentRect.left + transform.photoContentRect.right) * .5f / viewportWidthPx).coerceIn(0f, 1f),
-        pivotFractionY = ((transform.photoContentRect.top + transform.photoContentRect.bottom) * .5f / viewportHeightPx).coerceIn(0f, 1f),
-    )
     Box(Modifier.fillMaxSize().onGloballyPositioned { coordinates ->
         val bounds = coordinates.boundsInWindow()
         onProcessingPhotoSnapshot(
@@ -391,53 +378,15 @@ private fun RecognitionPhoto(
             onFishFocusTransform(transform)
         }
     }
-    // The outer measured container stays fixed. Only this shared photo + optical group
-    // receives the bounded shockwave; status UI and snapshot geometry stay stationary.
-    Box(
-        Modifier.fillMaxSize().graphicsLayer {
-            transformOrigin = photoPivot
-            translationY = with(density) { photoShockwave.translationYDp.dp.toPx() }
-            rotationZ = photoShockwave.rotationDegrees
-            scaleX = photoShockwave.scale
-            scaleY = photoShockwave.scale
-        },
-    ) {
-    // The same source may fill the letterboxed bands decoratively, but this
-    // transform is never used by focus geometry and never changes by phase.
-    mediaPlan.decorativeBackgroundTransform?.let { backgroundTransform ->
-        RecognitionSourcePhoto(
-            bitmap = bitmap.asImageBitmap(),
-            transform = backgroundTransform,
-            contentDescription = null,
-            modifier = Modifier.fillMaxSize().graphicsLayer(alpha = .16f),
-        )
-    }
-    // The captured image is opaque on the first Recognition frame; only visual overlays animate.
-    RecognitionSourcePhoto(
-        bitmap = bitmap.asImageBitmap(),
-        transform = transform,
-        contentDescription = "正在识别的鱼获照片",
+    RecognitionPerimeterShaderOverlay(
+        bitmap = bitmap,
+        photoTransform = transform,
+        decorativeBackgroundTransform = mediaPlan.decorativeBackgroundTransform,
+        elapsedMs = processingElapsedMs,
+        sessionKey = motionSessionKey,
+        phase = phase,
         modifier = Modifier.fillMaxSize(),
     )
-    RecognitionAmbientField(
-        phase, Modifier.fillMaxSize(), visualClockMs,
-        motionSessionKey = motionSessionKey,
-        deterministicMotion = deterministicMotion,
-        processingElapsedMs = processingElapsedMs,
-        lowPerformance = motionPolicy.lowPerformance,
-        reduceMotion = motionPolicy.reduceMotion,
-        qualityLevel = motionPolicy.qualityLevel,
-        onMotionFrame = onMotionFrame,
-        photoTransform = transform,
-    )
-    RecognitionFishFocus(
-        phase, focusBox, subjectBitmap, subjectBox, contour, transform, Modifier.fillMaxSize(),
-        visualClockMs, phaseElapsedMs,
-        reduceMotion = motionPolicy.reduceMotion,
-        lowPerformance = motionPolicy.lowPerformance,
-        focusLevel = focusLevel,
-    )
-    }
     }
 }
 

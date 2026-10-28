@@ -32,3 +32,14 @@
 - Searched registered and repository image assets for approved independent Hero/Peek originals; none were established. The workspace continues to show explicit blocked states and does not crop frozen page screenshots into photos.
 - Added measured DOM rectangle evidence and multi-size screenshot comparison outputs for M01–M04. M05 remains a width-only boundary with no assumed height. Comparison output is diagnostic and never declares visual parity.
 - Local checks: JavaScript syntax, `tests/nh01_structured_workspace.test.cjs`, navigation verification, frozen hi-fi integrity, Design Manager registry validation, and 320×480 comparator smoke all passed. Candidate Chromium and visual parity remain unverified pending exact-head workflow evidence.
+
+
+## 2026-10-28 — AI Studio perimeter shader port start
+
+- Work: `YUJIAN_ANDROID_AISTUDIO_PERIMETER_SHADER_PORT_V1`; branch `work/aistudio-perimeter-shader-port-v1`; exact Main baseline/control-plane revision `632cada103bf022adeb873bd6e66464555b509e4`.
+- Control Plane PR #243 merged as `632cada103bf022adeb873bd6e66464555b509e4` after every exact-head check passed. Product branch synchronized to Main; Admission PASS (six static layers, 733 synchronized paths, Project Master State, Work Execution State).
+- Resolved the source contract at `pan277942135/demo--Image-light-effect@794e7f2698525761bbb2f3e5d775b5dae8d7a25a`; shader and perimeter-node sources were read at that SHA. No Android implementation or visual/runtime result is inferred from source inspection.
+- Stage start: E1 implementation, perimeter-only GLES2 photo compositor bound to the existing PhotoSession, `RecognitionImageTransform`, and `processingElapsedMs` / `visualClockMs`. Acceptance gate: `G-ANDROID-AISTUDIO-PERIMETER-SHADER-PORT-V1`.
+- `source_browser_geometry`, `coordinate_mapping`, and `overlay_alpha_comparison`: NOT_RUN. The current browser has no source tab; the repository exposes no homepage or GitHub Pages deployment.
+- `api28_device_runtime`, seven-timestamp comparison, APK provenance and visual acceptance: NOT_RUN. This execution environment has no attached API 28 device.
+- Next: implement the renderer and continue seeking the exact source preview/runtime geometry; do not claim visual PASS until source comparison and a real API 28 device run exist.
