@@ -1075,15 +1075,17 @@ private fun DrawScope.drawUpwardCausticSurge(
     val bodyLength = (leading + tail).coerceAtLeast(1f)
     val crestStart = ((leading - halfCrest) / bodyLength).coerceIn(0f, 1f)
     val crestEnd = ((leading + halfCrest) / bodyLength).coerceIn(crestStart, 1f)
+    val crestApproach = (crestStart - .025f).coerceAtLeast(.051f)
+    val crestRelease = (crestEnd + .025f).coerceAtMost(.60f)
     val brush = Brush.verticalGradient(
         colorStops = arrayOf(
             0f to Color.Transparent,
-            .05f to cyan,
-            crestStart to cyan.copy(alpha = opacity * .72f),
-            crestStart to crest,
+            .05f to cyan.copy(alpha = opacity * .35f),
+            crestApproach to cyan.copy(alpha = opacity * .52f),
+            crestStart to crest.copy(alpha = opacity * .86f),
             .20f to crest,
-            crestEnd to crest,
-            .36f to teal,
+            crestEnd to crest.copy(alpha = opacity * .72f),
+            crestRelease to teal,
             .68f to teal.copy(alpha = opacity * .42f),
             1f to Color.Transparent,
         ),
