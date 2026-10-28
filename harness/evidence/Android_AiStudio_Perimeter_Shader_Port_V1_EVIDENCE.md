@@ -3,9 +3,11 @@
 **Task:** `YUJIAN_ANDROID_AISTUDIO_PERIMETER_SHADER_PORT_V1`
 **State:** Draft implementation; source-browser and physical API 28 visual gates remain `NOT_RUN`.
 **AI Studio source SHA:** `794e7f2698525761bbb2f3e5d775b5dae8d7a25a`
-**Android implementation / CI-tested source SHA:** `3ad7b0257ec67807f4d5fe124ea98ea7a6a8624a`
+**Initial Android implementation / CI-tested source SHA:** `3ad7b0257ec67807f4d5fe124ea98ea7a6a8624a`
 **PR:** [#244](https://github.com/pan277942135/Yujian_App/pull/244)
 **Android CI run:** [40669933101](https://github.com/pan277942135/Yujian_App/actions/runs/40669933101)
+
+The latest Android implementation SHA is the current non-document PR head. A follow-up initializes the GLSurfaceView paused and lets the existing LifecycleOwner resume it only when the recognition page reaches `RESUMED`; the initial baseline results below remain historical for that follow-up. The current exact-head CI status and source SHA are maintained in the PR and `harness/build-log.md`.
 
 ## Candidate changes
 
@@ -48,8 +50,8 @@ The 16-node accent pass first screens each halo/core into a transparent accumula
 | AndroidTest APK compile | `PASS` | Android CI run `40669933101`, `:app:assembleDebugAndroidTest`. This is compilation only, not device execution. |
 | Packaged launcher/recognition assets and model trace | `PASS` | Android CI run `40669933101`. |
 | Android lint | `PASS` | Android CI run `40669933101`, `:app:lintDebug`. |
-| Runtime APK artifact | `AVAILABLE` | Artifact ID `12807628530`, name `YuJian-runtime-apks-667f0601e619e6de9da0501df62660fd1c80dc60-MODEL_CROP_M1_v0.2`. The artifact ZIP digest is not an APK digest. |
-| `app-debug.apk` SHA-256 | `VERIFIED` | `1fe5b10a47478c00876fb26c159cc9470df5d52212aa7e5ecf6632aa46eff6b8`; matched both the artifact's `SHA256SUMS` and an independent streamed hash of the APK entry. |
+| Initial baseline runtime APK artifact | `AVAILABLE` | Artifact ID `12807628530`, name `YuJian-runtime-apks-667f0601e619e6de9da0501df62660fd1c80dc60-MODEL_CROP_M1_v0.2`. The artifact ZIP digest is not an APK digest. |
+| Initial baseline `app-debug.apk` SHA-256 | `VERIFIED` | `1fe5b10a47478c00876fb26c159cc9470df5d52212aa7e5ecf6632aa46eff6b8`; matched both the artifact's `SHA256SUMS` and an independent streamed hash of the APK entry. |
 | Local Gradle build/tests | `NOT_RUN` | The local workspace has no Gradle wrapper or Gradle executable; exact-source Android CI provided the build and test results above. |
 
 ## Runtime and visual gates
@@ -63,6 +65,8 @@ The 16-node accent pass first screens each halo/core into a transparent accumula
 | API 28 physical-device installation/runtime | `NOT_RUN` | No attached physical API 28 device. The PR Android runtime job was skipped; emulator execution would not satisfy the physical-device gate. |
 | Lifecycle runtime cases | `NOT_RUN` | Session-key replacement, page resume/pause, disposal, and terminal phase handling are implemented; photo switch, cancel/exit, retry, success, and failure still need device capture. |
 | Detector / Classifier output comparison | `NOT_RUN` | The implementation diff does not edit the recognition pipeline or model input path; no same-input runtime trace has been captured. |
+
+The lifecycle follow-up requires a fresh exact-head Android CI run before its APK and test evidence can replace the initial baseline evidence above.
 
 ## Non-app workflow note
 

@@ -153,6 +153,9 @@ private class RecognitionPerimeterGlSurfaceView(context: Context) : GLSurfaceVie
         setPreserveEGLContextOnPause(false)
         setRenderer(perimeterRenderer)
         renderMode = RENDERMODE_WHEN_DIRTY
+        // GLSurfaceView starts resumed by default. Keep its GL thread paused until
+        // the owning Lifecycle reaches RESUMED and syncRenderLifecycle resumes it.
+        onPause()
         importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
         isFocusable = false
         isClickable = false

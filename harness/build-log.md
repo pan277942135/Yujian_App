@@ -52,3 +52,9 @@
 - Control-plane Admission `40669933102`, W1 contract `40669933153`, W4 evidence `40669933113`, and Design Governance `40669933218` succeeded on that candidate. Design Manager Pages `40669933158` failed because its design-only changed-file gate saw Android app paths in a PR that also added an evidence document under `design/`; the report has been moved to `harness/evidence/` so the final PR diff contains no `design/**` changes.
 - `source_browser_geometry`, `coordinate_mapping`, Overlay alpha comparison, GLES compile/link runtime logs, API 28 physical-device acceptance, seven-frame comparison, full recording, lifecycle captures, and same-input Detector/Classifier trace remain `NOT_RUN`.
 - Next: rerun the PR checks on the current branch head, then obtain the exact-source browser geometry and a physical API 28 device. Keep visual acceptance and task completion blocked until those captures exist.
+
+## 2026-10-28 — Renderer foreground-start correction
+
+- Code review found that `GLSurfaceView` starts resumed by default. The candidate now calls `onPause()` immediately after `setRenderer`; the existing `LifecycleOwner` observer is the only path that resumes GLES rendering.
+- The previous successful Android CI and APK hash above belong to the initial implementation source SHA `3ad7b0257ec67807f4d5fe124ea98ea7a6a8624a` and are historical for this lifecycle correction.
+- Latest exact-head build/tests and APK provenance are pending the PR #244 synchronization run. Source-browser geometry, GLES runtime logs, and physical API 28 validation remain `NOT_RUN`.
