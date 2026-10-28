@@ -601,9 +601,16 @@
         const fetched = await responseBytes(path, { fetchImpl, repoHref, signal });
         const actualSha = await sha256(fetched.bytes);
         assert(actualSha === descriptor.sha256, `SOURCE_AUTHORITY_SHA_MISMATCH: ${path} expected=${descriptor.sha256} actual=${actualSha}`);
+        const authorityText = new TextDecoder().decode(fetched.bytes);
         let value;
-        try { value = JSON.parse(new TextDecoder().decode(fetched.bytes)); }
-        catch (error) { throw new Error(`SOURCE_AUTHORITY_JSON_INVALID: ${path}: ${error.message}`); }
+        if (descriptor.purpose === "workflow" && /\\.ya?ml$/i.test(path)) {
+          // W2 pins the Pages workflow as a publication-policy source. Preserve its exact
+          // bytes for marker verification; YAML is not a JSON authority document.
+          value = authorityText;
+        } else {
+          try { value = JSON.parse(authorityText); }
+          catch (error) { throw new Error(`SOURCE_AUTHORITY_JSON_INVALID: ${path}: ${error.message}`); }
+        }
         return { descriptor, value, bytes: fetched.bytes, sha256: actualSha };
       })());
       return sourceAuthorityCache.get(authorityId);
