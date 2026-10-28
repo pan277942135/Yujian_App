@@ -57,7 +57,6 @@
     "formal_visual_matrix": "NOT_RUN_PENDING_EXACT_SHA_CHROMIUM_CI",
     "user_visual_acceptance": "USER_VISUAL_ACCEPTANCE_PENDING",
     "native_runtime": "NOT_VERIFIED",
-    "final_pr_head_sha": "84d7759ea37e4a460f59e4f75869981d282ee055",
     "formal_viewports": [
       "320x640",
       "360x780",
@@ -79,7 +78,8 @@
       "CHEVRON_RIGHT": "3d8c0bf43500c40b636a08f50d6fedf4d5f0ae2fd984a7e6c16cd03f4130d4a9"
     },
     "brand_asset_status": "BLOCKED_AUTHORITY_GAP",
-    "resource_lifecycle_status": "REVIEW_CONFLICT_WITH_APPROVED_V22_AUTHORITY"
+    "resource_lifecycle_status": "REVIEW_CONFLICT_WITH_APPROVED_V22_AUTHORITY",
+    "checkpoint_parent_state_commit_sha": "84d7759ea37e4a460f59e4f75869981d282ee055"
   },
   "scope_invariants": [
     "Do not merge PR #234.",
