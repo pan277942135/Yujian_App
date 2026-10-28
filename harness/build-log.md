@@ -58,3 +58,10 @@
 - PR #234 candidate SHA `5ba86fd8d1142d4708d1b8f9e6ddc81cbc96ccf6`, Design Manager Pages Run [40667570170](https://github.com/pan277942135/Yujian_App/actions/runs/40667570170): live-root SHA-matched artifact resolution PASS; current production artifact download PASS; byte-preserving isolated preview composition PASS; candidate preview verification under its isolated Pages path PASS; final W2 resource-binding validation PASS.
 - The build job is still running `Run Empty Home V2.2 real DOM matrix and negative checks`. Artifact upload and the `deploy-preview` job have not yet been confirmed. Do not call the isolated preview deployed until the run completes and its deploy job passes.
 - W4 Evidence Run `40667570169` remains FAIL on this SHA; W5 Chromium Matrix Run `40667570176` remains PASS (12/12). Product-work Admission still requires manual dispatch on `work-state/w5-empty-home-pilot-v1` before any W4 source patch.
+
+
+## 2026-10-28 — Isolated preview deployment checkpoint
+
+- Design Manager Pages Run [40667570170](https://github.com/pan277942135/Yujian_App/actions/runs/40667570170) build job is PASS. The `deploy-preview` job verified the existing production root under the shared deployment lock and confirmed a matching successful artifact; isolated preview deployment is still in progress.
+- The Main Pages run for latest Main SHA `632cada103bf022adeb873bd6e66464555b509e4` remains cancelled, so the latest Main SHA itself is not claimed deployed. This does not negate the separate live-root/artifact guard used for the isolated preview.
+- The remaining product blockers are product-work Admission (manual dispatch required) and W4 exact-SHA Evidence FAIL on `5ba86fd8d1142d4708d1b8f9e6ddc81cbc96ccf6`. W5 matrix remains PASS 12/12 on that same SHA.
