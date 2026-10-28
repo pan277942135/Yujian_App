@@ -7,7 +7,9 @@
 
 ## 1. Goal and boundaries
 
-Add local, pixel-level fish segmentation to the existing Android recognition flow. The only new inference path is:
+Add local, pixel-level fish segmentation to the existing Android recognition flow. Reuse the repository's current photo/session owners: the EXIF-normalized `SelectedImage.bitmap` and stable `imageId`, plus `RecognitionRevealSessionStore`'s `recognitionSessionId` and `recognitionAttemptId`. Compute a deterministic SHA-256 for the normalized source bitmap pixels and bind each segmentation result to that digest and the existing session/attempt. Do not introduce a parallel photo-session authority.
+
+The only new inference path is:
 
 `PhotoSession original photo + Detector BBOX → SlimSAM image encoder → BBOX prompt/mask decoder → full-resolution mask`
 
@@ -32,7 +34,7 @@ Ship the verified models with the APK or install them into app-private storage f
 
 Read session metadata from the exact model files before writing the adapter. Record every input/output name, tensor type, and dimensions, then run CPU smoke tests for both sessions. Expected checks include encoder `pixel_values` `[1,3,1024,1024]`, encoder embeddings `[1,256,64,64]`, decoder BBOX prompt input, three candidate `pred_masks` at `256×256`, and `iou_scores`; these are verification targets, not permission to assume the signature.
 
-Use the existing PhotoSession's original, EXIF-corrected photo. Follow that model revision's preprocessor configuration for RGB conversion, longest-edge resize, padding, and normalization. Preserve original dimensions and the exact resize/padding transform. Convert Detector BBOX values back from any detector resize/letterbox coordinate system before mapping into the model's prompt coordinates. Clip and reject invalid boxes explicitly. Never confuse RGB/BGR, normalized coordinates, center/size boxes, or detector input pixels with the SlimSAM image geometry.
+Use the current attempt's EXIF-corrected `SelectedImage.bitmap`, not the classifier crop or detector tensor. Follow that model revision's preprocessor configuration for RGB conversion, longest-edge resize, padding, and normalization. Preserve source bitmap dimensions and the exact resize/padding transform. The production detector currently maps its normalized boxes back to that source bitmap's normalized coordinate space; verify and test this mapping before use. Clip and reject invalid boxes explicitly. Never confuse RGB/BGR, normalized coordinates, center/size boxes, or detector input pixels with the SlimSAM image geometry.
 
 Run the image encoder once per current PhotoSession photo and reuse its embedding for all valid BBOX prompts for that photo. Run the paired decoder independently for every valid fish BBOX. Select the candidate using the model's `iou_scores`, and record the selected index and score. Postprocess and map the selected mask through the model's valid image region and padding transform to the original photo dimensions. Preserve a full-resolution lossless binary mask or equivalent probability representation; an outline-only rendering is insufficient.
 
