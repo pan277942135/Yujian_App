@@ -6,6 +6,7 @@ on:
     branches: [main]
     paths:
       - "design/pages/home/empty_home/**"
+      - "design/system_v3/07_Responsive_System/page_contract_examples/home_empty_v2.*.json"
       - "design/manager/**"
       - "scripts/design/verify_empty_home_structured_hifi.mjs"
       - "scripts/design/validate_page_resource_binding.py"
@@ -146,6 +147,17 @@ jobs:
           assert evidence.get("status") == "PASS_STRUCTURAL_MATRIX_VISUAL_REVIEW_PENDING", evidence.get("status")
           assert evidence.get("source_sha") == expected_sha, (evidence.get("source_sha"), expected_sha)
           assert str(evidence.get("github_run_id")) == expected_run, (evidence.get("github_run_id"), expected_run)
+          state_mapping = evidence.get("behavior_state_mapping", {})
+          envelope = json.loads(Path("design/system_v3/07_Responsive_System/page_contract_examples/home_empty_v2.envelope.json").read_text())
+          state_ref = envelope.get("state_scope", {}).get("included_state_refs", [])
+          state_authority = next((row for row in envelope.get("authority_refs", []) if state_ref and row.get("authority_ref_id") == state_ref[0].get("authority_ref_id")), {})
+          assert len(state_ref) == 1 and state_mapping.get("behavior_state_id") == "EMPTY"
+          assert state_mapping.get("authority_ref_id") == state_ref[0].get("authority_ref_id")
+          assert state_mapping.get("path") == state_authority.get("path") and state_mapping.get("sha256") == state_authority.get("sha256")
+          assert state_mapping.get("declared_locator") == state_ref[0].get("locator")
+          assert state_mapping.get("locator") == "heading:Scope"
+          assert state_mapping.get("resolution") == "PAGE_SPECIFIC_EXPLICIT_STATE_MAPPING"
+          assert state_mapping.get("renderer_state_id")
           assert summary.get("expected") == len(cases), (summary, len(cases))
           assert summary.get("executed") == summary.get("expected")
           assert summary.get("pass") == summary.get("expected")
@@ -160,6 +172,7 @@ jobs:
               assert str(case.get("run_id")) == expected_run
               assert case.get("matrix_source_path") == summary.get("source_path")
               assert case.get("matrix_source_sha256") == summary.get("source_sha256")
+              assert case.get("state_id") == "EMPTY" and case.get("renderer_state_id") == state_mapping.get("renderer_state_id")
               assert case.get("node_bounds"), case.get("case_id")
               rendered = case.get("screenshot_rendered", {})
               screenshot = root / rendered.get("path", "")

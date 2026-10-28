@@ -17,6 +17,7 @@ on:
       - "scripts/verify_private_visual_references.py"
       - "scripts/verify_private_visual_browser.mjs"
       - "scripts/verify_design_manager_live.py"
+      - "scripts/verify_design_manager_root_integrity.py"
       - "scripts/verify_first_use_camera_guide_assets.py"
       - "scripts/measure_first_use_camera_guide_geometry.py"
       - "scripts/verify_swos_static_visual_v1_1.py"
@@ -45,6 +46,7 @@ on:
       - "scripts/verify_private_visual_references.py"
       - "scripts/verify_private_visual_browser.mjs"
       - "scripts/verify_design_manager_live.py"
+      - "scripts/verify_design_manager_root_integrity.py"
       - "scripts/verify_swos_static_visual_v1_1.py"
       - "tests/nh01_structured_workspace.test.cjs"
       - "scripts/verify_first_use_camera_guide_assets.py"
@@ -299,43 +301,51 @@ jobs:
             --preview-screenshot "$RUNNER_TEMP/nh01-browser/NH01_Structured_Preview_1080x1920.png" \
             --preview-diff-dir "$RUNNER_TEMP/nh01-preview-diff"
 
-      - name: Resolve exact-current-main Pages artifact with successful build and deployment
+      - name: Resolve the live-root SHA-matched Pages artifact with successful build and deployment
         if: github.event_name == 'pull_request' && contains(fromJSON('[191,203,212,234]'), github.event.pull_request.number)
         id: published-pages
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
+          LIVE_PAGES_URL: https://pan277942135.github.io/Yujian_App/
         run: |
           set -euo pipefail
-          latest_main_sha="$(gh api "repos/${GITHUB_REPOSITORY}/git/ref/heads/main" --jq '.object.sha')"
-          run_info="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs?branch=main&per_page=100" \
-            --jq '.workflow_runs | map(select(.workflow_id == 369682887 and .event == "push" and .head_branch == "main")) | sort_by(.run_number) | last | [.id, .head_sha] | @tsv')"
+          live_build="$(curl -fsS "${LIVE_PAGES_URL}design/manager/build.json")"
+          live_root_sha="$(jq -er '.sha | select(test("^[0-9a-f]{40}$"))' <<< "$live_build")"
+          runs="$(gh api "repos/${GITHUB_REPOSITORY}/actions/workflows/369682887/runs?branch=main&head_sha=${live_root_sha}&per_page=100")"
+          run_info="$(jq -r --arg sha "$live_root_sha" '[.workflow_runs[] | select(.head_sha == $sha and .event == "push" and .head_branch == "main" and .conclusion == "success")] | sort_by(.run_number) | last | [.id, .head_sha] | @tsv' <<< "$runs")"
           production_run_id=""
           production_source_sha=""
           read -r production_run_id production_source_sha <<< "$run_info"
           test -n "$production_run_id"
           test -n "$production_source_sha"
-          if [ "$production_source_sha" != "$latest_main_sha" ]; then
-            echo "Latest Main Pages run is stale: run=$production_run_id source=$production_source_sha main=$latest_main_sha" >&2
+          if [ "$production_source_sha" != "$live_root_sha" ]; then
+            echo "Production Pages artifact SHA does not match the live root build.json: run=$production_run_id artifact=$production_source_sha live=$live_root_sha" >&2
             exit 1
           fi
           jobs="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${production_run_id}/jobs?per_page=100")"
           build_ok="$(jq -r '[.jobs[] | select(.name == "build" and .conclusion == "success")] | length > 0' <<< "$jobs")"
           deploy_ok="$(jq -r '[.jobs[] | select(.name == "deploy") | .steps[]? | select(.name == "Deploy to GitHub Pages" and .conclusion == "success")] | length > 0' <<< "$jobs")"
           artifacts="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${production_run_id}/artifacts?per_page=100")"
-          artifact_ok="$(jq -r '[.artifacts[] | select(.name == "github-pages" and .expired == false)] | length > 0' <<< "$artifacts")"
-          if [ "$build_ok" != "true" ] || [ "$deploy_ok" != "true" ] || [ "$artifact_ok" != "true" ]; then
+          artifact="$(jq -c '[.artifacts[] | select(.name == "github-pages" and .expired == false)] | sort_by(.created_at) | last // empty' <<< "$artifacts")"
+          artifact_id="$(jq -er '.id' <<< "$artifact")"
+          artifact_digest="$(jq -er '.digest' <<< "$artifact")"
+          artifact_expired="$(jq -er '.expired' <<< "$artifact")"
+          artifact_source_sha="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${production_run_id}" --jq '.head_sha')"
+          if [ "$build_ok" != "true" ] || [ "$deploy_ok" != "true" ] || [ "$artifact_expired" != "false" ] || [ "$artifact_source_sha" != "$live_root_sha" ]; then
             echo "Current Main Pages run lacks a successful build, deployment step, or unexpired github-pages artifact: run=$production_run_id" >&2
             exit 1
           fi
           echo "run_id=$production_run_id" >> "$GITHUB_OUTPUT"
-          echo "source_sha=$production_source_sha" >> "$GITHUB_OUTPUT"
+          echo "source_sha=$live_root_sha" >> "$GITHUB_OUTPUT"
+          echo "artifact_id=$artifact_id" >> "$GITHUB_OUTPUT"
+          echo "artifact_digest=$artifact_digest" >> "$GITHUB_OUTPUT"
 
       - name: Download current production Pages artifact
         if: github.event_name == 'pull_request' && contains(fromJSON('[191,203,212,234]'), github.event.pull_request.number)
         uses: actions/download-artifact@v4
         with:
-          name: github-pages
+          artifact-ids: ${{ steps.published-pages.outputs.artifact_id }}
           repository: ${{ github.repository }}
           run-id: ${{ steps.published-pages.outputs.run_id }}
           github-token: ${{ github.token }}
@@ -347,6 +357,8 @@ jobs:
         env:
           PRODUCTION_RUN_ID: ${{ steps.published-pages.outputs.run_id }}
           PRODUCTION_SOURCE_SHA: ${{ steps.published-pages.outputs.source_sha }}
+          PRODUCTION_ARTIFACT_ID: ${{ steps.published-pages.outputs.artifact_id }}
+          PRODUCTION_ARTIFACT_DIGEST: ${{ steps.published-pages.outputs.artifact_digest }}
           CANDIDATE_SOURCE_SHA: ${{ env.BUILD_SHA }}
           PREVIEW_PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
@@ -412,8 +424,11 @@ jobs:
                   "candidate_source_sha": source_sha,
                   "production_pages_source_sha": production_sha,
                   "production_pages_run_id": production_run_id,
+                  "production_pages_artifact_id": os.environ["PRODUCTION_ARTIFACT_ID"],
+                  "production_pages_artifact_digest": os.environ["PRODUCTION_ARTIFACT_DIGEST"],
                   "production_root_files": len(root_before),
                   "production_root_manifest_sha256": root_digest,
+                  "production_root_files_sha256": root_before,
                   "preview_path": f"previews/pr-{preview_pr_number}/",
               }, ensure_ascii=False, indent=2) + "\n",
               encoding="utf-8",
@@ -432,19 +447,27 @@ jobs:
               "candidate_source_sha": source_sha,
               "production_pages_source_sha": production_sha,
               "production_pages_run_id": production_run_id,
+              "production_pages_artifact_id": os.environ["PRODUCTION_ARTIFACT_ID"],
+              "production_pages_artifact_digest": os.environ["PRODUCTION_ARTIFACT_DIGEST"],
               "production_root_files": len(root_before),
               "production_root_manifest_sha256": root_digest,
+              "production_root_files_sha256": root_before,
               "production_root_byte_identical": True,
               "preview_path": f"previews/pr-{preview_pr_number}/",
           }
           out = Path(os.environ["RUNNER_TEMP"]) / f"nh01-pr{preview_pr_number}-preview-composition.json"
           out.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-          print(json.dumps(report, ensure_ascii=False))
+          print(json.dumps({key: value for key, value in report.items() if key != "production_root_files_sha256"}, ensure_ascii=False))
           PY
           python3 scripts/verify_design_manager_live.py \
             --url "https://pan277942135.github.io/Yujian_App/" \
             --expected-build "$PRODUCTION_SOURCE_SHA" \
             --output "$RUNNER_TEMP/nh01-pr${PREVIEW_PR_NUMBER}-prepublish-root-verification.json"
+          python3 scripts/verify_design_manager_root_integrity.py \
+            --base-url "https://pan277942135.github.io/Yujian_App/" \
+            --expected-sha "$PRODUCTION_SOURCE_SHA" \
+            --composition-report "$RUNNER_TEMP/nh01-pr${PREVIEW_PR_NUMBER}-preview-composition.json" \
+            --output "$RUNNER_TEMP/nh01-pr${PREVIEW_PR_NUMBER}-prepublish-root-integrity.json"
 
       - name: Verify candidate preview under its isolated Pages path
         if: github.event_name == 'pull_request' && contains(fromJSON('[191,203,212,234]'), github.event.pull_request.number)
@@ -473,18 +496,33 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: NH01-PR${{ github.event.pull_request.number }}-Preview-Composition-${{ github.run_id }}
-          path: ${{ runner.temp }}/nh01-pr${{ github.event.pull_request.number }}-preview-composition.json
+          path: |
+            ${{ runner.temp }}/nh01-pr${{ github.event.pull_request.number }}-preview-composition.json
+            ${{ runner.temp }}/nh01-pr${{ github.event.pull_request.number }}-prepublish-root-verification.json
+            ${{ runner.temp }}/nh01-pr${{ github.event.pull_request.number }}-prepublish-root-integrity.json
           if-no-files-found: error
           retention-days: 30
 
       - name: Validate W2 page resource bindings against final Pages bundle
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          PREVIEW_PR_NUMBER: ${{ github.event.pull_request.number || 0 }}
         run: |
+          set -euo pipefail
+          site_root="_site"
+          if [ "$EVENT_NAME" = "pull_request" ]; then
+            case "$PREVIEW_PR_NUMBER" in
+              191|203|212|234) site_root="_site/previews/pr-${PREVIEW_PR_NUMBER}" ;;
+            esac
+          fi
+          test -d "$site_root/design"
           python3 scripts/design/validate_page_resource_binding.py \
             --all-pages \
             --required-page-id home_normal_v1 \
             --required-page-id home_empty_v2 \
             --required-page-id auth_login_v2 \
-            --site-root _site \
+            --site-root "$site_root" \
             --source-sha "${SITE_BUILD_SHA}" \
             --run-id "${GITHUB_RUN_ID}" \
             --report "$RUNNER_TEMP/page-resource-binding-report.json"
@@ -698,6 +736,11 @@ jobs:
             --url "$PAGE_URL" \
             --expected-build "$expected_sha" \
             --output "$RUNNER_TEMP/dm-live-evidence/production-root-predeploy-verification.json"
+          python3 scripts/verify_design_manager_root_integrity.py \
+            --base-url "$PAGE_URL" \
+            --expected-sha "$expected_sha" \
+            --composition-report "$COMPOSITION_REPORT" \
+            --output "$RUNNER_TEMP/dm-live-evidence/production-root-predeploy-integrity.json"
 
       - name: Deploy isolated PR preview with unchanged production root
         id: deployment
@@ -726,17 +769,37 @@ jobs:
           PAGE_URL: ${{ steps.deployment.outputs.page_url }}
           CANDIDATE_SHA: ${{ github.event.pull_request.head.sha }}
           PREVIEW_PR_NUMBER: ${{ github.event.pull_request.number }}
+          COMPOSITION_REPORT: ${{ runner.temp }}/nh01-pr${{ github.event.pull_request.number }}-composition/nh01-pr${{ github.event.pull_request.number }}-preview-composition.json
         run: |
           set -euo pipefail
           mkdir -p "$RUNNER_TEMP/dm-live-evidence"
           preview_path="previews/pr-${PREVIEW_PR_NUMBER}"
           curl -fsS "${PAGE_URL}${preview_path}/source-manifest.json" > "$RUNNER_TEMP/dm-live-evidence/source-manifest.json"
+          python3 - "$COMPOSITION_REPORT" "$RUNNER_TEMP/dm-live-evidence/source-manifest.json" <<'PY'
+          import json, sys
+          composition = json.load(open(sys.argv[1], encoding="utf-8"))
+          deployed = json.load(open(sys.argv[2], encoding="utf-8"))
+          for key in ("candidate_source_sha", "production_pages_source_sha", "production_pages_run_id",
+                      "production_pages_artifact_id", "production_pages_artifact_digest", "production_root_files",
+                      "production_root_manifest_sha256", "production_root_files_sha256"):
+              if deployed.get(key) != composition.get(key):
+                  raise SystemExit(f"deployed source manifest differs from composition for {key}")
+          print(json.dumps({"status": "PASS", "candidate_source_sha": deployed["candidate_source_sha"],
+                            "production_pages_source_sha": deployed["production_pages_source_sha"],
+                            "production_root_manifest_sha256": deployed["production_root_manifest_sha256"],
+                            "production_root_files": deployed["production_root_files"]}, indent=2))
+          PY
           production_sha="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["production_pages_source_sha"])' "$RUNNER_TEMP/dm-live-evidence/source-manifest.json")"
           preview_sha="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["candidate_source_sha"])' "$RUNNER_TEMP/dm-live-evidence/source-manifest.json")"
           test "$preview_sha" = "$CANDIDATE_SHA"
           curl -fsS "${PAGE_URL}${preview_path}/design/manager/build.json" > "$RUNNER_TEMP/dm-live-evidence/candidate-build.json"
           build_sha="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["sha"])' "$RUNNER_TEMP/dm-live-evidence/candidate-build.json")"
           test "$build_sha" = "$CANDIDATE_SHA"
+          python3 scripts/verify_design_manager_root_integrity.py \
+            --base-url "$PAGE_URL" \
+            --expected-sha "$production_sha" \
+            --composition-report "$COMPOSITION_REPORT" \
+            --output "$RUNNER_TEMP/dm-live-evidence/production-root-postdeploy-integrity.json"
           python3 scripts/verify_design_manager_live.py \
             --url "$PAGE_URL" \
             --expected-build "$production_sha" \

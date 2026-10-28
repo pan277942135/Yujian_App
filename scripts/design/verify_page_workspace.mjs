@@ -73,6 +73,19 @@ async function main() {
       if (node.dataset.workspaceKind !== "reference-image-only") return Boolean(node.dataset.workspaceKind);
       return ["REFERENCE_IMAGE_ONLY", "ERROR"].includes(node.dataset.viewState);
     }, null, { timeout: args.readinessTimeoutMs });
+    await page.waitForFunction(() => {
+      const workspace = document.querySelector("[data-page-workspace-root]");
+      if (!workspace) return false;
+      if (workspace.dataset.workspaceKind === "reference-image-only") return true;
+      const treeNodes = [...document.querySelectorAll("[data-workspace-tree-node]")];
+      if (treeNodes.length === 0) return false;
+      return treeNodes.every(treeNode => {
+        const nodeId = treeNode.dataset.nodeId || treeNode.dataset.workspaceNodeId;
+        if (!nodeId) return false;
+        const selector = `[data-workspace-rendered-node="${CSS.escape(nodeId)}"]`;
+        return document.querySelectorAll(selector).length === 1;
+      });
+    }, null, { timeout: args.readinessTimeoutMs });
     const rootInfo = await page.locator("[data-page-workspace-root]").evaluate(node => ({
       pageId: node.dataset.pageId || null,
       sourceSha: node.dataset.sourceSha || node.dataset.buildSha || null,

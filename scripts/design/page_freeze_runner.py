@@ -171,16 +171,25 @@ def _explicit_matrix(authority: dict[str, Any]) -> tuple[str | None, list[dict[s
     return (matrix_path if isinstance(matrix_path, str) else None), []
 
 
-def _state_values(root: Path, envelope: dict[str, Any], authority_by_id: dict[str, Any]) -> tuple[list[str], list[str]]:
+def _state_values(root: Path, envelope: dict[str, Any], authority_by_id: dict[str, Any]) -> tuple[list[str], list[str], list[dict[str, Any]]]:
     resolved: list[str] = []
     unresolved: list[str] = []
+    resolved_refs: list[dict[str, Any]] = []
     refs = envelope.get("state_scope", {}).get("included_state_refs", [])
+    page_id = envelope.get("page", {}).get("page_id")
+    authority_rows = envelope.get("authority_refs", [])
     for ref in refs if isinstance(refs, list) else []:
         if not isinstance(ref, dict):
             continue
-        authority = authority_by_id.get(ref.get("authority_ref_id"))
+        authority_id = ref.get("authority_ref_id")
+        authority = authority_by_id.get(authority_id)
+        authority_ref = next((row for row in authority_rows
+                              if isinstance(row, dict) and row.get("authority_ref_id") == authority_id), {})
+        path_text = authority_ref.get("path")
         locator = ref.get("locator")
-        value = None
+        value: Any = None
+        resolved_locator = locator
+        resolution = "EXACT_LOCATOR"
         if isinstance(authority, dict) and isinstance(locator, str) and locator.startswith("/"):
             current: Any = authority
             for part in locator[1:].split("/"):
@@ -193,14 +202,69 @@ def _state_values(root: Path, envelope: dict[str, Any], authority_by_id: dict[st
                     current = None
                     break
             value = current
+        elif isinstance(authority, dict) and isinstance(locator, str) and locator.startswith("heading:"):
+            if isinstance(path_text, str) and path_text.lower().endswith((".md", ".markdown")):
+                try:
+                    path = safe_repo_path(root, path_text)
+                    expected_digest = authority_ref.get("sha256")
+                    if not isinstance(expected_digest, str) or sha256_file(path) != expected_digest:
+                        raise PipelineError(f"state authority SHA-256 mismatch or missing pin: {path_text}")
+                    lines = path.read_text(encoding="utf-8").splitlines()
+
+                    def section_for(heading: str) -> str | None:
+                        heading_re = re.compile(r"^(#{1,6})[ \t]+" + re.escape(heading) + r"[ \t]*#*[ \t]*$")
+                        matches = [(i, match) for i, line in enumerate(lines)
+                                   if (match := heading_re.fullmatch(line))]
+                        if len(matches) != 1:
+                            return None
+                        start_index, heading_match = matches[0]
+                        level = len(heading_match.group(1))
+                        end_index = next((i for i in range(start_index + 1, len(lines))
+                                          if re.match(r"^#{1," + str(level) + r"}[ \t]+", lines[i])), len(lines))
+                        return "\n".join(lines[start_index + 1:end_index])
+
+                    heading = locator[len("heading:"):].strip()
+                    section_text = section_for(heading)
+                    if section_text is None and (
+                        page_id == "home_empty_v2"
+                        and authority_id == "empty-home-behavior"
+                        and path_text == "design/pages/home/empty_home/spec/Empty_Home_Feature_Spec_V2.md"
+                        and locator == "heading:empty state"
+                    ):
+                        # The legacy locator is absent. Resolve only this page's
+                        # explicit behavior alias against the pinned Scope section.
+                        candidate = section_for("Scope")
+                        selected = re.findall(r"\bselects[ \t]+`?([A-Z][A-Z0-9_]*)`?", candidate or "")
+                        if (candidate is not None
+                                and re.search(r"`?fishRecords\.isEmpty\(\)`?\s+selects\s+`?EMPTY`?", candidate)
+                                and selected == ["EMPTY"]):
+                            section_text = candidate
+                            resolved_locator = "heading:Scope"
+                            resolution = "PAGE_SPECIFIC_EXPLICIT_STATE_MAPPING"
+                    if section_text is not None:
+                        value = re.findall(r"\bselects[ \t]+`?([A-Z][A-Z0-9_]*)`?", section_text)
+                except (OSError, UnicodeDecodeError, PipelineError):
+                    value = None
         if isinstance(value, list) and value and all(isinstance(item, str) and item.strip() for item in value):
-            resolved.extend(value)
+            state_ids = list(dict.fromkeys(value))
+            resolved.extend(state_ids)
         elif isinstance(value, str) and value.strip():
+            state_ids = [value]
             resolved.append(value)
         else:
-            unresolved.append(f"{ref.get('authority_ref_id')}::{locator}")
-    return list(dict.fromkeys(resolved)), unresolved
-
+            state_ids = []
+            unresolved.append(f"{authority_id}::{locator}")
+            resolution = "UNRESOLVED"
+        resolved_refs.append({
+            "authority_ref_id": authority_id,
+            "path": path_text,
+            "sha256": authority_ref.get("sha256"),
+            "declared_locator": locator,
+            "locator": resolved_locator,
+            "resolution": resolution,
+            "resolved_state_ids": state_ids,
+        })
+    return list(dict.fromkeys(resolved)), unresolved, resolved_refs
 
 def _valid_viewport(row: Any) -> dict[str, Any] | None:
     if not isinstance(row, dict):
@@ -214,6 +278,11 @@ def _valid_viewport(row: Any) -> dict[str, Any] | None:
 def derive_matrix(root: Path, envelope: dict[str, Any], profile: dict[str, Any]) -> dict[str, Any]:
     """Derive a test plan only from page-owned machine authority; never invent missing inputs."""
     authority_path, numeric_authority = resolve_numeric_authority(root, envelope, profile)
+    viewport_inputs = envelope.get("viewport_inputs") if isinstance(envelope.get("viewport_inputs"), dict) else {}
+    source_authority_ref_id = (viewport_inputs.get("viewport_authority_ref_id")
+                               or profile.get("numeric_authority", {}).get("authority_ref_id"))
+    if not isinstance(source_authority_ref_id, str):
+        source_authority_ref_id = None
     authority_by_id: dict[str, Any] = {}
     for ref in envelope.get("authority_refs", []):
         if not isinstance(ref, dict) or not isinstance(ref.get("path"), str):
@@ -222,53 +291,74 @@ def derive_matrix(root: Path, envelope: dict[str, Any], profile: dict[str, Any])
             candidate = safe_repo_path(root, ref["path"])
             if candidate.suffix.lower() == ".json":
                 authority_by_id[ref.get("authority_ref_id")] = read_json(candidate)
+            elif candidate.suffix.lower() in {".md", ".markdown"}:
+                authority_by_id[ref.get("authority_ref_id")] = {"__markdown_authority__": True}
         except PipelineError:
             continue
 
     if not isinstance(numeric_authority, dict):
         return {"status": "NOT_RUN", "source_path": authority_path, "expected_case_count": 0, "recorded_case_count": 0,
-                "cases": [], "reason": "No machine-readable viewport authority is bound to this page profile."}
+                "cases": [], "reason": "No machine-readable viewport authority is bound to this page profile.",
+                "source_sha256": None, "source_authority_ref_id": source_authority_ref_id,
+                "state_authority_refs": []}
 
     matrix_path, _ = _explicit_matrix(numeric_authority)
     if matrix_path:
         try:
             matrix_doc = read_json(safe_repo_path(root, matrix_path))
         except PipelineError as exc:
-            return {"status": "FAIL", "source_path": matrix_path, "expected_case_count": 0, "recorded_case_count": 0,
+            return {"status": "FAIL", "source_path": matrix_path, "source_sha256": None,
+                    "source_authority_ref_id": source_authority_ref_id,
+                    "expected_case_count": 0, "recorded_case_count": 0, "state_authority_refs": [],
                     "cases": [], "reason": f"Required page matrix is unavailable: {exc}"}
         raw_profiles = matrix_doc.get("profiles")
         raw_variants = matrix_doc.get("variants")
         expected_count = matrix_doc.get("expected_native_executions")
         if not isinstance(raw_profiles, list) or not isinstance(raw_variants, list) or not isinstance(expected_count, int):
-            return {"status": "FAIL", "source_path": matrix_path, "expected_case_count": 0,
+            return {"status": "FAIL", "source_path": matrix_path, "source_sha256": None,
+                    "source_authority_ref_id": source_authority_ref_id,
+                    "expected_case_count": 0, "recorded_case_count": 0, "state_authority_refs": [],
                     "recorded_case_count": 0, "cases": [], "reason": "Page-owned matrix is missing profiles, variants, or expected_native_executions."}
         cases = []
         for profile_row in raw_profiles:
             viewport = _valid_viewport(profile_row)
             if viewport is None:
-                return {"status": "FAIL", "source_path": matrix_path, "expected_case_count": expected_count,
+                return {"status": "FAIL", "source_path": matrix_path, "source_sha256": None,
+                        "source_authority_ref_id": source_authority_ref_id,
+                    "expected_case_count": expected_count, "recorded_case_count": 0, "state_authority_refs": [],
                         "recorded_case_count": len(cases), "cases": [], "reason": "Page-owned matrix contains a profile without a fixed width/height viewport."}
             font = profile_row.get("font_scale")
             if not isinstance(font, (int, float)) or isinstance(font, bool) or font <= 0:
-                return {"status": "FAIL", "source_path": matrix_path, "expected_case_count": expected_count,
+                return {"status": "FAIL", "source_path": matrix_path, "source_sha256": None,
+                        "source_authority_ref_id": source_authority_ref_id,
+                        "expected_case_count": expected_count, "state_authority_refs": [],
                         "recorded_case_count": len(cases), "cases": [], "reason": "Page-owned matrix contains a profile without a valid font scale."}
             profile_id = profile_row.get("id") or profile_row.get("profile_id")
             if not isinstance(profile_id, str) or not profile_id:
-                return {"status": "FAIL", "source_path": matrix_path, "expected_case_count": expected_count,
+                return {"status": "FAIL", "source_path": matrix_path, "source_sha256": None,
+                        "source_authority_ref_id": source_authority_ref_id,
+                        "expected_case_count": expected_count, "state_authority_refs": [],
                         "recorded_case_count": len(cases), "cases": [], "reason": "Page-owned matrix profile is missing its id."}
             for variant in raw_variants:
                 variant_id = variant.get("id") if isinstance(variant, dict) else variant
                 if not isinstance(variant_id, str) or not variant_id:
-                    return {"status": "FAIL", "source_path": matrix_path, "expected_case_count": expected_count,
+                    return {"status": "FAIL", "source_path": matrix_path, "source_sha256": None,
+                            "source_authority_ref_id": source_authority_ref_id,
+                            "expected_case_count": expected_count, "state_authority_refs": [],
                             "recorded_case_count": len(cases), "cases": [], "reason": "Page-owned matrix variant is missing its id."}
                 cases.append({"case_id": f"{profile_id}-{variant_id}", "viewport": viewport,
                               "font_scale": font, "state_id": variant_id, "result": "NOT_RUN",
                               "failure_reason": "The page-owned matrix is planned here; its owning browser/native gate has not been executed by this command."})
         if len(cases) != expected_count:
-            return {"status": "FAIL", "source_path": matrix_path, "expected_case_count": expected_count,
+            return {"status": "FAIL", "source_path": matrix_path, "source_sha256": sha256_file(safe_repo_path(root, matrix_path)),
+                    "source_authority_ref_id": source_authority_ref_id,
+                    "state_authority_refs": [],
                     "recorded_case_count": len(cases), "cases": cases,
                     "reason": "Page-owned profile × variant case count does not match expected_native_executions."}
-        return {"status": "NOT_RUN", "source_path": matrix_path, "expected_case_count": expected_count,
+        return {"status": "NOT_RUN", "source_path": matrix_path,
+                "source_sha256": sha256_file(safe_repo_path(root, matrix_path)),
+                "source_authority_ref_id": source_authority_ref_id, "state_authority_refs": [],
+                "expected_case_count": expected_count,
                 "recorded_case_count": len(cases), "cases": cases, "reason": "Page-owned matrix cases are recorded as NOT_RUN until the corresponding exact-SHA runner executes."}
 
     viewport_rows: list[Any] = []
@@ -292,9 +382,9 @@ def derive_matrix(root: Path, envelope: dict[str, Any], profile: dict[str, Any])
     if not isinstance(font_values, list):
         font_values = numeric_authority.get("native_acceptance", {}).get("font_scales", [])
     fonts = list(dict.fromkeys(value for value in font_values if isinstance(value, (int, float)) and not isinstance(value, bool) and value > 0)) if isinstance(font_values, list) else []
-    states, unresolved_refs = _state_values(root, envelope, authority_by_id)
+    states, unresolved_refs, state_authority_refs = _state_values(root, envelope, authority_by_id)
     state_slots: list[tuple[str | None, str | None]] = [(state, None) for state in states]
-    if not state_slots and unresolved_refs:
+    if unresolved_refs:
         state_slots = [(None, ", ".join(unresolved_refs))]
 
     cases = []
@@ -313,9 +403,206 @@ def derive_matrix(root: Path, envelope: dict[str, Any], profile: dict[str, Any])
         reason = "No numeric font-scale set is declared by the bound authority; no scale was invented."
     elif not state_slots:
         reason = "No included page states can be resolved from the bound page authorities."
-    return {"status": "NOT_RUN", "source_path": authority_path, "expected_case_count": len(cases),
+    return {"status": "NOT_RUN", "source_path": authority_path,
+            "source_sha256": sha256_file(safe_repo_path(root, authority_path)) if authority_path else None,
+            "source_authority_ref_id": source_authority_ref_id, "state_authority_refs": state_authority_refs,
+            "expected_case_count": len(cases),
             "recorded_case_count": len(cases), "cases": cases,
             "reason": reason or "Cases are page-authority-derived and remain NOT_RUN until a browser/native runner executes."}
+
+
+def import_structured_matrix_report(root: Path, page_id: str, source_sha: str, run_id: str | None,
+                                    report_path: str, matrix: dict[str, Any], evidence_dir: Path) -> list[str]:
+    """Attach exact-run W5 Chromium results and copied DOM/screenshot evidence to W4."""
+    errors: list[str] = []
+    try:
+        source_path = Path(report_path).resolve()
+        report = read_json(source_path)
+    except (OSError, PipelineError) as exc:
+        matrix["status"] = "FAIL"
+        matrix["reason"] = f"W5 matrix report could not be read: {exc}"
+        return [matrix["reason"]]
+
+    matrix["execution_source_sha"] = report.get("candidate_source_sha") or report.get("source_sha")
+    matrix["execution_run_id"] = str(report.get("github_run_id")) if report.get("github_run_id") is not None else None
+    matrix["execution_report_path"] = None
+    matrix["execution_report_sha256"] = None
+    if page_id != "home_empty_v2":
+        errors.append("W5 structured matrix report may only be bound to home_empty_v2")
+    if report.get("schema") != "YUJIAN_PAGE_EVIDENCE_MANIFEST_V1" or report.get("page_id") != page_id:
+        errors.append("W5 matrix report schema or page identity does not match the W4 page")
+    if report.get("status") != "PASS_STRUCTURAL_MATRIX_VISUAL_REVIEW_PENDING":
+        errors.append("W5 matrix report did not complete its structural run while preserving pending user visual review")
+    if report.get("source_sha") != source_sha or report.get("candidate_source_sha") != source_sha:
+        errors.append("W5 matrix report source SHA does not match this exact W4 candidate SHA")
+    if not run_id or not str(run_id).isdigit() or str(report.get("github_run_id")) != str(run_id):
+        errors.append("W5 matrix report Run ID does not match the observed W4 workflow Run ID")
+    summary = report.get("matrix_summary") if isinstance(report.get("matrix_summary"), dict) else {}
+    authority = report.get("matrix_authority") if isinstance(report.get("matrix_authority"), dict) else {}
+    if (authority.get("id") != matrix.get("source_authority_ref_id")
+            or authority.get("path") != matrix.get("source_path")
+            or authority.get("sha256") != matrix.get("source_sha256")):
+        errors.append("W5 matrix authority path/SHA does not match the W4-derived page authority")
+    if summary.get("source_path") != matrix.get("source_path") or summary.get("source_sha256") != matrix.get("source_sha256"):
+        errors.append("W5 matrix summary authority path/SHA does not match the W4-derived page authority")
+    expected_count = matrix.get("expected_case_count")
+    rows = report.get("matrix") if isinstance(report.get("matrix"), list) else []
+    if (summary.get("expected") != expected_count or summary.get("executed") != expected_count
+            or summary.get("pass") != expected_count or summary.get("fail") != 0 or summary.get("not_run") != 0
+            or len(rows) != expected_count):
+        errors.append("W5 EXPECTED_CASES and EXECUTED_CASES do not match the W4 page-specific matrix")
+    state_mapping = report.get("behavior_state_mapping") if isinstance(report.get("behavior_state_mapping"), dict) else {}
+    expected_states = {row.get("state_id") for row in matrix.get("cases", []) if isinstance(row, dict)}
+    mapped_state = state_mapping.get("behavior_state_id")
+    if not mapped_state or expected_states != {mapped_state}:
+        errors.append("W5 behavior state mapping does not resolve the state declared by W4 authority")
+    expected_state_ref = next((row for row in matrix.get("state_authority_refs", [])
+                               if isinstance(row, dict) and row.get("resolved_state_ids")), None)
+    if (not isinstance(expected_state_ref, dict)
+            or state_mapping.get("authority_ref_id") != expected_state_ref.get("authority_ref_id")
+            or state_mapping.get("path") != expected_state_ref.get("path")
+            or state_mapping.get("sha256") != expected_state_ref.get("sha256")
+            or state_mapping.get("declared_locator") != expected_state_ref.get("declared_locator")
+            or state_mapping.get("locator") != expected_state_ref.get("locator")
+            or state_mapping.get("resolution") != expected_state_ref.get("resolution")):
+        errors.append("W5 behavior state locator/source does not match the W4 state authority reference")
+    negative_cases = report.get("negative_cases") if isinstance(report.get("negative_cases"), list) else []
+    if len(negative_cases) != 8 or any(not isinstance(row, dict) or row.get("result") != "EXPECTED_FAIL_CLOSED" for row in negative_cases):
+        errors.append("W5 negative cases are missing or do not all report expected fail-closed outcomes")
+    if len(negative_cases) != 8:
+        errors.append("W5 negative-case count is not the expected 8")
+
+    copied_dir = evidence_dir / "empty-home-matrix"
+    copied_dir.mkdir(parents=True, exist_ok=True)
+    if source_path.is_file():
+        shutil.copyfile(source_path, copied_dir / source_path.name)
+    referenced_files: set[Path] = set()
+    if isinstance(report.get("dom_report"), str):
+        referenced_files.add(Path(report["dom_report"]))
+    def collect_local_paths(value: Any) -> None:
+        if isinstance(value, dict):
+            for key, child in value.items():
+                if key == "path" and isinstance(child, str):
+                    referenced_files.add(Path(child))
+                else:
+                    collect_local_paths(child)
+        elif isinstance(value, list):
+            for child in value:
+                collect_local_paths(child)
+    collect_local_paths(report)
+    for relative in referenced_files:
+        if relative.is_absolute() or ".." in relative.parts:
+            errors.append(f"W5 matrix report contains an unsafe evidence file reference: {relative}")
+            continue
+        item = source_path.parent / relative
+        if not item.is_file() or item.is_symlink():
+            # Paths in authority/resource references are not runner outputs; only
+            # missing explicit output references are errors.
+            if relative == Path(report.get("dom_report", "")) or any(
+                isinstance(row, dict) and isinstance(row.get("screenshot_rendered"), dict)
+                and row["screenshot_rendered"].get("path") == relative.as_posix()
+                for row in rows
+            ):
+                errors.append(f"W5 matrix report references a missing evidence file: {relative}")
+            continue
+        target = copied_dir / relative
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(item, target)
+    copied_report = copied_dir / source_path.name
+    if copied_report.is_file():
+        matrix["execution_report_path"] = copied_report.relative_to(evidence_dir).as_posix()
+        matrix["execution_report_sha256"] = sha256_file(copied_report)
+
+    row_by_key: dict[tuple[Any, Any, Any, Any], list[dict[str, Any]]] = {}
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+        viewport = row.get("viewport") if isinstance(row.get("viewport"), dict) else {}
+        width = row.get("viewport_width", viewport.get("width"))
+        height = row.get("viewport_height", viewport.get("height"))
+        key = (width, height, row.get("font_scale"), row.get("state_id"))
+        row_by_key.setdefault(key, []).append(row)
+
+    for expected in matrix.get("cases", []):
+        if not isinstance(expected, dict):
+            continue
+        viewport = expected.get("viewport") if isinstance(expected.get("viewport"), dict) else {}
+        key = (viewport.get("width"), viewport.get("height"), expected.get("font_scale"), expected.get("state_id"))
+        matches = row_by_key.get(key, [])
+        actual = matches[0] if len(matches) == 1 else None
+        if actual is None:
+            errors.append(f"W5 matrix is missing or duplicates expected case {expected.get('case_id')}")
+            continue
+        font_label = format(key[2], "g") if isinstance(key[2], (int, float)) else str(key[2])
+        if (actual.get("result") != "PASS" or actual.get("page_id") != page_id
+                or actual.get("case_id") != f"EMPTY_HOME_{key[0]}x{key[1]}_FONT_{font_label}"
+                or actual.get("source_sha") != source_sha or str(actual.get("run_id")) != str(run_id)
+                or actual.get("matrix_source_path") != matrix.get("source_path")
+                or actual.get("matrix_source_sha256") != matrix.get("source_sha256")
+                or actual.get("state_id") != mapped_state
+                or actual.get("renderer_state_id") != state_mapping.get("renderer_state_id")
+                or not isinstance(actual.get("node_bounds"), list) or not actual.get("node_bounds")):
+            errors.append(f"W5 case {expected.get('case_id')} does not bind exact source, run, authority, state, and actual DOM bounds")
+            continue
+        screenshot = actual.get("screenshot_rendered") if isinstance(actual.get("screenshot_rendered"), dict) else {}
+        screenshot_value = screenshot.get("path")
+        if not isinstance(screenshot_value, str) or not screenshot_value or Path(screenshot_value).is_absolute() or ".." in Path(screenshot_value).parts:
+            errors.append(f"W5 case {expected.get('case_id')} has an unsafe/missing rendered screenshot path")
+            continue
+        source_screenshot = source_path.parent / screenshot_value
+        copied_screenshot = copied_dir / screenshot_value
+        if (not source_screenshot.is_file() or source_screenshot.is_symlink()
+                or sha256_file(source_screenshot) != screenshot.get("sha256")):
+            errors.append(f"W5 case {expected.get('case_id')} rendered screenshot is missing or hash-mismatched")
+            continue
+        png = source_screenshot.read_bytes()
+        if len(png) < 24 or png[:8] != b"\x89PNG\r\n\x1a\n":
+            errors.append(f"W5 case {expected.get('case_id')} rendered screenshot is not a PNG")
+            continue
+        if int.from_bytes(png[16:20], "big") != screenshot.get("pixel_width") or int.from_bytes(png[20:24], "big") != screenshot.get("pixel_height"):
+            errors.append(f"W5 case {expected.get('case_id')} rendered screenshot dimensions do not match its report")
+            continue
+        copied_screenshot.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(source_screenshot, copied_screenshot)
+        case_payload = {
+            "schema": "YUJIAN_W4_PAGE_MATRIX_CASE_EVIDENCE_V1",
+            "page_id": page_id,
+            "case_id": expected.get("case_id"),
+            "source_sha": source_sha,
+            "run_id": str(run_id),
+            "matrix_source_path": matrix.get("source_path"),
+            "matrix_source_sha256": matrix.get("source_sha256"),
+            "matrix_source_authority_ref_id": matrix.get("source_authority_ref_id"),
+            "behavior_state_id": mapped_state,
+            "renderer_state_id": state_mapping.get("renderer_state_id"),
+            "expected": expected,
+            "execution": actual,
+            "screenshot_path": (Path("empty-home-matrix") / screenshot_value).as_posix(),
+            "screenshot_sha256": sha256_file(copied_screenshot),
+        }
+        case_path = evidence_dir / "matrix-cases" / f"{expected.get('case_id')}.json"
+        case_path.parent.mkdir(parents=True, exist_ok=True)
+        case_path.write_text(json.dumps(case_payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        expected.update({
+            "renderer_state_id": state_mapping.get("renderer_state_id"),
+            "matrix_source_authority_ref_id": matrix.get("source_authority_ref_id"),
+            "result": "PASS",
+            "failure_reason": None,
+            "evidence_path": case_path.relative_to(evidence_dir).as_posix(),
+            "evidence_sha256": sha256_file(case_path),
+            "screenshot_path": case_payload["screenshot_path"],
+            "screenshot_sha256": case_payload["screenshot_sha256"],
+            "source_sha": source_sha,
+            "run_id": str(run_id),
+        })
+
+    if errors:
+        matrix["status"] = "FAIL"
+        matrix["reason"] = "; ".join(errors)
+    else:
+        matrix["status"] = "PASS"
+        matrix["reason"] = "All page-owned cases were executed by the same-Run-ID W5 Chromium runner; user visual review remains pending."
+    return errors
 
 
 def matrix_errors(matrix: dict[str, Any]) -> list[str]:
@@ -427,6 +714,8 @@ def validate_manifest(root: Path, manifest: dict[str, Any], expected_source_sha:
         expected_case_ids = [row.get("case_id") for row in expected_matrix.get("cases", [])]
         if actual_case_ids != expected_case_ids:
             errors.append("manifest matrix cases do not match the page-owned expected matrix")
+        if matrix.get("state_authority_refs") != expected_matrix.get("state_authority_refs"):
+            errors.append("manifest state authority references do not match the declared W1 state scope")
     except (PipelineError, AttributeError, TypeError) as exc:
         errors.append(f"manifest authority binding cannot be resolved: {exc}")
     if manifest.get("result") == "PASS":
@@ -485,6 +774,53 @@ def validate_manifest(root: Path, manifest: dict[str, Any], expected_source_sha:
         errors.append("matrix PASS requires every expected case to PASS")
     if "PASS" in case_results and matrix.get("status") != "PASS":
         errors.append("matrix status must be PASS when all per-case exact-SHA evidence passes")
+    if matrix.get("status") == "PASS":
+        report_value = matrix.get("execution_report_path")
+        if (not isinstance(report_value, str) or not report_value
+                or matrix.get("execution_source_sha") != expected_source_sha
+                or str(matrix.get("execution_run_id")) != str(expected_run_id)):
+            errors.append("matrix PASS requires an exact-source, same-Run-ID execution report")
+        else:
+            try:
+                report_file = _resolve_evidence_file(root, report_value, evidence_dir)
+                if not report_file.is_file() or sha256_file(report_file) != matrix.get("execution_report_sha256"):
+                    raise PipelineError("execution report is missing or its SHA-256 does not match")
+                execution_report = read_json(report_file)
+                summary = execution_report.get("matrix_summary", {})
+                report_authority = execution_report.get("matrix_authority", {})
+                state_mapping = execution_report.get("behavior_state_mapping", {})
+                state_authority = next((row for row in matrix.get("state_authority_refs", [])
+                                        if isinstance(row, dict) and row.get("resolved_state_ids")), {})
+                negative_cases = execution_report.get("negative_cases", [])
+                expected_count = matrix.get("expected_case_count")
+                if (execution_report.get("status") != "PASS_STRUCTURAL_MATRIX_VISUAL_REVIEW_PENDING"
+                        or execution_report.get("page_id") != manifest.get("page_id")
+                        or execution_report.get("source_sha") != expected_source_sha
+                        or execution_report.get("candidate_source_sha") != expected_source_sha
+                        or str(execution_report.get("github_run_id")) != str(expected_run_id)
+                        or report_authority.get("id") != matrix.get("source_authority_ref_id")
+                        or report_authority.get("path") != matrix.get("source_path")
+                        or report_authority.get("sha256") != matrix.get("source_sha256")
+                        or state_mapping.get("authority_ref_id") != state_authority.get("authority_ref_id")
+                        or state_mapping.get("path") != state_authority.get("path")
+                        or state_mapping.get("sha256") != state_authority.get("sha256")
+                        or state_mapping.get("declared_locator") != state_authority.get("declared_locator")
+                        or state_mapping.get("locator") != state_authority.get("locator")
+                        or state_mapping.get("resolution") != state_authority.get("resolution")
+                        or state_mapping.get("behavior_state_id") not in state_authority.get("resolved_state_ids", [])
+                        or len(negative_cases) != 8
+                        or any(not isinstance(row, dict) or row.get("result") != "EXPECTED_FAIL_CLOSED" for row in negative_cases)
+                        or summary.get("expected") != expected_count
+                        or summary.get("executed") != expected_count
+                        or summary.get("pass") != expected_count
+                        or summary.get("fail") != 0 or summary.get("not_run") != 0):
+                    raise PipelineError("execution report contents do not support matrix PASS")
+                if (execution_report.get("visual_review_status") != "USER_VISUAL_ACCEPTANCE_PENDING"
+                        or execution_report.get("user_acceptance_status") != "USER_VISUAL_ACCEPTANCE_PENDING"
+                        or execution_report.get("native_runtime_status") != "NOT_VERIFIED"):
+                    raise PipelineError("matrix report attempted to promote visual acceptance or Native runtime")
+            except (OSError, PipelineError, json.JSONDecodeError) as exc:
+                errors.append(f"matrix execution report cannot be verified: {exc}")
     checks = manifest.get("checks", {})
     browser = checks.get("browser_evidence", {})
     if checks.get("browser_geometry") != browser.get("status"):
@@ -541,6 +877,30 @@ def validate_manifest(root: Path, manifest: dict[str, Any], expected_source_sha:
                     evidence_path = _resolve_evidence_file(root, path_text, evidence_dir)
                     if not evidence_path.is_file() or sha256_file(evidence_path) != case.get("evidence_sha256"):
                         errors.append(f"matrix case {case.get('case_id')} evidence is missing or has the wrong hash")
+                    else:
+                        case_data = read_json(evidence_path)
+                        if (case_data.get("source_sha") != expected_source_sha
+                                or str(case_data.get("run_id")) != str(expected_run_id)
+                                or case_data.get("case_id") != case.get("case_id")
+                                or case_data.get("matrix_source_path") != matrix.get("source_path")
+                                or case_data.get("matrix_source_sha256") != matrix.get("source_sha256")
+                                or case_data.get("matrix_source_authority_ref_id") != matrix.get("source_authority_ref_id")
+                                or case_data.get("matrix_source_authority_ref_id") != matrix.get("source_authority_ref_id")
+                                or case_data.get("behavior_state_id") != case.get("state_id")
+                                or case_data.get("renderer_state_id") != case.get("renderer_state_id")):
+                            errors.append(f"matrix case {case.get('case_id')} content does not match its manifest identity/authority")
+                        screenshot_path = case_data.get("screenshot_path")
+                        if not isinstance(screenshot_path, str) or not screenshot_path:
+                            errors.append(f"matrix case {case.get('case_id')} is missing its rendered screenshot")
+                        else:
+                            screenshot_file = _resolve_evidence_file(root, screenshot_path, evidence_dir)
+                            if not screenshot_file.is_file() or sha256_file(screenshot_file) != case_data.get("screenshot_sha256"):
+                                errors.append(f"matrix case {case.get('case_id')} screenshot is missing or has the wrong hash")
+                    screenshot_path = case.get("screenshot_path")
+                    if isinstance(screenshot_path, str) and screenshot_path:
+                        screenshot_file = _resolve_evidence_file(root, screenshot_path, evidence_dir)
+                        if not screenshot_file.is_file() or sha256_file(screenshot_file) != case.get("screenshot_sha256"):
+                            errors.append(f"matrix case {case.get('case_id')} screenshot evidence is missing or has the wrong hash")
                 except (OSError, PipelineError):
                     errors.append(f"matrix case {case.get('case_id')} evidence path is unsafe")
     return errors
@@ -631,7 +991,7 @@ def validate_browser_report(root: Path, page_id: str, source_sha: str, run_id: s
 
 def run_validation(root: Path, page_id: str, source_sha: str, contract: str | None, profile: str | None,
                    output_dir: Path, publication_report: str | None, browser_report_path: str | None,
-                   require_evidence: bool) -> dict[str, Any]:
+                   require_evidence: bool, matrix_report_path: str | None = None) -> dict[str, Any]:
     head = current_sha(root)
     if not SHA1.fullmatch(source_sha) or source_sha != head:
         raise PipelineError(f"--source-sha must match current exact HEAD {head}; received {source_sha!r}")
@@ -678,12 +1038,15 @@ def run_validation(root: Path, page_id: str, source_sha: str, contract: str | No
         root, page_id, source_sha, os.environ.get("GITHUB_RUN_ID"), browser_report_path, output_dir
     )
     matrix = derive_matrix(root, envelope, profile_data)
-    matrix_validation_errors = matrix_errors(matrix)
-    if matrix_validation_errors:
-        matrix["status"] = "FAIL"
-        matrix["reason"] = "; ".join(matrix_validation_errors)
-
     run_id = os.environ.get("GITHUB_RUN_ID")
+    matrix_report_errors = import_structured_matrix_report(
+        root, page_id, source_sha, run_id, matrix_report_path, matrix, output_dir
+    ) if matrix_report_path else []
+    matrix_validation_errors = matrix_errors(matrix)
+    if matrix_validation_errors or matrix_report_errors:
+        matrix["status"] = "FAIL"
+        matrix["reason"] = "; ".join([*matrix_validation_errors, *matrix_report_errors])
+
     if not isinstance(run_id, str) or not run_id.isdigit():
         run_id = None
     repository = os.environ.get("GITHUB_REPOSITORY", "pan277942135/Yujian_App")
@@ -795,6 +1158,7 @@ def main() -> int:
     validate.add_argument("--source-sha", required=True)
     validate.add_argument("--publication-report", help="W2 report from the actual staged Pages bundle scan")
     validate.add_argument("--browser-report", help="report produced by verify-page-workspace")
+    validate.add_argument("--matrix-report", help="exact-SHA same-Run-ID page matrix report with DOM/screenshot evidence")
     validate.add_argument("--output-dir", type=Path, default=Path("/tmp/page-freeze-w4-evidence"))
     validate.add_argument("--evidence-name", help="optional output directory label; must be a safe filename stem")
     validate.add_argument("--require-evidence", action="store_true", help="fail unless same-Run-ID Pages evidence makes the manifest PASS")
@@ -821,7 +1185,8 @@ def main() -> int:
                 raise PipelineError("--evidence-name must contain only letters, digits, underscore, or hyphen")
             page_output = args.output_dir / f"{evidence_name}_Evidence"
             report = run_validation(args.root, args.page_id, args.source_sha, args.contract, args.profile,
-                                    page_output, args.publication_report, args.browser_report, args.require_evidence)
+                                    page_output, args.publication_report, args.browser_report, args.require_evidence,
+                                    args.matrix_report)
             print(json.dumps(report, ensure_ascii=False, indent=2))
             return 0
         if args.command == "verify-page-workspace":

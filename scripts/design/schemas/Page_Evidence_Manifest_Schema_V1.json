@@ -123,6 +123,29 @@
       "properties": {
         "status": { "enum": ["NOT_RUN", "PASS", "FAIL", "BLOCKED"] },
         "source_path": { "type": ["string", "null"] },
+        "source_sha256": { "oneOf": [{ "$ref": "#/$defs/sha256" }, { "type": "null" }] },
+        "source_authority_ref_id": { "type": ["string", "null"] },
+        "state_authority_refs": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["authority_ref_id", "path", "sha256", "declared_locator", "locator", "resolution", "resolved_state_ids"],
+            "properties": {
+              "authority_ref_id": { "type": "string", "minLength": 1 },
+              "path": { "type": ["string", "null"] },
+              "sha256": { "oneOf": [{ "$ref": "#/$defs/sha256" }, { "type": "null" }] },
+              "declared_locator": { "type": ["string", "null"] },
+              "locator": { "type": ["string", "null"] },
+              "resolution": { "enum": ["EXACT_LOCATOR", "PAGE_SPECIFIC_EXPLICIT_STATE_MAPPING", "UNRESOLVED"] },
+              "resolved_state_ids": { "type": "array", "items": { "type": "string", "minLength": 1 } }
+            }
+          }
+        },
+        "execution_report_path": { "type": ["string", "null"] },
+        "execution_report_sha256": { "oneOf": [{ "$ref": "#/$defs/sha256" }, { "type": "null" }] },
+        "execution_source_sha": { "oneOf": [{ "$ref": "#/$defs/sha1" }, { "type": "null" }] },
+        "execution_run_id": { "type": ["string", "null"], "pattern": "^[0-9]+$" },
         "expected_case_count": { "type": "integer", "minimum": 0 },
         "recorded_case_count": { "type": "integer", "minimum": 0 },
         "cases": {
@@ -139,6 +162,12 @@
               "failure_reason": { "type": ["string", "null"] },
               "evidence_path": { "type": ["string", "null"] },
               "evidence_sha256": { "oneOf": [{ "$ref": "#/$defs/sha256" }, { "type": "null" }] },
+              "renderer_state_id": { "type": ["string", "null"] },
+              "screenshot_path": { "type": ["string", "null"] },
+              "screenshot_sha256": { "oneOf": [{ "$ref": "#/$defs/sha256" }, { "type": "null" }] },
+              "matrix_source_path": { "type": ["string", "null"] },
+              "matrix_source_sha256": { "oneOf": [{ "$ref": "#/$defs/sha256" }, { "type": "null" }] },
+              "matrix_source_authority_ref_id": { "type": ["string", "null"] },
               "source_sha": { "oneOf": [{ "$ref": "#/$defs/sha1" }, { "type": "null" }] },
               "run_id": { "type": ["string", "null"], "pattern": "^[0-9]+$" }
             }

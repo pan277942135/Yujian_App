@@ -27,6 +27,53 @@ function parseArgs(argv) {
 
 function assert(condition, message) { if (!condition) throw new Error(message); }
 async function sha256File(path) { return createHash("sha256").update(await readFile(path)).digest("hex"); }
+async function resolveBehaviorState(root) {
+  const envelopePath=resolve(root,"design/system_v3/07_Responsive_System/page_contract_examples/home_empty_v2.envelope.json");
+  const envelope=JSON.parse(await readFile(envelopePath,"utf8"));
+  const refs=envelope.state_scope?.included_state_refs||[];
+  assert(envelope.page?.page_id==="home_empty_v2"&&refs.length===1,"W1 state scope must identify exactly one Empty Home behavior state authority");
+  const stateRef=refs[0];
+  const authority=(envelope.authority_refs||[]).find(row=>row.authority_ref_id===stateRef.authority_ref_id);
+  assert(authority?.path&&authority?.sha256,"behavior-state authority must have an explicit path and SHA-256");
+  const bytes=await readFile(resolve(root,authority.path));
+  const digest=createHash("sha256").update(bytes).digest("hex");
+  assert(digest===authority.sha256,"behavior-state authority SHA-256 differs from the W1 Envelope");
+  const declaredLocator=stateRef.locator;
+  assert(typeof declaredLocator==="string"&&declaredLocator.startsWith("heading:"),"behavior-state locator must reference a named authority heading");
+  const lines=bytes.toString("utf8").split(/\r?\n/);
+  const sectionFor=heading=>{
+    const matches=[];
+    lines.forEach((line,index)=>{
+      const match=line.match(/^(#{1,6})[ \t]+(.+?)[ \t]*#*[ \t]*$/);
+      if(match&&match[2].trim()===heading) matches.push({index,level:match[1].length});
+    });
+    if(matches.length!==1) return null;
+    const {index,level}=matches[0];
+    let end=lines.findIndex((line,lineIndex)=>lineIndex>index&&new RegExp(`^#{1,${level}}[ \t]+`).test(line));
+    if(end<0) end=lines.length;
+    return lines.slice(index+1,end).join("\n");
+  };
+  const heading=declaredLocator.slice("heading:".length).trim();
+  let resolvedLocator=declaredLocator;
+  let resolution="EXACT_LOCATOR";
+  let section=sectionFor(heading);
+  if(!section&&envelope.page.page_id==="home_empty_v2"&&stateRef.authority_ref_id==="empty-home-behavior"&&
+    authority.path==="design/pages/home/empty_home/spec/Empty_Home_Feature_Spec_V2.md"&&declaredLocator==="heading:empty state"){
+    const candidate=sectionFor("Scope");
+    const selected=[...(candidate||"").matchAll(/\bselects[ \t]+`?([A-Z][A-Z0-9_]*)`?/g)].map(match=>match[1]);
+    if(candidate&&/`?fishRecords\.isEmpty\(\)`?\s+selects\s+`?EMPTY`?/.test(candidate)&&selected.length===1&&selected[0]==="EMPTY"){
+      section=candidate;
+      resolvedLocator="heading:Scope";
+      resolution="PAGE_SPECIFIC_EXPLICIT_STATE_MAPPING";
+    }
+  }
+  assert(section,`behavior-state authority heading not found or not eligible for explicit page mapping: ${declaredLocator}`);
+  const stateIds=[...section.matchAll(/\bselects[ \t]+`?([A-Z][A-Z0-9_]*)`?/g)].map(match=>match[1]);
+  const unique=[...new Set(stateIds)];
+  assert(unique.length===1,"behavior-state authority must define exactly one explicit selected state in its locator section");
+  return {authority_ref_id:authority.authority_ref_id,path:authority.path,sha256:digest,
+    declared_locator:declaredLocator,locator:resolvedLocator,resolution,behavior_state_id:unique[0]};
+}
 async function pngDimensions(path) {
   const bytes = await readFile(path);
   assert(bytes.length >= 24 && bytes.subarray(1, 4).toString("ascii") === "PNG", `EVIDENCE_SCREENSHOT_NOT_PNG: ${path}`);
@@ -154,7 +201,7 @@ async function main() {
     site_build_sha:expectedSha,deploy_sha:process.env.DEPLOY_SHA||"NOT_RUN",github_run_id:process.env.GITHUB_RUN_ID||null,route:ROUTE,
     native_runtime_status:"NOT_VERIFIED",visual_review_status:"USER_VISUAL_ACCEPTANCE_PENDING",user_acceptance_status:"USER_VISUAL_ACCEPTANCE_PENDING",
     page_profile_status:"DRAFT_SCHEMA_VALID_ONLY",mapping_sha256:null,w2_binding_sha256:null,resource_statuses:[],authority_gaps:[],matrix:[],negative_cases:[],
-    differences:[],
+    differences:[],behavior_state_mapping:null,
     geometry_result:"NOT_RUN",resource_result:"NOT_RUN",responsive_result:"NOT_RUN",dom_report:null,screenshot_reference:null,screenshot_rendered:null,
     overlay_reference:null,difference_reference:null,browser_url:null,
     browser_screenshot_pixel_scale:3,browser_screenshot_scale_disclosure:"Chromium DPR 3 element screenshot; up to 1 CSS px at the capture edge may be added by device-pixel rounding and the actual PNG size is recorded. DOM geometry remains CSS px and is not Native density."};
@@ -188,7 +235,7 @@ async function main() {
       const resources=window.PageWorkspaceAdapters.active.getResourceDiagnostics();
       const imageLoads=[...board.querySelectorAll("img")].map(image=>({id:image.id||null,complete:image.complete,natural_width:image.naturalWidth,natural_height:image.naturalHeight}));
       const brokenImages=imageLoads.filter(image=>!image.complete||image.natural_width<=0||image.natural_height<=0);
-      return {pageId:root.dataset.pageId,sourceSha:root.dataset.sourceSha,profileStatus:page.dataset.profileStatus,workspaceKind:root.dataset.workspaceKind,
+      return {pageId:root.dataset.pageId,sourceSha:root.dataset.sourceSha,profileStatus:page.dataset.profileStatus,workspaceKind:root.dataset.workspaceKind,rendererStateId:root.dataset.viewState,
         contractId:authority.envelope.contract_id,contractVersion:authority.envelope.contract_version,contractSha:authority.envelope_sha256,
         profileId:authority.profile.profile_id,profileSha:authority.profile_sha256,
         viewportAuthority:{id:viewportAuthority.authority_ref_id,path:viewportAuthority.path,sha256:viewportAuthority.sha256},
@@ -217,11 +264,17 @@ async function main() {
     baseEvidence.formal_matrix_definition={viewports:preflight.formalViewports,font_scales:preflight.fontScales,
       source_path:preflight.viewportAuthority.path,source_sha256:preflight.viewportAuthority.sha256};
     const formalCases=preflight.formalViewports.flatMap(({width,height})=>preflight.fontScales.map(fontScale=>({width,height,fontScale})));
+    const behaviorState=await resolveBehaviorState(args.root);
+    assert(behaviorState.behavior_state_id==="EMPTY","the declared W5 behavior state must resolve to the EMPTY state selected by the approved behavior authority");
+    assert(typeof preflight.rendererStateId==="string"&&preflight.rendererStateId.length>0,"the actual structured renderer must report its current renderer state");
+    baseEvidence.behavior_state_mapping={...behaviorState,renderer_state_id:preflight.rendererStateId};
     baseEvidence.matrix=formalCases.map(({width,height,fontScale})=>({
       case_id:`EMPTY_HOME_${width}x${height}_FONT_${fontScale}`,
       page_id:"home_empty_v2",
       viewport:{width,height},
       font_scale:fontScale,
+      state_id:behaviorState.behavior_state_id,
+      renderer_state_id:preflight.rendererStateId,
       source_sha:expectedSha,
       run_id:runId,
       matrix_source_path:preflight.viewportAuthority.path,
@@ -330,7 +383,8 @@ async function main() {
       Object.assign(activeMatrixRow,caseEvidence,{
         case_id:activeMatrixRow.case_id,page_id:"home_empty_v2",source_sha:expectedSha,run_id:runId,
         matrix_source_path:preflight.viewportAuthority.path,matrix_source_sha256:preflight.viewportAuthority.sha256,
-        state_id:"EMPTY_DEFAULT",
+        state_id:behaviorState.behavior_state_id,
+        renderer_state_id:preflight.rendererStateId,
         browser_url:args.url?page.url():"LOCAL_SITE_BUILD_ONLY_NOT_DEPLOYED",
         browser_viewport_css_px:await page.evaluate(()=>({width:window.innerWidth,height:window.innerHeight,device_scale_factor:window.devicePixelRatio})),
         viewport_width:width,viewport_height:height,font_scale:fontScale,
