@@ -157,7 +157,7 @@ async function main() {
       const liveBoard=adapterRoot.querySelector("[data-workspace-artboard]");
       need(liveBoard===board&&board.isConnected,`ACTIVE_WORKSPACE_ARTBOARD_CHANGED: connected=${Boolean(board.isConnected)} active_board=${Boolean(liveBoard)} root_count=${document.querySelectorAll("[data-page-workspace-root]").length}`);
       const rows=window.PageWorkspaceAdapters.measureElements();
-      const resources=window.PageWorkspaceAdapters.getResourceDiagnostics();
+      const resources=window.PageWorkspaceAdapters.active.getResourceDiagnostics();
       const imageLoads=[...board.querySelectorAll("img")].map(image=>({id:image.id||null,complete:image.complete,natural_width:image.naturalWidth,natural_height:image.naturalHeight}));
       const brokenImages=imageLoads.filter(image=>!image.complete||image.natural_width<=0||image.natural_height<=0);
       return {pageId:root.dataset.pageId,sourceSha:root.dataset.sourceSha,profileStatus:page.dataset.profileStatus,workspaceKind:root.dataset.workspaceKind,
