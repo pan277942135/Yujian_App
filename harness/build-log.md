@@ -32,3 +32,12 @@
 - Searched registered and repository image assets for approved independent Hero/Peek originals; none were established. The workspace continues to show explicit blocked states and does not crop frozen page screenshots into photos.
 - Added measured DOM rectangle evidence and multi-size screenshot comparison outputs for M01–M04. M05 remains a width-only boundary with no assumed height. Comparison output is diagnostic and never declares visual parity.
 - Local checks: JavaScript syntax, `tests/nh01_structured_workspace.test.cjs`, navigation verification, frozen hi-fi integrity, Design Manager registry validation, and 320×480 comparator smoke all passed. Candidate Chromium and visual parity remain unverified pending exact-head workflow evidence.
+
+
+## 2026-10-28 — W5 state recovery after Main-first authority promotion
+
+- Main-first authority PR #242 merged successfully as `80c55961059b95fd8dd52eea4b52a37bd91705e8` after all known exact-HEAD checks passed. Main Pages deployment for this SHA was still queued/in progress at checkpoint creation; live production status is not inferred.
+- Rechecked the five promoted canonical files on `work/w5-empty-home-pilot-v1`; their Git blob SHAs match current Main exactly: Pages workflow, root-integrity verifier, and Login/Empty Home/Normal Home resource bindings.
+- Initialized branch-local `WORK_EXECUTION_STATE.json` at commit `f2465479f293d89ff49384ad78b81ddc2a90b2d7` and `PROJECT_MASTER_STATE.yaml` at commit `35fab62cdc4eff140a36b995f56381983934d069`. The execution baseline remains product-code SHA `dae5e54c761cb424eee4144f4009436a12e2cb80`; the two state commits do not promote code or runtime evidence.
+- Retained W4 exact-HEAD failure Run `40657928278` as FAIL and W5 matrix Run `40657928162` as historical PASS for the same old candidate SHA. The prior local Chromium fixture result remains `BLOCKED_INFRA`, not PASS.
+- Next: run exact branch product-work Admission with state files and this checkpoint present. If and only if Admission is PASS, apply the preserved W4 workspace-scope patch, run the real Chromium fixtures, rerun W4/W5 on the resulting exact SHA, and validate the isolated PR preview while keeping PR #234 Draft/Open/Unmerged and visual acceptance pending.
