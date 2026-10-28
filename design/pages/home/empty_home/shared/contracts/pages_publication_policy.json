@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "workflow_path": ".github/workflows/design-manager-pages.yml",
-  "workflow_sha256": "3c7b7ee6e2aa9e405112ceb7603def05e54de8555f6f807673b01e397ada8d78",
+  "workflow_sha256": "61e20652ba490b0de4b4f5273aeebd9ea1d5fed2b4f37fd66ef76d51891d599f",
   "public_scope_marker": "cp -R design _site/design",
   "verification_rule": "The W5 renderer retrieves the workflow at the exact source SHA, verifies this pinned SHA-256, and confirms the scope marker before loading public resources."
 }
