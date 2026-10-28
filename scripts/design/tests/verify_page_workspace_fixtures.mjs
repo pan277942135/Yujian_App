@@ -10,12 +10,8 @@ const pageId = "home_empty_v2";
 const verifier = resolve("scripts/design/verify_page_workspace.mjs");
 
 function shellHtml({ page = pageId, source = sourceSha, node = true, throwing = false, kind = "structured-page-adapter", disabled = false, blockedAuthority = false, viewState = "READY", errorText = null, badResource = false } = {}) {
-  const treeState = blockedAuthority ? "BLOCKED_AUTHORITY_GAP" : "READY";
-  const authorityStatus = blockedAuthority ? "BLOCKED_AUTHORITY_GAP" : "CURRENT";
-  const tree = `<button data-workspace-tree-node data-node-id="empty-scene" data-node-state="${treeState}" data-node-authority-status="${authorityStatus}" data-node-visible="${blockedAuthority ? "false" : "true"}" data-node-measurable="${blockedAuthority ? "false" : "true"}" data-node-selectable="${blockedAuthority || disabled ? "false" : "true"}" ${disabled || blockedAuthority ? "disabled" : ""}>Empty scene</button>`;
-  const rendered = node ? blockedAuthority
-    ? `<span hidden aria-hidden="true" data-workspace-rendered-node="empty-scene"></span>`
-    : `<div data-workspace-rendered-node="empty-scene" style="width:120px;height:80px">scene</div>` : "";
+  const tree = `<button data-workspace-tree-node data-node-id="empty-scene" data-node-state="READY" data-node-authority-status="CURRENT" data-node-visible="true" data-node-measurable="true" data-node-selectable="${disabled ? "false" : "true"}" ${disabled ? "disabled" : ""}>Empty scene</button>${blockedAuthority ? `<button data-workspace-tree-node data-node-id="blocked-brand" data-node-state="BLOCKED_AUTHORITY_GAP" data-node-authority-status="BLOCKED_AUTHORITY_GAP" data-node-visible="false" data-node-measurable="false" data-node-selectable="false" disabled>Brand · BLOCKED_AUTHORITY_GAP</button>` : ""}`;
+  const rendered = node ? `<div data-workspace-rendered-node="empty-scene" style="width:120px;height:80px">scene</div>${blockedAuthority ? `<span id="blocked-brand" hidden aria-hidden="true" data-workspace-rendered-node="blocked-brand"></span>` : ""}` : "";
   return `<!doctype html><html><head><meta charset="utf-8"></head><body>
     <main data-page-workspace-root data-page-id="${page}" data-source-sha="${source}" data-workspace-kind="${kind}" data-view-state="${viewState}">
       ${tree}${rendered}<aside data-workspace-inspector data-selected-node-id="">Inspector</aside>
@@ -101,9 +97,12 @@ async function main() {
         }
       }
       if (fixture === "blocked-authority-node") {
-        if (report.result !== "PASS" || report.measured_node_count !== 0 || report.blocked_authority_nodes?.length !== 1
+        if (report.result !== "PASS" || report.measured_node_count !== 1 || report.blocked_authority_nodes?.length !== 1
           || report.blocked_authority_nodes[0].state !== "BLOCKED_AUTHORITY_GAP"
-          || report.page_acceptance !== "NOT_VERIFIED") {
+          || report.blocked_authority_nodes[0].nodeId !== "blocked-brand"
+          || report.page_acceptance !== "NOT_VERIFIED"
+          || !(await stat(join(outputDir, "workspace.png"))).size
+          || !(await stat(join(outputDir, "workspace-dom.json"))).size) {
           throw new Error(`explicit hidden authority gap must remain recorded without becoming visual acceptance; report=${JSON.stringify(report)}`);
         }
       }
