@@ -14,7 +14,7 @@ state_control:
   current_head: "5ba86fd8d1142d4708d1b8f9e6ddc81cbc96ccf6"
   current_main_head_sha: "632cada103bf022adeb873bd6e66464555b509e4"
   state_status: "BLOCKED"
-  updated_at: "2026-10-28T10:00:47.687Z"
+  updated_at: "2026-10-28T10:01:56.711Z"
 source_of_truth:
   current_work_state: "WORK_EXECUTION_STATE.json"
   canonical_control_plane: "CONTROL_PLANE_REGISTRY.yaml"
@@ -153,9 +153,9 @@ blockers:
   - id: "W5-BLOCKER-MAIN-PAGES-SHA"
     severity: "P1"
     area: "Production Pages"
-    condition: "Main SHA 632cada103bf022adeb873bd6e66464555b509e4 has a cancelled Design Manager Pages run 40666041684; the PR candidate workflow has resolved a live-root-matched artifact and verified isolated preview composition, but its final real DOM matrix and deployment are still in progress."
+    condition: "Main SHA 632cada103bf022adeb873bd6e66464555b509e4 has a cancelled Design Manager Pages run 40666041684; the isolated-preview workflow has independently verified the existing production root under the shared deployment lock and matched it to its artifact, but the latest Main SHA is not confirmed deployed."
     affected_gate: "Live root SHA and isolated preview integrity"
-    unblock_condition: "Wait for the candidate Pages build's real DOM matrix, artifact upload, and deploy-preview job; confirm deployed preview SHA and URL. Do not infer deployment from composition success."
+    unblock_condition: "Wait for the candidate Pages build's real DOM matrix, artifact upload, deploy-preview job, and live candidate browser verification; confirm deployed preview SHA and URL. Do not infer deployment from composition success."
     status: "OPEN"
 protected_invariants:
   evidence_integrity:
