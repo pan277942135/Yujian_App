@@ -375,7 +375,24 @@ async function main() {
     await page.evaluate(async () => window.LoginV21Workspace.renderPreview({ width: 864, height: 1536, unit: "css_px" }, 1, "DEFAULT"));
     await page.evaluate(() => document.fonts.ready);
     const referenceCanvasPath = path.join(screenshotDir, "login-v2_1-structured-864x1536.png");
-    await page.locator("#login-LoginPageRoot").screenshot({ path: referenceCanvasPath, animations: "disabled" });
+    const comparisonCanvas = page.locator("#login-LoginPageRoot");
+    await comparisonCanvas.scrollIntoViewIfNeeded();
+    const comparisonBounds = await comparisonCanvas.boundingBox();
+    if (!comparisonBounds || comparisonBounds.width !== 864 || comparisonBounds.height !== 1536) {
+      throw new Error(`LOGIN_COMPARISON_CANVAS_BOUNDS_INVALID ${JSON.stringify(comparisonBounds)}`);
+    }
+    // Capture the exact measured artboard rectangle. Locator screenshots round
+    // fractional document coordinates outward, which can add a spurious pixel
+    // even when the rendered canvas is exactly 864x1536 CSS px. This clip keeps
+    // the canvas at native size; the comparator still refuses all resizing.
+    await page.screenshot({ path: referenceCanvasPath, clip: comparisonBounds, animations: "disabled" });
+    const comparisonCapture = {
+      method: "browser screenshot clipped to measured LoginPageRoot CSS bounds",
+      css_bounds: comparisonBounds,
+      output_canvas_css_px: [864, 1536],
+      resizing: "NONE",
+      visual_review_status: "MEASUREMENT_ONLY_NOT_VISUAL_PASS"
+    };
     await page.evaluate(() => window.LoginV21Workspace.selectLayer("LoginPageRoot"));
     const finalDomPath = path.join(evidenceDir, "login-v2_1-structured-dom-864x1536.json");
     const finalDom = await page.evaluate(() => ({
@@ -449,7 +466,7 @@ async function main() {
       upstream_validation_evidence: upstreamEvidence,
       browser_matrix: { result: "PASS_MEASUREMENT_ONLY", expected_case_count: 12, recorded_case_count: matrixRows.length },
       browser_report: { path: "login-candidate-browser-report.json", sha256: sha256Bytes(await fs.readFile(path.join(evidenceDir, "login-candidate-browser-report.json"))) },
-      screenshot: { path: path.relative(evidenceDir, referenceCanvasPath).replaceAll(path.sep, "/"), sha256: sha256Bytes(await fs.readFile(referenceCanvasPath)) },
+      screenshot: { path: path.relative(evidenceDir, referenceCanvasPath).replaceAll(path.sep, "/"), sha256: sha256Bytes(await fs.readFile(referenceCanvasPath)), capture: comparisonCapture },
       dom: { path: path.basename(finalDomPath), sha256: sha256Bytes(await fs.readFile(finalDomPath)) },
       visual_comparison: "MEASUREMENT_ONLY_NOT_VISUAL_PASS", public_preview: "BLOCKED_BY_W5",
       native_runtime: "NOT_VERIFIED", user_acceptance: "USER_VISUAL_ACCEPTANCE_PENDING", page_acceptance: "NOT_VERIFIED", generated_at: now()
