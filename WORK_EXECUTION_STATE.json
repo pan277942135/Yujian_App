@@ -1,0 +1,58 @@
+{
+  "$schema": "./harness/WORK_EXECUTION_STATE_SCHEMA_V1.json",
+  "schema_version": "1.0",
+  "work_id": "YUJIAN_PAGE_FREEZE_PIPELINE_W5_W4_EVIDENCE_AND_ISOLATED_PREVIEW_RECOVERY_V3",
+  "repository": "pan277942135/Yujian_App",
+  "branch": "work/w5-empty-home-pilot-v1",
+  "control_plane_revision": "80c55961059b95fd8dd52eea4b52a37bd91705e8",
+  "base_branch": "main",
+  "base_sha": "80c55961059b95fd8dd52eea4b52a37bd91705e8",
+  "phase": "P3",
+  "task_id": "YUJIAN_PAGE_FREEZE_PIPELINE_W5_EMPTY_HOME_PILOT_V1",
+  "stage": "G0_STATE_RECOVERY_AND_PRODUCT_ADMISSION",
+  "status": "BLOCKED",
+  "source_sha": "dae5e54c761cb424eee4144f4009436a12e2cb80",
+  "checkpoint_updated_at": "2026-10-28T09:41:12.709Z",
+  "next_action": "Run python scripts/validate_control_plane_admission.py on this exact product branch HEAD. Only after PRODUCT_WORK Admission passes, apply the preserved W4 workspace-scope repair and execute the real Chromium fixtures; then rerun W4 Evidence, W5 matrix, and isolated preview on the new exact SHA.",
+  "dependencies": [
+    "YUJIAN_PAGE_FREEZE_PIPELINE_W3_DESIGN_MANAGER_ADAPTER_V1",
+    "YUJIAN_PAGE_FREEZE_PIPELINE_W4_TEST_EVIDENCE_V1"
+  ],
+  "blockers": [
+    "W4 exact-HEAD evidence run 40657928278 failed because the workspace tree selected a disabled page node; the repair patch is not yet applied.",
+    "The preserved W4 workspace-scope repair must be executed with real Playwright Chromium; the earlier local fixture result was BLOCKED_INFRA, not PASS.",
+    "Main Pages workflow for merge SHA 80c55961059b95fd8dd52eea4b52a37bd91705e8 is still being verified; do not treat a queued/in-progress deployment as a live production success."
+  ],
+  "evidence": {
+    "source_sha": "dae5e54c761cb424eee4144f4009436a12e2cb80",
+    "w5_matrix": {
+      "run_id": 40657928162,
+      "status": "PASS",
+      "url": "https://github.com/pan277942135/Yujian_App/actions/runs/40657928162",
+      "note": "Historical exact-HEAD evidence only; does not close W4."
+    },
+    "w4_evidence": {
+      "run_id": 40657928278,
+      "status": "FAIL",
+      "url": "https://github.com/pan277942135/Yujian_App/actions/runs/40657928278",
+      "note": "Failure retained; not relabelled as PASS."
+    },
+    "static_pr_admission": {
+      "run_id": 40657928210,
+      "status": "PASS_STATIC_ONLY",
+      "url": "https://github.com/pan277942135/Yujian_App/actions/runs/40657928210",
+      "note": "pull_request-to-main path does not run product branch sync/state validation."
+    },
+    "canonical_main_promotion": {
+      "pr": 242,
+      "merge_sha": "80c55961059b95fd8dd52eea4b52a37bd91705e8",
+      "status": "MERGED",
+      "url": "https://github.com/pan277942135/Yujian_App/pull/242"
+    },
+    "current_main_pages": {
+      "run_id": 40665646629,
+      "status": "IN_PROGRESS_AT_CHECKPOINT",
+      "url": "https://github.com/pan277942135/Yujian_App/actions/runs/40665646629"
+    }
+  }
+}
