@@ -1,20 +1,20 @@
 schema_version: "1.0"
-state_id: "YUJIAN_W5_RECOVERY_2026-10-28"
+state_id: "YUJIAN_W4_W5_MAIN_PAGES_W6_ANDROID_RUNTIME_CLOSURE_V1_2026-10-29"
 project:
   name: "渔见 AI"
   repository: "pan277942135/Yujian_App"
-  scope: "Page Freeze Pipeline W5 Empty Home V2.2; product-work Admission, W4 evidence repair, Chromium verification, and isolated preview."
+  scope: "W4/W5/W2/Main Pages/W6 closure and separate NH01, Effect 01, and AI Studio perimeter Android runtime acceptance; active W5 recovery is PR #234."
   state_classification: "RECOVERY_SNAPSHOT_NOT_PRODUCT_ACCEPTANCE"
 state_control:
   current_branch: "work-state/w5-empty-home-pilot-v1"
   current_pr: null
   related_pr: 234
-  base_sha: "632cada103bf022adeb873bd6e66464555b509e4"
-  execution_baseline_sha: "5ba86fd8d1142d4708d1b8f9e6ddc81cbc96ccf6"
-  current_head: "5ba86fd8d1142d4708d1b8f9e6ddc81cbc96ccf6"
-  current_main_head_sha: "632cada103bf022adeb873bd6e66464555b509e4"
+  base_sha: "2fab34d20ccd7f2d6f9a0d22dd65cac5d5bd5e98"
+  execution_baseline_sha: "13e25bbf9cb9f29cb696d8fcc5d6bb8731d501ec"
+  current_head: "13e25bbf9cb9f29cb696d8fcc5d6bb8731d501ec"
+  current_main_head_sha: "2fab34d20ccd7f2d6f9a0d22dd65cac5d5bd5e98"
   state_status: "BLOCKED"
-  updated_at: "2026-10-28T14:00:17.715Z"
+  updated_at: "2026-10-29T07:39:23+08:00"
 source_of_truth:
   current_work_state: "WORK_EXECUTION_STATE.json"
   canonical_control_plane: "CONTROL_PLANE_REGISTRY.yaml"
@@ -25,18 +25,18 @@ source_of_truth:
 repositories:
   Yujian_App:
     branch: "work-state/w5-empty-home-pilot-v1"
-    execution_baseline_sha: "5ba86fd8d1142d4708d1b8f9e6ddc81cbc96ccf6"
-    current_main_head_sha: "632cada103bf022adeb873bd6e66464555b509e4"
+    execution_baseline_sha: "13e25bbf9cb9f29cb696d8fcc5d6bb8731d501ec"
+    current_main_head_sha: "2fab34d20ccd7f2d6f9a0d22dd65cac5d5bd5e98"
     control_plane_sync:
       status: "MERGE_SYNCED_TO_CURRENT_MAIN"
-      main_sync_commit: "5ba86fd8d1142d4708d1b8f9e6ddc81cbc96ccf6"
-      synced_main_sha: "632cada103bf022adeb873bd6e66464555b509e4"
+      main_sync_commit: "13e25bbf9cb9f29cb696d8fcc5d6bb8731d501ec"
+      synced_main_sha: "2fab34d20ccd7f2d6f9a0d22dd65cac5d5bd5e98"
 pull_requests:
   PR234:
     number: 234
     branch: "work/w5-empty-home-pilot-v1"
     base_sha: "632cada103bf022adeb873bd6e66464555b509e4"
-    head_sha: "5ba86fd8d1142d4708d1b8f9e6ddc81cbc96ccf6"
+    head_sha: "13e25bbf9cb9f29cb696d8fcc5d6bb8731d501ec"
     status: "DRAFT_OPEN_UNMERGED"
     task_id: "YUJIAN_PAGE_FREEZE_PIPELINE_W5_W4_EVIDENCE_AND_ISOLATED_PREVIEW_RECOVERY_V3"
   PR242:
@@ -102,9 +102,9 @@ recognition_main_journey:
   note: "Journey identifiers are retained in canonical order; this checkpoint does not alter journey semantics."
 runtime_gates:
   exact_head:
-    sha: "5ba86fd8d1142d4708d1b8f9e6ddc81cbc96ccf6"
+    sha: "13e25bbf9cb9f29cb696d8fcc5d6bb8731d501ec"
     status: "NOT_VERIFIED"
-    note: "Current PR #234 code candidate; state-only commits on the Work branch do not promote browser or runtime evidence."
+    note: "Current PR #234 synchronized candidate; prior W4/W5/preview evidence belongs to 5ba86fd and does not verify this exact SHA."
   page_evidence:
     w4:
       status: "FAIL"
@@ -127,10 +127,12 @@ runtime_gates:
     status: "NOT_RUN"
     note: "PR Admission run 40667570171 is CANONICAL_MAIN_PROMOTION only."
   latest_main_pages:
-    status: "CANCELLED"
-    run_id: 40666041684
-    source_sha: "632cada103bf022adeb873bd6e66464555b509e4"
+    status: "NOT_RUN"
+    source_sha: "2fab34d20ccd7f2d6f9a0d22dd65cac5d5bd5e98"
+    previous_cancelled_run_id: 40666041684
+    previous_cancelled_run_sha: "632cada103bf022adeb873bd6e66464555b509e4"
     live_production_root_sha: "80c55961059b95fd8dd52eea4b52a37bd91705e8"
+    note: "No successful formal Main Pages run has verified current Main SHA 2fab34d; manual dispatch is pending."
   historical_w4_failure:
     status: "FAIL"
     run_id: 40657928278
@@ -145,13 +147,13 @@ apk_and_evidence:
   apk_sha256: null
   note: "Android runtime and APK acceptance are outside this W5 recovery checkpoint."
 current_work:
-  id: "YUJIAN_PAGE_FREEZE_PIPELINE_W5_W4_EVIDENCE_AND_ISOLATED_PREVIEW_RECOVERY_V3"
+  id: "YUJIAN_W4_W5_MAIN_PAGES_W6_ANDROID_RUNTIME_CLOSURE_V1"
   related_pr: 234
-  exact_head: "5ba86fd8d1142d4708d1b8f9e6ddc81cbc96ccf6"
+  exact_head: "13e25bbf9cb9f29cb696d8fcc5d6bb8731d501ec"
   phase: "P3"
   task_id: "YUJIAN_PAGE_FREEZE_PIPELINE_W5_EMPTY_HOME_PILOT_V1"
   status: "BLOCKED"
-  next_action: "Run product-work Admission by workflow_dispatch on work-state/w5-empty-home-pilot-v1; only after PASS may the W4 verifier repair proceed."
+  next_action: "Run PRODUCT_WORK Admission on the isolated state branch against exact PR #234 candidate 13e25bbf9cb9f29cb696d8fcc5d6bb8731d501ec; after PASS, run the W4 failure guard and repair disabled-page-node selection without weakening assertions."
 blockers:
   - id: "W5-BLOCKER-PRODUCT-WORK-ADMISSION"
     severity: "P0"
@@ -170,9 +172,9 @@ blockers:
   - id: "W5-BLOCKER-MAIN-PAGES-SHA"
     severity: "P1"
     area: "Production Pages"
-    condition: "Main SHA 632cada103bf022adeb873bd6e66464555b509e4 has a cancelled Design Manager Pages run 40666041684. Isolated preview Run 40667570170 is PASS, but its verified production root remains 80c55961059b95fd8dd52eea4b52a37bd91705e8; latest Main is not deployed."
+    condition: "Current Main SHA 2fab34d20ccd7f2d6f9a0d22dd65cac5d5bd5e98 has no successful formal Design Manager Pages run. Older SHA 632cada run 40666041684 was cancelled; production root was last verified at 80c55961059b95fd8dd52eea4b52a37bd91705e8."
     affected_gate: "Live root SHA and isolated preview integrity"
-    unblock_condition: "Rerun Main Pages for SHA 632cada103bf022adeb873bd6e66464555b509e4 and verify the live root build SHA; the PR #234 isolated preview is already deployed and verified at https://pan277942135.github.io/Yujian_App/previews/pr-234/."
+    unblock_condition: "Run Main Pages for exact current SHA 2fab34d20ccd7f2d6f9a0d22dd65cac5d5bd5e98 and verify the live root build SHA; independently preserve the PR #234 isolated preview deployment."
     status: "OPEN"
 protected_invariants:
   evidence_integrity:
@@ -203,7 +205,7 @@ completion_rules:
   - "User visual acceptance remains pending until the product owner confirms it."
 state_update:
   updated_at: "2026-10-28T14:00:17.715Z"
-  reason: "Isolate Work state from the canonical promotion PR tree while retaining the exact PR candidate SHA and current Main revision."
+  reason: "Non-force merged PR #234 candidate 13e25bbf9cb9f29cb696d8fcc5d6bb8731d501ec (synchronized with current Main 2fab34d20ccd7f2d6f9a0d22dd65cac5d5bd5e98) into the isolated Work-state branch; aligned state provenance to the exact candidate SHA."
   protocol: "harness/STATE_UPDATE_PROTOCOL.md"
 agent_recovery:
   resume_order:
