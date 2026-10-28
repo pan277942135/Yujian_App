@@ -11,9 +11,9 @@
   "task_id": "YUJIAN_ANDROID_FISH_CATCH_EFFECT01_UPWARD_SCAN_SHAKE_V1",
   "stage": "E1_IMPLEMENTATION",
   "status": "RUNNING",
-  "source_sha": "5762d31d428c66e8e0989321c5312d3b9046b4ad",
-  "checkpoint_updated_at": "2026-10-28T06:41:06.445Z",
-  "next_action": "Run exact-head Work-mode Admission, then complete Android unit tests, Debug APK build, lint, runtime availability check and APK provenance.",
+  "source_sha": "49fa33b96a814b5146109151838c5146dcdf4f63",
+  "checkpoint_updated_at": "2026-10-28T06:44:17.055Z",
+  "next_action": "Run exact-head Work-mode Admission and Android CI on the corrected shockwave boundary, then complete APK build, lint and runtime availability checks.",
   "dependencies": [
     "P3-05",
     "P5-02"
@@ -30,9 +30,17 @@
     "source_provenance": "Original Effect 01 renderer NOT_FOUND at baseline; Android-native equivalent.",
     "product_implementation": {
       "pr_number": 241,
-      "source_sha": "5762d31d428c66e8e0989321c5312d3b9046b4ad",
-      "commit_url": "https://github.com/pan277942135/Yujian_App/commit/5762d31d428c66e8e0989321c5312d3b9046b4ad"
+      "source_sha": "49fa33b96a814b5146109151838c5146dcdf4f63",
+      "commit_url": "https://github.com/pan277942135/Yujian_App/commit/49fa33b96a814b5146109151838c5146dcdf4f63"
     },
-    "contract_status": "CANDIDATE_NOT_VISUALLY_APPROVED"
+    "contract_status": "CANDIDATE_NOT_VISUALLY_APPROVED",
+    "failed_validation_run": {
+      "run_id": 40645075534,
+      "commit_sha": "bfa3c880dde89706153e42f194da872b54ce2383",
+      "check": "Android CI unit tests",
+      "result": "FAIL",
+      "failure": "RecognitionEffect01MotionTest line 56 expected exact identity at 850ms; multiplying -3dp by zero produced negative zero.",
+      "resolution_commit": "49fa33b96a814b5146109151838c5146dcdf4f63"
+    }
   }
 }

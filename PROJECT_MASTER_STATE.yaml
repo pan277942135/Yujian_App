@@ -5,12 +5,12 @@ project:
   repository: pan277942135/Yujian_App
   scope: Android recognition Processing optical supplement
 state_control:
-  execution_baseline_sha: 5762d31d428c66e8e0989321c5312d3b9046b4ad
+  execution_baseline_sha: 49fa33b96a814b5146109151838c5146dcdf4f63
   current_branch: work/android-effect01-upward-scan-shake-v1
   current_pr: 241
   base_sha: 9b517628518826b02ce35e5546ef5589e5358b57
   control_plane_revision: 9b517628518826b02ce35e5546ef5589e5358b57
-  updated_at: "2026-10-28T06:41:06.445Z"
+  updated_at: "2026-10-28T06:44:17.055Z"
 source_of_truth:
   control_plane_registry: CONTROL_PLANE_REGISTRY.yaml
   phase_task_machine: harness/PHASE_TASK_STATE_MACHINE.yaml
@@ -26,7 +26,7 @@ pull_requests:
     number: 241
     branch: work/android-effect01-upward-scan-shake-v1
     base_sha: 9b517628518826b02ce35e5546ef5589e5358b57
-    head_sha: 5762d31d428c66e8e0989321c5312d3b9046b4ad
+    head_sha: 49fa33b96a814b5146109151838c5146dcdf4f63
     status: DRAFT_OPEN_UNMERGED
     url: https://github.com/pan277942135/Yujian_App/pull/241
   PR240:
@@ -95,7 +95,7 @@ recognition_main_journey:
   note: No end-to-end acceptance is inferred from control-plane registration.
 runtime_gates:
   exact_head:
-    sha: 5762d31d428c66e8e0989321c5312d3b9046b4ad
+    sha: 49fa33b96a814b5146109151838c5146dcdf4f63
     status: NOT_RUN
     device: NOT_RUN
     api_level: 28
@@ -106,7 +106,7 @@ apk_and_evidence:
   apk_sha256: null
   source_sha: null
 current_work:
-  exact_head: 5762d31d428c66e8e0989321c5312d3b9046b4ad
+  exact_head: 49fa33b96a814b5146109151838c5146dcdf4f63
   id: YUJIAN_ANDROID_FISH_CATCH_EFFECT01_UPWARD_SCAN_SHAKE_V1
   phase: P6
   task_id: YUJIAN_ANDROID_FISH_CATCH_EFFECT01_UPWARD_SCAN_SHAKE_V1
@@ -135,9 +135,9 @@ completion_rules:
   visual_acceptance: Product owner performs final real-device visual review; remains pending.
   merge: Merge only after exact-head required CI and governance checks pass.
 state_update:
-  updated_at: "2026-10-28T06:41:06.445Z"
-  source_sha: 5762d31d428c66e8e0989321c5312d3b9046b4ad
-  reason: Repaired the live PR snapshot, allowed P6 status, and READY next action after admission reported state validation errors; product source remains unchanged.
+  updated_at: "2026-10-28T06:44:17.055Z"
+  source_sha: 49fa33b96a814b5146109151838c5146dcdf4f63
+  reason: Fixed the 850ms shockwave identity boundary after exact-head Android CI exposed negative-zero equality; rerunning admission and Android checks on the new source.
 agent_recovery:
   read_order:
     - AGENTS.md
