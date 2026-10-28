@@ -330,7 +330,7 @@ jobs:
           artifact="$(jq -c '[.artifacts[] | select(.name == "github-pages" and .expired == false)] | sort_by(.created_at) | last // empty' <<< "$artifacts")"
           artifact_id="$(jq -er '.id' <<< "$artifact")"
           artifact_digest="$(jq -er '.digest' <<< "$artifact")"
-          artifact_expired="$(jq -er '.expired' <<< "$artifact")"
+          artifact_expired="$(jq -r '.expired' <<< "$artifact")"
           artifact_source_sha="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${production_run_id}" --jq '.head_sha')"
           if [ "$build_ok" != "true" ] || [ "$deploy_ok" != "true" ] || [ "$artifact_expired" != "false" ] || [ "$artifact_source_sha" != "$live_root_sha" ]; then
             echo "Current Main Pages run lacks a successful build, deployment step, or unexpired github-pages artifact: run=$production_run_id" >&2
