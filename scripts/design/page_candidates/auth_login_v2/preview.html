@@ -6,7 +6,7 @@
   <meta name="robots" content="noindex,nofollow">
   <link rel="icon" href="data:,">
   <title>Login V2.1 · isolated structured candidate</title>
-  <link rel="stylesheet" href="../../../../manager/nh01_structured_workspace.css">
+  <link rel="stylesheet" href="../../../../design/manager/nh01_structured_workspace.css">
   <link rel="stylesheet" href="./renderer.css">
 </head>
 <body>
@@ -28,11 +28,11 @@
     <pre id="login-boot-status" role="status">LOADING · resolving W1/W2 authority…</pre>
   </main>
 
-  <script src="../../../../manager/page_workspace_adapters.js"></script>
+  <script src="../../../../design/manager/page_workspace_adapters.js"></script>
   <script src="./renderer.js"></script>
   <script>
     (async () => {
-      const candidateBase = new URL("../../../../../", location.href);
+      const candidateBase = new URL("../../../../", location.href);
       const repoHref = path => new URL(path, candidateBase).href;
       window.LoginRepoHref = repoHref;
       const status = document.querySelector("#login-boot-status");
@@ -47,11 +47,11 @@
         }
         const feature = PageWorkspaceAdapters.getRegisteredPage("auth_login_v2");
         document.querySelector("#login-frozen-reference").src = repoHref("design/pages/account_privacy/Login/frozen/Login_V2_1_Frozen_Final.png");
-        const profile = await fetch(repoHref("design/pages/account_privacy/Login/structured_hifi_candidate/responsive_candidate_v1.json"), { cache: "no-store" }).then(response => {
+        const profile = await fetch(repoHref("scripts/design/page_candidates/auth_login_v2/responsive_candidate_v1.json"), { cache: "no-store" }).then(response => {
           if (!response.ok) throw new Error(`CANDIDATE_PROFILE_HTTP_${response.status}`);
           return response.json();
         });
-        const mapping = await fetch(repoHref("design/pages/account_privacy/Login/structured_hifi_candidate/component_mapping_v1.json"), { cache: "no-store" }).then(response => {
+        const mapping = await fetch(repoHref("scripts/design/page_candidates/auth_login_v2/component_mapping_v1.json"), { cache: "no-store" }).then(response => {
           if (!response.ok) throw new Error(`COMPONENT_MAPPING_HTTP_${response.status}`);
           return response.json();
         });

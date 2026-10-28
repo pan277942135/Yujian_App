@@ -4,7 +4,7 @@ on:
   pull_request:
     branches: [main]
     paths:
-      - "design/pages/account_privacy/Login/structured_hifi_candidate/**"
+      - "scripts/design/page_candidates/auth_login_v2/**"
       - "scripts/design/tests/w6a_login_candidate.mjs"
       - "scripts/design/compare_login_candidate_visual.py"
       - ".github/workflows/w6a-login-candidate.yml"
@@ -41,6 +41,31 @@ jobs:
       - name: Prepare isolated evidence directory
         run: mkdir -p "$RUNNER_TEMP/w6a-login-evidence/resources" "$RUNNER_TEMP/w6a-pages-bundle"
 
+      - name: Control Plane Admission on exact source SHA
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "${SOURCE_SHA}"
+          python scripts/validate_control_plane_admission.py | tee "$RUNNER_TEMP/w6a-login-evidence/admission.log"
+          python - <<'PY'
+          import hashlib, json, os
+          from pathlib import Path
+          evidence = Path(os.environ["RUNNER_TEMP"]) / "w6a-login-evidence"
+          log_path = evidence / "admission.log"
+          log = log_path.read_text(encoding="utf-8")
+          if "CONTROL_PLANE_ADMISSION=PASS" not in log:
+              raise SystemExit("CONTROL_PLANE_ADMISSION_REPORT_MISSING_PASS")
+          payload = {
+              "gate_id": "CONTROL_PLANE_ADMISSION",
+              "status": "PASS",
+              "source_sha": os.environ["SOURCE_SHA"],
+              "workflow_run_id": os.environ["GITHUB_RUN_ID"],
+              "report_path": "admission.log",
+              "report_sha256": hashlib.sha256(log_path.read_bytes()).hexdigest(),
+          }
+          (evidence / "admission-report.json").write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+          PY
+
       - name: Validate generic W1 contracts on exact source SHA
         run: python scripts/design/validate_page_responsive_contract.py --expected-source-sha "${SOURCE_SHA}" --report "$RUNNER_TEMP/w6a-login-evidence/w1-contract-report.json"
 
@@ -76,10 +101,10 @@ jobs:
 
       - name: Validate page-owned candidate JSON and syntax
         run: |
-          python -m json.tool design/pages/account_privacy/Login/structured_hifi_candidate/authority_audit_v1.json >/dev/null
-          python -m json.tool design/pages/account_privacy/Login/structured_hifi_candidate/component_mapping_v1.json >/dev/null
-          python -m json.tool design/pages/account_privacy/Login/structured_hifi_candidate/responsive_candidate_v1.json >/dev/null
-          node --check design/pages/account_privacy/Login/structured_hifi_candidate/renderer.js
+          python -m json.tool scripts/design/page_candidates/auth_login_v2/authority_audit_v1.json >/dev/null
+          python -m json.tool scripts/design/page_candidates/auth_login_v2/component_mapping_v1.json >/dev/null
+          python -m json.tool scripts/design/page_candidates/auth_login_v2/responsive_candidate_v1.json >/dev/null
+          node --check scripts/design/page_candidates/auth_login_v2/renderer.js
           node --check scripts/design/tests/w6a_login_candidate.mjs
 
       - name: Run real Chromium candidate matrix and interactions

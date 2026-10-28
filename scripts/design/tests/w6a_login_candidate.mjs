@@ -10,8 +10,8 @@ import { createHash } from "node:crypto";
 
 const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(SCRIPT_DIR, "../../..");
-const PAGE_REL = "design/pages/account_privacy/Login/structured_hifi_candidate/preview.html";
-const CANDIDATE_REL = "design/pages/account_privacy/Login/structured_hifi_candidate";
+const PAGE_REL = "scripts/design/page_candidates/auth_login_v2/preview.html";
+const CANDIDATE_REL = "scripts/design/page_candidates/auth_login_v2";
 const requiredSet = (values, required, label) => {
   for (const item of required) if (!values.includes(item)) throw new Error(`${label} missing: ${item}`);
 };
@@ -52,11 +52,15 @@ async function readEvidenceJson(filePath, label) {
 
 async function validateUpstreamEvidence() {
   if (!runId) throw new Error("GITHUB_RUN_ID_REQUIRED_FOR_EXACT_EVIDENCE");
+  const admissionPath = path.join(outputDir, "admission-report.json");
+  const admissionLogPath = path.join(outputDir, "admission.log");
   const w1Path = path.join(outputDir, "w1-contract-report.json");
   const w2BundlePath = path.join(outputDir, "resources/pages-bundle-w2.json");
   const frozenPath = path.join(outputDir, "resources/login-frozen-visual-w2.json");
   const backgroundPath = path.join(outputDir, "resources/login-bg-content-w2.json");
-  const [w1, w2Bundle, frozen, background, binding] = await Promise.all([
+  const [admission, admissionLog, w1, w2Bundle, frozen, background, binding] = await Promise.all([
+    readEvidenceJson(admissionPath, "CONTROL_PLANE_ADMISSION"),
+    fs.readFile(admissionLogPath),
     readEvidenceJson(w1Path, "W1_CONTRACT"),
     readEvidenceJson(w2BundlePath, "W2_PAGES_BUNDLE"),
     readEvidenceJson(frozenPath, "W2_LOGIN_FROZEN"),
@@ -64,6 +68,11 @@ async function validateUpstreamEvidence() {
     readJson("design/pages/account_privacy/Login/Page_Resource_Binding_V1.json")
   ]);
   const exactRun = value => value === runId;
+  if (admission.status !== "PASS" || admission.gate_id !== "CONTROL_PLANE_ADMISSION" || admission.source_sha !== sourceSha ||
+      !exactRun(admission.workflow_run_id) || admission.report_path !== "admission.log" ||
+      admission.report_sha256 !== sha256Bytes(admissionLog) || !admissionLog.toString("utf8").includes("CONTROL_PLANE_ADMISSION=PASS")) {
+    throw new Error(`ADMISSION_EXACT_SHA_OR_RUN_MISMATCH ${JSON.stringify({ status: admission.status, source_sha: admission.source_sha, workflow_run_id: admission.workflow_run_id })}`);
+  }
   if (w1.status !== "PASS" || w1.source_sha !== sourceSha || w1.expected_source_sha !== sourceSha || !exactRun(w1.workflow_run_id)) {
     throw new Error(`W1_EXACT_SHA_OR_RUN_MISMATCH ${JSON.stringify({ status: w1.status, source_sha: w1.source_sha, expected_source_sha: w1.expected_source_sha, workflow_run_id: w1.workflow_run_id })}`);
   }
@@ -78,7 +87,7 @@ async function validateUpstreamEvidence() {
   if (loginPage.binding_sha256 !== expectedBindingSha || binding.page_id !== "auth_login_v2") throw new Error("W2_LOGIN_BINDING_SHA_MISMATCH");
 
   const bindingAssets = new Map((binding.asset_bindings || []).map(asset => [asset.asset_role, asset]));
-  const audit = await readJson("design/pages/account_privacy/Login/structured_hifi_candidate/authority_audit_v1.json");
+  const audit = await readJson("scripts/design/page_candidates/auth_login_v2/authority_audit_v1.json");
   const expectedRoles = new Map([
     ["page_visual_authority_v2_1", audit.w2_resolution.frozen_visual],
     ["background_bg_content", audit.w2_resolution.background]
@@ -108,6 +117,7 @@ async function validateUpstreamEvidence() {
     };
   }
   return {
+    admission: { status: admission.status, source_sha: admission.source_sha, run_id: admission.workflow_run_id, report_path: admission.report_path, report_sha256: admission.report_sha256, manifest_path: path.relative(outputDir, admissionPath), manifest_sha256: sha256Bytes(await fs.readFile(admissionPath)) },
     w1: { status: w1.status, source_sha: w1.source_sha, run_id: w1.workflow_run_id, report_path: path.relative(outputDir, w1Path), report_sha256: sha256Bytes(await fs.readFile(w1Path)) },
     w2: { status: w2Bundle.status, source_sha: w2Bundle.source_sha, run_id: w2Bundle.workflow_run_id, report_path: path.relative(outputDir, w2BundlePath), report_sha256: sha256Bytes(await fs.readFile(w2BundlePath)), page_id: loginPage.page_id, page_status: loginPage.status, binding_sha256: loginPage.binding_sha256, roles: roleEvidence }
   };
@@ -385,6 +395,7 @@ async function main() {
       workbench: { implementation: "W3 createStructuredDomAdapter", kind: "structured-dom-candidate", page_route_changed: false },
       w1: { ...upstreamEvidence.w1, profile_status: "DRAFT", numeric_authority: "UNBOUND_DRAFT", generic_numeric_matrix: "NOT_RUN" },
       w2: { ...upstreamEvidence.w2, binding_path: "design/pages/account_privacy/Login/Page_Resource_Binding_V1.json", required_assets: ["page_visual_authority_v2_1", "background_bg_content"], source_attachment: "MISSING", footer_asset: "MISSING", shared_icon_publication: "NOT_CONFIRMED_IN_LOGIN_W2_BINDING" },
+      admission: upstreamEvidence.admission,
       matrix: { status: "PASS_MEASUREMENT_ONLY", expected_case_count: 12, recorded_case_count: matrixRows.length, profile_path: `${CANDIDATE_REL}/responsive_candidate_v1.json`, cases: matrixRows },
       states: { accountFocus: accountFocus.focused, passwordFocus: passwordFocus.focused, passwordShown: "PASS", passwordHidden: "PASS", error: "PASS", loading: "PASS", disabledAction: "PASS", keyboardSimulation: "PASS", localSubmitSimulation: "LOADING_THEN_CANDIDATE_ERROR", noBackend: true },
       negative_resource_tests: negativeResults,
