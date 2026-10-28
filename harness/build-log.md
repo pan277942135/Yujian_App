@@ -32,3 +32,13 @@
 - Searched registered and repository image assets for approved independent Hero/Peek originals; none were established. The workspace continues to show explicit blocked states and does not crop frozen page screenshots into photos.
 - Added measured DOM rectangle evidence and multi-size screenshot comparison outputs for M01–M04. M05 remains a width-only boundary with no assumed height. Comparison output is diagnostic and never declares visual parity.
 - Local checks: JavaScript syntax, `tests/nh01_structured_workspace.test.cjs`, navigation verification, frozen hi-fi integrity, Design Manager registry validation, and 320×480 comparator smoke all passed. Candidate Chromium and visual parity remain unverified pending exact-head workflow evidence.
+
+
+## 2026-10-28 — W5 isolated Work-state checkpoint after Main sync
+
+- Main is now `632cada103bf022adeb873bd6e66464555b509e4`; this arrived after PR #242 merge through a separate canonical task registration. PR #234 branch was updated with a normal two-parent merge commit `5ba86fd8d1142d4708d1b8f9e6ddc81cbc96ccf6`, parented by prior candidate `27fae3faa7c4766abb474f8eee11d84009471ac6` and Main `632cada103bf022adeb873bd6e66464555b509e4`.
+- The three Main-updated canonical control files and the new AI Studio perimeter-shader contract are synchronized into the W5 branch. The PR tree has no branch-local state files, so its canonical-promotion admission remains eligible to pass.
+- Branch-local `WORK_EXECUTION_STATE.json` and `PROJECT_MASTER_STATE.yaml` are isolated on `work-state/w5-empty-home-pilot-v1`; their execution/source baseline is the exact PR candidate SHA `5ba86fd8d1142d4708d1b8f9e6ddc81cbc96ccf6`. They are not part of PR #234's proposed Main tree.
+- PR #234 W4 Evidence Run `40667570169` and W5 Matrix Run `40667570176` were in progress at checkpoint time on the exact candidate SHA `5ba86fd8d1142d4708d1b8f9e6ddc81cbc96ccf6`; their final results must be re-read, not inferred.
+- Main Pages run `40666041684` for Main SHA `632cada103bf022adeb873bd6e66464555b509e4` is `cancelled`; Main's prior Pages run at `80c55961059b95fd8dd52eea4b52a37bd91705e8` had succeeded. Current production root SHA remains unconfirmed relative to latest Main.
+- Product-work Admission must be manually dispatched on ref `work-state/w5-empty-home-pilot-v1` via `.github/workflows/control-plane-admission.yml`. PR event admission is intentionally canonical-promotion mode and is not a substitute. No W4 source patch is authorized until the product-work Admission result is PASS.
