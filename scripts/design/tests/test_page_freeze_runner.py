@@ -167,6 +167,7 @@ class PageFreezeRunnerTests(unittest.TestCase):
                 "page_id": "home_empty_v2", "viewport": expected["viewport"],
                 "viewport_width": width, "viewport_height": height,
                 "font_scale": font, "state_id": state_id, "renderer_state_id": "EMPTY_DEFAULT",
+                "matrix_classification": "FORMAL_AUTHORITY_CASE",
                 "source_sha": source_sha or self.source_sha, "run_id": run_id or self.run_id,
                 "matrix_source_path": matrix["source_path"],
                 "matrix_source_sha256": authority_sha or matrix["source_sha256"],
@@ -174,6 +175,29 @@ class PageFreezeRunnerTests(unittest.TestCase):
                 "screenshot_rendered": {"path": shot_name, "sha256": runner.sha256_file(shot_path) if include_screenshots else "0" * 64,
                                         "pixel_width": width * 3, "pixel_height": height * 3},
             })
+        expected_viewports = sorted({(row["viewport"]["width"], row["viewport"]["height"]) for row in matrix["cases"]})
+        for index, (width, height) in enumerate(expected_viewports, start=len(rows)):
+            shot_name = f"case-{index}.png"
+            shot_path = folder / shot_name
+            if include_screenshots:
+                png = bytearray(24)
+                png[:8] = b"\x89PNG\r\n\x1a\n"
+                png[16:20] = (width * 3).to_bytes(4, "big")
+                png[20:24] = (height * 3).to_bytes(4, "big")
+                shot_path.write_bytes(png)
+            rows.append({
+                "case_id": f"EMPTY_HOME_{width}x{height}_FONT_1.5", "page_id": "home_empty_v2",
+                "viewport": {"width": width, "height": height}, "viewport_width": width, "viewport_height": height,
+                "font_scale": 1.5, "state_id": state_id, "renderer_state_id": "EMPTY_DEFAULT",
+                "matrix_classification": "SUPPLEMENTAL_CANDIDATE_NOT_IN_FROZEN_AUTHORITY",
+                "source_sha": source_sha or self.source_sha, "run_id": run_id or self.run_id,
+                "matrix_source_path": matrix["source_path"], "matrix_source_sha256": authority_sha or matrix["source_sha256"],
+                "result": "PASS", "node_bounds": [{"node_id": "EmptyHomeRoot", "bounds": {"x": 0, "y": 0, "width": width, "height": height}}],
+                "screenshot_rendered": {"path": shot_name, "sha256": runner.sha256_file(shot_path) if include_screenshots else "0" * 64,
+                                        "pixel_width": width * 3, "pixel_height": height * 3},
+            })
+        formal_count = len(matrix["cases"])
+        supplemental_count = len(expected_viewports)
         report = {
             "schema": "YUJIAN_PAGE_EVIDENCE_MANIFEST_V1", "page_id": "home_empty_v2",
             "source_sha": source_sha or self.source_sha, "candidate_source_sha": source_sha or self.source_sha,
@@ -182,8 +206,16 @@ class PageFreezeRunnerTests(unittest.TestCase):
             "user_acceptance_status": "USER_VISUAL_ACCEPTANCE_PENDING", "native_runtime_status": "NOT_VERIFIED",
             "matrix_authority": {"id": authority_id or matrix["source_authority_ref_id"],
                                  "path": matrix["source_path"], "sha256": authority_sha or matrix["source_sha256"]},
-            "matrix_summary": {"expected": len(rows), "executed": len(rows), "pass": len(rows), "fail": 0, "not_run": 0,
+            "matrix_summary": {"expected": formal_count, "executed": formal_count, "pass": formal_count, "fail": 0, "not_run": 0,
+                               "formal_expected": formal_count, "formal_executed": formal_count, "formal_pass": formal_count, "formal_fail": 0, "formal_not_run": 0,
+                               "supplemental_expected": supplemental_count, "supplemental_executed": supplemental_count,
+                               "supplemental_pass": supplemental_count, "supplemental_fail": 0, "supplemental_not_run": 0,
+                               "total_expected": formal_count + supplemental_count, "total_executed": formal_count + supplemental_count,
+                               "total_pass": formal_count + supplemental_count, "total_fail": 0, "total_not_run": 0,
                                "source_path": matrix["source_path"], "source_sha256": matrix["source_sha256"]},
+            "supplemental_matrix_definition": {"font_scale": 1.5, "viewports": [{"width": w, "height": h} for w, h in expected_viewports],
+                                               "status": "SUPPLEMENTAL_CANDIDATE_NOT_IN_FROZEN_AUTHORITY",
+                                               "source_path": matrix["source_path"], "source_sha256": matrix["source_sha256"]},
             "behavior_state_mapping": {"authority_ref_id": state_ref["authority_ref_id"], "path": state_ref["path"],
                                        "sha256": state_ref["sha256"], "declared_locator": declared_locator or state_ref["declared_locator"],
                                        "locator": resolved_locator or state_ref["locator"], "resolution": resolution or state_ref["resolution"],
@@ -203,8 +235,34 @@ class PageFreezeRunnerTests(unittest.TestCase):
         self.assertEqual(matrix["status"], "PASS")
         self.assertEqual(matrix["expected_case_count"], 8)
         self.assertEqual(sum(row["result"] == "PASS" for row in matrix["cases"]), 8)
+        self.assertEqual(matrix["supplemental"]["status"], "PASS")
+        self.assertEqual(matrix["supplemental"]["expected_case_count"], 4)
+        self.assertEqual(matrix["supplemental"]["recorded_case_count"], 4)
+        schema = runner.read_json(ROOT / runner.EVIDENCE_SCHEMA)
+        matrix_schema = {**schema["properties"]["matrix"], "$defs": schema["$defs"]}
+        self.assertEqual(list(runner.Draft202012Validator(matrix_schema).iter_errors(matrix)), [])
         self.assertTrue(all((output / row["evidence_path"]).is_file() and (output / row["screenshot_path"]).is_file()
                             for row in matrix["cases"]))
+
+    def test_w4_rejects_missing_or_misclassified_1_5x_supplemental_case(self):
+        mutations = ["missing", "wrong-scale"]
+        for mutation in mutations:
+            with self.subTest(mutation=mutation):
+                source, matrix = self.make_w5_matrix_report(self.temp_root / f"w5-matrix-supplemental-{mutation}")
+                report = json.loads(source.read_text(encoding="utf-8"))
+                supplemental = [row for row in report["matrix"]
+                                if row.get("matrix_classification") == "SUPPLEMENTAL_CANDIDATE_NOT_IN_FROZEN_AUTHORITY"]
+                if mutation == "missing":
+                    report["matrix"].remove(supplemental[-1])
+                else:
+                    supplemental[-1]["font_scale"] = 1.3
+                source.write_text(json.dumps(report), encoding="utf-8")
+                errors = runner.import_structured_matrix_report(ROOT, "home_empty_v2", self.source_sha, self.run_id,
+                                                                 str(source), matrix,
+                                                                 self.temp_root / f"w4-matrix-supplemental-{mutation}")
+                self.assertTrue(errors)
+                self.assertEqual(matrix["status"], "FAIL")
+                self.assertEqual(matrix["supplemental"]["status"], "FAIL")
 
     def test_w4_rejects_matrix_wrong_source_run_state_authority_or_missing_screenshot(self):
         mutations = [

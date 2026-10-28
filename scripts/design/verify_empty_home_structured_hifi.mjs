@@ -431,7 +431,7 @@ async function main() {
       preflight.fontScales.includes(1.5)?[]:[{width,height,fontScale:1.5,matrix_classification:"SUPPLEMENTAL_CANDIDATE_NOT_IN_FROZEN_AUTHORITY"}]);
     const matrixCases=[...formalCases,...supplementalCases];
     baseEvidence.supplemental_matrix_definition={font_scale:1.5,viewports:preflight.formalViewports,
-      status:"SUPPLEMENTAL_CANDIDATE_NOT_IN_FROZEN_AUTHORITY",authority_path:preflight.viewportAuthority.path,authority_sha256:preflight.viewportAuthority.sha256};
+      status:"SUPPLEMENTAL_CANDIDATE_NOT_IN_FROZEN_AUTHORITY",source_path:preflight.viewportAuthority.path,source_sha256:preflight.viewportAuthority.sha256};
     const behaviorState=await resolveBehaviorState(args.root);
     assert(behaviorState.behavior_state_id==="EMPTY","the declared W5 behavior state must resolve to the EMPTY state selected by the approved behavior authority");
     assert(typeof preflight.rendererStateId==="string"&&preflight.rendererStateId.length>0,"the actual structured renderer must report its current renderer state");
@@ -443,14 +443,15 @@ async function main() {
       font_scale:fontScale,
       state_id:behaviorState.behavior_state_id,
       renderer_state_id:preflight.rendererStateId,
+      matrix_classification,
       source_sha:expectedSha,
       run_id:runId,
       matrix_source_path:preflight.viewportAuthority.path,
       matrix_source_sha256:preflight.viewportAuthority.sha256,
-      matrix_classification,
       result:"NOT_RUN"
     }));
-    baseEvidence.matrix_summary={formal_expected:formalCases.length,formal_executed:0,formal_pass:0,formal_fail:0,formal_not_run:formalCases.length,
+    baseEvidence.matrix_summary={expected:formalCases.length,executed:0,pass:0,fail:0,not_run:formalCases.length,
+      formal_expected:formalCases.length,formal_executed:0,formal_pass:0,formal_fail:0,formal_not_run:formalCases.length,
       supplemental_expected:supplementalCases.length,supplemental_executed:0,supplemental_pass:0,supplemental_fail:0,supplemental_not_run:supplementalCases.length,
       total_expected:matrixCases.length,total_executed:0,total_pass:0,total_fail:0,total_not_run:matrixCases.length,
       source_path:preflight.viewportAuthority.path,source_sha256:preflight.viewportAuthority.sha256};
@@ -487,7 +488,8 @@ async function main() {
       const formal=summarize(group("FORMAL_AUTHORITY_CASE"));
       const supplemental=summarize(group("SUPPLEMENTAL_CANDIDATE_NOT_IN_FROZEN_AUTHORITY"));
       const total=summarize(baseEvidence.matrix);
-      baseEvidence.matrix_summary={formal_expected:formal.expected,formal_executed:formal.executed,formal_pass:formal.pass,formal_fail:formal.fail,formal_not_run:formal.not_run,
+      baseEvidence.matrix_summary={expected:formal.expected,executed:formal.executed,pass:formal.pass,fail:formal.fail,not_run:formal.not_run,
+        formal_expected:formal.expected,formal_executed:formal.executed,formal_pass:formal.pass,formal_fail:formal.fail,formal_not_run:formal.not_run,
         supplemental_expected:supplemental.expected,supplemental_executed:supplemental.executed,supplemental_pass:supplemental.pass,supplemental_fail:supplemental.fail,supplemental_not_run:supplemental.not_run,
         total_expected:total.expected,total_executed:total.executed,total_pass:total.pass,total_fail:total.fail,total_not_run:total.not_run,
         source_path:preflight.viewportAuthority.path,source_sha256:preflight.viewportAuthority.sha256};
@@ -898,9 +900,11 @@ async function main() {
       const summarize=rows=>{const p=rows.filter(row=>row.result==="PASS").length;const f=rows.filter(row=>row.result==="FAIL").length;
         return {expected:rows.length,executed:p+f,pass:p,fail:f,not_run:rows.length-p-f};};
       const formal=summarize(formalRows),supplemental=summarize(supplementalRows),total=summarize(baseEvidence.matrix);
-      baseEvidence.matrix_summary={formal_expected:formal.expected,formal_executed:formal.executed,formal_pass:formal.pass,formal_fail:formal.fail,formal_not_run:formal.not_run,
+      baseEvidence.matrix_summary={expected:formal.expected,executed:formal.executed,pass:formal.pass,fail:formal.fail,not_run:formal.not_run,
+        formal_expected:formal.expected,formal_executed:formal.executed,formal_pass:formal.pass,formal_fail:formal.fail,formal_not_run:formal.not_run,
         supplemental_expected:supplemental.expected,supplemental_executed:supplemental.executed,supplemental_pass:supplemental.pass,supplemental_fail:supplemental.fail,supplemental_not_run:supplemental.not_run,
-        total_expected:total.expected,total_executed:total.executed,total_pass:total.pass,total_fail:total.fail,total_not_run:total.not_run};
+        total_expected:total.expected,total_executed:total.executed,total_pass:total.pass,total_fail:total.fail,total_not_run:total.not_run,
+        source_path:baseEvidence.matrix_authority?.path||null,source_sha256:baseEvidence.matrix_authority?.sha256||null};
     }
     baseEvidence.console_errors=consoleErrorEvents.filter(event=>event.text!==expectedMissingResourceConsoleText).map(event=>event.text);
     baseEvidence.expected_negative_console_errors=consoleErrorEvents.filter(event=>event.text===expectedMissingResourceConsoleText);

@@ -173,6 +173,47 @@
             }
           }
         },
+        "supplemental": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["status", "classification", "font_scale", "source_path", "source_sha256", "expected_case_count", "recorded_case_count", "cases", "reason"],
+          "properties": {
+            "status": { "enum": ["NOT_RUN", "PASS", "FAIL", "BLOCKED"] },
+            "classification": { "const": "SUPPLEMENTAL_CANDIDATE_NOT_IN_FROZEN_AUTHORITY" },
+            "font_scale": { "const": 1.5 },
+            "source_path": { "type": ["string", "null"] },
+            "source_sha256": { "oneOf": [{ "$ref": "#/$defs/sha256" }, { "type": "null" }] },
+            "expected_case_count": { "type": "integer", "minimum": 0 },
+            "recorded_case_count": { "type": "integer", "minimum": 0 },
+            "cases": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["case_id", "viewport", "font_scale", "state_id", "result", "failure_reason"],
+                "properties": {
+                  "case_id": { "type": "string", "minLength": 1 },
+                  "viewport": { "type": ["object", "null"] },
+                  "font_scale": { "const": 1.5 },
+                  "state_id": { "type": ["string", "null"] },
+                  "result": { "enum": ["NOT_RUN", "PASS", "FAIL", "BLOCKED"] },
+                  "failure_reason": { "type": ["string", "null"] },
+                  "evidence_path": { "type": ["string", "null"] },
+                  "evidence_sha256": { "oneOf": [{ "$ref": "#/$defs/sha256" }, { "type": "null" }] },
+                  "renderer_state_id": { "type": ["string", "null"] },
+                  "screenshot_path": { "type": ["string", "null"] },
+                  "screenshot_sha256": { "oneOf": [{ "$ref": "#/$defs/sha256" }, { "type": "null" }] },
+                  "matrix_source_path": { "type": ["string", "null"] },
+                  "matrix_source_sha256": { "oneOf": [{ "$ref": "#/$defs/sha256" }, { "type": "null" }] },
+                  "matrix_source_authority_ref_id": { "type": ["string", "null"] },
+                  "source_sha": { "oneOf": [{ "$ref": "#/$defs/sha1" }, { "type": "null" }] },
+                  "run_id": { "type": ["string", "null"], "pattern": "^[0-9]+$" }
+                }
+              }
+            },
+            "reason": { "type": ["string", "null"] }
+          }
+        },
         "reason": { "type": ["string", "null"] }
       }
     },

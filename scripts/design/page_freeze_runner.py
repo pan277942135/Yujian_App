@@ -447,10 +447,40 @@ def import_structured_matrix_report(root: Path, page_id: str, source_sha: str, r
         errors.append("W5 matrix summary authority path/SHA does not match the W4-derived page authority")
     expected_count = matrix.get("expected_case_count")
     rows = report.get("matrix") if isinstance(report.get("matrix"), list) else []
+    formal_rows = [row for row in rows if isinstance(row, dict) and row.get("matrix_classification") == "FORMAL_AUTHORITY_CASE"]
+    supplemental_rows = [row for row in rows if isinstance(row, dict)
+                          and row.get("matrix_classification") == "SUPPLEMENTAL_CANDIDATE_NOT_IN_FROZEN_AUTHORITY"]
+    expected_viewports = {
+        (row.get("viewport", {}).get("width"), row.get("viewport", {}).get("height"))
+        for row in matrix.get("cases", []) if isinstance(row, dict) and isinstance(row.get("viewport"), dict)
+    }
+    supplemental_definition = report.get("supplemental_matrix_definition")
+    supplemental_scale = supplemental_definition.get("font_scale") if isinstance(supplemental_definition, dict) else None
+    expected_supplemental_count = len(expected_viewports)
     if (summary.get("expected") != expected_count or summary.get("executed") != expected_count
             or summary.get("pass") != expected_count or summary.get("fail") != 0 or summary.get("not_run") != 0
-            or len(rows) != expected_count):
-        errors.append("W5 EXPECTED_CASES and EXECUTED_CASES do not match the W4 page-specific matrix")
+            or summary.get("formal_expected") != expected_count or summary.get("formal_executed") != expected_count
+            or summary.get("formal_pass") != expected_count or summary.get("formal_fail") != 0
+            or summary.get("formal_not_run") != 0 or len(formal_rows) != expected_count):
+        errors.append("W5 formal EXPECTED_CASES and EXECUTED_CASES do not match the W4 page-specific matrix")
+    if (not isinstance(supplemental_definition, dict)
+            or supplemental_definition.get("status") != "SUPPLEMENTAL_CANDIDATE_NOT_IN_FROZEN_AUTHORITY"
+            or supplemental_scale != 1.5
+            or supplemental_definition.get("source_path") != matrix.get("source_path")
+            or supplemental_definition.get("source_sha256") != matrix.get("source_sha256")
+            or {(row.get("width"), row.get("height")) for row in supplemental_definition.get("viewports", [])
+                if isinstance(row, dict)} != expected_viewports
+            or len(supplemental_rows) != expected_supplemental_count
+            or summary.get("supplemental_expected") != expected_supplemental_count
+            or summary.get("supplemental_executed") != expected_supplemental_count
+            or summary.get("supplemental_pass") != expected_supplemental_count
+            or summary.get("supplemental_fail") != 0 or summary.get("supplemental_not_run") != 0
+            or summary.get("total_expected") != expected_count + expected_supplemental_count
+            or summary.get("total_executed") != expected_count + expected_supplemental_count
+            or summary.get("total_pass") != expected_count + expected_supplemental_count
+            or summary.get("total_fail") != 0 or summary.get("total_not_run") != 0
+            or len(rows) != expected_count + expected_supplemental_count):
+        errors.append("W5 1.5x supplemental cases do not exactly cover the W4 viewport set as separate candidate evidence")
     state_mapping = report.get("behavior_state_mapping") if isinstance(report.get("behavior_state_mapping"), dict) else {}
     expected_states = {row.get("state_id") for row in matrix.get("cases", []) if isinstance(row, dict)}
     mapped_state = state_mapping.get("behavior_state_id")
@@ -510,6 +540,30 @@ def import_structured_matrix_report(root: Path, page_id: str, source_sha: str, r
         target = copied_dir / relative
         target.parent.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(item, target)
+
+    def copy_reported_screenshot(actual: dict[str, Any], case_id: str) -> dict[str, str] | None:
+        screenshot = actual.get("screenshot_rendered") if isinstance(actual.get("screenshot_rendered"), dict) else {}
+        screenshot_value = screenshot.get("path")
+        if not isinstance(screenshot_value, str) or not screenshot_value or Path(screenshot_value).is_absolute() or ".." in Path(screenshot_value).parts:
+            errors.append(f"W5 case {case_id} has an unsafe/missing rendered screenshot path")
+            return None
+        source_screenshot = source_path.parent / screenshot_value
+        copied_screenshot = copied_dir / screenshot_value
+        if (not source_screenshot.is_file() or source_screenshot.is_symlink()
+                or sha256_file(source_screenshot) != screenshot.get("sha256")):
+            errors.append(f"W5 case {case_id} rendered screenshot is missing or hash-mismatched")
+            return None
+        png = source_screenshot.read_bytes()
+        if len(png) < 24 or png[:8] != b"\x89PNG\r\n\x1a\n":
+            errors.append(f"W5 case {case_id} rendered screenshot is not a PNG")
+            return None
+        if int.from_bytes(png[16:20], "big") != screenshot.get("pixel_width") or int.from_bytes(png[20:24], "big") != screenshot.get("pixel_height"):
+            errors.append(f"W5 case {case_id} rendered screenshot dimensions do not match its report")
+            return None
+        copied_screenshot.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(source_screenshot, copied_screenshot)
+        return {"path":(Path("empty-home-matrix") / screenshot_value).as_posix(),
+                "sha256":sha256_file(copied_screenshot)}
     copied_report = copied_dir / source_path.name
     if copied_report.is_file():
         matrix["execution_report_path"] = copied_report.relative_to(evidence_dir).as_posix()
@@ -546,26 +600,10 @@ def import_structured_matrix_report(root: Path, page_id: str, source_sha: str, r
                 or not isinstance(actual.get("node_bounds"), list) or not actual.get("node_bounds")):
             errors.append(f"W5 case {expected.get('case_id')} does not bind exact source, run, authority, state, and actual DOM bounds")
             continue
-        screenshot = actual.get("screenshot_rendered") if isinstance(actual.get("screenshot_rendered"), dict) else {}
-        screenshot_value = screenshot.get("path")
-        if not isinstance(screenshot_value, str) or not screenshot_value or Path(screenshot_value).is_absolute() or ".." in Path(screenshot_value).parts:
-            errors.append(f"W5 case {expected.get('case_id')} has an unsafe/missing rendered screenshot path")
+        screenshot_evidence = copy_reported_screenshot(actual, str(expected.get("case_id")))
+        if screenshot_evidence is None:
             continue
-        source_screenshot = source_path.parent / screenshot_value
-        copied_screenshot = copied_dir / screenshot_value
-        if (not source_screenshot.is_file() or source_screenshot.is_symlink()
-                or sha256_file(source_screenshot) != screenshot.get("sha256")):
-            errors.append(f"W5 case {expected.get('case_id')} rendered screenshot is missing or hash-mismatched")
-            continue
-        png = source_screenshot.read_bytes()
-        if len(png) < 24 or png[:8] != b"\x89PNG\r\n\x1a\n":
-            errors.append(f"W5 case {expected.get('case_id')} rendered screenshot is not a PNG")
-            continue
-        if int.from_bytes(png[16:20], "big") != screenshot.get("pixel_width") or int.from_bytes(png[20:24], "big") != screenshot.get("pixel_height"):
-            errors.append(f"W5 case {expected.get('case_id')} rendered screenshot dimensions do not match its report")
-            continue
-        copied_screenshot.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copyfile(source_screenshot, copied_screenshot)
+        screenshot_value = actual["screenshot_rendered"]["path"]
         case_payload = {
             "schema": "YUJIAN_W4_PAGE_MATRIX_CASE_EVIDENCE_V1",
             "page_id": page_id,
@@ -579,8 +617,8 @@ def import_structured_matrix_report(root: Path, page_id: str, source_sha: str, r
             "renderer_state_id": state_mapping.get("renderer_state_id"),
             "expected": expected,
             "execution": actual,
-            "screenshot_path": (Path("empty-home-matrix") / screenshot_value).as_posix(),
-            "screenshot_sha256": sha256_file(copied_screenshot),
+            "screenshot_path": screenshot_evidence["path"],
+            "screenshot_sha256": screenshot_evidence["sha256"],
         }
         case_path = evidence_dir / "matrix-cases" / f"{expected.get('case_id')}.json"
         case_path.parent.mkdir(parents=True, exist_ok=True)
@@ -598,7 +636,71 @@ def import_structured_matrix_report(root: Path, page_id: str, source_sha: str, r
             "run_id": str(run_id),
         })
 
-    if errors:
+    supplemental_cases: list[dict[str, Any]] = []
+    supplemental_by_key: dict[tuple[Any, Any, Any, Any], list[dict[str, Any]]] = {}
+    for row in supplemental_rows:
+        viewport = row.get("viewport") if isinstance(row.get("viewport"), dict) else {}
+        key = (row.get("viewport_width", viewport.get("width")), row.get("viewport_height", viewport.get("height")),
+               row.get("font_scale"), row.get("state_id"))
+        supplemental_by_key.setdefault(key, []).append(row)
+    for width, height in sorted(expected_viewports):
+        key = (width, height, 1.5, mapped_state)
+        matches = supplemental_by_key.get(key, [])
+        actual = matches[0] if len(matches) == 1 else None
+        case_id = f"EMPTY_HOME_{width}x{height}_FONT_1.5"
+        if actual is None:
+            errors.append(f"W5 is missing or duplicates required supplemental case {case_id}")
+            supplemental_cases.append({"case_id":case_id,"viewport":{"width":width,"height":height},"font_scale":1.5,
+                                      "state_id":mapped_state,"result":"NOT_RUN","failure_reason":"missing or duplicated W5 case"})
+            continue
+        if (actual.get("result") != "PASS" or actual.get("page_id") != page_id or actual.get("case_id") != case_id
+                or actual.get("source_sha") != source_sha or str(actual.get("run_id")) != str(run_id)
+                or actual.get("matrix_source_path") != matrix.get("source_path")
+                or actual.get("matrix_source_sha256") != matrix.get("source_sha256")
+                or actual.get("state_id") != mapped_state
+                or actual.get("renderer_state_id") != state_mapping.get("renderer_state_id")
+                or not isinstance(actual.get("node_bounds"), list) or not actual.get("node_bounds")):
+            errors.append(f"W5 supplemental case {case_id} does not bind exact source, run, authority, state, and actual DOM bounds")
+            result = "FAIL"
+        else:
+            result = "PASS"
+        screenshot_evidence = copy_reported_screenshot(actual, case_id) if result == "PASS" else None
+        if result == "PASS" and screenshot_evidence is None:
+            result = "FAIL"
+        supplemental_case = {
+            "case_id":case_id,"viewport":{"width":width,"height":height},"font_scale":1.5,"state_id":mapped_state,
+            "renderer_state_id":state_mapping.get("renderer_state_id"),"result":result,
+            "failure_reason":None if result == "PASS" else "W5 supplemental evidence failed exact-source, geometry, or screenshot validation.",
+            "source_sha":source_sha,"run_id":str(run_id),"matrix_source_path":matrix.get("source_path"),
+            "matrix_source_sha256":matrix.get("source_sha256"),"matrix_source_authority_ref_id":matrix.get("source_authority_ref_id"),
+            "evidence_path":None,"evidence_sha256":None,
+            "screenshot_path":screenshot_evidence["path"] if screenshot_evidence else None,
+            "screenshot_sha256":screenshot_evidence["sha256"] if screenshot_evidence else None,
+        }
+        if result == "PASS" and screenshot_evidence:
+            payload = {"schema":"YUJIAN_W4_PAGE_MATRIX_CASE_EVIDENCE_V1","case_classification":"SUPPLEMENTAL_CANDIDATE_NOT_IN_FROZEN_AUTHORITY",
+                       "page_id":page_id,"case_id":case_id,"source_sha":source_sha,"run_id":str(run_id),
+                       "matrix_source_path":matrix.get("source_path"),"matrix_source_sha256":matrix.get("source_sha256"),
+                       "matrix_source_authority_ref_id":matrix.get("source_authority_ref_id"),"behavior_state_id":mapped_state,
+                       "renderer_state_id":state_mapping.get("renderer_state_id"),"execution":actual,
+                       "screenshot_path":screenshot_evidence["path"],"screenshot_sha256":screenshot_evidence["sha256"]}
+            evidence_path=evidence_dir/"matrix-cases"/"supplemental"/f"{case_id}.json"
+            evidence_path.parent.mkdir(parents=True,exist_ok=True)
+            evidence_path.write_text(json.dumps(payload,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
+            supplemental_case["evidence_path"]=evidence_path.relative_to(evidence_dir).as_posix()
+            supplemental_case["evidence_sha256"]=sha256_file(evidence_path)
+        supplemental_cases.append(supplemental_case)
+    supplemental_pass = len(supplemental_cases) == expected_supplemental_count and all(row.get("result") == "PASS" for row in supplemental_cases)
+    matrix["supplemental"] = {
+        "status":"PASS" if supplemental_pass else "FAIL","classification":"SUPPLEMENTAL_CANDIDATE_NOT_IN_FROZEN_AUTHORITY",
+        "font_scale":1.5,"source_path":matrix.get("source_path"),"source_sha256":matrix.get("source_sha256"),
+        "expected_case_count":expected_supplemental_count,"recorded_case_count":len(supplemental_cases),
+        "cases":supplemental_cases,
+        "reason":"All supplemental 1.5x candidates were independently executed and hash-bound; they remain outside the frozen formal matrix." if supplemental_pass
+                 else "One or more supplemental 1.5x candidates were missing or failed validation."
+    }
+
+    if errors or not supplemental_pass:
         matrix["status"] = "FAIL"
         matrix["reason"] = "; ".join(errors)
     else:
