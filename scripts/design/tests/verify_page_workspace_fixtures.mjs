@@ -13,17 +13,17 @@ function shellHtml({ page = pageId, source = sourceSha, node = true, throwing = 
   const tree = `<button data-workspace-tree-node data-node-id="empty-scene" data-node-state="READY" data-node-authority-status="CURRENT" data-node-visible="true" data-node-measurable="true" data-node-selectable="${disabled ? "false" : "true"}" ${disabled ? "disabled" : ""}>Empty scene</button>${blockedAuthority ? `<button data-workspace-tree-node data-node-id="blocked-brand" data-node-state="BLOCKED_AUTHORITY_GAP" data-node-authority-status="BLOCKED_AUTHORITY_GAP" data-node-visible="false" data-node-measurable="false" data-node-selectable="false" disabled>Brand · BLOCKED_AUTHORITY_GAP</button>` : ""}`;
   const rendered = node ? `<div data-workspace-rendered-node="empty-scene" style="width:120px;height:80px">scene</div>${blockedAuthority ? `<span id="blocked-brand" hidden aria-hidden="true" data-workspace-rendered-node="blocked-brand"></span>` : ""}` : "";
   return `<!doctype html><html><head><meta charset="utf-8"></head><body>
-    <main data-page-workspace-root data-page-id="${page}" data-source-sha="${source}" data-workspace-kind="${kind}" data-view-state="${viewState}">
+    <main data-fixture-current data-page-workspace-root data-page-id="${page}" data-source-sha="${source}" data-workspace-kind="${kind}" data-view-state="${viewState}">
       ${tree}${rendered}<aside data-workspace-inspector data-selected-node-id="">Inspector</aside>
       ${errorText ? `<p data-workspace-error role="alert">${errorText}</p>` : ""}
     </main>
     <script>
-      document.querySelector('[data-workspace-tree-node]').addEventListener('click', () => {
-        document.querySelector('[data-workspace-inspector]').dataset.selectedNodeId = 'empty-scene';
+      const workspace = document.querySelector('[data-fixture-current]');
+      workspace.querySelector('[data-workspace-tree-node]').addEventListener('click', () => {
+        workspace.querySelector('[data-workspace-inspector]').dataset.selectedNodeId = 'empty-scene';
       });
       ${throwing ? "throw new Error('fixture page error');" : ""}
       ${badResource ? `fetch('/broken-workspace-resource.png').then(response => {
-        const workspace = document.querySelector('[data-page-workspace-root]');
         workspace.dataset.viewState = 'ERROR';
         const error = document.createElement('p');
         error.dataset.workspaceError = '';
@@ -33,6 +33,15 @@ function shellHtml({ page = pageId, source = sourceSha, node = true, throwing = 
       });` : ""}
     </script>
   </body></html>`;
+}
+
+function staleWorkspaceHtml() {
+  const staleSource = "11e25bbf9cb9f29cb696d8fcc5d6bb8731d501ec";
+  const staleRoot = `<main hidden style="display:none" data-page-workspace-root data-page-id="${pageId}" data-source-sha="${staleSource}" data-workspace-kind="structured-page-adapter" data-view-state="READY">
+    <button data-workspace-tree-node data-node-id="page" data-node-state="READY" data-node-authority-status="CURRENT" data-node-visible="false" data-node-measurable="false" data-node-selectable="false" disabled>page</button>
+    <div data-workspace-rendered-node="page"></div><aside data-workspace-inspector data-selected-node-id="">stale Inspector</aside>
+  </main>`;
+  return shellHtml().replace("<body>", `<body>${staleRoot}`);
 }
 
 async function runVerifier(serverUrl, fixtureName, outputDir, unconnectedPolicy = "fail") {
@@ -58,7 +67,8 @@ async function main() {
       response.writeHead(404).end("missing route");
       return;
     }
-    const html = fixture === "wrong-page" ? shellHtml({ page: "auth_login_v2" })
+    const html = fixture === "stale-workspace" ? staleWorkspaceHtml()
+      : fixture === "wrong-page" ? shellHtml({ page: "auth_login_v2" })
       : fixture === "missing-layer" ? shellHtml({ node: false })
       : fixture === "reference-only" ? shellHtml({ kind: "reference-image-only", viewState: "REFERENCE_IMAGE_ONLY" })
       : fixture === "reference-only-error" ? shellHtml({ kind: "reference-image-only", viewState: "ERROR", errorText: "authority load failed", throwing: true })
@@ -76,7 +86,9 @@ async function main() {
   const root = await mkdtemp(join(tmpdir(), "page-workspace-w4-test-"));
   let infrastructureBlocked = false;
   try {
-    for (const fixture of ["ok", "missing", "wrong-page", "missing-layer", "reference-only", "structured-error", "disabled-node", "blocked-authority-node", "page-error"]) {
+    let executedCases = 0;
+    for (const fixture of ["ok", "missing", "wrong-page", "missing-layer", "reference-only", "structured-error", "disabled-node", "blocked-authority-node", "page-error", "stale-workspace"]) {
+      executedCases += 1;
       const outputDir = join(root, fixture);
       const code = await runVerifier(serverUrl, fixture, outputDir);
       const report = JSON.parse(await readFile(join(outputDir, "workspace-browser-report.json"), "utf8"));
@@ -106,21 +118,23 @@ async function main() {
           throw new Error(`explicit hidden authority gap must remain recorded without becoming visual acceptance; report=${JSON.stringify(report)}`);
         }
       }
-    }
-    const referenceOnlyOutput = join(root, "reference-only-core-not-run");
-    const referenceOnlyCode = await runVerifier(serverUrl, "reference-only", referenceOnlyOutput, "not-run");
-    const referenceOnlyReport = JSON.parse(await readFile(join(referenceOnlyOutput, "workspace-browser-report.json"), "utf8"));
-    if (referenceOnlyCode !== 0 || referenceOnlyReport.result !== "NOT_RUN"
-      || referenceOnlyReport.reason !== "REFERENCE_IMAGE_ONLY_NOT_CONNECTED"
-      || referenceOnlyReport.page_acceptance !== "NOT_VERIFIED") {
-      throw new Error(`core tools must preserve reference-only page status as NOT_RUN; report=${JSON.stringify(referenceOnlyReport)}`);
-    }
-    for (const fixture of ["reference-only-error", "reference-only-bad-response"]) {
-      const outputDir = join(root, fixture);
-      const code = await runVerifier(serverUrl, fixture, outputDir, "not-run");
-      const report = JSON.parse(await readFile(join(outputDir, "workspace-browser-report.json"), "utf8"));
-      if (report.result !== "FAIL" || code === 0) {
-        throw new Error(`${fixture}: broken reference-only authority must not be masked as NOT_RUN; report=${JSON.stringify(report)}`);
+      if (fixture === "disabled-node") {
+        if (report.original_failure !== "component tree node empty-scene is disabled and cannot be selected in the actual workspace"
+          || !report.screenshot_path || !(await stat(report.screenshot_path)).size
+          || !report.dom_path || !(await stat(report.dom_path)).size
+          || report.diagnostic_capture_errors?.length) {
+          throw new Error(`disabled-node failure must retain its primary cause and diagnostic evidence; report=${JSON.stringify(report)}`);
+        }
+      }
+      if (fixture === "stale-workspace") {
+        const stale = report.workspace_candidates?.find(candidate => candidate.sourceSha === "11e25bbf9cb9f29cb696d8fcc5d6bb8731d501ec");
+        if (report.result !== "PASS" || report.measured_node_count !== 1
+          || report.workspace?.sourceSha !== sourceSha
+          || report.workspace_candidates?.length !== 2
+          || !stale || stale.visible || stale.identityMatches
+          || stale.treeNodes?.length !== 1 || stale.treeNodes[0].nodeId !== "page" || !stale.treeNodes[0].disabled) {
+          throw new Error(`hidden stale workspace must be reported but excluded from current tree selection; report=${JSON.stringify(report)}`);
+        }
       }
     }
     if (infrastructureBlocked) {
@@ -128,7 +142,25 @@ async function main() {
       process.exitCode = 2;
       return;
     }
-    console.log("PAGE_WORKSPACE_VERIFIER_FIXTURES=PASS cases=11 reference_only=NOT_RUN reference_only_errors=FAIL");
+    const referenceOnlyOutput = join(root, "reference-only-core-not-run");
+    const referenceOnlyCode = await runVerifier(serverUrl, "reference-only", referenceOnlyOutput, "not-run");
+    executedCases += 1;
+    const referenceOnlyReport = JSON.parse(await readFile(join(referenceOnlyOutput, "workspace-browser-report.json"), "utf8"));
+    if (referenceOnlyCode !== 0 || referenceOnlyReport.result !== "NOT_RUN"
+      || referenceOnlyReport.reason !== "REFERENCE_IMAGE_ONLY_NOT_CONNECTED"
+      || referenceOnlyReport.page_acceptance !== "NOT_VERIFIED") {
+      throw new Error(`core tools must preserve reference-only page status as NOT_RUN; report=${JSON.stringify(referenceOnlyReport)}`);
+    }
+    for (const fixture of ["reference-only-error", "reference-only-bad-response"]) {
+      executedCases += 1;
+      const outputDir = join(root, fixture);
+      const code = await runVerifier(serverUrl, fixture, outputDir, "not-run");
+      const report = JSON.parse(await readFile(join(outputDir, "workspace-browser-report.json"), "utf8"));
+      if (report.result !== "FAIL" || code === 0) {
+        throw new Error(`${fixture}: broken reference-only authority must not be masked as NOT_RUN; report=${JSON.stringify(report)}`);
+      }
+    }
+    console.log(`PAGE_WORKSPACE_VERIFIER_FIXTURES=PASS cases=${executedCases} reference_only=NOT_RUN reference_only_errors=FAIL stale_workspace=SCOPED failure_evidence=RETAINED`);
   } finally {
     await new Promise(resolvePromise => browser.close(resolvePromise));
     await rm(root, { recursive: true, force: true });

@@ -54,39 +54,93 @@ async function main() {
   const failedRequests = [];
   const badResponses = [];
   let browser;
+  let page;
   let report;
+  let route;
+  let workspace;
+  let workspaceCandidates = [];
+  let workspaceScopeToken;
   try {
     const { chromium } = require(playwrightPath);
     browser = await chromium.launch({ headless: true });
-    const page = await browser.newPage({ viewport: { width: 1440, height: 1000 }, deviceScaleFactor: 1 });
+    page = await browser.newPage({ viewport: { width: 1440, height: 1000 }, deviceScaleFactor: 1 });
     page.on("console", message => { if (message.type() === "error") errors.push(message.text()); });
     page.on("pageerror", error => errors.push(error.message));
     page.on("requestfailed", request => failedRequests.push(`${request.url()} :: ${request.failure()?.errorText || "request failed"}`));
     page.on("response", response => { if (response.status() >= 400 && response.url().startsWith(new URL(args.candidateUrl).origin)) badResponses.push(`${response.status()} ${response.url()}`); });
 
-    const route = managerRoute(args.candidateUrl, args.pageId);
+    route = managerRoute(args.candidateUrl, args.pageId);
     await page.goto(route, { waitUntil: "domcontentloaded", timeout: 45000 });
-    await page.locator("[data-page-workspace-root]").waitFor({ state: "visible", timeout: args.readinessTimeoutMs });
-    await page.waitForFunction(() => {
-      const node = document.querySelector("[data-page-workspace-root]");
+    await page.waitForFunction(({ pageId, sourceSha }) => {
+      const isVisible = node => {
+        for (let current = node; current; current = current.parentElement) {
+          const style = getComputedStyle(current);
+          if (current.hidden || current.getAttribute("aria-hidden") === "true" || style.display === "none"
+            || style.visibility === "hidden" || style.opacity === "0") return false;
+        }
+        const rect = node.getBoundingClientRect();
+        return rect.width > 0 && rect.height > 0;
+      };
+      return [...document.querySelectorAll("[data-page-workspace-root]")].some(node =>
+        (node.dataset.pageId || null) === pageId
+        && (node.dataset.sourceSha || node.dataset.buildSha || null) === sourceSha
+        && isVisible(node));
+    }, { pageId: args.pageId, sourceSha: args.sourceSha }, { timeout: args.readinessTimeoutMs });
+    workspaceCandidates = await page.locator("[data-page-workspace-root]").evaluateAll((elements, { pageId, sourceSha }) => {
+      const isVisible = node => {
+        for (let current = node; current; current = current.parentElement) {
+          const style = getComputedStyle(current);
+          if (current.hidden || current.getAttribute("aria-hidden") === "true" || style.display === "none"
+            || style.visibility === "hidden" || style.opacity === "0") return false;
+        }
+        const rect = node.getBoundingClientRect();
+        return rect.width > 0 && rect.height > 0;
+      };
+      return elements.map((node, index) => {
+        const rect = node.getBoundingClientRect();
+        const nodeSourceSha = node.dataset.sourceSha || node.dataset.buildSha || null;
+        const identityMatches = (node.dataset.pageId || null) === pageId && nodeSourceSha === sourceSha;
+        return {
+          index,
+          pageId: node.dataset.pageId || null,
+          sourceSha: nodeSourceSha,
+          workspaceKind: node.dataset.workspaceKind || null,
+          viewState: node.dataset.viewState || null,
+          visible: isVisible(node),
+          identityMatches,
+          rect: { x: rect.x, y: rect.y, width: rect.width, height: rect.height },
+          treeNodes: [...node.querySelectorAll("[data-workspace-tree-node]")].map(treeNode => ({
+            nodeId: treeNode.dataset.nodeId || treeNode.dataset.workspaceNodeId || null,
+            disabled: Boolean(treeNode.disabled) || treeNode.getAttribute("aria-disabled") === "true"
+          }))
+        };
+      });
+    }, { pageId: args.pageId, sourceSha: args.sourceSha });
+    const matchingVisibleWorkspaces = workspaceCandidates.filter(candidate => candidate.visible && candidate.identityMatches);
+    assert(matchingVisibleWorkspaces.length === 1,
+      `expected exactly one visible workspace matching page ${args.pageId} and source SHA ${args.sourceSha}; found ${matchingVisibleWorkspaces.length}`);
+    workspaceScopeToken = `w4-${process.pid}-${Date.now()}`;
+    const scoped = await page.locator("[data-page-workspace-root]").evaluateAll((elements, { index, token }) => {
+      const node = elements[index];
       if (!node) return false;
-      if (node.dataset.workspaceKind !== "reference-image-only") return Boolean(node.dataset.workspaceKind);
-      return ["REFERENCE_IMAGE_ONLY", "ERROR"].includes(node.dataset.viewState);
-    }, null, { timeout: args.readinessTimeoutMs });
-    await page.waitForFunction(() => {
-      const workspace = document.querySelector("[data-page-workspace-root]");
-      if (!workspace) return false;
-      if (workspace.dataset.workspaceKind === "reference-image-only") return true;
-      const treeNodes = [...document.querySelectorAll("[data-workspace-tree-node]")];
+      node.setAttribute("data-w4-verifier-scope", token);
+      return true;
+    }, { index: matchingVisibleWorkspaces[0].index, token: workspaceScopeToken });
+    assert(scoped, "could not scope the unique visible workspace for W4 verification");
+    workspace = page.locator(`[data-w4-verifier-scope="${workspaceScopeToken}"]`);
+    await page.waitForFunction(token => {
+      const root = document.querySelector(`[data-w4-verifier-scope="${token}"]`);
+      if (!root) return false;
+      if (root.dataset.workspaceKind === "reference-image-only") return ["REFERENCE_IMAGE_ONLY", "ERROR"].includes(root.dataset.viewState);
+      const treeNodes = [...root.querySelectorAll("[data-workspace-tree-node]")];
       if (treeNodes.length === 0) return false;
+      const renderedNodes = [...root.querySelectorAll("[data-workspace-rendered-node]")];
       return treeNodes.every(treeNode => {
         const nodeId = treeNode.dataset.nodeId || treeNode.dataset.workspaceNodeId;
-        if (!nodeId) return false;
-        const selector = `[data-workspace-rendered-node="${CSS.escape(nodeId)}"]`;
-        return document.querySelectorAll(selector).length === 1;
+        return Boolean(nodeId) && renderedNodes.filter(rendered => rendered.dataset.workspaceRenderedNode === nodeId).length === 1;
       });
-    }, null, { timeout: args.readinessTimeoutMs });
-    const rootInfo = await page.locator("[data-page-workspace-root]").evaluate(node => ({
+    }, workspaceScopeToken, { timeout: args.readinessTimeoutMs });
+    const rootInfo = await workspace.evaluate(node => ({
       pageId: node.dataset.pageId || null,
       sourceSha: node.dataset.sourceSha || node.dataset.buildSha || null,
       workspaceKind: node.dataset.workspaceKind || null,
@@ -110,7 +164,8 @@ async function main() {
         schema_version: "1.0", page_id: args.pageId, source_sha: args.sourceSha, candidate_url: route,
         result: "NOT_RUN", reason: "REFERENCE_IMAGE_ONLY_NOT_CONNECTED",
         visual_result: "MEASUREMENT_ONLY_NOT_VISUAL_PASS", page_acceptance: "NOT_VERIFIED",
-        workspace: rootInfo, console_errors: errors, failed_requests: failedRequests, bad_responses: badResponses,
+        workspace: rootInfo, workspace_candidates: workspaceCandidates,
+        console_errors: errors, failed_requests: failedRequests, bad_responses: badResponses,
         screenshot_path: null, screenshot_sha256: null, dom_path: null, dom_sha256: null,
         run_id: process.env.GITHUB_RUN_ID || null
       };
@@ -119,7 +174,8 @@ async function main() {
     assert(rootInfo.viewState !== "ERROR", "structured workspace reports an ERROR state");
     assert(!rootInfo.errorText, `structured workspace reports a visible error: ${rootInfo.errorText}`);
 
-    const nodes = await page.locator("[data-workspace-tree-node]").evaluateAll(elements => elements.map(node => ({
+    const nodes = await workspace.locator("[data-workspace-tree-node]").evaluateAll(elements => elements.map((node, nodeIndex) => ({
+      nodeIndex,
       nodeId: node.dataset.nodeId || node.dataset.workspaceNodeId || null,
       label: node.textContent?.trim() || null,
       state: node.dataset.nodeState || null,
@@ -127,15 +183,20 @@ async function main() {
       visible: node.dataset.nodeVisible === "true",
       measurable: node.dataset.nodeMeasurable === "true",
       selectable: node.dataset.nodeSelectable === "true",
-      disabled: Boolean(node.disabled)
+      disabled: Boolean(node.disabled) || node.getAttribute("aria-disabled") === "true"
     })));
     assert(nodes.length > 0, "workspace component tree is empty");
     const measured = [];
     const blockedAuthorityNodes = [];
+    const renderedNodes = workspace.locator("[data-workspace-rendered-node]");
     for (const row of nodes) {
       assert(row.nodeId, "component tree contains a node without a stable node ID");
-      const target = page.locator(`[data-workspace-rendered-node="${row.nodeId.replaceAll('"', '\\"')}"]`);
-      assert(await target.count() === 1, `tree node ${row.nodeId} does not map to exactly one rendered DOM node`);
+      const targetIndices = await renderedNodes.evaluateAll((elements, nodeId) => elements.reduce((indexes, element, index) => {
+        if (element.dataset.workspaceRenderedNode === nodeId) indexes.push(index);
+        return indexes;
+      }, []), row.nodeId);
+      assert(targetIndices.length === 1, `tree node ${row.nodeId} does not map to exactly one rendered DOM node in the selected workspace`);
+      const target = renderedNodes.nth(targetIndices[0]);
       if (row.state === "BLOCKED_AUTHORITY_GAP") {
         assert(row.disabled && !row.selectable && !row.visible && !row.measurable
           && row.authorityStatus === "BLOCKED_AUTHORITY_GAP",
@@ -153,8 +214,11 @@ async function main() {
         continue;
       }
       assert(!row.disabled && row.selectable, `component tree node ${row.nodeId} is disabled and cannot be selected in the actual workspace`);
-      await page.locator(`[data-workspace-tree-node][data-node-id="${row.nodeId.replaceAll('"', '\\"')}"]`).first().click();
-      const inspector = page.locator("[data-workspace-inspector]");
+      const treeNode = workspace.locator("[data-workspace-tree-node]").nth(row.nodeIndex);
+      await treeNode.click();
+      const inspectorNodes = workspace.locator("[data-workspace-inspector]");
+      assert(await inspectorNodes.count() === 1, "selected workspace must expose exactly one Inspector");
+      const inspector = inspectorNodes.first();
       await inspector.waitFor({ state: "visible", timeout: 10000 });
       const selectedId = await inspector.getAttribute("data-selected-node-id");
       assert(selectedId === row.nodeId, `Inspector selected ${selectedId} for tree node ${row.nodeId}`);
@@ -171,7 +235,8 @@ async function main() {
       horizontalOverflow: document.documentElement.scrollWidth > window.innerWidth
     }));
     await page.screenshot({ path: screenshotPath, fullPage: true });
-    const dom = { page_id: args.pageId, source_sha: args.sourceSha, route, viewport: { width: 1440, height: 1000, unit: "css_px" }, workspace: rootInfo, nodes: measured, blocked_authority_nodes: blockedAuthorityNodes, overflow };
+    const dom = { page_id: args.pageId, source_sha: args.sourceSha, route, viewport: { width: 1440, height: 1000, unit: "css_px" },
+      workspace: rootInfo, workspace_candidates: workspaceCandidates, nodes: measured, blocked_authority_nodes: blockedAuthorityNodes, overflow };
     await writeFile(domPath, `${JSON.stringify(dom, null, 2)}\n`, "utf8");
     if (overflow.horizontalOverflow) errors.push(`horizontal overflow: document ${overflow.documentWidth}px > viewport ${overflow.viewportWidth}px`);
     if (failedRequests.length) errors.push(`failed browser requests: ${failedRequests.length}`);
@@ -179,7 +244,7 @@ async function main() {
     report = {
       schema_version: "1.0", page_id: args.pageId, source_sha: args.sourceSha, candidate_url: route,
       result: errors.length ? "FAIL" : "PASS", visual_result: "MEASUREMENT_ONLY_NOT_VISUAL_PASS",
-      page_acceptance: "NOT_VERIFIED", workspace: rootInfo, tree_node_count: nodes.length,
+      page_acceptance: "NOT_VERIFIED", workspace: rootInfo, workspace_candidates: workspaceCandidates, tree_node_count: nodes.length,
       measured_node_count: measured.length, blocked_authority_nodes: blockedAuthorityNodes, overflow, console_errors: errors,
       failed_requests: failedRequests, bad_responses: badResponses,
       screenshot_path: screenshotPath, screenshot_sha256: hash(await readFile(screenshotPath)),
@@ -189,17 +254,78 @@ async function main() {
     }
   } catch (error) {
     const status = browser ? "FAIL" : "BLOCKED";
+    const originalFailure = error instanceof Error ? error.message : String(error);
+    const diagnosticErrors = [];
+    let screenshotSha = null;
+    let domSha = null;
+    if (page) {
+      try {
+        workspaceCandidates = await page.locator("[data-page-workspace-root]").evaluateAll((elements, { pageId, sourceSha }) => {
+          const visible = node => {
+            for (let current = node; current; current = current.parentElement) {
+              const style = getComputedStyle(current);
+              if (current.hidden || current.getAttribute("aria-hidden") === "true" || style.display === "none"
+                || style.visibility === "hidden" || style.opacity === "0") return false;
+            }
+            const rect = node.getBoundingClientRect();
+            return rect.width > 0 && rect.height > 0;
+          };
+          return elements.map((node, index) => {
+            const rect = node.getBoundingClientRect();
+            const treeNodes = [...node.querySelectorAll("[data-workspace-tree-node]")].map(treeNode => {
+              const treeRect = treeNode.getBoundingClientRect();
+              return { nodeId: treeNode.dataset.nodeId || treeNode.dataset.workspaceNodeId || null,
+                disabled: Boolean(treeNode.disabled) || treeNode.getAttribute("aria-disabled") === "true",
+                selectable: treeNode.dataset.nodeSelectable === "true",
+                rect: { x: treeRect.x, y: treeRect.y, width: treeRect.width, height: treeRect.height } };
+            });
+            const inspectorNodes = [...node.querySelectorAll("[data-workspace-inspector]")].map(inspector => ({
+              selectedNodeId: inspector.dataset.selectedNodeId || null,
+              visible: visible(inspector),
+              rect: (() => { const r = inspector.getBoundingClientRect(); return { x: r.x, y: r.y, width: r.width, height: r.height }; })()
+            }));
+            return { index, pageId: node.dataset.pageId || null, sourceSha: node.dataset.sourceSha || node.dataset.buildSha || null,
+              workspaceKind: node.dataset.workspaceKind || null, viewState: node.dataset.viewState || null, visible: visible(node),
+              identityMatches: (node.dataset.pageId || null) === pageId
+                && (node.dataset.sourceSha || node.dataset.buildSha || null) === sourceSha,
+              rect: { x: rect.x, y: rect.y, width: rect.width, height: rect.height }, treeNodes, inspectorNodes,
+              errorText: (() => { const n = node.querySelector("[data-workspace-error]"); return n && !n.hidden ? n.textContent?.trim() || null : null; })() };
+          });
+        }, { pageId: args.pageId, sourceSha: args.sourceSha });
+        const dom = { page_id: args.pageId, source_sha: args.sourceSha, candidate_url: route || args.candidateUrl,
+          viewport: await page.evaluate(() => ({ width: innerWidth, height: innerHeight, unit: "css_px" })),
+          original_failure: originalFailure, selected_scope_token: workspaceScopeToken, workspace_candidates: workspaceCandidates,
+          console_errors: errors, failed_requests: failedRequests, bad_responses: badResponses };
+        await writeFile(domPath, `${JSON.stringify(dom, null, 2)}\n`, "utf8");
+        domSha = hash(await readFile(domPath));
+      } catch (diagnosticError) {
+        diagnosticErrors.push(`DOM_DIAGNOSTICS_FAILED: ${diagnosticError instanceof Error ? diagnosticError.message : String(diagnosticError)}`);
+      }
+      try {
+        await page.screenshot({ path: screenshotPath, fullPage: true });
+        screenshotSha = hash(await readFile(screenshotPath));
+      } catch (diagnosticError) {
+        diagnosticErrors.push(`SCREENSHOT_CAPTURE_FAILED: ${diagnosticError instanceof Error ? diagnosticError.message : String(diagnosticError)}`);
+      }
+    }
     report = {
       schema_version: "1.0", page_id: args.pageId, source_sha: args.sourceSha,
-      candidate_url: args.candidateUrl, result: status,
+      candidate_url: route || args.candidateUrl, result: status, original_failure: originalFailure,
       visual_result: "MEASUREMENT_ONLY_NOT_VISUAL_PASS", page_acceptance: "NOT_VERIFIED",
-      console_errors: [...errors, `${status === "BLOCKED" ? "BLOCKED_INFRA" : "WORKSPACE_CHECK_FAILED"}: ${error instanceof Error ? error.message : String(error)}`],
+      console_errors: [`${status === "BLOCKED" ? "BLOCKED_INFRA" : "WORKSPACE_CHECK_FAILED"}: ${originalFailure}`, ...errors],
       failed_requests: failedRequests, bad_responses: badResponses,
-      screenshot_path: null, screenshot_sha256: null, dom_path: null, dom_sha256: null,
+      workspace_candidates: workspaceCandidates, diagnostic_capture_errors: diagnosticErrors,
+      screenshot_path: screenshotSha ? screenshotPath : null, screenshot_sha256: screenshotSha,
+      dom_path: domSha ? domPath : null, dom_sha256: domSha,
       run_id: process.env.GITHUB_RUN_ID || null
     };
   } finally {
-    if (browser) await browser.close();
+    if (browser) {
+      try { await browser.close(); } catch (error) {
+        if (report) report.diagnostic_capture_errors = [...(report.diagnostic_capture_errors || []),
+          `BROWSER_CLOSE_FAILED: ${error instanceof Error ? error.message : String(error)}`];
+      }
+    }
   }
   await writeFile(reportPath, `${JSON.stringify(report, null, 2)}\n`, "utf8");
   console.log(JSON.stringify({ result: report.result, page_id: report.page_id, source_sha: report.source_sha, report_path: reportPath }, null, 2));
