@@ -296,7 +296,7 @@ async function main() {
       assert(caseEvidence.fishing.layer_order[0]<caseEvidence.fishing.layer_order[1]&&caseEvidence.fishing.layer_order[1]<caseEvidence.fishing.layer_order[2]&&caseEvidence.fishing.layer_order[2]<caseEvidence.fishing.layer_order[3],`fishing layer occlusion order is invalid: ${caseEvidence.fishing.layer_order}`);
       assert(caseEvidence.cameraTouch.width>0&&caseEvidence.cameraTouch.height>0,"camera button actual DOM bounds must be measured");
       const shot=resolve(args.outputDir,`EmptyHome_${width}x${height}_font-${fontScale}.png`);
-      await page.locator("[data-workspace-artboard]").screenshot({path:shot,animations:"disabled"});
+      await page.locator("#eh-EmptyHomeRoot").screenshot({path:shot,animations:"disabled"});
       const shotSize=await pngDimensions(shot);
       assert(shotSize.width===width*3&&shotSize.height===height*3,`MATRIX_SCREENSHOT_PIXEL_SCALE_MISMATCH: ${width}x${height}: ${JSON.stringify(shotSize)}`);
       Object.assign(activeMatrixRow,caseEvidence,{
@@ -334,13 +334,13 @@ async function main() {
     await copyFile(originalFrozen,frozenCopy);
     assert(await sha256File(frozenCopy)===preflight.referenceSha,"frozen V2.2 evidence copy SHA differs from the W2-verified reference");
     const compareStructured=resolve(args.outputDir,"EmptyHome_Structured_1080x1920.png");
-    await page.locator("[data-workspace-artboard]").screenshot({path:compareStructured,animations:"disabled",timeout:45000});
+    await page.locator("#eh-EmptyHomeRoot").screenshot({path:compareStructured,animations:"disabled",timeout:45000});
     const compareSize=await pngDimensions(compareStructured);
     assert(compareSize.width===1080&&compareSize.height===1920,`REFERENCE_COMPARISON_PIXEL_SIZE_MISMATCH: ${JSON.stringify(compareSize)}`);
     for (const mode of ["frozen","overlay","difference"]) {
       await page.locator("[data-empty-compare-mode]").selectOption(mode);
       const comparePath=resolve(args.outputDir,`EmptyHome_Compare_${mode}_1080x1920.png`);
-      await page.locator("[data-workspace-artboard]").screenshot({path:comparePath,animations:"disabled",timeout:45000});
+      await page.locator("#eh-EmptyHomeRoot").screenshot({path:comparePath,animations:"disabled",timeout:45000});
       const size=await pngDimensions(comparePath);
       assert(size.width===1080&&size.height===1920,`REFERENCE_COMPARISON_PIXEL_SIZE_MISMATCH: ${mode}: ${JSON.stringify(size)}`);
     }
