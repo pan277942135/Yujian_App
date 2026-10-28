@@ -265,6 +265,7 @@ parallelism:
     - "N004 may run in parallel with N001 when its own inputs are available."
     - "Independent evidence collection may run in parallel after its producing gate is available."
     - "Secondary feature closure may proceed while primary runtime is blocked when it does not mutate the blocked dependency."
+    - "W6-A Login module work may run in parallel with W5 only for Login-owned authority mapping, candidate profile, renderer, Inspector, and independent browser evidence after W3 and W4; shared Design Manager routing, cross-page integration, W6 completion, and visual acceptance remain blocked on W5."
   forbidden:
     - "N002 may not bypass N001; N003 may not bypass N001 or N010."
     - "P9 may not bypass N001-N008."
@@ -1148,13 +1149,32 @@ tasks:
     release_blocking: false
     android_release_blocking: false
     issue_ref: "https://github.com/pan277942135/Yujian_App/issues/224"
+  YUJIAN_PAGE_FREEZE_PIPELINE_W6A_LOGIN_MODULE_V1:
+    phase: "P3"
+    priority: "P0"
+    owner: "Work"
+    feature_refs: []
+    journey_refs: []
+    depends_on: ["YUJIAN_PAGE_FREEZE_PIPELINE_W3_DESIGN_MANAGER_ADAPTER_V1", "YUJIAN_PAGE_FREEZE_PIPELINE_W4_TEST_EVIDENCE_V1"]
+    entry_blockers: []
+    target_blockers: []
+    gate_id: "G-PAGE-FREEZE-PIPELINE-W6A-LOGIN-MODULE"
+    evidence_required: ["login_authority_audit", "login_component_mapping", "login_candidate_profile", "independent_login_renderer_and_inspector", "chromium_matrix_and_evidence_manifest", "exact_source_sha", "admission_run_id"]
+    completion: "Deliver the Login-owned structured candidate module and independent browser evidence after W3/W4; do not integrate it into the shared Design Manager route, claim W6 completion, change frozen authorities, or assert user/native acceptance before W5 and the remaining W6 gates."
+    human_required: false
+    workstream_id: "PAGE_FREEZE_PIPELINE_V1"
+    execution_scope: "CROSS_PAGE_DESIGN_TOOLING"
+    phase_rollup: false
+    release_blocking: false
+    android_release_blocking: false
+    issue_ref: "https://github.com/pan277942135/Yujian_App/issues/237"
   YUJIAN_PAGE_FREEZE_PIPELINE_W6_LOGIN_PILOT_AND_ACCEPTANCE_V1:
     phase: "P3"
     priority: "P0"
     owner: "Work"
     feature_refs: []
     journey_refs: []
-    depends_on: ["YUJIAN_PAGE_FREEZE_PIPELINE_W5_EMPTY_HOME_PILOT_V1"]
+    depends_on: ["YUJIAN_PAGE_FREEZE_PIPELINE_W5_EMPTY_HOME_PILOT_V1", "YUJIAN_PAGE_FREEZE_PIPELINE_W6A_LOGIN_MODULE_V1"]
     entry_blockers: []
     target_blockers: []
     gate_id: "G-PAGE-FREEZE-PIPELINE-W6-LOGIN-PILOT"
@@ -1171,7 +1191,7 @@ tasks:
 workstreams:
   PAGE_FREEZE_PIPELINE_V1:
     purpose: "Cross-page responsive specification freeze and delivery verification; design tooling only."
-    task_ids: ["YUJIAN_PAGE_FREEZE_PIPELINE_W0_GOVERNANCE_V1", "YUJIAN_PAGE_FREEZE_PIPELINE_W1_CONTRACT_SCHEMA_V1", "YUJIAN_PAGE_FREEZE_PIPELINE_W2_ASSET_BINDING_V1", "YUJIAN_PAGE_FREEZE_PIPELINE_W3_DESIGN_MANAGER_ADAPTER_V1", "YUJIAN_PAGE_FREEZE_PIPELINE_W4_TEST_EVIDENCE_V1", "YUJIAN_PAGE_FREEZE_PIPELINE_W5_EMPTY_HOME_PILOT_V1", "YUJIAN_PAGE_FREEZE_PIPELINE_W6_LOGIN_PILOT_AND_ACCEPTANCE_V1"]
+    task_ids: ["YUJIAN_PAGE_FREEZE_PIPELINE_W0_GOVERNANCE_V1", "YUJIAN_PAGE_FREEZE_PIPELINE_W1_CONTRACT_SCHEMA_V1", "YUJIAN_PAGE_FREEZE_PIPELINE_W2_ASSET_BINDING_V1", "YUJIAN_PAGE_FREEZE_PIPELINE_W3_DESIGN_MANAGER_ADAPTER_V1", "YUJIAN_PAGE_FREEZE_PIPELINE_W4_TEST_EVIDENCE_V1", "YUJIAN_PAGE_FREEZE_PIPELINE_W5_EMPTY_HOME_PILOT_V1", "YUJIAN_PAGE_FREEZE_PIPELINE_W6A_LOGIN_MODULE_V1", "YUJIAN_PAGE_FREEZE_PIPELINE_W6_LOGIN_PILOT_AND_ACCEPTANCE_V1"]
     static_dependencies:
       YUJIAN_PAGE_FREEZE_PIPELINE_W0_GOVERNANCE_V1: []
       YUJIAN_PAGE_FREEZE_PIPELINE_W1_CONTRACT_SCHEMA_V1: ["YUJIAN_PAGE_FREEZE_PIPELINE_W0_GOVERNANCE_V1"]
@@ -1179,7 +1199,8 @@ workstreams:
       YUJIAN_PAGE_FREEZE_PIPELINE_W3_DESIGN_MANAGER_ADAPTER_V1: ["YUJIAN_PAGE_FREEZE_PIPELINE_W1_CONTRACT_SCHEMA_V1", "YUJIAN_PAGE_FREEZE_PIPELINE_W2_ASSET_BINDING_V1"]
       YUJIAN_PAGE_FREEZE_PIPELINE_W4_TEST_EVIDENCE_V1: ["YUJIAN_PAGE_FREEZE_PIPELINE_W1_CONTRACT_SCHEMA_V1", "YUJIAN_PAGE_FREEZE_PIPELINE_W2_ASSET_BINDING_V1"]
       YUJIAN_PAGE_FREEZE_PIPELINE_W5_EMPTY_HOME_PILOT_V1: ["YUJIAN_PAGE_FREEZE_PIPELINE_W3_DESIGN_MANAGER_ADAPTER_V1", "YUJIAN_PAGE_FREEZE_PIPELINE_W4_TEST_EVIDENCE_V1"]
-      YUJIAN_PAGE_FREEZE_PIPELINE_W6_LOGIN_PILOT_AND_ACCEPTANCE_V1: ["YUJIAN_PAGE_FREEZE_PIPELINE_W5_EMPTY_HOME_PILOT_V1"]
+      YUJIAN_PAGE_FREEZE_PIPELINE_W6A_LOGIN_MODULE_V1: ["YUJIAN_PAGE_FREEZE_PIPELINE_W3_DESIGN_MANAGER_ADAPTER_V1", "YUJIAN_PAGE_FREEZE_PIPELINE_W4_TEST_EVIDENCE_V1"]
+      YUJIAN_PAGE_FREEZE_PIPELINE_W6_LOGIN_PILOT_AND_ACCEPTANCE_V1: ["YUJIAN_PAGE_FREEZE_PIPELINE_W5_EMPTY_HOME_PILOT_V1", "YUJIAN_PAGE_FREEZE_PIPELINE_W6A_LOGIN_MODULE_V1"]
     phase_classification: "P3_CROSS_PAGE_DESIGN_TOOLING"
     phase_rollup: false
     feature_refs: []
