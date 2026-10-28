@@ -14,7 +14,7 @@ state_control:
   current_head: "5ba86fd8d1142d4708d1b8f9e6ddc81cbc96ccf6"
   current_main_head_sha: "632cada103bf022adeb873bd6e66464555b509e4"
   state_status: "BLOCKED"
-  updated_at: "2026-10-28T10:01:56.711Z"
+  updated_at: "2026-10-28T13:58:42.380Z"
 source_of_truth:
   current_work_state: "WORK_EXECUTION_STATE.json"
   canonical_control_plane: "CONTROL_PLANE_REGISTRY.yaml"
@@ -114,7 +114,24 @@ runtime_gates:
       status: "PASS"
       run_id: 40667570176
       source_sha: "5ba86fd8d1142d4708d1b8f9e6ddc81cbc96ccf6"
-    historical_w4_failure:
+    isolated_preview:
+    status: "PASS"
+    run_id: 40667570170
+    source_sha: "5ba86fd8d1142d4708d1b8f9e6ddc81cbc96ccf6"
+    url: "https://pan277942135.github.io/Yujian_App/previews/pr-234/"
+    deployment: "PASS"
+    live_candidate_browser_verification: "PASS"
+    production_root_sha: "80c55961059b95fd8dd52eea4b52a37bd91705e8"
+    production_pages_run_id: 40665646629
+  product_work_admission:
+    status: "NOT_RUN"
+    note: "PR Admission run 40667570171 is CANONICAL_MAIN_PROMOTION only."
+  latest_main_pages:
+    status: "CANCELLED"
+    run_id: 40666041684
+    source_sha: "632cada103bf022adeb873bd6e66464555b509e4"
+    live_production_root_sha: "80c55961059b95fd8dd52eea4b52a37bd91705e8"
+  historical_w4_failure:
       status: "FAIL"
       run_id: 40657928278
       source_sha: "dae5e54c761cb424eee4144f4009436a12e2cb80"
@@ -146,16 +163,16 @@ blockers:
   - id: "W5-BLOCKER-W4-WORKSPACE-SCOPE"
     severity: "P0"
     area: "W4 Evidence"
-    condition: "W4 run 40667570169 on exact candidate SHA 5ba86fd8d1142d4708d1b8f9e6ddc81cbc96ccf6 failed: home_normal_v1 browser report FAIL, home_empty_v2 PASS, auth_login_v2 NOT_RUN. The 11 verifier fixture tests passed, but that is not the actual page workspace gate."
+    condition: "W4 run 40667570169 on exact candidate SHA 5ba86fd8d1142d4708d1b8f9e6ddc81cbc96ccf6 failed: WORKSPACE_CHECK_FAILED because the home_normal_v1 component tree page node is disabled and cannot be selected. home_empty_v2 PASS; auth_login_v2 NOT_RUN_REFERENCE_IMAGE_ONLY_NOT_CONNECTED; 11 shared verifier fixture tests PASS do not substitute for the page workspace gate."
     affected_gate: "G-PAGE-FREEZE-PIPELINE-W4-TEST-EVIDENCE"
     unblock_condition: "After product-work Admission PASS, apply the preserved scope-repair patch; rerun real Chromium workspace checks and W4 Evidence on the new exact SHA."
     status: "OPEN"
   - id: "W5-BLOCKER-MAIN-PAGES-SHA"
     severity: "P1"
     area: "Production Pages"
-    condition: "Main SHA 632cada103bf022adeb873bd6e66464555b509e4 has a cancelled Design Manager Pages run 40666041684; the isolated-preview workflow has independently verified the existing production root under the shared deployment lock and matched it to its artifact, but the latest Main SHA is not confirmed deployed."
+    condition: "Main SHA 632cada103bf022adeb873bd6e66464555b509e4 has a cancelled Design Manager Pages run 40666041684. Isolated preview Run 40667570170 is PASS, but its verified production root remains 80c55961059b95fd8dd52eea4b52a37bd91705e8; latest Main is not deployed."
     affected_gate: "Live root SHA and isolated preview integrity"
-    unblock_condition: "Wait for the candidate Pages build's real DOM matrix, artifact upload, deploy-preview job, and live candidate browser verification; confirm deployed preview SHA and URL. Do not infer deployment from composition success."
+    unblock_condition: "Rerun Main Pages for SHA 632cada103bf022adeb873bd6e66464555b509e4 and verify the live root build SHA; the PR #234 isolated preview is already deployed and verified at https://pan277942135.github.io/Yujian_App/previews/pr-234/."
     status: "OPEN"
 protected_invariants:
   evidence_integrity:
@@ -172,7 +189,7 @@ next_actions:
   - id: "W5-RECOVERY-ADMISSION-01"
     owner: "Work"
     status: "READY"
-    action: "Run the control-plane-admission workflow manually on ref work-state/w5-empty-home-pilot-v1 and verify PRODUCT_WORK mode plus exact current control-plane and state validators."
+    action: "Dispatch .github/workflows/control-plane-admission.yml with ref work-state/w5-empty-home-pilot-v1; require PRODUCT_WORK mode and explicit PASS for CONTROL_PLANE_SYNC + PROJECT_STATE + WORK_STATE."
     dependency: "Branch-local state files committed to the isolated Work-state branch."
   - id: "W5-RECOVERY-W4-02"
     owner: "Work"
