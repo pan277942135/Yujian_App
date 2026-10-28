@@ -134,6 +134,17 @@ shared_contracts:
     runtime_status: "NOT_VERIFIED"
     owner_visual_acceptance: "CANDIDATE_NOT_VISUALLY_APPROVED"
     refs: ["design/pages/recognition/processing/optics/Android_Effect01_Upward_Caustic_Integration_V1.md", "design/pages/recognition/processing/optics/SWOS_Optical_Contract_V1.md", "design/pages/recognition/processing/motion/Recognition_Processing_Motion_Spec_V1_3.md"]
+  ANDROID-AISTUDIO-PERIMETER-SHADER-PORT-V1:
+    domain: "DOMAIN"
+    status: "ACTIVE_CLOSURE"
+    source_repository: "pan277942135/demo--Image-light-effect"
+    source_sha: "794e7f2698525761bbb2f3e5d775b5dae8d7a25a"
+    implementation_values_status: "SOURCE_FROZEN"
+    runtime_status: "NOT_VERIFIED"
+    overlay_alpha_status: "NOT_VERIFIED"
+    reference_coordinate_scale_status: "NOT_RECORDED"
+    owner_visual_acceptance: "PENDING_REAL_DEVICE_AND_SOURCE_BROWSER_COMPARISON"
+    refs: ["design/pages/recognition/processing/optics/Android_AiStudio_Perimeter_Shader_Port_V1.md", "design/pages/recognition/processing/optics/SWOS_Optical_Contract_V1.md", "design/pages/recognition/processing/motion/Recognition_Processing_Motion_Spec_V1_3.md", "https://github.com/pan277942135/demo--Image-light-effect/blob/794e7f2698525761bbb2f3e5d775b5dae8d7a25a/src/water-caustics/shaders.ts", "https://github.com/pan277942135/demo--Image-light-effect/blob/794e7f2698525761bbb2f3e5d775b5dae8d7a25a/src/water-caustics/fish-catch-caustics.ts"]
   WEB-RECOGNITION-HIFI-V2:
     domain: "DOMAIN"
     status: "ACTIVE_CLOSURE"
@@ -487,7 +498,7 @@ feature_contracts:
 
 
     shared_contract_refs: ["DS-FOUNDATION", "ANDROID-RUNTIME-HARNESS", "STATE-EVIDENCE-PROVENANCE"]
-    additional_shared_contract_refs: ["MODEL-RECOGNITION", "API-DATA-BOUNDARY", "RECOGNITION-OPTICAL-CONTINUITY", "SWOS-WEB-HIFI-MOTION-V1", "FISHTRACE-SITES-WEB-INTERACTION-V1", "ANDROID-EFFECT01-UPWARD-SCAN-SHAKE-V1"]
+    additional_shared_contract_refs: ["MODEL-RECOGNITION", "API-DATA-BOUNDARY", "RECOGNITION-OPTICAL-CONTINUITY", "SWOS-WEB-HIFI-MOTION-V1", "FISHTRACE-SITES-WEB-INTERACTION-V1", "ANDROID-EFFECT01-UPWARD-SCAN-SHAKE-V1", "ANDROID-AISTUDIO-PERIMETER-SHADER-PORT-V1"]
     required_gate_classes: ["STATIC_CONTRACT", "BUILD", "RUNTIME", "VISUAL", "MOTION_ACCESSIBILITY", "JOURNEY_E2E", "APK_PROVENANCE"]
   recognition_result_v1:
     contract_id: "FC-recognition_result_v1"
@@ -1639,6 +1650,11 @@ gate_contracts:
     contract_refs: ["FC-recognition_flow_v1_2", "ANDROID-EFFECT01-UPWARD-SCAN-SHAKE-V1", "ANDROID-RUNTIME-HARNESS", "STATE-EVIDENCE-PROVENANCE"]
     acceptance_domains: ["implementation", "build", "unit_test", "lint", "runtime", "evidence", "apk_provenance"]
     exact_sha_required: true
+  G-ANDROID-AISTUDIO-PERIMETER-SHADER-PORT-V1:
+    purpose: "Exact-source Android perimeter shader port with source-browser coordinate/DPR capture, two-stage Overlay alpha equivalence, 16-node path parity, shared PhotoSession/clock lifecycle, and exact-head API28 real-device comparison; no bottom-caustic or fish-reveal acceptance."
+    contract_refs: ["FC-recognition_flow_v1_2", "ANDROID-AISTUDIO-PERIMETER-SHADER-PORT-V1", "ANDROID-RUNTIME-HARNESS", "STATE-EVIDENCE-PROVENANCE"]
+    acceptance_domains: ["source_provenance", "implementation", "build", "unit_test", "lint", "runtime", "visual", "compositing", "lifecycle", "input_invariance", "evidence", "apk_provenance"]
+    exact_sha_required: true
   G-J01-J20:
     purpose: "End-to-end primary journey J01-J20"
     contract_refs: ["FC-home_empty_v2", "FC-home_normal_v1", "FC-recognition_flow_v1_2", "FC-recognition_result_v1", "FC-fish_record_detail_v2", "FC-fish_memory_bside_v1"]
@@ -1731,6 +1747,10 @@ task_contract_bindings:
   YUJIAN_ANDROID_FISH_CATCH_EFFECT01_UPWARD_SCAN_SHAKE_V1:
     contract_refs: ["FC-recognition_flow_v1_2", "ANDROID-EFFECT01-UPWARD-SCAN-SHAKE-V1", "ANDROID-RUNTIME-HARNESS", "STATE-EVIDENCE-PROVENANCE", "G-ANDROID-EFFECT01-UPWARD-SCAN-SHAKE-V1"]
     gate_id: "G-ANDROID-EFFECT01-UPWARD-SCAN-SHAKE-V1"
+    phase: "P6"
+  YUJIAN_ANDROID_AISTUDIO_PERIMETER_SHADER_PORT_V1:
+    contract_refs: ["FC-recognition_flow_v1_2", "ANDROID-AISTUDIO-PERIMETER-SHADER-PORT-V1", "ANDROID-RUNTIME-HARNESS", "STATE-EVIDENCE-PROVENANCE", "G-ANDROID-AISTUDIO-PERIMETER-SHADER-PORT-V1"]
+    gate_id: "G-ANDROID-AISTUDIO-PERIMETER-SHADER-PORT-V1"
     phase: "P6"
   NH01-RESPONSIVE-CONTRACT-V2:
     contract_refs: ["FC-home_normal_v1", "RESPONSIVE-LAYOUT-STANDARD-V1", "G-NH01-RESPONSIVE-CONTRACT-V2"]
@@ -2000,9 +2020,9 @@ inventory:
   journey_count: 20
   child_surface_count: 81
   route_count: 22
-  task_count: 61
-  gate_count: 27
+  task_count: 62
+  gate_count: 28
   registry_created_from_pr_head: "ebb6b3904feaa0cf26b4fd4b83bc809a397085a2"
-  last_synced_feature_matrix_sha: "b1bebf9e662c45aa748b2649bf844b64a3798d94"
-  last_synced_phase_task_state_machine_sha: "5202c858651603659e33cf85ef946914383b6b90"
+  last_synced_feature_matrix_sha: "aacfe6561fb2dc4dc2262c36147a59bd484cbea1"
+  last_synced_phase_task_state_machine_sha: "960374a521963a4d1b77eba1098701ce065f6e21"
   last_synced_experience_registry_sha: "47be44ca3cbce908fa676e262987fe26a8dbea32"
