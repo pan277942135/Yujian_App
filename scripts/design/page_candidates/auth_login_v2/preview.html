@@ -38,6 +38,8 @@
       const status = document.querySelector("#login-boot-status");
       const mount = document.querySelector("#workspace-mount");
       try {
+        const exactSourceSha = window.__W6A_EXACT_SOURCE_SHA__ || "__SOURCE_SHA__";
+        document.documentElement.dataset.sourceSha = exactSourceSha;
         const registryResponse = await fetch(repoHref("design/registry/experience_registry_v1.json"), { cache: "no-store" });
         if (!registryResponse.ok) throw new Error(`EXPERIENCE_REGISTRY_HTTP_${registryResponse.status}`);
         const registry = await registryResponse.json();
@@ -60,7 +62,7 @@
         const adapter = PageWorkspaceAdapters.createStructuredDomAdapter({
           root: mount,
           pageId: "auth_login_v2",
-          sourceSha: document.documentElement.dataset.sourceSha || "__SOURCE_SHA__",
+          sourceSha: exactSourceSha,
           feature,
           repoHref,
           displayName: "Login V2.1 · structured candidate",

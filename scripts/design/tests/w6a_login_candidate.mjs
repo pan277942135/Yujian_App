@@ -188,7 +188,7 @@ async function main() {
         if (!response.url().includes("__w6a_missing.png")) unexpectedHttp.push(row);
       }
     });
-    await page.addInitScript(({ exactSourceSha }) => { document.documentElement.dataset.sourceSha = exactSourceSha; }, { exactSourceSha: sourceSha });
+    await page.addInitScript(({ exactSourceSha }) => { window.__W6A_EXACT_SOURCE_SHA__ = exactSourceSha; }, { exactSourceSha: sourceSha });
     await page.goto(candidateUrl, { waitUntil: "networkidle" });
     try {
       await page.waitForFunction(() => document.documentElement.dataset.loginCandidateReady === "true", { timeout: 30000 });
