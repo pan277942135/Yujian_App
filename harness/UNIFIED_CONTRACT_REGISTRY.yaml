@@ -1590,6 +1590,13 @@ gate_contracts:
     contract_refs: ["PAGE-FREEZE-PIPELINE-W0-BASELINE", "STATE-EVIDENCE-PROVENANCE"]
     acceptance_domains: ["design_tooling", "schema", "evidence", "admission"]
     exact_sha_required: true
+  G-PAGE-FREEZE-PIPELINE-W6A-LOGIN-MODULE:
+    purpose: "Issue #237; W6-A Login-owned structured candidate module and independent browser evidence is registered separately from W6 integration and user acceptance."
+    task_id: "YUJIAN_PAGE_FREEZE_PIPELINE_W6A_LOGIN_MODULE_V1"
+    issue_ref: "https://github.com/pan277942135/Yujian_App/issues/237"
+    contract_refs: ["PAGE-FREEZE-PIPELINE-W0-BASELINE", "STATE-EVIDENCE-PROVENANCE"]
+    acceptance_domains: ["design_tooling", "schema", "evidence", "admission"]
+    exact_sha_required: true
   G-NH01-WORK-B-V22-EXACT-SHA:
     purpose: "Issue #194 V2.2 Android implementation repair including Responsive Foundation V1.1 equal long-screen surplus split (S/2 to A-to-B and S/2 to B-to-C), plus targeted API28 smoke; does not replace the full native matrix, N004 or release gates"
     contract_refs: ["FC-home_normal_v1", "ANDROID-RUNTIME-HARNESS", "STATE-EVIDENCE-PROVENANCE"]
@@ -1938,6 +1945,10 @@ task_contract_bindings:
     contract_refs: ["PAGE-FREEZE-PIPELINE-W0-BASELINE", "STATE-EVIDENCE-PROVENANCE", "G-PAGE-FREEZE-PIPELINE-W6-LOGIN-PILOT"]
     gate_id: "G-PAGE-FREEZE-PIPELINE-W6-LOGIN-PILOT"
     phase: "P3"
+  YUJIAN_PAGE_FREEZE_PIPELINE_W6A_LOGIN_MODULE_V1:
+    contract_refs: ["PAGE-FREEZE-PIPELINE-W0-BASELINE", "STATE-EVIDENCE-PROVENANCE", "G-PAGE-FREEZE-PIPELINE-W6A-LOGIN-MODULE"]
+    gate_id: "G-PAGE-FREEZE-PIPELINE-W6A-LOGIN-MODULE"
+    phase: "P3"
 
 contract_conflicts:
   C-FIRST-USE-GUIDE-PAGE-COUNT:
@@ -1973,8 +1984,8 @@ inventory:
   journey_count: 20
   child_surface_count: 81
   route_count: 22
-  task_count: 59
-  gate_count: 25
+  task_count: 60
+  gate_count: 26
   registry_created_from_pr_head: "ebb6b3904feaa0cf26b4fd4b83bc809a397085a2"
   last_synced_feature_matrix_sha: "9a37127ce83d646988793fb31614fc27a5337b54"
   last_synced_phase_task_state_machine_sha: "e890464c27400e24f01043a1a159f0427685a32f"
