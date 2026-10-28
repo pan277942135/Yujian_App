@@ -477,8 +477,10 @@ def import_structured_matrix_report(root: Path, page_id: str, source_sha: str, r
     if source_path.is_file():
         shutil.copyfile(source_path, copied_dir / source_path.name)
     referenced_files: set[Path] = set()
-    if isinstance(report.get("dom_report"), str):
-        referenced_files.add(Path(report["dom_report"]))
+    dom_report_value = report.get("dom_report")
+    dom_report_relative = Path(dom_report_value) if isinstance(dom_report_value, str) and dom_report_value else None
+    if dom_report_relative is not None:
+        referenced_files.add(dom_report_relative)
     def collect_local_paths(value: Any) -> None:
         if isinstance(value, dict):
             for key, child in value.items():
@@ -498,7 +500,7 @@ def import_structured_matrix_report(root: Path, page_id: str, source_sha: str, r
         if not item.is_file() or item.is_symlink():
             # Paths in authority/resource references are not runner outputs; only
             # missing explicit output references are errors.
-            if relative == Path(report.get("dom_report", "")) or any(
+            if (dom_report_relative is not None and relative == dom_report_relative) or any(
                 isinstance(row, dict) and isinstance(row.get("screenshot_rendered"), dict)
                 and row["screenshot_rendered"].get("path") == relative.as_posix()
                 for row in rows

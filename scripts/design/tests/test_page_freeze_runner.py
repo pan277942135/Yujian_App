@@ -225,6 +225,21 @@ class PageFreezeRunnerTests(unittest.TestCase):
                 self.assertTrue(errors)
                 self.assertEqual(matrix["status"], "FAIL")
 
+    def test_w4_failed_w5_report_with_null_dom_report_fails_closed_without_secondary_error(self):
+        source, matrix = self.make_w5_matrix_report(self.temp_root / "w5-matrix-failed-null-dom")
+        report = json.loads(source.read_text(encoding="utf-8"))
+        report["status"] = "FAIL"
+        report["matrix_summary"].update({"executed": 0, "pass": 0, "fail": 1, "not_run": len(report["matrix"])})
+        report["dom_report"] = None
+        source.write_text(json.dumps(report), encoding="utf-8")
+
+        errors = runner.import_structured_matrix_report(ROOT, "home_empty_v2", self.source_sha, self.run_id,
+                                                         str(source), matrix, self.temp_root / "w4-matrix-failed-null-dom")
+
+        self.assertTrue(errors)
+        self.assertTrue(any("did not complete its structural run" in error for error in errors))
+        self.assertEqual(matrix["status"], "FAIL")
+
     def test_login_without_machine_viewports_does_not_invent_a_matrix(self):
         matrix = self.make_manifest("auth_login_v2")["matrix"]
         self.assertEqual(matrix["expected_case_count"], 0)

@@ -4,14 +4,14 @@
 
   const PAGE_ID = "home_empty_v2";
   const MAPPING_PATH = "design/manager/empty_home_v22_component_mapping.json";
-  const MAPPING_SHA256 = "e3d902709058b71ebfb1504b9c29606af908b886438f3ba128fb0e89539af6f6";
+  const MAPPING_SHA256 = "da947e318db20e2afdddc8e22a867eaad3acefeb0113b830ebc38151e27f225f";
   const CONTRACT_ROOT = "design/pages/home/empty_home/shared/contracts/";
   const RUNTIME_MANIFEST_SHA256 = "aaae66f44473f497bffcd2f98165942f5442d8df141e2932ba336ad35065f4e8";
   const SHARED_ADAPTIVE_INSET_DP = { COMPACT: 16, STANDARD: 20, MEDIUM: 22, WIDE: 24 };
   const CANDIDATE_PROMPT_LINE_HEIGHT_SP = 24;
   const AUTHORITY_GAPS = [
     "品牌字样是 FROZEN_ARTWORK_ASSET。现有独立资源仅批准用于 Normal Home；Empty Home 不存在明确授权的独立品牌素材，已阻止动态文本替代，状态 BLOCKED_AUTHORITY_GAP。",
-    "GALLERY 与 CHEVRON_RIGHT 已在图标清单列为 FROZEN_DESIGN，但 Asset Registry 仍为 REVIEW 且不在当前 Main 的本页 W2 绑定内；候选不绕过 Resolver 加载，图标待 W2 权威更新。",
+    "GALLERY 与 CHEVRON_RIGHT 已按冻结图标清单和 frozen_assets V1 接入本页 W2 Binding；Asset Registry 仍为 REVIEW，绑定保留该生命周期冲突并只作为候选渲染。",
     "原图包含系统状态栏，本浏览器候选不模拟 Android 系统栏。",
     "太阳粒子仅有运动资源，没有冻结静态坐标权威；静态候选不渲染粒子。",
     "云层静态位置和透明度沿用现有 Android Renderer 实现参考，尚无独立页面锚点。",
@@ -273,13 +273,18 @@
       BobberReflection: "home_empty_v2_bobber_reflection_master",
       HeroCopy: "home_empty_v2_hero",
       PrimaryCaptureButton: "home_empty_v2_capture_button_v1_1",
+      GalleryIcon: "system_icon_library_v0_1_assets_ic_gallery_v1_svg",
+      ChevronRight: "system_icon_library_v0_1_assets_ic_chevron_right_v1_svg",
       FrozenReference: "empty_home_v2_2_frozen_visual"
     };
     const loaded = {};
     for (const [nodeId, assetId] of Object.entries(pageResources)) loaded[nodeId] = await bindImage(loadBoundResource, nodeId, assetId);
     const manifestRows = new Map(docs["asset_manifest.json"].assets.map(row => [row.asset_id, row]));
     for (const [nodeId, result] of Object.entries(loaded)) {
-      if (["FrozenReference", "PrimaryCaptureButton"].includes(nodeId)) continue;
+      // Shared system icons are governed by their own frozen icon catalog and W2
+      // bindings; the Empty Home runtime manifest intentionally lists page-owned
+      // scene assets only.
+      if (["FrozenReference", "PrimaryCaptureButton", "GalleryIcon", "ChevronRight"].includes(nodeId)) continue;
       const asset = result.resource.asset;
       const manifestAsset = manifestRows.get(asset.asset_id);
       assert(manifestAsset && manifestAsset.path === asset.source_path && manifestAsset.sha256 === asset.sha256,
@@ -432,13 +437,13 @@
       </section>
       <header id="eh-Header" data-workspace-rendered-node="Header" class="eh-v22-header" style="left:${headerLeft}px;top:${headerTop}px;width:${headerWidth}px;height:${responsive.groups.safe_top_ui.minimum_touch_target_dp}px;--eh-header-inset:${profile.inset}px;z-index:12">
         <div class="eh-v22-brand-copy"><span id="eh-Brand" data-workspace-rendered-node="Brand" data-authority-status="BLOCKED_AUTHORITY_GAP" aria-hidden="true" hidden></span><span id="eh-Subtitle" data-workspace-rendered-node="Subtitle" data-typography-status="AUTHORITY_GAP" style="font-size:${9 * fontScale}px;line-height:${12 * fontScale}px">拍照收藏每次渔获</span></div>
-        <button id="eh-AccountEntry" data-workspace-rendered-node="AccountEntry" data-typography-token="type.button" data-typography-authority="design/system/components/text_action/Text_Action_Spec_V1.md" class="eh-v22-login-action" type="button" aria-label="登录 · 候选按钮，无导航逻辑" style="font-size:${16 * fontScale}px;line-height:${20 * fontScale}px">登录</button>
+        <button id="eh-AccountEntry" data-workspace-rendered-node="AccountEntry" data-typography-token="text_action.normal" data-typography-authority="design/system/components/text_action/Text_Action_Spec_V1.md" data-chevron-size-dp="14" data-chevron-gap-dp="4" class="eh-v22-login-action" type="button" aria-label="登录 · 候选按钮，无导航逻辑" style="font-size:${14 * fontScale}px;line-height:${20 * fontScale}px;font-weight:500"><span id="eh-AccountEntryLabel">登录</span><img id="eh-ChevronRight" data-workspace-rendered-node="ChevronRight" data-resource-status="${html(loaded.ChevronRight.resource.status)}" data-asset-id="${html(loaded.ChevronRight.resource.asset.asset_id)}" data-sha256="${html(loaded.ChevronRight.resource.verified.sha256)}" data-source-path="${html(loaded.ChevronRight.resource.asset.source_path)}" data-asset-lifecycle="${html(loaded.ChevronRight.resource.asset.lifecycle_status)}" data-publication-permission="${html(loaded.ChevronRight.resource.verified.publication_permission)}" class="eh-v22-chevron" src="${html(loaded.ChevronRight.resource.objectUrl)}" alt="" aria-hidden="true" draggable="false"></button>
       </header>
       <img id="eh-HeroCopy" data-workspace-rendered-node="HeroCopy" data-resource-status="${html(loaded.HeroCopy.resource.status)}" data-asset-id="${html(loaded.HeroCopy.resource.asset.asset_id)}" data-sha256="${html(loaded.HeroCopy.resource.verified.sha256)}" data-source-path="${html(loaded.HeroCopy.resource.asset.source_path)}" alt="现在，轮到你，记录第一条鱼。" src="${html(loaded.HeroCopy.resource.objectUrl)}" class="eh-v22-hero" style="left:${heroBox.x}px;top:${heroBox.y}px;width:${heroBox.width}px;height:${heroBox.height}px;z-index:10;object-fit:contain;pointer-events:auto">
       <div id="eh-CaptureActionGroup" data-workspace-rendered-node="CaptureActionGroup" class="eh-v22-cta-group" style="left:${safeLeft}px;top:${promptBox.y}px;width:${safeWidth}px;height:${Math.max(albumTop + albumTouchSize - promptBox.y, 0)}px;z-index:20">
         <div id="eh-CapturePrompt" data-workspace-rendered-node="CapturePrompt" data-typography-token="type.body" data-typography-authority="design/system_v3/04_Design_Tokens/Typography/Typography_Tokens_V3_FINAL.json" class="eh-v22-prompt" style="left:0;top:0;width:${safeWidth}px;height:${promptHeight}px;font-size:${16 * fontScale}px;line-height:${promptLineHeight}px"><span id="eh-CapturePromptText">对准鱼获，拍一张</span></div>
         <button id="eh-PrimaryCaptureButton" data-workspace-rendered-node="PrimaryCaptureButton" data-resource-status="${html(loaded.PrimaryCaptureButton.resource.status)}" data-asset-id="${html(loaded.PrimaryCaptureButton.resource.asset.asset_id)}" data-sha256="${html(loaded.PrimaryCaptureButton.resource.verified.sha256)}" data-source-path="${html(loaded.PrimaryCaptureButton.resource.asset.source_path)}" data-touch-target-reference-px="220x220" data-visual-asset-reference-px="208x208" class="eh-v22-camera-action" type="button" aria-label="拍照 · 视觉候选，不连接业务流程" style="left:${cameraBox.x - safeLeft}px;top:${cameraBox.y - promptBox.y}px;width:${cameraBox.width}px;height:${cameraBox.height}px"><img src="${html(loaded.PrimaryCaptureButton.resource.objectUrl)}" alt="" draggable="false"></button>
-        <button id="eh-AlbumAction" data-workspace-rendered-node="AlbumAction" data-typography-token="type.button" data-typography-authority="design/system_v3/04_Design_Tokens/Typography/Typography_Tokens_V3_FINAL.json" class="eh-v22-album-action" type="button" aria-label="从相册选择 · 候选按钮，无系统相册逻辑" style="left:50%;top:${albumTop - promptBox.y}px;min-width:${albumTouchSize}px;height:${albumTouchSize}px;font-size:${16 * albumTextScale}px;line-height:${20 * albumTextScale}px">从相册选择</button>
+        <button id="eh-AlbumAction" data-workspace-rendered-node="AlbumAction" data-typography-token="type.button" data-typography-authority="design/system_v3/04_Design_Tokens/Typography/Typography_Tokens_V3_FINAL.json" class="eh-v22-album-action" type="button" aria-label="从相册选择 · 候选按钮，无系统相册逻辑" style="left:50%;top:${albumTop - promptBox.y}px;min-width:${albumTouchSize}px;height:${albumTouchSize}px;font-size:${16 * albumTextScale}px;line-height:${20 * albumTextScale}px"><img id="eh-GalleryIcon" data-workspace-rendered-node="GalleryIcon" data-resource-status="${html(loaded.GalleryIcon.resource.status)}" data-asset-id="${html(loaded.GalleryIcon.resource.asset.asset_id)}" data-sha256="${html(loaded.GalleryIcon.resource.verified.sha256)}" data-source-path="${html(loaded.GalleryIcon.resource.asset.source_path)}" data-asset-lifecycle="${html(loaded.GalleryIcon.resource.asset.lifecycle_status)}" data-publication-permission="${html(loaded.GalleryIcon.resource.verified.publication_permission)}" class="eh-v22-gallery-icon" src="${html(loaded.GalleryIcon.resource.objectUrl)}" alt="" aria-hidden="true" draggable="false"><span id="eh-AlbumActionLabel">从相册选择</span></button>
       </div>
       <img data-empty-frozen-reference="true" alt="Empty Home V2.2 frozen visual authority · original ratio preserved" src="${html(loaded.FrozenReference.resource.objectUrl)}" class="eh-v22-frozen-reference" style="display:none" data-resource-status="${html(loaded.FrozenReference.resource.status)}" data-sha256="${html(loaded.FrozenReference.resource.verified.sha256)}">
     </div>`;

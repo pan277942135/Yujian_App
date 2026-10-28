@@ -33,6 +33,7 @@ async function buildAuthorityAudit(root, preflight) {
     assetManifest:"design/pages/home/empty_home/shared/contracts/asset_manifest.json",
     registry:"design/system_v3/06_Asset_System/Asset_Registry_V3_FINAL.json",
     iconInventory:"design/system/icon_library_v0_1/icon_inventory_v0_1.json",
+    frozenIcons:"design/system/icon_library_v0_1/frozen_assets_v1.json",
     pageBinding:"design/pages/home/empty_home/Page_Resource_Binding_V1.json",
     typography:"design/system_v3/04_Design_Tokens/Typography/Typography_Tokens_V3_FINAL.json",
     typographySystem:"design/system_v3/04_Design_Tokens/Typography/Typography_System_V3_FINAL.md",
@@ -40,10 +41,11 @@ async function buildAuthorityAudit(root, preflight) {
     experienceRegistry:"design/registry/experience_registry_v1.json",
     brandManifest:"design/system_v3/06_Asset_System/derived/brand_title_primary/brand_title_primary_manifest.json",
     brandAsset:"design/system_v3/06_Asset_System/derived/brand_title_primary/brand_title_primary.png"};
-  const [authority,manifest,registry,icons,binding,typography,brandManifest,experience]=await Promise.all([
+  const [authority,manifest,registry,icons,frozenIcons,binding,typography,brandManifest,experience]=await Promise.all([
     readJson(root,paths.authorityManifest),readJson(root,paths.assetManifest),readJson(root,paths.registry),readJson(root,paths.iconInventory),
+    readJson(root,paths.frozenIcons),
     readJson(root,paths.pageBinding),readJson(root,paths.typography),readJson(root,paths.brandManifest),readJson(root,paths.experienceRegistry)]);
-  const registryRows=registry.assets||[];
+  const registryRows=registry.entries||registry.assets||[];
   const lifecycleTargets={
     SceneBase:"design/pages/home/empty_home/shared/assets/background/scene_base_master.png",
     CloudAtmosphere:"design/pages/home/empty_home/shared/assets/atmosphere/cloud_master.png",
@@ -61,14 +63,22 @@ async function buildAuthorityAudit(root, preflight) {
   });
   const iconIds={GALLERY:"design/system/icon_library_v0_1/assets/ic_gallery_v1.svg",CHEVRON_RIGHT:"design/system/icon_library_v0_1/assets/ic_chevron_right_v1.svg"};
   const iconEntries=icons.entries||[];
+  const frozenIconEntries=frozenIcons.assets||[];
   const iconAudit={};
   for(const [id,path] of Object.entries(iconIds)){
     const entry=iconEntries.find(row=>row.id===id)||null;
+    const frozenEntry=frozenIconEntries.find(row=>row.id===id)||null;
     const registryAsset=registryRows.find(row=>row.path===path);
     const bindingAsset=(binding.asset_bindings||[]).find(row=>row.source_path===path||row.asset_id===registryAsset?.asset_id);
-    iconAudit[id]={path,sha256:await sha256File(resolve(root,path)),inventory_state:entry?.asset_state||"NOT_LISTED",
-      registry_lifecycle:registryAsset?.status||registryAsset?.lifecycle_status||"UNRESOLVED",w2_binding_status:bindingAsset?"BOUND":"NOT_BOUND",
-      render_status:bindingAsset?"RESOLVER_REQUIRED":"BLOCKED_AUTHORITY_GAP"};
+    const actualSha=await sha256File(resolve(root,path));
+    iconAudit[id]={path,sha256:actualSha,inventory_state:entry?.asset_state||"NOT_LISTED",inventory_sha256:entry?.asset_sha256||null,
+      frozen_status:frozenEntry?.status||"NOT_LISTED",frozen_sha256:frozenEntry?.sha256||null,
+      registry_lifecycle:registryAsset?.status||registryAsset?.lifecycle_status||"UNRESOLVED",registry_sha256:registryAsset?.sha256||null,
+      w2_binding_status:bindingAsset?"BOUND":"NOT_BOUND",binding_sha256:bindingAsset?.sha256||null,
+      publication_permission:bindingAsset?.publication_permission?.state||"NOT_CONFIRMED",
+      source_hashes_match:actualSha===entry?.asset_sha256&&actualSha===frozenEntry?.sha256&&actualSha===registryAsset?.sha256&&actualSha===bindingAsset?.sha256,
+      lifecycle_conflict:entry?.asset_state==="FROZEN_DESIGN"&&frozenEntry?.status==="FROZEN"&&registryAsset?.status==="REVIEW",
+      render_status:bindingAsset?"W2_BOUND_CANDIDATE":"BLOCKED_AUTHORITY_GAP"};
   }
   const bodyToken=(typography.tokens||[]).find(row=>row.id==="type.body")||null;
   const buttonToken=(typography.tokens||[]).find(row=>row.id==="type.button")||null;
@@ -78,8 +88,9 @@ async function buildAuthorityAudit(root, preflight) {
   return {visual_authority:{path:paths.authorityManifest,sha256:await sha256File(resolve(root,paths.authorityManifest)),status:authority.visual_revision_status,
       design_version:authority.design_version,visual_revision:authority.visual_revision},
     resource_lifecycle_conflicts:lifecycle,
-    icons:{authority_path:paths.iconInventory,items:iconAudit,
-      status:Object.values(iconAudit).some(row=>row.registry_lifecycle==="REVIEW"||row.w2_binding_status!=="BOUND")?"BLOCKED_W2_AUTHORITY_RECONCILIATION":"RESOLVED"},
+    icons:{authority_paths:{inventory:paths.iconInventory,frozen_assets:paths.frozenIcons,asset_registry:paths.registry},items:iconAudit,
+      status:Object.values(iconAudit).some(row=>row.w2_binding_status!=="BOUND"||!row.source_hashes_match)?"BLOCKED_W2_AUTHORITY_RECONCILIATION":
+        Object.values(iconAudit).some(row=>row.lifecycle_conflict)?"LIFECYCLE_CONFLICT_REVIEW_PRESERVED":"RESOLVED"},
     brand:{status:"BLOCKED_AUTHORITY_GAP",typography_rule:"FROZEN_ARTWORK_ASSET",typography_authority:paths.typographySystem,
       standalone_asset:{path:brandManifest.derived_path,sha256:brandAssetSha,status:brandManifest.status,approval_status:brandManifest.approval_status,
         usage:brandManifest.usage,source_path:brandManifest.source_path,source_sha256:brandManifest.source_sha256},
@@ -482,6 +493,7 @@ async function main() {
         source_path:preflight.viewportAuthority.path,source_sha256:preflight.viewportAuthority.sha256};
     };
     const promptTextScreenshotHashes={};
+    const renderedScreenshotHashes={};
     for (const {width,height,fontScale,matrix_classification} of matrixCases) {
       activeMatrixRow=baseEvidence.matrix.find(row=>row.case_id===`EMPTY_HOME_${width}x${height}_FONT_${fontScale}`);
       activeMatrixRow.result="IN_PROGRESS";
@@ -499,7 +511,7 @@ async function main() {
         const byId=Object.fromEntries(rows.map(row=>[row.node_id,row]));
         const metrics=JSON.parse(board.dataset.layoutMetrics);
         const width=metrics.viewport.width,height=metrics.viewport.height;
-        const uiIds=["Header","HeroCopy","CapturePrompt","AccountEntry","PrimaryCaptureButton","AlbumAction"];
+        const uiIds=["Header","HeroCopy","CapturePrompt","AccountEntry","ChevronRight","PrimaryCaptureButton","AlbumAction","GalleryIcon"];
         const ui=Object.fromEntries(uiIds.map(id=>[id,byId[id]?.bounds||null]));
         const outsideViewport=Object.entries(ui).filter(([,bounds])=>bounds&&(
           bounds.x < -0.5||bounds.y < -0.5||bounds.right > width+0.5||bounds.bottom > height+0.5)).map(([id])=>id);
@@ -533,11 +545,34 @@ async function main() {
         const layerOrder=[byId.FishingLine?.layer.z_index,byId.BobberReflection?.layer.z_index,byId.Ripple?.layer.z_index,bobber?getComputedStyle(document.querySelector("#eh-BobberBody")).zIndex:null].map(Number);
         const overflow={outside_viewport:outsideViewport,text_overflow:textOverflow,scene_crop_expected:true};
         const boardBounds=board.getBoundingClientRect();
+        const actualRect=selector=>{const r=document.querySelector(selector)?.getBoundingClientRect();return r?{x:r.left-boardRect.left,y:r.top-boardRect.top,width:r.width,height:r.height,right:r.right-boardRect.left,bottom:r.bottom-boardRect.top,unit:"css_px"}:null;};
+        const loginLabel=actualRect("#eh-AccountEntryLabel"),chevron=actualRect("#eh-ChevronRight"),albumLabel=actualRect("#eh-AlbumActionLabel"),gallery=actualRect("#eh-GalleryIcon");
+        const promptNode=document.querySelector("#eh-CapturePrompt"),promptStyle=promptNode?getComputedStyle(promptNode):null;
+        const promptParent=promptNode?.parentElement||null,promptParentRect=promptParent?.getBoundingClientRect();
+        const promptText=document.querySelector("#eh-CapturePromptText"),promptRange=promptText?document.createRange():null;
+        if(promptRange&&promptText)promptRange.selectNodeContents(promptText);
+        const promptTextRect=promptRange?.getBoundingClientRect();
+        const promptSizing={parent_id:promptParent?.id||null,parent_bounds_css_px:actualRect("#eh-CaptureActionGroup"),
+          available_width_css_px:promptParent?.clientWidth??null,actual_bounds_css_px:actualRect("#eh-CapturePrompt"),
+          width_rule:"100% of CaptureActionGroup available width",min_width_css:promptStyle?.minWidth||null,max_width_css:promptStyle?.maxWidth||null,
+          font_size_css_px:promptStyle?parseFloat(promptStyle.fontSize):null,line_height_css_px:promptStyle?(promptStyle.lineHeight==="normal"?null:parseFloat(promptStyle.lineHeight)):null,
+          line_height_authority_token:promptNode?.dataset.typographyToken||null,font_scale:metrics.font_scale,
+          height_rule:"ceil(shared type.body 24sp line-height × fontScale)",
+          expected_height_css_px:promptStyle&&promptStyle.lineHeight!=="normal"?Math.ceil(parseFloat(promptStyle.lineHeight)):null,
+          text_bounds_css_px:promptTextRect?{x:promptTextRect.left-boardRect.left,y:promptTextRect.top-boardRect.top,width:promptTextRect.width,height:promptTextRect.height}:null,
+          white_space:promptStyle?.whiteSpace||null,word_break:promptStyle?.wordBreak||null,overflow_wrap:promptStyle?.overflowWrap||null,
+          wrapping_rule:"single-line nowrap",vertical_rule:"Y = camera Y - max(frozen prompt offset, actual prompt height + minimum contract clear gap)",
+          authority_status:"CANDIDATE_RENDER_RULE; typography token is shared, exact prompt geometry remains subject to visual review"};
+        const iconResource=node=>byId[node]?{asset_id:byId[node].resource_ref?.asset_id||document.querySelector(`#eh-${CSS.escape(node)}`)?.dataset.assetId||null,
+          sha256:byId[node].resource_sha256||null,lifecycle:byId[node].resource_lifecycle,publication_permission:byId[node].publication_permission}:null;
         return {viewport:metrics.viewport,font_scale:metrics.font_scale,scene_transform:metrics.scene_transform,profile_width_class:board.dataset.profileWidthClass,
           root_size:{width:root.getBoundingClientRect().width,height:root.getBoundingClientRect().height},overflow,ui_bounds:ui,
           fishing:{rod:rod,line,bobber,contact,ripple,reflection,line_path_start:{x:lineStart?.x,y:lineStart?.y},line_path_end:{x:lineEnd?.x,y:lineEnd?.y},composition_outside_viewport:fishingOutside,line_end_contact_gap:lineEndContactGap,
             bobber_contact_alignment:bobberContact,reflection_contact_gap:reflectionGap,ripple_contains_contact:rippleContainsContact,layer_order:layerOrder},
-          hero:byId.HeroCopy?.bounds,prompt:byId.CapturePrompt?.bounds,camera:byId.PrimaryCaptureButton?.bounds,album:byId.AlbumAction?.bounds,
+          icons:{chevron:byId.ChevronRight?.bounds||null,chevron_label:loginLabel,chevron_gap_css_px:loginLabel&&chevron?chevron.x-loginLabel.right:null,
+            gallery:byId.GalleryIcon?.bounds||null,gallery_label:albumLabel,gallery_gap_css_px:albumLabel&&gallery?albumLabel.x-gallery.right:null,
+            chevron_resource:iconResource("ChevronRight"),gallery_resource:iconResource("GalleryIcon")},
+          hero:byId.HeroCopy?.bounds,prompt:byId.CapturePrompt?.bounds,prompt_sizing:promptSizing,camera:byId.PrimaryCaptureButton?.bounds,album:byId.AlbumAction?.bounds,
           deviations:Object.fromEntries(Object.entries(byId).map(([key,row])=>[key,row.deviation])),inspectorNode:document.querySelector("[data-workspace-inspector]").dataset.selectedNodeId,
           promptTypography:byId.CapturePrompt?.typography,sourceSha:root.dataset.sourceSha,unit:byId.FishingRod?.bounds.unit,
           node_bounds:rows, cameraTouch:{width:byId.PrimaryCaptureButton?.bounds.width,height:byId.PrimaryCaptureButton?.bounds.height},
@@ -562,14 +597,42 @@ async function main() {
       assert(caseEvidence.fishing.layer_order[0]<caseEvidence.fishing.layer_order[1]&&caseEvidence.fishing.layer_order[1]<caseEvidence.fishing.layer_order[2]&&caseEvidence.fishing.layer_order[2]<caseEvidence.fishing.layer_order[3],`fishing layer occlusion order is invalid: ${caseEvidence.fishing.layer_order}`);
       assert(caseEvidence.cameraTouch.width>0&&caseEvidence.cameraTouch.height>0,"camera button actual DOM bounds must be measured");
       assert(Math.abs(caseEvidence.cameraVisualAsset.ratio-(208/220))<0.002,"frozen 208px camera artwork must be uniformly fitted in the 220px target");
+      const bodyLineHeight=parseFloat(baseEvidence.authority_audit.typography.body_token.lineHeight);
+      assert(caseEvidence.prompt_sizing.parent_id==="eh-CaptureActionGroup"&&caseEvidence.prompt_sizing.actual_bounds_css_px&&
+        Math.abs(caseEvidence.prompt_sizing.actual_bounds_css_px.width-caseEvidence.prompt_sizing.available_width_css_px)<0.05,
+        "CapturePrompt must use its real CTA parent width as the available width");
+      assert(caseEvidence.prompt_sizing.line_height_authority_token==="type.body"&&Number.isFinite(bodyLineHeight)&&
+        Math.abs(caseEvidence.prompt_sizing.line_height_css_px-bodyLineHeight*fontScale)<0.05&&
+        caseEvidence.prompt_sizing.actual_bounds_css_px.height===Math.ceil(bodyLineHeight*fontScale),
+        "CapturePrompt box height must follow shared type.body line-height × fontScale, not a fixed CSS pixel size");
+      assert(caseEvidence.prompt_sizing.white_space==="nowrap"&&caseEvidence.prompt_sizing.text_bounds_css_px?.width>0&&
+        caseEvidence.prompt_sizing.text_bounds_css_px.width<=caseEvidence.prompt_sizing.available_width_css_px,
+        "CapturePrompt must be a measured single-line label that fits its actual available width");
+      assert(caseEvidence.icons.chevron&&Math.abs(caseEvidence.icons.chevron.width-14)<.01&&Math.abs(caseEvidence.icons.chevron.height-14)<.01,
+        "Text Action V1 requires a separately measured 14dp chevron icon");
+      assert(Math.abs(caseEvidence.icons.chevron_gap_css_px-4)<.05,"Text Action V1 chevron gap must be 4dp");
+      assert(caseEvidence.icons.gallery&&Math.abs(caseEvidence.icons.gallery.width-14)<.01&&Math.abs(caseEvidence.icons.gallery.height-14)<.01,
+        "GALLERY icon must render as a real uniformly sized SVG DOM node");
+      assert(Math.abs(caseEvidence.icons.gallery_gap_css_px-8)<.05,"GALLERY icon and album text must retain the measured reference gap");
+      assert(caseEvidence.icons.chevron_resource?.asset_id==="system_icon_library_v0_1_assets_ic_chevron_right_v1_svg"&&
+        caseEvidence.icons.chevron_resource.sha256==="3d8c0bf43500c40b636a08f50d6fedf4d5f0ae2fd984a7e6c16cd03f4130d4a9"&&
+        caseEvidence.icons.chevron_resource.lifecycle==="REVIEW"&&caseEvidence.icons.chevron_resource.publication_permission==="PUBLIC_BY_EXISTING_PAGES_RULE",
+        "CHEVRON_RIGHT W2 source, lifecycle conflict, and permission must be visible in DOM evidence");
+      assert(caseEvidence.icons.gallery_resource?.asset_id==="system_icon_library_v0_1_assets_ic_gallery_v1_svg"&&
+        caseEvidence.icons.gallery_resource.sha256==="5798abbdaad45305fe9ed5a578868247925d2d95644c8ea2559f446c1f069fda"&&
+        caseEvidence.icons.gallery_resource.lifecycle==="REVIEW"&&caseEvidence.icons.gallery_resource.publication_permission==="PUBLIC_BY_EXISTING_PAGES_RULE",
+        "GALLERY W2 source, lifecycle conflict, and permission must be visible in DOM evidence");
       const shot=resolve(args.outputDir,`EmptyHome_${width}x${height}_font-${fontScale}.png`);
       const promptTextShot=resolve(args.outputDir,`EmptyHomePrompt_${width}x${height}_font-${fontScale}.png`);
       const capture=await screenshotRootViewport(page,shot,width,height,promptTextShot);
       const shotSize=capture.size;
       assertScreenshotCaptureEnvelope(shotSize,width,height,`${width}x${height}@${fontScale}`);
       const promptTextSha=await sha256File(promptTextShot);
+      const renderedSha=await sha256File(shot);
       promptTextScreenshotHashes[`${width}x${height}`]??={};
       promptTextScreenshotHashes[`${width}x${height}`][String(fontScale)]=promptTextSha;
+      renderedScreenshotHashes[`${width}x${height}`]??={};
+      renderedScreenshotHashes[`${width}x${height}`][String(fontScale)]=renderedSha;
       Object.assign(activeMatrixRow,caseEvidence,{
         case_id:activeMatrixRow.case_id,page_id:"home_empty_v2",source_sha:expectedSha,run_id:runId,
         matrix_source_path:preflight.viewportAuthority.path,matrix_source_sha256:preflight.viewportAuthority.sha256,
@@ -580,7 +643,7 @@ async function main() {
         viewport_width:width,viewport_height:height,font_scale:fontScale,
         candidate_source_sha:expectedSha,site_build_sha:expectedSha,
         dom_report:"EmptyHome_Component_Bounds_Report_V1.json",
-        screenshot_rendered:{path:shot.split("/").at(-1),sha256:await sha256File(shot),pixel_width:shotSize.width,pixel_height:shotSize.height,device_scale_factor:3,capture_bounds_css_px:capture.bounds_css_px,
+        screenshot_rendered:{path:shot.split("/").at(-1),sha256:renderedSha,pixel_width:shotSize.width,pixel_height:shotSize.height,device_scale_factor:3,capture_bounds_css_px:capture.bounds_css_px,
           visible_content:capture.visible_content,capture_isolation_used:capture.capture_isolation_used,outside_workspace_chrome_included:capture.outside_workspace_chrome_included,
           workspace_visibility_before_isolation:capture.workspace_visibility_before_isolation,selected_overlay_suppressed:capture.selected_overlay_suppressed},
         prompt_text_measurement:{...capture.prompt_text_bounds_css_px,screenshot_path:promptTextShot.split("/").at(-1),screenshot_sha256:promptTextSha},
@@ -605,7 +668,27 @@ async function main() {
       assert(Object.keys(hashes).length===3&&new Set(Object.values(hashes)).size===3,
         `FONT_SCALE_SCREENSHOT_HASH_NOT_DISTINCT: viewport=${viewport} hashes=${JSON.stringify(hashes)}`);
     }
+    for (const [viewport,hashes] of Object.entries(renderedScreenshotHashes)) {
+      assert(Object.keys(hashes).length===3&&new Set(Object.values(hashes)).size===3,
+        `FONT_SCALE_RENDERED_PAGE_HASH_NOT_DISTINCT: viewport=${viewport} hashes=${JSON.stringify(hashes)}`);
+    }
     baseEvidence.prompt_text_screenshot_hashes=promptTextScreenshotHashes;
+    baseEvidence.rendered_screenshot_hashes_by_font_scale=renderedScreenshotHashes;
+    baseEvidence.geometry_reconciliation=baseEvidence.matrix.map(row=>({case_id:row.case_id,page_id:"home_empty_v2",source_sha:expectedSha,
+      camera:{component_id:"PrimaryCaptureButton",touch_bounds_css_px:row.camera,artwork_dom_bounds_css_px:row.cameraVisualAsset,
+        expected_artwork_to_touch_ratio:208/220,actual_artwork_to_touch_ratio:row.cameraVisualAsset?.ratio??null,result:"PASS"},
+      bobber:{component_id:"BobberBody",bounds_css_px:row.fishing.bobber,contact_bounds_css_px:row.fishing.contact,
+        expected_anchor_ref:"anchor_contract.json#/anchors/bobber/water_contact_reference_px",actual_vertical_gap_css_px:row.fishing.bobber_contact_alignment.vertical_gap,
+        result:row.fishing.bobber_contact_alignment.horizontal_inside&&row.fishing.bobber_contact_alignment.vertical_gap<=1.5?"PASS":"FAIL"},
+      fishing_line:{component_id:"FishingLine",bounds_css_px:row.fishing.line,path_start_css_px:row.fishing.line_path_start,path_end_css_px:row.fishing.line_path_end,
+        water_contact_gap_css_px:row.fishing.line_end_contact_gap,result:row.fishing.line_end_contact_gap<=5*row.scene_transform.scale?"PASS":"FAIL"},
+      prompt:{component_id:"CapturePrompt",bounds_css_px:row.prompt_sizing.actual_bounds_css_px,parent_bounds_css_px:row.prompt_sizing.parent_bounds_css_px,
+        text_bounds_css_px:row.prompt_sizing.text_bounds_css_px,font_scale:row.prompt_sizing.font_scale,line_height_css_px:row.prompt_sizing.line_height_css_px,
+        width_rule:row.prompt_sizing.width_rule,wrap_rule:row.prompt_sizing.wrapping_rule,result:"PASS"} }));
+    const cameraDifference=baseEvidence.differences.find(row=>row.component_id==="PrimaryCaptureButton");
+    if(cameraDifference){cameraDifference.actual="Exact SHA Chromium evidence records the 208/220 centered artwork ratio in each 12-case matrix row.";
+      cameraDifference.numeric_deviation=baseEvidence.geometry_reconciliation.reduce((max,row)=>Math.max(max,Math.abs(row.camera.actual_artwork_to_touch_ratio-row.camera.expected_artwork_to_touch_ratio)),0);
+      cameraDifference.correction_status="IMPLEMENTED_AND_VERIFIED_IN_CURRENT_MATRIX";}
 
     await page.locator("[data-empty-viewport-preset]").selectOption("360x640@1");
     await page.waitForFunction(()=>document.querySelector("[data-workspace-artboard]")?.dataset.viewport==="360x640");
@@ -835,7 +918,7 @@ async function main() {
 
 function AUTHORITY_GAPS_FOR_REPORT(){return [
   "Brand wordmark is FROZEN_ARTWORK_ASSET. The existing standalone brand artwork is scoped to normal_home; Empty Home has no approved independent wordmark binding, so the candidate suppresses dynamic text and remains BLOCKED_AUTHORITY_GAP.",
-  "GALLERY and CHEVRON_RIGHT are listed as FROZEN_DESIGN in the icon inventory, but their Asset Registry lifecycle is REVIEW and they are absent from the current Empty Home W2 binding; icons remain blocked pending W2 authority reconciliation.",
+  "GALLERY and CHEVRON_RIGHT are W2-bound to their frozen V1 sources; Asset Registry lifecycle remains REVIEW and is preserved in the candidate evidence.",
   "Frozen reference includes Android system chrome; Chromium preview does not simulate Native status/navigation bars.",
   "Sun particle coordinates have no frozen static authority; the motion layer is NOT_RUN in this static candidate.",
   "Cloud position and alpha follow the existing Android Renderer implementation reference and need visual review.",
@@ -845,8 +928,8 @@ function AUTHORITY_GAPS_FOR_REPORT(){return [
 
 function AUTHORITY_DIFFERENCE_REPORT(){return [
   {page_id:"home_empty_v2",component_id:"Brand",category:"AUTHORITY_GAP",authority:"design/system_v3/04_Design_Tokens/Typography/Typography_System_V3_FINAL.md",expected:"FROZEN_ARTWORK_ASSET authorized for home_empty_v2",actual:"Standalone brand asset usage is normal_home only; DOM text is suppressed",numeric_deviation:null,root_cause:"No Empty Home approved independent wordmark binding exists.",correction_status:"BLOCKED_AUTHORITY_GAP",approval_required:true},
-  {page_id:"home_empty_v2",component_id:"AccountEntry / AlbumAction",category:"AUTHORITY_GAP",authority:"design/system/icon_library_v0_1/icon_inventory_v0_1.json + W2 Page Resource Binding",expected:"GALLERY and CHEVRON_RIGHT resolved through W2",actual:"Icon inventory lists FROZEN_DESIGN; Asset Registry says REVIEW; page binding has no icon entries",numeric_deviation:null,root_cause:"W2 authority does not authorize these assets for this page yet.",correction_status:"BLOCKED_W2_AUTHORITY_RECONCILIATION",approval_required:true},
-  {page_id:"home_empty_v2",component_id:"PrimaryCaptureButton",category:"ASSET_MISMATCH",authority:"design/system/components/primary_capture_button/manifest.json + anchor_contract.json",expected:"208×208 frozen artwork centered uniformly in 220×220 hit target",actual:"Renderer now uses centered uniform 208/220 fit; DOM dimensions require new Chromium evidence",numeric_deviation:null,root_cause:"Previous renderer stretched 208px asset to the 220px target.",correction_status:"IMPLEMENTED_AWAITING_EXACT_SHA_BROWSER_RUN",approval_required:false},
+  {page_id:"home_empty_v2",component_id:"ChevronRight / GalleryIcon",category:"AUTHORITY_GAP",authority:"design/system/icon_library_v0_1/frozen_assets_v1.json + Asset_Registry_V3_FINAL.json + Empty Home W2 Binding",expected:"Exact frozen icon bytes resolved through W2; lifecycle and permission remain explicit",actual:"W2 verifies both icon hashes; icon catalog says FROZEN while Asset Registry lifecycle remains REVIEW",numeric_deviation:null,root_cause:"Asset Registry lifecycle has not been reconciled to the frozen icon catalog; current candidate renders the verified SVGs without promoting their lifecycle.",correction_status:"W2_BOUND_LIFECYCLE_REVIEW_PRESERVED",approval_required:true},
+  {page_id:"home_empty_v2",component_id:"PrimaryCaptureButton",category:"ASSET_MISMATCH",authority:"design/system/components/primary_capture_button/manifest.json + anchor_contract.json",expected:"208×208 frozen artwork centered uniformly in 220×220 hit target",actual:"Renderer uses centered uniform 208/220 fit; exact SHA geometry evidence is attached after the current matrix executes.",numeric_deviation:null,root_cause:"Previous renderer's generic image rule overrode the fitted camera asset dimensions.",correction_status:"IMPLEMENTED_AWAITING_EXACT_SHA_BROWSER_RUN",approval_required:false},
   {page_id:"home_empty_v2",component_id:"EnvironmentScene",category:"AUTHORITY_GAP",authority:"Design Manager browser preview",expected:"Frozen visual including Android system chrome",actual:"Page content rendered without Android status/navigation bars",numeric_deviation:null,root_cause:"Browser CSS viewport does not provide Native system bars or safe drawing insets.",correction_status:"NOT_SIMULATED",approval_required:true},
   {page_id:"home_empty_v2",component_id:"SunParticles",category:"AUTHORITY_GAP",authority:"design/pages/home/empty_home/shared/contracts/motion_contract.json",expected:"Motion-generated particle positions only in an authorized motion state",actual:"Static candidate does not render particles",numeric_deviation:null,root_cause:"No frozen static particle coordinates exist.",correction_status:"NOT_RUN",approval_required:true},
   {page_id:"home_empty_v2",component_id:"CloudAtmosphere",category:"AUTHORITY_GAP",authority:"app/src/main/java/com/yujian/ai/ui/home/EmptyHomeSceneRenderer.kt",expected:"Page-specific frozen cloud bounds and alpha",actual:"Existing Android renderer reference used in candidate",numeric_deviation:null,root_cause:"No independent page anchor for static cloud placement is registered.",correction_status:"REVIEW_REQUIRED",approval_required:true},

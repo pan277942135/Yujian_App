@@ -732,11 +732,50 @@
               "lifecycle_status",
               "publication_permission"
             ],
-            "verification_rule": "Real inert HTML button. Approved chevron asset is not bound; icon omitted and recorded as AUTHORITY_GAP.",
+            "verification_rule": "Real inert HTML Text Action; separate CHEVRON_RIGHT W2 asset, 14dp icon and 4dp text gap; no visible container; route remains non-functional.",
             "visible": true,
             "measurable": true,
             "selectable": true,
-            "state": "CANDIDATE_PREVIEW"
+            "state": "CANDIDATE_PREVIEW",
+            "children": [
+              {
+                "nodeId": "ChevronRight",
+                "pageId": "home_empty_v2",
+                "parentId": "AccountEntry",
+                "componentType": "ICON",
+                "renderedDomId": "eh-ChevronRight",
+                "label": "Login trailing chevron · CHEVRON_RIGHT",
+                "layer_order": 11,
+                "visual_asset": {
+                  "asset_id": "system_icon_library_v0_1_assets_ic_chevron_right_v1_svg",
+                  "source_path": "design/system/icon_library_v0_1/assets/ic_chevron_right_v1.svg"
+                },
+                "authority": {
+                  "path": "design/system/icon_library_v0_1/frozen_assets_v1.json",
+                  "status": "FROZEN_DESIGN"
+                },
+                "reference_bounds_px": null,
+                "responsive_rule": {
+                  "path": "design/pages/home/empty_home/shared/contracts/responsive_mapping_contract.json",
+                  "rule_id": "SAFE_TOP_ANCHORED"
+                },
+                "render_method": "W2-verified SVG image in real DOM",
+                "dom_mapping": "eh-ChevronRight",
+                "inspector_fields": [
+                  "actual_dom_bounds_css_px",
+                  "reference_bounds_px",
+                  "asset_sha256",
+                  "source_authority",
+                  "lifecycle_status",
+                  "publication_permission"
+                ],
+                "verification_rule": "Text Action V1 trailing glyph: 14dp, 4dp text gap; exact SVG SHA is W2-bound.",
+                "visible": true,
+                "measurable": true,
+                "selectable": true,
+                "state": "CANDIDATE_PREVIEW"
+              }
+            ]
           }
         ]
       },
@@ -847,7 +886,7 @@
               "lifecycle_status",
               "publication_permission"
             ],
-            "verification_rule": "Uses shared type.body (16sp/24sp) with fontScale. Browser CSS uses a system sans representative; Android glyph fallback remains NOT_VERIFIED.",
+            "verification_rule": "Parent is CaptureActionGroup; width equals the viewport/safe CTA group's available width (no additional min/max width clamp); shared type.body font size and 24sp line-height scale with fontScale, and the candidate box height is ceil(line-height). Text stays single-line nowrap. Its Y is above the camera using max(frozen reference offset, measured prompt height + minimum contract gap). Browser system-ui is a representative only; Android glyph fallback remains NOT_VERIFIED. The 24sp line height and nowrap behavior are candidate rendering details, not a new frozen page rule.",
             "visible": true,
             "measurable": true,
             "selectable": true,
@@ -925,19 +964,58 @@
               "lifecycle_status",
               "publication_permission"
             ],
-            "verification_rule": "Real inert HTML button, content-driven width, 48px minimum touch area. Approved album icon asset is not bound; icon omitted and recorded as AUTHORITY_GAP.",
+            "verification_rule": "Real inert HTML button with W2-bound GALLERY SVG plus text; transparent/no visible background; candidate icon footprint measured from V2.2 frozen raster; 48px minimum touch target.",
             "visible": true,
             "measurable": true,
             "selectable": true,
-            "state": "CANDIDATE_PREVIEW"
+            "state": "CANDIDATE_PREVIEW",
+            "children": [
+              {
+                "nodeId": "GalleryIcon",
+                "pageId": "home_empty_v2",
+                "parentId": "AlbumAction",
+                "componentType": "ICON",
+                "renderedDomId": "eh-GalleryIcon",
+                "label": "Gallery icon · GALLERY",
+                "layer_order": 15,
+                "visual_asset": {
+                  "asset_id": "system_icon_library_v0_1_assets_ic_gallery_v1_svg",
+                  "source_path": "design/system/icon_library_v0_1/assets/ic_gallery_v1.svg"
+                },
+                "authority": {
+                  "path": "design/system/icon_library_v0_1/frozen_assets_v1.json",
+                  "status": "FROZEN_DESIGN"
+                },
+                "reference_bounds_px": null,
+                "responsive_rule": {
+                  "path": "design/pages/home/empty_home/shared/contracts/responsive_mapping_contract.json",
+                  "rule_id": "SAFE_BOTTOM_ANCHORED_GROUP"
+                },
+                "render_method": "W2-verified SVG image in real DOM",
+                "dom_mapping": "eh-GalleryIcon",
+                "inspector_fields": [
+                  "actual_dom_bounds_css_px",
+                  "reference_bounds_px",
+                  "asset_sha256",
+                  "source_authority",
+                  "lifecycle_status",
+                  "publication_permission"
+                ],
+                "verification_rule": "Use frozen GALLERY SVG; 14 CSS px candidate footprint follows the frozen raster measurement; no crop or stretch.",
+                "visible": true,
+                "measurable": true,
+                "selectable": true,
+                "state": "CANDIDATE_PREVIEW"
+              }
+            ]
           }
         ]
       }
     ]
   },
   "known_authority_gaps": [
-    "Page-specific brand title asset is not registered in Empty Home binding; header brand is DOM text candidate.",
-    "Approved Login chevron and album icon resources are not present in the Empty Home W2 binding; these icons are omitted.",
+    "Page-specific brand title asset is not registered in Empty Home binding; header brand dynamically renders no text.",
+    "GALLERY and CHEVRON_RIGHT are W2-bound and SHA-verified; their icon inventory/frozen_assets state is frozen while Asset Registry lifecycle REVIEW remains explicitly unresolved.",
     "Native status/navigation bars are platform chrome and are not rendered by this browser candidate.",
     "Sun particle positions are motion-generated without a frozen static coordinate profile; the optional particle layer is not rendered in this candidate.",
     "Cloud and sun-beam positions currently follow the Android renderer implementation reference; these positions are not independently anchored in the page contract."
@@ -949,11 +1027,14 @@
     "native_fallback_claim": false,
     "tokens": {
       "CapturePrompt": "type.body",
-      "AccountEntry": "type.button",
-      "AlbumAction": "type.button"
+      "AccountEntry": "Text Action V1 NORMAL (14sp, weight 500; component override)",
+      "AlbumAction": "type.button (16sp, weight 500)",
+      "ChevronRight": "Text Action V1 trailing icon (14dp; 4dp gap)"
     },
     "unresolved": [
       "Subtitle has no explicit Empty Home page token or font-size authority."
-    ]
+    ],
+    "component_authority_path": "design/system/components/text_action/Text_Action_Spec_V1.md",
+    "component_authority_sha256": "f92d84206f3456e039f522c7c8510a9e0820891421b2555f6b4ae4f15ce93a68"
   }
 }
