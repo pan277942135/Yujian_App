@@ -567,7 +567,7 @@ async function main() {
           authority_status:"CANDIDATE_RENDER_RULE; typography token is shared, exact prompt geometry remains subject to visual review"};
         const iconResource=node=>byId[node]?{asset_id:byId[node].resource_ref?.asset_id||document.querySelector(`#eh-${CSS.escape(node)}`)?.dataset.assetId||null,
           sha256:byId[node].resource_sha256||null,lifecycle:byId[node].resource_lifecycle,publication_permission:byId[node].publication_permission}:null;
-        return {viewport:metrics.viewport,font_scale:metrics.font_scale,scene_transform:metrics.scene_transform,profile_width_class:board.dataset.profileWidthClass,
+        return {viewport:metrics.viewport,font_scale:metrics.font_scale,safe_area_preview:metrics.safe_insets_preview||null,scene_transform:metrics.scene_transform,profile_width_class:board.dataset.profileWidthClass,
           root_size:{width:root.getBoundingClientRect().width,height:root.getBoundingClientRect().height},overflow,ui_bounds:ui,
           fishing:{rod:rod,line,bobber,contact,ripple,reflection,line_path_start:{x:lineStart?.x,y:lineStart?.y},line_path_end:{x:lineEnd?.x,y:lineEnd?.y},composition_outside_viewport:fishingOutside,line_end_contact_gap:lineEndContactGap,
             bobber_contact_alignment:bobberContact,reflection_contact_gap:reflectionGap,ripple_contains_contact:rippleContainsContact,layer_order:layerOrder},
@@ -718,15 +718,19 @@ async function main() {
     }
     baseEvidence.frozen_visual={path:frozenCopy.split("/").at(-1),sha256:await sha256File(frozenCopy),authority_sha256:preflight.referenceSha,
       pixel_dimensions:await pngDimensions(frozenCopy),original_bytes_unchanged:true};
-    const comparisonCase=baseEvidence.matrix.find(row=>row.viewport?.width===360&&row.viewport?.height===780&&row.font_scale===1) ||
-      baseEvidence.matrix.find(row=>row.viewport?.width===360&&row.viewport?.height===640&&row.font_scale===1);
+    const comparisonCase=baseEvidence.matrix.find(row=>row.viewport?.width===360&&row.viewport?.height===640&&row.font_scale===1) ||
+      baseEvidence.matrix.find(row=>row.viewport?.width===360&&row.viewport?.height===780&&row.font_scale===1);
     baseEvidence.reference_comparison={logical_viewport_css_px:{width:360,height:640},frozen_reference_pixel_size:{width:941,height:1672},
       browser_device_scale_factor:3,capture_bounds_css_px:compareCapture.bounds_css_px,screenshot_pixels:compareSize,
-      comparison_region:"full page canvas with identical aspect-ratio contain; browser screenshot is isolated to rendered root, reference bytes are unmodified",
+      comparison_region:"isolated page-root viewport at 360x640 CSS px with preserved aspect ratio; reference bytes are unmodified",
+      page_content_region_alignment:{browser_root_bounds_css_px:{x:0,y:0,width:360,height:640},reference_page_content_bounds_px:"NOT_MACHINE_READABLE",
+        status:"FULL_CANVAS_DIAGNOSTIC_ONLY",reason:"V2.2 frozen raster includes Android system chrome but has no machine-readable chrome/content boundary; no crop or offset is inferred."},
       native_density_claim:false,source_ratio_preserved:true,
       system_bar_comparison:{browser_status_bar:"NOT_SIMULATED",browser_safe_insets:{top:0,bottom:0,status:"BROWSER_ASSUMED_ZERO_NOT_NATIVE"},
         frozen_reference_status_bar:"PIXELS_PRESENT_IN_FROZEN_RASTER; boundary has no page-owned machine-readable authority",reference_status_bar_bounds:"NOT_VERIFIED",
-        header_actual_dom_bounds_css_px:comparisonCase?.ui_bounds?.Header||null,
+        browser_safe_area_preview:comparisonCase?.safe_area_preview||null,header_actual_dom_bounds_css_px:comparisonCase?.ui_bounds?.Header||null,
+        header_top_from_assumed_safe_inset_css_px:comparisonCase?.ui_bounds?.Header?comparisonCase.ui_bounds.Header.y-(comparisonCase.safe_area_preview?.top||0):null,
+        reference_header_bounds:"NOT_MACHINE_READABLE",
         status:"AUTHORITY_GAP; system chrome difference is reported separately and is not treated as Native validation"}};
     baseEvidence.comparison_images=comparisonFiles;
     baseEvidence.screenshot_references=screenshotRefs;
