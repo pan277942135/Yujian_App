@@ -95,10 +95,16 @@
       "path": "design/pages/recognition/web/implementation_input_pack/SWOS_WEB_IMPLEMENTATION_INPUT_MANIFEST_V1.json",
       "sha256": "10bd86f55e41704ca621da8e82568ae6d8ad7a61002d51012ff630bb9b38df4a",
       "purpose": "Pinned private bundle names and SHA values for the actual Pages artifact scan."
+    },
+    {
+      "authority_id": "pages_policy",
+      "path": "design/pages/home/empty_home/shared/contracts/pages_publication_policy.json",
+      "sha256": "eb292924f20304eaa8df98769b2b28541dab6c8f9a58e1eab925b6ac31b9db9f",
+      "purpose": "Page-owned JSON policy descriptor for the exact-SHA Pages workflow check."
     }
   ],
   "publication_policy": {
-    "authority_id": "workflow",
+    "authority_id": "pages_policy",
     "public_scope_marker": "cp -R design _site/design"
   },
   "page_notes": [
@@ -150,7 +156,7 @@
       "asset_designation": "REFERENCE_ONLY",
       "publication_permission": {
         "state": "PUBLIC_BY_EXISTING_PAGES_RULE",
-        "authority_id": "workflow",
+        "authority_id": "pages_policy",
         "scope": "Existing Pages rule includes Empty Home frozen visual authority files.",
         "policy_marker": "cp -R design _site/design"
       },
@@ -204,7 +210,7 @@
       "asset_designation": "REFERENCE_ONLY",
       "publication_permission": {
         "state": "PUBLIC_BY_EXISTING_PAGES_RULE",
-        "authority_id": "workflow",
+        "authority_id": "pages_policy",
         "scope": "Existing Pages rule includes Empty Home frozen visual authority files.",
         "policy_marker": "cp -R design _site/design"
       },
@@ -252,7 +258,7 @@
       "asset_designation": "ORIGINAL",
       "publication_permission": {
         "state": "PUBLIC_BY_EXISTING_PAGES_RULE",
-        "authority_id": "workflow",
+        "authority_id": "pages_policy",
         "scope": "Background Registry explicitly assigns this sunrise override to Empty Home.",
         "policy_marker": "cp -R design _site/design"
       },
@@ -302,7 +308,7 @@
       "asset_designation": "ORIGINAL",
       "publication_permission": {
         "state": "PUBLIC_BY_EXISTING_PAGES_RULE",
-        "authority_id": "workflow",
+        "authority_id": "pages_policy",
         "scope": "Existing Pages rule includes this Empty Home manifest asset; system-owned components retain their shared-system path.",
         "policy_marker": "cp -R design _site/design"
       },
@@ -353,7 +359,7 @@
       "asset_designation": "ORIGINAL",
       "publication_permission": {
         "state": "PUBLIC_BY_EXISTING_PAGES_RULE",
-        "authority_id": "workflow",
+        "authority_id": "pages_policy",
         "scope": "Existing Pages rule includes this Empty Home manifest asset; system-owned components retain their shared-system path.",
         "policy_marker": "cp -R design _site/design"
       },
@@ -404,7 +410,7 @@
       "asset_designation": "ORIGINAL",
       "publication_permission": {
         "state": "PUBLIC_BY_EXISTING_PAGES_RULE",
-        "authority_id": "workflow",
+        "authority_id": "pages_policy",
         "scope": "Existing Pages rule includes this Empty Home manifest asset; system-owned components retain their shared-system path.",
         "policy_marker": "cp -R design _site/design"
       },
@@ -455,7 +461,7 @@
       "asset_designation": "ORIGINAL",
       "publication_permission": {
         "state": "PUBLIC_BY_EXISTING_PAGES_RULE",
-        "authority_id": "workflow",
+        "authority_id": "pages_policy",
         "scope": "Existing Pages rule includes this Empty Home manifest asset; system-owned components retain their shared-system path.",
         "policy_marker": "cp -R design _site/design"
       },
@@ -506,7 +512,7 @@
       "asset_designation": "ORIGINAL",
       "publication_permission": {
         "state": "PUBLIC_BY_EXISTING_PAGES_RULE",
-        "authority_id": "workflow",
+        "authority_id": "pages_policy",
         "scope": "Existing Pages rule includes this Empty Home manifest asset; system-owned components retain their shared-system path.",
         "policy_marker": "cp -R design _site/design"
       },
@@ -557,7 +563,7 @@
       "asset_designation": "ORIGINAL",
       "publication_permission": {
         "state": "PUBLIC_BY_EXISTING_PAGES_RULE",
-        "authority_id": "workflow",
+        "authority_id": "pages_policy",
         "scope": "Existing Pages rule includes this Empty Home manifest asset; system-owned components retain their shared-system path.",
         "policy_marker": "cp -R design _site/design"
       },
@@ -608,7 +614,7 @@
       "asset_designation": "ORIGINAL",
       "publication_permission": {
         "state": "PUBLIC_BY_EXISTING_PAGES_RULE",
-        "authority_id": "workflow",
+        "authority_id": "pages_policy",
         "scope": "Existing Pages rule includes this Empty Home manifest asset; system-owned components retain their shared-system path.",
         "policy_marker": "cp -R design _site/design"
       },
@@ -659,7 +665,7 @@
       "asset_designation": "ORIGINAL",
       "publication_permission": {
         "state": "PUBLIC_BY_EXISTING_PAGES_RULE",
-        "authority_id": "workflow",
+        "authority_id": "pages_policy",
         "scope": "Existing Pages rule includes this Empty Home manifest asset; system-owned components retain their shared-system path.",
         "policy_marker": "cp -R design _site/design"
       },
@@ -710,7 +716,7 @@
       "asset_designation": "ORIGINAL",
       "publication_permission": {
         "state": "PUBLIC_BY_EXISTING_PAGES_RULE",
-        "authority_id": "workflow",
+        "authority_id": "pages_policy",
         "scope": "Existing Pages rule includes this Empty Home manifest asset; system-owned components retain their shared-system path.",
         "policy_marker": "cp -R design _site/design"
       },
@@ -761,7 +767,7 @@
       "asset_designation": "ORIGINAL",
       "publication_permission": {
         "state": "PUBLIC_BY_EXISTING_PAGES_RULE",
-        "authority_id": "workflow",
+        "authority_id": "pages_policy",
         "scope": "Existing Pages rule includes this Empty Home manifest asset; system-owned components retain their shared-system path.",
         "policy_marker": "cp -R design _site/design"
       },
@@ -812,7 +818,7 @@
       "asset_designation": "ORIGINAL",
       "publication_permission": {
         "state": "PUBLIC_BY_EXISTING_PAGES_RULE",
-        "authority_id": "workflow",
+        "authority_id": "pages_policy",
         "scope": "Existing Pages rule includes this Empty Home manifest asset; system-owned components retain their shared-system path.",
         "policy_marker": "cp -R design _site/design"
       },
@@ -863,7 +869,7 @@
       "asset_designation": "ORIGINAL",
       "publication_permission": {
         "state": "PUBLIC_BY_EXISTING_PAGES_RULE",
-        "authority_id": "workflow",
+        "authority_id": "pages_policy",
         "scope": "Existing Pages rule includes this Empty Home manifest asset; system-owned components retain their shared-system path.",
         "policy_marker": "cp -R design _site/design"
       },
@@ -914,7 +920,7 @@
       "asset_designation": "ORIGINAL",
       "publication_permission": {
         "state": "PUBLIC_BY_EXISTING_PAGES_RULE",
-        "authority_id": "workflow",
+        "authority_id": "pages_policy",
         "scope": "Existing Pages rule includes this Empty Home manifest asset; system-owned components retain their shared-system path.",
         "policy_marker": "cp -R design _site/design"
       },
@@ -967,7 +973,7 @@
       "asset_designation": "ORIGINAL",
       "publication_permission": {
         "state": "PUBLIC_BY_EXISTING_PAGES_RULE",
-        "authority_id": "workflow",
+        "authority_id": "pages_policy",
         "scope": "Existing Pages rule copies design/**, including this frozen shared system component asset.",
         "policy_marker": "cp -R design _site/design"
       },

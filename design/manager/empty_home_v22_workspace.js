@@ -224,8 +224,30 @@
     return { element: image, resource: result };
   }
 
+  async function verifyPagesPublicationPolicy(ctx) {
+    const binding = ctx.authority?.binding;
+    const policy = binding?.publication_policy;
+    const workflowSource = binding?.source_authorities?.find(row => row?.authority_id === "workflow");
+    const policySource = binding?.source_authorities?.find(row => row?.authority_id === policy?.authority_id);
+    assert(workflowSource?.path === ".github/workflows/design-manager-pages.yml" && /^[0-9a-f]{64}$/.test(workflowSource.sha256 || ""),
+      "EMPTY_HOME_PAGES_WORKFLOW_AUTHORITY_MISSING");
+    assert(policySource?.path && /^[0-9a-f]{64}$/.test(policySource.sha256 || ""), "EMPTY_HOME_PAGES_POLICY_AUTHORITY_MISSING");
+    const policyDocument = await ctx.loadAuthorityDocument(policySource.path, policySource.sha256);
+    assert(policyDocument.schema_version === "1.0" && policyDocument.workflow_path === workflowSource.path &&
+      policyDocument.workflow_sha256 === workflowSource.sha256 && policyDocument.public_scope_marker === policy.public_scope_marker,
+    "EMPTY_HOME_PAGES_POLICY_BINDING_MISMATCH");
+    const response = await ctx.fetchImpl(ctx.repoHref(workflowSource.path), { cache: "no-store" });
+    assert(response.ok, `EMPTY_HOME_PAGES_WORKFLOW_HTTP_ERROR: ${response.status}`);
+    const bytes = await response.arrayBuffer();
+    const actualSha = await sha256(bytes);
+    assert(actualSha === workflowSource.sha256, `EMPTY_HOME_PAGES_WORKFLOW_SHA_MISMATCH: expected=${workflowSource.sha256} actual=${actualSha}`);
+    const sourceText = new TextDecoder().decode(bytes);
+    assert(policy.public_scope_marker && sourceText.includes(policy.public_scope_marker), "EMPTY_HOME_PAGES_POLICY_MARKER_NOT_IN_WORKFLOW");
+  }
+
   async function ensureControlsAndResources(ctx, mapping) {
     const { root, authority, loadBoundResource, loadAuthorityDocument } = ctx;
+    await verifyPagesPublicationPolicy(ctx);
     const docs = await loadAuthorityDocs({ authority, loadAuthorityDocument });
     addWorkspaceControls(root, ctx, docs["responsive_mapping_contract.json"]);
     const pageResources = {

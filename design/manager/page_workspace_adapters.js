@@ -601,14 +601,9 @@
         const fetched = await responseBytes(path, { fetchImpl, repoHref, signal });
         const actualSha = await sha256(fetched.bytes);
         assert(actualSha === descriptor.sha256, `SOURCE_AUTHORITY_SHA_MISMATCH: ${path} expected=${descriptor.sha256} actual=${actualSha}`);
-        const decoded = new TextDecoder().decode(fetched.bytes);
         let value;
-        if (/\.ya?ml$/i.test(path)) {
-          value = decoded;
-        } else {
-          try { value = JSON.parse(decoded); }
-          catch (error) { throw new Error(`SOURCE_AUTHORITY_JSON_INVALID: ${path}: ${error.message}`); }
-        }
+        try { value = JSON.parse(new TextDecoder().decode(fetched.bytes)); }
+        catch (error) { throw new Error(`SOURCE_AUTHORITY_JSON_INVALID: ${path}: ${error.message}`); }
         return { descriptor, value, bytes: fetched.bytes, sha256: actualSha };
       })());
       return sourceAuthorityCache.get(authorityId);
