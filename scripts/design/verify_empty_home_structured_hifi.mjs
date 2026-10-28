@@ -32,6 +32,15 @@ async function pngDimensions(path) {
   assert(bytes.length >= 24 && bytes.subarray(1, 4).toString("ascii") === "PNG", `EVIDENCE_SCREENSHOT_NOT_PNG: ${path}`);
   return { width: bytes.readUInt32BE(16), height: bytes.readUInt32BE(20) };
 }
+async function screenshotRootViewport(page, path, width, height, timeout = 45000) {
+  const locator = page.locator("#eh-EmptyHomeRoot");
+  await locator.waitFor({ state: "visible", timeout });
+  const bounds = await locator.boundingBox();
+  assert(bounds && Math.abs(bounds.width - width) < 0.01 && Math.abs(bounds.height - height) < 0.01,
+    `MATRIX_ROOT_BOUNDS_MISMATCH: requested=${width}x${height} actual=${JSON.stringify(bounds)}`);
+  await page.screenshot({ path, clip: { x: bounds.x, y: bounds.y, width, height }, scale: "device", animations: "disabled", timeout });
+  return { size: await pngDimensions(path), bounds_css_px: { x: bounds.x, y: bounds.y, width, height } };
+}
 
 function startServer(root) {
   const absoluteRoot = resolve(root);
@@ -296,8 +305,8 @@ async function main() {
       assert(caseEvidence.fishing.layer_order[0]<caseEvidence.fishing.layer_order[1]&&caseEvidence.fishing.layer_order[1]<caseEvidence.fishing.layer_order[2]&&caseEvidence.fishing.layer_order[2]<caseEvidence.fishing.layer_order[3],`fishing layer occlusion order is invalid: ${caseEvidence.fishing.layer_order}`);
       assert(caseEvidence.cameraTouch.width>0&&caseEvidence.cameraTouch.height>0,"camera button actual DOM bounds must be measured");
       const shot=resolve(args.outputDir,`EmptyHome_${width}x${height}_font-${fontScale}.png`);
-      await page.locator("#eh-EmptyHomeRoot").screenshot({path:shot,animations:"disabled"});
-      const shotSize=await pngDimensions(shot);
+      const capture=await screenshotRootViewport(page,shot,width,height);
+      const shotSize=capture.size;
       assert(shotSize.width===width*3&&shotSize.height===height*3,`MATRIX_SCREENSHOT_PIXEL_SCALE_MISMATCH: ${width}x${height}: ${JSON.stringify(shotSize)}`);
       Object.assign(activeMatrixRow,caseEvidence,{
         case_id:activeMatrixRow.case_id,page_id:"home_empty_v2",source_sha:expectedSha,run_id:runId,
@@ -308,7 +317,7 @@ async function main() {
         viewport_width:width,viewport_height:height,font_scale:fontScale,
         candidate_source_sha:expectedSha,site_build_sha:expectedSha,
         dom_report:"EmptyHome_Component_Bounds_Report_V1.json",
-        screenshot_rendered:{path:shot.split("/").at(-1),sha256:await sha256File(shot),pixel_width:shotSize.width,pixel_height:shotSize.height,device_scale_factor:3},
+        screenshot_rendered:{path:shot.split("/").at(-1),sha256:await sha256File(shot),pixel_width:shotSize.width,pixel_height:shotSize.height,device_scale_factor:3,capture_bounds_css_px:capture.bounds_css_px},
         screenshot_reference:{path:"design/pages/home/empty_home/source/frozen/Empty_Home_Frozen_Visual_V2_2.png",sha256:preflight.referenceSha},
         geometry_result:"PASS_DOM_MEASURED_VISUAL_REVIEW_PENDING",
         resource_result:"PASS_W2_BOUND_RESOURCES_VERIFIED",
@@ -334,14 +343,14 @@ async function main() {
     await copyFile(originalFrozen,frozenCopy);
     assert(await sha256File(frozenCopy)===preflight.referenceSha,"frozen V2.2 evidence copy SHA differs from the W2-verified reference");
     const compareStructured=resolve(args.outputDir,"EmptyHome_Structured_1080x1920.png");
-    await page.locator("#eh-EmptyHomeRoot").screenshot({path:compareStructured,animations:"disabled",timeout:45000});
-    const compareSize=await pngDimensions(compareStructured);
+    const compareCapture=await screenshotRootViewport(page,compareStructured,360,640,45000);
+    const compareSize=compareCapture.size;
     assert(compareSize.width===1080&&compareSize.height===1920,`REFERENCE_COMPARISON_PIXEL_SIZE_MISMATCH: ${JSON.stringify(compareSize)}`);
     for (const mode of ["frozen","overlay","difference"]) {
       await page.locator("[data-empty-compare-mode]").selectOption(mode);
       const comparePath=resolve(args.outputDir,`EmptyHome_Compare_${mode}_1080x1920.png`);
-      await page.locator("#eh-EmptyHomeRoot").screenshot({path:comparePath,animations:"disabled",timeout:45000});
-      const size=await pngDimensions(comparePath);
+      const capture=await screenshotRootViewport(page,comparePath,360,640,45000);
+      const size=capture.size;
       assert(size.width===1080&&size.height===1920,`REFERENCE_COMPARISON_PIXEL_SIZE_MISMATCH: ${mode}: ${JSON.stringify(size)}`);
     }
     await page.locator("[data-empty-compare-mode]").selectOption("structured");
@@ -351,7 +360,7 @@ async function main() {
       comparisonFiles.push({mode,path:path.split("/").at(-1),sha256:await sha256File(path)});
     }
     baseEvidence.frozen_visual={path:frozenCopy.split("/").at(-1),sha256:await sha256File(frozenCopy),authority_sha256:preflight.referenceSha};
-    baseEvidence.reference_comparison={logical_viewport_css_px:{width:360,height:640},browser_device_scale_factor:3,screenshot_pixels:compareSize,
+    baseEvidence.reference_comparison={logical_viewport_css_px:{width:360,height:640},browser_device_scale_factor:3,capture_bounds_css_px:compareCapture.bounds_css_px,screenshot_pixels:compareSize,
       native_density_claim:false,source_ratio_preserved:true};
     baseEvidence.comparison_images=comparisonFiles;
     baseEvidence.screenshot_references=screenshotRefs;
