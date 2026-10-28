@@ -515,12 +515,16 @@ async function main() {
         });
         const line=byId.FishingLine?.bounds,rod=byId.FishingRod?.bounds,bobber=byId.BobberBody?.bounds;
         const contact=byId.WaterContact?.bounds,reflection=byId.BobberReflection?.bounds,ripple=byId.Ripple?.bounds;
-        const linePath=document.querySelector("#eh-FishingLine path");
-        const pointToScreen=(point)=>{const matrix=document.querySelector("#eh-FishingLine").getScreenCTM();return new DOMPoint(point.x,point.y).matrixTransform(matrix);};
+        const lineSvg=document.querySelector("#eh-FishingLine");
+        const linePath=lineSvg?.querySelector("path");
+        const lineSvgRect=lineSvg?.getBoundingClientRect(),lineViewBox=lineSvg?.viewBox?.baseVal,boardRect=board.getBoundingClientRect();
+        const pointToBoard=(point)=>({x:lineSvgRect.left+point.x/lineViewBox.width*lineSvgRect.width-boardRect.left,
+          y:lineSvgRect.top+point.y/lineViewBox.height*lineSvgRect.height-boardRect.top});
         const lineLength=linePath?.getTotalLength()||0;
-        const lineStart=linePath&&lineLength?pointToScreen(linePath.getPointAtLength(0)):null;
-        const lineEnd=linePath&&lineLength?pointToScreen(linePath.getPointAtLength(lineLength)):null;
-        const contactPoint=document.querySelector("#eh-WaterContact")?.getBoundingClientRect();
+        const lineStart=linePath&&lineLength?pointToBoard(linePath.getPointAtLength(0)):null;
+        const lineEnd=linePath&&lineLength?pointToBoard(linePath.getPointAtLength(lineLength)):null;
+        const contactRect=document.querySelector("#eh-WaterContact")?.getBoundingClientRect();
+        const contactPoint=contactRect?{left:contactRect.left-boardRect.left,top:contactRect.top-boardRect.top}:null;
         const lineEndContactGap=lineEnd&&contactPoint?Math.hypot(lineEnd.x-contactPoint.x,lineEnd.y-contactPoint.y):null;
         const bobberContact={horizontal_inside:contact&&bobber?contact.x>=bobber.x-.5&&contact.x<=bobber.right+.5:false,
           vertical_gap:contact&&bobber?Math.abs(contact.y-bobber.bottom):null};
