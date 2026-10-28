@@ -13,7 +13,7 @@
   "stage": "G0_STATE_RECOVERY_AND_PRODUCT_ADMISSION",
   "status": "BLOCKED",
   "source_sha": "5ba86fd8d1142d4708d1b8f9e6ddc81cbc96ccf6",
-  "checkpoint_updated_at": "2026-10-28T09:53:07.090Z",
+  "checkpoint_updated_at": "2026-10-28T09:57:32.748Z",
   "next_action": "Run workflow_dispatch for .github/workflows/control-plane-admission.yml with ref work-state/w5-empty-home-pilot-v1. Require PRODUCT_WORK mode and CONTROL_PLANE_ADMISSION=PASS on this state branch, whose source_sha is the exact PR #234 candidate SHA 5ba86fd8d1142d4708d1b8f9e6ddc81cbc96ccf6. Only then apply the W4 workspace-scope repair to PR #234 and rerun exact-SHA browser verification.",
   "dependencies": [
     "YUJIAN_PAGE_FREEZE_PIPELINE_W3_DESIGN_MANAGER_ADAPTER_V1",
@@ -21,7 +21,7 @@
   ],
   "blockers": [
     "Product-work Admission has not been run in PRODUCT_WORK mode; the PR pull_request event runs canonical-promotion mode and cannot substitute for it.",
-    "W4 exact-SHA evidence run 40657928278 failed on old candidate SHA dae5e54c761cb424eee4144f4009436a12e2cb80 because the workspace tree selected a disabled page node; preserve this failure and repair the verifier scope.",
+    "W4 exact-HEAD evidence run 40667570169 failed on candidate SHA 5ba86fd8d1142d4708d1b8f9e6ddc81cbc96ccf6: home_normal_v1 workspace browser report FAIL, home_empty_v2 PASS, auth_login_v2 NOT_RUN. The W4 gate is not PASS.",
     "Main SHA 632cada103bf022adeb873bd6e66464555b509e4 has a cancelled Design Manager Pages run 40666041684; latest Main is not yet confirmed deployed to the production root."
   ],
   "evidence": {
@@ -30,15 +30,24 @@
     "candidate_pr_url": "https://github.com/pan277942135/Yujian_App/pull/234",
     "current_w4_run": {
       "run_id": 40667570169,
-      "status": "IN_PROGRESS_AT_CHECKPOINT",
+      "status": "FAIL",
       "url": "https://github.com/pan277942135/Yujian_App/actions/runs/40667570169",
-      "source_sha": "5ba86fd8d1142d4708d1b8f9e6ddc81cbc96ccf6"
+      "source_sha": "5ba86fd8d1142d4708d1b8f9e6ddc81cbc96ccf6",
+      "details": {
+        "home_normal_v1": "FAIL",
+        "home_empty_v2": "PASS",
+        "auth_login_v2": "NOT_RUN",
+        "workspace_verifier_fixtures": "PASS cases=11"
+      }
     },
     "current_w5_run": {
       "run_id": 40667570176,
-      "status": "IN_PROGRESS_AT_CHECKPOINT",
+      "status": "PASS",
       "url": "https://github.com/pan277942135/Yujian_App/actions/runs/40667570176",
-      "source_sha": "5ba86fd8d1142d4708d1b8f9e6ddc81cbc96ccf6"
+      "source_sha": "5ba86fd8d1142d4708d1b8f9e6ddc81cbc96ccf6",
+      "matrix_cases": 12,
+      "negative_cases": 8,
+      "visual_review": "PENDING"
     },
     "previous_w4_failure": {
       "run_id": 40657928278,
@@ -56,6 +65,22 @@
       "merge_commit_sha": "5ba86fd8d1142d4708d1b8f9e6ddc81cbc96ccf6",
       "main_sha": "632cada103bf022adeb873bd6e66464555b509e4",
       "status": "MERGED_AS_NON_FORCE_MERGE"
+    },
+    "product_work_admission": {
+      "status": "NOT_RUN",
+      "note": "PR event admission run 40667570171 was CANONICAL_MAIN_PROMOTION mode, not PRODUCT_WORK mode."
+    },
+    "isolated_preview": {
+      "run_id": 40667570170,
+      "status": "QUEUED",
+      "url": "https://github.com/pan277942135/Yujian_App/actions/runs/40667570170",
+      "source_sha": "5ba86fd8d1142d4708d1b8f9e6ddc81cbc96ccf6"
+    },
+    "current_main_pages": {
+      "run_id": 40666041684,
+      "status": "CANCELLED",
+      "url": "https://github.com/pan277942135/Yujian_App/actions/runs/40666041684",
+      "source_sha": "632cada103bf022adeb873bd6e66464555b509e4"
     }
   }
 }
