@@ -603,7 +603,7 @@
         assert(actualSha === descriptor.sha256, `SOURCE_AUTHORITY_SHA_MISMATCH: ${path} expected=${descriptor.sha256} actual=${actualSha}`);
         const authorityText = new TextDecoder().decode(fetched.bytes);
         let value;
-        if (descriptor.purpose === "workflow" && /\\.ya?ml$/i.test(path)) {
+        if (descriptor.purpose === "workflow" && /\.ya?ml$/i.test(path)) {
           // W2 pins the Pages workflow as a publication-policy source. Preserve its exact
           // bytes for marker verification; YAML is not a JSON authority document.
           value = authorityText;
