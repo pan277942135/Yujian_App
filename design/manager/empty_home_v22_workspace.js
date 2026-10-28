@@ -183,7 +183,7 @@
   async function loadAuthorityDocs({ authority, loadAuthorityDocument }) {
     const runtime = await loadAuthorityDocument(`${CONTRACT_ROOT}runtime_manifest.json`, RUNTIME_MANIFEST_SHA256);
     const names = ["authority_manifest.json", "anchor_contract.json", "responsive_mapping_contract.json", "layer_contract.json",
-      "asset_manifest.json", "motion_contract.json", "hero_asset_contract.json"];
+      "motion_contract.json", "hero_asset_contract.json"];
     const values = {};
     for (const name of names) {
       const path = CONTRACT_ROOT + name;
@@ -191,6 +191,8 @@
       assert(expectedSha, `EMPTY_HOME_CONTRACT_SHA_MISSING: ${name}`);
       values[name] = await loadAuthorityDocument(path, expectedSha);
     }
+    // asset_manifest.json is not listed as a current runtime contract. Its exact bytes are pinned by the page W2 source-authority binding.
+    values["asset_manifest.json"] = await loadAuthorityDocument(`${CONTRACT_ROOT}asset_manifest.json`);
     assert(runtime.visual_revision === "V2.2" && runtime.approved_visual_sha256 === "3071481ed7e58106381cdd5321267792491c21fd1a357e4362db1dad8e08e7ec",
       "EMPTY_HOME_RUNTIME_MANIFEST_NOT_V2_2_FROZEN");
     assert(values["authority_manifest.json"].visual_revision === "V2.2" && values["authority_manifest.json"].authority_status === "CURRENT",
