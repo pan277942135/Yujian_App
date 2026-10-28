@@ -51,58 +51,56 @@ function startServer(root) {
 
 async function waitReady(page, expectedSha) {
   await page.locator("#pageList .module-item").first().waitFor({state:"visible",timeout:30000});
-  await page.locator("[data-page-workspace-root]").waitFor({state:"visible",timeout:30000});
-  await page.waitForFunction(()=>{
-    const root=document.querySelector("[data-page-workspace-root]");
-    return root && root.dataset.workspaceKind==="structured-dom-candidate" && root.dataset.viewState!=="LOADING";
-  },null,{timeout:45000});
-  const state = await page.locator("[data-page-workspace-root]").getAttribute("data-view-state");
-  if (state !== "EMPTY_DEFAULT") {
-    const error = await page.locator("[data-workspace-error]").innerText().catch(()=>"workspace error not rendered");
-    throw new Error(`EMPTY_HOME_WORKSPACE_NOT_READY: state=${state} error=${error}`);
-  }
-  const actualSha = await page.locator("[data-page-workspace-root]").getAttribute("data-source-sha");
-  assert(actualSha === expectedSha, `SOURCE_SHA_MISMATCH: ${actualSha} != ${expectedSha}`);
+  const diagnostic=async()=>page.evaluate(()=>{
+    const adapter=window.PageWorkspaceAdapters?.active;
+    const host=adapter?.root||document.querySelector("#hifiViewCanvas");
+    const workspace=host?.querySelector("[data-page-workspace-root]");
+    const board=workspace?.querySelector("[data-workspace-artboard]");
+    const rendered=board?.querySelector("#eh-EmptyHomeRoot");
+    const loadError=host?.querySelector(".page-ws-load-error");
+    const workspaceError=host?.querySelector("[data-workspace-error]");
+    const inspector=workspace?.querySelector("[data-workspace-inspector]");
+    const images=[...(board?.querySelectorAll("img")||[])].map(image=>({id:image.id||null,complete:image.complete,
+      natural_width:image.naturalWidth,natural_height:image.naturalHeight,src:image.currentSrc||image.src||null}));
+    return {
+      active_adapter_page_id:adapter?.pageId||null,active_adapter_source_sha:adapter?.sourceSha||null,
+      active_root_connected:Boolean(adapter?.root?.isConnected),workspace_count:document.querySelectorAll("[data-page-workspace-root]").length,
+      workspace:{source_sha:workspace?.dataset.sourceSha||null,kind:workspace?.dataset.workspaceKind||null,
+        view_state:workspace?.dataset.viewState||null,visible:Boolean(workspace?.getClientRects().length)},
+      board_connected:Boolean(board?.isConnected),board_viewport:board?.dataset.viewport||null,
+      has_layout_metrics:Boolean(board?.dataset.layoutMetrics),rendered_source_sha:rendered?.dataset.sourceSha||null,
+      render_ready:rendered?.dataset.renderReady||null,selected_node_id:inspector?.dataset.selectedNodeId||null,
+      images,load_error:loadError?.innerText||null,
+      workspace_error:workspaceError&&!workspaceError.hidden?workspaceError.innerText:null,
+      host_text:host?.innerText?.slice(0,1200)||null,host_html:host?.innerHTML?.slice(0,1800)||null
+    };
+  });
   try {
     await page.waitForFunction(({sha})=>{
       const adapter=window.PageWorkspaceAdapters?.active;
-      const adapterRoot=adapter?.root;
-      const workspace=adapterRoot?.querySelector("[data-page-workspace-root]");
-      const board=adapterRoot?.querySelector("[data-workspace-artboard]");
+      const host=adapter?.root||document.querySelector("#hifiViewCanvas");
+      const workspace=host?.querySelector("[data-page-workspace-root]");
+      const board=workspace?.querySelector("[data-workspace-artboard]");
       const rendered=board?.querySelector("#eh-EmptyHomeRoot");
-      return adapter?.sourceSha===sha && workspace?.dataset.sourceSha===sha &&
-        workspace.dataset.workspaceKind==="structured-dom-candidate" &&
-        workspace.dataset.viewState==="EMPTY_DEFAULT" && board?.dataset.layoutMetrics &&
-        rendered?.dataset.sourceSha===sha &&
+      const loadError=host?.querySelector(".page-ws-load-error");
+      const workspaceError=host?.querySelector("[data-workspace-error]");
+      if(loadError||(workspaceError&&!workspaceError.hidden)) return true;
+      const inspector=workspace?.querySelector("[data-workspace-inspector]");
+      return adapter?.pageId==="home_empty_v2" && adapter.sourceSha===sha && adapter.root?.isConnected &&
+        workspace?.dataset.sourceSha===sha && workspace.dataset.workspaceKind==="structured-dom-candidate" &&
+        workspace.dataset.viewState==="EMPTY_DEFAULT" && workspace.getClientRects().length>0 && board?.dataset.layoutMetrics &&
+        rendered?.dataset.sourceSha===sha && rendered.dataset.renderReady==="true" && inspector?.dataset.selectedNodeId &&
         [...board.querySelectorAll("img")].every(image=>image.complete&&image.naturalWidth>0&&image.naturalHeight>0);
-    },{sha:expectedSha},{timeout:30000});
+    },{sha:expectedSha},{timeout:60000});
   } catch (error) {
-    const diagnostic = await page.evaluate(() => {
-      const adapter=window.PageWorkspaceAdapters?.active;
-      const adapterRoot=adapter?.root;
-      const workspace=adapterRoot?.querySelector("[data-page-workspace-root]");
-      const board=adapterRoot?.querySelector("[data-workspace-artboard]");
-      const rendered=board?.querySelector("#eh-EmptyHomeRoot");
-      return {
-        active_adapter_page_id:adapter?.pageId||null,
-        active_adapter_source_sha:adapter?.sourceSha||null,
-        active_root_connected:Boolean(adapterRoot?.isConnected),
-        workspace_count:document.querySelectorAll("[data-page-workspace-root]").length,
-        workspace:{source_sha:workspace?.dataset.sourceSha||null,kind:workspace?.dataset.workspaceKind||null,
-          view_state:workspace?.dataset.viewState||null,font_scale:workspace?.dataset.fontScale||null},
-        board_connected:Boolean(board?.isConnected),
-        board_viewport:board?.dataset.viewport||null,
-        has_layout_metrics:Boolean(board?.dataset.layoutMetrics),
-        rendered_source_sha:rendered?.dataset.sourceSha||null,
-        images:[...(board?.querySelectorAll("img")||[])].map(image=>({id:image.id||null,
-          complete:image.complete,natural_width:image.naturalWidth,natural_height:image.naturalHeight,
-          src:image.currentSrc||image.src||null,display:getComputedStyle(image).display,
-          visibility:getComputedStyle(image).visibility})),
-        error:adapterRoot?.querySelector("[data-workspace-error]")?.innerText||null
-      };
-    });
-    throw new Error(`EMPTY_HOME_RUNTIME_STABILITY_TIMEOUT: ${error.message}; diagnostics=${JSON.stringify(diagnostic)}`);
+    throw new Error(`EMPTY_HOME_RUNTIME_STABILITY_TIMEOUT: ${error.message}; diagnostics=${JSON.stringify(await diagnostic())}`);
   }
+  const state=await diagnostic();
+  if(state.load_error||state.workspace_error) throw new Error(`EMPTY_HOME_WORKSPACE_RENDER_FAILED: ${state.load_error||state.workspace_error}; diagnostics=${JSON.stringify(state)}`);
+  assert(state.active_adapter_page_id==="home_empty_v2"&&state.workspace_count===1&&state.workspace.source_sha===expectedSha&&
+    state.workspace.view_state==="EMPTY_DEFAULT"&&state.rendered_source_sha===expectedSha&&state.render_ready==="true"&&
+    state.has_layout_metrics&&state.selected_node_id&&state.images.length>0&&state.images.every(image=>image.complete&&image.natural_width>0&&image.natural_height>0),
+  `EMPTY_HOME_RUNTIME_NOT_STABLE: diagnostics=${JSON.stringify(state)}`);
 }
 
 async function main() {

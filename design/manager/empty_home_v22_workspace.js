@@ -462,6 +462,7 @@
     assert(canvas.querySelectorAll("#eh-Ripple").length === 1, "EMPTY_HOME_RIPPLE_DUPLICATE");
     assert(canvas.querySelectorAll("#eh-BobberBody").length === 1, "EMPTY_HOME_BOBBER_BODY_DUPLICATE");
     assert(Math.abs((337 + 0) - 337) < 0.001 && Math.abs(1180 + 4 - 1184) < 0.001, "EMPTY_HOME_ROD_LINE_ENDPOINT_GAP");
+    pageRoot.dataset.renderReady = "true";
   }
 
   async function createOptions({ pageId, sourceSha, feature, fetchImpl = window.fetch.bind(window), repoHref }) {
