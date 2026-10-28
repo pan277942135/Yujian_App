@@ -158,10 +158,21 @@ jobs:
           assert state_mapping.get("locator") == "heading:Scope"
           assert state_mapping.get("resolution") == "PAGE_SPECIFIC_EXPLICIT_STATE_MAPPING"
           assert state_mapping.get("renderer_state_id")
-          assert summary.get("expected") == len(cases), (summary, len(cases))
-          assert summary.get("executed") == summary.get("expected")
-          assert summary.get("pass") == summary.get("expected")
-          assert summary.get("fail") == 0 and summary.get("not_run") == 0, summary
+          formal_cases = [case for case in cases if case.get("matrix_classification") == "FORMAL_AUTHORITY_CASE"]
+          supplemental_cases = [case for case in cases if case.get("matrix_classification") == "SUPPLEMENTAL_CANDIDATE_NOT_IN_FROZEN_AUTHORITY"]
+          assert len(formal_cases) == summary.get("formal_expected") == summary.get("expected")
+          assert len(supplemental_cases) == summary.get("supplemental_expected")
+          assert summary.get("formal_executed") == summary.get("formal_expected")
+          assert summary.get("formal_pass") == summary.get("formal_expected")
+          assert summary.get("formal_fail") == 0 and summary.get("formal_not_run") == 0, summary
+          assert summary.get("supplemental_executed") == summary.get("supplemental_expected")
+          assert summary.get("supplemental_pass") == summary.get("supplemental_expected")
+          assert summary.get("supplemental_fail") == 0 and summary.get("supplemental_not_run") == 0, summary
+          assert summary.get("total_expected") == len(cases)
+          assert summary.get("total_executed") == summary.get("total_expected")
+          assert summary.get("total_pass") == summary.get("total_expected")
+          assert summary.get("total_fail") == 0 and summary.get("total_not_run") == 0, summary
+          assert len({case.get("case_id") for case in cases}) == len(cases), "matrix case IDs must be unique"
           assert summary.get("source_path") == evidence.get("matrix_authority", {}).get("path")
           assert summary.get("source_sha256") == evidence.get("matrix_authority", {}).get("sha256")
           assert cases, "formal matrix is empty"
@@ -190,7 +201,11 @@ jobs:
               assert case["viewport_height"] * 3 <= height <= (case["viewport_height"] + 1) * 3, (case.get("case_id"), height)
           bounds = json.loads(bounds_path.read_text())
           assert bounds.get("source_sha") == expected_sha
-          assert len(bounds.get("viewports", [])) == summary.get("expected")
+          bounds_views = bounds.get("viewports", [])
+          assert len(bounds_views) == summary.get("total_expected")
+          expected_view_keys = {(case["viewport_width"], case["viewport_height"], float(case["font_scale"])) for case in cases}
+          actual_view_keys = {(view["viewport"]["width"], view["viewport"]["height"], float(view["font_scale"])) for view in bounds_views}
+          assert actual_view_keys == expected_view_keys, (actual_view_keys, expected_view_keys)
           print(json.dumps({"status": "PASS", "source_sha": expected_sha, "run_id": expected_run,
                             "matrix_summary": summary}, indent=2))
           PY
