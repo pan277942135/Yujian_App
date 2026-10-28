@@ -29,6 +29,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
@@ -48,7 +49,9 @@ import com.yujian.ai.model.SelectedImage
 import com.yujian.ai.ui.identify.RecognitionImageTransform
 import com.yujian.ai.ui.identify.RecognitionSourcePhoto
 import com.yujian.ai.ui.identify.NormalizedSourceRect
+import com.yujian.ai.ui.recognition.PhotoShockwaveTransform
 import com.yujian.ai.ui.recognition.RecognitionAmbientField
+import com.yujian.ai.ui.recognition.photoShockwaveTransform
 import com.yujian.ai.ui.recognition.RecognitionContourSegment
 import com.yujian.ai.ui.recognition.RecognitionFishFocus
 import com.yujian.ai.ui.recognition.RecognitionFishFocusLevel
@@ -122,6 +125,7 @@ fun RecognitionProcessingScene(
     var finishedResult by remember(image?.imageId) { mutableStateOf<ProductionRecognitionResult?>(null) }
     var delivered by remember(image?.imageId) { mutableStateOf(false) }
     var visualNowMs by remember(image?.imageId) { mutableStateOf(recognitionMonotonicNowMs()) }
+    var processingStartedAtMs by remember(image?.imageId) { mutableStateOf<Long?>(null) }
     val controller = remember(image?.imageId) { RecognitionVisualStateController().also { it.reset(recognitionMonotonicNowMs()) } }
 
     DisposableEffect(subjectBitmap) {
@@ -186,6 +190,7 @@ fun RecognitionProcessingScene(
     LaunchedEffect(image?.imageId) {
         if (image == null) { onFailure(IllegalStateException("recognition image is unavailable")); return@LaunchedEffect }
         val startedAtMs = recognitionMonotonicNowMs()
+        processingStartedAtMs = startedAtMs
         controller.reset(startedAtMs); realPhase = RecognitionPhase.CAPTURED; visualPhase = RecognitionPhase.CAPTURED; visualNowMs = startedAtMs
         if (phaseOverride == null) phasePresentedCallback(RecognitionPhase.CAPTURED, startedAtMs)
         assessment = null
@@ -259,8 +264,14 @@ fun RecognitionProcessingScene(
     val rendered = phaseOverride ?: visualPhase
     val visualClockMs = visualClockOverrideMs ?: visualNowMs
     val deterministicMotion = visualClockOverrideMs != null
-    val phaseElapsedMs = if (phaseOverride != null) 1_000L else controller.phaseElapsedMs(visualNowMs)
     val motionPolicy = motionPolicyOverride ?: rememberRecognitionMotionPolicy()
+    val processingElapsedMs = if (deterministicMotion) {
+        visualClockMs.coerceAtLeast(0L)
+    } else {
+        processingStartedAtMs?.let { (visualClockMs - it).coerceAtLeast(0L) } ?: 0L
+    }
+    val photoShockwave = photoShockwaveTransform(processingElapsedMs, motionPolicy.reduceMotion)
+    val phaseElapsedMs = if (phaseOverride != null) 1_000L else controller.phaseElapsedMs(visualNowMs)
     val levelAAvailable = subjectBitmap != null && subjectBox != null && contour.isNotEmpty()
     val displayedFocusLevel = recognitionDisplayedFishFocusLevel(
         requestedLevel = motionPolicy.fishFocusLevel,
@@ -302,7 +313,7 @@ fun RecognitionProcessingScene(
     Box(Modifier.fillMaxSize().background(Color(0xFF102D35))) {
         if (image != null) RecognitionPhoto(
             image.bitmap, rendered, assessment?.primary?.box, subjectBitmap, subjectBox, contour,
-            visualClockMs, deterministicMotion, image?.imageId, phaseElapsedMs, motionPolicy, onMotionFrame,
+            visualClockMs, deterministicMotion, processingElapsedMs, photoShockwave, image.imageId, phaseElapsedMs, motionPolicy, onMotionFrame,
             displayedFocusLevel, onFishFocusTransform, Modifier.fillMaxSize(),
             onProcessingPhotoSnapshot = { transform, bounds ->
                 onProcessingPhotoSnapshot(
@@ -345,8 +356,8 @@ fun RecognitionProcessingScene(
 private fun RecognitionPhoto(
     bitmap: Bitmap, phase: RecognitionPhase, focusBox: NormalizedFishBox?, subjectBitmap: Bitmap?,
     subjectBox: NormalizedFishBox?, contour: List<RecognitionContourSegment>, visualClockMs: Long,
-    deterministicMotion: Boolean, motionSessionKey: Any?,
-    phaseElapsedMs: Long, motionPolicy: RecognitionMotionPolicy,
+    deterministicMotion: Boolean, processingElapsedMs: Long, photoShockwave: PhotoShockwaveTransform,
+    motionSessionKey: Any?, phaseElapsedMs: Long, motionPolicy: RecognitionMotionPolicy,
     onMotionFrame: ((RecognitionMotionTraceSample) -> Unit)?,
     focusLevel: RecognitionFishFocusLevel,
     onFishFocusTransform: ((RecognitionImageTransform) -> Unit)?, modifier: Modifier,
@@ -362,6 +373,12 @@ private fun RecognitionPhoto(
         )
     }
     val transform = mediaPlan.primaryTransform
+    val viewportWidthPx = with(density) { maxWidth.toPx() }.coerceAtLeast(1f)
+    val viewportHeightPx = with(density) { maxHeight.toPx() }.coerceAtLeast(1f)
+    val photoPivot = TransformOrigin(
+        pivotFractionX = ((transform.photoContentRect.left + transform.photoContentRect.right) * .5f / viewportWidthPx).coerceIn(0f, 1f),
+        pivotFractionY = ((transform.photoContentRect.top + transform.photoContentRect.bottom) * .5f / viewportHeightPx).coerceIn(0f, 1f),
+    )
     Box(Modifier.fillMaxSize().onGloballyPositioned { coordinates ->
         val bounds = coordinates.boundsInWindow()
         onProcessingPhotoSnapshot(
@@ -374,6 +391,17 @@ private fun RecognitionPhoto(
             onFishFocusTransform(transform)
         }
     }
+    // The outer measured container stays fixed. Only this shared photo + optical group
+    // receives the bounded shockwave; status UI and snapshot geometry stay stationary.
+    Box(
+        Modifier.fillMaxSize().graphicsLayer {
+            transformOrigin = photoPivot
+            translationY = with(density) { photoShockwave.translationYDp.dp.toPx() }
+            rotationZ = photoShockwave.rotationDegrees
+            scaleX = photoShockwave.scale
+            scaleY = photoShockwave.scale
+        },
+    ) {
     // The same source may fill the letterboxed bands decoratively, but this
     // transform is never used by focus geometry and never changes by phase.
     mediaPlan.decorativeBackgroundTransform?.let { backgroundTransform ->
@@ -395,6 +423,7 @@ private fun RecognitionPhoto(
         phase, Modifier.fillMaxSize(), visualClockMs,
         motionSessionKey = motionSessionKey,
         deterministicMotion = deterministicMotion,
+        processingElapsedMs = processingElapsedMs,
         lowPerformance = motionPolicy.lowPerformance,
         reduceMotion = motionPolicy.reduceMotion,
         qualityLevel = motionPolicy.qualityLevel,
@@ -408,6 +437,7 @@ private fun RecognitionPhoto(
         lowPerformance = motionPolicy.lowPerformance,
         focusLevel = focusLevel,
     )
+    }
     }
 }
 
