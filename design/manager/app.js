@@ -3873,7 +3873,7 @@ async function openPageStructuredWorkspace(id, routeKey, writeHistory = false) {
     el("hifiViewEyebrow").textContent = "W6 Login · 共享结构化工作区";
     el("hifiViewTitle").textContent = `${feature.display_name || id} · Login V2.1`;
     el("hifiViewStatus").innerHTML = statusBadge("CANDIDATE");
-    el("hifiViewSummary").textContent = "Login 页面使用共享 W3 图层树、真实 DOM 测量、Inspector 与候选视口/状态控件。W1 数值规范仍待审阅；未授权图标、未绑定的底部资源及认证服务保持未完成。候选 Renderer 仅允许 loopback 本地预览。";
+    el("hifiViewSummary").textContent = "Login 页面使用共享 W3 图层树、真实 DOM 测量、Inspector 与候选视口/状态控件。W1 数值规范仍待审阅；未授权图标、未绑定的底部资源及认证服务保持未完成。候选 Renderer 仅允许 loopback 本地预览或 PR #234 隔离预览路径；未确认的资源授权状态保持不变。";
     el("hifiViewSummary").classList.remove("hidden");
     el("hifiViewContractDetails").innerHTML = `<section class="hifi-contract-details"><div class="hifi-contract-heading"><strong>页面合同与资源绑定</strong><span>W1 / W2 Authority · page_id ${esc(id)}</span></div><div class="hifi-contract-links"><span>状态</span><b>Responsive profile: REVIEW_REQUIRED · source upload: MISSING · footer grass: MISSING · icon publication: NOT_CONFIRMED · authentication backend: NOT_CONNECTED</b></div></section>`;
     el("hifiViewContractDetails").classList.remove("hidden");
