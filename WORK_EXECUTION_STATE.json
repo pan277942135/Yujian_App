@@ -12,14 +12,14 @@
   "stage": "EXACT_HEAD_W5_AND_PREVIEW",
   "status": "VALIDATING",
   "source_sha": "73cc6206eb146ada5120363ad7cf73fa8023908a",
-  "checkpoint_updated_at": "2026-10-29T18:00:34Z",
-  "next_action": "Record exact Admission PASS on candidate 8bae4db, commit a state-only checkpoint, rerun Admission on that final SHA, then verify the 4-viewport × 2-font-scale W5 matrix and isolated Pages preview.",
+  "checkpoint_updated_at": "2026-10-29T18:12:57.640Z",
+  "next_action": "Rerun Admission on this state-only checkpoint, then run W5 Chromium and the isolated Pages preview for the 4-viewport × 2-font-scale matrix; retain the Login mapping exception and brand authority blocker.",
   "dependencies": [
     "YUJIAN_PAGE_FREEZE_PIPELINE_W3_DESIGN_MANAGER_ADAPTER_V1",
     "YUJIAN_PAGE_FREEZE_PIPELINE_W4_TEST_EVIDENCE_V1"
   ],
   "blockers": [
-    "Rerun Admission on the next state-only checkpoint, then complete exact-source W5/Pages validation.",
+    "Run exact-candidate Admission on this state-only checkpoint, then complete exact-source W5/Pages validation.",
     "Empty Home brand placement remains blocked: registered brand_title_primary is authorized only for normal_home_v1."
   ],
   "evidence": {
@@ -79,7 +79,7 @@
       "recorded_at": "2026-10-29T17:49:20Z"
     },
     "exact_candidate_admission": {
-      "candidate_sha": "8bae4dbdb9276b27da47ea99210f7ee35306d428",
+      "candidate_sha": "2b45c9c7fe50e9966be35ed4e658bd2d5cecb3ba",
       "code_source_sha": "73cc6206eb146ada5120363ad7cf73fa8023908a",
       "command": "python scripts/validate_control_plane_admission.py",
       "result": "PASS",
@@ -88,7 +88,7 @@
       "exact_login_mapping_exceptions": 1,
       "project_master_state": "PASS",
       "work_execution_state": "PASS",
-      "recorded_at": "2026-10-29T17:58:44Z"
+      "recorded_at": "2026-10-29T18:12:57.640Z"
     },
     "typography_repair": {
       "code_source_sha": "73cc6206eb146ada5120363ad7cf73fa8023908a",

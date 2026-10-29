@@ -11,10 +11,10 @@ state_control:
   current_pr: 234
   base_sha: 34f21ad01e62ec7bf11be11fee8eb5a500894333
   execution_baseline_sha: 8bae4dbdb9276b27da47ea99210f7ee35306d428
-  current_head: 8bae4dbdb9276b27da47ea99210f7ee35306d428
+  current_head: 2b45c9c7fe50e9966be35ed4e658bd2d5cecb3ba
   current_main_head_sha: 0c245b86f8228107309d0135bdf819af255604be
   state_status: IN_PROGRESS
-  updated_at: '2026-10-29T18:00:34Z'
+  updated_at: '2026-10-29T18:12:57.636Z'
 source_of_truth:
   current_work_state: WORK_EXECUTION_STATE.json
   canonical_control_plane: CONTROL_PLANE_REGISTRY.yaml
@@ -32,7 +32,7 @@ repositories:
       main_sync_commit: dad76a9ca737245d4076b75b86537412b0238765
       synced_main_sha: 0c245b86f8228107309d0135bdf819af255604be
       note: 'Canonical controls remain exact against Main 0c245b86 after PR #258;
-        the exact registered Login mapping is preserved. Baseline Admission passed on 5de9100b and exact-candidate Admission passed on 8bae4db; rerun after this state-only evidence update.'
+        the exact registered Login mapping is preserved. Baseline Admission passed on 5de9100b and exact-candidate Admission passed on 2b45c9c7; rerun after this state-only evidence update.'
 pull_requests:
   PR234:
     number: 234
@@ -88,9 +88,9 @@ recognition_main_journey:
   note: This narrow design-candidate recovery does not change journey semantics.
 runtime_gates:
   exact_head:
-    sha: 8bae4dbdb9276b27da47ea99210f7ee35306d428
+    sha: 2b45c9c7fe50e9966be35ed4e658bd2d5cecb3ba
     status: ADMISSION_PASS_W5_PENDING
-    note: Exact Admission passed on 8bae4db for code source 73cc6206. The next state-only checkpoint requires a final Admission rerun; W5/Pages evidence and owner visual acceptance remain pending.
+    note: Admission passed on exact candidate 2b45c9c7 for code source 73cc6206. Rerun Admission after this state-only checkpoint before W5/Pages evidence; owner visual acceptance remains pending.
   page_evidence:
     previous_w5_matrix:
       status: HISTORICAL_FOR_OLD_HEAD
@@ -98,7 +98,7 @@ runtime_gates:
       run_id: 40873120653
     current_typography_matrix:
       status: NOT_RUN
-      source_sha: 8bae4dbdb9276b27da47ea99210f7ee35306d428
+      source_sha: 2b45c9c7fe50e9966be35ed4e658bd2d5cecb3ba
   historical_runtime_run:
     rule: Historical results cannot promote current exact HEAD to PASS.
   user_visual_acceptance: PENDING
@@ -109,16 +109,16 @@ current_work:
   id: YUJIAN_EMPTY_HOME_STRUCTURED_HIFI_TYPOGRAPHY_SCALE_PARITY_V1
   phase: P3
   task_id: YUJIAN_PAGE_FREEZE_PIPELINE_W5_EMPTY_HOME_PILOT_V1
-  exact_head: 8bae4dbdb9276b27da47ea99210f7ee35306d428
-  status: READY_FOR_ADMISSION
-  next_action: Commit the Admission evidence checkpoint, rerun Admission on its exact SHA, then verify W5/Pages evidence on the resulting candidate.
+  exact_head: 2b45c9c7fe50e9966be35ed4e658bd2d5cecb3ba
+  status: READY_FOR_FINAL_ADMISSION
+  next_action: Rerun exact-candidate Admission on the state-only checkpoint, then run the W5 and Pages workflows.
 blockers:
 - id: exact_candidate_admission
-  status: PENDING
-  description: Exact Admission passed on candidate checkpoint 8bae4db; rerun on the final state-only checkpoint before relying on W5 or Pages outputs.
+  status: PASS
+  description: Exact Admission passed on candidate 2b45c9c7: six control-plane layers, 735 synchronized paths, one exact Login mapping exception; the state-only checkpoint still requires a final exact rerun.
 - id: final_checkpoint_admission
   status: PENDING
-  description: Rerun python scripts/validate_control_plane_admission.py on the final state-only checkpoint before relying on W5 or Pages outputs.
+  description: Rerun python scripts/validate_control_plane_admission.py on the state-only checkpoint created from candidate 2b45c9c7 before W5 or Pages outputs.
 - id: brand_asset_authority
   status: BLOCKED
   description: brand_title_primary is registered for normal_home_v1, while Empty Home requires FROZEN_ARTWORK_ASSET; no authorized Empty Home brand binding exists.
@@ -138,8 +138,8 @@ protected_invariants:
   - Do not start Android implementation from this candidate review.
 next_actions:
 - id: exact_admission
-  status: READY
-  description: Run python scripts/validate_control_plane_admission.py on the final state-only candidate and record the exact SHA.
+  status: DONE
+  description: Exact Admission passed on candidate 2b45c9c7; rerun it on the state-only checkpoint before W5/Pages.
 - id: exact_head_w5_and_pages
   status: PENDING
   description: Run W5 Chromium and Design Manager Pages on the admitted exact candidate; verify all four formal viewports at font scales 1×/1.3×, DOM bounds, Inspector data, and the isolated live build SHA.

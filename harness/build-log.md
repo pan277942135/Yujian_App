@@ -1,3 +1,10 @@
+## 2026-10-29 — Exact Admission rerun on current candidate
+
+- Re-ran python scripts/validate_control_plane_admission.py against exact PR candidate 2b45c9c7fe50e9966be35ed4e658bd2d5cecb3ba after syncing Main 0c245b86f8228107309d0135bdf819af255604be and validating the branch state files.
+- Result: PASS — 6 control-plane layers, 735 synchronized paths, one exact registered Login mapping exception, Project Master State PASS, Work Execution State PASS.
+- The Login component mapping is required by the registered W6-A Login task and the Main exception; it remains preserved. The Empty Home brand authority gap remains blocked and is reported explicitly.
+- This entry precedes the state-only checkpoint; rerun Admission on that checkpoint before W5/Pages evidence.
+
 # Branch-local Work Build Log
 
 ## 2026-10-29 — PR #234 remote candidate source synchronized
