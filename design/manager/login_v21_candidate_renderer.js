@@ -237,6 +237,8 @@
     if (state !== "LOADING" && state !== "INPUT_ERROR") liveModel.submitState = "IDLE";
     canvas.innerHTML = renderMarkup({ state, assets: options.assets, viewport: { ...viewport, fontScale } });
     const page = canvas.querySelector("#login-LoginPageRoot");
+    const shortViewportScroll = viewport.height < 700;
+    page.classList.toggle("login-page--short-scroll", shortViewportScroll);
     page.style.setProperty("--login-vw", `${viewport.width}px`);
     page.style.setProperty("--login-vh", `${viewport.height}px`);
     page.style.setProperty("--login-font-scale", String(fontScale));
@@ -249,8 +251,10 @@
     const footer = page.querySelector("#login-Footer");
     await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
     const minHeight = Math.max(viewport.height, Math.ceil(main.offsetTop + main.offsetHeight + footer.offsetHeight + 16));
-    page.style.setProperty("--login-page-height", `${minHeight}px`);
-    page.style.height = `${minHeight}px`;
+    const pageHeight = shortViewportScroll ? viewport.height : minHeight;
+    page.style.setProperty("--login-page-height", `${pageHeight}px`);
+    page.style.height = `${pageHeight}px`;
+    page.dataset.loginScrollMode = shortViewportScroll ? "SCROLLABLE_SHORT_VIEWPORT" : "CONTENT_FITS_VIEWPORT";
     bindInteractions({ root: page, adapter });
     const pwdVisible = state === "PASSWORD_SHOWN" || liveModel.visible;
     page.querySelector("#login-PasswordInput").type = pwdVisible ? "text" : "password";
