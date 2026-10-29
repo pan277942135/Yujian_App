@@ -627,7 +627,7 @@
           "lifecycle_status",
           "publication_permission"
         ],
-        "verification_rule": "Safe-top behavior is authoritative; exact brand/subtitle/account pixel bounds and chevron resource are not independently registered for this page.",
+        "verification_rule": "Safe-top behavior follows the page contract. Browser-only top/bottom safe-area values (36/10 CSS px) are visual estimates from the frozen raster; they are not Native WindowInsets claims. Header start/end padding retains the adaptive inset and adds candidate measured offsets (+4/+10 CSS px). Exact brand/subtitle/account pixel bounds and chevron resource are not independently registered for this page.",
         "visible": true,
         "measurable": true,
         "selectable": true,
@@ -651,7 +651,7 @@
               "path": "design/pages/home/empty_home/shared/contracts/responsive_mapping_contract.json",
               "rule_id": "SAFE_TOP_ANCHORED"
             },
-            "render_method": "Blocked placeholder; dynamic text is prohibited",
+            "render_method": "Blocked hidden node; an empty 23sp line-height slot is reserved for grouping and no brand text or artwork is rendered",
             "dom_mapping": "eh-Brand",
             "inspector_fields": [
               "actual_dom_bounds_css_px",
@@ -697,7 +697,7 @@
               "lifecycle_status",
               "publication_permission"
             ],
-            "verification_rule": "Exact copy from V2.2; text metrics remain candidate due absent page typography token.",
+            "verification_rule": "Exact copy from V2.2; 9sp/12sp Regular metrics remain a measured candidate because Empty Home has no registered subtitle token. Tracking follows the shared 0sp rule.",
             "visible": true,
             "measurable": true,
             "selectable": true,
@@ -886,7 +886,7 @@
               "lifecycle_status",
               "publication_permission"
             ],
-            "verification_rule": "Parent is CaptureActionGroup; width equals the viewport/safe CTA group's available width (no additional min/max width clamp); shared type.body font size and 24sp line-height scale with fontScale, and the candidate box height is ceil(line-height). Text stays single-line nowrap. Its Y is above the camera using max(frozen reference offset, measured prompt height + minimum contract gap). Browser system-ui is a representative only; Android glyph fallback remains NOT_VERIFIED. The 24sp line height and nowrap behavior are candidate rendering details, not a new frozen page rule.",
+            "verification_rule": "Parent is CaptureActionGroup; width equals the viewport/safe CTA group's available width (no additional min/max width clamp); type.body_small supplies the shared SansSerif family, 14sp regular size and 0sp tracking. The page responsive contract keeps a 24sp line-height, scaled by fontScale, and the candidate box height is ceil(line-height). The text baseline uses a 3sp candidate optical adjustment. Text stays single-line nowrap. Its Y is above the camera using max(frozen reference offset, measured prompt height + minimum contract gap). Browser system-ui is a representative only; Android glyph fallback remains NOT_VERIFIED.",
             "visible": true,
             "measurable": true,
             "selectable": true,
@@ -964,7 +964,7 @@
               "lifecycle_status",
               "publication_permission"
             ],
-            "verification_rule": "Real inert HTML button with W2-bound GALLERY SVG plus text; transparent/no visible background; candidate icon footprint measured from V2.2 frozen raster; 48px minimum touch target.",
+            "verification_rule": "Real inert HTML button with W2-bound GALLERY SVG plus type.caption text (12sp, Regular 400, 18sp line-height, 0sp tracking); transparent/no visible background. The measured visual row uses a 27 reference-pixel optical offset within the fixed 48px minimum touch target; the target itself is not reduced.",
             "visible": true,
             "measurable": true,
             "selectable": true,
@@ -1016,7 +1016,7 @@
   "known_authority_gaps": [
     "Page-specific brand title asset is not registered in Empty Home binding; header brand dynamically renders no text.",
     "GALLERY and CHEVRON_RIGHT are W2-bound and SHA-verified; their icon inventory/frozen_assets state is frozen while Asset Registry lifecycle REVIEW remains explicitly unresolved.",
-    "Native status/navigation bars are platform chrome and are not rendered by this browser candidate.",
+    "Native status/navigation bar glyphs are not rendered; the browser candidate records 36/10 CSS px safe-area estimates from the frozen raster, not Native WindowInsets values.",
     "Sun particle positions are motion-generated without a frozen static coordinate profile; the optional particle layer is not rendered in this candidate.",
     "Cloud and sun-beam positions currently follow the Android renderer implementation reference; these positions are not independently anchored in the page contract."
   ],
@@ -1026,9 +1026,9 @@
     "native_font_status": "NOT_VERIFIED",
     "native_fallback_claim": false,
     "tokens": {
-      "CapturePrompt": "type.body",
+      "CapturePrompt": "type.body_small (14sp, Regular 400; page contract line-height override 24sp)",
       "AccountEntry": "Text Action V1 NORMAL (14sp, weight 500; component override)",
-      "AlbumAction": "type.button (16sp, weight 500)",
+      "AlbumAction": "type.caption (12sp, Regular 400)",
       "ChevronRight": "Text Action V1 trailing icon (14dp; 4dp gap)"
     },
     "unresolved": [

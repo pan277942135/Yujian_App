@@ -12,6 +12,8 @@ const playwrightPath = process.env.PLAYWRIGHT_PATH || (process.env.PLAYWRIGHT_MO
 const { chromium } = require(playwrightPath);
 const ROUTE = "#page/home_empty_v2/hifi/structured_workspace";
 const MIME = {".html":"text/html; charset=utf-8",".js":"text/javascript; charset=utf-8",".css":"text/css; charset=utf-8",".json":"application/json; charset=utf-8",".png":"image/png",".svg":"image/svg+xml",".jpg":"image/jpeg",".jpeg":"image/jpeg",".webp":"image/webp",".md":"text/markdown; charset=utf-8"};
+const BROWSER_REFERENCE_SAFE_INSETS_DP = {top:36,bottom:10};
+const CANDIDATE_PROMPT_LINE_HEIGHT_SP = 24;
 
 function parseArgs(argv) {
   const args = { root: process.cwd(), url: null, outputDir: "/tmp/empty-home-structured-hifi-evidence", expectedSha: null };
@@ -80,7 +82,8 @@ async function buildAuthorityAudit(root, preflight) {
       lifecycle_conflict:entry?.asset_state==="FROZEN_DESIGN"&&frozenEntry?.status==="FROZEN"&&registryAsset?.status==="REVIEW",
       render_status:bindingAsset?"W2_BOUND_CANDIDATE":"BLOCKED_AUTHORITY_GAP"};
   }
-  const bodyToken=(typography.tokens||[]).find(row=>row.id==="type.body")||null;
+  const promptToken=(typography.tokens||[]).find(row=>row.id==="type.body_small")||null;
+  const albumToken=(typography.tokens||[]).find(row=>row.id==="type.caption")||null;
   const buttonToken=(typography.tokens||[]).find(row=>row.id==="type.button")||null;
   const normalHome=(experience.features||[]).find(row=>row.id==="home_normal_v1")||null;
   const emptyHome=(experience.features||[]).find(row=>row.id==="home_empty_v2")||null;
@@ -97,13 +100,14 @@ async function buildAuthorityAudit(root, preflight) {
       empty_home_authorized:brandManifest.usage?.includes("home_empty_v2")||false,
       required_resource:"Independent approved Empty Home wordmark asset/binding or explicit approved placement scope",
       approver:"Product Owner / Brand Design Authority (no named approver is recorded in the repository)"},
-    typography:{authority_path:paths.typography,sha256:await sha256File(resolve(root,paths.typography)),body_token:bodyToken,button_token:buttonToken,
+    typography:{authority_path:paths.typography,sha256:await sha256File(resolve(root,paths.typography)),prompt_token:promptToken,album_token:albumToken,button_token:buttonToken,
+      prompt_line_height_override_sp:CANDIDATE_PROMPT_LINE_HEIGHT_SP,
       browser_font_mapping:"system-ui, sans-serif; browser-only representative",android_font_status:"NOT_VERIFIED",
       subtitle_status:"AUTHORITY_GAP: no explicit Empty Home page typography token or override"},
     content_state_boundary:{result:"NOT_APPLICABLE",state:"CONTENT_PRESENT",authority_path:paths.featureSpec,
       authority_sha256:await sha256File(resolve(root,paths.featureSpec)),reason:"Empty Home Feature Spec selects EMPTY when fishRecords.isEmpty(); normal Home owns the non-empty state. This W5 adapter renders EMPTY only.",
       empty_page_registry_entry:emptyHome?.id||null,normal_page_registry_entry:normalHome?.id||null,executed:false},
-    system_bars:{browser_status_bar:"NOT_SIMULATED",browser_safe_insets:{top:0,bottom:0,status:"BROWSER_ASSUMED_ZERO_NOT_NATIVE"},
+    system_bars:{browser_status_bar:"NOT_SIMULATED",browser_safe_insets:{...BROWSER_REFERENCE_SAFE_INSETS_DP,status:"BROWSER_REFERENCE_SCREENSHOT_ESTIMATE_NOT_NATIVE"},
       frozen_reference_status_bar:"PRESENT_IN_RASTER; boundary has no page-owned machine-readable authority",header_measurement:"Recorded per matrix case in CSS px",native_runtime_status:"NOT_VERIFIED"},
     measured_dom_preflight:{resource_count:preflight.resources?.length||0,resources:preflight.resources||[],w2_binding_sha256:preflight.w2BindingSha||null}};
 }
@@ -550,6 +554,7 @@ async function main() {
         const actualRect=selector=>{const r=document.querySelector(selector)?.getBoundingClientRect();return r?{x:r.left-boardRect.left,y:r.top-boardRect.top,width:r.width,height:r.height,right:r.right-boardRect.left,bottom:r.bottom-boardRect.top,unit:"css_px"}:null;};
         const loginLabel=actualRect("#eh-AccountEntryLabel"),chevron=actualRect("#eh-ChevronRight"),albumLabel=actualRect("#eh-AlbumActionLabel"),gallery=actualRect("#eh-GalleryIcon");
         const promptNode=document.querySelector("#eh-CapturePrompt"),promptStyle=promptNode?getComputedStyle(promptNode):null;
+        const albumNode=document.querySelector("#eh-AlbumAction"),albumStyle=albumNode?getComputedStyle(albumNode):null;
         const promptParent=promptNode?.parentElement||null,promptParentRect=promptParent?.getBoundingClientRect();
         const promptText=document.querySelector("#eh-CapturePromptText"),promptRange=promptText?document.createRange():null;
         if(promptRange&&promptText)promptRange.selectNodeContents(promptText);
@@ -559,7 +564,7 @@ async function main() {
           width_rule:"100% of CaptureActionGroup available width",min_width_css:promptStyle?.minWidth||null,max_width_css:promptStyle?.maxWidth||null,
           font_size_css_px:promptStyle?parseFloat(promptStyle.fontSize):null,line_height_css_px:promptStyle?(promptStyle.lineHeight==="normal"?null:parseFloat(promptStyle.lineHeight)):null,
           line_height_authority_token:promptNode?.dataset.typographyToken||null,font_scale:metrics.font_scale,
-          height_rule:"ceil(shared type.body 24sp line-height × fontScale)",
+          height_rule:"ceil(page contract 24sp line-height × fontScale)",
           expected_height_css_px:promptStyle&&promptStyle.lineHeight!=="normal"?Math.ceil(parseFloat(promptStyle.lineHeight)):null,
           text_bounds_css_px:promptTextRect?{x:promptTextRect.left-boardRect.left,y:promptTextRect.top-boardRect.top,width:promptTextRect.width,height:promptTextRect.height}:null,
           white_space:promptStyle?.whiteSpace||null,word_break:promptStyle?.wordBreak||null,overflow_wrap:promptStyle?.overflowWrap||null,
@@ -575,6 +580,7 @@ async function main() {
             gallery:byId.GalleryIcon?.bounds||null,gallery_label:albumLabel,gallery_gap_css_px:albumLabel&&gallery?albumLabel.x-gallery.right:null,
             chevron_resource:iconResource("ChevronRight"),gallery_resource:iconResource("GalleryIcon")},
           hero:byId.HeroCopy?.bounds,prompt:byId.CapturePrompt?.bounds,prompt_sizing:promptSizing,camera:byId.PrimaryCaptureButton?.bounds,album:byId.AlbumAction?.bounds,
+          albumTypography:{font_size_css_px:albumStyle?parseFloat(albumStyle.fontSize):null,line_height_css_px:albumStyle?parseFloat(albumStyle.lineHeight):null,font_weight:albumStyle?.fontWeight||null},
           deviations:Object.fromEntries(Object.entries(byId).map(([key,row])=>[key,row.deviation])),inspectorNode:document.querySelector("[data-workspace-inspector]").dataset.selectedNodeId,
           promptTypography:byId.CapturePrompt?.typography,sourceSha:root.dataset.sourceSha,unit:byId.FishingRod?.bounds.unit,
           node_bounds:rows, cameraTouch:{width:byId.PrimaryCaptureButton?.bounds.width,height:byId.PrimaryCaptureButton?.bounds.height},
@@ -599,14 +605,19 @@ async function main() {
       assert(caseEvidence.fishing.layer_order[0]<caseEvidence.fishing.layer_order[1]&&caseEvidence.fishing.layer_order[1]<caseEvidence.fishing.layer_order[2]&&caseEvidence.fishing.layer_order[2]<caseEvidence.fishing.layer_order[3],`fishing layer occlusion order is invalid: ${caseEvidence.fishing.layer_order}`);
       assert(caseEvidence.cameraTouch.width>0&&caseEvidence.cameraTouch.height>0,"camera button actual DOM bounds must be measured");
       assert(Math.abs(caseEvidence.cameraVisualAsset.ratio-(208/220))<0.002,"frozen 208px camera artwork must be uniformly fitted in the 220px target");
-      const bodyLineHeight=parseFloat(baseEvidence.authority_audit.typography.body_token.lineHeight);
+      const promptFontSize=parseFloat(baseEvidence.authority_audit.typography.prompt_token.size);
       assert(caseEvidence.prompt_sizing.parent_id==="eh-CaptureActionGroup"&&caseEvidence.prompt_sizing.actual_bounds_css_px&&
         Math.abs(caseEvidence.prompt_sizing.actual_bounds_css_px.width-caseEvidence.prompt_sizing.available_width_css_px)<0.05,
         "CapturePrompt must use its real CTA parent width as the available width");
-      assert(caseEvidence.prompt_sizing.line_height_authority_token==="type.body"&&Number.isFinite(bodyLineHeight)&&
-        Math.abs(caseEvidence.prompt_sizing.line_height_css_px-bodyLineHeight*fontScale)<0.05&&
-        caseEvidence.prompt_sizing.actual_bounds_css_px.height===Math.ceil(bodyLineHeight*fontScale),
-        "CapturePrompt box height must follow shared type.body line-height × fontScale, not a fixed CSS pixel size");
+      assert(caseEvidence.prompt_sizing.line_height_authority_token==="type.body_small"&&Number.isFinite(promptFontSize)&&
+        Math.abs(caseEvidence.prompt_sizing.font_size_css_px-promptFontSize*fontScale)<0.05&&
+        Math.abs(caseEvidence.prompt_sizing.line_height_css_px-CANDIDATE_PROMPT_LINE_HEIGHT_SP*fontScale)<0.05&&
+        caseEvidence.prompt_sizing.actual_bounds_css_px.height===Math.ceil(CANDIDATE_PROMPT_LINE_HEIGHT_SP*fontScale),
+        "CapturePrompt must use type.body_small size with the page-owned 24sp line-height × fontScale");
+      assert(Math.abs(caseEvidence.ui_bounds.AlbumAction.height-48)<0.05&&
+        Math.abs(caseEvidence.albumTypography.font_size_css_px-parseFloat(baseEvidence.authority_audit.typography.album_token.size)*fontScale)<0.05&&
+        Math.abs(caseEvidence.albumTypography.line_height_css_px-parseFloat(baseEvidence.authority_audit.typography.album_token.lineHeight)*fontScale)<0.05,
+        "AlbumAction must use type.caption while preserving its 48px minimum touch height");
       assert(caseEvidence.prompt_sizing.white_space==="nowrap"&&caseEvidence.prompt_sizing.text_bounds_css_px?.width>0&&
         caseEvidence.prompt_sizing.text_bounds_css_px.width<=caseEvidence.prompt_sizing.available_width_css_px,
         "CapturePrompt must be a measured single-line label that fits its actual available width");
@@ -724,9 +735,9 @@ async function main() {
       browser_device_scale_factor:3,capture_bounds_css_px:compareCapture.bounds_css_px,screenshot_pixels:compareSize,
       comparison_region:"isolated page-root viewport at 360x640 CSS px with preserved aspect ratio; reference bytes are unmodified",
       page_content_region_alignment:{browser_root_bounds_css_px:{x:0,y:0,width:360,height:640},reference_page_content_bounds_px:"NOT_MACHINE_READABLE",
-        status:"FULL_CANVAS_DIAGNOSTIC_ONLY",reason:"V2.2 frozen raster includes Android system chrome but has no machine-readable chrome/content boundary; no crop or offset is inferred."},
+        status:"FULL_CANVAS_DIAGNOSTIC_ONLY",reason:"V2.2 frozen raster includes Android system chrome but has no machine-readable chrome/content boundary. Browser uses a separately disclosed 36/10 CSS px safe-area estimate; no reference crop or Native inset claim is inferred."},
       native_density_claim:false,source_ratio_preserved:true,
-      system_bar_comparison:{browser_status_bar:"NOT_SIMULATED",browser_safe_insets:{top:0,bottom:0,status:"BROWSER_ASSUMED_ZERO_NOT_NATIVE"},
+      system_bar_comparison:{browser_status_bar:"NOT_SIMULATED",browser_safe_insets:comparisonCase?.safe_area_preview||{...BROWSER_REFERENCE_SAFE_INSETS_DP,status:"BROWSER_REFERENCE_SCREENSHOT_ESTIMATE_NOT_NATIVE"},
         frozen_reference_status_bar:"PIXELS_PRESENT_IN_FROZEN_RASTER; boundary has no page-owned machine-readable authority",reference_status_bar_bounds:"NOT_VERIFIED",
         browser_safe_area_preview:comparisonCase?.safe_area_preview||null,header_actual_dom_bounds_css_px:comparisonCase?.ui_bounds?.Header||null,
         header_top_from_assumed_safe_inset_css_px:comparisonCase?.ui_bounds?.Header?comparisonCase.ui_bounds.Header.y-(comparisonCase.safe_area_preview?.top||0):null,
