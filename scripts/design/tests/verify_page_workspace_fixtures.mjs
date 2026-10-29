@@ -9,8 +9,9 @@ const sourceSha = "42ad0d3fef23ea6576fd43dee781d253dcc11251";
 const pageId = "home_empty_v2";
 const verifier = resolve("scripts/design/verify_page_workspace.mjs");
 
-function shellHtml({ page = pageId, source = sourceSha, node = true, throwing = false, kind = "structured-page-adapter", disabled = false, blockedAuthority = false, viewState = "READY", errorText = null, badResource = false } = {}) {
-  const tree = `<button data-workspace-tree-node data-node-id="empty-scene" data-node-state="READY" data-node-authority-status="CURRENT" data-node-visible="true" data-node-measurable="true" data-node-selectable="${disabled ? "false" : "true"}" ${disabled ? "disabled" : ""}>Empty scene</button>${blockedAuthority ? `<button data-workspace-tree-node data-node-id="blocked-brand" data-node-state="BLOCKED_AUTHORITY_GAP" data-node-authority-status="BLOCKED_AUTHORITY_GAP" data-node-visible="false" data-node-measurable="false" data-node-selectable="false" disabled>Brand · BLOCKED_AUTHORITY_GAP</button>` : ""}`;
+function shellHtml({ page = pageId, source = sourceSha, node = true, throwing = false, kind = "structured-page-adapter", disabled = false, selectable = !disabled, blockedAuthority = false, viewState = "READY", errorText = null, badResource = false } = {}) {
+  const selectableAttribute = selectable === null ? "" : `data-node-selectable="${selectable ? "true" : "false"}"`;
+  const tree = `<button data-workspace-tree-node data-node-id="empty-scene" data-node-state="READY" data-node-authority-status="CURRENT" data-node-visible="true" data-node-measurable="true" ${selectableAttribute} ${disabled ? "disabled" : ""}>Empty scene</button>${blockedAuthority ? `<button data-workspace-tree-node data-node-id="blocked-brand" data-node-state="BLOCKED_AUTHORITY_GAP" data-node-authority-status="BLOCKED_AUTHORITY_GAP" data-node-visible="false" data-node-measurable="false" data-node-selectable="false" disabled>Brand · BLOCKED_AUTHORITY_GAP</button>` : ""}`;
   const rendered = node ? `<div data-workspace-rendered-node="empty-scene" style="width:120px;height:80px">scene</div>${blockedAuthority ? `<span id="blocked-brand" hidden aria-hidden="true" data-workspace-rendered-node="blocked-brand"></span>` : ""}` : "";
   return `<!doctype html><html><head><meta charset="utf-8"></head><body>
     <main data-fixture-current data-page-workspace-root data-page-id="${page}" data-source-sha="${source}" data-workspace-kind="${kind}" data-view-state="${viewState}">
@@ -75,6 +76,8 @@ async function main() {
       : fixture === "reference-only-bad-response" ? shellHtml({ kind: "reference-image-only", viewState: "LOADING", badResource: true })
       : fixture === "structured-error" ? shellHtml({ viewState: "ERROR", errorText: "renderer failed" })
       : fixture === "disabled-node" ? shellHtml({ disabled: true })
+      : fixture === "explicit-nonselectable-node" ? shellHtml({ selectable: false })
+      : fixture === "native-enabled-node-no-marker" ? shellHtml({ selectable: null })
       : fixture === "blocked-authority-node" ? shellHtml({ blockedAuthority: true })
       : fixture === "page-error" ? shellHtml({ throwing: true })
       : shellHtml();
@@ -87,7 +90,7 @@ async function main() {
   let infrastructureBlocked = false;
   try {
     let executedCases = 0;
-    for (const fixture of ["ok", "missing", "wrong-page", "missing-layer", "reference-only", "structured-error", "disabled-node", "blocked-authority-node", "page-error", "stale-workspace"]) {
+    for (const fixture of ["ok", "missing", "wrong-page", "missing-layer", "reference-only", "structured-error", "disabled-node", "explicit-nonselectable-node", "native-enabled-node-no-marker", "blocked-authority-node", "page-error", "stale-workspace"]) {
       executedCases += 1;
       const outputDir = join(root, fixture);
       const code = await runVerifier(serverUrl, fixture, outputDir);
@@ -96,7 +99,7 @@ async function main() {
         infrastructureBlocked = true;
         continue;
       }
-      const expected = ["ok", "blocked-authority-node", "stale-workspace"].includes(fixture) ? "PASS" : "FAIL";
+      const expected = ["ok", "native-enabled-node-no-marker", "blocked-authority-node", "stale-workspace"].includes(fixture) ? "PASS" : "FAIL";
       if (report.result !== expected || (expected === "PASS" && code !== 0) || (expected === "FAIL" && code === 0)) {
         throw new Error(`${fixture}: expected ${expected}, got ${report.result}, exit ${code}; report=${JSON.stringify(report)}`);
       }
@@ -124,6 +127,21 @@ async function main() {
           || !report.dom_path || !(await stat(report.dom_path)).size
           || report.diagnostic_capture_errors?.length) {
           throw new Error(`disabled-node failure must retain its primary cause and diagnostic evidence; report=${JSON.stringify(report)}`);
+        }
+      }
+      if (fixture === "explicit-nonselectable-node") {
+        const treeRow = report.workspace_candidates?.find(candidate => candidate.visible && candidate.identityMatches)?.treeNodes?.[0];
+        if (report.original_failure !== "component tree node empty-scene is explicitly marked non-selectable or lacks a native interactive element"
+          || treeRow?.disabled !== false || treeRow?.selectable !== false || treeRow?.selectabilitySource !== "explicit-attribute"
+          || !(await stat(join(outputDir, "workspace.png"))).size || !(await stat(join(outputDir, "workspace-dom.json"))).size) {
+          throw new Error(`explicitly non-selectable enabled nodes must remain fail-closed with diagnostics; report=${JSON.stringify(report)}`);
+        }
+      }
+      if (fixture === "native-enabled-node-no-marker") {
+        const treeRow = report.nodes?.[0];
+        if (report.measured_node_count !== 1 || treeRow?.disabled !== false || treeRow?.selectable !== true
+          || treeRow?.selectabilitySource !== "native-interactive-element") {
+          throw new Error(`enabled native tree buttons without custom metadata must be clickable and measured; report=${JSON.stringify(report)}`);
         }
       }
       if (fixture === "stale-workspace") {

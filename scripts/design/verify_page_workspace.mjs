@@ -109,10 +109,18 @@ async function main() {
           visible: isVisible(node),
           identityMatches,
           rect: { x: rect.x, y: rect.y, width: rect.width, height: rect.height },
-          treeNodes: [...node.querySelectorAll("[data-workspace-tree-node]")].map(treeNode => ({
-            nodeId: treeNode.dataset.nodeId || treeNode.dataset.workspaceNodeId || null,
-            disabled: Boolean(treeNode.disabled) || treeNode.getAttribute("aria-disabled") === "true"
-          }))
+          treeNodes: [...node.querySelectorAll("[data-workspace-tree-node]")].map(treeNode => {
+            const disabled = Boolean(treeNode.disabled) || treeNode.getAttribute("aria-disabled") === "true";
+            const explicitSelectability = treeNode.getAttribute("data-node-selectable");
+            const nativeInteractive = treeNode.matches("button, input, select, textarea, a[href], summary")
+              || (treeNode.getAttribute("role") === "button" && treeNode.tabIndex >= 0);
+            return {
+              nodeId: treeNode.dataset.nodeId || treeNode.dataset.workspaceNodeId || null,
+              disabled,
+              selectable: explicitSelectability === null ? nativeInteractive && !disabled : explicitSelectability === "true",
+              selectabilitySource: explicitSelectability === null ? "native-interactive-element" : "explicit-attribute"
+            };
+          })
         };
       });
     }, { pageId: args.pageId, sourceSha: args.sourceSha });
@@ -174,17 +182,24 @@ async function main() {
     assert(rootInfo.viewState !== "ERROR", "structured workspace reports an ERROR state");
     assert(!rootInfo.errorText, `structured workspace reports a visible error: ${rootInfo.errorText}`);
 
-    const nodes = await workspace.locator("[data-workspace-tree-node]").evaluateAll(elements => elements.map((node, nodeIndex) => ({
-      nodeIndex,
-      nodeId: node.dataset.nodeId || node.dataset.workspaceNodeId || null,
-      label: node.textContent?.trim() || null,
-      state: node.dataset.nodeState || null,
-      authorityStatus: node.dataset.nodeAuthorityStatus || null,
-      visible: node.dataset.nodeVisible === "true",
-      measurable: node.dataset.nodeMeasurable === "true",
-      selectable: node.dataset.nodeSelectable === "true",
-      disabled: Boolean(node.disabled) || node.getAttribute("aria-disabled") === "true"
-    })));
+    const nodes = await workspace.locator("[data-workspace-tree-node]").evaluateAll(elements => elements.map((node, nodeIndex) => {
+      const disabled = Boolean(node.disabled) || node.getAttribute("aria-disabled") === "true";
+      const explicitSelectability = node.getAttribute("data-node-selectable");
+      const nativeInteractive = node.matches("button, input, select, textarea, a[href], summary")
+        || (node.getAttribute("role") === "button" && node.tabIndex >= 0);
+      return {
+        nodeIndex,
+        nodeId: node.dataset.nodeId || node.dataset.workspaceNodeId || null,
+        label: node.textContent?.trim() || null,
+        state: node.dataset.nodeState || null,
+        authorityStatus: node.dataset.nodeAuthorityStatus || null,
+        visible: node.dataset.nodeVisible === "true",
+        measurable: node.dataset.nodeMeasurable === "true",
+        selectable: explicitSelectability === null ? nativeInteractive && !disabled : explicitSelectability === "true",
+        selectabilitySource: explicitSelectability === null ? "native-interactive-element" : "explicit-attribute",
+        disabled
+      };
+    }));
     assert(nodes.length > 0, "workspace component tree is empty");
     const measured = [];
     const blockedAuthorityNodes = [];
@@ -213,7 +228,9 @@ async function main() {
         blockedAuthorityNodes.push({ ...row, renderedDomId: await target.first().getAttribute("id"), availability });
         continue;
       }
-      assert(!row.disabled && row.selectable, `component tree node ${row.nodeId} is disabled and cannot be selected in the actual workspace`);
+      assert(!row.disabled, `component tree node ${row.nodeId} is disabled and cannot be selected in the actual workspace`);
+      assert(row.selectable,
+        `component tree node ${row.nodeId} is explicitly marked non-selectable or lacks a native interactive element`);
       const treeNode = workspace.locator("[data-workspace-tree-node]").nth(row.nodeIndex);
       await treeNode.click();
       const inspectorNodes = workspace.locator("[data-workspace-inspector]");
@@ -274,9 +291,14 @@ async function main() {
             const rect = node.getBoundingClientRect();
             const treeNodes = [...node.querySelectorAll("[data-workspace-tree-node]")].map(treeNode => {
               const treeRect = treeNode.getBoundingClientRect();
+              const disabled = Boolean(treeNode.disabled) || treeNode.getAttribute("aria-disabled") === "true";
+              const explicitSelectability = treeNode.getAttribute("data-node-selectable");
+              const nativeInteractive = treeNode.matches("button, input, select, textarea, a[href], summary")
+                || (treeNode.getAttribute("role") === "button" && treeNode.tabIndex >= 0);
               return { nodeId: treeNode.dataset.nodeId || treeNode.dataset.workspaceNodeId || null,
-                disabled: Boolean(treeNode.disabled) || treeNode.getAttribute("aria-disabled") === "true",
-                selectable: treeNode.dataset.nodeSelectable === "true",
+                disabled,
+                selectable: explicitSelectability === null ? nativeInteractive && !disabled : explicitSelectability === "true",
+                selectabilitySource: explicitSelectability === null ? "native-interactive-element" : "explicit-attribute",
                 rect: { x: treeRect.x, y: treeRect.y, width: treeRect.width, height: treeRect.height } };
             });
             const inspectorNodes = [...node.querySelectorAll("[data-workspace-inspector]")].map(inspector => ({
