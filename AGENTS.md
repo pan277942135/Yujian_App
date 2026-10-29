@@ -40,6 +40,12 @@ On interruption, return to `CONTROL_PLANE_REGISTRY.yaml`, then resume from the l
 - Work progress MUST NOT modify the static Control Plane. Update branch-local `PROJECT_MASTER_STATE.yaml`, generic `WORK_EXECUTION_STATE.json`, logs and evidence instead.
 - A task/design/contract/gate/recovery rule change must land on main first; affected Work branches then resynchronize and re-enter admission.
 
+## Future page design: mandatory Structured Hi-Fi Fast Track V1.1
+
+After Control Plane Admission succeeds, **all new or extended page-design tasks** must follow the active three-step candidate-review policy in `design/system_v3/07_Responsive_System/Responsive_Page_Freeze_And_Implementation_Playbook_V1.md`, section **0 — Structured Hi-Fi Fast Track V1.1**. This is a pointer to the existing canonical design-system authority, **not** an alternative entrypoint or another process contract.
+
+Reuse existing Design Manager components; first produce a real-DOM preview for product-owner review. Do not run unrelated Android/recognition CI or rebuild W0–W4 frameworks as a visual-review prerequisite. Product-owner ACCEPT must precede formal design freeze and Android Worker handoff. Existing page-specific frozen constraints, G0–G6 freeze gates, applicable required checks, source/resource provenance, and G7–G8 native verification remain mandatory at their respective stages.
+
 ## Work V2 bounded recovery (after admission)
 
 For a repeated failing gate, invoke the approved `tools/work_execution_v2/failure_gate.py check`

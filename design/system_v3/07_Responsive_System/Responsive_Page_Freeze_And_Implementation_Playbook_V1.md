@@ -5,6 +5,49 @@
 **First case study:** NH01 / `normal_home_v1`.  
 **Authority boundary:** This playbook defines the process and evidence discipline. Each page's approved machine-readable responsive contract owns page-specific numeric values and constraints. This document does not itself freeze any page contract.
 
+## 0. Current mandatory operating path — Structured Hi-Fi Fast Track V1.1 (2026-10-29)
+
+**Status: ACTIVE / MANDATORY for future page-design work.** This section is the current execution policy for **design iteration and candidate review**. The detailed stages G0–G8 below remain the authoritative freeze/release evidence policy; this fast track changes **when and how often work is done**, not the meaning of PASS, resource rights, frozen values, or required gates.
+
+**Operating goal:** Quickly deliver an editable, real-DOM structured high-fidelity page to the product owner, receive a visual/interaction decision, then freeze the approved page and hand its exact-version contract to the Android Worker. Do **not** make an all-pages engineering closeout, native runtime, APK, or unrelated CI cleanup a prerequisite to reviewing a design.
+
+### 0.1 Exactly three user-facing steps
+
+1. **REUSE & RENDER** — Resolve the registered page ID, current frozen/master reference, authoritative page contracts, and available components. Reuse the **existing GitHub Design Manager**, its shared shell, registered route, tokens, adapters, approved assets, and page-specific rules. Implement only missing page-owned structure and states. Use real HTML/CSS/DOM components; a stretched full-page reference PNG does not count as a structured page. Do not create Figma work, a parallel Demo, another manager, duplicate registry, or a second set of responsive numbers.
+2. **PREVIEW & REVIEW** — Deliver **one live, versioned candidate URL** in the existing Design Manager, directly openable at its actual source/build SHA; let the owner inspect and request changes there. Iterate primarily at **390×844**. **Before asking for ACCEPT**, also inspect **360×640** and **430×932** for critical layout/cropping/scroll behavior; add **320×480** for short-screen, scroll/form/IME-sensitive pages. Additional font, state, viewport, boundary or accessibility cases remain mandatory **when the page's existing frozen contract requires them**. Do not repeat screenshot exports or the full matrix on each small design edit. The three quick-check sizes are preview triage defaults, **not** a replacement for page-owned required acceptance matrices.
+3. **OWNER ACCEPT → FREEZE → HANDOFF** — Only an explicit product-owner **ACCEPT** authorizes candidate promotion. Update the **existing** page-owned structure, numeric responsive rules, approved resource references, interactions, states and source SHA; avoid redundant documents and parallel authority. Run applicable repository-required Admission, schema, resource, browser, provenance, and G0–G6 freeze checks for the exact final candidate and merge through the green-check policy. Freeze **one approved page at a time**, then hand the immutable contract/preview/source SHA to the Android Worker. Android build, API28, APK, native runtime and native acceptance belong to **G7–G8 / Worker**, not to candidate visual review.
+
+Review responses: **ACCEPT** (proceed to verified freeze), **REVISE** (change only identified differences, keep review pending), **HOLD** (state the precise blocking authority/asset/decision). Never infer ACCEPT from a CI success, browser PASS, screenshot, or conversation silence. Never claim `SPEC_FROZEN`, `SPEC_READY_FOR_IMPLEMENTATION`, or native PASS while their actual prerequisites remain open.
+
+### 0.2 Four non-negotiable quality checks (Q1–Q4)
+
+| Check | What must be true | Evidence at candidate review |
+|---|---|---|
+| **Q1 Visual fidelity** | Hierarchy, component geometry, colors, typography, spacing, background, image fit/crop and overall balance match approved references. No visual reinterpretation without owner decision. | Real rendered page compared to its page-owned visual authority; clearly disclosed mismatches. |
+| **Q2 Layout reliability** | Critical content/actions remain visible or reachable by declared scrolling; no clipping, overlap or broken proportions at applicable sizes/states. A shorter screen cannot silently hide the CTA. | Live DOM/layout check at review sizes plus all applicable frozen-contract cases at final freeze. |
+| **Q3 Resource authenticity** | Formal visual assets have traceable approved sources and publication rights; illustrative placeholders are visibly non-authoritative. Missing critical imagery blocks visual freeze, but noncritical source review can be recorded without blocking candidate viewing. | Existing W2/page-owned provenance status and explicit missing-resource disclosure; no fabricated approval or synthetic PASS. |
+| **Q4 Interaction determinism** | Primary buttons, transitions, navigation and necessary normal/empty/loading/error/scroll states have explicit behavior; complex camera/recognition motion continues to use its already-frozen specialized contracts. | Core action/state smoke inspection and page-owned interaction contract. |
+
+### 0.3 Ruthless scope control
+
+**Do once, then reuse:** W0 inventory, shared W1 schema, shared W2 bindings, W3 manager, W4 fixture framework, tokens, common components, Work recovery/CI infrastructure. **Do not rerun or rebuild those foundations per page** merely to get a candidate on screen.
+
+**During iteration do only:** page-specific DOM/visual repair, core interaction and necessary preview checks. Fix real defects, not generic test machinery unrelated to this page. A page's independent visual review must not wait for unrelated PRs, other pages, SWOS, Android or APK work.
+
+**At final freeze do once for the final exact SHA:** all applicable mandatory page-specific and repository-required gates, including pre-existing responsive matrices and G0–G6 prerequisites; keep failed/NOT_RUN/NOT_VERIFIED evidence honest. Never relax assertions, shrink test cases, alter frozen assets, or bypass Control Plane Admission to make a design appear green. If a mandatory gate is blocked, the page remains **VISUAL_ACCEPTED / FREEZE_BLOCKED**, not frozen; report the exact blocker without inventing extra unrelated work.
+
+**Source/ownership discipline:** `main` is the canonical process/authority source. Changes to this process land in Main first, then relevant Work branches synchronize and re-enter Admission. Page-specific values remain in the registered page's own contract. A PR preview must not overwrite production. Work's branch-local state is not a second authority. Preserve checkpoints and bounded-recovery failure budgets. One page may advance independently of another **only if its own required dependencies and gates pass**.
+
+### 0.4 Minimal deliverable and expansion rule
+
+For every new page, the review handoff is deliberately **three things**: **(a)** one versioned URL, **(b)** a brief visual/interaction difference list and any critical undecided items, **(c)** an explicit `ACCEPT / REVISE / HOLD` request. Do not force a long CI/evidence dossier onto the product owner. On owner ACCEPT, retain the existing page contract, accepted reference, responsive/interaction exceptions, approved asset IDs and exact SHA as the Worker handoff.
+
+Reuse proven components **by page family** (forms from Login; cards/list from NH01; camera/recognition result components from their dedicated frozen flow). Do not copy NH01's Hero ratios, threshold formulas, or page-specific requirements into other pages. Default to single-page progression: **preview one → owner approves one → freeze one → Worker develops one**. A 3–5-page batch is optional only when components are shared and it does not postpone individual approvals.
+
+**Precedence:** This section supersedes older text **only on candidate-review cadence, redundant per-edit tooling/evidence, and work packaging**. It does **not** supersede any frozen page contract, G0–G6 canonical freeze admission, asset/legal provenance, repository-required check, or G7–G8 native/runtime acceptance. If two rules appear to conflict, apply the stricter existing required freeze/release gate and disclose the conflict; do not silently downgrade a requirement.
+
+---
+
 ## 1. Purpose
 
 Use NH01 as a process reference, not as a page template to copy literally. Other pages reuse the stages, evidence requirements, failure semantics, and validation protocol; they define their own visual invariants, layout regions, component geometry, content priorities, states, and runtime sources.
