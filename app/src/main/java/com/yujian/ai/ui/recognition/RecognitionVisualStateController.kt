@@ -70,9 +70,13 @@ class RecognitionVisualStateController(
         }
 
         while (canAdvance(nowMs, trustedMask)) {
+            // Preserve the scheduled stage boundary instead of resetting it to this
+            // frame's timestamp. If a frame arrives late, this carries elapsed time
+            // forward without shortening any stage or stretching the whole timeline.
+            val completedStageDurationMs = minimumFor(presented, trustedMask, nowMs)
             presented = next(presented)
-            phaseStartedAtMs = nowMs
-            if (presented == RecognitionPhase.OUTLINE) outlineStartedAtMs = nowMs
+            phaseStartedAtMs += completedStageDurationMs
+            if (presented == RecognitionPhase.OUTLINE) outlineStartedAtMs = phaseStartedAtMs
             if (presented == RecognitionPhase.RESULT) break
         }
         return presented
