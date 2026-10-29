@@ -9,15 +9,17 @@ const sourceSha = "42ad0d3fef23ea6576fd43dee781d253dcc11251";
 const pageId = "home_empty_v2";
 const verifier = resolve("scripts/design/verify_page_workspace.mjs");
 
-function shellHtml({ page = pageId, source = sourceSha, node = true, throwing = false, kind = "structured-page-adapter", disabled = false, selectable = !disabled, blockedAuthority = false, viewState = "READY", errorText = null, badResource = false } = {}) {
+function shellHtml({ page = pageId, source = sourceSha, node = true, throwing = false, kind = "structured-page-adapter", disabled = false, selectable = !disabled, blockedAuthority = false, viewState = "READY", errorText = null, badResource = false, duplicateWorkspace = false } = {}) {
   const selectableAttribute = selectable === null ? "" : `data-node-selectable="${selectable ? "true" : "false"}"`;
   const tree = `<button data-workspace-tree-node data-node-id="empty-scene" data-node-state="READY" data-node-authority-status="CURRENT" data-node-visible="true" data-node-measurable="true" ${selectableAttribute} ${disabled ? "disabled" : ""}>Empty scene</button>${blockedAuthority ? `<button data-workspace-tree-node data-node-id="blocked-brand" data-node-state="BLOCKED_AUTHORITY_GAP" data-node-authority-status="BLOCKED_AUTHORITY_GAP" data-node-visible="false" data-node-measurable="false" data-node-selectable="false" disabled>Brand · BLOCKED_AUTHORITY_GAP</button>` : ""}`;
   const rendered = node ? `<div data-workspace-rendered-node="empty-scene" style="width:120px;height:80px">scene</div>${blockedAuthority ? `<span id="blocked-brand" hidden aria-hidden="true" data-workspace-rendered-node="blocked-brand"></span>` : ""}` : "";
+  const duplicate = duplicateWorkspace ? `<main data-page-workspace-root data-page-id="${page}" data-source-sha="${source}" data-workspace-kind="${kind}" data-view-state="${viewState}" style="width:120px;height:80px"><button data-workspace-tree-node data-node-id="duplicate" data-node-selectable="true">Duplicate</button><div data-workspace-rendered-node="duplicate" style="width:20px;height:20px"></div><aside data-workspace-inspector data-selected-node-id="">Duplicate Inspector</aside></main>` : "";
   return `<!doctype html><html><head><meta charset="utf-8"></head><body>
     <main data-fixture-current data-page-workspace-root data-page-id="${page}" data-source-sha="${source}" data-workspace-kind="${kind}" data-view-state="${viewState}">
       ${tree}${rendered}<aside data-workspace-inspector data-selected-node-id="">Inspector</aside>
       ${errorText ? `<p data-workspace-error role="alert">${errorText}</p>` : ""}
     </main>
+    ${duplicate}
     <script>
       const workspace = document.querySelector('[data-fixture-current]');
       workspace.querySelector('[data-workspace-tree-node]').addEventListener('click', () => {
@@ -69,6 +71,7 @@ async function main() {
       return;
     }
     const html = fixture === "stale-workspace" ? staleWorkspaceHtml()
+      : fixture === "duplicate-visible-workspace" ? shellHtml({ duplicateWorkspace: true })
       : fixture === "wrong-page" ? shellHtml({ page: "auth_login_v2" })
       : fixture === "missing-layer" ? shellHtml({ node: false })
       : fixture === "reference-only" ? shellHtml({ kind: "reference-image-only", viewState: "REFERENCE_IMAGE_ONLY" })
@@ -90,7 +93,7 @@ async function main() {
   let infrastructureBlocked = false;
   try {
     let executedCases = 0;
-    for (const fixture of ["ok", "missing", "wrong-page", "missing-layer", "reference-only", "structured-error", "disabled-node", "explicit-nonselectable-node", "native-enabled-node-no-marker", "blocked-authority-node", "page-error", "stale-workspace"]) {
+    for (const fixture of ["ok", "duplicate-visible-workspace", "missing", "wrong-page", "missing-layer", "reference-only", "structured-error", "disabled-node", "explicit-nonselectable-node", "native-enabled-node-no-marker", "blocked-authority-node", "page-error", "stale-workspace"]) {
       executedCases += 1;
       const outputDir = join(root, fixture);
       const code = await runVerifier(serverUrl, fixture, outputDir);
@@ -190,7 +193,7 @@ async function main() {
         throw new Error(`${fixture}: broken reference-only authority must not be masked as NOT_RUN; report=${JSON.stringify(report)}`);
       }
     }
-    console.log(`PAGE_WORKSPACE_VERIFIER_FIXTURES=PASS cases=${executedCases} reference_only=NOT_RUN reference_only_errors=FAIL stale_workspace=SCOPED failure_evidence=RETAINED`);
+    console.log(`PAGE_WORKSPACE_VERIFIER_FIXTURES=PASS cases=${executedCases} duplicate_visible_workspaces=FAIL_CLOSED reference_only=NOT_RUN reference_only_errors=FAIL stale_workspace=SCOPED failure_evidence=RETAINED`);
   } finally {
     await new Promise(resolvePromise => browser.close(resolvePromise));
     await rm(root, { recursive: true, force: true });

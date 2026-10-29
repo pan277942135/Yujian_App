@@ -21,6 +21,8 @@ on:
       - "scripts/design/page_freeze_runner.py"
       - "scripts/design/verify_page_workspace.mjs"
       - "scripts/design/verify_empty_home_structured_hifi.mjs"
+      - "scripts/design/verify_login_structured_hifi.mjs"
+      - "design/pages/account_privacy/Login/structured_candidate/**"
       - "scripts/design/validate_page_responsive_contract.py"
       - "scripts/design/validate_page_resource_binding.py"
       - "scripts/design/tests/test_page_freeze_runner.py"
@@ -171,6 +173,18 @@ jobs:
             --expected-sha "$BUILD_SHA" \
             --output-dir "$RUNNER_TEMP/page-freeze-w4-evidence/empty-home-matrix"
 
+      - name: Run Login V2.1 exact-SHA Chromium matrix and failure recovery
+        if: github.event_name == 'pull_request' && github.event.pull_request.number == 234 && hashFiles('scripts/design/verify_login_structured_hifi.mjs') != ''
+        env:
+          PLAYWRIGHT_MODULE_DIR: ${{ runner.temp }}/page-workspace-playwright/node_modules
+        run: |
+          set -euo pipefail
+          node --check scripts/design/verify_login_structured_hifi.mjs
+          node scripts/design/verify_login_structured_hifi.mjs \
+            --root _site \
+            --expected-sha "$BUILD_SHA" \
+            --output-dir "$RUNNER_TEMP/page-freeze-w4-evidence/login-matrix"
+
       - name: Verify staged Design Manager workspace for every pilot page
         shell: bash
         env:
@@ -195,11 +209,6 @@ jobs:
           for page_id in home_normal_v1 home_empty_v2 auth_login_v2; do
             output_dir="$evidence_root/$page_id"
             unconnected_policy=fail
-            if [ "$page_id" = "auth_login_v2" ]; then
-              # Login remains reference-only until the dedicated W6 integration is connected.
-              # Keep exact-SHA workspace identity/resource checks, but report its renderer as NOT_RUN.
-              unconnected_policy=not-run
-            fi
             if ! python scripts/design/page_freeze_runner.py verify-page-workspace \
               --page-id "$page_id" \
               --candidate-url http://127.0.0.1:8765/design/manager/ \
@@ -230,6 +239,10 @@ jobs:
             if [ "${{ github.event_name }}" = "pull_request" ] && [ "${{ github.event.pull_request.number }}" = "234" ]; then
               if [ "$page_id" = "home_empty_v2" ]; then
                 matrix_report="$evidence_root/empty-home-matrix/EmptyHome_Structured_HiFi_Evidence_V1.json"
+                matrix_args+=(--matrix-report "$matrix_report")
+                require_args+=(--require-evidence)
+              elif [ "$page_id" = "auth_login_v2" ]; then
+                matrix_report="$evidence_root/login-matrix/Login_Structured_HiFi_Evidence_V1.json"
                 matrix_args+=(--matrix-report "$matrix_report")
                 require_args+=(--require-evidence)
               fi
