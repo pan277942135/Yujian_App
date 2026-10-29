@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1320" height="820" viewBox="0 0 1320 820"><defs>
+<style>
+.bg{fill:#F7FAFB}.card{fill:#FFFFFF;stroke:#DFE9E6;stroke-width:2}.surface{fill:#EEF4F3}
+.t{font-family:"Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif;fill:#0B2D4B}
+.title{font-size:34px;font-weight:700}.sub{font-size:18px;font-weight:500;fill:#748897}
+.k{font-size:15px;font-weight:800;fill:#748897;letter-spacing:1px}.meta{font-size:14px;font-weight:500;fill:#748897}
+.navTitle{font-size:20px;font-weight:500;fill:#0B2D4B}.note{font-size:14px;font-weight:500;fill:#61777C}
+.back,.icon{fill:none;stroke:#0B2D4B;stroke-width:4.2;stroke-linecap:round;stroke-linejoin:round}
+</style>
+</defs><rect class="bg" width="1320" height="820"/><text x="60" y="66" class="t title">03 · 鱼获详情真实落位</text><text x="60" y="98" class="t sub">Top Navigation 只放 Fish Guide + Share；Edit / Flip / Add Media 留在各自内容层</text><rect x="125" y="145" width="1070" height="525" rx="30" class="card"/>
+<text x="165" y="188" class="t k">FISH RECORD DETAIL · BG_CONTENT · ON_LIGHT</text>
+<rect x="165" y="218" width="990" height="150" rx="20" class="surface"/>
+<path class="back" d="M224 279 L208 291 L224 303 M209 291 H232"/>
+<text x="275" y="306" class="t navTitle">鱼获详情</text>
+<rect x="899" y="227" width="126" height="126" rx="25" fill="#FFFFFF" stroke="#DCE7E3" stroke-width="2"/>
+<path class="icon" d="M948 278 Q959 275 962 283 V304 Q958 297 948 299 Z M976 278 Q965 275 962 283 V304 Q966 297 976 299 Z"/>
+<rect x="1033" y="227" width="102" height="126" rx="25" fill="#FFFFFF" stroke="#DCE7E3" stroke-width="2"/>
+<path class="icon" d="M1077 284 L1095 278 M1077 296 L1095 302"/><circle cx="1074" cy="290" r="5" fill="none" stroke="#0B2D4B" stroke-width="4"/><circle cx="1098" cy="277" r="5" fill="none" stroke="#0B2D4B" stroke-width="4"/><circle cx="1098" cy="303" r="5" fill="none" stroke="#0B2D4B" stroke-width="4"/>
+<text x="926" y="391" class="t meta" text-anchor="middle">鱼鉴</text>
+<text x="1084" y="391" class="t meta" text-anchor="middle">分享</text>
+
+<rect x="165" y="430" width="455" height="145" rx="22" fill="#E8F0EF"/>
+<text x="190" y="468" class="t k">HERO</text>
+<text x="190" y="516" class="t navTitle">编辑 → Text Action / ON_MEDIA</text>
+
+<rect x="650" y="430" width="505" height="145" rx="22" fill="#E8F0EF"/>
+<text x="675" y="468" class="t k">B-SIDE / MEMORY</text>
+<text x="675" y="510" class="t navTitle">Flip → local Utility / ON_MEDIA</text>
+<text x="675" y="542" class="t meta">Add Media → content/context action</text>
+
+<text x="165" y="620" class="t meta">Only page-level utilities belong in Top Navigation. B-side Flip never moves up here.</text><line x1="60" y1="768" x2="1260" y2="768" stroke="#DCE7E3" stroke-width="2"/><text x="60" y="798" class="t note">FROZEN · Top Navigation / BACK_TITLE_ACTIONS V1 · Component Visual Reference</text></svg>
