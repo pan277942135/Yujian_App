@@ -627,7 +627,7 @@
           "lifecycle_status",
           "publication_permission"
         ],
-        "verification_rule": "Safe-top behavior follows the page contract. Browser-only top/bottom safe-area values (36/10 CSS px) are visual estimates from the frozen raster; they are not Native WindowInsets claims. Header start/end padding retains the adaptive inset and adds candidate measured offsets (+4/+10 CSS px). Exact brand/subtitle/account pixel bounds and chevron resource are not independently registered for this page.",
+        "verification_rule": "Safe-top behavior follows the page contract. Browser-only top/bottom safe-area values (36/0 CSS px) are visual estimates from the frozen raster; they are not Native WindowInsets claims. Header start/end padding retains the adaptive inset and adds candidate measured offsets (+4/+10 CSS px). Exact brand/subtitle/account pixel bounds and chevron resource are not independently registered for this page.",
         "visible": true,
         "measurable": true,
         "selectable": true,
@@ -697,7 +697,7 @@
               "lifecycle_status",
               "publication_permission"
             ],
-            "verification_rule": "Exact copy from V2.2; 9sp/12sp Regular metrics remain a measured candidate because Empty Home has no registered subtitle token. Tracking follows the shared 0sp rule.",
+            "verification_rule": "Exact copy from V2.2; 8.6sp/12sp Regular is a browser measurement candidate from the frozen raster because Empty Home has no registered subtitle token. The base size and 12sp line-height scale with fontScale; tracking follows the shared 0sp rule and the shared platform sans-serif family remains unchanged.",
             "visible": true,
             "measurable": true,
             "selectable": true,
@@ -1016,7 +1016,7 @@
   "known_authority_gaps": [
     "Page-specific brand title asset is not registered in Empty Home binding; header brand dynamically renders no text.",
     "GALLERY and CHEVRON_RIGHT are W2-bound and SHA-verified; their icon inventory/frozen_assets state is frozen while Asset Registry lifecycle REVIEW remains explicitly unresolved.",
-    "Native status/navigation bar glyphs are not rendered; the browser candidate records 36/10 CSS px safe-area estimates from the frozen raster, not Native WindowInsets values.",
+    "Native status/navigation bar glyphs are not rendered; the browser candidate records 36/0 CSS px top/bottom safe-area estimates from the frozen raster, not Native WindowInsets values.",
     "Sun particle positions are motion-generated without a frozen static coordinate profile; the optional particle layer is not rendered in this candidate.",
     "Cloud and sun-beam positions currently follow the Android renderer implementation reference; these positions are not independently anchored in the page contract."
   ],

@@ -13,7 +13,7 @@ const playwrightPath = process.env.PLAYWRIGHT_PATH || (process.env.PLAYWRIGHT_MO
 const { chromium } = require(playwrightPath);
 const ROUTE = "#page/home_empty_v2/hifi/structured_workspace";
 const MIME = {".html":"text/html; charset=utf-8",".js":"text/javascript; charset=utf-8",".css":"text/css; charset=utf-8",".json":"application/json; charset=utf-8",".png":"image/png",".svg":"image/svg+xml",".jpg":"image/jpeg",".jpeg":"image/jpeg",".webp":"image/webp",".md":"text/markdown; charset=utf-8"};
-const BROWSER_REFERENCE_SAFE_INSETS_DP = {top:36,bottom:10};
+const BROWSER_REFERENCE_SAFE_INSETS_DP = {top:36,bottom:0};
 const CANDIDATE_PROMPT_LINE_HEIGHT_SP = 24;
 
 function parseArgs(argv) {
@@ -502,6 +502,25 @@ async function main() {
     };
     const promptTextScreenshotHashes={};
     const renderedScreenshotHashes={};
+    // The frozen V2.2 raster is 9:16. Capture the current structured DOM at the same logical ratio
+    // before any matrix assertions, and include an unchanged copy of the frozen source for review.
+    await page.locator("[data-empty-viewport-preset]").selectOption("360x640@1");
+    await page.waitForFunction(()=>document.querySelector("[data-workspace-artboard]")?.dataset.viewport==="360x640");
+    const baselineScreenshot=resolve(args.outputDir,"EmptyHome_Baseline_360x640_font-1.png");
+    const baselinePromptScreenshot=resolve(args.outputDir,"EmptyHome_BaselinePrompt_360x640_font-1.png");
+    const baselineCapture=await screenshotRootViewport(page,baselineScreenshot,360,640,baselinePromptScreenshot);
+    assertScreenshotCaptureEnvelope(baselineCapture.size,360,640,"frozen-ratio baseline");
+    const baselineFrozenPath=resolve(args.root,"design/pages/home/empty_home/source/frozen/Empty_Home_Frozen_Visual_V2_2.png");
+    const baselineFrozenCopy=resolve(args.outputDir,"EmptyHome_Frozen_V2_2_Original.png");
+    await copyFile(baselineFrozenPath,baselineFrozenCopy);
+    assert(await sha256File(baselineFrozenCopy)===preflight.referenceSha,"frozen V2.2 baseline copy SHA differs from the W2-verified reference");
+    baseEvidence.baseline_screenshot={
+      source_sha:expectedSha,viewport_css_px:{width:360,height:640},font_scale:1,
+      rendered:{path:baselineScreenshot.split("/").at(-1),sha256:await sha256File(baselineScreenshot),pixel_size:baselineCapture.size,
+        capture_bounds_css_px:baselineCapture.bounds_css_px},
+      prompt_text:{path:baselinePromptScreenshot.split("/").at(-1),sha256:await sha256File(baselinePromptScreenshot),bounds_css_px:baselineCapture.prompt_text_bounds_css_px},
+      frozen_reference:{path:baselineFrozenCopy.split("/").at(-1),sha256:preflight.referenceSha,original_bytes_unchanged:true}
+    };
     for (const {width,height,fontScale,matrix_classification} of matrixCases) {
       activeMatrixRow=baseEvidence.matrix.find(row=>row.case_id===`EMPTY_HOME_${width}x${height}_FONT_${fontScale}`);
       activeMatrixRow.result="IN_PROGRESS";
@@ -524,10 +543,23 @@ async function main() {
         const outsideViewport=Object.entries(ui).filter(([,bounds])=>bounds&&(
           bounds.x < -0.5||bounds.y < -0.5||bounds.right > width+0.5||bounds.bottom > height+0.5)).map(([id])=>id);
         const textIds=["Brand","Subtitle","AccountEntry","CapturePrompt","AlbumAction"];
-        const textOverflow=textIds.filter(id=>{
+        const textTargets={Brand:"#eh-Brand",Subtitle:"#eh-Subtitle",AccountEntry:"#eh-AccountEntryLabel",
+          CapturePrompt:"#eh-CapturePromptText",AlbumAction:"#eh-AlbumActionLabel"};
+        const textOverflowDiagnostics=Object.fromEntries(textIds.map(id=>{
           const node=document.querySelector(`#eh-${CSS.escape(id)}`);
-          return node&&(node.scrollWidth>node.clientWidth+1||node.scrollHeight>node.clientHeight+1);
-        });
+          if(!node)return [id,null];
+          const textNode=document.querySelector(textTargets[id]);
+          const range=document.createRange();if(textNode)range.selectNodeContents(textNode);
+          const bounds=node.getBoundingClientRect(),textBounds=range.getBoundingClientRect(),style=getComputedStyle(node);
+          const hasText=textBounds.width>0&&textBounds.height>0;
+          const overflowByTextRange=hasText&&(textBounds.left<bounds.left-1||textBounds.top<bounds.top-1||
+            textBounds.right>bounds.right+1||textBounds.bottom>bounds.bottom+1);
+          return [id,{scroll_width:node.scrollWidth,client_width:node.clientWidth,scroll_height:node.scrollHeight,client_height:node.clientHeight,
+            text_shadow:style.textShadow,node_bounds:{x:bounds.left,y:bounds.top,width:bounds.width,height:bounds.height},
+            text_bounds:hasText?{x:textBounds.left,y:textBounds.top,width:textBounds.width,height:textBounds.height}:null,
+            overflow_by_text_range:overflowByTextRange}];
+        }));
+        const textOverflow=textIds.filter(id=>textOverflowDiagnostics[id]?.overflow_by_text_range);
         const fishingIds=["FishingRod","FishingLine","BobberBody","WaterContact","Ripple","BobberReflection"];
         const fishingOutside=fishingIds.filter(id=>{
           const bounds=byId[id]?.bounds;
@@ -603,7 +635,7 @@ async function main() {
         }
         window.PageWorkspaceAdapters.selectLayer("HeroCopy");
         return {viewport:metrics.viewport,font_scale:metrics.font_scale,safe_area_preview:metrics.safe_insets_preview||null,scene_transform:metrics.scene_transform,profile_width_class:board.dataset.profileWidthClass,
-          root_size:{width:root.getBoundingClientRect().width,height:root.getBoundingClientRect().height},overflow,ui_bounds:ui,
+          root_size:{width:root.getBoundingClientRect().width,height:root.getBoundingClientRect().height},overflow,overflow_diagnostics:textOverflowDiagnostics,ui_bounds:ui,
           fishing:{rod:rod,line,bobber,contact,ripple,reflection,line_path_start:{x:lineStart?.x,y:lineStart?.y},line_path_end:{x:lineEnd?.x,y:lineEnd?.y},composition_outside_viewport:fishingOutside,line_end_contact_gap:lineEndContactGap,
             bobber_contact_alignment:bobberContact,reflection_contact_gap:reflectionGap,ripple_contains_contact:rippleContainsContact,layer_order:layerOrder},
           icons:{chevron:byId.ChevronRight?.bounds||null,chevron_label:loginLabel,chevron_gap_css_px:loginLabel&&chevron?chevron.x-loginLabel.right:null,
@@ -622,6 +654,24 @@ async function main() {
           brand_status:root.dataset.brandStatus||"NOT_REPORTED",boardOrigin:{x:boardBounds.x,y:boardBounds.y}};
       });
       Object.assign(activeMatrixRow,caseEvidence);
+      // Preserve a before-image and its measured text overlay even when a later assertion fails.
+      const shot=resolve(args.outputDir,`EmptyHome_${width}x${height}_font-${fontScale}.png`);
+      const promptTextShot=resolve(args.outputDir,`EmptyHomePrompt_${width}x${height}_font-${fontScale}.png`);
+      const capture=await screenshotRootViewport(page,shot,width,height,promptTextShot);
+      const shotSize=capture.size;
+      assertScreenshotCaptureEnvelope(shotSize,width,height,`${width}x${height}@${fontScale}`);
+      const promptTextSha=await sha256File(promptTextShot);
+      const renderedSha=await sha256File(shot);
+      promptTextScreenshotHashes[`${width}x${height}`]??={};
+      promptTextScreenshotHashes[`${width}x${height}`][String(fontScale)]=promptTextSha;
+      renderedScreenshotHashes[`${width}x${height}`]??={};
+      renderedScreenshotHashes[`${width}x${height}`][String(fontScale)]=renderedSha;
+      Object.assign(activeMatrixRow,{
+        screenshot_rendered:{path:shot.split("/").at(-1),sha256:renderedSha,pixel_width:shotSize.width,pixel_height:shotSize.height,device_scale_factor:3,capture_bounds_css_px:capture.bounds_css_px,
+          visible_content:capture.visible_content,capture_isolation_used:capture.capture_isolation_used,outside_workspace_chrome_included:capture.outside_workspace_chrome_included,
+          workspace_visibility_before_isolation:capture.workspace_visibility_before_isolation,selected_overlay_suppressed:capture.selected_overlay_suppressed},
+        prompt_text_measurement:{...capture.prompt_text_bounds_css_px,screenshot_path:promptTextShot.split("/").at(-1),screenshot_sha256:promptTextSha},
+        screenshot_reference:{path:"design/pages/home/empty_home/source/frozen/Empty_Home_Frozen_Visual_V2_2.png",sha256:preflight.referenceSha}});
       assert(caseEvidence.overflow.outside_viewport.length===0&&caseEvidence.overflow.text_overflow.length===0,`responsive UI overflow at ${width}x${height} @${fontScale}: ${JSON.stringify(caseEvidence.overflow)}`);
       assert(caseEvidence.unit==="css_px","DOM measurements must be reported as CSS px");
       assert(caseEvidence.inspectorNode==="HeroCopy"&&caseEvidence.inspector.node_id===caseEvidence.inspectorNode,
@@ -635,7 +685,7 @@ async function main() {
         caseEvidence.inspector.rendered_typography===`${caseEvidence.inspector.typography.font_size} / ${caseEvidence.inspector.typography.line_height}`,
         `Rendered Inspector values must match its API and actual DOM measurement at ${width}x${height} @${fontScale}`);
       // Read actual text ranges and select every mapped text node so Inspector bounds/styles are checked against this render.
-      const typographyExpectations={subtitle:{font_size:9,line_height:12,weight:400,node:"Subtitle"},account_entry:{font_size:14,line_height:20,weight:500,node:"AccountEntry"},
+      const typographyExpectations={subtitle:{font_size:8.6,line_height:12,weight:400,node:"Subtitle"},account_entry:{font_size:14,line_height:20,weight:500,node:"AccountEntry"},
         capture_prompt:{font_size:14,line_height:CANDIDATE_PROMPT_LINE_HEIGHT_SP,weight:400,node:"CapturePrompt"},album_action:{font_size:12,line_height:18,weight:400,node:"AlbumAction"}};
       for(const [key,expected] of Object.entries(typographyExpectations)){
         const actual=caseEvidence.rendered_typography[key],inspectorText=caseEvidence.text_inspector_parity[expected.node];
@@ -696,17 +746,6 @@ async function main() {
         caseEvidence.icons.gallery_resource.sha256==="5798abbdaad45305fe9ed5a578868247925d2d95644c8ea2559f446c1f069fda"&&
         caseEvidence.icons.gallery_resource.lifecycle==="REVIEW"&&caseEvidence.icons.gallery_resource.publication_permission==="PUBLIC_BY_EXISTING_PAGES_RULE",
         "GALLERY W2 source, lifecycle conflict, and permission must be visible in DOM evidence");
-      const shot=resolve(args.outputDir,`EmptyHome_${width}x${height}_font-${fontScale}.png`);
-      const promptTextShot=resolve(args.outputDir,`EmptyHomePrompt_${width}x${height}_font-${fontScale}.png`);
-      const capture=await screenshotRootViewport(page,shot,width,height,promptTextShot);
-      const shotSize=capture.size;
-      assertScreenshotCaptureEnvelope(shotSize,width,height,`${width}x${height}@${fontScale}`);
-      const promptTextSha=await sha256File(promptTextShot);
-      const renderedSha=await sha256File(shot);
-      promptTextScreenshotHashes[`${width}x${height}`]??={};
-      promptTextScreenshotHashes[`${width}x${height}`][String(fontScale)]=promptTextSha;
-      renderedScreenshotHashes[`${width}x${height}`]??={};
-      renderedScreenshotHashes[`${width}x${height}`][String(fontScale)]=renderedSha;
       Object.assign(activeMatrixRow,caseEvidence,{
         case_id:activeMatrixRow.case_id,page_id:"home_empty_v2",source_sha:expectedSha,run_id:runId,
         matrix_source_path:preflight.viewportAuthority.path,matrix_source_sha256:preflight.viewportAuthority.sha256,
@@ -796,7 +835,7 @@ async function main() {
       browser_device_scale_factor:3,capture_bounds_css_px:compareCapture.bounds_css_px,screenshot_pixels:compareSize,
       comparison_region:"isolated page-root viewport at 360x640 CSS px with preserved aspect ratio; reference bytes are unmodified",
       page_content_region_alignment:{browser_root_bounds_css_px:{x:0,y:0,width:360,height:640},reference_page_content_bounds_px:"NOT_MACHINE_READABLE",
-        status:"FULL_CANVAS_DIAGNOSTIC_ONLY",reason:"V2.2 frozen raster includes Android system chrome but has no machine-readable chrome/content boundary. Browser uses a separately disclosed 36/10 CSS px safe-area estimate; no reference crop or Native inset claim is inferred."},
+        status:"FULL_CANVAS_DIAGNOSTIC_ONLY",reason:"V2.2 frozen raster includes Android system chrome but has no machine-readable chrome/content boundary. Browser uses a separately disclosed 36/0 CSS px top/bottom safe-area estimate; no reference crop or Native inset claim is inferred."},
       native_density_claim:false,source_ratio_preserved:true,
       system_bar_comparison:{browser_status_bar:"NOT_SIMULATED",browser_safe_insets:comparisonCase?.safe_area_preview||{...BROWSER_REFERENCE_SAFE_INSETS_DP,status:"BROWSER_REFERENCE_SCREENSHOT_ESTIMATE_NOT_NATIVE"},
         frozen_reference_status_bar:"PIXELS_PRESENT_IN_FROZEN_RASTER; boundary has no page-owned machine-readable authority",reference_status_bar_bounds:"NOT_VERIFIED",

@@ -3,12 +3,12 @@
   "base_branch": "main",
   "base_sha": "0c245b86f8228107309d0135bdf819af255604be",
   "blockers": [
-    "PR promotion Admission passed on f921ee10 after removing root state files from the product PR tree; Product Work Admission on the dedicated state branch remains pending.",
-    "Exact current-head W5 4-viewport × 2-font-scale matrix and isolated Pages preview verification remain pending.",
-    "Empty Home brand placement remains blocked: brand_title_primary is authorized only for normal_home_v1; no authorized Empty Home brand binding exists."
+    "BRAND AUTHORITY BLOCKED: brand_title_primary is registered for normal_home_v1 only; Empty Home has no approved artwork binding.",
+    "HERO AUTHORITY CONFLICT: current Main-canonical responsive/hero contract measures normalized V2, while the designated frozen V2.2 source has materially different Hero geometry; do not bypass or rewrite it before product-owner resolution.",
+    "VISUAL ACCEPTANCE PENDING: exact-source W5 8/8 formal plus 4/4 supplemental and live Pages preview pass, but typography and geometry review remains open."
   ],
   "branch": "work-state/empty-home-typography-parity-v1",
-  "checkpoint_updated_at": "2026-10-29T21:04:33Z",
+  "checkpoint_updated_at": "2026-10-29T22:12:25Z",
   "control_plane_revision": "0c245b86f8228107309d0135bdf819af255604be",
   "dependencies": [
     "YUJIAN_PAGE_FREEZE_PIPELINE_W3_DESIGN_MANAGER_ADAPTER_V1",
@@ -99,6 +99,41 @@
         "reason": "Exact pull_request promotion Admission passed on f921ee10 (run 40954291894); branch-local state files are absent from the promotion tree.",
         "recorded_at": "2026-10-29T21:04:07Z",
         "result": "PASS"
+      },
+      {
+        "candidate_sha": "e35474b27eca7ac2a64fd01dc6a5f5e734ba002f",
+        "command": "python scripts/validate_control_plane_admission.py",
+        "reason": "Exact Product Work Admission passed on checkpoint e35474b27eca7ac2a64fd01dc6a5f5e734ba002f; six layers, canonical sync (735 paths; one approved Login exception), Project Master State and Work Execution State all passed. Product source SHA 9688f3ad313ab12b2c42439e8d3761adbf86e5dc.",
+        "recorded_at": "2026-10-29T21:21:27Z",
+        "result": "PASS"
+      },
+      {
+        "candidate_sha": "9688f3ad313ab12b2c42439e8d3761adbf86e5dc",
+        "command": "pull_request-triggered python scripts/validate_control_plane_admission.py",
+        "reason": "Exact PR promotion Admission passed in workflow run 40956293997; the promotion tree excludes branch-local root state files.",
+        "recorded_at": "2026-10-29T21:21:27Z",
+        "result": "PASS"
+      },
+      {
+        "candidate_sha": "b8c4efbe08228f735e65815eed3b34edb24d09fa",
+        "command": "python scripts/validate_control_plane_admission.py",
+        "reason": "Exact Product Work Admission passed after the failure record. Six static layers, canonical sync (735 paths; one approved Login exception), Project Master State, and Work Execution State passed; source SHA 9688f3ad313ab12b2c42439e8d3761adbf86e5dc.",
+        "recorded_at": "2026-10-29T21:22:29Z",
+        "result": "PASS"
+      },
+      {
+        "candidate_sha": "334465feb693809ec75b0f6120b6d66b0fd07110",
+        "command": "python scripts/validate_control_plane_admission.py",
+        "reason": "Exact admission passed after the W5 failure record was committed. Six static layers, canonical sync (735 paths; one approved Login exception), Project Master State, and Work Execution State passed on Main 0c245b86f8228107309d0135bdf819af255604be; product source remains 9688f3ad313ab12b2c42439e8d3761adbf86e5dc.",
+        "recorded_at": "2026-10-29T21:23:19Z",
+        "result": "PASS"
+      },
+      {
+        "candidate_sha": "ba6b42a0c8c26092d101474331bc1657f1e18962",
+        "command": "python scripts/validate_control_plane_admission.py",
+        "recorded_at": "2026-10-29T21:45:41Z",
+        "result": "PASS",
+        "reason": "Product Work Admission after the W5 fix-evidence update: six static layers; canonical sync 735 paths with one approved Login mapping exception; Project Master State PASS; Work Execution State PASS. Product code source remains exact PR head 45ae173b."
       }
     ],
     "admission_baseline": {
@@ -122,44 +157,70 @@
       "status": "PR_PROMOTION_PASS_PRODUCT_WORK_ADMISSION_PENDING",
       "validated_code_source_sha": "2cbfcdd2fda84d9fcdd7700c1d40e1f5c24271fa"
     },
+    "baseline_capture": {
+      "source_sha": "45ae173b984178cb14edeb589047b0146efc6a35",
+      "status": "CAPTURED_W5_PASS_VISUAL_REVIEW_PENDING",
+      "empty_home_page_renderer_changed": false,
+      "prior_failure_gate_id": "5ce4d5b4911a848ec864",
+      "verifier_change": "Capture 360x640 frozen-ratio page and byte-verified frozen source before assertions; measure leaf text ranges and report scroll/shadow diagnostics separately.",
+      "frozen_reference": {
+        "path": "design/pages/home/empty_home/source/frozen/Empty_Home_Frozen_Visual_V2_2.png",
+        "sha256": "3071481ed7e58106381cdd5321267792491c21fd1a357e4362db1dad8e08e7ec",
+        "dimensions_px": [
+          941,
+          1672
+        ]
+      },
+      "baseline_screenshot": {
+        "artifact_id": 12934651096,
+        "path": "EmptyHome_Baseline_360x640_font-1.png",
+        "sha256": "7dd44ff82513b5edd45948bd7336f40928fe1c6ead879024520b9f430ccb60c9",
+        "dimensions_px": [
+          1080,
+          1920
+        ]
+      },
+      "comparison": "Source screenshot preserves 9:16 frozen ratio; raw image bytes remain unchanged."
+    },
     "control_plane_sync_commit": "dad76a9ca737245d4076b75b86537412b0238765",
-    "current_candidate_sha": "f921ee10d8ff6de1acfcf5058cd2529a4a2afed5",
+    "current_candidate_sha": "7e8af71ab71c248294b40db266b6227dc3a2e949",
     "current_main_sha": "0c245b86f8228107309d0135bdf819af255604be",
-    "current_state_checkpoint_sha": "2cbfcdd2fda84d9fcdd7700c1d40e1f5c24271fa",
+    "current_state_checkpoint_sha": "7e8af71ab71c248294b40db266b6227dc3a2e949",
     "current_synced_candidate": {
-      "candidate_sha": "f921ee10d8ff6de1acfcf5058cd2529a4a2afed5",
+      "candidate_sha": "7e8af71ab71c248294b40db266b6227dc3a2e949",
+      "source_sha": "7e8af71ab71c248294b40db266b6227dc3a2e949",
       "main_sha": "0c245b86f8228107309d0135bdf819af255604be",
-      "source_sha": "2cbfcdd2fda84d9fcdd7700c1d40e1f5c24271fa",
-      "status": "PR_PROMOTION_ADMISSION_PASS_PRODUCT_WORK_ADMISSION_PENDING",
       "dynamic_state_branch": "work-state/empty-home-typography-parity-v1",
-      "promotion_admission_run_id": 40954291894,
+      "status": "EXACT_CANDIDATE_ADMISSION_AND_W5_PASS_VISUAL_REVIEW_PENDING",
+      "promotion_state_split": "ROOT_STATE_EXCLUDED_FROM_PR_TREE",
       "page_source_changed_during_recovery": false
     },
     "empty_home_page_changes": {
       "brand_authority": "BLOCKED_AUTHORITY_GAP",
       "camera_asset_and_touch_contract": "PRESERVED",
-      "code_commit_sha": "73cc6206eb146ada5120363ad7cf73fa8023908a",
+      "code_commit_sha": "7e8af71ab71c248294b40db266b6227dc3a2e949",
       "files": [
         "design/manager/empty_home_v22_workspace.js",
         "design/manager/empty_home_v22_workspace.css",
         "design/manager/empty_home_v22_component_mapping.json",
         "scripts/design/verify_empty_home_structured_hifi.mjs"
       ],
-      "hero_copy": "PRESERVED_EXISTING_FORMAL_IMAGE_BINDING",
-      "status": "IMPLEMENTED_PENDING_EXACT_HEAD_VALIDATION"
+      "hero_copy": "PRESERVED_EXISTING_FORMAL_IMAGE_BINDING; CURRENT_CONTRACT_MISMATCH_WITH_FROZEN_SOURCE",
+      "status": "TARGETED_CALIBRATION_CANDIDATE_W5_PASS_VISUAL_REVIEW_PENDING"
     },
     "exact_candidate_admission": {
-      "candidate_sha": "a03174939cb20141b0a8ecfde0fb4d33c660ed04",
-      "code_source_sha": "6484d65bf69309b3b41420e6adb514fe7ca9076a",
+      "candidate_sha": "7e8af71ab71c248294b40db266b6227dc3a2e949",
+      "code_source_sha": "7e8af71ab71c248294b40db266b6227dc3a2e949",
+      "main_sha": "0c245b86f8228107309d0135bdf819af255604be",
       "command": "python scripts/validate_control_plane_admission.py",
       "control_plane_layers": 6,
       "control_plane_sync_paths": 735,
       "exact_login_mapping_exceptions": 1,
-      "note": "Exact current PR branch head passed after state-file recovery; source files remain at code source 6484d65 and Main is 0c245b86.",
       "project_master_state": "PASS",
-      "recorded_at": "2026-10-29T20:47:41Z",
+      "work_execution_state": "PASS",
       "result": "PASS",
-      "work_execution_state": "PASS"
+      "promotion_workflow_run_id": 40961497308,
+      "note": "Exact-source promotion Control Plane Admission passed; companion Product Work Admission is being rerun after state synchronization. One registered Login mapping exception is preserved."
     },
     "exception_pr": {
       "merge_sha": "bf4c5c5777bddd3c37c8b2850aaa5a5881f0d513",
@@ -179,6 +240,16 @@
       "result": "PASS",
       "work_execution_state": "PASS"
     },
+    "latest_state_admission": {
+      "candidate_sha": "7e8af71ab71c248294b40db266b6227dc3a2e949",
+      "code_source_sha": "7e8af71ab71c248294b40db266b6227dc3a2e949",
+      "main_sha": "0c245b86f8228107309d0135bdf819af255604be",
+      "command": "python scripts/validate_control_plane_admission.py",
+      "recorded_at": "2026-10-29T22:12:25Z",
+      "result": "PASS",
+      "worktree_branch": "work-state/empty-home-typography-parity-v1",
+      "note": "python scripts/validate_control_plane_admission.py passed on this state checkpoint: six static layers, 735 synchronized paths, one approved Login mapping exception, Project Master State PASS, Work Execution State PASS. Exact PR code source is 7e8af71ab71c248294b40db266b6227dc3a2e949."
+    },
     "login_mapping": {
       "blob_sha256_git": "75c615d20be011b16e4e6843b41dabd0479a8d63",
       "path": "design/pages/account_privacy/Login/structured_candidate/component_mapping_v1.json",
@@ -197,15 +268,37 @@
         "result": "FAIL",
         "run_id": 40949025336,
         "run_number": 1382
+      },
+      {
+        "run_id": 40957551139,
+        "event": "pull_request",
+        "build_sha": "45ae173b984178cb14edeb589047b0146efc6a35",
+        "result": "PASS",
+        "artifact_url": "https://github.com/pan277942135/Yujian_App/actions/runs/40957551139",
+        "note": "Exact candidate isolated preview deployed and live-verified; production deployment skipped."
+      },
+      {
+        "run_id": 40961497204,
+        "event": "pull_request",
+        "build_sha": "7e8af71ab71c248294b40db266b6227dc3a2e949",
+        "result": "PASS",
+        "artifact_url": "https://github.com/pan277942135/Yujian_App/actions/runs/40961497204",
+        "note": "Exact source preview deployed under isolated PR path and live-verified; production deploy skipped."
       }
     ],
     "previous_candidate_sha": "ffd9cfe69ff52c776049953b730f6dabb90fe44a",
     "product_visual_acceptance": "PENDING",
     "typography_repair": {
-      "candidate_matrix": "NOT_RUN",
-      "candidate_preview": "NOT_RUN",
-      "code_source_sha": "6484d65bf69309b3b41420e6adb514fe7ca9076a",
-      "reference_review": "Historical 5de-exact unchanged-page W5 DOM/screenshot evidence compared against the frozen Empty Home raster before edits.",
+      "code_source_sha": "7e8af71ab71c248294b40db266b6227dc3a2e949",
+      "candidate_matrix": "PASS_STRUCTURAL_MATRIX_VISUAL_REVIEW_PENDING",
+      "matrix_run_id": 40961497387,
+      "artifact_id": 12935478244,
+      "artifact_url": "https://github.com/pan277942135/Yujian_App/actions/runs/40961497387/artifacts/12935478244",
+      "formal_cases": "8/8 across 4 contract viewports at font scales 1.0/1.3",
+      "supplemental_cases": "4/4 at font scale 1.5",
+      "candidate_preview": "https://pan277942135.github.io/Yujian_App/previews/pr-234/design/manager/?candidate=7e8af71ab71c248294b40db266b6227dc3a2e949#page/home_empty_v2/hifi/structured_workspace",
+      "pages_run_id": 40961497204,
+      "reference_review": "Byte-verified frozen V2.2 raster reviewed against exact rendered 360x640 screenshots. Subtitle computed size changed 9.0sp→8.6sp (12sp line height, 400, system-ui mapping); measured range was unchanged at 1.0x (72x10px) and narrowed 96x14→88x13px at 1.3x. Browser bottom inset changed 10dp→0dp; at 320x640 the group, prompt box, camera target and album target moved down 10dp while their sizes and touch contracts stayed fixed. Prompt remains about 5.6px high at 360x640; album aligns within about 1px. Brand remains hidden for authorization. Hero candidate box remains (16.7,74.7,206.7,103.3) and disagrees with frozen ink bbox (59.3,120.5,241.0,82.6); Main-canonical contract source conflict prevents moving it without authority reconciliation.",
       "visual_acceptance": "PENDING"
     },
     "validator_fix_pr": {
@@ -223,6 +316,176 @@
       "reason": "Restored Main-exact workflow and all three Main-exact page bindings; W2 authority is intact. The isolated manual branch dispatch path was removed.",
       "restored_sha256": "e1d7c6555b83570e92769244b83c5024113c683cc1db5f51e99d0f7ac8e8871c",
       "status": "RESTORED_MAIN_EXACT_SOURCE"
+    },
+    "visual_baseline_measurements": {
+      "source_sha": "45ae173b984178cb14edeb589047b0146efc6a35",
+      "frozen_sha256": "3071481ed7e58106381cdd5321267792491c21fd1a357e4362db1dad8e08e7ec",
+      "baseline_capture_sha256": "7dd44ff82513b5edd45948bd7336f40928fe1c6ead879024520b9f430ccb60c9",
+      "observations": [
+        {
+          "component": "Brand",
+          "frozen_pixels_to_css_at_360x640": {
+            "x": 24.5,
+            "y": 54.7,
+            "width": 34.4,
+            "height": 16.5
+          },
+          "candidate": "hidden 0x0",
+          "result": "BLOCKED_AUTHORITY_GAP"
+        },
+        {
+          "component": "Subtitle",
+          "frozen_pixel_bbox_css_at_360x640": {
+            "x": 24.1,
+            "y": 82.6,
+            "width": 68.9,
+            "height": 7.7
+          },
+          "candidate_style": "9px / 12px / 400; system-ui representative; 1.0x scales with fontScale",
+          "result": "candidate width about 3px wider; no Empty Home token registered"
+        },
+        {
+          "component": "AccountEntry",
+          "frozen_pixel_bbox_css_at_360x640": {
+            "x": 286.2,
+            "y": 69.3,
+            "width": 37.9,
+            "height": 12.2
+          },
+          "candidate_pixel_bbox_css_at_360x640": {
+            "x": 283.3,
+            "y": 69.0,
+            "width": 41.3,
+            "height": 12.7
+          },
+          "result": "vertical alignment close; 14sp/20sp/500 Text Action authority retained"
+        },
+        {
+          "component": "HeroCopy",
+          "candidate_dom_bounds_css_at_360x640": {
+            "x": 16.7,
+            "y": 74.7,
+            "width": 206.7,
+            "height": 103.3
+          },
+          "frozen_dark_ink_bbox_css_at_360x640": {
+            "x": 59.3,
+            "y": 120.5,
+            "width": 241.0,
+            "height": 82.6
+          },
+          "result": "material geometry disagreement with canonical normalized-V2 contract; retain formal asset; reconcile authority before moving DOM"
+        },
+        {
+          "component": "CapturePrompt",
+          "candidate_text_range_css_at_360x640": {
+            "x": 124.0,
+            "y": 475.7,
+            "width": 112.0,
+            "height": 16.0,
+            "font_size": 14,
+            "line_height": 24,
+            "weight": 400
+          },
+          "frozen_visual_pixels_css_at_360x640": {
+            "x": 127.0,
+            "y": 492.0,
+            "width": 106.4,
+            "height": 13.0
+          },
+          "result": "candidate text range sits about 16px higher; token size/line height are authoritative; browser mapping remains system-ui"
+        },
+        {
+          "component": "PrimaryCaptureButton",
+          "candidate_touch_target_css_at_360x640": {
+            "width": 73.3,
+            "height": 73.3
+          },
+          "candidate_asset_display_css_at_360x640": {
+            "width": 69.3,
+            "height": 69.3
+          },
+          "frozen_visible_ring_css_at_360x640": {
+            "width": 73.1,
+            "height": 73.5
+          },
+          "result": "touch target preserved; candidate artwork is about 4px smaller in each dimension"
+        },
+        {
+          "component": "AlbumAction",
+          "candidate_visual_text_css_at_360x640": {
+            "width": 58.3,
+            "height": 11.3,
+            "y": 591.3
+          },
+          "frozen_visual_pixels_css_at_360x640": {
+            "width": 56.6,
+            "height": 10.3,
+            "y": 600.6
+          },
+          "candidate_touch_target_css_at_320x640": {
+            "width": 96,
+            "height": 48
+          },
+          "result": "visual text about 9px high; 12sp/18sp/400 token retained"
+        }
+      ],
+      "measurement_note": "DOM text Range and source raster ink boxes are different measurement types; their comparisons identify alignment/scale deltas, not identical font ascent metrics. The baseline is browser system-ui, not Android runtime typography."
+    },
+    "candidate_visual_delta": {
+      "source_sha": "7e8af71ab71c248294b40db266b6227dc3a2e949",
+      "baseline_source_sha": "45ae173b984178cb14edeb589047b0146efc6a35",
+      "matrix_run_id": 40961497387,
+      "artifact_id": 12935478244,
+      "subtitle": {
+        "before": {
+          "font_size_sp": 9,
+          "line_height_sp": 12,
+          "weight": 400,
+          "measured_text_range_css_px": "72×10 at1.0x; 96×14 at1.3x"
+        },
+        "after": {
+          "font_size_sp": 8.6,
+          "line_height_sp": 12,
+          "weight": 400,
+          "measured_text_range_css_px": "72×10 at1.0x; 88×13 at1.3x"
+        },
+        "font_scale_behavior": "fontSize and line-height scale with 1.0x/1.3x/1.5x"
+      },
+      "login": {
+        "before_after": "unchanged; 14sp/20sp/500 Text Action token; frozen vertical alignment within 0.3 CSS px"
+      },
+      "capture_prompt": {
+        "before_range_css_px": "112×16 at y475.7 (360×640)",
+        "after_range_css_px": "112×16 at y485.7 (360×640)",
+        "frozen_ink_css_px": "106.4×13 at y492.0",
+        "remaining_delta": "about 6.3px high, 5.6px wider; 14sp/24sp/400 token retained"
+      },
+      "camera": {
+        "target_before_after": "220 reference px touch target; unchanged",
+        "visual_asset_fit": "208/220 (94.545%) uniformly, unchanged"
+      },
+      "album": {
+        "before_y_css_px": 591.3,
+        "after_y_css_px": 601.3,
+        "frozen_y_css_px": 600.6,
+        "touch_target_before_after": "48dp minimum, unchanged"
+      },
+      "browser_safe_inset": {
+        "bottom_before_dp": 10,
+        "bottom_after_dp": 0,
+        "movement": "+10dp for all bottom group elements; responsive formula retained"
+      },
+      "brand": {
+        "frozen_ink_css_px": "34.4×16.5 at (24.5,54.7)",
+        "candidate": "hidden 0×0",
+        "status": "BLOCKED_AUTHORITY_GAP"
+      },
+      "hero": {
+        "candidate_dom_css_px": "206.7×103.3 at (16.7,74.7)",
+        "frozen_ink_css_px": "241×82.6 at (59.3,120.5)",
+        "status": "BLOCKED_MAIN_CANONICAL_CONTRACT_SOURCE_CONFLICT"
+      }
     }
   },
   "execution_v2": {
@@ -291,6 +554,23 @@
         "symptom_key": "CONTROL_PLANE_SYNC_REJECTS_PAGE_BINDING_SHA_UPDATES",
         "task_id": "YUJIAN_PAGE_FREEZE_PIPELINE_W5_EMPTY_HOME_PILOT_V1"
       },
+      "5ce4d5b4911a848ec864": {
+        "closed": true,
+        "failures": [
+          {
+            "evidence": "W5 run 40956294176 failed at 320x640@1. JSON reports outer CapturePrompt range height 24px against a 24px box shifted +3px, while the dedicated text measurement is 112x16 CSS px at x104 y485.578 and the prompt box is x0 y478.578 w320 h24. scrollHeight is 27px with text-shadow 0px 1px 3px; screenshot EmptyHome_320x640_font-1.png was captured before the assertion.",
+            "hypothesis": "The verifier selects all text descendants on CapturePrompt, so the Range includes the shifted 24px line box instead of the leaf glyph bounds; the +3px optical transform makes that box cross the 24px parent boundary.",
+            "source_sha": "9688f3ad313ab12b2c42439e8d3761adbf86e5dc"
+          }
+        ],
+        "fix_evidence": {
+          "evidence": "W5 exact-source run 40957551174 passed 8/8 formal and 4/4 supplemental cases after measuring the leaf text ranges; screenshots were captured before assertions, including the 360x640 frozen-ratio baseline. The prompt text range is contained by the actual CapturePrompt bounds in all 12 rows.",
+          "source_sha": "45ae173b984178cb14edeb589047b0146efc6a35"
+        },
+        "gate_id": "EMPTY_HOME_W5_MATRIX",
+        "symptom_key": "CAPTURE_PROMPT_TEXT_RANGE_OVERFLOW",
+        "task_id": "YUJIAN_PAGE_FREEZE_PIPELINE_W5_EMPTY_HOME_PILOT_V1"
+      },
       "c3dff4a0c9b987cbe7c7": {
         "closed": true,
         "failures": [
@@ -311,12 +591,12 @@
     },
     "schema_version": "1.0"
   },
-  "next_action": "Run explicit Product Work Admission on exact state checkpoint in work-state/empty-home-typography-parity-v1; then verify PR-head W5 and Pages runs.",
+  "next_action": "Review the exact isolated Empty Home candidate and before/after evidence. The W5 matrix and live preview pass; visual acceptance stays pending for the Brand asset authority gap and Hero geometry source conflict.",
   "phase": "P3",
   "repository": "pan277942135/Yujian_App",
   "schema_version": "1.0",
-  "source_sha": "2cbfcdd2fda84d9fcdd7700c1d40e1f5c24271fa",
-  "stage": "EXACT_HEAD_W5_AND_PREVIEW",
+  "source_sha": "7e8af71ab71c248294b40db266b6227dc3a2e949",
+  "stage": "BASELINE_REVIEW_AND_TARGETED_CALIBRATION",
   "status": "VALIDATING",
   "task_id": "YUJIAN_PAGE_FREEZE_PIPELINE_W5_EMPTY_HOME_PILOT_V1",
   "work_id": "YUJIAN_EMPTY_HOME_STRUCTURED_HIFI_TYPOGRAPHY_SCALE_PARITY_V1"

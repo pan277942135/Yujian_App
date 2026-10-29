@@ -1,3 +1,13 @@
+## 2026-10-29 — Exact-source admission and Empty Home baseline review
+
+- Live Main is `0c245b86f8228107309d0135bdf819af255604be`. Live PR #234 remains Draft/Open/Unmerged at exact head `45ae173b984178cb14edeb589047b0146efc6a35`; its current comparison lists 27 changed files. The supplied `ffd9cfe` is historical. Login mapping `design/pages/account_privacy/Login/structured_candidate/component_mapping_v1.json` remains the exact W6-A authorized mapping (`75c615d20be011b16e4e6843b41dabd0479a8d63`), not an unrelated dependency.
+- PR promotion Admission run [40957551093](https://github.com/pan277942135/Yujian_App/actions/runs/40957551093) passed. Product Work Admission passed after WES updated the prior W5 failure as fixed; six layers, 735 synchronized paths, one approved Login exception, Project Master State and Work Execution State passed against Main `0c245b86f8228107309d0135bdf819af255604be`. No Empty Home renderer, CSS, mapping, resource, or page contract changed before this baseline review.
+- Exact-source W5 run [40957551174](https://github.com/pan277942135/Yujian_App/actions/runs/40957551174) passed: 8/8 formal cases across 320×640, 360×780, 393×852 and 411×891 at 1×/1.3×; 4/4 supplemental 1.5× cases; actual DOM/Inspector parity and required negative checks passed. Captured artifact [12934651096](https://github.com/pan277942135/Yujian_App/actions/runs/40957551174/artifacts/12934651096) contains the 360×640 baseline and byte-verified frozen V2.2 raster (`3071481ed7e58106381cdd5321267792491c21fd1a357e4362db1dad8e08e7ec`).
+- Exact-source Pages run [40957551139](https://github.com/pan277942135/Yujian_App/actions/runs/40957551139) passed and live-verified the isolated preview; production deploy was skipped. Preview: https://pan277942135.github.io/Yujian_App/previews/pr-234/design/manager/?candidate=45ae173b984178cb14edeb589047b0146efc6a35#page/home_empty_v2/hifi/structured_workspace
+- Source measurements at 360×640: brand raster 34.4×16.5 CSS px at (24.5,54.7), while the structured Brand node is hidden; subtitle raster width 68.9px versus candidate 9px text about 72px; Login vertical position is within 0.3px and the authoritative 14/20/500 token remains; capture prompt Range 112×16px at y475.7 versus frozen visual pixels 106.4×13px at y492.0; camera art 69.3×69.3px inside the 73.3px target versus frozen ring 73.1×73.5px; album text is about 9px too high, while its 48px touch target is preserved.
+- The Hero asset remains the formally bound image. Its candidate DOM box is 206.7×103.3px at (16.7,74.7), while dark frozen ink measures 241.0×82.6px at (59.3,120.5). The mismatch is structural: the Main-canonical contract derives Hero bounds from normalized V2 (`ebf96d31…`), while the designated frozen V2.2 raster is `3071481e…`. Do not bypass or rewrite the canonical layout authority before product-owner direction.
+- Brand remains blocked because `brand_title_primary` is registered only for `normal_home_v1`; dynamic text, extraction and redraw remain forbidden. Visual acceptance is still pending; no new freeze, Main merge or Android work is authorized. Shared workbench reuse remains tracked in issue #260.
+
 ## 2026-10-29 — W5 exact-candidate matrix checkpoint
 
 - Live Main is `0c245b86f8228107309d0135bdf819af255604be`; PR #234 candidate `bb1d21044c8a8eccd9dda030b1edeb1c84efd6e2` passed exact Control Plane Admission: six layers, 735 synchronized paths, one exact Login mapping exception, Project Master State PASS, Work Execution State PASS.
@@ -207,3 +217,48 @@ Next action: restore Login inside the existing shared Design Manager, retain all
 - The product PR head `f921ee10d8ff6de1acfcf5058cd2529a4a2afed5` omits root-level dynamic state files. Exact pull_request promotion Admission passed in run `40954291894`; the Main promotion tree check now passes.
 - Closed failure-gate issue `1a01c657e17885d815af` as `FIX_VERIFIED` on code source `2cbfcdd2fda84d9fcdd7700c1d40e1f5c24271fa` with exact PR-run evidence. This does not assert Product Work Admission or visual acceptance.
 - Dynamic state is isolated on new companion branch `work-state/empty-home-typography-parity-v1`; the existing broader work-state branch remains untouched. Product Work Admission and page-specific W5/Pages evidence remain required.
+
+
+## 2026-10-29 — PR #234 baseline evidence capture setup
+
+- Live Main remains `0c245b86f8228107309d0135bdf819af255604be`; PR #234 is Open / Draft / Unmerged at exact source `9688f3ad313ab12b2c42439e8d3761adbf86e5dc`. The PR promotion tree still excludes branch-local state files.
+- The only change on this candidate since `f921ee10` is to `scripts/design/verify_empty_home_structured_hifi.mjs`: capture a before-image before assertions, measure actual text Range bounds, and report `scrollWidth`/`scrollHeight` plus shadow separately. This addresses the observed `CapturePrompt` overflow false positive from the prior W5 run.
+- Empty Home page renderer, CSS, mapping, resource bindings, HeroCopy asset, and camera touch-size contract are unchanged. Exact-source W5 capture and admission are pending; no visual acceptance is claimed.
+- The brand asset remains blocked: `brand_title_primary` is registered for `normal_home_v1`, and there is no approved Empty Home binding.
+
+
+## 2026-10-29 — W5 baseline diagnostic and bounded recovery
+
+- PR #234 exact source `9688f3ad313ab12b2c42439e8d3761adbf86e5dc` passed pull-request promotion Admission in run `40956293997`; Product Work Admission passed on companion state checkpoint `e35474b27eca7ac2a64fd01dc6a5f5e734ba002f` before this run's failure record.
+- W5 run `40956294176` failed the first case (`320×640 @ 1×`) but captured `EmptyHome_320x640_font-1.png` and actual DOM typography metrics. The overflow detector selected the component container range; its 24px line box is translated +3px, while the separately measured prompt glyph range is 112×16 CSS px inside the visible component. `scrollHeight` is 27px and includes the 3px text shadow.
+- Registered failure `5ce4d5b4911a848ec864` with `failure_gate.py check` (`ALLOW_FIRST_ATTEMPT`) and `record` (`LOCALIZE_AND_REPRODUCE`). The verifier will measure the leaf text node and capture an unmodified 360×640 comparison baseline before matrix assertions.
+- Page CSS/JS renderer, contracts, mapped assets, HeroCopy and camera target remain unchanged. PR #234 is still Open / Draft / Unmerged; the brand authorization gap remains BLOCKED.
+
+
+## 2026-10-29 — Product Work Admission after W5 failure record
+
+- Checkpoint `b8c4efbe08228f735e65815eed3b34edb24d09fa` passed `python scripts/validate_control_plane_admission.py`: all six static layers, 735 canonical paths with one exact Login mapping exception, Project Master State, and Work Execution State passed against Main `0c245b86f8228107309d0135bdf819af255604be`.
+- WES source remains exact product candidate `9688f3ad313ab12b2c42439e8d3761adbf86e5dc`; W5 failure `5ce4d5b4911a848ec864` is recorded. This admission applies to the verifier state before the next change only.
+- Next: commit the guarded verifier-only fix and a same-ratio 360×640 baseline capture. No Empty Home page styling, renderer, asset or contract has been modified.
+
+
+## 2026-10-29 — Exact checkpoint admission after W5 recovery record
+
+- Checkpoint `334465feb693809ec75b0f6120b6d66b0fd07110` passed `python scripts/validate_control_plane_admission.py` after the W5 failure was recorded. Six static layers, canonical sync of 735 paths with one approved Login mapping exception, Project Master State, and Work Execution State passed against Main `0c245b86f8228107309d0135bdf819af255604be`.
+- Code source remains `9688f3ad313ab12b2c42439e8d3761adbf86e5dc`. This exact admission is before the pending verifier-only correction; page code remains unchanged.
+
+
+## 2026-10-29 — Guarded W5 verifier correction candidate
+
+- The W5 verifier-only follow-up is exact PR source `45ae173b984178cb14edeb589047b0146efc6a35`. It measures leaf text ranges (`CapturePromptText`, `AccountEntryLabel`, `AlbumActionLabel`, and `Subtitle`) against their actual component DOM bounds, and captures a 360×640 structured screenshot plus a byte-verified copy of the frozen V2.2 raster before any matrix assertion.
+- This change responds to recorded failure `5ce4d5b4911a848ec864`; the source is a verifier-only change. Empty Home page renderer, CSS, mapping, design contracts, resources, HeroCopy image and camera touch-size contract are unchanged.
+- Exact PR and Product Work admission are pending on `45ae173b984178cb14edeb589047b0146efc6a35`. The W5 capture has not yet returned; no page visual adjustment or acceptance is claimed.
+
+## 2026-10-29 — Exact Empty Home typography and CTA calibration candidate
+
+- PR #234 remains Draft/Open/Unmerged at exact source `7e8af71ab71c248294b40db266b6227dc3a2e949`, based on live Main `0c245b86f8228107309d0135bdf819af255604be`. The Login mapping exception remains the exact W6-A artifact; it was not removed.
+- Updated only the Empty Home workspace renderer, CSS, component mapping and W5 verifier. The page now uses an 8.6sp subtitle with 12sp line-height/400 weight and the existing system font mapping. Browser reference bottom inset changed from 10dp to 0dp, moving the CTA group down 10dp. The Hero asset binding, 220-reference-px camera touch target, 48dp album target and responsive/fontScale rules remain intact.
+- Exact-source Control Plane Admission run [40961497308](https://github.com/pan277942135/Yujian_App/actions/runs/40961497308) passed. W1 [40961497233](https://github.com/pan277942135/Yujian_App/actions/runs/40961497233), W4 [40961497214](https://github.com/pan277942135/Yujian_App/actions/runs/40961497214), W5 [40961497387](https://github.com/pan277942135/Yujian_App/actions/runs/40961497387), W6-A [40961497132](https://github.com/pan277942135/Yujian_App/actions/runs/40961497132), Design Governance [40961497336](https://github.com/pan277942135/Yujian_App/actions/runs/40961497336), and isolated Pages [40961497204](https://github.com/pan277942135/Yujian_App/actions/runs/40961497204) passed. Pages live-verified the isolated preview; production deployment was skipped. W5 artifact: [12935478244](https://github.com/pan277942135/Yujian_App/actions/runs/40961497387/artifacts/12935478244).
+- W5 passed 8/8 required cases across 320x640, 360x780, 393x852 and 411x891 at font scales 1.0/1.3, plus 4/4 supplemental 1.5 cases. Real DOM bounds, leaf text ranges, Inspector parity, resource checks, camera target and negative cases passed. At 320x640, subtitle text range changed 72x10 to 72x10 at 1.0x and 96x14 to 88x13 at 1.3x; computed size is 8.6sp. The CTA group, prompt, camera target and album target each moved down 10dp, with target sizes unchanged. At 360x640, prompt remains about 6.3px high/wider than the frozen ink; album y is within about 1px of the raster.
+- The exact preview is https://pan277942135.github.io/Yujian_App/previews/pr-234/design/manager/?candidate=7e8af71ab71c248294b40db266b6227dc3a2e949#page/home_empty_v2/hifi/structured_workspace. Visual acceptance remains pending. Brand stays hidden because `brand_title_primary` is only authorized for `normal_home_v1`. Hero remains bound to `empty_home_hero_v2_2.png`, but the Main-canonical geometry source is normalized V2 (`ebf96d31...`) while the designated frozen V2.2 screen is `3071481e...`; its DOM box and frozen ink disagree, so the renderer does not bypass the current contract.
+- The companion-state Product Work Admission ran locally after synchronization and passed all six layers, 735 paths, the single Login exception, Project Master State and Work Execution State. The state checkpoint records visual acceptance pending; no new freeze, Main merge, production deployment or Android work is claimed. Shared workbench reuse remains tracked in issue #260.
