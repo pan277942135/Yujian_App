@@ -7,7 +7,7 @@
     "Empty Home brand placement remains blocked: registered brand_title_primary is authorized only for normal_home_v1; no authorized Empty Home brand binding exists."
   ],
   "branch": "work/w5-empty-home-pilot-v1",
-  "checkpoint_updated_at": "2026-10-29T19:23:29Z",
+  "checkpoint_updated_at": "2026-10-29T19:29:05Z",
   "control_plane_revision": "0c245b86f8228107309d0135bdf819af255604be",
   "dependencies": [
     "YUJIAN_PAGE_FREEZE_PIPELINE_W3_DESIGN_MANAGER_ADAPTER_V1",
@@ -35,6 +35,13 @@
         "result": "PASS",
         "reason": "Six static layers and control-plane sync passed (735 paths, 1 exact Login mapping exception); Project Master State and Work Execution State passed.",
         "recorded_at": "2026-10-29T19:23:29Z"
+      },
+      {
+        "candidate_sha": "aeef79ed2738575fc06cf1daf5a5271bd05777c8",
+        "command": "python scripts/validate_control_plane_admission.py",
+        "result": "PASS",
+        "reason": "Six Control Plane layers and canonical sync passed (735 paths, 1 exact Login mapping exception); Project Master State and Work Execution State passed.",
+        "recorded_at": "2026-10-29T19:29:05Z"
       }
     ],
     "admission_baseline": {
@@ -50,7 +57,7 @@
       "work_execution_state": "PASS"
     },
     "control_plane_sync_commit": "dad76a9ca737245d4076b75b86537412b0238765",
-    "current_candidate_sha": "554ffcf39c6493eccd284d71f459433c16db62c9",
+    "current_candidate_sha": "aeef79ed2738575fc06cf1daf5a5271bd05777c8",
     "current_main_sha": "0c245b86f8228107309d0135bdf819af255604be",
     "empty_home_page_changes": {
       "brand_authority": "BLOCKED_AUTHORITY_GAP",
@@ -66,7 +73,7 @@
       "status": "IMPLEMENTED_PENDING_EXACT_HEAD_VALIDATION"
     },
     "exact_candidate_admission": {
-      "candidate_sha": "554ffcf39c6493eccd284d71f459433c16db62c9",
+      "candidate_sha": "aeef79ed2738575fc06cf1daf5a5271bd05777c8",
       "code_source_sha": "8b9a65bfd7b1e75679bb8a46e6acb08669270fad",
       "command": "python scripts/validate_control_plane_admission.py",
       "result": "PASS",
@@ -75,8 +82,8 @@
       "exact_login_mapping_exceptions": 1,
       "project_master_state": "PASS",
       "work_execution_state": "PASS",
-      "recorded_at": "2026-10-29T19:23:29Z",
-      "note": "Admission passed on this exact state checkpoint; candidate remains visual-review pending."
+      "recorded_at": "2026-10-29T19:29:05Z",
+      "note": "Exact Admission passed on this PR candidate; W5 and Pages evidence are next."
     },
     "exception_pr": {
       "merge_sha": "bf4c5c5777bddd3c37c8b2850aaa5a5881f0d513",
