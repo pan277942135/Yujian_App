@@ -3,19 +3,19 @@ state_id: YUJIAN_W4_W5_MAIN_PAGES_W6_ANDROID_RUNTIME_CLOSURE_V1_2026-10-29
 project:
   name: 渔见 AI
   repository: pan277942135/Yujian_App
-  scope: 'W4/W5/W2/Main Pages/W6 closure and separate NH01, Effect 01, and AI Studio perimeter Android
-    runtime acceptance; active W5 recovery is PR #234.'
+  scope: 'W4/W5/W2/Main Pages/W6 closure and separate NH01, Effect 01, and AI Studio perimeter Android runtime acceptance;
+    active W5 recovery is PR #234.'
   state_classification: RECOVERY_SNAPSHOT_NOT_PRODUCT_ACCEPTANCE
 state_control:
   current_branch: work-state/w5-empty-home-pilot-v1
   current_pr: null
   related_pr: 234
   base_sha: b080bb0ffb4ebced18593c08709657fabb53a19e
-  execution_baseline_sha: bb838fa69acc6c249cad6f0a06e0ed0f0ce52c6c
-  current_head: bb838fa69acc6c249cad6f0a06e0ed0f0ce52c6c
+  execution_baseline_sha: 8d3f7393a027c3b83d8d1a84fca64fb55c6e6b31
+  current_head: 8d3f7393a027c3b83d8d1a84fca64fb55c6e6b31
   current_main_head_sha: b080bb0ffb4ebced18593c08709657fabb53a19e
   state_status: IN_PROGRESS
-  updated_at: '2026-10-29T05:00:04.053Z'
+  updated_at: '2026-10-29T05:38:22Z'
 source_of_truth:
   current_work_state: WORK_EXECUTION_STATE.json
   canonical_control_plane: CONTROL_PLANE_REGISTRY.yaml
@@ -26,19 +26,20 @@ source_of_truth:
 repositories:
   Yujian_App:
     branch: work/w5-empty-home-pilot-v1
-    execution_baseline_sha: bb838fa69acc6c249cad6f0a06e0ed0f0ce52c6c
+    execution_baseline_sha: 8d3f7393a027c3b83d8d1a84fca64fb55c6e6b31
     current_main_head_sha: b080bb0ffb4ebced18593c08709657fabb53a19e
     control_plane_sync:
       status: PENDING_PRODUCT_WORK_ADMISSION
       main_sync_commit: b080bb0ffb4ebced18593c08709657fabb53a19e
       synced_main_sha: b080bb0ffb4ebced18593c08709657fabb53a19e
-      note: PR234 candidate bb838fa69acc6c249cad6f0a06e0ed0f0ce52c6c has current Main b080bb0ffb4ebced18593c08709657fabb53a19e as a parent; Product Work Admission is pending on this isolated state.
+      note: 'PR #234 exact candidate 8d3f7393a027c3b83d8d1a84fca64fb55c6e6b31 is based on current Main b080bb0ffb4ebced18593c08709657fabb53a19e;
+        explicit PRODUCT_WORK Admission on the isolated state branch is pending. The PR-triggered admission run is not substituted.'
 pull_requests:
   PR234:
     number: 234
     branch: work/w5-empty-home-pilot-v1
     base_sha: b080bb0ffb4ebced18593c08709657fabb53a19e
-    head_sha: bb838fa69acc6c249cad6f0a06e0ed0f0ce52c6c
+    head_sha: 8d3f7393a027c3b83d8d1a84fca64fb55c6e6b31
     status: DRAFT_OPEN_UNMERGED
     task_id: YUJIAN_W4_W5_MAIN_PAGES_W6_ANDROID_RUNTIME_CLOSURE_V1
   PR242:
@@ -57,9 +58,10 @@ pull_requests:
   PR239:
     number: 239
     branch: work/w6a-login-structured-hifi-v1
-    base_sha: 0c7f06ef672ce89285d8b7d9b3646a33439e8712
-    head_sha: 463cfde76fd44012072af74d336df60fc8b1238c
-    status: DRAFT_OPEN_UNMERGED_WAITING_PR234_TECHNICAL_GATES
+    base_sha: b080bb0ffb4ebced18593c08709657fabb53a19e
+    head_sha: 6d2b5dc69cf9a744514a0986a249cba0d6d7ea63
+    status: DRAFT_OPEN_UNMERGED_BLOCKED_ON_PR234_TECHNICAL_GATES
+    task_id: YUJIAN_W4_W5_MAIN_PAGES_W6_ANDROID_RUNTIME_CLOSURE_V1
   PR247:
     number: 247
     branch: fix/restore-design-authorities-after-main-refactor-v1
@@ -74,6 +76,12 @@ pull_requests:
     base_sha: 5e482e8644828a880fbc3c0a273565765977bfaf
     head_sha: 3d597b45515b770a12b230839160e42242ad9874
     status: DRAFT_OPEN_ANDROID_CI_BLOCKED_BY_OLD_MAIN_MISSING_SCRIPT
+  PR252:
+    number: 252
+    branch: feature/android-recognition-swos-rr09-full-integration-v1
+    base_sha: b080bb0ffb4ebced18593c08709657fabb53a19e
+    head_sha: 8001e577fcdfae59f1071bbcaff1647c841ed753
+    status: DRAFT_OPEN_UNMERGED_NATIVE_RUNTIME_EVIDENCE_IN_PROGRESS
 phases:
   P0:
     status: NOT_CONFIRMED
@@ -86,8 +94,10 @@ phases:
     note: Not re-established by this narrow W5 recovery checkpoint.
   P3:
     status: IN_PROGRESS
-    note: >-
-      PR234 candidate bb838fa69acc6c249cad6f0a06e0ed0f0ce52c6c is synchronized with current Main b080bb0ffb4ebced18593c08709657fabb53a19e. W1 and W5 matrix pass on this exact SHA; W4, W2/Pages, Design Governance and NH01 API 28 Runtime are running. Product Work Admission is pending. Main Pages build/deploy succeeded on b080bb0ffb4ebced18593c08709657fabb53a19e; cache-busted HTTP build.json and the live structured NH01 page show the same SHA. Product visual acceptance remains pending.
+    note: 'PR #234 W5 candidate 8d3f7393a027c3b83d8d1a84fca64fb55c6e6b31 has been restored to the W5-owned scope. W1 passed
+      on this exact SHA; W4, W5, W2/Pages, Design Governance and NH01 API 28 runtime are running. Product Work Admission is
+      pending on the isolated state branch. Login remains on PR #239. Main Pages run 40819650522 targets Main b080bb0ffb4ebced18593c08709657fabb53a19e;
+      direct production root-manifest verification remains pending.'
   P4:
     status: NOT_CONFIRMED
     note: Not re-established by this narrow W5 recovery checkpoint.
@@ -132,47 +142,50 @@ recognition_main_journey:
   note: Journey identifiers are retained in canonical order; this checkpoint does not alter journey semantics.
 runtime_gates:
   exact_head:
-    sha: bb838fa69acc6c249cad6f0a06e0ed0f0ce52c6c
+    sha: 8d3f7393a027c3b83d8d1a84fca64fb55c6e6b31
     status: IN_PROGRESS_EXACT_SHA_VALIDATION
-    note: Exact synchronized candidate bb838fa69acc6c249cad6f0a06e0ed0f0ce52c6c; W1 and W5 matrix pass, while W4, W2/Pages and Governance are running. Product Work Admission is pending; NH01 API 28 job is queued.
+    note: 'Exact PR #234 candidate 8d3f7393a027c3b83d8d1a84fca64fb55c6e6b31. W1 PASS; W4, W5, W2/Pages, Governance and NH01
+      API 28 are in progress; Product Work Admission has not run yet.'
   page_evidence:
     w1:
       status: PASS
-      source_sha: bb838fa69acc6c249cad6f0a06e0ed0f0ce52c6c
-      run_id: 40820494840
+      source_sha: 8d3f7393a027c3b83d8d1a84fca64fb55c6e6b31
+      run_id: 40824084875
     w4:
       status: IN_PROGRESS
-      source_sha: bb838fa69acc6c249cad6f0a06e0ed0f0ce52c6c
-      run_id: 40820494841
+      source_sha: 8d3f7393a027c3b83d8d1a84fca64fb55c6e6b31
+      run_id: 40824084824
+      login: NOT_RUN_NOT_CONNECTED
     w5_matrix:
-      status: PASS_STRUCTURAL_MATRIX_VISUAL_REVIEW_PENDING
-      source_sha: bb838fa69acc6c249cad6f0a06e0ed0f0ce52c6c
-      run_id: 40820494865
-      formal_cases: 8/8
-      supplemental_cases: 4/4
-      negative_cases: 8/8
+      status: IN_PROGRESS
+      source_sha: 8d3f7393a027c3b83d8d1a84fca64fb55c6e6b31
+      run_id: 40824084796
+      formal_cases: PENDING
+      supplemental_cases: PENDING
+      negative_cases: PENDING
+      expected_contract: 8 formal + 4 supplemental (includes 1.5x font) + 8 fail-closed negatives
     w2_resources:
       status: IN_PROGRESS
-      source_sha: bb838fa69acc6c249cad6f0a06e0ed0f0ce52c6c
-      run_id: 40820494765
+      source_sha: 8d3f7393a027c3b83d8d1a84fca64fb55c6e6b31
+      run_id: 40824084759
       pages_checked: PENDING
     nh01_browser_matrix:
       status: IN_PROGRESS
-      source_sha: bb838fa69acc6c249cad6f0a06e0ed0f0ce52c6c
-      run_id: 40820494765
+      source_sha: 8d3f7393a027c3b83d8d1a84fca64fb55c6e6b31
+      run_id: 40824084759
       formal_cases: PENDING
       continuity_probes: PENDING
-      continuity_cases: PENDING
+      threshold_probes: PENDING
   isolated_preview:
     status: IN_PROGRESS
-    run_id: 40820494765
-    source_sha: bb838fa69acc6c249cad6f0a06e0ed0f0ce52c6c
+    run_id: 40824084759
+    source_sha: 8d3f7393a027c3b83d8d1a84fca64fb55c6e6b31
     url: https://pan277942135.github.io/Yujian_App/previews/pr-234/
     production_deploy: SKIPPED_EXPECTED
-    note: Fresh preview is being redeployed against current production Main; live candidate route needs direct browser verification.
+    direct_live_browser_check: PENDING
   w6_dependency:
     status: BLOCKED_AWAITING_EXACT_CANDIDATE_GATES
-    source_sha: bb838fa69acc6c249cad6f0a06e0ed0f0ce52c6c
+    source_sha: 8d3f7393a027c3b83d8d1a84fca64fb55c6e6b31
     required_gates:
     - PRODUCT_WORK_ADMISSION
     - W4
@@ -181,44 +194,57 @@ runtime_gates:
     - ISOLATED_PREVIEW
     - DESIGN_GOVERNANCE
     pr239: OPEN_DRAFT_UNMERGED_WAITING_PR234_TECHNICAL_GATES
+    pr239_w6_run: 40822276633
+    pr239_w6_status: PASS_ON_PR239_EXACT_HEAD_VISUAL_ACCEPTANCE_PENDING
   product_work_admission:
     status: PENDING_DISPATCH
     mode: PRODUCT_WORK
-    source_sha: bb838fa69acc6c249cad6f0a06e0ed0f0ce52c6c
+    source_sha: 8d3f7393a027c3b83d8d1a84fca64fb55c6e6b31
     main_sha: b080bb0ffb4ebced18593c08709657fabb53a19e
     required_gates:
       CONTROL_PLANE_SYNC: PENDING
       PROJECT_STATE: PENDING
       WORK_STATE: PENDING
+    pr_event_admission_run_id: 40824084781
+    note: PR-event control-plane run is not Product Work Admission; manual dispatch on the isolated state branch is required.
   latest_main_pages:
-    status: DEPLOYED_HTTP_SHA_VERIFIED_ROOT_MANIFEST_PENDING
+    status: DEPLOYED_HTTP_BUILD_SHA_VERIFIED_ROOT_MANIFEST_PENDING
     source_sha: b080bb0ffb4ebced18593c08709657fabb53a19e
     run_id: 40819650522
     build: PASS
     deploy: PASS
     production_build_json_sha: b080bb0ffb4ebced18593c08709657fabb53a19e
-    production_root_manifest: PENDING_PREVIEW_DEPLOYMENT_CHECK
+    production_root_manifest_sha256: PENDING_POST_PREVIEW_HTTP_VERIFICATION
   android_runtime:
     status: IN_PROGRESS
     nh01_api28:
-      status: QUEUED
-      run_id: 40820494879
-      source_sha: bb838fa69acc6c249cad6f0a06e0ed0f0ce52c6c
+      status: PENDING
+      run_id: 40824084804
+      source_sha: 8d3f7393a027c3b83d8d1a84fca64fb55c6e6b31
       api_level: 28
-      note: Exact candidate runtime job is queued; runtime acceptance is not yet claimed.
+      note: Candidate NH01 native runtime workflow is queued; no screenshot, APK or runtime pass is claimed yet.
     effect01: NOT_VERIFIED
     aistudio_perimeter: NOT_VERIFIED
-    note: Each native runtime target remains independent; no Android PASS is inferred from browser or build.
+    separate_integration_candidate:
+      pr: 252
+      source_sha: 8001e577fcdfae59f1071bbcaff1647c841ed753
+      android_ci_run_id: 40823612679
+      android_ci_status: IN_PROGRESS
+      nh01_native_runtime_run_id: 40823612672
+      nh01_native_runtime_status: IN_PROGRESS
+      effect01_and_perimeter_runtime_dispatch: NOT_RUN
+    note: NH01, Effect 01, and AI Studio perimeter remain independent native-runtime gates.
   historical_runtime_run:
     rule: Historical results cannot promote current exact HEAD to PASS.
   user_visual_acceptance: PENDING
   current_main_pages:
-    status: DEPLOYED_HTTP_SHA_VERIFIED_ROOT_MANIFEST_PENDING
+    status: DEPLOYED_HTTP_BUILD_SHA_VERIFIED_ROOT_MANIFEST_PENDING
     source_sha: b080bb0ffb4ebced18593c08709657fabb53a19e
     run_id: 40819650522
     build: PASS
     deploy: PASS
     production_build_json_sha: b080bb0ffb4ebced18593c08709657fabb53a19e
+    production_root_manifest_sha256: PENDING_POST_PREVIEW_HTTP_VERIFICATION
 apk_and_evidence:
   status: NOT_VERIFIED
   apk_sha256: null
@@ -226,91 +252,99 @@ apk_and_evidence:
 current_work:
   id: YUJIAN_W4_W5_MAIN_PAGES_W6_ANDROID_RUNTIME_CLOSURE_V1
   related_pr: 234
-  exact_head: bb838fa69acc6c249cad6f0a06e0ed0f0ce52c6c
+  exact_head: 8d3f7393a027c3b83d8d1a84fca64fb55c6e6b31
   phase: P3
   task_id: YUJIAN_W4_W5_MAIN_PAGES_W6_ANDROID_RUNTIME_CLOSURE_V1
   status: IN_PROGRESS
-  next_action: Collect exact-SHA W4/W2/Pages/Governance/Android results; run Product Work Admission for bb838fa69acc6c249cad6f0a06e0ed0f0ce52c6c; keep W6 blocked until all technical gates pass.
+  next_action: Run PRODUCT_WORK Admission on the isolated state branch for candidate 8d3f7393a027c3b83d8d1a84fca64fb55c6e6b31;
+    collect exact-SHA W4/W5/W2/Pages/Governance and Android runtime results.
 blockers:
-- Product Work Admission has not run for candidate bb838fa69acc6c249cad6f0a06e0ed0f0ce52c6c against Main b080bb0ffb4ebced18593c08709657fabb53a19e; collect CONTROL_PLANE_SYNC, PROJECT_STATE and WORK_STATE.
-- W4 run 40820494841 remains in progress; per-page reports are pending.
-- W2/Pages run 40820494765 remains in progress, including NH01 responsive and continuity probes; direct live preview verification is pending.
-- Main Pages 40819650522 deployed Main b080bb0ffb4ebced18593c08709657fabb53a19e; cache-busted production build.json and the live structured NH01 page match b080bb0ffb4ebced18593c08709657fabb53a19e; the production root manifest digest will be recorded after candidate deployment.
-- NH01 API 28 run 40820494879 is queued; Effect 01 and AI Studio perimeter native Runtime remain unverified.
-- PR239 Login integration is blocked on PR234 technical gates; user visual acceptance remains pending.
-- Approved standalone NH01 Hero/Peek image sources remain ASSET_SOURCE_REQUIRED.
+- PRODUCT_WORK Admission for candidate 8d3f7393a027c3b83d8d1a84fca64fb55c6e6b31 is pending; PR-event admission run 40824084781
+  does not satisfy PRODUCT_WORK mode.
+- W4 run 40824084824, W5 run 40824084796, Pages/W2 run 40824084759, Governance run 40824084752, and NH01 API 28 run 40824084804
+  are not all complete yet.
+- Main Pages 40819650522 is verified at HTTP build SHA b080bb0ffb4ebced18593c08709657fabb53a19e; post-preview production root-integrity
+  digest and direct browser recheck remain pending.
+- 'PR #239 W6 integration remains gated on PR #234 technical evidence; user visual acceptance is separate and pending.'
+- NH01 approved standalone Hero/Peek source images remain ASSET_SOURCE_REQUIRED.
+- Effect 01 and AI Studio perimeter Android native runtime remain unverified; no native runtime screenshot or video is claimed.
 protected_invariants:
   evidence_integrity:
   - Never promote a historical run or another SHA to PASS for the current candidate.
   - Retain W4 run 40657928278 as FAIL; do not rewrite its result.
   resource_lifecycle:
-  - Gallery and Chevron page bindings remain REVIEW; the Asset Registry lifecycle conflict is not resolved
-    by this recovery.
+  - Gallery and Chevron page bindings remain REVIEW; the Asset Registry lifecycle conflict is not resolved by this recovery.
   - Do not modify frozen image bytes or promote review-only resources to FROZEN.
   release_boundary:
   - 'PR #234 remains Draft/Open/Unmerged.'
   - USER_VISUAL_ACCEPTANCE_PENDING remains independent from CI.
   - Native runtime remains NOT_VERIFIED.
 next_actions:
-- id: PRODUCT_WORK_ADMISSION_BB838
+- id: PRODUCT_WORK_ADMISSION_8D3F739
   owner: Work
   status: READY
-  action: Run PRODUCT_WORK Admission on isolated state for candidate bb838fa69acc6c249cad6f0a06e0ed0f0ce52c6c against Main b080bb0ffb4ebced18593c08709657fabb53a19e.
-  dependency: State snapshot source_sha and candidate ancestry have been refreshed.
-- id: EXACT_SHA_W4_W2_PAGES_BB838
+  action: Dispatch PRODUCT_WORK Admission on work-state/w5-empty-home-pilot-v1 for exact source 8d3f7393a027c3b83d8d1a84fca64fb55c6e6b31
+    and record CONTROL_PLANE_SYNC, PROJECT_STATE, and WORK_STATE.
+  dependency: 'The isolated state files below are being validated and committed with source_sha set to the exact PR #234 candidate.'
+- id: EXACT_SHA_W4_W5_W2_PAGES_8D3F739
   owner: Work
   status: IN_PROGRESS
-  action: Collect W4, W2 binding, NH01 24-case/continuity evidence, and isolated preview evidence from run 40820494765 and W4 run 40820494841.
-  dependency: Exact candidate jobs are running.
-- id: MAIN_PAGES_B080_HTTP
+  action: Collect W4, W5, W2, NH01 matrix/continuity, preview deployment, and Governance from exact-SHA runs 40824084824,
+    40824084796, 40824084759, and 40824084752.
+  dependency: 'All runs are active for the exact PR #234 HEAD.'
+- id: PRODUCTION_PAGES_ROOT_8D3F739
   owner: Work
   status: IN_PROGRESS
-  action: Verify Main Pages run 40819650522, cache-busted build.json, structured page and root integrity manifest.
-  dependency: Build/deploy is PASS; the candidate preview job will record the root integrity manifest.
-- id: ANDROID_NATIVE_RUNTIME_BB838
+  action: After candidate preview deployment, verify production HTTP build.json and root manifest remain Main b080bb0ffb4ebced18593c08709657fabb53a19e.
+  dependency: Official Main Pages build/deploy run 40819650522 succeeded; post-preview root integrity is pending.
+- id: ANDROID_RUNTIME_EVIDENCE
   owner: Work
   status: READY
-  action: Collect APK and API 28 Runtime evidence from exact candidate run 40820494879; assess each Android runtime target separately.
-  dependency: Android job is queued.
-- id: W6_BASELINE_SYNC
+  action: 'Collect API 28 NH01 runtime from exact candidate run 40824084804; dispatch Android CI recognition-frozen on current
+    PR #252 HEAD 8001e577fcdfae59f1071bbcaff1647c841ed753 for Effect 01 and AI Studio perimeter evidence.'
+  dependency: Native runtime requires actual emulator execution and retained screenshots/logs/APK SHA.
+- id: W6_BASELINE_SYNC_AFTER_GATES
   owner: Work
   status: BLOCKED
-  action: After PR234 Admission, W4, W5, W2, preview and Governance pass, update PR239 to live Main and continue shared Login integration.
-  dependency: PR234 technical dependency has not cleared.
-- id: NH01_SOURCE_AUDIT
+  action: 'After PR #234 exact technical gates and Product Work Admission pass, confirm PR #239 remains based on Main b080bb0ffb4ebced18593c08709657fabb53a19e
+    and continue its shared Login integration.'
+  dependency: 'PR #234 W4/W5/W2/preview/Governance/Product Work Admission have not all passed on the current SHA.'
+- id: NH01_STATIC_HIFI_IDENTITY
   owner: Work
   status: IN_PROGRESS
-  action: Verify M01-M05 frozen image identities against the manifest; retain ASSET_SOURCE_REQUIRED for unavailable approved Hero/Peek sources.
-  dependency: Frozen manifest and assets remain authoritative.
+  action: Confirm M01-M05 plus the retained NH01 V1 authority image byte hashes against the frozen manifest on tree for 8d3f7393a027c3b83d8d1a84fca64fb55c6e6b31.
+  dependency: Frozen manifest and source images are authoritative; independent Hero/Peek sources remain required.
 completion_rules:
 - Product-work Admission must pass against the current exact PR candidate source SHA.
 - W4 Chromium fixtures and W4 Evidence must pass on the repaired exact SHA.
 - W5 matrix and isolated preview must be rerun on the same repaired exact SHA.
 - User visual acceptance remains pending until the product owner confirms it.
 state_update:
-  updated_at: '2026-10-29T04:43:49.139Z'
-  reason: Updated exact-source execution checkpoint to PR234 ad460ec4a3836aff96c6c94f6f59852174bd5a2b against live Main 4690913c1d2934d0ec5183f32a0b5f1b96c20f68; historical SHA results remain historical.
+  updated_at: '2026-10-29T05:38:22Z'
+  reason: 'Updated exact-source recovery checkpoint to PR #234 8d3f7393a027c3b83d8d1a84fca64fb55c6e6b31 against live Main
+    b080bb0ffb4ebced18593c08709657fabb53a19e; W1 passed, exact-SHA gates are running, PR #234 Login integration was reverted
+    to preserve PR #239 ownership, and historical evidence remains historical.'
   protocol: harness/STATE_UPDATE_PROTOCOL.md
 agent_recovery:
   resume_order:
   - 'Re-read live Main 5e482e8644828a880fbc3c0a273565765977bfaf and PR #234 4f0f3a66d0bef26e24f6bc066478e6cd03b773e8.'
-  - Restore missing Main authorities and record the external SWOS dependency without changing frozen input-pack
-    hashes.
+  - Restore missing Main authorities and record the external SWOS dependency without changing frozen input-pack hashes.
   - Rebase PR
   - Re-run W4/W5/W2/Pages and runtime only on the resulting exact SHA; keep user visual acceptance pending.
 current_candidate_runs:
-  source_sha: bb838fa69acc6c249cad6f0a06e0ed0f0ce52c6c
+  source_sha: 8d3f7393a027c3b83d8d1a84fca64fb55c6e6b31
   main_sha: b080bb0ffb4ebced18593c08709657fabb53a19e
   status: IN_PROGRESS_EXACT_SHA_VALIDATION
   product_work_admission: PENDING_DISPATCH
-  w1_run_id: 40820494840
-  w4_run_id: 40820494841
-  w5_run_id: 40820494865
-  pages_w2_run_id: 40820494765
-  design_governance_run_id: 40820494941
-  nh01_api28_runtime_run_id: 40820494879
+  pr_admission_run_id: 40824084781
+  w1_run_id: 40824084875
+  w4_run_id: 40824084824
+  w5_run_id: 40824084796
+  pages_w2_run_id: 40824084759
+  design_governance_run_id: 40824084752
+  nh01_api28_runtime_run_id: 40824084804
   main_pages_run_id: 40819650522
-  checkpoint_updated_at: '2026-10-29T05:00:04.053Z'
+  checkpoint_updated_at: '2026-10-29T05:38:22Z'
 live_recovery_checkpoint:
   updated_at: '2026-10-29T04:26:46Z'
   current_main_sha: 0c7f06ef672ce89285d8b7d9b3646a33439e8712
@@ -342,35 +376,52 @@ live_recovery_checkpoint:
     pages_w2: 40817719829
     design_governance: 40817719863
     nh01_api28: 40817719843
-  next_action: Run PRODUCT_WORK Admission for a5d401b; then close exact W4/W5/W2/Pages gates, verify production
-    HTTP, and only afterward resume PR239.
-
+  next_action: Run PRODUCT_WORK Admission for a5d401b; then close exact W4/W5/W2/Pages gates, verify production HTTP, and
+    only afterward resume PR239.
 current_execution_checkpoint:
   task_id: YUJIAN_W4_W5_MAIN_PAGES_W6_ANDROID_RUNTIME_CLOSURE_V1
   supplemental_task_id: YUJIAN_NH01_STRUCTURED_HIFI_MULTI_SCREEN_RESPONSIVE_CLOSURE_V1
-  updated_at: '2026-10-29T05:00:04.053Z'
+  updated_at: '2026-10-29T05:38:22Z'
   main_sha: b080bb0ffb4ebced18593c08709657fabb53a19e
   pr234:
     base_sha: b080bb0ffb4ebced18593c08709657fabb53a19e
-    head_sha: bb838fa69acc6c249cad6f0a06e0ed0f0ce52c6c
+    head_sha: 8d3f7393a027c3b83d8d1a84fca64fb55c6e6b31
     status: OPEN_DRAFT_UNMERGED
   pr239:
-    head_sha: 463cfde76fd44012072af74d336df60fc8b1238c
-    base_sha: 0c7f06ef672ce89285d8b7d9b3646a33439e8712
-    status: OPEN_DRAFT_UNMERGED_BLOCKED_ON_PR234_GATES
-  state_branch_head_before_checkpoint: 503227554d68fe675ca4b13d39ed8d82ca3ea460
-  source_sha: bb838fa69acc6c249cad6f0a06e0ed0f0ce52c6c
+    base_sha: b080bb0ffb4ebced18593c08709657fabb53a19e
+    head_sha: 6d2b5dc69cf9a744514a0986a249cba0d6d7ea63
+    status: OPEN_DRAFT_UNMERGED_BLOCKED_ON_PR234_TECHNICAL_GATES
+  pr252:
+    base_sha: b080bb0ffb4ebced18593c08709657fabb53a19e
+    head_sha: 8001e577fcdfae59f1071bbcaff1647c841ed753
+    status: OPEN_DRAFT_UNMERGED_ANDROID_RUNTIME_EVIDENCE_IN_PROGRESS
+  state_branch_head_before_checkpoint: 989bd852ca28e795b9bdb5ab26ebc9d170710cbe
+  source_sha: 8d3f7393a027c3b83d8d1a84fca64fb55c6e6b31
+  runs:
+    w1: 40824084875
+    w4: 40824084824
+    w5: 40824084796
+    pages_w2: 40824084759
+    governance: 40824084752
+    pr_admission: 40824084781
+    nh01_api28_candidate: 40824084804
+    main_pages: 40819650522
+    pr252_android_ci: 40823612679
+    pr252_nh01_runtime: 40823612672
+    pr239_w6: 40822276633
+    pr239_pages: 40822276497
   gates:
-    W1: PASS_RUN_40820494840
-    W4: IN_PROGRESS_RUN_40820494841
-    W5: PASS_RUN_40820494865_8_FORMAL_4_SUPPLEMENTAL_8_NEGATIVE
-    W2: IN_PROGRESS_RUN_40820494765
-    DESIGN_GOVERNANCE: IN_PROGRESS_RUN_40820494941
-    PRODUCT_WORK_ADMISSION: PENDING_DISPATCH
-    ISOLATED_PREVIEW: IN_PROGRESS_RUN_40820494765
-    PRODUCTION_PAGES: DEPLOYED_RUN_40819650522_HTTP_BUILD_JSON_SHA_VERIFIED
-    NH01_NATIVE_RUNTIME: QUEUED_RUN_40820494879
+    W1: PASS_RUN_40824084875
+    W4: IN_PROGRESS_RUN_40824084824
+    W5: IN_PROGRESS_RUN_40824084796
+    W2: IN_PROGRESS_RUN_40824084759
+    DESIGN_GOVERNANCE: IN_PROGRESS_RUN_40824084752
+    PRODUCT_WORK_ADMISSION: PENDING_DISPATCH_PRODUCT_WORK_MODE
+    ISOLATED_PREVIEW: IN_PROGRESS_RUN_40824084759
+    PRODUCTION_PAGES: DEPLOYED_BUILD_SHA_VERIFIED_ROOT_MANIFEST_PENDING_RUN_40819650522
+    NH01_NATIVE_RUNTIME: PENDING_RUN_40824084804
     EFFECT01_NATIVE_RUNTIME: NOT_VERIFIED
     AISTUDIO_PERIMETER_NATIVE_RUNTIME: NOT_VERIFIED
     USER_VISUAL_ACCEPTANCE: PENDING
-  next_action: Run PRODUCT_WORK Admission on this isolated checkpoint; continue exact-SHA gates without promoting historical results.
+  next_action: Dispatch explicit PRODUCT_WORK Admission for 8d3f7393a027c3b83d8d1a84fca64fb55c6e6b31 on the isolated state
+    branch, then record exact-SHA W4/W5/W2/Pages/runtime results.

@@ -32,3 +32,13 @@
 - Searched registered and repository image assets for approved independent Hero/Peek originals; none were established. The workspace continues to show explicit blocked states and does not crop frozen page screenshots into photos.
 - Added measured DOM rectangle evidence and multi-size screenshot comparison outputs for M01–M04. M05 remains a width-only boundary with no assumed height. Comparison output is diagnostic and never declares visual parity.
 - Local checks: JavaScript syntax, `tests/nh01_structured_workspace.test.cjs`, navigation verification, frozen hi-fi integrity, Design Manager registry validation, and 320×480 comparator smoke all passed. Candidate Chromium and visual parity remain unverified pending exact-head workflow evidence.
+
+
+## 2026-10-29T05:38:22Z — exact-source W5 ownership and admission checkpoint
+
+- Task: `YUJIAN_W4_W5_MAIN_PAGES_W6_ANDROID_RUNTIME_CLOSURE_V1`; supplemental NH01 structured Hi-Fi closure.
+- Current Main: `b080bb0ffb4ebced18593c08709657fabb53a19e`. PR #234 exact candidate: `8d3f7393a027c3b83d8d1a84fca64fb55c6e6b31` (Open/Draft/Unmerged), restored to the W5-owned tree after reverting Login integration commit `cb25953a1859d3fb9b4bc25931698cf40b5a1987`; PR #239 remains the dedicated Login line at `6d2b5dc69cf9a744514a0986a249cba0d6d7ea63`.
+- Exact runs: W1 `40824084875` PASS; W4 `40824084824` running; W5 `40824084796` running; Pages/W2 `40824084759` running; Design Governance `40824084752` running; PR event admission `40824084781` PASS but not PRODUCT_WORK; NH01 API 28 `40824084804` pending.
+- W5 outcome is not yet established on `8d3f7393a027c3b83d8d1a84fca64fb55c6e6b31`. Login remains `NOT_RUN / NOT_CONNECTED` in W4. Product Work Admission must run on this isolated state branch with mode `PRODUCT_WORK`; required `CONTROL_PLANE_SYNC`, `PROJECT_STATE`, `WORK_STATE` are pending.
+- Official Main Pages run `40819650522` targets `b080bb0ffb4ebced18593c08709657fabb53a19e` and previously verified HTTP `build.json`; post-preview root manifest/direct HTTP verification remains pending. PR preview production deploy must stay skipped.
+- Native Runtime and user visual acceptance are not claimed from CI or preview; NH01, Effect 01 and AI Studio perimeter remain separately tracked.
