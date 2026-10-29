@@ -3,11 +3,12 @@
   "base_branch": "main",
   "base_sha": "34f21ad01e62ec7bf11be11fee8eb5a500894333",
   "blockers": [
+    "The isolated Pages replay run #1382 failed before the W5 matrix because three page resource bindings still pin the previous Main design-manager-pages.yml SHA; exact branch workflow hash reconciliation is pending.",
     "W5 4-viewport × 2-font-scale matrix and isolated Pages build/manifest verification are pending on the current candidate.",
     "Empty Home brand placement remains blocked: registered brand_title_primary is authorized only for normal_home_v1; no authorized Empty Home brand binding exists."
   ],
   "branch": "work/w5-empty-home-pilot-v1",
-  "checkpoint_updated_at": "2026-10-29T20:24:05.819Z",
+  "checkpoint_updated_at": "2026-10-29T20:31:01.171Z",
   "control_plane_revision": "0c245b86f8228107309d0135bdf819af255604be",
   "dependencies": [
     "YUJIAN_PAGE_FREEZE_PIPELINE_W3_DESIGN_MANAGER_ADAPTER_V1",
@@ -56,6 +57,13 @@
         "result": "PASS",
         "reason": "Six static layers and canonical sync passed (735 paths, 1 exact Login mapping exception); Project Master State and Work Execution State passed. State-only checkpoint; product/workflow source is 0e4d70c4.",
         "recorded_at": "2026-10-29T20:24:05.819Z"
+      },
+      {
+        "candidate_sha": "3679c20ca89ef16ffc6f25ee9bfbb1dfd243cf49",
+        "command": "python scripts/validate_control_plane_admission.py",
+        "result": "PASS",
+        "reason": "Six static layers and canonical sync passed (735 paths, 1 exact Login mapping exception); Project Master State and Work Execution State passed.",
+        "recorded_at": "2026-10-29T20:31:01.171Z"
       }
     ],
     "admission_baseline": {
@@ -87,7 +95,7 @@
       "status": "IMPLEMENTED_PENDING_EXACT_HEAD_VALIDATION"
     },
     "exact_candidate_admission": {
-      "candidate_sha": "6d607aa117b173c776ee607410fb66d1ec26cea7",
+      "candidate_sha": "3679c20ca89ef16ffc6f25ee9bfbb1dfd243cf49",
       "code_source_sha": "0e4d70c4f544ed4b6efc0ab6aa3cf8bf9d41aafb",
       "command": "python scripts/validate_control_plane_admission.py",
       "result": "PASS",
@@ -96,8 +104,8 @@
       "exact_login_mapping_exceptions": 1,
       "project_master_state": "PASS",
       "work_execution_state": "PASS",
-      "recorded_at": "2026-10-29T20:24:05.819Z",
-      "note": "Exact state-only checkpoint passed after rebinding source_sha to the replay source. All product/workflow files equal source 0e4d70c4; W5 matrix and isolated Pages replay remain pending."
+      "recorded_at": "2026-10-29T20:31:01.171Z",
+      "note": "Validator was rerun on exact current checkpoint 3679c20ca89ef16ffc6f25ee9bfbb1dfd243cf49 after the Project Master and Work state-only updates. W5 and preview remain pending."
     },
     "exception_pr": {
       "merge_sha": "bf4c5c5777bddd3c37c8b2850aaa5a5881f0d513",
@@ -146,7 +154,31 @@
       "passed_checkpoint_sha": "6d607aa117b173c776ee607410fb66d1ec26cea7",
       "validated_code_source_sha": "0e4d70c4f544ed4b6efc0ab6aa3cf8bf9d41aafb"
     },
-    "current_state_checkpoint_sha": "6d607aa117b173c776ee607410fb66d1ec26cea7"
+    "current_state_checkpoint_sha": "3679c20ca89ef16ffc6f25ee9bfbb1dfd243cf49",
+    "pages_attempts": [
+      {
+        "run_id": 40949025336,
+        "run_number": 1382,
+        "event": "workflow_dispatch",
+        "build_sha": "3679c20ca89ef16ffc6f25ee9bfbb1dfd243cf49",
+        "result": "FAIL",
+        "failure": "W2 page resource binding validation rejected the branch workflow file SHA; W5 matrix and deploy-preview were skipped.",
+        "expected_workflow_sha256": "e1d7c6555b83570e92769244b83c5024113c683cc1db5f51e99d0f7ac8e8871c",
+        "actual_workflow_sha256": "1b6cad18bdc8d3e542d716ec4e1e48b8b989d2e8b63a79dd41f92ed117a6236e",
+        "artifact_url": "https://github.com/pan277942135/Yujian_App/actions/runs/40949025336"
+      }
+    ],
+    "workflow_authority_repair": {
+      "status": "PENDING",
+      "path": ".github/workflows/design-manager-pages.yml",
+      "actual_sha256": "1b6cad18bdc8d3e542d716ec4e1e48b8b989d2e8b63a79dd41f92ed117a6236e",
+      "page_binding_paths": [
+        "design/pages/home/normal_home/Page_Resource_Binding_V1.json",
+        "design/pages/home/empty_home/Page_Resource_Binding_V1.json",
+        "design/pages/account_privacy/Login/Page_Resource_Binding_V1.json"
+      ],
+      "reason": "W2 checks the pinned publishing workflow bytes for every page; update only the exact source SHA references, retaining all validation."
+    }
   },
   "execution_v2": {
     "issues": {
@@ -178,12 +210,29 @@
             "evidence": "python scripts/validate_control_plane_admission.py on candidate 0e4d70c4f544ed4b6efc0ab6aa3cf8bf9d41aafb passed all six static layers, Control Plane Sync (735 paths, one approved Login mapping exception), and Project Master State; Work Execution State failed because .github/workflows/design-manager-pages.yml, design/manager/empty_home_v22_workspace.js, and scripts/design/verify_empty_home_structured_hifi.mjs changed after source_sha 8b9a65bfd7b1e75679bb8a46e6acb08669270fad."
           }
         ],
+        "closed": true,
+        "fix_evidence": {
+          "source_sha": "0e4d70c4f544ed4b6efc0ab6aa3cf8bf9d41aafb",
+          "evidence": "Exact current checkpoint 3679c20ca89ef16ffc6f25ee9bfbb1dfd243cf49 passed python scripts/validate_control_plane_admission.py after source_sha was rebound to 0e4d70c4f544ed4b6efc0ab6aa3cf8bf9d41aafb."
+        }
+      },
+      "4c58543154060f0d66d8": {
+        "task_id": "YUJIAN_PAGE_FREEZE_PIPELINE_W5_EMPTY_HOME_PILOT_V1",
+        "gate_id": "DESIGN_MANAGER_PAGES",
+        "symptom_key": "PAGES_PREVIEW_WORKFLOW_SOURCE_AUTHORITY_SHA_MISMATCH",
+        "failures": [
+          {
+            "source_sha": "0e4d70c4f544ed4b6efc0ab6aa3cf8bf9d41aafb",
+            "hypothesis": "Manual dispatch from the PR branch required changing design-manager-pages.yml, but the Main asset-integrity register pins that workflow source, so resource validation rejects the modified file.",
+            "evidence": "GitHub Actions run 40949025336 (run #1382, build SHA 3679c20ca89ef16ffc6f25ee9bfbb1dfd243cf49) failed at Validate NH01 structured bundle. test_checked_in_three_page_bindings_validate and all three page resolver cases reported SOURCE_AUTHORITY_SHA_MISMATCH for .github/workflows/design-manager-pages.yml: expected e1d7c6555b83570e92769244b83c5024113c683cc1db5f51e99d0f7ac8e8871c, got 1b6cad18bdc8d3e542d716ec4e1e48b8b989d2e8b63a79dd41f92ed117a6236e. W5 matrix and deploy-preview were skipped."
+          }
+        ],
         "closed": false
       }
     },
     "schema_version": "1.0"
   },
-  "next_action": "Verify the latest PR branch head is still the state-only replay candidate, then dispatch the isolated Design Manager Pages workflow from that branch; verify the exact build SHA and W5 4-view × 2-font-scale evidence.",
+  "next_action": "Reconcile the branch-specific Pages workflow source SHA in all three Page_Resource_Binding_V1.json files without weakening W2; then rerun exact-source admission and the isolated Pages/W5 workflow.",
   "phase": "P3",
   "repository": "pan277942135/Yujian_App",
   "schema_version": "1.0",
