@@ -1,0 +1,21 @@
+{
+  "$schema":"./WORK_EXECUTION_STATE_SCHEMA_V1.json",
+  "_template_note":"Copy to the active Work branch as WORK_EXECUTION_STATE.json and replace all <PLACEHOLDER> values before admission.",
+  "schema_version":"1.0",
+  "work_id":"<WORK_ID>",
+  "repository":"pan277942135/Yujian_App",
+  "branch":"<PRODUCT_BRANCH>",
+  "control_plane_revision":"<MAIN_SHA>",
+  "base_branch":"main",
+  "base_sha":"<BASE_SHA>",
+  "phase":"P0",
+  "task_id":"P0-01",
+  "stage":"E0",
+  "status":"READY",
+  "source_sha":"<WORK_HEAD_SHA>",
+  "checkpoint_updated_at":"<ISO_8601_TIMESTAMP>",
+  "next_action":"<NEXT_ACTION>",
+  "dependencies":[],
+  "blockers":[],
+  "evidence":{}
+}

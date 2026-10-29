@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" color="#0B2D4B" role="img" aria-labelledby="title">
+  <title id="title">相机</title>
+  <!-- YuJian ic_camera V0.1 CANDIDATE — NOT FROZEN. Shared 24-unit source, 1.75 rounded outline, currentColor. -->
+  <rect x="3.15" y="7.45" width="17.7" height="12.3" rx="2.3" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M8.45 7.45L9.6 5.3C9.8 4.93 10.18 4.7 10.6 4.7H13.4C13.82 4.7 14.2 4.93 14.4 5.3L15.55 7.45" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="12" cy="13.5" r="2.95" stroke="currentColor" stroke-width="1.75"/>
+  <circle cx="17.55" cy="10.55" r="0.8" fill="currentColor"/>
+</svg>

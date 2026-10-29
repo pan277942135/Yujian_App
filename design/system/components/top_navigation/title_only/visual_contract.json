@@ -1,0 +1,52 @@
+{
+  "component": "top_navigation",
+  "variant": "TITLE_ONLY",
+  "version": "V1",
+  "status": "FROZEN",
+  "geometry": {
+    "safe_area_owner": "host_page",
+    "min_content_height_dp": 64,
+    "height_behavior": "heightIn(min=64dp)",
+    "horizontal_padding_dp": 16,
+    "title_vertical_alignment": "center",
+    "background": "transparent",
+    "divider": false
+  },
+  "typography": {
+    "role": "DISPLAY/pageTitle",
+    "android_token": "YuJianTypography.pageTitle",
+    "font_size_sp": 28,
+    "line_height_sp": 34,
+    "weight": 500,
+    "color": "#0B2D4B",
+    "alignment": "left",
+    "max_lines_normal_scale": 1,
+    "overflow": "ellipsis"
+  },
+  "small_screen": {
+    "width_range_dp": "320-359",
+    "horizontal_padding_dp": 16,
+    "font_size_sp": 28,
+    "shrink_font": false,
+    "overflow": "ellipsis"
+  },
+  "accessibility": {
+    "allow_height_growth": true,
+    "clip_text": false,
+    "manual_font_downscale": false
+  },
+  "content_exclusions": [
+    "subtitle",
+    "search",
+    "filter",
+    "back",
+    "utility_actions",
+    "progress",
+    "divider",
+    "glass_surface"
+  ],
+  "consumers": [
+    "my_catches_v2",
+    "fish_guide_v2"
+  ]
+}

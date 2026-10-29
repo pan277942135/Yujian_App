@@ -1,0 +1,22 @@
+{
+  "version": "1.0",
+  "status": "FROZEN",
+  "variant": "TITLE_ONLY",
+  "mappings": [
+    {
+      "page": "my_catches_v2",
+      "title": "我的鱼获",
+      "background": "BG_DATA"
+    },
+    {
+      "page": "fish_guide_v2",
+      "title": "鱼鉴",
+      "background": "BG_DATA"
+    }
+  ],
+  "runtime_alignment_notes": [
+    "MyScreen legacy 29sp/Bold title is not authority; target is YuJianTypography.pageTitle 28sp/Medium.",
+    "MyScreen subtitle is page content and must not be part of TITLE_ONLY.",
+    "Fish Guide V1 does not include Search in Top Navigation."
+  ]
+}

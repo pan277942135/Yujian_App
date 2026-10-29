@@ -1,0 +1,1331 @@
+# PHASE_TASK_STATE_MACHINE.yaml — 渔见 V1
+
+schema_version: "1.0"
+machine_id: "yujian-phase-task-state-machine"
+status: "ACTIVE"
+purpose: "Canonical static execution controller defining P0-P9 phases, N001-N010 task topology, dependencies, gate bindings, recovery semantics and release rules."
+dynamic_state_rule: "This file contains no live Work status, current task, current SHA, queue status, retry counters or observed evidence. Those belong to branch-local execution state."
+source_of_truth_rule: "This file controls execution state and dependency semantics; PROJECT_MASTER_STATE remains the project snapshot, FEATURE_MATRIX remains the feature execution index, and contracts/evidence remain authoritative for their domains."
+
+project:
+  repository: "pan277942135/Yujian_App"
+  control_branch: "main"
+  master_state: "PROJECT_MASTER_STATE.yaml"
+  feature_matrix: "harness/FEATURE_MATRIX.yaml"
+  unified_contract_registry: "harness/UNIFIED_CONTRACT_REGISTRY.yaml"
+  unified_contract_schema: "harness/UNIFIED_CONTRACT_SCHEMA_V1.md"
+  contract_resolution_protocol: "harness/CONTRACT_RESOLUTION_PROTOCOL.md"
+  current_work_state: "WORK_EXECUTION_STATE.json"
+
+execution_policy:
+  unified_contract_registry: "harness/UNIFIED_CONTRACT_REGISTRY.yaml"
+  unified_contract_validator: "scripts/validate_unified_contract.py"
+  auto_advance_within_authorized_scope: true
+  auto_recovery_enabled: true
+  no_unbounded_retry: true
+  max_automatic_repairs_per_failing_gate: 2
+  total_attempts_per_gate: 3
+  parallel_execution: "Only tasks explicitly marked PARALLEL may run independently; phase advancement never bypasses dependency gates."
+  final_human_gate: "N009"
+  main_merge_allowed: true
+  main_merge_requires_green_checks: true
+  main_merge_policy: "GREEN_REQUIRED_CHECKS_WITHIN_AUTHORIZED_SCOPE; NO_EXTRA_PER_PR_APPROVAL; N009_RESERVED_FOR_RELEASE"
+  force_push_allowed: false
+  rebase_allowed: false
+  history_rewrite_allowed: false
+  contract_resolution_required: true
+  contract_registry_is_execution_authority: false
+  contract_registry_role: "Resolver/index only; domain contract files remain authoritative."
+
+phase_order:
+  - "P0"
+  - "P1"
+  - "P2"
+  - "P3"
+  - "P4"
+  - "P5"
+  - "P6"
+  - "P7"
+  - "P8"
+  - "P9"
+
+phases:
+  P0:
+    name: "Product Goal / Decisions"
+    entry_condition: "Product scope and decisions are available."
+    exit_condition: "Frozen product decisions are recorded and validated."
+    release_scope: "FOUNDATION"
+    feature_refs: []
+    task_refs: ["P0-01"]
+  P1:
+    name: "Product Master Flow / State Model"
+    entry_condition: "P0 PASS."
+    exit_condition: "35 nodes / 56 edges / 15 features and J01-J20 recognition journey are frozen."
+    release_scope: "FOUNDATION"
+    feature_refs: ["home_empty_v2", "recognition_flow_v1_2", "recognition_result_v1", "home_normal_v1", "fish_record_detail_v2", "fish_memory_bside_v1"]
+    task_refs: ["P1-01"]
+  P2:
+    name: "Product Specifications / Business Contracts"
+    entry_condition: "P1 PASS."
+    exit_condition: "Primary recognition contracts remain FROZEN and secondary product contracts are closed for the claimed release scope."
+    release_scope: "PRIMARY_PLUS_SECONDARY"
+    feature_refs: ["record_date_v2", "share_templates_v1", "fish_guide_v2", "account_privacy_v1", "my_catches_v2"]
+    task_refs: ["P2-01", "P2-02"]
+  P3:
+    name: "Design System / Visual Contracts"
+    entry_condition: "P2 primary contracts are available."
+    exit_condition: "Required design authority, page contracts, assets and provenance are closed for the claimed scope."
+    release_scope: "PRIMARY_PLUS_SECONDARY"
+    feature_refs: ["home_empty_v2", "home_normal_v1", "recognition_flow_v1_2", "recognition_result_v1", "fish_record_detail_v2", "fish_memory_bside_v1", "share_templates_v1", "record_date_v2", "fish_guide_v2", "account_privacy_v1", "auth_login_v2", "auth_register_v2", "profile_edit_v1", "user_agreement_v1"]
+    task_refs: ["P3-01", "P3-02", "P3-03", "P3-04", "P3-05", "P3-06", "P3-07", "NH01-RESPONSIVE-CONTRACT-V2", "NH01-RESPONSIVE-PREVIEW-V2", "N010"]
+  P4:
+    name: "Architecture / API / Data Contracts"
+    entry_condition: "Required product contracts exist."
+    exit_condition: "Backend/API/database contracts are protected and all release-scope dependencies are explicit."
+    release_scope: "PRIMARY_PLUS_SECONDARY"
+    feature_refs: []
+    task_refs: ["P4-01", "P4-02"]
+  P5:
+    name: "Engineering Foundation / CI / Test Harness"
+    entry_condition: "Architecture boundaries are known."
+    exit_condition: "Build, test harness, CI and API28 runner are available."
+    release_scope: "FOUNDATION"
+    feature_refs: []
+    task_refs: ["P5-01", "P5-02"]
+  P6:
+    name: "Feature Implementation"
+    entry_condition: "Required contracts and engineering foundation exist."
+    exit_condition: "Release-scope feature implementation reaches executable acceptance tasks."
+    release_scope: "PRIMARY_PLUS_SECONDARY"
+    feature_refs: ["home_normal_v1", "record_date_v2", "share_templates_v1", "auth_register_v2"]
+    task_refs: ["P6-01", "P6-02", "P6-03", "P6-04", "YUJIAN_NH01_ANDROID_FROZEN_V22_IMPLEMENTATION_REPAIR_WORK_B_V1", "YUJIAN_NH01_RESPONSIVE_V2_ANDROID_IMPLEMENTATION_AND_RUNTIME_ACCEPTANCE_V1", "YUJIAN_ANDROID_FISH_CATCH_EFFECT01_UPWARD_SCAN_SHAKE_V1", "YUJIAN_ANDROID_AISTUDIO_PERIMETER_SHADER_PORT_V1", "YUJIAN_ANDROID_SLIMSAM_PIXEL_SEGMENTATION_V1"]
+  P7:
+    name: "Integration / Full Surface"
+    entry_condition: "Feature implementation is executable."
+    exit_condition: "Primary journey and required dependent surfaces integrate without unresolved release-scope P0/P1 blockers."
+    release_scope: "PRIMARY_RELEASE"
+    feature_refs: ["fish_record_detail_v2", "fish_memory_bside_v1", "my_catches_v2", "fish_guide_v2", "account_privacy_v1"]
+    task_refs: ["P7-01", "P7-02", "P7-03"]
+  P8:
+    name: "QA / Runtime / Evidence"
+    entry_condition: "P5 PASS and executable feature baseline available."
+    exit_condition: "Exact-head runtime, J01-J20, visual/motion/accessibility evidence and APK provenance are accepted for the claimed scope."
+    release_scope: "PRIMARY_RELEASE"
+    feature_refs: ["home_empty_v2", "home_normal_v1", "recognition_flow_v1_2", "recognition_result_v1", "fish_record_detail_v2", "fish_memory_bside_v1", "auth_login_v2", "fish_guide_v2"]
+    task_refs: ["N001", "N002", "N003", "N004", "N005", "N006", "N007", "N008"]
+  P9:
+    name: "Release / APK Delivery"
+    entry_condition: "All release-scope P8 gates PASS and no unresolved P0/P1 blocker."
+    exit_condition: "Exact release APK provenance is verified and human release authorization is recorded."
+    release_scope: "PRIMARY_RELEASE"
+    feature_refs: ["home_empty_v2", "home_normal_v1", "recognition_flow_v1_2", "recognition_result_v1", "fish_record_detail_v2", "fish_memory_bside_v1"]
+    task_refs: ["P9-01", "N009"]
+
+state_machine:
+  task_states:
+    - "READY"
+    - "WAITING"
+    - "RUNNING"
+    - "VALIDATING"
+    - "FAIL"
+    - "RECOVERING"
+    - "BLOCKED"
+    - "PASS"
+    - "CLOSED"
+    - "FINAL_GATE"
+    - "CANCELLED"
+  queue_status_labels:
+    - "READY"
+    - "WAITING_FOR_DEPENDENCIES"
+    - "PARALLEL"
+    - "FINAL_GATE"
+    - "BLOCKED"
+  phase_states:
+    - "NOT_STARTED"
+    - "READY"
+    - "IN_PROGRESS"
+    - "BLOCKED"
+    - "PASS"
+    - "FINAL_GATE"
+  terminal_states:
+    task: ["CLOSED", "CANCELLED"]
+    release: ["COMPLETE", "COMPLETE_WITH_BLOCKED_INFRA", "BLOCKED_PRODUCT", "BLOCKED_DEPENDENCY"]
+  transitions:
+    READY_to_RUNNING:
+      when: "All task dependencies are PASS/CLOSED, no named blocker is OPEN, and the task is within authorized scope."
+    WAITING_to_READY:
+      when: "All dependency tasks are PASS/CLOSED and required blockers are closed."
+    RUNNING_to_VALIDATING:
+      when: "Implementation/execution step has produced the declared outputs."
+    VALIDATING_to_PASS:
+      when: "All required assertions and evidence gates pass on the exact claimed SHA."
+    VALIDATING_to_FAIL:
+      when: "A required assertion fails and the failure is attributable to the task scope."
+    VALIDATING_to_BLOCKED:
+      when: "Execution cannot continue because a named dependency, infrastructure condition, frozen-source conflict, or human decision is required."
+    FAIL_to_RECOVERING:
+      when: "Failure is retryable and retry_count < retry_budget."
+    RECOVERING_to_RUNNING:
+      when: "A bounded corrective action is recorded and the retry checkpoint is durable."
+    RECOVERING_to_BLOCKED:
+      when: "The failure is non-retryable, retry budget is exhausted, or a dependency is required."
+    PASS_to_CLOSED:
+      when: "Task outputs, evidence, state update and Git checkpoint are durable."
+    FINAL_GATE_to_CLOSED:
+      when: "Human release authorization is recorded and release package is complete."
+  forbidden_transitions:
+    - "WAITING -> PASS"
+    - "BLOCKED -> PASS"
+    - "FAIL -> PASS without VALIDATING"
+    - "PASS -> PASS on a different source SHA without revalidation"
+    - "P8 -> P9 when any required release gate is not PASS"
+    - "any state -> RELEASE without N009 human authorization"
+
+blocker_semantics:
+  blockers_compatibility_field: "Legacy combined blocker index; entry_blockers and target_blockers are authoritative for task execution."
+  entry_blockers: "A named prerequisite that must be CLOSED before the task can enter RUNNING."
+  target_blockers: "A named blocker the task is explicitly intended to close; it may remain OPEN while the task is READY/RUNNING."
+  target_only_task_rule: "An OPEN target_blocker does not force BLOCKED."
+  entry_blocker_rule: "Any OPEN entry_blocker forces WAITING or BLOCKED."
+  n001_target: ["B001"]
+  n002_target: ["B002"]
+  n004_target: ["B003", "B004"]
+  n007_target: ["B006"]
+  n010_target_and_entry: ["B008"]
+
+known_blocker_ids: ["B001", "B002", "B003", "B004", "B005", "B006", "B007", "B008"]
+
+retry_policy:
+  initial_attempt: 1
+  automatic_repairs: 2
+  maximum_attempts: 3
+  retry_key: "task_id + source_sha + gate_id"
+  preserve_failed_evidence: true
+  on_exhaustion:
+    PRODUCT: "BLOCKED_PRODUCT"
+    DEPENDENCY: "BLOCKED_DEPENDENCY"
+    INFRASTRUCTURE: "COMPLETE_WITH_BLOCKED_INFRA"
+    EVIDENCE: "BLOCKED_PRODUCT"
+    CONFLICT: "BLOCKED_DEPENDENCY"
+  no_unbounded_retry: true
+
+checkpoint_contract:
+  required_fields:
+    - "task_id"
+    - "phase"
+    - "feature_refs"
+    - "journey_refs"
+    - "status"
+    - "queue_status"
+    - "source_sha"
+    - "branch"
+    - "retry_count"
+    - "retry_budget"
+    - "last_attempt"
+    - "failure_class"
+    - "recovery_action"
+    - "human_required"
+    - "dependencies"
+    - "blockers"
+    - "evidence_required"
+    - "evidence_observed"
+    - "completion"
+    - "next_action"
+  checkpoint_rule: "Persist a checkpoint after each state transition that changes execution, evidence, blocker or source SHA."
+
+evidence_gate:
+  exact_sha_required: true
+  required_provenance:
+    - "source_sha"
+    - "workflow_run_id"
+    - "device_or_runner"
+    - "test_suite"
+    - "apk_artifact"
+    - "apk_sha256_when_verified"
+  acceptance_layers:
+    - "static_validation"
+    - "build"
+    - "unit_test"
+    - "android_test_compile"
+    - "apk_packaging"
+    - "device_runtime"
+    - "visual_geometry"
+    - "motion_accessibility"
+    - "journey_e2e"
+    - "release_provenance"
+  shortcut_rules:
+    - "Build PASS does not imply Runtime PASS."
+    - "Unit PASS does not imply Journey PASS."
+    - "Historical PASS does not imply Current PASS."
+    - "Artifact existence does not imply Release Ready."
+    - "AI/agent statement does not imply Evidence."
+
+parallelism:
+  allowed:
+    - "N004 may run in parallel with N001 when its own inputs are available."
+    - "Independent evidence collection may run in parallel after its producing gate is available."
+    - "Secondary feature closure may proceed while primary runtime is blocked when it does not mutate the blocked dependency."
+    - "W6-A Login module work may run in parallel with W5 only for Login-owned authority mapping, candidate profile, renderer, Inspector, and independent browser evidence after W3 and W4; shared Design Manager routing, cross-page integration, W6 completion, and visual acceptance remain blocked on W5."
+  forbidden:
+    - "N002 may not bypass N001; N003 may not bypass N001 or N010."
+    - "P9 may not bypass N001-N008."
+    - "A task may not execute while a named prerequisite is WAITING or BLOCKED."
+    - "Parallel work may not modify frozen authorities or backend/API/database contracts without explicit scope."
+
+feature_closure_rollup:
+  home_empty_v2:
+    task_id: "FT-home_empty_v2"
+    phase: "P8"
+    depends_on: ["N001"]
+  home_normal_v1:
+    task_id: "FT-home_normal_v1"
+    phase: "P8"
+    depends_on: ["NH01-RESPONSIVE-PREVIEW-V2", "YUJIAN_NH01_RESPONSIVE_V2_ANDROID_IMPLEMENTATION_AND_RUNTIME_ACCEPTANCE_V1"]
+  record_date_v2:
+    task_id: "FT-record_date_v2"
+    phase: "P6"
+  recognition_flow_v1_2:
+    task_id: "FT-recognition_flow_v1_2"
+    phase: "P8"
+    depends_on: ["N001", "N010"]
+  recognition_result_v1:
+    task_id: "FT-recognition_result_v1"
+    phase: "P8"
+    depends_on: ["N001", "N002", "N007"]
+  fish_record_detail_v2:
+    task_id: "FT-fish_record_detail_v2"
+    phase: "P7"
+    depends_on: ["N003"]
+  share_templates_v1:
+    task_id: "FT-share_templates_v1"
+    phase: "P6"
+  fish_memory_bside_v1:
+    task_id: "FT-fish_memory_bside_v1"
+    phase: "P7"
+    depends_on: ["N003"]
+  my_catches_v2:
+    task_id: "FT-my_catches_v2"
+    phase: "P7"
+  fish_guide_v2:
+    task_id: "FT-fish_guide_v2"
+    phase: "P7"
+  account_privacy_v1:
+    task_id: "FT-account_privacy_v1"
+    phase: "P7"
+  auth_login_v2:
+    task_id: "FT-auth_login_v2"
+    phase: "P8"
+    depends_on: ["N001"]
+  auth_register_v2:
+    task_id: "FT-auth_register_v2"
+    phase: "P6"
+  profile_edit_v1:
+    task_id: "FT-profile_edit_v1"
+    phase: "P8"
+    depends_on: ["N001"]
+  user_agreement_v1:
+    task_id: "FT-user_agreement_v1"
+    phase: "P8"
+    depends_on: ["N001"]
+
+tasks:
+  P0-01:
+    phase: "P0"
+    priority: "P0"
+    owner: "Product"
+    feature_refs: []
+    journey_refs: []
+    depends_on: []
+    entry_blockers: []
+    target_blockers: []
+    evidence_required: ["frozen_product_decisions"]
+    completion: "Product Goal / Decisions frozen."
+    human_required: false
+  P1-01:
+    phase: "P1"
+    priority: "P0"
+    owner: "Product"
+    feature_refs: ["home_empty_v2", "recognition_flow_v1_2", "recognition_result_v1", "home_normal_v1", "fish_record_detail_v2", "fish_memory_bside_v1"]
+    journey_refs: ["J01-J20"]
+    depends_on: ["P0-01"]
+    entry_blockers: []
+    target_blockers: []
+    evidence_required: ["master_flow_35_nodes_56_edges", "J01-J20_route"]
+    completion: "Product Master Flow / State Model frozen."
+    human_required: false
+  P2-01:
+    phase: "P2"
+    priority: "P0"
+    owner: "Product"
+    feature_refs: ["recognition_flow_v1_2", "recognition_result_v1", "home_empty_v2", "home_normal_v1", "fish_record_detail_v2", "fish_memory_bside_v1"]
+    journey_refs: ["J01-J20"]
+    depends_on: ["P1-01"]
+    entry_blockers: []
+    target_blockers: []
+    evidence_required: ["primary_journey_contracts"]
+    completion: "Primary recognition journey contracts are frozen."
+    human_required: false
+  P2-02:
+    phase: "P2"
+    priority: "P1"
+    owner: "Work"
+    feature_refs: ["record_date_v2", "share_templates_v1", "my_catches_v2", "fish_guide_v2", "account_privacy_v1"]
+    journey_refs: []
+    depends_on: ["P2-01"]
+    entry_blockers: []
+    target_blockers: ["B007"]
+    evidence_required: ["secondary_contract_closure"]
+    completion: "Secondary product contracts closed for expanded release scope."
+    human_required: false
+  P3-01:
+    phase: "P3"
+    priority: "P0"
+    owner: "Design"
+    feature_refs: ["home_empty_v2", "recognition_flow_v1_2", "recognition_result_v1"]
+    journey_refs: ["J01-J16"]
+    depends_on: ["P2-01"]
+    entry_blockers: []
+    target_blockers: []
+    evidence_required: ["shared_foundation_7_of_7", "page_contracts_capture_processing_result"]
+    completion: "Shared Foundation and core Capture/Processing/Result contracts frozen."
+    human_required: false
+  P3-02:
+    phase: "P3"
+    priority: "P1"
+    owner: "Work"
+    feature_refs: ["home_normal_v1", "recognition_result_v1"]
+    journey_refs: ["J11-J18"]
+    depends_on: ["P3-01", "NH01-RESPONSIVE-CONTRACT-V2", "NH01-RESPONSIVE-PREVIEW-V2"]
+    entry_blockers: []
+    target_blockers: ["B003", "B004", "B006"]
+    evidence_required: ["hero_F01-F08_provenance", "camera_mask_runtime_parity", "phase_3b_provenance_resolution", "design_manager_shared_page_layer_contract", "nh01_page_owned_layer_map_and_authority_binding", "non_nh01_fixture_shell_independence", "workspace_view_back_forward_refresh_direct_route", "existing_asset_navigation_viewport_governance_checks"]
+    completion: "Normal Home and Recognition Result design/runtime provenance blockers closed. NH01 Design Manager workspace also satisfies the shared page-layer contract with a non-NH01 shell-independence fixture and exact-SHA browser-history evidence; other pages remain opt-in."
+    human_required: false
+  P3-03:
+    phase: "P3"
+    priority: "P1"
+    owner: "Work"
+    feature_refs: ["recognition_flow_v1_2"]
+    journey_refs: ["J04"]
+    depends_on: ["P3-01"]
+    entry_blockers: []
+    target_blockers: []
+    evidence_required: ["P01_png_sha", "P02_png_sha", "P03_png_sha", "design_governance_pass"]
+    completion: "Three-page First Capture Guide frozen binaries are restored and registered; Design Governance remains the acceptance gate."
+    human_required: false
+  P3-04:
+    phase: "P3"
+    priority: "P1"
+    owner: "Design"
+    feature_refs: ["fish_memory_bside_v1", "record_date_v2", "share_templates_v1", "my_catches_v2", "fish_guide_v2", "account_privacy_v1"]
+    journey_refs: []
+    depends_on: ["P2-02"]
+    entry_blockers: []
+    target_blockers: ["B007"]
+    evidence_required: ["secondary_surface_contracts"]
+    completion: "Secondary design contracts and child surfaces are closed for expanded scope."
+    human_required: false
+  P3-05:
+    phase: "P3"
+    priority: "P0"
+    owner: "Design"
+    feature_refs: ["recognition_flow_v1_2", "recognition_result_v1"]
+    journey_refs: ["J07-J16"]
+    depends_on: ["P3-01"]
+    entry_blockers: []
+    target_blockers: []
+    evidence_required: ["swos_optical_contract_v1", "processing_result_continuity_v1", "rr09_v3_contract", "authority_reference_sync", "android_stage1_gap_report", "swos_contract_validation"]
+    completion: "Versioned SWOS/Processing/RR09 authorities and control-plane references are synchronized; Android runtime remains a Stage 1 gate."
+    human_required: false
+    gate_id: "G-SWOS-PHASE0-CONTRACT"
+  P3-06:
+    phase: "P3"
+    priority: "P0"
+    owner: "Design"
+    feature_refs: ["recognition_flow_v1_2", "recognition_result_v1"]
+    journey_refs: ["J07-J16"]
+    depends_on: ["P3-05"]
+    entry_blockers: []
+    target_blockers: []
+    evidence_required: ["web_hifi_contract_v2", "web_hifi_machine_contracts", "web_hifi_gap_matrix", "web_hifi_validator", "design_manager_navigation", "private_visual_reference_sha_dimensions", "private_pixel_baseline_freeze_record", "baseline_exact_sha_and_dimensions", "local_memory_comparison_protocol", "local_viewer_browser_evidence", "visual_reference_component_mapping", "publication_exclusion_gate", "fishtrace_sites_web_interaction_contract_v1", "fishtrace_sites_web_interaction_machine_contract", "fishtrace_sites_web_acceptance_matrix", "sites_scope_separation_from_yujian_web_pr177"]
+    completion: "Yujian Web V2 remains adopted for its own product scope; the user-approved FishTrace Sites V1 flow is registered as a separate Sites-only layout/interaction authority. The Sites contract freeze does not imply runtime visual acceptance, model/Mask qualification or deployment PASS."
+    human_required: false
+    gate_id: "G-WEB-HIFI-CONTRACT"
+  P3-07:
+    phase: "P3"
+    priority: "P0"
+    owner: "Design"
+    feature_refs: ["recognition_flow_v1_2", "recognition_result_v1"]
+    journey_refs: ["J07-J16"]
+    depends_on: ["P3-06"]
+    entry_blockers: []
+    target_blockers: []
+    evidence_required: ["swos_web_hifi_motion_technical_contract_v1_0", "swos_web_hifi_motion_machine_contract", "existing_sam_pipeline_reuse_binding", "design_manager_route", "live_product_source_sha_audit", "playable_browser_demo_evidence", "nine_viewport_visual_matrix", "browser_frame_time_performance_report", "production_mask_qualification_boundary"]
+    completion: "SWOS Web playable-motion implementation contract and machine authority are registered in Design Manager and synchronized with Web V2, SWOS 15-frame/shared-photo contracts and RR09 V3. Reuse the existing SAM experiment pipeline without duplication. Browser playback, production Mask and visual/performance acceptance remain separate evidence gates."
+    human_required: false
+    gate_id: "G-SWOS-WEB-HIFI-MOTION-V1"
+  NH01-RESPONSIVE-CONTRACT-V2:
+    phase: "P3"
+    priority: "P0"
+    owner: "Design"
+    feature_refs: ["home_normal_v1"]
+    journey_refs: ["J17", "J18"]
+    depends_on: ["P3-01"]
+    entry_blockers: []
+    target_blockers: ["B003", "B004"]
+    evidence_required: ["responsive_layout_schema", "responsive_authority_crosswalk", "logical_band_surplus_formula", "canonical_gate_registry_sync"]
+    completion: "NH01 Responsive Layout V2 machine contract, schema and crosswalk are structurally valid and registered without reusing canonical SWOS P3 gate IDs."
+    human_required: false
+    gate_id: "G-NH01-RESPONSIVE-CONTRACT-V2"
+  NH01-RESPONSIVE-PREVIEW-V2:
+    phase: "P3"
+    priority: "P0"
+    owner: "Design"
+    feature_refs: ["home_normal_v1"]
+    journey_refs: ["J17", "J18"]
+    depends_on: ["NH01-RESPONSIVE-CONTRACT-V2"]
+    entry_blockers: []
+    target_blockers: ["B003", "B004"]
+    evidence_required: ["existing_design_manager_candidate_deployment", "browser_viewport_font_boundary_matrix", "illustrative_media_manifest_integrity", "geometry_stable_media_failure_fallback", "exact_source_sha"]
+    completion: "The existing NH01 Design Manager route consumes the V2 machine contract and passes its exact-source fixed, wide, non-anchor, font-scale, and boundary browser matrix. Generated illustrative media authenticity/provenance is outside layout freeze; failed or missing media must not change geometry or block the layout gate."
+    human_required: false
+    gate_id: "G-NH01-RESPONSIVE-PREVIEW-V2"
+  P4-01:
+    phase: "P4"
+    priority: "P0"
+    owner: "Architecture"
+    feature_refs: ["recognition_flow_v1_2", "recognition_result_v1"]
+    journey_refs: ["J03-J16"]
+    depends_on: ["P2-01"]
+    entry_blockers: []
+    target_blockers: []
+    evidence_required: ["backend_api_database_contract_protection"]
+    completion: "Current Android acceptance is prohibited from silently changing backend/API/database contracts."
+    human_required: false
+  P4-02:
+    phase: "P4"
+    priority: "P1"
+    owner: "Architecture"
+    feature_refs: ["record_date_v2", "share_templates_v1", "my_catches_v2", "fish_guide_v2", "account_privacy_v1"]
+    journey_refs: []
+    depends_on: ["P4-01"]
+    entry_blockers: []
+    target_blockers: ["B007"]
+    evidence_required: ["secondary_data_contract_dependencies"]
+    completion: "Secondary data/API dependencies are explicitly closed or deferred."
+    human_required: false
+  P5-01:
+    phase: "P5"
+    priority: "P0"
+    owner: "Engineering"
+    feature_refs: []
+    journey_refs: []
+    depends_on: ["P4-01"]
+    entry_blockers: []
+    target_blockers: []
+    evidence_required: ["build", "jvm", "android_test_compile", "lint", "asset_checks", "model_trace"]
+    completion: "Engineering foundation and CI checks are available."
+    human_required: false
+  P5-02:
+    phase: "P5"
+    priority: "P0"
+    owner: "Work"
+    feature_refs: []
+    journey_refs: ["J01-J20"]
+    depends_on: ["P5-01"]
+    entry_blockers: []
+    target_blockers: []
+    evidence_required: ["self_hosted_api28_runner"]
+    completion: "Authoritative API28 runner is available."
+    human_required: false
+  P6-01:
+    phase: "P6"
+    priority: "P0"
+    owner: "Work"
+    feature_refs: ["recognition_flow_v1_2"]
+    journey_refs: ["J04-J06"]
+    depends_on: ["P3-03", "P5-02"]
+    entry_blockers: []
+    target_blockers: []
+    evidence_required: ["first_use_guide_implementation", "P01_P02_P03_binary_integrity"]
+    completion: "Three-page First Capture Guide implementation and frozen teaching assets are ready for exact-head runtime."
+    human_required: false
+  P6-02:
+    phase: "P6"
+    priority: "P0"
+    owner: "Work"
+    feature_refs: ["recognition_flow_v1_2"]
+    journey_refs: ["J05-J10"]
+    depends_on: ["P5-02"]
+    entry_blockers: []
+    target_blockers: []
+    evidence_required: ["camera_capture_handoff", "recognition_processing_state_sequence"]
+    completion: "Recognition feature implementation is executable on the current baseline."
+    human_required: false
+  YUJIAN_ANDROID_FISH_CATCH_EFFECT01_UPWARD_SCAN_SHAKE_V1:
+    phase: "P6"
+    priority: "P0"
+    owner: "Work"
+    feature_refs: ["recognition_flow_v1_2"]
+    journey_refs: ["J05-J10"]
+    depends_on: ["P3-05", "P5-02"]
+    entry_blockers: []
+    target_blockers: []
+    gate_id: "G-ANDROID-EFFECT01-UPWARD-SCAN-SHAKE-V1"
+    evidence_required: ["frozen_effect01_parameter_contract", "native_equivalent_source_provenance", "shared_processing_clock_binding", "photo_session_lifecycle_regression_tests", "api28_canvas_compatibility", "build_unit_lint", "targeted_api28_runtime", "exact_head_apk_provenance"]
+    completion: "Integrate native Effect 01, the natural upward caustic surge and one photo shockwave into the existing Android recognition Processing scene; preserve event-gated Processing/RR09 authority and produce exact-head build, test, runtime and APK evidence. This task does not claim product-owner visual approval or release."
+    human_required: false
+  YUJIAN_ANDROID_AISTUDIO_PERIMETER_SHADER_PORT_V1:
+    phase: "P6"
+    priority: "P0"
+    owner: "Work"
+    feature_refs: ["recognition_flow_v1_2"]
+    journey_refs: ["J05-J10"]
+    depends_on: ["P3-05", "P5-02"]
+    entry_blockers: []
+    target_blockers: []
+    gate_id: "G-ANDROID-AISTUDIO-PERIMETER-SHADER-PORT-V1"
+    evidence_required: ["source_sha_provenance", "source_browser_dpr_css_and_render_dimensions", "coordinate_scale_mapping", "gles2_shader_compile_log", "perimeter_shader_and_16_node_parity", "two_stage_overlay_alpha_comparison", "shared_processing_clock_and_photo_session_binding", "photo_session_lifecycle_regression", "photo_and_model_input_invariance", "build_unit_android_test_compile_lint", "api28_device_runtime_and_recording", "seven_timestamp_source_android_comparison", "exact_head_apk_provenance"]
+    completion: "Port only the exact-source AI Studio four-sided perimeter shader and 16 perimeter nodes into the existing Android recognition PhotoSession; preserve the original photo transform and recognition path, prove the two-stage Overlay/alpha and source coordinate scale, and deliver exact-head API28 device/runtime and seven-frame comparison evidence. No bottom caustics, photo shockwave, fish reveal, or visual PASS without real-device comparison."
+    human_required: false
+  YUJIAN_ANDROID_SLIMSAM_PIXEL_SEGMENTATION_V1:
+    phase: "P6"
+    priority: "P0"
+    owner: "Work"
+    feature_refs: ["recognition_flow_v1_2"]
+    journey_refs: ["J05-J10"]
+    depends_on: ["P5-02"]
+    entry_blockers: []
+    target_blockers: []
+    gate_id: "G-ANDROID-SLIMSAM-PIXEL-SEGMENTATION-V1"
+    evidence_required: ["immutable_model_revision_license_and_sha256", "onnx_metadata_and_cpu_smoke", "photo_preprocessing_and_bbox_coordinate_parity", "one_encoder_embedding_reused_across_boxes", "full_resolution_mask_and_candidate_quality_evidence", "photo_session_cancellation_and_stale_result_isolation", "detector_classifier_and_result_invariance", "real_photo_positive_and_negative_cases", "offline_model_loading", "api28_runtime_diagnostics_and_installable_apk"]
+    completion: "Add local SlimSAM segmentation as an independent branch from the existing PhotoSession original photo and Detector BBOX; produce a separately attributable full-resolution pixel mask per valid box, reuse one image embedding per photo, preserve Detector/Classifier/Result behavior, and deliver exact-head model, CPU, offline and API28 evidence. No fake-mask fallback or production visual redesign."
+    human_required: false
+  P6-03:
+    phase: "P6"
+    priority: "P1"
+    owner: "Work"
+    feature_refs: ["auth_register_v2"]
+    journey_refs: []
+    depends_on: ["P5-01"]
+    entry_blockers: []
+    target_blockers: ["B007"]
+    evidence_required: ["register_runtime"]
+    completion: "Register runtime closure."
+    human_required: false
+  P6-04:
+    phase: "P6"
+    priority: "P1"
+    owner: "Work"
+    feature_refs: ["record_date_v2", "share_templates_v1"]
+    journey_refs: []
+    depends_on: ["P2-02", "P4-02"]
+    entry_blockers: []
+    target_blockers: ["B007"]
+    evidence_required: ["secondary_feature_implementation"]
+    completion: "Secondary implementation closure for expanded scope."
+    human_required: false
+  YUJIAN_NH01_ANDROID_FROZEN_V22_IMPLEMENTATION_REPAIR_WORK_B_V1:
+    phase: "P6"
+    priority: "P0"
+    owner: "Work B"
+    feature_refs: ["home_normal_v1"]
+    journey_refs: ["J17", "J18"]
+    depends_on: ["P5-01", "P5-02"]
+    entry_blockers: []
+    target_blockers: []
+    gate_id: "G-NH01-WORK-B-V22-EXACT-SHA"
+    evidence_required: ["frozen_v22_authority_resolution", "nh01_android_source_repair", "nh01_equal_surplus_split_unit_tests", "build_unit_lint", "api28_targeted_runtime", "apk_sha256_provenance"]
+    completion: "Issue #194 V2.2 Android repair follows canonical NH01 Responsive Foundation V1.1: when long-screen surplus S>0, add S/2 to each A-to-B and B-to-C gap after their base-gap formulas, with source/unit tests for zero, 90dp and fractional 101dp surplus; exact-SHA build, focused tests, targeted API28 evidence and traceable debug APK are required. The full 24-case native matrix, N004 and release gates remain separate and are not promoted by this task."
+    human_required: false
+
+  YUJIAN_NH01_RESPONSIVE_V2_ANDROID_IMPLEMENTATION_AND_RUNTIME_ACCEPTANCE_V1:
+    phase: "P6"
+    priority: "P0"
+    owner: "Work"
+    feature_refs: ["home_normal_v1"]
+    journey_refs: ["J17", "J18"]
+    depends_on: ["NH01-RESPONSIVE-PREVIEW-V2"]
+    entry_blockers: []
+    target_blockers: []
+    gate_id: "G-NH01-RESPONSIVE-V2-ANDROID-RUNTIME-V1"
+    evidence_required: ["frozen_v2_main_sha", "existing_gemini_route_and_policy", "android_build_unit_lint_exact_sha", "57_api28_runtime_cases", "actual_insets_bounds_text_and_touch_metrics", "single_record_and_media_failure_fallback", "screenshots_and_device_logs", "installable_apk_sha256"]
+    completion: "Implement the SPEC_FROZEN NH01 Responsive Layout V2 on the existing Gemini Home route and current Compose policy. Preserve the 24-case V2.2 baseline unchanged, add V2 runtime coverage for the seven named viewport pairs at all three font scales (with the M05 width test using a separately recorded explicit height), and exercise both sides of the four specified height-continuity boundaries at all three scales: 57 API 28 viewport executions total. Verify actual measured bounds, insets, text line ranges, Hero/Peek/Pager geometry, touch targets, M01 no-scroll, Footer outside Middle scroll, single-record state, media-failure fallback and exact-SHA APK provenance. Build, unit, instrumentation and Lint failures remain failures; a constraint conflict must be reported with measurements. This task does not close N004 or authorize release."
+    human_required: false
+
+  P7-01:
+    phase: "P7"
+    priority: "P0"
+    owner: "Work"
+    feature_refs: ["fish_record_detail_v2", "fish_memory_bside_v1"]
+    journey_refs: ["J19", "J20"]
+    depends_on: ["P6-02"]
+    entry_blockers: []
+    target_blockers: []
+    evidence_required: ["detail_A_side", "detail_B_side", "save_navigation", "first_reveal_once"]
+    completion: "FishRecordDetail integration is accepted for the primary journey."
+    human_required: false
+  P7-02:
+    phase: "P7"
+    priority: "P1"
+    owner: "Work"
+    feature_refs: ["my_catches_v2", "fish_guide_v2", "account_privacy_v1"]
+    journey_refs: []
+    depends_on: ["P6-03", "P6-04"]
+    entry_blockers: []
+    target_blockers: ["B007"]
+    evidence_required: ["secondary_surface_integration"]
+    completion: "Secondary surfaces integrated for expanded scope."
+    human_required: false
+  P7-03:
+    phase: "P7"
+    priority: "P0"
+    owner: "Work"
+    feature_refs: ["home_empty_v2", "home_normal_v1", "recognition_flow_v1_2", "recognition_result_v1", "fish_record_detail_v2", "fish_memory_bside_v1"]
+    journey_refs: ["J01-J20"]
+    depends_on: ["N002", "N003", "N004"]
+    entry_blockers: []
+    target_blockers: []
+    evidence_required: ["primary_journey_integration_report", "end_to_end_state_transitions"]
+    completion: "Primary recognition journey integration is accepted."
+    human_required: false
+
+  FT-home_empty_v2:
+    task_role: "FEATURE_ROLLUP"
+    execution_authorized: false
+    phase: "P8"
+    priority: "P1"
+    owner: "Work"
+    feature_refs: ["home_empty_v2"]
+    journey_refs: []
+    depends_on: ["N001"]
+    entry_blockers: []
+    target_blockers: []
+    evidence_required: ["feature_required_implementation_tests_runtime_evidence"]
+    completion: "Feature-level rollup only; closure is determined by the Feature Matrix and owning executable tasks."
+    human_required: false
+
+  FT-home_normal_v1:
+    task_role: "FEATURE_ROLLUP"
+    execution_authorized: false
+    phase: "P8"
+    priority: "P1"
+    owner: "Work"
+    feature_refs: ["home_normal_v1"]
+    journey_refs: []
+    depends_on: ["NH01-RESPONSIVE-PREVIEW-V2", "YUJIAN_NH01_RESPONSIVE_V2_ANDROID_IMPLEMENTATION_AND_RUNTIME_ACCEPTANCE_V1"]
+    entry_blockers: []
+    target_blockers: ["B003", "B004"]
+    evidence_required: ["feature_required_implementation_tests_runtime_evidence"]
+    completion: "Feature-level rollup only; closure is determined by the Feature Matrix and owning executable tasks."
+    human_required: false
+
+  FT-record_date_v2:
+    task_role: "FEATURE_ROLLUP"
+    execution_authorized: false
+    phase: "P6"
+    priority: "P1"
+    owner: "Work"
+    feature_refs: ["record_date_v2"]
+    journey_refs: []
+    depends_on: []
+    entry_blockers: []
+    target_blockers: ["B007"]
+    evidence_required: ["feature_required_implementation_tests_runtime_evidence"]
+    completion: "Feature-level rollup only; closure is determined by the Feature Matrix and owning executable tasks."
+    human_required: false
+
+  FT-recognition_flow_v1_2:
+    task_role: "FEATURE_ROLLUP"
+    execution_authorized: false
+    phase: "P8"
+    priority: "P1"
+    owner: "Work"
+    feature_refs: ["recognition_flow_v1_2"]
+    journey_refs: []
+    depends_on: ["N001", "N010"]
+    entry_blockers: []
+    target_blockers: []
+    evidence_required: ["feature_required_implementation_tests_runtime_evidence"]
+    completion: "Feature-level rollup only; closure is determined by the Feature Matrix and owning executable tasks."
+    human_required: false
+
+  FT-recognition_result_v1:
+    task_role: "FEATURE_ROLLUP"
+    execution_authorized: false
+    phase: "P8"
+    priority: "P1"
+    owner: "Work"
+    feature_refs: ["recognition_result_v1"]
+    journey_refs: []
+    depends_on: ["N001", "N002", "N007"]
+    entry_blockers: []
+    target_blockers: []
+    evidence_required: ["feature_required_implementation_tests_runtime_evidence"]
+    completion: "Feature-level rollup only; closure is determined by the Feature Matrix and owning executable tasks."
+    human_required: false
+
+  FT-fish_record_detail_v2:
+    task_role: "FEATURE_ROLLUP"
+    execution_authorized: false
+    phase: "P7"
+    priority: "P1"
+    owner: "Work"
+    feature_refs: ["fish_record_detail_v2"]
+    journey_refs: []
+    depends_on: ["N003"]
+    entry_blockers: []
+    target_blockers: []
+    evidence_required: ["feature_required_implementation_tests_runtime_evidence"]
+    completion: "Feature-level rollup only; closure is determined by the Feature Matrix and owning executable tasks."
+    human_required: false
+
+  FT-share_templates_v1:
+    task_role: "FEATURE_ROLLUP"
+    execution_authorized: false
+    phase: "P6"
+    priority: "P1"
+    owner: "Work"
+    feature_refs: ["share_templates_v1"]
+    journey_refs: []
+    depends_on: []
+    entry_blockers: []
+    target_blockers: ["B007"]
+    evidence_required: ["feature_required_implementation_tests_runtime_evidence"]
+    completion: "Feature-level rollup only; closure is determined by the Feature Matrix and owning executable tasks."
+    human_required: false
+
+  FT-fish_memory_bside_v1:
+    task_role: "FEATURE_ROLLUP"
+    execution_authorized: false
+    phase: "P7"
+    priority: "P1"
+    owner: "Work"
+    feature_refs: ["fish_memory_bside_v1"]
+    journey_refs: []
+    depends_on: ["N003"]
+    entry_blockers: []
+    target_blockers: []
+    evidence_required: ["feature_required_implementation_tests_runtime_evidence"]
+    completion: "Feature-level rollup only; closure is determined by the Feature Matrix and owning executable tasks."
+    human_required: false
+
+  FT-my_catches_v2:
+    task_role: "FEATURE_ROLLUP"
+    execution_authorized: false
+    phase: "P7"
+    priority: "P1"
+    owner: "Work"
+    feature_refs: ["my_catches_v2"]
+    journey_refs: []
+    depends_on: []
+    entry_blockers: []
+    target_blockers: ["B007"]
+    evidence_required: ["feature_required_implementation_tests_runtime_evidence"]
+    completion: "Feature-level rollup only; closure is determined by the Feature Matrix and owning executable tasks."
+    human_required: false
+
+  FT-fish_guide_v2:
+    task_role: "FEATURE_ROLLUP"
+    execution_authorized: false
+    phase: "P7"
+    priority: "P1"
+    owner: "Work"
+    feature_refs: ["fish_guide_v2"]
+    journey_refs: []
+    depends_on: []
+    entry_blockers: []
+    target_blockers: ["B007"]
+    evidence_required: ["feature_required_implementation_tests_runtime_evidence"]
+    completion: "Feature-level rollup only; closure is determined by the Feature Matrix and owning executable tasks."
+    human_required: false
+
+  FT-account_privacy_v1:
+    task_role: "FEATURE_ROLLUP"
+    execution_authorized: false
+    phase: "P7"
+    priority: "P1"
+    owner: "Work"
+    feature_refs: ["account_privacy_v1"]
+    journey_refs: []
+    depends_on: []
+    entry_blockers: []
+    target_blockers: ["B007"]
+    evidence_required: ["feature_required_implementation_tests_runtime_evidence"]
+    completion: "Feature-level rollup only; closure is determined by the Feature Matrix and owning executable tasks."
+    human_required: false
+
+  FT-auth_login_v2:
+    task_role: "FEATURE_ROLLUP"
+    execution_authorized: false
+    phase: "P8"
+    priority: "P1"
+    owner: "Work"
+    feature_refs: ["auth_login_v2"]
+    journey_refs: []
+    depends_on: ["N001"]
+    entry_blockers: []
+    target_blockers: []
+    evidence_required: ["feature_required_implementation_tests_runtime_evidence"]
+    completion: "Feature-level rollup only; closure is determined by the Feature Matrix and owning executable tasks."
+    human_required: false
+
+  FT-auth_register_v2:
+    task_role: "FEATURE_ROLLUP"
+    execution_authorized: false
+    phase: "P6"
+    priority: "P1"
+    owner: "Work"
+    feature_refs: ["auth_register_v2"]
+    journey_refs: []
+    depends_on: []
+    entry_blockers: []
+    target_blockers: ["B007"]
+    evidence_required: ["feature_required_implementation_tests_runtime_evidence"]
+    completion: "Feature-level rollup only; closure is determined by the Feature Matrix and owning executable tasks."
+    human_required: false
+
+  FT-profile_edit_v1:
+    task_role: "FEATURE_ROLLUP"
+    execution_authorized: false
+    phase: "P8"
+    priority: "P1"
+    owner: "Work"
+    feature_refs: ["profile_edit_v1"]
+    journey_refs: []
+    depends_on: ["N001"]
+    entry_blockers: []
+    target_blockers: []
+    evidence_required: ["feature_required_implementation_tests_runtime_evidence"]
+    completion: "Feature-level rollup only; closure is determined by the Feature Matrix and owning executable tasks."
+    human_required: false
+
+  FT-user_agreement_v1:
+    task_role: "FEATURE_ROLLUP"
+    execution_authorized: false
+    phase: "P8"
+    priority: "P1"
+    owner: "Work"
+    feature_refs: ["user_agreement_v1"]
+    journey_refs: []
+    depends_on: ["N001"]
+    entry_blockers: []
+    target_blockers: []
+    evidence_required: ["feature_required_implementation_tests_runtime_evidence"]
+    completion: "Feature-level rollup only; closure is determined by the Feature Matrix and owning executable tasks."
+    human_required: false
+  N001:
+    phase: "P8"
+    priority: "P0"
+    owner: "Work"
+    feature_refs: ["home_empty_v2", "home_normal_v1", "recognition_flow_v1_2", "recognition_result_v1", "auth_login_v2", "fish_guide_v2"]
+    journey_refs: ["J01-J20"]
+    depends_on: ["P5-02", "P6-02"]
+    entry_blockers: []
+    target_blockers: ["B001"]
+    gate_id: "G-API28-MATRIX"
+    evidence_required:
+      - "source_sha"
+      - "workflow_run_id"
+      - "API28_Pixel_2_runtime"
+      - "runtime_suite_results"
+      - "APK_artifact"
+      - "APK_SHA256_when_verified"
+      - "runtime_logs"
+    completion: "Authoritative API28 runtime matrix passes or produces a classified blocker with preserved evidence."
+    human_required: false
+
+  N002:
+    phase: "P8"
+    priority: "P0"
+    owner: "Work"
+    feature_refs: ["recognition_flow_v1_2", "recognition_result_v1"]
+    journey_refs: ["J03-J16"]
+    depends_on: ["N001"]
+    entry_blockers: []
+    target_blockers: ["B002"]
+    gate_id: "G-RECOGNITION-FROZEN"
+    evidence_required: ["recognition_frozen_test_result", "exact_head_runtime_logs", "recognition_screenshots", "APK_provenance"]
+    completion: "Recognition Frozen suite passes on exact head."
+    human_required: false
+
+  N003:
+    phase: "P8"
+    priority: "P0"
+    owner: "Work"
+    feature_refs: ["home_empty_v2", "home_normal_v1", "recognition_flow_v1_2", "recognition_result_v1", "fish_record_detail_v2", "fish_memory_bside_v1"]
+    journey_refs: ["J01-J20"]
+    depends_on: ["N001", "N010"]
+    entry_blockers: []
+    target_blockers: []
+    gate_id: "G-J01-J20"
+    evidence_required: ["Journey_Execution_Results_V1.json", "J01-J20_runtime_results", "navigation_persistence", "failure_recovery_paths"]
+    completion: "J01-J20 execute and persist acceptance results."
+    human_required: false
+
+  N004:
+    phase: "P8"
+    priority: "P1"
+    owner: "Work"
+    feature_refs: ["home_normal_v1", "fish_record_detail_v2"]
+    journey_refs: ["J17", "J18", "J19"]
+    depends_on: []
+    entry_blockers: []
+    target_blockers: ["B003", "B004"]
+    gate_id: "G-NORMAL-HOME-A4.1"
+    evidence_required: ["F01-F08_fixture_matrix", "fixture_provenance_license_duplicate_audit", "HOME_runtime", "DETAIL_runtime", "camera_mask_geometry_pixel_evidence"]
+    completion: "Normal Home A4.1 Hero fixture matrix and Camera runtime parity are closed."
+    human_required: false
+
+  N005:
+    phase: "P8"
+    priority: "P1"
+    owner: "Work"
+    feature_refs: ["home_empty_v2", "home_normal_v1", "recognition_flow_v1_2", "recognition_result_v1", "fish_record_detail_v2", "fish_memory_bside_v1"]
+    journey_refs: ["J01-J20"]
+    depends_on: ["N002", "N003", "N004"]
+    entry_blockers: []
+    target_blockers: []
+    gate_id: "G-EVIDENCE-PACK"
+    evidence_required: ["1080x1920_screenshots", "boundsInWindow", "pixel_diff", "motion_evidence", "device_profile_matrix", "runtime_logs"]
+    completion: "Primary runtime/evidence package is complete."
+    human_required: false
+
+  N006:
+    phase: "P8"
+    priority: "P1"
+    owner: "Work"
+    feature_refs: ["home_empty_v2", "home_normal_v1", "recognition_flow_v1_2", "recognition_result_v1", "fish_record_detail_v2", "fish_memory_bside_v1"]
+    journey_refs: ["J01-J20"]
+    depends_on: ["N005"]
+    entry_blockers: []
+    target_blockers: []
+    gate_id: "G-APK-PROVENANCE"
+    evidence_required: ["exact_head_APK", "APK_SHA256", "source_SHA", "artifact_provenance"]
+    completion: "Exact-head APK SHA-256 and provenance are verified."
+    human_required: false
+
+  N007:
+    phase: "P8"
+    priority: "P1"
+    owner: "Work"
+    feature_refs: ["recognition_result_v1"]
+    journey_refs: ["J11", "J12", "J13", "J14", "J15", "J16"]
+    depends_on: ["N002"]
+    entry_blockers: []
+    target_blockers: ["B006"]
+    gate_id: "G-PHASE3B-PROVENANCE"
+    evidence_required: ["current_branch_provenance", "Recognition_Result_Phase_3B_authority", "exact_SHA_mapping"]
+    completion: "Phase 3-B Recognition Result provenance conflict is resolved."
+    human_required: false
+
+  N008:
+    phase: "P8"
+    priority: "P1"
+    owner: "Work"
+    feature_refs: ["home_empty_v2", "home_normal_v1", "recognition_flow_v1_2", "recognition_result_v1", "fish_record_detail_v2", "fish_memory_bside_v1"]
+    journey_refs: ["J01-J20"]
+    depends_on: ["N005", "N006", "N007"]
+    entry_blockers: []
+    target_blockers: []
+    gate_id: "G-FOCUSED-REPORT"
+    evidence_required: ["focused_recognition_main_journey_test_report", "gate_summary", "blocker_summary", "APK_provenance"]
+    completion: "Focused recognition-main-journey test report is published."
+    human_required: false
+
+  P9-01:
+    phase: "P9"
+    priority: "P0"
+    owner: "Work"
+    feature_refs: ["home_empty_v2", "home_normal_v1", "recognition_flow_v1_2", "recognition_result_v1", "fish_record_detail_v2", "fish_memory_bside_v1"]
+    journey_refs: ["J01-J20"]
+    depends_on: ["N006", "N008"]
+    entry_blockers: []
+    target_blockers: []
+    gate_id: "G-RELEASE-PACKAGE"
+    evidence_required: ["release_candidate_APK", "exact_SHA256", "runtime_PASS", "journey_PASS", "visual_PASS", "no_P0_P1_blocker"]
+    completion: "Release package is complete and eligible for human review."
+    human_required: false
+  N009:
+    phase: "P9"
+    priority: "P1"
+    owner: "Human"
+    feature_refs: ["home_empty_v2", "home_normal_v1", "recognition_flow_v1_2", "recognition_result_v1", "fish_record_detail_v2", "fish_memory_bside_v1"]
+    journey_refs: ["J01-J20"]
+    depends_on: ["P9-01"]
+    entry_blockers: []
+    target_blockers: []
+    gate_id: "G-HUMAN-RELEASE"
+    evidence_required: ["final_APK", "evidence_index", "test_report", "APK_SHA256"]
+    completion: "Human reviews and explicitly authorizes release."
+    human_required: true
+
+  N010:
+    phase: "P3"
+    priority: "P1"
+    owner: "Work"
+    feature_refs: ["recognition_flow_v1_2"]
+    journey_refs: ["J04-J06"]
+    depends_on: ["P3-01"]
+    entry_blockers: []
+    target_blockers: []
+    gate_id: "G-FIRST-USE-GUIDE-ASSET"
+    evidence_required: ["P01_png_sha256_bytes_dimensions", "P02_png_sha256_bytes_dimensions", "P03_png_sha256_bytes_dimensions", "Design_Manager_resource_menu", "Design_Governance_PASS"]
+    completion: "Approved P01/P02/P03 Frozen PNGs remain at their registered paths and are exposed by the Design Manager Resources route with original-file links; Design Governance must pass before task closure."
+    human_required: false
+
+  YUJIAN_PAGE_FREEZE_PIPELINE_W0_GOVERNANCE_V1:
+    phase: "P3"
+    priority: "P0"
+    owner: "Work"
+    feature_refs: []
+    journey_refs: []
+    depends_on: []
+    entry_blockers: []
+    target_blockers: []
+    gate_id: "G-PAGE-FREEZE-PIPELINE-W0-GOVERNANCE"
+    evidence_required: ["reuse_inventory_v1", "exact_head_admission_run_id", "control_plane_and_schema_report", "governance_run_id", "related_ci_run_ids", "merge_commit_sha"]
+    completion: "Register and verify the cross-page W0 governance baseline, reuse boundaries and W1-W6 static topology; registration does not assert that any W1-W6 implementation is complete."
+    human_required: false
+    workstream_id: "PAGE_FREEZE_PIPELINE_V1"
+    execution_scope: "CROSS_PAGE_DESIGN_TOOLING"
+    phase_rollup: false
+    release_blocking: false
+    android_release_blocking: false
+    issue_ref: "https://github.com/pan277942135/Yujian_App/issues/219"
+  YUJIAN_PAGE_FREEZE_PIPELINE_W1_CONTRACT_SCHEMA_V1:
+    phase: "P3"
+    priority: "P0"
+    owner: "Work"
+    feature_refs: []
+    journey_refs: []
+    depends_on: ["YUJIAN_PAGE_FREEZE_PIPELINE_W0_GOVERNANCE_V1"]
+    entry_blockers: []
+    target_blockers: []
+    gate_id: "G-PAGE-FREEZE-PIPELINE-W1-CONTRACT"
+    evidence_required: ["generic_contract_envelope_schema", "page_conformance_profile_schema", "validator_interface", "schema_tests", "exact_source_sha", "admission_run_id"]
+    completion: "Deliver the generic contract envelope, page-owned conformance profile and validator boundary without making NH01-only fields universally required."
+    human_required: false
+    workstream_id: "PAGE_FREEZE_PIPELINE_V1"
+    execution_scope: "CROSS_PAGE_DESIGN_TOOLING"
+    phase_rollup: false
+    release_blocking: false
+    android_release_blocking: false
+    issue_ref: "https://github.com/pan277942135/Yujian_App/issues/220"
+  YUJIAN_PAGE_FREEZE_PIPELINE_W2_ASSET_BINDING_V1:
+    phase: "P3"
+    priority: "P0"
+    owner: "Work"
+    feature_refs: []
+    journey_refs: []
+    depends_on: ["YUJIAN_PAGE_FREEZE_PIPELINE_W0_GOVERNANCE_V1"]
+    entry_blockers: []
+    target_blockers: []
+    gate_id: "G-PAGE-FREEZE-PIPELINE-W2-RESOURCES"
+    evidence_required: ["page_resource_binding_schema", "asset_provenance_and_sha_validation", "publication_permission_rules", "schema_tests", "exact_source_sha", "admission_run_id"]
+    completion: "Deliver page-owned resource binding, provenance, integrity and publication-permission interfaces without changing or publishing frozen private assets."
+    human_required: false
+    workstream_id: "PAGE_FREEZE_PIPELINE_V1"
+    execution_scope: "CROSS_PAGE_DESIGN_TOOLING"
+    phase_rollup: false
+    release_blocking: false
+    android_release_blocking: false
+    issue_ref: "https://github.com/pan277942135/Yujian_App/issues/221"
+  YUJIAN_PAGE_FREEZE_PIPELINE_W3_DESIGN_MANAGER_ADAPTER_V1:
+    phase: "P3"
+    priority: "P0"
+    owner: "Work"
+    feature_refs: []
+    journey_refs: []
+    depends_on: ["YUJIAN_PAGE_FREEZE_PIPELINE_W1_CONTRACT_SCHEMA_V1", "YUJIAN_PAGE_FREEZE_PIPELINE_W2_ASSET_BINDING_V1"]
+    entry_blockers: []
+    target_blockers: []
+    gate_id: "G-PAGE-FREEZE-PIPELINE-W3-WORKSPACE"
+    evidence_required: ["page_workspace_adapter_interface", "component_tree_and_inspector_boundary", "responsive_diagnostics", "design_manager_pages_run_id", "exact_source_sha"]
+    completion: "Connect page-owned renderers through the existing Design Manager shell and adapter interface; no second manager or parallel site."
+    human_required: false
+    workstream_id: "PAGE_FREEZE_PIPELINE_V1"
+    execution_scope: "CROSS_PAGE_DESIGN_TOOLING"
+    phase_rollup: false
+    release_blocking: false
+    android_release_blocking: false
+    issue_ref: "https://github.com/pan277942135/Yujian_App/issues/222"
+  YUJIAN_PAGE_FREEZE_PIPELINE_W4_TEST_EVIDENCE_V1:
+    phase: "P3"
+    priority: "P0"
+    owner: "Work"
+    feature_refs: []
+    journey_refs: []
+    depends_on: ["YUJIAN_PAGE_FREEZE_PIPELINE_W1_CONTRACT_SCHEMA_V1", "YUJIAN_PAGE_FREEZE_PIPELINE_W2_ASSET_BINDING_V1"]
+    entry_blockers: []
+    target_blockers: []
+    gate_id: "G-PAGE-FREEZE-PIPELINE-W4-TEST-EVIDENCE"
+    evidence_required: ["page_test_matrix", "generic_runner_result", "visual_diagnostic", "evidence_manifest", "run_id_and_exact_sha", "validator_tests"]
+    completion: "Deliver a generic test/evidence interface while retaining NH01 browser, geometry and visual checks as page-specific adapters."
+    human_required: false
+    workstream_id: "PAGE_FREEZE_PIPELINE_V1"
+    execution_scope: "CROSS_PAGE_DESIGN_TOOLING"
+    phase_rollup: false
+    release_blocking: false
+    android_release_blocking: false
+    issue_ref: "https://github.com/pan277942135/Yujian_App/issues/223"
+  YUJIAN_PAGE_FREEZE_PIPELINE_W5_EMPTY_HOME_PILOT_V1:
+    phase: "P3"
+    priority: "P0"
+    owner: "Work"
+    feature_refs: []
+    journey_refs: []
+    depends_on: ["YUJIAN_PAGE_FREEZE_PIPELINE_W3_DESIGN_MANAGER_ADAPTER_V1", "YUJIAN_PAGE_FREEZE_PIPELINE_W4_TEST_EVIDENCE_V1"]
+    entry_blockers: []
+    target_blockers: []
+    gate_id: "G-PAGE-FREEZE-PIPELINE-W5-EMPTY-HOME-PILOT"
+    evidence_required: ["empty_home_page_adapter", "independent_matrix", "asset_binding_evidence", "human_acceptance", "exact_source_sha"]
+    completion: "Pilot the generic page pipeline on empty home after W3 and W4; keep product feature and Android release status independent."
+    human_required: true
+    workstream_id: "PAGE_FREEZE_PIPELINE_V1"
+    execution_scope: "CROSS_PAGE_DESIGN_TOOLING"
+    phase_rollup: false
+    release_blocking: false
+    android_release_blocking: false
+    issue_ref: "https://github.com/pan277942135/Yujian_App/issues/224"
+  YUJIAN_PAGE_FREEZE_PIPELINE_W6A_LOGIN_MODULE_V1:
+    phase: "P3"
+    priority: "P0"
+    owner: "Work"
+    feature_refs: []
+    journey_refs: []
+    depends_on: ["YUJIAN_PAGE_FREEZE_PIPELINE_W3_DESIGN_MANAGER_ADAPTER_V1", "YUJIAN_PAGE_FREEZE_PIPELINE_W4_TEST_EVIDENCE_V1"]
+    entry_blockers: []
+    target_blockers: []
+    gate_id: "G-PAGE-FREEZE-PIPELINE-W6A-LOGIN-MODULE"
+    evidence_required: ["login_authority_audit", "login_component_mapping", "login_candidate_profile", "independent_login_renderer_and_inspector", "chromium_matrix_and_evidence_manifest", "exact_source_sha", "admission_run_id"]
+    completion: "Deliver the Login-owned structured candidate module and independent browser evidence after W3/W4; do not integrate it into the shared Design Manager route, claim W6 completion, change frozen authorities, or assert user/native acceptance before W5 and the remaining W6 gates."
+    human_required: false
+    workstream_id: "PAGE_FREEZE_PIPELINE_V1"
+    execution_scope: "CROSS_PAGE_DESIGN_TOOLING"
+    phase_rollup: false
+    release_blocking: false
+    android_release_blocking: false
+    issue_ref: "https://github.com/pan277942135/Yujian_App/issues/237"
+  YUJIAN_PAGE_FREEZE_PIPELINE_W6_LOGIN_PILOT_AND_ACCEPTANCE_V1:
+    phase: "P3"
+    priority: "P0"
+    owner: "Work"
+    feature_refs: []
+    journey_refs: []
+    depends_on: ["YUJIAN_PAGE_FREEZE_PIPELINE_W5_EMPTY_HOME_PILOT_V1", "YUJIAN_PAGE_FREEZE_PIPELINE_W6A_LOGIN_MODULE_V1"]
+    entry_blockers: []
+    target_blockers: []
+    gate_id: "G-PAGE-FREEZE-PIPELINE-W6-LOGIN-PILOT"
+    evidence_required: ["login_page_adapter", "independent_matrix", "asset_binding_evidence", "human_acceptance", "exact_source_sha"]
+    completion: "Pilot and accept login after W5 with independent page evidence; do not promote Android runtime or release state without its own gates."
+    human_required: true
+    workstream_id: "PAGE_FREEZE_PIPELINE_V1"
+    execution_scope: "CROSS_PAGE_DESIGN_TOOLING"
+    phase_rollup: false
+    release_blocking: false
+    android_release_blocking: false
+    issue_ref: "https://github.com/pan277942135/Yujian_App/issues/225"
+
+workstreams:
+  PAGE_FREEZE_PIPELINE_V1:
+    purpose: "Cross-page responsive specification freeze and delivery verification; design tooling only."
+    task_ids: ["YUJIAN_PAGE_FREEZE_PIPELINE_W0_GOVERNANCE_V1", "YUJIAN_PAGE_FREEZE_PIPELINE_W1_CONTRACT_SCHEMA_V1", "YUJIAN_PAGE_FREEZE_PIPELINE_W2_ASSET_BINDING_V1", "YUJIAN_PAGE_FREEZE_PIPELINE_W3_DESIGN_MANAGER_ADAPTER_V1", "YUJIAN_PAGE_FREEZE_PIPELINE_W4_TEST_EVIDENCE_V1", "YUJIAN_PAGE_FREEZE_PIPELINE_W5_EMPTY_HOME_PILOT_V1", "YUJIAN_PAGE_FREEZE_PIPELINE_W6A_LOGIN_MODULE_V1", "YUJIAN_PAGE_FREEZE_PIPELINE_W6_LOGIN_PILOT_AND_ACCEPTANCE_V1"]
+    static_dependencies:
+      YUJIAN_PAGE_FREEZE_PIPELINE_W0_GOVERNANCE_V1: []
+      YUJIAN_PAGE_FREEZE_PIPELINE_W1_CONTRACT_SCHEMA_V1: ["YUJIAN_PAGE_FREEZE_PIPELINE_W0_GOVERNANCE_V1"]
+      YUJIAN_PAGE_FREEZE_PIPELINE_W2_ASSET_BINDING_V1: ["YUJIAN_PAGE_FREEZE_PIPELINE_W0_GOVERNANCE_V1"]
+      YUJIAN_PAGE_FREEZE_PIPELINE_W3_DESIGN_MANAGER_ADAPTER_V1: ["YUJIAN_PAGE_FREEZE_PIPELINE_W1_CONTRACT_SCHEMA_V1", "YUJIAN_PAGE_FREEZE_PIPELINE_W2_ASSET_BINDING_V1"]
+      YUJIAN_PAGE_FREEZE_PIPELINE_W4_TEST_EVIDENCE_V1: ["YUJIAN_PAGE_FREEZE_PIPELINE_W1_CONTRACT_SCHEMA_V1", "YUJIAN_PAGE_FREEZE_PIPELINE_W2_ASSET_BINDING_V1"]
+      YUJIAN_PAGE_FREEZE_PIPELINE_W5_EMPTY_HOME_PILOT_V1: ["YUJIAN_PAGE_FREEZE_PIPELINE_W3_DESIGN_MANAGER_ADAPTER_V1", "YUJIAN_PAGE_FREEZE_PIPELINE_W4_TEST_EVIDENCE_V1"]
+      YUJIAN_PAGE_FREEZE_PIPELINE_W6A_LOGIN_MODULE_V1: ["YUJIAN_PAGE_FREEZE_PIPELINE_W3_DESIGN_MANAGER_ADAPTER_V1", "YUJIAN_PAGE_FREEZE_PIPELINE_W4_TEST_EVIDENCE_V1"]
+      YUJIAN_PAGE_FREEZE_PIPELINE_W6_LOGIN_PILOT_AND_ACCEPTANCE_V1: ["YUJIAN_PAGE_FREEZE_PIPELINE_W5_EMPTY_HOME_PILOT_V1", "YUJIAN_PAGE_FREEZE_PIPELINE_W6A_LOGIN_MODULE_V1"]
+    phase_classification: "P3_CROSS_PAGE_DESIGN_TOOLING"
+    phase_rollup: false
+    feature_refs: []
+    journey_refs: []
+    included_in_n001_n010_queue: false
+    release_blocking: false
+    android_release_blocking: false
+    recovery_policy_ref: "PHASE_TASK_STATE_MACHINE.yaml:recovery"
+
+feature_task_coverage:
+  required_feature_count: 15
+  covered_feature_ids:
+    - "home_empty_v2"
+    - "home_normal_v1"
+    - "record_date_v2"
+    - "recognition_flow_v1_2"
+    - "recognition_result_v1"
+    - "fish_record_detail_v2"
+    - "share_templates_v1"
+    - "fish_memory_bside_v1"
+    - "my_catches_v2"
+    - "fish_guide_v2"
+    - "account_privacy_v1"
+    - "auth_login_v2"
+    - "auth_register_v2"
+    - "profile_edit_v1"
+    - "user_agreement_v1"
+  rule: "Every Feature Matrix feature must have exactly one feature_closure_rollup task."
+
+journey_task_coverage:
+  required_journey_count: 20
+  journey_range: "J01-J20"
+  rule: "Every J01-J20 node must be owned by at least one executable task; primary journey acceptance is N003."
+
+next_action_queue:
+  exact_order:
+    - "N001"
+    - "N002"
+    - "N003"
+    - "N004"
+    - "N005"
+    - "N006"
+    - "N007"
+    - "N008"
+    - "N009"
+    - "N010"
+  queue_policy: "Do not reorder, delete or silently replace N001-N010. A task may add recovery substeps but cannot bypass the declared dependency semantics."
+
+recovery:
+  interruption:
+    restart_from: "latest committed checkpoint"
+    read_order:
+      - "CONTROL_PLANE_REGISTRY.yaml"
+      - "AGENTS.md"
+      - "PROJECT_MASTER_STATE.yaml"
+      - "WORK_EXECUTION_STATE.json"
+      - "harness/FEATURE_MATRIX.yaml"
+      - "harness/PHASE_TASK_STATE_MACHINE.yaml"
+      - "harness/UNIFIED_CONTRACT_REGISTRY.yaml"
+      - "harness/build-log.md"
+    resume_rule: "Resume the current task from the last durable WORK_EXECUTION_STATE checkpoint; after task closure, select the first READY next action whose static dependencies and named blockers are satisfied."
+  failure:
+    classify_before_retry: true
+    retry_same_gate_max: 2
+    third_failure: "Stop automatic repair for that gate, classify the blocker, preserve evidence, and continue only independent tasks."
+    infrastructure_failure: "Do not rewrite product code merely to satisfy an infrastructure failure."
+    frozen_authority_conflict: "BLOCKED_DEPENDENCY until provenance is resolved."
+    product_failure: "BLOCKED_PRODUCT after retry budget is exhausted."
+  idempotency:
+    task_key: "task_id + source_sha + gate_id"
+    rerun_rule: "Reuse existing checkpoint/evidence where valid; never duplicate successful durable outputs."
+    evidence_rule: "Never delete failed evidence; supersede it with a new exact-SHA result."
+
+release_scope:
+  current: "PRIMARY_RELEASE"
+  primary_features:
+    - "home_empty_v2"
+    - "home_normal_v1"
+    - "recognition_flow_v1_2"
+    - "recognition_result_v1"
+    - "fish_record_detail_v2"
+    - "fish_memory_bside_v1"
+  primary_journeys: "J01-J20"
+  secondary_features_do_not_block_current_primary_release_unless:
+    - "they share a release-scope dependency"
+    - "they introduce a P0/P1 regression in the primary journey"
+    - "the release scope is explicitly expanded"
+  release_blockers: ["B001", "B002", "B003", "B004", "B006"]
+  human_gate: "N009"

@@ -1,0 +1,387 @@
+{
+  "schema_version": "3.1",
+  "system_id": "color_d015_review_candidates_v3_1",
+  "status": "APPROVED_DECISION_RECORDED_NON_EFFECTIVE",
+  "decision_id": "D-015",
+  "canonical_token_registry": "design/system_v3/04_Design_Tokens/Color/Color_Tokens_V3_FINAL.json",
+  "canonical_registry_status": "READY",
+  "canonical_token_count": 100,
+  "rule": "Historical review evidence only. The approved recommended mappings are tokenized in the canonical FINAL registry; this candidate file and alternatives are not developer sources.",
+  "review_standard": {
+    "normal_text_min_ratio": 4.5,
+    "large_text_min_ratio": 3.0,
+    "meaningful_non_text_min_ratio": 3.0,
+    "references": [
+      "https://www.w3.org/TR/WCAG22/#contrast-minimum",
+      "https://www.w3.org/TR/WCAG22/#non-text-contrast"
+    ],
+    "note": "Thresholds are a contrast review aid; background, size, state and actual UI context still determine conformance."
+  },
+  "contrast_contexts": [
+    {
+      "id": "solid_lake_white",
+      "background": "#F7FAFB",
+      "meaning": "Explicit solid-surface candidate pairs use LakeWhite; computed ratios do not cover other page backgrounds."
+    },
+    {
+      "id": "glass_composite_lake_white",
+      "source": "color.glass_white",
+      "opacity": 0.7607843137254902,
+      "base": "#F7FAFB",
+      "composite_hex": "#FDFEFE",
+      "meaning": "Mathematically composited white glass over LakeWhite; not a rendered-device result."
+    },
+    {
+      "id": "glass_composite_deep_lake_blue",
+      "source": "color.glass_white",
+      "opacity": 0.7607843137254902,
+      "base": "#0B2D4B",
+      "composite_hex": "#C5CDD4",
+      "meaning": "Mathematically composited white glass over DeepLakeBlue; dark-on-glass and white-on-glass are materially different."
+    },
+    {
+      "id": "photographic_or_ambient_media",
+      "background": "VARIABLE",
+      "meaning": "No universal contrast result is assigned. Each consuming page must evaluate the actual image crop, overlay and text position; a static color sample is not proof."
+    }
+  ],
+  "brand_accent_context": {
+    "token_ref": "color.morning_gold",
+    "hex": "#D6A541",
+    "rgba": "rgba(214,165,65,1)",
+    "status": "MAPPED_RESTRICTED",
+    "usage": "Brand / important moment / meaningful catch only.",
+    "contrast_on_lake_white": 2.15,
+    "rule": "Not normal body text, status text or a standalone success signal."
+  },
+  "roles": [
+    {
+      "role": "Brand Primary",
+      "recommendation": {
+        "label": "Existing primary action teal as candidate",
+        "foreground": {
+          "hex": "#0F7A78",
+          "rgba": "rgba(15,122,120,1)",
+          "opacity": 1
+        },
+        "background": {
+          "hex": "#F7FAFB",
+          "rgba": "rgba(247,250,251,1)",
+          "opacity": 1
+        },
+        "contrast_ratio": 4.91,
+        "normal_text_aa": true,
+        "large_text_aa": true,
+        "meaningful_non_text_aa": true,
+        "status": "APPROVED_RECOMMENDED_MAPPING",
+        "role_scope": "text_and_surface",
+        "source": "Existing color.action_primary (#0F7A78); shared action role is registered, but global brand role is not approved."
+      },
+      "alternatives": [
+        {
+          "label": "Deep lake blue alternative",
+          "foreground": {
+            "hex": "#0B2D4B",
+            "rgba": "rgba(11,45,75,1)",
+            "opacity": 1
+          },
+          "background": {
+            "hex": "#F7FAFB",
+            "rgba": "rgba(247,250,251,1)",
+            "opacity": 1
+          },
+          "contrast_ratio": 13.43,
+          "normal_text_aa": true,
+          "large_text_aa": true,
+          "meaningful_non_text_aa": true,
+          "status": "NOT_SELECTED_NON_EFFECTIVE",
+          "role_scope": "text_and_surface",
+          "source": "Existing color.deep_lake_blue (#0B2D4B); currently primary text / utility icon."
+        }
+      ],
+      "owner_choice_required": false,
+      "approved_choice": "recommendation"
+    },
+    {
+      "role": "Brand Secondary",
+      "recommendation": {
+        "label": "Lake Blue candidate",
+        "foreground": {
+          "hex": "#34556F",
+          "rgba": "rgba(52,85,111,1)",
+          "opacity": 1
+        },
+        "background": {
+          "hex": "#F7FAFB",
+          "rgba": "rgba(247,250,251,1)",
+          "opacity": 1
+        },
+        "contrast_ratio": 7.49,
+        "normal_text_aa": true,
+        "large_text_aa": true,
+        "meaningful_non_text_aa": true,
+        "status": "APPROVED_RECOMMENDED_MAPPING",
+        "role_scope": "text_and_surface",
+        "source": "Existing color.lake_blue (#34556F); Core Visual names Secondary Lake Blue, but global Brand Secondary is not explicit."
+      },
+      "alternatives": [
+        {
+          "label": "Active teal alternative",
+          "foreground": {
+            "hex": "#168B88",
+            "rgba": "rgba(22,139,136,1)",
+            "opacity": 1
+          },
+          "background": {
+            "hex": "#F7FAFB",
+            "rgba": "rgba(247,250,251,1)",
+            "opacity": 1
+          },
+          "contrast_ratio": 3.94,
+          "normal_text_aa": false,
+          "large_text_aa": true,
+          "meaningful_non_text_aa": true,
+          "status": "NOT_SELECTED_NON_EFFECTIVE",
+          "role_scope": "large_text_or_meaningful_non_text_only",
+          "source": "Existing color.active_accent (#168B88); selected accent / strong action. Contrast is below 4.5:1 for normal text on LakeWhite; would need a restricted non-text or large-text scope."
+        }
+      ],
+      "owner_choice_required": false,
+      "approved_choice": "recommendation"
+    },
+    {
+      "role": "Success",
+      "recommendation": {
+        "label": "Proposed forest green",
+        "foreground": {
+          "hex": "#216B4A",
+          "rgba": "rgba(33,107,74,1)",
+          "opacity": 1
+        },
+        "background": {
+          "hex": "#E6F2EB",
+          "rgba": "rgba(230,242,235,1)",
+          "opacity": 1
+        },
+        "contrast_ratio": 5.59,
+        "normal_text_aa": true,
+        "large_text_aa": true,
+        "meaningful_non_text_aa": true,
+        "status": "APPROVED_RECOMMENDED_MAPPING",
+        "role_scope": "text_and_surface",
+        "source": "New semantic proposal only; not added to canonical Color Tokens."
+      },
+      "alternatives": [
+        {
+          "label": "Existing action teal with proposed pale teal surface",
+          "foreground": {
+            "hex": "#0F7A78",
+            "rgba": "rgba(15,122,120,1)",
+            "opacity": 1
+          },
+          "background": {
+            "hex": "#EAF6F5",
+            "rgba": "rgba(234,246,245,1)",
+            "opacity": 1
+          },
+          "contrast_ratio": 4.66,
+          "normal_text_aa": true,
+          "large_text_aa": true,
+          "meaningful_non_text_aa": true,
+          "status": "NOT_SELECTED_NON_EFFECTIVE",
+          "role_scope": "text_and_surface",
+          "source": "Foreground uses existing color.action_primary; background is a proposed surface. This does not grant success semantics."
+        }
+      ],
+      "owner_choice_required": false,
+      "approved_choice": "recommendation"
+    },
+    {
+      "role": "Warning",
+      "recommendation": {
+        "label": "Proposed lake-ochre text on pale amber",
+        "foreground": {
+          "hex": "#735000",
+          "rgba": "rgba(115,80,0,1)",
+          "opacity": 1
+        },
+        "background": {
+          "hex": "#FFF1CC",
+          "rgba": "rgba(255,241,204,1)",
+          "opacity": 1
+        },
+        "contrast_ratio": 6.5,
+        "normal_text_aa": true,
+        "large_text_aa": true,
+        "meaningful_non_text_aa": true,
+        "status": "APPROVED_RECOMMENDED_MAPPING",
+        "role_scope": "text_and_surface",
+        "source": "New semantic proposal only; not added to canonical Color Tokens."
+      },
+      "alternatives": [
+        {
+          "label": "Proposed dark ochre on warm surface",
+          "foreground": {
+            "hex": "#7C5E25",
+            "rgba": "rgba(124,94,37,1)",
+            "opacity": 1
+          },
+          "background": {
+            "hex": "#FFF7E5",
+            "rgba": "rgba(255,247,229,1)",
+            "opacity": 1
+          },
+          "contrast_ratio": 5.65,
+          "normal_text_aa": true,
+          "large_text_aa": true,
+          "meaningful_non_text_aa": true,
+          "status": "NOT_SELECTED_NON_EFFECTIVE",
+          "role_scope": "text_and_surface",
+          "source": "New semantic proposal only; not added to canonical Color Tokens."
+        }
+      ],
+      "owner_choice_required": false,
+      "approved_choice": "recommendation"
+    },
+    {
+      "role": "Error",
+      "recommendation": {
+        "label": "Proposed dark red on pale red",
+        "foreground": {
+          "hex": "#8F2D25",
+          "rgba": "rgba(143,45,37,1)",
+          "opacity": 1
+        },
+        "background": {
+          "hex": "#FCE8E6",
+          "rgba": "rgba(252,232,230,1)",
+          "opacity": 1
+        },
+        "contrast_ratio": 6.94,
+        "normal_text_aa": true,
+        "large_text_aa": true,
+        "meaningful_non_text_aa": true,
+        "status": "APPROVED_RECOMMENDED_MAPPING",
+        "role_scope": "text_and_surface",
+        "source": "New semantic proposal only; not added to canonical Color Tokens."
+      },
+      "alternatives": [
+        {
+          "label": "Proposed alternate red",
+          "foreground": {
+            "hex": "#A1332B",
+            "rgba": "rgba(161,51,43,1)",
+            "opacity": 1
+          },
+          "background": {
+            "hex": "#FDECE9",
+            "rgba": "rgba(253,236,233,1)",
+            "opacity": 1
+          },
+          "contrast_ratio": 6.07,
+          "normal_text_aa": true,
+          "large_text_aa": true,
+          "meaningful_non_text_aa": true,
+          "status": "NOT_SELECTED_NON_EFFECTIVE",
+          "role_scope": "text_and_surface",
+          "source": "New semantic proposal only; not added to canonical Color Tokens."
+        }
+      ],
+      "legacy_page_candidate": {
+        "token_ref": "color.legacy_e66b61ff",
+        "hex": "#E66B61",
+        "rgba": "rgba(230,107,97,1)",
+        "source": "design/pages/account_privacy/spec/VISUAL_TOKENS.md labels #E66B61 Danger.",
+        "status": "PAGE_SCOPE_ONLY_NOT_APPROVED_FOR_GLOBAL_ERROR",
+        "contrast_on_lake_white": 3.02,
+        "normal_text_aa": false,
+        "allowed_scope": "Existing page authority only; do not use as shared error text without approval."
+      },
+      "owner_choice_required": false,
+      "approved_choice": "recommendation"
+    },
+    {
+      "role": "Info",
+      "recommendation": {
+        "label": "Proposed blue slate on pale blue",
+        "foreground": {
+          "hex": "#245D73",
+          "rgba": "rgba(36,93,115,1)",
+          "opacity": 1
+        },
+        "background": {
+          "hex": "#E8F2F6",
+          "rgba": "rgba(232,242,246,1)",
+          "opacity": 1
+        },
+        "contrast_ratio": 6.39,
+        "normal_text_aa": true,
+        "large_text_aa": true,
+        "meaningful_non_text_aa": true,
+        "status": "APPROVED_RECOMMENDED_MAPPING",
+        "role_scope": "text_and_surface",
+        "source": "New semantic proposal only; not added to canonical Color Tokens."
+      },
+      "alternatives": [
+        {
+          "label": "Existing Lake Blue on LakeWhite",
+          "foreground": {
+            "hex": "#34556F",
+            "rgba": "rgba(52,85,111,1)",
+            "opacity": 1
+          },
+          "background": {
+            "hex": "#F7FAFB",
+            "rgba": "rgba(247,250,251,1)",
+            "opacity": 1
+          },
+          "contrast_ratio": 7.49,
+          "normal_text_aa": true,
+          "large_text_aa": true,
+          "meaningful_non_text_aa": true,
+          "status": "NOT_SELECTED_NON_EFFECTIVE",
+          "role_scope": "text_and_surface",
+          "source": "Existing color.lake_blue (#34556F); this use still requires approval as the shared Info role."
+        }
+      ],
+      "owner_choice_required": false,
+      "approved_choice": "recommendation"
+    }
+  ],
+  "approval_record": {
+    "approver_role": "Design system + Product/Accessibility owner",
+    "approved": true,
+    "approved_at": "2026-10-11",
+    "source": "Phase 2 Final Freeze work instruction",
+    "selected_mappings": {
+      "Brand Primary": {
+        "foreground": "color.action_primary",
+        "surface": "color.lake_white"
+      },
+      "Brand Secondary": {
+        "foreground": "color.lake_blue",
+        "surface": "color.lake_white"
+      },
+      "Success": {
+        "foreground": "color.status_success_foreground",
+        "surface": "color.status_success_surface"
+      },
+      "Warning": {
+        "foreground": "color.status_warning_foreground",
+        "surface": "color.status_warning_surface"
+      },
+      "Error": {
+        "foreground": "color.status_error_foreground",
+        "surface": "color.status_error_surface"
+      },
+      "Info": {
+        "foreground": "color.status_info_foreground",
+        "surface": "color.status_info_surface"
+      }
+    },
+    "contrast_context_accepted": "Opaque recommended foreground/background pairs for solid UI surfaces; media and glass remain page-scoped contrast checks.",
+    "danger_global_error_decision": "Danger remains Page Scoped; Global Error uses distinct approved semantic tokens.",
+    "notes": "Alternatives were reviewed and not selected. Candidate registry remains non-effective."
+  },
+  "gate_effect": "D-015 RESOLVED. Canonical Color Tokens V3_FINAL is the sole effective authority."
+}

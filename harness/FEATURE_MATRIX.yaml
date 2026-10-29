@@ -1,0 +1,1234 @@
+# FEATURE_MATRIX.yaml — 渔见 V1
+
+schema_version: "1.0"
+matrix_id: "yujian-feature-matrix"
+status: "ACTIVE"
+purpose: "Machine-readable traceability index connecting the 15 Product Features to Design Registry units, child surfaces, J01-J20, Android routes, implementation, runtime/evidence and release control."
+source_of_truth_rule: "Feature Matrix is the canonical static feature/journey/route/surface index; it does not store live Work status, branch acceptance, blockers, next actions or release progress."
+dynamic_state_rule: "Live execution state belongs to PROJECT_MASTER_STATE.yaml and WORK_EXECUTION_STATE.json on the active Work branch."
+project:
+  repository: "pan277942135/Yujian_App"
+  control_branch: "main"
+inventory:
+  feature_count: 15
+  journey_count: 20
+  route_count: 22
+  primary_journey: "J01-J20"
+  feature_source: "design/registry/experience_registry_v1.json"
+  route_source: "app/src/main/java/com/yujian/ai/YujianApp.kt"
+  journey_source: "design/system_v3/00_Product_Master_Flow/master_flow_v3_1.json"
+feature_order:
+  - "home_empty_v2"
+  - "home_normal_v1"
+  - "record_date_v2"
+  - "recognition_flow_v1_2"
+  - "recognition_result_v1"
+  - "fish_record_detail_v2"
+  - "share_templates_v1"
+  - "fish_memory_bside_v1"
+  - "my_catches_v2"
+  - "fish_guide_v2"
+  - "account_privacy_v1"
+  - "auth_login_v2"
+  - "auth_register_v2"
+  - "profile_edit_v1"
+  - "user_agreement_v1"
+features:
+  home_empty_v2:
+    sequence: 1
+    name: "空首页"
+    priority: "P0"
+    scope: "PRIMARY_JOURNEY"
+    parent_feature: null
+    control_phase: "P8"
+    owner_path: "design/pages/home/empty_home"
+    registry_overall: "FROZEN"
+    registry_design_overall: "FROZEN"
+    registry_modalities:
+      behavior:
+        status: "FROZEN"
+        authority: "design/pages/home/empty_home/spec/Empty_Home_Feature_Spec_V2.md"
+      visual:
+        status: "FROZEN"
+        authority: "design/system/core_visual_v1/reference/empty_home_v2.png"
+      motion:
+        status: "FROZEN"
+        authority: "design/pages/home/empty_home/motion/Empty_Home_Motion_Spec_V2.md"
+      haptic:
+        status: "FROZEN"
+        authority: "design/pages/home/empty_home/haptic/Empty_Home_Haptic_Spec_V1.md"
+      sound:
+        status: "FROZEN"
+        authority: "design/pages/home/empty_home/sound/Empty_Home_Sound_Spec_V1.md"
+      runtime:
+        status: "FROZEN"
+        authority: "design/pages/home/empty_home/shared/contracts/runtime_manifest.json"
+      evidence:
+        status: "FROZEN"
+        authority: "design/pages/home/empty_home/evidence/manifest.json"
+      assets:
+        status: "FROZEN"
+        authority: "design/pages/home/empty_home/shared/contracts/asset_manifest.json"
+    design_units: []
+    design_children: []
+    child_surfaces:
+      - "empty_state"
+      - "primary_capture"
+    journey_refs:
+      - "J01"
+      - "J02"
+    route_refs:
+      - "home"
+    implementation:
+      registered_runtime_status: "FROZEN"
+      runtime_authority: "design/pages/home/empty_home/shared/contracts/runtime_manifest.json"
+    known_gaps:
+      - "Current-branch runtime/evidence must be reverified; registry FROZEN is historical authority, not current-head evidence."
+  home_normal_v1:
+    sequence: 2
+    name: "有数据首页"
+    priority: "P0"
+    scope: "PRIMARY_JOURNEY"
+    parent_feature: null
+    control_phase: "P8"
+    owner_path: "design/pages/home/normal_home"
+    registry_overall: "FROZEN"
+    registry_design_overall: "FROZEN"
+    registry_modalities:
+      behavior:
+        status: "FROZEN"
+        authority: "design/pages/home/normal_home/spec/Behavior_Spec_V1.md"
+      visual:
+        status: "FROZEN"
+        authority: "design/system/core_visual_v1/reference/normal_home_v1.png"
+      motion:
+        status: "FROZEN"
+        authority: "design/pages/home/normal_home/motion/Normal_Home_Motion_Spec_V1.md"
+      haptic:
+        status: "FROZEN"
+        authority: "design/pages/home/normal_home/haptic/Normal_Home_Haptic_Spec_V1.md"
+      sound:
+        status: "FROZEN"
+        authority: "design/pages/home/normal_home/sound/Normal_Home_Sound_Spec_V1.md"
+      runtime:
+        status: "PARTIAL"
+        authority: "app/src/main/java/com/yujian/ai/ui/home/GeminiNormalHomeContent.kt"
+      evidence:
+        status: "PARTIAL"
+        authority: null
+      assets:
+        status: "FROZEN"
+        authority: "design/pages/home/normal_home/assets/asset_manifest.json"
+    design_units:
+      - "NH01"
+      - "NH02"
+      - "NH03"
+      - "NH04"
+      - "NH05"
+      - "NH06"
+      - "NH07"
+    design_archive_refs:
+      - "design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_MULTI_SCREEN_STATIC_HIFI_V1_MANIFEST.json"
+      - "design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_MULTI_SCREEN_RESPONSIVE_CONTRACT_V1.md"
+      - "design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_MULTI_SCREEN_RESPONSIVE_CONTRACT_V1.json"
+      - "design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_STATIC_HIFI_ACCEPTANCE_MATRIX_V1.json"
+      - "design/pages/home/normal_home/responsive/NH01_RESPONSIVE_LAYOUT_V2.json"
+      - "design/pages/home/normal_home/responsive/NH01_RESPONSIVE_LAYOUT_V2.md"
+      - "design/pages/home/normal_home/responsive/NH01_RESPONSIVE_AUTHORITY_CROSSWALK_V1.md"
+      - "design/system_v3/07_Responsive_System/Responsive_Layout_Contract_Schema_V1.json"
+      - "design/system_v3/07_Responsive_System/Viewport_Profiles_V1.json"
+      - "design/system_v3/07_Responsive_System/Responsive_Layout_Standard_V1.md"
+      - "scripts/design/validate_nh01_responsive_layout_contract_v2.py"
+    design_children: []
+    child_surfaces:
+      - "NH01"
+      - "NH02"
+      - "NH03"
+      - "NH04"
+      - "NH05"
+      - "NH06"
+      - "NH07"
+    journey_refs:
+      - "J17"
+      - "J18"
+    route_refs:
+      - "home"
+    implementation:
+      registered_runtime_status: "PARTIAL"
+      runtime_authority: "app/src/main/java/com/yujian/ai/ui/home/GeminiNormalHomeContent.kt"
+      layout_policy: "app/src/main/java/com/yujian/ai/ui/home/GeminiHomeAdaptiveLayoutPolicy.kt"
+    known_gaps:
+      - "Runtime/evidence remain partial; Hero F01-F08 fixture matrix and camera optical parity are open (B003/B004)."
+      - "NH01 Responsive Layout V2 is SPEC_FROZEN as the sole current Gemini responsive machine contract. The V1 static archive remains immutable; the remaining Normal Home gap is exact-SHA Android implementation and runtime evidence, which is still NOT_VERIFIED."
+  record_date_v2:
+    sequence: 3
+    name: "记录日期"
+    priority: "P1"
+    scope: "SECONDARY"
+    parent_feature: null
+    control_phase: "P6"
+    owner_path: "design/pages/record_date/v2"
+    registry_overall: "PARTIAL"
+    registry_design_overall: "FROZEN"
+    registry_modalities:
+      behavior:
+        status: "FROZEN"
+        authority: "design/pages/record_date/v2/spec/Record_Date_V2_Interaction_Contract.md"
+      visual:
+        status: "FROZEN"
+        authority: "design/pages/record_date/v2/assets/Record_Date_Month_V2.png"
+      motion:
+        status: "PARTIAL"
+        authority: "design/pages/record_date/v2/spec/Record_Date_V2_Motion_Video_Contract.md"
+      haptic:
+        status: "DEFERRED"
+        authority: null
+      sound:
+        status: "DEFERRED"
+        authority: null
+      runtime:
+        status: "MISSING"
+        authority: null
+      evidence:
+        status: "FROZEN"
+        authority: "design/pages/record_date/v2/review/Record_Date_V2_Freeze_Decision_20261010.md"
+      assets:
+        status: "FROZEN"
+        authority: "design/pages/record_date/v2/assets/asset_manifest.json"
+    design_units:
+      - "month_v2"
+      - "year_v2"
+      - "interaction"
+    design_children: []
+    child_surfaces:
+      - "RD01"
+      - "RD02"
+      - "RD03"
+    journey_refs: []
+    route_refs: []
+    implementation:
+      registered_runtime_status: "MISSING"
+      runtime_authority: null
+    known_gaps:
+      - "No production route is registered in current Android navigation; runtime is MISSING; motion is PARTIAL; haptic/sound are intentionally DEFERRED."
+  recognition_flow_v1_2:
+    sequence: 4
+    name: "识别过程"
+    priority: "P0"
+    scope: "PRIMARY_JOURNEY"
+    parent_feature: null
+    control_phase: "P8"
+    owner_path: "design/pages/recognition"
+    registry_overall: "ACTIVE_CLOSURE"
+    registry_design_overall: "ACTIVE_CLOSURE"
+    registry_modalities:
+      behavior:
+        status: "FROZEN"
+        authority: "design/pages/recognition/spec/Recognition_State_Timeline_Spec_V1_3.md"
+      visual:
+        status: "ACTIVE_CLOSURE"
+        authority: "design/pages/recognition/processing/optics/SWOS_Optical_Contract_V1.md"
+      motion:
+        status: "ACTIVE_CLOSURE"
+        authority: "design/pages/recognition/processing/motion/Recognition_Processing_Motion_Spec_V1_3.md"
+      haptic:
+        status: "FROZEN"
+        authority: "design/pages/recognition/processing/haptic/Recognition_Processing_Haptic_Spec_V1.md"
+      sound:
+        status: "FROZEN"
+        authority: "design/pages/recognition/processing/sound/Recognition_Processing_Sound_Spec_V1.md"
+      runtime:
+        status: "ACTIVE_CLOSURE"
+        authority: "design/pages/recognition/spec/Recognition_Visual_Fidelity_V1_2.md"
+      evidence:
+        status: "ACTIVE_CLOSURE"
+        authority: "design/pages/recognition/evidence/Recognition_Runtime_Evidence_V1_2.md"
+      assets:
+        status: "FROZEN"
+        authority: "design/pages/recognition/design/reference_manifest.json"
+    design_units:
+      - "state_timeline"
+      - "visual_states"
+      - "layer_component_ownership"
+      - "motion_transition"
+      - "degradation_accessibility"
+      - "runtime_evidence"
+      - "capture_first_use_guide"
+      - "recognition_full_flow_models"
+      - "swos_optical_contract"
+      - "processing_result_continuity"
+      - "swos_static_visual_v1_1"
+      - "web_hifi_contract_v2"
+      - "fishtrace_sites_web_interaction_v1"
+      - "swos_web_hifi_motion_technical_contract_v1_0"
+      - "swos_rr09_optical_v1_2"
+    design_children:
+      - "ai_edge_field_v1_static_shape"
+      - "ai_edge_field_v1_rendering_contract"
+      - "ai_edge_field_ref_r01"
+      - "ai_edge_field_ref_r02"
+      - "ai_edge_field_ref_r03"
+      - "ai_edge_field_ref_r04"
+      - "ai_edge_field_ref_r05"
+      - "ai_edge_field_ref_r06"
+      - "ai_edge_field_v1_motion_contract"
+      - "quality_levels"
+      - "reduce_motion"
+      - "layer_degradation_order"
+      - "semantic_invariants"
+      - "runtime_visual_parity"
+      - "runtime_motion_timing"
+      - "runtime_accessibility_degradation"
+      - "runtime_production_semantics"
+      - "runtime_final_gate"
+      - "p01"
+      - "p02"
+      - "p03"
+      - "resources"
+      - "swos_optical_contract_v1"
+      - "processing_result_optical_continuity_v1"
+      - "processing_page_contract_v3_2"
+      - "swos_15_frame_keyframes_v1_1"
+      - "swos_shared_photo_transition_v1"
+      - "swos_dynamic_demo_handoff_v1"
+      - "swos_web_hifi_motion_technical_contract_v1_0"
+    child_surfaces:
+      - "capture"
+      - "permission"
+      - "first_use_guide"
+      - "first_use_guide_portrait_horizontal"
+      - "first_use_guide_landscape_horizontal"
+      - "preview_ready"
+      - "capture_ready_portrait_horizontal"
+      - "capture_ready_landscape_horizontal"
+      - "processing"
+      - "issue_retry"
+      - "gallery_entry"
+    journey_refs:
+      - "J03"
+      - "J04"
+      - "J05"
+      - "J06"
+      - "J07"
+      - "J08"
+      - "J09"
+      - "J10"
+    route_refs:
+      - "identify?openGallery={openGallery}"
+      - "recognizing"
+      - "recognition_issue"
+    implementation:
+      registered_runtime_status: "ACTIVE_CLOSURE"
+      runtime_authority: "design/pages/recognition/spec/Recognition_Visual_Fidelity_V1_2.md"
+      execution_task_refs:
+        - "YUJIAN_ANDROID_SLIMSAM_PIXEL_SEGMENTATION_V1"
+    capture_hifi:
+      status: "FROZEN"
+      visual_contract: "design/system_v3/08_Page_Contracts/recognition/capture/Recognition_Capture_HiFi_Visual_Contract_V1.md"
+      manifest: "design/pages/recognition/capture/HiFi_Freeze_Manifest_V1.json"
+      states:
+        - "capture_ready_portrait_horizontal"
+        - "capture_ready_landscape_horizontal"
+      fish_guide_frame: "FIXED_HORIZONTAL"
+      control_geometry: "RIGHT_VERTICAL_RAIL"
+      binary_import_status: "PENDING"
+    known_gaps:
+      - "Exact-head API28 runtime not yet accepted (B001/B002)."
+      - "Capture Hi-Fi source PNG binary import remains pending."
+      - "The V1 first-use guide uses the three frozen pages P01/P02/P03; exact-head API28 runtime and visual parity evidence remain pending."
+      - "SWOS V1 / Processing V3.2 and SWOS Static V1.1 are main-adopted design contracts via PR #190. Android Effect 01, upward caustic surge and photo shockwave are implemented at Main efcfa18, but exact-head API28 runtime and owner visual acceptance remain NOT_VERIFIED. The original AI Studio four-sided perimeter shader port is a separate task; source-browser comparison, Overlay alpha equivalence, DPR mapping and API28 runtime remain NOT_VERIFIED."
+      - "Local SlimSAM BBOX-to-pixel-mask inference is a separate P6 implementation task. It must reuse the existing PhotoSession and Detector output while preserving Classifier semantics; model provenance, ONNX signatures, offline packaging and API28 runtime require exact-head evidence."
+      - "Web/SWOS user-confirmed private visual references and local viewer: design/pages/recognition/web/VISUAL_REFERENCE_MANIFEST_V1.json; visual closure requires browser evidence and publication permission checks."
+      - "SWOS photo source has no confirmed public publication permission; public preview requires a local browser upload and static exports remain private."
+      - "Web Hi-Fi V2 is a main-adopted design-only contract via PR #190. Primary visual baseline web-three-stage is FROZEN_PRIVATE_SHA_BOUND by exact SHA; public permission remains NOT_CONFIRMED; runtime pixel parity remains unverified."
+      - "FishTrace Sites has a separate user-frozen Web interaction contract V1: immersive single scene, camera/gallery choice first, desktop photo-left/result-right, below-1024px photo-top/result-below. This is Sites-only and does not alter Yujian Web V2/PR #177; Sites runtime remains unverified until exact-deployment evidence."
+  recognition_result_v1:
+    sequence: 5
+    name: "识别结果"
+    priority: "P0"
+    scope: "PRIMARY_JOURNEY"
+    parent_feature: null
+    control_phase: "P8"
+    owner_path: "design/pages/recognition/result"
+    registry_overall: "ACTIVE_CLOSURE"
+    registry_design_overall: "ACTIVE_CLOSURE"
+    registry_modalities:
+      behavior:
+        status: "FROZEN"
+        authority: "design/pages/recognition/result/spec/Recognition_Result_Behavior_Spec_V1.md"
+      visual:
+        status: "FROZEN"
+        authority: "design/pages/recognition/result/authority/authority_map.json"
+      motion:
+        status: "ACTIVE_CLOSURE"
+        authority: "design/pages/recognition/result/motion/Recognition_Result_Motion_Spec_V3.md"
+      haptic:
+        status: "FROZEN"
+        authority: "design/pages/recognition/result/motion/Recognition_Result_Motion_Spec_V1.md"
+      sound:
+        status: "FROZEN"
+        authority: "design/pages/recognition/result/motion/Recognition_Result_Motion_Spec_V1.md"
+      runtime:
+        status: "PARTIAL"
+        authority: "app/src/main/java/com/yujian/ai/ui/screens/RecognitionResultScreen.kt"
+      evidence:
+        status: "PARTIAL"
+        authority: "design/pages/recognition/result/review/Recognition_Result_Runtime_Alignment_Review_V1.md"
+      assets:
+        status: "FROZEN"
+        authority: "design/pages/recognition/design/reference_manifest.json"
+    design_units:
+      - "overview"
+      - "high"
+      - "medium"
+      - "low"
+      - "no_fish"
+      - "image_quality"
+      - "content_edit"
+      - "decision_logic"
+      - "visual_acceptance"
+      - "motion_continuation"
+      - "motion_continuation_v2_history"
+    design_children: []
+    child_surfaces:
+      - "overview"
+      - "high"
+      - "medium"
+      - "low"
+      - "no_fish"
+      - "image_quality"
+      - "content_edit"
+      - "decision_logic"
+      - "visual_acceptance"
+      - "motion_continuation"
+    journey_refs:
+      - "J11"
+      - "J12"
+      - "J13"
+      - "J14"
+      - "J15"
+      - "J16"
+    route_refs:
+      - "result"
+    implementation:
+      registered_runtime_status: "PARTIAL"
+      runtime_authority: "app/src/main/java/com/yujian/ai/ui/screens/RecognitionResultScreen.kt"
+    known_gaps:
+      - "Current runtime/evidence are partial; exact-head runtime and current-branch provenance conflict remain open (B001/B002/B006)."
+      - "RR09 V3 is main-adopted design-only and not Android-implemented; V2 remains unchanged historical baseline; Runtime/Playback stays NOT_RUN until Stage 1 closure."
+  fish_record_detail_v2:
+    sequence: 6
+    name: "鱼获详情"
+    priority: "P0"
+    scope: "PRIMARY_JOURNEY"
+    parent_feature: null
+    control_phase: "P7"
+    owner_path: "design/pages/fish_record/detail"
+    registry_overall: "PARTIAL"
+    registry_design_overall: "PARTIAL"
+    registry_modalities:
+      behavior:
+        status: "FROZEN"
+        authority: "design/pages/fish_record/detail/README.md"
+      visual:
+        status: "FROZEN"
+        authority: "design/system/core_visual_v1/reference/fish_record_detail_v2.png"
+      motion:
+        status: "MISSING"
+        authority: null
+      haptic:
+        status: "MISSING"
+        authority: null
+      sound:
+        status: "MISSING"
+        authority: null
+      runtime:
+        status: "PARTIAL"
+        authority: "app/src/main/java/com/yujian/ai/ui/recorddetail/FishRecordDetailScreen.kt"
+      evidence:
+        status: "MISSING"
+        authority: null
+      assets:
+        status: "PARTIAL"
+        authority: "design/system/core_visual_v1/reference/reference_manifest.json"
+    design_units:
+      - "overview"
+      - "a_side"
+      - "b_side"
+      - "asset_generation"
+      - "editing"
+      - "page_states"
+    design_children:
+      - "populated_memory_media"
+      - "asset_generation_states_visual"
+      - "editing_workspace_visual"
+      - "no_uploaded_memory"
+    child_surfaces:
+      - "overview"
+      - "a_side"
+      - "b_side"
+      - "asset_generation"
+      - "editing"
+      - "page_states"
+      - "populated_memory_media"
+      - "no_uploaded_memory"
+    journey_refs:
+      - "J19"
+    route_refs:
+      - "catch/{catchId}?section={section}"
+    implementation:
+      registered_runtime_status: "PARTIAL"
+      runtime_authority: "app/src/main/java/com/yujian/ai/ui/recorddetail/FishRecordDetailScreen.kt"
+    known_gaps:
+      - "Motion/haptic/sound/evidence are missing; runtime is partial."
+  share_templates_v1:
+    sequence: 7
+    name: "分享模板"
+    priority: "P1"
+    scope: "SECONDARY"
+    parent_feature: null
+    control_phase: "P6"
+    owner_path: "design/pages/share_templates"
+    registry_overall: "PARTIAL"
+    registry_design_overall: "PARTIAL"
+    registry_modalities:
+      behavior:
+        status: "FROZEN"
+        authority: "design/pages/share_templates/01_Product_Model_V1.md"
+      visual:
+        status: "PARTIAL"
+        authority: "design/pages/share_templates/assets/manifest.json"
+      motion:
+        status: "PARTIAL"
+        authority: null
+      haptic:
+        status: "PARTIAL"
+        authority: null
+      sound:
+        status: "PARTIAL"
+        authority: null
+      runtime:
+        status: "RUNTIME_ONLY"
+        authority: "app/src/main/java/com/yujian/ai/ui/screens/ShareCenterScreen.kt"
+      evidence:
+        status: "PARTIAL"
+        authority: "design/pages/share_templates/assets/manifest.json"
+      assets:
+        status: "PARTIAL"
+        authority: "design/pages/share_templates/assets/manifest.json"
+    design_units:
+      - "01_overview"
+      - "02_t01"
+      - "03_t02"
+      - "04_data_rules"
+      - "05_interaction"
+      - "06_responsive"
+    design_children:
+      - "02a"
+      - "02b"
+      - "03a"
+      - "03b"
+      - "03c"
+      - "03d"
+      - "03e"
+    child_surfaces:
+      - "01_overview"
+      - "02_t01"
+      - "03_t01_02a"
+      - "03_t01_02b"
+      - "03_t02"
+      - "04_data_rules"
+      - "05_interaction"
+      - "06_responsive"
+    journey_refs: []
+    route_refs: []
+    implementation:
+      registered_runtime_status: "RUNTIME_ONLY"
+      runtime_authority: "app/src/main/java/com/yujian/ai/ui/screens/ShareCenterScreen.kt"
+    known_gaps:
+      - "No current production navigation route is registered; visual/motion/haptic/sound/assets/evidence remain partial; runtime is RUNTIME_ONLY."
+  fish_memory_bside_v1:
+    sequence: 8
+    name: "鱼获记忆 / B 面"
+    priority: "P0"
+    scope: "PRIMARY_JOURNEY"
+    parent_feature: "fish_record_detail_v2"
+    control_phase: "P7"
+    owner_path: "design/system/core_visual_v1/reference/supplemental"
+    registry_overall: "PARTIAL"
+    registry_design_overall: "PARTIAL"
+    registry_modalities:
+      behavior:
+        status: "PARTIAL"
+        authority: "design/pages/fish_record/detail/README.md"
+      visual:
+        status: "PARTIAL"
+        authority: "design/system/core_visual_v1/reference/supplemental/fish_memory_reference.png"
+      motion:
+        status: "MISSING"
+        authority: null
+      haptic:
+        status: "MISSING"
+        authority: null
+      sound:
+        status: "MISSING"
+        authority: null
+      runtime:
+        status: "PARTIAL"
+        authority: "app/src/main/java/com/yujian/ai/ui/recorddetail/FishMemorySection.kt"
+      evidence:
+        status: "MISSING"
+        authority: null
+      assets:
+        status: "PARTIAL"
+        authority: "design/system/core_visual_v1/reference/reference_manifest.json"
+    design_units: []
+    design_children: []
+    child_surfaces:
+      - "b_side_memory"
+      - "photo"
+      - "video"
+      - "generation_lifecycle"
+    journey_refs:
+      - "J20"
+    route_refs:
+      - "memory_capture/{catchId}/{captureMode}"
+    implementation:
+      registered_runtime_status: "PARTIAL"
+      runtime_authority: "app/src/main/java/com/yujian/ai/ui/recorddetail/FishMemorySection.kt"
+    known_gaps:
+      - "Independent memory design package is PARTIAL; motion/haptic/sound/evidence are missing; runtime is partial."
+  my_catches_v2:
+    sequence: 9
+    name: "我的鱼获"
+    priority: "P1"
+    scope: "SECONDARY"
+    parent_feature: null
+    control_phase: "P7"
+    owner_path: "design/pages/fish_records/list"
+    registry_overall: "PARTIAL"
+    registry_design_overall: "PARTIAL"
+    registry_modalities:
+      behavior:
+        status: "FROZEN"
+        authority: "design/pages/fish_records/list/README.md"
+      visual:
+        status: "FROZEN"
+        authority: "design/system/core_visual_v1/reference/my_catches_v2.png"
+      motion:
+        status: "MISSING"
+        authority: null
+      haptic:
+        status: "MISSING"
+        authority: null
+      sound:
+        status: "MISSING"
+        authority: null
+      runtime:
+        status: "PARTIAL"
+        authority: "app/src/main/java/com/yujian/ai/ui/screens/MyScreen.kt"
+      evidence:
+        status: "MISSING"
+        authority: null
+      assets:
+        status: "PARTIAL"
+        authority: "design/system/core_visual_v1/reference/reference_manifest.json"
+    design_units:
+      - "overview"
+      - "main"
+      - "timeline"
+      - "filter"
+      - "empty"
+      - "growth"
+      - "search"
+      - "system"
+      - "habitat"
+    design_children:
+      - "o1_information_architecture"
+      - "o2_bg_data_resource"
+      - "t0_final_board"
+      - "f0_filter_overview"
+      - "f1_filter_panel"
+      - "f2_species"
+      - "f3_time"
+      - "f4_size"
+      - "f5_special_record"
+      - "f6_results"
+      - "f7_empty"
+      - "b0_search_functional_board"
+      - "b1_recent"
+      - "b2_results"
+      - "b3_empty"
+      - "b4_search_filter"
+      - "b5_interaction"
+      - "tank_round_hifi"
+      - "tank_landscape_hifi"
+      - "pond_landscape_hifi"
+      - "pond_levels_1_5"
+      - "lake_levels_1_7"
+    child_surfaces:
+      - "overview"
+      - "main"
+      - "timeline"
+      - "filter"
+      - "empty"
+      - "growth"
+      - "search"
+      - "system"
+      - "habitat"
+    journey_refs:
+      - "J18"
+    route_refs:
+      - "my_catches?speciesId={speciesId}"
+      - "my_catches/day/{dayKey}"
+    implementation:
+      registered_runtime_status: "PARTIAL"
+      runtime_authority: "app/src/main/java/com/yujian/ai/ui/screens/MyScreen.kt"
+    known_gaps:
+      - "Runtime is partial; motion/haptic/sound/evidence are missing; Habitat remains design-only with pending raw imports."
+  fish_guide_v2:
+    sequence: 10
+    name: "鱼鉴"
+    priority: "P1"
+    scope: "SECONDARY"
+    parent_feature: null
+    control_phase: "P7"
+    owner_path: "design/pages/fish_guide"
+    registry_overall: "PARTIAL"
+    registry_design_overall: "FROZEN"
+    registry_modalities:
+      behavior:
+        status: "FROZEN"
+        authority: "design/pages/fish_guide/README.md"
+      visual:
+        status: "FROZEN"
+        authority: "design/system/core_visual_v1/reference/fish_guide_v2.png"
+      motion:
+        status: "FROZEN"
+        authority: "design/pages/fish_guide/motion/Fish_Guide_Motion_Interaction_Spec_V1.md"
+      haptic:
+        status: "FROZEN"
+        authority: "design/pages/fish_guide/motion/Fish_Guide_Motion_Interaction_Spec_V1.md"
+      sound:
+        status: "FROZEN"
+        authority: "design/pages/fish_guide/motion/Fish_Guide_Motion_Interaction_Spec_V1.md"
+      runtime:
+        status: "PARTIAL"
+        authority: "app/src/main/java/com/yujian/ai/ui/screens/FishGuideHomeScreen.kt"
+      evidence:
+        status: "MISSING"
+        authority: null
+      assets:
+        status: "FROZEN"
+        authority: "design/pages/fish_guide/content/Fish_Guide_Knowledge_Card_Content_Asset_Contract_V1.md"
+    design_units:
+      - "home"
+      - "species_detail"
+      - "species_states"
+      - "knowledge_content_assets"
+      - "motion_interaction"
+      - "responsive_accessibility"
+    design_children:
+      - "unlit_state"
+      - "zero_catch"
+    child_surfaces:
+      - "home"
+      - "species_detail"
+      - "species_states"
+      - "knowledge_content_assets"
+      - "motion_interaction"
+      - "responsive_accessibility"
+    journey_refs: []
+    route_refs:
+      - "guide"
+      - "species/{key}"
+    implementation:
+      registered_runtime_status: "PARTIAL"
+      runtime_authority: "app/src/main/java/com/yujian/ai/ui/screens/FishGuideHomeScreen.kt"
+    known_gaps:
+      - "Runtime is partial and runtime evidence is missing."
+  account_privacy_v1:
+    sequence: 11
+    name: "账号与隐私"
+    priority: "P1"
+    scope: "SECONDARY"
+    parent_feature: null
+    control_phase: "P7"
+    owner_path: "design/pages/account_privacy"
+    registry_overall: "PARTIAL"
+    registry_design_overall: "FROZEN"
+    registry_modalities:
+      behavior:
+        status: "FROZEN"
+        authority: "design/pages/account_privacy/spec/FLOW_SPEC.md"
+      visual:
+        status: "FROZEN"
+        authority: "design/pages/account_privacy/authority_manifest_v2.json"
+      motion:
+        status: "FROZEN"
+        authority: "design/pages/account_privacy/spec/Account_Privacy_Interaction_Feedback_Spec_V1.md"
+      haptic:
+        status: "FROZEN"
+        authority: "design/pages/account_privacy/spec/Account_Privacy_Interaction_Feedback_Spec_V1.md"
+      sound:
+        status: "FROZEN"
+        authority: "design/pages/account_privacy/spec/Account_Privacy_Interaction_Feedback_Spec_V1.md"
+      runtime:
+        status: "PARTIAL"
+        authority: "app/src/main/java/com/yujian/ai/ui/screens/AccountPrivacyScreens.kt"
+      evidence:
+        status: "FROZEN"
+        authority: "design/pages/account_privacy/Account_Privacy_Design_Freeze_Review_V1.md"
+      assets:
+        status: "FROZEN"
+        authority: "design/pages/account_privacy/authority_manifest_v2.json"
+    design_units:
+      - "01_login_register"
+      - "02_my_profile"
+      - "03_account_login"
+      - "04_data_privacy"
+      - "05_legal_about"
+    design_children:
+      - "01a"
+      - "01b"
+      - "01c"
+      - "02a"
+      - "02b"
+      - "02c"
+      - "02d"
+      - "03a"
+      - "03b"
+      - "04a"
+      - "04b"
+      - "04c"
+      - "04d"
+      - "04e"
+      - "05a"
+      - "05b"
+      - "05c"
+    child_surfaces:
+      - "01_login_register"
+      - "02_my_profile"
+      - "03_account_login"
+      - "04_data_privacy"
+      - "05_legal_about"
+    journey_refs: []
+    route_refs:
+      - "my"
+      - "account_login"
+      - "change_password"
+      - "data_privacy"
+      - "about"
+      - "privacy_policy"
+    implementation:
+      registered_runtime_status: "PARTIAL"
+      runtime_authority: "app/src/main/java/com/yujian/ai/ui/screens/AccountPrivacyScreens.kt"
+    known_gaps:
+      - "Runtime is partial; runtime acceptance remains open. Forgot Password/Export/Delete are intentionally DEFERRED."
+  auth_login_v2:
+    sequence: 12
+    name: "登录 · 欢迎回来"
+    priority: "P1"
+    scope: "SECONDARY"
+    parent_feature: "account_privacy_v1"
+    control_phase: "P8"
+    owner_path: "design/pages/account_privacy/Login"
+    registry_overall: "ACTIVE_CLOSURE"
+    registry_design_overall: "FROZEN"
+    registry_modalities:
+      behavior:
+        status: "FROZEN"
+        authority: "design/pages/account_privacy/Login/Login_V2_Closure.md"
+      visual:
+        status: "FROZEN"
+        authority: "design/pages/account_privacy/Login/frozen/Login_V2_1_Frozen_Final.png"
+      motion:
+        status: "FROZEN"
+        authority: "design/pages/account_privacy/Login/Login_V2_BG_CONTENT_Revision_V2_1.md"
+      haptic:
+        status: "FROZEN"
+        authority: "design/pages/account_privacy/Login/Login_V2_BG_CONTENT_Revision_V2_1.md"
+      sound:
+        status: "FROZEN"
+        authority: "design/pages/account_privacy/Login/Login_V2_BG_CONTENT_Revision_V2_1.md"
+      runtime:
+        status: "FROZEN"
+        authority: "app/src/main/java/com/yujian/ai/ui/auth/LoginV2Screen.kt"
+      evidence:
+        status: "PARTIAL"
+        authority: "app/src/androidTest/java/com/yujian/ai/LoginV2RuntimeTest.kt"
+      assets:
+        status: "FROZEN"
+        authority: "design/pages/account_privacy/Login/frozen/manifest.json"
+    design_units: []
+    design_children: []
+    child_surfaces:
+      - "login_form"
+    journey_refs: []
+    route_refs:
+      - "login"
+      - "auth/login"
+    implementation:
+      registered_runtime_status: "FROZEN"
+      runtime_authority: "app/src/main/java/com/yujian/ai/ui/auth/LoginV2Screen.kt"
+    known_gaps:
+      - "Design/runtime are frozen in registry, but current evidence is partial and exact-head revalidation is still required."
+  auth_register_v2:
+    sequence: 13
+    name: "注册 · 创建账号"
+    priority: "P1"
+    scope: "SECONDARY"
+    parent_feature: "account_privacy_v1"
+    control_phase: "P6"
+    owner_path: "design/pages/account_privacy/Register"
+    registry_overall: "PARTIAL"
+    registry_design_overall: "FROZEN"
+    registry_modalities:
+      behavior:
+        status: "FROZEN"
+        authority: "design/pages/account_privacy/Register/Register_V2_Design_Spec_V1.md"
+      visual:
+        status: "FROZEN"
+        authority: "design/pages/account_privacy/Register/frozen/Register_V2_Frozen_Final.png"
+      motion:
+        status: "FROZEN"
+        authority: "design/pages/account_privacy/Register/Register_V2_Design_Spec_V1.md"
+      haptic:
+        status: "FROZEN"
+        authority: "design/pages/account_privacy/Register/Register_V2_Design_Spec_V1.md"
+      sound:
+        status: "FROZEN"
+        authority: "design/pages/account_privacy/Register/Register_V2_Design_Spec_V1.md"
+      runtime:
+        status: "RUNTIME_ONLY"
+        authority: "app/src/main/java/com/yujian/ai/ui/auth/RegisterV2Screen.kt"
+      evidence:
+        status: "MISSING"
+        authority: null
+      assets:
+        status: "FROZEN"
+        authority: "design/pages/account_privacy/Register/frozen/manifest.json"
+    design_units: []
+    design_children: []
+    child_surfaces:
+      - "register_form"
+    journey_refs: []
+    route_refs:
+      - "register"
+    implementation:
+      registered_runtime_status: "RUNTIME_ONLY"
+      runtime_authority: "app/src/main/java/com/yujian/ai/ui/auth/RegisterV2Screen.kt"
+    known_gaps:
+      - "Runtime is RUNTIME_ONLY and evidence is missing."
+  profile_edit_v1:
+    sequence: 14
+    name: "编辑资料"
+    priority: "P1"
+    scope: "SECONDARY"
+    parent_feature: "account_privacy_v1"
+    control_phase: "P8"
+    owner_path: "design/pages/account_privacy/My/Edit_Profile"
+    registry_overall: "ACTIVE_CLOSURE"
+    registry_design_overall: "FROZEN"
+    registry_modalities:
+      behavior:
+        status: "FROZEN"
+        authority: "design/pages/account_privacy/My/Edit_Profile/Edit_Profile_State_Interaction_Spec_V1.md"
+      visual:
+        status: "FROZEN"
+        authority: "design/pages/account_privacy/My/Edit_Profile/README.md"
+      motion:
+        status: "FROZEN"
+        authority: "design/pages/account_privacy/My/Edit_Profile/Edit_Profile_State_Interaction_Spec_V1.md"
+      haptic:
+        status: "FROZEN"
+        authority: "design/pages/account_privacy/My/Edit_Profile/Edit_Profile_State_Interaction_Spec_V1.md"
+      sound:
+        status: "FROZEN"
+        authority: "design/pages/account_privacy/My/Edit_Profile/Edit_Profile_State_Interaction_Spec_V1.md"
+      runtime:
+        status: "RUNTIME_ONLY"
+        authority: "app/src/main/java/com/yujian/ai/ui/screens/AccountPrivacyScreens.kt"
+      evidence:
+        status: "MISSING"
+        authority: null
+      assets:
+        status: "FROZEN"
+        authority: "design/pages/account_privacy/My/Edit_Profile/README.md"
+    design_units:
+      - "01_profile_home"
+      - "02_avatar_edit"
+      - "03_nickname_edit"
+      - "04_save_feedback"
+      - "05_edge_states"
+      - "06_interaction_adaptation"
+    design_children: []
+    child_surfaces:
+      - "01_profile_home"
+      - "02_avatar_edit"
+      - "03_nickname_edit"
+      - "04_save_feedback"
+      - "05_edge_states"
+      - "06_interaction_adaptation"
+    journey_refs: []
+    route_refs:
+      - "edit_profile"
+    implementation:
+      registered_runtime_status: "RUNTIME_ONLY"
+      runtime_authority: "app/src/main/java/com/yujian/ai/ui/screens/AccountPrivacyScreens.kt"
+    known_gaps:
+      - "Runtime is RUNTIME_ONLY and evidence is missing."
+  user_agreement_v1:
+    sequence: 15
+    name: "用户协议"
+    priority: "P1"
+    scope: "SECONDARY"
+    parent_feature: "account_privacy_v1"
+    control_phase: "P8"
+    owner_path: "design/pages/account_privacy/legal"
+    registry_overall: "PARTIAL"
+    registry_design_overall: "FROZEN"
+    registry_modalities:
+      behavior:
+        status: "FROZEN"
+        authority: "design/pages/account_privacy/legal/User_Agreement_Content_Draft_V1.md"
+      visual:
+        status: "FROZEN"
+        authority: "design/pages/account_privacy/legal/Legal_Document_Shell_Spec_V1.md"
+      motion:
+        status: "MISSING"
+        authority: null
+      haptic:
+        status: "MISSING"
+        authority: null
+      sound:
+        status: "MISSING"
+        authority: null
+      runtime:
+        status: "RUNTIME_ONLY"
+        authority: "app/src/main/java/com/yujian/ai/ui/screens/AccountPrivacyScreens.kt"
+      evidence:
+        status: "FROZEN"
+        authority: "design/pages/account_privacy/Account_Privacy_Design_Freeze_Review_V1.md"
+      assets:
+        status: "FROZEN"
+        authority: "design/pages/account_privacy/My/Account_Login/Data_Privacy/04_Privacy_Policy.png"
+    design_units: []
+    design_children: []
+    child_surfaces:
+      - "legal_document_shell"
+      - "agreement_content"
+    journey_refs: []
+    route_refs:
+      - "user_agreement"
+    implementation:
+      registered_runtime_status: "RUNTIME_ONLY"
+      runtime_authority: "app/src/main/java/com/yujian/ai/ui/screens/AccountPrivacyScreens.kt"
+    known_gaps:
+      - "Final legal copy remains LEGAL_REVIEW_REQUIRED; runtime is RUNTIME_ONLY and no runtime evidence is registered."
+journeys:
+  J01:
+    name: "Empty Home"
+    feature_refs:
+      - "home_empty_v2"
+  J02:
+    name: "Tap Camera"
+    feature_refs:
+      - "home_empty_v2"
+  J03:
+    name: "Camera Permission"
+    feature_refs:
+      - "recognition_flow_v1_2"
+  J04:
+    name: "First Capture Guide"
+    feature_refs:
+      - "recognition_flow_v1_2"
+  J05:
+    name: "Camera Capture"
+    feature_refs:
+      - "recognition_flow_v1_2"
+  J06:
+    name: "Preview Ready"
+    feature_refs:
+      - "recognition_flow_v1_2"
+  J07:
+    name: "Recognition Processing"
+    feature_refs:
+      - "recognition_flow_v1_2"
+  J08:
+    name: "Detection"
+    feature_refs:
+      - "recognition_flow_v1_2"
+  J09:
+    name: "Outline"
+    feature_refs:
+      - "recognition_flow_v1_2"
+  J10:
+    name: "Classification"
+    feature_refs:
+      - "recognition_flow_v1_2"
+  J11:
+    name: "Recognition Result"
+    feature_refs:
+      - "recognition_result_v1"
+  J12:
+    name: "High Confidence Result"
+    feature_refs:
+      - "recognition_result_v1"
+  J13:
+    name: "Medium/Low Confidence Result"
+    feature_refs:
+      - "recognition_result_v1"
+  J14:
+    name: "No Fish / Invalid Image"
+    feature_refs:
+      - "recognition_result_v1"
+  J15:
+    name: "Save Catch"
+    feature_refs:
+      - "recognition_result_v1"
+  J16:
+    name: "Continue / Edit Catch"
+    feature_refs:
+      - "recognition_result_v1"
+  J17:
+    name: "Return Home"
+    feature_refs:
+      - "home_normal_v1"
+  J18:
+    name: "Recent Catch"
+    feature_refs:
+      - "home_normal_v1"
+  J19:
+    name: "FishRecordDetail A"
+    feature_refs:
+      - "fish_record_detail_v2"
+  J20:
+    name: "FishRecordDetail B / Memory"
+    feature_refs:
+      - "fish_memory_bside_v1"
+routes:
+  login:
+    mapping_mode: "LEGACY_ALIAS"
+    owner_features:
+      - "auth_login_v2"
+    source: "app/src/main/java/com/yujian/ai/YujianApp.kt"
+  auth/login:
+    mapping_mode: "CANONICAL"
+    owner_features:
+      - "auth_login_v2"
+    source: "app/src/main/java/com/yujian/ai/YujianApp.kt"
+  register:
+    mapping_mode: "CANONICAL"
+    owner_features:
+      - "auth_register_v2"
+    source: "app/src/main/java/com/yujian/ai/YujianApp.kt"
+  home:
+    mapping_mode: "SHARED_STATE_ROUTE"
+    owner_features:
+      - "home_empty_v2"
+      - "home_normal_v1"
+    source: "app/src/main/java/com/yujian/ai/YujianApp.kt"
+  "catch/{catchId}?section={section}":
+    mapping_mode: "CANONICAL"
+    owner_features:
+      - "fish_record_detail_v2"
+    source: "app/src/main/java/com/yujian/ai/YujianApp.kt"
+  memory_capture/{catchId}/{captureMode}:
+    mapping_mode: "CANONICAL"
+    owner_features:
+      - "fish_memory_bside_v1"
+    source: "app/src/main/java/com/yujian/ai/YujianApp.kt"
+  identify?openGallery={openGallery}:
+    mapping_mode: "CANONICAL"
+    owner_features:
+      - "recognition_flow_v1_2"
+    source: "app/src/main/java/com/yujian/ai/YujianApp.kt"
+  recognizing:
+    mapping_mode: "CANONICAL"
+    owner_features:
+      - "recognition_flow_v1_2"
+    source: "app/src/main/java/com/yujian/ai/YujianApp.kt"
+  recognition_issue:
+    mapping_mode: "CANONICAL"
+    owner_features:
+      - "recognition_flow_v1_2"
+    source: "app/src/main/java/com/yujian/ai/YujianApp.kt"
+  result:
+    mapping_mode: "CANONICAL"
+    owner_features:
+      - "recognition_result_v1"
+    source: "app/src/main/java/com/yujian/ai/YujianApp.kt"
+  guide:
+    mapping_mode: "CANONICAL"
+    owner_features:
+      - "fish_guide_v2"
+    source: "app/src/main/java/com/yujian/ai/YujianApp.kt"
+  species/{key}:
+    mapping_mode: "CANONICAL"
+    owner_features:
+      - "fish_guide_v2"
+    source: "app/src/main/java/com/yujian/ai/YujianApp.kt"
+  my:
+    mapping_mode: "CANONICAL"
+    owner_features:
+      - "account_privacy_v1"
+    source: "app/src/main/java/com/yujian/ai/YujianApp.kt"
+  my_catches/day/{dayKey}:
+    mapping_mode: "CANONICAL"
+    owner_features:
+      - "my_catches_v2"
+    source: "app/src/main/java/com/yujian/ai/YujianApp.kt"
+  my_catches?speciesId={speciesId}:
+    mapping_mode: "CANONICAL"
+    owner_features:
+      - "my_catches_v2"
+    source: "app/src/main/java/com/yujian/ai/YujianApp.kt"
+  edit_profile:
+    mapping_mode: "CANONICAL"
+    owner_features:
+      - "profile_edit_v1"
+    source: "app/src/main/java/com/yujian/ai/YujianApp.kt"
+  account_login:
+    mapping_mode: "CANONICAL"
+    owner_features:
+      - "account_privacy_v1"
+    source: "app/src/main/java/com/yujian/ai/YujianApp.kt"
+  change_password:
+    mapping_mode: "CANONICAL"
+    owner_features:
+      - "account_privacy_v1"
+    source: "app/src/main/java/com/yujian/ai/YujianApp.kt"
+  data_privacy:
+    mapping_mode: "CANONICAL"
+    owner_features:
+      - "account_privacy_v1"
+    source: "app/src/main/java/com/yujian/ai/YujianApp.kt"
+  about:
+    mapping_mode: "CANONICAL"
+    owner_features:
+      - "account_privacy_v1"
+    source: "app/src/main/java/com/yujian/ai/YujianApp.kt"
+  privacy_policy:
+    mapping_mode: "CANONICAL"
+    owner_features:
+      - "account_privacy_v1"
+    source: "app/src/main/java/com/yujian/ai/YujianApp.kt"
+  user_agreement:
+    mapping_mode: "CANONICAL"
+    owner_features:
+      - "user_agreement_v1"
+    source: "app/src/main/java/com/yujian/ai/YujianApp.kt"
+release_rules:
+  feature_accepted: "Required implementation + required tests + current-branch runtime + required evidence PASS, with no unresolved P0/P1 blocker for the claimed scope."
+  feature_release_ready: "Feature accepted + required release dependencies PASS + APK provenance bound to exact source SHA."
+  forbidden_shortcuts:
+    - "Build PASS => Runtime PASS"
+    - "Unit PASS => End-to-end PASS"
+    - "Historical PASS => Current PASS"
+    - "Artifact exists => Release ready"
+    - "AI statement => Evidence"
+gap_policy:
+  open_gaps_are_expected: "YES"
+  validator_behavior: "Structural integrity errors fail the validator; product incompleteness is reported as OPEN_GAP and does not by itself fail matrix integrity."
+  historical_status_rule: "Registry/history PASS is never promoted to current-branch PASS without exact-SHA runtime/evidence."
