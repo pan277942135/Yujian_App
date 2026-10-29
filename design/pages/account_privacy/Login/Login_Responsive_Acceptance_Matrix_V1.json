@@ -98,7 +98,7 @@
   "supplemental_matrix": {
     "classification": "SUPPLEMENTAL_CANDIDATE_NOT_IN_FROZEN_AUTHORITY",
     "status": "CANDIDATE_MATRIX_NOT_FROZEN",
-    "source_path": "scripts/design/page_candidates/auth_login_v2/responsive_candidate_v1.json",
+    "source_path": "design/pages/account_privacy/Login/structured_candidate/responsive_candidate_v1.json",
     "source_sha256": "55ee12824d33b80b8dc5604b31deb6bff4f867829776269278cfac433621f87e",
     "viewports_css_px": [
       {

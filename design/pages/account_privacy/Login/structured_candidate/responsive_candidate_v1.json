@@ -1,0 +1,52 @@
+{
+  "profile_id": "auth_login_v2_candidate_responsive_v1",
+  "page_id": "auth_login_v2",
+  "authority_version": "V2.1",
+  "status": "RESPONSIVE_RULE_REVIEW_REQUIRED",
+  "numeric_authority": "CANDIDATE_ONLY_NOT_W1_BOUND",
+  "coordinate_disclosure": {
+    "frozen_reference": "canvas_px",
+    "browser_preview": "CSS px",
+    "android_dp": "NOT_VERIFIED",
+    "mapping": "No approved frozen-canvas px to Android dp mapping exists. The 864x1536 reference is compared at its native pixel size; device previews use explicit CSS-pixel artboards and do not assert native dp."
+  },
+  "approved_rules": [
+    { "rule_id": "top_bg_content", "source": "design/pages/account_privacy/Login/Login_V2_BG_CONTENT_Revision_V2_1.md", "value": "No-sun Morning Lake BG_CONTENT; no text or slogan over the lake; white content transition." },
+    { "rule_id": "content_hierarchy", "source": "design/pages/account_privacy/Login/Login_V2_BG_CONTENT_Revision_V2_1.md", "value": ["欢迎回来", "继续记录你的每一次渔获。", "账号", "账号输入框", "密码", "密码输入框", "忘记密码？", "登录", "还没有账号？创建账号"] },
+    { "rule_id": "primary_button", "source": "design/pages/account_privacy/Login/Login_V2_BG_CONTENT_Revision_V2_1.md", "value": { "height_dp": 56, "radius_dp": 28, "color": "#0F7A78" } },
+    { "rule_id": "input_radius", "source": "design/pages/account_privacy/Login/Login_V2_BG_CONTENT_Revision_V2_1.md", "value": { "radius_dp": 18 } },
+    { "rule_id": "forgot_password", "source": "design/pages/account_privacy/Login/Login_V2_BG_CONTENT_Revision_V2_1.md", "value": "MUTED text action; visual only, no recovery flow" },
+    { "rule_id": "footer_semantics", "source": "design/pages/account_privacy/Login/Login_V2_BG_CONTENT_Revision_V2_1.md", "value": "Page-owned foreground decoration; low contrast, bottom aligned, outside interaction region." }
+  ],
+  "candidate_rules": [
+    { "rule_id": "reference_coordinate_projection", "status": "REVIEW_REQUIRED", "method": "Use percentage bounds extracted from the 864x1536 frozen raster to establish an initial candidate; do not declare them frozen measurements." },
+    { "rule_id": "top_scene_height_and_fade", "status": "REVIEW_REQUIRED", "method": "Show BG_CONTENT master in a clipped upper scene with a white gradient transition; candidate boundary is derived from the V2.1 raster because prose and screenshot transition differ." },
+    { "rule_id": "content_horizontal_inset", "status": "REVIEW_REQUIRED", "method": "Initial 8% inset is sampled from the frozen raster; no numeric V2.1 responsive inset is registered." },
+    { "rule_id": "short_screen_scroll", "status": "REVIEW_REQUIRED", "method": "Keep form controls at candidate minimum heights; expand the artboard and allow vertical scrolling when content exceeds the available viewport." },
+    { "rule_id": "font_scaling", "status": "REVIEW_REQUIRED", "method": "Multiply rendered text by the preview font scale; never shrink the base font to force fit." },
+    { "rule_id": "keyboard_simulation", "status": "REVIEW_REQUIRED", "method": "Show a browser-only simulated keyboard overlay. No Android keyboard or IME behavior is claimed." }
+  ],
+  "viewport_matrix": {
+    "status": "CANDIDATE_MATRIX_NOT_FROZEN",
+    "viewports_css_px": [
+      { "id": "candidate_320x480", "width": 320, "height": 480 },
+      { "id": "candidate_360x640", "width": 360, "height": 640 },
+      { "id": "candidate_390x844", "width": 390, "height": 844 },
+      { "id": "candidate_430x932", "width": 430, "height": 932 }
+    ],
+    "font_scales": [1.0, 1.3, 1.5],
+    "comparison_canvas_css_px": { "width": 864, "height": 1536, "reason": "Native-size comparison against the frozen reference; not a supported device viewport." },
+    "case_count": 12
+  },
+  "state_profiles": [
+    { "state_id": "DEFAULT", "status": "CANDIDATE_VISUAL_STATE" },
+    { "state_id": "ACCOUNT_FOCUS", "status": "CANDIDATE_INTERACTION_STATE" },
+    { "state_id": "PASSWORD_FOCUS", "status": "CANDIDATE_INTERACTION_STATE" },
+    { "state_id": "PASSWORD_SHOWN", "status": "CANDIDATE_INTERACTION_STATE" },
+    { "state_id": "PASSWORD_HIDDEN", "status": "CANDIDATE_INTERACTION_STATE" },
+    { "state_id": "INPUT_ERROR", "status": "CANDIDATE_COPY_REVIEW_REQUIRED" },
+    { "state_id": "LOADING", "status": "CANDIDATE_INTERACTION_STATE" },
+    { "state_id": "KEYBOARD_SIMULATION", "status": "BROWSER_SIMULATION_ONLY" },
+    { "state_id": "ACTION_DISABLED", "status": "CANDIDATE_INTERACTION_STATE" }
+  ]
+}
