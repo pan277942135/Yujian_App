@@ -131,8 +131,17 @@ def consistency_errors(contracts: dict) -> list[str]:
     if fallback.get("source_rect") != [0, 0, 1, 1] or fallback.get("foreground_fit") != "CONTAIN" or fallback.get("preserve_source_aspect_ratio") is not True or fallback.get("generated_fill") is not False:
         errors.append("Full-source fallback must preserve the complete oriented source with FIT and no generated fill")
     samples = fallback.get("reference_samples", {})
+    if samples.get("R0", {}).get("outer_rect") != {"x": 0, "y": 0, "width": 360, "height": 640} or samples.get("R0", {}).get("foreground_rect") != {"x": 0, "y": 80, "width": 360, "height": 480}:
+        errors.append("Mode B R0 start geometry must match the 360x640 Processing source sample")
     if samples.get("R0_5", {}).get("elapsed_ms") != 100 or samples.get("R0_5", {}).get("outer_rect") != {"x": 9.5, "y": 26.5, "width": 341, "height": 425} or samples.get("R0_5", {}).get("foreground_rect") != {"x": 50.625, "y": 66.5, "width": 258.75, "height": 345}:
         errors.append("Mode B R0.5 reference geometry must remain the exact 360x640 midpoint sample")
+    if samples.get("R1", {}).get("outer_rect") != {"x": 19, "y": 53, "width": 322, "height": 210} or samples.get("R1", {}).get("foreground_rect") != {"x": 101.25, "y": 53, "width": 157.5, "height": 210}:
+        errors.append("Mode B R1 geometry must match the actual 360x640 Hero target sample")
+    phases = android_timeline.get("rr09_phases", [])
+    if [(p.get("start_ms"), p.get("end_ms")) for p in phases] != [(0, 200), (200, 380), (380, 550), (550, 680), (680, 850)]:
+        errors.append("Android RR09 phase boundaries must match Motion V3")
+    if eligibility.get("invalid_photo_geometry", {}).get("transition") != "STATIC_RESULT" or eligibility.get("invalid_photo_geometry", {}).get("rr09_timeline") is not False:
+        errors.append("Invalid photo identity/transform must fail closed to static Result without RR09")
     if android_transition.get("result_entry", {}).get("english_scientific_name_visible") is not False or android_transition.get("result_entry", {}).get("empty_english_title_row_reserved") is not False:
         errors.append("Android RR09 title must remain Chinese-only with no English row")
     if android_transition.get("result_entry", {}).get("non_title_content_entry") != "EXISTING_STATIC_RESULT_LAYOUT_AT_FINAL_BOUNDS_NO_ADDITIONAL_ALPHA_POSITION_OR_SCALE_ANIMATION":
