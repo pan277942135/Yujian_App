@@ -230,9 +230,9 @@ class GeminiHomeDeviceMatrixTest {
         compose.onNodeWithTag("gemini-home-catch-measurement-nh01-catch-001", useUnmergedTree = true)
             .assertTextEquals("42.6 cm · 1.28 kg")
         compose.onNodeWithTag("gemini-home-catch-metadata-nh01-catch-001", useUnmergedTree = true)
-            .assertTextContains("05月29日 04:26")
+            .assertTextContains("05月29日 04:26", substring = true)
         compose.onNodeWithTag("gemini-home-catch-metadata-nh01-catch-001", useUnmergedTree = true)
-            .assertTextContains("浙江 · 千岛湖")
+            .assertTextContains("浙江 · 千岛湖", substring = true)
         val requiredCardTextTags = listOf(
             "gemini-home-catch-species-nh01-catch-001",
             "gemini-home-catch-measurement-nh01-catch-001",
