@@ -24,11 +24,11 @@ If these sources appear to conflict, preserve the business/state and Hero Media 
 
 ## 2. User-visible result
 
-The Result route is entered immediately once the real pipeline, existing business gates and the 2800ms Processing minimum permit it. Do not add a 200ms wait before navigation.
+The Result route is entered immediately once the real pipeline, existing business gates and the 2800ms Processing minimum permit it. Do not add a 200ms wait before navigation. RR09 animation, including the photo-continuity segment, is eligible only for a new RESULT_HIGH result with valid species identity under Motion V3. Medium, Low, error, historical and reopened results use the existing static Result presentation; their Hero still uses the correct placement mode below, but they do not play the RR09 transition.
 
-At the first actually presented Result frame (**T0**), the Result page is already laid out at its final responsive positions. The original photograph is drawn by one shared transition layer, starting from the last measured Processing photo transform. It moves and scales into the actual Result Hero over 0–200ms. The page itself must not scale as a screenshot.
+At the first actually presented Result frame (**T0**) for an eligible HIGH result, the Result page is already laid out at its final responsive positions. The original photograph is drawn by one shared transition layer, starting from the last measured Processing photo transform. It moves and scales into the actual Result Hero over 0–200ms. The page itself must not scale as a screenshot.
 
-- The background is present at T0. Non-title Result chrome/content may fade from alpha 0 to 1 over 0–160ms, but may not translate, scale or reflow as part of this transition.
+- The existing Result background and non-title content are already in their final static layout at T0. Do not add a separate content fade, translation, scale or reflow that would alter the existing static Result design.
 - Save, edit, back and other valid Result actions are enabled at T0; animation never gates interaction.
 - The Chinese species title follows RR09 V3: hidden during photo continuity and gold transfer, forming at 380–550ms, readable at 550–680ms, and stable by 680ms.
 - The shared photo layer relinquishes drawing only when the Result Hero is ready to render the same source, selected crop and target transform. There must be no blank frame, duplicate sharp photo, opacity flash or crop jump.
@@ -123,8 +123,8 @@ The RR09 clock starts at the first actually presented Result frame. The total re
 Eligibility:
 
 - New RESULT_HIGH with valid species identity: run the 850ms RR09 timeline once. With trusted Mask, use contour-driven transfer; with BBox-only, use bounded regional glow and only a validated anchor; with no trusted spatial geometry, use the non-spatial title fallback on the same 380/550/680ms boundaries.
-- RESULT_MEDIUM / RESULT_LOW: photo continuity may run for 0–200ms if photo identity and transforms are valid; no gold celebration or RR09 title reveal.
-- NO_FISH / IMAGE_QUALITY: use Mode B and at most the 0–200ms photo continuity; no celebration.
+- RESULT_MEDIUM / RESULT_LOW: use the existing static Result presentation; no RR09 photo transition, gold celebration or title reveal.
+- NO_FISH / IMAGE_QUALITY: use Mode B in the existing static Result presentation; no RR09 photo transition or celebration.
 - Invalid identity, historical/reopened result, missing source identity or invalid transform: render the safe static Result. Do not invent a transition origin.
 - Reduce Motion: skip spatial travel, particles, sweep and animated photo interpolation; present the correct final photo mode and an immediately readable title. Never hide valid result data or disable actions.
 - After 850ms, stop the frame clock and all transient drawing. Recomposition, rotation, editor/selector return or repeated rendering of the same session must not replay the reveal.
@@ -140,8 +140,9 @@ Eligibility:
 | G05 — fallback timing | Current non-full-reveal clock path can finish title fade in the first 200ms. | For eligible HIGH + valid identity without spatial geometry, keep RR09's 380–550 / 550–680 title boundaries and remove only spatial effects. |
 | G06 — glyph formation | Current particles are distributed by title-rectangle fractions and title clipping is horizontal, not a glyph mask. | Use actual glyph-mask clipping; verify no complete readable name before 550ms and no English row. |
 | G07 — optical calibration | Android uses hard-coded 28/13/4 widths and fixed alpha values. | Bind calibrated values to the SWOS/RR09 parameter source; do not mark candidate values frozen without owner comparison. |
-| G08 — result-content entry | Non-photo content can appear without a defined entry treatment. | Keep final layout bounds fixed; use only the specified short alpha fade, no whole-screen scale or vertical reflow. |
-| G09 — lifecycle/one-shot | Handoff keys exist, but exact runtime proof is required. | Test retry, rapid photo change, recomposition, rotation, selector/editor return, CTA during animation and no frame clock after 850ms. |
+| G08 — English title row | RecognitionResultScreen can render scientificName in the title row. | Enforce RR09 V3 Chinese-only title with no English line or reserved blank row. |
+| G09 — ineligible-state animation | PHOTO_ONLY eligibility can animate photo continuity for states excluded by RR09 V3. | Gate all RR09 motion, including photo continuity, to new HIGH + valid identity; keep Medium/Low/error/historical results static. |
+| G10 — lifecycle/one-shot | Handoff keys exist, but exact runtime proof is required. | Test retry, rapid photo change, recomposition, rotation, selector/editor return, CTA during animation and no frame clock after 850ms. |
 
 ## 8. Acceptance gates and required evidence
 
@@ -151,7 +152,7 @@ All evidence must be bound to the exact PR HEAD and resulting Main SHA. The fina
 2. **Geometry unit tests:** q(0)=0, q(100)=0.5, q(200)=1; same-source transform; clip and scale midpoint; R1 transform parity with Hero; reference Mode B bounds within 2dp.
 3. **Mode tests:** valid BBox with every safe-crop profile; source-edge compensation; infeasible crop fallback; missing/invalid/stale BBox; EXIF rotations; portrait and landscape photos; NO_FISH and IMAGE_QUALITY.
 4. **Trust tests:** TRUSTED_MASK contour; TRUSTED_BBOX_ONLY regional glow with no rectangle; invalid/stale geometry with no spatial trace; no manual fixture contour accepted as production Mask.
-5. **RR09 tests:** deterministic boundaries 0/200/380/550/680/850ms; HIGH-only one-shot; fallback keeps the same title timing; Medium/Low/error routes do not celebrate; CTA/save/edit/back work at T0; no active frame clock after 850ms.
+5. **RR09 tests:** deterministic boundaries 0/200/380/550/680/850ms; HIGH-only one-shot; eligible HIGH fallback keeps the same title timing; Medium/Low/error/historical routes play no RR09 transition; CTA/save/edit/back work at T0; no active frame clock after 850ms.
 6. **Native runtime:** exact-head build, unit tests, Android test compilation, lint, API 28 runtime and representative physical-device recording. Matrix: 320×480, 360×640, 390×844, 412×915, 430×932 and 800×360; font scales 1.0/1.3/1.5 where applicable; portrait/landscape source; EXIF 0/90/180/270; both photo modes; reduced motion.
 7. **Evidence package:** exact source SHA, workflow/run IDs, test report, R0/R0.5/R1/R2/R3/R4/R5 captures, continuous recording, measured bounds/transform error, original photo SHA and permission provenance, APK SHA-256.
 8. **Product-owner visual acceptance:** compare the actual installed APK against the frozen contract. CI, static screenshots, a Web demo or source inspection alone cannot satisfy this gate.
