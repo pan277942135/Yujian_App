@@ -8,7 +8,7 @@
     "Empty Home brand placement remains blocked: registered brand_title_primary is authorized only for normal_home_v1; no authorized Empty Home brand binding exists."
   ],
   "branch": "work/w5-empty-home-pilot-v1",
-  "checkpoint_updated_at": "2026-10-29T20:42:00Z",
+  "checkpoint_updated_at": "2026-10-29T20:47:41Z",
   "control_plane_revision": "0c245b86f8228107309d0135bdf819af255604be",
   "dependencies": [
     "YUJIAN_PAGE_FREEZE_PIPELINE_W3_DESIGN_MANAGER_ADAPTER_V1",
@@ -78,6 +78,13 @@
         "reason": "Six static layers and canonical sync passed (735 paths, one exact approved Login mapping exception); Project Master State and Work Execution State passed.",
         "recorded_at": "2026-10-29T20:42:00Z",
         "result": "PASS"
+      },
+      {
+        "candidate_sha": "a03174939cb20141b0a8ecfde0fb4d33c660ed04",
+        "command": "python scripts/validate_control_plane_admission.py",
+        "result": "PASS",
+        "reason": "Exact current PR head passed six static layers, canonical sync (735 paths; one authorized Login mapping exception), Project Master State, and Work Execution State.",
+        "recorded_at": "2026-10-29T20:47:41Z"
       }
     ],
     "admission_baseline": {
@@ -101,7 +108,7 @@
       "validated_code_source_sha": "0e4d70c4f544ed4b6efc0ab6aa3cf8bf9d41aafb"
     },
     "control_plane_sync_commit": "dad76a9ca737245d4076b75b86537412b0238765",
-    "current_candidate_sha": "a2cfa4714fcd4c5a3c887a27bb38898c5400408e",
+    "current_candidate_sha": "a03174939cb20141b0a8ecfde0fb4d33c660ed04",
     "current_main_sha": "0c245b86f8228107309d0135bdf819af255604be",
     "current_state_checkpoint_sha": "6484d65bf69309b3b41420e6adb514fe7ca9076a",
     "empty_home_page_changes": {
@@ -118,17 +125,17 @@
       "status": "IMPLEMENTED_PENDING_EXACT_HEAD_VALIDATION"
     },
     "exact_candidate_admission": {
-      "candidate_sha": "a2cfa4714fcd4c5a3c887a27bb38898c5400408e",
+      "candidate_sha": "a03174939cb20141b0a8ecfde0fb4d33c660ed04",
       "code_source_sha": "6484d65bf69309b3b41420e6adb514fe7ca9076a",
       "command": "python scripts/validate_control_plane_admission.py",
+      "result": "PASS",
       "control_plane_layers": 6,
       "control_plane_sync_paths": 735,
       "exact_login_mapping_exceptions": 1,
-      "note": "Exact candidate checkpoint passed after restoring Main-pinned design-manager-pages workflow and all three Main-exact Page Resource Binding files. Code source remains 6484d65.",
       "project_master_state": "PASS",
-      "recorded_at": "2026-10-29T20:42:00Z",
-      "result": "PASS",
-      "work_execution_state": "PASS"
+      "work_execution_state": "PASS",
+      "recorded_at": "2026-10-29T20:47:41Z",
+      "note": "Exact current PR branch head passed after state-file recovery; source files remain at code source 6484d65 and Main is 0c245b86."
     },
     "exception_pr": {
       "merge_sha": "bf4c5c5777bddd3c37c8b2850aaa5a5881f0d513",

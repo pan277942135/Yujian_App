@@ -133,3 +133,10 @@ Next action: restore Login inside the existing shared Design Manager, retain all
 - Kept Login mapping blob `75c615d20be011b16e4e6843b41dabd0479a8d63`: Main's asset-integrity register authorizes that exact mapping for W6-A; it is not an unrelated file.
 - Closed the recorded Control Plane Sync failure after restoring the Main-exact workflow and three Main-exact page resource bindings. PR #234 has no pull-request-triggered workflow run on this candidate yet; W5 and Pages remain NOT_RUN pending a PR `reopened` event.
 - The Empty Home brand authorization gap remains BLOCKED; no page visual edits or visual acceptance are claimed.
+
+
+## 2026-10-29 — Exact current candidate Admission PASS
+
+- Exact current PR branch head `a03174939cb20141b0a8ecfde0fb4d33c660ed04` passed `python scripts/validate_control_plane_admission.py`: six static layers, 735 synchronized paths, one exact registered Login mapping exception, Project Master State PASS, and Work Execution State PASS.
+- Code source remains `6484d65bf69309b3b41420e6adb514fe7ca9076a`. The branch AGENTS.md SHA-256 matches live Main exactly; PR #234 remains Draft.
+- PR-triggered Pages and W5 workflows are still NOT_RUN on this head; no page visual edits or visual acceptance are claimed.
