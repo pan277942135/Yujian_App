@@ -557,3 +557,5 @@
 
   window.EmptyHomeV22Workspace = { createOptions, pageId: PAGE_ID, mappingPath: MAPPING_PATH, mappingSha256: MAPPING_SHA256 };
 })();
+
+// W5 typography evidence reads live text ranges and mapped Inspector values at every supported viewport and font scale.
