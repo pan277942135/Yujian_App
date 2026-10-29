@@ -6,14 +6,14 @@ project:
   repository: pan277942135/Yujian_App
   scope: home_normal_v1, home_empty_v2, auth_login_v2
 state_control:
-  execution_baseline_sha: 6933f459d2223823a25edcd1d4598ffde3061267
+  execution_baseline_sha: 91418127df91b9854897f24eeb84c970cb2e6563
   current_branch: work-state/yujian-three-pilot-p0-v1
   current_pr: null
   base_branch: main
   base_sha: b080bb0ffb4ebced18593c08709657fabb53a19e
   current_task: YUJIAN_THREE_PILOT_PAGE_SPEC_CLOSURE_AND_IMPLEMENTATION_GATE_V1
   status: BLOCKED
-  updated_at: '2026-10-29T06:42:52Z'
+  updated_at: '2026-10-29T06:53:18.819Z'
 source_of_truth:
   control_plane: CONTROL_PLANE_REGISTRY.yaml
   phase_task_machine: harness/PHASE_TASK_STATE_MACHINE.yaml
@@ -31,13 +31,13 @@ repositories:
     status: RECOVERED_CURRENT_DESIGN_GATES_PASS_ANDROID_AND_CAMERA_PENDING_REQUIRED_CHECKS_UNVERIFIED
   candidate:
     branch: work/w5-empty-home-pilot-v1
-    source_sha: 6933f459d2223823a25edcd1d4598ffde3061267
+    source_sha: 91418127df91b9854897f24eeb84c970cb2e6563
 pull_requests:
   PR234:
     number: 234
     branch: work/w5-empty-home-pilot-v1
     base_sha: b080bb0ffb4ebced18593c08709657fabb53a19e
-    head_sha: 6933f459d2223823a25edcd1d4598ffde3061267
+    head_sha: 91418127df91b9854897f24eeb84c970cb2e6563
     state: OPEN
     draft: true
     url: https://github.com/pan277942135/Yujian_App/pull/234
@@ -69,7 +69,7 @@ phases:
   P3:
     status: BLOCKED
     task_id: YUJIAN_THREE_PILOT_PAGE_SPEC_CLOSURE_AND_IMPLEMENTATION_GATE_V1
-    exact_candidate_sha: 6933f459d2223823a25edcd1d4598ffde3061267
+    exact_candidate_sha: 91418127df91b9854897f24eeb84c970cb2e6563
   P4:
     status: NOT_STARTED
   P5:
@@ -107,21 +107,20 @@ recognition_main_journey:
   - J20
 runtime_gates:
   exact_head:
-    sha: 6933f459d2223823a25edcd1d4598ffde3061267
+    sha: 91418127df91b9854897f24eeb84c970cb2e6563
     status: BLOCKED
-    W1: PASS — run 40828169507
-    W2: FAIL — run 40828169489; all three bindings pin workflow SHA 51f8d59ab19dd2a974381991038a2f746a4b30ab73422b1894d2f01df16f7200,
-      actual e1d7c6555b83570e92769244b83c5024113c683cc1db5f51e99d0f7ac8e8871c
-    W3: BLOCKED_AT_W2 — no current-SHA structured workspace verification
-    W4: BLOCKED_AT_W2 — Login Chromium skipped on exact 6933
-    W5: BLOCKED_AT_W2 — current page matrices not executed on exact 6933
+    W1: PASS — run 40830549559
+    W2: FAIL — run 40830549596; all three bindings expect workflow SHA-256 51f8d59ab19dd2a974381991038a2f746a4b30ab73422b1894d2f01df16f7200, actual e1d7c6555b83570e92769244b83c5024113c683cc1db5f51e99d0f7ac8e8871c
+    W3: NOT_RUN — W2 stopped actual staged-page browser workspace verification
+    W4: BLOCKED_AT_W2 — run 40830549596 failed before Chromium evidence
+    W5: BLOCKED_AT_W2 — run 40830549593; formal and supplemental matrices were not executed
     nh01_android_runtime:
-      status: BLOCKED_AT_W2
-      run_id: 40828169459
+      status: FAIL_SOURCE_VALIDATION_NO_NATIVE_ASSERTIONS
+      run_id: 40830549414
     page_evidence:
-      home_normal_v1: W1 PASS; W2 FAIL; W3/W4/W5 BLOCKED on exact 6933
-      home_empty_v2: W1 PASS; W2 FAIL; W3/W4/W5 BLOCKED on exact 6933; exact 9c matrix is historical
-      auth_login_v2: W1 PASS; W2 FAIL; W3/W4/W5 blocked on exact 6933; exact 9c Login W3/W4/W5 FAIL
+      home_normal_v1: W1 PASS; W2 FAIL; W3/W4/W5 BLOCKED_AT_W2 on exact 9141
+      home_empty_v2: W1 PASS; W2 FAIL; W3/W4/W5 BLOCKED_AT_W2 on exact 9141; 17 REQUIRED resources remain REVIEW
+      auth_login_v2: W1 PASS; W2 FAIL; renderer, mapping and Login W4 matrix are absent from PR234 exact 9141; PR239 remains separate
   historical_runtime_run:
     rule: Historical results cannot promote current exact HEAD to PASS.
     source_sha: 4f0f3a66d0bef26e24f6bc066478e6cd03b773e8
@@ -131,33 +130,33 @@ apk_and_evidence:
   release_apk_status: NOT_RUN
   apk_sha256: NOT_VERIFIED
   android_implementation_pr: NOT_STARTED
-  current_exact_source: 6933f459d2223823a25edcd1d4598ffde3061267
+  current_exact_source: 91418127df91b9854897f24eeb84c970cb2e6563
   isolated_preview_url: https://pan277942135.github.io/Yujian_App/previews/pr-234/
   isolated_preview_build_sha: 8d3f7393a027c3b83d8d1a84fca64fb55c6e6b31
-  active_candidate_preview_sha: 6933f459d2223823a25edcd1d4598ffde3061267
-  active_candidate_pages_run_id: 40828169492
+  active_candidate_preview_sha: 91418127df91b9854897f24eeb84c970cb2e6563
+  active_candidate_pages_run_id: 40830549495
   live_production_build_sha: b080bb0ffb4ebced18593c08709657fabb53a19e
-  isolated_preview_status: STALE_FOR_CURRENT_CANDIDATE; last verified build is 8d3f7393a027c3b83d8d1a84fca64fb55c6e6b31
-  active_candidate_deployment: NOT_DEPLOYED — Pages run failed at W2
+  isolated_preview_status: NO_PREVIEW_FOR_CURRENT_HEAD; last verified build 8d3f7393a027c3b83d8d1a84fca64fb55c6e6b31 is stale
+  active_candidate_deployment: NOT_DEPLOYED — exact 9141 Pages run 40830549495 failed before preview deployment
   live_production_pages_run_id: 40825171321
 current_work:
   id: YUJIAN_THREE_PILOT_PAGE_SPEC_CLOSURE_AND_IMPLEMENTATION_GATE_V1
   phase: P3
   task_id: YUJIAN_THREE_PILOT_PAGE_SPEC_CLOSURE_AND_IMPLEMENTATION_GATE_V1
   status: BLOCKED
-  exact_head: 6933f459d2223823a25edcd1d4598ffde3061267
+  exact_head: 91418127df91b9854897f24eeb84c970cb2e6563
   pages:
     home_normal_v1:
       status: BLOCKED
       page_profile: FROZEN_BINDING
       envelope: SPEC_FROZEN
-      W1: PASS — exact 6933, run 40828169507
-      W2: FAIL — exact 6933, run 40828169489; workflow authority SHA mismatch
-      W3: BLOCKED_AT_W2 — no current-SHA structured DOM evidence
-      W4: BLOCKED_AT_W2 — no current-SHA Chromium evidence
+      W1: PASS — exact 6933, run 40830549559
+      W2: FAIL — exact 6933, run 40830549596; workflow authority SHA mismatch
+      W3: NOT_RUN — W2 stopped actual staged-page browser workspace verification on exact 9141
+      W4: BLOCKED_AT_W2 — exact 9141 W4 run failed before Chromium evidence
       W5: BLOCKED_AT_W2 — matrix not executed on exact 6933
       visual_acceptance: PENDING
-      native_runtime: BLOCKED_AT_W2 — run 40828169459; native assertions did not run
+      native_runtime: BLOCKED_AT_W2 — run 40830549414; native assertions did not run
       runtime_media: NOT_VERIFIED_STATIC_SOURCE; dynamic user media; no fake asset promoted
       optional_illustrations: GENERATED_ILLUSTRATIVE_ONLY; not formal assets
       spec_sha256:
@@ -170,8 +169,8 @@ current_work:
       status: BLOCKED
       page_profile: DRAFT
       envelope: DRAFT
-      W1: PASS — exact 6933, run 40828169507
-      W2: FAIL current 6933 run 40828169489; exact 9c artifact recorded W2-bound resources, but 17 REQUIRED assets remain
+      W1: PASS — exact 6933, run 40830549559
+      W2: FAIL current 6933 run 40830549596; exact 9c artifact recorded W2-bound resources, but 17 REQUIRED assets remain
         REVIEW and are not promotable.
       W3: BLOCKED_AT_W2 — no current-SHA structured DOM evidence
       W4: BLOCKED_AT_W2 — no current-SHA Chromium evidence
@@ -201,8 +200,8 @@ current_work:
       status: BLOCKED
       page_profile: DRAFT
       envelope: DRAFT
-      W1: PASS — exact 6933, run 40828169507
-      W2: FAIL — exact 6933, run 40828169489; binding SHA mismatch; asset states remain FROZEN 2, MISSING 1, NOT_VERIFIED
+      W1: PASS — exact 6933, run 40830549559
+      W2: FAIL — exact 6933, run 40830549596; binding SHA mismatch; asset states remain FROZEN 2, MISSING 1, NOT_VERIFIED
         1
       W3: FAIL on exact 9c run 40827290596; current exact 6933 blocked at W2
       W4: FAIL on exact 9c run 40827290596 (7/13 matrix cases failed); current exact 6933 Chromium skipped at W2
@@ -216,14 +215,34 @@ current_work:
         formal_matrix_sha256: 4b155d072c659d72ef979c5e2b3a38d076aa651b71b9769f89eee9faa3cdd571
         supplemental_candidate_matrix_sha256: 55ee12824d33b80b8dc5604b31deb6bff4f867829776269278cfac433621f87e
         resource_binding_sha256: ecd10cd9ca4dcbc4f9bebdda46c668dd80eeb21b8140995dc289244b0b5971ed
+  latest_head_audit:
+    pr234_head_sha: 91418127df91b9854897f24eeb84c970cb2e6563
+    parent_candidate_sha: 6933f459d2223823a25edcd1d4598ffde3061267
+    commit_message: "chore(w4): keep Login integration on PR 239"
+    current_main_sha: b080bb0ffb4ebced18593c08709657fabb53a19e
+    gate_runs:
+      W1: "PASS — https://github.com/pan277942135/Yujian_App/actions/runs/40830549559"
+      W2: "FAIL — exact-source scan in run 40830549596; all three bindings pin 51f8d59ab19dd2a974381991038a2f746a4b30ab73422b1894d2f01df16f7200, actual e1d7c6555b83570e92769244b83c5024113c683cc1db5f51e99d0f7ac8e8871c"
+      W3: NOT_RUN_AFTER_W2_FAILURE
+      W4: "BLOCKED_AT_W2 — run 40830549596; Chromium stage skipped"
+      W5: "BLOCKED_AT_W2 — run 40830549593; matrix cases not run"
+      Pages: "FAIL_BEFORE_PREVIEW — run 40830549495"
+      NH01_native: "FAIL_SOURCE_VALIDATION_BEFORE_ANDROID — run 40830549414"
+      admission: "PASS — run 40830549423"
+      design_governance: "PASS — run 40830549425"
+    W4_evidence_artifact:
+      artifact_id: 12878890330
+      sha256: 3fe7c3b2003e7bea572fae6ce9603420d8af057dcf1e756bf54dca12bafa5f25
+    login_integration: REMOVED_FROM_CURRENT_PR234_HEAD; PR239_REMAINS_OPEN_DRAFT
+    isolated_preview: NO_PREVIEW_FOR_9141; last verified preview 8d3f7393a027c3b83d8d1a84fca64fb55c6e6b31 is stale
+
 blockers:
 - id: TP-PAGES-W2-SOURCE-SHA-001
   severity: P0
   area: all_three_pages
   status: OPEN
-  condition: 'Exact 6933 W2 run 40828169489: all three page bindings expect design-manager-pages.yml SHA-256 51f8d59ab19dd2a974381991038a2f746a4b30ab73422b1894d2f01df16f7200;
-    actual is e1d7c6555b83570e92769244b83c5024113c683cc1db5f51e99d0f7ac8e8871c. W3/W4/W5 and candidate Pages deployment are
-    blocked.'
+  condition: 'Exact 9141 W2 scan in W4 run 40830549596 and W5 run 40830549593: all three page bindings expect design-manager-pages.yml SHA-256 51f8d59ab19dd2a974381991038a2f746a4b30ab73422b1894d2f01df16f7200;
+    actual is e1d7c6555b83570e92769244b83c5024113c683cc1db5f51e99d0f7ac8e8871c. W3/W4/W5 Chromium evidence and candidate Pages deployment are blocked.'
   unblock: Review the intended Pages workflow authority change and resolve the exact source binding without weakening W2 or
     changing frozen SWOS snapshot inputs/hashes.
 - id: TP-EHOME-AUTHORITY-001
@@ -239,8 +258,7 @@ blockers:
   severity: P0
   area: auth_login_v2
   status: OPEN
-  condition: Login renderer restored to the shared Design Manager on exact 9c, but W3/W4/W5 failed (run 40827290596); exact
-    6933 W2 prevents a current rerun.
+  condition: Current PR234 exact HEAD 9141 removes the Login renderer, component mapping and dedicated Login W4 matrix; Login W3/W4/W5 evidence is absent, and exact-source W2 fails. PR239 remains a separate open draft.
   unblock: Resolve W2 by a reviewed source-authority path and follow the separate Login geometry escalation before a new exact-SHA
     Chromium run.
 - id: TP-LOGIN-RESPONSIVE-001
@@ -285,6 +303,12 @@ blockers:
     and current Main b080.'
   unblock: Resolve the external source/mapping/provenance in a separate reviewed change; do not modify the frozen input pack,
     manifest or hash to mask the stale binding.
+- id: TP-LOGIN-PR234-REMOVAL-001
+  severity: P0
+  area: auth_login_v2
+  status: OPEN
+  condition: PR234 HEAD 91418127df91b9854897f24eeb84c970cb2e6563 removes the Login structured renderer, component mapping, and dedicated W4 Login matrix; PR239 remains open/draft and unmerged.
+  unblock: Selectively reconcile Login-owned changes into the existing shared Design Manager, preserve other pages, resolve W2, and honor the geometry STOP_AND_ESCALATE gate.
 protected_invariants:
   control_plane:
   - Canonical static Control Plane is read from current Main b080bb0ffb4ebced18593c08709657fabb53a19e.
@@ -339,6 +363,13 @@ next_actions:
   status: WAITING
   dependencies:
   - TP-A05
+- id: TP-A07
+  action: Reconcile Login-owned code from PR239 into the existing shared workspace without a blanket merge; keep the 9141 removal explicit and do not rerun Login geometry before the gate decision.
+  owner: Work
+  status: BLOCKED
+  dependencies:
+  - TP-A01
+  - TP-A02
 completion_rules:
 - W1-W5 pass on one exact source SHA independently for each page.
 - Do not mark a page FROZEN without product-owner visual acceptance.
@@ -347,9 +378,9 @@ completion_rules:
 state_update:
   protocol: harness/STATE_UPDATE_PROTOCOL.md
   static_control_plane_changes: NONE — current rules keep live task state in branch-local state/log files.
-  checkpoint_updated_at: '2026-10-29T06:42:52Z'
+  checkpoint_updated_at: '2026-10-29T06:53:18.819Z'
 agent_recovery:
   canonical_entry: AGENTS.md -> CONTROL_PLANE_REGISTRY.yaml -> current Main
   current_work_state: WORK_EXECUTION_STATE.json
-  resume_first_at: next_actions[TP-A03]
+  resume_first_at: next_actions[TP-A07]
   historical_failure_ledger: WORK_EXECUTION_STATE.json.execution_v2
