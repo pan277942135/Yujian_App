@@ -2056,5 +2056,5 @@ inventory:
   gate_count: 30
   registry_created_from_pr_head: "ebb6b3904feaa0cf26b4fd4b83bc809a397085a2"
   last_synced_feature_matrix_sha: "fa5350132226d1a3c3d5d667af772f7a41ed6ff9"
-  last_synced_phase_task_state_machine_sha: "ba95a1b8d960bc1a57b9995f8c697d366c86e65e"
+  last_synced_phase_task_state_machine_sha: "7a5b03ae471f4bb148f087b0cb94e178aca5760b"
   last_synced_experience_registry_sha: "d57b39f4a3ad0956c8edf001403514ca5495f454"
