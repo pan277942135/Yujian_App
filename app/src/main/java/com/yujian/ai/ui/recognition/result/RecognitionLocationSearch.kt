@@ -135,30 +135,39 @@ suspend fun resolveCurrentRecognitionPlace(context: Context): RecognitionPlace? 
     }
 }
 
+@SuppressLint("MissingPermission")
 private suspend fun requestCurrentLocation(manager: LocationManager, provider: String, context: Context): Location? =
     withTimeoutOrNull(8_000L) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            suspendCancellableCoroutine { continuation ->
-                val cancellation = CancellationSignal()
-                continuation.invokeOnCancellation { cancellation.cancel() }
-                manager.getCurrentLocation(provider, cancellation, context.mainExecutor) { location ->
-                    if (continuation.isActive) continuation.resume(location)
-                }
-            }
-        } else {
-            suspendCancellableCoroutine { continuation ->
-                val listener = object : LocationListener {
-                    override fun onLocationChanged(location: Location) {
+        val hasLocationPermission =
+            ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED ||
+                ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
+        if (!hasLocationPermission) return@withTimeoutOrNull null
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                suspendCancellableCoroutine { continuation ->
+                    val cancellation = CancellationSignal()
+                    continuation.invokeOnCancellation { cancellation.cancel() }
+                    manager.getCurrentLocation(provider, cancellation, context.mainExecutor) { location ->
                         if (continuation.isActive) continuation.resume(location)
-                        runCatching { manager.removeUpdates(this) }
                     }
-                    @Suppress("DEPRECATION")
-                    override fun onStatusChanged(providerName: String?, status: Int, extras: android.os.Bundle?) = Unit
-                    override fun onProviderEnabled(providerName: String) = Unit
-                    override fun onProviderDisabled(providerName: String) = Unit
                 }
-                continuation.invokeOnCancellation { runCatching { manager.removeUpdates(listener) } }
-                manager.requestSingleUpdate(provider, listener, Looper.getMainLooper())
+            } else {
+                suspendCancellableCoroutine { continuation ->
+                    val listener = object : LocationListener {
+                        override fun onLocationChanged(location: Location) {
+                            if (continuation.isActive) continuation.resume(location)
+                            runCatching { manager.removeUpdates(this) }
+                        }
+                        @Suppress("DEPRECATION")
+                        override fun onStatusChanged(providerName: String?, status: Int, extras: android.os.Bundle?) = Unit
+                        override fun onProviderEnabled(providerName: String) = Unit
+                        override fun onProviderDisabled(providerName: String) = Unit
+                    }
+                    continuation.invokeOnCancellation { runCatching { manager.removeUpdates(listener) } }
+                    manager.requestSingleUpdate(provider, listener, Looper.getMainLooper())
+                }
             }
+        } catch (_: SecurityException) {
+            null
         }
     }
