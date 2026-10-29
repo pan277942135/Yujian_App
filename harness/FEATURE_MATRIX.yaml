@@ -333,6 +333,7 @@ features:
       runtime_authority: "design/pages/recognition/spec/Recognition_Visual_Fidelity_V1_2.md"
       execution_task_refs:
         - "YUJIAN_ANDROID_SLIMSAM_PIXEL_SEGMENTATION_V1"
+        - "YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2"
     capture_hifi:
       status: "FROZEN"
       visual_contract: "design/system_v3/08_Page_Contracts/recognition/capture/Recognition_Capture_HiFi_Visual_Contract_V1.md"

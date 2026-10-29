@@ -1786,6 +1786,10 @@ task_contract_bindings:
     contract_refs: ["FC-recognition_flow_v1_2", "ANDROID-SLIMSAM-PIXEL-SEGMENTATION-V1", "ANDROID-RUNTIME-HARNESS", "STATE-EVIDENCE-PROVENANCE", "G-ANDROID-SLIMSAM-PIXEL-SEGMENTATION-V1"]
     gate_id: "G-ANDROID-SLIMSAM-PIXEL-SEGMENTATION-V1"
     phase: "P6"
+  YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2:
+    contract_refs: ["FC-recognition_flow_v1_2", "ANDROID-SLIMSAM-PIXEL-SEGMENTATION-V1", "ANDROID-RUNTIME-HARNESS", "STATE-EVIDENCE-PROVENANCE", "G-ANDROID-SLIMSAM-PIXEL-SEGMENTATION-V1"]
+    gate_id: "G-ANDROID-SLIMSAM-PIXEL-SEGMENTATION-V1"
+    phase: "P6"
   NH01-RESPONSIVE-CONTRACT-V2:
     contract_refs: ["FC-home_normal_v1", "RESPONSIVE-LAYOUT-STANDARD-V1", "G-NH01-RESPONSIVE-CONTRACT-V2"]
     gate_id: "G-NH01-RESPONSIVE-CONTRACT-V2"
@@ -2058,7 +2062,7 @@ inventory:
   journey_count: 20
   child_surface_count: 81
   route_count: 22
-  task_count: 64
+  task_count: 65
   gate_count: 29
   registry_created_from_pr_head: "ebb6b3904feaa0cf26b4fd4b83bc809a397085a2"
   last_synced_feature_matrix_sha: "aacfe6561fb2dc4dc2262c36147a59bd484cbea1"

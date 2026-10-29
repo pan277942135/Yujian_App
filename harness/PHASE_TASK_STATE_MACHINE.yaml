@@ -98,7 +98,7 @@ phases:
     exit_condition: "Release-scope feature implementation reaches executable acceptance tasks."
     release_scope: "PRIMARY_PLUS_SECONDARY"
     feature_refs: ["home_normal_v1", "record_date_v2", "share_templates_v1", "auth_register_v2"]
-    task_refs: ["P6-01", "P6-02", "P6-03", "P6-04", "YUJIAN_NH01_ANDROID_FROZEN_V22_IMPLEMENTATION_REPAIR_WORK_B_V1", "YUJIAN_NH01_RESPONSIVE_V2_ANDROID_IMPLEMENTATION_AND_RUNTIME_ACCEPTANCE_V1", "YUJIAN_ANDROID_FISH_CATCH_EFFECT01_UPWARD_SCAN_SHAKE_V1", "YUJIAN_ANDROID_AISTUDIO_PERIMETER_SHADER_PORT_V1", "YUJIAN_ANDROID_SLIMSAM_PIXEL_SEGMENTATION_V1"]
+    task_refs: ["P6-01", "P6-02", "P6-03", "P6-04", "YUJIAN_NH01_ANDROID_FROZEN_V22_IMPLEMENTATION_REPAIR_WORK_B_V1", "YUJIAN_NH01_RESPONSIVE_V2_ANDROID_IMPLEMENTATION_AND_RUNTIME_ACCEPTANCE_V1", "YUJIAN_ANDROID_FISH_CATCH_EFFECT01_UPWARD_SCAN_SHAKE_V1", "YUJIAN_ANDROID_AISTUDIO_PERIMETER_SHADER_PORT_V1", "YUJIAN_ANDROID_SLIMSAM_PIXEL_SEGMENTATION_V1", "YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2"]
   P7:
     name: "Integration / Full Surface"
     entry_condition: "Feature implementation is executable."
@@ -600,6 +600,19 @@ tasks:
     gate_id: "G-ANDROID-SLIMSAM-PIXEL-SEGMENTATION-V1"
     evidence_required: ["immutable_model_revision_license_and_sha256", "onnx_metadata_and_cpu_smoke", "photo_preprocessing_and_bbox_coordinate_parity", "one_encoder_embedding_reused_across_boxes", "full_resolution_mask_and_candidate_quality_evidence", "photo_session_cancellation_and_stale_result_isolation", "detector_classifier_and_result_invariance", "real_photo_positive_and_negative_cases", "offline_model_loading", "api28_runtime_diagnostics_and_installable_apk"]
     completion: "Add local SlimSAM segmentation as an independent branch from the existing PhotoSession original photo and Detector BBOX; produce a separately attributable full-resolution pixel mask per valid box, reuse one image embedding per photo, preserve Detector/Classifier/Result behavior, and deliver exact-head model, CPU, offline and API28 evidence. No fake-mask fallback or production visual redesign."
+    human_required: false
+  YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2:
+    phase: "P6"
+    priority: "P0"
+    owner: "Work"
+    feature_refs: ["recognition_flow_v1_2"]
+    journey_refs: ["J05-J10"]
+    depends_on: ["P5-02"]
+    entry_blockers: []
+    target_blockers: []
+    gate_id: "G-ANDROID-SLIMSAM-PIXEL-SEGMENTATION-V1"
+    evidence_required: ["photo_compositor_diagnostic", "adaptive_stage_trace", "trusted_mask_and_gold_peak", "shared_photo_result_handoff", "debug_apk_sha256", "runtime_not_run_or_device_evidence"]
+    completion: "Repair the existing Android recognition photo compositor, adaptive visual stages, trusted SlimSAM gold and shared-photo RR09 handoff; deliver exact-head Debug APK. Native visual acceptance remains separate."
     human_required: false
   P6-03:
     phase: "P6"
