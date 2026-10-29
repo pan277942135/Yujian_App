@@ -1,118 +1,292 @@
 {
   "$schema": "./harness/WORK_EXECUTION_STATE_SCHEMA_V1.json",
-  "schema_version": "1.0",
-  "work_id": "YUJIAN_W4_W5_MAIN_PAGES_W6_ANDROID_RUNTIME_CLOSURE_V1",
-  "repository": "pan277942135/Yujian_App",
-  "branch": "work-state/w5-empty-home-pilot-v1",
-  "related_pr": 234,
-  "control_plane_revision": "2fab34d20ccd7f2d6f9a0d22dd65cac5d5bd5e98",
   "base_branch": "main",
   "base_sha": "2fab34d20ccd7f2d6f9a0d22dd65cac5d5bd5e98",
-  "phase": "P3",
-  "task_id": "YUJIAN_PAGE_FREEZE_PIPELINE_W5_EMPTY_HOME_PILOT_V1",
-  "stage": "G1_PRODUCT_WORK_ADMISSION",
-  "status": "BLOCKED",
-  "source_sha": "13e25bbf9cb9f29cb696d8fcc5d6bb8731d501ec",
-  "checkpoint_updated_at": "2026-10-29T07:39:23+08:00",
-  "next_action": "Run PRODUCT_WORK Admission on isolated state branch work-state/w5-empty-home-pilot-v1 against exact PR #234 candidate 13e25bbf9cb9f29cb696d8fcc5d6bb8731d501ec; after PASS, run the recorded W4 failure guard and repair only the disabled-page-node workspace selection.",
+  "blockers": [
+    "The current candidate 27ab653f1020b17e46292e5ff380ed781e0026af requires PRODUCT_WORK Admission and all affected exact-SHA gates; run 40789100925 is historical and bound to 13e25bb.",
+    "Previous candidate b7dfbde W4 run 40790142020 failed because the stale-workspace fixture expected FAIL though the repaired verifier correctly returned PASS. The expected classification has been fixed; verify the new source SHA.",
+    "Previous candidate b7dfbde PR Pages run 40790141941 failed because the resolver excluded workflow_dispatch. The resolver now allows the official Main run type while retaining source/build/deploy/artifact checks; verify the new source SHA.",
+    "NH01 independent approved Hero/Peek sources remain unconfirmed. Keep generated illustrative files labeled, retain ASSET_SOURCE_REQUIRED, and do not claim visual acceptance or native runtime."
+  ],
+  "branch": "work-state/w5-empty-home-pilot-v1",
+  "checkpoint_updated_at": "2026-10-29T00:05:39+00:00",
+  "control_plane_revision": "2fab34d20ccd7f2d6f9a0d22dd65cac5d5bd5e98",
   "dependencies": [
     "YUJIAN_PAGE_FREEZE_PIPELINE_W3_DESIGN_MANAGER_ADAPTER_V1",
     "YUJIAN_PAGE_FREEZE_PIPELINE_W4_TEST_EVIDENCE_V1"
   ],
-  "blockers": [
-    "Product-work Admission has not been run in PRODUCT_WORK mode; PR event Admission run 40667570171 is CANONICAL_MAIN_PROMOTION only and cannot substitute.",
-    "W4 exact-HEAD evidence run 40667570169 failed on candidate SHA 5ba86fd8d1142d4708d1b8f9e6ddc81cbc96ccf6 because home_normal_v1 attempted to select a disabled page tree node; home_empty_v2 passed and auth_login_v2 remains reference-image-only NOT_RUN. Preserve the disabled-node assertion.",
-    "Main SHA 632cada103bf022adeb873bd6e66464555b509e4 was not deployed because Pages run 40666041684 was cancelled; production root is still verified at 80c55961059b95fd8dd52eea4b52a37bd91705e8."
-  ],
   "evidence": {
+    "active_candidate": {
+      "base_sha": "2fab34d20ccd7f2d6f9a0d22dd65cac5d5bd5e98",
+      "branch": "work/w5-empty-home-pilot-v1",
+      "head_sha": "13e25bbf9cb9f29cb696d8fcc5d6bb8731d501ec",
+      "main_sha": "2fab34d20ccd7f2d6f9a0d22dd65cac5d5bd5e98",
+      "note": "PR #234 was updated by non-force merge commit 13e25bb, with parents 5ba86fd and current Main 2fab34d; earlier tests remain historical.",
+      "pr": 234,
+      "status": "NOT_VERIFIED",
+      "sync": "REMOTE_NON_FORCE_MERGE"
+    },
     "candidate_pr": 234,
-    "candidate_source_sha": "13e25bbf9cb9f29cb696d8fcc5d6bb8731d501ec",
     "candidate_pr_url": "https://github.com/pan277942135/Yujian_App/pull/234",
-    "previous_w4_failure": {
-      "run_id": 40657928278,
-      "status": "FAIL",
-      "url": "https://github.com/pan277942135/Yujian_App/actions/runs/40657928278",
-      "source_sha": "dae5e54c761cb424eee4144f4009436a12e2cb80"
+    "candidate_source_sha": "13e25bbf9cb9f29cb696d8fcc5d6bb8731d501ec",
+    "current_candidate": {
+      "base_sha": "2fab34d20ccd7f2d6f9a0d22dd65cac5d5bd5e98",
+      "branch": "work/w5-empty-home-pilot-v1",
+      "head_sha": "27ab653f1020b17e46292e5ff380ed781e0026af",
+      "main_sha": "2fab34d20ccd7f2d6f9a0d22dd65cac5d5bd5e98",
+      "note": "Restored full UTF-8 file blobs for the Pages workflow and both workspace verifier files after remote tree inspection found empty/truncated blobs at 33b89b3. Updated the three page-binding workflow authority hashes to the exact workflow SHA while preserving publication markers. Exact-SHA gates are running.",
+      "pr": 234,
+      "previous_candidate_sha": "33b89b345d0f5c5bf9df3fe53ed3d583070c820f",
+      "status": "GATES_PENDING",
+      "sync": "NON_FORCE_MERGE_TO_CURRENT_MAIN"
     },
-    "previous_w5_matrix": {
-      "run_id": 40657928162,
-      "status": "HISTORICAL_PASS",
-      "url": "https://github.com/pan277942135/Yujian_App/actions/runs/40657928162",
-      "source_sha": "dae5e54c761cb424eee4144f4009436a12e2cb80"
-    },
-    "main_authority_sync": {
-      "merge_commit_sha": "5ba86fd8d1142d4708d1b8f9e6ddc81cbc96ccf6",
-      "main_sha": "632cada103bf022adeb873bd6e66464555b509e4",
-      "status": "MERGED_AS_NON_FORCE_MERGE"
-    },
-    "product_work_admission": {
-      "status": "NOT_RUN",
-      "note": "PR #234 Admission Run 40667570171 passed only in CANONICAL_MAIN_PROMOTION mode; this does not establish PRODUCT_WORK admission."
+    "current_main_pages": {
+      "build_job": "success",
+      "deploy_job": "success",
+      "github_pages_artifact_id": 12861340836,
+      "github_pages_artifact_sha256": "ac9acbebfdf80d3b7a20d9d1585ac1b6ae0e09726488462c8c4afa1e51087f01",
+      "live_page": "https://pan277942135.github.io/Yujian_App/design/manager/#page/home_normal_v1/hifi/multi_screen_static_hifi",
+      "note": "Verified live build.json and 23 resource/browser checks on exact Main SHA; NH01 comparison remains measurement-only, not visual acceptance.",
+      "production_browser": "PASS",
+      "production_build_json_sha": "2fab34d20ccd7f2d6f9a0d22dd65cac5d5bd5e98",
+      "release_evidence_artifact_id": 12861425668,
+      "release_evidence_artifact_sha256": "e32cfaea2531f8f8171890b7b3aa3b3600764588d5a63597afd5831488be2ead",
+      "run_id": 40789167725,
+      "source_sha": "2fab34d20ccd7f2d6f9a0d22dd65cac5d5bd5e98",
+      "status": "PASS"
     },
     "isolated_preview": {
-      "run_id": 40667570170,
-      "status": "HISTORICAL_PASS",
-      "url": "https://github.com/pan277942135/Yujian_App/actions/runs/40667570170",
-      "preview_url": "https://pan277942135.github.io/Yujian_App/previews/pr-234/",
-      "source_sha": "5ba86fd8d1142d4708d1b8f9e6ddc81cbc96ccf6",
       "candidate_build_sha": "5ba86fd8d1142d4708d1b8f9e6ddc81cbc96ccf6",
       "deployment": "PASS",
       "live_candidate_browser_verification": "PASS",
-      "production_root_under_shared_lock": "PASS",
-      "production_root_sha": "80c55961059b95fd8dd52eea4b52a37bd91705e8",
-      "production_pages_run_id": 40665646629,
+      "preview_url": "https://pan277942135.github.io/Yujian_App/previews/pr-234/",
       "production_pages_artifact_id": 12806302330,
-      "w2_final_bundle_resource_validation": "PASS",
-      "visual_acceptance": "USER_VISUAL_ACCEPTANCE_PENDING"
-    },
-    "current_main_pages": {
-      "run_id": 40666041684,
-      "status": "CANCELLED",
-      "source_sha": "632cada103bf022adeb873bd6e66464555b509e4",
-      "current_main_sha": "2fab34d20ccd7f2d6f9a0d22dd65cac5d5bd5e98",
-      "url": "https://github.com/pan277942135/Yujian_App/actions/runs/40666041684",
-      "note": "Older Main Pages run was cancelled; current Main requires its own formal production deployment."
-    },
-    "previous_candidate_source_sha": "5ba86fd8d1142d4708d1b8f9e6ddc81cbc96ccf6",
-    "active_candidate": {
-      "pr": 234,
-      "branch": "work/w5-empty-home-pilot-v1",
-      "head_sha": "13e25bbf9cb9f29cb696d8fcc5d6bb8731d501ec",
-      "base_sha": "2fab34d20ccd7f2d6f9a0d22dd65cac5d5bd5e98",
-      "main_sha": "2fab34d20ccd7f2d6f9a0d22dd65cac5d5bd5e98",
-      "status": "NOT_VERIFIED",
-      "sync": "REMOTE_NON_FORCE_MERGE",
-      "note": "PR #234 was updated by non-force merge commit 13e25bb, with parents 5ba86fd and current Main 2fab34d; earlier tests remain historical."
-    },
-    "previous_w4_run": {
-      "run_id": 40667570169,
-      "status": "HISTORICAL_FAIL",
-      "url": "https://github.com/pan277942135/Yujian_App/actions/runs/40667570169",
+      "production_pages_run_id": 40665646629,
+      "production_root_sha": "80c55961059b95fd8dd52eea4b52a37bd91705e8",
+      "production_root_under_shared_lock": "PASS",
+      "run_id": 40667570170,
       "source_sha": "5ba86fd8d1142d4708d1b8f9e6ddc81cbc96ccf6",
-      "details": {
-        "home_normal_v1": "FAIL",
-        "home_normal_v1_error": "WORKSPACE_CHECK_FAILED: component tree node page is disabled and cannot be selected in the actual workspace",
-        "home_empty_v2": "PASS",
-        "auth_login_v2": "NOT_RUN_REFERENCE_IMAGE_ONLY_NOT_CONNECTED",
-        "workspace_verifier_fixtures": "PASS cases=11"
-      },
-      "artifact_url": "https://github.com/pan277942135/Yujian_App/actions/runs/40667570169/artifacts/12807320489"
-    },
-    "previous_w5_run": {
-      "run_id": 40667570176,
       "status": "HISTORICAL_PASS",
-      "url": "https://github.com/pan277942135/Yujian_App/actions/runs/40667570176",
-      "source_sha": "5ba86fd8d1142d4708d1b8f9e6ddc81cbc96ccf6",
-      "matrix_cases": 12,
-      "negative_cases": 8,
-      "visual_review": "PENDING"
+      "url": "https://github.com/pan277942135/Yujian_App/actions/runs/40667570170",
+      "visual_acceptance": "USER_VISUAL_ACCEPTANCE_PENDING",
+      "w2_final_bundle_resource_validation": "PASS"
+    },
+    "latest_candidate_gates": {
+      "design_governance": {
+        "run_id": 40791350517,
+        "status": "PASS"
+      },
+      "native_runtime": {
+        "run_id": 40791350265,
+        "status": "SKIPPED"
+      },
+      "pages": {
+        "run_id": 40791350459,
+        "status": "RUNNING"
+      },
+      "product_work_admission": {
+        "status": "NOT_RUN"
+      },
+      "pull_request_admission": {
+        "run_id": 40791349924,
+        "status": "PASS_STATIC_ONLY_NOT_PRODUCT_WORK"
+      },
+      "source_sha": "27ab653f1020b17e46292e5ff380ed781e0026af",
+      "w1": {
+        "run_id": 40791350200,
+        "status": "PASS"
+      },
+      "w2": {
+        "pages_checked": 3,
+        "required_page_ids": [
+          "home_normal_v1",
+          "home_empty_v2",
+          "auth_login_v2"
+        ],
+        "run_id": 40791349936,
+        "status": "PASS"
+      },
+      "w4": {
+        "run_id": 40791350065,
+        "status": "RUNNING"
+      },
+      "w5_matrix": {
+        "artifact_id": 12861278328,
+        "artifact_sha256": "712bf3ca3eea0668fa92f3d8fbcaad30829e70dbf920b955f18691941ac937ae",
+        "formal_cases": 8,
+        "matrix_cases": 12,
+        "negative_cases": 8,
+        "run_id": 40791349936,
+        "status": "PASS_STRUCTURAL_MATRIX_VISUAL_REVIEW_PENDING",
+        "supplemental_cases": 4
+      }
+    },
+    "latest_main_pages": {
+      "build_job": "success",
+      "deploy_job": "success",
+      "github_pages_artifact_id": 12861340836,
+      "github_pages_artifact_sha256": "ac9acbebfdf80d3b7a20d9d1585ac1b6ae0e09726488462c8c4afa1e51087f01",
+      "live_page": "https://pan277942135.github.io/Yujian_App/design/manager/#page/home_normal_v1/hifi/multi_screen_static_hifi",
+      "note": "Verified live build.json and 23 resource/browser checks on exact Main SHA; NH01 comparison remains measurement-only, not visual acceptance.",
+      "production_browser": "PASS",
+      "production_build_json_sha": "2fab34d20ccd7f2d6f9a0d22dd65cac5d5bd5e98",
+      "release_evidence_artifact_id": 12861425668,
+      "release_evidence_artifact_sha256": "e32cfaea2531f8f8171890b7b3aa3b3600764588d5a63597afd5831488be2ead",
+      "run_id": 40789167725,
+      "source_sha": "2fab34d20ccd7f2d6f9a0d22dd65cac5d5bd5e98",
+      "status": "PASS"
+    },
+    "main_authority_sync": {
+      "main_sha": "632cada103bf022adeb873bd6e66464555b509e4",
+      "merge_commit_sha": "5ba86fd8d1142d4708d1b8f9e6ddc81cbc96ccf6",
+      "status": "MERGED_AS_NON_FORCE_MERGE"
     },
     "main_sync": {
-      "status": "PASS_LOCAL_NON_FORCE_MERGE",
-      "main_sha": "2fab34d20ccd7f2d6f9a0d22dd65cac5d5bd5e98",
       "candidate_sha": "13e25bbf9cb9f29cb696d8fcc5d6bb8731d501ec",
+      "main_sha": "2fab34d20ccd7f2d6f9a0d22dd65cac5d5bd5e98",
       "state_branch_head": "pending-GitHub-checkpoint-commit",
+      "status": "PASS_LOCAL_NON_FORCE_MERGE",
       "timestamp": "2026-10-29T07:39:23+08:00"
+    },
+    "previous_candidate_source_sha": "5ba86fd8d1142d4708d1b8f9e6ddc81cbc96ccf6",
+    "previous_w4_failure": {
+      "run_id": 40657928278,
+      "source_sha": "dae5e54c761cb424eee4144f4009436a12e2cb80",
+      "status": "FAIL",
+      "url": "https://github.com/pan277942135/Yujian_App/actions/runs/40657928278"
+    },
+    "previous_w4_run": {
+      "artifact_url": "https://github.com/pan277942135/Yujian_App/actions/runs/40667570169/artifacts/12807320489",
+      "details": {
+        "auth_login_v2": "NOT_RUN_REFERENCE_IMAGE_ONLY_NOT_CONNECTED",
+        "home_empty_v2": "PASS",
+        "home_normal_v1": "FAIL",
+        "home_normal_v1_error": "WORKSPACE_CHECK_FAILED: component tree node page is disabled and cannot be selected in the actual workspace",
+        "workspace_verifier_fixtures": "PASS cases=11"
+      },
+      "run_id": 40667570169,
+      "source_sha": "5ba86fd8d1142d4708d1b8f9e6ddc81cbc96ccf6",
+      "status": "HISTORICAL_FAIL",
+      "url": "https://github.com/pan277942135/Yujian_App/actions/runs/40667570169"
+    },
+    "previous_w5_matrix": {
+      "run_id": 40657928162,
+      "source_sha": "dae5e54c761cb424eee4144f4009436a12e2cb80",
+      "status": "HISTORICAL_PASS",
+      "url": "https://github.com/pan277942135/Yujian_App/actions/runs/40657928162"
+    },
+    "previous_w5_run": {
+      "matrix_cases": 12,
+      "negative_cases": 8,
+      "run_id": 40667570176,
+      "source_sha": "5ba86fd8d1142d4708d1b8f9e6ddc81cbc96ccf6",
+      "status": "HISTORICAL_PASS",
+      "url": "https://github.com/pan277942135/Yujian_App/actions/runs/40667570176",
+      "visual_review": "PENDING"
+    },
+    "product_work_admission": {
+      "note": "Actual PRODUCT_WORK Admission passed on the prior candidate and state checkpoint. It must be rerun for current source SHA b7dfbde0b8b3cf4920c260096ce04c4585f3ca7d.",
+      "run_id": 40789100925,
+      "source_sha": "13e25bbf9cb9f29cb696d8fcc5d6bb8731d501ec",
+      "status": "PASS_HISTORICAL_FOR_PRIOR_CANDIDATE"
+    },
+    "w2_candidate_27ab": {
+      "artifact_id": 12861278328,
+      "artifact_sha256": "712bf3ca3eea0668fa92f3d8fbcaad30829e70dbf920b955f18691941ac937ae",
+      "note": "W2 report confirms exact binding/source checks for the actual staged bundle. Existing illustrative assets stay ILLUSTRATIVE_ONLY and Gallery/Chevron lifecycle conflict remains REVIEW.",
+      "page_statuses": {
+        "auth_login_v2": "PASS",
+        "home_empty_v2": "PASS",
+        "home_normal_v1": "PASS"
+      },
+      "pages_checked": 3,
+      "run_id": 40791349936,
+      "source_sha": "27ab653f1020b17e46292e5ff380ed781e0026af",
+      "status": "PASS"
+    },
+    "w5_candidate_27ab": {
+      "artifact_id": 12861278328,
+      "artifact_sha256": "712bf3ca3eea0668fa92f3d8fbcaad30829e70dbf920b955f18691941ac937ae",
+      "artifact_size_bytes": 50608243,
+      "formal_cases": 8,
+      "matrix_cases": 12,
+      "negative_cases": 8,
+      "run_id": 40791349936,
+      "source_sha": "27ab653f1020b17e46292e5ff380ed781e0026af",
+      "status": "PASS_STRUCTURAL_MATRIX_VISUAL_REVIEW_PENDING",
+      "supplemental_cases": 4,
+      "user_visual_acceptance": "PENDING"
     }
-  }
+  },
+  "execution_v2": {
+    "issues": {
+      "273f72aad5911c80e065": {
+        "closed": false,
+        "failures": [
+          {
+            "evidence": "Run 40788738199 (https://github.com/pan277942135/Yujian_App/actions/runs/40788738199), exact source 13e25bbf9cb9f29cb696d8fcc5d6bb8731d501ec, failed home_normal_v1; W4 artifact 12807320489 reports WORKSPACE_CHECK_FAILED: component tree node page is disabled and cannot be selected in the actual workspace. Earlier run 40657928278 on dae5e54c761cb424eee4144f4009436a12e2cb80 shows the same failure in workspace-browser-report.json; artifact digest sha256:8554d97503ca7bc718b4f1ec1a8accbfd3627ffce012233860d2efd292ada33d. Preserve disabled-node assertion.",
+            "hypothesis": "The verifier queries workspace tree nodes globally and includes a disabled page node from a stale or hidden workspace instead of scoping selection to the unique visible workspace matching page ID and source SHA.",
+            "source_sha": "13e25bbf9cb9f29cb696d8fcc5d6bb8731d501ec"
+          }
+        ],
+        "gate_id": "G-PAGE-FREEZE-PIPELINE-W4-TEST-EVIDENCE",
+        "symptom_key": "W4_HOME_NORMAL_STALE_WORKSPACE_DISABLED_PAGE_NODE_SELECTION",
+        "task_id": "YUJIAN_PAGE_FREEZE_PIPELINE_W5_EMPTY_HOME_PILOT_V1"
+      },
+      "4e8228925faeaf7273c0": {
+        "closed": false,
+        "failures": [
+          {
+            "evidence": "Design Manager Pages PR Run 40790141941 exact SHA b7dfbde0b8b3cf4920c260096ce04c4585f3ca7d failed resolver step 20 before preview composition. Official Main Pages run 40789167725 (event workflow_dispatch) completed build and deploy successfully on exact Main SHA 2fab34d20ccd7f2d6f9a0d22dd65cac5d5bd5e98; live build.json matches that SHA. Repair the event predicate only while retaining exact workflow id/branch/SHA and successful build/deploy/artifact validations.",
+            "hypothesis": "The PR preview's live-root resolver accepts only successful Main Pages push events even though the authorized current Main production artifact was published by the official workflow_dispatch run on the same live build.json SHA.",
+            "source_sha": "b7dfbde0b8b3cf4920c260096ce04c4585f3ca7d"
+          }
+        ],
+        "gate_id": "G-DESIGN-MANAGER-PAGES-ISOLATED-PREVIEW",
+        "symptom_key": "PAGES_RESOLVER_EXCLUDES_FORMAL_MAIN_WORKFLOW_DISPATCH",
+        "task_id": "YUJIAN_PAGE_FREEZE_PIPELINE_W5_EMPTY_HOME_PILOT_V1"
+      },
+      "b0beb9f5cd6c67c9d1a1": {
+        "closed": true,
+        "failures": [
+          {
+            "evidence": "Exact candidate 33b89b345d0f5c5bf9df3fe53ed3d583070c820f failed W4 run 40790836404 and W5 run 40790836356. W2 sees empty workflow blob (sha256 e3b0c442...) because remote GitHub tree content differs from the local intended 45,200-byte workflow; all three page binding authorities still pin the old workflow SHA.",
+            "hypothesis": "The earlier API-created commit stored replacement file contents incorrectly or incompletely. Repair the candidate blobs from local UTF-8 bytes, update the three workflow source-authority hashes without changing publication permissions, then rerun W2/W4/W5 and inspect exact remote contents.",
+            "source_sha": "33b89b345d0f5c5bf9df3fe53ed3d583070c820f"
+          }
+        ],
+        "fix_evidence": {
+          "evidence": "GitHub tree commit 27ab653f1020b17e46292e5ff380ed781e0026af stores the full workflow and verifier sources with blob IDs matching local Git. W2 run 40791349936 on the same exact source reports PASS and pages_checked=3 for home_normal_v1, home_empty_v2, auth_login_v2. Workflow publication marker remains unchanged; asset lifecycle REVIEW values remain visible.",
+          "source_sha": "27ab653f1020b17e46292e5ff380ed781e0026af"
+        },
+        "gate_id": "G-PAGE-FREEZE-PIPELINE-W2-RESOURCES",
+        "symptom_key": "W2_WORKFLOW_AUTHORITY_BLOB_EMPTY_AFTER_REMOTE_COMMIT",
+        "task_id": "YUJIAN_PAGE_FREEZE_PIPELINE_W5_EMPTY_HOME_PILOT_V1"
+      },
+      "c42aa85704e65314d6f2": {
+        "closed": false,
+        "failures": [
+          {
+            "evidence": "W4 Run 40790142020 exact SHA b7dfbde0b8b3cf4920c260096ce04c4585f3ca7d, job 123173045322. Real Chromium log reports stale-workspace expected FAIL, got PASS; report lists two roots: hidden prior-SHA root with disabled page node (visible=false, identityMatches=false) and one exact visible current root (visible=true, identityMatches=true), with measured_node_count=1. Fix only expected classification, retain disabled-node failure case.",
+            "hypothesis": "The new stale-workspace regression fixture correctly observes the repaired verifier passing the exact visible current workspace but its expected-result table mistakenly classifies that fixture as a failure.",
+            "source_sha": "b7dfbde0b8b3cf4920c260096ce04c4585f3ca7d"
+          }
+        ],
+        "gate_id": "G-PAGE-FREEZE-PIPELINE-W4-TEST-EVIDENCE",
+        "symptom_key": "W4_STALE_WORKSPACE_FIXTURE_EXPECTED_RESULT_INVERTED",
+        "task_id": "YUJIAN_PAGE_FREEZE_PIPELINE_W5_EMPTY_HOME_PILOT_V1"
+      }
+    },
+    "schema_version": "1.0"
+  },
+  "next_action": "Commit this checkpoint on the isolated state branch with source_sha 27ab653f1020b17e46292e5ff380ed781e0026af; dispatch PRODUCT_WORK Admission, then inspect W4 run 40791350065 and Pages run 40791350459 to completion.",
+  "phase": "P3",
+  "related_pr": 234,
+  "repository": "pan277942135/Yujian_App",
+  "schema_version": "1.0",
+  "source_sha": "27ab653f1020b17e46292e5ff380ed781e0026af",
+  "stage": "G2_W4_REPAIR",
+  "status": "VALIDATING",
+  "task_id": "YUJIAN_PAGE_FREEZE_PIPELINE_W5_EMPTY_HOME_PILOT_V1",
+  "work_id": "YUJIAN_W4_W5_MAIN_PAGES_W6_ANDROID_RUNTIME_CLOSURE_V1"
 }

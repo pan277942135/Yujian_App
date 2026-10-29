@@ -10,11 +10,11 @@ state_control:
   current_pr: null
   related_pr: 234
   base_sha: "2fab34d20ccd7f2d6f9a0d22dd65cac5d5bd5e98"
-  execution_baseline_sha: "13e25bbf9cb9f29cb696d8fcc5d6bb8731d501ec"
-  current_head: "13e25bbf9cb9f29cb696d8fcc5d6bb8731d501ec"
+  execution_baseline_sha: "27ab653f1020b17e46292e5ff380ed781e0026af"
+  current_head: "27ab653f1020b17e46292e5ff380ed781e0026af"
   current_main_head_sha: "2fab34d20ccd7f2d6f9a0d22dd65cac5d5bd5e98"
-  state_status: "BLOCKED"
-  updated_at: "2026-10-29T07:39:23+08:00"
+  state_status: "VALIDATING"
+  updated_at: "2026-10-29T00:03:26+00:00"
 source_of_truth:
   current_work_state: "WORK_EXECUTION_STATE.json"
   canonical_control_plane: "CONTROL_PLANE_REGISTRY.yaml"
@@ -25,7 +25,7 @@ source_of_truth:
 repositories:
   Yujian_App:
     branch: "work-state/w5-empty-home-pilot-v1"
-    execution_baseline_sha: "13e25bbf9cb9f29cb696d8fcc5d6bb8731d501ec"
+    execution_baseline_sha: "27ab653f1020b17e46292e5ff380ed781e0026af"
     current_main_head_sha: "2fab34d20ccd7f2d6f9a0d22dd65cac5d5bd5e98"
     control_plane_sync:
       status: "MERGE_SYNCED_TO_CURRENT_MAIN"
@@ -35,8 +35,8 @@ pull_requests:
   PR234:
     number: 234
     branch: "work/w5-empty-home-pilot-v1"
-    base_sha: "632cada103bf022adeb873bd6e66464555b509e4"
-    head_sha: "13e25bbf9cb9f29cb696d8fcc5d6bb8731d501ec"
+    base_sha: "2fab34d20ccd7f2d6f9a0d22dd65cac5d5bd5e98"
+    head_sha: "27ab653f1020b17e46292e5ff380ed781e0026af"
     status: "DRAFT_OPEN_UNMERGED"
     task_id: "YUJIAN_PAGE_FREEZE_PIPELINE_W5_W4_EVIDENCE_AND_ISOLATED_PREVIEW_RECOVERY_V3"
   PR242:
@@ -57,7 +57,7 @@ phases:
     note: "Not re-established by this narrow W5 recovery checkpoint."
   P3:
     status: "BLOCKED"
-    note: "W5 depends on W3 and W4; product-work Admission has not yet passed and W4 workspace scope needs repair."
+    note: "PRODUCT_WORK Admission passed on prior SHA 13e25bb; current candidate W4 run 40790142020 failed only in stale-workspace fixture expectation, and current PR Pages run 40790141941 failed to resolve the official successful Main workflow_dispatch deployment. W5 12-case matrix passed on b7dfbde; all affected gates must rerun on the next SHA."
   P4:
     status: "NOT_CONFIRMED"
     note: "Not re-established by this narrow W5 recovery checkpoint."
@@ -102,41 +102,57 @@ recognition_main_journey:
   note: "Journey identifiers are retained in canonical order; this checkpoint does not alter journey semantics."
 runtime_gates:
   exact_head:
-    sha: "13e25bbf9cb9f29cb696d8fcc5d6bb8731d501ec"
+    sha: "27ab653f1020b17e46292e5ff380ed781e0026af"
     status: "NOT_VERIFIED"
-    note: "Current PR #234 synchronized candidate; prior W4/W5/preview evidence belongs to 5ba86fd and does not verify this exact SHA."
+    note: "Candidate 27ab653f1020b17e46292e5ff380ed781e0026af has exact-SHA W4/W5/Pages/Governance runs in progress; only a separate PRODUCT_WORK dispatch from the updated isolated state branch can clear Admission."
   page_evidence:
     w4:
-      status: "FAIL"
-      run_id: 40667570169
-      source_sha: "5ba86fd8d1142d4708d1b8f9e6ddc81cbc96ccf6"
+      status: "RUNNING"
+      run_id: 40791350065
+      source_sha: "27ab653f1020b17e46292e5ff380ed781e0026af"
+      details: "Real Chromium W4 run is in progress on the exact restored candidate; earlier b7dfbde fixture misexpectation and 33b89b3 empty-blob failures remain historical."
     w5_matrix:
+      status: "PASS_STRUCTURAL_MATRIX_VISUAL_REVIEW_PENDING"
+      run_id: 40791349936
+      source_sha: "27ab653f1020b17e46292e5ff380ed781e0026af"
+      cases: 12
+      formal_cases: 8
+      supplemental_cases: 4
+      negative_cases: 8
+      artifact_id: 12861278328
+      artifact_sha256: "712bf3ca3eea0668fa92f3d8fbcaad30829e70dbf920b955f18691941ac937ae"
+    w2_resources:
       status: "PASS"
-      run_id: 40667570176
-      source_sha: "5ba86fd8d1142d4708d1b8f9e6ddc81cbc96ccf6"
+      run_id: 40791349936
+      source_sha: "27ab653f1020b17e46292e5ff380ed781e0026af"
+      pages_checked: 3
+      page_ids: ["home_normal_v1", "home_empty_v2", "auth_login_v2"]
+      artifact_id: 12861278328
+      artifact_sha256: "712bf3ca3eea0668fa92f3d8fbcaad30829e70dbf920b955f18691941ac937ae"
   isolated_preview:
-    status: "PASS"
-    run_id: 40667570170
-    source_sha: "5ba86fd8d1142d4708d1b8f9e6ddc81cbc96ccf6"
+    status: "RUNNING"
+    run_id: 40791350459
+    source_sha: "27ab653f1020b17e46292e5ff380ed781e0026af"
     url: "https://pan277942135.github.io/Yujian_App/previews/pr-234/"
-    deployment: "PASS"
-    live_candidate_browser_verification: "PASS"
-    production_root_sha: "80c55961059b95fd8dd52eea4b52a37bd91705e8"
-    production_pages_run_id: 40665646629
+    deployment: "PENDING"
+    failure: "Prior 33b89b3 run exposed empty remote workflow/verifier blobs and stale workflow pins; the corrected exact-SHA Pages run is in progress."
   product_work_admission:
     status: "NOT_RUN"
-    note: "PR Admission run 40667570171 is CANONICAL_MAIN_PROMOTION only."
+    prior_run_id: 40789100925
+    prior_source_sha: "13e25bbf9cb9f29cb696d8fcc5d6bb8731d501ec"
+    current_source_sha: "27ab653f1020b17e46292e5ff380ed781e0026af"
+    current_candidate_status: "PENDING_STATE_BRANCH_CHECKPOINT"
   latest_main_pages:
-    status: "NOT_RUN"
+    status: "PASS"
     source_sha: "2fab34d20ccd7f2d6f9a0d22dd65cac5d5bd5e98"
-    previous_cancelled_run_id: 40666041684
-    previous_cancelled_run_sha: "632cada103bf022adeb873bd6e66464555b509e4"
-    live_production_root_sha: "80c55961059b95fd8dd52eea4b52a37bd91705e8"
-    note: "No successful formal Main Pages run has verified current Main SHA 2fab34d; manual dispatch is pending."
-  historical_w4_failure:
-    status: "FAIL"
-    run_id: 40657928278
-    source_sha: "dae5e54c761cb424eee4144f4009436a12e2cb80"
+    run_id: 40789167725
+    build: "PASS"
+    deploy: "PASS"
+    production_build_json_sha: "2fab34d20ccd7f2d6f9a0d22dd65cac5d5bd5e98"
+    github_pages_artifact_id: 12861340836
+    github_pages_artifact_sha256: "ac9acbebfdf80d3b7a20d9d1585ac1b6ae0e09726488462c8c4afa1e51087f01"
+    release_evidence_artifact_id: 12861425668
+    release_evidence_artifact_sha256: "e32cfaea2531f8f8171890b7b3aa3b3600764588d5a63597afd5831488be2ead"
   android_runtime:
     status: "NOT_VERIFIED"
     note: "A skipped native runtime gate is not a PASS."
@@ -149,32 +165,39 @@ apk_and_evidence:
 current_work:
   id: "YUJIAN_W4_W5_MAIN_PAGES_W6_ANDROID_RUNTIME_CLOSURE_V1"
   related_pr: 234
-  exact_head: "13e25bbf9cb9f29cb696d8fcc5d6bb8731d501ec"
+  exact_head: "27ab653f1020b17e46292e5ff380ed781e0026af"
   phase: "P3"
   task_id: "YUJIAN_PAGE_FREEZE_PIPELINE_W5_EMPTY_HOME_PILOT_V1"
-  status: "BLOCKED"
-  next_action: "Run PRODUCT_WORK Admission on the isolated state branch against exact PR #234 candidate 13e25bbf9cb9f29cb696d8fcc5d6bb8731d501ec; after PASS, run the W4 failure guard and repair disabled-page-node selection without weakening assertions."
+  status: "VALIDATING"
+  next_action: "Commit this exact-SHA checkpoint to the isolated state branch, dispatch PRODUCT_WORK Admission, and inspect W4 and Pages runs to completion."
 blockers:
-  - id: "W5-BLOCKER-PRODUCT-WORK-ADMISSION"
+  - id: "W5-BLOCKER-PRODUCT-WORK-ADMISSION-CURRENT-SHA"
     severity: "P0"
     area: "Control Plane Admission"
-    condition: "PR pull_request event uses CANONICAL_MAIN_PROMOTION mode and rejects branch-local state by design; the product-work mode has not yet been run on the isolated Work-state branch."
+    condition: "PRODUCT_WORK Admission run 40789100925 passed on prior candidate 13e25bbf9cb9f29cb696d8fcc5d6bb8731d501ec; current candidate b7dfbde0b8b3cf4920c260096ce04c4585f3ca7d and its successor still require exact-source Admission."
     affected_gate: "CONTROL_PLANE_ADMISSION"
-    unblock_condition: "Dispatch control-plane-admission.yml on ref work-state/w5-empty-home-pilot-v1 and require PRODUCT_WORK mode plus CONTROL_PLANE_ADMISSION=PASS."
+    unblock_condition: "After correcting W4 fixture and PR Pages lookup, update isolated state branch source_sha to the new exact PR #234 HEAD and require PRODUCT_WORK mode plus CONTROL_PLANE_SYNC + PROJECT_STATE + WORK_STATE PASS."
     status: "OPEN"
-  - id: "W5-BLOCKER-W4-WORKSPACE-SCOPE"
+  - id: "W5-BLOCKER-W4-STALE-WORKSPACE-FIXTURE"
     severity: "P0"
     area: "W4 Evidence"
-    condition: "W4 run 40667570169 on exact candidate SHA 5ba86fd8d1142d4708d1b8f9e6ddc81cbc96ccf6 failed: WORKSPACE_CHECK_FAILED because the home_normal_v1 component tree page node is disabled and cannot be selected. home_empty_v2 PASS; auth_login_v2 NOT_RUN_REFERENCE_IMAGE_ONLY_NOT_CONNECTED; 11 shared verifier fixture tests PASS do not substitute for the page workspace gate."
+    condition: "Historical Run 40790142020 on b7dfbde failed because the regression harness expected FAIL for stale-workspace while the verifier correctly returned PASS. Candidate 33b89b3 then failed W4/W5 before Chromium because its remote workflow/verifier blobs were empty or truncated."
     affected_gate: "G-PAGE-FREEZE-PIPELINE-W4-TEST-EVIDENCE"
-    unblock_condition: "After product-work Admission PASS, apply the preserved scope-repair patch; rerun real Chromium workspace checks and W4 Evidence on the new exact SHA."
+    unblock_condition: "Confirm the current exact-SHA W4 fixtures pass in real Chromium and the disabled-node negative case remains fail-closed."
     status: "OPEN"
-  - id: "W5-BLOCKER-MAIN-PAGES-SHA"
+  - id: "W5-BLOCKER-PR-PAGES-WORKFLOW-DISPATCH-LOOKUP"
+    severity: "P0"
+    area: "Isolated preview and production consistency"
+    condition: "PR Pages Run 40790141941 historically excluded the official workflow_dispatch Main deploy; 33b89b3 then stored an empty workflow blob and failed its W2 authority scan. The current candidate restored the full workflow, updated pinned workflow hashes, and started a new exact-SHA preview run."
+    affected_gate: "Design Manager Pages / isolated preview"
+    unblock_condition: "Exact-SHA W2 and Pages run must pass; live preview must show 27ab653f1020b17e46292e5ff380ed781e0026af while the production root remains at current Main."
+    status: "OPEN"
+  - id: "NH01-BLOCKER-APPROVED-HERO-PEEK-ASSETS"
     severity: "P1"
-    area: "Production Pages"
-    condition: "Current Main SHA 2fab34d20ccd7f2d6f9a0d22dd65cac5d5bd5e98 has no successful formal Design Manager Pages run. Older SHA 632cada run 40666041684 was cancelled; production root was last verified at 80c55961059b95fd8dd52eea4b52a37bd91705e8."
-    affected_gate: "Live root SHA and isolated preview integrity"
-    unblock_condition: "Run Main Pages for exact current SHA 2fab34d20ccd7f2d6f9a0d22dd65cac5d5bd5e98 and verify the live root build SHA; independently preserve the PR #234 isolated preview deployment."
+    area: "NH01 structured high-fidelity"
+    condition: "Current renderer labels Hero, previous and next as GENERATED_ILLUSTRATIVE_ONLY; no independent approved real FishRecord Hero/Peek source has yet been established."
+    affected_gate: "STATIC_HIFI_ASSETS_VERIFIED / STRUCTURED_WORKSPACE_VERIFIED"
+    unblock_condition: "Search registered/repository and explicitly authorized resource sources; if absent, preserve ASSET_SOURCE_REQUIRED and do not promote generated artwork or crop frozen full-page PNGs as real assets."
     status: "OPEN"
 protected_invariants:
   evidence_integrity:
@@ -188,29 +211,46 @@ protected_invariants:
     - "USER_VISUAL_ACCEPTANCE_PENDING remains independent from CI."
     - "Native runtime remains NOT_VERIFIED."
 next_actions:
-  - id: "W5-RECOVERY-ADMISSION-01"
+  - id: "W5-RECOVERY-ADMISSION-05"
     owner: "Work"
     status: "READY"
-    action: "Dispatch .github/workflows/control-plane-admission.yml with ref work-state/w5-empty-home-pilot-v1; require PRODUCT_WORK mode and explicit PASS for CONTROL_PLANE_SYNC + PROJECT_STATE + WORK_STATE."
-    dependency: "Branch-local state files committed to the isolated Work-state branch."
-  - id: "W5-RECOVERY-W4-02"
+    action: "Commit the isolated state files with source_sha 27ab653f1020b17e46292e5ff380ed781e0026af and dispatch PRODUCT_WORK Admission; require CONTROL_PLANE_SYNC + PROJECT_STATE + WORK_STATE PASS."
+    dependency: "PR #234 HEAD 27ab653f1020b17e46292e5ff380ed781e0026af; exact-SHA Actions runs are in progress."
+  - id: "W5-RECOVERY-EXACT-GATES-06"
     owner: "Work"
     status: "BLOCKED"
-    action: "Apply the preserved W4 workspace-scope patch and run real Chromium fixtures after product-work Admission PASS."
-    dependency: "W5-RECOVERY-ADMISSION-01"
+    action: "Collect W4 Evidence, W5 matrix, W2 scan, isolated PR Pages build/deploy/browser verification, and governance results for exact SHA 27ab653f1020b17e46292e5ff380ed781e0026af."
+    dependency: "W5-RECOVERY-ADMISSION-05."
+  - id: "W5-RECOVERY-ASSET-AUDIT-07"
+    owner: "Work"
+    status: "READY"
+    action: "Search authorized repository sources for standalone NH01 Hero/Peek imagery; if none exists, keep ASSET_SOURCE_REQUIRED and record per-view asset evidence without cropping frozen full-page PNGs."
+    dependency: "Existing NH01 frozen manifest and component tree."
 completion_rules:
   - "Product-work Admission must pass against the current exact PR candidate source SHA."
   - "W4 Chromium fixtures and W4 Evidence must pass on the repaired exact SHA."
   - "W5 matrix and isolated preview must be rerun on the same repaired exact SHA."
   - "User visual acceptance remains pending until the product owner confirms it."
 state_update:
-  updated_at: "2026-10-28T14:00:17.715Z"
-  reason: "Non-force merged PR #234 candidate 13e25bbf9cb9f29cb696d8fcc5d6bb8731d501ec (synchronized with current Main 2fab34d20ccd7f2d6f9a0d22dd65cac5d5bd5e98) into the isolated Work-state branch; aligned state provenance to the exact candidate SHA."
+  updated_at: "2026-10-29T00:05:39+00:00"
+  reason: "Candidate 27ab653f1020b17e46292e5ff380ed781e0026af restores the full Pages workflow and workspace verifier blobs and refreshes only their three pinned source hashes. Exact-SHA W1 and governance passed; W2 passed for all three pages; W5 passed 12/12 structural cases plus 8 negative cases, with visual review pending. W4 and isolated Pages remain running; PRODUCT_WORK Admission is not yet run. Main Pages remains verified on exact Main 2fab34d."
   protocol: "harness/STATE_UPDATE_PROTOCOL.md"
 agent_recovery:
   resume_order:
     - "Read AGENTS.md and CONTROL_PLANE_REGISTRY.yaml from current Main."
-    - "Dispatch product-work Admission on the isolated Work-state branch."
-    - "If Admission passes, apply W4 scope repair to PR #234."
-    - "Rerun W4 Evidence, W5 matrix, and isolated preview on the exact new PR SHA."
+    - "Commit the isolated state branch with source_sha matching the exact PR #234 candidate."
+    - "Dispatch PRODUCT_WORK Admission and require CONTROL_PLANE_SYNC + PROJECT_STATE + WORK_STATE PASS."
+    - "Inspect current exact-SHA W4 and isolated Pages runs; rerun affected checks if the source changes."
     - "Keep PR #234 Draft/Open/Unmerged and visual acceptance pending."
+
+current_candidate_runs:
+  source_sha: "27ab653f1020b17e46292e5ff380ed781e0026af"
+  w4_run_id: 40791350065
+  w5_run_id: 40791349936
+  pages_run_id: 40791350459
+  w1_run_id: 40791350200
+  governance_run_id: 40791350517
+  pull_request_admission_run_id: 40791349924
+  product_work_admission: "NOT_RUN"
+  native_runtime_run_id: 40791350265
+  checkpoint_updated_at: "2026-10-29T00:03:26+00:00"

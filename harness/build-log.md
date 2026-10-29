@@ -76,3 +76,29 @@
 - The isolated-preview deployment verified the current production root as `80c55961059b95fd8dd52eea4b52a37bd91705e8` (Pages Run `40665646629`, artifact `12806302330`). The latest Main `632cada103bf022adeb873bd6e66464555b509e4` Pages run `40666041684` was cancelled; do not claim latest Main is live.
 - Product-work Admission remains **NOT_RUN**. Run `40667570171` is PR-event `CANONICAL_MAIN_PROMOTION` mode only. Required next gate is a manual `workflow_dispatch` of `.github/workflows/control-plane-admission.yml` on ref `work-state/w5-empty-home-pilot-v1`, explicitly checking `PRODUCT_WORK` and `CONTROL_PLANE_SYNC + PROJECT_STATE + WORK_STATE`. Do not apply the preserved W4 source patch before that gate passes.
 - State files were updated on the isolated state branch only; no state files are being promoted through PR #234. W4 remains FAIL, Main deployment remains stale relative to latest Main, and user visual acceptance remains pending.
+
+
+## 2026-10-28 — W4 scope-fix and Main Pages production checkpoint
+
+- Current Main is `2fab34d20ccd7f2d6f9a0d22dd65cac5d5bd5e98`. Official Main Pages run [40789167725](https://github.com/pan277942135/Yujian_App/actions/runs/40789167725) completed build and deploy successfully on that exact SHA. Live production `design/manager/build.json` reads `2fab34d20ccd7f2d6f9a0d22dd65cac5d5bd5e98`; real browser verification passed for 23 bound resources, navigation, exact source layer tree, bidirectional selection, viewport/font changes, missing-resource/recovery probes and NH01 responsive preview. Production `github-pages` artifact 12861340836 has SHA-256 `ac9acbebfdf80d3b7a20d9d1585ac1b6ae0e09726488462c8c4afa1e51087f01`.
+- PR #234 exact candidate `b7dfbde0b8b3cf4920c260096ce04c4585f3ca7d`: W5 matrix [40790142122](https://github.com/pan277942135/Yujian_App/actions/runs/40790142122) PASS; W4 [40790142020](https://github.com/pan277942135/Yujian_App/actions/runs/40790142020) FAIL in the new fixture harness because `stale-workspace` correctly returned PASS but the harness expected FAIL. Its evidence confirms the hidden old-SHA root and disabled `page` node were excluded while the exact visible root was measured. Fix expected classification only; keep the disabled-node negative assertion.
+- PR Pages [40790141941](https://github.com/pan277942135/Yujian_App/actions/runs/40790141941) failed because its live-root resolver filters successful Main Pages runs to event `push`, excluding the successful official `workflow_dispatch` publication on the same verified Main SHA. Update the allow-list to include `workflow_dispatch`, still require exact SHA plus successful build, deploy step, unexpired Pages artifact, and live `build.json` match.
+- Native runtime remains NOT_VERIFIED. NH01 standalone Hero/Peek approved real-image sources have not been established; illustrative images remain explicitly `GENERATED_ILLUSTRATIVE_ONLY`. `USER_VISUAL_ACCEPTANCE_PENDING`.
+- Next: make the two narrow fixture/workflow corrections, commit a new PR #234 SHA; update this isolated state branch with that exact source, rerun PRODUCT_WORK Admission, then rerun W4/W5/W2/Pages/Governance on the same exact candidate.
+
+
+## 2026-10-28 — PR #234 exact candidate checkpoint after W4/Pages correction
+
+- PR #234 was updated by non-force, expected-SHA GitHub ref update. New candidate: `33b89b345d0f5c5bf9df3fe53ed3d583070c820f` (parent `b7dfbde0b8b3cf4920c260096ce04c4585f3ca7d`); Main remains `2fab34d20ccd7f2d6f9a0d22dd65cac5d5bd5e98`. Changed only the W4 verifier, its regression fixture, and `design-manager-pages.yml` Main run resolver.
+- W4 regression fixture now expects the hidden stale workspace case to PASS after its disabled old-SHA node is excluded, while the direct disabled-node fixture must remain FAIL with the original failure reason and diagnostic screenshot/DOM. The verifier reports failure cause, workspace candidates, DOM geometry and screenshot digests without replacing the original exception with secondary capture errors.
+- PR Pages accepts `push` or `workflow_dispatch` only; exact workflow ID, main branch, live build.json SHA, build success, deploy success and nonexpired Pages artifact checks remain.
+- Exact-SHA Actions and product-work Admission for `33b89b345d0f5c5bf9df3fe53ed3d583070c820f` are pending. Previous b7 W4/Pages failures remain historical and recorded in `WORK_EXECUTION_STATE.json`; b7 W5 PASS is not reused.
+
+
+## 2026-10-29 exact-SHA recovery checkpoint
+
+- Current Main remains `2fab34d20ccd7f2d6f9a0d22dd65cac5d5bd5e98`. PR #234 remains Draft/Open/Unmerged; exact candidate is `27ab653f1020b17e46292e5ff380ed781e0026af`.
+- Remote commit `33b89b345d0f5c5bf9df3fe53ed3d583070c820f` had incorrect GitHub blobs: the Pages workflow was empty and both workspace verifier files were truncated. W2 reported the missing workflow authority as the empty-file SHA.
+- Restored six complete files in commit `27ab653f1020b17e46292e5ff380ed781e0026af`: the Pages workflow, W4 verifier, W4 fixture, and the three canonical resource bindings with the exact SHA-256 of the restored workflow. Publication markers and existing asset lifecycles were left intact.
+- Current exact-SHA runs: W4 `40791350065`, W5 `40791349936`, Pages `40791350459`, W1 `40791350200`, Governance `40791350517`. All were still running at checkpoint time. PR-event Admission `40791349924` is static only; PRODUCT_WORK Admission remains NOT_RUN. Native NH01 runtime workflow `40791350265` was skipped.
+- Prior 33b89b3 W4/W5 failures remain recorded; no PASS or user acceptance is inferred.
