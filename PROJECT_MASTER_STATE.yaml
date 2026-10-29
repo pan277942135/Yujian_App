@@ -29,7 +29,7 @@ repositories:
     execution_baseline_sha: 91418127df91b9854897f24eeb84c970cb2e6563
     current_main_head_sha: b080bb0ffb4ebced18593c08709657fabb53a19e
     control_plane_sync:
-      status: PENDING_PRODUCT_WORK_ADMISSION
+      status: PASS
       main_sync_commit: b080bb0ffb4ebced18593c08709657fabb53a19e
       synced_main_sha: b080bb0ffb4ebced18593c08709657fabb53a19e
       note: 'PR #234 exact head 6933f459d2223823a25edcd1d4598ffde3061267; current Main b080bb0ffb4ebced18593c08709657fabb53a19e;
@@ -145,10 +145,9 @@ recognition_main_journey:
   note: Journey identifiers are retained in canonical order; this checkpoint does not alter journey semantics.
 runtime_gates:
   exact_head:
-    sha: 6933f459d2223823a25edcd1d4598ffde3061267
-    status: IN_PROGRESS
-    note: Exact source 6933f459d2223823a25edcd1d4598ffde3061267; W1/Governance/PR-event admission passed. W4/W5/Pages
-      fail as recorded; Product Work Admission pending; preview not deployed; NH01 runtime not verified.
+    sha: 91418127df91b9854897f24eeb84c970cb2e6563
+    status: PENDING_ADMISSION_RETRY
+    note: Exact active product source 91418127df91b9854897f24eeb84c970cb2e6563; prior W4/W5/Pages results remain recorded against older SHA. Product Work Admission run 40830891497 had CONTROL_PLANE_SYNC=PASS and WORK_EXECUTION_STATE=PASS but failed PROJECT_MASTER_STATE on this stale runtime SHA. Repair this isolated pointer, then rerun Admission.
   page_evidence:
     w1:
       status: PASS
@@ -351,7 +350,7 @@ completion_rules:
 - User visual acceptance remains pending until product owner confirms it; frozen static assets and contracts remain
   unchanged.
 state_update:
-  updated_at: '2026-10-29T06:35:39Z'
+  updated_at: '2026-10-29T06:46:36Z'
   reason: Recorded exact PRODUCT_WORK Admission failure and bounded repair allowance. The path is a Login candidate
     authority duplicated into PR234; keep W6 work in PR239 and re-admit after scope restoration.
   protocol: harness/STATE_UPDATE_PROTOCOL.md
@@ -414,7 +413,7 @@ live_recovery_checkpoint:
 current_execution_checkpoint:
   task_id: YUJIAN_W4_W5_MAIN_PAGES_W6_ANDROID_RUNTIME_CLOSURE_V1
   supplemental_task_id: YUJIAN_NH01_STRUCTURED_HIFI_MULTI_SCREEN_RESPONSIVE_CLOSURE_V1
-  updated_at: '2026-10-29T06:41:37Z'
+  updated_at: '2026-10-29T06:46:36Z'
   main_sha: b080bb0ffb4ebced18593c08709657fabb53a19e
   pr234:
     base_sha: b080bb0ffb4ebced18593c08709657fabb53a19e
