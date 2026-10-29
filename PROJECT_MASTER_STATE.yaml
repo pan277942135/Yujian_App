@@ -286,7 +286,7 @@ current_work:
     on b3571b0a082156f91b77f150315c55c59d2ad5dc. After state Admission passes, integrate PR #253, deploy the resulting
     Main SHA, non-destructively synchronize PR #234, update state source_sha, and rerun exact-source gates.
 blockers:
-  - "Latest isolated state checkpoint 5ec1ebb76f8499edcb4fe3c3460a87d5000780c6: Admission run 40832489323 failed only PROJECT_MASTER_STATE YAML parsing because root blocker/next_action list indentation was malformed. CONTROL_PLANE_SYNC and WORK_EXECUTION_STATE passed. Repair is state-only."
+  - "Latest isolated state commit 7b9f1e0fb7ba0ba4eddedbf34e8720c525869c52: Admission run 40832826205 confirms YAML syntax parses, but PROJECT_MASTER_STATE validation fails because at least one next_action must be READY. CONTROL_PLANE_SYNC and WORK_EXECUTION_STATE passed. Set the authority restoration action READY, then rerun."
   - "PR #234 exact source 91418127df91b9854897f24eeb84c970cb2e6563 has W2 run 40830549495 FAIL: three existing Page Resource Bindings pin workflow SHA 51f8d59ab19dd2a974381991038a2f746a4b30ab73422b1894d2f01df16f7200 while candidate resolver SHA is e1d7c6555b83570e92769244b83c5024113c683cc1db5f51e99d0f7ac8e8871c. PR #253 restores resolver and all three exact pins."
   - "Exact source 91418127df91b9854897f24eeb84c970cb2e6563 W4 run 40830549596 and W5 run 40830549593 stopped at upstream W2; final W4/W5 evidence was not reached."
   - "Isolated PR #234 preview has not been deployed; W6 PR #239 remains blocked on exact W4/W5/W2/preview gates and remains Draft."
@@ -312,7 +312,7 @@ next_actions:
     dependency: Current source SHA 91418127df91b9854897f24eeb84c970cb2e6563.
   - id: PR253_AUTHORITY_RESTORATION
     owner: Work
-    status: READY_AFTER_ADMISSION
+    status: READY
     action: Integrate the exact four-file authority fix only after required checks remain green; then run formal Pages on the resulting Main SHA.
     dependency: Corrected isolated state Admission.
   - id: PR234_EXACT_SHA_REVALIDATION
@@ -347,7 +347,7 @@ completion_rules:
   unchanged.
 state_update:
   updated_at: '2026-10-29T06:46:36Z'
-  reason: Recorded exact PRODUCT_WORK Admission failure and bounded repair allowance. The path is a Login candidate
+  reason: Recorded exact PRODUCT_WORK Admission failure for missing READY next_action after YAML correction. The path is a Login candidate
     authority duplicated into PR234; keep W6 work in PR239 and re-admit after scope restoration.
   protocol: harness/STATE_UPDATE_PROTOCOL.md
 agent_recovery:
@@ -409,20 +409,20 @@ live_recovery_checkpoint:
 current_execution_checkpoint:
   task_id: YUJIAN_W4_W5_MAIN_PAGES_W6_ANDROID_RUNTIME_CLOSURE_V1
   supplemental_task_id: YUJIAN_NH01_STRUCTURED_HIFI_MULTI_SCREEN_RESPONSIVE_CLOSURE_V1
-  updated_at: '2026-10-29T07:01:00Z'
+  updated_at: '2026-10-29T07:02:15Z'
   checkpoint_parent_state_sha: 5ec1ebb76f8499edcb4fe3c3460a87d5000780c6
   main_sha: b080bb0ffb4ebced18593c08709657fabb53a19e
   state_branch: work-state/w5-empty-home-pilot-v1
   source_sha: 91418127df91b9854897f24eeb84c970cb2e6563
   state_admission:
-    status: FAIL_STATE_YAML_REPAIR_REQUIRED
-    run_id: 40832489323
-    state_sha: 5ec1ebb76f8499edcb4fe3c3460a87d5000780c6
+    status: FAIL_PROJECT_STATE_READY_ACTION_REQUIRED
+    run_id: 40832826205
+    state_sha: 7b9f1e0fb7ba0ba4eddedbf34e8720c525869c52
     gates:
       CONTROL_PLANE_SYNC: PASS
-      PROJECT_MASTER_STATE: FAIL_YAML_PARSE
+      PROJECT_MASTER_STATE: FAIL_VALIDATION
       WORK_EXECUTION_STATE: PASS
-    exact_error: line_284_unindented_root_list_item_expected_block_end
+    exact_error: at_least_one_next_action_must_be_READY
   latest_product_work_admission:
     prior_status: PASS
     prior_run_id: 40831382946
