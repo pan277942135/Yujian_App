@@ -93,6 +93,16 @@ Normal Home package V1.1: the frozen Normal Home reference remains composition a
 
 Design freeze and runtime evidence status are tracked separately.
 
+## 2026-10-29 · Android Capture → Result full-journey SPEC_FROZEN authority
+
+- **Current user-approved cross-page behavior authority:** design/pages/recognition/journey/Capture_To_Result_Visual_Flow_Contract_V1.md
+- **Machine contract:** design/pages/recognition/journey/Capture_To_Result_Visual_Flow_Contract_V1.json
+- **Video / photo-geometry acceptance:** design/pages/recognition/journey/Capture_To_Result_Acceptance_Matrix_V1.md
+- **Design Manager:** #page/recognition_flow_v1_2/hifi/capture_to_result_visual_flow_v1
+- **Approval boundary:** portrait Android UI only; horizontal photographs valid; stable top-of-screen Fit/Contain original photo and tiny “识别中” indicator; no fake central oval fallback; true Mask-only contour; no photo double exposure through RR09.
+- **Timing authority delta:** the historical 2800ms Processing + 850ms RR09/15-frame static comparison remains present and unchanged. For this newly approved complete user journey, Processing exits only after actual photo-first-frame-based visual stages and real inference are ready; 2800ms **is no longer a fixed exit deadline**. RR09 850ms remains the initial target; R0.5 stays the midpoint at 100ms in the 0–200ms photo movement. This extension must not be silently interpreted as runtime already implemented.
+- **Current status:** SPEC_FROZEN; high-fidelity raster assets unchanged; Android code/runtime and full-video acceptance NOT_VERIFIED/PENDING. Existing legacy SWOS static sampling and original Edge Field reference continue for historical parity, not as a second active full-journey timing authority.
+
 ## Recognition Processing
 
 ### Frozen visual baseline — V1.2
