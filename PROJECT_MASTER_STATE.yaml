@@ -188,9 +188,16 @@ runtime_gates:
     integration_status: NOT_STARTED
     next_action: Non-destructively sync PR239 to current Main; compare merge-base and Login-owned diff before implementation.
   product_work_admission:
-    status: HISTORICAL_PASS_STALE_BASE
+    status: FAIL_CURRENT_MAIN_BASELINE
     mode: PRODUCT_WORK
-    run_id: 40798720006
+    run_id: 40805391403
+    source_sha: 4f0f3a66d0bef26e24f6bc066478e6cd03b773e8
+    main_sha: 5e482e8644828a880fbc3c0a273565765977bfaf
+    required_gates:
+      CONTROL_PLANE_SYNC: FAIL
+      PROJECT_STATE: NOT_RUN_AFTER_CONTROL_PLANE_SYNC_FAILURE
+      WORK_STATE: NOT_RUN_AFTER_CONTROL_PLANE_SYNC_FAILURE
+    historical_pass_run_id: 40798720006
     source_sha: 4f0f3a66d0bef26e24f6bc066478e6cd03b773e8
     main_sha: 1d851b98e550cdc4d0c5c6f74ffedcf194e126f4
     state_branch_head: dfcc2b07fbb1d0c80d3ad7f35f47faf37c1a8fb4
@@ -213,8 +220,9 @@ runtime_gates:
   android_runtime:
     status: IN_PROGRESS
     nh01_api28:
-      status: IN_PROGRESS
+      status: FAIL_API28_ASSERTION
       run_id: 40798413946
+      note: Exact 4f runtime ended in font/date assertion failure; the result is historical to Main 1d.
       source_sha: 4f0f3a66d0bef26e24f6bc066478e6cd03b773e8
       api_level: 28
     effect01: NOT_VERIFIED
@@ -294,7 +302,7 @@ completion_rules:
 - W5 matrix and isolated preview must be rerun on the same repaired exact SHA.
 - User visual acceptance remains pending until the product owner confirms it.
 state_update:
-  updated_at: '2026-10-29T02:14:54Z'
+  updated_at: '2026-10-29T02:18:24Z'
   reason: Reconciled historical 4f0f3a66 evidence against live Main 5e482e86, recorded authority deletion, current production drift, and SWOS blocker; no old SHA is promoted as current.
   protocol: harness/STATE_UPDATE_PROTOCOL.md
 agent_recovery:
@@ -320,3 +328,34 @@ current_candidate_runs:
   nh01_api28_runtime_run_id: 40798413946
   w6_dependency: TECHNICAL_DEPENDENCY_CLEARED
   checkpoint_updated_at: '2026-10-29T02:14:54Z'
+
+
+live_recovery_checkpoint:
+  updated_at: '2026-10-29T02:18:24Z'
+  current_main_sha: 5e482e8644828a880fbc3c0a273565765977bfaf
+  product_candidate_sha: 4f0f3a66d0bef26e24f6bc066478e6cd03b773e8
+  current_admission:
+    mode: PRODUCT_WORK
+    run_id: 40805391403
+    status: FAIL
+    source_sha: 4f0f3a66d0bef26e24f6bc066478e6cd03b773e8
+    state_branch_head_at_dispatch: 0b1d4cce1def09394e2a97db7de88a8c60e73199
+    failing_gate: CONTROL_PLANE_SYNC
+    evidence: 'Run log reports canonical path missing or empty: design/registry/ and design/system_v3/ on current Main.'
+  authority_restore_pr:
+    number: 247
+    status: OPEN
+    current_head_sha: 2051128624bc684f74c50a1f532cc58ed7fc34f7
+    prior_head_sha: 1cb1cb884a032d44d590336b2f72fe8e42e5d5de
+    design_manager_pages_run_id: 40805511985
+    w4_run_id: 40805512034
+    android_ci_run_id: 40805512031
+    nh01_api28_run_id: 40805511940
+    swos_audit_run_id: 40805512054
+    note: 'RecognitionLocationSearch.kt lint modification was reverted after the Pages scope gate rejected it; PyYAML runtime workflow dependency remains.'
+  production:
+    status: STALE
+    live_build_json_sha: 1d851b98e550cdc4d0c5c6f74ffedcf194e126f4
+    current_main_pages_run_id: 40800311515
+    current_main_pages_result: FAIL
+  next_action: 'Resolve Main authority recovery and SWOS dependency, then rebase PR234 and rerun PRODUCT_WORK Admission before PR234 W4/W5/W2/Pages.'

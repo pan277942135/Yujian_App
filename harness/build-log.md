@@ -42,3 +42,12 @@
 - Android CI on the prior #247 SHA `aec7841cafdfecbacbc265fab311c3d786c09660` built debug and instrumentation APKs but failed lint (3 `MissingPermission` errors), so no installable APK artifact was uploaded. The lint issue is corrected at 1cb; validation is running again. NH01 API28 run 40805043805 is independently running on 1cb after opt-in label; it is not evidence for PR #234 or other native runtime targets.
 - State status is BLOCKED; `source_sha` remains the actual W5 product candidate 4f and its 1d-based W4/W5/W2/preview/Admission results are retained as historical. The current Main baseline prevents claiming W6 technical dependency clearance.
 - Next: reconcile Main authority restoration and the external SWOS dependency, then rebase PR #234, bind a fresh state snapshot to its exact product SHA, run PRODUCT_WORK Admission, and rerun W4/W5/W2/Pages on that SHA. Keep PR #234 and #239 Draft/unmerged and user visual acceptance pending.
+
+
+## 2026-10-29 — Scope correction and explicit PRODUCT_WORK Admission result
+
+- PR #247 moved to exact head `2051128624bc684f74c50a1f532cc58ed7fc34f7`. The attempted lint-only change in `RecognitionLocationSearch.kt` was reverted after Pages governance run 40805005511 rejected that path as outside the authority-restoration scope. The already scope-compliant PyYAML addition remains.
+- Current PRODUCT_WORK Admission run 40805391403 used isolated state branch head `0b1d4cce1def09394e2a97db7de88a8c60e73199`, source candidate `4f0f3a66d0bef26e24f6bc066478e6cd03b773e8`, and live Main `5e482e8644828a880fbc3c0a273565765977bfaf`. It failed at `CONTROL_PLANE_SYNC`: `design/registry/` and `design/system_v3/` are missing or empty on Main. PROJECT_STATE/WORK_STATE are not promoted as passing after this failure.
+- On restore head 205, exact runs are in progress: Pages 40805511985, W4 40805512034, Android CI 40805512031, NH01 API28 Runtime 40805511940, and SWOS audit 40805512054. PR #247’s previous exact SWOS failure (40805005518) remains historical for the superseded SHA.
+- Production remains on `1d851b98e550cdc4d0c5c6f74ffedcf194e126f4`; current Main Pages run 40800311515 failed. Old 4f product gates are historical to Main 1d and cannot clear W6.
+- Next: resolve the missing Main authorities and SWOS external dependency without changing frozen hashes, then rebase PR234 and run Product Work Admission on the exact new candidate before its W4/W5/W2/Pages suite.

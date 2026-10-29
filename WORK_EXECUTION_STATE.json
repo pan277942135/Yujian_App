@@ -10,7 +10,7 @@
     "Approved standalone Hero/Peek images remain ASSET_SOURCE_REQUIRED; user visual acceptance is pending."
   ],
   "branch": "work-state/w5-empty-home-pilot-v1",
-  "checkpoint_updated_at": "2026-10-29T02:14:54Z",
+  "checkpoint_updated_at": "2026-10-29T02:18:24Z",
   "control_plane_revision": "5e482e8644828a880fbc3c0a273565765977bfaf",
   "dependencies": [
     "YUJIAN_PAGE_FREEZE_PIPELINE_W3_DESIGN_MANAGER_ADAPTER_V1",
@@ -740,26 +740,48 @@
       "artifact_sha256": "e1f61e94b12df802ec316401056a255fd76d7004e4f7b2bf6e46405c3731cedb"
     },
     "live_audit": {
-      "timestamp": "2026-10-29T02:14:54Z",
+      "timestamp": "2026-10-29T02:18:24Z",
       "main_sha": "5e482e8644828a880fbc3c0a273565765977bfaf",
       "pr234_head_sha": "4f0f3a66d0bef26e24f6bc066478e6cd03b773e8",
       "pr234_base_snapshot": "1d851b98e550cdc4d0c5c6f74ffedcf194e126f4",
       "restore_pr": 247,
-      "restore_head_sha": "1cb1cb884a032d44d590336b2f72fe8e42e5d5de",
+      "restore_head_sha": "2051128624bc684f74c50a1f532cc58ed7fc34f7",
       "restore_exact_runs": {
-        "control_plane_admission": 40805005502,
-        "android_ci": 40805005504,
-        "design_manager_pages": 40805005511,
-        "w4": 40805005519,
-        "w1": 40805005603,
-        "design_governance": 40805005544,
-        "swos_audit": 40805005518,
-        "nh01_runtime": 40805043805
+        "control_plane_admission": 40805512092,
+        "android_ci": 40805512031,
+        "design_manager_pages": 40805511985,
+        "w4": 40805512034,
+        "w1": 40805512076,
+        "design_governance": 40805512043,
+        "swos_audit": 40805512054,
+        "nh01_runtime": 40805511940
       },
       "swos_status": "FAIL_EXTERNAL_PR177_BEHIND_MAIN_AND_FROZEN_INPUT_SHA_MISMATCH",
       "production_live_build_sha": "1d851b98e550cdc4d0c5c6f74ffedcf194e126f4",
       "production_run_current_main": 40800311515,
-      "next": "Resolve authority restoration gate, then exact-head product Admission and W4/W5/W2/isolated preview."
+      "next": "Resolve authority restoration gate, then exact-head product Admission and W4/W5/W2/isolated preview.",
+      "scope_gate_finding": "The Android source lint edit in the preceding restore head was reverted after Pages governance failed the out-of-scope path check; current candidate keeps only the NH01 cloud dependency fix."
+    },
+    "product_work_admission_current": {
+      "run_id": 40805391403,
+      "mode": "PRODUCT_WORK",
+      "source_sha": "4f0f3a66d0bef26e24f6bc066478e6cd03b773e8",
+      "main_sha": "5e482e8644828a880fbc3c0a273565765977bfaf",
+      "status": "FAIL",
+      "CONTROL_PLANE_SYNC": "FAIL",
+      "PROJECT_STATE": "NOT_RUN",
+      "WORK_STATE": "NOT_RUN",
+      "failure": "canonical path missing or empty: design/registry/ and design/system_v3/"
+    },
+    "android_ci_restore_head": {
+      "run_id": 40805512031,
+      "source_sha": "2051128624bc684f74c50a1f532cc58ed7fc34f7",
+      "status": "PENDING"
+    },
+    "nh01_runtime_restore_head": {
+      "run_id": 40805511940,
+      "source_sha": "2051128624bc684f74c50a1f532cc58ed7fc34f7",
+      "status": "PENDING"
     }
   },
   "execution_v2": {
@@ -898,7 +920,7 @@
     },
     "schema_version": "1.0"
   },
-  "next_action": "Restore Main authority files and resolve the documented SWOS external dependency; then rebase PR234, rebuild this isolated state on its exact product candidate SHA, run PRODUCT_WORK Admission, and rerun W4/W5/W2/Pages.",
+  "next_action": "Resolve current Main authority restoration and external SWOS dependency; then rebase PR234, rebuild this isolated state on the exact candidate tree, rerun PRODUCT_WORK Admission, and rerun W4/W5/W2/Pages.",
   "phase": "P3",
   "related_pr": 234,
   "repository": "pan277942135/Yujian_App",
