@@ -229,6 +229,66 @@ def derive_matrix(root: Path, envelope: dict[str, Any], profile: dict[str, Any])
         return {"status": "NOT_RUN", "source_path": authority_path, "expected_case_count": 0, "recorded_case_count": 0,
                 "cases": [], "reason": "No machine-readable viewport authority is bound to this page profile."}
 
+    formal_matrix = numeric_authority.get("formal_matrix")
+    if isinstance(formal_matrix, dict):
+        raw_cases = formal_matrix.get("cases")
+        expected_count = formal_matrix.get("case_count")
+        if not isinstance(raw_cases, list) or not isinstance(expected_count, int) or isinstance(expected_count, bool) or expected_count < 0:
+            return {"status": "FAIL", "source_path": authority_path, "expected_case_count": 0,
+                    "recorded_case_count": 0, "cases": [],
+                    "reason": "Page-owned formal matrix must declare a non-negative case_count and a cases list."}
+        cases = []
+        seen_case_ids: set[str] = set()
+        for row in raw_cases:
+            if not isinstance(row, dict):
+                return {"status": "FAIL", "source_path": authority_path, "expected_case_count": expected_count,
+                        "recorded_case_count": len(cases), "cases": cases,
+                        "reason": "Page-owned formal matrix contains a non-object case."}
+            case_id = row.get("case_id")
+            viewport = _valid_viewport(row.get("viewport"))
+            font = row.get("font_scale")
+            state_id = row.get("state_id")
+            if not isinstance(case_id, str) or not case_id.strip() or case_id in seen_case_ids:
+                return {"status": "FAIL", "source_path": authority_path, "expected_case_count": expected_count,
+                        "recorded_case_count": len(cases), "cases": cases,
+                        "reason": "Page-owned formal matrix case IDs must be non-empty and unique."}
+            if viewport is None or not isinstance(font, (int, float)) or isinstance(font, bool) or font <= 0:
+                return {"status": "FAIL", "source_path": authority_path, "expected_case_count": expected_count,
+                        "recorded_case_count": len(cases), "cases": cases,
+                        "reason": f"Page-owned formal matrix case {case_id} has an invalid viewport or font scale."}
+            if not isinstance(state_id, str) or not state_id.strip():
+                return {"status": "FAIL", "source_path": authority_path, "expected_case_count": expected_count,
+                        "recorded_case_count": len(cases), "cases": cases,
+                        "reason": f"Page-owned formal matrix case {case_id} has no state ID."}
+            assertions = row.get("assertions", [])
+            authority_refs = row.get("authority_refs", [])
+            if not isinstance(assertions, list) or not all(isinstance(item, str) and item.strip() for item in assertions):
+                return {"status": "FAIL", "source_path": authority_path, "expected_case_count": expected_count,
+                        "recorded_case_count": len(cases), "cases": cases,
+                        "reason": f"Page-owned formal matrix case {case_id} has invalid assertions."}
+            if not isinstance(authority_refs, list) or not all(isinstance(item, str) and item.strip() for item in authority_refs):
+                return {"status": "FAIL", "source_path": authority_path, "expected_case_count": expected_count,
+                        "recorded_case_count": len(cases), "cases": cases,
+                        "reason": f"Page-owned formal matrix case {case_id} has invalid authority references."}
+            expected_state = row.get("expected_state")
+            if not isinstance(expected_state, dict):
+                return {"status": "FAIL", "source_path": authority_path, "expected_case_count": expected_count,
+                        "recorded_case_count": len(cases), "cases": cases,
+                        "reason": f"Page-owned formal matrix case {case_id} has no expected_state object."}
+            cases.append({"case_id": case_id, "viewport": viewport, "font_scale": font,
+                          "state_id": state_id, "result": "NOT_RUN",
+                          "failure_reason": "The page-owned formal matrix case is recorded here; its exact-SHA browser/native gate has not run.",
+                          "expected_state": expected_state, "authority_refs": authority_refs,
+                          "assertions": assertions})
+            seen_case_ids.add(case_id)
+        if len(cases) != expected_count:
+            return {"status": "FAIL", "source_path": authority_path, "expected_case_count": expected_count,
+                    "recorded_case_count": len(cases), "cases": cases,
+                    "reason": "Page-owned formal matrix case_count does not match the cases array."}
+        return {"status": "NOT_RUN", "source_path": authority_path, "expected_case_count": expected_count,
+                "recorded_case_count": len(cases), "cases": cases,
+                "reason": "Formal page-owned cases remain NOT_RUN until the corresponding exact-SHA runner executes."}
+
     matrix_path, _ = _explicit_matrix(numeric_authority)
     if matrix_path:
         try:
