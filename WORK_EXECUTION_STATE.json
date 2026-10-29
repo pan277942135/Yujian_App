@@ -11,9 +11,9 @@
   "task_id": "YUJIAN_PAGE_FREEZE_PIPELINE_W5_EMPTY_HOME_PILOT_V1",
   "stage": "EXACT_HEAD_W5_AND_PREVIEW",
   "status": "VALIDATING",
-  "source_sha": "73cc6206eb146ada5120363ad7cf73fa8023908a",
-  "checkpoint_updated_at": "2026-10-29T18:12:57.640Z",
-  "next_action": "Rerun Admission on this state-only checkpoint, then run W5 Chromium and the isolated Pages preview for the 4-viewport × 2-font-scale matrix; retain the Login mapping exception and brand authority blocker.",
+  "source_sha": "32117ea4e04714aef12560bd75a614840afc502e",
+  "checkpoint_updated_at": "2026-10-29T18:18:48.233Z",
+  "next_action": "Review the W5 run for the exact source SHA and confirm the isolated Pages build and source-manifest match before sharing the preview.",
   "dependencies": [
     "YUJIAN_PAGE_FREEZE_PIPELINE_W3_DESIGN_MANAGER_ADAPTER_V1",
     "YUJIAN_PAGE_FREEZE_PIPELINE_W4_TEST_EVIDENCE_V1"
@@ -79,8 +79,8 @@
       "recorded_at": "2026-10-29T17:49:20Z"
     },
     "exact_candidate_admission": {
-      "candidate_sha": "2b45c9c7fe50e9966be35ed4e658bd2d5cecb3ba",
-      "code_source_sha": "73cc6206eb146ada5120363ad7cf73fa8023908a",
+      "candidate_sha": "32117ea4e04714aef12560bd75a614840afc502e",
+      "code_source_sha": "32117ea4e04714aef12560bd75a614840afc502e",
       "command": "python scripts/validate_control_plane_admission.py",
       "result": "PASS",
       "control_plane_layers": 6,
@@ -88,10 +88,11 @@
       "exact_login_mapping_exceptions": 1,
       "project_master_state": "PASS",
       "work_execution_state": "PASS",
-      "recorded_at": "2026-10-29T18:12:57.640Z"
+      "recorded_at": "2026-10-29T18:18:48.233Z",
+      "note": "Run on the following state-only checkpoint; source and renderer candidate are this exact SHA."
     },
     "typography_repair": {
-      "code_source_sha": "73cc6206eb146ada5120363ad7cf73fa8023908a",
+      "code_source_sha": "32117ea4e04714aef12560bd75a614840afc502e",
       "reference_review": "Historical 5de-exact unchanged-page W5 DOM/screenshot evidence compared against the frozen Empty Home raster before edits.",
       "candidate_matrix": "NOT_RUN",
       "candidate_preview": "NOT_RUN",
