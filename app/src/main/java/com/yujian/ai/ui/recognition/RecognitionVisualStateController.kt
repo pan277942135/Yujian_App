@@ -91,10 +91,10 @@ class RecognitionVisualStateController(
     }
 
     companion object {
-        const val CAPTURED_MIN_MS = 220L
-        const val DETECTING_MIN_MS = 320L
-        const val OUTLINE_MIN_MS = 350L
-        const val CLASSIFYING_MIN_MS = 250L
+        const val CAPTURED_MIN_MS = 350L
+        const val DETECTING_MIN_MS = 600L
+        const val OUTLINE_MIN_MS = 600L
+        const val CLASSIFYING_MIN_MS = 1_250L
         private const val UNSET = Long.MIN_VALUE
 
         val DEFAULT_MIN_VISIBLE_MS = mapOf(

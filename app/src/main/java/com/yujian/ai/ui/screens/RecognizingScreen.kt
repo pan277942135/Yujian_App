@@ -28,13 +28,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.yujian.ai.ai.FishInputAssessment
 import com.yujian.ai.ai.FishDetectionQualityGate
@@ -47,7 +48,6 @@ import com.yujian.ai.ai.subject.FishSubjectQuality
 import com.yujian.ai.ai.subject.SubjectStatus
 import com.yujian.ai.model.SelectedImage
 import com.yujian.ai.ui.identify.RecognitionImageTransform
-import com.yujian.ai.ui.identify.RecognitionSourcePhoto
 import com.yujian.ai.ui.identify.NormalizedSourceRect
 import com.yujian.ai.ui.recognition.PhotoShockwaveTransform
 import com.yujian.ai.ui.recognition.RecognitionAmbientField
@@ -57,6 +57,7 @@ import com.yujian.ai.ui.recognition.RecognitionFishFocus
 import com.yujian.ai.ui.recognition.RecognitionFishFocusLevel
 import com.yujian.ai.ui.recognition.RecognitionMotionPolicy
 import com.yujian.ai.ui.recognition.RecognitionMotionTraceSample
+import com.yujian.ai.ui.recognition.RecognitionPerimeterShaderOverlay
 import com.yujian.ai.ui.recognition.RecognitionStatusOverlay
 import com.yujian.ai.ui.recognition.RecognitionVisualStateController
 import com.yujian.ai.ui.recognition.reveal.RecognitionProcessingPhotoSnapshot
@@ -68,6 +69,8 @@ import com.yujian.ai.ui.recognition.result.RecognitionMediaPlanner
 import com.yujian.ai.ui.recognition.rememberRecognitionMotionPolicy
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
 import kotlin.math.min
@@ -92,11 +95,15 @@ fun RecognizingScreen(
     motionPolicyOverride: RecognitionMotionPolicy? = null,
     onSubjectGeometry: (FishSubjectResult, RecognitionSubjectGeometrySnapshot?) -> Unit = { _, _ -> },
     onProcessingPhotoSnapshot: (RecognitionProcessingPhotoSnapshot) -> Unit = {},
+    recognitionSessionId: String? = null,
+    recognitionAttemptId: String? = null,
 ) = RecognitionProcessingScene(
     image, onBack, recognize, generateSubject, onFinished, onFailure,
     phaseOverride, visualClockOverrideMs, motionPolicyOverride = motionPolicyOverride,
     onSubjectGeometry = onSubjectGeometry,
     onProcessingPhotoSnapshot = onProcessingPhotoSnapshot,
+    recognitionSessionId = recognitionSessionId,
+    recognitionAttemptId = recognitionAttemptId,
 )
 
 /** Presentation-only shell: it never changes detector, crop, classifier, or result semantics. */
@@ -113,26 +120,31 @@ fun RecognitionProcessingScene(
     onFishFocusTransform: ((RecognitionImageTransform) -> Unit)? = null,
     onSubjectGeometry: (FishSubjectResult, RecognitionSubjectGeometrySnapshot?) -> Unit = { _, _ -> },
     onProcessingPhotoSnapshot: (RecognitionProcessingPhotoSnapshot) -> Unit = {},
+    recognitionSessionId: String? = null,
+    recognitionAttemptId: String? = null,
 ) {
     val phasePresentedCallback by rememberUpdatedState(onVisualPhasePresented)
-    var realPhase by remember(image?.imageId) { mutableStateOf(RecognitionPhase.CAPTURED) }
-    var visualPhase by remember(image?.imageId) { mutableStateOf(RecognitionPhase.CAPTURED) }
-    var assessment by remember(image?.imageId) { mutableStateOf<FishInputAssessment?>(null) }
-    var subjectBitmap by remember(image?.imageId) { mutableStateOf<Bitmap?>(null) }
-    var subjectBox by remember(image?.imageId) { mutableStateOf<NormalizedFishBox?>(null) }
-    var contour by remember(image?.imageId) { mutableStateOf(emptyList<RecognitionContourSegment>()) }
-    var subjectResult by remember(image?.imageId) { mutableStateOf(FishSubjectResult(SubjectStatus.IDLE)) }
-    var finishedResult by remember(image?.imageId) { mutableStateOf<ProductionRecognitionResult?>(null) }
-    var delivered by remember(image?.imageId) { mutableStateOf(false) }
-    var visualNowMs by remember(image?.imageId) { mutableStateOf(recognitionMonotonicNowMs()) }
-    var processingStartedAtMs by remember(image?.imageId) { mutableStateOf<Long?>(null) }
-    val controller = remember(image?.imageId) { RecognitionVisualStateController().also { it.reset(recognitionMonotonicNowMs()) } }
+    val sceneKey = remember(image?.imageId, recognitionSessionId, recognitionAttemptId) {
+        "${image?.imageId.orEmpty()}|${recognitionSessionId.orEmpty()}|${recognitionAttemptId.orEmpty()}"
+    }
+    var realPhase by remember(sceneKey) { mutableStateOf(RecognitionPhase.CAPTURED) }
+    var visualPhase by remember(sceneKey) { mutableStateOf(RecognitionPhase.CAPTURED) }
+    var assessment by remember(sceneKey) { mutableStateOf<FishInputAssessment?>(null) }
+    var subjectBitmap by remember(sceneKey) { mutableStateOf<Bitmap?>(null) }
+    var subjectBox by remember(sceneKey) { mutableStateOf<NormalizedFishBox?>(null) }
+    var contour by remember(sceneKey) { mutableStateOf(emptyList<RecognitionContourSegment>()) }
+    var subjectResult by remember(sceneKey) { mutableStateOf(FishSubjectResult(SubjectStatus.IDLE)) }
+    var finishedResult by remember(sceneKey) { mutableStateOf<ProductionRecognitionResult?>(null) }
+    var delivered by remember(sceneKey) { mutableStateOf(false) }
+    var visualNowMs by remember(sceneKey) { mutableStateOf(recognitionMonotonicNowMs()) }
+    var processingStartedAtMs by remember(sceneKey) { mutableStateOf<Long?>(null) }
+    val controller = remember(sceneKey) { RecognitionVisualStateController().also { it.reset(recognitionMonotonicNowMs()) } }
 
     DisposableEffect(subjectBitmap) {
         onDispose { subjectBitmap?.takeUnless { it.isRecycled }?.recycle() }
     }
 
-    LaunchedEffect(image?.imageId, assessment?.primary?.box) {
+    LaunchedEffect(sceneKey, assessment?.primary?.box) {
         val selected = image ?: return@LaunchedEffect
         val primary = assessment?.primary ?: return@LaunchedEffect
         val generator = generateSubject ?: return@LaunchedEffect
@@ -144,6 +156,7 @@ fun RecognitionProcessingScene(
         } catch (_: Throwable) {
             null
         }
+        currentCoroutineContext().ensureActive()
         subjectResult = result ?: FishSubjectResult(SubjectStatus.FAILED, errorCode = "SUBJECT_GENERATION_NULL")
         if (result?.status != SubjectStatus.READY || result.bitmapPath.isNullOrBlank()) {
             onSubjectGeometry(subjectResult, null)
@@ -168,6 +181,9 @@ fun RecognitionProcessingScene(
         )
         val geometry = RecognitionSubjectGeometrySnapshot(
             imageId = selected.imageId,
+            recognitionSessionId = recognitionSessionId.orEmpty(),
+            recognitionAttemptId = recognitionAttemptId.orEmpty(),
+            photoSha256 = selected.photoSha256,
             sourceWidthPx = selected.bitmap.width,
             sourceHeightPx = selected.bitmap.height,
             detectorBox = primary.box,
@@ -187,7 +203,7 @@ fun RecognitionProcessingScene(
         logFocusDiagnostic(result, extractedContour.size, primary.box, false, false)
     }
 
-    LaunchedEffect(image?.imageId) {
+    LaunchedEffect(sceneKey) {
         if (image == null) { onFailure(IllegalStateException("recognition image is unavailable")); return@LaunchedEffect }
         val startedAtMs = recognitionMonotonicNowMs()
         processingStartedAtMs = startedAtMs
@@ -230,7 +246,7 @@ fun RecognitionProcessingScene(
     // The visual clock must remain stable while the real detector/classifier advances.
     // realPhase is intentionally NOT a LaunchedEffect key: restarting this loop on every
     // progress callback can cancel the presentation before it reaches RESULT.
-    LaunchedEffect(image?.imageId, phaseOverride) {
+    LaunchedEffect(sceneKey, phaseOverride) {
         try {
             while (isActive && phaseOverride == null && !delivered) {
                 withFrameNanos { _ ->
@@ -313,7 +329,7 @@ fun RecognitionProcessingScene(
     Box(Modifier.fillMaxSize().background(Color(0xFF102D35))) {
         if (image != null) RecognitionPhoto(
             image.bitmap, rendered, assessment?.primary?.box, subjectBitmap, subjectBox, contour,
-            visualClockMs, deterministicMotion, processingElapsedMs, photoShockwave, image.imageId, phaseElapsedMs, motionPolicy, onMotionFrame,
+            visualClockMs, deterministicMotion, processingElapsedMs, photoShockwave, sceneKey, phaseElapsedMs, motionPolicy, onMotionFrame,
             displayedFocusLevel, onFishFocusTransform, Modifier.fillMaxSize(),
             onProcessingPhotoSnapshot = { transform, bounds ->
                 onProcessingPhotoSnapshot(
@@ -402,22 +418,17 @@ private fun RecognitionPhoto(
             scaleY = photoShockwave.scale
         },
     ) {
-    // The same source may fill the letterboxed bands decoratively, but this
-    // transform is never used by focus geometry and never changes by phase.
-    mediaPlan.decorativeBackgroundTransform?.let { backgroundTransform ->
-        RecognitionSourcePhoto(
-            bitmap = bitmap.asImageBitmap(),
-            transform = backgroundTransform,
-            contentDescription = null,
-            modifier = Modifier.fillMaxSize().graphicsLayer(alpha = .16f),
-        )
-    }
-    // The captured image is opaque on the first Recognition frame; only visual overlays animate.
-    RecognitionSourcePhoto(
-        bitmap = bitmap.asImageBitmap(),
-        transform = transform,
-        contentDescription = "正在识别的鱼获照片",
-        modifier = Modifier.fillMaxSize(),
+    RecognitionPerimeterShaderOverlay(
+        bitmap = bitmap,
+        photoTransform = transform,
+        decorativeBackgroundTransform = mediaPlan.decorativeBackgroundTransform,
+        elapsedMs = processingElapsedMs,
+        sessionKey = motionSessionKey,
+        phase = phase,
+        reduceMotion = motionPolicy.reduceMotion,
+        modifier = Modifier.fillMaxSize().semantics {
+            contentDescription = "正在识别的鱼获照片"
+        },
     )
     RecognitionAmbientField(
         phase, Modifier.fillMaxSize(), visualClockMs,
@@ -429,6 +440,7 @@ private fun RecognitionPhoto(
         qualityLevel = motionPolicy.qualityLevel,
         onMotionFrame = onMotionFrame,
         photoTransform = transform,
+        includeLegacyPerimeter = false,
     )
     RecognitionFishFocus(
         phase, focusBox, subjectBitmap, subjectBox, contour, transform, Modifier.fillMaxSize(),

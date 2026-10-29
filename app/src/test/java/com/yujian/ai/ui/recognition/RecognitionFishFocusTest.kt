@@ -8,6 +8,18 @@ import org.junit.Test
 
 class RecognitionFishFocusTest {
     @Test
+    fun goldContourStrengthPeaksAt1550AndHoldsThroughP7WithoutBreathing() {
+        assertEquals(0f, recognitionFishGoldStrength(949), 0f)
+        assertEquals(.15f, recognitionFishGoldStrength(950), 0f)
+        assertEquals(.45f, recognitionFishGoldStrength(1_200), 0f)
+        assertEquals(1f, recognitionFishGoldStrength(1_550), 0f)
+        assertEquals(1f, recognitionFishGoldStrength(2_050), 0f)
+        assertEquals(1f, recognitionFishGoldStrength(2_600), 0f)
+        assertEquals(1f, recognitionFishGoldStrength(2_800), 0f)
+        assertEquals(.18f, recognitionFishGoldStrength(2_800, reduceMotion = true), 0f)
+    }
+
+    @Test
     fun realOutlineBoxCreatesOneBoundedTransientHaloThatSettlesToTheFrozenFloor() {
         val start = recognitionOutlineHaloAlpha(0L, reduceMotion = false)
         val peak = recognitionOutlineHaloAlpha(120L, reduceMotion = false)

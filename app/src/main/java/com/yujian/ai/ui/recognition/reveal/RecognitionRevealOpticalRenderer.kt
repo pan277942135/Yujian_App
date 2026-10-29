@@ -1,6 +1,7 @@
 package com.yujian.ai.ui.recognition.reveal
 
 import android.graphics.Bitmap
+import android.graphics.RectF
 import android.graphics.Matrix
 import android.graphics.Paint as AndroidPaint
 import android.graphics.PathMeasure
@@ -56,7 +57,9 @@ internal fun RecognitionRevealOpticalOverlay(
     val contourPosition = remember { FloatArray(2) }
     val mappedContourPosition = remember { FloatArray(2) }
     val transformValues = remember { FloatArray(9) }
-    val formationParticleFractions = remember { floatArrayOf(.09f, .28f, .47f, .67f, .88f) }
+    val contourBounds = remember(activeRevealGeometry) {
+        RectF().also { bounds -> activeRevealGeometry?.sourceContourPath?.computeBounds(bounds, true) }
+    }
     val imageMatrix = remember { Matrix() }
     val photoPaint = remember {
         AndroidPaint(AndroidPaint.ANTI_ALIAS_FLAG or AndroidPaint.FILTER_BITMAP_FLAG)
@@ -77,7 +80,6 @@ internal fun RecognitionRevealOpticalOverlay(
     }
     val particlePaint = remember { AndroidPaint(AndroidPaint.ANTI_ALIAS_FLAG) }
     val dotPaint = remember { AndroidPaint(AndroidPaint.ANTI_ALIAS_FLAG) }
-    val sweepPaint = remember { AndroidPaint(AndroidPaint.ANTI_ALIAS_FLAG) }
 
     Canvas(canvasModifier) {
         drawIntoCanvas { composeCanvas ->
@@ -113,16 +115,21 @@ internal fun RecognitionRevealOpticalOverlay(
                 canvas.drawBitmap(sourceBitmap, 0f, 0f, photoPaint)
                 if (frame.fishHaloAlpha > 0f && activeRevealGeometry != null && contourMeasure != null) {
                     val inverseScale = 1f / photoMatrix.scale.coerceAtLeast(.1f)
-                    haloPaint.color = gold
-                    haloPaint.alpha = (90 * frame.fishHaloAlpha).toInt()
-                    haloPaint.strokeWidth = 28f * inverseScale
+                    val fishAxisPx = maxOf(contourBounds.width(), contourBounds.height()) * photoMatrix.scale
+                    val coreWidthPx = (fishAxisPx * .008f).coerceIn(1f, 2.5f)
+                    val softWidthPx = (fishAxisPx * .025f).coerceIn(4f, 10f)
+                    val haloWidthPx = (fishAxisPx * .05f).coerceIn(12f, 28f)
+                    haloPaint.color = android.graphics.Color.rgb(219, 163, 77)
+                    haloPaint.alpha = (27 * frame.fishHaloAlpha).toInt()
+                    haloPaint.strokeWidth = haloWidthPx * inverseScale
                     canvas.drawPath(activeRevealGeometry.sourceContourPath, haloPaint)
-                    haloPaint.alpha = (210 * frame.fishHaloAlpha).toInt()
-                    haloPaint.strokeWidth = 13f * inverseScale
+                    haloPaint.color = android.graphics.Color.rgb(246, 199, 113)
+                    haloPaint.alpha = (64 * frame.fishHaloAlpha).toInt()
+                    haloPaint.strokeWidth = softWidthPx * inverseScale
                     canvas.drawPath(activeRevealGeometry.sourceContourPath, haloPaint)
-                    corePaint.color = brightGold
-                    corePaint.alpha = (230 * frame.fishHaloAlpha).toInt()
-                    corePaint.strokeWidth = 4f * inverseScale
+                    corePaint.color = android.graphics.Color.rgb(255, 227, 166)
+                    corePaint.alpha = (148 * frame.fishHaloAlpha).toInt()
+                    corePaint.strokeWidth = coreWidthPx * inverseScale
                     canvas.drawPath(activeRevealGeometry.sourceContourPath, corePaint)
                     if (contourMeasure.length > 1f) {
                         for (index in 0 until 3) {
@@ -192,24 +199,6 @@ internal fun RecognitionRevealOpticalOverlay(
                 }
             }
 
-            val title = activeRevealGeometry?.titleBoundsLocal
-            if (title != null && frame.phase == RecognitionRevealPhase.NAME_FORMATION && frame.titleFormationProgress > 0f) {
-                for (index in formationParticleFractions.indices) {
-                    val x = title.left + title.width * formationParticleFractions[index]
-                    val y = title.top + title.height * (if (index % 2 == 0) .27f else .68f)
-                    particlePaint.color = brightGold
-                    particlePaint.alpha = (140 * frame.titleFormationProgress).toInt()
-                    canvas.drawCircle(x, y, if (index % 2 == 0) 2.2f else 1.5f, particlePaint)
-                }
-            }
-            if (title != null && frame.titleSweepProgress > 0f) {
-                val x = title.left + title.width * frame.titleSweepProgress
-                sweepPaint.color = brightGold
-                sweepPaint.alpha = (46 * (1f - frame.titleSweepProgress)).toInt()
-                sweepPaint.strokeWidth = title.height * .78f
-                sweepPaint.strokeCap = AndroidPaint.Cap.ROUND
-                canvas.drawLine(x, title.top + title.height * .1f, x, title.bottom - title.height * .1f, sweepPaint)
-            }
         }
     }
 }

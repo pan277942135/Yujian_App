@@ -1,0 +1,115 @@
+schema_version: '1.0'
+state_id: YUJIAN_ANDROID_RECOGNITION_SWOS_RR09_FULL_INTEGRATION_APK_V1:feature/android-recognition-swos-rr09-full-integration-v1
+project:
+  repository: pan277942135/Yujian_App
+  canonical_branch: main
+  control_plane_revision: b080bb0ffb4ebced18593c08709657fabb53a19e
+state_control:
+  current_branch: feature/android-recognition-swos-rr09-full-integration-v1
+  execution_baseline_sha: 5b1025cc701b1389995b136029ef119f2cf0b3b4
+  current_head: 5b1025cc701b1389995b136029ef119f2cf0b3b4
+  base_sha: b080bb0ffb4ebced18593c08709657fabb53a19e
+  current_pr: null
+  status: RUNNING
+source_of_truth:
+  control_plane_registry: CONTROL_PLANE_REGISTRY.yaml
+  feature_matrix: harness/FEATURE_MATRIX.yaml
+  phase_task_state_machine: harness/PHASE_TASK_STATE_MACHINE.yaml
+  unified_contract_registry: harness/UNIFIED_CONTRACT_REGISTRY.yaml
+  state_protocol: harness/STATE_UPDATE_PROTOCOL.md
+  current_work_state: WORK_EXECUTION_STATE.json
+repositories:
+  android:
+    name: pan277942135/Yujian_App
+    main_sha: b080bb0ffb4ebced18593c08709657fabb53a19e
+pull_requests: {}
+phases:
+  P0:
+    status: NOT_CONFIRMED
+  P1:
+    status: NOT_CONFIRMED
+  P2:
+    status: NOT_CONFIRMED
+  P3:
+    status: NOT_CONFIRMED
+  P4:
+    status: NOT_CONFIRMED
+  P5:
+    status: NOT_CONFIRMED
+  P6:
+    status: NOT_CONFIRMED
+  P7:
+    status: NOT_CONFIRMED
+  P8:
+    status: NOT_CONFIRMED
+  P9:
+    status: NOT_CONFIRMED
+recognition_main_journey:
+  route:
+  - J01
+  - J02
+  - J03
+  - J04
+  - J05
+  - J06
+  - J07
+  - J08
+  - J09
+  - J10
+  - J11
+  - J12
+  - J13
+  - J14
+  - J15
+  - J16
+  - J17
+  - J18
+  - J19
+  - J20
+  contract_status: FROZEN
+  runtime_status: NOT_RUN
+runtime_gates:
+  exact_head:
+    sha: 5b1025cc701b1389995b136029ef119f2cf0b3b4
+    build: NOT_RUN
+    unit_tests: NOT_RUN
+    device_runtime: NOT_RUN
+    visual_acceptance: PENDING
+  historical_runtime_run:
+    rule: Historical results cannot promote current exact HEAD to PASS.
+apk_and_evidence:
+  status: NOT_RUN
+  apk_filename: null
+  apk_sha256: null
+  source_sha: 5b1025cc701b1389995b136029ef119f2cf0b3b4
+current_work:
+  id: YUJIAN_ANDROID_RECOGNITION_SWOS_RR09_FULL_INTEGRATION_APK_V1
+  phase: P6
+  task_id: YUJIAN_ANDROID_AISTUDIO_PERIMETER_SHADER_PORT_V1
+  status: RUNNING
+  exact_head: 5b1025cc701b1389995b136029ef119f2cf0b3b4
+  next_action: Push the exact feature source checkpoint and run Android CI unit tests, Debug APK packaging, and packaged-asset verification.
+blockers: []
+protected_invariants:
+  product_scope:
+  - Do not modify NH01, Empty Home, Login, FishRecord, result 3+2 states, or non-recognition
+    navigation.
+  recognition_truth:
+  - Do not fabricate Detector, Classifier, SlimSAM mask, fish outline, or recognition
+    success.
+  frozen_authorities:
+  - Do not edit frozen design specifications, model thresholds, or paid cloud inference
+    configuration.
+next_actions:
+- id: YUJIAN_RECOGNITION_SWOS_RR09_ADMISSION_AND_IMPLEMENTATION
+  owner: Work
+  status: READY
+  action: Run control-plane admission, then inspect and integrate the registered recognition
+    optical modules.
+  dependencies: []
+completion_rules:
+  candidate_apk: Build and unit-test status must be based on exact source SHA.
+  visual_acceptance: Product owner real-device acceptance remains separate and pending.
+state_update: Follow harness/STATE_UPDATE_PROTOCOL.md.
+agent_recovery: Resume from this Work branch, exact source SHA, and WORK_EXECUTION_STATE.json;
+  do not copy state from another product branch.

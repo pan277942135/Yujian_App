@@ -73,6 +73,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.asAndroidBitmap
+import androidx.compose.ui.graphics.asAndroidPath
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
@@ -938,6 +939,22 @@ private fun SpeciesIdentityRow(
     val revealTitleMode = revealFrame?.titleMode ?: RecognitionRevealTitleMode.VISIBLE
     val revealFormationProgress = revealFrame?.titleFormationProgress ?: 1f
     val revealProgress = revealFrame?.titleRevealProgress ?: 1f
+    val speciesDisplayName = resultSpeciesDisplayName(speciesName)
+    var speciesGlyphPath by remember(speciesDisplayName, compactTitle, widthDp) { mutableStateOf<android.graphics.Path?>(null) }
+    val glyphGoldPaint = remember {
+        android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
+            style = android.graphics.Paint.Style.FILL
+            color = android.graphics.Color.rgb(255, 227, 166)
+        }
+    }
+    val goldGlyphAlpha = when (revealTitleMode) {
+        RecognitionRevealTitleMode.FORMING -> 0.16f + 0.48f * revealFormationProgress.coerceIn(0f, 1f)
+        RecognitionRevealTitleMode.REVEALING -> 0.48f * (1f - revealProgress.coerceIn(0f, 1f))
+        else -> 0f
+    }
+    val showScientificName = revealFrame == null ||
+        revealFrame.elapsedMs >= RecognitionRevealClock.TOTAL_DURATION_MS ||
+        revealTitleMode == RecognitionRevealTitleMode.STATIC
     val visibleTitleAlpha = when (revealTitleMode) {
         RecognitionRevealTitleMode.STATIC,
         RecognitionRevealTitleMode.VISIBLE -> 1f
@@ -959,37 +976,37 @@ private fun SpeciesIdentityRow(
     ) {
         Column(Modifier.weight(1f)) {
             Text(
-                resultSpeciesDisplayName(speciesName),
+                speciesDisplayName,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .graphicsLayer(alpha = visibleTitleAlpha)
                     .drawWithContent {
-                        val fraction = when (revealTitleMode) {
-                            RecognitionRevealTitleMode.HIDDEN -> 0f
-                            RecognitionRevealTitleMode.FORMING -> .04f + .38f * revealFormationProgress.coerceIn(0f, 1f)
-                            RecognitionRevealTitleMode.REVEALING -> revealProgress.coerceIn(0f, 1f)
-                            RecognitionRevealTitleMode.STATIC,
-                            RecognitionRevealTitleMode.VISIBLE -> 1f
-                        }
-                        if (fraction > 0f) {
+                        drawContent()
+                        val glyphPath = speciesGlyphPath
+                        if (glyphPath != null && goldGlyphAlpha > 0f) {
                             val canvas = drawContext.canvas.nativeCanvas
                             val saveCount = canvas.save()
                             try {
-                                canvas.clipRect(0f, 0f, size.width * fraction, size.height)
-                                drawContent()
+                                canvas.clipPath(glyphPath)
+                                glyphGoldPaint.alpha = (255 * goldGlyphAlpha).toInt().coerceIn(0, 255)
+                                canvas.drawPath(glyphPath, glyphGoldPaint)
                             } finally {
                                 canvas.restoreToCount(saveCount)
                             }
                         }
                     }
                     .testTag("recognition-result-species-name"),
-                color = DeepInk,
+                color = DeepInk.copy(alpha = visibleTitleAlpha),
                 fontSize = if (compactTitle) 28.sp else 30.sp,
                 lineHeight = if (compactTitle) 34.sp else 36.sp,
                 fontWeight = FontWeight.SemiBold,
                 overflow = TextOverflow.Clip,
+                onTextLayout = { layout ->
+                    if (speciesGlyphPath == null) {
+                        speciesGlyphPath = layout.getPathForRange(0, speciesDisplayName.length).asAndroidPath()
+                    }
+                },
             )
-            scientificName?.takeIf(String::isNotBlank)?.let { latinName ->
+            scientificName?.takeIf { showScientificName && it.isNotBlank() }?.let { latinName ->
                 Text(
                     latinName,
                     modifier = Modifier

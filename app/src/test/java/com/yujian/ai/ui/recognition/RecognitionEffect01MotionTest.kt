@@ -51,6 +51,19 @@ class RecognitionEffect01MotionTest {
     }
 
     @Test
+    fun processingEnvironmentEnvelopeMatchesP0ThroughP7AndEndsAtZero() {
+        assertEquals(0f, processingEnvironmentStrength(0), 0f)
+        assertEquals(10f, processingEnvironmentStrength(350), 0f)
+        assertEquals(45f, processingEnvironmentStrength(950), 0f)
+        assertEquals(75f, processingEnvironmentStrength(1_200), 0f)
+        assertEquals(60f, processingEnvironmentStrength(1_550), 0f)
+        assertEquals(35f, processingEnvironmentStrength(2_050), 0f)
+        assertEquals(10f, processingEnvironmentStrength(2_600), 0f)
+        assertEquals(0f, processingEnvironmentStrength(2_800), 0f)
+        assertEquals(0f, processingEnvironmentStrength(10_000), 0f)
+    }
+
+    @Test
     fun shockwaveHonorsSingleImpactBoundariesAndRestoresExactly() {
         assertEquals(PhotoShockwaveTransform(), photoShockwaveTransform(849L))
         assertEquals(PhotoShockwaveTransform(), photoShockwaveTransform(850L))

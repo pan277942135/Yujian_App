@@ -292,6 +292,7 @@ fun RecognitionAmbientField(
     onMotionFrame: ((RecognitionMotionTraceSample) -> Unit)? = null,
     photoTransform: RecognitionImageTransform? = null,
     processingElapsedMs: Long = visualClockMs ?: 0L,
+    includeLegacyPerimeter: Boolean = false,
 ) {
     val nowMs = visualClockMs ?: 0L
     val elapsedMs = processingElapsedMs.coerceAtLeast(0L)
@@ -362,10 +363,16 @@ fun RecognitionAmbientField(
         )
 
         clipRect(fieldRect.left, fieldRect.top, fieldRect.right, fieldRect.bottom) {
-            drawWaterResonanceField(elapsedMs, fieldRect, reduceMotion)
-            clipPath(baseRevealPath) {
-                clipPath(scanRevealPath) {
-                    clipPath(geometry.edgeBandPath) {
+            val environmentStrength = when {
+                elapsedMs >= 2_800L -> 0f
+                reduceMotion -> 0.10f
+                else -> processingEnvironmentStrength(elapsedMs) / 100f
+            }
+            drawWaterResonanceField(elapsedMs, fieldRect, reduceMotion, environmentStrength)
+            if (includeLegacyPerimeter) {
+                clipPath(baseRevealPath) {
+                    clipPath(scanRevealPath) {
+                        clipPath(geometry.edgeBandPath) {
                         val nativeCanvas = drawContext.canvas.nativeCanvas
                         val saveCount = nativeCanvas.saveLayer(
                             geometry.layerBounds,
@@ -468,6 +475,7 @@ fun RecognitionAmbientField(
                             }
                         } finally {
                             nativeCanvas.restoreToCount(saveCount)
+                        }
                         }
                     }
                 }
@@ -1358,31 +1366,12 @@ private fun DrawScope.drawWaterResonanceField(
     elapsedMs: Long,
     fieldRect: DisplayRect,
     reduceMotion: Boolean,
+    environmentStrength: Float,
 ) {
     val t = elapsedMs.coerceIn(0L, WaterResonanceCalibration.durationMs)
     if (t < 150L && !reduceMotion) return
 
-    // L1: Water Ambient Field (150ms faintly appears, peaks at 500ms alpha 0.22, holds to 1850ms, freezes at 2100ms at alpha 0.22 * 0.65)
-    val ambientAlpha = when {
-        reduceMotion -> WaterResonanceCalibration.ambientAlpha * 0.65f
-        t < 150L -> 0f
-        t < 500L -> ((t - 150L).toFloat() / 350f) * WaterResonanceCalibration.ambientAlpha
-        t < 1850L -> WaterResonanceCalibration.ambientAlpha
-        t < WaterResonanceCalibration.freezeAtMs -> {
-            val p = (t - 1850L).toFloat() / (WaterResonanceCalibration.freezeAtMs - 1850L)
-            WaterResonanceCalibration.ambientAlpha * (1f - p * 0.35f)
-        }
-        else -> WaterResonanceCalibration.ambientAlpha * 0.65f
-    }
-
-    if (ambientAlpha > 0.005f) {
-        val ambientColor = Color(WaterResonanceCalibration.ambientColorArgb).copy(alpha = ambientAlpha)
-        drawRect(
-            color = ambientColor,
-            topLeft = Offset(fieldRect.left, fieldRect.top),
-            size = Size(fieldRect.width, fieldRect.height),
-        )
-    }
+    // Keep the original photo clear; the ambient pass is limited to local soft light.
 
     // L2: Soft Fish Presence (五重高斯软体积光场 along center field)
     val cx = fieldRect.left + fieldRect.width * 0.5f
@@ -1404,7 +1393,7 @@ private fun DrawScope.drawWaterResonanceField(
         else -> WaterResonanceCalibration.residueAlpha
     }
 
-    if (softPresenceAlpha > 0.005f) {
+    if (softPresenceAlpha * environmentStrength > 0.005f) {
         val blobPositions = floatArrayOf(-0.35f, -0.18f, 0f, 0.18f, 0.35f)
         val blobWidthFactors = floatArrayOf(0.42f, 0.75f, 1.0f, 0.72f, 0.38f)
         val blobLengthFactors = floatArrayOf(0.28f, 0.35f, 0.42f, 0.34f, 0.26f)
@@ -1418,7 +1407,7 @@ private fun DrawScope.drawWaterResonanceField(
             drawOval(
                 brush = Brush.radialGradient(
                     colors = listOf(
-                        Color(baseColorArgb).copy(alpha = softPresenceAlpha * 0.8f),
+                        Color(baseColorArgb).copy(alpha = softPresenceAlpha * environmentStrength * 0.8f),
                         Color.Transparent,
                     ),
                     center = Offset(cx, py),
@@ -1446,11 +1435,11 @@ private fun DrawScope.drawWaterResonanceField(
             val endScale = WaterResonanceCalibration.pulseEndScales[i]
             val scale = startScale + (endScale - startScale) * easeOutCubic
             val peakAlpha = WaterResonanceCalibration.pulsePeakAlphas[i]
-            val pulseAlpha = if (u <= 0.2f) {
+            val pulseAlpha = (if (u <= 0.2f) {
                 (u / 0.2f) * peakAlpha
             } else {
                 peakAlpha * (1f - (u - 0.2f) / 0.8f)
-            }
+            }) * environmentStrength
             if (pulseAlpha <= 0.005f) continue
 
             val pulseColor = Color(WaterResonanceCalibration.pulseColors[i]).copy(alpha = pulseAlpha)

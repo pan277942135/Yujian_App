@@ -3,7 +3,6 @@ package com.yujian.ai.ui.recognition
 import android.graphics.Bitmap
 import android.graphics.Path as AndroidPath
 import android.graphics.PathMeasure as AndroidPathMeasure
-import android.os.SystemClock
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
@@ -28,8 +27,6 @@ import androidx.compose.ui.unit.dp
 import com.yujian.ai.ai.NormalizedFishBox
 import com.yujian.ai.ai.RecognitionPhase
 import com.yujian.ai.ui.identify.RecognitionImageTransform
-import kotlin.math.PI
-import kotlin.math.sin
 
 internal fun recognitionOutlineHaloAlpha(phaseElapsedMs: Long, reduceMotion: Boolean): Float {
     if (reduceMotion) return .15f
@@ -89,6 +86,19 @@ internal fun recognitionDisplayedFishFocusLevel(
 private fun smoothFraction(value: Float): Float {
     val t = value.coerceIn(0f, 1f)
     return t * t * (3f - 2f * t)
+}
+
+internal fun recognitionFishGoldStrength(elapsedMs: Long, reduceMotion: Boolean = false): Float {
+    if (reduceMotion) return 0.18f
+    val t = elapsedMs.coerceAtLeast(0L)
+    val keys = longArrayOf(950L, 1_200L, 1_550L, 2_800L)
+    val values = floatArrayOf(.15f, .45f, 1f, 1f)
+    if (t < keys.first()) return 0f
+    val upper = keys.indexOfFirst { it >= t }.let { if (it < 0) keys.lastIndex else it }
+    if (upper == 0) return values[0]
+    val lower = upper - 1
+    val p = smoothFraction((t - keys[lower]).toFloat() / (keys[upper] - keys[lower]).toFloat())
+    return values[lower] + (values[upper] - values[lower]) * p
 }
 
 private const val OUTLINE_HALO_ATTACK_MS = 120L
@@ -233,8 +243,6 @@ fun RecognitionFishFocus(
             focusLevel = effectiveLevel,
             paddingPx = 14.dp.toPx(),
         )
-        val baseRadiusX = mappedRect.width * if (effectiveLevel == RecognitionFishFocusLevel.B) .54f else .62f
-        val baseRadiusY = mappedRect.height * if (effectiveLevel == RecognitionFishFocusLevel.B) .60f else .72f
         val visualRadiusX = radii.radiusX
         val visualRadiusY = radii.radiusY
 
@@ -249,65 +257,26 @@ fun RecognitionFishFocus(
         val reveal =
             revealRaw * revealRaw * (3f - 2f * revealRaw)
 
-        val wave =
-            if (
-                phase == RecognitionPhase.CLASSIFYING &&
-                !reduceMotion
-            ) {
-                val t =
-                    ((visualClockMs ?: SystemClock.uptimeMillis()) % 1_900L) /
-                        1_900f
-                (
-                    (sin(t * 2f * PI - PI / 2f) + 1f) /
-                        2f
-                    ).toFloat()
-            } else {
-                .5f
-            }
-
-        val haloTarget = if (phase == RecognitionPhase.OUTLINE) {
-            if (effectiveLevel == RecognitionFishFocusLevel.B) {
-                recognitionLevelBHaloAlpha(phaseElapsedMs, reduceMotion)
-            } else {
-                recognitionOutlineHaloAlpha(phaseElapsedMs, reduceMotion)
-            }
-        } else if (reduceMotion) {
-            .15f
-        } else {
-            .12f + .06f * wave
-        }
-        val contourCoreTarget = when {
-            reduceMotion -> .39f
-            phase == RecognitionPhase.OUTLINE -> .36f
-            else -> .30f + .12f * wave
-        }
+        val goldStrength = recognitionFishGoldStrength(processingElapsedMs, reduceMotion)
 
         // A real detector box is already enough to acknowledge the fish. Show
         // its local receiving halo on the first OUTLINE frame; contour detail
         // continues to reveal independently as Level A data arrives.
-        val haloReveal = if (
-            phase == RecognitionPhase.OUTLINE && effectiveLevel == RecognitionFishFocusLevel.B
-        ) {
-            1f
-        } else if (phase == RecognitionPhase.OUTLINE) {
-            reveal.coerceAtLeast(.72f)
-        } else {
-            reveal
-        }
-        val haloAlpha = haloTarget * haloReveal
+        val haloReveal = if (phase == RecognitionPhase.OUTLINE) reveal.coerceAtLeast(.72f) else 1f
+        val haloAlpha = (.08f * goldStrength * haloReveal).coerceIn(0f, .15f)
 
         val radiusScale =
             if (effectiveLevel == RecognitionFishFocusLevel.C) .88f else 1f
         val radiusX = visualRadiusX * radiusScale
         val radiusY = visualRadiusY * radiusScale
 
-        drawOval(
+        if (effectiveLevel != RecognitionFishFocusLevel.A) drawOval(
             brush = Brush.radialGradient(
                 colorStops = arrayOf(
                     0f to Color.Transparent,
-                    .52f to Color.Transparent,
-                    .75f to Color(0x00F6D99B),
-                    .88f to Color(0xFFF6D99B).copy(alpha = haloAlpha),
+                    .64f to Color.Transparent,
+                    .84f to Color(0x00DBA34D),
+                    .94f to Color(0xFFDBA34D).copy(alpha = haloAlpha),
                     1f to Color.Transparent,
                 ),
                 center = center,
@@ -323,159 +292,63 @@ fun RecognitionFishFocus(
             ),
         )
 
-        if (effectiveLevel == RecognitionFishFocusLevel.B) {
-            drawOval(
-                color = Color(0xFFFFE7AE).copy(
-                    alpha = (
-                        if (phase == RecognitionPhase.OUTLINE) {
-                            recognitionLevelBPerimeterAlpha(phaseElapsedMs, reduceMotion)
-                        } else {
-                            .30f + .12f * wave
-                        }
-                    ) * haloReveal,
-                ),
-                topLeft = Offset(
-                    center.x - baseRadiusX,
-                    center.y - baseRadiusY,
-                ),
-                size = Size(
-                    baseRadiusX * 2f,
-                    baseRadiusY * 2f,
-                ),
-                style = Stroke(
-                    width = 1.2.dp.toPx(),
-                ),
-            )
-        }
-
         if (
             effectiveLevel == RecognitionFishFocusLevel.A &&
             levelAAvailable
         ) {
             val realContour = requireNotNull(cachedContourPath)
+            val pathBounds = realContour.getBounds()
+            val fishAxis = maxOf(pathBounds.width, pathBounds.height).coerceAtLeast(1f)
+            val coreWidth = (fishAxis * .008f).coerceIn(1f, 2.5f)
+            val softWidth = (fishAxis * .025f).coerceIn(4f, 10f)
+            val haloWidth = (fishAxis * .05f).coerceIn(12f, 28f)
             val t = processingElapsedMs.coerceAtLeast(0L)
-
-            // 1. 核心描边路径生长进度 (0–1000ms smoothstep)
             val growthProgress = when {
-                reduceMotion -> 1.0f
-                t <= 0L -> 0.0f
-                t >= 1000L -> 1.0f
-                else -> {
-                    val p = t.toFloat() / 1000f
-                    3f * p * p - 2f * p * p * p
-                }
+                reduceMotion -> 1f
+                t <= 1_200L -> 0f
+                t >= 1_550L -> 1f
+                else -> smoothFraction((t - 1_200L).toFloat() / 350f)
             }
-
-            // 2. 识别确认高光 (Confirmation Highlight: 1600ms–1850ms, 1680ms 达峰值)
-            val confirmationFactor = when {
-                reduceMotion || t < 1600L || t > 1850L -> 0f
-                t <= 1680L -> {
-                    val k = (t - 1600L).toFloat() / 80f
-                    k * k * (3f - 2f * k)
-                }
-                t <= 1760L -> {
-                    val k = (t - 1680L).toFloat() / 80f
-                    val s = k * k * (3f - 2f * k)
-                    1.0f - 0.5f * s
-                }
-                else -> {
-                    val k = (t - 1760L).toFloat() / 90f
-                    val s = k * k * (3f - 2f * k)
-                    0.5f * (1.0f - s)
-                }
-            }
-
-            // 3. 基础柔光与 Halo 平滑淡入 (1150–1400ms)
-            // 阶段严格互斥：0-1150ms 柔光与反光彻底关闭
-            val fadeFactor = when {
-                reduceMotion -> 1.0f
-                t < 1150L -> 0.0f
-                t >= 1400L -> 1.0f
-                else -> {
-                    val u = (t - 1150L).toFloat() / 250f
-                    u * u * (3f - 2f * u)
-                }
-            }
-
-            // 4. 柔光呼吸微调制 (1400ms 起，维持柔美流动，振幅≤±3%)
-            val loopModulation = if (!reduceMotion && t >= 1400L) {
-                sin(((t - 1400L) % 2200L).toFloat() / 2200f * 2f * PI.toFloat()) * 0.03f
-            } else {
-                0.0f
-            }
-
-            // 计算各光学层 Alpha (金色轮廓 V1.1 参数)
-            // 核心描边 Core: 线宽 1.2dp, #F5DFB0, 稳定Alpha 0.75, 1.15x boost at 1680ms
-            val coreAlpha = (0.75f * (1.0f + 0.15f * confirmationFactor) * (if (phase == RecognitionPhase.OUTLINE) reveal else 1.0f)).coerceIn(0f, 1f)
-
-            // 外围双层柔光 Soft Glow: 5dp, #E8C882, 稳定Alpha 0.24, 1.25x boost at 1680ms
-            val softGlowAlpha = if (fadeFactor <= 0f) 0f else {
-                (0.24f * (1.0f + loopModulation) * (1.0f + 0.25f * confirmationFactor) * fadeFactor).coerceIn(0f, 0.95f)
-            }
-
-            // 外发散光晕 Halo: 10dp, #C9A66B, 稳定Alpha 0.08, 1.15x boost at 1680ms
-            val outerHaloAlpha = if (fadeFactor <= 0f) 0f else {
-                (0.08f * (1.0f + loopModulation) * (1.0f + 0.15f * confirmationFactor) * fadeFactor).coerceIn(0f, 0.60f)
-            }
-
-            // 鱼体内部局部反光 Internal Glint: #F0DCA5, 峰值Alpha 0.12
-            val internalGlintAlpha = if (fadeFactor <= 0f) 0f else {
-                (0.12f * (1.0f + 0.25f * confirmationFactor) * fadeFactor).coerceIn(0f, 0.25f)
-            }
-
-            // 内部局部反光 (剪裁至轮廓内)
-            if (internalGlintAlpha > 0.005f) {
-                clipPath(realContour) {
-                    drawRect(
-                        color = Color(0xFFF0DCA5).copy(alpha = internalGlintAlpha),
-                        topLeft = Offset(mappedRect.left, mappedRect.top),
-                        size = Size(mappedRect.width, mappedRect.height),
-                    )
-                }
-            }
-
-            // 获取生长路径
-            val pathToDraw = if (growthProgress >= 0.999f || reduceMotion) {
-                realContour
-            } else if (growthProgress <= 0.001f) {
-                null
-            } else {
+            val pathToDraw = if (growthProgress >= .999f) realContour else if (growthProgress <= .001f) null else {
                 val androidPath = AndroidPath()
                 val measure = AndroidPathMeasure(realContour.asAndroidPath(), false)
                 measure.getSegment(0f, measure.length * growthProgress, androidPath, true)
                 androidPath.asComposePath()
             }
+            val coreAlpha = (.58f * goldStrength).coerceIn(0f, .70f)
+            val softGlowAlpha = (.25f * goldStrength).coerceIn(0f, .32f)
+            val outerHaloAlpha = (.105f * goldStrength).coerceIn(0f, .15f)
 
             if (pathToDraw != null) {
-                // 外发散光晕 Halo (10dp, #C9A66B)
+                // Gold Halo, width scales with the real Mask contour bounds.
                 if (outerHaloAlpha > 0.005f) {
                     drawLocalContourBlur(
                         pathToDraw,
-                        Color(0xFFC9A66B).copy(alpha = outerHaloAlpha),
-                        widthPx = 10.dp.toPx(),
-                        blurRadiusPx = 10.dp.toPx(),
+                        Color(0xFFDBA34D).copy(alpha = outerHaloAlpha),
+                        widthPx = haloWidth,
+                        blurRadiusPx = haloWidth,
                         blurPaints = contourBlurPaints,
                     )
                 }
 
-                // 外围柔光 Soft Glow (5dp, #E8C882)
+                // Gold Soft Glow.
                 if (softGlowAlpha > 0.005f) {
                     drawLocalContourBlur(
                         pathToDraw,
-                        Color(0xFFE8C882).copy(alpha = softGlowAlpha),
-                        widthPx = 5.dp.toPx(),
-                        blurRadiusPx = 5.dp.toPx(),
+                        Color(0xFFF6C771).copy(alpha = softGlowAlpha),
+                        widthPx = softWidth,
+                        blurRadiusPx = softWidth,
                         blurPaints = contourBlurPaints,
                     )
                 }
 
-                // 核心描边 Core (1.2dp, #F5DFB0)
+                // Gold Core.
                 if (coreAlpha > 0.005f) {
                     drawPath(
                         pathToDraw,
-                        Color(0xFFF5DFB0).copy(alpha = coreAlpha),
+                        Color(0xFFFFE3A6).copy(alpha = coreAlpha),
                         style = Stroke(
-                            width = 1.2.dp.toPx(),
+                            width = coreWidth,
                             cap = StrokeCap.Round,
                             join = StrokeJoin.Round,
                         ),

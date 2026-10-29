@@ -49,6 +49,9 @@ enum class RecognitionRevealEligibility {
  */
 data class RecognitionSubjectGeometrySnapshot(
     val imageId: String,
+    val recognitionSessionId: String = "",
+    val recognitionAttemptId: String = "",
+    val photoSha256: String = "",
     val sourceWidthPx: Int,
     val sourceHeightPx: Int,
     val detectorBox: NormalizedFishBox,
@@ -112,6 +115,9 @@ object RecognitionRevealHandoffFactory {
             sourceWidthPx = image.bitmap.width,
             sourceHeightPx = image.bitmap.height,
             detectorConfidence = confidence,
+            recognitionSessionId = recognitionSessionId,
+            recognitionAttemptId = recognitionAttemptId,
+            photoSha256 = image.photoSha256,
         )
         val maskTrusted = geometryTrust == RecognitionGeometryTrustState.TRUSTED_MASK
         val photo = processingPhoto?.takeIf {
@@ -155,7 +161,7 @@ object RecognitionRevealHandoffFactory {
         return RecognitionRevealHandoff(
             key = key,
             imageId = image.imageId,
-            photoSourceIdentity = "${image.imageId}|${image.source}|${image.bitmap.width}x${image.bitmap.height}",
+            photoSourceIdentity = "${image.imageId}|${image.source}|${image.bitmap.width}x${image.bitmap.height}|sha256=${image.photoSha256}",
             normalizedSourceWidth = image.bitmap.width,
             normalizedSourceHeight = image.bitmap.height,
             sourceOrientationDegreesApplied = image.sourceOrientationDegrees,

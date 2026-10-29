@@ -690,6 +690,8 @@ fun YujianApp() {
                                 revealSessionStore.updateProcessingPhoto(RecognitionRevealKey(sessionId, attemptId), photo)
                             }
                         },
+                        recognitionSessionId = recognitionSessionId,
+                        recognitionAttemptId = attemptId,
                         onFinished = { result ->
                             if (attemptId != null && activeRecognitionAttemptId == attemptId && currentRoute == "recognizing") {
                                 productionResult = result
@@ -721,6 +723,8 @@ fun YujianApp() {
                                 nav.navigate("recognition_issue") { popUpTo("recognizing") { inclusive = true } }
                             }
                         },
+                        recognitionSessionId = recognitionSessionId,
+                        recognitionAttemptId = attemptId,
                     )
                 }
                 composable("recognition_issue") {

@@ -144,6 +144,18 @@ internal fun effect01SpreadProgress(elapsedMs: Long): Float =
             Effect01NativeCalibration.spreadDurationMs.toFloat(),
     )
 
+/** Relative SWOS environment intensity; zero is exact at P0 and P7. */
+internal fun processingEnvironmentStrength(elapsedMs: Long): Float {
+    val keys = longArrayOf(0L, 350L, 950L, 1_200L, 1_550L, 2_050L, 2_600L, 2_800L)
+    val values = floatArrayOf(0f, 10f, 45f, 75f, 60f, 35f, 10f, 0f)
+    val t = elapsedMs.coerceIn(keys.first(), keys.last())
+    val upper = keys.indexOfFirst { it >= t }.let { if (it < 0) keys.lastIndex else it }
+    if (upper == 0) return values[0]
+    val lower = upper - 1
+    val p = (t - keys[lower]).toFloat() / (keys[upper] - keys[lower]).toFloat()
+    return values[lower] + (values[upper] - values[lower]) * smoothStep01(p)
+}
+
 /** Returns the photo-only transform; zero motion is exact outside the bounded impact window. */
 internal fun photoShockwaveTransform(
     processingElapsedMs: Long,

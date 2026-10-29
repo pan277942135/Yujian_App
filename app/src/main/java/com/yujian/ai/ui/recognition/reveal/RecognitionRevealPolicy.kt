@@ -13,6 +13,9 @@ object RecognitionRevealPolicy {
         sourceWidthPx: Int,
         sourceHeightPx: Int,
         detectorConfidence: Float?,
+        recognitionSessionId: String? = null,
+        recognitionAttemptId: String? = null,
+        photoSha256: String? = null,
     ): RecognitionGeometryTrustState {
         if (detectorBox == null) return RecognitionGeometryTrustState.MISSING
         if (!isValidBox(detectorBox)) return RecognitionGeometryTrustState.UNTRUSTED
@@ -20,7 +23,10 @@ object RecognitionRevealPolicy {
         val matches = subject.imageId == imageId &&
             subject.sourceWidthPx == sourceWidthPx && subject.sourceHeightPx == sourceHeightPx &&
             subject.detectorBox == detectorBox && detectorConfidence != null &&
-            subject.detectorConfidence == detectorConfidence
+            subject.detectorConfidence == detectorConfidence &&
+            (recognitionSessionId == null || subject.recognitionSessionId == recognitionSessionId) &&
+            (recognitionAttemptId == null || subject.recognitionAttemptId == recognitionAttemptId) &&
+            (photoSha256 == null || subject.photoSha256 == photoSha256)
         val trustedMask = matches && subject.quality == FishSubjectQuality.GOOD &&
             subject.maskSize > 0 && subject.maskSize == subject.expectedMaskSize &&
             isValidRect(subject.subjectBox) && subject.contour.isNotEmpty() &&
