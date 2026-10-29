@@ -157,6 +157,7 @@ fun YujianApp() {
     var catchSaveError by remember { mutableStateOf<String?>(null) }
     var catchSaveRequiresLogin by remember { mutableStateOf(false) }
     var pendingRecognitionLoginReturn by remember { mutableStateOf(false) }
+    var navigatingFromResult by remember { mutableStateOf(false) }
     var guestRegistrationPromptVisible by remember { mutableStateOf(false) }
     var guestMigrationPending by remember { mutableStateOf(false) }
     var guideSpecies by remember { mutableStateOf(emptyList<FishGuideItem>()) }
@@ -218,6 +219,7 @@ fun YujianApp() {
     }
 
     fun startCapture(openGallery: Boolean = false, preserveSession: Boolean = false) {
+        navigatingFromResult = false
         clearRecognitionSession(preserveSession)
         if (recognitionSessionId == null) recognitionSessionId = UUID.randomUUID().toString()
         nav.navigate(if (openGallery) "identify?openGallery=true" else "identify") {
@@ -747,7 +749,11 @@ fun YujianApp() {
                         subjectModelState = subjectModelManager.checkStatus()
                     }
                     if (currentPrediction == null) {
-                        LaunchedEffect(Unit) { startCapture() }
+                        LaunchedEffect(Unit) {
+                            if (!navigatingFromResult) {
+                                startCapture()
+                            }
+                        }
                     } else {
                         RecognitionResultScreen(
                             image = sessionImage,
@@ -811,6 +817,24 @@ fun YujianApp() {
                                             val updatedInference = inferenceAsset?.let { asset ->
                                                 runCatching { inferenceRecorder.attachFeedback(asset, feedback) }.getOrNull()
                                             }
+                                            val effectiveRecord = localCatchOverlays.apply(createdRecord)
+                                            val updatedCatches = listOf(effectiveRecord) + catchesState.catches.filterNot { it.id == effectiveRecord.id }
+                                            val updatedStats = if (active == null) {
+                                                guestCatchRepository.statistics(updatedCatches)
+                                            } else {
+                                                catchesState.statistics.copy(
+                                                    totalCatches = catchesState.statistics.totalCatches + 1,
+                                                    speciesCount = updatedCatches.map { it.speciesId.ifBlank { it.speciesName } }.distinct().size,
+                                                    recentSpecies = effectiveRecord.speciesName,
+                                                )
+                                            }
+                                            catchesState = CatchArchiveState(
+                                                catches = updatedCatches,
+                                                statistics = updatedStats,
+                                                resolved = true,
+                                                ownerKey = active?.userId ?: "guest:$guestId",
+                                                loading = false,
+                                            )
                                             catchReload++
                                             if (active != null) {
                                                 scope.launch {
@@ -835,18 +859,21 @@ fun YujianApp() {
                                             }
                                             if (active == null && !sessionManager.guestRegistrationPromptShown()) {
                                                 sessionManager.markGuestRegistrationPromptShown()
-                                                guestRegistrationPromptVisible = true
                                             }
                                             catchSaving = false
-                                            clearRecognitionSession()
+                                            navigatingFromResult = true
                                             if (destination == RecognitionSaveDestination.MEMORY) {
-                                                nav.navigate("catch/${Uri.encode(createdRecord.id)}?section=memory") {
+                                                nav.navigate("catch/${Uri.encode(createdRecord.id)}") {
                                                     popUpTo("home") { inclusive = false }
                                                     launchSingleTop = true
                                                 }
                                             } else {
-                                                nav.navigate("home") { popUpTo("home") { inclusive = false }; launchSingleTop = true }
+                                                nav.navigate("home") {
+                                                    popUpTo("home") { inclusive = false }
+                                                    launchSingleTop = true
+                                                }
                                             }
+                                            clearRecognitionSession()
                                         } else {
                                             val error = requireNotNull(saveResult.exceptionOrNull())
                                             catchSaving = false

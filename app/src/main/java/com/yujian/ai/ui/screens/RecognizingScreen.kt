@@ -433,6 +433,7 @@ private fun RecognitionPhoto(
     RecognitionFishFocus(
         phase, focusBox, subjectBitmap, subjectBox, contour, transform, Modifier.fillMaxSize(),
         visualClockMs, phaseElapsedMs,
+        processingElapsedMs = processingElapsedMs,
         reduceMotion = motionPolicy.reduceMotion,
         lowPerformance = motionPolicy.lowPerformance,
         focusLevel = focusLevel,
