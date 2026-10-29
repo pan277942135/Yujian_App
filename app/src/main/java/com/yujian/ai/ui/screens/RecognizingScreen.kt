@@ -769,9 +769,9 @@ fun RecognitionProcessingScene(
         )
     }
 }
-@Composable
 private enum class RecognitionLayerMode { PHOTO_ONLY, PHOTO_GLES, PHOTO_GLES_AMBIENT, FULL }
 
+@Composable
 private fun RecognitionPhoto(
     bitmap: Bitmap,
     photoFlowPlan: RecognitionPhotoFlowPlan,
