@@ -217,7 +217,7 @@ async function main() {
         const root = document.querySelector("#login-LoginPageRoot");
         if (!adapter || !root) throw new Error("LOGIN_MATRIX_WORKSPACE_NOT_MOUNTED");
         const rr = root.getBoundingClientRect();
-        const dom = [...root.querySelectorAll("[data-workspace-rendered-node]")];
+        const dom = [root, ...root.querySelectorAll("[data-workspace-rendered-node]")];
         const byId = new Map(dom.map(element => [element.dataset.workspaceRenderedNode, element]));
         const nodeBounds = dom.map(element => {
           const r = element.getBoundingClientRect();
