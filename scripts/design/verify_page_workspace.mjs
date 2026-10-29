@@ -244,7 +244,7 @@ async function main() {
         return { x: r.x, y: r.y, width: r.width, height: r.height, right: r.right, bottom: r.bottom };
       });
       assert(bounds.width >= 0 && bounds.height >= 0, `invalid DOM rectangle for ${row.nodeId}`);
-      measured.push({ ...row, bounds });
+      measured.push({ ...row, inspectorSelectedNodeId: selectedId, bounds });
     }
     const overflow = await page.evaluate(() => ({
       viewportWidth: window.innerWidth,

@@ -97,7 +97,7 @@ async function measure(page,profile,fontScale,insets={top:24,bottom:24}){
     return {contractId:metrics.contractId,contractVersion:metrics.contractVersion,contractStatus:metrics.contractStatus,contractSha256:metrics.contractSha256,allocation:metrics.allocation,
       id:profile.id,viewport:{width:profile.width,height:profile.height,safeHeight,fontScale,topInset:insets.top,bottomInset:insets.bottom,zoom:1},previewRulesId:metrics.rulesId,
       bounds:{header,stats,recentCatchHeader:recent,recentTitle:title,pager,hero,neighborPrevious:previous,neighborNext:next,pagerIndicator:indicator,captureActionGroup:footer,cta,cameraTouchTarget:camera,cameraArtwork},
-      intervals:{headerToStats:stats.y-header.bottom,statsToTitle:title.y-stats.bottom,titleToHero:hero.y-title.bottom,heroBottomToFooterTop:footer.y-hero.bottom,visibleHeroBottomToFooterTop:footer.y-Math.min(hero.bottom,pager.bottom),pagerBottomToFooterTop:footer.y-pager.bottom,heroBottomToCtaTop:cta.y-hero.bottom,ctaToCameraTouch:camera.y-cta.bottom,ctaToCameraArtwork:cameraArtwork.y-cta.bottom,cameraTouchToSafeBottom:safeBottom-camera.bottom,footerToSafeBottom:safeBottom-footer.bottom},
+      intervals:{headerToStats:stats.y-header.bottom,statsToTitle:recent.y-stats.bottom,titleToHero:hero.y-recent.bottom,heroBottomToFooterTop:footer.y-hero.bottom,visibleHeroBottomToFooterTop:footer.y-Math.min(hero.bottom,pager.bottom),pagerBottomToFooterTop:footer.y-pager.bottom,heroBottomToCtaTop:cta.y-hero.bottom,ctaToCameraTouch:camera.y-cta.bottom,ctaToCameraArtwork:cameraArtwork.y-cta.bottom,cameraTouchToSafeBottom:safeBottom-camera.bottom,footerToSafeBottom:safeBottom-footer.bottom},
       pager:{peekGapLeft:leftGap,peekGapRight:rightGap,maxGeometryOverlap:Math.max(0,-leftGap,-rightGap),peekGapRule:metrics.pager.peekGap,maxGeometryOverlapLimit:metrics.pager.maxGeometryOverlap,neighborPreviousVisibleWidth:peekLeftVisible,neighborNextVisibleWidth:peekRightVisible,pagerHeight:pager.h,pagerContentHeight:metrics.pager.contentHeight,indicatorHeight:indicator.h,indicatorGapAfterHero:indicator.y-hero.bottom,localScroll:pagerNode.scrollHeight>pagerNode.clientHeight+1,scrollHeight:pagerNode.scrollHeight,clientHeight:pagerNode.clientHeight,scrollNeeded:pagerNode.dataset.scrollNeeded==="true"},
       heroRatio:hero.w/hero.h,heroTargetWidth:metrics.hero.width,heroAvailableHeight:metrics.pager.contentHeight-metrics.pager.indicatorGapAfterHero-metrics.pager.indicatorHeight,
       cameraArtInsideTouch:cameraArtInside,ctaFontSize:parseFloat(getComputedStyle(pick('cta')).fontSize),ctaLineHeight:parseFloat(getComputedStyle(pick('cta')).lineHeight),textLayout,
@@ -123,15 +123,27 @@ function curveValue(points,x,field){
   return Number(last[field]);
 }
 
-function expectedBoundaryGaps(contract,safeHeight,fontScale){
+function expectedBoundaryGaps(contract,result){
+  const safeHeight=result.viewport.safeHeight,fontScale=result.viewport.fontScale;
   const spacing=contract.preview_engine.parameters.spacing;
   const pressureRule=spacing.font_pressure;
   const pressure=Math.max(0,Math.min(1,(fontScale-Number(pressureRule.base_font_scale))/Number(pressureRule.range)));
-  const st=spacing.stats_to_title,tc=spacing.title_to_card;
+  const shortRule=spacing.short_height_pressure;
+  const shortPressure=Math.max(0,Math.min(1,(Number(shortRule.reference_height_dp)-safeHeight)/Number(shortRule.range_dp)));
+  const st=spacing.stats_to_title,tc=spacing.title_to_card,cf=spacing.card_to_footer;
+  const baseAB=Math.max(Number(st.minimum_gap_dp),curveValue(st.base_curve,safeHeight,'value_dp')-Number(st.font_pressure_penalty_dp)*pressure);
+  const titleToHero=Math.max(Number(tc.minimum_gap_dp),curveValue(tc.base_curve,safeHeight,'value_dp')-Number(tc.font_pressure_penalty_dp)*pressure);
+  const baseBC=Math.max(Number(cf.minimum_gap_dp),Math.max(Number(cf.base_minimum_dp),Math.min(Number(cf.base_maximum_dp),safeHeight*Number(cf.height_fraction)))-pressure*Number(cf.font_pressure_penalty_dp)-shortPressure*Number(cf.short_height_pressure_penalty_dp));
+  const hA=result.bounds.stats.bottom-result.viewport.topInset;
+  const hB=result.bounds.recentCatchHeader.h+titleToHero+result.pager.pagerContentHeight;
+  const hC=result.bounds.captureActionGroup.h;
+  const surplus=Math.max(0,safeHeight-(hA+hB+hC+baseAB+baseBC));
   return {
-    statsToTitle:Math.max(Number(st.minimum_gap_dp),curveValue(st.base_curve,safeHeight,'value_dp')-Number(st.font_pressure_penalty_dp)*pressure),
-    titleToHero:Math.max(Number(tc.minimum_gap_dp),curveValue(tc.base_curve,safeHeight,'value_dp')-Number(tc.font_pressure_penalty_dp)*pressure),
-    ctaToCamera:curveValue(spacing.footer.transition_curve,safeHeight,'cta_camera_gap_dp')
+    statsToTitle:baseAB+surplus/2,
+    titleToHero,
+    pagerBottomToFooterTop:baseBC+surplus/2,
+    ctaToCamera:curveValue(spacing.footer.transition_curve,safeHeight,'cta_camera_gap_dp'),
+    baseAB,baseBC,hA,hB,hC,surplus
   };
 }
 
@@ -273,15 +285,18 @@ async function main(){
         const result=await measure(page,profile,testCase.fontScale,testCase.insets);
         const failures=validate(result);
         if(result.contractSha256!==expectedContractSha)failures.push("Live layout contract SHA does not match the checked V2 source file");
-        const expected=isInterpolation?null:expectedBoundaryGaps(contract,result.viewport.safeHeight,testCase.fontScale);
+        const expected=isInterpolation?null:expectedBoundaryGaps(contract,result);
         if(expected){
           for(const [key,actual,expectedValue] of [
             ["statsToTitle",result.intervals.statsToTitle,expected.statsToTitle],
             ["titleToHero",result.intervals.titleToHero,expected.titleToHero],
+            ["pagerBottomToFooterTop",result.intervals.pagerBottomToFooterTop,expected.pagerBottomToFooterTop],
             ["ctaToCamera",result.intervals.ctaToCameraTouch,expected.ctaToCamera]
           ])if(Math.abs(actual-expectedValue)>.25)failures.push(`${key} ${actual.toFixed(3)}dp does not follow the frozen continuous curve ${expectedValue.toFixed(3)}dp at safeHeight ${result.viewport.safeHeight}dp`);
+          if(Math.abs(Number(result.allocation.S)-expected.surplus)>.25)failures.push(`measured A/B/C geometry yields surplus ${expected.surplus.toFixed(3)}dp but renderer reports ${Number(result.allocation.S).toFixed(3)}dp`);
+          if(Math.abs(Number(result.allocation.gAB)-expected.statsToTitle)>.25||Math.abs(Number(result.allocation.gBC)-expected.pagerBottomToFooterTop)>.25)failures.push("renderer logical A→B/B→C gaps do not match frozen base gaps plus equal S/2 allocation");
         }
-        rows.push({case_id:`${probeId}_${profile.width}x${profile.height}_font-${testCase.fontScale}`,viewport:result.viewport,status:failures.length?"FAIL":"PASS",failures,geometry:{statsToTitle:result.intervals.statsToTitle,titleToHero:result.intervals.titleToHero,ctaToCamera:result.intervals.ctaToCameraTouch,hero:result.bounds.hero,pager:result.pager,cameraTouch:result.bounds.cameraTouchTarget,captureActionGroup:result.bounds.captureActionGroup},expected_gaps:expected});
+        rows.push({case_id:`${probeId}_${profile.width}x${profile.height}_font-${testCase.fontScale}`,viewport:result.viewport,status:failures.length?"FAIL":"PASS",failures,geometry:{statsToTitle:result.intervals.statsToTitle,titleToHero:result.intervals.titleToHero,pagerBottomToFooterTop:result.intervals.pagerBottomToFooterTop,ctaToCamera:result.intervals.ctaToCameraTouch,hero:result.bounds.hero,pager:result.pager,cameraTouch:result.bounds.cameraTouchTarget,captureActionGroup:result.bounds.captureActionGroup,allocation:result.allocation},expected_gaps:expected});
       }
       if(probeId==="RESPONSIVE-FOOTER-BOUNDARY-459-460"&&rows.length===2){
         const [before,after]=rows;

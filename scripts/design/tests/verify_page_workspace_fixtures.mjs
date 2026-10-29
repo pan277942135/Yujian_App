@@ -138,9 +138,21 @@ async function main() {
         }
       }
       if (fixture === "native-enabled-node-no-marker") {
-        const treeRow = report.nodes?.[0];
-        if (report.measured_node_count !== 1 || treeRow?.disabled !== false || treeRow?.selectable !== true
-          || treeRow?.selectabilitySource !== "native-interactive-element") {
+        const matchingWorkspaces = report.workspace_candidates?.filter(candidate => candidate.visible && candidate.identityMatches
+          && candidate.pageId === pageId && candidate.sourceSha === sourceSha) || [];
+        const treeRow = matchingWorkspaces[0]?.treeNodes?.find(node => node.nodeId === "empty-scene");
+        const dom = report.dom_path ? JSON.parse(await readFile(report.dom_path, "utf8")) : null;
+        const measuredNode = dom?.nodes?.find(node => node.nodeId === "empty-scene");
+        if (report.result !== "PASS" || report.measured_node_count !== 1 || matchingWorkspaces.length !== 1
+          || treeRow?.disabled !== false || treeRow?.selectable !== true
+          || treeRow?.selectabilitySource !== "native-interactive-element"
+          || dom?.page_id !== pageId || dom?.source_sha !== sourceSha || dom?.workspace?.pageId !== pageId
+          || dom?.workspace?.sourceSha !== sourceSha || dom?.nodes?.length !== 1
+          || measuredNode?.inspectorSelectedNodeId !== "empty-scene"
+          || !(measuredNode?.bounds?.width > 0) || !(measuredNode?.bounds?.height > 0)
+          || !report.screenshot_path || !(await stat(report.screenshot_path)).size
+          || !report.dom_path || !(await stat(report.dom_path)).size
+          || report.diagnostic_capture_errors?.length) {
           throw new Error(`enabled native tree buttons without custom metadata must be clickable and measured; report=${JSON.stringify(report)}`);
         }
       }
