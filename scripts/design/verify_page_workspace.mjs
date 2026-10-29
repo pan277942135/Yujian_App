@@ -54,13 +54,14 @@ async function main() {
   const failedRequests = [];
   const badResponses = [];
   let browser;
+  let page;
   let report;
   let workspaceSelector = null;
   let workspaceCandidates = [];
   try {
     const { chromium } = require(playwrightPath);
     browser = await chromium.launch({ headless: true });
-    const page = await browser.newPage({ viewport: { width: 1440, height: 1000 }, deviceScaleFactor: 1 });
+    page = await browser.newPage({ viewport: { width: 1440, height: 1000 }, deviceScaleFactor: 1 });
     page.on("console", message => { if (message.type() === "error") errors.push(message.text()); });
     page.on("pageerror", error => errors.push(error.message));
     page.on("requestfailed", request => failedRequests.push(`${request.url()} :: ${request.failure()?.errorText || "request failed"}`));
