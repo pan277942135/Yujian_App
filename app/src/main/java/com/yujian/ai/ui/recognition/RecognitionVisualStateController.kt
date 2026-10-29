@@ -75,7 +75,6 @@ class RecognitionVisualStateController(
             presented = next(presented)
             phaseStartedAtMs = nowMs
             if (presented == RecognitionPhase.OUTLINE) outlineStartedAtMs = phaseStartedAtMs
-            if (presented == RecognitionPhase.RESULT) break
         }
         return presented
     }
