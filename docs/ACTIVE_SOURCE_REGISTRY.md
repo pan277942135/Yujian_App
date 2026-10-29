@@ -164,6 +164,9 @@ The design contract content proposed through PR #186 and #187 was atomically ado
   `design/system_v3/08_Page_Contracts/recognition/processing/`
 - Main-adopted Processing → Result continuity, with no pre-navigation delay and RR09 T0 at the first presented Result frame:
   `design/pages/recognition/continuity/Processing_Result_Optical_Continuity_Contract_V1.md`
+- Android RR09 shared-photo implementation binding (design-only; runtime NOT_RUN; preserves the V1 cross-page contract and RR09 V3 timing authority):
+  `design/pages/recognition/continuity/Android_RR09_Shared_Photo_Transition_Final_Contract_V1.md`
+  `design/pages/recognition/continuity/android_rr09_shared_photo_transition_final_v1.json`
 - Main-adopted RR09 V3 design contract: 850ms, five reveal intervals, Chinese species name only; V2 remains unchanged as historical baseline:
   `design/pages/recognition/result/motion/Recognition_Result_Motion_Spec_V3.md`
 - Main-adopted SWOS static visual and exact 15-frame sample contract (static review only; playback NOT_RUN):
