@@ -524,10 +524,20 @@ async function main() {
         const outsideViewport=Object.entries(ui).filter(([,bounds])=>bounds&&(
           bounds.x < -0.5||bounds.y < -0.5||bounds.right > width+0.5||bounds.bottom > height+0.5)).map(([id])=>id);
         const textIds=["Brand","Subtitle","AccountEntry","CapturePrompt","AlbumAction"];
-        const textOverflow=textIds.filter(id=>{
+        const textOverflowDiagnostics=Object.fromEntries(textIds.map(id=>{
           const node=document.querySelector(`#eh-${CSS.escape(id)}`);
-          return node&&(node.scrollWidth>node.clientWidth+1||node.scrollHeight>node.clientHeight+1);
-        });
+          if(!node)return [id,null];
+          const range=document.createRange();range.selectNodeContents(node);
+          const bounds=node.getBoundingClientRect(),textBounds=range.getBoundingClientRect(),style=getComputedStyle(node);
+          const hasText=textBounds.width>0&&textBounds.height>0;
+          const overflowByTextRange=hasText&&(textBounds.left<bounds.left-1||textBounds.top<bounds.top-1||
+            textBounds.right>bounds.right+1||textBounds.bottom>bounds.bottom+1);
+          return [id,{scroll_width:node.scrollWidth,client_width:node.clientWidth,scroll_height:node.scrollHeight,client_height:node.clientHeight,
+            text_shadow:style.textShadow,node_bounds:{x:bounds.left,y:bounds.top,width:bounds.width,height:bounds.height},
+            text_bounds:hasText?{x:textBounds.left,y:textBounds.top,width:textBounds.width,height:textBounds.height}:null,
+            overflow_by_text_range:overflowByTextRange}];
+        }));
+        const textOverflow=textIds.filter(id=>textOverflowDiagnostics[id]?.overflow_by_text_range);
         const fishingIds=["FishingRod","FishingLine","BobberBody","WaterContact","Ripple","BobberReflection"];
         const fishingOutside=fishingIds.filter(id=>{
           const bounds=byId[id]?.bounds;
@@ -603,7 +613,7 @@ async function main() {
         }
         window.PageWorkspaceAdapters.selectLayer("HeroCopy");
         return {viewport:metrics.viewport,font_scale:metrics.font_scale,safe_area_preview:metrics.safe_insets_preview||null,scene_transform:metrics.scene_transform,profile_width_class:board.dataset.profileWidthClass,
-          root_size:{width:root.getBoundingClientRect().width,height:root.getBoundingClientRect().height},overflow,ui_bounds:ui,
+          root_size:{width:root.getBoundingClientRect().width,height:root.getBoundingClientRect().height},overflow,overflow_diagnostics:textOverflowDiagnostics,ui_bounds:ui,
           fishing:{rod:rod,line,bobber,contact,ripple,reflection,line_path_start:{x:lineStart?.x,y:lineStart?.y},line_path_end:{x:lineEnd?.x,y:lineEnd?.y},composition_outside_viewport:fishingOutside,line_end_contact_gap:lineEndContactGap,
             bobber_contact_alignment:bobberContact,reflection_contact_gap:reflectionGap,ripple_contains_contact:rippleContainsContact,layer_order:layerOrder},
           icons:{chevron:byId.ChevronRight?.bounds||null,chevron_label:loginLabel,chevron_gap_css_px:loginLabel&&chevron?chevron.x-loginLabel.right:null,
@@ -622,6 +632,24 @@ async function main() {
           brand_status:root.dataset.brandStatus||"NOT_REPORTED",boardOrigin:{x:boardBounds.x,y:boardBounds.y}};
       });
       Object.assign(activeMatrixRow,caseEvidence);
+      // Preserve a before-image and its measured text overlay even when a later assertion fails.
+      const shot=resolve(args.outputDir,`EmptyHome_${width}x${height}_font-${fontScale}.png`);
+      const promptTextShot=resolve(args.outputDir,`EmptyHomePrompt_${width}x${height}_font-${fontScale}.png`);
+      const capture=await screenshotRootViewport(page,shot,width,height,promptTextShot);
+      const shotSize=capture.size;
+      assertScreenshotCaptureEnvelope(shotSize,width,height,`${width}x${height}@${fontScale}`);
+      const promptTextSha=await sha256File(promptTextShot);
+      const renderedSha=await sha256File(shot);
+      promptTextScreenshotHashes[`${width}x${height}`]??={};
+      promptTextScreenshotHashes[`${width}x${height}`][String(fontScale)]=promptTextSha;
+      renderedScreenshotHashes[`${width}x${height}`]??={};
+      renderedScreenshotHashes[`${width}x${height}`][String(fontScale)]=renderedSha;
+      Object.assign(activeMatrixRow,{
+        screenshot_rendered:{path:shot.split("/").at(-1),sha256:renderedSha,pixel_width:shotSize.width,pixel_height:shotSize.height,device_scale_factor:3,capture_bounds_css_px:capture.bounds_css_px,
+          visible_content:capture.visible_content,capture_isolation_used:capture.capture_isolation_used,outside_workspace_chrome_included:capture.outside_workspace_chrome_included,
+          workspace_visibility_before_isolation:capture.workspace_visibility_before_isolation,selected_overlay_suppressed:capture.selected_overlay_suppressed},
+        prompt_text_measurement:{...capture.prompt_text_bounds_css_px,screenshot_path:promptTextShot.split("/").at(-1),screenshot_sha256:promptTextSha},
+        screenshot_reference:{path:"design/pages/home/empty_home/source/frozen/Empty_Home_Frozen_Visual_V2_2.png",sha256:preflight.referenceSha}});
       assert(caseEvidence.overflow.outside_viewport.length===0&&caseEvidence.overflow.text_overflow.length===0,`responsive UI overflow at ${width}x${height} @${fontScale}: ${JSON.stringify(caseEvidence.overflow)}`);
       assert(caseEvidence.unit==="css_px","DOM measurements must be reported as CSS px");
       assert(caseEvidence.inspectorNode==="HeroCopy"&&caseEvidence.inspector.node_id===caseEvidence.inspectorNode,
@@ -696,17 +724,6 @@ async function main() {
         caseEvidence.icons.gallery_resource.sha256==="5798abbdaad45305fe9ed5a578868247925d2d95644c8ea2559f446c1f069fda"&&
         caseEvidence.icons.gallery_resource.lifecycle==="REVIEW"&&caseEvidence.icons.gallery_resource.publication_permission==="PUBLIC_BY_EXISTING_PAGES_RULE",
         "GALLERY W2 source, lifecycle conflict, and permission must be visible in DOM evidence");
-      const shot=resolve(args.outputDir,`EmptyHome_${width}x${height}_font-${fontScale}.png`);
-      const promptTextShot=resolve(args.outputDir,`EmptyHomePrompt_${width}x${height}_font-${fontScale}.png`);
-      const capture=await screenshotRootViewport(page,shot,width,height,promptTextShot);
-      const shotSize=capture.size;
-      assertScreenshotCaptureEnvelope(shotSize,width,height,`${width}x${height}@${fontScale}`);
-      const promptTextSha=await sha256File(promptTextShot);
-      const renderedSha=await sha256File(shot);
-      promptTextScreenshotHashes[`${width}x${height}`]??={};
-      promptTextScreenshotHashes[`${width}x${height}`][String(fontScale)]=promptTextSha;
-      renderedScreenshotHashes[`${width}x${height}`]??={};
-      renderedScreenshotHashes[`${width}x${height}`][String(fontScale)]=renderedSha;
       Object.assign(activeMatrixRow,caseEvidence,{
         case_id:activeMatrixRow.case_id,page_id:"home_empty_v2",source_sha:expectedSha,run_id:runId,
         matrix_source_path:preflight.viewportAuthority.path,matrix_source_sha256:preflight.viewportAuthority.sha256,
