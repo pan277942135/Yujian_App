@@ -3,7 +3,7 @@
   "base_branch": "main",
   "base_sha": "b080bb0ffb4ebced18593c08709657fabb53a19e",
   "blockers": [
-    "Latest state checkpoint 5ec1ebb76f8499edcb4fe3c3460a87d5000780c6 failed PRODUCT_WORK Admission run 40832489323 because PROJECT_MASTER_STATE YAML list indentation was malformed; repair and re-admit.",
+    "Latest state commit 7b9f1e0fb7ba0ba4eddedbf34e8720c525869c52 failed PRODUCT_WORK Admission run 40832826205 because PROJECT_MASTER_STATE validation requires at least one next_action with status READY; YAML parsing, CONTROL_PLANE_SYNC and WORK_EXECUTION_STATE all passed.",
     "Exact PR234 source 91418127df91b9854897f24eeb84c970cb2e6563 W2 run 40830549495 FAILs the three workflow source-authority hashes; PR253 has exact-head checks green and awaits Main integration.",
     "Exact PR234 W4 run 40830549596 and W5 run 40830549593 stopped at upstream W2; final evidence not reached.",
     "PR234 isolated preview is not deployed; PR239 W6 dependency remains blocked.",
@@ -11,7 +11,7 @@
     "Standalone approved NH01 Hero/Peek assets remain ASSET_SOURCE_REQUIRED; user visual acceptance pending."
   ],
   "branch": "work-state/w5-empty-home-pilot-v1",
-  "checkpoint_updated_at": "2026-10-29T07:01:00Z",
+  "checkpoint_updated_at": "2026-10-29T07:02:15Z",
   "control_plane_revision": "b080bb0ffb4ebced18593c08709657fabb53a19e",
   "dependencies": [
     "YUJIAN_PAGE_FREEZE_PIPELINE_W3_DESIGN_MANAGER_ADAPTER_V1",
@@ -1037,6 +1037,21 @@
         "WORK_STATE": "PASS"
       },
       "error": "YAML parser: line 284 root list item was unindented; expected block end."
+    },
+    "latest_state_admission_attempt": {
+      "mode": "PRODUCT_WORK",
+      "run_id": 40832826205,
+      "source": "https://github.com/pan277942135/Yujian_App/actions/runs/40832826205",
+      "state_branch_head_sha": "7b9f1e0fb7ba0ba4eddedbf34e8720c525869c52",
+      "source_sha": "91418127df91b9854897f24eeb84c970cb2e6563",
+      "main_sha": "b080bb0ffb4ebced18593c08709657fabb53a19e",
+      "status": "FAIL",
+      "gates": {
+        "CONTROL_PLANE_SYNC": "PASS",
+        "PROJECT_MASTER_STATE": "FAIL_VALIDATION",
+        "WORK_EXECUTION_STATE": "PASS"
+      },
+      "exact_error": "at least one next_action must be READY"
     }
   },
   "execution_v2": {
@@ -1206,7 +1221,7 @@
     },
     "schema_version": "1.0"
   },
-  "next_action": "Repair the Project Master State YAML list indentation and rerun PRODUCT_WORK Admission on this isolated checkpoint; PR253 exact-head checks are green.",
+  "next_action": "Rerun PRODUCT_WORK Admission on the corrected isolated state checkpoint; if all state gates pass, merge the exact-green PR253 authority restoration, deploy current Main Pages, then sync PR234 and rerun exact-source gates.",
   "phase": "P3",
   "related_pr": 234,
   "repository": "pan277942135/Yujian_App",
@@ -1215,6 +1230,6 @@
   "stage": "G2_EXACT_SHA_REVALIDATION_AND_ADMISSION",
   "status": "RUNNING",
   "task_id": "YUJIAN_PAGE_FREEZE_PIPELINE_W5_EMPTY_HOME_PILOT_V1",
-  "updated_at": "2026-10-29T06:51:00Z",
+  "updated_at": "2026-10-29T07:02:15Z",
   "work_id": "YUJIAN_W4_W5_MAIN_PAGES_W6_ANDROID_RUNTIME_CLOSURE_V1"
 }
