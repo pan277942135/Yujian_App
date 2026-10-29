@@ -1406,13 +1406,8 @@ function writeManagerRoute(route, writeHistory = true) {
   if (writeHistory && location.hash !== route) history.pushState(null, "", route);
 }
 
-function disposePageWorkspace() {
-  window.LoginStructuredWorkspace?.dispose?.();
-  window.PageWorkspaceAdapters?.dispose();
-}
-
 function selectShared(id, variantId = null, writeHistory = true) {
-  disposePageWorkspace();
+  window.PageWorkspaceAdapters?.dispose();
   cancelNH01ResourceLoad(el("hifiViewCanvas"));
   const item = sharedRegistry.items.find(x => x.id === id);
   if (!item) return;
@@ -3793,7 +3788,7 @@ function renderVersions(feature) {
 }
 
 function selectPage(id, scenarioId = null, hifiId = null, hifiChildId = null, writeHistory = true) {
-  disposePageWorkspace();
+  window.PageWorkspaceAdapters?.dispose();
   const feature = pageRegistry.features.find(f => f.id === id);
   if (!feature) return;
   const scene = scenarioId ? (feature.scenario_pages || []).find(x => x.id === scenarioId) : null;
@@ -3862,52 +3857,7 @@ async function openPageStructuredWorkspace(id, routeKey, writeHistory = false) {
   const pageAdapters = window.PageWorkspaceAdapters;
   const feature = pageAdapters?.getRegisteredPage(id);
   if (!feature || !pageAdapters?.supportsPage(id)) return renderInvalidManagerRoute(routeKey);
-  disposePageWorkspace();
-
-  if (id === "auth_login_v2") {
-    selectPage(id, null, null, null, false);
-    selectedKey = routeKey;
-    if (writeHistory) writeManagerRoute(`#${routeKey}`, true);
-    applyPageDetailMode("workspace");
-    el("hifiViewPanel").classList.remove("hidden");
-    el("hifiViewEyebrow").textContent = "W6 Login · 共享结构化工作区";
-    el("hifiViewTitle").textContent = `${feature.display_name || id} · Login V2.1`;
-    el("hifiViewStatus").innerHTML = statusBadge("CANDIDATE");
-    el("hifiViewSummary").textContent = "Login 页面使用共享 W3 图层树、真实 DOM 测量、Inspector 与候选视口/状态控件。正式基线矩阵已登记；12 项响应式补充用例仍为候选。共享图标与页脚资源来源/发布权限待确认，安全区与原生 IME 尚未验证。候选 Renderer 保持在现有 Design Manager 内。";
-    el("hifiViewSummary").classList.remove("hidden");
-    el("hifiViewContractDetails").innerHTML = `<section class="hifi-contract-details"><div class="hifi-contract-heading"><strong>页面合同与资源绑定</strong><span>W1 / W2 Authority · page_id ${esc(id)}</span></div><div class="hifi-contract-links"><span>状态</span><b>Page Profile: DRAFT · supplemental matrix: CANDIDATE_NOT_FROZEN · approved upload: MISSING (optional) · shared icon publication: NOT_CONFIRMED · footer source: ASSET_SOURCE_REQUIRED · safe area: NOT_VERIFIED · authentication backend: NOT_CONNECTED</b></div></section>`;
-    el("hifiViewContractDetails").classList.remove("hidden");
-    el("hifiViewAuthorities").innerHTML = [
-      feature.design_versions?.find(version => version.current)?.visual_authority,
-      `${feature.owner_path}/Page_Resource_Binding_V1.json`,
-      "design/pages/account_privacy/Login/structured_candidate/component_mapping_v1.json",
-      "design/pages/account_privacy/Login/Login_Responsive_Acceptance_Matrix_V1.json",
-      "design/pages/account_privacy/Login/structured_candidate/responsive_candidate_v1.json"
-    ].filter(Boolean).map(path =>
-      `<a class="authority-row" href="${esc(repoHref(path))}" target="_blank" rel="noreferrer">${esc(path)}</a>`).join("");
-    el("hifiViewScenarios").innerHTML = '<span class="preview-empty compact">Login 状态通过本地候选 Renderer 交互；生产认证 API 未连接 · CANDIDATE</span>';
-    window.LoginStructuredWorkspace?.mount(el("hifiViewCanvas"), {
-      pageId: id,
-      sourceSha: DESIGN_MANAGER_BUILD,
-      feature,
-      repoHref,
-      fetchImpl: window.fetch.bind(window)
-    }).catch(error => {
-      if (location.hash !== "#" + routeKey) return;
-      console.error("Login shared workspace mount failed:", error);
-      const canvas = el("hifiViewCanvas");
-      let panel = canvas.querySelector("[data-workspace-error]");
-      if (!panel) {
-        panel = document.createElement("div");
-        panel.dataset.workspaceError = "";
-        panel.setAttribute("role", "alert");
-        canvas.appendChild(panel);
-      }
-      panel.hidden = false;
-      panel.textContent = "Login workspace validation failed · " + (error?.message || error);
-    });
-    return;
-  }
+  pageAdapters.dispose();
 
   if (id === "home_normal_v1") {
     const view = (feature.hifi_views || []).find(item => item.render_mode === "nh01_multi_screen_static_hifi");
@@ -3964,7 +3914,7 @@ async function openPageStructuredWorkspace(id, routeKey, writeHistory = false) {
 }
 
 function renderInvalidManagerRoute(raw) {
-  disposePageWorkspace();
+  window.PageWorkspaceAdapters?.dispose();
   cancelNH01ResourceLoad(el("hifiViewCanvas"));
   selectedKey = null;
   renderLists();
