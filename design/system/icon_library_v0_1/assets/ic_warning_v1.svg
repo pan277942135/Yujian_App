@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" color="#0B2D4B" role="img" aria-labelledby="title">
+  <title id="title">警告</title>
+  <!-- YuJian Design Candidate V0.1 | 24x24 | stroke=1.75 | not frozen -->
+  <g stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M10.15 4.6C10.95 3.2 13.05 3.2 13.85 4.6L21.05 17.45C21.8 18.8 20.8 20.45 19.25 20.45H4.75C3.2 20.45 2.2 18.8 2.95 17.45L10.15 4.6Z"/><path d="M12 9.3V13.65"/><circle cx="12" cy="16.85" r=".95" stroke="none" fill="currentColor"/>
+  </g>
+</svg>

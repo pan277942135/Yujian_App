@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" color="#0B2D4B" role="img" aria-labelledby="title">
+  <title id="title">退出登录</title>
+  <!-- YuJian Design Candidate V0.1 | 24x24 | stroke=1.75 | not frozen -->
+  <g stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M11.15 4.35H5.7C4.5 4.35 3.55 5.3 3.55 6.5V17.5C3.55 18.7 4.5 19.65 5.7 19.65H11.15"/><path d="M11.2 12H20.45M16.7 8.25L20.45 12L16.7 15.75"/>
+  </g>
+</svg>

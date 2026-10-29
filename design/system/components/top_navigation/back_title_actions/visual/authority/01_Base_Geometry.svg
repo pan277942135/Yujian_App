@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1320" height="680" viewBox="0 0 1320 680"><defs>
+<style>
+.bg{fill:#F7FAFB}.card{fill:#FFFFFF;stroke:#DFE9E6;stroke-width:2}.surface{fill:#EEF4F3}
+.t{font-family:"Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif;fill:#0B2D4B}
+.title{font-size:34px;font-weight:700}.sub{font-size:18px;font-weight:500;fill:#748897}
+.k{font-size:15px;font-weight:800;fill:#748897;letter-spacing:1px}.meta{font-size:14px;font-weight:500;fill:#748897}
+.navTitle{font-size:20px;font-weight:500;fill:#0B2D4B}.note{font-size:14px;font-weight:500;fill:#61777C}
+.back,.icon{fill:none;stroke:#0B2D4B;stroke-width:4.2;stroke-linecap:round;stroke-linejoin:round}
+</style>
+</defs><rect class="bg" width="1320" height="680"/><text x="60" y="66" class="t title">01 · BACK_TITLE_ACTIONS 基础几何</text><text x="60" y="98" class="t sub">56dp min · Back 44 · Title 20sp · Utility 44×44 · action gap 8dp</text><rect x="90" y="150" width="1140" height="390" rx="28" class="card"/>
+<text x="130" y="196" class="t k">STANDARD · 360dp LOGICAL WIDTH · 2 UTILITIES</text>
+<rect x="150" y="235" width="1020" height="168" rx="18" class="surface"/>
+<rect x="174" y="253" width="132" height="132" rx="26" fill="#FFFFFF" stroke="#DCE7E3" stroke-width="2"/>
+<path class="back" d="M244 307 L228 319 L244 331 M229 319 H252"/>
+<text x="330" y="338" class="t navTitle">鱼获详情</text>
+<rect x="864" y="253" width="132" height="132" rx="26" fill="#FFFFFF" stroke="#DCE7E3" stroke-width="2"/>
+<path class="icon" d="M915 304 Q926 301 929 309 V330 Q925 323 915 325 Z M943 304 Q932 301 929 309 V330 Q933 323 943 325 Z"/>
+<rect x="1020" y="253" width="132" height="132" rx="26" fill="#FFFFFF" stroke="#DCE7E3" stroke-width="2"/>
+<path class="icon" d="M1076 310 L1094 304 M1076 322 L1094 328"/><circle cx="1073" cy="316" r="5" fill="none" stroke="#0B2D4B" stroke-width="4"/><circle cx="1097" cy="303" r="5" fill="none" stroke="#0B2D4B" stroke-width="4"/><circle cx="1097" cy="329" r="5" fill="none" stroke="#0B2D4B" stroke-width="4"/>
+<text x="150" y="452" class="t meta">8dp outer · 44dp Back · 8dp Back-title · title takes remaining width</text>
+<text x="150" y="484" class="t meta">title-action gap ≥8dp · Utility targets 44dp · Utility gap 8dp · transparent bar</text><line x1="60" y1="628" x2="1260" y2="628" stroke="#DCE7E3" stroke-width="2"/><text x="60" y="658" class="t note">FROZEN · Top Navigation / BACK_TITLE_ACTIONS V1 · Component Visual Reference</text></svg>

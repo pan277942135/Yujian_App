@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="760" viewBox="0 0 1400 760"><defs>
+<style>
+.bg{fill:#F7FAFB}.panel{fill:#FFFFFF;stroke:#E2EBE8;stroke-width:2}
+.t{font-family:"Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif;fill:#18343A}
+.title{font-size:34px;font-weight:700}.sub{font-size:18px;font-weight:500;fill:#71868B}
+.head{font-size:22px;font-weight:700;fill:#28474D}.meta{font-size:15px;font-weight:600;fill:#7A8F93}
+.tag{font-size:15px;font-weight:800;fill:#71868B;letter-spacing:1px}
+.lab{font-size:28px;font-weight:600;text-anchor:middle;dominant-baseline:middle}
+.small{font-size:15px;font-weight:500;fill:#71868B}.state{font-size:16px;font-weight:800;fill:#71868B;text-anchor:middle}
+.note{font-size:14px;font-weight:500;fill:#61777C}
+</style>
+<filter id="ps" x="-20%" y="-30%" width="140%" height="180%"><feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#0B2D4B" flood-opacity=".10"/></filter>
+<filter id="ss" x="-20%" y="-30%" width="140%" height="180%"><feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#0B2D4B" flood-opacity=".05"/></filter>
+</defs><rect class="bg" width="1400" height="760"/><text x="64" y="66" class="t title">03 · 双按钮</text><text x="64" y="98" class="t sub">Recognition Result · 12dp gap · 非固定 50/50</text><rect x="90" y="150" width="1220" height="240" rx="26" class="panel"/>
+<text x="125" y="196" class="t tag">正常保存 · 44 / 56</text>
+<g filter="url(#ss)"><rect x="125" y="235" width="492" height="112" rx="56" fill="#F7FAFB" fill-opacity=".88" stroke="#0F7A78" stroke-opacity=".26" stroke-width="2"/><rect x="127" y="237" width="488" height="2" rx="1" fill="#FFF" opacity=".65"/></g><text x="371" y="291" class="t lab" fill="#0B2D4B">继续记录记忆</text><g filter="url(#ps)"><rect x="641" y="235" width="634" height="112" rx="56" fill="#0F7A78" stroke="#FFF" stroke-opacity=".10" stroke-width="2"/><rect x="643" y="237" width="630" height="2" rx="1" fill="#FFF" opacity=".08"/></g><text x="958" y="291" class="t lab" fill="#FFF">保存本次鱼获</text>
+<rect x="90" y="420" width="1220" height="240" rx="26" class="panel"/>
+<text x="125" y="466" class="t tag">低置信 · 58 / 42</text>
+<g filter="url(#ss)"><rect x="125" y="505" width="661" height="112" rx="56" fill="#F7FAFB" fill-opacity=".88" stroke="#0F7A78" stroke-opacity=".26" stroke-width="2"/><rect x="127" y="507" width="657" height="2" rx="1" fill="#FFF" opacity=".65"/></g><text x="455.5" y="561" class="t lab" fill="#0B2D4B">手动选择</text><rect x="810" y="505" width="465" height="112" rx="56" fill="#F7FAFB" fill-opacity=".45" stroke="#748897" stroke-opacity=".18" stroke-width="2"/><text x="1042.5" y="561" class="t lab" fill="#748897">重新拍摄</text><line x1="64" y1="706" x2="1336" y2="706" stroke="#DCE7E3" stroke-width="2"/><text x="64" y="736" class="t note">FROZEN · Action Button V1.1</text></svg>

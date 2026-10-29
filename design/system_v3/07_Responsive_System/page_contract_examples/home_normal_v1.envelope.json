@@ -1,0 +1,120 @@
+{
+  "schema_ref": "design/system_v3/07_Responsive_System/Page_Responsive_Envelope_Schema_V1.json",
+  "schema_version": "1.0",
+  "contract_id": "PAGE_RESPONSIVE_HOME_NORMAL_V1",
+  "contract_version": "1.0",
+  "status": "SPEC_FROZEN",
+  "page": {
+    "page_id": "home_normal_v1",
+    "route": "home",
+    "owner_path": "design/pages/home/normal_home",
+    "implementation_entrypoints": [
+      {
+        "kind": "runtime",
+        "path": "app/src/main/java/com/yujian/ai/ui/home/GeminiNormalHomeContent.kt"
+      },
+      {
+        "kind": "preview",
+        "path": "app/src/main/java/com/yujian/ai/ui/home/GeminiHomeAdaptiveLayoutPolicy.kt"
+      },
+      {
+        "kind": "runtime",
+        "path": "app/src/main/java/com/yujian/ai/YujianApp.kt"
+      }
+    ]
+  },
+  "authority_refs": [
+    {
+      "authority_ref_id": "responsive-standard",
+      "role": "GLOBAL_STANDARD",
+      "path": "design/system_v3/07_Responsive_System/Responsive_Layout_Standard_V1.md",
+      "sha256": "1b302c8d6a65af1c20581ed95a9014600040af8565ab890d11882ce3183e2dcf"
+    },
+    {
+      "authority_ref_id": "nh01-responsive-v2",
+      "role": "RESPONSIVE_NUMERIC_AUTHORITY",
+      "path": "design/pages/home/normal_home/responsive/NH01_RESPONSIVE_LAYOUT_V2.json",
+      "sha256": "2de1fae0c958fd29cdc69f27cc94297438e71c07108f0146f0ff3352a9ba2c6f"
+    },
+    {
+      "authority_ref_id": "normal-home-visual",
+      "role": "PAGE_VISUAL_AUTHORITY",
+      "path": "design/system/core_visual_v1/reference/normal_home_v1.png",
+      "sha256": "6ab9d3348b4a9a7e77ddca3a06235b4991798a309bd3512cc6fb9ea7aeb1d377"
+    }
+  ],
+  "coordinate_space": {
+    "space_id": "android-logical-layout",
+    "unit": "dp",
+    "origin": "top_start",
+    "transform_owner": "page_implementation"
+  },
+  "safe_area": {
+    "policy_ref": {
+      "authority_ref_id": "nh01-responsive-v2",
+      "locator": "/safe-area-policy",
+      "resolution_mode": "REFERENCE_ONLY"
+    },
+    "preview_inset_owner": "workspace_fixture",
+    "runtime_inset_owner": "page_implementation",
+    "consume_each_inset_once": true
+  },
+  "viewport_inputs": {
+    "width_input": "logicalViewportWidth",
+    "height_input": "logicalViewportHeight",
+    "dimension_unit": "dp",
+    "font_scale_input": "systemFontScale",
+    "orientation_input": "orientation",
+    "viewport_authority_ref_id": "nh01-responsive-v2"
+  },
+  "conformance_profile_ref": {
+    "profile_id": "home-normal-responsive-profile-v1",
+    "path": "design/system_v3/07_Responsive_System/page_contract_examples/home_normal_v1.profile.json",
+    "sha256": "2663e12781283f8f0262955ee50d338490909bc83e9c94fb972317be07a41c99"
+  },
+  "validator_binding": {
+    "adapter_id": "nh01_responsive_v2",
+    "adapter_path": "scripts/design/page_contract_adapters/nh01_responsive_v2.py",
+    "adapter_version": "1.0"
+  },
+  "resource_binding_refs": [
+    {
+      "binding_id": "home_normal_v1-resources",
+      "manifest_path": "design/pages/home/normal_home/assets/asset_manifest.json",
+      "owner_task": "W2",
+      "validation_scope": "STRUCTURE_ONLY"
+    }
+  ],
+  "validation_bindings": {
+    "envelope_schema": "design/system_v3/07_Responsive_System/Page_Responsive_Envelope_Schema_V1.json",
+    "profile_schema": "design/system_v3/07_Responsive_System/Page_Conformance_Profile_Schema_V1.json",
+    "generic_validator": "scripts/design/validate_page_responsive_contract.py",
+    "gate_id": "G-PAGE-FREEZE-PIPELINE-W1-CONTRACT"
+  },
+  "acceptance": {
+    "contract": "NOT_VERIFIED",
+    "browser": "NOT_VERIFIED",
+    "native_runtime": "NOT_VERIFIED",
+    "evidence": "NOT_VERIFIED",
+    "assets": "NOT_VERIFIED",
+    "page_state": "NOT_VERIFIED"
+  },
+  "evidence_refs": [],
+  "state_scope": {
+    "included_state_refs": [
+      {
+        "authority_ref_id": "nh01-responsive-v2",
+        "locator": "/scope/included_states",
+        "resolution_mode": "REFERENCE_ONLY"
+      }
+    ],
+    "excluded_scope_refs": [
+      {
+        "authority_ref_id": "nh01-responsive-v2",
+        "locator": "/scope/excluded_scopes",
+        "resolution_mode": "REFERENCE_ONLY"
+      }
+    ],
+    "status": "DECLARED"
+  }
+}

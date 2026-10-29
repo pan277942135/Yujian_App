@@ -1,0 +1,537 @@
+{
+  "schema": "M1_NH01_FIGMA_NODE_MAPPING_V2",
+  "taskId": "M1_NH01_FIGMA_STRUCTURAL_HANDOFF_V2",
+  "status": "REVIEW_REQUIRED",
+  "canonicalSourceSha": "0d3238e8a41b87363e9a17b04c9cc45fca4c426d",
+  "figma": {
+    "fileKey": "VjN7iFviVN9aKeLv8kJivM",
+    "url": "https://www.figma.com/design/VjN7iFviVN9aKeLv8kJivM/Recognition-Main-Journey-Master-Board-V1?node-id=41-30",
+    "page": {
+      "id": "25:2",
+      "name": "NH01 / NORMAL HOME / STRUCTURAL HANDOFF"
+    },
+    "mainFrame": {
+      "id": "41:30",
+      "name": "NH01_Normal_Home_1080x1920",
+      "width": 1080,
+      "height": 1920
+    },
+    "responsiveFrame": {
+      "id": "41:91",
+      "name": "NH01_LongScreen_Verification_1080x2340",
+      "width": 1080,
+      "height": 2340,
+      "authority": "validation only"
+    }
+  },
+  "frozenAuthority": {
+    "path": "design/system/core_visual_v1/reference/normal_home_v1.png",
+    "width": 1080,
+    "height": 1920,
+    "sha256": "6ab9d3348b4a9a7e77ddca3a06235b4991798a309bd3512cc6fb9ea7aeb1d377",
+    "modified": false,
+    "importedAsFullPageChild": false
+  },
+  "structuralAudit": {
+    "topLevelGroups": [
+      {
+        "id": "41:31",
+        "name": "00 / Environment",
+        "type": "FRAME"
+      },
+      {
+        "id": "41:33",
+        "name": "01 / Header",
+        "type": "FRAME"
+      },
+      {
+        "id": "41:37",
+        "name": "02 / Statistics",
+        "type": "FRAME"
+      },
+      {
+        "id": "41:49",
+        "name": "03 / RecentCatchHeader",
+        "type": "FRAME"
+      },
+      {
+        "id": "41:56",
+        "name": "04 / FishCatchPager",
+        "type": "FRAME"
+      },
+      {
+        "id": "41:85",
+        "name": "05 / CaptureActionGroup",
+        "type": "FRAME"
+      }
+    ],
+    "nativeTextNodeCount": 18,
+    "imageFillCount": 1,
+    "frameSizePass": true,
+    "statsAutoLayout": true,
+    "pagerClipsThreeInstances": true,
+    "selectedHero": {
+      "id": "41:67",
+      "width": 740,
+      "height": 880,
+      "cornerRadius": 32
+    },
+    "masterBoard": {
+      "id": "0:1",
+      "name": "MASTER BOARD V1",
+      "untouched": true,
+      "childCount": 1
+    },
+    "export": {
+      "nodeId": "41:30",
+      "width": 1080,
+      "height": 1920,
+      "file": "release/design_manager/NH01_Figma_1080x1920_STRUCTURE_ONLY_NOT_VISUAL_PASS.png",
+      "sha256": "e068790742826d8328ea4c704eac1cbc8e76767191083bd9a3ed41f5208e761e",
+      "capturedBeforeBrandImport": true,
+      "isCurrentVisualEvidence": false
+    },
+    "verifiedGeometryAnchors": [
+      {
+        "nodeId": "41:30",
+        "width": 1080,
+        "height": 1920,
+        "source": "Figma readback"
+      },
+      {
+        "nodeId": "41:67",
+        "width": 740,
+        "height": 880,
+        "cornerRadius": 32,
+        "state": "Selected Hero",
+        "source": "Figma readback"
+      },
+      {
+        "contract": "Header",
+        "x": 88,
+        "y": 104,
+        "width": 904,
+        "height": 104
+      },
+      {
+        "contract": "Statistics",
+        "y": 304,
+        "rowHeight": 116,
+        "contentX": 150,
+        "contentWidth": 780
+      },
+      {
+        "contract": "RecentCatchHeader",
+        "x": 108,
+        "y": 494,
+        "width": 864,
+        "height": 70
+      },
+      {
+        "contract": "Hero selected",
+        "x": 170,
+        "y": 596,
+        "width": 740,
+        "height": 880,
+        "cornerRadius": 32
+      },
+      {
+        "contract": "Capture CTA",
+        "x": 330,
+        "y": 1495,
+        "width": 420,
+        "height": 58
+      },
+      {
+        "contract": "Camera",
+        "artwork": 208,
+        "touchTarget": 216,
+        "composeY": 1583,
+        "layoutContractY": 1564,
+        "status": "REVIEW_REQUIRED"
+      }
+    ],
+    "verifiedImageFills": [
+      {
+        "nodeId": "41:34",
+        "name": "Brand Artwork / brand_title_primary.png / FROZEN_IMPORTED",
+        "fillType": "IMAGE",
+        "scaleMode": "FIT",
+        "sourcePath": "design/system_v3/06_Asset_System/derived/brand_title_primary/brand_title_primary.png",
+        "sourceSha256": "2dd41f5138e88e3bd48178dd26a15dfbb29c434536e4e3cc887fe2db13bdfddc",
+        "figmaInternalImageHash": "8d5ca69fee77b0e0e6589df6cd779701057373d5",
+        "visualExportAfterImport": "NOT_RUN"
+      }
+    ]
+  },
+  "components": [
+    {
+      "nodeId": "38:3",
+      "name": "YuJianHomeStatistic / HOME",
+      "type": "COMPONENT",
+      "properties": [
+        "Value",
+        "Label"
+      ]
+    },
+    {
+      "nodeId": "38:24",
+      "name": "YuJianCatchHeroCard / HOME",
+      "type": "COMPONENT_SET",
+      "variants": [
+        {
+          "state": "Selected",
+          "nodeId": "38:6"
+        },
+        {
+          "state": "Neighbor",
+          "nodeId": "38:15"
+        }
+      ],
+      "properties": [
+        "Shadow",
+        "Fish Photo",
+        "Footer Gradient",
+        "Outline",
+        "Species",
+        "Measurement",
+        "Metadata",
+        "Show measurement",
+        "Show metadata",
+        "State"
+      ]
+    },
+    {
+      "nodeId": "38:25",
+      "name": "YuJianCaptureButton / NORMAL HOME",
+      "type": "COMPONENT",
+      "touchTarget": "216x216",
+      "visibleArtwork": "208x208",
+      "artworkSlot": "38:27"
+    },
+    {
+      "nodeId": "38:28",
+      "name": "YuJianCaptureActionGroup / NORMAL HOME",
+      "type": "COMPONENT",
+      "children": [
+        "CTA text 38:29",
+        "nested camera instance 38:30"
+      ]
+    }
+  ],
+  "nodeToCompose": [
+    {
+      "figmaNode": "41:30",
+      "componentNode": null,
+      "contract": "Normal Home Visual Spec / Geometry / responsive contract",
+      "compose": "NormalHomeContent — app/src/main/java/com/yujian/ai/ui/home/NormalHomeContent.kt"
+    },
+    {
+      "figmaNode": "41:33",
+      "componentNode": null,
+      "contract": "Normal Home Header anchor and avatar state contract",
+      "compose": "NormalHomeHeader + NormalHomeDefaultAvatar — NormalHomeContent.kt"
+    },
+    {
+      "figmaNode": "41:37",
+      "componentNode": "38:3",
+      "contract": "Normal Home Statistics anchor/pixel target",
+      "compose": "HomeStats — app/src/main/java/com/yujian/ai/ui/home/HomeStats.kt"
+    },
+    {
+      "figmaNode": "41:49",
+      "componentNode": null,
+      "contract": "RecentCatchHeader anchor and icon registry",
+      "compose": "RecentCatchSectionHeader — NormalHomeContent.kt"
+    },
+    {
+      "figmaNode": "41:56",
+      "componentNode": "38:24",
+      "contract": "FishCatchPager / Hero EvidenceFit / crop contract",
+      "compose": "RecentCatchPager — NormalHomeContent.kt; RecentFishCard — app/src/main/java/com/yujian/ai/ui/home/RecentFishCard.kt; YuJianHeroCard — app/src/main/java/com/yujian/ai/ui/designsystem/components/YuJianHeroCard.kt"
+    },
+    {
+      "figmaNode": "41:67",
+      "componentNode": "38:24",
+      "contract": "YuJianCatchHeroCard / HOME State=Selected; 740x880; 32px",
+      "compose": "RecentFishCard → YuJianHeroCard(variant=HOME)"
+    },
+    {
+      "figmaNode": "41:58",
+      "componentNode": "38:24",
+      "contract": "YuJianCatchHeroCard / HOME State=Neighbor",
+      "compose": "RecentCatchPager neighbor card"
+    },
+    {
+      "figmaNode": "41:76",
+      "componentNode": "38:24",
+      "contract": "YuJianCatchHeroCard / HOME State=Neighbor",
+      "compose": "RecentCatchPager neighbor card"
+    },
+    {
+      "figmaNode": "41:85",
+      "componentNode": "38:28",
+      "contract": "Capture CTA geometry, typography, motion contract",
+      "compose": "CTA Text in NormalHomeContent.kt; HomeCameraButton — app/src/main/java/com/yujian/ai/ui/home/HomeCameraButton.kt"
+    },
+    {
+      "figmaNode": "41:86",
+      "componentNode": "38:28",
+      "contract": "CaptureActionGroup instance with nested camera component",
+      "compose": "HomeCameraButton → YuJianCaptureButton — ui/designsystem/components/YuJianCaptureButton.kt"
+    },
+    {
+      "figmaNode": "41:32",
+      "componentNode": null,
+      "contract": "Morning Lake background source",
+      "compose": "NormalHomeContent runtime assets background layer",
+      "sourceStatus": "BLOCKED_ENV_NOT_IMPORTED",
+      "lastKnownNodeState": "empty on last successful readback before browser-native attempt; latest readback unavailable"
+    },
+    {
+      "figmaNode": "41:34",
+      "componentNode": null,
+      "contract": "Frozen brand title source",
+      "compose": "NormalHomeHeader brand image",
+      "sourceStatus": "IMAGE_FILL_READBACK_CONFIRMED",
+      "fillType": "IMAGE",
+      "scaleMode": "FIT",
+      "sourceSha256": "2dd41f5138e88e3bd48178dd26a15dfbb29c434536e4e3cc887fe2db13bdfddc",
+      "figmaInternalImageHash": "8d5ca69fee77b0e0e6589df6cd779701057373d5",
+      "visualExportAfterImport": "NOT_RUN"
+    },
+    {
+      "figmaNode": "41:35",
+      "componentNode": null,
+      "contract": "Avatar master and runtime 3x export",
+      "compose": "NormalHomeDefaultAvatar",
+      "sourceStatus": "REVIEW_REQUIRED_AUTHORITY_CONFLICT"
+    }
+  ],
+  "tokens": {
+    "collectionId": "VariableCollectionId:37:26",
+    "collectionName": "YuJian Design System V3.1 / NH01",
+    "mode": "NH01 Default",
+    "variableCount": 21,
+    "verifiedBoundColors": [
+      {
+        "name": "color/deep_lake_blue",
+        "value": "#0B2D4B"
+      },
+      {
+        "name": "color/lake_white",
+        "value": "#F7FAFB"
+      },
+      {
+        "name": "color/mist_blue_gray",
+        "value": "#748897"
+      }
+    ],
+    "textStyles": [
+      {
+        "name": "Statistics Value 36/42",
+        "id": "S:24a2ed7d762d4841a897e9166e7197edcbd21230"
+      },
+      {
+        "name": "Statistics Label 28/32",
+        "id": "S:d6db0e1d5f22b909ff6ad77abb498f188e88a88e"
+      },
+      {
+        "name": "Recent Title 48/52",
+        "id": "S:5138d80f719c1de2da1aa99a04090c5402eb93dc"
+      },
+      {
+        "name": "Recent Action 40/44",
+        "id": "S:2bba567766db56d42c7953f3936e3e781b148556"
+      },
+      {
+        "name": "Hero Title 56/64",
+        "id": "S:965db469a3d33ea459e81e691859c7b0add96b14"
+      },
+      {
+        "name": "Measurement 46/52",
+        "id": "S:5cf5980f31da35e919f858541b527ff06ebf04ee"
+      },
+      {
+        "name": "Metadata 36/42",
+        "id": "S:8020e72ee3a19160af7100d32040c0993c22ddb0"
+      },
+      {
+        "name": "CTA 36/40",
+        "id": "S:09fcf1ffd6c4b9066fe638f8eec556de92f3435a"
+      }
+    ],
+    "fontCandidate": "Noto Sans SC Regular/Medium",
+    "fontStatus": "REVIEW_REQUIRED"
+  },
+  "assets": [
+    {
+      "name": "Frozen NH01 full reference",
+      "path": "design/system/core_visual_v1/reference/normal_home_v1.png",
+      "sha256": "6ab9d3348b4a9a7e77ddca3a06235b4991798a309bd3512cc6fb9ea7aeb1d377",
+      "state": "EXTERNAL_READ_ONLY_NO_IMPORT"
+    },
+    {
+      "name": "Morning Lake background",
+      "path": "design/system/backgrounds/morning_lake_v1/assets/Morning_Lake_Master_V1.png",
+      "sha256": "5fba741088ea186e898cd3bee5777e35978436f427492e6e6122528ef6aa91d7",
+      "nodeId": "41:32",
+      "state": "BLOCKED_ENV_NOT_IMPORTED",
+      "evidence": {
+        "sourceAccessibleInWorkChrome": true,
+        "sourcePageTitle": "Morning_Lake_Master_V1.png (941×1672)",
+        "figmaNodeLastReadback": "empty before browser-native import attempt",
+        "rawUploadResponse": "HTTP 413 Request Entity Too Large (OpenResty)",
+        "figmaBrowser": "Site Unavailable / Unable to access this site",
+        "browserFileChooser": "NOT_REACHED",
+        "postAttemptFigmaReadback": "UNAVAILABLE"
+      }
+    },
+    {
+      "name": "Brand title",
+      "path": "design/system_v3/06_Asset_System/derived/brand_title_primary/brand_title_primary.png",
+      "sha256": "2dd41f5138e88e3bd48178dd26a15dfbb29c434536e4e3cc887fe2db13bdfddc",
+      "nodeId": "41:34",
+      "state": "IMAGE_FILL_READBACK_CONFIRMED_VISUAL_EXPORT_NOT_RUN",
+      "figmaInternalImageHash": "8d5ca69fee77b0e0e6589df6cd779701057373d5",
+      "fillType": "IMAGE",
+      "scaleMode": "FIT"
+    },
+    {
+      "name": "Avatar master",
+      "path": "design/pages/home/normal_home/07_avatar_states/assets/nh07_default_avatar_master_1254.png",
+      "sha256": "12ec5fc8c1a08723ea461edf327870df19b7dfe309587b18b6de28c9f701b643",
+      "runtime3xSha256": "b79dc7eaa6da78722cedb240b35985871c422531b3d452efaa5fba9aa3eeb7c2",
+      "nodeId": "41:35",
+      "state": "BLOCKED_AUTHORITY_CONFLICT_NOT_IMPORTED"
+    },
+    {
+      "name": "Normal Home camera derivative",
+      "path": "design/system_v3/06_Asset_System/derived/normal_home_camera_primary_v1/normal_home_camera_primary_v1.png",
+      "sha256": "fb6417e372d08328ac8559d004d1c6f5b03fc17551646be46031df641660e8f2",
+      "state": "BLOCKED_ENV_NOT_IMPORTED"
+    },
+    {
+      "name": "Shared camera master",
+      "path": "design/system/components/primary_capture_button/assets/capture_button_main_v1.png",
+      "sha256": "501abcc58a65263dd879ad198a0a033630ab4bdcaf945eb02599e4f1249ca327",
+      "state": "BLOCKED_ENV_NOT_IMPORTED"
+    },
+    {
+      "name": "Hero fixture register",
+      "path": "design/pages/home/normal_home/engineering/hero_real_photo_fixture_register_v1.json",
+      "state": "BLOCKED_ASSET_SOURCE",
+      "detail": "F03/F08 provenance and rights NOT_VERIFIED"
+    },
+    {
+      "name": "Hero runtime shadow",
+      "path": "app/src/main/assets/normal_home_runtime_v1/fish_card/fish_card_shadow.png",
+      "gitBlob": "2a782f76a7880cf957b71ec718a0d260099e5f65",
+      "state": "BLOCKED_ASSET_HASH_AND_IMPORT"
+    },
+    {
+      "name": "Hero runtime gradient",
+      "path": "app/src/main/assets/normal_home_runtime_v1/fish_card/fish_card_gradient.png",
+      "gitBlob": "b17776098b76ecc6ce7488fef70c6ad319d58a21",
+      "state": "BLOCKED_ASSET_HASH_AND_IMPORT"
+    },
+    {
+      "name": "Hero runtime outline",
+      "path": "app/src/main/assets/normal_home_runtime_v1/fish_card/fish_card_outline.png",
+      "gitBlob": "6ca9464b44b5aadda2819bda74f1dc3244055815",
+      "state": "BLOCKED_ASSET_HASH_AND_IMPORT"
+    },
+    {
+      "name": "Chevron SVG",
+      "path": "design/system/icon_library_v0_1/assets/ic_chevron_right_v1.svg",
+      "sha256": "3d8c0bf43500c40b636a08f50d6fedf4d5f0ae2fd984a7e6c16cd03f4130d4a9",
+      "gitBlob": "de1fe83bfed413ddac8895d9cf02f3d450908dde",
+      "figmaNode": "41:53",
+      "state": "REVIEW_REQUIRED"
+    }
+  ],
+  "visualComparison": {
+    "exportPng": {
+      "width": 1080,
+      "height": 1920,
+      "sha256": "e068790742826d8328ea4c704eac1cbc8e76767191083bd9a3ed41f5208e761e",
+      "path": "release/design_manager/NH01_Figma_1080x1920_STRUCTURE_ONLY_NOT_VISUAL_PASS.png"
+    },
+    "geometry": "NOT_RUN_ON_CURRENT_EXPORT",
+    "glyph": "NOT_RUN_ON_CURRENT_EXPORT",
+    "roiPixelDiff": "NOT_RUN_NO_CURRENT_EXPORT",
+    "motion": "NOT_RUN",
+    "androidRuntime": "NOT_RUN",
+    "independentQa": "NOT_RUN",
+    "historicalExportOnly": true,
+    "freshExportAfterBrandImport": "NOT_AVAILABLE_FIGMA_BROWSER_AND_CONNECTOR_LIMIT",
+    "historicalGeometry": "PARTIAL_PASS_FROM_PRE_IMPORT_STRUCTURAL_READBACK"
+  },
+  "conflicts": [
+    {
+      "id": "NH01-A01",
+      "priority": "P0",
+      "status": "BLOCKED_ENV",
+      "acceptance": "Import the original Morning Lake PNG into 41:32 using the proven figma.createImage(bytes) route when the connector quota is available or browser native Fill upload when Figma UI is accessible; verify IMAGE fill, render, export, and source SHA.",
+      "detail": "Background node 41:32 not imported; browser Figma URL unavailable, single-use raw upload returned HTTP 413, and no post-attempt readback is available. Brand node 41:34 has a confirmed IMAGE fill."
+    },
+    {
+      "id": "NH01-A02",
+      "priority": "P0",
+      "status": "BLOCKED_ASSET_SOURCE",
+      "acceptance": "Approve real Hero photo provenance and usage rights"
+    },
+    {
+      "id": "NH01-A03",
+      "priority": "P0",
+      "status": "BLOCKED_ENV",
+      "acceptance": "Export the current 1080x1920 page and run existing Geometry/Glyph/ROI thresholds; obtain independent QA review.",
+      "detail": "No current export after the exact brand image fill readback; browser Figma unavailable and connector limit reached."
+    },
+    {
+      "id": "NH01-A04",
+      "priority": "P1",
+      "status": "REVIEW_REQUIRED",
+      "detail": "CTA 36/40 in Compose vs 40/44 in responsive contract; camera y1583 in Compose vs 1564 in contract"
+    },
+    {
+      "id": "NH01-A05",
+      "priority": "P1",
+      "status": "REVIEW_REQUIRED",
+      "detail": "Figma Noto Sans SC candidate does not have verified 1:1 Android system CJK glyph mapping"
+    },
+    {
+      "id": "NH01-A06",
+      "priority": "P1",
+      "status": "REVIEW_REQUIRED",
+      "detail": "Chevron registry FROZEN conflicts with SVG candidate comment and Android drawable mapping"
+    },
+    {
+      "id": "NH01-A07",
+      "priority": "P1",
+      "status": "REVIEW_REQUIRED",
+      "detail": "Home V2 fallback vs NH07 staged supersession and Resource Binding default conflict; Frozen sample contains an unregistered remote personal avatar with no separately authorized source.",
+      "acceptance": "Resolve the effective signed-in avatar authority and the dynamic-photo comparison treatment; preserve Guest avatar as a separate state."
+    }
+  ],
+  "overall": "NH01_FIGMA_STRUCTURAL_HANDOFF=REVIEW_REQUIRED",
+  "browserTransferEvidence": {
+    "observedAt": "2026-10-18",
+    "browser": "Work Chrome (CDP, browser id 1)",
+    "sourceUrl": "https://raw.githubusercontent.com/pan277942135/Yujian_App/96d0fb96684973526285ec0ff373ab86a3620278/design/system/backgrounds/morning_lake_v1/assets/Morning_Lake_Master_V1.png",
+    "sourceAccessible": true,
+    "sourceRendered": true,
+    "sourcePageTitle": "Morning_Lake_Master_V1.png (941×1672)",
+    "figmaUrl": "https://www.figma.com/design/VjN7iFviVN9aKeLv8kJivM/Recognition-Main-Journey-Master-Board-V1?node-id=41-30",
+    "figmaPageTitle": "Site Unavailable",
+    "figmaPageMessage": "Unable to access this site.",
+    "reloadAttempt": "same error",
+    "fileChooser": "NOT_REACHED",
+    "localDownloadsPath": "NOT_VERIFIED; no native chooser or completed browser download",
+    "browserPermissionPrompt": "NONE_OBSERVED",
+    "figmaMcpState": "Starter plan tool-call limit reached; no paid upgrade attempted",
+    "rawUploadEndpoint": "HTTP 413 Request Entity Too Large (OpenResty); do not retry consumed URL",
+    "brandUploadEndpoint": "HTTP 405 Not Allowed (OpenResty); do not retry consumed URL",
+    "nextProvenRoute": "Use Figma connector figma.createImage(bytes) after call quota is available; this route previously imported exact brand PNG bytes into node 41:34 and read back IMAGE/FIT."
+  }
+}

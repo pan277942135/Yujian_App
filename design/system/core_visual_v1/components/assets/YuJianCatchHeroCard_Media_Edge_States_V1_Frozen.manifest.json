@@ -1,0 +1,32 @@
+{
+  "id": "hero",
+  "status": "FROZEN",
+  "authority_type": "VISUAL_AUTHORITY",
+  "path": "design/system/core_visual_v1/components/assets/YuJianCatchHeroCard_Media_Edge_States_V1_Frozen.png",
+  "dimensions_px": {
+    "width": 1760,
+    "height": 1370
+  },
+  "bytes": 579925,
+  "sha256": "7a944491130d624554fbbe86a4b6c272a708b86ef719a8a5212314cca421d84a",
+  "authority_spec": "design/system/core_visual_v1/components/YuJianCatchHeroCard_Media_Edge_States_V1.md",
+  "freeze_date": "2026-10-07",
+  "raster_format": "image/png",
+  "source_media": {
+    "path": "app/src/main/assets/home_normal/fish_record/sample_recent_catch.jpg",
+    "sha256": "6e955087108f7463eca2dbac489699a4942028ebe1b3d456ddfca523286385ef",
+    "source_bytes_unchanged": true
+  },
+  "component": "YuJianCatchHeroCard",
+  "variants": [
+    "HOME",
+    "DETAIL"
+  ],
+  "states": [
+    "LANDSCAPE",
+    "PORTRAIT",
+    "EXTREME_PORTRAIT",
+    "EMBEDDED_LETTERBOX"
+  ],
+  "reencode_allowed": false
+}

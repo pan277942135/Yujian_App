@@ -1,0 +1,32 @@
+{
+  "version": "V0.1",
+  "id": "icon_library_v0_1",
+  "status": "PARTIAL",
+  "navigation_mode": "submenu_direct",
+  "scope": "candidate inventory, not production art",
+  "page_modules": [
+    "home_empty_v2",
+    "home_normal_v1",
+    "recognition_flow_v1_2",
+    "recognition_result_v1",
+    "fish_record_detail_v2",
+    "fish_memory_bside_v1",
+    "my_catches_v2",
+    "fish_guide_v2",
+    "account_privacy_v1",
+    "auth_login_v2",
+    "auth_register_v2",
+    "profile_edit_v1",
+    "share_templates_v1",
+    "user_agreement_v1"
+  ],
+  "group_ids": [
+    "FACTS",
+    "MEDIA",
+    "NAV",
+    "UTILITY",
+    "ACCOUNT",
+    "STATUS"
+  ],
+  "design_artifacts_ready": 0
+}

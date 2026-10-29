@@ -1,0 +1,20 @@
+{
+  "version": "1.0",
+  "unit_px": 8,
+  "values_px": {
+    "SP_1": 8,
+    "SP_2": 16,
+    "SP_3": 24,
+    "SP_4": 32,
+    "SP_5": 40,
+    "SP_6": 48,
+    "SP_8": 64,
+    "SP_10": 80
+  },
+  "rules": {
+    "major_sections": "40-64",
+    "card_internal": "24-40",
+    "text_related": "8-16",
+    "detail_screens": "prefer scrolling over vertical compression"
+  }
+}
