@@ -69,6 +69,11 @@ features:
       assets:
         status: "FROZEN"
         authority: "design/pages/home/empty_home/shared/contracts/asset_manifest.json"
+    responsive_contract_refs:
+      - "design/system_v3/07_Responsive_System/page_contract_examples/home_empty_v2.envelope.json"
+      - "design/system_v3/07_Responsive_System/page_contract_examples/home_empty_v2.profile.json"
+      - "design/pages/home/empty_home/shared/contracts/responsive_mapping_contract.json"
+      - "design/pages/home/empty_home/Page_Resource_Binding_V1.json"
     design_units: []
     design_children: []
     child_surfaces:
@@ -119,6 +124,12 @@ features:
       assets:
         status: "FROZEN"
         authority: "design/pages/home/normal_home/assets/asset_manifest.json"
+    responsive_contract_refs:
+      - "design/system_v3/07_Responsive_System/page_contract_examples/home_normal_v1.envelope.json"
+      - "design/system_v3/07_Responsive_System/page_contract_examples/home_normal_v1.profile.json"
+      - "design/pages/home/normal_home/responsive/NH01_RESPONSIVE_LAYOUT_V2.json"
+      - "design/pages/home/normal_home/engineering/NH01_GEMINI_ADAPTIVE_V2_ACCEPTANCE_MATRIX_V1.json"
+      - "design/pages/home/normal_home/Page_Resource_Binding_V1.json"
     design_units:
       - "NH01"
       - "NH02"
@@ -860,6 +871,11 @@ features:
       assets:
         status: "FROZEN"
         authority: "design/pages/account_privacy/Login/frozen/manifest.json"
+    responsive_contract_refs:
+      - "design/system_v3/07_Responsive_System/page_contract_examples/auth_login_v2.envelope.json"
+      - "design/system_v3/07_Responsive_System/page_contract_examples/auth_login_v2.profile.json"
+      - "design/pages/account_privacy/Login/Login_Responsive_Acceptance_Matrix_V1.json"
+      - "design/pages/account_privacy/Login/Page_Resource_Binding_V1.json"
     design_units: []
     design_children: []
     child_surfaces:
