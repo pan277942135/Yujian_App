@@ -1,3 +1,9 @@
+## 2026-10-29 — W5 exact-candidate matrix checkpoint
+
+- Live Main is `0c245b86f8228107309d0135bdf819af255604be`; PR #234 candidate `bb1d21044c8a8eccd9dda030b1edeb1c84efd6e2` passed exact Control Plane Admission: six layers, 735 synchronized paths, one exact Login mapping exception, Project Master State PASS, Work Execution State PASS.
+- This log-only checkpoint retains the existing candidate source and records the start of its required W5 run. The matrix must cover 320×640, 360×780, 393×852, and 411×891 at font scales 1× and 1.3× with actual DOM/Inspector parity.
+- Candidate Pages deployment/live manifest verification is still pending; no visual acceptance or brand authorization is claimed.
+
 ## 2026-10-29 — Exact Admission rerun on current candidate
 
 - Re-ran python scripts/validate_control_plane_admission.py against exact PR candidate 2b45c9c7fe50e9966be35ed4e658bd2d5cecb3ba after syncing Main 0c245b86f8228107309d0135bdf819af255604be and validating the branch state files.
