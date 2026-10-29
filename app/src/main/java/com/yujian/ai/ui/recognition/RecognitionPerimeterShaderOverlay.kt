@@ -294,19 +294,21 @@ private class RecognitionPerimeterGlRenderer : GLSurfaceView.Renderer {
         GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_CLAMP_TO_EDGE)
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0)
 
+        val shaderStartedAtMs = android.os.SystemClock.uptimeMillis()
         program = createProgram(VERTEX_SHADER, PERIMETER_FRAGMENT_SHADER, "perimeter")
+        val shaderFinishedAtMs = android.os.SystemClock.uptimeMillis()
         if (program != 0) {
-            Log.i(TAG, "PERIMETER_SHADER_COMPILE=PASS source=$SOURCE_SHA $frameIdentity")
-            Log.i(TAG, "PERIMETER_SHADER_LINK=PASS $frameIdentity")
+            Log.i(TAG, "PERIMETER_SHADER_COMPILE=PASS source=$SOURCE_SHA started_uptime_ms=$shaderStartedAtMs completed_uptime_ms=$shaderFinishedAtMs $frameIdentity")
+            Log.i(TAG, "PERIMETER_SHADER_LINK=PASS uptime_ms=$shaderFinishedAtMs $frameIdentity")
         } else {
-            Log.e(TAG, "PERIMETER_SHADER_COMPILE=FAIL; transparent photo-safe fallback $frameIdentity")
+            Log.e(TAG, "PERIMETER_SHADER_COMPILE=FAIL; transparent photo-safe fallback started_uptime_ms=$shaderStartedAtMs completed_uptime_ms=$shaderFinishedAtMs $frameIdentity")
         }
         GLES20.glDisable(GLES20.GL_DEPTH_TEST)
         GLES20.glEnable(GLES20.GL_BLEND)
         GLES20.glBlendFunc(GLES20.GL_ONE, GLES20.GL_ONE_MINUS_SRC_ALPHA)
         GLES20.glClearColor(0f, 0f, 0f, 0f)
         Log.i(TAG, "PHOTO_TEXTURE_ROLE=SOURCE_SAMPLING_ONLY; visible photo owned by native Compose Image $frameIdentity")
-        checkGl("surface-created")
+        checkGl("surface-created", frameIdentity)
         Log.i(TAG, "PERIMETER_GL_SURFACE_CREATED uptime_ms=${android.os.SystemClock.uptimeMillis()} $frameIdentity")
     }
 
@@ -361,7 +363,7 @@ private class RecognitionPerimeterGlRenderer : GLSurfaceView.Renderer {
         GLES20.glUniform4fv(GLES20.glGetUniformLocation(p, "uNodePositions"), 8, frame.nodePositions, 0)
         GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4)
         GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, 0)
-        checkGl("perimeter-draw")
+        checkGl("perimeter-draw", identityLabel(frame))
     }
 
     private fun uploadBitmapIfNeeded(frame: PerimeterFrame): Boolean {
@@ -370,6 +372,7 @@ private class RecognitionPerimeterGlRenderer : GLSurfaceView.Renderer {
             return false
         }
         if (frame.bitmap === uploadedBitmap) return true
+        val uploadStartedAtMs = android.os.SystemClock.uptimeMillis()
         return try {
             GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, photoTexture)
             GLES20.glPixelStorei(GLES20.GL_UNPACK_ALIGNMENT, 4)
@@ -377,16 +380,16 @@ private class RecognitionPerimeterGlRenderer : GLSurfaceView.Renderer {
             GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0)
             val error = GLES20.glGetError()
             if (error != GLES20.GL_NO_ERROR) {
-                Log.e(TAG, "PHOTO_TEXTURE_UPLOAD=FAIL error=0x${error.toString(16)} ${identityLabel(frame)}")
+                Log.e(TAG, "PHOTO_TEXTURE_UPLOAD=FAIL error=0x${error.toString(16)} started_uptime_ms=$uploadStartedAtMs completed_uptime_ms=${android.os.SystemClock.uptimeMillis()} ${identityLabel(frame)}")
                 false
             } else {
                 uploadedBitmap = frame.bitmap
-                Log.i(TAG, "PHOTO_TEXTURE_UPLOAD=PASS size=${frame.bitmap.width}x${frame.bitmap.height} layer=source-sampling-only ${identityLabel(frame)}")
+                Log.i(TAG, "PHOTO_TEXTURE_UPLOAD=PASS size=${frame.bitmap.width}x${frame.bitmap.height} layer=source-sampling-only started_uptime_ms=$uploadStartedAtMs completed_uptime_ms=${android.os.SystemClock.uptimeMillis()} ${identityLabel(frame)}")
                 true
             }
         } catch (error: Throwable) {
             GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0)
-            Log.e(TAG, "PHOTO_TEXTURE_UPLOAD=FAIL reason=${error.javaClass.simpleName} ${identityLabel(frame)}", error)
+            Log.e(TAG, "PHOTO_TEXTURE_UPLOAD=FAIL reason=${error.javaClass.simpleName} started_uptime_ms=$uploadStartedAtMs completed_uptime_ms=${android.os.SystemClock.uptimeMillis()} ${identityLabel(frame)}", error)
             false
         }
     }
@@ -441,7 +444,7 @@ private class RecognitionPerimeterGlRenderer : GLSurfaceView.Renderer {
                 "path_css_scale=${frame.pathCoordinateScale} measured=${frame.coordinateMappingMeasured}",
         )
         if (!frame.coordinateMappingMeasured) {
-            Log.w(TAG, "COORDINATE_MAPPING=NOT_VERIFIED; identity candidate only; source DPR/CSS/backing dimensions not supplied")
+            Log.w(TAG, "${identityLabel(frame)} COORDINATE_MAPPING=NOT_VERIFIED; identity candidate only; source DPR/CSS/backing dimensions not supplied")
         }
     }
 
@@ -459,9 +462,9 @@ private class RecognitionPerimeterGlRenderer : GLSurfaceView.Renderer {
         uploadedBitmap = null
     }
 
-    private fun checkGl(stage: String) {
+    private fun checkGl(stage: String, identity: String = "") {
         val error = GLES20.glGetError()
-        if (error != GLES20.GL_NO_ERROR) Log.e(TAG, "GLES_ERROR stage=$stage code=0x${error.toString(16)}")
+        if (error != GLES20.GL_NO_ERROR) Log.e(TAG, "GLES_ERROR stage=$stage code=0x${error.toString(16)} $identity")
     }
 
     companion object {
