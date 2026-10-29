@@ -7,7 +7,7 @@
     "Empty Home brand placement remains blocked: registered brand_title_primary is authorized only for normal_home_v1; no authorized Empty Home brand binding exists."
   ],
   "branch": "work/w5-empty-home-pilot-v1",
-  "checkpoint_updated_at": "2026-10-29T20:22:04.646Z",
+  "checkpoint_updated_at": "2026-10-29T20:24:05.819Z",
   "control_plane_revision": "0c245b86f8228107309d0135bdf819af255604be",
   "dependencies": [
     "YUJIAN_PAGE_FREEZE_PIPELINE_W3_DESIGN_MANAGER_ADAPTER_V1",
@@ -49,6 +49,13 @@
         "result": "FAIL",
         "reason": "All six static layers, Control Plane Sync (735 paths; one approved Login mapping exception), and Project Master State passed; Work Execution State failed because .github/workflows/design-manager-pages.yml, design/manager/empty_home_v22_workspace.js, and scripts/design/verify_empty_home_structured_hifi.mjs changed after source_sha 8b9a65bfd7b1e75679bb8a46e6acb08669270fad.",
         "recorded_at": "2026-10-29T20:22:04.646Z"
+      },
+      {
+        "candidate_sha": "6d607aa117b173c776ee607410fb66d1ec26cea7",
+        "command": "python scripts/validate_control_plane_admission.py",
+        "result": "PASS",
+        "reason": "Six static layers and canonical sync passed (735 paths, 1 exact Login mapping exception); Project Master State and Work Execution State passed. State-only checkpoint; product/workflow source is 0e4d70c4.",
+        "recorded_at": "2026-10-29T20:24:05.819Z"
       }
     ],
     "admission_baseline": {
@@ -80,16 +87,17 @@
       "status": "IMPLEMENTED_PENDING_EXACT_HEAD_VALIDATION"
     },
     "exact_candidate_admission": {
-      "candidate_sha": "0e4d70c4f544ed4b6efc0ab6aa3cf8bf9d41aafb",
+      "candidate_sha": "6d607aa117b173c776ee607410fb66d1ec26cea7",
       "code_source_sha": "0e4d70c4f544ed4b6efc0ab6aa3cf8bf9d41aafb",
       "command": "python scripts/validate_control_plane_admission.py",
-      "result": "PENDING",
+      "result": "PASS",
       "control_plane_layers": 6,
       "control_plane_sync_paths": 735,
       "exact_login_mapping_exceptions": 1,
-      "project_master_state": "PENDING",
-      "work_execution_state": "PENDING",
-      "note": "The previous exact PASS is retained in admission_attempts for aeef79ed. This source checkpoint follows the branch-only preview replay workflow update; re-run on the resulting state-only checkpoint."
+      "project_master_state": "PASS",
+      "work_execution_state": "PASS",
+      "recorded_at": "2026-10-29T20:24:05.819Z",
+      "note": "Exact state-only checkpoint passed after rebinding source_sha to the replay source. All product/workflow files equal source 0e4d70c4; W5 matrix and isolated Pages replay remain pending."
     },
     "exception_pr": {
       "merge_sha": "bf4c5c5777bddd3c37c8b2850aaa5a5881f0d513",
@@ -134,8 +142,11 @@
       "observed_failure_source_sha": "8b9a65bfd7b1e75679bb8a46e6acb08669270fad",
       "current_candidate_source_sha": "0e4d70c4f544ed4b6efc0ab6aa3cf8bf9d41aafb",
       "failure_id": "c3dff4a0c9b987cbe7c7",
-      "status": "STATE_ONLY_REBOUND_PENDING_EXACT_ADMISSION"
-    }
+      "status": "EXACT_ADMISSION_PASS",
+      "passed_checkpoint_sha": "6d607aa117b173c776ee607410fb66d1ec26cea7",
+      "validated_code_source_sha": "0e4d70c4f544ed4b6efc0ab6aa3cf8bf9d41aafb"
+    },
+    "current_state_checkpoint_sha": "6d607aa117b173c776ee607410fb66d1ec26cea7"
   },
   "execution_v2": {
     "issues": {
@@ -172,7 +183,7 @@
     },
     "schema_version": "1.0"
   },
-  "next_action": "Run python scripts/validate_control_plane_admission.py on the resulting state-only checkpoint; if it passes, dispatch the isolated Design Manager Pages workflow from this exact branch head and verify the W5 matrix and published build SHA.",
+  "next_action": "Verify the latest PR branch head is still the state-only replay candidate, then dispatch the isolated Design Manager Pages workflow from that branch; verify the exact build SHA and W5 4-view × 2-font-scale evidence.",
   "phase": "P3",
   "repository": "pan277942135/Yujian_App",
   "schema_version": "1.0",
