@@ -6,11 +6,6 @@ on:
     branches: [main]
     paths:
       - "design/pages/home/empty_home/**"
-      - "design/pages/account_privacy/Login/**"
-      - "design/system_v3/07_Responsive_System/page_contract_examples/auth_login_v2.*.json"
-      - "scripts/design/page_candidates/auth_login_v2/**"
-      - "scripts/design/verify_login_structured_hifi.mjs"
-      - "scripts/design/compare_login_candidate_visual.py"
       - "design/system_v3/07_Responsive_System/page_contract_examples/home_empty_v2.*.json"
       - "design/manager/**"
       - "scripts/design/verify_empty_home_structured_hifi.mjs"
@@ -80,11 +75,6 @@ jobs:
           mkdir -p _site
           cp -R design _site/design
           if [ -d previews ]; then cp -R previews _site/previews; fi
-          mkdir -p _site/scripts/design/page_candidates/auth_login_v2
-          cp scripts/design/page_candidates/auth_login_v2/component_mapping_v1.json _site/scripts/design/page_candidates/auth_login_v2/
-          cp scripts/design/page_candidates/auth_login_v2/responsive_candidate_v1.json _site/scripts/design/page_candidates/auth_login_v2/
-          cp scripts/design/page_candidates/auth_login_v2/renderer.js _site/scripts/design/page_candidates/auth_login_v2/
-          cp scripts/design/page_candidates/auth_login_v2/renderer.css _site/scripts/design/page_candidates/auth_login_v2/
           mkdir -p _site/app/src/main/res/drawable-nodpi
           cp app/src/main/res/drawable-nodpi/normal_home_default_avatar_v2.png \
             _site/app/src/main/res/drawable-nodpi/normal_home_default_avatar_v2.png
@@ -219,98 +209,6 @@ jobs:
           print(json.dumps({"status": "PASS", "source_sha": expected_sha, "run_id": expected_run,
                             "matrix_summary": summary}, indent=2))
           PY
-
-      - name: Run W5 Login structured responsive matrix
-        id: login_matrix
-        if: github.event_name == 'pull_request' && github.event.pull_request.number == 234
-        shell: bash
-        env:
-          PLAYWRIGHT_MODULE_DIR: ${{ runner.temp }}/w5-playwright/node_modules
-        run: |
-          set -euo pipefail
-          python3 -m http.server 8765 --directory _site > "$RUNNER_TEMP/w5-login-http.log" 2>&1 &
-          server_pid=$!
-          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
-          for attempt in $(seq 1 30); do
-            if curl -fsS http://127.0.0.1:8765/design/manager/ >/dev/null; then break; fi
-            sleep 1
-          done
-          node --check scripts/design/verify_login_structured_hifi.mjs
-          node scripts/design/verify_login_structured_hifi.mjs \
-            --root . \
-            --url http://127.0.0.1:8765/design/manager/ \
-            --expected-sha "$BUILD_SHA" \
-            --output-dir "$RUNNER_TEMP/w5-login-evidence"
-
-      - name: Validate exact-SHA Login matrix evidence
-        if: always() && steps.login_matrix.outcome == 'success'
-        env:
-          EXPECTED_BUILD_SHA: ${{ env.BUILD_SHA }}
-          EXPECTED_RUN_ID: ${{ github.run_id }}
-          EVIDENCE_DIR: ${{ runner.temp }}/w5-login-evidence
-        run: |
-          python - <<'PY'
-          import hashlib, json, os, struct
-          from pathlib import Path
-
-          root = Path(os.environ["EVIDENCE_DIR"])
-          evidence_path = root / "Login_Structured_HiFi_Evidence_V1.json"
-          evidence = json.loads(evidence_path.read_text())
-          expected_sha = os.environ["EXPECTED_BUILD_SHA"]
-          expected_run = str(os.environ["EXPECTED_RUN_ID"])
-          summary = evidence.get("matrix_summary", {})
-          rows = evidence.get("matrix", [])
-          formal = [row for row in rows if row.get("matrix_classification") == "FORMAL_AUTHORITY_CASE"]
-          supplemental = [row for row in rows if row.get("matrix_classification") == "SUPPLEMENTAL_CANDIDATE_NOT_IN_FROZEN_AUTHORITY"]
-          assert evidence.get("source_sha") == evidence.get("candidate_source_sha") == expected_sha
-          assert str(evidence.get("github_run_id")) == expected_run
-          assert evidence.get("status") == "PASS_STRUCTURAL_MATRIX_VISUAL_REVIEW_PENDING"
-          assert len(formal) == summary.get("formal_expected") == summary.get("formal_pass") == 1
-          assert len(supplemental) == summary.get("supplemental_expected") == summary.get("supplemental_pass") == 12
-          assert summary.get("formal_fail") == summary.get("formal_not_run") == 0
-          assert summary.get("supplemental_fail") == summary.get("supplemental_not_run") == 0
-          assert summary.get("total_expected") == summary.get("total_executed") == summary.get("total_pass") == 13
-          assert summary.get("total_fail") == summary.get("total_not_run") == 0
-          assert len(evidence.get("negative_cases", [])) == 10
-          assert all(row.get("result") == "EXPECTED_FAIL_CLOSED" for row in evidence["negative_cases"])
-          assert len(evidence.get("state_probes", [])) == 9
-          assert all(row.get("result") == "PASS" and row.get("expected_behavior_pass") for row in evidence["state_probes"])
-          assert len(evidence.get("resource_load_failures_and_recovery", [])) == 3
-          assert all(row.get("result") == "EXPECTED_FAIL_CLOSED_AND_RECOVERED" for row in evidence["resource_load_failures_and_recovery"])
-          assert all(value == "PASS" for value in evidence.get("route_checks", {}).values())
-          assert evidence.get("gate_results", {}).get("W3", {}).get("status") == "PASS"
-          assert evidence.get("gate_results", {}).get("W4", {}).get("status") == "PASS"
-          assert evidence.get("gate_results", {}).get("W5", {}).get("status") == "PASS"
-          assert evidence.get("visual_review_status") == "USER_VISUAL_ACCEPTANCE_PENDING"
-          assert evidence.get("native_runtime_status") == "NOT_VERIFIED"
-          assert evidence.get("browser_workspace", {}).get("safe_area_owner") == "NOT_VERIFIED"
-          assert evidence.get("matrix_authority", {}).get("path") == "design/pages/account_privacy/Login/Login_Responsive_Acceptance_Matrix_V1.json"
-          assert evidence.get("matrix_authority", {}).get("sha256") == summary.get("source_sha256")
-          assert evidence.get("visual_comparison", {}).get("comparison", {}).get("interpretation") == "MEASUREMENT_ONLY_NOT_VISUAL_PASS"
-          for row in rows:
-              assert row.get("page_id") == "auth_login_v2" and row.get("result") == "PASS"
-              assert row.get("source_sha") == expected_sha and str(row.get("run_id")) == expected_run
-              assert row.get("matrix_source_path") == summary.get("source_path")
-              assert row.get("matrix_source_sha256") == summary.get("source_sha256")
-              screenshot = row.get("screenshot_rendered", {})
-              path = root / screenshot.get("path", "")
-              assert path.is_file() and hashlib.sha256(path.read_bytes()).hexdigest() == screenshot.get("sha256")
-              data = path.read_bytes()
-              assert data[:8] == b"\x89PNG\r\n\x1a\n"
-              width, height = struct.unpack(">II", data[16:24])
-              assert (width, height) == (screenshot.get("pixel_width"), screenshot.get("pixel_height"))
-          print(json.dumps({"status":"PASS","source_sha":expected_sha,"run_id":expected_run,
-                            "formal":len(formal),"supplemental":len(supplemental),"negative_cases":10},indent=2))
-          PY
-
-      - name: Upload Login exact-SHA W5 evidence
-        if: always() && github.event_name == 'pull_request' && github.event.pull_request.number == 234
-        uses: actions/upload-artifact@v4
-        with:
-          name: Login-W5-Matrix-${{ github.run_id }}-${{ env.BUILD_SHA }}
-          path: ${{ runner.temp }}/w5-login-evidence/
-          if-no-files-found: warn
-          retention-days: 30
 
       - name: Upload W5 exact-SHA evidence
         if: always()

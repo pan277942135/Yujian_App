@@ -114,11 +114,6 @@ jobs:
           mkdir -p _site
           cp -R design _site/design
           if [ -d previews ]; then cp -R previews _site/previews; fi
-          mkdir -p _site/scripts/design/page_candidates/auth_login_v2
-          cp scripts/design/page_candidates/auth_login_v2/component_mapping_v1.json _site/scripts/design/page_candidates/auth_login_v2/
-          cp scripts/design/page_candidates/auth_login_v2/responsive_candidate_v1.json _site/scripts/design/page_candidates/auth_login_v2/
-          cp scripts/design/page_candidates/auth_login_v2/renderer.js _site/scripts/design/page_candidates/auth_login_v2/
-          cp scripts/design/page_candidates/auth_login_v2/renderer.css _site/scripts/design/page_candidates/auth_login_v2/
           mkdir -p _site/app/src/main/res/drawable-nodpi
           cp app/src/main/res/drawable-nodpi/normal_home_default_avatar_v2.png \
             _site/app/src/main/res/drawable-nodpi/normal_home_default_avatar_v2.png
