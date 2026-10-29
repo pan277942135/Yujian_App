@@ -12,7 +12,7 @@
   "stage": "ADMISSION_RECOVERY",
   "status": "READY",
   "source_sha": "dad76a9ca737245d4076b75b86537412b0238765",
-  "checkpoint_updated_at": "2026-10-29T17:10:25Z",
+  "checkpoint_updated_at": "2026-10-29T17:12:15Z",
   "next_action": "Run python scripts/validate_control_plane_admission.py on the final state checkpoint; do not inspect or change Empty Home page code until Admission is PASS.",
   "dependencies": [
     "YUJIAN_PAGE_FREEZE_PIPELINE_W3_DESIGN_MANAGER_ADAPTER_V1",
@@ -43,6 +43,15 @@
       "number": 261,
       "merge_sha": "a14d03fa78db0a1cb9b007f8e3d983b8a3b85754",
       "status": "MERGED_EXACT_CANDIDATE_EXTRA_EXCEPTION_SUPPORT"
-    }
+    },
+    "admission_attempts": [
+      {
+        "candidate_sha": "16d241c65c41bad1593be4976453cb9746681c0f",
+        "command": "python scripts/validate_control_plane_admission.py",
+        "result": "FAIL",
+        "reason": "WORK_EXECUTION_STATE.json had trailing literal backslash-n; JSON parser reported Extra data at line 48 column 2.",
+        "recorded_at": "2026-10-29T17:12:15Z"
+      }
+    ]
   }
-}\n
+}
