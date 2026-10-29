@@ -5,7 +5,7 @@
   "source_repository": "pan277942135/Yujian_App",
   "baseline_branch": "main",
   "baseline_commit_sha": "7737f293ea3831aeea2c6f58308961cdb2ba7d01",
-  "scope": "All 658 immutable baseline files, 8 approved brand-title derivations/evidence files, 3 user-authorized Normal Home Camera derivation/evidence files, and 9 explicitly allowlisted non-frozen worktree changes. Frozen artwork and baseline assets remain unchanged.",
+  "scope": "All 658 immutable baseline files, 8 approved brand-title derivations/evidence files, 3 user-authorized Normal Home Camera derivation/evidence files, and 10 explicitly allowlisted non-frozen worktree changes. Frozen artwork and baseline assets remain unchanged.",
   "counts": {
     "total_design_files": 669,
     "by_file_type": {
@@ -19651,6 +19651,13 @@
       "expected_current_git_blob_sha": "ddc77e57cb9f7682c2da24096000ba4b78bf00d2",
       "source_commit_sha": "d09f24c65c9617bf2ce89a3715577ac831fb960b",
       "reason": "RECOGNITION-FIRST-USE-GUIDE-V1 documents the additive authority_gallery/repo_image menu and its frozen PNG source paths. Documentation only; no Phase 1 Frozen visual or product asset bytes changed.",
+      "is_frozen_asset": false
+    },
+    {
+      "path": "design/pages/account_privacy/Login/structured_candidate/component_mapping_v1.json",
+      "expected_current_git_blob_sha": "75c615d20be011b16e4e6843b41dabd0479a8d63",
+      "source_commit_sha": "9c47519e87260992bc768178399fc9b6651a6fc8",
+      "reason": "The registered W6-A Login module task requires a page-owned component mapping. PR #234 commit 9c47519 adds this non-frozen candidate mapping, which is read by login_structured_workspace.js, the Login preview loader, and the W6-A Chromium matrix. This exception is content-addressed to the reviewed blob and does not authorize frozen-asset changes or other Login files.",
       "is_frozen_asset": false
     }
   ],
