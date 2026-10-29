@@ -15,7 +15,7 @@ state_control:
   current_head: 6933f459d2223823a25edcd1d4598ffde3061267
   current_main_head_sha: b080bb0ffb4ebced18593c08709657fabb53a19e
   state_status: IN_PROGRESS
-  updated_at: '2026-10-29T06:34:44Z'
+  updated_at: '2026-10-29T06:35:39Z'
 source_of_truth:
   current_work_state: WORK_EXECUTION_STATE.json
   canonical_control_plane: CONTROL_PLANE_REGISTRY.yaml
@@ -221,6 +221,10 @@ runtime_gates:
     note: Exact failure is an extra/divergent Login component_mapping_v1.json under canonical design/pages. Keep
       commit history; isolate Login ownership on PR239 before re-admission.
     run_id: 40829566256
+    failure_gate_check:
+      decision: ALLOW_FIRST_ATTEMPT
+      source_sha: 6933f459d2223823a25edcd1d4598ffde3061267
+      failure_id: cebf6c13d5dc6fc4c1f8
   latest_main_pages:
     status: PRODUCTION_BUILD_DEPLOY_LIVE_SHA_PASS_ROOT_MANIFEST_REPORT_PENDING
     source_sha: b080bb0ffb4ebced18593c08709657fabb53a19e
@@ -350,10 +354,9 @@ completion_rules:
 - User visual acceptance remains pending until product owner confirms it; frozen static assets and contracts remain
   unchanged.
 state_update:
-  updated_at: '2026-10-29T06:34:44Z'
-  reason: PRODUCT_WORK Admission exact run 40829566256 bound to PR234 source 6933f459d2223823a25edcd1d4598ffde3061267
-    failed only CONTROL_PLANE_SYNC; PROJECT_STATE and WORK_STATE passed. Login mapping is under canonical design/pages
-    but W6 ownership is PR239. Preserve commit history and restore PR234 scope before re-admission.
+  updated_at: '2026-10-29T06:35:39Z'
+  reason: Recorded exact PRODUCT_WORK Admission failure and bounded repair allowance. The path is a Login candidate
+    authority duplicated into PR234; keep W6 work in PR239 and re-admit after scope restoration.
   protocol: harness/STATE_UPDATE_PROTOCOL.md
 agent_recovery:
   resume_order:

@@ -11,7 +11,7 @@
     "PRODUCT_WORK Admission run 40829566256 for source 6933f459d2223823a25edcd1d4598ffde3061267 failed CONTROL_PLANE_SYNC: extra/divergent canonical file design/pages/account_privacy/Login/structured_candidate/component_mapping_v1.json. PROJECT_STATE and WORK_STATE passed. Resolve the PR234/PR239 ownership overlap without rewriting history; then update state to the resulting exact SHA and re-admit."
   ],
   "branch": "work-state/w5-empty-home-pilot-v1",
-  "checkpoint_updated_at": "2026-10-29T06:34:44Z",
+  "checkpoint_updated_at": "2026-10-29T06:35:39Z",
   "control_plane_revision": "b080bb0ffb4ebced18593c08709657fabb53a19e",
   "dependencies": [
     "YUJIAN_PAGE_FREEZE_PIPELINE_W3_DESIGN_MANAGER_ADAPTER_V1",
@@ -19,6 +19,21 @@
   ],
   "evidence": {
     "active_candidate": "{\"base_sha\":\"b080bb0ffb4ebced18593c08709657fabb53a19e\",\"branch\":\"work/w5-empty-home-pilot-v1\",\"head_sha\":\"6933f459d2223823a25edcd1d4598ffde3061267\",\"main_sha\":\"b080bb0ffb4ebced18593c08709657fabb53a19e\",\"pr\":234,\"status\":\"FAIL_W4_W5_W2_REPAIR_REQUIRED\",\"updated_at\":\"2026-10-29T06:24:43Z\"}",
+    "admission_failure_6933": {
+      "exact_error": "extra/divergent canonical file on Work branch: design/pages/account_privacy/Login/structured_candidate/component_mapping_v1.json",
+      "gates": {
+        "CONTROL_PLANE_SYNC": "FAIL",
+        "PROJECT_STATE": "PASS",
+        "WORK_STATE": "PASS"
+      },
+      "main_sha": "b080bb0ffb4ebced18593c08709657fabb53a19e",
+      "mode": "PRODUCT_WORK",
+      "run_id": 40829566256,
+      "source": "https://github.com/pan277942135/Yujian_App/actions/runs/40829566256",
+      "source_sha": "6933f459d2223823a25edcd1d4598ffde3061267",
+      "state_branch_head_sha": "824ca674f19592a3338fc127a16c8856cd82c37a",
+      "status": "FAIL"
+    },
     "android_ci_restore_head": {
       "run_id": 40805512031,
       "source_sha": "2051128624bc684f74c50a1f532cc58ed7fc34f7",
@@ -28,10 +43,10 @@
       "aistudio_perimeter": "NOT_VERIFIED",
       "effect01": "NOT_VERIFIED",
       "nh01_api28": {
+        "note": "Run failed resource/source preflight before a valid native-runtime result; no device acceptance.",
         "run_id": 40828169459,
         "source_sha": "6933f459d2223823a25edcd1d4598ffde3061267",
-        "status": "FAIL_PRECHECK_NATIVE_RUNTIME_NOT_VERIFIED",
-        "note": "Run failed resource/source preflight before a valid native-runtime result; no device acceptance."
+        "status": "FAIL_PRECHECK_NATIVE_RUNTIME_NOT_VERIFIED"
       },
       "pr252": {
         "android_ci_run_id": 40826129796,
@@ -48,6 +63,46 @@
       }
     },
     "base_main_sha": "0c7f06ef672ce89285d8b7d9b3646a33439e8712",
+    "candidate_6933_exact_evidence": {
+      "governance": {
+        "run_id": 40828169495,
+        "status": "PASS"
+      },
+      "main_sha": "b080bb0ffb4ebced18593c08709657fabb53a19e",
+      "nh01_api28": {
+        "native_runtime": "NOT_VERIFIED",
+        "run_id": 40828169459,
+        "status": "FAIL_PRECHECK"
+      },
+      "pages": {
+        "binding_errors": 3,
+        "preview": "NOT_DEPLOYED",
+        "run_id": 40828169492,
+        "status": "FAIL",
+        "workflow_sha_actual": "e1d7c6555b83570e92769244b83c5024113c683cc1db5f51e99d0f7ac8e8871c",
+        "workflow_sha_expected": "51f8d59ab19dd2a974381991038a2f746a4b30ab73422b1894d2f01df16f7200"
+      },
+      "pr_event_admission": {
+        "run_id": 40828169471,
+        "status": "PASS_NOT_PRODUCT_WORK"
+      },
+      "source_sha": "6933f459d2223823a25edcd1d4598ffde3061267",
+      "w1": {
+        "run_id": 40828169507,
+        "status": "PASS"
+      },
+      "w4": {
+        "login_evidence": "NOT_RUN_UPSTREAM_FAILURE",
+        "run_id": 40828169489,
+        "status": "FAIL"
+      },
+      "w5": {
+        "evidence": "SOURCE_AUTHORITY_SHA_MISMATCH",
+        "run_id": 40828169461,
+        "stage": "W2_RESOURCE_BINDING_SCAN",
+        "status": "FAIL"
+      }
+    },
     "candidate_7de2_exact_evidence": {
       "governance": {
         "run_id": 40826118062,
@@ -101,21 +156,21 @@
     "current_candidate": "{\"base_sha\":\"b080bb0ffb4ebced18593c08709657fabb53a19e\",\"branch\":\"work/w5-empty-home-pilot-v1\",\"head_sha\":\"6933f459d2223823a25edcd1d4598ffde3061267\",\"main_sha\":\"b080bb0ffb4ebced18593c08709657fabb53a19e\",\"pr\":234,\"status\":\"IN_PROGRESS_EXACT_SHA_VALIDATION\",\"pr_status\":\"OPEN_DRAFT_UNMERGED\",\"w6_technical_dependency\":\"BLOCKED_W4_W5_W2_AND_ISOLATED_PREVIEW\",\"native_runtime\":\"NOT_VERIFIED\"}",
     "current_exact_recovery_checkpoint": {
       "gates": {
-        "W1": "PASS_RUN_40828169507",
-        "W4": "FAIL_RUN_40828169489_LOGIN_EVIDENCE_NOT_GENERATED",
-        "W5": "FAIL_RUN_40828169461_W2_AUTHORITY_SHA_MISMATCH",
-        "W2": "FAIL_RUN_40828169492_THREE_BINDING_SHA_MISMATCH",
-        "DESIGN_GOVERNANCE": "PASS_RUN_40828169495",
-        "PR_EVENT_ADMISSION": "PASS_NOT_PRODUCT_WORK_RUN_40828169471",
-        "PRODUCT_WORK_ADMISSION": "FAIL_CONTROL_PLANE_SYNC_RUN_40829566256",
-        "ISOLATED_PREVIEW": "BLOCKED_NOT_DEPLOYED_RUN_40828169492",
-        "PRODUCTION_PAGES": "PASS_BUILD_DEPLOY_LIVE_BUILD_JSON_SHA_b080bb0ffb4ebced18593c08709657fabb53a19e_RUN_40825171321_ROOT_MANIFEST_HASH_PENDING",
-        "NH01_NATIVE_RUNTIME": "NOT_VERIFIED_PRECHECK_FAIL_RUN_40828169459",
-        "EFFECT01_NATIVE_RUNTIME": "NOT_VERIFIED",
         "AISTUDIO_PERIMETER_NATIVE_RUNTIME": "NOT_VERIFIED",
-        "NH01_STATIC_HIFI_ASSETS": "VERIFIED_ON_MAIN_BASELINE_B080_HASH_REPORT_RETAINED",
+        "DESIGN_GOVERNANCE": "PASS_RUN_40828169495",
+        "EFFECT01_NATIVE_RUNTIME": "NOT_VERIFIED",
+        "ISOLATED_PREVIEW": "BLOCKED_NOT_DEPLOYED_RUN_40828169492",
+        "NH01_NATIVE_RUNTIME": "NOT_VERIFIED_PRECHECK_FAIL_RUN_40828169459",
         "NH01_RESPONSIVE_CONTRACT": "SPEC_FROZEN",
-        "USER_VISUAL_ACCEPTANCE": "PENDING"
+        "NH01_STATIC_HIFI_ASSETS": "VERIFIED_ON_MAIN_BASELINE_B080_HASH_REPORT_RETAINED",
+        "PRODUCTION_PAGES": "PASS_BUILD_DEPLOY_LIVE_BUILD_JSON_SHA_b080bb0ffb4ebced18593c08709657fabb53a19e_RUN_40825171321_ROOT_MANIFEST_HASH_PENDING",
+        "PRODUCT_WORK_ADMISSION": "FAIL_CONTROL_PLANE_SYNC_RUN_40829566256",
+        "PR_EVENT_ADMISSION": "PASS_NOT_PRODUCT_WORK_RUN_40828169471",
+        "USER_VISUAL_ACCEPTANCE": "PENDING",
+        "W1": "PASS_RUN_40828169507",
+        "W2": "FAIL_RUN_40828169492_THREE_BINDING_SHA_MISMATCH",
+        "W4": "FAIL_RUN_40828169489_LOGIN_EVIDENCE_NOT_GENERATED",
+        "W5": "FAIL_RUN_40828169461_W2_AUTHORITY_SHA_MISMATCH"
       },
       "main_sha": "b080bb0ffb4ebced18593c08709657fabb53a19e",
       "next_action": "Admission run 40829566256 failed CONTROL_PLANE_SYNC because PR234 contains the Login candidate mapping under canonical design/pages, even though W6 Login is owned by PR239. Keep the Login commit in history, align its product tree to PR239 ownership (without history rewrite), update source_sha to that new exact PR234 candidate, and rerun PRODUCT_WORK Admission before further implementation.",
@@ -135,22 +190,22 @@
         "status": "OPEN_DRAFT_UNMERGED; ANDROID RUNTIME IN PROGRESS"
       },
       "runs": {
+        "governance": 40828169495,
+        "main_pages": 40825171321,
+        "nh01_api28": 40828169459,
+        "pages_w2": 40828169492,
+        "pr239_w6_historical": 40822276633,
+        "pr_event_admission": 40828169471,
+        "product_work_admission_prior": 40827766107,
         "w1": 40828169507,
         "w4": 40828169489,
-        "w5": 40828169461,
-        "pages_w2": 40828169492,
-        "governance": 40828169495,
-        "pr_event_admission": 40828169471,
-        "nh01_api28": 40828169459,
-        "main_pages": 40825171321,
-        "product_work_admission_prior": 40827766107,
-        "pr239_w6_historical": 40822276633
+        "w5": 40828169461
       },
       "source_sha": "6933f459d2223823a25edcd1d4598ffde3061267",
-      "state_branch_head_before_checkpoint": "824ca674f19592a3338fc127a16c8856cd82c37a",
+      "state_branch_head_before_checkpoint": "343f657e11e342373187d6777403018c7f9f0c3a",
       "supplemental_task_id": "YUJIAN_NH01_STRUCTURED_HIFI_MULTI_SCREEN_RESPONSIVE_CLOSURE_V1",
       "task_id": "YUJIAN_W4_W5_MAIN_PAGES_W6_ANDROID_RUNTIME_CLOSURE_V1",
-      "updated_at": "2026-10-29T06:34:44Z"
+      "updated_at": "2026-10-29T06:35:39Z"
     },
     "current_isolated_preview": "{\"source_sha\":\"6933f459d2223823a25edcd1d4598ffde3061267\",\"run_id\":40828169492,\"status\":\"BLOCKED_NOT_DEPLOYED\",\"url\":\"https://pan277942135.github.io/Yujian_App/previews/pr-234/\",\"production_deploy\":\"SKIPPED_EXPECTED\",\"reason\":\"Pages W2 source authority SHA mismatch\"}",
     "current_main_pages": "{\"source_sha\":\"b080bb0ffb4ebced18593c08709657fabb53a19e\",\"status\":\"PASS_BUILD_DEPLOY_LIVE_SHA_ROOT_REPORT_PENDING\",\"run_id\":40825171321,\"build\":\"PASS\",\"deploy\":\"PASS\",\"live_build_json_sha\":\"b080bb0ffb4ebced18593c08709657fabb53a19e\",\"root_manifest_sha256\":\"PENDING_EXACT_LOG_EXTRACTION\"}",
@@ -806,18 +861,18 @@
       "status": "PENDING_DISPATCH"
     },
     "product_work_admission_current": {
+      "failure": "extra/divergent canonical file on Work branch: design/pages/account_privacy/Login/structured_candidate/component_mapping_v1.json",
       "main_sha": "b080bb0ffb4ebced18593c08709657fabb53a19e",
       "mode": "PRODUCT_WORK",
-      "run_id": 40829566256,
-      "source_sha": "6933f459d2223823a25edcd1d4598ffde3061267",
-      "state_branch_head_sha": "824ca674f19592a3338fc127a16c8856cd82c37a",
       "required_gates": {
         "CONTROL_PLANE_SYNC": "FAIL",
         "PROJECT_STATE": "PASS",
         "WORK_STATE": "PASS"
       },
-      "status": "FAIL",
-      "failure": "extra/divergent canonical file on Work branch: design/pages/account_privacy/Login/structured_candidate/component_mapping_v1.json"
+      "run_id": 40829566256,
+      "source_sha": "6933f459d2223823a25edcd1d4598ffde3061267",
+      "state_branch_head_sha": "824ca674f19592a3338fc127a16c8856cd82c37a",
+      "status": "FAIL"
     },
     "product_work_admission_historical_a5d_fail": "{\"run_id\":40818042539,\"mode\":\"PRODUCT_WORK\",\"source_sha\":\"a5d401b60b97f3c539654653552f1ba93e7d5115\",\"main_sha\":\"0c7f06ef672ce89285d8b7d9b3646a33439e8712\",\"status\":\"FAIL\",\"CONTROL_PLANE_SYNC\":\"FAIL\",\"PROJECT_STATE\":\"NOT_RUN\",\"WORK_STATE\":\"NOT_RUN\",\"note\":\"Historical Admission failure due stale Main/control-plane snapshot; do not reuse for ad460.\"}",
     "product_work_admission_pending": "{\"source_sha\":\"6933f459d2223823a25edcd1d4598ffde3061267\",\"main_sha\":\"b080bb0ffb4ebced18593c08709657fabb53a19e\",\"required_gates\":[\"CONTROL_PLANE_SYNC\",\"PROJECT_STATE\",\"WORK_STATE\"],\"mode\":\"PRODUCT_WORK\"}",
@@ -849,63 +904,21 @@
       "user_visual_acceptance": "PENDING"
     },
     "w6_technical_dependency": {
-      "status": "BLOCKED",
-      "reason": "PR234 W4/W5/W2/isolated preview and exact Product Work Admission have not passed on current candidate. PR239 already based on Main; preserve Draft and do not claim visual acceptance."
+      "reason": "PR234 W4/W5/W2/isolated preview and exact Product Work Admission have not passed on current candidate. PR239 already based on Main; preserve Draft and do not claim visual acceptance.",
+      "status": "BLOCKED"
     },
-    "candidate_6933_exact_evidence": {
+    "failure_gate_guard_admission": {
       "source_sha": "6933f459d2223823a25edcd1d4598ffde3061267",
-      "main_sha": "b080bb0ffb4ebced18593c08709657fabb53a19e",
-      "w1": {
-        "run_id": 40828169507,
-        "status": "PASS"
+      "check": {
+        "decision": "ALLOW_FIRST_ATTEMPT",
+        "failed_attempts": 0
       },
-      "governance": {
-        "run_id": 40828169495,
-        "status": "PASS"
+      "record": {
+        "decision": "LOCALIZE_AND_REPRODUCE",
+        "failed_attempts": 1,
+        "failure_id": "cebf6c13d5dc6fc4c1f8"
       },
-      "pr_event_admission": {
-        "run_id": 40828169471,
-        "status": "PASS_NOT_PRODUCT_WORK"
-      },
-      "w4": {
-        "run_id": 40828169489,
-        "status": "FAIL",
-        "login_evidence": "NOT_RUN_UPSTREAM_FAILURE"
-      },
-      "w5": {
-        "run_id": 40828169461,
-        "status": "FAIL",
-        "stage": "W2_RESOURCE_BINDING_SCAN",
-        "evidence": "SOURCE_AUTHORITY_SHA_MISMATCH"
-      },
-      "pages": {
-        "run_id": 40828169492,
-        "status": "FAIL",
-        "preview": "NOT_DEPLOYED",
-        "binding_errors": 3,
-        "workflow_sha_expected": "51f8d59ab19dd2a974381991038a2f746a4b30ab73422b1894d2f01df16f7200",
-        "workflow_sha_actual": "e1d7c6555b83570e92769244b83c5024113c683cc1db5f51e99d0f7ac8e8871c"
-      },
-      "nh01_api28": {
-        "run_id": 40828169459,
-        "status": "FAIL_PRECHECK",
-        "native_runtime": "NOT_VERIFIED"
-      }
-    },
-    "admission_failure_6933": {
-      "mode": "PRODUCT_WORK",
-      "run_id": 40829566256,
-      "source_sha": "6933f459d2223823a25edcd1d4598ffde3061267",
-      "main_sha": "b080bb0ffb4ebced18593c08709657fabb53a19e",
-      "state_branch_head_sha": "824ca674f19592a3338fc127a16c8856cd82c37a",
-      "status": "FAIL",
-      "gates": {
-        "CONTROL_PLANE_SYNC": "FAIL",
-        "PROJECT_STATE": "PASS",
-        "WORK_STATE": "PASS"
-      },
-      "exact_error": "extra/divergent canonical file on Work branch: design/pages/account_privacy/Login/structured_candidate/component_mapping_v1.json",
-      "source": "https://github.com/pan277942135/Yujian_App/actions/runs/40829566256"
+      "note": "Bounded repair allowed for distinct Login authority path sync failure; gate is not a PASS."
     }
   },
   "execution_v2": {
@@ -1018,6 +1031,19 @@
         ],
         "gate_id": "G-PAGE-FREEZE-PIPELINE-W4-TEST-EVIDENCE",
         "symptom_key": "W4_STALE_WORKSPACE_FIXTURE_EXPECTED_RESULT_INVERTED",
+        "task_id": "YUJIAN_PAGE_FREEZE_PIPELINE_W5_EMPTY_HOME_PILOT_V1"
+      },
+      "cebf6c13d5dc6fc4c1f8": {
+        "closed": false,
+        "failures": [
+          {
+            "evidence": "PRODUCT_WORK Admission run 40829566256 on isolated state branch work-state/w5-empty-home-pilot-v1 at source 6933f459d2223823a25edcd1d4598ffde3061267 returned CONTROL_PLANE_SYNC=FAIL with exact error extra/divergent canonical file design/pages/account_privacy/Login/structured_candidate/component_mapping_v1.json; PROJECT_STATE=PASS; WORK_STATE=PASS.",
+            "hypothesis": "The PR234 tree carries the PR239 Login candidate mapping inside the canonical design/pages authority root. Keep the existing commit history but restore ownership by reverting the duplicated Login integration from PR234, since the W6 candidate already exists on PR239.",
+            "source_sha": "6933f459d2223823a25edcd1d4598ffde3061267"
+          }
+        ],
+        "gate_id": "G-CONTROL-PLANE-PRODUCT-WORK-ADMISSION",
+        "symptom_key": "W6_LOGIN_CANDIDATE_AUTHORITY_PATH_IN_PR234",
         "task_id": "YUJIAN_PAGE_FREEZE_PIPELINE_W5_EMPTY_HOME_PILOT_V1"
       },
       "cf2a8acae54fa24172a7": {

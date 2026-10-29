@@ -66,3 +66,5 @@
 
 - Exact Actions run: https://github.com/pan277942135/Yujian_App/actions/runs/40829566256. Mode `PRODUCT_WORK`, source SHA `6933f459d2223823a25edcd1d4598ffde3061267`. `CONTROL_PLANE_SYNC=FAIL`; `PROJECT_STATE=PASS`; `WORK_STATE=PASS`.
 - Exact failure: `extra/divergent canonical file on Work branch: design/pages/account_privacy/Login/structured_candidate/component_mapping_v1.json`. The Login renderer/mapping change is already present in PR #239; PR #234 must not own this canonical page authority. Preserve the commit history and retain Login in PR #239.
+
+- Bounded failure guard for the new admission-scope symptom on `6933f459d2223823a25edcd1d4598ffde3061267`: check `ALLOW_FIRST_ATTEMPT`; record `LOCALIZE_AND_REPRODUCE`, failure ID `cebf6c13d5dc6fc4c1f8`. This is a repair allowance only, not a PASS. Checkpoint `2026-10-29T06:35:39Z`.
