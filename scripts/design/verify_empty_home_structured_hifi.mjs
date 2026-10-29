@@ -572,6 +572,11 @@ async function main() {
           authority_status:"CANDIDATE_RENDER_RULE; typography token is shared, exact prompt geometry remains subject to visual review"};
         const iconResource=node=>byId[node]?{asset_id:byId[node].resource_ref?.asset_id||document.querySelector(`#eh-${CSS.escape(node)}`)?.dataset.assetId||null,
           sha256:byId[node].resource_sha256||null,lifecycle:byId[node].resource_lifecycle,publication_permission:byId[node].publication_permission}:null;
+        const inspector=document.querySelector("[data-workspace-inspector]");
+        const inspectorData=window.PageWorkspaceAdapters.getInspector();
+        const inspectorField=label=>inspector?.querySelector(`[data-inspector-field="${CSS.escape(label)}"] dd`)?.textContent||null;
+        const inspectorEvidence={node_id:inspectorData.node_id,bounds:inspectorData.bounds,typography:inspectorData.typography,
+          rendered_bounds:inspectorField("实际 DOM 边界"),rendered_typography:inspectorField("字体 / 行高")};
         return {viewport:metrics.viewport,font_scale:metrics.font_scale,safe_area_preview:metrics.safe_insets_preview||null,scene_transform:metrics.scene_transform,profile_width_class:board.dataset.profileWidthClass,
           root_size:{width:root.getBoundingClientRect().width,height:root.getBoundingClientRect().height},overflow,ui_bounds:ui,
           fishing:{rod:rod,line,bobber,contact,ripple,reflection,line_path_start:{x:lineStart?.x,y:lineStart?.y},line_path_end:{x:lineEnd?.x,y:lineEnd?.y},composition_outside_viewport:fishingOutside,line_end_contact_gap:lineEndContactGap,
@@ -581,7 +586,7 @@ async function main() {
             chevron_resource:iconResource("ChevronRight"),gallery_resource:iconResource("GalleryIcon")},
           hero:byId.HeroCopy?.bounds,prompt:byId.CapturePrompt?.bounds,prompt_sizing:promptSizing,camera:byId.PrimaryCaptureButton?.bounds,album:byId.AlbumAction?.bounds,
           albumTypography:{font_size_css_px:albumStyle?parseFloat(albumStyle.fontSize):null,line_height_css_px:albumStyle?parseFloat(albumStyle.lineHeight):null,font_weight:albumStyle?.fontWeight||null},
-          deviations:Object.fromEntries(Object.entries(byId).map(([key,row])=>[key,row.deviation])),inspectorNode:document.querySelector("[data-workspace-inspector]").dataset.selectedNodeId,
+          deviations:Object.fromEntries(Object.entries(byId).map(([key,row])=>[key,row.deviation])),inspectorNode:inspector?.dataset.selectedNodeId,inspector:inspectorEvidence,
           promptTypography:byId.CapturePrompt?.typography,sourceSha:root.dataset.sourceSha,unit:byId.FishingRod?.bounds.unit,
           node_bounds:rows, cameraTouch:{width:byId.PrimaryCaptureButton?.bounds.width,height:byId.PrimaryCaptureButton?.bounds.height},
           cameraVisualAsset:(()=>{const r=document.querySelector("#eh-PrimaryCaptureButton img")?.getBoundingClientRect();return r?{x:r.x,y:r.y,width:r.width,height:r.height,ratio:r.width/(byId.PrimaryCaptureButton?.bounds.width||1)}:null})(),
@@ -593,7 +598,16 @@ async function main() {
       Object.assign(activeMatrixRow,caseEvidence);
       assert(caseEvidence.overflow.outside_viewport.length===0&&caseEvidence.overflow.text_overflow.length===0,`responsive UI overflow at ${width}x${height} @${fontScale}: ${JSON.stringify(caseEvidence.overflow)}`);
       assert(caseEvidence.unit==="css_px","DOM measurements must be reported as CSS px");
-      assert(caseEvidence.inspectorNode==="HeroCopy","viewport changes must retain a measurable current selection");
+      assert(caseEvidence.inspectorNode==="HeroCopy"&&caseEvidence.inspector.node_id===caseEvidence.inspectorNode,
+        "viewport changes must retain the HeroCopy selection in both the tree and live Inspector adapter");
+      const inspectorMeasured=caseEvidence.node_bounds.find(row=>row.node_id===caseEvidence.inspector.node_id)?.bounds;
+      const inspectorKeys=["x","y","width","height"];
+      assert(inspectorMeasured&&inspectorKeys.every(key=>Math.abs(caseEvidence.inspector.bounds?.[key]-inspectorMeasured[key])<0.05),
+        `Inspector API bounds must equal the selected element DOM bounds at ${width}x${height} @${fontScale}`);
+      const inspectorBoundsLabel=inspectorMeasured&&`${inspectorMeasured.x.toFixed(1)}, ${inspectorMeasured.y.toFixed(1)} · ${inspectorMeasured.width.toFixed(1)} × ${inspectorMeasured.height.toFixed(1)} CSS px`;
+      assert(caseEvidence.inspector.rendered_bounds===inspectorBoundsLabel&&
+        caseEvidence.inspector.rendered_typography===`${caseEvidence.inspector.typography.font_size} / ${caseEvidence.inspector.typography.line_height}`,
+        `Rendered Inspector values must match its API and actual DOM measurement at ${width}x${height} @${fontScale}`);
       assert(caseEvidence.fishing.rod&&caseEvidence.fishing.line&&caseEvidence.fishing.bobber&&caseEvidence.fishing.contact&&caseEvidence.fishing.ripple,"fishing composition must map to separate measured DOM nodes");
       assert(caseEvidence.fishing.composition_outside_viewport.length===0,`fishing composition clipped at ${width}x${height}: ${JSON.stringify(caseEvidence.fishing.composition_outside_viewport)}`);
       assert(caseEvidence.fishing.line_path_start&&Math.abs(caseEvidence.fishing.line_path_start.x-(caseEvidence.fishing.rod.x+337*caseEvidence.scene_transform.scale))<1.5,"measured SVG path start must align with the registered rod-tip point");
