@@ -111,6 +111,10 @@ async function main() {
           (!report.screenshot_sha256 || !report.dom_sha256 || !report.failure_reason)) {
         throw new Error(`${fixture}: failure report omitted original reason or browser evidence: ${JSON.stringify(report)}`);
       }
+      if (fixture === "page-error" &&
+          (!report.failure_reason.includes("fixture page error") || !report.console_errors.includes("fixture page error"))) {
+        throw new Error(`page-error: original browser failure was not propagated: ${JSON.stringify(report)}`);
+      }
       if (fixture === "hidden-old-workspace") {
         if (report.workspace_selection?.matching_visible_count !== 1 ||
             report.workspace_selection?.all_workspace_candidates?.length !== 2 ||
