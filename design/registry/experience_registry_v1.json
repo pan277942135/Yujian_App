@@ -828,7 +828,7 @@
           "authority": "design/pages/recognition/design/reference_manifest.json"
         }
       },
-      "note": "RECOGNITION PROCESSING V1.2 — DESIGN FROZEN。三状态 State Timeline、Visual Keyframe Set、AI Edge Field / Layer Ownership、Motion V1.2、Degradation & Accessibility、Haptic NONE、Sound NONE 与 Runtime Evidence Contract 均已冻结；Runtime / Evidence 继续独立收口。 首次拍照引导 P01/P02/P03 原始 PNG 已按批准 SHA/尺寸/字节数原字节导入；Design Manager 视觉权威与 Android Compose Runtime 分别验收，Runtime 独立照片资产仍按独立来源状态管理。 Design Manager 00 overview and 08 boundary gate expose the real 2026-10-16 authority inventory; missing binaries remain BLOCKED_INTEGRITY/MISSING, and Runtime remains independently NOT_RUN.",
+      "note": "RECOGNITION PROCESSING V1.2 — DESIGN FROZEN。三状态 State Timeline、Visual Keyframe Set、AI Edge Field / Layer Ownership、Motion V1.2、Degradation & Accessibility、Haptic NONE、Sound NONE 与 Runtime Evidence Contract 均已冻结；Runtime / Evidence 继续独立收口。 首次拍照引导 P01/P02/P03 原始 PNG 已按批准 SHA/尺寸/字节数原字节导入；Design Manager 视觉权威与 Android Compose Runtime 分别验收，Runtime 独立照片资产仍按独立来源状态管理。 Design Manager 00 overview and 08 boundary gate expose the real 2026-10-16 authority inventory; missing binaries remain BLOCKED_INTEGRITY/MISSING, and Runtime remains independently NOT_RUN. 2026-10-29 新增跨页 Capture→Result 统一视觉/几何/自适应时序 SPEC_FROZEN；旧 2800/850 静态采样保持历史参照，不得当本旅程的强制 Processing 跳转，Android Runtime/视频待验收。",
       "display_name": "识别过程",
       "design_versions": [
         {
@@ -4106,6 +4106,44 @@
               "route": "#page/recognition_result_v1/hifi/motion_continuation"
             }
           ]
+        },
+        {
+          "id": "capture_to_result_visual_flow_v1",
+          "title": "16 · 拍照/选图→识别→结果 · 全链路合同 V1",
+          "status": "SPEC_FROZEN",
+          "render_mode": "authority_index",
+          "authority": "design/pages/recognition/journey/Capture_To_Result_Visual_Flow_Contract_V1.md",
+          "machine_authority": "design/pages/recognition/journey/Capture_To_Result_Visual_Flow_Contract_V1.json",
+          "acceptance_matrix": "design/pages/recognition/journey/Capture_To_Result_Acceptance_Matrix_V1.md",
+          "contract_links": [
+            {
+              "label": "完整交互/视觉冻结合同 V1",
+              "path": "design/pages/recognition/journey/Capture_To_Result_Visual_Flow_Contract_V1.md"
+            },
+            {
+              "label": "机器规则 JSON",
+              "path": "design/pages/recognition/journey/Capture_To_Result_Visual_Flow_Contract_V1.json"
+            },
+            {
+              "label": "视频、几何与异常验收矩阵",
+              "path": "design/pages/recognition/journey/Capture_To_Result_Acceptance_Matrix_V1.md"
+            }
+          ],
+          "summary": "SPEC_FROZEN：现有首页→相机/相册→照片承接→自适应 SWOS→RR09 的用户批准流转规则。竖屏 UI，横/竖/方照片适配；原图唯一绘制、无中心放大圈、无假 Mask。2800ms 是历史静态参照；850ms 为 RR09 首轮目标。Android 视频/像素未验收。",
+          "menu_points": [
+            "首页拍照按钮→真实 CameraX；系统相册不模拟快门",
+            "相机真实取景矩形或选图 88%/68% 居中承接，随后同源照片连续归位",
+            "Processing 顶部完整 Fit/Contain 原图（高 ≤52% 内容区），下方仅一个「识别中」小面板",
+            "竖屏 UI；横图、竖图、方图与 EXIF 正向化；真实照片边界驱动 SWOS",
+            "自适应视频：边缘水光→焦散→可信鱼体轮廓/高光→光场收敛",
+            "不可信/迟到 Mask：不画轮廓、不画放大圈，正常结果仍进入 RR09",
+            "结果 Hero 单张照片连续迁移，R0.5 是 200ms 照片运动的中点",
+            "设计规范已冻结；原始视觉母版不改；Android Runtime 与视频验收待执行"
+          ],
+          "design_approval_status": "SPEC_FROZEN",
+          "runtime_status": "NOT_VERIFIED",
+          "visual_video_status": "PENDING",
+          "route": "#page/recognition_flow_v1_2/hifi/capture_to_result_visual_flow_v1"
         }
       ],
       "navigation_mode": "submenu_direct",
