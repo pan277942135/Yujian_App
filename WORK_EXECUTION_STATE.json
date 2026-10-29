@@ -3,16 +3,15 @@
   "base_branch": "main",
   "base_sha": "b080bb0ffb4ebced18593c08709657fabb53a19e",
   "blockers": [
-    "PRODUCT_WORK Admission is pending for exact PR #234 candidate 6933f459d2223823a25edcd1d4598ffde3061267; prior Product Work Admission run 40827766107 is historical for source 7de2ebcaf3e327ce9599d73261ec4abf66afd870.",
     "Exact SHA 6933f459d2223823a25edcd1d4598ffde3061267: Pages run 40828169492 and W5 run 40828169461 fail because the three page resource bindings still pin the former Pages workflow SHA 51f8d59ab19dd2a974381991038a2f746a4b30ab73422b1894d2f01df16f7200 while candidate workflow SHA is e1d7c6555b83570e92769244b83c5024113c683cc1db5f51e99d0f7ac8e8871c; W2 scan reports SOURCE_AUTHORITY_SHA_MISMATCH.",
     "W4 run 40828169489 failed before producing Login exact-SHA evidence; Login matrix status and structural evidence are NOT_RUN for this SHA.",
     "NH01 Android workflow 40828169459 failed its source/resource preflight; it did not establish native runtime acceptance. NH01, Effect 01, and AI Studio perimeter remain NOT_VERIFIED.",
-    "PR #239 remains Draft on current Main but the W6 technical dependency is blocked until exact current PR #234 Product Work Admission, W4/W5/W2 and isolated preview pass.",
     "Approved standalone NH01 Hero/Peek source images remain ASSET_SOURCE_REQUIRED; user visual acceptance remains pending.",
-    "Main Pages run 40825171321 deployed exact Main SHA b080bb0ffb4ebced18593c08709657fabb53a19e; production root-manifest hash extraction remains pending."
+    "Main Pages run 40825171321 deployed exact Main SHA b080bb0ffb4ebced18593c08709657fabb53a19e; production root-manifest hash extraction remains pending.",
+    "PRODUCT_WORK Admission run 40829566256 for source 6933f459d2223823a25edcd1d4598ffde3061267 failed CONTROL_PLANE_SYNC: extra/divergent canonical file design/pages/account_privacy/Login/structured_candidate/component_mapping_v1.json. PROJECT_STATE and WORK_STATE passed. Resolve the PR234/PR239 ownership overlap without rewriting history; then update state to the resulting exact SHA and re-admit."
   ],
   "branch": "work-state/w5-empty-home-pilot-v1",
-  "checkpoint_updated_at": "2026-10-29T06:24:43Z",
+  "checkpoint_updated_at": "2026-10-29T06:34:44Z",
   "control_plane_revision": "b080bb0ffb4ebced18593c08709657fabb53a19e",
   "dependencies": [
     "YUJIAN_PAGE_FREEZE_PIPELINE_W3_DESIGN_MANAGER_ADAPTER_V1",
@@ -108,7 +107,7 @@
         "W2": "FAIL_RUN_40828169492_THREE_BINDING_SHA_MISMATCH",
         "DESIGN_GOVERNANCE": "PASS_RUN_40828169495",
         "PR_EVENT_ADMISSION": "PASS_NOT_PRODUCT_WORK_RUN_40828169471",
-        "PRODUCT_WORK_ADMISSION": "PENDING_DISPATCH_EXACT_SHA",
+        "PRODUCT_WORK_ADMISSION": "FAIL_CONTROL_PLANE_SYNC_RUN_40829566256",
         "ISOLATED_PREVIEW": "BLOCKED_NOT_DEPLOYED_RUN_40828169492",
         "PRODUCTION_PAGES": "PASS_BUILD_DEPLOY_LIVE_BUILD_JSON_SHA_b080bb0ffb4ebced18593c08709657fabb53a19e_RUN_40825171321_ROOT_MANIFEST_HASH_PENDING",
         "NH01_NATIVE_RUNTIME": "NOT_VERIFIED_PRECHECK_FAIL_RUN_40828169459",
@@ -119,7 +118,7 @@
         "USER_VISUAL_ACCEPTANCE": "PENDING"
       },
       "main_sha": "b080bb0ffb4ebced18593c08709657fabb53a19e",
-      "next_action": "Product Work Admission on 6933f459d2223823a25edcd1d4598ffde3061267; apply scoped workflow SHA integrity synchronization after failure-gate check, then rerun affected gates.",
+      "next_action": "Admission run 40829566256 failed CONTROL_PLANE_SYNC because PR234 contains the Login candidate mapping under canonical design/pages, even though W6 Login is owned by PR239. Keep the Login commit in history, align its product tree to PR239 ownership (without history rewrite), update source_sha to that new exact PR234 candidate, and rerun PRODUCT_WORK Admission before further implementation.",
       "pr234": {
         "base_sha": "b080bb0ffb4ebced18593c08709657fabb53a19e",
         "head_sha": "6933f459d2223823a25edcd1d4598ffde3061267",
@@ -148,10 +147,10 @@
         "pr239_w6_historical": 40822276633
       },
       "source_sha": "6933f459d2223823a25edcd1d4598ffde3061267",
-      "state_branch_head_before_checkpoint": "45367f0e2c309ee898e95c8b2b663215a442d221",
+      "state_branch_head_before_checkpoint": "824ca674f19592a3338fc127a16c8856cd82c37a",
       "supplemental_task_id": "YUJIAN_NH01_STRUCTURED_HIFI_MULTI_SCREEN_RESPONSIVE_CLOSURE_V1",
       "task_id": "YUJIAN_W4_W5_MAIN_PAGES_W6_ANDROID_RUNTIME_CLOSURE_V1",
-      "updated_at": "2026-10-29T06:24:43Z"
+      "updated_at": "2026-10-29T06:34:44Z"
     },
     "current_isolated_preview": "{\"source_sha\":\"6933f459d2223823a25edcd1d4598ffde3061267\",\"run_id\":40828169492,\"status\":\"BLOCKED_NOT_DEPLOYED\",\"url\":\"https://pan277942135.github.io/Yujian_App/previews/pr-234/\",\"production_deploy\":\"SKIPPED_EXPECTED\",\"reason\":\"Pages W2 source authority SHA mismatch\"}",
     "current_main_pages": "{\"source_sha\":\"b080bb0ffb4ebced18593c08709657fabb53a19e\",\"status\":\"PASS_BUILD_DEPLOY_LIVE_SHA_ROOT_REPORT_PENDING\",\"run_id\":40825171321,\"build\":\"PASS\",\"deploy\":\"PASS\",\"live_build_json_sha\":\"b080bb0ffb4ebced18593c08709657fabb53a19e\",\"root_manifest_sha256\":\"PENDING_EXACT_LOG_EXTRACTION\"}",
@@ -377,7 +376,7 @@
       "source_sha": "bb838fa69acc6c249cad6f0a06e0ed0f0ce52c6c",
       "status": "IN_PROGRESS_EXACT_SHA"
     },
-    "latest_candidate_gates": "{\"source_sha\":\"6933f459d2223823a25edcd1d4598ffde3061267\",\"main_sha\":\"b080bb0ffb4ebced18593c08709657fabb53a19e\",\"runs\":{\"w1\":{\"run_id\":40828169507,\"status\":\"PASS\"},\"governance\":{\"run_id\":40828169495,\"status\":\"PASS\"},\"pr_event_admission\":{\"run_id\":40828169471,\"status\":\"PASS_NOT_PRODUCT_WORK\"},\"w4\":{\"run_id\":40828169489,\"status\":\"FAIL\",\"reason\":\"Login exact-SHA evidence missing; source bundle/W2 blocker\"},\"w5\":{\"run_id\":40828169461,\"status\":\"FAIL\",\"reason\":\"W2 source authority SHA mismatch\"},\"pages_w2\":{\"run_id\":40828169492,\"status\":\"FAIL\",\"reason\":\"three page binding workflow SHA mismatches; preview not deployed\"},\"nh01_api28\":{\"run_id\":40828169459,\"status\":\"FAIL_PRECHECK\",\"runtime\":\"NOT_VERIFIED\"}},\"product_work_admission\":{\"status\":\"PENDING_DISPATCH\",\"mode\":\"PRODUCT_WORK\"},\"isolated_preview\":{\"status\":\"BLOCKED_NOT_DEPLOYED\",\"url\":\"https://pan277942135.github.io/Yujian_App/previews/pr-234/\"}}",
+    "latest_candidate_gates": "{\"source_sha\":\"6933f459d2223823a25edcd1d4598ffde3061267\",\"main_sha\":\"b080bb0ffb4ebced18593c08709657fabb53a19e\",\"runs\":{\"w1\":{\"run_id\":40828169507,\"status\":\"PASS\"},\"governance\":{\"run_id\":40828169495,\"status\":\"PASS\"},\"pr_event_admission\":{\"run_id\":40828169471,\"status\":\"PASS_NOT_PRODUCT_WORK\"},\"w4\":{\"run_id\":40828169489,\"status\":\"FAIL\",\"reason\":\"Login exact-SHA evidence missing; source bundle/W2 blocker\"},\"w5\":{\"run_id\":40828169461,\"status\":\"FAIL\",\"reason\":\"W2 source authority SHA mismatch\"},\"pages_w2\":{\"run_id\":40828169492,\"status\":\"FAIL\",\"reason\":\"three page binding workflow SHA mismatches; preview not deployed\"},\"nh01_api28\":{\"run_id\":40828169459,\"status\":\"FAIL_PRECHECK\",\"runtime\":\"NOT_VERIFIED\"}},\"product_work_admission\":{\"run_id\":40829566256,\"mode\":\"PRODUCT_WORK\",\"status\":\"FAIL\",\"CONTROL_PLANE_SYNC\":\"FAIL\",\"PROJECT_STATE\":\"PASS\",\"WORK_STATE\":\"PASS\"},\"isolated_preview\":{\"status\":\"BLOCKED_NOT_DEPLOYED\",\"url\":\"https://pan277942135.github.io/Yujian_App/previews/pr-234/\"}}",
     "latest_main_pages": "{\"source_sha\":\"b080bb0ffb4ebced18593c08709657fabb53a19e\",\"status\":\"PASS_BUILD_DEPLOY_LIVE_SHA_ROOT_REPORT_PENDING\",\"run_id\":40825171321,\"build\":\"PASS\",\"deploy\":\"PASS\",\"live_build_json_sha\":\"b080bb0ffb4ebced18593c08709657fabb53a19e\",\"root_manifest_sha256\":\"PENDING_EXACT_LOG_EXTRACTION\"}",
     "live_audit": {
       "main_sha": "5e482e8644828a880fbc3c0a273565765977bfaf",
@@ -809,15 +808,16 @@
     "product_work_admission_current": {
       "main_sha": "b080bb0ffb4ebced18593c08709657fabb53a19e",
       "mode": "PRODUCT_WORK",
-      "prior_run_id": 40827766107,
-      "prior_source_sha": "7de2ebcaf3e327ce9599d73261ec4abf66afd870",
-      "required_gates": {
-        "CONTROL_PLANE_SYNC": "PENDING",
-        "PROJECT_STATE": "PENDING",
-        "WORK_STATE": "PENDING"
-      },
+      "run_id": 40829566256,
       "source_sha": "6933f459d2223823a25edcd1d4598ffde3061267",
-      "status": "PENDING_DISPATCH"
+      "state_branch_head_sha": "824ca674f19592a3338fc127a16c8856cd82c37a",
+      "required_gates": {
+        "CONTROL_PLANE_SYNC": "FAIL",
+        "PROJECT_STATE": "PASS",
+        "WORK_STATE": "PASS"
+      },
+      "status": "FAIL",
+      "failure": "extra/divergent canonical file on Work branch: design/pages/account_privacy/Login/structured_candidate/component_mapping_v1.json"
     },
     "product_work_admission_historical_a5d_fail": "{\"run_id\":40818042539,\"mode\":\"PRODUCT_WORK\",\"source_sha\":\"a5d401b60b97f3c539654653552f1ba93e7d5115\",\"main_sha\":\"0c7f06ef672ce89285d8b7d9b3646a33439e8712\",\"status\":\"FAIL\",\"CONTROL_PLANE_SYNC\":\"FAIL\",\"PROJECT_STATE\":\"NOT_RUN\",\"WORK_STATE\":\"NOT_RUN\",\"note\":\"Historical Admission failure due stale Main/control-plane snapshot; do not reuse for ad460.\"}",
     "product_work_admission_pending": "{\"source_sha\":\"6933f459d2223823a25edcd1d4598ffde3061267\",\"main_sha\":\"b080bb0ffb4ebced18593c08709657fabb53a19e\",\"required_gates\":[\"CONTROL_PLANE_SYNC\",\"PROJECT_STATE\",\"WORK_STATE\"],\"mode\":\"PRODUCT_WORK\"}",
@@ -891,6 +891,21 @@
         "status": "FAIL_PRECHECK",
         "native_runtime": "NOT_VERIFIED"
       }
+    },
+    "admission_failure_6933": {
+      "mode": "PRODUCT_WORK",
+      "run_id": 40829566256,
+      "source_sha": "6933f459d2223823a25edcd1d4598ffde3061267",
+      "main_sha": "b080bb0ffb4ebced18593c08709657fabb53a19e",
+      "state_branch_head_sha": "824ca674f19592a3338fc127a16c8856cd82c37a",
+      "status": "FAIL",
+      "gates": {
+        "CONTROL_PLANE_SYNC": "FAIL",
+        "PROJECT_STATE": "PASS",
+        "WORK_STATE": "PASS"
+      },
+      "exact_error": "extra/divergent canonical file on Work branch: design/pages/account_privacy/Login/structured_candidate/component_mapping_v1.json",
+      "source": "https://github.com/pan277942135/Yujian_App/actions/runs/40829566256"
     }
   },
   "execution_v2": {
@@ -1034,7 +1049,7 @@
     },
     "schema_version": "1.0"
   },
-  "next_action": "Run PRODUCT_WORK Admission for exact candidate 6933f459d2223823a25edcd1d4598ffde3061267. Then update the pinned workflow SHA in the existing page resource binding records as an integrity-only sync, run the failure-gate check/record for the distinct W2 source-authority mismatch, commit only that scoped repair to PR #234, and rerun exact-SHA gates.",
+  "next_action": "Admission run 40829566256 failed CONTROL_PLANE_SYNC because PR234 contains the Login candidate mapping under canonical design/pages, even though W6 Login is owned by PR239. Keep the Login commit in history, align its product tree to PR239 ownership (without history rewrite), update source_sha to that new exact PR234 candidate, and rerun PRODUCT_WORK Admission before further implementation.",
   "phase": "P3",
   "related_pr": 234,
   "repository": "pan277942135/Yujian_App",

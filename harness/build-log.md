@@ -61,3 +61,8 @@
 - W1 `40828169507` and Design Governance `40828169495` passed; PR-event Admission `40828169471` passed but is not Product Work Admission.
 - W4 `40828169489` failed before Login exact-SHA evidence generation. W5 `40828169461` and Pages/W2 `40828169492` failed due three `SOURCE_AUTHORITY_SHA_MISMATCH` errors: pinned workflow SHA `51f8d59ab19dd2a974381991038a2f746a4b30ab73422b1894d2f01df16f7200`, candidate workflow SHA `e1d7c6555b83570e92769244b83c5024113c683cc1db5f51e99d0f7ac8e8871c`. No isolated preview deployed.
 - NH01 Android run `40828169459` failed source/resource preflight; native runtime remains `NOT_VERIFIED`. PR #239 remains blocked and Draft. Product Work Admission for `6933f459d2223823a25edcd1d4598ffde3061267` is pending. User visual acceptance is pending.
+
+## 2026-10-29T06:34:44Z — Product Work Admission failure on 6933f459d2223823a25edcd1d4598ffde3061267
+
+- Exact Actions run: https://github.com/pan277942135/Yujian_App/actions/runs/40829566256. Mode `PRODUCT_WORK`, source SHA `6933f459d2223823a25edcd1d4598ffde3061267`. `CONTROL_PLANE_SYNC=FAIL`; `PROJECT_STATE=PASS`; `WORK_STATE=PASS`.
+- Exact failure: `extra/divergent canonical file on Work branch: design/pages/account_privacy/Login/structured_candidate/component_mapping_v1.json`. The Login renderer/mapping change is already present in PR #239; PR #234 must not own this canonical page authority. Preserve the commit history and retain Login in PR #239.

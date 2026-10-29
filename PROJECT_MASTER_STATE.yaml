@@ -15,7 +15,7 @@ state_control:
   current_head: 6933f459d2223823a25edcd1d4598ffde3061267
   current_main_head_sha: b080bb0ffb4ebced18593c08709657fabb53a19e
   state_status: IN_PROGRESS
-  updated_at: '2026-10-29T06:24:43Z'
+  updated_at: '2026-10-29T06:34:44Z'
 source_of_truth:
   current_work_state: WORK_EXECUTION_STATE.json
   canonical_control_plane: CONTROL_PLANE_REGISTRY.yaml
@@ -210,16 +210,17 @@ runtime_gates:
     note: PR239 is already based on current Main b080; no sync needed. Do not clear technical dependency until PR234
       exact Product Work Admission, W4/W5/W2 and isolated preview pass.
   product_work_admission:
-    status: PENDING_DISPATCH
+    status: FAIL
     mode: PRODUCT_WORK
     source_sha: 6933f459d2223823a25edcd1d4598ffde3061267
     main_sha: b080bb0ffb4ebced18593c08709657fabb53a19e
     required_gates:
-      CONTROL_PLANE_SYNC: PENDING
-      PROJECT_STATE: PENDING
-      WORK_STATE: PENDING
-    note: Prior run 40827766107 is historical for 7de2. Dispatch explicitly on isolated state branch after committing
-      this checkpoint.
+      CONTROL_PLANE_SYNC: FAIL
+      PROJECT_STATE: PASS
+      WORK_STATE: PASS
+    note: Exact failure is an extra/divergent Login component_mapping_v1.json under canonical design/pages. Keep
+      commit history; isolate Login ownership on PR239 before re-admission.
+    run_id: 40829566256
   latest_main_pages:
     status: PRODUCTION_BUILD_DEPLOY_LIVE_SHA_PASS_ROOT_MANIFEST_REPORT_PENDING
     source_sha: b080bb0ffb4ebced18593c08709657fabb53a19e
@@ -282,20 +283,21 @@ current_work:
   phase: P3
   task_id: YUJIAN_W4_W5_MAIN_PAGES_W6_ANDROID_RUNTIME_CLOSURE_V1
   status: IN_PROGRESS
-  next_action: Run PRODUCT_WORK Admission for exact candidate 6933f459d2223823a25edcd1d4598ffde3061267; after PASS,
-    check/record the distinct W2 binding SHA failure, update the three workflow checksum bindings and rerun exact-SHA
-    W4/W5/Pages/browser/runtime gates.
+  next_action: Admission run 40829566256 failed CONTROL_PLANE_SYNC because PR234 contains the Login candidate mapping
+    under canonical design/pages, even though W6 Login is owned by PR239. Keep the Login commit in history, align
+    its product tree to PR239 ownership (without history rewrite), update source_sha to that new exact PR234 candidate,
+    and rerun PRODUCT_WORK Admission before further implementation.
 blockers:
-- PRODUCT_WORK Admission pending for 6933f459d2223823a25edcd1d4598ffde3061267; prior run 40827766107 is historical
-  for 7de2ebcaf3e327ce9599d73261ec4abf66afd870.
 - W4 run 40828169489 failed before Login exact-SHA evidence was generated.
 - W5 run 40828169461 and Pages/W2 run 40828169492 failed SOURCE_AUTHORITY_SHA_MISMATCH for the three binding records
   referencing the Pages workflow; no isolated preview deployed.
 - NH01 API28 run 40828169459 failed source/resource preflight; native runtime remains NOT_VERIFIED. Effect 01 and
   AI Studio perimeter remain NOT_VERIFIED.
-- PR239 W6 technical dependency remains blocked pending PR234 exact W4/W5/W2/preview/Product Work Admission.
 - Approved standalone NH01 Hero/Peek assets remain ASSET_SOURCE_REQUIRED; user visual acceptance pending.
 - Main Pages root-manifest exact hash remains to be extracted from run 40825171321.
+- PRODUCT_WORK Admission 40829566256 at exact candidate 6933f459d2223823a25edcd1d4598ffde3061267 failed CONTROL_PLANE_SYNC
+  because design/pages/account_privacy/Login/structured_candidate/component_mapping_v1.json is branch-only; PROJECT_STATE
+  and WORK_STATE passed.
 protected_invariants:
   evidence_integrity:
   - Never promote a historical run or another SHA to PASS for the current candidate.
@@ -348,11 +350,10 @@ completion_rules:
 - User visual acceptance remains pending until product owner confirms it; frozen static assets and contracts remain
   unchanged.
 state_update:
-  updated_at: '2026-10-29T06:24:43Z'
-  reason: Exact PR234 checkpoint on candidate 6933f459d2223823a25edcd1d4598ffde3061267, based on current Main b080bb0ffb4ebced18593c08709657fabb53a19e.
-    W1/Governance/PR-event admission pass; W4 failed before Login exact evidence; W5 and Pages/W2 fail three workflow
-    hash pins; preview not deployed; NH01 API28 preflight failure means runtime not verified. Product Work Admission
-    pending.
+  updated_at: '2026-10-29T06:34:44Z'
+  reason: PRODUCT_WORK Admission exact run 40829566256 bound to PR234 source 6933f459d2223823a25edcd1d4598ffde3061267
+    failed only CONTROL_PLANE_SYNC; PROJECT_STATE and WORK_STATE passed. Login mapping is under canonical design/pages
+    but W6 ownership is PR239. Preserve commit history and restore PR234 scope before re-admission.
   protocol: harness/STATE_UPDATE_PROTOCOL.md
 agent_recovery:
   resume_order:
@@ -365,7 +366,7 @@ current_candidate_runs:
   source_sha: 6933f459d2223823a25edcd1d4598ffde3061267
   main_sha: b080bb0ffb4ebced18593c08709657fabb53a19e
   status: IN_PROGRESS_EXACT_SHA_VALIDATION
-  product_work_admission: PENDING_DISPATCH_PRODUCT_WORK_MODE
+  product_work_admission: FAIL_RUN_40829566256_CONTROL_PLANE_SYNC
   w1_run_id: 40828169507
   w4_run_id: 40828169489
   w5_run_id: 40828169461
@@ -376,7 +377,7 @@ current_candidate_runs:
   main_pages_run_id: 40825171321
   pr252_android_ci_run_id: 40826129796
   pr239_w6_run_id: 40822276633
-  checkpoint_updated_at: '2026-10-29T06:24:43Z'
+  checkpoint_updated_at: '2026-10-29T06:34:44Z'
 live_recovery_checkpoint:
   updated_at: '2026-10-29T04:26:46Z'
   current_main_sha: 0c7f06ef672ce89285d8b7d9b3646a33439e8712
@@ -413,7 +414,7 @@ live_recovery_checkpoint:
 current_execution_checkpoint:
   task_id: YUJIAN_W4_W5_MAIN_PAGES_W6_ANDROID_RUNTIME_CLOSURE_V1
   supplemental_task_id: YUJIAN_NH01_STRUCTURED_HIFI_MULTI_SCREEN_RESPONSIVE_CLOSURE_V1
-  updated_at: '2026-10-29T06:24:43Z'
+  updated_at: '2026-10-29T06:34:44Z'
   main_sha: b080bb0ffb4ebced18593c08709657fabb53a19e
   pr234:
     base_sha: b080bb0ffb4ebced18593c08709657fabb53a19e
@@ -447,7 +448,7 @@ current_execution_checkpoint:
     W2: FAIL_RUN_40828169492_SOURCE_AUTHORITY_SHA_MISMATCH
     DESIGN_GOVERNANCE: PASS_RUN_40828169495
     PR_EVENT_ADMISSION: PASS_NOT_PRODUCT_WORK_RUN_40828169471
-    PRODUCT_WORK_ADMISSION: PENDING_DISPATCH_EXACT_SHA
+    PRODUCT_WORK_ADMISSION: FAIL_CONTROL_PLANE_SYNC_RUN_40829566256
     ISOLATED_PREVIEW: BLOCKED_NOT_DEPLOYED_RUN_40828169492
     PRODUCTION_PAGES: PASS_LIVE_BUILD_JSON_SHA_b080bb0ffb4ebced18593c08709657fabb53a19e_RUN_40825171321_ROOT_HASH_PENDING
     NH01_NATIVE_RUNTIME: NOT_VERIFIED_PRECHECK_FAIL_RUN_40828169459
@@ -457,5 +458,8 @@ current_execution_checkpoint:
     NH01_RESPONSIVE_CONTRACT: SPEC_FROZEN
     STRUCTURED_WORKSPACE: BROWSER_EVIDENCE_RECORDED; W2 BLOCKS PREVIEW
     USER_VISUAL_ACCEPTANCE: PENDING
-  next_action: Run Product Work Admission for 6933f459d2223823a25edcd1d4598ffde3061267; then follow bounded repair
-    and exact-SHA reruns.
+  next_action: Admission run 40829566256 failed CONTROL_PLANE_SYNC because PR234 contains the Login candidate mapping
+    under canonical design/pages, even though W6 Login is owned by PR239. Keep the Login commit in history, align
+    its product tree to PR239 ownership (without history rewrite), update source_sha to that new exact PR234 candidate,
+    and rerun PRODUCT_WORK Admission before further implementation.
+  state_branch_head_before_checkpoint: 824ca674f19592a3338fc127a16c8856cd82c37a
