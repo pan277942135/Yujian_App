@@ -723,8 +723,6 @@ fun YujianApp() {
                                 nav.navigate("recognition_issue") { popUpTo("recognizing") { inclusive = true } }
                             }
                         },
-                        recognitionSessionId = recognitionSessionId,
-                        recognitionAttemptId = attemptId,
                     )
                 }
                 composable("recognition_issue") {

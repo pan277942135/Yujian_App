@@ -5,7 +5,6 @@ import android.graphics.RectF
 import android.graphics.Matrix
 import android.graphics.Paint as AndroidPaint
 import android.graphics.PathMeasure
-import android.graphics.RectF
 import androidx.compose.foundation.Canvas
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
