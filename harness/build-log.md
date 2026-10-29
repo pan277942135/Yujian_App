@@ -47,3 +47,11 @@
 - Per `AGENTS.md` and `harness/STATE_UPDATE_PROTOCOL.md`, live Work state was added only to root `PROJECT_MASTER_STATE.yaml`, root `WORK_EXECUTION_STATE.json`, and this log. Static Control Plane files remain unchanged; the task is already registered in Main's machine/UCR.
 
 Next action: restore Login inside the existing shared Design Manager, retain all geometry/content assertions while interpreting the declared candidate scroll rule, and rerun every formal, supplemental, negative, state, timeout, and recovery case on one exact SHA.
+
+## 2026-10-30 — PR #234 current-Main admission recovery
+
+- Current Main: bf4c5c5777bddd3c37c8b2850aaa5a5881f0d513. PR #234 prior head: ffd9cfe69ff52c776049953b730f6dabb90fe44a; the prior admission result is historical to its older Main baseline.
+- Synchronized AGENTS.md, the Structured Hi-Fi Fast Track playbook, and the asset-integrity register from current Main.
+- Preserved Login mapping blob 75c615d20be011b16e4e6843b41dabd0479a8d63 (source commit 9c47519e87260992bc768178399fc9b6651a6fc8); exact W6-A exception merged via PR #259 at bf4c5c5777bddd3c37c8b2850aaa5a5881f0d513.
+- Candidate control-plane sync source: d72adf5a02788de59125d56e760224c5efda393f. Empty Home page files remain unchanged.
+- Admission for the state checkpoint is pending; no page inspection, visual acceptance, freeze, product merge, or Android work is claimed.

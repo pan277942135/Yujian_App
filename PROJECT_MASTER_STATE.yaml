@@ -1,0 +1,127 @@
+schema_version: "1.0"
+state_id: YUJIAN_EMPTY_HOME_STRUCTURED_HIFI_TYPOGRAPHY_SCALE_PARITY_V1_2026-10-30
+project:
+  name: "渔见 AI"
+  repository: "pan277942135/Yujian_App"
+  scope: "PR #234 admission recovery followed by Empty Home typography, brand-area, HeroCopy, and bottom-action parity repair."
+  state_classification: "RECOVERY_SNAPSHOT_NOT_PRODUCT_ACCEPTANCE"
+state_control:
+  current_branch: "work/w5-empty-home-pilot-v1"
+  current_pr: 234
+  base_sha: "34f21ad01e62ec7bf11be11fee8eb5a500894333"
+  execution_baseline_sha: "d72adf5a02788de59125d56e760224c5efda393f"
+  current_head: "d72adf5a02788de59125d56e760224c5efda393f"
+  current_main_head_sha: "bf4c5c5777bddd3c37c8b2850aaa5a5881f0d513"
+  state_status: "READY_FOR_EXACT_ADMISSION"
+  updated_at: "2026-10-29T16:55:29.475Z"
+source_of_truth:
+  current_work_state: WORK_EXECUTION_STATE.json
+  canonical_control_plane: CONTROL_PLANE_REGISTRY.yaml
+  phase_task_state_machine: harness/PHASE_TASK_STATE_MACHINE.yaml
+  unified_contract_registry: harness/UNIFIED_CONTRACT_REGISTRY.yaml
+  state_update_protocol: harness/STATE_UPDATE_PROTOCOL.md
+  current_work_log: harness/build-log.md
+repositories:
+  Yujian_App:
+    branch: "work/w5-empty-home-pilot-v1"
+    execution_baseline_sha: "d72adf5a02788de59125d56e760224c5efda393f"
+    current_main_head_sha: "bf4c5c5777bddd3c37c8b2850aaa5a5881f0d513"
+    control_plane_sync:
+      status: "SYNCED_PENDING_EXACT_ADMISSION"
+      main_sync_commit: "d72adf5a02788de59125d56e760224c5efda393f"
+      synced_main_sha: "bf4c5c5777bddd3c37c8b2850aaa5a5881f0d513"
+      note: "Canonical controls and the exact W6-A mapping exception are synchronized; Admission remains pending."
+pull_requests:
+  PR234:
+    number: 234
+    branch: "work/w5-empty-home-pilot-v1"
+    base_sha: "34f21ad01e62ec7bf11be11fee8eb5a500894333"
+    status: DRAFT_OPEN_UNMERGED
+    task_id: YUJIAN_PAGE_FREEZE_PIPELINE_W5_EMPTY_HOME_PILOT_V1
+phases:
+  P0: { status: NOT_CONFIRMED }
+  P1: { status: NOT_CONFIRMED }
+  P2: { status: NOT_CONFIRMED }
+  P3: { status: IN_PROGRESS, note: "Current W5 candidate; Admission recovery is the active gate." }
+  P4: { status: NOT_CONFIRMED }
+  P5: { status: NOT_CONFIRMED }
+  P6: { status: NOT_CONFIRMED }
+  P7: { status: NOT_CONFIRMED }
+  P8: { status: NOT_CONFIRMED }
+  P9: { status: NOT_CONFIRMED }
+recognition_main_journey:
+  contract_status: FROZEN
+  route:
+    - J01
+    - J02
+    - J03
+    - J04
+    - J05
+    - J06
+    - J07
+    - J08
+    - J09
+    - J10
+    - J11
+    - J12
+    - J13
+    - J14
+    - J15
+    - J16
+    - J17
+    - J18
+    - J19
+    - J20
+  note: "This narrow design-candidate recovery does not change journey semantics."
+runtime_gates:
+  exact_head:
+    sha: "d72adf5a02788de59125d56e760224c5efda393f"
+    status: ADMISSION_PENDING
+    note: "No Empty Home page edit is authorized until exact-candidate Admission passes."
+  page_evidence:
+    previous_w5_matrix: { status: HISTORICAL_FOR_OLD_HEAD, source_sha: "ffd9cfe69ff52c776049953b730f6dabb90fe44a", run_id: 40873120653 }
+    current_typography_matrix: { status: NOT_RUN, source_sha: "d72adf5a02788de59125d56e760224c5efda393f" }
+  historical_runtime_run:
+    rule: "Historical results cannot promote current exact HEAD to PASS."
+  user_visual_acceptance: PENDING
+apk_and_evidence:
+  status: NOT_APPLICABLE_DESIGN_ONLY
+  note: "No Android or APK work is part of this task."
+current_work:
+  id: "YUJIAN_EMPTY_HOME_STRUCTURED_HIFI_TYPOGRAPHY_SCALE_PARITY_V1"
+  phase: "P3"
+  task_id: "YUJIAN_PAGE_FREEZE_PIPELINE_W5_EMPTY_HOME_PILOT_V1"
+  exact_head: "d72adf5a02788de59125d56e760224c5efda393f"
+  status: READY_FOR_ADMISSION
+  next_action: "Run exact-candidate Admission; then inspect frozen Empty Home source and real DOM."
+blockers:
+  - id: exact_candidate_admission
+    status: PENDING
+    description: "Admission must pass on the synchronized candidate before page code is inspected or changed."
+protected_invariants:
+  page_scope:
+    - "Modify Empty Home only during the typography parity repair."
+    - "Do not modify NH01 or Login page content in this repair."
+  authorities:
+    - "Use only authorized brand assets; do not synthesize text or extract/redraw the frozen image."
+    - "Keep the HeroCopy bound image and camera touch-size contract."
+  delivery:
+    - "Do not freeze or merge the product candidate before product-owner visual acceptance."
+    - "Do not start Android implementation from this candidate review."
+next_actions:
+  - id: exact_admission
+    status: READY
+    description: "Validate control-plane sync, project state, and work state on the new exact candidate SHA."
+completion_rules:
+  visual_acceptance: "Product owner reviews the exact isolated preview and records ACCEPT or required changes."
+  freeze: "No new spec freeze before product-owner acceptance."
+  android: "No Android handoff in this task."
+state_update:
+  method: "State-only checkpoints follow harness/STATE_UPDATE_PROTOCOL.md."
+  baseline_source_sha: "d72adf5a02788de59125d56e760224c5efda393f"
+agent_recovery:
+  resume_from: "Read CONTROL_PLANE_REGISTRY.yaml and both root state files, then run Admission on the exact branch SHA."
+  last_gate: "ADMISSION_PENDING"
+work_id: "YUJIAN_EMPTY_HOME_STRUCTURED_HIFI_TYPOGRAPHY_SCALE_PARITY_V1"
+task_id: YUJIAN_PAGE_FREEZE_PIPELINE_W5_EMPTY_HOME_PILOT_V1
+updated_at: "2026-10-29T16:55:29.475Z"
