@@ -102,7 +102,8 @@ Photo mode selection must not promote Mask quality. Use these trust tiers:
 |---|---|---|
 | TRUSTED_MASK | Three gold layers share the same qualified Mask; a contour-following source and spatial transfer are allowed only when source identity, mapping and anchor checks pass. | Reconstructing a contour in screen coordinates or changing the source crop independently. |
 | TRUSTED_BBOX_ONLY | If HIGH + valid species identity + source mapping are all valid, use only a subtle bounded regional glow. A spatial transfer may run only from an explicit validated source anchor; otherwise use non-spatial title resolution. | Drawing the BBox rectangle, claiming a Mask, or inventing a contour/anchor. |
-| UNTRUSTED, MISSING, STALE or transform mismatch | Keep the real photo transition if its photo geometry is valid; for an eligible HIGH result, retain RR09 timing but use a restrained non-spatial Chinese-title resolution. | Fish-specific glow, contour trace, spatial travel or a guessed source point. |
+| UNTRUSTED, MISSING or STALE fish geometry, while photo identity and photo transform remain valid | For an eligible HIGH result, retain RR09 timing but use a restrained non-spatial Chinese-title resolution. | Fish-specific glow, contour trace, spatial travel or a guessed source point. |
+| Invalid photo identity, source-to-window transform mismatch or unresolved Hero target geometry | Render the normal static Result and its correct Hero placement mode; do not start a transition retroactively. | Any shared-photo animation, spatial transfer or guessed transform. |
 
 The three optical layers are Gold Core / Soft Glow / Halo and must use the same trusted Mask and transform. The Android renderer currently hard-codes 28px / 13px / 4px contour widths and fixed alpha values; these are implementation observations, **not approved final calibration values**. Align Android values with the machine-readable SWOS/RR09 parameter contract, convert units using device density and the shared source transform, and keep candidate values marked as candidates until visual comparison is accepted.
 
@@ -122,7 +123,7 @@ The RR09 clock starts at the first actually presented Result frame. The total re
 
 Eligibility:
 
-- New RESULT_HIGH with valid species identity: run the 850ms RR09 timeline once. With trusted Mask, use contour-driven transfer; with BBox-only, use bounded regional glow and only a validated anchor; with no trusted spatial geometry, use the non-spatial title fallback on the same 380/550/680ms boundaries.
+- New RESULT_HIGH with valid species identity and valid photo geometry: run the 850ms RR09 timeline once. With trusted Mask, use contour-driven transfer; with BBox-only, use bounded regional glow and only a validated anchor; with untrusted fish geometry but valid photo transform, use the non-spatial title fallback on the same 380/550/680ms boundaries. If photo identity or the source-to-window transform itself is invalid, use static Result and do not run RR09.
 - RESULT_MEDIUM / RESULT_LOW: use the existing static Result presentation; no RR09 photo transition, gold celebration or title reveal.
 - NO_FISH / IMAGE_QUALITY: use Mode B in the existing static Result presentation; no RR09 photo transition or celebration.
 - Invalid identity, historical/reopened result, missing source identity or invalid transform: render the safe static Result. Do not invent a transition origin.
