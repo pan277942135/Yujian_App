@@ -184,3 +184,11 @@ Next action: restore Login inside the existing shared Design Manager, retain all
 - Exact current PR branch head `a03174939cb20141b0a8ecfde0fb4d33c660ed04` passed `python scripts/validate_control_plane_admission.py`: six static layers, 735 synchronized paths, one exact registered Login mapping exception, Project Master State PASS, and Work Execution State PASS.
 - Code source remains `6484d65bf69309b3b41420e6adb514fe7ca9076a`. The branch AGENTS.md SHA-256 matches live Main exactly; PR #234 remains Draft.
 - PR-triggered Pages and W5 workflows are still NOT_RUN on this head; no page visual edits or visual acceptance are claimed.
+
+
+## 2026-10-29 — PR #234 current-Main synchronization checkpoint
+
+- Live Main `0c245b86f8228107309d0135bdf819af255604be` was merged into PR #234 at candidate `2cbfcdd2fda84d9fcdd7700c1d40e1f5c24271fa`. The sole conflict was `harness/build-log.md`; both Main's Android work records and PR #234's admission history were retained. No Android source was authored in this task, and Empty Home page source was unchanged during synchronization.
+- PR #234 remains Draft/Open/Unmerged. Exact Main-sync workflows started on `2cbfcdd2fda84d9fcdd7700c1d40e1f5c24271fa`: Admission `40953507124`, W5 `40953507108`, Design Manager Pages `40953507120`, W1 `40953507145`, W4 `40953507107`, W6-A `40953507106`, Design Governance `40953507105`, and NH01 runtime `40953507095`; all were in progress at checkpoint time. These are not yet results.
+- Current work-state and project-state pointers are rebound to Main `0c245b86f8228107309d0135bdf819af255604be` and merge source `2cbfcdd2fda84d9fcdd7700c1d40e1f5c24271fa`. Exact Admission must pass again on the post-sync state checkpoint before any further Empty Home page edits. The brand authorization gap remains BLOCKED.
+- The independent shared-workbench architecture follow-up is tracked in issue #260; it remains outside PR #234.

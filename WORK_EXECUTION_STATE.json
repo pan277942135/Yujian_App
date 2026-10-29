@@ -1,14 +1,14 @@
 {
   "$schema": "./harness/WORK_EXECUTION_STATE_SCHEMA_V1.json",
   "base_branch": "main",
-  "base_sha": "34f21ad01e62ec7bf11be11fee8eb5a500894333",
+  "base_sha": "0c245b86f8228107309d0135bdf819af255604be",
   "blockers": [
-    "The branch-specific manual-dispatch workflow experiment was reverted to Main's exact pinned source; PR-event replay is required to produce the exact W5 matrix and isolated preview.",
-    "W5 4-viewport × 2-font-scale matrix and isolated Pages build/manifest verification remain pending on the current candidate.",
+    "Main 0c245b86 is merged at 2cbfcdd2; exact state-checkpoint Admission remains pending.",
+    "W5 4-viewport × 2-font-scale matrix and isolated Pages build/manifest verification must be confirmed on the post-sync candidate.",
     "Empty Home brand placement remains blocked: registered brand_title_primary is authorized only for normal_home_v1; no authorized Empty Home brand binding exists."
   ],
   "branch": "work/w5-empty-home-pilot-v1",
-  "checkpoint_updated_at": "2026-10-29T20:47:41Z",
+  "checkpoint_updated_at": "2026-10-29T20:58:14Z",
   "control_plane_revision": "0c245b86f8228107309d0135bdf819af255604be",
   "dependencies": [
     "YUJIAN_PAGE_FREEZE_PIPELINE_W3_DESIGN_MANAGER_ADAPTER_V1",
@@ -85,6 +85,13 @@
         "result": "PASS",
         "reason": "Exact current PR head passed six static layers, canonical sync (735 paths; one authorized Login mapping exception), Project Master State, and Work Execution State.",
         "recorded_at": "2026-10-29T20:47:41Z"
+      },
+      {
+        "candidate_sha": "2cbfcdd2fda84d9fcdd7700c1d40e1f5c24271fa",
+        "command": "python scripts/validate_control_plane_admission.py",
+        "reason": "Main sync merge is complete; exact state-checkpoint Admission is pending before page implementation resumes.",
+        "recorded_at": "2026-10-29T20:58:14Z",
+        "result": "IN_PROGRESS"
       }
     ],
     "admission_baseline": {
@@ -100,17 +107,18 @@
       "work_execution_state": "PASS"
     },
     "admission_recovery": {
-      "current_candidate_source_sha": "0e4d70c4f544ed4b6efc0ab6aa3cf8bf9d41aafb",
+      "current_candidate_source_sha": "2cbfcdd2fda84d9fcdd7700c1d40e1f5c24271fa",
       "failure_id": "c3dff4a0c9b987cbe7c7",
       "observed_failure_source_sha": "8b9a65bfd7b1e75679bb8a46e6acb08669270fad",
       "passed_checkpoint_sha": "6d607aa117b173c776ee607410fb66d1ec26cea7",
-      "status": "PENDING_AFTER_RESTORING_MAIN_EXACT_BINDINGS",
-      "validated_code_source_sha": "0e4d70c4f544ed4b6efc0ab6aa3cf8bf9d41aafb"
+      "status": "PENDING_POST_MAIN_SYNC_EXACT_ADMISSION",
+      "validated_code_source_sha": "2cbfcdd2fda84d9fcdd7700c1d40e1f5c24271fa",
+      "current_main_sha": "0c245b86f8228107309d0135bdf819af255604be"
     },
     "control_plane_sync_commit": "dad76a9ca737245d4076b75b86537412b0238765",
-    "current_candidate_sha": "a03174939cb20141b0a8ecfde0fb4d33c660ed04",
+    "current_candidate_sha": "2cbfcdd2fda84d9fcdd7700c1d40e1f5c24271fa",
     "current_main_sha": "0c245b86f8228107309d0135bdf819af255604be",
-    "current_state_checkpoint_sha": "6484d65bf69309b3b41420e6adb514fe7ca9076a",
+    "current_state_checkpoint_sha": "2cbfcdd2fda84d9fcdd7700c1d40e1f5c24271fa",
     "empty_home_page_changes": {
       "brand_authority": "BLOCKED_AUTHORITY_GAP",
       "camera_asset_and_touch_contract": "PRESERVED",
@@ -199,6 +207,13 @@
       "reason": "Restored Main-exact workflow and all three Main-exact page bindings; W2 authority is intact. The isolated manual branch dispatch path was removed.",
       "restored_sha256": "e1d7c6555b83570e92769244b83c5024113c683cc1db5f51e99d0f7ac8e8871c",
       "status": "RESTORED_MAIN_EXACT_SOURCE"
+    },
+    "current_synced_candidate": {
+      "candidate_sha": "2cbfcdd2fda84d9fcdd7700c1d40e1f5c24271fa",
+      "main_sha": "0c245b86f8228107309d0135bdf819af255604be",
+      "merge_conflict": "harness/build-log.md; both Main and PR history preserved",
+      "status": "EXACT_ADMISSION_PENDING",
+      "page_source_changed_during_sync": false
     }
   },
   "execution_v2": {
@@ -270,11 +285,11 @@
     },
     "schema_version": "1.0"
   },
-  "next_action": "Close and reopen PR #234 while preserving Draft status to trigger the PR-event Pages and W5 workflows on the exact current candidate, then verify build SHA, viewport/font matrix, DOM bounds, and Inspector parity.",
+  "next_action": "Run exact-candidate Admission on the post-sync state checkpoint; then verify current-head W5 and Pages evidence.",
   "phase": "P3",
   "repository": "pan277942135/Yujian_App",
   "schema_version": "1.0",
-  "source_sha": "6484d65bf69309b3b41420e6adb514fe7ca9076a",
+  "source_sha": "2cbfcdd2fda84d9fcdd7700c1d40e1f5c24271fa",
   "stage": "EXACT_HEAD_W5_AND_PREVIEW",
   "status": "VALIDATING",
   "task_id": "YUJIAN_PAGE_FREEZE_PIPELINE_W5_EMPTY_HOME_PILOT_V1",
