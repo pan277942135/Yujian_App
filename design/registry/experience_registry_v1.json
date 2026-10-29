@@ -3741,17 +3741,7 @@
           "render_mode": "authority_index",
           "authority": "design/pages/recognition/continuity/Processing_Result_Optical_Continuity_Contract_V1.md",
           "machine_authority": "design/pages/recognition/continuity/processing_result_optical_continuity_v1.json",
-          "summary": "Main-adopted cross-page shared-photo, coordinate and session-identity design contract; the Android RR09 implementation binding is linked below as a separate contract. Processing 2800ms + RR09 850ms; no pre-navigation wait; runtime NOT_RUN.",
-          "contract_links": [
-            {
-              "label": "Android RR09 Shared-Photo Transition Final Contract V1 — design only, runtime NOT_RUN",
-              "path": "design/pages/recognition/continuity/Android_RR09_Shared_Photo_Transition_Final_Contract_V1.md"
-            },
-            {
-              "label": "Android RR09 Shared-Photo Transition Final Contract V1 — machine JSON",
-              "path": "design/pages/recognition/continuity/android_rr09_shared_photo_transition_final_v1.json"
-            }
-          ]
+          "summary": "Main-adopted shared-photo, coordinate, session identity and light-source design contract; Processing 2800ms + RR09 850ms, no navigation delay; runtime NOT_RUN."
         },
         {
           "id": "swos_static_visual_v1_1",
