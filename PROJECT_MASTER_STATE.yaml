@@ -10,12 +10,12 @@ state_control:
   current_branch: work-state/w5-empty-home-pilot-v1
   current_pr: null
   related_pr: 234
-  base_sha: 1d851b98e550cdc4d0c5c6f74ffedcf194e126f4
+  base_sha: 5e482e8644828a880fbc3c0a273565765977bfaf
   execution_baseline_sha: 4f0f3a66d0bef26e24f6bc066478e6cd03b773e8
   current_head: 4f0f3a66d0bef26e24f6bc066478e6cd03b773e8
-  current_main_head_sha: 1d851b98e550cdc4d0c5c6f74ffedcf194e126f4
-  state_status: RUNNING
-  updated_at: '2026-10-29T01:19:42Z'
+  current_main_head_sha: 5e482e8644828a880fbc3c0a273565765977bfaf
+  state_status: BLOCKED
+  updated_at: '2026-10-29T02:14:54Z'
 source_of_truth:
   current_work_state: WORK_EXECUTION_STATE.json
   canonical_control_plane: CONTROL_PLANE_REGISTRY.yaml
@@ -27,16 +27,16 @@ repositories:
   Yujian_App:
     branch: work-state/w5-empty-home-pilot-v1
     execution_baseline_sha: 4f0f3a66d0bef26e24f6bc066478e6cd03b773e8
-    current_main_head_sha: 1d851b98e550cdc4d0c5c6f74ffedcf194e126f4
+    current_main_head_sha: 5e482e8644828a880fbc3c0a273565765977bfaf
     control_plane_sync:
-      status: MERGE_SYNCED_TO_CURRENT_MAIN
+      status: BLOCKED_MAIN_AUTHORITY_DRIFT
       main_sync_commit: 92e1b4282ae5de2f6528ddcc8e59e401ecb99b4a
-      synced_main_sha: 1d851b98e550cdc4d0c5c6f74ffedcf194e126f4
+      synced_main_sha: 5e482e8644828a880fbc3c0a273565765977bfaf
 pull_requests:
   PR234:
     number: 234
     branch: work/w5-empty-home-pilot-v1
-    base_sha: 1d851b98e550cdc4d0c5c6f74ffedcf194e126f4
+    base_sha: 5e482e8644828a880fbc3c0a273565765977bfaf
     head_sha: 4f0f3a66d0bef26e24f6bc066478e6cd03b773e8
     status: DRAFT_OPEN_UNMERGED
     task_id: YUJIAN_PAGE_FREEZE_PIPELINE_W5_W4_EVIDENCE_AND_ISOLATED_PREVIEW_RECOVERY_V3
@@ -70,10 +70,8 @@ phases:
     status: NOT_CONFIRMED
     note: Not re-established by this narrow W5 recovery checkpoint.
   P3:
-    status: IN_PROGRESS
-    note: 'Exact candidate 4f0f3a66: Product Work Admission, W1/W4/W5, Design Governance, final Pages W2,
-      exact-source isolated preview, NH01 24-case browser matrix and continuity probes pass. API28 Runtime 40798413946
-      remains in progress; W6 technical dependency is cleared and PR239 baseline sync is next.'
+    status: BLOCKED
+    note: 'Runs on 4f0f3a66 were valid against historical Main 1d851b98 only. Current Main 5e482e86 removed 717 tracked authorities; exact-source W4/W5/W2/Pages and PRODUCT_WORK Admission must be rerun after safe Main restoration. Current W6 dependency is not cleared.'
   P4:
     status: NOT_CONFIRMED
     note: Not re-established by this narrow W5 recovery checkpoint.
@@ -119,9 +117,8 @@ recognition_main_journey:
 runtime_gates:
   exact_head:
     sha: 4f0f3a66d0bef26e24f6bc066478e6cd03b773e8
-    status: RUNNING
-    note: Product Work Admission, W1/W4/W5/Governance, final Pages W2, isolated preview, and NH01 browser matrix all
-      pass on this exact source; API28 runtime remains in progress.
+    status: BLOCKED
+    note: Historical evidence for 4f0f3a66 is tied to Main 1d851b98. Current Main 5e482e86 is missing 717 tracked authorities; all candidate gates are stale until baseline restoration and revalidation.
   page_evidence:
     w4:
       status: PASS
@@ -181,7 +178,7 @@ runtime_gates:
     production_root_files_checked: 1048/1048
     note: Live exact-source workspace, resource and negative-route browser checks passed; production root remained Main 1d851b98.
   w6_dependency:
-    status: TECHNICAL_DEPENDENCY_CLEARED
+    status: BLOCKED_CURRENT_BASELINE_DRIFT
     source_sha: 4f0f3a66d0bef26e24f6bc066478e6cd03b773e8
     admission_run_id: 40798720006
     w4_run_id: 40798414058
@@ -191,7 +188,7 @@ runtime_gates:
     integration_status: NOT_STARTED
     next_action: Non-destructively sync PR239 to current Main; compare merge-base and Login-owned diff before implementation.
   product_work_admission:
-    status: PASS
+    status: HISTORICAL_PASS_STALE_BASE
     mode: PRODUCT_WORK
     run_id: 40798720006
     source_sha: 4f0f3a66d0bef26e24f6bc066478e6cd03b773e8
@@ -203,7 +200,7 @@ runtime_gates:
       WORK_STATE: PASS
     url: https://github.com/pan277942135/Yujian_App/actions/runs/40798720006
   latest_main_pages:
-    status: PASS_HTTP_VERIFIED
+    status: STALE_MAIN_DEPLOYED
     source_sha: 1d851b98e550cdc4d0c5c6f74ffedcf194e126f4
     run_id: 40793680312
     build: PASS
@@ -245,8 +242,8 @@ current_work:
   exact_head: 4f0f3a66d0bef26e24f6bc066478e6cd03b773e8
   phase: P3
   task_id: YUJIAN_PAGE_FREEZE_PIPELINE_W5_EMPTY_HOME_PILOT_V1
-  status: RUNNING
-  next_action: Non-destructively update PR239 base relationship to Main 1d851b98, then continue its Login shared workspace integration. Finish exact-source API28 runtime independently.
+  status: BLOCKED
+  next_action: Restore current Main authorities through the exact PR247 candidate, resolve the recorded SWOS external dependency without weakening frozen hashes, then rebase PR234 and rerun PRODUCT_WORK Admission plus W4/W5/W2/Pages before continuing PR239.
 blockers:
 - NH01 API28 Runtime run 40798413946 is in progress; no APK/runtime claim until completion and artifact inspection.
 - Approved standalone Hero/Peek sources remain ASSET_SOURCE_REQUIRED; user visual acceptance is pending.
@@ -297,16 +294,15 @@ completion_rules:
 - W5 matrix and isolated preview must be rerun on the same repaired exact SHA.
 - User visual acceptance remains pending until the product owner confirms it.
 state_update:
-  updated_at: '2026-10-29T01:19:42Z'
-  reason: Recorded exact-source W4/W5/W2, NH01 Chromium, candidate preview, production-root integrity, and W6 technical-dependency results; API28 runtime remains in progress.
+  updated_at: '2026-10-29T02:14:54Z'
+  reason: Reconciled historical 4f0f3a66 evidence against live Main 5e482e86, recorded authority deletion, current production drift, and SWOS blocker; no old SHA is promoted as current.
   protocol: harness/STATE_UPDATE_PROTOCOL.md
 agent_recovery:
   resume_order:
-  - 'Read current Main control plane and verify PR #234/Main exact SHAs.'
-  - Commit this state snapshot on the isolated state branch with source_sha 4f0f3a6 and the product candidate tree
-    as its base.
-  - Run PRODUCT_WORK Admission and require CONTROL_PLANE_SYNC + PROJECT_STATE + WORK_STATE PASS.
-  - 'Run all exact-SHA source-dependent gates, keep #234 Draft/Unmerged, and preserve visual acceptance as pending.'
+  - 'Re-read live Main 5e482e8644828a880fbc3c0a273565765977bfaf and PR #234 4f0f3a66d0bef26e24f6bc066478e6cd03b773e8.'
+  - Restore missing Main authorities and record the external SWOS dependency without changing frozen input-pack hashes.
+  - Rebase PR #234 onto a valid current baseline, rebuild isolated state from that exact candidate tree, and run PRODUCT_WORK Admission.
+  - 'Re-run W4/W5/W2/Pages and runtime only on the resulting exact SHA; keep user visual acceptance pending.'
 current_candidate_runs:
   source_sha: 4f0f3a66d0bef26e24f6bc066478e6cd03b773e8
   product_work_admission: PASS
@@ -323,4 +319,4 @@ current_candidate_runs:
   nh01_preview_artifact_id: 12864867073
   nh01_api28_runtime_run_id: 40798413946
   w6_dependency: TECHNICAL_DEPENDENCY_CLEARED
-  checkpoint_updated_at: '2026-10-29T01:19:42Z'
+  checkpoint_updated_at: '2026-10-29T02:14:54Z'

@@ -1,70 +1,59 @@
 {
   "$schema": "./harness/WORK_EXECUTION_STATE_SCHEMA_V1.json",
   "base_branch": "main",
-  "base_sha": "1d851b98e550cdc4d0c5c6f74ffedcf194e126f4",
+  "base_sha": "5e482e8644828a880fbc3c0a273565765977bfaf",
   "blockers": [
-    "NH01 API28 Runtime run 40798413946 is still running; do not claim APK or native result until its exact-source job completes and artifacts are inspected.",
-    "Approved standalone NH01 Hero/Peek photo sources were not found in the repository; retain ASSET_SOURCE_REQUIRED and USER_VISUAL_ACCEPTANCE_PENDING."
+    "Live Main 5e482e8644828a880fbc3c0a273565765977bfaf removed 717 tracked authority files relative to parent 1d851b98; current product candidate PR234 remains based on historical 1d and its old gates cannot establish current readiness.",
+    "PR247 restoration candidate 1cb1cb884a032d44d590336b2f72fe8e42e5d5de is under exact-head validation; SWOS audit 40805005518 fails because external PR #177 remains blocked behind its own Main and the frozen input pack pins a different source SHA.",
+    "Production build.json still reports 1d851b98 while live Main is 5e482e86; production Pages run 40800311515 failed, so production consistency is not verified.",
+    "NH01 API28 run for PR247 source 1cb1cb884a032d44d590336b2f72fe8e42e5d5de is running separately; no Android native pass is claimed for PR234 or the other runtime targets.",
+    "Approved standalone Hero/Peek images remain ASSET_SOURCE_REQUIRED; user visual acceptance is pending."
   ],
   "branch": "work-state/w5-empty-home-pilot-v1",
-  "checkpoint_updated_at": "2026-10-29T01:19:42Z",
-  "control_plane_revision": "1d851b98e550cdc4d0c5c6f74ffedcf194e126f4",
+  "checkpoint_updated_at": "2026-10-29T02:14:54Z",
+  "control_plane_revision": "5e482e8644828a880fbc3c0a273565765977bfaf",
   "dependencies": [
     "YUJIAN_PAGE_FREEZE_PIPELINE_W3_DESIGN_MANAGER_ADAPTER_V1",
     "YUJIAN_PAGE_FREEZE_PIPELINE_W4_TEST_EVIDENCE_V1"
   ],
   "evidence": {
     "active_candidate": {
-      "base_sha": "1d851b98e550cdc4d0c5c6f74ffedcf194e126f4",
+      "base_sha": "5e482e8644828a880fbc3c0a273565765977bfaf",
       "branch": "work/w5-empty-home-pilot-v1",
       "head_sha": "4f0f3a66d0bef26e24f6bc066478e6cd03b773e8",
-      "main_sha": "1d851b98e550cdc4d0c5c6f74ffedcf194e126f4",
+      "main_sha": "5e482e8644828a880fbc3c0a273565765977bfaf",
       "pr": 234,
-      "status": "TECHNICAL_GATES_PASS_RUNTIME_PENDING",
-      "sync": "NON_FORCE_MERGED_CURRENT_MAIN"
+      "status": "BLOCKED_MAIN_AUTHORITY_DRIFT",
+      "sync": "NEEDS_CURRENT_MAIN_RESTORATION"
     },
     "candidate_pr": 234,
     "candidate_pr_url": "https://github.com/pan277942135/Yujian_App/pull/234",
     "candidate_source_sha": "4f0f3a66d0bef26e24f6bc066478e6cd03b773e8",
     "current_candidate": {
-      "base_sha": "1d851b98e550cdc4d0c5c6f74ffedcf194e126f4",
+      "base_sha": "5e482e8644828a880fbc3c0a273565765977bfaf",
       "branch": "work/w5-empty-home-pilot-v1",
       "head_sha": "4f0f3a66d0bef26e24f6bc066478e6cd03b773e8",
-      "main_sha": "1d851b98e550cdc4d0c5c6f74ffedcf194e126f4",
+      "main_sha": "5e482e8644828a880fbc3c0a273565765977bfaf",
       "pr": 234,
       "previous_candidate_sha": "4c0b10667614bef61616dfcc40a7169bcc94cddf",
-      "status": "TECHNICAL_GATES_PASS_RUNTIME_PENDING",
-      "sync": "NON_FORCE_MERGED_CURRENT_MAIN",
+      "status": "BLOCKED_MAIN_AUTHORITY_DRIFT",
+      "sync": "NEEDS_CURRENT_MAIN_RESTORATION",
       "note": "Exact 4f0f3a6 Product Work Admission, W1/W4/W5/Governance, final Pages W2, live isolated preview and NH01 Chromium matrix pass. API28 Runtime remains in progress; no user visual acceptance implied.",
       "pr_status": "OPEN_DRAFT_UNMERGED",
       "base_branch": "main",
       "candidate_source_sha": "4f0f3a66d0bef26e24f6bc066478e6cd03b773e8",
-      "updated_at": "2026-10-29T01:19:42Z",
-      "w6_technical_dependency": "CLEARED",
+      "updated_at": "2026-10-29T02:14:54Z",
+      "w6_technical_dependency": "BLOCKED",
       "w6_next_action": "Inspect PR239 merge-base/diff, then update base safely and continue Login integration.",
       "nh01_native_runtime": "IN_PROGRESS"
     },
     "current_main_pages": {
-      "build_job": "success",
-      "deploy_job": "success",
-      "github_pages_artifact_id": 12862767477,
-      "github_pages_artifact_sha256": "e1f61e94b12df802ec316401056a255fd76d7004e4f7b2bf6e46405c3731cedb",
-      "live_page": "https://pan277942135.github.io/Yujian_App/design/manager/#page/home_normal_v1/hifi/multi_screen_static_hifi",
-      "note": "Live production build.json and root integrity manifest matched exact Main; Pages/browser geometry comparisons remain measurement-only and do not establish user visual acceptance.",
-      "production_browser": "PASS",
+      "source_sha": "5e482e8644828a880fbc3c0a273565765977bfaf",
+      "status": "STALE_PRODUCTION_DEPLOYMENT",
       "production_build_json_sha": "1d851b98e550cdc4d0c5c6f74ffedcf194e126f4",
-      "production_pages_artifact_id": 12862767477,
-      "production_pages_artifact_sha256": "e1f61e94b12df802ec316401056a255fd76d7004e4f7b2bf6e46405c3731cedb",
-      "production_pages_run_id": 40793680312,
-      "release_evidence_artifact_id": 12862623236,
-      "release_evidence_artifact_sha256": "2e7e50a72d77fbed724ae5d539785189d5076eac88ab2caaee7ff4bf3bd3577",
-      "root_manifest_checked_files": 1048,
-      "root_manifest_sha256": "6259065b2b71a51aa45eacb6ed1b7549360280e7d329c97d193ec10393673b8d",
-      "source_sha": "1d851b98e550cdc4d0c5c6f74ffedcf194e126f4",
-      "status": "PASS_HTTP_VERIFIED",
-      "run_id": 40793680312,
-      "artifact_id": 12862767477,
-      "artifact_sha256": "e1f61e94b12df802ec316401056a255fd76d7004e4f7b2bf6e46405c3731cedb"
+      "latest_main_pages_run_id": 40800311515,
+      "latest_main_pages_status": "FAIL",
+      "live_build_json_observed": "1d851b98e550cdc4d0c5c6f74ffedcf194e126f4"
     },
     "isolated_preview": {
       "status": "PASS_ISOLATED_PREVIEW",
@@ -83,182 +72,14 @@
       "production_root_files_checked": "1048/1048"
     },
     "latest_candidate_gates": {
-      "main_sha": "1d851b98e550cdc4d0c5c6f74ffedcf194e126f4",
       "source_sha": "4f0f3a66d0bef26e24f6bc066478e6cd03b773e8",
-      "product_work_admission": {
-        "status": "PASS",
-        "mode": "PRODUCT_WORK",
-        "run_id": 40798720006,
-        "source_sha": "4f0f3a66d0bef26e24f6bc066478e6cd03b773e8",
-        "main_sha": "1d851b98e550cdc4d0c5c6f74ffedcf194e126f4",
-        "state_branch_head": "dfcc2b07fbb1d0c80d3ad7f35f47faf37c1a8fb4",
-        "required_gates": {
-          "CONTROL_PLANE_SYNC": "PASS",
-          "PROJECT_STATE": "PASS",
-          "WORK_STATE": "PASS"
-        },
-        "url": "https://github.com/pan277942135/Yujian_App/actions/runs/40798720006"
-      },
-      "w1": {
-        "status": "PASS",
-        "run_id": 40798413982,
-        "source_sha": "4f0f3a66d0bef26e24f6bc066478e6cd03b773e8"
-      },
-      "w4": {
-        "status": "PASS",
-        "run_id": 40798414058,
-        "source_sha": "4f0f3a66d0bef26e24f6bc066478e6cd03b773e8",
-        "artifact_id": 12864129945,
-        "artifact_sha256": "23e2acf679a87bbe0e0a875be396d3716964dc690618172026d2d2f949736319"
-      },
-      "w5_matrix": {
-        "status": "PASS_STRUCTURAL_MATRIX_VISUAL_REVIEW_PENDING",
-        "run_id": 40798414056,
-        "source_sha": "4f0f3a66d0bef26e24f6bc066478e6cd03b773e8",
-        "formal_cases": "8/8",
-        "supplemental_cases": "4/4",
-        "negative_cases": "8/8",
-        "artifact_id": 12865405482,
-        "artifact_sha256": "0352336c05dfa79990391f77f2955569650a5833aa9f0f93d57569bb144c895c"
-      },
-      "w2": {
-        "status": "PASS_FINAL_PAGES_BUNDLE",
-        "run_id": 40798413921,
-        "source_sha": "4f0f3a66d0bef26e24f6bc066478e6cd03b773e8",
-        "artifact_id": 12865057084,
-        "artifact_sha256": "187108fbf22fe184f38cba95d32d46148a672c2f8863ffd39cc18b7f9b878d1d",
-        "pages_checked": 3,
-        "page_ids": [
-          "home_normal_v1",
-          "home_empty_v2",
-          "auth_login_v2"
-        ],
-        "warnings": [
-          "Gallery/Chevron dimensions remain REVIEW; NH01 runtime photo/avatar and Login upload sources are missing; footer grass has no independent resource path. No lifecycle promotion."
-        ]
-      },
-      "design_governance": {
-        "status": "PASS",
-        "run_id": 40798414014,
-        "source_sha": "4f0f3a66d0bef26e24f6bc066478e6cd03b773e8"
-      },
-      "pages": {
-        "status": "PASS_ISOLATED_PREVIEW",
-        "run_id": 40798413921,
-        "source_sha": "4f0f3a66d0bef26e24f6bc066478e6cd03b773e8",
-        "build_job": "PASS",
-        "deploy_preview_job": "PASS",
-        "deploy_preview_job_id": 123201916635,
-        "production_deploy": "SKIPPED_EXPECTED",
-        "preview_live_artifact_id": 12865436447,
-        "preview_live_artifact_sha256": "0095c4e8b32e9f2b2d4efc43e45f506e00db474c1407c0ee8bfddbd6f3f4ae79",
-        "browser_build_artifact_id": 12865580255,
-        "browser_build_artifact_sha256": "9f8f24d4c10b94636a954e781dc727b56ec0e953266010956bc73cb25641f2c0",
-        "preview_url": "https://pan277942135.github.io/Yujian_App/previews/pr-234/",
-        "production_root_sha256_before_after": "6259065b2b71a51aa45eacb6ed1b7549360280e7d329c97d193ec10393673b8d",
-        "production_root_files_checked": "1048/1048"
-      },
-      "nh01_static_assets": {
-        "status": "PASS_EXACT_SHA_VALIDATED",
-        "source_sha": "4f0f3a66d0bef26e24f6bc066478e6cd03b773e8",
-        "run_id": 40798413921,
-        "manifest_validation": "PASS",
-        "asset_scope_source_main_sha": "1d851b98e550cdc4d0c5c6f74ffedcf194e126f4",
-        "images": [
-          {
-            "id": "M01",
-            "path": "design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_M01_320x480dp_STATIC_HIFI_V1.png",
-            "dimensions_px": "1024x1536",
-            "bytes": 2009020,
-            "sha256": "a3808f2fb93d48494eafbb6ba061dbd9c1dd019348488355780c8f4504636692"
-          },
-          {
-            "id": "M02",
-            "path": "design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_M02_360x640dp_STATIC_HIFI_V1.png",
-            "dimensions_px": "941x1672",
-            "bytes": 2056059,
-            "sha256": "8a6721552cec97113c2a77200a07bb76b954c1a16f4e0f10d8410b9e873a90c0"
-          },
-          {
-            "id": "M03",
-            "path": "design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_M03_390x844dp_STATIC_HIFI_V1.png",
-            "dimensions_px": "853x1844",
-            "bytes": 2070873,
-            "sha256": "6a5e2e9fd18d2b06f9452b6a6c95802e41cfc0450b7ec77cf0d1500c6b3932ff"
-          },
-          {
-            "id": "M04",
-            "path": "design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_M04_430x932dp_STATIC_HIFI_V1.png",
-            "dimensions_px": "853x1844",
-            "bytes": 1981778,
-            "sha256": "07846d3089b7c2a0b0e6c858dbd3f97890121b225092dde7d7622f0a461b9893"
-          },
-          {
-            "id": "M05",
-            "path": "design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_M05_480dp_WIDTH_STATIC_HIFI_V1.png",
-            "dimensions_px": "1024x1536",
-            "bytes": 2027806,
-            "sha256": "ee2ed666107bd7f4263cf140438a5a1cbb171af0199e57646372e2e1d8cc8de2"
-          }
-        ],
-        "original_v1_reference": {
-          "path": "design/system/core_visual_v1/reference/normal_home_v1.png",
-          "dimensions_px": "1080x1920",
-          "bytes": 2157565,
-          "sha256": "6ab9d3348b4a9a7e77ddca3a06235b4991798a309bd3512cc6fb9ea7aeb1d377"
-        }
-      },
-      "nh01_responsive_contract": {
-        "status": "PASS_FROZEN_CONTRACT_VALIDATION",
-        "source_sha": "4f0f3a66d0bef26e24f6bc066478e6cd03b773e8",
-        "run_id": 40798413921,
-        "frozen_contracts_unchanged": true
-      },
-      "nh01_structured_workspace": {
-        "status": "PASS_CHROMIUM_WORKSPACE_AND_RESOURCE_STATE_MACHINE",
-        "source_sha": "4f0f3a66d0bef26e24f6bc066478e6cd03b773e8",
-        "run_id": 40798413921
-      },
-      "nh01_formal_browser_matrix": {
-        "status": "PASS",
-        "source_sha": "4f0f3a66d0bef26e24f6bc066478e6cd03b773e8",
-        "run_id": 40798413921,
-        "cases": "24/24",
-        "browser": "Chromium 153.0.8010.12",
-        "artifact_id": 12864209343,
-        "artifact_sha256": "211072ebe23c8ebd4e7a35758adde674f4da159474cf48e5ae3e97ed96485027"
-      },
-      "nh01_continuity_threshold_probes": {
-        "status": "PASS",
-        "source_sha": "4f0f3a66d0bef26e24f6bc066478e6cd03b773e8",
-        "run_id": 40798413921,
-        "probes": "5/5",
-        "cases": "10/10",
-        "artifact_id": 12864209343,
-        "artifact_sha256": "211072ebe23c8ebd4e7a35758adde674f4da159474cf48e5ae3e97ed96485027"
-      },
-      "nh01_api28_runtime": {
-        "status": "IN_PROGRESS",
-        "source_sha": "4f0f3a66d0bef26e24f6bc066478e6cd03b773e8",
-        "run_id": 40798413946,
-        "api_level": 28
-      },
-      "nh01_native_runtime": {
-        "status": "IN_PROGRESS",
-        "source_sha": "4f0f3a66d0bef26e24f6bc066478e6cd03b773e8",
-        "run_id": 40798413946,
-        "api_level": 28
-      },
-      "w6_dependency": {
-        "status": "TECHNICAL_DEPENDENCY_CLEARED",
-        "source_sha": "4f0f3a66d0bef26e24f6bc066478e6cd03b773e8",
-        "admission_run_id": 40798720006,
-        "w4_run_id": 40798414058,
-        "w5_run_id": 40798414056,
-        "w2_pages_run_id": 40798413921,
-        "isolated_preview_run_id": 40798413921,
-        "pr239_integration": "NOT_STARTED"
-      }
+      "main_sha": "5e482e8644828a880fbc3c0a273565765977bfaf",
+      "status": "BLOCKED_BASELINE_DRIFT",
+      "w4": "STALE_REQUIRES_RERUN",
+      "w5": "STALE_REQUIRES_RERUN",
+      "w2": "STALE_REQUIRES_RERUN",
+      "isolated_preview": "STALE_REQUIRES_RERUN",
+      "product_work_admission": "NOT_VALID_FOR_CURRENT_MAIN"
     },
     "latest_main_pages": {
       "build_job": "success",
@@ -708,14 +529,237 @@
       "note": "Do not infer native pass from browser evidence or code changes; each Android runtime result remains independently tracked."
     },
     "w6_technical_dependency": {
-      "status": "CLEARED",
+      "status": "BLOCKED_CURRENT_BASELINE_DRIFT",
       "source_sha": "4f0f3a66d0bef26e24f6bc066478e6cd03b773e8",
       "pr234_admission_run_id": 40798720006,
       "pr234_w4_run_id": 40798414058,
       "pr234_w5_run_id": 40798414056,
       "pr234_w2_pages_run_id": 40798413921,
       "pr234_preview_run_id": 40798413921,
-      "pr239": "OPEN_DRAFT_UNMERGED_BASE_SYNC_PENDING"
+      "pr239": "OPEN_DRAFT_UNMERGED_BASE_SYNC_PENDING",
+      "next_action": "Wait for Main authority restoration and exact candidate gates; then sync PR239 non-destructively."
+    },
+    "historical_candidate_gates_4f_against_main_1d": {
+      "main_sha": "1d851b98e550cdc4d0c5c6f74ffedcf194e126f4",
+      "source_sha": "4f0f3a66d0bef26e24f6bc066478e6cd03b773e8",
+      "product_work_admission": {
+        "status": "PASS",
+        "mode": "PRODUCT_WORK",
+        "run_id": 40798720006,
+        "source_sha": "4f0f3a66d0bef26e24f6bc066478e6cd03b773e8",
+        "main_sha": "1d851b98e550cdc4d0c5c6f74ffedcf194e126f4",
+        "state_branch_head": "dfcc2b07fbb1d0c80d3ad7f35f47faf37c1a8fb4",
+        "required_gates": {
+          "CONTROL_PLANE_SYNC": "PASS",
+          "PROJECT_STATE": "PASS",
+          "WORK_STATE": "PASS"
+        },
+        "url": "https://github.com/pan277942135/Yujian_App/actions/runs/40798720006"
+      },
+      "w1": {
+        "status": "PASS",
+        "run_id": 40798413982,
+        "source_sha": "4f0f3a66d0bef26e24f6bc066478e6cd03b773e8"
+      },
+      "w4": {
+        "status": "PASS",
+        "run_id": 40798414058,
+        "source_sha": "4f0f3a66d0bef26e24f6bc066478e6cd03b773e8",
+        "artifact_id": 12864129945,
+        "artifact_sha256": "23e2acf679a87bbe0e0a875be396d3716964dc690618172026d2d2f949736319"
+      },
+      "w5_matrix": {
+        "status": "PASS_STRUCTURAL_MATRIX_VISUAL_REVIEW_PENDING",
+        "run_id": 40798414056,
+        "source_sha": "4f0f3a66d0bef26e24f6bc066478e6cd03b773e8",
+        "formal_cases": "8/8",
+        "supplemental_cases": "4/4",
+        "negative_cases": "8/8",
+        "artifact_id": 12865405482,
+        "artifact_sha256": "0352336c05dfa79990391f77f2955569650a5833aa9f0f93d57569bb144c895c"
+      },
+      "w2": {
+        "status": "PASS_FINAL_PAGES_BUNDLE",
+        "run_id": 40798413921,
+        "source_sha": "4f0f3a66d0bef26e24f6bc066478e6cd03b773e8",
+        "artifact_id": 12865057084,
+        "artifact_sha256": "187108fbf22fe184f38cba95d32d46148a672c2f8863ffd39cc18b7f9b878d1d",
+        "pages_checked": 3,
+        "page_ids": [
+          "home_normal_v1",
+          "home_empty_v2",
+          "auth_login_v2"
+        ],
+        "warnings": [
+          "Gallery/Chevron dimensions remain REVIEW; NH01 runtime photo/avatar and Login upload sources are missing; footer grass has no independent resource path. No lifecycle promotion."
+        ]
+      },
+      "design_governance": {
+        "status": "PASS",
+        "run_id": 40798414014,
+        "source_sha": "4f0f3a66d0bef26e24f6bc066478e6cd03b773e8"
+      },
+      "pages": {
+        "status": "PASS_ISOLATED_PREVIEW",
+        "run_id": 40798413921,
+        "source_sha": "4f0f3a66d0bef26e24f6bc066478e6cd03b773e8",
+        "build_job": "PASS",
+        "deploy_preview_job": "PASS",
+        "deploy_preview_job_id": 123201916635,
+        "production_deploy": "SKIPPED_EXPECTED",
+        "preview_live_artifact_id": 12865436447,
+        "preview_live_artifact_sha256": "0095c4e8b32e9f2b2d4efc43e45f506e00db474c1407c0ee8bfddbd6f3f4ae79",
+        "browser_build_artifact_id": 12865580255,
+        "browser_build_artifact_sha256": "9f8f24d4c10b94636a954e781dc727b56ec0e953266010956bc73cb25641f2c0",
+        "preview_url": "https://pan277942135.github.io/Yujian_App/previews/pr-234/",
+        "production_root_sha256_before_after": "6259065b2b71a51aa45eacb6ed1b7549360280e7d329c97d193ec10393673b8d",
+        "production_root_files_checked": "1048/1048"
+      },
+      "nh01_static_assets": {
+        "status": "PASS_EXACT_SHA_VALIDATED",
+        "source_sha": "4f0f3a66d0bef26e24f6bc066478e6cd03b773e8",
+        "run_id": 40798413921,
+        "manifest_validation": "PASS",
+        "asset_scope_source_main_sha": "1d851b98e550cdc4d0c5c6f74ffedcf194e126f4",
+        "images": [
+          {
+            "id": "M01",
+            "path": "design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_M01_320x480dp_STATIC_HIFI_V1.png",
+            "dimensions_px": "1024x1536",
+            "bytes": 2009020,
+            "sha256": "a3808f2fb93d48494eafbb6ba061dbd9c1dd019348488355780c8f4504636692"
+          },
+          {
+            "id": "M02",
+            "path": "design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_M02_360x640dp_STATIC_HIFI_V1.png",
+            "dimensions_px": "941x1672",
+            "bytes": 2056059,
+            "sha256": "8a6721552cec97113c2a77200a07bb76b954c1a16f4e0f10d8410b9e873a90c0"
+          },
+          {
+            "id": "M03",
+            "path": "design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_M03_390x844dp_STATIC_HIFI_V1.png",
+            "dimensions_px": "853x1844",
+            "bytes": 2070873,
+            "sha256": "6a5e2e9fd18d2b06f9452b6a6c95802e41cfc0450b7ec77cf0d1500c6b3932ff"
+          },
+          {
+            "id": "M04",
+            "path": "design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_M04_430x932dp_STATIC_HIFI_V1.png",
+            "dimensions_px": "853x1844",
+            "bytes": 1981778,
+            "sha256": "07846d3089b7c2a0b0e6c858dbd3f97890121b225092dde7d7622f0a461b9893"
+          },
+          {
+            "id": "M05",
+            "path": "design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_M05_480dp_WIDTH_STATIC_HIFI_V1.png",
+            "dimensions_px": "1024x1536",
+            "bytes": 2027806,
+            "sha256": "ee2ed666107bd7f4263cf140438a5a1cbb171af0199e57646372e2e1d8cc8de2"
+          }
+        ],
+        "original_v1_reference": {
+          "path": "design/system/core_visual_v1/reference/normal_home_v1.png",
+          "dimensions_px": "1080x1920",
+          "bytes": 2157565,
+          "sha256": "6ab9d3348b4a9a7e77ddca3a06235b4991798a309bd3512cc6fb9ea7aeb1d377"
+        }
+      },
+      "nh01_responsive_contract": {
+        "status": "PASS_FROZEN_CONTRACT_VALIDATION",
+        "source_sha": "4f0f3a66d0bef26e24f6bc066478e6cd03b773e8",
+        "run_id": 40798413921,
+        "frozen_contracts_unchanged": true
+      },
+      "nh01_structured_workspace": {
+        "status": "PASS_CHROMIUM_WORKSPACE_AND_RESOURCE_STATE_MACHINE",
+        "source_sha": "4f0f3a66d0bef26e24f6bc066478e6cd03b773e8",
+        "run_id": 40798413921
+      },
+      "nh01_formal_browser_matrix": {
+        "status": "PASS",
+        "source_sha": "4f0f3a66d0bef26e24f6bc066478e6cd03b773e8",
+        "run_id": 40798413921,
+        "cases": "24/24",
+        "browser": "Chromium 153.0.8010.12",
+        "artifact_id": 12864209343,
+        "artifact_sha256": "211072ebe23c8ebd4e7a35758adde674f4da159474cf48e5ae3e97ed96485027"
+      },
+      "nh01_continuity_threshold_probes": {
+        "status": "PASS",
+        "source_sha": "4f0f3a66d0bef26e24f6bc066478e6cd03b773e8",
+        "run_id": 40798413921,
+        "probes": "5/5",
+        "cases": "10/10",
+        "artifact_id": 12864209343,
+        "artifact_sha256": "211072ebe23c8ebd4e7a35758adde674f4da159474cf48e5ae3e97ed96485027"
+      },
+      "nh01_api28_runtime": {
+        "status": "IN_PROGRESS",
+        "source_sha": "4f0f3a66d0bef26e24f6bc066478e6cd03b773e8",
+        "run_id": 40798413946,
+        "api_level": 28
+      },
+      "nh01_native_runtime": {
+        "status": "IN_PROGRESS",
+        "source_sha": "4f0f3a66d0bef26e24f6bc066478e6cd03b773e8",
+        "run_id": 40798413946,
+        "api_level": 28
+      },
+      "w6_dependency": {
+        "status": "TECHNICAL_DEPENDENCY_CLEARED",
+        "source_sha": "4f0f3a66d0bef26e24f6bc066478e6cd03b773e8",
+        "admission_run_id": 40798720006,
+        "w4_run_id": 40798414058,
+        "w5_run_id": 40798414056,
+        "w2_pages_run_id": 40798413921,
+        "isolated_preview_run_id": 40798413921,
+        "pr239_integration": "NOT_STARTED"
+      }
+    },
+    "historical_production_pages_main_1d": {
+      "build_job": "success",
+      "deploy_job": "success",
+      "github_pages_artifact_id": 12862767477,
+      "github_pages_artifact_sha256": "e1f61e94b12df802ec316401056a255fd76d7004e4f7b2bf6e46405c3731cedb",
+      "live_page": "https://pan277942135.github.io/Yujian_App/design/manager/#page/home_normal_v1/hifi/multi_screen_static_hifi",
+      "note": "Live production build.json and root integrity manifest matched exact Main; Pages/browser geometry comparisons remain measurement-only and do not establish user visual acceptance.",
+      "production_browser": "PASS",
+      "production_build_json_sha": "1d851b98e550cdc4d0c5c6f74ffedcf194e126f4",
+      "production_pages_artifact_id": 12862767477,
+      "production_pages_artifact_sha256": "e1f61e94b12df802ec316401056a255fd76d7004e4f7b2bf6e46405c3731cedb",
+      "production_pages_run_id": 40793680312,
+      "release_evidence_artifact_id": 12862623236,
+      "release_evidence_artifact_sha256": "2e7e50a72d77fbed724ae5d539785189d5076eac88ab2caaee7ff4bf3bd3577",
+      "root_manifest_checked_files": 1048,
+      "root_manifest_sha256": "6259065b2b71a51aa45eacb6ed1b7549360280e7d329c97d193ec10393673b8d",
+      "source_sha": "1d851b98e550cdc4d0c5c6f74ffedcf194e126f4",
+      "status": "PASS_HTTP_VERIFIED",
+      "run_id": 40793680312,
+      "artifact_id": 12862767477,
+      "artifact_sha256": "e1f61e94b12df802ec316401056a255fd76d7004e4f7b2bf6e46405c3731cedb"
+    },
+    "live_audit": {
+      "timestamp": "2026-10-29T02:14:54Z",
+      "main_sha": "5e482e8644828a880fbc3c0a273565765977bfaf",
+      "pr234_head_sha": "4f0f3a66d0bef26e24f6bc066478e6cd03b773e8",
+      "pr234_base_snapshot": "1d851b98e550cdc4d0c5c6f74ffedcf194e126f4",
+      "restore_pr": 247,
+      "restore_head_sha": "1cb1cb884a032d44d590336b2f72fe8e42e5d5de",
+      "restore_exact_runs": {
+        "control_plane_admission": 40805005502,
+        "android_ci": 40805005504,
+        "design_manager_pages": 40805005511,
+        "w4": 40805005519,
+        "w1": 40805005603,
+        "design_governance": 40805005544,
+        "swos_audit": 40805005518,
+        "nh01_runtime": 40805043805
+      },
+      "swos_status": "FAIL_EXTERNAL_PR177_BEHIND_MAIN_AND_FROZEN_INPUT_SHA_MISMATCH",
+      "production_live_build_sha": "1d851b98e550cdc4d0c5c6f74ffedcf194e126f4",
+      "production_run_current_main": 40800311515,
+      "next": "Resolve authority restoration gate, then exact-head product Admission and W4/W5/W2/isolated preview."
     }
   },
   "execution_v2": {
@@ -854,14 +898,14 @@
     },
     "schema_version": "1.0"
   },
-  "next_action": "Non-destructively update PR239 base relationship to current Main 1d851b98; inspect merge-base and Login-owned diff before shared-workspace implementation. Continue API28 runtime independently.",
+  "next_action": "Restore Main authority files and resolve the documented SWOS external dependency; then rebase PR234, rebuild this isolated state on its exact product candidate SHA, run PRODUCT_WORK Admission, and rerun W4/W5/W2/Pages.",
   "phase": "P3",
   "related_pr": 234,
   "repository": "pan277942135/Yujian_App",
   "schema_version": "1.0",
   "source_sha": "4f0f3a66d0bef26e24f6bc066478e6cd03b773e8",
   "stage": "G2_W4_REPAIR_AND_EXACT_SHA_REVALIDATION",
-  "status": "RUNNING",
+  "status": "BLOCKED",
   "task_id": "YUJIAN_PAGE_FREEZE_PIPELINE_W5_EMPTY_HOME_PILOT_V1",
   "work_id": "YUJIAN_W4_W5_MAIN_PAGES_W6_ANDROID_RUNTIME_CLOSURE_V1"
 }
