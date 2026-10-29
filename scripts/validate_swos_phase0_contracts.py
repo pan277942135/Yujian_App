@@ -154,9 +154,13 @@ def consistency_errors(contracts: dict) -> list[str]:
     for state_key in ("result_medium_or_low", "no_fish_or_image_quality"):
         if eligibility.get(state_key, {}).get("photo_transition") != "NONE_STATIC_RESULT":
             errors.append(f"RR09 {state_key} must use static Result presentation without a photo transition")
+    if android_transition.get("invariants", {}).get("source_sha256_explicit_and_propagated") is not True:
+        errors.append("Android transition must explicitly propagate normalized source SHA-256 through the handoff")
+    if "photo_sha256_propagated_through_session_handoff" not in android_transition.get("acceptance", {}).get("required_runtime_evidence", []):
+        errors.append("Android transition runtime evidence must prove source SHA-256 continuity")
     gap_ids = [item.get("id") for item in android_transition.get("implementation_gap_register", [])]
-    if gap_ids != [f"G{i:02d}" for i in range(1, 11)]:
-        errors.append("Android transition implementation gap register must contain G01–G10 in order")
+    if gap_ids != [f"G{i:02d}" for i in range(1, 12)]:
+        errors.append("Android transition implementation gap register must contain G01–G11 in order")
 
     if swos.get("contract_id") != "YUJIAN-SWOS-OPTICAL-V1":
         errors.append("SWOS optical contract identity drift")
