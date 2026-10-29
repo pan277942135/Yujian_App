@@ -1,0 +1,227 @@
+schema_version: "1.0"
+state_id: "YUJIAN_THREE_PILOT_PAGE_SPEC_CLOSURE_AND_IMPLEMENTATION_GATE_V1"
+project:
+  id: "yujian_app"
+  name: "渔见 AI"
+  repository: "pan277942135/Yujian_App"
+  scope: "home_normal_v1, home_empty_v2, auth_login_v2"
+state_control:
+  execution_baseline_sha: "9c47519e87260992bc768178399fc9b6651a6fc8"
+  current_branch: "work-state/yujian-three-pilot-p0-v1"
+  current_pr: null
+  base_branch: "main"
+  base_sha: "b080bb0ffb4ebced18593c08709657fabb53a19e"
+  current_task: "YUJIAN_THREE_PILOT_PAGE_SPEC_CLOSURE_AND_IMPLEMENTATION_GATE_V1"
+  status: "BLOCKED"
+  updated_at: "2026-10-29T06:07:27Z"
+source_of_truth:
+  control_plane: "harness/CONTROL_PLANE_REGISTRY.yaml"
+  phase_task_machine: "harness/PHASE_TASK_STATE_MACHINE.yaml"
+  unified_contract_registry: "harness/UNIFIED_CONTRACT_REGISTRY.yaml"
+  state_update_protocol: "harness/STATE_UPDATE_PROTOCOL.md"
+  current_work_state: "WORK_EXECUTION_STATE.json"
+repositories:
+  main:
+    branch: "main"
+    sha: "b080bb0ffb4ebced18593c08709657fabb53a19e"
+    recovery_pr: 247
+    followup_contract_prs: [250, 251]
+  candidate:
+    branch: "work/w5-empty-home-pilot-v1"
+    source_sha: "9c47519e87260992bc768178399fc9b6651a6fc8"
+pull_requests:
+  PR234:
+    number: 234
+    branch: "work/w5-empty-home-pilot-v1"
+    base_sha: "b080bb0ffb4ebced18593c08709657fabb53a19e"
+    head_sha: "9c47519e87260992bc768178399fc9b6651a6fc8"
+    state: "OPEN"
+    draft: true
+    url: "https://github.com/pan277942135/Yujian_App/pull/234"
+  PR239:
+    number: 239
+    branch: "work/w6a-login-structured-hifi-v1"
+    base_sha: "b080bb0ffb4ebced18593c08709657fabb53a19e"
+    head_sha: "6d2b5dc69cf9a744514a0986a249cba0d6d7ea63"
+    state: "OPEN"
+    draft: true
+    url: "https://github.com/pan277942135/Yujian_App/pull/239"
+  PR247:
+    number: 247
+    state: "MERGED"
+    merge_sha: "0c7f06ef672ce89285d8b7d9b3646a33439e8712"
+    url: "https://github.com/pan277942135/Yujian_App/pull/247"
+phases:
+  P0:
+    status: "PASS"
+    evidence: "Main authority recovery PR #247 and follow-ups #250/#251; current Main b080bb0ffb4ebced18593c08709657fabb53a19e."
+  P1:
+    status: "NOT_CONFIRMED"
+  P2:
+    status: "NOT_CONFIRMED"
+  P3:
+    status: "BLOCKED"
+    task_id: "YUJIAN_THREE_PILOT_PAGE_SPEC_CLOSURE_AND_IMPLEMENTATION_GATE_V1"
+    exact_candidate_sha: "9c47519e87260992bc768178399fc9b6651a6fc8"
+  P4:
+    status: "NOT_STARTED"
+  P5:
+    status: "NOT_STARTED"
+  P6:
+    status: "NOT_STARTED"
+  P7:
+    status: "NOT_STARTED"
+  P8:
+    status: "NOT_STARTED"
+  P9:
+    status: "NOT_STARTED"
+recognition_main_journey:
+  contract_status: "FROZEN"
+  route: ["J01", "J02", "J03", "J04", "J05", "J06", "J07", "J08", "J09", "J10", "J11", "J12", "J13", "J14", "J15", "J16", "J17", "J18", "J19", "J20"]
+runtime_gates:
+  exact_head:
+    sha: "9c47519e87260992bc768178399fc9b6651a6fc8"
+    status: "BLOCKED"
+    nh01_android_runtime:
+      status: "IN_PROGRESS"
+      run_id: 40826118440
+    page_evidence:
+      home_normal_v1: "IN_PROGRESS_ON_EXACT_SHA_9c; prior 8d PASS remains historical"
+      home_empty_v2: "BLOCKED"
+      auth_login_v2: "BLOCKED"
+  historical_runtime_run:
+    rule: "Historical results cannot promote current exact HEAD to PASS."
+    source_sha: "4f0f3a66d0bef26e24f6bc066478e6cd03b773e8"
+    status: "HISTORICAL_FAIL"
+    failure: "NH01 font/date assertions failed on old candidate; retain as history and rerun native runtime after Android implementation."
+apk_and_evidence:
+  release_apk_status: "NOT_RUN"
+  apk_sha256: "NOT_VERIFIED"
+  android_implementation_pr: "NOT_STARTED"
+  current_exact_source: "9c47519e87260992bc768178399fc9b6651a6fc8"
+  isolated_preview_url: "https://pan277942135.github.io/Yujian_App/previews/pr-234/"
+  isolated_preview_build_sha: "8d3f7393a027c3b83d8d1a84fca64fb55c6e6b31"
+  active_candidate_preview_sha: "9c47519e87260992bc768178399fc9b6651a6fc8"
+  active_candidate_pages_run_id: 40827290737
+  live_production_build_sha: "b080bb0ffb4ebced18593c08709657fabb53a19e"
+current_work:
+  id: "YUJIAN_THREE_PILOT_PAGE_SPEC_CLOSURE_AND_IMPLEMENTATION_GATE_V1"
+  phase: "P3"
+  task_id: "YUJIAN_THREE_PILOT_PAGE_SPEC_CLOSURE_AND_IMPLEMENTATION_GATE_V1"
+  status: "BLOCKED"
+  exact_head: "9c47519e87260992bc768178399fc9b6651a6fc8"
+  pages:
+    home_normal_v1:
+      status: "IN_PROGRESS"
+      page_profile: "FROZEN_BINDING"
+      envelope: "SPEC_FROZEN"
+      W1: "IN_PROGRESS — exact 9c rerun pending; prior 8d evidence retained in Work state"
+      W2: "IN_PROGRESS — exact 9c rerun pending; prior 8d evidence retained in Work state"
+      W3: "IN_PROGRESS — exact 9c rerun pending; prior 8d evidence retained in Work state"
+      W4: "IN_PROGRESS — exact 9c rerun pending; prior 8d evidence retained in Work state"
+      W5: "IN_PROGRESS — exact 9c rerun pending; prior 8d evidence retained in Work state"
+      visual_acceptance: "PENDING"
+      native_runtime: "IN_PROGRESS — exact 7de run 40826118440"
+      runtime_media: "NOT_VERIFIED_STATIC_SOURCE; dynamic user media; no fake asset promoted"
+      optional_illustrations: "GENERATED_ILLUSTRATIVE_ONLY; not formal assets"
+    home_empty_v2:
+      status: "BLOCKED"
+      page_profile: "DRAFT"
+      envelope: "DRAFT"
+      W1: "IN_PROGRESS — exact 9c rerun pending; page remains BLOCKED by authority/resources"
+      W2: "IN_PROGRESS — exact 9c rerun pending; page remains BLOCKED by authority/resources"
+      W3: "IN_PROGRESS — exact 9c rerun pending; page remains BLOCKED by authority/resources"
+      W4: "IN_PROGRESS — exact 9c rerun pending; page remains BLOCKED by authority/resources"
+      W5: "IN_PROGRESS — exact 9c rerun pending; page remains BLOCKED by authority/resources"
+      visual_acceptance: "PENDING"
+      critical_open_items: "Scene/fishing/atmosphere/button resources remain REVIEW; do not promote; resolve frozen authority and composition anchors."
+    auth_login_v2:
+      status: "BLOCKED"
+      page_profile: "DRAFT"
+      envelope: "DRAFT"
+      W1: "IN_PROGRESS — exact 9c W1 run 40827290718"
+      W2: "IN_PROGRESS — exact 9c resource scan run 40827290731"
+      W3: "IN_PROGRESS — Login restored to shared manager; W4 evidence run 40827290596"
+      W4: "IN_PROGRESS — exact 9c Chromium run 40827290596; prior geometry failures preserved"
+      W5: "IN_PROGRESS — 1 formal + 12 supplemental Login cases in 40827290596"
+      visual_acceptance: "PENDING"
+      critical_open_items: "Responsive rules are REVIEW_REQUIRED and not W1-bound; safe area/Android IME unverified; footer source unverified."
+blockers:
+  - id: "TP-EHOME-AUTHORITY-001"
+    severity: "P0"
+    area: "home_empty_v2"
+    status: "OPEN"
+    condition: "Envelope/Profile are DRAFT and 17 required resource bindings remain lifecycle REVIEW."
+    unblock: "Resolve the existing resource lifecycle and composition authority without changing any frozen source or promoting REVIEW."
+  - id: "TP-LOGIN-W3W4-001"
+    severity: "P0"
+    area: "auth_login_v2"
+    status: "OPEN"
+    condition: "Current candidate disconnected Login from shared Design Manager; W3/W4/W5 are NOT_RUN."
+    unblock: "Restore Login-owned renderer/module into the existing shared manager and rerun exact-SHA Chromium evidence."
+  - id: "TP-LOGIN-RESPONSIVE-001"
+    severity: "P0"
+    area: "auth_login_v2"
+    status: "OPEN"
+    condition: "Profile/envelope are DRAFT; responsive candidate is REVIEW_REQUIRED and Android safe-area/IME behavior is NOT_VERIFIED."
+    unblock: "Derive only supported rules from frozen Login authority; record unresolved decisions without promotion."
+  - id: "TP-LOGIN-GEOMETRY-001"
+    severity: "P0"
+    area: "auth_login_v2"
+    status: "OPEN"
+    condition: "W4 fails root-height equality on scroll cases: 968>932 at dfaa and 758>480 at cb259."
+    unblock: "Verify scrollability and complete content against the declared candidate scroll rule while retaining all other assertions."
+  - id: "TP-LOGIN-ASSET-001"
+    severity: "P1"
+    area: "auth_login_v2"
+    status: "OPEN"
+    condition: "Approved upload source is OPTIONAL/MISSING with frozen PNG degradation; footer grass is NOT_VERIFIED; shared icon publication is unconfirmed."
+    unblock: "Keep source/lifecycle status explicit and approve a noncritical degradation or supply the actual source."
+protected_invariants:
+  control_plane:
+    - "Canonical static Control Plane is read from current Main b080bb0ffb4ebced18593c08709657fabb53a19e."
+    - "Live state remains branch-local; static registry and phase machine are not edited for runtime status."
+  design:
+    - "No frozen raster, Page Profile, resource binding or matrix is silently promoted."
+    - "Illustrative-only NH01 media is never treated as approved formal asset."
+    - "Exact page IDs and page-owned contracts stay separate."
+  evidence:
+    - "Every PASS names exact source SHA and run/evidence."
+    - "Historical SHA results cannot promote the current candidate."
+    - "Browser, visual, Android Runtime and production release statuses remain distinct."
+next_actions:
+  - id: "TP-A01"
+    action: "Restore the Login-owned module and exact-SHA runner to the existing shared Design Manager branch after the approved failure-gate check."
+    owner: "Work"
+    status: "READY"
+    dependencies: []
+  - id: "TP-A02"
+    action: "Run the full Login formal, supplemental, state, negative, timeout and recovery suite; save each case and screenshot hash even when any case fails."
+    owner: "Work"
+    status: "WAITING"
+    dependencies: ["TP-A01"]
+  - id: "TP-A03"
+    action: "Resolve Empty Home required REVIEW resources and composition anchors from existing approved authority."
+    owner: "Work"
+    status: "WAITING"
+    dependencies: []
+  - id: "TP-A04"
+    action: "Start Android implementation on an existing product PR only after all three pages reach SPEC_READY_FOR_IMPLEMENTATION."
+    owner: "Work"
+    status: "WAITING"
+    dependencies: ["TP-A01", "TP-A02", "TP-A03"]
+completion_rules:
+  - "W1-W5 pass on one exact source SHA independently for each page."
+  - "Do not mark a page FROZEN without product-owner visual acceptance."
+  - "Do not start APP implementation until all three pages reach SPEC_READY_FOR_IMPLEMENTATION."
+  - "Do not mark Android Runtime or release PASS from browser or specification evidence."
+state_update:
+  protocol: "harness/STATE_UPDATE_PROTOCOL.md"
+  static_control_plane_changes: "NONE — current rules keep live task state in branch-local state/log files."
+  checkpoint_updated_at: "2026-10-29T06:07:27Z"
+agent_recovery:
+  canonical_entry: "AGENTS.md -> harness/CONTROL_PLANE_REGISTRY.yaml -> current Main"
+  current_work_state: "WORK_EXECUTION_STATE.json"
+  resume_first_at: "next_actions[TP-A01]"
+  historical_failure_ledger: "WORK_EXECUTION_STATE.json.execution_v2"
+
