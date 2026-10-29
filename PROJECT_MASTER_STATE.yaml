@@ -1,0 +1,284 @@
+schema_version: '1.0'
+state_id: YUJIAN_W4_W5_MAIN_PAGES_W6_ANDROID_RUNTIME_CLOSURE_V1_2026-10-29
+project:
+  name: 渔见 AI
+  repository: pan277942135/Yujian_App
+  scope: 'W4/W5/W2/Main Pages/W6 closure and separate NH01, Effect 01, and AI Studio perimeter Android runtime acceptance;
+    active W5 recovery is PR #234.'
+  state_classification: RECOVERY_SNAPSHOT_NOT_PRODUCT_ACCEPTANCE
+state_control:
+  current_branch: work-state/w5-empty-home-pilot-v1
+  current_pr: null
+  related_pr: 234
+  base_sha: 1d851b98e550cdc4d0c5c6f74ffedcf194e126f4
+  execution_baseline_sha: 4f0f3a66d0bef26e24f6bc066478e6cd03b773e8
+  current_head: 4f0f3a66d0bef26e24f6bc066478e6cd03b773e8
+  current_main_head_sha: 1d851b98e550cdc4d0c5c6f74ffedcf194e126f4
+  state_status: RUNNING
+  updated_at: '2026-10-29T01:11:17Z'
+source_of_truth:
+  current_work_state: WORK_EXECUTION_STATE.json
+  canonical_control_plane: CONTROL_PLANE_REGISTRY.yaml
+  phase_task_state_machine: harness/PHASE_TASK_STATE_MACHINE.yaml
+  unified_contract_registry: harness/UNIFIED_CONTRACT_REGISTRY.yaml
+  state_update_protocol: harness/STATE_UPDATE_PROTOCOL.md
+  current_work_log: harness/build-log.md
+repositories:
+  Yujian_App:
+    branch: work-state/w5-empty-home-pilot-v1
+    execution_baseline_sha: 4f0f3a66d0bef26e24f6bc066478e6cd03b773e8
+    current_main_head_sha: 1d851b98e550cdc4d0c5c6f74ffedcf194e126f4
+    control_plane_sync:
+      status: MERGE_SYNCED_TO_CURRENT_MAIN
+      main_sync_commit: 92e1b4282ae5de2f6528ddcc8e59e401ecb99b4a
+      synced_main_sha: 1d851b98e550cdc4d0c5c6f74ffedcf194e126f4
+pull_requests:
+  PR234:
+    number: 234
+    branch: work/w5-empty-home-pilot-v1
+    base_sha: 1d851b98e550cdc4d0c5c6f74ffedcf194e126f4
+    head_sha: 4f0f3a66d0bef26e24f6bc066478e6cd03b773e8
+    status: DRAFT_OPEN_UNMERGED
+    task_id: YUJIAN_PAGE_FREEZE_PIPELINE_W5_W4_EVIDENCE_AND_ISOLATED_PREVIEW_RECOVERY_V3
+  PR242:
+    number: 242
+    branch: design/w5-root-integrity-resource-authority-v1
+    head_sha: 1477e7ab023aa0eb4f238c347d289a6f0771fe2f
+    merge_sha: 80c55961059b95fd8dd52eea4b52a37bd91705e8
+    status: MERGED
+  PR246:
+    number: 246
+    branch: support/pages-dispatch-binding-sync-v1
+    base_sha: 2fab34d20ccd7f2d6f9a0d22dd65cac5d5bd5e98
+    head_sha: 9ec94dff0956a7ae371cc006075db345fcd0643c
+    merge_sha: 1d851b98e550cdc4d0c5c6f74ffedcf194e126f4
+    status: MERGED
+  PR239:
+    number: 239
+    branch: work/w6a-login-structured-hifi-v1
+    base_sha: 874beafb9cb865e2577f72888a380ff5aee9c1a0
+    head_sha: 28c7ccd9ba97fd8502dac46a1718b1f497eb6b96
+    status: DRAFT_OPEN_UNMERGED_BASE_SYNC_BLOCKED
+phases:
+  P0:
+    status: NOT_CONFIRMED
+    note: Not re-established by this narrow W5 recovery checkpoint.
+  P1:
+    status: NOT_CONFIRMED
+    note: Not re-established by this narrow W5 recovery checkpoint.
+  P2:
+    status: NOT_CONFIRMED
+    note: Not re-established by this narrow W5 recovery checkpoint.
+  P3:
+    status: RUNNING
+    note: 'Exact candidate 4f0f3a66: Product Work Admission 40798720006, W1 40798413982, W4 40798414058, W5 40798414056,
+      Design Governance 40798414014 all pass. Pages 40798413921 is still running candidate preview and final W2;
+      NH01 API28 40798413946 is in progress.'
+  P4:
+    status: NOT_CONFIRMED
+    note: Not re-established by this narrow W5 recovery checkpoint.
+  P5:
+    status: NOT_CONFIRMED
+    note: Not re-established by this narrow W5 recovery checkpoint.
+  P6:
+    status: NOT_CONFIRMED
+    note: Not re-established by this narrow W5 recovery checkpoint.
+  P7:
+    status: NOT_CONFIRMED
+    note: Not re-established by this narrow W5 recovery checkpoint.
+  P8:
+    status: NOT_CONFIRMED
+    note: Not re-established by this narrow W5 recovery checkpoint.
+  P9:
+    status: NOT_CONFIRMED
+    note: No release or human acceptance is implied.
+recognition_main_journey:
+  contract_status: FROZEN
+  route:
+  - J01
+  - J02
+  - J03
+  - J04
+  - J05
+  - J06
+  - J07
+  - J08
+  - J09
+  - J10
+  - J11
+  - J12
+  - J13
+  - J14
+  - J15
+  - J16
+  - J17
+  - J18
+  - J19
+  - J20
+  note: Journey identifiers are retained in canonical order; this checkpoint does not alter journey semantics.
+runtime_gates:
+  exact_head:
+    sha: 4f0f3a66d0bef26e24f6bc066478e6cd03b773e8
+    status: RUNNING
+    note: Product Work Admission and W1/W4/W5/Governance pass on this exact source; final Pages W2, isolated preview,
+      and API28 runtime are in progress.
+  page_evidence:
+    w4:
+      status: PASS
+      source_sha: 4f0f3a66d0bef26e24f6bc066478e6cd03b773e8
+      run_id: 40798414058
+      artifact_id: 12864129945
+      artifact_sha256: 23e2acf679a87bbe0e0a875be396d3716964dc690618172026d2d2f949736319
+    w5_matrix:
+      status: PASS_STRUCTURAL_MATRIX_VISUAL_REVIEW_PENDING
+      source_sha: 4f0f3a66d0bef26e24f6bc066478e6cd03b773e8
+      run_id: 40798414056
+      formal_cases: 8/8
+      supplemental_cases: 4/4
+      negative_cases: 8/8
+      artifact_id: 12865405482
+      artifact_sha256: 0352336c05dfa79990391f77f2955569650a5833aa9f0f93d57569bb144c895c
+    w2_resources:
+      status: PASS_W4_STAGED_PAGES_BUNDLE_SCAN; FINAL_PAGES_BUNDLE_PENDING
+      source_sha: 4f0f3a66d0bef26e24f6bc066478e6cd03b773e8
+      run_id: 40798414058
+      artifact_id: 12865361135
+      artifact_sha256: 2eb7c6331ba4ae8b4dd476b06b841f86f7f2ab02a201691b9bef775e8ecabfaf
+      page_ids:
+      - home_normal_v1
+      - home_empty_v2
+      - auth_login_v2
+  isolated_preview:
+    status: IN_PROGRESS
+    run_id: 40798413921
+    source_sha: 4f0f3a66d0bef26e24f6bc066478e6cd03b773e8
+    url: https://pan277942135.github.io/Yujian_App/previews/pr-234/
+    deployment: VERIFYING
+    production_deploy: EXPECTED_SKIPPED
+  product_work_admission:
+    status: PASS
+    mode: PRODUCT_WORK
+    run_id: 40798720006
+    source_sha: 4f0f3a66d0bef26e24f6bc066478e6cd03b773e8
+    main_sha: 1d851b98e550cdc4d0c5c6f74ffedcf194e126f4
+    state_branch_head: dfcc2b07fbb1d0c80d3ad7f35f47faf37c1a8fb4
+    required_gates:
+      CONTROL_PLANE_SYNC: PASS
+      PROJECT_STATE: PASS
+      WORK_STATE: PASS
+    url: https://github.com/pan277942135/Yujian_App/actions/runs/40798720006
+  latest_main_pages:
+    status: PASS_HTTP_VERIFIED
+    source_sha: 1d851b98e550cdc4d0c5c6f74ffedcf194e126f4
+    run_id: 40793680312
+    build: PASS
+    deploy: PASS
+    github_pages_artifact_id: 12862767477
+    github_pages_artifact_sha256: e1f61e94b12df802ec316401056a255fd76d7004e4f7b2bf6e46405c3731cedb
+    production_build_json_sha: 1d851b98e550cdc4d0c5c6f74ffedcf194e126f4
+    root_manifest_sha256: 6259065b2b71a51aa45eacb6ed1b7549360280e7d329c97d193ec10393673b8d
+    root_manifest_checked_files: 1048
+  android_runtime:
+    status: IN_PROGRESS
+    nh01_api28:
+      status: IN_PROGRESS
+      run_id: 40798413946
+      source_sha: 4f0f3a66d0bef26e24f6bc066478e6cd03b773e8
+      api_level: 28
+    effect01: NOT_VERIFIED
+    aistudio_perimeter: NOT_VERIFIED
+    note: No native PASS may be inferred from browser evidence or code changes.
+    previous_source_run:
+      run_id: 40796670926
+      source_sha: 4c0b10667614bef61616dfcc40a7169bcc94cddf
+      status: IN_PROGRESS_AT_LAST_CHECK
+      note: Superseded source; result cannot promote current candidate.
+  historical_runtime_run:
+    rule: Historical results cannot promote current exact HEAD to PASS.
+  support_authority_sync:
+    pr: 246
+    source_sha: 9ec94dff0956a7ae371cc006075db345fcd0643c
+    status: MERGED_INTO_MAIN_1d851b98
+  user_visual_acceptance: PENDING
+apk_and_evidence:
+  status: NOT_VERIFIED
+  apk_sha256: null
+  note: Android runtime and APK acceptance are outside this W5 recovery checkpoint.
+current_work:
+  id: YUJIAN_W4_W5_MAIN_PAGES_W6_ANDROID_RUNTIME_CLOSURE_V1
+  related_pr: 234
+  exact_head: 4f0f3a66d0bef26e24f6bc066478e6cd03b773e8
+  phase: P3
+  task_id: YUJIAN_PAGE_FREEZE_PIPELINE_W5_EMPTY_HOME_PILOT_V1
+  status: RUNNING
+  next_action: Finish Pages preview/final W2 and API28 jobs on 4f0f3a6, then verify artifacts and persist the checkpoint.
+blockers:
+- Design Manager Pages run 40798413921 is still verifying the isolated candidate preview and has not completed final
+  Pages-bundle W2 checks.
+- NH01 API28 Runtime run 40798413946 is in progress; no APK/runtime claim until completion and artifact inspection.
+- Approved standalone Hero/Peek sources remain ASSET_SOURCE_REQUIRED; user visual acceptance is pending.
+protected_invariants:
+  evidence_integrity:
+  - Never promote a historical run or another SHA to PASS for the current candidate.
+  - Retain W4 run 40657928278 as FAIL; do not rewrite its result.
+  resource_lifecycle:
+  - Gallery and Chevron page bindings remain REVIEW; the Asset Registry lifecycle conflict is not resolved by this
+    recovery.
+  - Do not modify frozen image bytes or promote review-only resources to FROZEN.
+  release_boundary:
+  - 'PR #234 remains Draft/Open/Unmerged.'
+  - USER_VISUAL_ACCEPTANCE_PENDING remains independent from CI.
+  - Native runtime remains NOT_VERIFIED.
+next_actions:
+- id: W5-RECOVERY-FAILURE-GUARD-12
+  owner: Work
+  status: COMPLETE
+  action: failure_gate.py check allowed a first repair attempt for the distinct W4 report-shape mismatch and the
+    NH01 probe measurement-formula mismatch; both exact 4c0 failures were recorded with run/artifact evidence.
+  dependency: Product Work Admission PASS run 40797803782 on exact source 4c0b10667614bef61616dfcc40a7169bcc94cddf.
+- id: W5-RECOVERY-REPAIR-10
+  owner: Work
+  status: COMPLETE
+  action: Committed W4 verifier evidence and NH01 probe geometry fixes at exact candidate 4f0f3a6; frozen contracts
+    and negative assertions remain unchanged.
+  dependency: Exact-SHA real Chromium gates are still pending after fresh PRODUCT_WORK Admission.
+- id: W5-RECOVERY-EXACT-GATES-11
+  owner: Work
+  status: BLOCKED_ADMISSION_PENDING
+  action: Run a new PRODUCT_WORK Admission on the current isolated state checkpoint, then execute W1/W4/W5/W2/Pages/Governance/API28
+    and verify preview on 4f0f3a6.
+  dependency: New product SHA after the repair and corresponding Product Work Admission.
+- id: NH01-ASSET-AUDIT-08
+  owner: Work
+  status: READY
+  action: Search authorized repository sources for separate approved Hero/Peek imagery; retain ASSET_SOURCE_REQUIRED
+    if no source exists.
+  dependency: Frozen NH01 static manifest and component tree.
+completion_rules:
+- Product-work Admission must pass against the current exact PR candidate source SHA.
+- W4 Chromium fixtures and W4 Evidence must pass on the repaired exact SHA.
+- W5 matrix and isolated preview must be rerun on the same repaired exact SHA.
+- User visual acceptance remains pending until the product owner confirms it.
+state_update:
+  updated_at: '2026-10-29T01:11:17Z'
+  reason: Recorded exact 4f0f3a6 Product Work Admission PASS and completed W1/W4/W5/Governance runs; final Pages
+    W2/preview and API28 remain in progress.
+  protocol: harness/STATE_UPDATE_PROTOCOL.md
+agent_recovery:
+  resume_order:
+  - 'Read current Main control plane and verify PR #234/Main exact SHAs.'
+  - Commit this state snapshot on the isolated state branch with source_sha 4f0f3a6 and the product candidate tree
+    as its base.
+  - Run PRODUCT_WORK Admission and require CONTROL_PLANE_SYNC + PROJECT_STATE + WORK_STATE PASS.
+  - 'Run all exact-SHA source-dependent gates, keep #234 Draft/Unmerged, and preserve visual acceptance as pending.'
+current_candidate_runs:
+  source_sha: 4f0f3a66d0bef26e24f6bc066478e6cd03b773e8
+  product_work_admission: PASS
+  product_work_admission_run_id: 40798720006
+  w1_run_id: 40798413982
+  w4_run_id: 40798414058
+  w5_run_id: 40798414056
+  pages_run_id: 40798413921
+  governance_run_id: 40798414014
+  nh01_api28_runtime_run_id: 40798413946
+  checkpoint_updated_at: '2026-10-29T01:11:17Z'
