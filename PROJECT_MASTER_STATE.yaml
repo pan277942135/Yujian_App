@@ -10,11 +10,11 @@ state_control:
   current_branch: work/w5-empty-home-pilot-v1
   current_pr: 234
   base_sha: 34f21ad01e62ec7bf11be11fee8eb5a500894333
-  execution_baseline_sha: 0e4d70c4f544ed4b6efc0ab6aa3cf8bf9d41aafb
-  current_head: 0e4d70c4f544ed4b6efc0ab6aa3cf8bf9d41aafb
+  execution_baseline_sha: 38024168c41cabab6ad08f6aa225224fd29818c3
+  current_head: 38024168c41cabab6ad08f6aa225224fd29818c3
   current_main_head_sha: 0c245b86f8228107309d0135bdf819af255604be
   state_status: IN_PROGRESS
-  updated_at: '2026-10-29T20:22:04Z'
+  updated_at: '2026-10-29T20:34:09.368Z'
 source_of_truth:
   current_work_state: WORK_EXECUTION_STATE.json
   canonical_control_plane: CONTROL_PLANE_REGISTRY.yaml
@@ -25,7 +25,7 @@ source_of_truth:
 repositories:
   Yujian_App:
     branch: work/w5-empty-home-pilot-v1
-    execution_baseline_sha: 0e4d70c4f544ed4b6efc0ab6aa3cf8bf9d41aafb
+    execution_baseline_sha: 38024168c41cabab6ad08f6aa225224fd29818c3
     current_main_head_sha: 0c245b86f8228107309d0135bdf819af255604be
     control_plane_sync:
       status: SYNCED_ADMISSION_PASS
@@ -87,9 +87,9 @@ recognition_main_journey:
   note: This narrow design-candidate recovery does not change journey semantics.
 runtime_gates:
   exact_head:
-    sha: 0e4d70c4f544ed4b6efc0ab6aa3cf8bf9d41aafb
-    status: ADMISSION_PASS_W5_PENDING
-    note: Exact Admission passed on candidate aeef79ed; implementation source is 8b9a65bf. W5 matrix and Pages build remain pending; owner visual acceptance remains pending.
+    sha: 38024168c41cabab6ad08f6aa225224fd29818c3
+    status: ADMISSION_PENDING_EXACT_SOURCE_REPLAY
+    note: Previous exact Admission passed at checkpoint 3679c20c for source 0e4d70c4. Current source 38024168 updates page workflow SHA bindings and awaits exact revalidation before W5.
   page_evidence:
     previous_w5_matrix:
       status: HISTORICAL_FOR_OLD_HEAD
@@ -97,7 +97,7 @@ runtime_gates:
       run_id: 40873120653
     current_typography_matrix:
       status: NOT_RUN
-      source_sha: 0e4d70c4f544ed4b6efc0ab6aa3cf8bf9d41aafb
+      source_sha: 38024168c41cabab6ad08f6aa225224fd29818c3
   historical_runtime_run:
     rule: Historical results cannot promote current exact HEAD to PASS.
   user_visual_acceptance: PENDING
@@ -108,22 +108,22 @@ current_work:
   id: YUJIAN_EMPTY_HOME_STRUCTURED_HIFI_TYPOGRAPHY_SCALE_PARITY_V1
   phase: P3
   task_id: YUJIAN_PAGE_FREEZE_PIPELINE_W5_EMPTY_HOME_PILOT_V1
-  exact_head: 0e4d70c4f544ed4b6efc0ab6aa3cf8bf9d41aafb
+  exact_head: 38024168c41cabab6ad08f6aa225224fd29818c3
   status: VALIDATING
   next_action: Run the exact-source W5 4-viewport × 2-font-scale Chromium matrix and isolated Pages workflow; verify live build SHA and Inspector/DOM parity.
 blockers:
 - id: exact_candidate_admission
-  status: PASS
-  description: 'Exact Admission passed on candidate aeef79ed: six control-plane layers, 735 synchronized paths, one approved Login mapping exception, Project Master State PASS, and Work Execution State PASS.'
+  status: PENDING
+  description: Current source 38024168c41cabab6ad08f6aa225224fd29818c3 awaits exact admission after three page resource workflow SHA references were rebound.
 - id: final_checkpoint_admission
   status: PASS
-  description: Exact state checkpoint 6d607aa117b173c776ee607410fb66d1ec26cea7 passed python scripts/validate_control_plane_admission.py before W5 or Pages outputs; validated code source is 0e4d70c4f544ed4b6efc0ab6aa3cf8bf9d41aafb.
+  description: Previous state checkpoint 3679c20ca89ef16ffc6f25ee9bfbb1dfd243cf49 passed before W5; the current code source awaits revalidation.
 - id: brand_asset_authority
   status: BLOCKED
   description: brand_title_primary is registered for normal_home_v1, while Empty Home requires FROZEN_ARTWORK_ASSET; no authorized Empty Home brand binding exists.
 - id: exact_head_visual_evidence
   status: PENDING
-  description: The current candidate's 4×2 browser matrix, measured DOM/Inspector evidence, and live isolated preview are not yet available.
+  description: The current source's W2 resource binding check, 4×2 browser matrix, measured DOM/Inspector evidence, and live isolated preview are pending.
 protected_invariants:
   page_scope:
   - Modify Empty Home only during the typography parity repair.
@@ -137,11 +137,11 @@ protected_invariants:
   - Do not start Android implementation from this candidate review.
 next_actions:
 - id: exact_admission
-  status: DONE
-  description: Exact Admission passed on candidate aeef79ed9c6493eccd284d71f459433c16db62c9.
+  status: READY
+  description: Re-run exact Control Plane Admission on source 38024168c41cabab6ad08f6aa225224fd29818c3 after its workflow SHA binding updates.
 - id: exact_head_w5_and_pages
   status: READY
-  description: Run W5 Chromium and Design Manager Pages from the latest state-only branch checkpoint; page/workflow source is 0e4d70c4f544ed4b6efc0ab6aa3cf8bf9d41aafb. Verify all four formal viewports at font scales 1×/1.3×, DOM bounds, Inspector data, and the isolated live build SHA.
+  description: After exact admission passes on source 38024168c41cabab6ad08f6aa225224fd29818c3, run W5 Chromium and Design Manager Pages; verify all four formal viewports at font scales 1×/1.3×, DOM bounds, Inspector data, and the isolated live build SHA.
 completion_rules:
   visual_acceptance: Product owner reviews the exact isolated preview and records
     ACCEPT or required changes.
@@ -156,4 +156,4 @@ agent_recovery:
   last_gate: EXACT_HEAD_ADMISSION_PASS_W5_AND_PAGES_PENDING
 work_id: YUJIAN_EMPTY_HOME_STRUCTURED_HIFI_TYPOGRAPHY_SCALE_PARITY_V1
 task_id: YUJIAN_PAGE_FREEZE_PIPELINE_W5_EMPTY_HOME_PILOT_V1
-updated_at: '2026-10-29T20:22:04Z'
+updated_at: '2026-10-29T20:34:09.368Z'
