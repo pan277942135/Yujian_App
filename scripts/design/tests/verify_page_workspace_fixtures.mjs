@@ -46,9 +46,15 @@ async function runVerifier(serverUrl, fixtureName, outputDir, unconnectedPolicy 
   const args = [verifier, "--page-id", pageId, "--candidate-url", candidateUrl, "--source-sha", sourceSha,
     "--output-dir", outputDir, "--readiness-timeout-ms", "300", "--unconnected-policy", unconnectedPolicy];
   return await new Promise((resolvePromise, reject) => {
-    const child = spawn("node", args, { stdio: "ignore", env: process.env });
+    const child = spawn("node", args, { stdio: ["ignore", "pipe", "pipe"], env: process.env });
+    let stdout = "";
+    let stderr = "";
+    child.stdout.setEncoding("utf8");
+    child.stderr.setEncoding("utf8");
+    child.stdout.on("data", chunk => { stdout += chunk; });
+    child.stderr.on("data", chunk => { stderr += chunk; });
     child.once("error", reject);
-    child.once("close", code => resolvePromise(code));
+    child.once("close", code => resolvePromise({ code, stdout, stderr }));
   });
 }
 
@@ -85,8 +91,14 @@ async function main() {
   try {
     for (const fixture of ["ok", "hidden-old-workspace", "duplicate-visible-workspaces", "missing", "wrong-page", "missing-layer", "reference-only", "structured-error", "disabled-node", "page-error"]) {
       const outputDir = join(root, fixture);
-      const code = await runVerifier(serverUrl, fixture, outputDir);
-      const report = JSON.parse(await readFile(join(outputDir, "workspace-browser-report.json"), "utf8"));
+      const execution = await runVerifier(serverUrl, fixture, outputDir);
+      const { code } = execution;
+      let report;
+      try {
+        report = JSON.parse(await readFile(join(outputDir, "workspace-browser-report.json"), "utf8"));
+      } catch (error) {
+        throw new Error(`${fixture}: verifier did not write its report; exit=${code}; error=${error}; stdout=${execution.stdout.slice(-4000)}; stderr=${execution.stderr.slice(-4000)}`);
+      }
       if (report.result === "BLOCKED") {
         infrastructureBlocked = true;
         continue;
