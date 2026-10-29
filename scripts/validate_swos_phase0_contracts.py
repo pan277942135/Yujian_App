@@ -128,6 +128,7 @@ def consistency_errors(contracts: dict) -> list[str]:
     if safe_crop.get("padding_profiles") != expected_profiles or safe_crop.get("crop_at_r1_matches_hero") is not True:
         errors.append("BBox safe-crop profiles or R1 Hero transform parity drifted")
     fallback = modes.get("FULL_SOURCE_FIT_SAME_SOURCE_AMBIENT", {})
+    eligibility = android_transition.get("reveal_eligibility", {})
     if fallback.get("source_rect") != [0, 0, 1, 1] or fallback.get("foreground_fit") != "CONTAIN" or fallback.get("preserve_source_aspect_ratio") is not True or fallback.get("generated_fill") is not False:
         errors.append("Full-source fallback must preserve the complete oriented source with FIT and no generated fill")
     samples = fallback.get("reference_samples", {})
@@ -148,7 +149,6 @@ def consistency_errors(contracts: dict) -> list[str]:
         errors.append("Android RR09 must preserve the existing static Result content layout without extra entry motion")
     if android_transition.get("result_entry", {}).get("controls_enabled_from_t0") is not True or android_transition.get("invariants", {}).get("additional_pre_navigation_wait_ms") != 0:
         errors.append("Android transition must keep Result actions active and add no pre-navigation wait")
-    eligibility = android_transition.get("reveal_eligibility", {})
     if photo.get("eligible_result_states") != ["RESULT_HIGH"] or android_transition.get("invariants", {}).get("rr09_animation_high_only") is not True:
         errors.append("RR09 animation including photo continuity must be eligible only for new HIGH results with valid identity")
     for state_key in ("result_medium_or_low", "no_fish_or_image_quality"):
