@@ -51,17 +51,21 @@ const viewports=[
 ];
 const fontScales=[1,1.3,1.5];
 
-async function configure(page,width,height,fontScale){
+async function configure(page,width,height,fontScale,insets={top:24,bottom:24}){
   const workspace=page.locator('[data-testid="nh01-structured-workspace"]');
   await workspace.locator('[data-control="width"]').fill(String(width));
   await workspace.locator('[data-control="height"]').fill(String(height));
   await workspace.locator('[data-control="font"]').evaluate((node,value)=>{node.value=String(value);node.dispatchEvent(new Event("input",{bubbles:true}));},fontScale);
   await workspace.locator('[data-control="zoom"]').evaluate(node=>{node.value="1";node.dispatchEvent(new Event("input",{bubbles:true}));});
+  const safeAreaControls=workspace.locator('.nh01-structured-controls details');
+  await safeAreaControls.evaluate(node=>{node.open=true;});
+  await workspace.locator('[data-control="top"]').fill(String(insets.top));
+  await workspace.locator('[data-control="bottom"]').fill(String(insets.bottom));
   await page.waitForFunction(()=>document.querySelector('[data-testid="nh01-canvas-page"]')?.dataset.layoutMetrics,undefined,{timeout:10000});
 }
 
-async function measure(page,profile,fontScale){
-  return page.evaluate(({profile,fontScale})=>{
+async function measure(page,profile,fontScale,insets={top:24,bottom:24}){
+  return page.evaluate(({profile,fontScale,insets})=>{
     const board=document.querySelector('[data-artboard]');
     const origin=board.getBoundingClientRect();
     const rect=node=>{const r=node.getBoundingClientRect();return{x:+(r.left-origin.left).toFixed(3),y:+(r.top-origin.top).toFixed(3),w:+r.width.toFixed(3),h:+r.height.toFixed(3),right:+(r.right-origin.left).toFixed(3),bottom:+(r.bottom-origin.top).toFixed(3)};};
@@ -84,13 +88,14 @@ async function measure(page,profile,fontScale){
     const styleOverflow=node=>({scrollWidth:node.scrollWidth,clientWidth:node.clientWidth,scrollHeight:node.scrollHeight,clientHeight:node.clientHeight,clippedX:node.scrollWidth>node.clientWidth+1,clippedY:node.scrollHeight>node.clientHeight+1});
     const textSelectors=['.nh01-stat-value','.nh01-stat-label','.nh01-recent-title','.nh01-recent-all','.nh01-hero-metadata strong','.nh01-hero-metadata span','.nh01-cta'];
     const textLayout=[...board.querySelectorAll(textSelectors.join(','))].map(node=>({role:node.className||node.tagName,text:node.textContent.trim(),...styleOverflow(node)}));
-    const safeBottom=profile.height-24;
+    const safeBottom=profile.height-insets.bottom;
+    const safeHeight=profile.height-insets.top-insets.bottom;
     const peekLeftVisible=visible(previous),peekRightVisible=visible(next);
     const leftGap=hero.x-previous.right,rightGap=next.x-hero.right;
     const cameraArtInside={left:cameraArtwork.x-camera.x,top:cameraArtwork.y-camera.y,right:camera.right-cameraArtwork.right,bottom:camera.bottom-cameraArtwork.bottom};
     const metrics=JSON.parse(board.dataset.layoutMetrics);
     return {contractId:metrics.contractId,contractVersion:metrics.contractVersion,contractStatus:metrics.contractStatus,contractSha256:metrics.contractSha256,allocation:metrics.allocation,
-      id:profile.id,viewport:{width:profile.width,height:profile.height,fontScale,topInset:24,bottomInset:24,zoom:1},previewRulesId:metrics.rulesId,
+      id:profile.id,viewport:{width:profile.width,height:profile.height,safeHeight,fontScale,topInset:insets.top,bottomInset:insets.bottom,zoom:1},previewRulesId:metrics.rulesId,
       bounds:{header,stats,recentCatchHeader:recent,recentTitle:title,pager,hero,neighborPrevious:previous,neighborNext:next,pagerIndicator:indicator,captureActionGroup:footer,cta,cameraTouchTarget:camera,cameraArtwork},
       intervals:{headerToStats:stats.y-header.bottom,statsToTitle:title.y-stats.bottom,titleToHero:hero.y-title.bottom,heroBottomToFooterTop:footer.y-hero.bottom,visibleHeroBottomToFooterTop:footer.y-Math.min(hero.bottom,pager.bottom),pagerBottomToFooterTop:footer.y-pager.bottom,heroBottomToCtaTop:cta.y-hero.bottom,ctaToCameraTouch:camera.y-cta.bottom,ctaToCameraArtwork:cameraArtwork.y-cta.bottom,cameraTouchToSafeBottom:safeBottom-camera.bottom,footerToSafeBottom:safeBottom-footer.bottom},
       pager:{peekGapLeft:leftGap,peekGapRight:rightGap,maxGeometryOverlap:Math.max(0,-leftGap,-rightGap),peekGapRule:metrics.pager.peekGap,maxGeometryOverlapLimit:metrics.pager.maxGeometryOverlap,neighborPreviousVisibleWidth:peekLeftVisible,neighborNextVisibleWidth:peekRightVisible,pagerHeight:pager.h,pagerContentHeight:metrics.pager.contentHeight,indicatorHeight:indicator.h,indicatorGapAfterHero:indicator.y-hero.bottom,localScroll:pagerNode.scrollHeight>pagerNode.clientHeight+1,scrollHeight:pagerNode.scrollHeight,clientHeight:pagerNode.clientHeight,scrollNeeded:pagerNode.dataset.scrollNeeded==="true"},
@@ -100,7 +105,34 @@ async function measure(page,profile,fontScale){
       layoutConflicts:[...document.querySelector('[data-inspector]').querySelectorAll('dd')].find(node=>node.previousElementSibling?.textContent==="布局冲突")?.textContent||"",
       responsiveWidth:{document:document.documentElement.scrollWidth,body:document.body.scrollWidth,viewport:window.innerWidth}
     };
-  },{profile,fontScale});
+  },{profile,fontScale,insets});
+}
+
+function curveValue(points,x,field){
+  if(!Array.isArray(points)||!points.length)return 0;
+  if(x<=Number(points[0].safe_height_dp))return Number(points[0][field]);
+  const last=points[points.length-1];
+  if(x>=Number(last.safe_height_dp))return Number(last[field]);
+  for(let i=1;i<points.length;i+=1){
+    const left=points[i-1],right=points[i];
+    if(x<=Number(right.safe_height_dp)){
+      const t=(x-Number(left.safe_height_dp))/(Number(right.safe_height_dp)-Number(left.safe_height_dp));
+      return Number(left[field])+(Number(right[field])-Number(left[field]))*t;
+    }
+  }
+  return Number(last[field]);
+}
+
+function expectedBoundaryGaps(contract,safeHeight,fontScale){
+  const spacing=contract.preview_engine.parameters.spacing;
+  const pressureRule=spacing.font_pressure;
+  const pressure=Math.max(0,Math.min(1,(fontScale-Number(pressureRule.base_font_scale))/Number(pressureRule.range)));
+  const st=spacing.stats_to_title,tc=spacing.title_to_card;
+  return {
+    statsToTitle:Math.max(Number(st.minimum_gap_dp),curveValue(st.base_curve,safeHeight,'value_dp')-Number(st.font_pressure_penalty_dp)*pressure),
+    titleToHero:Math.max(Number(tc.minimum_gap_dp),curveValue(tc.base_curve,safeHeight,'value_dp')-Number(tc.font_pressure_penalty_dp)*pressure),
+    ctaToCamera:curveValue(spacing.footer.transition_curve,safeHeight,'cta_camera_gap_dp')
+  };
 }
 
 function validate(result){
@@ -138,6 +170,8 @@ async function main(){
   const contractBytes=await readFile(resolve(args.root,contractPath));
   const contract=JSON.parse(contractBytes.toString("utf8"));
   const expectedContractSha=createHash("sha256").update(contractBytes).digest("hex");
+  const viewportRegistryPath="design/system_v3/07_Responsive_System/Viewport_Profiles_V1.json";
+  const viewportRegistry=JSON.parse(await readFile(resolve(args.root,viewportRegistryPath),"utf8"));
   const media=JSON.parse(await readFile(resolve(args.root,"design/pages/home/normal_home/08_multi_screen_static_hifi/NH01_STRUCTURED_PREVIEW_MEDIA_V1.json"),"utf8"));
   const mediaHashes=media.assets.map(asset=>({id:asset.id,sha256:createHash("sha256").update(require("node:fs").readFileSync(resolve(args.root,asset.path))).digest("hex")}));
   assert(rules.status==="PREVIEW_ONLY"&&rules.responsive_authority===contractPath&&rules.numeric_authority==="NONE"&&rules.no_numeric_overrides===true,"preview file must be metadata-only and reference the V2 machine contract");
@@ -220,6 +254,46 @@ async function main(){
         }
       }
     }
+    const requiredProbeIds=contract.acceptance?.continuity_probe_ids||[];
+    const registeredProbes=new Map((viewportRegistry.interpolation_probes||[]).map(probe=>[probe.probe_id,probe]));
+    assert(requiredProbeIds.length===5&&new Set(requiredProbeIds).size===requiredProbeIds.length,"frozen contract must register five unique continuity/threshold probes");
+    assert(requiredProbeIds.every(id=>registeredProbes.has(id)),"every frozen continuity/threshold probe must resolve in Viewport_Profiles_V1.json");
+    const continuityProbes=[];
+    for(const probeId of requiredProbeIds){
+      const definition=registeredProbes.get(probeId);
+      const isInterpolation=Array.isArray(definition.font_scales);
+      const cases=isInterpolation
+        ? definition.font_scales.map(fontScale=>({width:definition.width_dp,height:definition.height_dp,fontScale,insets:{top:24,bottom:24}}))
+        : definition.height_values_dp.map(height=>({width:definition.width_dp,height,fontScale:definition.font_scale,insets:{top:0,bottom:0}}));
+      const rows=[];
+      for(const testCase of cases){
+        const profile={id:probeId,width:testCase.width,height:testCase.height};
+        await page.setViewportSize({width:profile.width,height:profile.height});
+        await configure(page,profile.width,profile.height,testCase.fontScale,testCase.insets);
+        const result=await measure(page,profile,testCase.fontScale,testCase.insets);
+        const failures=validate(result);
+        if(result.contractSha256!==expectedContractSha)failures.push("Live layout contract SHA does not match the checked V2 source file");
+        const expected=isInterpolation?null:expectedBoundaryGaps(contract,result.viewport.safeHeight,testCase.fontScale);
+        if(expected){
+          for(const [key,actual,expectedValue] of [
+            ["statsToTitle",result.intervals.statsToTitle,expected.statsToTitle],
+            ["titleToHero",result.intervals.titleToHero,expected.titleToHero],
+            ["ctaToCamera",result.intervals.ctaToCameraTouch,expected.ctaToCamera]
+          ])if(Math.abs(actual-expectedValue)>.25)failures.push(`${key} ${actual.toFixed(3)}dp does not follow the frozen continuous curve ${expectedValue.toFixed(3)}dp at safeHeight ${result.viewport.safeHeight}dp`);
+        }
+        rows.push({case_id:`${probeId}_${profile.width}x${profile.height}_font-${testCase.fontScale}`,viewport:result.viewport,status:failures.length?"FAIL":"PASS",failures,geometry:{statsToTitle:result.intervals.statsToTitle,titleToHero:result.intervals.titleToHero,ctaToCamera:result.intervals.ctaToCameraTouch,hero:result.bounds.hero,pager:result.pager,cameraTouch:result.bounds.cameraTouchTarget,captureActionGroup:result.bounds.captureActionGroup},expected_gaps:expected});
+      }
+      if(probeId==="RESPONSIVE-FOOTER-BOUNDARY-459-460"&&rows.length===2){
+        const [before,after]=rows;
+        if(before.geometry.pager.localScroll!==after.geometry.pager.localScroll||before.geometry.pager.scrollNeeded!==after.geometry.pager.scrollNeeded){
+          before.failures.push("459/460 footer transition changed Pager local-scroll mode");before.status="FAIL";
+        }
+        if(Math.abs(before.geometry.hero.w-after.geometry.hero.w)>1.0||Math.abs(before.geometry.hero.h-after.geometry.hero.h)>1.1||Math.abs(before.geometry.pager.peekGapLeft-after.geometry.pager.peekGapLeft)>.25){
+          before.failures.push("459/460 footer transition changed Hero/Peek geometry beyond the one-dp continuous-height delta");before.status="FAIL";
+        }
+      }
+      continuityProbes.push({probe_id:probeId,purpose:definition.purpose,window_height_semantics:isInterpolation?"registered interpolation viewport; 24dp/24dp browser fixture insets":"registered viewport heights tested with zero simulated insets so safeHeight equals each registered boundary value",status:rows.every(row=>row.status==="PASS")?"PASS":"FAIL",case_count:rows.length,pass_count:rows.filter(row=>row.status==="PASS").length,fail_count:rows.filter(row=>row.status!=="PASS").length,cases:rows});
+    }
     await writeFile(resolve(args.outputDir,"nh01-m05-width-only-bounds.json"),JSON.stringify({build_sha:buildSha,scope:"PREVIEW_ONLY; M05 Android height remains unspecified",viewport_cases:results.filter(result=>result.viewport.width===480).map(result=>({viewport:result.viewport,status:result.status,bounds:{hero:result.bounds.hero,pager:result.bounds.pager,footer:result.bounds.captureActionGroup},pager:result.pager}))},null,2)+"\n");
     // Prove missing media cannot prevent geometry from rendering or change its bounds.
     const probePage=await browser.newPage({viewport:{width:390,height:844},deviceScaleFactor:1});
@@ -240,6 +314,8 @@ async function main(){
     assert(mediaProbeState==="READY","the workspace stays mounted when preview media requests fail");
     assert(mediaGeometryStable,"illustrative image failures changed layout geometry");
     await probePage.close();
+    const continuityProbeCaseCount=continuityProbes.reduce((total,probe)=>total+probe.case_count,0);
+    const continuityProbeFailCount=continuityProbes.reduce((total,probe)=>total+probe.fail_count,0);
     const summary={
       responsive_contract:{path:contractPath,id:contract.contract_id,version:contract.contract_version,status:contract.status,sha256:expectedContractSha,allocation:contract.logical_allocation.allocation_when_positive_surplus},
       task_id:"YUJIAN_NH01_STRUCTURED_HIFI_RESPONSIVE_LAYOUT_REPAIR_V2",
@@ -248,8 +324,10 @@ async function main(){
       browser:{name:"Chromium",version:browser.version(),device_scale_factor:1},
       preview_rules_id:rules.rules_id,
       responsive_contract_sha256:expectedContractSha,
-      status:results.every(result=>result.status==="PASS")&&mediaGeometryStable&&errors.length===0&&badResponses.length===0?"PASS":"FAIL",
+      status:results.every(result=>result.status==="PASS")&&continuityProbeFailCount===0&&mediaGeometryStable&&errors.length===0&&badResponses.length===0?"PASS":"FAIL",
       matrix:{viewport_count:viewports.length,font_scales:fontScales,case_count:results.length,pass_count:results.filter(result=>result.status==="PASS").length,fail_count:results.filter(result=>result.status==="FAIL").length},
+      continuity_probe_registry:{path:viewportRegistryPath,sha256:createHash("sha256").update(await readFile(resolve(args.root,viewportRegistryPath))).digest("hex"),required_probe_ids:requiredProbeIds},
+      continuity_probes:{probe_count:continuityProbes.length,case_count:continuityProbeCaseCount,pass_count:continuityProbeCaseCount-continuityProbeFailCount,fail_count:continuityProbeFailCount,results:continuityProbes},
       generated_illustrative_media:mediaHashes,
       generated_illustrative_images_settled:mediaSettled,
       generated_illustrative_image_http_failures:illustrativeMediaFailures,
@@ -260,13 +338,16 @@ async function main(){
     await writeFile(resolve(args.outputDir,"NH01_STRUCTURED_RESPONSIVE_LAYOUT_V2_REPORT.json"),JSON.stringify(summary,null,2)+"\n");
     const lines=["# NH01 Structured Responsive Layout V2 — Chromium Run",`Status: **${summary.status}**`,`Source SHA: \`${buildSha}\``,`Run ID: \`${process.env.GITHUB_RUN_ID||"local"}\``,`Preview rules: \`${rules.rules_id}\``,`Browser: Chromium ${browser.version()} (device scale 1)`,"","| Case | Viewport | Font | Hero (W×H) | Ratio | Peek gap / visible width | Pager scroll | Footer | Result |","| --- | ---: | ---: | ---: | ---: | ---: | :---: | ---: | :---: |"];
     for(const item of results)lines.push(`| ${item.id} | ${item.viewport.width}×${item.viewport.height} | ${item.viewport.fontScale}× | ${item.bounds.hero.w.toFixed(1)}×${item.bounds.hero.h.toFixed(1)} | ${item.heroRatio.toFixed(4)} | ${item.pager.peekGapLeft.toFixed(1)} / ${item.pager.neighborPreviousVisibleWidth.toFixed(1)}dp | ${item.pager.localScroll?"yes":"no"} | ${item.bounds.captureActionGroup.h.toFixed(1)}dp | ${item.status} |`);
+    lines.push("","## Registered continuity and threshold probes","",`Probe cases: ${continuityProbeCaseCount}; PASS: ${continuityProbeCaseCount-continuityProbeFailCount}; FAIL: ${continuityProbeFailCount}.`,"","| Probe | Viewport / safe insets | Safe height | Stats→Title | Title→Hero | CTA→Camera | Pager scroll | Result |","| --- | --- | ---: | ---: | ---: | ---: | :---: | :---: |");
+    for(const probe of continuityProbes)for(const item of probe.cases)lines.push(`| ${probe.probe_id} | ${item.viewport.width}×${item.viewport.height} / ${item.viewport.topInset},${item.viewport.bottomInset}dp | ${item.viewport.safeHeight}dp | ${item.geometry.statsToTitle.toFixed(2)}dp | ${item.geometry.titleToHero.toFixed(2)}dp | ${item.geometry.ctaToCamera.toFixed(2)}dp | ${item.geometry.pager.localScroll?"yes":"no"} | ${item.status} |`);
     lines.push("",`Illustrative image failure probe: ${mediaGeometryStable?"PASS — layout bounds unchanged":"FAIL"}; ${failedMediaImages}/3 illustrative images failed as injected.`,`Workspace errors: ${errors.length}; HTTP errors: ${badResponses.length}.`,"","Screenshots are Chromium renderings of the Design Manager artboard. Frozen PNG comparisons are not used as a pass/fail threshold.");
     await writeFile(resolve(args.outputDir,"NH01_STRUCTURED_RESPONSIVE_LAYOUT_V2_REPORT.md"),lines.join("\n")+"\n");
     if(summary.status!=="PASS"){
-      console.error(JSON.stringify({NH01_STRUCTURED_RESPONSIVE_LAYOUT_V2_FAILURE:{source_sha:buildSha,browser:summary.browser,matrix:summary.matrix,failed_cases:results.filter(result=>result.status!=="PASS").map(result=>({id:result.id,viewport:result.viewport,failures:result.failures,bounds:result.bounds,intervals:result.intervals,pager:result.pager,heroRatio:result.heroRatio,heroTargetWidth:result.heroTargetWidth,layoutConflicts:result.layoutConflicts})),image_failure_probe:summary.image_failure_probe,errors,bad_responses:badResponses}}));
+      console.error(JSON.stringify({NH01_STRUCTURED_RESPONSIVE_LAYOUT_V2_FAILURE:{source_sha:buildSha,browser:summary.browser,matrix:summary.matrix,failed_cases:results.filter(result=>result.status!=="PASS").map(result=>({id:result.id,viewport:result.viewport,failures:result.failures,bounds:result.bounds,intervals:result.intervals,pager:result.pager,heroRatio:result.heroRatio,heroTargetWidth:result.heroTargetWidth,layoutConflicts:result.layoutConflicts})),continuity_probe_failures:continuityProbes.filter(probe=>probe.status!=="PASS"),image_failure_probe:summary.image_failure_probe,errors,bad_responses:badResponses}}));
       throw new Error(`Responsive matrix failed; see ${resolve(args.outputDir,"NH01_STRUCTURED_RESPONSIVE_LAYOUT_V2_REPORT.json")}`);
     }
     console.log(`NH01_STRUCTURED_RESPONSIVE_LAYOUT_V2=${summary.status} source=${buildSha} cases=${summary.matrix.pass_count}/${summary.matrix.case_count} chromium=${browser.version()} output=${args.outputDir}`);
+    console.log(`NH01_CONTINUITY_PROBES=${continuityProbeFailCount===0?"PASS":"FAIL"} source=${buildSha} probes=${continuityProbes.length}/${requiredProbeIds.length} cases=${continuityProbeCaseCount-continuityProbeFailCount}/${continuityProbeCaseCount}`);
   }finally{await browser.close();if(server)server.close();}
 }
 main().catch(error=>{console.error(error);process.exitCode=1;});
