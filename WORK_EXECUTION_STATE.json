@@ -9,18 +9,18 @@
   "base_sha": "34f21ad01e62ec7bf11be11fee8eb5a500894333",
   "phase": "P3",
   "task_id": "YUJIAN_PAGE_FREEZE_PIPELINE_W5_EMPTY_HOME_PILOT_V1",
-  "stage": "EXACT_HEAD_W5_AND_PREVIEW",
-  "status": "VALIDATING",
-  "source_sha": "32117ea4e04714aef12560bd75a614840afc502e",
-  "checkpoint_updated_at": "2026-10-29T18:18:48.233Z",
-  "next_action": "Review the W5 run for the exact source SHA and confirm the isolated Pages build and source-manifest match before sharing the preview.",
+  "stage": "ADMISSION_RECOVERY",
+  "status": "RECOVERING",
+  "source_sha": "8b9a65bfd7b1e75679bb8a46e6acb08669270fad",
+  "checkpoint_updated_at": "2026-10-29T19:20:07Z",
+  "next_action": "Run python scripts/validate_control_plane_admission.py on the exact state-only checkpoint derived from source 8b9a65bfd7b1e75679bb8a46e6acb08669270fad; run W5 and Pages only after Admission passes.",
   "dependencies": [
     "YUJIAN_PAGE_FREEZE_PIPELINE_W3_DESIGN_MANAGER_ADAPTER_V1",
     "YUJIAN_PAGE_FREEZE_PIPELINE_W4_TEST_EVIDENCE_V1"
   ],
   "blockers": [
-    "Run exact-candidate Admission on this state-only checkpoint, then complete exact-source W5/Pages validation.",
-    "Empty Home brand placement remains blocked: registered brand_title_primary is authorized only for normal_home_v1."
+    "Admission on exact head 8b9a65bfd7b1e75679bb8a46e6acb08669270fad failed because WORK_EXECUTION_STATE.source_sha still pointed to 32117ea4e04714aef12560bd75a614840afc502e; the failed attempt is recorded and source_sha is now rebound to 8b9a65bfd7b1e75679bb8a46e6acb08669270fad, pending exact-checkpoint rerun.",
+    "Empty Home brand placement remains blocked: registered brand_title_primary is authorized only for normal_home_v1; no authorized Empty Home brand binding exists."
   ],
   "evidence": {
     "previous_candidate_sha": "ffd9cfe69ff52c776049953b730f6dabb90fe44a",
@@ -64,6 +64,13 @@
         "result": "FAIL",
         "reason": "WORK_EXECUTION_STATE.json had trailing literal backslash-n; JSON parser reported Extra data at line 48 column 2.",
         "recorded_at": "2026-10-29T17:12:15Z"
+      },
+      {
+        "candidate_sha": "8b9a65bfd7b1e75679bb8a46e6acb08669270fad",
+        "command": "python scripts/validate_control_plane_admission.py",
+        "result": "FAIL",
+        "reason": "WORK_EXECUTION_STATE source_sha lagged the exact candidate; all six Control Plane layers and Project Master State passed, and the WES validator required revalidation after scripts/design/verify_empty_home_structured_hifi.mjs changed.",
+        "recorded_at": "2026-10-29T19:20:07Z"
       }
     ],
     "admission_baseline": {
@@ -78,7 +85,15 @@
       "work_execution_state": "PASS",
       "recorded_at": "2026-10-29T17:49:20Z"
     },
-    "exact_candidate_admission": {
+    "typography_repair": {
+      "code_source_sha": "32117ea4e04714aef12560bd75a614840afc502e",
+      "reference_review": "Historical 5de-exact unchanged-page W5 DOM/screenshot evidence compared against the frozen Empty Home raster before edits.",
+      "candidate_matrix": "NOT_RUN",
+      "candidate_preview": "NOT_RUN",
+      "visual_acceptance": "PENDING"
+    },
+    "current_candidate_sha": "8b9a65bfd7b1e75679bb8a46e6acb08669270fad",
+    "historical_exact_candidate_admission": {
       "candidate_sha": "32117ea4e04714aef12560bd75a614840afc502e",
       "code_source_sha": "32117ea4e04714aef12560bd75a614840afc502e",
       "command": "python scripts/validate_control_plane_admission.py",
@@ -91,12 +106,36 @@
       "recorded_at": "2026-10-29T18:18:48.233Z",
       "note": "Run on the following state-only checkpoint; source and renderer candidate are this exact SHA."
     },
-    "typography_repair": {
-      "code_source_sha": "32117ea4e04714aef12560bd75a614840afc502e",
-      "reference_review": "Historical 5de-exact unchanged-page W5 DOM/screenshot evidence compared against the frozen Empty Home raster before edits.",
-      "candidate_matrix": "NOT_RUN",
-      "candidate_preview": "NOT_RUN",
-      "visual_acceptance": "PENDING"
+    "exact_candidate_admission": {
+      "candidate_sha": "8b9a65bfd7b1e75679bb8a46e6acb08669270fad",
+      "code_source_sha": "8b9a65bfd7b1e75679bb8a46e6acb08669270fad",
+      "command": "python scripts/validate_control_plane_admission.py",
+      "result": "FAIL",
+      "control_plane_layers": 6,
+      "control_plane_sync_paths": 735,
+      "exact_login_mapping_exceptions": 1,
+      "project_master_state": "PASS",
+      "work_execution_state": "FAIL_SOURCE_SHA_DRIFT",
+      "recorded_at": "2026-10-29T19:20:07Z",
+      "note": "State-only repair rebinds source_sha to this candidate; rerun on the resulting exact checkpoint before W5 or Pages."
     }
+  },
+  "execution_v2": {
+    "issues": {
+      "3e2ca3022b821c393b7e": {
+        "closed": false,
+        "failures": [
+          {
+            "evidence": "python scripts/validate_control_plane_admission.py on PR head 8b9a65bfd7b1e75679bb8a46e6acb08669270fad: control plane sync and Project Master passed; WORK_EXECUTION_STATE failed with code-or-contract changes after source_sha require revalidation, naming scripts/design/verify_empty_home_structured_hifi.mjs.",
+            "hypothesis": "WORK_EXECUTION_STATE source_sha and admission evidence lagged the exact PR candidate after Inspector DOM parity assertions were added to the W5 verifier.",
+            "source_sha": "32117ea4e04714aef12560bd75a614840afc502e"
+          }
+        ],
+        "gate_id": "CONTROL_PLANE_ADMISSION",
+        "symptom_key": "WORK_EXECUTION_STATE_SOURCE_SHA_DRIFT_AFTER_VERIFIER_UPDATE",
+        "task_id": "YUJIAN_PAGE_FREEZE_PIPELINE_W5_EMPTY_HOME_PILOT_V1"
+      }
+    },
+    "schema_version": "1.0"
   }
 }
