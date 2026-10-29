@@ -63,6 +63,25 @@
           "authority": "design/pages/home/empty_home/shared/contracts/asset_manifest.json"
         }
       },
+      "responsive_contract_refs": {
+        "status": "DRAFT",
+        "envelope": {
+          "path": "design/system_v3/07_Responsive_System/page_contract_examples/home_empty_v2.envelope.json",
+          "sha256": "c0e8429256186516db5249ea44f89b59875732903d0a4b8e735d90e4afcf617f"
+        },
+        "profile": {
+          "path": "design/system_v3/07_Responsive_System/page_contract_examples/home_empty_v2.profile.json",
+          "sha256": "a8729fd2f1b3d979d8b404302082f8ff1be7df30c355576cd13f7a2ae59ab2b7",
+          "status": "DRAFT"
+        },
+        "responsive_matrix": {
+          "path": "design/pages/home/empty_home/shared/contracts/responsive_mapping_contract.json",
+          "sha256": "9a46e9efd3a11c4ea4c5acaf70f6bba501e50aba8a2fa8057f614f58eb6e1552"
+        },
+        "page_resource_binding": {
+          "path": "design/pages/home/empty_home/Page_Resource_Binding_V1.json"
+        }
+      },
       "note": "Empty Home Spec Closure V1 已完成：Home 仅有一个产品表面，Empty / Normal 由有效 FishRecord 数量决定；组件归属、Layer/Z-order 与 V2.2 Runtime Evidence 已闭环。当前设计与 Android Runtime/Evidence 均为 PASS，正式标记 EMPTY HOME · FROZEN。",
       "audit": "design/pages/home/empty_home/EXPERIENCE_AUDIT_V1.md",
       "display_name": "空首页",
@@ -267,6 +286,30 @@
         "assets": {
           "status": "FROZEN",
           "authority": "design/pages/home/normal_home/assets/asset_manifest.json"
+        }
+      },
+      "responsive_contract_refs": {
+        "status": "FROZEN_BINDING",
+        "envelope": {
+          "path": "design/system_v3/07_Responsive_System/page_contract_examples/home_normal_v1.envelope.json",
+          "sha256": "7bb25e0c9ae46799b6bc0b0ce72889fa88a845f7914b290b751cb07f991df66d"
+        },
+        "profile": {
+          "path": "design/system_v3/07_Responsive_System/page_contract_examples/home_normal_v1.profile.json",
+          "sha256": "2663e12781283f8f0262955ee50d338490909bc83e9c94fb972317be07a41c99",
+          "status": "FROZEN_BINDING"
+        },
+        "responsive_matrix": {
+          "path": "design/pages/home/normal_home/responsive/NH01_RESPONSIVE_LAYOUT_V2.json",
+          "sha256": "2de1fae0c958fd29cdc69f27cc94297438e71c07108f0146f0ff3352a9ba2c6f"
+        },
+        "page_resource_binding": {
+          "path": "design/pages/home/normal_home/Page_Resource_Binding_V1.json"
+        },
+        "acceptance_matrix": {
+          "path": "design/pages/home/normal_home/engineering/NH01_GEMINI_ADAPTIVE_V2_ACCEPTANCE_MATRIX_V1.json",
+          "sha256": "69701cab428f941815e72eb6883c920ce229155f4bd7735ae9a33b2806408815",
+          "status": "IMPLEMENTATION_REPAIR_IN_PROGRESS"
         }
       },
       "display_name": "有数据首页",
@@ -8482,6 +8525,25 @@
           "status": "FROZEN",
           "authority": "design/pages/account_privacy/Login/frozen/manifest.json",
           "note": "页面冻结预览 + 公共 Morning Lake 背景 + 页面底部水草装饰语义已归档。"
+        }
+      },
+      "responsive_contract_refs": {
+        "status": "CANDIDATE_RULE_REVIEW_REQUIRED",
+        "envelope": {
+          "path": "design/system_v3/07_Responsive_System/page_contract_examples/auth_login_v2.envelope.json",
+          "sha256": "59dc3e627fd75652f5d7b7c3b33fa30c4a424334b0c5d8bbf39e34adf4e780e5"
+        },
+        "profile": {
+          "path": "design/system_v3/07_Responsive_System/page_contract_examples/auth_login_v2.profile.json",
+          "sha256": "e60419a5d38b2cd15364b97d8b0d12adc51d3a2251eb3a2d8f9504015eef1ea1",
+          "status": "DRAFT"
+        },
+        "responsive_matrix": {
+          "path": "design/pages/account_privacy/Login/Login_Responsive_Acceptance_Matrix_V1.json",
+          "sha256": "6724be77c90b1dfe6ef1da831c4f3ae528b8b2b54a1d1e96c579970e8a7c4a36"
+        },
+        "page_resource_binding": {
+          "path": "design/pages/account_privacy/Login/Page_Resource_Binding_V1.json"
         }
       },
       "display_name": "登录 · 欢迎回来",
