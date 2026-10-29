@@ -172,6 +172,7 @@ async function main() {
     if (overflow.horizontalOverflow) errors.push(`horizontal overflow: document ${overflow.documentWidth}px > viewport ${overflow.viewportWidth}px`);
     if (failedRequests.length) errors.push(`failed browser requests: ${failedRequests.length}`);
     if (badResponses.length) errors.push(`same-origin HTTP failures: ${badResponses.length}`);
+    const failureReason = errors.length ? `BROWSER_VALIDATION_FAILED: ${errors.join(" | ")}` : null;
     report = {
       schema_version: "1.0", page_id: args.pageId, source_sha: args.sourceSha, candidate_url: route,
       result: errors.length ? "FAIL" : "PASS", visual_result: "MEASUREMENT_ONLY_NOT_VISUAL_PASS",
@@ -179,6 +180,7 @@ async function main() {
         workspace_selection: { selector: workspaceSelector, matching_visible_count: 1, all_workspace_candidates: workspaceCandidates },
         tree_node_count: nodes.length,
       measured_node_count: measured.length, overflow, console_errors: errors,
+      failure_reason: failureReason,
       failed_requests: failedRequests, bad_responses: badResponses,
       screenshot_path: screenshotPath, screenshot_sha256: hash(await readFile(screenshotPath)),
       dom_path: domPath, dom_sha256: hash(await readFile(domPath)),
