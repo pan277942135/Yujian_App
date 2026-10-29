@@ -22,7 +22,6 @@ on:
       - "scripts/measure_first_use_camera_guide_geometry.py"
       - "scripts/verify_swos_static_visual_v1_1.py"
       - "scripts/verify_nh01_pr_preview_live.mjs"
-      - "scripts/verify_login_pr_preview_live.mjs"
       - "scripts/design/validate_nh01_responsive_layout_contract_v2.py"
       - "scripts/design/validate_page_resource_binding.py"
       - "scripts/design/verify_empty_home_structured_hifi.mjs"
@@ -40,7 +39,6 @@ on:
       - "previews/**"
       - "scripts/design/**"
       - "scripts/verify_nh01_pr_preview_live.mjs"
-      - "scripts/verify_login_pr_preview_live.mjs"
       - "scripts/verify_design_manager_navigation.py"
       - "scripts/verify_design_manager_hifi_release.py"
       - "scripts/verify_design_manager_browser.mjs"
@@ -158,11 +156,6 @@ jobs:
           mkdir -p _site
           SITE_BUILD_SHA="${BUILD_SHA}"
           cp -R design _site/design
-          if [ -f scripts/design/page_candidates/auth_login_v2/component_mapping_v1.json ] && [ -f scripts/design/page_candidates/auth_login_v2/responsive_candidate_v1.json ]; then
-            mkdir -p _site/scripts/design/page_candidates/auth_login_v2
-            cp scripts/design/page_candidates/auth_login_v2/component_mapping_v1.json _site/scripts/design/page_candidates/auth_login_v2/component_mapping_v1.json
-            cp scripts/design/page_candidates/auth_login_v2/responsive_candidate_v1.json _site/scripts/design/page_candidates/auth_login_v2/responsive_candidate_v1.json
-          fi
           if [ -d previews ]; then cp -R previews _site/previews; fi
           mkdir -p _site/app/src/main/res/drawable-nodpi
           cp app/src/main/res/drawable-nodpi/normal_home_default_avatar_v2.png _site/app/src/main/res/drawable-nodpi/normal_home_default_avatar_v2.png
@@ -309,7 +302,7 @@ jobs:
             --preview-diff-dir "$RUNNER_TEMP/nh01-preview-diff"
 
       - name: Resolve the live-root SHA-matched Pages artifact with successful build and deployment
-        if: github.event_name == 'pull_request' && contains(fromJSON('[191,203,212,234,239]'), github.event.pull_request.number)
+        if: github.event_name == 'pull_request' && contains(fromJSON('[191,203,212,234]'), github.event.pull_request.number)
         id: published-pages
         shell: bash
         env:
@@ -349,7 +342,7 @@ jobs:
           echo "artifact_digest=$artifact_digest" >> "$GITHUB_OUTPUT"
 
       - name: Download current production Pages artifact
-        if: github.event_name == 'pull_request' && contains(fromJSON('[191,203,212,234,239]'), github.event.pull_request.number)
+        if: github.event_name == 'pull_request' && contains(fromJSON('[191,203,212,234]'), github.event.pull_request.number)
         uses: actions/download-artifact@v4
         with:
           artifact-ids: ${{ steps.published-pages.outputs.artifact_id }}
@@ -359,7 +352,7 @@ jobs:
           path: ${{ runner.temp }}/nh01-published-pages
 
       - name: Compose byte-preserving isolated PR preview
-        if: github.event_name == 'pull_request' && contains(fromJSON('[191,203,212,234,239]'), github.event.pull_request.number)
+        if: github.event_name == 'pull_request' && contains(fromJSON('[191,203,212,234]'), github.event.pull_request.number)
         shell: bash
         env:
           PRODUCTION_RUN_ID: ${{ steps.published-pages.outputs.run_id }}
@@ -412,14 +405,6 @@ jobs:
               shutil.rmtree(preview)
           preview.mkdir(parents=True)
           shutil.copytree(candidate / "design", preview / "design")
-          candidate_login_data = candidate / "scripts/design/page_candidates/auth_login_v2"
-          if candidate_login_data.is_dir():
-              target_login_data = preview / "scripts/design/page_candidates/auth_login_v2"
-              target_login_data.mkdir(parents=True, exist_ok=True)
-              for name in ("component_mapping_v1.json", "responsive_candidate_v1.json"):
-                  source = candidate_login_data / name
-                  if source.is_file():
-                      shutil.copy2(source, target_login_data / name)
           avatar_source = candidate / "app/src/main/res/drawable-nodpi/normal_home_default_avatar_v2.png"
           if not avatar_source.is_file():
               raise SystemExit(f"candidate avatar asset is missing: {avatar_source}")
@@ -485,7 +470,7 @@ jobs:
             --output "$RUNNER_TEMP/nh01-pr${PREVIEW_PR_NUMBER}-prepublish-root-integrity.json"
 
       - name: Verify candidate preview under its isolated Pages path
-        if: github.event_name == 'pull_request' && contains(fromJSON('[191,203,212,234,239]'), github.event.pull_request.number)
+        if: github.event_name == 'pull_request' && contains(fromJSON('[191,203,212,234]'), github.event.pull_request.number)
         shell: bash
         env:
           PREVIEW_PR_NUMBER: ${{ github.event.pull_request.number }}
@@ -506,19 +491,8 @@ jobs:
               --expected-build "$BUILD_SHA" \
               --output-dir "$RUNNER_TEMP/nh01-pr${PREVIEW_PR_NUMBER}-preview-browser"
 
-      - name: Verify W6 Login shared route is published and fail-closed
-        if: github.event_name == 'pull_request' && github.event.pull_request.number == 239
-        shell: bash
-        run: |
-          set -euo pipefail
-          PLAYWRIGHT_MODULE_DIR="$RUNNER_TEMP/dm-playwright/node_modules" \
-            node scripts/verify_login_pr_preview_live.mjs \
-              --url "${{ steps.deployment.outputs.page_url }}previews/pr-239/" \
-              --expected-build "$BUILD_SHA" \
-              --output-dir "$RUNNER_TEMP/dm-live-evidence/login-w6-public-preview"
-
       - name: Upload preview composition evidence
-        if: github.event_name == 'pull_request' && contains(fromJSON('[191,203,212,234,239]'), github.event.pull_request.number)
+        if: github.event_name == 'pull_request' && contains(fromJSON('[191,203,212,234]'), github.event.pull_request.number)
         uses: actions/upload-artifact@v4
         with:
           name: NH01-PR${{ github.event.pull_request.number }}-Preview-Composition-${{ github.run_id }}
@@ -539,7 +513,7 @@ jobs:
           site_root="_site"
           if [ "$EVENT_NAME" = "pull_request" ]; then
             case "$PREVIEW_PR_NUMBER" in
-              191|203|212|234|239) site_root="_site/previews/pr-${PREVIEW_PR_NUMBER}" ;;
+              191|203|212|234) site_root="_site/previews/pr-${PREVIEW_PR_NUMBER}" ;;
             esac
           fi
           test -d "$site_root/design"
@@ -724,7 +698,7 @@ jobs:
           retention-days: 30
 
   deploy-preview:
-    if: github.event_name == 'pull_request' && contains(fromJSON('[191,203,212,234,239]'), github.event.pull_request.number)
+    if: github.event_name == 'pull_request' && contains(fromJSON('[191,203,212,234]'), github.event.pull_request.number)
     concurrency:
       # Match Main Pages workflow concurrency so a main deploy cannot race this additive publication.
       group: design-manager-pages-publish

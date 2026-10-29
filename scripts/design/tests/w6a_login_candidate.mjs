@@ -11,7 +11,7 @@ import { createHash } from "node:crypto";
 const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(SCRIPT_DIR, "../../..");
 const PAGE_REL = "scripts/design/page_candidates/auth_login_v2/preview.html";
-const CANDIDATE_REL = "scripts/design/page_candidates/auth_login_v2";
+const CANDIDATE_REL = "design/pages/account_privacy/Login/structured_candidate";
 const requiredSet = (values, required, label) => {
   for (const item of required) if (!values.includes(item)) throw new Error(`${label} missing: ${item}`);
 };
@@ -480,7 +480,7 @@ async function main() {
       })),
       authority_gaps: [
         { id: "LOGIN_FROZEN_CANVAS_TO_DP_MAPPING_UNBOUND", status: "AUTHORITY_GAP", source: "scripts/design/page_candidates/auth_login_v2/authority_audit_v1.json" },
-        { id: "LOGIN_RESPONSIVE_NUMERIC_AUTHORITY_UNBOUND", status: "REVIEW_REQUIRED", source: "scripts/design/page_candidates/auth_login_v2/responsive_candidate_v1.json" },
+        { id: "LOGIN_RESPONSIVE_NUMERIC_AUTHORITY_UNBOUND", status: "REVIEW_REQUIRED", source: "design/pages/account_privacy/Login/structured_candidate/responsive_candidate_v1.json" },
         { id: "LOGIN_FOOTER_ASSET_MISSING", status: "UNVERIFIED", source: "scripts/design/page_candidates/auth_login_v2/authority_audit_v1.json" }
       ],
       status: "USER_VISUAL_ACCEPTANCE_PENDING"

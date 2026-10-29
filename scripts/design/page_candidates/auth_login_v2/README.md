@@ -21,9 +21,9 @@ The PR workflow `W6-A Login Structured Candidate` runs the same real Chromium ca
 ## Authority and release state
 
 - `authority_audit_v1.json` keeps the V2.1 frozen visual, current revision, older behavior reference, W1 draft, and W2 resolution statuses distinct.
-- `responsive_candidate_v1.json` is explicitly review-required. Its 12 viewport/font combinations are candidate experiments, not a frozen acceptance matrix.
-- `component_mapping_v1.json` gives each rendered component a unique DOM mapping and approximate native-canvas reference bounds. The reference bounds are not a new numeric authority.
+- `design/pages/account_privacy/Login/structured_candidate/responsive_candidate_v1.json` is explicitly review-required. Its 12 viewport/font combinations are candidate experiments, not a frozen acceptance matrix.
+- `design/pages/account_privacy/Login/structured_candidate/component_mapping_v1.json` gives each rendered component a unique DOM mapping and approximate native-canvas reference bounds. The reference bounds are not a new numeric authority.
 - The full frozen PNG is an independent comparison input. The shared renderer in `design/manager/login_v21_candidate_renderer.js` uses the W2-resolved `Morning_Lake_Master_V1.png` background asset instead.
 - The approved original upload is missing; the footer has no independent W2 resource binding. A low-contrast CSS grass sketch is marked `CANDIDATE_UNAPPROVED_ASSET` and is loopback-only.
 - Shared person, lock, and visibility SVGs are byte-checked against the frozen icon library, but Login publication is not confirmed by W2. The harness refuses to render off loopback.
-- W5 technical dependency #224 is cleared. A public Pages preview can be deployed, but the Login renderer remains loopback-only until shared icon and footer publication are explicitly resolved. Product visual acceptance is pending; Native Runtime remains `NOT_VERIFIED`.
+- W5 technical dependency #224 is cleared on PR #234 at its verified candidate SHA. The shared Design Manager route is exercised through the PR-local Chromium workflow; public Pages does not publish an interactive Login renderer while shared icon and footer publication remain unresolved. Product visual acceptance is pending; Native Runtime remains `NOT_VERIFIED`.

@@ -3880,8 +3880,8 @@ function openPageStructuredWorkspace(id, routeKey, writeHistory = false) {
     el("hifiViewAuthorities").innerHTML = [
       feature.design_versions?.find(version => version.current)?.visual_authority,
       `${feature.owner_path}/Page_Resource_Binding_V1.json`,
-      "scripts/design/page_candidates/auth_login_v2/component_mapping_v1.json",
-      "scripts/design/page_candidates/auth_login_v2/responsive_candidate_v1.json"
+      "design/pages/account_privacy/Login/structured_candidate/component_mapping_v1.json",
+      "design/pages/account_privacy/Login/structured_candidate/responsive_candidate_v1.json"
     ].filter(Boolean).map(path =>
       `<a class="authority-row" href="${esc(repoHref(path))}" target="_blank" rel="noreferrer">${esc(path)}</a>`).join("");
     el("hifiViewScenarios").innerHTML = '<span class="preview-empty compact">Login 状态通过本地候选 Renderer 交互；生产认证 API 未连接 · CANDIDATE</span>';

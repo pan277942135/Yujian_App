@@ -2,8 +2,8 @@
 (() => {
   "use strict";
 
-  const MAPPING_PATH = "scripts/design/page_candidates/auth_login_v2/component_mapping_v1.json";
-  const PROFILE_PATH = "scripts/design/page_candidates/auth_login_v2/responsive_candidate_v1.json";
+  const MAPPING_PATH = "design/pages/account_privacy/Login/structured_candidate/component_mapping_v1.json";
+  const PROFILE_PATH = "design/pages/account_privacy/Login/structured_candidate/responsive_candidate_v1.json";
   let mountedAdapter = null;
 
   function assert(condition, message) {
