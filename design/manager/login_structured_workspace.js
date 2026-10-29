@@ -39,7 +39,7 @@
     } catch (error) {
       if (String(error?.message || error).startsWith("PRIVATE_PREVIEW_REQUIRED")) {
         root.innerHTML = `<section class="page-workspace-root" data-page-workspace-root data-page-id="auth_login_v2" data-source-sha="${sourceSha}" data-view-state="BLOCKED_RESOURCE_PERMISSION" data-workspace-kind="blocked-login-candidate"><header class="page-ws-heading"><div><small>W6 LOGIN · RESOURCE PERMISSION GATE</small><h2>Login V2.1 · 候选预览受限</h2><p>页面与候选工作区已注册；此主机没有 Login 共享图标的 W2 发布授权，Renderer 保持 fail-closed。</p></div><code>Source SHA ${sourceSha}</code></header><div data-workspace-error role="status"></div></section>`;
-        root.querySelector("[data-workspace-error]").textContent = "PRIVATE_PREVIEW_REQUIRED · Shared icon publication is NOT_CONFIRMED_IN_LOGIN_W2_BINDING. Open this candidate only on loopback until publication and footer asset authority are resolved.";
+        root.querySelector("[data-workspace-error]").textContent = "PRIVATE_PREVIEW_REQUIRED · Shared icon publication is NOT_CONFIRMED_IN_LOGIN_W2_BINDING. This candidate is limited to loopback or the isolated PR #234 Pages subtree; icon publication and footer asset authority remain unresolved.";
         return { pageId, sourceSha, status: "BLOCKED_RESOURCE_PERMISSION", dispose() { root.replaceChildren(); } };
       }
       throw error;
