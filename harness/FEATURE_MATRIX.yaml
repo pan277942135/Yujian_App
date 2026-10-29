@@ -273,6 +273,7 @@ features:
       - "fishtrace_sites_web_interaction_v1"
       - "swos_web_hifi_motion_technical_contract_v1_0"
       - "swos_rr09_optical_v1_2"
+      - "capture_to_result_visual_flow_v1"
     design_children:
       - "ai_edge_field_v1_static_shape"
       - "ai_edge_field_v1_rendering_contract"
@@ -344,6 +345,7 @@ features:
       control_geometry: "RIGHT_VERTICAL_RAIL"
       binary_import_status: "PENDING"
     known_gaps:
+      - "2026-10-29 Capture→Result whole-path visual/geometry/adaptive-timing contract SPEC_FROZEN. This explicitly changes the full-journey Processing exit from fixed 2800ms to event-gated video beats; RR09 850ms remains first-run target. Current Android implementation and video parity remain NOT_VERIFIED. Authority: design/pages/recognition/journey/Capture_To_Result_Visual_Flow_Contract_V1.md."
       - "Exact-head API28 runtime not yet accepted (B001/B002)."
       - "Capture Hi-Fi source PNG binary import remains pending."
       - "The V1 first-use guide uses the three frozen pages P01/P02/P03; exact-head API28 runtime and visual parity evidence remain pending."
