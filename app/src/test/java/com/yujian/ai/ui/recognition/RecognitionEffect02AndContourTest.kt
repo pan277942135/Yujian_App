@@ -7,41 +7,34 @@ import org.junit.Test
 class RecognitionEffect02AndContourTest {
 
     @Test
-    fun frozenEffect02CalibrationMatchesSpecification() {
-        assertEquals("fish-catch-recognition", Effect02NativeCalibration.sceneId)
-        assertEquals("效果02 (默认推荐)", Effect02NativeCalibration.displayName)
-        assertEquals(1_200L, Effect02NativeCalibration.spreadDurationMs)
-        assertEquals(1.80f, Effect02NativeCalibration.intensity, 0.001f)
-        assertEquals(1.00f, Effect02NativeCalibration.speed, 0.001f)
-        assertEquals(0.015f, Effect02NativeCalibration.marginRatio, 0.0001f)
-        assertEquals(45f, Effect02NativeCalibration.glowSizeDp, 0.001f)
-        assertEquals(0.80f, Effect02NativeCalibration.blendRatio, 0.001f)
-        assertEquals(1.00f, Effect02NativeCalibration.bottomMaskStrength, 0.001f)
-
-        // Colors
-        assertEquals(0xFF4D9B91L, Effect02NativeCalibration.goldColorArgb) // 深湖青
-        assertEquals(0xFFD89913L, Effect02NativeCalibration.cyanColorArgb) // 琥珀金
-        assertEquals(0xFF719FBCL, Effect02NativeCalibration.greenColorArgb) // 湖水灰青
+    fun activePerimeterCalibrationMatchesTheFrozenEffect01Contract() {
+        assertEquals("fish-catch-recognition", Effect01NativeCalibration.sceneId)
+        assertEquals("鱼获识别", Effect01NativeCalibration.displayName)
+        assertEquals(1_200L, Effect01NativeCalibration.spreadDurationMs)
+        assertEquals(1.50f, Effect01NativeCalibration.intensity, 0f)
+        assertEquals(1.00f, Effect01NativeCalibration.speed, 0f)
+        assertEquals(0.060f, Effect01NativeCalibration.marginRatio, 0f)
+        assertEquals(36f, Effect01NativeCalibration.glowSizeDp, 0f)
+        assertEquals(1f, Effect01NativeCalibration.bottomMaskStrength, 0f)
+        assertEquals(0.75f, Effect01NativeCalibration.blendRatio, 0f)
+        assertEquals("overlay", Effect01NativeCalibration.blendMode)
+        assertEquals(0xFF0B6E69L, Effect01NativeCalibration.deepPeacockColorArgb)
+        assertEquals(0xFF4DD0C7L, Effect01NativeCalibration.waterGreenColorArgb)
+        assertEquals(0xFFDDF7F5L, Effect01NativeCalibration.iceWhiteColorArgb)
     }
 
     @Test
-    fun waterResonanceCalibrationMatchesSpecification() {
-        assertEquals("1.0.0", WaterResonanceCalibration.version)
-        assertEquals(2_600L, WaterResonanceCalibration.durationMs)
-        assertEquals(2_100L, WaterResonanceCalibration.freezeAtMs)
-        assertEquals(0.22f, WaterResonanceCalibration.ambientAlpha, 0.001f)
-        assertEquals(0.45f, WaterResonanceCalibration.rippleAlpha, 0.001f)
-        assertEquals(0.45f, WaterResonanceCalibration.goldAlpha, 0.001f)
-        assertEquals(0.22f, WaterResonanceCalibration.residueAlpha, 0.001f)
-
-        assertEquals(3, WaterResonanceCalibration.pulseStartTimes.size)
-        assertEquals(300L, WaterResonanceCalibration.pulseStartTimes[0])
-        assertEquals(700L, WaterResonanceCalibration.pulseStartTimes[1])
-        assertEquals(1100L, WaterResonanceCalibration.pulseStartTimes[2])
-
-        assertEquals(0.55f, WaterResonanceCalibration.pulsePeakAlphas[0], 0.001f)
-        assertEquals(0.48f, WaterResonanceCalibration.pulsePeakAlphas[1], 0.001f)
-        assertEquals(0.42f, WaterResonanceCalibration.pulsePeakAlphas[2], 0.001f)
+    fun processingEnvironmentStrengthMatchesFrozenP0ThroughP7() {
+        assertEquals(0f, processingEnvironmentStrength(0), 0f)
+        assertEquals(10f, processingEnvironmentStrength(350), 0f)
+        assertEquals(45f, processingEnvironmentStrength(950), 0f)
+        assertEquals(75f, processingEnvironmentStrength(1_200), 0f)
+        assertEquals(60f, processingEnvironmentStrength(1_550), 0f)
+        assertEquals(60f, processingEnvironmentStrength(1_550), 0f)
+        assertEquals(35f, processingEnvironmentStrength(2_050), 0f)
+        assertEquals(10f, processingEnvironmentStrength(2_600), 0f)
+        assertEquals(0f, processingEnvironmentStrength(2_800), 0f)
+        assertEquals(0f, processingEnvironmentStrength(10_000), 0f)
     }
 
     @Test
