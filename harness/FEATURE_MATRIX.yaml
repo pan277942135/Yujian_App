@@ -322,6 +322,7 @@ features:
       runtime_authority: "design/pages/recognition/spec/Recognition_Visual_Fidelity_V1_2.md"
       execution_task_refs:
         - "YUJIAN_ANDROID_SLIMSAM_PIXEL_SEGMENTATION_V1"
+        - "YUJIAN_RR09_GOLD_TRANSFER_REVEAL_ANDROID_RUNTIME_V1"
     capture_hifi:
       status: "FROZEN"
       visual_contract: "design/system_v3/08_Page_Contracts/recognition/capture/Recognition_Capture_HiFi_Visual_Contract_V1.md"
@@ -342,6 +343,7 @@ features:
       - "SWOS photo source has no confirmed public publication permission; public preview requires a local browser upload and static exports remain private."
       - "Web Hi-Fi V2 is a main-adopted design-only contract via PR #190. Primary visual baseline web-three-stage is FROZEN_PRIVATE_SHA_BOUND by exact SHA; public permission remains NOT_CONFIRMED; runtime pixel parity remains unverified."
       - "FishTrace Sites has a separate user-frozen Web interaction contract V1: immersive single scene, camera/gallery choice first, desktop photo-left/result-right, below-1024px photo-top/result-below. This is Sites-only and does not alter Yujian Web V2/PR #177; Sites runtime remains unverified until exact-deployment evidence."
+      - "Android RR09 shared-photo implementation is bound to YUJIAN_RR09_GOLD_TRANSFER_REVEAL_ANDROID_RUNTIME_V1 and Android RR09 Shared-Photo Transition Final Contract V1; both photo placement modes, exact R0.5 midpoint and geometry-trust fallback remain runtime implementation/evidence gates."
   recognition_result_v1:
     sequence: 5
     name: "识别结果"
@@ -413,9 +415,11 @@ features:
     implementation:
       registered_runtime_status: "PARTIAL"
       runtime_authority: "app/src/main/java/com/yujian/ai/ui/screens/RecognitionResultScreen.kt"
+      execution_task_refs:
+        - "YUJIAN_RR09_GOLD_TRANSFER_REVEAL_ANDROID_RUNTIME_V1"
     known_gaps:
       - "Current runtime/evidence are partial; exact-head runtime and current-branch provenance conflict remain open (B001/B002/B006)."
-      - "RR09 V3 is main-adopted design-only and not Android-implemented; V2 remains unchanged historical baseline; Runtime/Playback stays NOT_RUN until Stage 1 closure."
+      - "RR09 V3 remains the adopted 850ms timing/title authority. Android implementation code exists, but the shared-photo transition, two-mode Hero placement, midpoint geometry, BBox-only degradation and exact-head runtime acceptance are still open; runtime/playback remains NOT_RUN until Stage 1 closure."
   fish_record_detail_v2:
     sequence: 6
     name: "鱼获详情"

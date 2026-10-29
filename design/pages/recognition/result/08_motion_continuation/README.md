@@ -13,6 +13,7 @@
 - [Machine-readable Motion V3 contract](../motion/recognition_result_motion_contract_v3.json)
 - System contract: `design/system_v3/10_Page_Visual_Acceptance_Contracts/Recognition_Result/Recognition_Result_Motion_Contract_V3.md`
 - Cross-page handoff: `design/pages/recognition/continuity/Processing_Result_Optical_Continuity_Contract_V1.md`
+- Android shared-photo implementation binding: [Final Contract V1](../../continuity/Android_RR09_Shared_Photo_Transition_Final_Contract_V1.md) and [machine JSON](../../continuity/android_rr09_shared_photo_transition_final_v1.json); design-only, runtime NOT_RUN.
 - Existing photo mapping authority: `design/pages/recognition/result/media/Recognition_Result_Hero_Media_Contract_V1.md`
 
 V3 was adopted as a design-only authority through PR #190. V2 is preserved byte-for-byte at the three historical paths below and remains available under the Design Manager's explicitly deprecated `RR09 V2 · 历史基线` submenu.

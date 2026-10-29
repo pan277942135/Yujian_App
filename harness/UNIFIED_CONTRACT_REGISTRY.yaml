@@ -127,6 +127,12 @@ shared_contracts:
     domain: "DOMAIN"
     status: "ACTIVE_CLOSURE"
     refs: ["design/pages/recognition/continuity/Processing_Result_Optical_Continuity_Contract_V1.md", "design/pages/recognition/continuity/processing_result_optical_continuity_v1.json"]
+  ANDROID-RR09-SHARED-PHOTO-TRANSITION-V1:
+    domain: "DOMAIN"
+    status: "ACTIVE_CLOSURE"
+    runtime_status: "NOT_RUN"
+    visual_acceptance_status: "PENDING_PRODUCT_OWNER"
+    refs: ["design/pages/recognition/continuity/Android_RR09_Shared_Photo_Transition_Final_Contract_V1.md", "design/pages/recognition/continuity/android_rr09_shared_photo_transition_final_v1.json", "design/pages/recognition/result/media/Recognition_Result_Hero_Media_Contract_V1.md", "design/pages/recognition/result/media/hero_media_contract.json", "design/pages/recognition/result/motion/Recognition_Result_Motion_Spec_V3.md", "design/pages/recognition/result/motion/recognition_result_motion_contract_v3.json", "design/pages/recognition/processing/optics/SWOS_RR09_Optical_Parameters_V1_2.json"]
   ANDROID-EFFECT01-UPWARD-SCAN-SHAKE-V1:
     domain: "DOMAIN"
     status: "ACTIVE_CLOSURE"
@@ -506,7 +512,7 @@ feature_contracts:
 
 
     shared_contract_refs: ["DS-FOUNDATION", "ANDROID-RUNTIME-HARNESS", "STATE-EVIDENCE-PROVENANCE"]
-    additional_shared_contract_refs: ["MODEL-RECOGNITION", "API-DATA-BOUNDARY", "RECOGNITION-OPTICAL-CONTINUITY", "SWOS-WEB-HIFI-MOTION-V1", "FISHTRACE-SITES-WEB-INTERACTION-V1", "ANDROID-EFFECT01-UPWARD-SCAN-SHAKE-V1", "ANDROID-AISTUDIO-PERIMETER-SHADER-PORT-V1", "ANDROID-SLIMSAM-PIXEL-SEGMENTATION-V1"]
+    additional_shared_contract_refs: ["MODEL-RECOGNITION", "API-DATA-BOUNDARY", "RECOGNITION-OPTICAL-CONTINUITY", "ANDROID-RR09-SHARED-PHOTO-TRANSITION-V1", "SWOS-WEB-HIFI-MOTION-V1", "FISHTRACE-SITES-WEB-INTERACTION-V1", "ANDROID-EFFECT01-UPWARD-SCAN-SHAKE-V1", "ANDROID-AISTUDIO-PERIMETER-SHADER-PORT-V1", "ANDROID-SLIMSAM-PIXEL-SEGMENTATION-V1"]
     required_gate_classes: ["STATIC_CONTRACT", "BUILD", "RUNTIME", "VISUAL", "MOTION_ACCESSIBILITY", "JOURNEY_E2E", "APK_PROVENANCE"]
   recognition_result_v1:
     contract_id: "FC-recognition_result_v1"
@@ -547,7 +553,7 @@ feature_contracts:
     page_contract_refs: ["design/system_v3/08_Page_Contracts/recognition/result/Recognition_Result_Page_Contract_V3_1.md", "design/system_v3/08_Page_Contracts/recognition/result/Layout_Contract_V3_1.json", "design/system_v3/08_Page_Contracts/recognition/result/State_Machine_V3_1.json", "design/system_v3/08_Page_Contracts/recognition/result/Data_Contract_V3_1.json", "design/system_v3/08_Page_Contracts/recognition/result/Engineering_Contract_V3_1.md", "design/system_v3/08_Page_Contracts/recognition/result/Acceptance_Contract_V3_1.json", "design/system_v3/08_Page_Contracts/recognition/result/Result_Responsive_Accessibility_Matrix_V3_1.md", "design/system_v3/09_Android_Implementation_Contracts/Android_Implementation_Contract_Registry_V1.json", "design/system_v3/09_Android_Implementation_Contracts/Recognition_Result_State_Binding_V1.json", "design/system_v3/09_Android_Implementation_Contracts/Recognition_Result_Component_Mapping_V1.json", "design/system_v3/09_Android_Implementation_Contracts/Recognition_Result_Runtime_Gate_V1.md", "design/system_v3/10_Page_Visual_Acceptance_Contracts/Recognition_Result/Recognition_Result_Visual_Contract_V1.md", "design/system_v3/10_Page_Visual_Acceptance_Contracts/Recognition_Result/Recognition_Result_Pixel_Targets_V1.json", "design/system_v3/10_Page_Visual_Acceptance_Contracts/Recognition_Result/Recognition_Result_Motion_Contract_V3.md", "design/system_v3/10_Page_Visual_Acceptance_Contracts/Recognition_Result/Recognition_Result_Accessibility_Contract_V1.md"]
     page_contract_keys: ["page_contract", "layout", "state", "data", "engineering", "acceptance", "responsive_accessibility", "android_registry", "android_state_binding", "android_component_mapping", "android_runtime_gate", "visual_contract", "visual_pixel_targets", "visual_motion", "visual_accessibility"]
     shared_contract_refs: ["DS-FOUNDATION", "ANDROID-RUNTIME-HARNESS", "STATE-EVIDENCE-PROVENANCE"]
-    additional_shared_contract_refs: ["MODEL-RECOGNITION", "API-DATA-BOUNDARY", "RECOGNITION-OPTICAL-CONTINUITY"]
+    additional_shared_contract_refs: ["MODEL-RECOGNITION", "API-DATA-BOUNDARY", "RECOGNITION-OPTICAL-CONTINUITY", "ANDROID-RR09-SHARED-PHOTO-TRANSITION-V1"]
     required_gate_classes: ["STATIC_CONTRACT", "BUILD", "RUNTIME", "VISUAL", "MOTION_ACCESSIBILITY", "JOURNEY_E2E", "APK_PROVENANCE"]
   fish_record_detail_v2:
     contract_id: "FC-fish_record_detail_v2"
@@ -1668,6 +1674,11 @@ gate_contracts:
     contract_refs: ["FC-recognition_flow_v1_2", "ANDROID-SLIMSAM-PIXEL-SEGMENTATION-V1", "ANDROID-RUNTIME-HARNESS", "STATE-EVIDENCE-PROVENANCE"]
     acceptance_domains: ["model_provenance", "onnx_signature", "cpu_smoke", "implementation", "preprocessing", "bbox_mapping", "mask_quality", "embedding_reuse", "lifecycle", "recognition_invariance", "offline", "build", "unit_test", "lint", "runtime", "evidence", "apk_provenance"]
     exact_sha_required: true
+  G-ANDROID-RR09-SHARED-PHOTO-TRANSITION-V1:
+    purpose: "Exact-head Android RR09 shared-photo transition across BBox-safe-crop and full-source FIT/same-source ambient modes, smoothstep R0.5 midpoint, geometry-trust degradation, Chinese-only title timing, one-shot lifecycle and API28 runtime evidence; no runtime or visual PASS from contract registration alone."
+    contract_refs: ["FC-recognition_flow_v1_2", "FC-recognition_result_v1", "ANDROID-RR09-SHARED-PHOTO-TRANSITION-V1", "RECOGNITION-OPTICAL-CONTINUITY", "ANDROID-RUNTIME-HARNESS", "STATE-EVIDENCE-PROVENANCE"]
+    acceptance_domains: ["implementation", "build", "unit_test", "lint", "runtime", "visual", "motion", "geometry", "media_policy", "lifecycle", "evidence", "apk_provenance"]
+    exact_sha_required: true
   G-J01-J20:
     purpose: "End-to-end primary journey J01-J20"
     contract_refs: ["FC-home_empty_v2", "FC-home_normal_v1", "FC-recognition_flow_v1_2", "FC-recognition_result_v1", "FC-fish_record_detail_v2", "FC-fish_memory_bside_v1"]
@@ -1709,9 +1720,9 @@ gate_contracts:
     acceptance_domains: ["release"]
     exact_sha_required: true
   G-SWOS-PHASE0-CONTRACT:
-    purpose: "Cross-contract SWOS Phase 0 authority and timing consistency"
-    contract_refs: ["FC-recognition_flow_v1_2", "FC-recognition_result_v1", "RECOGNITION-OPTICAL-CONTINUITY", "DS-FOUNDATION"]
-    acceptance_domains: ["visual", "motion", "accessibility", "evidence"]
+    purpose: "Cross-contract SWOS Phase 0 authority and timing consistency, including the Android shared-photo implementation binding; does not imply Android runtime acceptance."
+    contract_refs: ["FC-recognition_flow_v1_2", "FC-recognition_result_v1", "RECOGNITION-OPTICAL-CONTINUITY", "ANDROID-RR09-SHARED-PHOTO-TRANSITION-V1", "DS-FOUNDATION"]
+    acceptance_domains: ["visual", "motion", "accessibility", "implementation_contract", "evidence"]
     exact_sha_required: true
   G-WEB-HIFI-CONTRACT:
     purpose: "Yujian Web V2 contract plus the separately scoped FishTrace Sites interaction contract; browser evidence required, no pixel/runtime promotion"
@@ -1769,6 +1780,10 @@ task_contract_bindings:
     contract_refs: ["FC-recognition_flow_v1_2", "ANDROID-SLIMSAM-PIXEL-SEGMENTATION-V1", "ANDROID-RUNTIME-HARNESS", "STATE-EVIDENCE-PROVENANCE", "G-ANDROID-SLIMSAM-PIXEL-SEGMENTATION-V1"]
     gate_id: "G-ANDROID-SLIMSAM-PIXEL-SEGMENTATION-V1"
     phase: "P6"
+  YUJIAN_RR09_GOLD_TRANSFER_REVEAL_ANDROID_RUNTIME_V1:
+    contract_refs: ["FC-recognition_flow_v1_2", "FC-recognition_result_v1", "ANDROID-RR09-SHARED-PHOTO-TRANSITION-V1", "RECOGNITION-OPTICAL-CONTINUITY", "ANDROID-RUNTIME-HARNESS", "STATE-EVIDENCE-PROVENANCE", "G-ANDROID-RR09-SHARED-PHOTO-TRANSITION-V1"]
+    gate_id: "G-ANDROID-RR09-SHARED-PHOTO-TRANSITION-V1"
+    phase: "P6"
   NH01-RESPONSIVE-CONTRACT-V2:
     contract_refs: ["FC-home_normal_v1", "RESPONSIVE-LAYOUT-STANDARD-V1", "G-NH01-RESPONSIVE-CONTRACT-V2"]
     gate_id: "G-NH01-RESPONSIVE-CONTRACT-V2"
@@ -1810,7 +1825,7 @@ task_contract_bindings:
     gate_id: null
     phase: "P3"
   P3-05:
-    contract_refs: ["FC-recognition_flow_v1_2", "FC-recognition_result_v1", "RECOGNITION-OPTICAL-CONTINUITY", "G-SWOS-PHASE0-CONTRACT"]
+    contract_refs: ["FC-recognition_flow_v1_2", "FC-recognition_result_v1", "RECOGNITION-OPTICAL-CONTINUITY", "ANDROID-RR09-SHARED-PHOTO-TRANSITION-V1", "G-SWOS-PHASE0-CONTRACT"]
     gate_id: "G-SWOS-PHASE0-CONTRACT"
     phase: "P3"
   P3-06:
@@ -2037,9 +2052,9 @@ inventory:
   journey_count: 20
   child_surface_count: 81
   route_count: 22
-  task_count: 63
-  gate_count: 29
+  task_count: 64
+  gate_count: 30
   registry_created_from_pr_head: "ebb6b3904feaa0cf26b4fd4b83bc809a397085a2"
-  last_synced_feature_matrix_sha: "aacfe6561fb2dc4dc2262c36147a59bd484cbea1"
-  last_synced_phase_task_state_machine_sha: "960374a521963a4d1b77eba1098701ce065f6e21"
-  last_synced_experience_registry_sha: "47be44ca3cbce908fa676e262987fe26a8dbea32"
+  last_synced_feature_matrix_sha: "fa5350132226d1a3c3d5d667af772f7a41ed6ff9"
+  last_synced_phase_task_state_machine_sha: "ce949229542ea67c25b38e04a582250a69be1bb9"
+  last_synced_experience_registry_sha: "5a3f34da65e3ed873bbcab3161bbb6d0c5c246d8"

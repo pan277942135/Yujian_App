@@ -6,6 +6,12 @@
 
 This report identifies implementation work required after the proposed contract set is adopted. It does not treat the contract update as implementation evidence.
 
+## RR09 shared-photo transition contract binding
+
+The Android-specific implementation binding is now defined by [Android RR09 Shared-Photo Transition Final Contract V1](../../../design/pages/recognition/continuity/Android_RR09_Shared_Photo_Transition_Final_Contract_V1.md) and its [machine-readable JSON](../../../design/pages/recognition/continuity/android_rr09_shared_photo_transition_final_v1.json). It consolidates the two permitted photo placement modes, the exact R0.5 midpoint, first-frame geometry readiness, BBox-only degradation, Chinese-glyph formation, and one-shot lifecycle requirements.
+
+The contract is design-only. It does not prove Android implementation, API 28 playback, screenshot parity, Mask qualification, APK provenance, or product-owner visual acceptance. The implementation gaps G01–G10 and exact-head evidence remain open until the dedicated Android RR09 runtime gate passes.
+
 ## Processing timing and state projection
 
 | Source | Current code/evidence | Required Stage 1 change | Verification |

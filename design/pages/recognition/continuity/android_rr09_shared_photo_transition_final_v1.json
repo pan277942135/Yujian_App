@@ -1,0 +1,542 @@
+{
+  "schema_version": "1.0",
+  "contract_id": "YUJIAN-ANDROID-RR09-SHARED-PHOTO-TRANSITION-V1",
+  "title": "Android RR09 Shared-Photo Transition Final Contract V1",
+  "status": "FROZEN_DESIGN_DIRECTION",
+  "canonicality": "MAIN_AUTHORITY_ONLY_AFTER_MERGE",
+  "runtime_status": "NOT_RUN",
+  "implementation_status": "GAPS_OPEN",
+  "production_mask_status": "NOT_QUALIFIED_BY_THIS_CONTRACT",
+  "visual_acceptance_status": "PENDING_PRODUCT_OWNER",
+  "scope": "Android implementation binding for Processing-to-Result shared-photo continuity and RR09 reveal; no business, model, threshold, route or save-semantics changes.",
+  "authority": {
+    "processing_timing": "design/pages/recognition/processing/motion/Recognition_Processing_Motion_Spec_V1_3.md",
+    "cross_page_handoff": "design/pages/recognition/continuity/processing_result_optical_continuity_v1.json",
+    "reference_geometry": "design/pages/recognition/continuity/SWOS_Shared_Photo_Transition_Contract_V1.json",
+    "hero_media_markdown": "design/pages/recognition/result/media/Recognition_Result_Hero_Media_Contract_V1.md",
+    "hero_media_machine": "design/pages/recognition/result/media/hero_media_contract.json",
+    "rr09_motion_markdown": "design/pages/recognition/result/motion/Recognition_Result_Motion_Spec_V3.md",
+    "rr09_motion_machine": "design/pages/recognition/result/motion/recognition_result_motion_contract_v3.json",
+    "optical_calibration": "design/pages/recognition/processing/optics/SWOS_RR09_Optical_Parameters_V1_2.json",
+    "precedence": "Preserve domain behavior, Hero Media crop rules and RR09 V3 timing/title rules; this contract governs Android interpolation, mode binding, handoff readiness and acceptance."
+  },
+  "invariants": {
+    "same_source_photo": true,
+    "same_photo_session_and_attempt": true,
+    "same_source_sha256": true,
+    "exif_normalized_source_coordinates": true,
+    "one_transform_for_photo_bbox_mask_contour_and_gold": true,
+    "no_full_screen_screenshot_scale": true,
+    "no_photo_swap": true,
+    "no_crossfade_between_distinct_photo_renders": true,
+    "additional_pre_navigation_wait_ms": 0,
+    "result_actions_enabled_at_t0": true,
+    "model_inputs_and_thresholds_changed": false,
+    "route_or_business_state_changed": false,
+    "rr09_animation_high_only": true,
+    "source_sha256_explicit_and_propagated": true,
+    "source_sha256_computed_before_inference": true,
+    "source_sha256_computation_count_per_photo": 1
+  },
+  "timeline": {
+    "processing_minimum_ms": 2800,
+    "rr09_duration_ms": 850,
+    "nominal_combined_visual_ms": 3650,
+    "nominal_combined_visual_is_inference_deadline": false,
+    "t0": "FIRST_ACTUALLY_PRESENTED_RESULT_FRAME",
+    "photo_continuity": {
+      "start_ms": 0,
+      "end_ms": 200,
+      "duration_ms": 200,
+      "interpolation": {
+        "variable": "q",
+        "normalized_time": "u = clamp(elapsed_ms / 200, 0, 1)",
+        "formula": "q(u) = u*u*(3-2*u)",
+        "timing_curve": "SYMMETRIC_SMOOTHSTEP",
+        "geometry_interpolation": "LINEAR_SCALE_TRANSLATION_AND_CLIP_BY_Q",
+        "samples": [
+          {
+            "elapsed_ms": 0,
+            "q": 0
+          },
+          {
+            "elapsed_ms": 100,
+            "q": 0.5
+          },
+          {
+            "elapsed_ms": 200,
+            "q": 1
+          }
+        ],
+        "exact_midpoint_required": true,
+        "crossfade": false
+      },
+      "eligible_result_states": [
+        "RESULT_HIGH"
+      ]
+    },
+    "rr09_phases": [
+      {
+        "start_ms": 0,
+        "end_ms": 200,
+        "duration_ms": 200,
+        "phase": "PHOTO_CONTINUITY"
+      },
+      {
+        "start_ms": 200,
+        "end_ms": 380,
+        "duration_ms": 180,
+        "phase": "GOLD_TRANSFER_TO_CHINESE_TITLE"
+      },
+      {
+        "start_ms": 380,
+        "end_ms": 550,
+        "duration_ms": 170,
+        "phase": "CHINESE_GLYPH_FORMATION"
+      },
+      {
+        "start_ms": 550,
+        "end_ms": 680,
+        "duration_ms": 130,
+        "phase": "CHINESE_NAME_REVEAL"
+      },
+      {
+        "start_ms": 680,
+        "end_ms": 850,
+        "duration_ms": 170,
+        "phase": "AFTERGLOW_FADE_TO_STATIC_RESULT"
+      }
+    ],
+    "no_pre_navigation_wait": true,
+    "no_processing_resolve_state_added": true
+  },
+  "result_entry": {
+    "layout_bounds": "FINAL_RESPONSIVE_LAYOUT_FROM_FIRST_PRESENTED_RESULT_FRAME",
+    "whole_page_scale": false,
+    "layout_translation_or_reflow": false,
+    "background_visible_at_t0": true,
+    "controls_enabled_from_t0": true,
+    "chinese_title_timing_source": "recognition_result_motion_contract_v3.json",
+    "title_language": "CHINESE_ONLY",
+    "english_scientific_name_visible": false,
+    "empty_english_title_row_reserved": false,
+    "overlay_handoff": "KEEP_SHARED_PHOTO_LAYER_UNTIL_HERO_SOURCE_CROP_TRANSFORM_AND_RENDER_READINESS_MATCH; ATOMIC_HANDOFF_AT_R1",
+    "first_frame_geometry_failure": "FAIL_CLOSED_TO_STATIC_RESULT; DO_NOT_START_TRANSITION_RETROACTIVELY",
+    "blank_frame_allowed": false,
+    "duplicate_sharp_photo_allowed": false,
+    "crop_jump_at_r1_allowed": false,
+    "non_title_content_entry": "EXISTING_STATIC_RESULT_LAYOUT_AT_FINAL_BOUNDS_NO_ADDITIONAL_ALPHA_POSITION_OR_SCALE_ANIMATION"
+  },
+  "photo_placement": {
+    "decision_order": [
+      "validate current PhotoSession/source identity and EXIF-normalized dimensions",
+      "validate detector BBox for presentation crop",
+      "run Hero Media V1.2 safe-crop profiles",
+      "use BBOX_ANCHORED_SAFE_CROP only if full valid BBox containment and crop feasibility pass",
+      "otherwise use FULL_SOURCE_FIT_SAME_SOURCE_AMBIENT"
+    ],
+    "modes": {
+      "BBOX_ANCHORED_SAFE_CROP": {
+        "conditions": [
+          "real detector BBox exists and is valid for presentation",
+          "image identity, source dimensions and EXIF-normalized coordinate space match the current PhotoSession",
+          "entire valid BBox remains inside candidate crop after rounding",
+          "target Hero ratio is satisfied and crop remains inside source"
+        ],
+        "padding_profiles": [
+          {
+            "horizontal_fraction": 0.1,
+            "vertical_fraction": 0.12
+          },
+          {
+            "horizontal_fraction": 0.08,
+            "vertical_fraction": 0.08
+          },
+          {
+            "horizontal_fraction": 0.04,
+            "vertical_fraction": 0.04
+          },
+          {
+            "horizontal_fraction": 0,
+            "vertical_fraction": 0
+          }
+        ],
+        "edge_compensation": "STOP_AT_SOURCE_EDGE_AND_TRANSFER_MISSING_EXPANSION_TO_OPPOSITE_SIDE",
+        "target_transform_source": "ACTUAL_RESULT_HERO_PLANNED_CROP_RECT_AND_RENDER_TRANSFORM",
+        "crop_at_r1_matches_hero": true,
+        "second_crop_at_r1": false,
+        "mask_qualification_implied": false
+      },
+      "FULL_SOURCE_FIT_SAME_SOURCE_AMBIENT": {
+        "conditions": [
+          "BBox missing, invalid, stale, untrusted or coordinate-mismatched",
+          "all safe-crop profiles fail",
+          "NO_FISH or IMAGE_QUALITY result state"
+        ],
+        "source_rect": [
+          0,
+          0,
+          1,
+          1
+        ],
+        "foreground_fit": "CONTAIN",
+        "preserve_source_aspect_ratio": true,
+        "ambient_fill": "LOW_CONTRAST_BLURRED_COVER_DERIVED_FROM_THE_SAME_SOURCE_PHOTO",
+        "generated_fill": false,
+        "outpaint": false,
+        "fish_repair": false,
+        "solid_letterbox": false,
+        "aggressive_center_crop": false,
+        "reference_viewport_dp": {
+          "width": 360,
+          "height": 640
+        },
+        "reference_source_px": {
+          "width": 1152,
+          "height": 1536,
+          "aspect_ratio": 0.75
+        },
+        "reference_samples": {
+          "R0": {
+            "elapsed_ms": 0,
+            "outer_rect": {
+              "x": 0,
+              "y": 0,
+              "width": 360,
+              "height": 640
+            },
+            "foreground_rect": {
+              "x": 0,
+              "y": 80,
+              "width": 360,
+              "height": 480
+            }
+          },
+          "R0_5": {
+            "elapsed_ms": 100,
+            "outer_rect": {
+              "x": 9.5,
+              "y": 26.5,
+              "width": 341,
+              "height": 425
+            },
+            "foreground_rect": {
+              "x": 50.625,
+              "y": 66.5,
+              "width": 258.75,
+              "height": 345
+            }
+          },
+          "R1": {
+            "elapsed_ms": 200,
+            "outer_rect": {
+              "x": 19,
+              "y": 53,
+              "width": 322,
+              "height": 210
+            },
+            "foreground_rect": {
+              "x": 101.25,
+              "y": 53,
+              "width": 157.5,
+              "height": 210
+            }
+          }
+        },
+        "reference_state_hero_sizes_dp": {
+          "HIGH": [
+            322,
+            210
+          ],
+          "MEDIUM": [
+            322,
+            178
+          ],
+          "LOW": [
+            322,
+            178
+          ],
+          "NO_FISH": [
+            322,
+            245
+          ],
+          "IMAGE_QUALITY": [
+            322,
+            214
+          ]
+        },
+        "reference_geometry_applies_to": "MODE_B_ONLY_AT_360X640DP"
+      }
+    },
+    "responsive_geometry_source": "MEASURED_WINDOW_BOUNDS_AND_CURRENT_HERO_MEDIA_TRANSFORM",
+    "photo_orientation_does_not_change_hero_ratio": true
+  },
+  "geometry_trust": {
+    "TRUSTED_MASK": {
+      "fish_highlight": "THREE_GOLD_LAYERS_ON_THE_SAME_QUALIFIED_MASK",
+      "contour_trace": true,
+      "spatial_transfer": "ONLY_IF_SOURCE_IDENTITY_MAPPING_AND_ANCHOR_CHECKS_PASS"
+    },
+    "TRUSTED_BBOX_ONLY": {
+      "fish_highlight": "SUBTLE_BOUNDED_REGIONAL_GLOW_ONLY",
+      "rectangle_trace": false,
+      "spatial_transfer": "ONLY_IF_EXPLICIT_VALIDATED_SOURCE_ANCHOR_AND_TRANSFORM_PASS",
+      "missing_anchor_fallback": "NON_SPATIAL_CHINESE_TITLE_RESOLUTION"
+    },
+    "manual_reference_contour_can_qualify_production_mask": false,
+    "UNTRUSTED_MISSING_STALE_FISH_GEOMETRY_WITH_VALID_PHOTO_TRANSFORM": {
+      "photo_transform_requirement": "PHOTO_IDENTITY_AND_SOURCE_TO_WINDOW_TRANSFORM_MUST_REMAIN_VALID",
+      "fish_specific_optics": false,
+      "contour_trace": false,
+      "spatial_transfer": false,
+      "eligible_high_with_valid_photo_transform": "KEEP_RR09_TIMING_WITH_RESTRAINED_NON_SPATIAL_CHINESE_TITLE_RESOLUTION",
+      "invalid_photo_identity_or_transform": "STATIC_RESULT_NO_RR09_TRANSITION"
+    }
+  },
+  "reveal_eligibility": {
+    "new_result_high_with_valid_identity": {
+      "rr09_timeline_ms": 850,
+      "play_once_per_session_and_attempt": true,
+      "trusted_mask_behavior": "CONTOUR_DRIVEN_GOLD_TRANSFER",
+      "bbox_only_behavior": "BOUNDED_REGION_GLOW_AND_OPTIONAL_VALIDATED_ANCHOR",
+      "fish_geometry_untrusted_but_photo_transform_valid_behavior": "NON_SPATIAL_TITLE_RESOLUTION_ON_RR09_V3_TIMELINE"
+    },
+    "result_medium_or_low": {
+      "photo_transition": "NONE_STATIC_RESULT",
+      "rr09_title_reveal": false,
+      "gold_celebration": false
+    },
+    "no_fish_or_image_quality": {
+      "photo_mode": "FULL_SOURCE_FIT_SAME_SOURCE_AMBIENT",
+      "photo_transition": "NONE_STATIC_RESULT",
+      "rr09_title_reveal": false,
+      "gold_celebration": false
+    },
+    "invalid_identity_historical_or_reopened": {
+      "transition": "STATIC_RESULT",
+      "spatial_optics": false,
+      "title_replay": false
+    },
+    "reduce_motion": {
+      "photo_interpolation": false,
+      "spatial_travel": false,
+      "particles": false,
+      "title_sweep": false,
+      "title_immediately_readable": true,
+      "actions_enabled": true
+    },
+    "after_850ms": {
+      "frame_clock_active": false,
+      "transient_particles": 0,
+      "dynamic_glow": false,
+      "static_result_interactive": true
+    },
+    "invalid_photo_geometry": {
+      "transition": "STATIC_RESULT",
+      "rr09_timeline": false,
+      "spatial_optics": false
+    }
+  },
+  "renderer_requirements": {
+    "gold_layers": [
+      "Gold Core",
+      "Soft Glow",
+      "Halo"
+    ],
+    "all_gold_layers_share_trusted_mask": true,
+    "all_layers_share_photo_transform": true,
+    "optical_values_source": "SWOS_RR09_Optical_Parameters_V1_2.json",
+    "candidate_numeric_values_remain_candidates_until_owner_visual_acceptance": true,
+    "glyph_formation_clipped_to_actual_chinese_glyph_mask": true,
+    "generic_title_rectangle_particles_accepted": false,
+    "english_scientific_name_line": false,
+    "scanner_hud_frame_confetti_fireworks_hard_beam": false
+  },
+  "implementation_gap_register": [
+    {
+      "id": "G01",
+      "file": "app/src/main/java/com/yujian/ai/ui/recognition/reveal/RecognitionRevealController.kt",
+      "current": "easeOutCubic maps 100ms to 0.875",
+      "required": "symmetric smoothstep maps 100ms to exactly 0.5",
+      "evidence": "unit tests at 0/100/200ms"
+    },
+    {
+      "id": "G02",
+      "file": "app/src/main/java/com/yujian/ai/ui/recognition/reveal/RecognitionRevealGeometry.kt",
+      "current": "transition must bind to the actual Hero cropRect and transform",
+      "required": "test safe crop, all retry profiles and full-source fallback",
+      "evidence": "mode matrix and R1 transform parity"
+    },
+    {
+      "id": "G03",
+      "file": "app/src/main/java/com/yujian/ai/ui/screens/RecognitionResultScreen.kt",
+      "current": "Hero may be visible before transition geometry becomes ready",
+      "required": "shared overlay at q=0 on first frame or static fail-closed fallback",
+      "evidence": "first-frame screenshots and no-retroactive-overlay test"
+    },
+    {
+      "id": "G04",
+      "file": "app/src/main/java/com/yujian/ai/ui/recognition/reveal/RecognitionRevealPolicy.kt",
+      "current": "TRUSTED_BBOX_ONLY collapses into TITLE_FADE_ONLY",
+      "required": "bounded regional glow with no rectangle and only a validated source anchor",
+      "evidence": "trust-tier unit tests"
+    },
+    {
+      "id": "G05",
+      "file": "app/src/main/java/com/yujian/ai/ui/recognition/reveal/RecognitionRevealController.kt",
+      "current": "non-full-reveal title fallback can finish in first 200ms",
+      "required": "eligible HIGH title fallback keeps 380/550/680ms RR09 boundaries",
+      "evidence": "deterministic phase-boundary tests"
+    },
+    {
+      "id": "G06",
+      "file": "app/src/main/java/com/yujian/ai/ui/recognition/reveal/RecognitionRevealOpticalRenderer.kt",
+      "current": "title particles use title-rectangle fractions rather than actual glyph mask",
+      "required": "clip formation to actual Chinese glyph mask",
+      "evidence": "glyph-mask frame captures"
+    },
+    {
+      "id": "G07",
+      "file": "app/src/main/java/com/yujian/ai/ui/recognition/reveal/RecognitionRevealOpticalRenderer.kt",
+      "current": "28/13/4 widths and alpha values are hard-coded",
+      "required": "bind and calibrate against SWOS/RR09 parameter source; do not silently freeze candidates",
+      "evidence": "parameter export and owner comparison"
+    },
+    {
+      "id": "G08",
+      "file": "app/src/main/java/com/yujian/ai/ui/screens/RecognitionResultScreen.kt",
+      "current": "result title composable can render scientificName",
+      "required": "RR09 V3 Chinese-only title with no English row",
+      "evidence": "title layout test and screenshot"
+    },
+    {
+      "id": "G09",
+      "file": "app/src/main/java/com/yujian/ai/ui/recognition/reveal/RecognitionRevealController.kt",
+      "current": "PHOTO_ONLY eligibility can animate photo continuity for states excluded by RR09 V3",
+      "required": "Gate all RR09 motion, including photo continuity, to new HIGH plus valid species identity; keep Medium/Low/error/historical results static",
+      "evidence": "eligibility matrix instrumentation test"
+    },
+    {
+      "id": "G10",
+      "file": "app/src/main/java/com/yujian/ai/ui/recognition/reveal/RecognitionRevealHandoff.kt",
+      "current": "session/attempt keys exist but exact runtime proof is still required",
+      "required": "one-shot lifecycle survives recomposition/rotation and isolates retries/photo switches",
+      "evidence": "instrumentation lifecycle matrix"
+    },
+    {
+      "id": "G11",
+      "file": "app/src/main/java/com/yujian/ai/ui/recognition/reveal/RecognitionRevealHandoff.kt",
+      "current": "photoSourceIdentity is imageId plus source plus dimensions and carries no content SHA-256",
+      "required": "Compute SHA-256 once when the persisted EXIF-normalized source file is created, before inference; propagate it unchanged through PhotoSession/SelectedImage/Handoff without adding a pre-navigation wait",
+      "evidence": "source hash propagation test across Processing, Handoff and Result; same source hash on R0/R0.5/R1"
+    }
+  ],
+  "acceptance": {
+    "exact_sha_required": true,
+    "gates": [
+      "CONTRACT_CONSISTENCY",
+      "GEOMETRY_MIDPOINT_AND_HERO_PARITY",
+      "TWO_PHOTO_MODE_MATRIX",
+      "GEOMETRY_TRUST_DEGRADATION",
+      "RR09_TIMING_AND_TITLE",
+      "API28_AND_PHYSICAL_DEVICE_RUNTIME",
+      "EVIDENCE_PROVENANCE",
+      "PRODUCT_OWNER_VISUAL_ACCEPTANCE"
+    ],
+    "viewport_matrix_dp": [
+      [
+        320,
+        480
+      ],
+      [
+        360,
+        640
+      ],
+      [
+        390,
+        844
+      ],
+      [
+        412,
+        915
+      ],
+      [
+        430,
+        932
+      ],
+      [
+        800,
+        360
+      ]
+    ],
+    "font_scales": [
+      1,
+      1.3,
+      1.5
+    ],
+    "source_orientations": [
+      "PORTRAIT",
+      "LANDSCAPE"
+    ],
+    "exif_rotation_degrees": [
+      0,
+      90,
+      180,
+      270
+    ],
+    "required_result_states": [
+      "HIGH",
+      "MEDIUM",
+      "LOW",
+      "NO_FISH",
+      "IMAGE_QUALITY"
+    ],
+    "required_geometry_states": [
+      "TRUSTED_MASK",
+      "TRUSTED_BBOX_ONLY",
+      "UNTRUSTED",
+      "MISSING",
+      "STALE"
+    ],
+    "required_runtime_evidence": [
+      "exact_source_sha",
+      "workflow_run_ids",
+      "build_unit_test_android_test_compile_lint",
+      "api28_runtime_and_physical_device_recording",
+      "R0_R0_5_R1_R2_R3_R4_R5_captures",
+      "continuous_recording",
+      "measured_bounds_and_transform_error",
+      "source_photo_sha_and_permission_provenance",
+      "apk_sha256",
+      "photo_sha256_propagated_through_session_handoff"
+    ],
+    "visual_tolerance": {
+      "reference_mode_b_geometry_dp": 2,
+      "r0_5_progress_absolute_error": 0,
+      "r1_transform_match_required": true
+    },
+    "runtime_and_visual_gates_not_implied_by_contract_merge": true,
+    "eligibility_matrix_assertions": {
+      "rr09_animation_eligible_only_for": [
+        "RESULT_HIGH_WITH_VALID_SPECIES_IDENTITY_AND_NEW_SESSION"
+      ],
+      "no_rr09_transition_for": [
+        "RESULT_MEDIUM",
+        "RESULT_LOW",
+        "ERROR_NO_FISH",
+        "ERROR_IMAGE_QUALITY",
+        "TECHNICAL_FAILURE",
+        "INVALID_IDENTITY",
+        "HISTORICAL_OR_REOPENED"
+      ],
+      "static_result_uses_hero_placement_mode": true
+    }
+  },
+  "provenance": {
+    "baseline_main_sha": "0c7f06ef672ce89285d8b7d9b3646a33439e8712",
+    "baseline_control_plane_admission_run": "https://github.com/pan277942135/Yujian_App/actions/runs/40809660170",
+    "source_photo_fixture_committed": false,
+    "source_photo_publication_permission": "NOT_CONFIRMED",
+    "contract_merge_is_runtime_evidence": false
+  }
+}

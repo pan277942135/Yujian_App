@@ -97,8 +97,8 @@ phases:
     entry_condition: "Required contracts and engineering foundation exist."
     exit_condition: "Release-scope feature implementation reaches executable acceptance tasks."
     release_scope: "PRIMARY_PLUS_SECONDARY"
-    feature_refs: ["home_normal_v1", "record_date_v2", "share_templates_v1", "auth_register_v2"]
-    task_refs: ["P6-01", "P6-02", "P6-03", "P6-04", "YUJIAN_NH01_ANDROID_FROZEN_V22_IMPLEMENTATION_REPAIR_WORK_B_V1", "YUJIAN_NH01_RESPONSIVE_V2_ANDROID_IMPLEMENTATION_AND_RUNTIME_ACCEPTANCE_V1", "YUJIAN_ANDROID_FISH_CATCH_EFFECT01_UPWARD_SCAN_SHAKE_V1", "YUJIAN_ANDROID_AISTUDIO_PERIMETER_SHADER_PORT_V1", "YUJIAN_ANDROID_SLIMSAM_PIXEL_SEGMENTATION_V1"]
+    feature_refs: ["home_normal_v1", "record_date_v2", "share_templates_v1", "auth_register_v2", "recognition_flow_v1_2", "recognition_result_v1"]
+    task_refs: ["P6-01", "P6-02", "P6-03", "P6-04", "YUJIAN_NH01_ANDROID_FROZEN_V22_IMPLEMENTATION_REPAIR_WORK_B_V1", "YUJIAN_NH01_RESPONSIVE_V2_ANDROID_IMPLEMENTATION_AND_RUNTIME_ACCEPTANCE_V1", "YUJIAN_ANDROID_FISH_CATCH_EFFECT01_UPWARD_SCAN_SHAKE_V1", "YUJIAN_ANDROID_AISTUDIO_PERIMETER_SHADER_PORT_V1", "YUJIAN_ANDROID_SLIMSAM_PIXEL_SEGMENTATION_V1", "YUJIAN_RR09_GOLD_TRANSFER_REVEAL_ANDROID_RUNTIME_V1"]
   P7:
     name: "Integration / Full Surface"
     entry_condition: "Feature implementation is executable."
@@ -434,8 +434,8 @@ tasks:
     depends_on: ["P3-01"]
     entry_blockers: []
     target_blockers: []
-    evidence_required: ["swos_optical_contract_v1", "processing_result_continuity_v1", "rr09_v3_contract", "authority_reference_sync", "android_stage1_gap_report", "swos_contract_validation"]
-    completion: "Versioned SWOS/Processing/RR09 authorities and control-plane references are synchronized; Android runtime remains a Stage 1 gate."
+    evidence_required: ["swos_optical_contract_v1", "processing_result_continuity_v1", "rr09_v3_contract", "android_shared_photo_transition_final_contract", "two_photo_mode_decision_matrix", "r0_5_midpoint_math", "authority_reference_sync", "android_stage1_gap_report", "swos_contract_validation"]
+    completion: "Versioned SWOS/Processing/RR09 authorities and control-plane references are synchronized, including the Android RR09 shared-photo implementation contract, both photo placement modes and the exact R0.5 midpoint rule. Android runtime remains a separate Stage 1 gate."
     human_required: false
     gate_id: "G-SWOS-PHASE0-CONTRACT"
   P3-06:
@@ -600,6 +600,19 @@ tasks:
     gate_id: "G-ANDROID-SLIMSAM-PIXEL-SEGMENTATION-V1"
     evidence_required: ["immutable_model_revision_license_and_sha256", "onnx_metadata_and_cpu_smoke", "photo_preprocessing_and_bbox_coordinate_parity", "one_encoder_embedding_reused_across_boxes", "full_resolution_mask_and_candidate_quality_evidence", "photo_session_cancellation_and_stale_result_isolation", "detector_classifier_and_result_invariance", "real_photo_positive_and_negative_cases", "offline_model_loading", "api28_runtime_diagnostics_and_installable_apk"]
     completion: "Add local SlimSAM segmentation as an independent branch from the existing PhotoSession original photo and Detector BBOX; produce a separately attributable full-resolution pixel mask per valid box, reuse one image embedding per photo, preserve Detector/Classifier/Result behavior, and deliver exact-head model, CPU, offline and API28 evidence. No fake-mask fallback or production visual redesign."
+    human_required: false
+  YUJIAN_RR09_GOLD_TRANSFER_REVEAL_ANDROID_RUNTIME_V1:
+    phase: "P6"
+    priority: "P0"
+    owner: "Work"
+    feature_refs: ["recognition_flow_v1_2", "recognition_result_v1"]
+    journey_refs: ["J07-J16"]
+    depends_on: ["P3-05", "P5-02"]
+    entry_blockers: []
+    target_blockers: []
+    gate_id: "G-ANDROID-RR09-SHARED-PHOTO-TRANSITION-V1"
+    evidence_required: ["android_shared_photo_transition_final_contract", "same_photo_sha_and_session_identity", "photo_sha256_propagated_through_session_handoff", "r0_r0_5_r1_geometry_tests", "smoothstep_midpoint_0_100_200ms", "bbox_safe_crop_containment_and_edge_compensation", "full_source_fit_same_source_ambient_fallback", "bbox_only_no_rectangle_and_anchor_trust", "high_only_rr09_fallback_timing", "non_high_medium_low_error_static_result", "chinese_glyph_mask_and_no_english_row", "cta_nonblocking_and_one_shot", "build_unit_android_test_compile_lint", "api28_runtime_recording", "portrait_landscape_exif_viewport_matrix", "exact_head_apk_provenance"]
+    completion: "Close the existing Android RR09 runtime follow-up against the Android Shared-Photo Transition Final Contract V1. Preserve one PhotoSession/source SHA and transform; implement BBox-safe-crop and full-source FIT/same-source ambient modes; enforce exact R0.5 midpoint, geometry-trust degradation, Chinese-only title timing, no added navigation wait and non-blocking actions. Deliver exact-head build, test, API28 runtime and APK evidence. Does not imply product-owner visual acceptance or release."
     human_required: false
   P6-03:
     phase: "P6"
