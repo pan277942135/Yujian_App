@@ -52,6 +52,11 @@ def load_worktree_exceptions():
 def is_approved_worktree_exception(path,current_blob,exceptions):
     expected=exceptions.get(path)
     return expected is not None and current_blob==expected
+
+def is_approved_extra_worktree_file(path,file_path,exceptions):
+    """Allow a non-frozen candidate file only when Main pins its exact path and blob."""
+    return file_path.is_file() and is_approved_worktree_exception(path,local_blob(file_path),exceptions)
+
 def main():
     ap=argparse.ArgumentParser()
     ap.add_argument("--base",default="origin/main")
@@ -85,7 +90,11 @@ def main():
         missing=canonical-local
         extra=local-canonical
         for item in sorted(missing): errors.append(f"missing canonical file on Work branch: {item}")
-        for item in sorted(extra): errors.append(f"extra/divergent canonical file on Work branch: {item}")
+        for item in sorted(extra):
+            if is_approved_extra_worktree_file(item,ROOT/item,worktree_exceptions):
+                allowed_exceptions+=1
+            else:
+                errors.append(f"extra/divergent canonical file on Work branch: {item}")
         for item in sorted(canonical & local):
             compared+=1
             local=ROOT/item
