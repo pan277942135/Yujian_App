@@ -132,19 +132,20 @@ async function main() {
       }
     }
     const referenceOnlyOutput = join(root, "reference-only-core-not-run");
-    const referenceOnlyCode = await runVerifier(serverUrl, "reference-only", referenceOnlyOutput, "not-run");
+    const { code: referenceOnlyCode, stdout: referenceOnlyStdout, stderr: referenceOnlyStderr } =
+      await runVerifier(serverUrl, "reference-only", referenceOnlyOutput, "not-run");
     const referenceOnlyReport = JSON.parse(await readFile(join(referenceOnlyOutput, "workspace-browser-report.json"), "utf8"));
     if (referenceOnlyCode !== 0 || referenceOnlyReport.result !== "NOT_RUN"
       || referenceOnlyReport.reason !== "REFERENCE_IMAGE_ONLY_NOT_CONNECTED"
       || referenceOnlyReport.page_acceptance !== "NOT_VERIFIED") {
-      throw new Error(`core tools must preserve reference-only page status as NOT_RUN; report=${JSON.stringify(referenceOnlyReport)}`);
+      throw new Error(`core tools must preserve reference-only page status as NOT_RUN; exit=${referenceOnlyCode}; stdout=${referenceOnlyStdout}; stderr=${referenceOnlyStderr}; report=${JSON.stringify(referenceOnlyReport)}`);
     }
     for (const fixture of ["reference-only-error", "reference-only-bad-response"]) {
       const outputDir = join(root, fixture);
-      const code = await runVerifier(serverUrl, fixture, outputDir, "not-run");
+      const { code, stdout, stderr } = await runVerifier(serverUrl, fixture, outputDir, "not-run");
       const report = JSON.parse(await readFile(join(outputDir, "workspace-browser-report.json"), "utf8"));
       if (report.result !== "FAIL" || code === 0) {
-        throw new Error(`${fixture}: broken reference-only authority must not be masked as NOT_RUN; report=${JSON.stringify(report)}`);
+        throw new Error(`${fixture}: broken reference-only authority must not be masked as NOT_RUN; exit=${code}; stdout=${stdout}; stderr=${stderr}; report=${JSON.stringify(report)}`);
       }
     }
     if (infrastructureBlocked) {
