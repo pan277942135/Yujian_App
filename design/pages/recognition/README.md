@@ -47,6 +47,7 @@ Frozen V1.2 photo-state references remain unchanged. PR #190 adopted the SWOS op
 - Main-adopted design-only Processing timing: `processing/motion/Recognition_Processing_Motion_Spec_V1_3.md`
 - Main-adopted design-only Processing Page Contract V3.2: `design/system_v3/08_Page_Contracts/recognition/processing/Recognition_Processing_Page_Contract_V3_2.md`
 - Main-adopted design-only Processing → Result continuity: `continuity/Processing_Result_Optical_Continuity_Contract_V1.md`
+- Android RR09 shared-photo implementation binding (design-only; runtime NOT_RUN): `continuity/Android_RR09_Shared_Photo_Transition_Final_Contract_V1.md` and `continuity/android_rr09_shared_photo_transition_final_v1.json`
 - Main-adopted design-only RR09 reveal: `result/motion/Recognition_Result_Motion_Spec_V3.md`
 - Phase 0 closure and Android gap list: `docs/execution/swos/PHASE0_CLOSURE_REPORT_V1.md`
 
