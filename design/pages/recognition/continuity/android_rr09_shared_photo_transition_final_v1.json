@@ -33,7 +33,8 @@
     "result_actions_enabled_at_t0": true,
     "model_inputs_and_thresholds_changed": false,
     "route_or_business_state_changed": false,
-    "rr09_animation_high_only": true
+    "rr09_animation_high_only": true,
+    "source_sha256_explicit_and_propagated": true
   },
   "timeline": {
     "processing_minimum_ms": 2800,
@@ -419,6 +420,13 @@
       "current": "session/attempt keys exist but exact runtime proof is still required",
       "required": "one-shot lifecycle survives recomposition/rotation and isolates retries/photo switches",
       "evidence": "instrumentation lifecycle matrix"
+    },
+    {
+      "id": "G11",
+      "file": "app/src/main/java/com/yujian/ai/ui/recognition/reveal/RecognitionRevealHandoff.kt",
+      "current": "photoSourceIdentity is imageId plus source plus dimensions and carries no content SHA-256",
+      "required": "Compute SHA-256 once for the persisted EXIF-normalized source file and propagate it unchanged through PhotoSession/SelectedImage/Handoff",
+      "evidence": "source hash propagation test across Processing, Handoff and Result; same source hash on R0/R0.5/R1"
     }
   ],
   "acceptance": {
@@ -497,7 +505,8 @@
       "continuous_recording",
       "measured_bounds_and_transform_error",
       "source_photo_sha_and_permission_provenance",
-      "apk_sha256"
+      "apk_sha256",
+      "photo_sha256_propagated_through_session_handoff"
     ],
     "visual_tolerance": {
       "reference_mode_b_geometry_dp": 2,
