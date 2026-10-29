@@ -1,0 +1,297 @@
+{
+  "schema_version": "1.0",
+  "registry_id": "effective_authority_registry_v3_1",
+  "version": "V3.1",
+  "status": "FROZEN",
+  "shared_foundation_status": "SHARED_FOUNDATION_READY",
+  "updated_at": "2026-10-16",
+  "authority_model": "Use one canonical registry or contract per shared domain. A review candidate is never a production source. Page-specific Frozen visual/geometry authority controls properties it explicitly owns; Shared Foundation applies only to registered shared properties.",
+  "entries": [
+    {
+      "authority_id": "product_flow",
+      "domain": "Product master flow and transition counts",
+      "status": "CANONICAL",
+      "canonical_path": "design/system_v3/00_Product_Master_Flow/master_flow_v3_1.json",
+      "supporting_paths": [
+        "design/system_v3/11_Freeze_Governance/audits/Design_Readiness_Baseline_V3_1.json",
+        "design/system_v3/11_Freeze_Governance/audits/Contract_Completeness_Matrix_V3_1.json",
+        "design/system_v3/11_Freeze_Governance/audits/Preliminary_Dependency_Map_V3_1.json",
+        "design/system_v3/00_Product_Master_Flow/subflows/Recognition_Main_Journey_Business_Contract_V1.md",
+        "design/system_v3/00_Product_Master_Flow/subflows/Recognition_Main_Journey_Flow_V1.json",
+        "design/system_v3/00_Product_Master_Flow/subflows/Recognition_Main_Journey_Route_Matrix_V1.md",
+        "design/system_v3/00_Product_Master_Flow/subflows/Recognition_Main_Journey_Acceptance_Matrix_V1.md",
+        "design/system_v3/00_Product_Master_Flow/subflows/Recognition_Main_Journey_Acceptance_Matrix_V1.json",
+        "design/system_v3/00_Product_Master_Flow/assets/Recognition_Main_Journey_Overview_V1.png",
+        "design/system_v3/00_Product_Master_Flow/assets/Recognition_Main_Journey_Overview_V1.svg",
+        "design/system_v3/00_Product_Master_Flow/assets/Recognition_Main_Journey_Asset_Manifest_V1.json",
+        "design/system_v3/00_Product_Master_Flow/assets/Recognition_New_States_HiFi_V1.png",
+        "design/system_v3/00_Product_Master_Flow/assets/Recognition_New_States_HiFi_V1.svg",
+        "design/system_v3/00_Product_Master_Flow/assets/Recognition_New_States_Manifest_V1.json"
+      ],
+      "counts": {
+        "nodes": 35,
+        "edges": 56,
+        "registry_features": 15
+      }
+    },
+    {
+      "authority_id": "readiness_gate",
+      "domain": "Phase closure, system readiness and Phase 3 gate",
+      "status": "CANONICAL",
+      "canonical_path": "design/system_v3/11_Freeze_Governance/Shared_Foundation_Freeze_Status_V3_1.json",
+      "supporting_paths": [
+        "design/system_v3/11_Freeze_Governance/Shared_Foundation_Freeze_Status_V3_1.md",
+        "design/system_v3/11_Freeze_Governance/audits/Design_Readiness_Baseline_V3_1.json"
+      ]
+    },
+    {
+      "authority_id": "typography",
+      "domain": "Shared type tokens and Android font mapping",
+      "status": "READY",
+      "canonical_path": "design/system_v3/04_Design_Tokens/Typography/Typography_Tokens_V3_FINAL.json",
+      "supporting_paths": [
+        "design/system_v3/04_Design_Tokens/Typography/Typography_System_V3_FINAL.md",
+        "design/system_v3/04_Design_Tokens/Typography/Typography_Android_Mapping_V3.md",
+        "design/system_v3/11_Freeze_Governance/audits/Phase1_Decisions_Required_V3_1.md"
+      ],
+      "system": "Typography",
+      "effective_authority_path": "design/system_v3/04_Design_Tokens/Typography/Typography_Tokens_V3_FINAL.json",
+      "version": "V3.1",
+      "supersedes": "design/system_v3/04_Design_Tokens/Typography/Typography_Tokens_V3.json",
+      "consumer_reference": [
+        "design/system_v3/01_Shared_Foundation_V3_1/README.md",
+        "Android Work input (downstream)",
+        "Backend UI/Data alignment input (downstream)",
+        "Test Work acceptance input (downstream)"
+      ]
+    },
+    {
+      "authority_id": "color",
+      "domain": "Canonical color roles and values",
+      "status": "READY",
+      "canonical_path": "design/system_v3/04_Design_Tokens/Color/Color_Tokens_V3_FINAL.json",
+      "supporting_paths": [
+        "design/system_v3/04_Design_Tokens/Color/Color_System_V3_FINAL.md",
+        "design/system_v3/04_Design_Tokens/Color/Orphan_Color_Report_V3.md",
+        "design/system_v3/11_Freeze_Governance/audits/Phase1_Decisions_Required_V3_1.md"
+      ],
+      "review_only_paths": [
+        "design/system_v3/11_Freeze_Governance/reviews/Color_D015_Approval_Packet_V3_1.md",
+        "design/system_v3/11_Freeze_Governance/reviews/Color_Semantic_Candidates_V3_1.json",
+        "design/system_v3/11_Freeze_Governance/reviews/Color_D015_Review_V3_1.html"
+      ],
+      "system": "Color",
+      "effective_authority_path": "design/system_v3/04_Design_Tokens/Color/Color_Tokens_V3_FINAL.json",
+      "version": "V3.1",
+      "supersedes": "design/system_v3/04_Design_Tokens/Color/Color_Tokens_V3.json",
+      "consumer_reference": [
+        "design/system_v3/01_Shared_Foundation_V3_1/README.md",
+        "Android Work input (downstream)",
+        "Backend UI/Data alignment input (downstream)",
+        "Test Work acceptance input (downstream)"
+      ],
+      "non_normative_paths": [
+        "design/system_v3/11_Freeze_Governance/reviews/Color_D015_Approval_Packet_V3_1.md",
+        "design/system_v3/11_Freeze_Governance/reviews/Color_Semantic_Candidates_V3_1.json",
+        "design/system_v3/11_Freeze_Governance/reviews/Color_D015_Review_V3_1.html"
+      ]
+    },
+    {
+      "authority_id": "geometry",
+      "domain": "Shared dimensions, coordinate, inset and responsive rules",
+      "status": "READY",
+      "canonical_path": "design/system_v3/07_Responsive_System/Geometry_Tokens_V3_FINAL.json",
+      "supporting_paths": [
+        "design/system_v3/07_Responsive_System/Geometry_System_V3_FINAL.md",
+        "design/system_v3/07_Responsive_System/Responsive_Rules_V3_FINAL.md"
+      ],
+      "system": "Geometry",
+      "effective_authority_path": "design/system_v3/07_Responsive_System/Geometry_Tokens_V3_FINAL.json",
+      "version": "V3.1",
+      "supersedes": "design/system_v3/07_Responsive_System/Geometry_Tokens_V3.json",
+      "consumer_reference": [
+        "design/system_v3/01_Shared_Foundation_V3_1/README.md",
+        "Android Work input (downstream)",
+        "Backend UI/Data alignment input (downstream)",
+        "Test Work acceptance input (downstream)"
+      ]
+    },
+    {
+      "authority_id": "background",
+      "domain": "Background roles, source identities and treatments",
+      "status": "READY",
+      "canonical_path": "design/system_v3/08_Background_System/Background_Registry_V3.json",
+      "supporting_paths": [
+        "design/system_v3/08_Background_System/Background_System_V3.md"
+      ],
+      "system": "Background",
+      "effective_authority_path": "design/system_v3/08_Background_System/Background_Registry_V3.json",
+      "version": "V3.1",
+      "supersedes": "No earlier registered V3 authority",
+      "consumer_reference": [
+        "design/system_v3/01_Shared_Foundation_V3_1/README.md",
+        "Android Work input (downstream)",
+        "Backend UI/Data alignment input (downstream)",
+        "Test Work acceptance input (downstream)"
+      ]
+    },
+    {
+      "authority_id": "icon",
+      "domain": "SVG identity and rendering contract",
+      "status": "READY",
+      "canonical_path": "design/system_v3/09_Icon_System/Icon_Registry_V3.json",
+      "supporting_paths": [
+        "design/system_v3/09_Icon_System/Icon_System_V3.md"
+      ],
+      "system": "Icon",
+      "effective_authority_path": "design/system_v3/09_Icon_System/Icon_Registry_V3.json",
+      "version": "V3.1",
+      "supersedes": "No earlier registered V3 authority",
+      "consumer_reference": [
+        "design/system_v3/01_Shared_Foundation_V3_1/README.md",
+        "Android Work input (downstream)",
+        "Backend UI/Data alignment input (downstream)",
+        "Test Work acceptance input (downstream)"
+      ]
+    },
+    {
+      "authority_id": "components",
+      "domain": "Shared public component contracts and page variants",
+      "status": "READY",
+      "canonical_path": "design/system_v3/05_Component_System/Component_Registry_V3_FINAL.json",
+      "supporting_paths": [
+        "design/system_v3/05_Component_System/Component_Contract_V3_FINAL.md"
+      ],
+      "system": "Component",
+      "effective_authority_path": "design/system_v3/05_Component_System/Component_Registry_V3_FINAL.json",
+      "version": "V3.1",
+      "supersedes": "design/system_v3/05_Component_System/Component_Registry_V3.json",
+      "consumer_reference": [
+        "design/system_v3/01_Shared_Foundation_V3_1/README.md",
+        "Android Work input (downstream)",
+        "Backend UI/Data alignment input (downstream)",
+        "Test Work acceptance input (downstream)",
+        "design/system_v3/08_Page_Contracts/Page_Registry_V3_1.json"
+      ]
+    },
+    {
+      "authority_id": "assets",
+      "domain": "Repository asset identity and byte SHA-256",
+      "status": "READY",
+      "canonical_path": "design/system_v3/06_Asset_System/Asset_Registry_V3_FINAL.json",
+      "supporting_paths": [
+        "design/system_v3/06_Asset_System/Asset_SHA_Audit_FINAL.md",
+        "design/system_v3/06_Asset_System/Missing_Asset_Report_FINAL.md"
+      ],
+      "system": "Asset",
+      "effective_authority_path": "design/system_v3/06_Asset_System/Asset_Registry_V3_FINAL.json",
+      "version": "V3.1",
+      "supersedes": "design/system_v3/06_Asset_System/Asset_Registry_V3.json",
+      "consumer_reference": [
+        "design/system_v3/01_Shared_Foundation_V3_1/README.md",
+        "Android Work input (downstream)",
+        "Backend UI/Data alignment input (downstream)",
+        "Test Work acceptance input (downstream)"
+      ]
+    },
+    {
+      "authority_id": "page_visuals",
+      "domain": "Frozen page visuals and page-owned geometry",
+      "status": "PAGE_SCOPED_FROZEN_AUTHORITIES",
+      "canonical_path": "design/system_v3/01_Page_Registry/page_state_authority_map_v3_1.json",
+      "supporting_paths": [
+        "design/system_v3/06_Asset_System/Asset_Registry_V3_FINAL.json"
+      ],
+      "scope_rule": "Follow the map to each page Frozen raster/manifest and page contract. Do not modify or re-render Frozen raster bytes."
+    },
+    {
+      "authority_id": "design_manager",
+      "domain": "Shared Foundation V3.1 navigation entry",
+      "status": "CANONICAL_INDEX",
+      "canonical_path": "design/system_v3/01_Shared_Foundation_V3_1/index.html",
+      "supporting_paths": [
+        "design/system_v3/01_Shared_Foundation_V3_1/README.md"
+      ]
+    },
+    {
+      "authority_id": "recognition_result_android_implementation",
+      "domain": "Recognition Result Android implementation bindings and runtime acceptance criteria",
+      "status": "READY_FOR_IMPLEMENTATION",
+      "canonical_path": "design/system_v3/09_Android_Implementation_Contracts/Android_Implementation_Contract_Registry_V1.json",
+      "supporting_paths": [
+        "design/system_v3/09_Android_Implementation_Contracts/Recognition_Result_Android_Contract_V1.md",
+        "design/system_v3/09_Android_Implementation_Contracts/Recognition_Result_State_Binding_V1.json",
+        "design/system_v3/09_Android_Implementation_Contracts/Recognition_Result_Component_Mapping_V1.json",
+        "design/system_v3/09_Android_Implementation_Contracts/Recognition_Result_Runtime_Gate_V1.md",
+        "design/system_v3/08_Page_Contracts/recognition/result/Recognition_Result_Page_Contract_V3_1.md",
+        "design/system_v3/08_Page_Contracts/Page_Registry_V3_1.json"
+      ],
+      "derived_from": "design/system_v3/08_Page_Contracts/recognition/result/Recognition_Result_Page_Contract_V3_1.md",
+      "implementation_status": "READY_FOR_IMPLEMENTATION",
+      "validation_status": "PASS",
+      "version": "V1",
+      "supersedes": "None; derived subordinate layer that does not replace the Page Contract",
+      "consumer_reference": [
+        "Android Work implementation input (Recognition Result only)",
+        "Test Work runtime acceptance input (Recognition Result only)"
+      ]
+    },
+    {
+      "authority_id": "normal_home_android_implementation",
+      "domain": "Normal Home Android implementation bindings and runtime acceptance criteria",
+      "status": "READY_FOR_IMPLEMENTATION",
+      "canonical_path": "design/system_v3/09_Android_Implementation_Contracts/Android_Implementation_Contract_Registry_V1.json",
+      "supporting_paths": [
+        "design/system_v3/09_Android_Implementation_Contracts/Normal_Home/Normal_Home_Android_Contract_V1.md",
+        "design/system_v3/09_Android_Implementation_Contracts/Normal_Home/Normal_Home_State_Binding_V1.json",
+        "design/system_v3/09_Android_Implementation_Contracts/Normal_Home/Normal_Home_Android_Component_Mapping_V1.json",
+        "design/system_v3/09_Android_Implementation_Contracts/Normal_Home/Normal_Home_Resource_Binding_V1.json",
+        "design/system_v3/09_Android_Implementation_Contracts/Normal_Home/Normal_Home_Compose_Guideline_V1.md",
+        "design/system_v3/09_Android_Implementation_Contracts/Normal_Home/Normal_Home_Window_Insets_Contract_V1.md",
+        "design/system_v3/09_Android_Implementation_Contracts/Normal_Home/Normal_Home_Motion_Runtime_Binding_V1.md",
+        "design/system_v3/09_Android_Implementation_Contracts/Normal_Home/Normal_Home_Runtime_Gate_V1.md",
+        "design/system_v3/10_Page_Visual_Acceptance_Contracts/Normal_Home/Normal_Home_Visual_Contract_V1.md"
+      ],
+      "derived_from": "design/system_v3/10_Page_Visual_Acceptance_Contracts/Normal_Home/Normal_Home_Visual_Contract_V1.md",
+      "implementation_status": "READY_FOR_IMPLEMENTATION",
+      "validation_status": "PASS",
+      "version": "V1",
+      "supersedes": "None; derived subordinate layer that does not replace the Visual Contract or Phase 3-A Page Contract gate",
+      "consumer_reference": [
+        "Android Work implementation input (Normal Home only)",
+        "Test Work runtime acceptance input (Normal Home only)"
+      ]
+    },
+    {
+      "authority_id": "recognition_first_use_camera_guide",
+      "domain": "Recognition Capture first-use camera guide visual and interaction surface",
+      "status": "CANONICAL",
+      "canonical_path": "design/pages/recognition/first_use_camera_guide/First_Use_Camera_Guide_Spec_V1.md",
+      "supporting_paths": [
+        "design/pages/recognition/first_use_camera_guide/README.md",
+        "design/pages/recognition/first_use_camera_guide/navigation.json",
+        "design/pages/recognition/first_use_camera_guide/manifest.json",
+        "design/pages/recognition/first_use_camera_guide/frozen/P01_First_Use_Camera_Guide_Frozen.png",
+        "design/pages/recognition/first_use_camera_guide/frozen/P02_First_Use_Camera_Guide_Frozen.png",
+        "design/pages/recognition/first_use_camera_guide/frozen/P03_First_Use_Camera_Guide_Frozen.png",
+        "design/pages/recognition/first_use_camera_guide/Freeze_Decision_20261016.md",
+        "design/pages/recognition/first_use_camera_guide/Scope_Resolution_20261016.md",
+        "design/pages/recognition/first_use_camera_guide/asset_import_report.json",
+        "design/system_v3/08_Page_Contracts/recognition/capture/Recognition_Capture_V3_Authority.md",
+        "design/system_v3/00_Product_Master_Flow/subflows/Recognition_Main_Journey_Business_Contract_V1.md"
+      ],
+      "scope": "Additive Capture overlay only; does not replace Recognition Capture V3.1 page authority or live Camera Preview.",
+      "status_detail": "P01/P02/P03 FROZEN for the authorized three-page V1 design scope: P01 portrait + horizontal fish, P02 portrait + vertical fish, P03 landscape + horizontal fish. P01/P02 use 下一张; P03 uses 开始拍摄; no automatic shutter. Original PNG bytes and SHA-256 are declared in the V1 asset import report. Superseded two-page proposals remain historical only. Android Runtime and independent photo sources require separate acceptance."
+    }
+  ],
+  "precedence_rules": [
+    "A page-specific Frozen visual or geometry authority controls only the page properties it explicitly owns. Shared tokens do not rewrite that page authority.",
+    "Shared Foundation FINAL token and component registries control properties declared shared and not explicitly overridden by a page authority.",
+    "A page engineering/behavior contract supplies page-specific states and interaction; it may not silently alter a Frozen visual or shared token.",
+    "When authorities conflict, record the exact sources and affected property in the conflict register and stop that property from becoming implementation-ready. Do not resolve the conflict automatically.",
+    "D-015 candidate packet, preview, and candidate JSON are review-only. They are not valid production color authorities until an owner decision is recorded and canonical token files are updated.",
+    "Asset Registry SHA identifies bytes; it does not establish that an asset is approved for a page. Use the status and used_by fields as well.",
+    "Recognition Result Android Implementation Contract is derived from the frozen Recognition Result Page Contract; it maps owners and runtime acceptance only and does not replace or redefine Page Contract visuals, states, tokens, components, data lineage or routes."
+  ],
+  "consumer_rule": "Downstream Page Contract, Android and Test work must read the canonical_path for the domain and the cited page variant. Do not replace these files with local interpretations. For Recognition Result Android work, consult the registered Android implementation binding and runtime gate as implementation/test guidance; the frozen Page Contract remains the product and visual authority."
+}

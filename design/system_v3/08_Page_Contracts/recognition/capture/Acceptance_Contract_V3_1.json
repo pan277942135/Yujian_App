@@ -1,0 +1,94 @@
+{
+  "schema_version": "3.1",
+  "page_id": "recognition.capture.v3_1",
+  "status": "FROZEN_CONTRACT",
+  "visual": [
+    {
+      "id": "CAP-V-01",
+      "criterion": "Capture Preview, Overlay Layer and Bottom Action Area follow Recognition_Capture_V3_Authority.md at each matrix viewport.",
+      "method": "Compare implementation to the registered Camera page visual and Layout Contract.",
+      "pass_condition": "Component IDs resolve; preview is runtime-only; capture asset identity is preserved.",
+      "status": "READY",
+      "execution_status": "NOT_RUN"
+    },
+    {
+      "id": "CAP-V-02",
+      "criterion": "BG_CAPTURE shows an opaque current-user image with the registered camera crop behavior and no Morning Lake underlay.",
+      "method": "Inspect media source and rendered bounds against Background Registry.",
+      "pass_condition": "BG_CAPTURE uses the current runtime image with no tint/Morning Lake underlay; crop follows the camera contract.",
+      "status": "READY",
+      "execution_status": "NOT_RUN"
+    },
+    {
+      "id": "CAP-V-03",
+      "status": "READY",
+      "criterion": "Capture responsive matrix covers 320/360/411dp.",
+      "method": "Review Capture_Accessibility_Responsive_Matrix.md against authority and Geometry tokens.",
+      "pass_condition": "All widths/fontScale cases have frozen behavior; runtime remains NOT_RUN.",
+      "execution_status": "NOT_RUN"
+    }
+  ],
+  "interaction": [
+    {
+      "id": "CAP-I-01",
+      "criterion": "With permission and provider ready, one capture produces one normalized image and enters Processing.",
+      "method": "Drive the capture state machine with a ready provider and readable result.",
+      "pass_condition": "Exactly one normalized image handoff; no record persistence occurs.",
+      "status": "READY",
+      "execution_status": "NOT_RUN"
+    },
+    {
+      "id": "CAP-I-02",
+      "criterion": "Gallery cancellation leaves the capture attempt unchanged; readable selection follows the same normalized-image handoff.",
+      "method": "Open Picker, cancel, then repeat with a readable image.",
+      "pass_condition": "Cancellation remains recoverable and non-mutating; valid image enters Processing.",
+      "status": "READY",
+      "execution_status": "NOT_RUN"
+    },
+    {
+      "id": "CAP-I-03",
+      "criterion": "Permission denial/provider unavailability never starts capture and exposes an approved recovery path.",
+      "method": "Exercise denied and unavailable transitions.",
+      "pass_condition": "No camera action runs without permission; denial retains Gallery/Back; the platform prompt returns to a recoverable state.",
+      "status": "READY",
+      "execution_status": "NOT_RUN"
+    }
+  ],
+  "accessibility": [
+    {
+      "id": "CAP-A-01",
+      "criterion": "Every actionable control reaches the registered 44×44dp minimum target and has an accessible name/state.",
+      "method": "Measure target bounds and inspect accessibility semantics at registered widths and fontScale.",
+      "pass_condition": "Every action target is at least touch.minimum 44×44dp and exposes name, role and state.",
+      "status": "READY",
+      "execution_status": "NOT_RUN"
+    },
+    {
+      "id": "CAP-A-02",
+      "criterion": "Large system font scale does not hide the Gallery or recovery path.",
+      "method": "Inspect at the Geometry System fontScale acceptance levels after a camera visual is registered.",
+      "pass_condition": "fontScale 1.0/1.3/2.0 keeps actions reachable; large text reflows/scrolls instead of shrinking.",
+      "status": "READY",
+      "execution_status": "NOT_RUN"
+    }
+  ],
+  "error": [
+    {
+      "id": "CAP-E-01",
+      "criterion": "Permission denial, provider failure, capture failure, picker cancellation and unreadable image remain distinguishable and recoverable.",
+      "method": "Traverse each declared error/empty transition.",
+      "pass_condition": "No failure silently enters Processing or creates a record.",
+      "status": "READY",
+      "execution_status": "NOT_RUN"
+    },
+    {
+      "id": "CAP-E-02",
+      "criterion": "Permission or media failure recovery copy and visual matches an approved Camera authority.",
+      "method": "Compare each failure state to its page visual and copy authority.",
+      "pass_condition": "Permission/Picker use platform copy; page recovery matches authority without invented diagnosis.",
+      "status": "READY",
+      "execution_status": "NOT_RUN"
+    }
+  ],
+  "matrix_reference": "design/system_v3/08_Page_Contracts/recognition/capture/Capture_Accessibility_Responsive_Matrix.md"
+}

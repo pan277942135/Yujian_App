@@ -1,0 +1,209 @@
+{
+  "schema_version": "1.0",
+  "contract_id": "normal_home_state_binding_v1",
+  "page_id": "normal_home_v1",
+  "canonical_state_owner": "NormalHomeRoute",
+  "authority_source": "design/system_v3/10_Page_Visual_Acceptance_Contracts/Normal_Home/Normal_Home_State_Visual_Matrix_V1.json",
+  "visual_contract": "design/system_v3/10_Page_Visual_Acceptance_Contracts/Normal_Home/Normal_Home_Visual_Contract_V1.md",
+  "runtime_status": "NOT_RUN",
+  "states": [
+    {
+      "state": "EMPTY_HOME",
+      "source_state": "HOME_EMPTY",
+      "visual_contract": "NH01",
+      "screen_owner": "Empty Home V2.2 sibling route",
+      "entry_condition": "A successful archive resolution returns zero valid FishRecords.",
+      "components": [
+        "BackgroundLayer",
+        "DecorativeLayer",
+        "CanvasLayer",
+        "AnimatedObject",
+        "AnimationLayer",
+        "PrimaryCaptureButton"
+      ],
+      "exit_rules": [
+        "A new valid FishRecord is saved → DATA_HOME / HAS_CATCH.",
+        "Recognition capture begins → existing Recognition flow."
+      ],
+      "fallback": "Do not render Normal Home's data dashboard or a fake empty Normal Home variant."
+    },
+    {
+      "state": "DATA_HOME",
+      "source_states": [
+        "HOME_DATA_SINGLE",
+        "HOME_DATA_MULTIPLE"
+      ],
+      "visual_contract": "NH02",
+      "screen_owner": "NormalHomeScreen",
+      "entry_condition": "A successful archive resolution contains one or more valid FishRecords.",
+      "components": [
+        "AvatarStateComponent",
+        "TextComponent",
+        "StatisticCard",
+        "CatchCard",
+        "HeroMedia",
+        "PrimaryCaptureButton"
+      ],
+      "substate_mapping": {
+        "HAS_CATCH": "HOME_DATA_SINGLE",
+        "MULTIPLE_CATCH": "HOME_DATA_MULTIPLE"
+      },
+      "exit_rules": [
+        "Final valid record removed → EMPTY_HOME after successful resolution.",
+        "Hero tap → FishRecordDetail with stable record ID.",
+        "Capture → existing Recognition flow."
+      ],
+      "fallback": "One record uses NH02 without Pager peeks; two or more use registered user-driven Pager."
+    },
+    {
+      "state": "HOME_RESOLVING",
+      "source_state": "HOME_RESOLVING",
+      "visual_contract": "NH02",
+      "screen_owner": "NormalHomeScreen",
+      "entry_condition": "Initial archive resolution has no successful snapshot.",
+      "components": [
+        "BackgroundLayer",
+        "StatisticCard",
+        "PrimaryCaptureButton"
+      ],
+      "fallback": "Show unresolved dashes/placeholder; never route to EMPTY_HOME or report fake zero."
+    },
+    {
+      "state": "HOME_REFRESH_PENDING_OR_ERROR_WITH_SNAPSHOT",
+      "source_state": "HOME_REFRESH_PENDING_OR_ERROR_WITH_SNAPSHOT",
+      "visual_contract": "NH02",
+      "screen_owner": "NormalHomeScreen",
+      "entry_condition": "Refresh is pending or failed while a valid snapshot exists.",
+      "components": [
+        "StatisticCard",
+        "CatchCard",
+        "HeroMedia"
+      ],
+      "fallback": "Retain the same page, snapshot, values and selected stable record ID."
+    },
+    {
+      "state": "HOME_MEDIA_UNAVAILABLE_OR_RECOVERED",
+      "source_state": "HOME_MEDIA_UNAVAILABLE_OR_RECOVERED",
+      "visual_contract": "NH03",
+      "screen_owner": "NormalHomeScreen",
+      "entry_condition": "Selected catch media fails or recovers.",
+      "components": [
+        "CatchCard",
+        "HeroMedia"
+      ],
+      "fallback": "Replace only the media region; retain card and record identity."
+    }
+  ],
+  "catch_states": [
+    {
+      "state": "NO_CATCH",
+      "maps_to": "EMPTY_HOME",
+      "source_state": "HOME_EMPTY",
+      "visual_contract": "NH01",
+      "condition": "Successful resolution returns zero valid catches."
+    },
+    {
+      "state": "HAS_CATCH",
+      "maps_to": "DATA_HOME",
+      "source_state": "HOME_DATA_SINGLE",
+      "visual_contract": "NH02",
+      "condition": "Successful resolution returns exactly one valid catch."
+    },
+    {
+      "state": "MULTIPLE_CATCH",
+      "maps_to": "DATA_HOME",
+      "source_state": "HOME_DATA_MULTIPLE",
+      "visual_contract": "NH02",
+      "condition": "Successful resolution returns at least two valid catches."
+    }
+  ],
+  "avatar_state_aliases": {
+    "guest": "avatar_guest_default",
+    "default": "avatar_default",
+    "loading": "avatar_loading",
+    "error": "avatar_error",
+    "remote": "avatar_remote"
+  },
+  "avatar_states": [
+    {
+      "state": "GUEST",
+      "asset_alias": "avatar_guest_default",
+      "asset_id": "normal_home_guest_avatar",
+      "fallback_behavior": "Guest is an independent account-entry image; never substitute the signed-in default avatar.",
+      "registry_status": "WARNING_NOT_REGISTERED_NON_BLOCKING"
+    },
+    {
+      "state": "DEFAULT",
+      "asset_alias": "avatar_default",
+      "asset_id": "nh07_avatar_3x",
+      "fallback_behavior": "Use the approved NH07 default export at the same registered Header position."
+    },
+    {
+      "state": "LOADING",
+      "asset_alias": "avatar_loading",
+      "asset_id": "nh07_avatar_3x",
+      "fallback_behavior": "Use NH07 default placeholder plus only its registered subtle progress treatment; no new binary."
+    },
+    {
+      "state": "ERROR",
+      "asset_alias": "avatar_error",
+      "asset_id": "nh07_avatar_3x",
+      "fallback_behavior": "Return to the registered default avatar; prevent stale prior-account image."
+    },
+    {
+      "state": "REMOTE",
+      "asset_alias": "avatar_remote",
+      "asset_id": null,
+      "fallback_behavior": "Use the loaded profile media in the same frame; on failure map to ERROR/DEFAULT.",
+      "source": "runtime profile media; not a repository asset"
+    }
+  ],
+  "transitions": [
+    {
+      "from": "HOME_RESOLVING",
+      "event": "RESOLUTION_ZERO",
+      "to": "EMPTY_HOME"
+    },
+    {
+      "from": "HOME_RESOLVING",
+      "event": "RESOLUTION_ONE",
+      "to": "DATA_HOME",
+      "catch_state": "HAS_CATCH"
+    },
+    {
+      "from": "HOME_RESOLVING",
+      "event": "RESOLUTION_TWO_OR_MORE",
+      "to": "DATA_HOME",
+      "catch_state": "MULTIPLE_CATCH"
+    },
+    {
+      "from": "DATA_HOME",
+      "event": "REFRESH_START",
+      "to": "HOME_REFRESH_PENDING_OR_ERROR_WITH_SNAPSHOT",
+      "preserve_snapshot": true
+    },
+    {
+      "from": "HOME_REFRESH_PENDING_OR_ERROR_WITH_SNAPSHOT",
+      "event": "REFRESH_ERROR",
+      "to": "DATA_HOME",
+      "preserve_snapshot": true
+    },
+    {
+      "from": "DATA_HOME",
+      "event": "REMOVE_FINAL_VALID_CATCH_AND_RESOLVE",
+      "to": "EMPTY_HOME"
+    },
+    {
+      "from": "HOME_MEDIA_UNAVAILABLE_OR_RECOVERED",
+      "event": "MEDIA_RESOLVED",
+      "to": "DATA_HOME",
+      "preserve_record_id": true
+    }
+  ],
+  "forbidden_android_private_states": [
+    "SUCCESS_2",
+    "FAILED_TEMP",
+    "UNKNOWN_RESULT"
+  ],
+  "policy": "These bindings map source page states only. Do not add a new Normal Home state or conflate a route boundary with a Normal Home visual variant."
+}

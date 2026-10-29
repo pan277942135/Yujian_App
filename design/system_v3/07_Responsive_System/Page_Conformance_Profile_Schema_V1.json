@@ -1,0 +1,93 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/pan277942135/Yujian_App/blob/main/design/system_v3/07_Responsive_System/Page_Conformance_Profile_Schema_V1.json",
+  "title": "YuJian Page Conformance Profile V1",
+  "description": "Page-owned conformance categories bound by reference to registered authority documents. Numeric rules and executable values belong only to their named authority, never in this profile.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_ref", "schema_version", "profile_id", "page_id", "status", "authority_bindings", "numeric_authority", "conformance"],
+  "properties": {
+    "schema_ref": {"$ref": "#/$defs/repository_path"},
+    "schema_version": {"const": "1.0"},
+    "profile_id": {"type": "string", "minLength": 1},
+    "page_id": {"type": "string", "minLength": 1},
+    "status": {"enum": ["DRAFT", "FROZEN_BINDING"]},
+    "authority_bindings": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/authority_binding"}
+    },
+    "numeric_authority": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "authority_ref_id"],
+      "properties": {
+        "status": {"enum": ["BOUND_SINGLE", "UNBOUND_DRAFT"]},
+        "authority_ref_id": {"type": ["string", "null"]}
+      }
+    },
+    "conformance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["regions", "component_relationships", "responsive_rules", "content_priorities", "page_states", "overflow_scroll_policies", "visual_anchors", "validation_conditions"],
+      "properties": {
+        "regions": {"type": "array", "items": {"$ref": "#/$defs/region"}},
+        "component_relationships": {"type": "array", "items": {"$ref": "#/$defs/component_relationship"}},
+        "responsive_rules": {"type": "array", "items": {"$ref": "#/$defs/reference_item"}},
+        "content_priorities": {"type": "array", "items": {"$ref": "#/$defs/reference_item"}},
+        "page_states": {"type": "array", "items": {"$ref": "#/$defs/reference_item"}},
+        "overflow_scroll_policies": {"type": "array", "items": {"$ref": "#/$defs/reference_item"}},
+        "visual_anchors": {"type": "array", "items": {"$ref": "#/$defs/reference_item"}},
+        "validation_conditions": {"type": "array", "items": {"$ref": "#/$defs/reference_item"}}
+      }
+    }
+  },
+  "$defs": {
+    "repository_path": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$))(?!.*\\\\).+$"
+    },
+    "authority_binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["authority_ref_id", "locator", "resolution_mode"],
+      "properties": {
+        "authority_ref_id": {"type": "string", "minLength": 1},
+        "locator": {"type": "string", "minLength": 1},
+        "resolution_mode": {"const": "REFERENCE_ONLY"}
+      }
+    },
+    "region": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["region_id", "component_ids", "authority_bindings"],
+      "properties": {
+        "region_id": {"type": "string", "minLength": 1},
+        "component_ids": {"type": "array", "items": {"type": "string", "minLength": 1}},
+        "authority_bindings": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/authority_binding"}}
+      }
+    },
+    "component_relationship": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["relationship_id", "parent_component_id", "child_component_id", "relationship", "authority_bindings"],
+      "properties": {
+        "relationship_id": {"type": "string", "minLength": 1},
+        "parent_component_id": {"type": "string", "minLength": 1},
+        "child_component_id": {"type": "string", "minLength": 1},
+        "relationship": {"enum": ["CONTAINS", "SIBLING", "OVERLAYS", "ALIGNS_WITH", "PAGE_DEFINED"]},
+        "authority_bindings": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/authority_binding"}}
+      }
+    },
+    "reference_item": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["item_id", "authority_bindings"],
+      "properties": {
+        "item_id": {"type": "string", "minLength": 1},
+        "authority_bindings": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/authority_binding"}}
+      }
+    }
+  }
+}
