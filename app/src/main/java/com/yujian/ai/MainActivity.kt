@@ -6,7 +6,10 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.core.view.WindowCompat
+import androidx.lifecycle.lifecycleScope
+import com.yujian.ai.media.TestGallerySeeder
 import com.yujian.ai.ui.theme.YujianTheme
+import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -24,6 +27,11 @@ class MainActivity : ComponentActivity() {
             isAppearanceLightStatusBars = true
             isAppearanceLightNavigationBars = true
         }
+
+        lifecycleScope.launch {
+            TestGallerySeeder.seedTestImagesIfNeeded(applicationContext)
+        }
+
         setContent {
             YujianTheme {
                 YujianApp()

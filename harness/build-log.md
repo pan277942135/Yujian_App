@@ -51,3 +51,10 @@
 - On restore head 205, exact runs are in progress: Pages 40805511985, W4 40805512034, Android CI 40805512031, NH01 API28 Runtime 40805511940, and SWOS audit 40805512054. PR #247’s previous exact SWOS failure (40805005518) remains historical for the superseded SHA.
 - Production remains on `1d851b98e550cdc4d0c5c6f74ffedcf194e126f4`; current Main Pages run 40800311515 failed. Old 4f product gates are historical to Main 1d and cannot clear W6.
 - Next: resolve the missing Main authorities and SWOS external dependency without changing frozen hashes, then rebase PR234 and run Product Work Admission on the exact new candidate before its W4/W5/W2/Pages suite.
+
+## Recovery checkpoint — current Main restored and PR234 synchronized (2026-10-29T03:09:51Z)
+
+- Task: `YUJIAN_W4_W5_MAIN_PAGES_W6_ANDROID_RUNTIME_CLOSURE_V1`; Main `0c7f06ef672ce89285d8b7d9b3646a33439e8712`; PR #234 candidate `9dd569f9e8494ff17b96a77321ccec74267f95b3` (Draft/Open/Unmerged), two-parent non-force merge with Main.
+- Main PR #247 is merged. Main Product Work Admission run 40809660170 and W4 run 40809660031 passed; Main Pages run 40809660084 built successfully and deployment was in progress. SWOS audit 40805512054 remains FAIL for external PR #177 readiness/frozen input-pack pins.
+- Exact PR #234 W1/W4/W5/Pages-W2/Governance/API28 runs are queued: 40810225158, 40810225152, 40810225206, 40810225179, 40810225587, 40810225194. Historical 4f evidence is not reused for candidate 9dd.
+- Product-work Admission for candidate 9dd against Main 0c must run from this isolated state branch. W6 remains blocked; NH01 user visual acceptance, Effect 01 and AI Studio perimeter native acceptance remain pending/unverified.

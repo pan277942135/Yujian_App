@@ -25,6 +25,61 @@ internal object Effect01NativeCalibration {
     const val greenColorArgb = 0xFF2DD4BFL
 }
 
+/**
+ * 【效果02 (推荐)】四周光效冻结版 (深湖青与琥珀金调)
+ * Default visual effect calibration.
+ */
+internal object Effect02NativeCalibration {
+    const val sceneId = "fish-catch-recognition"
+    const val displayName = "效果02 (默认推荐)"
+    const val spreadDurationMs = 1_200L
+    const val intensity = 1.80f
+    const val speed = 1.00f
+    const val marginRatio = .015f
+    const val glowSizeDp = 45f
+    const val bottomMaskStrength = 1.00f
+    const val blendRatio = .80f
+    const val blendMode = "overlay"
+
+    const val goldColorArgb = 0xFF4D9B91L
+    const val cyanColorArgb = 0xFFD89913L
+    const val greenColorArgb = 0xFF719FBCL
+}
+
+/**
+ * 湖面回响水波共振配置 (Water Resonance Config V1.0.0)
+ */
+internal object WaterResonanceCalibration {
+    const val version = "1.0.0"
+    const val durationMs = 2_600L
+    const val freezeAtMs = 2_100L
+
+    const val ambientColorArgb = 0xFF729E9BL
+    const val ambientAlpha = 0.22f
+
+    const val rippleColorArgb = 0xFFD9BE7DL
+    const val rippleAlpha = 0.45f
+
+    const val goldColorArgb = 0xFFF0DCA5L
+    const val goldAlpha = 0.45f
+
+    const val residueColorArgb = 0xFFC8AE76L
+    const val residueAlpha = 0.22f
+
+    const val fishFieldLengthRatio = 0.88f
+    const val fishFieldWidthRatio = 0.72f
+    const val softFeatherRatio = 0.10f
+    const val wavefrontWidthRatio = 0.020f
+    const val waveDistortionRatio = 0.007f
+
+    val pulseStartTimes = longArrayOf(300L, 700L, 1100L)
+    val pulseDurations = longArrayOf(550L, 550L, 550L)
+    val pulseStartScales = floatArrayOf(0.42f, 0.52f, 0.60f)
+    val pulseEndScales = floatArrayOf(0.80f, 0.88f, 0.95f)
+    val pulsePeakAlphas = floatArrayOf(0.55f, 0.48f, 0.42f)
+    val pulseColors = longArrayOf(0xFFD9BE7DL, 0xFFE2CFA0L, 0xFFA7C8BFL)
+}
+
 internal object UpwardCausticSurgeCalibration {
     const val durationMs = 1_100L
     const val maxArcHeightRatio = .025f

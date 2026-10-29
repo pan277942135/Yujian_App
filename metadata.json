@@ -1,0 +1,8 @@
+{
+  "name": "渔见 AI",
+  "description": "渔见 AI 智能识鱼与垂钓记录",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

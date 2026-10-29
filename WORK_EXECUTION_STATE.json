@@ -1,59 +1,58 @@
 {
   "$schema": "./harness/WORK_EXECUTION_STATE_SCHEMA_V1.json",
   "base_branch": "main",
-  "base_sha": "5e482e8644828a880fbc3c0a273565765977bfaf",
+  "base_sha": "0c7f06ef672ce89285d8b7d9b3646a33439e8712",
   "blockers": [
-    "Live Main 5e482e8644828a880fbc3c0a273565765977bfaf removed 717 tracked authority files relative to parent 1d851b98; current product candidate PR234 remains based on historical 1d and its old gates cannot establish current readiness.",
-    "PR247 restoration candidate 1cb1cb884a032d44d590336b2f72fe8e42e5d5de is under exact-head validation; SWOS audit 40805005518 fails because external PR #177 remains blocked behind its own Main and the frozen input pack pins a different source SHA.",
-    "Production build.json still reports 1d851b98 while live Main is 5e482e86; production Pages run 40800311515 failed, so production consistency is not verified.",
-    "NH01 API28 run for PR247 source 1cb1cb884a032d44d590336b2f72fe8e42e5d5de is running separately; no Android native pass is claimed for PR234 or the other runtime targets.",
-    "Approved standalone Hero/Peek images remain ASSET_SOURCE_REQUIRED; user visual acceptance is pending."
+    "PRODUCT_WORK Admission has not yet run for candidate 9dd569f against Main 0c7f06e.",
+    "Exact-source W1/W4/W5/W2/Pages/Governance/API28 jobs are queued; prior 4f evidence is historical only.",
+    "Main Pages deployment 40809660084 is still in progress; production HTTP version is not yet verified.",
+    "PR247 SWOS audit remains a separate failure for external PR #177 readiness and frozen input-pack pins.",
+    "NH01 approved Hero/Peek sources and product visual acceptance remain unresolved; Effect01 and perimeter native runtime are unverified."
   ],
   "branch": "work-state/w5-empty-home-pilot-v1",
-  "checkpoint_updated_at": "2026-10-29T02:18:24Z",
-  "control_plane_revision": "5e482e8644828a880fbc3c0a273565765977bfaf",
+  "checkpoint_updated_at": "2026-10-29T03:09:51Z",
+  "control_plane_revision": "0c7f06ef672ce89285d8b7d9b3646a33439e8712",
   "dependencies": [
     "YUJIAN_PAGE_FREEZE_PIPELINE_W3_DESIGN_MANAGER_ADAPTER_V1",
     "YUJIAN_PAGE_FREEZE_PIPELINE_W4_TEST_EVIDENCE_V1"
   ],
   "evidence": {
     "active_candidate": {
-      "base_sha": "5e482e8644828a880fbc3c0a273565765977bfaf",
+      "base_sha": "0c7f06ef672ce89285d8b7d9b3646a33439e8712",
       "branch": "work/w5-empty-home-pilot-v1",
-      "head_sha": "4f0f3a66d0bef26e24f6bc066478e6cd03b773e8",
-      "main_sha": "5e482e8644828a880fbc3c0a273565765977bfaf",
+      "head_sha": "9dd569f9e8494ff17b96a77321ccec74267f95b3",
+      "main_sha": "0c7f06ef672ce89285d8b7d9b3646a33439e8712",
       "pr": 234,
-      "status": "BLOCKED_MAIN_AUTHORITY_DRIFT",
-      "sync": "NEEDS_CURRENT_MAIN_RESTORATION"
+      "status": "PENDING_EXACT_SHA_REVALIDATION",
+      "sync": "NON_FORCE_MAIN_MERGE_COMPLETE"
     },
     "candidate_pr": 234,
     "candidate_pr_url": "https://github.com/pan277942135/Yujian_App/pull/234",
-    "candidate_source_sha": "4f0f3a66d0bef26e24f6bc066478e6cd03b773e8",
+    "candidate_source_sha": "9dd569f9e8494ff17b96a77321ccec74267f95b3",
     "current_candidate": {
-      "base_sha": "5e482e8644828a880fbc3c0a273565765977bfaf",
+      "base_sha": "0c7f06ef672ce89285d8b7d9b3646a33439e8712",
       "branch": "work/w5-empty-home-pilot-v1",
-      "head_sha": "4f0f3a66d0bef26e24f6bc066478e6cd03b773e8",
-      "main_sha": "5e482e8644828a880fbc3c0a273565765977bfaf",
+      "head_sha": "9dd569f9e8494ff17b96a77321ccec74267f95b3",
+      "main_sha": "0c7f06ef672ce89285d8b7d9b3646a33439e8712",
       "pr": 234,
-      "previous_candidate_sha": "4c0b10667614bef61616dfcc40a7169bcc94cddf",
-      "status": "BLOCKED_MAIN_AUTHORITY_DRIFT",
-      "sync": "NEEDS_CURRENT_MAIN_RESTORATION",
-      "note": "Exact 4f0f3a6 Product Work Admission, W1/W4/W5/Governance, final Pages W2, live isolated preview and NH01 Chromium matrix pass. API28 Runtime remains in progress; no user visual acceptance implied.",
+      "previous_candidate_sha": "4f0f3a66d0bef26e24f6bc066478e6cd03b773e8",
+      "status": "PENDING_EXACT_SHA_REVALIDATION",
+      "sync": "NON_FORCE_MAIN_MERGE_COMPLETE",
+      "note": "Exact 9dd569f candidate is synchronized with Main 0c7f06e. W1/W4/W5/Pages-W2/Governance/API28 are queued; no old-SHA result is reused.",
       "pr_status": "OPEN_DRAFT_UNMERGED",
       "base_branch": "main",
-      "candidate_source_sha": "4f0f3a66d0bef26e24f6bc066478e6cd03b773e8",
-      "updated_at": "2026-10-29T02:14:54Z",
-      "w6_technical_dependency": "BLOCKED",
-      "w6_next_action": "Inspect PR239 merge-base/diff, then update base safely and continue Login integration.",
-      "nh01_native_runtime": "IN_PROGRESS"
+      "candidate_source_sha": "9dd569f9e8494ff17b96a77321ccec74267f95b3",
+      "updated_at": "2026-10-29T03:09:51Z",
+      "w6_technical_dependency": "BLOCKED_AWAITING_EXACT_GATES",
+      "nh01_native_runtime": "QUEUED"
     },
     "current_main_pages": {
-      "source_sha": "5e482e8644828a880fbc3c0a273565765977bfaf",
-      "status": "STALE_PRODUCTION_DEPLOYMENT",
-      "production_build_json_sha": "1d851b98e550cdc4d0c5c6f74ffedcf194e126f4",
-      "latest_main_pages_run_id": 40800311515,
-      "latest_main_pages_status": "FAIL",
-      "live_build_json_observed": "1d851b98e550cdc4d0c5c6f74ffedcf194e126f4"
+      "source_sha": "0c7f06ef672ce89285d8b7d9b3646a33439e8712",
+      "status": "DEPLOY_IN_PROGRESS",
+      "run_id": 40809660084,
+      "build": "PASS",
+      "deploy": "IN_PROGRESS",
+      "live_build_json_sha": "NOT_YET_HTTP_VERIFIED"
     },
     "isolated_preview": {
       "status": "PASS_ISOLATED_PREVIEW",
@@ -72,41 +71,52 @@
       "production_root_files_checked": "1048/1048"
     },
     "latest_candidate_gates": {
-      "source_sha": "4f0f3a66d0bef26e24f6bc066478e6cd03b773e8",
-      "main_sha": "5e482e8644828a880fbc3c0a273565765977bfaf",
-      "status": "BLOCKED_BASELINE_DRIFT",
-      "w4": "STALE_REQUIRES_RERUN",
-      "w5": "STALE_REQUIRES_RERUN",
-      "w2": "STALE_REQUIRES_RERUN",
-      "isolated_preview": "STALE_REQUIRES_RERUN",
-      "product_work_admission": "NOT_VALID_FOR_CURRENT_MAIN"
+      "source_sha": "9dd569f9e8494ff17b96a77321ccec74267f95b3",
+      "main_sha": "0c7f06ef672ce89285d8b7d9b3646a33439e8712",
+      "status": "QUEUED_EXACT_SHA_REVALIDATION",
+      "w1": {
+        "status": "QUEUED",
+        "run_id": 40810225158
+      },
+      "w4": {
+        "status": "QUEUED",
+        "run_id": 40810225152
+      },
+      "w5": {
+        "status": "QUEUED",
+        "run_id": 40810225206
+      },
+      "w2_pages_preview": {
+        "status": "QUEUED",
+        "run_id": 40810225179
+      },
+      "design_governance": {
+        "status": "QUEUED",
+        "run_id": 40810225587
+      },
+      "product_work_admission": {
+        "status": "PENDING_DISPATCH"
+      },
+      "nh01_api28": {
+        "status": "QUEUED",
+        "run_id": 40810225194
+      }
     },
     "latest_main_pages": {
-      "build_job": "success",
-      "deploy_job": "success",
-      "github_pages_artifact_id": 12862767477,
-      "github_pages_artifact_sha256": "e1f61e94b12df802ec316401056a255fd76d7004e4f7b2bf6e46405c3731cedb",
-      "live_page": "https://pan277942135.github.io/Yujian_App/design/manager/#page/home_normal_v1/hifi/multi_screen_static_hifi",
-      "note": "Live production build.json and root integrity manifest matched exact Main; Pages/browser geometry comparisons remain measurement-only and do not establish user visual acceptance.",
-      "production_browser": "PASS",
-      "production_build_json_sha": "1d851b98e550cdc4d0c5c6f74ffedcf194e126f4",
-      "production_pages_artifact_id": 12862767477,
-      "production_pages_artifact_sha256": "e1f61e94b12df802ec316401056a255fd76d7004e4f7b2bf6e46405c3731cedb",
-      "production_pages_run_id": 40793680312,
-      "release_evidence_artifact_id": 12862623236,
-      "release_evidence_artifact_sha256": "2e7e50a72d77fbed724ae5d539785189d5076eac88ab2caaee7ff4bf3bd3577",
-      "root_manifest_checked_files": 1048,
-      "root_manifest_sha256": "6259065b2b71a51aa45eacb6ed1b7549360280e7d329c97d193ec10393673b8d",
-      "source_sha": "1d851b98e550cdc4d0c5c6f74ffedcf194e126f4",
-      "status": "PASS_HTTP_VERIFIED",
-      "run_id": 40793680312,
-      "artifact_id": 12862767477,
-      "artifact_sha256": "e1f61e94b12df802ec316401056a255fd76d7004e4f7b2bf6e46405c3731cedb"
+      "source_sha": "0c7f06ef672ce89285d8b7d9b3646a33439e8712",
+      "status": "DEPLOY_IN_PROGRESS",
+      "run_id": 40809660084,
+      "build": "PASS",
+      "deploy": "IN_PROGRESS",
+      "production_build_json_sha": "NOT_YET_HTTP_VERIFIED"
     },
     "main_authority_sync": {
-      "main_sha": "632cada103bf022adeb873bd6e66464555b509e4",
-      "merge_commit_sha": "5ba86fd8d1142d4708d1b8f9e6ddc81cbc96ccf6",
-      "status": "MERGED_INTO_MAIN_1d851b98"
+      "pr": 247,
+      "status": "MERGED",
+      "main_sha": "0c7f06ef672ce89285d8b7d9b3646a33439e8712",
+      "main_control_plane_admission_run_id": 40809660170,
+      "swos_audit_run_id": 40805512054,
+      "swos_status": "FAIL_EXTERNAL_PR177_BEHIND_MAIN_AND_FROZEN_INPUT_SHA_MISMATCH"
     },
     "main_sync": {
       "candidate_sha": "13e25bbf9cb9f29cb696d8fcc5d6bb8731d501ec",
@@ -519,25 +529,26 @@
     "android_runtime": {
       "status": "IN_PROGRESS",
       "nh01_api28": {
-        "status": "IN_PROGRESS",
-        "run_id": 40798413946,
-        "source_sha": "4f0f3a66d0bef26e24f6bc066478e6cd03b773e8",
+        "status": "QUEUED",
+        "run_id": 40810225194,
+        "source_sha": "9dd569f9e8494ff17b96a77321ccec74267f95b3",
         "api_level": 28
       },
       "effect01": "NOT_VERIFIED",
       "aistudio_perimeter": "NOT_VERIFIED",
-      "note": "Do not infer native pass from browser evidence or code changes; each Android runtime result remains independently tracked."
+      "note": "Each native runtime remains independent; no code/build/browser evidence is promoted to a native runtime PASS."
     },
     "w6_technical_dependency": {
-      "status": "BLOCKED_CURRENT_BASELINE_DRIFT",
-      "source_sha": "4f0f3a66d0bef26e24f6bc066478e6cd03b773e8",
-      "pr234_admission_run_id": 40798720006,
-      "pr234_w4_run_id": 40798414058,
-      "pr234_w5_run_id": 40798414056,
-      "pr234_w2_pages_run_id": 40798413921,
-      "pr234_preview_run_id": 40798413921,
+      "status": "BLOCKED_AWAITING_EXACT_CANDIDATE_GATES",
+      "source_sha": "9dd569f9e8494ff17b96a77321ccec74267f95b3",
+      "pr234_admission_run_id": null,
+      "w1_run_id": 40810225158,
+      "w4_run_id": 40810225152,
+      "w5_run_id": 40810225206,
+      "w2_pages_run_id": 40810225179,
+      "isolated_preview_run_id": 40810225179,
       "pr239": "OPEN_DRAFT_UNMERGED_BASE_SYNC_PENDING",
-      "next_action": "Wait for Main authority restoration and exact candidate gates; then sync PR239 non-destructively."
+      "next_action": "After all required exact-source PR234 technical gates pass, non-destructively sync PR239 with current Main and continue Login integration."
     },
     "historical_candidate_gates_4f_against_main_1d": {
       "main_sha": "1d851b98e550cdc4d0c5c6f74ffedcf194e126f4",
@@ -715,7 +726,8 @@
         "w2_pages_run_id": 40798413921,
         "isolated_preview_run_id": 40798413921,
         "pr239_integration": "NOT_STARTED"
-      }
+      },
+      "status": "HISTORICAL_ONLY_NOT_CURRENT_BASELINE_VERIFICATION"
     },
     "historical_production_pages_main_1d": {
       "build_job": "success",
@@ -782,6 +794,36 @@
       "run_id": 40805511940,
       "source_sha": "2051128624bc684f74c50a1f532cc58ed7fc34f7",
       "status": "PENDING"
+    },
+    "base_main_sha": "0c7f06ef672ce89285d8b7d9b3646a33439e8712",
+    "product_work_admission_pending": {
+      "status": "PENDING_DISPATCH",
+      "mode": "PRODUCT_WORK",
+      "source_sha": "9dd569f9e8494ff17b96a77321ccec74267f95b3",
+      "main_sha": "0c7f06ef672ce89285d8b7d9b3646a33439e8712",
+      "required_gates": {
+        "CONTROL_PLANE_SYNC": "PENDING",
+        "PROJECT_STATE": "PENDING",
+        "WORK_STATE": "PENDING"
+      }
+    },
+    "main_pages_live_verification": {
+      "source_sha": "0c7f06ef672ce89285d8b7d9b3646a33439e8712",
+      "run_id": 40809660084,
+      "status": "PENDING_DEPLOY_AND_HTTP",
+      "note": "Main Pages build passed; deployment job was still in progress at checkpoint time."
+    },
+    "nh01_structured_workflow_current": {
+      "candidate_sha": "9dd569f9e8494ff17b96a77321ccec74267f95b3",
+      "source_main_sha": "0c7f06ef672ce89285d8b7d9b3646a33439e8712",
+      "static_hifi_assets": "PENDING_EXACT_SOURCE_REVALIDATION",
+      "responsive_contract": "PENDING_EXACT_SOURCE_REVALIDATION",
+      "structured_workspace": "PENDING_EXACT_SOURCE_REVALIDATION",
+      "formal_browser_matrix": "PENDING_EXACT_SOURCE_REVALIDATION",
+      "continuity_threshold_probes": "PENDING_EXACT_SOURCE_REVALIDATION",
+      "native_runtime": "QUEUED_RUN_40810225194",
+      "user_visual_acceptance": "PENDING",
+      "standalone_approved_hero_peek_assets": "ASSET_SOURCE_REQUIRED"
     }
   },
   "execution_v2": {
@@ -920,14 +962,14 @@
     },
     "schema_version": "1.0"
   },
-  "next_action": "Resolve current Main authority restoration and external SWOS dependency; then rebase PR234, rebuild this isolated state on the exact candidate tree, rerun PRODUCT_WORK Admission, and rerun W4/W5/W2/Pages.",
+  "next_action": "Run PRODUCT_WORK Admission on the isolated state branch with source_sha 9dd569f; collect exact PR234 gate outcomes and Main 0c7f06e production HTTP verification.",
   "phase": "P3",
   "related_pr": 234,
   "repository": "pan277942135/Yujian_App",
   "schema_version": "1.0",
-  "source_sha": "4f0f3a66d0bef26e24f6bc066478e6cd03b773e8",
-  "stage": "G2_W4_REPAIR_AND_EXACT_SHA_REVALIDATION",
-  "status": "BLOCKED",
+  "source_sha": "9dd569f9e8494ff17b96a77321ccec74267f95b3",
+  "stage": "G2_EXACT_SHA_REVALIDATION_AND_PRODUCT_ADMISSION",
+  "status": "RUNNING",
   "task_id": "YUJIAN_PAGE_FREEZE_PIPELINE_W5_EMPTY_HOME_PILOT_V1",
   "work_id": "YUJIAN_W4_W5_MAIN_PAGES_W6_ANDROID_RUNTIME_CLOSURE_V1"
 }
