@@ -55,3 +55,13 @@ Next action: restore Login inside the existing shared Design Manager, retain all
 - Preserved Login mapping blob 75c615d20be011b16e4e6843b41dabd0479a8d63 (source commit 9c47519e87260992bc768178399fc9b6651a6fc8); exact W6-A exception merged via PR #259 at bf4c5c5777bddd3c37c8b2850aaa5a5881f0d513.
 - Candidate control-plane sync source: d72adf5a02788de59125d56e760224c5efda393f. Empty Home page files remain unchanged.
 - Admission for the state checkpoint is pending; no page inspection, visual acceptance, freeze, product merge, or Android work is claimed.
+
+
+## 2026-10-29 — PR #234 current-Main state checkpoint
+
+- Live Main is `a14d03fa78db0a1cb9b007f8e3d983b8a3b85754` after control-plane validator PR #261 merged.
+- Re-read current `AGENTS.md` and the Structured Hi-Fi Fast Track V1.1 playbook; the candidate branch already matches both current Main files.
+- Synchronized the five stale canonical controls from Main: `CONTROL_PLANE_CHANGE_SYNC.md`, `FEATURE_MATRIX.yaml`, `PHASE_TASK_STATE_MACHINE.yaml`, `UNIFIED_CONTRACT_REGISTRY.yaml`, and `scripts/validate_control_plane_sync.py`.
+- Preserved Login mapping `design/pages/account_privacy/Login/structured_candidate/component_mapping_v1.json`, blob `75c615d20be011b16e4e6843b41dabd0479a8d63`, because W6-A requires it and Main registers the exact non-frozen path/blob exception.
+- Current control-plane sync on the code-sync source `dad76a9ca737245d4076b75b86537412b0238765`: **PASS**, 735 paths compared, 1 exact approved exception. The root state files now point to Main `a14d03fa78db0a1cb9b007f8e3d983b8a3b85754` and this source SHA.
+- Empty Home page files remain unchanged. Exact Admission on the final state-only checkpoint is still pending; no visual acceptance, freeze, product merge, or Android work is claimed.
