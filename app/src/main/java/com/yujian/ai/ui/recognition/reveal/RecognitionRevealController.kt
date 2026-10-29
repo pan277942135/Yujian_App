@@ -59,12 +59,13 @@ object RecognitionRevealClock {
         val eligibility = handoff?.eligibility ?: RecognitionRevealEligibility.STATIC_RESULT
         val canPhotoTransition = handoff?.processingPhotoViewportBounds != null &&
             handoff.processingPhotoTransform != null &&
-            eligibility != RecognitionRevealEligibility.STATIC_RESULT
+            (eligibility == RecognitionRevealEligibility.FULL_REVEAL ||
+                eligibility == RecognitionRevealEligibility.TITLE_FADE_ONLY)
         val fullReveal = eligibility == RecognitionRevealEligibility.FULL_REVEAL
         val fallback = eligibility == RecognitionRevealEligibility.TITLE_FADE_ONLY
         val photoProgress = when {
             !canPhotoTransition || policy.reduceMotion || t >= PHOTO_END_MS -> 1f
-            else -> easeOutCubic(t.toFloat() / PHOTO_END_MS)
+            else -> smoothStep(t.toFloat() / PHOTO_END_MS)
         }
 
         if (policy.reduceMotion || t >= TOTAL_DURATION_MS) {
@@ -90,19 +91,37 @@ object RecognitionRevealClock {
         }
 
         if (!fullReveal) {
-            val fallbackProgress = if (fallback) easeOutCubic((t / PHOTO_END_MS.toFloat()).coerceIn(0f, 1f)) else 1f
+            val fallbackProgress = when {
+                !fallback || t < NAME_FORMATION_END_MS -> 0f
+                t < NAME_REVEAL_END_MS ->
+                    ((t - NAME_FORMATION_END_MS).toFloat() /
+                        (NAME_REVEAL_END_MS - NAME_FORMATION_END_MS)).coerceIn(0f, 1f)
+                else -> 1f
+            }
+            val fallbackFormation = if (!fallback || t < GOLD_TRANSFER_END_MS) 0f else
+                ((t - GOLD_TRANSFER_END_MS).toFloat() /
+                    (NAME_FORMATION_END_MS - GOLD_TRANSFER_END_MS)).coerceIn(0f, 1f)
             return RecognitionRevealFrame(
                 elapsedMs = t,
                 phase = when {
                     t < PHOTO_END_MS -> RecognitionRevealPhase.PHOTO_CONTINUITY
+                    t < GOLD_TRANSFER_END_MS -> RecognitionRevealPhase.GOLD_TRANSFER
+                    t < NAME_FORMATION_END_MS -> RecognitionRevealPhase.NAME_FORMATION
+                    t < NAME_REVEAL_END_MS -> RecognitionRevealPhase.NAME_REVEAL
                     t < TOTAL_DURATION_MS -> RecognitionRevealPhase.AFTERGLOW
                     else -> RecognitionRevealPhase.COMPLETE
                 },
                 photoProgress = photoProgress,
                 fishHaloAlpha = 0f,
                 transferProgress = 0f,
-                titleMode = if (fallback) RecognitionRevealTitleMode.REVEALING else RecognitionRevealTitleMode.STATIC,
-                titleFormationProgress = 0f,
+                titleMode = when {
+                    !fallback -> RecognitionRevealTitleMode.STATIC
+                    t < GOLD_TRANSFER_END_MS -> RecognitionRevealTitleMode.HIDDEN
+                    t < NAME_FORMATION_END_MS -> RecognitionRevealTitleMode.FORMING
+                    t < NAME_REVEAL_END_MS -> RecognitionRevealTitleMode.REVEALING
+                    else -> RecognitionRevealTitleMode.VISIBLE
+                },
+                titleFormationProgress = fallbackFormation,
                 titleRevealProgress = fallbackProgress,
                 titleSweepProgress = 0f,
                 afterglowAlpha = 0f,
@@ -130,11 +149,8 @@ object RecognitionRevealClock {
                 (TOTAL_DURATION_MS - NAME_REVEAL_END_MS)).coerceIn(0f, 1f)
         val particleLimit = if (policy.lowPerformance) LOW_PARTICLE_LIMIT else FULL_PARTICLE_LIMIT
         val particleCount = when {
-            t < PHOTO_END_MS -> 0
-            t < GOLD_TRANSFER_END_MS -> particleLimit
-            t < NAME_FORMATION_END_MS -> particleLimit
-            t < NAME_REVEAL_END_MS -> (particleLimit * (1f - titleReveal * .65f)).toInt().coerceAtLeast(2)
-            else -> (particleLimit * afterglow).toInt()
+            t < PHOTO_END_MS || t >= GOLD_TRANSFER_END_MS -> 0
+            else -> (particleLimit * (1f - transfer)).toInt().coerceAtLeast(1)
         }.coerceIn(0, particleLimit)
 
         return RecognitionRevealFrame(
@@ -180,4 +196,6 @@ object RecognitionRevealClock {
         val t = value.coerceIn(0f, 1f)
         return t * t * (3f - 2f * t)
     }
+
+    private fun smoothStep(value: Float): Float = easeInOut(value)
 }

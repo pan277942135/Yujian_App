@@ -25,6 +25,8 @@ data class SelectedImage(
     val imageId: String = "yj_img_${UUID.randomUUID()}",
     /** EXIF rotation applied before detection; bitmap coordinates are the normalized source space. */
     val sourceOrientationDegrees: Int = 0,
+    /** SHA-256 of the normalized persisted JPEG, computed once when the photo is stored. */
+    val photoSha256: String = "",
 )
 
 data class RecognitionCandidate(

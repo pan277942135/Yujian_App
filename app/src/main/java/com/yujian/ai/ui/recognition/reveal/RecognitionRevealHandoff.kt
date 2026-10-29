@@ -49,6 +49,9 @@ enum class RecognitionRevealEligibility {
  */
 data class RecognitionSubjectGeometrySnapshot(
     val imageId: String,
+    val recognitionSessionId: String = "",
+    val recognitionAttemptId: String = "",
+    val photoSha256: String = "",
     val sourceWidthPx: Int,
     val sourceHeightPx: Int,
     val detectorBox: NormalizedFishBox,
@@ -64,6 +67,8 @@ data class RecognitionProcessingPhotoSnapshot(
     val imageId: String,
     val viewportBoundsInWindow: RecognitionRevealWindowRect,
     val sourceToViewport: RecognitionImageTransform,
+    val photoBoundsInWindow: RecognitionRevealWindowRect? = null,
+    val cornerRadiusPx: Float = 0f,
 )
 
 data class RecognitionRevealHandoff(
@@ -87,6 +92,8 @@ data class RecognitionRevealHandoff(
     val resultIdentity: String?,
     val eligibility: RecognitionRevealEligibility,
     val handoffTimestampUptimeMs: Long,
+    val processingPhotoClipBoundsInWindow: RecognitionRevealWindowRect? = null,
+    val processingPhotoCornerRadiusPx: Float = 0f,
 )
 
 object RecognitionRevealHandoffFactory {
@@ -112,6 +119,9 @@ object RecognitionRevealHandoffFactory {
             sourceWidthPx = image.bitmap.width,
             sourceHeightPx = image.bitmap.height,
             detectorConfidence = confidence,
+            recognitionSessionId = recognitionSessionId,
+            recognitionAttemptId = recognitionAttemptId,
+            photoSha256 = image.photoSha256,
         )
         val maskTrusted = geometryTrust == RecognitionGeometryTrustState.TRUSTED_MASK
         val photo = processingPhoto?.takeIf {
@@ -120,6 +130,8 @@ object RecognitionRevealHandoffFactory {
                 it.sourceToViewport.sourceWidthPx == image.bitmap.width &&
                 it.sourceToViewport.sourceHeightPx == image.bitmap.height
         }
+        val photoClip = photo?.photoBoundsInWindow?.takeIf(RecognitionRevealWindowRect::isValid)
+        val photoCornerRadius = photo?.cornerRadiusPx?.takeIf { it.isFinite() && it >= 0f } ?: 0f
         val anchorSource = if (maskTrusted) {
             bottomContourAnchor(requireNotNull(subject).contour, subject.subjectBox)
         } else {
@@ -155,7 +167,7 @@ object RecognitionRevealHandoffFactory {
         return RecognitionRevealHandoff(
             key = key,
             imageId = image.imageId,
-            photoSourceIdentity = "${image.imageId}|${image.source}|${image.bitmap.width}x${image.bitmap.height}",
+            photoSourceIdentity = "${image.imageId}|${image.source}|${image.bitmap.width}x${image.bitmap.height}|sha256=${image.photoSha256}",
             normalizedSourceWidth = image.bitmap.width,
             normalizedSourceHeight = image.bitmap.height,
             sourceOrientationDegreesApplied = image.sourceOrientationDegrees,
@@ -172,6 +184,8 @@ object RecognitionRevealHandoffFactory {
             resultIdentity = resultIdentity,
             eligibility = eligibility,
             handoffTimestampUptimeMs = handoffTimestampUptimeMs,
+            processingPhotoClipBoundsInWindow = photoClip,
+            processingPhotoCornerRadiusPx = photoCornerRadius,
         )
     }
 

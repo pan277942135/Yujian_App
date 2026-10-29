@@ -1,48 +1,57 @@
 package com.yujian.ai.ui.recognition
 
-import com.yujian.ai.ai.NormalizedFishBox
-import com.yujian.ai.ui.identify.calculateRecognitionImageTransform
+import com.yujian.ai.ai.RecognitionPhase
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class RecognitionFishFocusTest {
     @Test
-    fun realOutlineBoxCreatesOneBoundedTransientHaloThatSettlesToTheFrozenFloor() {
-        val start = recognitionOutlineHaloAlpha(0L, reduceMotion = false)
-        val peak = recognitionOutlineHaloAlpha(120L, reduceMotion = false)
-        val settling = recognitionOutlineHaloAlpha(300L, reduceMotion = false)
-        val settled = recognitionOutlineHaloAlpha(420L, reduceMotion = false)
-
-        assertTrue(start >= .10f)
-        assertEquals(.18f, peak, .001f)
-        assertTrue(settling < peak)
-        assertEquals(.10f, settled, .001f)
-        assertTrue((0L..1_000L step 20L).all { recognitionOutlineHaloAlpha(it, false) <= .18f })
+    fun goldStrengthRisesContinuouslyFromZeroAndHoldsThroughP7() {
+        assertEquals(0f, recognitionFishGoldStrength(0), 0f)
+        assertEquals(0f, recognitionFishGoldStrength(350), 0f)
+        assertTrue(recognitionFishGoldStrength(949) in 0f..0.15f)
+        assertEquals(.15f, recognitionFishGoldStrength(950), 0f)
+        assertEquals(.45f, recognitionFishGoldStrength(1_200), 0f)
+        assertEquals(1f, recognitionFishGoldStrength(1_550), 0f)
+        assertEquals(1f, recognitionFishGoldStrength(2_050), 0f)
+        assertEquals(1f, recognitionFishGoldStrength(2_600), 0f)
+        assertEquals(1f, recognitionFishGoldStrength(2_800), 0f)
+        assertEquals(.18f, recognitionFishGoldStrength(2_800, reduceMotion = true), 0f)
     }
 
     @Test
-    fun reduceMotionKeepsAStableSemanticFishFocusWithoutTheTransientPulse() {
-        val first = recognitionOutlineHaloAlpha(0L, reduceMotion = true)
-        val later = recognitionOutlineHaloAlpha(1_000L, reduceMotion = true)
-
-        assertEquals(.15f, first, .001f)
-        assertEquals(first, later, .001f)
+    fun untrustedMaskNeverEnablesAnyFishShapeAndTrustedMaskIsPhaseGated() {
+        assertFalse(recognitionMaskContourEnabled(RecognitionPhase.OUTLINE, maskTrusted = false))
+        assertFalse(recognitionMaskContourEnabled(RecognitionPhase.CLASSIFYING, maskTrusted = false))
+        assertTrue(recognitionMaskContourEnabled(RecognitionPhase.OUTLINE, maskTrusted = true))
+        assertTrue(recognitionMaskContourEnabled(RecognitionPhase.CLASSIFYING, maskTrusted = true))
+        assertFalse(recognitionMaskContourEnabled(RecognitionPhase.CAPTURED, maskTrusted = true))
+        assertFalse(recognitionMaskContourEnabled(RecognitionPhase.RESULT, maskTrusted = true))
+        assertFalse(recognitionMaskContourEnabled(RecognitionPhase.FAILURE, maskTrusted = true))
     }
 
     @Test
-    fun levelBIsPerceptibleOnTheFirstOutlineFrameBeforeContourPromotion() {
-        val halo = recognitionLevelBHaloAlpha(0L, reduceMotion = false)
-        val perimeter = recognitionLevelBPerimeterAlpha(0L, reduceMotion = false)
-
-        assertTrue("Level B halo must be immediately visible", halo >= .24f)
-        assertTrue("Level B perimeter must be immediately visible", perimeter >= .42f)
-        assertTrue(recognitionLevelBHaloAlpha(120L, false) > halo)
-        assertTrue(recognitionLevelBPerimeterAlpha(120L, false) > perimeter)
+    fun maskAcceptanceClosesWhenAdaptiveTimelineLeavesTheContourStage() {
+        assertTrue(recognitionMaskAcceptanceOpen(RecognitionPhase.CAPTURED))
+        assertTrue(recognitionMaskAcceptanceOpen(RecognitionPhase.DETECTING))
+        assertTrue(recognitionMaskAcceptanceOpen(RecognitionPhase.OUTLINE))
+        assertFalse(recognitionMaskAcceptanceOpen(RecognitionPhase.CLASSIFYING))
+        assertFalse(recognitionMaskAcceptanceOpen(RecognitionPhase.RESULT))
     }
 
     @Test
-    fun levelAPromotionWaitsForTheLevelBBeatButKeepsFallbacksBounded() {
+    fun trustedMaskContourRevealsOnTheSharedAdaptiveProcessingClock() {
+        assertEquals(0f, recognitionMaskContourRevealProgress(1_900L, null), 0f)
+        assertEquals(0f, recognitionMaskContourRevealProgress(2_100L, 2_100L), 0f)
+        assertEquals(.5f, recognitionMaskContourRevealProgress(2_475L, 2_100L), 0.0001f)
+        assertEquals(1f, recognitionMaskContourRevealProgress(2_850L, 2_100L), 0f)
+        assertEquals(1f, recognitionMaskContourRevealProgress(2_100L, null, reduceMotion = true), 0f)
+    }
+
+    @Test
+    fun noMaskMayBeRecordedAsLowCapabilityButDoesNotPromoteToAContour() {
         assertEquals(
             RecognitionFishFocusLevel.B,
             recognitionDisplayedFishFocusLevel(
@@ -52,48 +61,6 @@ class RecognitionFishFocusTest {
                 phaseOverrideActive = false,
             ),
         )
-        assertEquals(
-            RecognitionFishFocusLevel.B,
-            recognitionDisplayedFishFocusLevel(
-                RecognitionFishFocusLevel.A,
-                levelAAvailable = true,
-                phaseElapsedMs = FISH_FOCUS_A_PROMOTION_DELAY_MS - 1L,
-                phaseOverrideActive = false,
-            ),
-        )
-        assertEquals(
-            RecognitionFishFocusLevel.A,
-            recognitionDisplayedFishFocusLevel(
-                RecognitionFishFocusLevel.A,
-                levelAAvailable = true,
-                phaseElapsedMs = FISH_FOCUS_A_PROMOTION_DELAY_MS,
-                phaseOverrideActive = false,
-            ),
-        )
-        assertEquals(
-            RecognitionFishFocusLevel.C,
-            recognitionDisplayedFishFocusLevel(
-                RecognitionFishFocusLevel.C,
-                levelAAvailable = true,
-                phaseElapsedMs = 0L,
-                phaseOverrideActive = false,
-            ),
-        )
-    }
-
-    @Test
-    fun levelARadiiUseFrozenFourteenDpOpticalPadding() {
-        val transform = calculateRecognitionImageTransform(1080f, 2340f, 1152, 1536)
-        val box = NormalizedFishBox(.20f, .25f, .80f, .75f)
-        val mapped = transform.mapBoxRect(box)
-        val radii = recognitionFishFocusRadii(
-            transform,
-            box,
-            RecognitionFishFocusLevel.A,
-            paddingPx = 14f,
-        )
-
-        assertEquals(mapped.width * .62f + 14f, radii.radiusX, .001f)
-        assertEquals(mapped.height * .72f + 14f, radii.radiusY, .001f)
+        assertFalse(recognitionMaskContourEnabled(RecognitionPhase.OUTLINE, maskTrusted = false))
     }
 }

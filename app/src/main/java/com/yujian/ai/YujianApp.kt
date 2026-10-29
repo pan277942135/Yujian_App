@@ -5,6 +5,8 @@ import android.content.Intent
 import android.os.SystemClock
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -617,6 +619,10 @@ fun YujianApp() {
                         type = NavType.BoolType
                         defaultValue = false
                     }),
+                    enterTransition = { EnterTransition.None },
+                    exitTransition = { ExitTransition.None },
+                    popEnterTransition = { EnterTransition.None },
+                    popExitTransition = { ExitTransition.None },
                 ) { entry ->
                     IdentifyScreen(
                         image = sessionImage,
@@ -646,7 +652,13 @@ fun YujianApp() {
                         },
                     )
                 }
-                composable("recognizing") {
+                composable(
+                    "recognizing",
+                    enterTransition = { EnterTransition.None },
+                    exitTransition = { ExitTransition.None },
+                    popEnterTransition = { EnterTransition.None },
+                    popExitTransition = { ExitTransition.None },
+                ) {
                     val attemptId = activeRecognitionAttemptId
                     RecognizingScreen(
                         image = sessionImage,
@@ -690,6 +702,8 @@ fun YujianApp() {
                                 revealSessionStore.updateProcessingPhoto(RecognitionRevealKey(sessionId, attemptId), photo)
                             }
                         },
+                        recognitionSessionId = recognitionSessionId,
+                        recognitionAttemptId = attemptId,
                         onFinished = { result ->
                             if (attemptId != null && activeRecognitionAttemptId == attemptId && currentRoute == "recognizing") {
                                 productionResult = result
@@ -723,7 +737,13 @@ fun YujianApp() {
                         },
                     )
                 }
-                composable("recognition_issue") {
+                composable(
+                    "recognition_issue",
+                    enterTransition = { EnterTransition.None },
+                    exitTransition = { ExitTransition.None },
+                    popEnterTransition = { EnterTransition.None },
+                    popExitTransition = { ExitTransition.None },
+                ) {
                     val current = productionResult
                     if (current == null && !recognitionTechnicalFailure) {
                         LaunchedEffect(Unit) { startCapture() }
@@ -738,7 +758,13 @@ fun YujianApp() {
                         )
                     }
                 }
-                composable("result") {
+                composable(
+                    "result",
+                    enterTransition = { EnterTransition.None },
+                    exitTransition = { ExitTransition.None },
+                    popEnterTransition = { EnterTransition.None },
+                    popExitTransition = { ExitTransition.None },
+                ) {
                     val currentPrediction = prediction
                     val revealSnapshot = revealSessionStore.snapshot?.takeIf { snapshot ->
                         snapshot.recognitionSessionId == recognitionSessionId &&

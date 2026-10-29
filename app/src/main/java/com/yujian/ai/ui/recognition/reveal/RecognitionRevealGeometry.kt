@@ -58,6 +58,7 @@ data class RecognitionRevealPhotoGeometry(
     val processingStartMatrix: RecognitionRevealSourceMatrix,
     val heroEndMatrix: RecognitionRevealSourceMatrix,
     val processingPhotoClip: RecognitionRevealWindowRect,
+    val processingPhotoCornerRadiusPx: Float,
     val heroPhotoClip: RecognitionRevealWindowRect,
     val heroSourceTransform: RecognitionImageTransform,
 ) {
@@ -183,7 +184,11 @@ object RecognitionRevealGeometryResolver {
             sourceHeight = handoff.normalizedSourceHeight,
             processingStartMatrix = sourceMatrix(processingTransform, processingBounds, rootBoundsInWindow),
             heroEndMatrix = sourceMatrix(heroTransform, hero.boundsInWindow, rootBoundsInWindow),
-            processingPhotoClip = processingBounds,
+            processingPhotoClip = handoff.processingPhotoClipBoundsInWindow
+                ?.takeIf(RecognitionRevealWindowRect::isValid)
+                ?: processingBounds,
+            processingPhotoCornerRadiusPx = handoff.processingPhotoCornerRadiusPx
+                .takeIf { it.isFinite() && it >= 0f } ?: 0f,
             heroPhotoClip = hero.boundsInWindow,
             heroSourceTransform = heroTransform,
         )

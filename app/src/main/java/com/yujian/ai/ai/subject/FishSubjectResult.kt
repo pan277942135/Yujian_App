@@ -21,4 +21,6 @@ data class FishSubjectResult(
     val expectedMaskSize: Int = 0,
     val maskAreaRatio: Float = 0f,
     val quality: FishSubjectQuality? = null,
+    /** Model decoder output for traceability; it is recorded but not treated as calibrated quality. */
+    val maskIouScore: Float? = null,
 )
