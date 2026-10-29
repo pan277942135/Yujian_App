@@ -21,6 +21,9 @@ on:
       - "scripts/design/page_freeze_runner.py"
       - "scripts/design/verify_page_workspace.mjs"
       - "scripts/design/verify_empty_home_structured_hifi.mjs"
+      - "scripts/design/verify_login_structured_hifi.mjs"
+      - "scripts/design/compare_login_candidate_visual.py"
+      - "scripts/design/page_candidates/auth_login_v2/**"
       - "scripts/design/validate_page_responsive_contract.py"
       - "scripts/design/validate_page_resource_binding.py"
       - "scripts/design/tests/test_page_freeze_runner.py"
@@ -114,6 +117,11 @@ jobs:
           mkdir -p _site
           cp -R design _site/design
           if [ -d previews ]; then cp -R previews _site/previews; fi
+          mkdir -p _site/scripts/design/page_candidates/auth_login_v2
+          cp scripts/design/page_candidates/auth_login_v2/component_mapping_v1.json _site/scripts/design/page_candidates/auth_login_v2/
+          cp scripts/design/page_candidates/auth_login_v2/responsive_candidate_v1.json _site/scripts/design/page_candidates/auth_login_v2/
+          cp scripts/design/page_candidates/auth_login_v2/renderer.js _site/scripts/design/page_candidates/auth_login_v2/
+          cp scripts/design/page_candidates/auth_login_v2/renderer.css _site/scripts/design/page_candidates/auth_login_v2/
           mkdir -p _site/app/src/main/res/drawable-nodpi
           cp app/src/main/res/drawable-nodpi/normal_home_default_avatar_v2.png \
             _site/app/src/main/res/drawable-nodpi/normal_home_default_avatar_v2.png
@@ -171,7 +179,28 @@ jobs:
             --expected-sha "$BUILD_SHA" \
             --output-dir "$RUNNER_TEMP/page-freeze-w4-evidence/empty-home-matrix"
 
-      - name: Verify staged Design Manager workspace; retain only unconnected pages as NOT_RUN
+      - name: Run W5 Login structured matrix on exact W4 candidate
+        if: github.event_name == 'pull_request' && github.event.pull_request.number == 234
+        env:
+          PLAYWRIGHT_MODULE_DIR: ${{ runner.temp }}/page-workspace-playwright/node_modules
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m http.server 8765 --directory _site > "$RUNNER_TEMP/login-w5-http.log" 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          for attempt in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:8765/design/manager/ >/dev/null; then break; fi
+            sleep 1
+          done
+          node --check scripts/design/verify_login_structured_hifi.mjs
+          node scripts/design/verify_login_structured_hifi.mjs \
+            --root . \
+            --url http://127.0.0.1:8765/design/manager/ \
+            --expected-sha "$BUILD_SHA" \
+            --output-dir "$RUNNER_TEMP/page-freeze-w4-evidence/login-matrix"
+
+      - name: Verify staged Design Manager workspace for every pilot page
         shell: bash
         env:
           PLAYWRIGHT_MODULE_DIR: ${{ runner.temp }}/page-workspace-playwright/node_modules
@@ -180,8 +209,8 @@ jobs:
           evidence_root="$RUNNER_TEMP/page-freeze-w4-evidence/browser"
           mkdir -p "$evidence_root"
           if [ ! -f _site/design/manager/page_workspace_adapters.js ]; then
-            echo "W3 workspace adapter is not present on this exact candidate SHA; actual workspace browser checks remain NOT_RUN."
-            exit 0
+            echo "W3 workspace adapter is not present on this exact candidate SHA."
+            exit 1
           fi
           python3 -m http.server 8765 --directory _site > "$RUNNER_TEMP/page-workspace-http.log" 2>&1 &
           server_pid=$!
@@ -195,12 +224,6 @@ jobs:
           for page_id in home_normal_v1 home_empty_v2 auth_login_v2; do
             output_dir="$evidence_root/$page_id"
             unconnected_policy=fail
-            if [ "$page_id" = "home_empty_v2" ] || [ "$page_id" = "auth_login_v2" ]; then
-              # These page renderers are not declared structured in the W3 core PR.
-              # The verifier's default remains fail-closed; only the core-tools
-              # job may preserve an explicit reference-image-only state as NOT_RUN.
-              unconnected_policy=not-run
-            fi
             if ! python scripts/design/page_freeze_runner.py verify-page-workspace \
               --page-id "$page_id" \
               --candidate-url http://127.0.0.1:8765/design/manager/ \
@@ -228,10 +251,16 @@ jobs:
             if [ -f "$browser_report" ]; then browser_args+=(--browser-report "$browser_report"); fi
             matrix_args=()
             require_args=()
-            if [ "$page_id" = "home_empty_v2" ] && [ "${{ github.event_name }}" = "pull_request" ] && [ "${{ github.event.pull_request.number }}" = "234" ]; then
-              matrix_report="$evidence_root/empty-home-matrix/EmptyHome_Structured_HiFi_Evidence_V1.json"
-              matrix_args+=(--matrix-report "$matrix_report")
-              require_args+=(--require-evidence)
+            if [ "${{ github.event_name }}" = "pull_request" ] && [ "${{ github.event.pull_request.number }}" = "234" ]; then
+              if [ "$page_id" = "home_empty_v2" ]; then
+                matrix_report="$evidence_root/empty-home-matrix/EmptyHome_Structured_HiFi_Evidence_V1.json"
+                matrix_args+=(--matrix-report "$matrix_report")
+                require_args+=(--require-evidence)
+              elif [ "$page_id" = "auth_login_v2" ]; then
+                matrix_report="$evidence_root/login-matrix/Login_Structured_HiFi_Evidence_V1.json"
+                matrix_args+=(--matrix-report "$matrix_report")
+                require_args+=(--require-evidence)
+              fi
             fi
             if ! python scripts/design/page_freeze_runner.py validate-page \
               --page-id "$page_id" \

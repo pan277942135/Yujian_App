@@ -3887,6 +3887,13 @@ async function openPageStructuredWorkspace(id, routeKey, writeHistory = false) {
       "design/pages/home/empty_home/shared/contracts/responsive_mapping_contract.json",
       "design/pages/home/empty_home/shared/contracts/layer_contract.json",
       "design/manager/empty_home_v22_component_mapping.json"
+    ] : id === "auth_login_v2" ? [
+      "design/pages/account_privacy/Login/Login_Responsive_Acceptance_Matrix_V1.json",
+      "design/system_v3/07_Responsive_System/page_contract_examples/auth_login_v2.envelope.json",
+      "design/system_v3/07_Responsive_System/page_contract_examples/auth_login_v2.profile.json",
+      "design/pages/account_privacy/Login/Page_Resource_Binding_V1.json",
+      "scripts/design/page_candidates/auth_login_v2/component_mapping_v1.json",
+      "scripts/design/page_candidates/auth_login_v2/responsive_candidate_v1.json"
     ] : [])].filter(Boolean).map(path =>
       `<a class="authority-row" href="${esc(repoHref(path))}" target="_blank" rel="noreferrer">${esc(path)}</a>`).join("");
   el("hifiViewScenarios").innerHTML = '<span class="preview-empty compact">页面状态 ID 未由机器权威解析 · NOT_RUN</span>';
@@ -3897,6 +3904,20 @@ async function openPageStructuredWorkspace(id, routeKey, writeHistory = false) {
     repoHref,
     fetchImpl: window.fetch.bind(window)
   };
+  if (id === "auth_login_v2") {
+    el("hifiViewEyebrow").textContent = "LOGIN V2.1 · STRUCTURED HI-FI CANDIDATE";
+    el("hifiViewTitle").textContent = "登录页 · 结构化高保真候选";
+    el("hifiViewSummary").textContent = "共享 W3 组件树、真实 DOM、Inspector 与视口/字体/状态控制已接入。正式资源缺口、安全区所有权和 Android Runtime 仍按原始状态保留。";
+    try {
+      const pageOptions = await window.LoginV21Workspace.createOptions(workspaceOptions);
+      await pageAdapters.mount(el("hifiViewCanvas"), { ...workspaceOptions, ...pageOptions });
+    } catch (error) {
+      const canvas = el("hifiViewCanvas");
+      canvas.innerHTML = `<div class="page-ws-load-error" role="alert"><strong>Login 结构化候选加载失败</strong><code>${esc(error?.message || error)}</code><span>仅使用 W2 已授权的 Morning Lake 背景；未授权图标和未绑定的 footer grass 不参与渲染。</span></div>`;
+    }
+    return;
+  }
+
   if (id === "home_empty_v2") {
     el("hifiViewEyebrow").textContent = "EMPTY HOME V2.2 · STRUCTURED HI-FI CANDIDATE";
     el("hifiViewTitle").textContent = "空首页 · 结构化高保真候选";

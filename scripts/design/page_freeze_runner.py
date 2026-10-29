@@ -411,6 +411,234 @@ def derive_matrix(root: Path, envelope: dict[str, Any], profile: dict[str, Any])
             "reason": reason or "Cases are page-authority-derived and remain NOT_RUN until a browser/native runner executes."}
 
 
+def import_login_structured_matrix_report(root: Path, source_sha: str, run_id: str | None,
+                                               report_path: str, matrix: dict[str, Any], evidence_dir: Path) -> list[str]:
+    """Bind Login's page-owned Chromium report to W4 without changing its draft authorities."""
+    errors: list[str] = []
+    try:
+        source_path = Path(report_path).resolve()
+        report = read_json(source_path)
+    except (OSError, PipelineError) as exc:
+        matrix["status"] = "FAIL"
+        matrix["reason"] = f"Login Chromium matrix report could not be read: {exc}"
+        return [matrix["reason"]]
+
+    matrix["execution_source_sha"] = report.get("candidate_source_sha") or report.get("source_sha")
+    matrix["execution_run_id"] = str(report.get("github_run_id")) if report.get("github_run_id") is not None else None
+    matrix["execution_report_path"] = None
+    matrix["execution_report_sha256"] = None
+    matrix_authority = matrix.get("source_path")
+    expected_sha = matrix.get("source_sha256")
+    authority = report.get("matrix_authority") if isinstance(report.get("matrix_authority"), dict) else {}
+    summary = report.get("matrix_summary") if isinstance(report.get("matrix_summary"), dict) else {}
+    if report.get("schema") != "YUJIAN_PAGE_EVIDENCE_MANIFEST_V1" or report.get("page_id") != "auth_login_v2":
+        errors.append("Login matrix report schema or page identity is invalid")
+    if report.get("status") != "PASS_STRUCTURAL_MATRIX_VISUAL_REVIEW_PENDING":
+        errors.append("Login matrix did not pass structural execution while preserving pending visual acceptance")
+    if report.get("source_sha") != source_sha or report.get("candidate_source_sha") != source_sha:
+        errors.append("Login matrix source SHA does not match this exact W4 candidate")
+    if not run_id or not str(run_id).isdigit() or str(report.get("github_run_id")) != str(run_id):
+        errors.append("Login matrix Run ID does not match the observed W4 workflow Run ID")
+    if (authority.get("id") != matrix.get("source_authority_ref_id")
+            or authority.get("path") != matrix_authority or authority.get("sha256") != expected_sha
+            or summary.get("source_path") != matrix_authority or summary.get("source_sha256") != expected_sha):
+        errors.append("Login matrix authority path/SHA does not match the W1-derived page authority")
+    rows = report.get("matrix") if isinstance(report.get("matrix"), list) else []
+    formal_rows = [row for row in rows if isinstance(row, dict) and row.get("matrix_classification") == "FORMAL_AUTHORITY_CASE"]
+    supplemental_rows = [row for row in rows if isinstance(row, dict) and row.get("matrix_classification") == "SUPPLEMENTAL_CANDIDATE_NOT_IN_FROZEN_AUTHORITY"]
+    if (summary.get("expected") != 1 or summary.get("executed") != 1 or summary.get("pass") != 1
+            or summary.get("fail") != 0 or summary.get("not_run") != 0
+            or summary.get("formal_expected") != 1 or summary.get("formal_executed") != 1
+            or summary.get("formal_pass") != 1 or summary.get("formal_fail") != 0
+            or summary.get("formal_not_run") != 0 or len(formal_rows) != 1):
+        errors.append("Login formal matrix must execute and pass its one source-authorized 360x640dp baseline case")
+    supplemental = report.get("supplemental_matrix_definition") if isinstance(report.get("supplemental_matrix_definition"), dict) else {}
+    try:
+        page_matrix_doc = read_json(safe_repo_path(root, matrix_authority))
+        supplemental_authority = page_matrix_doc.get("supplemental_matrix", {}) if isinstance(page_matrix_doc, dict) else {}
+        supplemental_path = supplemental_authority.get("source_path")
+        supplemental_sha = supplemental_authority.get("source_sha256")
+        supplemental_file = safe_repo_path(root, supplemental_path) if isinstance(supplemental_path, str) else None
+        if (not supplemental_file or not supplemental_file.is_file()
+                or sha256_file(supplemental_file) != supplemental_sha
+                or supplemental.get("source_path") != supplemental_path
+                or supplemental.get("source_sha256") != supplemental_sha):
+            errors.append("Login supplemental candidate matrix path/SHA does not match its page authority bytes")
+        else:
+            supplemental_doc = read_json(supplemental_file)
+            declared_viewports = supplemental_doc.get("viewport_matrix", {}).get("viewports_css_px", [])
+            declared_fonts = supplemental_doc.get("viewport_matrix", {}).get("font_scales", [])
+            expected_supplemental = {
+                f"LOGIN_SUPP_{viewport.get('width')}x{viewport.get('height')}_FONT_{str(font)}":
+                    (viewport.get("width"), viewport.get("height"), font)
+                for viewport in declared_viewports if isinstance(viewport, dict)
+                for font in declared_fonts
+            }
+            actual_supplemental = {
+                row.get("case_id"): (row.get("viewport_width"), row.get("viewport_height"), row.get("font_scale"))
+                for row in supplemental_rows
+            }
+            if len(expected_supplemental) != 12 or actual_supplemental != expected_supplemental:
+                errors.append("Login supplemental rows do not match the exact viewport × font pairs in the pinned candidate matrix")
+    except (PipelineError, OSError, AttributeError) as exc:
+        errors.append(f"Login supplemental candidate authority cannot be verified: {exc}")
+    if (summary.get("supplemental_expected") != 12 or summary.get("supplemental_executed") != 12
+            or summary.get("supplemental_pass") != 12 or summary.get("supplemental_fail") != 0
+            or summary.get("supplemental_not_run") != 0 or len(supplemental_rows) != 12
+            or supplemental.get("status") != "SUPPLEMENTAL_CANDIDATE_NOT_IN_FROZEN_AUTHORITY"):
+        errors.append("Login supplemental candidate matrix must separately execute and pass all 12 declared CSS viewport/font cases")
+    if (summary.get("total_expected") != 13 or summary.get("total_executed") != 13
+            or summary.get("total_pass") != 13 or summary.get("total_fail") != 0
+            or summary.get("total_not_run") != 0 or len(rows) != 13):
+        errors.append("Login formal plus supplemental executed-case totals are inconsistent")
+    authority_cases = matrix.get("cases", [])
+    if len(authority_cases) != 1 or formal_rows and formal_rows[0].get("case_id") != authority_cases[0].get("case_id"):
+        errors.append("Login browser formal case ID does not match the W1-derived formal matrix")
+    elif formal_rows:
+        formal = formal_rows[0]
+        viewport = formal.get("viewport") if isinstance(formal.get("viewport"), dict) else {}
+        if (viewport.get("width") != 360 or viewport.get("height") != 640 or viewport.get("unit") != "css_px"
+                or formal.get("font_scale") != 1 or formal.get("state_id") != "DEFAULT"):
+            errors.append("Login formal case must record the declared CSS 360×640 baseline, font scale 1, and DEFAULT state")
+    for row in rows:
+        if row.get("result") != "PASS" or row.get("source_sha") != source_sha or str(row.get("run_id")) != str(run_id):
+            errors.append(f"Login matrix case {row.get('case_id')} is failed or bound to another source/Run ID")
+        if row.get("matrix_source_path") != matrix_authority or row.get("matrix_source_sha256") != expected_sha:
+            errors.append(f"Login matrix case {row.get('case_id')} does not bind the page matrix bytes")
+        if not isinstance(row.get("node_bounds"), list) or not row.get("node_bounds"):
+            errors.append(f"Login matrix case {row.get('case_id')} has no measured DOM geometry")
+        screenshot = row.get("screenshot_rendered") if isinstance(row.get("screenshot_rendered"), dict) else {}
+        value = screenshot.get("path")
+        if (not isinstance(value, str) or not value or Path(value).is_absolute() or ".." in Path(value).parts):
+            errors.append(f"Login matrix case {row.get('case_id')} has an unsafe screenshot path")
+        else:
+            image_path = source_path.parent / value
+            if not image_path.is_file() or image_path.is_symlink() or sha256_file(image_path) != screenshot.get("sha256"):
+                errors.append(f"Login matrix case {row.get('case_id')} screenshot is missing or hash-mismatched")
+            else:
+                image_bytes = image_path.read_bytes()
+                viewport = row.get("viewport") if isinstance(row.get("viewport"), dict) else {}
+                if (len(image_bytes) < 24 or image_bytes[:8] != b"\x89PNG\r\n\x1a\n"
+                        or int.from_bytes(image_bytes[16:20], "big") != screenshot.get("pixel_width")
+                        or int.from_bytes(image_bytes[20:24], "big") != screenshot.get("pixel_height")
+                        or screenshot.get("pixel_width") != viewport.get("width")
+                        or screenshot.get("pixel_height") != viewport.get("height")):
+                    errors.append(f"Login matrix case {row.get('case_id')} screenshot dimensions do not match its recorded CSS viewport")
+    negative_cases = report.get("negative_cases") if isinstance(report.get("negative_cases"), list) else []
+    expected_negative_ids = {
+        "bound-background-404", "bound-background-wrong-sha", "bound-background-wrong-dimensions",
+        "bound-background-wrong-mime", "bound-background-publication-denied", "missing-publication-authority",
+        "frozen-page-image-as-background", "invalid-manager-route", "invalid-resource-json",
+        "resource-timeout-and-recovery",
+    }
+    if (len(negative_cases) != 10 or {row.get("case_id") for row in negative_cases if isinstance(row, dict)} != expected_negative_ids
+            or any(not isinstance(row, dict) or row.get("result") != "EXPECTED_FAIL_CLOSED" for row in negative_cases)):
+        errors.append("Login negative cases must preserve the full ten-case fail-closed set")
+    expected_states = {"DEFAULT", "ACCOUNT_FOCUS", "PASSWORD_FOCUS", "PASSWORD_SHOWN", "PASSWORD_HIDDEN",
+                       "INPUT_ERROR", "LOADING", "KEYBOARD_SIMULATION", "ACTION_DISABLED"}
+    probes = report.get("state_probes") if isinstance(report.get("state_probes"), list) else []
+    if ({row.get("state") for row in probes if isinstance(row, dict)} != expected_states
+            or any(not isinstance(row, dict) or row.get("result") != "PASS" for row in probes)):
+        errors.append("Login state probes are missing, duplicated, or failed")
+    recovery = report.get("resource_load_failures_and_recovery") if isinstance(report.get("resource_load_failures_and_recovery"), list) else []
+    if ({row.get("case_id") for row in recovery if isinstance(row, dict)} != {
+            "bound-background-404", "invalid-mapping-json-and-recovery", "mapping-timeout-and-recovery"}
+            or any(not isinstance(row, dict) or row.get("result") != "EXPECTED_FAIL_CLOSED_AND_RECOVERED" or row.get("recovery") != "PASS" for row in recovery)):
+        errors.append("Login real-resource 404, invalid JSON, timeout, and recovery probes are incomplete")
+    routes = report.get("route_checks") if isinstance(report.get("route_checks"), dict) else {}
+    if any(routes.get(key) != "PASS" for key in ("direct", "reload", "invalid", "back", "forward")):
+        errors.append("Login direct/reload/back/forward/invalid route checks are incomplete")
+    gate_results = report.get("gate_results") if isinstance(report.get("gate_results"), dict) else {}
+    for gate in ("W3", "W4", "W5"):
+        gate_row = gate_results.get(gate) if isinstance(gate_results.get(gate), dict) else {}
+        if (gate_row.get("status") != "PASS" or gate_row.get("source_sha") != source_sha
+                or str(gate_row.get("run_id")) != str(run_id)):
+            errors.append(f"Login {gate} gate is not exact-SHA/Run-ID PASS")
+    if (not isinstance(gate_results.get("W3"), dict)
+            or not gate_results["W3"].get("actual_dom_geometry")
+            or gate_results["W3"].get("component_tree_measured_nodes", 0) <= 0):
+        errors.append("Login W3 shared DOM structure and geometry are missing")
+    selection = report.get("selection_inspector") if isinstance(report.get("selection_inspector"), dict) else {}
+    if not selection.get("tree_to_inspector") or not selection.get("dom_to_inspector") or not selection.get("geometry_reported"):
+        errors.append("Login W3 selection/Inspector/geometry probes did not pass")
+    form = report.get("form_interactions") if isinstance(report.get("form_interactions"), dict) else {}
+    if not all(form.get(key) for key in ("accountInput", "passwordInput", "visibilityShown", "visibilityHidden", "localSubmitPrevented")):
+        errors.append("Login form controls and submit prevention are not fully verified")
+    if report.get("browser_errors") or report.get("network_failures"):
+        errors.append("Login primary Chromium run contains unexpected browser or network errors")
+    if (report.get("visual_review_status") != "USER_VISUAL_ACCEPTANCE_PENDING"
+            or report.get("user_acceptance_status") != "USER_VISUAL_ACCEPTANCE_PENDING"
+            or report.get("native_runtime_status") != "NOT_VERIFIED"):
+        errors.append("Login matrix may not promote visual acceptance or Android Native runtime")
+
+    copied_dir = evidence_dir / "login-matrix"
+    copied_dir.mkdir(parents=True, exist_ok=True)
+    if source_path.is_file():
+        shutil.copyfile(source_path, copied_dir / source_path.name)
+    local_files: set[str] = set()
+    for key in ("dom_report",):
+        if isinstance(report.get(key), str):
+            local_files.add(report[key])
+    visual = report.get("visual_comparison") if isinstance(report.get("visual_comparison"), dict) else {}
+    if isinstance(visual.get("report_path"), str):
+        local_files.add(visual["report_path"])
+        try:
+            visual_report_path = source_path.parent / visual["report_path"]
+            visual_report = read_json(visual_report_path)
+            if (sha256_file(visual_report_path) != visual.get("report_sha256")
+                    or visual_report.get("page_id") != "auth_login_v2"
+                    or visual_report.get("source_sha") != source_sha
+                    or str(visual_report.get("run_id")) != str(run_id)
+                    or visual_report.get("visual_review_status") != "USER_VISUAL_ACCEPTANCE_PENDING"
+                    or visual_report.get("comparison", {}).get("interpretation") != "MEASUREMENT_ONLY_NOT_VISUAL_PASS"):
+                errors.append("Login frozen comparison report is missing, stale, or improperly promotes visual acceptance")
+        except (OSError, PipelineError, json.JSONDecodeError) as exc:
+            errors.append(f"Login frozen comparison report cannot be verified: {exc}")
+    comparison = visual.get("comparison") if isinstance(visual.get("comparison"), dict) else {}
+    for key in ("overlay_path", "difference_path", "frozen_reference_copy_path"):
+        if isinstance(comparison.get(key), str):
+            local_files.add("visual/" + comparison[key])
+    for row in rows:
+        screenshot = row.get("screenshot_rendered") if isinstance(row.get("screenshot_rendered"), dict) else {}
+        if isinstance(screenshot.get("path"), str):
+            local_files.add(screenshot["path"])
+    for value in local_files:
+        relative = Path(value)
+        if relative.is_absolute() or ".." in relative.parts:
+            errors.append(f"Login report references an unsafe local evidence path: {value}")
+            continue
+        source_file = source_path.parent / relative
+        if not source_file.is_file() or source_file.is_symlink():
+            errors.append(f"Login report references missing local evidence: {value}")
+            continue
+        target = copied_dir / relative
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(source_file, target)
+    matrix["cases"] = []
+    if len(formal_rows) == 1:
+        actual = formal_rows[0]
+        for expected in authority_cases:
+            if actual.get("case_id") == expected.get("case_id"):
+                screenshot = actual.get("screenshot_rendered") if isinstance(actual.get("screenshot_rendered"), dict) else {}
+                matrix["cases"].append({**expected, "result": "PASS",
+                    "source_sha": source_sha, "run_id": str(run_id),
+                    "failure_reason": None,
+                    "screenshot_rendered": {**screenshot, "path": (Path("login-matrix") / str(screenshot.get("path", ""))).as_posix()},
+                    "node_bounds": actual.get("node_bounds"),
+                    "assertions": actual.get("assertions")})
+    matrix["recorded_case_count"] = len(matrix["cases"])
+    matrix["execution_report_path"] = (Path("login-matrix") / source_path.name).as_posix()
+    copied_report = copied_dir / source_path.name
+    matrix["execution_report_sha256"] = sha256_file(copied_report) if copied_report.is_file() else None
+    if errors:
+        matrix["status"] = "FAIL"
+        matrix["reason"] = "; ".join(errors)
+    else:
+        matrix["status"] = "PASS"
+        matrix["reason"] = None
+    return errors
+
+
 def import_structured_matrix_report(root: Path, page_id: str, source_sha: str, run_id: str | None,
                                     report_path: str, matrix: dict[str, Any], evidence_dir: Path) -> list[str]:
     """Attach exact-run W5 Chromium results and copied DOM/screenshot evidence to W4."""
@@ -917,7 +1145,7 @@ def validate_manifest(root: Path, manifest: dict[str, Any], expected_source_sha:
                         or state_mapping.get("locator") != state_authority.get("locator")
                         or state_mapping.get("resolution") != state_authority.get("resolution")
                         or state_mapping.get("behavior_state_id") not in state_authority.get("resolved_state_ids", [])
-                        or len(negative_cases) != 8
+                        or len(negative_cases) != (10 if manifest.get("page_id") == "auth_login_v2" else 8)
                         or any(not isinstance(row, dict) or row.get("result") != "EXPECTED_FAIL_CLOSED" for row in negative_cases)
                         or summary.get("expected") != expected_count
                         or summary.get("executed") != expected_count
@@ -1148,9 +1376,16 @@ def run_validation(root: Path, page_id: str, source_sha: str, contract: str | No
     )
     matrix = derive_matrix(root, envelope, profile_data)
     run_id = os.environ.get("GITHUB_RUN_ID")
-    matrix_report_errors = import_structured_matrix_report(
-        root, page_id, source_sha, run_id, matrix_report_path, matrix, output_dir
-    ) if matrix_report_path else []
+    if matrix_report_path and page_id == "auth_login_v2":
+        matrix_report_errors = import_login_structured_matrix_report(
+            root, source_sha, run_id, matrix_report_path, matrix, output_dir
+        )
+    elif matrix_report_path:
+        matrix_report_errors = import_structured_matrix_report(
+            root, page_id, source_sha, run_id, matrix_report_path, matrix, output_dir
+        )
+    else:
+        matrix_report_errors = []
     matrix_validation_errors = matrix_errors(matrix)
     if matrix_validation_errors or matrix_report_errors:
         matrix["status"] = "FAIL"
@@ -1163,7 +1398,7 @@ def run_validation(root: Path, page_id: str, source_sha: str, contract: str | No
     artifact_url = f"{server}/{repository}/actions/runs/{run_id}" if run_id else None
     structural_ok = w1_ok and w2_ok and not matrix_validation_errors and matrix.get("status") != "FAIL"
     matrix_case_results = [row.get("result") for row in matrix.get("cases", []) if isinstance(row, dict)]
-    matrix_complete = matrix.get("expected_case_count", 0) == 0 or (
+    matrix_complete = matrix.get("expected_case_count", 0) > 0 and (
         len(matrix_case_results) == matrix.get("expected_case_count") and all(value == "PASS" for value in matrix_case_results)
     )
     evidence_failed = browser_status == "FAIL" or pages_status == "FAIL" or matrix.get("status") == "FAIL" or "FAIL" in matrix_case_results

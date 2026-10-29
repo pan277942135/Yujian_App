@@ -157,6 +157,13 @@ jobs:
           SITE_BUILD_SHA="${BUILD_SHA}"
           cp -R design _site/design
           if [ -d previews ]; then cp -R previews _site/previews; fi
+          if [ "${GITHUB_EVENT_NAME}" = "pull_request" ] && [ "${{ github.event.pull_request.number || 0 }}" = "234" ]; then
+            mkdir -p _site/scripts/design/page_candidates/auth_login_v2
+            cp scripts/design/page_candidates/auth_login_v2/component_mapping_v1.json _site/scripts/design/page_candidates/auth_login_v2/
+            cp scripts/design/page_candidates/auth_login_v2/responsive_candidate_v1.json _site/scripts/design/page_candidates/auth_login_v2/
+            cp scripts/design/page_candidates/auth_login_v2/renderer.js _site/scripts/design/page_candidates/auth_login_v2/
+            cp scripts/design/page_candidates/auth_login_v2/renderer.css _site/scripts/design/page_candidates/auth_login_v2/
+          fi
           mkdir -p _site/app/src/main/res/drawable-nodpi
           cp app/src/main/res/drawable-nodpi/normal_home_default_avatar_v2.png _site/app/src/main/res/drawable-nodpi/normal_home_default_avatar_v2.png
           echo "SITE_BUILD_SHA=${SITE_BUILD_SHA}" >> "$GITHUB_ENV"
@@ -405,6 +412,15 @@ jobs:
               shutil.rmtree(preview)
           preview.mkdir(parents=True)
           shutil.copytree(candidate / "design", preview / "design")
+          login_candidates = candidate / "scripts/design/page_candidates/auth_login_v2"
+          if login_candidates.is_dir():
+              login_target = preview / "scripts/design/page_candidates/auth_login_v2"
+              login_target.mkdir(parents=True, exist_ok=True)
+              for name in ("component_mapping_v1.json", "responsive_candidate_v1.json", "renderer.js", "renderer.css"):
+                  source = login_candidates / name
+                  if not source.is_file():
+                      raise SystemExit(f"Login isolated preview candidate is incomplete: {source}")
+                  shutil.copy2(source, login_target / name)
           avatar_source = candidate / "app/src/main/res/drawable-nodpi/normal_home_default_avatar_v2.png"
           if not avatar_source.is_file():
               raise SystemExit(f"candidate avatar asset is missing: {avatar_source}")
@@ -560,6 +576,39 @@ jobs:
           name: Empty-Home-Structured-Hifi-Build-${{ github.run_id }}-${{ github.event.pull_request.head.sha }}
           path: ${{ runner.temp }}/empty-home-structured-hifi-build/
           if-no-files-found: error
+          retention-days: 30
+
+      - name: Verify Login V2.1 in the isolated PR Pages path
+        if: github.event_name == 'pull_request' && github.event.pull_request.number == 234
+        shell: bash
+        env:
+          PLAYWRIGHT_MODULE_DIR: ${{ runner.temp }}/dm-playwright/node_modules
+          PREVIEW_PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+          output_dir="$RUNNER_TEMP/login-isolated-preview-evidence"
+          preview_path="previews/pr-${PREVIEW_PR_NUMBER}"
+          python3 -m http.server 8765 --directory _site > "$RUNNER_TEMP/login-preview-http.log" 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          for attempt in $(seq 1 30); do
+            if curl -fsS "http://127.0.0.1:8765/${preview_path}/design/manager/" >/dev/null; then break; fi
+            sleep 1
+          done
+          test "$(curl -fsS "http://127.0.0.1:8765/${preview_path}/source-manifest.json" | jq -r .candidate_source_sha)" = "$BUILD_SHA"
+          node scripts/design/verify_login_structured_hifi.mjs \
+            --root . \
+            --url "http://127.0.0.1:8765/${preview_path}/design/manager/" \
+            --expected-sha "$BUILD_SHA" \
+            --output-dir "$output_dir"
+
+      - name: Upload isolated Login preview evidence
+        if: always() && github.event_name == 'pull_request' && github.event.pull_request.number == 234
+        uses: actions/upload-artifact@v4
+        with:
+          name: Login-Isolated-Preview-${{ github.run_id }}-${{ github.event.pull_request.head.sha }}
+          path: ${{ runner.temp }}/login-isolated-preview-evidence/
+          if-no-files-found: warn
           retention-days: 30
 
       - name: Upload Pages artifact
