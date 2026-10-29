@@ -219,7 +219,7 @@
   async function createOptions({ repoHref, mapping, profile }) {
     assert(mapping?.page_id === CANDIDATE_PAGE_ID, "LOGIN_MAPPING_PAGE_ID_INVALID");
     assert(profile?.page_id === CANDIDATE_PAGE_ID && profile.status === "RESPONSIVE_RULE_REVIEW_REQUIRED", "LOGIN_PROFILE_STATUS_INVALID");
-    const previewScope = assertAllowedCandidatePreview();
+    const previewScope = assertLocalCandidateOnly();
     const opts = { repoHref, mapping, profile, assets: null, disposed: false, previewScope,
       referenceBoundsByNode: collectReferenceBounds(mapping.component_tree) };
     return opts;
@@ -259,18 +259,18 @@
     page.dataset.loginVisualState = state;
     page.dataset.loginFontScale = String(fontScale);
     page.dataset.loginViewport = `${viewport.width}x${viewport.height}`;
-    page.dataset.loginCandidateAssetScope = options.previewScope;
+    page.dataset.loginCandidateAssetScope = options.previewScope === true ? "LOCAL_ONLY" : options.previewScope;
     page.dataset.loginAssetAuthority = "W2_PERMISSION_UNCONFIRMED";
   }
 
-  function assertAllowedCandidatePreview() {
+  function assertLocalCandidateOnly() {
     const host = location.hostname;
     const isLoopback = host === "localhost" || host === "127.0.0.1" || host === "::1";
     const isIsolatedPagesReview = host === "pan277942135.github.io" &&
       location.pathname.startsWith("/Yujian_App/previews/pr-234/");
     assert(isLoopback || isIsolatedPagesReview, "PRIVATE_PREVIEW_REQUIRED",
       "Login visual review is limited to loopback or the isolated PR #234 Pages subtree. W2 icon publication, source-upload and footer states remain unchanged.");
-    return isIsolatedPagesReview ? "ISOLATED_PAGES_REVIEW_ONLY" : "LOCAL_ONLY";
+    return isIsolatedPagesReview ? "ISOLATED_PAGES_REVIEW_ONLY" : true;
   }
 
   async function validateNegativeCases(authority, repoHref) {
