@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+// Exact-SHA matrix asserts the live Inspector values equal selected 
 
 import { createServer } from "node:http";
 import { createReadStream, existsSync, statSync } from "node:fs";
@@ -440,7 +441,8 @@ async function main() {
     assert(behaviorState.behavior_state_id==="EMPTY","the declared W5 behavior state must resolve to the EMPTY state selected by the approved behavior authority");
     assert(typeof preflight.rendererStateId==="string"&&preflight.rendererStateId.length>0,"the actual structured renderer must report its current renderer state");
     baseEvidence.behavior_state_mapping={...behaviorState,renderer_state_id:preflight.rendererStateId};
-    baseEvidence.matrix=matrixCases.map(({width,height,fontScale,matrix_classification})=>({
+        baseEvidence.matrix=[...formalCases,...supplementalCases].map(({width,height,fontScale,matrix_classification})=>({
+// Exact-SHA matrix asserts the live Inspector values equal selected DOM bounds.
       case_id:`EMPTY_HOME_${width}x${height}_FONT_${fontScale}`,
       page_id:"home_empty_v2",
       viewport:{width,height},
