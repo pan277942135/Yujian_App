@@ -9,17 +9,23 @@ const sourceSha = "42ad0d3fef23ea6576fd43dee781d253dcc11251";
 const pageId = "home_empty_v2";
 const verifier = resolve("scripts/design/verify_page_workspace.mjs");
 
-function shellHtml({ page = pageId, source = sourceSha, node = true, throwing = false, kind = "structured-page-adapter", disabled = false, viewState = "READY", errorText = null, badResource = false } = {}) {
+function shellHtml({ page = pageId, source = sourceSha, node = true, throwing = false, kind = "structured-page-adapter", disabled = false, viewState = "READY", errorText = null, badResource = false, staleWorkspace = false, duplicateWorkspace = false } = {}) {
   const tree = `<button data-workspace-tree-node data-node-id="empty-scene" ${disabled ? "disabled" : ""}>Empty scene</button>`;
   const rendered = node ? `<div data-workspace-rendered-node="empty-scene" style="width:120px;height:80px">scene</div>` : "";
+  const stale = staleWorkspace ? `<main data-page-workspace-root data-page-id="${page}" data-source-sha="1111111111111111111111111111111111111111" data-workspace-kind="structured-page-adapter" data-view-state="READY" style="display:none"><button data-workspace-tree-node data-node-id="old-workspace-layer" disabled>Old hidden layer</button><aside data-workspace-inspector data-selected-node-id="">Old Inspector</aside></main>` : "";
+  const duplicate = duplicateWorkspace ? `<main data-page-workspace-root data-page-id="${page}" data-source-sha="${source}" data-workspace-kind="${kind}" data-view-state="${viewState}">${tree}${rendered}<aside data-workspace-inspector data-selected-node-id="">Duplicate Inspector</aside></main>` : "";
   return `<!doctype html><html><head><meta charset="utf-8"></head><body>
+    ${stale}
     <main data-page-workspace-root data-page-id="${page}" data-source-sha="${source}" data-workspace-kind="${kind}" data-view-state="${viewState}">
       ${tree}${rendered}<aside data-workspace-inspector data-selected-node-id="">Inspector</aside>
       ${errorText ? `<p data-workspace-error role="alert">${errorText}</p>` : ""}
     </main>
+    ${duplicate}
     <script>
-      document.querySelector('[data-workspace-tree-node]').addEventListener('click', () => {
-        document.querySelector('[data-workspace-inspector]').dataset.selectedNodeId = 'empty-scene';
+      document.querySelectorAll('[data-page-workspace-root]').forEach(workspace => {
+        workspace.querySelectorAll('[data-workspace-tree-node]').forEach(button => button.addEventListener('click', () => {
+          workspace.querySelector('[data-workspace-inspector]').dataset.selectedNodeId = button.dataset.nodeId;
+        }));
       });
       ${throwing ? "throw new Error('fixture page error');" : ""}
       ${badResource ? `fetch('/broken-workspace-resource.png').then(response => {
@@ -59,6 +65,8 @@ async function main() {
       return;
     }
     const html = fixture === "wrong-page" ? shellHtml({ page: "auth_login_v2" })
+      : fixture === "hidden-old-workspace" ? shellHtml({ staleWorkspace: true })
+      : fixture === "duplicate-visible-workspaces" ? shellHtml({ duplicateWorkspace: true })
       : fixture === "missing-layer" ? shellHtml({ node: false })
       : fixture === "reference-only" ? shellHtml({ kind: "reference-image-only", viewState: "REFERENCE_IMAGE_ONLY" })
       : fixture === "reference-only-error" ? shellHtml({ kind: "reference-image-only", viewState: "ERROR", errorText: "authority load failed", throwing: true })
@@ -75,7 +83,7 @@ async function main() {
   const root = await mkdtemp(join(tmpdir(), "page-workspace-w4-test-"));
   let infrastructureBlocked = false;
   try {
-    for (const fixture of ["ok", "missing", "wrong-page", "missing-layer", "reference-only", "structured-error", "disabled-node", "page-error"]) {
+    for (const fixture of ["ok", "hidden-old-workspace", "duplicate-visible-workspaces", "missing", "wrong-page", "missing-layer", "reference-only", "structured-error", "disabled-node", "page-error"]) {
       const outputDir = join(root, fixture);
       const code = await runVerifier(serverUrl, fixture, outputDir);
       const report = JSON.parse(await readFile(join(outputDir, "workspace-browser-report.json"), "utf8"));
@@ -83,9 +91,20 @@ async function main() {
         infrastructureBlocked = true;
         continue;
       }
-      const expected = fixture === "ok" ? "PASS" : "FAIL";
+      const expected = ["ok", "hidden-old-workspace"].includes(fixture) ? "PASS" : "FAIL";
       if (report.result !== expected || (expected === "PASS" && code !== 0) || (expected === "FAIL" && code === 0)) {
         throw new Error(`${fixture}: expected ${expected}, got ${report.result}, exit ${code}; report=${JSON.stringify(report)}`);
+      }
+      if (expected === "FAIL" && report.result === "FAIL" &&
+          (!report.screenshot_sha256 || !report.dom_sha256 || !report.failure_reason)) {
+        throw new Error(`${fixture}: failure report omitted original reason or browser evidence: ${JSON.stringify(report)}`);
+      }
+      if (fixture === "hidden-old-workspace") {
+        if (report.workspace_selection?.matching_visible_count !== 1 ||
+            report.workspace_selection?.all_workspace_candidates?.length !== 2 ||
+            report.tree_node_count !== 1) {
+          throw new Error(`hidden old workspace polluted active evidence: ${JSON.stringify(report.workspace_selection)}`);
+        }
       }
       if (fixture === "ok") {
         if (report.visual_result !== "MEASUREMENT_ONLY_NOT_VISUAL_PASS" || report.page_acceptance !== "NOT_VERIFIED") {
@@ -117,7 +136,7 @@ async function main() {
       process.exitCode = 2;
       return;
     }
-    console.log("PAGE_WORKSPACE_VERIFIER_FIXTURES=PASS cases=10 reference_only=NOT_RUN reference_only_errors=FAIL");
+    console.log("PAGE_WORKSPACE_VERIFIER_FIXTURES=PASS cases=12 hidden_old_workspace=IGNORED duplicate_visible_workspace=FAIL reference_only=NOT_RUN reference_only_errors=FAIL");
   } finally {
     await new Promise(resolvePromise => browser.close(resolvePromise));
     await rm(root, { recursive: true, force: true });
