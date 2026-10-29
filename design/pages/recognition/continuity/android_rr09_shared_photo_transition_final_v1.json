@@ -281,10 +281,12 @@
       "missing_anchor_fallback": "NON_SPATIAL_CHINESE_TITLE_RESOLUTION"
     },
     "UNTRUSTED_MISSING_STALE_OR_TRANSFORM_MISMATCH": {
+      "photo_transform_requirement": "PHOTO_IDENTITY_AND_SOURCE_TO_WINDOW_TRANSFORM_MUST_REMAIN_VALID",
       "fish_specific_optics": false,
       "contour_trace": false,
       "spatial_transfer": false,
-      "eligible_high_title_fallback": "KEEP_RR09_380_550_680MS_BOUNDARIES_WITHOUT_SPATIAL_EFFECTS"
+      "eligible_high_with_valid_photo_transform": "KEEP_RR09_TIMING_WITH_RESTRAINED_NON_SPATIAL_CHINESE_TITLE_RESOLUTION",
+      "invalid_photo_identity_or_transform": "STATIC_RESULT_NO_RR09_TRANSITION"
     },
     "manual_reference_contour_can_qualify_production_mask": false
   },
@@ -294,7 +296,7 @@
       "play_once_per_session_and_attempt": true,
       "trusted_mask_behavior": "CONTOUR_DRIVEN_GOLD_TRANSFER",
       "bbox_only_behavior": "BOUNDED_REGION_GLOW_AND_OPTIONAL_VALIDATED_ANCHOR",
-      "no_trusted_geometry_behavior": "NON_SPATIAL_TITLE_RESOLUTION_ON_RR09_V3_TIMELINE"
+      "fish_geometry_untrusted_but_photo_transform_valid_behavior": "NON_SPATIAL_TITLE_RESOLUTION_ON_RR09_V3_TIMELINE"
     },
     "result_medium_or_low": {
       "photo_transition": "NONE_STATIC_RESULT",
@@ -325,6 +327,11 @@
       "transient_particles": 0,
       "dynamic_glow": false,
       "static_result_interactive": true
+    },
+    "invalid_photo_geometry": {
+      "transition": "STATIC_RESULT",
+      "rr09_timeline": false,
+      "spatial_optics": false
     }
   },
   "renderer_requirements": {
