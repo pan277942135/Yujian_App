@@ -806,6 +806,9 @@ async function main() {
   assert(page.url().endsWith(continuityHash), "Processing → Result continuity direct Hash route did not resolve");
   assert((await page.locator("#hifiViewTitle").innerText()).includes("光学接续"), "continuity menu title is missing");
   assert((await page.locator("#hifiViewAuthorities").innerText()).includes("Processing_Result_Optical_Continuity_Contract_V1.md"), "continuity authority link is missing");
+  const continuityContractDetails = await page.locator("#hifiViewContractDetails").innerText();
+  assert(continuityContractDetails.includes("Android_RR09_Shared_Photo_Transition_Final_Contract_V1.md"), "Android RR09 final transition contract link is missing");
+  assert(continuityContractDetails.includes("android_rr09_shared_photo_transition_final_v1.json"), "Android RR09 machine contract link is missing");
   await page.screenshot({ path: resolve(args.outputDir, "processing-result-continuity-1440.png"), fullPage: true });
 
   const rr09V3Hash = "#page/recognition_result_v1/hifi/motion_continuation";
