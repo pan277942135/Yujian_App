@@ -1,8 +1,6 @@
 package com.yujian.ai.ui.recognition.result
 
-import android.Manifest
 import android.content.Context
-import android.content.pm.PackageManager
 import android.location.Address
 import android.location.Geocoder
 import android.location.Location
@@ -102,11 +100,6 @@ fun Address.toRecognitionPlace(): RecognitionPlace? {
 
 /** Uses a fresh provider fix after explicit user action, falling back to a recent cached fix. */
 suspend fun resolveCurrentRecognitionPlace(context: Context): RecognitionPlace? = withContext(Dispatchers.IO) {
-    if (
-        context.checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
-        context.checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED
-    ) return@withContext null
-
     val manager = context.getSystemService(Context.LOCATION_SERVICE) as? LocationManager ?: return@withContext null
     try {
         val providers = listOf(LocationManager.NETWORK_PROVIDER, LocationManager.GPS_PROVIDER)
@@ -135,11 +128,6 @@ suspend fun resolveCurrentRecognitionPlace(context: Context): RecognitionPlace? 
 
 private suspend fun requestCurrentLocation(manager: LocationManager, provider: String, context: Context): Location? =
     withTimeoutOrNull(8_000L) {
-        if (
-            context.checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
-            context.checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED
-        ) return@withTimeoutOrNull null
-
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             suspendCancellableCoroutine { continuation ->
                 val cancellation = CancellationSignal()
