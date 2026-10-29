@@ -9,17 +9,17 @@
   "base_sha": "34f21ad01e62ec7bf11be11fee8eb5a500894333",
   "phase": "P3",
   "task_id": "YUJIAN_PAGE_FREEZE_PIPELINE_W5_EMPTY_HOME_PILOT_V1",
-  "stage": "EXACT_CANDIDATE_ADMISSION",
-  "status": "READY",
+  "stage": "EXACT_HEAD_W5_AND_PREVIEW",
+  "status": "VALIDATING",
   "source_sha": "73cc6206eb146ada5120363ad7cf73fa8023908a",
-  "checkpoint_updated_at": "2026-10-29T17:55:37Z",
-  "next_action": "Commit a state-only checkpoint for code source 73cc6206, run exact-head Admission, then update the PR ref and run the formal 4-viewport × 2-font-scale W5 matrix and isolated Pages preview.",
+  "checkpoint_updated_at": "2026-10-29T17:58:44Z",
+  "next_action": "Record the PASS from exact Admission checkpoint d2fe01a, create the final state-only candidate checkpoint, rerun Admission on its exact SHA, then verify the 4-viewport × 2-font-scale W5 matrix and isolated Pages preview.",
   "dependencies": [
     "YUJIAN_PAGE_FREEZE_PIPELINE_W3_DESIGN_MANAGER_ADAPTER_V1",
     "YUJIAN_PAGE_FREEZE_PIPELINE_W4_TEST_EVIDENCE_V1"
   ],
   "blockers": [
-    "Exact-candidate Admission is pending for code source 73cc6206 after the typography repair.",
+    "The final state-only candidate Admission rerun and exact-source W5/Pages workflows are pending.",
     "Empty Home brand placement remains blocked: registered brand_title_primary is authorized only for normal_home_v1."
   ],
   "evidence": {
@@ -77,6 +77,18 @@
       "project_master_state": "PASS",
       "work_execution_state": "PASS",
       "recorded_at": "2026-10-29T17:49:20Z"
+    },
+    "exact_candidate_admission": {
+      "candidate_sha": "d2fe01a14c71231dbc2c3694ddef2c66574e0c2d",
+      "code_source_sha": "73cc6206eb146ada5120363ad7cf73fa8023908a",
+      "command": "python scripts/validate_control_plane_admission.py",
+      "result": "PASS",
+      "control_plane_layers": 6,
+      "control_plane_sync_paths": 735,
+      "exact_login_mapping_exceptions": 1,
+      "project_master_state": "PASS",
+      "work_execution_state": "PASS",
+      "recorded_at": "2026-10-29T17:55:37Z"
     },
     "typography_repair": {
       "code_source_sha": "73cc6206eb146ada5120363ad7cf73fa8023908a",
