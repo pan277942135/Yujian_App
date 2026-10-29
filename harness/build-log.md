@@ -54,3 +54,10 @@
 - Bounded retry check for `G-DESIGN-MANAGER-PAGES-ISOLATED-PREVIEW / PAGES_RESOLVER_EXCLUDES_FORMAL_MAIN_WORKFLOW_DISPATCH` returned `ALLOW_REPAIR` at 1 prior failure; `failure_gate.py record` retained this second exact-SHA FAIL and new evidence. Do not reuse a different SHA's result.
 - NH01 API 28 run `40826118440` is still in progress. PR #252 Android CI run `40826129796` built APKs and its API 28 runtime matrix is in progress/queued; no NH01, Effect 01, or perimeter native runtime PASS is claimed from builds alone.
 - Next: commit this isolated state snapshot with `source_sha=7de2…`, run explicit `PRODUCT_WORK` Admission, repair only the Main event selection in the Pages resolver, and rerun exact-SHA gates. User visual acceptance remains pending.
+
+## 2026-10-29 — exact PR #234 checkpoint 6933f459d2223823a25edcd1d4598ffde3061267
+
+- Main: `b080bb0ffb4ebced18593c08709657fabb53a19e`. PR #234 is Open/Draft/Unmerged at exact HEAD `6933f459d2223823a25edcd1d4598ffde3061267`.
+- W1 `40828169507` and Design Governance `40828169495` passed; PR-event Admission `40828169471` passed but is not Product Work Admission.
+- W4 `40828169489` failed before Login exact-SHA evidence generation. W5 `40828169461` and Pages/W2 `40828169492` failed due three `SOURCE_AUTHORITY_SHA_MISMATCH` errors: pinned workflow SHA `51f8d59ab19dd2a974381991038a2f746a4b30ab73422b1894d2f01df16f7200`, candidate workflow SHA `e1d7c6555b83570e92769244b83c5024113c683cc1db5f51e99d0f7ac8e8871c`. No isolated preview deployed.
+- NH01 Android run `40828169459` failed source/resource preflight; native runtime remains `NOT_VERIFIED`. PR #239 remains blocked and Draft. Product Work Admission for `6933f459d2223823a25edcd1d4598ffde3061267` is pending. User visual acceptance is pending.

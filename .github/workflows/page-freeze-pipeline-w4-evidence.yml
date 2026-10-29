@@ -21,6 +21,8 @@ on:
       - "scripts/design/page_freeze_runner.py"
       - "scripts/design/verify_page_workspace.mjs"
       - "scripts/design/verify_empty_home_structured_hifi.mjs"
+      - "scripts/design/verify_login_structured_hifi.mjs"
+      - "design/pages/account_privacy/Login/structured_candidate/**"
       - "scripts/design/validate_page_responsive_contract.py"
       - "scripts/design/validate_page_resource_binding.py"
       - "scripts/design/tests/test_page_freeze_runner.py"
@@ -171,6 +173,20 @@ jobs:
             --expected-sha "$BUILD_SHA" \
             --output-dir "$RUNNER_TEMP/page-freeze-w4-evidence/empty-home-matrix"
 
+      - name: Run Login V2.1 exact-SHA Chromium matrix and failure recovery
+        id: login_matrix
+        if: github.event_name == 'pull_request' && github.event.pull_request.number == 234 && hashFiles('scripts/design/verify_login_structured_hifi.mjs') != ''
+        continue-on-error: true
+        env:
+          PLAYWRIGHT_MODULE_DIR: ${{ runner.temp }}/page-workspace-playwright/node_modules
+        run: |
+          set -euo pipefail
+          node --check scripts/design/verify_login_structured_hifi.mjs
+          node scripts/design/verify_login_structured_hifi.mjs \
+            --root _site \
+            --expected-sha "$BUILD_SHA" \
+            --output-dir "$RUNNER_TEMP/page-freeze-w4-evidence/login-matrix"
+
       - name: Verify staged Design Manager workspace for every pilot page
         shell: bash
         env:
@@ -195,11 +211,6 @@ jobs:
           for page_id in home_normal_v1 home_empty_v2 auth_login_v2; do
             output_dir="$evidence_root/$page_id"
             unconnected_policy=fail
-            if [ "$page_id" = "auth_login_v2" ]; then
-              # Login remains reference-only until the dedicated W6 integration is connected.
-              # Keep exact-SHA workspace identity/resource checks, but report its renderer as NOT_RUN.
-              unconnected_policy=not-run
-            fi
             if ! python scripts/design/page_freeze_runner.py verify-page-workspace \
               --page-id "$page_id" \
               --candidate-url http://127.0.0.1:8765/design/manager/ \
@@ -230,6 +241,10 @@ jobs:
             if [ "${{ github.event_name }}" = "pull_request" ] && [ "${{ github.event.pull_request.number }}" = "234" ]; then
               if [ "$page_id" = "home_empty_v2" ]; then
                 matrix_report="$evidence_root/empty-home-matrix/EmptyHome_Structured_HiFi_Evidence_V1.json"
+                matrix_args+=(--matrix-report "$matrix_report")
+                require_args+=(--require-evidence)
+              elif [ "$page_id" = "auth_login_v2" ]; then
+                matrix_report="$evidence_root/login-matrix/Login_Structured_HiFi_Evidence_V1.json"
                 matrix_args+=(--matrix-report "$matrix_report")
                 require_args+=(--require-evidence)
               fi
@@ -272,3 +287,54 @@ jobs:
           path: ${{ runner.temp }}/page-resource-binding-report.json
           if-no-files-found: warn
           retention-days: 30
+
+      - name: Enforce complete Login exact-SHA evidence
+        if: always() && github.event_name == 'pull_request' && github.event.pull_request.number == 234
+        env:
+          LOGIN_EVIDENCE_DIR: ${{ runner.temp }}/page-freeze-w4-evidence/login-matrix
+          EXPECTED_SOURCE_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          EXPECTED_RUN_ID: ${{ github.run_id }}
+        run: |
+          python3 - <<'PY'
+          import json, os
+          from pathlib import Path
+          path = Path(os.environ["LOGIN_EVIDENCE_DIR"]) / "Login_Structured_HiFi_Evidence_V1.json"
+          if not path.is_file():
+              raise SystemExit("LOGIN_EXACT_SHA_EVIDENCE_MISSING")
+          report = json.loads(path.read_text())
+          if report.get("source_sha") != os.environ["EXPECTED_SOURCE_SHA"]:
+              raise SystemExit("LOGIN_EVIDENCE_SOURCE_SHA_MISMATCH")
+          if str(report.get("github_run_id")) != os.environ["EXPECTED_RUN_ID"]:
+              raise SystemExit("LOGIN_EVIDENCE_RUN_ID_MISMATCH")
+          summary = report.get("matrix_summary", {})
+          rows = report.get("matrix", [])
+          formal = [row for row in rows if row.get("matrix_classification") == "FORMAL_AUTHORITY_CASE"]
+          supplemental = [row for row in rows if row.get("matrix_classification") == "SUPPLEMENTAL_CANDIDATE_NOT_IN_FROZEN_AUTHORITY"]
+          if report.get("status") != "PASS_STRUCTURAL_MATRIX_VISUAL_REVIEW_PENDING":
+              raise SystemExit("LOGIN_MATRIX_STATUS_NOT_PASS")
+          if (len(formal) != 1 or len(supplemental) != 12 or len(rows) != 13 or
+              summary.get("formal_executed") != 1 or summary.get("formal_pass") != 1 or summary.get("formal_fail") != 0 or summary.get("formal_not_run") != 0 or
+              summary.get("supplemental_executed") != 12 or summary.get("supplemental_pass") != 12 or summary.get("supplemental_fail") != 0 or summary.get("supplemental_not_run") != 0 or
+              summary.get("total_executed") != 13 or summary.get("total_pass") != 13 or summary.get("total_fail") != 0 or summary.get("total_not_run") != 0 or
+              any(row.get("result") != "PASS" or not row.get("screenshot_rendered", {}).get("sha256") for row in rows)):
+              raise SystemExit("LOGIN_MATRIX_CASE_EVIDENCE_INCOMPLETE_OR_FAILED")
+          if (len(report.get("state_probes", [])) != 9 or any(row.get("result") != "PASS" or not row.get("screenshot_sha256") for row in report["state_probes"])):
+              raise SystemExit("LOGIN_STATE_PROBE_EVIDENCE_INCOMPLETE_OR_FAILED")
+          if len(report.get("negative_cases", [])) != 11 or any(row.get("result") != "EXPECTED_FAIL_CLOSED" for row in report["negative_cases"]):
+              raise SystemExit("LOGIN_NEGATIVE_EVIDENCE_INCOMPLETE_OR_FAILED")
+          if len(report.get("resource_load_failures_and_recovery", [])) != 3 or any(row.get("recovery") != "PASS" for row in report["resource_load_failures_and_recovery"]):
+              raise SystemExit("LOGIN_RECOVERY_EVIDENCE_INCOMPLETE_OR_FAILED")
+          if report.get("gate_results", {}).get("W3", {}).get("status") != "PASS" or report.get("gate_results", {}).get("W4", {}).get("status") != "PASS" or report.get("gate_results", {}).get("W5", {}).get("status") != "PASS":
+              raise SystemExit("LOGIN_W3_W4_W5_GATE_RESULT_NOT_PASS")
+          route_checks = report.get("route_checks", {})
+          if not route_checks or any(value != "PASS" for value in route_checks.values()):
+              raise SystemExit("LOGIN_ROUTE_COVERAGE_INCOMPLETE")
+          if not report.get("visual_comparison", {}).get("report_sha256") or report.get("visual_comparison", {}).get("comparison", {}).get("interpretation") != "MEASUREMENT_ONLY_NOT_VISUAL_PASS":
+              raise SystemExit("LOGIN_FROZEN_COMPARISON_MEASUREMENT_MISSING")
+          for row in rows:
+              root = row.get("root_geometry") or {}
+              viewport = row.get("viewport") or {}
+              if root.get("height", 0) > viewport.get("height", 0) + 1 and not row.get("expanded_artboard_screenshot", {}).get("sha256"):
+                  raise SystemExit("LOGIN_EXPANDED_ARTBOARD_SCREENSHOT_MISSING " + str(row.get("case_id")))
+          print("LOGIN_EXACT_SHA_EVIDENCE=PASS", report["source_sha"], report["github_run_id"])
+          PY
