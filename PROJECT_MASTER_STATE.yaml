@@ -1,0 +1,79 @@
+schema_version: '1.0'
+state_id: YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2
+project:
+  name: YuJian
+state_control:
+  execution_baseline_sha: 5f374a24dc4d89cf645d387471de2507f561b3df
+  current_branch: work/recognition-runtime-repair-v2
+  base_sha: 5f374a24dc4d89cf645d387471de2507f561b3df
+source_of_truth:
+  current_work_state: WORK_EXECUTION_STATE.json
+repositories: {}
+pull_requests: {}
+phases:
+  P0:
+    status: NOT_RUN
+  P1:
+    status: NOT_RUN
+  P2:
+    status: NOT_RUN
+  P3:
+    status: NOT_RUN
+  P4:
+    status: NOT_RUN
+  P5:
+    status: NOT_RUN
+  P6:
+    status: IN_PROGRESS
+  P7:
+    status: NOT_RUN
+  P8:
+    status: NOT_RUN
+  P9:
+    status: NOT_RUN
+recognition_main_journey:
+  route:
+  - J01
+  - J02
+  - J03
+  - J04
+  - J05
+  - J06
+  - J07
+  - J08
+  - J09
+  - J10
+  - J11
+  - J12
+  - J13
+  - J14
+  - J15
+  - J16
+  - J17
+  - J18
+  - J19
+  - J20
+  contract_status: FROZEN
+runtime_gates:
+  exact_head:
+    sha: 5f374a24dc4d89cf645d387471de2507f561b3df
+    status: NOT_RUN
+  historical_runtime_run:
+    rule: Historical results cannot promote current exact HEAD to PASS.
+apk_and_evidence: {}
+current_work:
+  id: YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2
+  phase: P6
+  task_id: YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2
+  exact_head: 5f374a24dc4d89cf645d387471de2507f561b3df
+blockers: []
+protected_invariants:
+  recognition:
+  - Real photo and trusted mask only
+next_actions:
+- id: REPAIR
+  status: READY
+  action: Repair recognition compositor
+completion_rules: {}
+state_update: {}
+agent_recovery: {}

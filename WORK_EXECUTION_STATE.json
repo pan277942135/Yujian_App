@@ -1,0 +1,22 @@
+{
+  "$schema": "./WORK_EXECUTION_STATE_SCHEMA_V1.json",
+  "schema_version": "1.0",
+  "work_id": "YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2",
+  "repository": "pan277942135/Yujian_App",
+  "branch": "work/recognition-runtime-repair-v2",
+  "control_plane_revision": "816cd872be9cf31825d3c36f90adcb0d07a0d59e",
+  "base_branch": "main",
+  "base_sha": "816cd872be9cf31825d3c36f90adcb0d07a0d59e",
+  "phase": "P6",
+  "task_id": "YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2",
+  "stage": "E0",
+  "status": "READY",
+  "source_sha": "5f374a24dc4d89cf645d387471de2507f561b3df",
+  "checkpoint_updated_at": "2026-10-29T16:39:56.742075+00:00",
+  "next_action": "Repair photo compositor",
+  "dependencies": [
+    "P5-02"
+  ],
+  "blockers": [],
+  "evidence": {}
+}
