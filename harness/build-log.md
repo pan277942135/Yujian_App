@@ -1,5 +1,12 @@
 # Branch-local Work Build Log
 
+## 2026-10-29 — PR #234 remote candidate source synchronized
+
+- Live PR #234 remains Draft/Open/Unmerged; its branch was advanced by a fast-forward commit to exact code source `73cc6206eb146ada5120363ad7cf73fa8023908a` containing only the Empty Home workspace, mapping, CSS, and W5 verifier changes.
+- Baseline Admission passed on `5de9100b452a82ca3c1b6a7f8fc9015f8c2b1fbc` against Main `0c245b86f8228107309d0135bdf819af255604be` before these page edits. The registered W6-A Login mapping remains untouched at blob `75c615d20be011b16e4e6843b41dabd0479a8d63`.
+- The branch-local state files are being rebound to remote code source `73cc6206`; exact-head Admission for its state-only checkpoint has not yet run. Formal W5/Pages results remain pending. The prior local-only commit IDs are not PR candidate IDs.
+- Next action: commit the state-only checkpoint for `73cc6206`, run `python scripts/validate_control_plane_admission.py` on that exact PR candidate, then inspect the W5 matrix and isolated Pages preview.
+
 ## 2026-10-27 — W4 exact-SHA evidence-state and browser-gate correction
 
 - Work: `YUJIAN_PAGE_FREEZE_PIPELINE_W4_TEST_EVIDENCE_V1`; branch `work/w4-test-evidence-v1`; code candidate `9767f39723cf635cc964e85142d7ef3140e29e90`; Main `42ad0d3fef23ea6576fd43dee781d253dcc11251`.

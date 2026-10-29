@@ -10,11 +10,11 @@ state_control:
   current_branch: work/w5-empty-home-pilot-v1
   current_pr: 234
   base_sha: 34f21ad01e62ec7bf11be11fee8eb5a500894333
-  execution_baseline_sha: dad76a9ca737245d4076b75b86537412b0238765
-  current_head: dad76a9ca737245d4076b75b86537412b0238765
+  execution_baseline_sha: 73cc6206eb146ada5120363ad7cf73fa8023908a
+  current_head: 73cc6206eb146ada5120363ad7cf73fa8023908a
   current_main_head_sha: 0c245b86f8228107309d0135bdf819af255604be
   state_status: READY_FOR_EXACT_ADMISSION
-  updated_at: '2026-10-29T17:12:15Z'
+  updated_at: '2026-10-29T17:55:37Z'
 source_of_truth:
   current_work_state: WORK_EXECUTION_STATE.json
   canonical_control_plane: CONTROL_PLANE_REGISTRY.yaml
@@ -25,14 +25,14 @@ source_of_truth:
 repositories:
   Yujian_App:
     branch: work/w5-empty-home-pilot-v1
-    execution_baseline_sha: dad76a9ca737245d4076b75b86537412b0238765
+    execution_baseline_sha: 73cc6206eb146ada5120363ad7cf73fa8023908a
     current_main_head_sha: 0c245b86f8228107309d0135bdf819af255604be
     control_plane_sync:
       status: SYNCED_PENDING_EXACT_ADMISSION
       main_sync_commit: dad76a9ca737245d4076b75b86537412b0238765
       synced_main_sha: 0c245b86f8228107309d0135bdf819af255604be
       note: 'Canonical controls remain exact against Main 0c245b86 after PR #258;
-        the exact registered Login mapping is preserved. Final Admission is pending.'
+        the exact registered Login mapping is preserved. Admission passed on unchanged-page baseline 5de9100b; final candidate code source 73cc6206 still requires exact-head Admission.'
 pull_requests:
   PR234:
     number: 234
@@ -88,9 +88,9 @@ recognition_main_journey:
   note: This narrow design-candidate recovery does not change journey semantics.
 runtime_gates:
   exact_head:
-    sha: dad76a9ca737245d4076b75b86537412b0238765
+    sha: 73cc6206eb146ada5120363ad7cf73fa8023908a
     status: ADMISSION_PENDING
-    note: No Empty Home page edit is authorized until exact-candidate Admission passes.
+    note: Baseline Admission passed on 5de9100b before page edits. Candidate code 73cc6206 is committed and now requires exact-head Admission plus W5/Pages evidence; do not claim visual acceptance.
   page_evidence:
     previous_w5_matrix:
       status: HISTORICAL_FOR_OLD_HEAD
@@ -98,7 +98,7 @@ runtime_gates:
       run_id: 40873120653
     current_typography_matrix:
       status: NOT_RUN
-      source_sha: dad76a9ca737245d4076b75b86537412b0238765
+      source_sha: 73cc6206eb146ada5120363ad7cf73fa8023908a
   historical_runtime_run:
     rule: Historical results cannot promote current exact HEAD to PASS.
   user_visual_acceptance: PENDING
@@ -109,15 +109,19 @@ current_work:
   id: YUJIAN_EMPTY_HOME_STRUCTURED_HIFI_TYPOGRAPHY_SCALE_PARITY_V1
   phase: P3
   task_id: YUJIAN_PAGE_FREEZE_PIPELINE_W5_EMPTY_HOME_PILOT_V1
-  exact_head: dad76a9ca737245d4076b75b86537412b0238765
+  exact_head: 73cc6206eb146ada5120363ad7cf73fa8023908a
   status: READY_FOR_ADMISSION
-  next_action: Run exact-candidate Admission on the final state checkpoint; only then
-    inspect or edit Empty Home page code.
+  next_action: Commit a state-only checkpoint referencing code source 73cc6206, then run exact-candidate Admission before any additional page edits.
 blockers:
 - id: exact_candidate_admission
   status: PENDING
-  description: Canonical controls are synchronized to current Main; exact-candidate
-    Admission remains pending on the final state checkpoint.
+  description: Baseline Admission passed on 5de9100b; exact-candidate Admission remains pending for code source 73cc6206 and the final state checkpoint.
+- id: brand_asset_authority
+  status: BLOCKED
+  description: brand_title_primary is registered for normal_home_v1, while Empty Home requires FROZEN_ARTWORK_ASSET; no authorized Empty Home brand binding exists.
+- id: exact_head_visual_evidence
+  status: PENDING
+  description: The exact candidate's 4×2 browser matrix, measured DOM/Inspector evidence, and live isolated preview are not yet available.
 protected_invariants:
   page_scope:
   - Modify Empty Home only during the typography parity repair.
@@ -134,6 +138,9 @@ next_actions:
   status: READY
   description: Run python scripts/validate_control_plane_admission.py on the final
     exact candidate SHA after the state-only checkpoint.
+- id: exact_head_w5_and_pages
+  status: PENDING
+  description: Run W5 Chromium and Design Manager Pages on the admitted exact candidate; verify all four formal viewports at font scales 1×/1.3×, DOM bounds, Inspector data, and the isolated live build SHA.
 completion_rules:
   visual_acceptance: Product owner reviews the exact isolated preview and records
     ACCEPT or required changes.
@@ -141,7 +148,7 @@ completion_rules:
   android: No Android handoff in this task.
 state_update:
   method: State-only checkpoints follow harness/STATE_UPDATE_PROTOCOL.md.
-  baseline_source_sha: dad76a9ca737245d4076b75b86537412b0238765
+  baseline_source_sha: 73cc6206eb146ada5120363ad7cf73fa8023908a
 agent_recovery:
   resume_from: Read CONTROL_PLANE_REGISTRY.yaml and both root state files, then run
     Admission on the exact branch SHA.
