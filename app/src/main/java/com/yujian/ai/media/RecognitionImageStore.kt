@@ -48,6 +48,19 @@ object RecognitionImageStore {
         }
     }
 
+    suspend fun normalizeAsset(context: Context, assetPath: String, source: String = "test_sample"): SelectedImage = withContext(Dispatchers.IO) {
+        val tempDir = File(context.cacheDir, "asset_imports").apply { mkdirs() }
+        val tempFile = File(tempDir, "asset_${UUID.randomUUID()}.jpg")
+        try {
+            context.assets.open(assetPath).use { input ->
+                tempFile.outputStream().use { output -> input.copyTo(output) }
+            }
+            normalizeLocalFile(context, tempFile, source, "测试照片格式不受支持")
+        } finally {
+            tempFile.delete()
+        }
+    }
+
     suspend fun normalizeCameraFile(context: Context, file: File): SelectedImage = withContext(Dispatchers.IO) {
         normalizeCameraFileWithDetails(context, file).selectedImage
     }

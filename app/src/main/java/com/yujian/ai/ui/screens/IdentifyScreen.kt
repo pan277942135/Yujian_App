@@ -57,6 +57,29 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.filled.Collections
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
+import android.graphics.BitmapFactory
+import android.widget.Toast
+import com.yujian.ai.media.TestGallerySeeder
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.core.view.WindowCompat
@@ -106,6 +129,7 @@ private fun logCapture(requestId: String, event: String, fields: String = "") {
  * into the detector/classifier pipeline. Gallery selection uses the same
  * normalization path and enters recognition automatically.
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun IdentifyScreen(
     image: SelectedImage?,
@@ -154,6 +178,7 @@ fun IdentifyScreen(
     var captureState by remember { mutableStateOf(RecognitionCameraCaptureState.INITIALIZING) }
     var cameraRetry by remember { mutableStateOf(0) }
     var previewView by remember { mutableStateOf<PreviewView?>(null) }
+    var showTestSamplesSheet by remember { mutableStateOf(false) }
     // This local handoff is set before navigation, so CameraX and its controls
     // cannot share a frame with the Recognition processing scene.
     var handoffImage by remember { mutableStateOf<SelectedImage?>(null) }
@@ -772,6 +797,40 @@ fun IdentifyScreen(
             }
             Box(
                 modifier = Modifier
+                    .align(Alignment.BottomStart)
+                    .padding(
+                        start = captureControlsPlacement.galleryEndInsetDp.dp,
+                        bottom = captureControlsPlacement.bottomInsetDp.dp,
+                    )
+                    .size(54.dp)
+                    .clip(CircleShape)
+                    .background(Color.Black.copy(alpha = 0.5f))
+                    .border(1.5.dp, Color.White.copy(alpha = 0.75f), CircleShape)
+                    .clickable(role = Role.Button) { showTestSamplesSheet = true }
+                    .testTag("recognition-camera-test-samples")
+                    .semantics { contentDescription = "测试鱼获图库" },
+                contentAlignment = Alignment.Center,
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center,
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Collections,
+                        contentDescription = null,
+                        tint = Color.White,
+                        modifier = Modifier.size(20.dp),
+                    )
+                    Text(
+                        text = "测试图",
+                        color = Color.White,
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Bold,
+                    )
+                }
+            }
+            Box(
+                modifier = Modifier
                     .align(Alignment.BottomEnd)
                     .padding(
                         end = captureControlsPlacement.galleryEndInsetDp.dp,
@@ -789,6 +848,113 @@ fun IdentifyScreen(
                     contentDescription = null,
                     modifier = Modifier.size(30.dp),
                 )
+            }
+        }
+
+        if (showTestSamplesSheet) {
+            ModalBottomSheet(
+                onDismissRequest = { showTestSamplesSheet = false },
+                containerColor = Color(0xFF1E282D),
+                contentColor = Color.White,
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 20.dp, vertical = 12.dp),
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(
+                            text = "测试鱼获图片",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White,
+                        )
+                        Button(
+                            onClick = {
+                                scope.launch {
+                                    TestGallerySeeder.seedTestImagesIfNeeded(context)
+                                    Toast.makeText(context, "已同步到模拟器系统相册！可在相册中直接查看", Toast.LENGTH_SHORT).show()
+                                }
+                            },
+                        ) {
+                            Text("同步至相册", fontSize = 12.sp)
+                        }
+                    }
+                    Text(
+                        text = "点击以下图片直接测试识别，或点击右下角从系统相册选取：",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color.White.copy(alpha = 0.7f),
+                        modifier = Modifier.padding(top = 4.dp, bottom = 16.dp),
+                    )
+                    LazyVerticalGrid(
+                        columns = GridCells.Fixed(2),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(max = 380.dp),
+                    ) {
+                        items(TestGallerySeeder.SAMPLE_ITEMS) { item ->
+                            val thumbBitmap = remember(item.assetName) {
+                                runCatching {
+                                    context.assets.open("test_catches/${item.assetName}").use {
+                                        BitmapFactory.decodeStream(it)
+                                    }
+                                }.getOrNull()
+                            }
+                            Card(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .clickable {
+                                        showTestSamplesSheet = false
+                                        scope.launch {
+                                            error = null
+                                            runCatching {
+                                                RecognitionImageStore.normalizeAsset(
+                                                    context,
+                                                    "test_catches/${item.assetName}",
+                                                    "test_sample",
+                                                )
+                                            }.onSuccess { selected ->
+                                                handoffImage = selected
+                                                onImageReady(selected)
+                                            }.onFailure {
+                                                error = "测试照片读取失败，请重试"
+                                            }
+                                        }
+                                    },
+                                colors = CardDefaults.cardColors(containerColor = Color(0xFF28363D)),
+                            ) {
+                                Column(modifier = Modifier.padding(8.dp)) {
+                                    if (thumbBitmap != null) {
+                                        Image(
+                                            bitmap = thumbBitmap.asImageBitmap(),
+                                            contentDescription = item.title,
+                                            contentScale = ContentScale.Crop,
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .height(110.dp)
+                                                .clip(RoundedCornerShape(8.dp)),
+                                        )
+                                    }
+                                    Spacer(modifier = Modifier.height(6.dp))
+                                    Text(
+                                        text = item.title,
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        fontWeight = FontWeight.SemiBold,
+                                        color = Color.White,
+                                    )
+                                }
+                            }
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(24.dp))
+                }
             }
         }
 
