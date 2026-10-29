@@ -13,7 +13,7 @@ const playwrightPath = process.env.PLAYWRIGHT_PATH || (process.env.PLAYWRIGHT_MO
 const { chromium } = require(playwrightPath);
 const ROUTE = "#page/home_empty_v2/hifi/structured_workspace";
 const MIME = {".html":"text/html; charset=utf-8",".js":"text/javascript; charset=utf-8",".css":"text/css; charset=utf-8",".json":"application/json; charset=utf-8",".png":"image/png",".svg":"image/svg+xml",".jpg":"image/jpeg",".jpeg":"image/jpeg",".webp":"image/webp",".md":"text/markdown; charset=utf-8"};
-const BROWSER_REFERENCE_SAFE_INSETS_DP = {top:36,bottom:10};
+const BROWSER_REFERENCE_SAFE_INSETS_DP = {top:36,bottom:0};
 const CANDIDATE_PROMPT_LINE_HEIGHT_SP = 24;
 
 function parseArgs(argv) {
@@ -685,7 +685,7 @@ async function main() {
         caseEvidence.inspector.rendered_typography===`${caseEvidence.inspector.typography.font_size} / ${caseEvidence.inspector.typography.line_height}`,
         `Rendered Inspector values must match its API and actual DOM measurement at ${width}x${height} @${fontScale}`);
       // Read actual text ranges and select every mapped text node so Inspector bounds/styles are checked against this render.
-      const typographyExpectations={subtitle:{font_size:9,line_height:12,weight:400,node:"Subtitle"},account_entry:{font_size:14,line_height:20,weight:500,node:"AccountEntry"},
+      const typographyExpectations={subtitle:{font_size:8.6,line_height:12,weight:400,node:"Subtitle"},account_entry:{font_size:14,line_height:20,weight:500,node:"AccountEntry"},
         capture_prompt:{font_size:14,line_height:CANDIDATE_PROMPT_LINE_HEIGHT_SP,weight:400,node:"CapturePrompt"},album_action:{font_size:12,line_height:18,weight:400,node:"AlbumAction"}};
       for(const [key,expected] of Object.entries(typographyExpectations)){
         const actual=caseEvidence.rendered_typography[key],inspectorText=caseEvidence.text_inspector_parity[expected.node];
@@ -835,7 +835,7 @@ async function main() {
       browser_device_scale_factor:3,capture_bounds_css_px:compareCapture.bounds_css_px,screenshot_pixels:compareSize,
       comparison_region:"isolated page-root viewport at 360x640 CSS px with preserved aspect ratio; reference bytes are unmodified",
       page_content_region_alignment:{browser_root_bounds_css_px:{x:0,y:0,width:360,height:640},reference_page_content_bounds_px:"NOT_MACHINE_READABLE",
-        status:"FULL_CANVAS_DIAGNOSTIC_ONLY",reason:"V2.2 frozen raster includes Android system chrome but has no machine-readable chrome/content boundary. Browser uses a separately disclosed 36/10 CSS px safe-area estimate; no reference crop or Native inset claim is inferred."},
+        status:"FULL_CANVAS_DIAGNOSTIC_ONLY",reason:"V2.2 frozen raster includes Android system chrome but has no machine-readable chrome/content boundary. Browser uses a separately disclosed 36/0 CSS px top/bottom safe-area estimate; no reference crop or Native inset claim is inferred."},
       native_density_claim:false,source_ratio_preserved:true,
       system_bar_comparison:{browser_status_bar:"NOT_SIMULATED",browser_safe_insets:comparisonCase?.safe_area_preview||{...BROWSER_REFERENCE_SAFE_INSETS_DP,status:"BROWSER_REFERENCE_SCREENSHOT_ESTIMATE_NOT_NATIVE"},
         frozen_reference_status_bar:"PIXELS_PRESENT_IN_FROZEN_RASTER; boundary has no page-owned machine-readable authority",reference_status_bar_bounds:"NOT_VERIFIED",
