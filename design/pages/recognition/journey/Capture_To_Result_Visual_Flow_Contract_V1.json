@@ -7,7 +7,7 @@
     "high_fidelity_binary": "UNCHANGED_NOT_NEWLY_FROZEN",
     "android_runtime": "NOT_VERIFIED",
     "video_visual_acceptance": "PENDING",
-    "main_adoption": "PENDING_PR_GATE"
+    "release_rule": "PUBLISH_ONLY_AFTER_EXACT_HEAD_GATES_AND_MAIN_PAGES_DEPLOY"
   },
   "platform": {
     "ui": "ANDROID_PORTRAIT_ONLY",
