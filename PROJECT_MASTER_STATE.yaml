@@ -1,0 +1,171 @@
+schema_version: '1.0'
+state_id: YUJIAN_EMPTY_HOME_STRUCTURED_HIFI_TYPOGRAPHY_SCALE_PARITY_V1_2026-10-30
+project:
+  name: 渔见 AI
+  repository: pan277942135/Yujian_App
+  scope: 'PR #234 current-Main admission recovery followed by Empty Home typography, brand-area, HeroCopy, and bottom-action
+    parity repair.'
+  state_classification: RECOVERY_SNAPSHOT_NOT_PRODUCT_ACCEPTANCE
+state_control:
+  current_branch: work-state/empty-home-typography-parity-v1
+  current_pr: null
+  base_sha: 0c245b86f8228107309d0135bdf819af255604be
+  execution_baseline_sha: 2cbfcdd2fda84d9fcdd7700c1d40e1f5c24271fa
+  current_head: 2cbfcdd2fda84d9fcdd7700c1d40e1f5c24271fa
+  current_main_head_sha: 0c245b86f8228107309d0135bdf819af255604be
+  state_status: IN_PROGRESS
+  updated_at: '2026-10-29T21:04:33Z'
+  related_pr: 234
+source_of_truth:
+  current_work_state: WORK_EXECUTION_STATE.json
+  canonical_control_plane: CONTROL_PLANE_REGISTRY.yaml
+  phase_task_state_machine: harness/PHASE_TASK_STATE_MACHINE.yaml
+  unified_contract_registry: harness/UNIFIED_CONTRACT_REGISTRY.yaml
+  state_update_protocol: harness/STATE_UPDATE_PROTOCOL.md
+  current_work_log: harness/build-log.md
+repositories:
+  Yujian_App:
+    branch: work/w5-empty-home-pilot-v1
+    execution_baseline_sha: 2cbfcdd2fda84d9fcdd7700c1d40e1f5c24271fa
+    current_main_head_sha: 0c245b86f8228107309d0135bdf819af255604be
+    control_plane_sync:
+      status: SYNCED_PENDING_EXACT_ADMISSION
+      main_sync_commit: 2cbfcdd2fda84d9fcdd7700c1d40e1f5c24271fa
+      synced_main_sha: 0c245b86f8228107309d0135bdf819af255604be
+      note: Product PR head f921ee10 is synchronized to Main 0c245b86. Dynamic state is stored on work-state/empty-home-typography-parity-v1;
+        the PR promotion tree is state-free.
+pull_requests:
+  PR234:
+    number: 234
+    branch: work/w5-empty-home-pilot-v1
+    base_sha: 0c245b86f8228107309d0135bdf819af255604be
+    status: DRAFT_OPEN_UNMERGED
+    task_id: YUJIAN_PAGE_FREEZE_PIPELINE_W5_EMPTY_HOME_PILOT_V1
+    head_sha: f921ee10d8ff6de1acfcf5058cd2529a4a2afed5
+phases:
+  P0:
+    status: NOT_CONFIRMED
+  P1:
+    status: NOT_CONFIRMED
+  P2:
+    status: NOT_CONFIRMED
+  P3:
+    status: IN_PROGRESS
+    note: Current W5 candidate; Admission recovery is the active gate.
+  P4:
+    status: NOT_CONFIRMED
+  P5:
+    status: NOT_CONFIRMED
+  P6:
+    status: NOT_CONFIRMED
+  P7:
+    status: NOT_CONFIRMED
+  P8:
+    status: NOT_CONFIRMED
+  P9:
+    status: NOT_CONFIRMED
+recognition_main_journey:
+  contract_status: FROZEN
+  route:
+  - J01
+  - J02
+  - J03
+  - J04
+  - J05
+  - J06
+  - J07
+  - J08
+  - J09
+  - J10
+  - J11
+  - J12
+  - J13
+  - J14
+  - J15
+  - J16
+  - J17
+  - J18
+  - J19
+  - J20
+  note: This narrow design-candidate recovery does not change journey semantics.
+runtime_gates:
+  exact_head:
+    sha: 2cbfcdd2fda84d9fcdd7700c1d40e1f5c24271fa
+    status: PENDING
+    note: PR promotion Admission passed on f921ee10 (run 40954291894). Explicit Product Work Admission on work-state/empty-home-typography-parity-v1
+      is pending.
+  page_evidence:
+    previous_w5_matrix:
+      status: HISTORICAL_FOR_OLD_HEAD
+      source_sha: ffd9cfe69ff52c776049953b730f6dabb90fe44a
+      run_id: 40873120653
+    current_typography_matrix:
+      status: NOT_RUN
+      source_sha: 2cbfcdd2fda84d9fcdd7700c1d40e1f5c24271fa
+  historical_runtime_run:
+    rule: Historical results cannot promote current exact HEAD to PASS.
+  user_visual_acceptance: PENDING
+apk_and_evidence:
+  status: NOT_APPLICABLE_DESIGN_ONLY
+  note: No Android or APK work is part of this task.
+current_work:
+  id: YUJIAN_EMPTY_HOME_STRUCTURED_HIFI_TYPOGRAPHY_SCALE_PARITY_V1
+  phase: P3
+  task_id: YUJIAN_PAGE_FREEZE_PIPELINE_W5_EMPTY_HOME_PILOT_V1
+  exact_head: 2cbfcdd2fda84d9fcdd7700c1d40e1f5c24271fa
+  status: VALIDATING
+  next_action: Run explicit Product Work Admission on exact state checkpoint in work-state/empty-home-typography-parity-v1;
+    then verify PR-head W5 and Pages runs.
+blockers:
+- id: exact_candidate_admission
+  status: PENDING
+  description: Product PR promotion Admission passed on f921ee10; the companion state branch still needs exact Product
+    Work Admission.
+- id: final_checkpoint_admission
+  status: PENDING
+  description: Product PR promotion Admission passed on f921ee10; the companion state branch still needs exact Product
+    Work Admission.
+- id: brand_asset_authority
+  status: BLOCKED
+  description: brand_title_primary is registered for normal_home_v1, while Empty Home requires FROZEN_ARTWORK_ASSET;
+    no authorized Empty Home brand binding exists.
+- id: exact_head_visual_evidence
+  status: PENDING
+  description: Current PR head still needs W2 binding, the 4×2 browser matrix, DOM/Inspector evidence, and live
+    isolated preview.
+- id: promotion_state_split
+  status: FIXED_PENDING_PRODUCT_WORK_ADMISSION
+  description: Root dynamic state is retained on the dedicated companion state branch; exact PR promotion admission
+    passed on f921ee10. Explicit Product Work Admission remains pending.
+protected_invariants:
+  page_scope:
+  - Modify Empty Home only during the typography parity repair.
+  - Do not modify NH01 or Login page content in this repair.
+  authorities:
+  - Use only authorized brand assets; do not synthesize text or extract/redraw the frozen image.
+  - Keep the HeroCopy bound image and camera touch-size contract.
+  delivery:
+  - Do not freeze or merge the product candidate before product-owner visual acceptance.
+  - Do not start Android implementation from this candidate review.
+next_actions:
+- id: exact_admission
+  status: READY
+  description: Create the isolated P0 state checkpoint and run python scripts/validate_control_plane_admission.py
+    on its exact branch head.
+- id: exact_head_w5_and_pages
+  status: READY
+  description: Verify exact PR-head W5 and Pages workflows for f921ee10 after the state-free promotion tree passes.
+completion_rules:
+  visual_acceptance: Product owner reviews the exact isolated preview and records ACCEPT or required changes.
+  freeze: No new spec freeze before product-owner acceptance.
+  android: No Android handoff in this task.
+state_update:
+  method: State-only checkpoints follow harness/STATE_UPDATE_PROTOCOL.md.
+  baseline_source_sha: 73cc6206eb146ada5120363ad7cf73fa8023908a
+agent_recovery:
+  resume_from: Run explicit Product Work Admission on work-state/empty-home-typography-parity-v1 for product PR
+    candidate f921ee10 and Main 0c245b86.
+  last_gate: PR_PROMOTION_PASS_PRODUCT_WORK_ADMISSION_PENDING
+work_id: YUJIAN_EMPTY_HOME_STRUCTURED_HIFI_TYPOGRAPHY_SCALE_PARITY_V1
+task_id: YUJIAN_PAGE_FREEZE_PIPELINE_W5_EMPTY_HOME_PILOT_V1
+updated_at: '2026-10-29T21:04:33Z'

@@ -192,3 +192,18 @@ Next action: restore Login inside the existing shared Design Manager, retain all
 - PR #234 remains Draft/Open/Unmerged. Exact Main-sync workflows started on `2cbfcdd2fda84d9fcdd7700c1d40e1f5c24271fa`: Admission `40953507124`, W5 `40953507108`, Design Manager Pages `40953507120`, W1 `40953507145`, W4 `40953507107`, W6-A `40953507106`, Design Governance `40953507105`, and NH01 runtime `40953507095`; all were in progress at checkpoint time. These are not yet results.
 - Current work-state and project-state pointers are rebound to Main `0c245b86f8228107309d0135bdf819af255604be` and merge source `2cbfcdd2fda84d9fcdd7700c1d40e1f5c24271fa`. Exact Admission must pass again on the post-sync state checkpoint before any further Empty Home page edits. The brand authorization gap remains BLOCKED.
 - The independent shared-workbench architecture follow-up is tracked in issue #260; it remains outside PR #234.
+
+
+## 2026-10-29 — PR #234 promotion-state split recovery
+
+- Exact PR admission run `40953507124` on `2cbfcdd2fda84d9fcdd7700c1d40e1f5c24271fa` failed closed with `CANONICAL_PROMOTION_TREE=FAIL forbidden_branch_state=PROJECT_MASTER_STATE.yaml,WORK_EXECUTION_STATE.json`. The current Main validator treats pull requests into Main as canonical promotion checks; this does not establish a product Work state failure.
+- Ran the Work V2 recovery guard before repair: failure `1a01c657e17885d815af`, `ALLOW_FIRST_ATTEMPT` (0 prior failures). Recorded the exact failed source and evidence in the companion Work state.
+- PR head `f921ee10d8ff6de1acfcf5058cd2529a4a2afed5` removes the two root-level dynamic state files from its promotion tree. Project/Work state remains on `work-state/w5-empty-home-pilot-v1`; Main `AGENTS.md` allows branch-local state, and the existing companion branch documents explicit Product Work Admission separately from PR promotion admission.
+- No page code changed during admission recovery. Exact PR promotion admission and explicit Product Work Admission remain pending; the Empty Home brand authority remains blocked.
+
+
+## 2026-10-29 — PR #234 promotion admission restored
+
+- The product PR head `f921ee10d8ff6de1acfcf5058cd2529a4a2afed5` omits root-level dynamic state files. Exact pull_request promotion Admission passed in run `40954291894`; the Main promotion tree check now passes.
+- Closed failure-gate issue `1a01c657e17885d815af` as `FIX_VERIFIED` on code source `2cbfcdd2fda84d9fcdd7700c1d40e1f5c24271fa` with exact PR-run evidence. This does not assert Product Work Admission or visual acceptance.
+- Dynamic state is isolated on new companion branch `work-state/empty-home-typography-parity-v1`; the existing broader work-state branch remains untouched. Product Work Admission and page-specific W5/Pages evidence remain required.
