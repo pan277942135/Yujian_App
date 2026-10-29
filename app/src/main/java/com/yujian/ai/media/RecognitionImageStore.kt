@@ -11,6 +11,7 @@ import com.yujian.ai.model.SelectedImage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
+import java.security.MessageDigest
 import java.util.UUID
 
 object RecognitionImageStore {
@@ -131,11 +132,14 @@ object RecognitionImageStore {
             check(oriented.compress(Bitmap.CompressFormat.JPEG, 92, output)) { "无法保存识别照片" }
         }
         check(normalized.exists() && normalized.length() > 0L) { "无法保存识别照片" }
+        val sha256 = MessageDigest.getInstance("SHA-256").digest(normalized.readBytes())
+            .joinToString("") { "%02x".format(it) }
         return SelectedImage(
             filePath = normalized.absolutePath,
             bitmap = oriented,
             source = source,
             sourceOrientationDegrees = rotation,
+            photoSha256 = sha256,
         )
     }
 }

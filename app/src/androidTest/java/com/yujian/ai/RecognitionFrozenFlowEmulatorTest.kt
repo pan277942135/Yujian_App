@@ -1489,7 +1489,7 @@ class RecognitionFrozenFlowEmulatorTest {
         val fishFocusStableMs = classifyingMs
         // These markers are delivered by separate Compose effects. Frame scheduling can
         // make their observed interval shorter than the controller's exact minimum;
-        // controller unit tests assert the V3.1 event gates and 220/320/350/250ms beats.
+        // controller unit tests cover adaptive event gates and the masked peak hold.
         val presentationTimestampToleranceMs = 50L
 
         assertTrue(
@@ -1506,18 +1506,18 @@ class RecognitionFrozenFlowEmulatorTest {
         )
         assertTrue(
             "CLASSIFYING beat was too short: ${classifyingMs}ms",
-            classifyingMs >= RecognitionVisualStateController.CLASSIFYING_MIN_MS - presentationTimestampToleranceMs,
+            classifyingMs >= RecognitionVisualStateController.MASKED_CLASSIFYING_MIN_MS - presentationTimestampToleranceMs,
         )
         assertTrue(
             "nominal presentation interval was too short: ${totalMs}ms",
             totalMs >= RecognitionVisualStateController.CAPTURED_MIN_MS +
                 RecognitionVisualStateController.DETECTING_MIN_MS +
                 RecognitionVisualStateController.OUTLINE_MIN_MS +
-                RecognitionVisualStateController.CLASSIFYING_MIN_MS - presentationTimestampToleranceMs,
+                RecognitionVisualStateController.MASKED_CLASSIFYING_MIN_MS - presentationTimestampToleranceMs,
         )
         assertTrue(
             "final fish focus presentation interval was too short: ${fishFocusStableMs}ms",
-            fishFocusStableMs >= RecognitionVisualStateController.CLASSIFYING_MIN_MS -
+            fishFocusStableMs >= RecognitionVisualStateController.MASKED_CLASSIFYING_MIN_MS -
                 presentationTimestampToleranceMs,
         )
 

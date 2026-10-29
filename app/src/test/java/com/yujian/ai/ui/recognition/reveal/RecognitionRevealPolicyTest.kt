@@ -22,8 +22,11 @@ class RecognitionRevealPolicyTest {
         assertEquals(0f, frame(0, handoff, policy).photoProgress, 0f)
         assertEquals(RecognitionRevealPhase.PHOTO_CONTINUITY, frame(120, handoff, policy).phase)
         assertTrue(frame(120, handoff, policy).photoProgress in 0f..1f)
+        assertEquals(0.5f, frame(100, handoff, policy).photoProgress, 0.0001f)
         assertEquals(RecognitionRevealPhase.GOLD_TRANSFER, frame(200, handoff, policy).phase)
+        assertEquals(RecognitionRevealClock.FULL_PARTICLE_LIMIT, frame(200, handoff, policy).visibleParticleCount)
         assertEquals(RecognitionRevealPhase.GOLD_TRANSFER, frame(379, handoff, policy).phase)
+        assertEquals(0, frame(380, handoff, policy).visibleParticleCount)
         assertEquals(RecognitionRevealPhase.NAME_FORMATION, frame(380, handoff, policy).phase)
         assertEquals(RecognitionRevealTitleMode.FORMING, frame(549, handoff, policy).titleMode)
         assertEquals(RecognitionRevealPhase.NAME_REVEAL, frame(550, handoff, policy).phase)
@@ -41,10 +44,13 @@ class RecognitionRevealPolicyTest {
         val titleFrame = frame(120, titleOnly, RecognitionRevealMotionPolicy())
         assertTrue(titleFrame.fallback)
         assertEquals(0, titleFrame.visibleParticleCount)
-        assertEquals(RecognitionRevealTitleMode.REVEALING, titleFrame.titleMode)
+        assertEquals(RecognitionRevealTitleMode.HIDDEN, titleFrame.titleMode)
+        assertEquals(RecognitionRevealTitleMode.FORMING, frame(400, titleOnly, RecognitionRevealMotionPolicy()).titleMode)
+        assertEquals(RecognitionRevealTitleMode.REVEALING, frame(600, titleOnly, RecognitionRevealMotionPolicy()).titleMode)
 
         val nonHigh = handoff(RecognitionRevealEligibility.PHOTO_ONLY)
         val nonHighFrame = frame(290, nonHigh, RecognitionRevealMotionPolicy())
+        assertEquals(1f, nonHighFrame.photoProgress, 0f)
         assertEquals(0f, nonHighFrame.transferProgress, 0f)
         assertEquals(0, nonHighFrame.visibleParticleCount)
         assertEquals(RecognitionRevealTitleMode.STATIC, nonHighFrame.titleMode)
@@ -83,12 +89,57 @@ class RecognitionRevealPolicyTest {
             RecognitionRevealPolicy.geometryTrust(box, subject(box).copy(maskSize = 3), "image-a", 1200, 800, .96f),
         )
         assertEquals(
+            RecognitionGeometryTrustState.TRUSTED_BBOX_ONLY,
+            RecognitionRevealPolicy.geometryTrust(box, subject(box).copy(quality = FishSubjectQuality.WARNING), "image-a", 1200, 800, .96f),
+        )
+        assertEquals(
+            RecognitionGeometryTrustState.TRUSTED_BBOX_ONLY,
+            RecognitionRevealPolicy.geometryTrust(
+                box,
+                subject(box).copy(subjectBox = NormalizedSourceRect(.2f, .2f, .8f, .8f)),
+                "image-a",
+                1200,
+                800,
+                .96f,
+            ),
+        )
+        assertEquals(
             RecognitionGeometryTrustState.UNTRUSTED,
             RecognitionRevealPolicy.geometryTrust(NormalizedFishBox(-.2f, .1f, .7f, .8f), null, "image-a", 1200, 800, .96f),
         )
         assertEquals(
             RecognitionGeometryTrustState.MISSING,
             RecognitionRevealPolicy.geometryTrust(null, null, "image-a", 1200, 800, null),
+        )
+    }
+
+    @Test
+    fun geometryTrustBindsMaskToSessionAttemptAndPhotoHash() {
+        val box = NormalizedFishBox(.12f, .18f, .82f, .91f)
+        val geometry = subject(box).copy(
+            recognitionSessionId = "session-a",
+            recognitionAttemptId = "attempt-a",
+            photoSha256 = "photo-hash-a",
+        )
+        fun trust(candidate: RecognitionSubjectGeometrySnapshot) = RecognitionRevealPolicy.geometryTrust(
+            detectorBox = box,
+            subject = candidate,
+            imageId = "image-a",
+            sourceWidthPx = 1200,
+            sourceHeightPx = 800,
+            detectorConfidence = .96f,
+            recognitionSessionId = "session-a",
+            recognitionAttemptId = "attempt-a",
+            photoSha256 = "photo-hash-a",
+        )
+        assertEquals(RecognitionGeometryTrustState.TRUSTED_MASK, trust(geometry))
+        assertEquals(
+            RecognitionGeometryTrustState.TRUSTED_BBOX_ONLY,
+            trust(geometry.copy(recognitionAttemptId = "attempt-old")),
+        )
+        assertEquals(
+            RecognitionGeometryTrustState.TRUSTED_BBOX_ONLY,
+            trust(geometry.copy(photoSha256 = "photo-hash-old")),
         )
     }
 
@@ -111,6 +162,36 @@ class RecognitionRevealPolicyTest {
             RecognitionRevealEligibility.STATIC_RESULT,
             RecognitionRevealPolicy.eligibility(false, true, true, trusted, true, true),
         )
+    }
+
+    @Test
+    fun rr09RequiresReadyGeometryOnTheFirstResultFrame() {
+        fun canStart(
+            eligibility: RecognitionRevealEligibility = RecognitionRevealEligibility.FULL_REVEAL,
+            photoGeometry: Boolean = true,
+            hero: Boolean = true,
+            title: Boolean = true,
+            revealGeometry: Boolean = true,
+            reduceMotion: Boolean = false,
+        ) = RecognitionRevealPolicy.canStartOnFirstResultFrame(
+            eligibility = eligibility,
+            photoIdentityMatches = true,
+            photoGeometryReady = photoGeometry,
+            heroReady = hero,
+            titleBoundsReady = title,
+            revealGeometryReady = revealGeometry,
+            reduceMotion = reduceMotion,
+        )
+
+        assertTrue(canStart())
+        assertTrue(canStart(eligibility = RecognitionRevealEligibility.TITLE_FADE_ONLY, revealGeometry = false))
+        assertFalse(canStart(photoGeometry = false))
+        assertFalse(canStart(hero = false))
+        assertFalse(canStart(title = false))
+        assertFalse(canStart(revealGeometry = false))
+        assertFalse(canStart(reduceMotion = true))
+        assertFalse(canStart(eligibility = RecognitionRevealEligibility.PHOTO_ONLY))
+        assertFalse(canStart(eligibility = RecognitionRevealEligibility.STATIC_RESULT))
     }
 
     @Test
@@ -193,7 +274,9 @@ class RecognitionRevealPolicyTest {
         sourceHeightPx = 800,
         detectorBox = box,
         detectorConfidence = .96f,
-        subjectBox = NormalizedSourceRect(.1f, .1f, .9f, .9f),
+        subjectBox = box.expand(.12f).let {
+            NormalizedSourceRect(it.x1, it.y1, it.x2, it.y2)
+        },
         contour = listOf(
             RecognitionContourSegment(.1f, .5f, .5f, .2f, .2f, .3f, .4f, .2f, beginsContour = true),
         ),

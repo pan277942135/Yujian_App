@@ -6,6 +6,27 @@ import com.yujian.ai.ui.identify.NormalizedSourceRect
 
 /** Pure trust and eligibility rules shared by production handoff and unit tests. */
 object RecognitionRevealPolicy {
+    /** RR09 is locked to the first Result frame; unavailable geometry means a static handoff. */
+    fun canStartOnFirstResultFrame(
+        eligibility: RecognitionRevealEligibility,
+        photoIdentityMatches: Boolean,
+        photoGeometryReady: Boolean,
+        heroReady: Boolean,
+        titleBoundsReady: Boolean,
+        revealGeometryReady: Boolean,
+        reduceMotion: Boolean,
+    ): Boolean {
+        if (reduceMotion || !photoIdentityMatches || !photoGeometryReady || !heroReady || !titleBoundsReady) {
+            return false
+        }
+        return when (eligibility) {
+            RecognitionRevealEligibility.FULL_REVEAL -> revealGeometryReady
+            RecognitionRevealEligibility.TITLE_FADE_ONLY -> true
+            RecognitionRevealEligibility.PHOTO_ONLY,
+            RecognitionRevealEligibility.STATIC_RESULT -> false
+        }
+    }
+
     fun geometryTrust(
         detectorBox: NormalizedFishBox?,
         subject: RecognitionSubjectGeometrySnapshot?,
@@ -13,6 +34,9 @@ object RecognitionRevealPolicy {
         sourceWidthPx: Int,
         sourceHeightPx: Int,
         detectorConfidence: Float?,
+        recognitionSessionId: String? = null,
+        recognitionAttemptId: String? = null,
+        photoSha256: String? = null,
     ): RecognitionGeometryTrustState {
         if (detectorBox == null) return RecognitionGeometryTrustState.MISSING
         if (!isValidBox(detectorBox)) return RecognitionGeometryTrustState.UNTRUSTED
@@ -20,10 +44,14 @@ object RecognitionRevealPolicy {
         val matches = subject.imageId == imageId &&
             subject.sourceWidthPx == sourceWidthPx && subject.sourceHeightPx == sourceHeightPx &&
             subject.detectorBox == detectorBox && detectorConfidence != null &&
-            subject.detectorConfidence == detectorConfidence
+            subject.detectorConfidence == detectorConfidence &&
+            (recognitionSessionId == null || subject.recognitionSessionId == recognitionSessionId) &&
+            (recognitionAttemptId == null || subject.recognitionAttemptId == recognitionAttemptId) &&
+            (photoSha256 == null || subject.photoSha256 == photoSha256)
         val trustedMask = matches && subject.quality == FishSubjectQuality.GOOD &&
             subject.maskSize > 0 && subject.maskSize == subject.expectedMaskSize &&
             isValidRect(subject.subjectBox) && subject.contour.isNotEmpty() &&
+            roiContainsDetectorBox(subject.subjectBox, detectorBox, sourceWidthPx, sourceHeightPx) &&
             subject.contour.all { segment ->
                 listOf(
                     segment.startX, segment.startY, segment.endX, segment.endY,
@@ -58,4 +86,17 @@ object RecognitionRevealPolicy {
         listOf(rect.left, rect.top, rect.right, rect.bottom).all(Float::isFinite) &&
             rect.left >= 0f && rect.top >= 0f && rect.right <= 1f && rect.bottom <= 1f &&
             rect.left < rect.right && rect.top < rect.bottom
+
+    private fun roiContainsDetectorBox(
+        roi: NormalizedSourceRect,
+        box: NormalizedFishBox,
+        sourceWidthPx: Int,
+        sourceHeightPx: Int,
+    ): Boolean {
+        if (sourceWidthPx <= 0 || sourceHeightPx <= 0) return false
+        val toleranceX = 1f / sourceWidthPx
+        val toleranceY = 1f / sourceHeightPx
+        return roi.left <= box.x1 + toleranceX && roi.top <= box.y1 + toleranceY &&
+            roi.right >= box.x2 - toleranceX && roi.bottom >= box.y2 - toleranceY
+    }
 }

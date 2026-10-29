@@ -15,9 +15,9 @@ class RecognitionEffect01MotionTest {
         assertEquals(.060f, Effect01NativeCalibration.marginRatio, 0f)
         assertEquals(36f, Effect01NativeCalibration.glowSizeDp, 0f)
         assertEquals(.75f, Effect01NativeCalibration.blendRatio, 0f)
-        assertEquals(0xFFFEF08AL, Effect01NativeCalibration.goldColorArgb)
-        assertEquals(0xFF38BDF8L, Effect01NativeCalibration.cyanColorArgb)
-        assertEquals(0xFF2DD4BFL, Effect01NativeCalibration.greenColorArgb)
+        assertEquals(0xFF0B6E69L, Effect01NativeCalibration.deepPeacockColorArgb)
+        assertEquals(0xFF4DD0C7L, Effect01NativeCalibration.waterGreenColorArgb)
+        assertEquals(0xFFDDF7F5L, Effect01NativeCalibration.iceWhiteColorArgb)
         assertEquals(1_100L, UpwardCausticSurgeCalibration.durationMs)
         assertEquals(.025f, UpwardCausticSurgeCalibration.maxArcHeightRatio, 0f)
         assertEquals(.10f, UpwardCausticSurgeCalibration.bodyWidthHeightRatio, 0f)
@@ -48,6 +48,19 @@ class RecognitionEffect01MotionTest {
         assertEquals(0f, frames.last().opacity, 0f)
         assertEquals(0f, effect01SpreadProgress(0L), 0f)
         assertEquals(1f, effect01SpreadProgress(1_200L), 0f)
+    }
+
+    @Test
+    fun processingEnvironmentEnvelopeMatchesP0ThroughP7AndEndsAtZero() {
+        assertEquals(0f, processingEnvironmentStrength(0), 0f)
+        assertEquals(10f, processingEnvironmentStrength(350), 0f)
+        assertEquals(45f, processingEnvironmentStrength(950), 0f)
+        assertEquals(75f, processingEnvironmentStrength(1_200), 0f)
+        assertEquals(60f, processingEnvironmentStrength(1_550), 0f)
+        assertEquals(35f, processingEnvironmentStrength(2_050), 0f)
+        assertEquals(10f, processingEnvironmentStrength(2_600), 0f)
+        assertEquals(0f, processingEnvironmentStrength(2_800), 0f)
+        assertEquals(0f, processingEnvironmentStrength(10_000), 0f)
     }
 
     @Test

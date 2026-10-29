@@ -158,6 +158,7 @@ class SlimSamSegmenter(
                         maskSize = expectedMaskSize,
                         area = areaRatio,
                         quality = quality,
+                        maskIouScore = iouScore.takeIf { it.isFinite() },
                         errorMessage = "Segmentation mask did not satisfy quality gate",
                     )
                 }
@@ -197,6 +198,7 @@ class SlimSamSegmenter(
                     expectedMaskSize = expectedMaskSize,
                     maskAreaRatio = areaRatio,
                     quality = quality,
+                    maskIouScore = iouScore.takeIf { it.isFinite() },
                 )
             } catch (error: Throwable) {
                 Log.e(TAG, "SlimSAM segmentation failure", error)
@@ -538,6 +540,7 @@ class SlimSamSegmenter(
         expectedMaskSize: Int = 0,
         area: Float = 0f,
         quality: FishSubjectQuality = FishSubjectQuality.INVALID,
+        maskIouScore: Float? = null,
         errorMessage: String? = null,
     ) = FishSubjectResult(
         status = SubjectStatus.FAILED,
@@ -548,6 +551,7 @@ class SlimSamSegmenter(
         expectedMaskSize = expectedMaskSize,
         maskAreaRatio = area,
         quality = quality,
+        maskIouScore = maskIouScore?.takeIf { it.isFinite() },
         errorCode = code,
         errorMessage = errorMessage,
     )
