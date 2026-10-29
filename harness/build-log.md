@@ -124,3 +124,12 @@ Next action: restore Login inside the existing shared Design Manager, retain all
 - Live candidate head `aeef79ed2738575fc06cf1daf5a5271bd05777c8` passed `python scripts/validate_control_plane_admission.py` after the state-only checkpoint refresh. Six Control Plane layers passed; 735 paths synchronized with one exact Login mapping exception; Project Master State and Work Execution State passed.
 - The Login mapping remains preserved for registered W6-A. The Empty Home brand asset authority remains blocked.
 - W5 4-viewport × 2-font-scale DOM/screenshot matrix and live isolated Pages preview remain pending; no visual acceptance is claimed.
+
+
+## 2026-10-29 — PR #234 exact candidate admission restored
+
+- Re-read live Main `0c245b86f8228107309d0135bdf819af255604be`, PR #234 metadata and all 37 changed paths, and current Main `AGENTS.md` (Fast Track V1.1, exact admission, and bounded recovery instructions).
+- Exact candidate `a2cfa4714fcd4c5a3c887a27bb38898c5400408e` passed `python scripts/validate_control_plane_admission.py`: six static layers, 735 canonical paths, one exact authorized Login mapping exception, Project Master State PASS, Work Execution State PASS.
+- Kept Login mapping blob `75c615d20be011b16e4e6843b41dabd0479a8d63`: Main's asset-integrity register authorizes that exact mapping for W6-A; it is not an unrelated file.
+- Closed the recorded Control Plane Sync failure after restoring the Main-exact workflow and three Main-exact page resource bindings. PR #234 has no pull-request-triggered workflow run on this candidate yet; W5 and Pages remain NOT_RUN pending a PR `reopened` event.
+- The Empty Home brand authorization gap remains BLOCKED; no page visual edits or visual acceptance are claimed.

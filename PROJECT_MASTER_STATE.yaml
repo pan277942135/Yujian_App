@@ -11,10 +11,10 @@ state_control:
   current_pr: 234
   base_sha: 34f21ad01e62ec7bf11be11fee8eb5a500894333
   execution_baseline_sha: 6484d65bf69309b3b41420e6adb514fe7ca9076a
-  current_head: 6484d65bf69309b3b41420e6adb514fe7ca9076a
+  current_head: a2cfa4714fcd4c5a3c887a27bb38898c5400408e
   current_main_head_sha: 0c245b86f8228107309d0135bdf819af255604be
   state_status: IN_PROGRESS
-  updated_at: '2026-10-29T20:38:42.707Z'
+  updated_at: '2026-10-29T20:42:00Z'
 source_of_truth:
   current_work_state: WORK_EXECUTION_STATE.json
   canonical_control_plane: CONTROL_PLANE_REGISTRY.yaml
@@ -31,7 +31,7 @@ repositories:
       status: SYNCED_ADMISSION_PASS
       main_sync_commit: dad76a9ca737245d4076b75b86537412b0238765
       synced_main_sha: 0c245b86f8228107309d0135bdf819af255604be
-      note: 'Canonical controls remain exact against Main 0c245b86 after PR #258; the exact registered Login mapping is preserved. The exact 6d607aa1 state checkpoint passed Admission with 735 paths and one approved Login mapping exception; code source 0e4d70c4 is unchanged by subsequent state-only updates; the 4×2 W5 matrix and Pages evidence are next.'
+      note: 'Canonical controls remain exact against Main 0c245b86; the exact registered Login mapping is preserved. Admission passed on exact checkpoint a2cfa471 with 735 paths and one approved Login mapping exception; code source 6484d65 is unchanged by subsequent state-only updates; the 4×2 W5 matrix and Pages evidence are next.'
 pull_requests:
   PR234:
     number: 234
@@ -88,8 +88,8 @@ recognition_main_journey:
 runtime_gates:
   exact_head:
     sha: 6484d65bf69309b3b41420e6adb514fe7ca9076a
-    status: ADMISSION_PENDING_EXACT_SOURCE_REPLAY
-    note: Previous code source 38024168 briefly changed workflow bindings, but those edits were reverted; current source 6484d65 restores Main-exact workflow and page bindings and awaits exact revalidation before W5.
+    status: ADMISSION_PASS
+    note: Exact candidate checkpoint a2cfa471 passed Admission after restoring the Main-pinned workflow and all three Main-exact page bindings. Code source remains 6484d65; exact PR-event W5 and Pages checks are next.
   page_evidence:
     previous_w5_matrix:
       status: HISTORICAL_FOR_OLD_HEAD
@@ -110,14 +110,14 @@ current_work:
   task_id: YUJIAN_PAGE_FREEZE_PIPELINE_W5_EMPTY_HOME_PILOT_V1
   exact_head: 6484d65bf69309b3b41420e6adb514fe7ca9076a
   status: VALIDATING
-  next_action: Run the exact-source W5 4-viewport × 2-font-scale Chromium matrix and isolated Pages workflow; verify live build SHA and Inspector/DOM parity.
+  next_action: Reopen PR #234 while preserving Draft status to trigger the PR-event Pages and W5 workflows; verify the exact build SHA, 4-viewport × 2-font-scale Chromium matrix, DOM bounds, and Inspector parity.
 blockers:
 - id: exact_candidate_admission
-  status: PENDING
-  description: Current source 6484d65bf69309b3b41420e6adb514fe7ca9076a restores Main-exact workflow and page bindings; exact admission is pending.
+  status: PASS
+  description: Exact checkpoint a2cfa4714fcd4c5a3c887a27bb38898c5400408e passed Admission with all six layers, 735 synchronized paths, one approved Login exception, and both state validators passing.
 - id: final_checkpoint_admission
   status: PASS
-  description: Previous state checkpoint 3679c20ca89ef16ffc6f25ee9bfbb1dfd243cf49 passed before W5; the current code source awaits revalidation.
+  description: Exact checkpoint a2cfa4714fcd4c5a3c887a27bb38898c5400408e passed before PR-event W5 and Pages verification.
 - id: brand_asset_authority
   status: BLOCKED
   description: brand_title_primary is registered for normal_home_v1, while Empty Home requires FROZEN_ARTWORK_ASSET; no authorized Empty Home brand binding exists.
@@ -137,11 +137,11 @@ protected_invariants:
   - Do not start Android implementation from this candidate review.
 next_actions:
 - id: exact_admission
-  status: READY
-  description: Re-run exact Control Plane Admission on source 6484d65bf69309b3b41420e6adb514fe7ca9076a after restoring the Main-pinned workflow and its resource bindings.
+  status: COMPLETED
+  description: Exact Admission passed on checkpoint a2cfa4714fcd4c5a3c887a27bb38898c5400408e after restoring the Main-pinned workflow and bindings.
 - id: exact_head_w5_and_pages
   status: READY
-  description: After exact admission passes on source 6484d65bf69309b3b41420e6adb514fe7ca9076a, retrigger the PR-event Pages/W5 workflows; verify all four formal viewports at font scales 1×/1.3×, DOM bounds, Inspector data, and the isolated live build SHA.
+  description: Trigger PR-event Pages and W5 workflows on the exact current candidate; verify 320×640, 360×780, 393×852, and 411×891 at font scales 1×/1.3×, DOM bounds, Inspector data, and the isolated live build SHA.
 completion_rules:
   visual_acceptance: Product owner reviews the exact isolated preview and records
     ACCEPT or required changes.
@@ -156,4 +156,4 @@ agent_recovery:
   last_gate: EXACT_HEAD_ADMISSION_PASS_W5_AND_PAGES_PENDING
 work_id: YUJIAN_EMPTY_HOME_STRUCTURED_HIFI_TYPOGRAPHY_SCALE_PARITY_V1
 task_id: YUJIAN_PAGE_FREEZE_PIPELINE_W5_EMPTY_HOME_PILOT_V1
-updated_at: '2026-10-29T20:38:42.707Z'
+updated_at: '2026-10-29T20:42:00Z'
