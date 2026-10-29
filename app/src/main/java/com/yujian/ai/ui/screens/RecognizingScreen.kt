@@ -530,6 +530,13 @@ fun RecognitionProcessingScene(
             image.bitmap, rendered, assessment?.primary?.box, subjectBitmap, subjectBox, contour,
             visualClockMs, deterministicMotion, processingElapsedMs, photoShockwave, sceneKey, phaseElapsedMs, motionPolicy, onMotionFrame,
             displayedFocusLevel, onFishFocusTransform, Modifier.fillMaxSize(),
+            processingClockStarted = photoPresentedAtMs != null || deterministicMotion,
+            recognitionSessionId = recognitionSessionId.orEmpty(),
+            recognitionAttemptId = recognitionAttemptId.orEmpty(),
+            imageId = image.imageId,
+            photoSha256 = image.photoSha256,
+            maskRevealProgress = maskContourRevealProgress,
+            trustedMask = trustedSubjectMask,
             onProcessingPhotoSnapshot = { transform, bounds ->
                 onProcessingPhotoSnapshot(
                     RecognitionProcessingPhotoSnapshot(
@@ -583,6 +590,8 @@ private fun RecognitionPhoto(
     subjectBox: NormalizedFishBox?, contour: List<RecognitionContourSegment>, visualClockMs: Long,
     deterministicMotion: Boolean, processingElapsedMs: Long, photoShockwave: PhotoShockwaveTransform,
     motionSessionKey: Any?, phaseElapsedMs: Long, motionPolicy: RecognitionMotionPolicy,
+    processingClockStarted: Boolean, recognitionSessionId: String, recognitionAttemptId: String,
+    imageId: String, photoSha256: String, maskRevealProgress: Float, trustedMask: Boolean,
     onMotionFrame: ((RecognitionMotionTraceSample) -> Unit)?,
     focusLevel: RecognitionFishFocusLevel,
     onFishFocusTransform: ((RecognitionImageTransform) -> Unit)?, modifier: Modifier,
@@ -653,12 +662,12 @@ private fun RecognitionPhoto(
         bitmap = bitmap,
         photoTransform = transform,
         elapsedMs = processingElapsedMs,
-        processingClockStarted = photoPresentedAtMs != null || deterministicMotion,
+        processingClockStarted = processingClockStarted,
         sessionKey = motionSessionKey,
-        recognitionSessionId = recognitionSessionId.orEmpty(),
-        recognitionAttemptId = recognitionAttemptId.orEmpty(),
-        imageId = image.imageId,
-        photoSha256 = image.photoSha256,
+        recognitionSessionId = recognitionSessionId,
+        recognitionAttemptId = recognitionAttemptId,
+        imageId = imageId,
+        photoSha256 = photoSha256,
         phase = phase,
         reduceMotion = motionPolicy.reduceMotion,
         modifier = Modifier.fillMaxSize().semantics {
@@ -680,10 +689,10 @@ private fun RecognitionPhoto(
     RecognitionFishFocus(
         phase, focusBox, subjectBitmap, subjectBox, contour, transform, Modifier.fillMaxSize(),
         processingElapsedMs = processingElapsedMs,
-        maskRevealProgress = maskContourRevealProgress,
+        maskRevealProgress = maskRevealProgress,
         reduceMotion = motionPolicy.reduceMotion,
         lowPerformance = motionPolicy.lowPerformance,
-        trustedMask = trustedSubjectMask,
+        trustedMask = trustedMask,
     )
     }
     }
