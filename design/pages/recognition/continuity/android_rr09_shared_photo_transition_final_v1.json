@@ -34,7 +34,9 @@
     "model_inputs_and_thresholds_changed": false,
     "route_or_business_state_changed": false,
     "rr09_animation_high_only": true,
-    "source_sha256_explicit_and_propagated": true
+    "source_sha256_explicit_and_propagated": true,
+    "source_sha256_computed_before_inference": true,
+    "source_sha256_computation_count_per_photo": 1
   },
   "timeline": {
     "processing_minimum_ms": 2800,
@@ -425,7 +427,7 @@
       "id": "G11",
       "file": "app/src/main/java/com/yujian/ai/ui/recognition/reveal/RecognitionRevealHandoff.kt",
       "current": "photoSourceIdentity is imageId plus source plus dimensions and carries no content SHA-256",
-      "required": "Compute SHA-256 once for the persisted EXIF-normalized source file and propagate it unchanged through PhotoSession/SelectedImage/Handoff",
+      "required": "Compute SHA-256 once when the persisted EXIF-normalized source file is created, before inference; propagate it unchanged through PhotoSession/SelectedImage/Handoff without adding a pre-navigation wait",
       "evidence": "source hash propagation test across Processing, Handoff and Result; same source hash on R0/R0.5/R1"
     }
   ],
