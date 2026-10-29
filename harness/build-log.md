@@ -4,7 +4,7 @@
 
 - Live PR #234 remains Draft/Open/Unmerged; its branch was advanced by a fast-forward commit to exact code source `73cc6206eb146ada5120363ad7cf73fa8023908a` containing only the Empty Home workspace, mapping, CSS, and W5 verifier changes.
 - Baseline Admission passed on `5de9100b452a82ca3c1b6a7f8fc9015f8c2b1fbc` against Main `0c245b86f8228107309d0135bdf819af255604be` before these page edits. The registered W6-A Login mapping remains untouched at blob `75c615d20be011b16e4e6843b41dabd0479a8d63`.
-- Exact candidate checkpoint `d2fe01a14c71231dbc2c3694ddef2c66574e0c2d` passed `python scripts/validate_control_plane_admission.py`: six control-plane layers, 735 synchronized paths, one exact Login exception, Project Master State and Work Execution State all PASS. Product code source remains `73cc6206`.
+- Exact candidate checkpoint `8bae4dbdb9276b27da47ea99210f7ee35306d428` passed `python scripts/validate_control_plane_admission.py`: six control-plane layers, 735 synchronized paths, one exact Login exception, Project Master State and Work Execution State all PASS. Product code source remains `73cc6206`.
 - This log/state update records that result and creates a state-only checkpoint. Rerun Admission on that resulting exact candidate before relying on formal W5/Pages evidence. The prior local-only commit IDs are not PR candidate IDs.
 - Next action: rerun Admission on the final state-only SHA, then inspect the W5 matrix and isolated Pages preview.
 

@@ -10,11 +10,11 @@ state_control:
   current_branch: work/w5-empty-home-pilot-v1
   current_pr: 234
   base_sha: 34f21ad01e62ec7bf11be11fee8eb5a500894333
-  execution_baseline_sha: d2fe01a14c71231dbc2c3694ddef2c66574e0c2d
-  current_head: d2fe01a14c71231dbc2c3694ddef2c66574e0c2d
+  execution_baseline_sha: 8bae4dbdb9276b27da47ea99210f7ee35306d428
+  current_head: 8bae4dbdb9276b27da47ea99210f7ee35306d428
   current_main_head_sha: 0c245b86f8228107309d0135bdf819af255604be
   state_status: IN_PROGRESS
-  updated_at: '2026-10-29T17:58:09Z'
+  updated_at: '2026-10-29T18:00:34Z'
 source_of_truth:
   current_work_state: WORK_EXECUTION_STATE.json
   canonical_control_plane: CONTROL_PLANE_REGISTRY.yaml
@@ -25,14 +25,14 @@ source_of_truth:
 repositories:
   Yujian_App:
     branch: work/w5-empty-home-pilot-v1
-    execution_baseline_sha: d2fe01a14c71231dbc2c3694ddef2c66574e0c2d
+    execution_baseline_sha: 8bae4dbdb9276b27da47ea99210f7ee35306d428
     current_main_head_sha: 0c245b86f8228107309d0135bdf819af255604be
     control_plane_sync:
       status: SYNCED_PENDING_EXACT_ADMISSION
       main_sync_commit: dad76a9ca737245d4076b75b86537412b0238765
       synced_main_sha: 0c245b86f8228107309d0135bdf819af255604be
       note: 'Canonical controls remain exact against Main 0c245b86 after PR #258;
-        the exact registered Login mapping is preserved. Baseline Admission passed on 5de9100b and candidate checkpoint d2fe01a passed exact Admission; rerun after the state-only evidence update.'
+        the exact registered Login mapping is preserved. Baseline Admission passed on 5de9100b and exact-candidate Admission passed on 8bae4db; rerun after this state-only evidence update.'
 pull_requests:
   PR234:
     number: 234
@@ -88,9 +88,9 @@ recognition_main_journey:
   note: This narrow design-candidate recovery does not change journey semantics.
 runtime_gates:
   exact_head:
-    sha: d2fe01a14c71231dbc2c3694ddef2c66574e0c2d
+    sha: 8bae4dbdb9276b27da47ea99210f7ee35306d428
     status: ADMISSION_PASS_W5_PENDING
-    note: Exact Admission passed on d2fe01a for code source 73cc6206. The next state-only checkpoint requires a final Admission rerun; W5/Pages evidence and owner visual acceptance remain pending.
+    note: Exact Admission passed on 8bae4db for code source 73cc6206. The next state-only checkpoint requires a final Admission rerun; W5/Pages evidence and owner visual acceptance remain pending.
   page_evidence:
     previous_w5_matrix:
       status: HISTORICAL_FOR_OLD_HEAD
@@ -98,7 +98,7 @@ runtime_gates:
       run_id: 40873120653
     current_typography_matrix:
       status: NOT_RUN
-      source_sha: d2fe01a14c71231dbc2c3694ddef2c66574e0c2d
+      source_sha: 8bae4dbdb9276b27da47ea99210f7ee35306d428
   historical_runtime_run:
     rule: Historical results cannot promote current exact HEAD to PASS.
   user_visual_acceptance: PENDING
@@ -109,13 +109,13 @@ current_work:
   id: YUJIAN_EMPTY_HOME_STRUCTURED_HIFI_TYPOGRAPHY_SCALE_PARITY_V1
   phase: P3
   task_id: YUJIAN_PAGE_FREEZE_PIPELINE_W5_EMPTY_HOME_PILOT_V1
-  exact_head: d2fe01a14c71231dbc2c3694ddef2c66574e0c2d
+  exact_head: 8bae4dbdb9276b27da47ea99210f7ee35306d428
   status: READY_FOR_ADMISSION
   next_action: Commit the Admission evidence checkpoint, rerun Admission on its exact SHA, then verify W5/Pages evidence on the resulting candidate.
 blockers:
 - id: exact_candidate_admission
   status: PENDING
-  description: Exact Admission passed on candidate checkpoint d2fe01a; a final rerun is required after this state-only evidence update.
+  description: Exact Admission passed on candidate checkpoint 8bae4db; rerun on the final state-only checkpoint before relying on W5 or Pages outputs.
 - id: final_checkpoint_admission
   status: PENDING
   description: Rerun python scripts/validate_control_plane_admission.py on the final state-only checkpoint before relying on W5 or Pages outputs.
