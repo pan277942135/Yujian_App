@@ -280,7 +280,6 @@
         const image = root.querySelector("[data-workspace-rendered-node='visual-authority']");
         image.src = objectUrl;
         await image.decode();
-        root.firstElementChild.dataset.viewState = "REFERENCE_IMAGE_ONLY";
         assert(image.naturalWidth === authority.visual_asset.pixel_dimensions.width && image.naturalHeight === authority.visual_asset.pixel_dimensions.height,
           `VISUAL_ASSET_DIMENSIONS_MISMATCH: ${pageId}`);
         root.querySelector("[data-profile-status]").textContent = `${authority.profile.profile_id} · ${authority.profile.status}`;
