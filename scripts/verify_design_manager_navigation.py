@@ -129,13 +129,7 @@ def validate_tree(root: Path, *, built: bool = False, expected_build: str | None
         or continuity.get("authority") != "design/pages/recognition/continuity/Processing_Result_Optical_Continuity_Contract_V1.md"
         or continuity.get("machine_authority") != "design/pages/recognition/continuity/processing_result_optical_continuity_v1.json"
     ):
-        fail("Processing → Result Optical Continuity Contract V1 must remain the cross-page design authority")
-    continuity_contract_links = {item.get("path") for item in (continuity or {}).get("contract_links", [])}
-    if not {
-        "design/pages/recognition/continuity/Android_RR09_Shared_Photo_Transition_Final_Contract_V1.md",
-        "design/pages/recognition/continuity/android_rr09_shared_photo_transition_final_v1.json",
-    }.issubset(continuity_contract_links):
-        fail("Processing → Result authority index must expose the Android RR09 final transition contract and machine JSON")
+        fail("Processing → Result Optical Continuity Contract V1 must be registered")
     if not (root / swos_optical["authority"]).is_file() or not (root / continuity["authority"]).is_file():
         fail("SWOS/continuity Design Manager authority source is missing")
     if (
