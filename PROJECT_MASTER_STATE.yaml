@@ -115,7 +115,7 @@ current_work:
 blockers:
 - id: exact_candidate_admission
   status: PASS
-  description: Exact Admission passed on candidate 2b45c9c7: six control-plane layers, 735 synchronized paths, one exact Login mapping exception; the state-only checkpoint still requires a final exact rerun.
+  description: 'Exact Admission passed on candidate 2b45c9c7 with six control-plane layers, 735 synchronized paths, and one exact Login mapping exception; the state-only checkpoint still requires a final exact rerun.'
 - id: final_checkpoint_admission
   status: PENDING
   description: Rerun python scripts/validate_control_plane_admission.py on the state-only checkpoint created from candidate 2b45c9c7 before W5 or Pages outputs.
