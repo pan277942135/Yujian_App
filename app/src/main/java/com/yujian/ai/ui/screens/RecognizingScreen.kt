@@ -590,13 +590,13 @@ private fun RecognitionPhoto(
     subjectBox: NormalizedFishBox?, contour: List<RecognitionContourSegment>, visualClockMs: Long,
     deterministicMotion: Boolean, processingElapsedMs: Long, photoShockwave: PhotoShockwaveTransform,
     motionSessionKey: Any?, phaseElapsedMs: Long, motionPolicy: RecognitionMotionPolicy,
-    processingClockStarted: Boolean, recognitionSessionId: String, recognitionAttemptId: String,
-    imageId: String, photoSha256: String, maskRevealProgress: Float, trustedMask: Boolean,
     onMotionFrame: ((RecognitionMotionTraceSample) -> Unit)?,
     focusLevel: RecognitionFishFocusLevel,
     onFishFocusTransform: ((RecognitionImageTransform) -> Unit)?, modifier: Modifier,
     onProcessingPhotoSnapshot: (RecognitionImageTransform, RecognitionRevealWindowRect) -> Unit,
     onPhotoFirstFramePresented: (Long) -> Unit,
+    processingClockStarted: Boolean, recognitionSessionId: String, recognitionAttemptId: String,
+    imageId: String, photoSha256: String, maskRevealProgress: Float, trustedMask: Boolean,
 ) = BoxWithConstraints(modifier) {
     val density = LocalDensity.current
     val mediaPlan = remember(bitmap, maxWidth, maxHeight, density) {
