@@ -1,7 +1,7 @@
 {
   "schema_ref": "design/system_v3/07_Responsive_System/Page_Conformance_Profile_Schema_V1.json",
   "schema_version": "1.0",
-  "profile_id": "auth-login-responsive-profile-candidate-v1",
+  "profile_id": "auth-login-responsive-profile-draft-v1",
   "page_id": "auth_login_v2",
   "status": "DRAFT",
   "authority_bindings": [
@@ -24,16 +24,11 @@
       "authority_ref_id": "login-visual-authority",
       "locator": "registered visual authority bytes",
       "resolution_mode": "REFERENCE_ONLY"
-    },
-    {
-      "authority_ref_id": "login-responsive-matrix",
-      "locator": "machine-readable responsive acceptance matrix",
-      "resolution_mode": "REFERENCE_ONLY"
     }
   ],
   "numeric_authority": {
-    "status": "BOUND_SINGLE",
-    "authority_ref_id": "login-responsive-matrix"
+    "status": "UNBOUND_DRAFT",
+    "authority_ref_id": null
   },
   "conformance": {
     "regions": [
@@ -84,11 +79,6 @@
           {
             "authority_ref_id": "responsive-standard",
             "locator": "heading:responsive policy",
-            "resolution_mode": "REFERENCE_ONLY"
-          },
-          {
-            "authority_ref_id": "login-responsive-matrix",
-            "locator": "machine-readable responsive acceptance matrix",
             "resolution_mode": "REFERENCE_ONLY"
           }
         ]
@@ -159,11 +149,6 @@
           {
             "authority_ref_id": "login-visual-spec",
             "locator": "heading:V2.1 frozen visual",
-            "resolution_mode": "REFERENCE_ONLY"
-          },
-          {
-            "authority_ref_id": "login-responsive-matrix",
-            "locator": "machine-readable responsive acceptance matrix",
             "resolution_mode": "REFERENCE_ONLY"
           }
         ]

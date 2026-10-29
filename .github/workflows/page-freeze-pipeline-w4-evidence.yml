@@ -21,9 +21,6 @@ on:
       - "scripts/design/page_freeze_runner.py"
       - "scripts/design/verify_page_workspace.mjs"
       - "scripts/design/verify_empty_home_structured_hifi.mjs"
-      - "scripts/design/verify_login_structured_hifi.mjs"
-      - "scripts/design/compare_login_candidate_visual.py"
-      - "scripts/design/page_candidates/auth_login_v2/**"
       - "scripts/design/validate_page_responsive_contract.py"
       - "scripts/design/validate_page_resource_binding.py"
       - "scripts/design/tests/test_page_freeze_runner.py"
@@ -178,27 +175,6 @@ jobs:
             --root _site \
             --expected-sha "$BUILD_SHA" \
             --output-dir "$RUNNER_TEMP/page-freeze-w4-evidence/empty-home-matrix"
-
-      - name: Run W5 Login structured matrix on exact W4 candidate
-        if: github.event_name == 'pull_request' && github.event.pull_request.number == 234
-        env:
-          PLAYWRIGHT_MODULE_DIR: ${{ runner.temp }}/page-workspace-playwright/node_modules
-        shell: bash
-        run: |
-          set -euo pipefail
-          python3 -m http.server 8765 --directory _site > "$RUNNER_TEMP/login-w5-http.log" 2>&1 &
-          server_pid=$!
-          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
-          for attempt in $(seq 1 30); do
-            if curl -fsS http://127.0.0.1:8765/design/manager/ >/dev/null; then break; fi
-            sleep 1
-          done
-          node --check scripts/design/verify_login_structured_hifi.mjs
-          node scripts/design/verify_login_structured_hifi.mjs \
-            --root . \
-            --url http://127.0.0.1:8765/design/manager/ \
-            --expected-sha "$BUILD_SHA" \
-            --output-dir "$RUNNER_TEMP/page-freeze-w4-evidence/login-matrix"
 
       - name: Verify staged Design Manager workspace for every pilot page
         shell: bash
