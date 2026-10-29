@@ -15,7 +15,7 @@ state_control:
   current_head: 92e1b4282ae5de2f6528ddcc8e59e401ecb99b4a
   current_main_head_sha: 1d851b98e550cdc4d0c5c6f74ffedcf194e126f4
   state_status: BLOCKED
-  updated_at: '2026-10-29T00:34:52.782393+00:00'
+  updated_at: '2026-10-29T00:36:00+00:00'
 source_of_truth:
   current_work_state: WORK_EXECUTION_STATE.json
   canonical_control_plane: CONTROL_PLANE_REGISTRY.yaml
@@ -71,9 +71,7 @@ phases:
     note: Not re-established by this narrow W5 recovery checkpoint.
   P3:
     status: BLOCKED
-    note: PRODUCT_WORK Admission run 40794591711 passed all required gates on source 92e1b4282ae5de2f6528ddcc8e59e401ecb99b4a
-      / Main 1d851b98e550cdc4d0c5c6f74ffedcf194e126f4. W4 still fails on the exact candidate; W5 and Design Governance
-      pass; PR Pages build/deploy and production HTTP verification remain in progress.
+    note: PRODUCT_WORK Admission run 40794591711 passed all required gates on source 92e1b4282ae5de2f6528ddcc8e59e401ecb99b4a / Main 1d851b98e550cdc4d0c5c6f74ffedcf194e126f4. W4 still fails on that source; W5, governance, final Pages W2 and isolated preview pass. Main production build.json and 1048-file root manifest are HTTP-verified on exact Main.
   P4:
     status: NOT_CONFIRMED
     note: Not re-established by this narrow W5 recovery checkpoint.
@@ -120,8 +118,7 @@ runtime_gates:
   exact_head:
     sha: 92e1b4282ae5de2f6528ddcc8e59e401ecb99b4a
     status: BLOCKED
-    note: Current exact-source W4 fails; W5 and Design Governance pass. PRODUCT_WORK Admission has not yet run against
-      current Main 1d851b98.
+    note: Exact source 92e1 W4 fails; W5 and Design Governance pass. PRODUCT_WORK Admission 40794591711 passed on exact source 92e1 / Main 1d851b98.
   page_evidence:
     w4:
       status: FAIL
@@ -141,23 +138,28 @@ runtime_gates:
       artifact_id: 12862652295
       artifact_sha256: d4f7a2a703b43d1681a02db9f45dce926a58a0ec725117f97bff0da5bb3db3e2
     w2_resources:
-      status: PASS_STAGED_SOURCE_PENDING_FINAL_PAGES_BUNDLE
-      run_id: 40793804466
+      status: PASS_FINAL_PAGES_BUNDLE
+      run_id: 40793804507
       source_sha: 92e1b4282ae5de2f6528ddcc8e59e401ecb99b4a
       pages_checked: 3
       page_ids:
       - home_normal_v1
       - home_empty_v2
       - auth_login_v2
-      artifact_id: 12862652295
-      artifact_sha256: d4f7a2a703b43d1681a02db9f45dce926a58a0ec725117f97bff0da5bb3db3e2
+      artifact_id: 12863580659
+      artifact_sha256: 737544c1ed28251aa11b0c7cdc3527509288893ddd579d51253e56c9442e8
   isolated_preview:
-    status: RUNNING
+    status: PASS_LIVE_HTTP_BROWSER
     run_id: 40793804507
     source_sha: 92e1b4282ae5de2f6528ddcc8e59e401ecb99b4a
     url: https://pan277942135.github.io/Yujian_App/previews/pr-234/
-    deployment: PENDING
+    deployment: SUCCESS
     production_deploy: SKIPPED_EXPECTED
+    w2_report_artifact_id: 12863580659
+    w2_report_artifact_sha256: 737544c1ed28251aa11b0c7cdc3527509288893ddd579d51253e56c9442e8
+    preview_live_artifact_id: 12862873528
+    preview_live_artifact_sha256: 6c058f54098f25d4e3a97bc17e4eff863bbf67d1646b259409befd5a834f88fc
+    production_root_manifest_sha256: 6259065b2b71a51aa45eacb6ed1b7549360280e7d329c97d193ec10393673b8d
   product_work_admission:
     status: PASS
     mode: PRODUCT_WORK
@@ -170,14 +172,16 @@ runtime_gates:
       WORK_STATE: PASS
     state_branch_head: 3dbc93805a207a894935d15e257709d9c5e9e8da
   latest_main_pages:
-    status: DEPLOYED_HTTP_VERIFICATION_PENDING
+    status: PASS_HTTP_VERIFIED
     source_sha: 1d851b98e550cdc4d0c5c6f74ffedcf194e126f4
     run_id: 40793680312
     build: PASS
     deploy: PASS
     github_pages_artifact_id: 12862767477
     github_pages_artifact_sha256: e1f61e94b12df802ec316401056a255fd76d7004e4f7b2bf6e46405c3731cedb
-    production_build_json_sha: PENDING_LIVE_HTTP_CHECK
+    production_build_json_sha: 1d851b98e550cdc4d0c5c6f74ffedcf194e126f4
+    root_manifest_sha256: 6259065b2b71a51aa45eacb6ed1b7549360280e7d329c97d193ec10393673b8d
+    root_manifest_checked_files: 1048
   android_runtime:
     status: NOT_VERIFIED
     nh01_api28:
@@ -193,7 +197,7 @@ runtime_gates:
   support_authority_sync:
     pr: 246
     source_sha: 9ec94dff0956a7ae371cc006075db345fcd0643c
-    status: CHECKS_PENDING
+    status: MERGED_INTO_MAIN_1d851b98
 apk_and_evidence:
   status: NOT_VERIFIED
   apk_sha256: null
@@ -205,28 +209,22 @@ current_work:
   phase: P3
   task_id: YUJIAN_PAGE_FREEZE_PIPELINE_W5_EMPTY_HOME_PILOT_V1
   status: BLOCKED
-  next_action: With exact-source PRODUCT_WORK Admission PASS recorded, repair W4 verifier selectability semantics
-    and rerun affected gates on new exact candidate SHA.
+  next_action: Commit the prepared W4 verifier and regression-fixture patch to PR #234, then update state source_sha and rerun PRODUCT_WORK Admission before any source-dependent gate.
 blockers:
 - id: W5-BLOCKER-W4-STALE-WORKSPACE-FIXTURE
   severity: P0
   area: W4 Evidence
-  condition: W4 run 40793804470 on exact source 92e1b4282ae5de2f6528ddcc8e59e401ecb99b4a failed; custom selectability
-    metadata is missing but the renderer node is a real enabled button and browser selection works.
+  condition: W4 run 40793804470 on exact source 92e1b4282ae5de2f6528ddcc8e59e401ecb99b4a failed because the verifier treated absent custom selectability metadata on a real enabled native button as non-selectable. Live exact-source preview selection updated the Inspector and exposed measured DOM bounds. A verifier patch and two regression fixtures now exist locally; exact-SHA W4 is still FAIL until committed and rerun.
   affected_gate: G-PAGE-FREEZE-PIPELINE-W4-TEST-EVIDENCE
-  unblock_condition: After Admission PASS, update verifier to distinguish native disabled from explicit custom non-selectable,
-    retain both negative assertions, and prove real Chromium selection/Inspector on a new exact SHA.
+  unblock_condition: Commit the patch, pass new PRODUCT_WORK Admission, and prove W4 in real Chromium on the resulting exact SHA while retaining disabled and explicit-nonselectable negative assertions.
   status: OPEN
 - id: W5-BLOCKER-PR-PAGES-WORKFLOW-DISPATCH-LOOKUP
   severity: P0
   area: Isolated preview and production consistency
-  condition: PR Pages run 40793804507 is still in progress for exact source 92e1b4282ae5de2f6528ddcc8e59e401ecb99b4a;
-    Main Pages build and deploy succeeded on 1d851b98e550cdc4d0c5c6f74ffedcf194e126f4, but live production consistency
-    must be checked over HTTP.
+  condition: PR Pages run 40793804507 deployed exact source 92e1 to the isolated preview; Main run 40793680312 deployed exact Main 1d851 and live HTTP verification matched build.json and all 1048 root-manifest files.
   affected_gate: Design Manager Pages / isolated preview
-  unblock_condition: Finish the exact candidate preview deploy/browser and W2 checks, verify production build.json/resources
-    via HTTP on current Main, and confirm isolated preview does not alter root.
-  status: OPEN
+  unblock_condition: Closed by exact-SHA candidate preview, final-bundle W2 and production-root HTTP verification; rerun after any candidate or Main SHA changes.
+  status: CLOSED
 - id: NH01-BLOCKER-APPROVED-HERO-PEEK-ASSETS
   severity: P1
   area: NH01 structured high-fidelity
@@ -257,8 +255,7 @@ next_actions:
 - id: W5-RECOVERY-EXACT-GATES-06
   owner: Work
   status: READY
-  action: 'Fix W4 verifier selectability semantics and rerun W4/W5/W2/Pages/governance on the new exact PR #234
-    SHA.'
+  action: 'Commit the W4 verifier selectability fix and regression fixtures to PR #234, then rerun Admission and source-dependent W4/W5/W2/Pages/governance on the new exact SHA.'
   dependency: Exact-source PRODUCT_WORK Admission PASS at run 40794591711.
 - id: W5-RECOVERY-ASSET-AUDIT-07
   owner: Work
@@ -272,12 +269,8 @@ completion_rules:
 - W5 matrix and isolated preview must be rerun on the same repaired exact SHA.
 - User visual acceptance remains pending until the product owner confirms it.
 state_update:
-  updated_at: '2026-10-29T00:05:39+00:00'
-  reason: Candidate 27ab653f1020b17e46292e5ff380ed781e0026af restores the full Pages workflow and workspace verifier
-    blobs and refreshes only their three pinned source hashes. Exact-SHA W1 and governance passed; W2 passed for
-    all three pages; W5 passed 12/12 structural cases plus 8 negative cases, with visual review pending. W4 and
-    isolated Pages remain running; PRODUCT_WORK Admission is not yet run. Main Pages remains verified on exact Main
-    2fab34d.
+  updated_at: '2026-10-29T00:36:00+00:00'
+  reason: PRODUCT_WORK Admission 40794591711 passed for exact source 92e1/Main 1d851. Candidate W5 and governance pass; final-bundle W2 report 12863580659 passes all three page bindings with lifecycle/source warnings preserved. Isolated preview run 40793804507 and production Main Pages run 40793680312 are deployed and verified by live HTTP/Chromium, with no production root change. W4 remains FAIL on 92e1 pending the local verifier patch; NH01 additional continuity probes and native runtime remain unverified.
   protocol: harness/STATE_UPDATE_PROTOCOL.md
 agent_recovery:
   resume_order:

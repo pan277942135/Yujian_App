@@ -3,12 +3,12 @@
   "base_branch": "main",
   "base_sha": "1d851b98e550cdc4d0c5c6f74ffedcf194e126f4",
   "blockers": [
-    "W4 run 40791350065 fails on home_normal_v1. Current matching workspace is unique/visible and SHA-bound; actual tree rows expose selectable=false despite enabled buttons. Fix NH01StructuredWorkspace markup so its explicit selection metadata matches the real handler, then rerun real Chromium W4 and all source-SHA-dependent gates.",
-    "NH01 independent approved Hero/Peek sources remain unconfirmed. Generated illustrative files remain labeled; retain ASSET_SOURCE_REQUIRED and do not claim visual acceptance or native runtime.",
-    "NH01 API 28 runtime was previously skipped without opt-in; PR #234 now has run-nh01-api28 label added, so capture the resulting exact-HEAD run/artifact before reporting native status."
+    "W4 run 40793804470 on exact source 92e1 failed because the verifier treated missing custom selectability metadata as non-selectable even though the exact visible row is an enabled button. A verifier-only fix with two regression fixtures is prepared locally; W4 remains FAIL until new exact-SHA Chromium evidence passes.",
+    "NH01 standalone approved Hero/Peek source assets are still unconfirmed. Keep generated cards labeled illustrative and retain ASSET_SOURCE_REQUIRED; no visual acceptance is claimed.",
+    "NH01 API28 run 40793804441 failed before Gradle because PyYAML is missing in the workflow Python environment. No APK or emulator run occurred; declare/pin the required validator dependencies and rerun on a new exact source SHA."
   ],
   "branch": "work-state/w5-empty-home-pilot-v1",
-  "checkpoint_updated_at": "2026-10-29T00:34:52.782393+00:00",
+  "checkpoint_updated_at": "2026-10-29T00:36:00Z",
   "control_plane_revision": "1d851b98e550cdc4d0c5c6f74ffedcf194e126f4",
   "dependencies": [
     "YUJIAN_PAGE_FREEZE_PIPELINE_W3_DESIGN_MANAGER_ADAPTER_V1",
@@ -21,7 +21,7 @@
       "head_sha": "92e1b4282ae5de2f6528ddcc8e59e401ecb99b4a",
       "main_sha": "1d851b98e550cdc4d0c5c6f74ffedcf194e126f4",
       "pr": 234,
-      "status": "BLOCKED_W4_AND_PRODUCT_WORK_ADMISSION",
+      "status": "BLOCKED_W4",
       "sync": "NON_FORCE_MERGED_CURRENT_MAIN"
     },
     "candidate_pr": 234,
@@ -32,34 +32,47 @@
       "branch": "work/w5-empty-home-pilot-v1",
       "head_sha": "92e1b4282ae5de2f6528ddcc8e59e401ecb99b4a",
       "main_sha": "1d851b98e550cdc4d0c5c6f74ffedcf194e126f4",
-      "note": "Exact source 92e1 includes Main 1d851 as a second parent. W5 and Design Governance pass. W4 fails because verifier treats missing custom selectable metadata on an enabled native button as disabled; real Chromium independently confirms clicking updates Inspector.",
+      "note": "Exact source 92e1 has W4 FAIL and W5 PASS. PR Pages deployed and live browser/HTTP verification passes on the isolated path; production Main remains intact. Actual visible exact-source NH01 layer was clicked and Inspector updated with measured DOM bounds. W4 verifier patch is prepared locally but not yet in PR.",
       "pr": 234,
       "previous_candidate_sha": "27ab653f1020b17e46292e5ff380ed781e0026af",
-      "status": "BLOCKED_W4_AND_PREVIEW",
+      "status": "BLOCKED_W4",
       "sync": "NON_FORCE_MERGE_TO_CURRENT_MAIN"
     },
     "current_main_pages": {
       "build_job": "success",
       "deploy_job": "success",
-      "github_pages_artifact_id": 12861340836,
-      "github_pages_artifact_sha256": "ac9acbebfdf80d3b7a20d9d1585ac1b6ae0e09726488462c8c4afa1e51087f01",
+      "github_pages_artifact_id": 12862767477,
+      "github_pages_artifact_sha256": "e1f61e94b12df802ec316401056a255fd76d7004e4f7b2bf6e46405c3731cedb",
       "live_page": "https://pan277942135.github.io/Yujian_App/design/manager/#page/home_normal_v1/hifi/multi_screen_static_hifi",
-      "note": "Verified live build.json and 23 resource/browser checks on exact Main SHA; NH01 comparison remains measurement-only, not visual acceptance.",
       "production_browser": "PASS",
-      "production_build_json_sha": "2fab34d20ccd7f2d6f9a0d22dd65cac5d5bd5e98",
-      "release_evidence_artifact_id": 12861425668,
-      "release_evidence_artifact_sha256": "e32cfaea2531f8f8171890b7b3aa3b3600764588d5a63597afd5831488be2ead",
-      "run_id": 40789167725,
-      "source_sha": "2fab34d20ccd7f2d6f9a0d22dd65cac5d5bd5e98",
-      "status": "PASS"
+      "production_build_json_sha": "1d851b98e550cdc4d0c5c6f74ffedcf194e126f4",
+      "root_manifest_sha256": "6259065b2b71a51aa45eacb6ed1b7549360280e7d329c97d193ec10393673b8d",
+      "root_manifest_checked_files": 1048,
+      "production_pages_run_id": 40793680312,
+      "production_pages_artifact_id": 12862767477,
+      "production_pages_artifact_sha256": "e1f61e94b12df802ec316401056a255fd76d7004e4f7b2bf6e46405c3731cedb",
+      "release_evidence_artifact_id": 12862623236,
+      "release_evidence_artifact_sha256": "2e7e50a72d77fbed724ae5d539785189d5076eac88ab2caaee7ff4bf3bd3577",
+      "source_sha": "1d851b98e550cdc4d0c5c6f74ffedcf194e126f4",
+      "status": "PASS_HTTP",
+      "note": "Live production build.json and root integrity manifest matched exact Main; Pages/browser geometry comparisons remain measurement-only and do not establish user visual acceptance."
     },
     "isolated_preview": {
-      "deployment": "PENDING",
+      "deployment": "SUCCESS",
       "production_deploy": "SKIPPED_EXPECTED",
       "run_id": 40793804507,
       "source_sha": "92e1b4282ae5de2f6528ddcc8e59e401ecb99b4a",
-      "status": "RUNNING",
-      "url": "https://pan277942135.github.io/Yujian_App/previews/pr-234/"
+      "status": "PASS_LIVE_HTTP_BROWSER",
+      "url": "https://pan277942135.github.io/Yujian_App/previews/pr-234/",
+      "preview_composition_artifact_id": 12862842954,
+      "preview_composition_artifact_sha256": "4494bb31cac6b8148798dcff2473cc201782885857534e81519ba30aa814d32c",
+      "live_browser_artifact_id": 12862873528,
+      "live_browser_artifact_sha256": "6c058f54098f25d4e3a97bc17e4eff863bbf67d1646b259409befd5a834f88fc",
+      "w2_report_artifact_id": 12863580659,
+      "w2_report_artifact_sha256": "737544c1ed28251aa11b0c7cdc3527509288893ddd579d51295453e56c9442e8",
+      "production_root_manifest_sha256": "6259065b2b71a51aa45eacb6ed1b7549360280e7d329c97d193ec10393673b8d",
+      "production_main_sha": "1d851b98e550cdc4d0c5c6f74ffedcf194e126f4",
+      "checks": "candidate source served at isolated path; 23 resources HTTP/SHA checked; exact workspace tree/canvas/Inspector bidirectional selection; 24/24 NH01 formal browser matrix; no HTTP/console/page errors; production root integrity checked pre/post deploy"
     },
     "latest_candidate_gates": {
       "design_governance": {
@@ -77,7 +90,14 @@
         "candidate_sha": "92e1b4282ae5de2f6528ddcc8e59e401ecb99b4a",
         "preview_url": "https://pan277942135.github.io/Yujian_App/previews/pr-234/",
         "run_id": 40793804507,
-        "status": "RUNNING"
+        "status": "PASS_ISOLATED_PREVIEW",
+        "production_deploy": "SKIPPED_EXPECTED",
+        "w2_report_artifact_id": 12863580659,
+        "w2_report_artifact_sha256": "737544c1ed28251aa11b0c7cdc3527509288893ddd579d51295453e56c9442e8",
+        "preview_composition_artifact_id": 12862842954,
+        "preview_composition_artifact_sha256": "4494bb31cac6b8148798dcff2473cc201782885857534e81519ba30aa814d32c",
+        "live_browser_artifact_id": 12862873528,
+        "live_browser_artifact_sha256": "6c058f54098f25d4e3a97bc17e4eff863bbf67d1646b259409befd5a834f88fc"
       },
       "product_work_admission": {
         "checkpoint_sha": "3dbc93805a207a894935d15e257709d9c5e9e8da",
@@ -104,8 +124,16 @@
           "auth_login_v2"
         ],
         "pages_checked": 3,
-        "run_id": 40793804466,
-        "status": "PASS_STAGED_SOURCE_PENDING_FINAL_PAGES_BUNDLE"
+        "run_id": 40793804507,
+        "status": "PASS",
+        "source_sha": "92e1b4282ae5de2f6528ddcc8e59e401ecb99b4a",
+        "artifact_id": 12863580659,
+        "artifact_sha256": "737544c1ed28251aa11b0c7cdc3527509288893ddd579d51295453e56c9442e8",
+        "warnings": [
+          "Gallery and Chevron dimensions not verified; keep lifecycle REVIEW",
+          "runtime fish photo/avatar and login source assets are not repository-bound; retain missing/source-required status",
+          "no resource lifecycle status was promoted"
+        ]
       },
       "w4": {
         "artifact_id": 12863181100,
@@ -129,15 +157,18 @@
       "artifact_sha256": "e1f61e94b12df802ec316401056a255fd76d7004e4f7b2bf6e46405c3731cedb",
       "build": "PASS",
       "deploy": "PASS",
-      "production_http_verification": "PENDING",
+      "production_http_verification": "PASS",
       "run_id": 40793680312,
       "source_sha": "1d851b98e550cdc4d0c5c6f74ffedcf194e126f4",
-      "status": "DEPLOYED_HTTP_VERIFICATION_PENDING"
+      "production_build_json_sha": "1d851b98e550cdc4d0c5c6f74ffedcf194e126f4",
+      "root_manifest_sha256": "6259065b2b71a51aa45eacb6ed1b7549360280e7d329c97d193ec10393673b8d",
+      "root_manifest_checked_files": 1048,
+      "status": "PASS_HTTP"
     },
     "main_authority_sync": {
       "main_sha": "632cada103bf022adeb873bd6e66464555b509e4",
       "merge_commit_sha": "5ba86fd8d1142d4708d1b8f9e6ddc81cbc96ccf6",
-      "status": "MERGED_AS_NON_FORCE_MERGE"
+      "status": "MERGED_INTO_MAIN_1d851b98"
     },
     "main_sync": {
       "candidate_sha": "13e25bbf9cb9f29cb696d8fcc5d6bb8731d501ec",
@@ -221,6 +252,19 @@
       "status": "PASS_STRUCTURAL_MATRIX_VISUAL_REVIEW_PENDING",
       "supplemental_cases": 4,
       "user_visual_acceptance": "PENDING"
+    },
+    "nh01_structured_workflow": {
+      "candidate_sha": "92e1b4282ae5de2f6528ddcc8e59e401ecb99b4a",
+      "pages_run_id": 40793804507,
+      "static_hifi_assets": "FIVE_FROZEN_IMAGES_AND_ORIGINAL_V1_SHA_DIMENSIONS_VERIFIED",
+      "responsive_contract": "SPEC_FROZEN_UNCHANGED",
+      "structured_workspace": "PASS_LIVE_BROWSER",
+      "responsive_matrix": "PASS_24_OF_24_FORMAL_CHROMIUM_CASES",
+      "continuity_threshold_probes": "NOT_RUN_IN_EXISTING_24_CASE_SCRIPT",
+      "native_runtime": "NOT_VERIFIED",
+      "user_visual_acceptance": "PENDING",
+      "standalone_approved_hero_peek_assets": "ASSET_SOURCE_REQUIRED",
+      "comparison": "measurement-only; no visual pass inferred from screenshot differences"
     }
   },
   "execution_v2": {
@@ -333,7 +377,7 @@
     },
     "schema_version": "1.0"
   },
-  "next_action": "Admission PASS at run 40794591711 for exact source 92e1b428. Fix the W4 verifier selectability semantics on PR #234, then rerun Admission and all affected gates on the new candidate SHA.",
+  "next_action": "Commit W4 selectability verifier and regression fixtures to PR #234 without modifying the NH01 renderer; then update isolated state source_sha to the new exact candidate and rerun PRODUCT_WORK Admission before claiming any source-dependent gate.",
   "phase": "P3",
   "related_pr": 234,
   "repository": "pan277942135/Yujian_App",
