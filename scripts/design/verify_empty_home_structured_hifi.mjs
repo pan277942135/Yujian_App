@@ -502,6 +502,25 @@ async function main() {
     };
     const promptTextScreenshotHashes={};
     const renderedScreenshotHashes={};
+    // The frozen V2.2 raster is 9:16. Capture the current structured DOM at the same logical ratio
+    // before any matrix assertions, and include an unchanged copy of the frozen source for review.
+    await page.locator("[data-empty-viewport-preset]").selectOption("360x640@1");
+    await page.waitForFunction(()=>document.querySelector("[data-workspace-artboard]")?.dataset.viewport==="360x640");
+    const baselineScreenshot=resolve(args.outputDir,"EmptyHome_Baseline_360x640_font-1.png");
+    const baselinePromptScreenshot=resolve(args.outputDir,"EmptyHome_BaselinePrompt_360x640_font-1.png");
+    const baselineCapture=await screenshotRootViewport(page,baselineScreenshot,360,640,baselinePromptScreenshot);
+    assertScreenshotCaptureEnvelope(baselineCapture.size,360,640,"frozen-ratio baseline");
+    const baselineFrozenPath=resolve(args.root,"design/pages/home/empty_home/source/frozen/Empty_Home_Frozen_Visual_V2_2.png");
+    const baselineFrozenCopy=resolve(args.outputDir,"EmptyHome_Frozen_V2_2_Original.png");
+    await copyFile(baselineFrozenPath,baselineFrozenCopy);
+    assert(await sha256File(baselineFrozenCopy)===preflight.referenceSha,"frozen V2.2 baseline copy SHA differs from the W2-verified reference");
+    baseEvidence.baseline_screenshot={
+      source_sha:expectedSha,viewport_css_px:{width:360,height:640},font_scale:1,
+      rendered:{path:baselineScreenshot.split("/").at(-1),sha256:await sha256File(baselineScreenshot),pixel_size:baselineCapture.size,
+        capture_bounds_css_px:baselineCapture.bounds_css_px},
+      prompt_text:{path:baselinePromptScreenshot.split("/").at(-1),sha256:await sha256File(baselinePromptScreenshot),bounds_css_px:baselineCapture.prompt_text_bounds_css_px},
+      frozen_reference:{path:baselineFrozenCopy.split("/").at(-1),sha256:preflight.referenceSha,original_bytes_unchanged:true}
+    };
     for (const {width,height,fontScale,matrix_classification} of matrixCases) {
       activeMatrixRow=baseEvidence.matrix.find(row=>row.case_id===`EMPTY_HOME_${width}x${height}_FONT_${fontScale}`);
       activeMatrixRow.result="IN_PROGRESS";
@@ -524,10 +543,13 @@ async function main() {
         const outsideViewport=Object.entries(ui).filter(([,bounds])=>bounds&&(
           bounds.x < -0.5||bounds.y < -0.5||bounds.right > width+0.5||bounds.bottom > height+0.5)).map(([id])=>id);
         const textIds=["Brand","Subtitle","AccountEntry","CapturePrompt","AlbumAction"];
+        const textTargets={Brand:"#eh-Brand",Subtitle:"#eh-Subtitle",AccountEntry:"#eh-AccountEntryLabel",
+          CapturePrompt:"#eh-CapturePromptText",AlbumAction:"#eh-AlbumActionLabel"};
         const textOverflowDiagnostics=Object.fromEntries(textIds.map(id=>{
           const node=document.querySelector(`#eh-${CSS.escape(id)}`);
           if(!node)return [id,null];
-          const range=document.createRange();range.selectNodeContents(node);
+          const textNode=document.querySelector(textTargets[id]);
+          const range=document.createRange();if(textNode)range.selectNodeContents(textNode);
           const bounds=node.getBoundingClientRect(),textBounds=range.getBoundingClientRect(),style=getComputedStyle(node);
           const hasText=textBounds.width>0&&textBounds.height>0;
           const overflowByTextRange=hasText&&(textBounds.left<bounds.left-1||textBounds.top<bounds.top-1||
