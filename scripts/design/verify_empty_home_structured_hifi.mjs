@@ -561,6 +561,22 @@ async function main() {
         const promptText=document.querySelector("#eh-CapturePromptText"),promptRange=promptText?document.createRange():null;
         if(promptRange&&promptText)promptRange.selectNodeContents(promptText);
         const promptTextRect=promptRange?.getBoundingClientRect();
+        const renderedTypography={};
+        const typographyTargets={
+          subtitle:{style:"#eh-Subtitle",text:"#eh-Subtitle",metrics:"subtitle"},
+          account_entry:{style:"#eh-AccountEntry",text:"#eh-AccountEntryLabel",metrics:"account_entry"},
+          capture_prompt:{style:"#eh-CapturePrompt",text:"#eh-CapturePromptText",metrics:"capture_prompt"},
+          album_action:{style:"#eh-AlbumAction",text:"#eh-AlbumActionLabel",metrics:"album_action"}
+        };
+        for(const [key,target] of Object.entries(typographyTargets)){
+          const styleNode=document.querySelector(target.style),textNode=document.querySelector(target.text);
+          if(!styleNode||!textNode)continue;
+          const style=getComputedStyle(styleNode),range=document.createRange();range.selectNodeContents(textNode);
+          const rect=range.getBoundingClientRect();
+          renderedTypography[key]={font_size_css_px:parseFloat(style.fontSize),line_height_css_px:style.lineHeight==="normal"?null:parseFloat(style.lineHeight),
+            font_weight:parseInt(style.fontWeight,10),letter_spacing_css_px:style.letterSpacing==="normal"?0:parseFloat(style.letterSpacing),
+            font_family_browser_mapping:style.fontFamily,text_bounds_css_px:{x:rect.left-boardRect.left,y:rect.top-boardRect.top,width:rect.width,height:rect.height},text:textNode.textContent};
+        }
         const promptSizing={parent_id:promptParent?.id||null,parent_bounds_css_px:actualRect("#eh-CaptureActionGroup"),
           available_width_css_px:promptParent?.clientWidth??null,actual_bounds_css_px:actualRect("#eh-CapturePrompt"),
           width_rule:"100% of CaptureActionGroup available width",min_width_css:promptStyle?.minWidth||null,max_width_css:promptStyle?.maxWidth||null,
@@ -579,6 +595,13 @@ async function main() {
         const inspectorField=label=>inspector?.querySelector(`[data-inspector-field="${CSS.escape(label)}"] dd`)?.textContent||null;
         const inspectorEvidence={node_id:inspectorData.node_id,bounds:inspectorData.bounds,typography:inspectorData.typography,
           rendered_bounds:inspectorField("实际 DOM 边界"),rendered_typography:inspectorField("字体 / 行高")};
+        const textInspectorParity={};
+        for(const nodeId of ["Subtitle","AccountEntry","CapturePrompt","AlbumAction"]){
+          window.PageWorkspaceAdapters.selectLayer(nodeId);
+          const data=window.PageWorkspaceAdapters.getInspector(nodeId);
+          textInspectorParity[nodeId]={node_id:data.node_id,bounds:data.bounds,typography:data.typography};
+        }
+        window.PageWorkspaceAdapters.selectLayer("HeroCopy");
         return {viewport:metrics.viewport,font_scale:metrics.font_scale,safe_area_preview:metrics.safe_insets_preview||null,scene_transform:metrics.scene_transform,profile_width_class:board.dataset.profileWidthClass,
           root_size:{width:root.getBoundingClientRect().width,height:root.getBoundingClientRect().height},overflow,ui_bounds:ui,
           fishing:{rod:rod,line,bobber,contact,ripple,reflection,line_path_start:{x:lineStart?.x,y:lineStart?.y},line_path_end:{x:lineEnd?.x,y:lineEnd?.y},composition_outside_viewport:fishingOutside,line_end_contact_gap:lineEndContactGap,
@@ -588,6 +611,7 @@ async function main() {
             chevron_resource:iconResource("ChevronRight"),gallery_resource:iconResource("GalleryIcon")},
           hero:byId.HeroCopy?.bounds,prompt:byId.CapturePrompt?.bounds,prompt_sizing:promptSizing,camera:byId.PrimaryCaptureButton?.bounds,album:byId.AlbumAction?.bounds,
           albumTypography:{font_size_css_px:albumStyle?parseFloat(albumStyle.fontSize):null,line_height_css_px:albumStyle?parseFloat(albumStyle.lineHeight):null,font_weight:albumStyle?.fontWeight||null},
+          rendered_typography:renderedTypography,text_inspector_parity:textInspectorParity,
           deviations:Object.fromEntries(Object.entries(byId).map(([key,row])=>[key,row.deviation])),inspectorNode:inspector?.dataset.selectedNodeId,inspector:inspectorEvidence,
           promptTypography:byId.CapturePrompt?.typography,sourceSha:root.dataset.sourceSha,unit:byId.FishingRod?.bounds.unit,
           node_bounds:rows, cameraTouch:{width:byId.PrimaryCaptureButton?.bounds.width,height:byId.PrimaryCaptureButton?.bounds.height},
@@ -610,6 +634,26 @@ async function main() {
       assert(caseEvidence.inspector.rendered_bounds===inspectorBoundsLabel&&
         caseEvidence.inspector.rendered_typography===`${caseEvidence.inspector.typography.font_size} / ${caseEvidence.inspector.typography.line_height}`,
         `Rendered Inspector values must match its API and actual DOM measurement at ${width}x${height} @${fontScale}`);
+      const typographyExpectations={subtitle:{font_size:9,line_height:12,weight:400,node:"Subtitle"},account_entry:{font_size:14,line_height:20,weight:500,node:"AccountEntry"},
+        capture_prompt:{font_size:14,line_height:CANDIDATE_PROMPT_LINE_HEIGHT_SP,weight:400,node:"CapturePrompt"},album_action:{font_size:12,line_height:18,weight:400,node:"AlbumAction"}};
+      for(const [key,expected] of Object.entries(typographyExpectations)){
+        const actual=caseEvidence.rendered_typography[key],inspectorText=caseEvidence.text_inspector_parity[expected.node];
+        const measuredTextNode=caseEvidence.node_bounds.find(row=>row.node_id===expected.node);
+        assert(actual&&measuredTextNode&&inspectorText,`Missing rendered typography/Inspector measurement for ${key}`);
+        assert(Math.abs(actual.font_size_css_px-expected.font_size*fontScale)<0.05&&Math.abs(actual.line_height_css_px-expected.line_height*fontScale)<0.05&&actual.font_weight===expected.weight&&
+          Math.abs(actual.letter_spacing_css_px)<0.01&&actual.font_family_browser_mapping==="system-ui, sans-serif",
+          `${key} rendered typography must follow the measured candidate/system rule and font scale at ${width}x${height} @${fontScale}`);
+        assert(measuredTextNode.typography.font_size===`${actual.font_size_css_px}px`&&measuredTextNode.typography.line_height===`${actual.line_height_css_px}px`&&
+          measuredTextNode.typography.font_family===actual.font_family_browser_mapping,
+          `${key} measured component-tree typography must match computed rendered typography at ${width}x${height} @${fontScale}`);
+        assert(actual.text_bounds_css_px.width>0&&actual.text_bounds_css_px.height>0&&inspectorText.node_id===expected.node&&
+          inspectorText.typography.font_size===`${actual.font_size_css_px}px`&&inspectorText.typography.line_height===`${actual.line_height_css_px}px`,
+          `${key} actual text extent and Inspector typography must match the rendered DOM at ${width}x${height} @${fontScale}`);
+        assert(measuredTextNode&&Object.keys(measuredTextNode.bounds).filter(field=>["x","y","width","height"].includes(field)).every(field=>Math.abs(inspectorText.bounds[field]-measuredTextNode.bounds[field])<0.05),
+          `${key} Inspector bounds must match its actual DOM node at ${width}x${height} @${fontScale}`);
+      }
+      assert(["AccountEntry","PrimaryCaptureButton","AlbumAction"].every(id=>caseEvidence.ui_bounds[id]?.width>=48&&caseEvidence.ui_bounds[id]?.height>=48),
+        `Text, camera and album touch targets must remain at least 48 CSS px at ${width}x${height} @${fontScale}`);
       assert(caseEvidence.fishing.rod&&caseEvidence.fishing.line&&caseEvidence.fishing.bobber&&caseEvidence.fishing.contact&&caseEvidence.fishing.ripple,"fishing composition must map to separate measured DOM nodes");
       assert(caseEvidence.fishing.composition_outside_viewport.length===0,`fishing composition clipped at ${width}x${height}: ${JSON.stringify(caseEvidence.fishing.composition_outside_viewport)}`);
       assert(caseEvidence.fishing.line_path_start&&Math.abs(caseEvidence.fishing.line_path_start.x-(caseEvidence.fishing.rod.x+337*caseEvidence.scene_transform.scale))<1.5,"measured SVG path start must align with the registered rod-tip point");
