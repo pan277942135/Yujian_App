@@ -37,7 +37,7 @@ class RecognitionFishFocusTest {
         assertTrue(recognitionMaskAcceptanceOpen(RecognitionPhase.CAPTURED))
         assertTrue(recognitionMaskAcceptanceOpen(RecognitionPhase.DETECTING))
         assertTrue(recognitionMaskAcceptanceOpen(RecognitionPhase.OUTLINE))
-        assertFalse(recognitionMaskAcceptanceOpen(RecognitionPhase.CLASSIFYING))
+        assertTrue(recognitionMaskAcceptanceOpen(RecognitionPhase.CLASSIFYING))
         assertFalse(recognitionMaskAcceptanceOpen(RecognitionPhase.RESULT))
     }
 

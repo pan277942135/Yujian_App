@@ -13,8 +13,8 @@ class RecognitionVisualStateControllerTest {
         assertEquals(RecognitionPhase.DETECTING, clock.current(10_699))
         assertEquals(RecognitionPhase.OUTLINE, clock.current(10_700))
         assertEquals(RecognitionPhase.CLASSIFYING, clock.current(11_450))
-        assertEquals(RecognitionPhase.CLASSIFYING, clock.current(12_249))
-        assertEquals(RecognitionPhase.RESULT, clock.current(12_250))
+        assertEquals(RecognitionPhase.CLASSIFYING, clock.current(11_799))
+        assertEquals(RecognitionPhase.RESULT, clock.current(11_800))
     }
 
     @Test fun lateMaskReceivesFullRevealAndGoldHold() {
