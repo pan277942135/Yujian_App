@@ -72,3 +72,9 @@ Next action: restore Login inside the existing shared Design Manager, retain all
 - Main advanced from a14d03fa78db0a1cb9b007f8e3d983b8a3b85754 to 0c245b86f8228107309d0135bdf819af255604be when PR #258 merged. The product candidate remains code-source dad76a9ca737245d4076b75b86537412b0238765; only the state snapshot was rebound.
 - Re-fetched Main. Canonical control-plane sync remains PASS on the candidate: 735 paths compared, 1 exact approved Login mapping exception, 0 errors.
 - Updated both root state files to current Main 0c245b86f8228107309d0135bdf819af255604be. Exact Admission must be rerun on the final state-only candidate SHA; no page code has changed.
+
+
+## 2026-10-29 — Admission attempt and state-file correction
+
+- Exact candidate 16d241c65c41bad1593be4976453cb9746681c0f ran python scripts/validate_control_plane_admission.py. Control Plane and Project Master State passed; Work Execution State failed JSON parsing because its final two characters were a literal backslash and n (Extra data at line 48, column 2).
+- Corrected only branch-local state files and recorded this failed attempt. The code source remains dad76a9ca737245d4076b75b86537412b0238765; page files are unchanged. Exact Admission is pending on the corrected state-only candidate.
