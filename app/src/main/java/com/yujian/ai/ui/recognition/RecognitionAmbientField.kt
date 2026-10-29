@@ -40,15 +40,14 @@ import com.yujian.ai.ui.identify.RecognitionImageTransform
 import kotlin.math.PI
 import kotlin.math.sin
 
-private val AiBlueCore = Color(Effect02NativeCalibration.cyanColorArgb)
-private val AiBlueHot = Color(Effect02NativeCalibration.greenColorArgb)
-private val AiGoldCore = Color(Effect02NativeCalibration.goldColorArgb)
-private val AiGoldHot = Color(Effect02NativeCalibration.goldColorArgb)
+private val EdgeDeepPeacock = Color(Effect01NativeCalibration.deepPeacockColorArgb)
+private val EdgeWaterGreen = Color(Effect01NativeCalibration.waterGreenColorArgb)
+private val EdgeIceWhite = Color(Effect01NativeCalibration.iceWhiteColorArgb)
 private val MotionEase = CubicBezierEasing(.22f, 1f, .36f, 1f)
 
 internal val recognitionAmbientPrimaryIslandIds = setOf("B1", "G1", "B3", "G3")
 internal val recognitionAmbientSecondaryFragmentIds = setOf("B2", "G2", "B4")
-private val ENERGY_NODES = listOf("B1" to AiBlueHot, "G1" to AiGoldHot)
+private val ENERGY_NODES = listOf("B1" to EdgeWaterGreen, "G1" to EdgeIceWhite)
 
 private data class Cubic(
     val x: Float,
@@ -292,7 +291,7 @@ fun RecognitionAmbientField(
     onMotionFrame: ((RecognitionMotionTraceSample) -> Unit)? = null,
     photoTransform: RecognitionImageTransform? = null,
     processingElapsedMs: Long = visualClockMs ?: 0L,
-    includeLegacyPerimeter: Boolean = false,
+    includeEdgeField: Boolean = false,
 ) {
     val nowMs = visualClockMs ?: 0L
     val elapsedMs = processingElapsedMs.coerceAtLeast(0L)
@@ -354,22 +353,17 @@ fun RecognitionAmbientField(
         val microPaths = geometry.microPaths
 
         val baseMaskProgress = (
-            1f - (1f - spreadProgress) * Effect02NativeCalibration.bottomMaskStrength
+            1f - (1f - spreadProgress) * Effect01NativeCalibration.bottomMaskStrength
         ).coerceIn(0f, 1f)
         val baseRevealPath = buildBottomUpRevealPath(fieldRect, baseMaskProgress)
         val scanRevealPath = buildBottomUpRevealPath(fieldRect, scanProgress)
+        val perimeterTimeline = processingEnvironmentStrength(elapsedMs) / 100f
         val renderFrame = frame.copy(
-            stateStrength = frame.stateStrength * Effect02NativeCalibration.intensity,
+            stateStrength = frame.stateStrength * Effect01NativeCalibration.intensity * perimeterTimeline,
         )
 
         clipRect(fieldRect.left, fieldRect.top, fieldRect.right, fieldRect.bottom) {
-            val environmentStrength = when {
-                elapsedMs >= 2_800L -> 0f
-                reduceMotion -> 0.10f
-                else -> processingEnvironmentStrength(elapsedMs) / 100f
-            }
-            drawWaterResonanceField(elapsedMs, fieldRect, reduceMotion, environmentStrength)
-            if (includeLegacyPerimeter) {
+            if (includeEdgeField) {
                 clipPath(baseRevealPath) {
                     clipPath(scanRevealPath) {
                         clipPath(geometry.edgeBandPath) {
@@ -598,7 +592,7 @@ private fun DrawScope.drawReceivingLight(
     }
 
     islandLight(
-        color = AiBlueCore,
+        color = EdgeDeepPeacock,
         weight = 1f,
         center = Offset(fieldRect.left + fieldWidth, fieldRect.top + fieldHeight * .12f),
         radius = minDimension * .28f,
@@ -606,7 +600,7 @@ private fun DrawScope.drawReceivingLight(
         ovalSize = Size(fieldWidth * .46f, fieldHeight * .40f),
     )
     islandLight(
-        color = AiGoldCore,
+        color = EdgeWaterGreen,
         weight = .78f,
         center = Offset(fieldRect.left, fieldRect.top + fieldHeight * .10f),
         radius = minDimension * .25f,
@@ -614,7 +608,7 @@ private fun DrawScope.drawReceivingLight(
         ovalSize = Size(fieldWidth * .46f, fieldHeight * .36f),
     )
     islandLight(
-        color = AiGoldCore,
+        color = EdgeWaterGreen,
         weight = .63f,
         center = Offset(fieldRect.left, fieldRect.top + fieldHeight * .88f),
         radius = minDimension * .26f,
@@ -622,7 +616,7 @@ private fun DrawScope.drawReceivingLight(
         ovalSize = Size(fieldWidth * .48f, fieldHeight * .38f),
     )
     islandLight(
-        color = AiBlueCore,
+        color = EdgeDeepPeacock,
         weight = .54f,
         center = Offset(fieldRect.left + fieldWidth, fieldRect.top + fieldHeight * .86f),
         radius = minDimension * .25f,
@@ -651,9 +645,9 @@ private fun DrawScope.drawCompositePrimary(
     val coreAlpha = (.46f * common * quality.core).coerceAtMost(.50f)
 
     segments.forEach { segment ->
-        val glowRadius = Effect02NativeCalibration.glowSizeDp.dp.toPx()
-        drawLocalBlur(segment.path, outer, glowRadius * 2f, glowRadius, blurPaints)
-        drawLocalBlur(segment.path, mid, glowRadius, glowRadius * .5f, blurPaints)
+        val glowRadius = Effect01NativeCalibration.glowSizeDp.dp.toPx()
+        drawLocalBlur(segment.path, outer, 10.dp.toPx(), glowRadius, blurPaints)
+        drawLocalBlur(segment.path, mid, 4.dp.toPx(), glowRadius * .5f, blurPaints)
         drawPath(
             segment.path,
             brush = gradientTail(segment, filament.color, filament.hot, coreAlpha),
@@ -800,7 +794,7 @@ private fun DrawScope.drawParticles(
         if (pulse < .42f) return@repeat
 
         drawCircle(
-            color = (if (goldOwner) AiGoldHot else AiBlueHot).copy(
+            color = (if (goldOwner) EdgeIceWhite else EdgeWaterGreen).copy(
                 alpha = (common * maxAlpha * pulse).coerceAtMost(maxAlpha),
             ),
             radius = 1.5.dp.toPx(),
@@ -994,7 +988,7 @@ private fun buildOpticalPathCache(fieldRect: DisplayRect) = RecognitionOpticalPa
     edgeBandPath = buildEffect01EdgeBand(fieldRect),
     layerBounds = RectF(fieldRect.left, fieldRect.top, fieldRect.right, fieldRect.bottom),
     baseCompositePaint = AndroidPaint(AndroidPaint.ANTI_ALIAS_FLAG).apply {
-        alpha = (Effect02NativeCalibration.blendRatio * 255f).toInt()
+        alpha = (Effect01NativeCalibration.blendRatio * 255f).toInt()
         xfermode = PorterDuffXfermode(PorterDuff.Mode.OVERLAY)
     },
     primaryPaths = buildPaths(fieldRect, PRIMARY_ISLANDS),
@@ -1004,7 +998,7 @@ private fun buildOpticalPathCache(fieldRect: DisplayRect) = RecognitionOpticalPa
 )
 
 private fun buildEffect01EdgeBand(fieldRect: DisplayRect): Path {
-    val depth = minOf(fieldRect.width, fieldRect.height) * Effect02NativeCalibration.marginRatio
+    val depth = minOf(fieldRect.width, fieldRect.height) * Effect01NativeCalibration.marginRatio
     return Path().apply {
         addRectCorners(fieldRect.left, fieldRect.top, fieldRect.right, fieldRect.top + depth)
         addRectCorners(fieldRect.left, fieldRect.bottom - depth, fieldRect.right, fieldRect.bottom)
@@ -1050,63 +1044,66 @@ private fun DrawScope.drawUpwardCausticSurge(
     frame: UpwardCausticFrame,
 ) {
     val height = fieldRect.height
-    val centerBase = fieldRect.top + frame.centerYFraction * height
-    val arc = frame.arcOffsetFraction * height
-    val halfCrest = frame.crestWidthFraction * height * .5f
-    val tail = frame.tailWidthFraction * height
-    val bodyHeight = frame.bodyWidthFraction * height
-    val leading = (bodyHeight - tail).coerceAtLeast(halfCrest * 2f)
-    val thirdWidth = fieldRect.width / 3f
-    val upperY = centerBase - leading
-    val lowerY = centerBase + tail
-    val controlArc = arc * (4f / 3f)
-    val body = Path().apply {
-        moveTo(fieldRect.left, upperY)
-        cubicTo(
-            fieldRect.left + thirdWidth, upperY + controlArc,
-            fieldRect.right - thirdWidth, upperY + controlArc,
-            fieldRect.right, upperY,
-        )
-        lineTo(fieldRect.right, lowerY)
-        cubicTo(
-            fieldRect.right - thirdWidth, lowerY + controlArc,
-            fieldRect.left + thirdWidth, lowerY + controlArc,
-            fieldRect.left, lowerY,
-        )
-        close()
-    }
     val opacity = frame.opacity.coerceIn(0f, UpwardCausticSurgeCalibration.maxCompositeOpacity)
     if (opacity <= 0f) return
-
-    val crest = Color(Effect02NativeCalibration.goldColorArgb).copy(alpha = opacity)
-    val cyan = Color(Effect02NativeCalibration.cyanColorArgb).copy(alpha = opacity * .66f)
-    val teal = Color(Effect02NativeCalibration.greenColorArgb).copy(alpha = opacity * .72f)
-    val bodyLength = (leading + tail).coerceAtLeast(1f)
-    val crestStart = ((leading - halfCrest) / bodyLength).coerceIn(0f, 1f)
-    val crestEnd = ((leading + halfCrest) / bodyLength).coerceIn(crestStart, 1f)
-    val crestApproach = (crestStart - .025f).coerceAtLeast(.051f)
-    val crestRelease = (crestEnd + .025f).coerceAtMost(.60f)
-    val brush = Brush.verticalGradient(
-        colorStops = arrayOf(
-            0f to Color.Transparent,
-            .05f to cyan.copy(alpha = opacity * .35f),
-            crestApproach to cyan.copy(alpha = opacity * .52f),
-            crestStart to crest.copy(alpha = opacity * .86f),
-            .20f to crest,
-            crestEnd to crest.copy(alpha = opacity * .72f),
-            crestRelease to teal,
-            .68f to teal.copy(alpha = opacity * .42f),
-            1f to Color.Transparent,
-        ),
-        startY = upperY,
-        endY = lowerY,
+    val centerY = fieldRect.top + frame.centerYFraction * height + frame.arcOffsetFraction * height
+    val halfHeight = maxOf(
+        height * frame.bodyWidthFraction * .5f,
+        height * frame.crestWidthFraction,
     )
-    drawPath(
-        path = body,
-        brush = brush,
-        style = Fill,
-        blendMode = BlendMode.Screen,
+    val patches = arrayOf(
+        floatArrayOf(.16f, .18f, .72f, -.20f, .76f),
+        floatArrayOf(.47f, .27f, 1.00f, .13f, 1.00f),
+        floatArrayOf(.81f, .20f, .66f, -.08f, .78f),
     )
+    val deep = Color(Effect01NativeCalibration.deepPeacockColorArgb)
+    val water = Color(Effect01NativeCalibration.waterGreenColorArgb)
+    val ice = Color(Effect01NativeCalibration.iceWhiteColorArgb)
+    patches.forEach { patch ->
+        val centerX = fieldRect.left + patch[0] * fieldRect.width
+        val halfWidth = patch[1] * fieldRect.width * .5f
+        val patchHeight = halfHeight * patch[2]
+        val y = centerY + patch[3] * halfHeight
+        val alpha = opacity * patch[4]
+        val top = y - patchHeight
+        val bottom = y + patchHeight
+        val w = halfWidth * 2f
+        val irregularCaustic = Path().apply {
+            moveTo(centerX - halfWidth, y - patchHeight * .22f)
+            cubicTo(
+                centerX - halfWidth * .54f, top - patchHeight * .28f,
+                centerX + halfWidth * .32f, top + patchHeight * .20f,
+                centerX + halfWidth, y - patchHeight * .06f,
+            )
+            cubicTo(
+                centerX + halfWidth * .64f, y + patchHeight * .22f,
+                centerX + halfWidth * .18f, bottom - patchHeight * .10f,
+                centerX - halfWidth * .18f, bottom,
+            )
+            cubicTo(
+                centerX - halfWidth * .61f, bottom + patchHeight * .12f,
+                centerX - halfWidth * .93f, y + patchHeight * .15f,
+                centerX - halfWidth, y - patchHeight * .22f,
+            )
+            close()
+        }
+        val brush = Brush.verticalGradient(
+            colorStops = arrayOf(
+                0f to Color.Transparent,
+                .22f to deep.copy(alpha = alpha * .20f),
+                .43f to water.copy(alpha = alpha * .66f),
+                .50f to ice.copy(alpha = alpha * .78f),
+                .59f to water.copy(alpha = alpha * .58f),
+                .82f to deep.copy(alpha = alpha * .20f),
+                1f to Color.Transparent,
+            ),
+            startY = top,
+            endY = bottom,
+        )
+        // Keep the surge discontinuous and soft: scattered refraction patches rise
+        // from the lower edge instead of a full-width scanning band.
+        if (w > 0f) drawPath(irregularCaustic, brush, style = Fill, blendMode = BlendMode.Screen)
+    }
 }
 
 private fun productStage(phase: RecognitionPhase): ProductStage =
@@ -1136,7 +1133,7 @@ private fun targetFor(stage: ProductStage): MotionTarget =
         ProductStage.SPECIES_RECOGNIZING -> recognitionAmbientStateCalibration(RecognitionPhase.CLASSIFYING)
         ProductStage.TERMINAL -> recognitionAmbientStateCalibration(RecognitionPhase.RESULT)
     }.let { calibration ->
-        MotionTarget(calibration.strength, calibration.speed * Effect02NativeCalibration.speed)
+        MotionTarget(calibration.strength, calibration.speed * Effect01NativeCalibration.speed)
     }
 
 private fun transitionDurationFor(stage: ProductStage): Long =
@@ -1189,8 +1186,8 @@ private fun positiveMod(value: Float): Float =
 private val PRIMARY_ISLANDS = listOf(
     Filament(
         "B1",
-        AiBlueCore,
-        AiBlueHot,
+        EdgeDeepPeacock,
+        EdgeWaterGreen,
         1.2.dp,
         .00f,
         .30f,
@@ -1202,9 +1199,9 @@ private val PRIMARY_ISLANDS = listOf(
     ),
     Filament(
         "B2",
-        AiBlueCore,
-        AiBlueHot,
-        1.0.dp,
+        EdgeDeepPeacock,
+        EdgeWaterGreen,
+        1.2.dp,
         .07f,
         .18f,
         .30f,
@@ -1215,8 +1212,8 @@ private val PRIMARY_ISLANDS = listOf(
     ),
     Filament(
         "B3",
-        AiBlueCore,
-        AiBlueHot,
+        EdgeDeepPeacock,
+        EdgeWaterGreen,
         1.2.dp,
         .47f,
         .20f,
@@ -1228,9 +1225,9 @@ private val PRIMARY_ISLANDS = listOf(
     ),
     Filament(
         "B4",
-        AiBlueCore,
-        AiBlueHot,
-        .8.dp,
+        EdgeDeepPeacock,
+        EdgeWaterGreen,
+        1.2.dp,
         .11f,
         .14f,
         .22f,
@@ -1241,9 +1238,9 @@ private val PRIMARY_ISLANDS = listOf(
     ),
     Filament(
         "G1",
-        AiGoldCore,
-        AiGoldHot,
-        1.1.dp,
+        EdgeWaterGreen,
+        EdgeIceWhite,
+        1.2.dp,
         .12f,
         .26f,
         .78f,
@@ -1254,9 +1251,9 @@ private val PRIMARY_ISLANDS = listOf(
     ),
     Filament(
         "G2",
-        AiGoldCore,
-        AiGoldHot,
-        .9.dp,
+        EdgeWaterGreen,
+        EdgeIceWhite,
+        1.2.dp,
         .09f,
         .16f,
         .26f,
@@ -1267,8 +1264,8 @@ private val PRIMARY_ISLANDS = listOf(
     ),
     Filament(
         "G3",
-        AiGoldCore,
-        AiGoldHot,
+        EdgeWaterGreen,
+        EdgeIceWhite,
         1.2.dp,
         .64f,
         .22f,
@@ -1284,8 +1281,8 @@ private val COMPANION_HAIRLINES = listOf(
     EchoFilament(
         "B1C",
         "B1",
-        AiBlueCore,
-        AiBlueHot,
+        EdgeDeepPeacock,
+        EdgeWaterGreen,
         .60.dp,
         -.055f,
         .44f,
@@ -1297,8 +1294,8 @@ private val COMPANION_HAIRLINES = listOf(
     EchoFilament(
         "G1C",
         "G1",
-        AiGoldCore,
-        AiGoldHot,
+        EdgeWaterGreen,
+        EdgeIceWhite,
         .58.dp,
         .065f,
         .42f,
@@ -1310,8 +1307,8 @@ private val COMPANION_HAIRLINES = listOf(
     EchoFilament(
         "G3C",
         "G3",
-        AiGoldCore,
-        AiGoldHot,
+        EdgeWaterGreen,
+        EdgeIceWhite,
         .60.dp,
         .050f,
         .38f,
@@ -1323,8 +1320,8 @@ private val COMPANION_HAIRLINES = listOf(
     EchoFilament(
         "B3C",
         "B3",
-        AiBlueCore,
-        AiBlueHot,
+        EdgeDeepPeacock,
+        EdgeWaterGreen,
         .58.dp,
         -.060f,
         .34f,
@@ -1339,8 +1336,8 @@ private val MICRO_HAIRLINES = listOf(
     EchoFilament(
         "B1M",
         "B1",
-        AiBlueCore,
-        AiBlueHot,
+        EdgeDeepPeacock,
+        EdgeWaterGreen,
         .42.dp,
         .085f,
         .12f,
@@ -1361,111 +1358,4 @@ private val PARTICLE_ANCHORS = listOf(
     ParticleAnchor("G3", Cubic(.18f, .90f)),
     ParticleAnchor("G3", Cubic(.48f, .97f)),
 )
-
-private fun DrawScope.drawWaterResonanceField(
-    elapsedMs: Long,
-    fieldRect: DisplayRect,
-    reduceMotion: Boolean,
-    environmentStrength: Float,
-) {
-    val t = elapsedMs.coerceIn(0L, WaterResonanceCalibration.durationMs)
-    if (t < 150L && !reduceMotion) return
-
-    // Keep the original photo clear; the ambient pass is limited to local soft light.
-
-    // L2: Soft Fish Presence (五重高斯软体积光场 along center field)
-    val cx = fieldRect.left + fieldRect.width * 0.5f
-    val cy = fieldRect.top + fieldRect.height * 0.52f
-    val fieldLen = fieldRect.height * WaterResonanceCalibration.fishFieldLengthRatio
-    val fieldWid = fieldRect.width * WaterResonanceCalibration.fishFieldWidthRatio
-    val halfLen = fieldLen * 0.5f
-    val halfWid = fieldWid * 0.5f
-
-    val softPresenceAlpha = when {
-        reduceMotion -> WaterResonanceCalibration.residueAlpha
-        t < 250L -> 0f
-        t < 650L -> ((t - 250L).toFloat() / 400f) * 0.28f
-        t < 1650L -> 0.28f
-        t < WaterResonanceCalibration.freezeAtMs -> {
-            val p = (t - 1650L).toFloat() / (WaterResonanceCalibration.freezeAtMs - 1650L)
-            0.28f * (1f - p) + WaterResonanceCalibration.residueAlpha * p
-        }
-        else -> WaterResonanceCalibration.residueAlpha
-    }
-
-    if (softPresenceAlpha * environmentStrength > 0.005f) {
-        val blobPositions = floatArrayOf(-0.35f, -0.18f, 0f, 0.18f, 0.35f)
-        val blobWidthFactors = floatArrayOf(0.42f, 0.75f, 1.0f, 0.72f, 0.38f)
-        val blobLengthFactors = floatArrayOf(0.28f, 0.35f, 0.42f, 0.34f, 0.26f)
-        val isWarm = t >= 1650L
-        val baseColorArgb = if (isWarm) WaterResonanceCalibration.residueColorArgb else WaterResonanceCalibration.ambientColorArgb
-        for (i in 0 until 5) {
-            val pos = blobPositions[i]
-            val ry = halfLen * blobLengthFactors[i]
-            val rx = halfWid * blobWidthFactors[i]
-            val py = cy + pos * halfLen
-            drawOval(
-                brush = Brush.radialGradient(
-                    colors = listOf(
-                        Color(baseColorArgb).copy(alpha = softPresenceAlpha * environmentStrength * 0.8f),
-                        Color.Transparent,
-                    ),
-                    center = Offset(cx, py),
-                    radius = maxOf(rx, ry),
-                ),
-                topLeft = Offset(cx - rx, py - ry),
-                size = Size(rx * 2f, ry * 2f),
-            )
-        }
-    }
-
-    // L3: 3 Water Resonance Pulses
-    if (!reduceMotion) {
-        val shortEdge = minOf(fieldRect.width, fieldRect.height)
-        val maxDistort = shortEdge * WaterResonanceCalibration.waveDistortionRatio
-        for (i in 0 until 3) {
-            val start = WaterResonanceCalibration.pulseStartTimes[i]
-            val duration = WaterResonanceCalibration.pulseDurations[i]
-            val end = start + duration
-            if (t < start || t > end) continue
-
-            val u = ((t - start).toFloat() / duration).coerceIn(0f, 1f)
-            val easeOutCubic = 1f - (1f - u) * (1f - u) * (1f - u)
-            val startScale = WaterResonanceCalibration.pulseStartScales[i]
-            val endScale = WaterResonanceCalibration.pulseEndScales[i]
-            val scale = startScale + (endScale - startScale) * easeOutCubic
-            val peakAlpha = WaterResonanceCalibration.pulsePeakAlphas[i]
-            val pulseAlpha = (if (u <= 0.2f) {
-                (u / 0.2f) * peakAlpha
-            } else {
-                peakAlpha * (1f - (u - 0.2f) / 0.8f)
-            }) * environmentStrength
-            if (pulseAlpha <= 0.005f) continue
-
-            val pulseColor = Color(WaterResonanceCalibration.pulseColors[i]).copy(alpha = pulseAlpha)
-            val rx = halfWid * scale
-            val ry = halfLen * scale
-
-            val wavePath = Path()
-            val steps = 36
-            for (step in 0..steps) {
-                val theta = (step.toFloat() / steps) * 2f * PI.toFloat()
-                val distort = sin(3f * theta + i * 1.7f) * (maxDistort * 0.7f) +
-                    kotlin.math.cos(5f * theta - i * 1.1f) * (maxDistort * 0.3f)
-                val curRx = maxOf(6f, rx + distort * 0.5f)
-                val curRy = maxOf(6f, ry + distort)
-                val px = cx + curRx * kotlin.math.cos(theta)
-                val py = cy + curRy * sin(theta)
-                if (step == 0) wavePath.moveTo(px, py) else wavePath.lineTo(px, py)
-            }
-            wavePath.close()
-
-            drawPath(
-                path = wavePath,
-                color = pulseColor,
-                style = Stroke(width = 2.dp.toPx(), cap = StrokeCap.Round),
-            )
-        }
-    }
-}
 

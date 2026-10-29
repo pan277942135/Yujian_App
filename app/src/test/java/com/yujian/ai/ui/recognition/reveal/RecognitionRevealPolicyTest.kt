@@ -89,6 +89,21 @@ class RecognitionRevealPolicyTest {
             RecognitionRevealPolicy.geometryTrust(box, subject(box).copy(maskSize = 3), "image-a", 1200, 800, .96f),
         )
         assertEquals(
+            RecognitionGeometryTrustState.TRUSTED_BBOX_ONLY,
+            RecognitionRevealPolicy.geometryTrust(box, subject(box).copy(quality = FishSubjectQuality.WARNING), "image-a", 1200, 800, .96f),
+        )
+        assertEquals(
+            RecognitionGeometryTrustState.TRUSTED_BBOX_ONLY,
+            RecognitionRevealPolicy.geometryTrust(
+                box,
+                subject(box).copy(subjectBox = NormalizedSourceRect(.2f, .2f, .8f, .8f)),
+                "image-a",
+                1200,
+                800,
+                .96f,
+            ),
+        )
+        assertEquals(
             RecognitionGeometryTrustState.UNTRUSTED,
             RecognitionRevealPolicy.geometryTrust(NormalizedFishBox(-.2f, .1f, .7f, .8f), null, "image-a", 1200, 800, .96f),
         )
@@ -147,6 +162,36 @@ class RecognitionRevealPolicyTest {
             RecognitionRevealEligibility.STATIC_RESULT,
             RecognitionRevealPolicy.eligibility(false, true, true, trusted, true, true),
         )
+    }
+
+    @Test
+    fun rr09RequiresReadyGeometryOnTheFirstResultFrame() {
+        fun canStart(
+            eligibility: RecognitionRevealEligibility = RecognitionRevealEligibility.FULL_REVEAL,
+            photoGeometry: Boolean = true,
+            hero: Boolean = true,
+            title: Boolean = true,
+            revealGeometry: Boolean = true,
+            reduceMotion: Boolean = false,
+        ) = RecognitionRevealPolicy.canStartOnFirstResultFrame(
+            eligibility = eligibility,
+            photoIdentityMatches = true,
+            photoGeometryReady = photoGeometry,
+            heroReady = hero,
+            titleBoundsReady = title,
+            revealGeometryReady = revealGeometry,
+            reduceMotion = reduceMotion,
+        )
+
+        assertTrue(canStart())
+        assertTrue(canStart(eligibility = RecognitionRevealEligibility.TITLE_FADE_ONLY, revealGeometry = false))
+        assertFalse(canStart(photoGeometry = false))
+        assertFalse(canStart(hero = false))
+        assertFalse(canStart(title = false))
+        assertFalse(canStart(revealGeometry = false))
+        assertFalse(canStart(reduceMotion = true))
+        assertFalse(canStart(eligibility = RecognitionRevealEligibility.PHOTO_ONLY))
+        assertFalse(canStart(eligibility = RecognitionRevealEligibility.STATIC_RESULT))
     }
 
     @Test
@@ -229,7 +274,9 @@ class RecognitionRevealPolicyTest {
         sourceHeightPx = 800,
         detectorBox = box,
         detectorConfidence = .96f,
-        subjectBox = NormalizedSourceRect(.1f, .1f, .9f, .9f),
+        subjectBox = box.expand(.12f).let {
+            NormalizedSourceRect(it.x1, it.y1, it.x2, it.y2)
+        },
         contour = listOf(
             RecognitionContourSegment(.1f, .5f, .5f, .2f, .2f, .3f, .4f, .2f, beginsContour = true),
         ),

@@ -2,6 +2,7 @@ package com.yujian.ai.ui.recognition
 
 import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.PixelFormat
 import android.opengl.GLES20
 import android.opengl.GLSurfaceView
 import android.opengl.GLUtils
@@ -30,17 +31,20 @@ private const val SOURCE_SPEED = 1f
 private const val NODE_POSITION_FLOATS = RecognitionPerimeterShaderMath.SPARKLE_COUNT * 2
 
 /**
- * Draws the original PhotoSession bitmap and its perimeter effect in one GLES2 output.
- * It deliberately does not rely on cross-View blend modes: the WebGL alpha blend and CSS
- * Overlay blend are evaluated in the same fragment pass over the actual photo pixels.
+ * Draws a transparent GLES2 perimeter layer over the native PhotoSession image. A lost or
+ * unavailable GL surface therefore reveals the same stable Compose photo underneath.
  */
 @Composable
 internal fun RecognitionPerimeterShaderOverlay(
     bitmap: Bitmap,
     photoTransform: RecognitionImageTransform,
-    decorativeBackgroundTransform: RecognitionImageTransform?,
     elapsedMs: Long,
+    processingClockStarted: Boolean,
     sessionKey: Any?,
+    recognitionSessionId: String,
+    recognitionAttemptId: String,
+    imageId: String,
+    photoSha256: String,
     phase: RecognitionPhase,
     reduceMotion: Boolean = false,
     referenceMetrics: RecognitionPerimeterReferenceMetrics? = null,
@@ -48,7 +52,7 @@ internal fun RecognitionPerimeterShaderOverlay(
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
-    val identity = sessionKey ?: bitmap
+    val identity = sessionKey ?: photoTransform
     val view = remember(context, identity) { RecognitionPerimeterGlSurfaceView(context) }
     val photoRect = photoTransform.photoContentRect
     val mapping = RecognitionPerimeterShaderMath.coordinateScale(
@@ -69,6 +73,7 @@ internal fun RecognitionPerimeterShaderOverlay(
     val timeSec = RecognitionPerimeterShaderMath.sourceTimeSec(shaderElapsedMs, speed = SOURCE_SPEED)
     val progress = if (reduceMotion) 1f else RecognitionPerimeterShaderMath.linearProgress(elapsedMs)
     val perimeterOpacity = when {
+        !processingClockStarted -> 0f
         elapsedMs >= 2_800L -> 0f
         reduceMotion -> .10f
         else -> processingEnvironmentStrength(elapsedMs) / 100f
@@ -87,11 +92,15 @@ internal fun RecognitionPerimeterShaderOverlay(
             values[index * 2 + 1] = node.y
         }
     }
-    val active = phase != RecognitionPhase.RESULT && phase != RecognitionPhase.FAILURE && elapsedMs < 2_800L
+    val active = processingClockStarted && phase != RecognitionPhase.RESULT &&
+        phase != RecognitionPhase.FAILURE && elapsedMs < 2_800L
     val frame = PerimeterFrame(
         bitmap = bitmap,
         photoBounds = photoRect,
-        decorativeBounds = decorativeBackgroundTransform?.let(::transformBounds),
+        recognitionSessionId = recognitionSessionId,
+        recognitionAttemptId = recognitionAttemptId,
+        imageId = imageId,
+        photoSha256 = photoSha256,
         elapsedMs = elapsedMs.coerceAtLeast(0L),
         timeSec = timeSec,
         progress = progress,
@@ -100,6 +109,7 @@ internal fun RecognitionPerimeterShaderOverlay(
         pathCoordinateScale = mapping.pathPxPerCssUnit,
         nodePositions = positions,
         coordinateMappingMeasured = mapping.isMeasured,
+        glowSizeSource = 36f * context.resources.displayMetrics.density / mapping.shaderPxPerSourceUnit.coerceAtLeast(.0001f),
         active = active,
     )
 
@@ -127,17 +137,13 @@ internal fun RecognitionPerimeterShaderOverlay(
     }
 }
 
-private fun transformBounds(transform: RecognitionImageTransform): DisplayRect = DisplayRect(
-    left = transform.translationX,
-    top = transform.translationY,
-    right = transform.translationX + transform.drawnWidth,
-    bottom = transform.translationY + transform.drawnHeight,
-)
-
 private data class PerimeterFrame(
     val bitmap: Bitmap,
     val photoBounds: DisplayRect,
-    val decorativeBounds: DisplayRect?,
+    val recognitionSessionId: String,
+    val recognitionAttemptId: String,
+    val imageId: String,
+    val photoSha256: String,
     val elapsedMs: Long,
     val timeSec: Float,
     val progress: Float,
@@ -146,6 +152,7 @@ private data class PerimeterFrame(
     val pathCoordinateScale: Float,
     val nodePositions: FloatArray,
     val coordinateMappingMeasured: Boolean,
+    val glowSizeSource: Float,
     val active: Boolean,
 )
 
@@ -159,6 +166,8 @@ private class RecognitionPerimeterGlSurfaceView(context: Context) : GLSurfaceVie
     init {
         setEGLContextClientVersion(2)
         setEGLConfigChooser(8, 8, 8, 8, 0, 0)
+        holder.setFormat(PixelFormat.TRANSLUCENT)
+        setZOrderOnTop(true)
         setPreserveEGLContextOnPause(false)
         setRenderer(perimeterRenderer)
         renderMode = RENDERMODE_WHEN_DIRTY
@@ -233,13 +242,13 @@ private class RecognitionPerimeterGlRenderer : GLSurfaceView.Renderer {
     private val frameRef = AtomicReference<PerimeterFrame?>(null)
     private val releaseRequested = AtomicBoolean(false)
     private var program = 0
-    private var fallbackProgram = 0
-    private var photoTexture = 0
-    private var uploadedBitmap: Bitmap? = null
     private var surfaceWidth = 1
     private var surfaceHeight = 1
     private var lastMappingLogKey: String? = null
+    private var firstOpticalFrameLogged = false
     private var positionBuffer = 0
+    private var photoTexture = 0
+    private var uploadedBitmap: Bitmap? = null
     private val vertices = floatArrayOf(-1f, -1f, 1f, -1f, -1f, 1f, 1f, 1f)
 
     fun submit(frame: PerimeterFrame) {
@@ -252,10 +261,12 @@ private class RecognitionPerimeterGlRenderer : GLSurfaceView.Renderer {
     }
 
     override fun onSurfaceCreated(gl: GL10?, config: EGLConfig?) {
+        firstOpticalFrameLogged = false
         uploadedBitmap = null
-        Log.i(TAG, "GLES_VERSION=${GLES20.glGetString(GLES20.GL_VERSION)}")
-        Log.i(TAG, "GL_RENDERER=${GLES20.glGetString(GLES20.GL_RENDERER)}")
-        Log.i(TAG, "GLSL_VERSION=${GLES20.glGetString(GLES20.GL_SHADING_LANGUAGE_VERSION)}")
+        val frameIdentity = frameRef.get()?.let(::identityLabel).orEmpty()
+        Log.i(TAG, "GLES_VERSION=${GLES20.glGetString(GLES20.GL_VERSION)} $frameIdentity")
+        Log.i(TAG, "GL_RENDERER=${GLES20.glGetString(GLES20.GL_RENDERER)} $frameIdentity")
+        Log.i(TAG, "GLSL_VERSION=${GLES20.glGetString(GLES20.GL_SHADING_LANGUAGE_VERSION)} $frameIdentity")
         val bufferIds = IntArray(1)
         GLES20.glGenBuffers(1, bufferIds, 0)
         positionBuffer = bufferIds[0]
@@ -273,15 +284,6 @@ private class RecognitionPerimeterGlRenderer : GLSurfaceView.Renderer {
         )
         GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, 0)
 
-        program = createProgram(VERTEX_SHADER, PERIMETER_FRAGMENT_SHADER, "perimeter")
-        if (program != 0) {
-            Log.i(TAG, "PERIMETER_SHADER_COMPILE=PASS source=$SOURCE_SHA")
-            Log.i(TAG, "PERIMETER_SHADER_LINK=PASS")
-        } else {
-            Log.e(TAG, "PERIMETER_SHADER_COMPILE=FAIL; using photo-only GLES2 fallback")
-        }
-        fallbackProgram = createProgram(VERTEX_SHADER, PHOTO_ONLY_FRAGMENT_SHADER, "photo-only")
-        Log.i(TAG, "PHOTO_ONLY_SHADER=${if (fallbackProgram != 0) "PASS" else "FAIL"}")
         val textureIds = IntArray(1)
         GLES20.glGenTextures(1, textureIds, 0)
         photoTexture = textureIds[0]
@@ -291,17 +293,28 @@ private class RecognitionPerimeterGlRenderer : GLSurfaceView.Renderer {
         GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_CLAMP_TO_EDGE)
         GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_CLAMP_TO_EDGE)
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0)
+
+        program = createProgram(VERTEX_SHADER, PERIMETER_FRAGMENT_SHADER, "perimeter")
+        if (program != 0) {
+            Log.i(TAG, "PERIMETER_SHADER_COMPILE=PASS source=$SOURCE_SHA $frameIdentity")
+            Log.i(TAG, "PERIMETER_SHADER_LINK=PASS $frameIdentity")
+        } else {
+            Log.e(TAG, "PERIMETER_SHADER_COMPILE=FAIL; transparent photo-safe fallback $frameIdentity")
+        }
         GLES20.glDisable(GLES20.GL_DEPTH_TEST)
-        GLES20.glDisable(GLES20.GL_BLEND)
+        GLES20.glEnable(GLES20.GL_BLEND)
+        GLES20.glBlendFunc(GLES20.GL_ONE, GLES20.GL_ONE_MINUS_SRC_ALPHA)
+        GLES20.glClearColor(0f, 0f, 0f, 0f)
+        Log.i(TAG, "PHOTO_TEXTURE_ROLE=SOURCE_SAMPLING_ONLY; visible photo owned by native Compose Image $frameIdentity")
         checkGl("surface-created")
-        frameRef.get()?.let(::uploadBitmapIfNeeded)
+        Log.i(TAG, "PERIMETER_GL_SURFACE_CREATED uptime_ms=${android.os.SystemClock.uptimeMillis()} $frameIdentity")
     }
 
     override fun onSurfaceChanged(gl: GL10?, width: Int, height: Int) {
         surfaceWidth = width.coerceAtLeast(1)
         surfaceHeight = height.coerceAtLeast(1)
         GLES20.glViewport(0, 0, surfaceWidth, surfaceHeight)
-        Log.i(TAG, "RENDER_SIZE=${surfaceWidth}x$surfaceHeight backend=GLES2")
+        Log.i(TAG, "RENDER_SIZE=${surfaceWidth}x$surfaceHeight backend=GLES2 ${frameRef.get()?.let(::identityLabel).orEmpty()}")
         frameRef.get()?.let(::logMappingIfChanged)
     }
 
@@ -312,38 +325,37 @@ private class RecognitionPerimeterGlRenderer : GLSurfaceView.Renderer {
         }
         val frame = frameRef.get()
         if (frame == null) {
-            GLES20.glClearColor(BASE_R, BASE_G, BASE_B, 1f)
+            GLES20.glClearColor(0f, 0f, 0f, 0f)
             GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT)
             return
         }
-        uploadBitmapIfNeeded(frame)
+        if (!uploadBitmapIfNeeded(frame)) {
+            GLES20.glClearColor(0f, 0f, 0f, 0f)
+            GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT)
+            return
+        }
         logMappingIfChanged(frame)
         GLES20.glViewport(0, 0, surfaceWidth, surfaceHeight)
+        GLES20.glClearColor(0f, 0f, 0f, 0f)
+        GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT)
         if (frame.active && program != 0) {
+            if (!firstOpticalFrameLogged) {
+                firstOpticalFrameLogged = true
+                Log.i(TAG, "PERIMETER_FIRST_OPTICAL_FRAME elapsed_ms=${frame.elapsedMs} uptime_ms=${android.os.SystemClock.uptimeMillis()} ${identityLabel(frame)}")
+            }
             drawPerimeter(frame)
-        } else if (fallbackProgram != 0) {
-            drawPhotoOnly(frame)
         } else {
-            GLES20.glClearColor(BASE_R, BASE_G, BASE_B, 1f)
+            GLES20.glClearColor(0f, 0f, 0f, 0f)
             GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT)
         }
-    }
-
-    private fun uploadBitmapIfNeeded(frame: PerimeterFrame) {
-        if (frame.bitmap === uploadedBitmap || photoTexture == 0) return
-        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, photoTexture)
-        GLES20.glPixelStorei(GLES20.GL_UNPACK_ALIGNMENT, 4)
-        GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, frame.bitmap, 0)
-        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0)
-        uploadedBitmap = frame.bitmap
-        Log.i(TAG, "PHOTO_TEXTURE_UPLOADED=${frame.bitmap.width}x${frame.bitmap.height} config=${frame.bitmap.config}")
-        checkGl("bitmap-upload")
     }
 
     private fun drawPerimeter(frame: PerimeterFrame) {
         val p = program
         GLES20.glUseProgram(p)
-        bindPhotoTexture(p)
+        GLES20.glActiveTexture(GLES20.GL_TEXTURE0)
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, photoTexture)
+        GLES20.glUniform1i(GLES20.glGetUniformLocation(p, "uPhoto"), 0)
         bindQuad(p)
         setCommonUniforms(p, frame)
         GLES20.glUniform4fv(GLES20.glGetUniformLocation(p, "uNodePositions"), 8, frame.nodePositions, 0)
@@ -352,20 +364,31 @@ private class RecognitionPerimeterGlRenderer : GLSurfaceView.Renderer {
         checkGl("perimeter-draw")
     }
 
-    private fun drawPhotoOnly(frame: PerimeterFrame) {
-        val p = fallbackProgram
-        GLES20.glUseProgram(p)
-        bindPhotoTexture(p)
-        bindQuad(p)
-        setCommonUniforms(p, frame)
-        GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4)
-        GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, 0)
-    }
-
-    private fun bindPhotoTexture(programId: Int) {
-        GLES20.glActiveTexture(GLES20.GL_TEXTURE0)
-        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, photoTexture)
-        GLES20.glUniform1i(GLES20.glGetUniformLocation(programId, "uPhoto"), 0)
+    private fun uploadBitmapIfNeeded(frame: PerimeterFrame): Boolean {
+        if (frame.bitmap.isRecycled || photoTexture == 0) {
+            Log.e(TAG, "PHOTO_TEXTURE_UPLOAD=FAIL reason=${if (frame.bitmap.isRecycled) "BITMAP_RECYCLED" else "TEXTURE_UNAVAILABLE"} ${identityLabel(frame)}")
+            return false
+        }
+        if (frame.bitmap === uploadedBitmap) return true
+        return try {
+            GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, photoTexture)
+            GLES20.glPixelStorei(GLES20.GL_UNPACK_ALIGNMENT, 4)
+            GLUtils.texImage2D(GLES20.GL_TEXTURE_2D, 0, frame.bitmap, 0)
+            GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0)
+            val error = GLES20.glGetError()
+            if (error != GLES20.GL_NO_ERROR) {
+                Log.e(TAG, "PHOTO_TEXTURE_UPLOAD=FAIL error=0x${error.toString(16)} ${identityLabel(frame)}")
+                false
+            } else {
+                uploadedBitmap = frame.bitmap
+                Log.i(TAG, "PHOTO_TEXTURE_UPLOAD=PASS size=${frame.bitmap.width}x${frame.bitmap.height} layer=source-sampling-only ${identityLabel(frame)}")
+                true
+            }
+        } catch (error: Throwable) {
+            GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, 0)
+            Log.e(TAG, "PHOTO_TEXTURE_UPLOAD=FAIL reason=${error.javaClass.simpleName} ${identityLabel(frame)}", error)
+            false
+        }
     }
 
     private fun bindQuad(programId: Int) {
@@ -392,20 +415,16 @@ private class RecognitionPerimeterGlRenderer : GLSurfaceView.Renderer {
             GLES20.glGetUniformLocation(programId, "uPerimeterOpacity"),
             frame.perimeterOpacity.coerceIn(0f, 1f),
         )
-        val decorative = frame.decorativeBounds
-        GLES20.glUniform4f(
-            GLES20.glGetUniformLocation(programId, "uDecorBounds"),
-            decorative?.left ?: 0f,
-            decorative?.top ?: 0f,
-            decorative?.width ?: 0f,
-            decorative?.height ?: 0f,
-        )
         GLES20.glUniform4f(
             GLES20.glGetUniformLocation(programId, "uMotion"),
             frame.timeSec,
             frame.progress,
             frame.shaderCoordinateScale,
             frame.pathCoordinateScale,
+        )
+        GLES20.glUniform1f(
+            GLES20.glGetUniformLocation(programId, "uGlowSizeSource"),
+            frame.glowSizeSource,
         )
     }
 
@@ -416,7 +435,7 @@ private class RecognitionPerimeterGlRenderer : GLSurfaceView.Renderer {
         lastMappingLogKey = key
         Log.i(
             TAG,
-            "PHOTO_CONTENT_RECT=${frame.photoBounds.left},${frame.photoBounds.top}," +
+            "${identityLabel(frame)} PHOTO_CONTENT_RECT=${frame.photoBounds.left},${frame.photoBounds.top}," +
                 "${frame.photoBounds.width},${frame.photoBounds.height} viewport=${surfaceWidth}x$surfaceHeight " +
                 "elapsed_ms=${frame.elapsedMs} source_coordinate_scale=${frame.shaderCoordinateScale} " +
                 "path_css_scale=${frame.pathCoordinateScale} measured=${frame.coordinateMappingMeasured}",
@@ -426,15 +445,18 @@ private class RecognitionPerimeterGlRenderer : GLSurfaceView.Renderer {
         }
     }
 
+    private fun identityLabel(frame: PerimeterFrame): String =
+        "session=${frame.recognitionSessionId} attempt=${frame.recognitionAttemptId} " +
+            "image=${frame.imageId} photoSha256=${frame.photoSha256}"
+
     private fun deleteGlObjects() {
-        if (photoTexture != 0) GLES20.glDeleteTextures(1, intArrayOf(photoTexture), 0)
         if (positionBuffer != 0) GLES20.glDeleteBuffers(1, intArrayOf(positionBuffer), 0)
         if (program != 0) GLES20.glDeleteProgram(program)
-        if (fallbackProgram != 0) GLES20.glDeleteProgram(fallbackProgram)
-        photoTexture = 0
+        if (photoTexture != 0) GLES20.glDeleteTextures(1, intArrayOf(photoTexture), 0)
         positionBuffer = 0
         program = 0
-        fallbackProgram = 0
+        photoTexture = 0
+        uploadedBitmap = null
     }
 
     private fun checkGl(stage: String) {
@@ -446,9 +468,6 @@ private class RecognitionPerimeterGlRenderer : GLSurfaceView.Renderer {
         private const val FLOAT_SIZE_BYTES = 4
         private const val TAG = "RecognitionPerimeter"
         private const val SOURCE_SHA = "794e7f2698525761bbb2f3e5d775b5dae8d7a25a"
-        private const val BASE_R = 16f / 255f
-        private const val BASE_G = 45f / 255f
-        private const val BASE_B = 53f / 255f
 
         private const val VERTEX_SHADER = """
             attribute vec2 aPosition;
@@ -457,40 +476,7 @@ private class RecognitionPerimeterGlRenderer : GLSurfaceView.Renderer {
             }
         """
 
-        /** Photo-only fallback for devices whose GLES2 compiler rejects the perimeter fragment. */
-        private const val PHOTO_ONLY_FRAGMENT_SHADER = """
-            #ifdef GL_FRAGMENT_PRECISION_HIGH
-            precision highp float;
-            #else
-            precision mediump float;
-            #endif
-            uniform sampler2D uPhoto;
-            uniform vec2 uViewport;
-            uniform vec4 uPhotoBounds;
-            uniform vec4 uDecorBounds;
-            vec3 baseColor() { return vec3(16.0, 45.0, 53.0) / 255.0; }
-            vec3 samplePhoto(vec2 p, vec4 bounds, vec3 backdrop) {
-                vec2 uv = (p - bounds.xy) / bounds.zw;
-                vec4 pixel = texture2D(uPhoto, uv);
-                return mix(backdrop, pixel.rgb, pixel.a);
-            }
-            void main() {
-                vec2 p = vec2(gl_FragCoord.x, uViewport.y - gl_FragCoord.y);
-                vec3 color = baseColor();
-                if (uDecorBounds.z > 0.0 && uDecorBounds.w > 0.0) {
-                    vec3 decorative = samplePhoto(p, uDecorBounds, color);
-                    color = mix(color, decorative, 0.16);
-                }
-                if (p.x >= uPhotoBounds.x && p.y >= uPhotoBounds.y &&
-                    p.x <= uPhotoBounds.x + uPhotoBounds.z &&
-                    p.y <= uPhotoBounds.y + uPhotoBounds.w) {
-                    color = samplePhoto(p, uPhotoBounds, color);
-                }
-                gl_FragColor = vec4(color, 1.0);
-            }
-        """
-
-        /** Source FISH_CATCH_FRAG_SRC perimeter branch, with bottom-caustics code omitted. */
+        /** Source FISH_CATCH_FRAG_SRC perimeter branch, emitted as a transparent optical overlay. */
         private const val PERIMETER_FRAGMENT_SHADER = """
             #ifdef GL_FRAGMENT_PRECISION_HIGH
             precision highp float;
@@ -501,22 +487,21 @@ private class RecognitionPerimeterGlRenderer : GLSurfaceView.Renderer {
             uniform sampler2D uPhoto;
             uniform vec2 uViewport;
             uniform vec4 uPhotoBounds;
-            uniform vec4 uDecorBounds;
             // x=timeSec, y=linear spread progress, z=source shader-unit scale, w=source CSS-unit scale.
             uniform vec4 uMotion;
             // SWOS timeline envelope is applied after the source perimeter math; P7 is exact zero.
             uniform float uPerimeterOpacity;
+            uniform float uGlowSizeSource;
             // Two node positions per vector; constant-index branches keep GLES2 fragment indexing portable.
             uniform vec4 uNodePositions[8];
 
             const float PI = 3.14159265358979323846;
             const float INTENSITY = 1.50;
-            const float MARGIN_RATIO = 0.015;
-            const float GLOW_SIZE = 48.0;
-            const vec3 GOLD = vec3(254.0, 240.0, 138.0) / 255.0;
-            const vec3 CYAN = vec3(56.0, 189.0, 248.0) / 255.0;
-            const vec3 GREEN = vec3(45.0, 212.0, 191.0) / 255.0;
-            const vec3 NODE_WHITE = vec3(224.0, 242.0, 254.0) / 255.0;
+            const float MARGIN_RATIO = 0.060;
+            const float BLEND_RATIO = 0.75;
+            const vec3 DEEP_PEACOCK = vec3(11.0, 110.0, 105.0) / 255.0;
+            const vec3 WATER_GREEN = vec3(77.0, 208.0, 199.0) / 255.0;
+            const vec3 ICE_WHITE = vec3(221.0, 247.0, 245.0) / 255.0;
 
             float sdRoundedBox(vec2 p, vec2 b, vec4 r) {
                 r.xy = (p.x > 0.0) ? r.xy : r.zw;
@@ -529,12 +514,6 @@ private class RecognitionPerimeterGlRenderer : GLSurfaceView.Renderer {
                 vec3 low = 2.0 * backdrop * source;
                 vec3 high = 1.0 - 2.0 * (1.0 - backdrop) * (1.0 - source);
                 return mix(low, high, step(vec3(0.5), backdrop));
-            }
-
-            vec3 samplePhoto(vec2 p, vec4 bounds, vec3 backdrop) {
-                vec2 uv = (p - bounds.xy) / bounds.zw;
-                vec4 pixel = texture2D(uPhoto, uv);
-                return mix(backdrop, pixel.rgb, pixel.a);
             }
 
             vec2 nodePosition(int index) {
@@ -575,20 +554,15 @@ private class RecognitionPerimeterGlRenderer : GLSurfaceView.Renderer {
 
             void main() {
                 vec2 pTop = vec2(gl_FragCoord.x, uViewport.y - gl_FragCoord.y);
-                vec3 base = vec3(16.0, 45.0, 53.0) / 255.0;
-                if (uDecorBounds.z > 0.0 && uDecorBounds.w > 0.0) {
-                    vec3 decorative = samplePhoto(pTop, uDecorBounds, base);
-                    base = mix(base, decorative, 0.16);
-                }
                 bool insidePhoto = pTop.x >= uPhotoBounds.x && pTop.y >= uPhotoBounds.y &&
                     pTop.x <= uPhotoBounds.x + uPhotoBounds.z &&
                     pTop.y <= uPhotoBounds.y + uPhotoBounds.w;
-                if (insidePhoto) base = samplePhoto(pTop, uPhotoBounds, base);
-
                 if (!insidePhoto) {
-                    gl_FragColor = vec4(base, 1.0);
+                    gl_FragColor = vec4(0.0);
                     return;
                 }
+                vec2 photoUv = (pTop - uPhotoBounds.xy) / uPhotoBounds.zw;
+                vec3 base = texture2D(uPhoto, photoUv).rgb;
 
                 // The source shader uses gl_FragCoord with a bottom-left origin and its
                 // canvas backing-store resolution. Convert the Android photo surface to
@@ -615,7 +589,7 @@ private class RecognitionPerimeterGlRenderer : GLSurfaceView.Renderer {
                     cos(perimAngle * 9.0 - t * 1.5) * 2.6;
                 float dBox = abs(sdRoundedBox(centeredPos, boxHalf, vec4(cornerR)) + perimWave);
 
-                float effectiveGlow = max(8.0, GLOW_SIZE);
+                float effectiveGlow = max(8.0, uGlowSizeSource);
                 float wideHalo = exp(-dBox * (0.07 / (effectiveGlow * 0.12)));
                 float mediumBloom = exp(-dBox * (0.16 / (effectiveGlow * 0.10)));
                 // Source uses reversed smoothstep edges. This descending form is defined by GLSL.
@@ -624,16 +598,16 @@ private class RecognitionPerimeterGlRenderer : GLSurfaceView.Renderer {
 
                 float filamentAngleT = (perimAngle + 3.14159) / 6.28318;
                 float filamentGoldBias = smoothstep(0.18, 0.82, sin(filamentAngleT * 3.14159 + 0.7));
-                vec3 perimeterColor = mix(CYAN, GOLD, filamentGoldBias);
-                perimeterColor = mix(perimeterColor, GREEN, sin(filamentAngleT * 6.28 + t * 0.5) * 0.2 + 0.2);
+                vec3 perimeterColor = mix(WATER_GREEN, DEEP_PEACOCK, filamentGoldBias);
+                perimeterColor = mix(perimeterColor, WATER_GREEN, sin(filamentAngleT * 6.28 + t * 0.5) * 0.2 + 0.2);
 
-                float perimContrib = perimeterAura * 0.86;
+                float perimContrib = perimeterAura * BLEND_RATIO;
                 float totalLight = perimContrib * INTENSITY;
                 float finalAlpha = clamp(totalLight, 0.0, 0.96);
                 float totalWeight = max(0.001, perimContrib);
                 vec3 finalRgb = (perimeterColor * perimContrib) / totalWeight;
                 float coreSpark = smoothstep(0.85, 1.75, totalLight);
-                finalRgb = mix(finalRgb, vec3(0.99, 0.99, 0.96), coreSpark * 0.48);
+                finalRgb = mix(finalRgb, ICE_WHITE, coreSpark * 0.48);
                 finalRgb *= (1.0 + coreSpark * 0.3);
 
                 // First source stage: WebGL SRC_ALPHA / ONE_MINUS_SRC_ALPHA over transparent.
@@ -641,8 +615,6 @@ private class RecognitionPerimeterGlRenderer : GLSurfaceView.Renderer {
                 vec3 shaderLayerPremul = clamp(finalRgb * finalAlpha, 0.0, 1.0);
                 float shaderLayerAlpha = clamp(finalAlpha * finalAlpha, 0.0, 1.0);
                 vec3 shaderLayerColor = clamp(shaderLayerPremul / max(shaderLayerAlpha, 0.0001), 0.0, 1.0);
-                vec3 backdrop = mix(base, overlayBlend(base, shaderLayerColor), shaderLayerAlpha * uPerimeterOpacity);
-
                 // Second source stage: the 2D accent canvas screens its 16 halo/core disks
                 // into transparency, then CSS Overlay blends that completed canvas over the
                 // already perimeter-composited photo. No bottom flourish is ported.
@@ -660,9 +632,9 @@ private class RecognitionPerimeterGlRenderer : GLSurfaceView.Renderer {
                             float nodeSpeed = 0.012 + mod(fi, 3.0) * 0.007;
                             float pPos = mod(fi / 16.0 + uMotion.x * nodeSpeed, 1.0);
                             float pulse = 0.65 + 0.35 * sin(uMotion.x * 3.4 + seededPhase(fi));
-                            bool isGold = pPos > 0.45;
-                            vec3 glowColor = isGold ? GOLD : CYAN;
-                            vec3 coreColor = isGold ? GOLD : NODE_WHITE;
+                            bool isBright = pPos > 0.45;
+                            vec3 glowColor = isBright ? WATER_GREEN : DEEP_PEACOCK;
+                            vec3 coreColor = isBright ? ICE_WHITE : WATER_GREEN;
                             float nodeSize = (2.2 + mod(fi, 4.0) * 0.7) * uMotion.w;
 
                             float haloRadius = nodeSize * 3.2 * pulse;
@@ -681,8 +653,20 @@ private class RecognitionPerimeterGlRenderer : GLSurfaceView.Renderer {
                 }
                 vec3 accentColor = accentPremul / max(accentAlpha, 0.0001);
                 float effectiveAccentAlpha = accentAlpha * uPerimeterOpacity;
-                vec3 outputColor = mix(backdrop, overlayBlend(backdrop, accentColor), effectiveAccentAlpha);
-                gl_FragColor = vec4(outputColor, 1.0);
+                float perimeterAlpha = shaderLayerAlpha * uPerimeterOpacity;
+                float outputAlpha = effectiveAccentAlpha + perimeterAlpha * (1.0 - effectiveAccentAlpha);
+                vec3 perimeterComposite = mix(
+                    base,
+                    overlayBlend(base, shaderLayerColor),
+                    perimeterAlpha
+                );
+                vec3 outputColor = mix(
+                    perimeterComposite,
+                    overlayBlend(perimeterComposite, accentColor),
+                    effectiveAccentAlpha
+                );
+                vec3 outputSource = (outputColor - base * (1.0 - outputAlpha)) / max(outputAlpha, 0.0001);
+                gl_FragColor = vec4(clamp(outputSource, 0.0, 1.0) * outputAlpha, outputAlpha);
             }
         """
 

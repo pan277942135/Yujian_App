@@ -3,6 +3,10 @@ package com.yujian.ai.ui.screens
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
+import android.os.Handler
+import android.os.Looper
+import android.os.SystemClock
+import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -58,6 +62,7 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -153,6 +158,7 @@ import com.yujian.ai.ui.recognition.reveal.RecognitionRevealMotionPolicy
 import com.yujian.ai.ui.recognition.reveal.RecognitionRevealOpticalOverlay
 import com.yujian.ai.ui.recognition.reveal.RecognitionRevealPhotoGeometry
 import com.yujian.ai.ui.recognition.reveal.RecognitionRevealPhase
+import com.yujian.ai.ui.recognition.reveal.RecognitionRevealPolicy
 import com.yujian.ai.ui.recognition.reveal.RecognitionRevealTitleMode
 import com.yujian.ai.ui.recognition.reveal.RecognitionRevealWindowRect
 import com.yujian.ai.ui.recognition.reveal.resolveRecognitionScientificName
@@ -178,6 +184,7 @@ import org.json.JSONObject
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import java.util.concurrent.atomic.AtomicBoolean
 
 enum class RecognitionSaveDestination { HOME, MEMORY }
 
@@ -219,6 +226,10 @@ fun RecognitionResultScreen(
     val revealElapsedState = remember(revealHandoff?.key) {
         mutableStateOf(if (revealAlreadyPlayed || revealHandoff == null) RecognitionRevealClock.TOTAL_DURATION_MS else 0L)
     }
+    val resultFirstPresentedAtMs = remember(image?.imageId) { mutableStateOf<Long?>(null) }
+    val revealStartAllowed = remember(image?.imageId) { mutableStateOf(false) }
+    val resultFirstFrameCallbackPosted = remember(image?.imageId) { AtomicBoolean(false) }
+    val resultFrameHandler = remember { Handler(Looper.getMainLooper()) }
     val systemMotionPolicy = rememberRecognitionMotionPolicy()
     val revealMotionPolicy = revealMotionPolicyOverride ?: RecognitionRevealMotionPolicy(
         reduceMotion = systemMotionPolicy.reduceMotion,
@@ -373,36 +384,73 @@ fun RecognitionResultScreen(
     val visualHandoff = if (
         revealHandoff?.eligibility == RecognitionRevealEligibility.FULL_REVEAL && revealGeometry == null
     ) revealHandoff.copy(eligibility = RecognitionRevealEligibility.TITLE_FADE_ONLY) else revealHandoff
-    val revealFrameState = remember(visualHandoff, revealMotionPolicy, revealElapsedOverrideMs, revealElapsedState) {
+    val revealPhotoIdentityMatches = revealHandoff != null && image != null &&
+        image.imageId == revealHandoff.imageId &&
+        image.bitmap.width == revealHandoff.normalizedSourceWidth &&
+        image.bitmap.height == revealHandoff.normalizedSourceHeight &&
+        image.photoSha256.isNotBlank() &&
+        revealHandoff.photoSourceIdentity.endsWith("|sha256=${image.photoSha256}") &&
+        prediction.top1.speciesKey == revealHandoff.resultIdentity
+    val revealStartReady = RecognitionRevealPolicy.canStartOnFirstResultFrame(
+        eligibility = revealHandoff?.eligibility ?: RecognitionRevealEligibility.STATIC_RESULT,
+        photoIdentityMatches = revealPhotoIdentityMatches,
+        photoGeometryReady = photoTransitionGeometry != null,
+        heroReady = heroSnapshot?.renderReady == true,
+        titleBoundsReady = revealTitleBounds?.isValid() == true,
+        revealGeometryReady = revealGeometry != null,
+        reduceMotion = revealMotionPolicy.reduceMotion,
+    )
+    val latestRevealKey = rememberUpdatedState(revealHandoff?.key)
+    val latestImageId = rememberUpdatedState(image?.imageId)
+    val latestRevealFinished = rememberUpdatedState(onRevealFinished)
+    val revealPresentationReady = if (resultFirstPresentedAtMs.value == null) {
+        revealStartReady
+    } else {
+        revealStartAllowed.value
+    }
+    val presentedHandoff = visualHandoff.takeIf { revealPresentationReady }
+    val revealFrameState = remember(presentedHandoff, revealMotionPolicy, revealElapsedOverrideMs, revealElapsedState) {
         derivedStateOf {
             RecognitionRevealClock.evaluate(
                 elapsedMs = revealElapsedOverrideMs ?: revealElapsedState.value,
-                handoff = visualHandoff,
+                handoff = presentedHandoff,
                 policy = revealMotionPolicy,
             )
         }
     }
 
-    LaunchedEffect(revealHandoff?.key, revealAlreadyPlayed, revealMotionPolicy.reduceMotion, revealElapsedOverrideMs) {
+    LaunchedEffect(
+        revealHandoff?.key,
+        resultFirstPresentedAtMs.value,
+        revealStartAllowed.value,
+        revealElapsedOverrideMs,
+    ) {
         val handoff = revealHandoff ?: return@LaunchedEffect
         if (revealElapsedOverrideMs != null) return@LaunchedEffect
-        if (revealAlreadyPlayed || !onClaimReveal(handoff.key)) {
-            revealElapsedState.value = RecognitionRevealClock.TOTAL_DURATION_MS
-            onRevealFinished(handoff.key)
-            return@LaunchedEffect
-        }
-        if (revealMotionPolicy.reduceMotion) {
-            revealElapsedState.value = RecognitionRevealClock.TOTAL_DURATION_MS
-            onRevealFinished(handoff.key)
-            return@LaunchedEffect
-        }
-        val startFrameNanos = withFrameNanos { it }
-        revealElapsedState.value = 0L
+        val startUptimeMs = resultFirstPresentedAtMs.value ?: return@LaunchedEffect
+        if (!revealStartAllowed.value) return@LaunchedEffect
+        Log.i(
+            "RecognitionReveal",
+            "RR09_START session=${handoff.key.recognitionSessionId} attempt=${handoff.key.recognitionAttemptId} image=${handoff.imageId} photoSha256=${handoff.photoSourceIdentity.substringAfterLast("sha256=")} uptimeMs=$startUptimeMs durationMs=${RecognitionRevealClock.TOTAL_DURATION_MS}",
+        )
+        var photoOwnerHandedOff = false
         while (isActive) {
-            val frameNanos = withFrameNanos { it }
-            val elapsed = ((frameNanos - startFrameNanos) / 1_000_000L).coerceAtLeast(0L)
+            withFrameNanos { it }
+            val elapsed = (SystemClock.uptimeMillis() - startUptimeMs).coerceAtLeast(0L)
             revealElapsedState.value = elapsed.coerceAtMost(RecognitionRevealClock.TOTAL_DURATION_MS)
+            if (!photoOwnerHandedOff && elapsed >= RecognitionRevealClock.PHOTO_END_MS) {
+                photoOwnerHandedOff = true
+                Log.i(
+                    "RecognitionReveal",
+                    "PHOTO_OWNER_HANDOFF session=${handoff.key.recognitionSessionId} attempt=${handoff.key.recognitionAttemptId} image=${handoff.imageId} uptimeMs=${SystemClock.uptimeMillis()} elapsedMs=$elapsed",
+                )
+            }
             if (elapsed >= RecognitionRevealClock.TOTAL_DURATION_MS) {
+                val completedAtMs = SystemClock.uptimeMillis()
+                Log.i(
+                    "RecognitionReveal",
+                    "RR09_END session=${handoff.key.recognitionSessionId} attempt=${handoff.key.recognitionAttemptId} image=${handoff.imageId} uptimeMs=$completedAtMs durationMs=${completedAtMs - startUptimeMs}",
+                )
                 onRevealFinished(handoff.key)
                 break
             }
@@ -533,7 +581,57 @@ fun RecognitionResultScreen(
     val saveBusy = saving || saveRequested
     val activeLoadingDestination = requestedSaveDestination.takeIf { saveRequested }
     Box(
-        Modifier.fillMaxSize().onGloballyPositioned { coordinates ->
+        Modifier.fillMaxSize().drawWithContent {
+            drawContent()
+            val handoff = revealHandoff
+            val frameImageId = image?.imageId
+            if (revealElapsedOverrideMs == null &&
+                resultFirstFrameCallbackPosted.compareAndSet(false, true)
+            ) {
+                resultFrameHandler.post {
+                    if (latestImageId.value == frameImageId && resultFirstPresentedAtMs.value == null) {
+                        val presentedAtMs = SystemClock.uptimeMillis()
+                        resultFirstPresentedAtMs.value = presentedAtMs
+                        if (handoff == null) {
+                            revealStartAllowed.value = false
+                            Log.i(
+                                "RecognitionReveal",
+                                "RESULT_FIRST_PRESENTED image=${frameImageId.orEmpty()} uptimeMs=$presentedAtMs rr09Started=false reason=HANDOFF_NOT_READY",
+                            )
+                        } else {
+                            val sameHandoff = latestRevealKey.value == handoff.key
+                            val canAnimate = sameHandoff && revealStartReady && !revealMotionPolicy.reduceMotion &&
+                                !revealAlreadyPlayed && onClaimReveal(handoff.key)
+                            revealStartAllowed.value = canAnimate
+                            val eligible = handoff.eligibility == RecognitionRevealEligibility.FULL_REVEAL ||
+                                handoff.eligibility == RecognitionRevealEligibility.TITLE_FADE_ONLY
+                            if (canAnimate) {
+                                revealElapsedState.value = 0L
+                                Log.i(
+                                    "RecognitionReveal",
+                                    "RESULT_FIRST_PRESENTED session=${handoff.key.recognitionSessionId} attempt=${handoff.key.recognitionAttemptId} image=${handoff.imageId} photoSha256=${handoff.photoSourceIdentity.substringAfterLast("sha256=")} uptimeMs=$presentedAtMs geometryReady=true hero=${heroSnapshot?.boundsInWindow} crop=${heroSnapshot?.cropRect} root=${rootBounds}",
+                                )
+                            } else {
+                                revealElapsedState.value = RecognitionRevealClock.TOTAL_DURATION_MS
+                                val reason = when {
+                                    !sameHandoff -> "HANDOFF_CHANGED_BEFORE_FIRST_FRAME"
+                                    revealAlreadyPlayed -> "ALREADY_PLAYED"
+                                    !eligible -> "INELIGIBLE"
+                                    revealMotionPolicy.reduceMotion -> "REDUCE_MOTION"
+                                    !revealStartReady -> "FIRST_FRAME_GEOMETRY_NOT_READY"
+                                    else -> "PLAYBACK_ALREADY_CLAIMED"
+                                }
+                                Log.i(
+                                    "RecognitionReveal",
+                                    "RESULT_FIRST_PRESENTED session=${handoff.key.recognitionSessionId} attempt=${handoff.key.recognitionAttemptId} image=${handoff.imageId} uptimeMs=$presentedAtMs rr09Started=false reason=$reason",
+                                )
+                                latestRevealFinished.value.invoke(handoff.key)
+                            }
+                        }
+                    }
+                }
+            }
+        }.onGloballyPositioned { coordinates ->
             val bounds = coordinates.boundsInWindow()
             rootBounds = RecognitionRevealWindowRect(bounds.left, bounds.top, bounds.right, bounds.bottom)
         },
@@ -566,7 +664,7 @@ fun RecognitionResultScreen(
                         evidenceFirst = uiState == RecognitionUiState.ERROR_NO_FISH ||
                             uiState == RecognitionUiState.ERROR_IMAGE_QUALITY,
                         revealFrameState = revealFrameState,
-                        sharedPhotoGeometryReady = photoTransitionGeometry != null,
+                        sharedPhotoGeometryReady = photoTransitionGeometry != null && revealPresentationReady,
                         holdPhotoUntilReady = heroSnapshot?.renderReady == false,
                         onHeroSnapshot = { bounds, cropRect, ready ->
                             heroSnapshot = RecognitionRevealHeroSnapshot(bounds, cropRect, ready)
@@ -751,7 +849,7 @@ fun RecognitionResultScreen(
         RecognitionRevealOpticalOverlay(
             modifier = Modifier.fillMaxSize(),
             bitmap = image?.bitmap,
-            handoff = revealHandoff,
+            handoff = presentedHandoff,
             photoGeometry = photoTransitionGeometry,
             geometry = revealGeometry,
             frameState = revealFrameState,
