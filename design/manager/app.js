@@ -1406,8 +1406,13 @@ function writeManagerRoute(route, writeHistory = true) {
   if (writeHistory && location.hash !== route) history.pushState(null, "", route);
 }
 
-function selectShared(id, variantId = null, writeHistory = true) {
+function disposePageWorkspace() {
+  window.LoginStructuredWorkspace?.dispose?.();
   window.PageWorkspaceAdapters?.dispose();
+}
+
+function selectShared(id, variantId = null, writeHistory = true) {
+  disposePageWorkspace();
   cancelNH01ResourceLoad(el("hifiViewCanvas"));
   const item = sharedRegistry.items.find(x => x.id === id);
   if (!item) return;
@@ -3788,7 +3793,7 @@ function renderVersions(feature) {
 }
 
 function selectPage(id, scenarioId = null, hifiId = null, hifiChildId = null, writeHistory = true) {
-  window.PageWorkspaceAdapters?.dispose();
+  disposePageWorkspace();
   const feature = pageRegistry.features.find(f => f.id === id);
   if (!feature) return;
   const scene = scenarioId ? (feature.scenario_pages || []).find(x => x.id === scenarioId) : null;
@@ -3857,7 +3862,45 @@ async function openPageStructuredWorkspace(id, routeKey, writeHistory = false) {
   const pageAdapters = window.PageWorkspaceAdapters;
   const feature = pageAdapters?.getRegisteredPage(id);
   if (!feature || !pageAdapters?.supportsPage(id)) return renderInvalidManagerRoute(routeKey);
-  pageAdapters.dispose();
+  disposePageWorkspace();
+
+  if (id === "auth_login_v2") {
+    selectPage(id, null, null, null, false);
+    selectedKey = routeKey;
+    if (writeHistory) writeManagerRoute(`#${routeKey}`, true);
+    applyPageDetailMode("workspace");
+    el("hifiViewPanel").classList.remove("hidden");
+    el("hifiViewEyebrow").textContent = "W6 Login · 共享结构化工作区";
+    el("hifiViewTitle").textContent = `${feature.display_name || id} · Login V2.1`;
+    el("hifiViewStatus").innerHTML = statusBadge("CANDIDATE");
+    el("hifiViewSummary").textContent = "Login 页面使用共享 W3 图层树、真实 DOM 测量、Inspector 与候选视口/状态控件。W1 数值规范仍待审阅；未授权图标、未绑定的底部资源及认证服务保持未完成。候选 Renderer 仅允许 loopback 本地预览。";
+    el("hifiViewSummary").classList.remove("hidden");
+    el("hifiViewContractDetails").innerHTML = `<section class="hifi-contract-details"><div class="hifi-contract-heading"><strong>页面合同与资源绑定</strong><span>W1 / W2 Authority · page_id ${esc(id)}</span></div><div class="hifi-contract-links"><span>状态</span><b>Responsive profile: REVIEW_REQUIRED · source upload: MISSING · footer grass: MISSING · icon publication: NOT_CONFIRMED · authentication backend: NOT_CONNECTED</b></div></section>`;
+    el("hifiViewContractDetails").classList.remove("hidden");
+    el("hifiViewAuthorities").innerHTML = [
+      feature.design_versions?.find(version => version.current)?.visual_authority,
+      `${feature.owner_path}/Page_Resource_Binding_V1.json`,
+      "design/pages/account_privacy/Login/structured_candidate/component_mapping_v1.json",
+      "design/pages/account_privacy/Login/structured_candidate/responsive_candidate_v1.json"
+    ].filter(Boolean).map(path =>
+      `<a class="authority-row" href="${esc(repoHref(path))}" target="_blank" rel="noreferrer">${esc(path)}</a>`).join("");
+    el("hifiViewScenarios").innerHTML = '<span class="preview-empty compact">Login 状态通过本地候选 Renderer 交互；生产认证 API 未连接 · CANDIDATE</span>';
+    window.LoginStructuredWorkspace?.mount(el("hifiViewCanvas"), {
+      pageId: id,
+      sourceSha: DESIGN_MANAGER_BUILD,
+      feature,
+      repoHref,
+      fetchImpl: window.fetch.bind(window)
+    }).catch(error => {
+      console.error("Login shared workspace mount failed:", error);
+      const panel = el("hifiViewCanvas").querySelector("[data-workspace-error]");
+      if (panel) {
+        panel.hidden = false;
+        panel.textContent = `Login workspace validation failed · ${error?.message || error}`;
+      }
+    });
+    return;
+  }
 
   if (id === "home_normal_v1") {
     const view = (feature.hifi_views || []).find(item => item.render_mode === "nh01_multi_screen_static_hifi");
@@ -3914,7 +3957,7 @@ async function openPageStructuredWorkspace(id, routeKey, writeHistory = false) {
 }
 
 function renderInvalidManagerRoute(raw) {
-  window.PageWorkspaceAdapters?.dispose();
+  disposePageWorkspace();
   cancelNH01ResourceLoad(el("hifiViewCanvas"));
   selectedKey = null;
   renderLists();
