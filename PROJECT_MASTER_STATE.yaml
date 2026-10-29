@@ -279,14 +279,19 @@ current_work:
   exact_head: 91418127df91b9854897f24eeb84c970cb2e6563
   phase: P3
   task_id: YUJIAN_W4_W5_MAIN_PAGES_W6_ANDROID_RUNTIME_CLOSURE_V1
-  status: IN_PROGRESS_SUPPORT_AUTHORITY_PR_253_CHECKS_RUNNING
-  next_action: Wait for exact-head PR #253 Governance, W1, W2 and Pages checks. If green, merge this narrow restoration under the authorized Main merge rule, deploy the resulting exact Main SHA, non-destructively sync PR #234, update isolated state to its new source SHA, re-run PRODUCT_WORK Admission, then run exact-SHA W2/W4/W5/Pages and preview gates.blockers:
-- Exact PR #234 source 91418127df91b9854897f24eeb84c970cb2e6563 has W2 run 40830549495 FAIL: three existing Page Resource Bindings pin workflow SHA 51f8d59ab19dd2a974381991038a2f746a4b30ab73422b1894d2f01df16f7200 while candidate resolver SHA is e1d7c6555b83570e92769244b83c5024113c683cc1db5f51e99d0f7ac8e8871c. PR #253 restores the resolver and all three exact pins; checks are in progress.
-- Exact source 91418127df91b9854897f24eeb84c970cb2e6563 W4 run 40830549596 and W5 run 40830549593 stopped at upstream W2; those runs did not produce final W4/W5 evidence.
-- Isolated PR #234 preview has not been deployed; W6 PR #239 remains blocked on the exact W4/W5/W2/preview gates and remains Draft.
-- NH01, Effect 01, and AI Studio perimeter native runtime are NOT_VERIFIED; the current Android run failed preflight. No actual device acceptance has been established.
-- Approved standalone NH01 Hero/Peek sources remain ASSET_SOURCE_REQUIRED; user visual acceptance is pending.
-
+  status: IN_PROGRESS_ADMISSION_STATE_REPAIR
+  next_action: >-
+    Repair the state-only PROJECT_MASTER_STATE YAML parse failure from Admission run 40832489323 and rerun PRODUCT_WORK
+    Admission on the repaired isolated checkpoint. PR #253 exact-head Governance, W1, W2/Pages and W4 checks all passed
+    on b3571b0a082156f91b77f150315c55c59d2ad5dc. After state Admission passes, integrate PR #253, deploy the resulting
+    Main SHA, non-destructively synchronize PR #234, update state source_sha, and rerun exact-source gates.
+blockers:
+  - "Latest isolated state checkpoint 5ec1ebb76f8499edcb4fe3c3460a87d5000780c6: Admission run 40832489323 failed only PROJECT_MASTER_STATE YAML parsing because root blocker/next_action list indentation was malformed. CONTROL_PLANE_SYNC and WORK_EXECUTION_STATE passed. Repair is state-only."
+  - "PR #234 exact source 91418127df91b9854897f24eeb84c970cb2e6563 has W2 run 40830549495 FAIL: three existing Page Resource Bindings pin workflow SHA 51f8d59ab19dd2a974381991038a2f746a4b30ab73422b1894d2f01df16f7200 while candidate resolver SHA is e1d7c6555b83570e92769244b83c5024113c683cc1db5f51e99d0f7ac8e8871c. PR #253 restores resolver and all three exact pins."
+  - "Exact source 91418127df91b9854897f24eeb84c970cb2e6563 W4 run 40830549596 and W5 run 40830549593 stopped at upstream W2; final W4/W5 evidence was not reached."
+  - "Isolated PR #234 preview has not been deployed; W6 PR #239 remains blocked on exact W4/W5/W2/preview gates and remains Draft."
+  - "NH01, Effect 01, and AI Studio perimeter native runtime are NOT_VERIFIED; no actual Android device acceptance has been established."
+  - "Approved standalone NH01 Hero/Peek sources remain ASSET_SOURCE_REQUIRED; user visual acceptance is pending."
 protected_invariants:
   evidence_integrity:
   - Never promote a historical run or another SHA to PASS for the current candidate.
@@ -300,32 +305,36 @@ protected_invariants:
   - USER_VISUAL_ACCEPTANCE_PENDING remains independent from CI.
   - Native runtime remains NOT_VERIFIED.
 next_actions:
-- id: PR253_AUTHORITY_RESTORATION
-  owner: Work
-  status: IN_PROGRESS
-  action: Verify exact-head Governance, W1, W2 and Pages outcomes on PR #253 HEAD b3571b0a082156f91b77f150315c55c59d2ad5dc. Merge only after required checks pass.
-  dependency: Current Main b080bb0ffb4ebced18593c08709657fabb53a19e.
-- id: PR234_EXACT_SHA_REVALIDATION
-  owner: Work
-  status: BLOCKED_ON_PR253
-  action: Deploy the new exact Main SHA after support integration; merge Main into PR #234 without force; update isolated state source_sha and re-run Product Work Admission, W2, W4, W5 and Pages/preview.
-  dependency: PR #253 green exact-head checks.
-- id: ANDROID_NATIVE_RUNTIME_EVIDENCE
-  owner: Work
-  status: NOT_VERIFIED
-  action: Check exact Android workflow and PR252 APK artifacts; use a real device/runtime if attached, otherwise package the verified APK and record BLOCKED_RUNTIME_ENV with install steps.
-  dependency: Actual Android Runtime/device evidence.
-- id: W6_LOGIN
-  owner: Work
-  status: BLOCKED
-  action: Keep PR #239 Draft and update its Main base only after PR #234 technical dependencies clear; run current exact-HEAD W6 Chromium evidence.
-  dependency: Product Work Admission, W2, W4, W5 and isolated preview on PR #234.
-- id: NH01_STATIC_AND_VISUAL
-  owner: Work
-  status: IN_PROGRESS
-  action: Preserve the five verified frozen M01-M05 source identities and original V1 image; keep standalone Hero/Peek source unresolved and visual acceptance pending.
-  dependency: Approved standalone Hero/Peek assets and product owner visual review.
-
+  - id: ADMISSION_STATE_REPAIR
+    owner: Work
+    status: IN_PROGRESS
+    action: Repair root YAML list indentation only and rerun PRODUCT_WORK Admission against the latest isolated state checkpoint.
+    dependency: Current source SHA 91418127df91b9854897f24eeb84c970cb2e6563.
+  - id: PR253_AUTHORITY_RESTORATION
+    owner: Work
+    status: READY_AFTER_ADMISSION
+    action: Integrate the exact four-file authority fix only after required checks remain green; then run formal Pages on the resulting Main SHA.
+    dependency: Corrected isolated state Admission.
+  - id: PR234_EXACT_SHA_REVALIDATION
+    owner: Work
+    status: BLOCKED_ON_MAIN_AUTHORITY_SYNC
+    action: Merge Main into PR #234 without force, update isolated state source_sha, and rerun PRODUCT_WORK Admission, W2, W4, W5, Pages and isolated preview.
+    dependency: PR #253 integration and exact Main Pages deployment.
+  - id: ANDROID_NATIVE_RUNTIME_EVIDENCE
+    owner: Work
+    status: NOT_VERIFIED
+    action: Inspect current Android artifacts and runtime results; use an actual Android device/runtime if attached, otherwise record BLOCKED_RUNTIME_ENV and prepare install steps.
+    dependency: Real device/runtime evidence for each independent gate.
+  - id: W6_LOGIN
+    owner: Work
+    status: BLOCKED
+    action: Keep PR #239 Draft; update its base and run current exact-HEAD W6 Chromium checks only after PR #234 technical gates pass.
+    dependency: PR #234 Product Work Admission, W2, W4, W5 and isolated preview.
+  - id: NH01_STATIC_AND_VISUAL
+    owner: Work
+    status: IN_PROGRESS
+    action: Preserve the verified frozen source images and keep Hero/Peek source and user visual acceptance unresolved until approved evidence is available.
+    dependency: Approved standalone Hero/Peek assets and product owner review.
 completion_rules:
 - Product-work Admission must pass against the current exact PR candidate source SHA.
 - W4 real Chromium workspace evidence, W5 formal+supplemental+negative matrix, W2 actual Pages artifact resource
@@ -400,11 +409,26 @@ live_recovery_checkpoint:
 current_execution_checkpoint:
   task_id: YUJIAN_W4_W5_MAIN_PAGES_W6_ANDROID_RUNTIME_CLOSURE_V1
   supplemental_task_id: YUJIAN_NH01_STRUCTURED_HIFI_MULTI_SCREEN_RESPONSIVE_CLOSURE_V1
-  updated_at: '2026-10-29T06:56:54Z'
-  checkpoint_parent_state_sha: e715613ce8629f53eddfca087671f50738291d15
+  updated_at: '2026-10-29T07:01:00Z'
+  checkpoint_parent_state_sha: 5ec1ebb76f8499edcb4fe3c3460a87d5000780c6
   main_sha: b080bb0ffb4ebced18593c08709657fabb53a19e
   state_branch: work-state/w5-empty-home-pilot-v1
   source_sha: 91418127df91b9854897f24eeb84c970cb2e6563
+  state_admission:
+    status: FAIL_STATE_YAML_REPAIR_REQUIRED
+    run_id: 40832489323
+    state_sha: 5ec1ebb76f8499edcb4fe3c3460a87d5000780c6
+    gates:
+      CONTROL_PLANE_SYNC: PASS
+      PROJECT_MASTER_STATE: FAIL_YAML_PARSE
+      WORK_EXECUTION_STATE: PASS
+    exact_error: line_284_unindented_root_list_item_expected_block_end
+  latest_product_work_admission:
+    prior_status: PASS
+    prior_run_id: 40831382946
+    source_sha: 91418127df91b9854897f24eeb84c970cb2e6563
+    state_branch_head: c9bd5e0c4b3eaea1e85d3f6f52a790ec3eb59615
+    note: Prior exact-source admission remains historical for earlier state commit; latest state commit must pass again.
   pr234:
     base_sha: b080bb0ffb4ebced18593c08709657fabb53a19e
     head_sha: 91418127df91b9854897f24eeb84c970cb2e6563
@@ -416,93 +440,76 @@ current_execution_checkpoint:
   pr253:
     base_sha: b080bb0ffb4ebced18593c08709657fabb53a19e
     head_sha: b3571b0a082156f91b77f150315c55c59d2ad5dc
-    status: OPEN_CHECKS_IN_PROGRESS
+    status: OPEN_CHECKS_GREEN
     url: https://github.com/pan277942135/Yujian_App/pull/253
-    changed_files:
-    - .github/workflows/design-manager-pages.yml
-    - design/pages/home/normal_home/Page_Resource_Binding_V1.json
-    - design/pages/home/empty_home/Page_Resource_Binding_V1.json
-    - design/pages/account_privacy/Login/Page_Resource_Binding_V1.json
-    exact_changed_files_verified: 4
-  gates:
-    PRODUCT_WORK_ADMISSION:
-      status: PASS
-      run_id: 40831382946
-      source_sha: 91418127df91b9854897f24eeb84c970cb2e6563
-      state_branch_head: c9bd5e0c4b3eaea1e85d3f6f52a790ec3eb59615
-      required: CONTROL_PLANE_SYNC_PASS_PROJECT_STATE_PASS_WORK_STATE_PASS
-    W1:
-      status: PASS
-      run_id: 40830549559
-      source_sha: 91418127df91b9854897f24eeb84c970cb2e6563
-    W2:
-      status: FAIL_SOURCE_AUTHORITY_SHA_MISMATCH
-      run_id: 40830549495
-      source_sha: 91418127df91b9854897f24eeb84c970cb2e6563
-      failure: Three workflow binding pins expected 51f8d59ab19dd2a974381991038a2f746a4b30ab73422b1894d2f01df16f7200; candidate workflow hash was e1d7c6555b83570e92769244b83c5024113c683cc1db5f51e99d0f7ac8e8871c.
-    W4:
-      status: FAIL_UPSTREAM_W2_NO_FINAL_PAGE_EVIDENCE
-      run_id: 40830549596
-      source_sha: 91418127df91b9854897f24eeb84c970cb2e6563
-      login: NOT_RUN_NOT_CONNECTED
-    W5:
-      status: FAIL_UPSTREAM_W2_MATRIX_NOT_REACHED
-      run_id: 40830549593
-      source_sha: 91418127df91b9854897f24eeb84c970cb2e6563
-      formal_cases: NOT_REACHED
-      supplemental_cases: NOT_REACHED
-      negative_cases: NOT_REACHED
-    NH01_BROWSER:
-      status: PASS_STRUCTURAL_MEASUREMENTS_VISUAL_ACCEPTANCE_PENDING
-      source_sha: 91418127df91b9854897f24eeb84c970cb2e6563
-      run_id: 40830549495
-      formal_cases: 24
-      continuity_probes: 5
-      threshold_probes: 10
-      note: Measurements and screenshots are evidence only; M01-M05 static-source integrity is verified separately; Hero/Peek originals remain ASSET_SOURCE_REQUIRED.
-    ISOLATED_PREVIEW:
-      status: BLOCKED_NOT_DEPLOYED_W2_FAILURE
-      source_sha: 91418127df91b9854897f24eeb84c970cb2e6563
-      run_id: 40830549495
-      url: https://pan277942135.github.io/Yujian_App/previews/pr-234/
-    PRODUCTION_PAGES:
-      status: PASS_LIVE_SHA_ROOT_MANIFEST_VERIFIED
-      source_sha: b080bb0ffb4ebced18593c08709657fabb53a19e
-      run_id: 40825171321
-      event: workflow_dispatch
-      build_json_sha: b080bb0ffb4ebced18593c08709657fabb53a19e
-      artifact_id: 12876236760
-      artifact_sha256: 8b33ae1a7046ad95c644bbd24cf87857778ea7152cecf3d5ebf758099f5812ef
-      expected_files: 1050
-      checked_files: 1050
-      root_manifest_sha256: 0f3cdbb7228a16d19eac5483873e0e67dce595376585494b400436cc5024d0be
-      endpoint: https://pan277942135.github.io/Yujian_App/
-      live_http_result: PASS
-    PR253:
-      status: CHECKS_IN_PROGRESS
-      source_sha: b3571b0a082156f91b77f150315c55c59d2ad5dc
-      runs:
-        w1: 40832153845
-        empty_home_assets: 40832153686
-        governance_normal_home: 40832153851
-        design_governance: 40832153797
-        w4: 40832154088
-        product_work_pr_event_admission: 40832153780
-        pages_w2: 40832153873
-    W6_TECHNICAL_DEPENDENCY:
-      status: BLOCKED_W2_W4_W5_PREVIEW_NOT_VERIFIED
-      pr239_head: 6d2b5dc69cf9a744514a0986a249cba0d6d7ea63
-    NH01_NATIVE_RUNTIME:
-      status: NOT_VERIFIED_PRECHECK_FAILED
-      run_id: 40830549459
-    EFFECT01_NATIVE_RUNTIME:
-      status: NOT_VERIFIED
-    AISTUDIO_PERIMETER_NATIVE_RUNTIME:
-      status: NOT_VERIFIED
-    USER_VISUAL_ACCEPTANCE:
-      status: PENDING
-  production_root_manifest:
+    changed_files: 4
+    runs:
+      governance: 40832153797
+      normal_home_governance: 40832153851
+      empty_home_assets: 40832153686
+      w1: 40832153845
+      w2_pages: 40832153873
+      w4: 40832154088
+      pr_event_admission: 40832153780
+    artifacts:
+      w2_report_id: 12878948830
+      w2_report_zip_sha256: 5b4201947ab2ebf758d2bc7f38e993d8c9bdadb000f9550ae7ea482febe458dd
+      w4_bundle_scan_id: 12878634521
+      w4_bundle_scan_zip_sha256: 6063b5c9e78910ee5cafe4345610254d8ba5a0f94ba5847fa330a8d0bace170a
+      w4_evidence_id: 12878569703
+      w4_evidence_zip_sha256: bc78ffd53ecfb5d8d0e44cdca1971ef6e90380496bec57d19ff95f67d2d94415
+  w1:
     status: PASS
-    sha256: 0f3cdbb7228a16d19eac5483873e0e67dce595376585494b400436cc5024d0be
-    count: 1050
-  next_action: Wait for PR #253 exact-head gates; if green, integrate under the authorized Main merge rule, deploy that exact Main SHA, synchronize PR #234 non-destructively, then rerun exact-source gates. Keep PR #239 Draft/blocked and all three native Runtime states NOT_VERIFIED absent real device evidence.
+    source_sha: 91418127df91b9854897f24eeb84c970cb2e6563
+    run_id: 40830549559
+  w2:
+    status: FAIL_SOURCE_AUTHORITY_SHA_MISMATCH
+    source_sha: 91418127df91b9854897f24eeb84c970cb2e6563
+    run_id: 40830549495
+    next_run: Pending updated PR #234 exact source after Main authority sync
+  w4:
+    status: FAIL_UPSTREAM_W2_NO_FINAL_PAGE_EVIDENCE
+    source_sha: 91418127df91b9854897f24eeb84c970cb2e6563
+    run_id: 40830549596
+    login: NOT_RUN_NOT_CONNECTED
+  w5:
+    status: FAIL_UPSTREAM_W2_MATRIX_NOT_REACHED
+    source_sha: 91418127df91b9854897f24eeb84c970cb2e6563
+    run_id: 40830549593
+    formal_cases: NOT_REACHED
+    supplemental_cases: NOT_REACHED
+    negative_cases: NOT_REACHED
+  nh01_browser:
+    status: PASS_STRUCTURAL_MEASUREMENTS_VISUAL_ACCEPTANCE_PENDING
+    source_sha: 91418127df91b9854897f24eeb84c970cb2e6563
+    run_id: 40830549495
+    formal_cases: 24
+    continuity_probes: 5
+    threshold_probes: 10
+    note: Measurements do not imply visual acceptance; standalone Hero/Peek sources remain ASSET_SOURCE_REQUIRED.
+  isolated_preview:
+    status: BLOCKED_NOT_DEPLOYED_W2_FAILURE
+    source_sha: 91418127df91b9854897f24eeb84c970cb2e6563
+    url: https://pan277942135.github.io/Yujian_App/previews/pr-234/
+  production_pages:
+    status: PASS_LIVE_SHA_ROOT_MANIFEST_VERIFIED
+    source_sha: b080bb0ffb4ebced18593c08709657fabb53a19e
+    run_id: 40825171321
+    artifact_id: 12876236760
+    artifact_sha256: 8b33ae1a7046ad95c644bbd24cf87857778ea7152cecf3d5ebf758099f5812ef
+    expected_files: 1050
+    checked_files: 1050
+    root_manifest_sha256: 0f3cdbb7228a16d19eac5483873e0e67dce595376585494b400436cc5024d0be
+    live_http_result: PASS
+  w6_technical_dependency:
+    status: BLOCKED
+    pr239_head: 6d2b5dc69cf9a744514a0986a249cba0d6d7ea63
+  android_runtime:
+    nh01: NOT_VERIFIED
+    effect01: NOT_VERIFIED
+    aistudio_perimeter: NOT_VERIFIED
+  user_visual_acceptance: PENDING
+  next_action: >-
+    Repair state YAML, rerun Product Work Admission, then if PR #253 checks remain green integrate the authority fix,
+    deploy exact Main, synchronize PR #234, update state source_sha and rerun W2/W4/W5/Pages/preview. Keep #239 Draft
+    and Android Runtime/user visual acceptance unverified.
