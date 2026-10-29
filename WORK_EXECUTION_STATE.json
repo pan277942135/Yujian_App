@@ -275,6 +275,19 @@
         "gate_id": "G-PAGE-FREEZE-PIPELINE-W4-TEST-EVIDENCE",
         "symptom_key": "W4_STALE_WORKSPACE_FIXTURE_EXPECTED_RESULT_INVERTED",
         "task_id": "YUJIAN_PAGE_FREEZE_PIPELINE_W5_EMPTY_HOME_PILOT_V1"
+      },
+      "f1d4dc2e127c0feecd8e": {
+        "closed": false,
+        "failures": [
+          {
+            "evidence": "On isolated branch state commit 9a71b34, validate_project_master_state.py reported source_sha 27ab653 is not an ancestor and validate_work_execution_state.py listed six product-source files as changes after source_sha. The commit used the prior state-branch tree as its base while listing the product candidate as a second parent.",
+            "hypothesis": "Rebuild the next state checkpoint tree from the exact product candidate tree, overlay only the three isolated state files, keep current state head as first parent and exact product source as second parent, then fetch and validate the committed tree.",
+            "source_sha": "27ab653f1020b17e46292e5ff380ed781e0026af"
+          }
+        ],
+        "gate_id": "PROJECT_STATE",
+        "symptom_key": "STATE_CHECKPOINT_TREE_NOT_OVERLAID_ON_PRODUCT_SOURCE",
+        "task_id": "YUJIAN_PAGE_FREEZE_PIPELINE_W5_EMPTY_HOME_PILOT_V1"
       }
     },
     "schema_version": "1.0"

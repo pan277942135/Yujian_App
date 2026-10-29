@@ -313,7 +313,7 @@ jobs:
           live_build="$(curl -fsS "${LIVE_PAGES_URL}design/manager/build.json")"
           live_root_sha="$(jq -er '.sha | select(test("^[0-9a-f]{40}$"))' <<< "$live_build")"
           runs="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs?branch=main&head_sha=${live_root_sha}&per_page=100")"
-          run_info="$(jq -r --arg sha "$live_root_sha" '[.workflow_runs[] | select(.workflow_id == 369682887 and .head_sha == $sha and .event == "push" and .head_branch == "main" and .conclusion == "success")] | sort_by(.run_number) | last // {} | [.id // "", .head_sha // ""] | @tsv' <<< "$runs")"
+          run_info="$(jq -r --arg sha "$live_root_sha" '[.workflow_runs[] | select(.workflow_id == 369682887 and .head_sha == $sha and (.event == "push" or .event == "workflow_dispatch") and .head_branch == "main" and .conclusion == "success")] | sort_by(.run_number) | last // {} | [.id // "", .head_sha // ""] | @tsv' <<< "$runs")"
           production_run_id=""
           production_source_sha=""
           read -r production_run_id production_source_sha <<< "$run_info"

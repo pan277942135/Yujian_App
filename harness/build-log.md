@@ -102,3 +102,9 @@
 - Restored six complete files in commit `27ab653f1020b17e46292e5ff380ed781e0026af`: the Pages workflow, W4 verifier, W4 fixture, and the three canonical resource bindings with the exact SHA-256 of the restored workflow. Publication markers and existing asset lifecycles were left intact.
 - Current exact-SHA runs: W4 `40791350065`, W5 `40791349936`, Pages `40791350459`, W1 `40791350200`, Governance `40791350517`. All were still running at checkpoint time. PR-event Admission `40791349924` is static only; PRODUCT_WORK Admission remains NOT_RUN. Native NH01 runtime workflow `40791350265` was skipped.
 - Prior 33b89b3 W4/W5 failures remain recorded; no PASS or user acceptance is inferred.
+
+
+## State-tree validation correction — 2026-10-29T00:07:06+00:00
+
+- The first isolated checkpoint commit `9a71b34e1b85441f724b2b3d01adc5029caa049c` preserved state files but used the prior state tree as its content base; exact provenance validators correctly rejected it because product files disappeared relative to source `27ab653f1020b17e46292e5ff380ed781e0026af`.
+- Rebuild the next checkpoint from the product source tree and overlay only `PROJECT_MASTER_STATE.yaml`, `WORK_EXECUTION_STATE.json`, and this work log; preserve both parent commits. No product candidate file is being modified by this state correction.

@@ -14,7 +14,7 @@ state_control:
   current_head: "27ab653f1020b17e46292e5ff380ed781e0026af"
   current_main_head_sha: "2fab34d20ccd7f2d6f9a0d22dd65cac5d5bd5e98"
   state_status: "VALIDATING"
-  updated_at: "2026-10-29T00:03:26+00:00"
+  updated_at: "2026-10-29T00:07:06+00:00"
 source_of_truth:
   current_work_state: "WORK_EXECUTION_STATE.json"
   canonical_control_plane: "CONTROL_PLANE_REGISTRY.yaml"
@@ -104,7 +104,7 @@ runtime_gates:
   exact_head:
     sha: "27ab653f1020b17e46292e5ff380ed781e0026af"
     status: "NOT_VERIFIED"
-    note: "Candidate 27ab653f1020b17e46292e5ff380ed781e0026af has exact-SHA W4/W5/Pages/Governance runs in progress; only a separate PRODUCT_WORK dispatch from the updated isolated state branch can clear Admission."
+    note: "Exact candidate 27ab653f1020b17e46292e5ff380ed781e0026af has W1 and governance PASS, W2 PASS for 3 pages, and W5 12/12 PASS with visual review pending; W4 and Pages are running. Only separate PRODUCT_WORK Admission from the updated state branch can clear Admission."
   page_evidence:
     w4:
       status: "RUNNING"
@@ -253,4 +253,4 @@ current_candidate_runs:
   pull_request_admission_run_id: 40791349924
   product_work_admission: "NOT_RUN"
   native_runtime_run_id: 40791350265
-  checkpoint_updated_at: "2026-10-29T00:03:26+00:00"
+  checkpoint_updated_at: "2026-10-29T00:07:06+00:00"
