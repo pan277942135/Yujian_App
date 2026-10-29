@@ -30,6 +30,8 @@ Before Work executes:
 5. Synchronize control-plane-only changes from `main`; do not merge unrelated product code merely to satisfy control-plane synchronization.
 6. Re-run admission until PASS.
 
+An added non-frozen candidate file under a canonical design root may remain branch-local only when the Main asset-integrity register pins its exact path and Git blob SHA in `worktree_exceptions`. The sync validator verifies the actual blob; this does not authorize a frozen asset or a task, contract, gate, or recovery definition.
+
 ## What may remain branch-local
 - `PROJECT_MASTER_STATE.yaml`
 - `WORK_EXECUTION_STATE.json`
