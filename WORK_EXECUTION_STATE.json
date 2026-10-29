@@ -3,12 +3,12 @@
   "base_branch": "main",
   "base_sha": "34f21ad01e62ec7bf11be11fee8eb5a500894333",
   "blockers": [
-    "The isolated Pages replay run #1382 failed before the W5 matrix because three page resource bindings still pin the previous Main design-manager-pages.yml SHA; exact branch workflow hash reconciliation is pending.",
+    "The exact branch workflow SHA is now pinned in all three Page_Resource_Binding_V1.json files; W2 revalidation and exact W5/Pages replay remain pending.",
     "W5 4-viewport × 2-font-scale matrix and isolated Pages build/manifest verification are pending on the current candidate.",
     "Empty Home brand placement remains blocked: registered brand_title_primary is authorized only for normal_home_v1; no authorized Empty Home brand binding exists."
   ],
   "branch": "work/w5-empty-home-pilot-v1",
-  "checkpoint_updated_at": "2026-10-29T20:31:01.171Z",
+  "checkpoint_updated_at": "2026-10-29T20:33:29.026Z",
   "control_plane_revision": "0c245b86f8228107309d0135bdf819af255604be",
   "dependencies": [
     "YUJIAN_PAGE_FREEZE_PIPELINE_W3_DESIGN_MANAGER_ADAPTER_V1",
@@ -79,7 +79,7 @@
       "work_execution_state": "PASS"
     },
     "control_plane_sync_commit": "dad76a9ca737245d4076b75b86537412b0238765",
-    "current_candidate_sha": "0e4d70c4f544ed4b6efc0ab6aa3cf8bf9d41aafb",
+    "current_candidate_sha": "38024168c41cabab6ad08f6aa225224fd29818c3",
     "current_main_sha": "0c245b86f8228107309d0135bdf819af255604be",
     "empty_home_page_changes": {
       "brand_authority": "BLOCKED_AUTHORITY_GAP",
@@ -95,17 +95,16 @@
       "status": "IMPLEMENTED_PENDING_EXACT_HEAD_VALIDATION"
     },
     "exact_candidate_admission": {
-      "candidate_sha": "3679c20ca89ef16ffc6f25ee9bfbb1dfd243cf49",
-      "code_source_sha": "0e4d70c4f544ed4b6efc0ab6aa3cf8bf9d41aafb",
+      "candidate_sha": "38024168c41cabab6ad08f6aa225224fd29818c3",
+      "code_source_sha": "38024168c41cabab6ad08f6aa225224fd29818c3",
       "command": "python scripts/validate_control_plane_admission.py",
-      "result": "PASS",
+      "result": "PENDING",
       "control_plane_layers": 6,
       "control_plane_sync_paths": 735,
       "exact_login_mapping_exceptions": 1,
-      "project_master_state": "PASS",
-      "work_execution_state": "PASS",
-      "recorded_at": "2026-10-29T20:31:01.171Z",
-      "note": "Validator was rerun on exact current checkpoint 3679c20ca89ef16ffc6f25ee9bfbb1dfd243cf49 after the Project Master and Work state-only updates. W5 and preview remain pending."
+      "project_master_state": "PENDING",
+      "work_execution_state": "PENDING",
+      "note": "The previous code source 0e4d70c4 passed on checkpoint 3679c20c. Three page resource binding workflow SHA references changed after it, so admission is being re-entered on the new exact source."
     },
     "exception_pr": {
       "merge_sha": "bf4c5c5777bddd3c37c8b2850aaa5a5881f0d513",
@@ -137,7 +136,7 @@
     "typography_repair": {
       "candidate_matrix": "NOT_RUN",
       "candidate_preview": "NOT_RUN",
-      "code_source_sha": "0e4d70c4f544ed4b6efc0ab6aa3cf8bf9d41aafb",
+      "code_source_sha": "38024168c41cabab6ad08f6aa225224fd29818c3",
       "reference_review": "Historical 5de-exact unchanged-page W5 DOM/screenshot evidence compared against the frozen Empty Home raster before edits.",
       "visual_acceptance": "PENDING"
     },
@@ -150,11 +149,11 @@
       "observed_failure_source_sha": "8b9a65bfd7b1e75679bb8a46e6acb08669270fad",
       "current_candidate_source_sha": "0e4d70c4f544ed4b6efc0ab6aa3cf8bf9d41aafb",
       "failure_id": "c3dff4a0c9b987cbe7c7",
-      "status": "EXACT_ADMISSION_PASS",
+      "status": "PENDING_AFTER_PAGE_BINDING_SOURCE_UPDATE",
       "passed_checkpoint_sha": "6d607aa117b173c776ee607410fb66d1ec26cea7",
       "validated_code_source_sha": "0e4d70c4f544ed4b6efc0ab6aa3cf8bf9d41aafb"
     },
-    "current_state_checkpoint_sha": "3679c20ca89ef16ffc6f25ee9bfbb1dfd243cf49",
+    "current_state_checkpoint_sha": "38024168c41cabab6ad08f6aa225224fd29818c3",
     "pages_attempts": [
       {
         "run_id": 40949025336,
@@ -169,7 +168,7 @@
       }
     ],
     "workflow_authority_repair": {
-      "status": "PENDING",
+      "status": "REBOUND_PENDING_W2_AND_W5",
       "path": ".github/workflows/design-manager-pages.yml",
       "actual_sha256": "1b6cad18bdc8d3e542d716ec4e1e48b8b989d2e8b63a79dd41f92ed117a6236e",
       "page_binding_paths": [
@@ -177,7 +176,7 @@
         "design/pages/home/empty_home/Page_Resource_Binding_V1.json",
         "design/pages/account_privacy/Login/Page_Resource_Binding_V1.json"
       ],
-      "reason": "W2 checks the pinned publishing workflow bytes for every page; update only the exact source SHA references, retaining all validation."
+      "reason": "All three bindings now reference the exact branch workflow bytes; W2 must validate the integrity bindings before the preview/W5 run is accepted."
     }
   },
   "execution_v2": {
@@ -232,11 +231,11 @@
     },
     "schema_version": "1.0"
   },
-  "next_action": "Reconcile the branch-specific Pages workflow source SHA in all three Page_Resource_Binding_V1.json files without weakening W2; then rerun exact-source admission and the isolated Pages/W5 workflow.",
+  "next_action": "Run exact-source Control Plane Admission on the resulting state-only checkpoint, then dispatch Design Manager Pages from that branch head; verify W2, all four formal viewports at 1×/1.3×, Inspector/DOM parity, and live preview SHA.",
   "phase": "P3",
   "repository": "pan277942135/Yujian_App",
   "schema_version": "1.0",
-  "source_sha": "0e4d70c4f544ed4b6efc0ab6aa3cf8bf9d41aafb",
+  "source_sha": "38024168c41cabab6ad08f6aa225224fd29818c3",
   "stage": "EXACT_HEAD_W5_AND_PREVIEW",
   "status": "VALIDATING",
   "task_id": "YUJIAN_PAGE_FREEZE_PIPELINE_W5_EMPTY_HOME_PILOT_V1",
