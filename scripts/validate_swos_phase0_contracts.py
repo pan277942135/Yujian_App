@@ -135,8 +135,16 @@ def consistency_errors(contracts: dict) -> list[str]:
         errors.append("Mode B R0.5 reference geometry must remain the exact 360x640 midpoint sample")
     if android_transition.get("result_entry", {}).get("english_scientific_name_visible") is not False or android_transition.get("result_entry", {}).get("empty_english_title_row_reserved") is not False:
         errors.append("Android RR09 title must remain Chinese-only with no English row")
+    if android_transition.get("result_entry", {}).get("non_title_content_entry") != "EXISTING_STATIC_RESULT_LAYOUT_AT_FINAL_BOUNDS_NO_ADDITIONAL_ALPHA_POSITION_OR_SCALE_ANIMATION":
+        errors.append("Android RR09 must preserve the existing static Result content layout without extra entry motion")
     if android_transition.get("result_entry", {}).get("controls_enabled_from_t0") is not True or android_transition.get("invariants", {}).get("additional_pre_navigation_wait_ms") != 0:
         errors.append("Android transition must keep Result actions active and add no pre-navigation wait")
+    eligibility = android_transition.get("reveal_eligibility", {})
+    if photo.get("eligible_result_states") != ["RESULT_HIGH"] or android_transition.get("invariants", {}).get("rr09_animation_high_only") is not True:
+        errors.append("RR09 animation including photo continuity must be eligible only for new HIGH results with valid identity")
+    for state_key in ("result_medium_or_low", "no_fish_or_image_quality"):
+        if eligibility.get(state_key, {}).get("photo_transition") != "NONE_STATIC_RESULT":
+            errors.append(f"RR09 {state_key} must use static Result presentation without a photo transition")
     gap_ids = [item.get("id") for item in android_transition.get("implementation_gap_register", [])]
     if gap_ids != [f"G{i:02d}" for i in range(1, 11)]:
         errors.append("Android transition implementation gap register must contain G01–G10 in order")
