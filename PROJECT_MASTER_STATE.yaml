@@ -12,9 +12,9 @@ state_control:
   base_sha: 34f21ad01e62ec7bf11be11fee8eb5a500894333
   execution_baseline_sha: dad76a9ca737245d4076b75b86537412b0238765
   current_head: dad76a9ca737245d4076b75b86537412b0238765
-  current_main_head_sha: a14d03fa78db0a1cb9b007f8e3d983b8a3b85754
+  current_main_head_sha: 0c245b86f8228107309d0135bdf819af255604be
   state_status: READY_FOR_EXACT_ADMISSION
-  updated_at: '2026-10-29T17:07:55Z'
+  updated_at: '2026-10-29T17:10:25Z'
 source_of_truth:
   current_work_state: WORK_EXECUTION_STATE.json
   canonical_control_plane: CONTROL_PLANE_REGISTRY.yaml
@@ -26,13 +26,13 @@ repositories:
   Yujian_App:
     branch: work/w5-empty-home-pilot-v1
     execution_baseline_sha: dad76a9ca737245d4076b75b86537412b0238765
-    current_main_head_sha: a14d03fa78db0a1cb9b007f8e3d983b8a3b85754
+    current_main_head_sha: 0c245b86f8228107309d0135bdf819af255604be
     control_plane_sync:
       status: SYNCED_PENDING_EXACT_ADMISSION
       main_sync_commit: dad76a9ca737245d4076b75b86537412b0238765
-      synced_main_sha: a14d03fa78db0a1cb9b007f8e3d983b8a3b85754
-      note: Canonical controls are synced to Main a14d03fa; the exact registered Login
-        mapping is preserved. Admission is pending on the final state checkpoint.
+      synced_main_sha: 0c245b86f8228107309d0135bdf819af255604be
+      note: 'Canonical controls remain exact against Main 0c245b86 after PR #258;
+        the exact registered Login mapping is preserved. Final Admission is pending.'
 pull_requests:
   PR234:
     number: 234
