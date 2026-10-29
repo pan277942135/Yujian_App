@@ -3,22 +3,21 @@
   "base_branch": "main",
   "base_sha": "b080bb0ffb4ebced18593c08709657fabb53a19e",
   "blockers": [
-    "Exact SHA 6933f459d2223823a25edcd1d4598ffde3061267: Pages run 40828169492 and W5 run 40828169461 fail because the three page resource bindings still pin the former Pages workflow SHA 51f8d59ab19dd2a974381991038a2f746a4b30ab73422b1894d2f01df16f7200 while candidate workflow SHA is e1d7c6555b83570e92769244b83c5024113c683cc1db5f51e99d0f7ac8e8871c; W2 scan reports SOURCE_AUTHORITY_SHA_MISMATCH.",
-    "W4 run 40828169489 failed before producing Login exact-SHA evidence; Login matrix status and structural evidence are NOT_RUN for this SHA.",
-    "NH01 Android workflow 40828169459 failed its source/resource preflight; it did not establish native runtime acceptance. NH01, Effect 01, and AI Studio perimeter remain NOT_VERIFIED.",
-    "Approved standalone NH01 Hero/Peek source images remain ASSET_SOURCE_REQUIRED; user visual acceptance remains pending.",
-    "Main Pages run 40825171321 deployed exact Main SHA b080bb0ffb4ebced18593c08709657fabb53a19e; production root-manifest hash extraction remains pending.",
-    "Exact source 91418127df91b9854897f24eeb84c970cb2e6563: W2 run 40830549495, W4 run 40830549596 and W5 run 40830549593 fail/stop at the workflow source authority mismatch; three canonical bindings still pin 51f8d59... while candidate workflow SHA-256 is e1d7c655..."
+    "Exact PR #234 source 91418127df91b9854897f24eeb84c970cb2e6563 W2 run 40830549495 FAILs the three workflow source-authority hashes; PR253 exact-head checks are in progress.",
+    "Exact PR #234 W4 run 40830549596 and W5 run 40830549593 stopped at upstream W2; final matrices/evidence were not reached.",
+    "PR #234 isolated preview is not deployed. PR #239 W6 technical dependency remains blocked; Login visual acceptance is not implied.",
+    "NH01, Effect 01 and AI Studio perimeter native runtime remain NOT_VERIFIED absent real Android device/runtime evidence.",
+    "Standalone approved NH01 Hero/Peek source assets remain ASSET_SOURCE_REQUIRED; user visual acceptance remains pending."
   ],
   "branch": "work-state/w5-empty-home-pilot-v1",
-  "checkpoint_updated_at": "2026-10-29T06:51:00Z",
+  "checkpoint_updated_at": "2026-10-29T06:56:54Z",
   "control_plane_revision": "b080bb0ffb4ebced18593c08709657fabb53a19e",
   "dependencies": [
     "YUJIAN_PAGE_FREEZE_PIPELINE_W3_DESIGN_MANAGER_ADAPTER_V1",
     "YUJIAN_PAGE_FREEZE_PIPELINE_W4_TEST_EVIDENCE_V1"
   ],
   "evidence": {
-    "active_candidate": "{\"base_sha\":\"b080bb0ffb4ebced18593c08709657fabb53a19e\",\"branch\":\"work/w5-empty-home-pilot-v1\",\"head_sha\":\"91418127df91b9854897f24eeb84c970cb2e6563\",\"main_sha\":\"b080bb0ffb4ebced18593c08709657fabb53a19e\",\"pr\":234,\"status\":\"SCOPE_REPAIRED_ADMISSION_PENDING\",\"updated_at\":\"2026-10-29T06:41:37Z\"}",
+    "active_candidate": "{\"base_sha\":\"b080bb0ffb4ebced18593c08709657fabb53a19e\",\"branch\":\"work/w5-empty-home-pilot-v1\",\"head_sha\":\"91418127df91b9854897f24eeb84c970cb2e6563\",\"main_sha\":\"b080bb0ffb4ebced18593c08709657fabb53a19e\",\"pr\":234,\"status\":\"PRODUCT_WORK_ADMISSION_PASS_W2_W4_W5_PREVIEW_BLOCKED\",\"updated_at\":\"2026-10-29T06:56:54Z\"}",
     "admission_failure_6933": {
       "exact_error": "extra/divergent canonical file on Work branch: design/pages/account_privacy/Login/structured_candidate/component_mapping_v1.json",
       "gates": {
@@ -60,7 +59,8 @@
         "build_status": "PASS",
         "head_sha": "8001e577fcdfae59f1071bbcaff1647c841ed753",
         "runtime_status": "IN_PROGRESS"
-      }
+      },
+      "nh01": "NOT_VERIFIED"
     },
     "base_main_sha": "0c7f06ef672ce89285d8b7d9b3646a33439e8712",
     "candidate_6933_exact_evidence": {
@@ -156,15 +156,17 @@
     "current_candidate": "{\"base_sha\":\"b080bb0ffb4ebced18593c08709657fabb53a19e\",\"branch\":\"work/w5-empty-home-pilot-v1\",\"head_sha\":\"91418127df91b9854897f24eeb84c970cb2e6563\",\"main_sha\":\"b080bb0ffb4ebced18593c08709657fabb53a19e\",\"pr\":234,\"status\":\"PRODUCT_WORK_ADMISSION_PASS_W2_W4_W5_BLOCKED\",\"updated_at\":\"2026-10-29T06:51:00Z\"}",
     "current_exact_recovery_checkpoint": {
       "gates": {
-        "W1": "PASS_RUN_40830549559",
-        "W2": "FAIL_RUN_40830549495_WORKFLOW_SHA_MISMATCH",
-        "W4": "FAIL_RUN_40830549596_W2_UPSTREAM",
-        "W5": "FAIL_RUN_40830549593_W2_UPSTREAM",
         "PRODUCT_WORK_ADMISSION": "PASS_RUN_40831382946",
-        "ISOLATED_PREVIEW": "BLOCKED_NOT_DEPLOYED"
+        "W1": "PASS_RUN_40830549559",
+        "W2": "FAIL_RUN_40830549495_SOURCE_AUTHORITY_SHA_MISMATCH",
+        "W4": "FAIL_RUN_40830549596_UPSTREAM_W2",
+        "W5": "FAIL_RUN_40830549593_UPSTREAM_W2",
+        "ISOLATED_PREVIEW": "BLOCKED_NOT_DEPLOYED",
+        "PRODUCTION_PAGES": "PASS_RUN_40825171321_LIVE_ROOT_MANIFEST_PASS",
+        "PR253": "CHECKS_IN_PROGRESS"
       },
       "main_sha": "b080bb0ffb4ebced18593c08709657fabb53a19e",
-      "next_action": "PRODUCT_WORK Admission PASS on 91418127df91b9854897f24eeb84c970cb2e6563. Create the minimal Main-first support PR that updates .github/workflows/design-manager-pages.yml and exactly three Page_Resource_Binding workflow SHA pins; verify its exact-head gates, merge under green-check policy, run official Main Pages deploy, then sync PR234 and rerun W2/W4/W5/Pages.",
+      "next_action": "Wait for PR253 exact-head governance/W1/W2/Pages checks. If green, integrate authority fix, redeploy exact Main, non-destructively sync PR234, update isolated state source_sha, rerun PRODUCT_WORK Admission and exact-source W2/W4/W5/Pages/preview.",
       "pr234": {
         "base_sha": "b080bb0ffb4ebced18593c08709657fabb53a19e",
         "head_sha": "91418127df91b9854897f24eeb84c970cb2e6563",
@@ -173,30 +175,15 @@
       "pr239": {
         "base_sha": "b080bb0ffb4ebced18593c08709657fabb53a19e",
         "head_sha": "6d2b5dc69cf9a744514a0986a249cba0d6d7ea63",
-        "status": "OPEN_DRAFT_UNMERGED; BASE CURRENT MAIN; W6 TECHNICAL DEPENDENCY BLOCKED"
+        "status": "OPEN_DRAFT_UNMERGED_W6_BLOCKED"
       },
-      "pr252": {
+      "pr253": {
         "base_sha": "b080bb0ffb4ebced18593c08709657fabb53a19e",
-        "head_sha": "8001e577fcdfae59f1071bbcaff1647c841ed753",
-        "status": "OPEN_DRAFT_UNMERGED; ANDROID RUNTIME IN PROGRESS"
-      },
-      "runs": {
-        "governance": 40828169495,
-        "main_pages": 40825171321,
-        "nh01_api28": 40828169459,
-        "pages_w2": 40828169492,
-        "pr239_w6_historical": 40822276633,
-        "pr_event_admission": 40828169471,
-        "product_work_admission_prior": 40827766107,
-        "w1": 40828169507,
-        "w4": 40828169489,
-        "w5": 40828169461
+        "head_sha": "b3571b0a082156f91b77f150315c55c59d2ad5dc",
+        "status": "OPEN_CHECKS_IN_PROGRESS"
       },
       "source_sha": "91418127df91b9854897f24eeb84c970cb2e6563",
-      "state_branch_head_before_checkpoint": "c9bd5e0c4b3eaea1e85d3f6f52a790ec3eb59615",
-      "supplemental_task_id": "YUJIAN_NH01_STRUCTURED_HIFI_MULTI_SCREEN_RESPONSIVE_CLOSURE_V1",
-      "task_id": "YUJIAN_W4_W5_MAIN_PAGES_W6_ANDROID_RUNTIME_CLOSURE_V1",
-      "updated_at": "2026-10-29T06:51:00Z"
+      "updated_at": "2026-10-29T06:56:54Z"
     },
     "current_isolated_preview": "{\"source_sha\":\"91418127df91b9854897f24eeb84c970cb2e6563\",\"run_id\":40830549495,\"status\":\"BLOCKED_NOT_DEPLOYED\",\"url\":\"https://pan277942135.github.io/Yujian_App/previews/pr-234/\",\"reason\":\"W2 Page Resource Binding workflow SHA mismatch\"}",
     "current_main_pages": "{\"source_sha\":\"b080bb0ffb4ebced18593c08709657fabb53a19e\",\"status\":\"PASS_BUILD_DEPLOY_LIVE_SHA_ROOT_REPORT_PENDING\",\"run_id\":40825171321,\"build\":\"PASS\",\"deploy\":\"PASS\",\"live_build_json_sha\":\"b080bb0ffb4ebced18593c08709657fabb53a19e\",\"root_manifest_sha256\":\"PENDING_EXACT_LOG_EXTRACTION\"}",
@@ -994,6 +981,36 @@
         "status": "PASS",
         "mode": "PRODUCT_WORK"
       }
+    },
+    "latest_production_root_integrity": {
+      "status": "PASS",
+      "run_id": 40825171321,
+      "source_sha": "b080bb0ffb4ebced18593c08709657fabb53a19e",
+      "artifact_id": 12876236760,
+      "artifact_sha256": "8b33ae1a7046ad95c644bbd24cf87857778ea7152cecf3d5ebf758099f5812ef",
+      "expected_file_count": 1050,
+      "checked_file_count": 1050,
+      "manifest_sha256": "0f3cdbb7228a16d19eac5483873e0e67dce595376585494b400436cc5024d0be",
+      "live_http": "PASS"
+    },
+    "support_pr253": {
+      "status": "CHECKS_IN_PROGRESS",
+      "base_sha": "b080bb0ffb4ebced18593c08709657fabb53a19e",
+      "head_sha": "b3571b0a082156f91b77f150315c55c59d2ad5dc",
+      "url": "https://github.com/pan277942135/Yujian_App/pull/253",
+      "run_ids": {
+        "w1": 40832153845,
+        "empty_home_assets": 40832153686,
+        "governance_normal_home": 40832153851,
+        "design_governance": 40832153797,
+        "w4": 40832154088,
+        "product_work_pr_event_admission": 40832153780,
+        "pages_w2": 40832153873
+      }
+    },
+    "user_visual_acceptance": {
+      "status": "PENDING",
+      "note": "No product owner visual acceptance is claimed."
     }
   },
   "execution_v2": {
