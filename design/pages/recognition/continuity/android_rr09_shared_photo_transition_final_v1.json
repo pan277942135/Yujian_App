@@ -280,15 +280,15 @@
       "spatial_transfer": "ONLY_IF_EXPLICIT_VALIDATED_SOURCE_ANCHOR_AND_TRANSFORM_PASS",
       "missing_anchor_fallback": "NON_SPATIAL_CHINESE_TITLE_RESOLUTION"
     },
-    "UNTRUSTED_MISSING_STALE_OR_TRANSFORM_MISMATCH": {
+    "manual_reference_contour_can_qualify_production_mask": false,
+    "UNTRUSTED_MISSING_STALE_FISH_GEOMETRY_WITH_VALID_PHOTO_TRANSFORM": {
       "photo_transform_requirement": "PHOTO_IDENTITY_AND_SOURCE_TO_WINDOW_TRANSFORM_MUST_REMAIN_VALID",
       "fish_specific_optics": false,
       "contour_trace": false,
       "spatial_transfer": false,
       "eligible_high_with_valid_photo_transform": "KEEP_RR09_TIMING_WITH_RESTRAINED_NON_SPATIAL_CHINESE_TITLE_RESOLUTION",
       "invalid_photo_identity_or_transform": "STATIC_RESULT_NO_RR09_TRANSITION"
-    },
-    "manual_reference_contour_can_qualify_production_mask": false
+    }
   },
   "reveal_eligibility": {
     "new_result_high_with_valid_identity": {
