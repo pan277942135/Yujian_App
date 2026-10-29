@@ -111,3 +111,10 @@ Next action: restore Login inside the existing shared Design Manager, retain all
 - The single recorded state-source drift failure is closed with this exact Admission evidence; no page source changed in the recovery.
 - Next: execute the W5 Chromium matrix for 320×640, 360×780, 393×852, and 411×891 at font scales 1×/1.3×, including DOM/Inspector parity; then verify the isolated Pages source manifest and live route.
 - The Empty Home brand authority gap remains blocked. Visual acceptance, freeze, merge, and Android work are not claimed.
+
+
+## 2026-10-29 — PR #234 exact current-head Admission PASS
+
+- Live candidate head `aeef79ed2738575fc06cf1daf5a5271bd05777c8` passed `python scripts/validate_control_plane_admission.py` after the state-only checkpoint refresh. Six Control Plane layers passed; 735 paths synchronized with one exact Login mapping exception; Project Master State and Work Execution State passed.
+- The Login mapping remains preserved for registered W6-A. The Empty Home brand asset authority remains blocked.
+- W5 4-viewport × 2-font-scale DOM/screenshot matrix and live isolated Pages preview remain pending; no visual acceptance is claimed.
