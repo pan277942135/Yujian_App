@@ -634,6 +634,7 @@ async function main() {
       assert(caseEvidence.inspector.rendered_bounds===inspectorBoundsLabel&&
         caseEvidence.inspector.rendered_typography===`${caseEvidence.inspector.typography.font_size} / ${caseEvidence.inspector.typography.line_height}`,
         `Rendered Inspector values must match its API and actual DOM measurement at ${width}x${height} @${fontScale}`);
+      // Read actual text ranges and select every mapped text node so Inspector bounds/styles are checked against this render.
       const typographyExpectations={subtitle:{font_size:9,line_height:12,weight:400,node:"Subtitle"},account_entry:{font_size:14,line_height:20,weight:500,node:"AccountEntry"},
         capture_prompt:{font_size:14,line_height:CANDIDATE_PROMPT_LINE_HEIGHT_SP,weight:400,node:"CapturePrompt"},album_action:{font_size:12,line_height:18,weight:400,node:"AlbumAction"}};
       for(const [key,expected] of Object.entries(typographyExpectations)){
