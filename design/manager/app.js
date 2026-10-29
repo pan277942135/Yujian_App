@@ -53,8 +53,17 @@ function statusBadge(status) {
 
 function repoHref(path) {
   if (!path) return "#";
-  const sep = path.includes("?") ? "&" : "?";
-  return "../../" + path + sep + "v=" + encodeURIComponent(DESIGN_MANAGER_BUILD);
+  const value = String(path);
+  const sep = value.includes("?") ? "&" : "?";
+  if (location.pathname.includes("/previews/pr-") && /^[0-9a-f]{40}$/.test(DESIGN_MANAGER_BUILD) &&
+      /^(design|app)\//.test(value)) {
+    const [resourcePath, query = ""] = value.replace(/^\/+/, "").split("?", 2);
+    const pinnedPath = resourcePath.split("/").map(encodeURIComponent).join("/");
+    return "https://raw.githubusercontent.com/pan277942135/Yujian_App/" +
+      encodeURIComponent(DESIGN_MANAGER_BUILD) + "/" + pinnedPath + "?" +
+      (query ? query + "&" : "") + "v=" + encodeURIComponent(DESIGN_MANAGER_BUILD);
+  }
+  return "../../" + value + sep + "v=" + encodeURIComponent(DESIGN_MANAGER_BUILD);
 }
 function isImage(path) { return !!path && /\.(png|jpe?g|webp|gif|svg)$/i.test(path); }
 
