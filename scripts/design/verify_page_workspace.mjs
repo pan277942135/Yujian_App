@@ -55,6 +55,8 @@ async function main() {
   const badResponses = [];
   let browser;
   let report;
+  let workspaceSelector = null;
+  let workspaceCandidates = [];
   try {
     const { chromium } = require(playwrightPath);
     browser = await chromium.launch({ headless: true });
@@ -66,14 +68,42 @@ async function main() {
 
     const route = managerRoute(args.candidateUrl, args.pageId);
     await page.goto(route, { waitUntil: "domcontentloaded", timeout: 45000 });
-    await page.locator("[data-page-workspace-root]").waitFor({ state: "visible", timeout: args.readinessTimeoutMs });
-    await page.waitForFunction(() => {
-      const node = document.querySelector("[data-page-workspace-root]");
-      if (!node) return false;
-      if (node.dataset.workspaceKind !== "reference-image-only") return Boolean(node.dataset.workspaceKind);
-      return ["REFERENCE_IMAGE_ONLY", "ERROR"].includes(node.dataset.viewState);
-    }, null, { timeout: args.readinessTimeoutMs });
-    const rootInfo = await page.locator("[data-page-workspace-root]").evaluate(node => ({
+    workspaceSelector = `[data-page-workspace-root][data-page-id="${args.pageId}"][data-source-sha="${args.sourceSha}"], [data-page-workspace-root][data-page-id="${args.pageId}"][data-build-sha="${args.sourceSha}"]`;
+    await page.waitForFunction(({ selector }) => [...document.querySelectorAll(selector)].some(node => {
+      const style = getComputedStyle(node);
+      const rect = node.getBoundingClientRect();
+      return style.display !== "none" && style.visibility !== "hidden" && Number(style.opacity) !== 0 && rect.width > 0 && rect.height > 0;
+    }), { selector: workspaceSelector }, { timeout: args.readinessTimeoutMs });
+    const matchingWorkspaces = page.locator(workspaceSelector);
+    const matchingWorkspaceInfo = await matchingWorkspaces.evaluateAll(nodes => nodes.map(node => {
+      const style = getComputedStyle(node);
+      const rect = node.getBoundingClientRect();
+      return {
+        pageId: node.dataset.pageId || null,
+        sourceSha: node.dataset.sourceSha || node.dataset.buildSha || null,
+        workspaceKind: node.dataset.workspaceKind || null,
+        viewState: node.dataset.viewState || null,
+        visible: style.display !== "none" && style.visibility !== "hidden" && Number(style.opacity) !== 0 && rect.width > 0 && rect.height > 0,
+        rect: { x: rect.x, y: rect.y, width: rect.width, height: rect.height }
+      };
+    }));
+    workspaceCandidates = await page.locator("[data-page-workspace-root]").evaluateAll(nodes => nodes.map(node => {
+      const style = getComputedStyle(node);
+      const rect = node.getBoundingClientRect();
+      return {
+        pageId: node.dataset.pageId || null,
+        sourceSha: node.dataset.sourceSha || node.dataset.buildSha || null,
+        workspaceKind: node.dataset.workspaceKind || null,
+        viewState: node.dataset.viewState || null,
+        visible: style.display !== "none" && style.visibility !== "hidden" && Number(style.opacity) !== 0 && rect.width > 0 && rect.height > 0,
+        rect: { x: rect.x, y: rect.y, width: rect.width, height: rect.height }
+      };
+    }));
+    const visibleWorkspaceIndexes = matchingWorkspaceInfo.map((node, index) => node.visible ? index : -1).filter(index => index >= 0);
+    assert(visibleWorkspaceIndexes.length === 1,
+      `expected exactly one visible workspace for page_id=${args.pageId} source_sha=${args.sourceSha}; found ${visibleWorkspaceIndexes.length}; candidates=${JSON.stringify(workspaceCandidates)}`);
+    const workspace = matchingWorkspaces.nth(visibleWorkspaceIndexes[0]);
+    const rootInfo = await workspace.evaluate(node => ({
       pageId: node.dataset.pageId || null,
       sourceSha: node.dataset.sourceSha || node.dataset.buildSha || null,
       workspaceKind: node.dataset.workspaceKind || null,
@@ -106,7 +136,7 @@ async function main() {
     assert(rootInfo.viewState !== "ERROR", "structured workspace reports an ERROR state");
     assert(!rootInfo.errorText, `structured workspace reports a visible error: ${rootInfo.errorText}`);
 
-    const nodes = await page.locator("[data-workspace-tree-node]").evaluateAll(elements => elements.map(node => ({
+    const nodes = await workspace.locator("[data-workspace-tree-node]").evaluateAll(elements => elements.map(node => ({
       nodeId: node.dataset.nodeId || node.dataset.workspaceNodeId || null,
       label: node.textContent?.trim() || null,
       disabled: Boolean(node.disabled)
@@ -116,10 +146,10 @@ async function main() {
     for (const row of nodes) {
       assert(row.nodeId, "component tree contains a node without a stable node ID");
       assert(!row.disabled, `component tree node ${row.nodeId} is disabled and cannot be selected in the actual workspace`);
-      const target = page.locator(`[data-workspace-rendered-node="${row.nodeId.replaceAll('"', '\\"')}"]`);
-      assert(await target.count() === 1, `tree node ${row.nodeId} does not map to exactly one rendered DOM node`);
-      await page.locator(`[data-workspace-tree-node][data-node-id="${row.nodeId.replaceAll('"', '\\"')}"]`).first().click();
-      const inspector = page.locator("[data-workspace-inspector]");
+      const target = workspace.locator(`[data-workspace-rendered-node="${row.nodeId.replaceAll('"', '\\"')}"]`);
+      assert(await target.count() === 1, `tree node ${row.nodeId} does not map to exactly one rendered DOM node inside the selected workspace`);
+      await workspace.locator(`[data-workspace-tree-node][data-node-id="${row.nodeId.replaceAll('"', '\\"')}"]`).first().click();
+      const inspector = workspace.locator("[data-workspace-inspector]");
       await inspector.waitFor({ state: "visible", timeout: 10000 });
       const selectedId = await inspector.getAttribute("data-selected-node-id");
       assert(selectedId === row.nodeId, `Inspector selected ${selectedId} for tree node ${row.nodeId}`);
@@ -144,7 +174,9 @@ async function main() {
     report = {
       schema_version: "1.0", page_id: args.pageId, source_sha: args.sourceSha, candidate_url: route,
       result: errors.length ? "FAIL" : "PASS", visual_result: "MEASUREMENT_ONLY_NOT_VISUAL_PASS",
-      page_acceptance: "NOT_VERIFIED", workspace: rootInfo, tree_node_count: nodes.length,
+      page_acceptance: "NOT_VERIFIED", workspace: rootInfo,
+        workspace_selection: { selector: workspaceSelector, matching_visible_count: 1, all_workspace_candidates: workspaceCandidates },
+        tree_node_count: nodes.length,
       measured_node_count: measured.length, overflow, console_errors: errors,
       failed_requests: failedRequests, bad_responses: badResponses,
       screenshot_path: screenshotPath, screenshot_sha256: hash(await readFile(screenshotPath)),
@@ -154,13 +186,52 @@ async function main() {
     }
   } catch (error) {
     const status = browser ? "FAIL" : "BLOCKED";
+    const failureReason = `${status === "BLOCKED" ? "BLOCKED_INFRA" : "WORKSPACE_CHECK_FAILED"}: ${error instanceof Error ? error.message : String(error)}`;
+    let failureEvidence = { screenshot_path: null, screenshot_sha256: null, dom_path: null, dom_sha256: null };
+    if (browser && page && !page.isClosed()) {
+      try {
+        const snapshot = await page.evaluate(({ pageId, sourceSha }) => {
+          const roots = [...document.querySelectorAll("[data-page-workspace-root]")].map(node => {
+            const style = getComputedStyle(node);
+            const rect = node.getBoundingClientRect();
+            const visible = style.display !== "none" && style.visibility !== "hidden" && Number(style.opacity) !== 0 && rect.width > 0 && rect.height > 0;
+            return {
+              page_id: node.dataset.pageId || null,
+              source_sha: node.dataset.sourceSha || node.dataset.buildSha || null,
+              workspace_kind: node.dataset.workspaceKind || null,
+              view_state: node.dataset.viewState || null,
+              visible,
+              rect: { x: rect.x, y: rect.y, width: rect.width, height: rect.height },
+              tree_node_ids: [...node.querySelectorAll("[data-workspace-tree-node]")].map(item => item.dataset.nodeId || null),
+              rendered_node_ids: [...node.querySelectorAll("[data-workspace-rendered-node]")].map(item => item.dataset.workspaceRenderedNode || null),
+              error_text: node.querySelector("[data-workspace-error]")?.textContent?.trim() || null,
+              html_excerpt: node.outerHTML.slice(0, 30000)
+            };
+          });
+          return { page_id: pageId, source_sha: sourceSha, url: location.href, title: document.title, roots,
+            body_text_excerpt: document.body.innerText.slice(0, 5000) };
+        }, { pageId: args.pageId, sourceSha: args.sourceSha });
+        workspaceCandidates = snapshot.roots.map(({ page_id, source_sha, workspace_kind, view_state, visible, rect }) =>
+          ({ pageId: page_id, sourceSha: source_sha, workspaceKind: workspace_kind, viewState: view_state, visible, rect }));
+        const domPath = resolve(args.outputDir, "workspace-failure-dom.json");
+        await writeFile(domPath, `${JSON.stringify(snapshot, null, 2)}\n`, "utf8");
+        const screenshotPath = resolve(args.outputDir, "workspace-failure.png");
+        await page.screenshot({ path: screenshotPath, fullPage: true });
+        failureEvidence = {
+          screenshot_path: screenshotPath, screenshot_sha256: hash(await readFile(screenshotPath)),
+          dom_path: domPath, dom_sha256: hash(await readFile(domPath))
+        };
+      } catch (captureError) {
+        failureEvidence.capture_error = captureError instanceof Error ? captureError.message : String(captureError);
+      }
+    }
     report = {
       schema_version: "1.0", page_id: args.pageId, source_sha: args.sourceSha,
       candidate_url: args.candidateUrl, result: status,
       visual_result: "MEASUREMENT_ONLY_NOT_VISUAL_PASS", page_acceptance: "NOT_VERIFIED",
-      console_errors: [...errors, `${status === "BLOCKED" ? "BLOCKED_INFRA" : "WORKSPACE_CHECK_FAILED"}: ${error instanceof Error ? error.message : String(error)}`],
-      failed_requests: failedRequests, bad_responses: badResponses,
-      screenshot_path: null, screenshot_sha256: null, dom_path: null, dom_sha256: null,
+      console_errors: [...errors, failureReason], failure_reason: failureReason,
+      workspace_selection: { selector: workspaceSelector, candidates: workspaceCandidates },
+      failed_requests: failedRequests, bad_responses: badResponses, ...failureEvidence,
       run_id: process.env.GITHUB_RUN_ID || null
     };
   } finally {
