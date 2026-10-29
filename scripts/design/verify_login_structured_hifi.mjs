@@ -270,7 +270,15 @@ async function main() {
       }
       const name = item.case_id.replace(/[^A-Za-z0-9_-]/g, "_") + ".png";
       const screenshotPath = path.join(outputDir, "screenshots", name);
-      await page.locator("#login-LoginPageRoot").screenshot({ path: screenshotPath, scale: "css" });
+      const loginRoot = page.locator("#login-LoginPageRoot");
+      await loginRoot.scrollIntoViewIfNeeded();
+      const rootBox = await loginRoot.boundingBox();
+      if (!rootBox) throw new Error("LOGIN_MATRIX_SCREENSHOT_ROOT_NOT_VISIBLE " + item.case_id);
+      await page.screenshot({
+        path: screenshotPath,
+        scale: "css",
+        clip: { x: Math.round(rootBox.x), y: Math.round(rootBox.y), width: item.width, height: item.height }
+      });
       const bytes = await fs.readFile(screenshotPath);
       const width = bytes.readUInt32BE(16), height = bytes.readUInt32BE(20);
       if (bytes.subarray(0, 8).toString("hex") !== "89504e470d0a1a0a" || width !== item.width || height !== item.height) {
