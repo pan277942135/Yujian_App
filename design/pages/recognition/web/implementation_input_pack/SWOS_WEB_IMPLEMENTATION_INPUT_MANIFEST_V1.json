@@ -294,7 +294,7 @@
       },
       {
         "path": "scripts/validate_phase_task_state_machine.py",
-        "blob_sha": "ceaec9af791c5719375255df17c0868b79a8cb98",
+        "blob_sha": "7e60a79417f01c58731113b5f0f22f436018d2a4",
         "role": "phase_task_state_machine_validator"
       },
       {
