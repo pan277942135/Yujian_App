@@ -75,10 +75,11 @@ async function main() {
   const { chromium } = require(playwrightPath);
   const errors = { console: [], page: [], network: [], http: [] };
   let browser;
+  let page;
   try {
     browser = await chromium.launch({ headless: true });
     const context = await browser.newContext({ viewport: { width: 1440, height: 1000 }, deviceScaleFactor: 1 });
-    const page = await context.newPage();
+    page = await context.newPage();
     page.on("console", message => { if (message.type() === "error") errors.console.push(message.text()); });
     page.on("pageerror", error => errors.page.push(String(error?.stack || error)));
     page.on("requestfailed", request => errors.network.push({ url: request.url(), error: request.failure()?.errorText || "unknown" }));
@@ -191,6 +192,40 @@ async function main() {
     console.log(JSON.stringify({ gate_id: result.gate_id, status: result.status, source_sha: sourceSha, run_id: runId,
       tree_to_dom: result.tree_to_dom_and_inspector, controls: result.candidate_viewport_font_and_state_controls,
       direct_route_refresh: result.direct_route_refresh, screenshot: "login-shared-manager-route.png" }));
+  } catch (error) {
+    const failure = {
+      schema_version: "1.0",
+      gate_id: "W6_SHARED_DESIGN_MANAGER_LOGIN_ROUTE",
+      status: "FAIL",
+      page_id: "auth_login_v2",
+      source_sha: sourceSha,
+      run_id: runId,
+      route,
+      browser_engine: "Chromium",
+      failure_reason: error?.stack || String(error),
+      diagnostics: { console: errors.console, page: errors.page, network: errors.network, http: errors.http },
+      user_visual_acceptance: "PENDING",
+      native_runtime: "NOT_VERIFIED",
+      generated_at: now()
+    };
+    if (page && !page.isClosed()) {
+      try {
+        failure.current_url = page.url();
+        failure.dom_snapshot = await page.evaluate(() => ({
+          title: document.title,
+          body_text: document.body.innerText.slice(0, 4000),
+          login_root_count: document.querySelectorAll("#login-LoginPageRoot").length,
+          workspace_kind: document.querySelector("[data-page-workspace-root]")?.dataset.workspaceKind || null,
+          workspace_error: document.querySelector("[data-workspace-error]")?.innerText || null,
+          manager_errors: document.querySelector("#design-manager-bootstrap-error")?.innerText || null
+        }));
+        await page.screenshot({ path: path.join(outputDir, "login-shared-manager-route-failure.png"), fullPage: true });
+      } catch (diagnosticError) {
+        failure.diagnostic_capture_error = String(diagnosticError?.stack || diagnosticError);
+      }
+    }
+    await fs.writeFile(path.join(outputDir, "login-shared-manager-route-report.json"), `${JSON.stringify(failure, null, 2)}\n`);
+    throw error;
   } finally {
     await browser?.close();
     await new Promise(resolve => server.close(resolve));

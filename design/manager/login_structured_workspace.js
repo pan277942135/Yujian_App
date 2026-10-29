@@ -49,6 +49,7 @@
       label: `${row.state_id} · ${row.status}`
     }));
     const adapter = window.PageWorkspaceAdapters.createStructuredDomAdapter({
+      root,
       pageId,
       sourceSha,
       feature,
