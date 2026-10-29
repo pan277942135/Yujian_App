@@ -3,9 +3,9 @@ state_id: YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2
 project:
   name: YuJian
 state_control:
-  execution_baseline_sha: 5f374a24dc4d89cf645d387471de2507f561b3df
+  execution_baseline_sha: 0e1d65b78aed738be37f5fb0050ac38aaf56ea53
   current_branch: work/recognition-runtime-repair-v2
-  base_sha: 5f374a24dc4d89cf645d387471de2507f561b3df
+  base_sha: 0e1d65b78aed738be37f5fb0050ac38aaf56ea53
 source_of_truth:
   current_work_state: WORK_EXECUTION_STATE.json
 repositories: {}
@@ -56,7 +56,7 @@ recognition_main_journey:
   contract_status: FROZEN
 runtime_gates:
   exact_head:
-    sha: 5f374a24dc4d89cf645d387471de2507f561b3df
+    sha: 0e1d65b78aed738be37f5fb0050ac38aaf56ea53
     status: NOT_RUN
   historical_runtime_run:
     rule: Historical results cannot promote current exact HEAD to PASS.
@@ -65,7 +65,7 @@ current_work:
   id: YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2
   phase: P6
   task_id: YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2
-  exact_head: 5f374a24dc4d89cf645d387471de2507f561b3df
+  exact_head: 0e1d65b78aed738be37f5fb0050ac38aaf56ea53
 blockers: []
 protected_invariants:
   recognition:

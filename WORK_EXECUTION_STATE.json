@@ -11,7 +11,7 @@
   "task_id": "YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2",
   "stage": "E0",
   "status": "READY",
-  "source_sha": "5f374a24dc4d89cf645d387471de2507f561b3df",
+  "source_sha": "0e1d65b78aed738be37f5fb0050ac38aaf56ea53",
   "checkpoint_updated_at": "2026-10-29T16:39:56.742075+00:00",
   "next_action": "Repair photo compositor",
   "dependencies": [
