@@ -106,7 +106,7 @@ enum class RecognitionSubjectVisibilityPolicy {
 
 /**
  * Frozen Processing media geometry. The primary transform is the only geometry
- * authority for the photo, bbox, halo, and contour. The background is decorative.
+ * authority for the photo, bbox, halo, and contour. Processing has no backdrop fill.
  */
 data class RecognitionProcessingMediaPlan(
     val primarySourceRect: NormalizedSourceRect,
@@ -175,25 +175,13 @@ object RecognitionMediaPlanner {
             imageHeight = sourceHeight,
             contentScaleMode = RecognitionContentScaleMode.FIT,
         )
-        val needsDecorativeFill =
-            primary.drawnWidth < viewportWidthPx - 0.5f ||
-                primary.drawnHeight < viewportHeightPx - 0.5f
-        val decorative = if (needsDecorativeFill) {
-            calculateRecognitionImageTransform(
-                containerWidth = viewportWidthPx,
-                containerHeight = viewportHeightPx,
-                imageWidth = sourceWidth,
-                imageHeight = sourceHeight,
-                contentScaleMode = RecognitionContentScaleMode.CROP,
-            )
-        } else {
-            null
-        }
         return RecognitionProcessingMediaPlan(
             primarySourceRect = NormalizedSourceRect(0f, 0f, 1f, 1f),
             primaryContentScaleMode = RecognitionContentScaleMode.FIT,
             primaryTransform = primary,
-            decorativeBackgroundTransform = decorative,
+            // Processing is source-photo first; same-source blurred extension is
+            // reserved for the Result Hero fallback, not this surface.
+            decorativeBackgroundTransform = null,
             subjectVisibilityPolicy = if (bbox != null && bbox.width > 0.001f && bbox.height > 0.001f) {
                 RecognitionSubjectVisibilityPolicy.SUBJECT_SAFE_FIT
             } else {

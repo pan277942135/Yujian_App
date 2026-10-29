@@ -39,6 +39,7 @@ internal fun RecognitionPerimeterShaderOverlay(
     bitmap: Bitmap,
     photoTransform: RecognitionImageTransform,
     elapsedMs: Long,
+    opticalReferenceElapsedMs: Long = elapsedMs,
     processingClockStarted: Boolean,
     sessionKey: Any?,
     recognitionSessionId: String,
@@ -71,12 +72,12 @@ internal fun RecognitionPerimeterShaderOverlay(
     }
     val shaderElapsedMs = if (reduceMotion) 0L else elapsedMs
     val timeSec = RecognitionPerimeterShaderMath.sourceTimeSec(shaderElapsedMs, speed = SOURCE_SPEED)
-    val progress = if (reduceMotion) 1f else RecognitionPerimeterShaderMath.linearProgress(elapsedMs)
+    val progress = if (reduceMotion) 1f else RecognitionPerimeterShaderMath.linearProgress(opticalReferenceElapsedMs)
     val perimeterOpacity = when {
         !processingClockStarted -> 0f
-        elapsedMs >= 2_800L -> 0f
+        opticalReferenceElapsedMs >= 2_800L -> 0f
         reduceMotion -> .10f
-        else -> processingEnvironmentStrength(elapsedMs) / 100f
+        else -> processingEnvironmentStrength(opticalReferenceElapsedMs) / 100f
     }
     val nodes = RecognitionPerimeterShaderMath.sparkles(
         path = path,
@@ -93,7 +94,7 @@ internal fun RecognitionPerimeterShaderOverlay(
         }
     }
     val active = processingClockStarted && phase != RecognitionPhase.RESULT &&
-        phase != RecognitionPhase.FAILURE && elapsedMs < 2_800L
+        phase != RecognitionPhase.FAILURE && opticalReferenceElapsedMs < 2_800L
     val frame = PerimeterFrame(
         bitmap = bitmap,
         photoBounds = photoRect,
@@ -102,6 +103,7 @@ internal fun RecognitionPerimeterShaderOverlay(
         imageId = imageId,
         photoSha256 = photoSha256,
         elapsedMs = elapsedMs.coerceAtLeast(0L),
+        opticalReferenceElapsedMs = opticalReferenceElapsedMs.coerceAtLeast(0L),
         timeSec = timeSec,
         progress = progress,
         perimeterOpacity = perimeterOpacity,
@@ -145,6 +147,7 @@ private data class PerimeterFrame(
     val imageId: String,
     val photoSha256: String,
     val elapsedMs: Long,
+    val opticalReferenceElapsedMs: Long,
     val timeSec: Float,
     val progress: Float,
     val perimeterOpacity: Float,
@@ -167,7 +170,9 @@ private class RecognitionPerimeterGlSurfaceView(context: Context) : GLSurfaceVie
         setEGLContextClientVersion(2)
         setEGLConfigChooser(8, 8, 8, 8, 0, 0)
         holder.setFormat(PixelFormat.TRANSLUCENT)
-        setZOrderOnTop(true)
+        // Keep GLES below Compose content in the host window. The on-top surface
+        // ordering hid the later Compose fish-mask layer on supported devices.
+        setZOrderMediaOverlay(true)
         setPreserveEGLContextOnPause(false)
         setRenderer(perimeterRenderer)
         renderMode = RENDERMODE_WHEN_DIRTY
@@ -177,6 +182,7 @@ private class RecognitionPerimeterGlSurfaceView(context: Context) : GLSurfaceVie
         importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
         isFocusable = false
         isClickable = false
+        Log.i(TAG, "COMPOSITOR_ORDER=MEDIA_OVERLAY_BELOW_HOST_WINDOW")
     }
 
     fun submit(frame: PerimeterFrame) {
@@ -343,7 +349,7 @@ private class RecognitionPerimeterGlRenderer : GLSurfaceView.Renderer {
         if (frame.active && program != 0) {
             if (!firstOpticalFrameLogged) {
                 firstOpticalFrameLogged = true
-                Log.i(TAG, "PERIMETER_FIRST_OPTICAL_FRAME elapsed_ms=${frame.elapsedMs} uptime_ms=${android.os.SystemClock.uptimeMillis()} ${identityLabel(frame)}")
+                Log.i(TAG, "PERIMETER_FIRST_OPTICAL_FRAME processing_elapsed_ms=${frame.elapsedMs} optical_reference_ms=${frame.opticalReferenceElapsedMs} uptime_ms=${android.os.SystemClock.uptimeMillis()} ${identityLabel(frame)}")
             }
             drawPerimeter(frame)
         } else {
@@ -440,7 +446,8 @@ private class RecognitionPerimeterGlRenderer : GLSurfaceView.Renderer {
             TAG,
             "${identityLabel(frame)} PHOTO_CONTENT_RECT=${frame.photoBounds.left},${frame.photoBounds.top}," +
                 "${frame.photoBounds.width},${frame.photoBounds.height} viewport=${surfaceWidth}x$surfaceHeight " +
-                "elapsed_ms=${frame.elapsedMs} source_coordinate_scale=${frame.shaderCoordinateScale} " +
+                "processing_elapsed_ms=${frame.elapsedMs} optical_reference_ms=${frame.opticalReferenceElapsedMs} " +
+                "source_coordinate_scale=${frame.shaderCoordinateScale} " +
                 "path_css_scale=${frame.pathCoordinateScale} measured=${frame.coordinateMappingMeasured}",
         )
         if (!frame.coordinateMappingMeasured) {

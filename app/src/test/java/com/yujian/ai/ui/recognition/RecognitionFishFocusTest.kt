@@ -8,8 +8,10 @@ import org.junit.Test
 
 class RecognitionFishFocusTest {
     @Test
-    fun goldContourStrengthPeaksAt1550AndHoldsThroughP7WithoutBreathing() {
-        assertEquals(0f, recognitionFishGoldStrength(949), 0f)
+    fun goldStrengthRisesContinuouslyFromZeroAndHoldsThroughP7() {
+        assertEquals(0f, recognitionFishGoldStrength(0), 0f)
+        assertEquals(0f, recognitionFishGoldStrength(350), 0f)
+        assertTrue(recognitionFishGoldStrength(949) in 0f..0.15f)
         assertEquals(.15f, recognitionFishGoldStrength(950), 0f)
         assertEquals(.45f, recognitionFishGoldStrength(1_200), 0f)
         assertEquals(1f, recognitionFishGoldStrength(1_550), 0f)
@@ -31,11 +33,20 @@ class RecognitionFishFocusTest {
     }
 
     @Test
-    fun lateTrustedMaskAlwaysStartsAtZeroAndRevealsOnTheSharedProcessingClock() {
+    fun maskAcceptanceClosesWhenAdaptiveTimelineLeavesTheContourStage() {
+        assertTrue(recognitionMaskAcceptanceOpen(RecognitionPhase.CAPTURED))
+        assertTrue(recognitionMaskAcceptanceOpen(RecognitionPhase.DETECTING))
+        assertTrue(recognitionMaskAcceptanceOpen(RecognitionPhase.OUTLINE))
+        assertFalse(recognitionMaskAcceptanceOpen(RecognitionPhase.CLASSIFYING))
+        assertFalse(recognitionMaskAcceptanceOpen(RecognitionPhase.RESULT))
+    }
+
+    @Test
+    fun trustedMaskContourRevealsOnTheSharedAdaptiveProcessingClock() {
         assertEquals(0f, recognitionMaskContourRevealProgress(1_900L, null), 0f)
         assertEquals(0f, recognitionMaskContourRevealProgress(2_100L, 2_100L), 0f)
-        assertEquals(.5f, recognitionMaskContourRevealProgress(2_600L, 2_100L), 0.0001f)
-        assertEquals(1f, recognitionMaskContourRevealProgress(3_100L, 2_100L), 0f)
+        assertEquals(.5f, recognitionMaskContourRevealProgress(2_475L, 2_100L), 0.0001f)
+        assertEquals(1f, recognitionMaskContourRevealProgress(2_850L, 2_100L), 0f)
         assertEquals(1f, recognitionMaskContourRevealProgress(2_100L, null, reduceMotion = true), 0f)
     }
 

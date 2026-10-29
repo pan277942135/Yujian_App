@@ -91,7 +91,9 @@ internal fun RecognitionRevealOpticalOverlay(
                 val clip = activePhotoGeometry.photoClip(frame.photoProgress)
                 val clipSave = canvas.save()
                 sharedPhotoClipPath.reset()
-                val cornerRadius = 20.dp.toPx() * frame.photoProgress.coerceIn(0f, 1f)
+                val progress = frame.photoProgress.coerceIn(0f, 1f)
+                val cornerRadius = activePhotoGeometry.processingPhotoCornerRadiusPx +
+                    (20.dp.toPx() - activePhotoGeometry.processingPhotoCornerRadiusPx) * progress
                 sharedPhotoClipPath.addRoundRect(
                     RectF(clip.left, clip.top, clip.right, clip.bottom),
                     cornerRadius,

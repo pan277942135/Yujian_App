@@ -13,8 +13,8 @@ internal object RecognitionProcessingVisualTokens {
     val statusBlueCore = Color(0xFFBFEAF2)
     val statusBlueHot = Color(0xFFD8F5FA)
     val statusShape = RoundedCornerShape(30.dp)
-    val statusHeight = 112.dp
-    val statusHorizontalPadding = 28.dp
+    val statusHeight = 88.dp
+    val statusHorizontalPadding = 20.dp
     val statusIndicatorSize = 54.dp
     val statusIndicatorStroke = 4.dp
     const val energyRingCycleMs = 1_600L

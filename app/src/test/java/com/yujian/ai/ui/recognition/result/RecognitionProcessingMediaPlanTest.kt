@@ -4,7 +4,7 @@ import com.yujian.ai.ai.NormalizedFishBox
 import com.yujian.ai.ui.identify.DisplayRect
 import com.yujian.ai.ui.identify.RecognitionContentScaleMode
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -85,18 +85,18 @@ class RecognitionProcessingMediaPlanTest {
         assertEquals(beforeDetection.primaryTransform, afterDetection.primaryTransform)
         assertEquals(beforeDetection.primarySourceRect, afterDetection.primarySourceRect)
         assertEquals(RecognitionContentScaleMode.FIT, beforeDetection.primaryTransform.contentScaleMode)
-        assertNotNull(beforeDetection.decorativeBackgroundTransform)
-        assertNotNull(afterDetection.decorativeBackgroundTransform)
+        assertNull(beforeDetection.decorativeBackgroundTransform)
+        assertNull(afterDetection.decorativeBackgroundTransform)
     }
 
     @Test
-    fun missingDetectorBoxUsesFullSourceSafeFallbackAndDecorativeFillOnly() {
+    fun missingDetectorBoxUsesFullSourceFitWithoutBackdropFill() {
         val plan = RecognitionMediaPlanner.planProcessing(1600, 900, 1080f, 2340f)
 
         assertEquals(RecognitionSubjectVisibilityPolicy.FULL_SOURCE_SAFE, plan.subjectVisibilityPolicy)
         assertEquals(NormalizedSourceRect(0f, 0f, 1f, 1f), plan.primarySourceRect)
         assertEquals(RecognitionContentScaleMode.FIT, plan.primaryTransform.contentScaleMode)
-        assertEquals(RecognitionContentScaleMode.CROP, plan.decorativeBackgroundTransform?.contentScaleMode)
+        assertNull(plan.decorativeBackgroundTransform)
     }
 
     @Test

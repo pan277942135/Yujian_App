@@ -9,16 +9,21 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.asAndroidPath
 import androidx.compose.ui.graphics.asComposePath
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import com.yujian.ai.ai.NormalizedFishBox
 import com.yujian.ai.ai.RecognitionPhase
@@ -52,9 +57,9 @@ private fun smoothFraction(value: Float): Float {
 internal fun recognitionFishGoldStrength(elapsedMs: Long, reduceMotion: Boolean = false): Float {
     if (reduceMotion) return 0.18f
     val t = elapsedMs.coerceAtLeast(0L)
-    val keys = longArrayOf(950L, 1_200L, 1_550L, 2_800L)
-    val values = floatArrayOf(.15f, .45f, 1f, 1f)
-    if (t < keys.first()) return 0f
+    val keys = longArrayOf(0L, 350L, 950L, 1_200L, 1_550L, 2_050L, 2_600L, 2_800L)
+    val values = floatArrayOf(0f, 0f, .15f, .45f, 1f, 1f, 1f, 1f)
+    if (t <= keys.first()) return values.first()
     val upper = keys.indexOfFirst { it >= t }.let { if (it < 0) keys.lastIndex else it }
     if (upper == 0) return values[0]
     val lower = upper - 1
@@ -62,7 +67,16 @@ internal fun recognitionFishGoldStrength(elapsedMs: Long, reduceMotion: Boolean 
     return values[lower] + (values[upper] - values[lower]) * p
 }
 
-internal const val RECOGNITION_MASK_CONTOUR_REVEAL_MS = 1_000L
+internal const val RECOGNITION_MASK_CONTOUR_REVEAL_MS = 750L
+
+internal fun recognitionMaskAcceptanceOpen(phase: RecognitionPhase): Boolean = when (phase) {
+    RecognitionPhase.CAPTURED,
+    RecognitionPhase.DETECTING,
+    RecognitionPhase.OUTLINE -> true
+    RecognitionPhase.CLASSIFYING,
+    RecognitionPhase.RESULT,
+    RecognitionPhase.FAILURE -> false
+}
 
 internal fun recognitionMaskContourRevealProgress(
     processingElapsedMs: Long,
@@ -132,6 +146,7 @@ fun RecognitionFishFocus(
     transform: RecognitionImageTransform,
     modifier: Modifier = Modifier,
     processingElapsedMs: Long = 0L,
+    opticalReferenceElapsedMs: Long = processingElapsedMs,
     maskRevealProgress: Float = 0f,
     reduceMotion: Boolean = false,
     lowPerformance: Boolean = false,
@@ -148,13 +163,27 @@ fun RecognitionFishFocus(
         }
     }
     val contourBlurPaints = remember { RecognitionBlurPaintCache() }
+    val subjectImage = remember(subjectBitmap) { subjectBitmap.asImageBitmap() }
+    val warmGoldMaskFilter = remember {
+        ColorFilter.colorMatrix(
+            ColorMatrix(
+                floatArrayOf(
+                    1.06f, 0f, 0f, 0f, 0f,
+                    0f, 1.02f, 0f, 0f, 0f,
+                    0f, 0f, .90f, 0f, 0f,
+                    0f, 0f, 0f, 1f, 0f,
+                ),
+            ),
+        )
+    }
 
     Canvas(
         modifier
             .fillMaxSize()
             .testTag(if (lowPerformance) "recognition-fish-focus-trusted-mask-low-performance" else "recognition-fish-focus-trusted-mask"),
     ) {
-        val goldStrength = recognitionFishGoldStrength(processingElapsedMs, reduceMotion)
+        val goldStrength = recognitionFishGoldStrength(opticalReferenceElapsedMs, reduceMotion) *
+            maskRevealProgress.coerceIn(0f, 1f)
 
         val realContour = requireNotNull(cachedContourPath)
             val pathBounds = realContour.getBounds()
@@ -172,6 +201,26 @@ fun RecognitionFishFocus(
             val coreAlpha = (.58f * goldStrength).coerceIn(0f, .70f)
             val softGlowAlpha = (.25f * goldStrength).coerceIn(0f, .32f)
             val outerHaloAlpha = (.105f * goldStrength).coerceIn(0f, .15f)
+
+            // Re-sample the original-photo pixels through SlimSAM's alpha mask. The
+            // low-opacity channel warmth keeps scales, eye and fin texture intact.
+            val roi = subjectBox.normalized()
+            val roiTopLeft = transform.mapNormalized(roi.x1, roi.y1)
+            val roiBottomRight = transform.mapNormalized(roi.x2, roi.y2)
+            val roiOffset = IntOffset(roiTopLeft.x.toInt(), roiTopLeft.y.toInt())
+            val roiSize = IntSize(
+                (roiBottomRight.x - roiTopLeft.x).toInt().coerceAtLeast(1),
+                (roiBottomRight.y - roiTopLeft.y).toInt().coerceAtLeast(1),
+            )
+            if (goldStrength > 0f) {
+                drawImage(
+                    image = subjectImage,
+                    dstOffset = roiOffset,
+                    dstSize = roiSize,
+                    alpha = (.14f * goldStrength).coerceIn(0f, .14f),
+                    colorFilter = warmGoldMaskFilter,
+                )
+            }
 
             if (pathToDraw != null) {
                 // Gold Halo, width scales with the real Mask contour bounds.

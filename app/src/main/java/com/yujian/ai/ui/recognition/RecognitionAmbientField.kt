@@ -83,7 +83,6 @@ private data class EchoFilament(
 )
 
 private data class QualityProfile(
-    val receiving: Float,
     val outer: Float,
     val mid: Float,
     val core: Float,
@@ -121,7 +120,6 @@ internal data class MotionFrame(
     val segmentSpeed: Float,
     val stateStrength: Float,
     val detailMotionTimeMs: Long,
-    val receivingEntry: Float,
     val primaryEntry: Float,
     val detailEntry: Float,
 )
@@ -219,18 +217,13 @@ internal class EdgeFieldMotionAccumulator {
         }
 
         val elapsed = (nowMs - entryStartedAtMs).coerceAtLeast(0L)
-        val receivingEntry = if (reduceMotionNow) {
-            easedFraction(elapsed, 180L)
-        } else {
-            easedWindow(elapsed, 0L, 180L)
-        }
         val primaryEntry = if (reduceMotionNow) {
-            receivingEntry
+            easedFraction(elapsed, 180L)
         } else {
             easedWindow(elapsed, 80L, 320L)
         }
         val detailEntry = if (reduceMotionNow) {
-            receivingEntry
+            easedFraction(elapsed, 180L)
         } else {
             easedWindow(elapsed, 180L, 420L)
         }
@@ -240,7 +233,6 @@ internal class EdgeFieldMotionAccumulator {
             segmentSpeed = speedAt(nowMs),
             stateStrength = strengthAt(nowMs),
             detailMotionTimeMs = nowMs,
-            receivingEntry = receivingEntry,
             primaryEntry = primaryEntry,
             detailEntry = detailEntry,
         )
@@ -373,12 +365,6 @@ fun RecognitionAmbientField(
                             geometry.baseCompositePaint,
                         )
                         try {
-                            drawReceivingLight(
-                                frame = renderFrame,
-                                quality = quality,
-                                fieldRect = fieldRect,
-                            )
-
                             PRIMARY_ISLANDS.forEachIndexed { index, filament ->
                                 val path = primaryPaths[index]
                                 val offset = positiveMod(frame.cycleOffset + filament.seed)
@@ -505,7 +491,6 @@ private fun deterministicFrame(
         segmentSpeed = if (reduceMotion) 0f else target.speed,
         stateStrength = target.strength,
         detailMotionTimeMs = clockMs,
-        receivingEntry = 1f,
         primaryEntry = 1f,
         detailEntry = if (reduceMotion) 1f else 1f,
     )
@@ -514,7 +499,6 @@ private fun deterministicFrame(
 private fun qualityProfile(level: RecognitionQualityLevel): QualityProfile =
     when (level) {
         RecognitionQualityLevel.FULL -> QualityProfile(
-            receiving = 1f,
             outer = 1f,
             mid = 1f,
             core = 1f,
@@ -525,7 +509,6 @@ private fun qualityProfile(level: RecognitionQualityLevel): QualityProfile =
             alphaMultiplier = 1f,
         )
         RecognitionQualityLevel.BALANCED -> QualityProfile(
-            receiving = .85f,
             outer = .75f,
             mid = .90f,
             core = 1f,
@@ -536,7 +519,6 @@ private fun qualityProfile(level: RecognitionQualityLevel): QualityProfile =
             alphaMultiplier = .92f,
         )
         RecognitionQualityLevel.LITE -> QualityProfile(
-            receiving = .70f,
             outer = .50f,
             mid = .80f,
             core = 1f,
@@ -547,83 +529,6 @@ private fun qualityProfile(level: RecognitionQualityLevel): QualityProfile =
             alphaMultiplier = .82f,
         )
     }
-
-private fun DrawScope.drawReceivingLight(
-    frame: MotionFrame,
-    quality: QualityProfile,
-    fieldRect: DisplayRect,
-) {
-    val common =
-        frame.stateStrength *
-            frame.receivingEntry *
-            quality.receiving *
-            quality.alphaMultiplier
-
-    if (common <= .001f) return
-
-    val fieldWidth = fieldRect.width
-    val fieldHeight = fieldRect.height
-    val minDimension = minOf(fieldWidth, fieldHeight)
-
-    fun islandLight(
-        color: Color,
-        weight: Float,
-        center: Offset,
-        radius: Float,
-        ovalTopLeft: Offset,
-        ovalSize: Size,
-    ) {
-        val alpha = (.13f * common * weight).coerceAtMost(.14f)
-        val brush = Brush.radialGradient(
-            colorStops = arrayOf(
-                0f to color.copy(alpha = alpha),
-                .34f to color.copy(alpha = alpha * .92f),
-                .72f to color.copy(alpha = alpha * .40f),
-                1f to Color.Transparent,
-            ),
-            center = center,
-            radius = radius,
-        )
-        drawOval(
-            brush = brush,
-            topLeft = ovalTopLeft,
-            size = ovalSize,
-        )
-    }
-
-    islandLight(
-        color = EdgeDeepPeacock,
-        weight = 1f,
-        center = Offset(fieldRect.left + fieldWidth, fieldRect.top + fieldHeight * .12f),
-        radius = minDimension * .28f,
-        ovalTopLeft = Offset(fieldRect.left + fieldWidth * .62f, fieldRect.top - fieldHeight * .04f),
-        ovalSize = Size(fieldWidth * .46f, fieldHeight * .40f),
-    )
-    islandLight(
-        color = EdgeWaterGreen,
-        weight = .78f,
-        center = Offset(fieldRect.left, fieldRect.top + fieldHeight * .10f),
-        radius = minDimension * .25f,
-        ovalTopLeft = Offset(fieldRect.left - fieldWidth * .08f, fieldRect.top - fieldHeight * .04f),
-        ovalSize = Size(fieldWidth * .46f, fieldHeight * .36f),
-    )
-    islandLight(
-        color = EdgeWaterGreen,
-        weight = .63f,
-        center = Offset(fieldRect.left, fieldRect.top + fieldHeight * .88f),
-        radius = minDimension * .26f,
-        ovalTopLeft = Offset(fieldRect.left - fieldWidth * .08f, fieldRect.top + fieldHeight * .64f),
-        ovalSize = Size(fieldWidth * .48f, fieldHeight * .38f),
-    )
-    islandLight(
-        color = EdgeDeepPeacock,
-        weight = .54f,
-        center = Offset(fieldRect.left + fieldWidth, fieldRect.top + fieldHeight * .86f),
-        radius = minDimension * .25f,
-        ovalTopLeft = Offset(fieldRect.left + fieldWidth * .60f, fieldRect.top + fieldHeight * .64f),
-        ovalSize = Size(fieldWidth * .48f, fieldHeight * .38f),
-    )
-}
 
 private fun DrawScope.drawCompositePrimary(
     path: RecognitionMeasuredPath,
