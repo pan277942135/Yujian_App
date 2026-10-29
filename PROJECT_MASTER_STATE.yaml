@@ -13,7 +13,7 @@ state_control:
   base_sha: b080bb0ffb4ebced18593c08709657fabb53a19e
   current_task: YUJIAN_THREE_PILOT_PAGE_SPEC_CLOSURE_AND_IMPLEMENTATION_GATE_V1
   status: BLOCKED
-  updated_at: '2026-10-29T06:28:49Z'
+  updated_at: '2026-10-29T06:31:00Z'
 source_of_truth:
   control_plane: CONTROL_PLANE_REGISTRY.yaml
   phase_task_machine: harness/PHASE_TASK_STATE_MACHINE.yaml
@@ -160,13 +160,27 @@ current_work:
       page_profile: DRAFT
       envelope: DRAFT
       W1: PASS — exact 6933, run 40828169507
-      W2: FAIL — exact 6933, run 40828169489; 17 REVIEW and 2 FROZEN lifecycle states preserved
+      W2: FAIL current 6933 run 40828169489; exact 9c artifact recorded W2-bound resources, but 17 REQUIRED assets remain
+        REVIEW and are not promotable.
       W3: BLOCKED_AT_W2 — no current-SHA structured DOM evidence
       W4: BLOCKED_AT_W2 — no current-SHA Chromium evidence
-      W5: BLOCKED_AT_W2 — current matrix not executed on exact 6933; exact 9c result is historical
+      W5: 'BLOCKED current 6933 at W2; historical exact 9c run 40827290731: formal 8/8, supplemental 4/4, negative 8/8; Profile
+        DRAFT_SCHEMA_VALID_ONLY and visual acceptance pending.'
       visual_acceptance: PENDING
-      critical_open_items: 17 required resource bindings remain REVIEW; Gallery/Chevron dimensions are not verified; frozen
-        resources remain unchanged.
+      critical_open_items: 17 REQUIRED resources remain REVIEW with no declared degradation; core scene/fishing geometry cannot
+        be promoted. Seven authority gaps include missing approved wordmark binding, Gallery/Chevron lifecycle review, machine-readable
+        system-bar/safe-area boundary, particle authority, cloud visual review, Sun Beam not run, and header inset review.
+      historical_exact_9c:
+        run_id: 40827290731
+        artifact_id: '12877117540'
+        artifact_sha256: f4c70e58f39c93d43883c1e354251010b73037bafc3b69493e6b4dd91bf97d63
+        evidence_sha256: 4379efd914610f188bb241437a432641f58ad5ba0116695abe45ec39eb6dbbff
+        component_bounds_sha256: 7649231d77e2d286c2c4be6418bd53a1d92eb48449854612eb51ddc920808b48
+        formal: 8/8
+        supplemental: 4/4 candidate-only
+        negative: 8/8 expected fail-closed
+        profile: DRAFT_SCHEMA_VALID_ONLY
+        visual_acceptance: PENDING
     auth_login_v2:
       status: BLOCKED
       page_profile: DRAFT
@@ -194,10 +208,11 @@ blockers:
   severity: P0
   area: home_empty_v2
   status: OPEN
-  condition: Envelope/Profile remain DRAFT; exact 6933 W2 report has 17 required resource bindings REVIEW and 2 FROZEN; Gallery/Chevron
-    dimensions are not verified.
-  unblock: Resolve resource provenance and composition authority from approved sources; preserve lifecycle states and frozen
-    resources.
+  condition: Exact 6933 W2 shows 17 REQUIRED resources REVIEW and 2 FROZEN. Exact 9c matrix was 8/8 formal + 4/4 supplemental
+    + 8/8 negative, but Profile remains DRAFT_SCHEMA_VALID_ONLY with seven authority gaps; Gallery/Chevron dimensions are
+    unverified.
+  unblock: Resolve the seven documented authority gaps from approved sources or define an explicitly supported degradation;
+    do not promote REVIEW assets or overwrite frozen resources.
 - id: TP-LOGIN-W3W4-001
   severity: P0
   area: auth_login_v2
@@ -255,8 +270,8 @@ next_actions:
   result: Exact 9c run 40827290596 captured 1 formal + 12 supplemental rows; geometry retry budget exhausted; no same-symptom
     retry.
 - id: TP-A03
-  action: Audit Empty Home authority and 17 REVIEW resources for provenance, criticality and valid degradation without changing
-    bindings or lifecycle states.
+  action: Reconcile the seven Empty Home authority gaps and 17 REQUIRED REVIEW bindings against approved existing sources;
+    record criticality and any allowed degradation without changing lifecycle state.
   owner: Work
   status: READY
   dependencies: []
@@ -276,7 +291,7 @@ completion_rules:
 state_update:
   protocol: harness/STATE_UPDATE_PROTOCOL.md
   static_control_plane_changes: NONE — current rules keep live task state in branch-local state/log files.
-  checkpoint_updated_at: '2026-10-29T06:28:49Z'
+  checkpoint_updated_at: '2026-10-29T06:31:00Z'
 agent_recovery:
   canonical_entry: AGENTS.md -> CONTROL_PLANE_REGISTRY.yaml -> current Main
   current_work_state: WORK_EXECUTION_STATE.json

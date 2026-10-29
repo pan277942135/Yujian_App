@@ -58,7 +58,7 @@
     }
   ],
   "branch": "work-state/yujian-three-pilot-p0-v1",
-  "checkpoint_updated_at": "2026-10-29T06:28:49+00:00",
+  "checkpoint_updated_at": "2026-10-29T06:31:00+00:00",
   "control_plane_revision": "b080bb0ffb4ebced18593c08709657fabb53a19e",
   "dependencies": [
     "YUJIAN_PAGE_FREEZE_PIPELINE_W5_EMPTY_HOME_PILOT_V1",
@@ -123,6 +123,52 @@
       "pr": 234,
       "previously_verified_sha": "8d3f7393a027c3b83d8d1a84fca64fb55c6e6b31",
       "sha": "6933f459d2223823a25edcd1d4598ffde3061267"
+    },
+    "empty_home_exact_9c_evidence": {
+      "artifact_id": "12877117540",
+      "artifact_sha256": "f4c70e58f39c93d43883c1e354251010b73037bafc3b69493e6b4dd91bf97d63",
+      "authority_gaps": [
+        "Brand wordmark has no approved independent Empty Home binding.",
+        "Gallery/Chevron source lifecycle remains REVIEW.",
+        "Frozen raster includes Android chrome but system-bar/content boundary is not machine-readable.",
+        "Sun particle coordinates lack frozen static authority.",
+        "Cloud position/alpha need visual review.",
+        "Sun Beam motion not run; scene master already contains ambient sun glow.",
+        "Header inset uses shared AdaptiveLayoutContract and needs review."
+      ],
+      "component_bounds_sha256": "7649231d77e2d286c2c4be6418bd53a1d92eb48449854612eb51ddc920808b48",
+      "contract_sha256": "c0e8429256186516db5249ea44f89b59875732903d0a4b8e735d90e4afcf617f",
+      "evidence_manifest_sha256": "4379efd914610f188bb241437a432641f58ad5ba0116695abe45ec39eb6dbbff",
+      "geometry": "PASS_DOM_MEASURED_VISUAL_REVIEW_PENDING",
+      "mapping_sha256": "da947e318db20e2afdddc8e22a867eaad3acefeb0113b830ebc38151e27f225f",
+      "matrix": {
+        "formal": {
+          "fail": 0,
+          "not_run": 0,
+          "pass": 8
+        },
+        "negative_expected_fail_closed": {
+          "fail": 0,
+          "pass": 8
+        },
+        "supplemental_candidate_only": {
+          "fail": 0,
+          "not_run": 0,
+          "pass": 4
+        }
+      },
+      "not_current_for_6933": true,
+      "profile_sha256": "a8729fd2f1b3d979d8b404302082f8ff1be7df30c355576cd13f7a2ae59ab2b7",
+      "profile_status": "DRAFT_SCHEMA_VALID_ONLY",
+      "resource": "PASS_W2_BOUND_RESOURCES_VERIFIED_ON_9C",
+      "resource_binding_sha256": "c52119cbf4a6bc062f5d66a531f6e106e4aff15e486f58df1ed6adfcc59bbbee",
+      "responsive": "PASS_PAGE_PROFILE_MATRIX_EXECUTED_ON_9C",
+      "responsive_matrix_sha256": "9a46e9efd3a11c4ea4c5acaf70f6bba501e50aba8a2fa8057f614f58eb6e1552",
+      "run_id": 40827290731,
+      "source_sha": "9c47519e87260992bc768178399fc9b6651a6fc8",
+      "status": "PASS_STRUCTURAL_MATRIX_VISUAL_REVIEW_PENDING",
+      "url": "https://github.com/pan277942135/Yujian_App/actions/runs/40827290731",
+      "user_visual_acceptance": "PENDING"
     },
     "failure_gate_checks": {
       "checked_at": "2026-10-29T06:28:49Z",
@@ -242,10 +288,50 @@
         "status": "PASS"
       },
       "empty_home_w5": {
+        "artifact_id": "12877117540",
+        "artifact_sha256": "f4c70e58f39c93d43883c1e354251010b73037bafc3b69493e6b4dd91bf97d63",
+        "authority_gaps": [
+          "Brand wordmark has no approved independent Empty Home binding.",
+          "Gallery/Chevron source lifecycle remains REVIEW.",
+          "Frozen raster includes Android chrome but system-bar/content boundary is not machine-readable.",
+          "Sun particle coordinates lack frozen static authority.",
+          "Cloud position/alpha need visual review.",
+          "Sun Beam motion not run; scene master already contains ambient sun glow.",
+          "Header inset uses shared AdaptiveLayoutContract and needs review."
+        ],
+        "component_bounds_sha256": "7649231d77e2d286c2c4be6418bd53a1d92eb48449854612eb51ddc920808b48",
+        "contract_sha256": "c0e8429256186516db5249ea44f89b59875732903d0a4b8e735d90e4afcf617f",
+        "evidence_manifest_sha256": "4379efd914610f188bb241437a432641f58ad5ba0116695abe45ec39eb6dbbff",
+        "geometry": "PASS_DOM_MEASURED_VISUAL_REVIEW_PENDING",
+        "mapping_sha256": "da947e318db20e2afdddc8e22a867eaad3acefeb0113b830ebc38151e27f225f",
+        "matrix": {
+          "formal": {
+            "fail": 0,
+            "not_run": 0,
+            "pass": 8
+          },
+          "negative_expected_fail_closed": {
+            "fail": 0,
+            "pass": 8
+          },
+          "supplemental_candidate_only": {
+            "fail": 0,
+            "not_run": 0,
+            "pass": 4
+          }
+        },
         "not_current_for_6933": true,
+        "profile_sha256": "a8729fd2f1b3d979d8b404302082f8ff1be7df30c355576cd13f7a2ae59ab2b7",
+        "profile_status": "DRAFT_SCHEMA_VALID_ONLY",
+        "resource": "PASS_W2_BOUND_RESOURCES_VERIFIED_ON_9C",
+        "resource_binding_sha256": "c52119cbf4a6bc062f5d66a531f6e106e4aff15e486f58df1ed6adfcc59bbbee",
+        "responsive": "PASS_PAGE_PROFILE_MATRIX_EXECUTED_ON_9C",
+        "responsive_matrix_sha256": "9a46e9efd3a11c4ea4c5acaf70f6bba501e50aba8a2fa8057f614f58eb6e1552",
         "run_id": 40827290731,
-        "status": "PASS",
-        "url": "https://github.com/pan277942135/Yujian_App/actions/runs/40827290731"
+        "source_sha": "9c47519e87260992bc768178399fc9b6651a6fc8",
+        "status": "PASS_STRUCTURAL_MATRIX_VISUAL_REVIEW_PENDING",
+        "url": "https://github.com/pan277942135/Yujian_App/actions/runs/40827290731",
+        "user_visual_acceptance": "PENDING"
       },
       "login": {
         "artifact_id": "12876897626",
@@ -497,12 +583,33 @@
           ]
         },
         "home_empty_v2": {
+          "all_review_assets_required": true,
           "assets": 19,
           "binding_sha256": "c52119cbf4a6bc062f5d66a531f6e106e4aff15e486f58df1ed6adfcc59bbbee",
           "lifecycle_counts": {
             "FROZEN": 2,
             "REVIEW": 17
           },
+          "review_asset_ids": [
+            "empty_home_v2_frozen_visual",
+            "empty_home_v2_2_frozen_visual",
+            "home_empty_v2_scene_base_master",
+            "home_empty_v2_rod_master",
+            "home_empty_v2_line_master",
+            "home_empty_v2_bobber_master",
+            "home_empty_v2_ripple_master_mask",
+            "home_empty_v2_cloud_master",
+            "home_empty_v2_sun_beam_master_mask",
+            "home_empty_v2_particle_master_mask",
+            "home_empty_v2_capture_button_base",
+            "home_empty_v2_capture_button_gold_rim",
+            "home_empty_v2_capture_button_breath_glow",
+            "home_empty_v2_hero",
+            "home_empty_v2_bobber_reflection_master",
+            "system_icon_library_v0_1_assets_ic_gallery_v1_svg",
+            "system_icon_library_v0_1_assets_ic_chevron_right_v1_svg"
+          ],
+          "review_assets_have_declared_degradation": false,
           "warnings": [
             "Gallery dimensions not verified",
             "Chevron dimensions not verified"
@@ -572,7 +679,7 @@
     },
     "schema_version": "1.0"
   },
-  "next_action": "Stop same-failure Login geometry repairs and escalate 2f698d46967752fccf3d; continue independent Empty Home resource provenance audit and reviewed Pages workflow authority resolution.",
+  "next_action": "Reconcile Empty Home authority gaps from approved sources; keep current 6933 blocked at W2 and keep Login geometry issue 2f698d46967752fccf3d STOP_AND_ESCALATE.",
   "phase": "P3",
   "repository": "pan277942135/Yujian_App",
   "schema_version": "1.0",
