@@ -106,11 +106,23 @@ class PageFreezeRunnerTests(unittest.TestCase):
         self.assertEqual({row["viewport"]["width"] for row in matrix["cases"]}, {320, 360, 393, 411})
         self.assertTrue(all(row["state_id"] is None and row["result"] == "NOT_RUN" for row in matrix["cases"]))
 
-    def test_login_without_machine_viewports_does_not_invent_a_matrix(self):
+    def test_login_uses_its_page_owned_formal_baseline_matrix(self):
         matrix = self.make_manifest("auth_login_v2")["matrix"]
-        self.assertEqual(matrix["expected_case_count"], 0)
-        self.assertEqual(matrix["recorded_case_count"], 0)
-        self.assertIn("No machine-readable viewport authority", matrix["reason"])
+        self.assertEqual(matrix["source_path"], "design/pages/account_privacy/Login/Login_Responsive_Acceptance_Matrix_V1.json")
+        self.assertEqual(matrix["expected_case_count"], 1)
+        self.assertEqual(matrix["recorded_case_count"], 1)
+        self.assertEqual(len(matrix["cases"]), 1)
+        case = matrix["cases"][0]
+        self.assertEqual(case["case_id"], "360x640dp-font-1.0-state-DEFAULT")
+        self.assertEqual(case["viewport"], {"width": 360, "height": 640, "unit": "dp"})
+        self.assertEqual(case["font_scale"], 1)
+        self.assertEqual(case["state_id"], "DEFAULT")
+        self.assertEqual(case["result"], "NOT_RUN")
+        self.assertEqual(case["expected_state"], {
+            "form": "idle", "account": "empty", "password": "hidden",
+            "error": "absent", "keyboard": "not_simulated",
+        })
+        self.assertIn("CSS viewport measurement is not asserted to equal Android dp", " ".join(case["assertions"]))
 
     def test_wrong_page_id_contract_binding_is_rejected(self):
         normal = "design/system_v3/07_Responsive_System/page_contract_examples/home_normal_v1.envelope.json"

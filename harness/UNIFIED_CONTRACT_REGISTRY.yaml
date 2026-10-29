@@ -1765,13 +1765,6 @@ gate_contracts:
     resource_manifest: "design/pages/recognition/first_use_camera_guide/manifest.json"
     resource_gallery_ids: ["p01", "p02", "p03"]
     android_runtime_mapping: false
-  G-YUJIAN-THREE-PILOT-PAGE-SPEC-CLOSURE:
-    purpose: "Close NH01 Normal Home, Empty Home V2.2 and Login V2.1 page specification gates before Android implementation; keep human visual approval and Android runtime acceptance separate."
-    task_id: "YUJIAN_THREE_PILOT_PAGE_SPEC_CLOSURE_AND_IMPLEMENTATION_GATE_V1"
-    contract_refs: ["PAGE-FREEZE-PIPELINE-W0-BASELINE", "STATE-EVIDENCE-PROVENANCE"]
-    acceptance_domains: ["page_contract", "resource_binding", "structured_design_manager", "chromium", "responsive_visual_structure", "implementation_readiness"]
-    exact_sha_required: true
-
 task_contract_bindings:
   YUJIAN_NH01_ANDROID_FROZEN_V22_IMPLEMENTATION_REPAIR_WORK_B_V1:
     contract_refs: ["FC-home_normal_v1", "ANDROID-RUNTIME-HARNESS", "STATE-EVIDENCE-PROVENANCE", "G-NH01-WORK-B-V22-EXACT-SHA"]
@@ -2028,8 +2021,7 @@ task_contract_bindings:
     phase: "P3"
 
   YUJIAN_THREE_PILOT_PAGE_SPEC_CLOSURE_AND_IMPLEMENTATION_GATE_V1:
-    contract_refs: ["FC-home_normal_v1", "FC-home_empty_v2", "FC-auth_login_v2", "PAGE-FREEZE-PIPELINE-W0-BASELINE", "STATE-EVIDENCE-PROVENANCE", "G-YUJIAN-THREE-PILOT-PAGE-SPEC-CLOSURE"]
-    gate_id: "G-YUJIAN-THREE-PILOT-PAGE-SPEC-CLOSURE"
+    contract_refs: ["FC-home_normal_v1", "FC-home_empty_v2", "FC-auth_login_v2", "PAGE-FREEZE-PIPELINE-W0-BASELINE", "STATE-EVIDENCE-PROVENANCE"]
     phase: "P3"
 
 contract_conflicts:

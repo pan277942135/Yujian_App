@@ -1237,7 +1237,6 @@ tasks:
     depends_on: ["YUJIAN_PAGE_FREEZE_PIPELINE_W5_EMPTY_HOME_PILOT_V1", "YUJIAN_PAGE_FREEZE_PIPELINE_W6_LOGIN_PILOT_AND_ACCEPTANCE_V1"]
     entry_blockers: []
     target_blockers: []
-    gate_id: "G-YUJIAN-THREE-PILOT-PAGE-SPEC-CLOSURE"
     evidence_required: ["main_authority_recovery_and_blob_integrity", "three_page_envelopes_profiles_matrices_and_sha256", "three_page_resource_bindings_and_lifecycle_states", "W1_W2_W3_W4_W5_per_page_exact_sha", "formal_supplemental_negative_and_visual_review_results_separate", "isolated_preview_build_and_live_sha", "work_state_and_build_log", "existing_android_implementation_branch_or_pr", "native_runtime_build_and_visual_evidence_separate"]
     completion: "All three pages have complete exact-SHA technical evidence and reach SPEC_READY_FOR_IMPLEMENTATION; start Android implementation in the existing product branch or PR. Product visual approval, Android runtime, APK delivery and release remain separate gates."
     human_required: false
