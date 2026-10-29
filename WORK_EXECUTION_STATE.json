@@ -4,7 +4,7 @@
   "work_id": "YUJIAN_EMPTY_HOME_STRUCTURED_HIFI_TYPOGRAPHY_SCALE_PARITY_V1",
   "repository": "pan277942135/Yujian_App",
   "branch": "work/w5-empty-home-pilot-v1",
-  "control_plane_revision": "a14d03fa78db0a1cb9b007f8e3d983b8a3b85754",
+  "control_plane_revision": "0c245b86f8228107309d0135bdf819af255604be",
   "base_branch": "main",
   "base_sha": "34f21ad01e62ec7bf11be11fee8eb5a500894333",
   "phase": "P3",
@@ -12,7 +12,7 @@
   "stage": "ADMISSION_RECOVERY",
   "status": "READY",
   "source_sha": "dad76a9ca737245d4076b75b86537412b0238765",
-  "checkpoint_updated_at": "2026-10-29T17:07:55Z",
+  "checkpoint_updated_at": "2026-10-29T17:10:25Z",
   "next_action": "Run python scripts/validate_control_plane_admission.py on the final state checkpoint; do not inspect or change Empty Home page code until Admission is PASS.",
   "dependencies": [
     "YUJIAN_PAGE_FREEZE_PIPELINE_W3_DESIGN_MANAGER_ADAPTER_V1",
@@ -23,7 +23,7 @@
   ],
   "evidence": {
     "previous_candidate_sha": "ffd9cfe69ff52c776049953b730f6dabb90fe44a",
-    "current_main_sha": "a14d03fa78db0a1cb9b007f8e3d983b8a3b85754",
+    "current_main_sha": "0c245b86f8228107309d0135bdf819af255604be",
     "control_plane_sync_commit": "dad76a9ca737245d4076b75b86537412b0238765",
     "login_mapping": {
       "path": "design/pages/account_privacy/Login/structured_candidate/component_mapping_v1.json",
@@ -45,4 +45,4 @@
       "status": "MERGED_EXACT_CANDIDATE_EXTRA_EXCEPTION_SUPPORT"
     }
   }
-}
+}\n
