@@ -8,10 +8,10 @@
     "NH01 Android workflow 40828169459 failed its source/resource preflight; it did not establish native runtime acceptance. NH01, Effect 01, and AI Studio perimeter remain NOT_VERIFIED.",
     "Approved standalone NH01 Hero/Peek source images remain ASSET_SOURCE_REQUIRED; user visual acceptance remains pending.",
     "Main Pages run 40825171321 deployed exact Main SHA b080bb0ffb4ebced18593c08709657fabb53a19e; production root-manifest hash extraction remains pending.",
-    "PRODUCT_WORK Admission run 40830891497 passed CONTROL_PLANE_SYNC and WORK_STATE but failed PROJECT_MASTER_STATE: runtime exact-head SHA drift. Repair isolated state pointer and rerun once on unchanged product source 91418127df91b9854897f24eeb84c970cb2e6563."
+    "Exact source 91418127df91b9854897f24eeb84c970cb2e6563: W2 run 40830549495, W4 run 40830549596 and W5 run 40830549593 fail/stop at the workflow source authority mismatch; three canonical bindings still pin 51f8d59... while candidate workflow SHA-256 is e1d7c655..."
   ],
   "branch": "work-state/w5-empty-home-pilot-v1",
-  "checkpoint_updated_at": "2026-10-29T06:46:36Z",
+  "checkpoint_updated_at": "2026-10-29T06:51:00Z",
   "control_plane_revision": "b080bb0ffb4ebced18593c08709657fabb53a19e",
   "dependencies": [
     "YUJIAN_PAGE_FREEZE_PIPELINE_W3_DESIGN_MANAGER_ADAPTER_V1",
@@ -153,31 +153,18 @@
     "candidate_pr": 234,
     "candidate_pr_url": "https://github.com/pan277942135/Yujian_App/pull/234",
     "candidate_source_sha": "6933f459d2223823a25edcd1d4598ffde3061267",
-    "current_candidate": "{\"base_sha\":\"b080bb0ffb4ebced18593c08709657fabb53a19e\",\"branch\":\"work/w5-empty-home-pilot-v1\",\"head_sha\":\"91418127df91b9854897f24eeb84c970cb2e6563\",\"main_sha\":\"b080bb0ffb4ebced18593c08709657fabb53a19e\",\"pr\":234,\"status\":\"SCOPE_REPAIRED_ADMISSION_PENDING\",\"pr_status\":\"OPEN_DRAFT_UNMERGED\",\"w6_technical_dependency\":\"BLOCKED_W4_W5_W2_AND_ISOLATED_PREVIEW\",\"native_runtime\":\"NOT_VERIFIED\",\"updated_at\":\"2026-10-29T06:41:37Z\"}",
+    "current_candidate": "{\"base_sha\":\"b080bb0ffb4ebced18593c08709657fabb53a19e\",\"branch\":\"work/w5-empty-home-pilot-v1\",\"head_sha\":\"91418127df91b9854897f24eeb84c970cb2e6563\",\"main_sha\":\"b080bb0ffb4ebced18593c08709657fabb53a19e\",\"pr\":234,\"status\":\"PRODUCT_WORK_ADMISSION_PASS_W2_W4_W5_BLOCKED\",\"updated_at\":\"2026-10-29T06:51:00Z\"}",
     "current_exact_recovery_checkpoint": {
       "gates": {
-        "AISTUDIO_PERIMETER_NATIVE_RUNTIME": "NOT_VERIFIED",
-        "DESIGN_GOVERNANCE": "PASS_RUN_40828169495",
-        "EFFECT01_NATIVE_RUNTIME": "NOT_VERIFIED",
-        "ISOLATED_PREVIEW": "BLOCKED_NOT_DEPLOYED_RUN_40828169492",
-        "NH01_NATIVE_RUNTIME": "NOT_VERIFIED_PRECHECK_FAIL_RUN_40828169459",
-        "NH01_RESPONSIVE_CONTRACT": "SPEC_FROZEN",
-        "NH01_STATIC_HIFI_ASSETS": "VERIFIED_ON_MAIN_BASELINE_B080_HASH_REPORT_RETAINED",
-        "PRODUCTION_PAGES": "PASS_BUILD_DEPLOY_LIVE_BUILD_JSON_SHA_b080bb0ffb4ebced18593c08709657fabb53a19e_RUN_40825171321_ROOT_MANIFEST_HASH_PENDING",
-        "PRODUCT_WORK_ADMISSION": "PENDING_RETRY_AFTER_SCOPE_REPAIR",
-        "PR_EVENT_ADMISSION": "PASS_NOT_PRODUCT_WORK_RUN_40828169471",
-        "USER_VISUAL_ACCEPTANCE": "PENDING",
-        "W1": "PASS_RUN_40828169507",
-        "W2": "FAIL_RUN_40828169492_THREE_BINDING_SHA_MISMATCH",
-        "W4": "PENDING_NEW_SHA",
-        "W5": "PENDING_NEW_SHA",
-        "CONTROL_PLANE_SYNC": "PASS_RUN_40830891497",
-        "PROJECT_WORK_ADMISSION": "FAIL_PROJECT_STATE_RUN_40830891497",
-        "PROJECT_STATE": "FAIL_RUNTIME_EXACT_HEAD_DRIFT_RUN_40830891497",
-        "WORK_STATE": "PASS_RUN_40830891497"
+        "W1": "PASS_RUN_40830549559",
+        "W2": "FAIL_RUN_40830549495_WORKFLOW_SHA_MISMATCH",
+        "W4": "FAIL_RUN_40830549596_W2_UPSTREAM",
+        "W5": "FAIL_RUN_40830549593_W2_UPSTREAM",
+        "PRODUCT_WORK_ADMISSION": "PASS_RUN_40831382946",
+        "ISOLATED_PREVIEW": "BLOCKED_NOT_DEPLOYED"
       },
       "main_sha": "b080bb0ffb4ebced18593c08709657fabb53a19e",
-      "next_action": "Update PROJECT_MASTER_STATE runtime_gates.exact_head.sha to 91418127df91b9854897f24eeb84c970cb2e6563, checkpoint the state files on the isolated branch, and rerun PRODUCT_WORK Admission on unchanged PR #234 source 91418127df91b9854897f24eeb84c970cb2e6563. If that passes, create the Main-first Pages workflow/resource binding authority update.",
+      "next_action": "PRODUCT_WORK Admission PASS on 91418127df91b9854897f24eeb84c970cb2e6563. Create the minimal Main-first support PR that updates .github/workflows/design-manager-pages.yml and exactly three Page_Resource_Binding workflow SHA pins; verify its exact-head gates, merge under green-check policy, run official Main Pages deploy, then sync PR234 and rerun W2/W4/W5/Pages.",
       "pr234": {
         "base_sha": "b080bb0ffb4ebced18593c08709657fabb53a19e",
         "head_sha": "91418127df91b9854897f24eeb84c970cb2e6563",
@@ -206,12 +193,12 @@
         "w5": 40828169461
       },
       "source_sha": "91418127df91b9854897f24eeb84c970cb2e6563",
-      "state_branch_head_before_checkpoint": "d0ecff0109de45a9cacc7fd61589edd4abfe9bcc",
+      "state_branch_head_before_checkpoint": "c9bd5e0c4b3eaea1e85d3f6f52a790ec3eb59615",
       "supplemental_task_id": "YUJIAN_NH01_STRUCTURED_HIFI_MULTI_SCREEN_RESPONSIVE_CLOSURE_V1",
       "task_id": "YUJIAN_W4_W5_MAIN_PAGES_W6_ANDROID_RUNTIME_CLOSURE_V1",
-      "updated_at": "2026-10-29T06:46:36Z"
+      "updated_at": "2026-10-29T06:51:00Z"
     },
-    "current_isolated_preview": "{\"source_sha\":\"6933f459d2223823a25edcd1d4598ffde3061267\",\"run_id\":40828169492,\"status\":\"BLOCKED_NOT_DEPLOYED\",\"url\":\"https://pan277942135.github.io/Yujian_App/previews/pr-234/\",\"production_deploy\":\"SKIPPED_EXPECTED\",\"reason\":\"Pages W2 source authority SHA mismatch\"}",
+    "current_isolated_preview": "{\"source_sha\":\"91418127df91b9854897f24eeb84c970cb2e6563\",\"run_id\":40830549495,\"status\":\"BLOCKED_NOT_DEPLOYED\",\"url\":\"https://pan277942135.github.io/Yujian_App/previews/pr-234/\",\"reason\":\"W2 Page Resource Binding workflow SHA mismatch\"}",
     "current_main_pages": "{\"source_sha\":\"b080bb0ffb4ebced18593c08709657fabb53a19e\",\"status\":\"PASS_BUILD_DEPLOY_LIVE_SHA_ROOT_REPORT_PENDING\",\"run_id\":40825171321,\"build\":\"PASS\",\"deploy\":\"PASS\",\"live_build_json_sha\":\"b080bb0ffb4ebced18593c08709657fabb53a19e\",\"root_manifest_sha256\":\"PENDING_EXACT_LOG_EXTRACTION\"}",
     "failure_gate_guard": {
       "admission_mode": "PRODUCT_WORK",
@@ -950,6 +937,63 @@
       },
       "source": "https://github.com/pan277942135/Yujian_App/actions/runs/40830891497",
       "note": "Runtime exact-head pointer in PROJECT_MASTER_STATE still referenced prior candidate 6933f45."
+    },
+    "product_work_admission_914_state_pointer_failure": {
+      "run_id": 40830891497,
+      "source_sha": "91418127df91b9854897f24eeb84c970cb2e6563",
+      "main_sha": "b080bb0ffb4ebced18593c08709657fabb53a19e",
+      "mode": "PRODUCT_WORK",
+      "status": "FAIL_PROJECT_STATE_RUNTIME_EXACT_HEAD_DRIFT",
+      "gates": {
+        "CONTROL_PLANE_SYNC": "PASS",
+        "PROJECT_STATE": "FAIL",
+        "WORK_STATE": "PASS"
+      },
+      "source": "https://github.com/pan277942135/Yujian_App/actions/runs/40830891497",
+      "note": "Runtime exact-head pointer in PROJECT_MASTER_STATE still referenced prior candidate 6933f45."
+    },
+    "latest_product_work_admission": {
+      "run_id": 40831382946,
+      "source_sha": "91418127df91b9854897f24eeb84c970cb2e6563",
+      "main_sha": "b080bb0ffb4ebced18593c08709657fabb53a19e",
+      "state_branch_head": "c9bd5e0c4b3eaea1e85d3f6f52a790ec3eb59615",
+      "mode": "PRODUCT_WORK",
+      "status": "PASS",
+      "gates": {
+        "CONTROL_PLANE_SYNC": "PASS",
+        "PROJECT_STATE": "PASS",
+        "WORK_STATE": "PASS"
+      },
+      "url": "https://github.com/pan277942135/Yujian_App/actions/runs/40831382946"
+    },
+    "current_exact_914_gates": {
+      "source_sha": "91418127df91b9854897f24eeb84c970cb2e6563",
+      "w1": {
+        "run_id": 40830549559,
+        "status": "PASS"
+      },
+      "w2": {
+        "run_id": 40830549495,
+        "status": "FAIL",
+        "reason": "three workflow authority hash mismatches"
+      },
+      "w4": {
+        "run_id": 40830549596,
+        "status": "FAIL_W2_UPSTREAM"
+      },
+      "w5": {
+        "run_id": 40830549593,
+        "status": "FAIL_W2_UPSTREAM"
+      },
+      "design_governance": {
+        "run_id": 40830549425,
+        "status": "PASS"
+      },
+      "product_work_admission": {
+        "run_id": 40831382946,
+        "status": "PASS",
+        "mode": "PRODUCT_WORK"
+      }
     }
   },
   "execution_v2": {
@@ -1119,7 +1163,7 @@
     },
     "schema_version": "1.0"
   },
-  "next_action": "Update PROJECT_MASTER_STATE runtime_gates.exact_head.sha to 91418127df91b9854897f24eeb84c970cb2e6563, checkpoint the state files on the isolated branch, and rerun PRODUCT_WORK Admission on unchanged PR #234 source 91418127df91b9854897f24eeb84c970cb2e6563. If that passes, create the Main-first Pages workflow/resource binding authority update.",
+  "next_action": "PRODUCT_WORK Admission PASS on 91418127df91b9854897f24eeb84c970cb2e6563. Create the minimal Main-first support PR that updates .github/workflows/design-manager-pages.yml and exactly three Page_Resource_Binding workflow SHA pins; verify its exact-head gates, merge under green-check policy, run official Main Pages deploy, then sync PR234 and rerun W2/W4/W5/Pages.",
   "phase": "P3",
   "related_pr": 234,
   "repository": "pan277942135/Yujian_App",
@@ -1128,6 +1172,6 @@
   "stage": "G2_EXACT_SHA_REVALIDATION_AND_ADMISSION",
   "status": "RUNNING",
   "task_id": "YUJIAN_PAGE_FREEZE_PIPELINE_W5_EMPTY_HOME_PILOT_V1",
-  "updated_at": "2026-10-29T06:46:36Z",
+  "updated_at": "2026-10-29T06:51:00Z",
   "work_id": "YUJIAN_W4_W5_MAIN_PAGES_W6_ANDROID_RUNTIME_CLOSURE_V1"
 }

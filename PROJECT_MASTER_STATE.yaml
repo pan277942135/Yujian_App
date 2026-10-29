@@ -146,49 +146,47 @@ recognition_main_journey:
 runtime_gates:
   exact_head:
     sha: 91418127df91b9854897f24eeb84c970cb2e6563
-    status: PENDING_ADMISSION_RETRY
-    note: Exact active product source 91418127df91b9854897f24eeb84c970cb2e6563; prior W4/W5/Pages results remain recorded against older SHA. Product Work Admission run 40830891497 had CONTROL_PLANE_SYNC=PASS and WORK_EXECUTION_STATE=PASS but failed PROJECT_MASTER_STATE on this stale runtime SHA. Repair this isolated pointer, then rerun Admission.
+    status: PASS_PRODUCT_WORK_ADMISSION
+    note: Product Work Admission run 40831382946 PASS on isolated state commit c9bd5e0 for exact product source 91418127df91b9854897f24eeb84c970cb2e6563; CONTROL_PLANE_SYNC, PROJECT_STATE and WORK_STATE all passed. W4, W5 and W2 remain blocked on exact source by the three Page Resource Binding workflow hash mismatch; no preview or native runtime is claimed.
   page_evidence:
     w1:
       status: PASS
-      source_sha: 6933f459d2223823a25edcd1d4598ffde3061267
-      run_id: 40828169507
+      source_sha: 91418127df91b9854897f24eeb84c970cb2e6563
+      run_id: 40830549559
     w4:
-      status: FAIL
-      source_sha: 6933f459d2223823a25edcd1d4598ffde3061267
-      run_id: 40828169489
+      status: FAIL_W2_UPSTREAM
+      source_sha: 91418127df91b9854897f24eeb84c970cb2e6563
+      run_id: 40830549596
       pages:
-        home_normal_v1: NOT_RUN_UPSTREAM_FAILURE
-        home_empty_v2: NOT_RUN_UPSTREAM_FAILURE
-        auth_login_v2: NOT_RUN_EXACT_SHA_REPORT_NOT_GENERATED
+        home_normal_v1: NOT_RUN_UPSTREAM_W2_FAILURE
+        home_empty_v2: NOT_RUN_UPSTREAM_W2_FAILURE
+        auth_login_v2: NOT_RUN_NOT_CONNECTED
     w5_matrix:
       status: FAIL_GATE_W2_RESOURCE_SCAN
-      source_sha: 6933f459d2223823a25edcd1d4598ffde3061267
-      run_id: 40828169461
-      formal_cases: NOT_REPORTED
-      supplemental_cases: NOT_REPORTED
-      negative_cases: NOT_REPORTED
+      source_sha: 91418127df91b9854897f24eeb84c970cb2e6563
+      run_id: 40830549593
+      formal_cases: NOT_REACHED
+      supplemental_cases: NOT_REACHED
+      negative_cases: NOT_REACHED
       failure: SOURCE_AUTHORITY_SHA_MISMATCH
     w2_resources:
       status: FAIL_SOURCE_AUTHORITY_SHA_MISMATCH
-      source_sha: 6933f459d2223823a25edcd1d4598ffde3061267
-      run_id: 40828169492
-      pages_checked: FAILED_ON_WORKFLOW_AUTHORITY_HASH_BEFORE_FINAL_BUNDLE_REPORT
-      failure: Three existing page bindings pin 51f8d59ab19dd2a974381991038a2f746a4b30ab73422b1894d2f01df16f7200;
-        current workflow SHA e1d7c6555b83570e92769244b83c5024113c683cc1db5f51e99d0f7ac8e8871c.
+      source_sha: 91418127df91b9854897f24eeb84c970cb2e6563
+      run_id: 40830549495
+      pages_checked: FAILED_ON_WORKFLOW_AUTHORITY_HASH
+      failure: Three bindings expect 51f8d59ab19dd2a974381991038a2f746a4b30ab73422b1894d2f01df16f7200; exact candidate workflow is e1d7c6555b83570e92769244b83c5024113c683cc1db5f51e99d0f7ac8e8871c.
     nh01_browser_matrix:
       status: PASS_BUT_VISUAL_REVIEW_PENDING
-      source_sha: 6933f459d2223823a25edcd1d4598ffde3061267
-      run_id: 40828169492
+      source_sha: 91418127df91b9854897f24eeb84c970cb2e6563
+      run_id: 40830549495
       formal_cases: 24
       continuity_probes: 5
       threshold_probes: 10
-      note: Browser structure evidence passed; Pages W2 failed later. M01-M04 visual measurements do not constitute
-        visual acceptance; standalone Hero/Peek sources remain required.
+      note: Chromium structure and responsive measurements passed before W2 failed; M01-M04 measurements are not visual acceptance; standalone Hero/Peek assets remain required.
   isolated_preview:
     status: BLOCKED_NOT_DEPLOYED_W2_FAILURE
-    run_id: 40828169492
-    source_sha: 6933f459d2223823a25edcd1d4598ffde3061267
+    run_id: 40830549495
+    source_sha: 91418127df91b9854897f24eeb84c970cb2e6563
     url: https://pan277942135.github.io/Yujian_App/previews/pr-234/
     production_deploy: SKIPPED_EXPECTED
     candidate_preview_deploy: NOT_RUN
@@ -209,21 +207,17 @@ runtime_gates:
     note: PR239 is already based on current Main b080; no sync needed. Do not clear technical dependency until PR234
       exact Product Work Admission, W4/W5/W2 and isolated preview pass.
   product_work_admission:
-    status: FAIL
+    status: PASS
     mode: PRODUCT_WORK
-    source_sha: 6933f459d2223823a25edcd1d4598ffde3061267
+    source_sha: 91418127df91b9854897f24eeb84c970cb2e6563
     main_sha: b080bb0ffb4ebced18593c08709657fabb53a19e
     required_gates:
-      CONTROL_PLANE_SYNC: FAIL
+      CONTROL_PLANE_SYNC: PASS
       PROJECT_STATE: PASS
       WORK_STATE: PASS
-    note: Exact failure is an extra/divergent Login component_mapping_v1.json under canonical design/pages. Keep
-      commit history; isolate Login ownership on PR239 before re-admission.
-    run_id: 40829566256
-    failure_gate_check:
-      decision: ALLOW_FIRST_ATTEMPT
-      source_sha: 6933f459d2223823a25edcd1d4598ffde3061267
-      failure_id: cebf6c13d5dc6fc4c1f8
+    note: Exact PRODUCT_WORK Admission passed; PR234 itself remains Draft/unmerged.
+    run_id: 40831382946
+    state_branch_head: c9bd5e0c4b3eaea1e85d3f6f52a790ec3eb59615
   latest_main_pages:
     status: PRODUCTION_BUILD_DEPLOY_LIVE_SHA_PASS_ROOT_MANIFEST_REPORT_PENDING
     source_sha: b080bb0ffb4ebced18593c08709657fabb53a19e
@@ -286,7 +280,7 @@ current_work:
   phase: P3
   task_id: YUJIAN_W4_W5_MAIN_PAGES_W6_ANDROID_RUNTIME_CLOSURE_V1
   status: IN_PROGRESS
-  next_action: PR234 scope repair is committed at 91418127df91b9854897f24eeb84c970cb2e6563; Login integration remains on PR239. Run PRODUCT_WORK Admission on this exact source SHA, then resolve the existing W2 Pages workflow source-hash mismatch through a Main-first authority update.
+  next_action: Admission is PASS on exact product SHA 91418127df91b9854897f24eeb84c970cb2e6563. Next: promote the matching Pages workflow and three binding SHA updates through a Main-first support PR, deploy the resulting exact Main SHA, then sync PR234 and rerun W2/W4/W5/Pages.
 blockers:
 - W4 run 40828169489 failed before Login exact-SHA evidence was generated.
 - W5 run 40828169461 and Pages/W2 run 40828169492 failed SOURCE_AUTHORITY_SHA_MISMATCH for the three binding records
@@ -413,7 +407,7 @@ live_recovery_checkpoint:
 current_execution_checkpoint:
   task_id: YUJIAN_W4_W5_MAIN_PAGES_W6_ANDROID_RUNTIME_CLOSURE_V1
   supplemental_task_id: YUJIAN_NH01_STRUCTURED_HIFI_MULTI_SCREEN_RESPONSIVE_CLOSURE_V1
-  updated_at: '2026-10-29T06:46:36Z'
+  updated_at: '2026-10-29T06:51:00Z'
   main_sha: b080bb0ffb4ebced18593c08709657fabb53a19e
   pr234:
     base_sha: b080bb0ffb4ebced18593c08709657fabb53a19e
@@ -441,6 +435,7 @@ current_execution_checkpoint:
     pr239_w6_historical: 40822276633
     prior_product_work_admission: 40827766107
   gates:
+    PRODUCT_WORK_ADMISSION: PASS_RUN_40831382946
     W1: PASS_RUN_40828169507
     W4: PENDING_NEW_SHA_RUN
     W5: PENDING_NEW_SHA_RUN
