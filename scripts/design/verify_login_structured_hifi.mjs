@@ -203,13 +203,12 @@ async function main() {
     await page.goForward({ waitUntil: "commit" });
     await page.waitForFunction(() => document.querySelector('[data-page-workspace-root][data-page-id="home_empty_v2"]') !== null, null, { timeout: 30000 });
     routeChecks.forward = "PASS";
-    await page.evaluate(() => { location.hash = "#page/auth_login_v2/hifi/structured_workspace"; });
-    await waitLogin();
     await page.evaluate(() => { location.hash = "#page/no_such_pilot_page/hifi/structured_workspace"; });
-    await page.waitForFunction(() => location.hash.includes("no_such_pilot_page") && !document.querySelector("#login-LoginPageRoot"), null, { timeout: 15000 });
+    await page.waitForFunction(() => location.hash.includes("no_such_pilot_page") &&
+      !document.querySelector("[data-page-workspace-root]"), null, { timeout: 15000 });
     routeChecks.invalid = "PASS";
-    await page.evaluate(() => { location.hash = "#page/auth_login_v2/hifi/structured_workspace"; });
-    await waitLogin();
+    // Restore the manager through the already-verified direct route after the fail-closed invalid-route check.
+    await openLogin();
 
     const caseDetails = [];
     for (const item of cases) {
