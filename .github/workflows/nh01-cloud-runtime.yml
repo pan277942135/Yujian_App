@@ -112,6 +112,20 @@ jobs:
           test -x "$YUJIAN_AAPT2"
           echo "YUJIAN_AAPT2=$YUJIAN_AAPT2" >> "$GITHUB_ENV"
 
+      - name: Provision CI-only debug signing keystore
+        run: |
+          set -euo pipefail
+          if [[ ! -s debug.keystore ]]; then
+            keytool -genkeypair -noprompt \
+              -keystore debug.keystore \
+              -storepass android \
+              -alias androiddebugkey \
+              -keypass android \
+              -keyalg RSA -keysize 2048 -validity 10000 \
+              -dname "CN=Android Debug,O=Android,C=US"
+          fi
+          keytool -list -keystore debug.keystore -storepass android -alias androiddebugkey >/dev/null
+
       - name: Android unit tests and exact-source APK build
         id: android_build
         run: |
