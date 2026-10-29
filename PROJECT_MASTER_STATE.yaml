@@ -13,7 +13,7 @@ state_control:
   base_sha: b080bb0ffb4ebced18593c08709657fabb53a19e
   current_task: YUJIAN_THREE_PILOT_PAGE_SPEC_CLOSURE_AND_IMPLEMENTATION_GATE_V1
   status: BLOCKED
-  updated_at: '2026-10-29T06:31:00Z'
+  updated_at: '2026-10-29T06:37:20Z'
 source_of_truth:
   control_plane: CONTROL_PLANE_REGISTRY.yaml
   phase_task_machine: harness/PHASE_TASK_STATE_MACHINE.yaml
@@ -155,6 +155,12 @@ current_work:
       native_runtime: BLOCKED_AT_W2 — run 40828169459; native assertions did not run
       runtime_media: NOT_VERIFIED_STATIC_SOURCE; dynamic user media; no fake asset promoted
       optional_illustrations: GENERATED_ILLUSTRATIVE_ONLY; not formal assets
+      spec_sha256:
+        envelope_sha256: 7bb25e0c9ae46799b6bc0b0ce72889fa88a845f7914b290b751cb07f991df66d
+        profile_sha256: 2663e12781283f8f0262955ee50d338490909bc83e9c94fb972317be07a41c99
+        responsive_rules_sha256: 2de1fae0c958fd29cdc69f27cc94297438e71c07108f0146f0ff3352a9ba2c6f
+        formal_matrix_sha256: 69701cab428f941815e72eb6883c920ce229155f4bd7735ae9a33b2806408815
+        resource_binding_sha256: 4c8e70e12bb4ab220e4c9c27d911f57f807c16369b8dbfa18a4b5c752586e54e
     home_empty_v2:
       status: BLOCKED
       page_profile: DRAFT
@@ -181,6 +187,11 @@ current_work:
         negative: 8/8 expected fail-closed
         profile: DRAFT_SCHEMA_VALID_ONLY
         visual_acceptance: PENDING
+      spec_sha256:
+        envelope_sha256: c0e8429256186516db5249ea44f89b59875732903d0a4b8e735d90e4afcf617f
+        profile_sha256: a8729fd2f1b3d979d8b404302082f8ff1be7df30c355576cd13f7a2ae59ab2b7
+        responsive_rules_and_supplemental_matrix_sha256: 9a46e9efd3a11c4ea4c5acaf70f6bba501e50aba8a2fa8057f614f58eb6e1552
+        resource_binding_sha256: c52119cbf4a6bc062f5d66a531f6e106e4aff15e486f58df1ed6adfcc59bbbee
     auth_login_v2:
       status: BLOCKED
       page_profile: DRAFT
@@ -194,6 +205,12 @@ current_work:
       visual_acceptance: PENDING
       critical_open_items: Responsive rules REVIEW_REQUIRED; safe-area/Android IME unverified; 3-attempt geometry failure
         budget exhausted; W2 workflow SHA mismatch blocks current evidence.
+      spec_sha256:
+        envelope_sha256: efd0ff903624346b4597c1962e67ce0aec94e2485248ed81742eec29f49b208c
+        profile_sha256: e60419a5d38b2cd15364b97d8b0d12adc51d3a2251eb3a2d8f9504015eef1ea1
+        formal_matrix_sha256: 4b155d072c659d72ef979c5e2b3a38d076aa651b71b9769f89eee9faa3cdd571
+        supplemental_candidate_matrix_sha256: 55ee12824d33b80b8dc5604b31deb6bff4f867829776269278cfac433621f87e
+        resource_binding_sha256: ecd10cd9ca4dcbc4f9bebdda46c668dd80eeb21b8140995dc289244b0b5971ed
 blockers:
 - id: TP-PAGES-W2-SOURCE-SHA-001
   severity: P0
@@ -291,7 +308,7 @@ completion_rules:
 state_update:
   protocol: harness/STATE_UPDATE_PROTOCOL.md
   static_control_plane_changes: NONE — current rules keep live task state in branch-local state/log files.
-  checkpoint_updated_at: '2026-10-29T06:31:00Z'
+  checkpoint_updated_at: '2026-10-29T06:37:20Z'
 agent_recovery:
   canonical_entry: AGENTS.md -> CONTROL_PLANE_REGISTRY.yaml -> current Main
   current_work_state: WORK_EXECUTION_STATE.json

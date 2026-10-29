@@ -58,7 +58,7 @@
     }
   ],
   "branch": "work-state/yujian-three-pilot-p0-v1",
-  "checkpoint_updated_at": "2026-10-29T06:31:00+00:00",
+  "checkpoint_updated_at": "2026-10-29T06:37:20+00:00",
   "control_plane_revision": "b080bb0ffb4ebced18593c08709657fabb53a19e",
   "dependencies": [
     "YUJIAN_PAGE_FREEZE_PIPELINE_W5_EMPTY_HOME_PILOT_V1",
@@ -475,6 +475,31 @@
       "source_sha": "6933f459d2223823a25edcd1d4598ffde3061267",
       "status": "BLOCKED_AT_W2_NO_NATIVE_ASSERTIONS",
       "url": "https://github.com/pan277942135/Yujian_App/actions/runs/40828169459"
+    },
+    "page_spec_sha256": {
+      "pages": {
+        "auth_login_v2": {
+          "envelope_sha256": "efd0ff903624346b4597c1962e67ce0aec94e2485248ed81742eec29f49b208c",
+          "formal_matrix_sha256": "4b155d072c659d72ef979c5e2b3a38d076aa651b71b9769f89eee9faa3cdd571",
+          "profile_sha256": "e60419a5d38b2cd15364b97d8b0d12adc51d3a2251eb3a2d8f9504015eef1ea1",
+          "resource_binding_sha256": "ecd10cd9ca4dcbc4f9bebdda46c668dd80eeb21b8140995dc289244b0b5971ed",
+          "supplemental_candidate_matrix_sha256": "55ee12824d33b80b8dc5604b31deb6bff4f867829776269278cfac433621f87e"
+        },
+        "home_empty_v2": {
+          "envelope_sha256": "c0e8429256186516db5249ea44f89b59875732903d0a4b8e735d90e4afcf617f",
+          "profile_sha256": "a8729fd2f1b3d979d8b404302082f8ff1be7df30c355576cd13f7a2ae59ab2b7",
+          "resource_binding_sha256": "c52119cbf4a6bc062f5d66a531f6e106e4aff15e486f58df1ed6adfcc59bbbee",
+          "responsive_rules_and_supplemental_matrix_sha256": "9a46e9efd3a11c4ea4c5acaf70f6bba501e50aba8a2fa8057f614f58eb6e1552"
+        },
+        "home_normal_v1": {
+          "envelope_sha256": "7bb25e0c9ae46799b6bc0b0ce72889fa88a845f7914b290b751cb07f991df66d",
+          "formal_matrix_sha256": "69701cab428f941815e72eb6883c920ce229155f4bd7735ae9a33b2806408815",
+          "profile_sha256": "2663e12781283f8f0262955ee50d338490909bc83e9c94fb972317be07a41c99",
+          "resource_binding_sha256": "4c8e70e12bb4ab220e4c9c27d911f57f807c16369b8dbfa18a4b5c752586e54e",
+          "responsive_rules_sha256": "2de1fae0c958fd29cdc69f27cc94297438e71c07108f0146f0ff3352a9ba2c6f"
+        }
+      },
+      "source_sha": "6933f459d2223823a25edcd1d4598ffde3061267"
     },
     "pr239_review": {
       "ahead_by": 23,
