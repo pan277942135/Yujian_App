@@ -28,6 +28,7 @@ import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
 
 private const val SOURCE_SPEED = 1f
+private const val PERIMETER_LOG_TAG = "RecognitionPerimeter"
 private const val NODE_POSITION_FLOATS = RecognitionPerimeterShaderMath.SPARKLE_COUNT * 2
 
 /**
@@ -182,7 +183,7 @@ private class RecognitionPerimeterGlSurfaceView(context: Context) : GLSurfaceVie
         importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
         isFocusable = false
         isClickable = false
-        Log.i(TAG, "COMPOSITOR_ORDER=MEDIA_OVERLAY_BELOW_HOST_WINDOW")
+        Log.i(PERIMETER_LOG_TAG, "COMPOSITOR_ORDER=MEDIA_OVERLAY_BELOW_HOST_WINDOW")
     }
 
     fun submit(frame: PerimeterFrame) {
