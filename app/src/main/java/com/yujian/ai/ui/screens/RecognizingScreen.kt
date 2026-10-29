@@ -9,6 +9,7 @@ import android.os.SystemClock
 import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.WindowInsets
@@ -20,6 +21,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -51,6 +53,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.yujian.ai.ai.FishInputAssessment
+import com.yujian.ai.BuildConfig
 import com.yujian.ai.ai.FishDetectionQualityGate
 import com.yujian.ai.ai.NormalizedFishBox
 import com.yujian.ai.ai.ProductionRecognitionResult
@@ -767,6 +770,8 @@ fun RecognitionProcessingScene(
     }
 }
 @Composable
+private enum class RecognitionLayerMode { PHOTO_ONLY, PHOTO_GLES, PHOTO_GLES_AMBIENT, FULL }
+
 private fun RecognitionPhoto(
     bitmap: Bitmap,
     photoFlowPlan: RecognitionPhotoFlowPlan,
@@ -823,6 +828,7 @@ private fun RecognitionPhoto(
         pivotFractionY = photoFlowPlan.targetPhotoRect.center.y.div(viewportHeightPx).coerceIn(0f, 1f),
     )
     val photoClipPath = remember { Path() }
+    var layerMode by remember(bitmap, motionSessionKey) { mutableStateOf(RecognitionLayerMode.FULL) }
     var viewportBounds by remember(bitmap, motionSessionKey) { mutableStateOf<RecognitionRevealWindowRect?>(null) }
 
     LaunchedEffect(photoEntryProgress, viewportBounds, photoFlowPlan.targetTransform) {
@@ -900,7 +906,7 @@ private fun RecognitionPhoto(
                     )
                 }
             }
-            RecognitionPerimeterShaderOverlay(
+            if (!BuildConfig.DEBUG || layerMode != RecognitionLayerMode.PHOTO_ONLY) RecognitionPerimeterShaderOverlay(
                 bitmap = bitmap,
                 photoTransform = transform,
                 elapsedMs = processingElapsedMs,
@@ -917,7 +923,7 @@ private fun RecognitionPhoto(
                     contentDescription = "正在识别的鱼获照片"
                 },
             )
-            RecognitionAmbientField(
+            if (!BuildConfig.DEBUG || layerMode == RecognitionLayerMode.PHOTO_GLES_AMBIENT || layerMode == RecognitionLayerMode.FULL) RecognitionAmbientField(
                 phase,
                 Modifier.fillMaxSize(),
                 visualClockMs,
@@ -931,7 +937,7 @@ private fun RecognitionPhoto(
                 photoTransform = transform,
                 includeEdgeField = true,
             )
-            RecognitionFishFocus(
+            if (!BuildConfig.DEBUG || layerMode == RecognitionLayerMode.FULL) RecognitionFishFocus(
                 phase,
                 focusBox,
                 subjectBitmap,
@@ -947,6 +953,15 @@ private fun RecognitionPhoto(
                 trustedMask = trustedMask,
             )
         }
+        if (BuildConfig.DEBUG) Text(
+            text = layerMode.name,
+            color = Color.White,
+            modifier = Modifier.align(Alignment.TopEnd).background(Color(0xAA10252A))
+                .clickable {
+                    layerMode = RecognitionLayerMode.entries[(layerMode.ordinal + 1) % RecognitionLayerMode.entries.size]
+                    Log.i(LOG_TAG, "COMPOSITOR_MODE=$layerMode")
+                }.padding(8.dp),
+        )
     }
 }
 
