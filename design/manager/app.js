@@ -55,14 +55,10 @@ function repoHref(path) {
   if (!path) return "#";
   const value = String(path);
   const sep = value.includes("?") ? "&" : "?";
-  if (location.pathname.includes("/previews/pr-") && /^[0-9a-f]{40}$/.test(DESIGN_MANAGER_BUILD) &&
-      /^(design|app)\//.test(value)) {
-    const [resourcePath, query = ""] = value.replace(/^\/+/, "").split("?", 2);
-    const pinnedPath = resourcePath.split("/").map(encodeURIComponent).join("/");
-    return "https://raw.githubusercontent.com/pan277942135/Yujian_App/" +
-      encodeURIComponent(DESIGN_MANAGER_BUILD) + "/" + pinnedPath + "?" +
-      (query ? query + "&" : "") + "v=" + encodeURIComponent(DESIGN_MANAGER_BUILD);
-  }
+  // Both Main and isolated PR Pages bundles contain these registered resources
+  // on the same origin. GitHub Raw serves JSON/JS/CSS as text/plain, which fails
+  // the existing strict MIME/READY checks; do not redirect preview assets to Raw.
+  // Keep the build-SHA cache key and the page-owned integrity assertions unchanged.
   return "../../" + value + sep + "v=" + encodeURIComponent(DESIGN_MANAGER_BUILD);
 }
 function isImage(path) { return !!path && /\.(png|jpe?g|webp|gif|svg)$/i.test(path); }
