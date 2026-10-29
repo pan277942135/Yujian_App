@@ -9,9 +9,9 @@ const sourceSha = "42ad0d3fef23ea6576fd43dee781d253dcc11251";
 const pageId = "home_empty_v2";
 const verifier = resolve("scripts/design/verify_page_workspace.mjs");
 
-function shellHtml({ page = pageId, source = sourceSha, node = true, throwing = false, kind = "structured-page-adapter", disabled = false, viewState = "READY", errorText = null, badResource = false, staleWorkspace = false, duplicateWorkspace = false } = {}) {
+function shellHtml({ page = pageId, source = sourceSha, node = true, delayedNode = false, delayedReady = false, throwing = false, kind = "structured-page-adapter", disabled = false, viewState = "READY", errorText = null, badResource = false, staleWorkspace = false, duplicateWorkspace = false } = {}) {
   const tree = `<button data-workspace-tree-node data-node-id="empty-scene" ${disabled ? "disabled" : ""}>Empty scene</button>`;
-  const rendered = node ? `<div data-workspace-rendered-node="empty-scene" style="width:120px;height:80px">scene</div>` : "";
+  const rendered = node && !delayedNode ? `<div data-workspace-rendered-node="empty-scene" style="width:120px;height:80px">scene</div>` : "";
   const stale = staleWorkspace ? `<main data-page-workspace-root data-page-id="${page}" data-source-sha="1111111111111111111111111111111111111111" data-workspace-kind="structured-page-adapter" data-view-state="READY" style="display:none"><button data-workspace-tree-node data-node-id="old-workspace-layer" disabled>Old hidden layer</button><aside data-workspace-inspector data-selected-node-id="">Old Inspector</aside></main>` : "";
   const duplicate = duplicateWorkspace ? `<main data-page-workspace-root data-page-id="${page}" data-source-sha="${source}" data-workspace-kind="${kind}" data-view-state="${viewState}">${tree}${rendered}<aside data-workspace-inspector data-selected-node-id="">Duplicate Inspector</aside></main>` : "";
   return `<!doctype html><html><head><meta charset="utf-8"></head><body>
@@ -28,6 +28,16 @@ function shellHtml({ page = pageId, source = sourceSha, node = true, throwing = 
         }));
       });
       ${throwing ? "throw new Error('fixture page error');" : ""}
+      ${delayedNode ? `setTimeout(() => {
+        const node = document.createElement('div');
+        node.dataset.workspaceRenderedNode = 'empty-scene';
+        node.style.cssText = 'width:120px;height:80px';
+        node.textContent = 'scene';
+        document.querySelector('[data-page-workspace-root][data-source-sha="${source}"]').append(node);
+      }, 80);` : ""}
+      ${delayedReady ? `setTimeout(() => {
+        document.querySelector('[data-page-workspace-root][data-source-sha="${source}"]').dataset.viewState = 'REFERENCE_IMAGE_ONLY';
+      }, 80);` : ""}
       ${badResource ? `fetch('/broken-workspace-resource.png').then(response => {
         const workspace = document.querySelector('[data-page-workspace-root]');
         workspace.dataset.viewState = 'ERROR';
@@ -72,6 +82,8 @@ async function main() {
     }
     const html = fixture === "wrong-page" ? shellHtml({ page: "auth_login_v2" })
       : fixture === "hidden-old-workspace" ? shellHtml({ staleWorkspace: true })
+      : fixture === "delayed-render" ? shellHtml({ delayedNode: true })
+      : fixture === "reference-only-delayed-ready" ? shellHtml({ kind: "reference-image-only", viewState: "LOADING", delayedReady: true })
       : fixture === "duplicate-visible-workspaces" ? shellHtml({ duplicateWorkspace: true })
       : fixture === "missing-layer" ? shellHtml({ node: false })
       : fixture === "reference-only" ? shellHtml({ kind: "reference-image-only", viewState: "REFERENCE_IMAGE_ONLY" })
@@ -89,7 +101,7 @@ async function main() {
   const root = await mkdtemp(join(tmpdir(), "page-workspace-w4-test-"));
   let infrastructureBlocked = false;
   try {
-    for (const fixture of ["ok", "hidden-old-workspace", "duplicate-visible-workspaces", "missing", "wrong-page", "missing-layer", "reference-only", "structured-error", "disabled-node", "page-error"]) {
+    for (const fixture of ["ok", "hidden-old-workspace", "delayed-render", "duplicate-visible-workspaces", "missing", "wrong-page", "missing-layer", "reference-only", "structured-error", "disabled-node", "page-error"]) {
       const outputDir = join(root, fixture);
       const execution = await runVerifier(serverUrl, fixture, outputDir);
       const { code } = execution;
@@ -103,7 +115,7 @@ async function main() {
         infrastructureBlocked = true;
         continue;
       }
-      const expected = ["ok", "hidden-old-workspace"].includes(fixture) ? "PASS" : "FAIL";
+      const expected = ["ok", "hidden-old-workspace", "delayed-render"].includes(fixture) ? "PASS" : "FAIL";
       if (report.result !== expected || (expected === "PASS" && code !== 0) || (expected === "FAIL" && code === 0)) {
         throw new Error(`${fixture}: expected ${expected}, got ${report.result}, exit ${code}; report=${JSON.stringify(report)}`);
       }
@@ -131,14 +143,15 @@ async function main() {
         }
       }
     }
-    const referenceOnlyOutput = join(root, "reference-only-core-not-run");
-    const { code: referenceOnlyCode, stdout: referenceOnlyStdout, stderr: referenceOnlyStderr } =
-      await runVerifier(serverUrl, "reference-only", referenceOnlyOutput, "not-run");
-    const referenceOnlyReport = JSON.parse(await readFile(join(referenceOnlyOutput, "workspace-browser-report.json"), "utf8"));
-    if (referenceOnlyCode !== 0 || referenceOnlyReport.result !== "NOT_RUN"
-      || referenceOnlyReport.reason !== "REFERENCE_IMAGE_ONLY_NOT_CONNECTED"
-      || referenceOnlyReport.page_acceptance !== "NOT_VERIFIED") {
-      throw new Error(`core tools must preserve reference-only page status as NOT_RUN; exit=${referenceOnlyCode}; stdout=${referenceOnlyStdout}; stderr=${referenceOnlyStderr}; report=${JSON.stringify(referenceOnlyReport)}`);
+    for (const fixture of ["reference-only", "reference-only-delayed-ready"]) {
+      const referenceOnlyOutput = join(root, `${fixture}-core-not-run`);
+      const { code, stdout, stderr } = await runVerifier(serverUrl, fixture, referenceOnlyOutput, "not-run");
+      const report = JSON.parse(await readFile(join(referenceOnlyOutput, "workspace-browser-report.json"), "utf8"));
+      if (code !== 0 || report.result !== "NOT_RUN"
+        || report.reason !== "REFERENCE_IMAGE_ONLY_NOT_CONNECTED"
+        || report.page_acceptance !== "NOT_VERIFIED") {
+        throw new Error(`${fixture}: core tools must preserve reference-only page status as NOT_RUN; exit=${code}; stdout=${stdout}; stderr=${stderr}; report=${JSON.stringify(report)}`);
+      }
     }
     for (const fixture of ["reference-only-error", "reference-only-bad-response"]) {
       const outputDir = join(root, fixture);
@@ -153,7 +166,7 @@ async function main() {
       process.exitCode = 2;
       return;
     }
-    console.log("PAGE_WORKSPACE_VERIFIER_FIXTURES=PASS cases=12 hidden_old_workspace=IGNORED duplicate_visible_workspace=FAIL reference_only=NOT_RUN reference_only_errors=FAIL");
+    console.log("PAGE_WORKSPACE_VERIFIER_FIXTURES=PASS cases=15 delayed_render=PASS hidden_old_workspace=IGNORED duplicate_visible_workspace=FAIL reference_only=NOT_RUN reference_only_errors=FAIL");
   } finally {
     await new Promise(resolvePromise => browser.close(resolvePromise));
     await rm(root, { recursive: true, force: true });
