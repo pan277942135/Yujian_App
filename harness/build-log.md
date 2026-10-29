@@ -65,3 +65,10 @@ Next action: restore Login inside the existing shared Design Manager, retain all
 - Preserved Login mapping `design/pages/account_privacy/Login/structured_candidate/component_mapping_v1.json`, blob `75c615d20be011b16e4e6843b41dabd0479a8d63`, because W6-A requires it and Main registers the exact non-frozen path/blob exception.
 - Current control-plane sync on the code-sync source `dad76a9ca737245d4076b75b86537412b0238765`: **PASS**, 735 paths compared, 1 exact approved exception. The root state files now point to Main `a14d03fa78db0a1cb9b007f8e3d983b8a3b85754` and this source SHA.
 - Empty Home page files remain unchanged. Exact Admission on the final state-only checkpoint is still pending; no visual acceptance, freeze, product merge, or Android work is claimed.
+
+
+## 2026-10-29 — Main advanced during admission recovery
+
+- Main advanced from a14d03fa78db0a1cb9b007f8e3d983b8a3b85754 to 0c245b86f8228107309d0135bdf819af255604be when PR #258 merged. The product candidate remains code-source dad76a9ca737245d4076b75b86537412b0238765; only the state snapshot was rebound.
+- Re-fetched Main. Canonical control-plane sync remains PASS on the candidate: 735 paths compared, 1 exact approved Login mapping exception, 0 errors.
+- Updated both root state files to current Main 0c245b86f8228107309d0135bdf819af255604be. Exact Admission must be rerun on the final state-only candidate SHA; no page code has changed.
