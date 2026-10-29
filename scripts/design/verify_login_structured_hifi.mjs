@@ -124,7 +124,9 @@ async function main() {
   let routeChecks, inspectorEvidence, interactions, domReport, visualComparison;
   try {
     browser = await chromium.launch({ headless: true });
-    const context = await browser.newContext({ viewport: { width: 1440, height: 1000 }, deviceScaleFactor: 1 });
+    // Keep the Design Manager host viewport tall enough to capture the complete embedded page viewport.
+    // The case dimensions are applied inside the workspace and remain independent of this host size.
+    const context = await browser.newContext({ viewport: { width: 1440, height: 2400 }, deviceScaleFactor: 1 });
     page = await context.newPage();
     page.on("console", msg => { if (collectErrors && msg.type() === "error") errors.console.push(msg.text()); });
     page.on("pageerror", error => { if (collectErrors) errors.page.push(String(error.stack || error)); });
