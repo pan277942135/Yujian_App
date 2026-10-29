@@ -27,7 +27,7 @@
     {
       "authority_id": "workflow",
       "path": ".github/workflows/design-manager-pages.yml",
-      "sha256": "1d7a5b06fc22a6ff6322e5d6fd5f777158a6b62beb3990daaae68014eabf3557",
+      "sha256": "51f8d59ab19dd2a974381991038a2f746a4b30ab73422b1894d2f01df16f7200",
       "purpose": "workflow"
     },
     {
@@ -95,6 +95,18 @@
       "path": "design/pages/recognition/web/implementation_input_pack/SWOS_WEB_IMPLEMENTATION_INPUT_MANIFEST_V1.json",
       "sha256": "10bd86f55e41704ca621da8e82568ae6d8ad7a61002d51012ff630bb9b38df4a",
       "purpose": "Pinned private bundle names and SHA values for the actual Pages artifact scan."
+    },
+    {
+      "authority_id": "iconinventory",
+      "path": "design/system/icon_library_v0_1/icon_inventory_v0_1.json",
+      "sha256": "896c597c9cb43ed7b4f3f838db6d6a02331a8f35ab1a4d60dead9782c1aeec95",
+      "purpose": "shared_icon_inventory"
+    },
+    {
+      "authority_id": "iconfrozen",
+      "path": "design/system/icon_library_v0_1/frozen_assets_v1.json",
+      "sha256": "cef68880232ac7441a774b72203064fc697931b36984a3024e195906fb6d5aa1",
+      "purpose": "shared_frozen_icon_assets"
     }
   ],
   "publication_policy": {
@@ -104,7 +116,8 @@
   "page_notes": [
     "Empty Home uses its own V2 base, approved V2.2 increment and 13-resource asset manifest.",
     "No NH01 page-specific visual asset is reused.",
-    "The full-page PNGs carry Asset Registry REVIEW while page authorities remain FROZEN; the discrepancy is preserved, not promoted."
+    "The full-page PNGs carry Asset Registry REVIEW while page authorities remain FROZEN; the discrepancy is preserved, not promoted.",
+    "GALLERY and CHEVRON_RIGHT are FROZEN in the icon inventory/frozen_assets authority; Asset Registry lifecycle REVIEW is retained as a lifecycle conflict."
   ],
   "asset_bindings": [
     {
@@ -974,6 +987,114 @@
       "requiredness": "REQUIRED",
       "notes": [
         "Primary Capture Button V1.1 frozen canonical asset; referenced from shared system path and not copied into page-owned visual assets."
+      ]
+    },
+    {
+      "page_id": "home_empty_v2",
+      "asset_id": "system_icon_library_v0_1_assets_ic_gallery_v1_svg",
+      "asset_role": "shared_system_gallery_icon",
+      "source_path": "design/system/icon_library_v0_1/assets/ic_gallery_v1.svg",
+      "source_authorities": [
+        {
+          "authority_id": "assetreg",
+          "json_pointer": "/entries/625",
+          "field_map": {
+            "source_path": "/path",
+            "sha256": "/sha256",
+            "bytes": "/size",
+            "lifecycle_status": "/status"
+          }
+        },
+        {
+          "authority_id": "iconinventory",
+          "json_pointer": "/entries/12",
+          "field_map": {
+            "source_path": "/asset_path",
+            "sha256": "/asset_sha256"
+          }
+        },
+        {
+          "authority_id": "iconfrozen",
+          "json_pointer": "/assets/12",
+          "field_map": {
+            "source_path": "/path",
+            "sha256": "/sha256",
+            "bytes": "/bytes"
+          }
+        }
+      ],
+      "media_type": "image/svg+xml",
+      "bytes": 984,
+      "sha256": "5798abbdaad45305fe9ed5a578868247925d2d95644c8ea2559f446c1f069fda",
+      "pixel_dimensions": null,
+      "coordinate_space": "svg_viewBox_0_0_24_24",
+      "fit_crop_policy": "Preserve the 24x24 SVG viewBox with object-fit:contain and no crop; 14 CSS px candidate footprint is raster-derived from the frozen Empty Home V2.2 reference. Browser CSS px are not Native dp.",
+      "lifecycle_status": "REVIEW",
+      "asset_designation": "ORIGINAL",
+      "publication_permission": {
+        "state": "PUBLIC_BY_EXISTING_PAGES_RULE",
+        "authority_id": "workflow",
+        "scope": "Shared frozen icon is inside the existing public design/** Pages copy scope; the exact workflow marker is source-pinned and checked by W2.",
+        "policy_marker": "cp -R design _site/design"
+      },
+      "requiredness": "REQUIRED",
+      "notes": [
+        "GALLERY and CHEVRON_RIGHT are FROZEN in the icon inventory/frozen_assets authority; Asset Registry lifecycle REVIEW is retained as a lifecycle conflict.",
+        "FROZEN_DESIGN visual master; Asset Registry lifecycle REVIEW preserved without promotion."
+      ]
+    },
+    {
+      "page_id": "home_empty_v2",
+      "asset_id": "system_icon_library_v0_1_assets_ic_chevron_right_v1_svg",
+      "asset_role": "shared_text_action_chevron",
+      "source_path": "design/system/icon_library_v0_1/assets/ic_chevron_right_v1.svg",
+      "source_authorities": [
+        {
+          "authority_id": "assetreg",
+          "json_pointer": "/entries/614",
+          "field_map": {
+            "source_path": "/path",
+            "sha256": "/sha256",
+            "bytes": "/size",
+            "lifecycle_status": "/status"
+          }
+        },
+        {
+          "authority_id": "iconinventory",
+          "json_pointer": "/entries/19",
+          "field_map": {
+            "source_path": "/asset_path",
+            "sha256": "/asset_sha256"
+          }
+        },
+        {
+          "authority_id": "iconfrozen",
+          "json_pointer": "/assets/19",
+          "field_map": {
+            "source_path": "/path",
+            "sha256": "/sha256",
+            "bytes": "/bytes"
+          }
+        }
+      ],
+      "media_type": "image/svg+xml",
+      "bytes": 423,
+      "sha256": "3d8c0bf43500c40b636a08f50d6fedf4d5f0ae2fd984a7e6c16cd03f4130d4a9",
+      "pixel_dimensions": null,
+      "coordinate_space": "svg_viewBox_0_0_24_24",
+      "fit_crop_policy": "Preserve the 24x24 SVG viewBox with object-fit:contain and no crop; Text Action V1 specifies a 14dp trailing glyph and 4dp text gap. Browser CSS px are not Native dp.",
+      "lifecycle_status": "REVIEW",
+      "asset_designation": "ORIGINAL",
+      "publication_permission": {
+        "state": "PUBLIC_BY_EXISTING_PAGES_RULE",
+        "authority_id": "workflow",
+        "scope": "Shared frozen icon is inside the existing public design/** Pages copy scope; the exact workflow marker is source-pinned and checked by W2.",
+        "policy_marker": "cp -R design _site/design"
+      },
+      "requiredness": "REQUIRED",
+      "notes": [
+        "GALLERY and CHEVRON_RIGHT are FROZEN in the icon inventory/frozen_assets authority; Asset Registry lifecycle REVIEW is retained as a lifecycle conflict.",
+        "FROZEN_DESIGN visual master; Asset Registry lifecycle REVIEW preserved without promotion."
       ]
     }
   ]

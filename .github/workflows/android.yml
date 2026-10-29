@@ -161,10 +161,10 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - name: Set up Gradle 8.9
+      - name: Set up Gradle 9.3.1
         uses: gradle/actions/setup-gradle@v4
         with:
-          gradle-version: '8.9'
+          gradle-version: '9.3.1'
 
       - name: Resolve stable SDK AAPT2
         shell: bash
@@ -178,6 +178,20 @@ jobs:
 
       - name: Camera runtime harness contract tests
         run: bash scripts/android_runtime/tests/test_contract.sh
+
+      - name: Provision CI-only debug signing keystore
+        run: |
+          set -euo pipefail
+          if [[ ! -s debug.keystore ]]; then
+            keytool -genkeypair -noprompt \
+              -keystore debug.keystore \
+              -storepass android \
+              -alias androiddebugkey \
+              -keypass android \
+              -keyalg RSA -keysize 2048 -validity 10000 \
+              -dname "CN=Android Debug,O=Android,C=US"
+          fi
+          keytool -list -keystore debug.keystore -storepass android -alias androiddebugkey >/dev/null
 
       - name: Assemble debug APK
         run: gradle -Pandroid.aapt2FromMavenOverride="$YUJIAN_AAPT2" :app:assembleDebug --stacktrace --no-daemon --max-workers=2

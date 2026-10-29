@@ -1,6 +1,8 @@
 package com.yujian.ai.ui.recognition
 
 import android.graphics.Bitmap
+import android.graphics.Path as AndroidPath
+import android.graphics.PathMeasure as AndroidPathMeasure
 import android.os.SystemClock
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.fillMaxSize
@@ -13,7 +15,10 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.asAndroidPath
+import androidx.compose.ui.graphics.asComposePath
+import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
@@ -175,6 +180,7 @@ fun RecognitionFishFocus(
     modifier: Modifier = Modifier,
     visualClockMs: Long? = null,
     phaseElapsedMs: Long = Long.MAX_VALUE,
+    processingElapsedMs: Long = phaseElapsedMs,
     reduceMotion: Boolean = false,
     lowPerformance: Boolean = false,
     focusLevel: RecognitionFishFocusLevel = RecognitionFishFocusLevel.A,
@@ -347,36 +353,135 @@ fun RecognitionFishFocus(
             levelAAvailable
         ) {
             val realContour = requireNotNull(cachedContourPath)
+            val t = processingElapsedMs.coerceAtLeast(0L)
 
-            val coreAlpha = contourCoreTarget * reveal
+            // 1. 核心描边路径生长进度 (0–1000ms smoothstep)
+            val growthProgress = when {
+                reduceMotion -> 1.0f
+                t <= 0L -> 0.0f
+                t >= 1000L -> 1.0f
+                else -> {
+                    val p = t.toFloat() / 1000f
+                    3f * p * p - 2f * p * p * p
+                }
+            }
 
-            drawLocalContourBlur(
-                realContour,
-                Color(0xFFFFD887).copy(
-                    alpha = (coreAlpha * .22f).coerceAtMost(.10f),
-                ),
-                widthPx = 11.dp.toPx(),
-                blurRadiusPx = 5.dp.toPx(),
-                blurPaints = contourBlurPaints,
-            )
-            drawLocalContourBlur(
-                realContour,
-                Color(0xFFFFD887).copy(
-                    alpha = (coreAlpha * .68f).coerceAtMost(.24f),
-                ),
-                widthPx = 4.dp.toPx(),
-                blurRadiusPx = 2.dp.toPx(),
-                blurPaints = contourBlurPaints,
-            )
-            drawPath(
-                realContour,
-                Color(0xFFFFE7AE).copy(alpha = coreAlpha.coerceAtMost(.42f)),
-                style = Stroke(
-                    width = 1.5.dp.toPx(),
-                    cap = StrokeCap.Round,
-                    join = androidx.compose.ui.graphics.StrokeJoin.Round,
-                ),
-            )
+            // 2. 识别确认高光 (Confirmation Highlight: 1600ms–1850ms, 1680ms 达峰值)
+            val confirmationFactor = when {
+                reduceMotion || t < 1600L || t > 1850L -> 0f
+                t <= 1680L -> {
+                    val k = (t - 1600L).toFloat() / 80f
+                    k * k * (3f - 2f * k)
+                }
+                t <= 1760L -> {
+                    val k = (t - 1680L).toFloat() / 80f
+                    val s = k * k * (3f - 2f * k)
+                    1.0f - 0.5f * s
+                }
+                else -> {
+                    val k = (t - 1760L).toFloat() / 90f
+                    val s = k * k * (3f - 2f * k)
+                    0.5f * (1.0f - s)
+                }
+            }
+
+            // 3. 基础柔光与 Halo 平滑淡入 (1150–1400ms)
+            // 阶段严格互斥：0-1150ms 柔光与反光彻底关闭
+            val fadeFactor = when {
+                reduceMotion -> 1.0f
+                t < 1150L -> 0.0f
+                t >= 1400L -> 1.0f
+                else -> {
+                    val u = (t - 1150L).toFloat() / 250f
+                    u * u * (3f - 2f * u)
+                }
+            }
+
+            // 4. 柔光呼吸微调制 (1400ms 起，维持柔美流动，振幅≤±3%)
+            val loopModulation = if (!reduceMotion && t >= 1400L) {
+                sin(((t - 1400L) % 2200L).toFloat() / 2200f * 2f * PI.toFloat()) * 0.03f
+            } else {
+                0.0f
+            }
+
+            // 计算各光学层 Alpha (金色轮廓 V1.1 参数)
+            // 核心描边 Core: 线宽 1.2dp, #F5DFB0, 稳定Alpha 0.75, 1.15x boost at 1680ms
+            val coreAlpha = (0.75f * (1.0f + 0.15f * confirmationFactor) * (if (phase == RecognitionPhase.OUTLINE) reveal else 1.0f)).coerceIn(0f, 1f)
+
+            // 外围双层柔光 Soft Glow: 5dp, #E8C882, 稳定Alpha 0.24, 1.25x boost at 1680ms
+            val softGlowAlpha = if (fadeFactor <= 0f) 0f else {
+                (0.24f * (1.0f + loopModulation) * (1.0f + 0.25f * confirmationFactor) * fadeFactor).coerceIn(0f, 0.95f)
+            }
+
+            // 外发散光晕 Halo: 10dp, #C9A66B, 稳定Alpha 0.08, 1.15x boost at 1680ms
+            val outerHaloAlpha = if (fadeFactor <= 0f) 0f else {
+                (0.08f * (1.0f + loopModulation) * (1.0f + 0.15f * confirmationFactor) * fadeFactor).coerceIn(0f, 0.60f)
+            }
+
+            // 鱼体内部局部反光 Internal Glint: #F0DCA5, 峰值Alpha 0.12
+            val internalGlintAlpha = if (fadeFactor <= 0f) 0f else {
+                (0.12f * (1.0f + 0.25f * confirmationFactor) * fadeFactor).coerceIn(0f, 0.25f)
+            }
+
+            // 内部局部反光 (剪裁至轮廓内)
+            if (internalGlintAlpha > 0.005f) {
+                clipPath(realContour) {
+                    drawRect(
+                        color = Color(0xFFF0DCA5).copy(alpha = internalGlintAlpha),
+                        topLeft = Offset(mappedRect.left, mappedRect.top),
+                        size = Size(mappedRect.width, mappedRect.height),
+                    )
+                }
+            }
+
+            // 获取生长路径
+            val pathToDraw = if (growthProgress >= 0.999f || reduceMotion) {
+                realContour
+            } else if (growthProgress <= 0.001f) {
+                null
+            } else {
+                val androidPath = AndroidPath()
+                val measure = AndroidPathMeasure(realContour.asAndroidPath(), false)
+                measure.getSegment(0f, measure.length * growthProgress, androidPath, true)
+                androidPath.asComposePath()
+            }
+
+            if (pathToDraw != null) {
+                // 外发散光晕 Halo (10dp, #C9A66B)
+                if (outerHaloAlpha > 0.005f) {
+                    drawLocalContourBlur(
+                        pathToDraw,
+                        Color(0xFFC9A66B).copy(alpha = outerHaloAlpha),
+                        widthPx = 10.dp.toPx(),
+                        blurRadiusPx = 10.dp.toPx(),
+                        blurPaints = contourBlurPaints,
+                    )
+                }
+
+                // 外围柔光 Soft Glow (5dp, #E8C882)
+                if (softGlowAlpha > 0.005f) {
+                    drawLocalContourBlur(
+                        pathToDraw,
+                        Color(0xFFE8C882).copy(alpha = softGlowAlpha),
+                        widthPx = 5.dp.toPx(),
+                        blurRadiusPx = 5.dp.toPx(),
+                        blurPaints = contourBlurPaints,
+                    )
+                }
+
+                // 核心描边 Core (1.2dp, #F5DFB0)
+                if (coreAlpha > 0.005f) {
+                    drawPath(
+                        pathToDraw,
+                        Color(0xFFF5DFB0).copy(alpha = coreAlpha),
+                        style = Stroke(
+                            width = 1.2.dp.toPx(),
+                            cap = StrokeCap.Round,
+                            join = StrokeJoin.Round,
+                        ),
+                    )
+                }
+            }
         }
     }
 }

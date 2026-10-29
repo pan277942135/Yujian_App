@@ -76,7 +76,7 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p "$YUJIAN_RUNTIME_EVIDENCE"
-          python -m pip install --disable-pip-version-check -r scripts/design/requirements_nh01_cloud.txt Pillow==11.3.0
+          python -m pip install --disable-pip-version-check -r scripts/design/requirements_nh01_cloud.txt Pillow==11.3.0 PyYAML==6.0.3
           python3 scripts/design/build_nh01_cloud_bundle.py
           python3 scripts/design/validate_nh01_cloud_bundle.py
           python3 scripts/design/build_nh01_authority_inventory.py
@@ -95,10 +95,10 @@ jobs:
           distribution: temurin
           java-version: "17"
 
-      - name: Set up Gradle 8.9
+      - name: Set up Gradle 9.3.1
         uses: gradle/actions/setup-gradle@v4
         with:
-          gradle-version: "8.9"
+          gradle-version: "9.3.1"
 
       - name: Bootstrap verified Android recognition assets
         env:
@@ -111,6 +111,20 @@ jobs:
           YUJIAN_AAPT2="$ANDROID_HOME/build-tools/35.0.0/aapt2"
           test -x "$YUJIAN_AAPT2"
           echo "YUJIAN_AAPT2=$YUJIAN_AAPT2" >> "$GITHUB_ENV"
+
+      - name: Provision CI-only debug signing keystore
+        run: |
+          set -euo pipefail
+          if [[ ! -s debug.keystore ]]; then
+            keytool -genkeypair -noprompt \
+              -keystore debug.keystore \
+              -storepass android \
+              -alias androiddebugkey \
+              -keypass android \
+              -keyalg RSA -keysize 2048 -validity 10000 \
+              -dname "CN=Android Debug,O=Android,C=US"
+          fi
+          keytool -list -keystore debug.keystore -storepass android -alias androiddebugkey >/dev/null
 
       - name: Android unit tests and exact-source APK build
         id: android_build

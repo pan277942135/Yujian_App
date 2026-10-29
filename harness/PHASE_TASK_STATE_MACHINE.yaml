@@ -98,7 +98,7 @@ phases:
     exit_condition: "Release-scope feature implementation reaches executable acceptance tasks."
     release_scope: "PRIMARY_PLUS_SECONDARY"
     feature_refs: ["home_normal_v1", "record_date_v2", "share_templates_v1", "auth_register_v2"]
-    task_refs: ["P6-01", "P6-02", "P6-03", "P6-04", "YUJIAN_NH01_ANDROID_FROZEN_V22_IMPLEMENTATION_REPAIR_WORK_B_V1", "YUJIAN_NH01_RESPONSIVE_V2_ANDROID_IMPLEMENTATION_AND_RUNTIME_ACCEPTANCE_V1"]
+    task_refs: ["P6-01", "P6-02", "P6-03", "P6-04", "YUJIAN_NH01_ANDROID_FROZEN_V22_IMPLEMENTATION_REPAIR_WORK_B_V1", "YUJIAN_NH01_RESPONSIVE_V2_ANDROID_IMPLEMENTATION_AND_RUNTIME_ACCEPTANCE_V1", "YUJIAN_ANDROID_FISH_CATCH_EFFECT01_UPWARD_SCAN_SHAKE_V1", "YUJIAN_ANDROID_AISTUDIO_PERIMETER_SHADER_PORT_V1", "YUJIAN_ANDROID_SLIMSAM_PIXEL_SEGMENTATION_V1"]
   P7:
     name: "Integration / Full Surface"
     entry_condition: "Feature implementation is executable."
@@ -561,6 +561,45 @@ tasks:
     target_blockers: []
     evidence_required: ["camera_capture_handoff", "recognition_processing_state_sequence"]
     completion: "Recognition feature implementation is executable on the current baseline."
+    human_required: false
+  YUJIAN_ANDROID_FISH_CATCH_EFFECT01_UPWARD_SCAN_SHAKE_V1:
+    phase: "P6"
+    priority: "P0"
+    owner: "Work"
+    feature_refs: ["recognition_flow_v1_2"]
+    journey_refs: ["J05-J10"]
+    depends_on: ["P3-05", "P5-02"]
+    entry_blockers: []
+    target_blockers: []
+    gate_id: "G-ANDROID-EFFECT01-UPWARD-SCAN-SHAKE-V1"
+    evidence_required: ["frozen_effect01_parameter_contract", "native_equivalent_source_provenance", "shared_processing_clock_binding", "photo_session_lifecycle_regression_tests", "api28_canvas_compatibility", "build_unit_lint", "targeted_api28_runtime", "exact_head_apk_provenance"]
+    completion: "Integrate native Effect 01, the natural upward caustic surge and one photo shockwave into the existing Android recognition Processing scene; preserve event-gated Processing/RR09 authority and produce exact-head build, test, runtime and APK evidence. This task does not claim product-owner visual approval or release."
+    human_required: false
+  YUJIAN_ANDROID_AISTUDIO_PERIMETER_SHADER_PORT_V1:
+    phase: "P6"
+    priority: "P0"
+    owner: "Work"
+    feature_refs: ["recognition_flow_v1_2"]
+    journey_refs: ["J05-J10"]
+    depends_on: ["P3-05", "P5-02"]
+    entry_blockers: []
+    target_blockers: []
+    gate_id: "G-ANDROID-AISTUDIO-PERIMETER-SHADER-PORT-V1"
+    evidence_required: ["source_sha_provenance", "source_browser_dpr_css_and_render_dimensions", "coordinate_scale_mapping", "gles2_shader_compile_log", "perimeter_shader_and_16_node_parity", "two_stage_overlay_alpha_comparison", "shared_processing_clock_and_photo_session_binding", "photo_session_lifecycle_regression", "photo_and_model_input_invariance", "build_unit_android_test_compile_lint", "api28_device_runtime_and_recording", "seven_timestamp_source_android_comparison", "exact_head_apk_provenance"]
+    completion: "Port only the exact-source AI Studio four-sided perimeter shader and 16 perimeter nodes into the existing Android recognition PhotoSession; preserve the original photo transform and recognition path, prove the two-stage Overlay/alpha and source coordinate scale, and deliver exact-head API28 device/runtime and seven-frame comparison evidence. No bottom caustics, photo shockwave, fish reveal, or visual PASS without real-device comparison."
+    human_required: false
+  YUJIAN_ANDROID_SLIMSAM_PIXEL_SEGMENTATION_V1:
+    phase: "P6"
+    priority: "P0"
+    owner: "Work"
+    feature_refs: ["recognition_flow_v1_2"]
+    journey_refs: ["J05-J10"]
+    depends_on: ["P5-02"]
+    entry_blockers: []
+    target_blockers: []
+    gate_id: "G-ANDROID-SLIMSAM-PIXEL-SEGMENTATION-V1"
+    evidence_required: ["immutable_model_revision_license_and_sha256", "onnx_metadata_and_cpu_smoke", "photo_preprocessing_and_bbox_coordinate_parity", "one_encoder_embedding_reused_across_boxes", "full_resolution_mask_and_candidate_quality_evidence", "photo_session_cancellation_and_stale_result_isolation", "detector_classifier_and_result_invariance", "real_photo_positive_and_negative_cases", "offline_model_loading", "api28_runtime_diagnostics_and_installable_apk"]
+    completion: "Add local SlimSAM segmentation as an independent branch from the existing PhotoSession original photo and Detector BBOX; produce a separately attributable full-resolution pixel mask per valid box, reuse one image embedding per photo, preserve Detector/Classifier/Result behavior, and deliver exact-head model, CPU, offline and API28 evidence. No fake-mask fallback or production visual redesign."
     human_required: false
   P6-03:
     phase: "P6"

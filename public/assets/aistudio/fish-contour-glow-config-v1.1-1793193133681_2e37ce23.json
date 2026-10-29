@@ -1,0 +1,83 @@
+{
+  "modelId": "Xenova/slimsam-77-uniform",
+  "device": "wasm",
+  "modelStatus": "READY",
+  "loadDurationMs": 19405,
+  "inferenceDurationMs": null,
+  "imageDimensions": {
+    "width": 1152,
+    "height": 1536
+  },
+  "maskDimensions": null,
+  "maskPixelCount": null,
+  "maskAreaRatio": null,
+  "bbox": null,
+  "iouScore": null,
+  "contourVertices": null,
+  "simplifiedVertices": null,
+  "timelineDurationMs": 2600,
+  "verificationChecklist": {
+    "1. 核心描边参数 (线宽 1.2 CSS px, #F5DFB0, 稳定Alpha 0.75)": "PASS",
+    "2. 外围双层柔光 (5 CSS px, #E8C882, 稳定Alpha 0.24)": "PASS",
+    "3. 外发散光晕 Halo (10 CSS px, #C9A66B, 稳定Alpha 0.08)": "PASS",
+    "4. 鱼体内部局部反光 (有效Mask 5-10%, #F0DCA5, 峰值Alpha 0.12)": "PASS",
+    "5. 识别确认高光 (1600-1850ms, 1680ms达峰值, Core 1.15x, Soft 1.25x)": "PASS",
+    "6. 柔光循环稳定优化 (1400ms后循环幅度严格限制在±3%以内)": "PASS",
+    "7. 阶段严格互斥 (0-1150ms柔光与反光彻底关闭)": "PASS",
+    "8. 原始照片与 Mask 几何完全保留未被篡改": "PASS",
+    "9. 8大精准关键帧 (0, 500, 1000, 1150, 1400, 1680, 2200, 2600ms)": "PASS",
+    "10. 纯视觉预览模式 · 一键隐藏全部调试标记": "PASS",
+    "4. 真实 SAM 模型权重端侧加载": "PASS (19405ms)"
+  },
+  "effectBranch": "CLASSIC_GOLD_CONTOUR",
+  "waterResonanceConfig": {
+    "version": "1.0.0",
+    "durationMs": 2600,
+    "ambientColor": "#729E9B",
+    "ambientAlpha": 0.22,
+    "rippleColor": "#D9BE7D",
+    "rippleAlpha": 0.45,
+    "goldColor": "#F0DCA5",
+    "goldAlpha": 0.45,
+    "residueColor": "#C8AE76",
+    "residueAlpha": 0.22,
+    "fishFieldLengthRatio": 0.88,
+    "fishFieldWidthRatio": 0.72,
+    "softFeatherRatio": 0.1,
+    "wavefrontWidthRatio": 0.02,
+    "waveDistortionRatio": 0.007,
+    "pulseCount": 3,
+    "pulseStartTimes": [
+      300,
+      700,
+      1100
+    ],
+    "pulseDurations": [
+      550,
+      550,
+      550
+    ],
+    "pulseStartScales": [
+      0.42,
+      0.52,
+      0.6
+    ],
+    "pulseEndScales": [
+      0.8,
+      0.88,
+      0.95
+    ],
+    "pulsePeakAlphas": [
+      0.55,
+      0.48,
+      0.42
+    ],
+    "pulseColors": [
+      "#D9BE7D",
+      "#E2CFA0",
+      "#A7C8BF"
+    ],
+    "freezeAtMs": 2100,
+    "geometryMode": "BBOX_ONLY"
+  }
+}

@@ -320,6 +320,8 @@ features:
     implementation:
       registered_runtime_status: "ACTIVE_CLOSURE"
       runtime_authority: "design/pages/recognition/spec/Recognition_Visual_Fidelity_V1_2.md"
+      execution_task_refs:
+        - "YUJIAN_ANDROID_SLIMSAM_PIXEL_SEGMENTATION_V1"
     capture_hifi:
       status: "FROZEN"
       visual_contract: "design/system_v3/08_Page_Contracts/recognition/capture/Recognition_Capture_HiFi_Visual_Contract_V1.md"
@@ -334,7 +336,8 @@ features:
       - "Exact-head API28 runtime not yet accepted (B001/B002)."
       - "Capture Hi-Fi source PNG binary import remains pending."
       - "The V1 first-use guide uses the three frozen pages P01/P02/P03; exact-head API28 runtime and visual parity evidence remain pending."
-      - "SWOS V1 / Processing V3.2 and SWOS Static V1.1 are main-adopted design contracts via PR #190; Android still uses V3.1 timing and the legacy Edge Field renderer until separately authorized Stage 1 implementation."
+      - "SWOS V1 / Processing V3.2 and SWOS Static V1.1 are main-adopted design contracts via PR #190. Android Effect 01, upward caustic surge and photo shockwave are implemented at Main efcfa18, but exact-head API28 runtime and owner visual acceptance remain NOT_VERIFIED. The original AI Studio four-sided perimeter shader port is a separate task; source-browser comparison, Overlay alpha equivalence, DPR mapping and API28 runtime remain NOT_VERIFIED."
+      - "Local SlimSAM BBOX-to-pixel-mask inference is a separate P6 implementation task. It must reuse the existing PhotoSession and Detector output while preserving Classifier semantics; model provenance, ONNX signatures, offline packaging and API28 runtime require exact-head evidence."
       - "Web/SWOS user-confirmed private visual references and local viewer: design/pages/recognition/web/VISUAL_REFERENCE_MANIFEST_V1.json; visual closure requires browser evidence and publication permission checks."
       - "SWOS photo source has no confirmed public publication permission; public preview requires a local browser upload and static exports remain private."
       - "Web Hi-Fi V2 is a main-adopted design-only contract via PR #190. Primary visual baseline web-three-stage is FROZEN_PRIVATE_SHA_BOUND by exact SHA; public permission remains NOT_CONFIRMED; runtime pixel parity remains unverified."
