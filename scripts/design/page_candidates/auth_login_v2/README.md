@@ -1,6 +1,6 @@
 # Login V2.1 structured high-fidelity candidate
 
-This page-owned module is a W6-A local candidate. It uses the shared W3 `createStructuredDomAdapter` shell and reads the current Login W1 draft and W2 binding. It does not add a Design Manager route, change production navigation, or connect authentication.
+This page-owned module is a W6-A local candidate. Its renderer is loaded by the existing Design Manager route and the isolated test harness; both use the shared W3 `createStructuredDomAdapter` shell and current Login W1 draft/W2 binding. It does not change production navigation or connect authentication.
 
 ## Run in a local browser
 
@@ -23,7 +23,7 @@ The PR workflow `W6-A Login Structured Candidate` runs the same real Chromium ca
 - `authority_audit_v1.json` keeps the V2.1 frozen visual, current revision, older behavior reference, W1 draft, and W2 resolution statuses distinct.
 - `responsive_candidate_v1.json` is explicitly review-required. Its 12 viewport/font combinations are candidate experiments, not a frozen acceptance matrix.
 - `component_mapping_v1.json` gives each rendered component a unique DOM mapping and approximate native-canvas reference bounds. The reference bounds are not a new numeric authority.
-- The full frozen PNG is an independent comparison input. The Renderer uses the W2-resolved `Morning_Lake_Master_V1.png` background asset instead.
+- The full frozen PNG is an independent comparison input. The shared renderer in `design/manager/login_v21_candidate_renderer.js` uses the W2-resolved `Morning_Lake_Master_V1.png` background asset instead.
 - The approved original upload is missing; the footer has no independent W2 resource binding. A low-contrast CSS grass sketch is marked `CANDIDATE_UNAPPROVED_ASSET` and is loopback-only.
 - Shared person, lock, and visibility SVGs are byte-checked against the frozen icon library, but Login publication is not confirmed by W2. The harness refuses to render off loopback.
-- Public preview and W6 closure remain blocked by W5 #224. Product visual acceptance is pending; Native Runtime remains `NOT_VERIFIED`.
+- W5 technical dependency #224 is cleared. A public Pages preview can be deployed, but the Login renderer remains loopback-only until shared icon and footer publication are explicitly resolved. Product visual acceptance is pending; Native Runtime remains `NOT_VERIFIED`.

@@ -1,7 +1,7 @@
-:root{color-scheme:light;font-family:system-ui,"Noto Sans CJK SC","Microsoft YaHei",sans-serif;background:#eef3f5;color:#12364a}
-*{box-sizing:border-box}
-body{margin:0}
-.login-candidate-lab{max-width:1680px;margin:0 auto;padding:20px;display:grid;gap:18px}
+.login-candidate-preview{margin:0;color-scheme:light;font-family:system-ui,"Noto Sans CJK SC","Microsoft YaHei",sans-serif}
+.login-candidate-lab,.page-workspace-root[data-page-id="auth_login_v2"]{color:#12364a;font-family:system-ui,"Noto Sans CJK SC","Microsoft YaHei",sans-serif}
+.login-candidate-lab *,.page-workspace-root[data-page-id="auth_login_v2"] *{box-sizing:border-box}
+.login-candidate-lab{max-width:1680px;margin:0 auto;padding:20px;display:grid;gap:18px;background:#eef3f5}
 .login-lab-header,.login-reference-only{padding:18px;border:1px solid #d8e2e7;border-radius:14px;background:#fff}
 .login-lab-header p,.login-reference-only p{margin:0;color:#627a88;line-height:1.55}
 .login-lab-header p:first-child,.login-reference-tag{font:600 11px/1.4 ui-monospace,monospace;letter-spacing:.08em;color:#0f7a78}

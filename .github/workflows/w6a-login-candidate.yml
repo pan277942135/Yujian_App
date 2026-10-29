@@ -6,7 +6,12 @@ on:
       - "work/w6a-login-structured-hifi-v1"
     paths:
       - "scripts/design/page_candidates/auth_login_v2/**"
+      - "design/manager/login_*"
+      - "design/manager/index.html"
+      - "design/manager/app.js"
+      - "design/manager/page_workspace_adapters.js"
       - "scripts/design/tests/w6a_login_candidate.mjs"
+      - "scripts/design/tests/w6a_login_manager_route.mjs"
       - "scripts/design/compare_login_candidate_visual.py"
       - ".github/workflows/w6a-login-candidate.yml"
   pull_request:
@@ -14,7 +19,12 @@ on:
     branches: [main]
     paths:
       - "scripts/design/page_candidates/auth_login_v2/**"
+      - "design/manager/login_*"
+      - "design/manager/index.html"
+      - "design/manager/app.js"
+      - "design/manager/page_workspace_adapters.js"
       - "scripts/design/tests/w6a_login_candidate.mjs"
+      - "scripts/design/tests/w6a_login_manager_route.mjs"
       - "scripts/design/compare_login_candidate_visual.py"
       - ".github/workflows/w6a-login-candidate.yml"
   workflow_dispatch:
@@ -113,14 +123,24 @@ jobs:
           python -m json.tool scripts/design/page_candidates/auth_login_v2/authority_audit_v1.json >/dev/null
           python -m json.tool scripts/design/page_candidates/auth_login_v2/component_mapping_v1.json >/dev/null
           python -m json.tool scripts/design/page_candidates/auth_login_v2/responsive_candidate_v1.json >/dev/null
-          node --check scripts/design/page_candidates/auth_login_v2/renderer.js
+          node --check design/manager/login_v21_candidate_renderer.js
+          node --check design/manager/login_structured_workspace.js
           node --check scripts/design/tests/w6a_login_candidate.mjs
+          node --check scripts/design/tests/w6a_login_manager_route.mjs
 
       - name: Run real Chromium candidate matrix and interactions
         run: |
           mkdir -p "$RUNNER_TEMP/w6a-login-evidence"
           PLAYWRIGHT_MODULE_DIR="$RUNNER_TEMP/w6a-playwright/node_modules" \
             node scripts/design/tests/w6a_login_candidate.mjs --output-dir "$RUNNER_TEMP/w6a-login-evidence"
+
+      - name: Run real Chromium shared Design Manager Login route
+        run: |
+          mkdir -p "$RUNNER_TEMP/w6a-login-evidence/evidence/shared-manager"
+          PLAYWRIGHT_MODULE_DIR="$RUNNER_TEMP/w6a-playwright/node_modules" \
+            node scripts/design/tests/w6a_login_manager_route.mjs \
+              --output-dir "$RUNNER_TEMP/w6a-login-evidence/evidence/shared-manager" \
+              --source-sha "${SOURCE_SHA}"
 
       - name: Compare frozen and rendered Login at native canvas size
         run: |

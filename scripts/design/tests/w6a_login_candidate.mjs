@@ -493,13 +493,13 @@ async function main() {
       authority_version: "V2.1",
       candidate_source_sha: sourceSha,
       candidate_url: candidateUrl,
-      online_preview: "BLOCKED_BY_W5",
+      online_preview: "PREVIEW_DEPLOYMENT_ALLOWED; LOGIN_RENDERER_FAILS_CLOSED_UNTIL_RESOURCE_PUBLICATION_IS_CONFIRMED",
       ci_run_id: runId,
       generated_at: now(),
       module_test_status: "PASS",
       browser_engine: "Chromium",
       source_sha_verified: true,
-      workbench: { implementation: "W3 createStructuredDomAdapter", kind: "structured-dom-candidate", page_route_changed: false },
+      workbench: { implementation: "existing Design Manager route + W3 createStructuredDomAdapter", kind: "structured-dom-candidate", page_route_changed: true, manager_route: "#page/auth_login_v2/hifi/structured_workspace" },
       w1: { ...upstreamEvidence.w1, profile_status: "DRAFT", numeric_authority: "UNBOUND_DRAFT", generic_numeric_matrix: "NOT_RUN" },
       w2: { ...upstreamEvidence.w2, binding_path: "design/pages/account_privacy/Login/Page_Resource_Binding_V1.json", required_assets: ["page_visual_authority_v2_1", "background_bg_content"], source_attachment: "MISSING", footer_asset: "MISSING", shared_icon_publication: "NOT_CONFIRMED_IN_LOGIN_W2_BINDING" },
       admission: upstreamEvidence.admission,
@@ -521,7 +521,7 @@ async function main() {
         return { console: remainingConsole, page: browserErrors.page, network: browserErrors.network, http: unexpectedHttp,
           expected_negative: { missing_resource_http_404: expectedMissing404, console_messages: expectedNegativeConsole } };
       })(),
-      acceptance: { visual: "USER_VISUAL_ACCEPTANCE_PENDING", native_runtime: "NOT_VERIFIED", public_deployment: "BLOCKED_BY_W5_AND_UNCONFIRMED_ICON_AND_FOOTER_PUBLICATION" }
+      acceptance: { visual: "USER_VISUAL_ACCEPTANCE_PENDING", native_runtime: "NOT_VERIFIED", public_deployment: "LOGIN_RENDERER_FAILS_CLOSED_UNTIL_ICON_AND_FOOTER_PUBLICATION_ARE_CONFIRMED" }
     };
     if (summary.errors.console.length || summary.errors.page.length || summary.errors.network.length || summary.errors.http.length) {
       summary.module_test_status = "FAIL";
@@ -546,7 +546,7 @@ async function main() {
       visual_difference_review: { path: path.basename(visualDifferencePath), sha256: sha256Bytes(await fs.readFile(visualDifferencePath)) },
       screenshot: { path: path.relative(evidenceDir, referenceCanvasPath).replaceAll(path.sep, "/"), sha256: sha256Bytes(await fs.readFile(referenceCanvasPath)), capture: comparisonCapture },
       dom: { path: path.basename(finalDomPath), sha256: sha256Bytes(await fs.readFile(finalDomPath)) },
-      visual_comparison: "MEASUREMENT_ONLY_NOT_VISUAL_PASS", public_preview: "BLOCKED_BY_W5",
+      visual_comparison: "MEASUREMENT_ONLY_NOT_VISUAL_PASS", public_preview: "DEPLOYMENT_ALLOWED_WITH_LOGIN_RESOURCE_PERMISSION_GATE",
       native_runtime: "NOT_VERIFIED", user_acceptance: "USER_VISUAL_ACCEPTANCE_PENDING", page_acceptance: "NOT_VERIFIED", generated_at: now()
     }, null, 2)}\n`);
     if (summary.module_test_status !== "PASS") throw new Error(summary.failure_reason);
