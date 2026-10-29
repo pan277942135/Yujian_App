@@ -1,0 +1,284 @@
+schema_version: '1.0'
+state_id: YUJIAN_THREE_PILOT_PAGE_SPEC_CLOSURE_AND_IMPLEMENTATION_GATE_V1
+project:
+  id: yujian_app
+  name: 渔见 AI
+  repository: pan277942135/Yujian_App
+  scope: home_normal_v1, home_empty_v2, auth_login_v2
+state_control:
+  execution_baseline_sha: 6933f459d2223823a25edcd1d4598ffde3061267
+  current_branch: work-state/yujian-three-pilot-p0-v1
+  current_pr: null
+  base_branch: main
+  base_sha: b080bb0ffb4ebced18593c08709657fabb53a19e
+  current_task: YUJIAN_THREE_PILOT_PAGE_SPEC_CLOSURE_AND_IMPLEMENTATION_GATE_V1
+  status: BLOCKED
+  updated_at: '2026-10-29T06:28:49Z'
+source_of_truth:
+  control_plane: CONTROL_PLANE_REGISTRY.yaml
+  phase_task_machine: harness/PHASE_TASK_STATE_MACHINE.yaml
+  unified_contract_registry: harness/UNIFIED_CONTRACT_REGISTRY.yaml
+  state_update_protocol: harness/STATE_UPDATE_PROTOCOL.md
+  current_work_state: WORK_EXECUTION_STATE.json
+repositories:
+  main:
+    branch: main
+    sha: b080bb0ffb4ebced18593c08709657fabb53a19e
+    recovery_pr: 247
+    followup_contract_prs:
+    - 250
+    - 251
+  candidate:
+    branch: work/w5-empty-home-pilot-v1
+    source_sha: 6933f459d2223823a25edcd1d4598ffde3061267
+pull_requests:
+  PR234:
+    number: 234
+    branch: work/w5-empty-home-pilot-v1
+    base_sha: b080bb0ffb4ebced18593c08709657fabb53a19e
+    head_sha: 6933f459d2223823a25edcd1d4598ffde3061267
+    state: OPEN
+    draft: true
+    url: https://github.com/pan277942135/Yujian_App/pull/234
+  PR239:
+    number: 239
+    branch: work/w6a-login-structured-hifi-v1
+    base_sha: b080bb0ffb4ebced18593c08709657fabb53a19e
+    head_sha: 6d2b5dc69cf9a744514a0986a249cba0d6d7ea63
+    state: OPEN
+    draft: true
+    url: https://github.com/pan277942135/Yujian_App/pull/239
+  PR247:
+    number: 247
+    state: MERGED
+    merge_sha: 0c7f06ef672ce89285d8b7d9b3646a33439e8712
+    url: https://github.com/pan277942135/Yujian_App/pull/247
+phases:
+  P0:
+    status: PASS
+    evidence: 'Main authority recovery PR #247 and follow-ups #250/#251; current Main b080bb0ffb4ebced18593c08709657fabb53a19e.'
+  P1:
+    status: NOT_CONFIRMED
+  P2:
+    status: NOT_CONFIRMED
+  P3:
+    status: BLOCKED
+    task_id: YUJIAN_THREE_PILOT_PAGE_SPEC_CLOSURE_AND_IMPLEMENTATION_GATE_V1
+    exact_candidate_sha: 6933f459d2223823a25edcd1d4598ffde3061267
+  P4:
+    status: NOT_STARTED
+  P5:
+    status: NOT_STARTED
+  P6:
+    status: NOT_STARTED
+  P7:
+    status: NOT_STARTED
+  P8:
+    status: NOT_STARTED
+  P9:
+    status: NOT_STARTED
+recognition_main_journey:
+  contract_status: FROZEN
+  route:
+  - J01
+  - J02
+  - J03
+  - J04
+  - J05
+  - J06
+  - J07
+  - J08
+  - J09
+  - J10
+  - J11
+  - J12
+  - J13
+  - J14
+  - J15
+  - J16
+  - J17
+  - J18
+  - J19
+  - J20
+runtime_gates:
+  exact_head:
+    sha: 6933f459d2223823a25edcd1d4598ffde3061267
+    status: BLOCKED
+    W1: PASS — run 40828169507
+    W2: FAIL — run 40828169489; all three bindings pin workflow SHA 51f8d59ab19dd2a974381991038a2f746a4b30ab73422b1894d2f01df16f7200,
+      actual e1d7c6555b83570e92769244b83c5024113c683cc1db5f51e99d0f7ac8e8871c
+    W3: BLOCKED_AT_W2 — no current-SHA structured workspace verification
+    W4: BLOCKED_AT_W2 — Login Chromium skipped on exact 6933
+    W5: BLOCKED_AT_W2 — current page matrices not executed on exact 6933
+    nh01_android_runtime:
+      status: BLOCKED_AT_W2
+      run_id: 40828169459
+    page_evidence:
+      home_normal_v1: W1 PASS; W2 FAIL; W3/W4/W5 BLOCKED on exact 6933
+      home_empty_v2: W1 PASS; W2 FAIL; W3/W4/W5 BLOCKED on exact 6933; exact 9c matrix is historical
+      auth_login_v2: W1 PASS; W2 FAIL; W3/W4/W5 blocked on exact 6933; exact 9c Login W3/W4/W5 FAIL
+  historical_runtime_run:
+    rule: Historical results cannot promote current exact HEAD to PASS.
+    source_sha: 4f0f3a66d0bef26e24f6bc066478e6cd03b773e8
+    status: HISTORICAL_FAIL
+    failure: NH01 font/date assertions failed on old candidate; retain as history and rerun native runtime after Android implementation.
+apk_and_evidence:
+  release_apk_status: NOT_RUN
+  apk_sha256: NOT_VERIFIED
+  android_implementation_pr: NOT_STARTED
+  current_exact_source: 6933f459d2223823a25edcd1d4598ffde3061267
+  isolated_preview_url: https://pan277942135.github.io/Yujian_App/previews/pr-234/
+  isolated_preview_build_sha: 8d3f7393a027c3b83d8d1a84fca64fb55c6e6b31
+  active_candidate_preview_sha: 6933f459d2223823a25edcd1d4598ffde3061267
+  active_candidate_pages_run_id: 40828169492
+  live_production_build_sha: b080bb0ffb4ebced18593c08709657fabb53a19e
+  isolated_preview_status: STALE_FOR_CURRENT_CANDIDATE; last verified build is 8d3f7393a027c3b83d8d1a84fca64fb55c6e6b31
+  active_candidate_deployment: NOT_DEPLOYED — Pages run failed at W2
+  live_production_pages_run_id: 40825171321
+current_work:
+  id: YUJIAN_THREE_PILOT_PAGE_SPEC_CLOSURE_AND_IMPLEMENTATION_GATE_V1
+  phase: P3
+  task_id: YUJIAN_THREE_PILOT_PAGE_SPEC_CLOSURE_AND_IMPLEMENTATION_GATE_V1
+  status: BLOCKED
+  exact_head: 6933f459d2223823a25edcd1d4598ffde3061267
+  pages:
+    home_normal_v1:
+      status: BLOCKED
+      page_profile: FROZEN_BINDING
+      envelope: SPEC_FROZEN
+      W1: PASS — exact 6933, run 40828169507
+      W2: FAIL — exact 6933, run 40828169489; workflow authority SHA mismatch
+      W3: BLOCKED_AT_W2 — no current-SHA structured DOM evidence
+      W4: BLOCKED_AT_W2 — no current-SHA Chromium evidence
+      W5: BLOCKED_AT_W2 — matrix not executed on exact 6933
+      visual_acceptance: PENDING
+      native_runtime: BLOCKED_AT_W2 — run 40828169459; native assertions did not run
+      runtime_media: NOT_VERIFIED_STATIC_SOURCE; dynamic user media; no fake asset promoted
+      optional_illustrations: GENERATED_ILLUSTRATIVE_ONLY; not formal assets
+    home_empty_v2:
+      status: BLOCKED
+      page_profile: DRAFT
+      envelope: DRAFT
+      W1: PASS — exact 6933, run 40828169507
+      W2: FAIL — exact 6933, run 40828169489; 17 REVIEW and 2 FROZEN lifecycle states preserved
+      W3: BLOCKED_AT_W2 — no current-SHA structured DOM evidence
+      W4: BLOCKED_AT_W2 — no current-SHA Chromium evidence
+      W5: BLOCKED_AT_W2 — current matrix not executed on exact 6933; exact 9c result is historical
+      visual_acceptance: PENDING
+      critical_open_items: 17 required resource bindings remain REVIEW; Gallery/Chevron dimensions are not verified; frozen
+        resources remain unchanged.
+    auth_login_v2:
+      status: BLOCKED
+      page_profile: DRAFT
+      envelope: DRAFT
+      W1: PASS — exact 6933, run 40828169507
+      W2: FAIL — exact 6933, run 40828169489; binding SHA mismatch; asset states remain FROZEN 2, MISSING 1, NOT_VERIFIED
+        1
+      W3: FAIL on exact 9c run 40827290596; current exact 6933 blocked at W2
+      W4: FAIL on exact 9c run 40827290596 (7/13 matrix cases failed); current exact 6933 Chromium skipped at W2
+      W5: FAIL on exact 9c run 40827290596; current exact 6933 matrix not executed
+      visual_acceptance: PENDING
+      critical_open_items: Responsive rules REVIEW_REQUIRED; safe-area/Android IME unverified; 3-attempt geometry failure
+        budget exhausted; W2 workflow SHA mismatch blocks current evidence.
+blockers:
+- id: TP-PAGES-W2-SOURCE-SHA-001
+  severity: P0
+  area: all_three_pages
+  status: OPEN
+  condition: 'Exact 6933 W2 run 40828169489: all three page bindings expect design-manager-pages.yml SHA-256 51f8d59ab19dd2a974381991038a2f746a4b30ab73422b1894d2f01df16f7200;
+    actual is e1d7c6555b83570e92769244b83c5024113c683cc1db5f51e99d0f7ac8e8871c. W3/W4/W5 and candidate Pages deployment are
+    blocked.'
+  unblock: Review the intended Pages workflow authority change and resolve the exact source binding without weakening W2 or
+    changing frozen SWOS snapshot inputs/hashes.
+- id: TP-EHOME-AUTHORITY-001
+  severity: P0
+  area: home_empty_v2
+  status: OPEN
+  condition: Envelope/Profile remain DRAFT; exact 6933 W2 report has 17 required resource bindings REVIEW and 2 FROZEN; Gallery/Chevron
+    dimensions are not verified.
+  unblock: Resolve resource provenance and composition authority from approved sources; preserve lifecycle states and frozen
+    resources.
+- id: TP-LOGIN-W3W4-001
+  severity: P0
+  area: auth_login_v2
+  status: OPEN
+  condition: Login renderer restored to the shared Design Manager on exact 9c, but W3/W4/W5 failed (run 40827290596); exact
+    6933 W2 prevents a current rerun.
+  unblock: Resolve W2 by a reviewed source-authority path and follow the separate Login geometry escalation before a new exact-SHA
+    Chromium run.
+- id: TP-LOGIN-RESPONSIVE-001
+  severity: P0
+  area: auth_login_v2
+  status: OPEN
+  condition: Login Profile/Envelope remain DRAFT; responsive candidate is REVIEW_REQUIRED and Android safe-area/IME behavior
+    is NOT_VERIFIED.
+  unblock: Derive only supported rules from frozen Login authority; record unresolved decisions without promotion.
+- id: TP-LOGIN-GEOMETRY-001
+  severity: P0
+  area: auth_login_v2
+  status: OPEN
+  condition: Exact 9c W4 run 40827290596 is the third distinct failed source SHA for Login root/content geometry. On 360x640,
+    content reaches y=720.25 while root overflow is hidden; 7 matrix cases failed. Failure gate 2f698d46967752fccf3d is STOP_AND_ESCALATE.
+  unblock: Escalate a new root-cause plan and obtain a gate decision before another geometry repair; preserve all assertions
+    and historical failures.
+- id: TP-LOGIN-ASSET-001
+  severity: P1
+  area: auth_login_v2
+  status: OPEN
+  condition: Approved upload source remains MISSING; footer-grass source remains NOT_VERIFIED; preserve both and do not promote.
+  unblock: Keep source/lifecycle status explicit and approve a documented noncritical degradation or provide the actual source.
+protected_invariants:
+  control_plane:
+  - Canonical static Control Plane is read from current Main b080bb0ffb4ebced18593c08709657fabb53a19e.
+  - Live state remains branch-local; static registry and phase machine are not edited for runtime status.
+  design:
+  - No frozen raster, Page Profile, resource binding or matrix is silently promoted.
+  - Illustrative-only NH01 media is never treated as approved formal asset.
+  - Exact page IDs and page-owned contracts stay separate.
+  evidence:
+  - Every PASS names exact source SHA and run/evidence.
+  - Historical SHA results cannot promote the current candidate.
+  - Browser, visual, Android Runtime and production release statuses remain distinct.
+next_actions:
+- id: TP-A01
+  action: Restore the Login-owned renderer/module to the existing shared Design Manager and capture exact-SHA evidence.
+  owner: Work
+  status: COMPLETED
+  dependencies: []
+  result: Login module restored on 9c; exact run 40827290596 completed and failures were retained.
+- id: TP-A02
+  action: Execute and preserve all Login formal, supplemental, state, negative, timeout, recovery and screenshot evidence.
+  owner: Work
+  status: COMPLETED
+  dependencies:
+  - TP-A01
+  result: Exact 9c run 40827290596 captured 1 formal + 12 supplemental rows; geometry retry budget exhausted; no same-symptom
+    retry.
+- id: TP-A03
+  action: Audit Empty Home authority and 17 REVIEW resources for provenance, criticality and valid degradation without changing
+    bindings or lifecycle states.
+  owner: Work
+  status: READY
+  dependencies: []
+- id: TP-A04
+  action: Start Android implementation on an existing product PR only after all three pages reach SPEC_READY_FOR_IMPLEMENTATION.
+  owner: Work
+  status: WAITING
+  dependencies:
+  - TP-A01
+  - TP-A02
+  - TP-A03
+completion_rules:
+- W1-W5 pass on one exact source SHA independently for each page.
+- Do not mark a page FROZEN without product-owner visual acceptance.
+- Do not start APP implementation until all three pages reach SPEC_READY_FOR_IMPLEMENTATION.
+- Do not mark Android Runtime or release PASS from browser or specification evidence.
+state_update:
+  protocol: harness/STATE_UPDATE_PROTOCOL.md
+  static_control_plane_changes: NONE — current rules keep live task state in branch-local state/log files.
+  checkpoint_updated_at: '2026-10-29T06:28:49Z'
+agent_recovery:
+  canonical_entry: AGENTS.md -> CONTROL_PLANE_REGISTRY.yaml -> current Main
+  current_work_state: WORK_EXECUTION_STATE.json
+  resume_first_at: next_actions[TP-A03]
+  historical_failure_ledger: WORK_EXECUTION_STATE.json.execution_v2

@@ -1,0 +1,584 @@
+{
+  "base_branch": "main",
+  "base_sha": "b080bb0ffb4ebced18593c08709657fabb53a19e",
+  "blockers": [
+    {
+      "area": "all_three_pages",
+      "condition": "All three bindings pin workflow SHA 51f8d59ab19dd2a974381991038a2f746a4b30ab73422b1894d2f01df16f7200; exact 6933 actual is e1d7c6555b83570e92769244b83c5024113c683cc1db5f51e99d0f7ac8e8871c.",
+      "gate_id": "G-PAGE-FREEZE-PIPELINE-W2-RESOURCES",
+      "id": "TP-PAGES-W2-SOURCE-SHA-001",
+      "severity": "P0",
+      "status": "OPEN",
+      "unblock": "Review the intended workflow authority revision; resolve exact binding without weakening W2 or changing SWOS snapshot inputs/hashes."
+    },
+    {
+      "area": "home_empty_v2",
+      "condition": "Exact W2 audit reports 17 REVIEW and 2 FROZEN assets; Profile/Envelope DRAFT; Gallery/Chevron dimensions unverified.",
+      "gate_id": "W1/W2/W5",
+      "id": "TP-EHOME-AUTHORITY-001",
+      "severity": "P0",
+      "status": "OPEN",
+      "unblock": "Resolve approved resource provenance/composition without promoting REVIEW."
+    },
+    {
+      "area": "auth_login_v2",
+      "condition": "Login W3/W4/W5 failed on exact 9c; current 6933 W2 blocks Chromium.",
+      "gate_id": "W3/W4/W5",
+      "id": "TP-LOGIN-W3W4-001",
+      "severity": "P0",
+      "status": "OPEN",
+      "unblock": "Resolve W2 by reviewed authority path and follow geometry escalation before any rerun."
+    },
+    {
+      "area": "auth_login_v2",
+      "condition": "Profile/Envelope DRAFT; responsive candidate REVIEW_REQUIRED; safe-area/Android IME NOT_VERIFIED.",
+      "gate_id": "W1/W5",
+      "id": "TP-LOGIN-RESPONSIVE-001",
+      "severity": "P0",
+      "status": "OPEN",
+      "unblock": "Derive only supported rules from frozen Login authority; do not promote unresolved rules."
+    },
+    {
+      "area": "auth_login_v2",
+      "condition": "Third distinct exact-SHA failure on 9c; 7 matrix failures; 360x640 content extends to y=720.25 with root overflow hidden; issue 2f698d46967752fccf3d STOP_AND_ESCALATE.",
+      "gate_id": "W4",
+      "id": "TP-LOGIN-GEOMETRY-001",
+      "severity": "P0",
+      "status": "OPEN",
+      "unblock": "Escalate a new root cause and obtain a gate decision before another geometry repair."
+    },
+    {
+      "area": "auth_login_v2",
+      "condition": "Approved upload source MISSING; footer grass NOT_VERIFIED; preserve statuses.",
+      "gate_id": "W2",
+      "id": "TP-LOGIN-ASSET-001",
+      "severity": "P1",
+      "status": "OPEN",
+      "unblock": "Keep provenance explicit; approve a documented degradation or provide the actual source."
+    }
+  ],
+  "branch": "work-state/yujian-three-pilot-p0-v1",
+  "checkpoint_updated_at": "2026-10-29T06:28:49+00:00",
+  "control_plane_revision": "b080bb0ffb4ebced18593c08709657fabb53a19e",
+  "dependencies": [
+    "YUJIAN_PAGE_FREEZE_PIPELINE_W5_EMPTY_HOME_PILOT_V1",
+    "YUJIAN_PAGE_FREEZE_PIPELINE_W6_LOGIN_PILOT_AND_ACCEPTANCE_V1"
+  ],
+  "evidence": {
+    "active_candidate_runs": {
+      "runs": {
+        "W1": {
+          "run_id": 40828169507,
+          "status": "PASS",
+          "url": "https://github.com/pan277942135/Yujian_App/actions/runs/40828169507"
+        },
+        "W2_resources": {
+          "artifact_id": "12877139154",
+          "artifact_sha256": "2dd1b2d52b7b12ec6403530dec332cd227c22c0787a0b4bf8bee86260a6075b6",
+          "report_sha256": "e0c0c33fe54f90f78b307e813a25d49585a71d63ff7568c01865a95007aba219",
+          "run_id": 40828169489,
+          "status": "FAIL",
+          "url": "https://github.com/pan277942135/Yujian_App/actions/runs/40828169489"
+        },
+        "W3_W4_Login": {
+          "run_id": 40828169489,
+          "status": "BLOCKED_AT_W2",
+          "url": "https://github.com/pan277942135/Yujian_App/actions/runs/40828169489"
+        },
+        "W5_Empty_Home": {
+          "run_id": 40828169461,
+          "status": "BLOCKED_AT_W2",
+          "url": "https://github.com/pan277942135/Yujian_App/actions/runs/40828169461"
+        },
+        "control_plane_admission": {
+          "run_id": 40828169471,
+          "status": "PASS",
+          "url": "https://github.com/pan277942135/Yujian_App/actions/runs/40828169471"
+        },
+        "design_governance": {
+          "run_id": 40828169495,
+          "status": "PASS",
+          "url": "https://github.com/pan277942135/Yujian_App/actions/runs/40828169495"
+        },
+        "design_manager_pages": {
+          "run_id": 40828169492,
+          "status": "FAIL_AT_W2_NO_PREVIEW",
+          "url": "https://github.com/pan277942135/Yujian_App/actions/runs/40828169492"
+        },
+        "nh01_native_runtime": {
+          "run_id": 40828169459,
+          "status": "BLOCKED_AT_W2_NO_NATIVE_ASSERTIONS",
+          "url": "https://github.com/pan277942135/Yujian_App/actions/runs/40828169459"
+        }
+      },
+      "source_sha": "6933f459d2223823a25edcd1d4598ffde3061267"
+    },
+    "app_development": {
+      "reason": "Three current exact-SHA gates blocked at W2; Empty Home and Login retain critical authority/resources; Login geometry gate is STOP_AND_ESCALATE.",
+      "status": "NOT_STARTED"
+    },
+    "candidate": {
+      "base_sha": "b080bb0ffb4ebced18593c08709657fabb53a19e",
+      "branch": "work/w5-empty-home-pilot-v1",
+      "pr": 234,
+      "previously_verified_sha": "8d3f7393a027c3b83d8d1a84fca64fb55c6e6b31",
+      "sha": "6933f459d2223823a25edcd1d4598ffde3061267"
+    },
+    "failure_gate_checks": {
+      "checked_at": "2026-10-29T06:28:49Z",
+      "results": {
+        "login_root_height_exceeds_candidate_viewport_with_scroll_rule": {
+          "decision": "STOP_AND_ESCALATE",
+          "failed_attempts": 3,
+          "third_failure_source_sha": "9c47519e87260992bc768178399fc9b6651a6fc8"
+        },
+        "page_bindings_pin_previous_pages_workflow_sha": {
+          "decision": "LOCALIZE_AND_REPRODUCE",
+          "failed_attempts": 1
+        }
+      },
+      "source_sha": "6933f459d2223823a25edcd1d4598ffde3061267"
+    },
+    "gates": {
+      "W1": {
+        "run_id": 40828169507,
+        "status": "PASS",
+        "url": "https://github.com/pan277942135/Yujian_App/actions/runs/40828169507"
+      },
+      "W2": {
+        "actual_workflow_sha256": "e1d7c6555b83570e92769244b83c5024113c683cc1db5f51e99d0f7ac8e8871c",
+        "artifact_id": "12877139154",
+        "artifact_sha256": "2dd1b2d52b7b12ec6403530dec332cd227c22c0787a0b4bf8bee86260a6075b6",
+        "expected_workflow_sha256": "51f8d59ab19dd2a974381991038a2f746a4b30ab73422b1894d2f01df16f7200",
+        "report_sha256": "e0c0c33fe54f90f78b307e813a25d49585a71d63ff7568c01865a95007aba219",
+        "run_id": 40828169489,
+        "status": "FAIL",
+        "url": "https://github.com/pan277942135/Yujian_App/actions/runs/40828169489"
+      },
+      "W3": {
+        "run_id": 40828169489,
+        "status": "BLOCKED_AT_W2"
+      },
+      "W4": {
+        "run_id": 40828169489,
+        "status": "BLOCKED_AT_W2"
+      },
+      "W5": {
+        "run_id": 40828169461,
+        "status": "BLOCKED_AT_W2"
+      },
+      "by_page": {
+        "auth_login_v2": {
+          "W1": "PASS",
+          "W2": "FAIL",
+          "W3": "BLOCKED_AT_W2",
+          "W4": "BLOCKED_AT_W2",
+          "W5": "BLOCKED_AT_W2"
+        },
+        "home_empty_v2": {
+          "W1": "PASS",
+          "W2": "FAIL",
+          "W3": "BLOCKED_AT_W2",
+          "W4": "BLOCKED_AT_W2",
+          "W5": "BLOCKED_AT_W2"
+        },
+        "home_normal_v1": {
+          "W1": "PASS",
+          "W2": "FAIL",
+          "W3": "BLOCKED_AT_W2",
+          "W4": "BLOCKED_AT_W2",
+          "W5": "BLOCKED_AT_W2"
+        }
+      },
+      "source_sha": "6933f459d2223823a25edcd1d4598ffde3061267"
+    },
+    "historical_active_candidate_runs_9c": {
+      "runs": {
+        "W1": {
+          "run_id": "40827290718",
+          "status": "IN_PROGRESS",
+          "url": "https://github.com/pan277942135/Yujian_App/actions/runs/40827290718"
+        },
+        "W4_and_login_W3_W4_W5": {
+          "run_id": "40827290596",
+          "status": "IN_PROGRESS",
+          "url": "https://github.com/pan277942135/Yujian_App/actions/runs/40827290596"
+        },
+        "W5_empty_home_matrix": {
+          "run_id": "40827290731",
+          "status": "IN_PROGRESS",
+          "url": "https://github.com/pan277942135/Yujian_App/actions/runs/40827290731"
+        },
+        "control_plane_admission": {
+          "run_id": "40827290675",
+          "status": "IN_PROGRESS",
+          "url": "https://github.com/pan277942135/Yujian_App/actions/runs/40827290675"
+        },
+        "design_governance": {
+          "run_id": "40827290594",
+          "status": "IN_PROGRESS",
+          "url": "https://github.com/pan277942135/Yujian_App/actions/runs/40827290594"
+        },
+        "design_manager_pages": {
+          "run_id": "40827290737",
+          "status": "IN_PROGRESS",
+          "url": "https://github.com/pan277942135/Yujian_App/actions/runs/40827290737"
+        },
+        "nh01_native_runtime": {
+          "run_id": "40827290743",
+          "status": "PENDING",
+          "url": "https://github.com/pan277942135/Yujian_App/actions/runs/40827290743"
+        }
+      },
+      "source_sha": "9c47519e87260992bc768178399fc9b6651a6fc8"
+    },
+    "historical_candidate_results_9c": {
+      "control_plane_admission": {
+        "run_id": 40827290675,
+        "status": "PASS"
+      },
+      "design_governance": {
+        "run_id": 40827290594,
+        "status": "PASS"
+      },
+      "empty_home_w5": {
+        "not_current_for_6933": true,
+        "run_id": 40827290731,
+        "status": "PASS",
+        "url": "https://github.com/pan277942135/Yujian_App/actions/runs/40827290731"
+      },
+      "login": {
+        "artifact_id": "12876897626",
+        "artifact_sha256": "4a0bab17c9e94b97b9de6c17a03d023649f88daa15a4de851060c87534bfe92b",
+        "failed_matrix_cases": 7,
+        "formal": "0/1",
+        "negative_probes": "8/11",
+        "recoveries": "3/3 claimed, failure_observed=false",
+        "report_sha256": "33eab98962cf722ee254ebe90fc7814f9298c7e8894d0edb8ba109b2810a5fbe",
+        "run_id": 40827290596,
+        "state_probes": "9/9",
+        "status": "FAIL",
+        "supplemental": "6/12"
+      },
+      "nh01_native": {
+        "run_id": 40827290743,
+        "status": "CANCELLED"
+      },
+      "pages": {
+        "run_id": 40827290737,
+        "status": "FAIL"
+      },
+      "source_sha": "9c47519e87260992bc768178399fc9b6651a6fc8"
+    },
+    "historical_gates_8d": {
+      "W1": {
+        "run_id": "40824084875",
+        "source_sha": "8d3f7393a027c3b83d8d1a84fca64fb55c6e6b31",
+        "status": "PASS",
+        "url": "https://github.com/pan277942135/Yujian_App/actions/runs/40824084875"
+      },
+      "W2": {
+        "report_artifact_id": "12875114464",
+        "report_artifact_sha256": "b2fb8061026b42659a00f3155293788983b8a20267f9374ce3805138a22cda30",
+        "run_id": "40824084759",
+        "source_sha": "8d3f7393a027c3b83d8d1a84fca64fb55c6e6b31",
+        "status": "PASS_WITH_WARNINGS",
+        "url": "https://github.com/pan277942135/Yujian_App/actions/runs/40824084759"
+      },
+      "W3": {
+        "auth_login_v2": "NOT_RUN",
+        "home_empty_v2": "PASS",
+        "home_normal_v1": "PASS",
+        "run_ids": [
+          "40824084759",
+          "40824084824"
+        ]
+      },
+      "W4": {
+        "auth_login_v2": "NOT_RUN",
+        "home_empty_v2": "PASS",
+        "home_normal_v1": "PASS",
+        "run_ids": [
+          "40824084759",
+          "40824084824"
+        ]
+      },
+      "W5": {
+        "auth_login_v2": {
+          "historical_failures": [
+            40822639810,
+            40823945023
+          ],
+          "status": "NOT_RUN_CURRENT_HEAD"
+        },
+        "home_empty_v2": {
+          "formal": "8/8",
+          "negative": "8/8_EXPECTED_FAIL_CLOSED",
+          "run_id": "40824084796",
+          "status": "PASS",
+          "supplemental": "4/4"
+        },
+        "home_normal_v1": {
+          "cases": "24/24",
+          "continuity_cases": "10/10",
+          "continuity_probes": "5/5",
+          "run_id": "40824084759",
+          "status": "PASS"
+        }
+      }
+    },
+    "login_candidate": {
+      "current_sha_w2_run_id": 40828169489,
+      "current_sha_w2_status": "FAIL",
+      "exact_sha_w4_run_id": 40827290596,
+      "exact_sha_w4_status": "FAIL",
+      "last_matrix_source_sha": "9c47519e87260992bc768178399fc9b6651a6fc8",
+      "pr": 234,
+      "restored_from_commit": "cb25953a1859d3fb9b4bc25931698cf40b5a1987",
+      "restored_path_count": 13,
+      "source_sha": "6933f459d2223823a25edcd1d4598ffde3061267",
+      "status": "BLOCKED"
+    },
+    "login_failure_runs": [
+      {
+        "case": "LOGIN_SUPP_430x932_FONT_1",
+        "result": "FAIL",
+        "root_height": 968,
+        "run_id": "40822639810",
+        "source_sha": "dfaac2cc4154ae3bdc4b568cb226ce8129e5108e",
+        "viewport_height": 932
+      },
+      {
+        "artifact_id": "12875578538",
+        "artifact_sha256": "7378f0a44f6d78211e6e2946b5caba5c123a2acdcce64ff78f45aa8f001989c3",
+        "case": "LOGIN_SUPP_320x480_FONT_1.5",
+        "result": "FAIL",
+        "root_height": 758,
+        "run_id": "40823945023",
+        "source_sha": "cb25953a1859d3fb9b4bc25931698cf40b5a1987",
+        "viewport_height": 480
+      },
+      {
+        "artifact_id": "12876897626",
+        "artifact_sha256": "4a0bab17c9e94b97b9de6c17a03d023649f88daa15a4de851060c87534bfe92b",
+        "failed_matrix_cases": 7,
+        "formal_cases": "0/1",
+        "negative_probes": "8/11",
+        "recovery_probes": "3/3 claimed but failure_observed=false",
+        "report_sha256": "33eab98962cf722ee254ebe90fc7814f9298c7e8894d0edb8ba109b2810a5fbe",
+        "result": "FAIL",
+        "run_id": 40827290596,
+        "source_sha": "9c47519e87260992bc768178399fc9b6651a6fc8",
+        "state_probes": "9/9",
+        "supplemental_cases": "6/12"
+      }
+    ],
+    "main": {
+      "authority_recovery_pr247": "https://github.com/pan277942135/Yujian_App/pull/247",
+      "contract_registration_pr250": "https://github.com/pan277942135/Yujian_App/pull/250",
+      "latest_pages_artifact_id": "12876236760",
+      "latest_pages_artifact_sha256": "8b33ae1a7046ad95c644bbd24cf87857778ea7152cecf3d5ebf758099f5812ef",
+      "latest_pages_run_id": 40825171321,
+      "latest_pages_status": "PASS",
+      "login_matrix_binding_pr251": "https://github.com/pan277942135/Yujian_App/pull/251",
+      "sha": "b080bb0ffb4ebced18593c08709657fabb53a19e",
+      "status": "CURRENT_MAIN_VERIFIED"
+    },
+    "native_runtime": {
+      "run_id": 40828169459,
+      "source_sha": "6933f459d2223823a25edcd1d4598ffde3061267",
+      "status": "BLOCKED_AT_W2_NO_NATIVE_ASSERTIONS",
+      "url": "https://github.com/pan277942135/Yujian_App/actions/runs/40828169459"
+    },
+    "pr239_review": {
+      "ahead_by": 23,
+      "base_sha": "b080bb0ffb4ebced18593c08709657fabb53a19e",
+      "differing_login_named_files": [
+        "design/manager/login_structured_workspace.js",
+        "scripts/design/page_candidates/auth_login_v2/README.md"
+      ],
+      "differing_shared_workspace_files": [
+        "design/manager/app.js",
+        "design/manager/index.html",
+        "design/manager/page_workspace_adapters.js",
+        "scripts/design/tests/verify_page_workspace_fixtures.mjs",
+        "scripts/design/verify_page_workspace.mjs"
+      ],
+      "head_sha": "6d2b5dc69cf9a744514a0986a249cba0d6d7ea63",
+      "merge_base_sha": "b080bb0ffb4ebced18593c08709657fabb53a19e",
+      "state": "OPEN_DRAFT_UNMERGED",
+      "sync_status": "No blanket merge/cherry-pick; current shared workspace changes preserved; Login-only divergence awaits W2 and geometry gate escalation."
+    },
+    "preview": {
+      "artifact_id": "12876535554",
+      "artifact_sha256": "8a3aa5730accbf80c3f7f477f3ea626e9b236b354e47623aeff7aa8a7afffc4f",
+      "candidate_build_sha": "8d3f7393a027c3b83d8d1a84fca64fb55c6e6b31",
+      "current_candidate_deployment": "NOT_DEPLOYED",
+      "current_candidate_pages_run_id": 40828169492,
+      "current_candidate_sha": "6933f459d2223823a25edcd1d4598ffde3061267",
+      "last_successful_preview_sha": "8d3f7393a027c3b83d8d1a84fca64fb55c6e6b31",
+      "live_build_json_matches_candidate": true,
+      "production_deploy": "SKIPPED",
+      "run_id": 40824084759,
+      "url": "https://pan277942135.github.io/Yujian_App/previews/pr-234/"
+    },
+    "previous_candidate_7de_runs": {
+      "runs": {
+        "W1": {
+          "run_id": "40826118171",
+          "status": "IN_PROGRESS",
+          "url": "https://github.com/pan277942135/Yujian_App/actions/runs/40826118171"
+        },
+        "W4": {
+          "run_id": "40826118110",
+          "status": "IN_PROGRESS",
+          "url": "https://github.com/pan277942135/Yujian_App/actions/runs/40826118110"
+        },
+        "W5": {
+          "run_id": "40826118013",
+          "status": "IN_PROGRESS",
+          "url": "https://github.com/pan277942135/Yujian_App/actions/runs/40826118013"
+        },
+        "control_plane_admission": {
+          "run_id": "40826118209",
+          "status": "PENDING",
+          "url": "https://github.com/pan277942135/Yujian_App/actions/runs/40826118209"
+        },
+        "design_governance": {
+          "run_id": "40826118062",
+          "status": "IN_PROGRESS",
+          "url": "https://github.com/pan277942135/Yujian_App/actions/runs/40826118062"
+        },
+        "design_manager_pages": {
+          "run_id": "40826118182",
+          "status": "PENDING",
+          "url": "https://github.com/pan277942135/Yujian_App/actions/runs/40826118182"
+        },
+        "nh01_native_runtime": {
+          "run_id": "40826118440",
+          "status": "PENDING",
+          "url": "https://github.com/pan277942135/Yujian_App/actions/runs/40826118440"
+        }
+      },
+      "source_sha": "7de2ebcaf3e327ce9599d73261ec4abf66afd870"
+    },
+    "production": {
+      "artifact_id": "12876236760",
+      "artifact_sha256": "8b33ae1a7046ad95c644bbd24cf87857778ea7152cecf3d5ebf758099f5812ef",
+      "build_sha": "b080bb0ffb4ebced18593c08709657fabb53a19e",
+      "file_count": 1050,
+      "manifest_sha256": "6b732803ef26b38249bdc1d77a817080559bc50d772ee235eda503689d06ce3c",
+      "run_id": 40825171321
+    },
+    "profiles": {
+      "auth_login_v2": "DRAFT/DRAFT",
+      "home_empty_v2": "DRAFT/DRAFT",
+      "home_normal_v1": "FROZEN_BINDING/SPEC_FROZEN"
+    },
+    "resource_bindings": {
+      "auth_login_v2": "ecd10cd9ca4dcbc4f9bebdda46c668dd80eeb21b8140995dc289244b0b5971ed",
+      "home_empty_v2": "c52119cbf4a6bc062f5d66a531f6e106e4aff15e486f58df1ed6adfcc59bbbee",
+      "home_normal_v1": "4c8e70e12bb4ab220e4c9c27d911f57f807c16369b8dbfa18a4b5c752586e54e"
+    },
+    "state_branch": "work-state/yujian-three-pilot-p0-v1",
+    "w2_resource_audit": {
+      "pages": {
+        "auth_login_v2": {
+          "assets": 4,
+          "binding_sha256": "ecd10cd9ca4dcbc4f9bebdda46c668dd80eeb21b8140995dc289244b0b5971ed",
+          "lifecycle_counts": {
+            "FROZEN": 2,
+            "MISSING": 1,
+            "NOT_VERIFIED": 1
+          },
+          "warnings": [
+            "Approved upload source absent",
+            "Footer grass has no independent source bytes"
+          ]
+        },
+        "home_empty_v2": {
+          "assets": 19,
+          "binding_sha256": "c52119cbf4a6bc062f5d66a531f6e106e4aff15e486f58df1ed6adfcc59bbbee",
+          "lifecycle_counts": {
+            "FROZEN": 2,
+            "REVIEW": 17
+          },
+          "warnings": [
+            "Gallery dimensions not verified",
+            "Chevron dimensions not verified"
+          ]
+        },
+        "home_normal_v1": {
+          "assets": 20,
+          "binding_sha256": "4c8e70e12bb4ab220e4c9c27d911f57f807c16369b8dbfa18a4b5c752586e54e",
+          "lifecycle_counts": {
+            "FROZEN": 8,
+            "FROZEN_HOME_V2_VISUAL_CONSUMER__GUEST_SOURCE_SEPARATE": 1,
+            "GENERATED_ILLUSTRATIVE_ONLY": 3,
+            "RUNTIME_USER_MEDIA_NOT_STATIC": 2,
+            "STATIC_HIFI_FROZEN": 5,
+            "WARNING_NOT_REGISTERED_NON_BLOCKING": 1
+          },
+          "warnings": [
+            "FishRecord photo and account avatar have no repository source bytes"
+          ]
+        }
+      },
+      "report_artifact_id": "12877139154",
+      "report_artifact_sha256": "2dd1b2d52b7b12ec6403530dec332cd227c22c0787a0b4bf8bee86260a6075b6",
+      "report_sha256": "e0c0c33fe54f90f78b307e813a25d49585a71d63ff7568c01865a95007aba219",
+      "source_sha": "6933f459d2223823a25edcd1d4598ffde3061267",
+      "workflow_run_id": 40828169489
+    }
+  },
+  "execution_v2": {
+    "issues": {
+      "2f698d46967752fccf3d": {
+        "closed": false,
+        "failures": [
+          {
+            "evidence": "https://github.com/pan277942135/Yujian_App/actions/runs/40822639810 (job 123278363308): LOGIN_MATRIX_ASSERTION_FAILED LOGIN_SUPP_430x932_FONT_1; root 430x968, viewport 430x932.",
+            "hypothesis": "W4 requires root height to equal the viewport although Login's candidate responsive rule allows the artboard to grow and scroll when content exceeds a short viewport.",
+            "source_sha": "dfaac2cc4154ae3bdc4b568cb226ce8129e5108e"
+          },
+          {
+            "evidence": "https://github.com/pan277942135/Yujian_App/actions/runs/40823945023 (artifact 12875578538, sha256 7378f0a44f6d78211e6e2946b5caba5c123a2acdcce64ff78f45aa8f001989c3): LOGIN_SUPP_320x480_FONT_1.5; root 320x758, viewport 320x480; 3 matrix rows recorded before abort.",
+            "hypothesis": "W4 requires root height to equal the viewport although Login's candidate responsive rule allows the artboard to grow and scroll when content exceeds a short viewport.",
+            "source_sha": "cb25953a1859d3fb9b4bc25931698cf40b5a1987"
+          },
+          {
+            "evidence": "https://github.com/pan277942135/Yujian_App/actions/runs/40827290596 artifact 12876897626 sha256 4a0bab17c9e94b97b9de6c17a03d023649f88daa15a4de851060c87534bfe92b; Login report sha256 33eab98962cf722ee254ebe90fc7814f9298c7e8894d0edb8ba109b2810a5fbe; formal 0/1 pass, supplemental 6/12 pass, 7 matrix failures; 360x640 content extends to y=720.25 while root overflow is hidden.",
+            "hypothesis": "The short-screen root expands but the page root remains overflow:hidden and controls are clipped; the expanded artboard does not make viewport content scroll-reachable, so verify a root scroll owner while keeping all case geometry assertions.",
+            "source_sha": "9c47519e87260992bc768178399fc9b6651a6fc8"
+          }
+        ],
+        "gate_id": "G-PAGE-FREEZE-PIPELINE-W4-TEST-EVIDENCE",
+        "symptom_key": "login_root_height_exceeds_candidate_viewport_with_scroll_rule",
+        "task_id": "YUJIAN_THREE_PILOT_PAGE_SPEC_CLOSURE_AND_IMPLEMENTATION_GATE_V1"
+      },
+      "87bb261cf83d99192712": {
+        "closed": false,
+        "failures": [
+          {
+            "evidence": "https://github.com/pan277942135/Yujian_App/actions/runs/40828169489 artifact 12877139154 sha256 2dd1b2d52b7b12ec6403530dec332cd227c22c0787a0b4bf8bee86260a6075b6; w2-resource-report.json sha256 e0c0c33fe54f90f78b307e813a25d49585a71d63ff7568c01865a95007aba219; expected workflow SHA 51f8d59ab19dd2a974381991038a2f746a4b30ab73422b1894d2f01df16f7200, actual e1d7c6555b83570e92769244b83c5024113c683cc1db5f51e99d0f7ac8e8871c on all three page bindings.",
+            "hypothesis": "Confirm whether the exact workflow change is an authorized publication authority revision; preserve W2 hash verification and either restore the pinned workflow or update all three binding records through the reviewed change path.",
+            "source_sha": "6933f459d2223823a25edcd1d4598ffde3061267"
+          }
+        ],
+        "gate_id": "G-PAGE-FREEZE-PIPELINE-W2-RESOURCES",
+        "symptom_key": "page_bindings_pin_previous_pages_workflow_sha",
+        "task_id": "YUJIAN_THREE_PILOT_PAGE_SPEC_CLOSURE_AND_IMPLEMENTATION_GATE_V1"
+      }
+    },
+    "schema_version": "1.0"
+  },
+  "next_action": "Stop same-failure Login geometry repairs and escalate 2f698d46967752fccf3d; continue independent Empty Home resource provenance audit and reviewed Pages workflow authority resolution.",
+  "phase": "P3",
+  "repository": "pan277942135/Yujian_App",
+  "schema_version": "1.0",
+  "source_sha": "6933f459d2223823a25edcd1d4598ffde3061267",
+  "stage": "PAGE_READINESS_AND_EXACT_SHA_CHECKPOINT",
+  "status": "BLOCKED",
+  "task_id": "YUJIAN_THREE_PILOT_PAGE_SPEC_CLOSURE_AND_IMPLEMENTATION_GATE_V1",
+  "work_id": "YUJIAN_THREE_PILOT_PAGE_SPEC_CLOSURE_AND_IMPLEMENTATION_GATE_V1"
+}
