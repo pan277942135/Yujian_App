@@ -144,7 +144,7 @@ Eligibility:
 | G08 — English title row | RecognitionResultScreen can render scientificName in the title row. | Enforce RR09 V3 Chinese-only title with no English line or reserved blank row. |
 | G09 — ineligible-state animation | PHOTO_ONLY eligibility can animate photo continuity for states excluded by RR09 V3. | Gate all RR09 motion, including photo continuity, to new HIGH + valid identity; keep Medium/Low/error/historical results static. |
 | G10 — lifecycle/one-shot | Handoff keys exist, but exact runtime proof is required. | Test retry, rapid photo change, recomposition, rotation, selector/editor return, CTA during animation and no frame clock after 850ms. |
-| G11 — source SHA propagation | Current photoSourceIdentity is imageId + source + dimensions; it does not prove normalized source bytes. | Compute SHA-256 once for the persisted EXIF-normalized source file and propagate it unchanged through PhotoSession/SelectedImage/Handoff; never recompute from a rendered frame or infer it from imageId. |
+| G11 — source SHA propagation | Current photoSourceIdentity is imageId + source + dimensions; it does not prove normalized source bytes. | Compute SHA-256 once when the EXIF-normalized source file is persisted, before inference begins, and propagate it unchanged through the existing image/session handoff; never wait until T0, recompute from a rendered frame or infer it from imageId. |
 
 ## 8. Acceptance gates and required evidence
 
