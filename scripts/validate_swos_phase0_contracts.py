@@ -154,8 +154,8 @@ def consistency_errors(contracts: dict) -> list[str]:
     for state_key in ("result_medium_or_low", "no_fish_or_image_quality"):
         if eligibility.get(state_key, {}).get("photo_transition") != "NONE_STATIC_RESULT":
             errors.append(f"RR09 {state_key} must use static Result presentation without a photo transition")
-    if android_transition.get("invariants", {}).get("source_sha256_explicit_and_propagated") is not True:
-        errors.append("Android transition must explicitly propagate normalized source SHA-256 through the handoff")
+    if android_transition.get("invariants", {}).get("source_sha256_explicit_and_propagated") is not True or android_transition.get("invariants", {}).get("source_sha256_computed_before_inference") is not True or android_transition.get("invariants", {}).get("source_sha256_computation_count_per_photo") != 1:
+        errors.append("Android transition must compute normalized source SHA-256 once before inference and propagate it through the handoff")
     if "photo_sha256_propagated_through_session_handoff" not in android_transition.get("acceptance", {}).get("required_runtime_evidence", []):
         errors.append("Android transition runtime evidence must prove source SHA-256 continuity")
     gap_ids = [item.get("id") for item in android_transition.get("implementation_gap_register", [])]
