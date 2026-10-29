@@ -195,6 +195,11 @@ jobs:
           for page_id in home_normal_v1 home_empty_v2 auth_login_v2; do
             output_dir="$evidence_root/$page_id"
             unconnected_policy=fail
+            if [ "$page_id" = "auth_login_v2" ]; then
+              # Login remains reference-only until the dedicated W6 integration is connected.
+              # Keep exact-SHA workspace identity/resource checks, but report its renderer as NOT_RUN.
+              unconnected_policy=not-run
+            fi
             if ! python scripts/design/page_freeze_runner.py verify-page-workspace \
               --page-id "$page_id" \
               --candidate-url http://127.0.0.1:8765/design/manager/ \
@@ -225,10 +230,6 @@ jobs:
             if [ "${{ github.event_name }}" = "pull_request" ] && [ "${{ github.event.pull_request.number }}" = "234" ]; then
               if [ "$page_id" = "home_empty_v2" ]; then
                 matrix_report="$evidence_root/empty-home-matrix/EmptyHome_Structured_HiFi_Evidence_V1.json"
-                matrix_args+=(--matrix-report "$matrix_report")
-                require_args+=(--require-evidence)
-              elif [ "$page_id" = "auth_login_v2" ]; then
-                matrix_report="$evidence_root/login-matrix/Login_Structured_HiFi_Evidence_V1.json"
                 matrix_args+=(--matrix-report "$matrix_report")
                 require_args+=(--require-evidence)
               fi

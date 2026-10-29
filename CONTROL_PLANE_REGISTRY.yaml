@@ -154,6 +154,12 @@ canonical_design_authorities:
     - "design/pages/"
     - "design/system_v3/"
   rule: "Design/task changes originate in canonical main authorities and are synchronized to product branches before Work execution."
+  responsive_page_contracts:
+    authority_registry: "design/registry/experience_registry_v1.json"
+    envelope_schema: "design/system_v3/07_Responsive_System/Page_Responsive_Envelope_Schema_V1.json"
+    conformance_profile_schema: "design/system_v3/07_Responsive_System/Page_Conformance_Profile_Schema_V1.json"
+    page_owned_matrix_root: "design/pages/"
+    rule: "Each page's envelope, conformance profile, responsive matrix and resource entries remain independently referenced with exact source hashes; each gate run records the resource-binding file hash and lifecycle statuses."
 
 main_merge_gate:
   required_status_check: "control-plane-admission"
