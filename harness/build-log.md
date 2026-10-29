@@ -89,3 +89,11 @@
 - PR #253 exact HEAD `b3571b0a082156f91b77f150315c55c59d2ad5dc` has exact-head governance, W1, W2/Pages build, and W4 evidence checks green (runs 40832153797, 40832153845, 40832153873, 40832154088; plus Normal Home governance 40832153851, Empty Home assets 40832153686, and PR-event admission 40832153780). The workflow's production and preview deploy jobs were skipped for this PR event; this is not a production deployment.
 - PR #253 W2 report ZIP artifact 12878948830 SHA-256 5b4201947ab2ebf758d2bc7f38e993d8c9bdadb000f9550ae7ea482febe458dd. W4 bundle scan artifact 12878634521 SHA-256 6063b5c9e78910ee5cafe4345610254d8ba5a0f94ba5847fa330a8d0bace170a; W4 page evidence artifact 12878569703 SHA-256 bc78ffd53ecfb5d8d0e44cdca1971ef6e90380496bec57d19ff95f67d2d94415.
 - Next: correct YAML indentation without changing product source, rerun Product Work Admission, then integrate the narrow authority restoration only with green exact-head checks. Main production root on b080 remains verified separately at 1050/1050 live files and manifest SHA-256 0f3cdbb7228a16d19eac5483873e0e67dce595376585494b400436cc5024d0be.
+
+## Checkpoint 2026-10-29T07:35:00Z
+
+- Main 34f21ad01e62ec7bf11be11fee8eb5a500894333; PR #234 exact HEAD/base efc9f10e9c9803e19088f8a17de7c1f8cd34102d / 34f21ad01e62ec7bf11be11fee8eb5a500894333; PR #239 remains 6d2b5dc69cf9a744514a0986a249cba0d6d7ea63 on prior base b080bb0ffb4ebced18593c08709657fabb53a19e.
+- Main Pages official run 40833834130 and release artifact 12880231603 PASS on exact Main. Live build.json matches; root manifest checked 1050/1050, SHA-256 f56255b4316a57154a1103534581c0fc807f873c90a18a1e43e0e1973136fb1e.
+- PR #234 runs: W1 40835528311 PASS; W4 40835528197, W5 40835528069, Pages/W2/preview 40835528156, Governance 40835528080 and NH01 runtime 40835528203 in progress.
+- PR-event Admission 40835528092 is CANONICAL_MAIN_PROMOTION; explicit PRODUCT_WORK Admission is pending on this isolated state checkpoint.
+- Both product PRs remain Draft/unmerged. Native runtime and user visual acceptance remain unverified/pending.

@@ -1,24 +1,23 @@
 {
   "$schema": "./harness/WORK_EXECUTION_STATE_SCHEMA_V1.json",
   "base_branch": "main",
-  "base_sha": "b080bb0ffb4ebced18593c08709657fabb53a19e",
+  "base_sha": "34f21ad01e62ec7bf11be11fee8eb5a500894333",
   "blockers": [
-    "Latest state commit 7b9f1e0fb7ba0ba4eddedbf34e8720c525869c52 failed PRODUCT_WORK Admission run 40832826205 because PROJECT_MASTER_STATE validation requires at least one next_action with status READY; YAML parsing, CONTROL_PLANE_SYNC and WORK_EXECUTION_STATE all passed.",
-    "Exact PR234 source 91418127df91b9854897f24eeb84c970cb2e6563 W2 run 40830549495 FAILs the three workflow source-authority hashes; PR253 has exact-head checks green and awaits Main integration.",
-    "Exact PR234 W4 run 40830549596 and W5 run 40830549593 stopped at upstream W2; final evidence not reached.",
-    "PR234 isolated preview is not deployed; PR239 W6 dependency remains blocked.",
-    "NH01, Effect 01 and AI Studio perimeter Android native Runtime remain NOT_VERIFIED; no real device acceptance evidence.",
-    "Standalone approved NH01 Hero/Peek assets remain ASSET_SOURCE_REQUIRED; user visual acceptance pending."
+    "PRODUCT_WORK Admission has not run on efc9f10e9c9803e19088f8a17de7c1f8cd34102d; PR-event run 40835528092 is CANONICAL_MAIN_PROMOTION only.",
+    "Candidate W4 40835528197, W5 40835528069, Pages/W2/preview 40835528156, Governance 40835528080, and NH01 runtime 40835528203 are in progress.",
+    "PR #239 is Open/Draft on prior Main b080bb0ffb4ebced18593c08709657fabb53a19e and remains blocked pending PR #234 technical gates.",
+    "Effect 01 and AI Studio perimeter native runtime are not verified; no local Android device is attached.",
+    "Standalone approved NH01 Hero/Peek assets remain ASSET_SOURCE_REQUIRED; user visual acceptance remains pending."
   ],
   "branch": "work-state/w5-empty-home-pilot-v1",
-  "checkpoint_updated_at": "2026-10-29T07:02:15Z",
-  "control_plane_revision": "b080bb0ffb4ebced18593c08709657fabb53a19e",
+  "checkpoint_updated_at": "2026-10-29T07:35:00Z",
+  "control_plane_revision": "34f21ad01e62ec7bf11be11fee8eb5a500894333",
   "dependencies": [
     "YUJIAN_PAGE_FREEZE_PIPELINE_W3_DESIGN_MANAGER_ADAPTER_V1",
     "YUJIAN_PAGE_FREEZE_PIPELINE_W4_TEST_EVIDENCE_V1"
   ],
   "evidence": {
-    "active_candidate": "{\"base_sha\":\"b080bb0ffb4ebced18593c08709657fabb53a19e\",\"branch\":\"work/w5-empty-home-pilot-v1\",\"head_sha\":\"91418127df91b9854897f24eeb84c970cb2e6563\",\"main_sha\":\"b080bb0ffb4ebced18593c08709657fabb53a19e\",\"pr\":234,\"status\":\"PRODUCT_WORK_ADMISSION_PASS_W2_W4_W5_PREVIEW_BLOCKED\",\"updated_at\":\"2026-10-29T06:56:54Z\"}",
+    "active_candidate": "{\"base_sha\":\"34f21ad01e62ec7bf11be11fee8eb5a500894333\",\"branch\":\"work-state/w5-empty-home-pilot-v1\",\"head_sha\":\"efc9f10e9c9803e19088f8a17de7c1f8cd34102d\",\"main_sha\":\"34f21ad01e62ec7bf11be11fee8eb5a500894333\",\"pr\":234,\"status\":\"PRODUCT_WORK_ADMISSION_PENDING_W4_W5_PAGES_IN_PROGRESS\",\"updated_at\":\"2026-10-29T07:35:00Z\"}",
     "admission_failure_6933": {
       "exact_error": "extra/divergent canonical file on Work branch: design/pages/account_privacy/Login/structured_candidate/component_mapping_v1.json",
       "gates": {
@@ -153,24 +152,14 @@
     },
     "candidate_pr": 234,
     "candidate_pr_url": "https://github.com/pan277942135/Yujian_App/pull/234",
-    "candidate_source_sha": "6933f459d2223823a25edcd1d4598ffde3061267",
-    "current_candidate": "{\"base_sha\":\"b080bb0ffb4ebced18593c08709657fabb53a19e\",\"branch\":\"work/w5-empty-home-pilot-v1\",\"head_sha\":\"91418127df91b9854897f24eeb84c970cb2e6563\",\"main_sha\":\"b080bb0ffb4ebced18593c08709657fabb53a19e\",\"pr\":234,\"status\":\"PRODUCT_WORK_ADMISSION_PASS_W2_W4_W5_BLOCKED\",\"updated_at\":\"2026-10-29T06:51:00Z\"}",
+    "candidate_source_sha": "efc9f10e9c9803e19088f8a17de7c1f8cd34102d",
+    "current_candidate": "{\"base_sha\":\"34f21ad01e62ec7bf11be11fee8eb5a500894333\",\"branch\":\"work-state/w5-empty-home-pilot-v1\",\"head_sha\":\"efc9f10e9c9803e19088f8a17de7c1f8cd34102d\",\"main_sha\":\"34f21ad01e62ec7bf11be11fee8eb5a500894333\",\"pr\":234,\"status\":\"PRODUCT_WORK_ADMISSION_PENDING_W4_W5_PAGES_IN_PROGRESS\",\"updated_at\":\"2026-10-29T07:35:00Z\"}",
     "current_exact_recovery_checkpoint": {
-      "gates": {
-        "PRODUCT_WORK_ADMISSION": "FAIL_RUN_40832489323_PROJECT_MASTER_STATE_YAML",
-        "W1": "PASS_RUN_40830549559",
-        "W2": "FAIL_RUN_40830549495_SOURCE_AUTHORITY_SHA_MISMATCH",
-        "W4": "FAIL_RUN_40830549596_UPSTREAM_W2",
-        "W5": "FAIL_RUN_40830549593_UPSTREAM_W2",
-        "ISOLATED_PREVIEW": "BLOCKED_NOT_DEPLOYED",
-        "PRODUCTION_PAGES": "PASS_RUN_40825171321_LIVE_ROOT_MANIFEST_PASS",
-        "PR253": "CHECKS_IN_PROGRESS"
-      },
-      "main_sha": "b080bb0ffb4ebced18593c08709657fabb53a19e",
-      "next_action": "Repair the state-only YAML indentation error, rerun PRODUCT_WORK Admission on the latest state SHA, then integrate PR253 if its exact-head gates remain green.",
+      "main_sha": "34f21ad01e62ec7bf11be11fee8eb5a500894333",
+      "source_sha": "efc9f10e9c9803e19088f8a17de7c1f8cd34102d",
       "pr234": {
-        "base_sha": "b080bb0ffb4ebced18593c08709657fabb53a19e",
-        "head_sha": "91418127df91b9854897f24eeb84c970cb2e6563",
+        "base_sha": "34f21ad01e62ec7bf11be11fee8eb5a500894333",
+        "head_sha": "efc9f10e9c9803e19088f8a17de7c1f8cd34102d",
         "status": "OPEN_DRAFT_UNMERGED"
       },
       "pr239": {
@@ -178,13 +167,23 @@
         "head_sha": "6d2b5dc69cf9a744514a0986a249cba0d6d7ea63",
         "status": "OPEN_DRAFT_UNMERGED_W6_BLOCKED"
       },
-      "pr253": {
-        "base_sha": "b080bb0ffb4ebced18593c08709657fabb53a19e",
-        "head_sha": "b3571b0a082156f91b77f150315c55c59d2ad5dc",
-        "status": "OPEN_CHECKS_IN_PROGRESS"
+      "gates": {
+        "PRODUCT_WORK_ADMISSION": "PENDING_ISOLATED_STATE_DISPATCH",
+        "W1": "PASS_RUN_40835528311",
+        "W2": "IN_PROGRESS_RUN_40835528156",
+        "W4": "IN_PROGRESS_RUN_40835528197",
+        "W5": "IN_PROGRESS_RUN_40835528069",
+        "DESIGN_GOVERNANCE": "IN_PROGRESS_RUN_40835528080",
+        "NH01_RUNTIME": "IN_PROGRESS_RUN_40835528203",
+        "ISOLATED_PREVIEW": "PENDING_RUN_40835528156",
+        "PRODUCTION_PAGES": "PASS_RUN_40833834130_ROOT_MANIFEST_PASS"
       },
-      "source_sha": "91418127df91b9854897f24eeb84c970cb2e6563",
-      "updated_at": "2026-10-29T07:01:00Z"
+      "pr_event_admission": {
+        "run_id": 40835528092,
+        "mode": "CANONICAL_MAIN_PROMOTION",
+        "status": "PASS_NOT_PRODUCT_WORK"
+      },
+      "next_action": "Dispatch PRODUCT_WORK on this state commit, then collect exact candidate gates."
     },
     "current_isolated_preview": "{\"source_sha\":\"91418127df91b9854897f24eeb84c970cb2e6563\",\"run_id\":40830549495,\"status\":\"BLOCKED_NOT_DEPLOYED\",\"url\":\"https://pan277942135.github.io/Yujian_App/previews/pr-234/\",\"reason\":\"W2 Page Resource Binding workflow SHA mismatch\"}",
     "current_main_pages": "{\"source_sha\":\"b080bb0ffb4ebced18593c08709657fabb53a19e\",\"status\":\"PASS_BUILD_DEPLOY_LIVE_SHA_ROOT_REPORT_PENDING\",\"run_id\":40825171321,\"build\":\"PASS\",\"deploy\":\"PASS\",\"live_build_json_sha\":\"b080bb0ffb4ebced18593c08709657fabb53a19e\",\"root_manifest_sha256\":\"PENDING_EXACT_LOG_EXTRACTION\"}",
@@ -424,7 +423,20 @@
       "status": "IN_PROGRESS_EXACT_SHA"
     },
     "latest_candidate_gates": "{\"source_sha\":\"6933f459d2223823a25edcd1d4598ffde3061267\",\"main_sha\":\"b080bb0ffb4ebced18593c08709657fabb53a19e\",\"runs\":{\"w1\":{\"run_id\":40828169507,\"status\":\"PASS\"},\"governance\":{\"run_id\":40828169495,\"status\":\"PASS\"},\"pr_event_admission\":{\"run_id\":40828169471,\"status\":\"PASS_NOT_PRODUCT_WORK\"},\"w4\":{\"run_id\":40828169489,\"status\":\"FAIL\",\"reason\":\"Login exact-SHA evidence missing; source bundle/W2 blocker\"},\"w5\":{\"run_id\":40828169461,\"status\":\"FAIL\",\"reason\":\"W2 source authority SHA mismatch\"},\"pages_w2\":{\"run_id\":40828169492,\"status\":\"FAIL\",\"reason\":\"three page binding workflow SHA mismatches; preview not deployed\"},\"nh01_api28\":{\"run_id\":40828169459,\"status\":\"FAIL_PRECHECK\",\"runtime\":\"NOT_VERIFIED\"}},\"product_work_admission\":{\"run_id\":40829566256,\"mode\":\"PRODUCT_WORK\",\"status\":\"FAIL\",\"CONTROL_PLANE_SYNC\":\"FAIL\",\"PROJECT_STATE\":\"PASS\",\"WORK_STATE\":\"PASS\"},\"isolated_preview\":{\"status\":\"BLOCKED_NOT_DEPLOYED\",\"url\":\"https://pan277942135.github.io/Yujian_App/previews/pr-234/\"}}",
-    "latest_main_pages": "{\"source_sha\":\"b080bb0ffb4ebced18593c08709657fabb53a19e\",\"status\":\"PASS_BUILD_DEPLOY_LIVE_SHA_ROOT_REPORT_PENDING\",\"run_id\":40825171321,\"build\":\"PASS\",\"deploy\":\"PASS\",\"live_build_json_sha\":\"b080bb0ffb4ebced18593c08709657fabb53a19e\",\"root_manifest_sha256\":\"PENDING_EXACT_LOG_EXTRACTION\"}",
+    "latest_main_pages": {
+      "status": "PRODUCTION_BUILD_DEPLOY_LIVE_ROOT_MANIFEST_PASS",
+      "source_sha": "34f21ad01e62ec7bf11be11fee8eb5a500894333",
+      "run_id": 40833834130,
+      "build": "PASS",
+      "deploy": "PASS",
+      "event": "push on main",
+      "production_build_json_sha": "34f21ad01e62ec7bf11be11fee8eb5a500894333",
+      "root_manifest_expected_files": 1050,
+      "root_manifest_checked_files": 1050,
+      "root_manifest_sha256": "f56255b4316a57154a1103534581c0fc807f873c90a18a1e43e0e1973136fb1e",
+      "release_artifact_id": 12880231603,
+      "release_artifact_sha256": "f21d6ba69bed2b15d6718464912d59776e2fbe070b91952bd5f0c9cf9f2a29c8"
+    },
     "live_audit": {
       "main_sha": "5e482e8644828a880fbc3c0a273565765977bfaf",
       "next": "Resolve authority restoration gate, then exact-head product Admission and W4/W5/W2/isolated preview.",
@@ -457,10 +469,14 @@
       "swos_status": "FAIL_EXTERNAL_PR177_BEHIND_MAIN_AND_FROZEN_INPUT_SHA_MISMATCH"
     },
     "main_pages_live_verification": {
-      "note": "Cache-busted production build.json and live NH01 workspace match current Main.",
-      "run_id": 40819650522,
-      "source_sha": "b080bb0ffb4ebced18593c08709657fabb53a19e",
-      "status": "HTTP_BUILD_JSON_AND_STRUCTURED_PAGE_VERIFIED_ROOT_MANIFEST_PENDING"
+      "status": "PASS_LIVE_BUILD_JSON_PAGE_RESOURCES_AND_ROOT_MANIFEST",
+      "source_sha": "34f21ad01e62ec7bf11be11fee8eb5a500894333",
+      "run_id": 40833834130,
+      "release_artifact_id": 12880231603,
+      "release_artifact_sha256": "f21d6ba69bed2b15d6718464912d59776e2fbe070b91952bd5f0c9cf9f2a29c8",
+      "root_manifest_file_count": 1050,
+      "root_manifest_sha256": "f56255b4316a57154a1103534581c0fc807f873c90a18a1e43e0e1973136fb1e",
+      "live_http_result": "PASS"
     },
     "main_sync": {
       "candidate_sha": "13e25bbf9cb9f29cb696d8fcc5d6bb8731d501ec",
@@ -842,29 +858,30 @@
       "visual_review": "PENDING"
     },
     "product_work_admission": {
-      "main_sha": "b080bb0ffb4ebced18593c08709657fabb53a19e",
+      "main_sha": "34f21ad01e62ec7bf11be11fee8eb5a500894333",
       "mode": "PRODUCT_WORK",
       "required_gates": {
         "CONTROL_PLANE_SYNC": "PENDING",
         "PROJECT_STATE": "PENDING",
         "WORK_STATE": "PENDING"
       },
-      "source_sha": "bb838fa69acc6c249cad6f0a06e0ed0f0ce52c6c",
-      "status": "PENDING_DISPATCH"
+      "source_sha": "efc9f10e9c9803e19088f8a17de7c1f8cd34102d",
+      "status": "PENDING_DISPATCH",
+      "state_branch": "work-state/w5-empty-home-pilot-v1",
+      "state_head": "PENDING_COMMIT"
     },
     "product_work_admission_current": {
-      "failure": "extra/divergent canonical file on Work branch: design/pages/account_privacy/Login/structured_candidate/component_mapping_v1.json",
-      "main_sha": "b080bb0ffb4ebced18593c08709657fabb53a19e",
+      "main_sha": "34f21ad01e62ec7bf11be11fee8eb5a500894333",
       "mode": "PRODUCT_WORK",
       "required_gates": {
-        "CONTROL_PLANE_SYNC": "FAIL",
-        "PROJECT_STATE": "PASS",
-        "WORK_STATE": "PASS"
+        "CONTROL_PLANE_SYNC": "PENDING",
+        "PROJECT_STATE": "PENDING",
+        "WORK_STATE": "PENDING"
       },
-      "run_id": 40829566256,
-      "source_sha": "6933f459d2223823a25edcd1d4598ffde3061267",
-      "state_branch_head_sha": "824ca674f19592a3338fc127a16c8856cd82c37a",
-      "status": "FAIL"
+      "source_sha": "efc9f10e9c9803e19088f8a17de7c1f8cd34102d",
+      "status": "PENDING_DISPATCH",
+      "state_branch": "work-state/w5-empty-home-pilot-v1",
+      "state_head": "PENDING_COMMIT"
     },
     "product_work_admission_historical_a5d_fail": "{\"run_id\":40818042539,\"mode\":\"PRODUCT_WORK\",\"source_sha\":\"a5d401b60b97f3c539654653552f1ba93e7d5115\",\"main_sha\":\"0c7f06ef672ce89285d8b7d9b3646a33439e8712\",\"status\":\"FAIL\",\"CONTROL_PLANE_SYNC\":\"FAIL\",\"PROJECT_STATE\":\"NOT_RUN\",\"WORK_STATE\":\"NOT_RUN\",\"note\":\"Historical Admission failure due stale Main/control-plane snapshot; do not reuse for ad460.\"}",
     "product_work_admission_pending": "{\"source_sha\":\"91418127df91b9854897f24eeb84c970cb2e6563\",\"main_sha\":\"b080bb0ffb4ebced18593c08709657fabb53a19e\",\"required_gates\":[\"CONTROL_PLANE_SYNC\",\"PROJECT_STATE\",\"WORK_STATE\"],\"mode\":\"PRODUCT_WORK\",\"status\":\"FAIL_PROJECT_STATE_RUNTIME_EXACT_HEAD_DRIFT\"}",
@@ -1052,6 +1069,22 @@
         "WORK_EXECUTION_STATE": "PASS"
       },
       "exact_error": "at least one next_action must be READY"
+    },
+    "recovery_candidate_efc9": {
+      "source_sha": "efc9f10e9c9803e19088f8a17de7c1f8cd34102d",
+      "main_sha": "34f21ad01e62ec7bf11be11fee8eb5a500894333",
+      "runs": {
+        "w1": 40835528311,
+        "w4": 40835528197,
+        "w5": 40835528069,
+        "pages_w2_preview": 40835528156,
+        "governance": 40835528080,
+        "nh01_runtime": 40835528203,
+        "pr_event_admission": 40835528092
+      },
+      "pr_event_admission_mode": "CANONICAL_MAIN_PROMOTION_NOT_PRODUCT_WORK",
+      "status": "GATES_IN_PROGRESS_PRODUCT_WORK_ADMISSION_PENDING",
+      "updated_at": "2026-10-29T07:35:00Z"
     }
   },
   "execution_v2": {
@@ -1221,15 +1254,15 @@
     },
     "schema_version": "1.0"
   },
-  "next_action": "Rerun PRODUCT_WORK Admission on the corrected isolated state checkpoint; if all state gates pass, merge the exact-green PR253 authority restoration, deploy current Main Pages, then sync PR234 and rerun exact-source gates.",
+  "next_action": "Run explicit PRODUCT_WORK Admission on the isolated state commit for source efc9f10e9c9803e19088f8a17de7c1f8cd34102d; then collect active exact-SHA gates.",
   "phase": "P3",
   "related_pr": 234,
   "repository": "pan277942135/Yujian_App",
   "schema_version": "1.0",
-  "source_sha": "91418127df91b9854897f24eeb84c970cb2e6563",
+  "source_sha": "efc9f10e9c9803e19088f8a17de7c1f8cd34102d",
   "stage": "G2_EXACT_SHA_REVALIDATION_AND_ADMISSION",
   "status": "RUNNING",
   "task_id": "YUJIAN_PAGE_FREEZE_PIPELINE_W5_EMPTY_HOME_PILOT_V1",
-  "updated_at": "2026-10-29T07:02:15Z",
+  "updated_at": "2026-10-29T07:35:00Z",
   "work_id": "YUJIAN_W4_W5_MAIN_PAGES_W6_ANDROID_RUNTIME_CLOSURE_V1"
 }
