@@ -28,13 +28,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.yujian.ai.ai.FishInputAssessment
 import com.yujian.ai.ai.FishDetectionQualityGate
@@ -47,7 +48,6 @@ import com.yujian.ai.ai.subject.FishSubjectQuality
 import com.yujian.ai.ai.subject.SubjectStatus
 import com.yujian.ai.model.SelectedImage
 import com.yujian.ai.ui.identify.RecognitionImageTransform
-import com.yujian.ai.ui.identify.RecognitionSourcePhoto
 import com.yujian.ai.ui.identify.NormalizedSourceRect
 import com.yujian.ai.ui.recognition.PhotoShockwaveTransform
 import com.yujian.ai.ui.recognition.RecognitionAmbientField
@@ -57,6 +57,7 @@ import com.yujian.ai.ui.recognition.RecognitionFishFocus
 import com.yujian.ai.ui.recognition.RecognitionFishFocusLevel
 import com.yujian.ai.ui.recognition.RecognitionMotionPolicy
 import com.yujian.ai.ui.recognition.RecognitionMotionTraceSample
+import com.yujian.ai.ui.recognition.RecognitionPerimeterShaderOverlay
 import com.yujian.ai.ui.recognition.RecognitionStatusOverlay
 import com.yujian.ai.ui.recognition.RecognitionVisualStateController
 import com.yujian.ai.ui.recognition.reveal.RecognitionProcessingPhotoSnapshot
@@ -402,22 +403,16 @@ private fun RecognitionPhoto(
             scaleY = photoShockwave.scale
         },
     ) {
-    // The same source may fill the letterboxed bands decoratively, but this
-    // transform is never used by focus geometry and never changes by phase.
-    mediaPlan.decorativeBackgroundTransform?.let { backgroundTransform ->
-        RecognitionSourcePhoto(
-            bitmap = bitmap.asImageBitmap(),
-            transform = backgroundTransform,
-            contentDescription = null,
-            modifier = Modifier.fillMaxSize().graphicsLayer(alpha = .16f),
-        )
-    }
-    // The captured image is opaque on the first Recognition frame; only visual overlays animate.
-    RecognitionSourcePhoto(
-        bitmap = bitmap.asImageBitmap(),
-        transform = transform,
-        contentDescription = "正在识别的鱼获照片",
-        modifier = Modifier.fillMaxSize(),
+    RecognitionPerimeterShaderOverlay(
+        bitmap = bitmap,
+        photoTransform = transform,
+        decorativeBackgroundTransform = mediaPlan.decorativeBackgroundTransform,
+        elapsedMs = processingElapsedMs,
+        sessionKey = motionSessionKey,
+        phase = phase,
+        modifier = Modifier.fillMaxSize().semantics {
+            contentDescription = "正在识别的鱼获照片"
+        },
     )
     RecognitionAmbientField(
         phase, Modifier.fillMaxSize(), visualClockMs,

@@ -32,3 +32,39 @@
 - Searched registered and repository image assets for approved independent Hero/Peek originals; none were established. The workspace continues to show explicit blocked states and does not crop frozen page screenshots into photos.
 - Added measured DOM rectangle evidence and multi-size screenshot comparison outputs for M01–M04. M05 remains a width-only boundary with no assumed height. Comparison output is diagnostic and never declares visual parity.
 - Local checks: JavaScript syntax, `tests/nh01_structured_workspace.test.cjs`, navigation verification, frozen hi-fi integrity, Design Manager registry validation, and 320×480 comparator smoke all passed. Candidate Chromium and visual parity remain unverified pending exact-head workflow evidence.
+
+
+## 2026-10-28 — AI Studio perimeter shader port start
+
+- Work: `YUJIAN_ANDROID_AISTUDIO_PERIMETER_SHADER_PORT_V1`; branch `work/aistudio-perimeter-shader-port-v1`; exact Main baseline/control-plane revision `632cada103bf022adeb873bd6e66464555b509e4`.
+- Control Plane PR #243 merged as `632cada103bf022adeb873bd6e66464555b509e4` after every exact-head check passed. Product branch synchronized to Main; Admission PASS (six static layers, 733 synchronized paths, Project Master State, Work Execution State).
+- Resolved the source contract at `pan277942135/demo--Image-light-effect@794e7f2698525761bbb2f3e5d775b5dae8d7a25a`; shader and perimeter-node sources were read at that SHA. No Android implementation or visual/runtime result is inferred from source inspection.
+- Stage start: E1 implementation, perimeter-only GLES2 photo compositor bound to the existing PhotoSession, `RecognitionImageTransform`, and `processingElapsedMs` / `visualClockMs`. Acceptance gate: `G-ANDROID-AISTUDIO-PERIMETER-SHADER-PORT-V1`.
+- `source_browser_geometry`, `coordinate_mapping`, and `overlay_alpha_comparison`: NOT_RUN. The current browser has no source tab; the repository exposes no homepage or GitHub Pages deployment.
+- `api28_device_runtime`, seven-timestamp comparison, APK provenance and visual acceptance: NOT_RUN. This execution environment has no attached API 28 device.
+- Next at stage start: implement the renderer and continue seeking the exact source preview/runtime geometry; do not claim visual PASS until source comparison and a real API 28 device run exist.
+
+## 2026-10-28 — Perimeter GLES2 candidate validation
+
+- Android implementation source SHA `3ad7b0257ec67807f4d5fe124ea98ea7a6a8624a` was submitted as Draft PR #244 against Main `632cada103bf022adeb873bd6e66464555b509e4`; source authority remains AI Studio SHA `794e7f2698525761bbb2f3e5d775b5dae8d7a25a`.
+- Android CI run `40669933101` completed successfully: unit tests, runtime harness contract tests, `assembleDebug`, `assembleDebugAndroidTest`, packaged asset/model checks, model trace export, and `lintDebug` all passed. This CI did not run the GLES renderer or device runtime.
+- Runtime APK artifact `12807628530` was downloaded for verification. `app-debug.apk` SHA-256 is `1fe5b10a47478c00876fb26c159cc9470df5d52212aa7e5ecf6632aa46eff6b8`; it matched the artifact `SHA256SUMS` and an independent streamed hash of the APK ZIP entry. The SHA-256 of the artifact ZIP is not used as the APK hash.
+- Control-plane Admission `40669933102`, W1 contract `40669933153`, W4 evidence `40669933113`, and Design Governance `40669933218` succeeded on that candidate. Design Manager Pages `40669933158` failed because its design-only changed-file gate saw Android app paths in a PR that also added an evidence document under `design/`; the report has been moved to `harness/evidence/` so the final PR diff contains no `design/**` changes.
+- `source_browser_geometry`, `coordinate_mapping`, Overlay alpha comparison, GLES compile/link runtime logs, API 28 physical-device acceptance, seven-frame comparison, full recording, lifecycle captures, and same-input Detector/Classifier trace remain `NOT_RUN`.
+- Next: rerun the PR checks on the current branch head, then obtain the exact-source browser geometry and a physical API 28 device. Keep visual acceptance and task completion blocked until those captures exist.
+
+## 2026-10-28 — Renderer foreground-start correction
+
+- Code review found that `GLSurfaceView` starts resumed by default. The candidate now calls `onPause()` immediately after `setRenderer`; the existing `LifecycleOwner` observer is the only path that resumes GLES rendering.
+- The previous successful Android CI and APK hash above belong to the initial implementation source SHA `3ad7b0257ec67807f4d5fe124ea98ea7a6a8624a` and are historical for this lifecycle correction.
+- Latest exact-head build/tests and APK provenance are pending the PR #244 synchronization run. Source-browser geometry, GLES runtime logs, and physical API 28 validation remain `NOT_RUN`.
+
+
+## 2026-10-28 — Lifecycle-corrected Android candidate CI and APK provenance
+
+- Current Android implementation source SHA: `e1bda4f568225b4349e247e204e2157912668a06`; PR #244 exact-head Android CI run `40672019980` completed successfully. The PR workflow built merge SHA `85f2ee06cfa4b08d952ab32d03d9fdb130f6fb6c` from this head and refreshed Main `632cada103bf022adeb873bd6e66464555b509e4`.
+- Passed: Android unit tests, camera runtime harness contract tests, `:app:assembleDebug`, `:app:assembleDebugAndroidTest`, packaged launcher/recognition asset checks, model trace export, lint, and runtime APK artifact upload. The `android-runtime` job was skipped; these results do not compile the GLES shader on a device or constitute API 28 runtime acceptance.
+- Runtime APK artifact `12809162079` (`YuJian-runtime-apks-85f2ee06cfa4b08d952ab32d03d9fdb130f6fb6c-MODEL_CROP_M1_v0.2`) contains `app-debug.apk`. Its SHA-256 is `1cf66279ed4622b653412a672ce74a7a87ec83fc4a2f97e517de41e6200c9a8f`; it matches the artifact `SHA256SUMS` and an independent streamed hash of the ZIP entry.
+- Model trace package metadata reports model `MODEL_CROP_M1_v0.2`, model SHA-256 `29c2f2fd1608178f023b8e35edf632c0dd685df4a7ae1c3562220a7352ccce18`, class-map SHA-256 `5f88d39dc7d61b2bc4a9c13b7279a0ad1fff726dc6cf22363d2be17bc3ef40db`, and tensor-contract SHA-256 `9da0cc2c943a181fa66689bb6ecf092e9e68ab3dd72a41a3baf4d3fa446bca8`. This confirms packaged model identity and tensor contract; it is not a same-photo Detector/Classifier output comparison.
+- The source repo at `794e7f2698525761bbb2f3e5d775b5dae8d7a25a` builds locally. The local preview HTTP URL was rejected by the cloud-browser URL policy, so source-browser dimensions and captures remain `NOT_RUN`.
+- No `adb`, local Gradle, GLES compiler, or attached API 28 device is available. Shader compile/link logs, API 28 install/runtime, visual frames/recording, and lifecycle cases remain `NOT_RUN`.
