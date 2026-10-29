@@ -1,6 +1,7 @@
 package com.yujian.ai.ui.recognition.result
 
 import android.content.Context
+import android.content.pm.PackageManager
 import android.location.Address
 import android.location.Geocoder
 import android.location.Location
@@ -9,6 +10,7 @@ import android.location.LocationManager
 import android.os.Build
 import android.os.CancellationSignal
 import android.os.Looper
+import androidx.core.content.ContextCompat
 import org.json.JSONArray
 import org.json.JSONObject
 import java.text.Normalizer
@@ -100,6 +102,15 @@ fun Address.toRecognitionPlace(): RecognitionPlace? {
 
 /** Uses a fresh provider fix after explicit user action, falling back to a recent cached fix. */
 suspend fun resolveCurrentRecognitionPlace(context: Context): RecognitionPlace? = withContext(Dispatchers.IO) {
+    val fineLocationGranted = ContextCompat.checkSelfPermission(
+        context,
+        android.Manifest.permission.ACCESS_FINE_LOCATION,
+    ) == PackageManager.PERMISSION_GRANTED
+    val coarseLocationGranted = ContextCompat.checkSelfPermission(
+        context,
+        android.Manifest.permission.ACCESS_COARSE_LOCATION,
+    ) == PackageManager.PERMISSION_GRANTED
+    if (!fineLocationGranted && !coarseLocationGranted) return@withContext null
     val manager = context.getSystemService(Context.LOCATION_SERVICE) as? LocationManager ?: return@withContext null
     try {
         val providers = listOf(LocationManager.NETWORK_PROVIDER, LocationManager.GPS_PROVIDER)
@@ -128,6 +139,15 @@ suspend fun resolveCurrentRecognitionPlace(context: Context): RecognitionPlace? 
 
 private suspend fun requestCurrentLocation(manager: LocationManager, provider: String, context: Context): Location? =
     withTimeoutOrNull(8_000L) {
+        val fineLocationGranted = ContextCompat.checkSelfPermission(
+            context,
+            android.Manifest.permission.ACCESS_FINE_LOCATION,
+        ) == PackageManager.PERMISSION_GRANTED
+        val coarseLocationGranted = ContextCompat.checkSelfPermission(
+            context,
+            android.Manifest.permission.ACCESS_COARSE_LOCATION,
+        ) == PackageManager.PERMISSION_GRANTED
+        if (!fineLocationGranted && !coarseLocationGranted) return@withTimeoutOrNull null
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             suspendCancellableCoroutine { continuation ->
                 val cancellation = CancellationSignal()
