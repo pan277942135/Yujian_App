@@ -8,17 +8,17 @@
     "NH01 Android workflow 40828169459 failed its source/resource preflight; it did not establish native runtime acceptance. NH01, Effect 01, and AI Studio perimeter remain NOT_VERIFIED.",
     "Approved standalone NH01 Hero/Peek source images remain ASSET_SOURCE_REQUIRED; user visual acceptance remains pending.",
     "Main Pages run 40825171321 deployed exact Main SHA b080bb0ffb4ebced18593c08709657fabb53a19e; production root-manifest hash extraction remains pending.",
-    "PRODUCT_WORK Admission run 40829566256 for source 6933f459d2223823a25edcd1d4598ffde3061267 failed CONTROL_PLANE_SYNC: extra/divergent canonical file design/pages/account_privacy/Login/structured_candidate/component_mapping_v1.json. PROJECT_STATE and WORK_STATE passed. Resolve the PR234/PR239 ownership overlap without rewriting history; then update state to the resulting exact SHA and re-admit."
+    "PRODUCT_WORK Admission run 40829566256 on prior source 6933f459d2223823a25edcd1d4598ffde3061267 failed CONTROL_PLANE_SYNC because Login mapping was duplicated in canonical design/pages; this scope overlap is removed in forward commit 91418127df91b9854897f24eeb84c970cb2e6563. Admission retry on 91418127df91b9854897f24eeb84c970cb2e6563 is pending."
   ],
   "branch": "work-state/w5-empty-home-pilot-v1",
-  "checkpoint_updated_at": "2026-10-29T06:35:39Z",
+  "checkpoint_updated_at": "2026-10-29T06:41:37Z",
   "control_plane_revision": "b080bb0ffb4ebced18593c08709657fabb53a19e",
   "dependencies": [
     "YUJIAN_PAGE_FREEZE_PIPELINE_W3_DESIGN_MANAGER_ADAPTER_V1",
     "YUJIAN_PAGE_FREEZE_PIPELINE_W4_TEST_EVIDENCE_V1"
   ],
   "evidence": {
-    "active_candidate": "{\"base_sha\":\"b080bb0ffb4ebced18593c08709657fabb53a19e\",\"branch\":\"work/w5-empty-home-pilot-v1\",\"head_sha\":\"6933f459d2223823a25edcd1d4598ffde3061267\",\"main_sha\":\"b080bb0ffb4ebced18593c08709657fabb53a19e\",\"pr\":234,\"status\":\"FAIL_W4_W5_W2_REPAIR_REQUIRED\",\"updated_at\":\"2026-10-29T06:24:43Z\"}",
+    "active_candidate": "{\"base_sha\":\"b080bb0ffb4ebced18593c08709657fabb53a19e\",\"branch\":\"work/w5-empty-home-pilot-v1\",\"head_sha\":\"91418127df91b9854897f24eeb84c970cb2e6563\",\"main_sha\":\"b080bb0ffb4ebced18593c08709657fabb53a19e\",\"pr\":234,\"status\":\"SCOPE_REPAIRED_ADMISSION_PENDING\",\"updated_at\":\"2026-10-29T06:41:37Z\"}",
     "admission_failure_6933": {
       "exact_error": "extra/divergent canonical file on Work branch: design/pages/account_privacy/Login/structured_candidate/component_mapping_v1.json",
       "gates": {
@@ -153,7 +153,7 @@
     "candidate_pr": 234,
     "candidate_pr_url": "https://github.com/pan277942135/Yujian_App/pull/234",
     "candidate_source_sha": "6933f459d2223823a25edcd1d4598ffde3061267",
-    "current_candidate": "{\"base_sha\":\"b080bb0ffb4ebced18593c08709657fabb53a19e\",\"branch\":\"work/w5-empty-home-pilot-v1\",\"head_sha\":\"6933f459d2223823a25edcd1d4598ffde3061267\",\"main_sha\":\"b080bb0ffb4ebced18593c08709657fabb53a19e\",\"pr\":234,\"status\":\"IN_PROGRESS_EXACT_SHA_VALIDATION\",\"pr_status\":\"OPEN_DRAFT_UNMERGED\",\"w6_technical_dependency\":\"BLOCKED_W4_W5_W2_AND_ISOLATED_PREVIEW\",\"native_runtime\":\"NOT_VERIFIED\"}",
+    "current_candidate": "{\"base_sha\":\"b080bb0ffb4ebced18593c08709657fabb53a19e\",\"branch\":\"work/w5-empty-home-pilot-v1\",\"head_sha\":\"91418127df91b9854897f24eeb84c970cb2e6563\",\"main_sha\":\"b080bb0ffb4ebced18593c08709657fabb53a19e\",\"pr\":234,\"status\":\"SCOPE_REPAIRED_ADMISSION_PENDING\",\"pr_status\":\"OPEN_DRAFT_UNMERGED\",\"w6_technical_dependency\":\"BLOCKED_W4_W5_W2_AND_ISOLATED_PREVIEW\",\"native_runtime\":\"NOT_VERIFIED\",\"updated_at\":\"2026-10-29T06:41:37Z\"}",
     "current_exact_recovery_checkpoint": {
       "gates": {
         "AISTUDIO_PERIMETER_NATIVE_RUNTIME": "NOT_VERIFIED",
@@ -164,19 +164,19 @@
         "NH01_RESPONSIVE_CONTRACT": "SPEC_FROZEN",
         "NH01_STATIC_HIFI_ASSETS": "VERIFIED_ON_MAIN_BASELINE_B080_HASH_REPORT_RETAINED",
         "PRODUCTION_PAGES": "PASS_BUILD_DEPLOY_LIVE_BUILD_JSON_SHA_b080bb0ffb4ebced18593c08709657fabb53a19e_RUN_40825171321_ROOT_MANIFEST_HASH_PENDING",
-        "PRODUCT_WORK_ADMISSION": "FAIL_CONTROL_PLANE_SYNC_RUN_40829566256",
+        "PRODUCT_WORK_ADMISSION": "PENDING_RETRY_AFTER_SCOPE_REPAIR",
         "PR_EVENT_ADMISSION": "PASS_NOT_PRODUCT_WORK_RUN_40828169471",
         "USER_VISUAL_ACCEPTANCE": "PENDING",
         "W1": "PASS_RUN_40828169507",
         "W2": "FAIL_RUN_40828169492_THREE_BINDING_SHA_MISMATCH",
-        "W4": "FAIL_RUN_40828169489_LOGIN_EVIDENCE_NOT_GENERATED",
-        "W5": "FAIL_RUN_40828169461_W2_AUTHORITY_SHA_MISMATCH"
+        "W4": "PENDING_NEW_SHA",
+        "W5": "PENDING_NEW_SHA"
       },
       "main_sha": "b080bb0ffb4ebced18593c08709657fabb53a19e",
-      "next_action": "Admission run 40829566256 failed CONTROL_PLANE_SYNC because PR234 contains the Login candidate mapping under canonical design/pages, even though W6 Login is owned by PR239. Keep the Login commit in history, align its product tree to PR239 ownership (without history rewrite), update source_sha to that new exact PR234 candidate, and rerun PRODUCT_WORK Admission before further implementation.",
+      "next_action": "Run PRODUCT_WORK Admission on exact PR #234 source 91418127df91b9854897f24eeb84c970cb2e6563; if it passes, update the Pages workflow authority and three matching resource binding hashes through a Main-first support PR, then rerun W2/W4/W5/Pages on the resulting SHA.",
       "pr234": {
         "base_sha": "b080bb0ffb4ebced18593c08709657fabb53a19e",
-        "head_sha": "6933f459d2223823a25edcd1d4598ffde3061267",
+        "head_sha": "91418127df91b9854897f24eeb84c970cb2e6563",
         "status": "OPEN_DRAFT_UNMERGED"
       },
       "pr239": {
@@ -201,11 +201,11 @@
         "w4": 40828169489,
         "w5": 40828169461
       },
-      "source_sha": "6933f459d2223823a25edcd1d4598ffde3061267",
-      "state_branch_head_before_checkpoint": "343f657e11e342373187d6777403018c7f9f0c3a",
+      "source_sha": "91418127df91b9854897f24eeb84c970cb2e6563",
+      "state_branch_head_before_checkpoint": "4ec9209004733620b70163b7ab53e1bce48d7166",
       "supplemental_task_id": "YUJIAN_NH01_STRUCTURED_HIFI_MULTI_SCREEN_RESPONSIVE_CLOSURE_V1",
       "task_id": "YUJIAN_W4_W5_MAIN_PAGES_W6_ANDROID_RUNTIME_CLOSURE_V1",
-      "updated_at": "2026-10-29T06:35:39Z"
+      "updated_at": "2026-10-29T06:41:37Z"
     },
     "current_isolated_preview": "{\"source_sha\":\"6933f459d2223823a25edcd1d4598ffde3061267\",\"run_id\":40828169492,\"status\":\"BLOCKED_NOT_DEPLOYED\",\"url\":\"https://pan277942135.github.io/Yujian_App/previews/pr-234/\",\"production_deploy\":\"SKIPPED_EXPECTED\",\"reason\":\"Pages W2 source authority SHA mismatch\"}",
     "current_main_pages": "{\"source_sha\":\"b080bb0ffb4ebced18593c08709657fabb53a19e\",\"status\":\"PASS_BUILD_DEPLOY_LIVE_SHA_ROOT_REPORT_PENDING\",\"run_id\":40825171321,\"build\":\"PASS\",\"deploy\":\"PASS\",\"live_build_json_sha\":\"b080bb0ffb4ebced18593c08709657fabb53a19e\",\"root_manifest_sha256\":\"PENDING_EXACT_LOG_EXTRACTION\"}",
@@ -875,7 +875,7 @@
       "status": "FAIL"
     },
     "product_work_admission_historical_a5d_fail": "{\"run_id\":40818042539,\"mode\":\"PRODUCT_WORK\",\"source_sha\":\"a5d401b60b97f3c539654653552f1ba93e7d5115\",\"main_sha\":\"0c7f06ef672ce89285d8b7d9b3646a33439e8712\",\"status\":\"FAIL\",\"CONTROL_PLANE_SYNC\":\"FAIL\",\"PROJECT_STATE\":\"NOT_RUN\",\"WORK_STATE\":\"NOT_RUN\",\"note\":\"Historical Admission failure due stale Main/control-plane snapshot; do not reuse for ad460.\"}",
-    "product_work_admission_pending": "{\"source_sha\":\"6933f459d2223823a25edcd1d4598ffde3061267\",\"main_sha\":\"b080bb0ffb4ebced18593c08709657fabb53a19e\",\"required_gates\":[\"CONTROL_PLANE_SYNC\",\"PROJECT_STATE\",\"WORK_STATE\"],\"mode\":\"PRODUCT_WORK\"}",
+    "product_work_admission_pending": "{\"source_sha\":\"91418127df91b9854897f24eeb84c970cb2e6563\",\"main_sha\":\"b080bb0ffb4ebced18593c08709657fabb53a19e\",\"required_gates\":[\"CONTROL_PLANE_SYNC\",\"PROJECT_STATE\",\"WORK_STATE\"],\"mode\":\"PRODUCT_WORK\",\"status\":\"PENDING\"}",
     "w2_candidate_27ab": {
       "artifact_id": 12861278328,
       "artifact_sha256": "712bf3ca3eea0668fa92f3d8fbcaad30829e70dbf920b955f18691941ac937ae",
@@ -919,6 +919,19 @@
         "failure_id": "cebf6c13d5dc6fc4c1f8"
       },
       "note": "Bounded repair allowed for distinct Login authority path sync failure; gate is not a PASS."
+    },
+    "scope_repair_914": {
+      "prior_source_sha": "6933f459d2223823a25edcd1d4598ffde3061267",
+      "source_sha": "91418127df91b9854897f24eeb84c970cb2e6563",
+      "commit_sha": "91418127df91b9854897f24eeb84c970cb2e6563",
+      "status": "FORWARD_SCOPE_REPAIR_COMMITTED_ADMISSION_PENDING",
+      "removed_canonical_duplicate": "design/pages/account_privacy/Login/structured_candidate/component_mapping_v1.json",
+      "login_owner_pr": 239,
+      "retained_w4_changes": [
+        "duplicate-visible-workspace regression fixture",
+        "REFERENCE_IMAGE_ONLY state after authority image decode"
+      ],
+      "branch": "work/w5-empty-home-pilot-v1"
     }
   },
   "execution_v2": {
@@ -1075,14 +1088,15 @@
     },
     "schema_version": "1.0"
   },
-  "next_action": "Admission run 40829566256 failed CONTROL_PLANE_SYNC because PR234 contains the Login candidate mapping under canonical design/pages, even though W6 Login is owned by PR239. Keep the Login commit in history, align its product tree to PR239 ownership (without history rewrite), update source_sha to that new exact PR234 candidate, and rerun PRODUCT_WORK Admission before further implementation.",
+  "next_action": "Run PRODUCT_WORK Admission on exact PR #234 source 91418127df91b9854897f24eeb84c970cb2e6563; if it passes, update the Pages workflow authority and three matching resource binding hashes through a Main-first support PR, then rerun W2/W4/W5/Pages on the resulting SHA.",
   "phase": "P3",
   "related_pr": 234,
   "repository": "pan277942135/Yujian_App",
   "schema_version": "1.0",
-  "source_sha": "6933f459d2223823a25edcd1d4598ffde3061267",
+  "source_sha": "91418127df91b9854897f24eeb84c970cb2e6563",
   "stage": "G2_EXACT_SHA_REVALIDATION_AND_ADMISSION",
   "status": "RUNNING",
   "task_id": "YUJIAN_PAGE_FREEZE_PIPELINE_W5_EMPTY_HOME_PILOT_V1",
-  "work_id": "YUJIAN_W4_W5_MAIN_PAGES_W6_ANDROID_RUNTIME_CLOSURE_V1"
+  "work_id": "YUJIAN_W4_W5_MAIN_PAGES_W6_ANDROID_RUNTIME_CLOSURE_V1",
+  "updated_at": "2026-10-29T06:41:37Z"
 }

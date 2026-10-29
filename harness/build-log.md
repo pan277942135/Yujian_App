@@ -68,3 +68,5 @@
 - Exact failure: `extra/divergent canonical file on Work branch: design/pages/account_privacy/Login/structured_candidate/component_mapping_v1.json`. The Login renderer/mapping change is already present in PR #239; PR #234 must not own this canonical page authority. Preserve the commit history and retain Login in PR #239.
 
 - Bounded failure guard for the new admission-scope symptom on `6933f459d2223823a25edcd1d4598ffde3061267`: check `ALLOW_FIRST_ATTEMPT`; record `LOCALIZE_AND_REPRODUCE`, failure ID `cebf6c13d5dc6fc4c1f8`. This is a repair allowance only, not a PASS. Checkpoint `2026-10-29T06:35:39Z`.
+
+- 2026-10-29T06:41:37Z scope checkpoint: PR #234 moved forward from 6933f459d2223823a25edcd1d4598ffde3061267 to 91418127df91b9854897f24eeb84c970cb2e6563; duplicate Login canonical mapping removed, Login remains owned by PR #239, W4 stale-workspace regression and reference-image readiness fixes retained. Product Work Admission retry is pending on exact source 91418127df91b9854897f24eeb84c970cb2e6563.

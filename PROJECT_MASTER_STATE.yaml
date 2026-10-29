@@ -11,11 +11,11 @@ state_control:
   current_pr: null
   related_pr: 234
   base_sha: b080bb0ffb4ebced18593c08709657fabb53a19e
-  execution_baseline_sha: 6933f459d2223823a25edcd1d4598ffde3061267
-  current_head: 6933f459d2223823a25edcd1d4598ffde3061267
+  execution_baseline_sha: 91418127df91b9854897f24eeb84c970cb2e6563
+  current_head: 91418127df91b9854897f24eeb84c970cb2e6563
   current_main_head_sha: b080bb0ffb4ebced18593c08709657fabb53a19e
   state_status: IN_PROGRESS
-  updated_at: '2026-10-29T06:35:39Z'
+  updated_at: '2026-10-29T06:41:37Z'
 source_of_truth:
   current_work_state: WORK_EXECUTION_STATE.json
   canonical_control_plane: CONTROL_PLANE_REGISTRY.yaml
@@ -26,7 +26,7 @@ source_of_truth:
 repositories:
   Yujian_App:
     branch: work/w5-empty-home-pilot-v1
-    execution_baseline_sha: 6933f459d2223823a25edcd1d4598ffde3061267
+    execution_baseline_sha: 91418127df91b9854897f24eeb84c970cb2e6563
     current_main_head_sha: b080bb0ffb4ebced18593c08709657fabb53a19e
     control_plane_sync:
       status: PENDING_PRODUCT_WORK_ADMISSION
@@ -40,7 +40,7 @@ pull_requests:
     number: 234
     branch: work/w5-empty-home-pilot-v1
     base_sha: b080bb0ffb4ebced18593c08709657fabb53a19e
-    head_sha: 6933f459d2223823a25edcd1d4598ffde3061267
+    head_sha: 91418127df91b9854897f24eeb84c970cb2e6563
     status: DRAFT_OPEN_UNMERGED
     task_id: YUJIAN_W4_W5_MAIN_PAGES_W6_ANDROID_RUNTIME_CLOSURE_V1
   PR242:
@@ -283,14 +283,11 @@ apk_and_evidence:
 current_work:
   id: YUJIAN_W4_W5_MAIN_PAGES_W6_ANDROID_RUNTIME_CLOSURE_V1
   related_pr: 234
-  exact_head: 6933f459d2223823a25edcd1d4598ffde3061267
+  exact_head: 91418127df91b9854897f24eeb84c970cb2e6563
   phase: P3
   task_id: YUJIAN_W4_W5_MAIN_PAGES_W6_ANDROID_RUNTIME_CLOSURE_V1
   status: IN_PROGRESS
-  next_action: Admission run 40829566256 failed CONTROL_PLANE_SYNC because PR234 contains the Login candidate mapping
-    under canonical design/pages, even though W6 Login is owned by PR239. Keep the Login commit in history, align
-    its product tree to PR239 ownership (without history rewrite), update source_sha to that new exact PR234 candidate,
-    and rerun PRODUCT_WORK Admission before further implementation.
+  next_action: PR234 scope repair is committed at 91418127df91b9854897f24eeb84c970cb2e6563; Login integration remains on PR239. Run PRODUCT_WORK Admission on this exact source SHA, then resolve the existing W2 Pages workflow source-hash mismatch through a Main-first authority update.
 blockers:
 - W4 run 40828169489 failed before Login exact-SHA evidence was generated.
 - W5 run 40828169461 and Pages/W2 run 40828169492 failed SOURCE_AUTHORITY_SHA_MISMATCH for the three binding records
@@ -417,11 +414,11 @@ live_recovery_checkpoint:
 current_execution_checkpoint:
   task_id: YUJIAN_W4_W5_MAIN_PAGES_W6_ANDROID_RUNTIME_CLOSURE_V1
   supplemental_task_id: YUJIAN_NH01_STRUCTURED_HIFI_MULTI_SCREEN_RESPONSIVE_CLOSURE_V1
-  updated_at: '2026-10-29T06:34:44Z'
+  updated_at: '2026-10-29T06:41:37Z'
   main_sha: b080bb0ffb4ebced18593c08709657fabb53a19e
   pr234:
     base_sha: b080bb0ffb4ebced18593c08709657fabb53a19e
-    head_sha: 6933f459d2223823a25edcd1d4598ffde3061267
+    head_sha: 91418127df91b9854897f24eeb84c970cb2e6563
     status: OPEN_DRAFT_UNMERGED
   pr239:
     base_sha: b080bb0ffb4ebced18593c08709657fabb53a19e
@@ -431,7 +428,7 @@ current_execution_checkpoint:
     base_sha: b080bb0ffb4ebced18593c08709657fabb53a19e
     head_sha: 8001e577fcdfae59f1071bbcaff1647c841ed753
     status: OPEN_DRAFT_UNMERGED; ANDROID RUNTIME INDEPENDENT
-  source_sha: 6933f459d2223823a25edcd1d4598ffde3061267
+  source_sha: 91418127df91b9854897f24eeb84c970cb2e6563
   runs:
     w1: 40828169507
     w4: 40828169489
@@ -446,8 +443,8 @@ current_execution_checkpoint:
     prior_product_work_admission: 40827766107
   gates:
     W1: PASS_RUN_40828169507
-    W4: FAIL_RUN_40828169489
-    W5: FAIL_RUN_40828169461_SOURCE_AUTHORITY_SHA_MISMATCH
+    W4: PENDING_NEW_SHA_RUN
+    W5: PENDING_NEW_SHA_RUN
     W2: FAIL_RUN_40828169492_SOURCE_AUTHORITY_SHA_MISMATCH
     DESIGN_GOVERNANCE: PASS_RUN_40828169495
     PR_EVENT_ADMISSION: PASS_NOT_PRODUCT_WORK_RUN_40828169471
