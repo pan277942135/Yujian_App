@@ -307,7 +307,7 @@ fun RecognitionProcessingScene(
             val acceptedAtMs = recognitionMonotonicNowMs()
             latestPhotoPresentedAtMs?.let { photoStartMs ->
                 controller.onTrustedMaskAvailable(acceptedAtMs)
-                if (maskAcceptancePhase == RecognitionPhase.OUTLINE && trustedMaskRevealStartedAtMs == null) {
+                if (trustedMaskRevealStartedAtMs == null) {
                     trustedMaskRevealStartedAtMs = (acceptedAtMs - photoStartMs).coerceAtLeast(0L)
                 }
                 Log.i(

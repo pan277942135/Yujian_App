@@ -72,8 +72,8 @@ internal const val RECOGNITION_MASK_CONTOUR_REVEAL_MS = 750L
 internal fun recognitionMaskAcceptanceOpen(phase: RecognitionPhase): Boolean = when (phase) {
     RecognitionPhase.CAPTURED,
     RecognitionPhase.DETECTING,
-    RecognitionPhase.OUTLINE -> true
-    RecognitionPhase.CLASSIFYING,
+    RecognitionPhase.OUTLINE,
+    RecognitionPhase.CLASSIFYING -> true
     RecognitionPhase.RESULT,
     RecognitionPhase.FAILURE -> false
 }
@@ -182,8 +182,10 @@ fun RecognitionFishFocus(
             .fillMaxSize()
             .testTag(if (lowPerformance) "recognition-fish-focus-trusted-mask-low-performance" else "recognition-fish-focus-trusted-mask"),
     ) {
-        val goldStrength = recognitionFishGoldStrength(opticalReferenceElapsedMs, reduceMotion) *
-            maskRevealProgress.coerceIn(0f, 1f)
+        // The contour path already reveals spatially through maskRevealProgress.
+        // Multiplying the optical intensity by that progress a second time made
+        // the trusted mask nearly invisible during the reveal.
+        val goldStrength = recognitionFishGoldStrength(opticalReferenceElapsedMs, reduceMotion)
 
         val realContour = requireNotNull(cachedContourPath)
             val pathBounds = realContour.getBounds()
