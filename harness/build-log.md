@@ -103,3 +103,11 @@ Next action: restore Login inside the existing shared Design Manager, retain all
 - Rebound branch-local state to candidate `8b9a65bfd7b1e75679bb8a46e6acb08669270fad` and retained the authorized Login mapping `design/pages/account_privacy/Login/structured_candidate/component_mapping_v1.json` (blob `75c615d20be011b16e4e6843b41dabd0479a8d63`; registered W6-A dependency).
 - The Empty Home brand authorization conflict remains BLOCKED: `brand_title_primary` is authorized only for `normal_home_v1`; no standalone Empty Home brand asset is authorized.
 - Exact state-checkpoint Admission is pending. W5 viewport/font matrix and Pages deployment have not run on this candidate; visual acceptance is pending.
+
+
+## 2026-10-29 — PR #234 exact state-checkpoint Admission PASS
+
+- Exact candidate `554ffcf39c6493eccd284d71f459433c16db62c9` ran `python scripts/validate_control_plane_admission.py`: **PASS**. All six Control Plane layers passed; control-plane sync compared 735 paths with one exact registered Login mapping exception; Project Master State and Work Execution State both passed.
+- The single recorded state-source drift failure is closed with this exact Admission evidence; no page source changed in the recovery.
+- Next: execute the W5 Chromium matrix for 320×640, 360×780, 393×852, and 411×891 at font scales 1×/1.3×, including DOM/Inspector parity; then verify the isolated Pages source manifest and live route.
+- The Empty Home brand authority gap remains blocked. Visual acceptance, freeze, merge, and Android work are not claimed.
