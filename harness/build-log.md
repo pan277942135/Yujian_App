@@ -93,3 +93,13 @@ Next action: restore Login inside the existing shared Design Manager, retain all
 
 - Exact candidate 16d241c65c41bad1593be4976453cb9746681c0f ran python scripts/validate_control_plane_admission.py. Control Plane and Project Master State passed; Work Execution State failed JSON parsing because its final two characters were a literal backslash and n (Extra data at line 48, column 2).
 - Corrected only branch-local state files and recorded this failed attempt. The code source remains dad76a9ca737245d4076b75b86537412b0238765; page files are unchanged. Exact Admission is pending on the corrected state-only candidate.
+
+
+## 2026-10-29 — PR #234 exact-head Admission recovery checkpoint
+
+- Live Main: `0c245b86f8228107309d0135bdf819af255604be`; live PR #234 head: `8b9a65bfd7b1e75679bb8a46e6acb08669270fad` (Open / Draft / Unmerged).
+- Re-read current `AGENTS.md`, the six-layer canonical Control Plane, and Structured Hi-Fi Fast Track V1.1. Control Plane sync on this candidate is PASS (735 paths, 1 exact Login mapping exception).
+- Exact-head Admission ran before any page edits: six static layers and Project Master State passed; Work Execution State failed because its source_sha remained `32117ea4e04714aef12560bd75a614840afc502e` after the W5 verifier changed. The failure is recorded under bounded recovery ID `3e2ca3022b821c393b7e`; no page source was changed.
+- Rebound branch-local state to candidate `8b9a65bfd7b1e75679bb8a46e6acb08669270fad` and retained the authorized Login mapping `design/pages/account_privacy/Login/structured_candidate/component_mapping_v1.json` (blob `75c615d20be011b16e4e6843b41dabd0479a8d63`; registered W6-A dependency).
+- The Empty Home brand authorization conflict remains BLOCKED: `brand_title_primary` is authorized only for `normal_home_v1`; no standalone Empty Home brand asset is authorized.
+- Exact state-checkpoint Admission is pending. W5 viewport/font matrix and Pages deployment have not run on this candidate; visual acceptance is pending.
