@@ -14,6 +14,7 @@ FILES = {
     "processing_state": "design/system_v3/08_Page_Contracts/recognition/processing/State_Machine_V3_2.json",
     "processing_acceptance": "design/system_v3/08_Page_Contracts/recognition/processing/Acceptance_Contract_V3_2.json",
     "continuity": "design/pages/recognition/continuity/processing_result_optical_continuity_v1.json",
+    "android_transition": "design/pages/recognition/continuity/android_rr09_shared_photo_transition_final_v1.json",
     "rr09": "design/pages/recognition/result/motion/recognition_result_motion_contract_v3.json",
 }
 
@@ -29,6 +30,7 @@ def consistency_errors(contracts: dict) -> list[str]:
     state = contracts["processing_state"]
     acceptance = contracts["processing_acceptance"]
     continuity = contracts["continuity"]
+    android_transition = contracts["android_transition"]
     rr09 = contracts["rr09"]
 
     expected_durations = [350, 600, 600, 1250]
@@ -96,6 +98,48 @@ def consistency_errors(contracts: dict) -> list[str]:
     interaction = rr09.get("interaction", {})
     if any(interaction.get(key) is not False for key in ("cta_blocked", "save_blocked", "edit_blocked", "back_blocked")):
         errors.append("RR09 V3 motion must not block Result actions")
+
+    # Android shared-photo implementation binding: preserve the existing V1 cross-page design authority,
+    # while making both Hero placement modes and the midpoint rule machine-checkable.
+    if android_transition.get("contract_id") != "YUJIAN-ANDROID-RR09-SHARED-PHOTO-TRANSITION-V1":
+        errors.append("Android RR09 shared-photo contract identity drift")
+    if android_transition.get("status") != "FROZEN_DESIGN_DIRECTION" or android_transition.get("runtime_status") != "NOT_RUN":
+        errors.append("Android RR09 contract must remain design-only until exact-head runtime evidence exists")
+    if android_transition.get("canonicality") != "MAIN_AUTHORITY_ONLY_AFTER_MERGE":
+        errors.append("Android RR09 contract must not claim canonicality before Main adoption")
+    android_timeline = android_transition.get("timeline", {})
+    if android_timeline.get("processing_minimum_ms") != 2800 or android_timeline.get("rr09_duration_ms") != 850 or android_timeline.get("nominal_combined_visual_ms") != 3650:
+        errors.append("Android RR09 combined timeline must remain 2800ms + 850ms = 3650ms")
+    if android_timeline.get("nominal_combined_visual_is_inference_deadline") is not False:
+        errors.append("Android RR09 nominal visual duration must not become an inference deadline")
+    photo = android_timeline.get("photo_continuity", {})
+    interpolation = photo.get("interpolation", {})
+    if photo.get("start_ms") != 0 or photo.get("end_ms") != 200 or photo.get("duration_ms") != 200:
+        errors.append("Android photo continuity must remain the post-navigation 0–200ms segment")
+    if interpolation.get("formula") != "q(u) = u*u*(3-2*u)" or interpolation.get("exact_midpoint_required") is not True:
+        errors.append("Android photo interpolation must use symmetric smoothstep with exact R0.5 midpoint")
+    if interpolation.get("samples") != [{"elapsed_ms": 0, "q": 0}, {"elapsed_ms": 100, "q": 0.5}, {"elapsed_ms": 200, "q": 1}]:
+        errors.append("Android photo interpolation samples must be q(0)=0, q(100)=0.5 and q(200)=1")
+    modes = android_transition.get("photo_placement", {}).get("modes", {})
+    if set(modes) != {"BBOX_ANCHORED_SAFE_CROP", "FULL_SOURCE_FIT_SAME_SOURCE_AMBIENT"}:
+        errors.append("Android Hero placement must expose exactly the two approved photo modes")
+    safe_crop = modes.get("BBOX_ANCHORED_SAFE_CROP", {})
+    expected_profiles = [{"horizontal_fraction": 0.1, "vertical_fraction": 0.12}, {"horizontal_fraction": 0.08, "vertical_fraction": 0.08}, {"horizontal_fraction": 0.04, "vertical_fraction": 0.04}, {"horizontal_fraction": 0, "vertical_fraction": 0}]
+    if safe_crop.get("padding_profiles") != expected_profiles or safe_crop.get("crop_at_r1_matches_hero") is not True:
+        errors.append("BBox safe-crop profiles or R1 Hero transform parity drifted")
+    fallback = modes.get("FULL_SOURCE_FIT_SAME_SOURCE_AMBIENT", {})
+    if fallback.get("source_rect") != [0, 0, 1, 1] or fallback.get("foreground_fit") != "CONTAIN" or fallback.get("preserve_source_aspect_ratio") is not True or fallback.get("generated_fill") is not False:
+        errors.append("Full-source fallback must preserve the complete oriented source with FIT and no generated fill")
+    samples = fallback.get("reference_samples", {})
+    if samples.get("R0_5", {}).get("elapsed_ms") != 100 or samples.get("R0_5", {}).get("outer_rect") != {"x": 9.5, "y": 26.5, "width": 341, "height": 425} or samples.get("R0_5", {}).get("foreground_rect") != {"x": 50.625, "y": 66.5, "width": 258.75, "height": 345}:
+        errors.append("Mode B R0.5 reference geometry must remain the exact 360x640 midpoint sample")
+    if android_transition.get("result_entry", {}).get("english_scientific_name_visible") is not False or android_transition.get("result_entry", {}).get("empty_english_title_row_reserved") is not False:
+        errors.append("Android RR09 title must remain Chinese-only with no English row")
+    if android_transition.get("result_entry", {}).get("controls_enabled_from_t0") is not True or android_transition.get("invariants", {}).get("additional_pre_navigation_wait_ms") != 0:
+        errors.append("Android transition must keep Result actions active and add no pre-navigation wait")
+    gap_ids = [item.get("id") for item in android_transition.get("implementation_gap_register", [])]
+    if gap_ids != [f"G{i:02d}" for i in range(1, 11)]:
+        errors.append("Android transition implementation gap register must contain G01–G10 in order")
 
     if swos.get("contract_id") != "YUJIAN-SWOS-OPTICAL-V1":
         errors.append("SWOS optical contract identity drift")
@@ -192,6 +236,7 @@ def validate(root: Path) -> list[str]:
         "design/pages/recognition/processing/optics/SWOS_Optical_Contract_V1.md",
         "design/pages/recognition/processing/motion/Recognition_Processing_Motion_Spec_V1_3.md",
         "design/pages/recognition/continuity/Processing_Result_Optical_Continuity_Contract_V1.md",
+        "design/pages/recognition/continuity/Android_RR09_Shared_Photo_Transition_Final_Contract_V1.md",
         "design/pages/recognition/result/motion/Recognition_Result_Motion_Spec_V3.md",
         "design/system_v3/10_Page_Visual_Acceptance_Contracts/Recognition_Result/Recognition_Result_Motion_Contract_V3.md",
         "design/system_v3/08_Page_Contracts/recognition/processing/Recognition_Processing_Page_Contract_V3_2.md",
