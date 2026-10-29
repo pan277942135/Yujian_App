@@ -55,10 +55,28 @@
       "severity": "P1",
       "status": "OPEN",
       "unblock": "Keep provenance explicit; approve a documented degradation or provide the actual source."
+    },
+    {
+      "area": "main_recovery",
+      "condition": "PR247 final head has Android lint and NH01 native failures, SWOS audit failure; current Main Android CI and Camera Runtime remain pending. Branch-protection endpoint is 403, so required-check status is not confirmed.",
+      "gate_id": "Main current required checks",
+      "id": "TP-MAIN-PR247-CHECKS-001",
+      "severity": "P0",
+      "status": "OPEN",
+      "unblock": "Poll exact b080 runs and obtain authorized required-check/ruleset status."
+    },
+    {
+      "area": "external_swos_source",
+      "condition": "Frozen manifest blob cfb73d6178a3367a37460dca66d08ee1c75b81d1 / SHA-256 10bd86f55e41704ca621da8e82568ae6d8ad7a61002d51012ff630bb9b38df4a remains identical; audit 40805512054 reports external PR177 mapping SHA 8edce561c3b6f25263eb32f1d72706fec4e329b1 versus current merged head e6504be84c8b72bc99bd57b597862e210d98d5a0 and one pack integrity failure.",
+      "gate_id": "SWOS Web Input Pack Live SHA Audit",
+      "id": "TP-SWOS-LIVE-INPUT-PACK-001",
+      "severity": "P1",
+      "status": "OPEN",
+      "unblock": "Resolve external source/mapping/provenance separately without modifying the frozen manifest or hash."
     }
   ],
   "branch": "work-state/yujian-three-pilot-p0-v1",
-  "checkpoint_updated_at": "2026-10-29T06:37:20+00:00",
+  "checkpoint_updated_at": "2026-10-29T06:42:52Z",
   "control_plane_revision": "b080bb0ffb4ebced18593c08709657fabb53a19e",
   "dependencies": [
     "YUJIAN_PAGE_FREEZE_PIPELINE_W5_EMPTY_HOME_PILOT_V1",
@@ -468,7 +486,102 @@
       "latest_pages_status": "PASS",
       "login_matrix_binding_pr251": "https://github.com/pan277942135/Yujian_App/pull/251",
       "sha": "b080bb0ffb4ebced18593c08709657fabb53a19e",
-      "status": "CURRENT_MAIN_VERIFIED"
+      "status": "RECOVERED_CURRENT_DESIGN_GATES_PASS_ANDROID_AND_CAMERA_PENDING_REQUIRED_CHECKS_UNVERIFIED"
+    },
+    "main_recovery": {
+      "android_env_adjustments": {
+        "android_source_or_dependency_changes": false,
+        "files": 4,
+        "gradle": "8.9 to 9.3.1",
+        "setup_step_status": "PASS"
+      },
+      "base_sha": "5e482e8644828a880fbc3c0a273565765977bfaf",
+      "branch_protection_read": "403_RESOURCE_NOT_ACCESSIBLE_BY_INTEGRATION",
+      "changed_paths": 721,
+      "current_main_runs": {
+        "Android_CI": {
+          "run_id": 40819650600,
+          "status": "PENDING"
+        },
+        "Camera_Runtime": {
+          "run_id": 40819650509,
+          "status": "PENDING"
+        },
+        "Control_Plane_Admission": {
+          "run_id": 40819650422,
+          "status": "PASS"
+        },
+        "Design_Governance": {
+          "run_id": 40819650432,
+          "status": "PASS"
+        },
+        "Normal_Home_Governance": {
+          "run_id": 40819650554,
+          "status": "PASS"
+        },
+        "Pages_latest": {
+          "run_id": 40825171321,
+          "status": "PASS"
+        },
+        "Pages_push": {
+          "run_id": 40819650522,
+          "status": "PASS"
+        },
+        "W1": {
+          "run_id": 40819650455,
+          "status": "PASS"
+        },
+        "W4": {
+          "run_id": 40819650481,
+          "status": "PASS"
+        }
+      },
+      "current_main_sha": "b080bb0ffb4ebced18593c08709657fabb53a19e",
+      "head_sha": "2051128624bc684f74c50a1f532cc58ed7fc34f7",
+      "main_edits_retained": 20,
+      "merge_sha": "0c7f06ef672ce89285d8b7d9b3646a33439e8712",
+      "pr": 247,
+      "pr247_head_checks": {
+        "Android_CI": {
+          "reason": "lintDebug: 3 errors, first is MissingPermission in RecognitionLocationSearch.kt:107; Gradle 9.3.1 setup, unit tests, assembleDebug and AndroidTest APK compile passed",
+          "run_id": 40805512031,
+          "status": "FAIL"
+        },
+        "Control_Plane_Admission": {
+          "run_id": 40805512092,
+          "status": "PASS"
+        },
+        "Design_Governance": {
+          "run_id": 40805512043,
+          "status": "PASS"
+        },
+        "NH01_native_runtime": {
+          "reason": "font/date assertion for 05月29日 04:26; retain as historical runtime failure",
+          "run_id": 40805511940,
+          "status": "FAIL"
+        },
+        "Pages": {
+          "run_id": 40805511985,
+          "status": "PASS"
+        },
+        "SWOS_live_audit": {
+          "reason": "stale external source/control-plane pins and input pack integrity count 1",
+          "run_id": 40805512054,
+          "status": "FAIL"
+        },
+        "W1": {
+          "run_id": 40805512076,
+          "status": "PASS"
+        },
+        "W4": {
+          "run_id": 40805512034,
+          "status": "PASS"
+        }
+      },
+      "pr_url": "https://github.com/pan277942135/Yujian_App/pull/247",
+      "required_check_completeness": "NOT_CONFIRMED",
+      "restored_bytes": "BYTE_FOR_BYTE_FROM_1d851b98e550cdc4d0c5c6f74ffedcf194e126f4",
+      "restored_missing_blobs": 717
     },
     "native_runtime": {
       "run_id": 40828169459,
@@ -592,6 +705,27 @@
       "home_normal_v1": "4c8e70e12bb4ab220e4c9c27d911f57f807c16369b8dbfa18a4b5c752586e54e"
     },
     "state_branch": "work-state/yujian-three-pilot-p0-v1",
+    "swos_external_snapshot": {
+      "audit_expected_pr177_head": "8edce561c3b6f25263eb32f1d72706fec4e329b1",
+      "audit_observed_pr177_head": "653d8f637685ada850b006530787ad69d31e0c5b",
+      "audit_run_id": 40805512054,
+      "current_head_preview_pin": "UNKNOWN",
+      "current_page_w2_failure_is_separate": true,
+      "current_pr177_head": "e6504be84c8b72bc99bd57b597862e210d98d5a0",
+      "current_pr177_state": "CLOSED_MERGED",
+      "input_pack_integrity_fail_count": 1,
+      "manifest_git_blob_sha1": "cfb73d6178a3367a37460dca66d08ee1c75b81d1",
+      "manifest_modified_or_rebound": false,
+      "manifest_path": "design/pages/recognition/web/implementation_input_pack/SWOS_WEB_IMPLEMENTATION_INPUT_MANIFEST_V1.json",
+      "manifest_sha256": "10bd86f55e41704ca621da8e82568ae6d8ad7a61002d51012ff630bb9b38df4a",
+      "recorded_mapping_sha": "8edce561c3b6f25263eb32f1d72706fec4e329b1",
+      "status": "OPEN_STALE_EXTERNAL_SOURCE_AUDIT",
+      "verified_identical_at": [
+        "1d851b98e550cdc4d0c5c6f74ffedcf194e126f4",
+        "2051128624bc684f74c50a1f532cc58ed7fc34f7",
+        "b080bb0ffb4ebced18593c08709657fabb53a19e"
+      ]
+    },
     "w2_resource_audit": {
       "pages": {
         "auth_login_v2": {
@@ -704,7 +838,7 @@
     },
     "schema_version": "1.0"
   },
-  "next_action": "Reconcile Empty Home authority gaps from approved sources; keep current 6933 blocked at W2 and keep Login geometry issue 2f698d46967752fccf3d STOP_AND_ESCALATE.",
+  "next_action": "Reconcile current Main Android/Camera pending checks and required-check authorization; preserve PR247 Android/native failures and resolve the stale SWOS external source separately without changing its manifest/hash.",
   "phase": "P3",
   "repository": "pan277942135/Yujian_App",
   "schema_version": "1.0",

@@ -13,7 +13,7 @@ state_control:
   base_sha: b080bb0ffb4ebced18593c08709657fabb53a19e
   current_task: YUJIAN_THREE_PILOT_PAGE_SPEC_CLOSURE_AND_IMPLEMENTATION_GATE_V1
   status: BLOCKED
-  updated_at: '2026-10-29T06:37:20Z'
+  updated_at: '2026-10-29T06:42:52Z'
 source_of_truth:
   control_plane: CONTROL_PLANE_REGISTRY.yaml
   phase_task_machine: harness/PHASE_TASK_STATE_MACHINE.yaml
@@ -28,6 +28,7 @@ repositories:
     followup_contract_prs:
     - 250
     - 251
+    status: RECOVERED_CURRENT_DESIGN_GATES_PASS_ANDROID_AND_CAMERA_PENDING_REQUIRED_CHECKS_UNVERIFIED
   candidate:
     branch: work/w5-empty-home-pilot-v1
     source_sha: 6933f459d2223823a25edcd1d4598ffde3061267
@@ -55,8 +56,12 @@ pull_requests:
     url: https://github.com/pan277942135/Yujian_App/pull/247
 phases:
   P0:
-    status: PASS
-    evidence: 'Main authority recovery PR #247 and follow-ups #250/#251; current Main b080bb0ffb4ebced18593c08709657fabb53a19e.'
+    status: PARTIAL
+    evidence: 'PR #247 merged at 0c7f06ef672ce89285d8b7d9b3646a33439e8712; current Main b080. PR body records 717/717 absent
+      blobs restored byte-for-byte from parent 1d851b98e550cdc4d0c5c6f74ffedcf194e126f4 and 20 existing Main edits retained.
+      Final PR head 2051128624bc684f74c50a1f532cc58ed7fc34f7 has Android CI lint failure, NH01 native assertion failure, and
+      SWOS external-source audit failure. Current Main Android CI and Camera Runtime runs remain pending; branch-protection
+      endpoint returned 403, so required-check satisfaction is not confirmed.'
   P1:
     status: NOT_CONFIRMED
   P2:
@@ -259,6 +264,27 @@ blockers:
   status: OPEN
   condition: Approved upload source remains MISSING; footer-grass source remains NOT_VERIFIED; preserve both and do not promote.
   unblock: Keep source/lifecycle status explicit and approve a documented noncritical degradation or provide the actual source.
+- id: TP-MAIN-PR247-CHECKS-001
+  severity: P0
+  area: main_recovery
+  status: OPEN
+  condition: 'Main authority recovery is merged, but PR #247 final head had Android CI lint failure (run 40805512031), NH01
+    native runtime failure (40805511940), and SWOS audit failure (40805512054). On current Main b080, Android CI 40819650600
+    and Camera Runtime 40819650509 remain pending. Branch-protection endpoint denied read access (403), so which checks are
+    required cannot be confirmed here.'
+  unblock: Resolve/poll exact b080 Android and Camera runs and obtain an authorized required-check/ruleset read; keep the
+    restoration result distinct from these checks.
+- id: TP-SWOS-LIVE-INPUT-PACK-001
+  severity: P1
+  area: external_swos_source
+  status: OPEN
+  condition: 'SWOS audit run 40805512054 reports stale contract/control-plane pins, LIVE_SOURCE_BINDING mismatch (recorded
+    mapping/audit 8edce561c3b6f25263eb32f1d72706fec4e329b1; current merged PR #177 head e6504be84c8b72bc99bd57b597862e210d98d5a0),
+    stale preview pin UNKNOWN, and INPUT_PACK_INTEGRITY=FAIL count=1. Frozen manifest remains byte-identical: Git blob cfb73d6178a3367a37460dca66d08ee1c75b81d1;
+    SHA-256 10bd86f55e41704ca621da8e82568ae6d8ad7a61002d51012ff630bb9b38df4a at source parent 1d851b98, PR #247 head 2051128624,
+    and current Main b080.'
+  unblock: Resolve the external source/mapping/provenance in a separate reviewed change; do not modify the frozen input pack,
+    manifest or hash to mask the stale binding.
 protected_invariants:
   control_plane:
   - Canonical static Control Plane is read from current Main b080bb0ffb4ebced18593c08709657fabb53a19e.
@@ -300,6 +326,19 @@ next_actions:
   - TP-A01
   - TP-A02
   - TP-A03
+- id: TP-A05
+  action: 'Poll exact current-Main Android CI and Camera Runtime runs, then verify required-check status through a permitted
+    ruleset/branch-protection source; retain the PR #247 lint/native failures.'
+  owner: Work
+  status: BLOCKED
+  dependencies: []
+- id: TP-A06
+  action: 'Reconcile SWOS live-source mapping and audit evidence against current merged PR #177 head in a separate change
+    while preserving the frozen input-pack manifest and hash.'
+  owner: Work
+  status: WAITING
+  dependencies:
+  - TP-A05
 completion_rules:
 - W1-W5 pass on one exact source SHA independently for each page.
 - Do not mark a page FROZEN without product-owner visual acceptance.
@@ -308,7 +347,7 @@ completion_rules:
 state_update:
   protocol: harness/STATE_UPDATE_PROTOCOL.md
   static_control_plane_changes: NONE — current rules keep live task state in branch-local state/log files.
-  checkpoint_updated_at: '2026-10-29T06:37:20Z'
+  checkpoint_updated_at: '2026-10-29T06:42:52Z'
 agent_recovery:
   canonical_entry: AGENTS.md -> CONTROL_PLANE_REGISTRY.yaml -> current Main
   current_work_state: WORK_EXECUTION_STATE.json
