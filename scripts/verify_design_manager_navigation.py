@@ -18,7 +18,7 @@ EXPECTED_RECOGNITION_FLOW = [
     "recognition_full_flow_models", "swos_optical_contract", "processing_result_continuity",
     "swos_static_visual_v1_1",
     "web_hifi_contract_v2", "swos_web_hifi_motion_contract_v1_0",
-    "swos_rr09_optical_v1_2",
+    "swos_rr09_optical_v1_2", "capture_to_result_visual_flow_v1",
 ]
 EXPECTED_RECOGNITION_RESULT = [
     "overview", "high", "medium", "low", "no_fish", "image_quality",
@@ -107,6 +107,26 @@ def validate_tree(root: Path, *, built: bool = False, expected_build: str | None
     recognition_ids = [x.get("id") for x in recognition.get("hifi_views", [])]
     if recognition_ids != EXPECTED_RECOGNITION_FLOW:
         fail(f"Recognition main journey navigation changed: {recognition_ids} != {EXPECTED_RECOGNITION_FLOW}")
+    capture_flow = next((x for x in recognition["hifi_views"] if x.get("id") == "capture_to_result_visual_flow_v1"), None)
+    if capture_flow is None or capture_flow.get("status") != "SPEC_FROZEN" or capture_flow.get("render_mode") != "authority_index":
+        fail("16 Capture→Result design contract view missing or improperly labeled")
+    flow_dir = "design/pages/recognition/journey/"
+    expected_capture_files = {
+        "authority": flow_dir + "Capture_To_Result_Visual_Flow_Contract_V1.md",
+        "machine_authority": flow_dir + "Capture_To_Result_Visual_Flow_Contract_V1.json",
+        "acceptance_matrix": flow_dir + "Capture_To_Result_Acceptance_Matrix_V1.md",
+    }
+    for key, required_path in expected_capture_files.items():
+        if capture_flow.get(key) != required_path or not (root / required_path).is_file():
+            fail("16 Capture→Result frozen authority file missing: " + key)
+    capture_machine = load_json(root / expected_capture_files["machine_authority"])
+    if (capture_machine.get("contract_id") != "YUJIAN_ANDROID_CAPTURE_TO_RESULT_VISUAL_FLOW_V1"
+        or capture_machine.get("platform", {}).get("portrait_ui_only") is not True
+        or capture_machine.get("final_processing_photo", {}).get("content_scale") != "FIT_CONTAIN"
+        or capture_machine.get("rr09", {}).get("r0_5_ms") != 100
+        or capture_machine.get("runtime_semantics", {}).get("photo_first_frame_starts_visual_clock") is not True):
+        fail("Capture→Result frozen machine geometry/timing invariant mismatch")
+
     flow_models = next((x for x in recognition["hifi_views"] if x.get("id") == "recognition_full_flow_models"), None)
     if (
         flow_models is None
