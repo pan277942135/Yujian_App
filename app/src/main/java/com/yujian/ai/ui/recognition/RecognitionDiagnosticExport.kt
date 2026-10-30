@@ -21,11 +21,17 @@ object RecognitionDiagnosticExport {
             var status = "OK"
             try {
                 val process = ProcessBuilder("logcat", "-d", "-v", "threadtime", "--pid=${Process.myPid()}")
-                    .redirectErrorStream(true).redirectOutput(raw).start()
+                    .redirectErrorStream(true).start()
+                val drain = Thread {
+                    process.inputStream.use { input ->
+                        raw.outputStream().use { output -> input.copyTo(output) }
+                    }
+                }.apply { isDaemon = true; start() }
                 if (!process.waitFor(3, TimeUnit.SECONDS)) {
                     process.destroyForcibly()
                     status = "LOGCAT_TIMEOUT"
                 } else if (process.exitValue() != 0) status = "LOGCAT_EXIT_${process.exitValue()}"
+                drain.join(500)
             } catch (error: Exception) {
                 status = "LOGCAT_ERROR_${error.javaClass.simpleName}"
             }
