@@ -1,0 +1,58 @@
+{
+  "version": "1.0",
+  "status": "PASS",
+  "policy": "A shared bitmap exists only when an independent high-quality source is already present. Frozen page screenshots are not cropped into production assets.",
+  "real_shared_asset_count": 0,
+  "assets": [],
+  "category_decisions": [
+    {
+      "category": "environment",
+      "decision": "NO_BITMAP_REQUIRED",
+      "source_screens": [
+        "empty_home_v2",
+        "normal_home_v1",
+        "recognition_result_v1",
+        "fish_record_detail_v2",
+        "my_catches_v2",
+        "fish_guide_v2"
+      ],
+      "reason": "The pages share a morning-lake world but do not expose one independent, reusable background layer. Reusing a screenshot would import page-specific text, layout, and composition.",
+      "implementation": "Use page-specific environment treatment guided by the frozen reference and the BG_ENV_HERO, BG_CONTENT, and BG_DATA system rules."
+    },
+    {
+      "category": "camera",
+      "decision": "NO_BITMAP_REQUIRED",
+      "source_screens": [
+        "empty_home_v2",
+        "normal_home_v1",
+        "my_catches_v2"
+      ],
+      "reason": "The capture button is a shared component made from tokens and a vector glyph, not a screenshot-derived image.",
+      "implementation": "YuJianPrimaryCaptureButton using native Compose and vector rendering."
+    },
+    {
+      "category": "overlays",
+      "decision": "NO_BITMAP_REQUIRED",
+      "source_screens": [
+        "normal_home_v1",
+        "fish_record_detail_v2",
+        "recognition_result_v1"
+      ],
+      "reason": "Legibility gradients, mist glass, pills, borders, shadows, and separators are parameterized visual treatments.",
+      "implementation": "Native Compose surfaces and token-driven gradients; do not export screenshot crops."
+    },
+    {
+      "category": "source",
+      "decision": "NO_BITMAP_REQUIRED",
+      "source_screens": [
+        "normal_home_v1",
+        "recognition_result_v1",
+        "fish_record_detail_v2",
+        "my_catches_v2",
+        "fish_guide_v2"
+      ],
+      "reason": "Fish photographs, record covers, thumbnails, and fish-guide subjects are dynamic or page-specific content, not global static assets.",
+      "implementation": "Runtime media/data source or separately approved source master when one becomes available."
+    }
+  ]
+}

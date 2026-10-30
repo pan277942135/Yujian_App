@@ -1,0 +1,23 @@
+{
+  "version": "1.0",
+  "DeepLakeBlue": "#0B2D4B",
+  "LakeBlue": "#34556F",
+  "MistBlueGray": "#748897",
+  "LakeWhite": "#F7FAFB",
+  "MistWhite": "rgba(255,255,255,0.68)",
+  "MorningGold": "#D6A541",
+  "SoftGold": "#E5C77C",
+  "DeepOverlay": "rgba(8,25,38,0.26)",
+  "rules": {
+    "gold": [
+      "brand",
+      "important_moment",
+      "meaningful_record"
+    ],
+    "avoid_gold": [
+      "ordinary_edit",
+      "ordinary_navigation",
+      "generic_statistics"
+    ]
+  }
+}

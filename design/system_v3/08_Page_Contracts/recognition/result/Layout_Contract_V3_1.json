@@ -1,0 +1,467 @@
+{
+  "schema_version": "3.1",
+  "page_id": "recognition.result.v3_1",
+  "status": "FROZEN",
+  "component_refs": [
+    {
+      "component": "navigation.back",
+      "variant": "BACK_CENTER_TITLE",
+      "scope": "Back uses shared core; centered title is Result page composition",
+      "token_refs": [
+        "type.title",
+        "color.deep_lake_blue",
+        "touch.minimum",
+        "navigation.back_title.min_height"
+      ],
+      "asset_refs": [
+        "system_icon_library_v0_1_assets_ic_back_v1_svg"
+      ],
+      "authority": "design/system_v3/05_Component_System/Component_Registry_V3_FINAL.json",
+      "visual_authority": "design/system/components/top_navigation/back_title/Back_Title_Spec_V1.md",
+      "component_status": "FROZEN"
+    },
+    {
+      "component": "navigation.top_title",
+      "variant": "BACK_CENTER_TITLE",
+      "scope": "Centered title composition is page-owned by Frozen Result authority",
+      "token_refs": [
+        "type.title",
+        "color.deep_lake_blue",
+        "touch.minimum",
+        "navigation.back_title.min_height"
+      ],
+      "asset_refs": [],
+      "authority": "design/system_v3/05_Component_System/Component_Registry_V3_FINAL.json",
+      "visual_authority": "design/system/components/top_navigation/title_only/Title_Only_Spec_V1.md",
+      "component_status": "FROZEN"
+    },
+    {
+      "component": "action.primary_button",
+      "variant": "RESULT_SAVE / SECONDARY",
+      "scope": "Page-specific Frozen Result action profiles; not global variants",
+      "token_refs": [
+        "type.button",
+        "color.action_primary",
+        "color.action_disabled_surface",
+        "color.action_disabled_content",
+        "touch.minimum",
+        "geometry.radius.primary_button_28"
+      ],
+      "asset_refs": [],
+      "authority": "design/system_v3/05_Component_System/Component_Registry_V3_FINAL.json",
+      "visual_authority": "design/system/components/action_button/Action_Button_Spec_V1_1.md",
+      "component_status": "FROZEN"
+    },
+    {
+      "component": "action.text_action",
+      "variant": "RESULT_TEXT_ACTION",
+      "scope": "Registered shared text action with Result page composition",
+      "token_refs": [
+        "type.button",
+        "color.active_accent",
+        "color.action_primary",
+        "color.mist_blue_gray",
+        "color.on_media_label",
+        "color.on_media_pressed",
+        "touch.minimum"
+      ],
+      "asset_refs": [
+        "system_icon_library_v0_1_assets_ic_chevron_right_v1_svg"
+      ],
+      "authority": "design/system_v3/05_Component_System/Component_Registry_V3_FINAL.json",
+      "visual_authority": "design/system/components/text_action/Text_Action_Spec_V1.md",
+      "component_status": "FROZEN"
+    },
+    {
+      "component": "action.icon_action",
+      "variant": "RESULT_ICON_ACTION",
+      "scope": "Use only an icon declared by the Result authority",
+      "token_refs": [
+        "color.deep_lake_blue",
+        "color.action_primary",
+        "color.icon_disabled",
+        "touch.minimum"
+      ],
+      "asset_refs": [],
+      "authority": "design/system_v3/05_Component_System/Component_Registry_V3_FINAL.json",
+      "visual_authority": "design/system/components/icon_action/Icon_Action_Spec_V1.md",
+      "component_status": "FROZEN"
+    },
+    {
+      "component": "surface.glass_surface",
+      "variant": "MIST_GLASS",
+      "scope": "Existing Result Frozen contract maps cards to shared Mist Glass",
+      "token_refs": [
+        "color.glass_white",
+        "color.glass_border",
+        "color.deep_overlay"
+      ],
+      "asset_refs": [],
+      "authority": "design/system_v3/05_Component_System/Component_Registry_V3_FINAL.json",
+      "visual_authority": "GLASS_A/B/C material, opacity, border, blur and shadow are read from the registered Glass token source. Do not stretch a surface to fill the viewport.",
+      "component_status": "FROZEN"
+    },
+    {
+      "component": "surface.card",
+      "variant": "PAGE_CARD_COMPOSITION",
+      "scope": "Visual/card geometry remains owned by Result Frozen authorities",
+      "token_refs": [],
+      "asset_refs": [],
+      "authority": "design/system_v3/05_Component_System/Component_Registry_V3_FINAL.json",
+      "visual_authority": "Card is a content-grouping role only. Each card instance uses its cited page Frozen authority; no universal background, radius, elevation, ratio, or crop is implied.",
+      "component_status": "FROZEN"
+    },
+    {
+      "component": "media.hero",
+      "variant": "RESULT_HERO",
+      "scope": "Hero frame geometry is state-specific and page-owned",
+      "token_refs": [
+        "geometry.media.fill",
+        "geometry.media.fit",
+        "geometry.media.cover"
+      ],
+      "asset_refs": [],
+      "authority": "design/system_v3/05_Component_System/Component_Registry_V3_FINAL.json",
+      "visual_authority": "design/system/core_visual_v1/components/Hero_Card.md; Fish Media Display V1",
+      "component_status": "FROZEN"
+    },
+    {
+      "component": "media.image",
+      "variant": "RESULT_EVIDENCE_MEDIA",
+      "scope": "Recovery states use Evidence Fit",
+      "token_refs": [
+        "geometry.media.fit",
+        "geometry.media.cover",
+        "geometry.media.contain",
+        "geometry.media.evidence_fit",
+        "geometry.media.letterbox",
+        "geometry.media.blur_background"
+      ],
+      "asset_refs": [],
+      "authority": "design/system_v3/05_Component_System/Component_Registry_V3_FINAL.json",
+      "visual_authority": "design/system/fish_media_display_v1/Fish_Media_Display_Spec_V1.md",
+      "component_status": "FROZEN"
+    },
+    {
+      "component": "data.metadata_row",
+      "variant": "RESULT_METADATA_VERTICAL",
+      "scope": "Vertical field rows follow the Result metadata contract",
+      "token_refs": [
+        "type.body",
+        "type.caption",
+        "color.deep_lake_blue",
+        "color.mist_blue_gray"
+      ],
+      "asset_refs": [],
+      "authority": "design/system_v3/05_Component_System/Component_Registry_V3_FINAL.json",
+      "visual_authority": "A factual label/value row. Result metadata uses the frozen vertical metadata strip; FishRecordDetail uses its own row authority.",
+      "component_status": "FROZEN"
+    },
+    {
+      "component": "input.selector",
+      "variant": "SPECIES_PICKER",
+      "scope": "Use shared Selector Core + Species Picker Variant",
+      "token_refs": [
+        "type.body",
+        "color.deep_lake_blue",
+        "color.action_primary",
+        "touch.minimum"
+      ],
+      "asset_refs": [
+        "system_icon_library_v0_1_assets_ic_selected_check_v1_svg",
+        "system_icon_library_v0_1_assets_ic_search_v1_svg"
+      ],
+      "authority": "design/system_v3/05_Component_System/Component_Registry_V3_FINAL.json",
+      "visual_authority": "design/system/components/species_picker_v1/Species_Picker_Spec_V1.md",
+      "component_status": "FROZEN"
+    },
+    {
+      "component": "input.search",
+      "variant": "SPECIES_SEARCH",
+      "scope": "Search belongs to the registered Selector Core",
+      "token_refs": [
+        "type.body",
+        "color.deep_lake_blue"
+      ],
+      "asset_refs": [
+        "system_icon_library_v0_1_assets_ic_search_v1_svg",
+        "system_icon_library_v0_1_assets_ic_clear_field_v1_svg"
+      ],
+      "authority": "design/system_v3/05_Component_System/Component_Registry_V3_FINAL.json",
+      "visual_authority": "My Catches Search V1 only: 44dp bar, 14dp radius, page content alignment, Mist Glass, 1dp low-contrast border, 18–20dp search icon, 15sp input, 14–15sp placeholder, 18dp clear control.",
+      "component_status": "FROZEN"
+    },
+    {
+      "component": "input.bottom_sheet",
+      "variant": "METADATA_EDIT_SHEETS",
+      "scope": "Page-owned metadata editing uses registered shared Bottom Sheet contract",
+      "token_refs": [
+        "type.body",
+        "color.lake_white"
+      ],
+      "asset_refs": [],
+      "authority": "design/system_v3/05_Component_System/Component_Registry_V3_FINAL.json",
+      "visual_authority": "Shared role: contextual modal choice/explanation. Exact visuals, contents, action order and container variant are owned by the cited page authority.",
+      "component_status": "FROZEN"
+    }
+  ],
+  "token_refs": [
+    {
+      "token_id": "color.action_primary",
+      "authority": "design/system_v3/04_Design_Tokens/Color/Color_Tokens_V3_FINAL.json",
+      "token_group": "color"
+    },
+    {
+      "token_id": "color.deep_lake_blue",
+      "authority": "design/system_v3/04_Design_Tokens/Color/Color_Tokens_V3_FINAL.json",
+      "token_group": "color"
+    },
+    {
+      "token_id": "color.deep_overlay",
+      "authority": "design/system_v3/04_Design_Tokens/Color/Color_Tokens_V3_FINAL.json",
+      "token_group": "color"
+    },
+    {
+      "token_id": "color.glass_border",
+      "authority": "design/system_v3/04_Design_Tokens/Color/Color_Tokens_V3_FINAL.json",
+      "token_group": "color"
+    },
+    {
+      "token_id": "color.glass_white",
+      "authority": "design/system_v3/04_Design_Tokens/Color/Color_Tokens_V3_FINAL.json",
+      "token_group": "color"
+    },
+    {
+      "token_id": "color.lake_blue",
+      "authority": "design/system_v3/04_Design_Tokens/Color/Color_Tokens_V3_FINAL.json",
+      "token_group": "color"
+    },
+    {
+      "token_id": "color.lake_white",
+      "authority": "design/system_v3/04_Design_Tokens/Color/Color_Tokens_V3_FINAL.json",
+      "token_group": "color"
+    },
+    {
+      "token_id": "color.morning_gold",
+      "authority": "design/system_v3/04_Design_Tokens/Color/Color_Tokens_V3_FINAL.json",
+      "token_group": "color"
+    },
+    {
+      "token_id": "color.status_error_foreground",
+      "authority": "design/system_v3/04_Design_Tokens/Color/Color_Tokens_V3_FINAL.json",
+      "token_group": "color"
+    },
+    {
+      "token_id": "color.status_error_surface",
+      "authority": "design/system_v3/04_Design_Tokens/Color/Color_Tokens_V3_FINAL.json",
+      "token_group": "color"
+    },
+    {
+      "token_id": "color.status_warning_foreground",
+      "authority": "design/system_v3/04_Design_Tokens/Color/Color_Tokens_V3_FINAL.json",
+      "token_group": "color"
+    },
+    {
+      "token_id": "color.status_warning_surface",
+      "authority": "design/system_v3/04_Design_Tokens/Color/Color_Tokens_V3_FINAL.json",
+      "token_group": "color"
+    },
+    {
+      "token_id": "geometry.media.cover",
+      "authority": "design/system_v3/07_Responsive_System/Geometry_Tokens_V3_FINAL.json",
+      "token_group": "geometry"
+    },
+    {
+      "token_id": "geometry.media.evidence_fit",
+      "authority": "design/system_v3/07_Responsive_System/Geometry_Tokens_V3_FINAL.json",
+      "token_group": "geometry"
+    },
+    {
+      "token_id": "geometry.media.fit",
+      "authority": "design/system_v3/07_Responsive_System/Geometry_Tokens_V3_FINAL.json",
+      "token_group": "geometry"
+    },
+    {
+      "token_id": "geometry.space.12",
+      "authority": "design/system_v3/07_Responsive_System/Geometry_Tokens_V3_FINAL.json",
+      "token_group": "geometry"
+    },
+    {
+      "token_id": "touch.minimum",
+      "authority": "design/system_v3/07_Responsive_System/Geometry_Tokens_V3_FINAL.json",
+      "token_group": "geometry"
+    },
+    {
+      "token_id": "type.body",
+      "authority": "design/system_v3/04_Design_Tokens/Typography/Typography_Tokens_V3_FINAL.json",
+      "token_group": "typography"
+    },
+    {
+      "token_id": "type.button",
+      "authority": "design/system_v3/04_Design_Tokens/Typography/Typography_Tokens_V3_FINAL.json",
+      "token_group": "typography"
+    },
+    {
+      "token_id": "type.caption",
+      "authority": "design/system_v3/04_Design_Tokens/Typography/Typography_Tokens_V3_FINAL.json",
+      "token_group": "typography"
+    },
+    {
+      "token_id": "type.headline",
+      "authority": "design/system_v3/04_Design_Tokens/Typography/Typography_Tokens_V3_FINAL.json",
+      "token_group": "typography"
+    },
+    {
+      "token_id": "type.numeric",
+      "authority": "design/system_v3/04_Design_Tokens/Typography/Typography_Tokens_V3_FINAL.json",
+      "token_group": "typography"
+    },
+    {
+      "token_id": "type.title",
+      "authority": "design/system_v3/04_Design_Tokens/Typography/Typography_Tokens_V3_FINAL.json",
+      "token_group": "typography"
+    },
+    {
+      "token_id": "viewport.360",
+      "authority": "design/system_v3/07_Responsive_System/Geometry_Tokens_V3_FINAL.json",
+      "token_group": "geometry"
+    }
+  ],
+  "background_refs": [
+    {
+      "background_id": "BG_CONTENT",
+      "authority": "design/system_v3/08_Background_System/Background_Registry_V3.json",
+      "source_asset": "Morning_Lake_Master_V1.png",
+      "master_path": "design/system/backgrounds/morning_lake_v1/assets/Morning_Lake_Master_V1.png",
+      "sha256": "5fba741088ea186e898cd3bee5777e35978436f427492e6e6122528ef6aa91d7",
+      "treatment": {
+        "mist_white_veil_alpha": 0.15,
+        "saturation": 0.91,
+        "contrast": 0.89,
+        "brightness": 1.03,
+        "global_blur": false,
+        "target_salience": 0.75
+      },
+      "status": "FROZEN"
+    }
+  ],
+  "asset_refs": [
+    {
+      "asset_id": "pages_recognition_design_05_result_high_frozen_png",
+      "path": "design/pages/recognition/design/05_Result_High_Frozen.png",
+      "sha256": "f540ddc4b3844a453170537eaa70f506dc0eb1c312fc3410a960ad6cd87ba156",
+      "type": "PNG",
+      "size": 1732983,
+      "dimensions": "941x1672",
+      "registry_status": "REVIEW",
+      "role": "HIGH_CONFIDENCE visual authority"
+    },
+    {
+      "asset_id": "pages_recognition_design_06_result_medium_frozen_png",
+      "path": "design/pages/recognition/design/06_Result_Medium_Frozen.png",
+      "sha256": "5a334f8deef344910865d43057a2df3d6d5137ca8ebfad3eef7557120586fcd3",
+      "type": "PNG",
+      "size": 1659693,
+      "dimensions": "941x1672",
+      "registry_status": "REVIEW",
+      "role": "MEDIUM_CONFIDENCE visual authority"
+    },
+    {
+      "asset_id": "pages_recognition_design_07_result_low_frozen_png",
+      "path": "design/pages/recognition/design/07_Result_Low_Frozen.png",
+      "sha256": "b767965028786374bcadf9dd1b219b7b61f698edade323d8557293ebcec1d6e1",
+      "type": "PNG",
+      "size": 1730696,
+      "dimensions": "941x1672",
+      "registry_status": "REVIEW",
+      "role": "LOW_CONFIDENCE visual authority"
+    },
+    {
+      "asset_id": "pages_recognition_design_08_error_no_fish_frozen_png",
+      "path": "design/pages/recognition/design/08_Error_No_Fish_Frozen.png",
+      "sha256": "3952e2f8eb8e42124e8554f6c1481351ff7cb7bb200180613787c4448bf2d8d2",
+      "type": "PNG",
+      "size": 1730109,
+      "dimensions": "941x1672",
+      "registry_status": "REVIEW",
+      "role": "NO_FISH visual authority"
+    },
+    {
+      "asset_id": "pages_recognition_design_09_error_image_quality_frozen_png",
+      "path": "design/pages/recognition/design/09_Error_Image_Quality_Frozen.png",
+      "sha256": "965be5b37ce4c41e8a5b758f2f94bac16fa0b99dc135e25b114c2943d35b1a0d",
+      "type": "PNG",
+      "size": 1618477,
+      "dimensions": "941x1672",
+      "registry_status": "REVIEW",
+      "role": "IMAGE_QUALITY_WARNING visual authority"
+    },
+    {
+      "asset_id": "pages_recognition_result_species_selector_frozen_recognition_result_species_selector_v1_frozen_png",
+      "path": "design/pages/recognition/result/species_selector/frozen/Recognition_Result_Species_Selector_V1_Frozen.png",
+      "sha256": "3c5a1ed62f8f55e2aad2cee01bce98b9e92e0f06e6ebfc799b85d24f6650d98d",
+      "type": "PNG",
+      "size": 1660583,
+      "dimensions": "941x1672",
+      "registry_status": "REVIEW",
+      "role": "Species Selector interaction authority"
+    },
+    {
+      "asset_id": "pages_recognition_result_metadata_edit_frozen_recognition_result_metadata_edit_flow_v1_frozen_png",
+      "path": "design/pages/recognition/result/metadata_edit/frozen/Recognition_Result_Metadata_Edit_Flow_V1_Frozen.png",
+      "sha256": "2c62281a82a145ac2958a81927c30a7c4eb8d96c2e57caa1a99c16a7515ad27a",
+      "type": "PNG",
+      "size": 1596034,
+      "dimensions": "1312x1199",
+      "registry_status": "REVIEW",
+      "role": "Metadata edit interaction authority"
+    }
+  ],
+  "page_scoped_authorities": [
+    "design/pages/recognition/result/authority/authority_map.json",
+    "design/pages/recognition/result/engineering/Recognition_Result_Layout_Geometry_V1.md",
+    "design/pages/recognition/result/engineering/Recognition_Result_Component_Map_V1.md",
+    "design/pages/recognition/result/engineering/Recognition_Result_Metadata_Input_Contract_V1.md",
+    "design/pages/recognition/result/spec/Recognition_Result_Behavior_Spec_V1.md",
+    "design/pages/recognition/result/spec/Recognition_Result_Acceptance_Criteria_V1.md",
+    "design/system_v3/11_Freeze_Governance/audits/Phase1_Decisions_Required_V3_1.md",
+    "design/system_v3/08_Page_Contracts/recognition/result/ImageQualityCopy_V1.json",
+    "design/system_v3/08_Page_Contracts/recognition/result/Recognition_Result_Data_Lineage_V1.json",
+    "design/system_v3/08_Page_Contracts/recognition/result/Result_Responsive_Accessibility_Matrix_V3_1.md"
+  ],
+  "unresolved_dependencies": [],
+  "page_scoped_geometry": {
+    "authority": "design/pages/recognition/result/engineering/layout_geometry_contract.json",
+    "canonical_width_dp": 360,
+    "content_width_dp": 322,
+    "hero_by_state_dp": {
+      "HIGH_CONFIDENCE": [
+        322,
+        210
+      ],
+      "MEDIUM_CONFIDENCE": [
+        322,
+        178
+      ],
+      "LOW_CONFIDENCE": [
+        322,
+        178
+      ],
+      "NO_FISH": [
+        322,
+        245
+      ],
+      "IMAGE_QUALITY_WARNING": [
+        322,
+        214
+      ]
+    },
+    "rule": "Preserve existing state-specific Frozen geometry; no universal Hero ratio and no page-private shared token."
+  },
+  "rules": {
+    "save_catch_destination": "HOME after successful persistence; never FishRecordDetail",
+    "continue_memory_destination": "FishRecordDetail(recordId, initialSection=MEMORY) after successful persistence",
+    "no_page_private_tokens": true,
+    "no_new_shared_components": true
+  }
+}

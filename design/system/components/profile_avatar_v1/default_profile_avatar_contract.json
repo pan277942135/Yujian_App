@@ -1,0 +1,80 @@
+{
+  "version": "1.0",
+  "status": "FROZEN",
+  "id": "yujian_default_profile_avatar_v1",
+  "display_name": "默认资料头像",
+  "ownership": "SHARED_COMPONENT",
+  "owner_path": "design/system/components/profile_avatar_v1",
+  "promoted_from": "design/pages/home/normal_home/02_first_catch/default_avatar_contract.json",
+  "scope": [
+    "Normal Home header",
+    "My / Profile",
+    "Edit Profile",
+    "Account & Login",
+    "other logged-in profile avatar surfaces"
+  ],
+  "authority_rule": "This shared contract is the canonical design/semantic authority. Page-level contracts may reference it but may not redefine the fallback.",
+  "android_implementation_reference": "app/src/main/res/drawable/profile_fallback_v13.xml",
+  "semantics": {
+    "logged_in_avatar_available": "REAL_USER_AVATAR",
+    "logged_in_avatar_missing": "DEFAULT_PROFILE_AVATAR_V1",
+    "logged_in_avatar_load_failure": "DEFAULT_PROFILE_AVATAR_V1",
+    "guest": "GUEST_ACCOUNT_ENTRY",
+    "default_avatar_is_guest": false
+  },
+  "visual": {
+    "shape": "CIRCLE",
+    "vector_viewport": [
+      96,
+      96
+    ],
+    "outer_disc": {
+      "center": [
+        48,
+        48
+      ],
+      "radius": 43,
+      "fill": "#6BFFFFFF",
+      "stroke": "#9EFFFFFF",
+      "stroke_width": 2
+    },
+    "person_icon": {
+      "stroke": "#30485A",
+      "stroke_width": 4,
+      "shoulder_line_cap": "ROUND",
+      "head_circle": {
+        "center": [
+          48,
+          37
+        ],
+        "radius": 13
+      }
+    },
+    "sizing_rule": "Use the same display size and tap target as the real user avatar on each consuming surface."
+  },
+  "interaction": {
+    "logged_in_tap": "OPEN_MY_PROFILE",
+    "same_as_real_avatar": true,
+    "disabled": false,
+    "automatic_prompt": false
+  },
+  "forbidden": [
+    "Guest avatar used for logged-in fallback",
+    "initial-letter avatar",
+    "random-color avatar",
+    "AI-generated default face",
+    "fish logo as person substitute",
+    "missing-avatar text label",
+    "automatic Edit Profile prompt",
+    "page-local default avatar variants"
+  ],
+  "consumers": [
+    "home_normal_v1",
+    "account_privacy_v1"
+  ],
+  "governance": {
+    "page_override": "FORBIDDEN_WITHOUT_VERSIONED_SHARED_REVISION",
+    "runtime_reference_is_authority": false,
+    "no_new_binary_required": true
+  }
+}
