@@ -1,0 +1,19 @@
+{
+  "schema_version": "1.0",
+  "work_id": "YUJIAN_CAPTURE_SHARED_BUTTON_MOTION_V1",
+  "repository": "pan277942135/Yujian_App",
+  "branch": "feature/shared-crystal-capture-motion",
+  "control_plane_revision": "1b936e8d7b95602200fc253d58021112f6d4f101",
+  "base_branch": "main",
+  "base_sha": "1b936e8d7b95602200fc253d58021112f6d4f101",
+  "phase": "P6",
+  "task_id": "YUJIAN_ANDROID_SHARED_CAPTURE_BUTTON_MOTION_V1",
+  "stage": "E1",
+  "status": "VALIDATING",
+  "source_sha": "da2b9d754604599c9b915f3eee542c218c7e98f3",
+  "checkpoint_updated_at": "2026-10-30T14:43:06.343232+00:00",
+  "next_action": "Verify shared button motion on exact HEAD; defer APK until combined delivery.",
+  "dependencies": [],
+  "blockers": [],
+  "evidence": {}
+}

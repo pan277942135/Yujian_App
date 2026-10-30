@@ -1,0 +1,169 @@
+schema_version: '1.0'
+state_id: YUJIAN_CAPTURE_SHARED_BUTTON_MOTION_V1
+project:
+  name: 渔见 AI
+  repository: pan277942135/Yujian_App
+  scope: Shared capture button idle and click motion; no APK in this checkpoint.
+  state_classification: RECOVERY_SNAPSHOT_NOT_PRODUCT_ACCEPTANCE
+state_control:
+  current_branch: feature/shared-crystal-capture-motion
+  current_pr: null
+  base_sha: 1b936e8d7b95602200fc253d58021112f6d4f101
+  execution_baseline_sha: da2b9d754604599c9b915f3eee542c218c7e98f3
+  current_head: da2b9d754604599c9b915f3eee542c218c7e98f3
+  current_main_head_sha: 1b936e8d7b95602200fc253d58021112f6d4f101
+  state_status: IN_PROGRESS
+  updated_at: '2026-10-30T14:43:06.343232+00:00'
+  related_pr: null
+source_of_truth:
+  current_work_state: WORK_EXECUTION_STATE.json
+  canonical_control_plane: CONTROL_PLANE_REGISTRY.yaml
+  phase_task_state_machine: harness/PHASE_TASK_STATE_MACHINE.yaml
+  unified_contract_registry: harness/UNIFIED_CONTRACT_REGISTRY.yaml
+  state_update_protocol: harness/STATE_UPDATE_PROTOCOL.md
+  current_work_log: harness/build-log.md
+repositories:
+  Yujian_App:
+    branch: work/w5-empty-home-pilot-v1
+    execution_baseline_sha: 7e8af71ab71c248294b40db266b6227dc3a2e949
+    current_main_head_sha: 0c245b86f8228107309d0135bdf819af255604be
+    control_plane_sync:
+      status: SYNCED_AND_ADMITTED
+      main_sync_commit: 2cbfcdd2fda84d9fcdd7700c1d40e1f5c24271fa
+      synced_main_sha: 0c245b86f8228107309d0135bdf819af255604be
+      note: 'PR #234 exact source 7e8af71ab71c248294b40db266b6227dc3a2e949 is synchronized
+        to Main 0c245b86f8228107309d0135bdf819af255604be; exact-source Control Plane
+        Admission, W1, W4, W5, W6-A, Design Governance and isolated preview workflows
+        passed. Product Work Admission is recorded on this companion branch; dynamic
+        state remains branch-local.'
+pull_requests: {}
+phases:
+  P0:
+    status: NOT_CONFIRMED
+  P1:
+    status: NOT_CONFIRMED
+  P2:
+    status: NOT_CONFIRMED
+  P3:
+    status: NOT_CONFIRMED
+    note: Typography and bottom-action candidate calibration is implemented; exact-source
+      W5 matrix and isolated preview pass. Visual acceptance remains pending because
+      Brand authorization is unresolved and the Hero measurement source conflicts
+      with the frozen V2.2 raster.
+  P4:
+    status: NOT_CONFIRMED
+  P5:
+    status: NOT_CONFIRMED
+  P6:
+    status: NOT_CONFIRMED
+  P7:
+    status: NOT_CONFIRMED
+  P8:
+    status: NOT_CONFIRMED
+  P9:
+    status: NOT_CONFIRMED
+recognition_main_journey:
+  contract_status: FROZEN
+  route:
+  - J01
+  - J02
+  - J03
+  - J04
+  - J05
+  - J06
+  - J07
+  - J08
+  - J09
+  - J10
+  - J11
+  - J12
+  - J13
+  - J14
+  - J15
+  - J16
+  - J17
+  - J18
+  - J19
+  - J20
+  note: This narrow design-candidate recovery does not change journey semantics.
+runtime_gates:
+  exact_head:
+    sha: da2b9d754604599c9b915f3eee542c218c7e98f3
+    status: PASS
+    note: 'Exact PR candidate 7e8af71ab71c248294b40db266b6227dc3a2e949: promotion
+      control-plane run 40961497308, W1 40961497233, W4 40961497214, W5 40961497387,
+      W6-A 40961497132 and Design Governance 40961497336 passed. Product Work Admission
+      is being rerun on this companion state checkpoint.'
+  page_evidence:
+    previous_w5_matrix:
+      status: HISTORICAL_FOR_OLD_HEAD
+      source_sha: ffd9cfe69ff52c776049953b730f6dabb90fe44a
+      run_id: 40873120653
+    current_typography_matrix:
+      status: PASS_STRUCTURAL_MATRIX_VISUAL_REVIEW_PENDING
+      source_sha: 7e8af71ab71c248294b40db266b6227dc3a2e949
+      note: Actual DOM bounds, leaf text ranges, Inspector parity, resource binding,
+        220-reference-px camera touch target and negative checks pass. Candidate screenshot
+        confirms subtitle and CTA changes; visual acceptance remains pending with
+        Hero and Brand authority blockers.
+      run_id: 40961497387
+      artifact_id: 12935478244
+      artifact_url: https://github.com/pan277942135/Yujian_App/actions/runs/40961497387/artifacts/12935478244
+      formal_cases: 8/8 (320x640, 360x780, 393x852, 411x891 at font scales 1.0 and
+        1.3)
+      supplemental_cases: 4/4 at font scale 1.5
+    isolated_preview:
+      status: PASS_LIVE_PREVIEW
+      source_sha: 7e8af71ab71c248294b40db266b6227dc3a2e949
+      run_id: 40961497204
+      url: https://pan277942135.github.io/Yujian_App/previews/pr-234/design/manager/?candidate=7e8af71ab71c248294b40db266b6227dc3a2e949#page/home_empty_v2/hifi/structured_workspace
+      production_deploy: SKIPPED
+  historical_runtime_run:
+    rule: Historical results cannot promote current exact HEAD to PASS.
+  user_visual_acceptance: PENDING
+apk_and_evidence:
+  status: NOT_APPLICABLE_DESIGN_ONLY
+  note: No Android or APK work is part of this task.
+current_work:
+  id: YUJIAN_CAPTURE_SHARED_BUTTON_MOTION_V1
+  phase: P6
+  task_id: YUJIAN_ANDROID_SHARED_CAPTURE_BUTTON_MOTION_V1
+  exact_head: da2b9d754604599c9b915f3eee542c218c7e98f3
+  status: VALIDATING
+  next_action: Review the exact candidate preview and before/after evidence. Preserve
+    the existing Hero image and responsive contract while the frozen-source geometry
+    conflict is resolved; Brand remains blocked until an authorized Empty Home binding
+    exists.
+blockers: []
+protected_invariants:
+  page_scope:
+  - Modify Empty Home only during the typography parity repair.
+  - Do not modify NH01 or Login page content in this repair.
+  authorities:
+  - Use only authorized brand assets; do not synthesize text or extract/redraw the
+    frozen image.
+  - Keep the HeroCopy bound image and camera touch-size contract.
+  delivery:
+  - Do not freeze or merge the product candidate before product-owner visual acceptance.
+  - Do not start Android implementation from this candidate review.
+next_actions:
+- id: CAPTURE_MOTION_VERIFY
+  status: READY
+  action: Verify shared button motion on exact HEAD; defer APK until combined delivery.
+completion_rules:
+  visual_acceptance: Product owner reviews the exact isolated preview and records
+    ACCEPT or required changes.
+  freeze: No new spec freeze before product-owner acceptance.
+  android: No Android handoff in this task.
+state_update:
+  method: State-only checkpoints follow harness/STATE_UPDATE_PROTOCOL.md.
+  baseline_source_sha: 45ae173b984178cb14edeb589047b0146efc6a35
+agent_recovery:
+  resume_from: 'Continue from exact PR #234 code source 7e8af71ab71c248294b40db266b6227dc3a2e949;
+    exact admission workflows, W5 matrix and live isolated Pages preview pass. The
+    product-owner review remains pending for Brand authorization and the Hero contract/frozen-source
+    mismatch.'
+  last_gate: EXACT_CANDIDATE_ADMISSION_W5_MATRIX_AND_ISOLATED_PREVIEW_PASS_VISUAL_REVIEW_PENDING
+work_id: YUJIAN_EMPTY_HOME_STRUCTURED_HIFI_TYPOGRAPHY_SCALE_PARITY_V1
+task_id: YUJIAN_PAGE_FREEZE_PIPELINE_W5_EMPTY_HOME_PILOT_V1
+updated_at: '2026-10-29T22:06:51Z'
