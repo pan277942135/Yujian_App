@@ -30,6 +30,7 @@ fun planRecognitionPhotoFlow(
     cameraSource: Boolean,
     cameraPreviewRect: DisplayRect? = null,
     diagnosticReservePx: Float = 0f,
+    fontScale: Float = 1f,
 ): RecognitionPhotoFlowPlan {
     require(sourceWidth > 0 && sourceHeight > 0)
     require(viewportWidthPx > 0f && viewportHeightPx > 0f && density > 0f)
@@ -48,7 +49,7 @@ fun planRecognitionPhotoFlow(
     val panelGap = (if (compact) 20f else 28f) * density
     val orbCore = (if (compact) 68f else 80f) * density
     val orbOuter = orbCore + 28f * density
-    val statusHeight = 22f * density
+    val statusHeight = 24f * density * fontScale.coerceIn(1f, 2f)
     val statusGap = 12f * density
     val bottomGap = (if (compact) 16f else 24f) * density
     val targetTop = contentTop + navHeight + navGap
@@ -67,7 +68,7 @@ fun planRecognitionPhotoFlow(
         contentScaleMode = RecognitionContentScaleMode.FIT,
     )
     // Top-anchor the actual contained photo; status follows its real bottom, not an empty letterbox.
-    val target = fitted.copy(translationY = 0f).inViewport(
+    val target = fitted.copy(translationX = fitted.translationX.coerceAtLeast(0f), translationY = 0f).inViewport(
         left = contentLeft,
         top = targetTop,
         viewportWidth = viewportWidthPx,

@@ -787,9 +787,11 @@ fun IdentifyScreen(
 
         val displayedPhoto = handoffImage
         if (displayedPhoto != null) {
-            BoxWithConstraints(Modifier.fillMaxWidth().height(cameraAreaHeight)) {
+            val isCameraPhoto = displayedPhoto.source.contains("camera", ignoreCase = true)
+            BoxWithConstraints(if (isCameraPhoto) Modifier.fillMaxWidth().height(cameraAreaHeight) else Modifier.fillMaxSize()) {
                 val density = LocalDensity.current
                 val transform = remember(displayedPhoto.imageId, maxWidth, maxHeight, density) {
+                    if (isCameraPhoto) {
                     calculateRecognitionImageTransform(
                         containerWidth = with(density) { maxWidth.toPx() },
                         containerHeight = with(density) { maxHeight.toPx() },
@@ -797,6 +799,16 @@ fun IdentifyScreen(
                         imageHeight = displayedPhoto.bitmap.height,
                         contentScaleMode = RecognitionContentScaleMode.CROP,
                     )
+                    } else {
+                        com.yujian.ai.ui.recognition.planRecognitionPhotoFlow(
+                            displayedPhoto.bitmap.width, displayedPhoto.bitmap.height,
+                            with(density) { maxWidth.toPx() }, with(density) { maxHeight.toPx() }, density.density,
+                            with(density) { safeInsets.calculateLeftPadding(layoutDirection).toPx() },
+                            with(density) { safeInsets.calculateTopPadding().toPx() },
+                            with(density) { safeInsets.calculateRightPadding(layoutDirection).toPx() },
+                            with(density) { safeInsets.calculateBottomPadding().toPx() }, false,
+                        ).startTransform
+                    }
                 }
                 RecognitionSourcePhoto(
                     bitmap = displayedPhoto.bitmap.asImageBitmap(),
@@ -831,6 +843,9 @@ fun IdentifyScreen(
                 Image(frozen.asImageBitmap(), "拍摄定格", contentScale = ContentScale.Crop,
                     modifier = Modifier.fillMaxWidth().height(cameraAreaHeight))
             }
+            Box(Modifier.align(Alignment.BottomCenter).fillMaxWidth().height(panelHeight)
+                .clip(RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp))
+                .background(Brush.verticalGradient(listOf(Color(0xD93C464C), Color(0xF3121619)))))
             if (captureTarget.x.isFinite()) {
                 val shutterSize = 76f * context.resources.displayMetrics.density
                 Image(painterResource(R.drawable.capture_button_main_v1), null,

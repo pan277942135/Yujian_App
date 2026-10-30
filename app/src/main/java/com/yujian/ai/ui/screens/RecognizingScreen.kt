@@ -671,7 +671,7 @@ fun RecognitionProcessingScene(
     )
     val photoShockwave = photoShockwaveTransform(processingElapsedMs, motionPolicy.reduceMotion)
     val phaseElapsedMs = when {
-        phaseOverride != null || manualDiagnostic -> 1_000L
+        phaseOverride != null || manualDiagnostic || visualPhase == RecognitionPhase.RESULT -> 1_000L
         photoPresentedAtMs == null -> 0L
         else -> controller.phaseElapsedMs(visualNowMs)
     }
@@ -738,7 +738,7 @@ fun RecognitionProcessingScene(
             image?.capturePresentation, rootOrigin, manualDiagnostic,
             viewportWidthPx,
             viewportHeightPx,
-            density.density,
+            density.density, density.fontScale,
             safeLeftPx,
             safeTopPx,
             safeRightPx,
@@ -762,6 +762,7 @@ fun RecognitionProcessingScene(
                             capture.previewBottom - rootOrigin.y)
                     },
                     diagnosticReservePx = if (manualDiagnostic) 64f * density.density else 0f,
+                    fontScale = density.fontScale,
                 )
             }
         }
@@ -796,6 +797,16 @@ fun RecognitionProcessingScene(
         LaunchedEffect(sceneKey, photoFlowPlan) {
             photoFlowPlan?.let { plan ->
                 Log.i(LOG_TAG, "PROCESSING_LAYOUT image=${image?.imageId} sha256=${image?.photoSha256} viewport=${viewportWidthPx}x${viewportHeightPx} landscape=${plan.landscape} start=${plan.startTransform.photoContentRect} target=${plan.targetPhotoRect} orb_center=${plan.statusCenterXPx},${plan.orbCenterYPx} orb_core=${plan.orbCoreSizePx}")
+            }
+        }
+        image?.capturePresentation?.let { capture ->
+            if (photoEntryProgress < 1f) Canvas(Modifier.fillMaxSize()) {
+                val panelTop = (capture.previewBottom - rootOrigin.y).coerceIn(0f, size.height)
+                drawRoundRect(
+                    brush = androidx.compose.ui.graphics.Brush.verticalGradient(
+                        listOf(Color(0xFF3C464C), Color(0xFF121619)), startY = panelTop, endY = size.height),
+                    topLeft = Offset(0f, panelTop), size = Size(size.width, size.height - panelTop),
+                    cornerRadius = CornerRadius(32.dp.toPx()), alpha = 1f - photoEntryProgress)
             }
         }
         if (image != null && photoFlowPlan != null) RecognitionPhoto(
@@ -871,13 +882,15 @@ fun RecognitionProcessingScene(
             Text("正在理解照片", color = Color(0xFF123F48), fontSize = if (maxHeight < 600.dp) 14.sp else 16.sp,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.offset { IntOffset((plan.statusCenterXPx - with(density) { statusWidth.toPx() } / 2f).roundToInt(),
-                    plan.statusPanelTopPx.roundToInt()) }.size(width = statusWidth, height = 24.dp))
+                    plan.statusPanelTopPx.roundToInt()) }.size(width = statusWidth, height = (24f * density.fontScale).dp))
             val capture = image?.capturePresentation
             val eased = processingOrbMotionFrame(entranceElapsedMs, capture != null, motionPolicy.reduceMotion, orbCompletion.value).destinationProgress
             val fromX = capture?.shutterCenterX?.minus(rootOrigin.x)?.takeIf { it.isFinite() } ?: plan.statusCenterXPx
             val fromY = capture?.shutterCenterY?.minus(rootOrigin.y)?.takeIf { it.isFinite() } ?: plan.orbCenterYPx
-            val core = with(density) { plan.orbCoreSizePx.toDp() }
-            val outerPx = plan.orbCoreSizePx + with(density) { 28.dp.toPx() }
+            val initialCorePx = capture?.shutterSizePx?.takeIf { it.isFinite() && it > 0f } ?: plan.orbCoreSizePx
+            val currentCorePx = initialCorePx + (plan.orbCoreSizePx - initialCorePx) * eased
+            val core = with(density) { currentCorePx.toDp() }
+            val outerPx = currentCorePx + with(density) { 28.dp.toPx() }
             ProcessingWaterOrb(core, entranceElapsedMs, processingElapsedMs, orbCompletion.value,
                 motionPolicy.reduceMotion, motionPolicy.lowPerformance, capture != null,
                 Modifier.offset { IntOffset(

@@ -8,13 +8,14 @@ class ProcessingLakePresentationTest {
     @Test fun photosAndOrbStayInsideSixSupportedScreens() {
         val screens = listOf(320 to 480, 360 to 640, 390 to 844, 412 to 915, 430 to 932, 800 to 360)
         val sources = listOf(1200 to 1800, 4000 to 3000, 3000 to 1000, 1000 to 4000, 1200 to 1200)
-        for ((w, h) in screens) for ((sw, sh) in sources) {
-            val p = planRecognitionPhotoFlow(sw, sh, w.toFloat(), h.toFloat(), 1f, 0f, 24f, 0f, 24f, false)
+        for ((w, h) in screens) for ((sw, sh) in sources) for (fontScale in listOf(1f, 1.5f)) {
+            val p = planRecognitionPhotoFlow(sw, sh, w.toFloat(), h.toFloat(), 1f, 0f, 24f, 0f, 24f, false, fontScale = fontScale)
             val r = p.targetPhotoRect
             assertEquals("full source $w x $h", 0f, p.targetTransform.visibleSourceRect.left, .001f)
             assertEquals(1f, p.targetTransform.visibleSourceRect.bottom, .001f)
             assertEquals(sw.toFloat() / sh, r.width / r.height, .002f)
-            assertTrue(r.left >= 12f && r.right <= w - 12f)
+            // FIT uses Float arithmetic; 0.001px is below a drawable pixel at every density.
+            assertTrue("photo margins $w x $h source=$sw x $sh rect=$r", r.left >= 12f - .001f && r.right <= w - 12f + .001f)
             assertTrue(r.top >= 24f + 44f)
             val halfOrb = p.orbCoreSizePx / 2f + 14f
             assertTrue("orb bottom $w x $h", p.orbCenterYPx + halfOrb <= h - 24f)
