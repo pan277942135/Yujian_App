@@ -114,6 +114,7 @@ import androidx.core.view.WindowCompat
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.Observer
 import com.yujian.ai.R
+import com.yujian.ai.ui.designsystem.components.YuJianCaptureButton
 import com.yujian.ai.media.RecognitionImageStore
 import com.yujian.ai.model.SelectedImage
 import com.yujian.ai.ui.identify.RecognitionCameraCaptureContract
@@ -895,23 +896,20 @@ fun IdentifyScreen(
                     .align(Alignment.BottomCenter)
                     .padding(bottom = panelControlBottom)
                     .size(76.dp)
-                    .clickable(
-                        enabled = cameraCanCapture() &&
-                            RecognitionCameraCaptureContract.canStartCapture(captureState),
-                        role = Role.Button,
-                        onClick = ::capture,
-                    )
                     .testTag("recognition-camera-shutter")
                     .onGloballyPositioned { captureTarget = it.boundsInWindow().center }
-                    .alpha(if (captureHandoffActive) 0f else 1f)
-                    .semantics { contentDescription = "拍摄" },
+                    .alpha(if (captureHandoffActive) 0f else 1f),
                 contentAlignment = Alignment.Center,
             ) {
-                Image(
-                    painter = painterResource(R.drawable.capture_button_main_v1),
-                    contentDescription = null,
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Fit,
+                YuJianCaptureButton(
+                    onClick = ::capture,
+                    enabled = cameraCanCapture() &&
+                        RecognitionCameraCaptureContract.canStartCapture(captureState),
+                    contentDescription = "拍摄",
+                    motionEnabled = false,
+                    visualSize = 76.dp,
+                    touchTargetSize = 76.dp,
+                    frozenVisual = true,
                 )
             }
             Box(
