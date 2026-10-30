@@ -1,5 +1,7 @@
 package com.yujian.ai.ui.screens
 
+import com.yujian.ai.BuildConfig
+import com.yujian.ai.ui.recognition.RecognitionDiagnosticExport
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
@@ -852,6 +854,10 @@ fun RecognitionResultScreen(
                     }
                     else -> Unit
                 }
+                if (BuildConfig.DEBUG) TextButton(
+                    onClick = { scope.launch { RecognitionDiagnosticExport.share(context) } },
+                    modifier = Modifier.align(Alignment.CenterHorizontally),
+                ) { Text("导出识别诊断日志") }
                 Spacer(Modifier.height(20.dp))
             }
         }
