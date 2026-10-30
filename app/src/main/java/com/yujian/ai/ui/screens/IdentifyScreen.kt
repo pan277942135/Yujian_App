@@ -97,7 +97,6 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.filled.Collections
 import androidx.compose.material.icons.filled.FlashOn
-import androidx.compose.material.icons.filled.FlashOff
 import androidx.compose.material.icons.filled.ZoomIn
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -939,7 +938,7 @@ fun IdentifyScreen(
                     Box(Modifier.size(46.dp).clip(CircleShape)
                         .border(1.dp, Color.White.copy(alpha = .48f), CircleShape)
                         .background(Color.White.copy(alpha = .08f)), contentAlignment = Alignment.Center) {
-                        Icon(if (torchEnabled) Icons.Default.FlashOn else Icons.Default.FlashOff,
+                        Icon(Icons.Default.FlashOn,
                             contentDescription = null, tint = Color.White, modifier = Modifier.size(26.dp))
                     }
                     Text("闪光灯", color = Color.White, fontSize = 12.sp)
