@@ -1,0 +1,308 @@
+{
+  "schema_version": "1.0",
+  "contract_id": "normal_home_state_visual_matrix_v1",
+  "page_id": "normal_home_v1",
+  "source_id_namespace": "Contract-local coverage IDs NH01-NH07; original source IDs remain unchanged.",
+  "required_coverage_area_ids": [
+    "NH01",
+    "NH02",
+    "NH03",
+    "NH04",
+    "NH05",
+    "NH06",
+    "NH07"
+  ],
+  "data_count_routing": [
+    {
+      "valid_record_count": "0",
+      "page_state": "HOME_EMPTY",
+      "authority_asset_id": "home_empty_v2_2_frozen_visual",
+      "routing_rule": "Only a successfully resolved zero count enters the separate Empty Home page."
+    },
+    {
+      "valid_record_count": "1",
+      "page_state": "HOME_DATA_SINGLE",
+      "authority_asset_id": "normal_home_nh02_first_catch",
+      "routing_rule": "NH02 single-catch, one centered Hero and no Pager neighbor/hint."
+    },
+    {
+      "valid_record_count": "2+",
+      "page_state": "HOME_DATA_MULTIPLE",
+      "authority_asset_id": "normal_home_v1_frozen_page",
+      "routing_rule": "NH01 multiple-catch Normal Home with manual Pager."
+    }
+  ],
+  "states": [
+    {
+      "state": "HOME_EMPTY",
+      "coverage_area_ids": [
+        "NH01",
+        "NH05",
+        "NH06"
+      ],
+      "condition": "A successful archive resolution returns zero valid FishRecords.",
+      "authority_asset_ids": [
+        "home_empty_v2_2_frozen_visual",
+        "empty_home_scene_base_master",
+        "empty_home_hero_v2_2",
+        "shared_primary_capture_button_v1_1",
+        "empty_home_sunrise_master"
+      ],
+      "components": [
+        "primary_capture_button",
+        "action.text_action"
+      ],
+      "layout": "Empty Home V2.2 sibling page; use its safe-top Header, aspect-locked Hero and safe-bottom CTA group. Do not apply Normal Home layout transforms.",
+      "typography_tokens": [
+        "type.display",
+        "type.title",
+        "type.body",
+        "type.button"
+      ],
+      "color_tokens": [
+        "color.deep_lake_blue",
+        "color.mist_blue_gray",
+        "color.mist_white",
+        "color.morning_gold",
+        "color.glass_white",
+        "color.glass_border"
+      ],
+      "interaction": "Capture enters the existing recognition flow; album/gallery action follows its registered Empty Home behavior. No record detail exists.",
+      "animation": "Inherit exact Empty Home V2.2 motion contract; see Motion Contract.",
+      "accessibility": "Empty Home TalkBack sequence and 48dp targets; decorative environment is not focusable.",
+      "status": "FROZEN_SOURCE / RUNTIME_NOT_RUN"
+    },
+    {
+      "state": "HOME_RESOLVING",
+      "coverage_area_ids": [
+        "NH02",
+        "NH04",
+        "NH06"
+      ],
+      "condition": "Initial Normal Home archive has no successfully resolved snapshot.",
+      "authority_asset_ids": [
+        "normal_home_nh03_page_states_board",
+        "normal_home_morning_lake_master"
+      ],
+      "components": [
+        "surface.card",
+        "data.statistic_card",
+        "primary_capture_button"
+      ],
+      "layout": "Keep shared background, Header and Capture; statistics show unresolved dashes and the registered quiet Hero placeholder. Do not show Empty Home or fake zeros.",
+      "typography_tokens": [
+        "type.headline",
+        "type.numeric",
+        "type.caption",
+        "type.button"
+      ],
+      "color_tokens": [
+        "color.deep_lake_blue",
+        "color.mist_blue_gray",
+        "color.mist_white",
+        "color.glass_white"
+      ],
+      "interaction": "Capture remains available. No placeholder Hero is routed to detail.",
+      "animation": "No loading shimmer, count-up, page-wide entrance or decorative Normal Home loop.",
+      "accessibility": "Announce unresolved status without claiming zero records; placeholder is not a fish image.",
+      "status": "FROZEN_SOURCE / RUNTIME_NOT_RUN"
+    },
+    {
+      "state": "HOME_DATA_SINGLE",
+      "coverage_area_ids": [
+        "NH02",
+        "NH03",
+        "NH04",
+        "NH05",
+        "NH06",
+        "NH07"
+      ],
+      "condition": "Resolved valid FishRecord count equals one.",
+      "authority_asset_ids": [
+        "normal_home_nh02_first_catch",
+        "normal_home_nh04_content_board",
+        "normal_home_morning_lake_master",
+        "nh07_avatar_3x",
+        "normal_home_guest_avatar"
+      ],
+      "components": [
+        "surface.card",
+        "media.hero",
+        "media.hero",
+        "data.statistic_card",
+        "action.text_action",
+        "primary_capture_button",
+        "yujian_default_profile_avatar_v1"
+      ],
+      "layout": "NH02 one centered full-size Hero; keep NH01 Normal Home Header/stat/CTA geometry. No adjacent fake card, Pager hint or first-catch reward layer.",
+      "typography_tokens": [
+        "type.display",
+        "type.title",
+        "type.numeric",
+        "type.caption",
+        "type.label",
+        "type.button"
+      ],
+      "color_tokens": [
+        "color.deep_lake_blue",
+        "color.lake_blue",
+        "color.mist_blue_gray",
+        "color.morning_gold",
+        "color.soft_gold",
+        "color.deep_overlay"
+      ],
+      "interaction": "Hero opens FishRecordDetail by stable record ID; Capture enters existing recognition flow; stats and All use their registered routes.",
+      "animation": "Existing Hero idle and shared Capture motion only; the one-shot card entry is limited to first resolution without a retained snapshot.",
+      "accessibility": "Hero content follows species→measurements→time/location; all controls at least 48dp; record-days is read-only.",
+      "status": "FROZEN_SOURCE / NH07_FULL_PAGE_REVIEW_PENDING / RUNTIME_NOT_RUN"
+    },
+    {
+      "state": "HOME_DATA_MULTIPLE",
+      "coverage_area_ids": [
+        "NH02",
+        "NH03",
+        "NH04",
+        "NH05",
+        "NH06",
+        "NH07"
+      ],
+      "condition": "Resolved valid FishRecord count is at least two.",
+      "authority_asset_ids": [
+        "normal_home_v1_frozen_page",
+        "normal_home_nh04_content_board",
+        "normal_home_nh05_responsive_board",
+        "normal_home_morning_lake_master",
+        "nh07_avatar_3x",
+        "normal_home_guest_avatar"
+      ],
+      "components": [
+        "surface.card",
+        "media.hero",
+        "media.hero",
+        "data.statistic_card",
+        "action.text_action",
+        "primary_capture_button",
+        "yujian_default_profile_avatar_v1"
+      ],
+      "layout": "Canonical Normal Home main image with selected Hero and source-authorized neighbor peeks; one shared responsive transform for all core regions.",
+      "typography_tokens": [
+        "type.display",
+        "type.title",
+        "type.numeric",
+        "type.caption",
+        "type.label",
+        "type.button"
+      ],
+      "color_tokens": [
+        "color.deep_lake_blue",
+        "color.lake_blue",
+        "color.mist_blue_gray",
+        "color.morning_gold",
+        "color.soft_gold",
+        "color.deep_overlay"
+      ],
+      "interaction": "User-driven horizontal Pager only; keep selected stable record ID through reorder/refresh; no automatic advance.",
+      "animation": "Existing selected Hero idle, user-driven neighbor transform and shared Capture motion only.",
+      "accessibility": "Selected record is announced once; decorative neighbor peeks are not duplicate focus targets; Pager does not steal vertical scroll.",
+      "status": "FROZEN_SOURCE / NH07_FULL_PAGE_REVIEW_PENDING / RUNTIME_NOT_RUN"
+    },
+    {
+      "state": "HOME_REFRESH_PENDING_OR_ERROR_WITH_SNAPSHOT",
+      "coverage_area_ids": [
+        "NH02",
+        "NH03",
+        "NH04",
+        "NH06"
+      ],
+      "condition": "Refresh is pending or fails while a valid Normal Home snapshot exists.",
+      "authority_asset_ids": [
+        "normal_home_nh03_page_states_board",
+        "normal_home_v1_frozen_page",
+        "normal_home_nh02_first_catch"
+      ],
+      "components": [
+        "surface.card",
+        "media.hero",
+        "data.statistic_card"
+      ],
+      "layout": "Retain prior NH01/NH02 page, stats and selected record ID. No full-screen spinner, page wash, blank content or temporary Empty Home.",
+      "typography_tokens": [
+        "type.numeric",
+        "type.caption"
+      ],
+      "color_tokens": [
+        "color.deep_lake_blue",
+        "color.mist_blue_gray",
+        "color.mist_white"
+      ],
+      "interaction": "Existing navigation and Capture remain available; retry feedback cannot replace the page or card.",
+      "animation": "No refresh animation that changes layout; no replay of card entry.",
+      "accessibility": "Announce refresh/error feedback without moving focus or erasing the retained snapshot.",
+      "status": "FROZEN_SOURCE / RUNTIME_NOT_RUN"
+    },
+    {
+      "state": "HOME_MEDIA_UNAVAILABLE_OR_RECOVERED",
+      "coverage_area_ids": [
+        "NH02",
+        "NH03"
+      ],
+      "condition": "A valid catch photo cannot load, or later becomes available.",
+      "authority_asset_ids": [
+        "normal_home_nh03_page_states_board",
+        "normal_home_nh04_content_board"
+      ],
+      "components": [
+        "surface.card",
+        "media.hero",
+        "media.hero"
+      ],
+      "layout": "Preserve Hero outer frame, record, species and available metadata. Replace only the media subview with the registered neutral placeholder; never substitute another catch.",
+      "typography_tokens": [
+        "type.display",
+        "type.caption"
+      ],
+      "color_tokens": [
+        "color.mist_white",
+        "color.mist_blue_gray",
+        "color.deep_overlay"
+      ],
+      "interaction": "The existing Hero still opens the same FishRecordDetail record ID.",
+      "animation": "No media-recovery entrance or celebration; replace only media content.",
+      "accessibility": "Expose a concise unavailable-photo state, then announce the restored photo if it loads.",
+      "status": "FROZEN_SOURCE / REAL_PHOTO_FIXTURES_PENDING / RUNTIME_NOT_RUN"
+    },
+    {
+      "state": "AVATAR_GUEST_DEFAULT_LOADING_ERROR_REMOTE",
+      "coverage_area_ids": [
+        "NH07"
+      ],
+      "condition": "Home Header identity changes among Guest, registered default, remote load, remote success and remote failure.",
+      "authority_asset_ids": [
+        "nh07_avatar_master",
+        "nh07_avatar_1x",
+        "nh07_avatar_2x",
+        "nh07_avatar_3x",
+        "normal_home_guest_avatar"
+      ],
+      "components": [
+        "yujian_default_profile_avatar_v1"
+      ],
+      "layout": "Keep the Frozen Header position and 92px reference visual circle. Touch target is separate and at least 48dp. NH07 default art is a registered page-state asset, not a new frozen full-page image.",
+      "typography_tokens": [],
+      "color_tokens": [],
+      "interaction": "Guest → Login/Register. Signed-in real/default/loading/error → My/Profile. Loading uses NH07 placeholder; failure returns to registered default; sign-out immediately selects Guest.",
+      "animation": "No identity-transition animation or previous-account flash is authorized.",
+      "accessibility": "Expose account action and loading/error state without duplicate focus stops. Keep Guest distinct from signed-in default.",
+      "status": "SPEC_FROZEN_ASSETS_REGISTERED / FULL_PAGE_REVIEW_PENDING / RUNTIME_NOT_RUN"
+    }
+  ],
+  "runtime_verdicts": {
+    "HOME_EMPTY": "NOT_RUN",
+    "HOME_RESOLVING": "NOT_RUN",
+    "HOME_DATA_SINGLE": "NOT_RUN",
+    "HOME_DATA_MULTIPLE": "NOT_RUN",
+    "HOME_REFRESH_PENDING_OR_ERROR_WITH_SNAPSHOT": "NOT_RUN",
+    "HOME_MEDIA_UNAVAILABLE_OR_RECOVERED": "NOT_RUN",
+    "AVATAR_GUEST_DEFAULT_LOADING_ERROR_REMOTE": "NOT_RUN"
+  }
+}

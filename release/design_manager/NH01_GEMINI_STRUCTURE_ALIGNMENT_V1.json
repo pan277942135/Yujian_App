@@ -1,0 +1,2168 @@
+{
+  "schema": "NH01_GEMINI_STRUCTURE_ALIGNMENT_V1",
+  "taskId": "YUJIAN_NH01_GEMINI_FIGMA_ANDROID_CLOSURE_V2",
+  "status": "BLOCKED_FIGMA_WRITE_PERMISSION",
+  "status_detail": "The mandatory Figma native-alignment gate was blocked by the connected Starter-plan MCP tool-call limit before file metadata, live node readback, write, round-trip verification, or export. This is a quota/tooling block, not a proven document permission denial.",
+  "repository": "pan277942135/Yujian_App",
+  "targetPullRequest": {
+    "number": 164,
+    "branch": "design/m1-nh01-figma-structural-handoff-v2",
+    "status": "Draft/Open/Unmerged"
+  },
+  "sourceHtml": {
+    "filename": "粘贴的文本 (1)(6).txt",
+    "bytes": 18331,
+    "sha256": "1988a9343a6e911c87f93871279ba6d5e161e2ef0651ecd0d783526c5bceb714",
+    "summary": "Gemini responsive NORMAL HOME HTML; raw source preserved unchanged."
+  },
+  "prototype": {
+    "path": "release/design_manager/NH01_GEMINI_REFERENCE_PROTOTYPE_NOT_VISUAL_PASS.html",
+    "bytes": 12559,
+    "sha256": "2982b40f8def980d0d77c6b1ac264442a9b0fa1e11124e4e41b4963f24123b3e",
+    "status": "STRUCTURE_ONLY_NOT_VISUAL_PASS",
+    "data_layer_count": 38
+  },
+  "figma": {
+    "fileKey": "VjN7iFviVN9aKeLv8kJivM",
+    "live_readback_status": "BLOCKED_FIGMA_WRITE_PERMISSION",
+    "figma_node_id_policy": "All figma_node_id and parent_node_id values are null: this task had no live node reads. Candidate IDs are previous handoff references only.",
+    "page": {
+      "id": null,
+      "candidate_id": "25:2",
+      "candidate_name": "NH01 / NORMAL HOME / STRUCTURAL HANDOFF",
+      "verified_live": false
+    },
+    "main_frame": {
+      "id": null,
+      "candidate_id": "41:30",
+      "candidate_name": "NH01_Normal_Home_1080x1920",
+      "dimensions_px": [
+        1080,
+        1920
+      ],
+      "verified_live": false
+    },
+    "responsive_frame": {
+      "id": null,
+      "candidate_id": "41:91",
+      "dimensions_px": [
+        1080,
+        2340
+      ],
+      "verified_live": false
+    },
+    "prior_node_mapping": {
+      "path": "release/design_manager/M1_NH01_FIGMA_NODE_MAPPING_V2.json",
+      "git_blob_sha": "606bf5470181a0201f0723adbc24ca27c5a50401",
+      "status": "REVIEW_REQUIRED; node anchors not revalidated live"
+    },
+    "account_observation": {
+      "plan": "Starter",
+      "seat": "Full",
+      "admin": true,
+      "figma_ai_access": true,
+      "note": "Identity read succeeded; edit capability was not proven."
+    },
+    "write_test": {
+      "status": "NOT_RUN",
+      "reason": "The call limit blocked metadata and design-context reads; no temporary or product nodes were written. No plan upgrade or paid call was attempted."
+    },
+    "tool_error": "You've reached the Figma MCP tool call limit on the Starter plan. Upgrade your plan for more tool calls…"
+  },
+  "authorities": {
+    "frozen_full_screen": {
+      "path": "design/system/core_visual_v1/reference/normal_home_v1.png",
+      "dimensions_px": [
+        1080,
+        1920
+      ],
+      "sha256": "6ab9d3348b4a9a7e77ddca3a06235b4991798a309bd3512cc6fb9ea7aeb1d377",
+      "modified": false
+    },
+    "formal_background": {
+      "path": "design/system/backgrounds/morning_lake_v1/assets/Morning_Lake_Master_V1.png",
+      "dimensions_px": [
+        941,
+        1672
+      ],
+      "sha256": "5fba741088ea186e898cd3bee5777e35978436f427492e6e6122528ef6aa91d7",
+      "runtime_path": "app/src/main/assets/normal_home_runtime_v1/static/scene_base.png",
+      "figma_fill_status": "NOT_RUN"
+    },
+    "formal_brand": {
+      "path": "design/system_v3/06_Asset_System/derived/brand_title_primary/brand_title_primary.png",
+      "sha256": "2dd41f5138e88e3bd48178dd26a15dfbb29c434536e4e3cc887fe2db13bdfddc",
+      "figma_fill_status": "NOT_RUN"
+    },
+    "formal_camera": {
+      "path": "design/system_v3/06_Asset_System/derived/normal_home_camera_primary_v1/normal_home_camera_primary_v1.png",
+      "sha256": "fb6417e372d08328ac8559d004d1c6f5b03fc17551646be46031df641660e8f2",
+      "runtime_path": "app/src/main/res/drawable-nodpi/normal_home_camera_primary_v1.png",
+      "figma_component_status": "NOT_RUN"
+    },
+    "avatar_authority": "NH07 state semantics retained; full-screen visual recheck and default/Guest asset authority review pending.",
+    "hero_fixtures": "BLOCKED_ASSET_SOURCE; approved original provenance and runtime evidence for F01–F08 incomplete."
+  },
+  "sourceAudit": {
+    "data_layer_count": {
+      "source": 43,
+      "prototype": 38
+    },
+    "unsplash_image_references": 5,
+    "onclick_return_false_count": 1,
+    "static_demo_values": [
+      "12",
+      "38",
+      "7",
+      "草鱼",
+      "42.6 cm",
+      "1.28 kg",
+      "昨天 18:20",
+      "浙江·千岛湖"
+    ],
+    "unapproved_visual_layers": [
+      "BG-Atmosphere-Overlay",
+      "BG-Foreground-Reeds-Left",
+      "BG-Foreground-Reeds-Right",
+      "CTA-Camera-Inner-Circle",
+      "Icon-Camera-Vector"
+    ],
+    "viewer_controls_removed_from_product_prototype": true,
+    "prototype_validation": {
+      "external_img_src_count": 0,
+      "unsplash_reference_count": 0,
+      "onclick_return_false_count": 0,
+      "required_dynamic_fields_present": true,
+      "required_dynamic_fields": [
+        "species_count",
+        "catch_count",
+        "record_days",
+        "catch_image",
+        "species_name",
+        "length_cm",
+        "weight_kg",
+        "captured_at",
+        "location",
+        "catch_id"
+      ],
+      "removed_layers": [
+        "BG-Atmosphere-Overlay",
+        "BG-Foreground-Reeds-Left",
+        "BG-Foreground-Reeds-Right",
+        "CTA-Camera-Inner-Circle",
+        "Icon-Camera-Vector"
+      ]
+    }
+  },
+  "androidGate": {
+    "production_changes_in_this_task": "NOT_RUN",
+    "reason": "Mandatory Figma native-alignment gate is blocked; Android production work did not start.",
+    "currentImplementationPr": {
+      "number": 167,
+      "head": "8481cecebd057f84858e5548163fbb61bb4d50e7",
+      "status": "Draft/Open/Unmerged"
+    },
+    "latestExistingApi28Run": {
+      "run_id": 39219487046,
+      "url": "https://github.com/pan277942135/Yujian_App/actions/runs/39219487046",
+      "api_level": 28,
+      "device": "Pixel 2 emulator",
+      "resolution_px": [
+        1080,
+        1920
+      ],
+      "font_scale": 1.0,
+      "apk_sha256": "fc9050706a3d803f204190284bf2dd1ef8892f9a9ebddf265bcf14db349032fc",
+      "classification": "FAIL_EVIDENCE",
+      "runtime_parity": "BLOCKED",
+      "subgates": {
+        "hierarchy": "FAIL",
+        "hero": "BLOCKED",
+        "typography": "PASS",
+        "responsive": "PASS",
+        "pixel_targets": "PASS",
+        "motion": "PASS"
+      },
+      "p0": "HIERARCHY_OR_GEOMETRY: camera touch bounds 216×121 px, below 144×144 px minimum at 480 dpi.",
+      "p1": "HERO_APPROVED_FIXTURE_MATRIX: all F01–F08 lack complete approved-original provenance and exact-build runtime evidence."
+    },
+    "geometryNotes": {
+      "cta_layout_bounds_page_local_px": [
+        330,
+        1495,
+        750,
+        1570
+      ],
+      "cta_contract_expected_bounds_px": [
+        330,
+        1495,
+        750,
+        1553
+      ],
+      "camera_touch_bounds_page_local_px": [
+        431,
+        1583,
+        647,
+        1704
+      ],
+      "camera_touch_size_px": [
+        216,
+        121
+      ],
+      "minimum_48dp_px": [
+        144,
+        144
+      ],
+      "cta_text_contract_font": "40/44 A1; existing Node Mapping V2 records 36/40. Compare same text role only after live Figma access."
+    }
+  },
+  "mappingStatusLegend": [
+    "MATCH",
+    "MISMATCH",
+    "MISSING",
+    "NOT_APPLICABLE",
+    "REVIEW_REQUIRED"
+  ],
+  "nodes": [
+    {
+      "html_layer": "Screen-Yujian-Home",
+      "figma_node_id": null,
+      "parent_node_id": null,
+      "parent_html_layer": null,
+      "parent_node_candidate_id": null,
+      "figma_node_candidate_id": "41:30",
+      "figma_component_candidate_ids": [],
+      "node_type": "section",
+      "compose_component": "NormalHomeContent.kt#NormalHomeContent",
+      "source_contract": [
+        "design/pages/home/normal_home/engineering/Layout_Responsive_Contract_V1.md",
+        "design/pages/home/normal_home/engineering/State_Interaction_Contract_V1.md",
+        "design/pages/home/normal_home/engineering/Visual_Runtime_Acceptance_V1.md",
+        "design/pages/home/normal_home/engineering/Visual_Anchor_Asset_Resolution_V1.md"
+      ],
+      "asset_id": null,
+      "data_binding": null,
+      "interaction": {
+        "source_html": "none",
+        "prototype": "none"
+      },
+      "responsive_rule": "Use window-coordinate Layout_Responsive_Contract_V1; NORMAL_FIXED when safe, otherwise SAFE_OVERFLOW or UNSUPPORTED_WINDOW. Preserve minimum 48dp touch targets.",
+      "authority_status": "CONTRACT_REFERENCE; FIGMA_READBACK_PENDING",
+      "alignment_status": "REVIEW_REQUIRED",
+      "source_issue": null,
+      "prototype_status": "REVIEW_REQUIRED",
+      "source_attributes": {},
+      "evidence": [
+        {
+          "kind": "source_html",
+          "path": "粘贴的文本 (1)(6).txt",
+          "sha256": "1988a9343a6e911c87f93871279ba6d5e161e2ef0651ecd0d783526c5bceb714",
+          "bytes": 18331
+        },
+        {
+          "kind": "figma_candidate",
+          "node_id": "41:30",
+          "prior_map": "release/design_manager/M1_NH01_FIGMA_NODE_MAPPING_V2.json",
+          "live_verified": false
+        }
+      ]
+    },
+    {
+      "html_layer": "BG-Scenic-Group",
+      "figma_node_id": null,
+      "parent_node_id": null,
+      "parent_html_layer": "Screen-Yujian-Home",
+      "parent_node_candidate_id": "41:30",
+      "figma_node_candidate_id": "41:31",
+      "figma_component_candidate_ids": [],
+      "node_type": "div",
+      "compose_component": "NormalHomeContent.kt#background container",
+      "source_contract": [
+        "design/pages/home/normal_home/engineering/Layout_Responsive_Contract_V1.md",
+        "design/pages/home/normal_home/engineering/State_Interaction_Contract_V1.md",
+        "design/pages/home/normal_home/engineering/Visual_Runtime_Acceptance_V1.md",
+        "design/pages/home/normal_home/engineering/Visual_Anchor_Asset_Resolution_V1.md"
+      ],
+      "asset_id": null,
+      "data_binding": null,
+      "interaction": {
+        "source_html": "none",
+        "prototype": "none"
+      },
+      "responsive_rule": "Use window-coordinate Layout_Responsive_Contract_V1; NORMAL_FIXED when safe, otherwise SAFE_OVERFLOW or UNSUPPORTED_WINDOW. Preserve minimum 48dp touch targets.",
+      "authority_status": "CONTRACT_REFERENCE; FIGMA_READBACK_PENDING",
+      "alignment_status": "REVIEW_REQUIRED",
+      "source_issue": null,
+      "prototype_status": "REVIEW_REQUIRED",
+      "source_attributes": {},
+      "evidence": [
+        {
+          "kind": "source_html",
+          "path": "粘贴的文本 (1)(6).txt",
+          "sha256": "1988a9343a6e911c87f93871279ba6d5e161e2ef0651ecd0d783526c5bceb714",
+          "bytes": 18331
+        },
+        {
+          "kind": "figma_candidate",
+          "node_id": "41:31",
+          "prior_map": "release/design_manager/M1_NH01_FIGMA_NODE_MAPPING_V2.json",
+          "live_verified": false
+        }
+      ]
+    },
+    {
+      "html_layer": "BG-Mountain-Mist",
+      "figma_node_id": null,
+      "parent_node_id": null,
+      "parent_html_layer": "BG-Scenic-Group",
+      "parent_node_candidate_id": "41:31",
+      "figma_node_candidate_id": "41:32",
+      "figma_component_candidate_ids": [],
+      "node_type": "img",
+      "compose_component": "NormalHomeContent.kt#background Image / ContentScale.Crop",
+      "source_contract": [
+        "design/pages/home/normal_home/engineering/Layout_Responsive_Contract_V1.md",
+        "design/pages/home/normal_home/engineering/State_Interaction_Contract_V1.md",
+        "design/pages/home/normal_home/engineering/Visual_Runtime_Acceptance_V1.md",
+        "design/pages/home/normal_home/engineering/Visual_Anchor_Asset_Resolution_V1.md"
+      ],
+      "asset_id": "system_backgrounds_morning_lake_v1_assets_morning_lake_master_v1_png",
+      "data_binding": "background_asset",
+      "interaction": {
+        "source_html": "none",
+        "prototype": "none"
+      },
+      "responsive_rule": "Use window-coordinate Layout_Responsive_Contract_V1; NORMAL_FIXED when safe, otherwise SAFE_OVERFLOW or UNSUPPORTED_WINDOW. Preserve minimum 48dp touch targets.",
+      "authority_status": "FORMAL_FROZEN_ASSET_REQUIRED",
+      "alignment_status": "MISMATCH",
+      "source_issue": "Gemini source uses an unapproved Unsplash landscape. Prototype now provides the official 941×1672 background slot with registered SHA; Figma IMAGE Fill and Crop remain unverified.",
+      "prototype_status": "OFFICIAL_ASSET_SLOT",
+      "source_attributes": {
+        "src": "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1200&q=85",
+        "alt": "Background"
+      },
+      "evidence": [
+        {
+          "kind": "source_html",
+          "path": "粘贴的文本 (1)(6).txt",
+          "sha256": "1988a9343a6e911c87f93871279ba6d5e161e2ef0651ecd0d783526c5bceb714",
+          "bytes": 18331
+        },
+        {
+          "kind": "figma_candidate",
+          "node_id": "41:32",
+          "prior_map": "release/design_manager/M1_NH01_FIGMA_NODE_MAPPING_V2.json",
+          "live_verified": false
+        },
+        {
+          "kind": "source_image",
+          "url": "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1200&q=85",
+          "authority": "UNAPPROVED_EXTERNAL_IMAGE"
+        },
+        {
+          "kind": "audit_finding",
+          "detail": "Gemini source uses an unapproved Unsplash landscape. Prototype now provides the official 941×1672 background slot with registered SHA; Figma IMAGE Fill and Crop remain unverified."
+        }
+      ]
+    },
+    {
+      "html_layer": "BG-Atmosphere-Overlay",
+      "figma_node_id": null,
+      "parent_node_id": null,
+      "parent_html_layer": "BG-Scenic-Group",
+      "parent_node_candidate_id": "41:31",
+      "figma_node_candidate_id": null,
+      "figma_component_candidate_ids": [],
+      "node_type": "div",
+      "compose_component": "NormalHomeContent.kt#screen layout",
+      "source_contract": [
+        "design/pages/home/normal_home/engineering/Layout_Responsive_Contract_V1.md",
+        "design/pages/home/normal_home/engineering/State_Interaction_Contract_V1.md",
+        "design/pages/home/normal_home/engineering/Visual_Runtime_Acceptance_V1.md",
+        "design/pages/home/normal_home/engineering/Visual_Anchor_Asset_Resolution_V1.md"
+      ],
+      "asset_id": null,
+      "data_binding": null,
+      "interaction": {
+        "source_html": "none",
+        "prototype": "none"
+      },
+      "responsive_rule": "Use window-coordinate Layout_Responsive_Contract_V1; NORMAL_FIXED when safe, otherwise SAFE_OVERFLOW or UNSUPPORTED_WINDOW. Preserve minimum 48dp touch targets.",
+      "authority_status": "UNAPPROVED_DECORATION",
+      "alignment_status": "MISMATCH",
+      "source_issue": "Unregistered gradient overlay removed from the structure prototype.",
+      "prototype_status": "REMOVED",
+      "source_attributes": {},
+      "evidence": [
+        {
+          "kind": "source_html",
+          "path": "粘贴的文本 (1)(6).txt",
+          "sha256": "1988a9343a6e911c87f93871279ba6d5e161e2ef0651ecd0d783526c5bceb714",
+          "bytes": 18331
+        },
+        {
+          "kind": "figma_readback",
+          "status": "BLOCKED_FIGMA_WRITE_PERMISSION",
+          "live_verified": false
+        },
+        {
+          "kind": "audit_finding",
+          "detail": "Unregistered gradient overlay removed from the structure prototype."
+        }
+      ]
+    },
+    {
+      "html_layer": "BG-Foreground-Reeds-Left",
+      "figma_node_id": null,
+      "parent_node_id": null,
+      "parent_html_layer": "BG-Scenic-Group",
+      "parent_node_candidate_id": "41:31",
+      "figma_node_candidate_id": null,
+      "figma_component_candidate_ids": [],
+      "node_type": "div",
+      "compose_component": "NormalHomeContent.kt#screen layout",
+      "source_contract": [
+        "design/pages/home/normal_home/engineering/Layout_Responsive_Contract_V1.md",
+        "design/pages/home/normal_home/engineering/State_Interaction_Contract_V1.md",
+        "design/pages/home/normal_home/engineering/Visual_Runtime_Acceptance_V1.md",
+        "design/pages/home/normal_home/engineering/Visual_Anchor_Asset_Resolution_V1.md"
+      ],
+      "asset_id": null,
+      "data_binding": null,
+      "interaction": {
+        "source_html": "none",
+        "prototype": "none"
+      },
+      "responsive_rule": "Use window-coordinate Layout_Responsive_Contract_V1; NORMAL_FIXED when safe, otherwise SAFE_OVERFLOW or UNSUPPORTED_WINDOW. Preserve minimum 48dp touch targets.",
+      "authority_status": "UNAPPROVED_DECORATION",
+      "alignment_status": "MISMATCH",
+      "source_issue": "Unregistered foreground reeds removed from the structure prototype.",
+      "prototype_status": "REMOVED",
+      "source_attributes": {},
+      "evidence": [
+        {
+          "kind": "source_html",
+          "path": "粘贴的文本 (1)(6).txt",
+          "sha256": "1988a9343a6e911c87f93871279ba6d5e161e2ef0651ecd0d783526c5bceb714",
+          "bytes": 18331
+        },
+        {
+          "kind": "figma_readback",
+          "status": "BLOCKED_FIGMA_WRITE_PERMISSION",
+          "live_verified": false
+        },
+        {
+          "kind": "audit_finding",
+          "detail": "Unregistered foreground reeds removed from the structure prototype."
+        }
+      ]
+    },
+    {
+      "html_layer": "BG-Foreground-Reeds-Right",
+      "figma_node_id": null,
+      "parent_node_id": null,
+      "parent_html_layer": "BG-Scenic-Group",
+      "parent_node_candidate_id": "41:31",
+      "figma_node_candidate_id": null,
+      "figma_component_candidate_ids": [],
+      "node_type": "div",
+      "compose_component": "NormalHomeContent.kt#screen layout",
+      "source_contract": [
+        "design/pages/home/normal_home/engineering/Layout_Responsive_Contract_V1.md",
+        "design/pages/home/normal_home/engineering/State_Interaction_Contract_V1.md",
+        "design/pages/home/normal_home/engineering/Visual_Runtime_Acceptance_V1.md",
+        "design/pages/home/normal_home/engineering/Visual_Anchor_Asset_Resolution_V1.md"
+      ],
+      "asset_id": null,
+      "data_binding": null,
+      "interaction": {
+        "source_html": "none",
+        "prototype": "none"
+      },
+      "responsive_rule": "Use window-coordinate Layout_Responsive_Contract_V1; NORMAL_FIXED when safe, otherwise SAFE_OVERFLOW or UNSUPPORTED_WINDOW. Preserve minimum 48dp touch targets.",
+      "authority_status": "UNAPPROVED_DECORATION",
+      "alignment_status": "MISMATCH",
+      "source_issue": "Unregistered foreground reeds removed from the structure prototype.",
+      "prototype_status": "REMOVED",
+      "source_attributes": {},
+      "evidence": [
+        {
+          "kind": "source_html",
+          "path": "粘贴的文本 (1)(6).txt",
+          "sha256": "1988a9343a6e911c87f93871279ba6d5e161e2ef0651ecd0d783526c5bceb714",
+          "bytes": 18331
+        },
+        {
+          "kind": "figma_readback",
+          "status": "BLOCKED_FIGMA_WRITE_PERMISSION",
+          "live_verified": false
+        },
+        {
+          "kind": "audit_finding",
+          "detail": "Unregistered foreground reeds removed from the structure prototype."
+        }
+      ]
+    },
+    {
+      "html_layer": "Top-Section-AutoLayout",
+      "figma_node_id": null,
+      "parent_node_id": null,
+      "parent_html_layer": "Screen-Yujian-Home",
+      "parent_node_candidate_id": "41:30",
+      "figma_node_candidate_id": null,
+      "figma_component_candidate_ids": [],
+      "node_type": "div",
+      "compose_component": "NormalHomeContent.kt#NormalHomeHeader + HomeStats",
+      "source_contract": [
+        "design/pages/home/normal_home/engineering/Layout_Responsive_Contract_V1.md",
+        "design/pages/home/normal_home/engineering/State_Interaction_Contract_V1.md",
+        "design/pages/home/normal_home/engineering/Visual_Runtime_Acceptance_V1.md",
+        "design/pages/home/normal_home/engineering/Visual_Anchor_Asset_Resolution_V1.md"
+      ],
+      "asset_id": null,
+      "data_binding": null,
+      "interaction": {
+        "source_html": "none",
+        "prototype": "none"
+      },
+      "responsive_rule": "Use window-coordinate Layout_Responsive_Contract_V1; NORMAL_FIXED when safe, otherwise SAFE_OVERFLOW or UNSUPPORTED_WINDOW. Preserve minimum 48dp touch targets.",
+      "authority_status": "CONTRACT_REFERENCE; FIGMA_READBACK_PENDING",
+      "alignment_status": "REVIEW_REQUIRED",
+      "source_issue": null,
+      "prototype_status": "REVIEW_REQUIRED",
+      "source_attributes": {},
+      "evidence": [
+        {
+          "kind": "source_html",
+          "path": "粘贴的文本 (1)(6).txt",
+          "sha256": "1988a9343a6e911c87f93871279ba6d5e161e2ef0651ecd0d783526c5bceb714",
+          "bytes": 18331
+        },
+        {
+          "kind": "figma_readback",
+          "status": "BLOCKED_FIGMA_WRITE_PERMISSION",
+          "live_verified": false
+        }
+      ]
+    },
+    {
+      "html_layer": "Header-Bar",
+      "figma_node_id": null,
+      "parent_node_id": null,
+      "parent_html_layer": "Top-Section-AutoLayout",
+      "parent_node_candidate_id": "41:30",
+      "figma_node_candidate_id": "41:33",
+      "figma_component_candidate_ids": [],
+      "node_type": "div",
+      "compose_component": "NormalHomeContent.kt#NormalHomeHeader",
+      "source_contract": [
+        "design/pages/home/normal_home/engineering/Layout_Responsive_Contract_V1.md",
+        "design/pages/home/normal_home/engineering/State_Interaction_Contract_V1.md",
+        "design/pages/home/normal_home/engineering/Visual_Runtime_Acceptance_V1.md",
+        "design/pages/home/normal_home/engineering/Visual_Anchor_Asset_Resolution_V1.md"
+      ],
+      "asset_id": null,
+      "data_binding": null,
+      "interaction": {
+        "source_html": "none",
+        "prototype": "none"
+      },
+      "responsive_rule": "Use window-coordinate Layout_Responsive_Contract_V1; NORMAL_FIXED when safe, otherwise SAFE_OVERFLOW or UNSUPPORTED_WINDOW. Preserve minimum 48dp touch targets.",
+      "authority_status": "CONTRACT_REFERENCE; FIGMA_READBACK_PENDING",
+      "alignment_status": "REVIEW_REQUIRED",
+      "source_issue": null,
+      "prototype_status": "REVIEW_REQUIRED",
+      "source_attributes": {},
+      "evidence": [
+        {
+          "kind": "source_html",
+          "path": "粘贴的文本 (1)(6).txt",
+          "sha256": "1988a9343a6e911c87f93871279ba6d5e161e2ef0651ecd0d783526c5bceb714",
+          "bytes": 18331
+        },
+        {
+          "kind": "figma_candidate",
+          "node_id": "41:33",
+          "prior_map": "release/design_manager/M1_NH01_FIGMA_NODE_MAPPING_V2.json",
+          "live_verified": false
+        }
+      ]
+    },
+    {
+      "html_layer": "Brand-Title",
+      "figma_node_id": null,
+      "parent_node_id": null,
+      "parent_html_layer": "Header-Bar",
+      "parent_node_candidate_id": "41:33",
+      "figma_node_candidate_id": "41:34",
+      "figma_component_candidate_ids": [],
+      "node_type": "h1",
+      "compose_component": "NormalHomeContent.kt#NormalHomeHeader brand artwork",
+      "source_contract": [
+        "design/pages/home/normal_home/engineering/Layout_Responsive_Contract_V1.md",
+        "design/pages/home/normal_home/engineering/State_Interaction_Contract_V1.md",
+        "design/pages/home/normal_home/engineering/Visual_Runtime_Acceptance_V1.md",
+        "design/pages/home/normal_home/engineering/Visual_Anchor_Asset_Resolution_V1.md"
+      ],
+      "asset_id": "brand_title_primary",
+      "data_binding": "brand_title_primary artwork",
+      "interaction": {
+        "source_html": "none",
+        "prototype": "none"
+      },
+      "responsive_rule": "Use window-coordinate Layout_Responsive_Contract_V1; NORMAL_FIXED when safe, otherwise SAFE_OVERFLOW or UNSUPPORTED_WINDOW. Preserve minimum 48dp touch targets.",
+      "authority_status": "FROZEN_ARTWORK_REQUIRED",
+      "alignment_status": "MISMATCH",
+      "source_issue": "Source uses text instead of frozen artwork; prototype now provides a brand_title_primary slot. Figma image reference remains unverified.",
+      "prototype_status": "OFFICIAL_ARTWORK_SLOT",
+      "source_attributes": {},
+      "evidence": [
+        {
+          "kind": "source_html",
+          "path": "粘贴的文本 (1)(6).txt",
+          "sha256": "1988a9343a6e911c87f93871279ba6d5e161e2ef0651ecd0d783526c5bceb714",
+          "bytes": 18331
+        },
+        {
+          "kind": "figma_candidate",
+          "node_id": "41:34",
+          "prior_map": "release/design_manager/M1_NH01_FIGMA_NODE_MAPPING_V2.json",
+          "live_verified": false
+        },
+        {
+          "kind": "audit_finding",
+          "detail": "Source uses text instead of frozen artwork; prototype now provides a brand_title_primary slot. Figma image reference remains unverified."
+        }
+      ]
+    },
+    {
+      "html_layer": "User-Avatar-Btn",
+      "figma_node_id": null,
+      "parent_node_id": null,
+      "parent_html_layer": "Header-Bar",
+      "parent_node_candidate_id": "41:33",
+      "figma_node_candidate_id": "41:35",
+      "figma_component_candidate_ids": [],
+      "node_type": "button",
+      "compose_component": "NormalHomeContent.kt#profile action",
+      "source_contract": [
+        "design/pages/home/normal_home/engineering/Layout_Responsive_Contract_V1.md",
+        "design/pages/home/normal_home/engineering/State_Interaction_Contract_V1.md"
+      ],
+      "asset_id": null,
+      "data_binding": "avatar_state",
+      "interaction": {
+        "source_html": "none",
+        "prototype": "onProfileClick",
+        "compose": "onProfileClick"
+      },
+      "responsive_rule": "Use window-coordinate Layout_Responsive_Contract_V1; NORMAL_FIXED when safe, otherwise SAFE_OVERFLOW or UNSUPPORTED_WINDOW. Preserve minimum 48dp touch targets.",
+      "authority_status": "CONTRACT_REFERENCE; FIGMA_READBACK_PENDING",
+      "alignment_status": "REVIEW_REQUIRED",
+      "source_issue": null,
+      "prototype_status": "REVIEW_REQUIRED",
+      "source_attributes": {},
+      "evidence": [
+        {
+          "kind": "source_html",
+          "path": "粘贴的文本 (1)(6).txt",
+          "sha256": "1988a9343a6e911c87f93871279ba6d5e161e2ef0651ecd0d783526c5bceb714",
+          "bytes": 18331
+        },
+        {
+          "kind": "figma_candidate",
+          "node_id": "41:35",
+          "prior_map": "release/design_manager/M1_NH01_FIGMA_NODE_MAPPING_V2.json",
+          "live_verified": false
+        }
+      ]
+    },
+    {
+      "html_layer": "Avatar-Image",
+      "figma_node_id": null,
+      "parent_node_id": null,
+      "parent_html_layer": "User-Avatar-Btn",
+      "parent_node_candidate_id": "41:35",
+      "figma_node_candidate_id": "41:36",
+      "figma_component_candidate_ids": [],
+      "node_type": "img",
+      "compose_component": "NormalHomeContent.kt#NH07 avatar state resolver",
+      "source_contract": [
+        "design/pages/home/normal_home/engineering/Layout_Responsive_Contract_V1.md",
+        "design/pages/home/normal_home/engineering/State_Interaction_Contract_V1.md"
+      ],
+      "asset_id": null,
+      "data_binding": "avatar_image; NH07 signed-in/default/loading/failure/Guest state",
+      "interaction": {
+        "source_html": "none",
+        "prototype": "none"
+      },
+      "responsive_rule": "Use window-coordinate Layout_Responsive_Contract_V1; NORMAL_FIXED when safe, otherwise SAFE_OVERFLOW or UNSUPPORTED_WINDOW. Preserve minimum 48dp touch targets.",
+      "authority_status": "NH07_STATE_CONTRACT; DEFAULT/GUEST_AUTHORITY_REVIEW_REQUIRED",
+      "alignment_status": "MISMATCH",
+      "source_issue": "Source uses an unapproved Unsplash person image. Prototype uses an NH07 state slot; effective default/Guest authority remains under review.",
+      "prototype_status": "NH07_STATE_SLOT",
+      "source_attributes": {
+        "src": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=240&q=80",
+        "alt": "Avatar"
+      },
+      "evidence": [
+        {
+          "kind": "source_html",
+          "path": "粘贴的文本 (1)(6).txt",
+          "sha256": "1988a9343a6e911c87f93871279ba6d5e161e2ef0651ecd0d783526c5bceb714",
+          "bytes": 18331
+        },
+        {
+          "kind": "figma_candidate",
+          "node_id": "41:36",
+          "prior_map": "release/design_manager/M1_NH01_FIGMA_NODE_MAPPING_V2.json",
+          "live_verified": false
+        },
+        {
+          "kind": "source_image",
+          "url": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=240&q=80",
+          "authority": "UNAPPROVED_EXTERNAL_IMAGE"
+        },
+        {
+          "kind": "audit_finding",
+          "detail": "Source uses an unapproved Unsplash person image. Prototype uses an NH07 state slot; effective default/Guest authority remains under review."
+        }
+      ]
+    },
+    {
+      "html_layer": "Stats-Bar",
+      "figma_node_id": null,
+      "parent_node_id": null,
+      "parent_html_layer": "Top-Section-AutoLayout",
+      "parent_node_candidate_id": "41:30",
+      "figma_node_candidate_id": "41:37",
+      "figma_component_candidate_ids": [
+        "38:3"
+      ],
+      "node_type": "div",
+      "compose_component": "HomeStats.kt#HomeStats",
+      "source_contract": [
+        "design/pages/home/normal_home/engineering/Layout_Responsive_Contract_V1.md",
+        "design/pages/home/normal_home/engineering/State_Interaction_Contract_V1.md",
+        "design/pages/home/normal_home/engineering/Visual_Runtime_Acceptance_V1.md",
+        "design/pages/home/normal_home/engineering/Visual_Anchor_Asset_Resolution_V1.md"
+      ],
+      "asset_id": null,
+      "data_binding": {
+        "species_count": "positive server total, else distinct species from valid catches",
+        "catch_count": "positive server total, else valid catch count",
+        "record_days": "distinct PresentationSanitizer.dateKey(capturedAt, createdAt)"
+      },
+      "interaction": {
+        "source_html": "none",
+        "prototype": "none"
+      },
+      "responsive_rule": "Use window-coordinate Layout_Responsive_Contract_V1; NORMAL_FIXED when safe, otherwise SAFE_OVERFLOW or UNSUPPORTED_WINDOW. Preserve minimum 48dp touch targets.",
+      "authority_status": "STATE_AND_INTERACTION_CONTRACT",
+      "alignment_status": "REVIEW_REQUIRED",
+      "source_issue": null,
+      "prototype_status": "REVIEW_REQUIRED",
+      "source_attributes": {},
+      "evidence": [
+        {
+          "kind": "source_html",
+          "path": "粘贴的文本 (1)(6).txt",
+          "sha256": "1988a9343a6e911c87f93871279ba6d5e161e2ef0651ecd0d783526c5bceb714",
+          "bytes": 18331
+        },
+        {
+          "kind": "figma_candidate",
+          "node_id": "41:37",
+          "prior_map": "release/design_manager/M1_NH01_FIGMA_NODE_MAPPING_V2.json",
+          "live_verified": false
+        }
+      ]
+    },
+    {
+      "html_layer": "Stat-Item-Species",
+      "figma_node_id": null,
+      "parent_node_id": null,
+      "parent_html_layer": "Stats-Bar",
+      "parent_node_candidate_id": "41:37",
+      "figma_node_candidate_id": null,
+      "figma_component_candidate_ids": [],
+      "node_type": "div",
+      "compose_component": "HomeStats.kt#species item",
+      "source_contract": [
+        "design/pages/home/normal_home/engineering/Layout_Responsive_Contract_V1.md",
+        "design/pages/home/normal_home/engineering/State_Interaction_Contract_V1.md"
+      ],
+      "asset_id": null,
+      "data_binding": "species_count",
+      "interaction": {
+        "source_html": "none",
+        "prototype": "onSpeciesClick when not resolving",
+        "compose": "onSpeciesClick when not resolving"
+      },
+      "responsive_rule": "Use window-coordinate Layout_Responsive_Contract_V1; NORMAL_FIXED when safe, otherwise SAFE_OVERFLOW or UNSUPPORTED_WINDOW. Preserve minimum 48dp touch targets.",
+      "authority_status": "CONTRACT_REFERENCE; FIGMA_READBACK_PENDING",
+      "alignment_status": "REVIEW_REQUIRED",
+      "source_issue": null,
+      "prototype_status": "REVIEW_REQUIRED",
+      "source_attributes": {},
+      "evidence": [
+        {
+          "kind": "source_html",
+          "path": "粘贴的文本 (1)(6).txt",
+          "sha256": "1988a9343a6e911c87f93871279ba6d5e161e2ef0651ecd0d783526c5bceb714",
+          "bytes": 18331
+        },
+        {
+          "kind": "figma_readback",
+          "status": "BLOCKED_FIGMA_WRITE_PERMISSION",
+          "live_verified": false
+        }
+      ]
+    },
+    {
+      "html_layer": "Stat-Value-12",
+      "figma_node_id": null,
+      "parent_node_id": null,
+      "parent_html_layer": "Stat-Item-Species",
+      "parent_node_candidate_id": "41:37",
+      "figma_node_candidate_id": null,
+      "figma_component_candidate_ids": [],
+      "node_type": "span",
+      "compose_component": "HomeStats.kt#species value",
+      "source_contract": [
+        "design/pages/home/normal_home/engineering/Layout_Responsive_Contract_V1.md",
+        "design/pages/home/normal_home/engineering/State_Interaction_Contract_V1.md"
+      ],
+      "asset_id": null,
+      "data_binding": "species_count",
+      "interaction": {
+        "source_html": "none",
+        "prototype": "none"
+      },
+      "responsive_rule": "Use window-coordinate Layout_Responsive_Contract_V1; NORMAL_FIXED when safe, otherwise SAFE_OVERFLOW or UNSUPPORTED_WINDOW. Preserve minimum 48dp touch targets.",
+      "authority_status": "CONTRACT_REFERENCE; FIGMA_READBACK_PENDING",
+      "alignment_status": "MISMATCH",
+      "source_issue": "Static sample 12 replaced by the species_count field in the prototype.",
+      "prototype_status": "DYNAMIC_FIELD",
+      "source_attributes": {},
+      "evidence": [
+        {
+          "kind": "source_html",
+          "path": "粘贴的文本 (1)(6).txt",
+          "sha256": "1988a9343a6e911c87f93871279ba6d5e161e2ef0651ecd0d783526c5bceb714",
+          "bytes": 18331
+        },
+        {
+          "kind": "figma_readback",
+          "status": "BLOCKED_FIGMA_WRITE_PERMISSION",
+          "live_verified": false
+        },
+        {
+          "kind": "audit_finding",
+          "detail": "Static sample 12 replaced by the species_count field in the prototype."
+        }
+      ]
+    },
+    {
+      "html_layer": "Stat-Label-Species",
+      "figma_node_id": null,
+      "parent_node_id": null,
+      "parent_html_layer": "Stat-Item-Species",
+      "parent_node_candidate_id": "41:37",
+      "figma_node_candidate_id": null,
+      "figma_component_candidate_ids": [],
+      "node_type": "span",
+      "compose_component": "HomeStats.kt#species label",
+      "source_contract": [
+        "design/pages/home/normal_home/engineering/Layout_Responsive_Contract_V1.md",
+        "design/pages/home/normal_home/engineering/State_Interaction_Contract_V1.md"
+      ],
+      "asset_id": null,
+      "data_binding": null,
+      "interaction": {
+        "source_html": "none",
+        "prototype": "none"
+      },
+      "responsive_rule": "Use window-coordinate Layout_Responsive_Contract_V1; NORMAL_FIXED when safe, otherwise SAFE_OVERFLOW or UNSUPPORTED_WINDOW. Preserve minimum 48dp touch targets.",
+      "authority_status": "CONTRACT_REFERENCE; FIGMA_READBACK_PENDING",
+      "alignment_status": "REVIEW_REQUIRED",
+      "source_issue": null,
+      "prototype_status": "REVIEW_REQUIRED",
+      "source_attributes": {},
+      "evidence": [
+        {
+          "kind": "source_html",
+          "path": "粘贴的文本 (1)(6).txt",
+          "sha256": "1988a9343a6e911c87f93871279ba6d5e161e2ef0651ecd0d783526c5bceb714",
+          "bytes": 18331
+        },
+        {
+          "kind": "figma_readback",
+          "status": "BLOCKED_FIGMA_WRITE_PERMISSION",
+          "live_verified": false
+        }
+      ]
+    },
+    {
+      "html_layer": "Stat-Item-Catches",
+      "figma_node_id": null,
+      "parent_node_id": null,
+      "parent_html_layer": "Stats-Bar",
+      "parent_node_candidate_id": "41:37",
+      "figma_node_candidate_id": null,
+      "figma_component_candidate_ids": [],
+      "node_type": "div",
+      "compose_component": "HomeStats.kt#catches item",
+      "source_contract": [
+        "design/pages/home/normal_home/engineering/Layout_Responsive_Contract_V1.md",
+        "design/pages/home/normal_home/engineering/State_Interaction_Contract_V1.md"
+      ],
+      "asset_id": null,
+      "data_binding": "catch_count",
+      "interaction": {
+        "source_html": "none",
+        "prototype": "onCatchesClick when not resolving",
+        "compose": "onCatchesClick when not resolving"
+      },
+      "responsive_rule": "Use window-coordinate Layout_Responsive_Contract_V1; NORMAL_FIXED when safe, otherwise SAFE_OVERFLOW or UNSUPPORTED_WINDOW. Preserve minimum 48dp touch targets.",
+      "authority_status": "CONTRACT_REFERENCE; FIGMA_READBACK_PENDING",
+      "alignment_status": "REVIEW_REQUIRED",
+      "source_issue": null,
+      "prototype_status": "REVIEW_REQUIRED",
+      "source_attributes": {},
+      "evidence": [
+        {
+          "kind": "source_html",
+          "path": "粘贴的文本 (1)(6).txt",
+          "sha256": "1988a9343a6e911c87f93871279ba6d5e161e2ef0651ecd0d783526c5bceb714",
+          "bytes": 18331
+        },
+        {
+          "kind": "figma_readback",
+          "status": "BLOCKED_FIGMA_WRITE_PERMISSION",
+          "live_verified": false
+        }
+      ]
+    },
+    {
+      "html_layer": "Stat-Value-38",
+      "figma_node_id": null,
+      "parent_node_id": null,
+      "parent_html_layer": "Stat-Item-Catches",
+      "parent_node_candidate_id": "41:37",
+      "figma_node_candidate_id": null,
+      "figma_component_candidate_ids": [],
+      "node_type": "span",
+      "compose_component": "HomeStats.kt#catches value",
+      "source_contract": [
+        "design/pages/home/normal_home/engineering/Layout_Responsive_Contract_V1.md",
+        "design/pages/home/normal_home/engineering/State_Interaction_Contract_V1.md"
+      ],
+      "asset_id": null,
+      "data_binding": "catch_count",
+      "interaction": {
+        "source_html": "none",
+        "prototype": "none"
+      },
+      "responsive_rule": "Use window-coordinate Layout_Responsive_Contract_V1; NORMAL_FIXED when safe, otherwise SAFE_OVERFLOW or UNSUPPORTED_WINDOW. Preserve minimum 48dp touch targets.",
+      "authority_status": "CONTRACT_REFERENCE; FIGMA_READBACK_PENDING",
+      "alignment_status": "MISMATCH",
+      "source_issue": "Static sample 38 replaced by the catch_count field in the prototype.",
+      "prototype_status": "DYNAMIC_FIELD",
+      "source_attributes": {},
+      "evidence": [
+        {
+          "kind": "source_html",
+          "path": "粘贴的文本 (1)(6).txt",
+          "sha256": "1988a9343a6e911c87f93871279ba6d5e161e2ef0651ecd0d783526c5bceb714",
+          "bytes": 18331
+        },
+        {
+          "kind": "figma_readback",
+          "status": "BLOCKED_FIGMA_WRITE_PERMISSION",
+          "live_verified": false
+        },
+        {
+          "kind": "audit_finding",
+          "detail": "Static sample 38 replaced by the catch_count field in the prototype."
+        }
+      ]
+    },
+    {
+      "html_layer": "Stat-Label-Catches",
+      "figma_node_id": null,
+      "parent_node_id": null,
+      "parent_html_layer": "Stat-Item-Catches",
+      "parent_node_candidate_id": "41:37",
+      "figma_node_candidate_id": null,
+      "figma_component_candidate_ids": [],
+      "node_type": "span",
+      "compose_component": "HomeStats.kt#catches label",
+      "source_contract": [
+        "design/pages/home/normal_home/engineering/Layout_Responsive_Contract_V1.md",
+        "design/pages/home/normal_home/engineering/State_Interaction_Contract_V1.md"
+      ],
+      "asset_id": null,
+      "data_binding": null,
+      "interaction": {
+        "source_html": "none",
+        "prototype": "none"
+      },
+      "responsive_rule": "Use window-coordinate Layout_Responsive_Contract_V1; NORMAL_FIXED when safe, otherwise SAFE_OVERFLOW or UNSUPPORTED_WINDOW. Preserve minimum 48dp touch targets.",
+      "authority_status": "CONTRACT_REFERENCE; FIGMA_READBACK_PENDING",
+      "alignment_status": "REVIEW_REQUIRED",
+      "source_issue": null,
+      "prototype_status": "REVIEW_REQUIRED",
+      "source_attributes": {},
+      "evidence": [
+        {
+          "kind": "source_html",
+          "path": "粘贴的文本 (1)(6).txt",
+          "sha256": "1988a9343a6e911c87f93871279ba6d5e161e2ef0651ecd0d783526c5bceb714",
+          "bytes": 18331
+        },
+        {
+          "kind": "figma_readback",
+          "status": "BLOCKED_FIGMA_WRITE_PERMISSION",
+          "live_verified": false
+        }
+      ]
+    },
+    {
+      "html_layer": "Stat-Item-Days",
+      "figma_node_id": null,
+      "parent_node_id": null,
+      "parent_html_layer": "Stats-Bar",
+      "parent_node_candidate_id": "41:37",
+      "figma_node_candidate_id": null,
+      "figma_component_candidate_ids": [],
+      "node_type": "div",
+      "compose_component": "HomeStats.kt#record-days item",
+      "source_contract": [
+        "design/pages/home/normal_home/engineering/Layout_Responsive_Contract_V1.md",
+        "design/pages/home/normal_home/engineering/State_Interaction_Contract_V1.md"
+      ],
+      "asset_id": null,
+      "data_binding": "record_days",
+      "interaction": {
+        "source_html": "none",
+        "prototype": "none"
+      },
+      "responsive_rule": "Use window-coordinate Layout_Responsive_Contract_V1; NORMAL_FIXED when safe, otherwise SAFE_OVERFLOW or UNSUPPORTED_WINDOW. Preserve minimum 48dp touch targets.",
+      "authority_status": "CONTRACT_REFERENCE; FIGMA_READBACK_PENDING",
+      "alignment_status": "REVIEW_REQUIRED",
+      "source_issue": null,
+      "prototype_status": "REVIEW_REQUIRED",
+      "source_attributes": {},
+      "evidence": [
+        {
+          "kind": "source_html",
+          "path": "粘贴的文本 (1)(6).txt",
+          "sha256": "1988a9343a6e911c87f93871279ba6d5e161e2ef0651ecd0d783526c5bceb714",
+          "bytes": 18331
+        },
+        {
+          "kind": "figma_readback",
+          "status": "BLOCKED_FIGMA_WRITE_PERMISSION",
+          "live_verified": false
+        }
+      ]
+    },
+    {
+      "html_layer": "Stat-Value-7",
+      "figma_node_id": null,
+      "parent_node_id": null,
+      "parent_html_layer": "Stat-Item-Days",
+      "parent_node_candidate_id": "41:37",
+      "figma_node_candidate_id": null,
+      "figma_component_candidate_ids": [],
+      "node_type": "span",
+      "compose_component": "HomeStats.kt#record-days value",
+      "source_contract": [
+        "design/pages/home/normal_home/engineering/Layout_Responsive_Contract_V1.md",
+        "design/pages/home/normal_home/engineering/State_Interaction_Contract_V1.md"
+      ],
+      "asset_id": null,
+      "data_binding": "record_days",
+      "interaction": {
+        "source_html": "none",
+        "prototype": "none"
+      },
+      "responsive_rule": "Use window-coordinate Layout_Responsive_Contract_V1; NORMAL_FIXED when safe, otherwise SAFE_OVERFLOW or UNSUPPORTED_WINDOW. Preserve minimum 48dp touch targets.",
+      "authority_status": "CONTRACT_REFERENCE; FIGMA_READBACK_PENDING",
+      "alignment_status": "MISMATCH",
+      "source_issue": "Static sample 7 replaced by the record_days field in the prototype.",
+      "prototype_status": "DYNAMIC_FIELD",
+      "source_attributes": {},
+      "evidence": [
+        {
+          "kind": "source_html",
+          "path": "粘贴的文本 (1)(6).txt",
+          "sha256": "1988a9343a6e911c87f93871279ba6d5e161e2ef0651ecd0d783526c5bceb714",
+          "bytes": 18331
+        },
+        {
+          "kind": "figma_readback",
+          "status": "BLOCKED_FIGMA_WRITE_PERMISSION",
+          "live_verified": false
+        },
+        {
+          "kind": "audit_finding",
+          "detail": "Static sample 7 replaced by the record_days field in the prototype."
+        }
+      ]
+    },
+    {
+      "html_layer": "Stat-Label-Days",
+      "figma_node_id": null,
+      "parent_node_id": null,
+      "parent_html_layer": "Stat-Item-Days",
+      "parent_node_candidate_id": "41:37",
+      "figma_node_candidate_id": null,
+      "figma_component_candidate_ids": [],
+      "node_type": "span",
+      "compose_component": "HomeStats.kt#record-days label",
+      "source_contract": [
+        "design/pages/home/normal_home/engineering/Layout_Responsive_Contract_V1.md",
+        "design/pages/home/normal_home/engineering/State_Interaction_Contract_V1.md"
+      ],
+      "asset_id": null,
+      "data_binding": null,
+      "interaction": {
+        "source_html": "none",
+        "prototype": "none"
+      },
+      "responsive_rule": "Use window-coordinate Layout_Responsive_Contract_V1; NORMAL_FIXED when safe, otherwise SAFE_OVERFLOW or UNSUPPORTED_WINDOW. Preserve minimum 48dp touch targets.",
+      "authority_status": "CONTRACT_REFERENCE; FIGMA_READBACK_PENDING",
+      "alignment_status": "REVIEW_REQUIRED",
+      "source_issue": null,
+      "prototype_status": "REVIEW_REQUIRED",
+      "source_attributes": {},
+      "evidence": [
+        {
+          "kind": "source_html",
+          "path": "粘贴的文本 (1)(6).txt",
+          "sha256": "1988a9343a6e911c87f93871279ba6d5e161e2ef0651ecd0d783526c5bceb714",
+          "bytes": 18331
+        },
+        {
+          "kind": "figma_readback",
+          "status": "BLOCKED_FIGMA_WRITE_PERMISSION",
+          "live_verified": false
+        }
+      ]
+    },
+    {
+      "html_layer": "Middle-Carousel-Section",
+      "figma_node_id": null,
+      "parent_node_id": null,
+      "parent_html_layer": "Screen-Yujian-Home",
+      "parent_node_candidate_id": "41:30",
+      "figma_node_candidate_id": null,
+      "figma_component_candidate_ids": [],
+      "node_type": "div",
+      "compose_component": "NormalHomeContent.kt#recent catch section",
+      "source_contract": [
+        "design/pages/home/normal_home/engineering/Layout_Responsive_Contract_V1.md",
+        "design/pages/home/normal_home/engineering/State_Interaction_Contract_V1.md",
+        "design/pages/home/normal_home/engineering/Visual_Runtime_Acceptance_V1.md",
+        "design/pages/home/normal_home/engineering/Visual_Anchor_Asset_Resolution_V1.md"
+      ],
+      "asset_id": null,
+      "data_binding": null,
+      "interaction": {
+        "source_html": "none",
+        "prototype": "none"
+      },
+      "responsive_rule": "Use window-coordinate Layout_Responsive_Contract_V1; NORMAL_FIXED when safe, otherwise SAFE_OVERFLOW or UNSUPPORTED_WINDOW. Preserve minimum 48dp touch targets.",
+      "authority_status": "CONTRACT_REFERENCE; FIGMA_READBACK_PENDING",
+      "alignment_status": "REVIEW_REQUIRED",
+      "source_issue": null,
+      "prototype_status": "REVIEW_REQUIRED",
+      "source_attributes": {},
+      "evidence": [
+        {
+          "kind": "source_html",
+          "path": "粘贴的文本 (1)(6).txt",
+          "sha256": "1988a9343a6e911c87f93871279ba6d5e161e2ef0651ecd0d783526c5bceb714",
+          "bytes": 18331
+        },
+        {
+          "kind": "figma_readback",
+          "status": "BLOCKED_FIGMA_WRITE_PERMISSION",
+          "live_verified": false
+        }
+      ]
+    },
+    {
+      "html_layer": "Section-Header-Bar",
+      "figma_node_id": null,
+      "parent_node_id": null,
+      "parent_html_layer": "Middle-Carousel-Section",
+      "parent_node_candidate_id": "41:30",
+      "figma_node_candidate_id": "41:49",
+      "figma_component_candidate_ids": [],
+      "node_type": "div",
+      "compose_component": "NormalHomeContent.kt#RecentCatchSectionHeader",
+      "source_contract": [
+        "design/pages/home/normal_home/engineering/Layout_Responsive_Contract_V1.md",
+        "design/pages/home/normal_home/engineering/State_Interaction_Contract_V1.md",
+        "design/pages/home/normal_home/engineering/Visual_Runtime_Acceptance_V1.md",
+        "design/pages/home/normal_home/engineering/Visual_Anchor_Asset_Resolution_V1.md"
+      ],
+      "asset_id": null,
+      "data_binding": null,
+      "interaction": {
+        "source_html": "none",
+        "prototype": "none"
+      },
+      "responsive_rule": "Use window-coordinate Layout_Responsive_Contract_V1; NORMAL_FIXED when safe, otherwise SAFE_OVERFLOW or UNSUPPORTED_WINDOW. Preserve minimum 48dp touch targets.",
+      "authority_status": "CONTRACT_REFERENCE; FIGMA_READBACK_PENDING",
+      "alignment_status": "REVIEW_REQUIRED",
+      "source_issue": null,
+      "prototype_status": "REVIEW_REQUIRED",
+      "source_attributes": {},
+      "evidence": [
+        {
+          "kind": "source_html",
+          "path": "粘贴的文本 (1)(6).txt",
+          "sha256": "1988a9343a6e911c87f93871279ba6d5e161e2ef0651ecd0d783526c5bceb714",
+          "bytes": 18331
+        },
+        {
+          "kind": "figma_candidate",
+          "node_id": "41:49",
+          "prior_map": "release/design_manager/M1_NH01_FIGMA_NODE_MAPPING_V2.json",
+          "live_verified": false
+        }
+      ]
+    },
+    {
+      "html_layer": "Section-Title-Recent",
+      "figma_node_id": null,
+      "parent_node_id": null,
+      "parent_html_layer": "Section-Header-Bar",
+      "parent_node_candidate_id": "41:49",
+      "figma_node_candidate_id": null,
+      "figma_component_candidate_ids": [],
+      "node_type": "h2",
+      "compose_component": "NormalHomeContent.kt#recent section title",
+      "source_contract": [
+        "design/pages/home/normal_home/engineering/Layout_Responsive_Contract_V1.md",
+        "design/pages/home/normal_home/engineering/State_Interaction_Contract_V1.md",
+        "design/pages/home/normal_home/engineering/Visual_Runtime_Acceptance_V1.md",
+        "design/pages/home/normal_home/engineering/Visual_Anchor_Asset_Resolution_V1.md"
+      ],
+      "asset_id": null,
+      "data_binding": null,
+      "interaction": {
+        "source_html": "none",
+        "prototype": "none"
+      },
+      "responsive_rule": "Use window-coordinate Layout_Responsive_Contract_V1; NORMAL_FIXED when safe, otherwise SAFE_OVERFLOW or UNSUPPORTED_WINDOW. Preserve minimum 48dp touch targets.",
+      "authority_status": "CONTRACT_REFERENCE; FIGMA_READBACK_PENDING",
+      "alignment_status": "REVIEW_REQUIRED",
+      "source_issue": null,
+      "prototype_status": "REVIEW_REQUIRED",
+      "source_attributes": {},
+      "evidence": [
+        {
+          "kind": "source_html",
+          "path": "粘贴的文本 (1)(6).txt",
+          "sha256": "1988a9343a6e911c87f93871279ba6d5e161e2ef0651ecd0d783526c5bceb714",
+          "bytes": 18331
+        },
+        {
+          "kind": "figma_readback",
+          "status": "BLOCKED_FIGMA_WRITE_PERMISSION",
+          "live_verified": false
+        }
+      ]
+    },
+    {
+      "html_layer": "Section-Action-All",
+      "figma_node_id": null,
+      "parent_node_id": null,
+      "parent_html_layer": "Section-Header-Bar",
+      "parent_node_candidate_id": "41:49",
+      "figma_node_candidate_id": null,
+      "figma_component_candidate_ids": [],
+      "node_type": "a",
+      "compose_component": "NormalHomeContent.kt#catch-list action",
+      "source_contract": [
+        "design/pages/home/normal_home/engineering/Layout_Responsive_Contract_V1.md",
+        "design/pages/home/normal_home/engineering/State_Interaction_Contract_V1.md",
+        "design/pages/home/normal_home/engineering/Visual_Runtime_Acceptance_V1.md",
+        "design/pages/home/normal_home/engineering/Visual_Anchor_Asset_Resolution_V1.md"
+      ],
+      "asset_id": null,
+      "data_binding": null,
+      "interaction": {
+        "source_html": "return false;",
+        "prototype": "onCatchesClick",
+        "compose": "onCatchesClick"
+      },
+      "responsive_rule": "Use window-coordinate Layout_Responsive_Contract_V1; NORMAL_FIXED when safe, otherwise SAFE_OVERFLOW or UNSUPPORTED_WINDOW. Preserve minimum 48dp touch targets.",
+      "authority_status": "CONTRACT_REFERENCE; FIGMA_READBACK_PENDING",
+      "alignment_status": "MISMATCH",
+      "source_issue": "Source uses onclick=return false; prototype maps to existing onCatchesClick.",
+      "prototype_status": "onCatchesClick",
+      "source_attributes": {
+        "onclick": "return false;"
+      },
+      "evidence": [
+        {
+          "kind": "source_html",
+          "path": "粘贴的文本 (1)(6).txt",
+          "sha256": "1988a9343a6e911c87f93871279ba6d5e161e2ef0651ecd0d783526c5bceb714",
+          "bytes": 18331
+        },
+        {
+          "kind": "figma_readback",
+          "status": "BLOCKED_FIGMA_WRITE_PERMISSION",
+          "live_verified": false
+        },
+        {
+          "kind": "audit_finding",
+          "detail": "Source uses onclick=return false; prototype maps to existing onCatchesClick."
+        }
+      ]
+    },
+    {
+      "html_layer": "Icon-Chevron-Right",
+      "figma_node_id": null,
+      "parent_node_id": null,
+      "parent_html_layer": "Section-Action-All",
+      "parent_node_candidate_id": "41:49",
+      "figma_node_candidate_id": null,
+      "figma_component_candidate_ids": [],
+      "node_type": "svg",
+      "compose_component": "registered chevron component; authority review required",
+      "source_contract": [
+        "design/pages/home/normal_home/engineering/Layout_Responsive_Contract_V1.md",
+        "design/pages/home/normal_home/engineering/State_Interaction_Contract_V1.md",
+        "design/pages/home/normal_home/engineering/Visual_Runtime_Acceptance_V1.md",
+        "design/pages/home/normal_home/engineering/Visual_Anchor_Asset_Resolution_V1.md"
+      ],
+      "asset_id": null,
+      "data_binding": null,
+      "interaction": {
+        "source_html": "none",
+        "prototype": "none"
+      },
+      "responsive_rule": "Use window-coordinate Layout_Responsive_Contract_V1; NORMAL_FIXED when safe, otherwise SAFE_OVERFLOW or UNSUPPORTED_WINDOW. Preserve minimum 48dp touch targets.",
+      "authority_status": "CONTRACT_REFERENCE; FIGMA_READBACK_PENDING",
+      "alignment_status": "REVIEW_REQUIRED",
+      "source_issue": null,
+      "prototype_status": "REVIEW_REQUIRED",
+      "source_attributes": {},
+      "evidence": [
+        {
+          "kind": "source_html",
+          "path": "粘贴的文本 (1)(6).txt",
+          "sha256": "1988a9343a6e911c87f93871279ba6d5e161e2ef0651ecd0d783526c5bceb714",
+          "bytes": 18331
+        },
+        {
+          "kind": "figma_readback",
+          "status": "BLOCKED_FIGMA_WRITE_PERMISSION",
+          "live_verified": false
+        }
+      ]
+    },
+    {
+      "html_layer": "Carousel-Track-Container",
+      "figma_node_id": null,
+      "parent_node_id": null,
+      "parent_html_layer": "Middle-Carousel-Section",
+      "parent_node_candidate_id": "41:30",
+      "figma_node_candidate_id": "41:56",
+      "figma_component_candidate_ids": [],
+      "node_type": "div",
+      "compose_component": "NormalHomeContent.kt#RecentCatchPager",
+      "source_contract": [
+        "design/pages/home/normal_home/engineering/Layout_Responsive_Contract_V1.md",
+        "design/pages/home/normal_home/engineering/State_Interaction_Contract_V1.md",
+        "design/pages/home/normal_home/engineering/Visual_Runtime_Acceptance_V1.md",
+        "design/pages/home/normal_home/engineering/Visual_Anchor_Asset_Resolution_V1.md"
+      ],
+      "asset_id": null,
+      "data_binding": "orderedHomeRecords(recentCatches)",
+      "interaction": {
+        "source_html": "none",
+        "prototype": "none"
+      },
+      "responsive_rule": "Use window-coordinate Layout_Responsive_Contract_V1; NORMAL_FIXED when safe, otherwise SAFE_OVERFLOW or UNSUPPORTED_WINDOW. Preserve minimum 48dp touch targets.",
+      "authority_status": "CONTRACT_REFERENCE; FIGMA_READBACK_PENDING",
+      "alignment_status": "REVIEW_REQUIRED",
+      "source_issue": null,
+      "prototype_status": "REVIEW_REQUIRED",
+      "source_attributes": {},
+      "evidence": [
+        {
+          "kind": "source_html",
+          "path": "粘贴的文本 (1)(6).txt",
+          "sha256": "1988a9343a6e911c87f93871279ba6d5e161e2ef0651ecd0d783526c5bceb714",
+          "bytes": 18331
+        },
+        {
+          "kind": "figma_candidate",
+          "node_id": "41:56",
+          "prior_map": "release/design_manager/M1_NH01_FIGMA_NODE_MAPPING_V2.json",
+          "live_verified": false
+        }
+      ]
+    },
+    {
+      "html_layer": "Card-Peek-Left",
+      "figma_node_id": null,
+      "parent_node_id": null,
+      "parent_html_layer": "Carousel-Track-Container",
+      "parent_node_candidate_id": "41:56",
+      "figma_node_candidate_id": "41:58",
+      "figma_component_candidate_ids": [],
+      "node_type": "article",
+      "compose_component": "RecentFishCard.kt#previous record instance",
+      "source_contract": [
+        "design/pages/home/normal_home/engineering/Layout_Responsive_Contract_V1.md",
+        "design/pages/home/normal_home/engineering/State_Interaction_Contract_V1.md",
+        "design/pages/home/normal_home/engineering/Visual_Runtime_Acceptance_V1.md",
+        "design/pages/home/normal_home/engineering/Visual_Anchor_Asset_Resolution_V1.md"
+      ],
+      "asset_id": null,
+      "data_binding": "previous valid catch",
+      "interaction": {
+        "source_html": "none",
+        "prototype": "none"
+      },
+      "responsive_rule": "Use window-coordinate Layout_Responsive_Contract_V1; NORMAL_FIXED when safe, otherwise SAFE_OVERFLOW or UNSUPPORTED_WINDOW. Preserve minimum 48dp touch targets.",
+      "authority_status": "CONTRACT_REFERENCE; FIGMA_READBACK_PENDING",
+      "alignment_status": "REVIEW_REQUIRED",
+      "source_issue": null,
+      "prototype_status": "REVIEW_REQUIRED",
+      "source_attributes": {},
+      "evidence": [
+        {
+          "kind": "source_html",
+          "path": "粘贴的文本 (1)(6).txt",
+          "sha256": "1988a9343a6e911c87f93871279ba6d5e161e2ef0651ecd0d783526c5bceb714",
+          "bytes": 18331
+        },
+        {
+          "kind": "figma_candidate",
+          "node_id": "41:58",
+          "prior_map": "release/design_manager/M1_NH01_FIGMA_NODE_MAPPING_V2.json",
+          "live_verified": false
+        }
+      ]
+    },
+    {
+      "html_layer": "Card-Left-Photo",
+      "figma_node_id": null,
+      "parent_node_id": null,
+      "parent_html_layer": "Card-Peek-Left",
+      "parent_node_candidate_id": "41:58",
+      "figma_node_candidate_id": null,
+      "figma_component_candidate_ids": [],
+      "node_type": "img",
+      "compose_component": "RecentFishCard.kt#RemoteImage",
+      "source_contract": [
+        "design/pages/home/normal_home/engineering/Layout_Responsive_Contract_V1.md",
+        "design/pages/home/normal_home/engineering/State_Interaction_Contract_V1.md",
+        "design/pages/home/normal_home/engineering/Visual_Runtime_Acceptance_V1.md",
+        "design/pages/home/normal_home/engineering/Visual_Anchor_Asset_Resolution_V1.md"
+      ],
+      "asset_id": null,
+      "data_binding": "previous_catch_image via resolveImageUrl",
+      "interaction": {
+        "source_html": "none",
+        "prototype": "none"
+      },
+      "responsive_rule": "Use window-coordinate Layout_Responsive_Contract_V1; NORMAL_FIXED when safe, otherwise SAFE_OVERFLOW or UNSUPPORTED_WINDOW. Preserve minimum 48dp touch targets.",
+      "authority_status": "APPROVED_ORIGINAL_REQUIRED",
+      "alignment_status": "MISMATCH",
+      "source_issue": "Source Unsplash photo replaced by an authorized-record photo slot; approved photo source is blocked.",
+      "prototype_status": "AUTHORIZED_PHOTO_SLOT",
+      "source_attributes": {
+        "src": "https://images.unsplash.com/photo-1465056836041-7f43ac27dcb5?auto=format&fit=crop&w=600&q=80",
+        "alt": "Previous Catch"
+      },
+      "evidence": [
+        {
+          "kind": "source_html",
+          "path": "粘贴的文本 (1)(6).txt",
+          "sha256": "1988a9343a6e911c87f93871279ba6d5e161e2ef0651ecd0d783526c5bceb714",
+          "bytes": 18331
+        },
+        {
+          "kind": "figma_readback",
+          "status": "BLOCKED_FIGMA_WRITE_PERMISSION",
+          "live_verified": false
+        },
+        {
+          "kind": "source_image",
+          "url": "https://images.unsplash.com/photo-1465056836041-7f43ac27dcb5?auto=format&fit=crop&w=600&q=80",
+          "authority": "UNAPPROVED_EXTERNAL_IMAGE"
+        },
+        {
+          "kind": "audit_finding",
+          "detail": "Source Unsplash photo replaced by an authorized-record photo slot; approved photo source is blocked."
+        }
+      ]
+    },
+    {
+      "html_layer": "Card-Main-Active",
+      "figma_node_id": null,
+      "parent_node_id": null,
+      "parent_html_layer": "Carousel-Track-Container",
+      "parent_node_candidate_id": "41:56",
+      "figma_node_candidate_id": "41:67",
+      "figma_component_candidate_ids": [
+        "38:24"
+      ],
+      "node_type": "article",
+      "compose_component": "RecentFishCard.kt#RecentFishCard / YuJianHeroCard",
+      "source_contract": [
+        "design/pages/home/normal_home/engineering/Layout_Responsive_Contract_V1.md",
+        "design/pages/home/normal_home/engineering/State_Interaction_Contract_V1.md",
+        "design/pages/home/normal_home/engineering/Visual_Runtime_Acceptance_V1.md",
+        "design/pages/home/normal_home/engineering/Visual_Anchor_Asset_Resolution_V1.md"
+      ],
+      "asset_id": null,
+      "data_binding": "catch_id from actual RemoteCatch",
+      "interaction": {
+        "source_html": "none",
+        "prototype": "onCatchClick(item.id)",
+        "compose": "onCatchClick(item.id)"
+      },
+      "responsive_rule": "Use window-coordinate Layout_Responsive_Contract_V1; NORMAL_FIXED when safe, otherwise SAFE_OVERFLOW or UNSUPPORTED_WINDOW. Preserve minimum 48dp touch targets.",
+      "authority_status": "CONTRACT_REFERENCE; FIGMA_READBACK_PENDING",
+      "alignment_status": "MISMATCH",
+      "source_issue": "Prototype binds catch_id and onCatchClick(item.id); Figma live structure remains unverified.",
+      "prototype_status": "catch_id + onCatchClick(item.id)",
+      "source_attributes": {},
+      "evidence": [
+        {
+          "kind": "source_html",
+          "path": "粘贴的文本 (1)(6).txt",
+          "sha256": "1988a9343a6e911c87f93871279ba6d5e161e2ef0651ecd0d783526c5bceb714",
+          "bytes": 18331
+        },
+        {
+          "kind": "figma_candidate",
+          "node_id": "41:67",
+          "prior_map": "release/design_manager/M1_NH01_FIGMA_NODE_MAPPING_V2.json",
+          "live_verified": false
+        },
+        {
+          "kind": "audit_finding",
+          "detail": "Prototype binds catch_id and onCatchClick(item.id); Figma live structure remains unverified."
+        }
+      ]
+    },
+    {
+      "html_layer": "Card-Main-Photo",
+      "figma_node_id": null,
+      "parent_node_id": null,
+      "parent_html_layer": "Card-Main-Active",
+      "parent_node_candidate_id": "41:67",
+      "figma_node_candidate_id": null,
+      "figma_component_candidate_ids": [],
+      "node_type": "img",
+      "compose_component": "RecentFishCard.kt#RemoteImage",
+      "source_contract": [
+        "design/pages/home/normal_home/engineering/Layout_Responsive_Contract_V1.md",
+        "design/pages/home/normal_home/engineering/State_Interaction_Contract_V1.md",
+        "design/pages/home/normal_home/engineering/Visual_Runtime_Acceptance_V1.md",
+        "design/pages/home/normal_home/engineering/Visual_Anchor_Asset_Resolution_V1.md"
+      ],
+      "asset_id": null,
+      "data_binding": "catch_image via resolveImageUrl(item.imageUrl)",
+      "interaction": {
+        "source_html": "none",
+        "prototype": "none"
+      },
+      "responsive_rule": "Use window-coordinate Layout_Responsive_Contract_V1; NORMAL_FIXED when safe, otherwise SAFE_OVERFLOW or UNSUPPORTED_WINDOW. Preserve minimum 48dp touch targets.",
+      "authority_status": "APPROVED_ORIGINAL_REQUIRED",
+      "alignment_status": "MISMATCH",
+      "source_issue": "Source Unsplash photo and fake sample replaced by catch_image slot; approved real-photo fixture matrix is blocked.",
+      "prototype_status": "catch_image_SLOT",
+      "source_attributes": {
+        "src": "https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=900&q=85",
+        "alt": "Main Catch Photo"
+      },
+      "evidence": [
+        {
+          "kind": "source_html",
+          "path": "粘贴的文本 (1)(6).txt",
+          "sha256": "1988a9343a6e911c87f93871279ba6d5e161e2ef0651ecd0d783526c5bceb714",
+          "bytes": 18331
+        },
+        {
+          "kind": "figma_readback",
+          "status": "BLOCKED_FIGMA_WRITE_PERMISSION",
+          "live_verified": false
+        },
+        {
+          "kind": "source_image",
+          "url": "https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=900&q=85",
+          "authority": "UNAPPROVED_EXTERNAL_IMAGE"
+        },
+        {
+          "kind": "audit_finding",
+          "detail": "Source Unsplash photo and fake sample replaced by catch_image slot; approved real-photo fixture matrix is blocked."
+        }
+      ]
+    },
+    {
+      "html_layer": "Card-Bottom-Gradient",
+      "figma_node_id": null,
+      "parent_node_id": null,
+      "parent_html_layer": "Card-Main-Active",
+      "parent_node_candidate_id": "41:67",
+      "figma_node_candidate_id": null,
+      "figma_component_candidate_ids": [],
+      "node_type": "div",
+      "compose_component": "RecentFishCard.kt#YuJianHeroCard gradient",
+      "source_contract": [
+        "design/pages/home/normal_home/engineering/Layout_Responsive_Contract_V1.md",
+        "design/pages/home/normal_home/engineering/State_Interaction_Contract_V1.md",
+        "design/pages/home/normal_home/engineering/Visual_Runtime_Acceptance_V1.md",
+        "design/pages/home/normal_home/engineering/Visual_Anchor_Asset_Resolution_V1.md"
+      ],
+      "asset_id": null,
+      "data_binding": null,
+      "interaction": {
+        "source_html": "none",
+        "prototype": "none"
+      },
+      "responsive_rule": "Use window-coordinate Layout_Responsive_Contract_V1; NORMAL_FIXED when safe, otherwise SAFE_OVERFLOW or UNSUPPORTED_WINDOW. Preserve minimum 48dp touch targets.",
+      "authority_status": "CONTRACT_REFERENCE; FIGMA_READBACK_PENDING",
+      "alignment_status": "REVIEW_REQUIRED",
+      "source_issue": null,
+      "prototype_status": "REVIEW_REQUIRED",
+      "source_attributes": {},
+      "evidence": [
+        {
+          "kind": "source_html",
+          "path": "粘贴的文本 (1)(6).txt",
+          "sha256": "1988a9343a6e911c87f93871279ba6d5e161e2ef0651ecd0d783526c5bceb714",
+          "bytes": 18331
+        },
+        {
+          "kind": "figma_readback",
+          "status": "BLOCKED_FIGMA_WRITE_PERMISSION",
+          "live_verified": false
+        }
+      ]
+    },
+    {
+      "html_layer": "Card-Meta-Info",
+      "figma_node_id": null,
+      "parent_node_id": null,
+      "parent_html_layer": "Card-Main-Active",
+      "parent_node_candidate_id": "41:67",
+      "figma_node_candidate_id": null,
+      "figma_component_candidate_ids": [],
+      "node_type": "div",
+      "compose_component": "RecentFishCard.kt#footer metadata",
+      "source_contract": [
+        "design/pages/home/normal_home/engineering/Layout_Responsive_Contract_V1.md",
+        "design/pages/home/normal_home/engineering/State_Interaction_Contract_V1.md",
+        "design/pages/home/normal_home/engineering/Visual_Runtime_Acceptance_V1.md",
+        "design/pages/home/normal_home/engineering/Visual_Anchor_Asset_Resolution_V1.md"
+      ],
+      "asset_id": null,
+      "data_binding": "species_name, length_cm, weight_kg, captured_at, location",
+      "interaction": {
+        "source_html": "none",
+        "prototype": "none"
+      },
+      "responsive_rule": "Use window-coordinate Layout_Responsive_Contract_V1; NORMAL_FIXED when safe, otherwise SAFE_OVERFLOW or UNSUPPORTED_WINDOW. Preserve minimum 48dp touch targets.",
+      "authority_status": "CONTRACT_REFERENCE; FIGMA_READBACK_PENDING",
+      "alignment_status": "REVIEW_REQUIRED",
+      "source_issue": null,
+      "prototype_status": "REVIEW_REQUIRED",
+      "source_attributes": {},
+      "evidence": [
+        {
+          "kind": "source_html",
+          "path": "粘贴的文本 (1)(6).txt",
+          "sha256": "1988a9343a6e911c87f93871279ba6d5e161e2ef0651ecd0d783526c5bceb714",
+          "bytes": 18331
+        },
+        {
+          "kind": "figma_readback",
+          "status": "BLOCKED_FIGMA_WRITE_PERMISSION",
+          "live_verified": false
+        }
+      ]
+    },
+    {
+      "html_layer": "Catch-Species-Name",
+      "figma_node_id": null,
+      "parent_node_id": null,
+      "parent_html_layer": "Card-Meta-Info",
+      "parent_node_candidate_id": "41:67",
+      "figma_node_candidate_id": null,
+      "figma_component_candidate_ids": [],
+      "node_type": "h3",
+      "compose_component": "RecentFishCard.kt#presentationSpeciesName",
+      "source_contract": [
+        "design/pages/home/normal_home/engineering/Layout_Responsive_Contract_V1.md",
+        "design/pages/home/normal_home/engineering/State_Interaction_Contract_V1.md",
+        "design/pages/home/normal_home/engineering/Visual_Runtime_Acceptance_V1.md",
+        "design/pages/home/normal_home/engineering/Visual_Anchor_Asset_Resolution_V1.md"
+      ],
+      "asset_id": null,
+      "data_binding": "species_name",
+      "interaction": {
+        "source_html": "none",
+        "prototype": "none"
+      },
+      "responsive_rule": "Use window-coordinate Layout_Responsive_Contract_V1; NORMAL_FIXED when safe, otherwise SAFE_OVERFLOW or UNSUPPORTED_WINDOW. Preserve minimum 48dp touch targets.",
+      "authority_status": "CONTRACT_REFERENCE; FIGMA_READBACK_PENDING",
+      "alignment_status": "MISMATCH",
+      "source_issue": "Static demo species replaced by species_name.",
+      "prototype_status": "species_name_FIELD",
+      "source_attributes": {},
+      "evidence": [
+        {
+          "kind": "source_html",
+          "path": "粘贴的文本 (1)(6).txt",
+          "sha256": "1988a9343a6e911c87f93871279ba6d5e161e2ef0651ecd0d783526c5bceb714",
+          "bytes": 18331
+        },
+        {
+          "kind": "figma_readback",
+          "status": "BLOCKED_FIGMA_WRITE_PERMISSION",
+          "live_verified": false
+        },
+        {
+          "kind": "audit_finding",
+          "detail": "Static demo species replaced by species_name."
+        }
+      ]
+    },
+    {
+      "html_layer": "Catch-Specs-Measure",
+      "figma_node_id": null,
+      "parent_node_id": null,
+      "parent_html_layer": "Card-Meta-Info",
+      "parent_node_candidate_id": "41:67",
+      "figma_node_candidate_id": null,
+      "figma_component_candidate_ids": [],
+      "node_type": "p",
+      "compose_component": "RecentFishCard.kt#displayMeasurement",
+      "source_contract": [
+        "design/pages/home/normal_home/engineering/Layout_Responsive_Contract_V1.md",
+        "design/pages/home/normal_home/engineering/State_Interaction_Contract_V1.md",
+        "design/pages/home/normal_home/engineering/Visual_Runtime_Acceptance_V1.md",
+        "design/pages/home/normal_home/engineering/Visual_Anchor_Asset_Resolution_V1.md"
+      ],
+      "asset_id": null,
+      "data_binding": "length_cm, weight_kg; hide missing or invalid values",
+      "interaction": {
+        "source_html": "none",
+        "prototype": "none"
+      },
+      "responsive_rule": "Use window-coordinate Layout_Responsive_Contract_V1; NORMAL_FIXED when safe, otherwise SAFE_OVERFLOW or UNSUPPORTED_WINDOW. Preserve minimum 48dp touch targets.",
+      "authority_status": "CONTRACT_REFERENCE; FIGMA_READBACK_PENDING",
+      "alignment_status": "MISMATCH",
+      "source_issue": "Static 42.6 cm / 1.28 kg replaced by length_cm and weight_kg fields.",
+      "prototype_status": "length_cm + weight_kg_FIELDS",
+      "source_attributes": {},
+      "evidence": [
+        {
+          "kind": "source_html",
+          "path": "粘贴的文本 (1)(6).txt",
+          "sha256": "1988a9343a6e911c87f93871279ba6d5e161e2ef0651ecd0d783526c5bceb714",
+          "bytes": 18331
+        },
+        {
+          "kind": "figma_readback",
+          "status": "BLOCKED_FIGMA_WRITE_PERMISSION",
+          "live_verified": false
+        },
+        {
+          "kind": "audit_finding",
+          "detail": "Static 42.6 cm / 1.28 kg replaced by length_cm and weight_kg fields."
+        }
+      ]
+    },
+    {
+      "html_layer": "Catch-TimeLocation",
+      "figma_node_id": null,
+      "parent_node_id": null,
+      "parent_html_layer": "Card-Meta-Info",
+      "parent_node_candidate_id": "41:67",
+      "figma_node_candidate_id": null,
+      "figma_component_candidate_ids": [],
+      "node_type": "p",
+      "compose_component": "RecentFishCard.kt#formatCatchMeta",
+      "source_contract": [
+        "design/pages/home/normal_home/engineering/Layout_Responsive_Contract_V1.md",
+        "design/pages/home/normal_home/engineering/State_Interaction_Contract_V1.md",
+        "design/pages/home/normal_home/engineering/Visual_Runtime_Acceptance_V1.md",
+        "design/pages/home/normal_home/engineering/Visual_Anchor_Asset_Resolution_V1.md"
+      ],
+      "asset_id": null,
+      "data_binding": "captured_at via formatHomeTimestamp; location via sanitizeOptionalText",
+      "interaction": {
+        "source_html": "none",
+        "prototype": "none"
+      },
+      "responsive_rule": "Use window-coordinate Layout_Responsive_Contract_V1; NORMAL_FIXED when safe, otherwise SAFE_OVERFLOW or UNSUPPORTED_WINDOW. Preserve minimum 48dp touch targets.",
+      "authority_status": "CONTRACT_REFERENCE; FIGMA_READBACK_PENDING",
+      "alignment_status": "MISMATCH",
+      "source_issue": "Static timestamp/location replaced by captured_at and location fields.",
+      "prototype_status": "captured_at + location_FIELDS",
+      "source_attributes": {},
+      "evidence": [
+        {
+          "kind": "source_html",
+          "path": "粘贴的文本 (1)(6).txt",
+          "sha256": "1988a9343a6e911c87f93871279ba6d5e161e2ef0651ecd0d783526c5bceb714",
+          "bytes": 18331
+        },
+        {
+          "kind": "figma_readback",
+          "status": "BLOCKED_FIGMA_WRITE_PERMISSION",
+          "live_verified": false
+        },
+        {
+          "kind": "audit_finding",
+          "detail": "Static timestamp/location replaced by captured_at and location fields."
+        }
+      ]
+    },
+    {
+      "html_layer": "Card-Peek-Right",
+      "figma_node_id": null,
+      "parent_node_id": null,
+      "parent_html_layer": "Carousel-Track-Container",
+      "parent_node_candidate_id": "41:56",
+      "figma_node_candidate_id": "41:76",
+      "figma_component_candidate_ids": [],
+      "node_type": "article",
+      "compose_component": "RecentFishCard.kt#next record instance",
+      "source_contract": [
+        "design/pages/home/normal_home/engineering/Layout_Responsive_Contract_V1.md",
+        "design/pages/home/normal_home/engineering/State_Interaction_Contract_V1.md",
+        "design/pages/home/normal_home/engineering/Visual_Runtime_Acceptance_V1.md",
+        "design/pages/home/normal_home/engineering/Visual_Anchor_Asset_Resolution_V1.md"
+      ],
+      "asset_id": null,
+      "data_binding": "next valid catch",
+      "interaction": {
+        "source_html": "none",
+        "prototype": "none"
+      },
+      "responsive_rule": "Use window-coordinate Layout_Responsive_Contract_V1; NORMAL_FIXED when safe, otherwise SAFE_OVERFLOW or UNSUPPORTED_WINDOW. Preserve minimum 48dp touch targets.",
+      "authority_status": "CONTRACT_REFERENCE; FIGMA_READBACK_PENDING",
+      "alignment_status": "REVIEW_REQUIRED",
+      "source_issue": null,
+      "prototype_status": "REVIEW_REQUIRED",
+      "source_attributes": {},
+      "evidence": [
+        {
+          "kind": "source_html",
+          "path": "粘贴的文本 (1)(6).txt",
+          "sha256": "1988a9343a6e911c87f93871279ba6d5e161e2ef0651ecd0d783526c5bceb714",
+          "bytes": 18331
+        },
+        {
+          "kind": "figma_candidate",
+          "node_id": "41:76",
+          "prior_map": "release/design_manager/M1_NH01_FIGMA_NODE_MAPPING_V2.json",
+          "live_verified": false
+        }
+      ]
+    },
+    {
+      "html_layer": "Card-Right-Photo",
+      "figma_node_id": null,
+      "parent_node_id": null,
+      "parent_html_layer": "Card-Peek-Right",
+      "parent_node_candidate_id": "41:76",
+      "figma_node_candidate_id": null,
+      "figma_component_candidate_ids": [],
+      "node_type": "img",
+      "compose_component": "RecentFishCard.kt#RemoteImage",
+      "source_contract": [
+        "design/pages/home/normal_home/engineering/Layout_Responsive_Contract_V1.md",
+        "design/pages/home/normal_home/engineering/State_Interaction_Contract_V1.md",
+        "design/pages/home/normal_home/engineering/Visual_Runtime_Acceptance_V1.md",
+        "design/pages/home/normal_home/engineering/Visual_Anchor_Asset_Resolution_V1.md"
+      ],
+      "asset_id": null,
+      "data_binding": "next_catch_image via resolveImageUrl",
+      "interaction": {
+        "source_html": "none",
+        "prototype": "none"
+      },
+      "responsive_rule": "Use window-coordinate Layout_Responsive_Contract_V1; NORMAL_FIXED when safe, otherwise SAFE_OVERFLOW or UNSUPPORTED_WINDOW. Preserve minimum 48dp touch targets.",
+      "authority_status": "APPROVED_ORIGINAL_REQUIRED",
+      "alignment_status": "MISMATCH",
+      "source_issue": "Source Unsplash landscape replaced by an authorized-record photo slot; approved photo source is blocked.",
+      "prototype_status": "AUTHORIZED_PHOTO_SLOT",
+      "source_attributes": {
+        "src": "https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=600&q=80",
+        "alt": "Next Catch"
+      },
+      "evidence": [
+        {
+          "kind": "source_html",
+          "path": "粘贴的文本 (1)(6).txt",
+          "sha256": "1988a9343a6e911c87f93871279ba6d5e161e2ef0651ecd0d783526c5bceb714",
+          "bytes": 18331
+        },
+        {
+          "kind": "figma_readback",
+          "status": "BLOCKED_FIGMA_WRITE_PERMISSION",
+          "live_verified": false
+        },
+        {
+          "kind": "source_image",
+          "url": "https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=600&q=80",
+          "authority": "UNAPPROVED_EXTERNAL_IMAGE"
+        },
+        {
+          "kind": "audit_finding",
+          "detail": "Source Unsplash landscape replaced by an authorized-record photo slot; approved photo source is blocked."
+        }
+      ]
+    },
+    {
+      "html_layer": "Footer-CTA-Section",
+      "figma_node_id": null,
+      "parent_node_id": null,
+      "parent_html_layer": "Screen-Yujian-Home",
+      "parent_node_candidate_id": "41:30",
+      "figma_node_candidate_id": "41:85",
+      "figma_component_candidate_ids": [
+        "38:28"
+      ],
+      "node_type": "footer",
+      "compose_component": "NormalHomeContent.kt#CaptureActionGroup",
+      "source_contract": [
+        "design/pages/home/normal_home/engineering/Layout_Responsive_Contract_V1.md",
+        "design/pages/home/normal_home/engineering/State_Interaction_Contract_V1.md",
+        "design/pages/home/normal_home/engineering/Visual_Runtime_Acceptance_V1.md",
+        "design/pages/home/normal_home/engineering/Visual_Anchor_Asset_Resolution_V1.md"
+      ],
+      "asset_id": null,
+      "data_binding": null,
+      "interaction": {
+        "source_html": "none",
+        "prototype": "none"
+      },
+      "responsive_rule": "Use window-coordinate Layout_Responsive_Contract_V1; NORMAL_FIXED when safe, otherwise SAFE_OVERFLOW or UNSUPPORTED_WINDOW. Preserve minimum 48dp touch targets.",
+      "authority_status": "CONTRACT_REFERENCE; FIGMA_READBACK_PENDING",
+      "alignment_status": "REVIEW_REQUIRED",
+      "source_issue": null,
+      "prototype_status": "REVIEW_REQUIRED",
+      "source_attributes": {},
+      "evidence": [
+        {
+          "kind": "source_html",
+          "path": "粘贴的文本 (1)(6).txt",
+          "sha256": "1988a9343a6e911c87f93871279ba6d5e161e2ef0651ecd0d783526c5bceb714",
+          "bytes": 18331
+        },
+        {
+          "kind": "figma_candidate",
+          "node_id": "41:85",
+          "prior_map": "release/design_manager/M1_NH01_FIGMA_NODE_MAPPING_V2.json",
+          "live_verified": false
+        }
+      ]
+    },
+    {
+      "html_layer": "CTA-Label-RecordNext",
+      "figma_node_id": null,
+      "parent_node_id": null,
+      "parent_html_layer": "Footer-CTA-Section",
+      "parent_node_candidate_id": "41:85",
+      "figma_node_candidate_id": null,
+      "figma_component_candidate_ids": [],
+      "node_type": "span",
+      "compose_component": "NormalHomeContent.kt#capture CTA text",
+      "source_contract": [
+        "design/pages/home/normal_home/engineering/Layout_Responsive_Contract_V1.md",
+        "design/pages/home/normal_home/engineering/State_Interaction_Contract_V1.md",
+        "design/pages/home/normal_home/engineering/Visual_Runtime_Acceptance_V1.md",
+        "design/pages/home/normal_home/engineering/Visual_Anchor_Asset_Resolution_V1.md"
+      ],
+      "asset_id": null,
+      "data_binding": null,
+      "interaction": {
+        "source_html": "none",
+        "prototype": "none"
+      },
+      "responsive_rule": "Use window-coordinate Layout_Responsive_Contract_V1; NORMAL_FIXED when safe, otherwise SAFE_OVERFLOW or UNSUPPORTED_WINDOW. Preserve minimum 48dp touch targets.",
+      "authority_status": "FROZEN_COPY; TYPOGRAPHY_REVIEW_REQUIRED",
+      "alignment_status": "REVIEW_REQUIRED",
+      "source_issue": null,
+      "prototype_status": "REVIEW_REQUIRED",
+      "source_attributes": {},
+      "evidence": [
+        {
+          "kind": "source_html",
+          "path": "粘贴的文本 (1)(6).txt",
+          "sha256": "1988a9343a6e911c87f93871279ba6d5e161e2ef0651ecd0d783526c5bceb714",
+          "bytes": 18331
+        },
+        {
+          "kind": "figma_readback",
+          "status": "BLOCKED_FIGMA_WRITE_PERMISSION",
+          "live_verified": false
+        }
+      ]
+    },
+    {
+      "html_layer": "CTA-Camera-Button",
+      "figma_node_id": null,
+      "parent_node_id": null,
+      "parent_html_layer": "Footer-CTA-Section",
+      "parent_node_candidate_id": "41:85",
+      "figma_node_candidate_id": "41:86",
+      "figma_component_candidate_ids": [
+        "38:25",
+        "38:28"
+      ],
+      "node_type": "button",
+      "compose_component": "NormalHomeContent.kt#HomeCameraButton / YuJianCaptureButton",
+      "source_contract": [
+        "design/pages/home/normal_home/engineering/Layout_Responsive_Contract_V1.md",
+        "design/pages/home/normal_home/engineering/State_Interaction_Contract_V1.md",
+        "design/pages/home/normal_home/engineering/Visual_Runtime_Acceptance_V1.md",
+        "design/pages/home/normal_home/engineering/Visual_Anchor_Asset_Resolution_V1.md"
+      ],
+      "asset_id": "normal_home_camera_primary_v1",
+      "data_binding": "identify_action",
+      "interaction": {
+        "source_html": "none",
+        "prototype": "onIdentify",
+        "compose": "onIdentify"
+      },
+      "responsive_rule": "Use window-coordinate Layout_Responsive_Contract_V1; NORMAL_FIXED when safe, otherwise SAFE_OVERFLOW or UNSUPPORTED_WINDOW. Preserve minimum 48dp touch targets.",
+      "authority_status": "FROZEN_SHARED_COMPONENT_REQUIRED",
+      "alignment_status": "MISMATCH",
+      "source_issue": "Self-drawn gradient/radial camera replaced by the shared capture component slot; Figma component readback is pending.",
+      "prototype_status": "SHARED_CAPTURE_COMPONENT_SLOT",
+      "source_attributes": {},
+      "evidence": [
+        {
+          "kind": "source_html",
+          "path": "粘贴的文本 (1)(6).txt",
+          "sha256": "1988a9343a6e911c87f93871279ba6d5e161e2ef0651ecd0d783526c5bceb714",
+          "bytes": 18331
+        },
+        {
+          "kind": "figma_candidate",
+          "node_id": "41:86",
+          "prior_map": "release/design_manager/M1_NH01_FIGMA_NODE_MAPPING_V2.json",
+          "live_verified": false
+        },
+        {
+          "kind": "audit_finding",
+          "detail": "Self-drawn gradient/radial camera replaced by the shared capture component slot; Figma component readback is pending."
+        }
+      ]
+    },
+    {
+      "html_layer": "CTA-Camera-Inner-Circle",
+      "figma_node_id": null,
+      "parent_node_id": null,
+      "parent_html_layer": "CTA-Camera-Button",
+      "parent_node_candidate_id": "41:86",
+      "figma_node_candidate_id": null,
+      "figma_component_candidate_ids": [],
+      "node_type": "div",
+      "compose_component": "NormalHomeContent.kt / HomeStats.kt / RecentFishCard.kt; exact child binding pending Figma readback",
+      "source_contract": [
+        "design/pages/home/normal_home/engineering/Layout_Responsive_Contract_V1.md",
+        "design/pages/home/normal_home/engineering/State_Interaction_Contract_V1.md",
+        "design/pages/home/normal_home/engineering/Visual_Runtime_Acceptance_V1.md",
+        "design/pages/home/normal_home/engineering/Visual_Anchor_Asset_Resolution_V1.md"
+      ],
+      "asset_id": null,
+      "data_binding": null,
+      "interaction": {
+        "source_html": "none",
+        "prototype": "none"
+      },
+      "responsive_rule": "Use window-coordinate Layout_Responsive_Contract_V1; NORMAL_FIXED when safe, otherwise SAFE_OVERFLOW or UNSUPPORTED_WINDOW. Preserve minimum 48dp touch targets.",
+      "authority_status": "CONTRACT_REFERENCE; FIGMA_READBACK_PENDING",
+      "alignment_status": "MISMATCH",
+      "source_issue": "Self-drawn camera circle removed from prototype.",
+      "prototype_status": "REMOVED",
+      "source_attributes": {},
+      "evidence": [
+        {
+          "kind": "source_html",
+          "path": "粘贴的文本 (1)(6).txt",
+          "sha256": "1988a9343a6e911c87f93871279ba6d5e161e2ef0651ecd0d783526c5bceb714",
+          "bytes": 18331
+        },
+        {
+          "kind": "figma_readback",
+          "status": "BLOCKED_FIGMA_WRITE_PERMISSION",
+          "live_verified": false
+        },
+        {
+          "kind": "audit_finding",
+          "detail": "Self-drawn camera circle removed from prototype."
+        }
+      ]
+    },
+    {
+      "html_layer": "Icon-Camera-Vector",
+      "figma_node_id": null,
+      "parent_node_id": null,
+      "parent_html_layer": "CTA-Camera-Inner-Circle",
+      "parent_node_candidate_id": "41:86",
+      "figma_node_candidate_id": null,
+      "figma_component_candidate_ids": [],
+      "node_type": "svg",
+      "compose_component": "NormalHomeContent.kt / HomeStats.kt / RecentFishCard.kt; exact child binding pending Figma readback",
+      "source_contract": [
+        "design/pages/home/normal_home/engineering/Layout_Responsive_Contract_V1.md",
+        "design/pages/home/normal_home/engineering/State_Interaction_Contract_V1.md",
+        "design/pages/home/normal_home/engineering/Visual_Runtime_Acceptance_V1.md",
+        "design/pages/home/normal_home/engineering/Visual_Anchor_Asset_Resolution_V1.md"
+      ],
+      "asset_id": null,
+      "data_binding": null,
+      "interaction": {
+        "source_html": "none",
+        "prototype": "none"
+      },
+      "responsive_rule": "Use window-coordinate Layout_Responsive_Contract_V1; NORMAL_FIXED when safe, otherwise SAFE_OVERFLOW or UNSUPPORTED_WINDOW. Preserve minimum 48dp touch targets.",
+      "authority_status": "CONTRACT_REFERENCE; FIGMA_READBACK_PENDING",
+      "alignment_status": "MISMATCH",
+      "source_issue": "Self-drawn camera SVG removed from prototype.",
+      "prototype_status": "REMOVED",
+      "source_attributes": {},
+      "evidence": [
+        {
+          "kind": "source_html",
+          "path": "粘贴的文本 (1)(6).txt",
+          "sha256": "1988a9343a6e911c87f93871279ba6d5e161e2ef0651ecd0d783526c5bceb714",
+          "bytes": 18331
+        },
+        {
+          "kind": "figma_readback",
+          "status": "BLOCKED_FIGMA_WRITE_PERMISSION",
+          "live_verified": false
+        },
+        {
+          "kind": "audit_finding",
+          "detail": "Self-drawn camera SVG removed from prototype."
+        }
+      ]
+    }
+  ]
+}

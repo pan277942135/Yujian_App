@@ -1,0 +1,216 @@
+{
+  "schema_version": "3.1",
+  "page_id": "recognition.capture.v3_1",
+  "status": "FROZEN",
+  "component_refs": [
+    {
+      "component": "media.camera_preview",
+      "authority": "design/system_v3/05_Component_System/Component_Registry_V3_FINAL.json",
+      "token_refs": [
+        "geometry.media.cover",
+        "geometry.media.fit",
+        "color.capture_dark_fallback"
+      ],
+      "asset_refs": []
+    },
+    {
+      "component": "camera.capture_surface",
+      "authority": "design/system_v3/05_Component_System/Component_Registry_V3_FINAL.json",
+      "token_refs": [
+        "geometry.media.cover",
+        "color.capture_dark_fallback",
+        "touch.minimum"
+      ],
+      "asset_refs": [
+        "system_components_primary_capture_button_assets_capture_button_main_v1_png"
+      ]
+    },
+    {
+      "component": "navigation.top_title",
+      "authority": "design/system_v3/05_Component_System/Component_Registry_V3_FINAL.json",
+      "token_refs": [
+        "type.title",
+        "color.deep_lake_blue",
+        "touch.minimum",
+        "navigation.back_title.min_height"
+      ],
+      "asset_refs": []
+    },
+    {
+      "component": "navigation.back",
+      "authority": "design/system_v3/05_Component_System/Component_Registry_V3_FINAL.json",
+      "token_refs": [
+        "type.title",
+        "color.deep_lake_blue",
+        "touch.minimum",
+        "navigation.back_title.min_height"
+      ],
+      "asset_refs": [
+        "system_icon_library_v0_1_assets_ic_back_v1_svg"
+      ]
+    },
+    {
+      "component": "action.primary_button",
+      "authority": "design/system_v3/05_Component_System/Component_Registry_V3_FINAL.json",
+      "token_refs": [
+        "type.button",
+        "color.action_primary",
+        "color.action_disabled_surface",
+        "color.action_disabled_content",
+        "touch.minimum",
+        "geometry.radius.primary_button_28"
+      ],
+      "asset_refs": []
+    },
+    {
+      "component": "action.icon_action",
+      "authority": "design/system_v3/05_Component_System/Component_Registry_V3_FINAL.json",
+      "token_refs": [
+        "color.deep_lake_blue",
+        "color.action_primary",
+        "color.icon_disabled",
+        "touch.minimum"
+      ],
+      "asset_refs": []
+    }
+  ],
+  "token_refs": [
+    {
+      "token_id": "color.capture_dark_fallback",
+      "authority": "design/system_v3/04_Design_Tokens/Color/Color_Tokens_V3_FINAL.json"
+    },
+    {
+      "token_id": "touch.minimum",
+      "authority": "design/system_v3/07_Responsive_System/Geometry_Tokens_V3_FINAL.json"
+    },
+    {
+      "token_id": "viewport.360",
+      "authority": "design/system_v3/07_Responsive_System/Geometry_Tokens_V3_FINAL.json"
+    },
+    {
+      "token_id": "viewport.393",
+      "authority": "design/system_v3/07_Responsive_System/Geometry_Tokens_V3_FINAL.json"
+    },
+    {
+      "token_id": "viewport.412",
+      "authority": "design/system_v3/07_Responsive_System/Geometry_Tokens_V3_FINAL.json"
+    },
+    {
+      "token_id": "viewport.480",
+      "authority": "design/system_v3/07_Responsive_System/Geometry_Tokens_V3_FINAL.json"
+    },
+    {
+      "token_id": "geometry.media.cover",
+      "authority": "design/system_v3/07_Responsive_System/Geometry_Tokens_V3_FINAL.json"
+    },
+    {
+      "token_id": "geometry.media.fit",
+      "authority": "design/system_v3/07_Responsive_System/Geometry_Tokens_V3_FINAL.json"
+    },
+    {
+      "token_id": "type.title",
+      "authority": "design/system_v3/04_Design_Tokens/Typography/Typography_Tokens_V3_FINAL.json"
+    },
+    {
+      "token_id": "color.deep_lake_blue",
+      "authority": "design/system_v3/04_Design_Tokens/Color/Color_Tokens_V3_FINAL.json"
+    },
+    {
+      "token_id": "navigation.back_title.min_height",
+      "authority": "design/system_v3/07_Responsive_System/Geometry_Tokens_V3_FINAL.json"
+    },
+    {
+      "token_id": "type.button",
+      "authority": "design/system_v3/04_Design_Tokens/Typography/Typography_Tokens_V3_FINAL.json"
+    },
+    {
+      "token_id": "color.action_primary",
+      "authority": "design/system_v3/04_Design_Tokens/Color/Color_Tokens_V3_FINAL.json"
+    },
+    {
+      "token_id": "color.action_disabled_surface",
+      "authority": "design/system_v3/04_Design_Tokens/Color/Color_Tokens_V3_FINAL.json"
+    },
+    {
+      "token_id": "color.action_disabled_content",
+      "authority": "design/system_v3/04_Design_Tokens/Color/Color_Tokens_V3_FINAL.json"
+    },
+    {
+      "token_id": "geometry.radius.primary_button_28",
+      "authority": "design/system_v3/07_Responsive_System/Geometry_Tokens_V3_FINAL.json"
+    },
+    {
+      "token_id": "color.icon_disabled",
+      "authority": "design/system_v3/04_Design_Tokens/Color/Color_Tokens_V3_FINAL.json"
+    }
+  ],
+  "background_refs": [
+    {
+      "background_id": "BG_CAPTURE",
+      "authority": "design/system_v3/08_Background_System/Background_Registry_V3.json",
+      "source_asset": "Current user photo (runtime)",
+      "master_path": null,
+      "sha256": null,
+      "treatment": {
+        "opaque": true,
+        "content_scale": "Crop per camera contract",
+        "tint": "none",
+        "fallback": "#102D35",
+        "no_morning_lake_underlay": true
+      },
+      "status": "FROZEN"
+    }
+  ],
+  "asset_refs": [
+    {
+      "asset_id": "system_components_primary_capture_button_assets_capture_button_main_v1_png",
+      "path": "design/system/components/primary_capture_button/assets/capture_button_main_v1.png",
+      "sha256": "501abcc58a65263dd879ad198a0a033630ab4bdcaf945eb02599e4f1249ca327",
+      "type": "PNG",
+      "size": 58154,
+      "dimensions": "208x208",
+      "registry_status": "FROZEN",
+      "role": "existing frozen capture-button artwork; not a V3 component registration"
+    }
+  ],
+  "page_scoped_authorities": [
+    "design/system/components/primary_capture_button/README.md",
+    "design/system/components/primary_capture_button/manifest.json",
+    "design/system/components/primary_capture_button/visual_contract.json",
+    "design/system_v3/08_Page_Contracts/recognition/capture/Recognition_Capture_V3_Authority.md",
+    "design/system_v3/08_Page_Contracts/recognition/capture/Capture_Accessibility_Responsive_Matrix.md"
+  ],
+  "unresolved_dependencies": [],
+  "rules": {
+    "camera_preview": "Runtime camera_stream only; flexible preview uses geometry.media.cover, preserves source ratio and never stretches. It is not Frozen Artwork and has no static SHA.",
+    "capture_button": "Use the existing capture-button master by Asset Registry ID/path/SHA. Its pixel size does not define runtime dp bounds; hit bound is at least touch.minimum.",
+    "gallery": "Registered action.icon_action; Photo Picker remains independent of camera permission.",
+    "safe_area": "Overlay controls stay inside resolved window/content insets; Bottom Action Area is above the navigation inset.",
+    "gesture_exclusion": "Do not claim system edge-swipe areas or block Back.",
+    "lifecycle": "Capture host owns one camera provider binding and releases it on exit, backgrounding, permission loss or picker handoff.",
+    "page_private_tokens": false,
+    "capture_controls": "Portrait and landscape both use a right-side vertical Capture + Gallery action rail. Do not use center-bottom controls for the frozen Hi-Fi composition.",
+    "fish_guide_frame": "Fixed horizontal natural fish-shaped guide in V1; no live orientation inference.",
+    "no_phone_frame": true
+  },
+  "orientation_variants": {
+    "portrait": {
+      "runtime_reference": "1080x1920",
+      "fish_orientation": "HORIZONTAL",
+      "fish_guide_frame": "FIXED_HORIZONTAL",
+      "capture_controls": "RIGHT_VERTICAL_RAIL",
+      "back": "TOP_LEFT",
+      "preview": "FULL_SCREEN_LIVE_CAMERA"
+    },
+    "landscape": {
+      "runtime_reference": "1920x1080",
+      "fish_orientation": "HORIZONTAL",
+      "fish_guide_frame": "FIXED_HORIZONTAL",
+      "capture_controls": "RIGHT_VERTICAL_RAIL",
+      "back": "TOP_LEFT",
+      "preview": "FULL_SCREEN_LIVE_CAMERA"
+    }
+  },
+  "hifi_visual_authority": "design/system_v3/08_Page_Contracts/recognition/capture/Recognition_Capture_HiFi_Visual_Contract_V1.md",
+  "hifi_manifest": "design/pages/recognition/capture/HiFi_Freeze_Manifest_V1.json"
+}

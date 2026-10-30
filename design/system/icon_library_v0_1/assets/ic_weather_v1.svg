@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" color="#0B2D4B" role="img" aria-labelledby="title">
+  <title id="title">天气</title>
+  <!-- YuJian ic_weather V1 FROZEN DESIGN; 24-unit viewBox; round outline 1.75. General weather condition (sun + cloud). -->
+  <path d="M4.45 9.55A3.65 3.65 0 0 1 11.3 7.15" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M7.9 2.25V3.25M2.55 5.6L3.4 6.15M12.75 3.5L12.05 4.35" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M7.1 20H17.9C19.83 20 21.4 18.43 21.4 16.5S19.83 13 17.9 13C17.55 13 17.23 13.05 16.93 13.15C16.32 11.27 14.59 9.95 12.55 9.95C10.08 9.95 8.06 11.83 7.81 14.24C5.89 14.17 4.4 15.51 4.4 17.12C4.4 18.71 5.61 20 7.1 20Z" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

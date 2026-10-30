@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" color="#0B2D4B" role="img" aria-labelledby="title">
+  <title id="title">视频</title>
+  <!-- YuJian ic_video V0.1 CANDIDATE — NOT FROZEN. Shared 24-unit source, 1.75 rounded outline, currentColor. -->
+  <!-- Existing video media: standalone video-camera glyph; no add sign or play control. -->
+  <rect x="3.1" y="6.35" width="12.15" height="11.3" rx="2.2" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M15.25 10.05L19.55 7.9C20.18 7.58 20.9 8.04 20.9 8.75V15.25C20.9 15.96 20.18 16.42 19.55 16.1L15.25 13.95" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

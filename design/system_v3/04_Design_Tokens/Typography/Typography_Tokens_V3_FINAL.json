@@ -1,0 +1,292 @@
+{
+  "schema_version": "3.1",
+  "system_id": "typography_v3_1",
+  "status": "READY",
+  "sources": [
+    "design/system/core_visual_v1/tokens/typography_tokens.json",
+    "app/src/main/java/com/yujian/ai/ui/designsystem/typography/YuJianTypography.kt",
+    "app/src/main/java/com/yujian/ai/ui/home/NormalHomeTypography.kt",
+    "design/pages/fish_guide/species_detail/Species_Detail_Page_Contract_V1.md",
+    "design/system/components/top_navigation/exceptions/Recognition_Result_Centered_Title_V1.md"
+  ],
+  "font_families": [
+    {
+      "id": "android_platform_sans_serif",
+      "font_family_cn": "Android platform SansSerif; Android OS resolves CJK by script and locale, with no vendor-specific face pinned.",
+      "font_family_en": "Android platform SansSerif; Compose FontFamily.SansSerif.",
+      "font_family_digits": "Android platform SansSerif; no tabular-digit face is declared.",
+      "source": "app/src/main/java/com/yujian/ai/ui/designsystem/typography/YuJianTypography.kt",
+      "license": "No app-bundled font or repository-level font license artifact exists. The mapped face is supplied by Android; the repository does not pin a vendor face or redistribute a font.",
+      "fallback": "Android OS script/locale-aware fallback for CJK and other missing glyphs; exact vendor face is intentionally not pinned.",
+      "portability": "Android-specific mapping; other renderers require an explicit platform mapping and cannot infer a font from a screenshot.",
+      "status": "FROZEN",
+      "source_class": "PLATFORM_RESOLVED",
+      "resolution_scope": "All dynamic Chinese, English and numeric UI text; Brand Typography is a separate artwork asset role."
+    }
+  ],
+  "weight_catalog": [
+    {
+      "name": "Regular",
+      "weight": 400
+    },
+    {
+      "name": "Medium",
+      "weight": 500
+    },
+    {
+      "name": "SemiBold",
+      "weight": 600
+    },
+    {
+      "name": "Bold",
+      "weight": 700
+    }
+  ],
+  "tokens": [
+    {
+      "id": "type.display",
+      "name": "Display",
+      "family": "android_platform_sans_serif",
+      "size": "30sp",
+      "weight": "Medium (500)",
+      "lineHeight": "36sp",
+      "letterSpacing": "0sp",
+      "color": "color.deep_lake_blue",
+      "usage": "Hero and editorial title; default shared role."
+    },
+    {
+      "id": "type.headline",
+      "name": "Headline",
+      "family": "android_platform_sans_serif",
+      "size": "28sp",
+      "weight": "Medium (500)",
+      "lineHeight": "34sp",
+      "letterSpacing": "0sp",
+      "color": "color.deep_lake_blue",
+      "usage": "Page title unless a registered navigation/page exception applies."
+    },
+    {
+      "id": "type.title",
+      "name": "Title",
+      "family": "android_platform_sans_serif",
+      "size": "20sp",
+      "weight": "Medium (500)",
+      "lineHeight": "26sp",
+      "letterSpacing": "0sp",
+      "color": "color.deep_lake_blue",
+      "usage": "Section title and BACK_TITLE."
+    },
+    {
+      "id": "type.subtitle",
+      "name": "Subtitle",
+      "family": "android_platform_sans_serif",
+      "size": "16sp",
+      "weight": "Medium (500)",
+      "lineHeight": "24sp",
+      "letterSpacing": "0sp",
+      "color": "color.deep_lake_blue",
+      "usage": "Secondary heading."
+    },
+    {
+      "id": "type.body",
+      "name": "Body",
+      "family": "android_platform_sans_serif",
+      "size": "16sp",
+      "weight": "Regular (400)",
+      "lineHeight": "24sp",
+      "letterSpacing": "0sp",
+      "color": "color.deep_lake_blue",
+      "usage": "Factual, explanatory and input text."
+    },
+    {
+      "id": "type.caption",
+      "name": "Caption",
+      "family": "android_platform_sans_serif",
+      "size": "12sp",
+      "weight": "Regular (400)",
+      "lineHeight": "18sp",
+      "letterSpacing": "0sp",
+      "color": "color.mist_blue_gray",
+      "usage": "Supporting label and metadata."
+    },
+    {
+      "id": "type.button",
+      "name": "Button",
+      "family": "android_platform_sans_serif",
+      "size": "16sp",
+      "weight": "Medium (500)",
+      "lineHeight": "20sp",
+      "letterSpacing": "0sp",
+      "color": "color.lake_white",
+      "usage": "Generic button label; component contract takes precedence."
+    },
+    {
+      "id": "type.numeric",
+      "name": "Numeric",
+      "family": "android_platform_sans_serif",
+      "size": "22sp",
+      "weight": "Medium (500)",
+      "lineHeight": "28sp",
+      "letterSpacing": "0sp",
+      "color": "color.deep_lake_blue",
+      "usage": "General numeric value for length, weight, dates and statistics; page data formatting remains page-owned."
+    },
+    {
+      "id": "type.label",
+      "name": "Label",
+      "family": "android_platform_sans_serif",
+      "size": "12sp",
+      "weight": "Regular (400)",
+      "lineHeight": "18sp",
+      "letterSpacing": "0sp",
+      "color": "color.mist_blue_gray",
+      "usage": "Alias of Caption; a naming alias only and introduces no additional scale."
+    },
+    {
+      "id": "type.body_small",
+      "name": "Body Small",
+      "family": "android_platform_sans_serif",
+      "size": "14sp",
+      "weight": "Regular (400)",
+      "lineHeight": "20sp",
+      "letterSpacing": "0sp",
+      "color": "color.mist_blue_gray",
+      "usage": "Recognition Processing status subtitle; 14sp secondary Platform Typography."
+    }
+  ],
+  "override_policy": {
+    "allowed": [
+      "Brand Hero / 渔见 wordmark may only reference brand_asset_contract; dynamic text, a new typeface, or a page-selected brand font is forbidden.",
+      "Fish Species Name may use its registered page size/line-height while retaining the shared platform family and weight catalog.",
+      "Large Statistic may use the registered Normal Home Font A reference-pixel mapping, which converts to sp and continues to honor OS fontScale."
+    ],
+    "forbidden": [
+      "Page-private font family, page-selected brand font, or unregistered fallback.",
+      "Page-defined private size scale outside a referenced page authority.",
+      "Dynamic brand text for the frozen 渔见 wordmark; do not simulate or redraw brand glyphs.",
+      "Silent text shrink, canceled fontScale, unregistered letter spacing, or color literals."
+    ],
+    "shared_family_change_requires": "A platform family change requires a separately recorded owner decision; do not replace a Frozen page visual."
+  },
+  "page_overrides": [
+    {
+      "page": "Brand Hero / Normal Home wordmark",
+      "token": "brand_asset_contract",
+      "status": "FROZEN_ARTWORK_ASSET",
+      "rule": "Use the registered Frozen Artwork Asset reference only; dynamic_text=false and font_dependency=none. This policy does not authorize editing, cropping, extraction, or regeneration of the Frozen raster.",
+      "source_paths": [
+        "design/system/core_visual_v1/tokens/typography_tokens.json",
+        "app/src/main/java/com/yujian/ai/ui/home/NormalHomeContent.kt",
+        "app/src/main/java/com/yujian/ai/ui/designsystem/typography/YuJianTypography.kt"
+      ]
+    },
+    {
+      "page": "Fish Guide · Fish Species Name",
+      "token": "type.display",
+      "status": "FROZEN_PAGE_OVERRIDE",
+      "rule": "Page authority may set size and line-height for species hierarchy; family and weight remain in shared catalog; preserve page authority.",
+      "source_paths": [
+        "design/pages/fish_guide/species_detail/Species_Detail_Page_Contract_V1.md"
+      ]
+    },
+    {
+      "page": "Normal Home · Large Statistic",
+      "token": "type.numeric",
+      "status": "FROZEN_PAGE_OVERRIDE",
+      "rule": "Use Normal Home Font A reference-pixel mapping and its explicit width/density conversion to sp. Keep source values page-scoped; OS fontScale remains enabled.",
+      "source_paths": [
+        "app/src/main/java/com/yujian/ai/ui/home/NormalHomeTypography.kt",
+        "design/pages/home/normal_home/05_responsive_interaction/Normal_Home_Typography_Scaling_Contract_V1.md"
+      ]
+    },
+    {
+      "page": "Recognition Result",
+      "token": "type.headline",
+      "status": "FROZEN_PAGE_OVERRIDE",
+      "rule": "Use the registered centered-title exception and state-specific result contract; do not promote its geometry to a global navigation variant.",
+      "source_paths": [
+        "design/system/components/top_navigation/exceptions/Recognition_Result_Centered_Title_V1.md"
+      ]
+    },
+    {
+      "page": "Empty Home",
+      "token": "brand_asset_contract",
+      "status": "FROZEN_ARTWORK_ASSET",
+      "rule": "Use the registered Frozen Artwork Asset authority for brand lettering; retain the page Frozen composition and do not create a page-private font or artwork variant.",
+      "source_paths": [
+        "design/pages/home/empty_home/README.md",
+        "design/pages/home/empty_home/spec/Empty_Home_Feature_Spec_V2.md"
+      ]
+    },
+    {
+      "page": "Recognition Processing",
+      "role": "processing.subtitle",
+      "token": "type.body_small",
+      "status": "FROZEN_PAGE_OVERRIDE",
+      "rule": "The Frozen Processing subtitle is 14sp, Regular, 20sp line height, 0sp tracking and color.mist_blue_gray (secondary). This is a shared Platform Typography token, not a new font family or page-private scale.",
+      "source_paths": [
+        "design/pages/recognition/processing/spec/Recognition_Processing_Visual_Spec_V1_1.md",
+        "design/system_v3/08_Page_Contracts/recognition/processing/State_Machine_V3_1.json"
+      ]
+    }
+  ],
+  "page_audit": [
+    {
+      "page": "Empty Home",
+      "status": "MAPPED_WITH_FROZEN_ARTWORK_ASSET",
+      "finding": "Brand lettering is governed by the registered frozen artwork reference; no typeface is inferred from raster pixels. Page placement remains page-scoped."
+    },
+    {
+      "page": "Normal Home",
+      "status": "MAPPED_WITH_FROZEN_ARTWORK_ASSET",
+      "finding": "Font A remains a registered page override with OS fontScale. The 渔见 wordmark role is an artwork asset, not dynamic text or a font choice; no bitmap content was changed."
+    },
+    {
+      "page": "Recognition Result",
+      "status": "MAPPED_WITH_PAGE_OVERRIDE",
+      "finding": "Centered title and state-specific result typography remain page authorities."
+    },
+    {
+      "page": "FishRecordDetail",
+      "status": "MAPPED",
+      "finding": "Shared family with page-scoped media text / ON_MEDIA color roles; A/B Frozen visuals remain authoritative."
+    },
+    {
+      "page": "Fish Guide",
+      "status": "MAPPED_WITH_PAGE_OVERRIDE",
+      "finding": "Species title sizing is page-owned; large text grows its container and keeps semantic order."
+    },
+    {
+      "page": "Recognition Processing",
+      "status": "MAPPED_WITH_PAGE_OVERRIDE",
+      "finding": "The Frozen 14sp status subtitle maps to type.body_small with secondary color; no new font or page-private type scale."
+    }
+  ],
+  "tracking_rule": "0sp unless a page/component authority registers a specific override.",
+  "font_scale_rule": "Honor Android OS fontScale; expand containers and scroll when needed; never silently shrink or cancel scaling.",
+  "unresolved": [],
+  "decision_records": [
+    {
+      "id": "D-007",
+      "status": "RESOLVED",
+      "approved_policy": "Dynamic UI text uses Android platform Typography Tokens with OS script/locale CJK fallback. Brand Typography uses a FROZEN_ARTWORK_ASSET with dynamic_text=false and font_dependency=none.",
+      "brand_asset_id": "system_core_visual_v1_reference_normal_home_v1_png",
+      "brand_asset_path": "design/system/core_visual_v1/reference/normal_home_v1.png",
+      "brand_asset_sha256": "6ab9d3348b4a9a7e77ddca3a06235b4991798a309bd3512cc6fb9ea7aeb1d377",
+      "approved_at": "2026-10-11",
+      "source": "Approved in the Phase 2 Final Freeze work instruction.",
+      "forbidden": "No new calligraphic font, no Android simulated brand font, no page-selected brand font, and no logo glyph redraw."
+    }
+  ],
+  "brand_asset_contract": {
+    "type": "FROZEN_ARTWORK_ASSET",
+    "asset_id": "system_core_visual_v1_reference_normal_home_v1_png",
+    "source_asset": "design/system/core_visual_v1/reference/normal_home_v1.png",
+    "sha256": "6ab9d3348b4a9a7e77ddca3a06235b4991798a309bd3512cc6fb9ea7aeb1d377",
+    "dynamic_text": false,
+    "font_dependency": "none",
+    "usage": "渔见 brand wordmark and special brand visual lettering only.",
+    "authority": "Frozen Normal Home artwork reference; the existing image bytes are unchanged.",
+    "boundary": "This is the registered frozen artwork authority, not an authorization to extract, crop, regenerate, redraw, or modify the bitmap. Page placement/geometry remains page-owned and is handled in Phase 3."
+  }
+}

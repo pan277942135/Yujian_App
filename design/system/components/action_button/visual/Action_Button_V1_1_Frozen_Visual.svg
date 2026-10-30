@@ -1,0 +1,104 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1680" viewBox="0 0 1600 1680">
+  <defs>
+    <style>
+      .bg{fill:#F7FAFB}
+      .panel{fill:#FFFFFF;stroke:#E2EBE8;stroke-width:2}
+      .title{font-family:"Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif;font-size:42px;font-weight:700;fill:#18343A}
+      .subtitle{font-family:"Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif;font-size:22px;font-weight:500;fill:#71868B}
+      .section{font-family:"Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif;font-size:26px;font-weight:700;fill:#28474D}
+      .meta{font-family:"Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif;font-size:18px;font-weight:600;fill:#7A8F93}
+      .variant{font-family:"Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif;font-size:18px;font-weight:800;fill:#71868B;letter-spacing:1px}
+      .label{font-family:"Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif;font-size:32px;font-weight:600;text-anchor:middle;dominant-baseline:middle}
+      .small{font-family:"Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif;font-size:18px;font-weight:500;fill:#7A8F93}
+      .state{font-family:"Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif;font-size:18px;font-weight:800;fill:#71868B;text-anchor:middle}
+      .pill{fill:#EAF4F1;stroke:#CFE1DC;stroke-width:2}
+      .pilltext{font-family:"Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif;font-size:18px;font-weight:700;fill:#416B64;text-anchor:middle;dominant-baseline:middle}
+    </style>
+    <filter id="primaryShadow" x="-20%" y="-30%" width="140%" height="180%">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#0B2D4B" flood-opacity=".10"/>
+    </filter>
+    <filter id="secondaryShadow" x="-20%" y="-30%" width="140%" height="180%">
+      <feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#0B2D4B" flood-opacity=".05"/>
+    </filter>
+  </defs>
+  <rect class="bg" width="1600" height="1680"/>
+  <text x="90" y="92" class="title">Action Button V1.1 · Frozen Visual Reference</text>
+  <text x="90" y="132" class="subtitle">主 / 次操作按钮 · Visual Authority</text>
+  <rect x="1280" y="70" width="220" height="52" rx="26" class="pill"/>
+  <text x="1390" y="96" class="pilltext">FROZEN · V1.1</text>
+  <text x="90" y="214" class="section">01 · 三档视觉</text>
+  <text x="1510" y="214" class="meta" text-anchor="end">56dp · R28 · 16sp / Semibold 600</text>
+  <rect x="90" y="250" width="440" height="270" rx="28" class="panel"/>
+  <text x="120" y="296" class="variant">PRIMARY</text>
+  <g filter="url(#primaryShadow)">
+    <rect x="126" y="338" width="368" height="112" rx="56" fill="#0F7A78" stroke="#FFFFFF" stroke-opacity=".10" stroke-width="2"/>
+    <rect x="128" y="340" width="364" height="2" rx="1" fill="#FFFFFF" opacity=".08"/>
+    <rect x="128" y="446" width="364" height="2" rx="1" fill="#064748" opacity=".08"/>
+  </g>
+  <text x="310" y="394" class="label" fill="#FFFFFF">保存本次鱼获</text>
+  <text x="120" y="486" class="small">Deep Lake Teal · restrained surface depth</text>
+  <rect x="580" y="250" width="440" height="270" rx="28" class="panel"/>
+  <text x="610" y="296" class="variant">SECONDARY_STRONG</text>
+  <g filter="url(#secondaryShadow)">
+    <rect x="616" y="338" width="368" height="112" rx="56" fill="#F7FAFB" fill-opacity=".88" stroke="#0F7A78" stroke-opacity=".26" stroke-width="2"/>
+    <rect x="618" y="340" width="364" height="2" rx="1" fill="#FFFFFF" opacity=".65"/>
+  </g>
+  <text x="800" y="394" class="label" fill="#0B2D4B">继续记录记忆</text>
+  <text x="610" y="486" class="small">Mist / Lake White · teal light border</text>
+  <rect x="1070" y="250" width="440" height="270" rx="28" class="panel"/>
+  <text x="1100" y="296" class="variant">SECONDARY_MUTED</text>
+  <rect x="1106" y="338" width="368" height="112" rx="56" fill="#F7FAFB" fill-opacity=".45" stroke="#748897" stroke-opacity=".18" stroke-width="2"/>
+  <text x="1290" y="394" class="label" fill="#748897">重新拍摄</text>
+  <text x="1100" y="486" class="small">Recovery / fallback · deliberately quiet</text>
+  <text x="90" y="596" class="section">02 · 双按钮实际组合</text>
+  <text x="1510" y="596" class="meta" text-anchor="end">Gap 12dp · hierarchy by proportion</text>
+  <rect x="90" y="632" width="1420" height="242" rx="28" class="panel"/>
+  <text x="126" y="680" class="variant">识别结果 · 正常保存</text>
+  <text x="1472" y="680" class="meta" text-anchor="end">44 / 56</text>
+  <g filter="url(#secondaryShadow)">
+    <rect x="126" y="716" width="569" height="112" rx="56" fill="#F7FAFB" fill-opacity=".88" stroke="#0F7A78" stroke-opacity=".26" stroke-width="2"/>
+  </g>
+  <text x="410.5" y="772" class="label" fill="#0B2D4B">继续记录记忆</text>
+  <g filter="url(#primaryShadow)">
+    <rect x="719" y="716" width="755" height="112" rx="56" fill="#0F7A78" stroke="#FFFFFF" stroke-opacity=".10" stroke-width="2"/>
+  </g>
+  <text x="1096.5" y="772" class="label" fill="#FFFFFF">保存本次鱼获</text>
+  <rect x="90" y="904" width="1420" height="242" rx="28" class="panel"/>
+  <text x="126" y="952" class="variant">识别结果 · 低置信</text>
+  <text x="1472" y="952" class="meta" text-anchor="end">58 / 42</text>
+  <g filter="url(#secondaryShadow)">
+    <rect x="126" y="988" width="744" height="112" rx="56" fill="#F7FAFB" fill-opacity=".88" stroke="#0F7A78" stroke-opacity=".26" stroke-width="2"/>
+  </g>
+  <text x="498" y="1044" class="label" fill="#0B2D4B">手动选择</text>
+  <rect x="894" y="988" width="580" height="112" rx="56" fill="#F7FAFB" fill-opacity=".45" stroke="#748897" stroke-opacity=".18" stroke-width="2"/>
+  <text x="1184" y="1044" class="label" fill="#748897">重新拍摄</text>
+  <text x="90" y="1230" class="section">03 · 五种状态</text>
+  <text x="1510" y="1230" class="meta" text-anchor="end">Normal · Pressed · Loading · Disabled · Focus</text>
+  <rect x="90" y="1266" width="266" height="252" rx="24" class="panel"/>
+  <text x="223" y="1310" class="state">Normal</text>
+  <g filter="url(#primaryShadow)">
+    <rect x="112" y="1350" width="222" height="96" rx="48" fill="#0F7A78" stroke="#FFFFFF" stroke-opacity=".10" stroke-width="2"/>
+  </g>
+  <text x="223" y="1398" class="label" style="font-size:24px" fill="#FFFFFF">保存</text>
+  <rect x="378" y="1266" width="266" height="252" rx="24" class="panel"/>
+  <text x="511" y="1310" class="state">Pressed</text>
+  <rect x="402" y="1354" width="218" height="92" rx="46" fill="#0C6D6B"/>
+  <text x="511" y="1400" class="label" style="font-size:24px" fill="#FFFFFF">保存</text>
+  <rect x="666" y="1266" width="266" height="252" rx="24" class="panel"/>
+  <text x="799" y="1310" class="state">Loading</text>
+  <rect x="688" y="1350" width="222" height="96" rx="48" fill="#0F7A78"/>
+  <circle cx="799" cy="1398" r="18" fill="none" stroke="#FFFFFF" stroke-opacity=".44" stroke-width="5"/>
+  <path d="M799 1380 A18 18 0 0 1 817 1398" fill="none" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round"/>
+  <rect x="954" y="1266" width="266" height="252" rx="24" class="panel"/>
+  <text x="1087" y="1310" class="state">Disabled</text>
+  <rect x="976" y="1350" width="222" height="96" rx="48" fill="#D9E4E3"/>
+  <text x="1087" y="1398" class="label" style="font-size:24px" fill="#91A5A6">保存</text>
+  <rect x="1242" y="1266" width="268" height="252" rx="24" class="panel"/>
+  <text x="1376" y="1310" class="state">Focus</text>
+  <rect x="1262" y="1346" width="228" height="104" rx="52" fill="none" stroke="#0F7A78" stroke-width="4"/>
+  <rect x="1268" y="1352" width="216" height="92" rx="46" fill="#0F7A78"/>
+  <text x="1376" y="1398" class="label" style="font-size:24px" fill="#FFFFFF">保存</text>
+  <line x1="90" y1="1570" x2="1510" y2="1570" stroke="#DCE7E3" stroke-width="2"/>
+  <text x="90" y="1612" class="small">Visual Authority: Action Button V1.1 · Gold fill prohibited for ordinary actions · No idle animation</text>
+  <text x="90" y="1646" class="small">Reduce Motion: disable scale transform; preserve pressed surface feedback · Primary Capture Button is governed separately</text>
+</svg>

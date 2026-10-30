@@ -1,0 +1,17 @@
+{
+  "version": "1.0",
+  "values_px": {
+    "R_SM": 16,
+    "R_MD": 24,
+    "R_LG": 36,
+    "R_XL": "44-48",
+    "R_CIRCLE": "50%"
+  },
+  "usage": {
+    "R_SM": "small annotation",
+    "R_MD": "pill/small card",
+    "R_LG": "content card",
+    "R_XL": "hero/primary card",
+    "R_CIRCLE": "camera/avatar"
+  }
+}

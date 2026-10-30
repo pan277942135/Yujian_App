@@ -1,0 +1,11 @@
+{
+  "breath": {
+    "duration_ms": 5000,
+    "max_scale": 1.015
+  },
+  "gold_rim": {
+    "duration_ms": 1400,
+    "first_delay_ms": 3000,
+    "repeat_interval_ms": 9000
+  }
+}

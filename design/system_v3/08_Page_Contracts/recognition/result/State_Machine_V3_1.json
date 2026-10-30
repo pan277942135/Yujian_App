@@ -1,0 +1,229 @@
+{
+  "schema_version": "3.1",
+  "page_id": "recognition.result.v3_1",
+  "entry_state": "HIGH_CONFIDENCE",
+  "entry_mapping": {
+    "high": "HIGH_CONFIDENCE",
+    "medium": "MEDIUM_CONFIDENCE",
+    "low": "LOW_CONFIDENCE",
+    "no_fish": "NO_FISH",
+    "image_quality": "IMAGE_QUALITY_WARNING",
+    "technical_failure": "TECHNICAL_FAILURE"
+  },
+  "states": [
+    {
+      "id": "HIGH_CONFIDENCE",
+      "kind": "result_state",
+      "species": "Top-1 is the recognized default; user may correct it."
+    },
+    {
+      "id": "MEDIUM_CONFIDENCE",
+      "kind": "result_state",
+      "species": "Candidates are suggestions; explicit user confirmation is required."
+    },
+    {
+      "id": "LOW_CONFIDENCE",
+      "kind": "result_state",
+      "species": "No confirmed species; unresolved persistence is gated by LOW_MANUAL selection."
+    },
+    {
+      "id": "NO_FISH",
+      "kind": "recovery_state",
+      "record_creation": false,
+      "copy_source": "design/system_v3/08_Page_Contracts/recognition/result/ImageQualityCopy_V1.json#NO_FISH_FROZEN"
+    },
+    {
+      "id": "IMAGE_QUALITY_WARNING",
+      "kind": "recovery_state",
+      "record_creation": false,
+      "copy_source": "design/system_v3/08_Page_Contracts/recognition/result/ImageQualityCopy_V1.json#IMAGE_QUALITY_GENERIC_FROZEN"
+    },
+    {
+      "id": "TECHNICAL_FAILURE",
+      "kind": "separate_issue_exit",
+      "in_three_plus_two": false
+    },
+    {
+      "id": "SPECIES_SELECTOR_MEDIUM",
+      "kind": "modal_state"
+    },
+    {
+      "id": "SPECIES_SELECTOR_LOW_MANUAL",
+      "kind": "modal_state"
+    },
+    {
+      "id": "SPECIES_CONFIRMED",
+      "kind": "interaction_state"
+    },
+    {
+      "id": "SAVE_IN_PROGRESS",
+      "kind": "persistence_state"
+    },
+    {
+      "id": "SAVE_ERROR",
+      "kind": "error_state"
+    },
+    {
+      "id": "SAVED_HOME",
+      "kind": "exit_state"
+    },
+    {
+      "id": "SAVED_DETAIL_MEMORY",
+      "kind": "exit_state"
+    },
+    {
+      "id": "RETURN_CAPTURE",
+      "kind": "exit_state"
+    }
+  ],
+  "transitions": [
+    {
+      "current_state": "HIGH_CONFIDENCE",
+      "action": "Edit species or metadata/story",
+      "guard": "Result remains active",
+      "next_state": "HIGH_CONFIDENCE"
+    },
+    {
+      "current_state": "MEDIUM_CONFIDENCE",
+      "action": "Tap candidate",
+      "guard": "Candidate is displayed but not preselected",
+      "next_state": "SPECIES_CONFIRMED"
+    },
+    {
+      "current_state": "MEDIUM_CONFIDENCE",
+      "action": "Other species",
+      "guard": "Shared Species Selector opens with medium context",
+      "next_state": "SPECIES_SELECTOR_MEDIUM"
+    },
+    {
+      "current_state": "SPECIES_SELECTOR_MEDIUM",
+      "action": "Commit selected species",
+      "guard": "Explicit selection committed",
+      "next_state": "SPECIES_CONFIRMED"
+    },
+    {
+      "current_state": "SPECIES_SELECTOR_MEDIUM",
+      "action": "Return without selection",
+      "guard": "No species committed",
+      "next_state": "MEDIUM_CONFIDENCE"
+    },
+    {
+      "current_state": "LOW_CONFIDENCE",
+      "action": "Edit metadata/story",
+      "guard": "Fields remain draft",
+      "next_state": "LOW_CONFIDENCE"
+    },
+    {
+      "current_state": "LOW_CONFIDENCE",
+      "action": "Save Catch or Continue Memory",
+      "guard": "No confirmed species; remember requested destination",
+      "next_state": "SPECIES_SELECTOR_LOW_MANUAL"
+    },
+    {
+      "current_state": "SPECIES_SELECTOR_LOW_MANUAL",
+      "action": "Commit selected species",
+      "guard": "Explicit manual species selection",
+      "next_state": "SPECIES_CONFIRMED"
+    },
+    {
+      "current_state": "SPECIES_SELECTOR_LOW_MANUAL",
+      "action": "Return unconfirmed",
+      "guard": "No species committed; preserve draft and clear requested destination",
+      "next_state": "LOW_CONFIDENCE"
+    },
+    {
+      "current_state": "SPECIES_CONFIRMED",
+      "action": "Save Catch",
+      "guard": "Selected species is explicit",
+      "next_state": "SAVE_IN_PROGRESS"
+    },
+    {
+      "current_state": "SPECIES_CONFIRMED",
+      "action": "Continue Memory",
+      "guard": "Selected species is explicit",
+      "next_state": "SAVE_IN_PROGRESS"
+    },
+    {
+      "current_state": "HIGH_CONFIDENCE",
+      "action": "Save Catch",
+      "guard": "No save is already pending",
+      "next_state": "SAVE_IN_PROGRESS"
+    },
+    {
+      "current_state": "HIGH_CONFIDENCE",
+      "action": "Continue Memory",
+      "guard": "No save is already pending",
+      "next_state": "SAVE_IN_PROGRESS"
+    },
+    {
+      "current_state": "MEDIUM_CONFIDENCE",
+      "action": "Save Catch or Continue Memory",
+      "guard": "No candidate confirmed; open explicit selector before persistence",
+      "next_state": "SPECIES_SELECTOR_MEDIUM"
+    },
+    {
+      "current_state": "SAVE_IN_PROGRESS",
+      "action": "Persistence succeeds for Save Catch intent",
+      "guard": "FishRecord created successfully",
+      "next_state": "SAVED_HOME"
+    },
+    {
+      "current_state": "SAVE_IN_PROGRESS",
+      "action": "Persistence succeeds for Continue Memory intent",
+      "guard": "FishRecord created successfully",
+      "next_state": "SAVED_DETAIL_MEMORY"
+    },
+    {
+      "current_state": "SAVE_IN_PROGRESS",
+      "action": "Persistence fails",
+      "guard": "No successful record exists; preserve all draft fields",
+      "next_state": "SAVE_ERROR"
+    },
+    {
+      "current_state": "SAVE_ERROR",
+      "action": "Retry requested destination",
+      "guard": "Preserve fields and prevent duplicate records",
+      "next_state": "SAVE_IN_PROGRESS"
+    },
+    {
+      "current_state": "NO_FISH",
+      "action": "Retake or Gallery",
+      "guard": "No record is created",
+      "next_state": "RETURN_CAPTURE"
+    },
+    {
+      "current_state": "IMAGE_QUALITY_WARNING",
+      "action": "Retake or Gallery",
+      "guard": "No record is created; keep current Frozen recovery copy",
+      "next_state": "RETURN_CAPTURE"
+    },
+    {
+      "current_state": "TECHNICAL_FAILURE",
+      "action": "Retry/Retake/Gallery",
+      "guard": "Separate technical recovery route",
+      "next_state": "RETURN_CAPTURE"
+    }
+  ],
+  "exit_states": [
+    "SAVED_HOME",
+    "SAVED_DETAIL_MEMORY",
+    "RETURN_CAPTURE"
+  ],
+  "decision_invariants": [
+    "The five named product Result/recovery states stay explicit.",
+    "Medium candidate is never silently confirmed.",
+    "Low unresolved species cannot create a FishRecord; requested destination is resumed only after explicit selection.",
+    "Save Catch success routes Home; Detail is not the Save Catch destination.",
+    "Continue Memory remains the separate FishRecordDetail(memory) action.",
+    "Technical Failure is separate from the 3+2 product states."
+  ],
+  "status": "FROZEN",
+  "quality_contract": "design/system_v3/08_Page_Contracts/recognition/result/ImageQualityCopy_V1.json",
+  "data_lineage": "design/system_v3/08_Page_Contracts/recognition/result/Recognition_Result_Data_Lineage_V1.json",
+  "quality_gate_values": [
+    "GOOD",
+    "WARNING",
+    "INVALID"
+  ],
+  "quality_routing_policy": "QUALITY_GATE controls eligibility; NO_FISH routes to NO_FISH before Image Quality; WARNING alone does not route to Image Quality; INVALID routes to Image Quality unless its reason is NO_FISH."
+}

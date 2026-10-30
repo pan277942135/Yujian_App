@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" color="#0B2D4B" role="img" aria-labelledby="title">
+  <title id="title">鱼鉴入口</title>
+  <!-- YuJian Design Candidate V0.1 | 24x24 | stroke=1.75 | not frozen -->
+  <g stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M12 6.6C9.95 4.85 7.2 4.35 3.5 4.6V18.45C7.55 18.1 10.15 18.65 12 20.05C13.85 18.65 16.45 18.1 20.5 18.45V4.6C16.8 4.35 14.05 4.85 12 6.6Z"/><path d="M12 6.6V20.05"/><path d="M14.3 11.65C15.15 10.6 16.1 10.45 17.1 11.65C16.1 12.85 15.15 12.7 14.3 11.65Z"/>
+  </g>
+</svg>

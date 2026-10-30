@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="2200" height="1500" viewBox="0 0 2200 1500" role="img" aria-labelledby="title desc">
+  <title id="title">渔见 AI 拍照识鱼全流程与模型职责</title>
+  <desc id="desc">从完整场景图预处理、质量门、DET_FISH 检测、BBox 校验、尺寸判断、Crop、MODEL_M1 分类到结果融合和用户确认的业务流程图。</desc>
+  <defs>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#66828A"/></marker>
+    <marker id="arrowGold" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto"><path d="M0,0 L12,6 L0,12 Z" fill="#B89555"/></marker>
+    <filter id="shadow" x="-15%" y="-15%" width="130%" height="140%"><feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#1D3C43" flood-opacity=".10"/></filter>
+    <style>
+      .bg{fill:#F4F7F5}
+      .title{font:700 42px 'Noto Sans SC','Microsoft YaHei',sans-serif;fill:#183A42}
+      .subtitle{font:400 22px 'Noto Sans SC','Microsoft YaHei',sans-serif;fill:#5A747A}
+      .box{fill:#FFFFFF;stroke:#C8D8D7;stroke-width:2;filter:url(#shadow)}
+      .model{fill:#EAF3F4;stroke:#8DB3B9;stroke-width:2;filter:url(#shadow)}
+      .decision{fill:#FBF5E8;stroke:#C5A15C;stroke-width:2.5;filter:url(#shadow)}
+      .issue{fill:#F7F0E8;stroke:#D2B28A;stroke-width:2}
+      .failure{fill:#F7ECE9;stroke:#C58D82;stroke-width:2}
+      .result{fill:#EAF2EC;stroke:#8EB49A;stroke-width:2}
+      .heading{font:700 25px 'Noto Sans SC','Microsoft YaHei',sans-serif;fill:#20464E}
+      .body{font:400 19px 'Noto Sans SC','Microsoft YaHei',sans-serif;fill:#4B666D}
+      .small{font:500 17px 'Noto Sans SC','Microsoft YaHei',sans-serif;fill:#667D81}
+      .arrow{fill:none;stroke:#66828A;stroke-width:3;marker-end:url(#arrow)}
+      .goldArrow{fill:none;stroke:#B89555;stroke-width:3;marker-end:url(#arrowGold)}
+      .dashed{fill:none;stroke:#B77E72;stroke-width:2.5;stroke-dasharray:9 8;marker-end:url(#arrow)}
+      .pill{fill:#E4ECE9;stroke:#C5D7D2;stroke-width:1}
+      .pillText{font:600 16px 'Noto Sans SC','Microsoft YaHei',sans-serif;fill:#45655F}
+    </style>
+  </defs>
+  <rect class="bg" width="2200" height="1500" rx="28"/>
+  <text class="title" x="90" y="82">渔见 AI · 拍照识鱼全流程与模型职责</text>
+  <text class="subtitle" x="92" y="124">完整原图先检测定位，再判断尺寸与质量，最后对有效鱼体 Crop 做鱼种分类</text>
+  <rect class="pill" x="92" y="148" width="330" height="38" rx="19"/><text class="pillText" x="112" y="173">DET_FISH = 找鱼 / 定位</text>
+  <rect class="pill" x="440" y="148" width="330" height="38" rx="19"/><text class="pillText" x="460" y="173">规则门 = 质量 / 尺寸</text>
+  <rect class="pill" x="788" y="148" width="360" height="38" rx="19"/><text class="pillText" x="808" y="173">MODEL_M1 = 鱼种分类</text>
+  <rect class="pill" x="1166" y="148" width="430" height="38" rx="19"/><text class="pillText" x="1186" y="173">结果融合 = 用户最终状态</text>
+
+  <!-- Main entry lane -->
+  <rect class="box" x="80" y="230" width="350" height="135" rx="18"/>
+  <text class="heading" x="110" y="275">01 · 拍照 / 相册</text>
+  <text class="body" x="110" y="312">原始完整场景图</text>
+  <text class="small" x="110" y="342">保留来源与 attempt ID</text>
+
+  <rect class="box" x="490" y="230" width="350" height="135" rx="18"/>
+  <text class="heading" x="520" y="275">02 · 图像预处理</text>
+  <text class="body" x="520" y="312">EXIF / 解码 / 方向归一化</text>
+  <text class="small" x="520" y="342">记录坐标变换与原图尺寸</text>
+
+  <rect class="box" x="900" y="230" width="350" height="135" rx="18"/>
+  <text class="heading" x="930" y="275">03 · 输入质量门</text>
+  <text class="body" x="930" y="312">GOOD / WARNING / INVALID</text>
+  <text class="small" x="930" y="342">质量不足不能直接判无鱼</text>
+
+  <rect class="model" x="1310" y="230" width="350" height="135" rx="18"/>
+  <text class="heading" x="1340" y="275">04 · DET_FISH</text>
+  <text class="body" x="1340" y="312">完整场景鱼体检测</text>
+  <text class="small" x="1340" y="342">输出 BBox / 检测分数 / 状态</text>
+
+  <polygon class="decision" points="1885,220 2085,297 1885,374 1685,297"/>
+  <text class="heading" x="1814" y="290">有效鱼体框？</text>
+  <text class="small" x="1853" y="321">BBox decision</text>
+
+  <path class="arrow" d="M430 297 H482"/>
+  <path class="arrow" d="M840 297 H892"/>
+  <path class="arrow" d="M1250 297 H1302"/>
+  <path class="arrow" d="M1660 297 H1678"/>
+  <!-- Invalid input branch: routed around the process boxes to avoid implying detector no-box == no-fish. -->
+  <path class="goldArrow" d="M1075 365 V410 H50 V640 H562 V672"/>
+  <text class="small" x="1090" y="402">INVALID · 输入恢复</text>
+
+  <!-- No-box branch -->
+  <text class="small" x="1687" y="410">否 · 无有效框</text>
+  <path class="goldArrow" d="M1885 374 V425 H420 V480"/>
+  <rect class="issue" x="90" y="480" width="620" height="140" rx="18"/>
+  <text class="heading" x="125" y="525">05A · 先核对质量与检测是否正常</text>
+  <text class="body" x="125" y="562">仅当输入可判断、检测正常结束且无鱼体证据</text>
+  <text class="body" x="125" y="593">才进入 No Fish；INVALID 或运行失败不能这样处理</text>
+
+  <rect class="result" x="90" y="680" width="285" height="118" rx="18"/>
+  <text class="heading" x="120" y="725">ERROR_NO_FISH</text>
+  <text class="body" x="120" y="762">重拍 / 相册恢复</text>
+
+  <rect class="issue" x="415" y="680" width="295" height="118" rx="18"/>
+  <text class="heading" x="445" y="725">ERROR_IMAGE_QUALITY</text>
+  <text class="body" x="445" y="762">质量不足 / 已知尺寸原因</text>
+
+  <path class="arrow" d="M400 620 V650 H232 V672"/>
+  <path class="arrow" d="M400 650 H562 V672"/>
+  <text class="small" x="115" y="653">质量足够</text>
+  <text class="small" x="465" y="653">质量不足</text>
+
+  <!-- Valid box branch -->
+  <text class="small" x="1950" y="410">是 · 有效框</text>
+  <path class="arrow" d="M2085 297 H2150 V460 H900 V480"/>
+  <rect class="box" x="770" y="480" width="350" height="140" rx="18"/>
+  <text class="heading" x="800" y="525">05B · BBox 映射 / 校验</text>
+  <text class="body" x="800" y="562">原图坐标、像素框、边界有效性</text>
+  <text class="small" x="800" y="593">保持 EXIF / Resize 映射一致</text>
+
+  <rect class="decision" x="1170" y="480" width="350" height="140" rx="18"/>
+  <text class="heading" x="1200" y="525">06 · 尺寸 / 可分类性</text>
+  <text class="body" x="1200" y="562">像素宽高、面积、触边、质量</text>
+  <text class="small" x="1200" y="593">阈值取当前合同 / 精确源码</text>
+
+  <rect class="box" x="1570" y="480" width="260" height="140" rx="18"/>
+  <text class="heading" x="1600" y="525">07 · Crop</text>
+  <text class="body" x="1600" y="562">按有效 BBox 安全裁剪</text>
+  <text class="small" x="1600" y="593">保留 Crop 坐标与来源</text>
+
+  <rect class="model" x="1880" y="480" width="250" height="140" rx="18"/>
+  <text class="heading" x="1900" y="525">08 · MODEL_M1</text>
+  <text class="body" x="1900" y="562">鱼种 Top-K 分类</text>
+  <text class="small" x="1900" y="593">只接收有效 Crop</text>
+
+  <path class="arrow" d="M1120 550 H1162"/>
+  <path class="arrow" d="M1520 550 H1562"/>
+  <path class="arrow" d="M1830 550 H1872"/>
+
+  <rect class="issue" x="1170" y="680" width="350" height="118" rx="18"/>
+  <text class="heading" x="1200" y="725">尺寸 / Crop 不可用</text>
+  <text class="body" x="1200" y="762">走既有 Image Quality 恢复</text>
+  <path class="goldArrow" d="M1345 620 V672"/>
+
+  <!-- Classifier to fusion -->
+  <path class="arrow" d="M2005 620 V850 H1510 V900"/>
+  <rect class="box" x="1190" y="900" width="640" height="135" rx="18"/>
+  <text class="heading" x="1230" y="945">09 · 结果融合与判定（RR07）</text>
+  <text class="body" x="1230" y="982">合并检测证据、质量/尺寸原因、Top-K 与运行错误</text>
+  <text class="small" x="1230" y="1012">分类分数 ≠ 检测分数；模型失败 ≠ 无鱼</text>
+
+  <!-- Result branches -->
+  <path class="arrow" d="M1510 1035 V1080 H270 V1110"/>
+  <path class="arrow" d="M1510 1080 H610 V1110"/>
+  <path class="arrow" d="M1510 1080 H950 V1110"/>
+  <rect class="result" x="90" y="1110" width="310" height="115" rx="18"/>
+  <text class="heading" x="125" y="1155">RESULT_HIGH</text>
+  <text class="body" x="125" y="1190">Top-1 默认推荐，可修改</text>
+  <rect class="result" x="430" y="1110" width="310" height="115" rx="18"/>
+  <text class="heading" x="465" y="1155">RESULT_MEDIUM</text>
+  <text class="body" x="465" y="1190">候选仅建议，需用户确认</text>
+  <rect class="result" x="770" y="1110" width="310" height="115" rx="18"/>
+  <text class="heading" x="805" y="1155">RESULT_LOW</text>
+  <text class="body" x="805" y="1190">不能可靠断言鱼种</text>
+
+  <rect class="failure" x="1570" y="900" width="560" height="135" rx="18"/>
+  <text class="heading" x="1610" y="945">TECHNICAL_FAILURE</text>
+  <text class="body" x="1610" y="982">模型 / Crop / 运行错误独立恢复</text>
+  <text class="small" x="1610" y="1012">不得归因为无鱼或用户照片差</text>
+  <path class="dashed" d="M2110 550 H2170 V860 H1850 V892"/>
+
+  <rect class="box" x="1140" y="1110" width="330" height="115" rx="18"/>
+  <text class="heading" x="1170" y="1155">用户确认 / 修正</text>
+  <text class="body" x="1170" y="1190">按现有保存合同继续</text>
+  <path class="arrow" d="M1510 1035 V1070 H1305 V1110"/>
+
+  <rect class="box" x="1140" y="1280" width="990" height="105" rx="18"/>
+  <text class="heading" x="1180" y="1325">产品 Processing 仍只有三态</text>
+  <text class="body" x="1180" y="1360">图片识别中 → 已定位到鱼体 → 鱼种识别中 → RESOLVE → Result / Issue</text>
+  <text class="small" x="92" y="1435">设计边界：这是业务/技术流程图，不是单页高保真；运行时模型版本与阈值以精确源码及有效合同为准。</text>
+</svg>
