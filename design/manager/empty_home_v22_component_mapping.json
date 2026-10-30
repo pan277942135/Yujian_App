@@ -12,6 +12,96 @@
     "runtime_manifest": "design/pages/home/empty_home/shared/contracts/runtime_manifest.json",
     "shared_adaptive_layout_contract": "app/src/main/java/com/yujian/ai/ui/adaptive/AdaptiveLayoutContract.kt"
   },
+  "candidate_geometry_override": {
+    "status": "USER_DIRECTED_CANDIDATE_DELTA_NOT_FROZEN",
+    "source": "user-annotated screenshot red marker",
+    "target_annotation": {
+      "attachment_viewport_px": [
+        694,
+        1536
+      ],
+      "red_marker_centroid_px": [
+        424.56,
+        928.72
+      ],
+      "reference_canvas_px": [
+        531,
+        1161
+      ],
+      "mapping_note": "Mapped through the existing 1080x1920 scene canvas at 0.8 scale with left-preserving scene crop; responsive sceneTransform remains authoritative."
+    },
+    "composition_reference_bounds_px": {
+      "x": 0,
+      "y": 1122,
+      "width": 660,
+      "height": 264
+    },
+    "bobber_bbox_reference_px": {
+      "x": 519,
+      "y": 1122,
+      "width": 24,
+      "height": 78
+    },
+    "bobber_center_reference_px": [
+      531,
+      1161
+    ],
+    "water_contact_reference_px": [
+      531,
+      1195
+    ],
+    "reflection_reference_px": {
+      "x": 525,
+      "y": 1194,
+      "width": 12,
+      "height": 52,
+      "visible_bounds_reference_px": {
+        "x": 527,
+        "y": 1197,
+        "width": 9,
+        "height": 47
+      }
+    },
+    "ripple_bbox_reference_px": {
+      "x": 412,
+      "y": 1154,
+      "width": 238,
+      "height": 82
+    },
+    "line": {
+      "bbox_reference_px": {
+        "x": 337,
+        "y": 1180,
+        "width": 194,
+        "height": 20
+      },
+      "start_reference_px": [
+        337,
+        1184
+      ],
+      "control_points_reference_px": [
+        [
+          390,
+          1198
+        ],
+        [
+          531,
+          1180
+        ]
+      ],
+      "end_reference_px": [
+        531,
+        1195
+      ]
+    },
+    "preserved": [
+      "rod geometry and attachment start",
+      "bobber asset dimensions and vertical orientation",
+      "responsive sceneTransform and viewport/font-scale behavior",
+      "all non-fishing page geometry"
+    ],
+    "authority_note": "Candidate preview override only. The Main-canonical anchor_contract.json and frozen source image remain unchanged; this coordinate is not frozen."
+  },
   "coordinate_disclosure": "Reference bounds are V2.2 canvas px. Browser measured bounds are CSS px; the candidate maps logical viewport dp 1:1 to CSS px only for preview. Native runtime is NOT_VERIFIED.",
   "component_tree": {
     "nodeId": "EmptyHomeRoot",
@@ -317,9 +407,9 @@
             },
             "reference_bounds_px": {
               "x": 0,
-              "y": 1180,
+              "y": 1122,
               "width": 660,
-              "height": 200
+              "height": 264
             },
             "responsive_rule": {
               "path": "design/pages/home/empty_home/shared/contracts/responsive_mapping_contract.json",
@@ -336,7 +426,7 @@
               "lifecycle_status",
               "publication_permission"
             ],
-            "verification_rule": "Compare actual browser DOM bounds to the active page contract; browser values are CSS px and do not imply Native runtime verification.",
+            "verification_rule": "Candidate group bounds enclose the unchanged rod and user-directed fishing geometry override; scene transform and all child anchors remain responsive. Not a frozen contract update.",
             "visible": true,
             "measurable": true,
             "selectable": true,
@@ -391,7 +481,7 @@
                 "parentId": "FishingComposition",
                 "componentType": "SVG_PATH",
                 "renderedDomId": "eh-FishingLine",
-                "label": "Fishing line · fitted cubic",
+                "label": "Fishing line · candidate smooth arc with vertical float entry",
                 "layer_order": 5,
                 "visual_asset": null,
                 "authority": {
@@ -400,9 +490,9 @@
                 },
                 "reference_bounds_px": {
                   "x": 337,
-                  "y": 1184,
-                  "width": 223,
-                  "height": 142
+                  "y": 1180,
+                  "width": 194,
+                  "height": 20
                 },
                 "responsive_rule": {
                   "path": "design/pages/home/empty_home/shared/contracts/responsive_mapping_contract.json",
@@ -419,7 +509,7 @@
                   "lifecycle_status",
                   "publication_permission"
                 ],
-                "verification_rule": "Cubic endpoints/handles/stroke use anchor_contract.json; endpoint is intentionally occluded by the bobber contact region.",
+                "verification_rule": "Actual DOM bounds follow the user-directed candidate_geometry_override in this mapping; the Main-canonical anchor contract remains unchanged and visual acceptance is pending.",
                 "visible": true,
                 "measurable": true,
                 "selectable": true,
@@ -442,8 +532,8 @@
                   "status": "CURRENT_OR_IMPLEMENTATION_REFERENCE"
                 },
                 "reference_bounds_px": {
-                  "x": 556,
-                  "y": 1322,
+                  "x": 525,
+                  "y": 1194,
                   "width": 12,
                   "height": 52
                 },
@@ -462,7 +552,7 @@
                   "lifecycle_status",
                   "publication_permission"
                 ],
-                "verification_rule": "Compare actual browser DOM bounds to the active page contract; browser values are CSS px and do not imply Native runtime verification.",
+                "verification_rule": "Actual DOM bounds follow the user-directed candidate_geometry_override in this mapping; the Main-canonical anchor contract remains unchanged and visual acceptance is pending.",
                 "visible": true,
                 "measurable": true,
                 "selectable": true,
@@ -482,8 +572,8 @@
                   "status": "CURRENT_OR_IMPLEMENTATION_REFERENCE"
                 },
                 "reference_bounds_px": {
-                  "x": 561,
-                  "y": 1323,
+                  "x": 531,
+                  "y": 1195,
                   "width": 0,
                   "height": 0
                 },
@@ -502,7 +592,7 @@
                   "lifecycle_status",
                   "publication_permission"
                 ],
-                "verification_rule": "Non-painted 0×0 DOM anchor at the registered contact point; does not add a visual mark.",
+                "verification_rule": "Actual DOM bounds follow the user-directed candidate_geometry_override in this mapping; the Main-canonical anchor contract remains unchanged and visual acceptance is pending.",
                 "visible": true,
                 "measurable": true,
                 "selectable": true,
@@ -525,8 +615,8 @@
                   "status": "CURRENT_OR_IMPLEMENTATION_REFERENCE"
                 },
                 "reference_bounds_px": {
-                  "x": 443,
-                  "y": 1279,
+                  "x": 412,
+                  "y": 1154,
                   "width": 238,
                   "height": 82
                 },
@@ -545,7 +635,7 @@
                   "lifecycle_status",
                   "publication_permission"
                 ],
-                "verification_rule": "Compare actual browser DOM bounds to the active page contract; browser values are CSS px and do not imply Native runtime verification.",
+                "verification_rule": "Actual DOM bounds follow the user-directed candidate_geometry_override in this mapping; the Main-canonical anchor contract remains unchanged and visual acceptance is pending.",
                 "visible": true,
                 "measurable": true,
                 "selectable": true,
@@ -568,8 +658,8 @@
                   "status": "CURRENT_OR_IMPLEMENTATION_REFERENCE"
                 },
                 "reference_bounds_px": {
-                  "x": 550,
-                  "y": 1250,
+                  "x": 519,
+                  "y": 1122,
                   "width": 24,
                   "height": 73
                 },
@@ -588,7 +678,7 @@
                   "lifecycle_status",
                   "publication_permission"
                 ],
-                "verification_rule": "Single bitmap body clipped to the registered 73px water contact; underwater body height and alpha are zero.",
+                "verification_rule": "Actual DOM bounds follow the user-directed candidate_geometry_override in this mapping; the Main-canonical anchor contract remains unchanged and visual acceptance is pending.",
                 "visible": true,
                 "measurable": true,
                 "selectable": true,

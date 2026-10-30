@@ -13,10 +13,10 @@
 .eh-v22-environment{position:absolute;left:0;top:0;overflow:hidden;z-index:0}
 .eh-v22-scene-transform{position:absolute;transform-origin:top left;overflow:visible}
 .eh-v22-sun-ambient,.eh-v22-fishing-composition{position:absolute}
-.eh-v22-fishing-line{position:absolute;left:337px;top:4px;width:223px;height:142px;overflow:visible;z-index:1;pointer-events:none}
+.eh-v22-fishing-line{position:absolute;overflow:visible;z-index:1;pointer-events:none}
 .eh-v22-bobber-clip{position:absolute;overflow:hidden}
 .eh-v22-bobber-clip img{display:block;width:24px;height:78px}
-.eh-v22-water-contact{position:absolute;left:561px;top:143px;display:block;width:0;height:0;overflow:hidden}
+.eh-v22-water-contact{position:absolute;display:block;width:0;height:0;overflow:hidden}
 .eh-v22-header{position:absolute;display:flex;align-items:center;justify-content:space-between;padding-block:0;padding-inline-start:var(--eh-header-inset-start);padding-inline-end:var(--eh-header-inset-end);color:rgba(18,48,72,.84);font-family:inherit}
 .eh-v22-brand-copy{display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-end;gap:1px;min-width:0}
 .eh-v22-brand-copy [data-workspace-rendered-node="Brand"]{position:relative;display:block;color:rgba(18,48,72,.84);font-size:19px;font-weight:400;line-height:23px;white-space:nowrap}

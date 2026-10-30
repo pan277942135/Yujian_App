@@ -4,7 +4,7 @@
 
   const PAGE_ID = "home_empty_v2";
   const MAPPING_PATH = "design/manager/empty_home_v22_component_mapping.json";
-  const MAPPING_SHA256 = "00c49d1924c9a97993f6d0c87164d4c70ce92b17646075d8e1174451b0a5fdc1";
+  const MAPPING_SHA256 = "533bccdb5a7164a8f3e57c32753bfd48f4977ccff2d89620666116719b77b912";
   const CONTRACT_ROOT = "design/pages/home/empty_home/shared/contracts/";
   const RUNTIME_MANIFEST_SHA256 = "aaae66f44473f497bffcd2f98165942f5442d8df141e2932ba336ad35065f4e8";
   const SHARED_ADAPTIVE_INSET_DP = { COMPACT: 16, STANDARD: 20, MEDIUM: 22, WIDE: 24 };
@@ -327,6 +327,7 @@
     const [ROOT_W, ROOT_H] = responsive.reference_canvas;
     const sceneContract = responsive.groups.scene_space;
     const protectedBounds = sceneContract.fishing_protected_bounds_reference_px;
+    const candidateFishing = mapping.candidate_geometry_override || {};
     const safeTop = BROWSER_REFERENCE_SAFE_INSETS_DP.top;
     const safeBottom = BROWSER_REFERENCE_SAFE_INSETS_DP.bottom;
     const profile = profileForWidth(width, Math.max(0, height - safeTop - safeBottom), responsive);
@@ -370,20 +371,23 @@
     const minAlbumGap = ctaReference.camera_to_album_clear_gap_minimum * groupScale;
     const albumTop = Math.max(safeTop + ctaTranslationY + ctaReference.album_top * groupScale, cameraBox.y + cameraBox.height + minAlbumGap);
 
-    const fishing = {
+    const fishing = candidateFishing.composition_reference_bounds_px || {
       x: protectedBounds.left, y: protectedBounds.top,
       width: protectedBounds.right - protectedBounds.left, height: protectedBounds.bottom - protectedBounds.top
     };
     const rod = anchors.rod.bbox_reference_px;
-    const line = anchors.line.bbox_reference_px;
-    const bobber = anchors.bobber.bbox_reference_px;
-    const reflection = anchors.bobber.reflection_reference_px;
-    const contact = anchors.bobber.water_contact_reference_px;
-    const ripple = anchors.ripple.bbox_reference_px;
+    const line = candidateFishing.line?.bbox_reference_px || anchors.line.bbox_reference_px;
+    const bobber = candidateFishing.bobber_bbox_reference_px || anchors.bobber.bbox_reference_px;
+    const reflection = candidateFishing.reflection_reference_px || anchors.bobber.reflection_reference_px;
+    const contact = candidateFishing.water_contact_reference_px || anchors.bobber.water_contact_reference_px;
+    const ripple = candidateFishing.ripple_bbox_reference_px || anchors.ripple.bbox_reference_px;
     const bobberVisibleHeight = contact[1] - bobber.y;
-    const linePoints = [anchors.line.start_reference_px, ...anchors.line.control_points_reference_px, anchors.line.end_reference_px]
+    const linePoints = candidateFishing.line
+      ? [candidateFishing.line.start_reference_px, ...candidateFishing.line.control_points_reference_px, candidateFishing.line.end_reference_px]
+      : [anchors.line.start_reference_px, ...anchors.line.control_points_reference_px, anchors.line.end_reference_px];
+    const localLinePoints = linePoints
       .map(([x, y]) => [x - line.x, y - line.y]);
-    const linePath = `M${linePoints[0][0]} ${linePoints[0][1]} C${linePoints[1][0]} ${linePoints[1][1]} ${linePoints[2][0]} ${linePoints[2][1]} ${linePoints[3][0]} ${linePoints[3][1]}`;
+    const linePath = `M${localLinePoints[0][0]} ${localLinePoints[0][1]} C${localLinePoints[1][0]} ${localLinePoints[1][1]} ${localLinePoints[2][0]} ${localLinePoints[2][1]} ${localLinePoints[3][0]} ${localLinePoints[3][1]}`;
     const lineAppearance = anchors.line.appearance;
     const rodLocal = localBounds(rod, fishing);
     const lineLocal = localBounds(line, fishing);
@@ -485,6 +489,7 @@
     pageRoot.dataset.nativeRuntime = "NOT_VERIFIED";
     pageRoot.dataset.rippleCount = String(layers.rules.ripple_count);
     pageRoot.dataset.sceneTransform = JSON.stringify(transform);
+    pageRoot.dataset.fishingGeometryStatus = candidateFishing.status || "CANONICAL_ANCHORS";
     pageRoot.dataset.authorityGaps = String(AUTHORITY_GAPS.length);
     pageRoot.dataset.brandStatus = "BLOCKED_AUTHORITY_GAP";
     pageRoot.dataset.nativeFontStatus = "NOT_VERIFIED";
@@ -518,7 +523,7 @@
     canvas.dataset.responsiveRule = responsive.contract_revision;
     canvas.dataset.w2BindingSha256 = ctx.authority.binding_sha256;
     canvas.dataset.visualReferenceSha = loaded.FrozenReference.resource.verified.sha256;
-    canvas.dataset.layoutMetrics = JSON.stringify({ viewport: { width, height, unit: viewport.unit }, safe_insets_preview: { top: safeTop, bottom: safeBottom, start: safeLeft, end: 0, status: "BROWSER_REFERENCE_SCREENSHOT_ESTIMATE_NOT_NATIVE" }, font_scale: fontScale, scene_transform: transform, hero: heroBox, prompt: promptBox, prompt_font_size_sp: promptFontSize, prompt_line_height_sp: promptLineHeight, camera: cameraBox, album_top: albumTop, album_visual_offset: albumVisualOffset, album_touch_target: { width: albumTouchSize, height: albumTouchSize }, camera_bottom: cameraBox.y + cameraBox.height, ripple_count: layers.rules.ripple_count, visual_review: "REQUIRED", native_runtime: "NOT_VERIFIED" });
+    canvas.dataset.layoutMetrics = JSON.stringify({ viewport: { width, height, unit: viewport.unit }, safe_insets_preview: { top: safeTop, bottom: safeBottom, start: safeLeft, end: 0, status: "BROWSER_REFERENCE_SCREENSHOT_ESTIMATE_NOT_NATIVE" }, font_scale: fontScale, scene_transform: transform, hero: heroBox, prompt: promptBox, prompt_font_size_sp: promptFontSize, prompt_line_height_sp: promptLineHeight, camera: cameraBox, album_top: albumTop, album_visual_offset: albumVisualOffset, album_touch_target: { width: albumTouchSize, height: albumTouchSize }, camera_bottom: cameraBox.y + cameraBox.height, ripple_count: layers.rules.ripple_count, fishing_geometry: { status: candidateFishing.status || "CANONICAL_ANCHORS", bobber_center_reference_px: candidateFishing.bobber_center_reference_px || anchors.bobber.center_reference_px, water_contact_reference_px: contact, line_end_reference_px: candidateFishing.line?.end_reference_px || anchors.line.end_reference_px }, visual_review: "REQUIRED", native_runtime: "NOT_VERIFIED" });
     assert(canvas.querySelectorAll("#eh-Ripple").length === 1, "EMPTY_HOME_RIPPLE_DUPLICATE");
     assert(canvas.querySelectorAll("#eh-BobberBody").length === 1, "EMPTY_HOME_BOBBER_BODY_DUPLICATE");
     assert(Math.abs((337 + 0) - 337) < 0.001 && Math.abs(1180 + 4 - 1184) < 0.001, "EMPTY_HOME_ROD_LINE_ENDPOINT_GAP");
