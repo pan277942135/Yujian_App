@@ -9,6 +9,8 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
 import com.yujian.ai.ui.designsystem.components.YuJianCaptureButton
 import com.yujian.ai.ui.designsystem.components.YuJianCaptureButtonRasterAssets
 import com.yujian.ai.ui.designsystem.components.YuJianCaptureButtonRasterMotion
@@ -35,6 +37,8 @@ internal fun HomeCameraButton(
     visualSize: Dp? = null,
     touchTargetSize: Dp? = null,
 ) {
+    val context = LocalContext.current
+    val view = LocalView.current
     val active = emptyHomeMotionActive(
         running = motionState.running,
         reduceMotion = motionState.reduceMotion,
@@ -68,5 +72,7 @@ internal fun HomeCameraButton(
         visualSize = visualSize,
         touchTargetSize = touchTargetSize,
         visualModifier = Modifier.testTag("gemini-home-camera-art"),
+        frozenVisual = true,
+        onCaptureHaptic = { captureClickHaptic(context, view) },
     )
 }

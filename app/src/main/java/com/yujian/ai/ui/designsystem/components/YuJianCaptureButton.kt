@@ -3,6 +3,8 @@ package com.yujian.ai.ui.designsystem.components
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
+import androidx.compose.ui.res.painterResource
+import com.yujian.ai.R
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -74,6 +76,8 @@ fun YuJianCaptureButton(
     visualSize: Dp? = null,
     touchTargetSize: Dp? = null,
     visualModifier: Modifier = Modifier,
+    frozenVisual: Boolean = false,
+    onCaptureHaptic: (() -> Unit)? = null,
 ) {
     val haptic = rememberYuJianHaptic()
     val effectiveMotionEnabled = motionEnabled && !rememberYuJianReduceMotion()
@@ -110,7 +114,8 @@ fun YuJianCaptureButton(
                 role = Role.Button
             }
             .clickable(enabled = enabled) {
-                haptic.perform(YuJianHaptic.Feedback.LightImpact)
+                if (onCaptureHaptic != null) onCaptureHaptic()
+                else haptic.perform(YuJianHaptic.Feedback.LightImpact)
                 onClick()
             },
         contentAlignment = Alignment.Center,
@@ -127,7 +132,13 @@ fun YuJianCaptureButton(
                 .shadow(1.dp, CircleShape, clip = false),
             contentAlignment = Alignment.Center,
         ) {
-            if (rasterAssets != null) {
+            if (frozenVisual) {
+                Image(
+                    painter = painterResource(R.drawable.capture_button_main_v1),
+                    contentDescription = null,
+                    modifier = Modifier.fillMaxSize(),
+                )
+            } else if (rasterAssets != null) {
                 val glowAlpha = if (effectiveMotionEnabled) rasterMotion?.breathGlowAlpha ?: 0f else 0f
                 Image(
                     bitmap = rasterAssets.breathGlow,
