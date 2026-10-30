@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.material.icons.Icons
@@ -22,6 +23,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.Button
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -40,6 +42,7 @@ import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.RoundRect
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.unit.IntOffset
@@ -52,6 +55,7 @@ import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.text.style.TextAlign
 import com.yujian.ai.ai.FishInputAssessment
 import com.yujian.ai.BuildConfig
 import com.yujian.ai.ai.FishDetectionQualityGate
@@ -171,6 +175,8 @@ fun RecognitionProcessingScene(
     var subjectResult by remember(sceneKey) { mutableStateOf(FishSubjectResult(SubjectStatus.IDLE)) }
     var finishedResult by remember(sceneKey) { mutableStateOf<ProductionRecognitionResult?>(null) }
     var delivered by remember(sceneKey) { mutableStateOf(false) }
+    // The diagnostic package holds each real layer until the tester advances it.
+    var diagnosticStep by remember(sceneKey) { mutableStateOf(RecognitionDiagnosticStep.PHOTO) }
     var photoPresentedAtMs by remember(sceneKey) { mutableStateOf<Long?>(null) }
     var visualNowMs by remember(sceneKey) { mutableStateOf(0L) }
     val controller = remember(sceneKey) { RecognitionVisualStateController() }
@@ -207,8 +213,10 @@ fun RecognitionProcessingScene(
         val result = try {
             generator(selected, primary.box)
         } catch (cancellation: CancellationException) {
+            Log.i(LOG_TAG, "SLIMSAM_CANCEL session=${recognitionSessionId.orEmpty()} image=${selected.imageId} duration_ms=${recognitionMonotonicNowMs() - startedAtMs}")
             throw cancellation
-        } catch (_: Throwable) {
+        } catch (error: Throwable) {
+            Log.e(LOG_TAG, "SLIMSAM_ERROR session=${recognitionSessionId.orEmpty()} image=${selected.imageId}", error)
             null
         }
         currentCoroutineContext().ensureActive()
@@ -295,7 +303,10 @@ fun RecognitionProcessingScene(
         // Use the actually presented phase as the acceptance boundary. Calling
         // controller.current() here would advance the visual state from the
         // asynchronous SlimSAM coroutine and desynchronize the shared clock.
-        val maskAcceptancePhase = if (latestPhotoPresentedAtMs == null) {
+        val maskAcceptancePhase = if (BuildConfig.DEBUG) {
+            // Manual inspection must not close the mask window while the real model runs.
+            RecognitionPhase.OUTLINE
+        } else if (latestPhotoPresentedAtMs == null) {
             RecognitionPhase.CAPTURED
         } else {
             controller.presentedPhase()
@@ -493,7 +504,7 @@ fun RecognitionProcessingScene(
                     hasRealFishFocus = result.assessment.primary?.box != null,
                 )
             }
-        } else if (!delivered) {
+        } else if (!delivered && !BuildConfig.DEBUG) {
             delivered = true
             onFinished(result)
         }
@@ -510,6 +521,7 @@ fun RecognitionProcessingScene(
                     // Use one uptime-based source for phase events and all visual layers.
                     visualNowMs = recognitionMonotonicNowMs()
                 }
+                if (BuildConfig.DEBUG) continue
                 val nextVisualPhase = controller.current(visualNowMs, trustedMask = trustedSubjectMask)
                 if (nextVisualPhase != visualPhase) {
                     val stageElapsed = controller.phaseElapsedMs(visualNowMs)
@@ -548,7 +560,19 @@ fun RecognitionProcessingScene(
         }
     }
 
-    val rendered = phaseOverride ?: visualPhase
+    val manualDiagnostic = BuildConfig.DEBUG && phaseOverride == null && visualClockOverrideMs == null
+    val rendered = phaseOverride ?: if (manualDiagnostic) diagnosticStep.phase else visualPhase
+    LaunchedEffect(sceneKey, diagnosticStep, photoPresentedAtMs) {
+        if (manualDiagnostic && photoPresentedAtMs != null) Log.i(
+            LOG_TAG,
+            "DIAGNOSTIC_PRESENT session=${recognitionSessionId.orEmpty()} attempt=${recognitionAttemptId.orEmpty()} " +
+                "image=${image?.imageId.orEmpty()} sha256=${image?.photoSha256.orEmpty()} " +
+                "step=${diagnosticStep.ordinal + 1}/7 name=${diagnosticStep.name} layer=${diagnosticStep.layerMode} " +
+                "phase=$rendered optical_reference_ms=${diagnosticStep.opticalReferenceMs} " +
+                "detector_box=${assessment?.primary?.box} slimsam_status=${subjectResult.status} " +
+                "mask_trusted=$trustedSubjectMask contours=${contour.size} uptime_ms=${recognitionMonotonicNowMs()}",
+        )
+    }
     val visualClockMs = visualClockOverrideMs ?: visualNowMs
     val deterministicMotion = visualClockOverrideMs != null
     val motionPolicy = motionPolicyOverride ?: rememberRecognitionMotionPolicy()
@@ -558,6 +582,7 @@ fun RecognitionProcessingScene(
         photoPresentedAtMs?.let { (visualClockMs - it).coerceAtLeast(0L) } ?: 0L
     }
     val opticalReferenceElapsedMs = when {
+        manualDiagnostic -> diagnosticStep.opticalReferenceMs
         deterministicMotion || phaseOverride != null -> visualClockMs.coerceAtLeast(0L)
         photoPresentedAtMs == null -> 0L
         else -> controller.opticalReferenceElapsedMs(visualNowMs, trustedSubjectMask)
@@ -576,14 +601,14 @@ fun RecognitionProcessingScene(
             )
         }
     }
-    val maskContourRevealProgress = recognitionMaskContourRevealProgress(
+    val maskContourRevealProgress = if (manualDiagnostic && diagnosticStep >= RecognitionDiagnosticStep.CONTOUR) 1f else recognitionMaskContourRevealProgress(
         processingElapsedMs = processingElapsedMs,
         revealStartedAtMs = trustedMaskRevealStartedAtMs,
         reduceMotion = motionPolicy.reduceMotion,
     )
     val photoShockwave = photoShockwaveTransform(processingElapsedMs, motionPolicy.reduceMotion)
     val phaseElapsedMs = when {
-        phaseOverride != null -> 1_000L
+        phaseOverride != null || manualDiagnostic -> 1_000L
         photoPresentedAtMs == null -> 0L
         else -> controller.phaseElapsedMs(visualNowMs)
     }
@@ -725,6 +750,7 @@ fun RecognitionProcessingScene(
             photoSha256 = image.photoSha256,
             maskRevealProgress = maskContourRevealProgress,
             trustedMask = trustedSubjectMask,
+            diagnosticStep = if (manualDiagnostic) diagnosticStep else null,
             onProcessingPhotoSnapshot = { transform, bounds, photoBounds, cornerRadiusPx ->
                 onProcessingPhotoSnapshot(
                     RecognitionProcessingPhotoSnapshot(
@@ -767,9 +793,53 @@ fun RecognitionProcessingScene(
             reduceMotion = motionPolicy.reduceMotion,
             visualClockMs = visualClockMs,
         )
+        if (manualDiagnostic) {
+            Button(
+                enabled = photoPresentedAtMs != null,
+                onClick = {
+                    val current = diagnosticStep
+                    val next = current.next()
+                    val now = recognitionMonotonicNowMs()
+                    Log.i(LOG_TAG, "DIAGNOSTIC_STEP session=${recognitionSessionId.orEmpty()} attempt=${recognitionAttemptId.orEmpty()} image=${image?.imageId.orEmpty()} sha256=${image?.photoSha256.orEmpty()} step=${current.ordinal + 1}->${next?.ordinal?.plus(1) ?: 7} label=${current.name} next=${next?.name ?: "RESULT"} uptime_ms=$now real_phase=$realPhase result_ready=${finishedResult?.ready == true} detector_box=${assessment?.primary?.box} slimsam_status=${subjectResult.status} mask_trusted=$trustedSubjectMask contours=${contour.size} layer=${current.layerMode} optical_reference_ms=${current.opticalReferenceMs}")
+                    when {
+                        next != null -> diagnosticStep = next
+                        finishedResult != null && !delivered -> {
+                            delivered = true
+                            Log.i(LOG_TAG, "DIAGNOSTIC_RESULT_HANDOFF session=${recognitionSessionId.orEmpty()} image=${image?.imageId.orEmpty()} mask_trusted=$trustedSubjectMask uptime_ms=$now")
+                            onFinished(requireNotNull(finishedResult))
+                        }
+                        else -> Log.i(LOG_TAG, "DIAGNOSTIC_RESULT_WAIT session=${recognitionSessionId.orEmpty()} image=${image?.imageId.orEmpty()} uptime_ms=$now")
+                    }
+                },
+                modifier = Modifier.align(Alignment.BottomCenter)
+                    .padding(bottom = safeInsets.calculateBottomPadding() + 28.dp)
+                    .padding(horizontal = 24.dp).fillMaxWidth(),
+            ) {
+                Text(
+                    text = "${diagnosticStep.ordinal + 1}/7 ${diagnosticStep.title} · ${if (diagnosticStep == RecognitionDiagnosticStep.GOLD) "查看结果" else "下一步效果"}",
+                    textAlign = TextAlign.Center,
+                )
+            }
+        }
     }
 }
 private enum class RecognitionLayerMode { PHOTO_ONLY, PHOTO_GLES, PHOTO_GLES_AMBIENT, FULL }
+
+private enum class RecognitionDiagnosticStep(
+    val title: String,
+    val layerMode: RecognitionLayerMode,
+    val phase: RecognitionPhase,
+    val opticalReferenceMs: Long,
+) {
+    PHOTO("清晰原图", RecognitionLayerMode.PHOTO_ONLY, RecognitionPhase.CAPTURED, 0L),
+    GLES("水光", RecognitionLayerMode.PHOTO_GLES, RecognitionPhase.DETECTING, 950L),
+    AMBIENT("环境光", RecognitionLayerMode.PHOTO_GLES_AMBIENT, RecognitionPhase.DETECTING, 1200L),
+    DETECTOR("真实鱼框", RecognitionLayerMode.PHOTO_ONLY, RecognitionPhase.DETECTING, 950L),
+    CONTOUR("真实轮廓", RecognitionLayerMode.PHOTO_ONLY, RecognitionPhase.OUTLINE, 1200L),
+    GOLD("金光峰值", RecognitionLayerMode.PHOTO_ONLY, RecognitionPhase.CLASSIFYING, 2050L);
+
+    fun next(): RecognitionDiagnosticStep? = entries.getOrNull(ordinal + 1)
+}
 
 @Composable
 private fun RecognitionPhoto(
@@ -807,6 +877,7 @@ private fun RecognitionPhoto(
     photoSha256: String,
     maskRevealProgress: Float,
     trustedMask: Boolean,
+    diagnosticStep: RecognitionDiagnosticStep?,
 ) {
     val transform = remember(photoFlowPlan, photoEntryProgress) {
         interpolateRecognitionPhotoTransform(
@@ -828,7 +899,8 @@ private fun RecognitionPhoto(
         pivotFractionY = photoFlowPlan.targetPhotoRect.center.y.div(viewportHeightPx).coerceIn(0f, 1f),
     )
     val photoClipPath = remember { Path() }
-    var layerMode by remember(bitmap, motionSessionKey) { mutableStateOf(RecognitionLayerMode.FULL) }
+    var selectedLayerMode by remember(bitmap, motionSessionKey) { mutableStateOf(RecognitionLayerMode.FULL) }
+    val layerMode = diagnosticStep?.layerMode ?: selectedLayerMode
     var viewportBounds by remember(bitmap, motionSessionKey) { mutableStateOf<RecognitionRevealWindowRect?>(null) }
 
     LaunchedEffect(photoEntryProgress, viewportBounds, photoFlowPlan.targetTransform) {
@@ -937,7 +1009,7 @@ private fun RecognitionPhoto(
                 photoTransform = transform,
                 includeEdgeField = true,
             )
-            if (!BuildConfig.DEBUG || layerMode == RecognitionLayerMode.FULL) RecognitionFishFocus(
+            if ((!BuildConfig.DEBUG || layerMode == RecognitionLayerMode.FULL || diagnosticStep == RecognitionDiagnosticStep.CONTOUR || diagnosticStep == RecognitionDiagnosticStep.GOLD) && diagnosticStep != RecognitionDiagnosticStep.DETECTOR) RecognitionFishFocus(
                 phase,
                 focusBox,
                 subjectBitmap,
@@ -952,14 +1024,27 @@ private fun RecognitionPhoto(
                 lowPerformance = motionPolicy.lowPerformance,
                 trustedMask = trustedMask,
             )
+            if (diagnosticStep == RecognitionDiagnosticStep.DETECTOR && focusBox != null) Canvas(Modifier.fillMaxSize()) {
+                val topLeft = transform.mapNormalized(focusBox.x1, focusBox.y1)
+                val bottomRight = transform.mapNormalized(focusBox.x2, focusBox.y2)
+                drawRect(
+                    color = Color(0xFFFFC975),
+                    topLeft = androidx.compose.ui.geometry.Offset(topLeft.x, topLeft.y),
+                    size = androidx.compose.ui.geometry.Size(
+                        (bottomRight.x - topLeft.x).coerceAtLeast(1f),
+                        (bottomRight.y - topLeft.y).coerceAtLeast(1f),
+                    ),
+                    style = Stroke(width = 3.dp.toPx()),
+                )
+            }
         }
-        if (BuildConfig.DEBUG) Text(
+        if (BuildConfig.DEBUG && diagnosticStep == null) Text(
             text = layerMode.name,
             color = Color.White,
             modifier = Modifier.align(Alignment.TopEnd).background(Color(0xAA10252A))
                 .clickable {
-                    layerMode = RecognitionLayerMode.entries[(layerMode.ordinal + 1) % RecognitionLayerMode.entries.size]
-                    Log.i(LOG_TAG, "COMPOSITOR_MODE=$layerMode")
+                    selectedLayerMode = RecognitionLayerMode.entries[(selectedLayerMode.ordinal + 1) % RecognitionLayerMode.entries.size]
+                    Log.i(LOG_TAG, "COMPOSITOR_MODE=$selectedLayerMode")
                 }.padding(8.dp),
         )
     }

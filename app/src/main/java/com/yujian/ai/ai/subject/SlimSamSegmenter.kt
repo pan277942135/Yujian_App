@@ -71,16 +71,26 @@ class SlimSamSegmenter(
 
     @Synchronized
     private fun getVisionSession(): OrtSession {
-        visionSession?.let { return it }
+        visionSession?.let { Log.i(TAG, "SLIMSAM_MODEL_REUSE model=vision"); return it }
+        val started = SystemClock.uptimeMillis()
+        Log.i(TAG, "SLIMSAM_MODEL_LOAD_START model=vision")
         val bytes = readAssetBytes(VISION_ENCODER_MODEL)
-        return environment.createSession(bytes, sessionOptions).also { visionSession = it }
+        return environment.createSession(bytes, sessionOptions).also {
+            visionSession = it
+            Log.i(TAG, "SLIMSAM_MODEL_LOAD_END model=vision bytes=${bytes.size} duration_ms=${SystemClock.uptimeMillis() - started}")
+        }
     }
 
     @Synchronized
     private fun getDecoderSession(): OrtSession {
-        decoderSession?.let { return it }
+        decoderSession?.let { Log.i(TAG, "SLIMSAM_MODEL_REUSE model=decoder"); return it }
+        val started = SystemClock.uptimeMillis()
+        Log.i(TAG, "SLIMSAM_MODEL_LOAD_START model=decoder")
         val bytes = readAssetBytes(MASK_DECODER_MODEL)
-        return environment.createSession(bytes, sessionOptions).also { decoderSession = it }
+        return environment.createSession(bytes, sessionOptions).also {
+            decoderSession = it
+            Log.i(TAG, "SLIMSAM_MODEL_LOAD_END model=decoder bytes=${bytes.size} duration_ms=${SystemClock.uptimeMillis() - started}")
+        }
     }
 
     suspend fun segment(source: Bitmap, detectorBbox: NormalizedFishBox): FishSubjectResult =
@@ -106,10 +116,14 @@ class SlimSamSegmenter(
             val roiW = max(1, roiX2 - roiX1)
             val roiH = max(1, roiY2 - roiY1)
             val expectedMaskSize = roiW * roiH
+            Log.i(TAG, "SLIMSAM_ROI source=${origW}x$origH roi=${roiW}x$roiH bbox=$detectorBbox uptime_ms=${SystemClock.uptimeMillis()}")
 
             try {
                 // 2. Ensure Vision Encoder embeddings for this photo are computed
+                val encoderStarted = SystemClock.uptimeMillis()
+                Log.i(TAG, "SLIMSAM_ENCODER_START uptime_ms=$encoderStarted")
                 val embedding = getOrComputeImageEmbedding(source)
+                Log.i(TAG, "SLIMSAM_ENCODER_END duration_ms=${SystemClock.uptimeMillis() - encoderStarted}")
 
                 // 3. Generate prompts from detector BBOX
                 val absBx1 = detectorBbox.x1.coerceIn(0f, 1f) * origW
@@ -123,7 +137,10 @@ class SlimSamSegmenter(
                 )
 
                 // 4. Run Mask Decoder
+                val decoderStarted = SystemClock.uptimeMillis()
+                Log.i(TAG, "SLIMSAM_DECODER_START uptime_ms=$decoderStarted")
                 val (bestMask256, iouScore) = runMaskDecoder(embedding, points)
+                Log.i(TAG, "SLIMSAM_DECODER_END duration_ms=${SystemClock.uptimeMillis() - decoderStarted} iou=$iouScore")
 
                 // 5. Bilinearly sample 256x256 logits into the ROI mask
                 val rawConfidence = FloatArray(expectedMaskSize)
@@ -147,6 +164,7 @@ class SlimSamSegmenter(
                 val quality = FishSubjectQualityGate.assess(cleanConfidence, roiW, roiH)
                 val foregroundCount = cleanConfidence.count { it >= FishSubjectQualityGate.MASK_THRESHOLD }
                 val areaRatio = foregroundCount.toFloat() / expectedMaskSize
+                Log.i(TAG, "SLIMSAM_QUALITY quality=$quality area_ratio=$areaRatio roi=${roiW}x$roiH iou=$iouScore uptime_ms=${SystemClock.uptimeMillis()}")
 
                 if (quality == FishSubjectQuality.INVALID) {
                     return@withContext failed(
