@@ -11,6 +11,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
+import androidx.camera.core.ZoomState
 import androidx.camera.view.CameraController
 import androidx.camera.view.LifecycleCameraController
 import androidx.camera.view.PreviewView
@@ -128,6 +129,7 @@ import com.yujian.ai.ui.identify.shouldShowRecognitionFirstCaptureGuide
 import kotlinx.coroutines.launch
 import java.io.File
 import java.util.UUID
+import java.util.Locale
 
 private const val CameraPermissionHint = "相机权限未开启，你仍然可以从相册选择照片"
 private const val CameraUnavailableHint = "相机暂不可用，请重试或从相册选择照片"
@@ -185,6 +187,7 @@ fun IdentifyScreen(
     var cameraBound by remember { mutableStateOf(false) }
     var imageCaptureReady by remember { mutableStateOf(false) }
     var previewStreaming by remember { mutableStateOf(false) }
+    var zoomRatio by remember { mutableStateOf(1f) }
     val captureHandoffActive = CaptureNavigationTransition.active.value && !autoOpenGallery
     var captureTarget by remember { mutableStateOf(Offset.Unspecified) }
     var captureRootOrigin by remember { mutableStateOf(Offset.Zero) }
@@ -232,7 +235,16 @@ fun IdentifyScreen(
         LifecycleCameraController(context).apply {
             cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
             setEnabledUseCases(CameraController.IMAGE_CAPTURE)
+            setPinchToZoomEnabled(true)
         }
+    }
+
+    DisposableEffect(cameraController, lifecycleOwner) {
+        val observer = Observer<ZoomState> { state ->
+            zoomRatio = state?.zoomRatio ?: 1f
+        }
+        cameraController.zoomState.observe(lifecycleOwner, observer)
+        onDispose { cameraController.zoomState.removeObserver(observer) }
     }
 
     fun imageCaptureInstanceReady(): Boolean = imageCaptureReady && runCatching {
@@ -814,7 +826,7 @@ fun IdentifyScreen(
             ) {
                 Icon(Icons.Default.ZoomIn, contentDescription = null, tint = Color.White, modifier = Modifier.size(18.dp))
                 Spacer(Modifier.size(4.dp))
-                Text("1.0x", color = Color.White, fontSize = 14.sp)
+                Text(String.format(Locale.US, "%.1fx", zoomRatio), color = Color.White, fontSize = 14.sp)
             }
             Text(
                 "可双指缩放，尽量拍清鱼头、鱼尾与鱼身轮廓",
