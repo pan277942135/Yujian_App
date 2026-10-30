@@ -7,6 +7,10 @@ import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.core.tween
+import com.yujian.ai.ui.home.CaptureNavigationTransition
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -457,7 +461,9 @@ fun YujianApp() {
                         onFieldEdited = { if (authError != null) authError = null },
                     )
                 }
-                composable("home") {
+                composable("home", exitTransition = {
+                    if (CaptureNavigationTransition.active.value) fadeOut(tween(360, delayMillis = 140)) else ExitTransition.None
+                }) {
                     val active = session
                     // The Home state is derived only from fish records. Login,
                     // loading, and server statistics never select Empty/Normal.
@@ -619,7 +625,7 @@ fun YujianApp() {
                         type = NavType.BoolType
                         defaultValue = false
                     }),
-                    enterTransition = { EnterTransition.None },
+                    enterTransition = { if (CaptureNavigationTransition.active.value) fadeIn(tween(360, delayMillis = 140)) else EnterTransition.None },
                     exitTransition = { ExitTransition.None },
                     popEnterTransition = { EnterTransition.None },
                     popExitTransition = { ExitTransition.None },
