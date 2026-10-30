@@ -400,6 +400,13 @@ fun RecognitionResultScreen(
         revealGeometryReady = revealGeometry != null,
         reduceMotion = revealMotionPolicy.reduceMotion,
     )
+    var geometryWaitExpired by remember(revealHandoff?.key) { mutableStateOf(false) }
+    LaunchedEffect(revealHandoff?.key, revealStartReady) {
+        if (revealHandoff?.eligibility == RecognitionRevealEligibility.FULL_REVEAL && !revealStartReady) {
+            delay(350L)
+            geometryWaitExpired = true
+        }
+    }
     val latestRevealKey = rememberUpdatedState(revealHandoff?.key)
     val latestImageId = rememberUpdatedState(image?.imageId)
     val latestRevealFinished = rememberUpdatedState(onRevealFinished)
@@ -586,6 +593,8 @@ fun RecognitionResultScreen(
             val handoff = revealHandoff
             val frameImageId = image?.imageId
             if (revealElapsedOverrideMs == null &&
+                (handoff?.eligibility != RecognitionRevealEligibility.FULL_REVEAL ||
+                    revealStartReady || geometryWaitExpired) &&
                 resultFirstFrameCallbackPosted.compareAndSet(false, true)
             ) {
                 resultFrameHandler.post {
