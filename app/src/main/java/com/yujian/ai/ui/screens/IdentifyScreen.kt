@@ -742,6 +742,10 @@ fun IdentifyScreen(
         CaptureFrostedBackground(Modifier.fillMaxSize())
         val panelHeight = 166.dp + safeInsets.calculateBottomPadding()
         val cameraAreaHeight = maxHeight - panelHeight
+        val guideHeight = maxHeight * .36f
+        val guideTop = ((safeInsets.calculateTopPadding() + 80.dp + cameraAreaHeight - 110.dp - guideHeight) / 2f)
+            .coerceAtLeast(safeInsets.calculateTopPadding() + 72.dp)
+        val panelControlBottom = safeInsets.calculateBottomPadding() + 45.dp
         val layoutDirection = LocalLayoutDirection.current
         val captureControlsPlacement = remember(maxWidth, safeInsets, layoutDirection) {
             RecognitionCameraControlsGeometry.resolve(
@@ -818,7 +822,7 @@ fun IdentifyScreen(
                 Spacer(Modifier.height(7.dp))
                 Text("请将整条鱼放在取景框中央", color = Color.White.copy(alpha = .82f), fontSize = 14.sp)
             }
-            Canvas(Modifier.align(Alignment.TopCenter).offset(y = maxHeight * .17f).fillMaxWidth(.88f).height(maxHeight * .36f)) {
+            Canvas(Modifier.align(Alignment.TopCenter).offset(y = guideTop).fillMaxWidth(.88f).height(guideHeight)) {
                 val line = Path()
                 val x = size.width; val y = size.height
                 val arm = 48.dp.toPx(); val radius = 18.dp.toPx()
@@ -889,7 +893,7 @@ fun IdentifyScreen(
             Box(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
-                    .padding(bottom = captureControlsPlacement.bottomInsetDp.dp)
+                    .padding(bottom = panelControlBottom)
                     .size(76.dp)
                     .clickable(
                         enabled = cameraCanCapture() &&
@@ -915,7 +919,7 @@ fun IdentifyScreen(
                     .align(Alignment.BottomStart)
                     .padding(
                         start = 27.dp,
-                        bottom = captureControlsPlacement.bottomInsetDp.dp,
+                        bottom = panelControlBottom,
                     )
                     .size(66.dp)
                     .clickable(role = Role.Button, onClick = ::openGallery)
@@ -946,7 +950,7 @@ fun IdentifyScreen(
                     .align(Alignment.BottomEnd)
                     .padding(
                         end = 27.dp,
-                        bottom = captureControlsPlacement.bottomInsetDp.dp,
+                        bottom = panelControlBottom,
                     )
                     .size(66.dp)
                     .clickable(role = Role.Button) {

@@ -19,6 +19,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -27,6 +29,8 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import java.util.Locale
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlin.math.abs
 import kotlin.math.cos
 import kotlin.math.sin
@@ -43,14 +47,16 @@ internal fun CaptureZoomDial(
     modifier: Modifier = Modifier,
 ) {
     val range = (maximum - minimum).coerceAtLeast(0f)
+    val latestRatio = rememberUpdatedState(current)
+    val scope = rememberCoroutineScope()
     Column(modifier, horizontalAlignment = Alignment.CenterHorizontally) {
         AnimatedVisibility(expanded) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(String.format(Locale.US, "%.1fx", current), color = Color.White, fontSize = 20.sp)
-                Canvas(Modifier.width(260.dp).height(75.dp).pointerInput(minimum, maximum, current) {
+                Canvas(Modifier.width(260.dp).height(75.dp).pointerInput(minimum, maximum) {
                     detectDragGestures { change, drag ->
                         change.consume()
-                        if (range > 0f) onZoom((current + drag.x / size.width * range).coerceIn(minimum, maximum))
+                        if (range > 0f) onZoom((latestRatio.value + drag.x / size.width * range).coerceIn(minimum, maximum))
                     }
                 }) {
                     val cx = size.width / 2f
@@ -67,20 +73,23 @@ internal fun CaptureZoomDial(
                             if (selected) 2.dp.toPx() else 1.dp.toPx())
                     }
                 }
-                Text("向下滑动收起", color = Color.White.copy(alpha = .65f), fontSize = 11.sp,
-                    modifier = Modifier.pointerInput(Unit) { detectVerticalDragGestures { change, delta ->
-                        change.consume(); if (delta > 8f) onExpandedChange(false)
-                    } })
+                Text("左右滑动精细变焦", color = Color.White.copy(alpha = .65f), fontSize = 11.sp)
                 Spacer(Modifier.height(6.dp))
             }
         }
         Row(
             Modifier.background(Color(0xB3111A1D), RoundedCornerShape(28.dp))
                 .border(1.dp, Color.White.copy(alpha = .24f), RoundedCornerShape(28.dp))
-                .pointerInput(expanded) { detectVerticalDragGestures { change, delta ->
-                    change.consume(); if (delta < -8f) onExpandedChange(true)
-                    if (delta > 8f) onExpandedChange(false)
-                } }.padding(horizontal = 6.dp, vertical = 5.dp),
+                .pointerInput(minimum, maximum) {
+                    detectDragGestures(
+                        onDragStart = { onExpandedChange(true) },
+                        onDragEnd = { scope.launch { delay(650); onExpandedChange(false) } },
+                        onDragCancel = { onExpandedChange(false) },
+                    ) { change, drag ->
+                        change.consume()
+                        if (range > 0f) onZoom((latestRatio.value + drag.x / size.width * range).coerceIn(minimum, maximum))
+                    }
+                }.padding(horizontal = 6.dp, vertical = 5.dp),
             horizontalArrangement = Arrangement.spacedBy(3.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
