@@ -4,6 +4,8 @@ import android.graphics.Bitmap
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.boundsInWindow
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.unit.Dp
@@ -49,8 +51,11 @@ internal fun HomeCameraButton(
     val sceneTime = if (active) motionState.sceneTimeSeconds else 0f
     val sweep = cameraSweepState(sceneTime)
     YuJianCaptureButton(
-        onClick = onClick,
-        modifier = modifier,
+        onClick = { CaptureNavigationTransition.begin(); onClick() },
+        modifier = modifier.onGloballyPositioned {
+            val bounds = it.boundsInWindow()
+            CaptureNavigationTransition.homeCenter = bounds.center
+        },
         enabled = enabled,
         motionEnabled = active,
         rasterAssets = rasterAssets,
