@@ -27,6 +27,18 @@ data class SelectedImage(
     val sourceOrientationDegrees: Int = 0,
     /** SHA-256 of the normalized persisted JPEG, computed once when the photo is stored. */
     val photoSha256: String = "",
+    /** Measured presentation geometry only; never used as model/crop input. */
+    val capturePresentation: CapturePresentation? = null,
+)
+
+data class CapturePresentation(
+    val previewLeft: Float,
+    val previewTop: Float,
+    val previewRight: Float,
+    val previewBottom: Float,
+    val shutterCenterX: Float,
+    val shutterCenterY: Float,
+    val shutterSizePx: Float,
 )
 
 data class RecognitionCandidate(

@@ -10,6 +10,10 @@ data class RecognitionPhotoFlowPlan(
     val targetTransform: RecognitionImageTransform,
     val targetPhotoRect: DisplayRect,
     val statusPanelTopPx: Float,
+    val statusCenterXPx: Float,
+    val orbCenterYPx: Float,
+    val orbCoreSizePx: Float,
+    val landscape: Boolean,
 )
 
 /** One-source photo entry geometry for both CameraX and Photo Picker sessions. */
@@ -24,49 +28,69 @@ fun planRecognitionPhotoFlow(
     safeRightPx: Float,
     safeBottomPx: Float,
     cameraSource: Boolean,
+    cameraPreviewRect: DisplayRect? = null,
+    diagnosticReservePx: Float = 0f,
 ): RecognitionPhotoFlowPlan {
     require(sourceWidth > 0 && sourceHeight > 0)
     require(viewportWidthPx > 0f && viewportHeightPx > 0f && density > 0f)
 
-    val margin = 16f * density
+    val compact = viewportHeightPx / density < 600f || viewportWidthPx / density < 360f
+    val landscape = viewportWidthPx > viewportHeightPx
+    val margin = (if (compact) 12f else 16f) * density
     val contentLeft = maxOf(safeLeftPx, margin)
     val contentRight = minOf(viewportWidthPx - safeRightPx, viewportWidthPx - margin)
     val contentWidth = (contentRight - contentLeft).coerceAtLeast(1f)
     val contentTop = safeTopPx
-    val contentBottom = (viewportHeightPx - safeBottomPx).coerceAtLeast(contentTop + 1f)
+    val contentBottom = (viewportHeightPx - safeBottomPx - diagnosticReservePx).coerceAtLeast(contentTop + 1f)
     val contentHeight = contentBottom - contentTop
-
-    val navHeight = 52f * density
-    val navGap = 16f * density
-    val panelHeight = 88f * density
-    val panelGap = 20f * density
+    val navHeight = (if (compact) 44f else 48f) * density
+    val navGap = (if (compact) 12f else 16f) * density
+    val panelGap = (if (compact) 20f else 28f) * density
+    val orbCore = (if (compact) 68f else 80f) * density
+    val orbOuter = orbCore + 28f * density
+    val statusHeight = 22f * density
+    val statusGap = 12f * density
+    val bottomGap = (if (compact) 16f else 24f) * density
     val targetTop = contentTop + navHeight + navGap
-    val maxTargetHeight = minOf(
-        contentHeight * .52f,
-        (contentBottom - targetTop - panelGap - panelHeight).coerceAtLeast(1f),
-    )
-    val targetLocal = calculateRecognitionImageTransform(
-        containerWidth = contentWidth,
+    val photoWidth = if (landscape) (contentWidth * .62f - 12f * density).coerceAtLeast(1f) else contentWidth
+    val maxTargetHeight = if (landscape) {
+        minOf(contentHeight * .72f, contentBottom - targetTop - 12f * density).coerceAtLeast(1f)
+    } else {
+        minOf(contentHeight * (if (compact) .50f else .56f),
+            contentBottom - targetTop - panelGap - statusHeight - statusGap - orbOuter - bottomGap).coerceAtLeast(1f)
+    }
+    val fitted = calculateRecognitionImageTransform(
+        containerWidth = photoWidth,
         containerHeight = maxTargetHeight,
         imageWidth = sourceWidth,
         imageHeight = sourceHeight,
         contentScaleMode = RecognitionContentScaleMode.FIT,
     )
-    val target = targetLocal.inViewport(
+    // Top-anchor the actual contained photo; status follows its real bottom, not an empty letterbox.
+    val target = fitted.copy(translationY = 0f).inViewport(
         left = contentLeft,
         top = targetTop,
         viewportWidth = viewportWidthPx,
         viewportHeight = viewportHeightPx,
     )
+    val statusCenterX = if (landscape) {
+        contentLeft + contentWidth * .81f
+    } else viewportWidthPx * .5f
+    val statusTop = if (landscape) {
+        targetTop + maxTargetHeight * .5f - (statusHeight + statusGap + orbOuter) * .5f
+    } else target.photoContentRect.bottom + panelGap
+    val orbCenterY = statusTop + statusHeight + statusGap + orbOuter * .5f
 
     val start = if (cameraSource) {
+        val preview = cameraPreviewRect?.takeIf { it.width > 0f && it.height > 0f }
+            ?: DisplayRect(0f, 0f, viewportWidthPx, viewportHeightPx)
         calculateRecognitionImageTransform(
-            containerWidth = viewportWidthPx,
-            containerHeight = viewportHeightPx,
+            containerWidth = preview.width,
+            containerHeight = preview.height,
             imageWidth = sourceWidth,
             imageHeight = sourceHeight,
             contentScaleMode = RecognitionContentScaleMode.CROP,
-        )
+        ).inViewport(preview.left, preview.top, viewportWidthPx, viewportHeightPx)
     } else {
         val startWidth = contentWidth * .88f
         val startHeight = contentHeight * .68f
@@ -91,7 +115,11 @@ fun planRecognitionPhotoFlow(
         startTransform = start,
         targetTransform = target,
         targetPhotoRect = target.photoContentRect,
-        statusPanelTopPx = targetTop + maxTargetHeight + panelGap,
+        statusPanelTopPx = statusTop,
+        statusCenterXPx = statusCenterX,
+        orbCenterYPx = orbCenterY,
+        orbCoreSizePx = orbCore,
+        landscape = landscape,
     )
 }
 
