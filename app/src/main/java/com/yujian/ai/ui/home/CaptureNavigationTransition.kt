@@ -7,6 +7,6 @@ import androidx.compose.ui.geometry.Offset
 object CaptureNavigationTransition {
     var homeCenter = Offset.Unspecified
     val active = mutableStateOf(false)
-    fun begin() { active.value = homeCenter.isSpecified }
+    fun begin() { active.value = homeCenter.x.isFinite() && homeCenter.y.isFinite() }
     fun finish() { active.value = false }
 }

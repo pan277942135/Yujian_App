@@ -60,7 +60,6 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.foundation.layout.offset
 import kotlinx.coroutines.delay
 import com.yujian.ai.ui.home.CaptureNavigationTransition
-import com.yujian.ai.R
 import kotlin.math.roundToInt
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.ui.Alignment
@@ -185,7 +184,7 @@ fun IdentifyScreen(
     var captureRootOrigin by remember { mutableStateOf(Offset.Zero) }
     var captureHandoffArrived by remember { mutableStateOf(false) }
     val captureMotion by animateFloatAsState(
-        targetValue = if (captureTarget.isSpecified) 1f else 0f,
+        targetValue = if (captureTarget.x.isFinite()) 1f else 0f,
         animationSpec = tween(420), label = "capture-shared-position",
     )
     val orbit = rememberInfiniteTransition(label = "capture-brand-orbit")
@@ -195,7 +194,7 @@ fun IdentifyScreen(
         label = "capture-orbit-degrees",
     )
     LaunchedEffect(captureHandoffActive, captureTarget, previewStreaming, hasCameraPermission) {
-        if (captureHandoffActive && captureTarget.isSpecified) {
+        if (captureHandoffActive && captureTarget.x.isFinite()) {
             delay(520)
             if (previewStreaming || !hasCameraPermission) {
                 captureHandoffArrived = true
@@ -999,9 +998,9 @@ fun IdentifyScreen(
             }
         }
 
-        if (captureHandoffActive && captureTarget.isSpecified && handoffImage == null) {
+        if (captureHandoffActive && captureTarget.x.isFinite() && handoffImage == null) {
             val start = CaptureNavigationTransition.homeCenter
-                .takeIf { it.isSpecified } ?: captureTarget
+                .takeIf { it.x.isFinite() } ?: captureTarget
             val center = Offset(
                 start.x + (captureTarget.x - start.x) * captureMotion - captureRootOrigin.x,
                 start.y + (captureTarget.y - start.y) * captureMotion - captureRootOrigin.y,
