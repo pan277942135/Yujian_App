@@ -97,12 +97,15 @@ private fun OrbRibbons(coreSize: Dp, time: Float, opening: Float, settle: Float,
             val steps = if (low) 48 else 96
             val path = Path()
             var connected = false
+            // Open, irregular light trails: no complete mechanical orbit rings.
+            val sweep = listOf(1.62f, 1.48f, 1.16f)[layer] * PI.toFloat()
             for (i in 0..steps) {
-                val a = i * 2f * PI.toFloat() / steps + phase
+                val a = i * sweep / steps + phase
                 val z = sin(a)
                 val isFront = z >= 0f
-                val x = cos(a) * r
-                val y = sin(a) * r * (.33f + .03f * sin(time * .9f + layer))
+                val ripple = 1f + .035f * sin(a * 3f + time * .8f + layer)
+                val x = cos(a) * r * ripple
+                val y = sin(a) * r * ripple * (.33f + .03f * sin(time * .9f + layer))
                 val point = center + Offset(x * cos(tilt) - y * sin(tilt), x * sin(tilt) + y * cos(tilt))
                 if (isFront == front) {
                     if (!connected) path.moveTo(point.x, point.y) else path.lineTo(point.x, point.y)
