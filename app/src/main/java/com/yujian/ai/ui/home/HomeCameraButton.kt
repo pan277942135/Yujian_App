@@ -3,6 +3,11 @@ package com.yujian.ai.ui.home
 import android.graphics.Bitmap
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
@@ -37,6 +42,13 @@ internal fun HomeCameraButton(
     visualSize: Dp? = null,
     touchTargetSize: Dp? = null,
 ) {
+    val transitionActive = CaptureNavigationTransition.active.value
+    var clickElapsedMs by remember { mutableLongStateOf(0L) }
+    LaunchedEffect(transitionActive) {
+        while (transitionActive) {
+            withFrameNanos { clickElapsedMs = CaptureNavigationTransition.elapsedMs() }
+        }
+    }
     val context = LocalContext.current
     val view = LocalView.current
     val active = emptyHomeMotionActive(
@@ -74,5 +86,6 @@ internal fun HomeCameraButton(
         visualModifier = Modifier.testTag("gemini-home-camera-art"),
         frozenVisual = true,
         onCaptureHaptic = { captureClickHaptic(context, view) },
+        clickElapsedMs = if (transitionActive) clickElapsedMs else null,
     )
 }

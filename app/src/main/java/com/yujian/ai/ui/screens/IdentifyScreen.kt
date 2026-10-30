@@ -43,6 +43,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.LinearEasing
@@ -197,6 +198,7 @@ fun IdentifyScreen(
     var captureTarget by remember { mutableStateOf(Offset.Unspecified) }
     var captureRootOrigin by remember { mutableStateOf(Offset.Zero) }
     var captureHandoffArrived by remember { mutableStateOf(false) }
+    var captureClickElapsedMs by remember { mutableStateOf(0L) }
     val captureProgress = remember { Animatable(0f) }
     val orbit = rememberInfiniteTransition(label = "capture-brand-orbit")
     val orbitDegrees by orbit.animateFloat(
@@ -208,7 +210,19 @@ fun IdentifyScreen(
         if (captureHandoffActive && captureTarget.x.isFinite()) {
             captureProgress.animateTo(1f, tween(620, easing = LinearEasing))
             captureHandoffArrived = true
-            CaptureNavigationTransition.finish()
+        }
+    }
+    LaunchedEffect(captureHandoffActive) {
+        while (captureHandoffActive) {
+            withFrameNanos { captureClickElapsedMs = CaptureNavigationTransition.elapsedMs() }
+        }
+    }
+    LaunchedEffect(captureHandoffActive, captureHandoffArrived, cameraBound, previewStreaming) {
+        if (captureHandoffActive && captureHandoffArrived && cameraBound && previewStreaming) {
+            // STREAMING must remain true after the 1000 ms minimum and a stable window.
+            delay((1000L - CaptureNavigationTransition.elapsedMs()).coerceAtLeast(0L))
+            delay(180L)
+            if (cameraBound && previewStreaming) CaptureNavigationTransition.finish()
         }
     }
     var firstCaptureGuideVisible by rememberSaveable(autoOpenGallery, captureResetToken) {
@@ -906,7 +920,7 @@ fun IdentifyScreen(
                     enabled = cameraCanCapture() &&
                         RecognitionCameraCaptureContract.canStartCapture(captureState),
                     contentDescription = "拍摄",
-                    motionEnabled = false,
+                    motionEnabled = true,
                     visualSize = 76.dp,
                     touchTargetSize = 76.dp,
                     frozenVisual = true,
@@ -1095,10 +1109,10 @@ fun IdentifyScreen(
                 Image(
                     painter = painterResource(R.drawable.capture_button_main_v1),
                     contentDescription = null,
-                    modifier = Modifier.size(76.dp).alpha(((1f - captureProgress.value) * 3f).coerceIn(0f, 1f)),
+                    modifier = Modifier.size(76.dp),
                     contentScale = ContentScale.Fit,
                 )
-                CaptureTransitionLightField(captureProgress.value, Modifier.fillMaxSize())
+                CaptureTransitionLightField((captureClickElapsedMs % 1000L) / 1000f, Modifier.fillMaxSize())
             }
         }
         if (firstCaptureGuideVisible) {
