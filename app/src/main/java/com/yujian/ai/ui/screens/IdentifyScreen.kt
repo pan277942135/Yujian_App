@@ -68,6 +68,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
@@ -94,6 +96,9 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.filled.Collections
+import androidx.compose.material.icons.filled.FlashOn
+import androidx.compose.material.icons.filled.FlashOff
+import androidx.compose.material.icons.filled.ZoomIn
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -219,6 +224,7 @@ fun IdentifyScreen(
     var cameraRetry by remember { mutableStateOf(0) }
     var previewView by remember { mutableStateOf<PreviewView?>(null) }
     var showTestSamplesSheet by remember { mutableStateOf(false) }
+    var torchEnabled by remember { mutableStateOf(false) }
     // This local handoff is set before navigation, so CameraX and its controls
     // cannot share a frame with the Recognition processing scene.
     var handoffImage by remember { mutableStateOf<SelectedImage?>(null) }
@@ -776,31 +782,46 @@ fun IdentifyScreen(
                 )
             }
             Column(
-                Modifier.align(Alignment.TopCenter).padding(top = safeInsets.calculateTopPadding() + 12.dp),
+                Modifier.align(Alignment.TopCenter).padding(top = safeInsets.calculateTopPadding() + 2.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                Text("拍照识鱼", color = Color.White, fontSize = 24.sp)
+                Text("拍照识鱼", color = Color.White, fontSize = 25.sp, fontWeight = FontWeight.Medium)
+                Spacer(Modifier.height(7.dp))
                 Text("请将整条鱼放在取景框中央", color = Color.White.copy(alpha = .82f), fontSize = 14.sp)
             }
-            Canvas(Modifier.align(Alignment.Center).fillMaxWidth(.68f).height(264.dp)) {
-                val w = 2.5.dp.toPx()
-                val c = Color.White.copy(alpha = .92f)
-                val d = 42.dp.toPx()
-                val r = 17.dp.toPx()
+            Canvas(Modifier.align(Alignment.Center).offset(y = -(maxHeight * .17f)).fillMaxWidth(.88f).height(maxHeight * .36f)) {
+                val line = Path()
                 val x = size.width; val y = size.height
-                val corners = listOf(
-                    Pair(Offset(0f, d), Offset(0f, r)), Pair(Offset(d, 0f), Offset(r, 0f)),
-                    Pair(Offset(x - d, 0f), Offset(x - r, 0f)), Pair(Offset(x, d), Offset(x, r)),
-                    Pair(Offset(0f, y - d), Offset(0f, y - r)), Pair(Offset(d, y), Offset(r, y)),
-                    Pair(Offset(x - d, y), Offset(x - r, y)), Pair(Offset(x, y - d), Offset(x, y - r)),
-                )
-                corners.forEach { (a, b) -> drawLine(c, a, b, w, cap = androidx.compose.ui.graphics.StrokeCap.Round) }
+                val arm = 48.dp.toPx(); val radius = 18.dp.toPx()
+                line.moveTo(arm, 0f); line.lineTo(radius, 0f)
+                line.quadraticTo(0f, 0f, 0f, radius); line.lineTo(0f, arm)
+                line.moveTo(x - arm, 0f); line.lineTo(x - radius, 0f)
+                line.quadraticTo(x, 0f, x, radius); line.lineTo(x, arm)
+                line.moveTo(0f, y - arm); line.lineTo(0f, y - radius)
+                line.quadraticTo(0f, y, radius, y); line.lineTo(arm, y)
+                line.moveTo(x, y - arm); line.lineTo(x, y - radius)
+                line.quadraticTo(x, y, x - radius, y); line.lineTo(x - arm, y)
+                drawPath(line, Color(0xFFD8B36A).copy(alpha = .13f), style = Stroke(10.dp.toPx(), cap = androidx.compose.ui.graphics.StrokeCap.Round))
+                drawPath(line, Color.White.copy(alpha = .95f), style = Stroke(2.8.dp.toPx(), cap = androidx.compose.ui.graphics.StrokeCap.Round))
+            }
+            Row(
+                Modifier.align(Alignment.BottomCenter)
+                    .padding(bottom = safeInsets.calculateBottomPadding() + 218.dp)
+                    .clip(RoundedCornerShape(28.dp))
+                    .border(1.dp, Color.White.copy(alpha = .24f), RoundedCornerShape(28.dp))
+                    .background(Color.Black.copy(alpha = .32f))
+                    .padding(horizontal = 11.dp, vertical = 6.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Icon(Icons.Default.ZoomIn, contentDescription = null, tint = Color.White, modifier = Modifier.size(18.dp))
+                Spacer(Modifier.size(4.dp))
+                Text("1.0x", color = Color.White, fontSize = 14.sp)
             }
             Text(
                 "可双指缩放，尽量拍清鱼头、鱼尾与鱼身轮廓",
                 color = Color.White.copy(alpha = .86f), fontSize = 12.sp,
                 modifier = Modifier.align(Alignment.BottomCenter)
-                    .padding(bottom = safeInsets.calculateBottomPadding() + 162.dp),
+                    .padding(bottom = safeInsets.calculateBottomPadding() + 190.dp),
             )
         }
 
@@ -836,6 +857,13 @@ fun IdentifyScreen(
 
         if (handoffImage == null && !galleryBusy && captureState != RecognitionCameraCaptureState.CAPTURING && !firstCaptureGuideVisible) {
             Box(
+                Modifier.align(Alignment.BottomCenter).fillMaxWidth()
+                    .height(145.dp + safeInsets.calculateBottomPadding())
+                    .clip(RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp))
+                    .background(Brush.verticalGradient(listOf(Color(0xD93C464C), Color(0xF3121619))))
+                    .border(1.dp, Color.White.copy(alpha = .28f), RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp)),
+            )
+            Box(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .padding(bottom = captureControlsPlacement.bottomInsetDp.dp)
@@ -863,33 +891,30 @@ fun IdentifyScreen(
                 modifier = Modifier
                     .align(Alignment.BottomStart)
                     .padding(
-                        start = captureControlsPlacement.galleryEndInsetDp.dp,
+                        start = 27.dp,
                         bottom = captureControlsPlacement.bottomInsetDp.dp,
                     )
-                    .size(54.dp)
-                    .clip(CircleShape)
-                    .background(Color.Black.copy(alpha = 0.5f))
-                    .border(1.5.dp, Color.White.copy(alpha = 0.75f), CircleShape)
-                    .clickable(role = Role.Button) { showTestSamplesSheet = true }
-                    .testTag("recognition-camera-test-samples")
-                    .semantics { contentDescription = "测试鱼获图库" },
+                    .size(66.dp)
+                    .clickable(role = Role.Button, onClick = ::openGallery)
+                    .testTag("recognition-camera-gallery")
+                    .semantics { contentDescription = "从相册选择" },
                 contentAlignment = Alignment.Center,
             ) {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center,
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.Collections,
+                    Image(
+                        painter = painterResource(R.drawable.home_morning_bg),
                         contentDescription = null,
-                        tint = Color.White,
-                        modifier = Modifier.size(20.dp),
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.size(46.dp).clip(RoundedCornerShape(9.dp))
+                            .border(1.dp, Color.White.copy(alpha = .6f), RoundedCornerShape(9.dp)),
                     )
                     Text(
-                        text = "测试图",
+                        text = "相册",
                         color = Color.White,
-                        fontSize = 10.sp,
-                        fontWeight = FontWeight.Bold,
+                        fontSize = 12.sp,
                     )
                 }
             }
@@ -897,21 +922,28 @@ fun IdentifyScreen(
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
                     .padding(
-                        end = captureControlsPlacement.galleryEndInsetDp.dp,
+                        end = 27.dp,
                         bottom = captureControlsPlacement.bottomInsetDp.dp,
                     )
-                    .size(54.dp)
-                    .clip(CircleShape)
-                    .clickable(role = Role.Button, onClick = ::openGallery)
-                    .testTag("recognition-camera-gallery")
-                    .semantics { contentDescription = "从相册选择" },
+                    .size(66.dp)
+                    .clickable(role = Role.Button) {
+                        val next = !torchEnabled
+                        cameraController.enableTorch(next)
+                        torchEnabled = next
+                    }
+                    .testTag("recognition-camera-flash")
+                    .semantics { contentDescription = "闪光灯" },
                 contentAlignment = Alignment.Center,
             ) {
-                Image(
-                    painter = painterResource(R.drawable.album_icon_v12),
-                    contentDescription = null,
-                    modifier = Modifier.size(30.dp),
-                )
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Box(Modifier.size(46.dp).clip(CircleShape)
+                        .border(1.dp, Color.White.copy(alpha = .48f), CircleShape)
+                        .background(Color.White.copy(alpha = .08f)), contentAlignment = Alignment.Center) {
+                        Icon(if (torchEnabled) Icons.Default.FlashOn else Icons.Default.FlashOff,
+                            contentDescription = null, tint = Color.White, modifier = Modifier.size(26.dp))
+                    }
+                    Text("闪光灯", color = Color.White, fontSize = 12.sp)
+                }
             }
         }
 
