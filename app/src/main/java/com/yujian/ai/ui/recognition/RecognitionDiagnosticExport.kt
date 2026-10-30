@@ -8,7 +8,6 @@ import com.yujian.ai.BuildConfig
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
-import java.util.concurrent.TimeUnit
 
 /** Debug-only, local export. Includes no image bytes and never uploads anything. */
 object RecognitionDiagnosticExport {
@@ -27,8 +26,10 @@ object RecognitionDiagnosticExport {
                         raw.outputStream().use { output -> input.copyTo(output) }
                     }
                 }.apply { isDaemon = true; start() }
-                if (!process.waitFor(3, TimeUnit.SECONDS)) {
-                    process.destroyForcibly()
+                val waiter = Thread { process.waitFor() }.apply { isDaemon = true; start() }
+                waiter.join(3000)
+                if (waiter.isAlive) {
+                    process.destroy()
                     status = "LOGCAT_TIMEOUT"
                 } else if (process.exitValue() != 0) status = "LOGCAT_EXIT_${process.exitValue()}"
                 drain.join(500)
