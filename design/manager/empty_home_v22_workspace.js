@@ -4,7 +4,7 @@
 
   const PAGE_ID = "home_empty_v2";
   const MAPPING_PATH = "design/manager/empty_home_v22_component_mapping.json";
-  const MAPPING_SHA256 = "6bdaac2716d8d0331470901cd937f1f283e43ea429f3d475d4cdf37effccf2a6";
+  const MAPPING_SHA256 = "3280e108176ca7c460b41c4d814ca80cbe569541e307b281029ee605646efabb";
   const CONTRACT_ROOT = "design/pages/home/empty_home/shared/contracts/";
   const RUNTIME_MANIFEST_SHA256 = "aaae66f44473f497bffcd2f98165942f5442d8df141e2932ba336ad35065f4e8";
   const SHARED_ADAPTIVE_INSET_DP = { COMPACT: 16, STANDARD: 20, MEDIUM: 22, WIDE: 24 };

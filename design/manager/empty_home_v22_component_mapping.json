@@ -32,9 +32,9 @@
     },
     "composition_reference_bounds_px": {
       "x": 0,
-    "y": 1086,
+      "y": 1086,
       "width": 660,
-    "height": 300
+      "height": 300
     },
     "bobber_bbox_reference_px": {
       "x": 519,
@@ -71,9 +71,9 @@
     "line": {
       "bbox_reference_px": {
         "x": 337,
-      "y": 1086,
+        "y": 1086,
         "width": 194,
-      "height": 109
+        "height": 109
       },
       "start_reference_px": [
         337,
@@ -82,21 +82,21 @@
       "control_points_reference_px": [
         [
           390,
-        1184
+          1184
         ],
         [
           531,
-        1086
+          1086
         ]
       ],
-    "bobber_attachment_reference_px": [
-      531,
-      1098
-    ],
-    "bobber_top_attachment_reference_px": [
-      531,
-      1122
-    ],
+      "bobber_attachment_reference_px": [
+        531,
+        1098
+      ],
+      "bobber_top_attachment_reference_px": [
+        531,
+        1122
+      ],
       "end_reference_px": [
         531,
         1195
@@ -105,7 +105,7 @@
     "preserved": [
       "rod geometry and attachment start",
       "bobber asset dimensions and vertical orientation",
-    "smooth line curve from the fixed rod tip and a vertical, centered bobber attachment",
+      "smooth line curve from the fixed rod tip and a vertical, centered bobber attachment",
       "responsive sceneTransform and viewport/font-scale behavior",
       "all non-fishing page geometry"
     ],
