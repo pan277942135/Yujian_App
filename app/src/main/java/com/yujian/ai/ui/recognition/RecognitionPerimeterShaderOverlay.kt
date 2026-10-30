@@ -559,7 +559,7 @@ private class RecognitionPerimeterGlRenderer : GLSurfaceView.Renderer {
             void screenOver(inout vec3 dstPremul, inout float dstAlpha, vec3 sourceColor, float sourceAlpha) {
                 float a = clamp(sourceAlpha, 0.0, 1.0);
                 vec3 sourcePremul = sourceColor * a;
-                dstPremul = sourcePremul + dstPremul * (1.0 - sourcePremul);
+                dstPremul = sourcePremul + dstPremul * (1.0 - a);
                 dstAlpha = a + dstAlpha * (1.0 - a);
             }
 
@@ -676,6 +676,10 @@ private class RecognitionPerimeterGlRenderer : GLSurfaceView.Renderer {
                     overlayBlend(perimeterComposite, accentColor),
                     effectiveAccentAlpha
                 );
+                // A transparent surface cannot apply a darkening Overlay blend to
+                // the Compose-owned photo. Emit only positive light deltas; otherwise
+                // source-over alpha attenuates the original photo into a dark patch.
+                outputColor = max(outputColor, base);
                 vec3 outputSource = (outputColor - base * (1.0 - outputAlpha)) / max(outputAlpha, 0.0001);
                 gl_FragColor = vec4(clamp(outputSource, 0.0, 1.0) * outputAlpha, outputAlpha);
             }
