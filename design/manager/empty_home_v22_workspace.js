@@ -4,7 +4,7 @@
 
   const PAGE_ID = "home_empty_v2";
   const MAPPING_PATH = "design/manager/empty_home_v22_component_mapping.json";
-  const MAPPING_SHA256 = "533bccdb5a7164a8f3e57c32753bfd48f4977ccff2d89620666116719b77b912";
+  const MAPPING_SHA256 = "6bdaac2716d8d0331470901cd937f1f283e43ea429f3d475d4cdf37effccf2a6";
   const CONTRACT_ROOT = "design/pages/home/empty_home/shared/contracts/";
   const RUNTIME_MANIFEST_SHA256 = "aaae66f44473f497bffcd2f98165942f5442d8df141e2932ba336ad35065f4e8";
   const SHARED_ADAPTIVE_INSET_DP = { COMPACT: 16, STANDARD: 20, MEDIUM: 22, WIDE: 24 };
@@ -387,7 +387,13 @@
       : [anchors.line.start_reference_px, ...anchors.line.control_points_reference_px, anchors.line.end_reference_px];
     const localLinePoints = linePoints
       .map(([x, y]) => [x - line.x, y - line.y]);
-    const linePath = `M${localLinePoints[0][0]} ${localLinePoints[0][1]} C${localLinePoints[1][0]} ${localLinePoints[1][1]} ${localLinePoints[2][0]} ${localLinePoints[2][1]} ${localLinePoints[3][0]} ${localLinePoints[3][1]}`;
+    const lineAttachment = candidateFishing.line?.bobber_attachment_reference_px;
+    const bobberTopAttachment = candidateFishing.line?.bobber_top_attachment_reference_px;
+    const localAttachment = lineAttachment && [lineAttachment[0] - line.x, lineAttachment[1] - line.y];
+    const localBobberTopAttachment = bobberTopAttachment && [bobberTopAttachment[0] - line.x, bobberTopAttachment[1] - line.y];
+    const linePath = localAttachment && localBobberTopAttachment
+      ? `M${localLinePoints[0][0]} ${localLinePoints[0][1]} C${localLinePoints[1][0]} ${localLinePoints[1][1]} ${localLinePoints[2][0]} ${localLinePoints[2][1]} ${localAttachment[0]} ${localAttachment[1]} L${localBobberTopAttachment[0]} ${localBobberTopAttachment[1]} L${localLinePoints[3][0]} ${localLinePoints[3][1]}`
+      : `M${localLinePoints[0][0]} ${localLinePoints[0][1]} C${localLinePoints[1][0]} ${localLinePoints[1][1]} ${localLinePoints[2][0]} ${localLinePoints[2][1]} ${localLinePoints[3][0]} ${localLinePoints[3][1]}`;
     const lineAppearance = anchors.line.appearance;
     const rodLocal = localBounds(rod, fishing);
     const lineLocal = localBounds(line, fishing);
@@ -445,7 +451,7 @@
           </div>
           <div id="eh-FishingComposition" data-workspace-rendered-node="FishingComposition" class="eh-v22-fishing-composition" style="left:${fishing.x}px;top:${fishing.y}px;width:${fishing.width}px;height:${fishing.height}px;z-index:3">
             <img id="eh-FishingRod" data-workspace-rendered-node="FishingRod" data-resource-status="${html(loaded.FishingRod.resource.status)}" data-asset-id="${html(loaded.FishingRod.resource.asset.asset_id)}" data-sha256="${html(loaded.FishingRod.resource.verified.sha256)}" data-source-path="${html(loaded.FishingRod.resource.asset.source_path)}" alt="" src="${html(loaded.FishingRod.resource.objectUrl)}" style="position:absolute;left:${rodLocal.x}px;top:${rodLocal.y}px;width:${rodLocal.width}px;height:${rodLocal.height}px;object-fit:fill;pointer-events:none">
-            <svg id="eh-FishingLine" data-workspace-rendered-node="FishingLine" class="eh-v22-fishing-line" style="left:${lineLocal.x}px;top:${lineLocal.y}px;width:${lineLocal.width}px;height:${lineLocal.height}px" viewBox="0 0 ${line.width} ${line.height}" aria-hidden="true"><path d="${linePath}" fill="none" stroke="${html(lineAppearance.stroke_color)}" stroke-opacity="${lineAppearance.alpha}" stroke-width="${lineAppearance.width_reference_px}" stroke-linecap="round"/></svg>
+            <svg id="eh-FishingLine" data-workspace-rendered-node="FishingLine" class="eh-v22-fishing-line" data-bobber-attachment-reference-px="${lineAttachment?.join(",") || ""}" data-bobber-top-attachment-reference-px="${bobberTopAttachment?.join(",") || ""}" data-line-end-reference-px="${candidateFishing.line?.end_reference_px?.join(",") || ""}" style="left:${lineLocal.x}px;top:${lineLocal.y}px;width:${lineLocal.width}px;height:${lineLocal.height}px" viewBox="0 0 ${line.width} ${line.height}" aria-hidden="true"><path d="${linePath}" fill="none" stroke="${html(lineAppearance.stroke_color)}" stroke-opacity="${lineAppearance.alpha}" stroke-width="${lineAppearance.width_reference_px}" stroke-linecap="round"/></svg>
             <img id="eh-BobberReflection" data-workspace-rendered-node="BobberReflection" data-resource-status="${html(loaded.BobberReflection.resource.status)}" data-asset-id="${html(loaded.BobberReflection.resource.asset.asset_id)}" data-sha256="${html(loaded.BobberReflection.resource.verified.sha256)}" data-source-path="${html(loaded.BobberReflection.resource.asset.source_path)}" alt="" src="${html(loaded.BobberReflection.resource.objectUrl)}" style="position:absolute;left:${reflectionLocal.x}px;top:${reflectionLocal.y}px;width:${reflectionLocal.width}px;height:${reflectionLocal.height}px;z-index:2;object-fit:fill;opacity:${reflectionAlpha};pointer-events:none">
             <span id="eh-WaterContact" data-workspace-rendered-node="WaterContact" class="eh-v22-water-contact" style="left:${contactLocal.x}px;top:${contactLocal.y}px" aria-hidden="true"></span>
             <img id="eh-Ripple" data-workspace-rendered-node="Ripple" data-resource-status="${html(loaded.Ripple.resource.status)}" data-asset-id="${html(loaded.Ripple.resource.asset.asset_id)}" data-sha256="${html(loaded.Ripple.resource.verified.sha256)}" data-source-path="${html(loaded.Ripple.resource.asset.source_path)}" alt="" src="${html(loaded.Ripple.resource.objectUrl)}" style="position:absolute;left:${rippleLocal.x}px;top:${rippleLocal.y}px;width:${rippleLocal.width}px;height:${rippleLocal.height}px;z-index:3;object-fit:fill;opacity:${staticRippleAlpha};pointer-events:none">

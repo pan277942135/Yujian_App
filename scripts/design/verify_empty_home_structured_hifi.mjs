@@ -575,6 +575,26 @@ async function main() {
         const lineLength=linePath?.getTotalLength()||0;
         const lineStart=linePath&&lineLength?pointToBoard(linePath.getPointAtLength(0)):null;
         const lineEnd=linePath&&lineLength?pointToBoard(linePath.getPointAtLength(lineLength)):null;
+        const parseReferencePoint=value=>value?value.split(",").map(Number):null;
+        const lineAttachmentRef=parseReferencePoint(lineSvg?.dataset.bobberAttachmentReferencePx);
+        const bobberTopAttachmentRef=parseReferencePoint(lineSvg?.dataset.bobberTopAttachmentReferencePx);
+        const lineEndRef=parseReferencePoint(lineSvg?.dataset.lineEndReferencePx);
+        const verticalTailLength=lineAttachmentRef&&bobberTopAttachmentRef&&lineEndRef
+          ? Math.abs(bobberTopAttachmentRef[1]-lineAttachmentRef[1])+Math.abs(lineEndRef[1]-bobberTopAttachmentRef[1]):null;
+        const lineAttachmentActual=linePath&&lineLength&&verticalTailLength!==null
+          ? pointToBoard(linePath.getPointAtLength(lineLength-verticalTailLength)):null;
+        const bobberTopAttachmentActual=linePath&&lineLength&&bobberTopAttachmentRef&&lineEndRef
+          ? pointToBoard(linePath.getPointAtLength(lineLength-Math.abs(lineEndRef[1]-bobberTopAttachmentRef[1]))):null;
+        const sceneTransform=JSON.parse(root.dataset.sceneTransform||"{}");
+        const lineAttachmentExpected=lineAttachmentRef?{x:sceneTransform.offsetX+lineAttachmentRef[0]*sceneTransform.scale,y:sceneTransform.offsetY+lineAttachmentRef[1]*sceneTransform.scale}:null;
+        const bobberTopAttachmentExpected=bobberTopAttachmentRef?{x:sceneTransform.offsetX+bobberTopAttachmentRef[0]*sceneTransform.scale,y:sceneTransform.offsetY+bobberTopAttachmentRef[1]*sceneTransform.scale}:null;
+        const lineAttachmentGap=lineAttachmentActual&&lineAttachmentExpected?Math.hypot(lineAttachmentActual.x-lineAttachmentExpected.x,lineAttachmentActual.y-lineAttachmentExpected.y):null;
+        const bobberTopAttachmentGap=bobberTopAttachmentActual&&bobber?Math.hypot(bobberTopAttachmentActual.x-(bobber.x+bobber.width/2),bobberTopAttachmentActual.y-bobber.y):null;
+        const verticalAttachment={reference_point_px:lineAttachmentRef,bobber_top_reference_point_px:bobberTopAttachmentRef,
+          measured_attachment_css_px:lineAttachmentActual,measured_bobber_top_css_px:bobberTopAttachmentActual,
+          segment_length_reference_px:lineAttachmentRef&&bobberTopAttachmentRef?Math.abs(bobberTopAttachmentRef[1]-lineAttachmentRef[1]):null,
+          x_alignment_reference_px:lineAttachmentRef&&bobberTopAttachmentRef?Math.abs(lineAttachmentRef[0]-bobberTopAttachmentRef[0]):null,
+          attachment_gap_css_px:lineAttachmentGap,bobber_top_gap_css_px:bobberTopAttachmentGap};
         const contactRect=document.querySelector("#eh-WaterContact")?.getBoundingClientRect();
         const contactPoint=contactRect?{x:contactRect.left-boardRect.left,y:contactRect.top-boardRect.top}:null;
         const lineEndContactGap=lineEnd&&contactPoint?Math.hypot(lineEnd.x-contactPoint.x,lineEnd.y-contactPoint.y):null;
@@ -636,7 +656,7 @@ async function main() {
         window.PageWorkspaceAdapters.selectLayer("HeroCopy");
         return {viewport:metrics.viewport,font_scale:metrics.font_scale,safe_area_preview:metrics.safe_insets_preview||null,scene_transform:metrics.scene_transform,profile_width_class:board.dataset.profileWidthClass,
           root_size:{width:root.getBoundingClientRect().width,height:root.getBoundingClientRect().height},overflow,overflow_diagnostics:textOverflowDiagnostics,ui_bounds:ui,
-          fishing:{rod:rod,line,bobber,contact,ripple,reflection,line_path_start:{x:lineStart?.x,y:lineStart?.y},line_path_end:{x:lineEnd?.x,y:lineEnd?.y},composition_outside_viewport:fishingOutside,line_end_contact_gap:lineEndContactGap,
+          fishing:{rod:rod,line,bobber,contact,ripple,reflection,line_path_start:{x:lineStart?.x,y:lineStart?.y},line_path_end:{x:lineEnd?.x,y:lineEnd?.y},vertical_attachment:verticalAttachment,composition_outside_viewport:fishingOutside,line_end_contact_gap:lineEndContactGap,
             bobber_contact_alignment:bobberContact,reflection_contact_gap:reflectionGap,ripple_contains_contact:rippleContainsContact,layer_order:layerOrder},
           icons:{chevron:byId.ChevronRight?.bounds||null,chevron_label:loginLabel,chevron_gap_css_px:loginLabel&&chevron?chevron.x-loginLabel.right:null,
             gallery:byId.GalleryIcon?.bounds||null,gallery_label:albumLabel,gallery_gap_css_px:albumLabel&&gallery?albumLabel.x-gallery.right:null,
@@ -710,6 +730,10 @@ async function main() {
       assert(caseEvidence.fishing.line_path_start&&Math.abs(caseEvidence.fishing.line_path_start.x-(caseEvidence.fishing.rod.x+337*caseEvidence.scene_transform.scale))<1.5,"measured SVG path start must align with the registered rod-tip point");
       assert(Math.abs(caseEvidence.fishing.line_path_start.y-(caseEvidence.fishing.rod.y+4*caseEvidence.scene_transform.scale))<1.5,"measured SVG path start must align with the registered rod-tip point");
       assert(caseEvidence.fishing.line_end_contact_gap<=5*caseEvidence.scene_transform.scale,`fishing line endpoint misses water-contact anchor at ${width}x${height}`);
+      assert(caseEvidence.fishing.vertical_attachment?.segment_length_reference_px>=20&&caseEvidence.fishing.vertical_attachment.x_alignment_reference_px<=0.01,
+        `bobber connection must include a vertical line segment at ${width}x${height}`);
+      assert(caseEvidence.fishing.vertical_attachment.attachment_gap_css_px<=1&&caseEvidence.fishing.vertical_attachment.bobber_top_gap_css_px<=1.5,
+        `vertical line segment must meet the rendered bobber centerline at ${width}x${height}`);
       assert(caseEvidence.fishing.bobber_contact_alignment.horizontal_inside&&caseEvidence.fishing.bobber_contact_alignment.vertical_gap<=1.5,`bobber does not meet water contact at ${width}x${height}`);
       assert(caseEvidence.fishing.reflection_contact_gap<=2*caseEvidence.scene_transform.scale,`bobber reflection is detached from water contact at ${width}x${height}`);
       assert(caseEvidence.fishing.ripple_contains_contact,`water ripple does not contain contact point at ${width}x${height}`);
@@ -796,7 +820,8 @@ async function main() {
         geometry_status:"USER_DIRECTED_CANDIDATE_DELTA_NOT_FROZEN",actual_vertical_gap_css_px:row.fishing.bobber_contact_alignment.vertical_gap,
         result:row.fishing.bobber_contact_alignment.horizontal_inside&&row.fishing.bobber_contact_alignment.vertical_gap<=1.5?"PASS":"FAIL"},
       fishing_line:{component_id:"FishingLine",bounds_css_px:row.fishing.line,path_start_css_px:row.fishing.line_path_start,path_end_css_px:row.fishing.line_path_end,
-        water_contact_gap_css_px:row.fishing.line_end_contact_gap,result:row.fishing.line_end_contact_gap<=5*row.scene_transform.scale?"PASS":"FAIL"},
+        vertical_attachment:row.fishing.vertical_attachment,water_contact_gap_css_px:row.fishing.line_end_contact_gap,
+        result:row.fishing.line_end_contact_gap<=5*row.scene_transform.scale&&row.fishing.vertical_attachment.attachment_gap_css_px<=1&&row.fishing.vertical_attachment.bobber_top_gap_css_px<=1.5?"PASS":"FAIL"},
       prompt:{component_id:"CapturePrompt",bounds_css_px:row.prompt_sizing.actual_bounds_css_px,parent_bounds_css_px:row.prompt_sizing.parent_bounds_css_px,
         text_bounds_css_px:row.prompt_sizing.text_bounds_css_px,font_scale:row.prompt_sizing.font_scale,line_height_css_px:row.prompt_sizing.line_height_css_px,
         width_rule:row.prompt_sizing.width_rule,wrap_rule:row.prompt_sizing.wrapping_rule,result:"PASS"} }));

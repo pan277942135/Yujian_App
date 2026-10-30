@@ -192,3 +192,11 @@ Next action: restore Login inside the existing shared Design Manager, retain all
 - PR #234 remains Draft/Open/Unmerged. Exact Main-sync workflows started on `2cbfcdd2fda84d9fcdd7700c1d40e1f5c24271fa`: Admission `40953507124`, W5 `40953507108`, Design Manager Pages `40953507120`, W1 `40953507145`, W4 `40953507107`, W6-A `40953507106`, Design Governance `40953507105`, and NH01 runtime `40953507095`; all were in progress at checkpoint time. These are not yet results.
 - Current work-state and project-state pointers are rebound to Main `0c245b86f8228107309d0135bdf819af255604be` and merge source `2cbfcdd2fda84d9fcdd7700c1d40e1f5c24271fa`. Exact Admission must pass again on the post-sync state checkpoint before any further Empty Home page edits. The brand authorization gap remains BLOCKED.
 - The independent shared-workbench architecture follow-up is tracked in issue #260; it remains outside PR #234.
+
+
+## 2026-10-30 — User-directed bobber line attachment refinement
+
+- Live Main is `c4e07fb02dbae946d40fe49573abc23bb45ee748`; the candidate is synchronized with it and remains isolated from Main.
+- Chromium evidence on `76be432033d24b443d67635a28afcd2da4a29fa2` placed the bobber at the user's red marker while preserving all other page geometry, but the line's visible run appeared nearly horizontal at 320×640. The line now curves from the unchanged rod tip and continues along the bobber centerline into its top; the water-contact endpoint remains aligned.
+- Bobber artwork, bbox, target center, water contact, ripple/reflection, CTA layout and touch-target contracts remain unchanged. The candidate mapping remains user-directed and unfrozen.
+- Exact admission, four-viewport × 1×/1.3× DOM/Inspector matrix, Pages build and isolated preview checks are pending on the next exact candidate SHA. No visual acceptance, freeze, Main merge or Android work is claimed.
