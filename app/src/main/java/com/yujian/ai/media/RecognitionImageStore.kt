@@ -69,6 +69,7 @@ object RecognitionImageStore {
     suspend fun normalizeCameraFileWithDetails(
         context: Context,
         file: File,
+        previewAspectRatio: Float? = null,
     ): CameraNormalizationResult = withContext(Dispatchers.IO) {
         require(file.exists() && file.length() > 0L) { "没有读取到拍照内容，请重新拍摄" }
 
@@ -83,7 +84,7 @@ object RecognitionImageStore {
         val options = BitmapFactory.Options().apply { inSampleSize = sample }
         val decoded = BitmapFactory.decodeFile(file.absolutePath, options)
             ?: error("拍照文件无法解析，请重新拍摄")
-        val selected = persistNormalized(context, decoded, rotation, "camera")
+        val selected = persistNormalized(context, decoded, rotation, "camera", previewAspectRatio)
         CameraNormalizationResult(
             selectedImage = selected,
             rotationDegrees = rotation,
@@ -120,23 +121,39 @@ object RecognitionImageStore {
         decoded: Bitmap,
         rotation: Int,
         source: String,
+        previewAspectRatio: Float? = null,
     ): SelectedImage {
         val oriented = if (rotation == 0) decoded else Bitmap.createBitmap(
             decoded, 0, 0, decoded.width, decoded.height,
             Matrix().apply { postRotate(rotation.toFloat()) }, true,
         )
 
+        // CameraX's controller aligns Preview and ImageCapture using the attached
+        // PreviewView ViewPort. The file output may still contain the full sensor
+        // buffer: apply the visible FILL_CENTER rectangle after EXIF orientation.
+        // Gallery input deliberately never receives this camera-only crop.
+        val visible = if (previewAspectRatio != null && previewAspectRatio.isFinite() && previewAspectRatio > 0f) {
+            val sourceRatio = oriented.width.toFloat() / oriented.height
+            if (sourceRatio > previewAspectRatio) {
+                val cropWidth = (oriented.height * previewAspectRatio).toInt().coerceIn(1, oriented.width)
+                Bitmap.createBitmap(oriented, (oriented.width - cropWidth) / 2, 0, cropWidth, oriented.height)
+            } else {
+                val cropHeight = (oriented.width / previewAspectRatio).toInt().coerceIn(1, oriented.height)
+                Bitmap.createBitmap(oriented, 0, (oriented.height - cropHeight) / 2, oriented.width, cropHeight)
+            }
+        } else oriented
+
         val dir = File(context.filesDir, "recognition_inputs").apply { mkdirs() }
         val normalized = File(dir, "input_${UUID.randomUUID()}.jpg")
         normalized.outputStream().use { output ->
-            check(oriented.compress(Bitmap.CompressFormat.JPEG, 92, output)) { "无法保存识别照片" }
+            check(visible.compress(Bitmap.CompressFormat.JPEG, 92, output)) { "无法保存识别照片" }
         }
         check(normalized.exists() && normalized.length() > 0L) { "无法保存识别照片" }
         val sha256 = MessageDigest.getInstance("SHA-256").digest(normalized.readBytes())
             .joinToString("") { "%02x".format(it) }
         return SelectedImage(
             filePath = normalized.absolutePath,
-            bitmap = oriented,
+            bitmap = visible,
             source = source,
             sourceOrientationDegrees = rotation,
             photoSha256 = sha256,
