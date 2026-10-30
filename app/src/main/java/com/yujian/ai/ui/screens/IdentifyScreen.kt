@@ -720,9 +720,10 @@ fun IdentifyScreen(
         // Keep the bound CameraX surface alive until the request has a terminal result.
     }
 
-    BoxWithConstraints(Modifier.fillMaxSize().background(Color.Black).onGloballyPositioned {
+    BoxWithConstraints(Modifier.fillMaxSize().onGloballyPositioned {
         captureRootOrigin = it.boundsInWindow().topLeft
     }) {
+        CaptureFrostedBackground(Modifier.fillMaxSize())
         val layoutDirection = LocalLayoutDirection.current
         val captureControlsPlacement = remember(maxWidth, safeInsets, layoutDirection) {
             RecognitionCameraControlsGeometry.resolve(
@@ -753,10 +754,7 @@ fun IdentifyScreen(
                 )
             }
         } else if (galleryBusy) {
-            // A neutral handoff frame prevents a stale CameraX frame or the
-            // previous SelectedImage from flashing while the new gallery
-            // image is normalized.
-            Box(Modifier.fillMaxSize().background(Color.Black))
+            // Keep the shared frosted base visible while the new gallery image is normalized.
         } else if (hasCameraPermission) {
             AndroidView(
                 factory = { context ->
