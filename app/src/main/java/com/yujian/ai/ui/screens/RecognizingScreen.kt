@@ -1,5 +1,6 @@
 package com.yujian.ai.ui.screens
 
+import android.app.Activity
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.view.Choreographer
@@ -7,10 +8,14 @@ import android.os.Handler
 import android.os.Looper
 import android.os.SystemClock
 import android.util.Log
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
@@ -31,6 +36,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.runtime.setValue
@@ -50,13 +56,23 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
+import androidx.core.view.WindowCompat
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.text.style.TextAlign
 import com.yujian.ai.ai.FishInputAssessment
+import com.yujian.ai.R
 import com.yujian.ai.BuildConfig
 import com.yujian.ai.ai.FishDetectionQualityGate
 import com.yujian.ai.ai.NormalizedFishBox
@@ -78,7 +94,8 @@ import com.yujian.ai.ui.recognition.RecognitionFishFocusLevel
 import com.yujian.ai.ui.recognition.RecognitionMotionPolicy
 import com.yujian.ai.ui.recognition.RecognitionMotionTraceSample
 import com.yujian.ai.ui.recognition.RecognitionPerimeterShaderOverlay
-import com.yujian.ai.ui.recognition.RecognitionStatusOverlay
+import com.yujian.ai.ui.recognition.ProcessingWaterOrb
+import com.yujian.ai.ui.recognition.processingOrbMotionFrame
 import com.yujian.ai.ui.recognition.RecognitionVisualStateController
 import com.yujian.ai.ui.recognition.RECOGNITION_MASK_CONTOUR_REVEAL_MS
 import com.yujian.ai.ui.recognition.recognitionMaskContourRevealProgress
@@ -94,6 +111,9 @@ import com.yujian.ai.ui.recognition.rememberRecognitionMotionPolicy
 import com.yujian.ai.ui.recognition.RecognitionPhotoFlowPlan
 import com.yujian.ai.ui.recognition.planRecognitionPhotoFlow
 import com.yujian.ai.ui.recognition.interpolateRecognitionPhotoTransform
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.tween
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.currentCoroutineContext
@@ -107,7 +127,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.math.roundToInt
 
 private const val OUTLINE_THRESHOLD = 36
-private const val PHOTO_ENTRY_DURATION_MS = 420L
+private const val PHOTO_ENTRY_DURATION_MS = 700L
 // Two-pixel sampling keeps the contour faithful to fins and tail. Rendering is
 // still bounded to three local path draws in RecognitionFishFocus.
 private const val OUTLINE_STRIDE = 2
@@ -153,6 +173,20 @@ fun RecognitionProcessingScene(
     recognitionSessionId: String? = null,
     recognitionAttemptId: String? = null,
 ) {
+    val motionPolicy = motionPolicyOverride ?: rememberRecognitionMotionPolicy()
+    val pageContext = LocalContext.current
+    val pageView = LocalView.current
+    DisposableEffect(pageView) {
+        val controller = (pageContext as? Activity)?.window?.let { WindowCompat.getInsetsController(it, pageView) }
+        val oldStatus = controller?.isAppearanceLightStatusBars
+        val oldNavigation = controller?.isAppearanceLightNavigationBars
+        controller?.isAppearanceLightStatusBars = true
+        controller?.isAppearanceLightNavigationBars = true
+        onDispose {
+            if (oldStatus != null) controller?.isAppearanceLightStatusBars = oldStatus
+            if (oldNavigation != null) controller?.isAppearanceLightNavigationBars = oldNavigation
+        }
+    }
     val phasePresentedCallback by rememberUpdatedState(onVisualPhasePresented)
     val sceneKey = remember(
         image?.imageId,
@@ -164,6 +198,13 @@ fun RecognitionProcessingScene(
     ) {
         "${image?.imageId.orEmpty()}|${image?.photoSha256.orEmpty()}|${recognitionSessionId.orEmpty()}|${recognitionAttemptId.orEmpty()}"
     }
+    var diagnosticEnabled by remember(sceneKey) { mutableStateOf(false) }
+    val manualDiagnostic = BuildConfig.DEBUG && diagnosticEnabled && phaseOverride == null && visualClockOverrideMs == null
+    val diagnosticModeState = rememberUpdatedState(manualDiagnostic)
+    val orbCompletion = remember(sceneKey) { Animatable(0f) }
+    val completionScope = rememberCoroutineScope()
+    var entranceElapsedMs by remember(sceneKey) { mutableStateOf(0L) }
+    var rootOrigin by remember(sceneKey) { mutableStateOf(Offset.Zero) }
     var realPhase by remember(sceneKey) { mutableStateOf(RecognitionPhase.CAPTURED) }
     var visualPhase by remember(sceneKey) { mutableStateOf(RecognitionPhase.CAPTURED) }
     var assessment by remember(sceneKey) { mutableStateOf<FishInputAssessment?>(null) }
@@ -303,7 +344,7 @@ fun RecognitionProcessingScene(
         // Use the actually presented phase as the acceptance boundary. Calling
         // controller.current() here would advance the visual state from the
         // asynchronous SlimSAM coroutine and desynchronize the shared clock.
-        val maskAcceptancePhase = if (BuildConfig.DEBUG) {
+        val maskAcceptancePhase = if (diagnosticModeState.value) {
             // Manual inspection must not close the mask window while the real model runs.
             RecognitionPhase.OUTLINE
         } else if (latestPhotoPresentedAtMs == null) {
@@ -504,8 +545,10 @@ fun RecognitionProcessingScene(
                     hasRealFishFocus = result.assessment.primary?.box != null,
                 )
             }
-        } else if (!delivered && !BuildConfig.DEBUG) {
+        } else if (!delivered && !diagnosticModeState.value) {
             delivered = true
+            while (latestPhotoPresentedAtMs == null && isActive) withFrameNanos { }
+            orbCompletion.animateTo(1f, tween(if (motionPolicy.reduceMotion) 0 else 280))
             onFinished(result)
         }
     }
@@ -521,7 +564,7 @@ fun RecognitionProcessingScene(
                     // Use one uptime-based source for phase events and all visual layers.
                     visualNowMs = recognitionMonotonicNowMs()
                 }
-                if (BuildConfig.DEBUG) continue
+                if (diagnosticModeState.value) continue
                 val nextVisualPhase = controller.current(visualNowMs, trustedMask = trustedSubjectMask)
                 if (nextVisualPhase != visualPhase) {
                     val stageElapsed = controller.phaseElapsedMs(visualNowMs)
@@ -547,6 +590,8 @@ fun RecognitionProcessingScene(
                     // RR09 starts from Result's first presented frame.
                     delivered = true
                     Log.i(LOG_TAG, "delivering RESULT_READY at monotonic=$visualNowMs")
+                    Log.i(LOG_TAG, "ORB_COMPLETION_START image=${image?.imageId} sha256=${image?.photoSha256}")
+                    orbCompletion.animateTo(1f, tween(if (motionPolicy.reduceMotion) 0 else 280))
                     onFinished(requireNotNull(finishedResult))
                     break
                 }
@@ -560,8 +605,7 @@ fun RecognitionProcessingScene(
         }
     }
 
-    val manualDiagnostic = BuildConfig.DEBUG && phaseOverride == null && visualClockOverrideMs == null
-    val rendered = phaseOverride ?: if (manualDiagnostic) diagnosticStep.phase else visualPhase
+    val rendered = phaseOverride ?: if (manualDiagnostic) diagnosticStep.phase else if (visualPhase == RecognitionPhase.RESULT) RecognitionPhase.CLASSIFYING else visualPhase
     LaunchedEffect(sceneKey, diagnosticStep, photoPresentedAtMs) {
         if (manualDiagnostic && photoPresentedAtMs != null) Log.i(
             LOG_TAG,
@@ -575,7 +619,26 @@ fun RecognitionProcessingScene(
     }
     val visualClockMs = visualClockOverrideMs ?: visualNowMs
     val deterministicMotion = visualClockOverrideMs != null
-    val motionPolicy = motionPolicyOverride ?: rememberRecognitionMotionPolicy()
+    LaunchedEffect(sceneKey, motionPolicy.reduceMotion) {
+        if (motionPolicy.reduceMotion || visualClockOverrideMs != null) {
+            entranceElapsedMs = 900L
+        } else {
+            val start = recognitionMonotonicNowMs()
+            while (isActive && entranceElapsedMs < 900L) withFrameNanos {
+                entranceElapsedMs = (recognitionMonotonicNowMs() - start).coerceAtMost(900L)
+            }
+        }
+    }
+    val orbStage = when {
+        entranceElapsedMs < 150L -> "BUTTON_DISSOLVE"
+        entranceElapsedMs < 350L -> "WATER_CORE_FORM"
+        entranceElapsedMs < 650L -> "RIBBON_OPEN"
+        entranceElapsedMs < 900L -> "ARRIVING"
+        else -> "UNDERSTANDING"
+    }
+    LaunchedEffect(sceneKey, orbStage) {
+        Log.i(LOG_TAG, "ORB_STAGE image=${image?.imageId} sha256=${image?.photoSha256} stage=$orbStage elapsed_ms=$entranceElapsedMs")
+    }
     val processingElapsedMs = if (deterministicMotion) {
         visualClockMs.coerceAtLeast(0L)
     } else {
@@ -608,7 +671,7 @@ fun RecognitionProcessingScene(
     )
     val photoShockwave = photoShockwaveTransform(processingElapsedMs, motionPolicy.reduceMotion)
     val phaseElapsedMs = when {
-        phaseOverride != null || manualDiagnostic -> 1_000L
+        phaseOverride != null || manualDiagnostic || visualPhase == RecognitionPhase.RESULT -> 1_000L
         photoPresentedAtMs == null -> 0L
         else -> controller.phaseElapsedMs(visualNowMs)
     }
@@ -659,7 +722,11 @@ fun RecognitionProcessingScene(
             )
         }
     }
-    BoxWithConstraints(Modifier.fillMaxSize().background(Color(0xFF102D35))) {
+    BoxWithConstraints(Modifier.fillMaxSize().background(Color(0xFFD6ECE5)).onGloballyPositioned {
+        rootOrigin = it.boundsInWindow().topLeft
+    }) {
+        Image(painterResource(R.drawable.processing_mint_background_v1), null,
+            Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
         val viewportWidthPx = with(density) { maxWidth.toPx() }.coerceAtLeast(1f)
         val viewportHeightPx = with(density) { maxHeight.toPx() }.coerceAtLeast(1f)
         val photoFlowPlan = remember(
@@ -668,9 +735,10 @@ fun RecognitionProcessingScene(
             image?.bitmap?.width,
             image?.bitmap?.height,
             image?.source,
+            image?.capturePresentation, rootOrigin, manualDiagnostic,
             viewportWidthPx,
             viewportHeightPx,
-            density.density,
+            density.density, density.fontScale,
             safeLeftPx,
             safeTopPx,
             safeRightPx,
@@ -688,12 +756,19 @@ fun RecognitionProcessingScene(
                     safeRightPx = safeRightPx,
                     safeBottomPx = safeBottomPx,
                     cameraSource = it.source.contains("camera", ignoreCase = true),
+                    cameraPreviewRect = it.capturePresentation?.let { capture ->
+                        com.yujian.ai.ui.identify.DisplayRect(capture.previewLeft - rootOrigin.x,
+                            capture.previewTop - rootOrigin.y, capture.previewRight - rootOrigin.x,
+                            capture.previewBottom - rootOrigin.y)
+                    },
+                    diagnosticReservePx = if (manualDiagnostic) 64f * density.density else 0f,
+                    fontScale = density.fontScale,
                 )
             }
         }
         LaunchedEffect(sceneKey, photoFlowPlan, skipPhotoEntry) {
             val plan = photoFlowPlan ?: return@LaunchedEffect
-            if (skipPhotoEntry) {
+            if (skipPhotoEntry || motionPolicy.reduceMotion) {
                 photoEntryProgress = 1f
                 return@LaunchedEffect
             }
@@ -719,8 +794,20 @@ fun RecognitionProcessingScene(
                     "duration_ms=${recognitionMonotonicNowMs() - startedAtMs}",
             )
         }
-        val statusPanelTop = with(density) {
-            (photoFlowPlan?.statusPanelTopPx ?: (safeTopPx + 68f * density.density)).toDp()
+        LaunchedEffect(sceneKey, photoFlowPlan) {
+            photoFlowPlan?.let { plan ->
+                Log.i(LOG_TAG, "PROCESSING_LAYOUT image=${image?.imageId} sha256=${image?.photoSha256} viewport=${viewportWidthPx}x${viewportHeightPx} landscape=${plan.landscape} start=${plan.startTransform.photoContentRect} target=${plan.targetPhotoRect} orb_center=${plan.statusCenterXPx},${plan.orbCenterYPx} orb_core=${plan.orbCoreSizePx}")
+            }
+        }
+        image?.capturePresentation?.let { capture ->
+            if (photoEntryProgress < 1f) Canvas(Modifier.fillMaxSize()) {
+                val panelTop = (capture.previewBottom - rootOrigin.y).coerceIn(0f, size.height)
+                drawRoundRect(
+                    brush = androidx.compose.ui.graphics.Brush.verticalGradient(
+                        listOf(Color(0xFF3C464C), Color(0xFF121619)), startY = panelTop, endY = size.height),
+                    topLeft = Offset(0f, panelTop), size = Size(size.width, size.height - panelTop),
+                    cornerRadius = CornerRadius(32.dp.toPx()), alpha = 1f - photoEntryProgress)
+            }
         }
         if (image != null && photoFlowPlan != null) RecognitionPhoto(
             bitmap = image.bitmap,
@@ -782,17 +869,34 @@ fun RecognitionProcessingScene(
                     start = safeHorizontal / 2f,
                 ),
         ) {
-            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回", tint = Color.White)
+            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回", tint = Color(0xFF123F48))
         }
-        RecognitionStatusOverlay(
-            rendered,
-            Modifier
-                .align(Alignment.TopCenter)
-                .padding(horizontal = safeHorizontal)
-                .padding(top = statusPanelTop),
-            reduceMotion = motionPolicy.reduceMotion,
-            visualClockMs = visualClockMs,
-        )
+        Text("照片识别", color = Color(0xFF123F48), fontSize = 18.sp, fontWeight = FontWeight.Medium,
+            modifier = Modifier.align(Alignment.TopCenter).padding(top = safeInsets.calculateTopPadding() + 14.dp))
+        if (BuildConfig.DEBUG) Text(if (manualDiagnostic) "自动播放" else "分步诊断",
+            color = Color(0xFF37666C), fontSize = 11.sp,
+            modifier = Modifier.align(Alignment.TopEnd).padding(top = safeInsets.calculateTopPadding() + 18.dp, end = 12.dp)
+                .clickable { diagnosticEnabled = !diagnosticEnabled })
+        photoFlowPlan?.let { plan ->
+            val statusWidth = if (plan.landscape) maxWidth * .34f else maxWidth
+            Text("正在理解照片", color = Color(0xFF123F48), fontSize = if (maxHeight < 600.dp) 14.sp else 16.sp,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.offset { IntOffset((plan.statusCenterXPx - with(density) { statusWidth.toPx() } / 2f).roundToInt(),
+                    plan.statusPanelTopPx.roundToInt()) }.size(width = statusWidth, height = (24f * density.fontScale).dp))
+            val capture = image?.capturePresentation
+            val eased = processingOrbMotionFrame(entranceElapsedMs, capture != null, motionPolicy.reduceMotion, orbCompletion.value).destinationProgress
+            val fromX = capture?.shutterCenterX?.minus(rootOrigin.x)?.takeIf { it.isFinite() } ?: plan.statusCenterXPx
+            val fromY = capture?.shutterCenterY?.minus(rootOrigin.y)?.takeIf { it.isFinite() } ?: plan.orbCenterYPx
+            val initialCorePx = capture?.shutterSizePx?.takeIf { it.isFinite() && it > 0f } ?: plan.orbCoreSizePx
+            val currentCorePx = initialCorePx + (plan.orbCoreSizePx - initialCorePx) * eased
+            val core = with(density) { currentCorePx.toDp() }
+            val outerPx = currentCorePx + with(density) { 28.dp.toPx() }
+            ProcessingWaterOrb(core, entranceElapsedMs, processingElapsedMs, orbCompletion.value,
+                motionPolicy.reduceMotion, motionPolicy.lowPerformance, capture != null,
+                Modifier.offset { IntOffset(
+                    (fromX + (plan.statusCenterXPx - fromX) * eased - outerPx / 2f).roundToInt(),
+                    (fromY + (plan.orbCenterYPx - fromY) * eased - outerPx / 2f).roundToInt()) })
+        }
         if (manualDiagnostic) {
             Button(
                 enabled = photoPresentedAtMs != null,
@@ -806,7 +910,10 @@ fun RecognitionProcessingScene(
                         finishedResult != null && !delivered -> {
                             delivered = true
                             Log.i(LOG_TAG, "DIAGNOSTIC_RESULT_HANDOFF session=${recognitionSessionId.orEmpty()} image=${image?.imageId.orEmpty()} mask_trusted=$trustedSubjectMask uptime_ms=$now")
-                            onFinished(requireNotNull(finishedResult))
+                            completionScope.launch {
+                                orbCompletion.animateTo(1f, tween(if (motionPolicy.reduceMotion) 0 else 280))
+                                onFinished(requireNotNull(finishedResult))
+                            }
                         }
                         else -> Log.i(LOG_TAG, "DIAGNOSTIC_RESULT_WAIT session=${recognitionSessionId.orEmpty()} image=${image?.imageId.orEmpty()} uptime_ms=$now")
                     }
@@ -970,6 +1077,14 @@ private fun RecognitionPhoto(
                         CornerRadius(corner, corner),
                     ),
                 )
+                drawRoundRect(Color(0xFF2D6C75).copy(alpha = .08f * photoEntryProgress),
+                    topLeft = Offset(rect.left - 2.dp.toPx(), rect.top + 3.dp.toPx()),
+                    size = Size(rect.width + 4.dp.toPx(), rect.height + 4.dp.toPx()),
+                    cornerRadius = CornerRadius(corner + 2.dp.toPx()))
+                drawRoundRect(Color.White.copy(alpha = .62f * photoEntryProgress),
+                    topLeft = Offset(rect.left - 1.dp.toPx(), rect.top - 1.dp.toPx()),
+                    size = Size(rect.width + 2.dp.toPx(), rect.height + 2.dp.toPx()),
+                    cornerRadius = CornerRadius(corner + 1.dp.toPx()), style = Stroke(1.dp.toPx()))
                 clipPath(photoClipPath) {
                     drawImage(
                         image = photoImage,
@@ -1038,7 +1153,7 @@ private fun RecognitionPhoto(
                 )
             }
         }
-        if (BuildConfig.DEBUG && diagnosticStep == null) Text(
+        if (BuildConfig.DEBUG && diagnosticStep != null) Text(
             text = layerMode.name,
             color = Color.White,
             modifier = Modifier.align(Alignment.TopEnd).background(Color(0xAA10252A))

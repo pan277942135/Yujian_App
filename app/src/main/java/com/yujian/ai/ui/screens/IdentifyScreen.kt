@@ -117,6 +117,7 @@ import androidx.lifecycle.Observer
 import com.yujian.ai.R
 import com.yujian.ai.ui.designsystem.components.YuJianCaptureButton
 import com.yujian.ai.media.RecognitionImageStore
+import com.yujian.ai.model.CapturePresentation
 import com.yujian.ai.model.SelectedImage
 import com.yujian.ai.ui.identify.RecognitionCameraCaptureContract
 import com.yujian.ai.ui.identify.RecognitionFirstCaptureGuideOverlay
@@ -245,6 +246,11 @@ fun IdentifyScreen(
     var cameraRetry by remember { mutableStateOf(0) }
     var previewView by remember { mutableStateOf<PreviewView?>(null) }
     var previewBounds by remember { mutableStateOf(IntSize.Zero) }
+    var previewWindowBounds by remember { mutableStateOf(androidx.compose.ui.geometry.Rect.Zero) }
+    var frozenPreview by remember { mutableStateOf<android.graphics.Bitmap?>(null) }
+    LaunchedEffect(captureState) {
+        if (captureState != RecognitionCameraCaptureState.CAPTURING) frozenPreview = null
+    }
     var showTestSamplesSheet by remember { mutableStateOf(false) }
     var torchEnabled by remember { mutableStateOf(false) }
     // This local handoff is set before navigation, so CameraX and its controls
@@ -499,6 +505,12 @@ fun IdentifyScreen(
             error = CameraUnavailableHint
             return
         }
+        val measuredPreview = previewWindowBounds
+        val presentation = CapturePresentation(
+            measuredPreview.left, measuredPreview.top, measuredPreview.right, measuredPreview.bottom,
+            captureTarget.x, captureTarget.y, 76f * context.resources.displayMetrics.density,
+        )
+        frozenPreview = previewView?.bitmap
         captureState = capturingState
         error = null
         val targetResult = runCatching { RecognitionImageStore.createCameraTarget(context) }
@@ -601,8 +613,10 @@ fun IdentifyScreen(
                                             "jpeg_ratio=${details.decodedWidth.toFloat() / details.decodedHeight} " +
                                             "selected_image_created=true",
                                     )
-                                    handoffImage = details.selectedImage
-                                    runCatching { onImageReady(details.selectedImage) }
+                                    val presentedImage = details.selectedImage.copy(capturePresentation = presentation)
+                                    handoffImage = presentedImage
+                                    logCapture(requestId, "capture_presentation", "preview=$measuredPreview shutter=$captureTarget image=${presentedImage.imageId} sha256=${presentedImage.photoSha256}")
+                                    runCatching { onImageReady(presentedImage) }
                                         .onSuccess {
                                             logCapture(requestId, "recognition_navigation", "started=true")
                                         }
@@ -773,9 +787,11 @@ fun IdentifyScreen(
 
         val displayedPhoto = handoffImage
         if (displayedPhoto != null) {
-            BoxWithConstraints(Modifier.fillMaxSize()) {
+            val isCameraPhoto = displayedPhoto.source.contains("camera", ignoreCase = true)
+            BoxWithConstraints(if (isCameraPhoto) Modifier.fillMaxWidth().height(cameraAreaHeight) else Modifier.fillMaxSize()) {
                 val density = LocalDensity.current
                 val transform = remember(displayedPhoto.imageId, maxWidth, maxHeight, density) {
+                    if (isCameraPhoto) {
                     calculateRecognitionImageTransform(
                         containerWidth = with(density) { maxWidth.toPx() },
                         containerHeight = with(density) { maxHeight.toPx() },
@@ -783,6 +799,16 @@ fun IdentifyScreen(
                         imageHeight = displayedPhoto.bitmap.height,
                         contentScaleMode = RecognitionContentScaleMode.CROP,
                     )
+                    } else {
+                        com.yujian.ai.ui.recognition.planRecognitionPhotoFlow(
+                            displayedPhoto.bitmap.width, displayedPhoto.bitmap.height,
+                            with(density) { maxWidth.toPx() }, with(density) { maxHeight.toPx() }, density.density,
+                            with(density) { safeInsets.calculateLeftPadding(layoutDirection).toPx() },
+                            with(density) { safeInsets.calculateTopPadding().toPx() },
+                            with(density) { safeInsets.calculateRightPadding(layoutDirection).toPx() },
+                            with(density) { safeInsets.calculateBottomPadding().toPx() }, false,
+                        ).startTransform
+                    }
                 }
                 RecognitionSourcePhoto(
                     bitmap = displayedPhoto.bitmap.asImageBitmap(),
@@ -802,13 +828,30 @@ fun IdentifyScreen(
                     }.also { previewView = it }
                 },
                 modifier = Modifier.fillMaxWidth().height(cameraAreaHeight)
-                    .onGloballyPositioned { previewBounds = it.size }
+                    .onGloballyPositioned { previewBounds = it.size; previewWindowBounds = it.boundsInWindow() }
                     .alpha(if (previewStreaming) 1f else 0f),
                 update = {
                     previewView = it
                     it.controller = cameraController
                 },
             )
+        }
+
+
+        if (handoffImage == null && captureState == RecognitionCameraCaptureState.CAPTURING) {
+            frozenPreview?.let { frozen ->
+                Image(frozen.asImageBitmap(), "拍摄定格", contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxWidth().height(cameraAreaHeight))
+            }
+            Box(Modifier.align(Alignment.BottomCenter).fillMaxWidth().height(panelHeight)
+                .clip(RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp))
+                .background(Brush.verticalGradient(listOf(Color(0xD93C464C), Color(0xF3121619)))))
+            if (captureTarget.x.isFinite()) {
+                val shutterSize = 76f * context.resources.displayMetrics.density
+                Image(painterResource(R.drawable.capture_button_main_v1), null,
+                    Modifier.offset { IntOffset((captureTarget.x - captureRootOrigin.x - shutterSize / 2f).roundToInt(),
+                        (captureTarget.y - captureRootOrigin.y - shutterSize / 2f).roundToInt()) }.size(76.dp))
+            }
         }
 
         if (handoffImage == null && !galleryBusy && captureState != RecognitionCameraCaptureState.CAPTURING && !firstCaptureGuideVisible) {
