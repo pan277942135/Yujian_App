@@ -562,6 +562,18 @@ tasks:
     evidence_required: ["camera_capture_handoff", "recognition_processing_state_sequence"]
     completion: "Recognition feature implementation is executable on the current baseline."
     human_required: false
+  YUJIAN_ANDROID_SHARED_CAPTURE_BUTTON_MOTION_V1:
+    phase: "P6"
+    priority: "P0"
+    owner: "Work"
+    feature_refs: []
+    journey_refs: []
+    depends_on: []
+    entry_blockers: []
+    target_blockers: []
+    evidence_required: ["shared_button_rendering", "idle_three_phase_motion", "click_loop_minimum_1000ms", "preview_streaming_stability_handoff", "targeted_build_and_tests"]
+    completion: "Implement the shared capture button idle and click effects on home and camera, retaining geometry and haptic; stop the click loop after at least 1000ms only when the actual camera preview is stable. APK remains for a later combined delivery."
+    human_required: false
   YUJIAN_ANDROID_FISH_CATCH_EFFECT01_UPWARD_SCAN_SHAKE_V1:
     phase: "P6"
     priority: "P0"
