@@ -15,6 +15,7 @@ import androidx.camera.view.CameraController
 import androidx.camera.view.LifecycleCameraController
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -41,6 +42,26 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.layout.boundsInWindow
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.foundation.layout.offset
+import kotlinx.coroutines.delay
+import com.yujian.ai.ui.home.CaptureNavigationTransition
+import com.yujian.ai.R
+import kotlin.math.roundToInt
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
@@ -159,6 +180,29 @@ fun IdentifyScreen(
     var cameraBound by remember { mutableStateOf(false) }
     var imageCaptureReady by remember { mutableStateOf(false) }
     var previewStreaming by remember { mutableStateOf(false) }
+    val captureHandoffActive = CaptureNavigationTransition.active.value && !autoOpenGallery
+    var captureTarget by remember { mutableStateOf(Offset.Unspecified) }
+    var captureRootOrigin by remember { mutableStateOf(Offset.Zero) }
+    var captureHandoffArrived by remember { mutableStateOf(false) }
+    val captureMotion by animateFloatAsState(
+        targetValue = if (captureTarget.isSpecified) 1f else 0f,
+        animationSpec = tween(420), label = "capture-shared-position",
+    )
+    val orbit = rememberInfiniteTransition(label = "capture-brand-orbit")
+    val orbitDegrees by orbit.animateFloat(
+        initialValue = 0f, targetValue = 360f,
+        animationSpec = infiniteRepeatable(tween(900, easing = LinearEasing), RepeatMode.Restart),
+        label = "capture-orbit-degrees",
+    )
+    LaunchedEffect(captureHandoffActive, captureTarget, previewStreaming, hasCameraPermission) {
+        if (captureHandoffActive && captureTarget.isSpecified) {
+            delay(520)
+            if (previewStreaming || !hasCameraPermission) {
+                captureHandoffArrived = true
+                CaptureNavigationTransition.finish()
+            }
+        }
+    }
     var firstCaptureGuideVisible by rememberSaveable(autoOpenGallery, captureResetToken) {
         mutableStateOf(false)
     }
@@ -663,7 +707,9 @@ fun IdentifyScreen(
         // Keep the bound CameraX surface alive until the request has a terminal result.
     }
 
-    BoxWithConstraints(Modifier.fillMaxSize().background(Color.Black)) {
+    BoxWithConstraints(Modifier.fillMaxSize().background(Color.Black).onGloballyPositioned {
+        captureRootOrigin = it.boundsInWindow().topLeft
+    }) {
         val layoutDirection = LocalLayoutDirection.current
         val captureControlsPlacement = remember(maxWidth, safeInsets, layoutDirection) {
             RecognitionCameraControlsGeometry.resolve(
@@ -778,21 +824,16 @@ fun IdentifyScreen(
                         onClick = ::capture,
                     )
                     .testTag("recognition-camera-shutter")
+                    .onGloballyPositioned { captureTarget = it.boundsInWindow().center }
+                    .alpha(if (captureHandoffActive) 0f else 1f)
                     .semantics { contentDescription = "拍摄" },
                 contentAlignment = Alignment.Center,
             ) {
-                Box(
-                    Modifier
-                        .size(70.dp)
-                        .clip(CircleShape)
-                        .background(Color.White.copy(alpha = 0.18f))
-                        .border(3.dp, Color.White.copy(alpha = 0.94f), CircleShape),
-                )
-                Box(
-                    Modifier
-                        .size(50.dp)
-                        .clip(CircleShape)
-                        .background(Color.White),
+                Image(
+                    painter = painterResource(R.drawable.capture_button_main_v1),
+                    contentDescription = null,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Fit,
                 )
             }
             Box(
@@ -958,6 +999,35 @@ fun IdentifyScreen(
             }
         }
 
+        if (captureHandoffActive && captureTarget.isSpecified && handoffImage == null) {
+            val start = CaptureNavigationTransition.homeCenter
+                .takeIf { it.isSpecified } ?: captureTarget
+            val center = Offset(
+                start.x + (captureTarget.x - start.x) * captureMotion - captureRootOrigin.x,
+                start.y + (captureTarget.y - start.y) * captureMotion - captureRootOrigin.y,
+            )
+            val buttonPx = with(LocalDensity.current) { 76.dp.toPx() }
+            Box(Modifier.offset {
+                IntOffset((center.x - buttonPx / 2).roundToInt(), (center.y - buttonPx / 2).roundToInt())
+            }.size(76.dp), contentAlignment = Alignment.Center) {
+                Image(
+                    painter = painterResource(R.drawable.capture_button_main_v1),
+                    contentDescription = null,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Fit,
+                )
+                Canvas(Modifier.size(76.dp)) {
+                    val inset = 2.dp.toPx()
+                    val arcSize = Size(size.width - 2 * inset, size.height - 2 * inset)
+                    drawArc(Color(0xFF2E8B83), orbitDegrees, 96f, false,
+                        topLeft = Offset(inset, inset), size = arcSize,
+                        style = Stroke(width = 2.5.dp.toPx()))
+                    drawArc(Color(0xFFD8B36A), orbitDegrees - 60f, 32f, false,
+                        topLeft = Offset(inset, inset), size = arcSize,
+                        style = Stroke(width = 1.5.dp.toPx()))
+                }
+            }
+        }
         if (firstCaptureGuideVisible) {
             RecognitionFirstCaptureGuideOverlay(
                 initialPage = firstCaptureGuidePage,
