@@ -116,7 +116,13 @@ for w,h in [(320,480),(360,640),(360,800),(393,852),(430,932)]:
             x,y,r,b=bounds(n);assert 0<=x<r<=w and 0<=y<b<=h,f'{key}: clipped {value}: {n.attrib}'
             if value in ['拍摄','从相册选择','闪光灯']: assert r-x>=48 and b-y>=48,f'{key}: small touch {value}'
         if (w,h,scale)==(320,480,1.5):
-            tap(find('1.0x',attr='text'));time.sleep(.25);shot(key+'-zoom-expanded');dump(key+'-zoom-expanded')
+            tap(find('1.0x',attr='text'));time.sleep(.15)
+            entry=[n for n in nodes() if re.fullmatch(r'\d+\.\dx',n.get('text',''))][-1]
+            x,y,r,b=bounds(entry);shell(f'input swipe {(x+r)//2} {(y+b)//2} {(x+r)//2+20} {(y+b)//2} 350')
+            time.sleep(.25);shot(key+'-zoom-expanded');dump(key+'-zoom-expanded')
+            fine=find('左右滑动精细变焦')
+            subtitle=find('请将整条鱼放在取景框中央',attr='text')
+            assert bounds(fine)[1]>=bounds(subtitle)[3],f'{key}: fine dial overlaps title area'
         matrix.append({'viewport_dp':[w,h],'font_scale':scale,'status':'PASS_CONTROLS_VISIBLE','snapshot':key+'.png'})
 (OUT/'matrix.json').write_text(json.dumps(matrix,indent=2))
 (OUT/'camera-entry-log.txt').write_text(logs())
