@@ -1,5 +1,8 @@
 package com.yujian.ai.ui.home
 
+import com.yujian.ai.ui.designsystem.components.aiorb.AIOrbCore
+import com.yujian.ai.ui.designsystem.components.aiorb.AIOrbVisualState
+
 import android.graphics.Bitmap
 import android.Manifest
 import android.content.pm.PackageManager
@@ -31,7 +34,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
-import com.yujian.ai.ui.designsystem.components.YuJianCaptureButton
 import com.yujian.ai.ui.designsystem.components.YuJianCaptureButtonRasterAssets
 import com.yujian.ai.ui.designsystem.components.YuJianCaptureButtonRasterMotion
 
@@ -122,7 +124,7 @@ internal fun HomeCameraButton(
     }
     val sceneTime = if (active) motionState.sceneTimeSeconds else 0f
     val sweep = cameraSweepState(sceneTime)
-    YuJianCaptureButton(
+    AIOrbCore(state = AIOrbVisualState.CAPTURE_BUTTON_IDLE, 
         onClick = {
             if (ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) activate()
             else permission.launch(Manifest.permission.CAMERA)

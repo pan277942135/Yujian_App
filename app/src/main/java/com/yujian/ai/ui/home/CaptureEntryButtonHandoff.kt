@@ -1,5 +1,8 @@
 package com.yujian.ai.ui.home
 
+import com.yujian.ai.ui.designsystem.components.aiorb.AIOrbCore
+import com.yujian.ai.ui.designsystem.components.aiorb.AIOrbVisualState
+
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Box
@@ -21,7 +24,6 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import com.yujian.ai.ui.designsystem.components.YuJianCaptureButton
 import kotlin.math.roundToInt
 
 /** A single button above both fading pages. Neither page draws a duplicate in flight. */
@@ -49,7 +51,7 @@ fun CaptureEntryButtonHandoff() {
         .clearAndSetSemantics { }) {
         Box(Modifier.offset { IntOffset((center.x - half).roundToInt(), (center.y - half).roundToInt()) }
             .size(diameter + 28.dp), contentAlignment = Alignment.Center) {
-            YuJianCaptureButton(onClick = {}, visualSize = diameter, touchTargetSize = diameter,
+            AIOrbCore(state = AIOrbVisualState.CAPTURE_BUTTON_IDLE, onClick = {}, visualSize = diameter, touchTargetSize = diameter,
                 frozenVisual = true, cameraReady = true, onCaptureHaptic = {})
         }
     }

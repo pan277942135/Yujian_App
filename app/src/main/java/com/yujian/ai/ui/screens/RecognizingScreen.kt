@@ -94,7 +94,8 @@ import com.yujian.ai.ui.recognition.RecognitionFishFocusLevel
 import com.yujian.ai.ui.recognition.RecognitionMotionPolicy
 import com.yujian.ai.ui.recognition.RecognitionMotionTraceSample
 import com.yujian.ai.ui.recognition.RecognitionPerimeterShaderOverlay
-import com.yujian.ai.ui.recognition.ProcessingWaterOrb
+import com.yujian.ai.ui.designsystem.components.aiorb.AIOrbCore
+import com.yujian.ai.ui.designsystem.components.aiorb.aiOrbProcessingState
 import com.yujian.ai.ui.recognition.processingOrbMotionFrame
 import com.yujian.ai.ui.recognition.RecognitionVisualStateController
 import com.yujian.ai.ui.recognition.RECOGNITION_MASK_CONTOUR_REVEAL_MS
@@ -891,11 +892,19 @@ fun RecognitionProcessingScene(
             val currentCorePx = initialCorePx + (plan.orbCoreSizePx - initialCorePx) * eased
             val core = with(density) { currentCorePx.toDp() }
             val outerPx = currentCorePx + with(density) { 28.dp.toPx() }
-            ProcessingWaterOrb(core, entranceElapsedMs, processingElapsedMs, orbCompletion.value,
-                motionPolicy.reduceMotion, motionPolicy.lowPerformance, capture != null,
-                Modifier.offset { IntOffset(
+            AIOrbCore(
+                state = aiOrbProcessingState(entranceElapsedMs, capture != null, motionPolicy.reduceMotion, orbCompletion.value),
+                coreSize = core,
+                entranceElapsedMs = entranceElapsedMs,
+                elapsedMs = processingElapsedMs,
+                completion = orbCompletion.value,
+                reduceMotion = motionPolicy.reduceMotion,
+                lowPerformance = motionPolicy.lowPerformance,
+                fromCamera = capture != null,
+                modifier = Modifier.offset { IntOffset(
                     (fromX + (plan.statusCenterXPx - fromX) * eased - outerPx / 2f).roundToInt(),
-                    (fromY + (plan.orbCenterYPx - fromY) * eased - outerPx / 2f).roundToInt()) })
+                    (fromY + (plan.orbCenterYPx - fromY) * eased - outerPx / 2f).roundToInt()) },
+            )
         }
         if (manualDiagnostic) {
             Button(
