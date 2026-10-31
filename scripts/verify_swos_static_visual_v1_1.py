@@ -14,7 +14,6 @@ FRAME_PATH = ROOT / "design/pages/recognition/processing/optics/SWOS_15_Frame_Ke
 TRANSITION_PATH = ROOT / "design/pages/recognition/continuity/SWOS_Shared_Photo_Transition_Contract_V1.json"
 MANIFEST_PATH = ROOT / "design/pages/recognition/processing/optics/SWOS_Static_Asset_Manifest_V1_1.json"
 TECH_CONTRACT_PATH = ROOT / "design/pages/recognition/web/SWOS_WEB_HIFI_MOTION_TECHNICAL_CONTRACT_V1_0.md"
-TECH_MACHINE_PATH = ROOT / "design/pages/recognition/web/contracts/SWOS_WEB_HIFI_MOTION_TECHNICAL_CONTRACT_V1_0.json"
 REGISTRY_PATH = ROOT / "design/registry/experience_registry_v1.json"
 EXPECTED_SOURCE_SHA = "ab7227cf7205ee2ac342b6cd75cd899747879506c95c33b888b6adf0acb47987"
 
@@ -49,7 +48,8 @@ frames = read_json(FRAME_PATH)
 transition = read_json(TRANSITION_PATH)
 manifest = read_json(MANIFEST_PATH)
 registry = read_json(REGISTRY_PATH)
-tech_contract = read_json(TECH_MACHINE_PATH)
+require(TECH_CONTRACT_PATH.is_file(), "SWOS Web hi-fi motion technical contract markdown is missing")
+tech_contract_text = TECH_CONTRACT_PATH.read_text(encoding="utf-8")
 WEB_VISUAL_BASELINE_PATH = ROOT / "design/pages/recognition/web/VISUAL_REFERENCE_MANIFEST_V1.json"
 web_visual_manifest = read_json(WEB_VISUAL_BASELINE_PATH)
 baseline = web_visual_manifest.get("pixel_baseline", {})
@@ -58,8 +58,6 @@ require(baseline.get("baseline_id") == "YUJIAN_SWOS_WEB_PIXEL_BASELINE_V1" and b
 require(baseline.get("dimensions_px") == [1536, 1024] and baseline.get("size_bytes") == 1804497, "Web baseline dimensions/byte count mismatch")
 require(baseline.get("source_bytes_reverified_this_execution") is False, "do not claim the private original was reverified in this execution")
 require(web_visual_manifest.get("public_publication_allowed") is False and web_visual_manifest.get("public_repo_commit_allowed") is False and web_visual_manifest.get("public_ci_artifact_allowed") is False and web_visual_manifest.get("public_pages_upload_allowed") is False, "private Web baseline must remain excluded from public destinations")
-require(TECH_CONTRACT_PATH.is_file(), "SWOS Web hi-fi motion technical contract markdown is missing")
-
 keys = frames.get("keyframes", [])
 require(frames.get("frame_count") == 15 and len(keys) == 15, "must contain exactly 15 keyframes")
 processing = [frame for frame in keys if frame.get("track") == "PROCESSING"]
@@ -103,16 +101,15 @@ flow = next(feature for feature in registry["features"] if feature.get("id") == 
 static_view = next((view for view in flow.get("hifi_views", []) if view.get("id") == "swos_static_visual_v1_1"), None)
 require(static_view is not None and static_view.get("render_mode") == "swos_static_visual_workspace", "Design Manager route/renderer registration missing")
 require(static_view.get("status") == "DESIGN_ONLY" and static_view.get("adoption_status") == "MAIN_ADOPTED_DESIGN_ONLY" and static_view.get("adoption_pr") == 190, "static contract must be main-adopted design-only")
-require(tech_contract.get("contract_id") == "YUJIAN-SWOS-WEB-HIFI-MOTION-TECHNICAL-V1_0" and tech_contract.get("version") == "1.0", "SWOS Web motion technical contract identity drift")
-require(tech_contract.get("timing", {}).get("total_nominal_duration_ms") == 3650 and tech_contract.get("timing", {}).get("frame_count") == 15, "SWOS Web motion technical contract timing/frame count drift")
-require(tech_contract.get("product_decisions", {}).get("species_name_language") == "ZH_ONLY" and tech_contract.get("product_decisions", {}).get("same_source_photo_and_one_shared_transform") is True, "SWOS Web motion contract must preserve Chinese-only title and shared-photo transform")
-mask_contract = tech_contract.get("mask_integration", {})
-require(mask_contract.get("reuse_existing_experimental_pipeline") is True and mask_contract.get("create_duplicate_sam_service") is False, "SWOS Web must reuse existing SAM experiment pipeline without duplication")
-require(mask_contract.get("existing_endpoint_path") == "/api/debug/fish-segmentation" and mask_contract.get("browser_must_call_debug_endpoint_directly") is False, "SAM debug endpoint must remain behind a server adapter")
-require(mask_contract.get("production_qualification", {}).get("status") == "NOT_QUALIFIED", "heuristic SAM quality must not qualify production Mask")
-require(tech_contract.get("playable_browser_demo_status") == "NOT_VERIFIED" and tech_contract.get("runtime_status") == "NOT_VERIFIED", "contract must not claim browser playback/runtime acceptance")
+require("YUJIAN-SWOS-WEB-HIFI-MOTION-TECHNICAL-V1_0" in tech_contract_text and "**Version:** 1.0" in tech_contract_text, "SWOS Web motion Markdown authority identity/version drift")
+require("3650ms" in tech_contract_text and "2800ms" in tech_contract_text and "850ms" in tech_contract_text and "R0.5" in tech_contract_text, "SWOS Web motion Markdown authority timing/R0.5 drift")
+require("同源照片" in tech_contract_text and "单一变换" in tech_contract_text and "中文名" in tech_contract_text, "SWOS Web motion contract must preserve shared-photo transform and Chinese-only reveal")
+require("SAM ViT-B" in tech_contract_text and "NOT_QUALIFIED" in tech_contract_text, "SWOS Web must reuse the existing SAM experiment without qualifying production Mask")
+require("NOT_VERIFIED" in tech_contract_text, "contract must not claim browser playback/runtime acceptance")
 tech_view = next((view for view in flow.get("hifi_views", []) if view.get("id") == "swos_web_hifi_motion_contract_v1_0"), None)
-require(tech_view is not None and tech_view.get("authority") == "design/pages/recognition/web/SWOS_WEB_HIFI_MOTION_TECHNICAL_CONTRACT_V1_0.md" and tech_view.get("machine_authority") == "design/pages/recognition/web/contracts/SWOS_WEB_HIFI_MOTION_TECHNICAL_CONTRACT_V1_0.json", "SWOS Web motion technical contract Design Manager registration missing")
+require(tech_view is not None and tech_view.get("authority") == "design/pages/recognition/web/SWOS_WEB_HIFI_MOTION_TECHNICAL_CONTRACT_V1_0.md" and tech_view.get("machine_authority") in (None, ""), "SWOS Web motion technical contract must use its Markdown authority without a retired duplicate JSON")
+for link in tech_view.get("contract_links", []):
+    require((ROOT / link.get("path", "")).is_file(), f"SWOS Web motion contract link is missing: {link.get('path')}")
 
 base_branch = os.environ.get("GITHUB_BASE_REF")
 if base_branch:
