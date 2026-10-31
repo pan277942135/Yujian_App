@@ -98,7 +98,7 @@ phases:
     exit_condition: "Release-scope feature implementation reaches executable acceptance tasks."
     release_scope: "PRIMARY_PLUS_SECONDARY"
     feature_refs: ["home_normal_v1", "record_date_v2", "share_templates_v1", "auth_register_v2"]
-    task_refs: ["P6-01", "P6-02", "P6-03", "P6-04", "YUJIAN_NH01_ANDROID_FROZEN_V22_IMPLEMENTATION_REPAIR_WORK_B_V1", "YUJIAN_NH01_RESPONSIVE_V2_ANDROID_IMPLEMENTATION_AND_RUNTIME_ACCEPTANCE_V1", "YUJIAN_NH01_LAKE_LIGHT_VISUAL_RESPONSIVE_CLOSURE_V1", "YUJIAN_ANDROID_FISH_CATCH_EFFECT01_UPWARD_SCAN_SHAKE_V1", "YUJIAN_ANDROID_AISTUDIO_PERIMETER_SHADER_PORT_V1", "YUJIAN_ANDROID_SLIMSAM_PIXEL_SEGMENTATION_V1", "YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2"]
+    task_refs: ["P6-01", "P6-02", "P6-03", "P6-04", "YUJIAN_NH01_ANDROID_FROZEN_V22_IMPLEMENTATION_REPAIR_WORK_B_V1", "YUJIAN_NH01_RESPONSIVE_V2_ANDROID_IMPLEMENTATION_AND_RUNTIME_ACCEPTANCE_V1", "YUJIAN_NH01_LAKE_LIGHT_VISUAL_RESPONSIVE_CLOSURE_V1", "YUJIAN_ANDROID_FISH_CATCH_EFFECT01_UPWARD_SCAN_SHAKE_V1", "YUJIAN_ANDROID_AISTUDIO_PERIMETER_SHADER_PORT_V1", "YUJIAN_ANDROID_SLIMSAM_PIXEL_SEGMENTATION_V1", "YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2", "YUJIAN_ANDROID_AI_ORB_CORE_COMPONENT_V1"]
   P7:
     name: "Integration / Full Surface"
     entry_condition: "Feature implementation is executable."
@@ -1317,6 +1317,23 @@ tasks:
     human_required: false
     workstream_id: "THREE_PILOT_PAGE_SPEC_CLOSURE_V1"
     execution_scope: "CROSS_PAGE_DESIGN_TOOLING_AND_IMPLEMENTATION_GATE"
+    phase_rollup: false
+    release_blocking: false
+    android_release_blocking: false
+
+  YUJIAN_ANDROID_AI_ORB_CORE_COMPONENT_V1:
+    phase: "P6"
+    priority: "P0"
+    owner: "Work"
+    feature_refs: ["home_empty_v2", "home_normal_v1", "recognition_flow_v1_2", "recognition_result_v1"]
+    journey_refs: ["J01-J18"]
+    depends_on: []
+    entry_blockers: []
+    target_blockers: []
+    gate_id: "G-ANDROID-AI-ORB-CORE-V1"
+    evidence_required: ["canonical_capture_asset_sha_and_runtime_copy", "legacy_same_basename_resource_reconciliation", "single_shared_ai_orb_core_renderer", "state_machine_and_motion_frame_tests", "camera_900ms_orb_morph", "photo_700ms_parallel_entry", "gallery_direct_orb_entry", "processing_optical_cycle_and_degradation", "existing_rr09_handoff_parity", "photo_session_and_model_input_invariance", "responsive_geometry_matrix", "build_unit_android_test_compile_lint", "api28_runtime", "exact_head_apk_provenance", "physical_device_visual_acceptance_status"]
+    completion: "Create one reusable state-driven AI Orb Core by extracting and reusing the existing Compose/Canvas ProcessingWaterOrb implementation; bind frozen Primary Capture Button V1.1 across Home/Capture/Processing, preserve the 700ms photo and 900ms Orb parallel entrance, and preserve all PhotoSession, inference, trusted Mask and RR09 semantics. Require exact-head build, tests, lint, API28 runtime and APK provenance; product-owner visual acceptance remains separate."
+    human_required: false
     phase_rollup: false
     release_blocking: false
     android_release_blocking: false

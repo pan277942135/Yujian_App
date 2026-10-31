@@ -1,0 +1,69 @@
+{
+  "component_id": "intelligence.ai_orb_core",
+  "version": "V1",
+  "status": "REVIEW",
+  "states": [
+    "CAPTURE_BUTTON_IDLE",
+    "CAPTURE_BUTTON_PRESSED",
+    "ORB_MORPH_IN",
+    "ORB_ACTIVE",
+    "ORB_CONTRACTING",
+    "HIDDEN"
+  ],
+  "transitions": [
+    {
+      "from": "CAPTURE_BUTTON_IDLE",
+      "event": "HOME_CAPTURE_NAVIGATE",
+      "to": "CAPTURE_BUTTON_IDLE",
+      "visual": "No Orb Morph; existing button navigation handoff."
+    },
+    {
+      "from": "CAPTURE_BUTTON_IDLE",
+      "event": "CAMERA_SHUTTER_CAPTURE_SUCCESS",
+      "to": "ORB_MORPH_IN",
+      "guard": "Real camera capture produces same SelectedImage/PhotoSession.",
+      "visual": "Camera/pearl dissolves into water core on shared 900ms clock."
+    },
+    {
+      "from": "CAPTURE_BUTTON_IDLE",
+      "event": "GALLERY_IMAGE_READY",
+      "to": "ORB_MORPH_IN",
+      "guard": "Real normalized Gallery image enters Processing.",
+      "visual": "Orb core visible immediately; no camera-button crossfade."
+    },
+    {
+      "from": "ORB_MORPH_IN",
+      "event": "ENTRY_900MS_SETTLED",
+      "to": "ORB_ACTIVE",
+      "guard": "Shared scene clock reaches 900ms.",
+      "visual": "Independent refraction and ribbon cycles continue."
+    },
+    {
+      "from": "ORB_ACTIVE",
+      "event": "REAL_RESULT_AND_EXISTING_GATES_READY",
+      "to": "ORB_CONTRACTING",
+      "guard": "Existing minimum story, real inference outcome and business gates are satisfied.",
+      "visual": "Consume existing completion progress and hand off to RR09."
+    },
+    {
+      "from": "ORB_CONTRACTING",
+      "event": "RR09_FIRST_FRAME_READY",
+      "to": "HIDDEN",
+      "guard": "Existing RR09 shared-photo handoff is ready.",
+      "visual": "Orb removed; no return to camera-button state."
+    },
+    {
+      "from": "ORB_MORPH_IN",
+      "event": "CAPTURE_OR_PROCESSING_CANCELLED",
+      "to": "HIDDEN",
+      "guard": "Existing cancellation route owns recovery.",
+      "visual": "No synthetic success; host restores its own valid Capture state if user returns."
+    }
+  ],
+  "host_ownership": {
+    "home": "Navigation only; no Orb Morph.",
+    "capture": "Camera lifecycle, shutter, Gallery and PhotoSession creation.",
+    "processing": "Shared scene clock, photo transform and Orb presentation.",
+    "result": "RR09 and Result semantics; Orb hidden."
+  }
+}

@@ -270,6 +270,7 @@ features:
       - "recognition_full_flow_models"
       - "swos_optical_contract"
       - "processing_result_continuity"
+      - "ai_orb_core_v1"
       - "swos_static_visual_v1_1"
       - "web_hifi_contract_v2"
       - "fishtrace_sites_web_interaction_v1"
@@ -335,6 +336,7 @@ features:
       runtime_authority: "design/pages/recognition/spec/Recognition_Visual_Fidelity_V1_2.md"
       execution_task_refs:
         - "YUJIAN_ANDROID_HOME_CAPTURE_ACTIVATION_CAMERA_RUNTIME_FULL_CLOSURE_V2"
+        - "YUJIAN_ANDROID_AI_ORB_CORE_COMPONENT_V1"
         - "YUJIAN_ANDROID_SLIMSAM_PIXEL_SEGMENTATION_V1"
         - "YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2"
     capture_hifi:

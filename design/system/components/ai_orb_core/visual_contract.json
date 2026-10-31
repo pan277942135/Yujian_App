@@ -1,0 +1,37 @@
+{
+  "component_id": "intelligence.ai_orb_core",
+  "version": "V1",
+  "status": "REVIEW",
+  "identity": "Transparent lake-water glass sphere with internal refraction, restrained sunlight-gold glints, lake-blue water light and muted aquatic-green ribbons.",
+  "composition": {
+    "core": "One transparent 384x384 raster master plus native Canvas refraction/highlight overlays.",
+    "ribbons": "Independent native Canvas front/rear paths.",
+    "environment": "Page-owned; never baked into reusable Orb core.",
+    "camera_core": "Separate capture state using frozen Primary Capture Button V1.1."
+  },
+  "colors": {
+    "sunlight_gold": "#D8BC87",
+    "lake_water_blue": "#348CA6",
+    "muted_aquatic_green": "#5B8F78"
+  },
+  "rules": [
+    "One visual identity across page hosts; hosts select states rather than recreating Orb art.",
+    "Preserve transparent core alpha.",
+    "Use localized refraction and glints for life.",
+    "Render front and rear ribbons separately.",
+    "Gold is restrained, not a full-surface tint."
+  ],
+  "forbidden": [
+    "whole_sphere_raster_rotation",
+    "mechanical_closed_orbit_rings",
+    "dark_background_rectangle",
+    "detached_particles_in_formal_processing",
+    "HUD_or_scan_line",
+    "fake_fish_geometry_or_fake_recognition_status"
+  ],
+  "acceptance": {
+    "component_identity": "APPROVED_CONCEPT",
+    "visual_freeze": "PENDING_PRODUCT_OWNER_REVIEW",
+    "runtime_visual": "NOT_RUN"
+  }
+}

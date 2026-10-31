@@ -1,0 +1,52 @@
+{
+  "component_id": "intelligence.ai_orb_core",
+  "version": "V1",
+  "status": "REVIEW",
+  "shared_scene_clock": {
+    "owner": "RecognitionProcessingScene",
+    "start_event": "stable_true_photo_frame_ready",
+    "rule": "Photo Morph and Orb Morph sample the same session-bound scene clock; do not serialize or create independent clocks."
+  },
+  "photo_entry": {
+    "duration_ms": 700,
+    "camera_source": "Measured CameraX preview bounds to contained original-photo card.",
+    "gallery_source": "Contained centered original photo."
+  },
+  "orb_entry": {
+    "duration_ms": 900,
+    "camera_source": {
+      "0_150_ms": "Capture press and pearl/icon compression.",
+      "150_350_ms": "Camera/pearl dissolves into transparent water core.",
+      "350_650_ms": "Independent front/rear ribbons open.",
+      "650_900_ms": "Core and ribbons settle."
+    },
+    "gallery_source": {
+      "0_ms": "Water core visible immediately; no fabricated camera-button source.",
+      "350_650_ms": "Independent ribbons open.",
+      "650_900_ms": "Core and ribbons settle."
+    }
+  },
+  "optical_cycles_seconds": {
+    "core_refraction": 4.2,
+    "lake_blue_ribbon": 4.5,
+    "sunlight_gold_ribbon": 5.5,
+    "muted_green_ribbon": 6.5
+  },
+  "geometry_dp": {
+    "core_standard": 80,
+    "core_compact": 68,
+    "ribbon_outside_core_max": 14
+  },
+  "completion": {
+    "rule": "Consume existing real-result/minimum-story completion progress and RR09 handoff; do not add independent delay or route timer.",
+    "result_page_orb": "HIDDEN"
+  },
+  "performance": {
+    "normal_ribbon_steps": 96,
+    "low_performance_ribbon_steps": 48,
+    "normal_refraction_paths": 4,
+    "low_performance_refraction_paths": 2,
+    "detached_particles": false
+  },
+  "reduced_motion": "Use settled visual immediately and remove spatial entrance/contraction while retaining static Orb identity."
+}

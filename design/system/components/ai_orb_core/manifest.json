@@ -1,0 +1,51 @@
+{
+  "component": "YuJian AI Orb Core",
+  "component_id": "intelligence.ai_orb_core",
+  "version": "V1",
+  "status": "REVIEW",
+  "source_assets": [
+    {
+      "asset_id": "system_components_primary_capture_button_assets_capture_button_main_v1_png",
+      "path": "design/system/components/primary_capture_button/assets/capture_button_main_v1.png",
+      "sha256": "501abcc58a65263dd879ad198a0a033630ab4bdcaf945eb02599e4f1249ca327",
+      "dimensions_px": [
+        208,
+        208
+      ],
+      "mode": "RGBA",
+      "status": "FROZEN",
+      "role": "canonical_capture_button"
+    },
+    {
+      "asset_id": "processing_water_core_runtime_v1",
+      "path": "app/src/main/res/drawable-nodpi/processing_water_core_v1.webp",
+      "sha256": "daa85a1fc13fac4a7ca562959c2d19172ee0f1e94277c3eeb32ef1f09a1a7b09",
+      "dimensions_px": [
+        384,
+        384
+      ],
+      "mode": "RGBA",
+      "status": "EXISTING_MAIN_RUNTIME",
+      "role": "transparent_orb_core"
+    },
+    {
+      "asset_id": "capture_button_runtime_legacy_v1",
+      "path": "app/src/main/res/drawable-nodpi/capture_button_main_v1.webp",
+      "sha256": "f8114d5d6d1b2211ce3527e849b07ed9434d8d102f88b247bac28aa2eaea870a",
+      "dimensions_px": [
+        384,
+        384
+      ],
+      "mode": "RGBA",
+      "status": "LEGACY_CANDIDATE_NOT_DEFAULT",
+      "role": "legacy_same_basename_capture_candidate"
+    }
+  ],
+  "implementation_target": {
+    "canonical_capture_runtime_path": "app/src/main/res/drawable-nodpi/primary_capture_button_v1_1.png",
+    "canonical_capture_source_path": "design/system/components/primary_capture_button/assets/capture_button_main_v1.png",
+    "required_copy_rule": "Byte-identical copy; preserve 208x208 dimensions and SHA-256.",
+    "legacy_runtime_path_after_rename": "app/src/main/res/drawable-nodpi/ai_orb_camera_seed_v1.webp",
+    "legacy_usage": "Non-default candidate only; no formal Home/Capture/Processing call site."
+  }
+}
