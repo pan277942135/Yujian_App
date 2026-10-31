@@ -8,7 +8,7 @@ gate_instrumentation_timeout_seconds() {
 }
 
 gate_test_classes() {
-  printf '%s\n' 'com.yujian.ai.ui.identify.RecognitionFirstCaptureGuideRuntimeTest,com.yujian.ai.RecognitionFrozenFlowEmulatorTest,com.yujian.ai.RecognitionOpticalSegmentRuntimeTest,com.yujian.ai.RecognitionFishContourRuntimeTest,com.yujian.ai.RecognitionImageStoreTest,com.yujian.ai.catches.GuestCatchRepositoryRuntimeTest,com.yujian.ai.FishDetectionQualityGateTest,com.yujian.ai.PipelineTraceTest,com.yujian.ai.DetectorOrientationRetryRuntimeTest,com.yujian.ai.DetectorGoldenParityTest,com.yujian.ai.ai.subject.MaskGeometryMetadataTest,com.yujian.ai.media.RecognitionExifOrientationTest,com.yujian.ai.ui.recognition.MultiContourRevealTest,com.yujian.ai.ui.recognition.SpeciesNameRevealTest'
+  printf '%s\n' 'com.yujian.ai.ui.identify.RecognitionFirstCaptureGuideRuntimeTest,com.yujian.ai.RecognitionFrozenFlowEmulatorTest,com.yujian.ai.RecognitionOpticalSegmentRuntimeTest,com.yujian.ai.RecognitionFishContourRuntimeTest,com.yujian.ai.RecognitionImageStoreTest,com.yujian.ai.catches.GuestCatchRepositoryRuntimeTest,com.yujian.ai.FishDetectionQualityGateTest,com.yujian.ai.PipelineTraceTest,com.yujian.ai.DetectorOrientationRetryRuntimeTest,com.yujian.ai.ai.subject.MaskGeometryMetadataTest,com.yujian.ai.media.RecognitionExifOrientationTest,com.yujian.ai.ui.recognition.MultiContourRevealTest,com.yujian.ai.ui.recognition.SpeciesNameRevealTest,com.yujian.ai.DetectorGoldenParityTest'
 }
 
 gate_additional_test_classes() {
