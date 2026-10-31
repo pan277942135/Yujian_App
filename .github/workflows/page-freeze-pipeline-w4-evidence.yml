@@ -13,17 +13,20 @@ on:
     paths:
       - "design/system_v3/06_Asset_System/Page_Resource_Binding*"
       - "design/system_v3/07_Responsive_System/Page_*"
+      - "design/system_v3/07_Responsive_System/page_contract_examples/*.json"
       - "scripts/design/schemas/Page_Evidence_Manifest_Schema_V1.json"
       - "design/pages/**"
       - "design/manager/**"
       - "design/registry/experience_registry_v1.json"
       - "scripts/design/page_freeze_runner.py"
       - "scripts/design/verify_page_workspace.mjs"
+      - "scripts/design/verify_empty_home_structured_hifi.mjs"
       - "scripts/design/validate_page_responsive_contract.py"
       - "scripts/design/validate_page_resource_binding.py"
       - "scripts/design/tests/test_page_freeze_runner.py"
       - "scripts/design/tests/verify_page_workspace_fixtures.mjs"
       - ".github/workflows/page-freeze-pipeline-w4-evidence.yml"
+      - ".github/workflows/w5-empty-home-matrix.yml"
 
 permissions:
   contents: read
@@ -156,7 +159,19 @@ jobs:
             --run-id "$GITHUB_RUN_ID" \
             --report "$RUNNER_TEMP/page-resource-binding-report.json"
 
-      - name: Verify staged Design Manager workspace; retain only unconnected pages as NOT_RUN
+      - name: Run W5 page-specific Empty Home matrix on W4 candidate
+        if: github.event_name == 'pull_request' && github.event.pull_request.number == 234 && hashFiles('scripts/design/verify_empty_home_structured_hifi.mjs') != ''
+        env:
+          PLAYWRIGHT_MODULE_DIR: ${{ runner.temp }}/page-workspace-playwright/node_modules
+        run: |
+          set -euo pipefail
+          node --check scripts/design/verify_empty_home_structured_hifi.mjs
+          node scripts/design/verify_empty_home_structured_hifi.mjs \
+            --root _site \
+            --expected-sha "$BUILD_SHA" \
+            --output-dir "$RUNNER_TEMP/page-freeze-w4-evidence/empty-home-matrix"
+
+      - name: Verify staged Design Manager workspace for every pilot page
         shell: bash
         env:
           PLAYWRIGHT_MODULE_DIR: ${{ runner.temp }}/page-workspace-playwright/node_modules
@@ -165,8 +180,8 @@ jobs:
           evidence_root="$RUNNER_TEMP/page-freeze-w4-evidence/browser"
           mkdir -p "$evidence_root"
           if [ ! -f _site/design/manager/page_workspace_adapters.js ]; then
-            echo "W3 workspace adapter is not present on this exact candidate SHA; actual workspace browser checks remain NOT_RUN."
-            exit 0
+            echo "W3 workspace adapter is not present on this exact candidate SHA."
+            exit 1
           fi
           python3 -m http.server 8765 --directory _site > "$RUNNER_TEMP/page-workspace-http.log" 2>&1 &
           server_pid=$!
@@ -180,10 +195,9 @@ jobs:
           for page_id in home_normal_v1 home_empty_v2 auth_login_v2; do
             output_dir="$evidence_root/$page_id"
             unconnected_policy=fail
-            if [ "$page_id" = "home_empty_v2" ] || [ "$page_id" = "auth_login_v2" ]; then
-              # These page renderers are not declared structured in the W3 core PR.
-              # The verifier's default remains fail-closed; only the core-tools
-              # job may preserve an explicit reference-image-only state as NOT_RUN.
+            if [ "$page_id" = "auth_login_v2" ]; then
+              # Login remains reference-only until the dedicated W6 integration is connected.
+              # Keep exact-SHA workspace identity/resource checks, but report its renderer as NOT_RUN.
               unconnected_policy=not-run
             fi
             if ! python scripts/design/page_freeze_runner.py verify-page-workspace \
@@ -211,12 +225,23 @@ jobs:
             browser_args=()
             browser_report="$evidence_root/browser/$page_id/workspace-browser-report.json"
             if [ -f "$browser_report" ]; then browser_args+=(--browser-report "$browser_report"); fi
+            matrix_args=()
+            require_args=()
+            if [ "${{ github.event_name }}" = "pull_request" ] && [ "${{ github.event.pull_request.number }}" = "234" ]; then
+              if [ "$page_id" = "home_empty_v2" ]; then
+                matrix_report="$evidence_root/empty-home-matrix/EmptyHome_Structured_HiFi_Evidence_V1.json"
+                matrix_args+=(--matrix-report "$matrix_report")
+                require_args+=(--require-evidence)
+              fi
+            fi
             if ! python scripts/design/page_freeze_runner.py validate-page \
               --page-id "$page_id" \
               --evidence-name "$label" \
               --source-sha "$BUILD_SHA" \
               --publication-report "$RUNNER_TEMP/page-resource-binding-report.json" \
               "${browser_args[@]}" \
+              "${matrix_args[@]}" \
+              "${require_args[@]}" \
               --output-dir "$evidence_root"; then
               failed=1
               continue
