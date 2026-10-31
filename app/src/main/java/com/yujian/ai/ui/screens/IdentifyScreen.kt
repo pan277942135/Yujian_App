@@ -1,5 +1,8 @@
 package com.yujian.ai.ui.screens
 
+import com.yujian.ai.ui.designsystem.components.aiorb.AIOrbCore
+import com.yujian.ai.ui.designsystem.components.aiorb.AIOrbVisualState
+
 import android.Manifest
 import android.app.Activity
 import android.content.pm.PackageManager
@@ -119,7 +122,6 @@ import androidx.core.view.WindowCompat
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.Observer
 import com.yujian.ai.R
-import com.yujian.ai.ui.designsystem.components.YuJianCaptureButton
 import com.yujian.ai.media.RecognitionImageStore
 import com.yujian.ai.model.CapturePresentation
 import com.yujian.ai.model.SelectedImage
@@ -994,7 +996,7 @@ fun IdentifyScreen(
                     .alpha(if (captureHandoffActive) 0f else 1f),
                 contentAlignment = Alignment.Center,
             ) {
-                YuJianCaptureButton(
+                AIOrbCore(state = AIOrbVisualState.CAPTURE_BUTTON_IDLE,
                     onClick = {
                         if (shutterClickElapsed == null) scope.launch {
                             val pressedAt = android.os.SystemClock.uptimeMillis()

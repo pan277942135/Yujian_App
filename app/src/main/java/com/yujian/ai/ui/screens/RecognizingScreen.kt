@@ -96,7 +96,8 @@ import com.yujian.ai.ui.recognition.RecognitionFishFocusLevel
 import com.yujian.ai.ui.recognition.RecognitionMotionPolicy
 import com.yujian.ai.ui.recognition.RecognitionMotionTraceSample
 import com.yujian.ai.ui.recognition.RecognitionPerimeterShaderOverlay
-import com.yujian.ai.ui.recognition.ProcessingWaterOrb
+import com.yujian.ai.ui.designsystem.components.aiorb.AIOrbCore
+import com.yujian.ai.ui.designsystem.components.aiorb.aiOrbProcessingState
 import com.yujian.ai.ui.waterlight.core.WaterLightFrame
 import com.yujian.ai.ui.waterlight.core.UnifiedWaterLightEngine
 import com.yujian.ai.ui.waterlight.core.WaterLightHost
@@ -106,6 +107,7 @@ import com.yujian.ai.ui.waterlight.core.WaterLightMaterialProfile
 import com.yujian.ai.ui.waterlight.renderer.WaterCausticsField
 import com.yujian.ai.ui.waterlight.renderer.WaterCausticsRenderer
 import com.yujian.ai.ui.waterlight.renderer.WaterDropletRenderer
+
 import com.yujian.ai.ui.recognition.processingOrbMotionFrame
 import com.yujian.ai.ui.recognition.RecognitionVisualStateController
 import com.yujian.ai.ui.recognition.RECOGNITION_MASK_CONTOUR_REVEAL_MS
@@ -920,12 +922,20 @@ fun RecognitionProcessingScene(
             }
             if (orbHost.accepts(waterLightFrame, WaterLightHostGeometry(
                     WaterLightHost.ORB, waterLightFrame.geometryVersion, orbX, orbY, orbX + outerPx, orbY + outerPx,
-                ))) ProcessingWaterOrb(core, entranceElapsedMs, processingElapsedMs, orbCompletion.value,
-                motionPolicy.reduceMotion, motionPolicy.lowPerformance, capture != null,
-                Modifier.offset { IntOffset(
-                    orbX.roundToInt(), orbY.roundToInt()) },
+                ))) AIOrbCore(
+                state = aiOrbProcessingState(entranceElapsedMs, capture != null, motionPolicy.reduceMotion, orbCompletion.value),
+                coreSize = core,
+                entranceElapsedMs = entranceElapsedMs,
+                elapsedMs = processingElapsedMs,
+                completion = orbCompletion.value,
+                reduceMotion = motionPolicy.reduceMotion,
+                lowPerformance = motionPolicy.lowPerformance,
+                fromCamera = capture != null,
                 waterLightFrame = waterLightFrame,
-                waterLightMaterial = orbHost.material)
+                waterLightMaterial = orbHost.material,
+                modifier = Modifier.offset { IntOffset(orbX.roundToInt(), orbY.roundToInt()) },
+            )
+
         }
         if (manualDiagnostic) {
             Button(
