@@ -51,6 +51,7 @@ android {
 
     defaultConfig {
         applicationId = "com.yujian.ai.uiv2"
+        buildConfigField("String", "SOURCE_REVISION", quotedBuildConfig(providers.environmentVariable("GITHUB_SHA").orElse("LOCAL_UNVERIFIED").get()))
         minSdk = 24
         targetSdk = 35
         versionCode = 4

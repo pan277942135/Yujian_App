@@ -1,8 +1,8 @@
 name: Android startup smoke
 on:
   push:
-    branches: ['control/startup-crash-recovery-v1']
-    paths: ['.github/workflows/startup-smoke.yml']
+    branches: ['control/startup-crash-recovery-v1', 'fix/startup-crash-recovery-v1']
+    paths: ['.github/workflows/startup-smoke.yml', 'scripts/android_runtime/startup_smoke.sh']
   workflow_run:
     workflows: ['Android CI']
     types: [completed]
@@ -32,6 +32,7 @@ jobs:
             const artifact = data.artifacts.find(x => x.name.startsWith('YuJian-debug-') && !x.expired);
             if (!artifact) throw new Error('Installable APK artifact unavailable');
             core.setOutput('name', artifact.name);
+            core.setOutput('tests', data.artifacts.find(x => x.name.startsWith('YuJian-runtime-apks-') && !x.expired)?.name || '');
             core.setOutput('run', String(run));
       - uses: actions/download-artifact@v4
         with:
@@ -39,6 +40,13 @@ jobs:
           run-id: ${{ steps.apk.outputs.run }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
           path: startup-input
+      - uses: actions/download-artifact@v4
+        if: github.event_name == 'workflow_run'
+        with:
+          name: ${{ steps.apk.outputs.tests }}
+          run-id: ${{ steps.apk.outputs.run }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: startup-tests
       - name: Enable KVM
         run: |
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
@@ -55,27 +63,7 @@ jobs:
           profile: pixel_2
           disable-animations: true
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
-          script: |
-            mkdir -p startup-evidence
-            apk=$(find startup-input -name 'YuJian-debug.apk' -print -quit)
-            test -n "$apk"
-            sha256sum "$apk" | tee startup-evidence/APK_SHA256.txt
-            adb install -r "$apk"
-            adb logcat -c
-            adb shell am start -W -n com.yujian.ai.uiv2/com.yujian.ai.MainActivity | tee startup-evidence/launch.txt
-            sleep 12
-            adb logcat -d -b crash > startup-evidence/crash.txt
-            adb logcat -d > startup-evidence/logcat.txt
-            adb shell pidof com.yujian.ai.uiv2 > startup-evidence/pid.txt || true
-            adb shell uiautomator dump /sdcard/startup.xml || true
-            adb pull /sdcard/startup.xml startup-evidence/startup.xml || true
-            adb exec-out screencap -p > startup-evidence/startup.png
-            if test -s startup-evidence/pid.txt && ! grep -q 'com.yujian.ai.uiv2' startup-evidence/crash.txt; then echo PASS > startup-evidence/STATUS; else echo FAIL > startup-evidence/STATUS; fi
-            adb shell am force-stop com.yujian.ai.uiv2
-            adb shell am start -W -n com.yujian.ai.uiv2/com.yujian.ai.MainActivity > startup-evidence/relaunch.txt
-            sleep 5
-            adb shell pidof com.yujian.ai.uiv2 > startup-evidence/relaunch-pid.txt || true
-            adb logcat -d -b crash > startup-evidence/relaunch-crash.txt
+          script: bash scripts/android_runtime/startup_smoke.sh
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -90,6 +78,7 @@ jobs:
           test -s startup-evidence/relaunch-pid.txt
           ! grep -q 'com.yujian.ai.uiv2' startup-evidence/relaunch-crash.txt
           ! grep -q '启动诊断' startup-evidence/startup.xml
+          test "$(cat startup-evidence/RESOURCE_DECODE_STATUS)" = PASS
       - name: Original APK diagnostic result (not device acceptance)
         if: github.event_name == 'push' && always()
         run: |
