@@ -15,6 +15,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
@@ -31,6 +32,7 @@ import java.net.URL
 import java.io.File
 import java.security.MessageDigest
 import java.util.LinkedHashMap
+import java.util.concurrent.ConcurrentHashMap
 import com.yujian.ai.ui.imagery.FishPhotoBoundingBox
 import com.yujian.ai.ui.imagery.FishPhotoCropPlanner
 
@@ -54,6 +56,44 @@ private object RemoteBitmapMemoryCache {
             bytes -= evicted.byteCount
             iterator.remove()
             // Do not recycle: a composed Image may still hold this bitmap until it leaves composition.
+        }
+    }
+}
+
+/** Non-blocking, opt-in runtime observation for the NH01 instrumentation waits. */
+internal object RemoteImageRuntimeProbe {
+    data class Snapshot(val loadStatus: String?, val rendered: Boolean?)
+
+    @Volatile
+    private var captureEnabled = false
+    private val states = ConcurrentHashMap<String, Snapshot>()
+
+    fun beginCapture() {
+        states.clear()
+        captureEnabled = true
+    }
+
+    fun endCapture() {
+        captureEnabled = false
+    }
+
+    fun snapshot(identity: String): Snapshot? = states[identity]
+
+    internal fun recordLoadStatus(identity: String?, status: String) {
+        if (!captureEnabled || identity.isNullOrBlank()) return
+        synchronized(states) {
+            val previous = states[identity]
+            states[identity] = Snapshot(
+                loadStatus = status,
+                rendered = if (status == "LOADING") false else previous?.rendered,
+            )
+        }
+    }
+
+    internal fun recordRendered(identity: String?, rendered: Boolean) {
+        if (!captureEnabled || identity.isNullOrBlank()) return
+        synchronized(states) {
+            states[identity] = Snapshot(states[identity]?.loadStatus, rendered)
         }
     }
 }
@@ -315,6 +355,11 @@ private fun SmartRemoteFishPhoto(
             }
         } else null
         val rendered = (cachedRender ?: renderedState.value).takeIf { sourceKey != null }
+        SideEffect {
+            // This is recorded after composition, so READY plus rendered=true proves
+            // the actual fish-photo Image node was emitted, not only that decoding ended.
+            RemoteImageRuntimeProbe.recordRendered(cacheIdentity, rendered != null)
+        }
         if (rendered != null) {
             Box(Modifier.fillMaxSize().testTag("home-evidence-backdrop-ready")) {
                 val imageTag = if (rendered.plan.mode == com.yujian.ai.ui.imagery.FishPhotoDisplayMode.FULL_FRAME_WITH_SOURCE_BACKDROP) {

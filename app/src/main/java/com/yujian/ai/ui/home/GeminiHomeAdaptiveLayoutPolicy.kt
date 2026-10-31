@@ -29,6 +29,11 @@ internal data class GeminiHomeLayoutSpec(
     val cardToFooterGap: Dp?,
     val topAlignMiddleGroup: Boolean,
     val contentFirstSizing: Boolean = false,
+    val contentTopPadding: Dp = 8.dp,
+    val footerTopPadding: Dp = 4.dp,
+    val footerBottomPaddingSmallInset: Dp = 8.dp,
+    val footerBottomPaddingLargeInset: Dp = 6.dp,
+    val ctaCameraGap: Dp = 11.dp,
 )
 
 private const val GEMINI_CARD_ASPECT_RATIO = 247f / 293f
@@ -53,6 +58,7 @@ internal fun resolveGeminiHomeLayoutSpec(
     safeHeightDp: Float,
     fontScale: Float,
     variant: GeminiHomeLayoutVariant = GeminiHomeLayoutVariant.ADAPTIVE_V2,
+    exactM01Exception: Boolean = false,
 ): GeminiHomeLayoutSpec {
     val band = when {
         safeWidthDp < 360f || safeHeightDp < 700f -> GeminiHomeScreenBand.COMPACT
@@ -145,57 +151,98 @@ internal fun resolveGeminiHomeLayoutSpec(
     // the measured space left by the real Compose Top and Footer sections.
     val fontPressure = ((fontScale - 1f) / 0.5f).coerceIn(0f, 1f)
     val shortHeightPressure = ((620f - safeHeightDp) / 220f).coerceIn(0f, 1f)
-    val brandToStats = maxOf(
+    val brandToStats = if (exactM01Exception && fontScale == 1f) 9f else maxOf(
         9f,
         safeHeightDp.times(0.035f).coerceIn(14f, 28f) - fontPressure * 3f - shortHeightPressure * 2f,
     )
-    // V2.2 spacing is based on independently approved visible Text-to-Card geometry,
-    // not a continuous formula that can collapse the Hero gap on tall viewports.
-    val baseStatsToTitle = when {
-        safeHeightDp < 500f -> 14f
-        safeHeightDp < 700f -> 14f
-        safeHeightDp < 840f -> 16f
-        else -> 18f
-    }
-    val statsToTitle = maxOf(12f, baseStatsToTitle - fontPressure * 2f)
-    val baseTitleToCard = when {
-        safeHeightDp < 500f -> 8f
-        safeHeightDp < 700f -> 12f
-        safeHeightDp < 840f -> 18f
-        else -> 20f
-    }
-    // Large system fonts may compress nonessential spacing, but never below 8dp.
-    val titleToCard = maxOf(8f, baseTitleToCard - fontPressure * 4f)
-    val cardToFooter = maxOf(
+    val baseStatsToTitle = geminiHomePiecewiseLinear(
+        safeHeightDp,
+        listOf(500f to 14f, 700f to 16f, 840f to 18f),
+    )
+    val statsToTitle = if (exactM01Exception && fontScale == 1f) 12f else maxOf(12f, baseStatsToTitle - fontPressure * 2f)
+    val baseTitleToCard = geminiHomePiecewiseLinear(
+        safeHeightDp,
+        listOf(432f to 8f, 592f to 12f, 796f to 18f, 884f to 20f),
+    )
+    val titleToCard = if (exactM01Exception && fontScale == 1f) 8f else maxOf(8f, baseTitleToCard - fontPressure * 4f)
+    val cardToFooter = if (exactM01Exception && fontScale == 1f) 3f else maxOf(
         3f,
         safeHeightDp.times(0.018f).coerceIn(8f, 14f) - fontPressure * 3f - shortHeightPressure * 2f,
     )
+    val compactTransition = listOf(430f to 0f, 460f to 8f)
+    val contentTopPadding = if (exactM01Exception && fontScale == 1f) 0f else
+        geminiHomePiecewiseLinear(safeHeightDp, compactTransition)
+    val footerTopPadding = if (exactM01Exception && fontScale == 1f) 0f else
+        geminiHomePiecewiseLinear(safeHeightDp, listOf(430f to 2f, 460f to 4f))
+    val footerBottomSmall = if (exactM01Exception && fontScale == 1f) 0f else
+        geminiHomePiecewiseLinear(safeHeightDp, listOf(430f to 2f, 460f to 8f))
+    val footerBottomLarge = if (exactM01Exception && fontScale == 1f) 0f else
+        geminiHomePiecewiseLinear(safeHeightDp, listOf(430f to 2f, 460f to 6f))
+    val ctaCameraGap = if (exactM01Exception && fontScale == 1f) 6f else
+        geminiHomePiecewiseLinear(safeHeightDp, listOf(430f to 6f, 460f to 11f))
 
     return GeminiHomeLayoutSpec(
         band = band,
         cardWidthFraction = ADAPTIVE_V2_CARD_WIDTH_FRACTION,
         maxCardWidth = ADAPTIVE_V2_CARD_MAX_WIDTH,
         maxCardHeight = ADAPTIVE_V2_CARD_MAX_HEIGHT,
-        minReadableCardHeight = adaptiveV2MinimumCardHeightDp(safeWidthDp, safeHeightDp, fontScale).dp,
+        minReadableCardHeight = adaptiveV2MinimumCardHeightDp(
+            safeWidthDp = safeWidthDp,
+            safeHeightDp = safeHeightDp,
+            fontScale = fontScale,
+            exactM01Exception = exactM01Exception && fontScale == 1f,
+        ).dp,
         brandToStatsGap = brandToStats.dp,
         statsToTitleGap = statsToTitle.dp,
         titleToCardGap = titleToCard.dp,
         cardToFooterGap = cardToFooter.dp,
         topAlignMiddleGroup = true,
         contentFirstSizing = true,
+        contentTopPadding = contentTopPadding.dp,
+        footerTopPadding = footerTopPadding.dp,
+        footerBottomPaddingSmallInset = footerBottomSmall.dp,
+        footerBottomPaddingLargeInset = footerBottomLarge.dp,
+        ctaCameraGap = ctaCameraGap.dp,
     )
+}
+
+/** Piecewise-linear curve with endpoint clamping, matching the frozen V2 responsive contract. */
+internal fun geminiHomePiecewiseLinear(value: Float, points: List<Pair<Float, Float>>): Float {
+    require(points.isNotEmpty())
+    require(points.zipWithNext().all { (left, right) -> left.first < right.first })
+    if (value <= points.first().first) return points.first().second
+    if (value >= points.last().first) return points.last().second
+    val (left, right) = points.zipWithNext().first { (a, b) -> value <= b.first }
+    val progress = (value - left.first) / (right.first - left.first)
+    return left.second + (right.second - left.second) * progress
+}
+
+/** Equal S/2 additions for the two inter-band gaps; content height is already measured by Compose. */
+internal fun geminiHomeEqualSurplusGapAddition(
+    middleHeightDp: Float,
+    contentHeightDp: Float,
+    baseGapBeforeDp: Float,
+    baseGapAfterDp: Float,
+): Float {
+    require(middleHeightDp >= 0f && contentHeightDp >= 0f)
+    require(baseGapBeforeDp >= 0f && baseGapAfterDp >= 0f)
+    val surplus = (middleHeightDp - contentHeightDp - baseGapBeforeDp - baseGapAfterDp).coerceAtLeast(0f)
+    return surplus / 2f
 }
 
 private fun adaptiveV2MinimumCardHeightDp(
     safeWidthDp: Float,
     safeHeightDp: Float,
     fontScale: Float,
+    exactM01Exception: Boolean,
 ): Float {
     val viewportScale = geminiHomeResponsiveFontScale(safeWidthDp, safeHeightDp)
     val targetCardWidthDp = minOf(safeWidthDp * ADAPTIVE_V2_CARD_WIDTH_FRACTION, ADAPTIVE_V2_CARD_MAX_WIDTH.value)
     val wrapAuxiliary = fontScale >= 1.3f || targetCardWidthDp < 240f
     val auxiliaryLines = if (wrapAuxiliary) 2f else 1f
-    val metadataLineCount = auxiliaryLines
+    // Long metadata may use two lines even when card width/font scale do not
+    // independently activate auxiliary wrapping. Budget the declared maximum.
+    val metadataLineCount = 2f
     val speciesLines = if (wrapAuxiliary) 2f else 1f
     val speciesLine = safeHeightDp.times(0.036f).coerceIn(20f, 26f) *
         viewportScale * 1.2f * fontScale * speciesLines
@@ -204,9 +251,9 @@ private fun adaptiveV2MinimumCardHeightDp(
     val metadataLines = safeHeightDp.times(0.019f).coerceIn(11f, 13f) *
         viewportScale * 1.3f * fontScale * metadataLineCount
     val textGaps = safeHeightDp.times(0.006f).coerceIn(2f, 5f) * 2f
-    // The 124dp compact floor remains a fallback, but the measured two-line text budget
-    // normally dominates for narrow cards so the Hero is not undersized to save whitespace.
-    val minimumFloor = if (safeHeightDp < 460f && fontScale < 1.3f) 124f else 148f
+    // The 124dp floor belongs only to the exact M01 320x480dp / 1.0x exception.
+    // Its final card still has to pass width, ratio, readability, and no-scroll checks.
+    val minimumFloor = if (exactM01Exception) 124f else 148f
     return maxOf(minimumFloor, speciesLine + measurementLines + metadataLines + textGaps + 20f + 16f)
         .coerceAtMost(220f)
 }

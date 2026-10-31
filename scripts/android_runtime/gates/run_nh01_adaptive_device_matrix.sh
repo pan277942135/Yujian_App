@@ -7,7 +7,7 @@ set -uo pipefail
 : "${YUJIAN_EVIDENCE_DIR:?YUJIAN_EVIDENCE_DIR is required}"
 : "${BUILD_SHA:?BUILD_SHA is required}"
 
-readonly TEST_CLASS="com.yujian.ai.ui.home.GeminiHomeDeviceMatrixTest#capturesActualWindowWithTwoUniqueCatches"
+readonly TEST_CLASS="com.yujian.ai.ui.home.GeminiHomeDeviceMatrixTest#capturesActualWindowForScenario"
 readonly APP_APK="${YUJIAN_APP_APK:-build/runtime-apks/app-debug.apk}"
 readonly TEST_APK="${YUJIAN_TEST_APK:-build/runtime-apks/app-debug-androidTest.apk}"
 readonly RAW_DIR="$YUJIAN_EVIDENCE_DIR/nh01-adaptive-raw"
@@ -25,6 +25,21 @@ profiles=(
   "M04 360 640 1.0" "M05 360 640 1.3" "M06 360 640 1.5"
   "M07 390 844 1.0" "M08 390 844 1.3" "M09 390 844 1.5"
   "M10 430 932 1.0" "M11 430 932 1.3" "M12 430 932 1.5"
+  "SUP-W480-H840-F10 480 840 1.0" "SUP-W480-H840-F13 480 840 1.3" "SUP-W480-H840-F15 480 840 1.5"
+  "SUP-W412-H915-F10 412 915 1.0" "SUP-W412-H915-F13 412 915 1.3" "SUP-W412-H915-F15 412 915 1.5"
+  "SUP-W375-H720-F10 375 720 1.0" "SUP-W375-H720-F13 375 720 1.3" "SUP-W375-H720-F15 375 720 1.5"
+  "BOUNDARY-SAFE459-F10 360 SAFE459 1.0" "BOUNDARY-SAFE459-F13 360 SAFE459 1.3" "BOUNDARY-SAFE459-F15 360 SAFE459 1.5"
+  "BOUNDARY-SAFE460-F10 360 SAFE460 1.0" "BOUNDARY-SAFE460-F13 360 SAFE460 1.3" "BOUNDARY-SAFE460-F15 360 SAFE460 1.5"
+  "BOUNDARY-SAFE499-F10 360 SAFE499 1.0" "BOUNDARY-SAFE499-F13 360 SAFE499 1.3" "BOUNDARY-SAFE499-F15 360 SAFE499 1.5"
+  "BOUNDARY-SAFE500-F10 360 SAFE500 1.0" "BOUNDARY-SAFE500-F13 360 SAFE500 1.3" "BOUNDARY-SAFE500-F15 360 SAFE500 1.5"
+  "BOUNDARY-SAFE699-F10 360 SAFE699 1.0" "BOUNDARY-SAFE699-F13 360 SAFE699 1.3" "BOUNDARY-SAFE699-F15 360 SAFE699 1.5"
+  "BOUNDARY-SAFE700-F10 360 SAFE700 1.0" "BOUNDARY-SAFE700-F13 360 SAFE700 1.3" "BOUNDARY-SAFE700-F15 360 SAFE700 1.5"
+  "BOUNDARY-SAFE839-F10 360 SAFE839 1.0" "BOUNDARY-SAFE839-F13 360 SAFE839 1.3" "BOUNDARY-SAFE839-F15 360 SAFE839 1.5"
+  "BOUNDARY-SAFE840-F10 360 SAFE840 1.0" "BOUNDARY-SAFE840-F13 360 SAFE840 1.3" "BOUNDARY-SAFE840-F15 360 SAFE840 1.5"
+  "SUP-SINGLE-M01 320 480 1.0 single_record"
+  "SUP-SINGLE-M03 390 844 1.0 single_record"
+  "SUP-IMAGEFAIL-M01 320 480 1.0 image_failure"
+  "SUP-THREE-M03 390 844 1.0 three_unique_catches"
 )
 variants=("ADAPTIVE_V2" "V3_BASELINE")
 all_ok=1
@@ -105,8 +120,9 @@ PY
 }
 
 for row in "${profiles[@]}"; do
-  read -r profile _width _height _font <<< "$row"
-  for variant in "${variants[@]}"; do
+  read -r profile _width _height _font _scenario <<< "$row"
+  if [[ "$profile" =~ ^M[0-9]{2}$ ]]; then profile_variants=("${variants[@]}"); else profile_variants=("ADAPTIVE_V2"); fi
+  for variant in "${profile_variants[@]}"; do
     variant_token="$(tr '[:upper:]' '[:lower:]' <<< "$variant" | tr -d '\r\n')"
     write_case_record "$profile" "$variant_token" "MISSING" "null" "CASE_NOT_STARTED" false false false
   done
@@ -319,7 +335,33 @@ if [[ -n "$selected_serial" ]]; then
 fi
 
 for row in "${profiles[@]}"; do
-  read -r profile width height font_scale <<< "$row"
+  read -r profile width height font_scale scenario <<< "$row"
+  scenario="${scenario:-two_unique_catches}"
+  expected_safe_height=""
+  if [[ "$height" == SAFE* ]]; then
+    expected_safe_height="${height#SAFE}"
+    height=""
+    inset_source="$RAW_CASE_DIR/M04-adaptive_v2.json"
+    if [[ -s "$inset_source" ]]; then
+      inset_total="$(python3 - "$inset_source" <<'PY'
+import json, sys
+from pathlib import Path
+payload = json.loads(Path(sys.argv[1]).read_text(encoding="utf-8"))
+insets = payload["safe_insets_dp"]
+print(float(insets["top"]) + float(insets["bottom"]))
+PY
+      )"
+      height="$(python3 - "$expected_safe_height" "$inset_total" <<'PY'
+import sys
+print(int(round(float(sys.argv[1]) + float(sys.argv[2]))))
+PY
+      )"
+    else
+      record_setup_failure "MISSING_M04_SAFE_INSET_CALIBRATION_FOR_${profile}"
+      height="480"
+    fi
+  fi
+  if [[ "$profile" =~ ^M[0-9]{2}$ ]]; then profile_variants=("${variants[@]}"); else profile_variants=("ADAPTIVE_V2"); fi
   requested="${width}x${height}"
   size_log="$LOG_DIR/${profile}_wm_size.log"
   density_log="$LOG_DIR/${profile}_wm_density.log"
@@ -367,7 +409,7 @@ p={"profile_id":sys.argv[2],"requested_size_px":sys.argv[3],"requested_density_d
 Path(sys.argv[1]).write_text(json.dumps(p,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
 PY
 
-  for variant in "${variants[@]}"; do
+  for variant in "${profile_variants[@]}"; do
     variant_token="$(tr '[:upper:]' '[:lower:]' <<< "$variant" | tr -d '\r\n')"
     case_key="${profile}_${variant_token}"
     case_dir="$LOG_DIR/diagnostics/$case_key"
@@ -378,6 +420,7 @@ PY
     report_name="$profile-${variant_token}.json"
     initial_name="$profile-${variant_token}.png"
     swipe_name="$profile-${variant_token}-after-swipe.png"
+    fallback_name="$profile-${variant_token}-fallback.png"
     if [[ "$matrix_setup_ok" -ne 1 ]]; then
       reason="MATRIX_SETUP_BLOCKED: ${matrix_setup_reason:-UNSPECIFIED}"
       write_case_record "$profile" "$variant_token" "MISSING" "null" "$reason" false false "$profile_settings_match"
@@ -387,28 +430,28 @@ PY
     "${ADB[@]}" logcat -c > "$case_dir/logcat_clear.stdout.log" 2> "$case_dir/logcat_clear.stderr.log" || true
     "${ADB[@]}" shell am force-stop "$YUJIAN_APP_PACKAGE" > "$case_dir/force_stop.stdout.log" 2> "$case_dir/force_stop.stderr.log" || true
     write_case_record "$profile" "$variant_token" "RUNNING" "null" "INSTRUMENTATION_STARTED" false false "$profile_settings_match"
+    instrumentation_args=(
+      -e class "$TEST_CLASS"
+      -e profile_id "$profile"
+      -e layout_variant "$variant"
+      -e font_scale "$font_scale"
+      -e expected_display_px "$requested"
+      -e scenario "$scenario"
+      -e source_sha "$BUILD_SHA"
+    )
+    if [[ -n "$expected_safe_height" ]]; then
+      instrumentation_args+=(-e expected_safe_height_dp "$expected_safe_height")
+    fi
     if command -v timeout >/dev/null 2>&1; then
       timeout 300s "${ADB[@]}" shell am instrument -w -r \
-        -e class "$TEST_CLASS" \
-        -e profile_id "$profile" \
-        -e layout_variant "$variant" \
-        -e font_scale "$font_scale" \
-        -e expected_display_px "$requested" \
-        -e source_sha "$BUILD_SHA" \
-        "$YUJIAN_INSTRUMENTATION_TARGET" > "$stdout" 2> "$stderr"
+        "${instrumentation_args[@]}" "$YUJIAN_INSTRUMENTATION_TARGET" > "$stdout" 2> "$stderr"
     else
       "${ADB[@]}" shell am instrument -w -r \
-        -e class "$TEST_CLASS" \
-        -e profile_id "$profile" \
-        -e layout_variant "$variant" \
-        -e font_scale "$font_scale" \
-        -e expected_display_px "$requested" \
-        -e source_sha "$BUILD_SHA" \
-        "$YUJIAN_INSTRUMENTATION_TARGET" > "$stdout" 2> "$stderr"
+        "${instrumentation_args[@]}" "$YUJIAN_INSTRUMENTATION_TARGET" > "$stdout" 2> "$stderr"
     fi
     instrumentation_rc=$?
     {
-      echo "COMMAND=adb shell am instrument -w -r -e class $TEST_CLASS -e profile_id $profile -e layout_variant $variant -e font_scale $font_scale -e expected_display_px $requested -e source_sha $BUILD_SHA $YUJIAN_INSTRUMENTATION_TARGET"
+      echo "COMMAND=adb shell am instrument -w -r -e class $TEST_CLASS -e profile_id $profile -e layout_variant $variant -e font_scale $font_scale -e expected_display_px $requested -e scenario $scenario -e expected_safe_height_dp ${expected_safe_height:-UNSET} -e source_sha $BUILD_SHA $YUJIAN_INSTRUMENTATION_TARGET"
       echo "EXIT_CODE=$instrumentation_rc"
       echo "--- stdout ---"
       cat "$stdout"
@@ -450,7 +493,19 @@ except Exception:
 PY
 )"
     fi
-    if [[ -s "$RAW_CASE_DIR/$initial_name" && -s "$RAW_CASE_DIR/$swipe_name" ]]; then screenshots_present=true; fi
+    if [[ -s "$RAW_CASE_DIR/$initial_name" ]]; then
+      case "$scenario" in
+        two_unique_catches)
+          [[ -s "$RAW_CASE_DIR/$swipe_name" ]] && screenshots_present=true
+          ;;
+        single_record)
+          screenshots_present=true
+          ;;
+        image_failure)
+          [[ -s "$RAW_CASE_DIR/$fallback_name" ]] && screenshots_present=true
+          ;;
+      esac
+    fi
 
     reason=""
     case_status="PASS"
@@ -471,7 +526,7 @@ PY
       reason="DEVICE_CASE_STATUS_$report_status"
     elif [[ "$screenshots_present" != true ]]; then
       case_status="FAIL"
-      reason="INITIAL_OR_AFTER_SWIPE_SCREENSHOT_MISSING"
+      reason="REQUIRED_SCENARIO_SCREENSHOT_MISSING"
     elif [[ "$profile_settings_match" != true ]]; then
       case_status="FAIL"
       reason="PROFILE_SETTINGS_DID_NOT_MATCH_REQUEST"
@@ -550,6 +605,17 @@ python3 scripts/android_runtime/aggregate_nh01_adaptive_matrix.py \
   --contract design/qa/NH01_ADAPTIVE_VISUAL_BALANCE_V2.md || aggregate_rc=$?
 if [[ "$aggregate_rc" -ne 0 ]]; then all_ok=0; fi
 
+supplemental_rc=0
+python3 scripts/android_runtime/validate_nh01_supplemental_matrix.py \
+  --raw-dir "$RAW_CASE_DIR" \
+  --execution-dir "$EXEC_DIR" \
+  --output-dir "$YUJIAN_EVIDENCE_DIR" \
+  --source-sha "$BUILD_SHA" \
+  --run-id "${GITHUB_RUN_ID:-local}" \
+  --run-url "${GITHUB_SERVER_URL:-https://github.com}/${GITHUB_REPOSITORY:-pan277942135/Yujian_App}/actions/runs/${GITHUB_RUN_ID:-local}" \
+  || supplemental_rc=$?
+if [[ "$supplemental_rc" -ne 0 ]]; then all_ok=0; fi
+
 MATRIX_STATUS="PASS"
 if [[ "$all_ok" -ne 1 ]]; then MATRIX_STATUS="FAIL"; fi
 MATRIX_STATUS="$MATRIX_STATUS" BUILD_SHA="$BUILD_SHA" SELECTED_SERIAL="$selected_serial" \
@@ -565,7 +631,9 @@ for path in sorted(root.glob("*.json")):
 payload={"schema":"NH01_ADAPTIVE_MATRIX_EXECUTION_SUMMARY_V1","status":os.environ["MATRIX_STATUS"],
  "source_sha":os.environ["BUILD_SHA"],"adb_serial":os.environ.get("SELECTED_SERIAL") or None,
  "device_api":os.environ.get("DEVICE_API"),"device_fingerprint":os.environ.get("DEVICE_FINGERPRINT"),
- "setup_reason":os.environ.get("SETUP_REASON"),"execution_records":records}
+ "setup_reason":os.environ.get("SETUP_REASON"),"execution_records":records,
+ "baseline_execution_count":24,"supplemental_matrix_execution_count":33,
+ "scoped_state_execution_count":2,"total_execution_count":len(records)}
 Path(sys.argv[1]).write_text(json.dumps(payload,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
 PY
 

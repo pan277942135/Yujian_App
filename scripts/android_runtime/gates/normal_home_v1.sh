@@ -18,6 +18,26 @@ gate_after_instrumentation() {
   "$YUJIAN_ADB_BIN" logcat -d -v brief -s \
     NORMAL_HOME_MOTION_TRACE:I NORMAL_HOME_AVATAR_STATE_TRACE:I FishPhotoCropAcceptance:I \
     > "$output_dir/normal-home-motion-instrumentation.log" 2>&1 || true
+
+  # Run the NH01 V2 API 28 matrix on this already-provisioned device and exact
+  # APK pair. The matrix runner restores the display and font settings it sets.
+  local matrix_rc=0
+  YUJIAN_ADB_BIN="$YUJIAN_ADB_BIN" \
+    YUJIAN_APP_PACKAGE="$YUJIAN_APP_PACKAGE" \
+    YUJIAN_INSTRUMENTATION_TARGET="$YUJIAN_INSTRUMENTATION_TARGET" \
+    YUJIAN_EVIDENCE_DIR="$YUJIAN_EVIDENCE_DIR/nh01-adaptive-v2" \
+    YUJIAN_APP_APK="$APP_APK" \
+    YUJIAN_TEST_APK="$TEST_APK" \
+    BUILD_SHA="$YUJIAN_BUILD_SHA" \
+    bash "$YUJIAN_RUNTIME_DIR/gates/run_nh01_adaptive_device_matrix.sh" || matrix_rc=$?
+  if (( matrix_rc != 0 )); then
+    runtime_set_failure "INSTRUMENTATION" "NH01_ADAPTIVE_V2_DEVICE_MATRIX_FAILED"
+    # The canonical runtime entry treats this post-instrumentation hook as
+    # diagnostic-only and masks its return. Preserve the supplemental matrix
+    # result through the shared instrumentation status that the entry checks.
+    instrumentation_rc="$EXIT_FAIL_TEST"
+    return "$EXIT_FAIL_TEST"
+  fi
 }
 
 normal_home_run_seed() {
