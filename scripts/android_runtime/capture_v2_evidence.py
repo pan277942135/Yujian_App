@@ -104,7 +104,11 @@ for w,h in [(320,480),(360,640),(360,800),(393,852),(430,932)]:
         launch();home=find('开始识鱼');shot(key+'-home');dump(key+'-home')
         hx,hy,hr,hb=bounds(home)
         assert hr-hx>=88 and hb-hy>=88,f'{key}: clipped Home button'
-        album=next((n for n in nodes() if n.get('content-desc','').startswith('从相册选择')),None)
+        home_nodes=nodes()
+        prompt=next((n for n in home_nodes if n.get('text','').startswith('对准鱼获')),None)
+        if prompt is not None:
+            assert bounds(prompt)[3]+6<=hy,f'{key}: Home prompt/capture collision'
+        album=next((n for n in home_nodes if n.get('content-desc','').startswith('从相册选择')),None)
         if album is not None:
             ax,ay,ar,ab=bounds(album)
             assert min(hr,ar)<=max(hx,ax) or min(hb,ab)<=max(hy,ay),f'{key}: Home capture/album collision'
@@ -115,6 +119,14 @@ for w,h in [(320,480),(360,640),(360,800),(393,852),(430,932)]:
             assert n is not None,f'{key}: missing {value}'
             x,y,r,b=bounds(n);assert 0<=x<r<=w and 0<=y<b<=h,f'{key}: clipped {value}: {n.attrib}'
             if value in ['拍摄','从相册选择','闪光灯']: assert r-x>=48 and b-y>=48,f'{key}: small touch {value}'
+        shutter_node=next(n for n in ns if n.get('content-desc')=='拍摄')
+        sy=(bounds(shutter_node)[1]+bounds(shutter_node)[3])/2
+        alignment={}
+        for label,icon_height in [('相册',44),('闪光灯',46)]:
+            caption=next(n for n in ns if n.get('text')==label)
+            icon_y=bounds(caption)[1]-icon_height/2
+            alignment[label]={'icon_center_y':icon_y,'shutter_center_y':sy,'error_dp':abs(icon_y-sy)}
+            assert abs(icon_y-sy)<=3,f'{key}: {label} icon is not aligned to shutter: {alignment[label]}'
         if (w,h,scale)==(320,480,1.5):
             tap(find('1.0x',attr='text'));time.sleep(.15)
             entry=[n for n in nodes() if re.fullmatch(r'\d+\.\dx',n.get('text',''))][-1]
@@ -123,7 +135,7 @@ for w,h in [(320,480),(360,640),(360,800),(393,852),(430,932)]:
             fine=find('左右滑动精细变焦')
             subtitle=find('请将整条鱼放在取景框中央',attr='text')
             assert bounds(fine)[1]>=bounds(subtitle)[3],f'{key}: fine dial overlaps title area'
-        matrix.append({'viewport_dp':[w,h],'font_scale':scale,'status':'PASS_CONTROLS_VISIBLE','snapshot':key+'.png'})
+        matrix.append({'viewport_dp':[w,h],'font_scale':scale,'status':'PASS_CONTROLS_VISIBLE','icon_alignment':alignment,'snapshot':key+'.png'})
 (OUT/'matrix.json').write_text(json.dumps(matrix,indent=2))
 (OUT/'camera-entry-log.txt').write_text(logs())
 (OUT/'crash.txt').write_text(shell('logcat -d -b crash'))

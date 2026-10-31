@@ -23,7 +23,7 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
-            const source = '9654a8fe55abc740f6ddaa0da91a4d22af6386b9';
+            const source = '44c414b13df13a7a3520176618469acb4e51e4c6';
             let selected;
             for (let i=0; i<90; i++) {
               const {data} = await github.rest.actions.listWorkflowRunsForRepo({...context.repo, head_sha: source, per_page: 30});
