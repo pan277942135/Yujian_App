@@ -97,15 +97,15 @@ features:
     parent_feature: null
     control_phase: "P8"
     owner_path: "design/pages/home/normal_home"
-    registry_overall: "FROZEN"
-    registry_design_overall: "FROZEN"
+    registry_overall: "PARTIAL"
+    registry_design_overall: "PARTIAL"
     registry_modalities:
       behavior:
         status: "FROZEN"
         authority: "design/pages/home/normal_home/spec/Behavior_Spec_V1.md"
       visual:
-        status: "FROZEN"
-        authority: "design/system/core_visual_v1/reference/normal_home_v1.png"
+        status: "PARTIAL"
+        authority: "design/pages/home/normal_home/visual/NH01_LAKE_LIGHT_VISUAL_AUTHORITY_V1.json"
       motion:
         status: "FROZEN"
         authority: "design/pages/home/normal_home/motion/Normal_Home_Motion_Spec_V1.md"
@@ -128,6 +128,8 @@ features:
       - "design/system_v3/07_Responsive_System/page_contract_examples/home_normal_v1.envelope.json"
       - "design/system_v3/07_Responsive_System/page_contract_examples/home_normal_v1.profile.json"
       - "design/pages/home/normal_home/responsive/NH01_RESPONSIVE_LAYOUT_V2.json"
+      - "design/pages/home/normal_home/visual/NH01_LAKE_LIGHT_VISUAL_AUTHORITY_V1.json"
+      - "design/pages/home/normal_home/authority/authority_map_v1_3.json"
       - "design/pages/home/normal_home/engineering/NH01_GEMINI_ADAPTIVE_V2_ACCEPTANCE_MATRIX_V1.json"
       - "design/pages/home/normal_home/Page_Resource_Binding_V1.json"
     design_units:
