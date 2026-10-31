@@ -687,7 +687,7 @@ fun YujianApp() {
                             result
                         },
                         generateSubject = { selected, box ->
-                            subjectPreviewEngine.generate(selected.bitmap, box)
+                            subjectPreviewEngine.generate(selected, box, recognitionSessionId.orEmpty(), attemptId.orEmpty())
                         },
                         onSubjectGeometry = { resolvedSubject, geometry ->
                             val sessionId = recognitionSessionId

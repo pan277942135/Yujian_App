@@ -45,7 +45,7 @@ private fun readExifOrientation(bytes: ByteArray): Int = runCatching {
     )
 }.getOrDefault(ExifInterface.ORIENTATION_NORMAL)
 
-private fun applyExifOrientation(decoded: Bitmap, orientation: Int): Bitmap {
+internal fun applyExifOrientation(decoded: Bitmap, orientation: Int): Bitmap {
     val matrix = when (orientation) {
         ExifInterface.ORIENTATION_FLIP_HORIZONTAL -> Matrix().apply { setScale(-1f, 1f) }
         ExifInterface.ORIENTATION_ROTATE_180 -> Matrix().apply { setRotate(180f) }

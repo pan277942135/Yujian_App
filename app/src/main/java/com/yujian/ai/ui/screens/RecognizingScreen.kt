@@ -74,7 +74,6 @@ import androidx.compose.ui.text.style.TextAlign
 import com.yujian.ai.ai.FishInputAssessment
 import com.yujian.ai.R
 import com.yujian.ai.BuildConfig
-import com.yujian.ai.ai.FishDetectionQualityGate
 import com.yujian.ai.ai.NormalizedFishBox
 import com.yujian.ai.ai.ProductionRecognitionResult
 import com.yujian.ai.ai.RecognitionPhase
@@ -291,28 +290,26 @@ fun RecognitionProcessingScene(
             return@LaunchedEffect
         }
         currentCoroutineContext().ensureActive()
-        val crop = FishDetectionQualityGate.cropBoxPixels(
-            primary.box.expand(.12f), selected.bitmap.width, selected.bitmap.height,
-        )
-        val roi = NormalizedSourceRect(
-            left = crop[0].toFloat() / selected.bitmap.width,
-            top = crop[1].toFloat() / selected.bitmap.height,
-            right = crop[2].toFloat() / selected.bitmap.width,
-            bottom = crop[3].toFloat() / selected.bitmap.height,
-        )
+        val metadata = result.geometry
+        val geometryMatchesPhoto = metadata?.matches(
+            recognitionSessionId.orEmpty(), recognitionAttemptId.orEmpty(),
+            selected.imageId, selected.photoSha256, selected.bitmap.width, selected.bitmap.height,
+        ) == true
+        val roiBox = metadata?.takeIf { geometryMatchesPhoto }?.normalizedRoi()
+        val roi = roiBox?.let { NormalizedSourceRect(it.x1, it.y1, it.x2, it.y2) }
         val cropDimensionsMatch = loaded.width == result.roiWidth &&
             loaded.height == result.roiHeight &&
-            loaded.width == crop[2] - crop[0] && loaded.height == crop[3] - crop[1]
+            loaded.width == metadata?.roiPx?.width() && loaded.height == metadata?.roiPx?.height()
         val maskShapeValid = result.quality == FishSubjectQuality.GOOD &&
             result.maskSize > 0 && result.maskSize == result.expectedMaskSize &&
-            cropDimensionsMatch
+            cropDimensionsMatch && geometryMatchesPhoto && roi != null
         val extractedContour = if (maskShapeValid) {
             withContext(Dispatchers.Default) { extractContour(loaded) }
         } else {
             emptyList()
         }
         currentCoroutineContext().ensureActive()
-        val geometry = RecognitionSubjectGeometrySnapshot(
+        val geometry = if (maskShapeValid && extractedContour.isNotEmpty()) RecognitionSubjectGeometrySnapshot(
             imageId = selected.imageId,
             recognitionSessionId = recognitionSessionId.orEmpty(),
             recognitionAttemptId = recognitionAttemptId.orEmpty(),
@@ -321,12 +318,12 @@ fun RecognitionProcessingScene(
             sourceHeightPx = selected.bitmap.height,
             detectorBox = primary.box,
             detectorConfidence = primary.confidence,
-            subjectBox = roi,
+            subjectBox = requireNotNull(roi),
             contour = extractedContour,
             quality = result.quality,
             maskSize = result.maskSize,
             expectedMaskSize = result.expectedMaskSize,
-        ).takeIf { maskShapeValid && extractedContour.isNotEmpty() }
+        ) else null
         val trustState = RecognitionRevealPolicy.geometryTrust(
             detectorBox = primary.box,
             subject = geometry,
@@ -356,7 +353,7 @@ fun RecognitionProcessingScene(
         val trustedForReveal = isTrustedForCurrentPhoto && maskWindowOpen
         if (trustedForReveal) {
             subjectBitmap = loaded
-            subjectBox = NormalizedFishBox(roi.left, roi.top, roi.right, roi.bottom)
+            subjectBox = requireNotNull(roiBox)
             contour = extractedContour
             trustedSubjectMask = true
             val acceptedAtMs = recognitionMonotonicNowMs()
@@ -380,6 +377,7 @@ fun RecognitionProcessingScene(
         val maskRejectReason = when {
             result.quality != FishSubjectQuality.GOOD -> "QUALITY_${result.quality}"
             result.maskSize <= 0 || result.maskSize != result.expectedMaskSize -> "MASK_SIZE_MISMATCH"
+            !geometryMatchesPhoto -> "MASK_GEOMETRY_OR_IDENTITY_MISMATCH"
             !cropDimensionsMatch -> "ROI_DIMENSIONS_MISMATCH"
             extractedContour.isEmpty() -> "EMPTY_CONTOUR"
             recognitionSessionId.isNullOrBlank() || recognitionAttemptId.isNullOrBlank() -> "SESSION_IDENTITY_MISSING"

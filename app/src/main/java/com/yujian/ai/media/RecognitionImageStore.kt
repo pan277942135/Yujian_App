@@ -3,11 +3,11 @@ package com.yujian.ai.media
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.graphics.Matrix
 import android.net.Uri
 import androidx.core.content.FileProvider
 import androidx.exifinterface.media.ExifInterface
 import com.yujian.ai.model.SelectedImage
+import com.yujian.ai.ui.components.applyExifOrientation
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -73,7 +73,10 @@ object RecognitionImageStore {
     ): CameraNormalizationResult = withContext(Dispatchers.IO) {
         require(file.exists() && file.length() > 0L) { "没有读取到拍照内容，请重新拍摄" }
 
-        val rotation = runCatching { ExifInterface(file).rotationDegrees }.getOrDefault(0)
+        val exif = runCatching { ExifInterface(file) }.getOrNull()
+        val rotation = exif?.rotationDegrees ?: 0
+        val orientation = exif?.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL)
+            ?: ExifInterface.ORIENTATION_NORMAL
         val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
         BitmapFactory.decodeFile(file.absolutePath, bounds)
         require(bounds.outWidth > 0 && bounds.outHeight > 0) { "拍照文件无法解析，请重新拍摄" }
@@ -84,7 +87,7 @@ object RecognitionImageStore {
         val options = BitmapFactory.Options().apply { inSampleSize = sample }
         val decoded = BitmapFactory.decodeFile(file.absolutePath, options)
             ?: error("拍照文件无法解析，请重新拍摄")
-        val selected = persistNormalized(context, decoded, rotation, "camera", previewAspectRatio)
+        val selected = persistNormalized(context, decoded, orientation, rotation, "camera", previewAspectRatio)
         CameraNormalizationResult(
             selectedImage = selected,
             rotationDegrees = rotation,
@@ -99,7 +102,10 @@ object RecognitionImageStore {
         source: String,
         invalidMessage: String,
     ): SelectedImage {
-        val rotation = runCatching { ExifInterface(file).rotationDegrees }.getOrDefault(0)
+        val exif = runCatching { ExifInterface(file) }.getOrNull()
+        val rotation = exif?.rotationDegrees ?: 0
+        val orientation = exif?.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL)
+            ?: ExifInterface.ORIENTATION_NORMAL
 
         // BitmapFactory intentionally returns null when inJustDecodeBounds=true;
         // valid decoding is determined from outWidth/outHeight instead.
@@ -113,20 +119,20 @@ object RecognitionImageStore {
         val options = BitmapFactory.Options().apply { inSampleSize = sample }
         val decoded = BitmapFactory.decodeFile(file.absolutePath, options)
             ?: error(invalidMessage)
-        return persistNormalized(context, decoded, rotation, source)
+        return persistNormalized(context, decoded, orientation, rotation, source)
     }
 
     private fun persistNormalized(
         context: Context,
         decoded: Bitmap,
+        orientation: Int,
         rotation: Int,
         source: String,
         previewAspectRatio: Float? = null,
     ): SelectedImage {
-        val oriented = if (rotation == 0) decoded else Bitmap.createBitmap(
-            decoded, 0, 0, decoded.width, decoded.height,
-            Matrix().apply { postRotate(rotation.toFloat()) }, true,
-        )
+        // Normalize all eight EXIF orientations, including mirrors, before any
+        // detector, segmenter, crop or UI consumes this canonical bitmap.
+        val oriented = applyExifOrientation(decoded, orientation)
 
         // CameraX's controller aligns Preview and ImageCapture using the attached
         // PreviewView ViewPort. The file output may still contain the full sensor

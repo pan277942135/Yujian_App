@@ -7,6 +7,7 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.graphics.Matrix
+import android.graphics.Rect
 import android.os.SystemClock
 import android.util.Log
 import com.yujian.ai.ai.FishDetectionQualityGate
@@ -93,7 +94,14 @@ class SlimSamSegmenter(
         }
     }
 
-    suspend fun segment(source: Bitmap, detectorBbox: NormalizedFishBox): FishSubjectResult =
+    suspend fun segment(
+        source: Bitmap,
+        detectorBbox: NormalizedFishBox,
+        sessionId: String = "",
+        attemptId: String = "",
+        imageId: String = "",
+        photoSha256: String = "",
+    ): FishSubjectResult =
         withContext(Dispatchers.Default) {
             val started = System.nanoTime()
             val origW = source.width
@@ -141,6 +149,21 @@ class SlimSamSegmenter(
                 Log.i(TAG, "SLIMSAM_DECODER_START uptime_ms=$decoderStarted")
                 val (bestMask256, iouScore) = runMaskDecoder(embedding, points)
                 Log.i(TAG, "SLIMSAM_DECODER_END duration_ms=${SystemClock.uptimeMillis() - decoderStarted} iou=$iouScore")
+
+                val gridToPhoto = Matrix().apply { setScale(4f / embedding.scale, 4f / embedding.scale) }
+                val geometry = MaskGeometryMetadata(
+                    sessionId = sessionId, attemptId = attemptId, imageId = imageId, photoSha256 = photoSha256,
+                    canonicalWidth = origW, canonicalHeight = origH,
+                    roiPx = Rect(roiX1, roiY1, roiX2, roiY2), modelInputSize = 1024,
+                    resizedWidth = embedding.targetW, resizedHeight = embedding.targetH,
+                    padLeft = 0, padTop = 0,
+                    padRight = 1024 - embedding.targetW, padBottom = 1024 - embedding.targetH,
+                    maskGridWidth = 256, maskGridHeight = 256,
+                    modelToPhotoTransform = gridToPhoto,
+                    pixelCenterConvention = "TOP_LEFT_ZERO_BASED", threshold = FishSubjectQualityGate.MASK_THRESHOLD,
+                    contourVersion = "GRID_CONTOUR_V1",
+                    modelSha256 = "vision:cce23c7b2e5d4f330932738fb67ba518e04b0d99ccdd1cccd22a7da4e01f2971;decoder:cb90b279f549d2cab7fd6e20c38522438c65d84bdcca3d2a764cff7d857fdce2",
+                )
 
                 // 5. Bilinearly sample 256x256 logits into the ROI mask
                 val rawConfidence = FloatArray(expectedMaskSize)
@@ -217,6 +240,7 @@ class SlimSamSegmenter(
                     maskAreaRatio = areaRatio,
                     quality = quality,
                     maskIouScore = iouScore.takeIf { it.isFinite() },
+                    geometry = geometry,
                 )
             } catch (error: Throwable) {
                 Log.e(TAG, "SlimSAM segmentation failure", error)
