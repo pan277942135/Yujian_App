@@ -5,9 +5,9 @@
 ## 按顺序实施
 
 1. 从 `WEB_HIFI_HANDOFF_A_V2.md` 在 PR #177 保留既有上传、接口、保存链路，改 Product Shell 与三阶段/五节点结构。
-2. 将 `contracts/Visual_Tokens_V2.json`、`Component_Geometry_V2.json`、`Responsive_Rules_V2.json` 映射到 CSS 变量与布局。标记 `DESIGN_COMPLETION_NOT_PIXEL_MEASURED` 的值须对批准原图和真实视口校准，不可误称像素一致。
-3. 按 `contracts/Page_State_Matrix_V2.json` 实现上传完整状态、3+2 与独立技术失败，HIGH-only 一次 RR09。模型阈值仅从正式业务合同读取；当前 0.45/0.55 差异记录决策。
-4. 按 `contracts/Authority_References_V2.json` 与 `SWOS_WEB_HIFI_MOTION_TECHNICAL_CONTRACT_V1_0.json` 实现七层 SWOS、统一时钟、15 帧与 R0.5；保持真实事件门控，BBox-only 柔光，可信 Mask 后才启用三层精准鱼体金光。SAM 必须复用现有 `pan277942135/Yujian` 实验链路，经服务端 adapter 接入；不新建重复服务、不重训，debug endpoint 不得暴露为公开生产 API。
+2. 将 `contracts/Visual_Tokens_V2.json` 映射到 CSS 变量与布局；组件几何和响应式规则以 `WEB_HIFI_CONTRACT_V2.md` 对应章节及 `WEB_HIFI_HANDOFF_A_V2.md` 为准。标记 `DESIGN_COMPLETION_NOT_PIXEL_MEASURED` 的值须对批准原图和真实视口校准，不可误称像素一致。
+3. 按 `WEB_HIFI_CONTRACT_V2.md` 的结果章节和 `contracts/Acceptance_Matrix_V2.json` 实现上传完整状态、3+2 与独立技术失败，HIGH-only 一次 RR09。模型阈值仅从正式业务合同读取；当前 0.45/0.55 差异记录决策。
+4. 按 `SWOS_WEB_HIFI_MOTION_TECHNICAL_CONTRACT_V1_0.md` 及现有 SWOS 15 帧、共享照片转场和光学合同实现七层 SWOS、统一时钟、15 帧与 R0.5；保持真实事件门控，BBox-only 柔光，可信 Mask 后才启用三层精准鱼体金光。SAM 必须复用现有 `pan277942135/Yujian` 实验链路，经服务端 adapter 接入；不新建重复服务、不重训，debug endpoint 不得暴露为公开生产 API。
 5. 对照 `SWOS_Shared_Photo_Transition_Contract_V1.json` 将照片、BBox、Mask 和光迹绑定同一照片坐标与过渡矩阵；R0/R0.5/R1 三帧截屏证明连续。R1 落位后才进入 R2–R5 的中文名转译。
 6. 复用 Frozen Result Hero Media 与 HIGH/3+2 表单；`WEB_HIFI_GAP_MATRIX_V2.md` G01–G18 逐项打勾并记录真实代码 SHA 与浏览器证据。
 
