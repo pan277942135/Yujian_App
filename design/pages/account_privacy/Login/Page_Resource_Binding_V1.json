@@ -69,7 +69,7 @@
     {
       "authority_id": "private_photo_mapping",
       "path": "design/pages/recognition/web/contracts/Work_B_Implementation_Mapping_V2.json",
-      "sha256": "1a2dce6a4fabd01c122c7bd3c746145234130afc2733521e3d5aed59ceec4f5b",
+      "sha256": "bd5d729bc680cdc2cafab6f31f86ddaacd18b9db9f3278030dc75f2bb107440a",
       "purpose": "Pinned private photo SHA and public publication permissions for the Pages artifact scan."
     },
     {
