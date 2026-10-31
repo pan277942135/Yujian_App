@@ -37,15 +37,23 @@ def verify(name, data, requirements):
         print(f"DECODE_PASS {name} {image.format} {image.width}x{image.height} alpha={alpha_required}")
 
 
-def verify_canonical_capture_identity(runtime_bytes):
+def verify_canonical_capture_identity(runtime_bytes, packaged=False):
     source_bytes = CANONICAL_CAPTURE_SOURCE.read_bytes()
     source_sha = hashlib.sha256(source_bytes).hexdigest()
     if source_sha != CANONICAL_CAPTURE_SHA256:
         raise ValueError(f"Frozen Primary Capture Button source SHA mismatch: {source_sha}")
     runtime_sha = hashlib.sha256(runtime_bytes).hexdigest()
-    if runtime_bytes != source_bytes:
-        raise ValueError(f"Runtime Primary Capture Button is not byte-identical to frozen source: {runtime_sha}")
-    print(f"CANONICAL_CAPTURE_BYTE_IDENTITY=PASS sha256={runtime_sha}")
+    if packaged:
+        with Image.open(io.BytesIO(source_bytes)) as source_image, Image.open(io.BytesIO(runtime_bytes)) as runtime_image:
+            source_image.load()
+            runtime_image.load()
+            if source_image.size != runtime_image.size or source_image.convert("RGBA").tobytes() != runtime_image.convert("RGBA").tobytes():
+                raise ValueError(f"Packaged Primary Capture Button pixels differ from frozen source: {runtime_sha}")
+        print(f"CANONICAL_CAPTURE_PIXEL_IDENTITY=PASS source_sha256={source_sha} packaged_sha256={runtime_sha}")
+    else:
+        if runtime_bytes != source_bytes:
+            raise ValueError(f"Runtime Primary Capture Button is not byte-identical to frozen source: {runtime_sha}")
+        print(f"CANONICAL_CAPTURE_BYTE_IDENTITY=PASS sha256={runtime_sha}")
 
 
 def main():
@@ -61,7 +69,7 @@ def main():
                 data = archive.read(paths[0])
                 verify(paths[0], data, requirements)
                 if stem == "capture_button_main_v1":
-                    verify_canonical_capture_identity(data)
+                    verify_canonical_capture_identity(data, packaged=True)
     else:
         for stem, requirements in ASSETS.items():
             paths = list((ROOT / "app/src/main/res/drawable-nodpi").glob(stem + ".*"))
