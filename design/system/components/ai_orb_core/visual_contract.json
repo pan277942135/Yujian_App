@@ -16,10 +16,9 @@
     "environment": "Page-owned; never baked into reusable Orb core.",
     "camera_core": "Separate capture state slot; idle and activated artwork have different asset identities."
   },
-  "colors": {
-    "sunlight_gold": "#D8BC87",
-    "lake_water_blue": "#348CA6",
-    "muted_aquatic_green": "#5B8F78"
+  "color_authority": {
+    "contract": "harness/task_contracts/ANDROID_PROCESSING_LAKE_ORB_V1.md",
+    "rule": "Reuse the exact current Processing Orb gold, lake-blue and muted-green values from the frozen contract. Do not introduce new global color tokens or silently substitute the generic design-system gold/blue tokens."
   },
   "rules": [
     "One visual identity across page hosts; hosts select states rather than recreating Orb art.",
