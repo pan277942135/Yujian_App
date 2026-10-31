@@ -65,6 +65,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.foundation.layout.offset
 import kotlinx.coroutines.delay
+import com.yujian.ai.ui.home.captureZoomEntryBottomOffset
 import com.yujian.ai.ui.home.captureSideActionBottomOffset
 import com.yujian.ai.ui.home.CaptureVisualTokens
 import com.yujian.ai.ui.home.CaptureNavigationTransition
@@ -218,6 +219,8 @@ fun IdentifyScreen(
     var maxZoomRatio by remember { mutableStateOf(1f) }
     var zoomDialExpanded by remember { mutableStateOf(false) }
     var shutterClickElapsed by remember { mutableStateOf<Long?>(null) }
+    var hintHeightPx by remember { mutableStateOf(0f) }
+    var headerBottomPx by remember { mutableStateOf(0f) }
     val captureHandoffActive = CaptureNavigationTransition.active.value && !autoOpenGallery
     var captureTarget by remember { mutableStateOf(Offset.Unspecified) }
     var shutterDiameterPx by remember { mutableStateOf(0f) }
@@ -781,18 +784,24 @@ fun IdentifyScreen(
         captureRootOrigin = it.boundsInWindow().topLeft
     }) {
         CaptureFrostedBackground(Modifier.fillMaxSize())
-        val panelHeight = 166.dp + safeInsets.calculateBottomPadding()
+        val panelContentHeight = if (maxHeight < 560.dp) 150.dp else 166.dp
+        val panelHeight = panelContentHeight + safeInsets.calculateBottomPadding()
         val cameraAreaHeight = maxHeight - panelHeight
-        val fontScale = LocalDensity.current.fontScale
-        val headerBottom = safeInsets.calculateTopPadding() + (74f * fontScale.coerceAtMost(1.5f)).dp
-        val framingBottom = cameraAreaHeight - (108f + (fontScale - 1f) * 32f).dp
-        val guideSpace = (framingBottom - headerBottom).coerceAtLeast(48.dp)
+        val cameraDensity = LocalDensity.current
+        val fontScale = cameraDensity.fontScale
+        val headerGap = if (maxHeight < 640.dp) 4.dp else 15.dp
+        val headerBottom = if (headerBottomPx > 0f) with(cameraDensity) { headerBottomPx.toDp() }
+            else safeInsets.calculateTopPadding() + 8.dp + (48f * fontScale).dp + headerGap
+        val hintHeight = if (hintHeightPx > 0f) with(cameraDensity) { hintHeightPx.toDp() } else (18f * fontScale).dp
+        val zoomBottomOffset = captureZoomEntryBottomOffset(hintHeight.value).dp
+        val framingBottom = cameraAreaHeight - zoomBottomOffset - 44.dp
+        val guideSpace = (framingBottom - headerBottom).coerceAtLeast(8.dp)
         val guideHeight = (guideSpace * .84f).coerceAtMost(maxWidth * CaptureVisualTokens.GuideWidthFraction * CaptureVisualTokens.GuideHeightToWidth)
         val guideTop = headerBottom + (guideSpace - guideHeight) / 2f
         val shutterDiameter = CaptureVisualTokens.buttonDiameter(maxWidth.value).dp
         val cameraInk = Color(0xFF19565B)
         val secondaryInk = Color(0xFF627E7E)
-        val panelControlBottom = safeInsets.calculateBottomPadding() + (166.dp - shutterDiameter) / 2f
+        val panelControlBottom = safeInsets.calculateBottomPadding() + (panelContentHeight - shutterDiameter) / 2f
         val layoutDirection = LocalLayoutDirection.current
         val captureControlsPlacement = remember(maxWidth, safeInsets, layoutDirection) {
             RecognitionCameraControlsGeometry.resolve(
@@ -886,12 +895,13 @@ fun IdentifyScreen(
                 )
             }
             Column(
-                Modifier.align(Alignment.TopCenter).padding(top = safeInsets.calculateTopPadding() + 8.dp),
+                Modifier.align(Alignment.TopCenter).padding(top = safeInsets.calculateTopPadding() + 8.dp)
+                    .onGloballyPositioned { headerBottomPx = it.boundsInWindow().bottom - captureRootOrigin.y },
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                Text("拍照识鱼", color = cameraInk, fontSize = 22.sp, fontWeight = FontWeight.SemiBold)
-                Spacer(Modifier.height(15.dp))
-                Text("请将整条鱼放在取景框中央", color = secondaryInk, fontSize = 14.sp)
+                Text("拍照识鱼", color = cameraInk, fontSize = 22.sp, lineHeight = 28.sp, fontWeight = FontWeight.SemiBold)
+                Spacer(Modifier.height(headerGap))
+                Text("请将整条鱼放在取景框中央", color = secondaryInk, fontSize = 14.sp, lineHeight = 20.sp)
             }
             Canvas(Modifier.align(Alignment.TopCenter).offset(y = guideTop).fillMaxWidth(CaptureVisualTokens.GuideWidthFraction).height(guideHeight).testTag("capture-composition-guide")) {
                 val line = Path()
@@ -911,17 +921,18 @@ fun IdentifyScreen(
             CaptureZoomDial(
                 current = zoomRatio, minimum = minZoomRatio, maximum = maxZoomRatio,
                 expanded = zoomDialExpanded,
-                availableHeightDp = (cameraAreaHeight - safeInsets.calculateTopPadding() - (64f * fontScale).dp - 52.dp).value,
+                availableHeightDp = (cameraAreaHeight - zoomBottomOffset - headerBottom - 8.dp).value,
                 onExpandedChange = { zoomDialExpanded = it },
                 onZoom = { ratio ->
                     cameraController.setZoomRatio(ratio.coerceIn(minZoomRatio, maxZoomRatio))
                     CaptureNavigationTransition.log("ZOOM_REQUEST", "zoom_ratio=$ratio")
                 },
-                modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = panelHeight + 52.dp),
+                modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = panelHeight + zoomBottomOffset),
             )
             Text(
                 "可双指缩放，尽量拍清鱼头、鱼尾与鱼身轮廓",
-                color = secondaryInk, fontSize = 12.sp,
+                color = secondaryInk, fontSize = 12.sp, lineHeight = 18.sp,
+                onTextLayout = { hintHeightPx = it.size.height.toFloat() },
                 textAlign = androidx.compose.ui.text.style.TextAlign.Center,
                 modifier = Modifier.align(Alignment.BottomCenter)
                     .padding(start = 12.dp, end = 12.dp, bottom = panelHeight + 16.dp),

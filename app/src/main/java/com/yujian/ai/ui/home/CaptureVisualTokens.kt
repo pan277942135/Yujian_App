@@ -29,3 +29,6 @@ internal fun resolveCaptureHomeActionY(
 /** Align icon centers, accounting for the caption below each side icon. */
 internal fun captureSideActionBottomOffset(shutterDiameter: Float, groupSize: Float, captionHeight: Float): Float =
     (shutterDiameter - groupSize - captionHeight) / 2f
+
+/** 16dp below hint + measured hint +16dp above hint, minus pill's4dp optical inset. */
+internal fun captureZoomEntryBottomOffset(hintHeight: Float): Float = hintHeight + 28f

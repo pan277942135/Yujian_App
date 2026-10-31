@@ -20,6 +20,16 @@ class CaptureHomeActionGeometryTest {
             assertEquals(diameter / 2f, sideIconCenterFromBottom, .001f)
         }
     }
+    @Test fun wrappedHintKeepsEqualSixteenDpClearanceToPillAndPanel() {
+        for (hintHeight in listOf(18f, 24f, 36f, 54f, 72f)) {
+            val panelTop = 662f
+            val hintBottom = panelTop - 16f
+            val hintTop = hintBottom - hintHeight
+            val pillBottom = panelTop - captureZoomEntryBottomOffset(hintHeight) - 4f
+            assertEquals(16f, hintTop - pillBottom, .001f)
+            assertEquals(16f, panelTop - hintBottom, .001f)
+        }
+    }
     @Test fun roomyFrozenAnchorsRemainUnchanged() {
         val result = resolveCaptureHomeActionY(720f, 96f, 800f, 630f, 24f)
         assertEquals(672f, result.cameraTop, 0f)
