@@ -8,3 +8,5 @@ Physical camera color/flash/preview-FOV/JPEG boundary and visual acceptance requ
 
 
 First exact-APK native run41169217525 exposed a real320x480 Home capture/album collision: capture[116,325]-[204,413], album[116,408]-[204,456]. Repair reserves8dp clearance and the actual font-scaled prompt line before laying out the enlarged CTA. It keeps the original center whenever it fits; no scenic/header/card structure changes. A single root-level shared button replaces two page-local copies during crossfade. The03 guide preserves its measured original680/850 height-to-width ratio; quick presets and fine dial are separate requested modes so compact screens do not stack both over the title.
+
+Native first-entry timing on the API35 software-rendered emulator was~7.0s from camera composition to visible frame (provider readiness dominated). Provider metadata initialization is now prewarmed on Home only after CAMERA permission is already granted, and at activation after a new grant. No UseCase or camera hardware is bound on Home; the existing CameraController still owns lifecycle binding on03. Device timing/60fps/haptics remain unaccepted until measured on hardware.

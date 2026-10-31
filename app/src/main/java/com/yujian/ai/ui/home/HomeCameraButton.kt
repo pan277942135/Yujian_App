@@ -8,6 +8,8 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.DisposableEffect
+import androidx.camera.lifecycle.ProcessCameraProvider
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -67,10 +69,30 @@ internal fun HomeCameraButton(
     val context = LocalContext.current
     val view = LocalView.current
     val resolvedSize = visualSize ?: CaptureVisualTokens.ButtonDiameterDp.dp
+    fun prewarmProvider() {
+        runCatching {
+            val future = ProcessCameraProvider.getInstance(context.applicationContext)
+            future.addListener({
+                runCatching { future.get() }
+                    .onSuccess { CaptureNavigationTransition.log("PROVIDER_PREWARM_READY", "camera_provider_ready_ms=${android.os.SystemClock.uptimeMillis()}") }
+                    .onFailure { CaptureNavigationTransition.log("PROVIDER_PREWARM_FAILED", "cause_class=${it.javaClass.simpleName}") }
+            }, ContextCompat.getMainExecutor(context))
+        }
+    }
+    LaunchedEffect(context) {
+        if (ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) prewarmProvider()
+    }
+    DisposableEffect(Unit) {
+        onDispose {
+            activationJob[0]?.cancel()
+            if (!CaptureNavigationTransition.entering.value) CaptureNavigationTransition.finish()
+        }
+    }
     fun activate() {
         if (CaptureNavigationTransition.active.value) return
         CaptureNavigationTransition.homeDiameterDp = resolvedSize.value
         CaptureNavigationTransition.begin()
+        prewarmProvider()
         activationJob[0] = scope.launch {
             delay(CaptureVisualTokens.ActivationMs)
             CaptureNavigationTransition.entering.value = true
