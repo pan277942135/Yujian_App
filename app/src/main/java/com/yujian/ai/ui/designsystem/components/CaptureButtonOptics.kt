@@ -10,6 +10,7 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.yujian.ai.ui.home.CaptureVisualTokens
 import kotlin.math.sin
 
 /** Transparent light only. The frozen button art, icon and touch geometry stay untouched. */
@@ -36,9 +37,9 @@ fun CaptureButtonOptics(
             // One 750ms pulse: wake -> outward/inward transmission -> meet -> settle.
             val wake = (p / .1333f).coerceIn(0f, 1f)
             val travel = ((p - .1333f) / .5333f).coerceIn(0f, 1f)
-            val fade = ((1f - p) / .3333f).coerceIn(0f, 1f)
+            val fade = ((.9067f - p) / .24f).coerceIn(0f, 1f)
             val a = wake * fade
-            val outerRadius = baseRadius + 12.dp.toPx() * travel
+            val outerRadius = baseRadius + CaptureVisualTokens.ActivationExpansionDp.dp.toPx() * travel
             // One translucent main water ring, feathered rather than neon.
             arc(outerRadius, -90f, 360f, teal.copy(alpha = .025f * a), 10.dp.toPx())
             arc(outerRadius, -90f, 360f, teal.copy(alpha = .07f * a), 6.dp.toPx())
@@ -61,7 +62,7 @@ fun CaptureButtonOptics(
             arc(baseRadius, -120f + local * 84f, 64f,
                 teal.copy(alpha = .14f * a), 2.dp.toPx())
             if (cameraReady) {
-                val r = baseRadius + 6.dp.toPx()
+                val r = baseRadius + CaptureVisualTokens.CameraExpansionDp.dp.toPx()
                 arc(r, -130f, 74f, teal.copy(alpha = .10f + .08f * a), 1.dp.toPx())
                 arc(r, 55f, 58f, gold.copy(alpha = .10f + .08f * a), 1.dp.toPx())
             }

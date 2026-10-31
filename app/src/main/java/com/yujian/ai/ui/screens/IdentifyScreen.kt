@@ -40,6 +40,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -132,6 +133,8 @@ import com.yujian.ai.ui.identify.RecognitionSourcePhoto
 import com.yujian.ai.ui.identify.calculateRecognitionImageTransform
 import com.yujian.ai.ui.identify.shouldShowRecognitionFirstCaptureGuide
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.io.File
 import java.util.UUID
 import java.util.Locale
@@ -175,6 +178,23 @@ fun IdentifyScreen(
     val view = LocalView.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val scope = rememberCoroutineScope()
+    // Reuse the app's own most recently normalized photo, never request broad media access.
+    val albumThumbnail by produceState<android.graphics.Bitmap?>(image?.bitmap, image?.imageId) {
+        if (image == null) value = withContext(Dispatchers.IO) {
+            runCatching {
+                val latest = File(context.filesDir, "recognition_inputs").listFiles()
+                    ?.filter { it.isFile }?.maxByOrNull { it.lastModified() }
+                latest?.let { file ->
+                    val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+                    BitmapFactory.decodeFile(file.path, bounds)
+                    val options = BitmapFactory.Options().apply {
+                        inSampleSize = (minOf(bounds.outWidth, bounds.outHeight) / 128).coerceAtLeast(1)
+                    }
+                    BitmapFactory.decodeFile(file.path, options)
+                }
+            }.getOrNull()
+        }
+    }
     val safeInsets = WindowInsets.safeDrawing.asPaddingValues()
     var hasCameraPermission by remember {
         mutableStateOf(
@@ -1014,7 +1034,7 @@ fun IdentifyScreen(
                 ) {
                     Box(Modifier.size(44.dp).clip(RoundedCornerShape(8.dp))
                         .background(Color.White.copy(alpha = .28f)), contentAlignment = Alignment.Center) {
-                        image?.bitmap?.let { thumbnail ->
+                        albumThumbnail?.let { thumbnail ->
                             Image(thumbnail.asImageBitmap(), null, Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
                         } ?: Icon(Icons.Default.Collections, null, tint = cameraInk, modifier = Modifier.size(24.dp))
                     }
@@ -1048,7 +1068,7 @@ fun IdentifyScreen(
                         .border(1.dp, Color.White.copy(alpha = .48f), CircleShape)
                         .background(Color.White.copy(alpha = .08f)), contentAlignment = Alignment.Center) {
                         Icon(Icons.Default.FlashOn,
-                            contentDescription = null, tint = if (cameraController.cameraInfo?.hasFlashUnit() == true) cameraInk else secondaryInk.copy(alpha = .4f), modifier = Modifier.size(22.dp))
+                            contentDescription = null, tint = if (cameraController.cameraInfo?.hasFlashUnit() == true) { if (torchEnabled) Color(0xFFB68A3D) else cameraInk } else secondaryInk.copy(alpha = .4f), modifier = Modifier.size(22.dp))
                     }
                     Text("闪光灯", color = cameraInk, fontSize = 13.sp)
                 }
