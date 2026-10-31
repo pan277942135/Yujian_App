@@ -1,0 +1,303 @@
+--------- beginning of main
+D/CaptureEntry( 3980): capture_session_id= page_state=PROVIDER_PREWARM_READY elapsed_ms=122189 camera_provider_ready_ms=122189
+D/CaptureEntry( 3980): capture_session_id= page_state=PROVIDER_PREWARM_READY elapsed_ms=122189 camera_provider_ready_ms=122189
+D/CaptureEntry( 3980): capture_session_id=5f09d2c7-074d-4b7b-9d86-900540384d2e page_state=HOME_ACTIVATING elapsed_ms=0 
+D/CaptureEntry( 3980): capture_session_id=5f09d2c7-074d-4b7b-9d86-900540384d2e page_state=PROVIDER_PREWARM_READY elapsed_ms=133 camera_provider_ready_ms=127878
+D/CaptureEntry( 3980): capture_session_id=5f09d2c7-074d-4b7b-9d86-900540384d2e page_state=CAMERA_ENTERING elapsed_ms=829 
+D/CaptureEntry( 3980): capture_session_id=5f09d2c7-074d-4b7b-9d86-900540384d2e page_state=CAMERA_PREPARING elapsed_ms=1299 camera_entry_ms=129044
+D/CaptureEntry( 3980): capture_session_id=5f09d2c7-074d-4b7b-9d86-900540384d2e page_state=USECASES_BOUND elapsed_ms=1300 camera_bind_ms=129045
+D/RecognitionCameraCapture( 3980): request=camera-bind event=camera_provider_bound bound=true lifecycle_state=STARTED
+D/RecognitionCameraCapture( 3980): request=camera-preview event=capture_surface_state preview_attached=true controller_attached=true capture_state=INITIALIZING active_capture_request_id=none lifecycle_state=STARTED
+D/RecognitionCameraCapture( 3980): request=preview-state event=preview_stream_state state=IDLE camera_provider_bound=true image_capture_ready=false
+D/CaptureEntry( 3980): capture_session_id=5f09d2c7-074d-4b7b-9d86-900540384d2e page_state=ZOOM elapsed_ms=2002 zoom_ratio=1.0 min_zoom=1.0 max_zoom=10.0
+D/CaptureEntry( 3980): capture_session_id=5f09d2c7-074d-4b7b-9d86-900540384d2e page_state=PROVIDER_READY elapsed_ms=2097 camera_provider_ready_ms=129842
+D/CaptureEntry( 3980): capture_session_id=5f09d2c7-074d-4b7b-9d86-900540384d2e page_state=CAMERA_ENTERED elapsed_ms=2249 
+D/CaptureEntry( 3980): capture_session_id=5f09d2c7-074d-4b7b-9d86-900540384d2e page_state=PREVIEW_STREAMING elapsed_ms=2730 preview_streaming_ms=130475
+D/RecognitionCameraCapture( 3980): request=preview-state event=preview_stream_state state=STREAMING camera_provider_bound=true image_capture_ready=true
+D/CaptureEntry( 3980): capture_session_id=5f09d2c7-074d-4b7b-9d86-900540384d2e page_state=CAMERA_READY elapsed_ms=3249 first_frame_visible_ms=130994 zoom_ratio=1.0
+D/RecognitionCameraCapture( 3980): request=camera-preview event=capture_surface_state preview_attached=false controller_attached=true capture_state=READY active_capture_request_id=none lifecycle_state=RESUMED
+D/CaptureEntry( 3980): capture_session_id=5f09d2c7-074d-4b7b-9d86-900540384d2e page_state=ZOOM elapsed_ms=15396 zoom_ratio=1.0 min_zoom=1.0 max_zoom=10.0
+D/RecognitionCameraCapture( 3980): request=preview-state event=preview_stream_state state=IDLE camera_provider_bound=true image_capture_ready=false
+D/CaptureEntry( 3980): capture_session_id=5f09d2c7-074d-4b7b-9d86-900540384d2e page_state=ZOOM elapsed_ms=18162 zoom_ratio=1.0 min_zoom=1.0 max_zoom=10.0
+D/RecognitionCameraCapture( 3980): request=camera-preview event=capture_surface_state preview_attached=true controller_attached=true capture_state=INITIALIZING active_capture_request_id=none lifecycle_state=RESUMED
+D/RecognitionCameraCapture( 3980): request=preview-state event=preview_stream_state state=IDLE camera_provider_bound=true image_capture_ready=true
+D/CaptureEntry( 3980): capture_session_id=5f09d2c7-074d-4b7b-9d86-900540384d2e page_state=PREVIEW_STREAMING elapsed_ms=19051 preview_streaming_ms=146796
+D/RecognitionCameraCapture( 3980): request=preview-state event=preview_stream_state state=STREAMING camera_provider_bound=true image_capture_ready=true
+D/CaptureEntry( 3980): capture_session_id=5f09d2c7-074d-4b7b-9d86-900540384d2e page_state=CAMERA_READY elapsed_ms=19432 first_frame_visible_ms=147177 zoom_ratio=1.0
+D/CaptureEntry( 3980): capture_session_id=5f09d2c7-074d-4b7b-9d86-900540384d2e page_state=ZOOM elapsed_ms=37399 zoom_ratio=2.0 min_zoom=1.0 max_zoom=10.0
+D/CaptureEntry( 3980): capture_session_id=5f09d2c7-074d-4b7b-9d86-900540384d2e page_state=ZOOM_REQUEST elapsed_ms=37399 zoom_ratio=2.0
+D/CaptureEntry( 3980): capture_session_id=5f09d2c7-074d-4b7b-9d86-900540384d2e page_state=ZOOM elapsed_ms=42519 zoom_ratio=1.9348626 min_zoom=1.0 max_zoom=10.0
+D/CaptureEntry( 3980): capture_session_id=5f09d2c7-074d-4b7b-9d86-900540384d2e page_state=ZOOM_REQUEST elapsed_ms=42522 zoom_ratio=1.9348626
+D/CaptureEntry( 3980): capture_session_id=5f09d2c7-074d-4b7b-9d86-900540384d2e page_state=ZOOM elapsed_ms=42565 zoom_ratio=1.7646554 min_zoom=1.0 max_zoom=10.0
+D/CaptureEntry( 3980): capture_session_id=5f09d2c7-074d-4b7b-9d86-900540384d2e page_state=ZOOM_REQUEST elapsed_ms=42566 zoom_ratio=1.7646554
+D/CaptureEntry( 3980): capture_session_id=5f09d2c7-074d-4b7b-9d86-900540384d2e page_state=ZOOM elapsed_ms=42620 zoom_ratio=1.6587465 min_zoom=1.0 max_zoom=10.0
+D/CaptureEntry( 3980): capture_session_id=5f09d2c7-074d-4b7b-9d86-900540384d2e page_state=ZOOM_REQUEST elapsed_ms=42620 zoom_ratio=1.6587465
+D/CaptureEntry( 3980): capture_session_id=5f09d2c7-074d-4b7b-9d86-900540384d2e page_state=ZOOM elapsed_ms=42765 zoom_ratio=1.4976401 min_zoom=1.0 max_zoom=10.0
+D/CaptureEntry( 3980): capture_session_id=5f09d2c7-074d-4b7b-9d86-900540384d2e page_state=ZOOM_REQUEST elapsed_ms=42771 zoom_ratio=1.4976401
+D/CaptureEntry( 3980): capture_session_id=5f09d2c7-074d-4b7b-9d86-900540384d2e page_state=ZOOM elapsed_ms=42800 zoom_ratio=1.233197 min_zoom=1.0 max_zoom=10.0
+D/CaptureEntry( 3980): capture_session_id=5f09d2c7-074d-4b7b-9d86-900540384d2e page_state=ZOOM_REQUEST elapsed_ms=42800 zoom_ratio=1.233197
+D/RecognitionCameraCapture( 3980): request=cap_21462d96-1f45-4915-a13c-637767ceb557 event=before_capture camera_provider_bound=true preview_bound=true image_capture_instance_ready=true camera_controller_alive=true preview_view_attached=true preview_attached=true controller_attached=true lifecycle_state=RESUMED capture_state=CAPTURING capture_button_enabled=false output_target_type=file output_file=/data/user/0/com.yujian.ai.uiv2/cache/camera/capture_b4b14c11-bedc-4349-9d2f-164f0a6a2f81.jpg output_uri_type=content parent_directory_exists=true parent_directory_writable=true
+D/RecognitionCameraCapture( 3980): request=cap_21462d96-1f45-4915-a13c-637767ceb557 event=terminal_callback result=onImageSaved capture_state=CAPTURING camera_provider_bound=true camera_controller_alive=true preview_view_attached=true preview_attached=true controller_attached=true
+D/RecognitionCameraCapture( 3980): request=cap_21462d96-1f45-4915-a13c-637767ceb557 event=on_image_saved reached=true saved_uri=file:///data/user/0/com.yujian.ai.uiv2/cache/camera/capture_b4b14c11-bedc-4349-9d2f-164f0a6a2f81.jpg file_exists=true file_bytes=33571 decode_attempted=true camera_provider_bound=true camera_controller_alive=true preview_view_attached=true
+D/RecognitionCameraCapture( 3980): request=cap_21462d96-1f45-4915-a13c-637767ceb557 event=decode_result decode_success=true decoded_width=1101 decoded_height=1856 rotation_degrees=90 preview_width=393 preview_height=662 jpeg_ratio=0.59321123 selected_image_created=true
+D/RecognitionCameraCapture( 3980): request=cap_21462d96-1f45-4915-a13c-637767ceb557 event=capture_presentation preview=Rect.fromLTRB(0.0, 0.0, 393.0, 662.0) shutter=Offset(197.0, 745.0) image=yj_img_d25c1ff1-b519-4251-9595-c3f22bd61ba2 sha256=8d99f811cab4e5d5ffc76f09770ade67db1ab70e406165316272bdd0dfb5d7d7
+D/RecognitionCameraCapture( 3980): request=cap_21462d96-1f45-4915-a13c-637767ceb557 event=recognition_navigation started=true
+D/RecognitionCameraCapture( 3980): request=cap_21462d96-1f45-4915-a13c-637767ceb557 event=post_capture temporary_file_cleanup=true camera_state_after_callback=SUCCESS camera_provider_bound=true preview_bound=true
+D/RecognitionCameraCapture( 3980): request=camera-preview event=capture_surface_state preview_attached=false controller_attached=true capture_state=SUCCESS active_capture_request_id=none lifecycle_state=CREATED
+D/RecognitionCameraCapture( 3980): request=camera-controller event=camera_controller_dispose camera_provider_bound=true preview_attached=false capture_state=SUCCESS active_capture_request_id=none teardown_during_capture=false
+D/CaptureEntry( 5703): capture_session_id= page_state=PROVIDER_PREWARM_READY elapsed_ms=196195 camera_provider_ready_ms=196195
+D/CaptureEntry( 5703): capture_session_id= page_state=PROVIDER_PREWARM_READY elapsed_ms=196195 camera_provider_ready_ms=196195
+D/CaptureEntry( 5703): capture_session_id=a896dbf5-ab0b-4a3e-ad53-e2ec99cc3f8b page_state=HOME_ACTIVATING elapsed_ms=1 
+D/CaptureEntry( 5703): capture_session_id=a896dbf5-ab0b-4a3e-ad53-e2ec99cc3f8b page_state=PROVIDER_PREWARM_READY elapsed_ms=62 camera_provider_ready_ms=203803
+D/CaptureEntry( 5703): capture_session_id=a896dbf5-ab0b-4a3e-ad53-e2ec99cc3f8b page_state=CAMERA_ENTERING elapsed_ms=1069 
+D/CaptureEntry( 5703): capture_session_id=a896dbf5-ab0b-4a3e-ad53-e2ec99cc3f8b page_state=CAMERA_PREPARING elapsed_ms=1476 camera_entry_ms=205217
+D/CaptureEntry( 5703): capture_session_id=a896dbf5-ab0b-4a3e-ad53-e2ec99cc3f8b page_state=USECASES_BOUND elapsed_ms=1478 camera_bind_ms=205219
+D/RecognitionCameraCapture( 5703): request=camera-bind event=camera_provider_bound bound=true lifecycle_state=STARTED
+D/RecognitionCameraCapture( 5703): request=camera-preview event=capture_surface_state preview_attached=true controller_attached=true capture_state=INITIALIZING active_capture_request_id=none lifecycle_state=STARTED
+D/RecognitionCameraCapture( 5703): request=preview-state event=preview_stream_state state=IDLE camera_provider_bound=true image_capture_ready=false
+D/CaptureEntry( 5703): capture_session_id=a896dbf5-ab0b-4a3e-ad53-e2ec99cc3f8b page_state=ZOOM elapsed_ms=2136 zoom_ratio=1.0 min_zoom=1.0 max_zoom=10.0
+D/CaptureEntry( 5703): capture_session_id=a896dbf5-ab0b-4a3e-ad53-e2ec99cc3f8b page_state=PROVIDER_READY elapsed_ms=2647 camera_provider_ready_ms=206388
+D/CaptureEntry( 5703): capture_session_id=a896dbf5-ab0b-4a3e-ad53-e2ec99cc3f8b page_state=CAMERA_ENTERED elapsed_ms=2841 
+D/CaptureEntry( 5703): capture_session_id=a896dbf5-ab0b-4a3e-ad53-e2ec99cc3f8b page_state=PREVIEW_STREAMING elapsed_ms=3148 preview_streaming_ms=206889
+D/RecognitionCameraCapture( 5703): request=preview-state event=preview_stream_state state=STREAMING camera_provider_bound=true image_capture_ready=true
+D/CaptureEntry( 5703): capture_session_id=a896dbf5-ab0b-4a3e-ad53-e2ec99cc3f8b page_state=CAMERA_READY elapsed_ms=3749 first_frame_visible_ms=207490 zoom_ratio=1.0
+D/CaptureEntry( 6097): capture_session_id= page_state=PROVIDER_PREWARM_READY elapsed_ms=228504 camera_provider_ready_ms=228504
+D/CaptureEntry( 6097): capture_session_id= page_state=PROVIDER_PREWARM_READY elapsed_ms=228504 camera_provider_ready_ms=228504
+D/CaptureEntry( 6097): capture_session_id=a8fd786f-af55-4d47-835d-2abb50844241 page_state=HOME_ACTIVATING elapsed_ms=0 
+D/CaptureEntry( 6097): capture_session_id=a8fd786f-af55-4d47-835d-2abb50844241 page_state=PROVIDER_PREWARM_READY elapsed_ms=171 camera_provider_ready_ms=231734
+D/CaptureEntry( 6097): capture_session_id=a8fd786f-af55-4d47-835d-2abb50844241 page_state=CAMERA_ENTERING elapsed_ms=890 
+D/CaptureEntry( 6097): capture_session_id=a8fd786f-af55-4d47-835d-2abb50844241 page_state=CAMERA_PREPARING elapsed_ms=1026 camera_entry_ms=232589
+D/CaptureEntry( 6097): capture_session_id=a8fd786f-af55-4d47-835d-2abb50844241 page_state=USECASES_BOUND elapsed_ms=1026 camera_bind_ms=232589
+D/RecognitionCameraCapture( 6097): request=camera-bind event=camera_provider_bound bound=true lifecycle_state=STARTED
+D/RecognitionCameraCapture( 6097): request=camera-preview event=capture_surface_state preview_attached=true controller_attached=true capture_state=INITIALIZING active_capture_request_id=none lifecycle_state=STARTED
+D/RecognitionCameraCapture( 6097): request=preview-state event=preview_stream_state state=IDLE camera_provider_bound=true image_capture_ready=false
+D/CaptureEntry( 6097): capture_session_id=a8fd786f-af55-4d47-835d-2abb50844241 page_state=ZOOM elapsed_ms=1189 zoom_ratio=1.0 min_zoom=1.0 max_zoom=10.0
+D/CaptureEntry( 6097): capture_session_id=a8fd786f-af55-4d47-835d-2abb50844241 page_state=PROVIDER_READY elapsed_ms=1624 camera_provider_ready_ms=233187
+D/CaptureEntry( 6097): capture_session_id=a8fd786f-af55-4d47-835d-2abb50844241 page_state=CAMERA_ENTERED elapsed_ms=1776 
+D/CaptureEntry( 6097): capture_session_id=a8fd786f-af55-4d47-835d-2abb50844241 page_state=PREVIEW_STREAMING elapsed_ms=2122 preview_streaming_ms=233685
+D/RecognitionCameraCapture( 6097): request=preview-state event=preview_stream_state state=STREAMING camera_provider_bound=true image_capture_ready=true
+D/CaptureEntry( 6097): capture_session_id=a8fd786f-af55-4d47-835d-2abb50844241 page_state=CAMERA_READY elapsed_ms=2645 first_frame_visible_ms=234208 zoom_ratio=1.0
+D/CaptureEntry( 6337): capture_session_id= page_state=PROVIDER_PREWARM_READY elapsed_ms=251622 camera_provider_ready_ms=251622
+D/CaptureEntry( 6337): capture_session_id= page_state=PROVIDER_PREWARM_READY elapsed_ms=251622 camera_provider_ready_ms=251622
+D/CaptureEntry( 6337): capture_session_id=eb4320a7-0ce1-4d8f-bae7-f95c3ee9cb9f page_state=HOME_ACTIVATING elapsed_ms=1 
+D/CaptureEntry( 6337): capture_session_id=eb4320a7-0ce1-4d8f-bae7-f95c3ee9cb9f page_state=PROVIDER_PREWARM_READY elapsed_ms=172 camera_provider_ready_ms=254926
+D/CaptureEntry( 6337): capture_session_id=eb4320a7-0ce1-4d8f-bae7-f95c3ee9cb9f page_state=CAMERA_ENTERING elapsed_ms=755 
+D/CaptureEntry( 6337): capture_session_id=eb4320a7-0ce1-4d8f-bae7-f95c3ee9cb9f page_state=CAMERA_PREPARING elapsed_ms=906 camera_entry_ms=255660
+D/CaptureEntry( 6337): capture_session_id=eb4320a7-0ce1-4d8f-bae7-f95c3ee9cb9f page_state=USECASES_BOUND elapsed_ms=908 camera_bind_ms=255662
+D/RecognitionCameraCapture( 6337): request=camera-bind event=camera_provider_bound bound=true lifecycle_state=STARTED
+D/RecognitionCameraCapture( 6337): request=camera-preview event=capture_surface_state preview_attached=true controller_attached=true capture_state=INITIALIZING active_capture_request_id=none lifecycle_state=STARTED
+D/RecognitionCameraCapture( 6337): request=preview-state event=preview_stream_state state=IDLE camera_provider_bound=true image_capture_ready=false
+D/CaptureEntry( 6337): capture_session_id=eb4320a7-0ce1-4d8f-bae7-f95c3ee9cb9f page_state=ZOOM elapsed_ms=1055 zoom_ratio=1.0 min_zoom=1.0 max_zoom=10.0
+D/CaptureEntry( 6337): capture_session_id=eb4320a7-0ce1-4d8f-bae7-f95c3ee9cb9f page_state=PROVIDER_READY elapsed_ms=1577 camera_provider_ready_ms=256331
+D/CaptureEntry( 6337): capture_session_id=eb4320a7-0ce1-4d8f-bae7-f95c3ee9cb9f page_state=CAMERA_ENTERED elapsed_ms=1622 
+D/CaptureEntry( 6337): capture_session_id=eb4320a7-0ce1-4d8f-bae7-f95c3ee9cb9f page_state=PREVIEW_STREAMING elapsed_ms=2247 preview_streaming_ms=257001
+D/RecognitionCameraCapture( 6337): request=preview-state event=preview_stream_state state=STREAMING camera_provider_bound=true image_capture_ready=true
+D/CaptureEntry( 6337): capture_session_id=eb4320a7-0ce1-4d8f-bae7-f95c3ee9cb9f page_state=CAMERA_READY elapsed_ms=2535 first_frame_visible_ms=257289 zoom_ratio=1.0
+D/CaptureEntry( 6337): capture_session_id=eb4320a7-0ce1-4d8f-bae7-f95c3ee9cb9f page_state=ZOOM elapsed_ms=16889 zoom_ratio=1.0132413 min_zoom=1.0 max_zoom=10.0
+D/CaptureEntry( 6337): capture_session_id=eb4320a7-0ce1-4d8f-bae7-f95c3ee9cb9f page_state=ZOOM_REQUEST elapsed_ms=16890 zoom_ratio=1.0132413
+D/CaptureEntry( 6337): capture_session_id=eb4320a7-0ce1-4d8f-bae7-f95c3ee9cb9f page_state=ZOOM elapsed_ms=16964 zoom_ratio=1.0637889 min_zoom=1.0 max_zoom=10.0
+D/CaptureEntry( 6337): capture_session_id=eb4320a7-0ce1-4d8f-bae7-f95c3ee9cb9f page_state=ZOOM_REQUEST elapsed_ms=16964 zoom_ratio=1.0637889
+D/CaptureEntry( 6337): capture_session_id=eb4320a7-0ce1-4d8f-bae7-f95c3ee9cb9f page_state=ZOOM elapsed_ms=16996 zoom_ratio=1.172575 min_zoom=1.0 max_zoom=10.0
+D/CaptureEntry( 6337): capture_session_id=eb4320a7-0ce1-4d8f-bae7-f95c3ee9cb9f page_state=ZOOM_REQUEST elapsed_ms=16996 zoom_ratio=1.172575
+D/CaptureEntry( 6337): capture_session_id=eb4320a7-0ce1-4d8f-bae7-f95c3ee9cb9f page_state=ZOOM elapsed_ms=17099 zoom_ratio=1.2262365 min_zoom=1.0 max_zoom=10.0
+D/CaptureEntry( 6337): capture_session_id=eb4320a7-0ce1-4d8f-bae7-f95c3ee9cb9f page_state=ZOOM_REQUEST elapsed_ms=17099 zoom_ratio=1.2262365
+D/RecognitionCameraCapture( 6337): request=camera-preview event=capture_surface_state preview_attached=false controller_attached=true capture_state=READY active_capture_request_id=none lifecycle_state=DESTROYED
+D/RecognitionCameraCapture( 6337): request=camera-controller event=camera_controller_dispose camera_provider_bound=true preview_attached=false capture_state=READY active_capture_request_id=none teardown_during_capture=false
+D/CaptureEntry( 6666): capture_session_id= page_state=PROVIDER_PREWARM_READY elapsed_ms=290209 camera_provider_ready_ms=290209
+D/CaptureEntry( 6666): capture_session_id= page_state=PROVIDER_PREWARM_READY elapsed_ms=290209 camera_provider_ready_ms=290209
+D/CaptureEntry( 6666): capture_session_id=fe1282fc-7327-4958-a0ac-797d744e0bad page_state=HOME_ACTIVATING elapsed_ms=0 
+D/CaptureEntry( 6666): capture_session_id=fe1282fc-7327-4958-a0ac-797d744e0bad page_state=PROVIDER_PREWARM_READY elapsed_ms=44 camera_provider_ready_ms=293332
+D/CaptureEntry( 6666): capture_session_id=fe1282fc-7327-4958-a0ac-797d744e0bad page_state=CAMERA_ENTERING elapsed_ms=761 
+D/CaptureEntry( 6666): capture_session_id=fe1282fc-7327-4958-a0ac-797d744e0bad page_state=CAMERA_PREPARING elapsed_ms=866 camera_entry_ms=294154
+D/CaptureEntry( 6666): capture_session_id=fe1282fc-7327-4958-a0ac-797d744e0bad page_state=USECASES_BOUND elapsed_ms=867 camera_bind_ms=294155
+D/RecognitionCameraCapture( 6666): request=camera-bind event=camera_provider_bound bound=true lifecycle_state=STARTED
+D/RecognitionCameraCapture( 6666): request=camera-preview event=capture_surface_state preview_attached=true controller_attached=true capture_state=INITIALIZING active_capture_request_id=none lifecycle_state=STARTED
+D/RecognitionCameraCapture( 6666): request=preview-state event=preview_stream_state state=IDLE camera_provider_bound=true image_capture_ready=false
+D/CaptureEntry( 6666): capture_session_id=fe1282fc-7327-4958-a0ac-797d744e0bad page_state=ZOOM elapsed_ms=994 zoom_ratio=1.0 min_zoom=1.0 max_zoom=10.0
+D/CaptureEntry( 6666): capture_session_id=fe1282fc-7327-4958-a0ac-797d744e0bad page_state=PROVIDER_READY elapsed_ms=1303 camera_provider_ready_ms=294591
+D/CaptureEntry( 6666): capture_session_id=fe1282fc-7327-4958-a0ac-797d744e0bad page_state=CAMERA_ENTERED elapsed_ms=1467 
+D/CaptureEntry( 6666): capture_session_id=fe1282fc-7327-4958-a0ac-797d744e0bad page_state=PREVIEW_STREAMING elapsed_ms=1921 preview_streaming_ms=295209
+D/RecognitionCameraCapture( 6666): request=preview-state event=preview_stream_state state=STREAMING camera_provider_bound=true image_capture_ready=true
+D/CaptureEntry( 6666): capture_session_id=fe1282fc-7327-4958-a0ac-797d744e0bad page_state=CAMERA_READY elapsed_ms=2396 first_frame_visible_ms=295684 zoom_ratio=1.0
+D/CaptureEntry( 6889): capture_session_id= page_state=PROVIDER_PREWARM_READY elapsed_ms=312848 camera_provider_ready_ms=312848
+D/CaptureEntry( 6889): capture_session_id= page_state=PROVIDER_PREWARM_READY elapsed_ms=312848 camera_provider_ready_ms=312848
+D/CaptureEntry( 6889): capture_session_id=ed5ddfed-f38b-47ba-938b-ad8eb07f0691 page_state=HOME_ACTIVATING elapsed_ms=0 
+D/CaptureEntry( 6889): capture_session_id=ed5ddfed-f38b-47ba-938b-ad8eb07f0691 page_state=PROVIDER_PREWARM_READY elapsed_ms=35 camera_provider_ready_ms=316353
+D/CaptureEntry( 6889): capture_session_id=ed5ddfed-f38b-47ba-938b-ad8eb07f0691 page_state=CAMERA_ENTERING elapsed_ms=869 
+D/CaptureEntry( 6889): capture_session_id=ed5ddfed-f38b-47ba-938b-ad8eb07f0691 page_state=CAMERA_PREPARING elapsed_ms=1006 camera_entry_ms=317324
+D/CaptureEntry( 6889): capture_session_id=ed5ddfed-f38b-47ba-938b-ad8eb07f0691 page_state=USECASES_BOUND elapsed_ms=1007 camera_bind_ms=317325
+D/RecognitionCameraCapture( 6889): request=camera-bind event=camera_provider_bound bound=true lifecycle_state=STARTED
+D/RecognitionCameraCapture( 6889): request=camera-preview event=capture_surface_state preview_attached=true controller_attached=true capture_state=INITIALIZING active_capture_request_id=none lifecycle_state=STARTED
+D/RecognitionCameraCapture( 6889): request=preview-state event=preview_stream_state state=IDLE camera_provider_bound=true image_capture_ready=false
+D/CaptureEntry( 6889): capture_session_id=ed5ddfed-f38b-47ba-938b-ad8eb07f0691 page_state=ZOOM elapsed_ms=1143 zoom_ratio=1.0 min_zoom=1.0 max_zoom=10.0
+D/CaptureEntry( 6889): capture_session_id=ed5ddfed-f38b-47ba-938b-ad8eb07f0691 page_state=PROVIDER_READY elapsed_ms=1355 camera_provider_ready_ms=317673
+D/CaptureEntry( 6889): capture_session_id=ed5ddfed-f38b-47ba-938b-ad8eb07f0691 page_state=CAMERA_ENTERED elapsed_ms=1475 
+D/CaptureEntry( 6889): capture_session_id=ed5ddfed-f38b-47ba-938b-ad8eb07f0691 page_state=PREVIEW_STREAMING elapsed_ms=2112 preview_streaming_ms=318430
+D/RecognitionCameraCapture( 6889): request=preview-state event=preview_stream_state state=STREAMING camera_provider_bound=true image_capture_ready=true
+D/CaptureEntry( 6889): capture_session_id=ed5ddfed-f38b-47ba-938b-ad8eb07f0691 page_state=CAMERA_READY elapsed_ms=2386 first_frame_visible_ms=318704 zoom_ratio=1.0
+D/CaptureEntry( 7124): capture_session_id= page_state=PROVIDER_PREWARM_READY elapsed_ms=335223 camera_provider_ready_ms=335223
+D/CaptureEntry( 7124): capture_session_id= page_state=PROVIDER_PREWARM_READY elapsed_ms=335223 camera_provider_ready_ms=335223
+D/CaptureEntry( 7124): capture_session_id=93719b53-9b26-47a7-8fc6-0723bf9e0467 page_state=HOME_ACTIVATING elapsed_ms=0 
+D/CaptureEntry( 7124): capture_session_id=93719b53-9b26-47a7-8fc6-0723bf9e0467 page_state=PROVIDER_PREWARM_READY elapsed_ms=21 camera_provider_ready_ms=338856
+D/CaptureEntry( 7124): capture_session_id=93719b53-9b26-47a7-8fc6-0723bf9e0467 page_state=CAMERA_ENTERING elapsed_ms=836 
+D/CaptureEntry( 7124): capture_session_id=93719b53-9b26-47a7-8fc6-0723bf9e0467 page_state=CAMERA_PREPARING elapsed_ms=1020 camera_entry_ms=339855
+D/CaptureEntry( 7124): capture_session_id=93719b53-9b26-47a7-8fc6-0723bf9e0467 page_state=USECASES_BOUND elapsed_ms=1020 camera_bind_ms=339855
+D/RecognitionCameraCapture( 7124): request=camera-bind event=camera_provider_bound bound=true lifecycle_state=STARTED
+D/RecognitionCameraCapture( 7124): request=camera-preview event=capture_surface_state preview_attached=true controller_attached=true capture_state=INITIALIZING active_capture_request_id=none lifecycle_state=STARTED
+D/RecognitionCameraCapture( 7124): request=preview-state event=preview_stream_state state=IDLE camera_provider_bound=true image_capture_ready=false
+D/CaptureEntry( 7124): capture_session_id=93719b53-9b26-47a7-8fc6-0723bf9e0467 page_state=ZOOM elapsed_ms=1187 zoom_ratio=1.0 min_zoom=1.0 max_zoom=10.0
+D/CaptureEntry( 7124): capture_session_id=93719b53-9b26-47a7-8fc6-0723bf9e0467 page_state=PROVIDER_READY elapsed_ms=1691 camera_provider_ready_ms=340526
+D/CaptureEntry( 7124): capture_session_id=93719b53-9b26-47a7-8fc6-0723bf9e0467 page_state=CAMERA_ENTERED elapsed_ms=1731 
+D/CaptureEntry( 7124): capture_session_id=93719b53-9b26-47a7-8fc6-0723bf9e0467 page_state=PREVIEW_STREAMING elapsed_ms=1967 preview_streaming_ms=340802
+D/RecognitionCameraCapture( 7124): request=preview-state event=preview_stream_state state=STREAMING camera_provider_bound=true image_capture_ready=true
+D/CaptureEntry( 7124): capture_session_id=93719b53-9b26-47a7-8fc6-0723bf9e0467 page_state=CAMERA_READY elapsed_ms=2350 first_frame_visible_ms=341185 zoom_ratio=1.0
+D/RecognitionCameraCapture( 7124): request=camera-preview event=capture_surface_state preview_attached=false controller_attached=true capture_state=READY active_capture_request_id=none lifecycle_state=DESTROYED
+D/RecognitionCameraCapture( 7124): request=camera-controller event=camera_controller_dispose camera_provider_bound=true preview_attached=false capture_state=READY active_capture_request_id=none teardown_during_capture=false
+D/CaptureEntry( 7347): capture_session_id= page_state=PROVIDER_PREWARM_READY elapsed_ms=358872 camera_provider_ready_ms=358872
+D/CaptureEntry( 7347): capture_session_id= page_state=PROVIDER_PREWARM_READY elapsed_ms=358873 camera_provider_ready_ms=358873
+D/CaptureEntry( 7347): capture_session_id=02f90b4f-0423-467b-9690-7e0df30e7117 page_state=HOME_ACTIVATING elapsed_ms=0 
+D/CaptureEntry( 7347): capture_session_id=02f90b4f-0423-467b-9690-7e0df30e7117 page_state=PROVIDER_PREWARM_READY elapsed_ms=23 camera_provider_ready_ms=362484
+D/CaptureEntry( 7347): capture_session_id=02f90b4f-0423-467b-9690-7e0df30e7117 page_state=CAMERA_ENTERING elapsed_ms=835 
+D/CaptureEntry( 7347): capture_session_id=02f90b4f-0423-467b-9690-7e0df30e7117 page_state=CAMERA_PREPARING elapsed_ms=974 camera_entry_ms=363435
+D/CaptureEntry( 7347): capture_session_id=02f90b4f-0423-467b-9690-7e0df30e7117 page_state=USECASES_BOUND elapsed_ms=976 camera_bind_ms=363437
+D/RecognitionCameraCapture( 7347): request=camera-bind event=camera_provider_bound bound=true lifecycle_state=STARTED
+D/RecognitionCameraCapture( 7347): request=camera-preview event=capture_surface_state preview_attached=true controller_attached=true capture_state=INITIALIZING active_capture_request_id=none lifecycle_state=STARTED
+D/RecognitionCameraCapture( 7347): request=preview-state event=preview_stream_state state=IDLE camera_provider_bound=true image_capture_ready=false
+D/CaptureEntry( 7347): capture_session_id=02f90b4f-0423-467b-9690-7e0df30e7117 page_state=ZOOM elapsed_ms=1097 zoom_ratio=1.0 min_zoom=1.0 max_zoom=10.0
+D/CaptureEntry( 7347): capture_session_id=02f90b4f-0423-467b-9690-7e0df30e7117 page_state=PROVIDER_READY elapsed_ms=1398 camera_provider_ready_ms=363859
+D/CaptureEntry( 7347): capture_session_id=02f90b4f-0423-467b-9690-7e0df30e7117 page_state=CAMERA_ENTERED elapsed_ms=1547 
+D/CaptureEntry( 7347): capture_session_id=02f90b4f-0423-467b-9690-7e0df30e7117 page_state=PREVIEW_STREAMING elapsed_ms=2222 preview_streaming_ms=364683
+D/RecognitionCameraCapture( 7347): request=preview-state event=preview_stream_state state=STREAMING camera_provider_bound=true image_capture_ready=true
+D/CaptureEntry( 7347): capture_session_id=02f90b4f-0423-467b-9690-7e0df30e7117 page_state=CAMERA_READY elapsed_ms=2631 first_frame_visible_ms=365092 zoom_ratio=1.0
+D/CaptureEntry( 7586): capture_session_id= page_state=PROVIDER_PREWARM_READY elapsed_ms=381786 camera_provider_ready_ms=381786
+D/CaptureEntry( 7586): capture_session_id= page_state=PROVIDER_PREWARM_READY elapsed_ms=381786 camera_provider_ready_ms=381786
+D/CaptureEntry( 7586): capture_session_id=7b4639d4-34f5-4c58-9c64-82d9e03becdc page_state=HOME_ACTIVATING elapsed_ms=0 
+D/CaptureEntry( 7586): capture_session_id=7b4639d4-34f5-4c58-9c64-82d9e03becdc page_state=PROVIDER_PREWARM_READY elapsed_ms=117 camera_provider_ready_ms=385090
+D/CaptureEntry( 7586): capture_session_id=7b4639d4-34f5-4c58-9c64-82d9e03becdc page_state=CAMERA_ENTERING elapsed_ms=1165 
+D/CaptureEntry( 7586): capture_session_id=7b4639d4-34f5-4c58-9c64-82d9e03becdc page_state=CAMERA_PREPARING elapsed_ms=1313 camera_entry_ms=386286
+D/CaptureEntry( 7586): capture_session_id=7b4639d4-34f5-4c58-9c64-82d9e03becdc page_state=USECASES_BOUND elapsed_ms=1314 camera_bind_ms=386287
+D/RecognitionCameraCapture( 7586): request=camera-bind event=camera_provider_bound bound=true lifecycle_state=STARTED
+D/RecognitionCameraCapture( 7586): request=camera-preview event=capture_surface_state preview_attached=true controller_attached=true capture_state=INITIALIZING active_capture_request_id=none lifecycle_state=STARTED
+D/RecognitionCameraCapture( 7586): request=preview-state event=preview_stream_state state=IDLE camera_provider_bound=true image_capture_ready=false
+D/CaptureEntry( 7586): capture_session_id=7b4639d4-34f5-4c58-9c64-82d9e03becdc page_state=ZOOM elapsed_ms=1436 zoom_ratio=1.0 min_zoom=1.0 max_zoom=10.0
+D/CaptureEntry( 7586): capture_session_id=7b4639d4-34f5-4c58-9c64-82d9e03becdc page_state=PROVIDER_READY elapsed_ms=1745 camera_provider_ready_ms=386718
+D/CaptureEntry( 7586): capture_session_id=7b4639d4-34f5-4c58-9c64-82d9e03becdc page_state=CAMERA_ENTERED elapsed_ms=1833 
+D/CaptureEntry( 7586): capture_session_id=7b4639d4-34f5-4c58-9c64-82d9e03becdc page_state=PREVIEW_STREAMING elapsed_ms=2257 preview_streaming_ms=387230
+D/RecognitionCameraCapture( 7586): request=preview-state event=preview_stream_state state=STREAMING camera_provider_bound=true image_capture_ready=true
+D/CaptureEntry( 7586): capture_session_id=7b4639d4-34f5-4c58-9c64-82d9e03becdc page_state=CAMERA_READY elapsed_ms=2666 first_frame_visible_ms=387639 zoom_ratio=1.0
+D/RecognitionCameraCapture( 7586): request=camera-preview event=capture_surface_state preview_attached=false controller_attached=true capture_state=READY active_capture_request_id=none lifecycle_state=DESTROYED
+D/RecognitionCameraCapture( 7586): request=camera-controller event=camera_controller_dispose camera_provider_bound=true preview_attached=false capture_state=READY active_capture_request_id=none teardown_during_capture=false
+D/CaptureEntry( 7805): capture_session_id= page_state=PROVIDER_PREWARM_READY elapsed_ms=404836 camera_provider_ready_ms=404836
+D/CaptureEntry( 7805): capture_session_id= page_state=PROVIDER_PREWARM_READY elapsed_ms=404836 camera_provider_ready_ms=404836
+D/CaptureEntry( 7805): capture_session_id=45b27f1b-5afe-4088-b21f-544f5f3c1f8d page_state=HOME_ACTIVATING elapsed_ms=0 
+D/CaptureEntry( 7805): capture_session_id=45b27f1b-5afe-4088-b21f-544f5f3c1f8d page_state=PROVIDER_PREWARM_READY elapsed_ms=36 camera_provider_ready_ms=408188
+D/CaptureEntry( 7805): capture_session_id=45b27f1b-5afe-4088-b21f-544f5f3c1f8d page_state=CAMERA_ENTERING elapsed_ms=776 
+D/CaptureEntry( 7805): capture_session_id=45b27f1b-5afe-4088-b21f-544f5f3c1f8d page_state=CAMERA_PREPARING elapsed_ms=930 camera_entry_ms=409082
+D/CaptureEntry( 7805): capture_session_id=45b27f1b-5afe-4088-b21f-544f5f3c1f8d page_state=USECASES_BOUND elapsed_ms=931 camera_bind_ms=409083
+D/RecognitionCameraCapture( 7805): request=camera-bind event=camera_provider_bound bound=true lifecycle_state=STARTED
+D/RecognitionCameraCapture( 7805): request=camera-preview event=capture_surface_state preview_attached=true controller_attached=true capture_state=INITIALIZING active_capture_request_id=none lifecycle_state=STARTED
+D/RecognitionCameraCapture( 7805): request=preview-state event=preview_stream_state state=IDLE camera_provider_bound=true image_capture_ready=false
+D/CaptureEntry( 7805): capture_session_id=45b27f1b-5afe-4088-b21f-544f5f3c1f8d page_state=ZOOM elapsed_ms=1048 zoom_ratio=1.0 min_zoom=1.0 max_zoom=10.0
+D/CaptureEntry( 7805): capture_session_id=45b27f1b-5afe-4088-b21f-544f5f3c1f8d page_state=PROVIDER_READY elapsed_ms=1358 camera_provider_ready_ms=409509
+D/CaptureEntry( 7805): capture_session_id=45b27f1b-5afe-4088-b21f-544f5f3c1f8d page_state=CAMERA_ENTERED elapsed_ms=1494 
+D/CaptureEntry( 7805): capture_session_id=45b27f1b-5afe-4088-b21f-544f5f3c1f8d page_state=PREVIEW_STREAMING elapsed_ms=2009 preview_streaming_ms=410161
+D/RecognitionCameraCapture( 7805): request=preview-state event=preview_stream_state state=STREAMING camera_provider_bound=true image_capture_ready=true
+D/CaptureEntry( 7805): capture_session_id=45b27f1b-5afe-4088-b21f-544f5f3c1f8d page_state=CAMERA_READY elapsed_ms=2504 first_frame_visible_ms=410656 zoom_ratio=1.0
+D/CaptureEntry( 7805): capture_session_id=45b27f1b-5afe-4088-b21f-544f5f3c1f8d page_state=ZOOM elapsed_ms=10729 zoom_ratio=1.0 min_zoom=1.0 max_zoom=10.0
+D/CaptureEntry( 8013): capture_session_id= page_state=PROVIDER_PREWARM_READY elapsed_ms=427635 camera_provider_ready_ms=427635
+D/CaptureEntry( 8013): capture_session_id= page_state=PROVIDER_PREWARM_READY elapsed_ms=427636 camera_provider_ready_ms=427636
+D/CaptureEntry( 8013): capture_session_id=97b34419-1f5d-4d64-9716-9d6215f88e4d page_state=HOME_ACTIVATING elapsed_ms=0 
+D/CaptureEntry( 8013): capture_session_id=97b34419-1f5d-4d64-9716-9d6215f88e4d page_state=PROVIDER_PREWARM_READY elapsed_ms=26 camera_provider_ready_ms=431442
+D/CaptureEntry( 8013): capture_session_id=97b34419-1f5d-4d64-9716-9d6215f88e4d page_state=CAMERA_ENTERING elapsed_ms=847 
+D/CaptureEntry( 8013): capture_session_id=97b34419-1f5d-4d64-9716-9d6215f88e4d page_state=CAMERA_PREPARING elapsed_ms=959 camera_entry_ms=432375
+D/CaptureEntry( 8013): capture_session_id=97b34419-1f5d-4d64-9716-9d6215f88e4d page_state=USECASES_BOUND elapsed_ms=960 camera_bind_ms=432376
+D/RecognitionCameraCapture( 8013): request=camera-bind event=camera_provider_bound bound=true lifecycle_state=STARTED
+D/RecognitionCameraCapture( 8013): request=camera-preview event=capture_surface_state preview_attached=true controller_attached=true capture_state=INITIALIZING active_capture_request_id=none lifecycle_state=STARTED
+D/RecognitionCameraCapture( 8013): request=preview-state event=preview_stream_state state=IDLE camera_provider_bound=true image_capture_ready=false
+D/CaptureEntry( 8013): capture_session_id=97b34419-1f5d-4d64-9716-9d6215f88e4d page_state=ZOOM elapsed_ms=1125 zoom_ratio=1.0 min_zoom=1.0 max_zoom=10.0
+D/CaptureEntry( 8013): capture_session_id=97b34419-1f5d-4d64-9716-9d6215f88e4d page_state=PROVIDER_READY elapsed_ms=1376 camera_provider_ready_ms=432792
+D/CaptureEntry( 8013): capture_session_id=97b34419-1f5d-4d64-9716-9d6215f88e4d page_state=CAMERA_ENTERED elapsed_ms=1526 
+D/CaptureEntry( 8013): capture_session_id=97b34419-1f5d-4d64-9716-9d6215f88e4d page_state=PREVIEW_STREAMING elapsed_ms=2045 preview_streaming_ms=433461
+D/RecognitionCameraCapture( 8013): request=preview-state event=preview_stream_state state=STREAMING camera_provider_bound=true image_capture_ready=true
+D/CaptureEntry( 8013): capture_session_id=97b34419-1f5d-4d64-9716-9d6215f88e4d page_state=CAMERA_READY elapsed_ms=2469 first_frame_visible_ms=433885 zoom_ratio=1.0
+D/CaptureEntry( 8238): capture_session_id= page_state=PROVIDER_PREWARM_READY elapsed_ms=450550 camera_provider_ready_ms=450550
+D/CaptureEntry( 8238): capture_session_id= page_state=PROVIDER_PREWARM_READY elapsed_ms=450550 camera_provider_ready_ms=450550
+D/CaptureEntry( 8238): capture_session_id=a36274fe-31fe-44fa-a950-8fe982a2e9dc page_state=HOME_ACTIVATING elapsed_ms=0 
+D/CaptureEntry( 8238): capture_session_id=a36274fe-31fe-44fa-a950-8fe982a2e9dc page_state=PROVIDER_PREWARM_READY elapsed_ms=27 camera_provider_ready_ms=453575
+D/CaptureEntry( 8238): capture_session_id=a36274fe-31fe-44fa-a950-8fe982a2e9dc page_state=CAMERA_ENTERING elapsed_ms=842 
+D/CaptureEntry( 8238): capture_session_id=a36274fe-31fe-44fa-a950-8fe982a2e9dc page_state=CAMERA_PREPARING elapsed_ms=1017 camera_entry_ms=454566
+D/CaptureEntry( 8238): capture_session_id=a36274fe-31fe-44fa-a950-8fe982a2e9dc page_state=USECASES_BOUND elapsed_ms=1019 camera_bind_ms=454568
+D/RecognitionCameraCapture( 8238): request=camera-bind event=camera_provider_bound bound=true lifecycle_state=STARTED
+D/RecognitionCameraCapture( 8238): request=camera-preview event=capture_surface_state preview_attached=true controller_attached=true capture_state=INITIALIZING active_capture_request_id=none lifecycle_state=STARTED
+D/RecognitionCameraCapture( 8238): request=preview-state event=preview_stream_state state=IDLE camera_provider_bound=true image_capture_ready=false
+D/CaptureEntry( 8238): capture_session_id=a36274fe-31fe-44fa-a950-8fe982a2e9dc page_state=ZOOM elapsed_ms=1142 zoom_ratio=1.0 min_zoom=1.0 max_zoom=10.0
+D/CaptureEntry( 8238): capture_session_id=a36274fe-31fe-44fa-a950-8fe982a2e9dc page_state=PROVIDER_READY elapsed_ms=1457 camera_provider_ready_ms=455006
+D/CaptureEntry( 8238): capture_session_id=a36274fe-31fe-44fa-a950-8fe982a2e9dc page_state=CAMERA_ENTERED elapsed_ms=1572 
+D/CaptureEntry( 8238): capture_session_id=a36274fe-31fe-44fa-a950-8fe982a2e9dc page_state=PREVIEW_STREAMING elapsed_ms=1941 preview_streaming_ms=455490
+D/RecognitionCameraCapture( 8238): request=preview-state event=preview_stream_state state=STREAMING camera_provider_bound=true image_capture_ready=true
+D/CaptureEntry( 8238): capture_session_id=a36274fe-31fe-44fa-a950-8fe982a2e9dc page_state=CAMERA_READY elapsed_ms=2177 first_frame_visible_ms=455726 zoom_ratio=1.0
+D/CaptureEntry( 8453): capture_session_id= page_state=PROVIDER_PREWARM_READY elapsed_ms=473156 camera_provider_ready_ms=473156
+D/CaptureEntry( 8453): capture_session_id= page_state=PROVIDER_PREWARM_READY elapsed_ms=473156 camera_provider_ready_ms=473156
+D/CaptureEntry( 8453): capture_session_id=955f0767-46f3-4169-bf59-e9b4198e9bda page_state=HOME_ACTIVATING elapsed_ms=0 
+D/CaptureEntry( 8453): capture_session_id=955f0767-46f3-4169-bf59-e9b4198e9bda page_state=PROVIDER_PREWARM_READY elapsed_ms=38 camera_provider_ready_ms=476190
+D/CaptureEntry( 8453): capture_session_id=955f0767-46f3-4169-bf59-e9b4198e9bda page_state=CAMERA_ENTERING elapsed_ms=905 
+D/CaptureEntry( 8453): capture_session_id=955f0767-46f3-4169-bf59-e9b4198e9bda page_state=CAMERA_PREPARING elapsed_ms=1069 camera_entry_ms=477221
+D/CaptureEntry( 8453): capture_session_id=955f0767-46f3-4169-bf59-e9b4198e9bda page_state=USECASES_BOUND elapsed_ms=1071 camera_bind_ms=477222
+D/RecognitionCameraCapture( 8453): request=camera-bind event=camera_provider_bound bound=true lifecycle_state=STARTED
+D/RecognitionCameraCapture( 8453): request=camera-preview event=capture_surface_state preview_attached=true controller_attached=true capture_state=INITIALIZING active_capture_request_id=none lifecycle_state=STARTED
+D/RecognitionCameraCapture( 8453): request=preview-state event=preview_stream_state state=IDLE camera_provider_bound=true image_capture_ready=false
+D/CaptureEntry( 8453): capture_session_id=955f0767-46f3-4169-bf59-e9b4198e9bda page_state=ZOOM elapsed_ms=1197 zoom_ratio=1.0 min_zoom=1.0 max_zoom=10.0
+D/CaptureEntry( 8453): capture_session_id=955f0767-46f3-4169-bf59-e9b4198e9bda page_state=PROVIDER_READY elapsed_ms=1493 camera_provider_ready_ms=477645
+D/CaptureEntry( 8453): capture_session_id=955f0767-46f3-4169-bf59-e9b4198e9bda page_state=CAMERA_ENTERED elapsed_ms=1598 
+D/CaptureEntry( 8453): capture_session_id=955f0767-46f3-4169-bf59-e9b4198e9bda page_state=PREVIEW_STREAMING elapsed_ms=2192 preview_streaming_ms=478344
+D/RecognitionCameraCapture( 8453): request=preview-state event=preview_stream_state state=STREAMING camera_provider_bound=true image_capture_ready=true
+D/CaptureEntry( 8453): capture_session_id=955f0767-46f3-4169-bf59-e9b4198e9bda page_state=CAMERA_READY elapsed_ms=2692 first_frame_visible_ms=478844 zoom_ratio=1.0
+D/CaptureEntry( 8453): capture_session_id=955f0767-46f3-4169-bf59-e9b4198e9bda page_state=ZOOM elapsed_ms=10969 zoom_ratio=1.0 min_zoom=1.0 max_zoom=10.0
+D/CaptureEntry( 8675): capture_session_id= page_state=PROVIDER_PREWARM_READY elapsed_ms=495942 camera_provider_ready_ms=495942
+D/CaptureEntry( 8675): capture_session_id= page_state=PROVIDER_PREWARM_READY elapsed_ms=495943 camera_provider_ready_ms=495943
+D/CaptureEntry( 8675): capture_session_id=312aef50-313c-4441-8727-9735b8af6b38 page_state=HOME_ACTIVATING elapsed_ms=0 
+D/CaptureEntry( 8675): capture_session_id=312aef50-313c-4441-8727-9735b8af6b38 page_state=PROVIDER_PREWARM_READY elapsed_ms=47 camera_provider_ready_ms=499432
+D/CaptureEntry( 8675): capture_session_id=312aef50-313c-4441-8727-9735b8af6b38 page_state=CAMERA_ENTERING elapsed_ms=884 
+D/CaptureEntry( 8675): capture_session_id=312aef50-313c-4441-8727-9735b8af6b38 page_state=CAMERA_PREPARING elapsed_ms=1051 camera_entry_ms=500436
+D/CaptureEntry( 8675): capture_session_id=312aef50-313c-4441-8727-9735b8af6b38 page_state=USECASES_BOUND elapsed_ms=1052 camera_bind_ms=500437
+D/RecognitionCameraCapture( 8675): request=camera-bind event=camera_provider_bound bound=true lifecycle_state=STARTED
+D/RecognitionCameraCapture( 8675): request=camera-preview event=capture_surface_state preview_attached=true controller_attached=true capture_state=INITIALIZING active_capture_request_id=none lifecycle_state=STARTED
+D/RecognitionCameraCapture( 8675): request=preview-state event=preview_stream_state state=IDLE camera_provider_bound=true image_capture_ready=false
+D/CaptureEntry( 8675): capture_session_id=312aef50-313c-4441-8727-9735b8af6b38 page_state=ZOOM elapsed_ms=1179 zoom_ratio=1.0 min_zoom=1.0 max_zoom=10.0
+D/CaptureEntry( 8675): capture_session_id=312aef50-313c-4441-8727-9735b8af6b38 page_state=PROVIDER_READY elapsed_ms=1562 camera_provider_ready_ms=500947
+D/CaptureEntry( 8675): capture_session_id=312aef50-313c-4441-8727-9735b8af6b38 page_state=CAMERA_ENTERED elapsed_ms=1691 
+D/CaptureEntry( 8675): capture_session_id=312aef50-313c-4441-8727-9735b8af6b38 page_state=PREVIEW_STREAMING elapsed_ms=2136 preview_streaming_ms=501521
+D/RecognitionCameraCapture( 8675): request=preview-state event=preview_stream_state state=STREAMING camera_provider_bound=true image_capture_ready=true
+D/CaptureEntry( 8675): capture_session_id=312aef50-313c-4441-8727-9735b8af6b38 page_state=CAMERA_READY elapsed_ms=2946 first_frame_visible_ms=502331 zoom_ratio=1.0
+D/CaptureEntry( 8894): capture_session_id= page_state=PROVIDER_PREWARM_READY elapsed_ms=519384 camera_provider_ready_ms=519384
+D/CaptureEntry( 8894): capture_session_id= page_state=PROVIDER_PREWARM_READY elapsed_ms=519384 camera_provider_ready_ms=519384
+D/CaptureEntry( 8894): capture_session_id=c81644d4-432e-4e7a-9a6e-8a43c633cbb1 page_state=HOME_ACTIVATING elapsed_ms=0 
+D/CaptureEntry( 8894): capture_session_id=c81644d4-432e-4e7a-9a6e-8a43c633cbb1 page_state=PROVIDER_PREWARM_READY elapsed_ms=39 camera_provider_ready_ms=522976
+D/CaptureEntry( 8894): capture_session_id=c81644d4-432e-4e7a-9a6e-8a43c633cbb1 page_state=CAMERA_ENTERING elapsed_ms=805 
+D/CaptureEntry( 8894): capture_session_id=c81644d4-432e-4e7a-9a6e-8a43c633cbb1 page_state=CAMERA_PREPARING elapsed_ms=1025 camera_entry_ms=523962
+D/CaptureEntry( 8894): capture_session_id=c81644d4-432e-4e7a-9a6e-8a43c633cbb1 page_state=USECASES_BOUND elapsed_ms=1026 camera_bind_ms=523963
+D/RecognitionCameraCapture( 8894): request=camera-bind event=camera_provider_bound bound=true lifecycle_state=STARTED
+D/RecognitionCameraCapture( 8894): request=camera-preview event=capture_surface_state preview_attached=true controller_attached=true capture_state=INITIALIZING active_capture_request_id=none lifecycle_state=STARTED
+D/RecognitionCameraCapture( 8894): request=preview-state event=preview_stream_state state=IDLE camera_provider_bound=true image_capture_ready=false
+D/CaptureEntry( 8894): capture_session_id=c81644d4-432e-4e7a-9a6e-8a43c633cbb1 page_state=ZOOM elapsed_ms=1141 zoom_ratio=1.0 min_zoom=1.0 max_zoom=10.0
+D/CaptureEntry( 8894): capture_session_id=c81644d4-432e-4e7a-9a6e-8a43c633cbb1 page_state=PROVIDER_READY elapsed_ms=1419 camera_provider_ready_ms=524356
+D/CaptureEntry( 8894): capture_session_id=c81644d4-432e-4e7a-9a6e-8a43c633cbb1 page_state=CAMERA_ENTERED elapsed_ms=1568 
+D/CaptureEntry( 8894): capture_session_id=c81644d4-432e-4e7a-9a6e-8a43c633cbb1 page_state=PREVIEW_STREAMING elapsed_ms=1975 preview_streaming_ms=524912
+D/RecognitionCameraCapture( 8894): request=preview-state event=preview_stream_state state=STREAMING camera_provider_bound=true image_capture_ready=true
+D/CaptureEntry( 8894): capture_session_id=c81644d4-432e-4e7a-9a6e-8a43c633cbb1 page_state=CAMERA_READY elapsed_ms=2622 first_frame_visible_ms=525559 zoom_ratio=1.0
+D/CaptureEntry( 9108): capture_session_id= page_state=PROVIDER_PREWARM_READY elapsed_ms=543039 camera_provider_ready_ms=543039
+D/CaptureEntry( 9108): capture_session_id= page_state=PROVIDER_PREWARM_READY elapsed_ms=543039 camera_provider_ready_ms=543039
+D/CaptureEntry( 9108): capture_session_id=1cb9b2ed-f74a-4169-8208-83748218b1dd page_state=HOME_ACTIVATING elapsed_ms=0 
+D/CaptureEntry( 9108): capture_session_id=1cb9b2ed-f74a-4169-8208-83748218b1dd page_state=PROVIDER_PREWARM_READY elapsed_ms=23 camera_provider_ready_ms=546244
+D/CaptureEntry( 9108): capture_session_id=1cb9b2ed-f74a-4169-8208-83748218b1dd page_state=CAMERA_ENTERING elapsed_ms=998 
+D/CaptureEntry( 9108): capture_session_id=1cb9b2ed-f74a-4169-8208-83748218b1dd page_state=CAMERA_PREPARING elapsed_ms=1118 camera_entry_ms=547339
+D/CaptureEntry( 9108): capture_session_id=1cb9b2ed-f74a-4169-8208-83748218b1dd page_state=USECASES_BOUND elapsed_ms=1119 camera_bind_ms=547340
+D/RecognitionCameraCapture( 9108): request=camera-bind event=camera_provider_bound bound=true lifecycle_state=STARTED
+D/RecognitionCameraCapture( 9108): request=camera-preview event=capture_surface_state preview_attached=true controller_attached=true capture_state=INITIALIZING active_capture_request_id=none lifecycle_state=STARTED
+D/RecognitionCameraCapture( 9108): request=preview-state event=preview_stream_state state=IDLE camera_provider_bound=true image_capture_ready=false
+D/CaptureEntry( 9108): capture_session_id=1cb9b2ed-f74a-4169-8208-83748218b1dd page_state=ZOOM elapsed_ms=1313 zoom_ratio=1.0 min_zoom=1.0 max_zoom=10.0
+D/CaptureEntry( 9108): capture_session_id=1cb9b2ed-f74a-4169-8208-83748218b1dd page_state=PROVIDER_READY elapsed_ms=1634 camera_provider_ready_ms=547855
+D/CaptureEntry( 9108): capture_session_id=1cb9b2ed-f74a-4169-8208-83748218b1dd page_state=CAMERA_ENTERED elapsed_ms=1799 
+D/CaptureEntry( 9108): capture_session_id=1cb9b2ed-f74a-4169-8208-83748218b1dd page_state=PREVIEW_STREAMING elapsed_ms=2224 preview_streaming_ms=548445
+D/RecognitionCameraCapture( 9108): request=preview-state event=preview_stream_state state=STREAMING camera_provider_bound=true image_capture_ready=true
+D/CaptureEntry( 9108): capture_session_id=1cb9b2ed-f74a-4169-8208-83748218b1dd page_state=CAMERA_READY elapsed_ms=2770 first_frame_visible_ms=548991 zoom_ratio=1.0

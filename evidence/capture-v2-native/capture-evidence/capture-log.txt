@@ -1,0 +1,47 @@
+--------- beginning of main
+D/CaptureEntry( 3980): capture_session_id= page_state=PROVIDER_PREWARM_READY elapsed_ms=122189 camera_provider_ready_ms=122189
+D/CaptureEntry( 3980): capture_session_id= page_state=PROVIDER_PREWARM_READY elapsed_ms=122189 camera_provider_ready_ms=122189
+D/CaptureEntry( 3980): capture_session_id=5f09d2c7-074d-4b7b-9d86-900540384d2e page_state=HOME_ACTIVATING elapsed_ms=0 
+D/CaptureEntry( 3980): capture_session_id=5f09d2c7-074d-4b7b-9d86-900540384d2e page_state=PROVIDER_PREWARM_READY elapsed_ms=133 camera_provider_ready_ms=127878
+D/CaptureEntry( 3980): capture_session_id=5f09d2c7-074d-4b7b-9d86-900540384d2e page_state=CAMERA_ENTERING elapsed_ms=829 
+D/CaptureEntry( 3980): capture_session_id=5f09d2c7-074d-4b7b-9d86-900540384d2e page_state=CAMERA_PREPARING elapsed_ms=1299 camera_entry_ms=129044
+D/CaptureEntry( 3980): capture_session_id=5f09d2c7-074d-4b7b-9d86-900540384d2e page_state=USECASES_BOUND elapsed_ms=1300 camera_bind_ms=129045
+D/RecognitionCameraCapture( 3980): request=camera-bind event=camera_provider_bound bound=true lifecycle_state=STARTED
+D/RecognitionCameraCapture( 3980): request=camera-preview event=capture_surface_state preview_attached=true controller_attached=true capture_state=INITIALIZING active_capture_request_id=none lifecycle_state=STARTED
+D/RecognitionCameraCapture( 3980): request=preview-state event=preview_stream_state state=IDLE camera_provider_bound=true image_capture_ready=false
+D/CaptureEntry( 3980): capture_session_id=5f09d2c7-074d-4b7b-9d86-900540384d2e page_state=ZOOM elapsed_ms=2002 zoom_ratio=1.0 min_zoom=1.0 max_zoom=10.0
+D/CaptureEntry( 3980): capture_session_id=5f09d2c7-074d-4b7b-9d86-900540384d2e page_state=PROVIDER_READY elapsed_ms=2097 camera_provider_ready_ms=129842
+D/CaptureEntry( 3980): capture_session_id=5f09d2c7-074d-4b7b-9d86-900540384d2e page_state=CAMERA_ENTERED elapsed_ms=2249 
+D/CaptureEntry( 3980): capture_session_id=5f09d2c7-074d-4b7b-9d86-900540384d2e page_state=PREVIEW_STREAMING elapsed_ms=2730 preview_streaming_ms=130475
+D/RecognitionCameraCapture( 3980): request=preview-state event=preview_stream_state state=STREAMING camera_provider_bound=true image_capture_ready=true
+D/CaptureEntry( 3980): capture_session_id=5f09d2c7-074d-4b7b-9d86-900540384d2e page_state=CAMERA_READY elapsed_ms=3249 first_frame_visible_ms=130994 zoom_ratio=1.0
+D/RecognitionCameraCapture( 3980): request=camera-preview event=capture_surface_state preview_attached=false controller_attached=true capture_state=READY active_capture_request_id=none lifecycle_state=RESUMED
+D/CaptureEntry( 3980): capture_session_id=5f09d2c7-074d-4b7b-9d86-900540384d2e page_state=ZOOM elapsed_ms=15396 zoom_ratio=1.0 min_zoom=1.0 max_zoom=10.0
+D/RecognitionCameraCapture( 3980): request=preview-state event=preview_stream_state state=IDLE camera_provider_bound=true image_capture_ready=false
+D/CaptureEntry( 3980): capture_session_id=5f09d2c7-074d-4b7b-9d86-900540384d2e page_state=ZOOM elapsed_ms=18162 zoom_ratio=1.0 min_zoom=1.0 max_zoom=10.0
+D/RecognitionCameraCapture( 3980): request=camera-preview event=capture_surface_state preview_attached=true controller_attached=true capture_state=INITIALIZING active_capture_request_id=none lifecycle_state=RESUMED
+D/RecognitionCameraCapture( 3980): request=preview-state event=preview_stream_state state=IDLE camera_provider_bound=true image_capture_ready=true
+D/CaptureEntry( 3980): capture_session_id=5f09d2c7-074d-4b7b-9d86-900540384d2e page_state=PREVIEW_STREAMING elapsed_ms=19051 preview_streaming_ms=146796
+D/RecognitionCameraCapture( 3980): request=preview-state event=preview_stream_state state=STREAMING camera_provider_bound=true image_capture_ready=true
+D/CaptureEntry( 3980): capture_session_id=5f09d2c7-074d-4b7b-9d86-900540384d2e page_state=CAMERA_READY elapsed_ms=19432 first_frame_visible_ms=147177 zoom_ratio=1.0
+D/CaptureEntry( 3980): capture_session_id=5f09d2c7-074d-4b7b-9d86-900540384d2e page_state=ZOOM elapsed_ms=37399 zoom_ratio=2.0 min_zoom=1.0 max_zoom=10.0
+D/CaptureEntry( 3980): capture_session_id=5f09d2c7-074d-4b7b-9d86-900540384d2e page_state=ZOOM_REQUEST elapsed_ms=37399 zoom_ratio=2.0
+D/CaptureEntry( 3980): capture_session_id=5f09d2c7-074d-4b7b-9d86-900540384d2e page_state=ZOOM elapsed_ms=42519 zoom_ratio=1.9348626 min_zoom=1.0 max_zoom=10.0
+D/CaptureEntry( 3980): capture_session_id=5f09d2c7-074d-4b7b-9d86-900540384d2e page_state=ZOOM_REQUEST elapsed_ms=42522 zoom_ratio=1.9348626
+D/CaptureEntry( 3980): capture_session_id=5f09d2c7-074d-4b7b-9d86-900540384d2e page_state=ZOOM elapsed_ms=42565 zoom_ratio=1.7646554 min_zoom=1.0 max_zoom=10.0
+D/CaptureEntry( 3980): capture_session_id=5f09d2c7-074d-4b7b-9d86-900540384d2e page_state=ZOOM_REQUEST elapsed_ms=42566 zoom_ratio=1.7646554
+D/CaptureEntry( 3980): capture_session_id=5f09d2c7-074d-4b7b-9d86-900540384d2e page_state=ZOOM elapsed_ms=42620 zoom_ratio=1.6587465 min_zoom=1.0 max_zoom=10.0
+D/CaptureEntry( 3980): capture_session_id=5f09d2c7-074d-4b7b-9d86-900540384d2e page_state=ZOOM_REQUEST elapsed_ms=42620 zoom_ratio=1.6587465
+D/CaptureEntry( 3980): capture_session_id=5f09d2c7-074d-4b7b-9d86-900540384d2e page_state=ZOOM elapsed_ms=42765 zoom_ratio=1.4976401 min_zoom=1.0 max_zoom=10.0
+D/CaptureEntry( 3980): capture_session_id=5f09d2c7-074d-4b7b-9d86-900540384d2e page_state=ZOOM_REQUEST elapsed_ms=42771 zoom_ratio=1.4976401
+D/CaptureEntry( 3980): capture_session_id=5f09d2c7-074d-4b7b-9d86-900540384d2e page_state=ZOOM elapsed_ms=42800 zoom_ratio=1.233197 min_zoom=1.0 max_zoom=10.0
+D/CaptureEntry( 3980): capture_session_id=5f09d2c7-074d-4b7b-9d86-900540384d2e page_state=ZOOM_REQUEST elapsed_ms=42800 zoom_ratio=1.233197
+D/RecognitionCameraCapture( 3980): request=cap_21462d96-1f45-4915-a13c-637767ceb557 event=before_capture camera_provider_bound=true preview_bound=true image_capture_instance_ready=true camera_controller_alive=true preview_view_attached=true preview_attached=true controller_attached=true lifecycle_state=RESUMED capture_state=CAPTURING capture_button_enabled=false output_target_type=file output_file=/data/user/0/com.yujian.ai.uiv2/cache/camera/capture_b4b14c11-bedc-4349-9d2f-164f0a6a2f81.jpg output_uri_type=content parent_directory_exists=true parent_directory_writable=true
+D/RecognitionCameraCapture( 3980): request=cap_21462d96-1f45-4915-a13c-637767ceb557 event=terminal_callback result=onImageSaved capture_state=CAPTURING camera_provider_bound=true camera_controller_alive=true preview_view_attached=true preview_attached=true controller_attached=true
+D/RecognitionCameraCapture( 3980): request=cap_21462d96-1f45-4915-a13c-637767ceb557 event=on_image_saved reached=true saved_uri=file:///data/user/0/com.yujian.ai.uiv2/cache/camera/capture_b4b14c11-bedc-4349-9d2f-164f0a6a2f81.jpg file_exists=true file_bytes=33571 decode_attempted=true camera_provider_bound=true camera_controller_alive=true preview_view_attached=true
+D/RecognitionCameraCapture( 3980): request=cap_21462d96-1f45-4915-a13c-637767ceb557 event=decode_result decode_success=true decoded_width=1101 decoded_height=1856 rotation_degrees=90 preview_width=393 preview_height=662 jpeg_ratio=0.59321123 selected_image_created=true
+D/RecognitionCameraCapture( 3980): request=cap_21462d96-1f45-4915-a13c-637767ceb557 event=capture_presentation preview=Rect.fromLTRB(0.0, 0.0, 393.0, 662.0) shutter=Offset(197.0, 745.0) image=yj_img_d25c1ff1-b519-4251-9595-c3f22bd61ba2 sha256=8d99f811cab4e5d5ffc76f09770ade67db1ab70e406165316272bdd0dfb5d7d7
+D/RecognitionCameraCapture( 3980): request=cap_21462d96-1f45-4915-a13c-637767ceb557 event=recognition_navigation started=true
+D/RecognitionCameraCapture( 3980): request=cap_21462d96-1f45-4915-a13c-637767ceb557 event=post_capture temporary_file_cleanup=true camera_state_after_callback=SUCCESS camera_provider_bound=true preview_bound=true
+D/RecognitionCameraCapture( 3980): request=camera-preview event=capture_surface_state preview_attached=false controller_attached=true capture_state=SUCCESS active_capture_request_id=none lifecycle_state=CREATED
+D/RecognitionCameraCapture( 3980): request=camera-controller event=camera_controller_dispose camera_provider_bound=true preview_attached=false capture_state=SUCCESS active_capture_request_id=none teardown_during_capture=false

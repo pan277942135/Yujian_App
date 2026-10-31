@@ -1,0 +1,10 @@
+{
+  "environment": "API35_EMULATOR_EMULATED_CAMERA",
+  "physical_device": "RUNTIME_NOT_RUN",
+  "visual_acceptance": "VISUAL_ACCEPTANCE_PENDING",
+  "matrix_cases": 15,
+  "actual_image_capture_jpeg": "PASS",
+  "zoom_observed_state": "PASS",
+  "flash_hardware": "NOT_RUN_PHYSICAL_HARDWARE",
+  "guide_outside_photo_content": "VISUAL_ACCEPTANCE_PENDING"
+}

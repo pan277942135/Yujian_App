@@ -1,0 +1,1 @@
+fbf94ef8e8578b3cf53de94adfc93a0cf7a89235ded405c67e02ead2125a6aaa  startup-input/app/build/outputs/apk/debug/YuJian-debug.apk

@@ -1,0 +1,8 @@
+
+com.yujian.ai.CapturePresentationAssetRuntimeTest:.
+
+Time: 0.044
+
+OK (1 test)
+
+

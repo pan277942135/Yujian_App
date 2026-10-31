@@ -1,0 +1,10 @@
+{
+  "source_head": "772f148017968a6d39464745f6a843c442148358",
+  "build_run": "41173909365",
+  "native_run": 41174212522,
+  "runtime_status": "PASS",
+  "apk_sha256": "fbf94ef8e8578b3cf53de94adfc93a0cf7a89235ded405c67e02ead2125a6aaa",
+  "environment": "API35_EMULATOR_EMULATED_CAMERA",
+  "physical_device": "RUNTIME_NOT_RUN",
+  "visual_acceptance": "VISUAL_ACCEPTANCE_PENDING"
+}

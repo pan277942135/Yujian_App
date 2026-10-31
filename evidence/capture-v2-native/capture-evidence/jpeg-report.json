@@ -1,0 +1,18 @@
+[
+  {
+    "path": "files/recognition_inputs/input_b22b4946-4130-4018-9edd-8bb2b5653099.jpg",
+    "width": 1101,
+    "height": 1856,
+    "ratio": 0.5932112068965517,
+    "exif_orientation": null,
+    "preview_px": [
+      393,
+      662
+    ],
+    "mean_rgb": [
+      174.96935485765292,
+      199.34783474662532,
+      157.24307252027938
+    ]
+  }
+]

@@ -1,0 +1,317 @@
+[
+  {
+    "viewport_dp": [
+      320,
+      480
+    ],
+    "font_scale": 1.0,
+    "status": "PASS_CONTROLS_VISIBLE",
+    "icon_alignment": {
+      "\u76f8\u518c": {
+        "icon_center_y": 381.0,
+        "shutter_center_y": 381.0,
+        "error_dp": 0.0
+      },
+      "\u95ea\u5149\u706f": {
+        "icon_center_y": 381.0,
+        "shutter_center_y": 381.0,
+        "error_dp": 0.0
+      }
+    },
+    "snapshot": "320x480-font1.0.png"
+  },
+  {
+    "viewport_dp": [
+      320,
+      480
+    ],
+    "font_scale": 1.3,
+    "status": "PASS_CONTROLS_VISIBLE",
+    "icon_alignment": {
+      "\u76f8\u518c": {
+        "icon_center_y": 381.0,
+        "shutter_center_y": 381.0,
+        "error_dp": 0.0
+      },
+      "\u95ea\u5149\u706f": {
+        "icon_center_y": 381.0,
+        "shutter_center_y": 381.0,
+        "error_dp": 0.0
+      }
+    },
+    "snapshot": "320x480-font1.3.png"
+  },
+  {
+    "viewport_dp": [
+      320,
+      480
+    ],
+    "font_scale": 1.5,
+    "status": "PASS_CONTROLS_VISIBLE",
+    "icon_alignment": {
+      "\u76f8\u518c": {
+        "icon_center_y": 380.0,
+        "shutter_center_y": 381.0,
+        "error_dp": 1.0
+      },
+      "\u95ea\u5149\u706f": {
+        "icon_center_y": 380.0,
+        "shutter_center_y": 381.0,
+        "error_dp": 1.0
+      }
+    },
+    "snapshot": "320x480-font1.5.png"
+  },
+  {
+    "viewport_dp": [
+      360,
+      640
+    ],
+    "font_scale": 1.0,
+    "status": "PASS_CONTROLS_VISIBLE",
+    "icon_alignment": {
+      "\u76f8\u518c": {
+        "icon_center_y": 533.0,
+        "shutter_center_y": 533.0,
+        "error_dp": 0.0
+      },
+      "\u95ea\u5149\u706f": {
+        "icon_center_y": 533.0,
+        "shutter_center_y": 533.0,
+        "error_dp": 0.0
+      }
+    },
+    "snapshot": "360x640-font1.0.png"
+  },
+  {
+    "viewport_dp": [
+      360,
+      640
+    ],
+    "font_scale": 1.3,
+    "status": "PASS_CONTROLS_VISIBLE",
+    "icon_alignment": {
+      "\u76f8\u518c": {
+        "icon_center_y": 533.0,
+        "shutter_center_y": 533.0,
+        "error_dp": 0.0
+      },
+      "\u95ea\u5149\u706f": {
+        "icon_center_y": 533.0,
+        "shutter_center_y": 533.0,
+        "error_dp": 0.0
+      }
+    },
+    "snapshot": "360x640-font1.3.png"
+  },
+  {
+    "viewport_dp": [
+      360,
+      640
+    ],
+    "font_scale": 1.5,
+    "status": "PASS_CONTROLS_VISIBLE",
+    "icon_alignment": {
+      "\u76f8\u518c": {
+        "icon_center_y": 532.0,
+        "shutter_center_y": 533.0,
+        "error_dp": 1.0
+      },
+      "\u95ea\u5149\u706f": {
+        "icon_center_y": 532.0,
+        "shutter_center_y": 533.0,
+        "error_dp": 1.0
+      }
+    },
+    "snapshot": "360x640-font1.5.png"
+  },
+  {
+    "viewport_dp": [
+      360,
+      800
+    ],
+    "font_scale": 1.0,
+    "status": "PASS_CONTROLS_VISIBLE",
+    "icon_alignment": {
+      "\u76f8\u518c": {
+        "icon_center_y": 693.0,
+        "shutter_center_y": 693.0,
+        "error_dp": 0.0
+      },
+      "\u95ea\u5149\u706f": {
+        "icon_center_y": 693.0,
+        "shutter_center_y": 693.0,
+        "error_dp": 0.0
+      }
+    },
+    "snapshot": "360x800-font1.0.png"
+  },
+  {
+    "viewport_dp": [
+      360,
+      800
+    ],
+    "font_scale": 1.3,
+    "status": "PASS_CONTROLS_VISIBLE",
+    "icon_alignment": {
+      "\u76f8\u518c": {
+        "icon_center_y": 693.0,
+        "shutter_center_y": 693.0,
+        "error_dp": 0.0
+      },
+      "\u95ea\u5149\u706f": {
+        "icon_center_y": 693.0,
+        "shutter_center_y": 693.0,
+        "error_dp": 0.0
+      }
+    },
+    "snapshot": "360x800-font1.3.png"
+  },
+  {
+    "viewport_dp": [
+      360,
+      800
+    ],
+    "font_scale": 1.5,
+    "status": "PASS_CONTROLS_VISIBLE",
+    "icon_alignment": {
+      "\u76f8\u518c": {
+        "icon_center_y": 692.0,
+        "shutter_center_y": 693.0,
+        "error_dp": 1.0
+      },
+      "\u95ea\u5149\u706f": {
+        "icon_center_y": 692.0,
+        "shutter_center_y": 693.0,
+        "error_dp": 1.0
+      }
+    },
+    "snapshot": "360x800-font1.5.png"
+  },
+  {
+    "viewport_dp": [
+      393,
+      852
+    ],
+    "font_scale": 1.0,
+    "status": "PASS_CONTROLS_VISIBLE",
+    "icon_alignment": {
+      "\u76f8\u518c": {
+        "icon_center_y": 745.0,
+        "shutter_center_y": 745.0,
+        "error_dp": 0.0
+      },
+      "\u95ea\u5149\u706f": {
+        "icon_center_y": 745.0,
+        "shutter_center_y": 745.0,
+        "error_dp": 0.0
+      }
+    },
+    "snapshot": "393x852-font1.0.png"
+  },
+  {
+    "viewport_dp": [
+      393,
+      852
+    ],
+    "font_scale": 1.3,
+    "status": "PASS_CONTROLS_VISIBLE",
+    "icon_alignment": {
+      "\u76f8\u518c": {
+        "icon_center_y": 745.0,
+        "shutter_center_y": 745.0,
+        "error_dp": 0.0
+      },
+      "\u95ea\u5149\u706f": {
+        "icon_center_y": 745.0,
+        "shutter_center_y": 745.0,
+        "error_dp": 0.0
+      }
+    },
+    "snapshot": "393x852-font1.3.png"
+  },
+  {
+    "viewport_dp": [
+      393,
+      852
+    ],
+    "font_scale": 1.5,
+    "status": "PASS_CONTROLS_VISIBLE",
+    "icon_alignment": {
+      "\u76f8\u518c": {
+        "icon_center_y": 744.0,
+        "shutter_center_y": 745.0,
+        "error_dp": 1.0
+      },
+      "\u95ea\u5149\u706f": {
+        "icon_center_y": 744.0,
+        "shutter_center_y": 745.0,
+        "error_dp": 1.0
+      }
+    },
+    "snapshot": "393x852-font1.5.png"
+  },
+  {
+    "viewport_dp": [
+      430,
+      932
+    ],
+    "font_scale": 1.0,
+    "status": "PASS_CONTROLS_VISIBLE",
+    "icon_alignment": {
+      "\u76f8\u518c": {
+        "icon_center_y": 825.0,
+        "shutter_center_y": 825.0,
+        "error_dp": 0.0
+      },
+      "\u95ea\u5149\u706f": {
+        "icon_center_y": 825.0,
+        "shutter_center_y": 825.0,
+        "error_dp": 0.0
+      }
+    },
+    "snapshot": "430x932-font1.0.png"
+  },
+  {
+    "viewport_dp": [
+      430,
+      932
+    ],
+    "font_scale": 1.3,
+    "status": "PASS_CONTROLS_VISIBLE",
+    "icon_alignment": {
+      "\u76f8\u518c": {
+        "icon_center_y": 825.0,
+        "shutter_center_y": 825.0,
+        "error_dp": 0.0
+      },
+      "\u95ea\u5149\u706f": {
+        "icon_center_y": 825.0,
+        "shutter_center_y": 825.0,
+        "error_dp": 0.0
+      }
+    },
+    "snapshot": "430x932-font1.3.png"
+  },
+  {
+    "viewport_dp": [
+      430,
+      932
+    ],
+    "font_scale": 1.5,
+    "status": "PASS_CONTROLS_VISIBLE",
+    "icon_alignment": {
+      "\u76f8\u518c": {
+        "icon_center_y": 824.0,
+        "shutter_center_y": 825.0,
+        "error_dp": 1.0
+      },
+      "\u95ea\u5149\u706f": {
+        "icon_center_y": 824.0,
+        "shutter_center_y": 825.0,
+        "error_dp": 1.0
+      }
+    },
+    "snapshot": "430x932-font1.5.png"
+  }
+]
