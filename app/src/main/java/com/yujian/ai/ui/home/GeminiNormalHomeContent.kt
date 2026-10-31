@@ -32,10 +32,12 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -89,6 +91,8 @@ import com.yujian.ai.ui.designsystem.components.YuJianHeroVariant
 import com.yujian.ai.ui.designsystem.typography.YuJianTypography
 import java.util.Locale
 import kotlin.math.abs
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.distinctUntilChanged
 
 private const val GeminiHomeBackground = "normal_home_runtime_v1/static/scene_base.png"
 private const val GeminiHomeCardAspectRatio = 247f / 293f
@@ -775,20 +779,26 @@ private fun GeminiCatchCarousel(
     val contentInset = ((trackWidth - cardWidth) / 2).coerceAtLeast(0.dp)
 
     val activeId = records.getOrNull(pagerState.currentPage)?.id
-    SideEffect {
-        GeminiHomeGeometryProbe.recordPagerState(
+    // PagerState fields that change during fling/settling must be observed as
+    // snapshot state. Reading them from SideEffect only records the last
+    // recomposition and can leave the runtime probe stuck at a half-page offset.
+    LaunchedEffect(pagerState, records) {
+        snapshotFlow {
+            val page = pagerState.currentPage
             GeminiHomeGeometryProbe.PagerState(
-                currentPage = pagerState.currentPage,
+                currentPage = page,
                 targetPage = pagerState.targetPage,
                 settledPage = pagerState.settledPage,
                 isScrollInProgress = pagerState.isScrollInProgress,
                 offsetFraction = pagerState.currentPageOffsetFraction,
-                currentId = activeId,
-                leftId = records.getOrNull(pagerState.currentPage - 1)?.id,
-                rightId = records.getOrNull(pagerState.currentPage + 1)?.id,
+                currentId = records.getOrNull(page)?.id,
+                leftId = records.getOrNull(page - 1)?.id,
+                rightId = records.getOrNull(page + 1)?.id,
                 pageCount = pageCount,
-            ),
-        )
+            )
+        }.distinctUntilChanged().collect { state ->
+            GeminiHomeGeometryProbe.recordPagerState(state)
+        }
     }
     Box(
         modifier = modifier.semantics {
