@@ -1,6 +1,18 @@
 package com.yujian.ai.ui.home
 
 import android.graphics.Bitmap
+import android.Manifest
+import android.content.pm.PackageManager
+import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.DisposableEffect
+import androidx.camera.lifecycle.ProcessCameraProvider
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.LaunchedEffect
@@ -9,10 +21,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
@@ -42,6 +57,8 @@ internal fun HomeCameraButton(
     visualSize: Dp? = null,
     touchTargetSize: Dp? = null,
 ) {
+    val scope = rememberCoroutineScope()
+    val activationJob = remember { arrayOfNulls<Job>(1) }
     val transitionActive = CaptureNavigationTransition.active.value
     var clickElapsedMs by remember { mutableLongStateOf(0L) }
     LaunchedEffect(transitionActive) {
@@ -51,6 +68,45 @@ internal fun HomeCameraButton(
     }
     val context = LocalContext.current
     val view = LocalView.current
+    val resolvedSize = visualSize ?: CaptureVisualTokens.ButtonDiameterDp.dp
+    fun prewarmProvider() {
+        runCatching {
+            val future = ProcessCameraProvider.getInstance(context.applicationContext)
+            future.addListener({
+                runCatching { future.get() }
+                    .onSuccess { CaptureNavigationTransition.log("PROVIDER_PREWARM_READY", "camera_provider_ready_ms=${android.os.SystemClock.uptimeMillis()}") }
+                    .onFailure { CaptureNavigationTransition.log("PROVIDER_PREWARM_FAILED", "cause_class=${it.javaClass.simpleName}") }
+            }, ContextCompat.getMainExecutor(context))
+        }
+    }
+    LaunchedEffect(context) {
+        if (ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) prewarmProvider()
+    }
+    DisposableEffect(Unit) {
+        onDispose {
+            activationJob[0]?.cancel()
+            if (!CaptureNavigationTransition.entering.value) CaptureNavigationTransition.finish()
+        }
+    }
+    fun activate() {
+        if (CaptureNavigationTransition.active.value) return
+        CaptureNavigationTransition.homeDiameterDp = resolvedSize.value
+        CaptureNavigationTransition.begin()
+        prewarmProvider()
+        activationJob[0] = scope.launch {
+            delay(CaptureVisualTokens.ActivationMs)
+            CaptureNavigationTransition.entering.value = true
+            CaptureNavigationTransition.log("CAMERA_ENTERING")
+            onClick()
+        }
+    }
+    val permission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+        if (granted) activate() else onClick()
+    }
+    BackHandler(enabled = transitionActive && !CaptureNavigationTransition.entering.value) {
+        activationJob[0]?.cancel()
+        CaptureNavigationTransition.finish()
+    }
     val active = emptyHomeMotionActive(
         running = motionState.running,
         reduceMotion = motionState.reduceMotion,
@@ -67,8 +123,13 @@ internal fun HomeCameraButton(
     val sceneTime = if (active) motionState.sceneTimeSeconds else 0f
     val sweep = cameraSweepState(sceneTime)
     YuJianCaptureButton(
-        onClick = { CaptureNavigationTransition.begin(); onClick() },
-        modifier = modifier.onGloballyPositioned {
+        onClick = {
+            if (ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) activate()
+            else permission.launch(Manifest.permission.CAMERA)
+        },
+        modifier = modifier.alpha(if (CaptureNavigationTransition.entering.value) 0f else 1f)
+            .then(if (CaptureNavigationTransition.entering.value) Modifier.clearAndSetSemantics {} else Modifier)
+            .onGloballyPositioned {
             val bounds = it.boundsInWindow()
             CaptureNavigationTransition.homeCenter = bounds.center
         },
@@ -81,11 +142,11 @@ internal fun HomeCameraButton(
             sweepRotationDegrees = sweep.rotationDegrees,
             sweepAlpha = sweep.alpha,
         ),
-        visualSize = visualSize,
-        touchTargetSize = touchTargetSize,
+        visualSize = resolvedSize,
+        touchTargetSize = maxOf(resolvedSize, touchTargetSize ?: resolvedSize),
         visualModifier = Modifier.testTag("gemini-home-camera-art"),
         frozenVisual = true,
-        onCaptureHaptic = { captureClickHaptic(context, view) },
+        onCaptureHaptic = { if (!transitionActive) captureClickHaptic(context, view) },
         clickElapsedMs = if (transitionActive) clickElapsedMs else null,
     )
 }

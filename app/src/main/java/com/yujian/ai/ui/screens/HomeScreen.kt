@@ -53,6 +53,9 @@ import com.yujian.ai.catches.CatchStatistics
 import com.yujian.ai.catches.RemoteCatch
 import com.yujian.ai.ui.components.AssetImage
 import com.yujian.ai.ui.components.RemoteImage
+import com.yujian.ai.ui.home.resolveCaptureHomeActionY
+import com.yujian.ai.ui.home.CaptureVisualTokens
+import com.yujian.ai.ui.home.captureHomeExit
 import com.yujian.ai.ui.home.HomeCameraButton
 import com.yujian.ai.ui.home.HomeEmptyScene
 import com.yujian.ai.ui.home.EmptyHomeLayoutMapping
@@ -191,6 +194,12 @@ private fun EmptyHomeContent(
 ) {
     val loginClick = rememberDebouncedClick(onLoginClick)
     val albumClick = rememberDebouncedClick(onAlbumClick)
+    val diameter = CaptureVisualTokens.buttonDiameter(layoutMapping.windowWidthDp)
+    val actionY = resolveCaptureHomeActionY(
+        layoutMapping.cameraBounds.top + layoutMapping.cameraBounds.height / 2f,
+        diameter, layoutMapping.albumBounds.top, layoutMapping.promptBounds.top,
+        24f * LocalDensity.current.fontScale,
+    )
 
     Box(modifier) {
         val header = layoutMapping.headerBounds
@@ -200,6 +209,7 @@ private fun EmptyHomeContent(
                 .offset(x = header.left.dp, y = header.top.dp)
                 .width(header.width.dp)
                 .heightIn(min = header.height.dp)
+                .captureHomeExit()
                 .padding(horizontal = layoutMapping.profile.horizontalContentInsetDp.dp),
         ) {
             Column(
@@ -296,7 +306,7 @@ private fun EmptyHomeContent(
         Image(
             painter = painterResource(R.drawable.empty_home_title_v2),
             contentDescription = "现在，轮到你记录第一条鱼",
-            modifier = Modifier
+            modifier = Modifier.captureHomeExit()
                 .offset(
                     x = layoutMapping.heroBounds.left.dp,
                     // At compact width with an accessibility font scale, the
@@ -316,7 +326,7 @@ private fun EmptyHomeContent(
             modifier = Modifier
                 .offset(
                     x = layoutMapping.promptBounds.left.dp,
-                    y = layoutMapping.promptBounds.top.dp,
+                    y = actionY.promptTop.dp,
                 )
                 .width(layoutMapping.promptBounds.width.dp),
             contentAlignment = Alignment.Center,
@@ -335,13 +345,13 @@ private fun EmptyHomeContent(
         HomeCameraButton(
             onClick = onIdentify,
             modifier = Modifier.offset(
-                x = cameraBounds.left.dp,
-                y = cameraBounds.top.dp,
+                x = (cameraBounds.left + (cameraBounds.width - CaptureVisualTokens.buttonDiameter(layoutMapping.windowWidthDp)) / 2f).dp,
+                y = actionY.cameraTop.dp,
             ),
             motionState = motionState,
             runtimeAssets = runtimeAssets,
-            visualSize = cameraBounds.width.dp,
-            touchTargetSize = cameraBounds.width.dp,
+            visualSize = CaptureVisualTokens.buttonDiameter(layoutMapping.windowWidthDp).dp,
+            touchTargetSize = CaptureVisualTokens.buttonDiameter(layoutMapping.windowWidthDp).dp,
         )
 
         Row(

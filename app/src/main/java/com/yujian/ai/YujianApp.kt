@@ -10,6 +10,7 @@ import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.core.tween
+import com.yujian.ai.ui.home.CaptureEntryButtonHandoff
 import com.yujian.ai.ui.home.CaptureNavigationTransition
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -462,7 +463,7 @@ fun YujianApp() {
                     )
                 }
                 composable("home", exitTransition = {
-                    if (CaptureNavigationTransition.active.value) fadeOut(tween(440)) else ExitTransition.None
+                    if (CaptureNavigationTransition.active.value) fadeOut(tween(180)) else ExitTransition.None
                 }) {
                     val active = session
                     // The Home state is derived only from fish records. Login,
@@ -625,7 +626,7 @@ fun YujianApp() {
                         type = NavType.BoolType
                         defaultValue = false
                     }),
-                    enterTransition = { if (CaptureNavigationTransition.active.value) fadeIn(tween(440)) else EnterTransition.None },
+                    enterTransition = { if (CaptureNavigationTransition.active.value) fadeIn(tween(180)) else EnterTransition.None },
                     exitTransition = { ExitTransition.None },
                     popEnterTransition = { EnterTransition.None },
                     popExitTransition = { ExitTransition.None },
@@ -1116,6 +1117,7 @@ fun YujianApp() {
                     LegalDocumentScreen(title = "用户协议", isPrivacyPolicy = false, onBack = { nav.popBackStack() })
                 }
             }
+            CaptureEntryButtonHandoff()
             if (guestRegistrationPromptVisible) {
                 GuestRegistrationDialog(
                     onRegister = {

@@ -114,20 +114,12 @@ class GeminiHomeAdaptiveLayoutPolicyTest {
     }
 
     @Test
-    fun cameraArtworkScalesWithCanvasWidthAndHeightWithoutGrowingUnbounded() {
-        val compact = geminiHomeCameraVisualSize(320f, 568f)
-        val phone = geminiHomeCameraVisualSize(393f, 780f)
-        val tallPhone = geminiHomeCameraVisualSize(411f, 843f)
-        val wideCanvas = geminiHomeCameraVisualSize(560f, 928f)
-        val shortViewport = geminiHomeCameraVisualSize(393f, 432f)
-        val extraWideViewport = geminiHomeCameraVisualSize(900f, 1200f)
-
-        assertTrue("phone camera art grows beyond compact size", phone > compact)
-        assertTrue("taller/wider phone camera art grows proportionally", tallPhone > phone)
-        assertTrue("large canvas receives larger camera art", wideCanvas > tallPhone)
-        assertEquals(80f, wideCanvas, 0.001f)
-        assertEquals(80f, extraWideViewport, 0.001f)
-        assertEquals("short viewports retain a visible minimum", 56f, shortViewport, 0.001f)
+    fun cameraArtworkUsesFrozen88To96DpAndKeepsItsProportionOnShortScreens() {
+        assertEquals(88f, geminiHomeCameraVisualSize(320f, 480f), .001f)
+        assertEquals(95.892f, geminiHomeCameraVisualSize(393f, 780f), .001f)
+        assertEquals(96f, geminiHomeCameraVisualSize(430f, 900f), .001f)
+        assertEquals(96f, geminiHomeCameraVisualSize(900f, 1200f), .001f)
+        assertEquals(geminiHomeCameraVisualSize(393f, 432f), geminiHomeCameraVisualSize(393f, 852f), .001f)
     }
 
     @Test

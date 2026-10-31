@@ -39,6 +39,7 @@ import com.yujian.ai.ui.designsystem.motion.YuJianMotion
 import com.yujian.ai.ui.designsystem.motion.rememberYuJianInfiniteTransition
 import com.yujian.ai.ui.designsystem.motion.rememberYuJianReduceMotion
 import com.yujian.ai.ui.designsystem.spacing.YuJianSpacing
+import com.yujian.ai.ui.home.CaptureVisualTokens
 import kotlin.math.PI
 import kotlin.math.sin
 
@@ -83,6 +84,7 @@ fun YuJianCaptureButton(
     frozenVisual: Boolean = false,
     onCaptureHaptic: (() -> Unit)? = null,
     clickElapsedMs: Long? = null,
+    cameraReady: Boolean = false,
 ) {
     val haptic = rememberYuJianHaptic()
     val effectiveMotionEnabled = motionEnabled && !rememberYuJianReduceMotion()
@@ -114,12 +116,12 @@ fun YuJianCaptureButton(
         val idle = rememberYuJianInfiniteTransition(label = "CaptureIdleGlint")
         val value by idle.animateFloat(
             initialValue = 0f, targetValue = 1f,
-            animationSpec = infiniteRepeatable(tween(3000, easing = LinearEasing), RepeatMode.Restart),
+            animationSpec = infiniteRepeatable(tween(CaptureVisualTokens.IdleCycleMs, easing = LinearEasing), RepeatMode.Restart),
             label = "CaptureIdleCycle",
         )
         value
     } else 0f
-    val clickCycle = clickElapsedMs?.let { (it % 1000L).toFloat() / 1000f }
+    val clickCycle = clickElapsedMs?.let { CaptureVisualTokens.activationProgress(it) }
     val pressScale = clickElapsedMs?.let {
         when {
             it < 80L -> 1f - .04f * (it / 80f)
@@ -147,8 +149,8 @@ fun YuJianCaptureButton(
                 .size(resolvedVisualSize)
                 .then(visualModifier)
                 .graphicsLayer {
-                    scaleX = if (frozenVisual) pressScale else visualScale
-                    scaleY = if (frozenVisual) pressScale else visualScale
+                    scaleX = if (frozenVisual) pressScale * (1f + .012f * sin((idleProgress * 5f).coerceIn(0f, 1f) * PI).toFloat()) else visualScale
+                    scaleY = if (frozenVisual) scaleX else visualScale
                     alpha = if (enabled) 1f else 0.48f
                 }
                 .shadow(1.dp, CircleShape, clip = false),
@@ -213,6 +215,7 @@ fun YuJianCaptureButton(
                 visualSize = resolvedVisualSize,
                 progress = clickCycle ?: idleProgress,
                 click = clickCycle != null,
+                cameraReady = cameraReady,
                 modifier = Modifier.size(resolvedVisualSize + 28.dp),
             )
         }

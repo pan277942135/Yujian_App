@@ -1,0 +1,38 @@
+package com.yujian.ai.ui.home
+
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
+import org.junit.Test
+
+class CaptureHomeActionGeometryTest {
+    @Test fun enlargedCompactActionDoesNotCollideWithAlbumOrScaledPrompt() {
+        for (scale in listOf(1f, 1.3f, 1.5f)) {
+            val result = resolveCaptureHomeActionY(369f, 88f, 408f, 305f, 24f * scale)
+            assertTrue(result.cameraTop + 88f + 8f <= 408f)
+            assertTrue(result.promptTop + 24f * scale + 8f <= result.cameraTop)
+            assertTrue(result.promptTop >= 0f)
+        }
+    }
+    @Test fun sideIconCentersMatchShutterAcrossFontScales() {
+        for (diameter in listOf(88f, 94f, 96f)) for (font in listOf(1f, 1.3f, 1.5f)) {
+            val caption = 18f * font
+            val sideIconCenterFromBottom = captureSideActionBottomOffset(diameter, 80f, caption) + 40f + caption / 2f
+            assertEquals(diameter / 2f, sideIconCenterFromBottom, .001f)
+        }
+    }
+    @Test fun wrappedHintKeepsEqualSixteenDpClearanceToPillAndPanel() {
+        for (hintHeight in listOf(18f, 24f, 36f, 54f, 72f)) {
+            val panelTop = 662f
+            val hintBottom = panelTop - 16f
+            val hintTop = hintBottom - hintHeight
+            val pillBottom = panelTop - captureZoomEntryBottomOffset(hintHeight) - 4f
+            assertEquals(16f, hintTop - pillBottom, .001f)
+            assertEquals(16f, panelTop - hintBottom, .001f)
+        }
+    }
+    @Test fun roomyFrozenAnchorsRemainUnchanged() {
+        val result = resolveCaptureHomeActionY(720f, 96f, 800f, 630f, 24f)
+        assertEquals(672f, result.cameraTop, 0f)
+        assertEquals(630f, result.promptTop, 0f)
+    }
+}

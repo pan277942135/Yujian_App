@@ -295,10 +295,7 @@ internal fun geminiHomeResponsiveFontScale(safeWidthDp: Float, safeHeightDp: Flo
 internal fun geminiHomeCameraVisualSize(safeWidthDp: Float, safeHeightDp: Float): Float {
     require(safeWidthDp > 0f)
     require(safeHeightDp > 0f)
-    val contentWidthDp = minOf(safeWidthDp, 560f)
-    val widthBound = contentWidthDp * 0.18f
-    val heightBound = safeHeightDp * 0.10f
-    return minOf(widthBound, heightBound, 80f).coerceAtLeast(56f)
+    return CaptureVisualTokens.buttonDiameter(safeWidthDp)
 }
 
 /** NH01 Avatar Visual V1.1: based on safe width, never on tall-window height. */
