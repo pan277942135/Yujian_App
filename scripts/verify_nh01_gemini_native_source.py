@@ -51,6 +51,7 @@ def sha256(path: Path) -> str:
 def main() -> None:
     home_screen = (ROOT / "app/src/main/java/com/yujian/ai/ui/screens/HomeScreen.kt").read_text()
     page = (ROOT / "app/src/main/java/com/yujian/ai/ui/home/GeminiNormalHomeContent.kt").read_text()
+    device_test_text = (ROOT / "app/src/androidTest/java/com/yujian/ai/ui/home/GeminiHomeDeviceMatrixTest.kt").read_text(encoding="utf-8")
     runtime = (ROOT / "app/src/main/java/com/yujian/ai/ui/home/NormalHomeRuntimeAssets.kt").read_text()
     avatar_contract_path = ROOT / "design/pages/home/normal_home/assets/normal_home_default_avatar_v2_manifest.json"
     avatar_contract = json.loads(avatar_contract_path.read_text(encoding="utf-8"))
@@ -87,10 +88,12 @@ def main() -> None:
     ))
     checks.append((
         "short_viewport_compacts_footer_and_avoids_unnecessary_scroll",
-        "safeHeight.value < 460f" in page
-        and "compactViewport -> 2.dp" in page
-        and "if (compactViewport) 6.dp else 11.dp" in page
-        and "safeHeightDp < 460f && fontScale < 1.3f) 124f else 148f" in policy_text,
+        "val compactViewport = safeHeight.value < 460f" in page
+        and "if (adaptiveV2) layoutSpec.ctaCameraGap else if (compactViewport) 6.dp else 11.dp" in page
+        and "geminiHomePiecewiseLinear(safeHeightDp, listOf(430f to 6f, 460f to 11f))" in policy_text
+        and "maxWidth.value == 320f && maxHeight.value == 480f && fontScale == 1f" in page
+        and "val minimumFloor = if (exactM01Exception) 124f else 148f" in policy_text
+        and 'assertTrue("320×480 at default font scale must fit without middle scrolling", !hasMiddleScroll)' in device_test_text,
         "GeminiNormalHomeContent.kt + GeminiHomeAdaptiveLayoutPolicy.kt",
     ))
     checks.append((
