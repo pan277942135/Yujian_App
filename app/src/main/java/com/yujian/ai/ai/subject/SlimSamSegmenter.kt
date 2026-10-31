@@ -60,6 +60,7 @@ class SlimSamSegmenter(
 
     private data class CachedVisionEmbedding(
         val bitmapId: Int,
+        val photoSha256: String,
         val width: Int,
         val height: Int,
         val scale: Float,
@@ -135,7 +136,7 @@ class SlimSamSegmenter(
                 // 2. Ensure Vision Encoder embeddings for this photo are computed
                 val encoderStarted = SystemClock.uptimeMillis()
                 Log.i(TAG, "SLIMSAM_ENCODER_START uptime_ms=$encoderStarted")
-                val embedding = getOrComputeImageEmbedding(source)
+                val embedding = getOrComputeImageEmbedding(source, photoSha256)
                 Log.i(TAG, "SLIMSAM_ENCODER_END duration_ms=${SystemClock.uptimeMillis() - encoderStarted}")
 
                 // 3. Generate prompts from detector BBOX
@@ -260,10 +261,10 @@ class SlimSamSegmenter(
             }
         }
 
-    private fun getOrComputeImageEmbedding(source: Bitmap): CachedVisionEmbedding {
+    private fun getOrComputeImageEmbedding(source: Bitmap, photoSha256: String): CachedVisionEmbedding {
         val bitmapId = source.generationId
         val existing = cachedEmbedding
-        if (existing != null && existing.bitmapId == bitmapId &&
+        if (existing != null && existing.bitmapId == bitmapId && existing.photoSha256 == photoSha256 &&
             existing.width == source.width && existing.height == source.height
         ) {
             existing.imageEmbeddings.rewind()
@@ -374,6 +375,7 @@ class SlimSamSegmenter(
 
         val cached = CachedVisionEmbedding(
             bitmapId = bitmapId,
+            photoSha256 = photoSha256,
             width = origW,
             height = origH,
             scale = scale,

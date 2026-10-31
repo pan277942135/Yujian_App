@@ -148,6 +148,7 @@ object RecognitionImageStore {
                 Bitmap.createBitmap(oriented, 0, (oriented.height - cropHeight) / 2, oriented.width, cropHeight)
             }
         } else oriented
+        if (visible !== oriented) oriented.recycle()
 
         val dir = File(context.filesDir, "recognition_inputs").apply { mkdirs() }
         val normalized = File(dir, "input_${UUID.randomUUID()}.jpg")
