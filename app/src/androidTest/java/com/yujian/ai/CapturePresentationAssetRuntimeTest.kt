@@ -10,6 +10,14 @@ import org.junit.Test
 class CapturePresentationAssetRuntimeTest {
     @Test fun androidDecodesCaptureAndProcessingResourcesFromInstalledApk() {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
+        val canonical = BitmapFactory.decodeResource(context.resources, R.drawable.capture_button_main_v1)
+        requireNotNull(canonical)
+        assertEquals(208, canonical.width)
+        assertEquals(208, canonical.height)
+        val activated = BitmapFactory.decodeResource(context.resources, R.drawable.ai_orb_camera_activated_v1)
+        requireNotNull(activated)
+        assertEquals(384, activated.width)
+        assertEquals(384, activated.height)
         val assets = listOf(
             Triple(R.drawable.capture_button_main_v1, true, 192),
             Triple(R.drawable.ai_orb_camera_activated_v1, true, 256),

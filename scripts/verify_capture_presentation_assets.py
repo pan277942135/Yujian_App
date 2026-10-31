@@ -2,11 +2,14 @@
 """Decode exact capture/AI Orb/Processing raster bytes, including those inside the APK."""
 import argparse
 import io
+import hashlib
 import zipfile
 from pathlib import Path
 from PIL import Image
 
 ROOT = Path(__file__).resolve().parents[1]
+CANONICAL_CAPTURE_SOURCE = ROOT / "design/system/components/primary_capture_button/assets/capture_button_main_v1.png"
+CANONICAL_CAPTURE_SHA256 = "501abcc58a65263dd879ad198a0a033630ab4bdcaf945eb02599e4f1249ca327"
 ASSETS = {
     "capture_button_main_v1": {"alpha": True, "min_dimension": 192},
     "ai_orb_camera_activated_v1": {"alpha": True, "min_dimension": 256},
@@ -34,6 +37,17 @@ def verify(name, data, requirements):
         print(f"DECODE_PASS {name} {image.format} {image.width}x{image.height} alpha={alpha_required}")
 
 
+def verify_canonical_capture_identity(runtime_bytes):
+    source_bytes = CANONICAL_CAPTURE_SOURCE.read_bytes()
+    source_sha = hashlib.sha256(source_bytes).hexdigest()
+    if source_sha != CANONICAL_CAPTURE_SHA256:
+        raise ValueError(f"Frozen Primary Capture Button source SHA mismatch: {source_sha}")
+    runtime_sha = hashlib.sha256(runtime_bytes).hexdigest()
+    if runtime_bytes != source_bytes:
+        raise ValueError(f"Runtime Primary Capture Button is not byte-identical to frozen source: {runtime_sha}")
+    print(f"CANONICAL_CAPTURE_BYTE_IDENTITY=PASS sha256={runtime_sha}")
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--apk", type=Path)
@@ -44,13 +58,19 @@ def main():
                 paths = [p for p in archive.namelist() if p.startswith("res/drawable") and Path(p).stem == stem]
                 if len(paths) != 1:
                     raise ValueError(f"{stem}: expected one packaged raster, got {paths}")
-                verify(paths[0], archive.read(paths[0]), requirements)
+                data = archive.read(paths[0])
+                verify(paths[0], data, requirements)
+                if stem == "capture_button_main_v1":
+                    verify_canonical_capture_identity(data)
     else:
         for stem, requirements in ASSETS.items():
             paths = list((ROOT / "app/src/main/res/drawable-nodpi").glob(stem + ".*"))
             if len(paths) != 1:
                 raise ValueError(f"{stem}: expected one source raster, got {paths}")
-            verify(paths[0].name, paths[0].read_bytes(), requirements)
+            data = paths[0].read_bytes()
+            verify(paths[0].name, data, requirements)
+            if stem == "capture_button_main_v1":
+                verify_canonical_capture_identity(data)
     print("CAPTURE_PRESENTATION_RASTER_DECODE=PASS")
 
 
