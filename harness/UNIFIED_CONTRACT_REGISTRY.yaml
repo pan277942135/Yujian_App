@@ -119,6 +119,10 @@ shared_contracts:
     domain: "SHARED"
     status: "ACTIVE_CLOSURE"
     refs: ["design/system/components/ai_orb_core/README.md", "design/system/components/ai_orb_core/manifest.json", "design/system/components/ai_orb_core/visual_contract.json", "design/system/components/ai_orb_core/motion_contract.json", "design/system/components/ai_orb_core/state_contract.json", "design/system/components/ai_orb_core/registry_candidate.json", "harness/task_contracts/ANDROID_AI_ORB_CORE_COMPONENT_V1.md"]
+  ANDROID-UNIFIED-WATERLIGHT-A02-V1:
+    domain: "DOMAIN"
+    status: "ACTIVE_CLOSURE"
+    refs: ["harness/task_contracts/UNIFIED_WATERLIGHT_A02_CORE_COMPONENT_ANDROID_INTEGRATION_V1.md", "harness/reports/UNIFIED_WATERLIGHT_A01_RESOURCE_AUDIT_REPORT_V1.md", "harness/task_contracts/ANDROID_PROCESSING_LAKE_ORB_V1.md", "harness/task_contracts/ANDROID_AI_ORB_CORE_COMPONENT_V1.md", "design/system/components/ai_orb_core/visual_contract.json", "design/system/components/ai_orb_core/motion_contract.json", "design/system/components/ai_orb_core/state_contract.json", "design/pages/recognition/processing/optics/SWOS_Optical_Contract_V1.md", "design/pages/recognition/processing/motion/Recognition_Processing_Motion_Spec_V1_3.md", "design/pages/recognition/continuity/Processing_Result_Optical_Continuity_Contract_V1.md", "design/pages/recognition/processing/optics/SWOS_RR09_Optical_Rendering_Acceptance_Contract_V1_2.md", "design/pages/recognition/processing/optics/Android_AiStudio_Perimeter_Shader_Port_V1.md", "harness/task_contracts/ANDROID_SLIMSAM_PIXEL_SEGMENTATION_V1.md", "https://github.com/ethanfox/water-caustics/tree/de856eec62819b7c4176366db73b8fd37a1b1455", "https://github.com/ethanfox/water-caustics/blob/de856eec62819b7c4176366db73b8fd37a1b1455/LICENSE"]
   DS-FOUNDATION:
     domain: "SHARED"
     status: "FROZEN"
@@ -517,7 +521,7 @@ feature_contracts:
 
 
     shared_contract_refs: ["DS-FOUNDATION", "ANDROID-RUNTIME-HARNESS", "STATE-EVIDENCE-PROVENANCE", "AI-ORB-CORE-V1"]
-    additional_shared_contract_refs: ["MODEL-RECOGNITION", "API-DATA-BOUNDARY", "RECOGNITION-OPTICAL-CONTINUITY", "SWOS-WEB-HIFI-MOTION-V1", "FISHTRACE-SITES-WEB-INTERACTION-V1", "ANDROID-EFFECT01-UPWARD-SCAN-SHAKE-V1", "ANDROID-AISTUDIO-PERIMETER-SHADER-PORT-V1", "ANDROID-SLIMSAM-PIXEL-SEGMENTATION-V1"]
+    additional_shared_contract_refs: ["MODEL-RECOGNITION", "API-DATA-BOUNDARY", "RECOGNITION-OPTICAL-CONTINUITY", "SWOS-WEB-HIFI-MOTION-V1", "FISHTRACE-SITES-WEB-INTERACTION-V1", "ANDROID-EFFECT01-UPWARD-SCAN-SHAKE-V1", "ANDROID-AISTUDIO-PERIMETER-SHADER-PORT-V1", "ANDROID-SLIMSAM-PIXEL-SEGMENTATION-V1", "ANDROID-UNIFIED-WATERLIGHT-A02-V1"]
     required_gate_classes: ["STATIC_CONTRACT", "BUILD", "RUNTIME", "VISUAL", "MOTION_ACCESSIBILITY", "JOURNEY_E2E", "APK_PROVENANCE"]
   recognition_result_v1:
     contract_id: "FC-recognition_result_v1"
@@ -1601,6 +1605,11 @@ gate_contracts:
     contract_refs: ["AI-ORB-CORE-V1", "FC-home_empty_v2", "FC-home_normal_v1", "FC-recognition_flow_v1_2", "FC-recognition_result_v1", "ANDROID-RUNTIME-HARNESS", "STATE-EVIDENCE-PROVENANCE"]
     acceptance_domains: ["component", "asset", "motion", "build", "unit_test", "lint", "runtime", "accessibility", "journey_e2e", "apk_provenance", "evidence"]
     exact_sha_required: true
+  G-ANDROID-UNIFIED-WATERLIGHT-A02-V1:
+    purpose: "Exact-head acceptance of the shared WaterLight runtime and six hosts: preserve AI Orb and GLES Perimeter parity, canonical PhotoSpace/ROI/EXIF correctness, pinned Kotlin caustics parity and MIT provenance, transparent droplets/filaments, Recognition/RR09 invariance, measured performance, API28 runtime and APK provenance. Real-mask evidence remains explicitly BLOCKED_BY_MASK_DATA when unavailable; this does not stop independent component work."
+    contract_refs: ["ANDROID-UNIFIED-WATERLIGHT-A02-V1", "FC-recognition_flow_v1_2", "AI-ORB-CORE-V1", "ANDROID-PROCESSING-LAKE-ORB-V1", "ANDROID-AISTUDIO-PERIMETER-SHADER-PORT-V1", "ANDROID-SLIMSAM-PIXEL-SEGMENTATION-V1", "RECOGNITION-OPTICAL-CONTINUITY", "SWOS-RR09-OPTICAL-V1_2", "ANDROID-RUNTIME-HARNESS", "STATE-EVIDENCE-PROVENANCE"]
+    acceptance_domains: ["component", "material", "geometry", "mask_mapping", "algorithm_parity", "host_integration", "build", "unit_test", "lint", "runtime", "performance", "visual", "accessibility", "evidence", "apk_provenance"]
+    exact_sha_required: true
 
   G-NH01-LAKE-LIGHT-VISUAL-RESPONSIVE-CLOSURE-V1:
     purpose: "Exact-SHA closure of the user-selected private Lake Light visual reference on NH01 Design Manager real DOM and Android Gemini route while retaining the frozen V2 numeric authority and excluding private photo bytes from public outputs."
@@ -1793,6 +1802,10 @@ task_contract_bindings:
   YUJIAN_ANDROID_AI_ORB_CORE_COMPONENT_V1:
     contract_refs: ["AI-ORB-CORE-V1", "FC-home_empty_v2", "FC-home_normal_v1", "FC-recognition_flow_v1_2", "FC-recognition_result_v1", "DS-FOUNDATION", "ANDROID-RUNTIME-HARNESS", "STATE-EVIDENCE-PROVENANCE", "G-ANDROID-AI-ORB-CORE-V1"]
     gate_id: "G-ANDROID-AI-ORB-CORE-V1"
+    phase: "P6"
+  YUJIAN_UNIFIED_WATERLIGHT_A02_CORE_COMPONENT_ANDROID_INTEGRATION_V1:
+    contract_refs: ["FC-recognition_flow_v1_2", "ANDROID-UNIFIED-WATERLIGHT-A02-V1", "AI-ORB-CORE-V1", "ANDROID-PROCESSING-LAKE-ORB-V1", "ANDROID-AISTUDIO-PERIMETER-SHADER-PORT-V1", "ANDROID-SLIMSAM-PIXEL-SEGMENTATION-V1", "RECOGNITION-OPTICAL-CONTINUITY", "SWOS-RR09-OPTICAL-V1_2", "ANDROID-RUNTIME-HARNESS", "STATE-EVIDENCE-PROVENANCE", "G-ANDROID-UNIFIED-WATERLIGHT-A02-V1"]
+    gate_id: "G-ANDROID-UNIFIED-WATERLIGHT-A02-V1"
     phase: "P6"
   YUJIAN_ANDROID_HOME_CAPTURE_ACTIVATION_CAMERA_RUNTIME_FULL_CLOSURE_V2:
     contract_refs: ["ANDROID-HOME-CAPTURE-RUNTIME-V2", "DS-FOUNDATION", "ANDROID-RUNTIME-HARNESS", "STATE-EVIDENCE-PROVENANCE"]
@@ -2106,9 +2119,9 @@ inventory:
   journey_count: 20
   child_surface_count: 81
   route_count: 22
-  task_count: 71
-  gate_count: 31
+  task_count: 72
+  gate_count: 32
   registry_created_from_pr_head: "ebb6b3904feaa0cf26b4fd4b83bc809a397085a2"
-  last_synced_feature_matrix_sha: "5ca6df33fad32dbf50f83e4d97aa46fb854d43e9"
-  last_synced_phase_task_state_machine_sha: "8b6333078a0d136c29c13edacf43bf412eb409b4"
+  last_synced_feature_matrix_sha: "7d309e18247eb8655ef7d0b5c74bee704e4faf09"
+  last_synced_phase_task_state_machine_sha: "c99d6d8e5d9f5265dae626518f4709af7e4baf6b"
   last_synced_experience_registry_sha: "47be44ca3cbce908fa676e262987fe26a8dbea32"
