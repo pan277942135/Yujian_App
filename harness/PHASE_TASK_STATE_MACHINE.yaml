@@ -580,8 +580,8 @@ tasks:
     phase: "P6"
     priority: "P0"
     owner: "Work"
-    feature_refs: ["recognition_flow_v1_2"]
-    journey_refs: ["J05-J10"]
+    feature_refs: []
+    journey_refs: []
     depends_on: []
     entry_blockers: []
     target_blockers: []
