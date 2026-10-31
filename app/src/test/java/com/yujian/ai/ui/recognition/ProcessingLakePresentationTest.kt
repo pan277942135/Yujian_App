@@ -1,6 +1,8 @@
 package com.yujian.ai.ui.recognition
 
 import com.yujian.ai.ui.identify.DisplayRect
+import com.yujian.ai.ui.designsystem.components.aiorb.AIOrbVisualState
+import com.yujian.ai.ui.designsystem.components.aiorb.aiOrbProcessingState
 import org.junit.Assert.*
 import org.junit.Test
 
@@ -49,4 +51,26 @@ class ProcessingLakePresentationTest {
         assertEquals(1f, reduced.waterAlpha, 0f)
         assertEquals(1f, reduced.destinationProgress, 0f)
     }
+    @Test fun activatedCameraStateDissolvesIntoOrbAndGallerySkipsCameraSource() {
+        assertEquals(AIOrbVisualState.CAPTURE_BUTTON_ACTIVATED, aiOrbProcessingState(0L, true, false, 0f))
+        assertEquals(AIOrbVisualState.CAPTURE_BUTTON_ACTIVATED, aiOrbProcessingState(149L, true, false, 0f))
+        assertEquals(AIOrbVisualState.ORB_MORPH_IN, aiOrbProcessingState(150L, true, false, 0f))
+        assertEquals(AIOrbVisualState.ORB_MORPH_IN, aiOrbProcessingState(349L, true, false, 0f))
+        assertEquals(AIOrbVisualState.ORB_ACTIVE, aiOrbProcessingState(350L, true, false, 0f))
+        assertEquals(AIOrbVisualState.ORB_MORPH_IN, aiOrbProcessingState(0L, false, false, 0f))
+        assertEquals(AIOrbVisualState.ORB_ACTIVE, aiOrbProcessingState(0L, true, true, 0f))
+        assertEquals(AIOrbVisualState.ORB_CONTRACTING, aiOrbProcessingState(900L, true, false, .01f))
+
+        assertEquals(0f, processingOrbMotionFrame(149L, true, false, 0f).waterAlpha, 0f)
+        assertEquals(0f, processingOrbMotionFrame(150L, true, false, 0f).waterAlpha, 0f)
+        assertEquals(.995f, processingOrbMotionFrame(349L, true, false, 0f).waterAlpha, .001f)
+        assertEquals(1f, processingOrbMotionFrame(350L, true, false, 0f).waterAlpha, 0f)
+        assertEquals(0f, processingOrbMotionFrame(350L, true, false, 0f).ribbonOpening, 0f)
+        assertEquals(1f, processingOrbMotionFrame(650L, true, false, 0f).ribbonOpening, 0f)
+
+        val gallery = processingOrbMotionFrame(0L, false, false, 0f)
+        assertEquals(1f, gallery.waterAlpha, 0f)
+        assertEquals(0f, gallery.ribbonOpening, 0f)
+    }
+
 }
