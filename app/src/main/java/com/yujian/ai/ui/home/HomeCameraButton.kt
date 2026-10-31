@@ -19,6 +19,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.testTag
@@ -71,6 +73,7 @@ internal fun HomeCameraButton(
         CaptureNavigationTransition.begin()
         activationJob[0] = scope.launch {
             delay(CaptureVisualTokens.ActivationMs)
+            CaptureNavigationTransition.entering.value = true
             CaptureNavigationTransition.log("CAMERA_ENTERING")
             onClick()
         }
@@ -78,7 +81,7 @@ internal fun HomeCameraButton(
     val permission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
         if (granted) activate() else onClick()
     }
-    BackHandler(enabled = transitionActive) {
+    BackHandler(enabled = transitionActive && !CaptureNavigationTransition.entering.value) {
         activationJob[0]?.cancel()
         CaptureNavigationTransition.finish()
     }
@@ -102,7 +105,9 @@ internal fun HomeCameraButton(
             if (ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) activate()
             else permission.launch(Manifest.permission.CAMERA)
         },
-        modifier = modifier.onGloballyPositioned {
+        modifier = modifier.alpha(if (CaptureNavigationTransition.entering.value) 0f else 1f)
+            .then(if (CaptureNavigationTransition.entering.value) Modifier.clearAndSetSemantics {} else Modifier)
+            .onGloballyPositioned {
             val bounds = it.boundsInWindow()
             CaptureNavigationTransition.homeCenter = bounds.center
         },

@@ -13,10 +13,15 @@ object CaptureNavigationTransition {
     var sessionId: String = ""
         private set
     val active = mutableStateOf(false)
+    val entering = mutableStateOf(false)
+    val cameraCenter = mutableStateOf(Offset.Unspecified)
+    val cameraDiameterDp = mutableStateOf(CaptureVisualTokens.ButtonDiameterDp)
     var startedAtMs: Long = 0L
         private set
     fun begin() {
         if (active.value) return
+        entering.value = false
+        cameraCenter.value = Offset.Unspecified
         sessionId = UUID.randomUUID().toString()
         startedAtMs = SystemClock.uptimeMillis()
         active.value = homeCenter.x.isFinite() && homeCenter.y.isFinite()
@@ -29,5 +34,6 @@ object CaptureNavigationTransition {
     fun finish() {
         if (active.value) log("CAMERA_ENTERED")
         active.value = false
+        entering.value = false
     }
 }

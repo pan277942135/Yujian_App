@@ -53,6 +53,7 @@ import com.yujian.ai.catches.CatchStatistics
 import com.yujian.ai.catches.RemoteCatch
 import com.yujian.ai.ui.components.AssetImage
 import com.yujian.ai.ui.components.RemoteImage
+import com.yujian.ai.ui.home.resolveCaptureHomeActionY
 import com.yujian.ai.ui.home.CaptureVisualTokens
 import com.yujian.ai.ui.home.captureHomeExit
 import com.yujian.ai.ui.home.HomeCameraButton
@@ -193,6 +194,12 @@ private fun EmptyHomeContent(
 ) {
     val loginClick = rememberDebouncedClick(onLoginClick)
     val albumClick = rememberDebouncedClick(onAlbumClick)
+    val diameter = CaptureVisualTokens.buttonDiameter(layoutMapping.windowWidthDp)
+    val actionY = resolveCaptureHomeActionY(
+        layoutMapping.cameraBounds.top + layoutMapping.cameraBounds.height / 2f,
+        diameter, layoutMapping.albumBounds.top, layoutMapping.promptBounds.top,
+        24f * LocalDensity.current.fontScale,
+    )
 
     Box(modifier) {
         val header = layoutMapping.headerBounds
@@ -319,7 +326,7 @@ private fun EmptyHomeContent(
             modifier = Modifier
                 .offset(
                     x = layoutMapping.promptBounds.left.dp,
-                    y = layoutMapping.promptBounds.top.dp,
+                    y = actionY.promptTop.dp,
                 )
                 .width(layoutMapping.promptBounds.width.dp),
             contentAlignment = Alignment.Center,
@@ -339,7 +346,7 @@ private fun EmptyHomeContent(
             onClick = onIdentify,
             modifier = Modifier.offset(
                 x = (cameraBounds.left + (cameraBounds.width - CaptureVisualTokens.buttonDiameter(layoutMapping.windowWidthDp)) / 2f).dp,
-                y = (cameraBounds.top + (cameraBounds.height - CaptureVisualTokens.buttonDiameter(layoutMapping.windowWidthDp)) / 2f).dp,
+                y = actionY.cameraTop.dp,
             ),
             motionState = motionState,
             runtimeAssets = runtimeAssets,

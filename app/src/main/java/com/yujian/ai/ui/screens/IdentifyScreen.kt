@@ -221,24 +221,6 @@ fun IdentifyScreen(
     var captureTarget by remember { mutableStateOf(Offset.Unspecified) }
     var shutterDiameterPx by remember { mutableStateOf(0f) }
     var captureRootOrigin by remember { mutableStateOf(Offset.Zero) }
-    var captureHandoffArrived by remember { mutableStateOf(false) }
-
-    val captureProgress = remember { Animatable(0f) }
-    val orbit = rememberInfiniteTransition(label = "capture-brand-orbit")
-    val orbitDegrees by orbit.animateFloat(
-        initialValue = 0f, targetValue = 360f,
-        animationSpec = infiniteRepeatable(tween(900, easing = LinearEasing), RepeatMode.Restart),
-        label = "capture-orbit-degrees",
-    )
-    LaunchedEffect(captureHandoffActive, captureTarget) {
-        if (captureHandoffActive && captureTarget.x.isFinite()) {
-            captureProgress.animateTo(1f, tween(CaptureVisualTokens.HandoffMs))
-            captureHandoffArrived = true
-        }
-    }
-    LaunchedEffect(captureHandoffActive, captureHandoffArrived) {
-        if (captureHandoffActive && captureHandoffArrived) CaptureNavigationTransition.finish()
-    }
     DisposableEffect(Unit) {
         CaptureNavigationTransition.log("CAMERA_PREPARING", "camera_entry_ms=${android.os.SystemClock.uptimeMillis()}")
         onDispose { CaptureNavigationTransition.finish() }
@@ -775,8 +757,9 @@ fun IdentifyScreen(
         imageCaptureReady,
         previewStreaming,
         galleryAutoOpenPending,
+        captureHandoffActive,
     ) {
-        if (firstCaptureGuidePresented || galleryAutoOpenPending || !cameraCanCapture()) {
+        if (captureHandoffActive || firstCaptureGuidePresented || galleryAutoOpenPending || !cameraCanCapture()) {
             return@LaunchedEffect
         }
         firstCaptureGuideVisible = shouldShowRecognitionFirstCaptureGuide(
@@ -803,7 +786,7 @@ fun IdentifyScreen(
         val headerBottom = safeInsets.calculateTopPadding() + (74f * fontScale.coerceAtMost(1.5f)).dp
         val framingBottom = cameraAreaHeight - (108f + (fontScale - 1f) * 32f).dp
         val guideSpace = (framingBottom - headerBottom).coerceAtLeast(48.dp)
-        val guideHeight = (guideSpace * .84f).coerceAtMost(maxHeight * .41f)
+        val guideHeight = (guideSpace * .84f).coerceAtMost(maxWidth * CaptureVisualTokens.GuideWidthFraction * CaptureVisualTokens.GuideHeightToWidth)
         val guideTop = headerBottom + (guideSpace - guideHeight) / 2f
         val shutterDiameter = CaptureVisualTokens.buttonDiameter(maxWidth.value).dp
         val cameraInk = Color(0xFF19565B)
@@ -909,7 +892,7 @@ fun IdentifyScreen(
                 Spacer(Modifier.height(15.dp))
                 Text("请将整条鱼放在取景框中央", color = secondaryInk, fontSize = 14.sp)
             }
-            Canvas(Modifier.align(Alignment.TopCenter).offset(y = guideTop).fillMaxWidth(.90f).height(guideHeight).testTag("capture-composition-guide")) {
+            Canvas(Modifier.align(Alignment.TopCenter).offset(y = guideTop).fillMaxWidth(CaptureVisualTokens.GuideWidthFraction).height(guideHeight).testTag("capture-composition-guide")) {
                 val line = Path()
                 val x = size.width; val y = size.height
                 val arm = minOf(50.dp.toPx(), size.height / 3f); val radius = minOf(12.dp.toPx(), arm / 2f)
@@ -927,6 +910,7 @@ fun IdentifyScreen(
             CaptureZoomDial(
                 current = zoomRatio, minimum = minZoomRatio, maximum = maxZoomRatio,
                 expanded = zoomDialExpanded,
+                availableHeightDp = (cameraAreaHeight - safeInsets.calculateTopPadding() - (64f * fontScale).dp - 52.dp).value,
                 onExpandedChange = { zoomDialExpanded = it },
                 onZoom = { ratio ->
                     cameraController.setZoomRatio(ratio.coerceIn(minZoomRatio, maxZoomRatio))
@@ -987,7 +971,14 @@ fun IdentifyScreen(
                     .padding(bottom = panelControlBottom)
                     .size(shutterDiameter)
                     .testTag("recognition-camera-shutter")
-                    .onGloballyPositioned { captureTarget = it.boundsInWindow().center; shutterDiameterPx = it.size.width.toFloat() }
+                    .onGloballyPositioned {
+                        captureTarget = it.boundsInWindow().center
+                        shutterDiameterPx = it.size.width.toFloat()
+                        if (captureHandoffActive) {
+                            CaptureNavigationTransition.cameraDiameterDp.value = shutterDiameter.value
+                            CaptureNavigationTransition.cameraCenter.value = captureTarget
+                        }
+                    }
                     .alpha(if (captureHandoffActive) 0f else 1f),
                 contentAlignment = Alignment.Center,
             ) {
@@ -1003,7 +994,7 @@ fun IdentifyScreen(
                             shutterClickElapsed = null
                         }
                     },
-                    enabled = cameraCanCapture() &&
+                    enabled = !captureHandoffActive && cameraCanCapture() &&
                         RecognitionCameraCaptureContract.canStartCapture(captureState),
                     contentDescription = "拍摄",
                     motionEnabled = true,
@@ -1182,21 +1173,6 @@ fun IdentifyScreen(
             }
         }
 
-        if (captureHandoffActive && captureTarget.x.isFinite() && handoffImage == null) {
-            val start = CaptureNavigationTransition.homeCenter.takeIf { it.x.isFinite() } ?: captureTarget
-            val t = captureProgress.value.coerceIn(0f, 1f)
-            val center = Offset(start.x + (captureTarget.x - start.x) * t - captureRootOrigin.x,
-                start.y + (captureTarget.y - start.y) * t - captureRootOrigin.y)
-            val diameter = (CaptureNavigationTransition.homeDiameterDp +
-                (shutterDiameter.value - CaptureNavigationTransition.homeDiameterDp) * t).dp
-            val boxSize = diameter + 28.dp
-            val half = with(LocalDensity.current) { boxSize.toPx() / 2f }
-            Box(Modifier.offset { IntOffset((center.x - half).roundToInt(), (center.y - half).roundToInt()) }
-                .size(boxSize), contentAlignment = Alignment.Center) {
-                YuJianCaptureButton(onClick = {}, visualSize = diameter, touchTargetSize = diameter,
-                    frozenVisual = true, motionEnabled = true, cameraReady = true)
-            }
-        }
         if (firstCaptureGuideVisible) {
             RecognitionFirstCaptureGuideOverlay(
                 initialPage = firstCaptureGuidePage,

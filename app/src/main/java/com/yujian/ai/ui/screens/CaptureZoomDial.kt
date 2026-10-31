@@ -1,6 +1,7 @@
 package com.yujian.ai.ui.screens
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -21,6 +22,10 @@ import androidx.compose.material.icons.filled.ZoomIn
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -59,7 +64,12 @@ internal fun CaptureZoomDial(
     onExpandedChange: (Boolean) -> Unit,
     onZoom: (Float) -> Unit,
     modifier: Modifier = Modifier,
+    availableHeightDp: Float = 240f,
 ) {
+    var presetsVisible by remember { mutableStateOf(false) }
+    val fontScale = LocalDensity.current.fontScale
+    val dialHeight = (availableHeightDp - 48f - 8f - 24f * fontScale).coerceIn(20f, 64f).dp
+    BackHandler(enabled = presetsVisible || expanded) { presetsVisible = false; onExpandedChange(false) }
     val pillWidth = (80f + (LocalDensity.current.fontScale - 1f).coerceIn(0f, .5f) * 40f).dp
     val ink = Color(0xFF19565B)
     val latestRatio = rememberUpdatedState(current)
@@ -70,6 +80,7 @@ internal fun CaptureZoomDial(
         detectDragGestures(
             onDragStart = {
                 fraction = captureZoomFraction(latestRatio.value, minimum, maximum)
+                presetsVisible = false
                 latestExpand.value(true)
             },
         ) { change, drag ->
@@ -81,13 +92,13 @@ internal fun CaptureZoomDial(
     Column(modifier, horizontalAlignment = Alignment.CenterHorizontally) {
         AnimatedVisibility(expanded) {
             Column(horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.background(Color(0xD9E2F2ED), RoundedCornerShape(20.dp)).padding(6.dp)) {
-                Text(String.format(Locale.US, "%.1fx", current), color = ink, fontSize = 18.sp)
-                Canvas(Modifier.width(260.dp).height(64.dp).testTag("capture-fine-zoom-dial")
+                modifier = Modifier.background(Color(0xD9E2F2ED), RoundedCornerShape(20.dp)).padding(horizontal = 6.dp, vertical = 4.dp)) {
+                Text(String.format(Locale.US, "%.1fx", current), color = ink, fontSize = 16.sp, lineHeight = 20.sp, maxLines = 1)
+                Canvas(Modifier.width(260.dp).height(dialHeight).testTag("capture-fine-zoom-dial")
                     .semantics { contentDescription = "左右滑动精细变焦" }.zoomDrag()) {
                     val cx = size.width / 2f
-                    val cy = size.height * 1.6f
-                    val radius = size.width * .375f
+                    val radius = minOf(size.width * .375f, size.height * 1.4f)
+                    val cy = radius + 4.dp.toPx()
                     val fraction = captureZoomFraction(current, minimum, maximum)
                     fun point(f: Float, r: Float): Offset {
                         val angle = Math.PI * (.82 - .64 * f)
@@ -101,22 +112,32 @@ internal fun CaptureZoomDial(
                     drawLine(Color(0xFFB78735), point(fraction, radius + 2.dp.toPx()), point(fraction, radius - 14.dp.toPx()), 2.dp.toPx())
                     drawCircle(Color(0xFFD8B36A), 3.dp.toPx(), point(fraction, radius + 2.dp.toPx()))
                 }
-                Row(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+
+            }
+        }
+        AnimatedVisibility(presetsVisible && !expanded) {
+            Row(Modifier.background(Color(0xD9E2F2ED), RoundedCornerShape(24.dp)).padding(4.dp),
+                horizontalArrangement = Arrangement.spacedBy(2.dp)) {
                     val presets = buildList {
                         if (minimum < .99f) add("W" to minimum)
                         listOf(1f, 2f, 4f, 10f).filter { it in minimum..maximum }.forEach { add("${it.toInt()}x" to it) }
                     }
                     presets.forEach { (label, ratio) ->
                         Box(Modifier.size(48.dp).background(if (abs(current - ratio) < .04f) Color.White.copy(alpha = .8f) else Color.Transparent, CircleShape)
-                            .clickable { onZoom(ratio) }.semantics { contentDescription = "变焦 $label" }, contentAlignment = Alignment.Center) {
+                            .clickable { onZoom(ratio); presetsVisible = false }.semantics { contentDescription = "变焦 $label" }, contentAlignment = Alignment.Center) {
                             Text(label, color = ink, fontSize = 13.sp)
                         }
                     }
                 }
-            }
         }
         Box(Modifier.width(pillWidth).height(48.dp).testTag("capture-zoom-entry").zoomDrag()
-            .clickable { onExpandedChange(!expanded) }, contentAlignment = Alignment.Center) {
+            .clickable {
+                when {
+                    expanded -> onExpandedChange(false)
+                    presetsVisible -> { presetsVisible = false; onExpandedChange(true) }
+                    else -> presetsVisible = true
+                }
+            }, contentAlignment = Alignment.Center) {
             Row(Modifier.height(40.dp).background(Color.White.copy(alpha = .35f), RoundedCornerShape(20.dp))
                 .border(1.dp, Color.White.copy(alpha = .65f), RoundedCornerShape(20.dp)).padding(horizontal = 10.dp),
                 verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {

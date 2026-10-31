@@ -10,6 +10,7 @@ import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.core.tween
+import com.yujian.ai.ui.home.CaptureEntryButtonHandoff
 import com.yujian.ai.ui.home.CaptureNavigationTransition
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -1116,6 +1117,7 @@ fun YujianApp() {
                     LegalDocumentScreen(title = "用户协议", isPrivacyPolicy = false, onBack = { nav.popBackStack() })
                 }
             }
+            CaptureEntryButtonHandoff()
             if (guestRegistrationPromptVisible) {
                 GuestRegistrationDialog(
                     onRegister = {
