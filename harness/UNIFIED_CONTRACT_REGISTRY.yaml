@@ -160,7 +160,7 @@ shared_contracts:
   WEB-RECOGNITION-HIFI-V2:
     domain: "DOMAIN"
     status: "ACTIVE_CLOSURE"
-    refs: ["design/pages/recognition/web/WEB_HIFI_CONTRACT_V2.md", "design/pages/recognition/web/contracts/Page_Structure_V2.json", "design/pages/recognition/web/WEB_HIFI_GAP_MATRIX_V2.md"]
+    refs: ["design/pages/recognition/web/WEB_HIFI_CONTRACT_V2.md", "design/pages/recognition/web/WEB_HIFI_HANDOFF_A_V2.md", "design/pages/recognition/web/WEB_HIFI_GAP_MATRIX_V2.md"]
   FISHTRACE-SITES-WEB-INTERACTION-V1:
     domain: "DOMAIN"
     status: "FROZEN_CONTRACT_INPUT"
@@ -176,7 +176,7 @@ shared_contracts:
   SWOS-WEB-HIFI-MOTION-V1:
     domain: "DOMAIN"
     status: "READY"
-    refs: ["design/pages/recognition/web/SWOS_WEB_HIFI_MOTION_TECHNICAL_CONTRACT_V1_0.md", "design/pages/recognition/web/contracts/SWOS_WEB_HIFI_MOTION_TECHNICAL_CONTRACT_V1_0.json", "design/pages/recognition/processing/optics/SWOS_Dynamic_Demo_Technical_Handoff_V1.md", "design/pages/recognition/web/implementation_input_pack/SWOS_WEB_IMPLEMENTATION_INPUT_MANIFEST_V1.json"]
+    refs: ["design/pages/recognition/web/SWOS_WEB_HIFI_MOTION_TECHNICAL_CONTRACT_V1_0.md", "design/pages/recognition/processing/optics/SWOS_15_Frame_Keyframe_Contract_V1_1.json", "design/pages/recognition/continuity/SWOS_Shared_Photo_Transition_Contract_V1.json", "design/pages/recognition/processing/optics/SWOS_Optical_Contract_V1.json", "design/pages/recognition/processing/optics/SWOS_Dynamic_Demo_Technical_Handoff_V1.md"]
   DESIGN-MANAGER-PAGE-LAYER-WORKSPACE-V1:
     domain: "DOMAIN"
     status: "READY"
@@ -428,12 +428,7 @@ feature_contracts:
         manager_route: "#page/recognition_flow_v1_2/hifi/web_hifi_contract_v2"
         contract: "design/pages/recognition/web/WEB_HIFI_CONTRACT_V2.md"
         machine_contracts:
-          - "design/pages/recognition/web/contracts/Page_Structure_V2.json"
           - "design/pages/recognition/web/contracts/Visual_Tokens_V2.json"
-          - "design/pages/recognition/web/contracts/Component_Geometry_V2.json"
-          - "design/pages/recognition/web/contracts/Responsive_Rules_V2.json"
-          - "design/pages/recognition/web/contracts/Page_State_Matrix_V2.json"
-          - "design/pages/recognition/web/contracts/Authority_References_V2.json"
           - "design/pages/recognition/web/contracts/Acceptance_Matrix_V2.json"
           - "design/pages/recognition/web/contracts/Asset_Manifest_V2.json"
           - "design/pages/recognition/web/contracts/Work_B_Implementation_Mapping_V2.json"
@@ -491,7 +486,7 @@ feature_contracts:
         pixel_frozen_source: "FROZEN_PRIVATE_SHA_BOUND"
         manager_route: "#page/recognition_flow_v1_2/hifi/swos_web_hifi_motion_contract_v1_0"
         contract: "design/pages/recognition/web/SWOS_WEB_HIFI_MOTION_TECHNICAL_CONTRACT_V1_0.md"
-        machine_contract: "design/pages/recognition/web/contracts/SWOS_WEB_HIFI_MOTION_TECHNICAL_CONTRACT_V1_0.json"
+        machine_contract: null
         reused_sam_experiment:
           repository: "pan277942135/Yujian"
           endpoint: "POST /api/debug/fish-segmentation"
