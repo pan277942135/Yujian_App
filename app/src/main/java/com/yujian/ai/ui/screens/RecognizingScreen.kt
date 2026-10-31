@@ -99,6 +99,9 @@ import com.yujian.ai.ui.recognition.RecognitionPerimeterShaderOverlay
 import com.yujian.ai.ui.designsystem.components.aiorb.AIOrbCore
 import com.yujian.ai.ui.designsystem.components.aiorb.aiOrbProcessingState
 import com.yujian.ai.ui.waterlight.core.WaterLightFrame
+import com.yujian.ai.ui.waterlight.core.WaterLightEnergy
+import com.yujian.ai.ui.waterlight.core.EnergyFeedback
+import com.yujian.ai.ui.waterlight.mask.WaterLightMaskAdapter
 import com.yujian.ai.ui.waterlight.core.UnifiedWaterLightEngine
 import com.yujian.ai.ui.waterlight.core.WaterLightHost
 import com.yujian.ai.ui.waterlight.core.WaterLightHostBinding
@@ -318,7 +321,9 @@ fun RecognitionProcessingScene(
             result.maskSize > 0 && result.maskSize == result.expectedMaskSize &&
             cropDimensionsMatch && geometryMatchesPhoto && roi != null
         val extractedContour = if (maskShapeValid) {
-            withContext(Dispatchers.Default) { extractContour(loaded) }
+            withContext(Dispatchers.Default) {
+                WaterLightMaskAdapter.toPhotoSpace(requireNotNull(metadata), extractContour(loaded))
+            }
         } else {
             emptyList()
         }
@@ -334,6 +339,7 @@ fun RecognitionProcessingScene(
             detectorConfidence = primary.confidence,
             subjectBox = requireNotNull(roi),
             contour = extractedContour,
+            contourSourceSpace = "CANONICAL_PHOTO_NORMALIZED",
             quality = result.quality,
             maskSize = result.maskSize,
             expectedMaskSize = result.expectedMaskSize,
@@ -1053,6 +1059,7 @@ private fun RecognitionPhoto(
     val contourReady = contourStart != null && contourEnd != null && hostReady(WaterLightHost.CONTOUR,
         contourStart.x, contourStart.y, contourEnd.x, contourEnd.y)
     val waterScope = rememberCoroutineScope()
+    val energyEvent = WaterLightEnergy.at(waterLightFrame, trustedMask)
     val causticsRenderer = remember(waterLightEngine) { WaterCausticsRenderer(waterScope) }
     val dropletRenderer = remember(waterLightEngine) { WaterDropletRenderer() }
     var causticsRevision by remember(waterLightEngine) { mutableIntStateOf(0) }
@@ -1224,7 +1231,8 @@ private fun RecognitionPhoto(
                         drawIntoCanvas { canvas -> dropletRenderer.draw(canvas.nativeCanvas, waterLightFrame,
                             android.graphics.RectF(rect.left, rect.top, rect.right, rect.bottom),
                             seed = waterLightFrame.sessionId.hashCode().toLong() * 31 + photoSha256.hashCode(),
-                            count = 3, opacity = .45f)
+                            count = if (energyEvent?.feedback == EnergyFeedback.ABSORB) 3 else 1,
+                            opacity = .45f)
                         }
                     }
                 }
@@ -1244,6 +1252,7 @@ private fun RecognitionPhoto(
                 lowPerformance = motionPolicy.lowPerformance,
                 trustedMask = trustedMask,
                 waterLightFrame = waterLightFrame,
+                contourPhotoSpace = true,
             )
             if (diagnosticStep == RecognitionDiagnosticStep.DETECTOR && focusBox != null) Canvas(Modifier.fillMaxSize()) {
                 val topLeft = transform.mapNormalized(focusBox.x1, focusBox.y1)

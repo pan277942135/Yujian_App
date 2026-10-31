@@ -266,7 +266,10 @@ object RecognitionRevealGeometryResolver {
                 heroEndMatrix = photoGeometry.heroEndMatrix,
                 processingPhotoClip = photoGeometry.processingPhotoClip,
                 heroPhotoClip = photoGeometry.heroPhotoClip,
-                sourceContourPath = sourceContourPath(contour, subjectBox, handoff.normalizedSourceWidth, handoff.normalizedSourceHeight),
+                sourceContourPath = sourceContourPath(contour,
+                    if (handoff.contourSourceSpace == "CANONICAL_PHOTO_NORMALIZED")
+                        NormalizedSourceRect(0f, 0f, 1f, 1f) else subjectBox,
+                    handoff.normalizedSourceWidth, handoff.normalizedSourceHeight),
                 goldTransferPath = path,
                 titleBounds = titleBoundsInWindow,
                 heroSourceTransform = targetLocalTransform,

@@ -1088,27 +1088,17 @@ private fun SpeciesIdentityRow(
     val revealProgress = revealFrame?.titleRevealProgress ?: 1f
     val speciesDisplayName = resultSpeciesDisplayName(speciesName)
     var speciesGlyphPath by remember(speciesDisplayName, compactTitle, widthDp) { mutableStateOf<android.graphics.Path?>(null) }
-    val glyphGoldPaint = remember {
-        android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
-            style = android.graphics.Paint.Style.FILL
-            color = android.graphics.Color.rgb(255, 227, 166)
-        }
-    }
-    val goldGlyphAlpha = when (revealTitleMode) {
-        RecognitionRevealTitleMode.FORMING -> 0.16f + 0.48f * revealFormationProgress.coerceIn(0f, 1f)
-        RecognitionRevealTitleMode.REVEALING -> 0.48f * (1f - revealProgress.coerceIn(0f, 1f))
-        else -> 0f
+    val glyphReveal = remember(speciesDisplayName) { com.yujian.ai.ui.recognition.reveal.SpeciesNameReveal() }
+    val waterCaptureProgress = when (revealTitleMode) {
+        RecognitionRevealTitleMode.FORMING -> .72f * revealFormationProgress.coerceIn(0f, 1f)
+        RecognitionRevealTitleMode.REVEALING -> .72f + .28f * revealProgress.coerceIn(0f, 1f)
+        RecognitionRevealTitleMode.STATIC, RecognitionRevealTitleMode.VISIBLE -> 1f
+        RecognitionRevealTitleMode.HIDDEN -> 0f
     }
     val showScientificName = revealFrame == null ||
         revealFrame.elapsedMs >= RecognitionRevealClock.TOTAL_DURATION_MS ||
         revealTitleMode == RecognitionRevealTitleMode.STATIC
-    val visibleTitleAlpha = when (revealTitleMode) {
-        RecognitionRevealTitleMode.STATIC,
-        RecognitionRevealTitleMode.VISIBLE -> 1f
-        RecognitionRevealTitleMode.HIDDEN -> 0f
-        RecognitionRevealTitleMode.FORMING -> .14f
-        RecognitionRevealTitleMode.REVEALING -> revealProgress.coerceIn(0f, 1f)
-    }
+    val visibleTitleAlpha = if (showScientificName) 1f else 0f
     Row(
         Modifier
             .fillMaxWidth()
@@ -1127,22 +1117,15 @@ private fun SpeciesIdentityRow(
                 modifier = Modifier
                     .fillMaxWidth()
                     .drawWithContent {
-                        drawContent()
-                        val glyphPath = speciesGlyphPath
-                        if (glyphPath != null && goldGlyphAlpha > 0f) {
-                            val canvas = drawContext.canvas.nativeCanvas
-                            val saveCount = canvas.save()
-                            try {
-                                canvas.clipPath(glyphPath)
-                                glyphGoldPaint.alpha = (255 * goldGlyphAlpha).toInt().coerceIn(0, 255)
-                                canvas.drawPath(glyphPath, glyphGoldPaint)
-                            } finally {
-                                canvas.restoreToCount(saveCount)
-                            }
+                        val settled = revealTitleMode == RecognitionRevealTitleMode.STATIC ||
+                            revealTitleMode == RecognitionRevealTitleMode.VISIBLE
+                        if (settled) drawContent() else speciesGlyphPath?.let { glyph ->
+                            glyphReveal.draw(drawContext.canvas.nativeCanvas, glyph, size.width, size.height,
+                                waterCaptureProgress, revealFrame?.elapsedMs ?: 0L)
                         }
                     }
                     .testTag("recognition-result-species-name"),
-                color = DeepInk.copy(alpha = visibleTitleAlpha),
+                color = DeepInk,
                 fontSize = if (compactTitle) 28.sp else 30.sp,
                 lineHeight = if (compactTitle) 34.sp else 36.sp,
                 fontWeight = FontWeight.SemiBold,

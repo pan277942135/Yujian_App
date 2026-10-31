@@ -3,6 +3,8 @@ package com.yujian.ai.ai.subject
 import android.graphics.Matrix
 import android.graphics.Rect
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.yujian.ai.ui.recognition.RecognitionContourSegment
+import com.yujian.ai.ui.waterlight.mask.WaterLightMaskAdapter
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -37,5 +39,20 @@ class MaskGeometryMetadataTest {
         inverse.mapPoints(photoPoint)
         assertEquals(48f, photoPoint[0], 0.0001f)
         assertEquals(20f, photoPoint[1], 0.0001f)
+        val loops = listOf(
+            RecognitionContourSegment(0f, 0f, 1f, 1f, .5f, .25f, .5f, .75f,
+                beginsContour = true, closesContour = true),
+            RecognitionContourSegment(.25f, .4f, .75f, .8f,
+                beginsContour = true, closesContour = true),
+        )
+        val mapped = WaterLightMaskAdapter.toPhotoSpace(geometry, loops)
+        assertEquals(240f / 1280, mapped[0].startX, .00001f)
+        assertEquals(100f / 720, mapped[0].startY, .00001f)
+        assertEquals(900f / 1280, mapped[0].endX, .00001f)
+        assertEquals(600f / 720, mapped[0].endY, .00001f)
+        assertEquals(570f / 1280, mapped[0].control1X, .00001f)
+        assertEquals(225f / 720, mapped[0].control1Y, .00001f)
+        assertTrue(mapped[0].beginsContour && mapped[0].closesContour)
+        assertTrue(mapped[1].beginsContour && mapped[1].closesContour)
     }
 }
