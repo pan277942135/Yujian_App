@@ -248,6 +248,9 @@
         await image.decode();
         assert(image.naturalWidth === authority.visual_asset.pixel_dimensions.width && image.naturalHeight === authority.visual_asset.pixel_dimensions.height,
           `VISUAL_ASSET_DIMENSIONS_MISMATCH: ${pageId}`);
+        // The exact authority bitmap is now decoded and inspectable. Profile controls
+        // are optional for a read-only reference view, so they must not strand it in LOADING.
+        root.firstElementChild.dataset.viewState = "REFERENCE_IMAGE_ONLY";
         root.querySelector("[data-profile-status]").textContent = `${authority.profile.profile_id} · ${authority.profile.status}`;
         root.querySelector("[data-tree-scope]").textContent = `Profile component IDs (not independently mapped to raster sub-elements): ${(authority.profile.conformance?.regions || []).flatMap(region => region.component_ids || []).join(" · ") || "未登记"}`;
         root.querySelector("[data-preview-disclosure]").textContent = `REFERENCE_IMAGE_ONLY · ${authority.visual_asset.asset_designation} · 生命周期 ${authority.visual_asset.lifecycle_status} · 发布权限 ${permission.state}。组件、交互和页面状态没有独立 DOM 权威，故不作推断。`;
