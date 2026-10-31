@@ -65,6 +65,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.foundation.layout.offset
 import kotlinx.coroutines.delay
+import com.yujian.ai.ui.home.captureSideActionBottomOffset
 import com.yujian.ai.ui.home.CaptureVisualTokens
 import com.yujian.ai.ui.home.CaptureNavigationTransition
 import kotlin.math.roundToInt
@@ -1010,10 +1011,10 @@ fun IdentifyScreen(
                 modifier = Modifier
                     .align(Alignment.BottomStart)
                     .padding(
-                        start = 27.dp,
-                        bottom = panelControlBottom + (shutterDiameter - 72.dp) / 2f + 9.dp,
+                        start = 23.dp,
+                        bottom = panelControlBottom + captureSideActionBottomOffset(shutterDiameter.value, 80f, 18f * fontScale).dp,
                     )
-                    .size(72.dp)
+                    .size(80.dp)
                     .clickable(role = Role.Button, onClick = ::openGallery)
                     .testTag("recognition-camera-gallery")
                     .semantics { contentDescription = "从相册选择" },
@@ -1033,6 +1034,7 @@ fun IdentifyScreen(
                         text = "相册",
                         color = cameraInk,
                         fontSize = 13.sp,
+                        lineHeight = 18.sp,
                     )
                 }
             }
@@ -1040,10 +1042,10 @@ fun IdentifyScreen(
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
                     .padding(
-                        end = 27.dp,
-                        bottom = panelControlBottom + (shutterDiameter - 72.dp) / 2f + 9.dp,
+                        end = 23.dp,
+                        bottom = panelControlBottom + captureSideActionBottomOffset(shutterDiameter.value, 80f, 18f * fontScale).dp,
                     )
-                    .size(72.dp)
+                    .size(80.dp)
                     .clickable(enabled = cameraBound && cameraController.cameraInfo?.hasFlashUnit() == true, role = Role.Button) {
                         cameraController.enableTorch(!torchEnabled).addListener({
                             torchEnabled = cameraController.cameraInfo?.torchState?.value == androidx.camera.core.TorchState.ON
@@ -1061,7 +1063,7 @@ fun IdentifyScreen(
                         Icon(Icons.Default.FlashOn,
                             contentDescription = null, tint = if (cameraController.cameraInfo?.hasFlashUnit() == true) { if (torchEnabled) Color(0xFFB68A3D) else cameraInk } else secondaryInk.copy(alpha = .4f), modifier = Modifier.size(22.dp))
                     }
-                    Text("闪光灯", color = cameraInk, fontSize = 13.sp)
+                    Text("闪光灯", color = cameraInk, fontSize = 13.sp, lineHeight = 18.sp)
                 }
             }
         }

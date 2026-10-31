@@ -25,3 +25,7 @@ internal fun resolveCaptureHomeActionY(
     val cameraTop = minOf(referenceCenter - diameter / 2f, albumTop - 8f - diameter)
     return CaptureHomeActionY(cameraTop, minOf(referencePromptTop, cameraTop - 8f - promptHeight))
 }
+
+/** Align icon centers, accounting for the caption below each side icon. */
+internal fun captureSideActionBottomOffset(shutterDiameter: Float, groupSize: Float, captionHeight: Float): Float =
+    (shutterDiameter - groupSize - captionHeight) / 2f

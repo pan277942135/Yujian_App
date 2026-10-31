@@ -13,6 +13,13 @@ class CaptureHomeActionGeometryTest {
             assertTrue(result.promptTop >= 0f)
         }
     }
+    @Test fun sideIconCentersMatchShutterAcrossFontScales() {
+        for (diameter in listOf(88f, 94f, 96f)) for (font in listOf(1f, 1.3f, 1.5f)) {
+            val caption = 18f * font
+            val sideIconCenterFromBottom = captureSideActionBottomOffset(diameter, 80f, caption) + 40f + caption / 2f
+            assertEquals(diameter / 2f, sideIconCenterFromBottom, .001f)
+        }
+    }
     @Test fun roomyFrozenAnchorsRemainUnchanged() {
         val result = resolveCaptureHomeActionY(720f, 96f, 800f, 630f, 24f)
         assertEquals(672f, result.cameraTop, 0f)
