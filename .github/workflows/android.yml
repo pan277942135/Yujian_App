@@ -173,6 +173,9 @@ jobs:
           test -x "$YUJIAN_AAPT2"
           echo "YUJIAN_AAPT2=$YUJIAN_AAPT2" >> "$GITHUB_ENV"
 
+      - name: Verify capture and Processing raster decoding
+        run: python3 scripts/verify_capture_presentation_assets.py
+
       - name: Unit tests
         run: gradle -Pandroid.aapt2FromMavenOverride="$YUJIAN_AAPT2" test --stacktrace --no-daemon --max-workers=2
 
@@ -204,6 +207,9 @@ jobs:
 
       - name: Verify packaged recognition assets in APK
         run: python3 scripts/verify_packaged_android_apk.py
+
+      - name: Decode capture and Processing rasters from actual APK
+        run: python3 scripts/verify_capture_presentation_assets.py --apk app/build/outputs/apk/debug/app-debug.apk
 
       - name: Export model trace from the actual APK
         run: >-
