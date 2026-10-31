@@ -18,9 +18,9 @@ SAM 复用现有产品实验链路；禁止新增重复分割服务、重训模�
 
 ## 页面与视觉
 
-三阶段结构、组件 ID 和底部五节点见 `Page_Structure_V2.json`。入口与认证保持 Platform V1；在产品路由采用宽阔的居中 Product Shell，侧栏让出空间，返回后恢复。桌面横向三阶段为视觉总览；当前阶段及未开始阶段必须可辨。平板两列、手机活跃阶段聚焦是设计补全，须在批准原稿完成对照后复核。底部节点不可冒充 Detector/Crop/Classifier 的实时进度。
+三阶段结构、组件 ID 和底部五节点以本合同与 `WEB_HIFI_HANDOFF_A_V2.md` 为准。入口与认证保持 Platform V1；在产品路由采用宽阔的居中 Product Shell，侧栏让出空间，返回后恢复。桌面横向三阶段为视觉总览；当前阶段及未开始阶段必须可辨。平板两列、手机活跃阶段聚焦是设计补全，须在批准原稿完成对照后复核。底部节点不可冒充 Detector/Crop/Classifier 的实时进度。
 
-颜色、字号、间距、卡片及按钮见 `Visual_Tokens_V2.json` 和 `Component_Geometry_V2.json`。CSS 示例：`.catch-product{max-width:1280px;margin-inline:auto;padding-inline:var(--web-gutter,32px)}`；`grid-template-columns:repeat(3,minmax(0,1fr));gap:18px` 仅是待原稿校准的桌面设计补全。正文和表单不使用 10–12px 微字；系统字族 CJK fallback；最小触控目标 44px。晨光金用于有意义时刻，不覆盖所有控件。上传、重选、识别、状态、地点、时间、返回应映射共享 `Icon_Registry_V3.json` 的语义 ID；Web 无可用图标资产时标注待映射，不以 emoji 冒充冻结图标。
+颜色、字号、间距、卡片及按钮见 `Visual_Tokens_V2.json` 与本合同的几何约束章节；不再维护重复的 Component Geometry JSON。CSS 示例：`.catch-product{max-width:1280px;margin-inline:auto;padding-inline:var(--web-gutter,32px)}`；`grid-template-columns:repeat(3,minmax(0,1fr));gap:18px` 仅是待原稿校准的桌面设计补全。正文和表单不使用 10–12px 微字；系统字族 CJK fallback；最小触控目标 44px。晨光金用于有意义时刻，不覆盖所有控件。上传、重选、识别、状态、地点、时间、返回应映射共享 `Icon_Registry_V3.json` 的语义 ID；Web 无可用图标资产时标注待映射，不以 emoji 冒充冻结图标。
 
 ## 上传
 
@@ -44,7 +44,7 @@ SAM 复用现有产品实验链路；禁止新增重复分割服务、重训模�
 
 ## 结果及业务
 
-3+2 状态与技术失败的文案、Hero、操作见 `Page_State_Matrix_V2.json`。HIGH 复用 Frozen Result：导航、HIGH Hero 322×210dp/360dp、Hero 下中文鱼种名、必要置信信息、长度重量时间地点、故事、双 CTA。**CTA 决策已收口：** 本页面严格使用冻结的 Result V1.1 页面级权威 `layout_geometry_contract.json`：继续按钮文案为「继续记忆」，保存按钮为「保存本次鱼获」。页面级冻结合同优先于通用 Action Button 示例文案「继续记录记忆」；Web 不得再混用两种标签。若真实记忆目标路由尚未开放，继续按钮必须禁用并解释，不得假跳转。英文科学名及空行都不显示。MEDIUM 候选需确认，LOW 人工选择，NO_FISH 与 IMAGE_QUALITY 提供重选，TECHNICAL_FAILURE 显示重试。
+3+2 状态与技术失败的文案、Hero、操作以本合同结果章节和 `Acceptance_Matrix_V2.json` 为准。HIGH 复用 Frozen Result：导航、HIGH Hero 322×210dp/360dp、Hero 下中文鱼种名、必要置信信息、长度重量时间地点、故事、双 CTA。**CTA 决策已收口：** 本页面严格使用冻结的 Result V1.1 页面级权威 `layout_geometry_contract.json`：继续按钮文案为「继续记忆」，保存按钮为「保存本次鱼获」。页面级冻结合同优先于通用 Action Button 示例文案「继续记录记忆」；Web 不得再混用两种标签。若真实记忆目标路由尚未开放，继续按钮必须禁用并解释，不得假跳转。英文科学名及空行都不显示。MEDIUM 候选需确认，LOW 人工选择，NO_FISH 与 IMAGE_QUALITY 提供重选，TECHNICAL_FAILURE 显示重试。
 
 **置信度决策已按职责收口，不改数值：** Web 只消费 `POST /api/product/catch-recognition/infer` 返回的 `result_state`，不得在浏览器重新计算 HIGH/MEDIUM/LOW。当前产品 Result 状态映射仍使用既有 `top1.confidence < 0.45 → LOW`、`top1-second.confidence < 0.12 → MEDIUM`；`app/inference_api.py` 中默认 `INFERENCE_LOW_CONFIDENCE_THRESHOLD=0.55` 是独立推理接口的 `low_confidence` 标记，不是 Web 3+2 状态阈值，不得覆盖服务端 `result_state`。本次只统一权威归属，不修改模型、阈值、门控或路由。任何未来阈值校准必须另有产品负责人批准和标注留出集证据。
 
@@ -58,4 +58,4 @@ SAM 复用现有产品实验链路；禁止新增重复分割服务、重训模�
 
 ## 响应式与验收
 
-`Responsive_Rules_V2.json` 覆盖 1440×1000、1280×800、1024×768、768×1024、480dp、430×932、390×844、360×640、320×480。断点是设计补全，原稿身份确认后复核。大屏不缩字；小屏换列、表单单列、双 CTA 必要时纵排、五节点可横向滚动，正文不溢出；键盘及安全区不挡 CTA。静态合同通过不等于真实 Web 视觉通过。测试门见 `Acceptance_Matrix_V2.json`；Work B 按 `Work_B_Implementation_Mapping_V2.json` 和 `WEB_HIFI_GAP_MATRIX_V2.md` 修复既有 PR。
+本合同响应式章节覆盖 1440×1000、1280×800、1024×768、768×1024、480dp、430×932、390×844、360×640、320×480。断点是设计补全，原稿身份确认后复核。大屏不缩字；小屏换列、表单单列、双 CTA 必要时纵排、五节点可横向滚动，正文不溢出；键盘及安全区不挡 CTA。静态合同通过不等于真实 Web 视觉通过。测试门见 `Acceptance_Matrix_V2.json`；Work B 按 `Work_B_Implementation_Mapping_V2.json` 和 `WEB_HIFI_GAP_MATRIX_V2.md` 修复既有 PR。
