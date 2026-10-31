@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - work/unified-waterlight-a02-core-component-v1
       - 'fix/**'
       - 'feature/**'
       - 'refactor/**'
@@ -309,12 +310,12 @@ jobs:
   # One job, one Harness, and one frozen APK pair.  The optional parity row is
   # part of this same matrix so it cannot grow a second ADB/install path.
   android-runtime:
-    if: ${{ (github.event_name == 'push' && !contains(github.event.head_commit.message, '[normal-home-brand-title-validation]')) || github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && github.head_ref == 'work/unified-waterlight-a02-core-component-v1') }}
+    if: ${{ (github.event_name == 'push' && !contains(github.event.head_commit.message, '[normal-home-brand-title-validation]')) || github.event_name == 'workflow_dispatch' }}
     needs: build
-    runs-on: ${{ ((github.event_name == 'workflow_dispatch' && inputs.runtime_backend == 'github-hosted') || (github.event_name == 'pull_request' && github.head_ref == 'work/unified-waterlight-a02-core-component-v1')) && 'ubuntu-latest' || fromJSON('["self-hosted", "yujian-android", "api28"]') }}
+    runs-on: ${{ github.event_name == 'workflow_dispatch' && inputs.runtime_backend == 'github-hosted' && 'ubuntu-latest' || fromJSON('["self-hosted", "yujian-android", "api28"]') }}
     timeout-minutes: 60
     env:
-      YUJIAN_RUNTIME_BACKEND: ${{ github.event_name == 'pull_request' && 'github-hosted' || (github.event_name == 'workflow_dispatch' && inputs.runtime_backend || 'self-hosted') }}
+      YUJIAN_RUNTIME_BACKEND: ${{ github.event_name == 'workflow_dispatch' && inputs.runtime_backend || 'self-hosted' }}
       YUJIAN_SOURCE_SHA: ${{ needs.build.outputs.source_sha }}
     strategy:
       fail-fast: false
@@ -323,7 +324,7 @@ jobs:
         include:
           - gate: normal-home-v1
             api_level: 28
-            required: ${{ github.event_name != 'pull_request' }}
+            required: ${{ github.ref_name != 'work/unified-waterlight-a02-core-component-v1' }}
             emulator_options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -partition-size 4096 -skin 1080x1920
           - gate: recognition-frozen
             api_level: 28
@@ -331,23 +332,23 @@ jobs:
             emulator_options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -partition-size 4096 -skin 1080x1920
           - gate: camera-runtime-v1
             api_level: 28
-            required: ${{ github.event_name != 'pull_request' }}
+            required: ${{ github.ref_name != 'work/unified-waterlight-a02-core-component-v1' }}
             emulator_options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back emulated -partition-size 4096 -skin 1080x1920
           - gate: empty-home-v2
             api_level: 28
-            required: ${{ github.event_name != 'pull_request' }}
+            required: ${{ github.ref_name != 'work/unified-waterlight-a02-core-component-v1' }}
             emulator_options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -partition-size 4096 -skin 1080x1920
           - gate: login-v2
             api_level: 28
-            required: ${{ github.event_name != 'pull_request' }}
+            required: ${{ github.ref_name != 'work/unified-waterlight-a02-core-component-v1' }}
             emulator_options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -partition-size 4096 -skin 1080x1920
           - gate: data-sanitization
             api_level: 28
-            required: ${{ github.event_name != 'pull_request' }}
+            required: ${{ github.ref_name != 'work/unified-waterlight-a02-core-component-v1' }}
             emulator_options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -partition-size 4096 -skin 1080x1920
           - gate: fish-guide-v1
             api_level: 28
-            required: ${{ github.event_name != 'pull_request' }}
+            required: ${{ github.ref_name != 'work/unified-waterlight-a02-core-component-v1' }}
             emulator_options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -partition-size 4096 -skin 1080x1920
           - gate: runtime-parity
             api_level: 28

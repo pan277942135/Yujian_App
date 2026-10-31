@@ -18,6 +18,18 @@ gate_additional_test_classes() {
 gate_additional_test_timeout_seconds() {
   printf '%s\n' '420'
 }
+
+# ADB can disappear after a successful install when a hosted emulator exits
+# during the model-heavy RR09 pretest. Preserve that as an infra blocker.
+gate_instrumentation_failure_classification() {
+  local state
+  state="$("${YUJIAN_ADB_BIN}" get-state 2>/dev/null || true)"
+  if [[ "$state" != "device" ]]; then
+    runtime_set_failure "ADB" "DEVICE_LOST_DURING_RECOGNITION_INSTRUMENTATION"
+    return "$EXIT_BLOCKED_INFRA"
+  fi
+  return "$EXIT_FAIL_TEST"
+}
 # Video evidence is captured outside instrumentation so observation cannot
 # perturb Compose timing on API28. Instrumentation owns only semantic/timing
 # assertions and single proof screenshots.
