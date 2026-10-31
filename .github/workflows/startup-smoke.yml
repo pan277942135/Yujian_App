@@ -1,4 +1,4 @@
-name: Android startup smoke
+name: Android startup repair verification
 on:
   push:
     branches: ['control/startup-crash-recovery-v1', 'fix/startup-crash-recovery-v1']
@@ -27,11 +27,12 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
-            const run = context.eventName === 'push' ? 41139905943 : context.payload.workflow_run.id;
+            const run = context.eventName === 'push' ? 41157504591 : context.payload.workflow_run.id;
             const {data} = await github.rest.actions.listWorkflowRunArtifacts({...context.repo, run_id: run});
             const artifact = data.artifacts.find(x => x.name.startsWith('YuJian-debug-') && !x.expired);
             if (!artifact) throw new Error('Installable APK artifact unavailable');
             core.setOutput('name', artifact.name);
+            core.setOutput('tests', data.artifacts.find(x => x.name.startsWith('YuJian-runtime-apks-') && !x.expired)?.name || '');
             core.setOutput('run', String(run));
       - uses: actions/download-artifact@v4
         with:
@@ -39,6 +40,12 @@ jobs:
           run-id: ${{ steps.apk.outputs.run }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
           path: startup-input
+      - uses: actions/download-artifact@v4
+        with:
+          name: ${{ steps.apk.outputs.tests }}
+          run-id: ${{ steps.apk.outputs.run }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: startup-tests
       - name: Enable KVM
         run: |
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
@@ -63,15 +70,15 @@ jobs:
           path: startup-evidence
           if-no-files-found: warn
       - name: Replacement must show normal Home without a crash
-        if: github.event_name == 'workflow_run'
         run: |
           test -f startup-evidence/STATUS
           test "$(cat startup-evidence/STATUS)" = PASS
           test -s startup-evidence/relaunch-pid.txt
           ! grep -q 'com.yujian.ai.uiv2' startup-evidence/relaunch-crash.txt
           ! grep -q '启动诊断' startup-evidence/startup.xml
-      - name: Original APK diagnostic result (not device acceptance)
+          test "$(cat startup-evidence/RESOURCE_DECODE_STATUS)" = PASS
+      - name: Replacement APK diagnostic result (not device acceptance)
         if: github.event_name == 'push' && always()
         run: |
-          echo '## Original delivered APK startup reproduction' >> "$GITHUB_STEP_SUMMARY"
+          echo '## Replacement APK startup verification' >> "$GITHUB_STEP_SUMMARY"
           cat startup-evidence/STATUS >> "$GITHUB_STEP_SUMMARY" || echo INFRA_NOT_RUN >> "$GITHUB_STEP_SUMMARY"
