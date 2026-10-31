@@ -589,6 +589,18 @@ tasks:
     completion: "Close the user-selected NH01 Lake Light visual on the existing Design Manager DOM and Android Gemini route. Keep NH01 Responsive Layout V2 as the sole numeric source, preserve real FishRecord identity and runtime photography, and bind the private 229571.png reference by SHA without publishing its bytes. Require exact-source browser evidence, the existing V2 Android baseline plus the 57-case API 28 matrix, measured bounds/text/touch data, Android build/unit/Lint, and APK SHA provenance. Record physical-device visual acceptance separately; do not claim it before the product owner confirms on device."
     human_required: true
 
+  YUJIAN_ANDROID_HOME_CAPTURE_ACTIVATION_CAMERA_RUNTIME_FULL_CLOSURE_V2:
+    phase: "P6"
+    priority: "P0"
+    owner: "Work"
+    feature_refs: []
+    journey_refs: []
+    depends_on: []
+    entry_blockers: []
+    target_blockers: []
+    evidence_required: ["frozen_resource_hashes", "shared_capture_button", "home_activation_camera_continuity", "responsive_runtime_matrix", "camera_capture_zoom_flash_gallery", "exact_apk_startup_and_decode", "build_unit_lint", "physical_device_acceptance_status"]
+    completion: "Implement the user-approved 01-03 frozen Home, 750ms activation and mint Camera runtime using shared capture art, real CameraX and exact-source evidence. Do not change 04-10 or infer physical-device acceptance from emulator checks."
+    human_required: true
   YUJIAN_ANDROID_STARTUP_CRASH_RECOVERY_V1:
     phase: "P6"
     priority: "P0"

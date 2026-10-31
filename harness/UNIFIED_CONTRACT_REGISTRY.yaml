@@ -103,6 +103,10 @@ domain_catalog:
     role: "EXECUTION"
 
 shared_contracts:
+  ANDROID-HOME-CAPTURE-RUNTIME-V2:
+    domain: "DOMAIN"
+    status: "FROZEN_CONTRACT_INPUT"
+    refs: ["harness/task_contracts/ANDROID_HOME_CAPTURE_RUNTIME_V2.md"]
   ANDROID-STARTUP-CRASH-RECOVERY-V1:
     domain: "EXECUTION"
     status: "READY"
@@ -1794,6 +1798,9 @@ gate_contracts:
     resource_gallery_ids: ["p01", "p02", "p03"]
     android_runtime_mapping: false
 task_contract_bindings:
+  YUJIAN_ANDROID_HOME_CAPTURE_ACTIVATION_CAMERA_RUNTIME_FULL_CLOSURE_V2:
+    contract_refs: ["ANDROID-HOME-CAPTURE-RUNTIME-V2", "DS-FOUNDATION", "ANDROID-RUNTIME-HARNESS", "STATE-EVIDENCE-PROVENANCE"]
+    phase: "P6"
   YUJIAN_ANDROID_STARTUP_CRASH_RECOVERY_V1:
     contract_refs: ["ANDROID-STARTUP-CRASH-RECOVERY-V1", "DS-FOUNDATION", "ANDROID-RUNTIME-HARNESS", "STATE-EVIDENCE-PROVENANCE"]
     phase: "P6"
@@ -2110,6 +2117,6 @@ inventory:
   task_count: 70
   gate_count: 31
   registry_created_from_pr_head: "ebb6b3904feaa0cf26b4fd4b83bc809a397085a2"
-  last_synced_feature_matrix_sha: "7552744a3ee04d05285caa191eef4cfb5a280bf4"
-  last_synced_phase_task_state_machine_sha: "3820bd6b67de9b43cedcc46ce7325039f09b5dcb"
+  last_synced_feature_matrix_sha: "e630400e6be74772f78f412f67eb5e1f948eb0eb"
+  last_synced_phase_task_state_machine_sha: "347037d91c2420da635dc87b1ea67cd90cd7c70e"
   last_synced_experience_registry_sha: "47be44ca3cbce908fa676e262987fe26a8dbea32"
