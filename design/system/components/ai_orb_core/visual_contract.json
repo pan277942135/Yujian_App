@@ -2,12 +2,19 @@
   "component_id": "intelligence.ai_orb_core",
   "version": "V1",
   "status": "REVIEW",
-  "identity": "Transparent lake-water glass sphere with internal refraction, restrained sunlight-gold glints, lake-blue water light and muted aquatic-green ribbons.",
+  "identity": "One living YuJian intelligence identity: a transparent lake-water glass sphere with inner refraction, restrained sunlight-gold glints, lake-blue water light and muted aquatic-green ribbons.",
+  "asset_roles": {
+    "idle_button": "Frozen Primary Capture Button V1.1; Home and Capture ready state.",
+    "activated_button": "User Asset 02; transient 0-150ms activated camera-water visual and 150-350ms morph source.",
+    "orb_core": "Transparent water core; current runtime uses the Main extraction from Asset 03 pending comparison to visual master Asset 01.",
+    "motion_reference": "Asset 03 informs open front/rear ribbon paths only.",
+    "home_scene": "Asset 04 is page context only."
+  },
   "composition": {
-    "core": "One transparent 384x384 raster master plus native Canvas refraction/highlight overlays.",
+    "core": "Transparent 384x384 runtime core plus native Canvas refraction/highlight overlays.",
     "ribbons": "Independent native Canvas front/rear paths.",
     "environment": "Page-owned; never baked into reusable Orb core.",
-    "camera_core": "Separate capture state using frozen Primary Capture Button V1.1."
+    "camera_core": "Separate capture state slot; idle and activated artwork have different asset identities."
   },
   "colors": {
     "sunlight_gold": "#D8BC87",
@@ -19,7 +26,8 @@
     "Preserve transparent core alpha.",
     "Use localized refraction and glints for life.",
     "Render front and rear ribbons separately.",
-    "Gold is restrained, not a full-surface tint."
+    "Gold is restrained, not a full-surface tint.",
+    "Use Asset 02 only as the short activated/morph source, not as Home idle artwork."
   ],
   "forbidden": [
     "whole_sphere_raster_rotation",

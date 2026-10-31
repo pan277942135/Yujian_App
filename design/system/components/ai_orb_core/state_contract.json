@@ -4,7 +4,7 @@
   "status": "REVIEW",
   "states": [
     "CAPTURE_BUTTON_IDLE",
-    "CAPTURE_BUTTON_PRESSED",
+    "CAPTURE_BUTTON_ACTIVATED",
     "ORB_MORPH_IN",
     "ORB_ACTIVE",
     "ORB_CONTRACTING",
@@ -15,24 +15,37 @@
       "from": "CAPTURE_BUTTON_IDLE",
       "event": "HOME_CAPTURE_NAVIGATE",
       "to": "CAPTURE_BUTTON_IDLE",
-      "visual": "No Orb Morph; existing button navigation handoff."
+      "visual": "No Orb Morph; existing Home-to-Capture button handoff only."
     },
     {
       "from": "CAPTURE_BUTTON_IDLE",
-      "event": "CAMERA_SHUTTER_CAPTURE_SUCCESS",
+      "event": "CAMERA_CAPTURE_ENTER_PROCESSING",
+      "to": "CAPTURE_BUTTON_ACTIVATED",
+      "guard": "A real camera capture produces the same SelectedImage/PhotoSession and stable Processing photo frame.",
+      "visual": "Show the Asset 02 activated camera-water state for 0-150ms."
+    },
+    {
+      "from": "CAPTURE_BUTTON_ACTIVATED",
+      "event": "ACTIVATION_150MS_SETTLED",
       "to": "ORB_MORPH_IN",
-      "guard": "Real camera capture produces same SelectedImage/PhotoSession.",
-      "visual": "Camera/pearl dissolves into water core on shared 900ms clock."
+      "visual": "Dissolve activated camera-water asset into the transparent Orb core from 150-350ms."
     },
     {
       "from": "CAPTURE_BUTTON_IDLE",
       "event": "GALLERY_IMAGE_READY",
       "to": "ORB_MORPH_IN",
-      "guard": "Real normalized Gallery image enters Processing.",
+      "guard": "A real normalized Gallery image enters Processing.",
       "visual": "Orb core visible immediately; no camera-button crossfade."
     },
     {
       "from": "ORB_MORPH_IN",
+      "event": "CORE_350MS_READY",
+      "to": "ORB_ACTIVE",
+      "guard": "Shared scene clock reaches 350ms.",
+      "visual": "Core is visible; ribbon opening and settle continue on the same 900ms clock."
+    },
+    {
+      "from": "ORB_ACTIVE",
       "event": "ENTRY_900MS_SETTLED",
       "to": "ORB_ACTIVE",
       "guard": "Shared scene clock reaches 900ms.",
@@ -53,7 +66,7 @@
       "visual": "Orb removed; no return to camera-button state."
     },
     {
-      "from": "ORB_MORPH_IN",
+      "from": "CAPTURE_BUTTON_ACTIVATED",
       "event": "CAPTURE_OR_PROCESSING_CANCELLED",
       "to": "HIDDEN",
       "guard": "Existing cancellation route owns recovery.",

@@ -15,8 +15,8 @@
   "orb_entry": {
     "duration_ms": 900,
     "camera_source": {
-      "0_150_ms": "Capture press and pearl/icon compression.",
-      "150_350_ms": "Camera/pearl dissolves into transparent water core.",
+      "0_150_ms": "Show activated camera-water Asset 02; settle the click activation and pearl.",
+      "150_350_ms": "Dissolve Asset 02 into the transparent lake-water core.",
       "350_650_ms": "Independent front/rear ribbons open.",
       "650_900_ms": "Core and ribbons settle."
     },

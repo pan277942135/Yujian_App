@@ -118,7 +118,7 @@ shared_contracts:
   AI-ORB-CORE-V1:
     domain: "SHARED"
     status: "ACTIVE_CLOSURE"
-    refs: ["design/system/components/ai_orb_core/README.md", "design/system/components/ai_orb_core/manifest.json", "design/system/components/ai_orb_core/visual_contract.json", "design/system/components/ai_orb_core/motion_contract.json", "design/system/components/ai_orb_core/state_contract.json", "harness/task_contracts/ANDROID_AI_ORB_CORE_COMPONENT_V1.md"]
+    refs: ["design/system/components/ai_orb_core/README.md", "design/system/components/ai_orb_core/manifest.json", "design/system/components/ai_orb_core/visual_contract.json", "design/system/components/ai_orb_core/motion_contract.json", "design/system/components/ai_orb_core/state_contract.json", "design/system/components/ai_orb_core/registry_candidate.json", "harness/task_contracts/ANDROID_AI_ORB_CORE_COMPONENT_V1.md"]
   DS-FOUNDATION:
     domain: "SHARED"
     status: "FROZEN"

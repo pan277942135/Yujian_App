@@ -3,9 +3,11 @@
   "component_id": "intelligence.ai_orb_core",
   "version": "V1",
   "status": "REVIEW",
+  "registry_promotion": "Do not modify Component_Registry_V3_FINAL.json until product-owner visual acceptance.",
   "source_assets": [
     {
-      "asset_id": "system_components_primary_capture_button_assets_capture_button_main_v1_png",
+      "asset_id": "primary_capture_button_v1_1",
+      "role": "CAPTURE_BUTTON_IDLE",
       "path": "design/system/components/primary_capture_button/assets/capture_button_main_v1.png",
       "sha256": "501abcc58a65263dd879ad198a0a033630ab4bdcaf945eb02599e4f1249ca327",
       "dimensions_px": [
@@ -13,11 +15,48 @@
         208
       ],
       "mode": "RGBA",
-      "status": "FROZEN",
-      "role": "canonical_capture_button"
+      "status": "FROZEN"
+    },
+    {
+      "asset_id": "ai_orb_camera_activated_source_02",
+      "role": "CAPTURE_BUTTON_ACTIVATED_AND_MORPH_SOURCE",
+      "filename": "透明玻璃水环相机按钮.png",
+      "sha256": "9c24d789078a83e9cf3eb16aa7e558eac8f23e4fd8de14ea0ab3116e427dbe13",
+      "dimensions_px": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "status": "USER_PROVIDED_SOURCE"
+    },
+    {
+      "asset_id": "ai_orb_camera_activated_runtime_v1",
+      "role": "CAPTURE_BUTTON_ACTIVATED_AND_MORPH_SOURCE",
+      "path": "app/src/main/res/drawable-nodpi/capture_button_main_v1.webp",
+      "sha256": "f8114d5d6d1b2211ce3527e849b07ed9434d8d102f88b247bac28aa2eaea870a",
+      "dimensions_px": [
+        384,
+        384
+      ],
+      "mode": "RGBA",
+      "status": "EXISTING_MAIN_DERIVATIVE",
+      "source_asset_id": "ai_orb_camera_activated_source_02"
+    },
+    {
+      "asset_id": "ai_orb_visual_master_source_01",
+      "role": "ORB_CORE_VISUAL_MASTER_REFERENCE",
+      "filename": "透明湖水玻璃球.png",
+      "sha256": "2773e4628ff6132605314693742488542c3e70fd04b581d8825dd13cea0067ee",
+      "dimensions_px": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "status": "USER_PROVIDED_SOURCE"
     },
     {
       "asset_id": "processing_water_core_runtime_v1",
+      "role": "CURRENT_ORB_RUNTIME_CORE",
       "path": "app/src/main/res/drawable-nodpi/processing_water_core_v1.webp",
       "sha256": "daa85a1fc13fac4a7ca562959c2d19172ee0f1e94277c3eeb32ef1f09a1a7b09",
       "dimensions_px": [
@@ -26,26 +65,37 @@
       ],
       "mode": "RGBA",
       "status": "EXISTING_MAIN_RUNTIME",
-      "role": "transparent_orb_core"
+      "source_asset_id": "orb_motion_reference_source_03"
     },
     {
-      "asset_id": "capture_button_runtime_legacy_v1",
-      "path": "app/src/main/res/drawable-nodpi/capture_button_main_v1.webp",
-      "sha256": "f8114d5d6d1b2211ce3527e849b07ed9434d8d102f88b247bac28aa2eaea870a",
+      "asset_id": "orb_motion_reference_source_03",
+      "role": "MOTION_AND_SPATIAL_REFERENCE_ONLY",
+      "filename": "翡翠星光中的流光水晶球.png",
+      "sha256": "910d15313b39ee2afa277356c46290e2cb7739b80a60e9ab4efaa14a29d74122",
       "dimensions_px": [
-        384,
-        384
+        1254,
+        1254
       ],
-      "mode": "RGBA",
-      "status": "LEGACY_CANDIDATE_NOT_DEFAULT",
-      "role": "legacy_same_basename_capture_candidate"
+      "mode": "RGB",
+      "status": "USER_PROVIDED_REFERENCE"
+    },
+    {
+      "asset_id": "orb_home_scene_reference_04",
+      "role": "HOME_SCENE_REFERENCE_ONLY",
+      "filename": "湖畔渔获应用的相机激活动画.png",
+      "sha256": "f6ddf1bf27319b08c43c4becdb8179dbf8f643fae7d58077b5ebf69a9cf7defd",
+      "dimensions_px": [
+        941,
+        1672
+      ],
+      "mode": "RGB",
+      "status": "USER_PROVIDED_REFERENCE"
     }
   ],
-  "implementation_target": {
-    "canonical_capture_runtime_path": "app/src/main/res/drawable-nodpi/primary_capture_button_v1_1.png",
-    "canonical_capture_source_path": "design/system/components/primary_capture_button/assets/capture_button_main_v1.png",
-    "required_copy_rule": "Byte-identical copy; preserve 208x208 dimensions and SHA-256.",
-    "legacy_runtime_path_after_rename": "app/src/main/res/drawable-nodpi/ai_orb_camera_seed_v1.webp",
-    "legacy_usage": "Non-default candidate only; no formal Home/Capture/Processing call site."
+  "runtime_binding_targets": {
+    "idle_capture_resource": "app/src/main/res/drawable-nodpi/primary_capture_button_v1_1.png",
+    "activated_capture_resource": "app/src/main/res/drawable-nodpi/ai_orb_camera_activated_v1.webp",
+    "orb_core_resource": "app/src/main/res/drawable-nodpi/processing_water_core_v1.webp",
+    "rule": "Idle button is byte-identical to frozen V1.1. Activated resource is the existing WebP derivative of user Asset 02. Do not conflate the two."
   }
 }
