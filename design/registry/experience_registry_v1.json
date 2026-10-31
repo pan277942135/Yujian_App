@@ -3876,7 +3876,7 @@
           "adoption_status": "MAIN_ADOPTED_DESIGN_ONLY",
           "render_mode": "authority_index",
           "authority": "design/pages/recognition/web/WEB_HIFI_CONTRACT_V2.md",
-          "machine_authority": "design/pages/recognition/web/contracts/Page_Structure_V2.json",
+          "machine_authority": null,
           "summary": "Web V2 主视觉基准已按 web-three-stage 精确 SHA 冻结为私有像素基准；本地查看器会在选择原图时校验 SHA、尺寸和字节数。公开许可仍未确认，当前 Runtime 像素一致性、真实动效和 Mask 资格仍未验收。",
           "menu_points": [
             "Handoff A：产品外壳、三阶段、五节点与 Result 结构",
@@ -3894,22 +3894,6 @@
             {
               "label": "Visual Tokens JSON",
               "path": "design/pages/recognition/web/contracts/Visual_Tokens_V2.json"
-            },
-            {
-              "label": "Geometry JSON",
-              "path": "design/pages/recognition/web/contracts/Component_Geometry_V2.json"
-            },
-            {
-              "label": "Responsive JSON",
-              "path": "design/pages/recognition/web/contracts/Responsive_Rules_V2.json"
-            },
-            {
-              "label": "Page State Matrix JSON",
-              "path": "design/pages/recognition/web/contracts/Page_State_Matrix_V2.json"
-            },
-            {
-              "label": "SWOS / RR09 Refs JSON",
-              "path": "design/pages/recognition/web/contracts/Authority_References_V2.json"
             },
             {
               "label": "Asset Manifest JSON",
@@ -3969,7 +3953,7 @@
           "state_id": "DESIGN_ONLY",
           "state_id_scope": "Design Manager technical contract route only; not a product runtime state",
           "authority": "design/pages/recognition/web/SWOS_WEB_HIFI_MOTION_TECHNICAL_CONTRACT_V1_0.md",
-          "machine_authority": "design/pages/recognition/web/contracts/SWOS_WEB_HIFI_MOTION_TECHNICAL_CONTRACT_V1_0.json",
+          "machine_authority": null,
           "runtime_status": "NOT_VERIFIED",
           "summary": "真实可播放 Web SWOS 的统一工程合同：3650ms/15 帧、同源照片单一变换、可信鱼体 Mask、金光转译到中文名、WebGL 2/Canvas 2D 降级、九视口与真实帧时间证据。复用既有 SAM ViT-B 实验链路，不新增重复分割服务；生产 Mask 与浏览器视觉验收仍未通过。",
           "menu_points": [
@@ -3983,10 +3967,6 @@
             "08 · 九视口、多场景照片、真实帧时间与逐帧视觉验收"
           ],
           "contract_links": [
-            {
-              "label": "机器可读技术合同 V1.0",
-              "path": "design/pages/recognition/web/contracts/SWOS_WEB_HIFI_MOTION_TECHNICAL_CONTRACT_V1_0.json"
-            },
             {
               "label": "Web 全量高保真合同 V2",
               "path": "design/pages/recognition/web/WEB_HIFI_CONTRACT_V2.md"

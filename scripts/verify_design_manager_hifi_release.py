@@ -369,9 +369,9 @@ def validate_tree(root: Path, *, built: bool = False, expected_build: str | None
         "history.pushState", 'window.addEventListener("popstate", selectFromHash)',
         "renderInvalidManagerRoute", "openHifiImageLightbox", '[data-zoom="fit"]',
         "selectPage(id, null, hifiId, childId, false)", "selectShared(id, variantId, false)",
-        'const contractDetailsItem = view.id === "swos_web_hifi_motion_contract_v1_0"',
+        'const contractDetailsItem = view.id === "swos_web_hifi_motion_contract_v1_0" && view.machine_authority',
         "hifiContractMetadataHtml(contractDetailsItem, view)",
-        "SWOS_WEB_HIFI_MOTION_TECHNICAL_CONTRACT_V1_0.json",
+        "view.machine_authority",
         "parentView?.contract_links",
     ):
         require(token in app, f"manager implementation missing: {token}")

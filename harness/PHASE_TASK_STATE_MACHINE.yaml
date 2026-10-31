@@ -98,7 +98,7 @@ phases:
     exit_condition: "Release-scope feature implementation reaches executable acceptance tasks."
     release_scope: "PRIMARY_PLUS_SECONDARY"
     feature_refs: ["home_normal_v1", "record_date_v2", "share_templates_v1", "auth_register_v2"]
-    task_refs: ["P6-01", "P6-02", "P6-03", "P6-04", "YUJIAN_NH01_ANDROID_FROZEN_V22_IMPLEMENTATION_REPAIR_WORK_B_V1", "YUJIAN_NH01_RESPONSIVE_V2_ANDROID_IMPLEMENTATION_AND_RUNTIME_ACCEPTANCE_V1", "YUJIAN_ANDROID_FISH_CATCH_EFFECT01_UPWARD_SCAN_SHAKE_V1", "YUJIAN_ANDROID_AISTUDIO_PERIMETER_SHADER_PORT_V1", "YUJIAN_ANDROID_SLIMSAM_PIXEL_SEGMENTATION_V1", "YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2"]
+    task_refs: ["P6-01", "P6-02", "P6-03", "P6-04", "YUJIAN_NH01_ANDROID_FROZEN_V22_IMPLEMENTATION_REPAIR_WORK_B_V1", "YUJIAN_NH01_RESPONSIVE_V2_ANDROID_IMPLEMENTATION_AND_RUNTIME_ACCEPTANCE_V1", "YUJIAN_NH01_LAKE_LIGHT_VISUAL_RESPONSIVE_CLOSURE_V1", "YUJIAN_ANDROID_FISH_CATCH_EFFECT01_UPWARD_SCAN_SHAKE_V1", "YUJIAN_ANDROID_AISTUDIO_PERIMETER_SHADER_PORT_V1", "YUJIAN_ANDROID_SLIMSAM_PIXEL_SEGMENTATION_V1", "YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2"]
   P7:
     name: "Integration / Full Surface"
     entry_condition: "Feature implementation is executable."
@@ -280,7 +280,7 @@ feature_closure_rollup:
   home_normal_v1:
     task_id: "FT-home_normal_v1"
     phase: "P8"
-    depends_on: ["NH01-RESPONSIVE-PREVIEW-V2", "YUJIAN_NH01_RESPONSIVE_V2_ANDROID_IMPLEMENTATION_AND_RUNTIME_ACCEPTANCE_V1"]
+    depends_on: ["NH01-RESPONSIVE-PREVIEW-V2", "YUJIAN_NH01_RESPONSIVE_V2_ANDROID_IMPLEMENTATION_AND_RUNTIME_ACCEPTANCE_V1", "YUJIAN_NH01_LAKE_LIGHT_VISUAL_RESPONSIVE_CLOSURE_V1"]
   record_date_v2:
     task_id: "FT-record_date_v2"
     phase: "P6"
@@ -562,6 +562,20 @@ tasks:
     evidence_required: ["camera_capture_handoff", "recognition_processing_state_sequence"]
     completion: "Recognition feature implementation is executable on the current baseline."
     human_required: false
+  YUJIAN_NH01_LAKE_LIGHT_VISUAL_RESPONSIVE_CLOSURE_V1:
+    phase: "P6"
+    priority: "P0"
+    owner: "Work"
+    feature_refs: ["home_normal_v1"]
+    journey_refs: ["J17", "J18"]
+    depends_on: ["NH01-RESPONSIVE-PREVIEW-V2", "YUJIAN_NH01_RESPONSIVE_V2_ANDROID_IMPLEMENTATION_AND_RUNTIME_ACCEPTANCE_V1"]
+    entry_blockers: []
+    target_blockers: []
+    gate_id: "G-NH01-LAKE-LIGHT-VISUAL-RESPONSIVE-CLOSURE-V1"
+    evidence_required: ["private_visual_reference_sha_and_publication_exclusion", "versioned_visual_authority_and_page_resource_binding", "design_manager_real_dom_visual_alignment", "nh01_v2_single_numeric_authority", "browser_core_and_font_matrix", "android_build_unit_lint_exact_sha", "57_case_api28_matrix_and_v22_baseline", "real_fish_record_pager_and_text_metadata_scenarios", "touch_area_and_safe_inset_measurements", "installable_debug_apk_sha256", "user_device_visual_acceptance_status"]
+    completion: "Close the user-selected NH01 Lake Light visual on the existing Design Manager DOM and Android Gemini route. Keep NH01 Responsive Layout V2 as the sole numeric source, preserve real FishRecord identity and runtime photography, and bind the private 229571.png reference by SHA without publishing its bytes. Require exact-source browser evidence, the existing V2 Android baseline plus the 57-case API 28 matrix, measured bounds/text/touch data, Android build/unit/Lint, and APK SHA provenance. Record physical-device visual acceptance separately; do not claim it before the product owner confirms on device."
+    human_required: true
+
   YUJIAN_ANDROID_STARTUP_CRASH_RECOVERY_V1:
     phase: "P6"
     priority: "P0"

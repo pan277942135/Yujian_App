@@ -125,7 +125,7 @@
   },
   "previous_audit_source_sha": "a0596aaf609914e0de8a325da06b2f286a139150",
   "swos_web_hifi_motion_contract": "design/pages/recognition/web/SWOS_WEB_HIFI_MOTION_TECHNICAL_CONTRACT_V1_0.md",
-  "swos_web_hifi_motion_machine_contract": "design/pages/recognition/web/contracts/SWOS_WEB_HIFI_MOTION_TECHNICAL_CONTRACT_V1_0.json",
+  "swos_web_hifi_motion_machine_contract": null,
   "sam_experiment_reuse": {
     "existing_pipeline_repository": "pan277942135/Yujian",
     "existing_api_path": "POST /api/debug/fish-segmentation (existing experiment route; not browser-facing)",

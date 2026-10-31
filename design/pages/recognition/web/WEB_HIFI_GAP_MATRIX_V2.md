@@ -38,7 +38,7 @@ The G01–G18 rows remain a **historical code-review snapshot** of PR #177 HEAD 
 
 ## SWOS Web High-Fidelity Motion Technical Contract V1.0
 
-The implementation authority is [SWOS Web Hi-Fi Motion Technical Contract V1.0](SWOS_WEB_HIFI_MOTION_TECHNICAL_CONTRACT_V1_0.md) and its machine-readable contract at [contracts/SWOS_WEB_HIFI_MOTION_TECHNICAL_CONTRACT_V1_0.json](contracts/SWOS_WEB_HIFI_MOTION_TECHNICAL_CONTRACT_V1_0.json). It binds the existing Web V2, SWOS 15-frame, shared-photo transition and RR09 V3 authorities.
+The implementation authority is [SWOS Web Hi-Fi Motion Technical Contract V1.0](SWOS_WEB_HIFI_MOTION_TECHNICAL_CONTRACT_V1_0.md). Timing and geometry bind directly to the existing SWOS 15-frame keyframe, shared-photo transition and optical contracts; no duplicate Web-specific JSON mirror is maintained. It binds the existing Web V2 and RR09 V3 authorities.
 
 | Workstream | Required closure evidence | Current status |
 |---|---|---|

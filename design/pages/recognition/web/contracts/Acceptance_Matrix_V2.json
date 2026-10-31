@@ -123,7 +123,7 @@
   "runtime_visual_verified": false,
   "pixel_frozen_source": "FROZEN_PRIVATE_SHA_BOUND",
   "swos_web_motion_technical_contract_ref": "design/pages/recognition/web/SWOS_WEB_HIFI_MOTION_TECHNICAL_CONTRACT_V1_0.md",
-  "swos_web_motion_machine_contract_ref": "design/pages/recognition/web/contracts/SWOS_WEB_HIFI_MOTION_TECHNICAL_CONTRACT_V1_0.json",
+  "swos_web_motion_machine_contract_ref": null,
   "playable_browser_demo_status": "NOT_VERIFIED",
   "production_mask_qualification": "NOT_QUALIFIED",
   "business_decision_status": "RESOLVED_BY_AUTHORITY_SCOPE_NO_NUMERIC_THRESHOLD_CHANGE",

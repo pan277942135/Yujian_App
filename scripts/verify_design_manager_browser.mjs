@@ -778,7 +778,7 @@ async function main() {
   assert((await page.locator("#hifiViewCanvas").innerText()).includes("像素基准已冻结（私有源）"), "Web private pixel baseline status missing");
   assert((await page.locator("#hifiViewCanvas").innerText()).includes("27c34ee5d3cf90921df433cb43c671e42b8ffa80b8f5cebfe9b397da2ee853e2"), "Web private pixel baseline SHA missing");
   assert(await page.locator('#hifiViewContractDetails a[href*="VISUAL_BASELINE_FREEZE_V1.md"]').count() === 1, "Web visual baseline freeze record link missing");
-  assert(await page.locator('#hifiViewContractDetails a[href*="Responsive_Rules_V2.json"]').count() === 1, "Web responsive contract link missing");
+  assert(await page.locator('#hifiViewContractDetails .hifi-contract-authority a[href*="WEB_HIFI_CONTRACT_V2.md"]').count() === 1, "Web V2 responsive/visual Markdown authority link missing");
   await page.screenshot({ path: resolve(args.outputDir, "web-hifi-v2-1440.png"), fullPage: true });
   await page.setViewportSize({ width: 390, height: 844 });
   const webMobileWidth = await page.evaluate(() => ({ document: document.documentElement.scrollWidth, body: document.body.scrollWidth }));
@@ -791,7 +791,9 @@ async function main() {
   assert(page.url().endsWith(swosWebMotionHash), "SWOS Web motion technical contract direct Hash route did not resolve");
   assert((await page.locator("#hifiViewTitle").innerText()).includes("SWOS Web 高保真动效技术合同 V1.0"), "SWOS Web motion contract title is missing");
   assert((await page.locator("#hifiViewAuthorities").innerText()).includes("SWOS_WEB_HIFI_MOTION_TECHNICAL_CONTRACT_V1_0.md"), "SWOS Web motion contract authority link is missing");
-  assert(await page.locator('#hifiViewContractDetails .hifi-contract-links a[href*="SWOS_WEB_HIFI_MOTION_TECHNICAL_CONTRACT_V1_0.json"]').count() === 1, "SWOS Web motion machine contract link is missing from the Contracts section");
+  assert(await page.locator('#hifiViewContractDetails .hifi-contract-authority a[href*="SWOS_WEB_HIFI_MOTION_TECHNICAL_CONTRACT_V1_0.md"]').count() === 1, "SWOS Web motion Markdown authority link is missing");
+  assert(await page.locator('#hifiViewContractDetails .hifi-contract-links a[href*="SWOS_15_Frame_Keyframe_Contract_V1_1.json"]').count() === 1, "SWOS 15-frame keyframe contract link is missing");
+  assert(await page.locator('#hifiViewContractDetails .hifi-contract-links a[href*="SWOS_Shared_Photo_Transition_Contract_V1.json"]').count() === 1, "Shared photo transition machine contract link is missing");
   assert(await page.locator('.hifi-related-routes a[href="' + swosStaticHash + '"]').count() === 1, "SWOS Web motion contract must link to the static 15-frame workspace");
   assert((await page.locator("#hifiViewCanvas").innerText()).includes("SAM"), "SWOS Web motion contract must state existing SAM experiment reuse");
   await page.screenshot({ path: resolve(args.outputDir, "swos-web-motion-contract-1440.png"), fullPage: true });
