@@ -20,6 +20,7 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.FloatBuffer
 import java.nio.LongBuffer
+import java.security.MessageDigest
 import java.util.ArrayDeque
 import java.util.UUID
 import kotlin.math.exp
@@ -54,6 +55,8 @@ class SlimSamSegmenter(
 
     private var visionSession: OrtSession? = null
     private var decoderSession: OrtSession? = null
+    private var visionModelSha256: String? = null
+    private var decoderModelSha256: String? = null
 
     private data class CachedVisionEmbedding(
         val bitmapId: Int,
@@ -76,6 +79,7 @@ class SlimSamSegmenter(
         val started = SystemClock.uptimeMillis()
         Log.i(TAG, "SLIMSAM_MODEL_LOAD_START model=vision")
         val bytes = readAssetBytes(VISION_ENCODER_MODEL)
+        visionModelSha256 = sha256(bytes)
         return environment.createSession(bytes, sessionOptions).also {
             visionSession = it
             Log.i(TAG, "SLIMSAM_MODEL_LOAD_END model=vision bytes=${bytes.size} duration_ms=${SystemClock.uptimeMillis() - started}")
@@ -88,6 +92,7 @@ class SlimSamSegmenter(
         val started = SystemClock.uptimeMillis()
         Log.i(TAG, "SLIMSAM_MODEL_LOAD_START model=decoder")
         val bytes = readAssetBytes(MASK_DECODER_MODEL)
+        decoderModelSha256 = sha256(bytes)
         return environment.createSession(bytes, sessionOptions).also {
             decoderSession = it
             Log.i(TAG, "SLIMSAM_MODEL_LOAD_END model=decoder bytes=${bytes.size} duration_ms=${SystemClock.uptimeMillis() - started}")
@@ -162,7 +167,7 @@ class SlimSamSegmenter(
                     modelToPhotoTransform = gridToPhoto,
                     pixelCenterConvention = "TOP_LEFT_ZERO_BASED", threshold = FishSubjectQualityGate.MASK_THRESHOLD,
                     contourVersion = "GRID_CONTOUR_V1",
-                    modelSha256 = "vision:cce23c7b2e5d4f330932738fb67ba518e04b0d99ccdd1cccd22a7da4e01f2971;decoder:cb90b279f549d2cab7fd6e20c38522438c65d84bdcca3d2a764cff7d857fdce2",
+                    modelSha256 = "vision:${requireNotNull(visionModelSha256)};decoder:${requireNotNull(decoderModelSha256)}",
                 )
 
                 // 5. Bilinearly sample 256x256 logits into the ROI mask
@@ -573,6 +578,9 @@ class SlimSamSegmenter(
             ByteArrayOutputStream().use { out -> input.copyTo(out); out.toByteArray() }
         }
 
+    private fun sha256(bytes: ByteArray): String = MessageDigest.getInstance("SHA-256")
+        .digest(bytes).joinToString("") { "%02x".format(it) }
+
     private fun failed(
         code: String,
         started: Long,
@@ -603,6 +611,8 @@ class SlimSamSegmenter(
         visionSession = null
         decoderSession?.close()
         decoderSession = null
+        visionModelSha256 = null
+        decoderModelSha256 = null
         cachedEmbedding = null
     }
 

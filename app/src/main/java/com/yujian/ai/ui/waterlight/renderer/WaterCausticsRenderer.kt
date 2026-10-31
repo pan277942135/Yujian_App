@@ -7,12 +7,15 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
+import kotlin.math.sqrt
 
 /** Background 220px Canvas2D port. Bitmap access is serialized with UI consumers. */
 class WaterCausticsRenderer(private val scope: CoroutineScope, private val pixelBudget: Int = 220 * 220) : AutoCloseable {
+    init { require(pixelBudget > 0) }
     private val lock = Any()
     private val gate = UnifiedWaterLightEngine()
     private var buffers: Array<Bitmap>? = null
@@ -28,7 +31,8 @@ class WaterCausticsRenderer(private val scope: CoroutineScope, private val pixel
         tint: WaterCausticsField.Rgb, tintStrength: Double, onReady: () -> Unit,
     ) {
         if (outputWidth <= 0 || outputHeight <= 0) return
-        val width = min(220, outputWidth).coerceAtLeast(1)
+        val budgetedWidth = sqrt(pixelBudget.toDouble() * outputWidth / outputHeight).toInt().coerceAtLeast(1)
+        val width = min(220, min(outputWidth, budgetedWidth)).coerceAtLeast(1)
         val height = max(1, (width.toDouble() * outputHeight / outputWidth).roundToInt())
         if (width.toLong() * height > pixelBudget) return
         synchronized(lock) {
@@ -65,7 +69,9 @@ class WaterCausticsRenderer(private val scope: CoroutineScope, private val pixel
                 buffers?.get(target)?.setPixels(pixels, 0, width, 0, 0, width, height)
                 front = target
             }
-            onReady()
+            withContext(Dispatchers.Main.immediate) {
+                if (synchronized(lock) { gate.accepts(frame) }) onReady()
+            }
         }
     }
 

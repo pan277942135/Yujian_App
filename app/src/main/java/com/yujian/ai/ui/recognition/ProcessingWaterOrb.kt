@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.yujian.ai.R
 import com.yujian.ai.ui.waterlight.core.WaterLightFrame
+import com.yujian.ai.ui.waterlight.core.WaterLightMaterialProfile
 import com.yujian.ai.ui.waterlight.renderer.OrbWaterLightRibbons
 import kotlin.math.PI
 import kotlin.math.cos
@@ -37,6 +38,7 @@ fun ProcessingWaterOrb(
     fromCamera: Boolean,
     modifier: Modifier = Modifier,
     waterLightFrame: WaterLightFrame,
+    waterLightMaterial: WaterLightMaterialProfile = WaterLightMaterialProfile.ORB_LEGACY,
 ) {
     val frame = processingOrbMotionFrame(entranceElapsedMs, fromCamera, reduceMotion, completion)
     val morph = frame.waterAlpha
@@ -49,7 +51,7 @@ fun ProcessingWaterOrb(
         scaleY = scaleX
         alpha = frame.completionAlpha
     }, contentAlignment = Alignment.Center) {
-        OrbWaterLightRibbons(coreSize, waterLightFrame, ribbons, settle, false, lowPerformance)
+        OrbWaterLightRibbons(coreSize, waterLightFrame, ribbons, settle, false, lowPerformance, waterLightMaterial)
         if (morph < 1f) Image(
             painterResource(R.drawable.capture_button_main_v1), null,
             Modifier.size(coreSize).graphicsLayer {
@@ -82,6 +84,6 @@ fun ProcessingWaterOrb(
                 }
             }
         }
-        OrbWaterLightRibbons(coreSize, waterLightFrame, ribbons, settle, true, lowPerformance)
+        OrbWaterLightRibbons(coreSize, waterLightFrame, ribbons, settle, true, lowPerformance, waterLightMaterial)
     }
 }

@@ -33,8 +33,10 @@ class WaterLightFrameTest {
     @Test fun orbDefaultsRemainTheExistingParameters() {
         val orb = WaterLightMaterialProfile.ORB_LEGACY
         assertEquals(0xFFD8BC87, orb.goldColor)
+        assertEquals(0xFF348CA6, orb.blueColor)
         assertEquals(0xFF5B8F78, orb.greenColor)
         assertEquals(5.5f, orb.goldPeriodSeconds, 0f)
+        assertEquals(4.5f, orb.bluePeriodSeconds, 0f)
         assertEquals(6.5f, orb.greenPeriodSeconds, 0f)
         assertEquals(.9f, orb.goldCoreWidthDp, 0f)
         assertEquals(1.6f, orb.greenCoreWidthDp, 0f)

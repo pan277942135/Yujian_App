@@ -28,6 +28,7 @@ import androidx.compose.ui.unit.dp
 import com.yujian.ai.ai.NormalizedFishBox
 import com.yujian.ai.ai.RecognitionPhase
 import com.yujian.ai.ui.identify.RecognitionImageTransform
+import com.yujian.ai.ui.waterlight.core.WaterLightFrame
 
 internal fun recognitionMaskContourEnabled(
     phase: RecognitionPhase,
@@ -151,7 +152,9 @@ fun RecognitionFishFocus(
     reduceMotion: Boolean = false,
     lowPerformance: Boolean = false,
     trustedMask: Boolean = false,
+    waterLightFrame: WaterLightFrame? = null,
 ) {
+    if (waterLightFrame != null && waterLightFrame.phase != phase) return
     if (!recognitionMaskContourEnabled(phase, trustedMask) || focusBox == null) return
     if (subjectBitmap == null || subjectBox == null || contour.isEmpty()) return
 

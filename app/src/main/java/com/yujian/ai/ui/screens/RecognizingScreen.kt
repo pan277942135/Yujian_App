@@ -34,6 +34,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -50,6 +51,8 @@ import androidx.compose.ui.geometry.RoundRect
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.clipPath
+import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
+import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
@@ -95,6 +98,14 @@ import com.yujian.ai.ui.recognition.RecognitionMotionTraceSample
 import com.yujian.ai.ui.recognition.RecognitionPerimeterShaderOverlay
 import com.yujian.ai.ui.recognition.ProcessingWaterOrb
 import com.yujian.ai.ui.waterlight.core.WaterLightFrame
+import com.yujian.ai.ui.waterlight.core.UnifiedWaterLightEngine
+import com.yujian.ai.ui.waterlight.core.WaterLightHost
+import com.yujian.ai.ui.waterlight.core.WaterLightHostBinding
+import com.yujian.ai.ui.waterlight.core.WaterLightHostGeometry
+import com.yujian.ai.ui.waterlight.core.WaterLightMaterialProfile
+import com.yujian.ai.ui.waterlight.renderer.WaterCausticsField
+import com.yujian.ai.ui.waterlight.renderer.WaterCausticsRenderer
+import com.yujian.ai.ui.waterlight.renderer.WaterDropletRenderer
 import com.yujian.ai.ui.recognition.processingOrbMotionFrame
 import com.yujian.ai.ui.recognition.RecognitionVisualStateController
 import com.yujian.ai.ui.recognition.RECOGNITION_MASK_CONTOUR_REVEAL_MS
@@ -229,7 +240,7 @@ fun RecognitionProcessingScene(
                 LOG_TAG,
                 "PHOTO_DECODE_READY session=${recognitionSessionId.orEmpty()} attempt=${recognitionAttemptId.orEmpty()} " +
                     "image=${it.imageId} sha256=${it.photoSha256} source=${it.bitmap.width}x${it.bitmap.height} " +
-                    "exif_normalized=true orientation_degrees_applied=${it.sourceOrientationDegrees} " +
+                    "exif_normalized=true exif_orientation=${it.sourceExifOrientation} orientation_degrees_applied=${it.sourceOrientationDegrees} " +
                     "uptime_ms=${recognitionMonotonicNowMs()}",
             )
         }
@@ -425,7 +436,7 @@ fun RecognitionProcessingScene(
             LOG_TAG,
             "PROCESSING_P0 session=${recognitionSessionId.orEmpty()} attempt=${recognitionAttemptId.orEmpty()} " +
                 "image=${selected.imageId} sha256=${selected.photoSha256} source=${selected.bitmap.width}x${selected.bitmap.height} " +
-                "exif_normalized=true orientation_degrees_applied=${selected.sourceOrientationDegrees} uptime_ms=$startedAtMs " +
+                "exif_normalized=true exif_orientation=${selected.sourceExifOrientation} orientation_degrees_applied=${selected.sourceOrientationDegrees} uptime_ms=$startedAtMs " +
                 "model_phase_at_photo_start=$realPhase model_ready_at_photo_start=${finishedResult?.ready == true}",
         )
         if (phaseOverride == null) phasePresentedCallback(RecognitionPhase.CAPTURED, startedAtMs)
@@ -649,6 +660,16 @@ fun RecognitionProcessingScene(
         photoPresentedAtMs == null -> 0L
         else -> controller.opticalReferenceElapsedMs(visualNowMs, trustedSubjectMask)
     }
+    val waterLightFrame = WaterLightFrame(
+        sessionId = recognitionSessionId.orEmpty(), photoSha256 = image?.photoSha256,
+        elapsedMs = processingElapsedMs, opticalReferenceElapsedMs = opticalReferenceElapsedMs,
+        phase = rendered, completion = orbCompletion.value.coerceIn(0f, 1f),
+        reducedMotion = motionPolicy.reduceMotion,
+        geometryVersion = image?.bitmap?.generationId?.toLong() ?: 0L,
+    )
+    val waterLightEngine = remember(sceneKey) { UnifiedWaterLightEngine() }
+    waterLightEngine.activate(waterLightFrame.sessionId, waterLightFrame.geometryVersion)
+    DisposableEffect(waterLightEngine) { onDispose { waterLightEngine.release() } }
     LaunchedEffect(sceneKey, rendered, trustedSubjectMask, photoPresentedAtMs) {
         if (photoPresentedAtMs != null && trustedSubjectMask &&
             (rendered == RecognitionPhase.OUTLINE || rendered == RecognitionPhase.CLASSIFYING) &&
@@ -809,6 +830,8 @@ fun RecognitionProcessingScene(
             }
         }
         if (image != null && photoFlowPlan != null) RecognitionPhoto(
+            waterLightFrame = waterLightFrame,
+            waterLightEngine = waterLightEngine,
             bitmap = image.bitmap,
             photoFlowPlan = photoFlowPlan,
             photoEntryProgress = photoEntryProgress,
@@ -890,21 +913,19 @@ fun RecognitionProcessingScene(
             val currentCorePx = initialCorePx + (plan.orbCoreSizePx - initialCorePx) * eased
             val core = with(density) { currentCorePx.toDp() }
             val outerPx = currentCorePx + with(density) { 28.dp.toPx() }
-            ProcessingWaterOrb(core, entranceElapsedMs, processingElapsedMs, orbCompletion.value,
+            val orbX = fromX + (plan.statusCenterXPx - fromX) * eased - outerPx / 2f
+            val orbY = fromY + (plan.orbCenterYPx - fromY) * eased - outerPx / 2f
+            val orbHost = remember(waterLightEngine) {
+                WaterLightHostBinding(WaterLightHost.ORB, WaterLightMaterialProfile.ORB_LEGACY, waterLightEngine)
+            }
+            if (orbHost.accepts(waterLightFrame, WaterLightHostGeometry(
+                    WaterLightHost.ORB, waterLightFrame.geometryVersion, orbX, orbY, orbX + outerPx, orbY + outerPx,
+                ))) ProcessingWaterOrb(core, entranceElapsedMs, processingElapsedMs, orbCompletion.value,
                 motionPolicy.reduceMotion, motionPolicy.lowPerformance, capture != null,
                 Modifier.offset { IntOffset(
-                    (fromX + (plan.statusCenterXPx - fromX) * eased - outerPx / 2f).roundToInt(),
-                    (fromY + (plan.orbCenterYPx - fromY) * eased - outerPx / 2f).roundToInt()) },
-                waterLightFrame = WaterLightFrame(
-                    sessionId = recognitionSessionId.orEmpty(),
-                    photoSha256 = image?.photoSha256,
-                    elapsedMs = processingElapsedMs,
-                    opticalReferenceElapsedMs = opticalReferenceElapsedMs,
-                    phase = rendered,
-                    completion = orbCompletion.value.coerceIn(0f, 1f),
-                    reducedMotion = motionPolicy.reduceMotion,
-                    geometryVersion = image?.bitmap?.generationId?.toLong() ?: 0L,
-                ))
+                    orbX.roundToInt(), orbY.roundToInt()) },
+                waterLightFrame = waterLightFrame,
+                waterLightMaterial = orbHost.material)
         }
         if (manualDiagnostic) {
             Button(
@@ -959,6 +980,8 @@ private enum class RecognitionDiagnosticStep(
 
 @Composable
 private fun RecognitionPhoto(
+    waterLightFrame: WaterLightFrame,
+    waterLightEngine: UnifiedWaterLightEngine,
     bitmap: Bitmap,
     photoFlowPlan: RecognitionPhotoFlowPlan,
     photoEntryProgress: Float,
@@ -1002,6 +1025,44 @@ private fun RecognitionPhoto(
             photoEntryProgress,
         )
     }
+    val waterHosts = remember(waterLightEngine) {
+        listOf(WaterLightHost.PERIMETER, WaterLightHost.PATH, WaterLightHost.CONTOUR).associateWith { host ->
+            WaterLightHostBinding(host, WaterLightMaterialProfile.ORB_LEGACY.copy(host = host), waterLightEngine)
+        }
+    }
+    val photoBounds = transform.photoContentRect
+    fun hostReady(host: WaterLightHost, left: Float, top: Float, right: Float, bottom: Float): Boolean =
+        waterHosts.getValue(host).accepts(waterLightFrame,
+            WaterLightHostGeometry(host, waterLightFrame.geometryVersion, left, top, right, bottom))
+    val perimeterReady = hostReady(WaterLightHost.PERIMETER,
+        photoBounds.left, photoBounds.top, photoBounds.right, photoBounds.bottom)
+    val pathReady = hostReady(WaterLightHost.PATH,
+        photoBounds.left, photoBounds.top, photoBounds.right, photoBounds.bottom)
+    val contourStart = focusBox?.let { transform.mapNormalized(it.x1, it.y1) }
+    val contourEnd = focusBox?.let { transform.mapNormalized(it.x2, it.y2) }
+    val contourReady = contourStart != null && contourEnd != null && hostReady(WaterLightHost.CONTOUR,
+        contourStart.x, contourStart.y, contourEnd.x, contourEnd.y)
+    val waterScope = rememberCoroutineScope()
+    val causticsRenderer = remember(waterLightEngine) { WaterCausticsRenderer(waterScope) }
+    val dropletRenderer = remember(waterLightEngine) { WaterDropletRenderer() }
+    var causticsRevision by remember(waterLightEngine) { mutableIntStateOf(0) }
+    DisposableEffect(causticsRenderer, dropletRenderer) {
+        onDispose { causticsRenderer.close(); dropletRenderer.release() }
+    }
+    // Candidate additive material only after the frozen P0/P2/P3 samples.
+    val additiveMaterialActive = pathReady && waterLightFrame.phase == RecognitionPhase.CLASSIFYING &&
+        waterLightFrame.opticalReferenceElapsedMs in 1_550L..2_600L &&
+        !waterLightFrame.reducedMotion && !motionPolicy.lowPerformance
+    LaunchedEffect(causticsRenderer, waterLightFrame, photoBounds, additiveMaterialActive) {
+        if (additiveMaterialActive) causticsRenderer.request(
+            frame = waterLightFrame,
+            outputWidth = photoBounds.width.roundToInt(), outputHeight = photoBounds.height.roundToInt(),
+            scale = 1.0, intensity = .6,
+            color = WaterCausticsField.Rgb(.78, .94, .91),
+            tint = WaterCausticsField.Rgb(.10, .32, .36), tintStrength = .06,
+            onReady = { causticsRevision++ },
+        )
+    }
     val photoImage = remember(bitmap) { bitmap.asImageBitmap() }
     val reportedFirstFrame = remember(bitmap, motionSessionKey) { AtomicBoolean(false) }
     val firstFrameCallback by rememberUpdatedState(onPhotoFirstFramePresented)
@@ -1015,6 +1076,7 @@ private fun RecognitionPhoto(
         pivotFractionY = photoFlowPlan.targetPhotoRect.center.y.div(viewportHeightPx).coerceIn(0f, 1f),
     )
     val photoClipPath = remember { Path() }
+    val additiveClipPath = remember { Path() }
     var selectedLayerMode by remember(bitmap, motionSessionKey) { mutableStateOf(RecognitionLayerMode.FULL) }
     val layerMode = diagnosticStep?.layerMode ?: selectedLayerMode
     var viewportBounds by remember(bitmap, motionSessionKey) { mutableStateOf<RecognitionRevealWindowRect?>(null) }
@@ -1102,7 +1164,8 @@ private fun RecognitionPhoto(
                     )
                 }
             }
-            if (!BuildConfig.DEBUG || layerMode != RecognitionLayerMode.PHOTO_ONLY) RecognitionPerimeterShaderOverlay(
+            if (perimeterReady && (!BuildConfig.DEBUG || layerMode != RecognitionLayerMode.PHOTO_ONLY)) RecognitionPerimeterShaderOverlay(
+                waterLightFrame = waterLightFrame,
                 bitmap = bitmap,
                 photoTransform = transform,
                 elapsedMs = processingElapsedMs,
@@ -1119,7 +1182,7 @@ private fun RecognitionPhoto(
                     contentDescription = "正在识别的鱼获照片"
                 },
             )
-            if (!BuildConfig.DEBUG || layerMode == RecognitionLayerMode.PHOTO_GLES_AMBIENT || layerMode == RecognitionLayerMode.FULL) RecognitionAmbientField(
+            if (pathReady && (!BuildConfig.DEBUG || layerMode == RecognitionLayerMode.PHOTO_GLES_AMBIENT || layerMode == RecognitionLayerMode.FULL)) RecognitionAmbientField(
                 phase,
                 Modifier.fillMaxSize(),
                 visualClockMs,
@@ -1132,8 +1195,31 @@ private fun RecognitionPhoto(
                 onMotionFrame = onMotionFrame,
                 photoTransform = transform,
                 includeEdgeField = true,
+                waterLightFrame = waterLightFrame,
             )
-            if ((!BuildConfig.DEBUG || layerMode == RecognitionLayerMode.FULL || diagnosticStep == RecognitionDiagnosticStep.CONTOUR || diagnosticStep == RecognitionDiagnosticStep.GOLD) && diagnosticStep != RecognitionDiagnosticStep.DETECTOR) RecognitionFishFocus(
+            if (additiveMaterialActive && (!BuildConfig.DEBUG || layerMode == RecognitionLayerMode.FULL)) {
+                val readyRevision = causticsRevision
+                Canvas(Modifier.fillMaxSize()) {
+                    val rect = transform.photoContentRect
+                    additiveClipPath.reset()
+                    additiveClipPath.addRoundRect(RoundRect(rect.left, rect.top, rect.right, rect.bottom,
+                        CornerRadius(16.dp.toPx(), 16.dp.toPx())))
+                    clipPath(additiveClipPath) {
+                        if (readyRevision >= 0) causticsRenderer.withFrontBitmap { prepared ->
+                            drawImage(prepared.asImageBitmap(),
+                                dstOffset = IntOffset(rect.left.roundToInt(), rect.top.roundToInt()),
+                                dstSize = IntSize(rect.width.roundToInt().coerceAtLeast(1),
+                                    rect.height.roundToInt().coerceAtLeast(1)), alpha = .12f)
+                        }
+                        drawIntoCanvas { canvas -> dropletRenderer.draw(canvas.nativeCanvas, waterLightFrame,
+                            android.graphics.RectF(rect.left, rect.top, rect.right, rect.bottom),
+                            seed = waterLightFrame.sessionId.hashCode().toLong() * 31 + photoSha256.hashCode(),
+                            count = 3, opacity = .45f)
+                        }
+                    }
+                }
+            }
+            if (contourReady && (!BuildConfig.DEBUG || layerMode == RecognitionLayerMode.FULL || diagnosticStep == RecognitionDiagnosticStep.CONTOUR || diagnosticStep == RecognitionDiagnosticStep.GOLD) && diagnosticStep != RecognitionDiagnosticStep.DETECTOR) RecognitionFishFocus(
                 phase,
                 focusBox,
                 subjectBitmap,
@@ -1147,6 +1233,7 @@ private fun RecognitionPhoto(
                 reduceMotion = motionPolicy.reduceMotion,
                 lowPerformance = motionPolicy.lowPerformance,
                 trustedMask = trustedMask,
+                waterLightFrame = waterLightFrame,
             )
             if (diagnosticStep == RecognitionDiagnosticStep.DETECTOR && focusBox != null) Canvas(Modifier.fillMaxSize()) {
                 val topLeft = transform.mapNormalized(focusBox.x1, focusBox.y1)

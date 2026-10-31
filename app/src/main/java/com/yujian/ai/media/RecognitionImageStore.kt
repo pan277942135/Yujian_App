@@ -162,6 +162,7 @@ object RecognitionImageStore {
             bitmap = visible,
             source = source,
             sourceOrientationDegrees = rotation,
+            sourceExifOrientation = orientation,
             photoSha256 = sha256,
         )
     }
