@@ -1,0 +1,76 @@
+name: Frozen Capture V2 exact APK evidence
+on:
+  push:
+    branches: ['control/capture-runtime-v2-evidence']
+permissions:
+  contents: read
+  actions: read
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Select exact verified product build
+        id: apk
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const source = 'dcda317b4833688a98658a99813a639bd4cfae29';
+            let selected;
+            for (let i=0; i<90; i++) {
+              const {data} = await github.rest.actions.listWorkflowRunsForRepo({...context.repo, head_sha: source, per_page: 30});
+              selected = data.workflow_runs.find(x => x.name === 'Android CI' && x.event === 'pull_request' && x.head_sha === source);
+              if (selected?.status === 'completed') {
+                if (selected.conclusion !== 'success') throw new Error('Exact product build failed: '+selected.id);
+                break;
+              }
+              await new Promise(resolve => setTimeout(resolve, 10000));
+            }
+            if (selected?.conclusion !== 'success') throw new Error('Exact build not ready');
+            const {data} = await github.rest.actions.listWorkflowRunArtifacts({...context.repo, run_id: selected.id});
+            const app = data.artifacts.find(x=>x.name.startsWith('YuJian-debug-') && !x.expired);
+            const tests = data.artifacts.find(x=>x.name.startsWith('YuJian-runtime-apks-') && !x.expired);
+            if (!app || !tests) throw new Error('Exact APK pair missing');
+            core.setOutput('run', String(selected.id));
+            core.setOutput('app', app.name);
+            core.setOutput('tests', tests.name);
+      - uses: actions/download-artifact@v4
+        with:
+          name: ${{ steps.apk.outputs.app }}
+          run-id: ${{ steps.apk.outputs.run }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: startup-input
+      - uses: actions/download-artifact@v4
+        with:
+          name: ${{ steps.apk.outputs.tests }}
+          run-id: ${{ steps.apk.outputs.run }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: startup-tests
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Exact APK startup, resource decode, real CameraX and matrix
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          arch: x86_64
+          target: google_apis
+          profile: pixel_2
+          disable-animations: false
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back emulated -camera-front none
+          script: bash scripts/android_runtime/capture_v2_evidence.sh
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: capture-v2-exact-apk-${{ github.sha }}
+          path: |
+            startup-evidence
+            capture-evidence
+          if-no-files-found: error
