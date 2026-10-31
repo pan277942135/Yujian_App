@@ -94,6 +94,7 @@ import com.yujian.ai.ui.recognition.RecognitionMotionPolicy
 import com.yujian.ai.ui.recognition.RecognitionMotionTraceSample
 import com.yujian.ai.ui.recognition.RecognitionPerimeterShaderOverlay
 import com.yujian.ai.ui.recognition.ProcessingWaterOrb
+import com.yujian.ai.ui.waterlight.core.WaterLightFrame
 import com.yujian.ai.ui.recognition.processingOrbMotionFrame
 import com.yujian.ai.ui.recognition.RecognitionVisualStateController
 import com.yujian.ai.ui.recognition.RECOGNITION_MASK_CONTOUR_REVEAL_MS
@@ -893,7 +894,17 @@ fun RecognitionProcessingScene(
                 motionPolicy.reduceMotion, motionPolicy.lowPerformance, capture != null,
                 Modifier.offset { IntOffset(
                     (fromX + (plan.statusCenterXPx - fromX) * eased - outerPx / 2f).roundToInt(),
-                    (fromY + (plan.orbCenterYPx - fromY) * eased - outerPx / 2f).roundToInt()) })
+                    (fromY + (plan.orbCenterYPx - fromY) * eased - outerPx / 2f).roundToInt()) },
+                waterLightFrame = WaterLightFrame(
+                    sessionId = recognitionSessionId.orEmpty(),
+                    photoSha256 = image?.photoSha256,
+                    elapsedMs = processingElapsedMs,
+                    opticalReferenceElapsedMs = opticalReferenceElapsedMs,
+                    phase = rendered,
+                    completion = orbCompletion.value.coerceIn(0f, 1f),
+                    reducedMotion = motionPolicy.reduceMotion,
+                    geometryVersion = image?.bitmap?.generationId?.toLong() ?: 0L,
+                ))
         }
         if (manualDiagnostic) {
             Button(
