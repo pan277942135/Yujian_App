@@ -1,0 +1,5 @@
+# Android startup crash recovery V1
+
+The product owner reported immediate launch crash after installing Processing Lake Orb V1, APK SHA-256 3f52e452f38ea718f1191b677371eff02890ed9d377df82787c5cdb2b0d04d0f (Actions run 41139905943).
+
+Inspect the actual launcher and original APK first. Record emulator startup findings separately from the user-device result. Repair confirmed defects only; do not name an unproven cause. Add a bounded persistent uncaught-exception report before Compose startup and a native recovery/export screen on the following launch. Preserve Android's prior default exception handler and termination behavior. Never swallow a fatal exception or report a recovery screen as the normal Home PASS. Export only app exception/build/device diagnostics, never photos, auth tokens or unrelated logs. Keep all user records and model/Processing semantics. Verify the replacement APK with one focused emulator cold/warm startup check and the existing build/unit/lint gates. User-device crash trace remains necessary if the original crash cannot be reproduced.
