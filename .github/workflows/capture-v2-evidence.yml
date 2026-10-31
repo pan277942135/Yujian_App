@@ -2,6 +2,9 @@ name: Frozen Capture V2 exact APK evidence
 on:
   push:
     branches: ['control/capture-runtime-v2-evidence']
+concurrency:
+  group: capture-v2-exact-apk-evidence
+  cancel-in-progress: true
 permissions:
   contents: read
   actions: read
@@ -20,7 +23,7 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
-            const source = 'dcda317b4833688a98658a99813a639bd4cfae29';
+            const source = '4bd24288b8b4984f1a029419755e892868eb15a3';
             let selected;
             for (let i=0; i<90; i++) {
               const {data} = await github.rest.actions.listWorkflowRunsForRepo({...context.repo, head_sha: source, per_page: 30});

@@ -51,9 +51,15 @@ try:
         while time.monotonic()<deadline and not re.search(r'page_state=ZOOM .*zoom_ratio=2(?:\.0)?\b',logs()): time.sleep(.2)
         assert re.search(r'page_state=ZOOM .*zoom_ratio=2(?:\.0)?\b',logs()), '2x did not reach observed CameraX zoom state'
     # Drag the actual entry; the observed CameraX state must change and remain in range.
-    entry=next(n for n in nodes() if re.fullmatch(r'\d+\.\dx',n.get('text','')))
-    x,y,r,b=bounds(entry);shell(f'input swipe {(x+r)//2} {(y+b)//2} {min(365,r+45)} {(y+b)//2} 500')
-    time.sleep(.5);shot('05-zoom-dragged');dump('05-zoom-dragged')
+    entry=[n for n in nodes() if re.fullmatch(r'\d+\.\dx',n.get('text',''))][-1]
+    observed=re.findall(r'page_state=ZOOM .*?zoom_ratio=([\d.]+) min_zoom=([\d.]+) max_zoom=([\d.]+)',logs())
+    before,minimum,maximum=map(float,observed[-1])
+    delta=-25 if before>minimum+.01 else 25
+    x,y,r,b=bounds(entry);shell(f'input swipe {(x+r)//2} {(y+b)//2} {(x+r)//2+delta} {(y+b)//2} 500')
+    time.sleep(.5)
+    after=float(re.findall(r'page_state=ZOOM .*?zoom_ratio=([\d.]+)',logs())[-1])
+    assert maximum<=minimum or abs(after-before)>.01,'Dial gesture did not change observed CameraX zoom'
+    shot('05-zoom-dragged');dump('05-zoom-dragged')
     shutter=find('拍摄',enabled=True);tap(shutter)
     deadline=time.monotonic()+45
     while time.monotonic()<deadline and 'decode_success=true' not in logs(): time.sleep(.3)
