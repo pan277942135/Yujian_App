@@ -33,7 +33,7 @@
 - The unrestricted repository suite remains NOT_RUN under the existing metadata-access review. No metadata endpoint was accessed and no runtime credential was read.
 ## SWOS Web Hi-Fi Motion Technical Contract V1.0
 
-The implementation authority is [SWOS Web Hi-Fi Motion Technical Contract V1.0](../SWOS_WEB_HIFI_MOTION_TECHNICAL_CONTRACT_V1_0.md) and its [machine-readable contract](../contracts/SWOS_WEB_HIFI_MOTION_TECHNICAL_CONTRACT_V1_0.json). This contract binds the existing Web V2, SWOS 15-frame, shared-photo-transition, RR09 V3 and existing SAM experiment pipeline. It requires a real playable 3650ms browser preview, frame stepping/seeking, shared photo geometry, Chinese-only species title, nine viewports, multi-scene photos and actual frame-time evidence.
+The active implementation authority is [SWOS Web Hi-Fi Motion Technical Contract V1.0](../SWOS_WEB_HIFI_MOTION_TECHNICAL_CONTRACT_V1_0.md), with timing and geometry supplied by the existing SWOS 15-frame keyframe, shared-photo transition and optical contracts. The V1 input-pack manifest below is a historical audit snapshot; its retired Web-specific JSON mirror references are not active authorities. This contract binds the existing Web V2, RR09 V3 and SAM experiment pipeline. It requires a real playable 3650ms browser preview, frame stepping/seeking, shared photo geometry, Chinese-only species title, nine viewports, multi-scene photos and actual frame-time evidence.
 
 ## Frozen behavior that Work must not reinterpret
 

@@ -176,14 +176,17 @@ def validate_tree(root: Path, *, built: bool = False, expected_build: str | None
         or swos_web_motion.get("status") != "DESIGN_ONLY"
         or swos_web_motion.get("render_mode") != "authority_index"
         or swos_web_motion.get("authority") != "design/pages/recognition/web/SWOS_WEB_HIFI_MOTION_TECHNICAL_CONTRACT_V1_0.md"
-        or swos_web_motion.get("machine_authority") != "design/pages/recognition/web/contracts/SWOS_WEB_HIFI_MOTION_TECHNICAL_CONTRACT_V1_0.json"
+        or swos_web_motion.get("machine_authority") not in (None, "")
         or swos_web_motion.get("runtime_status") != "NOT_VERIFIED"
     ):
         fail("SWOS Web motion technical contract must be a registered design-only authority route")
-    for field in ("authority", "machine_authority"):
+    for field in ("authority",):
         target = swos_web_motion.get(field)
         if not target or not (root / target).is_file():
             fail(f"SWOS Web motion technical contract is missing {field}: {target}")
+    machine_authority = swos_web_motion.get("machine_authority")
+    if machine_authority and not (root / machine_authority).is_file():
+        fail(f"SWOS Web motion technical contract is missing machine_authority: {machine_authority}")
     if not any(link.get("route") == "#page/recognition_flow_v1_2/hifi/swos_static_visual_v1_1" for link in swos_web_motion.get("related_routes", [])):
         fail("SWOS Web motion contract must link back to the 15-frame static review route")
     guide = next(x for x in recognition["hifi_views"] if x.get("id") == "capture_first_use_guide")

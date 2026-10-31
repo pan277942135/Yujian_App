@@ -23,7 +23,7 @@
     {
       "authority_id": "experience",
       "path": "design/registry/experience_registry_v1.json",
-      "sha256": "56eb2cfd4ae6ce2debebd16375cac474a654f826c4e5877d50feabd43efa83f9",
+      "sha256": "2b812d083c2a5ff1e5b6040274c8f9b2da9943cee03fcf426bd078923927fc02",
       "purpose": "experience"
     },
     {
@@ -109,6 +109,18 @@
       "path": "design/pages/recognition/web/implementation_input_pack/SWOS_WEB_IMPLEMENTATION_INPUT_MANIFEST_V1.json",
       "sha256": "10bd86f55e41704ca621da8e82568ae6d8ad7a61002d51012ff630bb9b38df4a",
       "purpose": "Pinned private bundle names and SHA values for the actual Pages artifact scan."
+    },
+    {
+      "authority_id": "nh01_lake_light_visual",
+      "path": "design/pages/home/normal_home/visual/NH01_LAKE_LIGHT_VISUAL_AUTHORITY_V1.json",
+      "sha256": "83c714423a68553d5cbb0be77a172a35618deeb8683fb078b6900e1f6fc4fb36",
+      "purpose": "Versioned Lake Light visual authority metadata; source photo bytes are excluded."
+    },
+    {
+      "authority_id": "nh01_authority_v13",
+      "path": "design/pages/home/normal_home/authority/authority_map_v1_3.json",
+      "sha256": "89ad9db123ddf6e8dff9d629713238ca2615c835a7b778828fdc236f0fa382b2",
+      "purpose": "Versioned authority map binding the selected visual reference and immutable prior composition history."
     }
   ],
   "publication_policy": {
@@ -1061,6 +1073,48 @@
       ],
       "degradation_policy": "If missing, omit preview media only; keep page geometry unchanged and do not represent it as a real catch.",
       "page_id": "home_normal_v1"
+    },
+    {
+      "page_id": "home_normal_v1",
+      "asset_id": "NH01-LAKE-LIGHT-REFERENCE-V1",
+      "asset_role": "private_visual_reference_only",
+      "source_path": null,
+      "source_authorities": [
+        {
+          "authority_id": "nh01_lake_light_visual",
+          "json_pointer": "",
+          "field_map": {
+            "declared_source_sha256": "/sha256",
+            "pixel_dimensions.width": "/pixel_dimensions/width",
+            "pixel_dimensions.height": "/pixel_dimensions/height"
+          }
+        }
+      ],
+      "media_type": null,
+      "bytes": null,
+      "sha256": null,
+      "pixel_dimensions": {
+        "width": 864,
+        "height": 1536
+      },
+      "coordinate_space": "PRIVATE_REFERENCE_IMAGE_PIXELS",
+      "fit_crop_policy": "Private local comparison only; never crop, serve, embed or create derivative photography.",
+      "lifecycle_status": "USER_ACCEPTED_REFERENCE__FORMAL_G0_G6_PENDING",
+      "asset_designation": "REFERENCE_ONLY",
+      "publication_permission": {
+        "state": "PRIVATE_NOT_DISTRIBUTABLE",
+        "authority_id": "nh01_lake_light_visual",
+        "scope": "Source photo bytes must not enter Git, Pages or CI artifacts.",
+        "reason": "The reference contains personal fish-catch photography and is registered by hash only."
+      },
+      "requiredness": "NOT_VERIFIED",
+      "missing_reason": "The private source is intentionally not stored in the repository.",
+      "declared_source_sha256": "f529f5a8595572f02e9ea72f9a47f4f3f93aebb055699e2c9a210f087b379828",
+      "degradation_policy": "Use registered preview fixtures for public browser geometry; use the source image only for private local visual comparison.",
+      "notes": [
+        "Source label: 229571.png",
+        "Reference SHA-256 is pinned in the visual authority metadata."
+      ]
     }
   ],
   "page_id_alias_sources": [

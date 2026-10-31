@@ -225,8 +225,14 @@ G1 或 CI PASS 不自动通过 G3–G7。静态关键帧、手绘 Mask、HTTP 20
 - CI fixture playback 状态仍为 `BROWSER_VERIFIED_FIXTURE_ONLY`；当前 PR #177 HEAD 尚未部署；旧候选 Revision `yujian-model-factory-console-00349-hes` 仍绑定 `6da640859f063d7f42ee5432e6b35ecb162802ff`；认证真实推理与视觉验收 `NOT_VERIFIED`；生产级 Mask `NOT_QUALIFIED`。
 - 上述 SHA 是本次审计快照；后续执行必须重新读取实时 PR、main、CI 与预览健康信息，不能把本文中的历史 SHA 当成永久常量。
 
-## 12. 权威机器合同
+## 12. 权威来源与机器合同边界
 
-机器可读合同：[SWOS Web Hi-Fi Motion Technical Contract V1.0 JSON](contracts/SWOS_WEB_HIFI_MOTION_TECHNICAL_CONTRACT_V1_0.json)。
+本 Markdown 是 Web SWOS 技术实施合同的唯一文档权威；不再维护重复的 SWOS Web 专属 JSON 镜像。机器可读时序与几何数据直接引用既有合同：
+
+- `../processing/optics/SWOS_15_Frame_Keyframe_Contract_V1_1.json`
+- `../continuity/SWOS_Shared_Photo_Transition_Contract_V1.json`
+- `../processing/optics/SWOS_Optical_Contract_V1.json`
+- `../result/motion/recognition_result_motion_contract_v3.json`
+- `../result/media/hero_media_contract.json`
 
 本合同只冻结工程输入和验收方式，不宣告播放、Mask、性能或视觉已通过。

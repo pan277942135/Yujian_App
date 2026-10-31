@@ -49,7 +49,7 @@ The Phase/Task State Machine remains unchanged: R0.5 is a static sample within t
 
 ## SWOS Web 高保真动效技术合同 V1.0
 
-Web 真实播放、Renderer 降级、SAM 实验链路复用、15 帧逐帧控制、九视口与性能证据的执行权威为 [SWOS_WEB_HIFI_MOTION_TECHNICAL_CONTRACT_V1_0.md](../web/SWOS_WEB_HIFI_MOTION_TECHNICAL_CONTRACT_V1_0.md) 及其机器合同 [JSON](../web/contracts/SWOS_WEB_HIFI_MOTION_TECHNICAL_CONTRACT_V1_0.json)。
+Web 真实播放、Renderer 降级、SAM 实验链路复用、15 帧逐帧控制、九视口与性能证据的执行权威为 [SWOS_WEB_HIFI_MOTION_TECHNICAL_CONTRACT_V1_0.md](../web/SWOS_WEB_HIFI_MOTION_TECHNICAL_CONTRACT_V1_0.md)；时序、照片几何和光学参数直接引用既有 SWOS 15 帧、共享照片转场及光学机器合同，不维护重复的 Web 专属 JSON。
 
 该合同复用产品仓库现有 SAM ViT-B 实验链路，不另建分割服务；现有 debug endpoint 不是公开生产 API。生产 Mask 资格仍为 NOT_QUALIFIED，浏览器逐帧视觉验收仍须独立完成。
 

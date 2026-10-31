@@ -173,7 +173,7 @@ The design contract content proposed through PR #186 and #187 was atomically ado
   design/pages/recognition/web/WEB_HIFI_CONTRACT_V2.md
 - SWOS Web playable-motion implementation authority (V1.0; design-only, runtime NOT_VERIFIED):
   design/pages/recognition/web/SWOS_WEB_HIFI_MOTION_TECHNICAL_CONTRACT_V1_0.md
-  design/pages/recognition/web/contracts/SWOS_WEB_HIFI_MOTION_TECHNICAL_CONTRACT_V1_0.json
+  Machine-readable timing/geometry: existing SWOS 15-frame, shared-photo transition and optical contracts.
 - Existing SAM experiment pipeline to reuse; no duplicate service:
   product repository pan277942135/Yujian; app/segmentation_api.py; app/segmentation/service.py; app/segmentation/mask_generator.py; app/segmentation/quality_gate.py; app/segmentation/cutout_builder.py
   existing endpoint POST /api/debug/fish-segmentation is debug/experiment only, not a public production API. Production Mask remains NOT_QUALIFIED until reviewed ground truth, boundary metrics, hard-case analysis and visual sign-off.
