@@ -359,6 +359,26 @@ feature_contracts:
     page_contract_refs: ["design/system_v3/08_Page_Contracts/recognition/capture/Recognition_Capture_Page_Contract_V3_1.md", "design/system_v3/08_Page_Contracts/recognition/capture/Layout_Contract_V3_1.json", "design/system_v3/08_Page_Contracts/recognition/capture/State_Machine_V3_1.json", "design/system_v3/08_Page_Contracts/recognition/capture/Data_Contract_V3_1.json", "design/system_v3/08_Page_Contracts/recognition/capture/Engineering_Contract_V3_1.md", "design/system_v3/08_Page_Contracts/recognition/capture/Acceptance_Contract_V3_1.json", "design/system_v3/08_Page_Contracts/recognition/capture/Capture_Accessibility_Responsive_Matrix.md", "design/system_v3/08_Page_Contracts/recognition/processing/Recognition_Processing_Page_Contract_V3_2.md", "design/system_v3/08_Page_Contracts/recognition/processing/Layout_Contract_V3_1.json", "design/system_v3/08_Page_Contracts/recognition/processing/State_Machine_V3_2.json", "design/system_v3/08_Page_Contracts/recognition/processing/Data_Contract_V3_1.json", "design/system_v3/08_Page_Contracts/recognition/processing/Engineering_Contract_V3_2.md", "design/system_v3/08_Page_Contracts/recognition/processing/Acceptance_Contract_V3_2.json"]
     page_contract_keys: ["capture_page", "capture_layout", "capture_state", "capture_data", "capture_engineering", "capture_acceptance", "capture_accessibility", "processing_page", "processing_layout", "processing_state", "processing_data", "processing_engineering", "processing_acceptance"]
     contract_extensions:
+      capture_to_result_visual_flow_v1:
+        status: "SPEC_FROZEN"
+        scope: "HOME_CAMERA_GALLERY_PROCESSING_RR09_RESULT"
+        authority: "design/pages/recognition/journey/Capture_To_Result_Visual_Flow_Contract_V1.md"
+        machine_authority: "design/pages/recognition/journey/Capture_To_Result_Visual_Flow_Contract_V1.json"
+        acceptance_authority: "design/pages/recognition/journey/Capture_To_Result_Acceptance_Matrix_V1.md"
+        design_manager_route: "#page/recognition_flow_v1_2/hifi/capture_to_result_visual_flow_v1"
+        portrait_ui_only: true
+        horizontal_image_supported: true
+        processing_exit_2800ms_hard_deadline: false
+        rr09_target_ms: 850
+        r0_5_photo_midpoint_ms: 100
+        change_kind: "USER_FROZEN_JOURNEY_VISUAL_SUPPLEMENT"
+        android_runtime_status: "NOT_VERIFIED"
+        visual_video_approval: "PENDING"
+        preserve_legacy_frozen_assets: true
+        applies_to_child_surfaces: ["capture", "gallery_entry", "processing"]
+        applies_to_journeys: ["J03", "J04", "J05", "J06", "J07", "J08", "J09", "J10"]
+        gate_binding: "EXISTING_STATIC_CONTRACT_AND_ANDROID_RUNTIME_EVIDENCE_GATES"
+        note: "Explicit full-journey authority for newly approved capture/photo handoff, adaptive Processing and mask-no-circle fallback. Does not silently replace historical 2800/850ms static frame artifacts. Product branch must resync from main and re-enter Admission before implementation."
       capture_hifi:
         status: "FROZEN"
         visual_contract: "design/system_v3/08_Page_Contracts/recognition/capture/Recognition_Capture_HiFi_Visual_Contract_V1.md"

@@ -5,6 +5,17 @@ Status: **V1.2 FROZEN VISUAL BASELINE · SWOS V1 / Page V3.2 MAIN-ADOPTED DESIGN
 Runtime: **ACTIVE_CLOSURE**  
 Evidence: **ACTIVE_CLOSURE**
 
+## 2026-10-29 · 完整拍照/选图→识别→结果 SPEC_FROZEN 补充
+
+用户已冻结的新版跨页产品行为由 [Capture_To_Result_Visual_Flow_Contract_V1.md](journey/Capture_To_Result_Visual_Flow_Contract_V1.md) 定义；[机器 JSON](journey/Capture_To_Result_Visual_Flow_Contract_V1.json) 和 [视频验收矩阵](journey/Capture_To_Result_Acceptance_Matrix_V1.md) 提供可校验的细则。
+
+- 起点：现有首页 CTA，真实 CameraX 相机页及原生照片选择器；**竖屏 UI，横图输入合法**。
+- 初始承接：相机真实预览定格矩形 / 相册同源照片居中承接，连续归位到顶部 Fit/Contain 原图；照片背后不再生成放大模糊副本。
+- Processing：下方仅小型动态标记和「识别中」，照片四周水光与真实可信 Mask 金色轮廓独立；无 Mask 就不画鱼体或中央放大圈。
+- 时间：旧 2800ms 仅保留设计历史参照；当前全链路采用照片首帧启动、事件门禁和最短可感知视觉表现，RR09 仍以 850ms 为首轮目标。
+- 结果：同源照片唯一所有权进入 Hero；无 Mask 仍自然揭晓中文名称，不伪造金光转译。
+- 状态：**SPEC_FROZEN，不代表新 PNG 母版已逐像素验收，Android Runtime 与真实视频验收尚未完成**。本更新不覆盖旧图字节，不修改独立 Sites Web 产品与其响应式合同。
+
 ## Current design entry point
 
 `Recognition_Design_Closure_V1_2.md`

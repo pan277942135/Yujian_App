@@ -1,0 +1,257 @@
+{
+  "contract_id": "YUJIAN_ANDROID_CAPTURE_TO_RESULT_VISUAL_FLOW_V1",
+  "version": "1.0",
+  "effective_decision_date": "2026-10-29",
+  "status": {
+    "product": "SPEC_FROZEN",
+    "high_fidelity_binary": "UNCHANGED_NOT_NEWLY_FROZEN",
+    "android_runtime": "NOT_VERIFIED",
+    "video_visual_acceptance": "PENDING",
+    "release_rule": "PUBLISH_ONLY_AFTER_EXACT_HEAD_GATES_AND_MAIN_PAGES_DEPLOY"
+  },
+  "platform": {
+    "ui": "ANDROID_PORTRAIT_ONLY",
+    "portrait_ui_only": true,
+    "landscape_photo_input_allowed": true,
+    "landscape_ui_supported": false
+  },
+  "feature": "recognition_flow_v1_2",
+  "authority_markdown": "design/pages/recognition/journey/Capture_To_Result_Visual_Flow_Contract_V1.md",
+  "acceptance": "design/pages/recognition/journey/Capture_To_Result_Acceptance_Matrix_V1.md",
+  "authority_rule": {
+    "scope": "home-to-camera/gallery-to-processing-to-result",
+    "supersedes_within_scope": [
+      "capture/gallery photo handoff geometry",
+      "processing photo location and info density",
+      "no fake circular fish-focus degrade",
+      "event-gated processing presentation not fixed 2800ms exit",
+      "photo first-frame time origin"
+    ],
+    "preserves": [
+      "SWOS optical intent and genuine mask-only fish contour",
+      "RR09 850ms initial target and R0.5 100ms within 0-200ms photo move",
+      "real Detector/Classifier and existing result states",
+      "Result Hero safe-crop/same-source backdrop"
+    ],
+    "legacy_nominal": {
+      "processing_ms": 2800,
+      "rr09_ms": 850,
+      "total_ms": 3650,
+      "processing_exit_hard_deadline": false,
+      "rr09_duration_change_requires_owner_approval": true
+    }
+  },
+  "entry": {
+    "home_camera_button": {
+      "feedback_ms_candidate": [
+        60,
+        120
+      ],
+      "page_transition_ms_candidate": [
+        180,
+        260
+      ],
+      "max_translation_dp": 8,
+      "start_camera_concurrently": true
+    },
+    "camera": {
+      "viewport": "actual_cameraX_preview_rect",
+      "photo_handoff": "freeze last real preview frame if valid; original capture adopts matched crop",
+      "safe_without_freeze": "stable live view or neutral state, never fake image",
+      "allow_gallery": true
+    },
+    "gallery": {
+      "picker": "system_photo_picker",
+      "cancel_creates_session": false,
+      "source": "selected_original_only",
+      "handoff": {
+        "max_width_ratio": 0.88,
+        "max_height_ratio": 0.68,
+        "center_x_ratio": 0.5,
+        "center_y_ratio": 0.44,
+        "content_scale": "CONTAIN"
+      }
+    },
+    "single_photo_session": [
+      "sessionId",
+      "attemptId",
+      "imageId",
+      "photoSha256",
+      "normalizedWidth",
+      "normalizedHeight",
+      "exifTransformVersion"
+    ]
+  },
+  "final_processing_photo": {
+    "coordinate_system": "content_dp_after_system_insets",
+    "nav_height_dp_reference": 52,
+    "nav_height_dp_candidate_range": [
+      44,
+      56
+    ],
+    "top_gap_dp": 16,
+    "horizontal_margin_dp": 16,
+    "photo_max_height_of_content_ratio": 0.52,
+    "panel_height_dp_reference": 88,
+    "panel_to_bottom_dp": 20,
+    "photo_to_panel_min_gap_dp": 20,
+    "size_algorithm": "photoMaxH=max(0,min(0.52*Hc,Hc-navH-16-20-88-20)); scale=min((W-32)/iw,photoMaxH/ih); width=iw*scale; height=ih*scale; x=(W-width)/2; y=navH+16",
+    "content_scale": "FIT_CONTAIN",
+    "no_crop": true,
+    "no_stretch": true,
+    "decorative_blurred_source_backdrop": false,
+    "glows_follow": "actual_visible_photo_rect_not_container",
+    "input_cases": [
+      "3:4",
+      "9:16",
+      "1:1",
+      "4:3",
+      "16:9",
+      "extreme_aspect",
+      "exif_rotated",
+      "exif_missing"
+    ],
+    "target_matrix_viewports": [
+      "320x480",
+      "360x640",
+      "390x844",
+      "430x932"
+    ]
+  },
+  "visual_panel": {
+    "content": [
+      "small_nonexpanding_indicator",
+      "识别中"
+    ],
+    "max_lines": 1,
+    "step_list": false,
+    "technical_model_names": false,
+    "fake_percent": false,
+    "premature_species": false
+  },
+  "optics": {
+    "perimeter_colors": {
+      "deep_peacock_teal": "#0B6E69",
+      "clear_water_green": "#4DD0C7",
+      "ice_white": "#DDF7F5"
+    },
+    "perimeter_scope": "actual visible photo perimeter",
+    "bottom_caustics": "irregular upward light, not full-width bright scan",
+    "legacy_edge_field_paths_not_runtime_requirement": true,
+    "ban": [
+      "central_expanding_oval",
+      "radar",
+      "HUD",
+      "bbox_outline",
+      "fake_mask",
+      "fake_fish_glow",
+      "full_width_scan_bar"
+    ],
+    "mask_path": {
+      "allow_if": [
+        "CURRENT_SESSION_MATCH",
+        "SAME_IMAGE_SHA",
+        "ROI_DIMENSIONS_VALID",
+        "QUALITY_GOOD",
+        "TRUSTED_GEOMETRY",
+        "NONEMPTY_VALID_CONTOUR"
+      ],
+      "untrusted": "NO_FISH_SPECIFIC_DRAWING_KEEP_PERIMETER",
+      "late": "DO_NOT_INSERT_AFTER_GATE_FREEZE"
+    }
+  },
+  "adaptive_stages": [
+    {
+      "id": "S0",
+      "name": "stable_photo",
+      "entry": "real_image_first_frame_and_final_geometry",
+      "min_visible_ms_candidate": 180,
+      "exit": "stable_no_flash"
+    },
+    {
+      "id": "S1",
+      "name": "perimeter_reveal",
+      "entry": "S0",
+      "min_visible_ms_candidate": 500,
+      "exit": "soft_light_reveal_complete"
+    },
+    {
+      "id": "S2",
+      "name": "upward_caustics",
+      "entry": "S1_STARTED",
+      "parallel_with": "S1",
+      "min_visible_ms_candidate": 700,
+      "exit": "upward_rise_and_soft_decay_complete"
+    },
+    {
+      "id": "S3",
+      "name": "true_mask_outline",
+      "optional_if_mask_untrusted": true,
+      "entry": "TRUSTED_MASK_BEFORE_ACCEPTANCE_GATE",
+      "min_visible_ms_candidate": 750,
+      "exit": "source_mask_contour_gradually_drawn"
+    },
+    {
+      "id": "S4",
+      "name": "contour_highlight",
+      "optional_if_mask_untrusted": true,
+      "entry": "S3_DONE",
+      "min_visible_ms_candidate": 450,
+      "exit": "completed_gold_holds_for_visual_emphasis"
+    },
+    {
+      "id": "S5",
+      "name": "perimeter_recede",
+      "entry": "S2_DONE_AND_IF_MASK_S4_STARTED",
+      "min_visible_ms_candidate": 350,
+      "exit": "perimeter_zero_or_stable"
+    },
+    {
+      "id": "S6",
+      "name": "rr09_result",
+      "entry": "REAL_MAIN_RESULT_READY_AND_VISUAL_COMPLETE_AND_HERO_GEOMETRY_VALID",
+      "target_ms": 850,
+      "exit": "single_photo_hero_handoff_title_chinese_complete"
+    }
+  ],
+  "runtime_semantics": {
+    "photo_first_frame_starts_visual_clock": true,
+    "detector_classifier_are_authoritative": true,
+    "slimsam_is_optional_visual": true,
+    "main_result_early": "wait_required_visual_beats",
+    "main_result_late": "hold_low_activity_no_replay",
+    "main_failure": "explicit_retry_no_fake_success",
+    "candidate_timeouts_not_frozen": {
+      "init_soft_warning_ms": 8000,
+      "init_protection_ms": 20000,
+      "main_soft_warning_ms": 8000,
+      "main_protection_ms": 15000,
+      "mask_observation_ms": 1800
+    }
+  },
+  "rr09": {
+    "target_ms": 850,
+    "photo_move_target_ms": 200,
+    "r0_5_ms": 100,
+    "r0_5_semantics": "midpoint of 0-200ms photo movement; not 425ms",
+    "same_source_single_owner": true,
+    "high_trusted_mask": "real_gold_transfer_then_chinese_name",
+    "high_untrusted_mask": "photo_transition_and_chinese_name_without_gold_transfer",
+    "nonhigh": "preserve_existing_eligibility_and_routing",
+    "result_hero_backdrop_allowed": true,
+    "processing_photo_backdrop_allowed": false
+  },
+  "gate_ids": [
+    "G1_HOME_CAMERA",
+    "G2_CAMERA_GALLERY",
+    "G3_SOURCE_HANDOFF",
+    "G4_PHOTO_GEOMETRY",
+    "G5_ADAPTIVE_VIDEO",
+    "G6_MASK_GATE_NO_CIRCLE",
+    "G7_OPTICS",
+    "G8_RR09_HERO",
+    "G9_LIFECYCLE_FAILURE",
+    "G10_APK_SOURCE_VIDEO_PROVENANCE"
+  ],
+  "no_product_code_changes_in_freeze_pr": true
+}

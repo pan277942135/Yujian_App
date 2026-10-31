@@ -259,6 +259,16 @@ Frozen 图片按原始比例完整展示。点击可打开支持放大、缩小�
 
 展示与路由合同见 [`RECOGNITION_HIFI_PRESENTATION_CONTRACT_V1.md`](RECOGNITION_HIFI_PRESENTATION_CONTRACT_V1.md)。本管理站的响应式验证只证明 Design Manager；Page Contract 的 320dp / 360dp、Insets、字号、TalkBack 和 Runtime 项仍由各自产品合同与验收状态控制。
 
+## Recognition · 16 拍照/选图→识别→结果（新版全链路规范）
+
+Design Manager 新增右侧规范视图：`#page/recognition_flow_v1_2/hifi/capture_to_result_visual_flow_v1`。
+
+- 原始规范：`design/pages/recognition/journey/Capture_To_Result_Visual_Flow_Contract_V1.md`
+- 机器合同：`design/pages/recognition/journey/Capture_To_Result_Visual_Flow_Contract_V1.json`
+- 视频/几何验收：`design/pages/recognition/journey/Capture_To_Result_Acceptance_Matrix_V1.md`
+
+此入口展示用户已明确冻结的：首页→CameraX/系统相册→同源照片承接与顶部归位→自适应水光/可信 Mask 金线→单照片 RR09→结果 Hero。该页面是 **SPEC_FROZEN 合同索引，不是新 Frozen PNG 的高保真像素验收页面，也不能冒充真实 Android 视频**。现有 00–15 菜单、AI Edge Field 参考图和旧 15 帧历史页面全部保持可访问；正式 GitHub Pages 更新仍需符合 Main/CI/部署门禁。
+
 ## Recognition · 识别全流程-和模型
 
 在「识别过程」下新增 `09 · 识别全流程-和模型`，展示完整业务流程图、十个处理阶段、DET_FISH / MODEL_M1 / 质量尺寸规则 / 结果融合的职责边界、关键决策分支与端到端验收场景。
