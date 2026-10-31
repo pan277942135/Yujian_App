@@ -1,5 +1,6 @@
 """Exact installed APK evidence. Emulator camera observations are not device acceptance."""
-import json, re, subprocess, time, xml.etree.ElementTree as ET
+import json, re, subprocess, time, io, tarfile, xml.etree.ElementTree as ET
+from PIL import Image, ImageStat
 from pathlib import Path
 
 PKG = 'com.yujian.ai.uiv2'
@@ -43,6 +44,11 @@ try:
     time.sleep(6.2);shot('01-home-idle');tap(home)
     time.sleep(.28);shot('02-home-activation')
     shutter=find('拍摄',enabled=True,wait=45);time.sleep(.3);shot('03-camera-ready');dump('03-camera-ready')
+    album=find('从相册选择');tap(album);time.sleep(.5)
+    picker=shell('dumpsys activity top')
+    (OUT/'gallery-picker.txt').write_text(picker)
+    assert re.search(r'PhotoPicker|photopicker|PickImages',picker),'System Photo Picker did not open'
+    shot('03b-system-photo-picker');shell('input keyevent 4');find('拍摄',enabled=True,wait=30)
     zoom=find('1.0x',attr='text');tap(zoom);time.sleep(.25);shot('04-zoom-expanded');dump('04-zoom-expanded')
     ns=nodes();preset=next((n for n in ns if n.get('content-desc')=='变焦 2x'),None)
     if preset is not None:
@@ -67,6 +73,22 @@ try:
     (OUT/'capture-log.txt').write_text(trace)
     data=adb('exec-out','run-as',PKG,'tar','-cf','-','files/recognition_inputs',binary=True)
     (OUT/'actual-captured-jpeg.tar').write_bytes(data)
+    image_report=[]
+    preview=re.findall(r'preview_width=(\d+) preview_height=(\d+)',trace)[-1]
+    pw,ph=map(int,preview)
+    with tarfile.open(fileobj=io.BytesIO(data)) as archive:
+        for member in archive.getmembers():
+            if member.isfile() and member.name.lower().endswith(('.jpg','.jpeg')):
+                payload=archive.extractfile(member).read()
+                with Image.open(io.BytesIO(payload)) as im:
+                    im.load();w,h=im.size;orientation=im.getexif().get(274)
+                    assert orientation in (None,0,1),'JPEG has unnormalized EXIF orientation'
+                    assert abs(w/h-pw/ph)<2/min(h,ph),'JPEG ratio differs from measured actual preview'
+                    image_report.append({'path':member.name,'width':w,'height':h,'ratio':w/h,'exif_orientation':orientation,'preview_px':[pw,ph],'mean_rgb':ImageStat.Stat(im.convert('RGB')).mean})
+                    (OUT/'actual-camera-photo.jpg').write_bytes(payload)
+    assert image_report,'No actual normalized ImageCapture JPEG was preserved'
+    (OUT/'jpeg-report.json').write_text(json.dumps(image_report,indent=2))
+    (OUT/'camera-service.txt').write_text(shell('dumpsys media.camera'))
     shot('06-after-real-capture')
 finally:
     shell('pkill -INT screenrecord || true')
@@ -93,6 +115,8 @@ for w,h in [(320,480),(360,640),(360,800),(393,852),(430,932)]:
             assert n is not None,f'{key}: missing {value}'
             x,y,r,b=bounds(n);assert 0<=x<r<=w and 0<=y<b<=h,f'{key}: clipped {value}: {n.attrib}'
             if value in ['拍摄','从相册选择','闪光灯']: assert r-x>=48 and b-y>=48,f'{key}: small touch {value}'
+        if (w,h,scale)==(320,480,1.5):
+            tap(find('1.0x',attr='text'));time.sleep(.25);shot(key+'-zoom-expanded');dump(key+'-zoom-expanded')
         matrix.append({'viewport_dp':[w,h],'font_scale':scale,'status':'PASS_CONTROLS_VISIBLE','snapshot':key+'.png'})
 (OUT/'matrix.json').write_text(json.dumps(matrix,indent=2))
 (OUT/'camera-entry-log.txt').write_text(logs())
