@@ -9,6 +9,7 @@ from PIL import Image
 ROOT = Path(__file__).resolve().parents[1]
 ASSETS = {
     "capture_button_main_v1": True,
+    "camera_mint_background_v2": False,
     "processing_water_core_v1": True,
     "processing_mint_background_v1": False,
 }

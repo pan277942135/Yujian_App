@@ -1,6 +1,16 @@
 package com.yujian.ai.ui.home
 
 import android.graphics.Bitmap
+import android.Manifest
+import android.content.pm.PackageManager
+import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.LaunchedEffect
@@ -13,6 +23,7 @@ import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
@@ -42,6 +53,8 @@ internal fun HomeCameraButton(
     visualSize: Dp? = null,
     touchTargetSize: Dp? = null,
 ) {
+    val scope = rememberCoroutineScope()
+    val activationJob = remember { arrayOfNulls<Job>(1) }
     val transitionActive = CaptureNavigationTransition.active.value
     var clickElapsedMs by remember { mutableLongStateOf(0L) }
     LaunchedEffect(transitionActive) {
@@ -51,6 +64,24 @@ internal fun HomeCameraButton(
     }
     val context = LocalContext.current
     val view = LocalView.current
+    val resolvedSize = visualSize ?: CaptureVisualTokens.ButtonDiameterDp.dp
+    fun activate() {
+        if (CaptureNavigationTransition.active.value) return
+        CaptureNavigationTransition.homeDiameterDp = resolvedSize.value
+        CaptureNavigationTransition.begin()
+        activationJob[0] = scope.launch {
+            delay(CaptureVisualTokens.ActivationMs)
+            CaptureNavigationTransition.log("CAMERA_ENTERING")
+            onClick()
+        }
+    }
+    val permission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+        if (granted) activate() else onClick()
+    }
+    BackHandler(enabled = transitionActive) {
+        activationJob[0]?.cancel()
+        CaptureNavigationTransition.finish()
+    }
     val active = emptyHomeMotionActive(
         running = motionState.running,
         reduceMotion = motionState.reduceMotion,
@@ -67,7 +98,10 @@ internal fun HomeCameraButton(
     val sceneTime = if (active) motionState.sceneTimeSeconds else 0f
     val sweep = cameraSweepState(sceneTime)
     YuJianCaptureButton(
-        onClick = { CaptureNavigationTransition.begin(); onClick() },
+        onClick = {
+            if (ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) activate()
+            else permission.launch(Manifest.permission.CAMERA)
+        },
         modifier = modifier.onGloballyPositioned {
             val bounds = it.boundsInWindow()
             CaptureNavigationTransition.homeCenter = bounds.center
@@ -81,11 +115,11 @@ internal fun HomeCameraButton(
             sweepRotationDegrees = sweep.rotationDegrees,
             sweepAlpha = sweep.alpha,
         ),
-        visualSize = visualSize,
-        touchTargetSize = touchTargetSize,
+        visualSize = resolvedSize,
+        touchTargetSize = maxOf(resolvedSize, touchTargetSize ?: resolvedSize),
         visualModifier = Modifier.testTag("gemini-home-camera-art"),
         frozenVisual = true,
-        onCaptureHaptic = { captureClickHaptic(context, view) },
+        onCaptureHaptic = { if (!transitionActive) captureClickHaptic(context, view) },
         clickElapsedMs = if (transitionActive) clickElapsedMs else null,
     )
 }

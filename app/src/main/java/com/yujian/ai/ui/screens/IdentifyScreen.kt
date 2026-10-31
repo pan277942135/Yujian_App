@@ -64,6 +64,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.foundation.layout.offset
 import kotlinx.coroutines.delay
+import com.yujian.ai.ui.home.CaptureVisualTokens
 import com.yujian.ai.ui.home.CaptureNavigationTransition
 import kotlin.math.roundToInt
 import androidx.compose.foundation.shape.CircleShape
@@ -197,9 +198,10 @@ fun IdentifyScreen(
     var zoomDialExpanded by remember { mutableStateOf(false) }
     val captureHandoffActive = CaptureNavigationTransition.active.value && !autoOpenGallery
     var captureTarget by remember { mutableStateOf(Offset.Unspecified) }
+    var shutterDiameterPx by remember { mutableStateOf(0f) }
     var captureRootOrigin by remember { mutableStateOf(Offset.Zero) }
     var captureHandoffArrived by remember { mutableStateOf(false) }
-    var captureClickElapsedMs by remember { mutableStateOf(0L) }
+
     val captureProgress = remember { Animatable(0f) }
     val orbit = rememberInfiniteTransition(label = "capture-brand-orbit")
     val orbitDegrees by orbit.animateFloat(
@@ -209,22 +211,20 @@ fun IdentifyScreen(
     )
     LaunchedEffect(captureHandoffActive, captureTarget) {
         if (captureHandoffActive && captureTarget.x.isFinite()) {
-            captureProgress.animateTo(1f, tween(620, easing = LinearEasing))
+            captureProgress.animateTo(1f, tween(CaptureVisualTokens.HandoffMs))
             captureHandoffArrived = true
         }
     }
-    LaunchedEffect(captureHandoffActive) {
-        while (captureHandoffActive) {
-            withFrameNanos { captureClickElapsedMs = CaptureNavigationTransition.elapsedMs() }
-        }
+    LaunchedEffect(captureHandoffActive, captureHandoffArrived) {
+        if (captureHandoffActive && captureHandoffArrived) CaptureNavigationTransition.finish()
     }
-    LaunchedEffect(captureHandoffActive, captureHandoffArrived, cameraBound, previewStreaming) {
-        if (captureHandoffActive && captureHandoffArrived && cameraBound && previewStreaming) {
-            // STREAMING must remain true after the 1000 ms minimum and a stable window.
-            delay((1000L - CaptureNavigationTransition.elapsedMs()).coerceAtLeast(0L))
-            delay(180L)
-            if (cameraBound && previewStreaming) CaptureNavigationTransition.finish()
-        }
+    DisposableEffect(Unit) {
+        CaptureNavigationTransition.log("CAMERA_PREPARING", "camera_entry_ms=${android.os.SystemClock.uptimeMillis()}")
+        onDispose { CaptureNavigationTransition.finish() }
+    }
+    val previewAlpha by animateFloatAsState(if (previewStreaming) 1f else 0f, tween(150), label = "camera-first-frame")
+    LaunchedEffect(previewAlpha) {
+        if (previewAlpha >= .999f && previewStreaming) CaptureNavigationTransition.log("CAMERA_READY", "first_frame_visible_ms=${android.os.SystemClock.uptimeMillis()} zoom_ratio=$zoomRatio")
     }
     var firstCaptureGuideVisible by rememberSaveable(autoOpenGallery, captureResetToken) {
         mutableStateOf(false)
@@ -268,6 +268,7 @@ fun IdentifyScreen(
     DisposableEffect(cameraController, lifecycleOwner) {
         val observer = Observer<ZoomState> { state ->
             zoomRatio = state?.zoomRatio ?: 1f
+            CaptureNavigationTransition.log("ZOOM", "zoom_ratio=$zoomRatio min_zoom=${state?.minZoomRatio} max_zoom=${state?.maxZoomRatio}")
             minZoomRatio = state?.minZoomRatio ?: 1f
             maxZoomRatio = state?.maxZoomRatio ?: 1f
         }
@@ -302,8 +303,8 @@ fun IdentifyScreen(
             onDispose { }
         } else {
             val controller = WindowCompat.getInsetsController(activity.window, view)
-            controller.isAppearanceLightStatusBars = false
-            controller.isAppearanceLightNavigationBars = false
+            controller.isAppearanceLightStatusBars = true
+            controller.isAppearanceLightNavigationBars = true
             onDispose {
                 controller.isAppearanceLightStatusBars = true
                 controller.isAppearanceLightNavigationBars = true
@@ -312,6 +313,7 @@ fun IdentifyScreen(
     }
 
     DisposableEffect(cameraController, lifecycleOwner, hasCameraPermission, cameraRetry) {
+        var disposed = false
         cameraBound = false
         imageCaptureReady = false
         previewStreaming = false
@@ -320,8 +322,10 @@ fun IdentifyScreen(
             val initializationFuture = cameraController.getInitializationFuture()
             initializationFuture.addListener(
                 {
+                    if (disposed) return@addListener
                     val initialized = runCatching {
                         initializationFuture.get()
+                        CaptureNavigationTransition.log("PROVIDER_READY", "camera_provider_ready_ms=${android.os.SystemClock.uptimeMillis()}")
                         true
                     }.getOrElse { initializationError ->
                         Log.e(
@@ -347,6 +351,7 @@ fun IdentifyScreen(
             runCatching {
                 cameraController.bindToLifecycle(lifecycleOwner)
                 cameraBound = true
+                CaptureNavigationTransition.log("USECASES_BOUND", "camera_bind_ms=${android.os.SystemClock.uptimeMillis()}")
                 syncCaptureState()
             }
                 .onSuccess {
@@ -369,6 +374,7 @@ fun IdentifyScreen(
                 }
         }
         onDispose {
+            disposed = true
             logCapture(
                 activeCaptureRequestId ?: "camera-controller",
                 "camera_controller_dispose",
@@ -404,6 +410,7 @@ fun IdentifyScreen(
             if (currentPreview.isAttachedToWindow) logSurfaceState(true)
             val observer = Observer<PreviewView.StreamState> { streamState ->
                 previewStreaming = streamState == PreviewView.StreamState.STREAMING
+                if (previewStreaming) CaptureNavigationTransition.log("PREVIEW_STREAMING", "preview_streaming_ms=${android.os.SystemClock.uptimeMillis()}")
                 logCapture(
                     "preview-state",
                     "preview_stream_state",
@@ -508,7 +515,7 @@ fun IdentifyScreen(
         val measuredPreview = previewWindowBounds
         val presentation = CapturePresentation(
             measuredPreview.left, measuredPreview.top, measuredPreview.right, measuredPreview.bottom,
-            captureTarget.x, captureTarget.y, 76f * context.resources.displayMetrics.density,
+            captureTarget.x, captureTarget.y, shutterDiameterPx,
         )
         frozenPreview = previewView?.bitmap
         captureState = capturingState
@@ -771,10 +778,16 @@ fun IdentifyScreen(
         CaptureFrostedBackground(Modifier.fillMaxSize())
         val panelHeight = 166.dp + safeInsets.calculateBottomPadding()
         val cameraAreaHeight = maxHeight - panelHeight
-        val guideHeight = maxHeight * .36f
-        val guideTop = ((safeInsets.calculateTopPadding() + 80.dp + cameraAreaHeight - 110.dp - guideHeight) / 2f)
-            .coerceAtLeast(safeInsets.calculateTopPadding() + 72.dp)
-        val panelControlBottom = safeInsets.calculateBottomPadding() + 45.dp
+        val fontScale = LocalDensity.current.fontScale
+        val headerBottom = safeInsets.calculateTopPadding() + (74f * fontScale.coerceAtMost(1.5f)).dp
+        val framingBottom = cameraAreaHeight - (108f + (fontScale - 1f) * 32f).dp
+        val guideSpace = (framingBottom - headerBottom).coerceAtLeast(48.dp)
+        val guideHeight = (guideSpace * .84f).coerceAtMost(maxHeight * .41f)
+        val guideTop = headerBottom + (guideSpace - guideHeight) / 2f
+        val shutterDiameter = CaptureVisualTokens.buttonDiameter(maxWidth.value).dp
+        val cameraInk = Color(0xFF19565B)
+        val secondaryInk = Color(0xFF627E7E)
+        val panelControlBottom = safeInsets.calculateBottomPadding() + (166.dp - shutterDiameter) / 2f
         val layoutDirection = LocalLayoutDirection.current
         val captureControlsPlacement = remember(maxWidth, safeInsets, layoutDirection) {
             RecognitionCameraControlsGeometry.resolve(
@@ -829,7 +842,7 @@ fun IdentifyScreen(
                 },
                 modifier = Modifier.fillMaxWidth().height(cameraAreaHeight)
                     .onGloballyPositioned { previewBounds = it.size; previewWindowBounds = it.boundsInWindow() }
-                    .alpha(if (previewStreaming) 1f else 0f),
+                    .alpha(previewAlpha),
                 update = {
                     previewView = it
                     it.controller = cameraController
@@ -845,21 +858,16 @@ fun IdentifyScreen(
             }
             Box(Modifier.align(Alignment.BottomCenter).fillMaxWidth().height(panelHeight)
                 .clip(RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp))
-                .background(Brush.verticalGradient(listOf(Color(0xD93C464C), Color(0xF3121619)))))
+                .background(Brush.verticalGradient(listOf(Color(0xE0D7EFEB), Color(0xD1A1D6D2)))))
             if (captureTarget.x.isFinite()) {
-                val shutterSize = 76f * context.resources.displayMetrics.density
+                val shutterSize = shutterDiameter.value * context.resources.displayMetrics.density
                 Image(painterResource(R.drawable.capture_button_main_v1), null,
                     Modifier.offset { IntOffset((captureTarget.x - captureRootOrigin.x - shutterSize / 2f).roundToInt(),
-                        (captureTarget.y - captureRootOrigin.y - shutterSize / 2f).roundToInt()) }.size(76.dp))
+                        (captureTarget.y - captureRootOrigin.y - shutterSize / 2f).roundToInt()) }.size(shutterDiameter))
             }
         }
 
         if (handoffImage == null && !galleryBusy && captureState != RecognitionCameraCaptureState.CAPTURING && !firstCaptureGuideVisible) {
-            Box(
-                Modifier
-                    .fillMaxWidth().height(cameraAreaHeight)
-                    .background(Color.Black.copy(alpha = 0.12f)),
-            )
             IconButton(
                 onClick = onBack,
                 modifier = Modifier
@@ -869,21 +877,21 @@ fun IdentifyScreen(
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = "返回",
-                    tint = Color.White,
+                    tint = cameraInk,
                 )
             }
             Column(
                 Modifier.align(Alignment.TopCenter).padding(top = safeInsets.calculateTopPadding() + 2.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                Text("拍照识鱼", color = Color.White, fontSize = 25.sp, fontWeight = FontWeight.Medium)
+                Text("拍照识鱼", color = cameraInk, fontSize = 22.sp, fontWeight = FontWeight.SemiBold)
                 Spacer(Modifier.height(7.dp))
-                Text("请将整条鱼放在取景框中央", color = Color.White.copy(alpha = .82f), fontSize = 14.sp)
+                Text("请将整条鱼放在取景框中央", color = secondaryInk, fontSize = 14.sp)
             }
-            Canvas(Modifier.align(Alignment.TopCenter).offset(y = guideTop).fillMaxWidth(.88f).height(guideHeight)) {
+            Canvas(Modifier.align(Alignment.TopCenter).offset(y = guideTop).fillMaxWidth(.90f).height(guideHeight).testTag("capture-composition-guide")) {
                 val line = Path()
                 val x = size.width; val y = size.height
-                val arm = 48.dp.toPx(); val radius = 18.dp.toPx()
+                val arm = minOf(50.dp.toPx(), size.height / 3f); val radius = minOf(12.dp.toPx(), arm / 2f)
                 line.moveTo(arm, 0f); line.lineTo(radius, 0f)
                 line.quadraticTo(0f, 0f, 0f, radius); line.lineTo(0f, arm)
                 line.moveTo(x - arm, 0f); line.lineTo(x - radius, 0f)
@@ -893,20 +901,24 @@ fun IdentifyScreen(
                 line.moveTo(x, y - arm); line.lineTo(x, y - radius)
                 line.quadraticTo(x, y, x - radius, y); line.lineTo(x - arm, y)
                 drawPath(line, Color(0xFFD8B36A).copy(alpha = .13f), style = Stroke(10.dp.toPx(), cap = androidx.compose.ui.graphics.StrokeCap.Round))
-                drawPath(line, Color.White.copy(alpha = .95f), style = Stroke(2.8.dp.toPx(), cap = androidx.compose.ui.graphics.StrokeCap.Round))
+                drawPath(line, Color.White.copy(alpha = .95f), style = Stroke(1.9.dp.toPx(), cap = androidx.compose.ui.graphics.StrokeCap.Round))
             }
             CaptureZoomDial(
                 current = zoomRatio, minimum = minZoomRatio, maximum = maxZoomRatio,
                 expanded = zoomDialExpanded,
                 onExpandedChange = { zoomDialExpanded = it },
-                onZoom = { cameraController.setZoomRatio(it) },
+                onZoom = { ratio ->
+                    cameraController.setZoomRatio(ratio.coerceIn(minZoomRatio, maxZoomRatio))
+                    CaptureNavigationTransition.log("ZOOM_REQUEST", "zoom_ratio=$ratio")
+                },
                 modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = panelHeight + 52.dp),
             )
             Text(
                 "可双指缩放，尽量拍清鱼头、鱼尾与鱼身轮廓",
-                color = Color.White.copy(alpha = .86f), fontSize = 12.sp,
+                color = secondaryInk, fontSize = 12.sp,
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
                 modifier = Modifier.align(Alignment.BottomCenter)
-                    .padding(bottom = panelHeight + 24.dp),
+                    .padding(start = 12.dp, end = 12.dp, bottom = panelHeight + 16.dp),
             )
         }
 
@@ -945,16 +957,16 @@ fun IdentifyScreen(
                 Modifier.align(Alignment.BottomCenter).fillMaxWidth()
                     .height(panelHeight)
                     .clip(RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp))
-                    .background(Brush.verticalGradient(listOf(Color(0xD93C464C), Color(0xF3121619))))
+                    .background(Brush.verticalGradient(listOf(Color(0xE0D7EFEB), Color(0xD1A1D6D2))))
                     .border(1.dp, Color.White.copy(alpha = .28f), RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp)),
             )
             Box(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .padding(bottom = panelControlBottom)
-                    .size(76.dp)
+                    .size(shutterDiameter)
                     .testTag("recognition-camera-shutter")
-                    .onGloballyPositioned { captureTarget = it.boundsInWindow().center }
+                    .onGloballyPositioned { captureTarget = it.boundsInWindow().center; shutterDiameterPx = it.size.width.toFloat() }
                     .alpha(if (captureHandoffActive) 0f else 1f),
                 contentAlignment = Alignment.Center,
             ) {
@@ -964,8 +976,9 @@ fun IdentifyScreen(
                         RecognitionCameraCaptureContract.canStartCapture(captureState),
                     contentDescription = "拍摄",
                     motionEnabled = true,
-                    visualSize = 76.dp,
-                    touchTargetSize = 76.dp,
+                    visualSize = shutterDiameter,
+                    touchTargetSize = shutterDiameter,
+                    cameraReady = true,
                     frozenVisual = true,
                 )
             }
@@ -986,17 +999,16 @@ fun IdentifyScreen(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center,
                 ) {
-                    Image(
-                        painter = painterResource(R.drawable.home_morning_bg),
-                        contentDescription = null,
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier.size(46.dp).clip(RoundedCornerShape(9.dp))
-                            .border(1.dp, Color.White.copy(alpha = .6f), RoundedCornerShape(9.dp)),
-                    )
+                    Box(Modifier.size(44.dp).clip(RoundedCornerShape(8.dp))
+                        .background(Color.White.copy(alpha = .28f)), contentAlignment = Alignment.Center) {
+                        image?.bitmap?.let { thumbnail ->
+                            Image(thumbnail.asImageBitmap(), null, Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
+                        } ?: Icon(Icons.Default.Collections, null, tint = cameraInk, modifier = Modifier.size(24.dp))
+                    }
                     Text(
                         text = "相册",
-                        color = Color.White,
-                        fontSize = 12.sp,
+                        color = cameraInk,
+                        fontSize = 13.sp,
                     )
                 }
             }
@@ -1008,10 +1020,11 @@ fun IdentifyScreen(
                         bottom = panelControlBottom,
                     )
                     .size(66.dp)
-                    .clickable(role = Role.Button) {
-                        val next = !torchEnabled
-                        cameraController.enableTorch(next)
-                        torchEnabled = next
+                    .clickable(enabled = cameraBound && cameraController.cameraInfo?.hasFlashUnit() == true, role = Role.Button) {
+                        cameraController.enableTorch(!torchEnabled).addListener({
+                            torchEnabled = cameraController.cameraInfo?.torchState?.value == androidx.camera.core.TorchState.ON
+                            CaptureNavigationTransition.log("FLASH", "flash_state=$torchEnabled")
+                        }, ContextCompat.getMainExecutor(context))
                     }
                     .testTag("recognition-camera-flash")
                     .semantics { contentDescription = "闪光灯" },
@@ -1022,9 +1035,9 @@ fun IdentifyScreen(
                         .border(1.dp, Color.White.copy(alpha = .48f), CircleShape)
                         .background(Color.White.copy(alpha = .08f)), contentAlignment = Alignment.Center) {
                         Icon(Icons.Default.FlashOn,
-                            contentDescription = null, tint = Color.White, modifier = Modifier.size(26.dp))
+                            contentDescription = null, tint = if (cameraController.cameraInfo?.hasFlashUnit() == true) cameraInk else secondaryInk.copy(alpha = .4f), modifier = Modifier.size(22.dp))
                     }
-                    Text("闪光灯", color = Color.White, fontSize = 12.sp)
+                    Text("闪光灯", color = cameraInk, fontSize = 13.sp)
                 }
             }
         }
@@ -1137,25 +1150,18 @@ fun IdentifyScreen(
         }
 
         if (captureHandoffActive && captureTarget.x.isFinite() && handoffImage == null) {
-            val start = CaptureNavigationTransition.homeCenter
-                .takeIf { it.x.isFinite() } ?: captureTarget
-            val t = (captureProgress.value / .68f).coerceIn(0f, 1f)
-            val eased = t * t * (3f - 2f * t)
-            val center = Offset(
-                start.x + (captureTarget.x - start.x) * eased - captureRootOrigin.x,
-                start.y + (captureTarget.y - start.y) * eased - captureRootOrigin.y - 18.dp.value * 2f * t * (1f - t),
-            )
-            val buttonPx = with(LocalDensity.current) { 76.dp.toPx() }
-            Box(Modifier.offset {
-                IntOffset((center.x - buttonPx).roundToInt(), (center.y - buttonPx).roundToInt())
-            }.size(152.dp), contentAlignment = Alignment.Center) {
-                Image(
-                    painter = painterResource(R.drawable.capture_button_main_v1),
-                    contentDescription = null,
-                    modifier = Modifier.size(76.dp),
-                    contentScale = ContentScale.Fit,
-                )
-                CaptureTransitionLightField((captureClickElapsedMs % 1000L) / 1000f, Modifier.fillMaxSize())
+            val start = CaptureNavigationTransition.homeCenter.takeIf { it.x.isFinite() } ?: captureTarget
+            val t = captureProgress.value.coerceIn(0f, 1f)
+            val center = Offset(start.x + (captureTarget.x - start.x) * t - captureRootOrigin.x,
+                start.y + (captureTarget.y - start.y) * t - captureRootOrigin.y)
+            val diameter = (CaptureNavigationTransition.homeDiameterDp +
+                (shutterDiameter.value - CaptureNavigationTransition.homeDiameterDp) * t).dp
+            val boxSize = diameter + 28.dp
+            val half = with(LocalDensity.current) { boxSize.toPx() / 2f }
+            Box(Modifier.offset { IntOffset((center.x - half).roundToInt(), (center.y - half).roundToInt()) }
+                .size(boxSize), contentAlignment = Alignment.Center) {
+                YuJianCaptureButton(onClick = {}, visualSize = diameter, touchTargetSize = diameter,
+                    frozenVisual = true, motionEnabled = true, cameraReady = true)
             }
         }
         if (firstCaptureGuideVisible) {

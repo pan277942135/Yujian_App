@@ -172,7 +172,7 @@ internal fun GeminiNormalHomeContent(
                     .testTag("gemini-home-content"),
             ) {
                 GeminiTopSection(
-                    modifier = Modifier.widthIn(max = 560.dp).fillMaxWidth()
+                    modifier = Modifier.captureHomeExit().widthIn(max = 560.dp).fillMaxWidth()
                         .align(Alignment.CenterHorizontally),
                     safeWidth = safeWidth,
                     safeHeight = safeHeight,
@@ -195,7 +195,7 @@ internal fun GeminiNormalHomeContent(
                     onCatchesClick = onCatchesClick,
                 )
                 GeminiMiddleSection(
-                    modifier = Modifier.weight(1f).widthIn(max = 560.dp).fillMaxWidth()
+                    modifier = Modifier.weight(1f).captureHomeExit().widthIn(max = 560.dp).fillMaxWidth()
                         .align(Alignment.CenterHorizontally)
                         .testTag("gemini-home-middle-section"),
                     safeWidth = safeWidth,
@@ -1020,36 +1020,14 @@ private fun GeminiFooterSection(
                     .testTag("gemini-home-cta-label"),
             )
         }
-        if (runtimeAssets != null) {
-            HomeCameraButton(
-                onClick = onIdentify,
-                modifier = Modifier.testTag("gemini-home-camera"),
-                motionState = motionState,
-                runtimeAssets = runtimeAssets,
-                visualSize = cameraVisualSize,
-                touchTargetSize = cameraTouchSize,
-            )
-        } else {
-            // Show the approved camera art while runtime motion masks decode.
-            // No vector or hand-drawn fallback is used.
-            Box(
-                modifier = Modifier.size(cameraTouchSize)
-                    .semantics {
-                        contentDescription = "开始识鱼"
-                        role = Role.Button
-                    }
-                    .clickable(role = Role.Button, onClick = onIdentify)
-                    .testTag("gemini-home-camera"),
-                contentAlignment = Alignment.Center,
-            ) {
-                Image(
-                    painter = painterResource(R.drawable.normal_home_camera_primary_v1),
-                    contentDescription = null,
-                    modifier = Modifier.size(cameraVisualSize).testTag("gemini-home-camera-art"),
-                    contentScale = ContentScale.Fit,
-                )
-            }
-        }
+        HomeCameraButton(
+            onClick = onIdentify,
+            modifier = Modifier.testTag("gemini-home-camera"),
+            motionState = motionState,
+            runtimeAssets = runtimeAssets,
+            visualSize = cameraVisualSize,
+            touchTargetSize = cameraTouchSize,
+        )
     }
 }
 
