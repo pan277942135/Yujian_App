@@ -3523,13 +3523,13 @@ function renderHifiView(feature, hifiId, hifiChildId = null) {
     delete el("hifiViewCanvas").dataset.nh01ResponsiveToken;
   }
 
-  const contractDetailsItem = view.id === "swos_web_hifi_motion_contract_v1_0"
+  const contractDetailsItem = view.id === "swos_web_hifi_motion_contract_v1_0" && view.machine_authority
     ? {
         ...(child || view),
         contract_links: [
           ...((child || view).contract_links || []),
           ...(view.contract_links || []),
-          { label: "机器可读技术合同 V1.0", path: view.machine_authority || "design/pages/recognition/web/contracts/SWOS_WEB_HIFI_MOTION_TECHNICAL_CONTRACT_V1_0.json" }
+          { label: "机器可读技术合同 V1.0", path: view.machine_authority }
         ]
       }
     : (child || view);
