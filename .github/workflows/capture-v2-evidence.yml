@@ -6,7 +6,7 @@ concurrency:
   group: capture-v2-exact-apk-evidence
   cancel-in-progress: true
 permissions:
-  contents: read
+  contents: write
   actions: read
 jobs:
   capture:
@@ -23,7 +23,7 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
-            const source = '44c414b13df13a7a3520176618469acb4e51e4c6';
+            const source = '772f148017968a6d39464745f6a843c442148358';
             let selected;
             for (let i=0; i<90; i++) {
               const {data} = await github.rest.actions.listWorkflowRunsForRepo({...context.repo, head_sha: source, per_page: 30});
@@ -71,6 +71,66 @@ jobs:
           disable-animations: false
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back emulated -camera-front none
           script: bash scripts/android_runtime/capture_v2_evidence.sh
+      - name: Stage flat verified APK delivery
+        if: success()
+        run: |
+          mkdir -p delivery
+          apk=$(find startup-input -name 'YuJian-debug.apk' -print -quit)
+          test -n "$apk"
+          cp "$apk" delivery/YuJian-Capture-V2-debug.apk
+          sha256sum delivery/YuJian-Capture-V2-debug.apk > delivery/SHA256.txt
+          printf 'Source HEAD: 772f148017968a6d39464745f6a843c442148358\nBuild run: ${{ steps.apk.outputs.run }}\nNative run: ${{ github.run_id }}\nPhysical device: RUNTIME_NOT_RUN\nVisual acceptance: VISUAL_ACCEPTANCE_PENDING\n' > delivery/BUILD_INFO.txt
+      - name: Upload flat installable APK
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: YuJian-Capture-V2-TEST-772f1480
+          path: delivery/
+          retention-days: 14
+          if-no-files-found: error
+      - name: Publish native evidence for remote inspection
+        if: always()
+        continue-on-error: true
+        id: publish_evidence
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const source = '772f148017968a6d39464745f6a843c442148358';
+            const read = p => fs.existsSync(p) ? fs.readFileSync(p,'utf8').trim() : null;
+            const branch = 'evidence/capture-v2-'+context.runId+'-'+process.env.GITHUB_RUN_ATTEMPT;
+            const manifest = {source_head:source, build_run:'${{ steps.apk.outputs.run }}', native_run:context.runId,
+              runtime_status:read('capture-evidence/STATUS') || 'FAIL_OR_INCOMPLETE',
+              apk_sha256:read('startup-evidence/APK_SHA256.txt')?.split(/\s+/)[0] || null,
+              environment:'API35_EMULATOR_EMULATED_CAMERA',physical_device:'RUNTIME_NOT_RUN',
+              visual_acceptance:'VISUAL_ACCEPTANCE_PENDING'};
+            fs.writeFileSync('native_evidence_manifest.json',JSON.stringify(manifest,null,2));
+            const selected = ['01-home-idle.png','02-home-activation.png','03-camera-ready.png',
+              '04-zoom-expanded.png','05-zoom-dragged.png','01-03-continuous.mp4',
+              '320x480-font1.0-home.png','320x480-font1.5-home.png','320x480-font1.5.png',
+              '320x480-font1.5-zoom-expanded.png','360x640-font1.5.png',
+              '393x852-font1.0.png','393x852-font1.3.png','393x852-font1.5.png','430x932-font1.5.png'];
+            const paths = ['native_evidence_manifest.json'];
+            for (const dir of ['capture-evidence','startup-evidence']) {
+              if (!fs.existsSync(dir)) continue;
+              for (const n of fs.readdirSync(dir)) {
+                const include = dir==='capture-evidence'
+                  ? (selected.includes(n)||/\.(xml|json|jpg)$/.test(n)||['capture-log.txt','camera-entry-log.txt'].includes(n))
+                  : ['STATUS','RESOURCE_DECODE_STATUS','APK_SHA256.txt','resource-decode.txt'].includes(n);
+                if (include && fs.statSync(dir+'/'+n).isFile()) paths.push(dir+'/'+n);
+              }
+            }
+            const tree=[];
+            for (const path of paths) {
+              const {data:b}=await github.rest.git.createBlob({...context.repo,content:fs.readFileSync(path).toString('base64'),encoding:'base64'});
+              tree.push({path:'evidence/capture-v2-native/'+path,mode:'100644',type:'blob',sha:b.sha});
+            }
+            const {data:t}=await github.rest.git.createTree({...context.repo,base_tree:source,tree});
+            const {data:c}=await github.rest.git.createCommit({...context.repo,message:'evidence: exact capture V2 native run '+context.runId,parents:[source],tree:t.sha});
+            await github.rest.git.createRef({...context.repo,ref:'refs/heads/'+branch,sha:c.sha});
+            core.setOutput('branch',branch);
+            core.setOutput('commit',c.sha);
+            core.notice('EVIDENCE_BRANCH='+branch+' EVIDENCE_COMMIT='+c.sha);
       - uses: actions/upload-artifact@v4
         if: always()
         with:

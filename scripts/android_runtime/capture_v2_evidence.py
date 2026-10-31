@@ -119,6 +119,10 @@ for w,h in [(320,480),(360,640),(360,800),(393,852),(430,932)]:
             assert n is not None,f'{key}: missing {value}'
             x,y,r,b=bounds(n);assert 0<=x<r<=w and 0<=y<b<=h,f'{key}: clipped {value}: {n.attrib}'
             if value in ['拍摄','从相册选择','闪光灯']: assert r-x>=48 and b-y>=48,f'{key}: small touch {value}'
+        hint=next(n for n in ns if n.get('text','').startswith('可双指缩放'))
+        counter=next(n for n in ns if n.get('text')=='1.0x')
+        assert bounds(hint)[1]-bounds(counter)[3]>=8,f'{key}: hint occludes zoom counter'
+        assert bounds(counter)[3]-bounds(counter)[1]>=18*scale,f'{key}: zoom text is clipped'
         shutter_node=next(n for n in ns if n.get('content-desc')=='拍摄')
         sy=(bounds(shutter_node)[1]+bounds(shutter_node)[3])/2
         alignment={}
