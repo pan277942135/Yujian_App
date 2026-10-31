@@ -332,7 +332,7 @@ feature_contracts:
     control_phase: "P8"
     registry_status: "ACTIVE_CLOSURE"
     owner_path: "design/pages/recognition"
-    child_surfaces: ["capture", "permission", "first_use_guide", "first_use_guide_portrait_horizontal", "first_use_guide_landscape_horizontal", "preview_ready", "capture_ready_portrait_horizontal", "capture_ready_landscape_horizontal", "processing", "issue_retry", "gallery_entry"]
+    child_surfaces: ["capture", "permission", "first_use_guide", "first_use_guide_portrait_horizontal", "first_use_guide_landscape_horizontal", "preview_ready", "capture_ready_portrait_horizontal", "capture_ready_landscape_horizontal", "processing", "issue_retry", "gallery_entry", "photo_input"]
     journey_refs: ["J03", "J04", "J05", "J06", "J07", "J08", "J09", "J10"]
     route_refs: ["identify?openGallery={openGallery}", "recognizing", "recognition_issue"]
     domain_contracts:
@@ -360,8 +360,8 @@ feature_contracts:
       assets:
         status: "FROZEN"
         authority: "design/pages/recognition/design/reference_manifest.json"
-    page_contract_refs: ["design/system_v3/08_Page_Contracts/recognition/capture/Recognition_Capture_Page_Contract_V3_1.md", "design/system_v3/08_Page_Contracts/recognition/capture/Layout_Contract_V3_1.json", "design/system_v3/08_Page_Contracts/recognition/capture/State_Machine_V3_1.json", "design/system_v3/08_Page_Contracts/recognition/capture/Data_Contract_V3_1.json", "design/system_v3/08_Page_Contracts/recognition/capture/Engineering_Contract_V3_1.md", "design/system_v3/08_Page_Contracts/recognition/capture/Acceptance_Contract_V3_1.json", "design/system_v3/08_Page_Contracts/recognition/capture/Capture_Accessibility_Responsive_Matrix.md", "design/system_v3/08_Page_Contracts/recognition/processing/Recognition_Processing_Page_Contract_V3_2.md", "design/system_v3/08_Page_Contracts/recognition/processing/Layout_Contract_V3_1.json", "design/system_v3/08_Page_Contracts/recognition/processing/State_Machine_V3_2.json", "design/system_v3/08_Page_Contracts/recognition/processing/Data_Contract_V3_1.json", "design/system_v3/08_Page_Contracts/recognition/processing/Engineering_Contract_V3_2.md", "design/system_v3/08_Page_Contracts/recognition/processing/Acceptance_Contract_V3_2.json"]
-    page_contract_keys: ["capture_page", "capture_layout", "capture_state", "capture_data", "capture_engineering", "capture_acceptance", "capture_accessibility", "processing_page", "processing_layout", "processing_state", "processing_data", "processing_engineering", "processing_acceptance"]
+    page_contract_refs: ["design/system_v3/08_Page_Contracts/recognition/capture/Recognition_Capture_Page_Contract_V3_1.md", "design/system_v3/08_Page_Contracts/recognition/capture/Layout_Contract_V3_1.json", "design/system_v3/08_Page_Contracts/recognition/capture/State_Machine_V3_1.json", "design/system_v3/08_Page_Contracts/recognition/capture/Data_Contract_V3_1.json", "design/system_v3/08_Page_Contracts/recognition/capture/Engineering_Contract_V3_1.md", "design/system_v3/08_Page_Contracts/recognition/capture/Acceptance_Contract_V3_1.json", "design/system_v3/08_Page_Contracts/recognition/capture/Capture_Accessibility_Responsive_Matrix.md", "design/system_v3/08_Page_Contracts/recognition/processing/Recognition_Processing_Page_Contract_V3_2.md", "design/system_v3/08_Page_Contracts/recognition/processing/Layout_Contract_V3_1.json", "design/system_v3/08_Page_Contracts/recognition/processing/State_Machine_V3_2.json", "design/system_v3/08_Page_Contracts/recognition/processing/Data_Contract_V3_1.json", "design/system_v3/08_Page_Contracts/recognition/processing/Engineering_Contract_V3_2.md", "design/system_v3/08_Page_Contracts/recognition/processing/Acceptance_Contract_V3_2.json", "design/system_v3/08_Page_Contracts/recognition/capture/Photo_Capture_Unified_Input_Contract_V1.md", "design/system_v3/08_Page_Contracts/recognition/capture/Photo_Capture_Unified_Input_Contract_V1.json"]
+    page_contract_keys: ["capture_page", "capture_layout", "capture_state", "capture_data", "capture_engineering", "capture_acceptance", "capture_accessibility", "processing_page", "processing_layout", "processing_state", "processing_data", "processing_engineering", "processing_acceptance", "photo_input_contract", "photo_input_machine"]
     contract_extensions:
       capture_hifi:
         status: "FROZEN"
@@ -371,6 +371,13 @@ feature_contracts:
         fish_guide_frame: "FIXED_HORIZONTAL"
         control_geometry: "RIGHT_VERTICAL_RAIL"
         binary_import_status: "PENDING"
+      photo_input:
+        status: "FROZEN"
+        contract: "design/system_v3/08_Page_Contracts/recognition/capture/Photo_Capture_Unified_Input_Contract_V1.md"
+        machine_contract: "design/system_v3/08_Page_Contracts/recognition/capture/Photo_Capture_Unified_Input_Contract_V1.json"
+        high_fidelity_required: false
+        runtime_alignment: "PARTIAL"
+        android_implementation_changed: false
       first_use_guide:
         status: "FROZEN"
         authority_spec: "design/pages/recognition/first_use_camera_guide/First_Use_Camera_Guide_Spec_V1.md"
@@ -1162,6 +1169,10 @@ child_surface_contracts:
     owner_features: ["recognition_flow_v1_2"]
     contract_refs: ["FC-recognition_flow_v1_2"]
     resolution_rule: "Resolve child surface through its owner feature contract; page-owned authority wins over shared fallback."
+  "photo_input":
+    owner_features: ["recognition_flow_v1_2"]
+    contract_refs: ["FC-recognition_flow_v1_2"]
+    resolution_rule: "Resolve CameraX and Gallery input through the unified PhotoSession and PhotoInputReady contract; page-owned input authority wins over shared fallback."
   "overview":
     owner_features: ["recognition_result_v1", "fish_record_detail_v2", "my_catches_v2"]
     contract_refs: ["FC-recognition_result_v1", "FC-fish_record_detail_v2", "FC-my_catches_v2"]
@@ -1571,6 +1582,8 @@ page_contract_sets:
       processing_data: "design/system_v3/08_Page_Contracts/recognition/processing/Data_Contract_V3_1.json"
       processing_engineering: "design/system_v3/08_Page_Contracts/recognition/processing/Engineering_Contract_V3_2.md"
       processing_acceptance: "design/system_v3/08_Page_Contracts/recognition/processing/Acceptance_Contract_V3_2.json"
+      photo_input_contract: "design/system_v3/08_Page_Contracts/recognition/capture/Photo_Capture_Unified_Input_Contract_V1.md"
+      photo_input_machine: "design/system_v3/08_Page_Contracts/recognition/capture/Photo_Capture_Unified_Input_Contract_V1.json"
     authority_rule: "Only the named source owns the declared contract dimension; absence is not inherited silently."
   recognition_result_v1:
     refs:
@@ -1756,6 +1769,11 @@ gate_contracts:
     contract_refs: ["FC-recognition_flow_v1_2", "FC-recognition_result_v1", "WEB-RECOGNITION-HIFI-V2", "SWOS-WEB-HIFI-MOTION-V1", "RECOGNITION-OPTICAL-CONTINUITY"]
     acceptance_domains: ["visual", "motion", "asset", "runtime", "evidence"]
     exact_sha_required: true
+  G-PHOTO-CAPTURE-INPUT-CONTRACT-V1:
+    purpose: "Static contract acceptance for the CameraX/Gallery unified photo input boundary, source/canonical hash separation, EXIF normalization, PhotoSession identity, cancellation/stale-session isolation and PhotoInputReady handoff; no visual page or Android runtime promotion."
+    contract_refs: ["FC-recognition_flow_v1_2"]
+    acceptance_domains: ["static_contract", "data", "source_integrity", "state", "handoff", "evidence"]
+    exact_sha_required: true
   G-FIRST-USE-GUIDE-ASSET:
     purpose: "First-use guide binary identity and governance"
     contract_refs: ["FC-recognition_flow_v1_2", "DS-FOUNDATION"]
@@ -1871,6 +1889,10 @@ task_contract_bindings:
   P3-07:
     contract_refs: ["FC-recognition_flow_v1_2", "FC-recognition_result_v1", "WEB-RECOGNITION-HIFI-V2", "SWOS-WEB-HIFI-MOTION-V1", "RECOGNITION-OPTICAL-CONTINUITY", "G-SWOS-WEB-HIFI-MOTION-V1"]
     gate_id: "G-SWOS-WEB-HIFI-MOTION-V1"
+    phase: "P3"
+  YUJIAN_PHOTO_CAPTURE_UNIFIED_INPUT_CONTRACT_V1:
+    contract_refs: ["FC-recognition_flow_v1_2", "G-PHOTO-CAPTURE-INPUT-CONTRACT-V1"]
+    gate_id: "G-PHOTO-CAPTURE-INPUT-CONTRACT-V1"
     phase: "P3"
   P4-01:
     contract_refs: ["FC-recognition_flow_v1_2", "FC-recognition_result_v1"]
@@ -2090,11 +2112,11 @@ global_acceptance_rules:
 inventory:
   feature_count: 15
   journey_count: 20
-  child_surface_count: 81
+  child_surface_count: 82
   route_count: 22
-  task_count: 70
-  gate_count: 30
+  task_count: 71
+  gate_count: 31
   registry_created_from_pr_head: "ebb6b3904feaa0cf26b4fd4b83bc809a397085a2"
-  last_synced_feature_matrix_sha: "5ca6df33fad32dbf50f83e4d97aa46fb854d43e9"
-  last_synced_phase_task_state_machine_sha: "8b6333078a0d136c29c13edacf43bf412eb409b4"
+  last_synced_feature_matrix_sha: "e630400e6be74772f78f412f67eb5e1f948eb0eb"
+  last_synced_phase_task_state_machine_sha: "347037d91c2420da635dc87b1ea67cd90cd7c70e"
   last_synced_experience_registry_sha: "47be44ca3cbce908fa676e262987fe26a8dbea32"

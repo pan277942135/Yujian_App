@@ -1,0 +1,212 @@
+{
+  "schema_version": "1.0",
+  "contract_id": "PHOTO-CAPTURE-UNIFIED-INPUT-V1",
+  "feature_id": "recognition_flow_v1_2",
+  "child_surface_id": "photo_input",
+  "status": "FROZEN_CONTRACT",
+  "runtime_alignment": "PARTIAL",
+  "visual_page": false,
+  "high_fidelity_required": false,
+  "route": "identify?openGallery={openGallery}",
+  "sources": {
+    "CAMERA": {
+      "adapter": "CameraX ImageCapture",
+      "source_artifact": "actual_saved_jpeg",
+      "success_requires": [
+        "callback_success",
+        "file_exists",
+        "file_bytes_gt_zero",
+        "decode_bounds_valid",
+        "canonical_file_persisted",
+        "canonical_sha256_verified"
+      ],
+      "crop_policy": "match_actual_previewview_viewport_after_exif; never_use_four_corner_guide_as_crop_bounds",
+      "overlay_pixels_allowed": false,
+      "presentation_origin": "camera_preview_rect_and_shutter_geometry"
+    },
+    "GALLERY": {
+      "adapter": "Android Photo Picker PickVisualMedia ImageOnly",
+      "camera_permission_required": false,
+      "source_artifact": "exact_bytes_from_picker_uri",
+      "copy_to_private_temp_before_decode": true,
+      "camera_viewport_crop": false,
+      "full_source_frame_required": true,
+      "cancellation": "non_mutating_return_to_capture",
+      "presentation_origin": "initial_fit_contain_image_rect"
+    }
+  },
+  "identity": {
+    "session_id": {
+      "required": true,
+      "unique_per_attempt": true,
+      "format": "UUID"
+    },
+    "image_id": {
+      "required": true,
+      "distinct_from_session_id": true
+    },
+    "source_type": [
+      "CAMERA",
+      "GALLERY"
+    ],
+    "source_sha256": {
+      "required": true,
+      "hashes": "exact_source_bytes_before_normalization"
+    },
+    "photo_sha256": {
+      "required": true,
+      "hashes": "canonical_normalized_jpeg_bytes"
+    },
+    "inference_binding": [
+      "sessionId",
+      "photoSha256",
+      "modelSha256"
+    ]
+  },
+  "representations": {
+    "source_photo": "immutable_source_bytes; temporary_copy_may_be_released_after_canonical_verification",
+    "canonical_photo": "app_private_normalized_photo; sole_source_for_recognition_preprocessing",
+    "display_preview": "sampled_fit_contain_preview; never_replace_source_or_model_input",
+    "model_input": "derived_from_canonical_photo_by_model_specific_preprocessing_contract"
+  },
+  "normalization": {
+    "order": [
+      "read_source",
+      "hash_source",
+      "read_mime_dimensions_exif",
+      "bounds_first_decode",
+      "apply_full_exif_orientation_once",
+      "camera_only_viewport_crop",
+      "persist_canonical_jpeg",
+      "verify_canonical",
+      "hash_canonical",
+      "build_display_preview",
+      "emit_photo_input_ready"
+    ],
+    "exif_orientation_cases": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ],
+    "camera_crop": "actual_previewview_visible_content_filled_viewport_after_orientation",
+    "gallery_crop": "NONE",
+    "file_size_policy": "no_file_size_only_rejection; bounds_first_and_memory_safe_decode",
+    "supported_formats": [
+      "image/jpeg",
+      "image/png",
+      "image/webp",
+      "image/heic_if_device_decoder_supports",
+      "image/heif_if_device_decoder_supports"
+    ],
+    "excluded_formats": [
+      "image/x-adobe-dng",
+      "camera_raw"
+    ]
+  },
+  "internal_states": [
+    "IDLE",
+    "SOURCE_REQUESTED",
+    "SOURCE_ACQUIRED",
+    "SOURCE_COPYING",
+    "METADATA_READING",
+    "EXIF_NORMALIZING",
+    "CANONICALIZING",
+    "VERIFYING",
+    "INPUT_READY",
+    "CANCELLED",
+    "INPUT_ERROR"
+  ],
+  "event": {
+    "name": "PhotoInputReady",
+    "exactly_once_per_active_session": true,
+    "required_fields": [
+      "sessionId",
+      "imageId",
+      "sourceType",
+      "sourceSha256",
+      "photoSha256",
+      "canonicalPhotoRef",
+      "displayPreviewRef",
+      "sourceWidth",
+      "sourceHeight",
+      "normalizedWidth",
+      "normalizedHeight",
+      "exifOrientation",
+      "mimeType",
+      "sourceBytes",
+      "presentationOrigin"
+    ],
+    "guard": [
+      "source_non_empty",
+      "decode_valid",
+      "exif_normalized",
+      "canonical_persisted",
+      "canonical_sha256_verified",
+      "session_is_active"
+    ]
+  },
+  "lifecycle": {
+    "one_camera_capture_in_flight": true,
+    "new_attempt_invalidates_previous_session": true,
+    "stale_callbacks_must_be_discarded": true,
+    "gallery_cancel_non_mutating": true,
+    "retry_creates_new_session_id": true,
+    "no_fish_record_persistence": true,
+    "network_photo_upload": false
+  },
+  "downstream": {
+    "photo_morph_duration_ms": 700,
+    "button_morph_duration_ms": 900,
+    "visual_transitions_run_concurrently": true,
+    "consumer_pages": [
+      "05 Photo Morph",
+      "06 Button Morph",
+      "10 Recognition Handoff"
+    ],
+    "preserve_same_session_and_canonical_photo": true
+  },
+  "current_runtime_baseline": {
+    "camera_entry": "app/src/main/java/com/yujian/ai/ui/screens/IdentifyScreen.kt",
+    "image_store": "app/src/main/java/com/yujian/ai/media/RecognitionImageStore.kt",
+    "capture_state": "app/src/main/java/com/yujian/ai/ui/identify/RecognitionCameraCaptureContract.kt",
+    "selected_image_model": "app/src/main/java/com/yujian/ai/model/Models.kt",
+    "observed_current_hash_semantics": "photoSha256_is_hash_of_normalized_persisted_jpeg",
+    "observed_current_decode": "bounds_first_sampled_decode_long_edge_approximately_2048_jpeg_quality_92",
+    "observed_current_camera_crop": "centered_fill_center_crop_after_exif_using_preview_aspect_ratio",
+    "observed_current_gallery_crop": "none"
+  },
+  "runtime_gaps": [
+    "distinct_session_id_not_in_selected_image_model",
+    "raw_source_sha256_not_recorded_separately",
+    "full_exif_mirror_orientation_not_proven",
+    "gallery_presentation_origin_not_explicit",
+    "exact_camera_viewport_crop_pixel_parity_requires_runtime_evidence",
+    "end_to_end_stale_session_isolation_requires_verification"
+  ],
+  "acceptance_groups": [
+    "camera_real_jpeg_and_overlay_exclusion",
+    "gallery_provider_uri_and_permission_independence",
+    "exif_all_eight_orientations",
+    "aspect_ratio_and_format_matrix",
+    "file_size_and_memory_matrix",
+    "source_and_canonical_sha_integrity",
+    "session_uniqueness_and_stale_result_isolation",
+    "cancel_retry_cleanup",
+    "photo_input_ready_single_handoff",
+    "network_photo_upload_false"
+  ],
+  "out_of_scope": [
+    "new_visual_page_or_hifi",
+    "camera_or_processing_visual_redesign",
+    "android_implementation_in_this_contract_change",
+    "detector_classifier_sam_model_changes",
+    "backend_api_database_changes",
+    "fish_record_persistence",
+    "network_upload"
+  ]
+}

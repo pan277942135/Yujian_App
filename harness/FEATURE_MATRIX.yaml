@@ -267,6 +267,7 @@ features:
       - "degradation_accessibility"
       - "runtime_evidence"
       - "capture_first_use_guide"
+      - "photo_capture_unified_input_contract_v1"
       - "recognition_full_flow_models"
       - "swos_optical_contract"
       - "processing_result_continuity"
@@ -298,6 +299,7 @@ features:
       - "p02"
       - "p03"
       - "resources"
+      - "photo_input_contract_v1"
       - "swos_optical_contract_v1"
       - "processing_result_optical_continuity_v1"
       - "processing_page_contract_v3_2"
@@ -317,6 +319,7 @@ features:
       - "processing"
       - "issue_retry"
       - "gallery_entry"
+      - "photo_input"
     journey_refs:
       - "J03"
       - "J04"
