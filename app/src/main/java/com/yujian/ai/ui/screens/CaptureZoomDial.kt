@@ -27,6 +27,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -59,6 +60,7 @@ internal fun CaptureZoomDial(
     onZoom: (Float) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val pillWidth = (80f + (LocalDensity.current.fontScale - 1f).coerceIn(0f, .5f) * 40f).dp
     val ink = Color(0xFF19565B)
     val latestRatio = rememberUpdatedState(current)
     val latestZoom = rememberUpdatedState(onZoom)
@@ -84,7 +86,7 @@ internal fun CaptureZoomDial(
                 Canvas(Modifier.width(260.dp).height(64.dp).testTag("capture-fine-zoom-dial")
                     .semantics { contentDescription = "左右滑动精细变焦" }.zoomDrag()) {
                     val cx = size.width / 2f
-                    val cy = size.height * 1.55f
+                    val cy = size.height * 1.6f
                     val radius = size.width * .375f
                     val fraction = captureZoomFraction(current, minimum, maximum)
                     fun point(f: Float, r: Float): Offset {
@@ -113,7 +115,7 @@ internal fun CaptureZoomDial(
                 }
             }
         }
-        Box(Modifier.width(80.dp).height(48.dp).testTag("capture-zoom-entry").zoomDrag()
+        Box(Modifier.width(pillWidth).height(48.dp).testTag("capture-zoom-entry").zoomDrag()
             .clickable { onExpandedChange(!expanded) }, contentAlignment = Alignment.Center) {
             Row(Modifier.height(40.dp).background(Color.White.copy(alpha = .35f), RoundedCornerShape(20.dp))
                 .border(1.dp, Color.White.copy(alpha = .65f), RoundedCornerShape(20.dp)).padding(horizontal = 10.dp),

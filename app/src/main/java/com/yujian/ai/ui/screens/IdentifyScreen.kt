@@ -196,6 +196,7 @@ fun IdentifyScreen(
     var minZoomRatio by remember { mutableStateOf(1f) }
     var maxZoomRatio by remember { mutableStateOf(1f) }
     var zoomDialExpanded by remember { mutableStateOf(false) }
+    var shutterClickElapsed by remember { mutableStateOf<Long?>(null) }
     val captureHandoffActive = CaptureNavigationTransition.active.value && !autoOpenGallery
     var captureTarget by remember { mutableStateOf(Offset.Unspecified) }
     var shutterDiameterPx by remember { mutableStateOf(0f) }
@@ -872,7 +873,7 @@ fun IdentifyScreen(
                 onClick = onBack,
                 modifier = Modifier
                     .align(Alignment.TopStart)
-                    .padding(top = safeInsets.calculateTopPadding() + 8.dp, start = 12.dp),
+                    .padding(top = safeInsets.calculateTopPadding(), start = 12.dp),
             ) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
@@ -881,11 +882,11 @@ fun IdentifyScreen(
                 )
             }
             Column(
-                Modifier.align(Alignment.TopCenter).padding(top = safeInsets.calculateTopPadding() + 2.dp),
+                Modifier.align(Alignment.TopCenter).padding(top = safeInsets.calculateTopPadding() + 8.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 Text("拍照识鱼", color = cameraInk, fontSize = 22.sp, fontWeight = FontWeight.SemiBold)
-                Spacer(Modifier.height(7.dp))
+                Spacer(Modifier.height(15.dp))
                 Text("请将整条鱼放在取景框中央", color = secondaryInk, fontSize = 14.sp)
             }
             Canvas(Modifier.align(Alignment.TopCenter).offset(y = guideTop).fillMaxWidth(.90f).height(guideHeight).testTag("capture-composition-guide")) {
@@ -971,7 +972,17 @@ fun IdentifyScreen(
                 contentAlignment = Alignment.Center,
             ) {
                 YuJianCaptureButton(
-                    onClick = ::capture,
+                    onClick = {
+                        if (shutterClickElapsed == null) scope.launch {
+                            val pressedAt = android.os.SystemClock.uptimeMillis()
+                            do {
+                                shutterClickElapsed = android.os.SystemClock.uptimeMillis() - pressedAt
+                                withFrameNanos { }
+                            } while (android.os.SystemClock.uptimeMillis() - pressedAt < 80L)
+                            capture()
+                            shutterClickElapsed = null
+                        }
+                    },
                     enabled = cameraCanCapture() &&
                         RecognitionCameraCaptureContract.canStartCapture(captureState),
                     contentDescription = "拍摄",
@@ -979,6 +990,8 @@ fun IdentifyScreen(
                     visualSize = shutterDiameter,
                     touchTargetSize = shutterDiameter,
                     cameraReady = true,
+                    clickElapsedMs = shutterClickElapsed,
+                    onCaptureHaptic = { if (shutterClickElapsed == null) com.yujian.ai.ui.home.captureClickHaptic(context, view) },
                     frozenVisual = true,
                 )
             }
@@ -987,9 +1000,9 @@ fun IdentifyScreen(
                     .align(Alignment.BottomStart)
                     .padding(
                         start = 27.dp,
-                        bottom = panelControlBottom,
+                        bottom = panelControlBottom + (shutterDiameter - 72.dp) / 2f + 9.dp,
                     )
-                    .size(66.dp)
+                    .size(72.dp)
                     .clickable(role = Role.Button, onClick = ::openGallery)
                     .testTag("recognition-camera-gallery")
                     .semantics { contentDescription = "从相册选择" },
@@ -1017,9 +1030,9 @@ fun IdentifyScreen(
                     .align(Alignment.BottomEnd)
                     .padding(
                         end = 27.dp,
-                        bottom = panelControlBottom,
+                        bottom = panelControlBottom + (shutterDiameter - 72.dp) / 2f + 9.dp,
                     )
-                    .size(66.dp)
+                    .size(72.dp)
                     .clickable(enabled = cameraBound && cameraController.cameraInfo?.hasFlashUnit() == true, role = Role.Button) {
                         cameraController.enableTorch(!torchEnabled).addListener({
                             torchEnabled = cameraController.cameraInfo?.torchState?.value == androidx.camera.core.TorchState.ON
