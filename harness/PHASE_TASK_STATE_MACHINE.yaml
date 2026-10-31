@@ -562,6 +562,18 @@ tasks:
     evidence_required: ["camera_capture_handoff", "recognition_processing_state_sequence"]
     completion: "Recognition feature implementation is executable on the current baseline."
     human_required: false
+  YUJIAN_ANDROID_STARTUP_CRASH_RECOVERY_V1:
+    phase: "P6"
+    priority: "P0"
+    owner: "Work"
+    feature_refs: []
+    journey_refs: []
+    depends_on: []
+    entry_blockers: []
+    target_blockers: []
+    evidence_required: ["original_apk_startup_trace", "durable_uncaught_exception_report", "native_recovery_export", "focused_startup_smoke", "build_unit_lint"]
+    completion: "Diagnose the delivered APK launch crash, repair confirmed startup faults, preserve a native crash-report export path, and deliver a verified replacement package without claiming device acceptance from emulator evidence."
+    human_required: false
   YUJIAN_ANDROID_PROCESSING_LAKE_ORB_PRESENTATION_V1:
     phase: "P6"
     priority: "P0"

@@ -103,6 +103,10 @@ domain_catalog:
     role: "EXECUTION"
 
 shared_contracts:
+  ANDROID-STARTUP-CRASH-RECOVERY-V1:
+    domain: "EXECUTION"
+    status: "READY"
+    refs: ["harness/task_contracts/ANDROID_STARTUP_CRASH_RECOVERY_V1.md"]
   ANDROID-PROCESSING-LAKE-ORB-V1:
     domain: "DOMAIN"
     status: "FROZEN_CONTRACT_INPUT"
@@ -1770,6 +1774,9 @@ gate_contracts:
     resource_gallery_ids: ["p01", "p02", "p03"]
     android_runtime_mapping: false
 task_contract_bindings:
+  YUJIAN_ANDROID_STARTUP_CRASH_RECOVERY_V1:
+    contract_refs: ["ANDROID-STARTUP-CRASH-RECOVERY-V1", "DS-FOUNDATION", "ANDROID-RUNTIME-HARNESS", "STATE-EVIDENCE-PROVENANCE"]
+    phase: "P6"
   YUJIAN_ANDROID_PROCESSING_LAKE_ORB_PRESENTATION_V1:
     contract_refs: ["ANDROID-PROCESSING-LAKE-ORB-V1", "DS-FOUNDATION", "ANDROID-RUNTIME-HARNESS", "STATE-EVIDENCE-PROVENANCE"]
     phase: "P6"
@@ -2072,7 +2079,7 @@ inventory:
   journey_count: 20
   child_surface_count: 81
   route_count: 22
-  task_count: 67
+  task_count: 68
   gate_count: 29
   registry_created_from_pr_head: "ebb6b3904feaa0cf26b4fd4b83bc809a397085a2"
   last_synced_feature_matrix_sha: "aacfe6561fb2dc4dc2262c36147a59bd484cbea1"
