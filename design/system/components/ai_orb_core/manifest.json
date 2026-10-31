@@ -93,7 +93,7 @@
     }
   ],
   "runtime_binding_targets": {
-    "idle_capture_resource": "app/src/main/res/drawable-nodpi/primary_capture_button_v1_1.png",
+    "idle_capture_resource": "app/src/main/res/drawable-nodpi/capture_button_main_v1.png",
     "activated_capture_resource": "app/src/main/res/drawable-nodpi/ai_orb_camera_activated_v1.webp",
     "orb_core_resource": "app/src/main/res/drawable-nodpi/processing_water_core_v1.webp",
     "rule": "Idle button is byte-identical to frozen V1.1. Activated resource is the existing WebP derivative of user Asset 02. Do not conflate the two."
