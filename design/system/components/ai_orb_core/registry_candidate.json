@@ -1,0 +1,33 @@
+{
+  "component_id": "intelligence.ai_orb_core",
+  "name": "AI Orb Core",
+  "status": "REVIEW",
+  "registry_scope": "CANDIDATE_NOT_YET_PROMOTED_TO_FROZEN_COMPONENT_REGISTRY",
+  "purpose": "One living brand identity across Home capture entry, camera shutter, recognition Processing and Result handoff.",
+  "asset_dependency": [
+    "system_components_primary_capture_button_assets_capture_button_main_v1_png"
+  ],
+  "component_dependency": [
+    "camera.capture_surface",
+    "media.camera_preview"
+  ],
+  "page_references": [
+    "home.empty.v2",
+    "home.normal.v1",
+    "recognition.capture.v3_1",
+    "recognition.processing.v3_2",
+    "recognition.result.v1"
+  ],
+  "state_contract": "design/system/components/ai_orb_core/state_contract.json",
+  "visual_contract": "design/system/components/ai_orb_core/visual_contract.json",
+  "motion_contract": "design/system/components/ai_orb_core/motion_contract.json",
+  "acceptance_rule": "Promote to Component_Registry_V3_FINAL only after product-owner visual acceptance and exact-head Android/runtime evidence.",
+  "promotion_conditions": [
+    "product_owner_visual_acceptance",
+    "exact_source_asset_provenance",
+    "android_build_unit_test_lint_pass",
+    "api28_runtime_evidence",
+    "apk_sha256_provenance",
+    "rr09_handoff_parity"
+  ]
+}

@@ -1,0 +1,82 @@
+{
+  "component_id": "intelligence.ai_orb_core",
+  "version": "V1",
+  "status": "REVIEW",
+  "states": [
+    "CAPTURE_BUTTON_IDLE",
+    "CAPTURE_BUTTON_ACTIVATED",
+    "ORB_MORPH_IN",
+    "ORB_ACTIVE",
+    "ORB_CONTRACTING",
+    "HIDDEN"
+  ],
+  "transitions": [
+    {
+      "from": "CAPTURE_BUTTON_IDLE",
+      "event": "HOME_CAPTURE_NAVIGATE",
+      "to": "CAPTURE_BUTTON_IDLE",
+      "visual": "No Orb Morph; existing Home-to-Capture button handoff only."
+    },
+    {
+      "from": "CAPTURE_BUTTON_IDLE",
+      "event": "CAMERA_CAPTURE_ENTER_PROCESSING",
+      "to": "CAPTURE_BUTTON_ACTIVATED",
+      "guard": "A real camera capture produces the same SelectedImage/PhotoSession and stable Processing photo frame.",
+      "visual": "Show the Asset 02 activated camera-water state for 0-150ms."
+    },
+    {
+      "from": "CAPTURE_BUTTON_ACTIVATED",
+      "event": "ACTIVATION_150MS_SETTLED",
+      "to": "ORB_MORPH_IN",
+      "visual": "Dissolve activated camera-water asset into the transparent Orb core from 150-350ms."
+    },
+    {
+      "from": "CAPTURE_BUTTON_IDLE",
+      "event": "GALLERY_IMAGE_READY",
+      "to": "ORB_MORPH_IN",
+      "guard": "A real normalized Gallery image enters Processing.",
+      "visual": "Orb core visible immediately; no camera-button crossfade."
+    },
+    {
+      "from": "ORB_MORPH_IN",
+      "event": "CORE_350MS_READY",
+      "to": "ORB_ACTIVE",
+      "guard": "Shared scene clock reaches 350ms.",
+      "visual": "Core is visible; ribbon opening and settle continue on the same 900ms clock."
+    },
+    {
+      "from": "ORB_ACTIVE",
+      "event": "ENTRY_900MS_SETTLED",
+      "to": "ORB_ACTIVE",
+      "guard": "Shared scene clock reaches 900ms.",
+      "visual": "Independent refraction and ribbon cycles continue."
+    },
+    {
+      "from": "ORB_ACTIVE",
+      "event": "REAL_RESULT_AND_EXISTING_GATES_READY",
+      "to": "ORB_CONTRACTING",
+      "guard": "Existing minimum story, real inference outcome and business gates are satisfied.",
+      "visual": "Consume existing completion progress and hand off to RR09."
+    },
+    {
+      "from": "ORB_CONTRACTING",
+      "event": "RR09_FIRST_FRAME_READY",
+      "to": "HIDDEN",
+      "guard": "Existing RR09 shared-photo handoff is ready.",
+      "visual": "Orb removed; no return to camera-button state."
+    },
+    {
+      "from": "CAPTURE_BUTTON_ACTIVATED",
+      "event": "CAPTURE_OR_PROCESSING_CANCELLED",
+      "to": "HIDDEN",
+      "guard": "Existing cancellation route owns recovery.",
+      "visual": "No synthetic success; host restores its own valid Capture state if user returns."
+    }
+  ],
+  "host_ownership": {
+    "home": "Navigation only; no Orb Morph.",
+    "capture": "Camera lifecycle, shutter, Gallery and PhotoSession creation.",
+    "processing": "Shared scene clock, photo transform and Orb presentation.",
+    "result": "RR09 and Result semantics; Orb hidden."
+  }
+}
