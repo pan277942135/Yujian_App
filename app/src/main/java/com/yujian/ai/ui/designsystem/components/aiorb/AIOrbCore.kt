@@ -20,6 +20,10 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.yujian.ai.R
+import com.yujian.ai.ai.RecognitionPhase
+import com.yujian.ai.ui.waterlight.core.WaterLightFrame
+import com.yujian.ai.ui.waterlight.core.WaterLightMaterialProfile
+import com.yujian.ai.ui.waterlight.renderer.OrbWaterLightRibbons
 import com.yujian.ai.ui.designsystem.components.YuJianCaptureButton
 import com.yujian.ai.ui.designsystem.components.YuJianCaptureButtonRasterAssets
 import com.yujian.ai.ui.designsystem.components.YuJianCaptureButtonRasterMotion
@@ -57,6 +61,8 @@ fun AIOrbCore(
     reduceMotion: Boolean = false,
     lowPerformance: Boolean = false,
     fromCamera: Boolean = false,
+    waterLightFrame: WaterLightFrame? = null,
+    waterLightMaterial: WaterLightMaterialProfile = WaterLightMaterialProfile.ORB_LEGACY,
 ) {
     when (state) {
         AIOrbVisualState.CAPTURE_BUTTON_IDLE -> YuJianCaptureButton(
@@ -90,6 +96,8 @@ fun AIOrbCore(
             reduceMotion = reduceMotion,
             lowPerformance = lowPerformance,
             fromCamera = fromCamera,
+            waterLightFrame = waterLightFrame,
+            waterLightMaterial = waterLightMaterial,
             modifier = modifier,
         )
         AIOrbVisualState.HIDDEN -> Unit
@@ -124,6 +132,8 @@ private fun OrbVisual(
     reduceMotion: Boolean,
     lowPerformance: Boolean,
     fromCamera: Boolean,
+    waterLightFrame: WaterLightFrame?,
+    waterLightMaterial: WaterLightMaterialProfile,
     modifier: Modifier,
 ) {
     val frame = aiOrbMotionFrame(entranceElapsedMs, fromCamera, reduceMotion, completion)
@@ -131,6 +141,11 @@ private fun OrbVisual(
     val ribbons = frame.ribbonOpening
     val settle = completion.coerceIn(0f, 1f)
     val time = if (reduceMotion) 0f else elapsedMs / 1000f
+    val sharedFrame = waterLightFrame ?: WaterLightFrame(
+        sessionId = "", photoSha256 = null, elapsedMs = elapsedMs.coerceAtLeast(0L),
+        opticalReferenceElapsedMs = elapsedMs.coerceAtLeast(0L), phase = RecognitionPhase.CAPTURED,
+        completion = completion.coerceIn(0f, 1f), reducedMotion = reduceMotion, geometryVersion = 0L,
+    )
     val breath = if (reduceMotion) 1f else 1f + .018f * sin(time * (2f * PI.toFloat() / 4.2f))
     Box(
         modifier.size(coreSize + 28.dp).graphicsLayer {
@@ -140,7 +155,7 @@ private fun OrbVisual(
         },
         contentAlignment = Alignment.Center,
     ) {
-        OrbRibbons(coreSize, time, ribbons, settle, false, lowPerformance)
+        OrbWaterLightRibbons(coreSize, sharedFrame, ribbons, settle, false, lowPerformance, waterLightMaterial)
         if (fromCamera && morph < 1f) {
             Image(
                 painter = painterResource(R.drawable.ai_orb_camera_activated_v1),
@@ -192,51 +207,6 @@ private fun OrbVisual(
                 }
             }
         }
-        OrbRibbons(coreSize, time, ribbons, settle, true, lowPerformance)
-    }
-}
-
-@Composable
-private fun OrbRibbons(
-    coreSize: Dp,
-    time: Float,
-    opening: Float,
-    settle: Float,
-    front: Boolean,
-    low: Boolean,
-) {
-    Canvas(Modifier.fillMaxSize()) {
-        val radius = coreSize.toPx() * .5f
-        val colors = listOf(Color(0xFFD8BC87), Color(0xFF348CA6), Color(0xFF5B8F78))
-        colors.forEachIndexed { layer, color ->
-            val period = listOf(5.5f, 4.5f, 6.5f)[layer]
-            val phase = time * 2f * PI.toFloat() / period * (if (layer == 1) -1f else 1f)
-            val tilt = listOf(-.45f, .60f, 1.25f)[layer]
-            val radiusWithOpening = radius + (10f + layer * 2f).dp.toPx() * opening * (1f - settle)
-            val steps = if (low) 48 else 96
-            val path = Path()
-            var connected = false
-            val sweep = listOf(1.62f, 1.48f, 1.16f)[layer] * PI.toFloat()
-            for (i in 0..steps) {
-                val angle = i * sweep / steps + phase
-                val z = sin(angle)
-                val isFront = z >= 0f
-                val ripple = 1f + .035f * sin(angle * 3f + time * .8f + layer)
-                val x = cos(angle) * radiusWithOpening * ripple
-                val y = sin(angle) * radiusWithOpening * ripple * (.33f + .03f * sin(time * .9f + layer))
-                val point = center + Offset(
-                    x * cos(tilt) - y * sin(tilt),
-                    x * sin(tilt) + y * cos(tilt),
-                )
-                if (isFront == front) {
-                    if (!connected) path.moveTo(point.x, point.y) else path.lineTo(point.x, point.y)
-                    connected = true
-                } else connected = false
-            }
-            val alpha = opening * (if (front) .72f else .25f) * (if (layer == 2) .45f else 1f)
-            drawPath(path, color.copy(alpha = alpha * .18f), style = Stroke((if (layer == 2) 3.6f else 4f).dp.toPx(), cap = StrokeCap.Round))
-            drawPath(path, color.copy(alpha = alpha), style = Stroke((if (layer == 2) 1.6f else .9f).dp.toPx(), cap = StrokeCap.Round))
-            if (layer != 2 && front) drawPath(path, Color(0xFFFFFAE8).copy(alpha = alpha * .5f), style = Stroke(.35f.dp.toPx()))
-        }
+        OrbWaterLightRibbons(coreSize, sharedFrame, ribbons, settle, true, lowPerformance, waterLightMaterial)
     }
 }

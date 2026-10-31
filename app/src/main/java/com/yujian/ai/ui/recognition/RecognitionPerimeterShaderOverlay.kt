@@ -20,6 +20,7 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.yujian.ai.ai.RecognitionPhase
 import com.yujian.ai.ui.identify.DisplayRect
 import com.yujian.ai.ui.identify.RecognitionImageTransform
+import com.yujian.ai.ui.waterlight.core.WaterLightFrame
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.util.concurrent.atomic.AtomicBoolean
@@ -37,6 +38,7 @@ private const val NODE_POSITION_FLOATS = RecognitionPerimeterShaderMath.SPARKLE_
  */
 @Composable
 internal fun RecognitionPerimeterShaderOverlay(
+    waterLightFrame: WaterLightFrame,
     bitmap: Bitmap,
     photoTransform: RecognitionImageTransform,
     elapsedMs: Long,
@@ -52,6 +54,8 @@ internal fun RecognitionPerimeterShaderOverlay(
     referenceMetrics: RecognitionPerimeterReferenceMetrics? = null,
     modifier: Modifier = Modifier,
 ) {
+    if (waterLightFrame.sessionId != recognitionSessionId || waterLightFrame.photoSha256 != photoSha256 ||
+        waterLightFrame.phase != phase) return
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val identity = sessionKey ?: photoTransform
@@ -71,9 +75,9 @@ internal fun RecognitionPerimeterShaderOverlay(
     ) {
         RecognitionPerimeterShaderMath.generatePerimeterPath(sourceCssWidth, sourceCssHeight)
     }
-    val shaderElapsedMs = if (reduceMotion) 0L else elapsedMs
+    val shaderElapsedMs = if (waterLightFrame.reducedMotion) 0L else waterLightFrame.elapsedMs
     val timeSec = RecognitionPerimeterShaderMath.sourceTimeSec(shaderElapsedMs, speed = SOURCE_SPEED)
-    val progress = if (reduceMotion) 1f else RecognitionPerimeterShaderMath.linearProgress(opticalReferenceElapsedMs)
+    val progress = if (waterLightFrame.reducedMotion) 1f else RecognitionPerimeterShaderMath.linearProgress(waterLightFrame.opticalReferenceElapsedMs)
     val perimeterOpacity = when {
         !processingClockStarted -> 0f
         opticalReferenceElapsedMs >= 2_800L -> 0f

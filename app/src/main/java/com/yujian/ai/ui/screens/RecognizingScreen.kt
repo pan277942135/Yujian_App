@@ -34,6 +34,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -50,6 +51,8 @@ import androidx.compose.ui.geometry.RoundRect
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.clipPath
+import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
+import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
@@ -74,7 +77,6 @@ import androidx.compose.ui.text.style.TextAlign
 import com.yujian.ai.ai.FishInputAssessment
 import com.yujian.ai.R
 import com.yujian.ai.BuildConfig
-import com.yujian.ai.ai.FishDetectionQualityGate
 import com.yujian.ai.ai.NormalizedFishBox
 import com.yujian.ai.ai.ProductionRecognitionResult
 import com.yujian.ai.ai.RecognitionPhase
@@ -96,6 +98,19 @@ import com.yujian.ai.ui.recognition.RecognitionMotionTraceSample
 import com.yujian.ai.ui.recognition.RecognitionPerimeterShaderOverlay
 import com.yujian.ai.ui.designsystem.components.aiorb.AIOrbCore
 import com.yujian.ai.ui.designsystem.components.aiorb.aiOrbProcessingState
+import com.yujian.ai.ui.waterlight.core.WaterLightFrame
+import com.yujian.ai.ui.waterlight.core.WaterLightEnergy
+import com.yujian.ai.ui.waterlight.core.EnergyFeedback
+import com.yujian.ai.ui.waterlight.mask.WaterLightMaskAdapter
+import com.yujian.ai.ui.waterlight.core.UnifiedWaterLightEngine
+import com.yujian.ai.ui.waterlight.core.WaterLightHost
+import com.yujian.ai.ui.waterlight.core.WaterLightHostBinding
+import com.yujian.ai.ui.waterlight.core.WaterLightHostGeometry
+import com.yujian.ai.ui.waterlight.core.WaterLightMaterialProfile
+import com.yujian.ai.ui.waterlight.renderer.WaterCausticsField
+import com.yujian.ai.ui.waterlight.renderer.WaterCausticsRenderer
+import com.yujian.ai.ui.waterlight.renderer.WaterDropletRenderer
+
 import com.yujian.ai.ui.recognition.processingOrbMotionFrame
 import com.yujian.ai.ui.recognition.RecognitionVisualStateController
 import com.yujian.ai.ui.recognition.RECOGNITION_MASK_CONTOUR_REVEAL_MS
@@ -230,7 +245,7 @@ fun RecognitionProcessingScene(
                 LOG_TAG,
                 "PHOTO_DECODE_READY session=${recognitionSessionId.orEmpty()} attempt=${recognitionAttemptId.orEmpty()} " +
                     "image=${it.imageId} sha256=${it.photoSha256} source=${it.bitmap.width}x${it.bitmap.height} " +
-                    "exif_normalized=true orientation_degrees_applied=${it.sourceOrientationDegrees} " +
+                    "exif_normalized=true exif_orientation=${it.sourceExifOrientation} orientation_degrees_applied=${it.sourceOrientationDegrees} " +
                     "uptime_ms=${recognitionMonotonicNowMs()}",
             )
         }
@@ -292,28 +307,28 @@ fun RecognitionProcessingScene(
             return@LaunchedEffect
         }
         currentCoroutineContext().ensureActive()
-        val crop = FishDetectionQualityGate.cropBoxPixels(
-            primary.box.expand(.12f), selected.bitmap.width, selected.bitmap.height,
-        )
-        val roi = NormalizedSourceRect(
-            left = crop[0].toFloat() / selected.bitmap.width,
-            top = crop[1].toFloat() / selected.bitmap.height,
-            right = crop[2].toFloat() / selected.bitmap.width,
-            bottom = crop[3].toFloat() / selected.bitmap.height,
-        )
+        val metadata = result.geometry
+        val geometryMatchesPhoto = metadata?.matches(
+            recognitionSessionId.orEmpty(), recognitionAttemptId.orEmpty(),
+            selected.imageId, selected.photoSha256, selected.bitmap.width, selected.bitmap.height,
+        ) == true
+        val roiBox = metadata?.takeIf { geometryMatchesPhoto }?.normalizedRoi()
+        val roi = roiBox?.let { NormalizedSourceRect(it.x1, it.y1, it.x2, it.y2) }
         val cropDimensionsMatch = loaded.width == result.roiWidth &&
             loaded.height == result.roiHeight &&
-            loaded.width == crop[2] - crop[0] && loaded.height == crop[3] - crop[1]
+            loaded.width == metadata?.roiPx?.width() && loaded.height == metadata?.roiPx?.height()
         val maskShapeValid = result.quality == FishSubjectQuality.GOOD &&
             result.maskSize > 0 && result.maskSize == result.expectedMaskSize &&
-            cropDimensionsMatch
+            cropDimensionsMatch && geometryMatchesPhoto && roi != null
         val extractedContour = if (maskShapeValid) {
-            withContext(Dispatchers.Default) { extractContour(loaded) }
+            withContext(Dispatchers.Default) {
+                WaterLightMaskAdapter.toPhotoSpace(requireNotNull(metadata), extractContour(loaded))
+            }
         } else {
             emptyList()
         }
         currentCoroutineContext().ensureActive()
-        val geometry = RecognitionSubjectGeometrySnapshot(
+        val geometry = if (maskShapeValid && extractedContour.isNotEmpty()) RecognitionSubjectGeometrySnapshot(
             imageId = selected.imageId,
             recognitionSessionId = recognitionSessionId.orEmpty(),
             recognitionAttemptId = recognitionAttemptId.orEmpty(),
@@ -322,12 +337,13 @@ fun RecognitionProcessingScene(
             sourceHeightPx = selected.bitmap.height,
             detectorBox = primary.box,
             detectorConfidence = primary.confidence,
-            subjectBox = roi,
+            subjectBox = requireNotNull(roi),
             contour = extractedContour,
+            contourSourceSpace = "CANONICAL_PHOTO_NORMALIZED",
             quality = result.quality,
             maskSize = result.maskSize,
             expectedMaskSize = result.expectedMaskSize,
-        ).takeIf { maskShapeValid && extractedContour.isNotEmpty() }
+        ) else null
         val trustState = RecognitionRevealPolicy.geometryTrust(
             detectorBox = primary.box,
             subject = geometry,
@@ -357,7 +373,7 @@ fun RecognitionProcessingScene(
         val trustedForReveal = isTrustedForCurrentPhoto && maskWindowOpen
         if (trustedForReveal) {
             subjectBitmap = loaded
-            subjectBox = NormalizedFishBox(roi.left, roi.top, roi.right, roi.bottom)
+            subjectBox = requireNotNull(roiBox)
             contour = extractedContour
             trustedSubjectMask = true
             val acceptedAtMs = recognitionMonotonicNowMs()
@@ -381,6 +397,7 @@ fun RecognitionProcessingScene(
         val maskRejectReason = when {
             result.quality != FishSubjectQuality.GOOD -> "QUALITY_${result.quality}"
             result.maskSize <= 0 || result.maskSize != result.expectedMaskSize -> "MASK_SIZE_MISMATCH"
+            !geometryMatchesPhoto -> "MASK_GEOMETRY_OR_IDENTITY_MISMATCH"
             !cropDimensionsMatch -> "ROI_DIMENSIONS_MISMATCH"
             extractedContour.isEmpty() -> "EMPTY_CONTOUR"
             recognitionSessionId.isNullOrBlank() || recognitionAttemptId.isNullOrBlank() -> "SESSION_IDENTITY_MISSING"
@@ -427,7 +444,7 @@ fun RecognitionProcessingScene(
             LOG_TAG,
             "PROCESSING_P0 session=${recognitionSessionId.orEmpty()} attempt=${recognitionAttemptId.orEmpty()} " +
                 "image=${selected.imageId} sha256=${selected.photoSha256} source=${selected.bitmap.width}x${selected.bitmap.height} " +
-                "exif_normalized=true orientation_degrees_applied=${selected.sourceOrientationDegrees} uptime_ms=$startedAtMs " +
+                "exif_normalized=true exif_orientation=${selected.sourceExifOrientation} orientation_degrees_applied=${selected.sourceOrientationDegrees} uptime_ms=$startedAtMs " +
                 "model_phase_at_photo_start=$realPhase model_ready_at_photo_start=${finishedResult?.ready == true}",
         )
         if (phaseOverride == null) phasePresentedCallback(RecognitionPhase.CAPTURED, startedAtMs)
@@ -651,6 +668,16 @@ fun RecognitionProcessingScene(
         photoPresentedAtMs == null -> 0L
         else -> controller.opticalReferenceElapsedMs(visualNowMs, trustedSubjectMask)
     }
+    val waterLightFrame = WaterLightFrame(
+        sessionId = recognitionSessionId.orEmpty(), photoSha256 = image?.photoSha256,
+        elapsedMs = processingElapsedMs, opticalReferenceElapsedMs = opticalReferenceElapsedMs,
+        phase = rendered, completion = orbCompletion.value.coerceIn(0f, 1f),
+        reducedMotion = motionPolicy.reduceMotion,
+        geometryVersion = image?.bitmap?.generationId?.toLong() ?: 0L,
+    )
+    val waterLightEngine = remember(sceneKey) { UnifiedWaterLightEngine() }
+    waterLightEngine.activate(waterLightFrame.sessionId, waterLightFrame.geometryVersion)
+    DisposableEffect(waterLightEngine) { onDispose { waterLightEngine.release() } }
     LaunchedEffect(sceneKey, rendered, trustedSubjectMask, photoPresentedAtMs) {
         if (photoPresentedAtMs != null && trustedSubjectMask &&
             (rendered == RecognitionPhase.OUTLINE || rendered == RecognitionPhase.CLASSIFYING) &&
@@ -811,6 +838,8 @@ fun RecognitionProcessingScene(
             }
         }
         if (image != null && photoFlowPlan != null) RecognitionPhoto(
+            waterLightFrame = waterLightFrame,
+            waterLightEngine = waterLightEngine,
             bitmap = image.bitmap,
             photoFlowPlan = photoFlowPlan,
             photoEntryProgress = photoEntryProgress,
@@ -892,7 +921,14 @@ fun RecognitionProcessingScene(
             val currentCorePx = initialCorePx + (plan.orbCoreSizePx - initialCorePx) * eased
             val core = with(density) { currentCorePx.toDp() }
             val outerPx = currentCorePx + with(density) { 28.dp.toPx() }
-            AIOrbCore(
+            val orbX = fromX + (plan.statusCenterXPx - fromX) * eased - outerPx / 2f
+            val orbY = fromY + (plan.orbCenterYPx - fromY) * eased - outerPx / 2f
+            val orbHost = remember(waterLightEngine) {
+                WaterLightHostBinding(WaterLightHost.ORB, WaterLightMaterialProfile.ORB_LEGACY, waterLightEngine)
+            }
+            if (orbHost.accepts(waterLightFrame, WaterLightHostGeometry(
+                    WaterLightHost.ORB, waterLightFrame.geometryVersion, orbX, orbY, orbX + outerPx, orbY + outerPx,
+                ))) AIOrbCore(
                 state = aiOrbProcessingState(entranceElapsedMs, capture != null, motionPolicy.reduceMotion, orbCompletion.value),
                 coreSize = core,
                 entranceElapsedMs = entranceElapsedMs,
@@ -901,10 +937,11 @@ fun RecognitionProcessingScene(
                 reduceMotion = motionPolicy.reduceMotion,
                 lowPerformance = motionPolicy.lowPerformance,
                 fromCamera = capture != null,
-                modifier = Modifier.offset { IntOffset(
-                    (fromX + (plan.statusCenterXPx - fromX) * eased - outerPx / 2f).roundToInt(),
-                    (fromY + (plan.orbCenterYPx - fromY) * eased - outerPx / 2f).roundToInt()) },
+                waterLightFrame = waterLightFrame,
+                waterLightMaterial = orbHost.material,
+                modifier = Modifier.offset { IntOffset(orbX.roundToInt(), orbY.roundToInt()) },
             )
+
         }
         if (manualDiagnostic) {
             Button(
@@ -959,6 +996,8 @@ private enum class RecognitionDiagnosticStep(
 
 @Composable
 private fun RecognitionPhoto(
+    waterLightFrame: WaterLightFrame,
+    waterLightEngine: UnifiedWaterLightEngine,
     bitmap: Bitmap,
     photoFlowPlan: RecognitionPhotoFlowPlan,
     photoEntryProgress: Float,
@@ -1002,6 +1041,45 @@ private fun RecognitionPhoto(
             photoEntryProgress,
         )
     }
+    val waterHosts = remember(waterLightEngine) {
+        listOf(WaterLightHost.PERIMETER, WaterLightHost.PATH, WaterLightHost.CONTOUR).associateWith { host ->
+            WaterLightHostBinding(host, WaterLightMaterialProfile.ORB_LEGACY.copy(host = host), waterLightEngine)
+        }
+    }
+    val photoBounds = transform.photoContentRect
+    fun hostReady(host: WaterLightHost, left: Float, top: Float, right: Float, bottom: Float): Boolean =
+        waterHosts.getValue(host).accepts(waterLightFrame,
+            WaterLightHostGeometry(host, waterLightFrame.geometryVersion, left, top, right, bottom))
+    val perimeterReady = hostReady(WaterLightHost.PERIMETER,
+        photoBounds.left, photoBounds.top, photoBounds.right, photoBounds.bottom)
+    val pathReady = hostReady(WaterLightHost.PATH,
+        photoBounds.left, photoBounds.top, photoBounds.right, photoBounds.bottom)
+    val contourStart = focusBox?.let { transform.mapNormalized(it.x1, it.y1) }
+    val contourEnd = focusBox?.let { transform.mapNormalized(it.x2, it.y2) }
+    val contourReady = contourStart != null && contourEnd != null && hostReady(WaterLightHost.CONTOUR,
+        contourStart.x, contourStart.y, contourEnd.x, contourEnd.y)
+    val waterScope = rememberCoroutineScope()
+    val energyEvent = WaterLightEnergy.at(waterLightFrame, trustedMask)
+    val causticsRenderer = remember(waterLightEngine) { WaterCausticsRenderer(waterScope) }
+    val dropletRenderer = remember(waterLightEngine) { WaterDropletRenderer() }
+    var causticsRevision by remember(waterLightEngine) { mutableIntStateOf(0) }
+    DisposableEffect(causticsRenderer, dropletRenderer) {
+        onDispose { causticsRenderer.close(); dropletRenderer.release() }
+    }
+    // Candidate additive material only after the frozen P0/P2/P3 samples.
+    val additiveMaterialActive = pathReady && waterLightFrame.phase == RecognitionPhase.CLASSIFYING &&
+        waterLightFrame.opticalReferenceElapsedMs in 1_550L..2_600L &&
+        !waterLightFrame.reducedMotion && !motionPolicy.lowPerformance
+    LaunchedEffect(causticsRenderer, waterLightFrame, photoBounds, additiveMaterialActive) {
+        if (additiveMaterialActive) causticsRenderer.request(
+            frame = waterLightFrame,
+            outputWidth = photoBounds.width.roundToInt(), outputHeight = photoBounds.height.roundToInt(),
+            scale = 1.0, intensity = .6,
+            color = WaterCausticsField.Rgb(.78, .94, .91),
+            tint = WaterCausticsField.Rgb(.10, .32, .36), tintStrength = .06,
+            onReady = { causticsRevision++ },
+        )
+    }
     val photoImage = remember(bitmap) { bitmap.asImageBitmap() }
     val reportedFirstFrame = remember(bitmap, motionSessionKey) { AtomicBoolean(false) }
     val firstFrameCallback by rememberUpdatedState(onPhotoFirstFramePresented)
@@ -1015,6 +1093,7 @@ private fun RecognitionPhoto(
         pivotFractionY = photoFlowPlan.targetPhotoRect.center.y.div(viewportHeightPx).coerceIn(0f, 1f),
     )
     val photoClipPath = remember { Path() }
+    val additiveClipPath = remember { Path() }
     var selectedLayerMode by remember(bitmap, motionSessionKey) { mutableStateOf(RecognitionLayerMode.FULL) }
     val layerMode = diagnosticStep?.layerMode ?: selectedLayerMode
     var viewportBounds by remember(bitmap, motionSessionKey) { mutableStateOf<RecognitionRevealWindowRect?>(null) }
@@ -1102,7 +1181,8 @@ private fun RecognitionPhoto(
                     )
                 }
             }
-            if (!BuildConfig.DEBUG || layerMode != RecognitionLayerMode.PHOTO_ONLY) RecognitionPerimeterShaderOverlay(
+            if (perimeterReady && (!BuildConfig.DEBUG || layerMode != RecognitionLayerMode.PHOTO_ONLY)) RecognitionPerimeterShaderOverlay(
+                waterLightFrame = waterLightFrame,
                 bitmap = bitmap,
                 photoTransform = transform,
                 elapsedMs = processingElapsedMs,
@@ -1119,7 +1199,7 @@ private fun RecognitionPhoto(
                     contentDescription = "正在识别的鱼获照片"
                 },
             )
-            if (!BuildConfig.DEBUG || layerMode == RecognitionLayerMode.PHOTO_GLES_AMBIENT || layerMode == RecognitionLayerMode.FULL) RecognitionAmbientField(
+            if (pathReady && (!BuildConfig.DEBUG || layerMode == RecognitionLayerMode.PHOTO_GLES_AMBIENT || layerMode == RecognitionLayerMode.FULL)) RecognitionAmbientField(
                 phase,
                 Modifier.fillMaxSize(),
                 visualClockMs,
@@ -1132,8 +1212,32 @@ private fun RecognitionPhoto(
                 onMotionFrame = onMotionFrame,
                 photoTransform = transform,
                 includeEdgeField = true,
+                waterLightFrame = waterLightFrame,
             )
-            if ((!BuildConfig.DEBUG || layerMode == RecognitionLayerMode.FULL || diagnosticStep == RecognitionDiagnosticStep.CONTOUR || diagnosticStep == RecognitionDiagnosticStep.GOLD) && diagnosticStep != RecognitionDiagnosticStep.DETECTOR) RecognitionFishFocus(
+            if (additiveMaterialActive && (!BuildConfig.DEBUG || layerMode == RecognitionLayerMode.FULL)) {
+                val readyRevision = causticsRevision
+                Canvas(Modifier.fillMaxSize()) {
+                    val rect = transform.photoContentRect
+                    additiveClipPath.reset()
+                    additiveClipPath.addRoundRect(RoundRect(rect.left, rect.top, rect.right, rect.bottom,
+                        CornerRadius(16.dp.toPx(), 16.dp.toPx())))
+                    clipPath(additiveClipPath) {
+                        if (readyRevision >= 0) causticsRenderer.withFrontBitmap { prepared ->
+                            drawImage(prepared.asImageBitmap(),
+                                dstOffset = IntOffset(rect.left.roundToInt(), rect.top.roundToInt()),
+                                dstSize = IntSize(rect.width.roundToInt().coerceAtLeast(1),
+                                    rect.height.roundToInt().coerceAtLeast(1)), alpha = .12f)
+                        }
+                        drawIntoCanvas { canvas -> dropletRenderer.draw(canvas.nativeCanvas, waterLightFrame,
+                            android.graphics.RectF(rect.left, rect.top, rect.right, rect.bottom),
+                            seed = waterLightFrame.sessionId.hashCode().toLong() * 31 + photoSha256.hashCode(),
+                            count = if (energyEvent?.feedback == EnergyFeedback.ABSORB) 3 else 1,
+                            opacity = .45f)
+                        }
+                    }
+                }
+            }
+            if (contourReady && (!BuildConfig.DEBUG || layerMode == RecognitionLayerMode.FULL || diagnosticStep == RecognitionDiagnosticStep.CONTOUR || diagnosticStep == RecognitionDiagnosticStep.GOLD) && diagnosticStep != RecognitionDiagnosticStep.DETECTOR) RecognitionFishFocus(
                 phase,
                 focusBox,
                 subjectBitmap,
@@ -1147,6 +1251,8 @@ private fun RecognitionPhoto(
                 reduceMotion = motionPolicy.reduceMotion,
                 lowPerformance = motionPolicy.lowPerformance,
                 trustedMask = trustedMask,
+                waterLightFrame = waterLightFrame,
+                contourPhotoSpace = true,
             )
             if (diagnosticStep == RecognitionDiagnosticStep.DETECTOR && focusBox != null) Canvas(Modifier.fillMaxSize()) {
                 val topLeft = transform.mapNormalized(focusBox.x1, focusBox.y1)

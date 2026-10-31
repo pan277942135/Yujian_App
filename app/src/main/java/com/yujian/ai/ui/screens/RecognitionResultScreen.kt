@@ -57,6 +57,7 @@ import androidx.compose.material.icons.rounded.Straighten
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.State
@@ -150,6 +151,13 @@ import com.yujian.ai.ui.recognition.rememberRecognitionMotionPolicy
 import com.yujian.ai.ui.recognition.reveal.RecognitionRevealClock
 import com.yujian.ai.ui.recognition.reveal.RecognitionRevealEligibility
 import com.yujian.ai.ui.recognition.reveal.RecognitionRevealFrame
+import com.yujian.ai.ai.RecognitionPhase
+import com.yujian.ai.ui.waterlight.core.UnifiedWaterLightEngine
+import com.yujian.ai.ui.waterlight.core.WaterLightFrame
+import com.yujian.ai.ui.waterlight.core.WaterLightHost
+import com.yujian.ai.ui.waterlight.core.WaterLightHostBinding
+import com.yujian.ai.ui.waterlight.core.WaterLightHostGeometry
+import com.yujian.ai.ui.waterlight.core.WaterLightMaterialProfile
 import com.yujian.ai.ui.recognition.reveal.RecognitionRevealGeometry
 import com.yujian.ai.ui.recognition.reveal.RecognitionRevealGeometryResolver
 import com.yujian.ai.ui.recognition.reveal.RecognitionRevealGeometryResolution
@@ -861,7 +869,33 @@ fun RecognitionResultScreen(
                 Spacer(Modifier.height(20.dp))
             }
         }
-        RecognitionRevealOpticalOverlay(
+        val resultPhoto = image?.bitmap
+        val resultFrame = WaterLightFrame(
+            sessionId = presentedHandoff?.key?.recognitionSessionId.orEmpty(),
+            photoSha256 = image?.photoSha256,
+            elapsedMs = revealFrameState.value.elapsedMs.coerceAtLeast(0L),
+            opticalReferenceElapsedMs = (2800L + revealFrameState.value.elapsedMs).coerceAtLeast(0L),
+            phase = RecognitionPhase.RESULT,
+            completion = (revealFrameState.value.elapsedMs / 850f).coerceIn(0f, 1f),
+            reducedMotion = revealMotionPolicy.reduceMotion,
+            geometryVersion = resultPhoto?.generationId?.toLong() ?: 0L,
+        )
+        val resultWaterEngine = remember(presentedHandoff?.key, image?.imageId) { UnifiedWaterLightEngine() }
+        resultWaterEngine.activate(resultFrame.sessionId, resultFrame.geometryVersion)
+        DisposableEffect(resultWaterEngine) { onDispose { resultWaterEngine.release() } }
+        val hostType = when (revealFrameState.value.phase) {
+            RecognitionRevealPhase.AFTERGLOW, RecognitionRevealPhase.COMPLETE -> WaterLightHost.RESIDUE
+            else -> WaterLightHost.HANDOFF
+        }
+        val hostBounds = if (hostType == WaterLightHost.RESIDUE) photoTransitionGeometry?.heroPhotoClip
+            else photoTransitionGeometry?.processingPhotoClip
+        val resultHost = remember(resultWaterEngine, hostType) {
+            WaterLightHostBinding(hostType, WaterLightMaterialProfile.ORB_LEGACY.copy(host = hostType), resultWaterEngine)
+        }
+        if (hostBounds != null && resultHost.accepts(resultFrame, WaterLightHostGeometry(
+                hostType, resultFrame.geometryVersion,
+                hostBounds.left, hostBounds.top, hostBounds.right, hostBounds.bottom,
+            ))) RecognitionRevealOpticalOverlay(
             modifier = Modifier.fillMaxSize(),
             bitmap = image?.bitmap,
             handoff = presentedHandoff,
@@ -1054,27 +1088,17 @@ private fun SpeciesIdentityRow(
     val revealProgress = revealFrame?.titleRevealProgress ?: 1f
     val speciesDisplayName = resultSpeciesDisplayName(speciesName)
     var speciesGlyphPath by remember(speciesDisplayName, compactTitle, widthDp) { mutableStateOf<android.graphics.Path?>(null) }
-    val glyphGoldPaint = remember {
-        android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
-            style = android.graphics.Paint.Style.FILL
-            color = android.graphics.Color.rgb(255, 227, 166)
-        }
-    }
-    val goldGlyphAlpha = when (revealTitleMode) {
-        RecognitionRevealTitleMode.FORMING -> 0.16f + 0.48f * revealFormationProgress.coerceIn(0f, 1f)
-        RecognitionRevealTitleMode.REVEALING -> 0.48f * (1f - revealProgress.coerceIn(0f, 1f))
-        else -> 0f
+    val glyphReveal = remember(speciesDisplayName) { com.yujian.ai.ui.recognition.reveal.SpeciesNameReveal() }
+    val waterCaptureProgress = when (revealTitleMode) {
+        RecognitionRevealTitleMode.FORMING -> .72f * revealFormationProgress.coerceIn(0f, 1f)
+        RecognitionRevealTitleMode.REVEALING -> .72f + .28f * revealProgress.coerceIn(0f, 1f)
+        RecognitionRevealTitleMode.STATIC, RecognitionRevealTitleMode.VISIBLE -> 1f
+        RecognitionRevealTitleMode.HIDDEN -> 0f
     }
     val showScientificName = revealFrame == null ||
         revealFrame.elapsedMs >= RecognitionRevealClock.TOTAL_DURATION_MS ||
         revealTitleMode == RecognitionRevealTitleMode.STATIC
-    val visibleTitleAlpha = when (revealTitleMode) {
-        RecognitionRevealTitleMode.STATIC,
-        RecognitionRevealTitleMode.VISIBLE -> 1f
-        RecognitionRevealTitleMode.HIDDEN -> 0f
-        RecognitionRevealTitleMode.FORMING -> .14f
-        RecognitionRevealTitleMode.REVEALING -> revealProgress.coerceIn(0f, 1f)
-    }
+    val visibleTitleAlpha = if (showScientificName) 1f else 0f
     Row(
         Modifier
             .fillMaxWidth()
@@ -1093,22 +1117,15 @@ private fun SpeciesIdentityRow(
                 modifier = Modifier
                     .fillMaxWidth()
                     .drawWithContent {
-                        drawContent()
-                        val glyphPath = speciesGlyphPath
-                        if (glyphPath != null && goldGlyphAlpha > 0f) {
-                            val canvas = drawContext.canvas.nativeCanvas
-                            val saveCount = canvas.save()
-                            try {
-                                canvas.clipPath(glyphPath)
-                                glyphGoldPaint.alpha = (255 * goldGlyphAlpha).toInt().coerceIn(0, 255)
-                                canvas.drawPath(glyphPath, glyphGoldPaint)
-                            } finally {
-                                canvas.restoreToCount(saveCount)
-                            }
+                        val settled = revealTitleMode == RecognitionRevealTitleMode.STATIC ||
+                            revealTitleMode == RecognitionRevealTitleMode.VISIBLE
+                        if (settled) drawContent() else speciesGlyphPath?.let { glyph ->
+                            glyphReveal.draw(drawContext.canvas.nativeCanvas, glyph, size.width, size.height,
+                                waterCaptureProgress, revealFrame?.elapsedMs ?: 0L)
                         }
                     }
                     .testTag("recognition-result-species-name"),
-                color = DeepInk.copy(alpha = visibleTitleAlpha),
+                color = DeepInk,
                 fontSize = if (compactTitle) 28.sp else 30.sp,
                 lineHeight = if (compactTitle) 34.sp else 36.sp,
                 fontWeight = FontWeight.SemiBold,

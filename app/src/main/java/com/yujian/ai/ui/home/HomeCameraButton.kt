@@ -124,7 +124,7 @@ internal fun HomeCameraButton(
     }
     val sceneTime = if (active) motionState.sceneTimeSeconds else 0f
     val sweep = cameraSweepState(sceneTime)
-    AIOrbCore(state = AIOrbVisualState.CAPTURE_BUTTON_IDLE, 
+    AIOrbCore(state = AIOrbVisualState.CAPTURE_BUTTON_IDLE,
         onClick = {
             if (ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) activate()
             else permission.launch(Manifest.permission.CAMERA)

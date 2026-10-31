@@ -24,6 +24,7 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.asAndroidPath
 import androidx.compose.ui.graphics.drawscope.DrawScope
+import com.yujian.ai.ui.waterlight.core.WaterLightFrame
 import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.clipPath
@@ -284,9 +285,11 @@ fun RecognitionAmbientField(
     photoTransform: RecognitionImageTransform? = null,
     processingElapsedMs: Long = visualClockMs ?: 0L,
     includeEdgeField: Boolean = false,
+    waterLightFrame: WaterLightFrame? = null,
 ) {
+    if (waterLightFrame != null && waterLightFrame.phase != phase) return
     val nowMs = visualClockMs ?: 0L
-    val elapsedMs = processingElapsedMs.coerceAtLeast(0L)
+    val elapsedMs = (waterLightFrame?.opticalReferenceElapsedMs ?: processingElapsedMs).coerceAtLeast(0L)
     val scanFrame = if (reduceMotion) {
         upwardCausticFrame(UpwardCausticSurgeCalibration.durationMs)
     } else {

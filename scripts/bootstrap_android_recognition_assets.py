@@ -327,7 +327,7 @@ def bootstrap(contract: DetectorContract | None = None, root: Path = ROOT, cache
                 class_map_bytes=downloaded[REQUIRED_ASSETS[2]],
                 tensor_contract_bytes=downloaded[REQUIRED_ASSETS[3]],
                 release=release,
-                build_sha=os.environ.get("GITHUB_SHA") or os.environ.get("BUILD_SHA"),
+                build_sha=os.environ.get("BUILD_SHA") or os.environ.get("GITHUB_SHA"),
             )
             package_files = {
                 ANDROID_MODEL_FILE: downloaded[REQUIRED_ASSETS[0]],
