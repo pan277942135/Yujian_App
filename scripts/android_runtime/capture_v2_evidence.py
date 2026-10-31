@@ -79,7 +79,14 @@ for w,h in [(320,480),(360,640),(360,800),(393,852),(430,932)]:
     for scale in [1.0,1.3,1.5]:
         key=f'{w}x{h}-font{scale}'
         shell(f'wm size {w}x{h}');shell(f'settings put system font_scale {scale}')
-        launch();shutter=open_camera();time.sleep(.3);shot(key);dump(key)
+        launch();home=find('开始识鱼');shot(key+'-home');dump(key+'-home')
+        hx,hy,hr,hb=bounds(home)
+        assert hr-hx>=88 and hb-hy>=88,f'{key}: clipped Home button'
+        album=next((n for n in nodes() if n.get('content-desc','').startswith('从相册选择')),None)
+        if album is not None:
+            ax,ay,ar,ab=bounds(album)
+            assert min(hr,ar)<=max(hx,ax) or min(hb,ab)<=max(hy,ay),f'{key}: Home capture/album collision'
+        tap(home);shutter=find('拍摄',enabled=True,wait=45);time.sleep(.3);shot(key);dump(key)
         ns=nodes()
         for value in ['返回','拍摄','从相册选择','闪光灯']:
             n=next((n for n in ns if n.get('content-desc')==value),None)
