@@ -22,6 +22,6 @@ class WaterLightHostBinding(
     private val engine: UnifiedWaterLightEngine,
 ) {
     fun accepts(frame: WaterLightFrame, geometry: WaterLightHostGeometry): Boolean =
-        geometry.host == host && geometry.version == frame.geometryVersion &&
-            geometry.valid && engine.accepts(frame)
+        geometry.host == host && material.host == host &&
+            geometry.version == frame.geometryVersion && geometry.valid && engine.accepts(frame)
 }

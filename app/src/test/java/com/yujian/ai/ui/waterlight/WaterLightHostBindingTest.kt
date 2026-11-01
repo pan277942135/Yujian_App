@@ -13,9 +13,9 @@ import org.junit.Test
 
 class WaterLightHostBindingTest {
     @Test fun everyHostRequiresCurrentSessionAndValidOwnGeometry() {
-        val engine = UnifiedWaterLightEngine().apply { activate("session", 4L) }
         val frame = WaterLightFrame("session", "photo", 950L, 950L,
             RecognitionPhase.OUTLINE, 0f, false, 4L)
+        val engine = UnifiedWaterLightEngine().apply { activate(frame) }
         WaterLightHost.entries.forEach { host ->
             val binding = WaterLightHostBinding(host,
                 WaterLightMaterialProfile.ORB_LEGACY.copy(host = host), engine)
@@ -25,6 +25,9 @@ class WaterLightHostBindingTest {
             assertFalse(binding.accepts(frame, rect.copy(version = 3L)))
             assertFalse(binding.accepts(frame, rect.copy(rightPx = 19f)))
             assertFalse(binding.accepts(frame, rect.copy(host = WaterLightHost.entries.first { it != host })))
+            val wrongMaterial = WaterLightHostBinding(host,
+                WaterLightMaterialProfile.ORB_LEGACY.copy(host = WaterLightHost.entries.first { it != host }), engine)
+            assertFalse(wrongMaterial.accepts(frame, rect))
         }
         engine.release()
     }

@@ -158,6 +158,7 @@ import com.yujian.ai.ui.waterlight.core.WaterLightHost
 import com.yujian.ai.ui.waterlight.core.WaterLightHostBinding
 import com.yujian.ai.ui.waterlight.core.WaterLightHostGeometry
 import com.yujian.ai.ui.waterlight.core.WaterLightMaterialProfile
+import com.yujian.ai.ui.waterlight.core.WaterLightGeometryVersion
 import com.yujian.ai.ui.recognition.reveal.RecognitionRevealGeometry
 import com.yujian.ai.ui.recognition.reveal.RecognitionRevealGeometryResolver
 import com.yujian.ai.ui.recognition.reveal.RecognitionRevealGeometryResolution
@@ -870,6 +871,17 @@ fun RecognitionResultScreen(
             }
         }
         val resultPhoto = image?.bitmap
+        val hostType = when (revealFrameState.value.phase) {
+            RecognitionRevealPhase.AFTERGLOW, RecognitionRevealPhase.COMPLETE -> WaterLightHost.RESIDUE
+            else -> WaterLightHost.HANDOFF
+        }
+        val hostBounds = if (hostType == WaterLightHost.RESIDUE) photoTransitionGeometry?.heroPhotoClip
+            else photoTransitionGeometry?.processingPhotoClip
+        val geometryVersion = photoTransitionGeometry?.heroSourceTransform?.let { transform ->
+            val base = WaterLightGeometryVersion.of(transform)
+            hostBounds?.let { WaterLightGeometryVersion.withHostBounds(base, it.left, it.top, it.right, it.bottom) }
+                ?: base
+        } ?: 0L
         val resultFrame = WaterLightFrame(
             sessionId = presentedHandoff?.key?.recognitionSessionId.orEmpty(),
             photoSha256 = image?.photoSha256,
@@ -878,17 +890,14 @@ fun RecognitionResultScreen(
             phase = RecognitionPhase.RESULT,
             completion = (revealFrameState.value.elapsedMs / 850f).coerceIn(0f, 1f),
             reducedMotion = revealMotionPolicy.reduceMotion,
-            geometryVersion = resultPhoto?.generationId?.toLong() ?: 0L,
+            geometryVersion = geometryVersion,
+            attemptId = presentedHandoff?.key?.recognitionAttemptId.orEmpty(),
+            imageId = image?.imageId.orEmpty(),
+            photoContentVersion = resultPhoto?.generationId?.toLong() ?: 0L,
         )
         val resultWaterEngine = remember(presentedHandoff?.key, image?.imageId) { UnifiedWaterLightEngine() }
-        resultWaterEngine.activate(resultFrame.sessionId, resultFrame.geometryVersion)
+        resultWaterEngine.activate(resultFrame)
         DisposableEffect(resultWaterEngine) { onDispose { resultWaterEngine.release() } }
-        val hostType = when (revealFrameState.value.phase) {
-            RecognitionRevealPhase.AFTERGLOW, RecognitionRevealPhase.COMPLETE -> WaterLightHost.RESIDUE
-            else -> WaterLightHost.HANDOFF
-        }
-        val hostBounds = if (hostType == WaterLightHost.RESIDUE) photoTransitionGeometry?.heroPhotoClip
-            else photoTransitionGeometry?.processingPhotoClip
         val resultHost = remember(resultWaterEngine, hostType) {
             WaterLightHostBinding(hostType, WaterLightMaterialProfile.ORB_LEGACY.copy(host = hostType), resultWaterEngine)
         }

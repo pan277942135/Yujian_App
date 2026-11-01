@@ -18,16 +18,28 @@ class WaterLightFrameTest {
 
     @Test fun existingClockAndStaleSessionAreIsolated() {
         val engine = UnifiedWaterLightEngine()
-        engine.activate("one", 7)
+        engine.activate(frame("one", 7))
         assertTrue(engine.accepts(frame("one", 7)))
         assertFalse(engine.accepts(frame("one", 8)))
-        engine.activate("two", 8)
+        engine.activate(frame("two", 8))
         assertFalse(engine.accepts(frame("one", 7)))
         assertTrue(engine.accepts(frame("two", 8)))
         assertEquals(1.1f, frame("two", 8).timeSeconds, .00001f)
         assertEquals(0f, frame("two", 8).copy(reducedMotion = true).timeSeconds, 0f)
         engine.release()
         assertFalse(engine.accepts(frame("two", 8)))
+    }
+
+    @Test fun oldAttemptOrPhotoCannotEnterCurrentFrame() {
+        val current = frame("session", 19).copy(attemptId = "attempt-2", imageId = "image-2",
+            photoSha256 = "new-photo", photoContentVersion = 4)
+        val engine = UnifiedWaterLightEngine().apply { activate(current) }
+        assertTrue(engine.accepts(current))
+        assertFalse(engine.accepts(current.copy(attemptId = "attempt-1")))
+        assertFalse(engine.accepts(current.copy(imageId = "image-1")))
+        assertFalse(engine.accepts(current.copy(photoSha256 = "old-photo")))
+        assertFalse(engine.accepts(current.copy(photoContentVersion = 3)))
+        assertFalse(engine.accepts(current.copy(geometryVersion = 18)))
     }
 
     @Test fun orbDefaultsRemainTheExistingParameters() {

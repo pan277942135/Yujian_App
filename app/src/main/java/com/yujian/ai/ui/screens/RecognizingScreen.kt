@@ -105,6 +105,7 @@ import com.yujian.ai.ui.waterlight.mask.WaterLightMaskAdapter
 import com.yujian.ai.ui.waterlight.core.UnifiedWaterLightEngine
 import com.yujian.ai.ui.waterlight.core.WaterLightHost
 import com.yujian.ai.ui.waterlight.core.WaterLightHostBinding
+import com.yujian.ai.ui.waterlight.core.WaterLightGeometryVersion
 import com.yujian.ai.ui.waterlight.core.WaterLightHostGeometry
 import com.yujian.ai.ui.waterlight.core.WaterLightMaterialProfile
 import com.yujian.ai.ui.waterlight.renderer.WaterCausticsField
@@ -668,15 +669,18 @@ fun RecognitionProcessingScene(
         photoPresentedAtMs == null -> 0L
         else -> controller.opticalReferenceElapsedMs(visualNowMs, trustedSubjectMask)
     }
+    var photoGeometryVersion by remember(sceneKey) { mutableLongStateOf(0L) }
     val waterLightFrame = WaterLightFrame(
         sessionId = recognitionSessionId.orEmpty(), photoSha256 = image?.photoSha256,
         elapsedMs = processingElapsedMs, opticalReferenceElapsedMs = opticalReferenceElapsedMs,
         phase = rendered, completion = orbCompletion.value.coerceIn(0f, 1f),
         reducedMotion = motionPolicy.reduceMotion,
-        geometryVersion = image?.bitmap?.generationId?.toLong() ?: 0L,
+        geometryVersion = photoGeometryVersion,
+        attemptId = recognitionAttemptId.orEmpty(), imageId = image?.imageId.orEmpty(),
+        photoContentVersion = image?.bitmap?.generationId?.toLong() ?: 0L,
     )
     val waterLightEngine = remember(sceneKey) { UnifiedWaterLightEngine() }
-    waterLightEngine.activate(waterLightFrame.sessionId, waterLightFrame.geometryVersion)
+    waterLightEngine.activate(waterLightFrame)
     DisposableEffect(waterLightEngine) { onDispose { waterLightEngine.release() } }
     LaunchedEffect(sceneKey, rendered, trustedSubjectMask, photoPresentedAtMs) {
         if (photoPresentedAtMs != null && trustedSubjectMask &&
@@ -859,6 +863,7 @@ fun RecognitionProcessingScene(
             onMotionFrame = onMotionFrame,
             focusLevel = displayedFocusLevel,
             onFishFocusTransform = onFishFocusTransform,
+            onPhotoGeometryChanged = { photoGeometryVersion = it },
             modifier = Modifier.fillMaxSize(),
             processingClockStarted = photoPresentedAtMs != null || deterministicMotion,
             recognitionSessionId = recognitionSessionId.orEmpty(),
@@ -1017,6 +1022,7 @@ private fun RecognitionPhoto(
     onMotionFrame: ((RecognitionMotionTraceSample) -> Unit)?,
     focusLevel: RecognitionFishFocusLevel,
     onFishFocusTransform: ((RecognitionImageTransform) -> Unit)?,
+    onPhotoGeometryChanged: (Long) -> Unit,
     modifier: Modifier,
     onProcessingPhotoSnapshot: (
         RecognitionImageTransform,
@@ -1041,6 +1047,7 @@ private fun RecognitionPhoto(
             photoEntryProgress,
         )
     }
+    LaunchedEffect(transform) { onPhotoGeometryChanged(WaterLightGeometryVersion.of(transform)) }
     val waterHosts = remember(waterLightEngine) {
         listOf(WaterLightHost.PERIMETER, WaterLightHost.PATH, WaterLightHost.CONTOUR).associateWith { host ->
             WaterLightHostBinding(host, WaterLightMaterialProfile.ORB_LEGACY.copy(host = host), waterLightEngine)
