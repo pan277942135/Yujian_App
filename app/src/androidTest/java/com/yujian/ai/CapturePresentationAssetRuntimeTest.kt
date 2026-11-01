@@ -5,9 +5,20 @@ import android.graphics.Color
 import androidx.test.platform.app.InstrumentationRegistry
 import org.junit.Assert.*
 import org.junit.Test
+import com.yujian.ai.ui.designsystem.components.aiorb.AIOrbCaptureVisualAssets
 
 /** Runs against the exact installed APK, so a valid filename cannot mask corrupt bytes. */
 class CapturePresentationAssetRuntimeTest {
+    @Test fun homeIdleAndHandoffBindTheGlassWaterRing() {
+        assertEquals(R.drawable.ai_orb_camera_activated_v1, AIOrbCaptureVisualAssets.HOME_IDLE)
+        assertNotEquals(R.drawable.capture_button_main_v1, AIOrbCaptureVisualAssets.HOME_IDLE)
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        val bitmap = BitmapFactory.decodeResource(context.resources, AIOrbCaptureVisualAssets.HOME_IDLE)
+        requireNotNull(bitmap)
+        assertEquals(0, Color.alpha(bitmap.getPixel(0, 0)))
+        bitmap.recycle()
+    }
+
     @Test fun androidDecodesCaptureAndProcessingResourcesFromInstalledApk() {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
         val canonical = BitmapFactory.decodeResource(context.resources, R.drawable.capture_button_main_v1)

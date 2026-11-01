@@ -1195,7 +1195,7 @@ private fun RecognitionPhoto(
                 photoSha256 = photoSha256,
                 phase = phase,
                 reduceMotion = motionPolicy.reduceMotion,
-                modifier = Modifier.fillMaxSize().semantics {
+                modifier = Modifier.semantics {
                     contentDescription = "正在识别的鱼获照片"
                 },
             )

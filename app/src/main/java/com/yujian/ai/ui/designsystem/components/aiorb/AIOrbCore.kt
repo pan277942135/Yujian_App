@@ -19,6 +19,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.annotation.DrawableRes
 import com.yujian.ai.R
 import com.yujian.ai.ai.RecognitionPhase
 import com.yujian.ai.ui.waterlight.core.WaterLightFrame
@@ -27,6 +28,11 @@ import com.yujian.ai.ui.waterlight.renderer.OrbWaterLightRibbons
 import com.yujian.ai.ui.designsystem.components.YuJianCaptureButton
 import com.yujian.ai.ui.designsystem.components.YuJianCaptureButtonRasterAssets
 import com.yujian.ai.ui.designsystem.components.YuJianCaptureButtonRasterMotion
+
+/** The home button and its navigation handoff share one frozen visual identity. */
+object AIOrbCaptureVisualAssets {
+    const val HOME_IDLE = R.drawable.ai_orb_camera_activated_v1
+}
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
@@ -51,6 +57,7 @@ fun AIOrbCore(
     touchTargetSize: Dp? = null,
     visualModifier: Modifier = Modifier,
     frozenVisual: Boolean = true,
+    @DrawableRes frozenVisualResource: Int = R.drawable.capture_button_main_v1,
     onCaptureHaptic: (() -> Unit)? = null,
     clickElapsedMs: Long? = null,
     cameraReady: Boolean = false,
@@ -77,6 +84,7 @@ fun AIOrbCore(
             touchTargetSize = touchTargetSize,
             visualModifier = visualModifier,
             frozenVisual = frozenVisual,
+            frozenVisualResource = frozenVisualResource,
             onCaptureHaptic = onCaptureHaptic,
             clickElapsedMs = clickElapsedMs,
             cameraReady = cameraReady,

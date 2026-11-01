@@ -82,6 +82,7 @@ fun YuJianCaptureButton(
     touchTargetSize: Dp? = null,
     visualModifier: Modifier = Modifier,
     frozenVisual: Boolean = false,
+    @androidx.annotation.DrawableRes frozenVisualResource: Int = R.drawable.capture_button_main_v1,
     onCaptureHaptic: (() -> Unit)? = null,
     clickElapsedMs: Long? = null,
     cameraReady: Boolean = false,
@@ -158,7 +159,7 @@ fun YuJianCaptureButton(
         ) {
             if (frozenVisual) {
                 Image(
-                    painter = painterResource(R.drawable.capture_button_main_v1),
+                    painter = painterResource(frozenVisualResource),
                     contentDescription = null,
                     modifier = Modifier.fillMaxSize(),
                 )

@@ -4,6 +4,7 @@ import argparse
 import io
 import hashlib
 import zipfile
+import json
 from pathlib import Path
 from PIL import Image
 
@@ -17,6 +18,28 @@ ASSETS = {
     "processing_water_core_v1": {"alpha": True, "min_dimension": 256},
     "processing_mint_background_v1": {"alpha": False, "min_dimension": 256},
 }
+
+HOME_IDLE_SHA256 = "f8114d5d6d1b2211ce3527e849b07ed9434d8d102f88b247bac28aa2eaea870a"
+
+
+def verify_home_binding():
+    manifest = json.loads((ROOT / "design/system/components/ai_orb_core/manifest.json").read_text())
+    expected = "app/src/main/res/drawable-nodpi/ai_orb_camera_activated_v1.webp"
+    if manifest["runtime_binding_targets"]["idle_capture_resource"] != expected:
+        raise ValueError("Home idle visual manifest binding drift")
+    if manifest["source_assets"][2]["path"] != expected:
+        raise ValueError("Activated WebP path drift")
+    if hashlib.sha256((ROOT / expected).read_bytes()).hexdigest() != HOME_IDLE_SHA256:
+        raise ValueError("Home idle WebP identity drift")
+    core = (ROOT / "app/src/main/java/com/yujian/ai/ui/designsystem/components/aiorb/AIOrbCore.kt").read_text()
+    home = (ROOT / "app/src/main/java/com/yujian/ai/ui/home/HomeCameraButton.kt").read_text()
+    handoff = (ROOT / "app/src/main/java/com/yujian/ai/ui/home/CaptureEntryButtonHandoff.kt").read_text()
+    if "const val HOME_IDLE = R.drawable.ai_orb_camera_activated_v1" not in core:
+        raise ValueError("Home idle resource identity drift")
+    for name, source in (("HomeCameraButton", home), ("CaptureEntryButtonHandoff", handoff)):
+        if "frozenVisualResource = AIOrbCaptureVisualAssets.HOME_IDLE" not in source:
+            raise ValueError(f"{name}: home/handoff resource binding drift")
+    print("HOME_IDLE_RESOURCE_IDENTITY=PASS")
 
 
 def verify(name, data, requirements):
@@ -60,6 +83,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--apk", type=Path)
     args = parser.parse_args()
+    verify_home_binding()
     if args.apk:
         with zipfile.ZipFile(args.apk) as archive:
             for stem, requirements in ASSETS.items():

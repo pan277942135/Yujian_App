@@ -2,6 +2,7 @@ package com.yujian.ai.ui.home
 
 import com.yujian.ai.ui.designsystem.components.aiorb.AIOrbCore
 import com.yujian.ai.ui.designsystem.components.aiorb.AIOrbVisualState
+import com.yujian.ai.ui.designsystem.components.aiorb.AIOrbCaptureVisualAssets
 
 import android.graphics.Bitmap
 import android.Manifest
@@ -148,6 +149,7 @@ internal fun HomeCameraButton(
         touchTargetSize = maxOf(resolvedSize, touchTargetSize ?: resolvedSize),
         visualModifier = Modifier.testTag("gemini-home-camera-art"),
         frozenVisual = true,
+        frozenVisualResource = AIOrbCaptureVisualAssets.HOME_IDLE,
         onCaptureHaptic = { if (!transitionActive) captureClickHaptic(context, view) },
         clickElapsedMs = if (transitionActive) clickElapsedMs else null,
     )

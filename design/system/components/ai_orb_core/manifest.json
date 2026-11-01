@@ -31,8 +31,8 @@
     },
     {
       "asset_id": "ai_orb_camera_activated_runtime_v1",
-      "role": "CAPTURE_BUTTON_ACTIVATED_AND_MORPH_SOURCE",
-      "path": "app/src/main/res/drawable-nodpi/capture_button_main_v1.webp",
+      "role": "CAPTURE_BUTTON_IDLE_AND_ACTIVATED_MORPH_SOURCE",
+      "path": "app/src/main/res/drawable-nodpi/ai_orb_camera_activated_v1.webp",
       "sha256": "f8114d5d6d1b2211ce3527e849b07ed9434d8d102f88b247bac28aa2eaea870a",
       "dimensions_px": [
         384,
@@ -93,9 +93,9 @@
     }
   ],
   "runtime_binding_targets": {
-    "idle_capture_resource": "app/src/main/res/drawable-nodpi/capture_button_main_v1.png",
+    "idle_capture_resource": "app/src/main/res/drawable-nodpi/ai_orb_camera_activated_v1.webp",
     "activated_capture_resource": "app/src/main/res/drawable-nodpi/ai_orb_camera_activated_v1.webp",
     "orb_core_resource": "app/src/main/res/drawable-nodpi/processing_water_core_v1.webp",
-    "rule": "Idle button is byte-identical to frozen V1.1. Activated resource is the existing WebP derivative of user Asset 02. Do not conflate the two."
+    "rule": "Home idle and handoff use the same activated glass water-ring WebP. The historic primary capture asset remains unchanged; IdentifyScreen shutter retains its existing binding."
   }
 }
