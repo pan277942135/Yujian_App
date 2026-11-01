@@ -159,3 +159,13 @@ From this point:
 - Runtime parity defects may be fixed without reopening design.
 - Shared-system refactors must preserve the frozen Empty Home appearance and behavior.
 - Any intentional visual, interaction, motion, haptic, sound or state-model change requires a new explicit authority version; it must not be smuggled into a parity fix.
+
+
+## Approved amendment record — 2026-11-01
+
+The product owner explicitly approved a scoped Empty Home V2.2 motion/haptic amendment:
+one ripple group with three vector wave layers (3,600 ms burst) and one subtle automatic
+bobber-event double-pulse per scheduled event. The existing one-group layer boundary remains
+unchanged; the group now contains three waves. Bobber anchors and Y-only motion remain frozen.
+The authoritative amendment is recorded in
+`spec/Empty_Home_Frozen_Visual_Revision_V2_2.md` and mirrored in the machine-readable contracts.
