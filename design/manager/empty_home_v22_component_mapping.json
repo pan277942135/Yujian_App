@@ -1,0 +1,1139 @@
+{
+  "mapping_id": "EMPTY_HOME_V2_2_STRUCTURED_HIFI_MAPPING_V1",
+  "page_id": "home_empty_v2",
+  "authority_version": "V2.2",
+  "status": "CANDIDATE_MAPPING_REVIEW_REQUIRED",
+  "source_authority": {
+    "frozen_visual": "design/pages/home/empty_home/source/frozen/Empty_Home_Frozen_Visual_V2_2.png",
+    "anchor_contract": "design/pages/home/empty_home/shared/contracts/anchor_contract.json",
+    "responsive_mapping_contract": "design/pages/home/empty_home/shared/contracts/responsive_mapping_contract.json",
+    "layer_contract": "design/pages/home/empty_home/shared/contracts/layer_contract.json",
+    "runtime_assets": "design/pages/home/empty_home/shared/contracts/asset_manifest.json",
+    "runtime_manifest": "design/pages/home/empty_home/shared/contracts/runtime_manifest.json",
+    "shared_adaptive_layout_contract": "app/src/main/java/com/yujian/ai/ui/adaptive/AdaptiveLayoutContract.kt"
+  },
+  "candidate_geometry_override": {
+    "status": "USER_DIRECTED_CANDIDATE_DELTA_NOT_FROZEN",
+    "source": "user-annotated screenshot red marker",
+    "target_annotation": {
+      "attachment_viewport_px": [
+        694,
+        1536
+      ],
+      "red_marker_centroid_px": [
+        424.56,
+        928.72
+      ],
+      "reference_canvas_px": [
+        531,
+        1161
+      ],
+      "mapping_note": "Mapped through the existing 1080x1920 scene canvas at 0.8 scale with left-preserving scene crop; responsive sceneTransform remains authoritative."
+    },
+    "composition_reference_bounds_px": {
+      "x": 0,
+      "y": 1086,
+      "width": 660,
+      "height": 300
+    },
+    "bobber_bbox_reference_px": {
+      "x": 519,
+      "y": 1122,
+      "width": 24,
+      "height": 78
+    },
+    "bobber_center_reference_px": [
+      531,
+      1161
+    ],
+    "water_contact_reference_px": [
+      531,
+      1195
+    ],
+    "reflection_reference_px": {
+      "x": 525,
+      "y": 1194,
+      "width": 12,
+      "height": 52,
+      "visible_bounds_reference_px": {
+        "x": 527,
+        "y": 1197,
+        "width": 9,
+        "height": 47
+      }
+    },
+    "ripple_bbox_reference_px": {
+      "x": 412,
+      "y": 1154,
+      "width": 238,
+      "height": 82
+    },
+    "line": {
+      "bbox_reference_px": {
+        "x": 337,
+        "y": 1086,
+        "width": 194,
+        "height": 109
+      },
+      "start_reference_px": [
+        337,
+        1184
+      ],
+      "control_points_reference_px": [
+        [
+          390,
+          1184
+        ],
+        [
+          531,
+          1086
+        ]
+      ],
+      "bobber_attachment_reference_px": [
+        531,
+        1098
+      ],
+      "bobber_top_attachment_reference_px": [
+        531,
+        1122
+      ],
+      "end_reference_px": [
+        531,
+        1195
+      ]
+    },
+    "preserved": [
+      "rod geometry and attachment start",
+      "bobber asset dimensions and vertical orientation",
+      "smooth line curve from the fixed rod tip and a vertical, centered bobber attachment",
+      "responsive sceneTransform and viewport/font-scale behavior",
+      "all non-fishing page geometry"
+    ],
+    "authority_note": "Candidate preview override only. The Main-canonical anchor_contract.json and frozen source image remain unchanged; this coordinate is not frozen."
+  },
+  "coordinate_disclosure": "Reference bounds are V2.2 canvas px. Browser measured bounds are CSS px; the candidate maps logical viewport dp 1:1 to CSS px only for preview. Native runtime is NOT_VERIFIED.",
+  "component_tree": {
+    "nodeId": "EmptyHomeRoot",
+    "pageId": "home_empty_v2",
+    "parentId": null,
+    "componentType": "PAGE_ROOT",
+    "renderedDomId": "eh-EmptyHomeRoot",
+    "label": "Empty Home V2.2 · 结构化候选",
+    "layer_order": 0,
+    "visual_asset": null,
+    "authority": {
+      "path": "design/pages/home/empty_home/shared/contracts/responsive_mapping_contract.json",
+      "status": "CURRENT_OR_IMPLEMENTATION_REFERENCE"
+    },
+    "reference_bounds_px": {
+      "x": 0,
+      "y": 0,
+      "width": 1080,
+      "height": 1920
+    },
+    "responsive_rule": {
+      "path": "design/pages/home/empty_home/shared/contracts/responsive_mapping_contract.json",
+      "rule_id": "viewport_root"
+    },
+    "render_method": "DOM",
+    "dom_mapping": "eh-EmptyHomeRoot",
+    "inspector_fields": [
+      "actual_dom_bounds_css_px",
+      "reference_bounds_px",
+      "responsive_rule",
+      "asset_sha256",
+      "source_authority",
+      "lifecycle_status",
+      "publication_permission"
+    ],
+    "verification_rule": "Compare actual browser DOM bounds to the active page contract; browser values are CSS px and do not imply Native runtime verification.",
+    "visible": true,
+    "measurable": true,
+    "selectable": true,
+    "state": "CANDIDATE_PREVIEW",
+    "children": [
+      {
+        "nodeId": "EnvironmentScene",
+        "pageId": "home_empty_v2",
+        "parentId": "EmptyHomeRoot",
+        "componentType": "CLIPPED_SCENE",
+        "renderedDomId": "eh-EnvironmentScene",
+        "label": "Environment Scene",
+        "layer_order": 1,
+        "visual_asset": null,
+        "authority": {
+          "path": "design/pages/home/empty_home/shared/contracts/responsive_mapping_contract.json",
+          "status": "CURRENT_OR_IMPLEMENTATION_REFERENCE"
+        },
+        "reference_bounds_px": {
+          "x": 0,
+          "y": 0,
+          "width": 1080,
+          "height": 1920
+        },
+        "responsive_rule": {
+          "path": "design/pages/home/empty_home/shared/contracts/responsive_mapping_contract.json",
+          "rule_id": "UNIFORM_COVER_COMPOSITION_AWARE"
+        },
+        "render_method": "DOM",
+        "dom_mapping": "eh-EnvironmentScene",
+        "inspector_fields": [
+          "actual_dom_bounds_css_px",
+          "reference_bounds_px",
+          "responsive_rule",
+          "asset_sha256",
+          "source_authority",
+          "lifecycle_status",
+          "publication_permission"
+        ],
+        "verification_rule": "Compare actual browser DOM bounds to the active page contract; browser values are CSS px and do not imply Native runtime verification.",
+        "visible": true,
+        "measurable": true,
+        "selectable": true,
+        "state": "CANDIDATE_PREVIEW",
+        "children": [
+          {
+            "nodeId": "SceneBase",
+            "pageId": "home_empty_v2",
+            "parentId": "EnvironmentScene",
+            "componentType": "IMAGE_LAYER",
+            "renderedDomId": "eh-SceneBase",
+            "label": "Scene base",
+            "layer_order": 1,
+            "visual_asset": {
+              "asset_id": "home_empty_v2_scene_base_master",
+              "source_path": "design/pages/home/empty_home/shared/assets/background/scene_base_master.png"
+            },
+            "authority": {
+              "path": "design/pages/home/empty_home/shared/contracts/layer_contract.json",
+              "status": "CURRENT_OR_IMPLEMENTATION_REFERENCE"
+            },
+            "reference_bounds_px": {
+              "x": 0,
+              "y": 0,
+              "width": 1080,
+              "height": 1920
+            },
+            "responsive_rule": {
+              "path": "design/pages/home/empty_home/shared/contracts/responsive_mapping_contract.json",
+              "rule_id": "UNIFORM_COVER_COMPOSITION_AWARE"
+            },
+            "render_method": "Image",
+            "dom_mapping": "eh-SceneBase",
+            "inspector_fields": [
+              "actual_dom_bounds_css_px",
+              "reference_bounds_px",
+              "responsive_rule",
+              "asset_sha256",
+              "source_authority",
+              "lifecycle_status",
+              "publication_permission"
+            ],
+            "verification_rule": "Compare actual browser DOM bounds to the active page contract; browser values are CSS px and do not imply Native runtime verification.",
+            "visible": true,
+            "measurable": true,
+            "selectable": true,
+            "state": "CANDIDATE_PREVIEW"
+          },
+          {
+            "nodeId": "CloudAtmosphere",
+            "pageId": "home_empty_v2",
+            "parentId": "EnvironmentScene",
+            "componentType": "IMAGE_LAYER",
+            "renderedDomId": "eh-CloudAtmosphere",
+            "label": "Cloud atmosphere",
+            "layer_order": 2,
+            "visual_asset": {
+              "asset_id": "home_empty_v2_cloud_master",
+              "source_path": "design/pages/home/empty_home/shared/assets/atmosphere/cloud_master.png"
+            },
+            "authority": {
+              "path": "app/src/main/java/com/yujian/ai/ui/home/EmptyHomeSceneRenderer.kt",
+              "status": "CURRENT_OR_IMPLEMENTATION_REFERENCE"
+            },
+            "reference_bounds_px": {
+              "x": 214,
+              "y": 92,
+              "width": 620,
+              "height": 180
+            },
+            "responsive_rule": {
+              "path": "design/pages/home/empty_home/shared/contracts/responsive_mapping_contract.json",
+              "rule_id": "UNIFORM_COVER_COMPOSITION_AWARE"
+            },
+            "render_method": "Image",
+            "dom_mapping": "eh-CloudAtmosphere",
+            "inspector_fields": [
+              "actual_dom_bounds_css_px",
+              "reference_bounds_px",
+              "responsive_rule",
+              "asset_sha256",
+              "source_authority",
+              "lifecycle_status",
+              "publication_permission"
+            ],
+            "verification_rule": "Position 214,92 and alpha 0.45 follow the existing renderer implementation reference; this is not an independent frozen anchor and remains VISUAL_REVIEW_REQUIRED.",
+            "visible": true,
+            "measurable": true,
+            "selectable": true,
+            "state": "CANDIDATE_PREVIEW"
+          },
+          {
+            "nodeId": "SunAmbient",
+            "pageId": "home_empty_v2",
+            "parentId": "EnvironmentScene",
+            "componentType": "LAYER_GROUP",
+            "renderedDomId": "eh-SunAmbient",
+            "label": "Sun ambient",
+            "layer_order": 3,
+            "visual_asset": null,
+            "authority": {
+              "path": "app/src/main/java/com/yujian/ai/ui/home/EmptyHomeSceneRenderer.kt",
+              "status": "CURRENT_OR_IMPLEMENTATION_REFERENCE"
+            },
+            "reference_bounds_px": {
+              "x": 654,
+              "y": 474,
+              "width": 340,
+              "height": 520
+            },
+            "responsive_rule": {
+              "path": "design/pages/home/empty_home/shared/contracts/responsive_mapping_contract.json",
+              "rule_id": "UNIFORM_COVER_COMPOSITION_AWARE"
+            },
+            "render_method": "DOM",
+            "dom_mapping": "eh-SunAmbient",
+            "inspector_fields": [
+              "actual_dom_bounds_css_px",
+              "reference_bounds_px",
+              "responsive_rule",
+              "asset_sha256",
+              "source_authority",
+              "lifecycle_status",
+              "publication_permission"
+            ],
+            "verification_rule": "Compare actual browser DOM bounds to the active page contract; browser values are CSS px and do not imply Native runtime verification.",
+            "visible": true,
+            "measurable": true,
+            "selectable": true,
+            "state": "CANDIDATE_PREVIEW",
+            "children": [
+              {
+                "nodeId": "SunBeam",
+                "pageId": "home_empty_v2",
+                "parentId": "SunAmbient",
+                "componentType": "IMAGE_LAYER",
+                "renderedDomId": "eh-SunBeam",
+                "label": "Sun beam · motion not run",
+                "layer_order": 3,
+                "visual_asset": {
+                  "asset_id": "home_empty_v2_sun_beam_master_mask",
+                  "source_path": "design/pages/home/empty_home/shared/assets/atmosphere/sun_beam_master_mask.png"
+                },
+                "authority": {
+                  "path": "app/src/main/java/com/yujian/ai/ui/home/EmptyHomeSceneRenderer.kt",
+                  "status": "CURRENT_OR_IMPLEMENTATION_REFERENCE"
+                },
+                "reference_bounds_px": {
+                  "x": 654,
+                  "y": 474,
+                  "width": 340,
+                  "height": 520
+                },
+                "responsive_rule": {
+                  "path": "design/pages/home/empty_home/shared/contracts/responsive_mapping_contract.json",
+                  "rule_id": "UNIFORM_COVER_COMPOSITION_AWARE"
+                },
+                "render_method": "Image",
+                "dom_mapping": "eh-SunBeam",
+                "inspector_fields": [
+                  "actual_dom_bounds_css_px",
+                  "reference_bounds_px",
+                  "responsive_rule",
+                  "asset_sha256",
+                  "source_authority",
+                  "lifecycle_status",
+                  "publication_permission"
+                ],
+                "verification_rule": "This layer is rendered by the native motion state only. The static candidate omits it because the scene master already contains ambient sun glow; the implementation-reference bounds are retained for traceability, not as a frozen static measurement. NOT_RUN.",
+                "visible": false,
+                "measurable": false,
+                "selectable": true,
+                "state": "MOTION_NOT_RUN"
+              },
+              {
+                "nodeId": "SunParticles",
+                "pageId": "home_empty_v2",
+                "parentId": "SunAmbient",
+                "componentType": "MOTION_LAYER",
+                "renderedDomId": "eh-SunParticles",
+                "label": "Sun particles · not rendered in static state",
+                "layer_order": 3,
+                "visual_asset": {
+                  "asset_id": "home_empty_v2_particle_master_mask",
+                  "source_path": "design/pages/home/empty_home/shared/assets/atmosphere/particle_master_mask.png"
+                },
+                "authority": {
+                  "path": "app/src/main/java/com/yujian/ai/ui/home/EmptyHomeMotion.kt",
+                  "status": "CURRENT_OR_IMPLEMENTATION_REFERENCE"
+                },
+                "reference_bounds_px": null,
+                "responsive_rule": {
+                  "path": "design/pages/home/empty_home/shared/contracts/responsive_mapping_contract.json",
+                  "rule_id": "UNIFORM_COVER_COMPOSITION_AWARE"
+                },
+                "render_method": "Canvas/DOM motion preview not run",
+                "dom_mapping": "eh-SunParticles",
+                "inspector_fields": [
+                  "actual_dom_bounds_css_px",
+                  "reference_bounds_px",
+                  "responsive_rule",
+                  "asset_sha256",
+                  "source_authority",
+                  "lifecycle_status",
+                  "publication_permission"
+                ],
+                "verification_rule": "Particle positions are motion-generated and lack a frozen coordinate profile; W2 still marks the source resource REQUIRED for the page runtime, while this static browser candidate does not render the motion layer. NOT_RUN.",
+                "visible": false,
+                "measurable": false,
+                "selectable": true,
+                "state": "MOTION_NOT_RUN"
+              }
+            ]
+          },
+          {
+            "nodeId": "FishingComposition",
+            "pageId": "home_empty_v2",
+            "parentId": "EnvironmentScene",
+            "componentType": "LAYER_GROUP",
+            "renderedDomId": "eh-FishingComposition",
+            "label": "Fishing composition",
+            "layer_order": 4,
+            "visual_asset": null,
+            "authority": {
+              "path": "design/pages/home/empty_home/shared/contracts/responsive_mapping_contract.json",
+              "status": "CURRENT_OR_IMPLEMENTATION_REFERENCE"
+            },
+            "reference_bounds_px": {
+              "x": 0,
+              "y": 1122,
+              "width": 660,
+              "height": 264
+            },
+            "responsive_rule": {
+              "path": "design/pages/home/empty_home/shared/contracts/responsive_mapping_contract.json",
+              "rule_id": "UNIFORM_COVER_COMPOSITION_AWARE"
+            },
+            "render_method": "DOM",
+            "dom_mapping": "eh-FishingComposition",
+            "inspector_fields": [
+              "actual_dom_bounds_css_px",
+              "reference_bounds_px",
+              "responsive_rule",
+              "asset_sha256",
+              "source_authority",
+              "lifecycle_status",
+              "publication_permission"
+            ],
+            "verification_rule": "Candidate group bounds enclose the unchanged rod and user-directed fishing geometry override; scene transform and all child anchors remain responsive. Not a frozen contract update.",
+            "visible": true,
+            "measurable": true,
+            "selectable": true,
+            "state": "CANDIDATE_PREVIEW",
+            "children": [
+              {
+                "nodeId": "FishingRod",
+                "pageId": "home_empty_v2",
+                "parentId": "FishingComposition",
+                "componentType": "IMAGE_LAYER",
+                "renderedDomId": "eh-FishingRod",
+                "label": "Fishing rod",
+                "layer_order": 4,
+                "visual_asset": {
+                  "asset_id": "home_empty_v2_rod_master",
+                  "source_path": "design/pages/home/empty_home/shared/assets/fishing/rod_master.png"
+                },
+                "authority": {
+                  "path": "design/pages/home/empty_home/shared/contracts/anchor_contract.json",
+                  "status": "CURRENT_OR_IMPLEMENTATION_REFERENCE"
+                },
+                "reference_bounds_px": {
+                  "x": 0,
+                  "y": 1180,
+                  "width": 340,
+                  "height": 206
+                },
+                "responsive_rule": {
+                  "path": "design/pages/home/empty_home/shared/contracts/responsive_mapping_contract.json",
+                  "rule_id": "UNIFORM_COVER_COMPOSITION_AWARE"
+                },
+                "render_method": "Image",
+                "dom_mapping": "eh-FishingRod",
+                "inspector_fields": [
+                  "actual_dom_bounds_css_px",
+                  "reference_bounds_px",
+                  "responsive_rule",
+                  "asset_sha256",
+                  "source_authority",
+                  "lifecycle_status",
+                  "publication_permission"
+                ],
+                "verification_rule": "Compare actual browser DOM bounds to the active page contract; browser values are CSS px and do not imply Native runtime verification.",
+                "visible": true,
+                "measurable": true,
+                "selectable": true,
+                "state": "CANDIDATE_PREVIEW"
+              },
+              {
+                "nodeId": "FishingLine",
+                "pageId": "home_empty_v2",
+                "parentId": "FishingComposition",
+                "componentType": "SVG_PATH",
+                "renderedDomId": "eh-FishingLine",
+                "label": "Fishing line · candidate smooth arc with vertical float entry",
+                "layer_order": 5,
+                "visual_asset": null,
+                "authority": {
+                  "path": "design/pages/home/empty_home/shared/contracts/anchor_contract.json",
+                  "status": "CURRENT_OR_IMPLEMENTATION_REFERENCE"
+                },
+                "reference_bounds_px": {
+                  "x": 337,
+                  "y": 1180,
+                  "width": 194,
+                  "height": 20
+                },
+                "responsive_rule": {
+                  "path": "design/pages/home/empty_home/shared/contracts/responsive_mapping_contract.json",
+                  "rule_id": "UNIFORM_COVER_COMPOSITION_AWARE"
+                },
+                "render_method": "SVG path",
+                "dom_mapping": "eh-FishingLine",
+                "inspector_fields": [
+                  "actual_dom_bounds_css_px",
+                  "reference_bounds_px",
+                  "responsive_rule",
+                  "asset_sha256",
+                  "source_authority",
+                  "lifecycle_status",
+                  "publication_permission"
+                ],
+                "verification_rule": "Actual DOM bounds follow the user-directed candidate_geometry_override in this mapping; the Main-canonical anchor contract remains unchanged and visual acceptance is pending.",
+                "visible": true,
+                "measurable": true,
+                "selectable": true,
+                "state": "CANDIDATE_PREVIEW"
+              },
+              {
+                "nodeId": "BobberReflection",
+                "pageId": "home_empty_v2",
+                "parentId": "FishingComposition",
+                "componentType": "IMAGE_LAYER",
+                "renderedDomId": "eh-BobberReflection",
+                "label": "Bobber reflection",
+                "layer_order": 6,
+                "visual_asset": {
+                  "asset_id": "home_empty_v2_bobber_reflection_master",
+                  "source_path": "design/pages/home/empty_home/shared/assets/fishing/bobber_reflection_master.png"
+                },
+                "authority": {
+                  "path": "design/pages/home/empty_home/shared/contracts/anchor_contract.json",
+                  "status": "CURRENT_OR_IMPLEMENTATION_REFERENCE"
+                },
+                "reference_bounds_px": {
+                  "x": 525,
+                  "y": 1194,
+                  "width": 12,
+                  "height": 52
+                },
+                "responsive_rule": {
+                  "path": "design/pages/home/empty_home/shared/contracts/responsive_mapping_contract.json",
+                  "rule_id": "UNIFORM_COVER_COMPOSITION_AWARE"
+                },
+                "render_method": "Image",
+                "dom_mapping": "eh-BobberReflection",
+                "inspector_fields": [
+                  "actual_dom_bounds_css_px",
+                  "reference_bounds_px",
+                  "responsive_rule",
+                  "asset_sha256",
+                  "source_authority",
+                  "lifecycle_status",
+                  "publication_permission"
+                ],
+                "verification_rule": "Actual DOM bounds follow the user-directed candidate_geometry_override in this mapping; the Main-canonical anchor contract remains unchanged and visual acceptance is pending.",
+                "visible": true,
+                "measurable": true,
+                "selectable": true,
+                "state": "CANDIDATE_PREVIEW"
+              },
+              {
+                "nodeId": "WaterContact",
+                "pageId": "home_empty_v2",
+                "parentId": "FishingComposition",
+                "componentType": "GEOMETRY_ANCHOR",
+                "renderedDomId": "eh-WaterContact",
+                "label": "Water contact point",
+                "layer_order": 7,
+                "visual_asset": null,
+                "authority": {
+                  "path": "design/pages/home/empty_home/shared/contracts/anchor_contract.json",
+                  "status": "CURRENT_OR_IMPLEMENTATION_REFERENCE"
+                },
+                "reference_bounds_px": {
+                  "x": 531,
+                  "y": 1195,
+                  "width": 0,
+                  "height": 0
+                },
+                "responsive_rule": {
+                  "path": "design/pages/home/empty_home/shared/contracts/responsive_mapping_contract.json",
+                  "rule_id": "UNIFORM_COVER_COMPOSITION_AWARE"
+                },
+                "render_method": "DOM anchor",
+                "dom_mapping": "eh-WaterContact",
+                "inspector_fields": [
+                  "actual_dom_bounds_css_px",
+                  "reference_bounds_px",
+                  "responsive_rule",
+                  "asset_sha256",
+                  "source_authority",
+                  "lifecycle_status",
+                  "publication_permission"
+                ],
+                "verification_rule": "Actual DOM bounds follow the user-directed candidate_geometry_override in this mapping; the Main-canonical anchor contract remains unchanged and visual acceptance is pending.",
+                "visible": true,
+                "measurable": true,
+                "selectable": true,
+                "state": "CANDIDATE_PREVIEW"
+              },
+              {
+                "nodeId": "Ripple",
+                "pageId": "home_empty_v2",
+                "parentId": "FishingComposition",
+                "componentType": "IMAGE_LAYER",
+                "renderedDomId": "eh-Ripple",
+                "label": "Ripple · exactly one group",
+                "layer_order": 8,
+                "visual_asset": {
+                  "asset_id": "home_empty_v2_ripple_master_mask",
+                  "source_path": "design/pages/home/empty_home/shared/assets/fishing/ripple_master_mask.png"
+                },
+                "authority": {
+                  "path": "design/pages/home/empty_home/shared/contracts/anchor_contract.json",
+                  "status": "CURRENT_OR_IMPLEMENTATION_REFERENCE"
+                },
+                "reference_bounds_px": {
+                  "x": 412,
+                  "y": 1154,
+                  "width": 238,
+                  "height": 82
+                },
+                "responsive_rule": {
+                  "path": "design/pages/home/empty_home/shared/contracts/responsive_mapping_contract.json",
+                  "rule_id": "UNIFORM_COVER_COMPOSITION_AWARE"
+                },
+                "render_method": "Image",
+                "dom_mapping": "eh-Ripple",
+                "inspector_fields": [
+                  "actual_dom_bounds_css_px",
+                  "reference_bounds_px",
+                  "responsive_rule",
+                  "asset_sha256",
+                  "source_authority",
+                  "lifecycle_status",
+                  "publication_permission"
+                ],
+                "verification_rule": "Actual DOM bounds follow the user-directed candidate_geometry_override in this mapping; the Main-canonical anchor contract remains unchanged and visual acceptance is pending.",
+                "visible": true,
+                "measurable": true,
+                "selectable": true,
+                "state": "CANDIDATE_PREVIEW"
+              },
+              {
+                "nodeId": "BobberBody",
+                "pageId": "home_empty_v2",
+                "parentId": "FishingComposition",
+                "componentType": "CLIPPED_IMAGE",
+                "renderedDomId": "eh-BobberBody",
+                "label": "Bobber body · single above-water body",
+                "layer_order": 9,
+                "visual_asset": {
+                  "asset_id": "home_empty_v2_bobber_master",
+                  "source_path": "design/pages/home/empty_home/shared/assets/fishing/bobber_master.png"
+                },
+                "authority": {
+                  "path": "design/pages/home/empty_home/shared/contracts/layer_contract.json",
+                  "status": "CURRENT_OR_IMPLEMENTATION_REFERENCE"
+                },
+                "reference_bounds_px": {
+                  "x": 519,
+                  "y": 1122,
+                  "width": 24,
+                  "height": 73
+                },
+                "responsive_rule": {
+                  "path": "design/pages/home/empty_home/shared/contracts/responsive_mapping_contract.json",
+                  "rule_id": "UNIFORM_COVER_COMPOSITION_AWARE"
+                },
+                "render_method": "Clipped image",
+                "dom_mapping": "eh-BobberBody",
+                "inspector_fields": [
+                  "actual_dom_bounds_css_px",
+                  "reference_bounds_px",
+                  "responsive_rule",
+                  "asset_sha256",
+                  "source_authority",
+                  "lifecycle_status",
+                  "publication_permission"
+                ],
+                "verification_rule": "Actual DOM bounds follow the user-directed candidate_geometry_override in this mapping; the Main-canonical anchor contract remains unchanged and visual acceptance is pending.",
+                "visible": true,
+                "measurable": true,
+                "selectable": true,
+                "state": "CANDIDATE_PREVIEW"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "nodeId": "Header",
+        "pageId": "home_empty_v2",
+        "parentId": "EmptyHomeRoot",
+        "componentType": "SAFE_TOP_GROUP",
+        "renderedDomId": "eh-Header",
+        "label": "Header",
+        "layer_order": 10,
+        "visual_asset": null,
+        "authority": {
+          "path": "design/pages/home/empty_home/shared/contracts/responsive_mapping_contract.json",
+          "status": "CURRENT_OR_IMPLEMENTATION_REFERENCE"
+        },
+        "reference_bounds_px": null,
+        "responsive_rule": {
+          "path": "design/pages/home/empty_home/shared/contracts/responsive_mapping_contract.json",
+          "rule_id": "SAFE_TOP_ANCHORED"
+        },
+        "render_method": "DOM",
+        "dom_mapping": "eh-Header",
+        "inspector_fields": [
+          "actual_dom_bounds_css_px",
+          "reference_bounds_px",
+          "responsive_rule",
+          "asset_sha256",
+          "source_authority",
+          "lifecycle_status",
+          "publication_permission"
+        ],
+        "verification_rule": "Safe-top behavior follows the page contract. Browser-only top/bottom safe-area values (36/0 CSS px) are visual estimates from the frozen raster; they are not Native WindowInsets claims. Header start/end padding retains the adaptive inset and adds candidate measured offsets (+4/+10 CSS px). Exact brand/subtitle/account pixel bounds and chevron resource are not independently registered for this page.",
+        "visible": true,
+        "measurable": true,
+        "selectable": true,
+        "state": "CANDIDATE_PREVIEW",
+        "children": [
+          {
+            "nodeId": "Brand",
+            "pageId": "home_empty_v2",
+            "parentId": "Header",
+            "componentType": "ARTWORK_ASSET",
+            "renderedDomId": "eh-Brand",
+            "label": "Brand wordmark · BLOCKED_AUTHORITY_GAP",
+            "layer_order": 10,
+            "visual_asset": null,
+            "authority": {
+              "path": "design/system_v3/04_Design_Tokens/Typography/Typography_System_V3_FINAL.md",
+              "status": "BLOCKED_AUTHORITY_GAP"
+            },
+            "reference_bounds_px": null,
+            "responsive_rule": {
+              "path": "design/pages/home/empty_home/shared/contracts/responsive_mapping_contract.json",
+              "rule_id": "SAFE_TOP_ANCHORED"
+            },
+            "render_method": "Blocked hidden node; an empty 23sp line-height slot is reserved for grouping and no brand text or artwork is rendered",
+            "dom_mapping": "eh-Brand",
+            "inspector_fields": [
+              "actual_dom_bounds_css_px",
+              "reference_bounds_px",
+              "responsive_rule",
+              "asset_sha256",
+              "source_authority",
+              "lifecycle_status",
+              "publication_permission"
+            ],
+            "verification_rule": "Typography authority requires FROZEN_ARTWORK_ASSET. Existing standalone brand artwork is scoped to normal_home and is not authorized for home_empty_v2.",
+            "visible": false,
+            "measurable": false,
+            "selectable": false,
+            "state": "BLOCKED_AUTHORITY_GAP"
+          },
+          {
+            "nodeId": "Subtitle",
+            "pageId": "home_empty_v2",
+            "parentId": "Header",
+            "componentType": "TEXT",
+            "renderedDomId": "eh-Subtitle",
+            "label": "拍照收藏每次渔获",
+            "layer_order": 10,
+            "visual_asset": null,
+            "authority": {
+              "path": "design/pages/home/empty_home/source/frozen/Empty_Home_Frozen_Visual_V2_2.png",
+              "status": "CURRENT_OR_IMPLEMENTATION_REFERENCE"
+            },
+            "reference_bounds_px": null,
+            "responsive_rule": {
+              "path": "design/pages/home/empty_home/shared/contracts/responsive_mapping_contract.json",
+              "rule_id": "SAFE_TOP_ANCHORED"
+            },
+            "render_method": "Text",
+            "dom_mapping": "eh-Subtitle",
+            "inspector_fields": [
+              "actual_dom_bounds_css_px",
+              "reference_bounds_px",
+              "responsive_rule",
+              "asset_sha256",
+              "source_authority",
+              "lifecycle_status",
+              "publication_permission"
+            ],
+            "verification_rule": "Exact copy from V2.2; 8.6sp/12sp Regular is a browser measurement candidate from the frozen raster because Empty Home has no registered subtitle token. The base size and 12sp line-height scale with fontScale; tracking follows the shared 0sp rule and the shared platform sans-serif family remains unchanged.",
+            "visible": true,
+            "measurable": true,
+            "selectable": true,
+            "state": "CANDIDATE_PREVIEW"
+          },
+          {
+            "nodeId": "AccountEntry",
+            "pageId": "home_empty_v2",
+            "parentId": "Header",
+            "componentType": "BUTTON",
+            "renderedDomId": "eh-AccountEntry",
+            "label": "登录",
+            "layer_order": 10,
+            "visual_asset": null,
+            "authority": {
+              "path": "design/pages/home/empty_home/shared/contracts/responsive_mapping_contract.json",
+              "status": "CURRENT_OR_IMPLEMENTATION_REFERENCE"
+            },
+            "reference_bounds_px": null,
+            "responsive_rule": {
+              "path": "design/pages/home/empty_home/shared/contracts/responsive_mapping_contract.json",
+              "rule_id": "SAFE_TOP_ANCHORED"
+            },
+            "render_method": "DOM button",
+            "dom_mapping": "eh-AccountEntry",
+            "inspector_fields": [
+              "actual_dom_bounds_css_px",
+              "reference_bounds_px",
+              "responsive_rule",
+              "asset_sha256",
+              "source_authority",
+              "lifecycle_status",
+              "publication_permission"
+            ],
+            "verification_rule": "Real inert HTML Text Action; separate CHEVRON_RIGHT W2 asset, 14dp icon and 4dp text gap; no visible container; route remains non-functional.",
+            "visible": true,
+            "measurable": true,
+            "selectable": true,
+            "state": "CANDIDATE_PREVIEW",
+            "children": [
+              {
+                "nodeId": "ChevronRight",
+                "pageId": "home_empty_v2",
+                "parentId": "AccountEntry",
+                "componentType": "ICON",
+                "renderedDomId": "eh-ChevronRight",
+                "label": "Login trailing chevron · CHEVRON_RIGHT",
+                "layer_order": 11,
+                "visual_asset": {
+                  "asset_id": "system_icon_library_v0_1_assets_ic_chevron_right_v1_svg",
+                  "source_path": "design/system/icon_library_v0_1/assets/ic_chevron_right_v1.svg"
+                },
+                "authority": {
+                  "path": "design/system/icon_library_v0_1/frozen_assets_v1.json",
+                  "status": "FROZEN_DESIGN"
+                },
+                "reference_bounds_px": null,
+                "responsive_rule": {
+                  "path": "design/pages/home/empty_home/shared/contracts/responsive_mapping_contract.json",
+                  "rule_id": "SAFE_TOP_ANCHORED"
+                },
+                "render_method": "W2-verified SVG image in real DOM",
+                "dom_mapping": "eh-ChevronRight",
+                "inspector_fields": [
+                  "actual_dom_bounds_css_px",
+                  "reference_bounds_px",
+                  "asset_sha256",
+                  "source_authority",
+                  "lifecycle_status",
+                  "publication_permission"
+                ],
+                "verification_rule": "Text Action V1 trailing glyph: 14dp, 4dp text gap; exact SVG SHA is W2-bound.",
+                "visible": true,
+                "measurable": true,
+                "selectable": true,
+                "state": "CANDIDATE_PREVIEW"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "nodeId": "HeroCopy",
+        "pageId": "home_empty_v2",
+        "parentId": "EmptyHomeRoot",
+        "componentType": "IMAGE",
+        "renderedDomId": "eh-HeroCopy",
+        "label": "Hero copy",
+        "layer_order": 11,
+        "visual_asset": {
+          "asset_id": "home_empty_v2_hero",
+          "source_path": "design/pages/home/empty_home/shared/assets/hero/empty_home_hero_v2_2.png"
+        },
+        "authority": {
+          "path": "design/pages/home/empty_home/shared/contracts/hero_asset_contract.json",
+          "status": "CURRENT_OR_IMPLEMENTATION_REFERENCE"
+        },
+        "reference_bounds_px": {
+          "x": 50,
+          "y": 224,
+          "width": 620,
+          "height": 310
+        },
+        "responsive_rule": {
+          "path": "design/pages/home/empty_home/shared/contracts/responsive_mapping_contract.json",
+          "rule_id": "ASPECT_LOCKED_REFERENCE_ANCHOR"
+        },
+        "render_method": "Image · object-fit:contain",
+        "dom_mapping": "eh-HeroCopy",
+        "inspector_fields": [
+          "actual_dom_bounds_css_px",
+          "reference_bounds_px",
+          "responsive_rule",
+          "asset_sha256",
+          "source_authority",
+          "lifecycle_status",
+          "publication_permission"
+        ],
+        "verification_rule": "Compare actual browser DOM bounds to the active page contract; browser values are CSS px and do not imply Native runtime verification.",
+        "visible": true,
+        "measurable": true,
+        "selectable": true,
+        "state": "CANDIDATE_PREVIEW"
+      },
+      {
+        "nodeId": "CaptureActionGroup",
+        "pageId": "home_empty_v2",
+        "parentId": "EmptyHomeRoot",
+        "componentType": "SAFE_BOTTOM_GROUP",
+        "renderedDomId": "eh-CaptureActionGroup",
+        "label": "Capture action group",
+        "layer_order": 12,
+        "visual_asset": null,
+        "authority": {
+          "path": "design/pages/home/empty_home/shared/contracts/responsive_mapping_contract.json",
+          "status": "CURRENT_OR_IMPLEMENTATION_REFERENCE"
+        },
+        "reference_bounds_px": null,
+        "responsive_rule": {
+          "path": "design/pages/home/empty_home/shared/contracts/responsive_mapping_contract.json",
+          "rule_id": "SAFE_BOTTOM_ANCHORED_GROUP"
+        },
+        "render_method": "DOM",
+        "dom_mapping": "eh-CaptureActionGroup",
+        "inspector_fields": [
+          "actual_dom_bounds_css_px",
+          "reference_bounds_px",
+          "responsive_rule",
+          "asset_sha256",
+          "source_authority",
+          "lifecycle_status",
+          "publication_permission"
+        ],
+        "verification_rule": "Compare actual browser DOM bounds to the active page contract; browser values are CSS px and do not imply Native runtime verification.",
+        "visible": true,
+        "measurable": true,
+        "selectable": true,
+        "state": "CANDIDATE_PREVIEW",
+        "children": [
+          {
+            "nodeId": "CapturePrompt",
+            "pageId": "home_empty_v2",
+            "parentId": "CaptureActionGroup",
+            "componentType": "TEXT",
+            "renderedDomId": "eh-CapturePrompt",
+            "label": "对准鱼获，拍一张",
+            "layer_order": 12,
+            "visual_asset": null,
+            "authority": {
+              "path": "design/pages/home/empty_home/shared/contracts/anchor_contract.json",
+              "status": "CURRENT_OR_IMPLEMENTATION_REFERENCE"
+            },
+            "reference_bounds_px": null,
+            "responsive_rule": {
+              "path": "design/pages/home/empty_home/shared/contracts/responsive_mapping_contract.json",
+              "rule_id": "SAFE_BOTTOM_ANCHORED_GROUP"
+            },
+            "render_method": "Text",
+            "dom_mapping": "eh-CapturePrompt",
+            "inspector_fields": [
+              "actual_dom_bounds_css_px",
+              "reference_bounds_px",
+              "responsive_rule",
+              "asset_sha256",
+              "source_authority",
+              "lifecycle_status",
+              "publication_permission"
+            ],
+            "verification_rule": "Parent is CaptureActionGroup; width equals the viewport/safe CTA group's available width (no additional min/max width clamp); type.body_small supplies the shared SansSerif family, 14sp regular size and 0sp tracking. The page responsive contract keeps a 24sp line-height, scaled by fontScale, and the candidate box height is ceil(line-height). The text baseline uses a 3sp candidate optical adjustment. Text stays single-line nowrap. Its Y is above the camera using max(frozen reference offset, measured prompt height + minimum contract gap). Browser system-ui is a representative only; Android glyph fallback remains NOT_VERIFIED.",
+            "visible": true,
+            "measurable": true,
+            "selectable": true,
+            "state": "CANDIDATE_PREVIEW"
+          },
+          {
+            "nodeId": "PrimaryCaptureButton",
+            "pageId": "home_empty_v2",
+            "parentId": "CaptureActionGroup",
+            "componentType": "BUTTON",
+            "renderedDomId": "eh-PrimaryCaptureButton",
+            "label": "拍照按钮 · 冻结共享 V1.1 素材",
+            "layer_order": 13,
+            "visual_asset": {
+              "asset_id": "home_empty_v2_capture_button_v1_1",
+              "source_path": "design/system/components/primary_capture_button/assets/capture_button_main_v1.png"
+            },
+            "authority": {
+              "path": "design/pages/home/empty_home/shared/contracts/anchor_contract.json",
+              "status": "CURRENT_OR_IMPLEMENTATION_REFERENCE"
+            },
+            "reference_bounds_px": {
+              "x": 430,
+              "y": 1537,
+              "width": 220,
+              "height": 220
+            },
+            "responsive_rule": {
+              "path": "design/pages/home/empty_home/shared/contracts/responsive_mapping_contract.json",
+              "rule_id": "SAFE_BOTTOM_ANCHORED_GROUP"
+            },
+            "render_method": "Real HTML button + verified image",
+            "dom_mapping": "eh-PrimaryCaptureButton",
+            "inspector_fields": [
+              "actual_dom_bounds_css_px",
+              "reference_bounds_px",
+              "responsive_rule",
+              "asset_sha256",
+              "source_authority",
+              "lifecycle_status",
+              "publication_permission"
+            ],
+            "verification_rule": "The verified 208x208 frozen asset is centered at uniform scale inside the 220x220 contract hit target; no crop or non-uniform stretch.",
+            "visible": true,
+            "measurable": true,
+            "selectable": true,
+            "state": "CANDIDATE_PREVIEW"
+          },
+          {
+            "nodeId": "AlbumAction",
+            "pageId": "home_empty_v2",
+            "parentId": "CaptureActionGroup",
+            "componentType": "BUTTON",
+            "renderedDomId": "eh-AlbumAction",
+            "label": "从相册选择",
+            "layer_order": 14,
+            "visual_asset": null,
+            "authority": {
+              "path": "design/pages/home/empty_home/shared/contracts/anchor_contract.json",
+              "status": "CURRENT_OR_IMPLEMENTATION_REFERENCE"
+            },
+            "reference_bounds_px": null,
+            "responsive_rule": {
+              "path": "design/pages/home/empty_home/shared/contracts/responsive_mapping_contract.json",
+              "rule_id": "SAFE_BOTTOM_ANCHORED_GROUP"
+            },
+            "render_method": "Real HTML button + text",
+            "dom_mapping": "eh-AlbumAction",
+            "inspector_fields": [
+              "actual_dom_bounds_css_px",
+              "reference_bounds_px",
+              "responsive_rule",
+              "asset_sha256",
+              "source_authority",
+              "lifecycle_status",
+              "publication_permission"
+            ],
+            "verification_rule": "Real inert HTML button with W2-bound GALLERY SVG plus type.caption text (12sp, Regular 400, 18sp line-height, 0sp tracking); transparent/no visible background. The measured visual row uses a 27 reference-pixel optical offset within the fixed 48px minimum touch target; the target itself is not reduced.",
+            "visible": true,
+            "measurable": true,
+            "selectable": true,
+            "state": "CANDIDATE_PREVIEW",
+            "children": [
+              {
+                "nodeId": "GalleryIcon",
+                "pageId": "home_empty_v2",
+                "parentId": "AlbumAction",
+                "componentType": "ICON",
+                "renderedDomId": "eh-GalleryIcon",
+                "label": "Gallery icon · GALLERY",
+                "layer_order": 15,
+                "visual_asset": {
+                  "asset_id": "system_icon_library_v0_1_assets_ic_gallery_v1_svg",
+                  "source_path": "design/system/icon_library_v0_1/assets/ic_gallery_v1.svg"
+                },
+                "authority": {
+                  "path": "design/system/icon_library_v0_1/frozen_assets_v1.json",
+                  "status": "FROZEN_DESIGN"
+                },
+                "reference_bounds_px": null,
+                "responsive_rule": {
+                  "path": "design/pages/home/empty_home/shared/contracts/responsive_mapping_contract.json",
+                  "rule_id": "SAFE_BOTTOM_ANCHORED_GROUP"
+                },
+                "render_method": "W2-verified SVG image in real DOM",
+                "dom_mapping": "eh-GalleryIcon",
+                "inspector_fields": [
+                  "actual_dom_bounds_css_px",
+                  "reference_bounds_px",
+                  "asset_sha256",
+                  "source_authority",
+                  "lifecycle_status",
+                  "publication_permission"
+                ],
+                "verification_rule": "Use frozen GALLERY SVG; 14 CSS px candidate footprint follows the frozen raster measurement; no crop or stretch.",
+                "visible": true,
+                "measurable": true,
+                "selectable": true,
+                "state": "CANDIDATE_PREVIEW"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "known_authority_gaps": [
+    "Page-specific brand title asset is not registered in Empty Home binding; header brand dynamically renders no text.",
+    "GALLERY and CHEVRON_RIGHT are W2-bound and SHA-verified; their icon inventory/frozen_assets state is frozen while Asset Registry lifecycle REVIEW remains explicitly unresolved.",
+    "Native status/navigation bar glyphs are not rendered; the browser candidate records 36/0 CSS px top/bottom safe-area estimates from the frozen raster, not Native WindowInsets values.",
+    "Sun particle positions are motion-generated without a frozen static coordinate profile; the optional particle layer is not rendered in this candidate.",
+    "Cloud and sun-beam positions currently follow the Android renderer implementation reference; these positions are not independently anchored in the page contract."
+  ],
+  "typography_binding": {
+    "authority_path": "design/system_v3/04_Design_Tokens/Typography/Typography_Tokens_V3_FINAL.json",
+    "browser_font_mapping": "system-ui, sans-serif; browser-only representative mapping",
+    "native_font_status": "NOT_VERIFIED",
+    "native_fallback_claim": false,
+    "tokens": {
+      "CapturePrompt": "type.body_small (14sp, Regular 400; page contract line-height override 24sp)",
+      "AccountEntry": "Text Action V1 NORMAL (14sp, weight 500; component override)",
+      "AlbumAction": "type.caption (12sp, Regular 400)",
+      "ChevronRight": "Text Action V1 trailing icon (14dp; 4dp gap)"
+    },
+    "unresolved": [
+      "Subtitle has no explicit Empty Home page token or font-size authority."
+    ],
+    "component_authority_path": "design/system/components/text_action/Text_Action_Spec_V1.md",
+    "component_authority_sha256": "f92d84206f3456e039f522c7c8510a9e0820891421b2555f6b4ae4f15ce93a68"
+  }
+}
