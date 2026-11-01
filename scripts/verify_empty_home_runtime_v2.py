@@ -15,6 +15,7 @@ ROOT = Path(__file__).resolve().parents[1]
 FEATURE = ROOT / "design/pages/home/empty_home"
 CANONICAL = FEATURE / "shared/contracts"
 RUNTIME = ROOT / "app/src/main/assets/empty_home_runtime_v2"
+# Approved V2.2 amendment: one ripple group, three 3.6s waves, event-gated bobber haptics.
 REQUIRED = {
     "static/scene_base.webp",
     "dynamic/cloud.png", "dynamic/sun_beam_mask.png", "dynamic/particle_mask.png",
