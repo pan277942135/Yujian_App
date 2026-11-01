@@ -80,10 +80,10 @@
 
 ## 2026-11-01 — 13-stage diagnostic 3-second preview implementation
 
-- Work: `YUJIAN_ANDROID_13_STAGE_STEP_DIAGNOSTIC_3S_CONTROL_FIX_V1`, implemented as a follow-up on PR #294. Current implementation checkpoint: `e1e1c579533a81e360cfc0b205f3d6442c42a22f`; PR remains Draft.
+- Work: `YUJIAN_ANDROID_13_STAGE_STEP_DIAGNOSTIC_3S_CONTROL_FIX_V1`, implemented as a follow-up on PR #294. Current implementation checkpoint: `ee318feb3935e56ac331e7dfb81b2310c6493329`; PR remains Draft.
 - Added bounded 3000 ms stage-local preview on the shared `SceneMotionCoordinator`; each stage maps its normalized preview progress to the existing frozen scene-time interval and freezes at the last frame until the user advances. Production timing is unchanged.
 - Root now owns the single preview controller across Processing and Result. Debug stage 10–13 preview uses `revealElapsedOverrideMs` derived from shared scene time and waits for Result geometry without claiming the formal RR09 playback.
 - Control Plane Admission at the prior synchronized Main checkpoint passed; Control Plane Admission rerun on the implementation source SHA passed across all six layers.
 - Local Gradle, Android SDK and ADB are unavailable. Unit tests, AndroidTest APK compilation, Debug APK assembly and lint are pending exact-head PR CI. API28 runtime was skipped per product-owner instruction.
 
-- GitHub publication checkpoint: implementation commit `e1e1c579533a81e360cfc0b205f3d6442c42a22f` includes the PR #294 work on Main `419f22a13be13fde87ca31e48e4a00da751bd8f8`; exact-head Android CI and APK are pending. API28 remains `NOT_RUN` per product-owner instruction.
+- Formatting correction checkpoint: ee318feb3935e56ac331e7dfb81b2310c6493329; normalized CRLF in RecognitionResultScreen.kt after local diff-check flagged trailing whitespace. Exact-head Android CI is pending; API28 remains NOT_RUN.

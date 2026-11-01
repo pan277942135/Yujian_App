@@ -5,7 +5,7 @@ project:
   repository: pan277942135/Yujian_App
   canonical_branch: main
 state_control:
-  execution_baseline_sha: e1e1c579533a81e360cfc0b205f3d6442c42a22f
+  execution_baseline_sha: ee318feb3935e56ac331e7dfb81b2310c6493329
   current_branch: work/ai-orb-waterlight-v2-13-stage
   base_sha: 796106827987d2ccaddb43f8a5723b2cbf73a34e
   current_pr: 294
@@ -22,7 +22,7 @@ pull_requests:
     branch: work/ai-orb-waterlight-v2-13-stage
     base_sha: 796106827987d2ccaddb43f8a5723b2cbf73a34e
     status: DRAFT_OPEN_UNMERGED
-    head_sha: e1e1c579533a81e360cfc0b205f3d6442c42a22f
+    head_sha: ee318feb3935e56ac331e7dfb81b2310c6493329
 phases:
   P0:
     status: NOT_CONFIRMED
@@ -69,7 +69,7 @@ recognition_main_journey:
   - J20
 runtime_gates:
   exact_head:
-    sha: e1e1c579533a81e360cfc0b205f3d6442c42a22f
+    sha: ee318feb3935e56ac331e7dfb81b2310c6493329
     status: NOT_RUN
   historical_runtime_run:
     rule: Historical results cannot promote current exact HEAD to PASS.
@@ -84,7 +84,7 @@ current_work:
   id: YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2
   phase: P6
   task_id: YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2
-  exact_head: e1e1c579533a81e360cfc0b205f3d6442c42a22f
+  exact_head: ee318feb3935e56ac331e7dfb81b2310c6493329
   status: IN_PROGRESS
 blockers: []
 protected_invariants:
@@ -106,8 +106,8 @@ completion_rules:
     delivery.
 state_update:
   updated_at: '2026-11-01T12:22:21Z'
-  note: Control Plane Admission passed on implementation checkpoint e1e1c579533a81e360cfc0b205f3d6442c42a22f; exact-head Android
+  note: Control Plane Admission passed on implementation checkpoint ee318feb3935e56ac331e7dfb81b2310c6493329; exact-head Android
     CI and APK remain pending.
 agent_recovery:
-  checkpoint: Implementation is committed at e1e1c579533a81e360cfc0b205f3d6442c42a22f; branch-local state is initialized.
+  checkpoint: Implementation is committed at ee318feb3935e56ac331e7dfb81b2310c6493329; branch-local state is initialized.
     Continue with admission, PR CI and APK delivery.
