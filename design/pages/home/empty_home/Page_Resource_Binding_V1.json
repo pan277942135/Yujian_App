@@ -849,8 +849,7 @@
             "sha256": "/sha256",
             "coordinate_space": "/coordinate_space",
             "pixel_dimensions.width": "/width",
-            "pixel_dimensions.height": "/height",
-            "bytes": "/bytes"
+            "pixel_dimensions.height": "/height"
           }
         }
       ],
