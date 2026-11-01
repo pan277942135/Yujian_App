@@ -58,6 +58,7 @@ internal const val RIPPLE_PHASE_OFFSET_SECONDS = 0.42f
 internal const val CLOUD_PHASE_OFFSET_SECONDS = 17.6f
 internal const val SUN_BEAM_PHASE_OFFSET_SECONDS = 2.08f
 internal const val CAMERA_BREATH_PHASE_OFFSET_SECONDS = 1.71f
+private val BOBBER_RIPPLE_BURST_STARTS_SECONDS = floatArrayOf(1.5f, 6.8f, 13.6f, 22.4f, 28.2f)
 
 /**
  * One frame clock shared by the Empty Home scene and its camera action layer.
@@ -193,10 +194,9 @@ internal fun calculatePeriodicBobberRippleBurst(
     if (!timeSeconds.isFinite() || timeSeconds < 0f) return null
     val cycleDurationSeconds = 36f
     val burstDurationSeconds = 3.6f
-    val burstStartsSeconds = floatArrayOf(1.5f, 6.8f, 13.6f, 22.4f, 28.2f)
     val cycleIndex = floor(timeSeconds / cycleDurationSeconds).toLong()
     val cycleTime = timeSeconds - cycleIndex * cycleDurationSeconds
-    burstStartsSeconds.forEachIndexed { index, start ->
+    BOBBER_RIPPLE_BURST_STARTS_SECONDS.forEachIndexed { index, start ->
         val elapsed = cycleTime - start
         if (elapsed >= 0f && elapsed < burstDurationSeconds) {
             return PeriodicBobberRippleBurst(
