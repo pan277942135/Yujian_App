@@ -637,6 +637,22 @@ tasks:
     evidence_required: ["frozen_effect01_parameter_contract", "native_equivalent_source_provenance", "shared_processing_clock_binding", "photo_session_lifecycle_regression_tests", "api28_canvas_compatibility", "build_unit_lint", "targeted_api28_runtime", "exact_head_apk_provenance"]
     completion: "Integrate native Effect 01, the natural upward caustic surge and one photo shockwave into the existing Android recognition Processing scene; preserve event-gated Processing/RR09 authority and produce exact-head build, test, runtime and APK evidence. This task does not claim product-owner visual approval or release."
     human_required: false
+  YUJIAN_ANDROID_AISTUDIO_FULL_PAGE_RESTORE_AND_MAIN_INTEGRATION_V1:
+    phase: "P6"
+    priority: "P0"
+    owner: "Work"
+    feature_refs: ["home_empty_v2", "recognition_flow_v1_2", "recognition_result_v1"]
+    journey_refs: ["J01", "J02", "J04", "J05", "J06", "J11", "J12", "J13", "J14", "J15", "J16"]
+    depends_on: []
+    entry_blockers: []
+    target_blockers: []
+    gate_id: "G-ANDROID-AISTUDIO-FULL-PAGE-RESTORE-V1"
+    evidence_required: ["zip_sha256_and_full_file_inventory", "w5_zip_main_three_way_restore_matrix", "empty_home_w5_anchor_motion_haptic_and_ripple", "first_capture_guide_p01_p02_p03_business_and_layout", "guide_candidate_assets_sha_dimensions_source_and_owner_decision", "high_result_zip_diff_frozen_comparison_and_pr294_preservation", "all_other_changed_page_and_shared_component_disposition", "unit_android_test_compile_lint", "api28_and_current_android_runtime_evidence", "responsive_font_lifecycle_and_cross_page_journey_matrix", "installable_debug_apk_sha256_and_source_sha", "exact_head_pr_and_main_merge_state", "unresolved_owner_decisions"]
+    completion: "Restore only verified AI Studio UI and motion improvements into current Android Main using the W5 geometry and current Main business/runtime contracts; preserve the 3-page guide, all current recognition/model/session behavior, PR #294 Orb/13-stage/RR09 changes and existing multi-layer ripple/haptic capability. Deliver complete file-level provenance, exact-head build/tests/runtime evidence and installable Debug APK. Keep unapproved guide imagery and unconfirmed bobber rotation out of Runtime; record owner decisions without blocking independent work."
+    human_required: true
+    phase_rollup: false
+    release_blocking: false
+    android_release_blocking: false
   YUJIAN_ANDROID_AISTUDIO_PERIMETER_SHADER_PORT_V1:
     phase: "P6"
     priority: "P0"
