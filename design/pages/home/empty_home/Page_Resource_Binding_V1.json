@@ -63,13 +63,13 @@
     {
       "authority_id": "emptyassets",
       "path": "design/pages/home/empty_home/shared/contracts/asset_manifest.json",
-      "sha256": "d71ac0ade690dbc0b86fb2dd7a3946049eef6757c04bcaaae9ad8389217ad8ad",
+      "sha256": "5f760432ca7ba64b22c0434d889e52af4a785708cecfd054f788be6b0126e5e6",
       "purpose": "emptyassets"
     },
     {
       "authority_id": "emptyruntime",
       "path": "design/pages/home/empty_home/shared/contracts/runtime_manifest.json",
-      "sha256": "c14da346338e3f79d88d5c4dfb3dd145a1455aa56d90a538df2fa533f0ce9716",
+      "sha256": "9a7a112ead74feb008f082a2ed760a2bef42580eb88c241e85dfc6907e7646d8",
       "purpose": "emptyruntime"
     },
     {
@@ -864,8 +864,8 @@
         }
       ],
       "media_type": "image/png",
-      "bytes": 98833,
-      "sha256": "5561e3b577234ceba41487dd3705e82fa910e96cc6a6cc2d89942f13a629c9ff",
+      "bytes": 111271,
+      "sha256": "36b7ad90c6b685d286ba54ef92659f58bfb5e28b29824848c6cfded06ecf4cf5",
       "pixel_dimensions": {
         "width": 625,
         "height": 311

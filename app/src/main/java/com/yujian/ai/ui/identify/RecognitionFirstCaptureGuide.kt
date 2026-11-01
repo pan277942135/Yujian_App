@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
@@ -27,6 +28,7 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -42,6 +44,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalLayoutDirection
@@ -53,6 +56,7 @@ import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.platform.LocalDensity
@@ -110,11 +114,12 @@ internal fun RecognitionFirstCaptureGuideOverlay(
                 .fillMaxSize()
                 .background(
                     Brush.verticalGradient(
-                        listOf(
-                            Color(0x40223D52),
-                            Color(0x8A102E40),
-                            Color(0xA60B2C3E),
-                        ),
+                        0f to Color(0x38051624),
+                        0.12f to Color(0x10051624),
+                        0.28f to Color.Transparent,
+                        0.46f to Color(0x12051624),
+                        0.70f to Color(0x28051624),
+                        1f to Color(0x3E051624),
                     ),
                 )
                 .clickable(
@@ -124,12 +129,29 @@ internal fun RecognitionFirstCaptureGuideOverlay(
                 .testTag("recognition-guide-touch-shield"),
         )
 
+        // The ZIP's lower-control gradient is restored with its original stops.
+        // It sits behind the controls while the live CameraX preview remains visible.
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(188.dp)
+                .align(Alignment.BottomCenter)
+                .background(
+                    Brush.verticalGradient(
+                        0f to Color.Transparent,
+                        0.45f to Color(0x18030E17),
+                        1f to Color(0x3A030E17),
+                    ),
+                )
+                .testTag("recognition-guide-bottom-gradient"),
+        )
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(
-                    start = startInset + 10.dp,
-                    end = endInset + 10.dp,
+                    start = startInset + 16.dp,
+                    end = endInset + 16.dp,
                     top = safeInsets.calculateTopPadding(),
                     bottom = safeInsets.calculateBottomPadding(),
                 ),
@@ -163,8 +185,9 @@ internal fun RecognitionFirstCaptureGuideOverlay(
             ) {
                 val isFinalPage = pagerState.currentPage == RecognitionFirstCaptureGuidePage.P03.index
                 val fontScale = LocalDensity.current.fontScale
+                val fullWidthDp = maxWidth.value + startInset.value + endInset.value + 32f
                 val stackActions = shouldStackRecognitionGuideActions(
-                    availableWidthDp = maxWidth.value,
+                    availableWidthDp = fullWidthDp,
                     fontScale = fontScale,
                 )
 
@@ -177,10 +200,22 @@ internal fun RecognitionFirstCaptureGuideOverlay(
                                 .sizeIn(minWidth = 44.dp, minHeight = 44.dp)
                                 .testTag("recognition-guide-skip")
                                 .semantics { contentDescription = "跳过首次拍照教学" },
+                            contentPadding = PaddingValues(horizontal = 4.dp, vertical = 8.dp),
                         ) {
-                            Text("跳过", color = Color.White, fontSize = 15.sp)
+                            Text(
+                                text = "跳过",
+                                color = Color.White,
+                                fontSize = 15.sp,
+                                textDecoration = TextDecoration.Underline,
+                            )
                         }
                         if (pagerState.currentPage > 0) {
+                            Text(
+                                text = "|",
+                                color = Color.White.copy(alpha = 0.55f),
+                                fontSize = 14.sp,
+                                modifier = Modifier.padding(horizontal = 8.dp),
+                            )
                             TextButton(
                                 onClick = {
                                     scope.launch { pagerState.animateScrollToPage(pagerState.currentPage - 1) }
@@ -189,8 +224,14 @@ internal fun RecognitionFirstCaptureGuideOverlay(
                                     .sizeIn(minWidth = 44.dp, minHeight = 44.dp)
                                     .testTag("recognition-guide-previous")
                                     .semantics { contentDescription = "上一张教学示例" },
+                                contentPadding = PaddingValues(horizontal = 4.dp, vertical = 8.dp),
                             ) {
-                                Text("上一张", color = Color.White, fontSize = 15.sp)
+                                Text(
+                                    text = "上一张",
+                                    color = Color.White,
+                                    fontSize = 15.sp,
+                                    textDecoration = TextDecoration.Underline,
+                                )
                             }
                         }
                     }
@@ -207,29 +248,42 @@ internal fun RecognitionFirstCaptureGuideOverlay(
                             }
                         },
                         modifier = Modifier
-                            .widthIn(min = 132.dp)
-                            .sizeIn(minHeight = 48.dp)
+                            .height(48.dp)
+                            .widthIn(min = 146.dp)
+                            .shadow(elevation = 6.dp, shape = CircleShape)
                             .testTag("recognition-guide-primary-action")
                             .semantics {
                                 contentDescription = if (isFinalPage) "开始拍摄，返回拍摄页面" else "下一张教学示例"
                             },
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFFF7F5ED),
-                            contentColor = Color(0xFF163B55),
+                            containerColor = Color(0xFFF7F5EE),
+                            contentColor = Color(0xFF102D44),
                         ),
+                        shape = CircleShape,
+                        contentPadding = PaddingValues(horizontal = 24.dp, vertical = 10.dp),
                     ) {
                         Text(
                             text = if (isFinalPage) "开始拍摄 →" else "下一张 →",
                             textAlign = TextAlign.Center,
-                            fontSize = 15.sp,
-                            fontWeight = FontWeight.Medium,
+                            fontSize = 15.5.sp,
+                            fontWeight = FontWeight.SemiBold,
                         )
                     }
                 }
 
                 if (stackActions) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        ActionButtons()
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalAlignment = Alignment.End,
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            ActionButtons()
+                        }
                         PrimaryAction()
                     }
                 } else {
@@ -265,6 +319,7 @@ private fun RecognitionFirstCaptureGuidePageContent(
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 8.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center,
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),

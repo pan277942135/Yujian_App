@@ -5,14 +5,20 @@
   "authority_status": "CURRENT",
   "asset_audit": {
     "legacy_transparent_asset": "app/src/main/res/drawable-nodpi/empty_home_title.png",
-    "legacy_dimensions_px": [2172, 724],
+    "legacy_dimensions_px": [
+      2172,
+      724
+    ],
     "approved_authority_registration": false,
     "decision": "Not used: this legacy asset has no frozen-source provenance or matching current Hero geometry."
   },
   "source": {
     "path": "design/pages/home/empty_home/source/frozen/Empty_Home_Final_Design_V2_normalized_1080x1920.png",
     "sha256": "ebf96d310678b5fd47149cd8dadf3dd24cb00b2b83253876aa4cf9e89f954b77",
-    "dimensions_px": [1080, 1920]
+    "dimensions_px": [
+      1080,
+      1920
+    ]
   },
   "layout_reference_bbox_px": {
     "x": 50,
@@ -35,9 +41,12 @@
   "asset": {
     "design_path": "design/pages/home/empty_home/shared/assets/hero/empty_home_hero_v2_2.png",
     "runtime_resource_path": "app/src/main/res/drawable-nodpi/empty_home_title_v2.png",
-    "dimensions_px": [625, 311],
+    "dimensions_px": [
+      625,
+      311
+    ],
     "format": "PNG RGBA",
-    "sha256": "5561e3b577234ceba41487dd3705e82fa910e96cc6a6cc2d89942f13a629c9ff",
+    "sha256": "36b7ad90c6b685d286ba54ef92659f58bfb5e28b29824848c6cfded06ecf4cf5",
     "aspect_ratio": 2.0096463023,
     "render_content_scale": "FIT",
     "maximum_rendered_aspect_error_percent": 1.0
