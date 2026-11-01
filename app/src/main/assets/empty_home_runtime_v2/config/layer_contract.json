@@ -2,7 +2,7 @@
   "design_version": "Empty_Home_Final_Design_V2",
   "visual_revision": "V2.2",
   "authority_status": "CURRENT",
-  "contract_revision": "EMPTY_HOME_LAYERS_V2_2_MEASURED",
+  "contract_revision": "EMPTY_HOME_LAYERS_V2_2_RIPPLE_HAPTIC_AMENDMENT_01",
   "order": [
     "scene_base",
     "cloud_atmosphere",
@@ -20,7 +20,7 @@
   "rules": {
     "native_ui_is_baked": false,
     "scene_base_has_baked_ripple": false,
-    "ripple_count": 1,
+    "ripple_count": 3,
     "scene_locked_elements_share_transform": "sceneTransform",
     "scene_transform": "UNIFORM_COVER_COMPOSITION_AWARE",
     "bobber_is_split_at_water_contact": true,
@@ -52,6 +52,10 @@
     "bobber_body_render_count": 1,
     "reflection_is_separate_asset": true,
     "line_stroke_model": "single_pale_stroke_without_outline",
-    "line_endpoint_occluded_by_bobber_contact": true
+    "line_endpoint_occluded_by_bobber_contact": true,
+    "ripple_group_count": 1,
+    "contact_ring_count": 1,
+    "ripple_burst_duration_ms": 3600,
+    "ripple_burst_trigger": "periodic_bobber_nibble_event"
   }
 }
