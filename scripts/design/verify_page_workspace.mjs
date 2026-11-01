@@ -177,7 +177,8 @@ async function main() {
     const measured = [];
     for (const row of nodes) {
       assert(row.nodeId, "component tree contains a node without a stable node ID");
-      const escapedNodeId = CSS.escape(row.nodeId);
+      assert(!row.nodeId.includes('"'), "component tree node ID contains an unsafe selector character");
+      const escapedNodeId = row.nodeId;
       const target = workspace.locator('[data-workspace-rendered-node="' + escapedNodeId + '"]');
       assert(await target.count() === 1, "tree node " + row.nodeId + " does not map to exactly one rendered DOM node inside the selected workspace");
       if (!row.selectable) {
