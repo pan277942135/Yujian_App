@@ -19,6 +19,7 @@ import androidx.lifecycle.findViewTreeLifecycleOwner
 import kotlinx.coroutines.isActive
 import kotlin.math.PI
 import kotlin.math.cos
+import kotlin.math.floor
 import kotlin.math.max
 import kotlin.math.sin
 import kotlin.random.Random
@@ -178,13 +179,43 @@ internal fun calculateReferenceSceneTransform(
 internal fun bobberOffsetPx(timeSeconds: Float): Float =
     -3f * sin((timeSeconds % 4.6f) / 4.6f * (2f * PI.toFloat()))
 
+internal data class PeriodicBobberRippleBurst(
+    val cycleIndex: Long,
+    val burstIndex: Int,
+    val elapsedSeconds: Float,
+) {
+    val eventId: Long get() = cycleIndex * 5L + burstIndex.toLong()
+}
+
+internal fun calculatePeriodicBobberRippleBurst(
+    timeSeconds: Float,
+): PeriodicBobberRippleBurst? {
+    if (!timeSeconds.isFinite() || timeSeconds < 0f) return null
+    val cycleDurationSeconds = 36f
+    val burstDurationSeconds = 3.6f
+    val burstStartsSeconds = floatArrayOf(1.5f, 6.8f, 13.6f, 22.4f, 28.2f)
+    val cycleIndex = floor(timeSeconds / cycleDurationSeconds).toLong()
+    val cycleTime = timeSeconds - cycleIndex * cycleDurationSeconds
+    burstStartsSeconds.forEachIndexed { index, start ->
+        val elapsed = cycleTime - start
+        if (elapsed >= 0f && elapsed < burstDurationSeconds) {
+            return PeriodicBobberRippleBurst(
+                cycleIndex = cycleIndex,
+                burstIndex = index,
+                elapsedSeconds = elapsed,
+            )
+        }
+    }
+    return null
+}
+
 internal fun emptyHomeMotionActive(
     running: Boolean,
     reduceMotion: Boolean,
 ): Boolean = running && !reduceMotion
 
 internal fun rippleProgress(timeSeconds: Float): Float =
-    (timeSeconds % 3.2f) / 3.2f
+    (timeSeconds % 3.6f) / 3.6f
 
 internal fun rippleScale(timeSeconds: Float): Float =
     1f + 0.22f * rippleProgress(timeSeconds)
