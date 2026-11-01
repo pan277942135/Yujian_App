@@ -10,9 +10,16 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
@@ -21,6 +28,8 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
 import com.yujian.ai.ui.components.AssetImage
 import kotlin.math.roundToInt
 
@@ -48,6 +57,36 @@ internal fun EmptyHomeSceneRenderer(
     runtimeAssets: EmptyHomeRuntimeAssets?,
     sceneTransform: ReferenceSceneTransform,
 ) {
+    val context = LocalContext.current
+    val view = LocalView.current
+    var lastHapticBurstId by remember(motionState) { mutableLongStateOf(Long.MIN_VALUE) }
+    val currentBurstId = remember(motionState) {
+        derivedStateOf {
+            if (!motionState.running || motionState.reduceMotion) {
+                null
+            } else {
+                calculatePeriodicBobberRippleBurst(
+                    motionState.sceneTimeSeconds + RIPPLE_PHASE_OFFSET_SECONDS,
+                )?.eventId
+            }
+        }
+    }
+
+    LaunchedEffect(
+        currentBurstId.value,
+        motionState.running,
+        motionState.reduceMotion,
+        runtimeAssets != null,
+    ) {
+        val burstId = currentBurstId.value ?: return@LaunchedEffect
+        if (runtimeAssets != null && motionState.running && !motionState.reduceMotion &&
+            burstId != lastHapticBurstId
+        ) {
+            bobberNibbleHaptic(context, view)
+            lastHapticBurstId = burstId
+        }
+    }
+
     Box(modifier.clipToBounds()) {
         AssetImage(
             FALLBACK_BACKGROUND,
@@ -177,24 +216,16 @@ private fun DrawScope.drawRuntimeOverlays(
         destination = destination,
     )
 
-    drawReferenceBitmap(
-        bitmap = assets.ripple,
-        x = EMPTY_HOME_V2_RIPPLE_X,
-        // The ripple belongs to the water plane; only the bobber receives Y
-        // motion, so the contact point never rides up and down with it.
-        y = EMPTY_HOME_V2_RIPPLE_Y,
-        width = assets.ripple.width.toFloat(),
-        height = assets.ripple.height.toFloat(),
-        // Reduce Motion freezes the contact state rather than removing it:
-        // the lake still reads as a correctly seated bobber at rest.
-        alpha = if (bobberMotionActive) rippleAlpha(time + RIPPLE_PHASE_OFFSET_SECONDS) else 0.30f,
-        scale = if (bobberMotionActive) rippleScale(time + RIPPLE_PHASE_OFFSET_SECONDS) else 1f,
-        pivotX = EMPTY_HOME_V2_WATER_CONTACT_X,
-        pivotY = EMPTY_HOME_V2_WATER_CONTACT_Y,
-        colorFilter = RippleAlphaNormalizationFilter,
+    val rippleBurst = if (bobberMotionActive) {
+        calculatePeriodicBobberRippleBurst(time + RIPPLE_PHASE_OFFSET_SECONDS)
+    } else {
+        null
+    }
+    drawPeriodicBobberRipples(
+        burstElapsedSeconds = rippleBurst?.elapsedSeconds,
+        contactX = EMPTY_HOME_V2_WATER_CONTACT_X,
+        contactY = EMPTY_HOME_V2_WATER_CONTACT_Y,
         transform = transform,
-        paint = paint,
-        destination = destination,
     )
     drawReferenceBitmap(
         bitmap = assets.bobber,
@@ -208,6 +239,141 @@ private fun DrawScope.drawRuntimeOverlays(
         destination = destination,
         source = Rect(0, 0, assets.bobber.width, bobberSplit.splitY),
     )
+}
+
+private fun DrawScope.drawPeriodicBobberRipples(
+    burstElapsedSeconds: Float?,
+    contactX: Float,
+    contactY: Float,
+    transform: ReferenceSceneTransform,
+) {
+    val centerX = transform.offsetX + contactX * transform.scale
+    val centerY = transform.offsetY + contactY * transform.scale
+    val scale = transform.scale
+    val perspectiveRatio = 3.2f
+
+    // One stable contact ring remains visible when Reduce Motion is enabled.
+    val contactRx = 14f * scale
+    val contactRy = contactRx / perspectiveRatio
+    drawOval(
+        color = Color(0xFFC0ECF5).copy(alpha = 0.32f),
+        topLeft = Offset(centerX - contactRx * 1.25f, centerY - contactRy * 1.25f),
+        size = Size(contactRx * 2.5f, contactRy * 2.5f),
+        style = Stroke(width = 2.2f * scale),
+    )
+    drawOval(
+        color = Color(0xFFEDF9FC).copy(alpha = 0.70f),
+        topLeft = Offset(centerX - contactRx, centerY - contactRy),
+        size = Size(contactRx * 2f, contactRy * 2f),
+        style = Stroke(width = 1.35f * scale),
+    )
+
+    val elapsed = burstElapsedSeconds ?: return
+    drawRippleWave(
+        elapsedSeconds = elapsed,
+        delaySeconds = 0f,
+        totalDurationSeconds = 3.6f,
+        startRadius = 16f,
+        radiusGrowth = 270f,
+        alphaFrom = 0.86f,
+        strokeFrom = 2.3f,
+        strokeTo = 1.3f,
+        shadowAlphaRatio = 0.28f,
+        centerX = centerX,
+        centerY = centerY,
+        scale = scale,
+        perspectiveRatio = perspectiveRatio,
+        highlight = Color(0xFFE2F8FD),
+        sunGleam = true,
+    )
+    drawRippleWave(
+        elapsedSeconds = elapsed,
+        delaySeconds = 0.42f,
+        totalDurationSeconds = 3.6f,
+        startRadius = 14f,
+        radiusGrowth = 190f,
+        alphaFrom = 0.72f,
+        strokeFrom = 1.95f,
+        strokeTo = 1.1f,
+        shadowAlphaRatio = 0.22f,
+        centerX = centerX,
+        centerY = centerY,
+        scale = scale,
+        perspectiveRatio = perspectiveRatio,
+        highlight = Color(0xFFDAF4FC),
+        sunGleam = true,
+    )
+    drawRippleWave(
+        elapsedSeconds = elapsed,
+        delaySeconds = 0.90f,
+        totalDurationSeconds = 3.6f,
+        startRadius = 12f,
+        radiusGrowth = 120f,
+        alphaFrom = 0.56f,
+        strokeFrom = 1.6f,
+        strokeTo = 0.95f,
+        shadowAlphaRatio = 0f,
+        centerX = centerX,
+        centerY = centerY,
+        scale = scale,
+        perspectiveRatio = perspectiveRatio,
+        highlight = Color(0xFFD2F1FA),
+        sunGleam = false,
+    )
+}
+
+private fun DrawScope.drawRippleWave(
+    elapsedSeconds: Float,
+    delaySeconds: Float,
+    totalDurationSeconds: Float,
+    startRadius: Float,
+    radiusGrowth: Float,
+    alphaFrom: Float,
+    strokeFrom: Float,
+    strokeTo: Float,
+    shadowAlphaRatio: Float,
+    centerX: Float,
+    centerY: Float,
+    scale: Float,
+    perspectiveRatio: Float,
+    highlight: Color,
+    sunGleam: Boolean,
+) {
+    if (elapsedSeconds < delaySeconds) return
+    val waveDuration = totalDurationSeconds - delaySeconds
+    val progress = ((elapsedSeconds - delaySeconds) / waveDuration).coerceIn(0f, 1f)
+    val eased = 1f - (1f - progress) * (1f - progress) * (1f - progress)
+    val radiusX = (startRadius + radiusGrowth * eased) * scale
+    val radiusY = radiusX / perspectiveRatio
+    val alpha = (alphaFrom * (1f - progress) * (1f - 0.22f * progress)).coerceIn(0f, 1f)
+    val strokeWidth = ((strokeFrom + (strokeTo - strokeFrom) * progress) * scale).coerceAtLeast(0.85f)
+
+    if (alpha <= 0.015f) return
+    if (shadowAlphaRatio > 0f) {
+        drawOval(
+            color = Color(0xFF0F3946).copy(alpha = (alpha * shadowAlphaRatio).coerceIn(0f, 1f)),
+            topLeft = Offset(centerX - radiusX, centerY - radiusY + 0.8f * scale),
+            size = Size(radiusX * 2f, radiusY * 2f),
+            style = Stroke(width = strokeWidth * 1.3f),
+        )
+    }
+    drawOval(
+        color = highlight.copy(alpha = alpha),
+        topLeft = Offset(centerX - radiusX, centerY - radiusY),
+        size = Size(radiusX * 2f, radiusY * 2f),
+        style = Stroke(width = strokeWidth),
+    )
+    if (sunGleam) {
+        drawArc(
+            color = Color(0xFFFFF7DC).copy(alpha = (alpha * 0.78f).coerceIn(0f, 1f)),
+            startAngle = -45f,
+            sweepAngle = 110f,
+            useCenter = false,
+            topLeft = Offset(centerX - radiusX, centerY - radiusY),
+            size = Size(radiusX * 2f, radiusY * 2f),
+            style = Stroke(width = strokeWidth * 1.2f, cap = StrokeCap.Round),
+        )
+    }
 }
 
 internal data class BobberWaterSplit(
