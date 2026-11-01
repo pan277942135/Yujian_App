@@ -167,26 +167,43 @@ async function main() {
     const nodes = await workspace.locator("[data-workspace-tree-node]").evaluateAll(elements => elements.map(node => ({
       nodeId: node.dataset.nodeId || node.dataset.workspaceNodeId || null,
       label: node.textContent?.trim() || null,
-      disabled: Boolean(node.disabled)
+      disabled: Boolean(node.disabled),
+      selectable: node.dataset.nodeSelectable !== "false",
+      visible: node.dataset.nodeVisible !== "false",
+      measurable: node.dataset.nodeMeasurable !== "false",
+      authorityStatus: node.dataset.nodeAuthorityStatus || null
     })));
     assert(nodes.length > 0, "workspace component tree is empty");
     const measured = [];
     for (const row of nodes) {
       assert(row.nodeId, "component tree contains a node without a stable node ID");
-      assert(!row.disabled, `component tree node ${row.nodeId} is disabled and cannot be selected in the actual workspace`);
-      const target = workspace.locator(`[data-workspace-rendered-node="${row.nodeId.replaceAll('"', '\\"')}"]`);
-      assert(await target.count() === 1, `tree node ${row.nodeId} does not map to exactly one rendered DOM node inside the selected workspace`);
-      await workspace.locator(`[data-workspace-tree-node][data-node-id="${row.nodeId.replaceAll('"', '\\"')}"]`).first().click();
+      const escapedNodeId = CSS.escape(row.nodeId);
+      const target = workspace.locator('[data-workspace-rendered-node="' + escapedNodeId + '"]');
+      assert(await target.count() === 1, "tree node " + row.nodeId + " does not map to exactly one rendered DOM node inside the selected workspace");
+      if (!row.selectable) {
+        assert(row.disabled && row.visible === false && row.measurable === false && row.authorityStatus === "BLOCKED_AUTHORITY_GAP",
+          "non-selectable node " + row.nodeId + " is not an explicitly hidden, non-measurable authority-gap node");
+        const bounds = await target.first().evaluate(node => {
+          const r = node.getBoundingClientRect();
+          return { x: r.x, y: r.y, width: r.width, height: r.height, right: r.right, bottom: r.bottom };
+        });
+        assert(bounds.width === 0 && bounds.height === 0,
+          "authority-gap node " + row.nodeId + " must remain non-rendered; actual bounds=" + bounds.width + "x" + bounds.height);
+        measured.push({ ...row, bounds, selection: "SKIPPED_DOCUMENTED_AUTHORITY_GAP" });
+        continue;
+      }
+      assert(!row.disabled, "selectable component tree node " + row.nodeId + " is disabled in the actual workspace");
+      await workspace.locator('[data-workspace-tree-node][data-node-id="' + escapedNodeId + '"]').first().click();
       const inspector = workspace.locator("[data-workspace-inspector]");
       await inspector.waitFor({ state: "visible", timeout: 10000 });
       const selectedId = await inspector.getAttribute("data-selected-node-id");
-      assert(selectedId === row.nodeId, `Inspector selected ${selectedId} for tree node ${row.nodeId}`);
+      assert(selectedId === row.nodeId, "Inspector selected " + selectedId + " for tree node " + row.nodeId);
       const bounds = await target.first().evaluate(node => {
         const r = node.getBoundingClientRect();
         return { x: r.x, y: r.y, width: r.width, height: r.height, right: r.right, bottom: r.bottom };
       });
-      assert(bounds.width >= 0 && bounds.height >= 0, `invalid DOM rectangle for ${row.nodeId}`);
-      measured.push({ ...row, bounds });
+      assert(bounds.width >= 0 && bounds.height >= 0, "invalid DOM rectangle for " + row.nodeId);
+      measured.push({ ...row, bounds, selection: "SELECTED_AND_INSPECTED" });
     }
     const overflow = await page.evaluate(() => ({
       viewportWidth: window.innerWidth,
@@ -204,7 +221,7 @@ async function main() {
       schema_version: "1.0", page_id: args.pageId, source_sha: args.sourceSha, candidate_url: route,
       result: errors.length ? "FAIL" : "PASS", visual_result: "MEASUREMENT_ONLY_NOT_VISUAL_PASS",
       page_acceptance: "NOT_VERIFIED", workspace: rootInfo,
-        workspace_selection: { selector: workspaceSelector, matching_visible_count: 1, all_workspace_candidates: workspaceCandidates },
+        workspace_selection: { selector: workspaceSelector, matching_visible_count: 1, all_workspace_candidates: workspaceCandidates, nodes: measured },
         tree_node_count: nodes.length,
       measured_node_count: measured.length, overflow, console_errors: errors,
       failure_reason: failureReason,

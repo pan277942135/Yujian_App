@@ -9,9 +9,11 @@ const sourceSha = "42ad0d3fef23ea6576fd43dee781d253dcc11251";
 const pageId = "home_empty_v2";
 const verifier = resolve("scripts/design/verify_page_workspace.mjs");
 
-function shellHtml({ page = pageId, source = sourceSha, node = true, delayedNode = false, delayedReady = false, throwing = false, kind = "structured-page-adapter", disabled = false, viewState = "READY", errorText = null, badResource = false, staleWorkspace = false, duplicateWorkspace = false } = {}) {
-  const tree = `<button data-workspace-tree-node data-node-id="empty-scene" ${disabled ? "disabled" : ""}>Empty scene</button>`;
-  const rendered = node && !delayedNode ? `<div data-workspace-rendered-node="empty-scene" style="width:120px;height:80px">scene</div>` : "";
+function shellHtml({ page = pageId, source = sourceSha, node = true, delayedNode = false, delayedReady = false, throwing = false, kind = "structured-page-adapter", disabled = false, blockedNode = false, viewState = "READY", errorText = null, badResource = false, staleWorkspace = false, duplicateWorkspace = false } = {}) {
+  const tree = `<button data-workspace-tree-node data-node-id="empty-scene" ${disabled ? "disabled" : ""}>Empty scene</button>`
+    + (blockedNode ? `<button data-workspace-tree-node data-node-id="blocked-brand" data-node-selectable="false" data-node-visible="false" data-node-measurable="false" data-node-authority-status="BLOCKED_AUTHORITY_GAP" disabled>Brand</button>` : "");
+  const rendered = (node && !delayedNode ? `<div data-workspace-rendered-node="empty-scene" style="width:120px;height:80px">scene</div>` : "")
+    + (blockedNode ? `<div data-workspace-rendered-node="blocked-brand" style="display:none">Brand</div>` : "");
   const stale = staleWorkspace ? `<main data-page-workspace-root data-page-id="${page}" data-source-sha="1111111111111111111111111111111111111111" data-workspace-kind="structured-page-adapter" data-view-state="READY" style="display:none"><button data-workspace-tree-node data-node-id="old-workspace-layer" disabled>Old hidden layer</button><aside data-workspace-inspector data-selected-node-id="">Old Inspector</aside></main>` : "";
   const duplicate = duplicateWorkspace ? `<main data-page-workspace-root data-page-id="${page}" data-source-sha="${source}" data-workspace-kind="${kind}" data-view-state="${viewState}">${tree}${rendered}<aside data-workspace-inspector data-selected-node-id="">Duplicate Inspector</aside></main>` : "";
   return `<!doctype html><html><head><meta charset="utf-8"></head><body>
@@ -91,6 +93,7 @@ async function main() {
       : fixture === "reference-only-bad-response" ? shellHtml({ kind: "reference-image-only", viewState: "LOADING", badResource: true })
       : fixture === "structured-error" ? shellHtml({ viewState: "ERROR", errorText: "renderer failed" })
       : fixture === "disabled-node" ? shellHtml({ disabled: true })
+      : fixture === "documented-blocked-node" ? shellHtml({ blockedNode: true })
       : fixture === "page-error" ? shellHtml({ throwing: true })
       : shellHtml();
     response.writeHead(200, { "content-type": "text/html; charset=utf-8" }).end(html);
@@ -101,7 +104,7 @@ async function main() {
   const root = await mkdtemp(join(tmpdir(), "page-workspace-w4-test-"));
   let infrastructureBlocked = false;
   try {
-    for (const fixture of ["ok", "hidden-old-workspace", "delayed-render", "duplicate-visible-workspaces", "missing", "wrong-page", "missing-layer", "reference-only", "structured-error", "disabled-node", "page-error"]) {
+    for (const fixture of ["ok", "hidden-old-workspace", "delayed-render", "documented-blocked-node", "duplicate-visible-workspaces", "missing", "wrong-page", "missing-layer", "reference-only", "structured-error", "disabled-node", "page-error"]) {
       const outputDir = join(root, fixture);
       const execution = await runVerifier(serverUrl, fixture, outputDir);
       const { code } = execution;
@@ -115,7 +118,7 @@ async function main() {
         infrastructureBlocked = true;
         continue;
       }
-      const expected = ["ok", "hidden-old-workspace", "delayed-render"].includes(fixture) ? "PASS" : "FAIL";
+      const expected = ["ok", "hidden-old-workspace", "delayed-render", "documented-blocked-node"].includes(fixture) ? "PASS" : "FAIL";
       if (report.result !== expected || (expected === "PASS" && code !== 0) || (expected === "FAIL" && code === 0)) {
         throw new Error(`${fixture}: expected ${expected}, got ${report.result}, exit ${code}; report=${JSON.stringify(report)}`);
       }
@@ -132,6 +135,15 @@ async function main() {
             report.workspace_selection?.all_workspace_candidates?.length !== 2 ||
             report.tree_node_count !== 1) {
           throw new Error(`hidden old workspace polluted active evidence: ${JSON.stringify(report.workspace_selection)}`);
+        }
+      }
+      if (fixture === "documented-blocked-node") {
+        const blocked = report.workspace_selection?.nodes?.find(node => node.nodeId === "blocked-brand");
+        if (!blocked || blocked.selection !== "SKIPPED_DOCUMENTED_AUTHORITY_GAP" ||
+            blocked.visible !== false || blocked.measurable !== false ||
+            blocked.authorityStatus !== "BLOCKED_AUTHORITY_GAP" ||
+            blocked.bounds?.width !== 0 || blocked.bounds?.height !== 0) {
+          throw new Error(`documented-blocked-node: authority gap was not preserved as a hidden, non-selectable node: ${JSON.stringify(blocked)}`);
         }
       }
       if (fixture === "ok") {
