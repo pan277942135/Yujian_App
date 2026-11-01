@@ -99,6 +99,9 @@ class EmptyHomeV2RuntimeContractTest {
             assertEquals(5, automaticNibble.getJSONArray("event_start_offsets_ms").length())
             assertTrue(automaticNibble.getBoolean("requires_lifecycle_resumed"))
             assertTrue(automaticNibble.getBoolean("requires_motion_enabled"))
+            val waveform = automaticNibble.getJSONObject("waveform")
+            assertEquals("[0,14,45,18]", waveform.getJSONArray("timings_ms").toString())
+            assertEquals("[0,90,0,130]", waveform.getJSONArray("amplitudes").toString())
         }
     }
 }
