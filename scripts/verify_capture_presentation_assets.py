@@ -34,7 +34,7 @@ def verify_home_binding():
     core = (ROOT / "app/src/main/java/com/yujian/ai/ui/designsystem/components/aiorb/AIOrbCore.kt").read_text()
     home = (ROOT / "app/src/main/java/com/yujian/ai/ui/home/HomeCameraButton.kt").read_text()
     handoff = (ROOT / "app/src/main/java/com/yujian/ai/ui/home/CaptureEntryButtonHandoff.kt").read_text()
-    if "const val HOME_IDLE = R.drawable.ai_orb_camera_activated_v1" not in core:
+    if "val HOME_IDLE: Int get() = R.drawable.ai_orb_camera_activated_v1" not in core:
         raise ValueError("Home idle resource identity drift")
     for name, source in (("HomeCameraButton", home), ("CaptureEntryButtonHandoff", handoff)):
         if "frozenVisualResource = AIOrbCaptureVisualAssets.HOME_IDLE" not in source:

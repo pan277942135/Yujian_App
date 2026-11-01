@@ -35,7 +35,7 @@ import kotlin.math.sin
 
 /** The home button and its navigation handoff share one frozen visual identity. */
 object AIOrbCaptureVisualAssets {
-    const val HOME_IDLE = R.drawable.ai_orb_camera_activated_v1
+    val HOME_IDLE: Int get() = R.drawable.ai_orb_camera_activated_v1
 }
 
 /**
