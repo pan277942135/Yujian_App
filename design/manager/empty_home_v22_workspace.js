@@ -215,7 +215,16 @@
       "EMPTY_HOME_VISUAL_AUTHORITY_NOT_CURRENT_V2_2");
     assert(Array.isArray(values["asset_manifest.json"].assets) && values["asset_manifest.json"].assets.length > 0,
       "EMPTY_HOME_ASSET_MANIFEST_EMPTY");
-    assert(values["layer_contract.json"].rules?.scene_base_has_baked_ripple === false && values["layer_contract.json"].rules?.ripple_count === 1,
+    const layerRules = values["layer_contract.json"].rules || {};
+    const rippleMotion = values["motion_contract.json"].ripple || {};
+    assert(layerRules.scene_base_has_baked_ripple === false &&
+      layerRules.ripple_count === 3 &&
+      layerRules.ripple_group_count === 1 &&
+      layerRules.ripple_burst_duration_ms === 3600 &&
+      rippleMotion.count === 3 &&
+      rippleMotion.duration_ms === 3600 &&
+      Array.isArray(rippleMotion.wave_layers) &&
+      rippleMotion.wave_layers.length === 3,
       "EMPTY_HOME_LAYER_CONTRACT_INVALID");
     return { runtime, ...values };
   }

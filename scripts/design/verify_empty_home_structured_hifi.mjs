@@ -418,7 +418,7 @@ async function main() {
     assert(preflight.resources.length>=9&&preflight.resources.every(resource=>resource.status!=="MISSING"&&resource.status!=="BLOCKED_INTEGRITY"),"all used bound resources must resolve and pass integrity/publishing checks");
     assert(preflight.resources.every(resource=>resource.resource_ref?.publication_permission?.state==="PUBLIC_BY_EXISTING_PAGES_RULE"),"every published preview resource must have an explicit W2 permission");
     assert(preflight.brokenImages.length===0,`browser image load failure: ${JSON.stringify(preflight.brokenImages)}`);
-    assert(preflight.rippleCount===1,"layer authority requires exactly one ripple");
+    assert(preflight.rippleCount===3,"layer authority requires three ripple waves in one grouped asset");
     baseEvidence.mapping_sha256=preflight.mappingSha;
     baseEvidence.w2_binding_sha256=preflight.w2BindingSha;
     baseEvidence.resource_binding_sha256=preflight.w2BindingSha;
