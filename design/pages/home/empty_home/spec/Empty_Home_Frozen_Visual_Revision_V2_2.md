@@ -59,4 +59,28 @@ Bobber and ripple:
 
 Logo, subtitle, login/profile behavior, hero artwork, mountain/mist/sun/lake scene,
 cloud/sun-particle behavior, recognition navigation, album navigation, Reduce Motion,
-haptic behavior and all non-Empty-Home product logic remain unchanged from V2.
+and all non-Empty-Home product logic remain unchanged from V2. Haptic behavior is governed by
+the approved amendment below.
+
+
+## Approved motion / haptic amendment — 2026-11-01
+
+**Status: APPROVED BY PRODUCT OWNER.** This amendment updates only Empty Home ripple and
+event-synchronized haptic behavior; it does not reopen V2.2 fishing composition geometry.
+
+- Ripple: one water-contact group with three vector wave layers, total burst duration 3,600 ms.
+  Layer start delays are 0 / 420 / 900 ms; radial growth is 270 / 190 / 120 reference px.
+- Event cadence: five scheduled starts per 36,000 ms scene cycle at 1,500 / 6,800 / 13,600 /
+  22,400 / 28,200 ms, relative to the 420 ms ripple phase offset. Each event starts the ripple
+  burst and emits at most one subtle double-pulse.
+- Haptic safety: only while the page is visible and lifecycle-resumed, motion is enabled, Reduce
+  Motion is off, and system haptic feedback is enabled. No page-entry or continuous idle vibration.
+- Preserved: bobber Y-only ±3 reference px / 4,600 ms; zero X motion, zero rotation, no scale;
+  existing bobber, reflection, water-contact, fishing-line and CTA anchors remain unchanged.
+- Not approved by this amendment: ZIP's bobber anchor migration, line-geometry migration, bobber
+  dip/tilt/rotation, two-page camera-guide sequence, or unapproved guide photo assets.
+
+Machine-readable authorities:
+- `shared/contracts/motion_contract.json`
+- `shared/contracts/layer_contract.json`
+- `shared/contracts/haptic_contract.json`
