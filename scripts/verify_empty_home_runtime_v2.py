@@ -67,6 +67,7 @@ def main() -> int:
     anchors = load(RUNTIME / "config/anchor_contract.json")
     motion = load(RUNTIME / "config/motion_contract.json")
     layers = load(RUNTIME / "config/layer_contract.json")
+    haptic = load(RUNTIME / "config/haptic_contract.json")
     authority = load(CANONICAL / "authority_manifest.json")
     responsive = load(CANONICAL / "responsive_mapping_contract.json")
 
@@ -172,6 +173,7 @@ def main() -> int:
     scene_entry = (ROOT / "app/src/main/java/com/yujian/ai/ui/home/HomeEmptyScene.kt").read_text()
     scene_renderer = (ROOT / "app/src/main/java/com/yujian/ai/ui/home/EmptyHomeSceneRenderer.kt").read_text()
     motion_source = (ROOT / "app/src/main/java/com/yujian/ai/ui/home/EmptyHomeMotion.kt").read_text()
+    haptic_source = (ROOT / "app/src/main/java/com/yujian/ai/ui/home/CaptureHaptics.kt").read_text()
     geometry_constants = {
         "REFERENCE_WIDTH_PX": anchors["reference_canvas"]["width"],
         "REFERENCE_HEIGHT_PX": anchors["reference_canvas"]["height"],
@@ -247,8 +249,16 @@ def main() -> int:
             fail(errors, "runtime asset SHA256 mismatch: " + relative_path)
     if layers.get("order") != ["scene_base", "cloud_atmosphere", "sun_ambient", "rod", "line", "bobber_reflection", "water_contact_occlusion", "ripple", "bobber_body", "foreground_occlusion", "native_ui", "capture_action"]:
         fail(errors, "layer order does not preserve V2.2 fishing registration and separate reflection")
-    if layers.get("rules", {}).get("ripple_count") != 1 or layers.get("rules", {}).get("scene_base_has_baked_ripple") is not False:
-        fail(errors, "single-ripple/no-baked-ripple rule failed")
+    layer_rules = layers.get("rules", {})
+    if (
+        layer_rules.get("ripple_count"),
+        layer_rules.get("ripple_group_count"),
+        layer_rules.get("contact_ring_count"),
+        layer_rules.get("ripple_burst_duration_ms"),
+        layer_rules.get("ripple_burst_trigger"),
+        layer_rules.get("scene_base_has_baked_ripple"),
+    ) != (3, 1, 1, 3600, "periodic_bobber_nibble_event", False):
+        fail(errors, "one ripple group / three-wave / no-baked-ripple rule failed")
     if layers.get("rules", {}).get("scene_transform") != "UNIFORM_COVER_COMPOSITION_AWARE" or layers.get("rules", {}).get("bobber_is_split_at_water_contact") is not True:
         fail(errors, "scene transform and bobber water-contact split rules are missing")
     if anchors["bobber"]["water_contact_reference_px"] != [561, 1323]:
@@ -313,7 +323,7 @@ def main() -> int:
     fishing_layers = scene_renderer[scene_renderer.index("drawFrozenFishingLine(transform)"):]
     layer_markers = (
         "bitmap = assets.bobberReflection",
-        "bitmap = assets.ripple",
+        "drawPeriodicBobberRipples(",
         "source = Rect(0, 0, assets.bobber.width, bobberSplit.splitY)",
     )
     layer_positions = [fishing_layers.find(marker) for marker in layer_markers]
@@ -354,8 +364,58 @@ def main() -> int:
     if bobber.get("keyframes") != [[0, 0], [1150, -3], [2300, 0], [3450, 3], [4600, 0]]:
         fail(errors, "bobber keyframes differ from V2")
     ripple = motion.get("ripple", {})
-    if (ripple.get("count"), ripple.get("scale_from"), ripple.get("scale_to"), ripple.get("alpha_from"), ripple.get("alpha_to"), ripple.get("duration_ms")) != (1, 1.0, 1.22, 0.30, 0.0, 3200):
-        fail(errors, "ripple Motion V2 contract failed")
+    expected_event_starts = [1500, 6800, 13600, 22400, 28200]
+    wave_layers = ripple.get("wave_layers", [])
+    if (
+        ripple.get("count"),
+        ripple.get("duration_ms"),
+        ripple.get("phase_offset_ms"),
+        ripple.get("event_cycle_duration_ms"),
+        ripple.get("event_start_offsets_ms"),
+        ripple.get("trigger"),
+        [wave.get("delay_ms") for wave in wave_layers],
+    ) != (3, 3600, 420, 36000, expected_event_starts, "periodic_bobber_nibble_event", [0, 420, 900]):
+        fail(errors, "three-layer 3.6s ripple Motion V2.2 amendment contract failed")
+    if len(wave_layers) != 3 or [wave.get("radius_growth_reference_px") for wave in wave_layers] != [270, 190, 120]:
+        fail(errors, "ripple wave-layer growth envelope diverges from the approved amendment")
+    if (
+        "calculatePeriodicBobberRippleBurst" not in motion_source
+        or "burstDurationSeconds = 3.6f" not in motion_source
+        or "floatArrayOf(1.5f, 6.8f, 13.6f, 22.4f, 28.2f)" not in motion_source
+        or "drawPeriodicBobberRipples(" not in scene_renderer
+        or scene_renderer.count("delaySeconds =") < 3
+        or "totalDurationSeconds = 3.6f" not in scene_renderer
+    ):
+        fail(errors, "ripple runtime implementation does not match the approved 3.6s schedule")
+    automatic_haptic = haptic.get("automatic_bobber_nibble", {})
+    if (
+        haptic.get("page_enter") != "none"
+        or haptic.get("idle") != "none"
+        or automatic_haptic.get("enabled") is not True
+        or automatic_haptic.get("trigger") != "periodic_bobber_ripple_burst_start"
+        or automatic_haptic.get("event_cycle_duration_ms") != 36000
+        or automatic_haptic.get("event_start_offsets_ms") != expected_event_starts
+        or automatic_haptic.get("phase_offset_ms") != 420
+        or automatic_haptic.get("max_triggers_per_cycle") != 5
+        or automatic_haptic.get("requires_motion_enabled") is not True
+        or automatic_haptic.get("requires_lifecycle_resumed") is not True
+        or automatic_haptic.get("respects_system_haptic_feedback_setting") is not True
+        or automatic_haptic.get("reduced_motion") != "disabled"
+    ):
+        fail(errors, "automatic bobber haptic safety / cadence contract failed")
+    waveform = automatic_haptic.get("waveform", {})
+    if waveform.get("timings_ms") != [0, 14, 45, 18] or waveform.get("amplitudes") != [0, 90, 0, 130]:
+        fail(errors, "automatic bobber haptic waveform diverges from the approved subtle double-pulse")
+    if (
+        "currentBurstId.value" not in scene_renderer
+        or "lastHapticBurstId" not in scene_renderer
+        or "motionState.running" not in scene_renderer
+        or "!motionState.reduceMotion" not in scene_renderer
+        or "bobberNibbleHaptic(context, view)" not in scene_renderer
+        or "HAPTIC_FEEDBACK_ENABLED" not in haptic_source
+        or "createWaveform(" not in haptic_source
+    ):
+        fail(errors, "event haptic implementation is not lifecycle / Reduce Motion / system-setting gated")
     if motion.get("cloud", {}).get("speed_reference_px_per_s") != 0.2:
         fail(errors, "cloud speed must be 0.2 reference px/s")
     beam = motion.get("sun_particle_beam", {})
