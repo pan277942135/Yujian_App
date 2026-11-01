@@ -361,7 +361,6 @@ private class RecognitionPerimeterTextureView(context: Context) : TextureView(co
 
 private class RecognitionPerimeterGlRenderer {
     private val frameRef = AtomicReference<PerimeterFrame?>(null)
-    private val releaseRequested = AtomicBoolean(false)
     private var program = 0
     private var surfaceWidth = 1
     private var surfaceHeight = 1
@@ -370,20 +369,17 @@ private class RecognitionPerimeterGlRenderer {
     private var positionBuffer = 0
     private var photoTexture = 0
     private var uploadedBitmap: Bitmap? = null
+    private var uploadedIdentity: String? = null
     private val vertices = floatArrayOf(-1f, -1f, 1f, -1f, -1f, 1f, 1f, 1f)
 
     fun submit(frame: PerimeterFrame) {
         frameRef.set(frame)
     }
 
-    fun markReleased() {
-        releaseRequested.set(true)
-        frameRef.set(null)
-    }
-
     fun onSurfaceCreated() {
         firstOpticalFrameLogged = false
         uploadedBitmap = null
+        uploadedIdentity = null
         val frameIdentity = frameRef.get()?.let(::identityLabel).orEmpty()
         Log.i(TAG, "GLES_VERSION=${GLES20.glGetString(GLES20.GL_VERSION)} $frameIdentity")
         Log.i(TAG, "GL_RENDERER=${GLES20.glGetString(GLES20.GL_RENDERER)} $frameIdentity")
@@ -441,10 +437,6 @@ private class RecognitionPerimeterGlRenderer {
     }
 
     fun onDrawFrame(): Boolean {
-        if (releaseRequested.get()) {
-            deleteGlObjects()
-            return false
-        }
         val frame = frameRef.get()
         if (frame == null) {
             GLES20.glClearColor(0f, 0f, 0f, 1f)
@@ -474,6 +466,7 @@ private class RecognitionPerimeterGlRenderer {
     fun releaseGl(contextCurrent: Boolean) {
         frameRef.set(null)
         uploadedBitmap = null
+        uploadedIdentity = null
         if (contextCurrent) deleteGlObjects() else {
             positionBuffer = 0
             photoTexture = 0
@@ -505,7 +498,8 @@ private class RecognitionPerimeterGlRenderer {
             Log.e(TAG, "PHOTO_TEXTURE_UPLOAD=FAIL reason=${if (frame.bitmap.isRecycled) "BITMAP_RECYCLED" else "TEXTURE_UNAVAILABLE"} ${identityLabel(frame)}")
             return false
         }
-        if (frame.bitmap === uploadedBitmap) return true
+        val identity = identityLabel(frame) + ":bitmapGeneration=${frame.bitmap.generationId}"
+        if (frame.bitmap === uploadedBitmap && uploadedIdentity == identity) return true
         val uploadStartedAtMs = android.os.SystemClock.uptimeMillis()
         return try {
             GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, photoTexture)
@@ -518,6 +512,7 @@ private class RecognitionPerimeterGlRenderer {
                 false
             } else {
                 uploadedBitmap = frame.bitmap
+                uploadedIdentity = identity
                 Log.i(TAG, "PHOTO_TEXTURE_UPLOAD=PASS size=${frame.bitmap.width}x${frame.bitmap.height} duration_ms=${android.os.SystemClock.uptimeMillis() - uploadStartedAtMs} ${identityLabel(frame)}")
                 true
             }
@@ -606,6 +601,7 @@ private class RecognitionPerimeterGlRenderer {
         program = 0
         photoTexture = 0
         uploadedBitmap = null
+        uploadedIdentity = null
     }
 
     private fun checkGl(stage: String, identity: String = "") {
