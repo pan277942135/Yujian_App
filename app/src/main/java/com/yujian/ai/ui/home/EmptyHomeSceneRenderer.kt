@@ -1,8 +1,6 @@
 package com.yujian.ai.ui.home
 
 import android.graphics.Bitmap
-import android.graphics.ColorMatrix
-import android.graphics.ColorMatrixColorFilter
 import android.graphics.Paint
 import android.graphics.Rect
 import android.graphics.RectF
@@ -35,20 +33,6 @@ import kotlin.math.roundToInt
 
 private const val FALLBACK_BACKGROUND =
     "empty_home_runtime_v2/static/scene_base.webp"
-
-// The frozen mask is authored with translucent alpha. Normalize only this
-// mask before applying the contract alpha so the contact edge remains legible
-// without changing the 0.30 -> 0 ripple contract.
-private val RippleAlphaNormalizationFilter = ColorMatrixColorFilter(
-    ColorMatrix(
-        floatArrayOf(
-            1f, 0f, 0f, 0f, 0f,
-            0f, 1f, 0f, 0f, 0f,
-            0f, 0f, 1f, 0f, 0f,
-            0f, 0f, 0f, 1.7f, 0f,
-        ),
-    ),
-)
 
 @Composable
 internal fun EmptyHomeSceneRenderer(
