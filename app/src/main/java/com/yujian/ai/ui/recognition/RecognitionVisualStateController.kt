@@ -10,12 +10,11 @@ class RecognitionVisualStateController(
     private var phaseStartedAtMs = UNSET
     private var detectionStarted = false
     private var detectorBoxAvailable = false
-    private var classificationStarted = false
     private var resultReceivedAtMs = UNSET
     private var revealDecisionReady = false
     private var outlineStartedAtMs = UNSET
-    private var outlineMaskWaitStartedAtMs = UNSET
-    private var outlineMaskWaitReleasedAtMs = UNSET
+    private var outlineJoinWaitStartedAtMs = UNSET
+    private var outlineJoinWaitReleasedAtMs = UNSET
     private var trustedMaskAcceptedAtMs = UNSET
     private var opticalBeforeTerminalMs = 0L
 
@@ -24,12 +23,11 @@ class RecognitionVisualStateController(
         phaseStartedAtMs = nowMs
         detectionStarted = false
         detectorBoxAvailable = false
-        classificationStarted = false
         resultReceivedAtMs = UNSET
         revealDecisionReady = false
         outlineStartedAtMs = UNSET
-        outlineMaskWaitStartedAtMs = UNSET
-        outlineMaskWaitReleasedAtMs = UNSET
+        outlineJoinWaitStartedAtMs = UNSET
+        outlineJoinWaitReleasedAtMs = UNSET
         trustedMaskAcceptedAtMs = UNSET
         opticalBeforeTerminalMs = 0L
     }
@@ -59,12 +57,10 @@ class RecognitionVisualStateController(
             }
             RecognitionPhase.CLASSIFYING -> {
                 detectionStarted = true
-                classificationStarted = true
                 detectorBoxAvailable = detectorBoxAvailable || hasRealFishFocus
             }
             RecognitionPhase.RESULT -> {
                 detectionStarted = true
-                classificationStarted = true
                 if (resultReceivedAtMs == UNSET) resultReceivedAtMs = nowMs
                 detectorBoxAvailable = detectorBoxAvailable || hasRealFishFocus
             }
@@ -158,7 +154,10 @@ class RecognitionVisualStateController(
         return when (presented) {
             RecognitionPhase.CAPTURED -> detectionStarted || resultReceivedAtMs != UNSET
             RecognitionPhase.DETECTING -> detectorBoxAvailable || resultReceivedAtMs != UNSET
-            RecognitionPhase.OUTLINE -> classificationStarted || resultReceivedAtMs != UNSET
+            // The fish-specific visual branch is selected only after Classifier and
+            // SlimSAM have both reached real terminal states. A mere Classifier start
+            // must not let contour/gold stages run while SlimSAM is still processing.
+            RecognitionPhase.OUTLINE -> revealDecisionReady
             RecognitionPhase.CLASSIFYING -> resultReceivedAtMs != UNSET && revealDecisionReady
             RecognitionPhase.RESULT,
             RecognitionPhase.FAILURE -> false
@@ -167,18 +166,18 @@ class RecognitionVisualStateController(
 
     private fun minimum(phase: RecognitionPhase): Long = minVisibleMs[phase] ?: 0L
 
-    /** Preserve the 950→1200 ms path-to-fish portion while SlimSAM is still running. */
+    /** Preserve the 950→1200 ms path-to-fish portion until the real model join is ready. */
     private fun activePhaseElapsedMs(nowMs: Long, subjectTerminal: Boolean): Long {
         val elapsed = phaseElapsedMs(nowMs)
         if (presented != RecognitionPhase.OUTLINE || elapsed < OUTLINE_MASK_GATE_ACTIVE_MS) return elapsed
         val gateAt = phaseStartedAtMs + OUTLINE_MASK_GATE_ACTIVE_MS
-        if (!subjectTerminal) {
-            if (outlineMaskWaitStartedAtMs == UNSET) outlineMaskWaitStartedAtMs = gateAt
+        if (!subjectTerminal || !revealDecisionReady) {
+            if (outlineJoinWaitStartedAtMs == UNSET) outlineJoinWaitStartedAtMs = gateAt
             return OUTLINE_MASK_GATE_ACTIVE_MS
         }
-        if (outlineMaskWaitStartedAtMs != UNSET) {
-            if (outlineMaskWaitReleasedAtMs == UNSET) outlineMaskWaitReleasedAtMs = nowMs
-            return (elapsed - (outlineMaskWaitReleasedAtMs - outlineMaskWaitStartedAtMs).coerceAtLeast(0L))
+        if (outlineJoinWaitStartedAtMs != UNSET) {
+            if (outlineJoinWaitReleasedAtMs == UNSET) outlineJoinWaitReleasedAtMs = nowMs
+            return (elapsed - (outlineJoinWaitReleasedAtMs - outlineJoinWaitStartedAtMs).coerceAtLeast(0L))
                 .coerceAtLeast(OUTLINE_MASK_GATE_ACTIVE_MS)
         }
         return elapsed
