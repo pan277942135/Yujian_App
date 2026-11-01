@@ -128,7 +128,40 @@
       "api28_runtime_run_id": 41298675813,
       "application_source_sha": "c34aea6a2de0cae636d350a677f3629630f82d25",
       "deferred_by_owner": true,
-      "defer_reason": "API 28 runtime acceptance was explicitly deferred by owner instruction."
+      "defer_reason": "API 28 runtime acceptance was explicitly deferred by owner instruction.",
+      "pending_runs": [
+        {
+          "run_id": 41297092913,
+          "head_sha": "8fef73abae7e8d1c94431affcd54ff3b55914e95",
+          "status": "queued",
+          "queued_api28_jobs": 8
+        },
+        {
+          "run_id": 41298675813,
+          "head_sha": "f6e85fad0ed1be108401965d282773d649885847",
+          "status": "pending",
+          "jobs": 0
+        },
+        {
+          "run_id": 41300177295,
+          "head_sha": "419f22a13be13fde87ca31e48e4a00da751bd8f8",
+          "status": "pending",
+          "jobs": 0,
+          "workflow": "Android CI"
+        },
+        {
+          "run_id": 41300177244,
+          "head_sha": "419f22a13be13fde87ca31e48e4a00da751bd8f8",
+          "status": "pending",
+          "jobs": 0,
+          "workflow": "Camera Runtime Harness P0",
+          "runner_labels": [
+            "self-hosted",
+            "yujian-android",
+            "api28"
+          ]
+        }
+      ]
     },
     "historical_runtime_run": {
       "rule": "Historical results cannot promote current exact HEAD to PASS."
@@ -156,7 +189,46 @@
     },
     "api28_runtime_status": "BLOCKED_INFRA",
     "merged_main_sha": "419f22a13be13fde87ca31e48e4a00da751bd8f8",
-    "pr_status": "MERGED"
+    "pr_status": "MERGED",
+    "api28_queue": {
+      "current_main_sha": "419f22a13be13fde87ca31e48e4a00da751bd8f8",
+      "no_api28_jobs_started": true,
+      "deferred_by_owner": true,
+      "pending_runs": [
+        {
+          "run_id": 41297092913,
+          "head_sha": "8fef73abae7e8d1c94431affcd54ff3b55914e95",
+          "status": "queued",
+          "queued_api28_jobs": 8
+        },
+        {
+          "run_id": 41298675813,
+          "head_sha": "f6e85fad0ed1be108401965d282773d649885847",
+          "status": "pending",
+          "jobs": 0
+        },
+        {
+          "run_id": 41300177295,
+          "head_sha": "419f22a13be13fde87ca31e48e4a00da751bd8f8",
+          "status": "pending",
+          "jobs": 0,
+          "workflow": "Android CI"
+        },
+        {
+          "run_id": 41300177244,
+          "head_sha": "419f22a13be13fde87ca31e48e4a00da751bd8f8",
+          "status": "pending",
+          "jobs": 0,
+          "workflow": "Camera Runtime Harness P0",
+          "runner_labels": [
+            "self-hosted",
+            "yujian-android",
+            "api28"
+          ]
+        }
+      ],
+      "cancellation_via_github_connector": "UNAVAILABLE"
+    }
   },
   "current_work": {
     "id": "YUJIAN_ANDROID_AISTUDIO_FULL_PAGE_RESTORE_AND_MAIN_INTEGRATION_V1",
@@ -208,8 +280,8 @@
   },
   "state_update": {
     "initialized_at": "2026-11-01T09:43:11.195Z",
-    "reason": "PR #296 was merged into Main at 419f22a13be13fde87ca31e48e4a00da751bd8f8 by owner instruction. Android PR CI and design gates passed; API 28 runtime acceptance remains explicitly deferred, not accepted.",
-    "updated_at": "2026-11-01T11:04:02Z",
+    "reason": "PR #296 merged into Main at 419f22a13be13fde87ca31e48e4a00da751bd8f8. API 28 acceptance is deferred by owner; four task-related API 28 workflow runs are pending/queued with no current jobs. The GitHub connector has no cancellation operation.",
+    "updated_at": "2026-11-01T11:04:59Z",
     "previous_attempts": [
       {
         "source_sha": "d3a2aa2ac212f32d9bc15cc793327f2a8ea46868",

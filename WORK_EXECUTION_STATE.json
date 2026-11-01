@@ -11,8 +11,8 @@
   "stage": "E1",
   "status": "DONE",
   "source_sha": "f6e85fad0ed1be108401965d282773d649885847",
-  "checkpoint_updated_at": "2026-11-01T11:04:02Z",
-  "next_action": "No further action unless the owner asks to resume API 28 runtime acceptance or resolve D01/D02/D03.",
+  "checkpoint_updated_at": "2026-11-01T11:04:59Z",
+  "next_action": "The code is merged. Await owner authorization to use the browser to cancel pending API 28 workflow runs; do not treat them as acceptance. No API 28 job has started.",
   "dependencies": [],
   "blockers": [],
   "evidence": {
@@ -104,9 +104,43 @@
       "pr_status": "MERGED"
     },
     "runner_queue": {
-      "current_exact_head_run": 41298675813,
-      "status": "PENDING_NO_JOBS_NOT_COUNTED_AS_ACCEPTANCE",
-      "deferred_by_owner": true
+      "current_main_sha": "419f22a13be13fde87ca31e48e4a00da751bd8f8",
+      "no_api28_jobs_started": true,
+      "deferred_by_owner": true,
+      "pending_runs": [
+        {
+          "run_id": 41297092913,
+          "head_sha": "8fef73abae7e8d1c94431affcd54ff3b55914e95",
+          "status": "queued",
+          "queued_api28_jobs": 8
+        },
+        {
+          "run_id": 41298675813,
+          "head_sha": "f6e85fad0ed1be108401965d282773d649885847",
+          "status": "pending",
+          "jobs": 0
+        },
+        {
+          "run_id": 41300177295,
+          "head_sha": "419f22a13be13fde87ca31e48e4a00da751bd8f8",
+          "status": "pending",
+          "jobs": 0,
+          "workflow": "Android CI"
+        },
+        {
+          "run_id": 41300177244,
+          "head_sha": "419f22a13be13fde87ca31e48e4a00da751bd8f8",
+          "status": "pending",
+          "jobs": 0,
+          "workflow": "Camera Runtime Harness P0",
+          "runner_labels": [
+            "self-hosted",
+            "yujian-android",
+            "api28"
+          ]
+        }
+      ],
+      "cancellation_via_github_connector": "UNAVAILABLE"
     },
     "api28_runtime_deferred": true,
     "main_head_sha": "419f22a13be13fde87ca31e48e4a00da751bd8f8",
