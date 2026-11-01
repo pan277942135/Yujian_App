@@ -159,6 +159,8 @@ import com.yujian.ai.ui.waterlight.core.WaterLightHostBinding
 import com.yujian.ai.ui.waterlight.core.WaterLightEnergy
 import com.yujian.ai.ui.waterlight.core.WaterLightHostGeometry
 import com.yujian.ai.ui.waterlight.core.WaterLightMaterialProfile
+import com.yujian.ai.ui.waterlight.core.WaterLightPathGeometry
+import com.yujian.ai.ui.waterlight.core.WaterLightPathPoint
 import com.yujian.ai.ui.waterlight.core.WaterLightGeometryVersion
 import com.yujian.ai.ui.recognition.reveal.RecognitionRevealGeometry
 import com.yujian.ai.ui.recognition.reveal.RecognitionRevealGeometryResolver
@@ -873,7 +875,7 @@ fun RecognitionResultScreen(
         }
         val resultPhoto = image?.bitmap
         val hostType = when (revealFrameState.value.phase) {
-            RecognitionRevealPhase.AFTERGLOW, RecognitionRevealPhase.COMPLETE -> WaterLightHost.RESIDUE
+            RecognitionRevealPhase.RESIDUE_SETTLE, RecognitionRevealPhase.COMPLETE -> WaterLightHost.RESIDUE
             else -> WaterLightHost.HANDOFF
         }
         val hostBounds = if (hostType == WaterLightHost.RESIDUE) photoTransitionGeometry?.heroPhotoClip
@@ -902,6 +904,22 @@ fun RecognitionResultScreen(
         val resultHost = remember(resultWaterEngine, hostType) {
             WaterLightHostBinding(hostType, WaterLightMaterialProfile.forHost(hostType), resultWaterEngine)
         }
+        val activeEnergyCurve = when (revealFrameState.value.phase) {
+            RecognitionRevealPhase.PHOTO_CONTINUITY,
+            RecognitionRevealPhase.ORB_RETURN -> revealGeometry?.orbReturnPathLocal
+            RecognitionRevealPhase.ORB_TO_NAME -> revealGeometry?.orbToGlyphPathLocal
+            RecognitionRevealPhase.SPECIES_NAME_REVEAL -> null
+            RecognitionRevealPhase.RESIDUE_SETTLE -> revealGeometry?.glyphResiduePathLocal
+            RecognitionRevealPhase.COMPLETE -> null
+        }
+        val resultPathGeometry = activeEnergyCurve?.let { curve ->
+            WaterLightPathGeometry(
+                start = WaterLightPathPoint(curve.start.x, curve.start.y),
+                control1 = WaterLightPathPoint(curve.control1.x, curve.control1.y),
+                control2 = WaterLightPathPoint(curve.control2.x, curve.control2.y),
+                end = WaterLightPathPoint(curve.end.x, curve.end.y),
+            )
+        }
         if (hostBounds != null && resultHost.accepts(resultFrame, WaterLightHostGeometry(
                 hostType, resultFrame.geometryVersion,
                 hostBounds.left, hostBounds.top, hostBounds.right, hostBounds.bottom,
@@ -915,7 +933,10 @@ fun RecognitionResultScreen(
             holdPhotoUntilHeroReady = heroSnapshot?.renderReady == false,
             material = resultHost.material,
             energyEvent = if (revealHandoff?.eligibility == RecognitionRevealEligibility.FULL_REVEAL)
-                WaterLightEnergy.at(resultFrame, trustedMask = true, realResultReady = true) else null,
+                WaterLightEnergy.at(
+                    resultFrame, trustedMask = true, successfulRevealAllowed = true,
+                    pathGeometry = resultPathGeometry,
+                ) else null,
         )
     }
 
@@ -1102,12 +1123,6 @@ private fun SpeciesIdentityRow(
     val speciesDisplayName = resultSpeciesDisplayName(speciesName)
     var speciesGlyphPath by remember(speciesDisplayName, compactTitle, widthDp) { mutableStateOf<android.graphics.Path?>(null) }
     val glyphReveal = remember(speciesDisplayName) { com.yujian.ai.ui.recognition.reveal.SpeciesNameReveal() }
-    val waterCaptureProgress = when (revealTitleMode) {
-        RecognitionRevealTitleMode.FORMING -> .72f * revealFormationProgress.coerceIn(0f, 1f)
-        RecognitionRevealTitleMode.REVEALING -> .72f + .28f * revealProgress.coerceIn(0f, 1f)
-        RecognitionRevealTitleMode.STATIC, RecognitionRevealTitleMode.VISIBLE -> 1f
-        RecognitionRevealTitleMode.HIDDEN -> 0f
-    }
     val showScientificName = revealFrame == null ||
         revealFrame.elapsedMs >= RecognitionRevealClock.TOTAL_DURATION_MS ||
         revealTitleMode == RecognitionRevealTitleMode.STATIC
@@ -1134,7 +1149,10 @@ private fun SpeciesIdentityRow(
                             revealTitleMode == RecognitionRevealTitleMode.VISIBLE
                         if (settled) drawContent() else speciesGlyphPath?.let { glyph ->
                             glyphReveal.draw(drawContext.canvas.nativeCanvas, glyph, size.width, size.height,
-                                waterCaptureProgress, revealFrame?.elapsedMs ?: 0L)
+                                mode = revealTitleMode,
+                                formationProgress = revealFormationProgress,
+                                revealProgress = revealProgress,
+                            )
                         }
                     }
                     .testTag("recognition-result-species-name"),

@@ -93,6 +93,18 @@ object RecognitionSceneCoordinator {
     }
 }
 
+/** Parallel page-entry projections share the same sample from RecognitionSceneFrame. */
+object RecognitionSceneTimelineProjection {
+    const val PHOTO_SETTLE_DURATION_MS = 700L
+    const val ORB_ENTRANCE_DURATION_MS = 900L
+
+    fun photoEntryProgress(sceneElapsedMs: Long, settled: Boolean = false): Float =
+        if (settled) 1f else (sceneElapsedMs.coerceAtLeast(0L).toFloat() / PHOTO_SETTLE_DURATION_MS).coerceIn(0f, 1f)
+
+    fun orbEntranceElapsedMs(sceneElapsedMs: Long): Long =
+        sceneElapsedMs.coerceAtLeast(0L).coerceAtMost(ORB_ENTRANCE_DURATION_MS)
+}
+
 /** Playback controls project the authoritative Recognition clock; they never start a clock. */
 class SceneMotionCoordinator {
     var mode: ScenePlaybackMode = ScenePlaybackMode.AUTO

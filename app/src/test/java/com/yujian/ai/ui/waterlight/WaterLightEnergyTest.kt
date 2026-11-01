@@ -5,6 +5,8 @@ import com.yujian.ai.ui.waterlight.core.EnergyAnchor
 import com.yujian.ai.ui.waterlight.core.EnergyFeedback
 import com.yujian.ai.ui.waterlight.core.WaterLightEnergy
 import com.yujian.ai.ui.waterlight.core.WaterLightFrame
+import com.yujian.ai.ui.waterlight.core.WaterLightPathGeometryFactory
+import com.yujian.ai.ui.waterlight.core.WaterLightPathPoint
 import org.junit.Assert.*
 import org.junit.Test
 
@@ -33,14 +35,16 @@ class WaterLightEnergyTest {
         assertNull(WaterLightEnergy.at(frame(1550), false))
         assertNull(WaterLightEnergy.at(frame(1550), true))
         assertEquals(EnergyAnchor.FISH_CONTOUR, WaterLightEnergy.at(frame(1549), true)?.target)
-        assertEquals(EnergyFeedback.RETURN, WaterLightEnergy.at(frame(2800), true)?.feedback)
-        assertEquals(EnergyAnchor.ORB_CORE, WaterLightEnergy.at(frame(3000), true)?.target)
+        assertNull(WaterLightEnergy.at(frame(2800), true)) // A slow real classifier holds at P7; no early return event.
+        assertNull(WaterLightEnergy.at(frame(3000), true))
+        assertEquals(EnergyFeedback.RETURN, WaterLightEnergy.at(frame(2800), true, successfulRevealAllowed = true)?.feedback)
+        assertEquals(EnergyAnchor.ORB_CORE, WaterLightEnergy.at(frame(3000), true, successfulRevealAllowed = true)?.target)
         assertNull(WaterLightEnergy.at(frame(3180), true))
         assertNull(WaterLightEnergy.at(frame(3350), true))
         assertNull(WaterLightEnergy.at(frame(3650), true))
-        assertEquals(EnergyFeedback.TRANSLATE, WaterLightEnergy.at(frame(3180), true, realResultReady = true)?.feedback)
-        assertEquals(EnergyFeedback.REVEAL, WaterLightEnergy.at(frame(3350), true, realResultReady = true)?.feedback)
-        assertEquals(EnergyFeedback.SETTLE, WaterLightEnergy.at(frame(3650), true, realResultReady = true)?.feedback)
+        assertEquals(EnergyFeedback.TRANSLATE, WaterLightEnergy.at(frame(3180), true, successfulRevealAllowed = true)?.feedback)
+        assertEquals(EnergyFeedback.REVEAL, WaterLightEnergy.at(frame(3350), true, successfulRevealAllowed = true)?.feedback)
+        assertEquals(EnergyFeedback.SETTLE, WaterLightEnergy.at(frame(3650), true, successfulRevealAllowed = true)?.feedback)
         assertNull(WaterLightEnergy.at(frame(3651), true))
         assertNull(WaterLightEnergy.at(frame(3000), false))
         assertEquals("photo-B", WaterLightEnergy.at(frame(650, "photo-B"), true)?.sessionId)
@@ -51,5 +55,29 @@ class WaterLightEnergyTest {
         val missingImage = frame(650).copy(imageId = "")
         assertNull(WaterLightEnergy.at(missingAttempt, false))
         assertNull(WaterLightEnergy.at(missingImage, false))
+    }
+
+    @Test fun energyPathCarriesMeasuredAnchorsAndRejectsInvalidGeometry() {
+        val start = WaterLightPathPoint(112f, 568f)
+        val end = WaterLightPathPoint(308f, 276f)
+        val geometry = WaterLightPathGeometryFactory.between(start, end, seed = 42)!!
+        val event = WaterLightEnergy.at(frame(650), trustedMask = false, pathGeometry = geometry)!!
+        assertEquals(start, event.pathGeometry?.start)
+        assertEquals(end, event.pathGeometry?.end)
+        assertTrue(event.pathGeometry!!.isValid())
+        assertEquals("photo-A", event.sessionId)
+        assertEquals("attempt-A", event.attemptId)
+        assertEquals("photo-hash-A", event.photoSha256)
+        assertEquals(7L, event.geometryVersion)
+        assertTrue(event.matches(frame(650)))
+        assertFalse(event.matches(frame(650).copy(attemptId = "attempt-old")))
+        assertFalse(event.matches(frame(650).copy(photoContentVersion = 2L)))
+        assertFalse(event.matches(frame(650).copy(geometryVersion = 8L)))
+
+        assertNull(WaterLightPathGeometryFactory.between(start, WaterLightPathPoint(Float.NaN, 1f), seed = 42))
+        val badSpace = geometry.copy(coordinateSpace = "RAW_BITMAP")
+        assertFalse(badSpace.isValid())
+        assertNull(WaterLightEnergy.at(frame(650), false, pathGeometry = badSpace)?.pathGeometry)
+        assertNull(WaterLightEnergy.at(frame(650).copy(sessionId = ""), false))
     }
 }

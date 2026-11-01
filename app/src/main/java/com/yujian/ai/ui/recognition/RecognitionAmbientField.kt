@@ -897,7 +897,8 @@ private fun buildOpticalPathCache(fieldRect: DisplayRect) = RecognitionOpticalPa
     layerBounds = RectF(fieldRect.left, fieldRect.top, fieldRect.right, fieldRect.bottom),
     baseCompositePaint = AndroidPaint(AndroidPaint.ANTI_ALIAS_FLAG).apply {
         alpha = (Effect01NativeCalibration.blendRatio * 255f).toInt()
-        xfermode = PorterDuffXfermode(PorterDuff.Mode.OVERLAY)
+        // Positive-only optical mixing: the ambient layer must never lower source-photo RGB.
+        xfermode = PorterDuffXfermode(PorterDuff.Mode.SCREEN)
     },
     primaryPaths = buildPaths(fieldRect, PRIMARY_ISLANDS),
     companionPaths = buildEchoPaths(fieldRect, COMPANION_HAIRLINES),

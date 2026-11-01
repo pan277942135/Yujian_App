@@ -5,6 +5,7 @@ import com.yujian.ai.ui.waterlight.core.RecognitionSceneIdentity
 import com.yujian.ai.ui.waterlight.core.SceneMotionCoordinator
 import com.yujian.ai.ui.waterlight.core.RecognitionSceneStage
 import com.yujian.ai.ui.waterlight.core.ScenePlaybackMode
+import com.yujian.ai.ui.waterlight.core.RecognitionSceneTimelineProjection
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -43,6 +44,23 @@ class RecognitionSceneFrameTest {
         assertEquals(first, replay)
         assertTrue(first.isIdentityValid)
         assertEquals(RecognitionSceneStage.CONTOUR_B, first.stage)
+    }
+
+    @Test fun photoSettleAndOrbEntranceAreParallelProjectionsOfTheSameFrame() {
+        val samples = listOf(0L, 150L, 350L, 650L, 700L, 899L, 900L)
+        samples.forEach { time ->
+            val frame = RecognitionSceneCoordinator.frameAt(identity, time, time, 9L)
+            assertEquals(
+                (time.toFloat() / 700f).coerceIn(0f, 1f),
+                RecognitionSceneTimelineProjection.photoEntryProgress(frame.sceneElapsedMs),
+                .0001f,
+            )
+            assertEquals(
+                time.coerceAtMost(900L),
+                RecognitionSceneTimelineProjection.orbEntranceElapsedMs(frame.sceneElapsedMs),
+            )
+        }
+        assertEquals(1f, RecognitionSceneTimelineProjection.photoEntryProgress(0L, settled = true), 0f)
     }
 
     @Test fun stageMetadataMatchesTheFrozenThirteenStageContract() {

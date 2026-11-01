@@ -60,8 +60,10 @@ data class WaterLightMaterialProfile(
             blurRadius = blur, blendMode = mode,
         )
 
-        val PERIMETER = candidate(WaterLightHost.PERIMETER, 0xFF0B6E69, 0xFF4DD0C7,
-            0xFFDDF7F5, 1f, 36f, 0f, 1f, WaterLightBlendMode.OVERLAY_POSITIVE)
+        // B01-compatible cool-water candidate; not visually frozen on target devices.
+        // Do not regress to the rejected Effect 01 teal triplet (#0B6E69/#4DD0C7/#DDF7F5).
+        val PERIMETER = candidate(WaterLightHost.PERIMETER, 0xFF2D7C89, 0xFF67BDCA,
+            0xFFC1E9EE, 1f, 36f, 0f, 1f, WaterLightBlendMode.OVERLAY_POSITIVE)
         val PATH = candidate(WaterLightHost.PATH, 0xFFC7EFE8, 0xFF1A525C,
             0xFFE1F6F3, 1.2f, 4f, 3f, .6f, WaterLightBlendMode.SCREEN)
         val CONTOUR = candidate(WaterLightHost.CONTOUR, 0xFFFFE3A6, 0xFFF6C771,

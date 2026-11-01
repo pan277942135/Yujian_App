@@ -4,6 +4,22 @@ package com.yujian.ai.ui.waterlight.core
 enum class EnergyAnchor { ORB_CORE, ORB_RIBBON, PHOTO_PERIMETER, PHOTO_PATH, FISH_CONTOUR, REVEAL_TEXT, RESIDUE }
 enum class EnergyFeedback { RELEASE, ARRIVE, ABSORB, RETURN, TRANSLATE, REVEAL, SETTLE }
 
+data class WaterLightPathPoint(val x: Float, val y: Float) {
+    fun isValid(): Boolean = x.isFinite() && y.isFinite()
+}
+
+/** Actual viewport-space curve endpoints derived from the current photo transform and trusted Mask. */
+data class WaterLightPathGeometry(
+    val start: WaterLightPathPoint,
+    val control1: WaterLightPathPoint,
+    val control2: WaterLightPathPoint,
+    val end: WaterLightPathPoint,
+    val coordinateSpace: String = "RECOGNITION_VIEWPORT_PX",
+) {
+    fun isValid(): Boolean = coordinateSpace == "RECOGNITION_VIEWPORT_PX" &&
+        listOf(start, control1, control2, end).all(WaterLightPathPoint::isValid)
+}
+
 data class EnergyEvent(
     val sessionId: String,
     val photoSha256: String,
@@ -17,11 +33,22 @@ data class EnergyEvent(
     val imageId: String = "",
     val photoContentVersion: Long = 0L,
     val pathId: String? = null,
-)
+    val pathGeometry: WaterLightPathGeometry? = null,
+) {
+    fun matches(frame: WaterLightFrame): Boolean =
+        sessionId == frame.sessionId && attemptId == frame.attemptId && imageId == frame.imageId &&
+            photoSha256 == frame.photoSha256 && photoContentVersion == frame.photoContentVersion &&
+            geometryVersion == frame.geometryVersion
+}
 
 object WaterLightEnergy {
     /** No fish-target event can be emitted until a real mask is trusted for this frame. */
-    fun at(frame: WaterLightFrame, trustedMask: Boolean, realResultReady: Boolean = false): EnergyEvent? {
+    fun at(
+        frame: WaterLightFrame,
+        trustedMask: Boolean,
+        successfulRevealAllowed: Boolean = false,
+        pathGeometry: WaterLightPathGeometry? = null,
+    ): EnergyEvent? {
         val photo = frame.photoSha256?.takeIf(String::isNotBlank) ?: return null
         val scene = frame.sceneFrame
         if (!scene.isIdentityValid) return null
@@ -38,13 +65,13 @@ object WaterLightEnergy {
             trustedMask && scene.stage == RecognitionSceneStage.CONTOUR_B && t < 1_550L -> Quad(
                 EnergyAnchor.PHOTO_PATH, EnergyAnchor.FISH_CONTOUR, EnergyFeedback.ABSORB,
                 .5f + ((t - 1_450L) / 200f).coerceIn(0f, .5f))
-            trustedMask && scene.stage == RecognitionSceneStage.ORB_RETURN -> Quad(EnergyAnchor.FISH_CONTOUR,
+            trustedMask && successfulRevealAllowed && scene.stage == RecognitionSceneStage.ORB_RETURN -> Quad(EnergyAnchor.FISH_CONTOUR,
                 EnergyAnchor.ORB_CORE, EnergyFeedback.RETURN, scene.stageProgress)
-            trustedMask && realResultReady && scene.stage == RecognitionSceneStage.ORB_TO_NAME -> Quad(EnergyAnchor.ORB_CORE,
+            trustedMask && successfulRevealAllowed && scene.stage == RecognitionSceneStage.ORB_TO_NAME -> Quad(EnergyAnchor.ORB_CORE,
                 EnergyAnchor.REVEAL_TEXT, EnergyFeedback.TRANSLATE, scene.stageProgress)
-            trustedMask && realResultReady && scene.stage == RecognitionSceneStage.SPECIES_NAME_REVEAL -> Quad(
+            trustedMask && successfulRevealAllowed && scene.stage == RecognitionSceneStage.SPECIES_NAME_REVEAL -> Quad(
                 EnergyAnchor.REVEAL_TEXT, EnergyAnchor.REVEAL_TEXT, EnergyFeedback.REVEAL, scene.stageProgress)
-            trustedMask && realResultReady && scene.stage == RecognitionSceneStage.RESIDUE_SETTLE -> Quad(
+            trustedMask && successfulRevealAllowed && scene.stage == RecognitionSceneStage.RESIDUE_SETTLE -> Quad(
                 EnergyAnchor.REVEAL_TEXT, EnergyAnchor.RESIDUE, EnergyFeedback.SETTLE, scene.stageProgress)
             else -> return null
         }
@@ -54,9 +81,11 @@ object WaterLightEnergy {
                 EnergyFeedback.RELEASE -> "orb-to-photo"
                 EnergyFeedback.ARRIVE, EnergyFeedback.ABSORB -> "photo-to-fish"
                 EnergyFeedback.RETURN -> "fish-to-original-orb"
-                EnergyFeedback.TRANSLATE, EnergyFeedback.REVEAL -> "orb-to-species-glyph"
+                EnergyFeedback.TRANSLATE -> "orb-to-species-glyph"
+                EnergyFeedback.REVEAL -> "species-glyph-ink"
                 EnergyFeedback.SETTLE -> "glyph-to-residue"
-            })
+            },
+            pathGeometry = pathGeometry?.takeIf(WaterLightPathGeometry::isValid))
     }
 
     private data class Quad(

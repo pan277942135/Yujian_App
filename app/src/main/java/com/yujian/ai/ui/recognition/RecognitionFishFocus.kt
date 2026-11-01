@@ -29,6 +29,9 @@ import com.yujian.ai.ai.NormalizedFishBox
 import com.yujian.ai.ai.RecognitionPhase
 import com.yujian.ai.ui.identify.RecognitionImageTransform
 import com.yujian.ai.ui.waterlight.core.WaterLightFrame
+import com.yujian.ai.ui.waterlight.core.EnergyEvent
+import com.yujian.ai.ui.waterlight.core.EnergyFeedback
+import com.yujian.ai.ui.waterlight.core.WaterLightMaterialProfile
 
 internal fun recognitionMaskContourEnabled(
     phase: RecognitionPhase,
@@ -171,6 +174,8 @@ fun RecognitionFishFocus(
     lowPerformance: Boolean = false,
     trustedMask: Boolean = false,
     waterLightFrame: WaterLightFrame? = null,
+    energyEvent: EnergyEvent? = null,
+    material: WaterLightMaterialProfile = WaterLightMaterialProfile.CONTOUR,
     contourPhotoSpace: Boolean = false,
 ) {
     if (waterLightFrame != null && waterLightFrame.phase != phase) return
@@ -209,7 +214,15 @@ fun RecognitionFishFocus(
         // The contour path already reveals spatially through maskRevealProgress.
         // Multiplying the optical intensity by that progress a second time made
         // the trusted mask nearly invisible during the reveal.
-        val goldStrength = recognitionFishGoldStrength(opticalReferenceElapsedMs, reduceMotion)
+        val timelineGold = recognitionFishGoldStrength(opticalReferenceElapsedMs, reduceMotion)
+        val eventMatches = energyEvent?.let { event -> waterLightFrame?.let(event::matches) } == true
+        val goldStrength = if (!eventMatches) timelineGold else when (energyEvent?.feedback) {
+            EnergyFeedback.RETURN -> timelineGold * (1f - .72f * energyEvent.level.coerceIn(0f, 1f))
+            EnergyFeedback.TRANSLATE,
+            EnergyFeedback.REVEAL,
+            EnergyFeedback.SETTLE -> timelineGold * .12f
+            else -> timelineGold
+        }
 
         val realContour = requireNotNull(cachedContourPath)
             val pathBounds = realContour.getBounds()
@@ -250,7 +263,7 @@ fun RecognitionFishFocus(
                 if (outerHaloAlpha > 0.005f) {
                     drawLocalContourBlur(
                         pathToDraw,
-                        Color(0xFFDBA34D).copy(alpha = outerHaloAlpha),
+                        Color(material.highlightColor).copy(alpha = outerHaloAlpha),
                         widthPx = haloWidth,
                         blurRadiusPx = haloWidth,
                         blurPaints = contourBlurPaints,
@@ -261,7 +274,7 @@ fun RecognitionFishFocus(
                 if (softGlowAlpha > 0.005f) {
                     drawLocalContourBlur(
                         pathToDraw,
-                        Color(0xFFF6C771).copy(alpha = softGlowAlpha),
+                        Color(material.secondaryColor).copy(alpha = softGlowAlpha),
                         widthPx = softWidth,
                         blurRadiusPx = softWidth,
                         blurPaints = contourBlurPaints,
@@ -272,7 +285,7 @@ fun RecognitionFishFocus(
                 if (coreAlpha > 0.005f) {
                     drawPath(
                         pathToDraw,
-                        Color(0xFFFFE3A6).copy(alpha = coreAlpha),
+                        Color(material.primaryColor).copy(alpha = coreAlpha),
                         style = Stroke(
                             width = coreWidth,
                             cap = StrokeCap.Round,
