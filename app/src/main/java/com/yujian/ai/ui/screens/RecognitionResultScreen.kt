@@ -441,10 +441,16 @@ fun RecognitionResultScreen(
             revealGeometryResolutionObserver?.invoke(revealGeometryResolution)
         }
     }
-    val visualHandoff = if (
-        decisionHandoff?.eligibility == RecognitionRevealEligibility.FULL_REVEAL &&
-        revealGeometry?.sourceContourPath?.isEmpty() != false
-    ) decisionHandoff.copy(eligibility = RecognitionRevealEligibility.TITLE_FADE_ONLY) else decisionHandoff
+    val visualHandoff = when {
+        decisionHandoff != null &&
+            decisionHandoff.revealDecision == RecognitionRevealDecisionState.ORB_ONLY_READY && revealGeometry == null ->
+            decisionHandoff.copy(eligibility = RecognitionRevealEligibility.STATIC_RESULT)
+        decisionHandoff != null &&
+            decisionHandoff.eligibility == RecognitionRevealEligibility.FULL_REVEAL &&
+            revealGeometry?.sourceContourPath?.isEmpty() != false ->
+            decisionHandoff.copy(eligibility = RecognitionRevealEligibility.TITLE_FADE_ONLY)
+        else -> decisionHandoff
+    }
     val revealPhotoIdentityMatches = revealHandoff != null && image != null &&
         image.imageId == revealHandoff.imageId &&
         image.bitmap.width == revealHandoff.normalizedSourceWidth &&
