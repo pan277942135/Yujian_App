@@ -60,7 +60,6 @@ internal fun EmptyHomeSceneRenderer(
         currentBurstId.value,
         motionState.running,
         motionState.reduceMotion,
-        runtimeAssets != null,
     ) {
         val burstId = currentBurstId.value ?: return@LaunchedEffect
         if (runtimeAssets != null && motionState.running && !motionState.reduceMotion &&
