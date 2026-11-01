@@ -1,0 +1,25 @@
+{
+  "$schema": "./harness/WORK_EXECUTION_STATE_SCHEMA_V1.json",
+  "schema_version": "1.0",
+  "work_id": "YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2",
+  "repository": "pan277942135/Yujian_App",
+  "branch": "work/ai-orb-waterlight-v2-13-stage",
+  "control_plane_revision": "419f22a13be13fde87ca31e48e4a00da751bd8f8",
+  "base_branch": "main",
+  "base_sha": "419f22a13be13fde87ca31e48e4a00da751bd8f8",
+  "phase": "P6",
+  "task_id": "YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2",
+  "stage": "P0_STEP_DIAGNOSTIC_FIX",
+  "status": "RUNNING",
+  "source_sha": "e1e1c579533a81e360cfc0b205f3d6442c42a22f",
+  "checkpoint_updated_at": "2026-11-01T12:35:00Z",
+  "next_action": "Run exact-head PR Android unit tests, Debug/AndroidTest APK assembly and lint; deliver the Debug APK. API28 runtime is excluded by product-owner instruction.",
+  "dependencies": [
+    "P5-02"
+  ],
+  "blockers": [],
+  "evidence": {
+    "admission_baseline": "PASS on the synchronized local implementation checkpoint before GitHub publication; exact published HEAD Android CI pending.",
+    "api28_runtime": "NOT_RUN per product-owner instruction"
+  }
+}

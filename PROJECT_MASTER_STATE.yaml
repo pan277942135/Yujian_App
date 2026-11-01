@@ -1,0 +1,113 @@
+schema_version: '1.0'
+state_id: YUJIAN_ANDROID_RECOGNITION_STEP_DIAGNOSTIC_3S_FIX
+project:
+  id: YUJIAN_APP
+  repository: pan277942135/Yujian_App
+  canonical_branch: main
+state_control:
+  execution_baseline_sha: e1e1c579533a81e360cfc0b205f3d6442c42a22f
+  current_branch: work/ai-orb-waterlight-v2-13-stage
+  base_sha: 796106827987d2ccaddb43f8a5723b2cbf73a34e
+  current_pr: 294
+source_of_truth:
+  canonical_registry: CONTROL_PLANE_REGISTRY.yaml
+  current_work_state: WORK_EXECUTION_STATE.json
+repositories:
+  android:
+    name: pan277942135/Yujian_App
+    branch: work/ai-orb-waterlight-v2-13-stage
+pull_requests:
+  PR294:
+    number: 294
+    branch: work/ai-orb-waterlight-v2-13-stage
+    base_sha: 796106827987d2ccaddb43f8a5723b2cbf73a34e
+    status: DRAFT_OPEN_UNMERGED
+    head_sha: e1e1c579533a81e360cfc0b205f3d6442c42a22f
+phases:
+  P0:
+    status: NOT_CONFIRMED
+  P1:
+    status: NOT_CONFIRMED
+  P2:
+    status: NOT_CONFIRMED
+  P3:
+    status: NOT_CONFIRMED
+  P4:
+    status: NOT_CONFIRMED
+  P5:
+    status: NOT_CONFIRMED
+  P6:
+    status: IN_PROGRESS
+  P7:
+    status: NOT_CONFIRMED
+  P8:
+    status: NOT_CONFIRMED
+  P9:
+    status: NOT_CONFIRMED
+recognition_main_journey:
+  contract_status: FROZEN
+  route:
+  - J01
+  - J02
+  - J03
+  - J04
+  - J05
+  - J06
+  - J07
+  - J08
+  - J09
+  - J10
+  - J11
+  - J12
+  - J13
+  - J14
+  - J15
+  - J16
+  - J17
+  - J18
+  - J19
+  - J20
+runtime_gates:
+  exact_head:
+    sha: e1e1c579533a81e360cfc0b205f3d6442c42a22f
+    status: NOT_RUN
+  historical_runtime_run:
+    rule: Historical results cannot promote current exact HEAD to PASS.
+  api28_runtime:
+    status: NOT_RUN
+    reason: Product owner requested APK for acceptance without API28 validation.
+apk_and_evidence:
+  debug_apk:
+    status: NOT_RUN
+    sha256: null
+current_work:
+  id: YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2
+  phase: P6
+  task_id: YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2
+  exact_head: e1e1c579533a81e360cfc0b205f3d6442c42a22f
+  status: IN_PROGRESS
+blockers: []
+protected_invariants:
+  recognition:
+  - PhotoSession identity and original photo pixels remain unchanged
+  - Detector, Classifier and SlimSAM inputs and business behavior remain unchanged
+  - Production Processing 2800ms and RR09 850ms timing remain unchanged
+  diagnostic:
+  - Debug-only manual preview maps each of 13 stages to 3000ms
+  - Result stages share the same SceneMotionCoordinator instance
+  - Release recognition behavior remains unchanged
+next_actions:
+- id: A01
+  owner: Work
+  action: Run unit tests and assemble the exact-head Debug APK, then publish APK checksum
+  status: READY
+completion_rules:
+  current_work: Complete code change, basic tests and Debug APK delivery; API28 runtime intentionally out of scope for this
+    delivery.
+state_update:
+  updated_at: '2026-11-01T12:22:21Z'
+  note: Control Plane Admission passed on implementation checkpoint e1e1c579533a81e360cfc0b205f3d6442c42a22f; exact-head Android
+    CI and APK remain pending.
+agent_recovery:
+  checkpoint: Implementation is committed at e1e1c579533a81e360cfc0b205f3d6442c42a22f; branch-local state is initialized.
+    Continue with admission, PR CI and APK delivery.
