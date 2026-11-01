@@ -7,5 +7,39 @@
     "semantic": "light_impact"
   },
   "idle": "none",
-  "page_enter": "none"
+  "page_enter": "none",
+  "automatic_bobber_nibble": {
+    "enabled": true,
+    "trigger": "periodic_bobber_ripple_burst_start",
+    "event_cycle_duration_ms": 36000,
+    "event_start_offsets_ms": [
+      1500,
+      6800,
+      13600,
+      22400,
+      28200
+    ],
+    "max_triggers_per_cycle": 5,
+    "waveform": {
+      "timings_ms": [
+        0,
+        14,
+        45,
+        18
+      ],
+      "amplitudes": [
+        0,
+        90,
+        0,
+        130
+      ],
+      "fallback_one_shot_ms": 20,
+      "fallback_semantic": "clock_tick"
+    },
+    "requires_motion_enabled": true,
+    "requires_lifecycle_resumed": true,
+    "respects_system_haptic_feedback_setting": true,
+    "reduced_motion": "disabled"
+  },
+  "contract_revision": "EMPTY_HOME_HAPTIC_V1_1_APPROVED_BOBBER_EVENT"
 }
