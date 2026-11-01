@@ -54,8 +54,8 @@
     "anchor_contract.json": "c74cea419cfb7e7c3df995a47a49ae2abd34a6f51dc98ab4278dedbe07b5be9f",
     "responsive_mapping_contract.json": "9a46e9efd3a11c4ea4c5acaf70f6bba501e50aba8a2fa8057f614f58eb6e1552",
     "layer_contract.json": "8d2ef87026e3e8cb8eeb989fe947dc904d7035bc4420c7ed13943afad0acd425",
-    "motion_contract.json": "7aea396f14ae24f819ff5ef36b9e798b78d9696bca143a3c1fcd857054a5c7ef",
-    "haptic_contract.json": "046bf004a87c9c07f78b0aa7cfb9a93cf43567f185494d37e4dbe2e49b650888",
+    "motion_contract.json": "0da9d36ee34fe1aaf7585023d8ad829689052654efe9d2a69f9937d52a51e7a6",
+    "haptic_contract.json": "a7aad5658fd61d0741ae2c92837163c4a8e4204f32a0f1d324812285ea294e07",
     "hero_asset_contract.json": "1784f12f8a8ef2806337b8c1275386b601ee7e41f22f02be57e6634ed5ea0d84"
   },
   "current_contracts": [
