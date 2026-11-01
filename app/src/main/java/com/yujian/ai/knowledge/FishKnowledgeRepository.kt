@@ -2,6 +2,7 @@ package com.yujian.ai.knowledge
 
 import android.net.Uri
 import com.yujian.ai.BuildConfig
+import com.yujian.ai.network.normalizeHttpBaseUrl
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
@@ -58,11 +59,11 @@ class FishKnowledgeRepository(
         return if (value.startsWith('/')) "$base$value" else "$base/$value"
     }
 
-    fun isConfigured(): Boolean = baseUrl.isNotBlank()
+    fun isConfigured(): Boolean = normalizeHttpBaseUrl(baseUrl) != null
 
     private fun get(path: String): String {
-        val root = baseUrl.trimEnd('/')
-        if (root.isBlank()) throw IOException("Fish Knowledge API 未配置")
+        val root = normalizeHttpBaseUrl(baseUrl)
+            ?: throw IOException("Fish Knowledge API 未配置或地址格式无效")
         val connection = (URL(root + path).openConnection() as HttpURLConnection).apply {
             requestMethod = "GET"
             connectTimeout = 10_000

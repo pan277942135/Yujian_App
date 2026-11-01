@@ -10,7 +10,7 @@
   "page_enter": "none",
   "automatic_bobber_nibble": {
     "enabled": true,
-    "trigger": "periodic_bobber_ripple_burst_start",
+    "trigger": "periodic_bobber_motion_event_start",
     "event_cycle_duration_ms": 36000,
     "event_start_offsets_ms": [
       1500,
@@ -40,7 +40,9 @@
     "requires_lifecycle_resumed": true,
     "respects_system_haptic_feedback_setting": true,
     "reduced_motion": "disabled",
-    "phase_offset_ms": 420
+    "dedupe": "one_per_motion_event_id",
+    "initial_render": "never_haptic",
+    "max_start_latency_ms": 120
   },
-  "contract_revision": "EMPTY_HOME_HAPTIC_V1_1_APPROVED_BOBBER_EVENT"
+  "contract_revision": "EMPTY_HOME_HAPTIC_V1_3_MOTION_EVENT_START_GUARD"
 }

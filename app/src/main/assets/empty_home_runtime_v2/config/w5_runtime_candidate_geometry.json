@@ -1,0 +1,98 @@
+{
+  "contract_id": "EMPTY_HOME_W5_RUNTIME_GEOMETRY_CANDIDATE_V1",
+  "design_version": "Empty_Home_Final_Design_V2",
+  "visual_revision": "V2.2",
+  "status": "USER_DIRECTED_CANDIDATE_DELTA_NOT_FROZEN",
+  "runtime_verification": "NOT_RUN",
+  "source_mapping": {
+    "path": "design/manager/empty_home_v22_component_mapping.json",
+    "sha256": "3280e108176ca7c460b41c4d814ca80cbe569541e307b281029ee605646efabb",
+    "mapping_id": "EMPTY_HOME_V2_2_STRUCTURED_HIFI_MAPPING_V1",
+    "status": "CANDIDATE_MAPPING_REVIEW_REQUIRED"
+  },
+  "reference_canvas_px": [
+    1080,
+    1920
+  ],
+  "composition_bounds_reference_px": {
+    "x": 0,
+    "y": 1086,
+    "width": 660,
+    "height": 300
+  },
+  "bobber": {
+    "bbox_reference_px": {
+      "x": 519,
+      "y": 1122,
+      "width": 24,
+      "height": 78
+    },
+    "center_reference_px": [
+      531,
+      1161
+    ],
+    "water_contact_reference_px": [
+      531,
+      1195
+    ],
+    "rotation_degrees": 0,
+    "rotation_status": "DISABLED_PENDING_D01"
+  },
+  "reflection": {
+    "bbox_reference_px": {
+      "x": 525,
+      "y": 1194,
+      "width": 12,
+      "height": 52
+    },
+    "visible_bounds_reference_px": {
+      "x": 527,
+      "y": 1197,
+      "width": 9,
+      "height": 47
+    }
+  },
+  "ripple": {
+    "bbox_reference_px": {
+      "x": 412,
+      "y": 1154,
+      "width": 238,
+      "height": 82
+    },
+    "center_reference_px": [
+      531,
+      1195
+    ]
+  },
+  "line": {
+    "start_reference_px": [
+      337,
+      1184
+    ],
+    "control_points_reference_px": [
+      [
+        390,
+        1184
+      ],
+      [
+        531,
+        1086
+      ]
+    ],
+    "bobber_attachment_reference_px": [
+      531,
+      1098
+    ],
+    "bobber_top_attachment_reference_px": [
+      531,
+      1122
+    ],
+    "end_reference_px": [
+      531,
+      1195
+    ],
+    "geometry": "single_cubic_bezier"
+  },
+  "responsive_transform": "Preserve existing UNIFORM_COVER_COMPOSITION_AWARE sceneTransform; all scene-locked elements share the same transform.",
+  "canonical_anchor_contract": "Preserved unchanged; W5 candidate is a separate runtime overlay pending visual review."
+}

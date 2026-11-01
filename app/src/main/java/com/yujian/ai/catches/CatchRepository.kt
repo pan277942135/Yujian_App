@@ -3,6 +3,7 @@ package com.yujian.ai.catches
 import android.net.Uri
 import com.yujian.ai.BuildConfig
 import com.yujian.ai.auth.ApiException
+import com.yujian.ai.network.normalizeHttpBaseUrl
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -346,8 +347,8 @@ class CatchRepository(
     }
 
     private fun connection(method: String, path: String, token: String, contentType: String?): HttpURLConnection {
-        val root = baseUrl.trimEnd('/')
-        if (root.isBlank()) throw IOException("用户服务未配置")
+        val root = normalizeHttpBaseUrl(baseUrl)
+            ?: throw IOException("用户服务未配置或地址格式无效")
         return (URL(root + path).openConnection() as HttpURLConnection).apply {
             requestMethod = method
             connectTimeout = 12_000

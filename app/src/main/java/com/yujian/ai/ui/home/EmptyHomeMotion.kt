@@ -21,6 +21,7 @@ import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.floor
 import kotlin.math.max
+import kotlin.math.exp
 import kotlin.math.sin
 import kotlin.random.Random
 
@@ -34,27 +35,27 @@ internal const val EMPTY_HOME_V2_ROD_TIP_X = 337f
 internal const val EMPTY_HOME_V2_ROD_TIP_Y = 1184f
 internal const val EMPTY_HOME_V2_LINE_START_X = 337f
 internal const val EMPTY_HOME_V2_LINE_START_Y = 1184f
-internal const val EMPTY_HOME_V2_LINE_C1_X = 389f
-internal const val EMPTY_HOME_V2_LINE_C1_Y = 1257f
-internal const val EMPTY_HOME_V2_LINE_C2_X = 471f
-internal const val EMPTY_HOME_V2_LINE_C2_Y = 1312f
-internal const val EMPTY_HOME_V2_LINE_END_X = 560f
-internal const val EMPTY_HOME_V2_LINE_END_Y = 1326f
-internal const val EMPTY_HOME_V2_BOBBER_X = 550f
-internal const val EMPTY_HOME_V2_BOBBER_Y = 1250f
-internal const val EMPTY_HOME_V2_REFLECTION_X = 556f
-internal const val EMPTY_HOME_V2_REFLECTION_Y = 1322f
-internal const val EMPTY_HOME_V2_RIPPLE_X = 443f
-internal const val EMPTY_HOME_V2_RIPPLE_Y = 1279f
-internal const val EMPTY_HOME_V2_WATER_CONTACT_X = 561f
-internal const val EMPTY_HOME_V2_WATER_CONTACT_Y = 1323f
+// W5 user-directed runtime candidate, mapped to the 1080x1920 scene canvas.
+// The canonical anchor contract stays frozen until this visual candidate is approved.
+internal const val EMPTY_HOME_V2_LINE_C1_X = 390f
+internal const val EMPTY_HOME_V2_LINE_C1_Y = 1184f
+internal const val EMPTY_HOME_V2_LINE_C2_X = 531f
+internal const val EMPTY_HOME_V2_LINE_C2_Y = 1086f
+internal const val EMPTY_HOME_V2_LINE_END_X = 531f
+internal const val EMPTY_HOME_V2_LINE_END_Y = 1195f
+internal const val EMPTY_HOME_V2_BOBBER_X = 519f
+internal const val EMPTY_HOME_V2_BOBBER_Y = 1122f
+internal const val EMPTY_HOME_V2_REFLECTION_X = 525f
+internal const val EMPTY_HOME_V2_REFLECTION_Y = 1194f
+internal const val EMPTY_HOME_V2_RIPPLE_X = 412f
+internal const val EMPTY_HOME_V2_RIPPLE_Y = 1154f
+internal const val EMPTY_HOME_V2_WATER_CONTACT_X = 531f
+internal const val EMPTY_HOME_V2_WATER_CONTACT_Y = 1195f
 internal const val EMPTY_HOME_V2_FISHING_PROTECTED_LEFT = 0f
 internal const val EMPTY_HOME_V2_FISHING_PROTECTED_RIGHT = 660f
 
 // Environment loops deliberately start on distinct phases. Their periods and
 // amplitudes remain frozen; only page-entry synchronization is avoided.
-internal const val BOBBER_PHASE_OFFSET_SECONDS = 1.15f
-internal const val RIPPLE_PHASE_OFFSET_SECONDS = 0.42f
 internal const val CLOUD_PHASE_OFFSET_SECONDS = 17.6f
 internal const val SUN_BEAM_PHASE_OFFSET_SECONDS = 2.08f
 internal const val CAMERA_BREATH_PHASE_OFFSET_SECONDS = 1.71f
@@ -177,9 +178,6 @@ internal fun calculateReferenceSceneTransform(
     )
 }
 
-internal fun bobberOffsetPx(timeSeconds: Float): Float =
-    -3f * sin((timeSeconds % 4.6f) / 4.6f * (2f * PI.toFloat()))
-
 internal data class PeriodicBobberRippleBurst(
     val cycleIndex: Long,
     val burstIndex: Int,
@@ -187,6 +185,59 @@ internal data class PeriodicBobberRippleBurst(
 ) {
     val eventId: Long get() = cycleIndex * 5L + burstIndex.toLong()
 }
+
+internal data class PeriodicBobberMotion(
+    val eventId: Long?,
+    val burstIndex: Int,
+    val burstElapsedSeconds: Float,
+    val dipOffsetPx: Float,
+    val burstActive: Boolean,
+)
+
+internal fun calculateClickBobberDip(elapsedSeconds: Float): Float =
+    if (elapsedSeconds.isFinite() && elapsedSeconds in 0f..0.7f) {
+        5f * exp(-elapsedSeconds * 6f) * cos(elapsedSeconds * 24f)
+    } else {
+        0f
+    }
+
+/** ZIP-derived, deterministic Y-only nibble motion. Rotation stays disabled pending D01. */
+internal fun calculatePeriodicBobberMotion(timeSeconds: Float): PeriodicBobberMotion {
+    val burst = calculatePeriodicBobberRippleBurst(timeSeconds)
+        ?: return PeriodicBobberMotion(
+            eventId = null,
+            burstIndex = -1,
+            burstElapsedSeconds = 0f,
+            dipOffsetPx = 0f,
+            burstActive = false,
+        )
+    val elapsed = burst.elapsedSeconds
+    val dip = if (elapsed < 1.4f) {
+        4f * exp(-elapsed * 3.6f) * cos(elapsed * 15f)
+    } else {
+        0f
+    }
+    return PeriodicBobberMotion(
+        eventId = burst.eventId,
+        burstIndex = burst.burstIndex,
+        burstElapsedSeconds = elapsed,
+        dipOffsetPx = dip,
+        burstActive = true,
+    )
+}
+
+internal fun shouldEmitBobberNibbleHaptic(
+    hasObservedMotionEvent: Boolean,
+    previousMotionEventId: Long?,
+    currentMotionEventId: Long?,
+    lastHapticEventId: Long?,
+    runtimeAssetsAvailable: Boolean,
+    running: Boolean,
+    reduceMotion: Boolean,
+    currentMotionElapsedSeconds: Float,
+): Boolean = hasObservedMotionEvent && currentMotionEventId != null &&
+    currentMotionEventId != previousMotionEventId && currentMotionEventId != lastHapticEventId &&
+    currentMotionElapsedSeconds in 0f..0.12f && runtimeAssetsAvailable && running && !reduceMotion
 
 internal fun calculatePeriodicBobberRippleBurst(
     timeSeconds: Float,
@@ -288,3 +339,4 @@ internal fun createSunParticleSpecs(
         )
     }
 }
+
