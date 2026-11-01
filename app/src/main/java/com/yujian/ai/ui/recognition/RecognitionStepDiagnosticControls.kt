@@ -43,6 +43,8 @@ fun RecognitionStepDiagnosticControls(
     playbackPaused: Boolean,
     mappedReferenceMs: Long,
     modelStatus: String,
+    detectorStatus: String = "待机",
+    classifierStatus: String = "待机",
     maskStatus: String,
     stepStatus: String,
     normalProgressText: String,
@@ -136,9 +138,10 @@ fun RecognitionStepDiagnosticControls(
                                 androidx.compose.ui.geometry.Offset(progressX, y), strokeWidth = size.height)
                         }
                     }
+                    Text(modelStatus, color = Color(0xFF567577), fontSize = 9.sp, maxLines = 1)
                     Text(
-                        "$modelStatus · $maskStatus",
-                        color = Color(0xFF567577), fontSize = 9.sp, maxLines = 1,
+                        "D:$detectorStatus · C:$classifierStatus · $maskStatus",
+                        color = Color(0xFF567577), fontSize = 8.sp, maxLines = 1,
                     )
                     Canvas(Modifier.fillMaxWidth().height(10.dp)) {
                         val current = stage.ordinal

@@ -3,6 +3,7 @@ package com.yujian.ai
 import android.net.Uri
 import android.content.Intent
 import android.os.SystemClock
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.animation.EnterTransition
@@ -98,6 +99,8 @@ import com.yujian.ai.ui.identify.resolveRecognitionResultState
 import com.yujian.ai.ui.recognition.reveal.RecognitionRevealKey
 import com.yujian.ai.ui.recognition.reveal.RecognitionRevealHandoff
 import com.yujian.ai.ui.recognition.reveal.RecognitionRevealSessionStore
+import com.yujian.ai.ui.recognition.reveal.RecognitionRevealDecisionGate
+import com.yujian.ai.ui.recognition.reveal.RecognitionRevealDecisionState
 import com.yujian.ai.ui.screens.RecognizingScreen
 import com.yujian.ai.ui.screens.RecognitionSubjectAttemptRunner
 import com.yujian.ai.ui.waterlight.core.RecognitionProgressDisplayMode
@@ -169,7 +172,6 @@ fun YujianApp() {
     var subjectResult by remember(revealSessionStore) {
         mutableStateOf(revealSessionStore.snapshot?.subjectResult ?: FishSubjectResult(SubjectStatus.IDLE))
     }
-    var latestDetectorConfidence by remember(revealSessionStore) { mutableStateOf(0f) }
     var subjectModelState by remember { mutableStateOf(SubjectModelState()) }
     var prediction by remember(revealSessionStore) { mutableStateOf(revealSessionStore.snapshot?.prediction) }
     var inferenceAsset by remember(revealSessionStore) { mutableStateOf(revealSessionStore.snapshot?.inferenceAsset) }
@@ -235,7 +237,6 @@ fun YujianApp() {
         productionResult = null
         recognitionTechnicalFailure = false
         subjectResult = FishSubjectResult(SubjectStatus.IDLE)
-        latestDetectorConfidence = 0f
         prediction = null
         inferenceAsset = null
         catchSaveError = null
@@ -400,15 +401,26 @@ fun YujianApp() {
             highConfidenceResult = result.prediction?.let {
                 resolveRecognitionResultState(it) == RecognitionUiState.RESULT_HIGH
             } == true,
-            inferenceAsset = inferenceAsset,
+            inferenceAsset = inferenceAsset ?: revealSessionStore.snapshot?.inferenceAsset,
             handoffTimestampUptimeMs = SystemClock.uptimeMillis(),
         )
     }
 
     fun deliverRecognitionAttempt(result: ProductionRecognitionResult, attemptId: String) {
         if (activeRecognitionAttemptId != attemptId || currentRoute != "recognizing") return
-        completeRecognitionAttempt(result, attemptId)
         if (result.ready) {
+            val handoff = completeRecognitionAttempt(result, attemptId)
+            if (handoff == null || !RecognitionRevealDecisionGate.isReady(
+                    handoff.revealDecision ?: RecognitionRevealDecisionState.WAITING_BOTH,
+                )
+            ) {
+                Log.w(
+                    "RecognitionRevealDecision",
+                    "NAVIGATION_BLOCKED session=$recognitionSessionId attempt=$attemptId " +
+                        "decision=${revealSessionStore.snapshot?.revealDecision}",
+                )
+                return
+            }
             nav.navigate("result") { popUpTo("recognizing") { inclusive = true } }
         } else {
             nav.navigate("recognition_issue") { popUpTo("recognizing") { inclusive = true } }
@@ -419,17 +431,27 @@ fun YujianApp() {
         if (activeRecognitionAttemptId != attemptId || currentRoute != "recognizing") return "Recognition attempt is no longer active"
         val selected = sessionImage ?: return "PhotoSession is unavailable"
         if (!result.ready) return "真实分类结果尚未就绪"
+        val key = RecognitionRevealKey(recognitionSessionId.orEmpty(), attemptId)
+        val decision = revealSessionStore.revealDecisionFor(key)
+            ?: return "当前识别尝试身份已失效"
+        if (!RecognitionRevealDecisionGate.isReady(decision)) {
+            return when (decision) {
+                RecognitionRevealDecisionState.WAITING_SLIMSAM -> "等待 SlimSAM 完成质量判断；Next 可继续检查诊断阶段"
+                RecognitionRevealDecisionState.WAITING_CLASSIFIER -> "等待 Classifier 返回真实鱼种名称"
+                RecognitionRevealDecisionState.WAITING_BOTH -> "等待 Classifier 与 SlimSAM 完成；Next 可继续检查诊断阶段"
+                RecognitionRevealDecisionState.RECOGNITION_FAILED -> "Classifier 结果未达到揭晓条件"
+                RecognitionRevealDecisionState.CANCELLED -> "识别尝试已取消或被新照片替换"
+                RecognitionRevealDecisionState.FISH_FOCUS_READY,
+                RecognitionRevealDecisionState.ORB_ONLY_READY -> null
+            }
+        }
         val handoff = completeRecognitionAttempt(result, attemptId)
             ?: return "RecognitionRevealHandoff is unavailable"
         val samePhoto = handoff.imageId == selected.imageId &&
             handoff.photoSourceIdentity.endsWith("|sha256=" + selected.photoSha256)
         if (!samePhoto) return "photo identity mismatch · stage 10 blocked"
-        // Missing Mask limits the optical reveal, but must not lock the manual timeline.
-        diagnosticPlaybackController.beginStepPreview(
-            RecognitionSceneStage.ORB_RETURN,
-            SystemClock.uptimeMillis(),
-            startImmediately = false,
-        )
+        // Next owns stage progression. The stage 10 controller state and its elapsed
+        // position are preserved while Result attaches to the same PhotoSession.
         if (BuildConfig.DEBUG) {
             // Keep Processing underneath Result so the shared diagnostic session can step back
             // from RR09 stage 10 without recreating recognition or its visual controller.
@@ -726,7 +748,6 @@ fun YujianApp() {
                             productionResult = null
                             recognitionTechnicalFailure = false
                             subjectResult = FishSubjectResult(SubjectStatus.IDLE)
-                            latestDetectorConfidence = 0f
                             prediction = null
                             inferenceAsset = null
                             catchSaveError = null
@@ -759,15 +780,58 @@ fun YujianApp() {
                             if (activeRecognitionAttemptId != attemptId) {
                                 throw CancellationException("recognition attempt was superseded")
                             }
-                            latestDetectorConfidence = result.assessment.primary?.confidence ?: 0f
-                            inferenceAsset = inferenceRecorder.record(selected, result)
+                            val highConfidence = result.prediction?.let {
+                                resolveRecognitionResultState(it) == RecognitionUiState.RESULT_HIGH
+                            } == true
+                            val savedDecision = revealSessionStore.recordClassifierResult(
+                                key = RecognitionRevealKey(requireNotNull(recognitionSessionId), attemptId),
+                                result = result,
+                                inferenceAsset = null,
+                                highConfidenceResult = highConfidence,
+                            )
+                            if (savedDecision != null) {
+                                productionResult = result
+                                prediction = result.prediction
+                                Log.i(
+                                    "RecognitionRevealDecision",
+                                    "CLASSIFIER_SAVED session=$recognitionSessionId attempt=$attemptId " +
+                                        "image=${selected.imageId} sha256=${selected.photoSha256} ready=${result.ready} " +
+                                        "decision=$savedDecision",
+                                )
+                            }
+                            // Persistence is outside the model critical path: the real
+                            // Classifier completion is saved and delivered immediately.
+                            scope.launch {
+                                runCatching { inferenceRecorder.record(selected, result) }
+                                    .onSuccess { recordedAsset ->
+                                        if (activeRecognitionAttemptId == attemptId &&
+                                            sessionImage?.imageId == selected.imageId &&
+                                            sessionImage?.photoSha256 == selected.photoSha256
+                                        ) {
+                                            inferenceAsset = recordedAsset
+                                            revealSessionStore.recordClassifierResult(
+                                                key = RecognitionRevealKey(requireNotNull(recognitionSessionId), attemptId),
+                                                result = result,
+                                                inferenceAsset = recordedAsset,
+                                                highConfidenceResult = highConfidence,
+                                            )
+                                        }
+                                    }
+                                    .onFailure { error ->
+                                        Log.w("RecognitionRevealDecision", "INFERENCE_ASSET_WRITE_FAILED image=" + selected.imageId, error)
+                                    }
+                            }
                             result
                         },
-                        generateSubject = { selected, box ->
+                        generateSubjectWithConfidence = { selected, box, confidence ->
                             val sessionId = recognitionSessionId.orEmpty()
                             val activeAttempt = attemptId.orEmpty()
-                            val confidence = latestDetectorConfidence
                             subjectResult = FishSubjectResult(SubjectStatus.PROCESSING)
+                            Log.i(
+                                "RecognitionSubjectRunner",
+                                "SLIMSAM_QUEUED session=$sessionId attempt=$activeAttempt image=${selected.imageId} " +
+                                    "sha256=${selected.photoSha256} detector_confidence=$confidence bbox=$box",
+                            )
                             subjectAttemptRunner.request(selected, box, confidence, sessionId, activeAttempt) { resolved, geometry ->
                                 if (activeRecognitionAttemptId == activeAttempt && sessionImage?.imageId == selected.imageId &&
                                     sessionImage?.photoSha256 == selected.photoSha256) {

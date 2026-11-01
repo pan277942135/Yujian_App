@@ -223,6 +223,9 @@ object RecognitionRevealGeometryResolver {
     ): RecognitionRevealGeometryResolution {
         val photoGeometry = resolvePhoto(handoff, hero, rootBoundsInWindow)
             ?: return rejected("PHOTO_GEOMETRY_INVALID")
+        if (handoff.eligibility == RecognitionRevealEligibility.TITLE_FADE_ONLY) {
+            return resolveDegradedOrbToGlyph(handoff, photoGeometry, titleBoundsInWindow, rootBoundsInWindow)
+        }
         val subjectBox = handoff.subjectRoiInSource ?: return rejected("SUBJECT_BOX_MISSING")
         val anchor = handoff.subjectAnchorNormalizedSource ?: return rejected("SUBJECT_ANCHOR_MISSING")
         val contour = handoff.subjectMaskOrContour
@@ -304,10 +307,78 @@ object RecognitionRevealGeometryResolver {
         )
     }
 
+    /** Real-name fallback geometry: keeps the original Orb-to-glyph path and contains no fish contour. */
+    private fun resolveDegradedOrbToGlyph(
+        handoff: RecognitionRevealHandoff,
+        photo: RecognitionRevealPhotoGeometry,
+        title: RecognitionRevealWindowRect,
+        root: RecognitionRevealWindowRect,
+    ): RecognitionRevealGeometryResolution {
+        if (handoff.key.recognitionSessionId.isBlank() || handoff.imageId.isBlank()) return rejected("IDENTITY_INVALID")
+        if (!title.isValid() || !root.isValid() || title.top <= photo.heroPhotoClip.bottom ||
+            title.bottom > root.bottom + 1f) return rejected("LAYOUT_BOUNDS_INVALID")
+        val originalOrb = handoff.processingOrbCenterInWindow?.takeIf { point ->
+            point.x.isFinite() && point.y.isFinite() && point.x in root.left..root.right && point.y in root.top..root.bottom
+        } ?: return rejected("ORIGINAL_ORB_ANCHOR_MISSING")
+        // When SlimSAM has no trusted contour, the perimeter is the only valid
+        // energy source. Return from its measured photo edge; never substitute a
+        // detector box or a fabricated fish anchor for the missing Mask.
+        val perimeterStart = nearestPerimeterPoint(photo.processingPhotoClip, originalOrb)
+            ?: return rejected("PHOTO_PERIMETER_ANCHOR_MISSING")
+        val orbReturn = opticalCurve(perimeterStart, originalOrb)
+            ?: return rejected("PERIMETER_TO_ORB_PATH_INVALID")
+        val glyphAnchor = DisplayPoint(title.left + title.width * .5f, title.top + title.height * .38f)
+        val orbToGlyph = opticalCurve(originalOrb, glyphAnchor) ?: return rejected("ORB_TO_GLYPH_PATH_INVALID")
+        val residueAnchor = DisplayPoint(title.right - title.width * .08f, title.bottom - title.height * .12f)
+        val residue = opticalCurve(glyphAnchor, residueAnchor) ?: return rejected("GLYPH_RESIDUE_PATH_INVALID")
+        return RecognitionRevealGeometryResolution(
+            geometry = RecognitionRevealGeometry(
+                rootWindowOrigin = photo.rootWindowOrigin,
+                sourceWidth = photo.sourceWidth,
+                sourceHeight = photo.sourceHeight,
+                processingStartMatrix = photo.processingStartMatrix,
+                heroEndMatrix = photo.heroEndMatrix,
+                processingPhotoClip = photo.processingPhotoClip,
+                heroPhotoClip = photo.heroPhotoClip,
+                sourceContourPath = Path(),
+                goldTransferPath = orbReturn,
+                titleBounds = title,
+                heroSourceTransform = photo.heroSourceTransform,
+                orbReturnPath = orbReturn,
+                orbToGlyphPath = orbToGlyph,
+                glyphResiduePath = residue,
+            ),
+            failureReason = null,
+        )
+    }
+
     private fun rejected(reason: String) = RecognitionRevealGeometryResolution(
         geometry = null,
         failureReason = reason,
     )
+
+    private fun nearestPerimeterPoint(
+        photoBoundsInWindow: RecognitionRevealWindowRect,
+        targetInWindow: DisplayPoint,
+    ): DisplayPoint? {
+        if (!photoBoundsInWindow.isValid() || !targetInWindow.x.isFinite() || !targetInWindow.y.isFinite()) return null
+        val bounds = photoBoundsInWindow
+        val isOutside = targetInWindow.x !in bounds.left..bounds.right ||
+            targetInWindow.y !in bounds.top..bounds.bottom
+        if (isOutside) {
+            return DisplayPoint(
+                targetInWindow.x.coerceIn(bounds.left, bounds.right),
+                targetInWindow.y.coerceIn(bounds.top, bounds.bottom),
+            )
+        }
+        val candidates = listOf(
+            DisplayPoint(bounds.left, targetInWindow.y) to (targetInWindow.x - bounds.left),
+            DisplayPoint(bounds.right, targetInWindow.y) to (bounds.right - targetInWindow.x),
+            DisplayPoint(targetInWindow.x, bounds.top) to (targetInWindow.y - bounds.top),
+            DisplayPoint(targetInWindow.x, bounds.bottom) to (bounds.bottom - targetInWindow.y),
+        )
+        return candidates.minByOrNull { it.second }?.first
+    }
 
     private fun sourceMatrix(
         transform: RecognitionImageTransform,

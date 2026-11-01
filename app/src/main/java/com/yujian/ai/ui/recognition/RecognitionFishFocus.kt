@@ -178,7 +178,7 @@ fun RecognitionFishFocus(
     material: WaterLightMaterialProfile = WaterLightMaterialProfile.CONTOUR,
     contourPhotoSpace: Boolean = false,
 ) {
-    if (waterLightFrame != null && waterLightFrame.phase != phase) return
+    if (waterLightFrame != null && !waterLightFrame.sceneFrame.isIdentityValid) return
     if (!recognitionMaskContourEnabled(phase, trustedMask) || focusBox == null) return
     if (subjectBitmap == null || subjectBox == null || contour.isEmpty()) return
 

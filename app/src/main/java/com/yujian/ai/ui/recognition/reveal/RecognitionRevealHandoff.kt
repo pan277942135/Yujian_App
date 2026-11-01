@@ -3,6 +3,7 @@ package com.yujian.ai.ui.recognition.reveal
 import com.yujian.ai.ai.NormalizedFishBox
 import com.yujian.ai.ai.ProductionRecognitionResult
 import com.yujian.ai.ai.subject.FishSubjectQuality
+import com.yujian.ai.ai.subject.SubjectStatus
 import com.yujian.ai.model.SelectedImage
 import com.yujian.ai.ui.identify.DisplayPoint
 import com.yujian.ai.ui.identify.NormalizedSourceRect
@@ -98,6 +99,8 @@ data class RecognitionRevealHandoff(
     val processingPhotoClipBoundsInWindow: RecognitionRevealWindowRect? = null,
     val processingPhotoCornerRadiusPx: Float = 0f,
     val processingOrbCenterInWindow: DisplayPoint? = null,
+    /** Final Classifier × SlimSAM decision captured before production Result navigation. */
+    val revealDecision: RecognitionRevealDecisionState? = null,
 )
 
 object RecognitionRevealHandoffFactory {
@@ -110,6 +113,7 @@ object RecognitionRevealHandoffFactory {
         processingPhoto: RecognitionProcessingPhotoSnapshot?,
         highConfidenceResult: Boolean,
         handoffTimestampUptimeMs: Long,
+        subjectStatus: SubjectStatus = if (subject == null) SubjectStatus.FAILED else SubjectStatus.READY,
     ): RecognitionRevealHandoff {
         val key = RecognitionRevealKey(recognitionSessionId, recognitionAttemptId)
         val primary = result.assessment.primary
@@ -128,6 +132,14 @@ object RecognitionRevealHandoffFactory {
             photoSha256 = image.photoSha256,
         )
         val maskTrusted = geometryTrust == RecognitionGeometryTrustState.TRUSTED_MASK
+        val decision = RecognitionRevealDecisionGate.decide(
+            classifier = if (result.ready) RecognitionClassifierTaskState.READY else RecognitionClassifierTaskState.FAILED,
+            subject = subjectStatus,
+            maskTrusted = maskTrusted,
+            contourValid = subject?.contour?.isNotEmpty() == true,
+            identityCurrent = recognitionSessionId.isNotBlank() && recognitionAttemptId.isNotBlank() &&
+                image.imageId.isNotBlank() && image.photoSha256.isNotBlank(),
+        )
         val photo = processingPhoto?.takeIf {
             it.imageId == image.imageId &&
                 it.viewportBoundsInWindow.isValid() &&
@@ -197,6 +209,7 @@ object RecognitionRevealHandoffFactory {
             processingPhotoClipBoundsInWindow = photoClip,
             processingPhotoCornerRadiusPx = photoCornerRadius,
             processingOrbCenterInWindow = orbAnchor,
+            revealDecision = decision,
         )
     }
 

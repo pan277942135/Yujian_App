@@ -74,7 +74,7 @@ internal fun RecognitionPerimeterShaderOverlay(
     modifier: Modifier = Modifier,
 ) {
     if (waterLightFrame.sessionId != recognitionSessionId || waterLightFrame.photoSha256 != photoSha256 ||
-        waterLightFrame.phase != phase) return
+        !waterLightFrame.sceneFrame.isIdentityValid) return
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val identity = sessionKey ?: photoTransform

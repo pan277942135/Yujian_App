@@ -287,7 +287,7 @@ fun RecognitionAmbientField(
     includeEdgeField: Boolean = false,
     waterLightFrame: WaterLightFrame? = null,
 ) {
-    if (waterLightFrame != null && waterLightFrame.phase != phase) return
+    if (waterLightFrame != null && !waterLightFrame.sceneFrame.isIdentityValid) return
     val nowMs = visualClockMs ?: 0L
     val elapsedMs = (waterLightFrame?.opticalReferenceElapsedMs ?: processingElapsedMs).coerceAtLeast(0L)
     val scanFrame = if (reduceMotion) {

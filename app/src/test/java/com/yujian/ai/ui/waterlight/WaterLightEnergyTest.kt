@@ -1,18 +1,18 @@
 package com.yujian.ai.ui.waterlight
 
-import com.yujian.ai.ai.RecognitionPhase
 import com.yujian.ai.ui.waterlight.core.EnergyAnchor
 import com.yujian.ai.ui.waterlight.core.EnergyFeedback
 import com.yujian.ai.ui.waterlight.core.WaterLightEnergy
 import com.yujian.ai.ui.waterlight.core.WaterLightFrame
 import com.yujian.ai.ui.waterlight.core.WaterLightPathGeometryFactory
 import com.yujian.ai.ui.waterlight.core.WaterLightPathPoint
+import com.yujian.ai.ui.waterlight.core.WaterLightPhase
 import org.junit.Assert.*
 import org.junit.Test
 
 class WaterLightEnergyTest {
     private fun frame(ms: Long, session: String = "photo-A") = WaterLightFrame(
-        session, "photo-hash-A", ms, ms, RecognitionPhase.OUTLINE, .5f, false, 7L,
+        session, "photo-hash-A", ms, ms, WaterLightPhase.PROCESSING, .5f, false, 7L,
         attemptId = "attempt-A", imageId = session, photoContentVersion = 1L,
     )
 

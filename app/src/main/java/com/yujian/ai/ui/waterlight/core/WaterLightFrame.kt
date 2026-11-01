@@ -1,6 +1,8 @@
 package com.yujian.ai.ui.waterlight.core
 
-import com.yujian.ai.ai.RecognitionPhase
+
+/** Generic WaterLight lifecycle; recognition business phases are mapped at the screen adapter. */
+enum class WaterLightPhase { IDLE, PHOTO_ENTRY, PROCESSING, HANDOFF, RESIDUE, SETTLED }
 
 /** A snapshot of the existing recognition scene clock. Renderers never advance it. */
 data class WaterLightFrame(
@@ -8,7 +10,7 @@ data class WaterLightFrame(
     val photoSha256: String?,
     val elapsedMs: Long,
     val opticalReferenceElapsedMs: Long,
-    val phase: RecognitionPhase,
+    val phase: WaterLightPhase,
     val completion: Float,
     val reducedMotion: Boolean,
     val geometryVersion: Long,

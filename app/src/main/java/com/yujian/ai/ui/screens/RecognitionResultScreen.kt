@@ -152,10 +152,12 @@ import com.yujian.ai.ui.imagery.PhotoCropRect
 import com.yujian.ai.ui.recognition.rememberRecognitionMotionPolicy
 import com.yujian.ai.ui.recognition.reveal.RecognitionRevealClock
 import com.yujian.ai.ui.recognition.reveal.RecognitionRevealEligibility
+import com.yujian.ai.ui.recognition.reveal.RecognitionRevealDecisionState
 import com.yujian.ai.ui.recognition.reveal.RecognitionRevealFrame
 import com.yujian.ai.ai.RecognitionPhase
 import com.yujian.ai.ui.waterlight.core.UnifiedWaterLightEngine
 import com.yujian.ai.ui.waterlight.core.WaterLightFrame
+import com.yujian.ai.ui.waterlight.core.WaterLightPhase
 import com.yujian.ai.ui.waterlight.core.WaterLightHost
 import com.yujian.ai.ui.waterlight.core.WaterLightHostBinding
 import com.yujian.ai.ui.waterlight.core.WaterLightEnergy
@@ -383,26 +385,54 @@ fun RecognitionResultScreen(
         it.status == FishInputStatus.MULTIPLE_FISH || it.strongDetections.size > 1
     } == true
 
-    val photoTransitionGeometry = remember(revealHandoff, heroSnapshot, rootBounds) {
-        if (revealHandoff == null || heroSnapshot == null || rootBounds == null) null
+    // Production handoffs carry the one completed Classifier × SlimSAM decision.
+    // Older isolated Result previews without that field keep their existing preview behavior.
+    val decisionHandoff = when (revealHandoff?.revealDecision) {
+        RecognitionRevealDecisionState.FISH_FOCUS_READY -> revealHandoff
+        RecognitionRevealDecisionState.ORB_ONLY_READY -> revealHandoff?.let { handoff ->
+            if (handoff.eligibility == RecognitionRevealEligibility.FULL_REVEAL) {
+                handoff.copy(eligibility = RecognitionRevealEligibility.TITLE_FADE_ONLY)
+            } else handoff
+        }
+        null -> revealHandoff
+        else -> null
+    }
+
+    val photoTransitionGeometry = remember(decisionHandoff, heroSnapshot, rootBounds) {
+        if (decisionHandoff == null || heroSnapshot == null || rootBounds == null) null
         else RecognitionRevealGeometryResolver.resolvePhoto(
-            handoff = revealHandoff,
+            handoff = decisionHandoff,
             hero = requireNotNull(heroSnapshot),
             rootBoundsInWindow = requireNotNull(rootBounds),
         )
     }
-    val revealGeometryResolution = remember(revealHandoff, heroSnapshot, revealTitleBounds, rootBounds) {
-        if (revealHandoff == null) null
+    val revealGeometryResolution = remember(decisionHandoff, heroSnapshot, revealTitleBounds, rootBounds) {
+        if (decisionHandoff == null) null
         else when {
             rootBounds == null -> RecognitionRevealGeometryResolution(null, "LAYOUT_ROOT_PENDING")
             heroSnapshot == null -> RecognitionRevealGeometryResolution(null, "LAYOUT_HERO_PENDING")
             revealTitleBounds == null -> RecognitionRevealGeometryResolution(null, "LAYOUT_TITLE_PENDING")
-            else -> RecognitionRevealGeometryResolver.resolveDetailed(
-                handoff = revealHandoff,
-                hero = requireNotNull(heroSnapshot),
-                titleBoundsInWindow = requireNotNull(revealTitleBounds),
-                rootBoundsInWindow = requireNotNull(rootBounds),
-            )
+            else -> {
+                val root = requireNotNull(rootBounds)
+                val hero = requireNotNull(heroSnapshot)
+                val title = requireNotNull(revealTitleBounds)
+                val primary = RecognitionRevealGeometryResolver.resolveDetailed(decisionHandoff, hero, title, root)
+                val hasTrustedContour = primary.geometry?.sourceContourPath?.isEmpty() == false
+                if (decisionHandoff.eligibility == RecognitionRevealEligibility.FULL_REVEAL && !hasTrustedContour) {
+                    val degraded = RecognitionRevealGeometryResolver.resolveDetailed(
+                        handoff = decisionHandoff.copy(eligibility = RecognitionRevealEligibility.TITLE_FADE_ONLY),
+                        hero = hero,
+                        titleBoundsInWindow = title,
+                        rootBoundsInWindow = root,
+                    )
+                    if (degraded.geometry != null) degraded.copy(
+                        failureReason = "FULL_REVEAL_DEGRADED:${primary.failureReason ?: "TRUSTED_CONTOUR_EMPTY"}",
+                    ) else primary.copy(
+                        failureReason = "FULL_REVEAL_DEGRADED:${primary.failureReason ?: "TRUSTED_CONTOUR_EMPTY"};" +
+                            "TITLE_ONLY:${degraded.failureReason}",
+                    )
+                } else primary
+            }
         }
     }
     val revealGeometry = revealGeometryResolution?.geometry
@@ -412,8 +442,9 @@ fun RecognitionResultScreen(
         }
     }
     val visualHandoff = if (
-        revealHandoff?.eligibility == RecognitionRevealEligibility.FULL_REVEAL && revealGeometry == null
-    ) revealHandoff.copy(eligibility = RecognitionRevealEligibility.TITLE_FADE_ONLY) else revealHandoff
+        decisionHandoff?.eligibility == RecognitionRevealEligibility.FULL_REVEAL &&
+        revealGeometry?.sourceContourPath?.isEmpty() != false
+    ) decisionHandoff.copy(eligibility = RecognitionRevealEligibility.TITLE_FADE_ONLY) else decisionHandoff
     val revealPhotoIdentityMatches = revealHandoff != null && image != null &&
         image.imageId == revealHandoff.imageId &&
         image.bitmap.width == revealHandoff.normalizedSourceWidth &&
@@ -422,7 +453,7 @@ fun RecognitionResultScreen(
         revealHandoff.photoSourceIdentity.endsWith("|sha256=${image.photoSha256}") &&
         prediction.top1.speciesKey == revealHandoff.resultIdentity
     val revealStartReady = RecognitionRevealPolicy.canStartOnFirstResultFrame(
-        eligibility = revealHandoff?.eligibility ?: RecognitionRevealEligibility.STATIC_RESULT,
+        eligibility = visualHandoff?.eligibility ?: RecognitionRevealEligibility.STATIC_RESULT,
         photoIdentityMatches = revealPhotoIdentityMatches,
         photoGeometryReady = photoTransitionGeometry != null,
         heroReady = heroSnapshot?.renderReady == true,
@@ -511,7 +542,7 @@ fun RecognitionResultScreen(
     }
     var geometryWaitExpired by remember(revealHandoff?.key) { mutableStateOf(false) }
     LaunchedEffect(revealHandoff?.key, revealStartReady) {
-        if (revealHandoff?.eligibility == RecognitionRevealEligibility.FULL_REVEAL && !revealStartReady) {
+        if (visualHandoff?.eligibility == RecognitionRevealEligibility.FULL_REVEAL && !revealStartReady) {
             delay(350L)
             geometryWaitExpired = true
         }
@@ -702,7 +733,7 @@ fun RecognitionResultScreen(
             val handoff = revealHandoff
             val frameImageId = image?.imageId
             if (effectiveRevealElapsedOverrideMs == null &&
-                (handoff?.eligibility != RecognitionRevealEligibility.FULL_REVEAL ||
+                (visualHandoff?.eligibility != RecognitionRevealEligibility.FULL_REVEAL ||
                     revealStartReady || geometryWaitExpired) &&
                 resultFirstFrameCallbackPosted.compareAndSet(false, true)
             ) {
@@ -721,8 +752,8 @@ fun RecognitionResultScreen(
                             val canAnimate = sameHandoff && revealStartReady && !revealMotionPolicy.reduceMotion &&
                                 !revealAlreadyPlayed && onClaimReveal(handoff.key)
                             revealStartAllowed.value = canAnimate
-                            val eligible = handoff.eligibility == RecognitionRevealEligibility.FULL_REVEAL ||
-                                handoff.eligibility == RecognitionRevealEligibility.TITLE_FADE_ONLY
+                            val eligible = visualHandoff?.eligibility == RecognitionRevealEligibility.FULL_REVEAL ||
+                                visualHandoff?.eligibility == RecognitionRevealEligibility.TITLE_FADE_ONLY
                             if (canAnimate) {
                                 revealElapsedState.value = 0L
                                 Log.i(
@@ -985,7 +1016,7 @@ fun RecognitionResultScreen(
             photoSha256 = image?.photoSha256,
             elapsedMs = revealFrameState.value.elapsedMs.coerceAtLeast(0L),
             opticalReferenceElapsedMs = (2800L + revealFrameState.value.elapsedMs).coerceAtLeast(0L),
-            phase = RecognitionPhase.RESULT,
+            phase = if (hostType == WaterLightHost.RESIDUE) WaterLightPhase.RESIDUE else WaterLightPhase.HANDOFF,
             completion = (revealFrameState.value.elapsedMs / 850f).coerceIn(0f, 1f),
             reducedMotion = revealMotionPolicy.reduceMotion,
             geometryVersion = geometryVersion,
@@ -1015,6 +1046,28 @@ fun RecognitionResultScreen(
                 end = WaterLightPathPoint(curve.end.x, curve.end.y),
             )
         }
+        val resultEnergyEvent = if (visualHandoff?.eligibility == RecognitionRevealEligibility.FULL_REVEAL) {
+            WaterLightEnergy.at(
+                resultFrame, trustedMask = true, successfulRevealAllowed = true,
+                pathGeometry = resultPathGeometry,
+            )
+        } else null
+        LaunchedEffect(
+            resultFrame.sessionId,
+            resultFrame.attemptId,
+            resultFrame.imageId,
+            resultEnergyEvent?.feedback,
+            resultEnergyEvent?.pathId,
+        ) {
+            val event = resultEnergyEvent ?: return@LaunchedEffect
+            Log.i(
+                "WaterLightEnergy",
+                "ENERGY_EVENT session=${event.sessionId} attempt=${event.attemptId} image=${event.imageId} " +
+                    "sha256=${event.photoSha256} feedback=${event.feedback} source=${event.source} target=${event.target} " +
+                    "reference_ms=${event.referenceMs} level=${event.level} path=${event.pathId} " +
+                    "start=${event.pathGeometry?.start} end=${event.pathGeometry?.end} geometry=${event.geometryVersion}",
+            )
+        }
         if (hostBounds != null && resultHost.accepts(resultFrame, WaterLightHostGeometry(
                 hostType, resultFrame.geometryVersion,
                 hostBounds.left, hostBounds.top, hostBounds.right, hostBounds.bottom,
@@ -1027,11 +1080,7 @@ fun RecognitionResultScreen(
             frameState = revealFrameState,
             holdPhotoUntilHeroReady = heroSnapshot?.renderReady == false,
             material = resultHost.material,
-            energyEvent = if (revealHandoff?.eligibility == RecognitionRevealEligibility.FULL_REVEAL)
-                WaterLightEnergy.at(
-                    resultFrame, trustedMask = true, successfulRevealAllowed = true,
-                    pathGeometry = resultPathGeometry,
-                ) else null,
+            energyEvent = resultEnergyEvent,
         )
         if (diagnosticUiAvailable) {
             val playback = requireNotNull(diagnosticPlaybackController)
@@ -1039,7 +1088,7 @@ fun RecognitionResultScreen(
             val reference = diagnosticReferenceMs ?: RecognitionSceneCoordinator.PROCESSING_END_MS
             val stepStatus = when {
                 !revealStartReady && diagnosticDisplayMode == RecognitionProgressDisplayMode.STEP_DIAGNOSTIC -> "等待Result几何"
-                revealHandoff?.eligibility != RecognitionRevealEligibility.FULL_REVEAL -> "等待真实HIGH + Trusted Mask揭晓条件"
+                visualHandoff?.eligibility != RecognitionRevealEligibility.FULL_REVEAL -> "真实HIGH降级/等待 Trusted Mask"
                 else -> "进行中"
             }
             RecognitionStepDiagnosticControls(
@@ -1051,6 +1100,12 @@ fun RecognitionResultScreen(
                 playbackPaused = diagnosticPaused,
                 mappedReferenceMs = reference,
                 modelStatus = if (productionResult?.ready == true) "真实模型已完成" else "真实模型等待",
+                detectorStatus = if (productionResult?.assessment?.primary?.box != null) "就绪" else "失败",
+                classifierStatus = when {
+                    productionResult?.ready == true -> "就绪"
+                    productionResult != null -> "未通过"
+                    else -> "等待"
+                },
                 maskStatus = when {
                     revealHandoff?.geometryTrustState == RecognitionGeometryTrustState.TRUSTED_MASK -> "Mask TRUSTED"
                     subjectResult.status == SubjectStatus.PROCESSING -> "Mask 计算中"
