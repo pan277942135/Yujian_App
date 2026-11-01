@@ -742,11 +742,11 @@ fun RecognitionProcessingScene(
         geometryVersion = photoGeometryVersion,
         attemptId = recognitionAttemptId.orEmpty(), imageId = image?.imageId.orEmpty(),
         photoContentVersion = image?.bitmap?.generationId?.toLong() ?: 0L,
-        playbackMode = if (debugPlaybackEnabled) playbackMode else ScenePlaybackMode.AUTO,
-        playbackPaused = debugPlaybackEnabled && playbackPaused,
+        playbackMode = if (diagnosticUiAvailable) playbackMode else ScenePlaybackMode.AUTO,
+        playbackPaused = diagnosticUiAvailable && playbackPaused,
     )
     val diagnosticSceneFrame = sceneBaseFrame.sceneFrame
-    val rendered = phaseOverride ?: if (debugPlaybackEnabled) {
+    val rendered = phaseOverride ?: if (diagnosticUiAvailable) {
         diagnosticSceneFrame.stage.toRecognitionPhase()
     } else if (visualPhase == RecognitionPhase.RESULT) RecognitionPhase.CLASSIFYING else visualPhase
     val waterLightFrame = sceneBaseFrame.copy(phase = rendered)
@@ -819,14 +819,14 @@ fun RecognitionProcessingScene(
         RecognitionSceneStage.RESIDUE_SETTLE -> 1f
         else -> 0f
     }.coerceIn(0f, 1f)
-    val maskContourRevealProgress = if (debugPlaybackEnabled && trustedSubjectMask) stageContourProgress else recognitionMaskContourRevealProgress(
+    val maskContourRevealProgress = if (diagnosticUiAvailable && trustedSubjectMask) stageContourProgress else recognitionMaskContourRevealProgress(
         processingElapsedMs = sceneElapsedMs,
         revealStartedAtMs = trustedMaskRevealStartedAtMs,
         reduceMotion = motionPolicy.reduceMotion,
     )
     val photoShockwave = photoShockwaveTransform(sceneElapsedMs, motionPolicy.reduceMotion)
     val phaseElapsedMs = when {
-        debugPlaybackEnabled -> diagnosticSceneFrame.stageElapsedMs
+        diagnosticUiAvailable -> diagnosticSceneFrame.stageElapsedMs
         phaseOverride != null || visualPhase == RecognitionPhase.RESULT -> 1_000L
         photoPresentedAtMs == null -> 0L
         else -> controller.phaseElapsedMs(visualNowMs)
