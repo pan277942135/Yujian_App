@@ -11,7 +11,7 @@ are unchanged.
 - Top left: 渔见 and 拍照收藏每次渔获.
 - Top right: guest 登录 >, or the existing authenticated account slot.
 - Hero: 现在，轮到你 / 记录第一条鱼。 with its gold brush underline and equivalent accessible text.
-- Scene: a clear morning lake, mountains, mist, rod, line, bobber and exactly one bobber ripple.
+- Scene: a clear morning lake, mountains, mist, rod, line, bobber and one bobber-contact ripple group with three animated wave layers.
 - CTA: 对准鱼获，拍一张; primary capture button; 从相册选择.
 - Capture invokes the existing `onIdentify`; album invokes existing `onAlbumClick`; account invokes
   the existing login/profile callback. No duplicate navigation, CameraX, or picker is permitted.
