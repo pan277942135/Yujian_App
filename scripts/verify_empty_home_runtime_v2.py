@@ -384,6 +384,8 @@ def main() -> int:
         or "burstDurationSeconds = 3.6f" not in motion_source
         or "floatArrayOf(1.5f, 6.8f, 13.6f, 22.4f, 28.2f)" not in motion_source
         or "drawPeriodicBobberRipples(" not in scene_renderer
+        or "centerXReferencePx = EMPTY_HOME_V2_RIPPLE_X + assets.ripple.width / 2f" not in scene_renderer
+        or "centerYReferencePx = EMPTY_HOME_V2_RIPPLE_Y + assets.ripple.height / 2f" not in scene_renderer
         or scene_renderer.count("delaySeconds =") < 3
         or "totalDurationSeconds = 3.6f" not in scene_renderer
     ):
