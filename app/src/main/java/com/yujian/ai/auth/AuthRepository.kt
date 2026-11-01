@@ -3,6 +3,7 @@ package com.yujian.ai.auth
 import android.content.Context
 import android.net.Uri
 import com.yujian.ai.BuildConfig
+import com.yujian.ai.network.normalizeHttpBaseUrl
 import com.yujian.ai.session.UserSession
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -160,8 +161,8 @@ class AuthRepository(
         }
     }
 
-    private fun requireBaseUrl(): String = baseUrl.trimEnd('/').takeIf(String::isNotBlank)
-        ?: throw IOException("用户服务未配置")
+    private fun requireBaseUrl(): String = normalizeHttpBaseUrl(baseUrl)
+        ?: throw IOException("用户服务未配置或地址格式无效")
 
     private fun profileFrom(response: JSONObject): AccountProfile = AccountProfile(
         id = response.optString("id").takeIf(String::isNotBlank) ?: throw IOException("用户响应缺少 ID"),

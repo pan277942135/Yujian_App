@@ -2,7 +2,7 @@
   "design_version": "Empty_Home_Final_Design_V2",
   "visual_revision": "V2.2",
   "authority_status": "CURRENT",
-  "contract_revision": "EMPTY_HOME_LAYERS_V2_2_RIPPLE_HAPTIC_AMENDMENT_01",
+  "contract_revision": "EMPTY_HOME_LAYERS_V2_2_RIPPLE_HAPTIC_AMENDMENT_02",
   "order": [
     "scene_base",
     "cloud_atmosphere",
@@ -56,6 +56,24 @@
     "ripple_group_count": 1,
     "contact_ring_count": 1,
     "ripple_burst_duration_ms": 3600,
-    "ripple_burst_trigger": "periodic_bobber_nibble_event"
+    "ripple_burst_trigger": "periodic_bobber_motion_event"
+  },
+  "runtime_candidate_geometry": {
+    "status": "USER_DIRECTED_CANDIDATE_DELTA_NOT_FROZEN",
+    "source_contract": "w5_runtime_candidate_geometry.json",
+    "scene_transform": "sceneTransform",
+    "candidate_bobber_center_reference_px": [
+      531,
+      1161
+    ],
+    "candidate_water_contact_reference_px": [
+      531,
+      1195
+    ],
+    "candidate_ripple_center_reference_px": [
+      531,
+      1195
+    ],
+    "canonical_anchor_contract": "UNCHANGED"
   }
 }

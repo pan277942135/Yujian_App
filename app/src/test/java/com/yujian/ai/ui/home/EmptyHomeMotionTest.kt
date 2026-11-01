@@ -1,9 +1,11 @@
 package com.yujian.ai.ui.home
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import kotlin.math.abs
+import kotlin.math.roundToInt
 
 class EmptyHomeMotionTest {
     @Test
@@ -25,7 +27,7 @@ class EmptyHomeMotionTest {
             val transform = calculateReferenceSceneTransform(width, height)
             val left = transform.offsetX + EMPTY_HOME_V2_FISHING_PROTECTED_LEFT * transform.scale
             val right = transform.offsetX + EMPTY_HOME_V2_FISHING_PROTECTED_RIGHT * transform.scale
-            val top = transform.offsetY + 1180f * transform.scale
+            val top = transform.offsetY + 1086f * transform.scale
             val bottom = transform.offsetY + 1380f * transform.scale
             assertTrue("protected left clipped at ${width}x$height", left >= -0.01f)
             assertTrue("protected right clipped at ${width}x$height", right <= width + 0.01f)
@@ -71,49 +73,72 @@ class EmptyHomeMotionTest {
     }
 
     @Test
-    fun bobberMotionIsFrozenToSixPixelPeakToPeak() {
-        val samples = listOf(0f, 1.15f, 2.3f, 3.45f, 4.6f).map(::bobberOffsetPx)
+    fun bobberMovesOnlyDuringDeterministicNibbleEvents() {
+        val quiet = calculatePeriodicBobberMotion(0f)
+        assertFalse(quiet.burstActive)
+        assertTrue(quiet.eventId == null)
+        assertEquals(0f, quiet.dipOffsetPx, 0.0001f)
 
-        assertEquals(0f, samples[0], 0.0001f)
-        assertEquals(-3f, samples[1], 0.0001f)
-        assertEquals(0f, samples[2], 0.0001f)
-        assertEquals(3f, samples[3], 0.0001f)
-        assertEquals(0f, samples[4], 0.0001f)
-        assertEquals(6f, samples.maxOrNull()!! - samples.minOrNull()!!, 0.0001f)
-        assertTrue(samples.all { it in -3f..3f })
+        val start = calculatePeriodicBobberMotion(1.5f)
+        assertTrue(start.burstActive)
+        assertEquals(0L, requireNotNull(start.eventId))
+        assertEquals(0f, start.burstElapsedSeconds, 0.0001f)
+        assertEquals(4f, start.dipOffsetPx, 0.0001f)
+
+        val response = calculatePeriodicBobberMotion(1.72f)
+        assertEquals(0L, requireNotNull(response.eventId))
+        assertTrue(response.dipOffsetPx < start.dipOffsetPx)
+        assertTrue(response.dipOffsetPx.isFinite())
+
+        val settledDuringRipples = calculatePeriodicBobberMotion(3.1f)
+        assertTrue(settledDuringRipples.burstActive)
+        assertEquals(0f, settledDuringRipples.dipOffsetPx, 0.0001f)
+        assertTrue(calculatePeriodicBobberMotion(5.11f).eventId == null)
+        assertEquals(5L, requireNotNull(calculatePeriodicBobberMotion(37.5f).eventId))
+        assertTrue(calculatePeriodicBobberMotion(Float.NaN).eventId == null)
     }
 
     @Test
-    fun rippleGroupCenterRemainsAtTheFrozenRippleAnchorAndBobberContact() {
-        assertEquals(561f, EMPTY_HOME_V2_WATER_CONTACT_X, 0.0001f)
-        assertEquals(1323f, EMPTY_HOME_V2_WATER_CONTACT_Y, 0.0001f)
-        assertEquals(EMPTY_HOME_V2_WATER_CONTACT_X, EMPTY_HOME_V2_BOBBER_X + 11f, 0.0001f)
+    fun userTapDipIsShortAndDoesNotBecomeAnIdleLoop() {
+        assertEquals(5f, calculateClickBobberDip(0f), 0.0001f)
+        assertTrue(calculateClickBobberDip(0.2f).isFinite())
+        assertEquals(0f, calculateClickBobberDip(0.8f), 0.0001f)
+        assertEquals(0f, calculateClickBobberDip(Float.NaN), 0.0001f)
+    }
+
+    @Test
+    fun w5CandidateFishingCompositionKeepsBobberContactReflectionAndRippleAligned() {
+        assertEquals(531f, EMPTY_HOME_V2_WATER_CONTACT_X, 0.0001f)
+        assertEquals(1195f, EMPTY_HOME_V2_WATER_CONTACT_Y, 0.0001f)
+        assertEquals(531f, EMPTY_HOME_V2_BOBBER_X + 12f, 0.0001f)
+        assertEquals(1161f, EMPTY_HOME_V2_BOBBER_Y + 39f, 0.0001f)
+        assertEquals(EMPTY_HOME_V2_WATER_CONTACT_X, EMPTY_HOME_V2_BOBBER_X + 12f, 0.0001f)
         assertEquals(EMPTY_HOME_V2_WATER_CONTACT_Y, EMPTY_HOME_V2_BOBBER_Y + 73f, 0.0001f)
-        assertEquals(562f, EMPTY_HOME_V2_RIPPLE_X + 119f, 0.0001f)
-        assertEquals(1320f, EMPTY_HOME_V2_RIPPLE_Y + 41f, 0.0001f)
-        assertEquals(556f, EMPTY_HOME_V2_REFLECTION_X, 0.0001f)
-        assertEquals(1322f, EMPTY_HOME_V2_REFLECTION_Y, 0.0001f)
+        assertEquals(531f, EMPTY_HOME_V2_RIPPLE_X + 119f, 0.0001f)
+        assertEquals(1195f, EMPTY_HOME_V2_RIPPLE_Y + 41f, 0.0001f)
+        assertEquals(525f, EMPTY_HOME_V2_REFLECTION_X, 0.0001f)
+        assertEquals(1194f, EMPTY_HOME_V2_REFLECTION_Y, 0.0001f)
     }
 
     @Test
-    fun fishingLineUsesFrozenSlackGeometry() {
+    fun fishingLineUsesW5CandidateGeometry() {
         assertEquals(337f, EMPTY_HOME_V2_ROD_TIP_X, 0.0001f)
         assertEquals(1184f, EMPTY_HOME_V2_ROD_TIP_Y, 0.0001f)
         assertEquals(EMPTY_HOME_V2_ROD_TIP_X, EMPTY_HOME_V2_LINE_START_X, 0.0001f)
         assertEquals(EMPTY_HOME_V2_ROD_TIP_Y, EMPTY_HOME_V2_LINE_START_Y, 0.0001f)
-        assertEquals(389f, EMPTY_HOME_V2_LINE_C1_X, 0.0001f)
-        assertEquals(1257f, EMPTY_HOME_V2_LINE_C1_Y, 0.0001f)
-        assertEquals(471f, EMPTY_HOME_V2_LINE_C2_X, 0.0001f)
-        assertEquals(1312f, EMPTY_HOME_V2_LINE_C2_Y, 0.0001f)
-        assertEquals(560f, EMPTY_HOME_V2_LINE_END_X, 0.0001f)
-        assertEquals(1326f, EMPTY_HOME_V2_LINE_END_Y, 0.0001f)
-        assertTrue(EMPTY_HOME_V2_LINE_END_Y > EMPTY_HOME_V2_WATER_CONTACT_Y)
+        assertEquals(390f, EMPTY_HOME_V2_LINE_C1_X, 0.0001f)
+        assertEquals(1184f, EMPTY_HOME_V2_LINE_C1_Y, 0.0001f)
+        assertEquals(531f, EMPTY_HOME_V2_LINE_C2_X, 0.0001f)
+        assertEquals(1086f, EMPTY_HOME_V2_LINE_C2_Y, 0.0001f)
+        assertEquals(531f, EMPTY_HOME_V2_LINE_END_X, 0.0001f)
+        assertEquals(1195f, EMPTY_HOME_V2_LINE_END_Y, 0.0001f)
+        assertEquals(EMPTY_HOME_V2_WATER_CONTACT_Y, EMPTY_HOME_V2_LINE_END_Y, 0.0001f)
         assertTrue(EMPTY_HOME_V2_LINE_END_X in (EMPTY_HOME_V2_BOBBER_X..(EMPTY_HOME_V2_BOBBER_X + 24f)))
-        assertTrue(EMPTY_HOME_V2_LINE_END_Y in (EMPTY_HOME_V2_WATER_CONTACT_Y..(EMPTY_HOME_V2_WATER_CONTACT_Y + 4f)))
+        assertEquals(EMPTY_HOME_V2_WATER_CONTACT_Y, EMPTY_HOME_V2_LINE_END_Y, 0.0001f)
     }
 
     @Test
-    fun bobberArtworkSplitsAtTheFixedWaterContactAcrossFrozenMotion() {
+    fun bobberArtworkSplitsAtTheFixedWaterContactAcrossNibbleMotion() {
         val still = calculateBobberWaterSplit(
             bitmapHeight = 78,
             bobberTopY = EMPTY_HOME_V2_BOBBER_Y,
@@ -125,14 +150,22 @@ class EmptyHomeMotionTest {
         assertTrue(still.underwaterHeight <= 78 * 0.20f)
         assertTrue(still.underwaterAlpha <= 0.25f)
 
-        listOf(-3f, 0f, 3f).forEach { offset ->
+        val eventOffsets = listOf(
+            calculatePeriodicBobberMotion(1.5f).dipOffsetPx,
+            calculatePeriodicBobberMotion(1.72f).dipOffsetPx,
+            calculatePeriodicBobberMotion(1.94f).dipOffsetPx,
+            calculatePeriodicBobberMotion(3.1f).dipOffsetPx,
+        )
+        assertTrue(eventOffsets.minOrNull()!! < 0f)
+        assertTrue(eventOffsets.maxOrNull()!! <= 4f)
+        eventOffsets.forEach { offset ->
             val movedTop = EMPTY_HOME_V2_BOBBER_Y + offset
             val split = calculateBobberWaterSplit(
                 bitmapHeight = 78,
                 bobberTopY = movedTop,
                 waterContactY = EMPTY_HOME_V2_WATER_CONTACT_Y,
             )
-            assertEquals((EMPTY_HOME_V2_WATER_CONTACT_Y - movedTop).toInt(), split.splitY)
+            assertEquals((EMPTY_HOME_V2_WATER_CONTACT_Y - movedTop).roundToInt(), split.splitY)
             assertEquals(0, split.underwaterHeight)
             assertEquals(0f, split.underwaterAlpha, 0.0001f)
             assertEquals(
@@ -166,6 +199,65 @@ class EmptyHomeMotionTest {
         assertEquals(1L, nextCycle.cycleIndex)
         assertEquals(0, nextCycle.burstIndex)
         assertEquals(5L, nextCycle.eventId)
+    }
+
+    @Test
+    fun bobberMotionAndRippleShareTheSameEventStartAndIdentity() {
+        listOf(1.5f, 6.8f, 13.6f, 22.4f, 28.2f, 37.5f).forEach { eventStart ->
+            val motion = calculatePeriodicBobberMotion(eventStart)
+            val ripple = requireNotNull(calculatePeriodicBobberRippleBurst(eventStart))
+            assertEquals(ripple.eventId, motion.eventId)
+            assertEquals(0f, motion.burstElapsedSeconds, 0.001f)
+        }
+    }
+
+    @Test
+    fun fullThirtySixSecondScheduleRepeatsFiveDeterministicEvents() {
+        val starts = listOf(1.5f, 6.8f, 13.6f, 22.4f, 28.2f)
+        starts.forEachIndexed { index, start ->
+            val firstCycle = calculatePeriodicBobberMotion(start)
+            val nextCycle = calculatePeriodicBobberMotion(start + 36f)
+            assertEquals(index.toLong(), requireNotNull(firstCycle.eventId))
+            assertEquals((index + 5).toLong(), requireNotNull(nextCycle.eventId))
+            assertEquals(0f, firstCycle.burstElapsedSeconds, 0.0001f)
+            assertEquals(0f, nextCycle.burstElapsedSeconds, 0.0001f)
+        }
+        listOf(0f, 5.11f, 12.41f, 21.21f, 27.01f, 31.81f, 36f).forEach { quietTime ->
+            assertFalse("unexpected bobber event at $quietTime", calculatePeriodicBobberMotion(quietTime).burstActive)
+        }
+    }
+
+    @Test
+    fun automaticHapticOnlyFiresOnANewVisibleRunningMotionEvent() {
+        fun shouldEmit(
+            initialized: Boolean = true,
+            previous: Long? = 4L,
+            current: Long? = 5L,
+            lastHaptic: Long? = 4L,
+            assets: Boolean = true,
+            running: Boolean = true,
+            reduced: Boolean = false,
+            elapsed: Float = 0.01f,
+        ) = shouldEmitBobberNibbleHaptic(
+            hasObservedMotionEvent = initialized,
+            previousMotionEventId = previous,
+            currentMotionEventId = current,
+            lastHapticEventId = lastHaptic,
+            runtimeAssetsAvailable = assets,
+            running = running,
+            reduceMotion = reduced,
+            currentMotionElapsedSeconds = elapsed,
+        )
+
+        assertTrue(shouldEmit())
+        assertFalse(shouldEmit(initialized = false, previous = null, current = 5L, lastHaptic = null))
+        assertFalse(shouldEmit(previous = 5L, current = 5L))
+        assertFalse(shouldEmit(previous = null, current = null))
+        assertFalse(shouldEmit(assets = false))
+        assertFalse(shouldEmit(running = false))
+        assertFalse(shouldEmit(reduced = true))
+        assertFalse(shouldEmit(previous = 4L, current = 5L, lastHaptic = 5L))
+        assertFalse(shouldEmit(elapsed = 0.121f))
     }
 
     private fun mapX(x: Float, transform: ReferenceSceneTransform): Float =
@@ -224,13 +316,12 @@ class EmptyHomeMotionTest {
     @Test
     fun environmentalLoopsUseDistinctEntryPhases() {
         val phases = setOf(
-            BOBBER_PHASE_OFFSET_SECONDS,
-            RIPPLE_PHASE_OFFSET_SECONDS,
             CLOUD_PHASE_OFFSET_SECONDS,
             SUN_BEAM_PHASE_OFFSET_SECONDS,
             CAMERA_BREATH_PHASE_OFFSET_SECONDS,
         )
-        assertEquals(5, phases.size)
+        assertEquals(3, phases.size)
         assertTrue(CAMERA_BREATH_PHASE_OFFSET_SECONDS != 0f)
     }
 }
+

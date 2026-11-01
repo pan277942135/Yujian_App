@@ -24,6 +24,7 @@ REQUIRED = {
     "config/runtime_manifest.json", "config/authority_manifest.json", "config/layer_contract.json",
     "config/anchor_contract.json", "config/responsive_mapping_contract.json",
     "config/motion_contract.json", "config/haptic_contract.json", "config/hero_asset_contract.json",
+    "config/w5_runtime_candidate_geometry.json",
 }
 FORBIDDEN = ("proof", "preview", "validation", ".mp4", ".gif", "frozen", "source")
 
@@ -66,6 +67,7 @@ def main() -> int:
     runtime = load(RUNTIME / "config/runtime_manifest.json")
     design_runtime = load(CANONICAL / "runtime_manifest.json")
     anchors = load(RUNTIME / "config/anchor_contract.json")
+    candidate_geometry = load(RUNTIME / "config/w5_runtime_candidate_geometry.json")
     motion = load(RUNTIME / "config/motion_contract.json")
     layers = load(RUNTIME / "config/layer_contract.json")
     haptic = load(RUNTIME / "config/haptic_contract.json")
@@ -80,6 +82,8 @@ def main() -> int:
         packaged_contract = load(RUNTIME / "config" / name)
         if canonical_contract != packaged_contract:
             fail(errors, f"design and packaged Runtime contract diverge: {name}")
+    if candidate_geometry != load(CANONICAL / "w5_runtime_candidate_geometry.json"):
+        fail(errors, "design and packaged W5 candidate geometry diverge")
 
     if authority.get("authority_status") != "CURRENT":
         fail(errors, "authority manifest is not marked CURRENT")
@@ -91,6 +95,28 @@ def main() -> int:
         fail(errors, "authority manifest does not register the frozen Hero asset contract")
     if design_runtime != runtime:
         fail(errors, "design and packaged Runtime manifests diverge")
+    if (
+        candidate_geometry.get("status") != "USER_DIRECTED_CANDIDATE_DELTA_NOT_FROZEN"
+        or candidate_geometry.get("source_mapping", {}).get("path") != "design/manager/empty_home_v22_component_mapping.json"
+        or candidate_geometry.get("source_mapping", {}).get("sha256") != digest(ROOT / "design/manager/empty_home_v22_component_mapping.json")
+        or candidate_geometry.get("runtime_verification") != "NOT_RUN"
+    ):
+        fail(errors, "W5 geometry must remain a source-backed, unfrozen candidate until native review")
+    if candidate_geometry.get("bobber", {}).get("center_reference_px") != [531, 1161]:
+        fail(errors, "W5 candidate bobber center must be [531, 1161]")
+    if candidate_geometry.get("bobber", {}).get("bbox_reference_px") != {"x": 519, "y": 1122, "width": 24, "height": 78}:
+        fail(errors, "W5 candidate bobber bbox must be [519, 1122, 24, 78]")
+    if candidate_geometry.get("bobber", {}).get("water_contact_reference_px") != [531, 1195]:
+        fail(errors, "W5 candidate contact must be [531, 1195]")
+    if candidate_geometry.get("ripple", {}).get("center_reference_px") != [531, 1195]:
+        fail(errors, "W5 candidate ripple center must match the water contact")
+    if candidate_geometry.get("line", {}).get("control_points_reference_px") != [[390, 1184], [531, 1086]]:
+        fail(errors, "W5 candidate fishing-line curve differs from the mapped candidate")
+    if candidate_geometry.get("responsive_transform", "").find("sceneTransform") < 0:
+        fail(errors, "W5 candidate must preserve the existing responsive sceneTransform")
+    layer_candidate = layers.get("runtime_candidate_geometry", {})
+    if layer_candidate.get("status") != candidate_geometry.get("status") or layer_candidate.get("canonical_anchor_contract") != "UNCHANGED":
+        fail(errors, "layer contract must identify the W5 candidate without replacing the canonical anchor authority")
     if responsive.get("design_version") != "Empty_Home_Final_Design_V2" or responsive.get("visual_revision") != "V2.2":
         fail(errors, "responsive mapping contract must name V2 / V2.2")
     if responsive.get("reference_canvas") != [1080, 1920]:
@@ -142,6 +168,8 @@ def main() -> int:
     hero_runtime_asset = ROOT / hero_contract["asset"]["runtime_resource_path"]
     if hero_contract.get("authority_status") != "CURRENT" or hero_contract.get("visual_revision") != "V2.2":
         fail(errors, "Hero asset contract is not the current V2.3 authority")
+    if hero_contract.get("asset", {}).get("sha256") != "36b7ad90c6b685d286ba54ef92659f58bfb5e28b29824848c6cfded06ecf4cf5":
+        fail(errors, "Hero asset must preserve the task-pinned 36b7ad90...cf5 source SHA")
     if not hero_source.is_file() or digest(hero_source) != hero_contract["source"]["sha256"]:
         fail(errors, "Hero derivation source SHA does not match the frozen normalized V2 reference")
     for candidate in (hero_design_asset, hero_runtime_asset):
@@ -225,6 +253,21 @@ def main() -> int:
     source = load(FEATURE / "source/provenance/source_manifest.json")
     production = load(FEATURE / "intermediate/validation/asset_production_report.json")
     asset_manifest = load(FEATURE / "shared/contracts/asset_manifest.json")
+    resource_binding = load(FEATURE / "Page_Resource_Binding_V1.json")
+    binding_hero = [asset for asset in resource_binding.get("asset_bindings", []) if asset.get("asset_id") == "home_empty_v2_hero"]
+    if len(binding_hero) != 1 or binding_hero[0].get("sha256") != hero_contract["asset"]["sha256"] or binding_hero[0].get("bytes") != 111271:
+        fail(errors, "Page Resource Binding must pin the task-approved Hero bytes and SHA")
+    authority_by_id = {item.get("authority_id"): item for item in resource_binding.get("source_authorities", [])}
+    for authority_id, contract_path in (
+        ("emptyruntime", CANONICAL / "runtime_manifest.json"),
+        ("emptyassets", CANONICAL / "asset_manifest.json"),
+    ):
+        source_authority = authority_by_id.get(authority_id, {})
+        if source_authority.get("sha256") != digest(contract_path):
+            fail(errors, f"Page Resource Binding has stale {authority_id} source SHA")
+    checksums = (CANONICAL / "SHA256SUMS").read_text(encoding="utf-8")
+    if "36b7ad90c6b685d286ba54ef92659f58bfb5e28b29824848c6cfded06ecf4cf5  design/pages/home/empty_home/shared/assets/hero/empty_home_hero_v2_2.png" not in checksums:
+        fail(errors, "Empty Home SHA256SUMS does not pin the approved Hero asset")
     v22_authority = FEATURE / "source/frozen/Empty_Home_Frozen_Visual_V2_2.png"
     if not v22_authority.is_file() or digest(v22_authority) != "3071481ed7e58106381cdd5321267792491c21fd1a357e4362db1dad8e08e7ec":
         fail(errors, "canonical V2.2 Fishing Composition authority SHA mismatch")
@@ -258,7 +301,7 @@ def main() -> int:
         layer_rules.get("ripple_burst_duration_ms"),
         layer_rules.get("ripple_burst_trigger"),
         layer_rules.get("scene_base_has_baked_ripple"),
-    ) != (3, 1, 1, 3600, "periodic_bobber_nibble_event", False):
+    ) != (3, 1, 1, 3600, "periodic_bobber_motion_event", False):
         fail(errors, "one ripple group / three-wave / no-baked-ripple rule failed")
     if layers.get("rules", {}).get("scene_transform") != "UNIFORM_COVER_COMPOSITION_AWARE" or layers.get("rules", {}).get("bobber_is_split_at_water_contact") is not True:
         fail(errors, "scene transform and bobber water-contact split rules are missing")
@@ -281,25 +324,28 @@ def main() -> int:
     if anchors.get("line", {}).get("control_points_reference_px") != [[389, 1257], [471, 1312]]:
         fail(errors, "V2.2 measured line fit control points mismatch")
     line = anchors.get("line", {})
+    candidate_bobber = candidate_geometry["bobber"]
+    candidate_line = candidate_geometry["line"]
+    candidate_ripple = candidate_geometry["ripple"]
     anchor_values = {
         "EMPTY_HOME_V2_ROD_X": anchors["rod"]["bbox_reference_px"]["x"],
         "EMPTY_HOME_V2_ROD_Y": anchors["rod"]["bbox_reference_px"]["y"],
         "EMPTY_HOME_V2_ROD_TIP_X": anchors["rod"]["tip_reference_px"][0],
         "EMPTY_HOME_V2_ROD_TIP_Y": anchors["rod"]["tip_reference_px"][1],
-        "EMPTY_HOME_V2_LINE_START_X": line["start_reference_px"][0],
-        "EMPTY_HOME_V2_LINE_START_Y": line["start_reference_px"][1],
-        "EMPTY_HOME_V2_LINE_C1_X": line["control_points_reference_px"][0][0],
-        "EMPTY_HOME_V2_LINE_C1_Y": line["control_points_reference_px"][0][1],
-        "EMPTY_HOME_V2_LINE_C2_X": line["control_points_reference_px"][1][0],
-        "EMPTY_HOME_V2_LINE_C2_Y": line["control_points_reference_px"][1][1],
-        "EMPTY_HOME_V2_LINE_END_X": line["end_reference_px"][0],
-        "EMPTY_HOME_V2_LINE_END_Y": line["end_reference_px"][1],
-        "EMPTY_HOME_V2_BOBBER_X": anchors["bobber"]["bbox_reference_px"]["x"],
-        "EMPTY_HOME_V2_BOBBER_Y": anchors["bobber"]["bbox_reference_px"]["y"],
-        "EMPTY_HOME_V2_RIPPLE_X": anchors["ripple"]["bbox_reference_px"]["x"],
-        "EMPTY_HOME_V2_RIPPLE_Y": anchors["ripple"]["bbox_reference_px"]["y"],
-        "EMPTY_HOME_V2_WATER_CONTACT_X": anchors["bobber"]["water_contact_reference_px"][0],
-        "EMPTY_HOME_V2_WATER_CONTACT_Y": anchors["bobber"]["water_contact_reference_px"][1],
+        "EMPTY_HOME_V2_LINE_START_X": candidate_line["start_reference_px"][0],
+        "EMPTY_HOME_V2_LINE_START_Y": candidate_line["start_reference_px"][1],
+        "EMPTY_HOME_V2_LINE_C1_X": candidate_line["control_points_reference_px"][0][0],
+        "EMPTY_HOME_V2_LINE_C1_Y": candidate_line["control_points_reference_px"][0][1],
+        "EMPTY_HOME_V2_LINE_C2_X": candidate_line["control_points_reference_px"][1][0],
+        "EMPTY_HOME_V2_LINE_C2_Y": candidate_line["control_points_reference_px"][1][1],
+        "EMPTY_HOME_V2_LINE_END_X": candidate_line["end_reference_px"][0],
+        "EMPTY_HOME_V2_LINE_END_Y": candidate_line["end_reference_px"][1],
+        "EMPTY_HOME_V2_BOBBER_X": candidate_bobber["bbox_reference_px"]["x"],
+        "EMPTY_HOME_V2_BOBBER_Y": candidate_bobber["bbox_reference_px"]["y"],
+        "EMPTY_HOME_V2_RIPPLE_X": candidate_ripple["bbox_reference_px"]["x"],
+        "EMPTY_HOME_V2_RIPPLE_Y": candidate_ripple["bbox_reference_px"]["y"],
+        "EMPTY_HOME_V2_WATER_CONTACT_X": candidate_bobber["water_contact_reference_px"][0],
+        "EMPTY_HOME_V2_WATER_CONTACT_Y": candidate_bobber["water_contact_reference_px"][1],
     }
     for name, expected in anchor_values.items():
         match = re.search(rf"const val {name} = (-?[0-9.]+)f", motion_source)
@@ -315,10 +361,13 @@ def main() -> int:
         fail(errors, "V2.2 fishing line fit control points mismatch")
     if line.get("end_reference_px") != [560, 1326]:
         fail(errors, "V2.2 fishing line endpoint must enter the bobber contact occlusion")
-    contact = anchors["bobber"]["water_contact_reference_px"]
-    bobber_bounds = anchors["bobber"]["bbox_reference_px"]
-    if not (bobber_bounds["x"] <= line["end_reference_px"][0] <= bobber_bounds["x"] + bobber_bounds["width"] and contact[1] <= line["end_reference_px"][1] <= contact[1] + 4):
-        fail(errors, "line endpoint is not inside the bobber water-contact occlusion region")
+    candidate_contact = candidate_bobber["water_contact_reference_px"]
+    candidate_bounds = candidate_bobber["bbox_reference_px"]
+    if not (
+        candidate_bounds["x"] <= candidate_line["end_reference_px"][0] <= candidate_bounds["x"] + candidate_bounds["width"]
+        and candidate_contact[1] <= candidate_line["end_reference_px"][1] <= candidate_contact[1] + 4
+    ):
+        fail(errors, "W5 candidate line endpoint is not inside the bobber water-contact occlusion region")
     if scene_renderer.count("cubicTo(") != 1:
         fail(errors, "fishing line renderer must contain exactly one cubic Bézier")
     fishing_layers = scene_renderer[scene_renderer.index("drawFrozenFishingLine(transform)"):]
@@ -360,10 +409,16 @@ def main() -> int:
     ) != (1448, 1537, 220, 1780):
         fail(errors, "V2.2 CTA layout/spacing contract mismatch")
     bobber = motion.get("bobber", {})
-    if (bobber.get("axis"), bobber.get("range_reference_px"), bobber.get("duration_ms"), bobber.get("rotation_deg"), bobber.get("scale_animation")) != ("y", 3, 4600, 0, False):
-        fail(errors, "bobber Motion V2 contract failed")
-    if bobber.get("keyframes") != [[0, 0], [1150, -3], [2300, 0], [3450, 3], [4600, 0]]:
-        fail(errors, "bobber keyframes differ from V2")
+    if (
+        bobber.get("axis"), bobber.get("cycle_type"), bobber.get("event_cycle_duration_ms"),
+        bobber.get("event_start_offsets_ms"), bobber.get("motion_duration_ms"),
+        bobber.get("max_initial_dip_reference_px"), bobber.get("rotation_deg"), bobber.get("scale_animation"),
+    ) != ("y", "periodic_events_with_quiet_intervals", 36000, [1500, 6800, 13600, 22400, 28200], 1400, 4, 0, False):
+        fail(errors, "event-driven Y-only bobber motion contract failed")
+    if "exp(-elapsed_seconds * 3.6) * cos(elapsed_seconds * 15)" not in bobber.get("motion_curve", ""):
+        fail(errors, "bobber motion curve must preserve the deterministic ZIP-derived dip envelope")
+    if bobber.get("rotation_status") != "DISABLED_PENDING_D01":
+        fail(errors, "unconfirmed bobber rotation must remain disabled pending D01")
     ripple = motion.get("ripple", {})
     expected_event_starts = [1500, 6800, 13600, 22400, 28200]
     wave_layers = ripple.get("wave_layers", [])
@@ -375,14 +430,17 @@ def main() -> int:
         ripple.get("event_start_offsets_ms"),
         ripple.get("trigger"),
         [wave.get("delay_ms") for wave in wave_layers],
-    ) != (3, 3600, 420, 36000, expected_event_starts, "periodic_bobber_nibble_event", [0, 420, 900]):
-        fail(errors, "three-layer 3.6s ripple Motion V2.2 amendment contract failed")
+    ) != (3, 3600, 0, 36000, expected_event_starts, "periodic_bobber_motion_event", [0, 420, 900]):
+        fail(errors, "three-layer 3.6s ripple must share the bobber motion event start")
     if len(wave_layers) != 3 or [wave.get("radius_growth_reference_px") for wave in wave_layers] != [270, 190, 120]:
         fail(errors, "ripple wave-layer growth envelope diverges from the approved amendment")
     if (
         "calculatePeriodicBobberRippleBurst" not in motion_source
+        or "calculatePeriodicBobberMotion" not in motion_source
         or "burstDurationSeconds = 3.6f" not in motion_source
         or "floatArrayOf(1.5f, 6.8f, 13.6f, 22.4f, 28.2f)" not in motion_source
+        or "4f * exp(-elapsed * 3.6f) * cos(elapsed * 15f)" not in motion_source
+        or "tiltDegrees" in motion_source
         or "drawPeriodicBobberRipples(" not in scene_renderer
         or "centerXReferencePx = EMPTY_HOME_V2_RIPPLE_X + assets.ripple.width / 2f" not in scene_renderer
         or "centerYReferencePx = EMPTY_HOME_V2_RIPPLE_Y + assets.ripple.height / 2f" not in scene_renderer
@@ -395,10 +453,12 @@ def main() -> int:
         haptic.get("page_enter") != "none"
         or haptic.get("idle") != "none"
         or automatic_haptic.get("enabled") is not True
-        or automatic_haptic.get("trigger") != "periodic_bobber_ripple_burst_start"
+        or automatic_haptic.get("trigger") != "periodic_bobber_motion_event_start"
         or automatic_haptic.get("event_cycle_duration_ms") != 36000
         or automatic_haptic.get("event_start_offsets_ms") != expected_event_starts
-        or automatic_haptic.get("phase_offset_ms") != 420
+        or automatic_haptic.get("dedupe") != "one_per_motion_event_id"
+        or automatic_haptic.get("initial_render") != "never_haptic"
+        or automatic_haptic.get("max_start_latency_ms") != 120
         or automatic_haptic.get("max_triggers_per_cycle") != 5
         or automatic_haptic.get("requires_motion_enabled") is not True
         or automatic_haptic.get("requires_lifecycle_resumed") is not True
@@ -410,8 +470,15 @@ def main() -> int:
     if waveform.get("timings_ms") != [0, 14, 45, 18] or waveform.get("amplitudes") != [0, 90, 0, 130]:
         fail(errors, "automatic bobber haptic waveform diverges from the approved subtle double-pulse")
     if (
-        "currentBurstId.value" not in scene_renderer
+        "currentMotionEventId.value" not in scene_renderer
         or "lastHapticBurstId" not in scene_renderer
+        or "hasObservedMotionEvent" not in scene_renderer
+        or "shouldEmitBobberNibbleHaptic(" not in scene_renderer
+        or "calculatePeriodicBobberMotion(time)" not in scene_renderer
+        or "currentMotionElapsedSeconds = currentBobberMotion.value.burstElapsedSeconds" not in scene_renderer
+        or "tapRadiusPx = 90.dp.toPx()" not in scene_renderer
+        or "captureClickHaptic(context, view)" not in scene_renderer
+        or "drawInteractiveTapRipples(" not in scene_renderer
         or "motionState.running" not in scene_renderer
         or "!motionState.reduceMotion" not in scene_renderer
         or "bobberNibbleHaptic(context, view)" not in scene_renderer

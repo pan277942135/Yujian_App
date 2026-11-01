@@ -3,6 +3,7 @@ package com.yujian.ai.feedback
 import android.content.Context
 import com.yujian.ai.BuildConfig
 import com.yujian.ai.inference.InferenceAsset
+import com.yujian.ai.network.normalizeHttpBaseUrl
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
@@ -108,7 +109,8 @@ class FeedbackRepository(private val context: Context) {
 
     fun isNetworkConfigured(): Boolean = isConfigured()
 
-    private fun isConfigured(): Boolean = BuildConfig.FEEDBACK_BASE_URL.isNotBlank() && BuildConfig.FEEDBACK_INGEST_KEY.isNotBlank()
+    private fun isConfigured(): Boolean = normalizeHttpBaseUrl(BuildConfig.FEEDBACK_BASE_URL) != null &&
+        BuildConfig.FEEDBACK_INGEST_KEY.isNotBlank()
 
     private fun persistQueueEntry(source: File, draft: FeedbackDraft): Pair<File, File> {
         val base = draft.sourceEventId.replace(Regex("[^A-Za-z0-9_.-]"), "_")

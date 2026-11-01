@@ -6,6 +6,7 @@ import android.graphics.Paint
 import android.graphics.Rect
 import android.graphics.RectF
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
@@ -13,6 +14,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -26,9 +28,11 @@ import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.unit.dp
 import com.yujian.ai.ui.components.AssetImage
 import kotlin.math.roundToInt
 
@@ -45,33 +49,80 @@ internal fun EmptyHomeSceneRenderer(
     val context = LocalContext.current
     val view = LocalView.current
     var lastHapticBurstId by remember(motionState) { mutableLongStateOf(Long.MIN_VALUE) }
-    val currentBurstId = remember(motionState) {
+    var hasObservedMotionEvent by remember(motionState) { mutableStateOf(false) }
+    var previousMotionEventId by remember(motionState) { mutableStateOf<Long?>(null) }
+    var waterTapEventCounter by remember(motionState) { mutableLongStateOf(0L) }
+    var waterTapEvent by remember(motionState) { mutableStateOf<WaterTapAnimation?>(null) }
+    val currentBobberMotion = remember(motionState, runtimeAssets) {
         derivedStateOf {
-            if (!motionState.running || motionState.reduceMotion) {
-                null
+            if (runtimeAssets == null || motionState.reduceMotion) {
+                PeriodicBobberMotion(
+                    eventId = null,
+                    burstIndex = -1,
+                    burstElapsedSeconds = 0f,
+                    dipOffsetPx = 0f,
+                    burstActive = false,
+                )
             } else {
-                calculatePeriodicBobberRippleBurst(
-                    motionState.sceneTimeSeconds + RIPPLE_PHASE_OFFSET_SECONDS,
-                )?.eventId
+                calculatePeriodicBobberMotion(motionState.sceneTimeSeconds)
             }
         }
     }
-
-    LaunchedEffect(
-        currentBurstId.value,
-        motionState.running,
-        motionState.reduceMotion,
-    ) {
-        val burstId = currentBurstId.value ?: return@LaunchedEffect
-        if (runtimeAssets != null && motionState.running && !motionState.reduceMotion &&
-            burstId != lastHapticBurstId
-        ) {
-            bobberNibbleHaptic(context, view)
-            lastHapticBurstId = burstId
-        }
+    val currentMotionEventId = remember(currentBobberMotion) {
+        derivedStateOf { currentBobberMotion.value.eventId }
     }
 
-    Box(modifier.clipToBounds()) {
+    LaunchedEffect(
+        currentMotionEventId.value,
+        motionState.running,
+        motionState.reduceMotion,
+        runtimeAssets != null,
+    ) {
+        val eventId = currentMotionEventId.value
+        if (!hasObservedMotionEvent) {
+            previousMotionEventId = eventId
+            hasObservedMotionEvent = true
+            return@LaunchedEffect
+        }
+        if (shouldEmitBobberNibbleHaptic(
+                hasObservedMotionEvent = true,
+                previousMotionEventId = previousMotionEventId,
+                currentMotionEventId = eventId,
+                lastHapticEventId = lastHapticBurstId.takeUnless { it == Long.MIN_VALUE },
+                runtimeAssetsAvailable = runtimeAssets != null,
+                running = motionState.running,
+                reduceMotion = motionState.reduceMotion,
+                currentMotionElapsedSeconds = currentBobberMotion.value.burstElapsedSeconds,
+            )
+        ) {
+            bobberNibbleHaptic(context, view)
+            lastHapticBurstId = requireNotNull(eventId)
+        }
+        previousMotionEventId = eventId
+    }
+
+    Box(
+        modifier
+            .clipToBounds()
+            .pointerInput(sceneTransform, runtimeAssets != null) {
+                detectTapGestures { tapOffset ->
+                    if (runtimeAssets == null) return@detectTapGestures
+                    val contactCanvasX = sceneTransform.offsetX + EMPTY_HOME_V2_WATER_CONTACT_X * sceneTransform.scale
+                    val contactCanvasY = sceneTransform.offsetY + EMPTY_HOME_V2_WATER_CONTACT_Y * sceneTransform.scale
+                    val dx = tapOffset.x - contactCanvasX
+                    val dy = tapOffset.y - contactCanvasY
+                    val tapRadiusPx = 90.dp.toPx()
+                    if (dx * dx + dy * dy <= tapRadiusPx * tapRadiusPx) {
+                        captureClickHaptic(context, view)
+                        waterTapEventCounter += 1L
+                        waterTapEvent = WaterTapAnimation(
+                            eventId = waterTapEventCounter,
+                            startTimeSeconds = motionState.sceneTimeSeconds,
+                        )
+                    }
+                }
+            },
+    ) {
         AssetImage(
             FALLBACK_BACKGROUND,
             Modifier.fillMaxSize(),
@@ -92,11 +143,17 @@ internal fun EmptyHomeSceneRenderer(
                     paint = paint,
                     destination = destination,
                     transform = sceneTransform,
+                    interactiveTapTimeSeconds = waterTapEvent?.startTimeSeconds,
                 )
             }
         }
     }
 }
+
+private data class WaterTapAnimation(
+    val eventId: Long,
+    val startTimeSeconds: Float,
+)
 
 private fun DrawScope.drawRuntimeOverlays(
     assets: EmptyHomeRuntimeAssets,
@@ -105,6 +162,7 @@ private fun DrawScope.drawRuntimeOverlays(
     paint: Paint,
     destination: RectF,
     transform: ReferenceSceneTransform,
+    interactiveTapTimeSeconds: Float?,
 ) {
     val time = if (motionState.running) motionState.sceneTimeSeconds else 0f
 
@@ -175,14 +233,24 @@ private fun DrawScope.drawRuntimeOverlays(
         running = motionState.running,
         reduceMotion = motionState.reduceMotion,
     )
-    val bobberOffset = if (bobberMotionActive) {
-        bobberOffsetPx(time + BOBBER_PHASE_OFFSET_SECONDS)
+    val bobberMotion = if (bobberMotionActive) {
+        calculatePeriodicBobberMotion(time)
     } else {
-        0f
+        PeriodicBobberMotion(
+            eventId = null,
+            burstIndex = -1,
+            burstElapsedSeconds = 0f,
+            dipOffsetPx = 0f,
+            burstActive = false,
+        )
     }
+    val tapElapsedSeconds = interactiveTapTimeSeconds
+        ?.let { time - it }
+        ?.takeIf { motionState.running && !motionState.reduceMotion && it in 0f..2.8f }
+    val tapDipOffsetPx = tapElapsedSeconds?.let(::calculateClickBobberDip) ?: 0f
     val bobberSplit = calculateBobberWaterSplit(
         bitmapHeight = assets.bobber.height,
-        bobberTopY = EMPTY_HOME_V2_BOBBER_Y + bobberOffset,
+        bobberTopY = EMPTY_HOME_V2_BOBBER_Y + bobberMotion.dipOffsetPx + tapDipOffsetPx,
         waterContactY = EMPTY_HOME_V2_WATER_CONTACT_Y,
     )
 
@@ -200,21 +268,22 @@ private fun DrawScope.drawRuntimeOverlays(
         destination = destination,
     )
 
-    val rippleBurst = if (bobberMotionActive) {
-        calculatePeriodicBobberRippleBurst(time + RIPPLE_PHASE_OFFSET_SECONDS)
-    } else {
-        null
-    }
     drawPeriodicBobberRipples(
-        burstElapsedSeconds = rippleBurst?.elapsedSeconds,
+        burstElapsedSeconds = bobberMotion.takeIf { it.burstActive }?.burstElapsedSeconds,
         centerXReferencePx = EMPTY_HOME_V2_RIPPLE_X + assets.ripple.width / 2f,
         centerYReferencePx = EMPTY_HOME_V2_RIPPLE_Y + assets.ripple.height / 2f,
+        transform = transform,
+    )
+    drawInteractiveTapRipples(
+        elapsedSeconds = tapElapsedSeconds,
+        centerX = EMPTY_HOME_V2_WATER_CONTACT_X,
+        centerY = EMPTY_HOME_V2_WATER_CONTACT_Y,
         transform = transform,
     )
     drawReferenceBitmap(
         bitmap = assets.bobber,
         x = EMPTY_HOME_V2_BOBBER_X,
-        y = EMPTY_HOME_V2_BOBBER_Y + bobberOffset,
+        y = EMPTY_HOME_V2_BOBBER_Y + bobberMotion.dipOffsetPx + tapDipOffsetPx,
         width = assets.bobber.width.toFloat(),
         height = bobberSplit.splitY.toFloat(),
         alpha = 1f,
@@ -306,6 +375,57 @@ private fun DrawScope.drawPeriodicBobberRipples(
     )
 }
 
+private fun DrawScope.drawInteractiveTapRipples(
+    elapsedSeconds: Float?,
+    centerX: Float,
+    centerY: Float,
+    transform: ReferenceSceneTransform,
+) {
+    val elapsed = elapsedSeconds ?: return
+    val x = transform.offsetX + centerX * transform.scale
+    val y = transform.offsetY + centerY * transform.scale
+    val scale = transform.scale
+    val perspectiveRatio = 3.2f
+    drawRippleWave(
+        elapsedSeconds = elapsed,
+        delaySeconds = 0f,
+        totalDurationSeconds = 2.8f,
+        startRadius = 16f,
+        radiusGrowth = 300f,
+        alphaFrom = 0.92f,
+        strokeFrom = 2.5f,
+        strokeTo = 1.4f,
+        shadowAlphaRatio = 0.28f,
+        centerX = x,
+        centerY = y,
+        scale = scale,
+        perspectiveRatio = perspectiveRatio,
+        highlight = Color(0xFFEAF9FF),
+        sunGleam = true,
+        alphaProgressFalloff = 0.2f,
+        minimumStrokeWidth = 1.1f,
+    )
+    drawRippleWave(
+        elapsedSeconds = elapsed,
+        delaySeconds = 0.32f,
+        totalDurationSeconds = 2.8f,
+        startRadius = 14f,
+        radiusGrowth = 200f,
+        alphaFrom = 0.75f,
+        strokeFrom = 1.9f,
+        strokeTo = 1.1f,
+        shadowAlphaRatio = 0f,
+        centerX = x,
+        centerY = y,
+        scale = scale,
+        perspectiveRatio = perspectiveRatio,
+        highlight = Color(0xFFE2F8FD),
+        sunGleam = false,
+        alphaProgressFalloff = 0f,
+        minimumStrokeWidth = 0.95f,
+    )
+}
+
 private fun DrawScope.drawRippleWave(
     elapsedSeconds: Float,
     delaySeconds: Float,
@@ -322,6 +442,8 @@ private fun DrawScope.drawRippleWave(
     perspectiveRatio: Float,
     highlight: Color,
     sunGleam: Boolean,
+    alphaProgressFalloff: Float = 0.22f,
+    minimumStrokeWidth: Float = 0.85f,
 ) {
     if (elapsedSeconds < delaySeconds) return
     val waveDuration = totalDurationSeconds - delaySeconds
@@ -329,8 +451,8 @@ private fun DrawScope.drawRippleWave(
     val eased = 1f - (1f - progress) * (1f - progress) * (1f - progress)
     val radiusX = (startRadius + radiusGrowth * eased) * scale
     val radiusY = radiusX / perspectiveRatio
-    val alpha = (alphaFrom * (1f - progress) * (1f - 0.22f * progress)).coerceIn(0f, 1f)
-    val strokeWidth = ((strokeFrom + (strokeTo - strokeFrom) * progress) * scale).coerceAtLeast(0.85f)
+    val alpha = (alphaFrom * (1f - progress) * (1f - alphaProgressFalloff * progress)).coerceIn(0f, 1f)
+    val strokeWidth = ((strokeFrom + (strokeTo - strokeFrom) * progress) * scale).coerceAtLeast(minimumStrokeWidth)
 
     if (alpha <= 0.015f) return
     if (shadowAlphaRatio > 0f) {
