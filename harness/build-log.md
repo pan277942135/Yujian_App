@@ -86,4 +86,4 @@
 - Control Plane Admission at the prior synchronized Main checkpoint passed; Control Plane Admission rerun on the implementation source SHA passed across all six layers.
 - Local Gradle, Android SDK and ADB are unavailable. Unit tests, AndroidTest APK compilation, Debug APK assembly and lint are pending exact-head PR CI. API28 runtime was skipped per product-owner instruction.
 
-- Formatting correction checkpoint: ee318feb3935e56ac331e7dfb81b2310c6493329; normalized CRLF in RecognitionResultScreen.kt after local diff-check flagged trailing whitespace. Exact-head Android CI is pending; API28 remains NOT_RUN.
+- CRLF formatting correction is included in source checkpoint `ee318feb3935e56ac331e7dfb81b2310c6493329`; API28 runtime remains `NOT_RUN` by request. Android CI on the final PR tree is pending.
