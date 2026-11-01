@@ -87,6 +87,8 @@ features:
     implementation:
       registered_runtime_status: "FROZEN"
       runtime_authority: "design/pages/home/empty_home/shared/contracts/runtime_manifest.json"
+      execution_task_refs:
+        - "YUJIAN_ANDROID_AISTUDIO_FULL_PAGE_RESTORE_AND_MAIN_INTEGRATION_V1"
     known_gaps:
       - "Current-branch runtime/evidence must be reverified; registry FROZEN is historical authority, not current-head evidence."
   home_normal_v1:
@@ -340,6 +342,7 @@ features:
         - "YUJIAN_UNIFIED_WATERLIGHT_A02_CORE_COMPONENT_ANDROID_INTEGRATION_V1"
         - "YUJIAN_ANDROID_SLIMSAM_PIXEL_SEGMENTATION_V1"
         - "YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2"
+        - "YUJIAN_ANDROID_AISTUDIO_FULL_PAGE_RESTORE_AND_MAIN_INTEGRATION_V1"
     capture_hifi:
       status: "FROZEN"
       visual_contract: "design/system_v3/08_Page_Contracts/recognition/capture/Recognition_Capture_HiFi_Visual_Contract_V1.md"
@@ -431,6 +434,8 @@ features:
     implementation:
       registered_runtime_status: "PARTIAL"
       runtime_authority: "app/src/main/java/com/yujian/ai/ui/screens/RecognitionResultScreen.kt"
+      execution_task_refs:
+        - "YUJIAN_ANDROID_AISTUDIO_FULL_PAGE_RESTORE_AND_MAIN_INTEGRATION_V1"
     known_gaps:
       - "Current runtime/evidence are partial; exact-head runtime and current-branch provenance conflict remain open (B001/B002/B006)."
       - "RR09 V3 is main-adopted design-only and not Android-implemented; V2 remains unchanged historical baseline; Runtime/Playback stays NOT_RUN until Stage 1 closure."
