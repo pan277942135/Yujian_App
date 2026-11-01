@@ -39,7 +39,8 @@
     "requires_motion_enabled": true,
     "requires_lifecycle_resumed": true,
     "respects_system_haptic_feedback_setting": true,
-    "reduced_motion": "disabled"
+    "reduced_motion": "disabled",
+    "phase_offset_ms": 420
   },
   "contract_revision": "EMPTY_HOME_HAPTIC_V1_1_APPROVED_BOBBER_EVENT"
 }
