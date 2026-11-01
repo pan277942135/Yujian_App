@@ -6,7 +6,7 @@
   const MAPPING_PATH = "design/manager/empty_home_v22_component_mapping.json";
   const MAPPING_SHA256 = "3280e108176ca7c460b41c4d814ca80cbe569541e307b281029ee605646efabb";
   const CONTRACT_ROOT = "design/pages/home/empty_home/shared/contracts/";
-  const RUNTIME_MANIFEST_SHA256 = "c14da346338e3f79d88d5c4dfb3dd145a1455aa56d90a538df2fa533f0ce9716";
+  const RUNTIME_MANIFEST_SHA256 = "9a7a112ead74feb008f082a2ed760a2bef42580eb88c241e85dfc6907e7646d8";
   const SHARED_ADAPTIVE_INSET_DP = { COMPACT: 16, STANDARD: 20, MEDIUM: 22, WIDE: 24 };
   const BROWSER_REFERENCE_SAFE_INSETS_DP = { top: 36, bottom: 0 };
   const HEADER_REFERENCE_INSET_ADJUSTMENT_DP = { start: 4, end: 10 };
