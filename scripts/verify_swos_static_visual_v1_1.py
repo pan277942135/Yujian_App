@@ -178,24 +178,54 @@ if base_branch:
             and "APPROVED BY PRODUCT OWNER" in amendment_spec,
             "Empty Home app-scope exception requires the explicit V2.2 product-owner amendment record",
         )
-        require(
-            motion_contract.get("contract_revision") == "EMPTY_HOME_MOTION_V2_2_RIPPLE_HAPTIC_AMENDMENT_01"
-            and ripple.get("count") == 3
-            and ripple.get("duration_ms") == 3600
-            and len(ripple.get("wave_layers", [])) == 3,
-            "Empty Home app-scope exception requires the exact approved three-wave 3.6s motion contract",
-        )
-        require(
-            layer_contract.get("contract_revision") == "EMPTY_HOME_LAYERS_V2_2_RIPPLE_HAPTIC_AMENDMENT_01"
-            and layer_contract.get("rules", {}).get("ripple_group_count") == 1,
-            "Empty Home app-scope exception requires the one-group layer contract",
-        )
-        require(
-            haptic_contract.get("contract_revision") == "EMPTY_HOME_HAPTIC_V1_1_APPROVED_BOBBER_EVENT"
-            and automatic_haptic.get("enabled") is True
-            and automatic_haptic.get("trigger") == "periodic_bobber_ripple_burst_start",
-            "Empty Home app-scope exception requires the approved event-gated haptic contract",
-        )
+        if is_exact_full_restore_scope:
+            expected_offsets = [1500, 6800, 13600, 22400, 28200]
+            require(
+                motion_contract.get("contract_revision") == "EMPTY_HOME_MOTION_V2_2_RIPPLE_HAPTIC_AMENDMENT_02"
+                and ripple.get("count") == 3
+                and ripple.get("duration_ms") == 3600
+                and ripple.get("event_cycle_duration_ms") == 36000
+                and ripple.get("event_start_offsets_ms") == expected_offsets
+                and len(ripple.get("wave_layers", [])) == 3,
+                "AI Studio full restore requires the approved _02 three-wave 3.6s motion contract",
+            )
+            layer_rules = layer_contract.get("rules", {})
+            require(
+                layer_contract.get("contract_revision") == "EMPTY_HOME_LAYERS_V2_2_RIPPLE_HAPTIC_AMENDMENT_02"
+                and layer_rules.get("ripple_group_count") == 1
+                and layer_rules.get("ripple_burst_duration_ms") == 3600
+                and layer_rules.get("ripple_burst_trigger") == "periodic_bobber_motion_event",
+                "AI Studio full restore requires the _02 single-group motion-event ripple layer",
+            )
+            require(
+                haptic_contract.get("contract_revision") == "EMPTY_HOME_HAPTIC_V1_3_MOTION_EVENT_START_GUARD"
+                and automatic_haptic.get("enabled") is True
+                and automatic_haptic.get("trigger") == "periodic_bobber_motion_event_start"
+                and automatic_haptic.get("event_cycle_duration_ms") == 36000
+                and automatic_haptic.get("event_start_offsets_ms") == expected_offsets
+                and automatic_haptic.get("dedupe") == "one_per_motion_event_id"
+                and automatic_haptic.get("max_start_latency_ms") == 120,
+                "AI Studio full restore requires the event-start-guarded V1.3 haptic contract",
+            )
+        else:
+            require(
+                motion_contract.get("contract_revision") == "EMPTY_HOME_MOTION_V2_2_RIPPLE_HAPTIC_AMENDMENT_01"
+                and ripple.get("count") == 3
+                and ripple.get("duration_ms") == 3600
+                and len(ripple.get("wave_layers", [])) == 3,
+                "Empty Home app-scope exception requires the exact approved three-wave 3.6s motion contract",
+            )
+            require(
+                layer_contract.get("contract_revision") == "EMPTY_HOME_LAYERS_V2_2_RIPPLE_HAPTIC_AMENDMENT_01"
+                and layer_contract.get("rules", {}).get("ripple_group_count") == 1,
+                "Empty Home app-scope exception requires the one-group layer contract",
+            )
+            require(
+                haptic_contract.get("contract_revision") == "EMPTY_HOME_HAPTIC_V1_1_APPROVED_BOBBER_EVENT"
+                and automatic_haptic.get("enabled") is True
+                and automatic_haptic.get("trigger") == "periodic_bobber_ripple_burst_start",
+                "Empty Home app-scope exception requires the approved event-gated haptic contract",
+            )
         if is_exact_full_restore_scope:
             print("AISTUDIO_FULL_PAGE_RESTORE_SCOPE_EXCEPTION=PASS exact_Main_task_contract_and_app_file_set")
         else:
