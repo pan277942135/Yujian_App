@@ -1,6 +1,3 @@
-Warning: truncated output (original token count: 24839)
-Total output lines: 1954
-
 package com.yujian.ai.ui.screens
 
 import com.yujian.ai.BuildConfig
@@ -744,7 +741,301 @@ fun RecognitionResultScreen(
                                 !revealAlreadyPlayed && onClaimReveal(handoff.key)
                             revealStartAllowed.value = canAnimate
                             val eligible = handoff.eligibility == RecognitionRevealEligibility.FULL_REVEAL ||
-                                handoff.eligibility == RecognitionRevealEligibility.TI…4839 tokens truncated…tType, resultFrame.geometryVersion,
+                                handoff.eligibility == RecognitionRevealEligibility.TITLE_FADE_ONLY
+                            if (canAnimate) {
+                                revealElapsedState.value = 0L
+                                Log.i(
+                                    "RecognitionReveal",
+                                    "RESULT_FIRST_PRESENTED session=${handoff.key.recognitionSessionId} attempt=${handoff.key.recognitionAttemptId} image=${handoff.imageId} photoSha256=${handoff.photoSourceIdentity.substringAfterLast("sha256=")} uptimeMs=$presentedAtMs geometryReady=true hero=${heroSnapshot?.boundsInWindow} crop=${heroSnapshot?.cropRect} root=${rootBounds}",
+                                )
+                            } else {
+                                revealElapsedState.value = RecognitionRevealClock.TOTAL_DURATION_MS
+                                val reason = when {
+                                    !sameHandoff -> "HANDOFF_CHANGED_BEFORE_FIRST_FRAME"
+                                    revealAlreadyPlayed -> "ALREADY_PLAYED"
+                                    !eligible -> "INELIGIBLE"
+                                    revealMotionPolicy.reduceMotion -> "REDUCE_MOTION"
+                                    !revealStartReady -> "FIRST_FRAME_GEOMETRY_NOT_READY"
+                                    else -> "PLAYBACK_ALREADY_CLAIMED"
+                                }
+                                Log.i(
+                                    "RecognitionReveal",
+                                    "RESULT_FIRST_PRESENTED session=${handoff.key.recognitionSessionId} attempt=${handoff.key.recognitionAttemptId} image=${handoff.imageId} uptimeMs=$presentedAtMs rr09Started=false reason=$reason",
+                                )
+                                latestRevealFinished.value.invoke(handoff.key)
+                            }
+                        }
+                    }
+                }
+            }
+        }.onGloballyPositioned { coordinates ->
+            val bounds = coordinates.boundsInWindow()
+            rootBounds = RecognitionRevealWindowRect(bounds.left, bounds.top, bounds.right, bounds.bottom)
+        },
+    ) {
+        BgContentSurface()
+        Column(Modifier.fillMaxSize()) {
+            YuJianBackCenterTitleTopBar(title = "识别结果", onBack = { requestExit(PendingExitAction.BACK) }, backEnabled = !saving && !saveRequested)
+            Column(
+                Modifier.weight(1f)
+                    .widthIn(max = RecognitionResultGeometryResolver.MAX_CONTENT_WIDTH_DP.dp)
+                    .fillMaxWidth()
+                    .align(Alignment.CenterHorizontally)
+                    .padding(start = safeInsets.start, end = safeInsets.end)
+                    // Result content is allowed to exceed a short viewport and is
+                    // reached by natural scrolling. Compose does not draw an
+                    // always-visible scrollbar for this scroll container.
+                    .verticalScroll(rememberScrollState())
+                    .padding(bottom = 20.dp + safeInsets.bottom),
+                verticalArrangement = Arrangement.spacedBy(0.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Spacer(Modifier.height(8.dp))
+                image?.let {
+                    ResultHeroViewport(
+                        bitmap = it.bitmap.asImageBitmap(),
+                        bbox = bbox,
+                        primaryAmbiguous = primaryFishAmbiguous,
+                        widthDp = geometry.heroWidthDp,
+                        heightDp = geometry.heroHeightDp,
+                        evidenceFirst = uiState == RecognitionUiState.ERROR_NO_FISH ||
+                            uiState == RecognitionUiState.ERROR_IMAGE_QUALITY,
+                        revealFrameState = revealFrameState,
+                        sharedPhotoGeometryReady = photoTransitionGeometry != null && revealPresentationReady,
+                        holdPhotoUntilReady = heroSnapshot?.renderReady == false,
+                        onHeroSnapshot = { bounds, cropRect, ready ->
+                            heroSnapshot = RecognitionRevealHeroSnapshot(bounds, cropRect, ready)
+                        },
+                    )
+                }
+                Spacer(Modifier.height(12.dp))
+                val sideMargin = geometry.horizontalMarginDp.dp
+                when (uiState) {
+                    RecognitionUiState.RESULT_HIGH -> {
+                        SpeciesIdentityRow(
+                            speciesName = selectedName,
+                            scientificName = selectedScientificName,
+                            sideMargin = sideMargin,
+                            widthDp = geometry.heroWidthDp,
+                            enabled = !saveBusy,
+                            revealFrameState = revealFrameState,
+                            onTitleBounds = { revealTitleBounds = it },
+                            onChange = { openSpeciesSelector() },
+                        )
+                        Spacer(Modifier.height(8.dp))
+                        ResultMetadataStrip(
+                            length = lengthText,
+                            weight = weightText,
+                            location = locationText,
+                            resolvingLocation = resolvingLocation,
+                            modifier = Modifier.fillMaxWidth().padding(horizontal = sideMargin),
+                            accessibilityFontScale = adaptiveProfile.accessibilityFontScale,
+                            enabled = !saveBusy,
+                            onField = { editField = it },
+                        )
+                        Spacer(Modifier.height(8.dp))
+                        ResultMemoryNote(
+                            value = storyText,
+                            onValueChange = { storyText = it.takeUnicodeCodePoints(300) },
+                            modifier = Modifier.fillMaxWidth().padding(horizontal = sideMargin),
+                            enabled = !saveBusy,
+                            accessibilityFontScale = adaptiveProfile.accessibilityFontScale,
+                        )
+                        Spacer(Modifier.height(16.dp))
+                        ResultInlineError(
+                            safeInlineErrorMessage,
+                            sideMargin,
+                            actionLabel = inlineErrorActionLabel,
+                            onAction = inlineErrorAction,
+                            enabled = !saveBusy,
+                        )
+                        ResultDualActions(
+                            useResultSurfaceActions = true,
+                            saving = saveBusy,
+                            loadingDestination = activeLoadingDestination,
+                            accessibilityFontScale = adaptiveProfile.accessibilityFontScale,
+                            compactLayout = compactResultActions,
+                            sideMargin = if (compactResultActions) 16.dp else 24.dp,
+                            onContinue = { save(RecognitionSaveDestination.MEMORY) },
+                            onSave = { save(RecognitionSaveDestination.HOME) },
+                        )
+                    }
+                    RecognitionUiState.RESULT_MEDIUM -> {
+                        ResultInformationGlass(
+                            modifier = Modifier.fillMaxWidth().padding(horizontal = sideMargin),
+                        ) {
+                            Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                                Text(
+                                    "帮我确认一下，这条鱼更像哪一种？",
+                                    color = DeepInk,
+                                    fontSize = 20.sp,
+                                    lineHeight = 28.sp,
+                                    fontWeight = FontWeight.Medium,
+                                    maxLines = if (adaptiveProfile.accessibilityFontScale || geometry.heroWidthDp <= 320) 2 else 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                )
+                                CandidateRow(
+                                    candidates = candidates,
+                                    selectedKey = selectedKey,
+                                    widthDp = geometry.heroWidthDp,
+                                    accessibilityFontScale = candidateFontScale,
+                                    saving = saveBusy,
+                                    speciesImages = speciesImages,
+                                    onSelect = { candidate -> selectedKey = candidate.speciesKey; selectedName = candidate.speciesName },
+                                )
+                                YuJianTextAction(
+                                    text = "都不是？选择其他鱼种",
+                                    onClick = { openSpeciesSelector() },
+                                    role = YuJianTextActionRole.MUTED,
+                                    enabled = !saveBusy,
+                                    showChevron = true,
+                                )
+                            }
+                        }
+                        if (selectedKey.isNotBlank()) {
+                            Spacer(Modifier.height(12.dp))
+                            SpeciesIdentityRow(
+                                speciesName = selectedName,
+                                sideMargin = sideMargin,
+                                widthDp = geometry.heroWidthDp,
+                                scientificName = selectedScientificName,
+                                enabled = !saveBusy,
+                                onChange = { openSpeciesSelector() },
+                            )
+                            Spacer(Modifier.height(8.dp))
+                            ResultMetadataStrip(lengthText, weightText, locationText, resolvingLocation, Modifier.fillMaxWidth().padding(horizontal = sideMargin), accessibilityFontScale = adaptiveProfile.accessibilityFontScale, enabled = !saveBusy) { editField = it }
+                            Spacer(Modifier.height(12.dp))
+                            ResultMemoryNote(storyText, { storyText = it.takeUnicodeCodePoints(300) }, Modifier.fillMaxWidth().padding(horizontal = sideMargin), enabled = !saveBusy, accessibilityFontScale = adaptiveProfile.accessibilityFontScale)
+                            Spacer(Modifier.height(16.dp))
+                            ResultInlineError(
+                                safeInlineErrorMessage,
+                                sideMargin,
+                                actionLabel = inlineErrorActionLabel,
+                                onAction = inlineErrorAction,
+                                enabled = !saveBusy,
+                            )
+                            ResultDualActions(
+                                saving = saveBusy,
+                                loadingDestination = activeLoadingDestination,
+                                accessibilityFontScale = adaptiveProfile.accessibilityFontScale,
+                                compactLayout = compactResultActions,
+                                sideMargin = if (compactResultActions) 16.dp else 24.dp,
+                                onContinue = { save(RecognitionSaveDestination.MEMORY) },
+                                onSave = { save(RecognitionSaveDestination.HOME) },
+                            )
+                        }
+                    }
+                    RecognitionUiState.RESULT_LOW -> {
+                        Column(Modifier.fillMaxWidth().padding(horizontal = sideMargin), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                            Text("无法确认是什么鱼", color = DeepInk, fontSize = 26.sp, lineHeight = 34.sp, fontWeight = FontWeight.SemiBold)
+                            if (selectedKey.isBlank()) {
+                                Row(horizontalArrangement = Arrangement.spacedBy(if (compactResultActions) 8.dp else 12.dp)) {
+                                    YuJianPrimaryButton(
+                                        text = "手动选择鱼种", onClick = { openSpeciesSelector() },
+                                        modifier = Modifier.weight(1f),
+                                        enabled = !saveBusy,
+                                        variant = YuJianActionButtonVariant.RESULT_SAVE,
+                                        leadingIcon = { Icon(Icons.Rounded.SetMeal, contentDescription = null, modifier = Modifier.size(if (compactResultActions) 16.dp else 18.dp)) },
+                                        contentPadding = if (compactResultActions) PaddingValues(horizontal = 8.dp) else PaddingValues(horizontal = 12.dp),
+                                        leadingIconSpacing = 4.dp,
+                                    )
+                                    YuJianPrimaryButton(
+                                        text = "重新拍摄", onClick = { requestExit(PendingExitAction.RETAKE) },
+                                        modifier = Modifier.weight(1f),
+                                        enabled = !saveBusy,
+                                        variant = YuJianActionButtonVariant.RESULT_CONTINUE,
+                                        leadingIcon = { Icon(Icons.Rounded.PhotoCamera, contentDescription = null, modifier = Modifier.size(if (compactResultActions) 16.dp else 18.dp)) },
+                                        contentPadding = if (compactResultActions) PaddingValues(horizontal = 8.dp) else PaddingValues(horizontal = 12.dp),
+                                        leadingIconSpacing = 4.dp,
+                                    )
+                                }
+                            } else {
+                                SpeciesIdentityRow(
+                                    speciesName = selectedName,
+                                    sideMargin = sideMargin,
+                                    widthDp = geometry.heroWidthDp,
+                                    scientificName = selectedScientificName,
+                                    enabled = !saveBusy,
+                                    onChange = { openSpeciesSelector() },
+                                )
+                                ResultMetadataStrip(lengthText, weightText, locationText, resolvingLocation, Modifier.fillMaxWidth(), accessibilityFontScale = adaptiveProfile.accessibilityFontScale, enabled = !saveBusy) { editField = it }
+                                ResultMemoryNote(storyText, { storyText = it.takeUnicodeCodePoints(300) }, Modifier.fillMaxWidth(), enabled = !saveBusy, accessibilityFontScale = adaptiveProfile.accessibilityFontScale)
+                                ResultInlineError(
+                                    safeInlineErrorMessage,
+                                    0.dp,
+                                    actionLabel = inlineErrorActionLabel,
+                                    onAction = inlineErrorAction,
+                                    enabled = !saveBusy,
+                                )
+                                ResultDualActions(
+                                    saving = saveBusy, sideMargin = 0.dp,
+                                    loadingDestination = activeLoadingDestination,
+                                    accessibilityFontScale = adaptiveProfile.accessibilityFontScale,
+                                    compactLayout = compactResultActions,
+                                    onContinue = { save(RecognitionSaveDestination.MEMORY) },
+                                    onSave = { save(RecognitionSaveDestination.HOME) },
+                                )
+                            }
+                        }
+                    }
+                    else -> Unit
+                }
+                if (BuildConfig.DEBUG) TextButton(
+                    onClick = { scope.launch { RecognitionDiagnosticExport.share(context) } },
+                    modifier = Modifier.align(Alignment.CenterHorizontally),
+                ) { Text("导出识别诊断日志") }
+                Spacer(Modifier.height(20.dp))
+            }
+        }
+        val resultPhoto = image?.bitmap
+        val hostType = when (revealFrameState.value.phase) {
+            RecognitionRevealPhase.RESIDUE_SETTLE, RecognitionRevealPhase.COMPLETE -> WaterLightHost.RESIDUE
+            else -> WaterLightHost.HANDOFF
+        }
+        val hostBounds = if (hostType == WaterLightHost.RESIDUE) photoTransitionGeometry?.heroPhotoClip
+            else photoTransitionGeometry?.processingPhotoClip
+        val geometryVersion = photoTransitionGeometry?.heroSourceTransform?.let { transform ->
+            val base = WaterLightGeometryVersion.of(transform)
+            hostBounds?.let { WaterLightGeometryVersion.withHostBounds(base, it.left, it.top, it.right, it.bottom) }
+                ?: base
+        } ?: 0L
+        val resultFrame = WaterLightFrame(
+            sessionId = presentedHandoff?.key?.recognitionSessionId.orEmpty(),
+            photoSha256 = image?.photoSha256,
+            elapsedMs = revealFrameState.value.elapsedMs.coerceAtLeast(0L),
+            opticalReferenceElapsedMs = (2800L + revealFrameState.value.elapsedMs).coerceAtLeast(0L),
+            phase = RecognitionPhase.RESULT,
+            completion = (revealFrameState.value.elapsedMs / 850f).coerceIn(0f, 1f),
+            reducedMotion = revealMotionPolicy.reduceMotion,
+            geometryVersion = geometryVersion,
+            attemptId = presentedHandoff?.key?.recognitionAttemptId.orEmpty(),
+            imageId = image?.imageId.orEmpty(),
+            photoContentVersion = resultPhoto?.generationId?.toLong() ?: 0L,
+        )
+        val resultWaterEngine = remember(presentedHandoff?.key, image?.imageId) { UnifiedWaterLightEngine() }
+        resultWaterEngine.activate(resultFrame)
+        DisposableEffect(resultWaterEngine) { onDispose { resultWaterEngine.release() } }
+        val resultHost = remember(resultWaterEngine, hostType) {
+            WaterLightHostBinding(hostType, WaterLightMaterialProfile.forHost(hostType), resultWaterEngine)
+        }
+        val activeEnergyCurve = when (revealFrameState.value.phase) {
+            RecognitionRevealPhase.PHOTO_CONTINUITY,
+            RecognitionRevealPhase.ORB_RETURN -> revealGeometry?.orbReturnPathLocal
+            RecognitionRevealPhase.ORB_TO_NAME -> revealGeometry?.orbToGlyphPathLocal
+            RecognitionRevealPhase.SPECIES_NAME_REVEAL -> null
+            RecognitionRevealPhase.RESIDUE_SETTLE -> revealGeometry?.glyphResiduePathLocal
+            RecognitionRevealPhase.COMPLETE -> null
+        }
+        val resultPathGeometry = activeEnergyCurve?.let { curve ->
+            WaterLightPathGeometry(
+                start = WaterLightPathPoint(curve.start.x, curve.start.y),
+                control1 = WaterLightPathPoint(curve.control1.x, curve.control1.y),
+                control2 = WaterLightPathPoint(curve.control2.x, curve.control2.y),
+                end = WaterLightPathPoint(curve.end.x, curve.end.y),
+            )
+        }
+        if (hostBounds != null && resultHost.accepts(resultFrame, WaterLightHostGeometry(
+                hostType, resultFrame.geometryVersion,
                 hostBounds.left, hostBounds.top, hostBounds.right, hostBounds.bottom,
             ))) RecognitionRevealOpticalOverlay(
             modifier = Modifier.fillMaxSize(),
