@@ -996,7 +996,7 @@ fun IdentifyScreen(
                     .alpha(if (captureHandoffActive) 0f else 1f),
                 contentAlignment = Alignment.Center,
             ) {
-                AIOrbCore(state = AIOrbVisualState.CAPTURE_BUTTON_IDLE, 
+                AIOrbCore(state = AIOrbVisualState.CAPTURE_BUTTON_IDLE,
                     onClick = {
                         if (shutterClickElapsed == null) scope.launch {
                             val pressedAt = android.os.SystemClock.uptimeMillis()

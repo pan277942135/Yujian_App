@@ -2,17 +2,32 @@ package com.yujian.ai.ui.recognition
 
 import android.content.Context
 import android.graphics.Bitmap
-import android.graphics.PixelFormat
+import android.graphics.Outline
+import android.graphics.SurfaceTexture
+import android.opengl.EGL14
+import android.opengl.EGLConfig
+import android.opengl.EGLContext
+import android.opengl.EGLDisplay
+import android.opengl.EGLSurface
 import android.opengl.GLES20
-import android.opengl.GLSurfaceView
 import android.opengl.GLUtils
+import android.os.Handler
+import android.os.HandlerThread
 import android.util.Log
+import android.view.Surface
+import android.view.TextureView
 import android.view.View
+import android.view.ViewOutlineProvider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.size
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
@@ -20,23 +35,25 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.yujian.ai.ai.RecognitionPhase
 import com.yujian.ai.ui.identify.DisplayRect
 import com.yujian.ai.ui.identify.RecognitionImageTransform
+import com.yujian.ai.ui.waterlight.core.WaterLightFrame
+import com.yujian.ai.ui.waterlight.core.WaterLightMaterialProfile
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicReference
-import javax.microedition.khronos.egl.EGLConfig
-import javax.microedition.khronos.opengles.GL10
+import kotlin.math.roundToInt
 
 private const val SOURCE_SPEED = 1f
 private const val PERIMETER_LOG_TAG = "RecognitionPerimeter"
 private const val NODE_POSITION_FLOATS = RecognitionPerimeterShaderMath.SPARKLE_COUNT * 2
 
 /**
- * Draws a transparent GLES2 perimeter layer over the native PhotoSession image. A lost or
- * unavailable GL surface therefore reveals the same stable Compose photo underneath.
+ * The TextureView renders the actual photo plus perimeter in one surface. Compose keeps the
+ * unchanged photo underneath until the matching GPU frame has been presented.
  */
 @Composable
 internal fun RecognitionPerimeterShaderOverlay(
+    waterLightFrame: WaterLightFrame,
     bitmap: Bitmap,
     photoTransform: RecognitionImageTransform,
     elapsedMs: Long,
@@ -50,12 +67,15 @@ internal fun RecognitionPerimeterShaderOverlay(
     phase: RecognitionPhase,
     reduceMotion: Boolean = false,
     referenceMetrics: RecognitionPerimeterReferenceMetrics? = null,
+    material: WaterLightMaterialProfile = WaterLightMaterialProfile.PERIMETER,
     modifier: Modifier = Modifier,
 ) {
+    if (waterLightFrame.sessionId != recognitionSessionId || waterLightFrame.photoSha256 != photoSha256 ||
+        waterLightFrame.phase != phase) return
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val identity = sessionKey ?: photoTransform
-    val view = remember(context, identity) { RecognitionPerimeterGlSurfaceView(context) }
+    val view = remember(context, identity) { RecognitionPerimeterTextureView(context) }
     val photoRect = photoTransform.photoContentRect
     val mapping = RecognitionPerimeterShaderMath.coordinateScale(
         metrics = referenceMetrics,
@@ -71,9 +91,9 @@ internal fun RecognitionPerimeterShaderOverlay(
     ) {
         RecognitionPerimeterShaderMath.generatePerimeterPath(sourceCssWidth, sourceCssHeight)
     }
-    val shaderElapsedMs = if (reduceMotion) 0L else elapsedMs
+    val shaderElapsedMs = if (waterLightFrame.reducedMotion) 0L else waterLightFrame.elapsedMs
     val timeSec = RecognitionPerimeterShaderMath.sourceTimeSec(shaderElapsedMs, speed = SOURCE_SPEED)
-    val progress = if (reduceMotion) 1f else RecognitionPerimeterShaderMath.linearProgress(opticalReferenceElapsedMs)
+    val progress = if (waterLightFrame.reducedMotion) 1f else RecognitionPerimeterShaderMath.linearProgress(waterLightFrame.opticalReferenceElapsedMs)
     val perimeterOpacity = when {
         !processingClockStarted -> 0f
         opticalReferenceElapsedMs >= 2_800L -> 0f
@@ -85,8 +105,8 @@ internal fun RecognitionPerimeterShaderOverlay(
         timeSec = timeSec,
         activeCoverage = progress,
         pathScale = mapping.pathPxPerCssUnit,
-        photoOffsetX = photoRect.left,
-        photoOffsetY = photoRect.top,
+        photoOffsetX = 0f,
+        photoOffsetY = 0f,
     )
     val positions = FloatArray(NODE_POSITION_FLOATS).also { values ->
         nodes.forEachIndexed { index, node ->
@@ -98,7 +118,12 @@ internal fun RecognitionPerimeterShaderOverlay(
         phase != RecognitionPhase.FAILURE && opticalReferenceElapsedMs < 2_800L
     val frame = PerimeterFrame(
         bitmap = bitmap,
-        photoBounds = photoRect,
+        photoBounds = DisplayRect(0f, 0f, photoRect.width, photoRect.height),
+        imageBounds = DisplayRect(photoTransform.translationX - photoRect.left,
+            photoTransform.translationY - photoRect.top,
+            photoTransform.translationX + photoTransform.drawnWidth - photoRect.left,
+            photoTransform.translationY + photoTransform.drawnHeight - photoRect.top),
+        geometryVersion = waterLightFrame.geometryVersion,
         recognitionSessionId = recognitionSessionId,
         recognitionAttemptId = recognitionAttemptId,
         imageId = imageId,
@@ -107,18 +132,22 @@ internal fun RecognitionPerimeterShaderOverlay(
         opticalReferenceElapsedMs = opticalReferenceElapsedMs.coerceAtLeast(0L),
         timeSec = timeSec,
         progress = progress,
-        perimeterOpacity = perimeterOpacity,
+        perimeterOpacity = perimeterOpacity * material.opacity,
         shaderCoordinateScale = mapping.shaderPxPerSourceUnit,
         pathCoordinateScale = mapping.pathPxPerCssUnit,
         nodePositions = positions,
         coordinateMappingMeasured = mapping.isMeasured,
-        glowSizeSource = 36f * context.resources.displayMetrics.density / mapping.shaderPxPerSourceUnit.coerceAtLeast(.0001f),
+        glowSizeSource = material.glowWidth * context.resources.displayMetrics.density / mapping.shaderPxPerSourceUnit.coerceAtLeast(.0001f),
+        material = material,
         active = active,
     )
 
+    val density = LocalDensity.current
     AndroidView(
         factory = { view },
-        modifier = modifier,
+        modifier = Modifier.offset { IntOffset(photoRect.left.roundToInt(), photoRect.top.roundToInt()) }
+            .size(with(density) { photoRect.width.toDp() }, with(density) { photoRect.height.toDp() })
+            .then(modifier),
         update = { it.submit(frame) },
     )
 
@@ -143,6 +172,8 @@ internal fun RecognitionPerimeterShaderOverlay(
 private data class PerimeterFrame(
     val bitmap: Bitmap,
     val photoBounds: DisplayRect,
+    val imageBounds: DisplayRect,
+    val geometryVersion: Long,
     val recognitionSessionId: String,
     val recognitionAttemptId: String,
     val imageId: String,
@@ -157,97 +188,179 @@ private data class PerimeterFrame(
     val nodePositions: FloatArray,
     val coordinateMappingMeasured: Boolean,
     val glowSizeSource: Float,
+    val material: WaterLightMaterialProfile,
     val active: Boolean,
 )
 
-private class RecognitionPerimeterGlSurfaceView(context: Context) : GLSurfaceView(context) {
-    private val perimeterRenderer = RecognitionPerimeterGlRenderer()
-    private var hostResumed = false
-    private var effectActive = false
-    private var surfaceResumed = false
+private class RecognitionPerimeterTextureView(context: Context) : TextureView(context), TextureView.SurfaceTextureListener {
+    private val worker = HandlerThread("RecognitionPhotoGles").also { it.start() }
+    private val handler = Handler(worker.looper)
+    private val renderer = RecognitionPerimeterGlRenderer()
     private val released = AtomicBoolean(false)
+    private var texture: SurfaceTexture? = null
+    @Volatile private var hostResumed = false
+    @Volatile private var latest: PerimeterFrame? = null
+    private var display: EGLDisplay = EGL14.EGL_NO_DISPLAY
+    private var contextGl: EGLContext = EGL14.EGL_NO_CONTEXT
+    private var surfaceGl: EGLSurface = EGL14.EGL_NO_SURFACE
+    private var surface: Surface? = null
+    private var initialized = false
+    private var shownIdentity: String? = null
+    @Volatile private var surfaceEpoch = 0L
 
     init {
-        setEGLContextClientVersion(2)
-        setEGLConfigChooser(8, 8, 8, 8, 0, 0)
-        holder.setFormat(PixelFormat.TRANSLUCENT)
-        // Keep GLES below Compose content in the host window. The on-top surface
-        // ordering hid the later Compose fish-mask layer on supported devices.
-        setZOrderMediaOverlay(true)
-        setPreserveEGLContextOnPause(false)
-        setRenderer(perimeterRenderer)
-        renderMode = RENDERMODE_WHEN_DIRTY
-        // GLSurfaceView starts resumed by default. Keep its GL thread paused until
-        // the owning Lifecycle reaches RESUMED and syncRenderLifecycle resumes it.
-        onPause()
+        alpha = 0f
+        isOpaque = true
+        clipToOutline = true
+        outlineProvider = object : ViewOutlineProvider() {
+            override fun getOutline(view: View, outline: Outline) {
+                outline.setRoundRect(0, 0, view.width, view.height, 16f * resources.displayMetrics.density)
+            }
+        }
+        surfaceTextureListener = this
         importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
         isFocusable = false
         isClickable = false
-        Log.i(PERIMETER_LOG_TAG, "COMPOSITOR_ORDER=MEDIA_OVERLAY_BELOW_HOST_WINDOW")
+        Log.i(PERIMETER_LOG_TAG, "PHOTO_COMPOSITOR=TEXTURE_VIEW_OPAQUE_PHOTO_PLUS_LIGHT")
     }
 
     fun submit(frame: PerimeterFrame) {
         if (released.get()) return
-        val wasActive = effectActive
-        perimeterRenderer.submit(frame)
-        effectActive = frame.active
-        syncRenderLifecycle()
-        if (surfaceResumed && (frame.active || wasActive)) requestRender()
+        val key = frameKey(frame)
+        if (shownIdentity != key) {
+            alpha = 0f
+            shownIdentity = null
+        }
+        latest = frame
+        render(frame)
     }
 
     fun setHostResumed(resumed: Boolean) {
-        if (released.get()) return
         hostResumed = resumed
-        syncRenderLifecycle()
-    }
-
-    private fun syncRenderLifecycle() {
-        // RENDERMODE_WHEN_DIRTY means the GL thread has no animation clock of its own.
-        // Keep it alive only while the page is foregrounded; a terminal frame is requested
-        // once to restore the unmodified photo, then no further frames are scheduled.
-        val shouldRun = hostResumed && !released.get()
-        if (shouldRun && !surfaceResumed) {
-            surfaceResumed = true
-            onResume()
-            requestRender()
-        } else if (!shouldRun && surfaceResumed) {
-            surfaceResumed = false
-            onPause()
+        if (resumed) latest?.let(::render) else {
+            alpha = 0f
+            shownIdentity = null
+            Log.i(PERIMETER_LOG_TAG, "PHOTO_COMPOSE_FALLBACK=LIFECYCLE_PAUSED")
         }
     }
+
+    private fun render(frame: PerimeterFrame) {
+        if (!hostResumed || released.get() || !isAvailable) return
+        val currentTexture = texture ?: return
+        val epoch = surfaceEpoch
+        val frameIdentity = frameKey(frame)
+        handler.post {
+            if (released.get() || !hostResumed || currentTexture !== texture || epoch != surfaceEpoch ||
+                latest?.let(::frameKey) != frameIdentity) return@post
+            if (!initialized && !initGl(currentTexture)) return@post
+            renderer.submit(frame)
+            renderer.onSurfaceChanged(width.coerceAtLeast(1), height.coerceAtLeast(1))
+            val drawn = renderer.onDrawFrame()
+            val swapped = drawn && EGL14.eglSwapBuffers(display, surfaceGl)
+            Log.i(PERIMETER_LOG_TAG, "PHOTO_GPU_SWAP=${if (swapped) "PASS" else "FAIL"} " +
+                "drawn=$drawn eglError=0x${EGL14.eglGetError().toString(16)} identity=$frameIdentity")
+            if (swapped) {
+                post {
+                    if (!released.get() && hostResumed && isAvailable && epoch == surfaceEpoch &&
+                        currentTexture === texture && latest?.let(::frameKey) == frameIdentity) {
+                        val first = shownIdentity != frameIdentity
+                        shownIdentity = frameIdentity
+                        alpha = 1f
+                        if (first) Log.i(PERIMETER_LOG_TAG, "PHOTO_GPU_FIRST_FRAME=PASS identity=$frameIdentity")
+                        Log.i(PERIMETER_LOG_TAG, "PHOTO_OWNER=GPU identity=$frameIdentity")
+                    }
+                }
+            } else {
+                post { if (epoch == surfaceEpoch && latest?.let(::frameKey) == frameIdentity) alpha = 0f }
+                Log.e(PERIMETER_LOG_TAG, "PHOTO_COMPOSE_FALLBACK=GPU_DRAW_OR_SWAP_FAILED identity=$frameIdentity")
+            }
+        }
+    }
+
+    private fun initGl(surfaceTexture: SurfaceTexture): Boolean {
+        try {
+            display = EGL14.eglGetDisplay(EGL14.EGL_DEFAULT_DISPLAY)
+            if (display == EGL14.EGL_NO_DISPLAY || !EGL14.eglInitialize(display, IntArray(2), 0, IntArray(2), 0)) return failInit("DISPLAY")
+            val configAttrs = intArrayOf(EGL14.EGL_RED_SIZE, 8, EGL14.EGL_GREEN_SIZE, 8,
+                EGL14.EGL_BLUE_SIZE, 8, EGL14.EGL_ALPHA_SIZE, 8,
+                EGL14.EGL_RENDERABLE_TYPE, EGL14.EGL_OPENGL_ES2_BIT, EGL14.EGL_NONE)
+            val configs = arrayOfNulls<EGLConfig>(1)
+            if (!EGL14.eglChooseConfig(display, configAttrs, 0, configs, 0, 1, IntArray(1), 0)) return failInit("CONFIG")
+            val config = configs[0] ?: return failInit("CONFIG_EMPTY")
+            contextGl = EGL14.eglCreateContext(display, config, EGL14.EGL_NO_CONTEXT,
+                intArrayOf(EGL14.EGL_CONTEXT_CLIENT_VERSION, 2, EGL14.EGL_NONE), 0)
+            if (contextGl == EGL14.EGL_NO_CONTEXT) return failInit("CONTEXT")
+            surface = Surface(surfaceTexture)
+            surfaceGl = EGL14.eglCreateWindowSurface(display, config, surface,
+                intArrayOf(EGL14.EGL_NONE), 0)
+            if (surfaceGl == EGL14.EGL_NO_SURFACE || !EGL14.eglMakeCurrent(display, surfaceGl, surfaceGl, contextGl)) return failInit("SURFACE")
+            renderer.onSurfaceCreated()
+            initialized = true
+            Log.i(PERIMETER_LOG_TAG, "PHOTO_GPU_INIT=PASS")
+            return true
+        } catch (error: Throwable) {
+            Log.e(PERIMETER_LOG_TAG, "PHOTO_GPU_INIT=FAIL", error)
+            return failInit(error.javaClass.simpleName)
+        }
+    }
+
+    private fun failInit(reason: String): Boolean {
+        Log.e(PERIMETER_LOG_TAG, "PHOTO_GPU_INIT=FAIL reason=$reason eglError=0x${EGL14.eglGetError().toString(16)}")
+        releaseGl()
+        post { alpha = 0f }
+        return false
+    }
+
+    private fun releaseGl() {
+        renderer.releaseGl(initialized)
+        initialized = false
+        if (display != EGL14.EGL_NO_DISPLAY) {
+            EGL14.eglMakeCurrent(display, EGL14.EGL_NO_SURFACE, EGL14.EGL_NO_SURFACE, EGL14.EGL_NO_CONTEXT)
+            if (surfaceGl != EGL14.EGL_NO_SURFACE) EGL14.eglDestroySurface(display, surfaceGl)
+            if (contextGl != EGL14.EGL_NO_CONTEXT) EGL14.eglDestroyContext(display, contextGl)
+            EGL14.eglTerminate(display)
+        }
+        surface?.release(); surface = null
+        display = EGL14.EGL_NO_DISPLAY
+        surfaceGl = EGL14.EGL_NO_SURFACE
+        contextGl = EGL14.EGL_NO_CONTEXT
+        Log.i(PERIMETER_LOG_TAG, "PHOTO_GPU_RELEASE=PASS")
+    }
+
+    override fun onSurfaceTextureAvailable(surface: SurfaceTexture, width: Int, height: Int) {
+        surfaceEpoch++
+        texture = surface
+        latest?.let(::render)
+    }
+    override fun onSurfaceTextureSizeChanged(surface: SurfaceTexture, width: Int, height: Int) {
+        latest?.let(::render)
+    }
+    override fun onSurfaceTextureDestroyed(surface: SurfaceTexture): Boolean {
+        alpha = 0f
+        surfaceEpoch++
+        shownIdentity = null
+        texture = null
+        handler.post { releaseGl() }
+        return true
+    }
+    override fun onSurfaceTextureUpdated(surface: SurfaceTexture) = Unit
 
     fun release() {
         if (!released.compareAndSet(false, true)) return
-        effectActive = false
-        perimeterRenderer.markReleased()
-        if (surfaceResumed) {
-            surfaceResumed = false
-            onPause()
-        }
-        // EGL destroys the non-preserved context when the surface pauses/detaches; GL
-        // object names are context-owned and are therefore released with that context.
+        alpha = 0f
+        surfaceEpoch++
+        shownIdentity = null
+        latest = null
+        texture = null
+        handler.post { releaseGl(); worker.quitSafely() }
     }
-
-    override fun onAttachedToWindow() {
-        super.onAttachedToWindow()
-        syncRenderLifecycle()
-    }
-
-    override fun onDetachedFromWindow() {
-        if (!released.get()) {
-            effectActive = false
-            if (surfaceResumed) {
-                surfaceResumed = false
-                onPause()
-            }
-        }
-        super.onDetachedFromWindow()
-    }
+    private fun frameKey(frame: PerimeterFrame): String =
+        "${frame.recognitionSessionId}:${frame.recognitionAttemptId}:${frame.imageId}:" +
+            "${frame.photoSha256}:${frame.geometryVersion}"
 }
 
-private class RecognitionPerimeterGlRenderer : GLSurfaceView.Renderer {
+private class RecognitionPerimeterGlRenderer {
     private val frameRef = AtomicReference<PerimeterFrame?>(null)
-    private val releaseRequested = AtomicBoolean(false)
     private var program = 0
     private var surfaceWidth = 1
     private var surfaceHeight = 1
@@ -256,20 +369,17 @@ private class RecognitionPerimeterGlRenderer : GLSurfaceView.Renderer {
     private var positionBuffer = 0
     private var photoTexture = 0
     private var uploadedBitmap: Bitmap? = null
+    private var uploadedIdentity: String? = null
     private val vertices = floatArrayOf(-1f, -1f, 1f, -1f, -1f, 1f, 1f, 1f)
 
     fun submit(frame: PerimeterFrame) {
         frameRef.set(frame)
     }
 
-    fun markReleased() {
-        releaseRequested.set(true)
-        frameRef.set(null)
-    }
-
-    override fun onSurfaceCreated(gl: GL10?, config: EGLConfig?) {
+    fun onSurfaceCreated() {
         firstOpticalFrameLogged = false
         uploadedBitmap = null
+        uploadedIdentity = null
         val frameIdentity = frameRef.get()?.let(::identityLabel).orEmpty()
         Log.i(TAG, "GLES_VERSION=${GLES20.glGetString(GLES20.GL_VERSION)} $frameIdentity")
         Log.i(TAG, "GL_RENDERER=${GLES20.glGetString(GLES20.GL_RENDERER)} $frameIdentity")
@@ -311,15 +421,14 @@ private class RecognitionPerimeterGlRenderer : GLSurfaceView.Renderer {
             Log.e(TAG, "PERIMETER_SHADER_COMPILE=FAIL; transparent photo-safe fallback started_uptime_ms=$shaderStartedAtMs completed_uptime_ms=$shaderFinishedAtMs $frameIdentity")
         }
         GLES20.glDisable(GLES20.GL_DEPTH_TEST)
-        GLES20.glEnable(GLES20.GL_BLEND)
-        GLES20.glBlendFunc(GLES20.GL_ONE, GLES20.GL_ONE_MINUS_SRC_ALPHA)
-        GLES20.glClearColor(0f, 0f, 0f, 0f)
-        Log.i(TAG, "PHOTO_TEXTURE_ROLE=SOURCE_SAMPLING_ONLY; visible photo owned by native Compose Image $frameIdentity")
+        GLES20.glDisable(GLES20.GL_BLEND)
+        GLES20.glClearColor(0f, 0f, 0f, 1f)
+        Log.i(TAG, "PHOTO_TEXTURE_ROLE=OPAQUE_PHOTO_PLUS_PERIMETER; Compose remains fallback $frameIdentity")
         checkGl("surface-created", frameIdentity)
         Log.i(TAG, "PERIMETER_GL_SURFACE_CREATED uptime_ms=${android.os.SystemClock.uptimeMillis()} $frameIdentity")
     }
 
-    override fun onSurfaceChanged(gl: GL10?, width: Int, height: Int) {
+    fun onSurfaceChanged(width: Int, height: Int) {
         surfaceWidth = width.coerceAtLeast(1)
         surfaceHeight = height.coerceAtLeast(1)
         GLES20.glViewport(0, 0, surfaceWidth, surfaceHeight)
@@ -327,39 +436,46 @@ private class RecognitionPerimeterGlRenderer : GLSurfaceView.Renderer {
         frameRef.get()?.let(::logMappingIfChanged)
     }
 
-    override fun onDrawFrame(gl: GL10?) {
-        if (releaseRequested.get()) {
-            deleteGlObjects()
-            return
-        }
+    fun onDrawFrame(): Boolean {
         val frame = frameRef.get()
         if (frame == null) {
-            GLES20.glClearColor(0f, 0f, 0f, 0f)
+            GLES20.glClearColor(0f, 0f, 0f, 1f)
             GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT)
-            return
+            return false
         }
         if (!uploadBitmapIfNeeded(frame)) {
-            GLES20.glClearColor(0f, 0f, 0f, 0f)
+            GLES20.glClearColor(0f, 0f, 0f, 1f)
             GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT)
-            return
+            return false
         }
         logMappingIfChanged(frame)
         GLES20.glViewport(0, 0, surfaceWidth, surfaceHeight)
-        GLES20.glClearColor(0f, 0f, 0f, 0f)
+        GLES20.glClearColor(0f, 0f, 0f, 1f)
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT)
-        if (frame.active && program != 0) {
+        if (program != 0) {
             if (!firstOpticalFrameLogged) {
                 firstOpticalFrameLogged = true
                 Log.i(TAG, "PERIMETER_FIRST_OPTICAL_FRAME processing_elapsed_ms=${frame.elapsedMs} optical_reference_ms=${frame.opticalReferenceElapsedMs} uptime_ms=${android.os.SystemClock.uptimeMillis()} ${identityLabel(frame)}")
             }
-            drawPerimeter(frame)
-        } else {
-            GLES20.glClearColor(0f, 0f, 0f, 0f)
-            GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT)
+            return drawPerimeter(frame)
+        }
+        Log.e(TAG, "PHOTO_GPU_DRAW=FAIL reason=PROGRAM_UNAVAILABLE ${identityLabel(frame)}")
+        return false
+    }
+
+    fun releaseGl(contextCurrent: Boolean) {
+        frameRef.set(null)
+        uploadedBitmap = null
+        uploadedIdentity = null
+        if (contextCurrent) deleteGlObjects() else {
+            positionBuffer = 0
+            photoTexture = 0
+            program = 0
         }
     }
 
-    private fun drawPerimeter(frame: PerimeterFrame) {
+    private fun drawPerimeter(frame: PerimeterFrame): Boolean {
+        val started = android.os.SystemClock.uptimeMillis()
         val p = program
         GLES20.glUseProgram(p)
         GLES20.glActiveTexture(GLES20.GL_TEXTURE0)
@@ -370,7 +486,11 @@ private class RecognitionPerimeterGlRenderer : GLSurfaceView.Renderer {
         GLES20.glUniform4fv(GLES20.glGetUniformLocation(p, "uNodePositions"), 8, frame.nodePositions, 0)
         GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4)
         GLES20.glBindBuffer(GLES20.GL_ARRAY_BUFFER, 0)
-        checkGl("perimeter-draw", identityLabel(frame))
+        val error = GLES20.glGetError()
+        val success = error == GLES20.GL_NO_ERROR
+        Log.i(TAG, "PHOTO_GPU_DRAW=${if (success) "PASS" else "FAIL"} error=0x${error.toString(16)} " +
+            "duration_ms=${android.os.SystemClock.uptimeMillis() - started} ${identityLabel(frame)}")
+        return success
     }
 
     private fun uploadBitmapIfNeeded(frame: PerimeterFrame): Boolean {
@@ -378,7 +498,8 @@ private class RecognitionPerimeterGlRenderer : GLSurfaceView.Renderer {
             Log.e(TAG, "PHOTO_TEXTURE_UPLOAD=FAIL reason=${if (frame.bitmap.isRecycled) "BITMAP_RECYCLED" else "TEXTURE_UNAVAILABLE"} ${identityLabel(frame)}")
             return false
         }
-        if (frame.bitmap === uploadedBitmap) return true
+        val identity = identityLabel(frame) + ":bitmapGeneration=${frame.bitmap.generationId}"
+        if (frame.bitmap === uploadedBitmap && uploadedIdentity == identity) return true
         val uploadStartedAtMs = android.os.SystemClock.uptimeMillis()
         return try {
             GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, photoTexture)
@@ -391,7 +512,8 @@ private class RecognitionPerimeterGlRenderer : GLSurfaceView.Renderer {
                 false
             } else {
                 uploadedBitmap = frame.bitmap
-                Log.i(TAG, "PHOTO_TEXTURE_UPLOAD=PASS size=${frame.bitmap.width}x${frame.bitmap.height} layer=source-sampling-only started_uptime_ms=$uploadStartedAtMs completed_uptime_ms=${android.os.SystemClock.uptimeMillis()} ${identityLabel(frame)}")
+                uploadedIdentity = identity
+                Log.i(TAG, "PHOTO_TEXTURE_UPLOAD=PASS size=${frame.bitmap.width}x${frame.bitmap.height} duration_ms=${android.os.SystemClock.uptimeMillis() - uploadStartedAtMs} ${identityLabel(frame)}")
                 true
             }
         } catch (error: Throwable) {
@@ -409,6 +531,14 @@ private class RecognitionPerimeterGlRenderer : GLSurfaceView.Renderer {
     }
 
     private fun setCommonUniforms(programId: Int, frame: PerimeterFrame) {
+        fun rgb(value: Long): FloatArray = floatArrayOf(
+            ((value shr 16) and 255).toFloat() / 255f,
+            ((value shr 8) and 255).toFloat() / 255f,
+            (value and 255).toFloat() / 255f,
+        )
+        GLES20.glUniform3fv(GLES20.glGetUniformLocation(programId, "uDeepPeacock"), 1, rgb(frame.material.primaryColor), 0)
+        GLES20.glUniform3fv(GLES20.glGetUniformLocation(programId, "uWaterGreen"), 1, rgb(frame.material.secondaryColor), 0)
+        GLES20.glUniform3fv(GLES20.glGetUniformLocation(programId, "uIceWhite"), 1, rgb(frame.material.highlightColor), 0)
         GLES20.glUniform2f(
             GLES20.glGetUniformLocation(programId, "uViewport"),
             surfaceWidth.toFloat(),
@@ -421,6 +551,9 @@ private class RecognitionPerimeterGlRenderer : GLSurfaceView.Renderer {
             frame.photoBounds.width,
             frame.photoBounds.height,
         )
+        GLES20.glUniform4f(GLES20.glGetUniformLocation(programId, "uImageRect"),
+            frame.imageBounds.left, frame.imageBounds.top,
+            frame.imageBounds.width, frame.imageBounds.height)
         GLES20.glUniform1f(
             GLES20.glGetUniformLocation(programId, "uPerimeterOpacity"),
             frame.perimeterOpacity.coerceIn(0f, 1f),
@@ -468,6 +601,7 @@ private class RecognitionPerimeterGlRenderer : GLSurfaceView.Renderer {
         program = 0
         photoTexture = 0
         uploadedBitmap = null
+        uploadedIdentity = null
     }
 
     private fun checkGl(stage: String, identity: String = "") {
@@ -498,6 +632,7 @@ private class RecognitionPerimeterGlRenderer : GLSurfaceView.Renderer {
             uniform sampler2D uPhoto;
             uniform vec2 uViewport;
             uniform vec4 uPhotoBounds;
+            uniform vec4 uImageRect;
             // x=timeSec, y=linear spread progress, z=source shader-unit scale, w=source CSS-unit scale.
             uniform vec4 uMotion;
             // SWOS timeline envelope is applied after the source perimeter math; P7 is exact zero.
@@ -510,9 +645,9 @@ private class RecognitionPerimeterGlRenderer : GLSurfaceView.Renderer {
             const float INTENSITY = 1.50;
             const float MARGIN_RATIO = 0.060;
             const float BLEND_RATIO = 0.75;
-            const vec3 DEEP_PEACOCK = vec3(11.0, 110.0, 105.0) / 255.0;
-            const vec3 WATER_GREEN = vec3(77.0, 208.0, 199.0) / 255.0;
-            const vec3 ICE_WHITE = vec3(221.0, 247.0, 245.0) / 255.0;
+            uniform vec3 uDeepPeacock;
+            uniform vec3 uWaterGreen;
+            uniform vec3 uIceWhite;
 
             float sdRoundedBox(vec2 p, vec2 b, vec4 r) {
                 r.xy = (p.x > 0.0) ? r.xy : r.zw;
@@ -572,7 +707,7 @@ private class RecognitionPerimeterGlRenderer : GLSurfaceView.Renderer {
                     gl_FragColor = vec4(0.0);
                     return;
                 }
-                vec2 photoUv = (pTop - uPhotoBounds.xy) / uPhotoBounds.zw;
+                vec2 photoUv = (pTop - uImageRect.xy) / max(uImageRect.zw, vec2(1.0));
                 vec3 base = texture2D(uPhoto, photoUv).rgb;
 
                 // The source shader uses gl_FragCoord with a bottom-left origin and its
@@ -609,8 +744,8 @@ private class RecognitionPerimeterGlRenderer : GLSurfaceView.Renderer {
 
                 float filamentAngleT = (perimAngle + 3.14159) / 6.28318;
                 float filamentGoldBias = smoothstep(0.18, 0.82, sin(filamentAngleT * 3.14159 + 0.7));
-                vec3 perimeterColor = mix(WATER_GREEN, DEEP_PEACOCK, filamentGoldBias);
-                perimeterColor = mix(perimeterColor, WATER_GREEN, sin(filamentAngleT * 6.28 + t * 0.5) * 0.2 + 0.2);
+                vec3 perimeterColor = mix(uWaterGreen, uDeepPeacock, filamentGoldBias);
+                perimeterColor = mix(perimeterColor, uWaterGreen, sin(filamentAngleT * 6.28 + t * 0.5) * 0.2 + 0.2);
 
                 float perimContrib = perimeterAura * BLEND_RATIO;
                 float totalLight = perimContrib * INTENSITY;
@@ -618,7 +753,7 @@ private class RecognitionPerimeterGlRenderer : GLSurfaceView.Renderer {
                 float totalWeight = max(0.001, perimContrib);
                 vec3 finalRgb = (perimeterColor * perimContrib) / totalWeight;
                 float coreSpark = smoothstep(0.85, 1.75, totalLight);
-                finalRgb = mix(finalRgb, ICE_WHITE, coreSpark * 0.48);
+                finalRgb = mix(finalRgb, uIceWhite, coreSpark * 0.48);
                 finalRgb *= (1.0 + coreSpark * 0.3);
 
                 // First source stage: WebGL SRC_ALPHA / ONE_MINUS_SRC_ALPHA over transparent.
@@ -644,8 +779,8 @@ private class RecognitionPerimeterGlRenderer : GLSurfaceView.Renderer {
                             float pPos = mod(fi / 16.0 + uMotion.x * nodeSpeed, 1.0);
                             float pulse = 0.65 + 0.35 * sin(uMotion.x * 3.4 + seededPhase(fi));
                             bool isBright = pPos > 0.45;
-                            vec3 glowColor = isBright ? WATER_GREEN : DEEP_PEACOCK;
-                            vec3 coreColor = isBright ? ICE_WHITE : WATER_GREEN;
+                            vec3 glowColor = isBright ? uWaterGreen : uDeepPeacock;
+                            vec3 coreColor = isBright ? uIceWhite : uWaterGreen;
                             float nodeSize = (2.2 + mod(fi, 4.0) * 0.7) * uMotion.w;
 
                             float haloRadius = nodeSize * 3.2 * pulse;
@@ -676,12 +811,9 @@ private class RecognitionPerimeterGlRenderer : GLSurfaceView.Renderer {
                     overlayBlend(perimeterComposite, accentColor),
                     effectiveAccentAlpha
                 );
-                // A transparent surface cannot apply a darkening Overlay blend to
-                // the Compose-owned photo. Emit only positive light deltas; otherwise
-                // source-over alpha attenuates the original photo into a dark patch.
+                // The same opaque output owns the photo and its positive optical delta.
                 outputColor = max(outputColor, base);
-                vec3 outputSource = (outputColor - base * (1.0 - outputAlpha)) / max(outputAlpha, 0.0001);
-                gl_FragColor = vec4(clamp(outputSource, 0.0, 1.0) * outputAlpha, outputAlpha);
+                gl_FragColor = vec4(clamp(outputColor, 0.0, 1.0), 1.0);
             }
         """
 

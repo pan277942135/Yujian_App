@@ -7,6 +7,7 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.graphics.Matrix
+import android.graphics.Rect
 import android.os.SystemClock
 import android.util.Log
 import com.yujian.ai.ai.FishDetectionQualityGate
@@ -19,6 +20,7 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.FloatBuffer
 import java.nio.LongBuffer
+import java.security.MessageDigest
 import java.util.ArrayDeque
 import java.util.UUID
 import kotlin.math.exp
@@ -53,9 +55,12 @@ class SlimSamSegmenter(
 
     private var visionSession: OrtSession? = null
     private var decoderSession: OrtSession? = null
+    private var visionModelSha256: String? = null
+    private var decoderModelSha256: String? = null
 
     private data class CachedVisionEmbedding(
         val bitmapId: Int,
+        val photoSha256: String,
         val width: Int,
         val height: Int,
         val scale: Float,
@@ -75,6 +80,7 @@ class SlimSamSegmenter(
         val started = SystemClock.uptimeMillis()
         Log.i(TAG, "SLIMSAM_MODEL_LOAD_START model=vision")
         val bytes = readAssetBytes(VISION_ENCODER_MODEL)
+        visionModelSha256 = sha256(bytes)
         return environment.createSession(bytes, sessionOptions).also {
             visionSession = it
             Log.i(TAG, "SLIMSAM_MODEL_LOAD_END model=vision bytes=${bytes.size} duration_ms=${SystemClock.uptimeMillis() - started}")
@@ -87,13 +93,21 @@ class SlimSamSegmenter(
         val started = SystemClock.uptimeMillis()
         Log.i(TAG, "SLIMSAM_MODEL_LOAD_START model=decoder")
         val bytes = readAssetBytes(MASK_DECODER_MODEL)
+        decoderModelSha256 = sha256(bytes)
         return environment.createSession(bytes, sessionOptions).also {
             decoderSession = it
             Log.i(TAG, "SLIMSAM_MODEL_LOAD_END model=decoder bytes=${bytes.size} duration_ms=${SystemClock.uptimeMillis() - started}")
         }
     }
 
-    suspend fun segment(source: Bitmap, detectorBbox: NormalizedFishBox): FishSubjectResult =
+    suspend fun segment(
+        source: Bitmap,
+        detectorBbox: NormalizedFishBox,
+        sessionId: String = "",
+        attemptId: String = "",
+        imageId: String = "",
+        photoSha256: String = "",
+    ): FishSubjectResult =
         withContext(Dispatchers.Default) {
             val started = System.nanoTime()
             val origW = source.width
@@ -122,7 +136,7 @@ class SlimSamSegmenter(
                 // 2. Ensure Vision Encoder embeddings for this photo are computed
                 val encoderStarted = SystemClock.uptimeMillis()
                 Log.i(TAG, "SLIMSAM_ENCODER_START uptime_ms=$encoderStarted")
-                val embedding = getOrComputeImageEmbedding(source)
+                val embedding = getOrComputeImageEmbedding(source, photoSha256)
                 Log.i(TAG, "SLIMSAM_ENCODER_END duration_ms=${SystemClock.uptimeMillis() - encoderStarted}")
 
                 // 3. Generate prompts from detector BBOX
@@ -141,6 +155,21 @@ class SlimSamSegmenter(
                 Log.i(TAG, "SLIMSAM_DECODER_START uptime_ms=$decoderStarted")
                 val (bestMask256, iouScore) = runMaskDecoder(embedding, points)
                 Log.i(TAG, "SLIMSAM_DECODER_END duration_ms=${SystemClock.uptimeMillis() - decoderStarted} iou=$iouScore")
+
+                val gridToPhoto = Matrix().apply { setScale(4f / embedding.scale, 4f / embedding.scale) }
+                val geometry = MaskGeometryMetadata(
+                    sessionId = sessionId, attemptId = attemptId, imageId = imageId, photoSha256 = photoSha256,
+                    canonicalWidth = origW, canonicalHeight = origH,
+                    roiPx = Rect(roiX1, roiY1, roiX2, roiY2), modelInputSize = 1024,
+                    resizedWidth = embedding.targetW, resizedHeight = embedding.targetH,
+                    padLeft = 0, padTop = 0,
+                    padRight = 1024 - embedding.targetW, padBottom = 1024 - embedding.targetH,
+                    maskGridWidth = 256, maskGridHeight = 256,
+                    modelToPhotoTransform = gridToPhoto,
+                    pixelCenterConvention = "TOP_LEFT_ZERO_BASED", threshold = FishSubjectQualityGate.MASK_THRESHOLD,
+                    contourVersion = "GRID_CONTOUR_V1",
+                    modelSha256 = "vision:${requireNotNull(visionModelSha256)};decoder:${requireNotNull(decoderModelSha256)}",
+                )
 
                 // 5. Bilinearly sample 256x256 logits into the ROI mask
                 val rawConfidence = FloatArray(expectedMaskSize)
@@ -217,6 +246,7 @@ class SlimSamSegmenter(
                     maskAreaRatio = areaRatio,
                     quality = quality,
                     maskIouScore = iouScore.takeIf { it.isFinite() },
+                    geometry = geometry,
                 )
             } catch (error: Throwable) {
                 Log.e(TAG, "SlimSAM segmentation failure", error)
@@ -231,10 +261,10 @@ class SlimSamSegmenter(
             }
         }
 
-    private fun getOrComputeImageEmbedding(source: Bitmap): CachedVisionEmbedding {
+    private fun getOrComputeImageEmbedding(source: Bitmap, photoSha256: String): CachedVisionEmbedding {
         val bitmapId = source.generationId
         val existing = cachedEmbedding
-        if (existing != null && existing.bitmapId == bitmapId &&
+        if (existing != null && existing.bitmapId == bitmapId && existing.photoSha256 == photoSha256 &&
             existing.width == source.width && existing.height == source.height
         ) {
             existing.imageEmbeddings.rewind()
@@ -345,6 +375,7 @@ class SlimSamSegmenter(
 
         val cached = CachedVisionEmbedding(
             bitmapId = bitmapId,
+            photoSha256 = photoSha256,
             width = origW,
             height = origH,
             scale = scale,
@@ -549,6 +580,9 @@ class SlimSamSegmenter(
             ByteArrayOutputStream().use { out -> input.copyTo(out); out.toByteArray() }
         }
 
+    private fun sha256(bytes: ByteArray): String = MessageDigest.getInstance("SHA-256")
+        .digest(bytes).joinToString("") { "%02x".format(it) }
+
     private fun failed(
         code: String,
         started: Long,
@@ -579,6 +613,8 @@ class SlimSamSegmenter(
         visionSession = null
         decoderSession?.close()
         decoderSession = null
+        visionModelSha256 = null
+        decoderModelSha256 = null
         cachedEmbedding = null
     }
 

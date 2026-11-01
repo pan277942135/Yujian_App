@@ -2,6 +2,7 @@ package com.yujian.ai.ui.home
 
 import com.yujian.ai.ui.designsystem.components.aiorb.AIOrbCore
 import com.yujian.ai.ui.designsystem.components.aiorb.AIOrbVisualState
+import com.yujian.ai.ui.designsystem.components.aiorb.AIOrbCaptureVisualAssets
 
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
@@ -52,7 +53,8 @@ fun CaptureEntryButtonHandoff() {
         Box(Modifier.offset { IntOffset((center.x - half).roundToInt(), (center.y - half).roundToInt()) }
             .size(diameter + 28.dp), contentAlignment = Alignment.Center) {
             AIOrbCore(state = AIOrbVisualState.CAPTURE_BUTTON_IDLE, onClick = {}, visualSize = diameter, touchTargetSize = diameter,
-                frozenVisual = true, cameraReady = true, onCaptureHaptic = {})
+                frozenVisual = true, frozenVisualResource = AIOrbCaptureVisualAssets.HOME_IDLE,
+                cameraReady = true, onCaptureHaptic = {})
         }
     }
 }

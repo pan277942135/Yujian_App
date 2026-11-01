@@ -28,6 +28,7 @@ import androidx.compose.ui.unit.dp
 import com.yujian.ai.ai.NormalizedFishBox
 import com.yujian.ai.ai.RecognitionPhase
 import com.yujian.ai.ui.identify.RecognitionImageTransform
+import com.yujian.ai.ui.waterlight.core.WaterLightFrame
 
 internal fun recognitionMaskContourEnabled(
     phase: RecognitionPhase,
@@ -91,6 +92,24 @@ internal fun recognitionMaskContourRevealProgress(
 
 internal const val FISH_FOCUS_A_PROMOTION_DELAY_MS = 420L
 
+/** Reveal every closed island in the trusted mask, including fins separated by the raster grid. */
+internal fun revealedRecognitionContour(path: AndroidPath, progress: Float): AndroidPath {
+    val out = AndroidPath()
+    val fraction = progress.coerceIn(0f, 1f)
+    if (fraction <= 0f) return out
+    val measure = AndroidPathMeasure(path, false)
+    var total = 0f
+    do { total += measure.length } while (measure.nextContour())
+    var remaining = total * fraction
+    measure.setPath(path, false)
+    do {
+        val length = measure.length
+        if (remaining > 0f && length > 0f) measure.getSegment(0f, remaining.coerceAtMost(length), out, true)
+        remaining -= length
+    } while (remaining > 0f && measure.nextContour())
+    return out
+}
+
 data class RecognitionContourSegment(
     val startX: Float,
     val startY: Float,
@@ -151,13 +170,18 @@ fun RecognitionFishFocus(
     reduceMotion: Boolean = false,
     lowPerformance: Boolean = false,
     trustedMask: Boolean = false,
+    waterLightFrame: WaterLightFrame? = null,
+    contourPhotoSpace: Boolean = false,
 ) {
+    if (waterLightFrame != null && waterLightFrame.phase != phase) return
     if (!recognitionMaskContourEnabled(phase, trustedMask) || focusBox == null) return
     if (subjectBitmap == null || subjectBox == null || contour.isEmpty()) return
 
-    val cachedContourPath = remember(transform, subjectBox, contour) {
+    val cachedContourPath = remember(transform, subjectBox, contour, contourPhotoSpace) {
         if (subjectBox != null && contour.isNotEmpty()) {
-            buildRecognitionContourPath(transform, subjectBox, contour)
+            buildRecognitionContourPath(transform,
+                if (contourPhotoSpace) NormalizedFishBox(0f, 0f, 1f, 1f) else subjectBox,
+                contour)
         } else {
             null
         }
@@ -195,10 +219,7 @@ fun RecognitionFishFocus(
             val haloWidth = (fishAxis * .05f).coerceIn(12f, 28f)
             val growthProgress = maskRevealProgress.coerceIn(0f, 1f)
             val pathToDraw = if (growthProgress >= .999f) realContour else if (growthProgress <= .001f) null else {
-                val androidPath = AndroidPath()
-                val measure = AndroidPathMeasure(realContour.asAndroidPath(), false)
-                measure.getSegment(0f, measure.length * growthProgress, androidPath, true)
-                androidPath.asComposePath()
+                revealedRecognitionContour(realContour.asAndroidPath(), growthProgress).asComposePath()
             }
             val coreAlpha = (.58f * goldStrength).coerceIn(0f, .70f)
             val softGlowAlpha = (.25f * goldStrength).coerceIn(0f, .32f)

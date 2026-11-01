@@ -61,6 +61,7 @@ data class RecognitionSubjectGeometrySnapshot(
     val quality: FishSubjectQuality?,
     val maskSize: Int,
     val expectedMaskSize: Int,
+    val contourSourceSpace: String = "SEGMENTATION_ROI_NORMALIZED",
 )
 
 data class RecognitionProcessingPhotoSnapshot(
@@ -133,7 +134,8 @@ object RecognitionRevealHandoffFactory {
         val photoClip = photo?.photoBoundsInWindow?.takeIf(RecognitionRevealWindowRect::isValid)
         val photoCornerRadius = photo?.cornerRadiusPx?.takeIf { it.isFinite() && it >= 0f } ?: 0f
         val anchorSource = if (maskTrusted) {
-            bottomContourAnchor(requireNotNull(subject).contour, subject.subjectBox)
+            bottomContourAnchor(requireNotNull(subject).contour, subject.subjectBox,
+                subject.contourSourceSpace == "CANONICAL_PHOTO_NORMALIZED")
         } else {
             null
         }
@@ -176,7 +178,7 @@ object RecognitionRevealHandoffFactory {
             subjectMaskOrContour = contour,
             subjectRoiInSource = subjectBox,
             subjectAnchorNormalizedSource = anchorSource,
-            contourSourceSpace = if (maskTrusted) "SEGMENTATION_ROI_NORMALIZED" else "UNAVAILABLE",
+            contourSourceSpace = if (maskTrusted) requireNotNull(subject).contourSourceSpace else "UNAVAILABLE",
             geometryTrustState = geometryTrust,
             processingPhotoViewportBounds = photo?.viewportBoundsInWindow,
             processingPhotoTransform = photo?.sourceToViewport,
@@ -194,6 +196,7 @@ object RecognitionRevealHandoffFactory {
     private fun bottomContourAnchor(
         contour: List<RecognitionContourSegment>,
         roi: NormalizedSourceRect,
+        photoSpace: Boolean,
     ): DisplayPoint? {
         val points = contour.flatMap { listOf(it.startX to it.startY, it.endX to it.endY) }
         if (points.isEmpty()) return null
@@ -202,8 +205,8 @@ object RecognitionRevealHandoffFactory {
         if (lowerBand.isEmpty()) return null
         val x = lowerBand.map { it.first }.average().toFloat()
         val y = lowerBand.map { it.second }.average().toFloat()
-        val sourceX = roi.left + x * roi.width
-        val sourceY = roi.top + y * roi.height
+        val sourceX = if (photoSpace) x else roi.left + x * roi.width
+        val sourceY = if (photoSpace) y else roi.top + y * roi.height
         return DisplayPoint(sourceX, sourceY).takeIf {
             it.x.isFinite() && it.y.isFinite() && it.x in 0f..1f && it.y in 0f..1f
         }

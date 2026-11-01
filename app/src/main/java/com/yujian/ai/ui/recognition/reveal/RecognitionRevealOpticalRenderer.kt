@@ -14,6 +14,9 @@ import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
+import com.yujian.ai.ui.waterlight.core.EnergyEvent
+import com.yujian.ai.ui.waterlight.core.EnergyFeedback
+import com.yujian.ai.ui.waterlight.core.WaterLightMaterialProfile
 
 /** Draws the shared photo and optical reveal above Result content without owning input. */
 @Composable
@@ -25,6 +28,8 @@ internal fun RecognitionRevealOpticalOverlay(
     geometry: RecognitionRevealGeometry?,
     frameState: State<RecognitionRevealFrame>,
     holdPhotoUntilHeroReady: Boolean,
+    material: WaterLightMaterialProfile = WaterLightMaterialProfile.HANDOFF,
+    energyEvent: EnergyEvent? = null,
 ) {
     val frame = frameState.value
     val sourceBitmap = bitmap ?: return
@@ -83,8 +88,8 @@ internal fun RecognitionRevealOpticalOverlay(
     Canvas(canvasModifier) {
         drawIntoCanvas { composeCanvas ->
             val canvas = composeCanvas.nativeCanvas
-            val gold = android.graphics.Color.rgb(220, 176, 91)
-            val brightGold = android.graphics.Color.rgb(255, 227, 156)
+            val gold = material.primaryColor.toInt()
+            val brightGold = material.secondaryColor.toInt()
             val drawSharedPhoto = frame.photoProgress < 1f || holdPhotoUntilHeroReady
             if (drawSharedPhoto) {
                 val photoMatrix = activePhotoGeometry.photoMatrix(frame.photoProgress)
@@ -158,7 +163,8 @@ internal fun RecognitionRevealOpticalOverlay(
             ) {
                 val progress = frame.transferProgress.coerceIn(0f, 1f)
                 val headDistance = transferMeasure.length * progress
-                val transferAlpha = (255 * frame.afterglowAlpha).toInt().coerceIn(0, 255)
+                val arrival = if (energyEvent?.feedback == EnergyFeedback.RETURN) energyEvent.level else 1f
+                val transferAlpha = (255 * frame.afterglowAlpha * arrival * material.opacity).toInt().coerceIn(0, 255)
                 if (headDistance > 0f) {
                     transferTail.reset()
                     transferMeasure.getSegment(

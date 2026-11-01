@@ -3,6 +3,7 @@ package com.yujian.ai.ai.subject
 import android.content.Context
 import android.graphics.Bitmap
 import com.yujian.ai.ai.NormalizedFishBox
+import com.yujian.ai.model.SelectedImage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -28,6 +29,11 @@ class FishSubjectPreviewEngine(
     suspend fun generate(source: Bitmap, detectorBbox: NormalizedFishBox): FishSubjectResult =
         withContext(Dispatchers.Default) {
             slimSamSegmenter.segment(source, detectorBbox)
+        }
+
+    suspend fun generate(selected: SelectedImage, detectorBbox: NormalizedFishBox, sessionId: String, attemptId: String): FishSubjectResult =
+        withContext(Dispatchers.Default) {
+            slimSamSegmenter.segment(selected.bitmap, detectorBbox, sessionId, attemptId, selected.imageId, selected.photoSha256)
         }
 
     override fun close() {

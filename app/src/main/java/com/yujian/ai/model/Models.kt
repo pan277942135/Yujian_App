@@ -29,6 +29,8 @@ data class SelectedImage(
     val photoSha256: String = "",
     /** Measured presentation geometry only; never used as model/crop input. */
     val capturePresentation: CapturePresentation? = null,
+    /** Original EXIF 1..8; records mirrors that rotationDegrees alone cannot represent. */
+    val sourceExifOrientation: Int = 1,
 )
 
 data class CapturePresentation(

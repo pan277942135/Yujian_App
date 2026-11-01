@@ -8,7 +8,7 @@ gate_instrumentation_timeout_seconds() {
 }
 
 gate_test_classes() {
-  printf '%s\n' 'com.yujian.ai.ui.identify.RecognitionFirstCaptureGuideRuntimeTest,com.yujian.ai.RecognitionFrozenFlowEmulatorTest,com.yujian.ai.RecognitionOpticalSegmentRuntimeTest,com.yujian.ai.RecognitionFishContourRuntimeTest,com.yujian.ai.RecognitionImageStoreTest,com.yujian.ai.catches.GuestCatchRepositoryRuntimeTest,com.yujian.ai.FishDetectionQualityGateTest,com.yujian.ai.PipelineTraceTest,com.yujian.ai.DetectorOrientationRetryRuntimeTest,com.yujian.ai.DetectorGoldenParityTest'
+  printf '%s\n' 'com.yujian.ai.ui.identify.RecognitionFirstCaptureGuideRuntimeTest,com.yujian.ai.RecognitionFrozenFlowEmulatorTest,com.yujian.ai.RecognitionOpticalSegmentRuntimeTest,com.yujian.ai.RecognitionFishContourRuntimeTest,com.yujian.ai.RecognitionImageStoreTest,com.yujian.ai.catches.GuestCatchRepositoryRuntimeTest,com.yujian.ai.FishDetectionQualityGateTest,com.yujian.ai.PipelineTraceTest,com.yujian.ai.DetectorOrientationRetryRuntimeTest,com.yujian.ai.ai.subject.MaskGeometryMetadataTest,com.yujian.ai.media.RecognitionExifOrientationTest,com.yujian.ai.ui.recognition.MultiContourRevealTest,com.yujian.ai.ui.recognition.SpeciesNameRevealTest,com.yujian.ai.DetectorGoldenParityTest'
 }
 
 gate_additional_test_classes() {
@@ -17,6 +17,18 @@ gate_additional_test_classes() {
 
 gate_additional_test_timeout_seconds() {
   printf '%s\n' '420'
+}
+
+# ADB can disappear after a successful install when a hosted emulator exits
+# during the model-heavy RR09 pretest. Preserve that as an infra blocker.
+gate_instrumentation_failure_classification() {
+  local state
+  state="$("${YUJIAN_ADB_BIN}" get-state 2>/dev/null || true)"
+  if [[ "$state" != "device" ]]; then
+    runtime_set_failure "ADB" "DEVICE_LOST_DURING_RECOGNITION_INSTRUMENTATION"
+    return "$EXIT_BLOCKED_INFRA"
+  fi
+  return "$EXIT_FAIL_TEST"
 }
 # Video evidence is captured outside instrumentation so observation cannot
 # perturb Compose timing on API28. Instrumentation owns only semantic/timing
