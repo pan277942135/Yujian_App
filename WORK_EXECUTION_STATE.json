@@ -8,11 +8,11 @@
   "base_sha": "796106827987d2ccaddb43f8a5723b2cbf73a34e",
   "phase": "P6",
   "task_id": "YUJIAN_ANDROID_AISTUDIO_FULL_PAGE_RESTORE_AND_MAIN_INTEGRATION_V1",
-  "stage": "E0",
-  "status": "READY",
-  "source_sha": "796106827987d2ccaddb43f8a5723b2cbf73a34e",
-  "checkpoint_updated_at": "2026-11-01T09:43:11.195Z",
-  "next_action": "Complete the full ZIP/Main/W5/PR #294 three-way source audit and file disposition before product edits.",
+  "stage": "E1",
+  "status": "RUNNING",
+  "source_sha": "d3a2aa2ac212f32d9bc15cc793327f2a8ea46868",
+  "checkpoint_updated_at": "2026-11-01T10:16:42.399Z",
+  "next_action": "Collect exact-head Android CI, API 28 runtime, and APK provenance for PR #296 head d3a2aa2ac212f32d9bc15cc793327f2a8ea46868.",
   "dependencies": [],
   "blockers": [],
   "evidence": {
@@ -25,6 +25,23 @@
       "D01_bobber_rotation": "PENDING; keep unconfirmed rotation out of Runtime until owner decision.",
       "D02_guide_candidate_images": "PENDING; all 8 candidate images remain source blocked from Runtime until owner approval.",
       "D03_high_result_layout": "PENDING_REVIEW; preserve current Main and PR #294 behavior while resolving any frozen visual conflict."
-    }
+    },
+    "zip_audit": {
+      "sha256": "fde0f4a93044e766f3b529b2fcb039bf3b0186972a8bf4bd223f65df301ebbab",
+      "bytes": 286588012,
+      "regular_files": 1182,
+      "different_or_new": 100,
+      "manifest_omissions": 89
+    },
+    "work_code_commit": "ca612b5363c657ce03d47d76dc1382bb96aad86a",
+    "exact_runtime_source_sha": "d3a2aa2ac212f32d9bc15cc793327f2a8ea46868",
+    "pr": {
+      "number": 296,
+      "url": "https://github.com/pan277942135/Yujian_App/pull/296",
+      "branch": "feature/aistudio-full-page-restore-v1",
+      "status": "DRAFT_OPEN_UNMERGED"
+    },
+    "android_ci_status": "RUNNING",
+    "api28_runtime_status": "RUNNING"
   }
 }

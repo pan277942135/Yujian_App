@@ -9,8 +9,8 @@
   },
   "state_control": {
     "current_branch": "work/aistudio-full-page-restore-v1",
-    "execution_baseline_sha": "796106827987d2ccaddb43f8a5723b2cbf73a34e",
-    "current_head": "796106827987d2ccaddb43f8a5723b2cbf73a34e",
+    "execution_baseline_sha": "d3a2aa2ac212f32d9bc15cc793327f2a8ea46868",
+    "current_head": "d3a2aa2ac212f32d9bc15cc793327f2a8ea46868",
     "base_branch": "main",
     "base_sha": "796106827987d2ccaddb43f8a5723b2cbf73a34e",
     "current_pr": null
@@ -27,10 +27,23 @@
       "repository": "pan277942135/Yujian_App",
       "base_branch": "main",
       "base_sha": "796106827987d2ccaddb43f8a5723b2cbf73a34e",
-      "work_branch": "work/aistudio-full-page-restore-v1"
+      "work_branch": "work/aistudio-full-page-restore-v1",
+      "pr_branch": "feature/aistudio-full-page-restore-v1",
+      "pr_head_sha": "d3a2aa2ac212f32d9bc15cc793327f2a8ea46868",
+      "pr_number": 296
     }
   },
-  "pull_requests": {},
+  "pull_requests": {
+    "PR296": {
+      "number": 296,
+      "branch": "feature/aistudio-full-page-restore-v1",
+      "base_branch": "main",
+      "base_sha": "796106827987d2ccaddb43f8a5723b2cbf73a34e",
+      "head_sha": "d3a2aa2ac212f32d9bc15cc793327f2a8ea46868",
+      "status": "DRAFT_OPEN_UNMERGED",
+      "url": "https://github.com/pan277942135/Yujian_App/pull/296"
+    }
+  },
   "phases": {
     "P0": {
       "status": "NOT_CONFIRMED",
@@ -57,7 +70,7 @@
       "source": "branch-local initialization; no prior Work state found on active Main"
     },
     "P6": {
-      "status": "READY_FOR_WORK",
+      "status": "IN_PROGRESS",
       "task_id": "YUJIAN_ANDROID_AISTUDIO_FULL_PAGE_RESTORE_AND_MAIN_INTEGRATION_V1"
     },
     "P7": {
@@ -101,9 +114,10 @@
   },
   "runtime_gates": {
     "exact_head": {
-      "sha": "796106827987d2ccaddb43f8a5723b2cbf73a34e",
-      "status": "NOT_RUN",
-      "classification": "NOT_RUN"
+      "sha": "d3a2aa2ac212f32d9bc15cc793327f2a8ea46868",
+      "status": "IN_PROGRESS",
+      "classification": "IN_PROGRESS",
+      "pr_number": 296
     },
     "historical_runtime_run": {
       "rule": "Historical results cannot promote current exact HEAD to PASS."
@@ -111,16 +125,16 @@
   },
   "apk_and_evidence": {
     "status": "NOT_RUN",
-    "source_sha": "796106827987d2ccaddb43f8a5723b2cbf73a34e",
+    "source_sha": "d3a2aa2ac212f32d9bc15cc793327f2a8ea46868",
     "apk": null
   },
   "current_work": {
     "id": "YUJIAN_ANDROID_AISTUDIO_FULL_PAGE_RESTORE_AND_MAIN_INTEGRATION_V1",
     "phase": "P6",
     "task_id": "YUJIAN_ANDROID_AISTUDIO_FULL_PAGE_RESTORE_AND_MAIN_INTEGRATION_V1",
-    "stage": "E0",
-    "status": "READY",
-    "exact_head": "796106827987d2ccaddb43f8a5723b2cbf73a34e"
+    "stage": "E1",
+    "status": "RUNNING",
+    "exact_head": "d3a2aa2ac212f32d9bc15cc793327f2a8ea46868"
   },
   "blockers": [],
   "protected_invariants": {
@@ -140,11 +154,20 @@
   },
   "next_actions": [
     {
-      "id": "E0-01",
+      "id": "E1-01",
+      "status": "RUNNING",
+      "owner": "Work",
+      "action": "Run exact-head Android CI, unit tests, AndroidTest compilation, lint, API 28 runtime, and APK packaging for PR #296.",
+      "dependencies": []
+    },
+    {
+      "id": "E1-02",
       "status": "READY",
       "owner": "Work",
-      "action": "Complete full ZIP/Main/W5/PR #294 three-way source audit and file-level disposition before product edits.",
-      "dependencies": []
+      "action": "Collect exact-head CI/runtime evidence and update APK provenance, completion report, and Work state.",
+      "dependencies": [
+        "E1-01"
+      ]
     }
   ],
   "completion_rules": {
@@ -155,7 +178,8 @@
   },
   "state_update": {
     "initialized_at": "2026-11-01T09:43:11.195Z",
-    "reason": "No PROJECT_MASTER_STATE.yaml or WORK_EXECUTION_STATE.json existed on current Main; initialized from canonical task registration and live Main SHA."
+    "reason": "Completed the ZIP/Main/W5/PR #294 file-level audit, integrated source-backed changes, and opened Draft PR #296; exact-head Android CI and API 28 runtime are running.",
+    "updated_at": "2026-11-01T10:16:42.399Z"
   },
   "agent_recovery": {
     "resume_from": "WORK_EXECUTION_STATE.json.next_action",
