@@ -1052,10 +1052,16 @@ fun RecognitionResultScreen(
                 end = WaterLightPathPoint(curve.end.x, curve.end.y),
             )
         }
-        val resultEnergyEvent = if (visualHandoff?.eligibility == RecognitionRevealEligibility.FULL_REVEAL) {
+        val trustedMaskReveal = visualHandoff?.eligibility == RecognitionRevealEligibility.FULL_REVEAL
+        val orbOnlyReveal = visualHandoff != null &&
+            visualHandoff.revealDecision == RecognitionRevealDecisionState.ORB_ONLY_READY &&
+            visualHandoff.eligibility == RecognitionRevealEligibility.TITLE_FADE_ONLY &&
+            revealGeometry?.orbReturnPathLocal != null
+        val resultEnergyEvent = if (trustedMaskReveal || orbOnlyReveal) {
             WaterLightEnergy.at(
-                resultFrame, trustedMask = true, successfulRevealAllowed = true,
+                resultFrame, trustedMask = trustedMaskReveal, successfulRevealAllowed = true,
                 pathGeometry = resultPathGeometry,
+                orbOnlyRevealAllowed = orbOnlyReveal,
             )
         } else null
         LaunchedEffect(

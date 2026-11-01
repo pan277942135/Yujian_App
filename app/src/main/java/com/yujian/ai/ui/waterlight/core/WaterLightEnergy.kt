@@ -48,6 +48,7 @@ object WaterLightEnergy {
         trustedMask: Boolean,
         successfulRevealAllowed: Boolean = false,
         pathGeometry: WaterLightPathGeometry? = null,
+        orbOnlyRevealAllowed: Boolean = false,
     ): EnergyEvent? {
         val photo = frame.photoSha256?.takeIf(String::isNotBlank) ?: return null
         val scene = frame.sceneFrame
@@ -67,11 +68,17 @@ object WaterLightEnergy {
                 .5f + ((t - 1_450L) / 200f).coerceIn(0f, .5f))
             trustedMask && successfulRevealAllowed && scene.stage == RecognitionSceneStage.ORB_RETURN -> Quad(EnergyAnchor.FISH_CONTOUR,
                 EnergyAnchor.ORB_CORE, EnergyFeedback.RETURN, scene.stageProgress)
-            trustedMask && successfulRevealAllowed && scene.stage == RecognitionSceneStage.ORB_TO_NAME -> Quad(EnergyAnchor.ORB_CORE,
+            !trustedMask && orbOnlyRevealAllowed && successfulRevealAllowed &&
+                scene.stage == RecognitionSceneStage.ORB_RETURN -> Quad(EnergyAnchor.PHOTO_PERIMETER,
+                EnergyAnchor.ORB_CORE, EnergyFeedback.RETURN, scene.stageProgress)
+            (trustedMask || orbOnlyRevealAllowed) && successfulRevealAllowed &&
+                scene.stage == RecognitionSceneStage.ORB_TO_NAME -> Quad(EnergyAnchor.ORB_CORE,
                 EnergyAnchor.REVEAL_TEXT, EnergyFeedback.TRANSLATE, scene.stageProgress)
-            trustedMask && successfulRevealAllowed && scene.stage == RecognitionSceneStage.SPECIES_NAME_REVEAL -> Quad(
+            (trustedMask || orbOnlyRevealAllowed) && successfulRevealAllowed &&
+                scene.stage == RecognitionSceneStage.SPECIES_NAME_REVEAL -> Quad(
                 EnergyAnchor.REVEAL_TEXT, EnergyAnchor.REVEAL_TEXT, EnergyFeedback.REVEAL, scene.stageProgress)
-            trustedMask && successfulRevealAllowed && scene.stage == RecognitionSceneStage.RESIDUE_SETTLE -> Quad(
+            (trustedMask || orbOnlyRevealAllowed) && successfulRevealAllowed &&
+                scene.stage == RecognitionSceneStage.RESIDUE_SETTLE -> Quad(
                 EnergyAnchor.REVEAL_TEXT, EnergyAnchor.RESIDUE, EnergyFeedback.SETTLE, scene.stageProgress)
             else -> return null
         }
@@ -80,7 +87,11 @@ object WaterLightEnergy {
             pathId = when (feedback) {
                 EnergyFeedback.RELEASE -> "orb-to-photo"
                 EnergyFeedback.ARRIVE, EnergyFeedback.ABSORB -> "photo-to-fish"
-                EnergyFeedback.RETURN -> "fish-to-original-orb"
+                EnergyFeedback.RETURN -> if (from == EnergyAnchor.PHOTO_PERIMETER) {
+                    "photo-perimeter-to-original-orb"
+                } else {
+                    "fish-to-original-orb"
+                }
                 EnergyFeedback.TRANSLATE -> "orb-to-species-glyph"
                 EnergyFeedback.REVEAL -> "species-glyph-ink"
                 EnergyFeedback.SETTLE -> "glyph-to-residue"

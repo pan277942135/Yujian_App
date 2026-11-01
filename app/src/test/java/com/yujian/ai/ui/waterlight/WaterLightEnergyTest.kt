@@ -57,6 +57,46 @@ class WaterLightEnergyTest {
         assertNull(WaterLightEnergy.at(missingImage, false))
     }
 
+    @Test fun orbOnlyBranchReturnsPerimeterEnergyAndKeepsRealGlyphEvents() {
+        val perimeterPath = WaterLightPathGeometryFactory.between(
+            WaterLightPathPoint(40f, 420f),
+            WaterLightPathPoint(260f, 520f),
+            seed = 17,
+        )!!
+        val returned = WaterLightEnergy.at(
+            frame(2_900L),
+            trustedMask = false,
+            successfulRevealAllowed = true,
+            pathGeometry = perimeterPath,
+            orbOnlyRevealAllowed = true,
+        )!!
+        assertEquals(EnergyAnchor.PHOTO_PERIMETER, returned.source)
+        assertEquals(EnergyAnchor.ORB_CORE, returned.target)
+        assertEquals(EnergyFeedback.RETURN, returned.feedback)
+        assertEquals("photo-perimeter-to-original-orb", returned.pathId)
+        assertTrue(returned.matches(frame(2_900L)))
+
+        assertEquals(
+            EnergyFeedback.TRANSLATE,
+            WaterLightEnergy.at(frame(3_180L), false, successfulRevealAllowed = true,
+                orbOnlyRevealAllowed = true)?.feedback,
+        )
+        assertEquals(
+            EnergyFeedback.REVEAL,
+            WaterLightEnergy.at(frame(3_350L), false, successfulRevealAllowed = true,
+                orbOnlyRevealAllowed = true)?.feedback,
+        )
+        assertEquals(
+            EnergyFeedback.SETTLE,
+            WaterLightEnergy.at(frame(3_650L), false, successfulRevealAllowed = true,
+                orbOnlyRevealAllowed = true)?.feedback,
+        )
+        assertNull(WaterLightEnergy.at(frame(2_900L), false, successfulRevealAllowed = true,
+            pathGeometry = perimeterPath))
+        assertNull(WaterLightEnergy.at(frame(2_900L), false, successfulRevealAllowed = false,
+            pathGeometry = perimeterPath, orbOnlyRevealAllowed = true))
+    }
+
     @Test fun energyPathCarriesMeasuredAnchorsAndRejectsInvalidGeometry() {
         val start = WaterLightPathPoint(112f, 568f)
         val end = WaterLightPathPoint(308f, 276f)
