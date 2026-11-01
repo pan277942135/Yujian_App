@@ -84,11 +84,7 @@ class EmptyHomeMotionTest {
     }
 
     @Test
-    fun rippleIsCenteredAndFadesOverItsPeriod() {
-        assertEquals(1f, rippleScale(0f), 0.0001f)
-        assertEquals(1.11f, rippleScale(3.2f / 2f), 0.0001f)
-        assertEquals(0.30f, rippleAlpha(0f), 0.0001f)
-        assertEquals(0f, rippleAlpha(3.2f - 0.0001f), 0.0001f)
+    fun rippleGroupCenterRemainsAtTheFrozenRippleAnchorAndBobberContact() {
         assertEquals(561f, EMPTY_HOME_V2_WATER_CONTACT_X, 0.0001f)
         assertEquals(1323f, EMPTY_HOME_V2_WATER_CONTACT_Y, 0.0001f)
         assertEquals(EMPTY_HOME_V2_WATER_CONTACT_X, EMPTY_HOME_V2_BOBBER_X + 11f, 0.0001f)
@@ -147,6 +143,31 @@ class EmptyHomeMotionTest {
         }
     }
 
+    @Test
+    fun periodicBobberRippleBurstsAreThreePointSixSecondsAndDeterministic() {
+        assertTrue(calculatePeriodicBobberRippleBurst(0f) == null)
+
+        val first = requireNotNull(calculatePeriodicBobberRippleBurst(1.5f))
+        assertEquals(0, first.burstIndex)
+        assertEquals(0L, first.cycleIndex)
+        assertEquals(0L, first.eventId)
+        assertEquals(0f, first.elapsedSeconds, 0.0001f)
+
+        val finalFrame = requireNotNull(calculatePeriodicBobberRippleBurst(5.099f))
+        assertEquals(3.599f, finalFrame.elapsedSeconds, 0.002f)
+        assertTrue(calculatePeriodicBobberRippleBurst(5.11f) == null)
+
+        assertEquals(1, requireNotNull(calculatePeriodicBobberRippleBurst(6.8f)).burstIndex)
+        assertEquals(2, requireNotNull(calculatePeriodicBobberRippleBurst(13.6f)).burstIndex)
+        assertEquals(3, requireNotNull(calculatePeriodicBobberRippleBurst(22.4f)).burstIndex)
+        assertEquals(4, requireNotNull(calculatePeriodicBobberRippleBurst(28.2f)).burstIndex)
+
+        val nextCycle = requireNotNull(calculatePeriodicBobberRippleBurst(37.5f))
+        assertEquals(1L, nextCycle.cycleIndex)
+        assertEquals(0, nextCycle.burstIndex)
+        assertEquals(5L, nextCycle.eventId)
+    }
+
     private fun mapX(x: Float, transform: ReferenceSceneTransform): Float =
         transform.offsetX + x * transform.scale
 
@@ -158,9 +179,9 @@ class EmptyHomeMotionTest {
         assertTrue(emptyHomeMotionActive(running = true, reduceMotion = false))
         assertTrue(!emptyHomeMotionActive(running = true, reduceMotion = true))
         assertTrue(!emptyHomeMotionActive(running = false, reduceMotion = false))
-        // The single frozen contact ripple remains visible while its loop is
-        // stopped, so the bobber does not look pasted onto the lake.
-        assertEquals(0.30f, rippleAlpha(0f), 0.0001f)
+        // The renderer keeps the static contact ring but suppresses scheduled waves and haptics.
+        assertTrue(calculatePeriodicBobberRippleBurst(1.5f) != null)
+        assertTrue(!emptyHomeMotionActive(running = true, reduceMotion = true))
     }
 
     @Test

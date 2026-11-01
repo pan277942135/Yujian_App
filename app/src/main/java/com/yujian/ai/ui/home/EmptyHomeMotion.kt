@@ -19,6 +19,7 @@ import androidx.lifecycle.findViewTreeLifecycleOwner
 import kotlinx.coroutines.isActive
 import kotlin.math.PI
 import kotlin.math.cos
+import kotlin.math.floor
 import kotlin.math.max
 import kotlin.math.sin
 import kotlin.random.Random
@@ -57,6 +58,7 @@ internal const val RIPPLE_PHASE_OFFSET_SECONDS = 0.42f
 internal const val CLOUD_PHASE_OFFSET_SECONDS = 17.6f
 internal const val SUN_BEAM_PHASE_OFFSET_SECONDS = 2.08f
 internal const val CAMERA_BREATH_PHASE_OFFSET_SECONDS = 1.71f
+private val BOBBER_RIPPLE_BURST_STARTS_SECONDS = floatArrayOf(1.5f, 6.8f, 13.6f, 22.4f, 28.2f)
 
 /**
  * One frame clock shared by the Empty Home scene and its camera action layer.
@@ -178,19 +180,39 @@ internal fun calculateReferenceSceneTransform(
 internal fun bobberOffsetPx(timeSeconds: Float): Float =
     -3f * sin((timeSeconds % 4.6f) / 4.6f * (2f * PI.toFloat()))
 
+internal data class PeriodicBobberRippleBurst(
+    val cycleIndex: Long,
+    val burstIndex: Int,
+    val elapsedSeconds: Float,
+) {
+    val eventId: Long get() = cycleIndex * 5L + burstIndex.toLong()
+}
+
+internal fun calculatePeriodicBobberRippleBurst(
+    timeSeconds: Float,
+): PeriodicBobberRippleBurst? {
+    if (!timeSeconds.isFinite() || timeSeconds < 0f) return null
+    val cycleDurationSeconds = 36f
+    val burstDurationSeconds = 3.6f
+    val cycleIndex = floor(timeSeconds / cycleDurationSeconds).toLong()
+    val cycleTime = timeSeconds - cycleIndex * cycleDurationSeconds
+    BOBBER_RIPPLE_BURST_STARTS_SECONDS.forEachIndexed { index, start ->
+        val elapsed = cycleTime - start
+        if (elapsed >= 0f && elapsed < burstDurationSeconds) {
+            return PeriodicBobberRippleBurst(
+                cycleIndex = cycleIndex,
+                burstIndex = index,
+                elapsedSeconds = elapsed,
+            )
+        }
+    }
+    return null
+}
+
 internal fun emptyHomeMotionActive(
     running: Boolean,
     reduceMotion: Boolean,
 ): Boolean = running && !reduceMotion
-
-internal fun rippleProgress(timeSeconds: Float): Float =
-    (timeSeconds % 3.2f) / 3.2f
-
-internal fun rippleScale(timeSeconds: Float): Float =
-    1f + 0.22f * rippleProgress(timeSeconds)
-
-internal fun rippleAlpha(timeSeconds: Float): Float =
-    0.30f * (1f - rippleProgress(timeSeconds))
 
 internal fun cloudOffsetPx(timeSeconds: Float): Float =
     (timeSeconds % 60f) * 0.2f

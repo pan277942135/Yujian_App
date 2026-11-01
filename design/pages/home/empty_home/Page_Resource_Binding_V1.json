@@ -69,7 +69,7 @@
     {
       "authority_id": "emptyruntime",
       "path": "design/pages/home/empty_home/shared/contracts/runtime_manifest.json",
-      "sha256": "aaae66f44473f497bffcd2f98165942f5442d8df141e2932ba336ad35065f4e8",
+      "sha256": "c14da346338e3f79d88d5c4dfb3dd145a1455aa56d90a538df2fa533f0ce9716",
       "purpose": "emptyruntime"
     },
     {
