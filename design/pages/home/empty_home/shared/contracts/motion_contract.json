@@ -97,7 +97,8 @@
         "stroke_width_to_reference_px": 0.95
       }
     ],
-    "z_order": "below_bobber_above_water"
+    "z_order": "below_bobber_above_water",
+    "phase_offset_ms": 420
   },
   "sun_particle_beam": {
     "duration_ms": 4800,
