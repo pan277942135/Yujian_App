@@ -1714,7 +1714,7 @@ gate_contracts:
     exact_sha_required: true
   G-ANDROID-AISTUDIO-FULL-PAGE-RESTORE-V1:
     purpose: "Exact-head full-page restoration from the AI Studio ZIP: verify every ZIP file, selectively integrate Empty Home, P01/P02/P03 First Capture Guide and HIGH Result without replacing current Main business logic, W5 geometry, approved resource boundaries, PR #294 Orb/13-stage/RR09 behavior, or existing ripple/haptic capabilities."
-    contract_refs: ["ANDROID-AISTUDIO-FULL-PAGE-RESTORE-V1", "FC-home_empty_v2", "FC-recognition_flow_v1_2", "FC-recognition_result_v1", "DS-FOUNDATION", "ANDROID-RUNTIME-HARNESS", "STATE-EVIDENCE-PROVENANCE", "G-FIRST-USE-GUIDE-ASSET"]
+    contract_refs: ["ANDROID-AISTUDIO-FULL-PAGE-RESTORE-V1", "FC-home_empty_v2", "FC-recognition_flow_v1_2", "FC-recognition_result_v1", "DS-FOUNDATION", "ANDROID-RUNTIME-HARNESS", "STATE-EVIDENCE-PROVENANCE"]
     acceptance_domains: ["zip_provenance", "full_file_inventory", "three_way_restore", "layout", "geometry", "motion", "haptics", "resource_governance", "business_invariants", "build", "unit_test", "android_test_compile", "lint", "runtime", "responsive", "accessibility", "journey_e2e", "evidence", "apk_provenance"]
     exact_sha_required: true
   G-ANDROID-AISTUDIO-PERIMETER-SHADER-PORT-V1:
@@ -1845,7 +1845,7 @@ task_contract_bindings:
     gate_id: "G-ANDROID-EFFECT01-UPWARD-SCAN-SHAKE-V1"
     phase: "P6"
   YUJIAN_ANDROID_AISTUDIO_FULL_PAGE_RESTORE_AND_MAIN_INTEGRATION_V1:
-    contract_refs: ["ANDROID-AISTUDIO-FULL-PAGE-RESTORE-V1", "FC-home_empty_v2", "FC-recognition_flow_v1_2", "FC-recognition_result_v1", "DS-FOUNDATION", "ANDROID-RUNTIME-HARNESS", "STATE-EVIDENCE-PROVENANCE", "G-FIRST-USE-GUIDE-ASSET", "G-ANDROID-AISTUDIO-FULL-PAGE-RESTORE-V1"]
+    contract_refs: ["ANDROID-AISTUDIO-FULL-PAGE-RESTORE-V1", "FC-home_empty_v2", "FC-recognition_flow_v1_2", "FC-recognition_result_v1", "DS-FOUNDATION", "ANDROID-RUNTIME-HARNESS", "STATE-EVIDENCE-PROVENANCE", "G-ANDROID-AISTUDIO-FULL-PAGE-RESTORE-V1"]
     gate_id: "G-ANDROID-AISTUDIO-FULL-PAGE-RESTORE-V1"
     phase: "P6"
   YUJIAN_ANDROID_AISTUDIO_PERIMETER_SHADER_PORT_V1:
@@ -2132,9 +2132,9 @@ inventory:
   journey_count: 20
   child_surface_count: 81
   route_count: 22
-  task_count: 72
-  gate_count: 32
+  task_count: 73
+  gate_count: 33
   registry_created_from_pr_head: "ebb6b3904feaa0cf26b4fd4b83bc809a397085a2"
-  last_synced_feature_matrix_sha: "7d309e18247eb8655ef7d0b5c74bee704e4faf09"
-  last_synced_phase_task_state_machine_sha: "c99d6d8e5d9f5265dae626518f4709af7e4baf6b"
+  last_synced_feature_matrix_sha: "a90c1992248f75cb560dda83fd84765e335361eb"
+  last_synced_phase_task_state_machine_sha: "260a53ec0da6e263c647ee6f8757dd5bae085c45"
   last_synced_experience_registry_sha: "47be44ca3cbce908fa676e262987fe26a8dbea32"
