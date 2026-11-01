@@ -214,15 +214,6 @@ internal fun emptyHomeMotionActive(
     reduceMotion: Boolean,
 ): Boolean = running && !reduceMotion
 
-internal fun rippleProgress(timeSeconds: Float): Float =
-    (timeSeconds % 3.6f) / 3.6f
-
-internal fun rippleScale(timeSeconds: Float): Float =
-    1f + 0.22f * rippleProgress(timeSeconds)
-
-internal fun rippleAlpha(timeSeconds: Float): Float =
-    0.30f * (1f - rippleProgress(timeSeconds))
-
 internal fun cloudOffsetPx(timeSeconds: Float): Float =
     (timeSeconds % 60f) * 0.2f
 
