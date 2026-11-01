@@ -11,11 +11,11 @@
   "stage": "E1",
   "status": "BLOCKED",
   "source_sha": "f6e85fad0ed1be108401965d282773d649885847",
-  "checkpoint_updated_at": "2026-11-01T10:51:12Z",
-  "next_action": "Await approval for GitHub-hosted workflow_dispatch on branch feature/aistudio-full-page-restore-v1 at PR head f6e85fad0ed1be108401965d282773d649885847.",
+  "checkpoint_updated_at": "2026-11-01T11:01:23Z",
+  "next_action": "Hold API 28 runtime as requested. Keep PR #296 Draft and await D01/D02/D03 owner decisions; resume device acceptance only if requested.",
   "dependencies": [],
   "blockers": [
-    "API 28 acceptance is blocked by the self-hosted runner queue: exact-head push run 41298675813 is pending with no jobs; older API 28 matrix jobs remain queued and no Android workflow is in progress. Manual workflow_dispatch with runtime_backend=github-hosted requires owner approval for the browser fallback."
+    "API 28 acceptance is deferred by owner instruction. The exact-head push run 41298675813 remains pending without jobs and is not counted as acceptance; do not dispatch or retry API 28 runtime. D01/D02/D03 decisions remain pending, so PR #296 remains Draft."
   ],
   "evidence": {
     "control_plane_task_contract": "harness/task_contracts/YUJIAN_ANDROID_AISTUDIO_FULL_PAGE_RESTORE_AND_MAIN_INTEGRATION_V1.md",
@@ -45,7 +45,7 @@
       "head_sha": "f6e85fad0ed1be108401965d282773d649885847"
     },
     "android_ci_status": "PASS",
-    "api28_runtime_status": "BLOCKED_INFRA",
+    "api28_runtime_status": "DEFERRED_BY_OWNER",
     "previous_attempts": [
       {
         "source_sha": "d3a2aa2ac212f32d9bc15cc793327f2a8ea46868",
@@ -103,9 +103,9 @@
     },
     "runner_queue": {
       "current_exact_head_run": 41298675813,
-      "status": "PENDING_NO_JOBS",
-      "older_queued_runtime_run": 41297092913,
-      "in_progress_android_workflows": 0
-    }
+      "status": "PENDING_NO_JOBS_NOT_COUNTED_AS_ACCEPTANCE",
+      "deferred_by_owner": true
+    },
+    "api28_runtime_deferred": true
   }
 }

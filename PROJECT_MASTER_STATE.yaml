@@ -115,15 +115,17 @@
   "runtime_gates": {
     "exact_head": {
       "sha": "f6e85fad0ed1be108401965d282773d649885847",
-      "status": "BLOCKED",
-      "classification": "BLOCKED_INFRA",
+      "status": "NOT_RUN",
+      "classification": "NOT_RUN",
       "pr_number": 296,
       "android_ci_run_ids": [
         41298679667,
         41298675813
       ],
       "api28_runtime_run_id": 41298675813,
-      "application_source_sha": "c34aea6a2de0cae636d350a677f3629630f82d25"
+      "application_source_sha": "c34aea6a2de0cae636d350a677f3629630f82d25",
+      "deferred_by_owner": true,
+      "defer_reason": "Owner requested that API 28 acceptance be deferred."
     },
     "historical_runtime_run": {
       "rule": "Historical results cannot promote current exact HEAD to PASS."
@@ -160,7 +162,7 @@
     "exact_head": "f6e85fad0ed1be108401965d282773d649885847"
   },
   "blockers": [
-    "API 28 acceptance is blocked by the self-hosted runner queue: exact-head push run 41298675813 is pending with no jobs; older API 28 matrix jobs remain queued and no Android workflow is in progress. Manual workflow_dispatch with runtime_backend=github-hosted requires owner approval for the browser fallback."
+    "API 28 acceptance is deferred by owner instruction. The exact-head push run 41298675813 remains pending without jobs and is not counted as acceptance; do not dispatch or retry API 28 runtime. D01/D02/D03 decisions remain pending, so PR #296 remains Draft."
   ],
   "protected_invariants": {
     "control_plane": [
@@ -182,14 +184,14 @@
       "id": "E1-01",
       "status": "BLOCKED",
       "owner": "Work",
-      "action": "Run the API 28 runtime matrix for PR #296 head f6e85fad0ed1be108401965d282773d649885847 after owner approval for GitHub-hosted workflow dispatch.",
+      "action": "API 28 runtime is deferred by owner instruction. Do not dispatch or retry unless the owner requests it.",
       "dependencies": []
     },
     {
       "id": "E1-02",
       "status": "BLOCKED",
       "owner": "Work",
-      "action": "Collect exact-head API 28 runtime evidence; then complete final acceptance and update the report and Work state.",
+      "action": "Keep PR #296 Draft while D01/D02/D03 decisions are pending; update acceptance only if the owner resumes API 28.",
       "dependencies": [
         "E1-01"
       ]
@@ -203,8 +205,8 @@
   },
   "state_update": {
     "initialized_at": "2026-11-01T09:43:11.195Z",
-    "reason": "Latest PR head f6e85fad passed Android PR CI, Design Governance, Design Manager Pages, W1, W4, W5, Empty Home assets, and control-plane admission. APK artifact and checksum are recorded. API 28 remains blocked by the self-hosted runner queue; manual GitHub-hosted dispatch needs approval for browser fallback.",
-    "updated_at": "2026-11-01T10:51:12Z",
+    "reason": "Owner deferred API 28 acceptance. Latest PR head f6e85fad passed Android PR CI and design/admission workflows; PR #296 remains Draft while D01/D02/D03 decisions are pending.",
+    "updated_at": "2026-11-01T11:01:23Z",
     "previous_attempts": [
       {
         "source_sha": "d3a2aa2ac212f32d9bc15cc793327f2a8ea46868",
