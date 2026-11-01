@@ -111,6 +111,18 @@ require(tech_view is not None and tech_view.get("authority") == "design/pages/re
 for link in tech_view.get("contract_links", []):
     require((ROOT / link.get("path", "")).is_file(), f"SWOS Web motion contract link is missing: {link.get('path')}")
 
+EMPTY_HOME_V22_RIPPLE_HAPTIC_AMENDMENT_PATHS = {
+    "app/src/androidTest/java/com/yujian/ai/EmptyHomeV2RuntimeContractTest.kt",
+    "app/src/main/assets/empty_home_runtime_v2/config/haptic_contract.json",
+    "app/src/main/assets/empty_home_runtime_v2/config/layer_contract.json",
+    "app/src/main/assets/empty_home_runtime_v2/config/motion_contract.json",
+    "app/src/main/assets/empty_home_runtime_v2/config/runtime_manifest.json",
+    "app/src/main/java/com/yujian/ai/ui/home/CaptureHaptics.kt",
+    "app/src/main/java/com/yujian/ai/ui/home/EmptyHomeMotion.kt",
+    "app/src/main/java/com/yujian/ai/ui/home/EmptyHomeSceneRenderer.kt",
+    "app/src/test/java/com/yujian/ai/ui/home/EmptyHomeMotionTest.kt",
+}
+
 base_branch = os.environ.get("GITHUB_BASE_REF")
 if base_branch:
     base_ref = f"origin/{base_branch}"
@@ -118,8 +130,45 @@ if base_branch:
     if verified_base.returncode != 0:
         fail(f"control-scope base ref is unavailable: {base_ref}")
     changed = subprocess.run(["git", "diff", "--name-only", base_ref, "HEAD"], cwd=ROOT, check=True, capture_output=True, text=True).stdout.splitlines()
+    changed_app_paths = {path for path in changed if path.startswith("app/")}
+    if changed_app_paths:
+        require(
+            changed_app_paths == EMPTY_HOME_V22_RIPPLE_HAPTIC_AMENDMENT_PATHS,
+            "scope boundary violated by app changes outside the exact approved Empty Home V2.2 ripple/haptic amendment file set",
+        )
+        amendment_spec = (ROOT / "design/pages/home/empty_home/spec/Empty_Home_Frozen_Visual_Revision_V2_2.md").read_text(encoding="utf-8")
+        motion_contract = read_json(ROOT / "app/src/main/assets/empty_home_runtime_v2/config/motion_contract.json")
+        layer_contract = read_json(ROOT / "app/src/main/assets/empty_home_runtime_v2/config/layer_contract.json")
+        haptic_contract = read_json(ROOT / "app/src/main/assets/empty_home_runtime_v2/config/haptic_contract.json")
+        automatic_haptic = haptic_contract.get("automatic_bobber_nibble", {})
+        ripple = motion_contract.get("ripple", {})
+        require(
+            "Approved motion / haptic amendment — 2026-11-01" in amendment_spec
+            and "APPROVED BY PRODUCT OWNER" in amendment_spec,
+            "Empty Home app-scope exception requires the explicit V2.2 product-owner amendment record",
+        )
+        require(
+            motion_contract.get("contract_revision") == "EMPTY_HOME_MOTION_V2_2_RIPPLE_HAPTIC_AMENDMENT_01"
+            and ripple.get("count") == 3
+            and ripple.get("duration_ms") == 3600
+            and len(ripple.get("wave_layers", [])) == 3,
+            "Empty Home app-scope exception requires the exact approved three-wave 3.6s motion contract",
+        )
+        require(
+            layer_contract.get("contract_revision") == "EMPTY_HOME_LAYERS_V2_2_RIPPLE_HAPTIC_AMENDMENT_01"
+            and layer_contract.get("rules", {}).get("ripple_group_count") == 1,
+            "Empty Home app-scope exception requires the one-group layer contract",
+        )
+        require(
+            haptic_contract.get("contract_revision") == "EMPTY_HOME_HAPTIC_V1_1_APPROVED_BOBBER_EVENT"
+            and automatic_haptic.get("enabled") is True
+            and automatic_haptic.get("trigger") == "periodic_bobber_ripple_burst_start",
+            "Empty Home app-scope exception requires the approved event-gated haptic contract",
+        )
+        print("EMPTY_HOME_V22_RIPPLE_HAPTIC_SCOPE_EXCEPTION=PASS exact_file_set_and_approved_contracts")
     for path in changed:
-        require(not path.startswith("app/") and not path.startswith("android/") and not path.startswith("design/manager/rr09_motion/"), f"scope boundary violated by {path}")
+        require(not path.startswith("android/") and not path.startswith("design/manager/rr09_motion/"), f"scope boundary violated by {path}")
+        require(not path.startswith("app/") or path in EMPTY_HOME_V22_RIPPLE_HAPTIC_AMENDMENT_PATHS, f"scope boundary violated by {path}")
     print(f"CONTROL_SCOPE=PASS base_ref={base_ref} changed_files={len(changed)}")
 else:
     # The allowlist compares a PR head with its fetched PR base. Push/dispatch
