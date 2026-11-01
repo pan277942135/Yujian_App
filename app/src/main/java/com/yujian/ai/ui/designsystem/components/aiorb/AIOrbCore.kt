@@ -29,13 +29,14 @@ import com.yujian.ai.ui.designsystem.components.YuJianCaptureButton
 import com.yujian.ai.ui.designsystem.components.YuJianCaptureButtonRasterAssets
 import com.yujian.ai.ui.designsystem.components.YuJianCaptureButtonRasterMotion
 
+import kotlin.math.PI
+import kotlin.math.cos
+import kotlin.math.sin
+
 /** The home button and its navigation handoff share one frozen visual identity. */
 object AIOrbCaptureVisualAssets {
     const val HOME_IDLE = R.drawable.ai_orb_camera_activated_v1
 }
-import kotlin.math.PI
-import kotlin.math.cos
-import kotlin.math.sin
 
 /**
  * One public, state-driven visual entry for the YuJian capture button and AI Orb.
