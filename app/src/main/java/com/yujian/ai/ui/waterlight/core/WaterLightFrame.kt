@@ -15,6 +15,8 @@ data class WaterLightFrame(
     val attemptId: String = "",
     val imageId: String = "",
     val photoContentVersion: Long = 0L,
+    val playbackMode: ScenePlaybackMode = ScenePlaybackMode.AUTO,
+    val playbackPaused: Boolean = false,
 ) {
     init {
         require(elapsedMs >= 0 && opticalReferenceElapsedMs >= 0)
@@ -34,6 +36,8 @@ data class WaterLightFrame(
         sceneElapsedMs = elapsedMs,
         opticalReferenceElapsedMs = opticalReferenceElapsedMs,
         geometryVersion = geometryVersion,
+        playbackMode = playbackMode,
+        paused = playbackPaused,
         reducedMotion = reducedMotion,
     )
 }

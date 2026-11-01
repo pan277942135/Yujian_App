@@ -915,7 +915,7 @@ fun RecognitionResultScreen(
             holdPhotoUntilHeroReady = heroSnapshot?.renderReady == false,
             material = resultHost.material,
             energyEvent = if (revealHandoff?.eligibility == RecognitionRevealEligibility.FULL_REVEAL)
-                WaterLightEnergy.at(resultFrame, trustedMask = true) else null,
+                WaterLightEnergy.at(resultFrame, trustedMask = true, realResultReady = true) else null,
         )
     }
 

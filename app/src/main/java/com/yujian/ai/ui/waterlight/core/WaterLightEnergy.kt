@@ -21,27 +21,31 @@ data class EnergyEvent(
 
 object WaterLightEnergy {
     /** No fish-target event can be emitted until a real mask is trusted for this frame. */
-    fun at(frame: WaterLightFrame, trustedMask: Boolean): EnergyEvent? {
+    fun at(frame: WaterLightFrame, trustedMask: Boolean, realResultReady: Boolean = false): EnergyEvent? {
         val photo = frame.photoSha256?.takeIf(String::isNotBlank) ?: return null
         val scene = frame.sceneFrame
         if (!scene.isIdentityValid) return null
         val t = scene.opticalReferenceElapsedMs
         val (from, to, feedback, level) = when {
-            t < 350L -> return null
-            t < 950L -> Quad(EnergyAnchor.ORB_RIBBON, EnergyAnchor.PHOTO_PERIMETER,
-                EnergyFeedback.RELEASE, ((t - 350L) / 600f).coerceIn(0f, 1f))
-            t < 1_075L -> Quad(EnergyAnchor.PHOTO_PERIMETER, EnergyAnchor.PHOTO_PATH,
-                EnergyFeedback.ARRIVE, ((t - 950L) / 125f).coerceIn(0f, 1f))
-            trustedMask && t < 1_550L -> Quad(EnergyAnchor.PHOTO_PATH, EnergyAnchor.FISH_CONTOUR,
-                EnergyFeedback.ABSORB, ((t - 1_075L) / 475f).coerceIn(0f, 1f))
-            trustedMask && t in 2_800L until 3_180L -> Quad(EnergyAnchor.FISH_CONTOUR, EnergyAnchor.ORB_CORE,
-                EnergyFeedback.RETURN, ((t - 2_800L) / 380f).coerceIn(0f, 1f))
-            trustedMask && t in 3_180L until 3_350L -> Quad(EnergyAnchor.ORB_CORE, EnergyAnchor.REVEAL_TEXT,
-                EnergyFeedback.TRANSLATE, ((t - 3_180L) / 170f).coerceIn(0f, 1f))
-            trustedMask && t in 3_350L until 3_480L -> Quad(EnergyAnchor.REVEAL_TEXT, EnergyAnchor.REVEAL_TEXT,
-                EnergyFeedback.REVEAL, ((t - 3_350L) / 130f).coerceIn(0f, 1f))
-            trustedMask && t <= 3_650L -> Quad(EnergyAnchor.REVEAL_TEXT, EnergyAnchor.RESIDUE,
-                EnergyFeedback.SETTLE, ((t - 3_480L) / 170f).coerceIn(0f, 1f))
+            scene.stage == RecognitionSceneStage.ORB_RELEASE -> Quad(EnergyAnchor.ORB_RIBBON,
+                EnergyAnchor.PHOTO_PERIMETER, EnergyFeedback.RELEASE, scene.stageProgress)
+            scene.stage == RecognitionSceneStage.PERIMETER_ARRIVAL -> Quad(EnergyAnchor.PHOTO_PERIMETER,
+                EnergyAnchor.PHOTO_PATH, EnergyFeedback.ARRIVE, scene.stageProgress)
+            trustedMask && scene.stage == RecognitionSceneStage.PATH_TO_FISH -> Quad(EnergyAnchor.PHOTO_PATH,
+                EnergyAnchor.FISH_CONTOUR, EnergyFeedback.ABSORB, scene.stageProgress * .25f)
+            trustedMask && scene.stage == RecognitionSceneStage.CONTOUR_A -> Quad(EnergyAnchor.PHOTO_PATH,
+                EnergyAnchor.FISH_CONTOUR, EnergyFeedback.ABSORB, .25f + scene.stageProgress * .25f)
+            trustedMask && scene.stage == RecognitionSceneStage.CONTOUR_B && t < 1_550L -> Quad(
+                EnergyAnchor.PHOTO_PATH, EnergyAnchor.FISH_CONTOUR, EnergyFeedback.ABSORB,
+                .5f + ((t - 1_450L) / 200f).coerceIn(0f, .5f))
+            trustedMask && scene.stage == RecognitionSceneStage.ORB_RETURN -> Quad(EnergyAnchor.FISH_CONTOUR,
+                EnergyAnchor.ORB_CORE, EnergyFeedback.RETURN, scene.stageProgress)
+            trustedMask && realResultReady && scene.stage == RecognitionSceneStage.ORB_TO_NAME -> Quad(EnergyAnchor.ORB_CORE,
+                EnergyAnchor.REVEAL_TEXT, EnergyFeedback.TRANSLATE, scene.stageProgress)
+            trustedMask && realResultReady && scene.stage == RecognitionSceneStage.SPECIES_NAME_REVEAL -> Quad(
+                EnergyAnchor.REVEAL_TEXT, EnergyAnchor.REVEAL_TEXT, EnergyFeedback.REVEAL, scene.stageProgress)
+            trustedMask && realResultReady && scene.stage == RecognitionSceneStage.RESIDUE_SETTLE -> Quad(
+                EnergyAnchor.REVEAL_TEXT, EnergyAnchor.RESIDUE, EnergyFeedback.SETTLE, scene.stageProgress)
             else -> return null
         }
         return EnergyEvent(frame.sessionId, photo, from, to, feedback, level,

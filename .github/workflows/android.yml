@@ -88,8 +88,8 @@ jobs:
     timeout-minutes: 25
     env:
       # A02 delivers an APK whose provenance is the product branch HEAD, not the PR merge ref.
-      SOURCE_SHA: ${{ github.event_name == 'pull_request' && github.head_ref == 'work/unified-waterlight-a02-core-component-v1' && github.event.pull_request.head.sha || github.sha }}
-      BUILD_SHA: ${{ github.event_name == 'pull_request' && github.head_ref == 'work/unified-waterlight-a02-core-component-v1' && github.event.pull_request.head.sha || github.sha }}
+      SOURCE_SHA: ${{ github.event_name == 'pull_request' && (github.head_ref == 'work/unified-waterlight-a02-core-component-v1' || github.head_ref == 'work/ai-orb-waterlight-v2-13-stage') && github.event.pull_request.head.sha || github.sha }}
+      BUILD_SHA: ${{ github.event_name == 'pull_request' && (github.head_ref == 'work/unified-waterlight-a02-core-component-v1' || github.head_ref == 'work/ai-orb-waterlight-v2-13-stage') && github.event.pull_request.head.sha || github.sha }}
     outputs:
       model_id: ${{ steps.model_trace.outputs.model_id }}
       model_sha256: ${{ steps.model_trace.outputs.model_sha256 }}

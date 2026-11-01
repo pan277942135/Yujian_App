@@ -1,20 +1,27 @@
 package com.yujian.ai.ui.waterlight.core
 
 /** The optical timeline is sampled from Recognition's existing monotonic clock. */
-enum class RecognitionSceneStage {
-    PHOTO_STABLE,
-    ORB_WAKE,
-    ORB_RELEASE,
-    PERIMETER_ARRIVAL,
-    PATH_TO_FISH,
-    CONTOUR_A,
-    CONTOUR_B,
-    CONTOUR_C,
-    FISH_GOLD_PEAK,
-    ORB_RETURN,
-    ORB_TO_NAME,
-    SPECIES_NAME_REVEAL,
-    RESIDUE_SETTLE,
+enum class RecognitionSceneStage(val startMs: Long, val endMs: Long, val displayName: String) {
+    PHOTO_STABLE(0L, 0L, "照片稳定"),
+    ORB_WAKE(0L, 350L, "光球苏醒"),
+    ORB_RELEASE(350L, 950L, "光球释放水光"),
+    PERIMETER_ARRIVAL(950L, 1_075L, "照片外围激活"),
+    PATH_TO_FISH(1_075L, 1_200L, "水光寻鱼"),
+    CONTOUR_A(1_200L, 1_450L, "鱼体轮廓初显"),
+    CONTOUR_B(1_450L, 1_700L, "鱼体轮廓形成"),
+    CONTOUR_C(1_700L, 1_950L, "鱼体轮廓闭合"),
+    FISH_GOLD_PEAK(1_950L, 2_800L, "鱼体金光稳定"),
+    ORB_RETURN(2_800L, 3_180L, "能量返回光球"),
+    ORB_TO_NAME(3_180L, 3_350L, "光球舒展凝字"),
+    SPECIES_NAME_REVEAL(3_350L, 3_480L, "鱼种名称揭晓"),
+    RESIDUE_SETTLE(3_480L, 3_650L, "水光余辉收束");
+
+    val durationMs: Long get() = endMs - startMs
+
+    /** The zero-time PHOTO_STABLE marker precedes the first animated frame at 1 ms. */
+    val seekTimeMs: Long get() = if (this == ORB_WAKE) 1L else startMs
+
+    val timeAnchorLabel: String get() = if (durationMs == 0L) "0ms" else "$startMs–${endMs}ms"
 }
 
 enum class ScenePlaybackMode { AUTO, MANUAL }
@@ -68,7 +75,7 @@ object RecognitionSceneCoordinator {
             identity = identity,
             sceneElapsedMs = sceneElapsedMs.coerceAtLeast(0L),
             opticalReferenceElapsedMs = reference,
-            stage = segment.stage,
+            stage = segment,
             stageElapsedMs = (reference - segment.startMs).coerceAtLeast(0L),
             stageProgress = if (segment.durationMs == 0L) 1f else
                 ((reference - segment.startMs).toFloat() / segment.durationMs).coerceIn(0f, 1f),
@@ -79,21 +86,71 @@ object RecognitionSceneCoordinator {
         )
     }
 
-    private data class Segment(val stage: RecognitionSceneStage, val startMs: Long, val durationMs: Long)
+    private fun segmentAt(t: Long): RecognitionSceneStage = when {
+        t == 0L -> RecognitionSceneStage.PHOTO_STABLE
+        else -> RecognitionSceneStage.entries.drop(1).firstOrNull { t < it.endMs }
+            ?: RecognitionSceneStage.RESIDUE_SETTLE
+    }
+}
 
-    private fun segmentAt(t: Long): Segment = when {
-        t == 0L -> Segment(RecognitionSceneStage.PHOTO_STABLE, 0L, 0L)
-        t < 350L -> Segment(RecognitionSceneStage.ORB_WAKE, 0L, 350L)
-        t < 950L -> Segment(RecognitionSceneStage.ORB_RELEASE, 350L, 600L)
-        t < 1_075L -> Segment(RecognitionSceneStage.PERIMETER_ARRIVAL, 950L, 125L)
-        t < 1_200L -> Segment(RecognitionSceneStage.PATH_TO_FISH, 1_075L, 125L)
-        t < 1_450L -> Segment(RecognitionSceneStage.CONTOUR_A, 1_200L, 250L)
-        t < 1_700L -> Segment(RecognitionSceneStage.CONTOUR_B, 1_450L, 250L)
-        t < 1_950L -> Segment(RecognitionSceneStage.CONTOUR_C, 1_700L, 250L)
-        t < 2_800L -> Segment(RecognitionSceneStage.FISH_GOLD_PEAK, 1_950L, 850L)
-        t < 3_180L -> Segment(RecognitionSceneStage.ORB_RETURN, 2_800L, 380L)
-        t < 3_350L -> Segment(RecognitionSceneStage.ORB_TO_NAME, 3_180L, 170L)
-        t < 3_480L -> Segment(RecognitionSceneStage.SPECIES_NAME_REVEAL, 3_350L, 130L)
-        else -> Segment(RecognitionSceneStage.RESIDUE_SETTLE, 3_480L, 170L)
+/** Playback controls project the authoritative Recognition clock; they never start a clock. */
+class SceneMotionCoordinator {
+    var mode: ScenePlaybackMode = ScenePlaybackMode.AUTO
+        private set
+    var paused: Boolean = false
+        private set
+
+    private var frozenReferenceMs: Long? = null
+    private var manualReferenceMs = 0L
+    private var manualStartedAtMs = 0L
+    private var autoOffsetMs: Long? = null
+
+    fun sample(authoritativeReferenceMs: Long, nowMs: Long): Long = when {
+        paused -> frozenReferenceMs ?: authoritativeReferenceMs.coerceAtLeast(0L)
+        mode == ScenePlaybackMode.MANUAL ->
+            (manualReferenceMs + (nowMs - manualStartedAtMs).coerceAtLeast(0L)).coerceAtMost(RecognitionSceneCoordinator.RR09_END_MS)
+        else -> (authoritativeReferenceMs + (autoOffsetMs ?: 0L)).coerceAtLeast(0L)
+    }
+
+    fun seek(stage: RecognitionSceneStage, nowMs: Long) {
+        mode = ScenePlaybackMode.MANUAL
+        paused = true
+        manualReferenceMs = stage.seekTimeMs
+        manualStartedAtMs = nowMs
+        frozenReferenceMs = stage.seekTimeMs
+        autoOffsetMs = null
+    }
+
+    fun step(delta: Int, currentStage: RecognitionSceneStage, nowMs: Long) {
+        val nextIndex = (currentStage.ordinal + delta).coerceIn(0, RecognitionSceneStage.entries.lastIndex)
+        seek(RecognitionSceneStage.entries[nextIndex], nowMs)
+    }
+
+    fun pause(authoritativeReferenceMs: Long, nowMs: Long) {
+        if (paused) return
+        frozenReferenceMs = sample(authoritativeReferenceMs, nowMs)
+        if (mode == ScenePlaybackMode.MANUAL) manualReferenceMs = requireNotNull(frozenReferenceMs)
+        paused = true
+    }
+
+    fun resume(authoritativeReferenceMs: Long, nowMs: Long) {
+        if (!paused) return
+        val frozen = frozenReferenceMs ?: authoritativeReferenceMs.coerceAtLeast(0L)
+        if (mode == ScenePlaybackMode.AUTO) {
+            autoOffsetMs = frozen - authoritativeReferenceMs
+        } else {
+            manualReferenceMs = frozen
+            manualStartedAtMs = nowMs
+        }
+        frozenReferenceMs = null
+        paused = false
+    }
+
+    fun playAuto(authoritativeReferenceMs: Long, nowMs: Long) {
+        val current = sample(authoritativeReferenceMs, nowMs)
+        mode = ScenePlaybackMode.AUTO
+        paused = false
+        frozenReferenceMs = null
+        autoOffsetMs = current - authoritativeReferenceMs
     }
 }
