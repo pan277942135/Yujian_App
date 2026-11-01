@@ -156,6 +156,7 @@ import com.yujian.ai.ui.waterlight.core.UnifiedWaterLightEngine
 import com.yujian.ai.ui.waterlight.core.WaterLightFrame
 import com.yujian.ai.ui.waterlight.core.WaterLightHost
 import com.yujian.ai.ui.waterlight.core.WaterLightHostBinding
+import com.yujian.ai.ui.waterlight.core.WaterLightEnergy
 import com.yujian.ai.ui.waterlight.core.WaterLightHostGeometry
 import com.yujian.ai.ui.waterlight.core.WaterLightMaterialProfile
 import com.yujian.ai.ui.waterlight.core.WaterLightGeometryVersion
@@ -912,6 +913,9 @@ fun RecognitionResultScreen(
             geometry = revealGeometry,
             frameState = revealFrameState,
             holdPhotoUntilHeroReady = heroSnapshot?.renderReady == false,
+            material = resultHost.material,
+            energyEvent = if (revealHandoff?.eligibility == RecognitionRevealEligibility.FULL_REVEAL)
+                WaterLightEnergy.at(resultFrame, trustedMask = true) else null,
         )
     }
 

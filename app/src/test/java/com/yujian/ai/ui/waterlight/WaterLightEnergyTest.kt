@@ -26,7 +26,11 @@ class WaterLightEnergyTest {
         assertEquals(EnergyFeedback.ARRIVE, WaterLightEnergy.at(frame(1000), false)?.feedback)
         assertNull(WaterLightEnergy.at(frame(1550), false))
         assertEquals(EnergyAnchor.FISH_CONTOUR, WaterLightEnergy.at(frame(1550), true)?.target)
-        assertNull(WaterLightEnergy.at(frame(2800), true))
+        assertEquals(EnergyFeedback.RETURN, WaterLightEnergy.at(frame(2800), true)?.feedback)
+        assertEquals(EnergyAnchor.REVEAL_TEXT, WaterLightEnergy.at(frame(3180), true)?.source)
+        assertEquals(EnergyFeedback.SETTLE, WaterLightEnergy.at(frame(3650), true)?.feedback)
+        assertNull(WaterLightEnergy.at(frame(3651), true))
+        assertNull(WaterLightEnergy.at(frame(3000), false))
         assertEquals("photo-B", WaterLightEnergy.at(frame(650, "photo-B"), true)?.sessionId)
     }
 }

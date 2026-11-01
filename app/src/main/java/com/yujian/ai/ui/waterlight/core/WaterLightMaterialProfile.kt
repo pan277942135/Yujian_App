@@ -66,7 +66,7 @@ data class WaterLightMaterialProfile(
             0xFFE1F6F3, 1.2f, 4f, 3f, .6f, WaterLightBlendMode.SCREEN)
         val CONTOUR = candidate(WaterLightHost.CONTOUR, 0xFFFFE3A6, 0xFFF6C771,
             0xFFDBA34D, 1.2f, 10f, 12f, 1f, WaterLightBlendMode.SCREEN)
-        val HANDOFF = candidate(WaterLightHost.HANDOFF, 0xFFDCAf5B, 0xFFFFE39C,
+        val HANDOFF = candidate(WaterLightHost.HANDOFF, 0xFFDCB05B, 0xFFFFE39C,
             0xFFFAE8BA, 1.2f, 8f, 8f, 1f, WaterLightBlendMode.SCREEN)
         val RESIDUE = candidate(WaterLightHost.RESIDUE, 0xFFDCAf5B, 0xFFFFE39C,
             0xFFFAE8BA, .8f, 4f, 4f, .4f, WaterLightBlendMode.SCREEN)
