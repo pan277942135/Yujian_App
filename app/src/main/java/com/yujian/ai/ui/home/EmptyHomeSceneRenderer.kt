@@ -206,8 +206,8 @@ private fun DrawScope.drawRuntimeOverlays(
     }
     drawPeriodicBobberRipples(
         burstElapsedSeconds = rippleBurst?.elapsedSeconds,
-        contactX = EMPTY_HOME_V2_WATER_CONTACT_X,
-        contactY = EMPTY_HOME_V2_WATER_CONTACT_Y,
+        centerXReferencePx = EMPTY_HOME_V2_RIPPLE_X + assets.ripple.width / 2f,
+        centerYReferencePx = EMPTY_HOME_V2_RIPPLE_Y + assets.ripple.height / 2f,
         transform = transform,
     )
     drawReferenceBitmap(
@@ -226,12 +226,12 @@ private fun DrawScope.drawRuntimeOverlays(
 
 private fun DrawScope.drawPeriodicBobberRipples(
     burstElapsedSeconds: Float?,
-    contactX: Float,
-    contactY: Float,
+    centerXReferencePx: Float,
+    centerYReferencePx: Float,
     transform: ReferenceSceneTransform,
 ) {
-    val centerX = transform.offsetX + contactX * transform.scale
-    val centerY = transform.offsetY + contactY * transform.scale
+    val centerX = transform.offsetX + centerXReferencePx * transform.scale
+    val centerY = transform.offsetY + centerYReferencePx * transform.scale
     val scale = transform.scale
     val perspectiveRatio = 3.2f
 
