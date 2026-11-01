@@ -21,7 +21,8 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.annotation.DrawableRes
 import com.yujian.ai.R
-import com.yujian.ai.ai.RecognitionPhase
+import com.yujian.ai.ui.waterlight.core.EnergyEvent
+import com.yujian.ai.ui.waterlight.core.EnergyFeedback
 import com.yujian.ai.ui.waterlight.core.WaterLightFrame
 import com.yujian.ai.ui.waterlight.core.WaterLightMaterialProfile
 import com.yujian.ai.ui.waterlight.renderer.OrbWaterLightRibbons
@@ -70,6 +71,7 @@ fun AIOrbCore(
     lowPerformance: Boolean = false,
     fromCamera: Boolean = false,
     waterLightFrame: WaterLightFrame? = null,
+    energyEvent: EnergyEvent? = null,
     waterLightMaterial: WaterLightMaterialProfile = WaterLightMaterialProfile.ORB_LEGACY,
 ) {
     when (state) {
@@ -106,6 +108,7 @@ fun AIOrbCore(
             lowPerformance = lowPerformance,
             fromCamera = fromCamera,
             waterLightFrame = waterLightFrame,
+            energyEvent = energyEvent,
             waterLightMaterial = waterLightMaterial,
             modifier = modifier,
         )
@@ -142,6 +145,7 @@ private fun OrbVisual(
     lowPerformance: Boolean,
     fromCamera: Boolean,
     waterLightFrame: WaterLightFrame?,
+    energyEvent: EnergyEvent?,
     waterLightMaterial: WaterLightMaterialProfile,
     modifier: Modifier,
 ) {
@@ -150,11 +154,16 @@ private fun OrbVisual(
     val ribbons = frame.ribbonOpening
     val settle = completion.coerceIn(0f, 1f)
     val time = if (reduceMotion) 0f else elapsedMs / 1000f
-    val sharedFrame = waterLightFrame ?: WaterLightFrame(
-        sessionId = "", photoSha256 = null, elapsedMs = elapsedMs.coerceAtLeast(0L),
-        opticalReferenceElapsedMs = elapsedMs.coerceAtLeast(0L), phase = RecognitionPhase.CAPTURED,
-        completion = completion.coerceIn(0f, 1f), reducedMotion = reduceMotion, geometryVersion = 0L,
-    )
+    val activeEnergyEvent = energyEvent?.takeIf { event -> waterLightFrame?.let(event::matches) == true }
+    val releaseEnergy = if (activeEnergyEvent?.feedback == EnergyFeedback.RELEASE) activeEnergyEvent.level.coerceIn(0f, 1f) else 0f
+    val returnEnergy = if (activeEnergyEvent?.feedback == EnergyFeedback.RETURN) activeEnergyEvent.level.coerceIn(0f, 1f) else 0f
+    val referenceMs = waterLightFrame?.opticalReferenceElapsedMs ?: elapsedMs
+    val orbEnergyDepletion = when {
+        activeEnergyEvent?.feedback == EnergyFeedback.RELEASE -> .18f * releaseEnergy
+        activeEnergyEvent?.feedback == EnergyFeedback.RETURN -> .18f * (1f - returnEnergy)
+        referenceMs in 950L until 2_800L -> .18f
+        else -> 0f
+    }
     val breath = if (reduceMotion) 1f else 1f + .018f * sin(time * (2f * PI.toFloat() / 4.2f))
     Box(
         modifier.size(coreSize + 28.dp).graphicsLayer {
@@ -164,7 +173,10 @@ private fun OrbVisual(
         },
         contentAlignment = Alignment.Center,
     ) {
-        OrbWaterLightRibbons(coreSize, sharedFrame, ribbons, settle, false, lowPerformance, waterLightMaterial)
+        if (waterLightFrame != null) OrbWaterLightRibbons(
+            coreSize, waterLightFrame, ribbons, settle, false, lowPerformance, waterLightMaterial,
+            activeEnergyEvent, releaseEnergy = releaseEnergy, returnEnergy = returnEnergy,
+        )
         if (fromCamera && morph < 1f) {
             Image(
                 painter = painterResource(R.drawable.ai_orb_camera_activated_v1),
@@ -181,7 +193,7 @@ private fun OrbVisual(
             painter = painterResource(R.drawable.processing_water_core_v1),
             contentDescription = null,
             modifier = Modifier.size(coreSize / .84f).graphicsLayer {
-                alpha = morph
+                alpha = (morph * (1f - orbEnergyDepletion + .22f * returnEnergy)).coerceIn(0f, 1f)
                 scaleX = .92f + .08f * morph
                 scaleY = scaleX
             },
@@ -196,7 +208,7 @@ private fun OrbVisual(
                 val glint = center + Offset(sin(time * .7f) * radius * .35f, -radius * .45f)
                 drawCircle(
                     Brush.radialGradient(
-                        listOf(Color(0xFFECF9EE).copy(alpha = .20f * morph), Color.Transparent),
+                        listOf(Color(0xFFECF9EE).copy(alpha = (.20f + .18f * returnEnergy) * morph), Color.Transparent),
                         glint,
                         radius * .9f,
                     ),
@@ -212,10 +224,13 @@ private fun OrbVisual(
                         center.x + radius * .4f, y - cos(time * .8f + i) * radius * .25f,
                         center.x + radius, y + radius * .18f,
                     )
-                    drawPath(path, Color(0xFFB5E6DF).copy(alpha = .16f * morph), style = Stroke(.7.dp.toPx()))
+                    drawPath(path, Color(0xFFB5E6DF).copy(alpha = .16f * morph * (1f + .22f * returnEnergy)), style = Stroke(.7.dp.toPx()))
                 }
             }
         }
-        OrbWaterLightRibbons(coreSize, sharedFrame, ribbons, settle, true, lowPerformance, waterLightMaterial)
+        if (waterLightFrame != null) OrbWaterLightRibbons(
+            coreSize, waterLightFrame, ribbons, settle, true, lowPerformance, waterLightMaterial,
+            activeEnergyEvent, releaseEnergy = releaseEnergy, returnEnergy = returnEnergy,
+        )
     }
 }

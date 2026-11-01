@@ -96,8 +96,14 @@ import com.yujian.ai.ui.screens.RecognitionSaveDestination
 import com.yujian.ai.ui.identify.RecognitionUiState
 import com.yujian.ai.ui.identify.resolveRecognitionResultState
 import com.yujian.ai.ui.recognition.reveal.RecognitionRevealKey
+import com.yujian.ai.ui.recognition.reveal.RecognitionRevealEligibility
+import com.yujian.ai.ui.recognition.reveal.RecognitionRevealHandoff
+import com.yujian.ai.ui.recognition.reveal.RecognitionGeometryTrustState
 import com.yujian.ai.ui.recognition.reveal.RecognitionRevealSessionStore
 import com.yujian.ai.ui.screens.RecognizingScreen
+import com.yujian.ai.ui.waterlight.core.RecognitionProgressDisplayMode
+import com.yujian.ai.ui.waterlight.core.RecognitionSceneStage
+import com.yujian.ai.ui.waterlight.core.SceneMotionCoordinator
 import com.yujian.ai.ui.home.CatchArchiveState
 import com.yujian.ai.ui.home.HomeState
 import com.yujian.ai.ui.home.resolveHomeState
@@ -124,6 +130,14 @@ fun YujianApp() {
     val activityContext = LocalContext.current
     val context = LocalContext.current.applicationContext
     val revealSessionStore: RecognitionRevealSessionStore = viewModel()
+    val diagnosticPlaybackController = remember(revealSessionStore) { SceneMotionCoordinator() }
+    var diagnosticReturnRevision by remember(revealSessionStore) { mutableIntStateOf(0) }
+    var diagnosticDisplayMode by remember(revealSessionStore) {
+        mutableStateOf(
+            if (BuildConfig.DEBUG) RecognitionProgressDisplayMode.STEP_DIAGNOSTIC
+            else RecognitionProgressDisplayMode.NORMAL_PROGRESS,
+        )
+    }
     val nav = rememberNavController()
     val scope = rememberCoroutineScope()
     val sessionManager = remember { UserSessionManager(context) }
@@ -368,6 +382,62 @@ fun YujianApp() {
                     catchesState = catchesState.failLoad(error.message ?: "鱼获数据加载失败")
                 }
             }
+    }
+
+    fun completeRecognitionAttempt(result: ProductionRecognitionResult, attemptId: String): RecognitionRevealHandoff? {
+        productionResult = result
+        recognitionTechnicalFailure = false
+        prediction = result.prediction
+        val sessionId = recognitionSessionId ?: return null
+        return revealSessionStore.completeAttempt(
+            key = RecognitionRevealKey(sessionId, attemptId),
+            result = result,
+            highConfidenceResult = result.prediction?.let {
+                resolveRecognitionResultState(it) == RecognitionUiState.RESULT_HIGH
+            } == true,
+            inferenceAsset = inferenceAsset,
+            handoffTimestampUptimeMs = SystemClock.uptimeMillis(),
+        )
+    }
+
+    fun deliverRecognitionAttempt(result: ProductionRecognitionResult, attemptId: String) {
+        if (activeRecognitionAttemptId != attemptId || currentRoute != "recognizing") return
+        completeRecognitionAttempt(result, attemptId)
+        if (result.ready) {
+            nav.navigate("result") { popUpTo("recognizing") { inclusive = true } }
+        } else {
+            nav.navigate("recognition_issue") { popUpTo("recognizing") { inclusive = true } }
+        }
+    }
+
+    fun requestDiagnosticReveal(result: ProductionRecognitionResult, attemptId: String): String? {
+        if (activeRecognitionAttemptId != attemptId || currentRoute != "recognizing") return "Recognition attempt is no longer active"
+        val selected = sessionImage ?: return "PhotoSession is unavailable"
+        if (!result.ready) return "真实分类结果尚未就绪"
+        val handoff = completeRecognitionAttempt(result, attemptId)
+            ?: return "RecognitionRevealHandoff is unavailable"
+        val samePhoto = handoff.imageId == selected.imageId &&
+            handoff.photoSourceIdentity.endsWith("|sha256=" + selected.photoSha256)
+        if (!samePhoto) return "photo identity mismatch · stage 10 blocked"
+        if (handoff.geometryTrustState != RecognitionGeometryTrustState.TRUSTED_MASK) {
+            return "eligibility=" + handoff.eligibility.name + " · Mask=" + handoff.geometryTrustState.name
+        }
+        if (handoff.eligibility != RecognitionRevealEligibility.FULL_REVEAL) {
+            return "eligibility=" + handoff.eligibility.name + " · trusted geometry/Orb anchor not ready"
+        }
+        diagnosticPlaybackController.beginStepPreview(
+            RecognitionSceneStage.ORB_RETURN,
+            SystemClock.uptimeMillis(),
+            startImmediately = false,
+        )
+        if (BuildConfig.DEBUG) {
+            // Keep Processing underneath Result so the shared diagnostic session can step back
+            // from RR09 stage 10 without recreating recognition or its visual controller.
+            nav.navigate("result") { launchSingleTop = true }
+        } else {
+            nav.navigate("result") { popUpTo("recognizing") { inclusive = true } }
+        }
+        return null
     }
 
     Scaffold(
@@ -648,6 +718,10 @@ fun YujianApp() {
                                 requireNotNull(activeRecognitionAttemptId),
                                 selected,
                             )
+                            diagnosticDisplayMode = if (BuildConfig.DEBUG) RecognitionProgressDisplayMode.STEP_DIAGNOSTIC
+                                else RecognitionProgressDisplayMode.NORMAL_PROGRESS
+                            if (BuildConfig.DEBUG) diagnosticPlaybackController.prepareInitialStepPreview()
+                            else diagnosticPlaybackController.playProductionTimeline(0L, SystemClock.uptimeMillis())
                             productionResult = null
                             recognitionTechnicalFailure = false
                             subjectResult = FishSubjectResult(SubjectStatus.IDLE)
@@ -711,29 +785,18 @@ fun YujianApp() {
                         },
                         recognitionSessionId = recognitionSessionId,
                         recognitionAttemptId = attemptId,
+                        diagnosticPlaybackController = diagnosticPlaybackController,
+                        diagnosticDisplayMode = diagnosticDisplayMode,
+                        diagnosticReturnRevision = diagnosticReturnRevision,
+                        onDiagnosticDisplayModeChange = { diagnosticDisplayMode = it },
+                        onDiagnosticRevealRequested = { result ->
+                            val activeAttempt = attemptId
+                            if (activeAttempt == null) "Recognition attempt is unavailable"
+                            else requestDiagnosticReveal(result, activeAttempt)
+                        },
                         onFinished = { result ->
-                            if (attemptId != null && activeRecognitionAttemptId == attemptId && currentRoute == "recognizing") {
-                                productionResult = result
-                                recognitionTechnicalFailure = false
-                                prediction = result.prediction
-                                val sessionId = recognitionSessionId
-                                if (sessionId != null) {
-                                    revealSessionStore.completeAttempt(
-                                        key = RecognitionRevealKey(sessionId, attemptId),
-                                        result = result,
-                                        highConfidenceResult = result.prediction?.let {
-                                            resolveRecognitionResultState(it) == RecognitionUiState.RESULT_HIGH
-                                        } == true,
-                                        inferenceAsset = inferenceAsset,
-                                        handoffTimestampUptimeMs = SystemClock.uptimeMillis(),
-                                    )
-                                }
-                                if (result.ready) {
-                                    nav.navigate("result") { popUpTo("recognizing") { inclusive = true } }
-                                } else {
-                                    nav.navigate("recognition_issue") { popUpTo("recognizing") { inclusive = true } }
-                                }
-                            }
+                            val activeAttempt = attemptId
+                            if (activeAttempt != null) deliverRecognitionAttempt(result, activeAttempt)
                         },
                         onFailure = {
                             if (attemptId != null && activeRecognitionAttemptId == attemptId && currentRoute == "recognizing") {
@@ -822,6 +885,13 @@ fun YujianApp() {
                             availableSpecies = guideSpecies.ifEmpty { localGuideItems() },
                             speciesCoverUrlFor = fishKnowledgeRepository::resolveAssetUrl,
                             revealHandoff = revealHandoff,
+                            diagnosticPlaybackController = diagnosticPlaybackController,
+                            diagnosticDisplayMode = diagnosticDisplayMode,
+                            onDiagnosticDisplayModeChange = { diagnosticDisplayMode = it },
+                            onDiagnosticReturnToProcessing = {
+                                diagnosticReturnRevision++
+                                nav.popBackStack()
+                            },
                             revealAlreadyPlayed = revealHandoff?.let { handoff ->
                                 revealSessionStore.hasPlayed(handoff.key)
                             } ?: true,

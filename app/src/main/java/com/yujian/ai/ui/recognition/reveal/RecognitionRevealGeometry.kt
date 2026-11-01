@@ -103,6 +103,9 @@ data class RecognitionRevealGeometry(
     val goldTransferPath: RecognitionRevealCubicPath,
     val titleBounds: RecognitionRevealWindowRect,
     val heroSourceTransform: RecognitionImageTransform,
+    val orbReturnPath: RecognitionRevealCubicPath? = null,
+    val orbToGlyphPath: RecognitionRevealCubicPath? = null,
+    val glyphResiduePath: RecognitionRevealCubicPath? = null,
 ) {
     val processingPhotoClipLocal: RecognitionRevealWindowRect
         get() = processingPhotoClip.localTo(rootWindowOrigin)
@@ -112,6 +115,12 @@ data class RecognitionRevealGeometry(
         get() = titleBounds.localTo(rootWindowOrigin)
     val goldTransferPathLocal: RecognitionRevealCubicPath
         get() = goldTransferPath.localTo(rootWindowOrigin)
+    val orbReturnPathLocal: RecognitionRevealCubicPath?
+        get() = orbReturnPath?.localTo(rootWindowOrigin)
+    val orbToGlyphPathLocal: RecognitionRevealCubicPath?
+        get() = orbToGlyphPath?.localTo(rootWindowOrigin)
+    val glyphResiduePathLocal: RecognitionRevealCubicPath?
+        get() = glyphResiduePath?.localTo(rootWindowOrigin)
 
     fun photoMatrix(progress: Float): RecognitionRevealSourceMatrix {
         val p = progress.coerceIn(0f, 1f)
@@ -255,8 +264,22 @@ object RecognitionRevealGeometryResolver {
             x = titleBoundsInWindow.left + titleBoundsInWindow.width * .5f,
             y = titleBoundsInWindow.top + titleBoundsInWindow.height * .32f,
         )
-        val path = transferCurve(targetAnchorWindow, targetTitle)
+        // Keep the V3 path as inert compatibility geometry; V4 renderers use the two Orb paths below.
+        val path = transferCurve(targetAnchorWindow, targetTitle) ?: opticalCurve(targetAnchorWindow, targetTitle)
             ?: return rejected("TRANSFER_PATH_DOES_NOT_REACH_TITLE")
+        val originalOrb = handoff.processingOrbCenterInWindow
+            ?.takeIf { it.x.isFinite() && it.y.isFinite() }
+            ?: return rejected("ORIGINAL_ORB_ANCHOR_MISSING")
+        val orbReturnPath = opticalCurve(targetAnchorWindow, originalOrb)
+            ?: return rejected("FISH_TO_ORB_PATH_INVALID")
+        val orbToGlyphPath = opticalCurve(originalOrb, targetTitle)
+            ?: return rejected("ORB_TO_GLYPH_PATH_INVALID")
+        val residueAnchor = DisplayPoint(
+            titleBoundsInWindow.right - titleBoundsInWindow.width * .08f,
+            titleBoundsInWindow.bottom - titleBoundsInWindow.height * .12f,
+        )
+        val glyphResiduePath = opticalCurve(targetTitle, residueAnchor)
+            ?: return rejected("GLYPH_RESIDUE_PATH_INVALID")
         return RecognitionRevealGeometryResolution(
             geometry = RecognitionRevealGeometry(
                 rootWindowOrigin = DisplayPoint(rootBoundsInWindow.left, rootBoundsInWindow.top),
@@ -273,6 +296,9 @@ object RecognitionRevealGeometryResolver {
                 goldTransferPath = path,
                 titleBounds = titleBoundsInWindow,
                 heroSourceTransform = targetLocalTransform,
+                orbReturnPath = orbReturnPath,
+                orbToGlyphPath = orbToGlyphPath,
+                glyphResiduePath = glyphResiduePath,
             ),
             failureReason = null,
         )
@@ -322,6 +348,23 @@ object RecognitionRevealGeometryResolver {
             start = start,
             control1 = DisplayPoint(start.x + dx * .12f, start.y + dy * .56f),
             control2 = DisplayPoint(end.x - dx * .08f, end.y - dy * .34f),
+            end = end,
+        )
+    }
+
+    private fun opticalCurve(start: DisplayPoint, end: DisplayPoint): RecognitionRevealCubicPath? {
+        val dx = end.x - start.x
+        val dy = end.y - start.y
+        val length = kotlin.math.hypot(dx, dy)
+        if (!length.isFinite() || length < 1f) return null
+        val bend = (length * .12f).coerceAtMost(40f)
+        val sign = if (((dx.toInt() xor dy.toInt()) and 1) == 0) 1f else -1f
+        val nx = -dy / length * bend * sign
+        val ny = dx / length * bend * sign
+        return RecognitionRevealCubicPath(
+            start = start,
+            control1 = DisplayPoint(start.x + dx * .28f + nx, start.y + dy * .28f + ny),
+            control2 = DisplayPoint(start.x + dx * .72f + nx, start.y + dy * .72f + ny),
             end = end,
         )
     }

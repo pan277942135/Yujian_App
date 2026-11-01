@@ -78,7 +78,52 @@ case "$1" in
       printf '{"status":"SAFE_FALLBACK","source_asset":"synthetic_fake_adb_fixture.jpg","source_sha256":"fake-sha256","species_id":"yellow_catfish","species_confidence":0.82,"geometry_trust":"UNTRUSTED","result_geometry_status":"FAKE_FIXTURE","result_entry_mode":"TEST_CONTROLLED"}\n'
       exit 0
     fi
+    if [[ "$command_line" == *cache/rr09-gold-transfer-production/AI_Orb_WaterLight_Runtime_Matrix.json* ]]; then
+      # Exercise the evidence-packaging contract only. These rows are synthetic
+      # contract fixtures, never API28 application output or product evidence.
+      python3 - <<'PY'
+import json
+
+stage_ids = [
+    "PHOTO_STABLE", "ORB_WAKE", "ORB_RELEASE", "PERIMETER_ARRIVAL", "PATH_TO_FISH",
+    "CONTOUR_A", "CONTOUR_B", "CONTOUR_C", "FISH_GOLD_PEAK", "ORB_RETURN",
+    "ORB_TO_NAME", "SPECIES_NAME_REVEAL", "RESIDUE_SETTLE",
+]
+stage_times = [0, 1, 350, 950, 1075, 1200, 1550, 1700, 1950, 2800, 3180, 3350, 3480]
+stage_files = [f"processing_{time:04d}ms.png" for time in [0, 1, 350, 950, 1075, 1200, 1550, 1700, 1950]]
+stage_files += ["rr09-v4/R0_000ms.png", "rr09-v4/R2_380ms.png", "rr09-v4/R3_550ms.png", "rr09-v4/R4_680ms.png"]
+stages = [
+    {"stage_number": index + 1, "stage_id": stage_id, "stage_name": stage_id,
+     "scene_time_ms": time_ms, "geometry_version": "fake-geometry-v1", "file": filename}
+    for index, (stage_id, time_ms, filename) in enumerate(zip(stage_ids, stage_times, stage_files))
+]
+p_times = [0, 350, 950, 1200, 1550, 2050, 2600, 2800]
+p0_p7 = [
+    {"keyframe": f"P{index}", "time_ms": time_ms, "file": f"processing_{time_ms:04d}ms.png"}
+    for index, time_ms in enumerate(p_times)
+]
+rr_times = [("R0", 0), ("R0.5", 100), ("R1", 200), ("R2", 380), ("R3", 550), ("R4", 680), ("R5", 850)]
+rr09 = [
+    {"keyframe": keyframe, "rr09_elapsed_ms": elapsed,
+     "file": f"{keyframe.replace('.', '_')}_{elapsed:03d}ms.png"}
+    for keyframe, elapsed in rr_times
+]
+print(json.dumps({
+    "status": "PASS", "session_id": "fake-adb-contract-session",
+    "attempt_id": "fake-adb-contract-attempt", "image_id": "fake-adb-contract-image",
+    "photo_sha256": "a" * 64, "mask_status": "READY", "mask_quality": "GOOD",
+    "result_is_high": True, "contour_segments": 12,
+    "stages": stages, "p0_p7": p0_p7, "rr09_r0_r5": rr09,
+}, separators=(",", ":")))
+PY
+      exit 0
+    fi
     if [[ "$command_line" == *cache/rr09-gold-transfer-production/*RR09_Production_*.png* ]]; then
+      cat "$fixture_root/05_Result_High_Frozen.png"
+      exit 0
+    fi
+    if [[ "$command_line" == *cache/rr09-gold-transfer-production/13-stage/*.png* || \
+          "$command_line" == *cache/rr09-gold-transfer-production/rr09-v4/*.png* ]]; then
       cat "$fixture_root/05_Result_High_Frozen.png"
       exit 0
     fi

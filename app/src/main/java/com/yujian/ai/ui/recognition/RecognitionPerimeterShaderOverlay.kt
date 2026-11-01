@@ -37,6 +37,8 @@ import com.yujian.ai.ui.identify.DisplayRect
 import com.yujian.ai.ui.identify.RecognitionImageTransform
 import com.yujian.ai.ui.waterlight.core.WaterLightFrame
 import com.yujian.ai.ui.waterlight.core.WaterLightMaterialProfile
+import com.yujian.ai.ui.waterlight.core.EnergyEvent
+import com.yujian.ai.ui.waterlight.core.EnergyFeedback
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.util.concurrent.atomic.AtomicBoolean
@@ -68,6 +70,7 @@ internal fun RecognitionPerimeterShaderOverlay(
     reduceMotion: Boolean = false,
     referenceMetrics: RecognitionPerimeterReferenceMetrics? = null,
     material: WaterLightMaterialProfile = WaterLightMaterialProfile.PERIMETER,
+    energyEvent: EnergyEvent? = null,
     modifier: Modifier = Modifier,
 ) {
     if (waterLightFrame.sessionId != recognitionSessionId || waterLightFrame.photoSha256 != photoSha256 ||
@@ -139,6 +142,10 @@ internal fun RecognitionPerimeterShaderOverlay(
         coordinateMappingMeasured = mapping.isMeasured,
         glowSizeSource = material.glowWidth * context.resources.displayMetrics.density / mapping.shaderPxPerSourceUnit.coerceAtLeast(.0001f),
         material = material,
+        energyLevel = energyEvent?.takeIf {
+            it.matches(waterLightFrame) && it.imageId == imageId && it.photoSha256 == photoSha256 &&
+                it.feedback in setOf(EnergyFeedback.RELEASE, EnergyFeedback.ARRIVE)
+        }?.level?.coerceIn(0f, 1f) ?: 0f,
         active = active,
     )
 
@@ -189,6 +196,7 @@ private data class PerimeterFrame(
     val coordinateMappingMeasured: Boolean,
     val glowSizeSource: Float,
     val material: WaterLightMaterialProfile,
+    val energyLevel: Float,
     val active: Boolean,
 )
 
@@ -569,6 +577,10 @@ private class RecognitionPerimeterGlRenderer {
             GLES20.glGetUniformLocation(programId, "uGlowSizeSource"),
             frame.glowSizeSource,
         )
+        GLES20.glUniform1f(
+            GLES20.glGetUniformLocation(programId, "uEnergyLevel"),
+            frame.energyLevel.coerceIn(0f, 1f),
+        )
     }
 
     private fun logMappingIfChanged(frame: PerimeterFrame) {
@@ -638,6 +650,7 @@ private class RecognitionPerimeterGlRenderer {
             // SWOS timeline envelope is applied after the source perimeter math; P7 is exact zero.
             uniform float uPerimeterOpacity;
             uniform float uGlowSizeSource;
+            uniform float uEnergyLevel;
             // Two node positions per vector; constant-index branches keep GLES2 fragment indexing portable.
             uniform vec4 uNodePositions[8];
 
@@ -754,6 +767,7 @@ private class RecognitionPerimeterGlRenderer {
                 vec3 finalRgb = (perimeterColor * perimContrib) / totalWeight;
                 float coreSpark = smoothstep(0.85, 1.75, totalLight);
                 finalRgb = mix(finalRgb, uIceWhite, coreSpark * 0.48);
+                finalRgb = mix(finalRgb, uIceWhite, clamp(uEnergyLevel * 0.08, 0.0, 0.08));
                 finalRgb *= (1.0 + coreSpark * 0.3);
 
                 // First source stage: WebGL SRC_ALPHA / ONE_MINUS_SRC_ALPHA over transparent.

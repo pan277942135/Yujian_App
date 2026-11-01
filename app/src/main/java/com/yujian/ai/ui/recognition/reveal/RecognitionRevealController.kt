@@ -2,10 +2,10 @@ package com.yujian.ai.ui.recognition.reveal
 
 enum class RecognitionRevealPhase {
     PHOTO_CONTINUITY,
-    GOLD_TRANSFER,
-    NAME_FORMATION,
-    NAME_REVEAL,
-    AFTERGLOW,
+    ORB_RETURN,
+    ORB_TO_NAME,
+    SPECIES_NAME_REVEAL,
+    RESIDUE_SETTLE,
     COMPLETE,
 }
 
@@ -39,14 +39,20 @@ data class RecognitionRevealFrame(
     val ctaEnabled: Boolean = true,
 ) {
     val isComplete: Boolean get() = phase == RecognitionRevealPhase.COMPLETE
+    /** RR09 V4 Orb receive/stabilize progress after the return path launches during photo continuity. */
+    val orbReturnProgress: Float get() = transferProgress
+    val orbToNameProgress: Float get() = titleFormationProgress
 }
 
 object RecognitionRevealClock {
     const val TOTAL_DURATION_MS = 850L
     const val PHOTO_END_MS = 200L
-    const val GOLD_TRANSFER_END_MS = 380L
-    const val NAME_FORMATION_END_MS = 550L
-    const val NAME_REVEAL_END_MS = 680L
+    const val ORB_RETURN_END_MS = 380L
+    const val ORB_TO_NAME_END_MS = 550L
+    const val SPECIES_NAME_REVEAL_END_MS = 680L
+    const val GOLD_TRANSFER_END_MS = ORB_RETURN_END_MS
+    const val NAME_FORMATION_END_MS = ORB_TO_NAME_END_MS
+    const val NAME_REVEAL_END_MS = SPECIES_NAME_REVEAL_END_MS
     const val FULL_PARTICLE_LIMIT = 18
     const val LOW_PARTICLE_LIMIT = 6
 
@@ -105,10 +111,10 @@ object RecognitionRevealClock {
                 elapsedMs = t,
                 phase = when {
                     t < PHOTO_END_MS -> RecognitionRevealPhase.PHOTO_CONTINUITY
-                    t < GOLD_TRANSFER_END_MS -> RecognitionRevealPhase.GOLD_TRANSFER
-                    t < NAME_FORMATION_END_MS -> RecognitionRevealPhase.NAME_FORMATION
-                    t < NAME_REVEAL_END_MS -> RecognitionRevealPhase.NAME_REVEAL
-                    t < TOTAL_DURATION_MS -> RecognitionRevealPhase.AFTERGLOW
+                    t < GOLD_TRANSFER_END_MS -> RecognitionRevealPhase.ORB_RETURN
+                    t < NAME_FORMATION_END_MS -> RecognitionRevealPhase.ORB_TO_NAME
+                    t < NAME_REVEAL_END_MS -> RecognitionRevealPhase.SPECIES_NAME_REVEAL
+                    t < TOTAL_DURATION_MS -> RecognitionRevealPhase.RESIDUE_SETTLE
                     else -> RecognitionRevealPhase.COMPLETE
                 },
                 photoProgress = photoProgress,
@@ -133,10 +139,10 @@ object RecognitionRevealClock {
 
         val phase = when {
             t < PHOTO_END_MS -> RecognitionRevealPhase.PHOTO_CONTINUITY
-            t < GOLD_TRANSFER_END_MS -> RecognitionRevealPhase.GOLD_TRANSFER
-            t < NAME_FORMATION_END_MS -> RecognitionRevealPhase.NAME_FORMATION
-            t < NAME_REVEAL_END_MS -> RecognitionRevealPhase.NAME_REVEAL
-            else -> RecognitionRevealPhase.AFTERGLOW
+            t < GOLD_TRANSFER_END_MS -> RecognitionRevealPhase.ORB_RETURN
+            t < NAME_FORMATION_END_MS -> RecognitionRevealPhase.ORB_TO_NAME
+            t < NAME_REVEAL_END_MS -> RecognitionRevealPhase.SPECIES_NAME_REVEAL
+            else -> RecognitionRevealPhase.RESIDUE_SETTLE
         }
         val transfer = ((t - PHOTO_END_MS).toFloat() /
             (GOLD_TRANSFER_END_MS - PHOTO_END_MS)).coerceIn(0f, 1f)

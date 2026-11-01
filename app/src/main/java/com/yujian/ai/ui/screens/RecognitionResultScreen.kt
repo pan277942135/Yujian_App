@@ -1,3 +1,6 @@
+Warning: truncated output (original token count: 24839)
+Total output lines: 1954
+
 package com.yujian.ai.ui.screens
 
 import com.yujian.ai.BuildConfig
@@ -64,6 +67,7 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.rememberCoroutineScope
@@ -159,7 +163,16 @@ import com.yujian.ai.ui.waterlight.core.WaterLightHostBinding
 import com.yujian.ai.ui.waterlight.core.WaterLightEnergy
 import com.yujian.ai.ui.waterlight.core.WaterLightHostGeometry
 import com.yujian.ai.ui.waterlight.core.WaterLightMaterialProfile
+import com.yujian.ai.ui.waterlight.core.WaterLightPathGeometry
+import com.yujian.ai.ui.waterlight.core.WaterLightPathPoint
 import com.yujian.ai.ui.waterlight.core.WaterLightGeometryVersion
+import com.yujian.ai.ui.waterlight.core.RecognitionProgressDisplayMode
+import com.yujian.ai.ui.waterlight.core.DIAGNOSTIC_STEP_DURATION_MS
+import com.yujian.ai.ui.waterlight.core.RecognitionSceneCoordinator
+import com.yujian.ai.ui.waterlight.core.RecognitionSceneIdentity
+import com.yujian.ai.ui.waterlight.core.RecognitionSceneStage
+import com.yujian.ai.ui.waterlight.core.SceneMotionCoordinator
+import com.yujian.ai.ui.waterlight.core.ScenePlaybackMode
 import com.yujian.ai.ui.recognition.reveal.RecognitionRevealGeometry
 import com.yujian.ai.ui.recognition.reveal.RecognitionRevealGeometryResolver
 import com.yujian.ai.ui.recognition.reveal.RecognitionRevealGeometryResolution
@@ -173,6 +186,7 @@ import com.yujian.ai.ui.recognition.reveal.RecognitionRevealPhase
 import com.yujian.ai.ui.recognition.reveal.RecognitionRevealPolicy
 import com.yujian.ai.ui.recognition.reveal.RecognitionRevealTitleMode
 import com.yujian.ai.ui.recognition.reveal.RecognitionRevealWindowRect
+import com.yujian.ai.ui.recognition.RecognitionStepDiagnosticControls
 import com.yujian.ai.ui.recognition.reveal.resolveRecognitionScientificName
 import com.yujian.ai.ui.recognition.result.RecognitionPlace
 import com.yujian.ai.ui.recognition.result.RecognitionPlaceRecentStore
@@ -228,6 +242,10 @@ fun RecognitionResultScreen(
     onClaimReveal: (RecognitionRevealKey) -> Boolean = { true },
     onRevealFinished: (RecognitionRevealKey) -> Unit = {},
     revealElapsedOverrideMs: Long? = null,
+    diagnosticPlaybackController: SceneMotionCoordinator? = null,
+    diagnosticDisplayMode: RecognitionProgressDisplayMode = RecognitionProgressDisplayMode.NORMAL_PROGRESS,
+    onDiagnosticDisplayModeChange: (RecognitionProgressDisplayMode) -> Unit = {},
+    onDiagnosticReturnToProcessing: () -> Unit = {},
     revealMotionPolicyOverride: RecognitionRevealMotionPolicy? = null,
     revealGeometryResolutionObserver: ((RecognitionRevealGeometryResolution?) -> Unit)? = null,
     onSave: (CatchSaveDraft, FeedbackDraft, RecognitionSaveDestination) -> Unit,
@@ -235,11 +253,13 @@ fun RecognitionResultScreen(
     var rootBounds by remember { mutableStateOf<RecognitionRevealWindowRect?>(null) }
     var heroSnapshot by remember(image?.imageId) { mutableStateOf<RecognitionRevealHeroSnapshot?>(null) }
     var revealTitleBounds by remember(image?.imageId) { mutableStateOf<RecognitionRevealWindowRect?>(null) }
+    var diagnosticUserPaused by remember(revealHandoff?.key) { mutableStateOf(false) }
     val revealElapsedState = remember(revealHandoff?.key) {
         mutableStateOf(if (revealAlreadyPlayed || revealHandoff == null) RecognitionRevealClock.TOTAL_DURATION_MS else 0L)
     }
     val resultFirstPresentedAtMs = remember(image?.imageId) { mutableStateOf<Long?>(null) }
     val revealStartAllowed = remember(image?.imageId) { mutableStateOf(false) }
+    var diagnosticNowMs by remember(revealHandoff?.key) { mutableLongStateOf(SystemClock.uptimeMillis()) }
     val resultFirstFrameCallbackPosted = remember(image?.imageId) { AtomicBoolean(false) }
     val resultFrameHandler = remember { Handler(Looper.getMainLooper()) }
     val systemMotionPolicy = rememberRecognitionMotionPolicy()
@@ -412,6 +432,105 @@ fun RecognitionResultScreen(
         revealGeometryReady = revealGeometry != null,
         reduceMotion = revealMotionPolicy.reduceMotion,
     )
+    val diagnosticUiAvailable = BuildConfig.DEBUG && diagnosticPlaybackController != null
+    val diagnosticManualActive = diagnosticUiAvailable &&
+        diagnosticDisplayMode == RecognitionProgressDisplayMode.STEP_DIAGNOSTIC &&
+        diagnosticPlaybackController?.mode == ScenePlaybackMode.MANUAL
+    val diagnosticReferenceMs = if (diagnosticUiAvailable &&
+        diagnosticDisplayMode == RecognitionProgressDisplayMode.STEP_DIAGNOSTIC
+    ) {
+        if (diagnosticManualActive) {
+        diagnosticPlaybackController?.sample(
+            RecognitionSceneCoordinator.PROCESSING_END_MS,
+            diagnosticNowMs,
+        ) ?: RecognitionSceneCoordinator.PROCESSING_END_MS
+        } else {
+            (RecognitionSceneCoordinator.PROCESSING_END_MS + revealElapsedState.value)
+                .coerceAtMost(RecognitionSceneCoordinator.RR09_END_MS)
+        }
+    } else null
+    val effectiveRevealElapsedOverrideMs = when {
+        diagnosticManualActive && diagnosticReferenceMs != null -> (diagnosticReferenceMs - RecognitionSceneCoordinator.PROCESSING_END_MS)
+            .coerceIn(0L, RecognitionRevealClock.TOTAL_DURATION_MS)
+        else -> revealElapsedOverrideMs
+    }
+    val diagnosticPreviewElapsedMs = diagnosticPlaybackController?.previewElapsedMs(diagnosticNowMs) ?: 0L
+    val diagnosticPreviewCompleted = diagnosticPlaybackController?.previewCompleted == true
+    val diagnosticPaused = diagnosticPlaybackController?.paused == true
+    LaunchedEffect(diagnosticUiAvailable, diagnosticDisplayMode, diagnosticPlaybackController, revealStartReady) {
+        val playback = diagnosticPlaybackController ?: return@LaunchedEffect
+        if (!diagnosticUiAvailable || diagnosticDisplayMode != RecognitionProgressDisplayMode.STEP_DIAGNOSTIC ||
+            playback.mode != ScenePlaybackMode.MANUAL
+        ) return@LaunchedEffect
+        if (!revealStartReady) {
+            playback.holdCurrentPreviewAtStart()
+            diagnosticNowMs = SystemClock.uptimeMillis()
+        } else if (playback.paused && !playback.previewCompleted && !diagnosticUserPaused) {
+            val now = SystemClock.uptimeMillis()
+            playback.resume(RecognitionSceneCoordinator.PROCESSING_END_MS, now)
+            diagnosticNowMs = now
+        }
+    }
+    LaunchedEffect(diagnosticUiAvailable, diagnosticManualActive, diagnosticPaused, diagnosticPreviewCompleted, diagnosticPlaybackController) {
+        if (!diagnosticUiAvailable || !diagnosticManualActive || diagnosticPaused || diagnosticPreviewCompleted) return@LaunchedEffect
+        while (isActive) {
+            withFrameNanos { it }
+            diagnosticNowMs = SystemClock.uptimeMillis()
+        }
+    }
+    val diagnosticFrame = if (diagnosticReferenceMs != null && revealHandoff != null && image != null) {
+        RecognitionSceneCoordinator.frameAt(
+            identity = RecognitionSceneIdentity(
+                sessionId = revealHandoff.key.recognitionSessionId,
+                attemptId = revealHandoff.key.recognitionAttemptId,
+                imageId = image.imageId,
+                photoSha256 = image.photoSha256,
+                photoContentVersion = image.bitmap.generationId.toLong().coerceAtLeast(0L),
+            ),
+            sceneElapsedMs = diagnosticReferenceMs,
+            opticalReferenceElapsedMs = diagnosticReferenceMs,
+            geometryVersion = photoTransitionGeometry?.heroSourceTransform?.let { WaterLightGeometryVersion.of(it) } ?: 0L,
+            playbackMode = diagnosticPlaybackController?.mode ?: ScenePlaybackMode.AUTO,
+            paused = diagnosticPaused,
+            reducedMotion = revealMotionPolicy.reduceMotion,
+        )
+    } else null
+    val diagnosticStage = diagnosticFrame?.stage ?: diagnosticPlaybackController?.currentStage ?: RecognitionSceneStage.ORB_RETURN
+    LaunchedEffect(revealHandoff?.key, diagnosticStage, diagnosticDisplayMode, diagnosticPreviewCompleted, diagnosticUiAvailable) {
+        if (diagnosticUiAvailable && diagnosticFrame != null) {
+            Log.i(
+                "RecognitionReveal",
+                "DIAGNOSTIC_PRESENT session=${revealHandoff?.key?.recognitionSessionId.orEmpty()} " +
+                    "attempt=${revealHandoff?.key?.recognitionAttemptId.orEmpty()} image=${image?.imageId.orEmpty()} " +
+                    "sha256=${image?.photoSha256.orEmpty()} stage=${diagnosticStage.ordinal + 1}/13 name=${diagnosticStage.name} " +
+                    "reference_ms=${diagnosticFrame.opticalReferenceElapsedMs} preview_ms=$diagnosticPreviewElapsedMs " +
+                    "remaining_ms=${DIAGNOSTIC_STEP_DURATION_MS - diagnosticPreviewElapsedMs} " +
+                    "completed=$diagnosticPreviewCompleted paused=$diagnosticPaused " +
+                    "geometry_ready=$revealStartReady eligibility=${revealHandoff?.eligibility} " +
+                    "mask=${revealHandoff?.geometryTrustState} result=${prediction.top1.speciesKey}",
+            )
+        }
+    }
+    fun changeDiagnosticDisplayMode(mode: RecognitionProgressDisplayMode) {
+        if (mode == diagnosticDisplayMode) return
+        val playback = diagnosticPlaybackController
+        val now = SystemClock.uptimeMillis()
+        diagnosticUserPaused = false
+        if (mode == RecognitionProgressDisplayMode.NORMAL_PROGRESS) {
+            val reference = diagnosticReferenceMs ?:
+                (RecognitionSceneCoordinator.PROCESSING_END_MS + revealElapsedState.value)
+            playback?.playProductionTimeline(reference, now)
+        } else {
+            val reference = if (playback?.mode == ScenePlaybackMode.MANUAL) {
+                playback.sample(RecognitionSceneCoordinator.PROCESSING_END_MS, now)
+            } else {
+                (RecognitionSceneCoordinator.PROCESSING_END_MS + revealElapsedState.value)
+            }
+            playback?.switchToStepDiagnostic(reference, now)
+        }
+        onDiagnosticDisplayModeChange(mode)
+        diagnosticNowMs = now
+    }
     var geometryWaitExpired by remember(revealHandoff?.key) { mutableStateOf(false) }
     LaunchedEffect(revealHandoff?.key, revealStartReady) {
         if (revealHandoff?.eligibility == RecognitionRevealEligibility.FULL_REVEAL && !revealStartReady) {
@@ -428,10 +547,10 @@ fun RecognitionResultScreen(
         revealStartAllowed.value
     }
     val presentedHandoff = visualHandoff.takeIf { revealPresentationReady }
-    val revealFrameState = remember(presentedHandoff, revealMotionPolicy, revealElapsedOverrideMs, revealElapsedState) {
+    val revealFrameState = remember(presentedHandoff, revealMotionPolicy, effectiveRevealElapsedOverrideMs, revealElapsedState) {
         derivedStateOf {
             RecognitionRevealClock.evaluate(
-                elapsedMs = revealElapsedOverrideMs ?: revealElapsedState.value,
+                elapsedMs = effectiveRevealElapsedOverrideMs ?: revealElapsedState.value,
                 handoff = presentedHandoff,
                 policy = revealMotionPolicy,
             )
@@ -442,10 +561,10 @@ fun RecognitionResultScreen(
         revealHandoff?.key,
         resultFirstPresentedAtMs.value,
         revealStartAllowed.value,
-        revealElapsedOverrideMs,
+        effectiveRevealElapsedOverrideMs,
     ) {
         val handoff = revealHandoff ?: return@LaunchedEffect
-        if (revealElapsedOverrideMs != null) return@LaunchedEffect
+        if (effectiveRevealElapsedOverrideMs != null) return@LaunchedEffect
         val startUptimeMs = resultFirstPresentedAtMs.value ?: return@LaunchedEffect
         if (!revealStartAllowed.value) return@LaunchedEffect
         Log.i(
@@ -604,7 +723,7 @@ fun RecognitionResultScreen(
             drawContent()
             val handoff = revealHandoff
             val frameImageId = image?.imageId
-            if (revealElapsedOverrideMs == null &&
+            if (effectiveRevealElapsedOverrideMs == null &&
                 (handoff?.eligibility != RecognitionRevealEligibility.FULL_REVEAL ||
                     revealStartReady || geometryWaitExpired) &&
                 resultFirstFrameCallbackPosted.compareAndSet(false, true)
@@ -625,285 +744,7 @@ fun RecognitionResultScreen(
                                 !revealAlreadyPlayed && onClaimReveal(handoff.key)
                             revealStartAllowed.value = canAnimate
                             val eligible = handoff.eligibility == RecognitionRevealEligibility.FULL_REVEAL ||
-                                handoff.eligibility == RecognitionRevealEligibility.TITLE_FADE_ONLY
-                            if (canAnimate) {
-                                revealElapsedState.value = 0L
-                                Log.i(
-                                    "RecognitionReveal",
-                                    "RESULT_FIRST_PRESENTED session=${handoff.key.recognitionSessionId} attempt=${handoff.key.recognitionAttemptId} image=${handoff.imageId} photoSha256=${handoff.photoSourceIdentity.substringAfterLast("sha256=")} uptimeMs=$presentedAtMs geometryReady=true hero=${heroSnapshot?.boundsInWindow} crop=${heroSnapshot?.cropRect} root=${rootBounds}",
-                                )
-                            } else {
-                                revealElapsedState.value = RecognitionRevealClock.TOTAL_DURATION_MS
-                                val reason = when {
-                                    !sameHandoff -> "HANDOFF_CHANGED_BEFORE_FIRST_FRAME"
-                                    revealAlreadyPlayed -> "ALREADY_PLAYED"
-                                    !eligible -> "INELIGIBLE"
-                                    revealMotionPolicy.reduceMotion -> "REDUCE_MOTION"
-                                    !revealStartReady -> "FIRST_FRAME_GEOMETRY_NOT_READY"
-                                    else -> "PLAYBACK_ALREADY_CLAIMED"
-                                }
-                                Log.i(
-                                    "RecognitionReveal",
-                                    "RESULT_FIRST_PRESENTED session=${handoff.key.recognitionSessionId} attempt=${handoff.key.recognitionAttemptId} image=${handoff.imageId} uptimeMs=$presentedAtMs rr09Started=false reason=$reason",
-                                )
-                                latestRevealFinished.value.invoke(handoff.key)
-                            }
-                        }
-                    }
-                }
-            }
-        }.onGloballyPositioned { coordinates ->
-            val bounds = coordinates.boundsInWindow()
-            rootBounds = RecognitionRevealWindowRect(bounds.left, bounds.top, bounds.right, bounds.bottom)
-        },
-    ) {
-        BgContentSurface()
-        Column(Modifier.fillMaxSize()) {
-            YuJianBackCenterTitleTopBar(title = "识别结果", onBack = { requestExit(PendingExitAction.BACK) }, backEnabled = !saving && !saveRequested)
-            Column(
-                Modifier.weight(1f)
-                    .widthIn(max = RecognitionResultGeometryResolver.MAX_CONTENT_WIDTH_DP.dp)
-                    .fillMaxWidth()
-                    .align(Alignment.CenterHorizontally)
-                    .padding(start = safeInsets.start, end = safeInsets.end)
-                    // Result content is allowed to exceed a short viewport and is
-                    // reached by natural scrolling. Compose does not draw an
-                    // always-visible scrollbar for this scroll container.
-                    .verticalScroll(rememberScrollState())
-                    .padding(bottom = 20.dp + safeInsets.bottom),
-                verticalArrangement = Arrangement.spacedBy(0.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                Spacer(Modifier.height(8.dp))
-                image?.let {
-                    ResultHeroViewport(
-                        bitmap = it.bitmap.asImageBitmap(),
-                        bbox = bbox,
-                        primaryAmbiguous = primaryFishAmbiguous,
-                        widthDp = geometry.heroWidthDp,
-                        heightDp = geometry.heroHeightDp,
-                        evidenceFirst = uiState == RecognitionUiState.ERROR_NO_FISH ||
-                            uiState == RecognitionUiState.ERROR_IMAGE_QUALITY,
-                        revealFrameState = revealFrameState,
-                        sharedPhotoGeometryReady = photoTransitionGeometry != null && revealPresentationReady,
-                        holdPhotoUntilReady = heroSnapshot?.renderReady == false,
-                        onHeroSnapshot = { bounds, cropRect, ready ->
-                            heroSnapshot = RecognitionRevealHeroSnapshot(bounds, cropRect, ready)
-                        },
-                    )
-                }
-                Spacer(Modifier.height(12.dp))
-                val sideMargin = geometry.horizontalMarginDp.dp
-                when (uiState) {
-                    RecognitionUiState.RESULT_HIGH -> {
-                        SpeciesIdentityRow(
-                            speciesName = selectedName,
-                            scientificName = selectedScientificName,
-                            sideMargin = sideMargin,
-                            widthDp = geometry.heroWidthDp,
-                            enabled = !saveBusy,
-                            revealFrameState = revealFrameState,
-                            onTitleBounds = { revealTitleBounds = it },
-                            onChange = { openSpeciesSelector() },
-                        )
-                        Spacer(Modifier.height(8.dp))
-                        ResultMetadataStrip(
-                            length = lengthText,
-                            weight = weightText,
-                            location = locationText,
-                            resolvingLocation = resolvingLocation,
-                            modifier = Modifier.fillMaxWidth().padding(horizontal = sideMargin),
-                            accessibilityFontScale = adaptiveProfile.accessibilityFontScale,
-                            enabled = !saveBusy,
-                            onField = { editField = it },
-                        )
-                        Spacer(Modifier.height(8.dp))
-                        ResultMemoryNote(
-                            value = storyText,
-                            onValueChange = { storyText = it.takeUnicodeCodePoints(300) },
-                            modifier = Modifier.fillMaxWidth().padding(horizontal = sideMargin),
-                            enabled = !saveBusy,
-                            accessibilityFontScale = adaptiveProfile.accessibilityFontScale,
-                        )
-                        Spacer(Modifier.height(16.dp))
-                        ResultInlineError(
-                            safeInlineErrorMessage,
-                            sideMargin,
-                            actionLabel = inlineErrorActionLabel,
-                            onAction = inlineErrorAction,
-                            enabled = !saveBusy,
-                        )
-                        ResultDualActions(
-                            useResultSurfaceActions = true,
-                            saving = saveBusy,
-                            loadingDestination = activeLoadingDestination,
-                            accessibilityFontScale = adaptiveProfile.accessibilityFontScale,
-                            compactLayout = compactResultActions,
-                            sideMargin = if (compactResultActions) 16.dp else 24.dp,
-                            onContinue = { save(RecognitionSaveDestination.MEMORY) },
-                            onSave = { save(RecognitionSaveDestination.HOME) },
-                        )
-                    }
-                    RecognitionUiState.RESULT_MEDIUM -> {
-                        ResultInformationGlass(
-                            modifier = Modifier.fillMaxWidth().padding(horizontal = sideMargin),
-                        ) {
-                            Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                                Text(
-                                    "帮我确认一下，这条鱼更像哪一种？",
-                                    color = DeepInk,
-                                    fontSize = 20.sp,
-                                    lineHeight = 28.sp,
-                                    fontWeight = FontWeight.Medium,
-                                    maxLines = if (adaptiveProfile.accessibilityFontScale || geometry.heroWidthDp <= 320) 2 else 1,
-                                    overflow = TextOverflow.Ellipsis,
-                                )
-                                CandidateRow(
-                                    candidates = candidates,
-                                    selectedKey = selectedKey,
-                                    widthDp = geometry.heroWidthDp,
-                                    accessibilityFontScale = candidateFontScale,
-                                    saving = saveBusy,
-                                    speciesImages = speciesImages,
-                                    onSelect = { candidate -> selectedKey = candidate.speciesKey; selectedName = candidate.speciesName },
-                                )
-                                YuJianTextAction(
-                                    text = "都不是？选择其他鱼种",
-                                    onClick = { openSpeciesSelector() },
-                                    role = YuJianTextActionRole.MUTED,
-                                    enabled = !saveBusy,
-                                    showChevron = true,
-                                )
-                            }
-                        }
-                        if (selectedKey.isNotBlank()) {
-                            Spacer(Modifier.height(12.dp))
-                            SpeciesIdentityRow(
-                                speciesName = selectedName,
-                                sideMargin = sideMargin,
-                                widthDp = geometry.heroWidthDp,
-                                scientificName = selectedScientificName,
-                                enabled = !saveBusy,
-                                onChange = { openSpeciesSelector() },
-                            )
-                            Spacer(Modifier.height(8.dp))
-                            ResultMetadataStrip(lengthText, weightText, locationText, resolvingLocation, Modifier.fillMaxWidth().padding(horizontal = sideMargin), accessibilityFontScale = adaptiveProfile.accessibilityFontScale, enabled = !saveBusy) { editField = it }
-                            Spacer(Modifier.height(12.dp))
-                            ResultMemoryNote(storyText, { storyText = it.takeUnicodeCodePoints(300) }, Modifier.fillMaxWidth().padding(horizontal = sideMargin), enabled = !saveBusy, accessibilityFontScale = adaptiveProfile.accessibilityFontScale)
-                            Spacer(Modifier.height(16.dp))
-                            ResultInlineError(
-                                safeInlineErrorMessage,
-                                sideMargin,
-                                actionLabel = inlineErrorActionLabel,
-                                onAction = inlineErrorAction,
-                                enabled = !saveBusy,
-                            )
-                            ResultDualActions(
-                                saving = saveBusy,
-                                loadingDestination = activeLoadingDestination,
-                                accessibilityFontScale = adaptiveProfile.accessibilityFontScale,
-                                compactLayout = compactResultActions,
-                                sideMargin = if (compactResultActions) 16.dp else 24.dp,
-                                onContinue = { save(RecognitionSaveDestination.MEMORY) },
-                                onSave = { save(RecognitionSaveDestination.HOME) },
-                            )
-                        }
-                    }
-                    RecognitionUiState.RESULT_LOW -> {
-                        Column(Modifier.fillMaxWidth().padding(horizontal = sideMargin), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                            Text("无法确认是什么鱼", color = DeepInk, fontSize = 26.sp, lineHeight = 34.sp, fontWeight = FontWeight.SemiBold)
-                            if (selectedKey.isBlank()) {
-                                Row(horizontalArrangement = Arrangement.spacedBy(if (compactResultActions) 8.dp else 12.dp)) {
-                                    YuJianPrimaryButton(
-                                        text = "手动选择鱼种", onClick = { openSpeciesSelector() },
-                                        modifier = Modifier.weight(1f),
-                                        enabled = !saveBusy,
-                                        variant = YuJianActionButtonVariant.RESULT_SAVE,
-                                        leadingIcon = { Icon(Icons.Rounded.SetMeal, contentDescription = null, modifier = Modifier.size(if (compactResultActions) 16.dp else 18.dp)) },
-                                        contentPadding = if (compactResultActions) PaddingValues(horizontal = 8.dp) else PaddingValues(horizontal = 12.dp),
-                                        leadingIconSpacing = 4.dp,
-                                    )
-                                    YuJianPrimaryButton(
-                                        text = "重新拍摄", onClick = { requestExit(PendingExitAction.RETAKE) },
-                                        modifier = Modifier.weight(1f),
-                                        enabled = !saveBusy,
-                                        variant = YuJianActionButtonVariant.RESULT_CONTINUE,
-                                        leadingIcon = { Icon(Icons.Rounded.PhotoCamera, contentDescription = null, modifier = Modifier.size(if (compactResultActions) 16.dp else 18.dp)) },
-                                        contentPadding = if (compactResultActions) PaddingValues(horizontal = 8.dp) else PaddingValues(horizontal = 12.dp),
-                                        leadingIconSpacing = 4.dp,
-                                    )
-                                }
-                            } else {
-                                SpeciesIdentityRow(
-                                    speciesName = selectedName,
-                                    sideMargin = sideMargin,
-                                    widthDp = geometry.heroWidthDp,
-                                    scientificName = selectedScientificName,
-                                    enabled = !saveBusy,
-                                    onChange = { openSpeciesSelector() },
-                                )
-                                ResultMetadataStrip(lengthText, weightText, locationText, resolvingLocation, Modifier.fillMaxWidth(), accessibilityFontScale = adaptiveProfile.accessibilityFontScale, enabled = !saveBusy) { editField = it }
-                                ResultMemoryNote(storyText, { storyText = it.takeUnicodeCodePoints(300) }, Modifier.fillMaxWidth(), enabled = !saveBusy, accessibilityFontScale = adaptiveProfile.accessibilityFontScale)
-                                ResultInlineError(
-                                    safeInlineErrorMessage,
-                                    0.dp,
-                                    actionLabel = inlineErrorActionLabel,
-                                    onAction = inlineErrorAction,
-                                    enabled = !saveBusy,
-                                )
-                                ResultDualActions(
-                                    saving = saveBusy, sideMargin = 0.dp,
-                                    loadingDestination = activeLoadingDestination,
-                                    accessibilityFontScale = adaptiveProfile.accessibilityFontScale,
-                                    compactLayout = compactResultActions,
-                                    onContinue = { save(RecognitionSaveDestination.MEMORY) },
-                                    onSave = { save(RecognitionSaveDestination.HOME) },
-                                )
-                            }
-                        }
-                    }
-                    else -> Unit
-                }
-                if (BuildConfig.DEBUG) TextButton(
-                    onClick = { scope.launch { RecognitionDiagnosticExport.share(context) } },
-                    modifier = Modifier.align(Alignment.CenterHorizontally),
-                ) { Text("导出识别诊断日志") }
-                Spacer(Modifier.height(20.dp))
-            }
-        }
-        val resultPhoto = image?.bitmap
-        val hostType = when (revealFrameState.value.phase) {
-            RecognitionRevealPhase.AFTERGLOW, RecognitionRevealPhase.COMPLETE -> WaterLightHost.RESIDUE
-            else -> WaterLightHost.HANDOFF
-        }
-        val hostBounds = if (hostType == WaterLightHost.RESIDUE) photoTransitionGeometry?.heroPhotoClip
-            else photoTransitionGeometry?.processingPhotoClip
-        val geometryVersion = photoTransitionGeometry?.heroSourceTransform?.let { transform ->
-            val base = WaterLightGeometryVersion.of(transform)
-            hostBounds?.let { WaterLightGeometryVersion.withHostBounds(base, it.left, it.top, it.right, it.bottom) }
-                ?: base
-        } ?: 0L
-        val resultFrame = WaterLightFrame(
-            sessionId = presentedHandoff?.key?.recognitionSessionId.orEmpty(),
-            photoSha256 = image?.photoSha256,
-            elapsedMs = revealFrameState.value.elapsedMs.coerceAtLeast(0L),
-            opticalReferenceElapsedMs = (2800L + revealFrameState.value.elapsedMs).coerceAtLeast(0L),
-            phase = RecognitionPhase.RESULT,
-            completion = (revealFrameState.value.elapsedMs / 850f).coerceIn(0f, 1f),
-            reducedMotion = revealMotionPolicy.reduceMotion,
-            geometryVersion = geometryVersion,
-            attemptId = presentedHandoff?.key?.recognitionAttemptId.orEmpty(),
-            imageId = image?.imageId.orEmpty(),
-            photoContentVersion = resultPhoto?.generationId?.toLong() ?: 0L,
-        )
-        val resultWaterEngine = remember(presentedHandoff?.key, image?.imageId) { UnifiedWaterLightEngine() }
-        resultWaterEngine.activate(resultFrame)
-        DisposableEffect(resultWaterEngine) { onDispose { resultWaterEngine.release() } }
-        val resultHost = remember(resultWaterEngine, hostType) {
-            WaterLightHostBinding(hostType, WaterLightMaterialProfile.forHost(hostType), resultWaterEngine)
-        }
-        if (hostBounds != null && resultHost.accepts(resultFrame, WaterLightHostGeometry(
-                hostType, resultFrame.geometryVersion,
+                                handoff.eligibility == RecognitionRevealEligibility.TI…4839 tokens truncated…tType, resultFrame.geometryVersion,
                 hostBounds.left, hostBounds.top, hostBounds.right, hostBounds.bottom,
             ))) RecognitionRevealOpticalOverlay(
             modifier = Modifier.fillMaxSize(),
@@ -915,8 +756,85 @@ fun RecognitionResultScreen(
             holdPhotoUntilHeroReady = heroSnapshot?.renderReady == false,
             material = resultHost.material,
             energyEvent = if (revealHandoff?.eligibility == RecognitionRevealEligibility.FULL_REVEAL)
-                WaterLightEnergy.at(resultFrame, trustedMask = true) else null,
+                WaterLightEnergy.at(
+                    resultFrame, trustedMask = true, successfulRevealAllowed = true,
+                    pathGeometry = resultPathGeometry,
+                ) else null,
         )
+        if (diagnosticUiAvailable) {
+            val playback = requireNotNull(diagnosticPlaybackController)
+            val stage = diagnosticStage
+            val reference = diagnosticReferenceMs ?: RecognitionSceneCoordinator.PROCESSING_END_MS
+            val canAdvance = playback.mode != ScenePlaybackMode.MANUAL || playback.paused || playback.previewCompleted
+            val stepStatus = when {
+                !revealStartReady && diagnosticDisplayMode == RecognitionProgressDisplayMode.STEP_DIAGNOSTIC -> "等待Result几何"
+                revealHandoff?.eligibility != RecognitionRevealEligibility.FULL_REVEAL -> "等待真实HIGH + Trusted Mask揭晓条件"
+                else -> "进行中"
+            }
+            RecognitionStepDiagnosticControls(
+                displayMode = diagnosticDisplayMode,
+                stage = stage,
+                playbackMode = playback.mode,
+                previewElapsedMs = diagnosticPreviewElapsedMs,
+                previewCompleted = diagnosticPreviewCompleted,
+                playbackPaused = diagnosticPaused,
+                mappedReferenceMs = reference,
+                modelStatus = if (productionResult?.ready == true) "真实模型已完成" else "真实模型等待",
+                maskStatus = revealHandoff?.geometryTrustState?.name ?: "Mask不可用",
+                stepStatus = stepStatus,
+                normalProgressText = if (diagnosticDisplayMode == RecognitionProgressDisplayMode.NORMAL_PROGRESS) {
+                    "真实识别进度 · RR09 ${revealElapsedState.value.coerceAtMost(RecognitionRevealClock.TOTAL_DURATION_MS)}ms / 850ms"
+                } else "",
+                canGoPrevious = stage.ordinal > RecognitionSceneStage.PHOTO_STABLE.ordinal,
+                canGoNext = stage != RecognitionSceneStage.RESIDUE_SETTLE && canAdvance,
+                canControl = revealHandoff?.eligibility == RecognitionRevealEligibility.FULL_REVEAL && revealStartReady,
+                onDisplayModeChange = ::changeDiagnosticDisplayMode,
+                onPrevious = {
+                    val now = SystemClock.uptimeMillis()
+                    if (playback.mode == ScenePlaybackMode.MANUAL) playback.returnToPreviousStage(now)
+                    else {
+                        val target = RecognitionSceneStage.entries[(stage.ordinal - 1).coerceAtLeast(0)]
+                        playback.beginStepPreview(target, now)
+                    }
+                    diagnosticUserPaused = false
+                    diagnosticNowMs = now
+                    if (stage == RecognitionSceneStage.ORB_RETURN) onDiagnosticReturnToProcessing()
+                },
+                onNext = {
+                    val now = SystemClock.uptimeMillis()
+                    if (playback.mode == ScenePlaybackMode.MANUAL) playback.advanceToNextStage(now)
+                    else {
+                        val targetIndex = (stage.ordinal + 1).coerceAtMost(RecognitionSceneStage.entries.lastIndex)
+                        playback.beginStepPreview(RecognitionSceneStage.entries[targetIndex], now)
+                        onDiagnosticDisplayModeChange(RecognitionProgressDisplayMode.STEP_DIAGNOSTIC)
+                    }
+                    diagnosticUserPaused = false
+                    diagnosticNowMs = now
+                },
+                onPauseResume = {
+                    val now = SystemClock.uptimeMillis()
+                    if (playback.paused) {
+                        diagnosticUserPaused = false
+                        playback.resume(reference, now)
+                    } else {
+                        diagnosticUserPaused = true
+                        playback.pause(reference, now)
+                    }
+                    diagnosticNowMs = now
+                },
+                onReplay = {
+                    val now = SystemClock.uptimeMillis()
+                    diagnosticUserPaused = false
+                    playback.restartCurrentStage(now)
+                    diagnosticNowMs = now
+                },
+                onAutoPlay = {
+                    val now = SystemClock.uptimeMillis()
+                    playback.playProductionTimeline(reference, now)
+                    diagnosticNowMs = now
+                },
+            )
+        }
     }
 
     if (selectorVisible) {
@@ -1102,12 +1020,6 @@ private fun SpeciesIdentityRow(
     val speciesDisplayName = resultSpeciesDisplayName(speciesName)
     var speciesGlyphPath by remember(speciesDisplayName, compactTitle, widthDp) { mutableStateOf<android.graphics.Path?>(null) }
     val glyphReveal = remember(speciesDisplayName) { com.yujian.ai.ui.recognition.reveal.SpeciesNameReveal() }
-    val waterCaptureProgress = when (revealTitleMode) {
-        RecognitionRevealTitleMode.FORMING -> .72f * revealFormationProgress.coerceIn(0f, 1f)
-        RecognitionRevealTitleMode.REVEALING -> .72f + .28f * revealProgress.coerceIn(0f, 1f)
-        RecognitionRevealTitleMode.STATIC, RecognitionRevealTitleMode.VISIBLE -> 1f
-        RecognitionRevealTitleMode.HIDDEN -> 0f
-    }
     val showScientificName = revealFrame == null ||
         revealFrame.elapsedMs >= RecognitionRevealClock.TOTAL_DURATION_MS ||
         revealTitleMode == RecognitionRevealTitleMode.STATIC
@@ -1134,7 +1046,10 @@ private fun SpeciesIdentityRow(
                             revealTitleMode == RecognitionRevealTitleMode.VISIBLE
                         if (settled) drawContent() else speciesGlyphPath?.let { glyph ->
                             glyphReveal.draw(drawContext.canvas.nativeCanvas, glyph, size.width, size.height,
-                                waterCaptureProgress, revealFrame?.elapsedMs ?: 0L)
+                                mode = revealTitleMode,
+                                formationProgress = revealFormationProgress,
+                                revealProgress = revealProgress,
+                            )
                         }
                     }
                     .testTag("recognition-result-species-name"),

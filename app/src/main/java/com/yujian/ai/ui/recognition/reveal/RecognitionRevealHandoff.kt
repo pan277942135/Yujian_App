@@ -70,6 +70,8 @@ data class RecognitionProcessingPhotoSnapshot(
     val sourceToViewport: RecognitionImageTransform,
     val photoBoundsInWindow: RecognitionRevealWindowRect? = null,
     val cornerRadiusPx: Float = 0f,
+    /** Original Processing Orb center in window coordinates; retained for RR09 energy return. */
+    val processingOrbCenterInWindow: DisplayPoint? = null,
 )
 
 data class RecognitionRevealHandoff(
@@ -95,6 +97,7 @@ data class RecognitionRevealHandoff(
     val handoffTimestampUptimeMs: Long,
     val processingPhotoClipBoundsInWindow: RecognitionRevealWindowRect? = null,
     val processingPhotoCornerRadiusPx: Float = 0f,
+    val processingOrbCenterInWindow: DisplayPoint? = null,
 )
 
 object RecognitionRevealHandoffFactory {
@@ -133,6 +136,11 @@ object RecognitionRevealHandoffFactory {
         }
         val photoClip = photo?.photoBoundsInWindow?.takeIf(RecognitionRevealWindowRect::isValid)
         val photoCornerRadius = photo?.cornerRadiusPx?.takeIf { it.isFinite() && it >= 0f } ?: 0f
+        val orbAnchor = photo?.processingOrbCenterInWindow?.takeIf { point ->
+            point.x.isFinite() && point.y.isFinite() &&
+                point.x in photo.viewportBoundsInWindow.left..photo.viewportBoundsInWindow.right &&
+                point.y in photo.viewportBoundsInWindow.top..photo.viewportBoundsInWindow.bottom
+        }
         val anchorSource = if (maskTrusted) {
             bottomContourAnchor(requireNotNull(subject).contour, subject.subjectBox,
                 subject.contourSourceSpace == "CANONICAL_PHOTO_NORMALIZED")
@@ -161,7 +169,7 @@ object RecognitionRevealHandoffFactory {
             highConfidenceResult = highConfidenceResult,
             geometryTrust = geometryTrust,
             processingPhotoValid = photo != null,
-            anchorValid = anchor != null,
+            anchorValid = anchor != null && orbAnchor != null,
         )
         val contour = if (maskTrusted) subject?.contour?.toList().orEmpty() else emptyList()
         val subjectBox = if (maskTrusted) subject?.subjectBox else null
@@ -188,6 +196,7 @@ object RecognitionRevealHandoffFactory {
             handoffTimestampUptimeMs = handoffTimestampUptimeMs,
             processingPhotoClipBoundsInWindow = photoClip,
             processingPhotoCornerRadiusPx = photoCornerRadius,
+            processingOrbCenterInWindow = orbAnchor,
         )
     }
 
