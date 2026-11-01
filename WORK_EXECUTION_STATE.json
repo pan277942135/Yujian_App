@@ -10,9 +10,9 @@
   "task_id": "YUJIAN_ANDROID_AISTUDIO_FULL_PAGE_RESTORE_AND_MAIN_INTEGRATION_V1",
   "stage": "E1",
   "status": "RUNNING",
-  "source_sha": "d3a2aa2ac212f32d9bc15cc793327f2a8ea46868",
-  "checkpoint_updated_at": "2026-11-01T10:16:42.399Z",
-  "next_action": "Collect exact-head Android CI, API 28 runtime, and APK provenance for PR #296 head d3a2aa2ac212f32d9bc15cc793327f2a8ea46868.",
+  "source_sha": "8fef73abae7e8d1c94431affcd54ff3b55914e95",
+  "checkpoint_updated_at": "2026-11-01T10:21:33.672Z",
+  "next_action": "Collect exact-head Android, Page Resource Binding, API 28 Runtime and APK evidence for PR #296 head 8fef73abae7e8d1c94431affcd54ff3b55914e95.",
   "dependencies": [],
   "blockers": [],
   "evidence": {
@@ -34,14 +34,34 @@
       "manifest_omissions": 89
     },
     "work_code_commit": "ca612b5363c657ce03d47d76dc1382bb96aad86a",
-    "exact_runtime_source_sha": "d3a2aa2ac212f32d9bc15cc793327f2a8ea46868",
+    "exact_runtime_source_sha": "8fef73abae7e8d1c94431affcd54ff3b55914e95",
     "pr": {
       "number": 296,
       "url": "https://github.com/pan277942135/Yujian_App/pull/296",
       "branch": "feature/aistudio-full-page-restore-v1",
-      "status": "DRAFT_OPEN_UNMERGED"
+      "status": "DRAFT_OPEN_UNMERGED",
+      "head_sha": "8fef73abae7e8d1c94431affcd54ff3b55914e95"
     },
     "android_ci_status": "RUNNING",
-    "api28_runtime_status": "RUNNING"
+    "api28_runtime_status": "RUNNING",
+    "previous_attempts": [
+      {
+        "source_sha": "d3a2aa2ac212f32d9bc15cc793327f2a8ea46868",
+        "android_ci_run_id": 41296670001,
+        "status": "FAIL",
+        "failed_test": "fullThirtySixSecondScheduleRepeatsFiveDeterministicEvents",
+        "cause": "36-second period addition placed a nominal event approximately 1µs below its Float threshold; implementation now snaps within 0.1ms."
+      },
+      {
+        "source_sha": "d3a2aa2ac212f32d9bc15cc793327f2a8ea46868",
+        "design_runs": [
+          41296680357,
+          41296680340,
+          41296680339
+        ],
+        "status": "FAIL",
+        "cause": "Page Resource Binding pointed the new ZIP hero hash to the prior global Asset Registry row; binding now uses the page-scoped Empty Home asset manifest."
+      }
+    ]
   }
 }

@@ -9,8 +9,8 @@
   },
   "state_control": {
     "current_branch": "work/aistudio-full-page-restore-v1",
-    "execution_baseline_sha": "d3a2aa2ac212f32d9bc15cc793327f2a8ea46868",
-    "current_head": "d3a2aa2ac212f32d9bc15cc793327f2a8ea46868",
+    "execution_baseline_sha": "8fef73abae7e8d1c94431affcd54ff3b55914e95",
+    "current_head": "8fef73abae7e8d1c94431affcd54ff3b55914e95",
     "base_branch": "main",
     "base_sha": "796106827987d2ccaddb43f8a5723b2cbf73a34e",
     "current_pr": null
@@ -29,7 +29,7 @@
       "base_sha": "796106827987d2ccaddb43f8a5723b2cbf73a34e",
       "work_branch": "work/aistudio-full-page-restore-v1",
       "pr_branch": "feature/aistudio-full-page-restore-v1",
-      "pr_head_sha": "d3a2aa2ac212f32d9bc15cc793327f2a8ea46868",
+      "pr_head_sha": "8fef73abae7e8d1c94431affcd54ff3b55914e95",
       "pr_number": 296
     }
   },
@@ -39,7 +39,7 @@
       "branch": "feature/aistudio-full-page-restore-v1",
       "base_branch": "main",
       "base_sha": "796106827987d2ccaddb43f8a5723b2cbf73a34e",
-      "head_sha": "d3a2aa2ac212f32d9bc15cc793327f2a8ea46868",
+      "head_sha": "8fef73abae7e8d1c94431affcd54ff3b55914e95",
       "status": "DRAFT_OPEN_UNMERGED",
       "url": "https://github.com/pan277942135/Yujian_App/pull/296"
     }
@@ -114,10 +114,16 @@
   },
   "runtime_gates": {
     "exact_head": {
-      "sha": "d3a2aa2ac212f32d9bc15cc793327f2a8ea46868",
+      "sha": "8fef73abae7e8d1c94431affcd54ff3b55914e95",
       "status": "IN_PROGRESS",
       "classification": "IN_PROGRESS",
-      "pr_number": 296
+      "pr_number": 296,
+      "android_ci_run_ids": [
+        41296680332,
+        41296680336,
+        41296680340,
+        41296680339
+      ]
     },
     "historical_runtime_run": {
       "rule": "Historical results cannot promote current exact HEAD to PASS."
@@ -125,7 +131,7 @@
   },
   "apk_and_evidence": {
     "status": "NOT_RUN",
-    "source_sha": "d3a2aa2ac212f32d9bc15cc793327f2a8ea46868",
+    "source_sha": "8fef73abae7e8d1c94431affcd54ff3b55914e95",
     "apk": null
   },
   "current_work": {
@@ -134,7 +140,7 @@
     "task_id": "YUJIAN_ANDROID_AISTUDIO_FULL_PAGE_RESTORE_AND_MAIN_INTEGRATION_V1",
     "stage": "E1",
     "status": "RUNNING",
-    "exact_head": "d3a2aa2ac212f32d9bc15cc793327f2a8ea46868"
+    "exact_head": "8fef73abae7e8d1c94431affcd54ff3b55914e95"
   },
   "blockers": [],
   "protected_invariants": {
@@ -157,7 +163,7 @@
       "id": "E1-01",
       "status": "RUNNING",
       "owner": "Work",
-      "action": "Run exact-head Android CI, unit tests, AndroidTest compilation, lint, API 28 runtime, and APK packaging for PR #296.",
+      "action": "Run exact-head Android CI, Page Resource Binding gates, unit tests, AndroidTest compilation, lint, API 28 runtime, and APK packaging for PR #296 head 8fef73abae7e8d1c94431affcd54ff3b55914e95.",
       "dependencies": []
     },
     {
@@ -178,8 +184,21 @@
   },
   "state_update": {
     "initialized_at": "2026-11-01T09:43:11.195Z",
-    "reason": "Completed the ZIP/Main/W5/PR #294 file-level audit, integrated source-backed changes, and opened Draft PR #296; exact-head Android CI and API 28 runtime are running.",
-    "updated_at": "2026-11-01T10:16:42.399Z"
+    "reason": "Corrected the page-scoped Hero binding after W2 caught a stale global registry record, and snapped nominal 36-second event boundaries across Float rounding. Exact-head Android and design workflows are rerunning on PR #296.",
+    "updated_at": "2026-11-01T10:21:33.672Z",
+    "previous_attempts": [
+      {
+        "source_sha": "d3a2aa2ac212f32d9bc15cc793327f2a8ea46868",
+        "android_ci_run_id": 41296670001,
+        "conclusion": "FAIL",
+        "failed_test": "fullThirtySixSecondScheduleRepeatsFiveDeterministicEvents",
+        "failed_design_runs": [
+          41296680357,
+          41296680340,
+          41296680339
+        ]
+      }
+    ]
   },
   "agent_recovery": {
     "resume_from": "WORK_EXECUTION_STATE.json.next_action",
