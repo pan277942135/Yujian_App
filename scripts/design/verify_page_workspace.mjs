@@ -174,6 +174,7 @@ async function main() {
       authorityStatus: node.dataset.nodeAuthorityStatus || null
     })));
     assert(nodes.length > 0, "workspace component tree is empty");
+    // Only documented hidden, non-measurable BLOCKED_AUTHORITY_GAP nodes may remain non-selectable; record them without promoting them to selected DOM evidence.
     const measured = [];
     for (const row of nodes) {
       assert(row.nodeId, "component tree contains a node without a stable node ID");
