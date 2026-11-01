@@ -784,7 +784,7 @@ fun RecognitionProcessingScene(
     val safeTopPx = with(density) { safeInsets.calculateTopPadding().toPx() }
     val safeRightPx = with(density) { safeInsets.calculateRightPadding(layoutDirection).toPx() }
     val safeBottomPx = with(density) { safeInsets.calculateBottomPadding().toPx() }
-    val skipPhotoEntry = phaseOverride != null || visualClockOverrideMs != null
+    val skipPhotoEntry = phaseOverride != null
     val photoEntryProgress = RecognitionSceneTimelineProjection.photoEntryProgress(
         sceneElapsedMs,
         settled = skipPhotoEntry || motionPolicy.reduceMotion,
