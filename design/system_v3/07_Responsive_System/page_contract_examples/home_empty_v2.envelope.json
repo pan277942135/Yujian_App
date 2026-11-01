@@ -30,13 +30,13 @@
       "authority_ref_id": "empty-home-behavior",
       "role": "PAGE_BEHAVIOR",
       "path": "design/pages/home/empty_home/spec/Empty_Home_Feature_Spec_V2.md",
-      "sha256": "23eb064149052752f2e4b314bb4d7b675f64423f479cd92102df3357e7e2ceca"
+      "sha256": "14b0ecb9c5eea63a3fbc5700ffa5e568d6c23bb7b3f0fdfcf369bf5569f1465e"
     },
     {
       "authority_ref_id": "empty-home-visual-spec",
       "role": "PAGE_VISUAL_SPEC",
       "path": "design/pages/home/empty_home/spec/Empty_Home_Frozen_Visual_Revision_V2_2.md",
-      "sha256": "06510b453920489d453f43cb7325df1af05dcf59d5f5a22757c693c2355c3d73"
+      "sha256": "efaef6921ba2a0aa887e04a87a7e0344097cfe746a3bddafdeb069d8c4b8023e"
     },
     {
       "authority_ref_id": "empty-responsive-mapping",
