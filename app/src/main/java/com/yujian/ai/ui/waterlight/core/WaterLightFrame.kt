@@ -22,6 +22,20 @@ data class WaterLightFrame(
     }
 
     val timeSeconds: Float get() = if (reducedMotion) 0f else elapsedMs / 1000f
+    /** All visual hosts can derive their stage from this shared, deterministic frame. */
+    val sceneFrame: RecognitionSceneFrame get() = RecognitionSceneCoordinator.frameAt(
+        identity = RecognitionSceneIdentity(
+            sessionId = sessionId,
+            attemptId = attemptId,
+            imageId = imageId,
+            photoSha256 = photoSha256,
+            photoContentVersion = photoContentVersion,
+        ),
+        sceneElapsedMs = elapsedMs,
+        opticalReferenceElapsedMs = opticalReferenceElapsedMs,
+        geometryVersion = geometryVersion,
+        reducedMotion = reducedMotion,
+    )
 }
 
 /** One owner per scene; old session frames and stale geometry are never rendered. */
