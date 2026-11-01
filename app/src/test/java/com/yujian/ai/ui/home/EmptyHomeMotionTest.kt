@@ -84,7 +84,7 @@ class EmptyHomeMotionTest {
     }
 
     @Test
-    fun rippleGroupCenterRemainsAtTheFrozenWaterContactAnchor() {
+    fun rippleGroupCenterRemainsAtTheFrozenRippleAnchorAndBobberContact() {
         assertEquals(561f, EMPTY_HOME_V2_WATER_CONTACT_X, 0.0001f)
         assertEquals(1323f, EMPTY_HOME_V2_WATER_CONTACT_Y, 0.0001f)
         assertEquals(EMPTY_HOME_V2_WATER_CONTACT_X, EMPTY_HOME_V2_BOBBER_X + 11f, 0.0001f)
