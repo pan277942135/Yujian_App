@@ -276,15 +276,14 @@ fun RecognitionProcessingScene(
     val controller = remember(sceneKey) { RecognitionVisualStateController() }
     val latestPhotoPresentedAtMs by rememberUpdatedState(photoPresentedAtMs)
     val manualStepDiagnosticState = rememberUpdatedState(
-        diagnosticUiAvailable && displayMode == RecognitionProgressDisplayMode.STEP_DIAGNOSTIC &&
-            playbackController.mode == ScenePlaybackMode.MANUAL,
+        diagnosticUiAvailable && playbackController.mode == ScenePlaybackMode.MANUAL,
     )
     var diagnosticActionStatus by remember(sceneKey) { mutableStateOf<String?>(null) }
 
     LaunchedEffect(sceneKey, diagnosticPlaybackController, diagnosticUiAvailable) {
-        if (diagnosticPlaybackController == null && diagnosticUiAvailable &&
-            displayMode == RecognitionProgressDisplayMode.STEP_DIAGNOSTIC
-        ) playbackController.prepareInitialStepPreview()
+        if (diagnosticPlaybackController == null && diagnosticUiAvailable) {
+            playbackController.playProductionTimeline(0L, recognitionMonotonicNowMs())
+        }
     }
 
     LaunchedEffect(sceneKey) {
@@ -705,25 +704,15 @@ fun RecognitionProcessingScene(
         photoPresentedAtMs == null -> 0L
         else -> controller.opticalReferenceElapsedMs(visualNowMs, trustedSubjectMask)
     }
-    val debugPlaybackEnabled = diagnosticUiAvailable &&
-        displayMode == RecognitionProgressDisplayMode.STEP_DIAGNOSTIC
-    val opticalReferenceElapsedMs = if (debugPlaybackEnabled) {
+    val opticalReferenceElapsedMs = if (diagnosticUiAvailable) {
         playbackController.sample(authoritativeOpticalReferenceElapsedMs, visualNowMs)
     } else {
         authoritativeOpticalReferenceElapsedMs
     }
-    val sceneElapsedMs = if (debugPlaybackEnabled) opticalReferenceElapsedMs else processingElapsedMs
+    val sceneElapsedMs = if (diagnosticUiAvailable) opticalReferenceElapsedMs else processingElapsedMs
 
     fun changeDiagnosticDisplayMode(mode: RecognitionProgressDisplayMode) {
         if (mode == displayMode) return
-        val now = recognitionMonotonicNowMs()
-        if (mode == RecognitionProgressDisplayMode.NORMAL_PROGRESS) {
-            playbackController.playProductionTimeline(authoritativeOpticalReferenceElapsedMs, now)
-        } else if (photoPresentedAtMs == null) {
-            playbackController.prepareInitialStepPreview()
-        } else {
-            playbackController.switchToStepDiagnostic(authoritativeOpticalReferenceElapsedMs, now)
-        }
         if (onDiagnosticDisplayModeChange != null) onDiagnosticDisplayModeChange.invoke(mode)
         else localDisplayMode = mode
         playbackRevision++

@@ -75,22 +75,18 @@ class RecognitionSceneFrameTest {
         assertEquals("1200–1450ms", RecognitionSceneStage.CONTOUR_A.timeAnchorLabel)
     }
 
-    @Test fun debugStepPreviewStartsAtPhotoStableAndDoesNotAdvanceWithoutInput() {
+    @Test fun debugDiagnosticSessionDefaultsToAutoAndTracksTheProductionTimeline() {
         val playback = SceneMotionCoordinator()
         assertEquals(ScenePlaybackMode.AUTO, playback.mode)
-        assertEquals(1_200L, playback.sample(1_200L, 10_000L))
-        playback.prepareInitialStepPreview()
+        assertEquals(0L, playback.sample(0L, 10_000L))
+        assertEquals(RecognitionSceneStage.PHOTO_STABLE, playback.currentStage)
+        assertEquals(349L, playback.sample(349L, 10_349L))
+        assertEquals(RecognitionSceneStage.ORB_WAKE, playback.currentStage)
+        assertEquals(350L, playback.sample(350L, 10_350L))
+        assertEquals(RecognitionSceneStage.ORB_RELEASE, playback.currentStage)
+        playback.beginStepPreview(RecognitionSceneStage.PHOTO_STABLE, 10_351L)
         assertEquals(ScenePlaybackMode.MANUAL, playback.mode)
-        assertEquals(RecognitionSceneStage.PHOTO_STABLE, playback.currentStage)
-        assertEquals(0L, playback.previewElapsedMs(1_000L))
-        playback.startPreparedStepPreview(1_000L)
-        assertEquals(0L, playback.sample(10_000L, 11_000L))
-        assertEquals(RecognitionSceneStage.PHOTO_STABLE, playback.currentStage)
-        assertTrue(playback.previewCompleted)
-        assertTrue(playback.paused)
-        assertEquals(0L, playback.sample(0L, 11_999L))
-        assertEquals(0L, playback.sample(0L, 20_000L))
-        assertEquals(RecognitionSceneStage.PHOTO_STABLE, playback.currentStage)
+        assertEquals(0L, playback.previewElapsedMs(10_351L))
     }
 
     @Test fun everyStageHasAThreeSecondBoundedPreviewAndFreezesAtItsLastFrame() {

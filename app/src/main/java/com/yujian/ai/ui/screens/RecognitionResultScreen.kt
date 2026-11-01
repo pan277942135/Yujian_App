@@ -431,34 +431,25 @@ fun RecognitionResultScreen(
     )
     val diagnosticUiAvailable = BuildConfig.DEBUG && diagnosticPlaybackController != null
     val diagnosticManualActive = diagnosticUiAvailable &&
-        diagnosticDisplayMode == RecognitionProgressDisplayMode.STEP_DIAGNOSTIC &&
         diagnosticPlaybackController?.mode == ScenePlaybackMode.MANUAL
-    val diagnosticReferenceMs = if (diagnosticUiAvailable &&
-        diagnosticDisplayMode == RecognitionProgressDisplayMode.STEP_DIAGNOSTIC
-    ) {
-        if (diagnosticManualActive) {
-        diagnosticPlaybackController?.sample(
-            RecognitionSceneCoordinator.PROCESSING_END_MS,
-            diagnosticNowMs,
-        ) ?: RecognitionSceneCoordinator.PROCESSING_END_MS
-        } else {
-            (RecognitionSceneCoordinator.PROCESSING_END_MS + revealElapsedState.value)
-                .coerceAtMost(RecognitionSceneCoordinator.RR09_END_MS)
-        }
+    val diagnosticReferenceMs = if (diagnosticUiAvailable) {
+        val productionReference = (RecognitionSceneCoordinator.PROCESSING_END_MS + revealElapsedState.value)
+            .coerceAtMost(RecognitionSceneCoordinator.RR09_END_MS)
+        diagnosticPlaybackController?.sample(productionReference, diagnosticNowMs) ?: productionReference
     } else null
     val effectiveRevealElapsedOverrideMs = when {
-        diagnosticManualActive && diagnosticReferenceMs != null -> (diagnosticReferenceMs - RecognitionSceneCoordinator.PROCESSING_END_MS)
+        diagnosticUiAvailable && diagnosticReferenceMs != null &&
+            (diagnosticPlaybackController?.mode == ScenePlaybackMode.MANUAL || diagnosticPlaybackController?.paused == true) ->
+            (diagnosticReferenceMs - RecognitionSceneCoordinator.PROCESSING_END_MS)
             .coerceIn(0L, RecognitionRevealClock.TOTAL_DURATION_MS)
         else -> revealElapsedOverrideMs
     }
     val diagnosticPreviewElapsedMs = diagnosticPlaybackController?.previewElapsedMs(diagnosticNowMs) ?: 0L
     val diagnosticPreviewCompleted = diagnosticPlaybackController?.previewCompleted == true
     val diagnosticPaused = diagnosticPlaybackController?.paused == true
-    LaunchedEffect(diagnosticUiAvailable, diagnosticDisplayMode, diagnosticPlaybackController, revealStartReady) {
+    LaunchedEffect(diagnosticUiAvailable, diagnosticPlaybackController, revealStartReady) {
         val playback = diagnosticPlaybackController ?: return@LaunchedEffect
-        if (!diagnosticUiAvailable || diagnosticDisplayMode != RecognitionProgressDisplayMode.STEP_DIAGNOSTIC ||
-            playback.mode != ScenePlaybackMode.MANUAL
-        ) return@LaunchedEffect
+        if (!diagnosticUiAvailable || playback.mode != ScenePlaybackMode.MANUAL) return@LaunchedEffect
         if (!revealStartReady) {
             playback.holdCurrentPreviewAtStart()
             diagnosticNowMs = SystemClock.uptimeMillis()
@@ -510,23 +501,7 @@ fun RecognitionResultScreen(
     }
     fun changeDiagnosticDisplayMode(mode: RecognitionProgressDisplayMode) {
         if (mode == diagnosticDisplayMode) return
-        val playback = diagnosticPlaybackController
-        val now = SystemClock.uptimeMillis()
-        diagnosticUserPaused = false
-        if (mode == RecognitionProgressDisplayMode.NORMAL_PROGRESS) {
-            val reference = diagnosticReferenceMs ?:
-                (RecognitionSceneCoordinator.PROCESSING_END_MS + revealElapsedState.value)
-            playback?.playProductionTimeline(reference, now)
-        } else {
-            val reference = if (playback?.mode == ScenePlaybackMode.MANUAL) {
-                playback.sample(RecognitionSceneCoordinator.PROCESSING_END_MS, now)
-            } else {
-                (RecognitionSceneCoordinator.PROCESSING_END_MS + revealElapsedState.value)
-            }
-            playback?.switchToStepDiagnostic(reference, now)
-        }
         onDiagnosticDisplayModeChange(mode)
-        diagnosticNowMs = now
     }
     var geometryWaitExpired by remember(revealHandoff?.key) { mutableStateOf(false) }
     LaunchedEffect(revealHandoff?.key, revealStartReady) {

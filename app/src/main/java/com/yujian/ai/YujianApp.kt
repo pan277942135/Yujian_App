@@ -720,8 +720,7 @@ fun YujianApp() {
                             )
                             diagnosticDisplayMode = if (BuildConfig.DEBUG) RecognitionProgressDisplayMode.STEP_DIAGNOSTIC
                                 else RecognitionProgressDisplayMode.NORMAL_PROGRESS
-                            if (BuildConfig.DEBUG) diagnosticPlaybackController.prepareInitialStepPreview()
-                            else diagnosticPlaybackController.playProductionTimeline(0L, SystemClock.uptimeMillis())
+                            diagnosticPlaybackController.playProductionTimeline(0L, SystemClock.uptimeMillis())
                             productionResult = null
                             recognitionTechnicalFailure = false
                             subjectResult = FishSubjectResult(SubjectStatus.IDLE)
