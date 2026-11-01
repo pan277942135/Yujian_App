@@ -45,4 +45,4 @@
 
 ## 差异清单
 
-完整 ZIP 文件级清单（含每个文件 SHA-256、Main Git blob SHA、Manifest 命中、模块影响和处理结论）见同目录 `AI_STUDIO_ZIP_FULL_RESTORE_INVENTORY.json`。
+完整 ZIP 文件级清单（含每个文件 SHA-256、Main Git blob SHA、Manifest 命中、模块影响和处理结论）见同目录 `AI_STUDIO_1011_ZIP_FULL_RESTORE_INVENTORY.json`。
