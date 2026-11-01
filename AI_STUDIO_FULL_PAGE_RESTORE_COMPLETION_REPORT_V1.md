@@ -19,17 +19,27 @@ Report date: 2026-11-01
 | Image authorization | PARTIAL | Hero title SHA pinned; eight guide candidates have no source/license record and remain excluded |
 | Design contract updates | PASS | Event/Haptic/Layer/Candidate/Runtime/hero hashes synchronized; canonical anchor contract unchanged |
 | PR #294 protection | PASS | Exact PR head checked; no edits to its result/reveal/workflow files |
-| Automated unit/instrumentation tests | NOT_RUN | Pending exact-head GitHub Actions run |
-| API 28 Runtime | NOT_RUN | Pending emulator workflow evidence |
-| Current Android Runtime screenshots/recording | NOT_RUN | No runtime capture available yet |
+| Automated unit/instrumentation tests | PASS | Android CI PR run `41297647690` succeeded for PR head `c34aea6a2de0cae636d350a677f3629630f82d25` (merge build SHA `4cfa30352485992aa2738f28bdffdbaa91d8b79f`): unit tests, Camera runtime harness contract tests, AndroidTest APK compilation, packaged resource checks, model trace export, and Android lint passed. |
+| API 28 Runtime | BLOCKED | Exact-head push run `41297644192` has no jobs. The preceding push run `41297092913` has eight API 28 jobs queued for the self-hosted runner; the repository currently has no in-progress Android Actions runs and a large existing queue. |
+| Current Android Runtime screenshots/recording | NOT_RUN | No API 28 device gate has started, so no current runtime screenshot or recording is available. |
 | Physical device haptic verification | BLOCKED | No physical Android device is connected to this work environment |
-| Installable Debug APK | NOT_RUN | Pending exact-head build artifact |
-| APK SHA-256 | NOT_RUN | Requires downloaded exact-head APK artifact |
-| PR and merge status | NOT_RUN | Product commit/PR not yet created at report generation time |
+| Installable Debug APK | PASS | Full-Surface artifact `13080470873` from Android CI run `41297647690`, associated with PR head `c34aea6a2de0cae636d350a677f3629630f82d25`; build SHA is PR merge commit `4cfa30352485992aa2738f28bdffdbaa91d8b79f`. The APK is `121651606` bytes. |
+| APK SHA-256 | PASS | `2a6ed707ceb2e05862c7c0897e14c66134ceb68958c3e60d71ba81543c38b490`; independently matches the Full-Surface bundle `SHA256SUMS` and APK model trace. |
+| PR and merge status | BLOCKED | PR #296 is open, Draft, and unmerged. Keep it Draft while API 28 runtime evidence and D01/D02/D03 owner decisions remain unresolved. |
 | Exact Main SHA | PASS | `796106827987d2ccaddb43f8a5723b2cbf73a34e` was the checked current Main HEAD |
 | Product-owner decisions | BLOCKED | D01 rotation, D02 photo source/rights, D03 HIGH visual authority are listed in the decision register |
 
 Only PASS/PARTIAL/BLOCKED/NOT_RUN states are used. Source integration is not represented as Runtime acceptance.
+
+## Exact-head CI and artifact evidence
+
+The Android CI `pull_request` run completed successfully for PR head `c34aea6a2de0cae636d350a677f3629630f82d25` against Main `796106827987d2ccaddb43f8a5723b2cbf73a34e`. GitHub built the PR merge result at `4cfa30352485992aa2738f28bdffdbaa91d8b79f`; all build, unit, AndroidTest compilation, asset, model trace, and lint steps passed.
+
+Design Governance, Design Manager Pages, W1, W4, W5, Empty Home V2 Design Assets, and control-plane admission all passed on the same PR head. Run IDs: `41297647689`, `41297647715`, `41297647670`, `41297647740`, `41297647678`, `41297647675`, and `41297647652`.
+
+The Full-Surface artifact is `13080470873`. Its ZIP SHA-256 is `e296f38be49655981410b12f1d242703aa62c8e670630ad2921d9886c2ec06da`. The extracted APK is `121651606` bytes with SHA-256 `2a6ed707ceb2e05862c7c0897e14c66134ceb68958c3e60d71ba81543c38b490`; this matches both the bundle checksum and APK model trace.
+
+The exact-head push run `41297644192` has not created jobs. Older Android push runs remain queued for the repository's self-hosted API 28 runner, and no Android workflow is currently in progress. Device runtime gates and runtime captures therefore remain blocked/not run.
 
 ## Audit totals
 
@@ -77,4 +87,6 @@ See `AI_STUDIO_RESTORE_DECISION_REGISTER.md` for D01, D02, D03, options, impacts
 - `AI_STUDIO_W5_MAIN_THREE_WAY_RESTORE_MATRIX.md`
 - `AI_STUDIO_HIGH_RESULT_RESTORE_COMPARISON.md`
 - `AI_STUDIO_RESTORE_DECISION_REGISTER.md`
-- GitHub Actions, APK provenance, PR, and merge fields must be updated after exact-head runs.
+- Android CI PR run `41297647690` passed; design/admission runs `41297647652`, `41297647670`, `41297647675`, `41297647678`, `41297647689`, `41297647715`, and `41297647740` passed on PR head `c34aea6a2de0cae636d350a677f3629630f82d25`.
+- Full-Surface artifact ZIP SHA-256: `e296f38be49655981410b12f1d242703aa62c8e670630ad2921d9886c2ec06da` (`119217740` bytes); APK SHA-256: `2a6ed707ceb2e05862c7c0897e14c66134ceb68958c3e60d71ba81543c38b490` (`121651606` bytes); model `MODEL_CROP_M1_v0.2`.
+- API 28 is blocked by the self-hosted runner queue; PR and merge status remain Draft/open/unmerged pending device evidence and owner decisions.
