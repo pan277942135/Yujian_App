@@ -10,7 +10,7 @@
   "state_control": {
     "current_branch": "work/aistudio-full-page-restore-v1",
     "execution_baseline_sha": "f6e85fad0ed1be108401965d282773d649885847",
-    "current_head": "f6e85fad0ed1be108401965d282773d649885847",
+    "current_head": "419f22a13be13fde87ca31e48e4a00da751bd8f8",
     "base_branch": "main",
     "base_sha": "796106827987d2ccaddb43f8a5723b2cbf73a34e",
     "current_pr": null
@@ -40,8 +40,10 @@
       "base_branch": "main",
       "base_sha": "796106827987d2ccaddb43f8a5723b2cbf73a34e",
       "head_sha": "f6e85fad0ed1be108401965d282773d649885847",
-      "status": "DRAFT_OPEN_UNMERGED",
-      "url": "https://github.com/pan277942135/Yujian_App/pull/296"
+      "status": "MERGED",
+      "url": "https://github.com/pan277942135/Yujian_App/pull/296",
+      "merge_commit_sha": "419f22a13be13fde87ca31e48e4a00da751bd8f8",
+      "merged_at": "2026-11-01T11:03:32Z"
     }
   },
   "phases": {
@@ -70,8 +72,9 @@
       "source": "branch-local initialization; no prior Work state found on active Main"
     },
     "P6": {
-      "status": "IN_PROGRESS",
-      "task_id": "YUJIAN_ANDROID_AISTUDIO_FULL_PAGE_RESTORE_AND_MAIN_INTEGRATION_V1"
+      "status": "COMPLETED",
+      "task_id": "YUJIAN_ANDROID_AISTUDIO_FULL_PAGE_RESTORE_AND_MAIN_INTEGRATION_V1",
+      "note": "PR #296 merged; API 28 runtime acceptance deferred by owner instruction."
     },
     "P7": {
       "status": "NOT_STARTED",
@@ -125,7 +128,7 @@
       "api28_runtime_run_id": 41298675813,
       "application_source_sha": "c34aea6a2de0cae636d350a677f3629630f82d25",
       "deferred_by_owner": true,
-      "defer_reason": "Owner requested that API 28 acceptance be deferred."
+      "defer_reason": "API 28 runtime acceptance was explicitly deferred by owner instruction."
     },
     "historical_runtime_run": {
       "rule": "Historical results cannot promote current exact HEAD to PASS."
@@ -151,19 +154,19 @@
       "artifact_id": 13080985274,
       "artifact_zip_sha256": "a205ea71449b951da91be5e000b1b10364159da167c30d4bf2bd3552346d66ed"
     },
-    "api28_runtime_status": "BLOCKED_INFRA"
+    "api28_runtime_status": "BLOCKED_INFRA",
+    "merged_main_sha": "419f22a13be13fde87ca31e48e4a00da751bd8f8",
+    "pr_status": "MERGED"
   },
   "current_work": {
     "id": "YUJIAN_ANDROID_AISTUDIO_FULL_PAGE_RESTORE_AND_MAIN_INTEGRATION_V1",
     "phase": "P6",
     "task_id": "YUJIAN_ANDROID_AISTUDIO_FULL_PAGE_RESTORE_AND_MAIN_INTEGRATION_V1",
     "stage": "E1",
-    "status": "BLOCKED",
+    "status": "DONE",
     "exact_head": "f6e85fad0ed1be108401965d282773d649885847"
   },
-  "blockers": [
-    "API 28 acceptance is deferred by owner instruction. The exact-head push run 41298675813 remains pending without jobs and is not counted as acceptance; do not dispatch or retry API 28 runtime. D01/D02/D03 decisions remain pending, so PR #296 remains Draft."
-  ],
+  "blockers": [],
   "protected_invariants": {
     "control_plane": [
       "Main is the only canonical control plane; do not change static task or contract authorities in the product branch."
@@ -182,16 +185,16 @@
   "next_actions": [
     {
       "id": "E1-01",
-      "status": "BLOCKED",
+      "status": "DEFERRED",
       "owner": "Work",
-      "action": "API 28 runtime is deferred by owner instruction. Do not dispatch or retry unless the owner requests it.",
+      "action": "API 28 runtime acceptance is deferred by owner instruction; do not dispatch or retry unless the owner asks to resume it.",
       "dependencies": []
     },
     {
       "id": "E1-02",
-      "status": "BLOCKED",
+      "status": "DONE",
       "owner": "Work",
-      "action": "Keep PR #296 Draft while D01/D02/D03 decisions are pending; update acceptance only if the owner resumes API 28.",
+      "action": "Exact-head CI and design evidence, APK provenance, completion report, PR state, and Work checkpoint recorded; PR #296 merged to Main.",
       "dependencies": [
         "E1-01"
       ]
@@ -205,8 +208,8 @@
   },
   "state_update": {
     "initialized_at": "2026-11-01T09:43:11.195Z",
-    "reason": "Owner deferred API 28 acceptance. Latest PR head f6e85fad passed Android PR CI and design/admission workflows; PR #296 remains Draft while D01/D02/D03 decisions are pending.",
-    "updated_at": "2026-11-01T11:01:23Z",
+    "reason": "PR #296 was merged into Main at 419f22a13be13fde87ca31e48e4a00da751bd8f8 by owner instruction. Android PR CI and design gates passed; API 28 runtime acceptance remains explicitly deferred, not accepted.",
+    "updated_at": "2026-11-01T11:04:02Z",
     "previous_attempts": [
       {
         "source_sha": "d3a2aa2ac212f32d9bc15cc793327f2a8ea46868",

@@ -9,14 +9,12 @@
   "phase": "P6",
   "task_id": "YUJIAN_ANDROID_AISTUDIO_FULL_PAGE_RESTORE_AND_MAIN_INTEGRATION_V1",
   "stage": "E1",
-  "status": "BLOCKED",
+  "status": "DONE",
   "source_sha": "f6e85fad0ed1be108401965d282773d649885847",
-  "checkpoint_updated_at": "2026-11-01T11:01:23Z",
-  "next_action": "Hold API 28 runtime as requested. Keep PR #296 Draft and await D01/D02/D03 owner decisions; resume device acceptance only if requested.",
+  "checkpoint_updated_at": "2026-11-01T11:04:02Z",
+  "next_action": "No further action unless the owner asks to resume API 28 runtime acceptance or resolve D01/D02/D03.",
   "dependencies": [],
-  "blockers": [
-    "API 28 acceptance is deferred by owner instruction. The exact-head push run 41298675813 remains pending without jobs and is not counted as acceptance; do not dispatch or retry API 28 runtime. D01/D02/D03 decisions remain pending, so PR #296 remains Draft."
-  ],
+  "blockers": [],
   "evidence": {
     "control_plane_task_contract": "harness/task_contracts/YUJIAN_ANDROID_AISTUDIO_FULL_PAGE_RESTORE_AND_MAIN_INTEGRATION_V1.md",
     "control_plane_revision": "796106827987d2ccaddb43f8a5723b2cbf73a34e",
@@ -41,8 +39,10 @@
       "number": 296,
       "url": "https://github.com/pan277942135/Yujian_App/pull/296",
       "branch": "feature/aistudio-full-page-restore-v1",
-      "status": "DRAFT_OPEN_UNMERGED",
-      "head_sha": "f6e85fad0ed1be108401965d282773d649885847"
+      "status": "MERGED",
+      "head_sha": "f6e85fad0ed1be108401965d282773d649885847",
+      "merge_commit_sha": "419f22a13be13fde87ca31e48e4a00da751bd8f8",
+      "merged_at": "2026-11-01T11:03:32Z"
     },
     "android_ci_status": "PASS",
     "api28_runtime_status": "DEFERRED_BY_OWNER",
@@ -99,13 +99,23 @@
         "artifact_id": 13080985274,
         "artifact_zip_sha256": "a205ea71449b951da91be5e000b1b10364159da167c30d4bf2bd3552346d66ed"
       },
-      "api28_runtime_status": "BLOCKED_INFRA"
+      "api28_runtime_status": "BLOCKED_INFRA",
+      "merged_main_sha": "419f22a13be13fde87ca31e48e4a00da751bd8f8",
+      "pr_status": "MERGED"
     },
     "runner_queue": {
       "current_exact_head_run": 41298675813,
       "status": "PENDING_NO_JOBS_NOT_COUNTED_AS_ACCEPTANCE",
       "deferred_by_owner": true
     },
-    "api28_runtime_deferred": true
-  }
+    "api28_runtime_deferred": true,
+    "main_head_sha": "419f22a13be13fde87ca31e48e4a00da751bd8f8",
+    "merge": {
+      "pr_number": 296,
+      "merge_commit_sha": "419f22a13be13fde87ca31e48e4a00da751bd8f8",
+      "merged_at": "2026-11-01T11:03:32Z",
+      "method": "merge"
+    }
+  },
+  "completed_at": "2026-11-01T11:04:02Z"
 }
