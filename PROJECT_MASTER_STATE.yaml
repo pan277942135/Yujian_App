@@ -1,0 +1,187 @@
+{
+  "schema_version": "1.0",
+  "state_id": "yujian-project-master-state",
+  "project": {
+    "id": "yujian",
+    "name": "渔见",
+    "platform": "Android",
+    "status": "IN_PROGRESS"
+  },
+  "state_control": {
+    "current_branch": "work/aistudio-full-page-restore-v1",
+    "execution_baseline_sha": "796106827987d2ccaddb43f8a5723b2cbf73a34e",
+    "current_head": "796106827987d2ccaddb43f8a5723b2cbf73a34e",
+    "base_branch": "main",
+    "base_sha": "796106827987d2ccaddb43f8a5723b2cbf73a34e",
+    "current_pr": null
+  },
+  "source_of_truth": {
+    "canonical_control_plane": "main",
+    "feature_matrix": "harness/FEATURE_MATRIX.yaml",
+    "phase_task_state_machine": "harness/PHASE_TASK_STATE_MACHINE.yaml",
+    "unified_contract_registry": "harness/UNIFIED_CONTRACT_REGISTRY.yaml",
+    "current_work_state": "WORK_EXECUTION_STATE.json"
+  },
+  "repositories": {
+    "android": {
+      "repository": "pan277942135/Yujian_App",
+      "base_branch": "main",
+      "base_sha": "796106827987d2ccaddb43f8a5723b2cbf73a34e",
+      "work_branch": "work/aistudio-full-page-restore-v1"
+    }
+  },
+  "pull_requests": {},
+  "phases": {
+    "P0": {
+      "status": "NOT_CONFIRMED",
+      "source": "branch-local initialization; no prior Work state found on active Main"
+    },
+    "P1": {
+      "status": "NOT_CONFIRMED",
+      "source": "branch-local initialization; no prior Work state found on active Main"
+    },
+    "P2": {
+      "status": "NOT_CONFIRMED",
+      "source": "branch-local initialization; no prior Work state found on active Main"
+    },
+    "P3": {
+      "status": "NOT_CONFIRMED",
+      "source": "branch-local initialization; no prior Work state found on active Main"
+    },
+    "P4": {
+      "status": "NOT_CONFIRMED",
+      "source": "branch-local initialization; no prior Work state found on active Main"
+    },
+    "P5": {
+      "status": "NOT_CONFIRMED",
+      "source": "branch-local initialization; no prior Work state found on active Main"
+    },
+    "P6": {
+      "status": "READY_FOR_WORK",
+      "task_id": "YUJIAN_ANDROID_AISTUDIO_FULL_PAGE_RESTORE_AND_MAIN_INTEGRATION_V1"
+    },
+    "P7": {
+      "status": "NOT_STARTED",
+      "source": "branch-local initialization; no prior Work state found on active Main"
+    },
+    "P8": {
+      "status": "NOT_STARTED",
+      "source": "branch-local initialization; no prior Work state found on active Main"
+    },
+    "P9": {
+      "status": "NOT_STARTED",
+      "source": "branch-local initialization; no prior Work state found on active Main"
+    }
+  },
+  "recognition_main_journey": {
+    "contract_status": "FROZEN",
+    "status": "NOT_RUN",
+    "route": [
+      "J01",
+      "J02",
+      "J03",
+      "J04",
+      "J05",
+      "J06",
+      "J07",
+      "J08",
+      "J09",
+      "J10",
+      "J11",
+      "J12",
+      "J13",
+      "J14",
+      "J15",
+      "J16",
+      "J17",
+      "J18",
+      "J19",
+      "J20"
+    ]
+  },
+  "runtime_gates": {
+    "exact_head": {
+      "sha": "796106827987d2ccaddb43f8a5723b2cbf73a34e",
+      "status": "NOT_RUN",
+      "classification": "NOT_RUN"
+    },
+    "historical_runtime_run": {
+      "rule": "Historical results cannot promote current exact HEAD to PASS."
+    }
+  },
+  "apk_and_evidence": {
+    "status": "NOT_RUN",
+    "source_sha": "796106827987d2ccaddb43f8a5723b2cbf73a34e",
+    "apk": null
+  },
+  "current_work": {
+    "id": "YUJIAN_ANDROID_AISTUDIO_FULL_PAGE_RESTORE_AND_MAIN_INTEGRATION_V1",
+    "phase": "P6",
+    "task_id": "YUJIAN_ANDROID_AISTUDIO_FULL_PAGE_RESTORE_AND_MAIN_INTEGRATION_V1",
+    "stage": "E0",
+    "status": "READY",
+    "exact_head": "796106827987d2ccaddb43f8a5723b2cbf73a34e"
+  },
+  "blockers": [],
+  "protected_invariants": {
+    "control_plane": [
+      "Main is the only canonical control plane; do not change static task or contract authorities in the product branch."
+    ],
+    "product_business": [
+      "Preserve current Main model, CameraX, PhotoSession, navigation, recognition and result-save behavior.",
+      "Preserve current Main and PR #294 Orb, 13-stage, RR09, and photo-session lifecycle behavior."
+    ],
+    "design_resources": [
+      "Keep the three-page P01/P02/P03 guide flow.",
+      "Do not enable any unapproved guide candidate image in Runtime.",
+      "Do not enable bobber rotation until D01 is confirmed.",
+      "Keep W5 bobber center (531,1161) on the 1080x1920 reference canvas."
+    ]
+  },
+  "next_actions": [
+    {
+      "id": "E0-01",
+      "status": "READY",
+      "owner": "Work",
+      "action": "Complete full ZIP/Main/W5/PR #294 three-way source audit and file-level disposition before product edits.",
+      "dependencies": []
+    }
+  ],
+  "completion_rules": {
+    "task_id": "YUJIAN_ANDROID_AISTUDIO_FULL_PAGE_RESTORE_AND_MAIN_INTEGRATION_V1",
+    "release_blocking": false,
+    "android_release_blocking": false,
+    "requires_exact_sha_evidence": true
+  },
+  "state_update": {
+    "initialized_at": "2026-11-01T09:43:11.195Z",
+    "reason": "No PROJECT_MASTER_STATE.yaml or WORK_EXECUTION_STATE.json existed on current Main; initialized from canonical task registration and live Main SHA."
+  },
+  "agent_recovery": {
+    "resume_from": "WORK_EXECUTION_STATE.json.next_action",
+    "revalidate_control_plane_against_main": true
+  },
+  "unresolved_decisions": [
+    {
+      "id": "D01",
+      "status": "PENDING",
+      "decision": "Confirm whether additional bobber rotation/tilt is desired.",
+      "effect": "Keep rotation and tilt disabled until confirmed.",
+      "independent_work_may_continue": true
+    },
+    {
+      "id": "D02",
+      "status": "PENDING",
+      "decision": "Approve or reject each of the 8 guide candidate images.",
+      "effect": "Keep all 8 images unavailable to Runtime.",
+      "independent_work_may_continue": true
+    },
+    {
+      "id": "D03",
+      "status": "PENDING_REVIEW",
+      "decision": "Resolve any HIGH result layout differences against frozen design while preserving Main and PR #294 behavior.",
+      "effect": "Do not replace business or motion authority with the ZIP snapshot.",
+      "independent_work_may_continue": true
+    }
+  ]
+}

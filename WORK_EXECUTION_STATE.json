@@ -1,0 +1,30 @@
+{
+  "schema_version": "1.0",
+  "work_id": "YUJIAN_ANDROID_AISTUDIO_FULL_PAGE_RESTORE_AND_MAIN_INTEGRATION_V1",
+  "repository": "pan277942135/Yujian_App",
+  "branch": "work/aistudio-full-page-restore-v1",
+  "control_plane_revision": "796106827987d2ccaddb43f8a5723b2cbf73a34e",
+  "base_branch": "main",
+  "base_sha": "796106827987d2ccaddb43f8a5723b2cbf73a34e",
+  "phase": "P6",
+  "task_id": "YUJIAN_ANDROID_AISTUDIO_FULL_PAGE_RESTORE_AND_MAIN_INTEGRATION_V1",
+  "stage": "E0",
+  "status": "READY",
+  "source_sha": "796106827987d2ccaddb43f8a5723b2cbf73a34e",
+  "checkpoint_updated_at": "2026-11-01T09:43:11.195Z",
+  "next_action": "Complete the full ZIP/Main/W5/PR #294 three-way source audit and file disposition before product edits.",
+  "dependencies": [],
+  "blockers": [],
+  "evidence": {
+    "control_plane_task_contract": "harness/task_contracts/YUJIAN_ANDROID_AISTUDIO_FULL_PAGE_RESTORE_AND_MAIN_INTEGRATION_V1.md",
+    "control_plane_revision": "796106827987d2ccaddb43f8a5723b2cbf73a34e",
+    "source_zip_sha256": "fde0f4a93044e766f3b529b2fcb039bf3b0186972a8bf4bd223f65df301ebbab",
+    "source_zip_bytes": 286588012,
+    "initial_admission": "NOT_RUN",
+    "owner_decisions": {
+      "D01_bobber_rotation": "PENDING; keep unconfirmed rotation out of Runtime until owner decision.",
+      "D02_guide_candidate_images": "PENDING; all 8 candidate images remain source blocked from Runtime until owner approval.",
+      "D03_high_result_layout": "PENDING_REVIEW; preserve current Main and PR #294 behavior while resolving any frozen visual conflict."
+    }
+  }
+}
