@@ -899,7 +899,7 @@ fun RecognitionResultScreen(
         resultWaterEngine.activate(resultFrame)
         DisposableEffect(resultWaterEngine) { onDispose { resultWaterEngine.release() } }
         val resultHost = remember(resultWaterEngine, hostType) {
-            WaterLightHostBinding(hostType, WaterLightMaterialProfile.ORB_LEGACY.copy(host = hostType), resultWaterEngine)
+            WaterLightHostBinding(hostType, WaterLightMaterialProfile.forHost(hostType), resultWaterEngine)
         }
         if (hostBounds != null && resultHost.accepts(resultFrame, WaterLightHostGeometry(
                 hostType, resultFrame.geometryVersion,

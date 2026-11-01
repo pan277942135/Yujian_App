@@ -35,6 +35,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -1050,7 +1051,7 @@ private fun RecognitionPhoto(
     LaunchedEffect(transform) { onPhotoGeometryChanged(WaterLightGeometryVersion.of(transform)) }
     val waterHosts = remember(waterLightEngine) {
         listOf(WaterLightHost.PERIMETER, WaterLightHost.PATH, WaterLightHost.CONTOUR).associateWith { host ->
-            WaterLightHostBinding(host, WaterLightMaterialProfile.ORB_LEGACY.copy(host = host), waterLightEngine)
+            WaterLightHostBinding(host, WaterLightMaterialProfile.forHost(host), waterLightEngine)
         }
     }
     val photoBounds = transform.photoContentRect
@@ -1201,6 +1202,7 @@ private fun RecognitionPhoto(
                 imageId = imageId,
                 photoSha256 = photoSha256,
                 phase = phase,
+                material = WaterLightMaterialProfile.PERIMETER,
                 reduceMotion = motionPolicy.reduceMotion,
                 modifier = Modifier.semantics {
                     contentDescription = "正在识别的鱼获照片"

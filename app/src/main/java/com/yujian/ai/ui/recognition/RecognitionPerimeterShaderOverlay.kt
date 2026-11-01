@@ -36,6 +36,7 @@ import com.yujian.ai.ai.RecognitionPhase
 import com.yujian.ai.ui.identify.DisplayRect
 import com.yujian.ai.ui.identify.RecognitionImageTransform
 import com.yujian.ai.ui.waterlight.core.WaterLightFrame
+import com.yujian.ai.ui.waterlight.core.WaterLightMaterialProfile
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.util.concurrent.atomic.AtomicBoolean
@@ -66,6 +67,7 @@ internal fun RecognitionPerimeterShaderOverlay(
     phase: RecognitionPhase,
     reduceMotion: Boolean = false,
     referenceMetrics: RecognitionPerimeterReferenceMetrics? = null,
+    material: WaterLightMaterialProfile = WaterLightMaterialProfile.PERIMETER,
     modifier: Modifier = Modifier,
 ) {
     if (waterLightFrame.sessionId != recognitionSessionId || waterLightFrame.photoSha256 != photoSha256 ||
@@ -130,12 +132,13 @@ internal fun RecognitionPerimeterShaderOverlay(
         opticalReferenceElapsedMs = opticalReferenceElapsedMs.coerceAtLeast(0L),
         timeSec = timeSec,
         progress = progress,
-        perimeterOpacity = perimeterOpacity,
+        perimeterOpacity = perimeterOpacity * material.opacity,
         shaderCoordinateScale = mapping.shaderPxPerSourceUnit,
         pathCoordinateScale = mapping.pathPxPerCssUnit,
         nodePositions = positions,
         coordinateMappingMeasured = mapping.isMeasured,
-        glowSizeSource = 36f * context.resources.displayMetrics.density / mapping.shaderPxPerSourceUnit.coerceAtLeast(.0001f),
+        glowSizeSource = material.glowWidth * context.resources.displayMetrics.density / mapping.shaderPxPerSourceUnit.coerceAtLeast(.0001f),
+        material = material,
         active = active,
     )
 
@@ -185,6 +188,7 @@ private data class PerimeterFrame(
     val nodePositions: FloatArray,
     val coordinateMappingMeasured: Boolean,
     val glowSizeSource: Float,
+    val material: WaterLightMaterialProfile,
     val active: Boolean,
 )
 
@@ -532,6 +536,14 @@ private class RecognitionPerimeterGlRenderer {
     }
 
     private fun setCommonUniforms(programId: Int, frame: PerimeterFrame) {
+        fun rgb(value: Long): FloatArray = floatArrayOf(
+            ((value shr 16) and 255).toFloat() / 255f,
+            ((value shr 8) and 255).toFloat() / 255f,
+            (value and 255).toFloat() / 255f,
+        )
+        GLES20.glUniform3fv(GLES20.glGetUniformLocation(programId, "uDeepPeacock"), 1, rgb(frame.material.primaryColor), 0)
+        GLES20.glUniform3fv(GLES20.glGetUniformLocation(programId, "uWaterGreen"), 1, rgb(frame.material.secondaryColor), 0)
+        GLES20.glUniform3fv(GLES20.glGetUniformLocation(programId, "uIceWhite"), 1, rgb(frame.material.highlightColor), 0)
         GLES20.glUniform2f(
             GLES20.glGetUniformLocation(programId, "uViewport"),
             surfaceWidth.toFloat(),
@@ -637,9 +649,9 @@ private class RecognitionPerimeterGlRenderer {
             const float INTENSITY = 1.50;
             const float MARGIN_RATIO = 0.060;
             const float BLEND_RATIO = 0.75;
-            const vec3 DEEP_PEACOCK = vec3(11.0, 110.0, 105.0) / 255.0;
-            const vec3 WATER_GREEN = vec3(77.0, 208.0, 199.0) / 255.0;
-            const vec3 ICE_WHITE = vec3(221.0, 247.0, 245.0) / 255.0;
+            uniform vec3 uDeepPeacock;
+            uniform vec3 uWaterGreen;
+            uniform vec3 uIceWhite;
 
             float sdRoundedBox(vec2 p, vec2 b, vec4 r) {
                 r.xy = (p.x > 0.0) ? r.xy : r.zw;
@@ -736,8 +748,8 @@ private class RecognitionPerimeterGlRenderer {
 
                 float filamentAngleT = (perimAngle + 3.14159) / 6.28318;
                 float filamentGoldBias = smoothstep(0.18, 0.82, sin(filamentAngleT * 3.14159 + 0.7));
-                vec3 perimeterColor = mix(WATER_GREEN, DEEP_PEACOCK, filamentGoldBias);
-                perimeterColor = mix(perimeterColor, WATER_GREEN, sin(filamentAngleT * 6.28 + t * 0.5) * 0.2 + 0.2);
+                vec3 perimeterColor = mix(uWaterGreen, uDeepPeacock, filamentGoldBias);
+                perimeterColor = mix(perimeterColor, uWaterGreen, sin(filamentAngleT * 6.28 + t * 0.5) * 0.2 + 0.2);
 
                 float perimContrib = perimeterAura * BLEND_RATIO;
                 float totalLight = perimContrib * INTENSITY;
@@ -745,7 +757,7 @@ private class RecognitionPerimeterGlRenderer {
                 float totalWeight = max(0.001, perimContrib);
                 vec3 finalRgb = (perimeterColor * perimContrib) / totalWeight;
                 float coreSpark = smoothstep(0.85, 1.75, totalLight);
-                finalRgb = mix(finalRgb, ICE_WHITE, coreSpark * 0.48);
+                finalRgb = mix(finalRgb, uIceWhite, coreSpark * 0.48);
                 finalRgb *= (1.0 + coreSpark * 0.3);
 
                 // First source stage: WebGL SRC_ALPHA / ONE_MINUS_SRC_ALPHA over transparent.
@@ -771,8 +783,8 @@ private class RecognitionPerimeterGlRenderer {
                             float pPos = mod(fi / 16.0 + uMotion.x * nodeSpeed, 1.0);
                             float pulse = 0.65 + 0.35 * sin(uMotion.x * 3.4 + seededPhase(fi));
                             bool isBright = pPos > 0.45;
-                            vec3 glowColor = isBright ? WATER_GREEN : DEEP_PEACOCK;
-                            vec3 coreColor = isBright ? ICE_WHITE : WATER_GREEN;
+                            vec3 glowColor = isBright ? uWaterGreen : uDeepPeacock;
+                            vec3 coreColor = isBright ? uIceWhite : uWaterGreen;
                             float nodeSize = (2.2 + mod(fi, 4.0) * 0.7) * uMotion.w;
 
                             float haloRadius = nodeSize * 3.2 * pulse;
