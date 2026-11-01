@@ -92,6 +92,7 @@ import com.yujian.ai.ai.subject.SubjectStatus
 import com.yujian.ai.model.SelectedImage
 import com.yujian.ai.ui.identify.RecognitionImageTransform
 import com.yujian.ai.ui.identify.NormalizedSourceRect
+import com.yujian.ai.ui.identify.DisplayRect
 import com.yujian.ai.ui.identify.RecognitionUiState
 import com.yujian.ai.ui.identify.resolveRecognitionUiState
 import com.yujian.ai.ui.recognition.PhotoShockwaveTransform
@@ -1521,7 +1522,7 @@ private fun recognitionMaskAnchor(
 }
 
 private fun nearestPhotoPerimeterAnchor(
-    rect: androidx.compose.ui.geometry.Rect,
+    rect: DisplayRect,
     point: Offset,
 ): Offset? {
     if (!rect.width.isFinite() || !rect.height.isFinite() || rect.width <= 1f || rect.height <= 1f) return null
