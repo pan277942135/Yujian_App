@@ -849,17 +849,8 @@
             "sha256": "/sha256",
             "coordinate_space": "/coordinate_space",
             "pixel_dimensions.width": "/width",
-            "pixel_dimensions.height": "/height"
-          }
-        },
-        {
-          "authority_id": "assetreg",
-          "json_pointer": "/entries/192",
-          "field_map": {
-            "source_path": "/path",
-            "sha256": "/sha256",
-            "bytes": "/size",
-            "lifecycle_status": "/status"
+            "pixel_dimensions.height": "/height",
+            "bytes": "/bytes"
           }
         }
       ],

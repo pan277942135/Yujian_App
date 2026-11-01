@@ -44,7 +44,7 @@ The current Main HEAD advanced from the product tree snapshot only through contr
 | `app/src/main/assets/empty_home_runtime_v2/config/layer_contract.json` | Contract versions differ | Add candidate geometry and shared motion-event trigger; retain frozen layer rules |
 | `app/src/main/assets/empty_home_runtime_v2/config/runtime_manifest.json` | Runtime hashes differ | Recompute all changed contract hashes and keep the new candidate contract explicitly listed |
 | `design/pages/home/empty_home/shared/contracts/runtime_manifest.json` | Runtime hashes differ | Keep byte-identical with packaged runtime manifest |
-| `design/pages/home/empty_home/Page_Resource_Binding_V1.json` | Main page binding, ZIP, and PR #254 snapshot differ | Update only current Main source hashes plus exact title bytes/SHA; do not import the separate PR #254 registry graph |
+| `design/pages/home/empty_home/Page_Resource_Binding_V1.json` | Main page binding, ZIP, and PR #254 snapshot differ | Update current Main source hashes and exact title bytes/SHA; bind the task-pinned Hero through the page-scoped Empty Home asset manifest, leaving the global Asset Registry record unchanged; do not import PR #254's registry graph |
 | `app/src/main/java/com/yujian/ai/ui/screens/RecognitionResultScreen.kt` | ZIP result style differs from Main and PR #294 | Preserve current Main and PR #294; mark D03 pending because ZIP's dark style conflicts with Frozen HIGH |
 
 ## Integrated changes
@@ -56,7 +56,7 @@ The current Main HEAD advanced from the product tree snapshot only through contr
 | Ripple | Main three-wave renderer retained with ZIP delays 0/0.42/0.90s, growth 270/190/120 reference px, 3.6s duration, contact ring | Click response retained as a separate 2.8s user action; automatic haptic does not fire for taps |
 | Haptic | Main system preference and double-pulse helper retained | One haptic per motion event ID; initial render, background, Reduce Motion, missing assets, and late event observation are gated |
 | Guide | ZIP vertical center, exact gradient stops, right-side capsule CTA, narrow-width/large-font stacking restored | P01/P02/P03 order and Main camera Preview-Ready gate retained |
-| Hero title | ZIP resource bytes copied only after SHA-256 check | `36b7ad90c6b685d286ba54ef92659f58bfb5e28b29824848c6cfded06ecf4cf5`; linked contract and manifest chain updated |
+| Hero title | ZIP resource bytes copied only after SHA-256 check | `36b7ad90c6b685d286ba54ef92659f58bfb5e28b29824848c6cfded06ecf4cf5`; Hero contract, page-scoped asset manifest, and Page Resource Binding updated; legacy global Asset Registry record remains unchanged |
 | Network config | HTTP(S)-scheme check restored for four repositories | Shared normalization helper and unit tests added |
 
 ## Not migrated

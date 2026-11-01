@@ -52,7 +52,7 @@ The W5 candidate geometry is applied as one fishing composition and uses the sin
 
 The canonical anchor contract remains unchanged. Candidate geometry status is `USER_DIRECTED_CANDIDATE_DELTA_NOT_FROZEN`; native Runtime measurement remains NOT_RUN.
 
-The title resource was copied byte-for-byte from the ZIP and verified at SHA-256 `36b7ad90c6b685d286ba54ef92659f58bfb5e28b29824848c6cfded06ecf4cf5` (111,271 bytes, 625×311 RGBA). All linked hero/runtime/page binding hashes are updated.
+The title resource was copied byte-for-byte from the ZIP and verified at SHA-256 `36b7ad90c6b685d286ba54ef92659f58bfb5e28b29824848c6cfded06ecf4cf5` (111,271 bytes, 625×311 RGBA). The Hero contract, page-scoped asset manifest, Runtime manifests, and Page Resource Binding pin the exact bytes and byte count. The global Asset Registry remains unchanged and keeps its separate record of the prior hero resource.
 
 ### First Capture Guide
 
