@@ -56,7 +56,22 @@ class RecognitionRevealSessionStore : ViewModel() {
         val current = snapshot ?: return
         if (!current.matches(key)) return
         if (current.subjectResult == result && current.subjectGeometry == geometry) return
-        snapshot = current.copy(subjectResult = result, subjectGeometry = geometry)
+        val updatedHandoff = current.handoff?.let { previous ->
+            val image = current.image
+            val production = current.productionResult
+            if (image == null || production == null) previous else RecognitionRevealHandoffFactory.create(
+                recognitionSessionId = key.recognitionSessionId,
+                recognitionAttemptId = key.recognitionAttemptId,
+                image = image,
+                result = production,
+                subject = geometry,
+                processingPhoto = current.processingPhoto,
+                highConfidenceResult = previous.eligibility != RecognitionRevealEligibility.PHOTO_ONLY &&
+                    previous.eligibility != RecognitionRevealEligibility.STATIC_RESULT,
+                handoffTimestampUptimeMs = previous.handoffTimestampUptimeMs,
+            )
+        }
+        snapshot = current.copy(subjectResult = result, subjectGeometry = geometry, handoff = updatedHandoff)
     }
 
     fun updateProcessingPhoto(key: RecognitionRevealKey, photo: RecognitionProcessingPhotoSnapshot) {

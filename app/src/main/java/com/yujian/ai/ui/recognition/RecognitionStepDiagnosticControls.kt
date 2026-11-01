@@ -215,7 +215,7 @@ private fun Control(
         modifier = modifier.clip(RoundedCornerShape(10.dp))
             .background(if (primary && enabled) Color(0xFF287E79) else Color.Transparent)
             .clickable(enabled = enabled, onClick = onClick)
-            .padding(vertical = 9.dp),
+            .padding(vertical = 16.dp),
         color = foreground,
         fontSize = 9.sp,
         fontWeight = if (primary && enabled) FontWeight.Bold else FontWeight.Normal,

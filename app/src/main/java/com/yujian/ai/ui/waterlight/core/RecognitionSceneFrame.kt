@@ -183,7 +183,6 @@ class SceneMotionCoordinator {
 
     fun advanceToNextStage(nowMs: Long): RecognitionSceneStage? {
         if (currentStage == RecognitionSceneStage.entries.last()) return null
-        if (mode == ScenePlaybackMode.MANUAL && !paused && !previewCompleted && previewStartedAtMs != null) return null
         val next = RecognitionSceneStage.entries[currentStage.ordinal + 1]
         beginStepPreview(next, nowMs)
         return next
@@ -265,7 +264,17 @@ class SceneMotionCoordinator {
     }
 
     fun switchToStepDiagnostic(authoritativeReferenceMs: Long, nowMs: Long) {
-        beginStepPreview(RecognitionSceneCoordinator.stageAt(authoritativeReferenceMs), nowMs)
+        val reference = sample(authoritativeReferenceMs, nowMs)
+        val stage = RecognitionSceneCoordinator.stageAt(reference)
+        beginStepPreview(stage, nowMs)
+        if (stage != RecognitionSceneStage.PHOTO_STABLE) {
+            val first = stage.seekTimeMs
+            val last = if (stage == RecognitionSceneStage.RESIDUE_SETTLE) stage.endMs else stage.endMs - 1L
+            val fraction = ((reference - first).toDouble() / (last - first).coerceAtLeast(1L))
+                .coerceIn(0.0, 1.0)
+            previewElapsedBeforePauseMs = (fraction * DIAGNOSTIC_STEP_DURATION_MS).toLong()
+            previewStartedAtMs = nowMs
+        }
     }
 
     /** Start a Result RR09 step only after its shared photo/hero/title geometry is ready. */

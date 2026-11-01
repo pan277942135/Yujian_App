@@ -121,6 +121,7 @@ import com.yujian.ai.ai.FishInputStatus
 import com.yujian.ai.ai.subject.FishSubjectResult
 import com.yujian.ai.ai.subject.SubjectModelState
 import com.yujian.ai.ai.subject.SubjectStatus
+import com.yujian.ai.ui.recognition.reveal.RecognitionGeometryTrustState
 import com.yujian.ai.catches.CatchSaveDraft
 import com.yujian.ai.catches.CatchSaveMetadataParser
 import com.yujian.ai.feedback.FeedbackDraft
@@ -450,10 +451,7 @@ fun RecognitionResultScreen(
     LaunchedEffect(diagnosticUiAvailable, diagnosticPlaybackController, revealStartReady) {
         val playback = diagnosticPlaybackController ?: return@LaunchedEffect
         if (!diagnosticUiAvailable || playback.mode != ScenePlaybackMode.MANUAL) return@LaunchedEffect
-        if (!revealStartReady) {
-            playback.holdCurrentPreviewAtStart()
-            diagnosticNowMs = SystemClock.uptimeMillis()
-        } else if (playback.paused && !playback.previewCompleted && !diagnosticUserPaused) {
+        if (playback.paused && !playback.previewCompleted && !diagnosticUserPaused) {
             val now = SystemClock.uptimeMillis()
             playback.resume(RecognitionSceneCoordinator.PROCESSING_END_MS, now)
             diagnosticNowMs = now
@@ -501,6 +499,14 @@ fun RecognitionResultScreen(
     }
     fun changeDiagnosticDisplayMode(mode: RecognitionProgressDisplayMode) {
         if (mode == diagnosticDisplayMode) return
+        val now = SystemClock.uptimeMillis()
+        val reference = (RecognitionSceneCoordinator.PROCESSING_END_MS + revealElapsedState.value)
+            .coerceAtMost(RecognitionSceneCoordinator.RR09_END_MS)
+        if (mode == RecognitionProgressDisplayMode.NORMAL_PROGRESS) {
+            diagnosticPlaybackController?.playProductionTimeline(reference, now)
+        } else {
+            diagnosticPlaybackController?.switchToStepDiagnostic(reference, now)
+        }
         onDiagnosticDisplayModeChange(mode)
     }
     var geometryWaitExpired by remember(revealHandoff?.key) { mutableStateOf(false) }
@@ -1031,7 +1037,6 @@ fun RecognitionResultScreen(
             val playback = requireNotNull(diagnosticPlaybackController)
             val stage = diagnosticStage
             val reference = diagnosticReferenceMs ?: RecognitionSceneCoordinator.PROCESSING_END_MS
-            val canAdvance = playback.mode != ScenePlaybackMode.MANUAL || playback.paused || playback.previewCompleted
             val stepStatus = when {
                 !revealStartReady && diagnosticDisplayMode == RecognitionProgressDisplayMode.STEP_DIAGNOSTIC -> "等待Result几何"
                 revealHandoff?.eligibility != RecognitionRevealEligibility.FULL_REVEAL -> "等待真实HIGH + Trusted Mask揭晓条件"
@@ -1046,14 +1051,19 @@ fun RecognitionResultScreen(
                 playbackPaused = diagnosticPaused,
                 mappedReferenceMs = reference,
                 modelStatus = if (productionResult?.ready == true) "真实模型已完成" else "真实模型等待",
-                maskStatus = revealHandoff?.geometryTrustState?.name ?: "Mask不可用",
+                maskStatus = when {
+                    revealHandoff?.geometryTrustState == RecognitionGeometryTrustState.TRUSTED_MASK -> "Mask TRUSTED"
+                    subjectResult.status == SubjectStatus.PROCESSING -> "Mask 计算中"
+                    subjectResult.status == SubjectStatus.FAILED -> "Mask 失败 · BBOX_ONLY"
+                    else -> revealHandoff?.geometryTrustState?.name ?: "Mask不可用"
+                },
                 stepStatus = stepStatus,
                 normalProgressText = if (diagnosticDisplayMode == RecognitionProgressDisplayMode.NORMAL_PROGRESS) {
                     "真实识别进度 · RR09 ${revealElapsedState.value.coerceAtMost(RecognitionRevealClock.TOTAL_DURATION_MS)}ms / 850ms"
                 } else "",
                 canGoPrevious = stage.ordinal > RecognitionSceneStage.PHOTO_STABLE.ordinal,
-                canGoNext = stage != RecognitionSceneStage.RESIDUE_SETTLE && canAdvance,
-                canControl = revealHandoff?.eligibility == RecognitionRevealEligibility.FULL_REVEAL && revealStartReady,
+                canGoNext = stage != RecognitionSceneStage.RESIDUE_SETTLE,
+                canControl = true,
                 onDisplayModeChange = ::changeDiagnosticDisplayMode,
                 onPrevious = {
                     val now = SystemClock.uptimeMillis()

@@ -135,9 +135,10 @@ class RecognitionSceneFrameTest {
         playback.sample(0L, 3_000L)
         assertEquals(RecognitionSceneStage.PHOTO_STABLE, playback.currentStage)
         assertEquals(RecognitionSceneStage.ORB_WAKE, playback.advanceToNextStage(3_000L))
-        assertNull("active step must not skip on repeated Next", playback.advanceToNextStage(3_100L))
-        assertEquals(RecognitionSceneStage.ORB_WAKE, playback.currentStage)
-        assertEquals(RecognitionSceneStage.PHOTO_STABLE, playback.returnToPreviousStage(3_200L))
+        assertEquals(RecognitionSceneStage.ORB_RELEASE, playback.advanceToNextStage(3_100L))
+        assertEquals(RecognitionSceneStage.ORB_RELEASE, playback.currentStage)
+        assertEquals(RecognitionSceneStage.ORB_WAKE, playback.returnToPreviousStage(3_200L))
+        assertEquals(RecognitionSceneStage.PHOTO_STABLE, playback.returnToPreviousStage(3_300L))
         assertEquals(RecognitionSceneStage.PHOTO_STABLE, playback.currentStage)
         playback.restartCurrentStage(4_000L)
         assertEquals(0L, playback.previewElapsedMs(4_000L))
@@ -167,6 +168,20 @@ class RecognitionSceneFrameTest {
         }
         assertEquals(RecognitionSceneStage.RESIDUE_SETTLE, playback.currentStage)
         assertNull(playback.advanceToNextStage(nowMs + 3_000L))
+    }
+
+    @Test fun manualStageHoldsAfterThirtySecondsAndNextNeverWaitsForMaskOrTimer() {
+        val playback = SceneMotionCoordinator()
+        playback.prepareInitialStepPreview()
+        playback.startPreparedStepPreview(0L)
+        assertEquals(RecognitionSceneStage.PHOTO_STABLE, playback.currentStage)
+        assertEquals(RecognitionSceneStage.ORB_WAKE, playback.advanceToNextStage(100L))
+        assertEquals(RecognitionSceneStage.ORB_RELEASE, playback.advanceToNextStage(101L))
+        playback.sample(0L, 30_101L)
+        assertEquals(RecognitionSceneStage.ORB_RELEASE, playback.currentStage)
+        assertTrue(playback.previewCompleted)
+        playback.pause(0L, 30_102L)
+        assertEquals(RecognitionSceneStage.PERIMETER_ARRIVAL, playback.advanceToNextStage(30_103L))
     }
 
     @Test fun rr09PreviewStepsMapToTheOriginalR0ThroughR5Timeline() {

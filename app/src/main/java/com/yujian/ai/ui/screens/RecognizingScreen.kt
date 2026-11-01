@@ -282,7 +282,7 @@ fun RecognitionProcessingScene(
 
     LaunchedEffect(sceneKey, diagnosticPlaybackController, diagnosticUiAvailable) {
         if (diagnosticPlaybackController == null && diagnosticUiAvailable) {
-            playbackController.playProductionTimeline(0L, recognitionMonotonicNowMs())
+            playbackController.prepareInitialStepPreview()
         }
     }
 
@@ -416,8 +416,9 @@ fun RecognitionProcessingScene(
         } else {
             controller.presentedPhase()
         }
-        val maskWindowOpen = recognitionMaskAcceptanceOpen(maskAcceptancePhase)
-        val trustedForReveal = isTrustedForCurrentPhoto && maskWindowOpen
+        // Trust is a property of the actual Mask and photo identity, not of the UI phase.
+        // A late SlimSAM result is still valid for the same attempt and Result handoff.
+        val trustedForReveal = isTrustedForCurrentPhoto
         if (trustedForReveal) {
             subjectBitmap = loaded
             subjectBox = requireNotNull(roiBox)
@@ -450,7 +451,6 @@ fun RecognitionProcessingScene(
             recognitionSessionId.isNullOrBlank() || recognitionAttemptId.isNullOrBlank() -> "SESSION_IDENTITY_MISSING"
             selected.imageId.isBlank() || selected.photoSha256.isBlank() -> "PHOTO_IDENTITY_MISSING"
             trustState != RecognitionGeometryTrustState.TRUSTED_MASK -> "GEOMETRY_OR_IDENTITY_MISMATCH"
-            !maskWindowOpen -> "S3_MASK_ACCEPTANCE_WINDOW_CLOSED"
             else -> "NONE"
         }
         Log.i(
@@ -642,7 +642,7 @@ fun RecognitionProcessingScene(
     // realPhase is intentionally NOT a LaunchedEffect key: restarting this loop on every
     // progress callback can cancel the presentation before it reaches RESULT.
     LaunchedEffect(sceneKey, phaseOverride, photoPresentedAtMs, displayMode, diagnosticReturnRevision) {
-        if (diagnosticUiAvailable && displayMode == RecognitionProgressDisplayMode.STEP_DIAGNOSTIC &&
+        if (diagnosticUiAvailable && playbackController.mode == ScenePlaybackMode.MANUAL &&
             finishedResult?.ready == true
         ) delivered = false
         if (photoPresentedAtMs == null && phaseOverride == null) return@LaunchedEffect
@@ -713,6 +713,12 @@ fun RecognitionProcessingScene(
 
     fun changeDiagnosticDisplayMode(mode: RecognitionProgressDisplayMode) {
         if (mode == displayMode) return
+        val now = recognitionMonotonicNowMs()
+        if (mode == RecognitionProgressDisplayMode.NORMAL_PROGRESS) {
+            playbackController.playProductionTimeline(authoritativeOpticalReferenceElapsedMs, now)
+        } else {
+            playbackController.switchToStepDiagnostic(authoritativeOpticalReferenceElapsedMs, now)
+        }
         if (onDiagnosticDisplayModeChange != null) onDiagnosticDisplayModeChange.invoke(mode)
         else localDisplayMode = mode
         playbackRevision++
@@ -1114,8 +1120,6 @@ fun RecognitionProcessingScene(
         }
         if (diagnosticUiAvailable) {
             val currentStage = diagnosticSceneFrame.stage
-            val canAdvance = playbackController.mode != ScenePlaybackMode.MANUAL ||
-                playbackController.paused || playbackController.previewCompleted
             RecognitionStepDiagnosticControls(
                 displayMode = displayMode,
                 stage = currentStage,
@@ -1131,14 +1135,16 @@ fun RecognitionProcessingScene(
                 },
                 maskStatus = when {
                     trustedSubjectMask -> "Mask TRUSTED"
-                    assessment?.primary?.box != null -> "Mask BBOX_ONLY"
+                    subjectResult.status == SubjectStatus.PROCESSING -> "Mask 计算中"
+                    subjectResult.status == SubjectStatus.FAILED -> "Mask 失败 · BBOX_ONLY"
+                    assessment?.primary?.box != null && subjectResult.status == SubjectStatus.READY -> "Mask BBOX_ONLY"
                     else -> "Mask 等待"
                 },
                 stepStatus = diagnosticActionStatus ?: diagnosticStageStatus,
                 normalProgressText = "",
                 canGoPrevious = currentStage != RecognitionSceneStage.entries.first(),
-                canGoNext = currentStage != RecognitionSceneStage.entries.last() && canAdvance,
-                canControl = photoPresentedAtMs != null,
+                canGoNext = currentStage != RecognitionSceneStage.entries.last(),
+                canControl = true,
                 onDisplayModeChange = ::changeDiagnosticDisplayMode,
                 onPrevious = {
                     val now = recognitionMonotonicNowMs()
@@ -1148,20 +1154,20 @@ fun RecognitionProcessingScene(
                 },
                 onNext = {
                     val now = recognitionMonotonicNowMs()
-                    if (currentStage == RecognitionSceneStage.FISH_GOLD_PEAK) {
+                    if (currentStage == RecognitionSceneStage.FISH_GOLD_PEAK && finishedResult?.ready == true &&
+                        successfulRevealAllowed && onDiagnosticRevealRequested != null) {
                         val result = finishedResult
                         diagnosticActionStatus = when {
                             result == null -> "等待真实分类结果"
                             !result.ready -> "真实分类结果不可用于成功揭晓"
                             !successfulRevealAllowed -> "非 HIGH 结果 · 不运行成功揭晓"
-                            !trustedSubjectMask -> "Mask 未 TRUSTED · 不生成鱼体回流"
                             onDiagnosticRevealRequested == null -> "FULL_REVEAL 交接入口不可用"
                             else -> onDiagnosticRevealRequested.invoke(result)
                                 ?: run { diagnosticActionStatus = null; playbackRevision++; null }
                         }
                     } else {
                         val next = playbackController.advanceToNextStage(now)
-                        diagnosticActionStatus = if (next == null) "当前步仍在播放或已到末步" else null
+                        diagnosticActionStatus = if (next == null) "已到末步" else null
                         if (next != null) playbackRevision++
                     }
                 },
