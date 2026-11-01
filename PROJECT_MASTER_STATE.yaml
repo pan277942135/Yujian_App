@@ -9,8 +9,8 @@
   },
   "state_control": {
     "current_branch": "work/aistudio-full-page-restore-v1",
-    "execution_baseline_sha": "8fef73abae7e8d1c94431affcd54ff3b55914e95",
-    "current_head": "8fef73abae7e8d1c94431affcd54ff3b55914e95",
+    "execution_baseline_sha": "f6e85fad0ed1be108401965d282773d649885847",
+    "current_head": "f6e85fad0ed1be108401965d282773d649885847",
     "base_branch": "main",
     "base_sha": "796106827987d2ccaddb43f8a5723b2cbf73a34e",
     "current_pr": null
@@ -29,7 +29,7 @@
       "base_sha": "796106827987d2ccaddb43f8a5723b2cbf73a34e",
       "work_branch": "work/aistudio-full-page-restore-v1",
       "pr_branch": "feature/aistudio-full-page-restore-v1",
-      "pr_head_sha": "8fef73abae7e8d1c94431affcd54ff3b55914e95",
+      "pr_head_sha": "f6e85fad0ed1be108401965d282773d649885847",
       "pr_number": 296
     }
   },
@@ -39,7 +39,7 @@
       "branch": "feature/aistudio-full-page-restore-v1",
       "base_branch": "main",
       "base_sha": "796106827987d2ccaddb43f8a5723b2cbf73a34e",
-      "head_sha": "8fef73abae7e8d1c94431affcd54ff3b55914e95",
+      "head_sha": "f6e85fad0ed1be108401965d282773d649885847",
       "status": "DRAFT_OPEN_UNMERGED",
       "url": "https://github.com/pan277942135/Yujian_App/pull/296"
     }
@@ -114,35 +114,54 @@
   },
   "runtime_gates": {
     "exact_head": {
-      "sha": "8fef73abae7e8d1c94431affcd54ff3b55914e95",
-      "status": "IN_PROGRESS",
-      "classification": "IN_PROGRESS",
+      "sha": "f6e85fad0ed1be108401965d282773d649885847",
+      "status": "BLOCKED",
+      "classification": "BLOCKED_INFRA",
       "pr_number": 296,
       "android_ci_run_ids": [
-        41296680332,
-        41296680336,
-        41296680340,
-        41296680339
-      ]
+        41298679667,
+        41298675813
+      ],
+      "api28_runtime_run_id": 41298675813,
+      "application_source_sha": "c34aea6a2de0cae636d350a677f3629630f82d25"
     },
     "historical_runtime_run": {
       "rule": "Historical results cannot promote current exact HEAD to PASS."
     }
   },
   "apk_and_evidence": {
-    "status": "NOT_RUN",
-    "source_sha": "8fef73abae7e8d1c94431affcd54ff3b55914e95",
-    "apk": null
+    "status": "PARTIAL",
+    "source_sha": "c34aea6a2de0cae636d350a677f3629630f82d25",
+    "pr_head_sha": "f6e85fad0ed1be108401965d282773d649885847",
+    "build_sha": "4cfa30352485992aa2738f28bdffdbaa91d8b79f",
+    "artifact_id": 13080470873,
+    "artifact_zip_sha256": "e296f38be49655981410b12f1d242703aa62c8e670630ad2921d9886c2ec06da",
+    "apk": {
+      "file_name": "YuJian-Full-Surface-d8.apk",
+      "library_file_id": "libfile_bed8f544067881918e0b5d6d6872a2e3",
+      "sha256": "2a6ed707ceb2e05862c7c0897e14c66134ceb68958c3e60d71ba81543c38b490",
+      "bytes": 121651606,
+      "model_id": "MODEL_CROP_M1_v0.2"
+    },
+    "latest_pr_build": {
+      "run_id": 41298679667,
+      "build_sha": "cd8abcd6e1e24ede2826906cfd9c233e3eb37679",
+      "artifact_id": 13080985274,
+      "artifact_zip_sha256": "a205ea71449b951da91be5e000b1b10364159da167c30d4bf2bd3552346d66ed"
+    },
+    "api28_runtime_status": "BLOCKED_INFRA"
   },
   "current_work": {
     "id": "YUJIAN_ANDROID_AISTUDIO_FULL_PAGE_RESTORE_AND_MAIN_INTEGRATION_V1",
     "phase": "P6",
     "task_id": "YUJIAN_ANDROID_AISTUDIO_FULL_PAGE_RESTORE_AND_MAIN_INTEGRATION_V1",
     "stage": "E1",
-    "status": "RUNNING",
-    "exact_head": "8fef73abae7e8d1c94431affcd54ff3b55914e95"
+    "status": "BLOCKED",
+    "exact_head": "f6e85fad0ed1be108401965d282773d649885847"
   },
-  "blockers": [],
+  "blockers": [
+    "API 28 acceptance is blocked by the self-hosted runner queue: exact-head push run 41298675813 is pending with no jobs; older API 28 matrix jobs remain queued and no Android workflow is in progress. Manual workflow_dispatch with runtime_backend=github-hosted requires owner approval for the browser fallback."
+  ],
   "protected_invariants": {
     "control_plane": [
       "Main is the only canonical control plane; do not change static task or contract authorities in the product branch."
@@ -161,16 +180,16 @@
   "next_actions": [
     {
       "id": "E1-01",
-      "status": "RUNNING",
+      "status": "BLOCKED",
       "owner": "Work",
-      "action": "Run exact-head Android CI, Page Resource Binding gates, unit tests, AndroidTest compilation, lint, API 28 runtime, and APK packaging for PR #296 head 8fef73abae7e8d1c94431affcd54ff3b55914e95.",
+      "action": "Run the API 28 runtime matrix for PR #296 head f6e85fad0ed1be108401965d282773d649885847 after owner approval for GitHub-hosted workflow dispatch.",
       "dependencies": []
     },
     {
       "id": "E1-02",
-      "status": "READY",
+      "status": "BLOCKED",
       "owner": "Work",
-      "action": "Collect exact-head CI/runtime evidence and update APK provenance, completion report, and Work state.",
+      "action": "Collect exact-head API 28 runtime evidence; then complete final acceptance and update the report and Work state.",
       "dependencies": [
         "E1-01"
       ]
@@ -184,8 +203,8 @@
   },
   "state_update": {
     "initialized_at": "2026-11-01T09:43:11.195Z",
-    "reason": "Corrected the page-scoped Hero binding after W2 caught a stale global registry record, and snapped nominal 36-second event boundaries across Float rounding. Exact-head Android and design workflows are rerunning on PR #296.",
-    "updated_at": "2026-11-01T10:21:33.672Z",
+    "reason": "Latest PR head f6e85fad passed Android PR CI, Design Governance, Design Manager Pages, W1, W4, W5, Empty Home assets, and control-plane admission. APK artifact and checksum are recorded. API 28 remains blocked by the self-hosted runner queue; manual GitHub-hosted dispatch needs approval for browser fallback.",
+    "updated_at": "2026-11-01T10:51:12Z",
     "previous_attempts": [
       {
         "source_sha": "d3a2aa2ac212f32d9bc15cc793327f2a8ea46868",

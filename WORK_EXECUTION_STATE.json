@@ -9,12 +9,14 @@
   "phase": "P6",
   "task_id": "YUJIAN_ANDROID_AISTUDIO_FULL_PAGE_RESTORE_AND_MAIN_INTEGRATION_V1",
   "stage": "E1",
-  "status": "RUNNING",
-  "source_sha": "8fef73abae7e8d1c94431affcd54ff3b55914e95",
-  "checkpoint_updated_at": "2026-11-01T10:21:33.672Z",
-  "next_action": "Collect exact-head Android, Page Resource Binding, API 28 Runtime and APK evidence for PR #296 head 8fef73abae7e8d1c94431affcd54ff3b55914e95.",
+  "status": "BLOCKED",
+  "source_sha": "f6e85fad0ed1be108401965d282773d649885847",
+  "checkpoint_updated_at": "2026-11-01T10:51:12Z",
+  "next_action": "Await approval for GitHub-hosted workflow_dispatch on branch feature/aistudio-full-page-restore-v1 at PR head f6e85fad0ed1be108401965d282773d649885847.",
   "dependencies": [],
-  "blockers": [],
+  "blockers": [
+    "API 28 acceptance is blocked by the self-hosted runner queue: exact-head push run 41298675813 is pending with no jobs; older API 28 matrix jobs remain queued and no Android workflow is in progress. Manual workflow_dispatch with runtime_backend=github-hosted requires owner approval for the browser fallback."
+  ],
   "evidence": {
     "control_plane_task_contract": "harness/task_contracts/YUJIAN_ANDROID_AISTUDIO_FULL_PAGE_RESTORE_AND_MAIN_INTEGRATION_V1.md",
     "control_plane_revision": "796106827987d2ccaddb43f8a5723b2cbf73a34e",
@@ -34,16 +36,16 @@
       "manifest_omissions": 89
     },
     "work_code_commit": "ca612b5363c657ce03d47d76dc1382bb96aad86a",
-    "exact_runtime_source_sha": "8fef73abae7e8d1c94431affcd54ff3b55914e95",
+    "exact_runtime_source_sha": "f6e85fad0ed1be108401965d282773d649885847",
     "pr": {
       "number": 296,
       "url": "https://github.com/pan277942135/Yujian_App/pull/296",
       "branch": "feature/aistudio-full-page-restore-v1",
       "status": "DRAFT_OPEN_UNMERGED",
-      "head_sha": "8fef73abae7e8d1c94431affcd54ff3b55914e95"
+      "head_sha": "f6e85fad0ed1be108401965d282773d649885847"
     },
-    "android_ci_status": "RUNNING",
-    "api28_runtime_status": "RUNNING",
+    "android_ci_status": "PASS",
+    "api28_runtime_status": "BLOCKED_INFRA",
     "previous_attempts": [
       {
         "source_sha": "d3a2aa2ac212f32d9bc15cc793327f2a8ea46868",
@@ -62,6 +64,48 @@
         "status": "FAIL",
         "cause": "Page Resource Binding pointed the new ZIP hero hash to the prior global Asset Registry row; binding now uses the page-scoped Empty Home asset manifest."
       }
-    ]
+    ],
+    "application_source_sha": "c34aea6a2de0cae636d350a677f3629630f82d25",
+    "android_ci_run_id": 41298679667,
+    "android_ci_merge_build_sha": "cd8abcd6e1e24ede2826906cfd9c233e3eb37679",
+    "design_workflow_status": "PASS",
+    "design_run_ids": [
+      41298679626,
+      41298679657,
+      41298679662,
+      41298679695,
+      41298679696,
+      41298679707,
+      41298679804
+    ],
+    "api28_runtime_run_id": 41298675813,
+    "apk_and_evidence": {
+      "status": "PARTIAL",
+      "source_sha": "c34aea6a2de0cae636d350a677f3629630f82d25",
+      "pr_head_sha": "f6e85fad0ed1be108401965d282773d649885847",
+      "build_sha": "4cfa30352485992aa2738f28bdffdbaa91d8b79f",
+      "artifact_id": 13080470873,
+      "artifact_zip_sha256": "e296f38be49655981410b12f1d242703aa62c8e670630ad2921d9886c2ec06da",
+      "apk": {
+        "file_name": "YuJian-Full-Surface-d8.apk",
+        "library_file_id": "libfile_bed8f544067881918e0b5d6d6872a2e3",
+        "sha256": "2a6ed707ceb2e05862c7c0897e14c66134ceb68958c3e60d71ba81543c38b490",
+        "bytes": 121651606,
+        "model_id": "MODEL_CROP_M1_v0.2"
+      },
+      "latest_pr_build": {
+        "run_id": 41298679667,
+        "build_sha": "cd8abcd6e1e24ede2826906cfd9c233e3eb37679",
+        "artifact_id": 13080985274,
+        "artifact_zip_sha256": "a205ea71449b951da91be5e000b1b10364159da167c30d4bf2bd3552346d66ed"
+      },
+      "api28_runtime_status": "BLOCKED_INFRA"
+    },
+    "runner_queue": {
+      "current_exact_head_run": 41298675813,
+      "status": "PENDING_NO_JOBS",
+      "older_queued_runtime_run": 41297092913,
+      "in_progress_android_workflows": 0
+    }
   }
 }
