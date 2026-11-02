@@ -30,13 +30,10 @@ fun OrbWaterLightRibbons(coreSize: Dp, frame: WaterLightFrame, opening: Float, s
     val time = frame.timeSeconds
     Canvas(Modifier.fillMaxSize()) {
         val radius = coreSize.toPx() * .5f
-        val referenceMs = frame.opticalReferenceElapsedMs
-        val retention = when {
-            referenceMs < 350L -> 1f
-            referenceMs < 950L -> 1f - .42f * ((referenceMs - 350L) / 600f).coerceIn(0f, 1f)
-            referenceMs < 2_800L -> .58f
-            energyEvent?.feedback == EnergyFeedback.RETURN -> .58f + .42f * returnEnergy.coerceIn(0f, 1f)
-            else -> .58f
+        val retention = when (energyEvent?.feedback) {
+            EnergyFeedback.RELEASE -> 1f - .42f * releaseEnergy.coerceIn(0f, 1f)
+            EnergyFeedback.RETURN -> .58f + .42f * returnEnergy.coerceIn(0f, 1f)
+            else -> 1f
         }
         val colors = listOf(Color(material.goldColor.toInt()), Color(material.blueColor.toInt()), Color(material.greenColor.toInt()))
         colors.forEachIndexed { layer, color ->
