@@ -120,5 +120,6 @@ class OrbRuntimeProfileV1Test {
         val frozen0 = OrbFilamentPathMathV1.movement(path, 0L, true, OrbRuntimeProfileV1.MotionEvent.NONE, 0L)
         val frozen10s = OrbFilamentPathMathV1.movement(path, 10_000L, true, OrbRuntimeProfileV1.MotionEvent.NONE, 0L)
         assertEquals(frozen0.u, frozen10s.u, 0f)
+        assertEquals(.37f, OrbRuntimeProfileV1.R06_REDUCED_MOTION_PHASE, 0f)
     }
 }

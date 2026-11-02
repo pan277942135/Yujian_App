@@ -93,7 +93,11 @@ internal class OrbFilamentPathRenderer(private val front: Boolean, private val d
     private val caches = OrbRuntimeProfileV1.paths.filter { it.front == front }.map { spec ->
         val material = requireNotNull(OrbRuntimeProfileV1.materials[spec.material])
         val staticLut = OrbFilamentPathMathV1.newLut().also {
-            OrbFilamentPathMathV1.fillLut(spec, 0L, it)
+            OrbFilamentPathMathV1.fillLut(
+                spec,
+                (spec.deformationPeriodMs * OrbRuntimeProfileV1.R06_REDUCED_MOTION_PHASE).toLong(),
+                it,
+            )
         }
         PathCache(
             spec,
