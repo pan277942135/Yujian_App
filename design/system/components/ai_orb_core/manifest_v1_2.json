@@ -1,0 +1,57 @@
+{
+  "schema_version": "1.2",
+  "status": "CANDIDATE_EXTERNAL_BINARY_PACKAGE",
+  "task_id": "YUJIAN_AI_ORB_EXISTING_ASSET_GAP_CLOSURE_V1",
+  "main_baseline": "f607432e262ee7fc1265479a82dd0a93cd4a5141",
+  "full_resource_archive": {
+    "name": "YuJian_AI_Orb_Gap_Closure_V1.zip",
+    "sha256": "3f2e2d102868314f954150297c14df7a41d7eeadbf819e249bad8c0a1d0d1c3e",
+    "location": "ChatGPT Library: /冻结高保/AI Orb/AI_Orb_Gap_Closure_V1/",
+    "contains": [
+      "all original source still images",
+      "R00-R07 static boards",
+      "68dp/80dp matrix",
+      "four deterministic motion samples",
+      "all JSON/SVG profiles",
+      "Excel register",
+      "asset SHA256 manifest",
+      "validator and execution report"
+    ],
+    "committed_to_github": false
+  },
+  "git_repository_paths": {
+    "editable_svg": "assets/paths/R06_orb_filament_paths.svg",
+    "geometry": "assets/paths/R06_orb_filament_path_geometry.json",
+    "profile": "profiles/R06_orb_filament_profile.json",
+    "other_contracts": "profiles/",
+    "audits": "audits/"
+  },
+  "source_register": [
+    {
+      "id": "ORB_MASTER_01",
+      "filename": "透明湖水玻璃球.png",
+      "sha256": "2773e4628ff6132605314693742488542c3e70fd04b581d8825dd13cea0067ee",
+      "status": "FROZEN_SOURCE"
+    },
+    {
+      "id": "S2_REFERENCE_236493",
+      "filename": "236493.png",
+      "sha256": "adefad98ec7cfe32df1316a605ac7f3ded8a5a7b33e107f2380ecbf49f2f7c35",
+      "status": "FROZEN_SOURCE"
+    },
+    {
+      "id": "RUNTIME_WEBP",
+      "path": "app/src/main/res/drawable-nodpi/processing_water_core_v1.webp",
+      "sha256": "daa85a1fc13fac4a7ca562959c2d19172ee0f1e94277c3eeb32ef1f09",
+      "status": "EXISTING_RUNTIME",
+      "verified_from_manifest_only": true
+    },
+    {
+      "id": "OLD_R01_GRASS",
+      "filename": "R01_grass_back.svg;R01_grass_front.svg",
+      "status": "DEPRECATED_DO_NOT_INTEGRATE"
+    }
+  ],
+  "visual_review": "PENDING_PRODUCT_OWNER",
+  "android_runtime": "UNCHANGED"
+}

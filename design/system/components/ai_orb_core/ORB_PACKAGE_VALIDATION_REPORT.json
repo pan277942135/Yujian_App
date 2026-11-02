@@ -1,0 +1,11 @@
+{
+  "task_id": "YUJIAN_AI_ORB_EXISTING_ASSET_GAP_CLOSURE_V1",
+  "package_zip_sha256": "3f2e2d102868314f954150297c14df7a41d7eeadbf819e249bad8c0a1d0d1c3e",
+  "status": "PASS_WITH_SOURCE_LIMITATIONS",
+  "passed_checks": 231,
+  "failed_checks": 0,
+  "warnings": [
+    "Raw GitHub 384x384 core WebP not present in locally accessible resource kit; direct pixel/alpha contrast audit pending.",
+    "Design boards in separate full ZIP, not committed to this PR; preview not Android runtime evidence."
+  ]
+}

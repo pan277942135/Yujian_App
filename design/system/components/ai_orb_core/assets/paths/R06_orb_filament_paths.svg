@@ -1,10 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1400" height="1400" viewBox="-700 -700 1400 1400">
-<title>YuJian R06 / Five open editable cubic filaments / candidate</title>
-<desc>OrbLocal signed coordinates, one core diameter equals 1000; no embedded images, no new Orb body.</desc>
+<title>YuJian R06 candidate editable 5 filament paths</title>
+<desc>All five are open two-segment cubic Beziers in OrbLocal coordinates; not raster picture nor whole Orb replacement.</desc>
 <g fill="none" stroke-linecap="round">
-<path id="G01" data-depth="BACK" data-material="green" stroke="#5B8F78" stroke-width="29.38" opacity="0.265" d="M -570.0 270.0 C -620.0 -120.0 -440.0 -530.0 -180.0 -550.0 C 130.0 -660.0 460.0 -390.0 510.0 -130.0"/>
-<path id="G02" data-depth="FRONT" data-material="green" stroke="#5B8F78" stroke-width="25.63" opacity="0.280" d="M -620.0 80.0 C -550.0 450.0 -210.0 640.0 60.0 580.0 C 390.0 570.0 620.0 360.0 600.0 80.0"/>
-<path id="A01" data-depth="BACK" data-material="gold" stroke="#D8BC87" stroke-width="9.19" opacity="0.570" d="M -510.0 -240.0 C -280.0 -620.0 230.0 -630.0 540.0 -290.0 C 640.0 -170.0 600.0 60.0 530.0 240.0"/>
-<path id="A02" data-depth="FRONT" data-material="gold" stroke="#D8BC87" stroke-width="9.69" opacity="0.585" d="M -610.0 -30.0 C -480.0 230.0 -270.0 400.0 80.0 530.0 C 300.0 590.0 490.0 450.0 600.0 250.0"/>
-<path id="C01" data-depth="FRONT" data-material="cyan" stroke="#348CA6" stroke-width="26.25" opacity="0.290" d="M -570.0 -190.0 C -530.0 -50.0 -480.0 150.0 -240.0 320.0 C 130.0 470.0 360.0 480.0 540.0 270.0"/>
+<path id="G01" data-depth="BACK" data-material="green" d="M -550.0 290.0 C -610.0 -170.0 -430.0 -550.0 -160.0 -510.0 C 150.0 -620.0 510.0 -200.0 440.0 220.0" stroke="#5B8F78" stroke-width="29.38" opacity="0.265"/>
+<path id="G02" data-depth="FRONT" data-material="green" d="M -580.0 170.0 C -390.0 420.0 -70.0 420.0 140.0 220.0 C 370.0 40.0 580.0 220.0 450.0 450.0" stroke="#5B8F78" stroke-width="25.63" opacity="0.280"/>
+<path id="A01" data-depth="BACK" data-material="gold" d="M -540.0 -200.0 C -250.0 -580.0 190.0 -600.0 530.0 -260.0 C 360.0 -150.0 410.0 250.0 560.0 320.0" stroke="#D8BC87" stroke-width="9.19" opacity="0.570"/>
+<path id="A02" data-depth="FRONT" data-material="gold" d="M -550.0 250.0 C -300.0 50.0 -70.0 480.0 200.0 470.0 C 440.0 510.0 530.0 200.0 590.0 -40.0" stroke="#D8BC87" stroke-width="9.69" opacity="0.585"/>
+<path id="C01" data-depth="FRONT" data-material="cyan" d="M -520.0 -130.0 C -310.0 250.0 -190.0 340.0 30.0 350.0 C 300.0 480.0 480.0 280.0 560.0 20.0" stroke="#348CA6" stroke-width="26.25" opacity="0.290"/>
 </g></svg>

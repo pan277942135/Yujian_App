@@ -1,32 +1,18 @@
 {
   "schema_version": "1.0",
   "status": "NEW_CANDIDATE",
-  "source_reference": "236493.png",
-  "source_sha256": "adefad98ec7cfe32df1316a605ac7f3ded8a5a7b33e107f2380ecbf49f2f7c35",
-  "legacy_renderer": "OrbWaterLightRibbons",
-  "legacy_map": {
-    "green": [
-      "G01",
-      "G02"
-    ],
-    "gold": [
-      "A01",
-      "A02"
-    ],
-    "blue": [
-      "C01"
-    ]
-  },
-  "replace_not_overlay": true,
+  "reference": "236493.png [exact source SHA available in manifest]",
+  "reuse": "OrbWaterLightRibbons existing three-material backend; map 3 legacy layers to 5 PATHS without double-drawing",
+  "preserve_legacy_while_unapproved": true,
   "paths": [
     {
       "id": "G01",
       "material": "green",
       "color": "#5B8F78",
-      "depth": "BACK",
+      "z": "BACK",
       "period_ms": 6100,
       "phase": 0.07,
-      "width_dp": [
+      "core_width_dp": [
         1.5,
         3.2
       ],
@@ -34,16 +20,21 @@
         0.18,
         0.35
       ],
-      "control_point_deformation_D": 0.007
+      "wave_normal_amplitude_D": 0.007,
+      "control_point_deformation": {
+        "period_ms": 10065,
+        "amplitude_D": 0.006,
+        "deterministic": true
+      }
     },
     {
       "id": "G02",
       "material": "green",
       "color": "#5B8F78",
-      "depth": "FRONT",
+      "z": "FRONT",
       "period_ms": 5300,
       "phase": 0.34,
-      "width_dp": [
+      "core_width_dp": [
         1.4,
         2.7
       ],
@@ -51,16 +42,21 @@
         0.18,
         0.38
       ],
-      "control_point_deformation_D": 0.007
+      "wave_normal_amplitude_D": 0.007,
+      "control_point_deformation": {
+        "period_ms": 8745,
+        "amplitude_D": 0.006,
+        "deterministic": true
+      }
     },
     {
       "id": "A01",
       "material": "gold",
       "color": "#D8BC87",
-      "depth": "BACK",
+      "z": "BACK",
       "period_ms": 3700,
       "phase": 0.59,
-      "width_dp": [
+      "core_width_dp": [
         0.55,
         0.92
       ],
@@ -68,16 +64,21 @@
         0.45,
         0.69
       ],
-      "control_point_deformation_D": 0.004
+      "wave_normal_amplitude_D": 0.004,
+      "control_point_deformation": {
+        "period_ms": 6105,
+        "amplitude_D": 0.006,
+        "deterministic": true
+      }
     },
     {
       "id": "A02",
       "material": "gold",
       "color": "#D8BC87",
-      "depth": "FRONT",
+      "z": "FRONT",
       "period_ms": 2900,
       "phase": 0.81,
-      "width_dp": [
+      "core_width_dp": [
         0.55,
         1
       ],
@@ -85,16 +86,21 @@
         0.45,
         0.72
       ],
-      "control_point_deformation_D": 0.004
+      "wave_normal_amplitude_D": 0.004,
+      "control_point_deformation": {
+        "period_ms": 4785,
+        "amplitude_D": 0.006,
+        "deterministic": true
+      }
     },
     {
       "id": "C01",
       "material": "cyan",
       "color": "#348CA6",
-      "depth": "FRONT",
+      "z": "FRONT",
       "period_ms": 4400,
       "phase": 0.23,
-      "width_dp": [
+      "core_width_dp": [
         1.4,
         2.8
       ],
@@ -102,7 +108,12 @@
         0.18,
         0.4
       ],
-      "control_point_deformation_D": 0.007
+      "wave_normal_amplitude_D": 0.007,
+      "control_point_deformation": {
+        "period_ms": 7260,
+        "amplitude_D": 0.006,
+        "deterministic": true
+      }
     }
   ],
   "speed_phase_distance": [
@@ -131,30 +142,38 @@
       1
     ]
   ],
-  "arc_length_lut_samples": 128,
-  "trail": [
-    "tail",
-    "body",
-    "head"
-  ],
-  "normal_steps": 96,
-  "low_steps": 48,
+  "u_map": "sample arc-length LUT (128 samples/path), not directly parameter t; invert cumulative arc-length",
+  "rendering": {
+    "back_before_core": true,
+    "front_after_core": true,
+    "pre_multiply_alpha": true,
+    "taper": "tail/body/head separate width and luminance",
+    "closed_orbits": false,
+    "allow_compound_glow": true,
+    "no_per_frame_path_rng": true
+  },
   "events": {
     "RELEASE": {
-      "life_state": "S2",
+      "state": "S2",
       "direction": "OUTWARD",
-      "head_multiplier": 1.18,
-      "keep_position_and_phase": true
+      "position_rule": "continue last arc-length u; tail remains continuous",
+      "head_luminance_multiplier": 1.18,
+      "switch_ms": 260
     },
     "RETURN": {
-      "life_state": "S2",
+      "state": "S2",
       "direction": "INWARD",
-      "head_multiplier": 1.07,
-      "keep_position_and_phase": true,
-      "reverse_with_C1_speed_ramp_ms": 260
+      "position_rule": "on switch keep last u, reverse sign of du/dt with C1 speed ramp; do not teleport to path end",
+      "head_luminance_multiplier": 1.07,
+      "switch_ms": 260
+    },
+    "EXIT": {
+      "rule": "fade existing tail after head reaches endpoint; do not reset independent clocks"
     }
   },
-  "at_cycle_end": "fade departing trail and introduce next head at near-zero alpha (do not instantly teleport a visible head)",
-  "clock": "shared MotionClock",
-  "avoid_same_ellipse": true
+  "performance": {
+    "normal_steps_per_path": 96,
+    "low_steps_per_path": 48,
+    "reduce_motion": "freeze deterministic sample at phase 0.37"
+  }
 }
