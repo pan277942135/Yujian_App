@@ -2,6 +2,7 @@ package com.yujian.ai.ui.waterlight.renderer
 
 import android.graphics.Bitmap
 import android.graphics.Canvas
+import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Rect
 import android.graphics.RectF
@@ -22,6 +23,7 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.res.imageResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -36,6 +38,7 @@ import kotlinx.coroutines.withContext
 import kotlin.coroutines.coroutineContext
 import kotlin.math.min
 import kotlin.math.roundToInt
+import kotlin.math.sin
 import kotlin.math.sqrt
 
 /** Orb-only bridge to the pinned field sampler; this does not reuse photo sizing or masks. */
@@ -154,7 +157,7 @@ internal class OrbCausticsAdapter(private val scope: CoroutineScope) : AutoClose
                         waterTint,
                         .06,
                     )
-                    val layerAlpha = (sample.alpha * layer.alpha * edgeAlpha).coerceIn(0.0, layer.alpha)
+                    val layerAlpha = (sample.alpha.toDouble() * layer.alpha * edgeAlpha).coerceIn(0.0, layer.alpha.toDouble())
                     val remaining = 1.0 - layerAlpha
                     red = sample.red * layerAlpha + red * remaining
                     green = sample.green * layerAlpha + green * remaining
@@ -217,7 +220,7 @@ internal fun OrbCoreOpticalEffects(
     val density = androidx.compose.ui.platform.LocalDensity.current
     val densityValue = density.density
     val sizeDp = coreSize.value
-    val causticPaint = remember { Paint(Paint.ANTI_ALIAS_FLAG).apply { filterBitmap = true } }
+    val causticPaint = remember { Paint(Paint.ANTI_ALIAS_FLAG).apply { isFilterBitmap = true } }
     val additiveBudgetPaint = remember {
         Paint(Paint.ANTI_ALIAS_FLAG).apply {
             alpha = (255f * OrbRuntimeProfileV1.R03_MAX_EXTRA_ADDITIVE_ALPHA).toInt().coerceIn(0, 255)

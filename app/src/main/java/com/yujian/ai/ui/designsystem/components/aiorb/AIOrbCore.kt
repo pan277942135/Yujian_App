@@ -35,6 +35,7 @@ import com.yujian.ai.ui.waterlight.core.WaterLightMaterialProfile
 import com.yujian.ai.ui.waterlight.renderer.OrbWaterLightRibbons
 import com.yujian.ai.ui.waterlight.renderer.OrbCoreOpticalEffects
 import com.yujian.ai.ui.waterlight.renderer.OrbFilamentRendererMode
+import com.yujian.ai.ui.waterlight.renderer.OrbFilamentPathMathV1
 import com.yujian.ai.ui.waterlight.renderer.OrbRuntimeProfileV1
 import com.yujian.ai.ui.designsystem.components.YuJianCaptureButton
 import com.yujian.ai.ui.designsystem.components.YuJianCaptureButtonRasterAssets
