@@ -25,6 +25,7 @@ on:
       - "harness/STATE_UPDATE_PROTOCOL.md"
       - "harness/WORK_EXECUTION_STATE_SCHEMA_V1.json"
       - "harness/WORK_EXECUTION_STATE_TEMPLATE_V1.json"
+      - "harness/reports/ANDROID_AI_ORB_V1_RUNTIME_INTEGRATION_REPORT.md"
       - "scripts/validate_project_master_state.py"
       - "scripts/validate_feature_matrix.py"
       - "scripts/validate_phase_task_state_machine.py"

@@ -31,16 +31,24 @@
 
 本地环境没有 Gradle、Android SDK 或 adb，故这里不将 Android 编译、AndroidTest 编译、lint 或 API 28 视觉验收标记为通过。它们由该 stacked PR 的精确 head SHA 工作流执行。
 
-## CI 交付与待回填证据
+## CI 交付与视觉验收状态
 
-PR CI 将对 `github.event.pull_request.head.sha` 执行单测、Debug APK 构建、AndroidTest APK 编译、lint、R00 APK 内资源哈希验证及资源 profile parity。独立 API 28 Pixel 2 emulator job 安装同一构建产物中的 Debug APK，启动 Debug Runtime Lab，导出候选/Legacy、S1/S2、68/80dp、浅/深背景、R06 光学时钟、RELEASE/RETURN 和双向状态过渡截图，并上传设备、APK 与光学性能日志。
+CI run `41461411691` 对精确 source SHA `1b2dc2704b8aae94f57560d8b5b1af57a13e268d` 完成构建与静态/打包校验。Debug APK 已从该 run 的 `YuJian-debug-1b2dc2704b8aae94f57560d8b5b1af57a13e268d-MODEL_CROP_M1_v0.2` artifact 解包，并核对 ZIP SHA-256 与 GitHub artifact digest 一致。
 
 | 项目 | 最终值 |
 | --- | --- |
-| 集成 PR / source SHA | CI 首次完成后回填 |
-| Gradle unit / AndroidTest compile / lint | CI 首次完成后回填 |
-| Debug APK SHA-256 / 下载产物 | CI 首次完成后回填 |
-| API 28 screenshot artifact / caustics timing | CI 首次完成后回填 |
+| 集成 PR / source SHA | [PR #309](https://github.com/pan277942135/Yujian_App/pull/309) / `1b2dc2704b8aae94f57560d8b5b1af57a13e268d` |
+| GitHub Actions run | `41461411691` — build `success` |
+| Gradle unit tests / Harness / AndroidTest compile / APK 内容校验 / lint | PASS |
+| Debug APK | `YuJian_AI_Orb_R02-R06_V1_Debug_1b2dc2704b8.apk`；138,455,370 bytes；SHA-256 `c66a1a537bee6f3f3be150f5ccdac2098033a66c5f39fbafa1ab2898c6b0d511` |
+| GitHub Debug APK artifact | `YuJian-debug-1b2dc2704b8aae94f57560d8b5b1af57a13e268d-MODEL_CROP_M1_v0.2`；artifact ID `13149801502`；ZIP digest `sha256:70a6048514678f47db014899d3948b82998dc2d40ff2ec24a86272379a1dc7ea` |
+| API 28 screenshot artifact / caustics timing | BLOCKED；视觉 job `125334812682` 失败，未生成截图或光学性能日志 |
 | 产品负责人视觉验收 | Pending |
 
-静态离线检查不能替代设备运行、APK 安装或产品视觉签收。最终包交付只对应成功 CI 的精确分支头；视觉签收仍由产品负责人完成。
+### API 28 设备阻塞
+
+本次 `orb-visual-evidence` 在 GitHub-hosted M1 macOS runner 上安装 Android Emulator 与 API 28 `arm64-v8a` 镜像成功，但 runner 未暴露可用的 Hypervisor.framework。启动日志记录 `HVF error: HV_UNSUPPORTED`、`qemu-system-aarch64-headless: failed to initialize HVF`，随后 Emulator 退出；因此没有安装 APK 或导出截图。
+
+前序 runner 诊断也确认 GitHub-hosted x86_64 runner 缺少 KVM，Emulator 37 拒绝 x86_64 guest 的软件执行；Linux ARM64 hosted runner 则不提供 Android Emulator SDK 包。原仓库 API 28 self-hosted runner 任务曾排队且未获分配。要完成设备验收，需要重新启用带 `/dev/kvm` 的 `[self-hosted, yujian-android, api28]` runner，或提供具备有效硬件虚拟化的 Android API 28 runner，并重跑 exact-head visual job。
+
+静态检查和 APK 构建不能替代设备安装、API 28 截图或产品视觉签收。Release 仍保持 Legacy Orb；候选视觉继续留在 Debug，直至设备证据与产品负责人签收完成。
