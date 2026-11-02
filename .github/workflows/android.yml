@@ -322,7 +322,7 @@ jobs:
   orb-visual-evidence:
     if: ${{ (github.event_name == 'push' && github.ref_name == 'work/android-ai-orb-r02-r06-runtime-v1') || (github.event_name == 'pull_request' && github.event.pull_request.head.ref == 'work/android-ai-orb-r02-r06-runtime-v1') || (github.event_name == 'workflow_dispatch' && inputs.runtime_backend == 'github-hosted') }}
     needs: build
-    runs-on: [self-hosted, yujian-android, api28]
+    runs-on: ubuntu-latest
     timeout-minutes: 35
     env:
       YUJIAN_SOURCE_SHA: ${{ needs.build.outputs.source_sha }}
@@ -333,17 +333,51 @@ jobs:
         with:
           ref: ${{ needs.build.outputs.source_sha }}
 
-      - name: Prepare API 28 self-hosted emulator
+      - name: Set up JDK 17 for API 28 visual evidence
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Android SDK for API 28 visual evidence
+        uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
+
+      - name: Provision Pixel 2 API 28 emulator
+        shell: bash
+        run: |
+          set -euo pipefail
+          sdk_root="${ANDROID_SDK_ROOT:-${ANDROID_HOME:-}}"
+          test -n "$sdk_root"
+          avd_home="$HOME/.android/avd"
+          mkdir -p "$avd_home"
+          export ANDROID_AVD_HOME="$avd_home"
+          echo "ANDROID_AVD_HOME=$avd_home" >> "$GITHUB_ENV"
+          sdkmanager --install "emulator" "system-images;android-28;google_apis;x86_64"
+          printf 'no\n' | avdmanager create avd \
+            --name yujian_pixel2_api28 \
+            --package "system-images;android-28;google_apis;x86_64" \
+            --device pixel_2 \
+            -p "$avd_home/yujian_pixel2_api28.avd" \
+            --force
+          test -s "$avd_home/yujian_pixel2_api28.ini"
+
+      - name: Prepare API 28 hosted emulator
         shell: bash
         run: |
           set -euo pipefail
           output="build/orb-visual-evidence"
           mkdir -p "$output"
-          echo "/opt/android-sdk/platform-tools" >> "$GITHUB_PATH"
-          echo "/opt/android-sdk/emulator" >> "$GITHUB_PATH"
-          test -e /dev/kvm
-          adb=/opt/android-sdk/platform-tools/adb
-          emulator=/opt/android-sdk/emulator/emulator
+          sdk_root="${ANDROID_SDK_ROOT:-${ANDROID_HOME:-}}"
+          test -n "$sdk_root"
+          avd_home="$HOME/.android/avd"
+          export ANDROID_AVD_HOME="$avd_home"
+          echo "$sdk_root/platform-tools" >> "$GITHUB_PATH"
+          echo "$sdk_root/emulator" >> "$GITHUB_PATH"
+          echo "$sdk_root/cmdline-tools/latest/bin" >> "$GITHUB_PATH"
+          adb="$sdk_root/platform-tools/adb"
+          emulator="$sdk_root/emulator/emulator"
           test -x "$adb"
           test -x "$emulator"
           "$adb" start-server > "$output/adb-start.log" 2>&1
@@ -362,20 +396,17 @@ jobs:
           fi
 
           if [[ -z "$existing_device" ]]; then
-            avd_list="$("$emulator" -list-avds 2>&1)"
-            avd_name="$(printf '%s\n' "$avd_list" | awk '/28/ {print; exit}')"
-            if [[ -z "$avd_name" ]]; then
-              printf 'No API 28 AVD found:\n%s\n' "$avd_list" | tee "$output/avd-list.log"
-              exit 1
-            fi
-            nohup "$emulator" -avd "$avd_name" -no-snapshot -no-window \
-              -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none \
-              -partition-size 4096 -skin 1080x1920 > "$output/emulator.log" 2>&1 &
+            avd_name=yujian_pixel2_api28
+            emulator_options=(-no-window -gpu swiftshader_indirect -noaudio -no-boot-anim \
+              -camera-back none -partition-size 4096 -skin 1080x1920)
+            if [[ ! -e /dev/kvm ]]; then emulator_options+=( -accel off ); fi
+            nohup "$emulator" -avd "$avd_name" -no-snapshot \
+              "${emulator_options[@]}" > "$output/emulator.log" 2>&1 &
           fi
 
           timeout 120s "$adb" wait-for-device
           ready=0
-          for attempt in $(seq 1 90); do
+          for attempt in $(seq 1 180); do
             state="$("$adb" get-state 2>/dev/null | tr -d '\r' || true)"
             boot="$("$adb" shell getprop sys.boot_completed 2>/dev/null | tr -d '\r' || true)"
             api="$("$adb" shell getprop ro.build.version.sdk 2>/dev/null | tr -d '\r' || true)"
