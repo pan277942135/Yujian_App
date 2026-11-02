@@ -40,6 +40,7 @@ import com.yujian.ai.ui.designsystem.motion.rememberYuJianInfiniteTransition
 import com.yujian.ai.ui.designsystem.motion.rememberYuJianReduceMotion
 import com.yujian.ai.ui.designsystem.spacing.YuJianSpacing
 import com.yujian.ai.ui.home.CaptureVisualTokens
+import com.yujian.ai.ui.home.captureIdleBreathScale
 import kotlin.math.PI
 import kotlin.math.sin
 
