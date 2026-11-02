@@ -117,6 +117,7 @@ import com.yujian.ai.ui.waterlight.core.WaterLightEnergy
 import com.yujian.ai.ui.waterlight.core.EnergyFeedback
 import com.yujian.ai.ui.waterlight.core.WaterLightPathGeometryFactory
 import com.yujian.ai.ui.waterlight.core.WaterLightPathPoint
+import com.yujian.ai.ui.waterlight.core.WaterLightPathLedger
 import com.yujian.ai.ui.waterlight.mask.WaterLightMaskAdapter
 import com.yujian.ai.ui.waterlight.core.UnifiedWaterLightEngine
 import com.yujian.ai.ui.waterlight.core.WaterLightHost
@@ -929,6 +930,8 @@ fun RecognitionProcessingScene(
         )
     }
     val waterLightEngine = remember(sceneKey) { UnifiedWaterLightEngine() }
+    val energyPathLedger = remember(sceneKey) { WaterLightPathLedger() }
+    energyPathLedger.bind(waterLightFrame)
     waterLightEngine.activate(waterLightFrame)
     DisposableEffect(waterLightEngine) { onDispose { waterLightEngine.release() } }
     LaunchedEffect(sceneKey, rendered, trustedSubjectMask, photoPresentedAtMs) {
@@ -1195,7 +1198,11 @@ fun RecognitionProcessingScene(
             )
             val fishEnergyAllowed = trustedSubjectMask && (successfulRevealAllowed ||
                 (diagnosticUiAvailable && playbackMode == ScenePlaybackMode.MANUAL))
-            val baseOrbEvent = WaterLightEnergy.at(waterLightFrame, fishEnergyAllowed, successfulRevealAllowed)
+            val orbOnlyEnergyAllowed = revealDecision == RecognitionRevealDecisionState.ORB_ONLY_READY
+            val baseOrbEvent = WaterLightEnergy.at(
+                waterLightFrame, fishEnergyAllowed, successfulRevealAllowed,
+                orbOnlyRevealAllowed = orbOnlyEnergyAllowed,
+            )
             val fishEnergyAnchor = if (fishEnergyAllowed)
                 recognitionMaskAnchor(assessment?.primary?.box, contour, currentPhotoTransform) else null
             val perimeterEnergyAnchor = fishEnergyAnchor?.let {
@@ -1207,24 +1214,29 @@ fun RecognitionProcessingScene(
                     WaterLightPathGeometryFactory.between(
                         WaterLightPathPoint(surface.x, surface.y), WaterLightPathPoint(edge.x, edge.y),
                         waterLightFrame.sessionId.hashCode() xor waterLightFrame.imageId.hashCode(),
-                    )
+                    )?.also { energyPathLedger.recordRelease(waterLightFrame, it) }
                 }
                 EnergyFeedback.ARRIVE, EnergyFeedback.ABSORB -> if (fishEnergyAnchor != null && perimeterEnergyAnchor != null)
                     WaterLightPathGeometryFactory.between(
                         WaterLightPathPoint(perimeterEnergyAnchor.x, perimeterEnergyAnchor.y),
                         WaterLightPathPoint(fishEnergyAnchor.x, fishEnergyAnchor.y),
                         waterLightFrame.sessionId.hashCode() xor waterLightFrame.imageId.hashCode(),
-                    ) else null
-                EnergyFeedback.RETURN -> if (fishEnergyAnchor != null)
-                    WaterLightPathGeometryFactory.between(
-                        WaterLightPathPoint(fishEnergyAnchor.x, fishEnergyAnchor.y),
-                        WaterLightPathPoint(orbCenter.x, orbCenter.y),
-                        waterLightFrame.sessionId.hashCode() xor waterLightFrame.imageId.hashCode(),
-                    ) else null
+                    )?.also { energyPathLedger.recordFishPath(waterLightFrame, it, fishEnergyAllowed) } else null
+                EnergyFeedback.RETURN -> null
                 else -> null
             }
-            val orbEnergyEvent = WaterLightEnergy.at(
-                waterLightFrame, fishEnergyAllowed, successfulRevealAllowed, orbPathGeometry,
+            val orbReturnRoute = if (baseOrbEvent?.feedback == EnergyFeedback.RETURN)
+                energyPathLedger.returnRoute(waterLightFrame, trustedMask = fishEnergyAllowed) else null
+            val orbEnergyEvent = if (baseOrbEvent?.feedback == EnergyFeedback.RETURN &&
+                orbReturnRoute?.isValid() != true
+            ) null else WaterLightEnergy.at(
+                waterLightFrame,
+                fishEnergyAllowed,
+                successfulRevealAllowed,
+                pathGeometry = orbPathGeometry,
+                orbOnlyRevealAllowed = orbOnlyEnergyAllowed,
+                pathSegments = orbReturnRoute?.segments.orEmpty(),
+                pathIdOverride = orbReturnRoute?.id ?: energyPathLedger.pathId(waterLightFrame),
             )
             LaunchedEffect(
                 waterLightFrame.sessionId,
@@ -1439,7 +1451,11 @@ private fun RecognitionPhoto(
     val contourReady = fishEnergyAllowed && contourStart != null && contourEnd != null && hostReady(WaterLightHost.CONTOUR,
         contourStart.x, contourStart.y, contourEnd.x, contourEnd.y)
     val waterScope = rememberCoroutineScope()
-    val baseEnergyEvent = WaterLightEnergy.at(waterLightFrame, fishEnergyAllowed, successfulRevealAllowed)
+    val orbOnlyEnergyAllowed = revealDecision == RecognitionRevealDecisionState.ORB_ONLY_READY
+    val baseEnergyEvent = WaterLightEnergy.at(
+        waterLightFrame, fishEnergyAllowed, successfulRevealAllowed,
+        orbOnlyRevealAllowed = orbOnlyEnergyAllowed,
+    )
     val fishAnchor = if (fishEnergyAllowed) recognitionMaskAnchor(focusBox, contour, transform) else null
     val perimeterAnchor = fishAnchor?.let { nearestPhotoPerimeterAnchor(photoBounds, it) }
     val pathGeometry = when (baseEnergyEvent?.feedback) {
@@ -1448,23 +1464,30 @@ private fun RecognitionPhoto(
                 orbSurfaceAnchor(orbCenter, edge, orbRadiusPx).let { WaterLightPathPoint(it.x, it.y) },
                 WaterLightPathPoint(edge.x, edge.y),
                 waterLightFrame.sessionId.hashCode() xor imageId.hashCode(),
-            )
+            )?.also { energyPathLedger.recordRelease(waterLightFrame, it) }
         }
         EnergyFeedback.ARRIVE, EnergyFeedback.ABSORB -> if (fishAnchor != null && perimeterAnchor != null)
             WaterLightPathGeometryFactory.between(
                 WaterLightPathPoint(perimeterAnchor.x, perimeterAnchor.y),
                 WaterLightPathPoint(fishAnchor.x, fishAnchor.y),
                 waterLightFrame.sessionId.hashCode() xor imageId.hashCode(),
-            ) else null
-        EnergyFeedback.RETURN -> if (fishAnchor != null)
-            WaterLightPathGeometryFactory.between(
-                WaterLightPathPoint(fishAnchor.x, fishAnchor.y),
-                WaterLightPathPoint(orbCenter.x, orbCenter.y),
-                waterLightFrame.sessionId.hashCode() xor imageId.hashCode(),
-            ) else null
+            )?.also { energyPathLedger.recordFishPath(waterLightFrame, it, fishEnergyAllowed) } else null
+        EnergyFeedback.RETURN -> null
         else -> null
     }
-    val energyEvent = WaterLightEnergy.at(waterLightFrame, fishEnergyAllowed, successfulRevealAllowed, pathGeometry)
+    val returnRoute = if (baseEnergyEvent?.feedback == EnergyFeedback.RETURN)
+        energyPathLedger.returnRoute(waterLightFrame, trustedMask = fishEnergyAllowed) else null
+    val energyEvent = if (baseEnergyEvent?.feedback == EnergyFeedback.RETURN &&
+        returnRoute?.isValid() != true
+    ) null else WaterLightEnergy.at(
+        waterLightFrame,
+        fishEnergyAllowed,
+        successfulRevealAllowed,
+        pathGeometry = pathGeometry,
+        orbOnlyRevealAllowed = orbOnlyEnergyAllowed,
+        pathSegments = returnRoute?.segments.orEmpty(),
+        pathIdOverride = returnRoute?.id ?: energyPathLedger.pathId(waterLightFrame),
+    )
     val causticsRenderer = remember(waterLightEngine) { WaterCausticsRenderer(waterScope) }
     val dropletRenderer = remember(waterLightEngine) { WaterDropletRenderer() }
     var causticsRevision by remember(waterLightEngine) { mutableIntStateOf(0) }
@@ -1622,7 +1645,7 @@ private fun RecognitionPhoto(
                 includeEdgeField = true,
                 waterLightFrame = waterLightFrame,
             )
-            if (pathReady && energyEvent?.pathGeometry != null &&
+            if (pathReady && (energyEvent?.pathGeometry != null || energyEvent?.pathSegments?.isNotEmpty() == true) &&
                 (!BuildConfig.DEBUG || layerMode == RecognitionLayerMode.FULL)
             ) WaterLightEnergyPathRenderer(
                 frame = waterLightFrame,
