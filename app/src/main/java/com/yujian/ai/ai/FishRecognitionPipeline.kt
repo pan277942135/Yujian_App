@@ -37,11 +37,17 @@ class FishRecognitionPipeline(context: Context) : AutoCloseable {
     private val classifier = FishRecognitionEngine(context)
 
     suspend fun recognize(bitmap: Bitmap): ProductionRecognitionResult =
-        recognize(bitmap) {}
+        recognize(bitmap, onProgress = {})
 
     suspend fun recognize(
         bitmap: Bitmap,
         onProgress: (RecognitionProgress) -> Unit,
+    ): ProductionRecognitionResult = recognize(bitmap, onProgress, modelIdentity = null)
+
+    suspend fun recognize(
+        bitmap: Bitmap,
+        onProgress: (RecognitionProgress) -> Unit,
+        modelIdentity: RecognitionModelIdentity?,
     ): ProductionRecognitionResult {
         val stateMachine = RecognitionStateMachine()
         fun advance(event: RecognitionEvent, assessment: FishInputAssessment? = null) {
@@ -52,7 +58,10 @@ class FishRecognitionPipeline(context: Context) : AutoCloseable {
         advance(RecognitionEvent.CaptureReady)
         advance(RecognitionEvent.DetectionStarted)
 
-        val detectorRun = detector.detect(bitmap)
+        val detectorRun = RecognitionModelWatchdog.execute(
+            modelName = "DETECTOR",
+            identity = modelIdentity,
+        ) { detector.detect(bitmap) }
         val assessment = FishDetectionQualityGate.assess(detectorRun.detections)
         InferenceTrace.detectorOutcome(detectorRun, assessment.primary?.box)
 
@@ -121,7 +130,10 @@ class FishRecognitionPipeline(context: Context) : AutoCloseable {
 
         advance(RecognitionEvent.ClassificationStarted, assessment)
         return try {
-            val prediction = classifier.recognize(crop, traceContext)
+            val prediction = RecognitionModelWatchdog.execute(
+                modelName = "CLASSIFIER",
+                identity = modelIdentity,
+            ) { classifier.recognize(crop, traceContext) }
             val route = when {
                 prediction.top1.confidence < 0.45f -> ClassificationRoute.UNKNOWN
                 prediction.candidates.getOrNull(1)?.let {

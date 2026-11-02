@@ -29,6 +29,9 @@ import androidx.compose.ui.unit.dp
 import androidx.annotation.DrawableRes
 import com.yujian.ai.BuildConfig
 import com.yujian.ai.R
+import com.yujian.ai.ui.waterlight.core.EnergyEvent
+import com.yujian.ai.ui.waterlight.core.EnergyFeedback
+import com.yujian.ai.ui.waterlight.renderer.WaterGrassField
 import com.yujian.ai.ai.RecognitionPhase
 import com.yujian.ai.ui.waterlight.core.WaterLightFrame
 import com.yujian.ai.ui.waterlight.core.WaterLightMaterialProfile
@@ -82,6 +85,7 @@ fun AIOrbCore(
     lowPerformance: Boolean = false,
     fromCamera: Boolean = false,
     waterLightFrame: WaterLightFrame? = null,
+    energyEvent: EnergyEvent? = null,
     waterLightMaterial: WaterLightMaterialProfile = WaterLightMaterialProfile.ORB_LEGACY,
     orbRendererMode: OrbFilamentRendererMode = if (BuildConfig.DEBUG) OrbFilamentRendererMode.ORB_V1_CANDIDATE else OrbFilamentRendererMode.LEGACY,
     orbLifeState: OrbRuntimeProfileV1.LifeState = OrbRuntimeProfileV1.LifeState.S2_ACTIVE,
@@ -126,6 +130,7 @@ fun AIOrbCore(
             lowPerformance = lowPerformance,
             fromCamera = fromCamera,
             waterLightFrame = waterLightFrame,
+            energyEvent = energyEvent,
             waterLightMaterial = waterLightMaterial,
             orbRendererMode = orbRendererMode,
             orbLifeState = orbLifeState,
@@ -170,6 +175,7 @@ private fun OrbVisual(
     lowPerformance: Boolean,
     fromCamera: Boolean,
     waterLightFrame: WaterLightFrame?,
+    energyEvent: EnergyEvent?,
     waterLightMaterial: WaterLightMaterialProfile,
     orbRendererMode: OrbFilamentRendererMode,
     orbLifeState: OrbRuntimeProfileV1.LifeState,
@@ -191,6 +197,23 @@ private fun OrbVisual(
         opticalReferenceElapsedMs = elapsedMs.coerceAtLeast(0L), phase = RecognitionPhase.CAPTURED,
         completion = completion.coerceIn(0f, 1f), reducedMotion = reduceMotion, geometryVersion = 0L,
     )
+    val activeEnergyEvent = energyEvent?.takeIf { it.matches(sharedFrame) }
+    val releaseEnergy = if (activeEnergyEvent?.feedback == EnergyFeedback.RELEASE) activeEnergyEvent.level.coerceIn(0f, 1f) else 0f
+    val returnEnergy = if (activeEnergyEvent?.feedback == EnergyFeedback.RETURN) activeEnergyEvent.level.coerceIn(0f, 1f) else 0f
+    val orbEnergyDepletion = when (activeEnergyEvent?.feedback) {
+        EnergyFeedback.RELEASE -> .18f * releaseEnergy
+        EnergyFeedback.RETURN -> .18f * (1f - returnEnergy)
+        else -> 0f
+    }
+    // Actual event geometry/time stays in the one shared frame; no additional timer is created.
+    val effectiveMotionEvent = if (orbMotionEvent != OrbRuntimeProfileV1.MotionEvent.NONE) orbMotionEvent else when (activeEnergyEvent?.feedback) {
+        EnergyFeedback.RELEASE -> OrbRuntimeProfileV1.MotionEvent.RELEASE
+        EnergyFeedback.RETURN -> OrbRuntimeProfileV1.MotionEvent.RETURN
+        else -> OrbRuntimeProfileV1.MotionEvent.NONE
+    }
+    val effectiveMotionStartMs = if (activeEnergyEvent != null && orbMotionEvent == OrbRuntimeProfileV1.MotionEvent.NONE) {
+        (sharedFrame.opticalReferenceElapsedMs - sharedFrame.sceneFrame.stageElapsedMs).coerceAtLeast(0L)
+    } else orbMotionEventStartOpticalMs
     val entranceLifeAlpha = when (orbLifeState) {
         OrbRuntimeProfileV1.LifeState.S1_IDLE -> 0f
         OrbRuntimeProfileV1.LifeState.S2_ACTIVE -> if (reduceMotion) 1f else {
@@ -238,7 +261,8 @@ private fun OrbVisual(
         contentAlignment = Alignment.Center,
     ) {
         OrbWaterLightRibbons(coreSize, sharedFrame, ribbons, settle, false, lowPerformance, waterLightMaterial,
-            orbRendererMode, candidateLifeAlpha, orbMotionEvent, orbMotionEventStartOpticalMs)
+            orbRendererMode, candidateLifeAlpha, effectiveMotionEvent, effectiveMotionStartMs,
+            activeEnergyEvent, releaseEnergy, returnEnergy)
         if (fromCamera && morph < 1f) {
             Image(
                 painter = painterResource(R.drawable.ai_orb_camera_activated_v1),
@@ -255,11 +279,21 @@ private fun OrbVisual(
             painter = painterResource(R.drawable.processing_water_core_v1),
             contentDescription = null,
             modifier = Modifier.size(coreSize / .84f).graphicsLayer {
-                alpha = morph
+                alpha = (morph * (1f - orbEnergyDepletion + .22f * returnEnergy)).coerceIn(0f, 1f)
                 scaleX = .92f + .08f * morph
                 scaleY = scaleX
             },
         )
+        waterLightFrame?.let { frame ->
+            WaterGrassField(
+                frame = frame,
+                modifier = Modifier.size(coreSize * .58f),
+                material = waterLightMaterial,
+                opacity = .24f,
+                seed = frame.sessionId.hashCode().toLong() xor frame.imageId.hashCode().toLong(),
+                energyEvent = activeEnergyEvent,
+            )
+        }
         if (orbRendererMode == OrbFilamentRendererMode.LEGACY) Canvas(Modifier.fillMaxSize()) {
             if (morph <= 0f) return@Canvas
             val radius = coreSize.toPx() * .48f
@@ -270,7 +304,7 @@ private fun OrbVisual(
                 val glint = center + Offset(sin(time * .7f) * radius * .35f, -radius * .45f)
                 drawCircle(
                     Brush.radialGradient(
-                        listOf(Color(0xFFECF9EE).copy(alpha = .20f * morph), Color.Transparent),
+                        listOf(Color(0xFFECF9EE).copy(alpha = (.20f + .18f * returnEnergy) * morph), Color.Transparent),
                         glint,
                         radius * .9f,
                     ),
@@ -286,7 +320,7 @@ private fun OrbVisual(
                         center.x + radius * .4f, y - cos(time * .8f + i) * radius * .25f,
                         center.x + radius, y + radius * .18f,
                     )
-                    drawPath(path, Color(0xFFB5E6DF).copy(alpha = .16f * morph), style = Stroke(.7.dp.toPx()))
+                    drawPath(path, Color(0xFFB5E6DF).copy(alpha = .16f * morph * (1f + .22f * returnEnergy)), style = Stroke(.7.dp.toPx()))
                 }
             }
         }
@@ -303,6 +337,7 @@ private fun OrbVisual(
             showCaustics = orbShowCaustics,
         )
         OrbWaterLightRibbons(coreSize, sharedFrame, ribbons, settle, true, lowPerformance, waterLightMaterial,
-            orbRendererMode, candidateLifeAlpha, orbMotionEvent, orbMotionEventStartOpticalMs)
+            orbRendererMode, candidateLifeAlpha, effectiveMotionEvent, effectiveMotionStartMs,
+            activeEnergyEvent, releaseEnergy, returnEnergy)
     }
 }

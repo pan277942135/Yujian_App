@@ -287,7 +287,7 @@ fun RecognitionAmbientField(
     includeEdgeField: Boolean = false,
     waterLightFrame: WaterLightFrame? = null,
 ) {
-    if (waterLightFrame != null && waterLightFrame.phase != phase) return
+    if (waterLightFrame != null && !waterLightFrame.sceneFrame.isIdentityValid) return
     val nowMs = visualClockMs ?: 0L
     val elapsedMs = (waterLightFrame?.opticalReferenceElapsedMs ?: processingElapsedMs).coerceAtLeast(0L)
     val scanFrame = if (reduceMotion) {
@@ -897,7 +897,8 @@ private fun buildOpticalPathCache(fieldRect: DisplayRect) = RecognitionOpticalPa
     layerBounds = RectF(fieldRect.left, fieldRect.top, fieldRect.right, fieldRect.bottom),
     baseCompositePaint = AndroidPaint(AndroidPaint.ANTI_ALIAS_FLAG).apply {
         alpha = (Effect01NativeCalibration.blendRatio * 255f).toInt()
-        xfermode = PorterDuffXfermode(PorterDuff.Mode.OVERLAY)
+        // Positive-only optical mixing: the ambient layer must never lower source-photo RGB.
+        xfermode = PorterDuffXfermode(PorterDuff.Mode.SCREEN)
     },
     primaryPaths = buildPaths(fieldRect, PRIMARY_ISLANDS),
     companionPaths = buildEchoPaths(fieldRect, COMPANION_HAIRLINES),

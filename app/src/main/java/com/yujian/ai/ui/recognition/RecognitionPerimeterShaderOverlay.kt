@@ -37,6 +37,8 @@ import com.yujian.ai.ui.identify.DisplayRect
 import com.yujian.ai.ui.identify.RecognitionImageTransform
 import com.yujian.ai.ui.waterlight.core.WaterLightFrame
 import com.yujian.ai.ui.waterlight.core.WaterLightMaterialProfile
+import com.yujian.ai.ui.waterlight.core.EnergyEvent
+import com.yujian.ai.ui.waterlight.core.EnergyFeedback
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.util.concurrent.atomic.AtomicBoolean
@@ -46,6 +48,19 @@ import kotlin.math.roundToInt
 private const val SOURCE_SPEED = 1f
 private const val PERIMETER_LOG_TAG = "RecognitionPerimeter"
 private const val NODE_POSITION_FLOATS = RecognitionPerimeterShaderMath.SPARKLE_COUNT * 2
+
+internal fun recognitionPerimeterOpacity(
+    processingClockStarted: Boolean,
+    reduceMotion: Boolean,
+    opticalReferenceElapsedMs: Long,
+): Float = when {
+    !processingClockStarted -> 0f
+    reduceMotion -> .10f
+    else -> processingEnvironmentStrength(opticalReferenceElapsedMs.coerceAtLeast(0L)) / 100f
+}
+
+internal fun recognitionPerimeterActive(processingClockStarted: Boolean, phase: RecognitionPhase): Boolean =
+    processingClockStarted && phase != RecognitionPhase.RESULT && phase != RecognitionPhase.FAILURE
 
 /**
  * The TextureView renders the actual photo plus perimeter in one surface. Compose keeps the
@@ -68,10 +83,11 @@ internal fun RecognitionPerimeterShaderOverlay(
     reduceMotion: Boolean = false,
     referenceMetrics: RecognitionPerimeterReferenceMetrics? = null,
     material: WaterLightMaterialProfile = WaterLightMaterialProfile.PERIMETER,
+    energyEvent: EnergyEvent? = null,
     modifier: Modifier = Modifier,
 ) {
     if (waterLightFrame.sessionId != recognitionSessionId || waterLightFrame.photoSha256 != photoSha256 ||
-        waterLightFrame.phase != phase) return
+        !waterLightFrame.sceneFrame.isIdentityValid) return
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val identity = sessionKey ?: photoTransform
@@ -94,12 +110,11 @@ internal fun RecognitionPerimeterShaderOverlay(
     val shaderElapsedMs = if (waterLightFrame.reducedMotion) 0L else waterLightFrame.elapsedMs
     val timeSec = RecognitionPerimeterShaderMath.sourceTimeSec(shaderElapsedMs, speed = SOURCE_SPEED)
     val progress = if (waterLightFrame.reducedMotion) 1f else RecognitionPerimeterShaderMath.linearProgress(waterLightFrame.opticalReferenceElapsedMs)
-    val perimeterOpacity = when {
-        !processingClockStarted -> 0f
-        opticalReferenceElapsedMs >= 2_800L -> 0f
-        reduceMotion -> .10f
-        else -> processingEnvironmentStrength(opticalReferenceElapsedMs) / 100f
-    }
+    val perimeterOpacity = recognitionPerimeterOpacity(
+        processingClockStarted = processingClockStarted,
+        reduceMotion = reduceMotion,
+        opticalReferenceElapsedMs = opticalReferenceElapsedMs,
+    )
     val nodes = RecognitionPerimeterShaderMath.sparkles(
         path = path,
         timeSec = timeSec,
@@ -114,8 +129,9 @@ internal fun RecognitionPerimeterShaderOverlay(
             values[index * 2 + 1] = node.y
         }
     }
-    val active = processingClockStarted && phase != RecognitionPhase.RESULT &&
-        phase != RecognitionPhase.FAILURE && opticalReferenceElapsedMs < 2_800L
+    // Stage progress and model gates own its lifetime. P7 can drive opacity to zero,
+    // but an absolute elapsed-time cutoff must not terminate a slow real recognition.
+    val active = recognitionPerimeterActive(processingClockStarted, phase)
     val frame = PerimeterFrame(
         bitmap = bitmap,
         photoBounds = DisplayRect(0f, 0f, photoRect.width, photoRect.height),
@@ -139,6 +155,10 @@ internal fun RecognitionPerimeterShaderOverlay(
         coordinateMappingMeasured = mapping.isMeasured,
         glowSizeSource = material.glowWidth * context.resources.displayMetrics.density / mapping.shaderPxPerSourceUnit.coerceAtLeast(.0001f),
         material = material,
+        energyLevel = energyEvent?.takeIf {
+            it.matches(waterLightFrame) && it.imageId == imageId && it.photoSha256 == photoSha256 &&
+                it.feedback in setOf(EnergyFeedback.RELEASE, EnergyFeedback.ARRIVE)
+        }?.level?.coerceIn(0f, 1f) ?: 0f,
         active = active,
     )
 
@@ -189,6 +209,7 @@ private data class PerimeterFrame(
     val coordinateMappingMeasured: Boolean,
     val glowSizeSource: Float,
     val material: WaterLightMaterialProfile,
+    val energyLevel: Float,
     val active: Boolean,
 )
 
@@ -569,6 +590,10 @@ private class RecognitionPerimeterGlRenderer {
             GLES20.glGetUniformLocation(programId, "uGlowSizeSource"),
             frame.glowSizeSource,
         )
+        GLES20.glUniform1f(
+            GLES20.glGetUniformLocation(programId, "uEnergyLevel"),
+            frame.energyLevel.coerceIn(0f, 1f),
+        )
     }
 
     private fun logMappingIfChanged(frame: PerimeterFrame) {
@@ -638,6 +663,7 @@ private class RecognitionPerimeterGlRenderer {
             // SWOS timeline envelope is applied after the source perimeter math; P7 is exact zero.
             uniform float uPerimeterOpacity;
             uniform float uGlowSizeSource;
+            uniform float uEnergyLevel;
             // Two node positions per vector; constant-index branches keep GLES2 fragment indexing portable.
             uniform vec4 uNodePositions[8];
 
@@ -754,6 +780,7 @@ private class RecognitionPerimeterGlRenderer {
                 vec3 finalRgb = (perimeterColor * perimContrib) / totalWeight;
                 float coreSpark = smoothstep(0.85, 1.75, totalLight);
                 finalRgb = mix(finalRgb, uIceWhite, coreSpark * 0.48);
+                finalRgb = mix(finalRgb, uIceWhite, clamp(uEnergyLevel * 0.08, 0.0, 0.08));
                 finalRgb *= (1.0 + coreSpark * 0.3);
 
                 // First source stage: WebGL SRC_ALPHA / ONE_MINUS_SRC_ALPHA over transparent.

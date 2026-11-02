@@ -16,6 +16,8 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.yujian.ai.ui.waterlight.core.WaterLightFrame
 import com.yujian.ai.ui.waterlight.core.WaterLightMaterialProfile
+import com.yujian.ai.ui.waterlight.core.EnergyEvent
+import com.yujian.ai.ui.waterlight.core.EnergyFeedback
 import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.cos
@@ -42,9 +44,12 @@ fun OrbWaterLightRibbons(
     lifeAlpha: Float = opening,
     motionEvent: OrbRuntimeProfileV1.MotionEvent = OrbRuntimeProfileV1.MotionEvent.NONE,
     motionEventStartOpticalMs: Long = 0L,
+    energyEvent: EnergyEvent? = null,
+    releaseEnergy: Float = 0f,
+    returnEnergy: Float = 0f,
 ) {
     if (mode == OrbFilamentRendererMode.LEGACY) {
-        LegacyOrbWaterLightRibbons(coreSize, frame, opening, settle, front, low, material)
+        LegacyOrbWaterLightRibbons(coreSize, frame, opening, settle, front, low, material, energyEvent, releaseEnergy, returnEnergy)
         return
     }
     val densityScale = LocalDensity.current.density
@@ -311,16 +316,26 @@ private fun LegacyOrbWaterLightRibbons(
     front: Boolean,
     low: Boolean,
     material: WaterLightMaterialProfile,
+    energyEvent: EnergyEvent?,
+    releaseEnergy: Float,
+    returnEnergy: Float,
 ) {
     val time = frame.timeSeconds
     Canvas(Modifier.fillMaxSize()) {
         val radius = coreSize.toPx() * .5f
+        val retention = when (energyEvent?.feedback) {
+            EnergyFeedback.RELEASE -> 1f - .42f * releaseEnergy.coerceIn(0f, 1f)
+            EnergyFeedback.RETURN -> .58f + .42f * returnEnergy.coerceIn(0f, 1f)
+            else -> 1f
+        }
         val colors = listOf(Color(material.goldColor.toInt()), Color(material.blueColor.toInt()), Color(material.greenColor.toInt()))
         colors.forEachIndexed { layer, color ->
             val period = listOf(material.goldPeriodSeconds, material.bluePeriodSeconds, material.greenPeriodSeconds)[layer]
             val phase = time * 2f * PI.toFloat() / period * (if (layer == 1) -1f else 1f)
             val tilt = listOf(-.45f, .60f, 1.25f)[layer]
-            val r = radius + (10f + layer * 2f).dp.toPx() * opening * (1f - settle)
+            val expansion = if (energyEvent?.feedback == EnergyFeedback.RELEASE) releaseEnergy.coerceIn(0f, 1f) else 0f
+            val contraction = if (energyEvent?.feedback == EnergyFeedback.RETURN) returnEnergy.coerceIn(0f, 1f) else 0f
+            val r = radius + (10f + layer * 2f).dp.toPx() * opening * (1f - settle) + radius * .42f * expansion * (1f - contraction)
             val steps = if (low) OrbRuntimeProfileV1.R06_LOW_STEPS_PER_PATH else OrbRuntimeProfileV1.R06_NORMAL_STEPS_PER_PATH
             val path = androidx.compose.ui.graphics.Path()
             var connected = false
@@ -338,7 +353,8 @@ private fun LegacyOrbWaterLightRibbons(
                     connected = true
                 } else connected = false
             }
-            val alpha = opening * (if (front) .72f else .25f) * (if (layer == 2) .45f else 1f)
+            val alpha = opening * (if (front) .72f else .25f) * (if (layer == 2) .45f else 1f) *
+                (1f - .42f * expansion + .38f * contraction).coerceIn(.35f, 1f) * retention
             val glowWidth = listOf(material.goldGlowWidthDp, material.blueGlowWidthDp, material.greenGlowWidthDp)[layer]
             val coreWidth = listOf(material.goldCoreWidthDp, material.blueCoreWidthDp, material.greenCoreWidthDp)[layer]
             drawPath(path, color.copy(alpha = alpha * .18f), style = androidx.compose.ui.graphics.drawscope.Stroke(glowWidth.dp.toPx(), cap = androidx.compose.ui.graphics.StrokeCap.Round))

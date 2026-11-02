@@ -5,6 +5,7 @@ import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.Path
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.yujian.ai.ui.recognition.reveal.RecognitionRevealTitleMode
 import com.yujian.ai.ui.recognition.reveal.SpeciesNameReveal
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -21,7 +22,12 @@ class SpeciesNameRevealTest {
         val renderer = SpeciesNameReveal()
         fun pixels(progress: Float): IntArray {
             val bitmap = Bitmap.createBitmap(120, 64, Bitmap.Config.ARGB_8888)
-            renderer.draw(Canvas(bitmap), path, 120f, 64f, progress, 550L)
+            renderer.draw(
+                Canvas(bitmap), path, 120f, 64f,
+                RecognitionRevealTitleMode.REVEALING,
+                formationProgress = 0f,
+                revealProgress = progress,
+            )
             return IntArray(120 * 64).also { bitmap.getPixels(it, 0, 120, 0, 0, 120, 64); bitmap.recycle() }
         }
         val partial = pixels(.30f)

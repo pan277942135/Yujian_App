@@ -1,9 +1,9 @@
 package com.yujian.ai.ui.waterlight
 
-import com.yujian.ai.ai.RecognitionPhase
 import com.yujian.ai.ui.waterlight.core.UnifiedWaterLightEngine
 import com.yujian.ai.ui.waterlight.core.WaterLightFrame
 import com.yujian.ai.ui.waterlight.core.WaterLightMaterialProfile
+import com.yujian.ai.ui.waterlight.core.WaterLightPhase
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -12,7 +12,7 @@ import org.junit.Test
 class WaterLightFrameTest {
     private fun frame(session: String, version: Long) = WaterLightFrame(
         sessionId = session, photoSha256 = "photo", elapsedMs = 1100,
-        opticalReferenceElapsedMs = 950, phase = RecognitionPhase.OUTLINE,
+        opticalReferenceElapsedMs = 950, phase = WaterLightPhase.PROCESSING,
         completion = .25f, reducedMotion = false, geometryVersion = version,
     )
 
