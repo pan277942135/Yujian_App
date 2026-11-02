@@ -211,6 +211,11 @@ shared_contracts:
     status: "ACTIVE"
     refs: ["design/system_v3/07_Responsive_System/Page_Pipeline_Reuse_Inventory_V1.md", "design/system_v3/07_Responsive_System/Responsive_Page_Freeze_And_Implementation_Playbook_V1.md", "design/system_v3/07_Responsive_System/Responsive_Page_Freeze_Checklist_Template_V1.json", "scripts/design/validate_responsive_page_freeze_checklist.py"]
 
+  LAKE-GLASS-V2-ANDROID-RUNTIME-V1:
+    domain: "DOMAIN"
+    status: "ACTIVE_CLOSURE"
+    refs: ["harness/task_contracts/LAKE_GLASS_V2_ASSET_PACK_ANDROID_RUNTIME_INTEGRATION_V1.md", "harness/STATE_UPDATE_PROTOCOL.md", "scripts/run_android_runtime_gate.sh"]
+
 feature_contracts:
   home_empty_v2:
     contract_id: "FC-home_empty_v2"
@@ -1807,6 +1812,12 @@ gate_contracts:
     resource_manifest: "design/pages/recognition/first_use_camera_guide/manifest.json"
     resource_gallery_ids: ["p01", "p02", "p03"]
     android_runtime_mapping: false
+  G-LAKE-GLASS-V2-ASSET-ANDROID-RUNTIME-V1:
+    purpose: "Exact-SHA acceptance of the Lake Glass V2 resource state and unified Android background host across applicable theme-background routes, with Empty Home/V1/foreground and recognition invariants preserved. Asset readiness, Android integration/APK delivery, and real-device validation remain independent states."
+    contract_refs: ["LAKE-GLASS-V2-ANDROID-RUNTIME-V1", "FC-home_normal_v1", "FC-record_date_v2", "FC-recognition_flow_v1_2", "FC-recognition_result_v1", "FC-fish_record_detail_v2", "FC-share_templates_v1", "FC-fish_memory_bside_v1", "FC-my_catches_v2", "FC-fish_guide_v2", "FC-account_privacy_v1", "FC-auth_login_v2", "FC-auth_register_v2", "FC-profile_edit_v1", "FC-user_agreement_v1", "ANDROID-RUNTIME-HARNESS", "STATE-EVIDENCE-PROVENANCE"]
+    acceptance_domains: ["asset_integrity", "layer_state_parity", "static_composition", "manual_visual", "route_coverage", "component", "responsive", "api_fallback", "transform", "unit_test", "android_test_compile", "lint", "build", "performance", "runtime", "apk_provenance", "device_visual"]
+    exact_sha_required: true
+
 task_contract_bindings:
   YUJIAN_ANDROID_AI_ORB_CORE_COMPONENT_V1:
     contract_refs: ["AI-ORB-CORE-V1", "FC-home_empty_v2", "FC-home_normal_v1", "FC-recognition_flow_v1_2", "FC-recognition_result_v1", "DS-FOUNDATION", "ANDROID-RUNTIME-HARNESS", "STATE-EVIDENCE-PROVENANCE", "G-ANDROID-AI-ORB-CORE-V1"]
@@ -2098,6 +2109,11 @@ task_contract_bindings:
     contract_refs: ["FC-home_normal_v1", "FC-home_empty_v2", "FC-auth_login_v2", "PAGE-FREEZE-PIPELINE-W0-BASELINE", "STATE-EVIDENCE-PROVENANCE"]
     phase: "P3"
 
+  YUJIAN_LAKE_GLASS_V2_ASSET_PACK_ANDROID_RUNTIME_INTEGRATION_V1:
+    contract_refs: ["LAKE-GLASS-V2-ANDROID-RUNTIME-V1", "FC-home_normal_v1", "FC-record_date_v2", "FC-recognition_flow_v1_2", "FC-recognition_result_v1", "FC-fish_record_detail_v2", "FC-share_templates_v1", "FC-fish_memory_bside_v1", "FC-my_catches_v2", "FC-fish_guide_v2", "FC-account_privacy_v1", "FC-auth_login_v2", "FC-auth_register_v2", "FC-profile_edit_v1", "FC-user_agreement_v1", "ANDROID-RUNTIME-HARNESS", "STATE-EVIDENCE-PROVENANCE", "G-LAKE-GLASS-V2-ASSET-ANDROID-RUNTIME-V1"]
+    gate_id: "G-LAKE-GLASS-V2-ASSET-ANDROID-RUNTIME-V1"
+    phase: "P6"
+
 contract_conflicts:
   C-FIRST-USE-GUIDE-PAGE-COUNT:
     status: "RESOLVED"
@@ -2132,9 +2148,9 @@ inventory:
   journey_count: 20
   child_surface_count: 81
   route_count: 22
-  task_count: 73
-  gate_count: 33
+  task_count: 74
+  gate_count: 34
   registry_created_from_pr_head: "ebb6b3904feaa0cf26b4fd4b83bc809a397085a2"
-  last_synced_feature_matrix_sha: "a90c1992248f75cb560dda83fd84765e335361eb"
-  last_synced_phase_task_state_machine_sha: "260a53ec0da6e263c647ee6f8757dd5bae085c45"
+  last_synced_feature_matrix_sha: "df1588a0932cc0c8b529d61e96e4801f61322ad5"
+  last_synced_phase_task_state_machine_sha: "489bf11cddcf612a58aac669d79f3da2c86de0d1"
   last_synced_experience_registry_sha: "47be44ca3cbce908fa676e262987fe26a8dbea32"
