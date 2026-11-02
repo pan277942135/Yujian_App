@@ -322,7 +322,7 @@ jobs:
   orb-visual-evidence:
     if: ${{ (github.event_name == 'push' && github.ref_name == 'work/android-ai-orb-r02-r06-runtime-v1') || (github.event_name == 'pull_request' && github.event.pull_request.head.ref == 'work/android-ai-orb-r02-r06-runtime-v1') || (github.event_name == 'workflow_dispatch' && inputs.runtime_backend == 'github-hosted') }}
     needs: build
-    runs-on: ubuntu-24.04-arm
+    runs-on: macos-15
     timeout-minutes: 35
     env:
       YUJIAN_SOURCE_SHA: ${{ needs.build.outputs.source_sha }}
@@ -401,12 +401,18 @@ jobs:
             avd_name=yujian_pixel2_api28
             emulator_options=(-no-window -gpu swiftshader_indirect -noaudio -no-boot-anim \
               -camera-back none -partition-size 4096 -skin 1080x1920)
-            if [[ ! -e /dev/kvm ]]; then emulator_options+=( -accel off ); fi
+            if [[ "$RUNNER_OS" == "Linux" && ! -e /dev/kvm ]]; then emulator_options+=( -accel off ); fi
             nohup "$emulator" -avd "$avd_name" -no-snapshot \
               "${emulator_options[@]}" > "$output/emulator.log" 2>&1 &
           fi
 
-          if ! timeout 300s "$adb" wait-for-device; then
+          device_ready=0
+          for attempt in $(seq 1 300); do
+            state="$("$adb" get-state 2>/dev/null | tr -d '\r' || true)"
+            if [[ "$state" == "device" ]]; then device_ready=1; break; fi
+            sleep 1
+          done
+          if [[ "$device_ready" != 1 ]]; then
             "$adb" devices -l | tee "$output/adb-devices-on-startup-failure.log" || true
             tail -n 120 "$output/emulator.log" | tee "$output/emulator-startup-failure.log" || true
             exit 1
