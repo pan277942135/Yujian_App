@@ -350,6 +350,7 @@ features:
         - "YUJIAN_ANDROID_AISTUDIO_FULL_PAGE_RESTORE_AND_MAIN_INTEGRATION_V1"
         - "YUJIAN_LAKE_GLASS_V2_ASSET_PACK_ANDROID_RUNTIME_INTEGRATION_V1"
         - "YUJIAN_LAKE_GLASS_V2_OPEN_SOURCE_SHADER_REUSE_V1"
+        - "YUJIAN_ORB_WATERLIGHT_WEB_ANDROID_FULL_LIFECYCLE_V3"
     capture_hifi:
       status: "FROZEN"
       visual_contract: "design/system_v3/08_Page_Contracts/recognition/capture/Recognition_Capture_HiFi_Visual_Contract_V1.md"
