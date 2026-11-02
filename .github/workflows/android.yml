@@ -354,17 +354,36 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p build/orb-visual-evidence
+          avd_home="$HOME/.android/avd"
+          export ANDROID_AVD_HOME="$avd_home"
+          mkdir -p "$avd_home"
+          test -s "$avd_home/yujian_orb_pixel2_api28.ini"
+          adb start-server
           "$ANDROID_HOME/emulator/emulator" \
             -avd yujian_orb_pixel2_api28 \
-            -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim \
+            -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -no-snapshot \
             -camera-back none -partition-size 4096 -skin 1080x1920 \
             > build/orb-visual-evidence/emulator.log 2>&1 &
-          adb wait-for-device
-          for attempt in $(seq 1 90); do
-            if [[ "$(adb shell getprop sys.boot_completed | tr -d '\r')" == "1" ]]; then break; fi
+          emulator_pid=$!
+          booted=0
+          for attempt in $(seq 1 180); do
+            if [[ "$(timeout 5s adb shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')" == "1" ]]; then
+              booted=1
+              break
+            fi
+            if ! kill -0 "$emulator_pid" 2>/dev/null; then
+              echo "API 28 emulator exited before boot completed"
+              tail -n 120 build/orb-visual-evidence/emulator.log || true
+              exit 1
+            fi
             sleep 2
           done
-          test "$(adb shell getprop sys.boot_completed | tr -d '\r')" = "1"
+          if [[ "$booted" != "1" ]]; then
+            echo "Timed out waiting for API 28 emulator boot"
+            adb devices -l || true
+            tail -n 120 build/orb-visual-evidence/emulator.log || true
+            exit 1
+          fi
           adb shell wm size 1080x1920
           adb shell wm density 420
           adb shell settings put global animator_duration_scale 0
