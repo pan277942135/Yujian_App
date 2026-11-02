@@ -139,7 +139,7 @@ class RecognitionFirstCaptureGuideRuntimeTest {
         assertButtonSemantics("recognition-guide-skip", "跳过首次拍照教学")
         assertButtonSemantics("recognition-guide-primary-action", "下一张教学示例")
         assertEquals(
-            "第1页，共3页",
+            "第1页，共2页",
             composeRule.onNodeWithTag("recognition-guide-page-indicator")
                 .fetchSemanticsNode().config[SemanticsProperties.StateDescription],
         )
@@ -163,8 +163,8 @@ class RecognitionFirstCaptureGuideRuntimeTest {
         composeRule.onNodeWithTag("recognition-guide-pager").performTouchInput { swipeLeft() }
         composeRule.onNodeWithTag("recognition-guide-page-title-2", useUnmergedTree = true).assertIsDisplayed()
         composeRule.onNodeWithTag("recognition-guide-pager").performTouchInput { swipeLeft() }
-        composeRule.onNodeWithTag("recognition-guide-page-title-3", useUnmergedTree = true).assertIsDisplayed()
-        composeRule.onNodeWithTag("recognition-guide-pager").performTouchInput { swipeRight() }
+        composeRule.onNodeWithTag("recognition-guide-page-title-2", useUnmergedTree = true).assertIsDisplayed()
+        composeRule.onNodeWithTag("recognition-guide-pager").performTouchInput { swipeLeft() }
         composeRule.onNodeWithTag("recognition-guide-page-title-2", useUnmergedTree = true).assertIsDisplayed()
         composeRule.onNodeWithTag("recognition-guide-pager").performTouchInput { swipeRight() }
         composeRule.onNodeWithTag("recognition-guide-page-title-1", useUnmergedTree = true).assertIsDisplayed()
@@ -214,8 +214,8 @@ class RecognitionFirstCaptureGuideRuntimeTest {
         }
         composeRule.waitForIdle()
         composeRule.onNodeWithTag("recognition-guide-primary-action").performClick()
-        composeRule.onNodeWithTag("recognition-guide-primary-action").performClick()
-        composeRule.onNodeWithText("横屏拍摄示意").assertIsDisplayed()
+        composeRule.onNodeWithText("竖拍鱼类拍摄示意").assertIsDisplayed()
+        composeRule.onNodeWithText("开始拍摄 →").assertIsDisplayed()
         composeRule.onNodeWithTag("recognition-guide-primary-action").performClick()
         composeRule.onNodeWithTag("recognition-capture-first-guide").assertDoesNotExist()
         composeRule.runOnIdle {
@@ -337,17 +337,12 @@ class RecognitionFirstCaptureGuideRuntimeTest {
                 composeRule.waitForIdle()
                 composeRule.onNodeWithText("竖屏拍摄示意").assertIsDisplayed()
 
-                composeRule.onNodeWithTag("recognition-guide-primary-action").performClick()
-                composeRule.onNodeWithTag("recognition-guide-primary-action").performClick()
-                composeRule.onNodeWithText("横屏拍摄示意").assertIsDisplayed()
                 composeRule.onNodeWithText("开始拍摄 →").assertIsDisplayed()
                 composeRule.onNodeWithTag("recognition-guide-previous").assertIsDisplayed()
                 assertInsideViewport("recognition-guide-previous", width, height)
                 assertInsideViewport("recognition-guide-primary-action", width, height)
                 assertInsideViewport("recognition-guide-skip", width, height)
 
-                composeRule.onNodeWithTag("recognition-guide-previous").performClick()
-                composeRule.onNodeWithText("竖拍鱼类拍摄示意").assertIsDisplayed()
                 composeRule.onNodeWithTag("recognition-guide-previous").performClick()
                 composeRule.onNodeWithText("竖屏拍摄示意").assertIsDisplayed()
             }
@@ -374,7 +369,6 @@ class RecognitionFirstCaptureGuideRuntimeTest {
         listOf(
             Triple(RecognitionFirstCaptureGuidePage.P01, "P01_compose_component.png", "recognition-guide-page-title-1"),
             Triple(RecognitionFirstCaptureGuidePage.P02, "P02_compose_component.png", "recognition-guide-page-title-2"),
-            Triple(RecognitionFirstCaptureGuidePage.P03, "P03_compose_component.png", "recognition-guide-page-title-3"),
         ).forEachIndexed { index, (guidePage, fileName, titleTag) ->
             if (index > 0) {
                 composeRule.onNodeWithTag("recognition-guide-primary-action").performClick()
@@ -388,7 +382,7 @@ class RecognitionFirstCaptureGuideRuntimeTest {
 
         val report = JSONObject()
             .put("schema_version", "1.0")
-            .put("task_id", "RECOGNITION-FIRST-USE-GUIDE-V1")
+            .put("task_id", "RECOGNITION-FIRST-USE-GUIDE-V1.2")
             .put("status", "COMPONENT_EVIDENCE_ONLY")
             .put("runtime_evidence_status", "COMPONENT_INSTRUMENTATION_ONLY")
             .put("runtime_route_evidence", "NOT_RUN")
@@ -400,7 +394,7 @@ class RecognitionFirstCaptureGuideRuntimeTest {
                 JSONObject()
                     .put("P01", "dc731cca5470ef2154bb06172b9836e823ea780b0833f04e34caaf883e465c50")
                     .put("P02", "fb092235fd043a42aa8250aba9dfdb91a78e96549dd5a63f8e89cf7433685f8f")
-                    .put("P03", "1a3008483ac5708a0649501cf2aef6c799d47b95bcc2c1b1272fa64e68f7f9b3"),
+                    .put("active_page_count", 2),
             )
             .put("device", "${Build.MANUFACTURER} ${Build.MODEL}")
             .put("api_level", Build.VERSION.SDK_INT)
@@ -424,7 +418,7 @@ class RecognitionFirstCaptureGuideRuntimeTest {
 
         assertTrue(File(evidenceDir, "P01_compose_component.png").length() > 0L)
         assertTrue(File(evidenceDir, "P02_compose_component.png").length() > 0L)
-        assertTrue(File(evidenceDir, "P03_compose_component.png").length() > 0L)
+        assertFalse(File(evidenceDir, "P03_compose_component.png").exists())
         assertEquals("COMPONENT_EVIDENCE_ONLY", report.getString("status"))
         assertEquals("NOT_RUN", report.getString("runtime_route_evidence"))
         assertEquals("NOT_RUN", report.getString("android_api_28_runtime_acceptance"))
