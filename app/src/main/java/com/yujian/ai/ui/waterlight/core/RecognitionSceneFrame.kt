@@ -90,6 +90,31 @@ object RecognitionSceneCoordinator {
         )
     }
 
+    /** Production projection: stage identity and local progress come from the event-driven controller. */
+    fun frameForStage(
+        identity: RecognitionSceneIdentity,
+        sceneElapsedMs: Long,
+        opticalReferenceElapsedMs: Long,
+        geometryVersion: Long,
+        stage: RecognitionSceneStage,
+        stageElapsedMs: Long,
+        stageProgress: Float,
+        playbackMode: ScenePlaybackMode = ScenePlaybackMode.AUTO,
+        paused: Boolean = false,
+        reducedMotion: Boolean = false,
+    ): RecognitionSceneFrame = RecognitionSceneFrame(
+        identity = identity,
+        sceneElapsedMs = sceneElapsedMs.coerceAtLeast(0L),
+        opticalReferenceElapsedMs = opticalReferenceElapsedMs.coerceAtLeast(0L),
+        stage = stage,
+        stageElapsedMs = stageElapsedMs.coerceAtLeast(0L),
+        stageProgress = stageProgress.coerceIn(0f, 1f),
+        playbackMode = playbackMode,
+        paused = paused,
+        reducedMotion = reducedMotion,
+        geometryVersion = geometryVersion,
+    )
+
     fun stageAt(t: Long): RecognitionSceneStage = when {
         t == 0L -> RecognitionSceneStage.PHOTO_STABLE
         else -> RecognitionSceneStage.entries.drop(1).firstOrNull { t < it.endMs }
