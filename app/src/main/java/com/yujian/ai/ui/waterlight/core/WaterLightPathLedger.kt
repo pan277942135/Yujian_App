@@ -103,7 +103,8 @@ class WaterLightPathLedger {
     }
 
     private fun routeId(value: WaterLightPathIdentity): String =
-        "\${value.sessionId}:\${value.attemptId}:\${value.imageId}:\${value.photoSha256.take(12)}:orb-waterlight-route"
+        value.sessionId + ":" + value.attemptId + ":" + value.imageId + ":" +
+            value.photoSha256.take(12) + ":orb-waterlight-route"
 
     private fun WaterLightPathGeometry.reversed(): WaterLightPathGeometry = copy(
         start = end,
