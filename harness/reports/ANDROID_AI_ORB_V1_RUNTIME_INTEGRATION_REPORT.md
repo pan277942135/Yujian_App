@@ -33,16 +33,16 @@
 
 ## CI 交付与视觉验收状态
 
-CI run `41463332534` 对精确 source SHA `6cd871581a5dbcff57fa17f899034f2c17bfb2d4` 完成构建与静态/打包校验。Debug APK 已从该 run 的 `YuJian-debug-6cd871581a5dbcff57fa17f899034f2c17bfb2d4-MODEL_CROP_M1_v0.2` artifact 解包，并核对 ZIP SHA-256 与 GitHub artifact digest 一致。
+CI run `41465421331` 对精确 source SHA `e3a796adca01b3362b3a8ada3f02af26ffdecb35` 完成构建与静态/打包校验。Debug APK 已从该 run 的 `YuJian-debug-e3a796adca01b3362b3a8ada3f02af26ffdecb35-MODEL_CROP_M1_v0.2` artifact 解包，并核对 ZIP SHA-256 与 GitHub artifact digest 一致。
 
 | 项目 | 最终值 |
 | --- | --- |
-| 集成 PR / source SHA | [PR #309](https://github.com/pan277942135/Yujian_App/pull/309) / `6cd871581a5dbcff57fa17f899034f2c17bfb2d4` |
-| GitHub Actions run | `41463332534` — build `success` |
+| 集成 PR / source SHA | [PR #309](https://github.com/pan277942135/Yujian_App/pull/309) / `e3a796adca01b3362b3a8ada3f02af26ffdecb35` |
+| GitHub Actions run | `41465421331` — build `success` |
 | Gradle unit tests / Harness / AndroidTest compile / APK 内容校验 / lint | PASS |
-| Debug APK | `YuJian_AI_Orb_R02-R06_V1_Debug_6cd871581a5d.apk`；138,455,370 bytes；SHA-256 `a66f7e0d8f94d40bc2c9790220eac080fe56095104d0704d9e34acbd098deb7d` |
-| GitHub Debug APK artifact | `YuJian-debug-6cd871581a5dbcff57fa17f899034f2c17bfb2d4-MODEL_CROP_M1_v0.2`；artifact ID `13150003730`；ZIP digest `sha256:9644ab3a671e572cfd1cd484b23c820c983475b6b2e3a72ffa6b2d7e8a985426` |
-| API 28 screenshot artifact / caustics timing | BLOCKED；视觉 job `125343273192` 失败，未生成截图或光学性能日志 |
+| Debug APK | `YuJian_AI_Orb_R02-R06_V1_Debug_e3a796adca01.apk`；138,455,414 bytes；SHA-256 `1cd44e5f0c15ee87c27c8fe4cfb7771bafbf385b4b3b60baf317e79c4693250e` |
+| GitHub Debug APK artifact | `YuJian-debug-e3a796adca01b3362b3a8ada3f02af26ffdecb35-MODEL_CROP_M1_v0.2`；artifact ID `13152615265`；ZIP digest `sha256:c444865d4e7f3fcf1bfb3f8a6399219cfa86af9e9a391b30d8f0ed5c29dd3adb` |
+| API 28 screenshot artifact / caustics timing | BLOCKED；视觉 job `125348954121` 失败，未生成截图或光学性能日志 |
 | 产品负责人视觉验收 | Pending |
 
 ### API 28 设备阻塞
