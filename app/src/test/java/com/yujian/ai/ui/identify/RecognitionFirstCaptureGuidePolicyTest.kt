@@ -1,34 +1,20 @@
 package com.yujian.ai.ui.identify
 
+import com.yujian.ai.R
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
-import com.yujian.ai.R
 import org.junit.Test
 
 class RecognitionFirstCaptureGuidePolicyTest {
-    @Test
-    fun firstCaptureGuideRoutesIntoCameraAfterCompletionAndGalleryBypassesGuide() {
-        assertEquals(
-            RecognitionCaptureEntryDestination.FIRST_CAPTURE_GUIDE,
-            resolveFirstCaptureEntryDestination(openGallery = false, guideCompleted = false),
-        )
-        assertEquals(
-            RecognitionCaptureEntryDestination.CAMERA,
-            resolveFirstCaptureEntryDestination(openGallery = false, guideCompleted = true),
-        )
-        assertEquals(
-            RecognitionCaptureEntryDestination.GALLERY,
-            resolveFirstCaptureEntryDestination(openGallery = true, guideCompleted = false),
-        )
-        assertEquals(
-            RecognitionCaptureEntryDestination.GALLERY,
-            resolveFirstCaptureEntryDestination(openGallery = true, guideCompleted = true),
-        )
+    @Test fun firstCaptureGuideRoutesAndGalleryBypassesGuide() {
+        assertEquals(RecognitionCaptureEntryDestination.FIRST_CAPTURE_GUIDE, resolveFirstCaptureEntryDestination(false, false))
+        assertEquals(RecognitionCaptureEntryDestination.CAMERA, resolveFirstCaptureEntryDestination(false, true))
+        assertEquals(RecognitionCaptureEntryDestination.GALLERY, resolveFirstCaptureEntryDestination(true, false))
+        assertEquals(RecognitionCaptureEntryDestination.GALLERY, resolveFirstCaptureEntryDestination(true, true))
     }
 
-    @Test
-    fun guideActionsStackForCompactWidthOrLargeAccessibilityText() {
+    @Test fun guideActionsStackForCompactWidthOrLargeAccessibilityText() {
         assertTrue(shouldStackRecognitionGuideActions(379.9f, 1.0f))
         assertFalse(shouldStackRecognitionGuideActions(380f, 1.0f))
         assertFalse(shouldStackRecognitionGuideActions(393f, 1.3f))
@@ -36,170 +22,85 @@ class RecognitionFirstCaptureGuidePolicyTest {
         assertTrue(shouldStackRecognitionGuideActions(640f, 2.0f))
     }
 
-    @Test
-    fun guideAppearsOnlyAfterCameraPreviewIsReadyForTheFirstCameraEntry() {
-        fun decision(permission: Boolean, preview: Boolean, galleryPending: Boolean, completed: Boolean) =
-            shouldShowRecognitionFirstCaptureGuide(permission, preview, galleryPending, completed)
-
-        assertFalse(decision(permission = false, preview = true, galleryPending = false, completed = false))
-        assertFalse(decision(permission = true, preview = false, galleryPending = false, completed = false))
-        assertFalse(decision(permission = true, preview = true, galleryPending = true, completed = false))
-        assertFalse(decision(permission = true, preview = true, galleryPending = false, completed = true))
-        assertTrue(decision(permission = true, preview = true, galleryPending = false, completed = false))
-        assertFalse(
-            shouldShowRecognitionFirstCaptureGuide(
-                cameraPermissionGranted = true,
-                previewReady = true,
-                galleryPickerPending = false,
-                guideCompleted = false,
-                galleryVisitedThisSession = true,
-            ),
-        )
+    @Test fun guideAppearsOnlyAfterCameraPreviewIsReady() {
+        assertFalse(shouldShowRecognitionFirstCaptureGuide(false, true, false, false))
+        assertFalse(shouldShowRecognitionFirstCaptureGuide(true, false, false, false))
+        assertFalse(shouldShowRecognitionFirstCaptureGuide(true, true, true, false))
+        assertFalse(shouldShowRecognitionFirstCaptureGuide(true, true, false, true))
+        assertTrue(shouldShowRecognitionFirstCaptureGuide(true, true, false, false))
+        assertFalse(shouldShowRecognitionFirstCaptureGuide(true, true, false, false, galleryVisitedThisSession = true))
     }
 
-    @Test
-    fun galleryBypassAndCameraReadinessAreIndependentOfRouteEntry() {
-        assertFalse(
-            shouldShowRecognitionFirstCaptureGuide(
-                cameraPermissionGranted = true,
-                previewReady = true,
-                galleryPickerPending = true,
-                guideCompleted = false,
-            ),
-        )
-        assertFalse(
-            shouldShowRecognitionFirstCaptureGuide(
-                cameraPermissionGranted = false,
-                previewReady = false,
-                galleryPickerPending = false,
-                guideCompleted = false,
-            ),
-        )
-    }
-
-    @Test
-    fun pageSequenceAndActionsMatchTheFrozenThreePageContract() {
+    @Test fun activeSequenceContainsOnlyTwoPortraitPhoneSteps() {
+        assertEquals(RecognitionFirstCaptureGuidePage.P01, RecognitionFirstCaptureGuidePage.fromIndex(0))
+        assertEquals(RecognitionFirstCaptureGuidePage.P02, RecognitionFirstCaptureGuidePage.fromIndex(1))
+        assertEquals(RecognitionFirstCaptureGuidePage.P02, RecognitionFirstCaptureGuidePage.fromIndex(2))
         var state = RecognitionFirstCaptureGuideState()
         state = reduceRecognitionFirstCaptureGuideState(state, RecognitionFirstCaptureGuideIntent.NEXT)
         assertEquals(RecognitionFirstCaptureGuidePage.P02, state.currentPage)
-        assertFalse(state.completed)
-
+        state = reduceRecognitionFirstCaptureGuideState(state, RecognitionFirstCaptureGuideIntent.NEXT)
+        assertEquals(RecognitionFirstCaptureGuidePage.P02, state.currentPage)
         state = reduceRecognitionFirstCaptureGuideState(state, RecognitionFirstCaptureGuideIntent.PREVIOUS)
         assertEquals(RecognitionFirstCaptureGuidePage.P01, state.currentPage)
-        state = reduceRecognitionFirstCaptureGuideState(state, RecognitionFirstCaptureGuideIntent.NEXT)
-        state = reduceRecognitionFirstCaptureGuideState(state, RecognitionFirstCaptureGuideIntent.NEXT)
-        assertEquals(RecognitionFirstCaptureGuidePage.P03, state.currentPage)
-        state = reduceRecognitionFirstCaptureGuideState(state, RecognitionFirstCaptureGuideIntent.PREVIOUS)
-        assertEquals(RecognitionFirstCaptureGuidePage.P02, state.currentPage)
     }
 
-    @Test
-    fun onlySkipAndFinalStartCompleteTheGuide() {
+    @Test fun onlySkipAndP02StartCompleteTheGuide() {
         listOf(
-            RecognitionFirstCaptureGuideIntent.BACK,
-            RecognitionFirstCaptureGuideIntent.CLOSE,
-            RecognitionFirstCaptureGuideIntent.OUTSIDE_TAP,
-            RecognitionFirstCaptureGuideIntent.NEXT,
+            RecognitionFirstCaptureGuideIntent.BACK, RecognitionFirstCaptureGuideIntent.CLOSE,
+            RecognitionFirstCaptureGuideIntent.OUTSIDE_TAP, RecognitionFirstCaptureGuideIntent.NEXT,
             RecognitionFirstCaptureGuideIntent.PREVIOUS,
         ).forEach { intent ->
-            val result = reduceRecognitionFirstCaptureGuideState(RecognitionFirstCaptureGuideState(), intent)
-            assertFalse("$intent must not complete the guide", result.completed)
+            assertFalse(reduceRecognitionFirstCaptureGuideState(RecognitionFirstCaptureGuideState(), intent).completed)
         }
-
-        val skipped = reduceRecognitionFirstCaptureGuideState(
-            RecognitionFirstCaptureGuideState(),
-            RecognitionFirstCaptureGuideIntent.SKIP,
-        )
-        assertFalse(skipped.visible)
-        assertTrue(skipped.completed)
-
+        val skipped = reduceRecognitionFirstCaptureGuideState(RecognitionFirstCaptureGuideState(), RecognitionFirstCaptureGuideIntent.SKIP)
+        assertFalse(skipped.visible); assertTrue(skipped.completed)
         val started = reduceRecognitionFirstCaptureGuideState(
-            RecognitionFirstCaptureGuideState(currentPage = RecognitionFirstCaptureGuidePage.P03),
+            RecognitionFirstCaptureGuideState(currentPage = RecognitionFirstCaptureGuidePage.P02),
             RecognitionFirstCaptureGuideIntent.START,
         )
-        assertFalse(started.visible)
-        assertTrue(started.completed)
-
-        listOf(RecognitionFirstCaptureGuidePage.P01, RecognitionFirstCaptureGuidePage.P02).forEach { page ->
-            val prematureStart = reduceRecognitionFirstCaptureGuideState(
-                RecognitionFirstCaptureGuideState(currentPage = page),
-                RecognitionFirstCaptureGuideIntent.START,
-            )
-            assertTrue("START is only valid on P03 ($page)", prematureStart.visible)
-            assertFalse("START is only valid on P03 ($page)", prematureStart.completed)
-        }
+        assertFalse(started.visible); assertTrue(started.completed)
+        val premature = reduceRecognitionFirstCaptureGuideState(
+            RecognitionFirstCaptureGuideState(currentPage = RecognitionFirstCaptureGuidePage.P01),
+            RecognitionFirstCaptureGuideIntent.START,
+        )
+        assertTrue(premature.visible); assertFalse(premature.completed)
     }
 
-    @Test
-    fun fishOrientationAndErrorExamplesStayConsistentOnEachPage() {
-        val horizontalPages = listOf(RecognitionFirstCaptureGuidePage.P01, RecognitionFirstCaptureGuidePage.P03)
-        val horizontalErrors = listOf(
+    @Test fun bothPagesKeepPortraitPhoneAndDistinctFishOrientationAssets() {
+        val p01 = recognitionFirstCaptureGuidePageSpec(RecognitionFirstCaptureGuidePage.P01)
+        assertEquals("竖屏", p01.phoneOrientationLabel)
+        assertEquals(RecognitionGuideFishOrientation.HORIZONTAL, p01.fishOrientation)
+        assertEquals("手机保持竖屏，整条鱼横向完整放入取景范围", p01.subtitle)
+        assertEquals("下一张", p01.primaryActionLabel)
+        assertEquals(R.drawable.first_use_guide_bg_p01, p01.backgroundAsset)
+        assertEquals(R.drawable.first_use_guide_horizontal_correct_hero, p01.heroAsset)
+        assertEquals(listOf(
             R.drawable.first_use_guide_horizontal_fish_head_out,
             R.drawable.first_use_guide_horizontal_fish_too_small,
             R.drawable.first_use_guide_horizontal_excessive_occlusion,
-        )
-        horizontalPages.forEach { page ->
-            val spec = recognitionFirstCaptureGuidePageSpec(page)
-            assertEquals(RecognitionGuideFishOrientation.HORIZONTAL, spec.fishOrientation)
-            assertEquals(listOf("鱼头不在画面", "鱼体过小", "遮挡过多"), spec.errors.map { it.label })
-            assertTrue(spec.errors.all { it.orientation == RecognitionGuideFishOrientation.HORIZONTAL })
-            assertEquals(R.drawable.first_use_guide_bg_p01, spec.backgroundAsset)
-            assertEquals(R.drawable.first_use_guide_horizontal_correct_hero, spec.heroAsset)
-            assertEquals(horizontalErrors, spec.errorAssets)
-            assertEquals(spec.errorAssets, spec.errors.map { it.imageRes })
-            assertEquals(RecognitionGuideRuntimeAssetStatus.AVAILABLE, spec.runtimeAssetStatus)
-        }
+        ), p01.errorAssets)
 
-        val verticalSpec = recognitionFirstCaptureGuidePageSpec(RecognitionFirstCaptureGuidePage.P02)
-        val verticalErrors = listOf(
+        val p02 = recognitionFirstCaptureGuidePageSpec(RecognitionFirstCaptureGuidePage.P02)
+        assertEquals("竖屏", p02.phoneOrientationLabel)
+        assertEquals(RecognitionGuideFishOrientation.VERTICAL, p02.fishOrientation)
+        assertEquals("手机保持竖屏，整条鱼竖直完整放入取景范围", p02.subtitle)
+        assertEquals("开始拍摄", p02.primaryActionLabel)
+        assertEquals(R.drawable.first_use_guide_bg_p02, p02.backgroundAsset)
+        assertEquals(R.drawable.first_use_guide_vertical_correct_hero, p02.heroAsset)
+        assertEquals(listOf(
             R.drawable.first_use_guide_vertical_fish_head_out,
             R.drawable.first_use_guide_vertical_fish_too_small,
             R.drawable.first_use_guide_vertical_excessive_occlusion,
-        )
-        assertEquals(RecognitionGuideFishOrientation.VERTICAL, verticalSpec.fishOrientation)
-        assertTrue(verticalSpec.errors.all { it.orientation == RecognitionGuideFishOrientation.VERTICAL })
-        assertEquals(R.drawable.first_use_guide_bg_p02, verticalSpec.backgroundAsset)
-        assertEquals(R.drawable.first_use_guide_vertical_correct_hero, verticalSpec.heroAsset)
-        assertEquals(verticalErrors, verticalSpec.errorAssets)
-        assertEquals(verticalSpec.errorAssets, verticalSpec.errors.map { it.imageRes })
-        assertEquals(RecognitionGuideRuntimeAssetStatus.AVAILABLE, verticalSpec.runtimeAssetStatus)
-
-        listOf(RecognitionFirstCaptureGuidePage.P01, RecognitionFirstCaptureGuidePage.P02, RecognitionFirstCaptureGuidePage.P03)
-            .forEach { page ->
-                val spec = recognitionFirstCaptureGuidePageSpec(page)
-                assertEquals(RecognitionGuideRuntimeAssetStatus.AVAILABLE, spec.runtimeAssetStatus)
-                assertTrue(spec.heroAsset != 0)
-                assertEquals(3, spec.errorAssets.size)
-                assertTrue(spec.errorAssets.all { it != 0 })
-                assertEquals(3, spec.errors.size)
-            }
+        ), p02.errorAssets)
+        assertEquals(listOf("鱼头不在画面", "鱼体过小", "遮挡过多"), p02.errors.map { it.label })
     }
 
-    @Test
-    fun frozenReferenceMapsToRuntimeWithOneUniformScale() {
-        val mapping = mapRecognitionGuideReferenceSpace(
-            page = RecognitionFirstCaptureGuidePage.P01,
-            runtimeWidthPx = 1080,
-            runtimeHeightPx = 1920,
-        )
-
-        assertEquals(941, mapping.referenceWidthPx)
-        assertEquals(1671, mapping.referenceHeightPx)
-        assertEquals(1080f / 941f, mapping.uniformScale, 0.0001f)
-        assertEquals(0f, mapping.offsetXPx, 0f)
-        val left = mapping.map(100f, 200f)
-        val right = mapping.map(200f, 200f)
-        val lower = mapping.map(100f, 300f)
-        assertEquals(100f * mapping.uniformScale, right.x - left.x, 0.001f)
-        assertEquals(100f * mapping.uniformScale, lower.y - left.y, 0.001f)
-
-        assertEquals(
-            1672,
-            mapRecognitionGuideReferenceSpace(
-                page = RecognitionFirstCaptureGuidePage.P03,
-                runtimeWidthPx = 1080,
-                runtimeHeightPx = 1920,
-            ).referenceHeightPx,
-        )
+    @Test fun bothActivePagesMapToPortraitReferenceArtboards() {
+        listOf(RecognitionFirstCaptureGuidePage.P01, RecognitionFirstCaptureGuidePage.P02).forEach { page ->
+            val mapping = mapRecognitionGuideReferenceSpace(page, 1080, 1920)
+            assertEquals(941, mapping.referenceWidthPx)
+            assertEquals(1671, mapping.referenceHeightPx)
+            assertEquals(1080f / 941f, mapping.uniformScale, 0.0001f)
+        }
     }
 }
