@@ -228,17 +228,25 @@ fun YujianApp() {
         captureResetToken++
     }
 
-    fun startCapture(openGallery: Boolean = false, preserveSession: Boolean = false) {
+    fun startCapture(
+        openGallery: Boolean = false,
+        preserveSession: Boolean = false,
+        returnToHome: Boolean = true,
+    ) {
         navigatingFromResult = false
         clearRecognitionSession(preserveSession)
         if (recognitionSessionId == null) recognitionSessionId = UUID.randomUUID().toString()
         nav.navigate(if (openGallery) "identify?openGallery=true" else "identify") {
-            popUpTo("home") { inclusive = false }
+            if (returnToHome) popUpTo("home") { inclusive = false }
             launchSingleTop = true
         }
     }
 
-    fun enterCapture(openGallery: Boolean = false, preserveSession: Boolean = false) {
+    fun enterCapture(
+        openGallery: Boolean = false,
+        preserveSession: Boolean = false,
+        returnToHome: Boolean = true,
+    ) {
         val destination = resolveFirstCaptureEntryDestination(
             openGallery = openGallery,
             guideCompleted = RecognitionFirstCaptureGuideStore(context).isCompleted(),
@@ -247,14 +255,15 @@ fun YujianApp() {
             startCapture(
                 openGallery = destination == RecognitionCaptureEntryDestination.GALLERY,
                 preserveSession = preserveSession,
+                returnToHome = returnToHome,
             )
             return
         }
 
         navigatingFromResult = false
         clearRecognitionSession(preserveSession)
-        nav.navigate("first_capture_guide") {
-            popUpTo("home") { inclusive = false }
+        nav.navigate("first_capture_guide?returnToHome=$returnToHome") {
+            if (returnToHome) popUpTo("home") { inclusive = false }
             launchSingleTop = true
         }
     }
@@ -664,12 +673,17 @@ fun YujianApp() {
                     }
                 }
                 composable(
-                    route = "first_capture_guide",
+                    route = "first_capture_guide?returnToHome={returnToHome}",
+                    arguments = listOf(navArgument("returnToHome") {
+                        type = NavType.BoolType
+                        defaultValue = true
+                    }),
                     enterTransition = { if (CaptureNavigationTransition.active.value) fadeIn(tween(400)) else EnterTransition.None },
                     exitTransition = { ExitTransition.None },
                     popEnterTransition = { EnterTransition.None },
                     popExitTransition = { ExitTransition.None },
-                ) {
+                ) { entry ->
+                    val returnToHome = entry.arguments?.getBoolean("returnToHome") ?: true
                     IdentifyScreen(
                         image = null,
                         captureResetToken = captureResetToken,
@@ -678,7 +692,7 @@ fun YujianApp() {
                             nav.popBackStack()
                         },
                         onImageReady = { selected -> handleIdentifyImageReady(selected) },
-                        onGuideComplete = { startCapture() },
+                        onGuideComplete = { startCapture(returnToHome = returnToHome) },
                         onGuideDismiss = {
                             clearRecognitionSession()
                             nav.popBackStack()
@@ -1078,7 +1092,7 @@ fun YujianApp() {
                         onBack = { nav.popBackStack() },
                         onCatch = { catchId -> nav.navigate("catch/${Uri.encode(catchId)}") },
                         onRetry = { catchReload++ },
-                        onCapture = { enterCapture() },
+                        onCapture = { enterCapture(returnToHome = false) },
                         onDayDetail = { day ->
                             val dayKey = day.key
                             nav.currentBackStackEntry?.savedStateHandle?.set("my_catches_day_ids", day.catches.map { it.id }.toTypedArray())
