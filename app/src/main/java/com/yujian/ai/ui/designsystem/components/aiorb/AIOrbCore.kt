@@ -158,11 +158,11 @@ private fun OrbVisual(
     val activeEnergyEvent = energyEvent?.takeIf { event -> waterLightFrame?.let(event::matches) == true }
     val releaseEnergy = if (activeEnergyEvent?.feedback == EnergyFeedback.RELEASE) activeEnergyEvent.level.coerceIn(0f, 1f) else 0f
     val returnEnergy = if (activeEnergyEvent?.feedback == EnergyFeedback.RETURN) activeEnergyEvent.level.coerceIn(0f, 1f) else 0f
-    val referenceMs = waterLightFrame?.opticalReferenceElapsedMs ?: elapsedMs
-    val orbEnergyDepletion = when {
-        activeEnergyEvent?.feedback == EnergyFeedback.RELEASE -> .18f * releaseEnergy
-        activeEnergyEvent?.feedback == EnergyFeedback.RETURN -> .18f * (1f - returnEnergy)
-        referenceMs in 950L until 2_800L -> .18f
+    // Orb energy is derived only from the active release/return event; no absolute
+    // 2800ms window may keep the Orb depleted while a real model is still running.
+    val orbEnergyDepletion = when (activeEnergyEvent?.feedback) {
+        EnergyFeedback.RELEASE -> .18f * releaseEnergy
+        EnergyFeedback.RETURN -> .18f * (1f - returnEnergy)
         else -> 0f
     }
     val breath = if (reduceMotion) 1f else 1f + .018f * sin(time * (2f * PI.toFloat() / 4.2f))
