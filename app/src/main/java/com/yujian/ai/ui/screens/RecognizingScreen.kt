@@ -13,9 +13,13 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
@@ -28,15 +32,14 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
-import androidx.compose.material3.Button
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
@@ -55,8 +58,10 @@ import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
@@ -88,6 +93,9 @@ import com.yujian.ai.ai.subject.SubjectStatus
 import com.yujian.ai.model.SelectedImage
 import com.yujian.ai.ui.identify.RecognitionImageTransform
 import com.yujian.ai.ui.identify.NormalizedSourceRect
+import com.yujian.ai.ui.identify.DisplayRect
+import com.yujian.ai.ui.identify.RecognitionUiState
+import com.yujian.ai.ui.identify.resolveRecognitionUiState
 import com.yujian.ai.ui.recognition.PhotoShockwaveTransform
 import com.yujian.ai.ui.recognition.RecognitionAmbientField
 import com.yujian.ai.ui.recognition.photoShockwaveTransform
@@ -100,8 +108,18 @@ import com.yujian.ai.ui.recognition.RecognitionPerimeterShaderOverlay
 import com.yujian.ai.ui.designsystem.components.aiorb.AIOrbCore
 import com.yujian.ai.ui.designsystem.components.aiorb.aiOrbProcessingState
 import com.yujian.ai.ui.waterlight.core.WaterLightFrame
+import com.yujian.ai.ui.waterlight.core.WaterLightPhase
+import com.yujian.ai.ui.waterlight.core.SceneMotionCoordinator
+import com.yujian.ai.ui.waterlight.core.RecognitionProgressDisplayMode
+import com.yujian.ai.ui.waterlight.core.RecognitionSceneIdentity
+import com.yujian.ai.ui.waterlight.core.RecognitionSceneStage
+import com.yujian.ai.ui.waterlight.core.RecognitionSceneTimelineProjection
+import com.yujian.ai.ui.waterlight.core.ScenePlaybackMode
 import com.yujian.ai.ui.waterlight.core.WaterLightEnergy
 import com.yujian.ai.ui.waterlight.core.EnergyFeedback
+import com.yujian.ai.ui.waterlight.core.WaterLightPathGeometryFactory
+import com.yujian.ai.ui.waterlight.core.WaterLightPathPoint
+import com.yujian.ai.ui.waterlight.core.WaterLightPathLedger
 import com.yujian.ai.ui.waterlight.mask.WaterLightMaskAdapter
 import com.yujian.ai.ui.waterlight.core.UnifiedWaterLightEngine
 import com.yujian.ai.ui.waterlight.core.WaterLightHost
@@ -112,6 +130,8 @@ import com.yujian.ai.ui.waterlight.core.WaterLightMaterialProfile
 import com.yujian.ai.ui.waterlight.renderer.WaterCausticsField
 import com.yujian.ai.ui.waterlight.renderer.WaterCausticsRenderer
 import com.yujian.ai.ui.waterlight.renderer.WaterDropletRenderer
+import com.yujian.ai.ui.waterlight.renderer.WaterLightEnergyPathRenderer
+import com.yujian.ai.ui.waterlight.renderer.WaterGrassField
 
 import com.yujian.ai.ui.recognition.processingOrbMotionFrame
 import com.yujian.ai.ui.recognition.RecognitionVisualStateController
@@ -120,6 +140,9 @@ import com.yujian.ai.ui.recognition.recognitionMaskContourRevealProgress
 import com.yujian.ai.ui.recognition.reveal.RecognitionProcessingPhotoSnapshot
 import com.yujian.ai.ui.recognition.reveal.RecognitionGeometryTrustState
 import com.yujian.ai.ui.recognition.reveal.RecognitionRevealPolicy
+import com.yujian.ai.ui.recognition.reveal.RecognitionClassifierTaskState
+import com.yujian.ai.ui.recognition.reveal.RecognitionRevealDecisionGate
+import com.yujian.ai.ui.recognition.reveal.RecognitionRevealDecisionState
 import com.yujian.ai.ui.recognition.reveal.RecognitionRevealWindowRect
 import com.yujian.ai.ui.recognition.reveal.RecognitionSubjectGeometrySnapshot
 import com.yujian.ai.ui.recognition.FISH_FOCUS_A_PROMOTION_DELAY_MS
@@ -129,6 +152,7 @@ import com.yujian.ai.ui.recognition.rememberRecognitionMotionPolicy
 import com.yujian.ai.ui.recognition.RecognitionPhotoFlowPlan
 import com.yujian.ai.ui.recognition.planRecognitionPhotoFlow
 import com.yujian.ai.ui.recognition.interpolateRecognitionPhotoTransform
+import com.yujian.ai.ui.recognition.RecognitionStepDiagnosticControls
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
 import kotlinx.coroutines.launch
@@ -145,7 +169,6 @@ import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.math.roundToInt
 
 private const val OUTLINE_THRESHOLD = 36
-private const val PHOTO_ENTRY_DURATION_MS = 700L
 // Two-pixel sampling keeps the contour faithful to fins and tail. Rendering is
 // still bounded to three local path draws in RecognitionFishFocus.
 private const val OUTLINE_STRIDE = 2
@@ -165,6 +188,13 @@ fun RecognizingScreen(
     onProcessingPhotoSnapshot: (RecognitionProcessingPhotoSnapshot) -> Unit = {},
     recognitionSessionId: String? = null,
     recognitionAttemptId: String? = null,
+    recognitionVisualStateController: RecognitionVisualStateController? = null,
+    diagnosticPlaybackController: SceneMotionCoordinator? = null,
+    diagnosticDisplayMode: RecognitionProgressDisplayMode? = null,
+    onDiagnosticDisplayModeChange: ((RecognitionProgressDisplayMode) -> Unit)? = null,
+    onDiagnosticRevealRequested: ((ProductionRecognitionResult) -> String?)? = null,
+    diagnosticReturnRevision: Int = 0,
+    generateSubjectWithConfidence: (suspend (SelectedImage, NormalizedFishBox, Float) -> FishSubjectResult)? = null,
 ) = RecognitionProcessingScene(
     image, onBack, recognize, generateSubject, onFinished, onFailure,
     phaseOverride, visualClockOverrideMs, motionPolicyOverride = motionPolicyOverride,
@@ -172,6 +202,13 @@ fun RecognizingScreen(
     onProcessingPhotoSnapshot = onProcessingPhotoSnapshot,
     recognitionSessionId = recognitionSessionId,
     recognitionAttemptId = recognitionAttemptId,
+    recognitionVisualStateController = recognitionVisualStateController,
+    diagnosticPlaybackController = diagnosticPlaybackController,
+    diagnosticDisplayMode = diagnosticDisplayMode,
+    onDiagnosticDisplayModeChange = onDiagnosticDisplayModeChange,
+    onDiagnosticRevealRequested = onDiagnosticRevealRequested,
+    diagnosticReturnRevision = diagnosticReturnRevision,
+    generateSubjectWithConfidence = generateSubjectWithConfidence,
 )
 
 /** Presentation-only shell: it never changes detector, crop, classifier, or result semantics. */
@@ -190,6 +227,13 @@ fun RecognitionProcessingScene(
     onProcessingPhotoSnapshot: (RecognitionProcessingPhotoSnapshot) -> Unit = {},
     recognitionSessionId: String? = null,
     recognitionAttemptId: String? = null,
+    recognitionVisualStateController: RecognitionVisualStateController? = null,
+    diagnosticPlaybackController: SceneMotionCoordinator? = null,
+    diagnosticDisplayMode: RecognitionProgressDisplayMode? = null,
+    onDiagnosticDisplayModeChange: ((RecognitionProgressDisplayMode) -> Unit)? = null,
+    onDiagnosticRevealRequested: ((ProductionRecognitionResult) -> String?)? = null,
+    diagnosticReturnRevision: Int = 0,
+    generateSubjectWithConfidence: (suspend (SelectedImage, NormalizedFishBox, Float) -> FishSubjectResult)? = null,
 ) {
     val motionPolicy = motionPolicyOverride ?: rememberRecognitionMotionPolicy()
     val pageContext = LocalContext.current
@@ -216,15 +260,32 @@ fun RecognitionProcessingScene(
     ) {
         "${image?.imageId.orEmpty()}|${image?.photoSha256.orEmpty()}|${recognitionSessionId.orEmpty()}|${recognitionAttemptId.orEmpty()}"
     }
-    var diagnosticEnabled by remember(sceneKey) { mutableStateOf(false) }
-    val manualDiagnostic = BuildConfig.DEBUG && diagnosticEnabled && phaseOverride == null && visualClockOverrideMs == null
-    val diagnosticModeState = rememberUpdatedState(manualDiagnostic)
+    var localDisplayMode by remember(sceneKey) {
+        mutableStateOf(if (BuildConfig.DEBUG) RecognitionProgressDisplayMode.STEP_DIAGNOSTIC else RecognitionProgressDisplayMode.NORMAL_PROGRESS)
+    }
+    val displayMode = diagnosticDisplayMode ?: localDisplayMode
+    val diagnosticUiAvailable = BuildConfig.DEBUG && phaseOverride == null && visualClockOverrideMs == null
+    val stepDiagnosticActive = diagnosticUiAvailable && displayMode == RecognitionProgressDisplayMode.STEP_DIAGNOSTIC
+    // The diagnostic shell is a fixed Debug-session policy, independent of its display toggle.
+    val diagnosticModeState = rememberUpdatedState(BuildConfig.DEBUG)
+    val playbackController = diagnosticPlaybackController ?: remember(sceneKey) { SceneMotionCoordinator() }
+    val playbackProjectionActive = diagnosticUiAvailable && (
+        playbackController.mode == ScenePlaybackMode.MANUAL || playbackController.paused ||
+            playbackController.isDiagnosticAutoPlayback
+        )
+    var playbackRevision by remember(sceneKey) { mutableIntStateOf(0) }
+    val diagnosticStepDisplayState = rememberUpdatedState(
+        diagnosticUiAvailable && displayMode == RecognitionProgressDisplayMode.STEP_DIAGNOSTIC,
+    )
+    val playbackMode = playbackController.mode
+    val playbackPaused = playbackController.paused
     val orbCompletion = remember(sceneKey) { Animatable(0f) }
-    val completionScope = rememberCoroutineScope()
-    var entranceElapsedMs by remember(sceneKey) { mutableStateOf(0L) }
     var rootOrigin by remember(sceneKey) { mutableStateOf(Offset.Zero) }
     var realPhase by remember(sceneKey) { mutableStateOf(RecognitionPhase.CAPTURED) }
     var visualPhase by remember(sceneKey) { mutableStateOf(RecognitionPhase.CAPTURED) }
+    var productionSceneStage by remember(sceneKey) { mutableStateOf(RecognitionSceneStage.PHOTO_STABLE) }
+    var productionStageElapsedMs by remember(sceneKey) { mutableLongStateOf(0L) }
+    var productionStageProgress by remember(sceneKey) { mutableFloatStateOf(0f) }
     var assessment by remember(sceneKey) { mutableStateOf<FishInputAssessment?>(null) }
     var subjectBitmap by remember(sceneKey) { mutableStateOf<Bitmap?>(null) }
     var subjectBox by remember(sceneKey) { mutableStateOf<NormalizedFishBox?>(null) }
@@ -233,13 +294,57 @@ fun RecognitionProcessingScene(
     var trustedMaskRevealStartedAtMs by remember(sceneKey) { mutableStateOf<Long?>(null) }
     var subjectResult by remember(sceneKey) { mutableStateOf(FishSubjectResult(SubjectStatus.IDLE)) }
     var finishedResult by remember(sceneKey) { mutableStateOf<ProductionRecognitionResult?>(null) }
+    var pipelineError by remember(sceneKey) { mutableStateOf<Throwable?>(null) }
     var delivered by remember(sceneKey) { mutableStateOf(false) }
-    // The diagnostic package holds each real layer until the tester advances it.
-    var diagnosticStep by remember(sceneKey) { mutableStateOf(RecognitionDiagnosticStep.PHOTO) }
     var photoPresentedAtMs by remember(sceneKey) { mutableStateOf<Long?>(null) }
     var visualNowMs by remember(sceneKey) { mutableStateOf(0L) }
-    val controller = remember(sceneKey) { RecognitionVisualStateController() }
+    // The parent owns this controller across Processing -> Result. It is the only
+    // production optical clock; the local fallback exists for isolated previews.
+    val controller = recognitionVisualStateController ?: remember(sceneKey) { RecognitionVisualStateController() }
     val latestPhotoPresentedAtMs by rememberUpdatedState(photoPresentedAtMs)
+    val revealDecision = RecognitionRevealDecisionGate.decide(
+        classifier = when {
+            pipelineError != null || realPhase == RecognitionPhase.FAILURE -> RecognitionClassifierTaskState.FAILED
+            finishedResult?.ready == true -> RecognitionClassifierTaskState.READY
+            else -> RecognitionClassifierTaskState.WAITING
+        },
+        subject = subjectResult.status,
+        maskTrusted = trustedSubjectMask,
+        contourValid = trustedSubjectMask && subjectBitmap != null && subjectBox != null && contour.isNotEmpty(),
+        identityCurrent = !recognitionSessionId.isNullOrBlank() && !recognitionAttemptId.isNullOrBlank() &&
+            !image?.imageId.isNullOrBlank() && !image?.photoSha256.isNullOrBlank(),
+    )
+    val latestRevealDecision = rememberUpdatedState(revealDecision)
+    val latestSubjectStatus = rememberUpdatedState(subjectResult.status)
+    val latestTrustedMask = rememberUpdatedState(trustedSubjectMask)
+    val latestFinishedResult = rememberUpdatedState(finishedResult)
+    val latestAssessment = rememberUpdatedState(assessment)
+    val diagnosticRevealCallback = rememberUpdatedState(onDiagnosticRevealRequested)
+    val manualStepDiagnosticState = rememberUpdatedState(
+        stepDiagnosticActive && playbackController.mode == ScenePlaybackMode.MANUAL,
+    )
+    var diagnosticActionStatus by remember(sceneKey) { mutableStateOf<String?>(null) }
+
+    LaunchedEffect(sceneKey, revealDecision) {
+        Log.i(
+            LOG_TAG,
+            "REVEAL_DECISION session=${recognitionSessionId.orEmpty()} attempt=${recognitionAttemptId.orEmpty()} " +
+                "image=${image?.imageId.orEmpty()} sha256=${image?.photoSha256.orEmpty()} " +
+                "classifier=${finishedResult?.let { if (it.ready) "READY" else "FAILED" } ?: "WAITING"} " +
+                "slimsam=${subjectResult.status} mask_trusted=$trustedSubjectMask contour_valid=${contour.isNotEmpty()} " +
+                "decision=$revealDecision",
+        )
+    }
+
+    LaunchedEffect(sceneKey, diagnosticPlaybackController, diagnosticUiAvailable) {
+        if (diagnosticPlaybackController == null && diagnosticUiAvailable) {
+            // Every Debug session opens on step 01. The clock starts only after the
+            // actual PhotoSession first frame is presented; choosing the diagnostic
+            // display must not silently switch playback to AUTO.
+            playbackController.prepareInitialStepPreview()
+            playbackRevision++
+        }
+    }
 
     LaunchedEffect(sceneKey) {
         image?.let {
@@ -253,14 +358,14 @@ fun RecognitionProcessingScene(
         }
     }
 
-    DisposableEffect(subjectBitmap) {
-        onDispose { subjectBitmap?.takeUnless { it.isRecycled }?.recycle() }
-    }
+    // `subjectBitmap` is borrowed by RecognitionFishFocus through ImageBitmap.
+    // Compose may still be drawing the old reference after this state changes or
+    // this scene leaves composition, so this UI scope must never recycle it.
 
     LaunchedEffect(sceneKey, assessment?.primary?.box) {
         val selected = image ?: return@LaunchedEffect
         val primary = assessment?.primary ?: return@LaunchedEffect
-        val generator = generateSubject ?: return@LaunchedEffect
+        if (generateSubject == null && generateSubjectWithConfidence == null) return@LaunchedEffect
         subjectBitmap = null; subjectBox = null; contour = emptyList(); trustedSubjectMask = false
         subjectResult = FishSubjectResult(SubjectStatus.PROCESSING)
         val startedAtMs = recognitionMonotonicNowMs()
@@ -270,7 +375,9 @@ fun RecognitionProcessingScene(
                 "image=${selected.imageId} sha256=${selected.photoSha256} bbox=${primary.box} uptime_ms=$startedAtMs",
         )
         val result = try {
-            generator(selected, primary.box)
+            generateSubjectWithConfidence?.invoke(selected, primary.box, primary.confidence)
+                ?: generateSubject?.invoke(selected, primary.box)
+                ?: return@LaunchedEffect
         } catch (cancellation: CancellationException) {
             Log.i(LOG_TAG, "SLIMSAM_CANCEL session=${recognitionSessionId.orEmpty()} image=${selected.imageId} duration_ms=${recognitionMonotonicNowMs() - startedAtMs}")
             throw cancellation
@@ -291,7 +398,7 @@ fun RecognitionProcessingScene(
             onSubjectGeometry(subjectResult, null)
             Log.i(
                 LOG_TAG,
-                "MASK_GATE session=${recognitionSessionId.orEmpty()} attempt=${recognitionAttemptId.orEmpty()} " +
+                "MASK_REJECT session=${recognitionSessionId.orEmpty()} attempt=${recognitionAttemptId.orEmpty()} " +
                     "image=${selected.imageId} sha256=${selected.photoSha256} trust=UNTRUSTED " +
                     "reason=${result?.errorCode ?: "SUBJECT_RESULT_NOT_READY"} quality=${result?.quality} contours=0",
             )
@@ -303,129 +410,158 @@ fun RecognitionProcessingScene(
             onSubjectGeometry(subjectResult, null)
             Log.i(
                 LOG_TAG,
-                "MASK_GATE session=${recognitionSessionId.orEmpty()} attempt=${recognitionAttemptId.orEmpty()} " +
+                "MASK_REJECT session=${recognitionSessionId.orEmpty()} attempt=${recognitionAttemptId.orEmpty()} " +
                     "image=${selected.imageId} sha256=${selected.photoSha256} trust=UNTRUSTED reason=MASK_BITMAP_DECODE_FAILED contours=0",
             )
             return@LaunchedEffect
         }
-        currentCoroutineContext().ensureActive()
-        val metadata = result.geometry
-        val geometryMatchesPhoto = metadata?.matches(
-            recognitionSessionId.orEmpty(), recognitionAttemptId.orEmpty(),
-            selected.imageId, selected.photoSha256, selected.bitmap.width, selected.bitmap.height,
-        ) == true
-        val roiBox = metadata?.takeIf { geometryMatchesPhoto }?.normalizedRoi()
-        val roi = roiBox?.let { NormalizedSourceRect(it.x1, it.y1, it.x2, it.y2) }
-        val cropDimensionsMatch = loaded.width == result.roiWidth &&
-            loaded.height == result.roiHeight &&
-            loaded.width == metadata?.roiPx?.width() && loaded.height == metadata?.roiPx?.height()
-        val maskShapeValid = result.quality == FishSubjectQuality.GOOD &&
-            result.maskSize > 0 && result.maskSize == result.expectedMaskSize &&
-            cropDimensionsMatch && geometryMatchesPhoto && roi != null
-        val extractedContour = if (maskShapeValid) {
-            withContext(Dispatchers.Default) {
-                WaterLightMaskAdapter.toPhotoSpace(requireNotNull(metadata), extractContour(loaded))
-            }
-        } else {
-            emptyList()
-        }
-        currentCoroutineContext().ensureActive()
-        val geometry = if (maskShapeValid && extractedContour.isNotEmpty()) RecognitionSubjectGeometrySnapshot(
-            imageId = selected.imageId,
-            recognitionSessionId = recognitionSessionId.orEmpty(),
-            recognitionAttemptId = recognitionAttemptId.orEmpty(),
-            photoSha256 = selected.photoSha256,
-            sourceWidthPx = selected.bitmap.width,
-            sourceHeightPx = selected.bitmap.height,
-            detectorBox = primary.box,
-            detectorConfidence = primary.confidence,
-            subjectBox = requireNotNull(roi),
-            contour = extractedContour,
-            contourSourceSpace = "CANONICAL_PHOTO_NORMALIZED",
-            quality = result.quality,
-            maskSize = result.maskSize,
-            expectedMaskSize = result.expectedMaskSize,
-        ) else null
-        val trustState = RecognitionRevealPolicy.geometryTrust(
-            detectorBox = primary.box,
-            subject = geometry,
-            imageId = selected.imageId,
-            sourceWidthPx = selected.bitmap.width,
-            sourceHeightPx = selected.bitmap.height,
-            detectorConfidence = primary.confidence,
-            recognitionSessionId = recognitionSessionId,
-            recognitionAttemptId = recognitionAttemptId,
-            photoSha256 = selected.photoSha256,
-        )
-        val isTrustedForCurrentPhoto = trustState == RecognitionGeometryTrustState.TRUSTED_MASK &&
-            !recognitionSessionId.isNullOrBlank() && !recognitionAttemptId.isNullOrBlank() &&
-            selected.imageId.isNotBlank() && selected.photoSha256.isNotBlank()
-        // Use the actually presented phase as the acceptance boundary. Calling
-        // controller.current() here would advance the visual state from the
-        // asynchronous SlimSAM coroutine and desynchronize the shared clock.
-        val maskAcceptancePhase = if (diagnosticModeState.value) {
-            // Manual inspection must not close the mask window while the real model runs.
-            RecognitionPhase.OUTLINE
-        } else if (latestPhotoPresentedAtMs == null) {
-            RecognitionPhase.CAPTURED
-        } else {
-            controller.presentedPhase()
-        }
-        val maskWindowOpen = recognitionMaskAcceptanceOpen(maskAcceptancePhase)
-        val trustedForReveal = isTrustedForCurrentPhoto && maskWindowOpen
-        if (trustedForReveal) {
-            subjectBitmap = loaded
-            subjectBox = requireNotNull(roiBox)
-            contour = extractedContour
-            trustedSubjectMask = true
-            val acceptedAtMs = recognitionMonotonicNowMs()
-            latestPhotoPresentedAtMs?.let { photoStartMs ->
-                controller.onTrustedMaskAvailable(acceptedAtMs)
-                if (trustedMaskRevealStartedAtMs == null) {
-                    trustedMaskRevealStartedAtMs = (acceptedAtMs - photoStartMs).coerceAtLeast(0L)
+        var maskBitmapPublishedToCompose = false
+        try {
+            currentCoroutineContext().ensureActive()
+            val metadata = result.geometry
+            val geometryMatchesPhoto = metadata?.matches(
+                recognitionSessionId.orEmpty(), recognitionAttemptId.orEmpty(),
+                selected.imageId, selected.photoSha256, selected.bitmap.width, selected.bitmap.height,
+            ) == true
+            val roiBox = metadata?.takeIf { geometryMatchesPhoto }?.normalizedRoi()
+            val roi = roiBox?.let { NormalizedSourceRect(it.x1, it.y1, it.x2, it.y2) }
+            val cropDimensionsMatch = loaded.width == result.roiWidth &&
+                loaded.height == result.roiHeight &&
+                loaded.width == metadata?.roiPx?.width() && loaded.height == metadata?.roiPx?.height()
+            val maskShapeValid = result.quality == FishSubjectQuality.GOOD &&
+                result.maskSize > 0 && result.maskSize == result.expectedMaskSize &&
+                cropDimensionsMatch && geometryMatchesPhoto && roi != null
+            val extractedContour = if (maskShapeValid) {
+                withContext(Dispatchers.Default) {
+                    WaterLightMaskAdapter.toPhotoSpace(requireNotNull(metadata), extractContour(loaded))
                 }
+            } else {
+                emptyList()
+            }
+            currentCoroutineContext().ensureActive()
+            val geometry = if (maskShapeValid && extractedContour.isNotEmpty()) RecognitionSubjectGeometrySnapshot(
+                imageId = selected.imageId,
+                recognitionSessionId = recognitionSessionId.orEmpty(),
+                recognitionAttemptId = recognitionAttemptId.orEmpty(),
+                photoSha256 = selected.photoSha256,
+                sourceWidthPx = selected.bitmap.width,
+                sourceHeightPx = selected.bitmap.height,
+                detectorBox = primary.box,
+                detectorConfidence = primary.confidence,
+                subjectBox = requireNotNull(roi),
+                contour = extractedContour,
+                contourSourceSpace = "CANONICAL_PHOTO_NORMALIZED",
+                quality = result.quality,
+                maskSize = result.maskSize,
+                expectedMaskSize = result.expectedMaskSize,
+            ) else null
+            val trustState = RecognitionRevealPolicy.geometryTrust(
+                detectorBox = primary.box,
+                subject = geometry,
+                imageId = selected.imageId,
+                sourceWidthPx = selected.bitmap.width,
+                sourceHeightPx = selected.bitmap.height,
+                detectorConfidence = primary.confidence,
+                recognitionSessionId = recognitionSessionId,
+                recognitionAttemptId = recognitionAttemptId,
+                photoSha256 = selected.photoSha256,
+            )
+            val isTrustedForCurrentPhoto = trustState == RecognitionGeometryTrustState.TRUSTED_MASK &&
+                !recognitionSessionId.isNullOrBlank() && !recognitionAttemptId.isNullOrBlank() &&
+                selected.imageId.isNotBlank() && selected.photoSha256.isNotBlank()
+            // Use the actually presented phase as the acceptance boundary. Calling
+            // controller.current() here would advance the visual state from the
+            // asynchronous SlimSAM coroutine and desynchronize the shared clock.
+            val maskAcceptancePhase = if (diagnosticModeState.value) {
+                // Manual inspection must not close the mask window while the real model runs.
+                RecognitionPhase.OUTLINE
+            } else if (latestPhotoPresentedAtMs == null) {
+                RecognitionPhase.CAPTURED
+            } else {
+                controller.presentedPhase()
+            }
+            // Trust is a property of the actual Mask and photo identity, not of the UI phase.
+            // A late SlimSAM result is still valid for the same attempt and Result handoff.
+            val trustedForReveal = isTrustedForCurrentPhoto
+            if (trustedForReveal) {
+                subjectBitmap = loaded
+                maskBitmapPublishedToCompose = true
+                subjectBox = requireNotNull(roiBox)
+                contour = extractedContour
+                trustedSubjectMask = true
+                val acceptedAtMs = recognitionMonotonicNowMs()
+                latestPhotoPresentedAtMs?.let { photoStartMs ->
+                    controller.onTrustedMaskAvailable(acceptedAtMs)
+                    if (trustedMaskRevealStartedAtMs == null) {
+                        trustedMaskRevealStartedAtMs = controller.opticalReferenceElapsedMs(
+                            acceptedAtMs,
+                            trustedMask = true,
+                            subjectTerminal = true,
+                        ).coerceAtLeast(1_200L)
+                    }
+                    Log.i(
+                        LOG_TAG,
+                        "MASK_TRUSTED_ACCEPT session=${recognitionSessionId.orEmpty()} " +
+                            "attempt=${recognitionAttemptId.orEmpty()} image=${selected.imageId} " +
+                            "acceptance_phase=$maskAcceptancePhase uptime_ms=$acceptedAtMs " +
+                            "processing_elapsed_ms=${acceptedAtMs - photoStartMs}",
+                    )
+                }
+            }
+            onSubjectGeometry(subjectResult, geometry.takeIf { trustedForReveal })
+            if (trustedForReveal) {
                 Log.i(
                     LOG_TAG,
-                    "MASK_TRUSTED_ACCEPT session=${recognitionSessionId.orEmpty()} " +
-                        "attempt=${recognitionAttemptId.orEmpty()} image=${selected.imageId} " +
-                        "acceptance_phase=$maskAcceptancePhase uptime_ms=$acceptedAtMs " +
-                        "processing_elapsed_ms=${acceptedAtMs - photoStartMs}",
+                    "MASK_CONTOUR_READY session=${recognitionSessionId.orEmpty()} attempt=${recognitionAttemptId.orEmpty()} " +
+                        "image=${selected.imageId} sha256=${selected.photoSha256} points=${extractedContour.size} trust=TRUSTED_MASK",
                 )
             }
-        } else {
-            loaded.recycle()
-        }
-        onSubjectGeometry(subjectResult, geometry.takeIf { trustedForReveal })
-        val maskRejectReason = when {
-            result.quality != FishSubjectQuality.GOOD -> "QUALITY_${result.quality}"
-            result.maskSize <= 0 || result.maskSize != result.expectedMaskSize -> "MASK_SIZE_MISMATCH"
-            !geometryMatchesPhoto -> "MASK_GEOMETRY_OR_IDENTITY_MISMATCH"
-            !cropDimensionsMatch -> "ROI_DIMENSIONS_MISMATCH"
-            extractedContour.isEmpty() -> "EMPTY_CONTOUR"
-            recognitionSessionId.isNullOrBlank() || recognitionAttemptId.isNullOrBlank() -> "SESSION_IDENTITY_MISSING"
-            selected.imageId.isBlank() || selected.photoSha256.isBlank() -> "PHOTO_IDENTITY_MISSING"
-            trustState != RecognitionGeometryTrustState.TRUSTED_MASK -> "GEOMETRY_OR_IDENTITY_MISMATCH"
-            !maskWindowOpen -> "S3_MASK_ACCEPTANCE_WINDOW_CLOSED"
-            else -> "NONE"
-        }
-        Log.i(
-            LOG_TAG,
-            "MASK_GATE session=${recognitionSessionId.orEmpty()} attempt=${recognitionAttemptId.orEmpty()} " +
-                "image=${selected.imageId} sha256=${selected.photoSha256} quality=${result.quality} " +
-                "mask=${result.maskSize}/${result.expectedMaskSize} roi=${loaded.width}x${loaded.height} " +
-                "mask_area_ratio=${result.maskAreaRatio} iou=${result.maskIouScore?.toString() ?: "NOT_AVAILABLE"} " +
-                "contours=${if (trustedForReveal) extractedContour.size else 0} " +
-                "acceptance_phase=$maskAcceptancePhase trust=${if (trustedForReveal) trustState else RecognitionGeometryTrustState.UNTRUSTED} " +
-                "reject_reason=$maskRejectReason",
-        )
+            val maskRejectReason = when {
+                result.quality != FishSubjectQuality.GOOD -> "QUALITY_${result.quality}"
+                result.maskSize <= 0 || result.maskSize != result.expectedMaskSize -> "MASK_SIZE_MISMATCH"
+                !geometryMatchesPhoto -> "MASK_GEOMETRY_OR_IDENTITY_MISMATCH"
+                !cropDimensionsMatch -> "ROI_DIMENSIONS_MISMATCH"
+                extractedContour.isEmpty() -> "EMPTY_CONTOUR"
+                recognitionSessionId.isNullOrBlank() || recognitionAttemptId.isNullOrBlank() -> "SESSION_IDENTITY_MISSING"
+                selected.imageId.isBlank() || selected.photoSha256.isBlank() -> "PHOTO_IDENTITY_MISSING"
+                trustState != RecognitionGeometryTrustState.TRUSTED_MASK -> "GEOMETRY_OR_IDENTITY_MISMATCH"
+                else -> "NONE"
+            }
+            Log.i(
+                LOG_TAG,
+                "MASK_REJECT session=${recognitionSessionId.orEmpty()} attempt=${recognitionAttemptId.orEmpty()} " +
+                    "image=${selected.imageId} sha256=${selected.photoSha256} quality=${result.quality} " +
+                    "mask=${result.maskSize}/${result.expectedMaskSize} roi=${loaded.width}x${loaded.height} " +
+                    "mask_area_ratio=${result.maskAreaRatio} iou=${result.maskIouScore?.toString() ?: "NOT_AVAILABLE"} " +
+                    "contours=${if (trustedForReveal) extractedContour.size else 0} " +
+                    "acceptance_phase=$maskAcceptancePhase trust=${if (trustedForReveal) trustState else RecognitionGeometryTrustState.UNTRUSTED} " +
+                    "reject_reason=$maskRejectReason",
+            )
         logFocusDiagnostic(result, if (trustedForReveal) extractedContour.size else 0, primary.box, false, false)
+        } finally {
+            // This decoded bitmap is still local unless it was handed to Compose.
+            // Only the unpublished temporary is ours to release here.
+            if (!maskBitmapPublishedToCompose) loaded.recycle()
+        }
     }
 
     LaunchedEffect(sceneKey, photoPresentedAtMs) {
         val selected = image ?: return@LaunchedEffect
         val startedAtMs = photoPresentedAtMs ?: return@LaunchedEffect
-        controller.reset(startedAtMs)
+        controller.reset(
+            nowMs = startedAtMs,
+            identity = RecognitionSceneIdentity(
+                sessionId = recognitionSessionId.orEmpty(),
+                attemptId = recognitionAttemptId.orEmpty(),
+                imageId = selected.imageId,
+                photoSha256 = selected.photoSha256,
+                photoContentVersion = selected.bitmap.generationId.toLong(),
+            ),
+        )
         visualPhase = RecognitionPhase.CAPTURED
+        productionSceneStage = RecognitionSceneStage.PHOTO_STABLE
+        productionStageElapsedMs = 0L
+        productionStageProgress = 0f
         visualNowMs = startedAtMs
         if (realPhase != RecognitionPhase.CAPTURED) {
             controller.onPipelinePhase(
@@ -549,10 +685,14 @@ fun RecognitionProcessingScene(
         } catch (error: Throwable) {
             Log.e(LOG_TAG, "Recognition runtime failed", error)
             realPhase = RecognitionPhase.FAILURE
+            pipelineError = error
             if (latestPhotoPresentedAtMs != null) {
                 controller.onPipelinePhase(RecognitionPhase.FAILURE, recognitionMonotonicNowMs())
             }
-            onFailure(error)
+            if (!manualStepDiagnosticState.value && !delivered) {
+                delivered = true
+                onFailure(error)
+            }
             return@LaunchedEffect
         }
         assessment = result.assessment; finishedResult = result
@@ -565,7 +705,23 @@ fun RecognitionProcessingScene(
                     hasRealFishFocus = result.assessment.primary?.box != null,
                 )
             }
-        } else if (!delivered && !diagnosticModeState.value) {
+        } else if (!delivered && !manualStepDiagnosticState.value) {
+            delivered = true
+            while (latestPhotoPresentedAtMs == null && isActive) withFrameNanos { }
+            orbCompletion.animateTo(1f, tween(if (motionPolicy.reduceMotion) 0 else 280))
+            delivered = true
+            onFinished(result)
+        }
+    }
+
+    LaunchedEffect(displayMode, playbackRevision, pipelineError, finishedResult) {
+        if (manualStepDiagnosticState.value || delivered) return@LaunchedEffect
+        pipelineError?.let { error ->
+            delivered = true
+            onFailure(error)
+            return@LaunchedEffect
+        }
+        finishedResult?.takeIf { !it.ready }?.let { result ->
             delivered = true
             while (latestPhotoPresentedAtMs == null && isActive) withFrameNanos { }
             orbCompletion.animateTo(1f, tween(if (motionPolicy.reduceMotion) 0 else 280))
@@ -576,7 +732,10 @@ fun RecognitionProcessingScene(
     // The visual clock must remain stable while the real detector/classifier advances.
     // realPhase is intentionally NOT a LaunchedEffect key: restarting this loop on every
     // progress callback can cancel the presentation before it reaches RESULT.
-    LaunchedEffect(sceneKey, phaseOverride, photoPresentedAtMs) {
+    LaunchedEffect(sceneKey, phaseOverride, photoPresentedAtMs, displayMode, diagnosticReturnRevision) {
+        if (stepDiagnosticActive && playbackController.mode == ScenePlaybackMode.MANUAL &&
+            finishedResult?.ready == true
+        ) delivered = false
         if (photoPresentedAtMs == null && phaseOverride == null) return@LaunchedEffect
         try {
             while (isActive && phaseOverride == null && !delivered) {
@@ -584,20 +743,46 @@ fun RecognitionProcessingScene(
                     // Use one uptime-based source for phase events and all visual layers.
                     visualNowMs = recognitionMonotonicNowMs()
                 }
-                if (diagnosticModeState.value) continue
-                val nextVisualPhase = controller.current(visualNowMs, trustedMask = trustedSubjectMask)
-                if (nextVisualPhase != visualPhase) {
-                    val stageElapsed = controller.phaseElapsedMs(visualNowMs)
-                    val referenceMs = controller.opticalReferenceElapsedMs(visualNowMs, trustedSubjectMask)
+                if (RecognitionRevealDecisionGate.isReady(latestRevealDecision.value)) {
+                    controller.onRevealDecisionReady()
+                }
+                val currentSubjectStatus = latestSubjectStatus.value
+                val noDetectorTarget = latestFinishedResult.value?.ready == true &&
+                    latestAssessment.value?.primary?.box == null
+                val subjectTerminal = currentSubjectStatus == SubjectStatus.READY ||
+                    currentSubjectStatus == SubjectStatus.FAILED || noDetectorTarget
+                val currentResult = latestFinishedResult.value
+                val successfulRevealReady = currentResult?.let { result ->
+                    result.ready && resolveRecognitionUiState(result) == RecognitionUiState.RESULT_HIGH
+                } == true
+                val previousSceneStage = productionSceneStage
+                val nextSceneStage = controller.currentSceneStage(
+                    visualNowMs,
+                    trustedMask = latestTrustedMask.value,
+                    subjectTerminal = subjectTerminal,
+                    successfulRevealAllowed = successfulRevealReady,
+                )
+                productionSceneStage = nextSceneStage
+                productionStageElapsedMs = controller.stageElapsedMs(visualNowMs)
+                productionStageProgress = controller.stageProgress(visualNowMs)
+                val nextVisualPhase = controller.presentedPhase()
+                if (nextSceneStage != previousSceneStage) {
+                    val stageElapsed = controller.stageElapsedMs(visualNowMs)
+                    val referenceMs = controller.opticalReferenceElapsedMs(visualNowMs)
+                    val sessionName = recognitionSessionId.orEmpty()
+                    val attemptName = recognitionAttemptId.orEmpty()
+                    val imageName = image?.imageId.orEmpty()
                     Log.i(
                         LOG_TAG,
-                        "VISUAL_STAGE session=${recognitionSessionId.orEmpty()} attempt=${recognitionAttemptId.orEmpty()} " +
-                            "image=${image?.imageId.orEmpty()} phase=$visualPhase->$nextVisualPhase " +
+                        "VISUAL_STAGE session=$sessionName attempt=$attemptName image=$imageName " +
+                            "stage=${previousSceneStage.name}->${nextSceneStage.name} " +
                             "stage_started_uptime_ms=$visualNowMs stage_elapsed_ms=$stageElapsed " +
-                            "optical_reference_ms=$referenceMs trusted_mask=$trustedSubjectMask real_phase=$realPhase",
+                            "optical_reference_ms=$referenceMs trusted_mask=" + latestTrustedMask.value + " real_phase=$realPhase",
                     )
+                }
+                if (nextVisualPhase != visualPhase) {
                     visualPhase = nextVisualPhase
-                    if (nextVisualPhase == RecognitionPhase.OUTLINE && trustedSubjectMask &&
+                    if (nextVisualPhase == RecognitionPhase.OUTLINE && latestTrustedMask.value &&
                         trustedMaskRevealStartedAtMs == null
                     ) {
                         trustedMaskRevealStartedAtMs = (visualNowMs - requireNotNull(photoPresentedAtMs))
@@ -605,14 +790,13 @@ fun RecognitionProcessingScene(
                     }
                     phasePresentedCallback(nextVisualPhase, visualNowMs)
                 }
-                if (nextVisualPhase == RecognitionPhase.RESULT && finishedResult?.ready == true && !delivered) {
+                if (nextSceneStage == RecognitionSceneStage.ORB_RETURN && latestFinishedResult.value?.ready == true &&
+                    controller.resultVisualReady(visualNowMs) && !delivered && !diagnosticStepDisplayState.value) {
                     // The adaptive visual beats and real model result are both ready.
-                    // RR09 starts from Result's first presented frame.
+                    // Result anchors the same controller at its first presented frame (RR09 R0).
                     delivered = true
                     Log.i(LOG_TAG, "delivering RESULT_READY at monotonic=$visualNowMs")
-                    Log.i(LOG_TAG, "ORB_COMPLETION_START image=${image?.imageId} sha256=${image?.photoSha256}")
-                    orbCompletion.animateTo(1f, tween(if (motionPolicy.reduceMotion) 0 else 280))
-                    onFinished(requireNotNull(finishedResult))
+                    onFinished(requireNotNull(latestFinishedResult.value))
                     break
                 }
             }
@@ -625,30 +809,45 @@ fun RecognitionProcessingScene(
         }
     }
 
-    val rendered = phaseOverride ?: if (manualDiagnostic) diagnosticStep.phase else if (visualPhase == RecognitionPhase.RESULT) RecognitionPhase.CLASSIFYING else visualPhase
-    LaunchedEffect(sceneKey, diagnosticStep, photoPresentedAtMs) {
-        if (manualDiagnostic && photoPresentedAtMs != null) Log.i(
-            LOG_TAG,
-            "DIAGNOSTIC_PRESENT session=${recognitionSessionId.orEmpty()} attempt=${recognitionAttemptId.orEmpty()} " +
-                "image=${image?.imageId.orEmpty()} sha256=${image?.photoSha256.orEmpty()} " +
-                "step=${diagnosticStep.ordinal + 1}/7 name=${diagnosticStep.name} layer=${diagnosticStep.layerMode} " +
-                "phase=$rendered optical_reference_ms=${diagnosticStep.opticalReferenceMs} " +
-                "detector_box=${assessment?.primary?.box} slimsam_status=${subjectResult.status} " +
-                "mask_trusted=$trustedSubjectMask contours=${contour.size} uptime_ms=${recognitionMonotonicNowMs()}",
-        )
-    }
     val visualClockMs = visualClockOverrideMs ?: visualNowMs
     val deterministicMotion = visualClockOverrideMs != null
-    LaunchedEffect(sceneKey, motionPolicy.reduceMotion) {
-        if (motionPolicy.reduceMotion || visualClockOverrideMs != null) {
-            entranceElapsedMs = 900L
-        } else {
-            val start = recognitionMonotonicNowMs()
-            while (isActive && entranceElapsedMs < 900L) withFrameNanos {
-                entranceElapsedMs = (recognitionMonotonicNowMs() - start).coerceAtMost(900L)
-            }
-        }
+    val processingElapsedMs = if (deterministicMotion) {
+        visualClockMs.coerceAtLeast(0L)
+    } else {
+        photoPresentedAtMs?.let { (visualClockMs - it).coerceAtLeast(0L) } ?: 0L
     }
+    val authoritativeOpticalReferenceElapsedMs = when {
+        deterministicMotion || phaseOverride != null -> visualClockMs.coerceAtLeast(0L)
+        photoPresentedAtMs == null -> 0L
+        else -> controller.opticalReferenceElapsedMs(
+            visualNowMs,
+            trustedMask = trustedSubjectMask,
+            subjectTerminal = subjectResult.status == SubjectStatus.READY || subjectResult.status == SubjectStatus.FAILED,
+        )
+    }
+    val opticalReferenceElapsedMs = if (diagnosticUiAvailable) {
+        playbackController.sample(authoritativeOpticalReferenceElapsedMs, visualNowMs)
+    } else {
+        authoritativeOpticalReferenceElapsedMs
+    }
+    // The Debug sampler is independent of the display toggle. Switching diagnostic UI
+    // modes therefore cannot seek or restart Orb, photo, Mask, or WaterLight motion.
+    val sceneElapsedMs = if (playbackProjectionActive) opticalReferenceElapsedMs else processingElapsedMs
+
+    fun changeDiagnosticDisplayMode(mode: RecognitionProgressDisplayMode) {
+        if (mode == displayMode) return
+        // Display selection is presentation-only. The shared AUTO/MANUAL motion
+        // controller changes only when the user presses a playback control.
+        if (onDiagnosticDisplayModeChange != null) onDiagnosticDisplayModeChange.invoke(mode)
+        else localDisplayMode = mode
+        playbackRevision++
+        diagnosticActionStatus = null
+        Log.i(LOG_TAG, "DIAGNOSTIC_DISPLAY_MODE previous=$displayMode next=$mode reference_ms=$authoritativeOpticalReferenceElapsedMs " +
+            "session=${recognitionSessionId.orEmpty()} attempt=${recognitionAttemptId.orEmpty()} " +
+            "image=${image?.imageId.orEmpty()} sha256=${image?.photoSha256.orEmpty()}")
+    }
+    // Photo settling, Orb entrance and every optical host are projections of one sampled time.
+    val entranceElapsedMs = RecognitionSceneTimelineProjection.orbEntranceElapsedMs(sceneElapsedMs)
     val orbStage = when {
         entranceElapsedMs < 150L -> "BUTTON_DISSOLVE"
         entranceElapsedMs < 350L -> "WATER_CORE_FORM"
@@ -659,28 +858,128 @@ fun RecognitionProcessingScene(
     LaunchedEffect(sceneKey, orbStage) {
         Log.i(LOG_TAG, "ORB_STAGE image=${image?.imageId} sha256=${image?.photoSha256} stage=$orbStage elapsed_ms=$entranceElapsedMs")
     }
-    val processingElapsedMs = if (deterministicMotion) {
-        visualClockMs.coerceAtLeast(0L)
-    } else {
-        photoPresentedAtMs?.let { (visualClockMs - it).coerceAtLeast(0L) } ?: 0L
-    }
-    val opticalReferenceElapsedMs = when {
-        manualDiagnostic -> diagnosticStep.opticalReferenceMs
-        deterministicMotion || phaseOverride != null -> visualClockMs.coerceAtLeast(0L)
-        photoPresentedAtMs == null -> 0L
-        else -> controller.opticalReferenceElapsedMs(visualNowMs, trustedSubjectMask)
-    }
     var photoGeometryVersion by remember(sceneKey) { mutableLongStateOf(0L) }
-    val waterLightFrame = WaterLightFrame(
+    val sceneBaseFrame = WaterLightFrame(
         sessionId = recognitionSessionId.orEmpty(), photoSha256 = image?.photoSha256,
-        elapsedMs = processingElapsedMs, opticalReferenceElapsedMs = opticalReferenceElapsedMs,
-        phase = rendered, completion = orbCompletion.value.coerceIn(0f, 1f),
+        elapsedMs = sceneElapsedMs, opticalReferenceElapsedMs = opticalReferenceElapsedMs,
+        phase = WaterLightPhase.PROCESSING, completion = orbCompletion.value.coerceIn(0f, 1f),
         reducedMotion = motionPolicy.reduceMotion,
         geometryVersion = photoGeometryVersion,
         attemptId = recognitionAttemptId.orEmpty(), imageId = image?.imageId.orEmpty(),
         photoContentVersion = image?.bitmap?.generationId?.toLong() ?: 0L,
+        playbackMode = if (diagnosticUiAvailable) playbackMode else ScenePlaybackMode.AUTO,
+        playbackPaused = diagnosticUiAvailable && playbackPaused,
+        sceneStageOverride = if (playbackProjectionActive || phaseOverride != null || deterministicMotion) null else productionSceneStage,
+        sceneStageElapsedMsOverride = if (playbackProjectionActive || phaseOverride != null || deterministicMotion) null else productionStageElapsedMs,
+        sceneStageProgressOverride = if (playbackProjectionActive || phaseOverride != null || deterministicMotion) null else productionStageProgress,
     )
+    val diagnosticSceneFrame = sceneBaseFrame.sceneFrame
+    LaunchedEffect(sceneKey, diagnosticSceneFrame.stage) {
+        Log.i(
+            LOG_TAG,
+            "SCENE_STAGE_ENTER session=${diagnosticSceneFrame.identity.sessionId} " +
+                "attempt=${diagnosticSceneFrame.identity.attemptId} image=${diagnosticSceneFrame.identity.imageId} " +
+                "sha256=${diagnosticSceneFrame.identity.photoSha256.orEmpty()} " +
+                "stage=${diagnosticSceneFrame.stage.ordinal + 1}/13 name=${diagnosticSceneFrame.stage.name} " +
+                "reference_ms=${diagnosticSceneFrame.opticalReferenceElapsedMs} playback=${diagnosticSceneFrame.playbackMode} " +
+                "paused=${diagnosticSceneFrame.paused} detector=${assessment?.status} " +
+                "bbox=${assessment?.primary?.box} slimsam=${subjectResult.status} trusted_mask=$trustedSubjectMask",
+        )
+    }
+    var diagnosticHandoffDelivered by remember(sceneKey) { mutableStateOf(false) }
+    LaunchedEffect(
+        diagnosticUiAvailable,
+        displayMode,
+        playbackController.mode,
+        diagnosticSceneFrame.stage,
+        finishedResult,
+        subjectResult,
+        trustedSubjectMask,
+    ) {
+        if (!diagnosticUiAvailable || displayMode != RecognitionProgressDisplayMode.STEP_DIAGNOSTIC ||
+            diagnosticSceneFrame.stage.ordinal < RecognitionSceneStage.ORB_RETURN.ordinal ||
+            finishedResult == null || diagnosticHandoffDelivered) return@LaunchedEffect
+        val result = requireNotNull(finishedResult)
+        diagnosticHandoffDelivered = true
+        if (!result.ready) {
+            onFinished(result)
+            return@LaunchedEffect
+        }
+        val error = diagnosticRevealCallback.value?.invoke(result)
+        if (error != null) {
+            diagnosticHandoffDelivered = false
+            diagnosticActionStatus = error
+            Log.w(LOG_TAG, "HANDOFF_UPDATE_BLOCKED session=${recognitionSessionId.orEmpty()} " +
+                "attempt=${recognitionAttemptId.orEmpty()} reason=$error")
+        } else {
+            Log.i(LOG_TAG, "HANDOFF_UPDATE session=${recognitionSessionId.orEmpty()} " +
+                "attempt=${recognitionAttemptId.orEmpty()} stage=${diagnosticSceneFrame.stage.name}")
+        }
+    }
+    val rendered = phaseOverride ?: if (playbackProjectionActive) {
+        diagnosticSceneFrame.stage.toRecognitionPhase()
+    } else if (visualPhase == RecognitionPhase.FAILURE) {
+        RecognitionPhase.FAILURE
+    } else {
+        productionSceneStage.toRecognitionPhase()
+    }
+    val waterLightPhase = when (rendered) {
+        RecognitionPhase.CAPTURED -> WaterLightPhase.PHOTO_ENTRY
+        RecognitionPhase.DETECTING,
+        RecognitionPhase.OUTLINE,
+        RecognitionPhase.CLASSIFYING -> WaterLightPhase.PROCESSING
+        RecognitionPhase.RESULT -> WaterLightPhase.HANDOFF
+        RecognitionPhase.FAILURE -> WaterLightPhase.SETTLED
+    }
+    val waterLightFrame = sceneBaseFrame.copy(phase = waterLightPhase)
+    val diagnosticStageStatus = when {
+        finishedResult?.ready == true && revealDecision == RecognitionRevealDecisionState.WAITING_SLIMSAM ->
+            "鱼种已识别 · 等待 SlimSAM 最终质量判断"
+        finishedResult?.ready == true && manualStepDiagnosticState.value &&
+            diagnosticSceneFrame.stage.ordinal < RecognitionSceneStage.ORB_RETURN.ordinal ->
+            "真实识别结果已就绪 · 等待分步诊断推进"
+        diagnosticSceneFrame.stage.ordinal >= RecognitionSceneStage.ORB_TO_NAME.ordinal && finishedResult?.ready != true ->
+            if (finishedResult == null) "等待真实分类结果" else "分类结果不可用"
+        diagnosticSceneFrame.stage.ordinal >= RecognitionSceneStage.CONTOUR_A.ordinal && !trustedSubjectMask &&
+            assessment?.primary?.box != null -> "等待真实 Mask · BBOX_ONLY"
+        diagnosticSceneFrame.stage.ordinal >= RecognitionSceneStage.CONTOUR_A.ordinal && !trustedSubjectMask -> "等待鱼体检测与 Mask"
+        diagnosticSceneFrame.stageProgress >= 1f -> "已完成"
+        else -> "进行中"
+    }
+    val normalProgressLabel = when {
+        realPhase == RecognitionPhase.FAILURE || (finishedResult != null && finishedResult?.ready != true) -> "识别未完成"
+        finishedResult?.ready == true && revealDecision == RecognitionRevealDecisionState.WAITING_SLIMSAM ->
+            "鱼种已识别 · 正在确认真实鱼体轮廓"
+        finishedResult?.ready == true -> "识别结果已就绪，正在呈现水光揭晓"
+        realPhase >= RecognitionPhase.OUTLINE && !trustedSubjectMask && assessment?.primary?.box != null -> "鱼体已定位 · BBOX_ONLY"
+        realPhase == RecognitionPhase.CLASSIFYING && !trustedSubjectMask -> "正在识别鱼种 · BBOX_ONLY"
+        realPhase == RecognitionPhase.CLASSIFYING -> "正在识别鱼种"
+        realPhase == RecognitionPhase.OUTLINE && trustedSubjectMask -> "正在解析鱼体轮廓"
+        realPhase == RecognitionPhase.OUTLINE -> "鱼体已定位，轮廓待确认"
+        realPhase == RecognitionPhase.DETECTING -> "正在寻找鱼体"
+        else -> "正在理解照片"
+    }
+    val successfulRevealAllowed = finishedResult?.let { result ->
+        result.ready && resolveRecognitionUiState(result) == RecognitionUiState.RESULT_HIGH
+    } == true
+    LaunchedEffect(sceneKey, diagnosticSceneFrame.stage, playbackRevision, photoPresentedAtMs, playbackController.previewCompleted) {
+        if (diagnosticUiAvailable && photoPresentedAtMs != null) Log.i(
+            LOG_TAG,
+            "DIAGNOSTIC_PRESENT session=${recognitionSessionId.orEmpty()} attempt=${recognitionAttemptId.orEmpty()} " +
+                "image=${image?.imageId.orEmpty()} sha256=${image?.photoSha256.orEmpty()} " +
+                "stage=${diagnosticSceneFrame.stage.ordinal + 1}/13 name=${diagnosticSceneFrame.stage.name} " +
+                "status=$diagnosticStageStatus phase=$rendered optical_reference_ms=${diagnosticSceneFrame.opticalReferenceElapsedMs} " +
+                "playback=${playbackMode.name} paused=$playbackPaused " +
+                "preview_ms=" + playbackController.previewElapsedMs(recognitionMonotonicNowMs()) +
+                " preview_remaining_ms=" + playbackController.previewRemainingMs(recognitionMonotonicNowMs()) +
+                " preview_completed=" + playbackController.previewCompleted +
+                " detector_box=${assessment?.primary?.box} slimsam_status=${subjectResult.status} " +
+                "mask_trusted=$trustedSubjectMask contours=${contour.size} uptime_ms=${recognitionMonotonicNowMs()}",
+        )
+    }
     val waterLightEngine = remember(sceneKey) { UnifiedWaterLightEngine() }
+    val energyPathLedger = remember(sceneKey) { WaterLightPathLedger() }
+    energyPathLedger.bind(waterLightFrame)
     waterLightEngine.activate(waterLightFrame)
     DisposableEffect(waterLightEngine) { onDispose { waterLightEngine.release() } }
     LaunchedEffect(sceneKey, rendered, trustedSubjectMask, photoPresentedAtMs) {
@@ -688,7 +987,7 @@ fun RecognitionProcessingScene(
             (rendered == RecognitionPhase.OUTLINE || rendered == RecognitionPhase.CLASSIFYING) &&
             trustedMaskRevealStartedAtMs == null
         ) {
-            trustedMaskRevealStartedAtMs = processingElapsedMs
+            trustedMaskRevealStartedAtMs = opticalReferenceElapsedMs.coerceAtLeast(1_200L)
             Log.i(
                 LOG_TAG,
                 "MASK_CONTOUR_REVEAL_START session=${recognitionSessionId.orEmpty()} " +
@@ -697,16 +996,26 @@ fun RecognitionProcessingScene(
             )
         }
     }
-    val maskContourRevealProgress = if (manualDiagnostic && diagnosticStep >= RecognitionDiagnosticStep.CONTOUR) 1f else recognitionMaskContourRevealProgress(
-        processingElapsedMs = processingElapsedMs,
-        revealStartedAtMs = trustedMaskRevealStartedAtMs,
-        reduceMotion = motionPolicy.reduceMotion,
-    )
-    val photoShockwave = photoShockwaveTransform(processingElapsedMs, motionPolicy.reduceMotion)
+    val activeSceneStage = if (playbackProjectionActive) diagnosticSceneFrame.stage else productionSceneStage
+    val activeStageProgress = if (playbackProjectionActive) diagnosticSceneFrame.stageProgress else productionStageProgress
+    val stageContourProgress = when (activeSceneStage) {
+        RecognitionSceneStage.CONTOUR_A -> activeStageProgress / 3f
+        RecognitionSceneStage.CONTOUR_B -> 1f / 3f + activeStageProgress / 3f
+        RecognitionSceneStage.CONTOUR_C -> 2f / 3f + activeStageProgress / 3f
+        RecognitionSceneStage.FISH_GOLD_PEAK,
+        RecognitionSceneStage.ORB_RETURN,
+        RecognitionSceneStage.ORB_TO_NAME,
+        RecognitionSceneStage.SPECIES_NAME_REVEAL,
+        RecognitionSceneStage.RESIDUE_SETTLE -> 1f
+        else -> 0f
+    }.coerceIn(0f, 1f)
+    val maskContourRevealProgress = if (trustedSubjectMask) stageContourProgress else 0f
+    val photoShockwave = photoShockwaveTransform(sceneElapsedMs, motionPolicy.reduceMotion)
     val phaseElapsedMs = when {
-        phaseOverride != null || manualDiagnostic || visualPhase == RecognitionPhase.RESULT -> 1_000L
+        playbackProjectionActive -> diagnosticSceneFrame.stageElapsedMs
+        phaseOverride != null -> 1_000L
         photoPresentedAtMs == null -> 0L
-        else -> controller.phaseElapsedMs(visualNowMs)
+        else -> controller.stageElapsedMs(visualNowMs)
     }
     val levelAAvailable = subjectBitmap != null && subjectBox != null && contour.isNotEmpty()
     val displayedFocusLevel = recognitionDisplayedFishFocusLevel(
@@ -727,10 +1036,11 @@ fun RecognitionProcessingScene(
     val safeTopPx = with(density) { safeInsets.calculateTopPadding().toPx() }
     val safeRightPx = with(density) { safeInsets.calculateRightPadding(layoutDirection).toPx() }
     val safeBottomPx = with(density) { safeInsets.calculateBottomPadding().toPx() }
-    val skipPhotoEntry = phaseOverride != null || visualClockOverrideMs != null
-    var photoEntryProgress by remember(sceneKey, skipPhotoEntry) {
-        mutableFloatStateOf(if (skipPhotoEntry) 1f else 0f)
-    }
+    val skipPhotoEntry = phaseOverride != null
+    val photoEntryProgress = RecognitionSceneTimelineProjection.photoEntryProgress(
+        sceneElapsedMs,
+        settled = skipPhotoEntry || motionPolicy.reduceMotion,
+    )
     LaunchedEffect(rendered, subjectResult, contour.size, assessment?.primary?.box, motionPolicy) {
         if (rendered == RecognitionPhase.OUTLINE || rendered == RecognitionPhase.CLASSIFYING) {
             logFocusDiagnostic(
@@ -768,7 +1078,7 @@ fun RecognitionProcessingScene(
             image?.bitmap?.width,
             image?.bitmap?.height,
             image?.source,
-            image?.capturePresentation, rootOrigin, manualDiagnostic,
+            image?.capturePresentation, rootOrigin,
             viewportWidthPx,
             viewportHeightPx,
             density.density, density.fontScale,
@@ -794,38 +1104,10 @@ fun RecognitionProcessingScene(
                             capture.previewTop - rootOrigin.y, capture.previewRight - rootOrigin.x,
                             capture.previewBottom - rootOrigin.y)
                     },
-                    diagnosticReservePx = if (manualDiagnostic) 64f * density.density else 0f,
+                    diagnosticReservePx = 0f,
                     fontScale = density.fontScale,
                 )
             }
-        }
-        LaunchedEffect(sceneKey, photoFlowPlan, skipPhotoEntry) {
-            val plan = photoFlowPlan ?: return@LaunchedEffect
-            if (skipPhotoEntry || motionPolicy.reduceMotion) {
-                photoEntryProgress = 1f
-                return@LaunchedEffect
-            }
-            val startedAtMs = recognitionMonotonicNowMs()
-            photoEntryProgress = 0f
-            Log.i(
-                LOG_TAG,
-                "PHOTO_ENTRY_START session=${recognitionSessionId.orEmpty()} attempt=${recognitionAttemptId.orEmpty()} " +
-                    "image=${image?.imageId.orEmpty()} source=${image?.source.orEmpty()} " +
-                    "start_rect=${plan.startTransform.photoContentRect} target_rect=${plan.targetPhotoRect} " +
-                    "uptime_ms=$startedAtMs duration_candidate_ms=$PHOTO_ENTRY_DURATION_MS",
-            )
-            while (isActive && photoEntryProgress < 1f) {
-                withFrameNanos { _ ->
-                    photoEntryProgress = ((recognitionMonotonicNowMs() - startedAtMs).toFloat() /
-                        PHOTO_ENTRY_DURATION_MS.toFloat()).coerceIn(0f, 1f)
-                }
-            }
-            Log.i(
-                LOG_TAG,
-                "PHOTO_ENTRY_STABLE session=${recognitionSessionId.orEmpty()} attempt=${recognitionAttemptId.orEmpty()} " +
-                    "image=${image?.imageId.orEmpty()} uptime_ms=${recognitionMonotonicNowMs()} " +
-                    "duration_ms=${recognitionMonotonicNowMs() - startedAtMs}",
-            )
         }
         LaunchedEffect(sceneKey, photoFlowPlan) {
             photoFlowPlan?.let { plan ->
@@ -845,17 +1127,41 @@ fun RecognitionProcessingScene(
         if (image != null && photoFlowPlan != null) RecognitionPhoto(
             waterLightFrame = waterLightFrame,
             waterLightEngine = waterLightEngine,
+            energyPathLedger = energyPathLedger,
+            revealDecision = revealDecision,
             bitmap = image.bitmap,
             photoFlowPlan = photoFlowPlan,
+            orbCenter = run {
+                val captureForOrb = image.capturePresentation
+                val eased = processingOrbMotionFrame(entranceElapsedMs, captureForOrb != null,
+                    motionPolicy.reduceMotion, orbCompletion.value).destinationProgress
+                val startX = captureForOrb?.shutterCenterX?.minus(rootOrigin.x)
+                    ?.takeIf(Float::isFinite) ?: photoFlowPlan.statusCenterXPx
+                val startY = captureForOrb?.shutterCenterY?.minus(rootOrigin.y)
+                    ?.takeIf(Float::isFinite) ?: photoFlowPlan.orbCenterYPx
+                Offset(
+                    startX + (photoFlowPlan.statusCenterXPx - startX) * eased,
+                    startY + (photoFlowPlan.orbCenterYPx - startY) * eased,
+                )
+            },
+            orbAnchorReady = motionPolicy.reduceMotion || entranceElapsedMs >= RecognitionSceneTimelineProjection.ORB_ENTRANCE_DURATION_MS,
+            orbRadiusPx = run {
+                val captureForOrb = image.capturePresentation
+                val eased = processingOrbMotionFrame(entranceElapsedMs, captureForOrb != null,
+                    motionPolicy.reduceMotion, orbCompletion.value).destinationProgress
+                val initial = captureForOrb?.shutterSizePx?.takeIf { it.isFinite() && it > 0f }
+                    ?: photoFlowPlan.orbCoreSizePx
+                (initial + (photoFlowPlan.orbCoreSizePx - initial) * eased) * .5f
+            },
             photoEntryProgress = photoEntryProgress,
             phase = rendered,
             focusBox = assessment?.primary?.box,
             subjectBitmap = subjectBitmap,
             subjectBox = subjectBox,
             contour = contour,
-                visualClockMs = if (deterministicMotion) visualClockMs else processingElapsedMs,
+                visualClockMs = if (deterministicMotion) visualClockMs else sceneElapsedMs,
             deterministicMotion = deterministicMotion,
-            processingElapsedMs = processingElapsedMs,
+            processingElapsedMs = sceneElapsedMs,
             opticalReferenceElapsedMs = opticalReferenceElapsedMs,
             photoShockwave = photoShockwave,
             motionSessionKey = sceneKey,
@@ -864,7 +1170,23 @@ fun RecognitionProcessingScene(
             onMotionFrame = onMotionFrame,
             focusLevel = displayedFocusLevel,
             onFishFocusTransform = onFishFocusTransform,
-            onPhotoGeometryChanged = { photoGeometryVersion = it },
+            onPhotoGeometryChanged = { version ->
+                photoGeometryVersion = version
+                controller.onSceneGeometryChanged(
+                    identity = RecognitionSceneIdentity(
+                        sessionId = recognitionSessionId.orEmpty(),
+                        attemptId = recognitionAttemptId.orEmpty(),
+                        imageId = image.imageId,
+                        photoSha256 = image.photoSha256,
+                        photoContentVersion = image.bitmap.generationId.toLong(),
+                    ),
+                    geometryVersion = version,
+                )
+            },
+            onDetectorPathPresented = { identity, geometryVersion ->
+                controller.onSceneGeometryChanged(identity, geometryVersion)
+                controller.onDetectorPathPresented(identity, geometryVersion)
+            },
             modifier = Modifier.fillMaxSize(),
             processingClockStarted = photoPresentedAtMs != null || deterministicMotion,
             recognitionSessionId = recognitionSessionId.orEmpty(),
@@ -873,8 +1195,9 @@ fun RecognitionProcessingScene(
             photoSha256 = image.photoSha256,
             maskRevealProgress = maskContourRevealProgress,
             trustedMask = trustedSubjectMask,
-            diagnosticStep = if (manualDiagnostic) diagnosticStep else null,
-            onProcessingPhotoSnapshot = { transform, bounds, photoBounds, cornerRadiusPx ->
+            successfulRevealAllowed = successfulRevealAllowed,
+            allowDiagnosticContourPreview = diagnosticUiAvailable && playbackMode == ScenePlaybackMode.MANUAL,
+            onProcessingPhotoSnapshot = { transform, bounds, photoBounds, cornerRadiusPx, actualOrbCenter, orbCoreDiameterPx ->
                 onProcessingPhotoSnapshot(
                     RecognitionProcessingPhotoSnapshot(
                         imageId = image.imageId,
@@ -882,6 +1205,11 @@ fun RecognitionProcessingScene(
                         sourceToViewport = transform,
                         photoBoundsInWindow = photoBounds,
                         cornerRadiusPx = cornerRadiusPx,
+                        processingOrbCenterInWindow = com.yujian.ai.ui.identify.DisplayPoint(
+                            bounds.left + actualOrbCenter.x,
+                            bounds.top + actualOrbCenter.y,
+                        ),
+                        processingOrbCoreDiameterPx = orbCoreDiameterPx,
                     ),
                 )
             },
@@ -893,6 +1221,10 @@ fun RecognitionProcessingScene(
                             "attempt=${recognitionAttemptId.orEmpty()} image=${image.imageId} uptime_ms=$presentedAtMs",
                     )
                     photoPresentedAtMs = presentedAtMs
+                    if (diagnosticUiAvailable && displayMode == RecognitionProgressDisplayMode.STEP_DIAGNOSTIC) {
+                        playbackController.startPreparedStepPreview(presentedAtMs)
+                        playbackRevision++
+                    }
                 }
             },
         )
@@ -909,103 +1241,228 @@ fun RecognitionProcessingScene(
         }
         Text("照片识别", color = Color(0xFF123F48), fontSize = 18.sp, fontWeight = FontWeight.Medium,
             modifier = Modifier.align(Alignment.TopCenter).padding(top = safeInsets.calculateTopPadding() + 14.dp))
-        if (BuildConfig.DEBUG) Text(if (manualDiagnostic) "自动播放" else "分步诊断",
-            color = Color(0xFF37666C), fontSize = 11.sp,
-            modifier = Modifier.align(Alignment.TopEnd).padding(top = safeInsets.calculateTopPadding() + 18.dp, end = 12.dp)
-                .clickable { diagnosticEnabled = !diagnosticEnabled })
         photoFlowPlan?.let { plan ->
-            val statusWidth = if (plan.landscape) maxWidth * .34f else maxWidth
-            Text("正在理解照片", color = Color(0xFF123F48), fontSize = if (maxHeight < 600.dp) 14.sp else 16.sp,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.offset { IntOffset((plan.statusCenterXPx - with(density) { statusWidth.toPx() } / 2f).roundToInt(),
-                    plan.statusPanelTopPx.roundToInt()) }.size(width = statusWidth, height = (24f * density.fontScale).dp))
             val capture = image?.capturePresentation
-            val eased = processingOrbMotionFrame(entranceElapsedMs, capture != null, motionPolicy.reduceMotion, orbCompletion.value).destinationProgress
+            val orbEntranceMs = entranceElapsedMs
+            val eased = processingOrbMotionFrame(orbEntranceMs, capture != null, motionPolicy.reduceMotion, orbCompletion.value).destinationProgress
             val fromX = capture?.shutterCenterX?.minus(rootOrigin.x)?.takeIf { it.isFinite() } ?: plan.statusCenterXPx
             val fromY = capture?.shutterCenterY?.minus(rootOrigin.y)?.takeIf { it.isFinite() } ?: plan.orbCenterYPx
             val initialCorePx = capture?.shutterSizePx?.takeIf { it.isFinite() && it > 0f } ?: plan.orbCoreSizePx
             val currentCorePx = initialCorePx + (plan.orbCoreSizePx - initialCorePx) * eased
             val core = with(density) { currentCorePx.toDp() }
             val outerPx = currentCorePx + with(density) { 28.dp.toPx() }
-            val orbX = fromX + (plan.statusCenterXPx - fromX) * eased - outerPx / 2f
-            val orbY = fromY + (plan.orbCenterYPx - fromY) * eased - outerPx / 2f
+            val orbCenter = Offset(
+                fromX + (plan.statusCenterXPx - fromX) * eased,
+                fromY + (plan.orbCenterYPx - fromY) * eased,
+            )
+            val orbX = orbCenter.x - outerPx / 2f
+            val orbY = orbCenter.y - outerPx / 2f
+            val currentPhotoTransform = interpolateRecognitionPhotoTransform(
+                plan.startTransform, plan.targetTransform, photoEntryProgress,
+            )
+            val fishEnergyAllowed = trustedSubjectMask && (successfulRevealAllowed ||
+                (diagnosticUiAvailable && playbackMode == ScenePlaybackMode.MANUAL))
+            val orbOnlyEnergyAllowed = revealDecision == RecognitionRevealDecisionState.ORB_ONLY_READY
+            val baseOrbEvent = WaterLightEnergy.at(
+                waterLightFrame, fishEnergyAllowed, successfulRevealAllowed,
+                orbOnlyRevealAllowed = orbOnlyEnergyAllowed,
+            )
+            val detectorBox = assessment?.primary?.box
+            val detectorAnchor = detectorBox?.let(currentPhotoTransform::mapBox)
+                ?.let { WaterLightPathPoint(it.x, it.y) }
+            val fishEnergyAnchor = if (fishEnergyAllowed)
+                recognitionMaskAnchor(detectorBox, contour, currentPhotoTransform) else null
+            val orbPathGeometry = when (baseOrbEvent?.feedback) {
+                EnergyFeedback.RELEASE -> nearestPhotoPerimeterAnchor(currentPhotoTransform.photoContentRect, orbCenter)?.let { edge ->
+                    val surface = orbSurfaceAnchor(orbCenter, edge, currentCorePx * .5f)
+                    WaterLightPathGeometryFactory.between(
+                        WaterLightPathPoint(surface.x, surface.y), WaterLightPathPoint(edge.x, edge.y),
+                        waterLightFrame.sessionId.hashCode() xor waterLightFrame.imageId.hashCode(),
+                    )?.also { energyPathLedger.recordRelease(waterLightFrame, it) }
+                }
+                EnergyFeedback.ARRIVE -> if (waterLightFrame.sceneFrame.stage == RecognitionSceneStage.PATH_TO_FISH &&
+                    detectorAnchor != null
+                ) {
+                    energyPathLedger.releaseEndpoint(waterLightFrame)?.let { releaseEnd ->
+                        WaterLightPathGeometryFactory.between(
+                            releaseEnd,
+                            detectorAnchor,
+                            waterLightFrame.sessionId.hashCode() xor waterLightFrame.imageId.hashCode(),
+                        )?.also { energyPathLedger.recordDetectorPath(waterLightFrame, it) }
+                    }
+                } else null
+                EnergyFeedback.ABSORB -> if (detectorAnchor != null && fishEnergyAnchor != null)
+                    WaterLightPathGeometryFactory.between(
+                        detectorAnchor,
+                        WaterLightPathPoint(fishEnergyAnchor.x, fishEnergyAnchor.y),
+                        waterLightFrame.sessionId.hashCode() xor waterLightFrame.imageId.hashCode(),
+                    )?.also { energyPathLedger.recordFishPath(waterLightFrame, it, fishEnergyAllowed) } else null
+                EnergyFeedback.RETURN -> null
+                else -> null
+            }
+            val orbReturnRoute = if (baseOrbEvent?.feedback == EnergyFeedback.RETURN)
+                energyPathLedger.returnRoute(waterLightFrame, trustedMask = fishEnergyAllowed) else null
+            val orbEnergyEvent = if (baseOrbEvent?.feedback == EnergyFeedback.RETURN &&
+                orbReturnRoute?.isValid() != true
+            ) null else WaterLightEnergy.at(
+                waterLightFrame,
+                fishEnergyAllowed,
+                successfulRevealAllowed,
+                pathGeometry = orbPathGeometry,
+                orbOnlyRevealAllowed = orbOnlyEnergyAllowed,
+                pathSegments = orbReturnRoute?.segments.orEmpty(),
+                pathIdOverride = orbReturnRoute?.id ?: energyPathLedger.pathId(waterLightFrame),
+            )
+            LaunchedEffect(
+                waterLightFrame.sessionId,
+                waterLightFrame.attemptId,
+                waterLightFrame.imageId,
+                orbEnergyEvent?.feedback,
+                orbEnergyEvent?.pathId,
+            ) {
+                val event = orbEnergyEvent ?: return@LaunchedEffect
+                Log.i(
+                    "WaterLightEnergy",
+                    "ENERGY_EVENT session=${event.sessionId} attempt=${event.attemptId} image=${event.imageId} " +
+                        "sha256=${event.photoSha256} feedback=${event.feedback} source=${event.source} target=${event.target} " +
+                        "reference_ms=${event.referenceMs} level=${event.level} path=${event.pathId} " +
+                        "start=${event.pathGeometry?.start} end=${event.pathGeometry?.end} geometry=${event.geometryVersion}",
+                )
+            }
+            val statusWidth = if (plan.landscape) maxWidth * .34f else maxWidth
+            val progressLabel = if (BuildConfig.DEBUG && displayMode == RecognitionProgressDisplayMode.STEP_DIAGNOSTIC) "正在理解照片" else normalProgressLabel
+            Text(progressLabel, color = Color(0xFF123F48), fontSize = if (maxHeight < 600.dp) 14.sp else 16.sp,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.offset { IntOffset((plan.statusCenterXPx - with(density) { statusWidth.toPx() } / 2f).roundToInt(),
+                    plan.statusPanelTopPx.roundToInt()) }.size(width = statusWidth, height = (24f * density.fontScale).dp))
             val orbHost = remember(waterLightEngine) {
                 WaterLightHostBinding(WaterLightHost.ORB, WaterLightMaterialProfile.ORB_LEGACY, waterLightEngine)
             }
             if (orbHost.accepts(waterLightFrame, WaterLightHostGeometry(
                     WaterLightHost.ORB, waterLightFrame.geometryVersion, orbX, orbY, orbX + outerPx, orbY + outerPx,
                 ))) AIOrbCore(
-                state = aiOrbProcessingState(entranceElapsedMs, capture != null, motionPolicy.reduceMotion, orbCompletion.value),
+                state = aiOrbProcessingState(orbEntranceMs, capture != null, motionPolicy.reduceMotion, orbCompletion.value),
                 coreSize = core,
-                entranceElapsedMs = entranceElapsedMs,
-                elapsedMs = processingElapsedMs,
+                entranceElapsedMs = orbEntranceMs,
+                elapsedMs = sceneElapsedMs,
                 completion = orbCompletion.value,
                 reduceMotion = motionPolicy.reduceMotion,
                 lowPerformance = motionPolicy.lowPerformance,
                 fromCamera = capture != null,
                 waterLightFrame = waterLightFrame,
+                energyEvent = orbEnergyEvent,
                 waterLightMaterial = orbHost.material,
                 modifier = Modifier.offset { IntOffset(orbX.roundToInt(), orbY.roundToInt()) },
             )
 
         }
-        if (manualDiagnostic) {
-            Button(
-                enabled = photoPresentedAtMs != null,
-                onClick = {
-                    val current = diagnosticStep
-                    val next = current.next()
-                    val now = recognitionMonotonicNowMs()
-                    Log.i(LOG_TAG, "DIAGNOSTIC_STEP session=${recognitionSessionId.orEmpty()} attempt=${recognitionAttemptId.orEmpty()} image=${image?.imageId.orEmpty()} sha256=${image?.photoSha256.orEmpty()} step=${current.ordinal + 1}->${next?.ordinal?.plus(1) ?: 7} label=${current.name} next=${next?.name ?: "RESULT"} uptime_ms=$now real_phase=$realPhase result_ready=${finishedResult?.ready == true} detector_box=${assessment?.primary?.box} slimsam_status=${subjectResult.status} mask_trusted=$trustedSubjectMask contours=${contour.size} layer=${current.layerMode} optical_reference_ms=${current.opticalReferenceMs}")
-                    when {
-                        next != null -> diagnosticStep = next
-                        finishedResult != null && !delivered -> {
-                            delivered = true
-                            Log.i(LOG_TAG, "DIAGNOSTIC_RESULT_HANDOFF session=${recognitionSessionId.orEmpty()} image=${image?.imageId.orEmpty()} mask_trusted=$trustedSubjectMask uptime_ms=$now")
-                            completionScope.launch {
-                                orbCompletion.animateTo(1f, tween(if (motionPolicy.reduceMotion) 0 else 280))
-                                onFinished(requireNotNull(finishedResult))
-                            }
-                        }
-                        else -> Log.i(LOG_TAG, "DIAGNOSTIC_RESULT_WAIT session=${recognitionSessionId.orEmpty()} image=${image?.imageId.orEmpty()} uptime_ms=$now")
-                    }
+        if (diagnosticUiAvailable) {
+            val currentStage = diagnosticSceneFrame.stage
+            RecognitionStepDiagnosticControls(
+                displayMode = displayMode,
+                stage = currentStage,
+                playbackMode = playbackController.mode,
+                previewElapsedMs = playbackController.previewElapsedMs(visualNowMs),
+                previewCompleted = playbackController.previewCompleted,
+                playbackPaused = playbackController.paused,
+                mappedReferenceMs = diagnosticSceneFrame.opticalReferenceElapsedMs,
+                modelStatus = when {
+                    pipelineError != null -> "模型失败"
+                    finishedResult?.ready == true && !RecognitionRevealDecisionGate.isReady(revealDecision) -> "Classifier 已返回 · 等待 Mask 终态"
+                    finishedResult?.ready == true -> "模型已完成"
+                    else -> "模型处理中"
                 },
-                modifier = Modifier.align(Alignment.BottomCenter)
-                    .padding(bottom = safeInsets.calculateBottomPadding() + 28.dp)
-                    .padding(horizontal = 24.dp).fillMaxWidth(),
-            ) {
-                Text(
-                    text = "${diagnosticStep.ordinal + 1}/7 ${diagnosticStep.title} · ${if (diagnosticStep == RecognitionDiagnosticStep.GOLD) "查看结果" else "下一步效果"}",
-                    textAlign = TextAlign.Center,
-                )
-            }
+                detectorStatus = when {
+                    pipelineError != null || realPhase == RecognitionPhase.FAILURE -> "失败"
+                    assessment?.primary?.box != null -> "就绪"
+                    realPhase == RecognitionPhase.DETECTING -> "运行中"
+                    else -> "等待"
+                },
+                classifierStatus = when {
+                    pipelineError != null || realPhase == RecognitionPhase.FAILURE -> "失败"
+                    finishedResult?.ready == true -> "就绪"
+                    finishedResult != null -> "已返回"
+                    realPhase == RecognitionPhase.CLASSIFYING -> "运行中"
+                    assessment?.primary?.box != null -> "排队"
+                    else -> "等待"
+                },
+                maskStatus = when {
+                    trustedSubjectMask -> "Mask TRUSTED"
+                    subjectResult.status == SubjectStatus.PROCESSING -> "Mask 计算中"
+                    subjectResult.status == SubjectStatus.FAILED -> "Mask 失败 · BBOX_ONLY"
+                    assessment?.primary?.box != null && subjectResult.status == SubjectStatus.READY -> "Mask BBOX_ONLY"
+                    else -> "Mask 等待"
+                },
+                stepStatus = diagnosticActionStatus ?: diagnosticStageStatus,
+                normalProgressText = "",
+                canGoPrevious = currentStage != RecognitionSceneStage.entries.first(),
+                canGoNext = currentStage != RecognitionSceneStage.entries.last(),
+                canControl = true,
+                onDisplayModeChange = ::changeDiagnosticDisplayMode,
+                onPrevious = {
+                    val now = recognitionMonotonicNowMs()
+                    playbackController.returnToPreviousStage(now)
+                    diagnosticActionStatus = null
+                    playbackRevision++
+                },
+                onNext = {
+                    val now = recognitionMonotonicNowMs()
+                    val next = playbackController.advanceToNextStage(now)
+                    diagnosticActionStatus = if (next == null) "已到末步" else null
+                    if (next != null) playbackRevision++
+                },
+                onPauseResume = {
+                    val now = recognitionMonotonicNowMs()
+                    if (playbackController.paused) playbackController.resume(authoritativeOpticalReferenceElapsedMs, now)
+                    else playbackController.pause(authoritativeOpticalReferenceElapsedMs, now)
+                    playbackRevision++
+                },
+                onReplay = {
+                    playbackController.restartCurrentStage(recognitionMonotonicNowMs())
+                    diagnosticActionStatus = null
+                    playbackRevision++
+                },
+                onAutoPlay = {
+                    playbackController.playDiagnosticAuto(
+                        authoritativeOpticalReferenceElapsedMs,
+                        recognitionMonotonicNowMs(),
+                    )
+                    diagnosticActionStatus = null
+                    playbackRevision++
+                },
+            )
         }
     }
 }
 private enum class RecognitionLayerMode { PHOTO_ONLY, PHOTO_GLES, PHOTO_GLES_AMBIENT, FULL }
 
-private enum class RecognitionDiagnosticStep(
-    val title: String,
-    val layerMode: RecognitionLayerMode,
-    val phase: RecognitionPhase,
-    val opticalReferenceMs: Long,
-) {
-    PHOTO("清晰原图", RecognitionLayerMode.PHOTO_ONLY, RecognitionPhase.CAPTURED, 0L),
-    GLES("水光", RecognitionLayerMode.PHOTO_GLES, RecognitionPhase.DETECTING, 950L),
-    AMBIENT("环境光", RecognitionLayerMode.PHOTO_GLES_AMBIENT, RecognitionPhase.DETECTING, 1200L),
-    DETECTOR("真实鱼框", RecognitionLayerMode.PHOTO_ONLY, RecognitionPhase.DETECTING, 950L),
-    CONTOUR("真实轮廓", RecognitionLayerMode.PHOTO_ONLY, RecognitionPhase.OUTLINE, 1200L),
-    GOLD("金光峰值", RecognitionLayerMode.PHOTO_ONLY, RecognitionPhase.CLASSIFYING, 2050L);
-
-    fun next(): RecognitionDiagnosticStep? = entries.getOrNull(ordinal + 1)
+private fun RecognitionSceneStage.toRecognitionPhase(): RecognitionPhase = when (this) {
+    RecognitionSceneStage.PHOTO_STABLE -> RecognitionPhase.CAPTURED
+    RecognitionSceneStage.ORB_WAKE,
+    RecognitionSceneStage.ORB_RELEASE,
+    RecognitionSceneStage.PERIMETER_ARRIVAL,
+    RecognitionSceneStage.PATH_TO_FISH -> RecognitionPhase.DETECTING
+    RecognitionSceneStage.CONTOUR_A,
+    RecognitionSceneStage.CONTOUR_B,
+    RecognitionSceneStage.CONTOUR_C -> RecognitionPhase.OUTLINE
+    RecognitionSceneStage.FISH_GOLD_PEAK,
+    RecognitionSceneStage.ORB_RETURN,
+    RecognitionSceneStage.ORB_TO_NAME,
+    RecognitionSceneStage.SPECIES_NAME_REVEAL,
+    RecognitionSceneStage.RESIDUE_SETTLE -> RecognitionPhase.CLASSIFYING
 }
 
 @Composable
 private fun RecognitionPhoto(
     waterLightFrame: WaterLightFrame,
     waterLightEngine: UnifiedWaterLightEngine,
+    energyPathLedger: WaterLightPathLedger,
+    revealDecision: RecognitionRevealDecisionState,
     bitmap: Bitmap,
     photoFlowPlan: RecognitionPhotoFlowPlan,
+    orbCenter: Offset,
+    orbAnchorReady: Boolean,
+    orbRadiusPx: Float,
     photoEntryProgress: Float,
     phase: RecognitionPhase,
     focusBox: NormalizedFishBox?,
@@ -1024,11 +1481,14 @@ private fun RecognitionPhoto(
     focusLevel: RecognitionFishFocusLevel,
     onFishFocusTransform: ((RecognitionImageTransform) -> Unit)?,
     onPhotoGeometryChanged: (Long) -> Unit,
+    onDetectorPathPresented: (RecognitionSceneIdentity, Long) -> Unit,
     modifier: Modifier,
     onProcessingPhotoSnapshot: (
         RecognitionImageTransform,
         RecognitionRevealWindowRect,
         RecognitionRevealWindowRect,
+        Float,
+        Offset,
         Float,
     ) -> Unit,
     onPhotoFirstFramePresented: (Long) -> Unit,
@@ -1039,7 +1499,8 @@ private fun RecognitionPhoto(
     photoSha256: String,
     maskRevealProgress: Float,
     trustedMask: Boolean,
-    diagnosticStep: RecognitionDiagnosticStep?,
+    successfulRevealAllowed: Boolean,
+    allowDiagnosticContourPreview: Boolean,
 ) {
     val transform = remember(photoFlowPlan, photoEntryProgress) {
         interpolateRecognitionPhotoTransform(
@@ -1064,10 +1525,74 @@ private fun RecognitionPhoto(
         photoBounds.left, photoBounds.top, photoBounds.right, photoBounds.bottom)
     val contourStart = focusBox?.let { transform.mapNormalized(it.x1, it.y1) }
     val contourEnd = focusBox?.let { transform.mapNormalized(it.x2, it.y2) }
-    val contourReady = contourStart != null && contourEnd != null && hostReady(WaterLightHost.CONTOUR,
+    val fishEnergyAllowed = trustedMask && (successfulRevealAllowed || allowDiagnosticContourPreview)
+    val contourReady = fishEnergyAllowed && contourStart != null && contourEnd != null && hostReady(WaterLightHost.CONTOUR,
         contourStart.x, contourStart.y, contourEnd.x, contourEnd.y)
     val waterScope = rememberCoroutineScope()
-    val energyEvent = WaterLightEnergy.at(waterLightFrame, trustedMask)
+    val orbOnlyEnergyAllowed = revealDecision == RecognitionRevealDecisionState.ORB_ONLY_READY
+    val baseEnergyEvent = WaterLightEnergy.at(
+        waterLightFrame, fishEnergyAllowed, successfulRevealAllowed,
+        orbOnlyRevealAllowed = orbOnlyEnergyAllowed,
+    )
+    val detectorAnchor = focusBox?.let(transform::mapBox)
+        ?.let { WaterLightPathPoint(it.x, it.y) }
+    val fishAnchor = if (fishEnergyAllowed) recognitionMaskAnchor(focusBox, contour, transform) else null
+    val pathGeometry = when (baseEnergyEvent?.feedback) {
+        EnergyFeedback.RELEASE -> nearestPhotoPerimeterAnchor(photoBounds, orbCenter)?.let { edge ->
+            WaterLightPathGeometryFactory.between(
+                orbSurfaceAnchor(orbCenter, edge, orbRadiusPx).let { WaterLightPathPoint(it.x, it.y) },
+                WaterLightPathPoint(edge.x, edge.y),
+                waterLightFrame.sessionId.hashCode() xor imageId.hashCode(),
+            )?.also { energyPathLedger.recordRelease(waterLightFrame, it) }
+        }
+        EnergyFeedback.ARRIVE -> if (waterLightFrame.sceneFrame.stage == RecognitionSceneStage.PATH_TO_FISH &&
+            detectorAnchor != null
+        ) {
+            energyPathLedger.releaseEndpoint(waterLightFrame)?.let { releaseEnd ->
+                WaterLightPathGeometryFactory.between(
+                    releaseEnd,
+                    detectorAnchor,
+                    waterLightFrame.sessionId.hashCode() xor imageId.hashCode(),
+                )?.also { energyPathLedger.recordDetectorPath(waterLightFrame, it) }
+            }
+        } else null
+        EnergyFeedback.ABSORB -> if (detectorAnchor != null && fishAnchor != null)
+            WaterLightPathGeometryFactory.between(
+                detectorAnchor,
+                WaterLightPathPoint(fishAnchor.x, fishAnchor.y),
+                waterLightFrame.sessionId.hashCode() xor imageId.hashCode(),
+            )?.also { energyPathLedger.recordFishPath(waterLightFrame, it, fishEnergyAllowed) } else null
+        EnergyFeedback.RETURN -> null
+        else -> null
+    }
+    val returnRoute = if (baseEnergyEvent?.feedback == EnergyFeedback.RETURN)
+        energyPathLedger.returnRoute(waterLightFrame, trustedMask = fishEnergyAllowed) else null
+    val energyEvent = if (baseEnergyEvent?.feedback == EnergyFeedback.RETURN &&
+        returnRoute?.isValid() != true
+    ) null else WaterLightEnergy.at(
+        waterLightFrame,
+        fishEnergyAllowed,
+        successfulRevealAllowed,
+        pathGeometry = pathGeometry,
+        orbOnlyRevealAllowed = orbOnlyEnergyAllowed,
+        pathSegments = returnRoute?.segments.orEmpty(),
+        pathIdOverride = returnRoute?.id ?: energyPathLedger.pathId(waterLightFrame),
+    )
+    LaunchedEffect(
+        waterLightFrame.sceneFrame.identity,
+        waterLightFrame.geometryVersion,
+        waterLightFrame.sceneFrame.stage,
+        pathReady,
+        energyEvent?.feedback,
+        energyEvent?.pathGeometry,
+    ) {
+        val event = energyEvent ?: return@LaunchedEffect
+        if (pathReady && waterLightFrame.sceneFrame.stage == RecognitionSceneStage.PATH_TO_FISH &&
+            event.feedback == EnergyFeedback.ARRIVE && event.pathGeometry?.isValid() == true
+        ) {
+            onDetectorPathPresented(waterLightFrame.sceneFrame.identity, waterLightFrame.geometryVersion)
+        }
+    }
     val causticsRenderer = remember(waterLightEngine) { WaterCausticsRenderer(waterScope) }
     val dropletRenderer = remember(waterLightEngine) { WaterDropletRenderer() }
     var causticsRevision by remember(waterLightEngine) { mutableIntStateOf(0) }
@@ -1075,7 +1600,7 @@ private fun RecognitionPhoto(
         onDispose { causticsRenderer.close(); dropletRenderer.release() }
     }
     // Candidate additive material only after the frozen P0/P2/P3 samples.
-    val additiveMaterialActive = pathReady && waterLightFrame.phase == RecognitionPhase.CLASSIFYING &&
+    val additiveMaterialActive = pathReady && waterLightFrame.phase == WaterLightPhase.PROCESSING &&
         waterLightFrame.opticalReferenceElapsedMs in 1_550L..2_600L &&
         !waterLightFrame.reducedMotion && !motionPolicy.lowPerformance
     LaunchedEffect(causticsRenderer, waterLightFrame, photoBounds, additiveMaterialActive) {
@@ -1103,11 +1628,11 @@ private fun RecognitionPhoto(
     val photoClipPath = remember { Path() }
     val additiveClipPath = remember { Path() }
     var selectedLayerMode by remember(bitmap, motionSessionKey) { mutableStateOf(RecognitionLayerMode.FULL) }
-    val layerMode = diagnosticStep?.layerMode ?: selectedLayerMode
+    val layerMode = selectedLayerMode
     var viewportBounds by remember(bitmap, motionSessionKey) { mutableStateOf<RecognitionRevealWindowRect?>(null) }
 
-    LaunchedEffect(photoEntryProgress, viewportBounds, photoFlowPlan.targetTransform) {
-        if (photoEntryProgress < 1f) return@LaunchedEffect
+    LaunchedEffect(photoEntryProgress, viewportBounds, photoFlowPlan.targetTransform, orbCenter, orbAnchorReady) {
+        if (photoEntryProgress < 1f || !orbAnchorReady) return@LaunchedEffect
         val bounds = viewportBounds ?: return@LaunchedEffect
         val photoRect = photoFlowPlan.targetTransform.photoContentRect
         val photoBounds = RecognitionRevealWindowRect(
@@ -1121,6 +1646,8 @@ private fun RecognitionPhoto(
             bounds,
             photoBounds,
             with(density) { 16.dp.toPx() },
+            orbCenter,
+            orbRadiusPx * 2f,
         )
     }
     if (onFishFocusTransform != null) {
@@ -1149,9 +1676,8 @@ private fun RecognitionPhoto(
             Canvas(
                 Modifier.fillMaxSize().drawWithContent {
                     drawContent()
-                    if (photoEntryProgress >= 1f && reportedFirstFrame.compareAndSet(false, true)) {
-                        // Wait for the Compose frame containing the stable final photo
-                        // transform before starting the visual clock.
+                    if (reportedFirstFrame.compareAndSet(false, true)) {
+                        // The first frame containing the real PhotoSession starts the sole scene clock.
                         mainHandler.post {
                             Choreographer.getInstance().postFrameCallback {
                                 val presentedAtMs = recognitionMonotonicNowMs()
@@ -1203,6 +1729,7 @@ private fun RecognitionPhoto(
                 photoSha256 = photoSha256,
                 phase = phase,
                 material = WaterLightMaterialProfile.PERIMETER,
+                energyEvent = energyEvent,
                 reduceMotion = motionPolicy.reduceMotion,
                 modifier = Modifier.semantics {
                     contentDescription = "正在识别的鱼获照片"
@@ -1222,6 +1749,14 @@ private fun RecognitionPhoto(
                 photoTransform = transform,
                 includeEdgeField = true,
                 waterLightFrame = waterLightFrame,
+            )
+            if (pathReady && (energyEvent?.pathGeometry != null || energyEvent?.pathSegments?.isNotEmpty() == true) &&
+                (!BuildConfig.DEBUG || layerMode == RecognitionLayerMode.FULL)
+            ) WaterLightEnergyPathRenderer(
+                frame = waterLightFrame,
+                event = energyEvent,
+                material = waterHosts.getValue(WaterLightHost.PATH).material,
+                modifier = Modifier.fillMaxSize(),
             )
             if (additiveMaterialActive && (!BuildConfig.DEBUG || layerMode == RecognitionLayerMode.FULL)) {
                 val readyRevision = causticsRevision
@@ -1246,7 +1781,33 @@ private fun RecognitionPhoto(
                     }
                 }
             }
-            if (contourReady && (!BuildConfig.DEBUG || layerMode == RecognitionLayerMode.FULL || diagnosticStep == RecognitionDiagnosticStep.CONTOUR || diagnosticStep == RecognitionDiagnosticStep.GOLD) && diagnosticStep != RecognitionDiagnosticStep.DETECTOR) RecognitionFishFocus(
+            if (!BuildConfig.DEBUG || layerMode == RecognitionLayerMode.FULL) {
+                val grassBounds = androidx.compose.ui.geometry.Rect(
+                    photoBounds.left,
+                    photoBounds.top + photoBounds.height * .86f,
+                    photoBounds.right,
+                    photoBounds.bottom,
+                )
+                val fishAvoidBounds = focusBox?.let { box ->
+                    val topLeft = transform.mapNormalized(box.x1, box.y1)
+                    val bottomRight = transform.mapNormalized(box.x2, box.y2)
+                    androidx.compose.ui.geometry.Rect(
+                        minOf(topLeft.x, bottomRight.x), minOf(topLeft.y, bottomRight.y),
+                        maxOf(topLeft.x, bottomRight.x), maxOf(topLeft.y, bottomRight.y),
+                    )
+                }
+                WaterGrassField(
+                    frame = waterLightFrame,
+                    modifier = Modifier.fillMaxSize(),
+                    material = waterHosts.getValue(WaterLightHost.PATH).material,
+                    opacity = .32f,
+                    seed = waterLightFrame.sessionId.hashCode().toLong() xor imageId.hashCode().toLong(),
+                    drawBounds = grassBounds,
+                    avoidBounds = fishAvoidBounds,
+                    energyEvent = energyEvent,
+                )
+            }
+            if (contourReady && (!BuildConfig.DEBUG || layerMode == RecognitionLayerMode.FULL)) RecognitionFishFocus(
                 phase,
                 focusBox,
                 subjectBitmap,
@@ -1261,23 +1822,12 @@ private fun RecognitionPhoto(
                 lowPerformance = motionPolicy.lowPerformance,
                 trustedMask = trustedMask,
                 waterLightFrame = waterLightFrame,
+                energyEvent = energyEvent,
+                material = waterHosts.getValue(WaterLightHost.CONTOUR).material,
                 contourPhotoSpace = true,
             )
-            if (diagnosticStep == RecognitionDiagnosticStep.DETECTOR && focusBox != null) Canvas(Modifier.fillMaxSize()) {
-                val topLeft = transform.mapNormalized(focusBox.x1, focusBox.y1)
-                val bottomRight = transform.mapNormalized(focusBox.x2, focusBox.y2)
-                drawRect(
-                    color = Color(0xFFFFC975),
-                    topLeft = androidx.compose.ui.geometry.Offset(topLeft.x, topLeft.y),
-                    size = androidx.compose.ui.geometry.Size(
-                        (bottomRight.x - topLeft.x).coerceAtLeast(1f),
-                        (bottomRight.y - topLeft.y).coerceAtLeast(1f),
-                    ),
-                    style = Stroke(width = 3.dp.toPx()),
-                )
-            }
         }
-        if (BuildConfig.DEBUG && diagnosticStep != null) Text(
+        if (BuildConfig.DEBUG) Text(
             text = layerMode.name,
             color = Color.White,
             modifier = Modifier.align(Alignment.TopEnd).background(Color(0xAA10252A))
@@ -1291,6 +1841,52 @@ private fun RecognitionPhoto(
 
 internal const val GENERIC_RECOGNITION_FAILURE_MESSAGE = "识别没有完成\n请重新拍摄或选择照片"
 internal fun recognitionFailureMessage(@Suppress("UNUSED_PARAMETER") error: Throwable): String = GENERIC_RECOGNITION_FAILURE_MESSAGE
+
+private fun recognitionMaskAnchor(
+    focusBox: NormalizedFishBox?,
+    contour: List<RecognitionContourSegment>,
+    transform: RecognitionImageTransform,
+): Offset? {
+    val box = focusBox ?: return null
+    if (contour.isEmpty()) return null
+    val points = contour.flatMap { listOf(it.startX to it.startY, it.endX to it.endY) }
+        .filter { it.first.isFinite() && it.second.isFinite() && it.first in 0f..1f && it.second in 0f..1f }
+    if (points.isEmpty()) return null
+    val roiX = points.map { it.first }.average().toFloat()
+    val roiY = points.map { it.second }.average().toFloat()
+    val mapped = transform.mapNormalized(
+        box.x1 + roiX * (box.x2 - box.x1),
+        box.y1 + roiY * (box.y2 - box.y1),
+    )
+    return Offset(mapped.x, mapped.y).takeIf { it.x.isFinite() && it.y.isFinite() }
+}
+
+private fun nearestPhotoPerimeterAnchor(
+    rect: DisplayRect,
+    point: Offset,
+): Offset? {
+    if (!rect.width.isFinite() || !rect.height.isFinite() || rect.width <= 1f || rect.height <= 1f) return null
+    val candidates = listOf(
+        Offset(point.x.coerceIn(rect.left, rect.right), rect.top),
+        Offset(rect.right, point.y.coerceIn(rect.top, rect.bottom)),
+        Offset(point.x.coerceIn(rect.left, rect.right), rect.bottom),
+        Offset(rect.left, point.y.coerceIn(rect.top, rect.bottom)),
+    )
+    return candidates.minByOrNull { candidate ->
+        val dx = candidate.x - point.x
+        val dy = candidate.y - point.y
+        dx * dx + dy * dy
+    }
+}
+
+private fun orbSurfaceAnchor(center: Offset, target: Offset, radiusPx: Float): Offset {
+    val dx = target.x - center.x
+    val dy = target.y - center.y
+    val distance = kotlin.math.hypot(dx, dy)
+    if (!distance.isFinite() || distance < 1f) return center
+    val offset = radiusPx.coerceAtLeast(0f).coerceAtMost(distance * .72f)
+    return Offset(center.x + dx / distance * offset, center.y + dy / distance * offset)
+}
 
 internal fun extractContour(bitmap: Bitmap): List<RecognitionContourSegment> {
     val width = bitmap.width; val height = bitmap.height

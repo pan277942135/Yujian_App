@@ -4,6 +4,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import com.yujian.ai.ai.RecognitionPhase
 
 class RecognitionPerimeterShaderMathTest {
     @Test
@@ -107,5 +108,16 @@ class RecognitionPerimeterShaderMathTest {
         assertTrue(first[15].active)
         assertEquals(310f, first[0].x, .001f)
         assertEquals(1_211f, first[0].y, .001f)
+    }
+
+    @Test
+    fun perimeterLifetimeFollowsRecognitionPhaseInsteadOfAnAbsoluteElapsedCutoff() {
+        assertTrue(recognitionPerimeterActive(true, RecognitionPhase.CLASSIFYING))
+        assertEquals(.10f, recognitionPerimeterOpacity(true, false, 2_600L), .0001f)
+        // P7's frozen optical curve reaches zero, while slow classification is still
+        // allowed to retain the compositor and keep the real photo layer alive.
+        assertEquals(0f, recognitionPerimeterOpacity(true, false, 2_800L), 0f)
+        assertTrue(recognitionPerimeterActive(true, RecognitionPhase.CLASSIFYING))
+        assertFalse(recognitionPerimeterActive(true, RecognitionPhase.RESULT))
     }
 }

@@ -1,11 +1,13 @@
 package com.yujian.ai.ui.recognition.reveal
 
+import com.yujian.ai.ui.waterlight.core.RecognitionSceneStage
+
 enum class RecognitionRevealPhase {
     PHOTO_CONTINUITY,
-    GOLD_TRANSFER,
-    NAME_FORMATION,
-    NAME_REVEAL,
-    AFTERGLOW,
+    ORB_RETURN,
+    ORB_TO_NAME,
+    SPECIES_NAME_REVEAL,
+    RESIDUE_SETTLE,
     COMPLETE,
 }
 
@@ -39,16 +41,54 @@ data class RecognitionRevealFrame(
     val ctaEnabled: Boolean = true,
 ) {
     val isComplete: Boolean get() = phase == RecognitionRevealPhase.COMPLETE
+    /** RR09 V4 Orb receive/stabilize progress after the return path launches during photo continuity. */
+    val orbReturnProgress: Float get() = transferProgress
+    val orbToNameProgress: Float get() = titleFormationProgress
 }
 
 object RecognitionRevealClock {
+    /** Canonical optical-coordinate span. This is not a wall-clock timeout. */
     const val TOTAL_DURATION_MS = 850L
     const val PHOTO_END_MS = 200L
-    const val GOLD_TRANSFER_END_MS = 380L
-    const val NAME_FORMATION_END_MS = 550L
-    const val NAME_REVEAL_END_MS = 680L
+    const val ORB_RETURN_END_MS = 380L
+    const val ORB_TO_NAME_END_MS = 550L
+    const val SPECIES_NAME_REVEAL_END_MS = 680L
+    const val GOLD_TRANSFER_END_MS = ORB_RETURN_END_MS
+    const val NAME_FORMATION_END_MS = ORB_TO_NAME_END_MS
+    const val NAME_REVEAL_END_MS = SPECIES_NAME_REVEAL_END_MS
     const val FULL_PARTICLE_LIMIT = 18
     const val LOW_PARTICLE_LIMIT = 6
+
+    /**
+     * Projects the shared scene controller's stage and local progress onto the frozen optical
+     * curve. Actual stage dwell is owned by RecognitionVisualStateController and can extend
+     * without restarting this projection or imposing a global completion deadline.
+     */
+    fun evaluateSceneStage(
+        stage: RecognitionSceneStage,
+        stageProgress: Float,
+        handoff: RecognitionRevealHandoff?,
+        policy: RecognitionRevealMotionPolicy,
+    ): RecognitionRevealFrame = evaluate(
+        elapsedMs = canonicalElapsedMs(stage, stageProgress),
+        handoff = handoff,
+        policy = policy,
+    )
+
+    fun canonicalElapsedMs(stage: RecognitionSceneStage, stageProgress: Float): Long {
+        val progress = stageProgress.coerceIn(0f, 1f)
+        val (start, duration) = when (stage) {
+            RecognitionSceneStage.ORB_RETURN -> 0L to ORB_RETURN_END_MS
+            RecognitionSceneStage.ORB_TO_NAME -> ORB_RETURN_END_MS to
+                (ORB_TO_NAME_END_MS - ORB_RETURN_END_MS)
+            RecognitionSceneStage.SPECIES_NAME_REVEAL -> ORB_TO_NAME_END_MS to
+                (SPECIES_NAME_REVEAL_END_MS - ORB_TO_NAME_END_MS)
+            RecognitionSceneStage.RESIDUE_SETTLE -> SPECIES_NAME_REVEAL_END_MS to
+                (TOTAL_DURATION_MS - SPECIES_NAME_REVEAL_END_MS)
+            else -> 0L to 0L
+        }
+        return start + (duration * progress).toLong()
+    }
 
     fun evaluate(
         elapsedMs: Long,
@@ -105,10 +145,10 @@ object RecognitionRevealClock {
                 elapsedMs = t,
                 phase = when {
                     t < PHOTO_END_MS -> RecognitionRevealPhase.PHOTO_CONTINUITY
-                    t < GOLD_TRANSFER_END_MS -> RecognitionRevealPhase.GOLD_TRANSFER
-                    t < NAME_FORMATION_END_MS -> RecognitionRevealPhase.NAME_FORMATION
-                    t < NAME_REVEAL_END_MS -> RecognitionRevealPhase.NAME_REVEAL
-                    t < TOTAL_DURATION_MS -> RecognitionRevealPhase.AFTERGLOW
+                    t < GOLD_TRANSFER_END_MS -> RecognitionRevealPhase.ORB_RETURN
+                    t < NAME_FORMATION_END_MS -> RecognitionRevealPhase.ORB_TO_NAME
+                    t < NAME_REVEAL_END_MS -> RecognitionRevealPhase.SPECIES_NAME_REVEAL
+                    t < TOTAL_DURATION_MS -> RecognitionRevealPhase.RESIDUE_SETTLE
                     else -> RecognitionRevealPhase.COMPLETE
                 },
                 photoProgress = photoProgress,
@@ -126,17 +166,21 @@ object RecognitionRevealClock {
                 titleSweepProgress = 0f,
                 afterglowAlpha = 0f,
                 visibleParticleCount = 0,
-                drawOpticalLayer = canPhotoTransition && t < PHOTO_END_MS,
+                // TITLE_FADE_ONLY is the production Orb-only branch: it has no fish contour,
+                // but the measured perimeter-to-Orb return, Orb-to-glyph translation and
+                // residue remain visible for the complete RR09 window. PHOTO_ONLY never
+                // reaches this branch because it is excluded from canPhotoTransition.
+                drawOpticalLayer = fallback && canPhotoTransition && t < TOTAL_DURATION_MS,
                 fallback = fallback,
             )
         }
 
         val phase = when {
             t < PHOTO_END_MS -> RecognitionRevealPhase.PHOTO_CONTINUITY
-            t < GOLD_TRANSFER_END_MS -> RecognitionRevealPhase.GOLD_TRANSFER
-            t < NAME_FORMATION_END_MS -> RecognitionRevealPhase.NAME_FORMATION
-            t < NAME_REVEAL_END_MS -> RecognitionRevealPhase.NAME_REVEAL
-            else -> RecognitionRevealPhase.AFTERGLOW
+            t < GOLD_TRANSFER_END_MS -> RecognitionRevealPhase.ORB_RETURN
+            t < NAME_FORMATION_END_MS -> RecognitionRevealPhase.ORB_TO_NAME
+            t < NAME_REVEAL_END_MS -> RecognitionRevealPhase.SPECIES_NAME_REVEAL
+            else -> RecognitionRevealPhase.RESIDUE_SETTLE
         }
         val transfer = ((t - PHOTO_END_MS).toFloat() /
             (GOLD_TRANSFER_END_MS - PHOTO_END_MS)).coerceIn(0f, 1f)

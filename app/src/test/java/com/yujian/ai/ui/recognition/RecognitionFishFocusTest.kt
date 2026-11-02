@@ -63,4 +63,19 @@ class RecognitionFishFocusTest {
         )
         assertFalse(recognitionMaskContourEnabled(RecognitionPhase.OUTLINE, maskTrusted = false))
     }
+
+    @Test
+    fun contourMaterialCandidateMatchesTheAuditedWebLayerContract() {
+        assertEquals(0xFF063B46L, RecognitionContourMaterialCandidate.UNDER_STROKE_COLOR)
+        assertEquals(.80f, RecognitionContourMaterialCandidate.UNDER_STROKE_OPACITY, 0f)
+        assertEquals(
+            listOf(
+                0xFF0284C7L, 0xFF38BDF8L, 0xFFFDE68AL, 0xFFF59E0BL,
+                0xFF0284C7L, 0xFF38BDF8L, 0xFFFDE68AL, 0xFFF59E0BL, 0xFF0284C7L,
+            ),
+            RecognitionContourMaterialCandidate.CORE_GRADIENT_COLORS,
+        )
+        assertEquals(2_200L, RecognitionContourMaterialCandidate.GOLD_GLINT_PERIOD_MS)
+        assertEquals(.20f, RecognitionContourMaterialCandidate.GOLD_GLINT_ARC_RATIO, 0f)
+    }
 }

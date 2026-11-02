@@ -7,12 +7,24 @@ import com.yujian.ai.ui.identify.NormalizedSourceRect
 import com.yujian.ai.ui.identify.RecognitionContentScaleMode
 import com.yujian.ai.ui.identify.calculateRecognitionImageTransform
 import com.yujian.ai.ui.recognition.RecognitionContourSegment
+import com.yujian.ai.ui.waterlight.core.RecognitionSceneStage
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class RecognitionRevealPolicyTest {
+    @Test
+    fun sharedSceneStageProjectsOpticsWithoutOwningAnElapsedTimer() {
+        assertEquals(0L, RecognitionRevealClock.canonicalElapsedMs(RecognitionSceneStage.ORB_RETURN, 0f))
+        assertEquals(190L, RecognitionRevealClock.canonicalElapsedMs(RecognitionSceneStage.ORB_RETURN, .5f))
+        assertEquals(380L, RecognitionRevealClock.canonicalElapsedMs(RecognitionSceneStage.ORB_TO_NAME, 0f))
+        assertEquals(465L, RecognitionRevealClock.canonicalElapsedMs(RecognitionSceneStage.ORB_TO_NAME, .5f))
+        assertEquals(550L, RecognitionRevealClock.canonicalElapsedMs(RecognitionSceneStage.SPECIES_NAME_REVEAL, 0f))
+        assertEquals(680L, RecognitionRevealClock.canonicalElapsedMs(RecognitionSceneStage.RESIDUE_SETTLE, 0f))
+        assertEquals(850L, RecognitionRevealClock.canonicalElapsedMs(RecognitionSceneStage.RESIDUE_SETTLE, 1f))
+    }
+
     @Test
     fun timelineHasFrozenBoundariesAndOneMonotonicProgression() {
         val handoff = handoff()
@@ -23,15 +35,19 @@ class RecognitionRevealPolicyTest {
         assertEquals(RecognitionRevealPhase.PHOTO_CONTINUITY, frame(120, handoff, policy).phase)
         assertTrue(frame(120, handoff, policy).photoProgress in 0f..1f)
         assertEquals(0.5f, frame(100, handoff, policy).photoProgress, 0.0001f)
-        assertEquals(RecognitionRevealPhase.GOLD_TRANSFER, frame(200, handoff, policy).phase)
+        assertEquals(RecognitionRevealPhase.ORB_RETURN, frame(200, handoff, policy).phase)
+        assertEquals(0f, frame(200, handoff, policy).orbReturnProgress, 0f)
+        assertEquals(.5f, frame(290, handoff, policy).orbReturnProgress, .0001f)
         assertEquals(RecognitionRevealClock.FULL_PARTICLE_LIMIT, frame(200, handoff, policy).visibleParticleCount)
-        assertEquals(RecognitionRevealPhase.GOLD_TRANSFER, frame(379, handoff, policy).phase)
+        assertEquals(RecognitionRevealPhase.ORB_RETURN, frame(379, handoff, policy).phase)
         assertEquals(0, frame(380, handoff, policy).visibleParticleCount)
-        assertEquals(RecognitionRevealPhase.NAME_FORMATION, frame(380, handoff, policy).phase)
+        assertEquals(RecognitionRevealPhase.ORB_TO_NAME, frame(380, handoff, policy).phase)
+        assertEquals(0f, frame(380, handoff, policy).orbToNameProgress, 0f)
         assertEquals(RecognitionRevealTitleMode.FORMING, frame(549, handoff, policy).titleMode)
-        assertEquals(RecognitionRevealPhase.NAME_REVEAL, frame(550, handoff, policy).phase)
+        assertEquals(RecognitionRevealPhase.SPECIES_NAME_REVEAL, frame(550, handoff, policy).phase)
         assertEquals(RecognitionRevealTitleMode.REVEALING, frame(610, handoff, policy).titleMode)
-        assertEquals(RecognitionRevealPhase.AFTERGLOW, frame(680, handoff, policy).phase)
+        assertEquals(RecognitionRevealPhase.RESIDUE_SETTLE, frame(680, handoff, policy).phase)
+        assertEquals(1f, frame(680, handoff, policy).afterglowAlpha, 0f)
         assertEquals(RecognitionRevealTitleMode.VISIBLE, frame(680, handoff, policy).titleMode)
         assertEquals(RecognitionRevealPhase.COMPLETE, frame(850, handoff, policy).phase)
         assertEquals(0, frame(850, handoff, policy).visibleParticleCount)
@@ -47,6 +63,11 @@ class RecognitionRevealPolicyTest {
         assertEquals(RecognitionRevealTitleMode.HIDDEN, titleFrame.titleMode)
         assertEquals(RecognitionRevealTitleMode.FORMING, frame(400, titleOnly, RecognitionRevealMotionPolicy()).titleMode)
         assertEquals(RecognitionRevealTitleMode.REVEALING, frame(600, titleOnly, RecognitionRevealMotionPolicy()).titleMode)
+        listOf(200L, 379L, 380L, 549L, 550L, 679L, 680L, 849L).forEach { elapsed ->
+            assertTrue("Orb-only optics must remain active through RR09 at ${elapsed}ms",
+                frame(elapsed, titleOnly, RecognitionRevealMotionPolicy()).drawOpticalLayer)
+        }
+        assertFalse(frame(850L, titleOnly, RecognitionRevealMotionPolicy()).drawOpticalLayer)
 
         val nonHigh = handoff(RecognitionRevealEligibility.PHOTO_ONLY)
         val nonHighFrame = frame(290, nonHigh, RecognitionRevealMotionPolicy())
@@ -54,6 +75,7 @@ class RecognitionRevealPolicyTest {
         assertEquals(0f, nonHighFrame.transferProgress, 0f)
         assertEquals(0, nonHighFrame.visibleParticleCount)
         assertEquals(RecognitionRevealTitleMode.STATIC, nonHighFrame.titleMode)
+        assertFalse("PHOTO_ONLY must not acquire Orb-only reveal optics", nonHighFrame.drawOpticalLayer)
     }
 
     @Test

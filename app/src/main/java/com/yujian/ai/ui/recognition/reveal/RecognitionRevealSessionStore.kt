@@ -22,6 +22,8 @@ data class RecognitionRevealSessionSnapshot(
     val subjectGeometry: RecognitionSubjectGeometrySnapshot? = null,
     val processingPhoto: RecognitionProcessingPhotoSnapshot? = null,
     val handoff: RecognitionRevealHandoff? = null,
+    val highConfidenceResult: Boolean = false,
+    val revealDecision: RecognitionRevealDecisionState = RecognitionRevealDecisionState.WAITING_BOTH,
 )
 
 internal fun RecognitionRevealSessionSnapshot.matches(key: RecognitionRevealKey): Boolean =
@@ -56,14 +58,52 @@ class RecognitionRevealSessionStore : ViewModel() {
         val current = snapshot ?: return
         if (!current.matches(key)) return
         if (current.subjectResult == result && current.subjectGeometry == geometry) return
-        snapshot = current.copy(subjectResult = result, subjectGeometry = geometry)
+        val candidate = current.copy(subjectResult = result, subjectGeometry = geometry)
+        val updatedHandoff = rebuildHandoff(candidate)
+        snapshot = candidate.copy(
+            handoff = updatedHandoff,
+            revealDecision = decisionFor(candidate),
+        )
     }
 
     fun updateProcessingPhoto(key: RecognitionRevealKey, photo: RecognitionProcessingPhotoSnapshot) {
         val current = snapshot ?: return
         if (!current.matches(key) || current.image?.imageId != photo.imageId) return
         if (current.processingPhoto == photo) return
-        snapshot = current.copy(processingPhoto = photo)
+        val candidate = current.copy(processingPhoto = photo)
+        snapshot = candidate.copy(
+            handoff = rebuildHandoff(candidate),
+            revealDecision = decisionFor(candidate),
+        )
+    }
+
+    /** Retain the real Classifier result immediately while the independent SlimSAM task continues. */
+    fun recordClassifierResult(
+        key: RecognitionRevealKey,
+        result: ProductionRecognitionResult,
+        inferenceAsset: InferenceAsset?,
+        highConfidenceResult: Boolean,
+    ): RecognitionRevealDecisionState? {
+        val current = snapshot ?: return null
+        val image = current.image ?: return null
+        if (!current.matches(key) || image.imageId.isBlank() || image.photoSha256.isBlank()) return null
+        val candidate = current.copy(
+            productionResult = result,
+            prediction = result.prediction,
+            inferenceAsset = inferenceAsset,
+            highConfidenceResult = highConfidenceResult,
+        )
+        val updated = candidate.copy(
+            handoff = rebuildHandoff(candidate),
+            revealDecision = decisionFor(candidate),
+        )
+        snapshot = updated
+        return updated.revealDecision
+    }
+
+    fun revealDecisionFor(key: RecognitionRevealKey): RecognitionRevealDecisionState? {
+        val current = snapshot?.takeIf { it.matches(key) } ?: return null
+        return decisionFor(current)
     }
 
     fun completeAttempt(
@@ -76,6 +116,14 @@ class RecognitionRevealSessionStore : ViewModel() {
         val current = snapshot ?: return null
         if (!current.matches(key)) return null
         val image = current.image ?: return null
+        val candidate = current.copy(
+            productionResult = result,
+            prediction = result.prediction,
+            inferenceAsset = inferenceAsset,
+            highConfidenceResult = highConfidenceResult,
+        )
+        val decision = decisionFor(candidate)
+        if (!RecognitionRevealDecisionGate.isReady(decision)) return null
         val handoff = RecognitionRevealHandoffFactory.create(
             recognitionSessionId = key.recognitionSessionId,
             recognitionAttemptId = key.recognitionAttemptId,
@@ -85,12 +133,11 @@ class RecognitionRevealSessionStore : ViewModel() {
             processingPhoto = current.processingPhoto,
             highConfidenceResult = highConfidenceResult,
             handoffTimestampUptimeMs = handoffTimestampUptimeMs,
+            subjectStatus = current.subjectResult.status,
         )
-        snapshot = current.copy(
-            productionResult = result,
-            prediction = result.prediction,
-            inferenceAsset = inferenceAsset,
+        snapshot = candidate.copy(
             handoff = handoff,
+            revealDecision = handoff.revealDecision ?: decision,
         )
         return handoff
     }
@@ -104,7 +151,60 @@ class RecognitionRevealSessionStore : ViewModel() {
     fun releaseAnimationGeometry(key: RecognitionRevealKey) {
         val current = snapshot ?: return
         if (!current.matches(key)) return
-        snapshot = current.copy(subjectGeometry = null, processingPhoto = null, handoff = null)
+        // These compact identity-bound snapshots are needed if SlimSAM or host geometry
+        // completes after the 850 ms reveal. They are released with the recognition attempt.
+    }
+
+    private fun rebuildHandoff(
+        current: RecognitionRevealSessionSnapshot,
+        subject: RecognitionSubjectGeometrySnapshot? = current.subjectGeometry,
+        processingPhoto: RecognitionProcessingPhotoSnapshot? = current.processingPhoto,
+    ): RecognitionRevealHandoff? {
+        val handoff = current.handoff ?: return null
+        val image = current.image ?: return handoff
+        val production = current.productionResult ?: return handoff
+        return RecognitionRevealHandoffFactory.create(
+            recognitionSessionId = handoff.key.recognitionSessionId,
+            recognitionAttemptId = handoff.key.recognitionAttemptId,
+            image = image,
+            result = production,
+            subject = subject,
+            processingPhoto = processingPhoto,
+            highConfidenceResult = current.highConfidenceResult,
+            handoffTimestampUptimeMs = handoff.handoffTimestampUptimeMs,
+            subjectStatus = current.subjectResult.status,
+        )
+    }
+
+    private fun decisionFor(current: RecognitionRevealSessionSnapshot): RecognitionRevealDecisionState {
+        val result = current.productionResult
+        val image = current.image
+        val classifier = when {
+            result == null -> RecognitionClassifierTaskState.WAITING
+            result.ready -> RecognitionClassifierTaskState.READY
+            else -> RecognitionClassifierTaskState.FAILED
+        }
+        val primary = result?.assessment?.primary
+        val trust = if (image != null && primary != null) RecognitionRevealPolicy.geometryTrust(
+            detectorBox = primary.box,
+            subject = current.subjectGeometry,
+            imageId = image.imageId,
+            sourceWidthPx = image.bitmap.width,
+            sourceHeightPx = image.bitmap.height,
+            detectorConfidence = primary.confidence,
+            recognitionSessionId = current.recognitionSessionId,
+            recognitionAttemptId = current.recognitionAttemptId,
+            photoSha256 = image.photoSha256,
+        ) else RecognitionGeometryTrustState.MISSING
+        return RecognitionRevealDecisionGate.decide(
+            classifier = classifier,
+            subject = current.subjectResult.status,
+            maskTrusted = trust == RecognitionGeometryTrustState.TRUSTED_MASK,
+            contourValid = current.subjectGeometry?.contour?.isNotEmpty() == true,
+            identityCurrent = image != null && !current.recognitionSessionId.isBlank() &&
+                !current.recognitionAttemptId.isNullOrBlank() && image.imageId.isNotBlank() &&
+                image.photoSha256.isNotBlank(),
+        )
     }
 
     /** Releases bitmap and inference references when the user leaves this recognition attempt. */

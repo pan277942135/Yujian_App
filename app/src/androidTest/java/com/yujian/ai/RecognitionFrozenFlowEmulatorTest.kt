@@ -1491,34 +1491,41 @@ class RecognitionFrozenFlowEmulatorTest {
         // make their observed interval shorter than the controller's exact minimum;
         // controller unit tests cover adaptive event gates and the masked peak hold.
         val presentationTimestampToleranceMs = 50L
+        // The shared 13-stage controller replaced the former four coarse phase
+        // constants. Keep this runtime contract expressed in the stage minima that
+        // now project to each RecognitionPhase.
+        val capturedMinimumMs = RecognitionVisualStateController.PHOTO_STABLE_MIN_MS +
+            RecognitionVisualStateController.ORB_WAKE_MIN_MS
+        val detectingMinimumMs = RecognitionVisualStateController.PERIMETER_SPREAD_MIN_MS +
+            RecognitionVisualStateController.PERIMETER_ARRIVAL_MIN_MS +
+            RecognitionVisualStateController.PATH_TO_FISH_MIN_MS
+        val outlineMinimumMs = RecognitionVisualStateController.CONTOUR_STAGE_MIN_MS * 3
+        val classifyingMinimumMs = RecognitionVisualStateController.GOLD_PEAK_HOLD_MS
 
         assertTrue(
             "CAPTURED presentation interval was too short: ${capturedMs}ms",
-            capturedMs >= RecognitionVisualStateController.CAPTURED_MIN_MS - presentationTimestampToleranceMs,
+            capturedMs >= capturedMinimumMs - presentationTimestampToleranceMs,
         )
         assertTrue(
             "DETECTING presentation interval was too short: ${detectingMs}ms",
-            detectingMs >= RecognitionVisualStateController.DETECTING_MIN_MS - presentationTimestampToleranceMs,
+            detectingMs >= detectingMinimumMs - presentationTimestampToleranceMs,
         )
         assertTrue(
             "OUTLINE presentation interval was too short: ${outlineMs}ms",
-            outlineMs >= RecognitionVisualStateController.OUTLINE_MIN_MS - presentationTimestampToleranceMs,
+            outlineMs >= outlineMinimumMs - presentationTimestampToleranceMs,
         )
         assertTrue(
             "CLASSIFYING beat was too short: ${classifyingMs}ms",
-            classifyingMs >= RecognitionVisualStateController.MASKED_CLASSIFYING_MIN_MS - presentationTimestampToleranceMs,
+            classifyingMs >= classifyingMinimumMs - presentationTimestampToleranceMs,
         )
         assertTrue(
             "nominal presentation interval was too short: ${totalMs}ms",
-            totalMs >= RecognitionVisualStateController.CAPTURED_MIN_MS +
-                RecognitionVisualStateController.DETECTING_MIN_MS +
-                RecognitionVisualStateController.OUTLINE_MIN_MS +
-                RecognitionVisualStateController.MASKED_CLASSIFYING_MIN_MS - presentationTimestampToleranceMs,
+            totalMs >= capturedMinimumMs + detectingMinimumMs + outlineMinimumMs +
+                classifyingMinimumMs - presentationTimestampToleranceMs,
         )
         assertTrue(
             "final fish focus presentation interval was too short: ${fishFocusStableMs}ms",
-            fishFocusStableMs >= RecognitionVisualStateController.MASKED_CLASSIFYING_MIN_MS -
-                presentationTimestampToleranceMs,
+            fishFocusStableMs >= classifyingMinimumMs - presentationTimestampToleranceMs,
         )
 
         val primary = requireNotNull(result.assessment.primary)

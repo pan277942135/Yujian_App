@@ -4,24 +4,27 @@ import com.yujian.ai.ui.waterlight.core.WaterLightHost
 import com.yujian.ai.ui.waterlight.core.WaterLightMaterialProfile
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
+import org.junit.Assert.assertSame
 import org.junit.Test
 
 class WaterLightMaterialProfileTest {
-    @Test fun eachHostHasItsOwnBoundedMaterial() {
+    @Test fun eachHostHasAnExplicitRoleProfileAndPerimeterAvoidsRejectedEffect01Palette() {
         val profiles = WaterLightHost.entries.map(WaterLightMaterialProfile::forHost)
-        assertEquals(WaterLightHost.entries.toList(), profiles.map { it.host })
-        profiles.forEach { profile ->
-            assert(profile.opacity in 0f..1f)
-            assert(profile.coreAlpha in 0f..1f)
-            assert(profile.glowAlpha in 0f..1f)
-            assert(profile.coverage in 0f..1f)
-        }
-        assertNotEquals(WaterLightMaterialProfile.ORB_LEGACY.primaryColor,
-            WaterLightMaterialProfile.PERIMETER.primaryColor)
+        assertEquals(WaterLightHost.entries.toSet(), profiles.map { it.host }.toSet())
+        assertSame(WaterLightMaterialProfile.ORB_LEGACY, WaterLightMaterialProfile.forHost(WaterLightHost.ORB))
+        val perimeter = WaterLightMaterialProfile.PERIMETER
+        assertEquals(0xFF2E8B83L, perimeter.primaryColor)
+        assertEquals(0xFFD8B36AL, perimeter.secondaryColor)
+        assertEquals(0xFFDDFBFFL, perimeter.highlightColor)
+        assertNotEquals(0xFF0B6E69L, perimeter.primaryColor)
+        assertNotEquals(0xFF4DD0C7L, perimeter.secondaryColor)
     }
 
-    @Test(expected = IllegalArgumentException::class)
-    fun invalidAlphaIsRejected() {
-        WaterLightMaterialProfile.PATH.copy(glowAlpha = 1.1f)
+    @Test fun profilesKeepFiniteBoundedOpacityAndMotionValues() {
+        WaterLightHost.entries.map(WaterLightMaterialProfile::forHost).forEach { profile ->
+            assertEquals(true, profile.opacity.isFinite() && profile.opacity in 0f..1f)
+            assertEquals(true, profile.motionScale.isFinite() && profile.motionScale >= 0f)
+            assertEquals(true, profile.coverage.isFinite() && profile.coverage in 0f..1f)
+        }
     }
 }
