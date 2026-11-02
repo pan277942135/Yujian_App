@@ -128,6 +128,7 @@ import com.yujian.ai.ui.waterlight.renderer.WaterCausticsField
 import com.yujian.ai.ui.waterlight.renderer.WaterCausticsRenderer
 import com.yujian.ai.ui.waterlight.renderer.WaterDropletRenderer
 import com.yujian.ai.ui.waterlight.renderer.WaterLightEnergyPathRenderer
+import com.yujian.ai.ui.waterlight.renderer.WaterGrassField
 
 import com.yujian.ai.ui.recognition.processingOrbMotionFrame
 import com.yujian.ai.ui.recognition.RecognitionVisualStateController
@@ -1630,6 +1631,32 @@ private fun RecognitionPhoto(
                         }
                     }
                 }
+            }
+            if (!BuildConfig.DEBUG || layerMode == RecognitionLayerMode.FULL) {
+                val grassBounds = androidx.compose.ui.geometry.Rect(
+                    photoBounds.left,
+                    photoBounds.top + photoBounds.height * .86f,
+                    photoBounds.right,
+                    photoBounds.bottom,
+                )
+                val fishAvoidBounds = focusBox?.let { box ->
+                    val topLeft = transform.mapNormalized(box.x1, box.y1)
+                    val bottomRight = transform.mapNormalized(box.x2, box.y2)
+                    androidx.compose.ui.geometry.Rect(
+                        minOf(topLeft.x, bottomRight.x), minOf(topLeft.y, bottomRight.y),
+                        maxOf(topLeft.x, bottomRight.x), maxOf(topLeft.y, bottomRight.y),
+                    )
+                }
+                WaterGrassField(
+                    frame = waterLightFrame,
+                    modifier = Modifier.fillMaxSize(),
+                    material = waterHosts.getValue(WaterLightHost.PATH).material,
+                    opacity = .32f,
+                    seed = waterLightFrame.sessionId.hashCode().toLong() xor imageId.hashCode().toLong(),
+                    drawBounds = grassBounds,
+                    avoidBounds = fishAvoidBounds,
+                    energyEvent = energyEvent,
+                )
             }
             if (contourReady && (!BuildConfig.DEBUG || layerMode == RecognitionLayerMode.FULL)) RecognitionFishFocus(
                 phase,

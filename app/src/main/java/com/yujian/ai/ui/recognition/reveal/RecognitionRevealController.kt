@@ -132,7 +132,11 @@ object RecognitionRevealClock {
                 titleSweepProgress = 0f,
                 afterglowAlpha = 0f,
                 visibleParticleCount = 0,
-                drawOpticalLayer = canPhotoTransition && t < PHOTO_END_MS,
+                // TITLE_FADE_ONLY is the production Orb-only branch: it has no fish contour,
+                // but the measured perimeter-to-Orb return, Orb-to-glyph translation and
+                // residue remain visible for the complete RR09 window. PHOTO_ONLY never
+                // reaches this branch because it is excluded from canPhotoTransition.
+                drawOpticalLayer = fallback && canPhotoTransition && t < TOTAL_DURATION_MS,
                 fallback = fallback,
             )
         }

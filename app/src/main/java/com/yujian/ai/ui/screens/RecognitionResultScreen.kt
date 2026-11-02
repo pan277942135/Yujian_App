@@ -1093,6 +1093,7 @@ fun RecognitionResultScreen(
             holdPhotoUntilHeroReady = heroSnapshot?.renderReady == false,
             material = resultHost.material,
             energyEvent = resultEnergyEvent,
+            waterLightFrame = resultFrame,
         )
         if (diagnosticUiAvailable) {
             val playback = requireNotNull(diagnosticPlaybackController)

@@ -16,7 +16,9 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import com.yujian.ai.ui.waterlight.core.EnergyEvent
 import com.yujian.ai.ui.waterlight.core.EnergyFeedback
+import com.yujian.ai.ui.waterlight.core.WaterLightFrame
 import com.yujian.ai.ui.waterlight.core.WaterLightMaterialProfile
+import com.yujian.ai.ui.waterlight.renderer.WaterGrassRenderer
 
 /** Draws the shared photo and optical reveal above Result content without owning input. */
 @Composable
@@ -30,6 +32,7 @@ internal fun RecognitionRevealOpticalOverlay(
     holdPhotoUntilHeroReady: Boolean,
     material: WaterLightMaterialProfile = WaterLightMaterialProfile.HANDOFF,
     energyEvent: EnergyEvent? = null,
+    waterLightFrame: WaterLightFrame? = null,
 ) {
     val frame = frameState.value
     val sourceBitmap = bitmap ?: return
@@ -92,6 +95,7 @@ internal fun RecognitionRevealOpticalOverlay(
     val particlePaint = remember { AndroidPaint(AndroidPaint.ANTI_ALIAS_FLAG) }
     val dotPaint = remember { AndroidPaint(AndroidPaint.ANTI_ALIAS_FLAG) }
     val orbPaint = remember { AndroidPaint(AndroidPaint.ANTI_ALIAS_FLAG) }
+    val waterGrassRenderer = remember { WaterGrassRenderer() }
     val orbRimPaint = remember {
         AndroidPaint(AndroidPaint.ANTI_ALIAS_FLAG).apply {
             style = AndroidPaint.Style.STROKE
@@ -302,6 +306,24 @@ internal fun RecognitionRevealOpticalOverlay(
                     particlePaint.alpha = alpha
                     canvas.drawCircle(x, y, if (index % 2 == 0) 1.7f else 1.1f, particlePaint)
                 }
+            }
+
+            // Water grass is a restrained residue around the measured real glyph bounds.
+            // It uses the same global scene sample and fades with the RR09 afterglow.
+            val residueFrame = waterLightFrame
+            val glyphBounds = activeRevealGeometry?.titleBoundsLocal
+            if (residueFrame != null && glyphBounds != null &&
+                frame.elapsedMs in RecognitionRevealClock.SPECIES_NAME_REVEAL_END_MS until RecognitionRevealClock.TOTAL_DURATION_MS
+            ) {
+                val sideWidth = glyphBounds.width * .18f
+                val fieldHeight = glyphBounds.height * .52f
+                val top = glyphBounds.bottom - fieldHeight * .62f
+                val leftField = RectF(glyphBounds.left, top, glyphBounds.left + sideWidth, glyphBounds.bottom)
+                val rightField = RectF(glyphBounds.right - sideWidth, top, glyphBounds.right, glyphBounds.bottom)
+                val grassAlpha = .45f * frame.afterglowAlpha
+                val grassSeed = residueFrame.sessionId.hashCode().toLong() xor residueFrame.imageId.hashCode().toLong()
+                waterGrassRenderer.draw(canvas, residueFrame, leftField, grassSeed, material, grassAlpha, energyEvent)
+                waterGrassRenderer.draw(canvas, residueFrame, rightField, grassSeed xor 0x5A17L, material, grassAlpha, energyEvent)
             }
 
         }

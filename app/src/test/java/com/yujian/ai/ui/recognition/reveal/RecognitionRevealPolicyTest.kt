@@ -51,6 +51,11 @@ class RecognitionRevealPolicyTest {
         assertEquals(RecognitionRevealTitleMode.HIDDEN, titleFrame.titleMode)
         assertEquals(RecognitionRevealTitleMode.FORMING, frame(400, titleOnly, RecognitionRevealMotionPolicy()).titleMode)
         assertEquals(RecognitionRevealTitleMode.REVEALING, frame(600, titleOnly, RecognitionRevealMotionPolicy()).titleMode)
+        listOf(200L, 379L, 380L, 549L, 550L, 679L, 680L, 849L).forEach { elapsed ->
+            assertTrue("Orb-only optics must remain active through RR09 at ${elapsed}ms",
+                frame(elapsed, titleOnly, RecognitionRevealMotionPolicy()).drawOpticalLayer)
+        }
+        assertFalse(frame(850L, titleOnly, RecognitionRevealMotionPolicy()).drawOpticalLayer)
 
         val nonHigh = handoff(RecognitionRevealEligibility.PHOTO_ONLY)
         val nonHighFrame = frame(290, nonHigh, RecognitionRevealMotionPolicy())
@@ -58,6 +63,7 @@ class RecognitionRevealPolicyTest {
         assertEquals(0f, nonHighFrame.transferProgress, 0f)
         assertEquals(0, nonHighFrame.visibleParticleCount)
         assertEquals(RecognitionRevealTitleMode.STATIC, nonHighFrame.titleMode)
+        assertFalse("PHOTO_ONLY must not acquire Orb-only reveal optics", nonHighFrame.drawOpticalLayer)
     }
 
     @Test

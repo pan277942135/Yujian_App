@@ -26,6 +26,7 @@ import com.yujian.ai.ui.waterlight.core.EnergyFeedback
 import com.yujian.ai.ui.waterlight.core.WaterLightFrame
 import com.yujian.ai.ui.waterlight.core.WaterLightMaterialProfile
 import com.yujian.ai.ui.waterlight.renderer.OrbWaterLightRibbons
+import com.yujian.ai.ui.waterlight.renderer.WaterGrassField
 import com.yujian.ai.ui.designsystem.components.YuJianCaptureButton
 import com.yujian.ai.ui.designsystem.components.YuJianCaptureButtonRasterAssets
 import com.yujian.ai.ui.designsystem.components.YuJianCaptureButtonRasterMotion
@@ -198,6 +199,18 @@ private fun OrbVisual(
                 scaleY = scaleX
             },
         )
+        waterLightFrame?.let { frame ->
+            // The same sampled WaterLightFrame drives the Orb's submerged ecology;
+            // this is clipped by its small inner bounds and cannot spill outside the core.
+            WaterGrassField(
+                frame = frame,
+                modifier = Modifier.size(coreSize * .58f),
+                material = waterLightMaterial,
+                opacity = .24f,
+                seed = frame.sessionId.hashCode().toLong() xor frame.imageId.hashCode().toLong(),
+                energyEvent = activeEnergyEvent,
+            )
+        }
         Canvas(Modifier.fillMaxSize()) {
             if (morph <= 0f) return@Canvas
             val radius = coreSize.toPx() * .48f
