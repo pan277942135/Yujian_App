@@ -1,0 +1,20 @@
+{
+  "sourceFile": "YuJian_Lake_Glass_V2_Master_Candidate_02_1440x3120.png",
+  "sourceSha256": "d0bd07ba379491e8b93468c616468fc60d59a2dfebc11061cf4d14e9788c6e12",
+  "sourcePixelBounds": [
+    0,
+    0,
+    1440,
+    1550
+  ],
+  "lightOriginApproxPx": [
+    1370,
+    120
+  ],
+  "dominantDirection": "upper-right toward lower-left / center",
+  "analysisOnly": true,
+  "visibleLayer": false,
+  "method": "luminance and warm-channel threshold sampled from the flattened RGB master; not a recovered original light layer",
+  "runtimeEligible": false,
+  "reason": "Sunlight and water-surface refraction are composited into the same RGB pixels; overlay would duplicate light."
+}

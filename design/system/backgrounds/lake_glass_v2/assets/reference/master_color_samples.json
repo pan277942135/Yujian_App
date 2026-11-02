@@ -1,0 +1,79 @@
+{
+  "sourceFile": "YuJian_Lake_Glass_V2_Master_Candidate_02_1440x3120.png",
+  "sourceSha256": "d0bd07ba379491e8b93468c616468fc60d59a2dfebc11061cf4d14e9788c6e12",
+  "method": "median of 5x5 source RGB patches",
+  "samples": {
+    "surface_highlight": {
+      "xyPx": [
+        1360,
+        90
+      ],
+      "medianRgb5x5": [
+        249,
+        248,
+        240
+      ],
+      "hex": "#F9F8F0"
+    },
+    "upper_water": {
+      "xyPx": [
+        260,
+        300
+      ],
+      "medianRgb5x5": [
+        121,
+        220,
+        234
+      ],
+      "hex": "#79DCEA"
+    },
+    "central_water": {
+      "xyPx": [
+        720,
+        1450
+      ],
+      "medianRgb5x5": [
+        178,
+        236,
+        238
+      ],
+      "hex": "#B2ECEE"
+    },
+    "lower_water": {
+      "xyPx": [
+        720,
+        2360
+      ],
+      "medianRgb5x5": [
+        124,
+        222,
+        225
+      ],
+      "hex": "#7CDEE1"
+    },
+    "left_grass": {
+      "xyPx": [
+        85,
+        2840
+      ],
+      "medianRgb5x5": [
+        71,
+        163,
+        68
+      ],
+      "hex": "#47A344"
+    },
+    "lower_caustic": {
+      "xyPx": [
+        700,
+        2730
+      ],
+      "medianRgb5x5": [
+        208,
+        248,
+        240
+      ],
+      "hex": "#D0F8F0"
+    }
+  }
+}
