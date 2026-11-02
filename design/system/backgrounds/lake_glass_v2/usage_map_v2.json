@@ -1,0 +1,38 @@
+{
+  "schema_version": "2.0",
+  "system_id": "background_system_v2",
+  "spec_version": "V2",
+  "visual_reference": "NH01 Lake Glass V1.1",
+  "status": "VISUAL_DIRECTION_FROZEN_SOURCE_MASTER_PENDING",
+  "predecessor": "design/system/backgrounds/morning_lake_v1/Background_System_Spec_V1.md",
+  "predecessor_policy": "HISTORICAL_UNCHANGED",
+  "master": {
+    "asset_id": "Lake_Glass_Master_V2",
+    "source_path": null,
+    "sha256": null,
+    "size_px": null,
+    "independent_source_required": true,
+    "crop_policy": "PROVISIONAL_TOP_CENTER"
+  },
+  "mappings": {
+    "home_normal_v1": "BG_LG_HERO",
+    "recognition_result_v1": "BG_LG_CONTENT",
+    "fish_record_detail_v2": "BG_LG_CONTENT",
+    "my_catches_v2": "BG_LG_DATA",
+    "fish_guide_v2": "BG_LG_DATA",
+    "account_privacy_v1": "BG_LG_CONTENT_VISUAL_VALIDATION_REQUIRED",
+    "auth_login_v2": "BG_LG_CONTENT_VISUAL_VALIDATION_REQUIRED",
+    "auth_register_v2": "BG_LG_CONTENT_VISUAL_VALIDATION_REQUIRED",
+    "profile_edit_v1": "BG_LG_CONTENT_VISUAL_VALIDATION_REQUIRED",
+    "user_agreement_v1": "BG_LG_CONTENT_VISUAL_VALIDATION_REQUIRED",
+    "home_empty_v2": "KEEP_EXISTING_V1_EMPTY_HOME",
+    "camera_capture": "KEEP_EXISTING_BG_CAPTURE",
+    "recognition_flow_v1_2": "KEEP_EXISTING_BG_CAPTURE",
+    "recognition_photo_morph_05": "KEEP_EXISTING_FROZEN_PROCESSING"
+  },
+  "rollout": {
+    "production_enabled": false,
+    "android_status": "NOT_STARTED",
+    "work_instruction_status": "ON_HOLD_MASTER_PENDING"
+  }
+}
