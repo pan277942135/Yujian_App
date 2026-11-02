@@ -1,20 +1,34 @@
 package com.yujian.ai.ui.home
 
-/** Frozen 01–03 contract. Timings are independent of camera initialization. */
+/** Frozen Home / Camera shutter geometry and optical timing contract. */
 object CaptureVisualTokens {
-    const val ActivationMs = 750L
-    const val HandoffMs = 400
-    const val IdleCycleMs = 3000
-    const val IdleBreathCycleMs = 5000
+    const val ActivationMs = 600L
+    const val HandoffMs = 580
+    const val IdleCycleMs = 10_500
+    const val IdleBreathCycleMs = 5_000
     const val IdleBreathMaxScale = 1.015f
-    const val IdleGlintMs = 600
+    const val IdleGlintMs = 2_500
+    const val ClickRippleDurationMs = 600L
+    const val ClickRippleSpreadDp = 36f
     const val GuideWidthFraction = .90f
     const val GuideHeightToWidth = .80f
     const val ButtonDiameterDp = 94f
     const val CameraExpansionDp = 6f
     const val ActivationExpansionDp = 12f
+
     fun buttonDiameter(widthDp: Float) = (widthDp * .244f).coerceIn(88f, 96f)
-    fun activationProgress(elapsedMs: Long) = (elapsedMs / ActivationMs.toFloat()).coerceIn(0f, 1f)
+    fun activationProgress(elapsedMs: Long) =
+        (elapsedMs / ClickRippleDurationMs.toFloat()).coerceIn(0f, 1f)
+}
+
+/** One eased 360° sweep in 2.5s, then an 8s rest at the 1:30 light-entry point. */
+internal fun captureIdleFlareAngleDegrees(elapsedMs: Long): Float {
+    val cycleMs = CaptureVisualTokens.IdleCycleMs.toLong()
+    val cycle = ((elapsedMs % cycleMs) + cycleMs) % cycleMs
+    if (cycle >= CaptureVisualTokens.IdleGlintMs) return -45f
+    val linear = cycle / CaptureVisualTokens.IdleGlintMs.toFloat()
+    val eased = 0.5f - 0.5f * kotlin.math.cos(linear * kotlin.math.PI.toFloat())
+    return -45f + eased * 360f
 }
 
 internal fun captureIdleBreathScale(progress: Float): Float {
@@ -27,7 +41,6 @@ internal fun captureIdleBreathScale(progress: Float): Float {
 
 internal data class CaptureHomeActionY(val cameraTop: Float, val promptTop: Float)
 
-/** Keep frozen center when it fits; otherwise compress only action-group whitespace. */
 internal fun resolveCaptureHomeActionY(
     referenceCenter: Float, diameter: Float, albumTop: Float,
     referencePromptTop: Float, promptHeight: Float,
@@ -36,9 +49,7 @@ internal fun resolveCaptureHomeActionY(
     return CaptureHomeActionY(cameraTop, minOf(referencePromptTop, cameraTop - 8f - promptHeight))
 }
 
-/** Align icon centers, accounting for the caption below each side icon. */
 internal fun captureSideActionBottomOffset(shutterDiameter: Float, groupSize: Float, captionHeight: Float): Float =
     (shutterDiameter - groupSize - captionHeight) / 2f
 
-/** 16dp below hint + measured hint +16dp above hint, minus pill's4dp optical inset. */
 internal fun captureZoomEntryBottomOffset(hintHeight: Float): Float = hintHeight + 28f

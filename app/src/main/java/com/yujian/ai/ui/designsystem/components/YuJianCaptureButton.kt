@@ -40,6 +40,7 @@ import com.yujian.ai.ui.designsystem.motion.rememberYuJianInfiniteTransition
 import com.yujian.ai.ui.designsystem.motion.rememberYuJianReduceMotion
 import com.yujian.ai.ui.designsystem.spacing.YuJianSpacing
 import com.yujian.ai.ui.home.CaptureVisualTokens
+import com.yujian.ai.ui.home.CaptureNavigationTransition
 import com.yujian.ai.ui.home.captureIdleBreathScale
 import kotlin.math.PI
 import kotlin.math.sin
@@ -143,6 +144,9 @@ fun YuJianCaptureButton(
             else -> 1f
         }
     } ?: 1f
+    val resolvedPressScale = clickElapsedMs?.let {
+        if (CaptureNavigationTransition.active.value) CaptureNavigationTransition.transitionScale(it) else pressScale
+    } ?: pressScale
 
     Box(
         modifier = modifier
@@ -163,11 +167,11 @@ fun YuJianCaptureButton(
                 .size(resolvedVisualSize)
                 .then(visualModifier)
                 .graphicsLayer {
-                    scaleX = if (frozenVisual) pressScale * captureIdleBreathScale(idleBreathProgress) else visualScale
+                    scaleX = if (frozenVisual) resolvedPressScale * captureIdleBreathScale(idleBreathProgress) else visualScale
                     scaleY = if (frozenVisual) scaleX else visualScale
-                    alpha = if (enabled) 1f else 0.48f
+                    alpha = if (frozenVisual) 1f else if (enabled) 1f else 0.48f
                 }
-                .shadow(1.dp, CircleShape, clip = false),
+                .then(if (frozenVisual) Modifier else Modifier.shadow(1.dp, CircleShape, clip = false)),
             contentAlignment = Alignment.Center,
         ) {
             if (frozenVisual) {
@@ -224,13 +228,14 @@ fun YuJianCaptureButton(
                 )
             }
         }
-        if (frozenVisual && enabled && (effectiveMotionEnabled || clickCycle != null)) {
+        if (frozenVisual && (effectiveMotionEnabled || clickCycle != null)) {
             CaptureButtonOptics(
                 visualSize = resolvedVisualSize,
                 progress = clickCycle ?: idleProgress,
                 click = clickCycle != null,
                 cameraReady = cameraReady,
-                modifier = Modifier.size(resolvedVisualSize + 28.dp),
+                sceneTimeMs = CaptureNavigationTransition.continuousSceneTimeMs(),
+                modifier = Modifier.size(resolvedVisualSize + 76.dp),
             )
         }
     }
