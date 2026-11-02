@@ -7,12 +7,24 @@ import com.yujian.ai.ui.identify.NormalizedSourceRect
 import com.yujian.ai.ui.identify.RecognitionContentScaleMode
 import com.yujian.ai.ui.identify.calculateRecognitionImageTransform
 import com.yujian.ai.ui.recognition.RecognitionContourSegment
+import com.yujian.ai.ui.waterlight.core.RecognitionSceneStage
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class RecognitionRevealPolicyTest {
+    @Test
+    fun sharedSceneStageProjectsOpticsWithoutOwningAnElapsedTimer() {
+        assertEquals(0L, RecognitionRevealClock.canonicalElapsedMs(RecognitionSceneStage.ORB_RETURN, 0f))
+        assertEquals(190L, RecognitionRevealClock.canonicalElapsedMs(RecognitionSceneStage.ORB_RETURN, .5f))
+        assertEquals(380L, RecognitionRevealClock.canonicalElapsedMs(RecognitionSceneStage.ORB_TO_NAME, 0f))
+        assertEquals(465L, RecognitionRevealClock.canonicalElapsedMs(RecognitionSceneStage.ORB_TO_NAME, .5f))
+        assertEquals(550L, RecognitionRevealClock.canonicalElapsedMs(RecognitionSceneStage.SPECIES_NAME_REVEAL, 0f))
+        assertEquals(680L, RecognitionRevealClock.canonicalElapsedMs(RecognitionSceneStage.RESIDUE_SETTLE, 0f))
+        assertEquals(850L, RecognitionRevealClock.canonicalElapsedMs(RecognitionSceneStage.RESIDUE_SETTLE, 1f))
+    }
+
     @Test
     fun timelineHasFrozenBoundariesAndOneMonotonicProgression() {
         val handoff = handoff()

@@ -13,9 +13,9 @@ class WaterLightMaterialProfileTest {
         assertEquals(WaterLightHost.entries.toSet(), profiles.map { it.host }.toSet())
         assertSame(WaterLightMaterialProfile.ORB_LEGACY, WaterLightMaterialProfile.forHost(WaterLightHost.ORB))
         val perimeter = WaterLightMaterialProfile.PERIMETER
-        assertEquals(0xFF2D7C89L, perimeter.primaryColor)
-        assertEquals(0xFF67BDCAL, perimeter.secondaryColor)
-        assertEquals(0xFFC1E9EEL, perimeter.highlightColor)
+        assertEquals(0xFF2E8B83L, perimeter.primaryColor)
+        assertEquals(0xFFD8B36AL, perimeter.secondaryColor)
+        assertEquals(0xFFDDFBFFL, perimeter.highlightColor)
         assertNotEquals(0xFF0B6E69L, perimeter.primaryColor)
         assertNotEquals(0xFF4DD0C7L, perimeter.secondaryColor)
     }

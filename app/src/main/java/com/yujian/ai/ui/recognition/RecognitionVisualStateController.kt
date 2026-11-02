@@ -1,6 +1,7 @@
 package com.yujian.ai.ui.recognition
 
 import com.yujian.ai.ai.RecognitionPhase
+import com.yujian.ai.ui.waterlight.core.RecognitionSceneIdentity
 import com.yujian.ai.ui.waterlight.core.RecognitionSceneStage
 
 /**
@@ -13,24 +14,55 @@ class RecognitionVisualStateController(
 ) {
     private var stage = RecognitionSceneStage.PHOTO_STABLE
     private var stageStartedAtMs = UNSET
-    private var virtualReferenceBaseMs = 0L
     private var detectorBoxAvailable = false
     private var maskTerminal = false
     private var trustedMaskAvailable = false
     private var classifierReady = false
     private var revealDecisionReady = false
+    private var detectorPathPresented = false
+    private var activeIdentity: RecognitionSceneIdentity? = null
+    private var activeGeometryVersion: Long? = null
+    private var resultHandoffAnchored = false
     private var failed = false
 
-    fun reset(nowMs: Long) {
+    fun reset(
+        nowMs: Long,
+        identity: RecognitionSceneIdentity? = null,
+        geometryVersion: Long? = null,
+    ) {
         stage = RecognitionSceneStage.PHOTO_STABLE
         stageStartedAtMs = nowMs
-        virtualReferenceBaseMs = 0L
         detectorBoxAvailable = false
         maskTerminal = false
         trustedMaskAvailable = false
         classifierReady = false
         revealDecisionReady = false
+        detectorPathPresented = false
+        activeIdentity = identity
+        activeGeometryVersion = geometryVersion
+        resultHandoffAnchored = false
         failed = false
+    }
+
+    /** Geometry changes invalidate any detector path sampled against the old viewport. */
+    fun onSceneGeometryChanged(identity: RecognitionSceneIdentity, geometryVersion: Long) {
+        if (activeIdentity != null && activeIdentity != identity) return
+        if (activeGeometryVersion != geometryVersion) {
+            activeIdentity = identity
+            activeGeometryVersion = geometryVersion
+            detectorPathPresented = false
+        }
+    }
+
+    /** Called after the current identity's real-BBox path has been emitted by the PATH host. */
+    fun onDetectorPathPresented(identity: RecognitionSceneIdentity, geometryVersion: Long) {
+        if (activeIdentity != identity || activeGeometryVersion != geometryVersion) return
+        detectorPathPresented = true
+    }
+
+    /** Deterministic test and isolated-preview hook; production uses the identity overload. */
+    fun onDetectorPathPresented() {
+        detectorPathPresented = true
     }
 
     fun onTrustedMaskAvailable(@Suppress("UNUSED_PARAMETER") nowMs: Long) {
@@ -80,10 +112,8 @@ class RecognitionVisualStateController(
 
         val elapsed = stageElapsedMs(nowMs)
         if (elapsed < minimum(stage)) return stage
-        if (!canAdvance(stage)) return stage
+        if (!canAdvance(stage, successfulRevealAllowed)) return stage
 
-        // Keep an unbounded monotonic reference for shaders/logging. It is never a global cutoff.
-        virtualReferenceBaseMs += elapsed
         stage = next(stage, successfulRevealAllowed)
         stageStartedAtMs = nowMs
         return stage
@@ -113,36 +143,57 @@ class RecognitionVisualStateController(
         return (stageElapsedMs(nowMs).toFloat() / duration.toFloat()).coerceIn(0f, 1f)
     }
 
-    /** Monotonic, unbounded reference coordinate. Stage identity is supplied separately. */
+    /** Canonical optical coordinate follows the current scene stage, independent of wall-clock dwell. */
     fun opticalReferenceElapsedMs(
         nowMs: Long,
         @Suppress("UNUSED_PARAMETER") trustedMask: Boolean = false,
         @Suppress("UNUSED_PARAMETER") subjectTerminal: Boolean = true,
-    ): Long = virtualReferenceBaseMs + stageElapsedMs(nowMs)
+    ): Long {
+        if (stage == RecognitionSceneStage.PHOTO_STABLE) return 0L
+        return stage.startMs + (stage.durationMs * stageProgress(nowMs)).toLong()
+    }
 
-    /** Processing hands off only after the real model join and Orb return beat are complete. */
-    fun resultVisualReady(nowMs: Long): Boolean =
+    /** Processing hands off at the beginning of Orb return, preserving it as Result-frame T0. */
+    fun resultVisualReady(@Suppress("UNUSED_PARAMETER") nowMs: Long): Boolean =
         !failed && stage == RecognitionSceneStage.ORB_RETURN &&
-            classifierReady && revealDecisionReady &&
-            stageElapsedMs(nowMs) >= minimum(RecognitionSceneStage.ORB_RETURN)
+            classifierReady && revealDecisionReady
 
-    private fun canAdvance(current: RecognitionSceneStage): Boolean = when (current) {
+    /** Starts the shared ORB_RETURN beat at Result's first presented frame (RR09 R0). */
+    fun anchorResultHandoffAt(nowMs: Long): Boolean {
+        if (failed || stage != RecognitionSceneStage.ORB_RETURN || resultHandoffAnchored) return false
+        stageStartedAtMs = nowMs
+        resultHandoffAnchored = true
+        return true
+    }
+
+    /** RR09 coordinate is a projection of the shared stage and its local progress. */
+    fun revealElapsedMs(nowMs: Long): Long =
+        (opticalReferenceElapsedMs(nowMs) - RecognitionSceneStage.ORB_RETURN.startMs).coerceAtLeast(0L)
+
+    /** Completes only after the final stage's own minimum presentation beat. */
+    fun revealSettled(nowMs: Long): Boolean = !failed &&
+        stage == RecognitionSceneStage.RESIDUE_SETTLE && stageElapsedMs(nowMs) >= minimum(stage)
+
+    private fun canAdvance(
+        current: RecognitionSceneStage,
+        successfulRevealAllowed: Boolean,
+    ): Boolean = when (current) {
         RecognitionSceneStage.PHOTO_STABLE,
         RecognitionSceneStage.ORB_WAKE,
         RecognitionSceneStage.ORB_RELEASE -> true
         RecognitionSceneStage.PERIMETER_ARRIVAL ->
             detectorBoxAvailable || (maskTerminal && classifierReady && revealDecisionReady)
         RecognitionSceneStage.PATH_TO_FISH ->
-            trustedMaskAvailable || (maskTerminal && classifierReady && revealDecisionReady)
+            detectorPathPresented && maskTerminal && classifierReady && revealDecisionReady
         RecognitionSceneStage.CONTOUR_A,
-        RecognitionSceneStage.CONTOUR_B -> trustedMaskAvailable
+        RecognitionSceneStage.CONTOUR_B -> trustedMaskAvailable && successfulRevealAllowed
         RecognitionSceneStage.CONTOUR_C ->
             trustedMaskAvailable && classifierReady && revealDecisionReady
         RecognitionSceneStage.FISH_GOLD_PEAK ->
             classifierReady && revealDecisionReady
         RecognitionSceneStage.ORB_RETURN,
         RecognitionSceneStage.ORB_TO_NAME,
-        RecognitionSceneStage.SPECIES_NAME_REVEAL,
+        RecognitionSceneStage.SPECIES_NAME_REVEAL -> classifierReady && revealDecisionReady
         RecognitionSceneStage.RESIDUE_SETTLE -> false
     }
 
@@ -151,8 +202,12 @@ class RecognitionVisualStateController(
             RecognitionSceneStage.PHOTO_STABLE -> RecognitionSceneStage.ORB_WAKE
             RecognitionSceneStage.ORB_WAKE -> RecognitionSceneStage.ORB_RELEASE
             RecognitionSceneStage.ORB_RELEASE -> RecognitionSceneStage.PERIMETER_ARRIVAL
-            RecognitionSceneStage.PERIMETER_ARRIVAL -> RecognitionSceneStage.PATH_TO_FISH
-            RecognitionSceneStage.PATH_TO_FISH -> if (trustedMaskAvailable) {
+            RecognitionSceneStage.PERIMETER_ARRIVAL -> if (detectorBoxAvailable) {
+                RecognitionSceneStage.PATH_TO_FISH
+            } else {
+                RecognitionSceneStage.ORB_RETURN
+            }
+            RecognitionSceneStage.PATH_TO_FISH -> if (trustedMaskAvailable && successfulRevealAllowed) {
                 RecognitionSceneStage.CONTOUR_A
             } else {
                 RecognitionSceneStage.ORB_RETURN
@@ -165,9 +220,9 @@ class RecognitionVisualStateController(
                 RecognitionSceneStage.ORB_RETURN
             }
             RecognitionSceneStage.FISH_GOLD_PEAK -> RecognitionSceneStage.ORB_RETURN
-            RecognitionSceneStage.ORB_RETURN,
-            RecognitionSceneStage.ORB_TO_NAME,
-            RecognitionSceneStage.SPECIES_NAME_REVEAL,
+            RecognitionSceneStage.ORB_RETURN -> RecognitionSceneStage.ORB_TO_NAME
+            RecognitionSceneStage.ORB_TO_NAME -> RecognitionSceneStage.SPECIES_NAME_REVEAL
+            RecognitionSceneStage.SPECIES_NAME_REVEAL -> RecognitionSceneStage.RESIDUE_SETTLE
             RecognitionSceneStage.RESIDUE_SETTLE -> current
         }
 
@@ -199,6 +254,9 @@ class RecognitionVisualStateController(
         const val CONTOUR_STAGE_MIN_MS = 250L
         const val GOLD_PEAK_HOLD_MS = 450L
         const val ORB_RETURN_MIN_MS = 380L
+        const val ORB_TO_NAME_MIN_MS = 170L
+        const val SPECIES_NAME_REVEAL_MIN_MS = 130L
+        const val RESIDUE_SETTLE_MIN_MS = 170L
         private const val UNSET = Long.MIN_VALUE
 
         val DEFAULT_MIN_VISIBLE_MS = mapOf(
@@ -212,6 +270,9 @@ class RecognitionVisualStateController(
             RecognitionSceneStage.CONTOUR_C to CONTOUR_STAGE_MIN_MS,
             RecognitionSceneStage.FISH_GOLD_PEAK to GOLD_PEAK_HOLD_MS,
             RecognitionSceneStage.ORB_RETURN to ORB_RETURN_MIN_MS,
+            RecognitionSceneStage.ORB_TO_NAME to ORB_TO_NAME_MIN_MS,
+            RecognitionSceneStage.SPECIES_NAME_REVEAL to SPECIES_NAME_REVEAL_MIN_MS,
+            RecognitionSceneStage.RESIDUE_SETTLE to RESIDUE_SETTLE_MIN_MS,
         )
     }
 }

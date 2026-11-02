@@ -1,5 +1,7 @@
 package com.yujian.ai.ui.recognition.reveal
 
+import com.yujian.ai.ui.waterlight.core.RecognitionSceneStage
+
 enum class RecognitionRevealPhase {
     PHOTO_CONTINUITY,
     ORB_RETURN,
@@ -45,6 +47,7 @@ data class RecognitionRevealFrame(
 }
 
 object RecognitionRevealClock {
+    /** Canonical optical-coordinate span. This is not a wall-clock timeout. */
     const val TOTAL_DURATION_MS = 850L
     const val PHOTO_END_MS = 200L
     const val ORB_RETURN_END_MS = 380L
@@ -55,6 +58,37 @@ object RecognitionRevealClock {
     const val NAME_REVEAL_END_MS = SPECIES_NAME_REVEAL_END_MS
     const val FULL_PARTICLE_LIMIT = 18
     const val LOW_PARTICLE_LIMIT = 6
+
+    /**
+     * Projects the shared scene controller's stage and local progress onto the frozen optical
+     * curve. Actual stage dwell is owned by RecognitionVisualStateController and can extend
+     * without restarting this projection or imposing a global completion deadline.
+     */
+    fun evaluateSceneStage(
+        stage: RecognitionSceneStage,
+        stageProgress: Float,
+        handoff: RecognitionRevealHandoff?,
+        policy: RecognitionRevealMotionPolicy,
+    ): RecognitionRevealFrame = evaluate(
+        elapsedMs = canonicalElapsedMs(stage, stageProgress),
+        handoff = handoff,
+        policy = policy,
+    )
+
+    fun canonicalElapsedMs(stage: RecognitionSceneStage, stageProgress: Float): Long {
+        val progress = stageProgress.coerceIn(0f, 1f)
+        val (start, duration) = when (stage) {
+            RecognitionSceneStage.ORB_RETURN -> 0L to ORB_RETURN_END_MS
+            RecognitionSceneStage.ORB_TO_NAME -> ORB_RETURN_END_MS to
+                (ORB_TO_NAME_END_MS - ORB_RETURN_END_MS)
+            RecognitionSceneStage.SPECIES_NAME_REVEAL -> ORB_TO_NAME_END_MS to
+                (SPECIES_NAME_REVEAL_END_MS - ORB_TO_NAME_END_MS)
+            RecognitionSceneStage.RESIDUE_SETTLE -> SPECIES_NAME_REVEAL_END_MS to
+                (TOTAL_DURATION_MS - SPECIES_NAME_REVEAL_END_MS)
+            else -> 0L to 0L
+        }
+        return start + (duration * progress).toLong()
+    }
 
     fun evaluate(
         elapsedMs: Long,

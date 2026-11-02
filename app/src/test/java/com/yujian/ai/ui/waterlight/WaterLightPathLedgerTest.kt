@@ -38,9 +38,15 @@ class WaterLightPathLedgerTest {
             WaterLightPathPoint(640f, 480f),
             seed = 19,
         )!!
+        val detector = WaterLightPathGeometryFactory.between(
+            release.end,
+            fish.start,
+            seed = 17,
+        )!!
         val ledger = WaterLightPathLedger()
 
         assertTrue(ledger.recordRelease(current, release))
+        assertTrue(ledger.recordDetectorPath(current, detector))
         assertTrue(ledger.recordFishPath(current, fish, trustedMask = true))
         val route = ledger.returnRoute(current, trustedMask = true)
 
@@ -51,7 +57,11 @@ class WaterLightPathLedgerTest {
         assertEquals(fish.control2, segments[0].control1)
         assertEquals(fish.control1, segments[0].control2)
         assertEquals(fish.start, segments[0].end)
-        assertEquals(segments[0].end, segments[1].start)
+        assertEquals(detector.end, segments[0].end)
+        assertEquals(detector.end, segments[1].start)
+        assertEquals(detector.control2, segments[1].control1)
+        assertEquals(detector.control1, segments[1].control2)
+        assertEquals(detector.start, segments[1].end)
         assertEquals(segments[1].end, segments[2].start)
         assertEquals(release.end, segments[2].start)
         assertEquals(release.control2, segments[2].control1)
@@ -73,8 +83,14 @@ class WaterLightPathLedgerTest {
             WaterLightPathPoint(640f, 480f),
             seed = 19,
         )!!
+        val detector = WaterLightPathGeometryFactory.between(
+            release.end,
+            fish.start,
+            seed = 17,
+        )!!
         val ledger = WaterLightPathLedger()
         ledger.recordRelease(current, release)
+        ledger.recordDetectorPath(current, detector)
         ledger.recordFishPath(current, fish, trustedMask = true)
 
         val route = ledger.returnRoute(current, trustedMask = false)!!
@@ -114,5 +130,33 @@ class WaterLightPathLedgerTest {
         assertTrue(!ledger.recordFishPath(current, fish, trustedMask = false))
         val route = ledger.returnRoute(current, trustedMask = false)!!
         assertEquals(1, route.segments.size)
+    }
+
+    @Test fun detectorAndFishSegmentsMustJoinAtMeasuredAnchors() {
+        val current = frame()
+        val release = WaterLightPathGeometryFactory.between(
+            WaterLightPathPoint(120f, 220f),
+            WaterLightPathPoint(420f, 300f),
+            seed = 13,
+        )!!
+        val detector = WaterLightPathGeometryFactory.between(
+            release.end,
+            WaterLightPathPoint(380f, 300f),
+            seed = 17,
+        )!!
+        val wrongDetectorStart = detector.copy(start = WaterLightPathPoint(425f, 300f))
+        val ledger = WaterLightPathLedger()
+
+        assertTrue(ledger.recordRelease(current, release))
+        assertTrue(!ledger.recordDetectorPath(current, wrongDetectorStart))
+        assertTrue(ledger.recordDetectorPath(current, detector))
+
+        val wrongFishStart = WaterLightPathGeometryFactory.between(
+            WaterLightPathPoint(390f, 300f),
+            WaterLightPathPoint(640f, 480f),
+            seed = 19,
+        )!!
+        assertTrue(!ledger.recordFishPath(current, wrongFishStart, trustedMask = true))
+        assertTrue(ledger.returnRoute(current, trustedMask = true)!!.segments.size == 2)
     }
 }

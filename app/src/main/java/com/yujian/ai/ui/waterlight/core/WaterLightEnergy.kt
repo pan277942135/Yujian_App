@@ -8,7 +8,7 @@ data class WaterLightPathPoint(val x: Float, val y: Float) {
     fun isValid(): Boolean = x.isFinite() && y.isFinite()
 }
 
-/** Actual viewport-space curve endpoints derived from the current photo transform and trusted Mask. */
+/** Actual viewport-space curve endpoints derived from the current photo transform and real scene geometry. */
 data class WaterLightPathGeometry(
     val start: WaterLightPathPoint,
     val control1: WaterLightPathPoint,
@@ -63,13 +63,16 @@ object WaterLightEnergy {
                 EnergyAnchor.PHOTO_PERIMETER, EnergyFeedback.RELEASE, scene.stageProgress)
             scene.stage == RecognitionSceneStage.PERIMETER_ARRIVAL -> Quad(EnergyAnchor.PHOTO_PERIMETER,
                 EnergyAnchor.PHOTO_PATH, EnergyFeedback.ARRIVE, scene.stageProgress)
-            trustedMask && scene.stage == RecognitionSceneStage.PATH_TO_FISH -> Quad(EnergyAnchor.PHOTO_PATH,
-                EnergyAnchor.FISH_CONTOUR, EnergyFeedback.ABSORB, scene.stageProgress * .25f)
+            scene.stage == RecognitionSceneStage.PATH_TO_FISH -> Quad(EnergyAnchor.PHOTO_PERIMETER,
+                EnergyAnchor.PHOTO_PATH, EnergyFeedback.ARRIVE, scene.stageProgress)
             trustedMask && scene.stage == RecognitionSceneStage.CONTOUR_A -> Quad(EnergyAnchor.PHOTO_PATH,
                 EnergyAnchor.FISH_CONTOUR, EnergyFeedback.ABSORB, .25f + scene.stageProgress * .25f)
             trustedMask && scene.stage == RecognitionSceneStage.CONTOUR_B && t < 1_550L -> Quad(
                 EnergyAnchor.PHOTO_PATH, EnergyAnchor.FISH_CONTOUR, EnergyFeedback.ABSORB,
                 .5f + ((t - 1_450L) / 200f).coerceIn(0f, .5f))
+            trustedMask && scene.stage == RecognitionSceneStage.CONTOUR_C -> Quad(
+                EnergyAnchor.PHOTO_PATH, EnergyAnchor.FISH_CONTOUR, EnergyFeedback.ABSORB,
+                .75f + scene.stageProgress * .25f)
             trustedMask && successfulRevealAllowed && scene.stage == RecognitionSceneStage.ORB_RETURN -> Quad(EnergyAnchor.FISH_CONTOUR,
                 EnergyAnchor.ORB_CORE, EnergyFeedback.RETURN, scene.stageProgress)
             !trustedMask && orbOnlyRevealAllowed && successfulRevealAllowed &&

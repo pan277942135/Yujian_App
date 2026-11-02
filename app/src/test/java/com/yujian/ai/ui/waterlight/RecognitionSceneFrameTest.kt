@@ -75,18 +75,19 @@ class RecognitionSceneFrameTest {
         assertEquals("1200–1450ms", RecognitionSceneStage.CONTOUR_A.timeAnchorLabel)
     }
 
-    @Test fun debugDiagnosticSessionDefaultsToAutoAndTracksTheProductionTimeline() {
+    @Test fun debugSessionPreparesManualPlaybackWithoutChangingProductionController() {
         val playback = SceneMotionCoordinator()
         assertEquals(ScenePlaybackMode.AUTO, playback.mode)
         assertEquals(0L, playback.sample(0L, 10_000L))
         assertEquals(RecognitionSceneStage.PHOTO_STABLE, playback.currentStage)
         assertEquals(349L, playback.sample(349L, 10_349L))
         assertEquals(RecognitionSceneStage.ORB_WAKE, playback.currentStage)
-        assertEquals(350L, playback.sample(350L, 10_350L))
-        assertEquals(RecognitionSceneStage.ORB_RELEASE, playback.currentStage)
-        playback.beginStepPreview(RecognitionSceneStage.PHOTO_STABLE, 10_351L)
+        playback.prepareInitialStepPreview()
+        playback.startPreparedStepPreview(10_350L)
         assertEquals(ScenePlaybackMode.MANUAL, playback.mode)
-        assertEquals(0L, playback.previewElapsedMs(10_351L))
+        assertEquals(RecognitionSceneStage.PHOTO_STABLE, playback.currentStage)
+        assertEquals(0L, playback.sample(0L, 10_350L))
+        assertEquals(0L, playback.previewElapsedMs(10_350L))
     }
 
     @Test fun everyStageHasAThreeSecondBoundedPreviewAndFreezesAtItsLastFrame() {

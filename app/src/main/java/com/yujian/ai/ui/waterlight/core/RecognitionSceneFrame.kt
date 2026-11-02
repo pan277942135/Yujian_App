@@ -158,6 +158,9 @@ class SceneMotionCoordinator {
     var previewCompleted: Boolean = false
         private set
 
+    /** True while the Debug AUTO control is deliberately slowing stage presentation. */
+    val isDiagnosticAutoPlayback: Boolean get() = diagnosticAuto
+
     private var frozenReferenceMs: Long? = null
     private var previewStartedAtMs: Long? = null
     private var previewElapsedBeforePauseMs = 0L

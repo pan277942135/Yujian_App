@@ -104,6 +104,7 @@ import com.yujian.ai.ui.recognition.reveal.RecognitionRevealHandoff
 import com.yujian.ai.ui.recognition.reveal.RecognitionRevealSessionStore
 import com.yujian.ai.ui.recognition.reveal.RecognitionRevealDecisionGate
 import com.yujian.ai.ui.recognition.reveal.RecognitionRevealDecisionState
+import com.yujian.ai.ui.recognition.RecognitionVisualStateController
 import com.yujian.ai.ui.screens.RecognizingScreen
 import com.yujian.ai.ui.screens.RecognitionSubjectAttemptRunner
 import com.yujian.ai.ui.waterlight.core.RecognitionProgressDisplayMode
@@ -136,6 +137,7 @@ fun YujianApp() {
     val context = LocalContext.current.applicationContext
     val revealSessionStore: RecognitionRevealSessionStore = viewModel()
     val diagnosticPlaybackController = remember(revealSessionStore) { SceneMotionCoordinator() }
+    val recognitionVisualStateController = remember(revealSessionStore) { RecognitionVisualStateController() }
     var diagnosticReturnRevision by remember(revealSessionStore) { mutableIntStateOf(0) }
     var diagnosticDisplayMode by remember(revealSessionStore) {
         mutableStateOf(
@@ -308,9 +310,10 @@ fun YujianApp() {
         } else {
             RecognitionProgressDisplayMode.NORMAL_PROGRESS
         }
-        // A new image starts the shared scene clock in AUTO. Debug controls can
-        // explicitly seek or pause after the scene is visible.
-        diagnosticPlaybackController.playProductionTimeline(0L, SystemClock.uptimeMillis())
+        // Debug sessions open in MANUAL stage inspection; release keeps model-driven AUTO.
+        // This only selects the presentation sampler and does not restart inference.
+        if (BuildConfig.DEBUG) diagnosticPlaybackController.prepareInitialStepPreview()
+        else diagnosticPlaybackController.playProductionTimeline(0L, SystemClock.uptimeMillis())
         productionResult = null
         recognitionTechnicalFailure = false
         subjectResult = FishSubjectResult(SubjectStatus.IDLE)
@@ -956,6 +959,7 @@ fun YujianApp() {
                         recognitionSessionId = recognitionSessionId,
                         recognitionAttemptId = attemptId,
                         diagnosticPlaybackController = diagnosticPlaybackController,
+                        recognitionVisualStateController = recognitionVisualStateController,
                         diagnosticDisplayMode = diagnosticDisplayMode,
                         diagnosticReturnRevision = diagnosticReturnRevision,
                         onDiagnosticDisplayModeChange = { diagnosticDisplayMode = it },
@@ -1065,6 +1069,7 @@ fun YujianApp() {
                             speciesCoverUrlFor = fishKnowledgeRepository::resolveAssetUrl,
                             revealHandoff = revealHandoff,
                             diagnosticPlaybackController = diagnosticPlaybackController,
+                            recognitionVisualStateController = recognitionVisualStateController,
                             diagnosticDisplayMode = diagnosticDisplayMode,
                             onDiagnosticDisplayModeChange = { diagnosticDisplayMode = it },
                             onDiagnosticReturnToProcessing = {

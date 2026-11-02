@@ -31,7 +31,11 @@ class WaterLightEnergyTest {
         assertEquals(1L, release.photoContentVersion)
         assertEquals("orb-to-photo", release.pathId)
         assertEquals(EnergyFeedback.ARRIVE, WaterLightEnergy.at(frame(1000), false)?.feedback)
-        assertNull(WaterLightEnergy.at(frame(1_100L), false))
+        val detectorPathStage = WaterLightEnergy.at(frame(1_100L), false)!!
+        assertEquals(EnergyAnchor.PHOTO_PERIMETER, detectorPathStage.source)
+        assertEquals(EnergyAnchor.PHOTO_PATH, detectorPathStage.target)
+        assertEquals(EnergyFeedback.ARRIVE, detectorPathStage.feedback)
+        assertEquals(0.2f, detectorPathStage.level, .001f)
         assertNull(WaterLightEnergy.at(frame(1550), false))
         assertNull(WaterLightEnergy.at(frame(1550), true))
         assertEquals(EnergyAnchor.FISH_CONTOUR, WaterLightEnergy.at(frame(1549), true)?.target)
@@ -119,5 +123,20 @@ class WaterLightEnergyTest {
         assertFalse(badSpace.isValid())
         assertNull(WaterLightEnergy.at(frame(650), false, pathGeometry = badSpace)?.pathGeometry)
         assertNull(WaterLightEnergy.at(frame(650).copy(sessionId = ""), false))
+    }
+
+    @Test fun pathToFishCanCarryARealDetectorTargetBeforeMaskTrust() {
+        val start = WaterLightPathPoint(84f, 420f)
+        val detectorBoxCenter = WaterLightPathPoint(298f, 266f)
+        val geometry = WaterLightPathGeometryFactory.between(start, detectorBoxCenter, seed = 314)!!
+        val pathFrame = frame(1_137L)
+        val event = WaterLightEnergy.at(pathFrame, trustedMask = false, pathGeometry = geometry)!!
+
+        assertEquals(EnergyFeedback.ARRIVE, event.feedback)
+        assertEquals(EnergyAnchor.PHOTO_PERIMETER, event.source)
+        assertEquals(EnergyAnchor.PHOTO_PATH, event.target)
+        assertEquals(start, event.pathGeometry?.start)
+        assertEquals(detectorBoxCenter, event.pathGeometry?.end)
+        assertTrue(event.matches(pathFrame))
     }
 }

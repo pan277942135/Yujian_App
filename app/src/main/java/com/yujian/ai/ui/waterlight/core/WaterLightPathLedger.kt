@@ -24,7 +24,7 @@ data class WaterLightPathRoute(
 class WaterLightPathLedger {
     private var identity: WaterLightPathIdentity? = null
     private var orbToPerimeter: WaterLightPathGeometry? = null
-    private var perimeterBridge: WaterLightPathGeometry? = null
+    private var perimeterToDetector: WaterLightPathGeometry? = null
     private var perimeterToFish: WaterLightPathGeometry? = null
 
     fun bind(frame: WaterLightFrame): Boolean {
@@ -41,7 +41,7 @@ class WaterLightPathLedger {
         if (identity != next) {
             identity = next
             orbToPerimeter = null
-            perimeterBridge = null
+            perimeterToDetector = null
             perimeterToFish = null
         }
         return true
@@ -59,31 +59,31 @@ class WaterLightPathLedger {
         trustedMask: Boolean,
     ): Boolean {
         if (!trustedMask || !bind(frame) || !geometry.isValid()) return false
-        if (perimeterToFish == null) {
-            perimeterToFish = geometry
-            val releaseEdge = orbToPerimeter?.end
-            val fishEdge = geometry.start
-            if (releaseEdge != null &&
-                kotlin.math.hypot(releaseEdge.x - fishEdge.x, releaseEdge.y - fishEdge.y) >= 1f
-            ) {
-                perimeterBridge = WaterLightPathGeometryFactory.between(
-                    releaseEdge,
-                    fishEdge,
-                    seed = requireNotNull(identity).hashCode(),
-                    bendFraction = .08f,
-                )
-            }
-        }
+        val detectorAnchor = perimeterToDetector?.end ?: return false
+        if (distance(detectorAnchor, geometry.start) > MAX_JOIN_GAP_PX) return false
+        if (perimeterToFish == null) perimeterToFish = geometry
         return true
     }
+
+    /** Stores the measured photo-edge → real Detector BBox path used while SlimSAM is pending. */
+    fun recordDetectorPath(frame: WaterLightFrame, geometry: WaterLightPathGeometry): Boolean {
+        if (!bind(frame) || !geometry.isValid()) return false
+        val perimeterAnchor = orbToPerimeter?.end ?: return false
+        if (distance(perimeterAnchor, geometry.start) > MAX_JOIN_GAP_PX) return false
+        if (perimeterToDetector == null) perimeterToDetector = geometry
+        return true
+    }
+
+    fun releaseEndpoint(frame: WaterLightFrame): WaterLightPathPoint? =
+        if (bind(frame)) orbToPerimeter?.end else null
 
     /** Fish → perimeter → the exact original Orb release anchor. */
     fun returnRoute(frame: WaterLightFrame, trustedMask: Boolean): WaterLightPathRoute? {
         if (!bind(frame)) return null
         val release = orbToPerimeter?.reversed() ?: return null
         val fish = perimeterToFish?.takeIf { trustedMask }?.reversed()
-        val bridge = perimeterBridge?.takeIf { trustedMask }?.reversed()
-        val segments = listOfNotNull(fish, bridge, release)
+        val detector = perimeterToDetector?.takeIf { trustedMask }?.reversed()
+        val segments = listOfNotNull(fish, detector, release)
         return WaterLightPathRoute(routeId(requireNotNull(identity)), segments)
             .takeIf(WaterLightPathRoute::isValid)
     }
@@ -98,13 +98,20 @@ class WaterLightPathLedger {
     fun clear() {
         identity = null
         orbToPerimeter = null
-        perimeterBridge = null
+        perimeterToDetector = null
         perimeterToFish = null
     }
 
     private fun routeId(value: WaterLightPathIdentity): String =
         value.sessionId + ":" + value.attemptId + ":" + value.imageId + ":" +
             value.photoSha256.take(12) + ":orb-waterlight-route"
+
+    private fun distance(a: WaterLightPathPoint, b: WaterLightPathPoint): Float =
+        kotlin.math.hypot(a.x - b.x, a.y - b.y)
+
+    companion object {
+        private const val MAX_JOIN_GAP_PX = 2f
+    }
 
     private fun WaterLightPathGeometry.reversed(): WaterLightPathGeometry = copy(
         start = end,
