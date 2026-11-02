@@ -713,7 +713,7 @@ fun RecognitionProcessingScene(
     // realPhase is intentionally NOT a LaunchedEffect key: restarting this loop on every
     // progress callback can cancel the presentation before it reaches RESULT.
     LaunchedEffect(sceneKey, phaseOverride, photoPresentedAtMs, displayMode, diagnosticReturnRevision) {
-        if (diagnosticUiAvailable && playbackController.mode == ScenePlaybackMode.MANUAL &&
+        if (stepDiagnosticActive && playbackController.mode == ScenePlaybackMode.MANUAL &&
             finishedResult?.ready == true
         ) delivered = false
         if (photoPresentedAtMs == null && phaseOverride == null) return@LaunchedEffect
@@ -898,6 +898,8 @@ fun RecognitionProcessingScene(
     }
     val rendered = phaseOverride ?: if (stepDiagnosticActive) {
         diagnosticSceneFrame.stage.toRecognitionPhase()
+    } else if (visualPhase == RecognitionPhase.FAILURE) {
+        RecognitionPhase.FAILURE
     } else {
         productionSceneStage.toRecognitionPhase()
     }
