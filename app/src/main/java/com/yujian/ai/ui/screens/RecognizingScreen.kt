@@ -263,6 +263,9 @@ fun RecognitionProcessingScene(
     val diagnosticModeState = rememberUpdatedState(BuildConfig.DEBUG)
     val playbackController = diagnosticPlaybackController ?: remember(sceneKey) { SceneMotionCoordinator() }
     var playbackRevision by remember(sceneKey) { mutableIntStateOf(0) }
+    val diagnosticStepDisplayState = rememberUpdatedState(
+        diagnosticUiAvailable && displayMode == RecognitionProgressDisplayMode.STEP_DIAGNOSTIC,
+    )
     val playbackMode = playbackController.mode
     val playbackPaused = playbackController.paused
     val orbCompletion = remember(sceneKey) { Animatable(0f) }
@@ -746,7 +749,7 @@ fun RecognitionProcessingScene(
                     phasePresentedCallback(nextVisualPhase, visualNowMs)
                 }
                 if (nextVisualPhase == RecognitionPhase.RESULT && latestFinishedResult.value?.ready == true &&
-                    controller.resultVisualReady(visualNowMs) && !delivered && !manualStepDiagnosticState.value) {
+                    controller.resultVisualReady(visualNowMs) && !delivered && !diagnosticStepDisplayState.value) {
                     // The adaptive visual beats and real model result are both ready.
                     // RR09 starts from Result's first presented frame.
                     delivered = true
@@ -841,13 +844,14 @@ fun RecognitionProcessingScene(
     var diagnosticHandoffDelivered by remember(sceneKey) { mutableStateOf(false) }
     LaunchedEffect(
         diagnosticUiAvailable,
+        displayMode,
         playbackController.mode,
         diagnosticSceneFrame.stage,
         finishedResult,
         subjectResult,
         trustedSubjectMask,
     ) {
-        if (!diagnosticUiAvailable || playbackController.mode != ScenePlaybackMode.MANUAL ||
+        if (!diagnosticUiAvailable || displayMode != RecognitionProgressDisplayMode.STEP_DIAGNOSTIC ||
             diagnosticSceneFrame.stage.ordinal < RecognitionSceneStage.ORB_RETURN.ordinal ||
             finishedResult == null || diagnosticHandoffDelivered) return@LaunchedEffect
         val result = requireNotNull(finishedResult)
