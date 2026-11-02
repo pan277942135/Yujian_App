@@ -232,12 +232,17 @@ fun YujianApp() {
         openGallery: Boolean = false,
         preserveSession: Boolean = false,
         returnToHome: Boolean = true,
+        replaceGuideEntry: Boolean = false,
     ) {
         navigatingFromResult = false
         clearRecognitionSession(preserveSession)
         if (recognitionSessionId == null) recognitionSessionId = UUID.randomUUID().toString()
         nav.navigate(if (openGallery) "identify?openGallery=true" else "identify") {
-            if (returnToHome) popUpTo("home") { inclusive = false }
+            if (returnToHome) {
+                popUpTo("home") { inclusive = false }
+            } else if (replaceGuideEntry) {
+                popUpTo("first_capture_guide?returnToHome={returnToHome}") { inclusive = true }
+            }
             launchSingleTop = true
         }
     }
@@ -692,7 +697,12 @@ fun YujianApp() {
                             nav.popBackStack()
                         },
                         onImageReady = { selected -> handleIdentifyImageReady(selected) },
-                        onGuideComplete = { startCapture(returnToHome = returnToHome) },
+                        onGuideComplete = {
+                            startCapture(
+                                returnToHome = returnToHome,
+                                replaceGuideEntry = true,
+                            )
+                        },
                         onGuideDismiss = {
                             clearRecognitionSession()
                             nav.popBackStack()
