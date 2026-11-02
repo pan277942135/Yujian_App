@@ -339,7 +339,9 @@ jobs:
           target: google_apis
           arch: x86_64
           profile: pixel_6
-          disable-animations: true
+          # API 28 hosted emulator can fail its settings Binder during cold boot;
+          # the test app does not depend on changing system animation scales.
+          disable-animations: false
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -partition-size 4096
           script: |
             set -euo pipefail
@@ -396,7 +398,7 @@ jobs:
           target: google_apis
           arch: x86_64
           profile: pixel_2
-          disable-animations: true
+          disable-animations: false
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -partition-size 4096
           script: |
             set -euo pipefail
