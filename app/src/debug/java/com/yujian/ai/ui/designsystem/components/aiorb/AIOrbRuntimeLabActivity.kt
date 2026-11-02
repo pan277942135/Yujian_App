@@ -41,7 +41,7 @@ import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.dp
 import androidx.core.view.drawToBitmap
 import com.yujian.ai.R
-import com.yujian.ai.ai.RecognitionPhase
+import com.yujian.ai.ui.waterlight.core.WaterLightPhase
 import com.yujian.ai.ui.theme.YujianTheme
 import com.yujian.ai.ui.waterlight.core.WaterLightFrame
 import com.yujian.ai.ui.waterlight.core.WaterLightMaterialProfile
@@ -130,7 +130,7 @@ private fun OrbRuntimeLabScreen(
             photoSha256 = OrbRuntimeProfileV1.CORE_SHA256,
             elapsedMs = opticalMs,
             opticalReferenceElapsedMs = opticalMs,
-            phase = RecognitionPhase.CLASSIFYING,
+            phase = WaterLightPhase.PROCESSING,
             completion = 0f,
             reducedMotion = false,
             geometryVersion = 1L,

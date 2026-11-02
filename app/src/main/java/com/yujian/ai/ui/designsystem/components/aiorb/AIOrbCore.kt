@@ -32,7 +32,7 @@ import com.yujian.ai.R
 import com.yujian.ai.ui.waterlight.core.EnergyEvent
 import com.yujian.ai.ui.waterlight.core.EnergyFeedback
 import com.yujian.ai.ui.waterlight.renderer.WaterGrassField
-import com.yujian.ai.ai.RecognitionPhase
+import com.yujian.ai.ui.waterlight.core.WaterLightPhase
 import com.yujian.ai.ui.waterlight.core.WaterLightFrame
 import com.yujian.ai.ui.waterlight.core.WaterLightMaterialProfile
 import com.yujian.ai.ui.waterlight.renderer.OrbWaterLightRibbons
@@ -194,7 +194,7 @@ private fun OrbVisual(
     val time = if (reduceMotion) 0f else elapsedMs / 1000f
     val sharedFrame = waterLightFrame ?: WaterLightFrame(
         sessionId = "", photoSha256 = null, elapsedMs = elapsedMs.coerceAtLeast(0L),
-        opticalReferenceElapsedMs = elapsedMs.coerceAtLeast(0L), phase = RecognitionPhase.CAPTURED,
+        opticalReferenceElapsedMs = elapsedMs.coerceAtLeast(0L), phase = WaterLightPhase.PROCESSING,
         completion = completion.coerceIn(0f, 1f), reducedMotion = reduceMotion, geometryVersion = 0L,
     )
     val activeEnergyEvent = energyEvent?.takeIf { it.matches(sharedFrame) }
