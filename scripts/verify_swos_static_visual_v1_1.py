@@ -144,6 +144,36 @@ AISTUDIO_FULL_RESTORE_APP_PATHS = {
     "app/src/test/java/com/yujian/ai/network/HttpBaseUrlTest.kt",
     "app/src/test/java/com/yujian/ai/ui/home/EmptyHomeMotionTest.kt",
 }
+LAKE_GLASS_TASK_ID = "YUJIAN_LAKE_GLASS_V2_ASSET_PACK_ANDROID_RUNTIME_INTEGRATION_V1"
+LAKE_GLASS_TASK_CONTRACT_PATH = "harness/task_contracts/LAKE_GLASS_V2_ASSET_PACK_ANDROID_RUNTIME_INTEGRATION_V1.md"
+LAKE_GLASS_ANDROID_APP_PATHS = {
+    "app/src/androidTest/java/com/yujian/ai/ui/designsystem/lakeglass/LakeGlassAgslRuntimeTest.kt",
+    "app/src/androidTest/java/com/yujian/ai/ui/designsystem/lakeglass/LakeGlassStaticRuntimeTest.kt",
+    "app/src/debug/AndroidManifest.xml",
+    "app/src/debug/java/com/yujian/ai/ui/designsystem/lakeglass/LakeGlassShaderLabActivity.kt",
+    "app/src/debug/java/com/yujian/ai/ui/designsystem/lakeglass/LakeGlassShaderLabScreen.kt",
+    "app/src/main/assets/lake_glass_v2/assets/android_runtime/api24_static/lake_glass_master_fallback.png",
+    "app/src/main/assets/lake_glass_v2/assets/android_runtime/api24_static/lake_glass_static_layered_v3.png",
+    "app/src/main/assets/lake_glass_v2/assets/android_runtime/layer_manifest_v1.json",
+    "app/src/main/assets/lake_glass_v2/assets/android_runtime/runtime_optical_masks_v1.png",
+    "app/src/main/assets/lake_glass_v2/shaders/lake_glass_v2.agsl",
+    "app/src/main/java/com/yujian/ai/YujianApplication.kt",
+    "app/src/main/java/com/yujian/ai/ui/auth/AuthV2Components.kt",
+    "app/src/main/java/com/yujian/ai/ui/designsystem/background/YuJianMorningLakeBackground.kt",
+    "app/src/main/java/com/yujian/ai/ui/designsystem/lakeglass/AmbientController.kt",
+    "app/src/main/java/com/yujian/ai/ui/designsystem/lakeglass/LakeGlassAgslProgram.kt",
+    "app/src/main/java/com/yujian/ai/ui/designsystem/lakeglass/LakeGlassAssetRepository.kt",
+    "app/src/main/java/com/yujian/ai/ui/designsystem/lakeglass/LakeGlassBackgroundHost.kt",
+    "app/src/main/java/com/yujian/ai/ui/designsystem/lakeglass/LakeGlassRenderPolicy.kt",
+    "app/src/main/java/com/yujian/ai/ui/designsystem/lakeglass/LakeGlassRenderer.kt",
+    "app/src/main/java/com/yujian/ai/ui/designsystem/lakeglass/LakeGlassSceneManifest.kt",
+    "app/src/main/java/com/yujian/ai/ui/designsystem/lakeglass/LakeGlassViewportTransform.kt",
+    "app/src/main/java/com/yujian/ai/ui/home/GeminiNormalHomeContent.kt",
+    "app/src/main/java/com/yujian/ai/ui/home/NormalHomeRuntimeAssets.kt",
+    "app/src/main/java/com/yujian/ai/ui/screens/CaptureFrostedBackground.kt",
+    "app/src/main/java/com/yujian/ai/ui/screens/RecognizingScreen.kt",
+    "app/src/test/java/com/yujian/ai/ui/designsystem/lakeglass/LakeGlassRuntimeContractTest.kt",
+}
 
 base_branch = os.environ.get("GITHUB_BASE_REF")
 if base_branch:
@@ -163,8 +193,17 @@ if base_branch:
             and "本次不是 Empty Home 专项修复" in task_contract_text
             and "首次拍照引导页面" in task_contract_text
         )
+        lake_glass_contract_path = ROOT / LAKE_GLASS_TASK_CONTRACT_PATH
+        lake_glass_contract_text = lake_glass_contract_path.read_text(encoding="utf-8") if lake_glass_contract_path.is_file() else ""
+        is_exact_lake_glass_scope = (
+            changed_app_paths == LAKE_GLASS_ANDROID_APP_PATHS
+            and f"`{LAKE_GLASS_TASK_ID}`" in lake_glass_contract_text
+            and "Keep the existing Empty Home composition" in lake_glass_contract_text
+            and "Preserve Morning Lake V1 history byte-for-byte" in lake_glass_contract_text
+            and "Do not add a `GLSurfaceView`" in lake_glass_contract_text
+        )
         require(
-            changed_app_paths == EMPTY_HOME_V22_RIPPLE_HAPTIC_AMENDMENT_PATHS or is_exact_full_restore_scope,
+            changed_app_paths == EMPTY_HOME_V22_RIPPLE_HAPTIC_AMENDMENT_PATHS or is_exact_full_restore_scope or is_exact_lake_glass_scope,
             "scope boundary violated by app changes outside an exact approved task file set",
         )
         amendment_spec = (ROOT / "design/pages/home/empty_home/spec/Empty_Home_Frozen_Visual_Revision_V2_2.md").read_text(encoding="utf-8")
@@ -207,7 +246,7 @@ if base_branch:
                 and automatic_haptic.get("max_start_latency_ms") == 120,
                 "AI Studio full restore requires the event-start-guarded V1.3 haptic contract",
             )
-        else:
+        elif not is_exact_lake_glass_scope:
             require(
                 motion_contract.get("contract_revision") == "EMPTY_HOME_MOTION_V2_2_RIPPLE_HAPTIC_AMENDMENT_01"
                 and ripple.get("count") == 3
@@ -228,9 +267,11 @@ if base_branch:
             )
         if is_exact_full_restore_scope:
             print("AISTUDIO_FULL_PAGE_RESTORE_SCOPE_EXCEPTION=PASS exact_Main_task_contract_and_app_file_set")
+        elif is_exact_lake_glass_scope:
+            print("LAKE_GLASS_V2_ANDROID_SCOPE=PASS exact_task_contract_and_app_file_set")
         else:
             print("EMPTY_HOME_V22_RIPPLE_HAPTIC_SCOPE_EXCEPTION=PASS exact_file_set_and_approved_contracts")
-    allowed_app_paths = EMPTY_HOME_V22_RIPPLE_HAPTIC_AMENDMENT_PATHS | AISTUDIO_FULL_RESTORE_APP_PATHS
+    allowed_app_paths = EMPTY_HOME_V22_RIPPLE_HAPTIC_AMENDMENT_PATHS | AISTUDIO_FULL_RESTORE_APP_PATHS | LAKE_GLASS_ANDROID_APP_PATHS
     for path in changed:
         require(not path.startswith("android/") and not path.startswith("design/manager/rr09_motion/"), f"scope boundary violated by {path}")
         require(not path.startswith("app/") or path in allowed_app_paths, f"scope boundary violated by {path}")
