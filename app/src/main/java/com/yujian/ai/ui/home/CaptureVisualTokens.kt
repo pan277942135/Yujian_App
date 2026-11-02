@@ -3,8 +3,10 @@ package com.yujian.ai.ui.home
 /** Frozen 01–03 contract. Timings are independent of camera initialization. */
 object CaptureVisualTokens {
     const val ActivationMs = 750L
-    const val HandoffMs = 180
+    const val HandoffMs = 400
     const val IdleCycleMs = 3000
+    const val IdleBreathCycleMs = 5000
+    const val IdleBreathMaxScale = 1.015f
     const val IdleGlintMs = 600
     const val GuideWidthFraction = .90f
     const val GuideHeightToWidth = .80f
@@ -13,6 +15,14 @@ object CaptureVisualTokens {
     const val ActivationExpansionDp = 12f
     fun buttonDiameter(widthDp: Float) = (widthDp * .244f).coerceIn(88f, 96f)
     fun activationProgress(elapsedMs: Long) = (elapsedMs / ActivationMs.toFloat()).coerceIn(0f, 1f)
+}
+
+internal fun captureIdleBreathScale(progress: Float): Float {
+    if (!progress.isFinite()) return 1f
+    val phase = progress.coerceIn(0f, 1f)
+    return (1f + (CaptureVisualTokens.IdleBreathMaxScale - 1f) *
+        (0.5f - 0.5f * kotlin.math.cos(phase * 2f * kotlin.math.PI.toFloat())))
+        .coerceIn(1f, CaptureVisualTokens.IdleBreathMaxScale)
 }
 
 internal data class CaptureHomeActionY(val cameraTop: Float, val promptTop: Float)
