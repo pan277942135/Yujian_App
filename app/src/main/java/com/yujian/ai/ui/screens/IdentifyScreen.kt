@@ -2,6 +2,8 @@ package com.yujian.ai.ui.screens
 
 import com.yujian.ai.ui.designsystem.components.aiorb.AIOrbCore
 import com.yujian.ai.ui.designsystem.components.aiorb.AIOrbVisualState
+import com.yujian.ai.ui.designsystem.components.aiorb.AIOrbCaptureVisualAssets
+import com.yujian.ai.ui.designsystem.components.CaptureButtonOptics
 
 import android.Manifest
 import android.app.Activity
@@ -90,6 +92,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.zIndex
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.text.font.FontWeight
@@ -790,13 +793,15 @@ fun IdentifyScreen(
         captureRootPositionReady = true
     }) {
         CaptureFrostedBackground(Modifier.fillMaxSize())
-        val shutterDiameter = CaptureVisualTokens.buttonDiameter(maxWidth.value).dp
+        val homeCenter = CaptureNavigationTransition.homeCenter
+        val hasHomeCenter = !autoOpenGallery && homeCenter.x.isFinite() && homeCenter.y.isFinite()
+        val shutterDiameter = if (hasHomeCenter) CaptureNavigationTransition.homeDiameterDp.dp
+            else CaptureVisualTokens.buttonDiameter(maxWidth.value).dp
         val cameraDensity = LocalDensity.current
         val fontScale = cameraDensity.fontScale
         val panelContentHeight = if (maxHeight < 560.dp) 150.dp else 166.dp
         val defaultControlBottom = safeInsets.calculateBottomPadding() + (panelContentHeight - shutterDiameter) / 2f
-        val homeCenter = CaptureNavigationTransition.homeCenter
-        val hasHomeAnchor = captureRootPositionReady && homeCenter.x.isFinite() && homeCenter.y.isFinite()
+        val hasHomeAnchor = captureRootPositionReady && hasHomeCenter
         val anchoredControlBottom = if (hasHomeAnchor) {
             val localHomeCenterY = homeCenter.y - captureRootOrigin.y
             with(cameraDensity) { (maxHeight.toPx() - localHomeCenterY - shutterDiameter.toPx() / 2f).toDp() }
