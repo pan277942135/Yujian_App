@@ -1,0 +1,160 @@
+{
+  "schema_version": "1.0",
+  "status": "NEW_CANDIDATE",
+  "source_reference": "236493.png",
+  "source_sha256": "adefad98ec7cfe32df1316a605ac7f3ded8a5a7b33e107f2380ecbf49f2f7c35",
+  "legacy_renderer": "OrbWaterLightRibbons",
+  "legacy_map": {
+    "green": [
+      "G01",
+      "G02"
+    ],
+    "gold": [
+      "A01",
+      "A02"
+    ],
+    "blue": [
+      "C01"
+    ]
+  },
+  "replace_not_overlay": true,
+  "paths": [
+    {
+      "id": "G01",
+      "material": "green",
+      "color": "#5B8F78",
+      "depth": "BACK",
+      "period_ms": 6100,
+      "phase": 0.07,
+      "width_dp": [
+        1.5,
+        3.2
+      ],
+      "alpha": [
+        0.18,
+        0.35
+      ],
+      "control_point_deformation_D": 0.007
+    },
+    {
+      "id": "G02",
+      "material": "green",
+      "color": "#5B8F78",
+      "depth": "FRONT",
+      "period_ms": 5300,
+      "phase": 0.34,
+      "width_dp": [
+        1.4,
+        2.7
+      ],
+      "alpha": [
+        0.18,
+        0.38
+      ],
+      "control_point_deformation_D": 0.007
+    },
+    {
+      "id": "A01",
+      "material": "gold",
+      "color": "#D8BC87",
+      "depth": "BACK",
+      "period_ms": 3700,
+      "phase": 0.59,
+      "width_dp": [
+        0.55,
+        0.92
+      ],
+      "alpha": [
+        0.45,
+        0.69
+      ],
+      "control_point_deformation_D": 0.004
+    },
+    {
+      "id": "A02",
+      "material": "gold",
+      "color": "#D8BC87",
+      "depth": "FRONT",
+      "period_ms": 2900,
+      "phase": 0.81,
+      "width_dp": [
+        0.55,
+        1
+      ],
+      "alpha": [
+        0.45,
+        0.72
+      ],
+      "control_point_deformation_D": 0.004
+    },
+    {
+      "id": "C01",
+      "material": "cyan",
+      "color": "#348CA6",
+      "depth": "FRONT",
+      "period_ms": 4400,
+      "phase": 0.23,
+      "width_dp": [
+        1.4,
+        2.8
+      ],
+      "alpha": [
+        0.18,
+        0.4
+      ],
+      "control_point_deformation_D": 0.007
+    }
+  ],
+  "speed_phase_distance": [
+    [
+      0,
+      0
+    ],
+    [
+      0.18,
+      0.105
+    ],
+    [
+      0.45,
+      0.43
+    ],
+    [
+      0.75,
+      0.8
+    ],
+    [
+      0.92,
+      0.95
+    ],
+    [
+      1,
+      1
+    ]
+  ],
+  "arc_length_lut_samples": 128,
+  "trail": [
+    "tail",
+    "body",
+    "head"
+  ],
+  "normal_steps": 96,
+  "low_steps": 48,
+  "events": {
+    "RELEASE": {
+      "life_state": "S2",
+      "direction": "OUTWARD",
+      "head_multiplier": 1.18,
+      "keep_position_and_phase": true
+    },
+    "RETURN": {
+      "life_state": "S2",
+      "direction": "INWARD",
+      "head_multiplier": 1.07,
+      "keep_position_and_phase": true,
+      "reverse_with_C1_speed_ramp_ms": 260
+    }
+  },
+  "at_cycle_end": "fade departing trail and introduce next head at near-zero alpha (do not instantly teleport a visible head)",
+  "clock": "shared MotionClock",
+  "avoid_same_ellipse": true
+}

@@ -1,0 +1,41 @@
+{
+  "schema_version": "1.0",
+  "status": "VISUAL_REVIEW_PENDING",
+  "life_states": [
+    "S1_IDLE",
+    "S2_ACTIVE"
+  ],
+  "S1": {
+    "core": "same preserved original; baked grass kept",
+    "drops": "1-3 subtle lens drops",
+    "sun": "fixed upper left",
+    "filaments": "retracted"
+  },
+  "S2": {
+    "core": "same preserved original",
+    "paths": [
+      "G01",
+      "G02",
+      "A01",
+      "A02",
+      "C01"
+    ],
+    "events": [
+      "RELEASE",
+      "RETURN"
+    ]
+  },
+  "entrada_ms": 900,
+  "core_dp": [
+    68,
+    80
+  ],
+  "outside_max_dp": 14,
+  "excluded": [
+    "S3",
+    "glyph",
+    "fish",
+    "perimeter",
+    "Processing-to-Result"
+  ]
+}

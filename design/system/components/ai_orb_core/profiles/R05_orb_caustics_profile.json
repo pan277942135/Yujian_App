@@ -1,0 +1,47 @@
+{
+  "schema_version": "1.0",
+  "status": "TUNE_BASELINE",
+  "algorithm": "Reuse WaterCausticsField field/sampleCaustic; photo Bitmap renderer is NOT directly portable",
+  "motion_clock": "WaterLightFrame.opticalReferenceElapsedMs",
+  "layers": [
+    {
+      "id": "deep_flow",
+      "period_ms": 6500,
+      "frequency": 1.65,
+      "alpha": 0.07,
+      "advection_D_s": [
+        0.015,
+        0.004
+      ]
+    },
+    {
+      "id": "surface_caustic",
+      "period_ms": 4100,
+      "frequency": 3.05,
+      "alpha": 0.12,
+      "advection_D_s": [
+        -0.006,
+        0.011
+      ]
+    }
+  ],
+  "mask": {
+    "real_core_alpha_and_inner_water": true,
+    "inner_radius_D": 0.385,
+    "edge_fade_D": 0.035
+  },
+  "performance": {
+    "normal_texture_px_80dp": 96,
+    "normal_min_interval_ms": 66,
+    "low_texture_px_80dp": 64,
+    "low_min_interval_ms": 120,
+    "buffers": 2,
+    "no_per_frame_bitmap_creation": true,
+    "cache_key": [
+      "sizePx",
+      "profileVersion",
+      "performanceTier"
+    ],
+    "generation_guard": true
+  }
+}

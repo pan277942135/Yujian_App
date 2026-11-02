@@ -1,0 +1,412 @@
+{
+  "schema_version": "1.0",
+  "task_id": "YUJIAN_AI_ORB_EXISTING_ASSET_GAP_CLOSURE_V1",
+  "coordinate_system": {
+    "center": [
+      0,
+      0
+    ],
+    "diameter": 1,
+    "core_radius": 0.5,
+    "max_80dp_radius": 0.675,
+    "max_outside_dp": 14,
+    "units": "OrbLocal diameter D; y positive down"
+  },
+  "paths": [
+    {
+      "id": "G01",
+      "type": "green",
+      "depth": "BACK",
+      "start": [
+        -0.57,
+        0.27
+      ],
+      "segments": [
+        {
+          "c1": [
+            -0.62,
+            -0.12
+          ],
+          "c2": [
+            -0.44,
+            -0.53
+          ],
+          "end": [
+            -0.18,
+            -0.55
+          ]
+        },
+        {
+          "c1": [
+            0.13,
+            -0.66
+          ],
+          "c2": [
+            0.46,
+            -0.39
+          ],
+          "end": [
+            0.51,
+            -0.13
+          ]
+        }
+      ],
+      "end": [
+        0.51,
+        -0.13
+      ],
+      "arc_length_D": 1.897455,
+      "max_radius_D": 0.630714,
+      "effective_max_radius_D": 0.657714,
+      "width_dp_min_max": [
+        1.5,
+        3.2
+      ],
+      "alpha_min_max": [
+        0.18,
+        0.35
+      ],
+      "period_ms": 6100,
+      "phase": 0.07,
+      "material_zones": {
+        "tail": {
+          "u": [
+            0,
+            0.12
+          ],
+          "alpha_multiplier": 0.18
+        },
+        "body": {
+          "u": [
+            0.12,
+            0.7
+          ],
+          "alpha_multiplier": 1
+        },
+        "head": {
+          "u": [
+            0.7,
+            1
+          ],
+          "highlight_multiplier": 1.18
+        }
+      }
+    },
+    {
+      "id": "G02",
+      "type": "green",
+      "depth": "FRONT",
+      "start": [
+        -0.62,
+        0.08
+      ],
+      "segments": [
+        {
+          "c1": [
+            -0.55,
+            0.45
+          ],
+          "c2": [
+            -0.21,
+            0.64
+          ],
+          "end": [
+            0.06,
+            0.58
+          ]
+        },
+        {
+          "c1": [
+            0.39,
+            0.57
+          ],
+          "c2": [
+            0.62,
+            0.36
+          ],
+          "end": [
+            0.6,
+            0.08
+          ]
+        }
+      ],
+      "end": [
+        0.6,
+        0.08
+      ],
+      "arc_length_D": 1.766659,
+      "max_radius_D": 0.635822,
+      "effective_max_radius_D": 0.659697,
+      "width_dp_min_max": [
+        1.4,
+        2.7
+      ],
+      "alpha_min_max": [
+        0.18,
+        0.38
+      ],
+      "period_ms": 5300,
+      "phase": 0.34,
+      "material_zones": {
+        "tail": {
+          "u": [
+            0,
+            0.12
+          ],
+          "alpha_multiplier": 0.18
+        },
+        "body": {
+          "u": [
+            0.12,
+            0.7
+          ],
+          "alpha_multiplier": 1
+        },
+        "head": {
+          "u": [
+            0.7,
+            1
+          ],
+          "highlight_multiplier": 1.18
+        }
+      }
+    },
+    {
+      "id": "A01",
+      "type": "gold",
+      "depth": "BACK",
+      "start": [
+        -0.51,
+        -0.24
+      ],
+      "segments": [
+        {
+          "c1": [
+            -0.28,
+            -0.62
+          ],
+          "c2": [
+            0.23,
+            -0.63
+          ],
+          "end": [
+            0.54,
+            -0.29
+          ]
+        },
+        {
+          "c1": [
+            0.64,
+            -0.17
+          ],
+          "c2": [
+            0.6,
+            0.06
+          ],
+          "end": [
+            0.53,
+            0.24
+          ]
+        }
+      ],
+      "end": [
+        0.53,
+        0.24
+      ],
+      "arc_length_D": 1.779633,
+      "max_radius_D": 0.61983,
+      "effective_max_radius_D": 0.62958,
+      "width_dp_min_max": [
+        0.55,
+        0.92
+      ],
+      "alpha_min_max": [
+        0.45,
+        0.69
+      ],
+      "period_ms": 3700,
+      "phase": 0.59,
+      "material_zones": {
+        "tail": {
+          "u": [
+            0,
+            0.12
+          ],
+          "alpha_multiplier": 0.18
+        },
+        "body": {
+          "u": [
+            0.12,
+            0.7
+          ],
+          "alpha_multiplier": 1
+        },
+        "head": {
+          "u": [
+            0.7,
+            1
+          ],
+          "highlight_multiplier": 1.18
+        }
+      }
+    },
+    {
+      "id": "A02",
+      "type": "gold",
+      "depth": "FRONT",
+      "start": [
+        -0.61,
+        -0.03
+      ],
+      "segments": [
+        {
+          "c1": [
+            -0.48,
+            0.23
+          ],
+          "c2": [
+            -0.27,
+            0.4
+          ],
+          "end": [
+            0.08,
+            0.53
+          ]
+        },
+        {
+          "c1": [
+            0.3,
+            0.59
+          ],
+          "c2": [
+            0.49,
+            0.45
+          ],
+          "end": [
+            0.6,
+            0.25
+          ]
+        }
+      ],
+      "end": [
+        0.6,
+        0.25
+      ],
+      "arc_length_D": 1.551788,
+      "max_radius_D": 0.65,
+      "effective_max_radius_D": 0.66025,
+      "width_dp_min_max": [
+        0.55,
+        1
+      ],
+      "alpha_min_max": [
+        0.45,
+        0.72
+      ],
+      "period_ms": 2900,
+      "phase": 0.81,
+      "material_zones": {
+        "tail": {
+          "u": [
+            0,
+            0.12
+          ],
+          "alpha_multiplier": 0.18
+        },
+        "body": {
+          "u": [
+            0.12,
+            0.7
+          ],
+          "alpha_multiplier": 1
+        },
+        "head": {
+          "u": [
+            0.7,
+            1
+          ],
+          "highlight_multiplier": 1.18
+        }
+      }
+    },
+    {
+      "id": "C01",
+      "type": "cyan",
+      "depth": "FRONT",
+      "start": [
+        -0.57,
+        -0.19
+      ],
+      "segments": [
+        {
+          "c1": [
+            -0.53,
+            -0.05
+          ],
+          "c2": [
+            -0.48,
+            0.15
+          ],
+          "end": [
+            -0.24,
+            0.32
+          ]
+        },
+        {
+          "c1": [
+            0.13,
+            0.47
+          ],
+          "c2": [
+            0.36,
+            0.48
+          ],
+          "end": [
+            0.54,
+            0.27
+          ]
+        }
+      ],
+      "end": [
+        0.54,
+        0.27
+      ],
+      "arc_length_D": 1.467744,
+      "max_radius_D": 0.603738,
+      "effective_max_radius_D": 0.628238,
+      "width_dp_min_max": [
+        1.4,
+        2.8
+      ],
+      "alpha_min_max": [
+        0.18,
+        0.4
+      ],
+      "period_ms": 4400,
+      "phase": 0.23,
+      "material_zones": {
+        "tail": {
+          "u": [
+            0,
+            0.12
+          ],
+          "alpha_multiplier": 0.18
+        },
+        "body": {
+          "u": [
+            0.12,
+            0.7
+          ],
+          "alpha_multiplier": 1
+        },
+        "head": {
+          "u": [
+            0.7,
+            1
+          ],
+          "highlight_multiplier": 1.18
+        }
+      }
+    }
+  ]
+}
