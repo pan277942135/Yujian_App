@@ -1,0 +1,54 @@
+{
+  "schemaVersion": "2.0",
+  "coordinateSystem": "local SVG px; anchors in Master px",
+  "runtimeEnabled": false,
+  "sourceType": "ESTIMATED_CONTROL_GUIDE",
+  "periodSeconds": [
+    16,
+    24
+  ],
+  "leafGroups": [
+    {
+      "side": "left",
+      "rootAnchor": [
+        32,
+        3108
+      ],
+      "skeletonSvg": "grass_left_skeleton_v2.svg",
+      "leafIds": [
+        "leaf_01",
+        "leaf_02",
+        "leaf_03",
+        "leaf_04",
+        "leaf_05"
+      ],
+      "segmentCount": 8,
+      "bendWeight": 0.35,
+      "depthWeight": 0.55,
+      "motionPhase": 0,
+      "maxOffsetDp": 2
+    },
+    {
+      "side": "right",
+      "rootAnchor": [
+        1405,
+        3108
+      ],
+      "skeletonSvg": "grass_right_skeleton_v2.svg",
+      "leafIds": [
+        "leaf_01",
+        "leaf_02",
+        "leaf_03",
+        "leaf_04"
+      ],
+      "segmentCount": 8,
+      "bendWeight": 0.28,
+      "depthWeight": 0.62,
+      "motionPhase": 0.42,
+      "maxOffsetDp": 2
+    }
+  ],
+  "separationStatus": "NOT_RUNTIME_ELIGIBLE",
+  "runtimeMode": "DIAGNOSTIC_ONLY",
+  "motionEligible": false
+}

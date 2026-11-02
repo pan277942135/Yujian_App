@@ -1,0 +1,86 @@
+{
+  "source": "Candidate02 source pixel samples; tokens are reference values, not recoloring instructions",
+  "tokens": {
+    "mistWhite": "#EAF7F7",
+    "lakePale": "#C6EAE5",
+    "lakeMid": "#8CCFC4",
+    "lakeDeep": "#65BFB5",
+    "textDeepLake": "#153B50",
+    "morningGold": "#D8B36A"
+  },
+  "measuredSamples": {
+    "surface_highlight": {
+      "xyPx": [
+        1360,
+        90
+      ],
+      "medianRgb5x5": [
+        249,
+        248,
+        240
+      ],
+      "hex": "#F9F8F0"
+    },
+    "upper_water": {
+      "xyPx": [
+        260,
+        300
+      ],
+      "medianRgb5x5": [
+        121,
+        220,
+        234
+      ],
+      "hex": "#79DCEA"
+    },
+    "central_water": {
+      "xyPx": [
+        720,
+        1450
+      ],
+      "medianRgb5x5": [
+        178,
+        236,
+        238
+      ],
+      "hex": "#B2ECEE"
+    },
+    "lower_water": {
+      "xyPx": [
+        720,
+        2360
+      ],
+      "medianRgb5x5": [
+        124,
+        222,
+        225
+      ],
+      "hex": "#7CDEE1"
+    },
+    "left_grass": {
+      "xyPx": [
+        85,
+        2840
+      ],
+      "medianRgb5x5": [
+        71,
+        163,
+        68
+      ],
+      "hex": "#47A344"
+    },
+    "lower_caustic": {
+      "xyPx": [
+        700,
+        2730
+      ],
+      "medianRgb5x5": [
+        208,
+        248,
+        240
+      ],
+      "hex": "#D0F8F0"
+    }
+  },
+  "recoloringAllowed": false
+}

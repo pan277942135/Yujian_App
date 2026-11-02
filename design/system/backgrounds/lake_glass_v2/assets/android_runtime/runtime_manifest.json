@@ -1,0 +1,33 @@
+{
+  "schemaVersion": "2.0",
+  "authoritativeManifest": "assets/android_runtime/layer_manifest_v1.json",
+  "authoritativeManifestSha256": "bf5c80eb149e67ed564859a7558688bcff279ba6961a93f8c684e140cb8e0a82",
+  "androidHost": "LakeGlassBackgroundHost",
+  "renderer": "LakeGlassRenderer",
+  "assetRepository": "LakeGlassAssetRepository",
+  "ambientController": "AmbientController (separate clock; never the recognition SceneClock)",
+  "api24to32": {
+    "mode": "STATIC",
+    "primary": "assets/android_runtime/api24_static/lake_glass_static_layered_v3.png",
+    "fallback": "assets/android_runtime/api24_static/lake_glass_master_fallback.png",
+    "shader": "DISABLED"
+  },
+  "api33plus": {
+    "mode": "OPTIONAL_AGSL_IN_PLACE_MODULATION",
+    "staticFallback": "assets/android_runtime/api24_static/lake_glass_static_layered_v3.png",
+    "shaderFailureFallback": "STATIC_COMPOSITE",
+    "overlayLayers": [],
+    "effects": [
+      "LAYER_CAUSTICS_MODULATION",
+      "LAYER_SUNLIGHT_MODULATION",
+      "LAYER_DROPLET_01_REFRACTION",
+      "LAYER_DROPLET_02_REFRACTION",
+      "LAYER_DROPLET_03_REFRACTION"
+    ]
+  },
+  "singleGlobalMatrix": true,
+  "overlayLayers": [],
+  "diagnosticAssetsExcludedFromApk": true,
+  "decodeCache": "one async process-level scene cache; no per-frame Bitmap or RuntimeShader allocation",
+  "status": "ASSET_PACK_READY_FOR_ANDROID"
+}

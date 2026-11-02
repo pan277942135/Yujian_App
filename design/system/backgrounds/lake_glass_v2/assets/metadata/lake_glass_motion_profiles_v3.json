@@ -1,0 +1,38 @@
+{
+  "schemaVersion": "3.0",
+  "defaultEnabled": false,
+  "profiles": {
+    "grass_low_frequency": {
+      "periodSeconds": [
+        16,
+        24
+      ],
+      "rootFixed": true,
+      "leafTipMaxDp": 2,
+      "wholePlantTranslation": false,
+      "runtimeReady": false
+    },
+    "sunlight_low_frequency": {
+      "periodSeconds": [
+        24,
+        36
+      ],
+      "directionFixed": true,
+      "intensityDelta": 0.02,
+      "runtimeReady": false
+    },
+    "caustics_low_frequency": {
+      "periodSeconds": [
+        24,
+        36
+      ],
+      "wholeLayerDriftDp": 0,
+      "runtimeReady": false
+    },
+    "droplet_static": {
+      "enabled": false,
+      "onlyWeakSpecularVariation": true
+    }
+  },
+  "sharedClock": "Must not consume or modify AI Orb x WaterLight recognition clock."
+}
