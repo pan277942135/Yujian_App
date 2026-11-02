@@ -322,73 +322,73 @@ jobs:
   orb-visual-evidence:
     if: ${{ (github.event_name == 'push' && github.ref_name == 'work/android-ai-orb-r02-r06-runtime-v1') || (github.event_name == 'pull_request' && github.event.pull_request.head.ref == 'work/android-ai-orb-r02-r06-runtime-v1') || (github.event_name == 'workflow_dispatch' && inputs.runtime_backend == 'github-hosted') }}
     needs: build
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, yujian-android, api28]
     timeout-minutes: 35
     env:
       YUJIAN_SOURCE_SHA: ${{ needs.build.outputs.source_sha }}
 
     steps:
-      - name: Set up Android SDK and API 28 tools
-        uses: android-actions/setup-android@v3
+      - name: Checkout exact source for visual evidence
+        uses: actions/checkout@v4
         with:
-          packages: platform-tools
+          ref: ${{ needs.build.outputs.source_sha }}
 
-      - name: Create API 28 Pixel 2 emulator
+      - name: Prepare API 28 self-hosted emulator
         shell: bash
         run: |
           set -euo pipefail
-          sdkmanager --install "emulator" "system-images;android-28;google_apis;x86_64"
-          avd_home="$HOME/.android/avd"
-          mkdir -p "$avd_home"
-          export ANDROID_AVD_HOME="$avd_home"
-          printf 'no\n' | avdmanager create avd \
-            --name yujian_orb_pixel2_api28 \
-            --package "system-images;android-28;google_apis;x86_64" \
-            --device pixel_2 \
-            -p "$avd_home/yujian_orb_pixel2_api28.avd" \
-            --force
-          "$ANDROID_HOME/emulator/emulator" -list-avds | grep -Fx yujian_orb_pixel2_api28
+          output="build/orb-visual-evidence"
+          mkdir -p "$output"
+          echo "/opt/android-sdk/platform-tools" >> "$GITHUB_PATH"
+          echo "/opt/android-sdk/emulator" >> "$GITHUB_PATH"
+          test -e /dev/kvm
+          adb=/opt/android-sdk/platform-tools/adb
+          emulator=/opt/android-sdk/emulator/emulator
+          test -x "$adb"
+          test -x "$emulator"
+          "$adb" start-server > "$output/adb-start.log" 2>&1
 
-      - name: Boot API 28 emulator
-        shell: bash
-        run: |
-          set -euo pipefail
-          mkdir -p build/orb-visual-evidence
-          avd_home="$HOME/.android/avd"
-          export ANDROID_AVD_HOME="$avd_home"
-          mkdir -p "$avd_home"
-          test -s "$avd_home/yujian_orb_pixel2_api28.ini"
-          adb start-server
-          "$ANDROID_HOME/emulator/emulator" \
-            -avd yujian_orb_pixel2_api28 \
-            -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -no-snapshot \
-            -camera-back none -partition-size 4096 -skin 1080x1920 \
-            > build/orb-visual-evidence/emulator.log 2>&1 &
-          emulator_pid=$!
-          booted=0
-          for attempt in $(seq 1 180); do
-            if [[ "$(timeout 5s adb shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')" == "1" ]]; then
-              booted=1
-              break
+          existing_device="$("$adb" devices | awk 'NR > 1 && $2 == "device" {print $1; exit}')"
+          if [[ -n "$existing_device" ]]; then
+            existing_api="$("$adb" -s "$existing_device" shell getprop ro.build.version.sdk 2>/dev/null | tr -d '\r' || true)"
+            if [[ "$existing_api" != "28" ]]; then
+              "$adb" -s "$existing_device" emu kill >> "$output/adb-start.log" 2>&1 || true
+              for attempt in $(seq 1 30); do
+                if ! "$adb" devices | awk 'NR > 1 && $2 == "device" {found=1} END {exit !found}'; then break; fi
+                sleep 1
+              done
+              existing_device=""
             fi
-            if ! kill -0 "$emulator_pid" 2>/dev/null; then
-              echo "API 28 emulator exited before boot completed"
-              tail -n 120 build/orb-visual-evidence/emulator.log || true
+          fi
+
+          if [[ -z "$existing_device" ]]; then
+            avd_list="$("$emulator" -list-avds 2>&1)"
+            avd_name="$(printf '%s\n' "$avd_list" | awk '/28/ {print; exit}')"
+            if [[ -z "$avd_name" ]]; then
+              printf 'No API 28 AVD found:\n%s\n' "$avd_list" | tee "$output/avd-list.log"
               exit 1
             fi
+            nohup "$emulator" -avd "$avd_name" -no-snapshot -no-window \
+              -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none \
+              -partition-size 4096 -skin 1080x1920 > "$output/emulator.log" 2>&1 &
+          fi
+
+          timeout 120s "$adb" wait-for-device
+          ready=0
+          for attempt in $(seq 1 90); do
+            state="$("$adb" get-state 2>/dev/null | tr -d '\r' || true)"
+            boot="$("$adb" shell getprop sys.boot_completed 2>/dev/null | tr -d '\r' || true)"
+            api="$("$adb" shell getprop ro.build.version.sdk 2>/dev/null | tr -d '\r' || true)"
+            printf 'READINESS attempt=%s state=%s boot=%s api=%s\n' "$attempt" "$state" "$boot" "$api" | tee -a "$output/runner-readiness.log"
+            if [[ "$state" == "device" && "$boot" == "1" && "$api" == "28" ]]; then ready=1; break; fi
             sleep 2
           done
-          if [[ "$booted" != "1" ]]; then
-            echo "Timed out waiting for API 28 emulator boot"
-            adb devices -l || true
-            tail -n 120 build/orb-visual-evidence/emulator.log || true
-            exit 1
-          fi
-          adb shell wm size 1080x1920
-          adb shell wm density 420
-          adb shell settings put global animator_duration_scale 0
-          adb shell settings put global transition_animation_scale 0
-          adb shell settings put global window_animation_scale 0
+          test "$ready" = 1
+          "$adb" shell wm size 1080x1920 | tee "$output/wm-size.log"
+          "$adb" shell wm density 420 | tee "$output/wm-density.log"
+          "$adb" shell settings put global animator_duration_scale 0
+          "$adb" shell settings put global transition_animation_scale 0
+          "$adb" shell settings put global window_animation_scale 0
 
       - name: Download and verify exact-head runtime APK pair
         uses: actions/download-artifact@v4
