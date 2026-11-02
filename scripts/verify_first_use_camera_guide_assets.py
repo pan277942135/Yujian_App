@@ -61,7 +61,7 @@ def jpeg_identity(path: Path) -> dict:
     if not path.is_file():
         fail(f"missing JPEG file: {path.relative_to(ROOT)}")
     raw = path.read_bytes()
-    if len(raw) < 4 or raw[:2] != b"\\xff\\xd8":
+    if len(raw) < 4 or raw[:2] != bytes((255, 216)):
         fail(f"invalid JPEG signature: {path.relative_to(ROOT)}")
     offset = 2
     start_of_frame = {0xC0, 0xC1, 0xC2, 0xC3, 0xC5, 0xC6, 0xC7, 0xC9, 0xCA, 0xCB, 0xCD, 0xCE, 0xCF}
