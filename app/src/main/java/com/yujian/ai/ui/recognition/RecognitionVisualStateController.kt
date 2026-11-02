@@ -50,7 +50,8 @@ class RecognitionVisualStateController(
     ) {
         if (stageStartedAtMs == UNSET) reset(nowMs)
         when (phase) {
-            RecognitionPhase.DETECTING -> Unit
+            RecognitionPhase.DETECTING ->
+                detectorBoxAvailable = detectorBoxAvailable || hasRealFishFocus
             RecognitionPhase.OUTLINE,
             RecognitionPhase.CLASSIFYING -> detectorBoxAvailable = detectorBoxAvailable || hasRealFishFocus
             RecognitionPhase.RESULT -> {
