@@ -1,9 +1,9 @@
 package com.yujian.ai.ui.designsystem.lakeglass
 
 import android.os.Build
-import androidx.annotation.RequiresApi
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.filters.SdkSuppress
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
@@ -14,7 +14,7 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 class LakeGlassAgslRuntimeTest {
     @Test
-    @RequiresApi(33)
+    @SdkSuppress(minSdkVersion = 33)
     fun api33CompilesAndConfiguresAllThreeFixedDroplets() {
         assumeTrue("AGSL requires Android API 33+", Build.VERSION.SDK_INT >= 33)
         val context = InstrumentationRegistry.getInstrumentation().targetContext
