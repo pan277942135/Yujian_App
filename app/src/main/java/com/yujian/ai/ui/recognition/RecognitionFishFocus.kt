@@ -157,7 +157,13 @@ internal fun buildRecognitionContourPath(
     }
 }
 
-/** Draws the fish layer only from the current trusted SlimSAM contour. */
+/**
+ * Draws the fish layer only from the current trusted SlimSAM contour.
+ *
+ * [subjectBitmap] is a borrowed, published Mask reference. This composable wraps
+ * it for drawing but never recycles it; the producer cannot know when Compose
+ * has dropped every retained ImageBitmap/draw reference.
+ */
 @Composable
 fun RecognitionFishFocus(
     phase: RecognitionPhase,

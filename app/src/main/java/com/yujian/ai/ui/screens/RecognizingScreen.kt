@@ -334,9 +334,9 @@ fun RecognitionProcessingScene(
         }
     }
 
-    DisposableEffect(subjectBitmap) {
-        onDispose { subjectBitmap?.takeUnless { it.isRecycled }?.recycle() }
-    }
+    // `subjectBitmap` is borrowed by RecognitionFishFocus through ImageBitmap.
+    // Compose may still be drawing the old reference after this state changes or
+    // this scene leaves composition, so this UI scope must never recycle it.
 
     LaunchedEffect(sceneKey, assessment?.primary?.box) {
         val selected = image ?: return@LaunchedEffect
@@ -391,128 +391,134 @@ fun RecognitionProcessingScene(
             )
             return@LaunchedEffect
         }
-        currentCoroutineContext().ensureActive()
-        val metadata = result.geometry
-        val geometryMatchesPhoto = metadata?.matches(
-            recognitionSessionId.orEmpty(), recognitionAttemptId.orEmpty(),
-            selected.imageId, selected.photoSha256, selected.bitmap.width, selected.bitmap.height,
-        ) == true
-        val roiBox = metadata?.takeIf { geometryMatchesPhoto }?.normalizedRoi()
-        val roi = roiBox?.let { NormalizedSourceRect(it.x1, it.y1, it.x2, it.y2) }
-        val cropDimensionsMatch = loaded.width == result.roiWidth &&
-            loaded.height == result.roiHeight &&
-            loaded.width == metadata?.roiPx?.width() && loaded.height == metadata?.roiPx?.height()
-        val maskShapeValid = result.quality == FishSubjectQuality.GOOD &&
-            result.maskSize > 0 && result.maskSize == result.expectedMaskSize &&
-            cropDimensionsMatch && geometryMatchesPhoto && roi != null
-        val extractedContour = if (maskShapeValid) {
-            withContext(Dispatchers.Default) {
-                WaterLightMaskAdapter.toPhotoSpace(requireNotNull(metadata), extractContour(loaded))
-            }
-        } else {
-            emptyList()
-        }
-        currentCoroutineContext().ensureActive()
-        val geometry = if (maskShapeValid && extractedContour.isNotEmpty()) RecognitionSubjectGeometrySnapshot(
-            imageId = selected.imageId,
-            recognitionSessionId = recognitionSessionId.orEmpty(),
-            recognitionAttemptId = recognitionAttemptId.orEmpty(),
-            photoSha256 = selected.photoSha256,
-            sourceWidthPx = selected.bitmap.width,
-            sourceHeightPx = selected.bitmap.height,
-            detectorBox = primary.box,
-            detectorConfidence = primary.confidence,
-            subjectBox = requireNotNull(roi),
-            contour = extractedContour,
-            contourSourceSpace = "CANONICAL_PHOTO_NORMALIZED",
-            quality = result.quality,
-            maskSize = result.maskSize,
-            expectedMaskSize = result.expectedMaskSize,
-        ) else null
-        val trustState = RecognitionRevealPolicy.geometryTrust(
-            detectorBox = primary.box,
-            subject = geometry,
-            imageId = selected.imageId,
-            sourceWidthPx = selected.bitmap.width,
-            sourceHeightPx = selected.bitmap.height,
-            detectorConfidence = primary.confidence,
-            recognitionSessionId = recognitionSessionId,
-            recognitionAttemptId = recognitionAttemptId,
-            photoSha256 = selected.photoSha256,
-        )
-        val isTrustedForCurrentPhoto = trustState == RecognitionGeometryTrustState.TRUSTED_MASK &&
-            !recognitionSessionId.isNullOrBlank() && !recognitionAttemptId.isNullOrBlank() &&
-            selected.imageId.isNotBlank() && selected.photoSha256.isNotBlank()
-        // Use the actually presented phase as the acceptance boundary. Calling
-        // controller.current() here would advance the visual state from the
-        // asynchronous SlimSAM coroutine and desynchronize the shared clock.
-        val maskAcceptancePhase = if (diagnosticModeState.value) {
-            // Manual inspection must not close the mask window while the real model runs.
-            RecognitionPhase.OUTLINE
-        } else if (latestPhotoPresentedAtMs == null) {
-            RecognitionPhase.CAPTURED
-        } else {
-            controller.presentedPhase()
-        }
-        // Trust is a property of the actual Mask and photo identity, not of the UI phase.
-        // A late SlimSAM result is still valid for the same attempt and Result handoff.
-        val trustedForReveal = isTrustedForCurrentPhoto
-        if (trustedForReveal) {
-            subjectBitmap = loaded
-            subjectBox = requireNotNull(roiBox)
-            contour = extractedContour
-            trustedSubjectMask = true
-            val acceptedAtMs = recognitionMonotonicNowMs()
-            latestPhotoPresentedAtMs?.let { photoStartMs ->
-                controller.onTrustedMaskAvailable(acceptedAtMs)
-                if (trustedMaskRevealStartedAtMs == null) {
-                    trustedMaskRevealStartedAtMs = controller.opticalReferenceElapsedMs(
-                        acceptedAtMs,
-                        trustedMask = true,
-                        subjectTerminal = true,
-                    ).coerceAtLeast(1_200L)
+        var maskBitmapPublishedToCompose = false
+        try {
+            currentCoroutineContext().ensureActive()
+            val metadata = result.geometry
+            val geometryMatchesPhoto = metadata?.matches(
+                recognitionSessionId.orEmpty(), recognitionAttemptId.orEmpty(),
+                selected.imageId, selected.photoSha256, selected.bitmap.width, selected.bitmap.height,
+            ) == true
+            val roiBox = metadata?.takeIf { geometryMatchesPhoto }?.normalizedRoi()
+            val roi = roiBox?.let { NormalizedSourceRect(it.x1, it.y1, it.x2, it.y2) }
+            val cropDimensionsMatch = loaded.width == result.roiWidth &&
+                loaded.height == result.roiHeight &&
+                loaded.width == metadata?.roiPx?.width() && loaded.height == metadata?.roiPx?.height()
+            val maskShapeValid = result.quality == FishSubjectQuality.GOOD &&
+                result.maskSize > 0 && result.maskSize == result.expectedMaskSize &&
+                cropDimensionsMatch && geometryMatchesPhoto && roi != null
+            val extractedContour = if (maskShapeValid) {
+                withContext(Dispatchers.Default) {
+                    WaterLightMaskAdapter.toPhotoSpace(requireNotNull(metadata), extractContour(loaded))
                 }
+            } else {
+                emptyList()
+            }
+            currentCoroutineContext().ensureActive()
+            val geometry = if (maskShapeValid && extractedContour.isNotEmpty()) RecognitionSubjectGeometrySnapshot(
+                imageId = selected.imageId,
+                recognitionSessionId = recognitionSessionId.orEmpty(),
+                recognitionAttemptId = recognitionAttemptId.orEmpty(),
+                photoSha256 = selected.photoSha256,
+                sourceWidthPx = selected.bitmap.width,
+                sourceHeightPx = selected.bitmap.height,
+                detectorBox = primary.box,
+                detectorConfidence = primary.confidence,
+                subjectBox = requireNotNull(roi),
+                contour = extractedContour,
+                contourSourceSpace = "CANONICAL_PHOTO_NORMALIZED",
+                quality = result.quality,
+                maskSize = result.maskSize,
+                expectedMaskSize = result.expectedMaskSize,
+            ) else null
+            val trustState = RecognitionRevealPolicy.geometryTrust(
+                detectorBox = primary.box,
+                subject = geometry,
+                imageId = selected.imageId,
+                sourceWidthPx = selected.bitmap.width,
+                sourceHeightPx = selected.bitmap.height,
+                detectorConfidence = primary.confidence,
+                recognitionSessionId = recognitionSessionId,
+                recognitionAttemptId = recognitionAttemptId,
+                photoSha256 = selected.photoSha256,
+            )
+            val isTrustedForCurrentPhoto = trustState == RecognitionGeometryTrustState.TRUSTED_MASK &&
+                !recognitionSessionId.isNullOrBlank() && !recognitionAttemptId.isNullOrBlank() &&
+                selected.imageId.isNotBlank() && selected.photoSha256.isNotBlank()
+            // Use the actually presented phase as the acceptance boundary. Calling
+            // controller.current() here would advance the visual state from the
+            // asynchronous SlimSAM coroutine and desynchronize the shared clock.
+            val maskAcceptancePhase = if (diagnosticModeState.value) {
+                // Manual inspection must not close the mask window while the real model runs.
+                RecognitionPhase.OUTLINE
+            } else if (latestPhotoPresentedAtMs == null) {
+                RecognitionPhase.CAPTURED
+            } else {
+                controller.presentedPhase()
+            }
+            // Trust is a property of the actual Mask and photo identity, not of the UI phase.
+            // A late SlimSAM result is still valid for the same attempt and Result handoff.
+            val trustedForReveal = isTrustedForCurrentPhoto
+            if (trustedForReveal) {
+                subjectBitmap = loaded
+                maskBitmapPublishedToCompose = true
+                subjectBox = requireNotNull(roiBox)
+                contour = extractedContour
+                trustedSubjectMask = true
+                val acceptedAtMs = recognitionMonotonicNowMs()
+                latestPhotoPresentedAtMs?.let { photoStartMs ->
+                    controller.onTrustedMaskAvailable(acceptedAtMs)
+                    if (trustedMaskRevealStartedAtMs == null) {
+                        trustedMaskRevealStartedAtMs = controller.opticalReferenceElapsedMs(
+                            acceptedAtMs,
+                            trustedMask = true,
+                            subjectTerminal = true,
+                        ).coerceAtLeast(1_200L)
+                    }
+                    Log.i(
+                        LOG_TAG,
+                        "MASK_TRUSTED_ACCEPT session=${recognitionSessionId.orEmpty()} " +
+                            "attempt=${recognitionAttemptId.orEmpty()} image=${selected.imageId} " +
+                            "acceptance_phase=$maskAcceptancePhase uptime_ms=$acceptedAtMs " +
+                            "processing_elapsed_ms=${acceptedAtMs - photoStartMs}",
+                    )
+                }
+            }
+            onSubjectGeometry(subjectResult, geometry.takeIf { trustedForReveal })
+            if (trustedForReveal) {
                 Log.i(
                     LOG_TAG,
-                    "MASK_TRUSTED_ACCEPT session=${recognitionSessionId.orEmpty()} " +
-                        "attempt=${recognitionAttemptId.orEmpty()} image=${selected.imageId} " +
-                        "acceptance_phase=$maskAcceptancePhase uptime_ms=$acceptedAtMs " +
-                        "processing_elapsed_ms=${acceptedAtMs - photoStartMs}",
+                    "MASK_CONTOUR_READY session=${recognitionSessionId.orEmpty()} attempt=${recognitionAttemptId.orEmpty()} " +
+                        "image=${selected.imageId} sha256=${selected.photoSha256} points=${extractedContour.size} trust=TRUSTED_MASK",
                 )
             }
-        } else {
-            loaded.recycle()
-        }
-        onSubjectGeometry(subjectResult, geometry.takeIf { trustedForReveal })
-        if (trustedForReveal) {
+            val maskRejectReason = when {
+                result.quality != FishSubjectQuality.GOOD -> "QUALITY_${result.quality}"
+                result.maskSize <= 0 || result.maskSize != result.expectedMaskSize -> "MASK_SIZE_MISMATCH"
+                !geometryMatchesPhoto -> "MASK_GEOMETRY_OR_IDENTITY_MISMATCH"
+                !cropDimensionsMatch -> "ROI_DIMENSIONS_MISMATCH"
+                extractedContour.isEmpty() -> "EMPTY_CONTOUR"
+                recognitionSessionId.isNullOrBlank() || recognitionAttemptId.isNullOrBlank() -> "SESSION_IDENTITY_MISSING"
+                selected.imageId.isBlank() || selected.photoSha256.isBlank() -> "PHOTO_IDENTITY_MISSING"
+                trustState != RecognitionGeometryTrustState.TRUSTED_MASK -> "GEOMETRY_OR_IDENTITY_MISMATCH"
+                else -> "NONE"
+            }
             Log.i(
                 LOG_TAG,
-                "MASK_CONTOUR_READY session=${recognitionSessionId.orEmpty()} attempt=${recognitionAttemptId.orEmpty()} " +
-                    "image=${selected.imageId} sha256=${selected.photoSha256} points=${extractedContour.size} trust=TRUSTED_MASK",
+                "MASK_REJECT session=${recognitionSessionId.orEmpty()} attempt=${recognitionAttemptId.orEmpty()} " +
+                    "image=${selected.imageId} sha256=${selected.photoSha256} quality=${result.quality} " +
+                    "mask=${result.maskSize}/${result.expectedMaskSize} roi=${loaded.width}x${loaded.height} " +
+                    "mask_area_ratio=${result.maskAreaRatio} iou=${result.maskIouScore?.toString() ?: "NOT_AVAILABLE"} " +
+                    "contours=${if (trustedForReveal) extractedContour.size else 0} " +
+                    "acceptance_phase=$maskAcceptancePhase trust=${if (trustedForReveal) trustState else RecognitionGeometryTrustState.UNTRUSTED} " +
+                    "reject_reason=$maskRejectReason",
             )
-        }
-        val maskRejectReason = when {
-            result.quality != FishSubjectQuality.GOOD -> "QUALITY_${result.quality}"
-            result.maskSize <= 0 || result.maskSize != result.expectedMaskSize -> "MASK_SIZE_MISMATCH"
-            !geometryMatchesPhoto -> "MASK_GEOMETRY_OR_IDENTITY_MISMATCH"
-            !cropDimensionsMatch -> "ROI_DIMENSIONS_MISMATCH"
-            extractedContour.isEmpty() -> "EMPTY_CONTOUR"
-            recognitionSessionId.isNullOrBlank() || recognitionAttemptId.isNullOrBlank() -> "SESSION_IDENTITY_MISSING"
-            selected.imageId.isBlank() || selected.photoSha256.isBlank() -> "PHOTO_IDENTITY_MISSING"
-            trustState != RecognitionGeometryTrustState.TRUSTED_MASK -> "GEOMETRY_OR_IDENTITY_MISMATCH"
-            else -> "NONE"
-        }
-        Log.i(
-            LOG_TAG,
-            "MASK_REJECT session=${recognitionSessionId.orEmpty()} attempt=${recognitionAttemptId.orEmpty()} " +
-                "image=${selected.imageId} sha256=${selected.photoSha256} quality=${result.quality} " +
-                "mask=${result.maskSize}/${result.expectedMaskSize} roi=${loaded.width}x${loaded.height} " +
-                "mask_area_ratio=${result.maskAreaRatio} iou=${result.maskIouScore?.toString() ?: "NOT_AVAILABLE"} " +
-                "contours=${if (trustedForReveal) extractedContour.size else 0} " +
-                "acceptance_phase=$maskAcceptancePhase trust=${if (trustedForReveal) trustState else RecognitionGeometryTrustState.UNTRUSTED} " +
-                "reject_reason=$maskRejectReason",
-        )
         logFocusDiagnostic(result, if (trustedForReveal) extractedContour.size else 0, primary.box, false, false)
+        } finally {
+            // This decoded bitmap is still local unless it was handed to Compose.
+            // Only the unpublished temporary is ours to release here.
+            if (!maskBitmapPublishedToCompose) loaded.recycle()
+        }
     }
 
     LaunchedEffect(sceneKey, photoPresentedAtMs) {
