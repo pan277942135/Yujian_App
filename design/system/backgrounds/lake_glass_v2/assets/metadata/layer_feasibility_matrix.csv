@@ -1,0 +1,11 @@
+layerId,semantic,sourceClassification,runtimeDecision,reason,confidence,motionEligible,cleanPlateRequired
+LAYER_BASE,Lake Base,D — BAKED_STATIC,NOT_RUNTIME_ELIGIBLE,Use the static composite as the complete visible scene; repaired base is diagnostic only,1.00,false,false
+LAYER_SUNLIGHT,Sunlight,D — BAKED_STATIC,BAKED_IN_BASE,Fixed upper-right sunlight and reflection stay baked; optional modulation is in-place only,0.98,false,false
+LAYER_CAUSTICS,Water Caustics,D — BAKED_STATIC,SHADER_INPUTS_PROVISIONAL,Master-derived mask modulates baked luminance; no second caustics sheet,0.96,false,false
+LAYER_GRASS_LEFT,Aquatic Grass Left,D — BAKED_STATIC,NOT_RUNTIME_ELIGIBLE,Transparent extraction has stray fragments and edge color contamination,0.78,false,false
+LAYER_GRASS_RIGHT,Aquatic Grass Right,D — BAKED_STATIC,NOT_RUNTIME_ELIGIBLE,Transparent extraction has stray fragments and edge color contamination,0.74,false,false
+LAYER_DROPLET_01,Water Droplet 01,D — BAKED_STATIC,SHADER_INPUTS_PROVISIONAL,Fixed region mask may guide in-place sampling; extracted RGBA would double draw,0.99,false,false
+LAYER_DROPLET_02,Water Droplet 02,D — BAKED_STATIC,SHADER_INPUTS_PROVISIONAL,Fixed region mask may guide in-place sampling; extracted RGBA would double draw,0.99,false,false
+LAYER_DROPLET_03,Water Droplet 03,D — BAKED_STATIC,SHADER_INPUTS_PROVISIONAL,Fixed region mask may guide in-place sampling; extracted RGBA would double draw,0.99,false,false
+LAYER_VECTOR_GRASS,Grass motion skeleton guides,E — PROCEDURAL_MASK,NOT_RUNTIME_ELIGIBLE,Manually estimated path guides only; no bone animation,0.66,false,false
+LAYER_SCENE_MASKS,Quiet/crop/protection masks,E — PROCEDURAL_MASK,NOT_RUNTIME_ELIGIBLE,Analysis-only coordinates and masks,0.91,false,false

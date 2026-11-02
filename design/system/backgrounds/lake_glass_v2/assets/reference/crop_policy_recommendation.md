@@ -1,0 +1,3 @@
+# Crop policy recommendation
+
+Use a single uniform CenterCrop transform as the preliminary candidate. At 390x844 and 430x932 the source ratio is nearly exact. At 360x640, approximately 560 source px are removed vertically; at 320x480, approximately 960 px are removed. CenterCrop splits that loss across top and bottom. TopCenter keeps more of the upper light field but cuts substantially more of the grass at the bottom. The 320x480 case cannot preserve both edge features; treat this as a product/device compatibility risk for the later Android phase. This sheet is a Pillow simulation, not an Android capture.

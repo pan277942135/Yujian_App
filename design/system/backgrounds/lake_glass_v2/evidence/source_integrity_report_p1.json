@@ -1,0 +1,13 @@
+{
+  "masterSha256": "d0bd07ba379491e8b93468c616468fc60d59a2dfebc11061cf4d14e9788c6e12",
+  "originalSha256": "f3dc1549919f48f939df5a6cf5baf18fb6846164c6f857df8e20cfe247b495ba",
+  "sourceManifestSha256": "623b978487ef294b7261c45e8ec1612ce372df61bbdca3859f5a9faa31af661b",
+  "nativeLayerSearch": {
+    "repositoryMain": "searched; none found",
+    "PR302": "specification/documentation only",
+    "PR303": "flattened inputs and diagnostic derivations only",
+    "PSD_ORA_XCF": "none found in checked repository tree"
+  },
+  "originalVsMaster": "near-identical flattened composition after proportional resize (diagnostic mean absolute RGB difference about 0.11)",
+  "rightsStatus": "PENDING_REVIEW"
+}

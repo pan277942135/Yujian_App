@@ -1,0 +1,77 @@
+{
+  "schema_version": "2.1",
+  "system_id": "background_system_v2",
+  "visual_reference": "NH01 Lake Glass V1.1",
+  "status": "VISUAL_LANGUAGE_FROZEN_LAYER_PACK_PENDING",
+  "predecessor": "design/system/backgrounds/morning_lake_v1/Background_System_Spec_V1.md",
+  "predecessor_policy": "HISTORICAL_UNCHANGED",
+  "scope": "ALL_APP_THEME_BACKGROUNDS_EXCEPT_EMPTY_HOME",
+  "global_host": "LakeGlassEnvironmentHost",
+  "master": {
+    "asset_id": "Lake_Glass_Master_Candidate_02",
+    "file_name": "YuJian_Lake_Glass_V2_Master_Candidate_02_1440x3120.png",
+    "sha256": "d0bd07ba379491e8b93468c616468fc60d59a2dfebc11061cf4d14e9788c6e12",
+    "size_px": [
+      1440,
+      3120
+    ],
+    "status": "CANDIDATE_NOT_YET_COMMITTED",
+    "role": "STATIC_FALLBACK_AND_VISUAL_REFERENCE",
+    "crop_policy": "VALIDATE_CENTER_AND_TOP_CENTER"
+  },
+  "rendering": {
+    "type": "SHARED_LAYERED_COMPOSE_SCENE",
+    "primary_layers": [
+      "LakeBase",
+      "Sunlight",
+      "WaterCaustics",
+      "AquaticGrass",
+      "WaterDroplets"
+    ],
+    "vector_role": "PATHS_MASKS_BONES",
+    "natural_details_role": "ALPHA_RASTER_WEBP_PNG",
+    "agls": "OPTIONAL_API33_PLUS",
+    "avoid_double_compositing": true
+  },
+  "route_policy": {
+    "home_empty_v2": "KEEP_FROZEN_EMPTY_HOME_UNCHANGED",
+    "home_normal_v1": "LAKE_GLASS",
+    "recognition_result_v1": "LAKE_GLASS",
+    "recognition_issue": "LAKE_GLASS",
+    "recognition_species_selector": "LAKE_GLASS",
+    "fish_record_detail_v2": "LAKE_GLASS",
+    "fish_memory_bside_v1": "LAKE_GLASS_INHERITED_DETAIL",
+    "my_catches_v2": "LAKE_GLASS",
+    "my_catches_day_detail": "LAKE_GLASS",
+    "fish_guide_v2": "LAKE_GLASS",
+    "fish_species_detail": "LAKE_GLASS",
+    "record_date_v2": "LAKE_GLASS_IF_ROUTE_PRESENT",
+    "account_privacy_v1": "LAKE_GLASS",
+    "auth_login_v2": "LAKE_GLASS",
+    "auth_register_v2": "LAKE_GLASS",
+    "profile_edit_v1": "LAKE_GLASS",
+    "user_agreement_v1": "LAKE_GLASS",
+    "privacy_policy_v1": "LAKE_GLASS",
+    "about_v1": "LAKE_GLASS",
+    "change_password": "LAKE_GLASS",
+    "first_capture_guide": "LAKE_GLASS_ENVIRONMENT_BEHIND_FROZEN_FOREGROUND",
+    "camera_capture": "LAKE_GLASS_ENVIRONMENT_ONLY_KEEP_CAMERA_PREVIEW_OPAQUE",
+    "recognition_flow_v1_2": "LAKE_GLASS_ENVIRONMENT_ONLY_KEEP_CAPTURE_PHOTO_ORB_WATERLIGHT",
+    "recognition_photo_morph_05": "LAKE_GLASS_ENVIRONMENT_ONLY_KEEP_FROZEN_700MS_PHOTO",
+    "all_other_app_routes": "AUDIT_AND_MIGRATE_THEME_BACKGROUNDS_KEEP_OPAQUE_USER_MEDIA"
+  },
+  "rollout": {
+    "production_enabled": false,
+    "android_status": "NOT_STARTED",
+    "work_instruction_status": "READY_FOR_STAGED_IMPLEMENTATION_ASSETS_MUST_BE_EXPORTED",
+    "empty_home_excluded": true
+  },
+  "quality": {
+    "single_shared_background": true,
+    "content_protection": true,
+    "source_hash_required": true,
+    "layer_pack_required": true,
+    "crop_matrix_evidence_required": true,
+    "route_coverage_matrix_required": true
+  }
+}

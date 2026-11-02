@@ -1,11 +1,31 @@
 {
-  "task_id": "YUJIAN_AI_ORB_EXISTING_ASSET_GAP_CLOSURE_V1",
-  "package_zip_sha256": "3f2e2d102868314f954150297c14df7a41d7eeadbf819e249bad8c0a1d0d1c3e",
-  "status": "PASS_WITH_SOURCE_LIMITATIONS",
-  "passed_checks": 231,
-  "failed_checks": 0,
+  "task_id": "YUJIAN_AI_ORB_RESOURCE_FINAL_CLOSURE_V2",
+  "status": "PASS_WITH_REVIEW_PENDING",
+  "main_baseline": "10cda91218b1b8d5b1600ef95a9d676b2c040a07",
+  "pr_number": 304,
+  "pr_state": "OPEN_DRAFT",
+  "baseline_validation": {
+    "unchanged_validator": "tools/validate_orb_kit.py",
+    "original_checks": 231,
+    "preliminary_result": "231 PASS / 0 FAIL"
+  },
+  "current_package_validation": {
+    "legacy_passed_checks": 344,
+    "legacy_failed_checks": 0,
+    "v2_passed_checks": 32,
+    "v2_failed_checks": 0,
+    "report": "audits/ORB_VALIDATION_REPORT_V2.json"
+  },
+  "runtime_asset": {
+    "repository_path": "app/src/main/res/drawable-nodpi/processing_water_core_v1.webp",
+    "sha256": "daa85a1fc13fac4a7ca562959c2d19172ee0f1e94277c3eeb32ef1f09a1a7b09",
+    "git_blob_sha": "a70a71c623d15355cecda5b0e834d9b0b871e568",
+    "android_runtime_changed": false
+  },
   "warnings": [
-    "Raw GitHub 384x384 core WebP not present in locally accessible resource kit; direct pixel/alpha contrast audit pending.",
-    "Design boards in separate full ZIP, not committed to this PR; preview not Android runtime evidence."
-  ]
+    "Static boards are not Android/device rendering evidence.",
+    "Product-owner visual acceptance remains pending."
+  ],
+  "package_zip_sha256": null,
+  "package_zip_sha256_record": "ORB_RELEASE_RECORD_V1_2.json in Library alongside final archive."
 }

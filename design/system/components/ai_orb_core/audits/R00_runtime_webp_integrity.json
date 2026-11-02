@@ -1,0 +1,82 @@
+{
+  "source_master": {
+    "path": "assets/source/透明湖水玻璃球.png",
+    "sha256": "2773e4628ff6132605314693742488542c3e70fd04b581d8825dd13cea0067ee",
+    "size_bytes": 1674284,
+    "dimensions_px": [
+      1254,
+      1254
+    ],
+    "alpha_bbox": [
+      113,
+      22,
+      1128,
+      1139
+    ]
+  },
+  "source_reference": {
+    "path": "assets/source/236493.png",
+    "sha256": "adefad98ec7cfe32df1316a605ac7f3ded8a5a7b33e107f2380ecbf49f2f7c35",
+    "size_bytes": 2846520,
+    "dimensions_px": [
+      1254,
+      1254
+    ],
+    "alpha_present": false,
+    "alpha_bbox": [
+      0,
+      0,
+      1254,
+      1254
+    ]
+  },
+  "runtime_webp": {
+    "path": "app/src/main/res/drawable-nodpi/processing_water_core_v1.webp",
+    "git_blob_sha": "a70a71c623d15355cecda5b0e834d9b0b871e568",
+    "sha256": "daa85a1fc13fac4a7ca562959c2d19172ee0f1e94277c3eeb32ef1f09a1a7b09",
+    "size_bytes": 27632,
+    "container": "RIFFWEBP",
+    "dimensions_px": [
+      384,
+      384
+    ],
+    "decoded_mode": "RGBA",
+    "alpha_present": true,
+    "alpha_bbox": [
+      35,
+      37,
+      345,
+      345
+    ],
+    "alpha_extrema": [
+      0,
+      255
+    ]
+  },
+  "comparison": {
+    "method": "RGBA decode; full transparent canvas retained; source master resized to 384x384 using Pillow Lanczos; no crop",
+    "alpha_iou_threshold_16": 0.99825019,
+    "alpha_mae_0_255": 0.170736,
+    "visible_rgb_mae_0_255": 8.545057,
+    "visible_rgb_p95": 28,
+    "semi_transparent_pixel_count": 73652,
+    "near_black_semi_transparent_pixel_count": 122,
+    "near_black_semi_transparent_share": 0.00165644,
+    "fully_transparent_rgb_mean": 25.026575,
+    "fully_transparent_rgb_max": 255
+  },
+  "background_composites": [
+    {
+      "background": "light_mint",
+      "rgb": "#EAF4EF",
+      "mae_0_255": 4.136642,
+      "p95": 20
+    },
+    {
+      "background": "dark_lake",
+      "rgb": "#052D31",
+      "mae_0_255": 4.144945,
+      "p95": 20
+    }
+  ]
+}

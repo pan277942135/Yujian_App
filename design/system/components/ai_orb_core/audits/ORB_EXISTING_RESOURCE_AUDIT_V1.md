@@ -1,18 +1,16 @@
-# Main-bound asset audit · R00
+# Main-bound existing resource audit · R00
 
-Source Main: `f607432e262ee7fc1265479a82dd0a93cd4a5141`.
+Current Main baseline: `10cda91218b1b8d5b1600ef95a9d676b2c040a07`.
 
-| Asset | Source / SHA-256 | Renderer | Disposition |
-|---|---|---|---|
-| Frozen master | exact 1254×1254 RGBA / 2773e4628ff6132605314693742488542c3e70fd04b581d8825dd13cea0067ee | AIOrbCore visual reference | KEEP |
-| S2 reference 236493.png | exact 1254×1254 RGBA / adefad98ec7cfe32df1316a605ac7f3ded8a5a7b33e107f2380ecbf49f2f7c35 | R06 form | KEEP |
-| Current core WebP | `app/src/main/res/drawable-nodpi/processing_water_core_v1.webp` / Main documented daa85a1fc13fac4a7ca562959c2d19172ee0f1e94277c3eeb32ef1f09 | AIOrbCore | KEEP; local raw bytes unavailable for independent alpha check |
-| Unified Orb core | `AIOrbCore.kt` | Core | KEEP |
-| Existing 900ms | `AIOrbMotion.kt` | motion | KEEP |
-| Compatibility | `ProcessingWaterOrb.kt` | adapter | KEEP |
-| Legacy 3 ribbons | `OrbFilamentRenderer.kt` | ribbons | EXTEND after visual approval; do not double render |
-| Droplet shapes | `WaterDropletRenderer.kt` | lens | EXTEND; no PNG |
-| Caustics field | `WaterCausticsField.kt` | caustics | KEEP |
-| Photo renderer | `WaterCausticsRenderer.kt` | photo | reference only |
+| Asset | Verified source / SHA-256 | Disposition |
+|---|---|---|
+| Frozen core master `透明湖水玻璃球.png` | 1254 × 1254 RGBA · `2773e4628ff6132605314693742488542c3e70fd04b581d8825dd13cea0067ee` | Preserve as source |
+| Water-ribbon reference `236493.png` | 1254 × 1254 RGBA · `adefad98ec7cfe32df1316a605ac7f3ded8a5a7b33e107f2380ecbf49f2f7c35` | Preserve as reference |
+| Current Runtime WebP `app/src/main/res/drawable-nodpi/processing_water_core_v1.webp` | 384 × 384 RGBA · SHA-256 `daa85a1fc13fac4a7ca562959c2d19172ee0f1e94277c3eeb32ef1f09a1a7b09` · Git blob `a70a71c623d15355cecda5b0e834d9b0b871e568` | Preserve unchanged; independently decoded and compared |
+| Existing 900 ms motion / compatibility adapter / caustics field | Existing Main implementation | Preserve unchanged in this design-only task |
+| Legacy 3-path ribbon renderer | Existing Main implementation | Do not double-draw with the five-path candidate |
+| Historical R01 grass SVGs | Existing audit marks `DEPRECATED_DO_NOT_INTEGRATE` | Keep out of the candidate |
 
-The frozen source includes the internal aqua-green grass band. No new plant or per-leaf rig is introduced. Image boards/Excel/SHA register are delivered in the separate exact ZIP snapshot in the ChatGPT Library; they have NOT been committed in this text-only PR. This PR is not an Android runtime approval.
+The frozen core includes its existing internal aqua-green band. No new plant geometry or leaf rig is introduced. Main and the current PR branch return the same runtime WebP Git blob. The package includes a copy of those exact bytes for offline review. Pixel and alpha measurements, including the small near-black semi-transparent population and RGB residue under fully transparent pixels, are recorded in `R00_runtime_webp_integrity.json`.
+
+The source comparison and static boards are asset evidence. They are not Android Runtime or device-render evidence. Product visual acceptance remains pending.

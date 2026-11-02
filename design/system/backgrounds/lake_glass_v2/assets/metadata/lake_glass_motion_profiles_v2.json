@@ -1,0 +1,38 @@
+{
+  "status": "FEASIBILITY_ONLY_DISABLED",
+  "allVisibleMotionEnabled": false,
+  "reason": "Current source is flattened; independent visible grass, sunlight, caustics and droplet layers are not fidelity-safe.",
+  "profiles": {
+    "aquatic_grass": {
+      "periodSeconds": [
+        16,
+        24
+      ],
+      "tipMaxOffsetDp": 2,
+      "rootPinned": true,
+      "enabled": false
+    },
+    "sunlight": {
+      "periodSeconds": [
+        24,
+        36
+      ],
+      "direction": "upper-right to lower-left/center",
+      "enabled": false
+    },
+    "water_caustics": {
+      "periodSeconds": [
+        24,
+        36
+      ],
+      "localOnly": true,
+      "tile": null,
+      "enabled": false
+    },
+    "water_droplets": {
+      "positionFixed": true,
+      "highlightOnly": true,
+      "enabled": false
+    }
+  }
+}

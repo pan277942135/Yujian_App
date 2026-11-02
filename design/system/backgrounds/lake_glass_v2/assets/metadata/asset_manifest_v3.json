@@ -1,0 +1,1980 @@
+{
+  "schemaVersion": "3.0",
+  "assetPackId": "LakeGlassV2TrueLayersP1",
+  "taskId": "YUJIAN_LAKE_GLASS_V2_ASSET_PACK_ANDROID_RUNTIME_INTEGRATION_V1",
+  "status": "ASSET_PACK_READY_FOR_ANDROID",
+  "readyForAndroid": true,
+  "master": {
+    "path": "design/system/backgrounds/lake_glass_v2/assets/source_master/YuJian_Lake_Glass_V2_Master_Candidate_02_1440x3120.png",
+    "sha256": "d0bd07ba379491e8b93468c616468fc60d59a2dfebc11061cf4d14e9788c6e12",
+    "dimensionsPx": [
+      1440,
+      3120
+    ],
+    "candidateStatus": "CANDIDATE_VISUAL_NOT_FROZEN"
+  },
+  "source": {
+    "path": "design/system/backgrounds/lake_glass_v2/assets/source_master/宁静湖光玻璃水境背景.png",
+    "sha256": "f3dc1549919f48f939df5a6cf5baf18fb6846164c6f857df8e20cfe247b495ba",
+    "dimensionsPx": [
+      852,
+      1846
+    ]
+  },
+  "sourceManifest": {
+    "sha256": "623b978487ef294b7261c45e8ec1612ce372df61bbdca3859f5a9faa31af661b"
+  },
+  "sourceSearch": {
+    "nativeLayerFound": false,
+    "searchedMainAndPrHistory": true,
+    "notes": "No PSD/ORA/XCF or native Lake Glass layer export found in checked repository and PR paths; the smaller source is a near-identical flattened composition."
+  },
+  "originPermission": "USER_PROVIDED_TASK_INPUT; task authorization covers derived assets; no ownership claim beyond supplied source.",
+  "layers": [
+    {
+      "layerId": "LAYER_BASE_CLEAN",
+      "semantic": "Lake water clean plate",
+      "assetFile": "assets/base/lake_base_clean_v2.png",
+      "pixelBounds": [
+        0,
+        0,
+        1440,
+        3120
+      ],
+      "anchorPx": [
+        0,
+        0
+      ],
+      "zIndex": 0,
+      "blendMode": "SRC",
+      "alpha": 1,
+      "sourceType": "CONTROLLED_RECONSTRUCTION",
+      "bakedResiduals": [
+        "broad upper-right sunlight and surface reflection",
+        "lower grass root beds in caustic-overlap zones"
+      ],
+      "anchorNormalized": [
+        0.0,
+        0.0
+      ],
+      "sourceFile": "design/system/backgrounds/lake_glass_v2/assets/source_master/YuJian_Lake_Glass_V2_Master_Candidate_02_1440x3120.png",
+      "sourceSha256": "d0bd07ba379491e8b93468c616468fc60d59a2dfebc11061cf4d14e9788c6e12",
+      "assetSha256": "cf18dedc43c3e59e93e4273a4e195850d881b913480b18499228c53f1e2b5f51",
+      "format": "PNG",
+      "assetDimensionsPx": [
+        1440,
+        3120
+      ],
+      "separationStatus": "NOT_RUNTIME_ELIGIBLE",
+      "runtimeMode": "DIAGNOSTIC_ONLY",
+      "motionEligible": false,
+      "fallbackPolicy": "STATIC_COMPOSITE",
+      "runtimeStatusRef": "LAYER_BASE_CLEAN_DIAGNOSTIC"
+    },
+    {
+      "layerId": "LAYER_SUNLIGHT_FIELD",
+      "semantic": "Upper-right sunlight reconstruction",
+      "assetFile": "assets/sunlight/sunlight_field_v2.png",
+      "pixelBounds": [
+        0,
+        0,
+        1440,
+        3120
+      ],
+      "anchorPx": [
+        1361,
+        109
+      ],
+      "zIndex": 1,
+      "blendMode": "SRC_OVER",
+      "alpha": 0.28,
+      "sourceType": "PROCEDURAL_LAYER",
+      "reason": "No clean unlit source; drawing over Master would double light.",
+      "anchorNormalized": [
+        0.945139,
+        0.034936
+      ],
+      "sourceFile": "design/system/backgrounds/lake_glass_v2/assets/source_master/YuJian_Lake_Glass_V2_Master_Candidate_02_1440x3120.png",
+      "sourceSha256": "d0bd07ba379491e8b93468c616468fc60d59a2dfebc11061cf4d14e9788c6e12",
+      "assetSha256": "b45ef030cd4e350d610d8c26dcbf11a0ad58652a3fa67788c7c784564965adc5",
+      "format": "PNG",
+      "assetDimensionsPx": [
+        1440,
+        3120
+      ],
+      "separationStatus": "BAKED_IN_BASE",
+      "runtimeMode": "API33_IN_PLACE_LOW_AMPLITUDE_MODULATION",
+      "motionEligible": true,
+      "fallbackPolicy": "STATIC_COMPOSITE",
+      "runtimeStatusRef": "LAYER_SUNLIGHT_MODULATION"
+    },
+    {
+      "layerId": "LAYER_CAUSTICS",
+      "semantic": "Lower water caustics",
+      "assetFile": "assets/caustics/caustics_texture_v2.png",
+      "pixelBounds": [
+        0,
+        1980,
+        1440,
+        1140
+      ],
+      "anchorPx": [
+        720,
+        2850
+      ],
+      "zIndex": 2,
+      "blendMode": "PLUS",
+      "alpha": 1,
+      "sourceType": "CONTROLLED_RECONSTRUCTION",
+      "tileable": false,
+      "motionEligible": true,
+      "anchorNormalized": [
+        0.5,
+        0.913462
+      ],
+      "sourceFile": "design/system/backgrounds/lake_glass_v2/assets/source_master/YuJian_Lake_Glass_V2_Master_Candidate_02_1440x3120.png",
+      "sourceSha256": "d0bd07ba379491e8b93468c616468fc60d59a2dfebc11061cf4d14e9788c6e12",
+      "assetSha256": "9da60f9385230fcde4f9e97b236daf8cdf7d4e577b2b357dcb16571654e7e262",
+      "format": "PNG",
+      "assetDimensionsPx": [
+        1440,
+        1140
+      ],
+      "separationStatus": "SHADER_INPUTS_PROVISIONAL",
+      "runtimeMode": "API33_IN_PLACE_MASKED_MODULATION",
+      "fallbackPolicy": "STATIC_COMPOSITE",
+      "runtimeStatusRef": "LAYER_CAUSTICS_MODULATION"
+    },
+    {
+      "layerId": "LAYER_DROPLET_01_LEFT",
+      "semantic": "droplet_01_left",
+      "assetFile": "assets/droplets/01_left_static_compat_rgba.png",
+      "opticalMaps": {
+        "shape": "assets/droplets/01_left_shape_mask.png",
+        "normal": "assets/droplets/01_left_normal_map.png",
+        "height": "assets/droplets/01_left_height_map.png",
+        "displacement": "assets/droplets/01_left_displacement_map.png",
+        "specular": "assets/droplets/01_left_specular_mask.png"
+      },
+      "pixelBounds": [
+        15,
+        648,
+        111,
+        131
+      ],
+      "sourcePixelBounds": [
+        18,
+        650,
+        104,
+        126
+      ],
+      "anchorPx": [
+        70,
+        713
+      ],
+      "zIndex": 3,
+      "blendMode": "SRC_OVER_STATIC / SHADER_DISPLACEMENT",
+      "alpha": 1.0,
+      "sourceType": "CONTROLLED_RECONSTRUCTION",
+      "refractionIndexReference": 1.333,
+      "refractionIndexMeasured": false,
+      "staticAssetMethod": "Shaped optical-delta RGBA solved against clean plate; no rectangular backdrop crop.",
+      "anchorNormalized": [
+        0.048611,
+        0.228526
+      ],
+      "sourceFile": "design/system/backgrounds/lake_glass_v2/assets/source_master/YuJian_Lake_Glass_V2_Master_Candidate_02_1440x3120.png",
+      "sourceSha256": "d0bd07ba379491e8b93468c616468fc60d59a2dfebc11061cf4d14e9788c6e12",
+      "assetSha256": "405900cff21f891c5128b7808f34e4179fc218a12c34dbdbb2647e2a8e6c5f55",
+      "format": "PNG",
+      "assetDimensionsPx": [
+        111,
+        131
+      ],
+      "separationStatus": "SHADER_INPUTS_PROVISIONAL",
+      "runtimeMode": "API33_FIXED_ANCHOR_IN_PLACE_REFRACTION",
+      "motionEligible": true,
+      "fallbackPolicy": "STATIC_COMPOSITE",
+      "runtimeStatusRef": "LAYER_DROPLET_01_REFRACTION"
+    },
+    {
+      "layerId": "LAYER_DROPLET_02_UPPER_RIGHT",
+      "semantic": "droplet_02_upper_right",
+      "assetFile": "assets/droplets/02_upper_right_static_compat_rgba.png",
+      "opticalMaps": {
+        "shape": "assets/droplets/02_upper_right_shape_mask.png",
+        "normal": "assets/droplets/02_upper_right_normal_map.png",
+        "height": "assets/droplets/02_upper_right_height_map.png",
+        "displacement": "assets/droplets/02_upper_right_displacement_map.png",
+        "specular": "assets/droplets/02_upper_right_specular_mask.png"
+      },
+      "pixelBounds": [
+        1250,
+        371,
+        133,
+        165
+      ],
+      "sourcePixelBounds": [
+        1250,
+        370,
+        132,
+        166
+      ],
+      "anchorPx": [
+        1316,
+        453
+      ],
+      "zIndex": 4,
+      "blendMode": "SRC_OVER_STATIC / SHADER_DISPLACEMENT",
+      "alpha": 1.0,
+      "sourceType": "CONTROLLED_RECONSTRUCTION",
+      "refractionIndexReference": 1.333,
+      "refractionIndexMeasured": false,
+      "staticAssetMethod": "Shaped optical-delta RGBA solved against clean plate; no rectangular backdrop crop.",
+      "anchorNormalized": [
+        0.913889,
+        0.145192
+      ],
+      "sourceFile": "design/system/backgrounds/lake_glass_v2/assets/source_master/YuJian_Lake_Glass_V2_Master_Candidate_02_1440x3120.png",
+      "sourceSha256": "d0bd07ba379491e8b93468c616468fc60d59a2dfebc11061cf4d14e9788c6e12",
+      "assetSha256": "d6a22f73ef895a28524fc6439a04a38aeab8ce4c767cd965c6003ccda3828c1e",
+      "format": "PNG",
+      "assetDimensionsPx": [
+        133,
+        165
+      ],
+      "separationStatus": "SHADER_INPUTS_PROVISIONAL",
+      "runtimeMode": "API33_FIXED_ANCHOR_IN_PLACE_REFRACTION",
+      "motionEligible": true,
+      "fallbackPolicy": "STATIC_COMPOSITE",
+      "runtimeStatusRef": "LAYER_DROPLET_02_REFRACTION"
+    },
+    {
+      "layerId": "LAYER_DROPLET_03_LOWER_RIGHT",
+      "semantic": "droplet_03_lower_right",
+      "assetFile": "assets/droplets/03_lower_right_static_compat_rgba.png",
+      "opticalMaps": {
+        "shape": "assets/droplets/03_lower_right_shape_mask.png",
+        "normal": "assets/droplets/03_lower_right_normal_map.png",
+        "height": "assets/droplets/03_lower_right_height_map.png",
+        "displacement": "assets/droplets/03_lower_right_displacement_map.png",
+        "specular": "assets/droplets/03_lower_right_specular_mask.png"
+      },
+      "pixelBounds": [
+        1291,
+        1880,
+        144,
+        146
+      ],
+      "sourcePixelBounds": [
+        1290,
+        1880,
+        145,
+        145
+      ],
+      "anchorPx": [
+        1362,
+        1952
+      ],
+      "zIndex": 5,
+      "blendMode": "SRC_OVER_STATIC / SHADER_DISPLACEMENT",
+      "alpha": 1.0,
+      "sourceType": "CONTROLLED_RECONSTRUCTION",
+      "refractionIndexReference": 1.333,
+      "refractionIndexMeasured": false,
+      "staticAssetMethod": "Shaped optical-delta RGBA solved against clean plate; no rectangular backdrop crop.",
+      "anchorNormalized": [
+        0.945833,
+        0.625641
+      ],
+      "sourceFile": "design/system/backgrounds/lake_glass_v2/assets/source_master/YuJian_Lake_Glass_V2_Master_Candidate_02_1440x3120.png",
+      "sourceSha256": "d0bd07ba379491e8b93468c616468fc60d59a2dfebc11061cf4d14e9788c6e12",
+      "assetSha256": "994c8483212a7412503551283a248ebe48266a17cd1c98a2e311412d1168296f",
+      "format": "PNG",
+      "assetDimensionsPx": [
+        144,
+        146
+      ],
+      "separationStatus": "SHADER_INPUTS_PROVISIONAL",
+      "runtimeMode": "API33_FIXED_ANCHOR_IN_PLACE_REFRACTION",
+      "motionEligible": true,
+      "fallbackPolicy": "STATIC_COMPOSITE",
+      "runtimeStatusRef": "LAYER_DROPLET_03_REFRACTION"
+    },
+    {
+      "layerId": "LAYER_GRASS_LEFT",
+      "semantic": "Aquatic Grass Left",
+      "assetFile": "assets/grass/grass_left_rgba_v2.png",
+      "pixelBounds": [
+        0,
+        2027,
+        589,
+        834
+      ],
+      "anchorPx": [
+        294,
+        2860
+      ],
+      "zIndex": 6,
+      "blendMode": "SRC_OVER",
+      "alpha": 1.0,
+      "sourceType": "CONTROLLED_RECONSTRUCTION",
+      "alphaMethod": "Per-pixel source-over delta inversion within green-chroma support; not native source alpha.",
+      "motionEligible": false,
+      "bakedResiduals": [
+        "lower root bed and overlapping caustic haze are retained in the static Base"
+      ],
+      "anchorNormalized": [
+        0.204167,
+        0.916667
+      ],
+      "sourceFile": "design/system/backgrounds/lake_glass_v2/assets/source_master/YuJian_Lake_Glass_V2_Master_Candidate_02_1440x3120.png",
+      "sourceSha256": "d0bd07ba379491e8b93468c616468fc60d59a2dfebc11061cf4d14e9788c6e12",
+      "assetSha256": "127ef609c016baba112e1ef0d7d385aa4be7dcb2550e7ccc3252ad579566c04d",
+      "format": "PNG",
+      "assetDimensionsPx": [
+        589,
+        834
+      ],
+      "separationStatus": "NOT_RUNTIME_ELIGIBLE",
+      "runtimeMode": "DIAGNOSTIC_ONLY",
+      "fallbackPolicy": "STATIC_COMPOSITE",
+      "runtimeStatusRef": "LAYER_GRASS_LEFT_DIAGNOSTIC"
+    },
+    {
+      "layerId": "LAYER_GRASS_RIGHT",
+      "semantic": "Aquatic Grass Right",
+      "assetFile": "assets/grass/grass_right_rgba_v2.png",
+      "pixelBounds": [
+        1037,
+        2272,
+        403,
+        589
+      ],
+      "anchorPx": [
+        1238,
+        2860
+      ],
+      "zIndex": 7,
+      "blendMode": "SRC_OVER",
+      "alpha": 1.0,
+      "sourceType": "CONTROLLED_RECONSTRUCTION",
+      "alphaMethod": "Per-pixel source-over delta inversion within green-chroma support; not native source alpha.",
+      "motionEligible": false,
+      "bakedResiduals": [
+        "lower root bed and overlapping caustic haze are retained in the static Base"
+      ],
+      "anchorNormalized": [
+        0.859722,
+        0.916667
+      ],
+      "sourceFile": "design/system/backgrounds/lake_glass_v2/assets/source_master/YuJian_Lake_Glass_V2_Master_Candidate_02_1440x3120.png",
+      "sourceSha256": "d0bd07ba379491e8b93468c616468fc60d59a2dfebc11061cf4d14e9788c6e12",
+      "assetSha256": "2bcc24d946abdf2b54d0b72f09e028ba4d4ceb50946ffc484b8d3a1cf57fe7a7",
+      "format": "PNG",
+      "assetDimensionsPx": [
+        403,
+        589
+      ],
+      "separationStatus": "NOT_RUNTIME_ELIGIBLE",
+      "runtimeMode": "DIAGNOSTIC_ONLY",
+      "fallbackPolicy": "STATIC_COMPOSITE",
+      "runtimeStatusRef": "LAYER_GRASS_RIGHT_DIAGNOSTIC"
+    }
+  ],
+  "derivedFiles": [
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/base/clean_plate_repair_mask_v2.png",
+      "sha256": "c5d2e733bd9f51e5e267e60e2c87da2a3ec4b563a325ec02bc92d95d11b55402",
+      "sizeBytes": 17963,
+      "format": "PNG",
+      "dimensionsPx": [
+        1440,
+        3120
+      ],
+      "mode": "L",
+      "colorSpace": "sRGB",
+      "decodedMemoryBytesRgba8888": 17971200
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/base/lake_base_clean_v2.png",
+      "sha256": "cf18dedc43c3e59e93e4273a4e195850d881b913480b18499228c53f1e2b5f51",
+      "sizeBytes": 2127749,
+      "format": "PNG",
+      "dimensionsPx": [
+        1440,
+        3120
+      ],
+      "mode": "RGB",
+      "colorSpace": "sRGB",
+      "decodedMemoryBytesRgba8888": 17971200
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/base/lake_base_static_master.png",
+      "sha256": "d0bd07ba379491e8b93468c616468fc60d59a2dfebc11061cf4d14e9788c6e12",
+      "sizeBytes": 2464571,
+      "format": "PNG",
+      "dimensionsPx": [
+        1440,
+        3120
+      ],
+      "mode": "RGB",
+      "colorSpace": "sRGB",
+      "decodedMemoryBytesRgba8888": 17971200
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/sunlight/sunlight_anchor.json",
+      "sha256": "a29ef57a74703ca20da53c9941e35c459131c804ccc5b1a68e2557bc8b139906",
+      "sizeBytes": 643,
+      "format": "JSON",
+      "dimensionsPx": null,
+      "mode": null
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/sunlight/sunlight_anchor_v2.json",
+      "sha256": "45ebd8b2c32a8e497bb40decf3a903772b1ed84146b96aec9adeba120c0b58f1",
+      "sizeBytes": 564,
+      "format": "JSON",
+      "dimensionsPx": null,
+      "mode": null
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/sunlight/sunlight_diffusion_v2.png",
+      "sha256": "d3eb079989339b4bf77b7584448483361cc185da06ded55003252a6db70d5857",
+      "sizeBytes": 88736,
+      "format": "PNG",
+      "dimensionsPx": [
+        1440,
+        3120
+      ],
+      "mode": "L",
+      "colorSpace": "sRGB",
+      "decodedMemoryBytesRgba8888": 17971200
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/sunlight/sunlight_field_v2.png",
+      "sha256": "b45ef030cd4e350d610d8c26dcbf11a0ad58652a3fa67788c7c784564965adc5",
+      "sizeBytes": 105398,
+      "format": "PNG",
+      "dimensionsPx": [
+        1440,
+        3120
+      ],
+      "mode": "RGBA",
+      "colorSpace": "sRGB",
+      "decodedMemoryBytesRgba8888": 17971200
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/sunlight/sunlight_luma_analysis_mask.png",
+      "sha256": "1e5e3e9599435e47f0e030de9dbc25c1aa58dc6fa7eb0d54eaf9ac9409f9cbc5",
+      "sizeBytes": 36608,
+      "format": "PNG",
+      "dimensionsPx": [
+        1440,
+        3120
+      ],
+      "mode": "L",
+      "colorSpace": "sRGB",
+      "decodedMemoryBytesRgba8888": 17971200
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/sunlight/sunlight_luma_mask_v2.png",
+      "sha256": "9f34ccc7fd6f8128134747fef006b374e4a5d3681e5bc8e9fae62c73fd165b5c",
+      "sizeBytes": 131206,
+      "format": "PNG",
+      "dimensionsPx": [
+        1440,
+        3120
+      ],
+      "mode": "L",
+      "colorSpace": "sRGB",
+      "decodedMemoryBytesRgba8888": 17971200
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/sunlight/sunlight_params_v2.json",
+      "sha256": "ada8b4c30cb6837462550bc57e968c77251430bf647920e957ef9495d6e236af",
+      "sizeBytes": 551,
+      "format": "JSON",
+      "dimensionsPx": null,
+      "mode": null
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/sunlight/sunlight_soft_analysis_mask.png",
+      "sha256": "43ff918eb7357799b522619413ce817f42ec158483581dfc8bd59a71c5f36bcc",
+      "sizeBytes": 21516,
+      "format": "PNG",
+      "dimensionsPx": [
+        1440,
+        3120
+      ],
+      "mode": "L",
+      "colorSpace": "sRGB",
+      "decodedMemoryBytesRgba8888": 17971200
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/sunlight/sunlight_soft_mask_v2.png",
+      "sha256": "8354583ba43ae1be0a1dcb7c2451529b45e28bc407d93a084805f74ae4cb2f99",
+      "sizeBytes": 120892,
+      "format": "PNG",
+      "dimensionsPx": [
+        1440,
+        3120
+      ],
+      "mode": "L",
+      "colorSpace": "sRGB",
+      "decodedMemoryBytesRgba8888": 17971200
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/caustics/caustics_luma_analysis_mask.png",
+      "sha256": "a403675745dd1b6889269f5bdfb4f8726ec1fbb99d4ec9bb5856ff81e2a97d09",
+      "sizeBytes": 189711,
+      "format": "PNG",
+      "dimensionsPx": [
+        1440,
+        3120
+      ],
+      "mode": "L",
+      "colorSpace": "sRGB",
+      "decodedMemoryBytesRgba8888": 17971200
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/caustics/caustics_luma_v2.png",
+      "sha256": "fd10c689053852271bacb941a692545f3945f3a8bd856a8eb2670e98e575bb7f",
+      "sizeBytes": 83588,
+      "format": "PNG",
+      "dimensionsPx": [
+        1440,
+        1140
+      ],
+      "mode": "L",
+      "colorSpace": "sRGB",
+      "decodedMemoryBytesRgba8888": 6566400
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/caustics/caustics_params.json",
+      "sha256": "04c6fe3575f6e1775c52c79e9ae2fe62871526a8ec87d6a6b723e3c8092ee8d6",
+      "sizeBytes": 570,
+      "format": "JSON",
+      "dimensionsPx": null,
+      "mode": null
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/caustics/caustics_params_v2.json",
+      "sha256": "c752d391a8fe1ecf9480691141eaf3242d2d53ea6e37db4d903a8280c21d4759",
+      "sizeBytes": 742,
+      "format": "JSON",
+      "dimensionsPx": null,
+      "mode": null
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/caustics/caustics_region_mask.png",
+      "sha256": "e206c813351e02badebf60f12eb20fb7407580566664e0ab2ac15231b373bea4",
+      "sizeBytes": 5873,
+      "format": "PNG",
+      "dimensionsPx": [
+        1440,
+        3120
+      ],
+      "mode": "L",
+      "colorSpace": "sRGB",
+      "decodedMemoryBytesRgba8888": 17971200
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/caustics/caustics_region_mask_v2.png",
+      "sha256": "272db500ef8a21cf889c4679b4221f0284079cfbc18a42379680a227906bd535",
+      "sizeBytes": 15073,
+      "format": "PNG",
+      "dimensionsPx": [
+        1440,
+        1140
+      ],
+      "mode": "L",
+      "colorSpace": "sRGB",
+      "decodedMemoryBytesRgba8888": 6566400
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/caustics/caustics_texture_v2.png",
+      "sha256": "9da60f9385230fcde4f9e97b236daf8cdf7d4e577b2b357dcb16571654e7e262",
+      "sizeBytes": 340754,
+      "format": "PNG",
+      "dimensionsPx": [
+        1440,
+        1140
+      ],
+      "mode": "RGBA",
+      "colorSpace": "sRGB",
+      "decodedMemoryBytesRgba8888": 6566400
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/grass/grass_layer_params_v2.json",
+      "sha256": "2a98e1f0cac752486e25ab4d9bb1afc659c9185ee9e882a44ba87555444b0c83",
+      "sizeBytes": 269,
+      "format": "JSON",
+      "dimensionsPx": null,
+      "mode": null
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/grass/grass_left_candidate_diagnostic_only_rgba.png",
+      "sha256": "f702a21f4a2df3c1a45718516dfb889a068ea845113975d3cda9a7f24e07a3f1",
+      "sizeBytes": 843825,
+      "format": "PNG",
+      "dimensionsPx": [
+        660,
+        1310
+      ],
+      "mode": "RGBA",
+      "colorSpace": "sRGB",
+      "decodedMemoryBytesRgba8888": 3458400
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/grass/grass_left_edge_review.png",
+      "sha256": "8cacfc31c2c36c39b812a4cc6dbc14ea9de2bb43c8c4887f1ed95758164e112b",
+      "sizeBytes": 709323,
+      "format": "PNG",
+      "dimensionsPx": [
+        1767,
+        834
+      ],
+      "mode": "RGB",
+      "colorSpace": "sRGB",
+      "decodedMemoryBytesRgba8888": 5894712
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/grass/grass_left_rgba_v2.png",
+      "sha256": "127ef609c016baba112e1ef0d7d385aa4be7dcb2550e7ccc3252ad579566c04d",
+      "sizeBytes": 361199,
+      "format": "PNG",
+      "dimensionsPx": [
+        589,
+        834
+      ],
+      "mode": "RGBA",
+      "colorSpace": "sRGB",
+      "decodedMemoryBytesRgba8888": 1964904
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/grass/grass_left_skeleton_v2.svg",
+      "sha256": "2d6a46e04379fe23ff79c55bf19fea602e090103d67e04501c8fd2ba288cd43f",
+      "sizeBytes": 941,
+      "format": "SVG",
+      "dimensionsPx": null,
+      "mode": null
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/grass/grass_motion_bones.json",
+      "sha256": "c5a6b659aed19329a04e36f6b251377aae67dc3a593d26653de3fc20dc54b2fa",
+      "sizeBytes": 699,
+      "format": "JSON",
+      "dimensionsPx": null,
+      "mode": null
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/grass/grass_motion_bones_v2.json",
+      "sha256": "30c4e2393ec4ff385dbb268ade7f879dcdd2678b7187f2ea34ae01b5974c4887",
+      "sizeBytes": 1097,
+      "format": "JSON",
+      "dimensionsPx": null,
+      "mode": null
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/grass/grass_right_candidate_diagnostic_only_rgba.png",
+      "sha256": "e69d387b58b58cceab2620ded55bdbdc8c8e19e1f8fd8ef639e607c3daf21a93",
+      "sizeBytes": 484063,
+      "format": "PNG",
+      "dimensionsPx": [
+        480,
+        900
+      ],
+      "mode": "RGBA",
+      "colorSpace": "sRGB",
+      "decodedMemoryBytesRgba8888": 1728000
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/grass/grass_right_edge_review.png",
+      "sha256": "c2bcff8512ed11016871f23bb7050614b28acb80376fa0c301526f3f5da4de71",
+      "sizeBytes": 338465,
+      "format": "PNG",
+      "dimensionsPx": [
+        1209,
+        589
+      ],
+      "mode": "RGB",
+      "colorSpace": "sRGB",
+      "decodedMemoryBytesRgba8888": 2848404
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/grass/grass_right_rgba_v2.png",
+      "sha256": "2bcc24d946abdf2b54d0b72f09e028ba4d4ceb50946ffc484b8d3a1cf57fe7a7",
+      "sizeBytes": 175962,
+      "format": "PNG",
+      "dimensionsPx": [
+        403,
+        589
+      ],
+      "mode": "RGBA",
+      "colorSpace": "sRGB",
+      "decodedMemoryBytesRgba8888": 949468
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/grass/grass_right_skeleton_v2.svg",
+      "sha256": "7e78865f99c19f78c1b57a84e92d2e74da5208bb68537756f7a4064a27b9f110",
+      "sizeBytes": 804,
+      "format": "SVG",
+      "dimensionsPx": null,
+      "mode": null
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/droplets/01_left_displacement_map.png",
+      "sha256": "ef6d19e9fd3e9ca0e93b667cf0ae2d7ef30f07aa4d057366483e339d99bc655a",
+      "sizeBytes": 4710,
+      "format": "PNG",
+      "dimensionsPx": [
+        111,
+        131
+      ],
+      "mode": "RGBA",
+      "colorSpace": "sRGB",
+      "decodedMemoryBytesRgba8888": 58164
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/droplets/01_left_height_map.png",
+      "sha256": "58cb96ee005c0d3f795f1a26e8b20e822c2b7c8414014486e7bfae753db9a374",
+      "sizeBytes": 2446,
+      "format": "PNG",
+      "dimensionsPx": [
+        111,
+        131
+      ],
+      "mode": "L",
+      "colorSpace": "sRGB",
+      "decodedMemoryBytesRgba8888": 58164
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/droplets/01_left_normal_map.png",
+      "sha256": "e737a6b9957aa452f7c64912a3ed83f9986daa9b1fc43e0f4723a72899a60515",
+      "sizeBytes": 4761,
+      "format": "PNG",
+      "dimensionsPx": [
+        111,
+        131
+      ],
+      "mode": "RGB",
+      "colorSpace": "sRGB",
+      "decodedMemoryBytesRgba8888": 58164
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/droplets/01_left_shape_mask.png",
+      "sha256": "f36e61757caa076965d34aeaf318f67b2f13a2b6a6ea2b720081a2a8aaa07461",
+      "sizeBytes": 1102,
+      "format": "PNG",
+      "dimensionsPx": [
+        111,
+        131
+      ],
+      "mode": "L",
+      "colorSpace": "sRGB",
+      "decodedMemoryBytesRgba8888": 58164
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/droplets/01_left_specular_mask.png",
+      "sha256": "6c1d3bf9c2077518122cb69a5b83d7f3ff365a415ad611c2e7d4cd0515b3c346",
+      "sizeBytes": 1671,
+      "format": "PNG",
+      "dimensionsPx": [
+        111,
+        131
+      ],
+      "mode": "L",
+      "colorSpace": "sRGB",
+      "decodedMemoryBytesRgba8888": 58164
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/droplets/01_left_static_compat_rgba.png",
+      "sha256": "405900cff21f891c5128b7808f34e4179fc218a12c34dbdbb2647e2a8e6c5f55",
+      "sizeBytes": 26324,
+      "format": "PNG",
+      "dimensionsPx": [
+        111,
+        131
+      ],
+      "mode": "RGBA",
+      "colorSpace": "sRGB",
+      "decodedMemoryBytesRgba8888": 58164
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/droplets/02_upper_right_displacement_map.png",
+      "sha256": "262ecfe7b67a44a6d4d0296d2a8d41a7dd5e2f0187000c160d40070aa2b0be18",
+      "sizeBytes": 5580,
+      "format": "PNG",
+      "dimensionsPx": [
+        133,
+        165
+      ],
+      "mode": "RGBA",
+      "colorSpace": "sRGB",
+      "decodedMemoryBytesRgba8888": 87780
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/droplets/02_upper_right_height_map.png",
+      "sha256": "cbb53cb8b36f3d78e433bdcd3f5972504d6fa98c0dbe51efb09b7add7dde9821",
+      "sizeBytes": 3138,
+      "format": "PNG",
+      "dimensionsPx": [
+        133,
+        165
+      ],
+      "mode": "L",
+      "colorSpace": "sRGB",
+      "decodedMemoryBytesRgba8888": 87780
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/droplets/02_upper_right_normal_map.png",
+      "sha256": "d18ebbc39a94480931170b6eb79639b673cf85b8ed49fef2d77fb56af6d27b96",
+      "sizeBytes": 5593,
+      "format": "PNG",
+      "dimensionsPx": [
+        133,
+        165
+      ],
+      "mode": "RGB",
+      "colorSpace": "sRGB",
+      "decodedMemoryBytesRgba8888": 87780
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/droplets/02_upper_right_shape_mask.png",
+      "sha256": "963671e6094bfff14abef07b3e985c3743ee84ec35475be6fbe8a08695719870",
+      "sizeBytes": 1329,
+      "format": "PNG",
+      "dimensionsPx": [
+        133,
+        165
+      ],
+      "mode": "L",
+      "colorSpace": "sRGB",
+      "decodedMemoryBytesRgba8888": 87780
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/droplets/02_upper_right_specular_mask.png",
+      "sha256": "c6891da49e81dfa197a7fc9843d46a792fe487ded66776f65ef4c8401c70607e",
+      "sizeBytes": 2203,
+      "format": "PNG",
+      "dimensionsPx": [
+        133,
+        165
+      ],
+      "mode": "L",
+      "colorSpace": "sRGB",
+      "decodedMemoryBytesRgba8888": 87780
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/droplets/02_upper_right_static_compat_rgba.png",
+      "sha256": "d6a22f73ef895a28524fc6439a04a38aeab8ce4c767cd965c6003ccda3828c1e",
+      "sizeBytes": 39099,
+      "format": "PNG",
+      "dimensionsPx": [
+        133,
+        165
+      ],
+      "mode": "RGBA",
+      "colorSpace": "sRGB",
+      "decodedMemoryBytesRgba8888": 87780
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/droplets/03_lower_right_displacement_map.png",
+      "sha256": "317bf8a477bafc57e28e4d5c78308069f8c4a450eb8245e26fc2b30ea2813991",
+      "sizeBytes": 5604,
+      "format": "PNG",
+      "dimensionsPx": [
+        144,
+        146
+      ],
+      "mode": "RGBA",
+      "colorSpace": "sRGB",
+      "decodedMemoryBytesRgba8888": 84096
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/droplets/03_lower_right_height_map.png",
+      "sha256": "1d5e4083429e6a48dadb84e02256766f90ad86a5226a07d1f58b22126f04bb50",
+      "sizeBytes": 3164,
+      "format": "PNG",
+      "dimensionsPx": [
+        144,
+        146
+      ],
+      "mode": "L",
+      "colorSpace": "sRGB",
+      "decodedMemoryBytesRgba8888": 84096
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/droplets/03_lower_right_normal_map.png",
+      "sha256": "e48878e0eb351b3b672287f5e40a0ee80c29a49e07eb724b8331ab199922d496",
+      "sizeBytes": 5938,
+      "format": "PNG",
+      "dimensionsPx": [
+        144,
+        146
+      ],
+      "mode": "RGB",
+      "colorSpace": "sRGB",
+      "decodedMemoryBytesRgba8888": 84096
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/droplets/03_lower_right_shape_mask.png",
+      "sha256": "1daf817978772031fc8b7a3e292759288d00d4790f701b45f475ad236f37863d",
+      "sizeBytes": 1282,
+      "format": "PNG",
+      "dimensionsPx": [
+        144,
+        146
+      ],
+      "mode": "L",
+      "colorSpace": "sRGB",
+      "decodedMemoryBytesRgba8888": 84096
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/droplets/03_lower_right_specular_mask.png",
+      "sha256": "037303012547a2f4bf94ddadf89da7e59a3cb8c356e9cfd848c9bd9a3cdd440f",
+      "sizeBytes": 2084,
+      "format": "PNG",
+      "dimensionsPx": [
+        144,
+        146
+      ],
+      "mode": "L",
+      "colorSpace": "sRGB",
+      "decodedMemoryBytesRgba8888": 84096
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/droplets/03_lower_right_static_compat_rgba.png",
+      "sha256": "994c8483212a7412503551283a248ebe48266a17cd1c98a2e311412d1168296f",
+      "sizeBytes": 37331,
+      "format": "PNG",
+      "dimensionsPx": [
+        144,
+        146
+      ],
+      "mode": "RGBA",
+      "colorSpace": "sRGB",
+      "decodedMemoryBytesRgba8888": 84096
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/droplets/droplet_01_left_region_mask.png",
+      "sha256": "203ee4f481e967ebd3b8f5470486adc6e601e2b44bc889cf423bd0eb05a76214",
+      "sizeBytes": 4882,
+      "format": "PNG",
+      "dimensionsPx": [
+        1440,
+        3120
+      ],
+      "mode": "L",
+      "colorSpace": "sRGB",
+      "decodedMemoryBytesRgba8888": 17971200
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/droplets/droplet_02_upper_right_region_mask.png",
+      "sha256": "28a027aac9965fba4f71383ac57a88d94ccf9f760aae6573978773854d9c9d57",
+      "sizeBytes": 4943,
+      "format": "PNG",
+      "dimensionsPx": [
+        1440,
+        3120
+      ],
+      "mode": "L",
+      "colorSpace": "sRGB",
+      "decodedMemoryBytesRgba8888": 17971200
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/droplets/droplet_03_lower_right_region_mask.png",
+      "sha256": "72719512e16e1969c38fba92d4632888253e0c1178a5a8b232e85bbf9e71ae80",
+      "sizeBytes": 4922,
+      "format": "PNG",
+      "dimensionsPx": [
+        1440,
+        3120
+      ],
+      "mode": "L",
+      "colorSpace": "sRGB",
+      "decodedMemoryBytesRgba8888": 17971200
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/droplets/droplets_anchors.json",
+      "sha256": "d1a8a305a188554d0eef78b88a668aae7796e14daa176fa4ed0fbd2eba236eb4",
+      "sizeBytes": 2360,
+      "format": "JSON",
+      "dimensionsPx": null,
+      "mode": null
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/droplets/droplets_anchors_v2.json",
+      "sha256": "5f8db353102b07f14a96ea35d5df08b95adb87d56a2b0183c4aea497384b22fe",
+      "sizeBytes": 1537,
+      "format": "JSON",
+      "dimensionsPx": null,
+      "mode": null
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/droplets/droplets_optical_params_v2.json",
+      "sha256": "427b038e7c25da65714135e9aa08d3e7a3fcc9c3beddeaf0d184fad74ed18545",
+      "sizeBytes": 1069,
+      "format": "JSON",
+      "dimensionsPx": null,
+      "mode": null
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/android_runtime/android_asset_compatibility.md",
+      "sha256": "fe1608f4a5555a2481c598e0023f32f4681abf00d9f497988e9308684df2d3bd",
+      "sizeBytes": 1155,
+      "format": "MD",
+      "dimensionsPx": null,
+      "mode": null
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/android_runtime/api24_static/lake_glass_master_fallback.png",
+      "sha256": "d0bd07ba379491e8b93468c616468fc60d59a2dfebc11061cf4d14e9788c6e12",
+      "sizeBytes": 2464571,
+      "format": "PNG",
+      "dimensionsPx": [
+        1440,
+        3120
+      ],
+      "mode": "RGB",
+      "colorSpace": "sRGB",
+      "decodedMemoryBytesRgba8888": 17971200
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/android_runtime/api24_static/lake_glass_static_layered_v3.png",
+      "sha256": "23a493146f7fbb06469e56ae18b2ed8d58b610d981169c8987319481c0df5368",
+      "sizeBytes": 2464578,
+      "format": "PNG",
+      "dimensionsPx": [
+        1440,
+        3120
+      ],
+      "mode": "RGB",
+      "colorSpace": "sRGB",
+      "decodedMemoryBytesRgba8888": 17971200
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/metadata/android_asset_compatibility_v1.json",
+      "sha256": "37f1942ac4b24e2b7a9d33c1800b928aa5dbd4aa1306bf88283315e0ac8cea94",
+      "sizeBytes": 372,
+      "format": "JSON",
+      "dimensionsPx": null,
+      "mode": null
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/metadata/asset_manifest_v2.json",
+      "sha256": "76b29edb1f3e0cc98bd84d751529b247f667c0fb973e29fe564fb2f0b5140f35",
+      "sizeBytes": 26085,
+      "format": "JSON",
+      "dimensionsPx": null,
+      "mode": null
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/metadata/crop_safe_zone.json",
+      "sha256": "ff24384d14ad387172f3abeb9fa1e82ef773d72a3eb1861bd98d6b9a4bcc2559",
+      "sizeBytes": 5877,
+      "format": "JSON",
+      "dimensionsPx": null,
+      "mode": null
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/metadata/crop_safe_zone_v3.json",
+      "sha256": "3ba924d8aea6eaf3930e8ec75180dc903f658a547fefe1c6c371bf49bfe74eb9",
+      "sizeBytes": 1550,
+      "format": "JSON",
+      "dimensionsPx": null,
+      "mode": null
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/metadata/lake_anchors_v2.json",
+      "sha256": "667c5b3ce0774bd132f74f827cb44592ee7e3217f32f37da17efef3db1576b5a",
+      "sizeBytes": 1932,
+      "format": "JSON",
+      "dimensionsPx": null,
+      "mode": null
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/metadata/lake_anchors_v3.json",
+      "sha256": "0e5895eb7645130d76ff503ac55bf5e430c4dd1a21b537762da1580711b0d58d",
+      "sizeBytes": 2441,
+      "format": "JSON",
+      "dimensionsPx": null,
+      "mode": null
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/metadata/lake_glass_motion_profiles_v2.json",
+      "sha256": "ca1447d434a467a32cef77c6fdc8ffda57f761242c5e7a83ad95b2221c888be8",
+      "sizeBytes": 823,
+      "format": "JSON",
+      "dimensionsPx": null,
+      "mode": null
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/metadata/lake_glass_motion_profiles_v3.json",
+      "sha256": "ca659c8096f191b5230f107900194e0eefe54567d76ccc3e7fd4c20e9cade387",
+      "sizeBytes": 804,
+      "format": "JSON",
+      "dimensionsPx": null,
+      "mode": null
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/metadata/lake_layer_pack_v2.json",
+      "sha256": "83d61be94ea87917673d33a47f42e32e66409a51322523f6ce5586271ab3bf97",
+      "sizeBytes": 7338,
+      "format": "JSON",
+      "dimensionsPx": null,
+      "mode": null
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/metadata/lake_layer_pack_v3.json",
+      "sha256": "e80a73360e6764ec71caee03b78111cdf3a6879f372f5240677cd1356fb3f10a",
+      "sizeBytes": 13041,
+      "format": "JSON",
+      "dimensionsPx": null,
+      "mode": null
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/metadata/lake_material_tokens_v2.json",
+      "sha256": "642727ac1914e6ab916a4bf055da0c078a7f929b8448d1f49b2aa1f0073bb182",
+      "sizeBytes": 1395,
+      "format": "JSON",
+      "dimensionsPx": null,
+      "mode": null
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/metadata/lake_material_tokens_v3.json",
+      "sha256": "105869c7c93d6032ed650d2380cd3961a62cbd3e630cac8735644defa6188193",
+      "sizeBytes": 274,
+      "format": "JSON",
+      "dimensionsPx": null,
+      "mode": null
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/metadata/layer_feasibility_matrix.csv",
+      "sha256": "389fcf28ce9c25d6e3882f80b59998f15d6c2b54493e093ad90575028ad0cb77",
+      "sizeBytes": 1767,
+      "format": "CSV",
+      "dimensionsPx": null,
+      "mode": null
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/metadata/layer_feasibility_review.md",
+      "sha256": "efe6117533f32a3704960a5d7fabe341199fceda81365f0299d5ada03f0cef16",
+      "sizeBytes": 1394,
+      "format": "MD",
+      "dimensionsPx": null,
+      "mode": null
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/reference/candidate02_preview.jpg",
+      "sha256": "aecce023cce7d51248eed25a625ff9fd6f605bddc1dc961ccb6c28720e530db8",
+      "sizeBytes": 64460,
+      "format": "JPG",
+      "dimensionsPx": [
+        512,
+        1109
+      ],
+      "mode": "RGB",
+      "colorSpace": "sRGB",
+      "decodedMemoryBytesRgba8888": 2271232
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/reference/clean_plate_droplet_01_left_before_after_100pct.png",
+      "sha256": "bdcd528cae8e070d2c39e37a647e8a945886857e1478345c912b80ab9eb88874",
+      "sizeBytes": 24796,
+      "format": "PNG",
+      "dimensionsPx": [
+        290,
+        150
+      ],
+      "mode": "RGB",
+      "colorSpace": "sRGB",
+      "decodedMemoryBytesRgba8888": 174000
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/reference/clean_plate_droplet_01_left_before_after_200pct.png",
+      "sha256": "103c3e387b3beee8edb0c37a18771d2e285d00eec58f88a3f51cbade9f66310e",
+      "sizeBytes": 33766,
+      "format": "PNG",
+      "dimensionsPx": [
+        580,
+        300
+      ],
+      "mode": "RGB",
+      "colorSpace": "sRGB",
+      "decodedMemoryBytesRgba8888": 696000
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/reference/clean_plate_droplet_02_upper_right_before_after_100pct.png",
+      "sha256": "5e60ceab9f6916e8e6dc4c6d7f4ac117ad71226102d8a735f0bee65cd8894b78",
+      "sizeBytes": 35648,
+      "format": "PNG",
+      "dimensionsPx": [
+        350,
+        205
+      ],
+      "mode": "RGB",
+      "colorSpace": "sRGB",
+      "decodedMemoryBytesRgba8888": 287000
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/reference/clean_plate_droplet_02_upper_right_before_after_200pct.png",
+      "sha256": "a9e4732ba12a06f505cb65af3514ba074813a8bbf34fb9a3ef6503bdd2181259",
+      "sizeBytes": 48604,
+      "format": "PNG",
+      "dimensionsPx": [
+        700,
+        410
+      ],
+      "mode": "RGB",
+      "colorSpace": "sRGB",
+      "decodedMemoryBytesRgba8888": 1148000
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/reference/clean_plate_droplet_03_lower_right_before_after_100pct.png",
+      "sha256": "9d53c8816f281593b23df953a0d780c4266398b318e8b1b78fcb154e64ea4917",
+      "sizeBytes": 31704,
+      "format": "PNG",
+      "dimensionsPx": [
+        340,
+        185
+      ],
+      "mode": "RGB",
+      "colorSpace": "sRGB",
+      "decodedMemoryBytesRgba8888": 251600
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/reference/clean_plate_droplet_03_lower_right_before_after_200pct.png",
+      "sha256": "68fd991572e6c353d6547495b92cb28abb38970dbcf0939029766205d23da82f",
+      "sizeBytes": 43041,
+      "format": "PNG",
+      "dimensionsPx": [
+        680,
+        370
+      ],
+      "mode": "RGB",
+      "colorSpace": "sRGB",
+      "decodedMemoryBytesRgba8888": 1006400
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/reference/clean_plate_grass_left_before_after_100pct.png",
+      "sha256": "eb5e05a505a86f8485500791abefff0e708dd2591c6979d1a08a9d0b48cfe61a",
+      "sizeBytes": 801754,
+      "format": "PNG",
+      "dimensionsPx": [
+        1320,
+        1310
+      ],
+      "mode": "RGB",
+      "colorSpace": "sRGB",
+      "decodedMemoryBytesRgba8888": 6916800
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/reference/clean_plate_grass_left_before_after_200pct.png",
+      "sha256": "13841f1f2c17f3da1c37539abad79505297e4212a452ac93322ea66279a80ab2",
+      "sizeBytes": 1104976,
+      "format": "PNG",
+      "dimensionsPx": [
+        2640,
+        2620
+      ],
+      "mode": "RGB",
+      "colorSpace": "sRGB",
+      "decodedMemoryBytesRgba8888": 27667200
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/reference/clean_plate_grass_right_before_after_100pct.png",
+      "sha256": "c7ad753724f08dabb2f5f5c16fc541d1c97aa579547eeb6d73865377ece89666",
+      "sizeBytes": 441971,
+      "format": "PNG",
+      "dimensionsPx": [
+        960,
+        900
+      ],
+      "mode": "RGB",
+      "colorSpace": "sRGB",
+      "decodedMemoryBytesRgba8888": 3456000
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/reference/clean_plate_grass_right_before_after_200pct.png",
+      "sha256": "1149d97b1d61ddbfb0c86048cb638360b566df1793cbfdfea5bb586799826475",
+      "sizeBytes": 603974,
+      "format": "PNG",
+      "dimensionsPx": [
+        1920,
+        1800
+      ],
+      "mode": "RGB",
+      "colorSpace": "sRGB",
+      "decodedMemoryBytesRgba8888": 13824000
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/reference/clean_plate_repair_after.png",
+      "sha256": "cf18dedc43c3e59e93e4273a4e195850d881b913480b18499228c53f1e2b5f51",
+      "sizeBytes": 2127749,
+      "format": "PNG",
+      "dimensionsPx": [
+        1440,
+        3120
+      ],
+      "mode": "RGB",
+      "colorSpace": "sRGB",
+      "decodedMemoryBytesRgba8888": 17971200
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/reference/clean_plate_repair_before.png",
+      "sha256": "d0bd07ba379491e8b93468c616468fc60d59a2dfebc11061cf4d14e9788c6e12",
+      "sizeBytes": 2464571,
+      "format": "PNG",
+      "dimensionsPx": [
+        1440,
+        3120
+      ],
+      "mode": "RGB",
+      "colorSpace": "sRGB",
+      "decodedMemoryBytesRgba8888": 17971200
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/reference/crop_matrix_contact_sheet.jpg",
+      "sha256": "f4a7682fe2a4af77e857e2b00605e400a5ee6bd7a42d8e92c62d8c7ffb976f1d",
+      "sizeBytes": 222249,
+      "format": "JPG",
+      "dimensionsPx": [
+        1020,
+        2140
+      ],
+      "mode": "RGB",
+      "colorSpace": "sRGB",
+      "decodedMemoryBytesRgba8888": 8731200
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/reference/crop_matrix_v3.png",
+      "sha256": "3c68b4c101d261a0c84ea8f018363fca5a68e583ad3e5cd978609e8a8931641f",
+      "sizeBytes": 927214,
+      "format": "PNG",
+      "dimensionsPx": [
+        842,
+        1492
+      ],
+      "mode": "RGB",
+      "colorSpace": "sRGB",
+      "decodedMemoryBytesRgba8888": 5025056
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/reference/crop_policy_recommendation.md",
+      "sha256": "7af68814e935b33ca42d1f27f1965196c8f3e127954cd83866c995cd165602b3",
+      "sizeBytes": 613,
+      "format": "MD",
+      "dimensionsPx": null,
+      "mode": null
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/reference/droplets_optical_review.png",
+      "sha256": "25851b9ffed0ddaa321da00cc3d778f331de47b7ecb0ffad83b285a9c7c9eae9",
+      "sizeBytes": 295467,
+      "format": "PNG",
+      "dimensionsPx": [
+        522,
+        1709
+      ],
+      "mode": "RGB",
+      "colorSpace": "sRGB",
+      "decodedMemoryBytesRgba8888": 3568392
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/reference/grass_candidates_on_black.jpg",
+      "sha256": "6550c6da565ec3bf627a2239d91381bcdac921929bd0735835b164cbd4ff8538",
+      "sizeBytes": 62139,
+      "format": "JPG",
+      "dimensionsPx": [
+        720,
+        1560
+      ],
+      "mode": "RGB",
+      "colorSpace": "sRGB",
+      "decodedMemoryBytesRgba8888": 4492800
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/reference/grass_candidates_on_checker.jpg",
+      "sha256": "b7883a52156f2660e0b2bcb585e0d7dbd716408084ad6c6ec200371f3fe0232d",
+      "sizeBytes": 75885,
+      "format": "JPG",
+      "dimensionsPx": [
+        720,
+        1560
+      ],
+      "mode": "RGB",
+      "colorSpace": "sRGB",
+      "decodedMemoryBytesRgba8888": 4492800
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/reference/grass_candidates_on_white.jpg",
+      "sha256": "6e322b44f772d74e178f891df2d078bc9bc2c39d53c1121ac9b492cdd0c01acb",
+      "sizeBytes": 50436,
+      "format": "JPG",
+      "dimensionsPx": [
+        720,
+        1560
+      ],
+      "mode": "RGB",
+      "colorSpace": "sRGB",
+      "decodedMemoryBytesRgba8888": 4492800
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/reference/grass_edge_review.png",
+      "sha256": "094b66b0bbd273b915e7010f1eb7c799786e10d5c8205c8e9cf777d9cd296755",
+      "sizeBytes": 290246,
+      "format": "PNG",
+      "dimensionsPx": [
+        1242,
+        703
+      ],
+      "mode": "RGB",
+      "colorSpace": "sRGB",
+      "decodedMemoryBytesRgba8888": 3492504
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/reference/layer_inspector_contact_sheet.jpg",
+      "sha256": "1e410b592903db90896dafdd11729780ad8267221921ce51494fe68a27852e85",
+      "sizeBytes": 79588,
+      "format": "JPG",
+      "dimensionsPx": [
+        1250,
+        550
+      ],
+      "mode": "RGB",
+      "colorSpace": "sRGB",
+      "decodedMemoryBytesRgba8888": 2750000
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/reference/layer_inspector_contact_sheet.png",
+      "sha256": "ed579dffd272b5e43f5118c6886659d6e1309a66b769ad10004ff5cc1412e8d9",
+      "sizeBytes": 1032939,
+      "format": "PNG",
+      "dimensionsPx": [
+        882,
+        2970
+      ],
+      "mode": "RGB",
+      "colorSpace": "sRGB",
+      "decodedMemoryBytesRgba8888": 10478160
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/reference/layer_visibility_matrix.png",
+      "sha256": "e217dace0626360a1032554be80e479ae1bf70c571137b2b60a819edbba93969",
+      "sizeBytes": 10293,
+      "format": "PNG",
+      "dimensionsPx": [
+        1080,
+        360
+      ],
+      "mode": "RGB",
+      "colorSpace": "sRGB",
+      "decodedMemoryBytesRgba8888": 1555200
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/reference/local_details/droplet_01_100pct.png",
+      "sha256": "5f68e0e2718fc665d783fb7c4957cd4b663b2c9d8bf206f45393d6dc4ed90de8",
+      "sizeBytes": 21424,
+      "format": "PNG",
+      "dimensionsPx": [
+        160,
+        190
+      ],
+      "mode": "RGB",
+      "colorSpace": "sRGB",
+      "decodedMemoryBytesRgba8888": 121600
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/reference/local_details/droplet_01_200pct_nearest.png",
+      "sha256": "9a206af2f368a989bcaf28aae46493d925db09714fc277f1f94176b4162634b6",
+      "sizeBytes": 29253,
+      "format": "PNG",
+      "dimensionsPx": [
+        320,
+        380
+      ],
+      "mode": "RGB",
+      "colorSpace": "sRGB",
+      "decodedMemoryBytesRgba8888": 486400
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/reference/local_details/droplet_02_100pct.png",
+      "sha256": "70e1ec9c764206524517c09f25ea015632f0f174f69fc3e2cdd8d9dbbf3a90c7",
+      "sizeBytes": 34682,
+      "format": "PNG",
+      "dimensionsPx": [
+        225,
+        240
+      ],
+      "mode": "RGB",
+      "colorSpace": "sRGB",
+      "decodedMemoryBytesRgba8888": 216000
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/reference/local_details/droplet_02_200pct_nearest.png",
+      "sha256": "3e80cd1e213a882a5204ed7709636590b000bb3402b01317ef847073a980ac02",
+      "sizeBytes": 47032,
+      "format": "PNG",
+      "dimensionsPx": [
+        450,
+        480
+      ],
+      "mode": "RGB",
+      "colorSpace": "sRGB",
+      "decodedMemoryBytesRgba8888": 864000
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/reference/local_details/droplet_03_100pct.png",
+      "sha256": "844f126b929380b5f2415fe3b58d4866044480b27ee448b1e52ae6f8ff361dec",
+      "sizeBytes": 27119,
+      "format": "PNG",
+      "dimensionsPx": [
+        180,
+        230
+      ],
+      "mode": "RGB",
+      "colorSpace": "sRGB",
+      "decodedMemoryBytesRgba8888": 165600
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/reference/local_details/droplet_03_200pct_nearest.png",
+      "sha256": "b64bc179de00dc6461cd30fb631e528dc5194a176e1e4f4ffd40891c2f79d042",
+      "sizeBytes": 36995,
+      "format": "PNG",
+      "dimensionsPx": [
+        360,
+        460
+      ],
+      "mode": "RGB",
+      "colorSpace": "sRGB",
+      "decodedMemoryBytesRgba8888": 662400
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/reference/local_details/grass_left_100pct.png",
+      "sha256": "4715933a0d7101328f3851a0330a0a1a2a6a4f77e3b4ead2b1af6fe0df656231",
+      "sizeBytes": 647899,
+      "format": "PNG",
+      "dimensionsPx": [
+        660,
+        1310
+      ],
+      "mode": "RGB",
+      "colorSpace": "sRGB",
+      "decodedMemoryBytesRgba8888": 3458400
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/reference/local_details/grass_left_200pct_nearest.png",
+      "sha256": "9a1d1dea4ce136842ec4a9d6b009aea383df46dafdf54f937947ae913460d47e",
+      "sizeBytes": 893124,
+      "format": "PNG",
+      "dimensionsPx": [
+        1320,
+        2620
+      ],
+      "mode": "RGB",
+      "colorSpace": "sRGB",
+      "decodedMemoryBytesRgba8888": 13833600
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/reference/local_details/grass_right_100pct.png",
+      "sha256": "45f6c321e7fb9df0c9851a892163fafb7d92f2c07a9a321cea658869e4a99fb6",
+      "sizeBytes": 328416,
+      "format": "PNG",
+      "dimensionsPx": [
+        480,
+        900
+      ],
+      "mode": "RGB",
+      "colorSpace": "sRGB",
+      "decodedMemoryBytesRgba8888": 1728000
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/reference/local_details/grass_right_200pct_nearest.png",
+      "sha256": "acac34bf66f497b39c222f76ab63525a20cf6620dbfde05f6e37f62a3c15060f",
+      "sizeBytes": 453389,
+      "format": "PNG",
+      "dimensionsPx": [
+        960,
+        1800
+      ],
+      "mode": "RGB",
+      "colorSpace": "sRGB",
+      "decodedMemoryBytesRgba8888": 6912000
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/reference/local_details/sunlight_100pct.png",
+      "sha256": "48da7ca38b33bc35989f4e3fa0a9dbfd2a2108cefdc069d2d9c9851d26b4a07a",
+      "sizeBytes": 309868,
+      "format": "PNG",
+      "dimensionsPx": [
+        660,
+        950
+      ],
+      "mode": "RGB",
+      "colorSpace": "sRGB",
+      "decodedMemoryBytesRgba8888": 2508000
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/reference/local_details/sunlight_200pct_nearest.png",
+      "sha256": "61834f52a6341efa3a77a5a72c754cf2348dd0929c37a63c13927e4d5a587a94",
+      "sizeBytes": 417013,
+      "format": "PNG",
+      "dimensionsPx": [
+        1320,
+        1900
+      ],
+      "mode": "RGB",
+      "colorSpace": "sRGB",
+      "decodedMemoryBytesRgba8888": 10032000
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/reference/master_annotated.png",
+      "sha256": "2accfc9283e7964dc6090dcd6b153accf16cbed7289637dff7c2719e757a3f63",
+      "sizeBytes": 2442655,
+      "format": "PNG",
+      "dimensionsPx": [
+        1440,
+        3120
+      ],
+      "mode": "RGB",
+      "colorSpace": "sRGB",
+      "decodedMemoryBytesRgba8888": 17971200
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/reference/master_color_samples.json",
+      "sha256": "62a7245b8fb6bea1a0191a8f7848e99153e645ec6fb5b5ffe29bd892b5100822",
+      "sizeBytes": 1272,
+      "format": "JSON",
+      "dimensionsPx": null,
+      "mode": null
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/reference/master_local_detail_review.jpg",
+      "sha256": "6fca635a8e7ce3932227ccd4c7bffa23842c4c54471c71bc29d4ce72d0b1887a",
+      "sizeBytes": 140592,
+      "format": "JPG",
+      "dimensionsPx": [
+        1200,
+        2100
+      ],
+      "mode": "RGB",
+      "colorSpace": "sRGB",
+      "decodedMemoryBytesRgba8888": 10080000
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/reference/master_region_map.json",
+      "sha256": "c5698d66bbfe41c205b0d7ebb694ae1ab885402cb428e559e04cb793850bbb6b",
+      "sizeBytes": 2244,
+      "format": "JSON",
+      "dimensionsPx": null,
+      "mode": null
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/reference/master_visual_inventory.md",
+      "sha256": "fd308c7a41b1a7e7a8d1118c1d424025c109fd848f1b5fc8db08215341eba3c2",
+      "sizeBytes": 1375,
+      "format": "MD",
+      "dimensionsPx": null,
+      "mode": null
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/reference/master_vs_layered_difference.png",
+      "sha256": "4ccda5698b7c8e42fae77d7574d4ab90cd413a8ccee5e32471590221850bde99",
+      "sizeBytes": 197498,
+      "format": "PNG",
+      "dimensionsPx": [
+        1440,
+        3120
+      ],
+      "mode": "RGB",
+      "colorSpace": "sRGB",
+      "decodedMemoryBytesRgba8888": 17971200
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/reference/master_vs_layered_heatmap.png",
+      "sha256": "3c3dafa5f19741d6ce7005d2f326b0643a21c9d181ea209d024d9cdbe86400cf",
+      "sizeBytes": 84936,
+      "format": "PNG",
+      "dimensionsPx": [
+        1440,
+        3120
+      ],
+      "mode": "RGB",
+      "colorSpace": "sRGB",
+      "decodedMemoryBytesRgba8888": 17971200
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/reference/master_vs_layered_overlay.png",
+      "sha256": "23a493146f7fbb06469e56ae18b2ed8d58b610d981169c8987319481c0df5368",
+      "sizeBytes": 2464578,
+      "format": "PNG",
+      "dimensionsPx": [
+        1440,
+        3120
+      ],
+      "mode": "RGB",
+      "colorSpace": "sRGB",
+      "decodedMemoryBytesRgba8888": 17971200
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/reference/master_vs_recomposed_difference.png",
+      "sha256": "23cf96a29c1ce6978b4d516a0578f69ec441215b6e1fb2803ee0fd7315564d8a",
+      "sizeBytes": 4436,
+      "format": "PNG",
+      "dimensionsPx": [
+        1440,
+        3120
+      ],
+      "mode": "L",
+      "colorSpace": "sRGB",
+      "decodedMemoryBytesRgba8888": 17971200
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/reference/master_vs_recomposed_heatmap.png",
+      "sha256": "2d1cb4574d4b27a66bfd4896f80fc98857026a1ca3898911b1e315842acb40fc",
+      "sizeBytes": 13155,
+      "format": "PNG",
+      "dimensionsPx": [
+        1440,
+        3120
+      ],
+      "mode": "RGB",
+      "colorSpace": "sRGB",
+      "decodedMemoryBytesRgba8888": 17971200
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/reference/master_vs_recomposed_overlay.png",
+      "sha256": "d0bd07ba379491e8b93468c616468fc60d59a2dfebc11061cf4d14e9788c6e12",
+      "sizeBytes": 2464571,
+      "format": "PNG",
+      "dimensionsPx": [
+        1440,
+        3120
+      ],
+      "mode": "RGB",
+      "colorSpace": "sRGB",
+      "decodedMemoryBytesRgba8888": 17971200
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/reference/recomposed_static_1440x3120.png",
+      "sha256": "d0bd07ba379491e8b93468c616468fc60d59a2dfebc11061cf4d14e9788c6e12",
+      "sizeBytes": 2464571,
+      "format": "PNG",
+      "dimensionsPx": [
+        1440,
+        3120
+      ],
+      "mode": "RGB",
+      "colorSpace": "sRGB",
+      "decodedMemoryBytesRgba8888": 17971200
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/reference/static_layered_v3.png",
+      "sha256": "23a493146f7fbb06469e56ae18b2ed8d58b610d981169c8987319481c0df5368",
+      "sizeBytes": 2464578,
+      "format": "PNG",
+      "dimensionsPx": [
+        1440,
+        3120
+      ],
+      "mode": "RGB",
+      "colorSpace": "sRGB",
+      "decodedMemoryBytesRgba8888": 17971200
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/reference/static_master.png",
+      "sha256": "d0bd07ba379491e8b93468c616468fc60d59a2dfebc11061cf4d14e9788c6e12",
+      "sizeBytes": 2464571,
+      "format": "PNG",
+      "dimensionsPx": [
+        1440,
+        3120
+      ],
+      "mode": "RGB",
+      "colorSpace": "sRGB",
+      "decodedMemoryBytesRgba8888": 17971200
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/reference/sunlight_caustics_review.png",
+      "sha256": "4450c537dc483de5b0fb4c86dc4d1e9b45aead0f67c0ccc17ff14ede87185589",
+      "sizeBytes": 585619,
+      "format": "PNG",
+      "dimensionsPx": [
+        1002,
+        1532
+      ],
+      "mode": "RGB",
+      "colorSpace": "sRGB",
+      "decodedMemoryBytesRgba8888": 6140256
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/evidence/clean_plate_reconstruction_report.md",
+      "sha256": "285500082a7a1870881977b8465903655c10741836b8031f355dbb83ddb49731",
+      "sizeBytes": 863,
+      "format": "MD",
+      "dimensionsPx": null,
+      "mode": null
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/evidence/final_delivery_report.md",
+      "sha256": "bb458f64956f330ce192c5206d8ae59c5b24ac29060abbc016f27af533535787",
+      "sizeBytes": 876,
+      "format": "MD",
+      "dimensionsPx": null,
+      "mode": null
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/evidence/layer_pack_audit_report.md",
+      "sha256": "a23b319f4926830d94c77c7ab0309e0d9bd35de382a71347d16c3dceebc22430",
+      "sizeBytes": 1196,
+      "format": "MD",
+      "dimensionsPx": null,
+      "mode": null
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/evidence/layer_visual_review.md",
+      "sha256": "133f9d7e97fa4b2ac96253e62d78697c228d87b8d861b9a01bad2eb06e064da5",
+      "sizeBytes": 585,
+      "format": "MD",
+      "dimensionsPx": null,
+      "mode": null
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/evidence/master_reconstruction_metrics.json",
+      "sha256": "c6f47f9c7509851bcb210be0a7a10bdba039fc60f0117df1d9234f9b08482cc6",
+      "sizeBytes": 632,
+      "format": "JSON",
+      "dimensionsPx": null,
+      "mode": null
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/evidence/optical_reconstruction_report.md",
+      "sha256": "23c58e8f7fcfb54c9fd21f67d65b2310cf856448bace8bc382cf0a85dba6fe0c",
+      "sizeBytes": 393,
+      "format": "MD",
+      "dimensionsPx": null,
+      "mode": null
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/evidence/source_integrity_report_p1.json",
+      "sha256": "ff2c4bc87317f0cbfc88790773d7b053255bb38fd715ac3f6fbae94007333954",
+      "sizeBytes": 697,
+      "format": "JSON",
+      "dimensionsPx": null,
+      "mode": null
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/evidence/task_scope_audit.json",
+      "sha256": "9d92fd086aaf032aad7c83c987a6404597accf01c9dab50e1ef85999457eab8d",
+      "sizeBytes": 443,
+      "format": "JSON",
+      "dimensionsPx": null,
+      "mode": null
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/evidence/validation_report.json",
+      "sha256": "192e9ba554fa499511db5d1848375316ce6407808009d3eef8577fe922cabf40",
+      "sizeBytes": 3456,
+      "format": "JSON",
+      "dimensionsPx": null,
+      "mode": null
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/reference/p1_preview_summary.png",
+      "sha256": "6509cd0db6c6904fd19c8d93bb105a7fe4aab7841bba02ba3bca6e11599bbc44",
+      "sizeBytes": 362417,
+      "format": "PNG",
+      "dimensionsPx": [
+        1198,
+        858
+      ],
+      "mode": "RGB",
+      "colorSpace": "sRGB",
+      "decodedMemoryBytesRgba8888": 4111536
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/android_runtime/runtime_optical_masks_v1.png",
+      "sha256": "2eae796055e1417f6dc9b81ae49e4167c68796d87b976ea1f02cceca421d26b0",
+      "sizeBytes": 43264,
+      "format": "PNG",
+      "dimensionsPx": [
+        360,
+        780
+      ],
+      "mode": "RGBA",
+      "colorSpace": "sRGB",
+      "decodedMemoryBytesRgba8888": 1123200
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/android_runtime/layer_manifest_v1.json",
+      "sha256": "bf5c80eb149e67ed564859a7558688bcff279ba6961a93f8c684e140cb8e0a82",
+      "sizeBytes": 19558,
+      "format": "JSON",
+      "dimensionsPx": null,
+      "mode": null
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/android_runtime/runtime_manifest.json",
+      "sha256": "30db1cbc801beb6b8897807a6b50e819b29a0697f66b93eb980e2222347a1f54",
+      "sizeBytes": 1358,
+      "format": "JSON",
+      "dimensionsPx": null,
+      "mode": null
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/evidence/true_layer_validation_failure_20261102.json",
+      "sha256": "f4c86967fd1175f67a6df03ee73e7951d7172ac02f0db90daaeee03ae96b8fde",
+      "sizeBytes": 5680,
+      "format": "JSON",
+      "dimensionsPx": null,
+      "mode": null
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/evidence/true_layer_validation_report_v1.json",
+      "sha256": "331100ca23d5b8b375cd4c2efd48f88dad38a6d5d5dd15904644b7c1ae7eec55",
+      "sizeBytes": 5692,
+      "format": "JSON",
+      "dimensionsPx": null,
+      "mode": null
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/evidence/android_runtime_asset_pack_acceptance_v1.json",
+      "sha256": "5bdbef89d1e527c336210bc7a8a5b16dca786df5e0b38f53f9813c1ed7fd4021",
+      "sizeBytes": 8041,
+      "format": "JSON",
+      "dimensionsPx": null,
+      "mode": null
+    }
+  ],
+  "manifestSelfHashExcluded": true,
+  "toolFiles": [
+    {
+      "path": "scripts/build_lake_glass_true_layers_p1.py",
+      "sha256": "d8f82c81da88f126785e2f016967a37013026cc3cf3011a93e1e2ec65b3b4878"
+    },
+    {
+      "path": "scripts/verify_lake_glass_true_layers_p1.py",
+      "sha256": "94f31a5c6ca5eff92eeff6ef28eb2da1b0d6935b9bb87bf0da97f0024367d09e"
+    },
+    {
+      "path": "scripts/generate_lake_glass_preview_p1.py",
+      "sha256": "14261ec730517faa52ea64b5d49ce74f0b80d97b6b61dc95a0215168e6fea905"
+    },
+    {
+      "path": "scripts/build_lake_glass_android_runtime_v1.py",
+      "sha256": "6bfebfbb9b2416a8d2a91a62d4c99d528b4585e734718809637353a22bd9f775"
+    },
+    {
+      "path": "scripts/verify_lake_glass_android_runtime_v1.py",
+      "sha256": "31e9c3592cf5f09f6a1ddc92794143e124fda5dd792d9e74da87c41353464d21"
+    }
+  ],
+  "statusReason": "Static composite is visually verified. Extracted grass and RGBA drop candidates stay diagnostic; baked effects are modulated in place only, with an API 24+ static fallback.",
+  "runtimeLayerManifest": "assets/android_runtime/layer_manifest_v1.json",
+  "runtimeLayerManifestSha256": "bf5c80eb149e67ed564859a7558688bcff279ba6961a93f8c684e140cb8e0a82",
+  "androidRuntimeManifest": "assets/android_runtime/runtime_manifest.json",
+  "androidRuntimeManifestSha256": "30db1cbc801beb6b8897807a6b50e819b29a0697f66b93eb980e2222347a1f54",
+  "sourceTaskId": "YUJIAN_LAKE_GLASS_V2_ASSET_PACK_ANDROID_RUNTIME_INTEGRATION_V1"
+}

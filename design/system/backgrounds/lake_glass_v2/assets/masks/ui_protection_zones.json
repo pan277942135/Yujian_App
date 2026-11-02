@@ -1,0 +1,40 @@
+{
+  "canvasSize": [
+    1440,
+    3120
+  ],
+  "sourceFile": "YuJian_Lake_Glass_V2_Master_Candidate_02_1440x3120.png",
+  "quietZoneMask": "content_quiet_zone.png",
+  "regions": [
+    {
+      "id": "central_content_quiet_zone",
+      "bbox": [
+        170,
+        535,
+        1100,
+        1795
+      ],
+      "purpose": "low-detail content protection reference; no UI is drawn into the background"
+    },
+    {
+      "id": "top_brand_title",
+      "bbox": [
+        0,
+        0,
+        1440,
+        440
+      ],
+      "purpose": "avoid high-contrast decorative overlays; sunlight is already baked"
+    },
+    {
+      "id": "bottom_navigation",
+      "bbox": [
+        0,
+        2670,
+        1440,
+        450
+      ],
+      "purpose": "keep future controls readable; no UI baked into image"
+    }
+  ]
+}

@@ -1,0 +1,204 @@
+{
+  "task_id": "YUJIAN_AI_ORB_RESOURCE_FINAL_CLOSURE_V2",
+  "status": "PASS_WITH_REVIEW_PENDING",
+  "baseline": {
+    "v1_original_assertions": 231,
+    "preliminary_baseline": "231 PASS / 0 FAIL",
+    "current_v1_result": {
+      "passed_checks": 344,
+      "failed_checks": 0,
+      "warnings": [
+        "Main runtime WebP raw bytes not in package: alpha and real runtime comparison remain unverified.",
+        "Visual boards are source-derived static design samples, not Android run-time acceptance."
+      ]
+    }
+  },
+  "v2_passed_checks": 32,
+  "v2_failed_checks": 0,
+  "checks": [
+    {
+      "check": "unchanged V1 validator exits successfully",
+      "passed": true,
+      "details": "344 passed / 0 failed"
+    },
+    {
+      "check": "V1 validator retains original 231 baseline assertions",
+      "passed": true,
+      "details": "baseline was independently rerun on PRELIMINARY: 231 passed / 0 failed"
+    },
+    {
+      "check": "R00 packaged runtime copy matches independently audited SHA-256",
+      "passed": true,
+      "details": "daa85a1fc13fac4a7ca562959c2d19172ee0f1e94277c3eeb32ef1f09a1a7b09"
+    },
+    {
+      "check": "R00 Git blob identity matches current Main/PR runtime file",
+      "passed": true,
+      "details": "a70a71c623d15355cecda5b0e834d9b0b871e568"
+    },
+    {
+      "check": "R00 runtime copy decodes as 384x384 RGBA with alpha",
+      "passed": true,
+      "details": "(384, 384) RGBA alpha=(0, 255)"
+    },
+    {
+      "check": "R00 audit reports high alpha agreement and measured edge residue",
+      "passed": true,
+      "details": "alpha IoU=0.99825019; transparent RGB max=255"
+    },
+    {
+      "check": "R00 light and dark composites are both measured",
+      "passed": true
+    },
+    {
+      "check": "R06 preserves exactly the five frozen path IDs",
+      "passed": true
+    },
+    {
+      "check": "R06 profile has one binding for every frozen path",
+      "passed": true
+    },
+    {
+      "check": "R06 three numeric material contracts contain required layers and colors",
+      "passed": true
+    },
+    {
+      "check": "R06 G01 profile binding preserves material/depth/period/phase",
+      "passed": true
+    },
+    {
+      "check": "R06 G01 full material stays within 14dp envelope",
+      "passed": true,
+      "details": "outer radius=0.663772 D; expansion=13.102 dp"
+    },
+    {
+      "check": "R06 G02 profile binding preserves material/depth/period/phase",
+      "passed": true
+    },
+    {
+      "check": "R06 G02 full material stays within 14dp envelope",
+      "passed": true,
+      "details": "outer radius=0.672927 D; expansion=13.834 dp"
+    },
+    {
+      "check": "R06 A01 profile binding preserves material/depth/period/phase",
+      "passed": true
+    },
+    {
+      "check": "R06 A01 full material stays within 14dp envelope",
+      "passed": true,
+      "details": "outer radius=0.656731 D; expansion=12.538 dp"
+    },
+    {
+      "check": "R06 A02 profile binding preserves material/depth/period/phase",
+      "passed": true
+    },
+    {
+      "check": "R06 A02 full material stays within 14dp envelope",
+      "passed": true,
+      "details": "outer radius=0.616402 D; expansion=9.312 dp"
+    },
+    {
+      "check": "R06 C01 profile binding preserves material/depth/period/phase",
+      "passed": true
+    },
+    {
+      "check": "R06 C01 full material stays within 14dp envelope",
+      "passed": true,
+      "details": "outer radius=0.593607 D; expansion=7.489 dp"
+    },
+    {
+      "check": "R06 SVG contains five editable cubic centerlines only",
+      "passed": true
+    },
+    {
+      "check": "R06 BACK/FRONT depth model matches frozen geometry",
+      "passed": true
+    },
+    {
+      "check": "R06 four declared sample times produce distinct moving-head positions",
+      "passed": true,
+      "details": "{\"G01\": [0.047586, 0.398732, 0.830849, 0.998428], \"G02\": [0.767913, 0.99905, 0.713962, 0.207548], \"A01\": [0.922164, 0.250245, 0.056636, 0.712121], \"A02\": [0.315938, 0.136258, 0.953332, 0.528151], \"C01\": [0.437333, 0.958308, 0.820907, 0.222512]}"
+    },
+    {
+      "check": "R06 MotionClock, RELEASE and RETURN preserve same-state event binding",
+      "passed": true
+    },
+    {
+      "check": "R04 contract contains only S1/S2 and explicitly excludes S3",
+      "passed": true
+    },
+    {
+      "check": "R04 S1/S2 share the same immutable runtime WebP SHA",
+      "passed": true
+    },
+    {
+      "check": "R04 final state boards exist for both states and comparison",
+      "passed": true
+    },
+    {
+      "check": "R04 state images are readable and same canvas size",
+      "passed": true
+    },
+    {
+      "check": "R06 final material, depth, motion, and size boards exist",
+      "passed": true
+    },
+    {
+      "check": "Manifest paths exist and every stored SHA/byte count matches",
+      "passed": true
+    },
+    {
+      "check": "Manifest covers every package file except manifest/self-rewriting reports",
+      "passed": true
+    },
+    {
+      "check": "Manifest has unique stable IDs and no duplicate SHA-256 payloads",
+      "passed": true
+    }
+  ],
+  "warnings": [
+    "Android runtime implementation and device rendering were intentionally not changed or claimed.",
+    "V1 contains two inherited static warnings; R00 binary evidence supersedes the old missing-WebP note, while device acceptance remains pending."
+  ],
+  "runtime": {
+    "path": "assets/derived/processing_water_core_v1.webp",
+    "sha256": "daa85a1fc13fac4a7ca562959c2d19172ee0f1e94277c3eeb32ef1f09a1a7b09",
+    "git_blob_sha": "a70a71c623d15355cecda5b0e834d9b0b871e568",
+    "changed_in_android_runtime": false
+  },
+  "motion_sample_head_positions_u": {
+    "G01": [
+      0.047586,
+      0.398732,
+      0.830849,
+      0.998428
+    ],
+    "G02": [
+      0.767913,
+      0.99905,
+      0.713962,
+      0.207548
+    ],
+    "A01": [
+      0.922164,
+      0.250245,
+      0.056636,
+      0.712121
+    ],
+    "A02": [
+      0.315938,
+      0.136258,
+      0.953332,
+      0.528151
+    ],
+    "C01": [
+      0.437333,
+      0.958308,
+      0.820907,
+      0.222512
+    ]
+  },
+  "visual_review": "PENDING_PRODUCT_OWNER",
+  "legacy_validator_source_sha256": "6db6967fa4dcf89d246f9f25081afae667369c34aef02ffc97582185143d726e"
+}

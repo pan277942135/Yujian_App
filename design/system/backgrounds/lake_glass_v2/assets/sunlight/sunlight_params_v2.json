@@ -1,0 +1,24 @@
+{
+  "lightSourceNormalized": [
+    0.945,
+    0.035
+  ],
+  "direction": [
+    -0.56,
+    0.83
+  ],
+  "intensity": 0.28,
+  "color": "#FFF4D8",
+  "diffusionRadiusPx": 216,
+  "edgeSoftness": 0.72,
+  "blendMode": "SRC_OVER",
+  "alpha": 0.28,
+  "exclusionZones": [
+    "center_reading_zone"
+  ],
+  "sourceType": "PROCEDURAL_LAYER",
+  "reason": "The only source images are flattened; field would double baked upper-right light.",
+  "separationStatus": "BAKED_IN_BASE",
+  "runtimeMode": "API33_IN_PLACE_LOW_AMPLITUDE_MODULATION",
+  "motionEligible": false
+}

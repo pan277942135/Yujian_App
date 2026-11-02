@@ -127,6 +127,10 @@ shared_contracts:
     domain: "DOMAIN"
     status: "ACTIVE_CLOSURE"
     refs: ["harness/task_contracts/UNIFIED_WATERLIGHT_A02_CORE_COMPONENT_ANDROID_INTEGRATION_V1.md", "harness/reports/UNIFIED_WATERLIGHT_A01_RESOURCE_AUDIT_REPORT_V1.md", "harness/task_contracts/ANDROID_PROCESSING_LAKE_ORB_V1.md", "harness/task_contracts/ANDROID_AI_ORB_CORE_COMPONENT_V1.md", "design/system/components/ai_orb_core/visual_contract.json", "design/system/components/ai_orb_core/motion_contract.json", "design/system/components/ai_orb_core/state_contract.json", "design/pages/recognition/processing/optics/SWOS_Optical_Contract_V1.md", "design/pages/recognition/processing/motion/Recognition_Processing_Motion_Spec_V1_3.md", "design/pages/recognition/continuity/Processing_Result_Optical_Continuity_Contract_V1.md", "design/pages/recognition/processing/optics/SWOS_RR09_Optical_Rendering_Acceptance_Contract_V1_2.md", "design/pages/recognition/processing/optics/Android_AiStudio_Perimeter_Shader_Port_V1.md", "harness/task_contracts/ANDROID_SLIMSAM_PIXEL_SEGMENTATION_V1.md", "https://github.com/ethanfox/water-caustics/tree/de856eec62819b7c4176366db73b8fd37a1b1455", "https://github.com/ethanfox/water-caustics/blob/de856eec62819b7c4176366db73b8fd37a1b1455/LICENSE"]
+  AI-ORB-WATERLIGHT-WEB-ANDROID-LIFECYCLE-V3:
+    domain: "DOMAIN"
+    status: "ACTIVE_CLOSURE"
+    refs: ["harness/task_contracts/YUJIAN_ORB_WATERLIGHT_WEB_ANDROID_FULL_LIFECYCLE_V3.md", "design/pages/recognition/processing/optics/AI_ORB_WATERLIGHT_UNIFIED_LIFECYCLE_V3.md", "design/pages/recognition/processing/optics/AI_ORB_WATERLIGHT_13_STAGE_STATE_MACHINE_V3.md", "design/pages/recognition/processing/optics/AI_ORB_WATERLIGHT_RUNTIME_PARAMETERS_V3.json", "design/pages/recognition/processing/optics/WEB_ANDROID_RENDERING_COMPATIBILITY_AUDIT_V3.md"]
   DS-FOUNDATION:
     domain: "SHARED"
     status: "FROZEN"
@@ -210,6 +214,16 @@ shared_contracts:
     domain: "SHARED"
     status: "ACTIVE"
     refs: ["design/system_v3/07_Responsive_System/Page_Pipeline_Reuse_Inventory_V1.md", "design/system_v3/07_Responsive_System/Responsive_Page_Freeze_And_Implementation_Playbook_V1.md", "design/system_v3/07_Responsive_System/Responsive_Page_Freeze_Checklist_Template_V1.json", "scripts/design/validate_responsive_page_freeze_checklist.py"]
+
+  LAKE-GLASS-V2-ANDROID-RUNTIME-V1:
+    domain: "DOMAIN"
+    status: "ACTIVE_CLOSURE"
+    refs: ["harness/task_contracts/LAKE_GLASS_V2_ASSET_PACK_ANDROID_RUNTIME_INTEGRATION_V1.md", "harness/STATE_UPDATE_PROTOCOL.md", "scripts/run_android_runtime_gate.sh"]
+
+  LAKE-GLASS-V2-OPEN-SOURCE-SHADER-REUSE-V1:
+    domain: "DOMAIN"
+    status: "ACTIVE_CLOSURE"
+    refs: ["harness/task_contracts/YUJIAN_LAKE_GLASS_V2_OPEN_SOURCE_SHADER_REUSE_V1.md", "harness/task_contracts/LAKE_GLASS_V2_ASSET_PACK_ANDROID_RUNTIME_INTEGRATION_V1.md", "harness/STATE_UPDATE_PROTOCOL.md"]
 
 feature_contracts:
   home_empty_v2:
@@ -1615,6 +1629,12 @@ gate_contracts:
     acceptance_domains: ["component", "material", "geometry", "mask_mapping", "algorithm_parity", "host_integration", "build", "unit_test", "lint", "runtime", "performance", "visual", "accessibility", "evidence", "apk_provenance"]
     exact_sha_required: true
 
+  G-ANDROID-ORB-WATERLIGHT-WEB-FULL-LIFECYCLE-V3:
+    purpose: "Exact-SHA closure of the semantic 13-stage Android Orb × WaterLight lifecycle, parallel classifier/mask join, trusted-mask versus Orb-only reveal, selected Web shader/contour migration, shared scene controls and Debug APK. Physical-device/API28 acceptance remains a separate product-owner activity."
+    contract_refs: ["AI-ORB-WATERLIGHT-WEB-ANDROID-LIFECYCLE-V3", "FC-recognition_flow_v1_2", "FC-recognition_result_v1", "ANDROID-UNIFIED-WATERLIGHT-A02-V1", "AI-ORB-CORE-V1", "ANDROID-SLIMSAM-PIXEL-SEGMENTATION-V1", "ANDROID-RUNTIME-HARNESS", "STATE-EVIDENCE-PROVENANCE"]
+    acceptance_domains: ["implementation", "scene_clock", "model_join", "mask_trust", "shader_migration", "unit_test", "android_test_compile", "lint", "build", "apk_provenance", "visual_owner_acceptance"]
+    exact_sha_required: true
+
   G-NH01-LAKE-LIGHT-VISUAL-RESPONSIVE-CLOSURE-V1:
     purpose: "Exact-SHA closure of the user-selected private Lake Light visual reference on NH01 Design Manager real DOM and Android Gemini route while retaining the frozen V2 numeric authority and excluding private photo bytes from public outputs."
     contract_refs: ["FC-home_normal_v1", "RESPONSIVE-LAYOUT-STANDARD-V1", "ANDROID-RUNTIME-HARNESS", "STATE-EVIDENCE-PROVENANCE"]
@@ -1807,6 +1827,18 @@ gate_contracts:
     resource_manifest: "design/pages/recognition/first_use_camera_guide/manifest.json"
     resource_gallery_ids: ["p01", "p02", "p03"]
     android_runtime_mapping: false
+  G-LAKE-GLASS-V2-ASSET-ANDROID-RUNTIME-V1:
+    purpose: "Exact-SHA acceptance of the Lake Glass V2 resource state and unified Android background host across applicable theme-background routes, with Empty Home/V1/foreground and recognition invariants preserved. Asset readiness, Android integration/APK delivery, and real-device validation remain independent states."
+    contract_refs: ["LAKE-GLASS-V2-ANDROID-RUNTIME-V1", "FC-home_normal_v1", "FC-record_date_v2", "FC-recognition_flow_v1_2", "FC-recognition_result_v1", "FC-fish_record_detail_v2", "FC-share_templates_v1", "FC-fish_memory_bside_v1", "FC-my_catches_v2", "FC-fish_guide_v2", "FC-account_privacy_v1", "FC-auth_login_v2", "FC-auth_register_v2", "FC-profile_edit_v1", "FC-user_agreement_v1", "ANDROID-RUNTIME-HARNESS", "STATE-EVIDENCE-PROVENANCE"]
+    acceptance_domains: ["asset_integrity", "layer_state_parity", "static_composition", "manual_visual", "route_coverage", "component", "responsive", "api_fallback", "transform", "unit_test", "android_test_compile", "lint", "build", "performance", "runtime", "apk_provenance", "device_visual"]
+    exact_sha_required: true
+
+  G-LAKE-GLASS-V2-OPEN-SOURCE-SHADER-REUSE-V1:
+    purpose: "Exact-SHA acceptance of attributed OSS shader reuse for Lake Glass V2 caustics, fixed-source ambient modulation, and three fixed droplets, including API fallback and baked-composite double-draw protection."
+    contract_refs: ["LAKE-GLASS-V2-OPEN-SOURCE-SHADER-REUSE-V1", "FC-home_normal_v1", "FC-recognition_flow_v1_2", "FC-recognition_result_v1", "ANDROID-RUNTIME-HARNESS", "STATE-EVIDENCE-PROVENANCE"]
+    acceptance_domains: ["source_audit", "license", "dependency", "shader", "component", "lab", "asset_integrity", "api_fallback", "unit_test", "android_test_compile", "lint", "build", "visual", "responsive", "performance", "runtime", "apk_provenance", "device_visual"]
+    exact_sha_required: true
+
 task_contract_bindings:
   YUJIAN_ANDROID_AI_ORB_CORE_COMPONENT_V1:
     contract_refs: ["AI-ORB-CORE-V1", "FC-home_empty_v2", "FC-home_normal_v1", "FC-recognition_flow_v1_2", "FC-recognition_result_v1", "DS-FOUNDATION", "ANDROID-RUNTIME-HARNESS", "STATE-EVIDENCE-PROVENANCE", "G-ANDROID-AI-ORB-CORE-V1"]
@@ -1815,6 +1847,10 @@ task_contract_bindings:
   YUJIAN_UNIFIED_WATERLIGHT_A02_CORE_COMPONENT_ANDROID_INTEGRATION_V1:
     contract_refs: ["FC-recognition_flow_v1_2", "ANDROID-UNIFIED-WATERLIGHT-A02-V1", "AI-ORB-CORE-V1", "ANDROID-PROCESSING-LAKE-ORB-V1", "ANDROID-AISTUDIO-PERIMETER-SHADER-PORT-V1", "ANDROID-SLIMSAM-PIXEL-SEGMENTATION-V1", "RECOGNITION-OPTICAL-CONTINUITY", "SWOS-RR09-OPTICAL-V1_2", "ANDROID-RUNTIME-HARNESS", "STATE-EVIDENCE-PROVENANCE", "G-ANDROID-UNIFIED-WATERLIGHT-A02-V1"]
     gate_id: "G-ANDROID-UNIFIED-WATERLIGHT-A02-V1"
+    phase: "P6"
+  YUJIAN_ORB_WATERLIGHT_WEB_ANDROID_FULL_LIFECYCLE_V3:
+    contract_refs: ["AI-ORB-WATERLIGHT-WEB-ANDROID-LIFECYCLE-V3", "FC-recognition_flow_v1_2", "FC-recognition_result_v1", "ANDROID-UNIFIED-WATERLIGHT-A02-V1", "AI-ORB-CORE-V1", "ANDROID-SLIMSAM-PIXEL-SEGMENTATION-V1", "ANDROID-RUNTIME-HARNESS", "STATE-EVIDENCE-PROVENANCE", "G-ANDROID-ORB-WATERLIGHT-WEB-FULL-LIFECYCLE-V3"]
+    gate_id: "G-ANDROID-ORB-WATERLIGHT-WEB-FULL-LIFECYCLE-V3"
     phase: "P6"
   YUJIAN_ANDROID_HOME_CAPTURE_ACTIVATION_CAMERA_RUNTIME_FULL_CLOSURE_V2:
     contract_refs: ["ANDROID-HOME-CAPTURE-RUNTIME-V2", "DS-FOUNDATION", "ANDROID-RUNTIME-HARNESS", "STATE-EVIDENCE-PROVENANCE"]
@@ -2098,6 +2134,16 @@ task_contract_bindings:
     contract_refs: ["FC-home_normal_v1", "FC-home_empty_v2", "FC-auth_login_v2", "PAGE-FREEZE-PIPELINE-W0-BASELINE", "STATE-EVIDENCE-PROVENANCE"]
     phase: "P3"
 
+  YUJIAN_LAKE_GLASS_V2_ASSET_PACK_ANDROID_RUNTIME_INTEGRATION_V1:
+    contract_refs: ["LAKE-GLASS-V2-ANDROID-RUNTIME-V1", "FC-home_normal_v1", "FC-record_date_v2", "FC-recognition_flow_v1_2", "FC-recognition_result_v1", "FC-fish_record_detail_v2", "FC-share_templates_v1", "FC-fish_memory_bside_v1", "FC-my_catches_v2", "FC-fish_guide_v2", "FC-account_privacy_v1", "FC-auth_login_v2", "FC-auth_register_v2", "FC-profile_edit_v1", "FC-user_agreement_v1", "ANDROID-RUNTIME-HARNESS", "STATE-EVIDENCE-PROVENANCE", "G-LAKE-GLASS-V2-ASSET-ANDROID-RUNTIME-V1"]
+    gate_id: "G-LAKE-GLASS-V2-ASSET-ANDROID-RUNTIME-V1"
+    phase: "P6"
+
+  YUJIAN_LAKE_GLASS_V2_OPEN_SOURCE_SHADER_REUSE_V1:
+    contract_refs: ["LAKE-GLASS-V2-OPEN-SOURCE-SHADER-REUSE-V1", "FC-home_normal_v1", "FC-recognition_flow_v1_2", "FC-recognition_result_v1", "ANDROID-RUNTIME-HARNESS", "STATE-EVIDENCE-PROVENANCE", "G-LAKE-GLASS-V2-OPEN-SOURCE-SHADER-REUSE-V1"]
+    gate_id: "G-LAKE-GLASS-V2-OPEN-SOURCE-SHADER-REUSE-V1"
+    phase: "P6"
+
 contract_conflicts:
   C-FIRST-USE-GUIDE-PAGE-COUNT:
     status: "RESOLVED"
@@ -2132,9 +2178,9 @@ inventory:
   journey_count: 20
   child_surface_count: 81
   route_count: 22
-  task_count: 73
-  gate_count: 33
+  task_count: 76
+  gate_count: 36
   registry_created_from_pr_head: "ebb6b3904feaa0cf26b4fd4b83bc809a397085a2"
-  last_synced_feature_matrix_sha: "a90c1992248f75cb560dda83fd84765e335361eb"
-  last_synced_phase_task_state_machine_sha: "260a53ec0da6e263c647ee6f8757dd5bae085c45"
+  last_synced_feature_matrix_sha: "10a7ff2fe0c905b7c7e22ec88c29383d57847c34"
+  last_synced_phase_task_state_machine_sha: "ed0b9d1052da58095d65241eae23af2eb2f49275"
   last_synced_experience_registry_sha: "47be44ca3cbce908fa676e262987fe26a8dbea32"
