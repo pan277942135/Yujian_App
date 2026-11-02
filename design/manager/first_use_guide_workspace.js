@@ -57,7 +57,8 @@
       ["像素测量", root.dataset.geometryManifest],
       ["响应式合同", root.dataset.responsiveContract],
       ["Readiness Matrix", GUIDE_ROOT + "PREDEV_READINESS_MATRIX.json"],
-      ["Freeze Decision", GUIDE_ROOT + "Freeze_Decision.md"]
+      ["Freeze Decision", GUIDE_ROOT + "Freeze_Decision.md"],
+      ["Owner Runtime 图片授权", GUIDE_ROOT + "OWNER_APPROVAL_20261102.md"]
     ];
     return `<div class="guide-workspace-authorities" aria-label="可审计合同">${paths.filter(row => row[1]).map(([label, path]) =>
       `<a href="${escapeHtml(absoluteRepoUrl(path))}" target="_blank" rel="noreferrer">${escapeHtml(label)} ↗</a>`
@@ -173,6 +174,16 @@
   }
 
   function resourcesWorkspace(root, page, pageManifest, assetManifest) {
+    const runtimeBackgroundCards = (assetManifest.runtime_backgrounds || []).map(background => {
+      const href = absoluteRepoUrl(background.source_path);
+      const pages = (background.page_refs || []).map(id => id.toUpperCase()).join(" / ");
+      return `<article class="guide-runtime-background-card" data-runtime-background-id="${escapeHtml(background.id)}">
+        <div><strong>${escapeHtml(pages)} · 页面背景</strong><span>OWNER_APPROVED_FOR_RUNTIME · NOT_FROZEN</span></div>
+        <a href="${escapeHtml(href)}" target="_blank" rel="noreferrer"><img class="guide-runtime-background-preview" src="${escapeHtml(href)}" alt="${escapeHtml(pages)} 页面背景原图" loading="lazy" decoding="async" style="display:block;width:100%;max-width:180px;aspect-ratio:9/16;object-fit:cover"></a>
+        <dl><div><dt>鱼体方向</dt><dd>${escapeHtml(background.fish_orientation || "—")}</dd></div><div><dt>Runtime 资源</dt><dd>${escapeHtml(background.runtime_resource || "—")}</dd></div><div><dt>尺寸 / 字节</dt><dd>${background.width} × ${background.height} px · ${formatBytes(background.bytes)} bytes</dd></div><div><dt>SHA-256</dt><dd>${escapeHtml(background.sha256)}</dd></div></dl>
+        <a href="${escapeHtml(href)}" download="${escapeHtml((background.source_path || "").split("/").pop())}">下载背景原图 ↗</a>
+      </article>`;
+    }).join("");
     const frozenCards = (pageManifest.assets || []).map(asset => {
       const path = asset.path || asset.visual_authority;
       return `<article class="guide-frozen-resource guide-resource-card" data-resource-id="${escapeHtml(asset.id)}">
@@ -185,19 +196,25 @@
     const assets = assetManifest.assets || [];
     const candidateCards = assets.map(asset => {
       const references = asset.reference_package_asset;
+      const runtimeApproved = asset.approved_for_runtime === true && asset.authority_state === "OWNER_APPROVED_FOR_RUNTIME";
+      const candidateStatus = runtimeApproved ? "OWNER_APPROVED_FOR_RUNTIME · GENERATED_CANDIDATE · NOT_FROZEN" : (asset.candidate_status || "CANDIDATE_NEEDS_APPROVAL");
+      const runtimeApproval = runtimeApproved
+        ? `是 · approved_for_frontend=true · approved_for_runtime=true · owner_approval_id=${escapeHtml(asset.owner_approval_id || "recorded")}`
+        : "否 · approved_for_frontend=false · approved_for_runtime=false";
       const href = absoluteRepoUrl(asset.source_path);
       return `<article class="guide-asset-slot" data-asset-id="${escapeHtml(asset.id)}" data-authority="${escapeHtml(asset.authority_state)}" data-source-path="${escapeHtml(asset.source_path)}">
-        <div class="guide-asset-card-head"><strong>${escapeHtml(asset.page_refs?.map(id => id.toUpperCase()).join(" / ") || asset.page_id.toUpperCase())} · ${escapeHtml(asset.label || ROLE_LABELS[asset.role] || asset.role)}</strong><span class="guide-candidate-state">CANDIDATE_NEEDS_APPROVAL</span></div>
+        <div class="guide-asset-card-head"><strong>${escapeHtml(asset.page_refs?.map(id => id.toUpperCase()).join(" / ") || asset.page_id.toUpperCase())} · ${escapeHtml(asset.label || ROLE_LABELS[asset.role] || asset.role)}</strong><span class="guide-candidate-state">${escapeHtml(candidateStatus)}</span></div>
         <a class="guide-candidate-preview" href="${escapeHtml(href)}" target="_blank" rel="noreferrer"><img src="${escapeHtml(href)}" alt="${escapeHtml(asset.page_refs?.join(" / ") || asset.page_id)} ${escapeHtml(ROLE_LABELS[asset.role] || asset.role)} 候选原图" loading="lazy" decoding="async"></a>
-        <dl class="guide-resource-metadata"><div><dt>资产 ID</dt><dd>${escapeHtml(asset.id)}</dd></div><div><dt>角色 / 鱼体</dt><dd>${escapeHtml(asset.role)} · ${asset.fish_orientation === "vertical" ? "竖向" : "横向"}</dd></div><div><dt>前端槽位绑定</dt><dd>${escapeHtml((asset.page_refs || [asset.page_id]).map(id => `${id}_${asset.role}`).join(" · "))}</dd></div><div><dt>候选原文件</dt><dd>${escapeHtml(asset.source_filename)}</dd></div><div><dt>仓库路径</dt><dd>${escapeHtml(asset.source_path)}</dd></div><div><dt>类型 / 尺寸</dt><dd>${escapeHtml(asset.mime_type)} · ${asset.width} × ${asset.height} px</dd></div><div><dt>文件大小</dt><dd>${formatBytes(asset.bytes)} bytes</dd></div><div><dt>SHA-256</dt><dd>${escapeHtml(asset.sha256)}</dd></div><div><dt>原图状态</dt><dd>ASSET_SOURCE_BLOCKED · 尚无获批独立原图</dd></div><div><dt>许可 / 隐私</dt><dd>${escapeHtml(asset.license_status)} · ${escapeHtml(asset.privacy_status)}</dd></div><div><dt>可否生产使用</dt><dd>否 · approved_for_frontend=false · approved_for_runtime=false</dd></div></dl>
+        <dl class="guide-resource-metadata"><div><dt>资产 ID</dt><dd>${escapeHtml(asset.id)}</dd></div><div><dt>角色 / 鱼体</dt><dd>${escapeHtml(asset.role)} · ${asset.fish_orientation === "vertical" ? "竖向" : "横向"}</dd></div><div><dt>前端槽位绑定</dt><dd>${escapeHtml((asset.page_refs || [asset.page_id]).map(id => `${id}_${asset.role}`).join(" · "))}</dd></div><div><dt>候选原文件</dt><dd>${escapeHtml(asset.source_filename)}</dd></div><div><dt>仓库路径</dt><dd>${escapeHtml(asset.source_path)}</dd></div><div><dt>类型 / 尺寸</dt><dd>${escapeHtml(asset.mime_type)} · ${asset.width} × ${asset.height} px</dd></div><div><dt>文件大小</dt><dd>${formatBytes(asset.bytes)} bytes</dd></div><div><dt>SHA-256</dt><dd>${escapeHtml(asset.sha256)}</dd></div><div><dt>原始照片来源</dt><dd>ASSET_SOURCE_BLOCKED · 页面使用独立生成候选图</dd></div><div><dt>候选资产类型</dt><dd>${escapeHtml(asset.source_type || "GENERATED_CANDIDATE")} · ${runtimeApproved ? "OWNER_APPROVED_FOR_RUNTIME · NOT_FROZEN" : "CANDIDATE_NEEDS_APPROVAL"}</dd></div><div><dt>许可 / 隐私</dt><dd>${escapeHtml(asset.license_status)} · ${escapeHtml(asset.privacy_status)}</dd></div><div><dt>Android Runtime 使用</dt><dd>${runtimeApproval}</dd></div></dl>
         ${references ? `<div class="guide-reference-only"><strong>归档对照 · REFERENCE_ONLY</strong><span>${escapeHtml(references.internal_path)} · SHA-256 ${escapeHtml(references.sha256)} · ${formatBytes(references.bytes)} bytes</span><small>复合截图衍生裁切；不作为候选原图，不链接为可用源文件。</small></div>` : ""}
         <div class="guide-resource-actions"><a href="${escapeHtml(href)}" download="${escapeHtml(asset.source_filename)}">下载候选原图 ↗</a><a href="${escapeHtml(href)}" target="_blank" rel="noreferrer">打开独立原图 ↗</a></div>
       </article>`;
     }).join("");
     return `<section class="guide-resources-workspace" data-testid="guide-resources-workspace">
       ${pageHeading(page)}
-      <div class="guide-resource-summary"><strong>${assetManifest.counts?.unique_candidate_files || 8} 张独立候选源图 → ${assets.length} 个页面/角色绑定</strong><span>12 个原图来源槽位仍待补齐；候选仅用于布局和开发讨论。禁止视为 Frozen、获批、授权或生产可用。</span></div>
-      <h4 class="guide-resource-section-title">前端独立素材 · 12 个角色槽位</h4><div class="guide-candidate-grid">${candidateCards}</div>
+      <div class="guide-resource-summary"><strong>${assetManifest.counts?.unique_candidate_files || 8} 张独立候选源图 → ${assets.length} 个页面/角色绑定</strong><span>产品负责人已批准八张生成候选图用于 Android Runtime；候选仍为 GENERATED_CANDIDATE，未标记为 Frozen。API 28 Runtime 验收仍为 NOT_RUN。</span></div>
+      <h4 class="guide-resource-section-title">Android Runtime 页面背景 · ${(assetManifest.runtime_backgrounds || []).length} 张</h4><div class="guide-candidate-grid" data-testid="guide-runtime-backgrounds">${runtimeBackgroundCards}</div>
+      <h4 class="guide-resource-section-title">获批独立候选素材 · 12 个页面/角色槽位</h4><div class="guide-candidate-grid">${candidateCards}</div>
       <details class="guide-reference-archive"><summary>归档对照裁切 · 9 项 REFERENCE_ONLY（不可作独立生产照片）</summary><p>这些归档条目来自扁平合成页面；为避免将复合截图裁切误作原片，本工作区只显示来源记录，不把它们作为可下载照片。</p><ul>${assets.filter(asset => asset.reference_package_asset).map(asset => `<li>${escapeHtml(asset.id)} — ${escapeHtml(asset.reference_package_asset.internal_path)} · ${escapeHtml(asset.reference_package_asset.sha256)}</li>`).join("")}</ul></details>
       <h4 class="guide-resource-section-title">页面高保真资源 · 原图字节保持不变</h4><div class="guide-frozen-resource-grid">${frozenCards}</div>
       ${manifestLinks(root)}

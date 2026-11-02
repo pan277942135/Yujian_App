@@ -282,4 +282,4 @@ The test-only non-NH01 fixture is `scripts/design/tests/fixtures/non_nh01_worksp
 
 入口：`#page/recognition_flow_v1_2/hifi/capture_first_use_guide/resources`
 
-资源页分为「页面高保真资源」和「前端独立素材」两组，并在直接打开时默认显示资源工作区；结构化高保真与响应式工作区可通过页签切换，选择会保存在 `guide_workspace` 查询参数中。前端独立素材通过 `design/pages/recognition/first_use_camera_guide/frontend_assets_manifest.json` 登记每个页面的正确主图与三个错误示范，并链接 `structured_pages.json` 的组件结构合同。独立照片未核验时显示明确候选/阻塞状态；整页 PNG 不可代替独立照片，也不映射为 Android 运行时背景。
+资源页分为「页面高保真资源」和「前端独立素材」两组，并在直接打开时默认显示资源工作区；结构化高保真与响应式工作区可通过页签切换，选择会保存在 `guide_workspace` 查询参数中。前端独立素材通过 `design/pages/recognition/first_use_camera_guide/frontend_assets_manifest.json` 登记每个页面的正确主图与三个错误示范，并链接 `structured_pages.json` 的组件结构合同。产品负责人已批准八张 GENERATED_CANDIDATE 图片用于 Android Runtime，另登记 ZIP2 的两张独立页面背景；候选图仍不标记为 Frozen。Frozen 整页 PNG 仅作设计参考，不作为 Android Runtime 照片或背景。
