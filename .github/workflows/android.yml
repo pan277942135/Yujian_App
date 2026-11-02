@@ -432,6 +432,8 @@ jobs:
             --ei size_dp 80 --ez dark true --el optical_ms 1200 --es event NONE --el event_start_ms 1200
           capture "return-after-260ms" --es mode ORB_V1_CANDIDATE --es state S2 \
             --ei size_dp 80 --ez dark true --el optical_ms 1460 --es event RETURN --el event_start_ms 1200
+          capture "return-after-310ms" --es mode ORB_V1_CANDIDATE --es state S2 \
+            --ei size_dp 80 --ez dark true --el optical_ms 1510 --es event RETURN --el event_start_ms 1200
           for sample in 0 225 450; do
             capture "S1-to-S2-${sample}ms" --es mode ORB_V1_CANDIDATE --es state S1 \
               --es transition_target S2 --el transition_sample_ms "$sample" --el optical_ms 0 \

@@ -128,7 +128,8 @@ internal object OrbFilamentPathMathV1 {
             integratedRampDirectionMs + (elapsed - rampDuration) * targetDirection
         }
         val unclamped = startU + (PI.toFloat() / spec.periodMs) * integratedMs
-        return Movement(unclamped.coerceIn(0f, 1f), unclamped, targetDirection)
+        val smoothDirection = startDirection + (targetDirection - startDirection) * s * s * (3f - 2f * s)
+        return Movement(unclamped.coerceIn(0f, 1f), unclamped, smoothDirection)
     }
 
     fun smoothTransitionAlpha(from: Float, to: Float, elapsedMs: Long, durationMs: Long): Float {
