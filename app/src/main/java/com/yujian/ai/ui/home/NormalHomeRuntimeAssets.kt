@@ -28,7 +28,6 @@ internal data class NormalHomeRuntimeAssets(
 
 /** Gemini runtime bundle intentionally excludes the retired guest illustration. */
 internal data class GeminiNormalHomeRuntimeAssets(
-    val sceneBase: Bitmap,
     val fishCardGradient: Bitmap,
     val fishCardOutline: Bitmap,
     val fishCardShadow: Bitmap,
@@ -72,7 +71,6 @@ private fun loadNormalHomeRuntimeAssets(context: Context): NormalHomeRuntimeAsse
 
 private fun loadGeminiNormalHomeRuntimeAssets(context: Context): GeminiNormalHomeRuntimeAssets =
     GeminiNormalHomeRuntimeAssets(
-        sceneBase = decodeNormalHomeAsset(context, "static/scene_base.png"),
         fishCardGradient = decodeNormalHomeAsset(context, "fish_card/fish_card_gradient.png"),
         fishCardOutline = decodeNormalHomeAsset(context, "fish_card/fish_card_outline.png"),
         fishCardShadow = decodeNormalHomeAsset(context, "fish_card/fish_card_shadow.png"),

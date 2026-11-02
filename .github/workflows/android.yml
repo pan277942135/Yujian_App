@@ -118,6 +118,8 @@ jobs:
       - name: Verify Android runtime asset contracts
         run: |
           python3 scripts/verify_yujian_resource_package.py
+          python3 scripts/verify_lake_glass_android_packaging.py
+          python3 scripts/verify_lake_glass_route_coverage.py
           python3 scripts/verify_empty_home_runtime_v2.py
           python3 scripts/verify_normal_home_runtime_v1.py
           python3 scripts/verify_recognition_design_closure_v1_1.py
@@ -305,6 +307,132 @@ jobs:
             build/runtime-apks/model_release_contract.json
             build/runtime-apks/apk_model_trace.json
           if-no-files-found: error
+          retention-days: 14
+
+  lake-glass-api33-runtime:
+    name: Lake Glass API 33 Shader Runtime
+    if: ${{ github.event_name == 'pull_request' && needs.build.result == 'success' }}
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Download exact-head APK pair
+        uses: actions/download-artifact@v4
+        with:
+          name: YuJian-runtime-apks-${{ needs.build.outputs.source_sha }}-${{ needs.build.outputs.model_id }}
+          path: build/runtime-apks
+
+      - name: Verify APK pair provenance
+        run: |
+          set -euo pipefail
+          test -s build/runtime-apks/app-debug.apk
+          test -s build/runtime-apks/app-debug-androidTest.apk
+          (cd build/runtime-apks && sha256sum -c SHA256SUMS)
+          echo "source_sha=${{ needs.build.outputs.source_sha }}" | tee build/runtime-apks/lake-glass-api33-source.txt
+
+      - name: Compile AGSL and capture the independent shader lab on API 33
+        id: lake_glass_api33
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 33
+          target: google_apis
+          arch: x86_64
+          profile: pixel_6
+          disable-animations: true
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -partition-size 4096
+          script: |
+            set -euo pipefail
+            mkdir -p build/lake-glass-api33-evidence
+            adb install -r build/runtime-apks/app-debug.apk
+            adb install -r build/runtime-apks/app-debug-androidTest.apk
+            adb shell am instrument -w -e class com.yujian.ai.ui.designsystem.lakeglass.LakeGlassAgslRuntimeTest com.yujian.ai.uiv2.test/androidx.test.runner.AndroidJUnitRunner | tee build/lake-glass-api33-evidence/instrumentation.log
+            grep -Eq 'OK \([0-9]+ tests?\)' build/lake-glass-api33-evidence/instrumentation.log
+            ! grep -q 'FAILURES!!!' build/lake-glass-api33-evidence/instrumentation.log
+            adb shell am start -n com.yujian.ai.uiv2/com.yujian.ai.ui.designsystem.lakeglass.LakeGlassShaderLabActivity --es effect_mode combined
+            sleep 8
+            adb exec-out screencap -p > build/lake-glass-api33-evidence/lake-glass-shader-lab-api33.png
+            adb shell dumpsys meminfo com.yujian.ai.uiv2 > build/lake-glass-api33-evidence/meminfo.txt
+            adb shell dumpsys gfxinfo com.yujian.ai.uiv2 framestats > build/lake-glass-api33-evidence/gfxinfo-framestats.txt
+            adb shell getprop ro.build.version.sdk > build/lake-glass-api33-evidence/api-level.txt
+            sha256sum build/runtime-apks/app-debug.apk > build/lake-glass-api33-evidence/apk.sha256
+            test -s build/lake-glass-api33-evidence/lake-glass-shader-lab-api33.png
+
+      - name: Upload API 33 shader and runtime evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lake-glass-api33-${{ needs.build.outputs.source_sha }}
+          path: |
+            build/lake-glass-api33-evidence
+            build/runtime-apks/lake-glass-api33-source.txt
+          if-no-files-found: warn
+          retention-days: 14
+
+  lake-glass-api28-static-runtime:
+    name: Lake Glass API 28 Static Runtime and Viewports
+    if: ${{ github.event_name == 'pull_request' && needs.build.result == 'success' }}
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Download exact-head APK pair
+        uses: actions/download-artifact@v4
+        with:
+          name: YuJian-runtime-apks-${{ needs.build.outputs.source_sha }}-${{ needs.build.outputs.model_id }}
+          path: build/runtime-apks
+
+      - name: Verify APK pair provenance
+        run: |
+          set -euo pipefail
+          test -s build/runtime-apks/app-debug.apk
+          test -s build/runtime-apks/app-debug-androidTest.apk
+          (cd build/runtime-apks && sha256sum -c SHA256SUMS)
+
+      - name: Verify static fallback and capture M01–M04 on API 28
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 28
+          target: google_apis
+          arch: x86_64
+          profile: pixel_2
+          disable-animations: true
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -partition-size 4096
+          script: |
+            set -euo pipefail
+            mkdir -p build/lake-glass-api28-evidence/viewports
+            adb install -r build/runtime-apks/app-debug.apk
+            adb install -r build/runtime-apks/app-debug-androidTest.apk
+            adb shell am instrument -w -e class com.yujian.ai.ui.designsystem.lakeglass.LakeGlassStaticRuntimeTest com.yujian.ai.uiv2.test/androidx.test.runner.AndroidJUnitRunner | tee build/lake-glass-api28-evidence/instrumentation.log
+            grep -Eq 'OK \([0-9]+ tests?\)' build/lake-glass-api28-evidence/instrumentation.log
+            ! grep -q 'FAILURES!!!' build/lake-glass-api28-evidence/instrumentation.log
+            adb shell am start -n com.yujian.ai.uiv2/com.yujian.ai.ui.designsystem.lakeglass.LakeGlassShaderLabActivity --es effect_mode combined
+            sleep 6
+            adb exec-out screencap -p > build/lake-glass-api28-evidence/lake-glass-static-lab-api28.png
+            for viewport in 'm01 320 480' 'm02 360 640' 'm03 390 844' 'm04 430 932'; do
+              read -r name width height <<< "$viewport"
+              adb shell wm size "${width}x${height}"
+              adb shell wm density 160
+              adb shell am force-stop com.yujian.ai.uiv2
+              adb shell am start -n com.yujian.ai.uiv2/com.yujian.ai.ui.designsystem.lakeglass.LakeGlassShaderLabActivity --ez viewport_only true --es effect_mode static
+              sleep 3
+              adb exec-out screencap -p > "build/lake-glass-api28-evidence/viewports/${name}-${width}x${height}-dp.png"
+            done
+            adb shell wm size reset
+            adb shell wm density reset
+            adb shell getprop ro.build.version.sdk > build/lake-glass-api28-evidence/api-level.txt
+            adb shell dumpsys meminfo com.yujian.ai.uiv2 > build/lake-glass-api28-evidence/meminfo.txt
+            adb shell dumpsys gfxinfo com.yujian.ai.uiv2 framestats > build/lake-glass-api28-evidence/gfxinfo-framestats.txt
+            sha256sum build/runtime-apks/app-debug.apk > build/lake-glass-api28-evidence/apk.sha256
+            test -s build/lake-glass-api28-evidence/lake-glass-static-lab-api28.png
+            test "$(find build/lake-glass-api28-evidence/viewports -name '*.png' | wc -l)" -eq 4
+
+      - name: Upload API 28 static and viewport evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lake-glass-api28-${{ needs.build.outputs.source_sha }}
+          path: build/lake-glass-api28-evidence
+          if-no-files-found: warn
           retention-days: 14
 
   # One job, one Harness, and one frozen APK pair.  The optional parity row is

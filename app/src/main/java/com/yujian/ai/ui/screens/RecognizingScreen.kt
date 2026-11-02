@@ -99,6 +99,7 @@ import com.yujian.ai.ui.recognition.RecognitionMotionTraceSample
 import com.yujian.ai.ui.recognition.RecognitionPerimeterShaderOverlay
 import com.yujian.ai.ui.designsystem.components.aiorb.AIOrbCore
 import com.yujian.ai.ui.designsystem.components.aiorb.aiOrbProcessingState
+import com.yujian.ai.ui.designsystem.lakeglass.LakeGlassBackgroundHost
 import com.yujian.ai.ui.waterlight.core.WaterLightFrame
 import com.yujian.ai.ui.waterlight.core.WaterLightEnergy
 import com.yujian.ai.ui.waterlight.core.EnergyFeedback
@@ -755,11 +756,10 @@ fun RecognitionProcessingScene(
             )
         }
     }
-    BoxWithConstraints(Modifier.fillMaxSize().background(Color(0xFFD6ECE5)).onGloballyPositioned {
+    BoxWithConstraints(Modifier.fillMaxSize().onGloballyPositioned {
         rootOrigin = it.boundsInWindow().topLeft
     }) {
-        Image(painterResource(R.drawable.processing_mint_background_v1), null,
-            Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
+        LakeGlassBackgroundHost(Modifier.fillMaxSize())
         val viewportWidthPx = with(density) { maxWidth.toPx() }.coerceAtLeast(1f)
         val viewportHeightPx = with(density) { maxHeight.toPx() }.coerceAtLeast(1f)
         val photoFlowPlan = remember(

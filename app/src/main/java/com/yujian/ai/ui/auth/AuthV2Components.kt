@@ -2,7 +2,6 @@ package com.yujian.ai.ui.auth
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -49,27 +48,25 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalAutofill
 import androidx.compose.ui.platform.LocalAutofillTree
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.yujian.ai.R
 import com.yujian.ai.ui.designsystem.color.YuJianColors
 import com.yujian.ai.ui.designsystem.components.YuJianIconAction
 import com.yujian.ai.ui.designsystem.components.YuJianIconActionFamily
 import com.yujian.ai.ui.designsystem.components.YuJianIconActionTone
 import com.yujian.ai.ui.designsystem.components.YuJianTitleOnlyTopBar
 import com.yujian.ai.ui.designsystem.typography.YuJianTypography
+import com.yujian.ai.ui.designsystem.lakeglass.LakeGlassBackgroundHost
 import kotlinx.coroutines.delay
 
 internal val AuthActiveAccent = YuJianColors.ActiveAccent
@@ -104,11 +101,7 @@ internal fun AuthV2Scaffold(
         val headerInset = (maxWidth * (26f / 320f) - 24.dp).coerceAtLeast(0.dp)
         val imeVisible = WindowInsets.ime.getBottom(LocalDensity.current) > 0
 
-        Image(
-            painter = painterResource(R.drawable.account_privacy_morning_lake),
-            contentDescription = null,
-            contentScale = ContentScale.Crop,
-            alignment = Alignment.TopCenter,
+        LakeGlassBackgroundHost(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(resolvedEnvironmentHeight),

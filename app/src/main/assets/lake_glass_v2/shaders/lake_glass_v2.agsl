@@ -1,0 +1,186 @@
+// Lake Glass V2 in-place optical modulation shader.
+// Algorithm attribution and pinned source hashes: third_party/NOTICE.md.
+// Adapted from EthanFox's continuous domain-warped caustic field (MIT),
+// Mirage's Ashima 2D simplex noise / RuntimeShader pattern (Apache-2.0),
+// PrismalAGSL's SDF-gradient image refraction (MIT), and the screen-space
+// displacement model in raindrops-v2 (MIT). This file is adapted for AGSL;
+// no upstream shader is compiled unchanged.
+
+uniform shader inputImage;
+uniform shader opticalMasks;
+uniform float2 surfaceSize;
+uniform float sceneScale;
+uniform float2 cropOffset;
+uniform float elapsedSeconds;
+uniform float causticsEnabled;
+uniform float causticsAmount;
+uniform float sunlightEnabled;
+uniform float sunlightAmount;
+uniform float dropletsEnabled;
+uniform float dropletAmount;
+uniform float drop01Enabled;
+uniform float drop02Enabled;
+uniform float drop03Enabled;
+uniform float4 drop01Bounds;
+uniform float4 drop02Bounds;
+uniform float4 drop03Bounds;
+uniform float2 drop01Anchor;
+uniform float2 drop02Anchor;
+uniform float2 drop03Anchor;
+uniform float2 sunlightAnchor;
+
+float2 rotateField(float2 p, float angle) {
+    float c = cos(angle);
+    float s = sin(angle);
+    return float2(c * p.x - s * p.y, s * p.x + c * p.y);
+}
+
+// EthanFox/water-caustics: rotated, domain-warped ridge field. The non-
+// commensurate octave rotations avoid a tile grid; it is used only as a
+// bounded luminance multiplier inside the Master-derived R channel.
+float causticOctave(float2 uv, float t, float fi) {
+    float2 p = rotateField(uv, 0.41 + fi * 2.39996323);
+    for (int k = 0; k < 2; k++) {
+        float fk = float(k);
+        float2 warp = float2(
+            sin(p.y * (1.17 + fi * 0.19 + fk * 0.13) + p.x * (0.23 + fi * 0.07) + t * (0.31 + fi * 0.05) + fi * 1.61 + fk),
+            cos(p.x * (0.89 + fi * 0.17 + fk * 0.11) - p.y * (0.29 + fi * 0.09) - t * (0.27 + fi * 0.04) + fi * 1.13)
+        );
+        p += warp * (0.46 / (1.0 + fi * 0.16 + fk * 0.11));
+    }
+    float2 d1 = float2(1.00 + fi * 0.21, 0.33 + fi * 0.13);
+    float2 d2 = float2(-0.51 - fi * 0.11, 1.09 + fi * 0.08);
+    float ridge = sin(dot(p, d1) + t * 0.09) * sin(dot(p, d2) - t * 0.07);
+    return 0.165 / (abs(ridge) * 5.6 + 0.22);
+}
+
+float causticField(float2 uv, float t) {
+    float2 p = uv + float2(sin(uv.y * 0.37 + t * 0.19) * 0.42,
+                           cos(uv.x * 0.31 - t * 0.15) * 0.42);
+    float a = causticOctave(p, t, 0.0);
+    float2 p2 = rotateField(p * 1.61803399 + float2(1.83, -1.27), 1.17809725);
+    float b = causticOctave(p2, t * 0.79, 1.0);
+    float2 p3 = rotateField(p * 2.61803399 + float2(2.54, -0.74), 1.54809725);
+    float c = causticOctave(p3, t * 0.62, 2.0);
+    float acc = max(a * 1.12, b * 0.78) + c * 0.34;
+    return pow(clamp(acc, 0.0, 1.95), 1.45);
+}
+
+// Ashima 2D simplex noise block adapted from AndroidPoet/Mirage core/Agsl.kt.
+float3 permute3(float3 x) { return mod(((x * 34.0) + 1.0) * x, 289.0); }
+float simplexNoise(float2 v) {
+    const float4 C = float4(0.211324865405187, 0.366025403784439,
+                            -0.577350269189626, 0.024390243902439);
+    float2 i = floor(v + dot(v, C.yy));
+    float2 x0 = v - i + dot(i, C.xx);
+    float2 i1 = x0.x > x0.y ? float2(1.0, 0.0) : float2(0.0, 1.0);
+    float4 x12 = x0.xyxy + C.xxzz;
+    x12.xy -= i1;
+    i = mod(i, 289.0);
+    float3 p = permute3(permute3(i.y + float3(0.0, i1.y, 1.0))
+                        + i.x + float3(0.0, i1.x, 1.0));
+    float3 m = max(0.5 - float3(dot(x0, x0), dot(x12.xy, x12.xy), dot(x12.zw, x12.zw)), 0.0);
+    m *= m;
+    m *= m;
+    float3 x = 2.0 * fract(p * C.www) - 1.0;
+    float3 h = abs(x) - 0.5;
+    float3 ox = floor(x + 0.5);
+    float3 a0 = x - ox;
+    m *= 1.79284291400159 - 0.85373472095314 * (a0 * a0 + h * h);
+    float3 g;
+    g.x = a0.x * x0.x + h.x * x0.y;
+    g.yz = a0.yz * x12.xz + h.yz * x12.yw;
+    return 130.0 * dot(m, g);
+}
+
+// PrismalAGSL rounded-rectangle SDF/gradient pattern, clipped by the exact
+// Master-derived B mask. Bounds/anchors are read from the canonical manifest.
+float roundedRectSd(float2 p, float2 halfSize, float radius) {
+    float2 corner = abs(p) - (halfSize - float2(radius));
+    float outside = length(max(corner, 0.0)) - radius;
+    float inside = min(max(corner.x, corner.y), 0.0);
+    return outside + inside;
+}
+
+float2 roundedRectGradient(float2 p, float2 halfSize, float radius) {
+    float2 corner = abs(p) - (halfSize - float2(radius));
+    if (corner.x >= 0.0 || corner.y >= 0.0) {
+        return sign(p) * normalize(max(corner, 0.0));
+    }
+    float gradX = step(corner.y, corner.x);
+    return sign(p) * float2(gradX, 1.0 - gradX);
+}
+
+float dropCoverage(float2 scenePx, float4 bounds, float2 anchor, float maskCoverage) {
+    float2 halfSize = max(bounds.zw * 0.5, float2(1.0));
+    float2 centered = scenePx - anchor;
+    float radius = min(halfSize.x, halfSize.y) * 0.48;
+    float sd = roundedRectSd(centered, halfSize, radius);
+    float inBounds = step(bounds.x, scenePx.x) * step(scenePx.x, bounds.x + bounds.z)
+                   * step(bounds.y, scenePx.y) * step(scenePx.y, bounds.y + bounds.w);
+    return (1.0 - smoothstep(-1.5, 1.5, sd)) * maskCoverage * inBounds;
+}
+
+half4 main(float2 fragCoord) {
+    float safeScale = max(sceneScale, 0.0001);
+    float2 scenePx = (fragCoord - cropOffset) / safeScale;
+    half4 original = inputImage.eval(fragCoord);
+    float3 masks = opticalMasks.eval(scenePx * 0.25).rgb;
+    float t = elapsedSeconds * 0.36;
+    float2 fieldUv = ((scenePx * 2.0 - float2(1440.0, 3120.0)) / 3120.0) * 1.72;
+
+    float caustic = causticField(fieldUv, t);
+    float veins = smoothstep(0.15, 1.08, caustic);
+    float causticDelta = (veins - 0.40) * clamp(causticsAmount, 0.0, 0.035)
+                       * clamp(causticsEnabled, 0.0, 1.0) * masks.r;
+
+    // Mirage low-frequency simplex modulation around the fixed master source.
+    // Existing baked sunlight is only modulated; no sun, shaft, or overlay is drawn.
+    float2 sunUv = (scenePx - sunlightAnchor) / 720.0;
+    float slowNoise = 0.5 * simplexNoise(sunUv * 2.2 + float2(0.0, -0.018 * elapsedSeconds))
+                    + 0.5 * simplexNoise(sunUv * 4.0 + float2(0.0, -0.010 * elapsedSeconds));
+    float scatterProfile = exp(-length(sunUv) * 1.8);
+    float sunlightDelta = slowNoise * scatterProfile * clamp(sunlightAmount, 0.0, 0.018)
+                        * clamp(sunlightEnabled, 0.0, 1.0) * masks.g;
+
+    half3 color = original.rgb * (1.0 + causticDelta + sunlightDelta);
+
+    // Raindrops V2 screen-space sampling, with fixed manifest bounds. Refracted
+    // samples come from this same composited input; no separate droplet image is drawn.
+    float maskB = smoothstep(0.025, 0.55, masks.b);
+    float c0 = dropCoverage(scenePx, drop01Bounds, drop01Anchor, maskB) * drop01Enabled;
+    float c1 = dropCoverage(scenePx, drop02Bounds, drop02Anchor, maskB) * drop02Enabled;
+    float c2 = dropCoverage(scenePx, drop03Bounds, drop03Anchor, maskB) * drop03Enabled;
+    float coverage = clamp(c0 + c1 + c2, 0.0, 1.0)
+                   * clamp(dropletsEnabled, 0.0, 1.0);
+
+    float2 normal = float2(0.0, 0.0);
+    if (coverage > 0.001) {
+        float4 bounds = c0 >= max(c1, c2) ? drop01Bounds : (c1 >= c2 ? drop02Bounds : drop03Bounds);
+        float2 anchor = c0 >= max(c1, c2) ? drop01Anchor : (c1 >= c2 ? drop02Anchor : drop03Anchor);
+        float2 halfSize = max(bounds.zw * 0.5, float2(1.0));
+        float2 centered = scenePx - anchor;
+        float radius = min(halfSize.x, halfSize.y) * 0.48;
+        normal = roundedRectGradient(centered, halfSize, radius);
+        float lensDepth = max(0.0, -roundedRectSd(centered, halfSize, radius));
+        float edgeLift = smoothstep(0.0, min(halfSize.x, halfSize.y) * 0.20, lensDepth);
+        float shimmer = 0.92 + 0.08 * (0.5 + 0.5 * sin(
+            elapsedSeconds * 0.72 + centered.x * 0.012 + centered.y * 0.009
+        ));
+        float displacementMasterPx = clamp(dropletAmount, 0.0, 12.0)
+                                   * edgeLift * coverage * shimmer;
+        float2 sampleCoord = clamp(fragCoord + normal * displacementMasterPx * safeScale,
+                                   float2(0.0), max(surfaceSize - float2(1.0), float2(0.0)));
+        half4 refracted = inputImage.eval(sampleCoord);
+        color = mix(color, refracted.rgb, clamp(coverage * edgeLift, 0.0, 1.0));
+
+        // Prismal-style specular modulation stays on bright pixels already
+        // present in the baked droplet; it never paints a second highlight.
+        float bakedHighlight = smoothstep(0.62, 0.94, dot(original.rgb, half3(0.2126, 0.7152, 0.0722)))
+                             * maskB * coverage;
+        float highlightPulse = sin(elapsedSeconds * 0.83 + centered.x * 0.021 - centered.y * 0.017);
+        color *= 1.0 + bakedHighlight * 0.008 * highlightPulse;
+    }
+
+    return half4(clamp(color, 0.0, 1.0), original.a);
+}

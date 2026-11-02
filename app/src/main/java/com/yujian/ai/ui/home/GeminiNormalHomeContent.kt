@@ -81,6 +81,7 @@ import com.yujian.ai.ui.adaptive.SafeDrawingInsetsDp
 import com.yujian.ai.ui.components.AssetImage
 import com.yujian.ai.ui.components.RemoteImage
 import com.yujian.ai.ui.designsystem.color.YuJianColors
+import com.yujian.ai.ui.designsystem.lakeglass.LakeGlassBackgroundHost
 import com.yujian.ai.ui.designsystem.components.YuJianHeroCard
 import com.yujian.ai.ui.designsystem.components.YuJianHeroDecoration
 import com.yujian.ai.ui.designsystem.components.YuJianHeroVariant
@@ -88,7 +89,6 @@ import com.yujian.ai.ui.designsystem.typography.YuJianTypography
 import java.util.Locale
 import kotlin.math.abs
 
-private const val GeminiHomeBackground = "normal_home_runtime_v1/static/scene_base.png"
 private const val GeminiHomeCardAspectRatio = 247f / 293f
 private const val GeminiHomeNeighborHeightFraction = 0.667f
 private val GeminiHomePeekTopOffset = 15.dp
@@ -148,20 +148,8 @@ internal fun GeminiNormalHomeContent(
         Box(Modifier.fillMaxSize()) {
             Box(Modifier.fillMaxSize().testTag("gemini-layer-bg-scenic-group")) {
                 Box(Modifier.fillMaxSize().testTag("gemini-layer-bg-mountain-mist")) {
-                    runtimeAssets?.sceneBase?.let { scene ->
-                        Image(
-                            bitmap = scene.asImageBitmap(),
-                            contentDescription = null,
-                            modifier = Modifier.fillMaxSize().testTag("gemini-home-background"),
-                            contentScale = ContentScale.Crop,
-                            alignment = Alignment.TopCenter,
-                        )
-                    } ?: AssetImage(
-                        GeminiHomeBackground,
-                        Modifier.fillMaxSize().testTag("gemini-home-background"),
-                        contentDescription = null,
-                        contentScale = ContentScale.Crop,
-                        alignment = Alignment.TopCenter,
+                    LakeGlassBackgroundHost(
+                        modifier = Modifier.fillMaxSize().testTag("gemini-home-background"),
                     )
                 }
             }
