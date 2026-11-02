@@ -3,6 +3,7 @@ package com.yujian.ai.ui.identify
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
+import com.yujian.ai.R
 import org.junit.Test
 
 class RecognitionFirstCaptureGuidePolicyTest {
@@ -132,23 +133,44 @@ class RecognitionFirstCaptureGuidePolicyTest {
     @Test
     fun fishOrientationAndErrorExamplesStayConsistentOnEachPage() {
         val horizontalPages = listOf(RecognitionFirstCaptureGuidePage.P01, RecognitionFirstCaptureGuidePage.P03)
+        val horizontalErrors = listOf(
+            R.drawable.first_use_guide_horizontal_fish_head_out,
+            R.drawable.first_use_guide_horizontal_fish_too_small,
+            R.drawable.first_use_guide_horizontal_excessive_occlusion,
+        )
         horizontalPages.forEach { page ->
             val spec = recognitionFirstCaptureGuidePageSpec(page)
             assertEquals(RecognitionGuideFishOrientation.HORIZONTAL, spec.fishOrientation)
             assertEquals(listOf("鱼头不在画面", "鱼体过小", "遮挡过多"), spec.errors.map { it.label })
             assertTrue(spec.errors.all { it.orientation == RecognitionGuideFishOrientation.HORIZONTAL })
+            assertEquals(R.drawable.first_use_guide_bg_p01, spec.backgroundAsset)
+            assertEquals(R.drawable.first_use_guide_horizontal_correct_hero, spec.heroAsset)
+            assertEquals(horizontalErrors, spec.errorAssets)
+            assertEquals(spec.errorAssets, spec.errors.map { it.imageRes })
+            assertEquals(RecognitionGuideRuntimeAssetStatus.AVAILABLE, spec.runtimeAssetStatus)
         }
 
         val verticalSpec = recognitionFirstCaptureGuidePageSpec(RecognitionFirstCaptureGuidePage.P02)
+        val verticalErrors = listOf(
+            R.drawable.first_use_guide_vertical_fish_head_out,
+            R.drawable.first_use_guide_vertical_fish_too_small,
+            R.drawable.first_use_guide_vertical_excessive_occlusion,
+        )
         assertEquals(RecognitionGuideFishOrientation.VERTICAL, verticalSpec.fishOrientation)
         assertTrue(verticalSpec.errors.all { it.orientation == RecognitionGuideFishOrientation.VERTICAL })
+        assertEquals(R.drawable.first_use_guide_bg_p02, verticalSpec.backgroundAsset)
+        assertEquals(R.drawable.first_use_guide_vertical_correct_hero, verticalSpec.heroAsset)
+        assertEquals(verticalErrors, verticalSpec.errorAssets)
+        assertEquals(verticalSpec.errorAssets, verticalSpec.errors.map { it.imageRes })
+        assertEquals(RecognitionGuideRuntimeAssetStatus.AVAILABLE, verticalSpec.runtimeAssetStatus)
 
         listOf(RecognitionFirstCaptureGuidePage.P01, RecognitionFirstCaptureGuidePage.P02, RecognitionFirstCaptureGuidePage.P03)
             .forEach { page ->
                 val spec = recognitionFirstCaptureGuidePageSpec(page)
-                assertEquals(RecognitionGuideRuntimeAssetStatus.ASSET_SOURCE_BLOCKED, spec.runtimeAssetStatus)
-                assertEquals(null, spec.heroAsset)
-                assertEquals(listOf(null, null, null), spec.errorAssets)
+                assertEquals(RecognitionGuideRuntimeAssetStatus.AVAILABLE, spec.runtimeAssetStatus)
+                assertTrue(spec.heroAsset != 0)
+                assertEquals(3, spec.errorAssets.size)
+                assertTrue(spec.errorAssets.all { it != 0 })
                 assertEquals(3, spec.errors.size)
             }
     }
