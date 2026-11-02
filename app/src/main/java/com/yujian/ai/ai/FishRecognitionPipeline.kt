@@ -42,7 +42,12 @@ class FishRecognitionPipeline(context: Context) : AutoCloseable {
     suspend fun recognize(
         bitmap: Bitmap,
         onProgress: (RecognitionProgress) -> Unit,
-        modelIdentity: RecognitionModelIdentity? = null,
+    ): ProductionRecognitionResult = recognize(bitmap, onProgress, modelIdentity = null)
+
+    suspend fun recognize(
+        bitmap: Bitmap,
+        onProgress: (RecognitionProgress) -> Unit,
+        modelIdentity: RecognitionModelIdentity?,
     ): ProductionRecognitionResult {
         val stateMachine = RecognitionStateMachine()
         fun advance(event: RecognitionEvent, assessment: FishInputAssessment? = null) {
