@@ -566,14 +566,16 @@ fun RecognitionResultScreen(
     val latestRevealKey = rememberUpdatedState(revealHandoff?.key)
     val latestImageId = rememberUpdatedState(image?.imageId)
     val latestRevealFinished = rememberUpdatedState(onRevealFinished)
-    // Keep the first Result frame photographic and geometrically stable. The shared
-    // Orb-return clock is anchored from that frame before RR09 optics become visible.
-    val revealPresentationReady = resultFirstPresentedAtMs.value != null && revealStartAllowed.value
+    val revealPresentationReady = if (resultFirstPresentedAtMs.value == null) {
+        revealStartReady
+    } else {
+        revealStartAllowed.value
+    }
     val presentedHandoff = visualHandoff.takeIf { revealPresentationReady }
     val revealFrameState = remember(
         presentedHandoff, revealMotionPolicy, effectiveRevealElapsedOverrideMs, revealElapsedState,
         productionVisualStage, productionStageProgress, diagnosticFrame, diagnosticUiAvailable,
-        diagnosticDisplayMode,
+        diagnosticDisplayMode, resultFirstPresentedAtMs.value,
     ) {
         derivedStateOf {
             when {
@@ -585,6 +587,11 @@ fun RecognitionResultScreen(
                 diagnosticPlaybackOverrideActive && diagnosticFrame != null -> RecognitionRevealClock.evaluateSceneStage(
                     stage = diagnosticFrame.stage,
                     stageProgress = diagnosticFrame.stageProgress,
+                    handoff = presentedHandoff,
+                    policy = revealMotionPolicy,
+                )
+                resultFirstPresentedAtMs.value == null -> RecognitionRevealClock.evaluate(
+                    elapsedMs = 0L,
                     handoff = presentedHandoff,
                     policy = revealMotionPolicy,
                 )
