@@ -98,7 +98,7 @@ phases:
     exit_condition: "Release-scope feature implementation reaches executable acceptance tasks."
     release_scope: "PRIMARY_PLUS_SECONDARY"
     feature_refs: ["home_normal_v1", "record_date_v2", "share_templates_v1", "auth_register_v2"]
-    task_refs: ["P6-01", "P6-02", "P6-03", "P6-04", "YUJIAN_NH01_ANDROID_FROZEN_V22_IMPLEMENTATION_REPAIR_WORK_B_V1", "YUJIAN_NH01_RESPONSIVE_V2_ANDROID_IMPLEMENTATION_AND_RUNTIME_ACCEPTANCE_V1", "YUJIAN_NH01_LAKE_LIGHT_VISUAL_RESPONSIVE_CLOSURE_V1", "YUJIAN_ANDROID_FISH_CATCH_EFFECT01_UPWARD_SCAN_SHAKE_V1", "YUJIAN_ANDROID_AISTUDIO_PERIMETER_SHADER_PORT_V1", "YUJIAN_ANDROID_SLIMSAM_PIXEL_SEGMENTATION_V1", "YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2", "YUJIAN_ANDROID_AI_ORB_CORE_COMPONENT_V1", "YUJIAN_UNIFIED_WATERLIGHT_A02_CORE_COMPONENT_ANDROID_INTEGRATION_V1", "YUJIAN_LAKE_GLASS_V2_ASSET_PACK_ANDROID_RUNTIME_INTEGRATION_V1", "YUJIAN_LAKE_GLASS_V2_OPEN_SOURCE_SHADER_REUSE_V1"]
+    task_refs: ["P6-01", "P6-02", "P6-03", "P6-04", "YUJIAN_NH01_ANDROID_FROZEN_V22_IMPLEMENTATION_REPAIR_WORK_B_V1", "YUJIAN_NH01_RESPONSIVE_V2_ANDROID_IMPLEMENTATION_AND_RUNTIME_ACCEPTANCE_V1", "YUJIAN_NH01_LAKE_LIGHT_VISUAL_RESPONSIVE_CLOSURE_V1", "YUJIAN_ANDROID_FISH_CATCH_EFFECT01_UPWARD_SCAN_SHAKE_V1", "YUJIAN_ANDROID_AISTUDIO_PERIMETER_SHADER_PORT_V1", "YUJIAN_ANDROID_SLIMSAM_PIXEL_SEGMENTATION_V1", "YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2", "YUJIAN_ANDROID_AI_ORB_CORE_COMPONENT_V1", "YUJIAN_UNIFIED_WATERLIGHT_A02_CORE_COMPONENT_ANDROID_INTEGRATION_V1", "YUJIAN_LAKE_GLASS_V2_ASSET_PACK_ANDROID_RUNTIME_INTEGRATION_V1", "YUJIAN_LAKE_GLASS_V2_OPEN_SOURCE_SHADER_REUSE_V1", "YUJIAN_ORB_WATERLIGHT_WEB_ANDROID_FULL_LIFECYCLE_V3"]
   P7:
     name: "Integration / Full Surface"
     entry_condition: "Feature implementation is executable."
@@ -691,6 +691,19 @@ tasks:
     gate_id: "G-ANDROID-SLIMSAM-PIXEL-SEGMENTATION-V1"
     evidence_required: ["photo_compositor_diagnostic", "adaptive_stage_trace", "trusted_mask_and_gold_peak", "shared_photo_result_handoff", "debug_apk_sha256", "runtime_not_run_or_device_evidence"]
     completion: "Repair the existing Android recognition photo compositor, adaptive visual stages, trusted SlimSAM gold and shared-photo RR09 handoff; deliver exact-head Debug APK. Native visual acceptance remains separate."
+    human_required: false
+  YUJIAN_ORB_WATERLIGHT_WEB_ANDROID_FULL_LIFECYCLE_V3:
+    phase: "P6"
+    priority: "P0"
+    owner: "Work"
+    feature_refs: ["recognition_flow_v1_2", "recognition_result_v1"]
+    journey_refs: ["J05-J10"]
+    depends_on: ["P5-02", "YUJIAN_ANDROID_SLIMSAM_PIXEL_SEGMENTATION_V1"]
+    entry_blockers: []
+    target_blockers: []
+    gate_id: "G-ANDROID-ORB-WATERLIGHT-WEB-FULL-LIFECYCLE-V3"
+    evidence_required: ["exact_source_sha_and_web_source_pin", "single_semantic_scene_clock_and_stage_tests", "classifier_slimsAM_parallel_join_and_branch_tests", "trusted_mask_contour_and_orb_only_paths", "web_shader_and_contour_migration", "scene_pause_seek_auto_manual_continuity", "result_photo_identity_and_reveal_continuity", "unit_android_test_compile_lint", "debug_apk_sha256", "owner_device_acceptance_not_run"]
+    completion: "Complete the existing Android Orb × WaterLight 13-stage full recognition lifecycle using real parallel Classifier and SlimSAM results, semantic event-driven stages, trusted-mask fish focus or real-name Orb-only reveal, selected Web shader/contour migration and the existing Result handoff. Preserve PhotoSession/model semantics and the 700ms/900ms parallel entrance. Deliver basic-tested exact-head Debug APK; API28/device acceptance is explicitly assigned to the product owner for this Work."
     human_required: false
   P6-03:
     phase: "P6"
