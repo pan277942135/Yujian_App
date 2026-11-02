@@ -34,6 +34,8 @@ data class EnergyEvent(
     val photoContentVersion: Long = 0L,
     val pathId: String? = null,
     val pathGeometry: WaterLightPathGeometry? = null,
+    /** Ordered cubic segments; RETURN stores the outward route in reverse order and direction. */
+    val pathSegments: List<WaterLightPathGeometry> = emptyList(),
 ) {
     fun matches(frame: WaterLightFrame): Boolean =
         sessionId == frame.sessionId && attemptId == frame.attemptId && imageId == frame.imageId &&
@@ -49,6 +51,8 @@ object WaterLightEnergy {
         successfulRevealAllowed: Boolean = false,
         pathGeometry: WaterLightPathGeometry? = null,
         orbOnlyRevealAllowed: Boolean = false,
+        pathSegments: List<WaterLightPathGeometry> = emptyList(),
+        pathIdOverride: String? = null,
     ): EnergyEvent? {
         val photo = frame.photoSha256?.takeIf(String::isNotBlank) ?: return null
         val scene = frame.sceneFrame
@@ -84,7 +88,7 @@ object WaterLightEnergy {
         }
         return EnergyEvent(frame.sessionId, photo, from, to, feedback, level,
             t, frame.geometryVersion, frame.attemptId, frame.imageId, frame.photoContentVersion,
-            pathId = when (feedback) {
+            pathId = pathIdOverride ?: when (feedback) {
                 EnergyFeedback.RELEASE -> "orb-to-photo"
                 EnergyFeedback.ARRIVE, EnergyFeedback.ABSORB -> "photo-to-fish"
                 EnergyFeedback.RETURN -> if (from == EnergyAnchor.PHOTO_PERIMETER) {
@@ -96,7 +100,8 @@ object WaterLightEnergy {
                 EnergyFeedback.REVEAL -> "species-glyph-ink"
                 EnergyFeedback.SETTLE -> "glyph-to-residue"
             },
-            pathGeometry = pathGeometry?.takeIf(WaterLightPathGeometry::isValid))
+            pathGeometry = pathGeometry?.takeIf(WaterLightPathGeometry::isValid),
+            pathSegments = pathSegments.filter(WaterLightPathGeometry::isValid))
     }
 
     private data class Quad(
