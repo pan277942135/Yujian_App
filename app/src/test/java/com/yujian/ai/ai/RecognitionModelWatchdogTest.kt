@@ -1,17 +1,14 @@
 package com.yujian.ai.ai
 
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.yield
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class RecognitionModelWatchdogTest {
-    @Test
-    fun defaultPerModelLimitIsSixtySeconds() {
-        assertEquals(60_000L, RecognitionModelWatchdog.DEFAULT_TIMEOUT_MS)
-    }
-
     @Test
     fun successRecordsIdentityAndElapsedTime() = runBlocking {
         var now = 100L
@@ -35,26 +32,25 @@ class RecognitionModelWatchdogTest {
     }
 
     @Test
-    fun timedOutModelHasExplicitTerminalEvent() = runBlocking {
+    fun modelRemainsPendingUntilTheRealCallCompletes() = runBlocking {
         val records = mutableListOf<String>()
-        var timedOut: RecognitionModelTimeoutException? = null
-        try {
+        val realModelResult = CompletableDeferred<String>()
+        val task = async {
             RecognitionModelWatchdog.execute(
                 modelName = "SLIMSAM",
                 identity = null,
-                timeoutMs = 10L,
                 nowMs = { 20L },
                 log = { records.add(it) },
-            ) {
-                delay(100L)
-                "unreachable"
-            }
-        } catch (error: RecognitionModelTimeoutException) {
-            timedOut = error
+            ) { realModelResult.await() }
         }
 
-        assertEquals("SLIMSAM", timedOut?.modelName)
-        assertEquals(10L, timedOut?.timeoutMs ?: -1L)
-        assertTrue(records.last().contains("outcome=TIMEOUT"))
+        yield()
+        assertTrue(task.isActive)
+        assertEquals(1, records.size)
+        assertTrue(records.single().contains("MODEL_START model=SLIMSAM"))
+
+        realModelResult.complete("trusted-mask")
+        assertEquals("trusted-mask", task.await())
+        assertTrue(records.last().contains("outcome=READY"))
     }
 }

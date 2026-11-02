@@ -2,7 +2,7 @@ package com.yujian.ai.ai
 
 import android.os.SystemClock
 import android.util.Log
-import kotlinx.coroutines.withTimeoutOrNull
+import kotlinx.coroutines.CancellationException
 
 /** Identity carried by model timing events; it never changes model inputs or inference policy. */
 data class RecognitionModelIdentity(
@@ -12,41 +12,37 @@ data class RecognitionModelIdentity(
     val photoSha256: String,
 )
 
-class RecognitionModelTimeoutException(
-    val modelName: String,
-    val timeoutMs: Long,
-) : Exception("$modelName exceeded its $timeoutMs ms watchdog")
-
-/** Adds bounded, identity-tagged lifecycle timing around each real model call. */
+/** Adds identity-tagged lifecycle timing around each real model call without imposing a deadline. */
 object RecognitionModelWatchdog {
-    const val DEFAULT_TIMEOUT_MS = 60_000L
-
     suspend fun <T : Any> execute(
         modelName: String,
         identity: RecognitionModelIdentity?,
-        timeoutMs: Long = DEFAULT_TIMEOUT_MS,
         nowMs: () -> Long = SystemClock::uptimeMillis,
         log: (String) -> Unit = { Log.i("RecognitionModel", it) },
         block: suspend () -> T,
     ): T {
         require(modelName.isNotBlank())
-        require(timeoutMs > 0L)
         val startedAtMs = nowMs()
         val tag = identity?.let {
             "session=${it.sessionId} attempt=${it.attemptId} image=${it.imageId} sha256=${it.photoSha256}"
         } ?: "session=unknown attempt=unknown image=unknown sha256=unknown"
-        log("MODEL_START model=$modelName $tag uptime_ms=$startedAtMs timeout_ms=$timeoutMs")
+        log("MODEL_START model=$modelName $tag uptime_ms=$startedAtMs")
 
-        // The wrapper distinguishes a real null model payload from a watchdog timeout.
-        val completed = withTimeoutOrNull(timeoutMs) { Completed(block()) }
-        val endedAtMs = nowMs()
-        if (completed == null) {
-            log("MODEL_END model=$modelName $tag uptime_ms=$endedAtMs duration_ms=${(endedAtMs - startedAtMs).coerceAtLeast(0L)} outcome=TIMEOUT")
-            throw RecognitionModelTimeoutException(modelName, timeoutMs)
+        fun endRecord(outcome: String, detail: String = ""): String {
+            val endedAtMs = nowMs()
+            val suffix = if (detail.isBlank()) "" else " $detail"
+            return "MODEL_END model=$modelName $tag uptime_ms=$endedAtMs " +
+                "duration_ms=${(endedAtMs - startedAtMs).coerceAtLeast(0L)} outcome=$outcome$suffix"
         }
-        log("MODEL_END model=$modelName $tag uptime_ms=$endedAtMs duration_ms=${(endedAtMs - startedAtMs).coerceAtLeast(0L)} outcome=READY")
-        return completed.value
-    }
 
-    private data class Completed<T>(val value: T)
+        return try {
+            block().also { log(endRecord("READY")) }
+        } catch (cancelled: CancellationException) {
+            log(endRecord("CANCELLED"))
+            throw cancelled
+        } catch (error: Throwable) {
+            log(endRecord("FAILED", "error=${error::class.java.simpleName}"))
+            throw error
+        }
+    }
 }
