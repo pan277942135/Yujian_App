@@ -1,0 +1,91 @@
+{
+  "taskId": "YUJIAN_LAKE_GLASS_V2_MASTER_TO_LAYERED_ASSET_PACK_P0",
+  "validationStatus": "PASS_WITH_PARTIAL_LAYER_STATE",
+  "assetPackStatus": "ASSET_PACK_PARTIAL_WITH_BAKED_LAYERS",
+  "checksPassed": 16,
+  "checksTotal": 16,
+  "checks": [
+    {
+      "name": "required_core_files",
+      "passed": true,
+      "detail": "all required files exist"
+    },
+    {
+      "name": "manifest_master_sha",
+      "passed": true,
+      "detail": "d0bd07ba379491e8b93468c616468fc60d59a2dfebc11061cf4d14e9788c6e12"
+    },
+    {
+      "name": "manifest_source_sha",
+      "passed": true,
+      "detail": "f3dc1549919f48f939df5a6cf5baf18fb6846164c6f857df8e20cfe247b495ba"
+    },
+    {
+      "name": "manifest_input_manifest_sha",
+      "passed": true,
+      "detail": "623b978487ef294b7261c45e8ec1612ce372df61bbdca3859f5a9faa31af661b"
+    },
+    {
+      "name": "source_dimensions_and_format",
+      "passed": true,
+      "detail": "master=(1440, 3120)/RGB; original=(852, 1846)/RGB"
+    },
+    {
+      "name": "manifest_file_integrity",
+      "passed": true,
+      "detail": "61 manifested files pass hash, byte-size and image metadata checks"
+    },
+    {
+      "name": "json_parse",
+      "passed": true,
+      "detail": "all package JSON parses"
+    },
+    {
+      "name": "unique_layers_and_visible_order",
+      "passed": true,
+      "detail": "layerCount=8, visibleComposite=['LAYER_BASE'], duplicateVisibleBaked=[]"
+    },
+    {
+      "name": "baked_assets_not_double_composited",
+      "passed": true,
+      "detail": "diagnostic extractions and masks are excluded from the visible stack"
+    },
+    {
+      "name": "diagnostic_grass_rgba",
+      "passed": true,
+      "detail": "grass_left_candidate_diagnostic_only_rgba.png: RGBA, softAlpha=True; grass_right_candidate_diagnostic_only_rgba.png: RGBA, softAlpha=True; not runtime approved"
+    },
+    {
+      "name": "svg_structure",
+      "passed": true,
+      "detail": "grass_left_skeleton_guide.svg: viewBox=True, paths=True; grass_right_skeleton_guide.svg: viewBox=True, paths=True"
+    },
+    {
+      "name": "static_recomposition_pixel_identity",
+      "passed": true,
+      "detail": "pixelIdentical=True; metrics=0.0/0.0/Infinity/1.0"
+    },
+    {
+      "name": "visual_evidence",
+      "passed": true,
+      "detail": "annotated map, composition diffs, crops and edge reviews exist"
+    },
+    {
+      "name": "scope_guard_definition",
+      "passed": true,
+      "detail": "allowedPrefixes=['design/system/backgrounds/lake_glass_v2/', 'scripts/']; protectedPaths=['design/system/backgrounds/morning_lake_v1/', 'app/src/main/java/com/yujian/ai/ui/home/EmptyHomeSceneRenderer.kt', 'app/src/main/assets/empty_home_runtime_v2/']; remote PR file list remains authoritative"
+    },
+    {
+      "name": "no_empty_home_or_v1_payload",
+      "passed": true,
+      "detail": "no Empty Home or Morning Lake V1 asset path exists in this package"
+    },
+    {
+      "name": "honest_completion_status",
+      "passed": true,
+      "detail": "status=ASSET_PACK_PARTIAL_WITH_BAKED_LAYERS; independent visible layers are not claimed"
+    }
+  ],
+  "readyForAndroid": false,
+  "reason": "Static master fallback and supporting analysis assets are verified, but independent optical layers remain baked and user review/native layered source is still needed before runtime use."
+}

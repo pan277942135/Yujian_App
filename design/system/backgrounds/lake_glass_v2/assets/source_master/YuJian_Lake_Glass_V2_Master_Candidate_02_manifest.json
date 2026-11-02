@@ -1,0 +1,20 @@
+{
+  "asset_id": "YuJian_Lake_Glass_V2_Master_Candidate_02",
+  "status": "CANDIDATE_VISUAL_NOT_FROZEN",
+  "type": "source-preserving refinement and upscale",
+  "source_file": "宁静湖光玻璃水境背景.png",
+  "source_sha256": "f3dc1549919f48f939df5a6cf5baf18fb6846164c6f857df8e20cfe247b495ba",
+  "source_dimensions": [
+    852,
+    1846
+  ],
+  "output_file": "YuJian_Lake_Glass_V2_Master_Candidate_02_1440x3120.png",
+  "output_dimensions": [
+    1440,
+    3120
+  ],
+  "output_sha256": "d0bd07ba379491e8b93468c616468fc60d59a2dfebc11061cf4d14e9788c6e12",
+  "format": "PNG / 8bit sRGB",
+  "production_note": "1440x3120 is detail-preserving resampling with subtle local texture; not native-resolution generative refinement",
+  "empty_home_scope": "excluded"
+}

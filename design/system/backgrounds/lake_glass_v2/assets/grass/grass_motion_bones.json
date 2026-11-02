@@ -1,0 +1,29 @@
+{
+  "canvasSize": [
+    1440,
+    3120
+  ],
+  "status": "DIAGNOSTIC_GUIDE_ONLY",
+  "runtimeEligible": false,
+  "reason": "Guide curves are hand-estimated from the flattened visual; no verified per-leaf alpha or root segmentation exists.",
+  "proposedMotion": {
+    "periodSeconds": [
+      16,
+      24
+    ],
+    "tipMaxOffsetDp": 2,
+    "rootPinned": true
+  },
+  "guides": [
+    {
+      "side": "left",
+      "svg": "../vector/grass_left_skeleton_guide.svg",
+      "approximate": true
+    },
+    {
+      "side": "right",
+      "svg": "../vector/grass_right_skeleton_guide.svg",
+      "approximate": true
+    }
+  ]
+}
