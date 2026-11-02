@@ -80,16 +80,16 @@ class LakeGlassRuntimeContractTest {
     @Test
     fun canonicalManifestHasOnlyOneVisibleBaseAndVerifiedAssetHashes() {
         val assetRoot = listOf(
-            File("src/main/assets"),
-            File("app/src/main/assets"),
-        ).firstOrNull { File(it, LakeGlassSceneManifest.ASSET_PATH.removePrefix("lake_glass_v2/")).isFile }
+            File("src/main/assets/lake_glass_v2"),
+            File("app/src/main/assets/lake_glass_v2"),
+        ).firstOrNull { File(it, "assets/android_runtime/layer_manifest_v1.json").isFile }
         val root = requireNotNull(assetRoot)
-        val manifestText = File(root, LakeGlassSceneManifest.ASSET_PATH.removePrefix("lake_glass_v2/")).readText()
+        val manifestText = File(root, "assets/android_runtime/layer_manifest_v1.json").readText()
         assertTrue(manifestText.contains("\"visibleRuntimeStack\": [\n    \"LAYER_STATIC_COMPOSITE\""))
         assertTrue(manifestText.contains("\"api33EffectsAreOptional\"") || manifestText.contains("OPTIONAL_AGSL_IN_PLACE_MODULATION"))
-        val static = File(root, "lake_glass_v2/assets/android_runtime/api24_static/lake_glass_static_layered_v3.png")
-        val fallback = File(root, "lake_glass_v2/assets/android_runtime/api24_static/lake_glass_master_fallback.png")
-        val mask = File(root, "lake_glass_v2/assets/android_runtime/runtime_optical_masks_v1.png")
+        val static = File(root, "assets/android_runtime/api24_static/lake_glass_static_layered_v3.png")
+        val fallback = File(root, "assets/android_runtime/api24_static/lake_glass_master_fallback.png")
+        val mask = File(root, "assets/android_runtime/runtime_optical_masks_v1.png")
         assertTrue(static.isFile && fallback.isFile && mask.isFile)
         assertEquals("23a493146f7fbb06469e56ae18b2ed8d58b610d981169c8987319481c0df5368", sha256(static.readBytes()))
         assertEquals("d0bd07ba379491e8b93468c616468fc60d59a2dfebc11061cf4d14e9788c6e12", sha256(fallback.readBytes()))
