@@ -42,6 +42,8 @@ import org.json.JSONArray
 import org.json.JSONObject
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
+import org.junit.After
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -51,12 +53,23 @@ import java.util.Calendar
 import java.util.Locale
 import java.util.TimeZone
 import java.util.concurrent.atomic.AtomicInteger
+import kotlin.math.abs
 
 /** Constraint-window evidence is Compose simulation and is reported separately from device captures. */
 @RunWith(AndroidJUnit4::class)
 class GeminiNormalHomeResponsiveTest {
     @get:Rule
     val compose = createAndroidComposeRule<ComponentActivity>()
+
+    @Before
+    fun beginNativeGeometryCapture() {
+        GeminiHomeGeometryProbe.beginCapture()
+    }
+
+    @After
+    fun endNativeGeometryCapture() {
+        GeminiHomeGeometryProbe.endCapture()
+    }
 
     @Test
     fun responsiveWindowAndFontScaleMatrixKeepsSectionsAndActionsUsable() {
@@ -202,7 +215,7 @@ class GeminiNormalHomeResponsiveTest {
             assertEquals("root height ${window.name}", window.heightDp.toFloat(), root.height(), 1f)
             assertTrue("top must precede the flexible middle ${window.name}", top.bottom <= middle.top + 1f)
             assertTrue("middle must precede the footer ${window.name}", middle.bottom <= footer.top + 1f)
-            val initiallyVisible = metadata.isInside(middle)
+            val initiallyVisible = visibleBounds("gemini-home-catch-metadata-gemini-fixture-01").isInside(middle)
             if (initiallyVisible) {
                 // boundsInRoot is clipped by the Middle scroll viewport. Check the
                 // full-card ratio only when the card/footer are not viewport-clipped.
@@ -297,17 +310,31 @@ class GeminiNormalHomeResponsiveTest {
                 compose.onNodeWithTag("gemini-home-short-screen-scroll", useUnmergedTree = true)
                     .performTouchInput { repeat(3) { swipeUp() } }
                 compose.waitForIdle()
+                advanceFramesUntil(5_000, timeoutDiagnostic = {
+                    "middle scroll did not report a positive offset; offset=${scrollOffsetPx()} max=${scrollMaximumPx()}"
+                }) { scrollOffsetPx() > 0 }
                 val scrolledMiddle = bounds("gemini-home-middle-section")
                 finalActiveCard = bounds("gemini-home-catch-card-gemini-fixture-01")
+                val activeCardPhysical = unclippedRootBounds("gemini-home-catch-card-gemini-fixture-01")
+                val restoredScrollOffset = scrollOffsetPx().toFloat()
+                assertTrue(
+                    "complete logical Hero bound must restore the measured scroll offset; " +
+                        "logical=${finalActiveCard.top} physical=${activeCardPhysical.top} offset=$restoredScrollOffset",
+                    abs((finalActiveCard.top - activeCardPhysical.top) - restoredScrollOffset) <= 1f,
+                )
                 finalFooterContent = bounds("gemini-home-catch-footer-gemini-fixture-01")
                 finalSpecies = bounds("gemini-home-catch-species-gemini-fixture-01")
                 finalMeasurement = bounds("gemini-home-catch-measurement-gemini-fixture-01")
                 finalMetadata = bounds("gemini-home-catch-metadata-gemini-fixture-01")
-                afterScrollVisible = finalMetadata.isInside(scrolledMiddle)
+                afterScrollVisible = visibleBounds("gemini-home-catch-metadata-gemini-fixture-01")
+                    .isInside(visibleBounds("gemini-home-short-screen-scroll"))
                 val scrolledHeroBounds = JSONObject().apply {
                     put("profile", window.name)
                     put("middle", scrolledMiddle.toJson())
                     put("active_card", finalActiveCard.toJson())
+                    put("active_card_visible_bounds", visibleBounds("gemini-home-catch-card-gemini-fixture-01").toJson())
+                    put("scroll_offset_px", restoredScrollOffset)
+                    put("logical_to_physical_scroll_restore_px", finalActiveCard.top - activeCardPhysical.top)
                     put("footer_container", finalFooterContent.toJson())
                     put("species", finalSpecies.toJson())
                     put("measurement", finalMeasurement.toJson())
@@ -410,30 +437,37 @@ class GeminiNormalHomeResponsiveTest {
             ) {
                 compose.onNodeWithTag("gemini-home-short-screen-scroll", useUnmergedTree = true)
                     .performTouchInput { repeat(3) { swipeDown() } }
+                compose.waitUntil(5_000) { scrollOffsetPx() == 0 }
             }
             image.recycle()
         }
 
         val pagerBeforeFinalSwipe = currentCarouselId()
         swipeOnePagerPage(forward = true)
-        runCatching { compose.waitUntil(5_000) { currentCarouselId().contains("gemini-fixture-02") } }
-        val pagerAfterFinalSwipe = currentCarouselId()
-        if (!pagerAfterFinalSwipe.contains("gemini-fixture-02")) {
+        val stablePager = try {
+            awaitPagerStable(
+                expectedId = "gemini-fixture-02",
+                expectedIndex = 1,
+                expectedLeftId = "gemini-fixture-01",
+                expectedRightId = "gemini-fixture-03",
+            )
+        } catch (failure: Throwable) {
             val diagnostic = JSONObject().apply {
                 put("schema", "NH01_GEMINI_FINAL_SWIPE_FAILURE_V1")
                 put("status", "FAIL")
                 put("pager_before", pagerBeforeFinalSwipe)
-                put("pager_after", pagerAfterFinalSwipe)
+                put("pager_after", pagerFrameOrDiagnostic())
                 put("pager_bounds_dp", bounds("gemini-home-catch-pager").toJson())
                 put("profile", profiles.last().name)
-                put("note", "Swipe is issued through the active hero card interior to avoid clipped viewport edge coordinates.")
+                put("note", "Swipe was issued; wait requires target/current/settled index, stable IDs and unchanged full card bounds.")
             }
             File(output, "final-pager-swipe-failure.json").writeText(diagnostic.toString(2))
             writeScreenshot("gemini-home-screen", File(output, "final-pager-swipe-failure.png"))
+            throw AssertionError("Final Pager state did not settle: $diagnostic", failure)
         }
         assertTrue(
-            "horizontal carousel must expose the next card after a horizontal swipe; before=$pagerBeforeFinalSwipe after=$pagerAfterFinalSwipe",
-            pagerAfterFinalSwipe.contains("gemini-fixture-02"),
+            "horizontal carousel must expose the next card after a horizontal swipe; before=$pagerBeforeFinalSwipe after=${stablePager.toJson()}",
+            stablePager.currentId == "gemini-fixture-02",
         )
         assertEquals(profiles.size, profileResults.length())
 
@@ -538,13 +572,15 @@ class GeminiNormalHomeResponsiveTest {
                     val expectedNextId = orderedIds[index + 1]
                     Log.i("GEMINI_HOME_CAROUSEL_PAGE", "SWIPE_START count=$count from=$expectedId to=$expectedNextId state=$state")
                     swipeOnePagerPage(forward = true)
-                    compose.waitForIdle()
                     try {
-                        compose.waitUntil(5_000) {
-                            currentCarouselId().contains(expectedNextId)
-                        }
+                        awaitPagerStable(
+                            expectedId = expectedNextId,
+                            expectedIndex = index + 1,
+                            expectedLeftId = expectedId,
+                            expectedRightId = orderedIds.getOrNull(index + 2),
+                        )
                     } catch (failure: Throwable) {
-                        val stateAfterSwipe = currentCarouselId()
+                        val stateAfterSwipe = pagerFrameOrDiagnostic()
                         val failedShot = File(output, "carousel_${count}_swipe_${index + 1}_failed.png")
                         writeScreenshot("gemini-home-screen", failedShot)
                         val diagnostic = JSONObject().apply {
@@ -564,28 +600,32 @@ class GeminiNormalHomeResponsiveTest {
                             failure,
                         )
                     }
-                    compose.waitForIdle()
-                    val stateAfterSwipe = currentCarouselId()
+                    val stateAfterSwipe = pagerFrameOrDiagnostic()
                     Log.i("GEMINI_HOME_CAROUSEL_PAGE", "SWIPE_PASS count=$count from=$expectedId to=$expectedNextId state=$stateAfterSwipe")
-                    assertTrue("pager state must settle on the real next catch $expectedNextId; state=$stateAfterSwipe",
-                        stateAfterSwipe.contains(expectedNextId))
                 }
             }
             val lastId = orderedIds.last()
             swipeOnePagerPage(forward = true)
-            compose.waitForIdle()
-            assertTrue("finite pager end may not clone-wrap to the first item", currentCarouselId().contains(lastId))
+            awaitPagerStable(lastId, orderedIds.lastIndex, orderedIds.getOrNull(orderedIds.lastIndex - 1), null)
 
             if (count > 1) {
+                var pageIndex = orderedIds.lastIndex
                 repeat(count - 1) {
                     swipeOnePagerPage(forward = false)
-                    compose.waitForIdle()
+                    pageIndex -= 1
+                    awaitPagerStable(
+                        expectedId = orderedIds[pageIndex],
+                        expectedIndex = pageIndex,
+                        expectedLeftId = orderedIds.getOrNull(pageIndex - 1),
+                        expectedRightId = orderedIds.getOrNull(pageIndex + 1),
+                    )
                 }
                 val firstId = orderedIds.first()
-                assertTrue("previous-page mapping must return the immediately preceding real catch", currentCarouselId().contains(firstId))
+                assertEquals("previous-page mapping must return the immediately preceding real catch", firstId, currentCarouselId().substringAfter("当前鱼获 ").substringBefore('，'))
                 swipeOnePagerPage(forward = false)
-                compose.waitForIdle()
-                assertTrue("finite pager start may not clone-wrap to the last item", currentCarouselId().contains(firstId))
+                awaitPagerStable(firstId, 0, null, orderedIds.getOrNull(1))
+            } else {
+                awaitPagerStable(lastId, 0, null, null)
             }
 
             val screenshot = File(output, "carousel_${count}.png")
@@ -822,29 +862,148 @@ class GeminiNormalHomeResponsiveTest {
     }
 
     private fun bounds(tag: String): RectF {
-        val nodes = compose.onAllNodesWithTag(tag, useUnmergedTree = true).fetchSemanticsNodes()
-        assertTrue("expected a semantics node for $tag", nodes.isNotEmpty())
-        val node = if (tag == "gemini-home-card-peek-right" && nodes.size > 1) {
-            // HorizontalPager may keep more than one off-screen forward page composed.
-            // The responsive geometry contract is for the immediate neighbor beside the active card.
-            val active = compose.onNodeWithTag(
-                "gemini-home-catch-card-gemini-fixture-01", useUnmergedTree = true,
-            ).fetchSemanticsNode().boundsInRoot
-            val activeCenterX = (active.left + active.right) / 2f
-            nodes.minBy { candidate ->
-                kotlin.math.abs((candidate.boundsInRoot.left + candidate.boundsInRoot.right) / 2f - activeCenterX)
-            }
-        } else {
-            assertEquals("expected exactly one semantics node for $tag", 1, nodes.size)
-            nodes.single()
-        }
-        val rect = node.boundsInRoot
-        return RectF(rect.left, rect.top, rect.right, rect.bottom)
+        val measuredTag = geometryCaptureTag(tag)
+        val captured = GeminiHomeGeometryProbe.bounds(measuredTag).unclippedRoot
+        val logical = if (isMiddleScrollContent(tag)) {
+            androidx.compose.ui.geometry.Rect(
+                captured.left,
+                captured.top + scrollOffsetPx(),
+                captured.right,
+                captured.bottom + scrollOffsetPx(),
+            )
+        } else captured
+        return RectF(logical.left, logical.top, logical.right, logical.bottom)
     }
 
-    private fun currentCarouselId(): String = compose.onNodeWithTag(
-        "gemini-home-catch-pager", useUnmergedTree = true,
-    ).fetchSemanticsNode().config[SemanticsProperties.StateDescription]
+    private fun visibleBounds(tag: String): RectF {
+        val captured = GeminiHomeGeometryProbe.bounds(geometryCaptureTag(tag)).visibleRoot
+        return RectF(captured.left, captured.top, captured.right, captured.bottom)
+    }
+
+    private fun unclippedRootBounds(tag: String): RectF {
+        val captured = GeminiHomeGeometryProbe.bounds(geometryCaptureTag(tag)).unclippedRoot
+        return RectF(captured.left, captured.top, captured.right, captured.bottom)
+    }
+
+    private fun geometryCaptureTag(tag: String): String {
+        if (tag != "gemini-home-card-peek-left" && tag != "gemini-home-card-peek-right") return tag
+        val pager = requireNotNull(GeminiHomeGeometryProbe.pagerState()) { "Pager has not reported its selected record" }
+        val recordId = when (tag) {
+            "gemini-home-card-peek-left" -> pager.leftId
+            else -> pager.rightId
+        }
+        return "$tag-${requireNotNull(recordId) { "No real adjacent record is available for $tag" }}"
+    }
+
+    private fun isMiddleScrollContent(tag: String): Boolean =
+        tag == "gemini-home-section-header" || tag == "gemini-home-section-title" || tag == "gemini-home-section-all" ||
+            tag == "gemini-home-empty-carousel" || tag == "gemini-home-carousel-track" ||
+            tag == "gemini-home-catch-pager" || tag.startsWith("gemini-home-catch-") ||
+            tag.startsWith("gemini-home-card-peek-")
+
+    private fun scrollOffsetPx(): Int = GeminiHomeGeometryProbe.scrollState()?.offsetPx ?: 0
+
+    private fun scrollMaximumPx(): Int = GeminiHomeGeometryProbe.scrollState()?.maximumPx ?: 0
+
+    private fun awaitPagerStable(
+        expectedId: String,
+        expectedIndex: Int,
+        expectedLeftId: String?,
+        expectedRightId: String?,
+        timeoutMillis: Long = 8_000,
+    ): PagerFrame {
+        advanceFramesUntil(timeoutMillis / 2, timeoutDiagnostic = {
+            "Pager did not acknowledge target index=$expectedIndex id=$expectedId; ${pagerFrameOrDiagnostic()}"
+        }) {
+            readPagerFrameOrNull()?.targetPage == expectedIndex
+        }
+
+        var consecutiveStableFrames = 0
+        var previousStableFrame: PagerFrame? = null
+        var settled: PagerFrame? = null
+        advanceFramesUntil(timeoutMillis, timeoutDiagnostic = {
+            "Pager failed to settle expected index=$expectedIndex id=$expectedId " +
+                "left=$expectedLeftId right=$expectedRightId; ${pagerFrameOrDiagnostic()}"
+        }) {
+            val frame = readPagerFrameOrNull()
+            if (frame == null) {
+                consecutiveStableFrames = 0
+                previousStableFrame = null
+                false
+            } else {
+                val stateMatches = frame.currentPage == expectedIndex &&
+                    frame.targetPage == expectedIndex && frame.settledPage == expectedIndex &&
+                    frame.isScrollInProgress == false &&
+                    frame.offsetFraction?.let { abs(it) <= 0.001f } == true &&
+                    frame.currentId == expectedId && frame.leftId == expectedLeftId && frame.rightId == expectedRightId
+                val activePresent = frame.activeBounds != null
+                val leftPresent = (expectedLeftId == null) == (frame.leftBounds == null)
+                val rightPresent = (expectedRightId == null) == (frame.rightBounds == null)
+                val complete = stateMatches && activePresent && leftPresent && rightPresent
+                if (complete && previousStableFrame?.sameGeometry(frame) == true) {
+                    consecutiveStableFrames += 1
+                } else if (complete) {
+                    consecutiveStableFrames = 1
+                } else {
+                    consecutiveStableFrames = 0
+                }
+                previousStableFrame = if (complete) frame else null
+                settled = frame
+                consecutiveStableFrames >= 3
+            }
+        }
+        return requireNotNull(settled) { "Pager wait ended without a stable measured frame" }
+    }
+
+    private fun readPagerFrameOrNull(): PagerFrame? = runCatching {
+        val state = requireNotNull(GeminiHomeGeometryProbe.pagerState())
+        val currentId = requireNotNull(state.currentId)
+        val leftId = state.leftId
+        val rightId = state.rightId
+        PagerFrame(
+            currentPage = state.currentPage,
+            targetPage = state.targetPage,
+            settledPage = state.settledPage,
+            isScrollInProgress = state.isScrollInProgress,
+            offsetFraction = state.offsetFraction,
+            currentId = currentId,
+            leftId = leftId,
+            rightId = rightId,
+            stateDescription = "current=$currentId left=$leftId right=$rightId pages=${state.currentPage + 1}/${state.pageCount}",
+            activeBounds = measuredBoundsOrNull("gemini-home-catch-card-$currentId"),
+            leftBounds = if (leftId == null) null else measuredBoundsOrNull("gemini-home-card-peek-left-$leftId"),
+            rightBounds = if (rightId == null) null else measuredBoundsOrNull("gemini-home-card-peek-right-$rightId"),
+        )
+    }.getOrNull()
+
+    private fun measuredBoundsOrNull(tag: String): RectF? = runCatching {
+        bounds(tag)
+    }.getOrNull()
+
+    private fun pagerFrameOrDiagnostic(): String = readPagerFrameOrNull()?.toJson()?.toString()
+        ?: runCatching { currentCarouselId() }.getOrElse { it.toString() }
+
+    private fun advanceFramesUntil(
+        timeoutMillis: Long,
+        timeoutDiagnostic: () -> String,
+        framePauseMillis: Long = 0,
+        condition: () -> Boolean,
+    ) {
+        val frameCount = (timeoutMillis / 16L).coerceAtLeast(1L).toInt()
+        repeat(frameCount) {
+            if (condition()) return
+            compose.mainClock.advanceTimeByFrame()
+            // Pager settling uses Compose frames and observed state only; callers
+            // can request wall-clock polling only for external asynchronous I/O.
+            if (framePauseMillis > 0) Thread.sleep(framePauseMillis)
+        }
+        assertTrue("Observed Pager state did not become stable before timeout: ${timeoutDiagnostic()}", condition())
+    }
+
+    private fun currentCarouselId(): String = GeminiHomeGeometryProbe.pagerState()?.let { state ->
+        state.currentId?.let { "当前鱼获 $it，第 ${state.currentPage + 1} 条，共 ${state.pageCount} 条" }
+            ?: "暂无鱼获，0 条记录"
+    } ?: "Pager state not observed"
 
     private fun swipeOnePagerPage(forward: Boolean) {
         val tag = "gemini-home-catch-pager"
@@ -889,6 +1048,53 @@ class GeminiNormalHomeResponsiveTest {
     private fun scaleToken(scale: Float): String = String.format(Locale.US, "%.1f", scale).replace('.', '_')
 
     private data class Profile(val widthDp: Int, val heightDp: Int, val fontScale: Float, val name: String)
+
+    private data class PagerFrame(
+        val currentPage: Int?,
+        val targetPage: Int?,
+        val settledPage: Int?,
+        val isScrollInProgress: Boolean?,
+        val offsetFraction: Float?,
+        val currentId: String,
+        val leftId: String?,
+        val rightId: String?,
+        val stateDescription: String,
+        val activeBounds: RectF?,
+        val leftBounds: RectF?,
+        val rightBounds: RectF?,
+    ) {
+        fun sameGeometry(other: PagerFrame): Boolean =
+            sameBounds(activeBounds, other.activeBounds) &&
+                sameBounds(leftBounds, other.leftBounds) && sameBounds(rightBounds, other.rightBounds)
+
+        fun toJson(): JSONObject = JSONObject().apply {
+            put("current_page", currentPage ?: JSONObject.NULL)
+            put("target_page", targetPage ?: JSONObject.NULL)
+            put("settled_page", settledPage ?: JSONObject.NULL)
+            put("is_scroll_in_progress", isScrollInProgress ?: JSONObject.NULL)
+            put("offset_fraction", offsetFraction ?: JSONObject.NULL)
+            put("current_record_id", currentId)
+            put("left_record_id", leftId ?: JSONObject.NULL)
+            put("right_record_id", rightId ?: JSONObject.NULL)
+            put("state_description", stateDescription)
+            put("active_bounds_unclipped_root_px", boundsJson(activeBounds))
+            put("left_bounds_unclipped_root_px", boundsJson(leftBounds))
+            put("right_bounds_unclipped_root_px", boundsJson(rightBounds))
+        }
+
+        private fun boundsJson(bounds: RectF?): Any = bounds?.let {
+            JSONObject().apply {
+                put("left", it.left); put("top", it.top); put("right", it.right); put("bottom", it.bottom)
+                put("width", it.width()); put("height", it.height())
+            }
+        } ?: JSONObject.NULL
+
+        private fun sameBounds(left: RectF?, right: RectF?, tolerancePx: Float = 0.25f): Boolean {
+            if (left == null || right == null) return left == null && right == null
+            return abs(left.left - right.left) <= tolerancePx && abs(left.top - right.top) <= tolerancePx &&
+                abs(left.right - right.right) <= tolerancePx && abs(left.bottom - right.bottom) <= tolerancePx
+        }
+    }
 
     private data class AvatarProfile(val isLoggedIn: Boolean, val avatarUrl: String?)
 }

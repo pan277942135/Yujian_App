@@ -41,14 +41,70 @@ class GeminiHomeAdaptiveLayoutPolicyTest {
         assertEquals(18f, resolve(390f, 796f, 1f).titleToCardGap.value, 0.001f)
         assertEquals(20f, resolve(430f, 884f, 1f).titleToCardGap.value, 0.001f)
         assertEquals(14f, resolve(320f, 432f, 1f).statsToTitleGap!!.value, 0.001f)
-        assertEquals(14f, resolve(360f, 592f, 1f).statsToTitleGap!!.value, 0.001f)
-        assertEquals(16f, resolve(390f, 796f, 1f).statsToTitleGap!!.value, 0.001f)
+        assertEquals(14.92f, resolve(360f, 592f, 1f).statsToTitleGap!!.value, 0.01f)
+        assertEquals(17.37143f, resolve(390f, 796f, 1f).statsToTitleGap!!.value, 0.01f)
         assertEquals(18f, resolve(430f, 884f, 1f).statsToTitleGap!!.value, 0.001f)
         listOf(1.0f, 1.3f, 1.5f).forEach { scale ->
             listOf(432f, 592f, 796f, 884f).forEach { height ->
                 assertTrue("V2.2 title gap remains >=8dp at font scale $scale", resolve(390f, height, scale).titleToCardGap.value >= 8f)
             }
         }
+    }
+
+    @Test
+    fun exactM01ExceptionUsesFrozenCompactSpacingAndTouchSafeCameraValues() {
+        val compact = resolveGeminiHomeLayoutSpec(
+            safeWidthDp = 320f,
+            safeHeightDp = 432f,
+            fontScale = 1f,
+            exactM01Exception = true,
+        )
+
+        assertEquals(9f, compact.brandToStatsGap!!.value, 0.001f)
+        assertEquals(12f, compact.statsToTitleGap!!.value, 0.001f)
+        assertEquals(8f, compact.titleToCardGap.value, 0.001f)
+        assertEquals(3f, compact.cardToFooterGap!!.value, 0.001f)
+        assertEquals(0f, compact.contentTopPadding.value, 0.001f)
+        assertEquals(0f, compact.footerTopPadding.value, 0.001f)
+        assertEquals(0f, compact.footerBottomPaddingSmallInset.value, 0.001f)
+        assertEquals(0f, compact.footerBottomPaddingLargeInset.value, 0.001f)
+        assertEquals(6f, compact.ctaCameraGap.value, 0.001f)
+
+        val nearbyShortScreen = resolveGeminiHomeLayoutSpec(
+            safeWidthDp = 320f,
+            safeHeightDp = 431f,
+            fontScale = 1f,
+        )
+        assertTrue("124dp floor is restricted to exact M01", nearbyShortScreen.minReadableCardHeight.value >= 148f)
+    }
+
+    @Test
+    fun contractCurvesRemainContinuousAtRequiredSafeHeightBoundaries() {
+        listOf(459f, 499f, 699f, 839f).forEach { lowerHeight ->
+            val before = resolve(360f, lowerHeight, 1f)
+            val after = resolve(360f, lowerHeight + 1f, 1f)
+            assertTrue("title gap jumps at $lowerHeight/${lowerHeight + 1}: ${before.titleToCardGap} -> ${after.titleToCardGap}",
+                kotlin.math.abs(after.titleToCardGap.value - before.titleToCardGap.value) <= 0.1f)
+            assertTrue("Stats-to-title gap jumps at $lowerHeight/${lowerHeight + 1}",
+                kotlin.math.abs(after.statsToTitleGap!!.value - before.statsToTitleGap!!.value) <= 0.1f)
+            assertTrue("Footer top padding jumps at $lowerHeight/${lowerHeight + 1}",
+                kotlin.math.abs(after.footerTopPadding.value - before.footerTopPadding.value) <= 0.5f)
+            assertTrue("Footer button gap jumps at $lowerHeight/${lowerHeight + 1}",
+                kotlin.math.abs(after.ctaCameraGap.value - before.ctaCameraGap.value) <= 0.5f)
+        }
+    }
+
+    @Test
+    fun positiveSurplusIsDividedEquallyBetweenInterBandGaps() {
+        val addition = geminiHomeEqualSurplusGapAddition(
+            middleHeightDp = 140f,
+            contentHeightDp = 100f,
+            baseGapBeforeDp = 10f,
+            baseGapAfterDp = 10f,
+        )
+
+        assertEquals(10f, addition, 0.001f)
+        assertEquals(0f, geminiHomeEqualSurplusGapAddition(119f, 100f, 10f, 10f), 0.001f)
     }
 
     @Test
@@ -114,12 +170,20 @@ class GeminiHomeAdaptiveLayoutPolicyTest {
     }
 
     @Test
-    fun cameraArtworkUsesFrozen88To96DpAndKeepsItsProportionOnShortScreens() {
-        assertEquals(88f, geminiHomeCameraVisualSize(320f, 480f), .001f)
-        assertEquals(95.892f, geminiHomeCameraVisualSize(393f, 780f), .001f)
-        assertEquals(96f, geminiHomeCameraVisualSize(430f, 900f), .001f)
-        assertEquals(96f, geminiHomeCameraVisualSize(900f, 1200f), .001f)
-        assertEquals(geminiHomeCameraVisualSize(393f, 432f), geminiHomeCameraVisualSize(393f, 852f), .001f)
+    fun cameraArtworkScalesWithCanvasWidthAndHeightWithoutGrowingUnbounded() {
+        val compact = geminiHomeCameraVisualSize(320f, 568f)
+        val phone = geminiHomeCameraVisualSize(393f, 780f)
+        val tallPhone = geminiHomeCameraVisualSize(411f, 843f)
+        val wideCanvas = geminiHomeCameraVisualSize(560f, 928f)
+        val shortViewport = geminiHomeCameraVisualSize(393f, 432f)
+        val extraWideViewport = geminiHomeCameraVisualSize(900f, 1200f)
+
+        assertTrue("phone camera art grows beyond compact size", phone > compact)
+        assertTrue("taller/wider phone camera art grows proportionally", tallPhone > phone)
+        assertTrue("large canvas receives larger camera art", wideCanvas > tallPhone)
+        assertEquals(80f, wideCanvas, 0.001f)
+        assertEquals(80f, extraWideViewport, 0.001f)
+        assertEquals("short viewports retain a visible minimum", 56f, shortViewport, 0.001f)
     }
 
     @Test

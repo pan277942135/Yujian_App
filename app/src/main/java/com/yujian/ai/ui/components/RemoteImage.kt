@@ -15,6 +15,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
@@ -24,6 +25,7 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.net.HttpURLConnection
@@ -31,6 +33,7 @@ import java.net.URL
 import java.io.File
 import java.security.MessageDigest
 import java.util.LinkedHashMap
+import java.util.concurrent.ConcurrentHashMap
 import com.yujian.ai.ui.imagery.FishPhotoBoundingBox
 import com.yujian.ai.ui.imagery.FishPhotoCropPlanner
 
@@ -54,6 +57,44 @@ private object RemoteBitmapMemoryCache {
             bytes -= evicted.byteCount
             iterator.remove()
             // Do not recycle: a composed Image may still hold this bitmap until it leaves composition.
+        }
+    }
+}
+
+/** Non-blocking, opt-in runtime observation for the NH01 instrumentation waits. */
+internal object RemoteImageRuntimeProbe {
+    data class Snapshot(val loadStatus: String?, val rendered: Boolean?)
+
+    @Volatile
+    private var captureEnabled = false
+    private val states = ConcurrentHashMap<String, Snapshot>()
+
+    fun beginCapture() {
+        states.clear()
+        captureEnabled = true
+    }
+
+    fun endCapture() {
+        captureEnabled = false
+    }
+
+    fun snapshot(identity: String): Snapshot? = states[identity]
+
+    internal fun recordLoadStatus(identity: String?, status: String) {
+        if (!captureEnabled || identity.isNullOrBlank()) return
+        synchronized(states) {
+            val previous = states[identity]
+            states[identity] = Snapshot(
+                loadStatus = status,
+                rendered = if (status == "LOADING") false else previous?.rendered,
+            )
+        }
+    }
+
+    internal fun recordRendered(identity: String?, rendered: Boolean) {
+        if (!captureEnabled || identity.isNullOrBlank()) return
+        synchronized(states) {
+            states[identity] = Snapshot(states[identity]?.loadStatus, rendered)
         }
     }
 }
@@ -283,7 +324,7 @@ private fun SmartRemoteFishPhoto(
                     boundingBox, primaryAmbiguous,
                 )
                 RenderedFishPhoto(it, plan, renderKey)
-            } ?: runCatching {
+            } ?: try {
                 withContext(Dispatchers.Default) {
                     FishPhotoRenderer.render(
                         source = source,
@@ -294,7 +335,14 @@ private fun SmartRemoteFishPhoto(
                         primaryAmbiguous = primaryAmbiguous,
                     )
                 }
-            }.onFailure { android.util.Log.w("FishPhotoCrop", "image_render_failed", it) }.getOrNull()
+            } catch (cancelled: CancellationException) {
+                // A layout-size/source-key change cancels the previous render.
+                // Cancellation is not a failed photo and must not emit FALLBACK.
+                throw cancelled
+            } catch (failure: Exception) {
+                android.util.Log.w("FishPhotoCrop", "image_render_failed", failure)
+                null
+            }
             renderedState.value = rendered
             latestOnLoadResult.value?.invoke(rendered != null)
         }
@@ -315,6 +363,11 @@ private fun SmartRemoteFishPhoto(
             }
         } else null
         val rendered = (cachedRender ?: renderedState.value).takeIf { sourceKey != null }
+        SideEffect {
+            // This is recorded after composition, so READY plus rendered=true proves
+            // the actual fish-photo Image node was emitted, not only that decoding ended.
+            RemoteImageRuntimeProbe.recordRendered(cacheIdentity, rendered != null)
+        }
         if (rendered != null) {
             Box(Modifier.fillMaxSize().testTag("home-evidence-backdrop-ready")) {
                 val imageTag = if (rendered.plan.mode == com.yujian.ai.ui.imagery.FishPhotoDisplayMode.FULL_FRAME_WITH_SOURCE_BACKDROP) {
@@ -382,7 +435,7 @@ private fun loadBitmap(url: String, authToken: String?, orientEvidence: Boolean 
     }
 }.getOrNull()
 
-private fun loadSampledOrientedBitmap(url: String, authToken: String?, targetWidth: Int, targetHeight: Int): Bitmap? = runCatching {
+private fun loadSampledOrientedBitmap(url: String, authToken: String?, targetWidth: Int, targetHeight: Int): Bitmap? = try {
     val bytes = when {
         url.startsWith("file://") -> File(requireNotNull(Uri.parse(url).path)).readBytes()
         url.startsWith("/") -> File(url).readBytes()
@@ -402,7 +455,14 @@ private fun loadSampledOrientedBitmap(url: String, authToken: String?, targetWid
         }
     }
     decodeOrientedEvidenceSampled(bytes, targetWidth, targetHeight)
-}.getOrNull()
+} catch (cancelled: CancellationException) {
+    // The source load is keyed by measured photo bounds. A size change may
+    // cancel an obsolete decode; do not convert that cancellation into FALLBACK.
+    throw cancelled
+} catch (failure: Exception) {
+    android.util.Log.w("FishPhotoCrop", "image_decode_failed", failure)
+    null
+}
 
 /** Crop only verified, uniform near-black source margins for presentation. The source file/bytes are never edited. */
 private fun trimVerifiedSolidLetterbox(source: Bitmap): Bitmap {
