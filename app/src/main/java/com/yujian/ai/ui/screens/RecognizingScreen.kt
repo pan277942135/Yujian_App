@@ -1081,6 +1081,8 @@ fun RecognitionProcessingScene(
         if (image != null && photoFlowPlan != null) RecognitionPhoto(
             waterLightFrame = waterLightFrame,
             waterLightEngine = waterLightEngine,
+            energyPathLedger = energyPathLedger,
+            revealDecision = revealDecision,
             bitmap = image.bitmap,
             photoFlowPlan = photoFlowPlan,
             orbCenter = run {
@@ -1381,6 +1383,8 @@ private fun RecognitionSceneStage.toRecognitionPhase(): RecognitionPhase = when 
 private fun RecognitionPhoto(
     waterLightFrame: WaterLightFrame,
     waterLightEngine: UnifiedWaterLightEngine,
+    energyPathLedger: WaterLightPathLedger,
+    revealDecision: RecognitionRevealDecisionState,
     bitmap: Bitmap,
     photoFlowPlan: RecognitionPhotoFlowPlan,
     orbCenter: Offset,
