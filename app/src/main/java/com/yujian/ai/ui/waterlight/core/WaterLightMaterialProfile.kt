@@ -32,11 +32,24 @@ data class WaterLightMaterialProfile(
     val speed: Float = 1f,
     val coverage: Float = 1f,
     val blendMode: WaterLightBlendMode = WaterLightBlendMode.SOURCE_OVER,
+    // EFFECT_02 algorithm inputs from the Web reference; visual colors remain the frozen Android palette.
+    val perimeterIntensity: Float = 1.8f,
+    val perimeterMarginRatio: Float = .015f,
+    val perimeterBlendRatio: Float = .8f,
+    val perimeterBottomMaskStrength: Float = 1f,
+    val perimeterCausticsDensity: Float = .85f,
+    val perimeterGlowSizePx: Float = 45f,
+    val perimeterSpreadDurationMs: Long = 1_200L,
 ) {
     init {
         require(listOf(opacity, motionScale, materialScale, coreAlpha, glowAlpha, coreWidth,
-            glowWidth, blurRadius, feather, speed, coverage).all { it.isFinite() && it >= 0f })
+            glowWidth, blurRadius, feather, speed, coverage, perimeterIntensity,
+            perimeterMarginRatio, perimeterBlendRatio, perimeterBottomMaskStrength,
+            perimeterCausticsDensity, perimeterGlowSizePx).all { it.isFinite() && it >= 0f })
         require(opacity <= 1f && coreAlpha <= 1f && glowAlpha <= 1f && coverage <= 1f)
+        require(perimeterMarginRatio <= .1f && perimeterBlendRatio <= 1f &&
+            perimeterBottomMaskStrength <= 1f && perimeterCausticsDensity <= 1f &&
+            perimeterSpreadDurationMs > 0L)
     }
     companion object {
         val ORB_LEGACY = WaterLightMaterialProfile(
@@ -60,10 +73,25 @@ data class WaterLightMaterialProfile(
             blurRadius = blur, blendMode = mode,
         )
 
-        // B01-compatible cool-water candidate; not visually frozen on target devices.
-        // Do not regress to the rejected Effect 01 teal triplet (#0B6E69/#4DD0C7/#DDF7F5).
-        val PERIMETER = candidate(WaterLightHost.PERIMETER, 0xFF2D7C89, 0xFF67BDCA,
-            0xFFC1E9EE, 1f, 36f, 0f, 1f, WaterLightBlendMode.OVERLAY_POSITIVE)
+        // Frozen perimeter palette A: lake-teal lead, warm-gold support, ice-cyan highlight.
+        // Web EFFECT_02 geometry/caustics values are retained below; Web's mislabeled raw
+        // color triplet is not allowed to override the already-frozen Android visual palette.
+        val PERIMETER = candidate(WaterLightHost.PERIMETER, 0xFF2E8B83, 0xFFD8B36A,
+            0xFFDDFBFF, 1f, 45f, 0f, 1f, WaterLightBlendMode.OVERLAY_POSITIVE).copy(
+            goldColor = 0xFFD8B36A,
+            blueColor = 0xFF7DD3FC,
+            greenColor = 0xFF2E8B83,
+            primaryColor = 0xFF2E8B83,
+            secondaryColor = 0xFFD8B36A,
+            highlightColor = 0xFFDDFBFF,
+            perimeterIntensity = 1.8f,
+            perimeterMarginRatio = .015f,
+            perimeterBlendRatio = .8f,
+            perimeterBottomMaskStrength = 1f,
+            perimeterCausticsDensity = .85f,
+            perimeterGlowSizePx = 45f,
+            perimeterSpreadDurationMs = 1_200L,
+        )
         val PATH = candidate(WaterLightHost.PATH, 0xFFC7EFE8, 0xFF1A525C,
             0xFFE1F6F3, 1.2f, 4f, 3f, .6f, WaterLightBlendMode.SCREEN)
         val CONTOUR = candidate(WaterLightHost.CONTOUR, 0xFFFFE3A6, 0xFFF6C771,
