@@ -127,6 +127,10 @@ shared_contracts:
     domain: "DOMAIN"
     status: "ACTIVE_CLOSURE"
     refs: ["harness/task_contracts/UNIFIED_WATERLIGHT_A02_CORE_COMPONENT_ANDROID_INTEGRATION_V1.md", "harness/reports/UNIFIED_WATERLIGHT_A01_RESOURCE_AUDIT_REPORT_V1.md", "harness/task_contracts/ANDROID_PROCESSING_LAKE_ORB_V1.md", "harness/task_contracts/ANDROID_AI_ORB_CORE_COMPONENT_V1.md", "design/system/components/ai_orb_core/visual_contract.json", "design/system/components/ai_orb_core/motion_contract.json", "design/system/components/ai_orb_core/state_contract.json", "design/pages/recognition/processing/optics/SWOS_Optical_Contract_V1.md", "design/pages/recognition/processing/motion/Recognition_Processing_Motion_Spec_V1_3.md", "design/pages/recognition/continuity/Processing_Result_Optical_Continuity_Contract_V1.md", "design/pages/recognition/processing/optics/SWOS_RR09_Optical_Rendering_Acceptance_Contract_V1_2.md", "design/pages/recognition/processing/optics/Android_AiStudio_Perimeter_Shader_Port_V1.md", "harness/task_contracts/ANDROID_SLIMSAM_PIXEL_SEGMENTATION_V1.md", "https://github.com/ethanfox/water-caustics/tree/de856eec62819b7c4176366db73b8fd37a1b1455", "https://github.com/ethanfox/water-caustics/blob/de856eec62819b7c4176366db73b8fd37a1b1455/LICENSE"]
+  AI-ORB-WATERLIGHT-WEB-ANDROID-LIFECYCLE-V3:
+    domain: "DOMAIN"
+    status: "ACTIVE_CLOSURE"
+    refs: ["harness/task_contracts/YUJIAN_ORB_WATERLIGHT_WEB_ANDROID_FULL_LIFECYCLE_V3.md", "design/pages/recognition/processing/optics/AI_ORB_WATERLIGHT_UNIFIED_LIFECYCLE_V3.md", "design/pages/recognition/processing/optics/AI_ORB_WATERLIGHT_13_STAGE_STATE_MACHINE_V3.md", "design/pages/recognition/processing/optics/AI_ORB_WATERLIGHT_RUNTIME_PARAMETERS_V3.json", "design/pages/recognition/processing/optics/WEB_ANDROID_RENDERING_COMPATIBILITY_AUDIT_V3.md"]
   DS-FOUNDATION:
     domain: "SHARED"
     status: "FROZEN"
@@ -1625,6 +1629,12 @@ gate_contracts:
     acceptance_domains: ["component", "material", "geometry", "mask_mapping", "algorithm_parity", "host_integration", "build", "unit_test", "lint", "runtime", "performance", "visual", "accessibility", "evidence", "apk_provenance"]
     exact_sha_required: true
 
+  G-ANDROID-ORB-WATERLIGHT-WEB-FULL-LIFECYCLE-V3:
+    purpose: "Exact-SHA closure of the semantic 13-stage Android Orb × WaterLight lifecycle, parallel classifier/mask join, trusted-mask versus Orb-only reveal, selected Web shader/contour migration, shared scene controls and Debug APK. Physical-device/API28 acceptance remains a separate product-owner activity."
+    contract_refs: ["AI-ORB-WATERLIGHT-WEB-ANDROID-LIFECYCLE-V3", "FC-recognition_flow_v1_2", "FC-recognition_result_v1", "ANDROID-UNIFIED-WATERLIGHT-A02-V1", "AI-ORB-CORE-V1", "ANDROID-SLIMSAM-PIXEL-SEGMENTATION-V1", "ANDROID-RUNTIME-HARNESS", "STATE-EVIDENCE-PROVENANCE"]
+    acceptance_domains: ["implementation", "scene_clock", "model_join", "mask_trust", "shader_migration", "unit_test", "android_test_compile", "lint", "build", "apk_provenance", "visual_owner_acceptance"]
+    exact_sha_required: true
+
   G-NH01-LAKE-LIGHT-VISUAL-RESPONSIVE-CLOSURE-V1:
     purpose: "Exact-SHA closure of the user-selected private Lake Light visual reference on NH01 Design Manager real DOM and Android Gemini route while retaining the frozen V2 numeric authority and excluding private photo bytes from public outputs."
     contract_refs: ["FC-home_normal_v1", "RESPONSIVE-LAYOUT-STANDARD-V1", "ANDROID-RUNTIME-HARNESS", "STATE-EVIDENCE-PROVENANCE"]
@@ -1837,6 +1847,10 @@ task_contract_bindings:
   YUJIAN_UNIFIED_WATERLIGHT_A02_CORE_COMPONENT_ANDROID_INTEGRATION_V1:
     contract_refs: ["FC-recognition_flow_v1_2", "ANDROID-UNIFIED-WATERLIGHT-A02-V1", "AI-ORB-CORE-V1", "ANDROID-PROCESSING-LAKE-ORB-V1", "ANDROID-AISTUDIO-PERIMETER-SHADER-PORT-V1", "ANDROID-SLIMSAM-PIXEL-SEGMENTATION-V1", "RECOGNITION-OPTICAL-CONTINUITY", "SWOS-RR09-OPTICAL-V1_2", "ANDROID-RUNTIME-HARNESS", "STATE-EVIDENCE-PROVENANCE", "G-ANDROID-UNIFIED-WATERLIGHT-A02-V1"]
     gate_id: "G-ANDROID-UNIFIED-WATERLIGHT-A02-V1"
+    phase: "P6"
+  YUJIAN_ORB_WATERLIGHT_WEB_ANDROID_FULL_LIFECYCLE_V3:
+    contract_refs: ["AI-ORB-WATERLIGHT-WEB-ANDROID-LIFECYCLE-V3", "FC-recognition_flow_v1_2", "FC-recognition_result_v1", "ANDROID-UNIFIED-WATERLIGHT-A02-V1", "AI-ORB-CORE-V1", "ANDROID-SLIMSAM-PIXEL-SEGMENTATION-V1", "ANDROID-RUNTIME-HARNESS", "STATE-EVIDENCE-PROVENANCE", "G-ANDROID-ORB-WATERLIGHT-WEB-FULL-LIFECYCLE-V3"]
+    gate_id: "G-ANDROID-ORB-WATERLIGHT-WEB-FULL-LIFECYCLE-V3"
     phase: "P6"
   YUJIAN_ANDROID_HOME_CAPTURE_ACTIVATION_CAMERA_RUNTIME_FULL_CLOSURE_V2:
     contract_refs: ["ANDROID-HOME-CAPTURE-RUNTIME-V2", "DS-FOUNDATION", "ANDROID-RUNTIME-HARNESS", "STATE-EVIDENCE-PROVENANCE"]
