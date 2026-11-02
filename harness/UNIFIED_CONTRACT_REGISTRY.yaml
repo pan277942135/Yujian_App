@@ -216,6 +216,11 @@ shared_contracts:
     status: "ACTIVE_CLOSURE"
     refs: ["harness/task_contracts/LAKE_GLASS_V2_ASSET_PACK_ANDROID_RUNTIME_INTEGRATION_V1.md", "harness/STATE_UPDATE_PROTOCOL.md", "scripts/run_android_runtime_gate.sh"]
 
+  LAKE-GLASS-V2-OPEN-SOURCE-SHADER-REUSE-V1:
+    domain: "DOMAIN"
+    status: "ACTIVE_CLOSURE"
+    refs: ["harness/task_contracts/YUJIAN_LAKE_GLASS_V2_OPEN_SOURCE_SHADER_REUSE_V1.md", "harness/task_contracts/LAKE_GLASS_V2_ASSET_PACK_ANDROID_RUNTIME_INTEGRATION_V1.md", "harness/STATE_UPDATE_PROTOCOL.md"]
+
 feature_contracts:
   home_empty_v2:
     contract_id: "FC-home_empty_v2"
@@ -1818,6 +1823,12 @@ gate_contracts:
     acceptance_domains: ["asset_integrity", "layer_state_parity", "static_composition", "manual_visual", "route_coverage", "component", "responsive", "api_fallback", "transform", "unit_test", "android_test_compile", "lint", "build", "performance", "runtime", "apk_provenance", "device_visual"]
     exact_sha_required: true
 
+  G-LAKE-GLASS-V2-OPEN-SOURCE-SHADER-REUSE-V1:
+    purpose: "Exact-SHA acceptance of attributed OSS shader reuse for Lake Glass V2 caustics, fixed-source ambient modulation, and three fixed droplets, including API fallback and baked-composite double-draw protection."
+    contract_refs: ["LAKE-GLASS-V2-OPEN-SOURCE-SHADER-REUSE-V1", "FC-home_normal_v1", "FC-recognition_flow_v1_2", "FC-recognition_result_v1", "ANDROID-RUNTIME-HARNESS", "STATE-EVIDENCE-PROVENANCE"]
+    acceptance_domains: ["source_audit", "license", "dependency", "shader", "component", "lab", "asset_integrity", "api_fallback", "unit_test", "android_test_compile", "lint", "build", "visual", "responsive", "performance", "runtime", "apk_provenance", "device_visual"]
+    exact_sha_required: true
+
 task_contract_bindings:
   YUJIAN_ANDROID_AI_ORB_CORE_COMPONENT_V1:
     contract_refs: ["AI-ORB-CORE-V1", "FC-home_empty_v2", "FC-home_normal_v1", "FC-recognition_flow_v1_2", "FC-recognition_result_v1", "DS-FOUNDATION", "ANDROID-RUNTIME-HARNESS", "STATE-EVIDENCE-PROVENANCE", "G-ANDROID-AI-ORB-CORE-V1"]
@@ -2114,6 +2125,11 @@ task_contract_bindings:
     gate_id: "G-LAKE-GLASS-V2-ASSET-ANDROID-RUNTIME-V1"
     phase: "P6"
 
+  YUJIAN_LAKE_GLASS_V2_OPEN_SOURCE_SHADER_REUSE_V1:
+    contract_refs: ["LAKE-GLASS-V2-OPEN-SOURCE-SHADER-REUSE-V1", "FC-home_normal_v1", "FC-recognition_flow_v1_2", "FC-recognition_result_v1", "ANDROID-RUNTIME-HARNESS", "STATE-EVIDENCE-PROVENANCE", "G-LAKE-GLASS-V2-OPEN-SOURCE-SHADER-REUSE-V1"]
+    gate_id: "G-LAKE-GLASS-V2-OPEN-SOURCE-SHADER-REUSE-V1"
+    phase: "P6"
+
 contract_conflicts:
   C-FIRST-USE-GUIDE-PAGE-COUNT:
     status: "RESOLVED"
@@ -2148,9 +2164,9 @@ inventory:
   journey_count: 20
   child_surface_count: 81
   route_count: 22
-  task_count: 74
-  gate_count: 34
+  task_count: 75
+  gate_count: 35
   registry_created_from_pr_head: "ebb6b3904feaa0cf26b4fd4b83bc809a397085a2"
-  last_synced_feature_matrix_sha: "df1588a0932cc0c8b529d61e96e4801f61322ad5"
-  last_synced_phase_task_state_machine_sha: "489bf11cddcf612a58aac669d79f3da2c86de0d1"
+  last_synced_feature_matrix_sha: "10a7ff2fe0c905b7c7e22ec88c29383d57847c34"
+  last_synced_phase_task_state_machine_sha: "ed0b9d1052da58095d65241eae23af2eb2f49275"
   last_synced_experience_registry_sha: "47be44ca3cbce908fa676e262987fe26a8dbea32"
