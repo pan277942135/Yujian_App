@@ -429,7 +429,8 @@ async function main() {
   await page.waitForFunction(expected => location.hash === expected, resourcesHash);
   await waitForHifiView(page);
   assert((await page.locator("#hifiViewTitle").innerText()).trim() === "资源", "Resources submenu must open its registered route");
-  assert((await page.locator("#hifiViewSummary").innerText()).includes("不映射为 Android 运行时背景"), "Resources route must state its Android runtime boundary");
+  const routeSummary = await page.locator("#hifiViewSummary").innerText();
+  assert(routeSummary.includes("Android Runtime") && routeSummary.includes("Frozen 整页 PNG") && routeSummary.includes("NOT_RUN"), "Resources route must distinguish approved runtime photos, design-only page PNGs, and unrun API 28 acceptance");
   await page.locator('[data-testid="first-use-guide-workspace"]').waitFor({state: "visible", timeout: 30000});
   await page.locator('[data-guide-tab="structure"]').waitFor({state: "visible", timeout: 30000});
   assert(await page.locator(".guide-workspace-tabs [data-guide-tab]").count() === 3, "Resources route must expose structure, responsive and assets workspaces");
@@ -467,11 +468,13 @@ async function main() {
   }
   const manifestLinks = page.locator(".guide-workspace-authorities a");
   const manifestHrefs = await manifestLinks.evaluateAll(nodes => nodes.map(node => node.getAttribute("href")));
-  for (const path of ["manifest.json", "frontend_assets_manifest.json", "structured_pages.json", "geometry_measurements.json", "responsive_contract.json", "PREDEV_READINESS_MATRIX.json", "Freeze_Decision.md"]) {
+  for (const path of ["manifest.json", "frontend_assets_manifest.json", "structured_pages.json", "geometry_measurements.json", "responsive_contract.json", "PREDEV_READINESS_MATRIX.json", "Freeze_Decision.md", "OWNER_APPROVAL_20261102.md"]) {
     assert(manifestHrefs.some(href => href?.includes(`first_use_camera_guide/${path}`)), `Resources workspace must link ${path}`);
   }
   assert(await page.locator(".guide-asset-slot").count() === 12, "Resources workspace must display all 12 page/role photo slots");
-  assert(await page.locator(".guide-asset-slot[data-authority='CANDIDATE_NEEDS_APPROVAL']").count() === 12, "All generated images must remain candidate assets");
+  assert(await page.locator(".guide-asset-slot[data-authority='OWNER_APPROVED_FOR_RUNTIME']").count() === 12, "All twelve page/role slots must reflect the explicit runtime approval");
+  assert(await page.locator(".guide-asset-slot").filter({hasText: "GENERATED_CANDIDATE"}).count() === 12, "Runtime approval must not promote generated images to Frozen assets");
+  assert(await page.locator('[data-testid="guide-runtime-backgrounds"] .guide-runtime-background-card').count() === 2, "Resources workspace must expose both approved page backgrounds");
   assert(await page.locator(".guide-asset-slot[data-asset-id$='_correct_hero']").filter({hasText: "ASSET_SOURCE_BLOCKED"}).count() === 3, "Three original Hero source slots must remain explicitly blocked");
   assert(await page.locator(".guide-reference-only").count() === 9, "Nine archived composite crops must remain REFERENCE_ONLY");
   assert(await page.locator(".guide-asset-slot[data-asset-id^='p02_']").count() === 4, "P02 must have four vertical-orientation candidate bindings");
@@ -486,7 +489,7 @@ async function main() {
     }));
     assert(dimensions.width > 0 && dimensions.height > 0, `Independent candidate image did not load: ${await asset.getAttribute("data-asset-id")}`);
     const cardText = await asset.innerText();
-    assert(cardText.includes("CANDIDATE_NEEDS_APPROVAL") && cardText.includes("approved_for_frontend=false") && cardText.includes("approved_for_runtime=false"), "Candidate status and production boundary must be visible");
+    assert(cardText.includes("OWNER_APPROVED_FOR_RUNTIME") && cardText.includes("GENERATED_CANDIDATE") && cardText.includes("approved_for_runtime=true") && cardText.includes("NOT_FROZEN"), "Owner approval must be visible while generated candidates remain non-Frozen");
     assert(await asset.locator("a[download]").count() === 1, "Each independent candidate needs a direct original-file download link");
   }
   await page.locator(".guide-workspace-tabs").scrollIntoViewIfNeeded();
