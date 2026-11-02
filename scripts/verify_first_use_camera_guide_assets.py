@@ -12,6 +12,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 GUIDE = ROOT / "design/pages/recognition/first_use_camera_guide"
+APPROVAL_ID = "YUJIAN_FIRST_USE_GUIDE_RUNTIME_ASSET_OWNER_APPROVAL_20261102"
 TASK = "YUJIAN_FIRST_USE_GUIDE_PREDEV_CONTRACT_ASSETS_RESPONSIVE_FREEZE_V1"
 EXPECTED = {
     "p01": {
@@ -54,6 +55,38 @@ def image_identity(path: Path) -> dict:
         fail(f"invalid PNG signature/IHDR: {path.relative_to(ROOT)}")
     width, height = struct.unpack(">II", raw[16:24])
     return {"width": width, "height": height, "bytes": len(raw), "sha256": hashlib.sha256(raw).hexdigest()}
+
+
+def jpeg_identity(path: Path) -> dict:
+    if not path.is_file():
+        fail(f"missing JPEG file: {path.relative_to(ROOT)}")
+    raw = path.read_bytes()
+    if len(raw) < 4 or raw[:2] != b"\\xff\\xd8":
+        fail(f"invalid JPEG signature: {path.relative_to(ROOT)}")
+    offset = 2
+    start_of_frame = {0xC0, 0xC1, 0xC2, 0xC3, 0xC5, 0xC6, 0xC7, 0xC9, 0xCA, 0xCB, 0xCD, 0xCE, 0xCF}
+    while offset + 4 < len(raw):
+        if raw[offset] != 0xFF:
+            offset += 1
+            continue
+        while offset < len(raw) and raw[offset] == 0xFF:
+            offset += 1
+        if offset >= len(raw):
+            break
+        marker = raw[offset]
+        offset += 1
+        if marker in {0xD8, 0xD9, 0x01} or 0xD0 <= marker <= 0xD7:
+            continue
+        if offset + 2 > len(raw):
+            break
+        segment_length = int.from_bytes(raw[offset:offset + 2], "big")
+        if segment_length < 2 or offset + segment_length > len(raw):
+            break
+        if marker in start_of_frame:
+            height, width = struct.unpack(">HH", raw[offset + 3:offset + 7])
+            return {"width": width, "height": height, "bytes": len(raw), "sha256": hashlib.sha256(raw).hexdigest()}
+        offset += segment_length
+    fail(f"JPEG dimensions not found: {path.relative_to(ROOT)}")
 
 
 def find_resources_node(value):
@@ -121,8 +154,15 @@ def verify_candidate_manifest() -> dict:
     manifest = load(GUIDE / "frontend_assets_manifest.json")
     if str(manifest.get("schema_version")) not in {"1.1", "1.0"} or manifest.get("task_id") != TASK:
         fail("front-end asset manifest schema/task ID mismatch")
-    if manifest.get("status") != "GENERATED_CANDIDATES_AVAILABLE; ORIGINAL_PHOTOS_AND_APPROVAL_BLOCKED":
-        fail("asset manifest must clearly state generated candidate and missing originals")
+    if manifest.get("status") != "OWNER_APPROVED_GENERATED_CANDIDATES_AVAILABLE; ORIGINAL_PHOTOS_NOT_REQUIRED_FOR_RUNTIME":
+        fail("asset manifest must clearly state product-owner runtime approval")
+    approval = manifest.get("owner_approval", {})
+    if approval.get("approval_id") != APPROVAL_ID or approval.get("approved_unique_candidate_count") != 8 or approval.get("approved_for_android_runtime") is not True:
+        fail("explicit owner approval for the eight candidate images is missing")
+    if approval.get("approval_record") != "design/pages/recognition/first_use_camera_guide/OWNER_APPROVAL_20261102.md":
+        fail("owner approval record path mismatch")
+    if not (ROOT / approval["approval_record"]).is_file():
+        fail("owner approval record file is missing")
     assets = manifest.get("assets", [])
     expected_slots = {f"{page}_{role}" for page in PAGES for role in ROLES}
     if len(assets) != 12 or {item.get("id") for item in assets} != expected_slots:
@@ -143,16 +183,16 @@ def verify_candidate_manifest() -> dict:
         pages = ["p01", "p03"] if expected_orientation == "horizontal" else ["p02"]
         if asset.get("page_refs") != pages:
             fail(f"{slot_id} page_refs must reflect shared physical file bindings {pages}")
-        if asset.get("authority_state") != "CANDIDATE_NEEDS_APPROVAL" or asset.get("candidate_status") != "CANDIDATE_NEEDS_APPROVAL":
-            fail(f"generated candidate incorrectly promoted: {slot_id}")
+        if asset.get("authority_state") != "OWNER_APPROVED_FOR_RUNTIME" or asset.get("candidate_status") != "OWNER_APPROVED_FOR_RUNTIME":
+            fail(f"generated candidate approval state mismatch: {slot_id}")
         if asset.get("original_source_status") != "ASSET_SOURCE_BLOCKED" or asset.get("original_source_found") is not False:
             fail(f"original source state must remain blocked for {slot_id}")
-        if asset.get("approved_for_frontend") is not False or asset.get("approved_for_runtime") is not False:
-            fail(f"unapproved photo was marked as a production/runtime asset: {slot_id}")
+        if asset.get("approved_for_frontend") is not True or asset.get("approved_for_runtime") is not True or asset.get("owner_approval_id") != APPROVAL_ID:
+            fail(f"owner-approved runtime mapping is incomplete: {slot_id}")
         if asset.get("source_type") != "GENERATED_CANDIDATE" or asset.get("candidate_type") != "GENERATED_CANDIDATE":
             fail(f"candidate provenance missing for {slot_id}")
-        if "NOT_CONFIRMED" not in asset.get("license_status", ""):
-            fail(f"unresolved source license status is missing for {slot_id}")
+        if "Product owner approved" not in asset.get("license_status", ""):
+            fail(f"product-owner runtime approval note missing for {slot_id}")
         if not asset.get("privacy_status") or not asset.get("semantic_crop") or not asset.get("focal_point_normalized"):
             fail(f"privacy/crop/focal-point metadata missing for {slot_id}")
         if asset.get("fit") != "contain":
@@ -174,6 +214,36 @@ def verify_candidate_manifest() -> dict:
 
     if len(by_path) != 8:
         fail(f"12 slots must reference eight unique candidate source files, found {len(by_path)}")
+    backgrounds = manifest.get("runtime_backgrounds", [])
+    expected_backgrounds = {
+        "p01_p03_horizontal_background": {
+            "path": "assets/backgrounds/first_use_guide_bg_p01.jpg",
+            "pages": ["p01", "p03"], "width": 941, "height": 1672, "bytes": 124618,
+            "sha256": "544bbf91245ea0bc1a47fd5744effcd25b93f70748de926af1dd41c01e6498cf",
+        },
+        "p02_vertical_background": {
+            "path": "assets/backgrounds/first_use_guide_bg_p02.jpg",
+            "pages": ["p02"], "width": 941, "height": 1672, "bytes": 116538,
+            "sha256": "75c61cd08ed4a7bf9fd522cdbaff564928a00198ccd96f54d65aa9ef00d8d823",
+        },
+    }
+    if len(backgrounds) != len(expected_backgrounds):
+        fail("exactly two page background photos must be registered")
+    for background in backgrounds:
+        expected = expected_backgrounds.get(background.get("id"))
+        if not expected:
+            fail(f"unexpected Runtime background mapping: {background.get('id')}")
+        path = background.get("source_path", "")
+        if path != f"design/pages/recognition/first_use_camera_guide/{expected['path']}":
+            fail(f"background source path mismatch: {background.get('id')}")
+        actual = jpeg_identity(ROOT / path)
+        for key in ("width", "height", "bytes", "sha256"):
+            if actual[key] != expected[key] or background.get(key) != expected[key]:
+                fail(f"background source identity mismatch for {background['id']}:{key}")
+        if background.get("page_refs") != expected["pages"] or background.get("approved_for_runtime") is not True:
+            fail(f"background page binding/approval mismatch: {background['id']}")
+        if background.get("owner_approval_id") != APPROVAL_ID:
+            fail(f"background approval record missing: {background['id']}")
     for role in ROLES:
         if by_slot[f"p01_{role}"]["source_path"] != by_slot[f"p03_{role}"]["source_path"]:
             fail(f"P01/P03 must explicitly share the same horizontal candidate for {role}")
