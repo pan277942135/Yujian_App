@@ -1,0 +1,32 @@
+{
+  "schemaVersion": "1.0",
+  "canvasSizePx": [
+    1440,
+    3120
+  ],
+  "coordinateSystem": "master px, top-left origin",
+  "defaultRenderer": "Compose Canvas / Android Canvas",
+  "api24to32": {
+    "mode": "static",
+    "primary": "assets/android_runtime/api24_static/lake_glass_static_layered_v3.png",
+    "fallback": "assets/android_runtime/api24_static/lake_glass_master_fallback.png",
+    "sunlight": "baked in base"
+  },
+  "api33plus": {
+    "mode": "optional AGSL RuntimeShader",
+    "noGLSurfaceView": true,
+    "caustics": "assets/caustics/caustics_texture_v2.png",
+    "dropletMaps": "assets/droplets/*_normal_map.png, *_height_map.png, *_displacement_map.png, *_specular_mask.png",
+    "grass": [
+      "assets/grass/grass_left_rgba_v2.png",
+      "assets/grass/grass_right_rgba_v2.png"
+    ],
+    "sunlight": {
+      "asset": "assets/sunlight/sunlight_field_v2.png",
+      "runtimeEligible": false
+    }
+  },
+  "singleGlobalMatrix": true,
+  "decodeCache": "decode once; canonical source remains lossless",
+  "scope": "assets only; no Android pages or renderer source changed"
+}

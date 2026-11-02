@@ -1,0 +1,349 @@
+{
+  "schemaVersion": "3.0",
+  "canvasSize": [
+    1440,
+    3120
+  ],
+  "coordinateSystem": {
+    "origin": "top-left",
+    "xAxis": "right",
+    "yAxis": "down",
+    "normalized": true
+  },
+  "globalTransform": "single uniform transform applied to every layer",
+  "visibleCompositeLayerIds": [
+    "LAYER_BASE_CLEAN",
+    "LAYER_CAUSTICS",
+    "LAYER_DROPLET_01_LEFT",
+    "LAYER_DROPLET_02_UPPER_RIGHT",
+    "LAYER_DROPLET_03_LOWER_RIGHT",
+    "LAYER_GRASS_LEFT",
+    "LAYER_GRASS_RIGHT"
+  ],
+  "excludedFromVisibleStack": [
+    "LAYER_SUNLIGHT_FIELD"
+  ],
+  "layers": [
+    {
+      "layerId": "LAYER_BASE_CLEAN",
+      "semantic": "Lake water clean plate",
+      "assetFile": "assets/base/lake_base_clean_v2.png",
+      "pixelBounds": [
+        0,
+        0,
+        1440,
+        3120
+      ],
+      "anchorPx": [
+        0,
+        0
+      ],
+      "zIndex": 0,
+      "blendMode": "SRC",
+      "alpha": 1,
+      "sourceType": "CONTROLLED_RECONSTRUCTION",
+      "runtimeEligible": true,
+      "bakedResiduals": [
+        "broad upper-right sunlight and surface reflection",
+        "lower grass root beds in caustic-overlap zones"
+      ],
+      "anchorNormalized": [
+        0.0,
+        0.0
+      ],
+      "sourceFile": "design/system/backgrounds/lake_glass_v2/assets/source_master/YuJian_Lake_Glass_V2_Master_Candidate_02_1440x3120.png",
+      "sourceSha256": "d0bd07ba379491e8b93468c616468fc60d59a2dfebc11061cf4d14e9788c6e12",
+      "assetSha256": "cf18dedc43c3e59e93e4273a4e195850d881b913480b18499228c53f1e2b5f51",
+      "format": "PNG",
+      "assetDimensionsPx": [
+        1440,
+        3120
+      ]
+    },
+    {
+      "layerId": "LAYER_SUNLIGHT_FIELD",
+      "semantic": "Upper-right sunlight reconstruction",
+      "assetFile": "assets/sunlight/sunlight_field_v2.png",
+      "pixelBounds": [
+        0,
+        0,
+        1440,
+        3120
+      ],
+      "anchorPx": [
+        1361,
+        109
+      ],
+      "zIndex": 1,
+      "blendMode": "SRC_OVER",
+      "alpha": 0.28,
+      "sourceType": "PROCEDURAL_LAYER",
+      "runtimeEligible": false,
+      "reason": "No clean unlit source; drawing over Master would double light.",
+      "anchorNormalized": [
+        0.945139,
+        0.034936
+      ],
+      "sourceFile": "design/system/backgrounds/lake_glass_v2/assets/source_master/YuJian_Lake_Glass_V2_Master_Candidate_02_1440x3120.png",
+      "sourceSha256": "d0bd07ba379491e8b93468c616468fc60d59a2dfebc11061cf4d14e9788c6e12",
+      "assetSha256": "b45ef030cd4e350d610d8c26dcbf11a0ad58652a3fa67788c7c784564965adc5",
+      "format": "PNG",
+      "assetDimensionsPx": [
+        1440,
+        3120
+      ]
+    },
+    {
+      "layerId": "LAYER_CAUSTICS",
+      "semantic": "Lower water caustics",
+      "assetFile": "assets/caustics/caustics_texture_v2.png",
+      "pixelBounds": [
+        0,
+        1980,
+        1440,
+        1140
+      ],
+      "anchorPx": [
+        720,
+        2850
+      ],
+      "zIndex": 2,
+      "blendMode": "PLUS",
+      "alpha": 1,
+      "sourceType": "CONTROLLED_RECONSTRUCTION",
+      "runtimeEligible": true,
+      "tileable": false,
+      "motionEligible": false,
+      "anchorNormalized": [
+        0.5,
+        0.913462
+      ],
+      "sourceFile": "design/system/backgrounds/lake_glass_v2/assets/source_master/YuJian_Lake_Glass_V2_Master_Candidate_02_1440x3120.png",
+      "sourceSha256": "d0bd07ba379491e8b93468c616468fc60d59a2dfebc11061cf4d14e9788c6e12",
+      "assetSha256": "9da60f9385230fcde4f9e97b236daf8cdf7d4e577b2b357dcb16571654e7e262",
+      "format": "PNG",
+      "assetDimensionsPx": [
+        1440,
+        1140
+      ]
+    },
+    {
+      "layerId": "LAYER_DROPLET_01_LEFT",
+      "semantic": "droplet_01_left",
+      "assetFile": "assets/droplets/01_left_static_compat_rgba.png",
+      "opticalMaps": {
+        "shape": "assets/droplets/01_left_shape_mask.png",
+        "normal": "assets/droplets/01_left_normal_map.png",
+        "height": "assets/droplets/01_left_height_map.png",
+        "displacement": "assets/droplets/01_left_displacement_map.png",
+        "specular": "assets/droplets/01_left_specular_mask.png"
+      },
+      "pixelBounds": [
+        15,
+        648,
+        111,
+        131
+      ],
+      "sourcePixelBounds": [
+        18,
+        650,
+        104,
+        126
+      ],
+      "anchorPx": [
+        70,
+        713
+      ],
+      "zIndex": 3,
+      "blendMode": "SRC_OVER_STATIC / SHADER_DISPLACEMENT",
+      "alpha": 1.0,
+      "sourceType": "CONTROLLED_RECONSTRUCTION",
+      "runtimeEligible": true,
+      "refractionIndexReference": 1.333,
+      "refractionIndexMeasured": false,
+      "staticAssetMethod": "Shaped optical-delta RGBA solved against clean plate; no rectangular backdrop crop.",
+      "anchorNormalized": [
+        0.048611,
+        0.228526
+      ],
+      "sourceFile": "design/system/backgrounds/lake_glass_v2/assets/source_master/YuJian_Lake_Glass_V2_Master_Candidate_02_1440x3120.png",
+      "sourceSha256": "d0bd07ba379491e8b93468c616468fc60d59a2dfebc11061cf4d14e9788c6e12",
+      "assetSha256": "405900cff21f891c5128b7808f34e4179fc218a12c34dbdbb2647e2a8e6c5f55",
+      "format": "PNG",
+      "assetDimensionsPx": [
+        111,
+        131
+      ]
+    },
+    {
+      "layerId": "LAYER_DROPLET_02_UPPER_RIGHT",
+      "semantic": "droplet_02_upper_right",
+      "assetFile": "assets/droplets/02_upper_right_static_compat_rgba.png",
+      "opticalMaps": {
+        "shape": "assets/droplets/02_upper_right_shape_mask.png",
+        "normal": "assets/droplets/02_upper_right_normal_map.png",
+        "height": "assets/droplets/02_upper_right_height_map.png",
+        "displacement": "assets/droplets/02_upper_right_displacement_map.png",
+        "specular": "assets/droplets/02_upper_right_specular_mask.png"
+      },
+      "pixelBounds": [
+        1250,
+        371,
+        133,
+        165
+      ],
+      "sourcePixelBounds": [
+        1250,
+        370,
+        132,
+        166
+      ],
+      "anchorPx": [
+        1316,
+        453
+      ],
+      "zIndex": 4,
+      "blendMode": "SRC_OVER_STATIC / SHADER_DISPLACEMENT",
+      "alpha": 1.0,
+      "sourceType": "CONTROLLED_RECONSTRUCTION",
+      "runtimeEligible": true,
+      "refractionIndexReference": 1.333,
+      "refractionIndexMeasured": false,
+      "staticAssetMethod": "Shaped optical-delta RGBA solved against clean plate; no rectangular backdrop crop.",
+      "anchorNormalized": [
+        0.913889,
+        0.145192
+      ],
+      "sourceFile": "design/system/backgrounds/lake_glass_v2/assets/source_master/YuJian_Lake_Glass_V2_Master_Candidate_02_1440x3120.png",
+      "sourceSha256": "d0bd07ba379491e8b93468c616468fc60d59a2dfebc11061cf4d14e9788c6e12",
+      "assetSha256": "d6a22f73ef895a28524fc6439a04a38aeab8ce4c767cd965c6003ccda3828c1e",
+      "format": "PNG",
+      "assetDimensionsPx": [
+        133,
+        165
+      ]
+    },
+    {
+      "layerId": "LAYER_DROPLET_03_LOWER_RIGHT",
+      "semantic": "droplet_03_lower_right",
+      "assetFile": "assets/droplets/03_lower_right_static_compat_rgba.png",
+      "opticalMaps": {
+        "shape": "assets/droplets/03_lower_right_shape_mask.png",
+        "normal": "assets/droplets/03_lower_right_normal_map.png",
+        "height": "assets/droplets/03_lower_right_height_map.png",
+        "displacement": "assets/droplets/03_lower_right_displacement_map.png",
+        "specular": "assets/droplets/03_lower_right_specular_mask.png"
+      },
+      "pixelBounds": [
+        1291,
+        1880,
+        144,
+        146
+      ],
+      "sourcePixelBounds": [
+        1290,
+        1880,
+        145,
+        145
+      ],
+      "anchorPx": [
+        1362,
+        1952
+      ],
+      "zIndex": 5,
+      "blendMode": "SRC_OVER_STATIC / SHADER_DISPLACEMENT",
+      "alpha": 1.0,
+      "sourceType": "CONTROLLED_RECONSTRUCTION",
+      "runtimeEligible": true,
+      "refractionIndexReference": 1.333,
+      "refractionIndexMeasured": false,
+      "staticAssetMethod": "Shaped optical-delta RGBA solved against clean plate; no rectangular backdrop crop.",
+      "anchorNormalized": [
+        0.945833,
+        0.625641
+      ],
+      "sourceFile": "design/system/backgrounds/lake_glass_v2/assets/source_master/YuJian_Lake_Glass_V2_Master_Candidate_02_1440x3120.png",
+      "sourceSha256": "d0bd07ba379491e8b93468c616468fc60d59a2dfebc11061cf4d14e9788c6e12",
+      "assetSha256": "994c8483212a7412503551283a248ebe48266a17cd1c98a2e311412d1168296f",
+      "format": "PNG",
+      "assetDimensionsPx": [
+        144,
+        146
+      ]
+    },
+    {
+      "layerId": "LAYER_GRASS_LEFT",
+      "semantic": "Aquatic Grass Left",
+      "assetFile": "assets/grass/grass_left_rgba_v2.png",
+      "pixelBounds": [
+        0,
+        2027,
+        589,
+        834
+      ],
+      "anchorPx": [
+        294,
+        2860
+      ],
+      "zIndex": 6,
+      "blendMode": "SRC_OVER",
+      "alpha": 1.0,
+      "sourceType": "CONTROLLED_RECONSTRUCTION",
+      "runtimeEligible": true,
+      "alphaMethod": "Per-pixel source-over delta inversion within green-chroma support; not native source alpha.",
+      "motionEligible": false,
+      "bakedResiduals": [
+        "lower root bed and overlapping caustic haze are retained in the static Base"
+      ],
+      "anchorNormalized": [
+        0.204167,
+        0.916667
+      ],
+      "sourceFile": "design/system/backgrounds/lake_glass_v2/assets/source_master/YuJian_Lake_Glass_V2_Master_Candidate_02_1440x3120.png",
+      "sourceSha256": "d0bd07ba379491e8b93468c616468fc60d59a2dfebc11061cf4d14e9788c6e12",
+      "assetSha256": "127ef609c016baba112e1ef0d7d385aa4be7dcb2550e7ccc3252ad579566c04d",
+      "format": "PNG",
+      "assetDimensionsPx": [
+        589,
+        834
+      ]
+    },
+    {
+      "layerId": "LAYER_GRASS_RIGHT",
+      "semantic": "Aquatic Grass Right",
+      "assetFile": "assets/grass/grass_right_rgba_v2.png",
+      "pixelBounds": [
+        1037,
+        2272,
+        403,
+        589
+      ],
+      "anchorPx": [
+        1238,
+        2860
+      ],
+      "zIndex": 7,
+      "blendMode": "SRC_OVER",
+      "alpha": 1.0,
+      "sourceType": "CONTROLLED_RECONSTRUCTION",
+      "runtimeEligible": true,
+      "alphaMethod": "Per-pixel source-over delta inversion within green-chroma support; not native source alpha.",
+      "motionEligible": false,
+      "bakedResiduals": [
+        "lower root bed and overlapping caustic haze are retained in the static Base"
+      ],
+      "anchorNormalized": [
+        0.859722,
+        0.916667
+      ],
+      "sourceFile": "design/system/backgrounds/lake_glass_v2/assets/source_master/YuJian_Lake_Glass_V2_Master_Candidate_02_1440x3120.png",
+      "sourceSha256": "d0bd07ba379491e8b93468c616468fc60d59a2dfebc11061cf4d14e9788c6e12",
+      "assetSha256": "2bcc24d946abdf2b54d0b72f09e028ba4d4ceb50946ffc484b8d3a1cf57fe7a7",
+      "format": "PNG",
+      "assetDimensionsPx": [
+        403,
+        589
+      ]
+    }
+  ]
+}

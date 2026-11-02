@@ -1,0 +1,184 @@
+{
+  "taskId": "YUJIAN_LAKE_GLASS_V2_TRUE_LAYER_RECONSTRUCTION_ANDROID_ASSET_PACK_P1",
+  "validationStatus": "PASS_WITH_PARTIAL_LAYER_STATE",
+  "assetPackStatus": "ASSET_PACK_PARTIAL_WITH_BAKED_LAYERS",
+  "readyForAndroid": false,
+  "checksPassed": 21,
+  "checksTotal": 21,
+  "failedChecks": [],
+  "checks": [
+    {
+      "name": "master_sha",
+      "passed": true,
+      "detail": "d0bd07ba379491e8b93468c616468fc60d59a2dfebc11061cf4d14e9788c6e12"
+    },
+    {
+      "name": "original_source_sha",
+      "passed": true,
+      "detail": "f3dc1549919f48f939df5a6cf5baf18fb6846164c6f857df8e20cfe247b495ba"
+    },
+    {
+      "name": "manifest_schema_and_status",
+      "passed": true,
+      "detail": "schema=3.0 status=ASSET_PACK_PARTIAL_WITH_BAKED_LAYERS ready=False"
+    },
+    {
+      "name": "manifest_source_hashes",
+      "passed": true,
+      "detail": "master/source hashes match archived inputs"
+    },
+    {
+      "name": "manifest_derived_file_integrity",
+      "passed": true,
+      "detail": "files=134; errors=[]"
+    },
+    {
+      "name": "automation_script_hashes",
+      "passed": true,
+      "detail": "scripts=3; errors=[]"
+    },
+    {
+      "name": "protected_paths_absent_from_package",
+      "passed": true,
+      "detail": "Morning Lake V1 and Empty Home protected paths are absent"
+    },
+    {
+      "name": "unique_layer_z_indices",
+      "passed": true,
+      "detail": "[0, 1, 2, 3, 4, 5, 6, 7]"
+    },
+    {
+      "name": "layer_bounds_anchors_and_sha",
+      "passed": true,
+      "detail": "layers=8 errors=[]"
+    },
+    {
+      "name": "baked_assets_not_double_composited",
+      "passed": true,
+      "detail": "visible baked layers=[]"
+    },
+    {
+      "name": "alpha_channel_quality",
+      "passed": true,
+      "detail": "valid transparency and non-empty shaped alpha"
+    },
+    {
+      "name": "droplet_normal_map_validity",
+      "passed": true,
+      "detail": "3 finite RGB normals; positive Z hemisphere"
+    },
+    {
+      "name": "svg_structure",
+      "passed": true,
+      "detail": "two parseable SVGs with path elements"
+    },
+    {
+      "name": "static_recomposition_1440x3120",
+      "passed": true,
+      "detail": "(3120, 1440, 3)"
+    },
+    {
+      "name": "static_recomposition_metric_threshold",
+      "passed": true,
+      "detail": "{\"maeRgb\": 5.935422602089269e-07, \"rmseRgb\": 0.0007704169392017072, \"psnrDb\": 110.39628714709322, \"ssimGlobalRgb\": 0.9999999996491161, \"changedPixelRatio\": 1.7806267806267806e-06, \"maxAbsChannelDelta\": 1.0}"
+    },
+    {
+      "name": "local_roi_metrics_present",
+      "passed": true,
+      "detail": "{\"grass_left\": 109.25986851121225, \"grass_right\": 103.23625371074522, \"droplet_01_left\": \"Infinity\", \"droplet_02_upper_right\": \"Infinity\", \"droplet_03_lower_right\": \"Infinity\", \"caustics_lower\": 106.02378972027351}"
+    },
+    {
+      "name": "visual_evidence_files",
+      "passed": true,
+      "detail": "Master, layered, visibility, difference, optical reviews and crop matrix exist"
+    },
+    {
+      "name": "crop_safe_zone",
+      "passed": true,
+      "detail": "['M01', 'M02', 'M03', 'M04']"
+    },
+    {
+      "name": "android_asset_compatibility_contract",
+      "passed": true,
+      "detail": "API24 static map and API33 optional shader map are documented; no device validation claimed"
+    },
+    {
+      "name": "source_and_rights_status",
+      "passed": true,
+      "detail": "PENDING_REVIEW and source types remain explicit"
+    },
+    {
+      "name": "honest_partial_status",
+      "passed": true,
+      "detail": "sunlight remains baked; READY is false"
+    }
+  ],
+  "masterReconstructionMetrics": {
+    "maeRgb": 5.935422602089269e-07,
+    "rmseRgb": 0.0007704169392017072,
+    "psnrDb": 110.39628714709322,
+    "ssimGlobalRgb": 0.9999999996491161,
+    "changedPixelRatio": 1.7806267806267806e-06,
+    "maxAbsChannelDelta": 1.0
+  },
+  "localRoiMetrics": {
+    "grass_left": {
+      "maeRgb": 7.710694733595497e-07,
+      "rmseRgb": 0.0008781056162897204,
+      "psnrDb": 109.25986851121225,
+      "ssimGlobalRgb": 0.9999999997617133,
+      "changedPixelRatio": 2.313208420078649e-06,
+      "maxAbsChannelDelta": 1.0
+    },
+    "grass_right": {
+      "maeRgb": 3.0864197530864196e-06,
+      "rmseRgb": 0.0017568209223157662,
+      "psnrDb": 103.23625371074522,
+      "ssimGlobalRgb": 0.9999999982400367,
+      "changedPixelRatio": 9.259259259259259e-06,
+      "maxAbsChannelDelta": 1.0
+    },
+    "droplet_01_left": {
+      "maeRgb": 0.0,
+      "rmseRgb": 0.0,
+      "psnrDb": "Infinity",
+      "ssimGlobalRgb": 1.0,
+      "changedPixelRatio": 0.0,
+      "maxAbsChannelDelta": 0.0
+    },
+    "droplet_02_upper_right": {
+      "maeRgb": 0.0,
+      "rmseRgb": 0.0,
+      "psnrDb": "Infinity",
+      "ssimGlobalRgb": 1.0,
+      "changedPixelRatio": 0.0,
+      "maxAbsChannelDelta": 0.0
+    },
+    "droplet_03_lower_right": {
+      "maeRgb": 0.0,
+      "rmseRgb": 0.0,
+      "psnrDb": "Infinity",
+      "ssimGlobalRgb": 1.0,
+      "changedPixelRatio": 0.0,
+      "maxAbsChannelDelta": 0.0
+    },
+    "caustics_lower": {
+      "maeRgb": 1.6244314489928524e-06,
+      "rmseRgb": 0.0012745318548364542,
+      "psnrDb": 106.02378972027351,
+      "ssimGlobalRgb": 0.9999999991798142,
+      "changedPixelRatio": 4.873294346978558e-06,
+      "maxAbsChannelDelta": 1.0
+    }
+  },
+  "visualReview": {
+    "evidenceGenerated": true,
+    "manualInspectionPerformed": true,
+    "sunlightCleanPlate": "BLOCKED_BAKED_RESIDUAL"
+  },
+  "scope": {
+    "protectedPathsAbsentFromPackage": true,
+    "remotePullRequestFileListMustAlsoBeChecked": true
+  },
+  "manifestSelfHashExcluded": true
+}

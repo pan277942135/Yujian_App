@@ -1,0 +1,45 @@
+{
+  "refractionIndexReference": 1.333,
+  "refractionIndexMeasured": false,
+  "model": "Normal XY drives scene UV offset; shape gates sampling; height controls edge thickness; specular mask supplies glints",
+  "api33ShaderSuggested": true,
+  "staticFallback": "per-drop shaped optical-delta RGBA",
+  "drops": [
+    {
+      "id": "droplet_01_left",
+      "pixelBounds": [
+        15,
+        648,
+        111,
+        131
+      ],
+      "normalScale": 15,
+      "displacementPxMax": 15,
+      "blendMode": "shader displacement + SRC_OVER highlights"
+    },
+    {
+      "id": "droplet_02_upper_right",
+      "pixelBounds": [
+        1250,
+        371,
+        133,
+        165
+      ],
+      "normalScale": 15,
+      "displacementPxMax": 15,
+      "blendMode": "shader displacement + SRC_OVER highlights"
+    },
+    {
+      "id": "droplet_03_lower_right",
+      "pixelBounds": [
+        1291,
+        1880,
+        144,
+        146
+      ],
+      "normalScale": 15,
+      "displacementPxMax": 15,
+      "blendMode": "shader displacement + SRC_OVER highlights"
+    }
+  ]
+}

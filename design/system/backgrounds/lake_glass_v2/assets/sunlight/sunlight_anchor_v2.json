@@ -1,0 +1,18 @@
+{
+  "sourceFile": "design/system/backgrounds/lake_glass_v2/assets/source_master/YuJian_Lake_Glass_V2_Master_Candidate_02_1440x3120.png",
+  "sourceSha256": "d0bd07ba379491e8b93468c616468fc60d59a2dfebc11061cf4d14e9788c6e12",
+  "lightSourcePx": [
+    1361,
+    109
+  ],
+  "lightSourceNormalized": [
+    0.945,
+    0.035
+  ],
+  "direction": [
+    -0.56,
+    0.83
+  ],
+  "sourceType": "PROCEDURAL_LAYER",
+  "status": "BAKED_STATIC_RESIDUAL"
+}

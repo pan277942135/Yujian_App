@@ -1,0 +1,13 @@
+{
+  "schemaVersion": "3.0",
+  "tokens": {
+    "mistWhite": "#EAF7F7",
+    "lakePale": "#C6EAE5",
+    "lakeGreen": "#8CCFC4",
+    "lakeTeal": "#65BFB5",
+    "deepLake": "#153B50",
+    "morningGold": "#D8B36A"
+  },
+  "masterIsColorAuthority": true,
+  "globalRecolor": false
+}

@@ -1,0 +1,64 @@
+{
+  "canvasSize": [
+    1440,
+    3120
+  ],
+  "coordinateSystem": "Master px, origin top-left",
+  "masterSha256": "d0bd07ba379491e8b93468c616468fc60d59a2dfebc11061cf4d14e9788c6e12",
+  "droplets": [
+    {
+      "id": "droplet_01_left",
+      "bbox": [
+        15,
+        648,
+        111,
+        131
+      ],
+      "center": [
+        70,
+        713
+      ],
+      "centerNormalized": [
+        0.048611,
+        0.228526
+      ],
+      "sourceType": "CONTROLLED_RECONSTRUCTION"
+    },
+    {
+      "id": "droplet_02_upper_right",
+      "bbox": [
+        1250,
+        371,
+        133,
+        165
+      ],
+      "center": [
+        1316,
+        453
+      ],
+      "centerNormalized": [
+        0.913889,
+        0.145192
+      ],
+      "sourceType": "CONTROLLED_RECONSTRUCTION"
+    },
+    {
+      "id": "droplet_03_lower_right",
+      "bbox": [
+        1291,
+        1880,
+        144,
+        146
+      ],
+      "center": [
+        1362,
+        1952
+      ],
+      "centerNormalized": [
+        0.945833,
+        0.625641
+      ],
+      "sourceType": "CONTROLLED_RECONSTRUCTION"
+    }
+  ]
+}

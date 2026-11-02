@@ -1,0 +1,154 @@
+{
+  "canvasSize": [
+    1440,
+    3120
+  ],
+  "coordinateSystem": "master pixels, origin top-left",
+  "masterSha256": "d0bd07ba379491e8b93468c616468fc60d59a2dfebc11061cf4d14e9788c6e12",
+  "layers": [
+    {
+      "layerId": "LAYER_BASE_CLEAN",
+      "pixelBounds": [
+        0,
+        0,
+        1440,
+        3120
+      ],
+      "anchorPx": [
+        0,
+        0
+      ],
+      "anchorNormalized": [
+        0.0,
+        0.0
+      ],
+      "zIndex": 0
+    },
+    {
+      "layerId": "LAYER_SUNLIGHT_FIELD",
+      "pixelBounds": [
+        0,
+        0,
+        1440,
+        3120
+      ],
+      "anchorPx": [
+        1361,
+        109
+      ],
+      "anchorNormalized": [
+        0.945139,
+        0.034936
+      ],
+      "zIndex": 1
+    },
+    {
+      "layerId": "LAYER_CAUSTICS",
+      "pixelBounds": [
+        0,
+        1980,
+        1440,
+        1140
+      ],
+      "anchorPx": [
+        720,
+        2850
+      ],
+      "anchorNormalized": [
+        0.5,
+        0.913462
+      ],
+      "zIndex": 2
+    },
+    {
+      "layerId": "LAYER_DROPLET_01_LEFT",
+      "pixelBounds": [
+        15,
+        648,
+        111,
+        131
+      ],
+      "anchorPx": [
+        70,
+        713
+      ],
+      "anchorNormalized": [
+        0.048611,
+        0.228526
+      ],
+      "zIndex": 3
+    },
+    {
+      "layerId": "LAYER_DROPLET_02_UPPER_RIGHT",
+      "pixelBounds": [
+        1250,
+        371,
+        133,
+        165
+      ],
+      "anchorPx": [
+        1316,
+        453
+      ],
+      "anchorNormalized": [
+        0.913889,
+        0.145192
+      ],
+      "zIndex": 4
+    },
+    {
+      "layerId": "LAYER_DROPLET_03_LOWER_RIGHT",
+      "pixelBounds": [
+        1291,
+        1880,
+        144,
+        146
+      ],
+      "anchorPx": [
+        1362,
+        1952
+      ],
+      "anchorNormalized": [
+        0.945833,
+        0.625641
+      ],
+      "zIndex": 5
+    },
+    {
+      "layerId": "LAYER_GRASS_LEFT",
+      "pixelBounds": [
+        0,
+        2027,
+        589,
+        834
+      ],
+      "anchorPx": [
+        294,
+        2860
+      ],
+      "anchorNormalized": [
+        0.204167,
+        0.916667
+      ],
+      "zIndex": 6
+    },
+    {
+      "layerId": "LAYER_GRASS_RIGHT",
+      "pixelBounds": [
+        1037,
+        2272,
+        403,
+        589
+      ],
+      "anchorPx": [
+        1238,
+        2860
+      ],
+      "anchorNormalized": [
+        0.859722,
+        0.916667
+      ],
+      "zIndex": 7
+    }
+  ]
+}
