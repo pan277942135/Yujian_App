@@ -98,7 +98,7 @@ phases:
     exit_condition: "Release-scope feature implementation reaches executable acceptance tasks."
     release_scope: "PRIMARY_PLUS_SECONDARY"
     feature_refs: ["home_normal_v1", "record_date_v2", "share_templates_v1", "auth_register_v2"]
-    task_refs: ["P6-01", "P6-02", "P6-03", "P6-04", "YUJIAN_NH01_ANDROID_FROZEN_V22_IMPLEMENTATION_REPAIR_WORK_B_V1", "YUJIAN_NH01_RESPONSIVE_V2_ANDROID_IMPLEMENTATION_AND_RUNTIME_ACCEPTANCE_V1", "YUJIAN_NH01_LAKE_LIGHT_VISUAL_RESPONSIVE_CLOSURE_V1", "YUJIAN_ANDROID_FISH_CATCH_EFFECT01_UPWARD_SCAN_SHAKE_V1", "YUJIAN_ANDROID_AISTUDIO_PERIMETER_SHADER_PORT_V1", "YUJIAN_ANDROID_SLIMSAM_PIXEL_SEGMENTATION_V1", "YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2", "YUJIAN_ANDROID_AI_ORB_CORE_COMPONENT_V1", "YUJIAN_UNIFIED_WATERLIGHT_A02_CORE_COMPONENT_ANDROID_INTEGRATION_V1", "YUJIAN_LAKE_GLASS_V2_ASSET_PACK_ANDROID_RUNTIME_INTEGRATION_V1"]
+    task_refs: ["P6-01", "P6-02", "P6-03", "P6-04", "YUJIAN_NH01_ANDROID_FROZEN_V22_IMPLEMENTATION_REPAIR_WORK_B_V1", "YUJIAN_NH01_RESPONSIVE_V2_ANDROID_IMPLEMENTATION_AND_RUNTIME_ACCEPTANCE_V1", "YUJIAN_NH01_LAKE_LIGHT_VISUAL_RESPONSIVE_CLOSURE_V1", "YUJIAN_ANDROID_FISH_CATCH_EFFECT01_UPWARD_SCAN_SHAKE_V1", "YUJIAN_ANDROID_AISTUDIO_PERIMETER_SHADER_PORT_V1", "YUJIAN_ANDROID_SLIMSAM_PIXEL_SEGMENTATION_V1", "YUJIAN_ANDROID_RECOGNITION_RUNTIME_ROOT_CAUSE_AND_FULL_FLOW_REPAIR_V2", "YUJIAN_ANDROID_AI_ORB_CORE_COMPONENT_V1", "YUJIAN_UNIFIED_WATERLIGHT_A02_CORE_COMPONENT_ANDROID_INTEGRATION_V1", "YUJIAN_LAKE_GLASS_V2_ASSET_PACK_ANDROID_RUNTIME_INTEGRATION_V1", "YUJIAN_LAKE_GLASS_V2_OPEN_SOURCE_SHADER_REUSE_V1"]
   P7:
     name: "Integration / Full Surface"
     entry_condition: "Feature implementation is executable."
@@ -1384,6 +1384,20 @@ tasks:
     gate_id: "G-LAKE-GLASS-V2-ASSET-ANDROID-RUNTIME-V1"
     evidence_required: ["live_pr305_head_and_asset_hashes", "layer_status_manifest_parity", "safe_static_composite_and_visual_review", "route_background_coverage_all_applicable_routes", "empty_home_and_morning_lake_v1_unchanged", "single_shared_compose_canvas_host_and_cache", "api24_32_static_fallback", "api33_plus_safe_layer_policy_and_static_recovery", "single_global_transform_and_four_viewports", "font_scale_1_0_1_3_1_5", "layer_order_transform_manifest_and_route_tests", "unit_android_test_compile_lint", "decode_first_display_memory_and_page_switch_measurements", "exact_head_debug_apk_and_sha256", "device_runtime_evidence_or_explicit_not_run"]
     completion: "Integrate the current Lake Glass V2 resource baseline through one shared Android background host across every applicable theme-background owner, preserving Empty Home, Morning Lake V1 history, page foreground geometry, camera/media/photo content, and the AI Orb × WaterLight recognition timeline. Validate static fallback, API policy, routes, transforms, four viewports, tests, performance evidence and exact-head Debug APK. Keep asset readiness, runtime integration and real-device validation as separate states; deliver the APK even when device validation is NOT_RUN."
+    human_required: false
+
+  YUJIAN_LAKE_GLASS_V2_OPEN_SOURCE_SHADER_REUSE_V1:
+    phase: "P6"
+    priority: "P0"
+    owner: "Work"
+    feature_refs: ["home_normal_v1", "recognition_flow_v1_2", "recognition_result_v1"]
+    journey_refs: []
+    depends_on: []
+    entry_blockers: []
+    target_blockers: []
+    gate_id: "G-LAKE-GLASS-V2-OPEN-SOURCE-SHADER-REUSE-V1"
+    evidence_required: ["five_repo_exact_commit_license_dependency_audit", "real_demo_effect_observation", "upstream_source_blob_sha256", "attributed_agsl_caustic_port_and_parity_tests", "fixed_upper_right_ambient_modulation", "three_fixed_droplet_sdf_refraction_lab", "no_baked_layer_double_draw_tests", "api24_static_and_api33_agsl_fallback", "debug_lab_parameter_controls", "four_viewport_master_comparison_and_manual_review", "build_unit_android_test_compile_lint", "performance_memory_and_page_switch_metrics", "exact_head_apk_sha256", "device_runtime_or_not_run"]
+    completion: "Reuse pinned, permissively licensed shader algorithms for non-tiling caustic modulation, fixed-source ambient light modulation, and three fixed baked-droplet refraction effects. Provide an isolated parameterized Android lab, then integrate only verified AGSL into LakeGlassRenderer with API 24 static fallback. Preserve all frozen composition/route, Empty Home, V1, and AI Orb × WaterLight invariants; include notices and exact source hashes. Deliver an exact-head Debug APK and keep device validation separate."
     human_required: false
 
 workstreams:
