@@ -15,6 +15,21 @@ internal fun shouldStackRecognitionGuideActions(
     fontScale: Float,
 ): Boolean = availableWidthDp < 380f || fontScale >= 1.5f
 
+internal enum class RecognitionCaptureEntryDestination {
+    FIRST_CAPTURE_GUIDE,
+    CAMERA,
+    GALLERY,
+}
+
+internal fun resolveFirstCaptureEntryDestination(
+    openGallery: Boolean,
+    guideCompleted: Boolean,
+): RecognitionCaptureEntryDestination = when {
+    openGallery -> RecognitionCaptureEntryDestination.GALLERY
+    !guideCompleted -> RecognitionCaptureEntryDestination.FIRST_CAPTURE_GUIDE
+    else -> RecognitionCaptureEntryDestination.CAMERA
+}
+
 internal enum class RecognitionFirstCaptureGuidePage(val index: Int) {
     P01(0),
     P02(1),

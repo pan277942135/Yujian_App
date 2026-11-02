@@ -94,6 +94,9 @@ import com.yujian.ai.ui.screens.RecognitionIssueScreen
 import com.yujian.ai.ui.screens.RecognitionResultScreen
 import com.yujian.ai.ui.screens.RecognitionSaveDestination
 import com.yujian.ai.ui.identify.RecognitionUiState
+import com.yujian.ai.ui.identify.RecognitionFirstCaptureGuideStore
+import com.yujian.ai.ui.identify.RecognitionCaptureEntryDestination
+import com.yujian.ai.ui.identify.resolveFirstCaptureEntryDestination
 import com.yujian.ai.ui.identify.resolveRecognitionResultState
 import com.yujian.ai.ui.recognition.reveal.RecognitionRevealKey
 import com.yujian.ai.ui.recognition.reveal.RecognitionRevealSessionStore
@@ -225,14 +228,68 @@ fun YujianApp() {
         captureResetToken++
     }
 
-    fun startCapture(openGallery: Boolean = false, preserveSession: Boolean = false) {
+    fun startCapture(
+        openGallery: Boolean = false,
+        preserveSession: Boolean = false,
+        returnToHome: Boolean = true,
+        replaceGuideEntry: Boolean = false,
+    ) {
         navigatingFromResult = false
         clearRecognitionSession(preserveSession)
         if (recognitionSessionId == null) recognitionSessionId = UUID.randomUUID().toString()
         nav.navigate(if (openGallery) "identify?openGallery=true" else "identify") {
-            popUpTo("home") { inclusive = false }
+            if (returnToHome) {
+                popUpTo("home") { inclusive = false }
+            } else if (replaceGuideEntry) {
+                popUpTo("first_capture_guide?returnToHome={returnToHome}") { inclusive = true }
+            }
             launchSingleTop = true
         }
+    }
+
+    fun enterCapture(
+        openGallery: Boolean = false,
+        preserveSession: Boolean = false,
+        returnToHome: Boolean = true,
+    ) {
+        val destination = resolveFirstCaptureEntryDestination(
+            openGallery = openGallery,
+            guideCompleted = RecognitionFirstCaptureGuideStore(context).isCompleted(),
+        )
+        if (destination != RecognitionCaptureEntryDestination.FIRST_CAPTURE_GUIDE) {
+            startCapture(
+                openGallery = destination == RecognitionCaptureEntryDestination.GALLERY,
+                preserveSession = preserveSession,
+                returnToHome = returnToHome,
+            )
+            return
+        }
+
+        navigatingFromResult = false
+        clearRecognitionSession(preserveSession)
+        nav.navigate("first_capture_guide?returnToHome=$returnToHome") {
+            if (returnToHome) popUpTo("home") { inclusive = false }
+            launchSingleTop = true
+        }
+    }
+
+    fun handleIdentifyImageReady(selected: SelectedImage) {
+        if (recognitionSessionId == null) recognitionSessionId = UUID.randomUUID().toString()
+        sessionImage = selected
+        activeRecognitionAttemptId = UUID.randomUUID().toString()
+        revealSessionStore.beginAttempt(
+            requireNotNull(recognitionSessionId),
+            requireNotNull(activeRecognitionAttemptId),
+            selected,
+        )
+        productionResult = null
+        recognitionTechnicalFailure = false
+        subjectResult = FishSubjectResult(SubjectStatus.IDLE)
+        prediction = null
+        inferenceAsset = null
+        catchSaveError = null
+        catchSaveRequiresLogin = false
+        nav.navigate("recognizing") { launchSingleTop = true }
     }
 
     fun returnToRecognitionAfterLogin(): Boolean {
@@ -481,8 +538,8 @@ fun YujianApp() {
                         avatarUrl = active?.avatarUrl,
                         showEmptyState = resolvedHomeState == HomeState.EMPTY,
                         isResolving = resolvedHomeState == null,
-                        onIdentify = { startCapture() },
-                        onAlbumClick = { startCapture(openGallery = true) },
+                        onIdentify = { enterCapture() },
+                        onAlbumClick = { enterCapture(openGallery = true) },
                         onLoginClick = { nav.navigate("auth/login") { launchSingleTop = true } },
                         onSpeciesClick = { nav.navigate("guide") },
                         onCatchesClick = { nav.navigate("my_catches") },
@@ -621,6 +678,38 @@ fun YujianApp() {
                     }
                 }
                 composable(
+                    route = "first_capture_guide?returnToHome={returnToHome}",
+                    arguments = listOf(navArgument("returnToHome") {
+                        type = NavType.BoolType
+                        defaultValue = true
+                    }),
+                    enterTransition = { if (CaptureNavigationTransition.active.value) fadeIn(tween(400)) else EnterTransition.None },
+                    exitTransition = { ExitTransition.None },
+                    popEnterTransition = { EnterTransition.None },
+                    popExitTransition = { ExitTransition.None },
+                ) { entry ->
+                    val returnToHome = entry.arguments?.getBoolean("returnToHome") ?: true
+                    IdentifyScreen(
+                        image = null,
+                        captureResetToken = captureResetToken,
+                        onBack = {
+                            clearRecognitionSession()
+                            nav.popBackStack()
+                        },
+                        onImageReady = { selected -> handleIdentifyImageReady(selected) },
+                        onGuideComplete = {
+                            startCapture(
+                                returnToHome = returnToHome,
+                                replaceGuideEntry = true,
+                            )
+                        },
+                        onGuideDismiss = {
+                            clearRecognitionSession()
+                            nav.popBackStack()
+                        },
+                    )
+                }
+                composable(
                     route = "identify?openGallery={openGallery}",
                     arguments = listOf(navArgument("openGallery") {
                         type = NavType.BoolType
@@ -639,24 +728,7 @@ fun YujianApp() {
                             clearRecognitionSession()
                             nav.popBackStack()
                         },
-                        onImageReady = { selected ->
-                            if (recognitionSessionId == null) recognitionSessionId = UUID.randomUUID().toString()
-                            sessionImage = selected
-                            activeRecognitionAttemptId = UUID.randomUUID().toString()
-                            revealSessionStore.beginAttempt(
-                                requireNotNull(recognitionSessionId),
-                                requireNotNull(activeRecognitionAttemptId),
-                                selected,
-                            )
-                            productionResult = null
-                            recognitionTechnicalFailure = false
-                            subjectResult = FishSubjectResult(SubjectStatus.IDLE)
-                            prediction = null
-                            inferenceAsset = null
-                            catchSaveError = null
-                            catchSaveRequiresLogin = false
-                            nav.navigate("recognizing") { launchSingleTop = true }
-                        },
+                        onImageReady = { selected -> handleIdentifyImageReady(selected) },
                     )
                 }
                 composable(
@@ -1030,7 +1102,7 @@ fun YujianApp() {
                         onBack = { nav.popBackStack() },
                         onCatch = { catchId -> nav.navigate("catch/${Uri.encode(catchId)}") },
                         onRetry = { catchReload++ },
-                        onCapture = { nav.navigate("identify") },
+                        onCapture = { enterCapture(returnToHome = false) },
                         onDayDetail = { day ->
                             val dayKey = day.key
                             nav.currentBackStackEntry?.savedStateHandle?.set("my_catches_day_ids", day.catches.map { it.id }.toTypedArray())
