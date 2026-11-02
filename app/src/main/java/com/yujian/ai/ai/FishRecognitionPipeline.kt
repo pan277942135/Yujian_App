@@ -37,7 +37,7 @@ class FishRecognitionPipeline(context: Context) : AutoCloseable {
     private val classifier = FishRecognitionEngine(context)
 
     suspend fun recognize(bitmap: Bitmap): ProductionRecognitionResult =
-        recognize(bitmap) {}
+        recognize(bitmap, onProgress = {})
 
     suspend fun recognize(
         bitmap: Bitmap,
