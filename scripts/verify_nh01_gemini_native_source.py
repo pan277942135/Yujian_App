@@ -57,6 +57,8 @@ def main() -> None:
     gemini_contract_path = ROOT / "design/pages/home/normal_home/engineering/Gemini_Native_Implementation_Contract_V3.md"
     gemini_contract = gemini_contract_path.read_text(encoding="utf-8")
     remote_image = (ROOT / "app/src/main/java/com/yujian/ai/ui/components/RemoteImage.kt").read_text(encoding="utf-8")
+    camera_button = (ROOT / "app/src/main/java/com/yujian/ai/ui/home/HomeCameraButton.kt").read_text(encoding="utf-8")
+    orb_core = (ROOT / "app/src/main/java/com/yujian/ai/ui/designsystem/components/aiorb/AIOrbCore.kt").read_text(encoding="utf-8")
     gemini_loader = runtime.split("private fun loadGeminiNormalHomeRuntimeAssets", 1)[-1].split("\n@Composable", 1)[0]
 
     checks: list[tuple[str, bool, str]] = []
@@ -64,14 +66,19 @@ def main() -> None:
     checks.append(("gemini_entry_uses_gemini_runtime_assets", "rememberGeminiNormalHomeRuntimeAssets" in home_screen, "HomeScreen.kt"))
     checks.append(("new_page_contains_no_legacy_anchors", all(token not in page for token in FORBIDDEN_NEW_PAGE_REFERENCES), "GeminiNormalHomeContent.kt"))
     checks.append(("new_page_uses_registered_brand", "R.drawable.brand_title_primary" in page, "GeminiNormalHomeContent.kt"))
-    checks.append(("new_page_uses_registered_camera", "R.drawable.normal_home_camera_primary_v1" in page, "GeminiNormalHomeContent.kt"))
+    checks.append((
+        "new_page_keeps_frozen_capture_button_visual",
+        "HomeCameraButton(" in page
+        and "frozenVisualResource = AIOrbCaptureVisualAssets.HOME_IDLE" in camera_button
+        and "R.drawable.ai_orb_camera_activated_v1" in orb_core,
+        "GeminiNormalHomeContent.kt + HomeCameraButton.kt + AIOrbCore.kt",
+    ))
     checks.append((
         "camera_artwork_scales_with_canvas_and_has_separate_touch_bounds",
         "geminiHomeCameraVisualSize(safeWidth.value, safeHeight.value).dp" in page
         and "cameraTouchSize = maxOf(72.dp, cameraVisualSize)" in page
-        and "minOf(safeWidthDp, 560f)" in (ROOT / "app/src/main/java/com/yujian/ai/ui/home/GeminiHomeAdaptiveLayoutPolicy.kt").read_text()
-        and "safeHeightDp * 0.10f" in (ROOT / "app/src/main/java/com/yujian/ai/ui/home/GeminiHomeAdaptiveLayoutPolicy.kt").read_text()
-        and "visualModifier = Modifier.testTag(\"gemini-home-camera-art\")" in (ROOT / "app/src/main/java/com/yujian/ai/ui/home/HomeCameraButton.kt").read_text(),
+        and "CaptureVisualTokens.buttonDiameter(safeWidthDp)" in (ROOT / "app/src/main/java/com/yujian/ai/ui/home/GeminiHomeAdaptiveLayoutPolicy.kt").read_text()
+        and "visualModifier = Modifier.testTag(\"gemini-home-camera-art\")" in camera_button,
         "GeminiNormalHomeContent.kt + GeminiHomeAdaptiveLayoutPolicy.kt + HomeCameraButton.kt",
     ))
     checks.append(("home_hero_uses_shared_smart_fish_photo_path", "smartFishPhoto = true" in page and "fishPhotoSourceVersion = item.id" in page and "FishPhotoRenderer.render(" in remote_image, "GeminiNormalHomeContent.kt + RemoteImage.kt"))
@@ -117,7 +124,13 @@ def main() -> None:
     checks.append(("neighbor_cards_keep_top_offset_and_height", "GeminiHomeNeighborHeightFraction = 0.667f" in page and "GeminiHomePeekTopOffset = 15.dp" in page and "translationY = if (active) 0f else neighborTranslationY" in page, "GeminiNormalHomeContent.kt"))
     policy = (ROOT / "app/src/main/java/com/yujian/ai/ui/home/GeminiHomeAdaptiveLayoutPolicy.kt").read_text()
     checks.append(("adaptive_card_cap_preserves_visible_neighbor_preview", "geminiHomeNeighborWidth(trackWidth.value, cardWidth.value, pageSpacing.value)" in page and "minimumWidthForPeek" in policy, "GeminiNormalHomeContent.kt + GeminiHomeAdaptiveLayoutPolicy.kt"))
-    checks.append(("official_morning_lake_uses_top_center_crop", page.count("alignment = Alignment.TopCenter") == 2, "GeminiNormalHomeContent.kt"))
+    checks.append((
+        "normal_home_uses_shared_lake_glass_v2_host",
+        "LakeGlassBackgroundHost(" in page
+        and "GeminiHomeBackground" not in page
+        and "normal_home_runtime_v1/static/scene_base.png" not in page,
+        "GeminiNormalHomeContent.kt",
+    ))
     checks.append(("stats_dividers_are_capped_at_26dp", "dividerHeight = 26.dp" in page, "GeminiNormalHomeContent.kt"))
     checks.append(("gemini_page_tree_tags_present", all(tag in page for tag in LAYERS), "GeminiNormalHomeContent.kt"))
     checks.append(("gemini_runtime_bundle_excludes_guest_and_nh07_images", "guest_avatar.png" not in gemini_loader and "nh07_default_avatar_3x_192" not in gemini_loader, "loadGeminiNormalHomeRuntimeAssets"))

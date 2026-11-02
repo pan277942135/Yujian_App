@@ -1,0 +1,15 @@
+# Lake Glass V2 open-source shader audit
+
+Audit date: 2026-11-02. Repository default-branch heads were resolved with `git ls-remote`; the checked-out source files and license files were SHA-256 hashed. The exact commits and adaptations are recorded in [`third_party/NOTICE.md`](../../../../../third_party/NOTICE.md).
+
+| Repository | Commit | License / runtime dependencies | Effect and observed execution | Lake Glass decision |
+|---|---|---|---|---|
+| `ethanfox/water-caustics` | `de856eec62819b7c4176366db73b8fd37a1b1455` | MIT; no runtime dependency, Vite/TypeScript for demo | WebGL continuous non-tiled warped caustic field. Source contains no Android runtime. | Adapt the domain-warped field to AGSL; constrain it with the red Master-derived mask and use low-amplitude in-place luma modulation. |
+| `ScottieFox/caustic-volume` | `d87351bff19831aa9d11c0679605fad6797b133f` | MIT; Three.js, shader and volume simulation for the demo | Lite web demo was opened and rendered. Browser session reported WebGL / Three.js r186 and about 21–30 FPS; this is browser evidence only. Its full project computes wave surfaces and projects refracted sun photons into a caustic volume. | Comparison only. The volume/24-wave algorithm requires a 3D tank, ray projection and texture atlas; extracting it would add disproportionate infrastructure and alter this 2D static composition. No Three.js bundled. |
+| `AndroidPoet/mirage` | `9da9b00f678d57ce9989838ac513ffa88a11b038` | Apache-2.0; Compose API, AGSL requires API 33 | Repository demonstrates a guarded `RuntimeShader` + RenderEffect host and contains simplex noise / God Rays. README demo evidence is not treated as independent device validation. | Adapt API guard, reusable uniforms and the small Ashima simplex block. Use only low-frequency modulation through the existing green mask; no new rays. |
+| `styropyr0/PrismalAGSL` | `c853feb2e8b375fc8eb2dcce25a6d4f18250fb68` | MIT; Android library declares min SDK 25; AGSL itself still needs API 33 | Supplies rounded-rect SDF/gradient, content shader sampling, refraction and specular examples. No Lake Glass device test was inferred from its code or screenshots. | Adapt SDF-gradient and sample-in-place structure. No library dependency; mask-gated fixed droplets sample the one base composite. |
+| `frmlinn/raindrops-v2` | `6e95911694bac6bafd1aadbc0e85fbd9a2e56ada` | MIT; Three.js, Vite and Tweakpane demo dependencies | Source uses screen-space displacement maps to sample the background. README attributes the effect origin to Codrops RainEffect. | Adapt the screen-space sample formula for three fixed manifest bounds; no rain particles, movement, or Three.js. |
+
+## Runtime boundary
+
+API 24–32 renders the verified static composite. API 33+ compiles the optional AGSL shader, but the formal route host keeps all effects disabled unless explicitly opted in. Shader creation, mask integrity, or API capability failure selects the same static composite. The debug-only lab exposes independent effect toggles and bounded sliders.
