@@ -1,32 +1,33 @@
 {
-  "schemaVersion": "1.0",
-  "canvasSizePx": [
-    1440,
-    3120
-  ],
-  "coordinateSystem": "master px, top-left origin",
-  "defaultRenderer": "Compose Canvas / Android Canvas",
+  "schemaVersion": "2.0",
+  "authoritativeManifest": "assets/android_runtime/layer_manifest_v1.json",
+  "authoritativeManifestSha256": "bf5c80eb149e67ed564859a7558688bcff279ba6961a93f8c684e140cb8e0a82",
+  "androidHost": "LakeGlassBackgroundHost",
+  "renderer": "LakeGlassRenderer",
+  "assetRepository": "LakeGlassAssetRepository",
+  "ambientController": "AmbientController (separate clock; never the recognition SceneClock)",
   "api24to32": {
-    "mode": "static",
+    "mode": "STATIC",
     "primary": "assets/android_runtime/api24_static/lake_glass_static_layered_v3.png",
     "fallback": "assets/android_runtime/api24_static/lake_glass_master_fallback.png",
-    "sunlight": "baked in base"
+    "shader": "DISABLED"
   },
   "api33plus": {
-    "mode": "optional AGSL RuntimeShader",
-    "noGLSurfaceView": true,
-    "caustics": "assets/caustics/caustics_texture_v2.png",
-    "dropletMaps": "assets/droplets/*_normal_map.png, *_height_map.png, *_displacement_map.png, *_specular_mask.png",
-    "grass": [
-      "assets/grass/grass_left_rgba_v2.png",
-      "assets/grass/grass_right_rgba_v2.png"
-    ],
-    "sunlight": {
-      "asset": "assets/sunlight/sunlight_field_v2.png",
-      "runtimeEligible": false
-    }
+    "mode": "OPTIONAL_AGSL_IN_PLACE_MODULATION",
+    "staticFallback": "assets/android_runtime/api24_static/lake_glass_static_layered_v3.png",
+    "shaderFailureFallback": "STATIC_COMPOSITE",
+    "overlayLayers": [],
+    "effects": [
+      "LAYER_CAUSTICS_MODULATION",
+      "LAYER_SUNLIGHT_MODULATION",
+      "LAYER_DROPLET_01_REFRACTION",
+      "LAYER_DROPLET_02_REFRACTION",
+      "LAYER_DROPLET_03_REFRACTION"
+    ]
   },
   "singleGlobalMatrix": true,
-  "decodeCache": "decode once; canonical source remains lossless",
-  "scope": "assets only; no Android pages or renderer source changed"
+  "overlayLayers": [],
+  "diagnosticAssetsExcludedFromApk": true,
+  "decodeCache": "one async process-level scene cache; no per-frame Bitmap or RuntimeShader allocation",
+  "status": "ASSET_PACK_READY_FOR_ANDROID"
 }

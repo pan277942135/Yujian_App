@@ -1,9 +1,9 @@
 {
   "schemaVersion": "3.0",
   "assetPackId": "LakeGlassV2TrueLayersP1",
-  "taskId": "YUJIAN_LAKE_GLASS_V2_TRUE_LAYER_RECONSTRUCTION_ANDROID_ASSET_PACK_P1",
-  "status": "ASSET_PACK_PARTIAL_WITH_BAKED_LAYERS",
-  "readyForAndroid": false,
+  "taskId": "YUJIAN_LAKE_GLASS_V2_ASSET_PACK_ANDROID_RUNTIME_INTEGRATION_V1",
+  "status": "ASSET_PACK_READY_FOR_ANDROID",
+  "readyForAndroid": true,
   "master": {
     "path": "design/system/backgrounds/lake_glass_v2/assets/source_master/YuJian_Lake_Glass_V2_Master_Candidate_02_1440x3120.png",
     "sha256": "d0bd07ba379491e8b93468c616468fc60d59a2dfebc11061cf4d14e9788c6e12",
@@ -29,7 +29,7 @@
     "searchedMainAndPrHistory": true,
     "notes": "No PSD/ORA/XCF or native Lake Glass layer export found in checked repository and PR paths; the smaller source is a near-identical flattened composition."
   },
-  "originPermission": "PENDING_REVIEW; derived from user-supplied images and procedural reconstruction; no independent rights claim",
+  "originPermission": "USER_PROVIDED_TASK_INPUT; task authorization covers derived assets; no ownership claim beyond supplied source.",
   "layers": [
     {
       "layerId": "LAYER_BASE_CLEAN",
@@ -49,7 +49,6 @@
       "blendMode": "SRC",
       "alpha": 1,
       "sourceType": "CONTROLLED_RECONSTRUCTION",
-      "runtimeEligible": true,
       "bakedResiduals": [
         "broad upper-right sunlight and surface reflection",
         "lower grass root beds in caustic-overlap zones"
@@ -65,7 +64,12 @@
       "assetDimensionsPx": [
         1440,
         3120
-      ]
+      ],
+      "separationStatus": "NOT_RUNTIME_ELIGIBLE",
+      "runtimeMode": "DIAGNOSTIC_ONLY",
+      "motionEligible": false,
+      "fallbackPolicy": "STATIC_COMPOSITE",
+      "runtimeStatusRef": "LAYER_BASE_CLEAN_DIAGNOSTIC"
     },
     {
       "layerId": "LAYER_SUNLIGHT_FIELD",
@@ -85,7 +89,6 @@
       "blendMode": "SRC_OVER",
       "alpha": 0.28,
       "sourceType": "PROCEDURAL_LAYER",
-      "runtimeEligible": false,
       "reason": "No clean unlit source; drawing over Master would double light.",
       "anchorNormalized": [
         0.945139,
@@ -98,7 +101,12 @@
       "assetDimensionsPx": [
         1440,
         3120
-      ]
+      ],
+      "separationStatus": "BAKED_IN_BASE",
+      "runtimeMode": "API33_IN_PLACE_LOW_AMPLITUDE_MODULATION",
+      "motionEligible": true,
+      "fallbackPolicy": "STATIC_COMPOSITE",
+      "runtimeStatusRef": "LAYER_SUNLIGHT_MODULATION"
     },
     {
       "layerId": "LAYER_CAUSTICS",
@@ -118,9 +126,8 @@
       "blendMode": "PLUS",
       "alpha": 1,
       "sourceType": "CONTROLLED_RECONSTRUCTION",
-      "runtimeEligible": true,
       "tileable": false,
-      "motionEligible": false,
+      "motionEligible": true,
       "anchorNormalized": [
         0.5,
         0.913462
@@ -132,7 +139,11 @@
       "assetDimensionsPx": [
         1440,
         1140
-      ]
+      ],
+      "separationStatus": "SHADER_INPUTS_PROVISIONAL",
+      "runtimeMode": "API33_IN_PLACE_MASKED_MODULATION",
+      "fallbackPolicy": "STATIC_COMPOSITE",
+      "runtimeStatusRef": "LAYER_CAUSTICS_MODULATION"
     },
     {
       "layerId": "LAYER_DROPLET_01_LEFT",
@@ -165,7 +176,6 @@
       "blendMode": "SRC_OVER_STATIC / SHADER_DISPLACEMENT",
       "alpha": 1.0,
       "sourceType": "CONTROLLED_RECONSTRUCTION",
-      "runtimeEligible": true,
       "refractionIndexReference": 1.333,
       "refractionIndexMeasured": false,
       "staticAssetMethod": "Shaped optical-delta RGBA solved against clean plate; no rectangular backdrop crop.",
@@ -180,7 +190,12 @@
       "assetDimensionsPx": [
         111,
         131
-      ]
+      ],
+      "separationStatus": "SHADER_INPUTS_PROVISIONAL",
+      "runtimeMode": "API33_FIXED_ANCHOR_IN_PLACE_REFRACTION",
+      "motionEligible": true,
+      "fallbackPolicy": "STATIC_COMPOSITE",
+      "runtimeStatusRef": "LAYER_DROPLET_01_REFRACTION"
     },
     {
       "layerId": "LAYER_DROPLET_02_UPPER_RIGHT",
@@ -213,7 +228,6 @@
       "blendMode": "SRC_OVER_STATIC / SHADER_DISPLACEMENT",
       "alpha": 1.0,
       "sourceType": "CONTROLLED_RECONSTRUCTION",
-      "runtimeEligible": true,
       "refractionIndexReference": 1.333,
       "refractionIndexMeasured": false,
       "staticAssetMethod": "Shaped optical-delta RGBA solved against clean plate; no rectangular backdrop crop.",
@@ -228,7 +242,12 @@
       "assetDimensionsPx": [
         133,
         165
-      ]
+      ],
+      "separationStatus": "SHADER_INPUTS_PROVISIONAL",
+      "runtimeMode": "API33_FIXED_ANCHOR_IN_PLACE_REFRACTION",
+      "motionEligible": true,
+      "fallbackPolicy": "STATIC_COMPOSITE",
+      "runtimeStatusRef": "LAYER_DROPLET_02_REFRACTION"
     },
     {
       "layerId": "LAYER_DROPLET_03_LOWER_RIGHT",
@@ -261,7 +280,6 @@
       "blendMode": "SRC_OVER_STATIC / SHADER_DISPLACEMENT",
       "alpha": 1.0,
       "sourceType": "CONTROLLED_RECONSTRUCTION",
-      "runtimeEligible": true,
       "refractionIndexReference": 1.333,
       "refractionIndexMeasured": false,
       "staticAssetMethod": "Shaped optical-delta RGBA solved against clean plate; no rectangular backdrop crop.",
@@ -276,7 +294,12 @@
       "assetDimensionsPx": [
         144,
         146
-      ]
+      ],
+      "separationStatus": "SHADER_INPUTS_PROVISIONAL",
+      "runtimeMode": "API33_FIXED_ANCHOR_IN_PLACE_REFRACTION",
+      "motionEligible": true,
+      "fallbackPolicy": "STATIC_COMPOSITE",
+      "runtimeStatusRef": "LAYER_DROPLET_03_REFRACTION"
     },
     {
       "layerId": "LAYER_GRASS_LEFT",
@@ -296,7 +319,6 @@
       "blendMode": "SRC_OVER",
       "alpha": 1.0,
       "sourceType": "CONTROLLED_RECONSTRUCTION",
-      "runtimeEligible": true,
       "alphaMethod": "Per-pixel source-over delta inversion within green-chroma support; not native source alpha.",
       "motionEligible": false,
       "bakedResiduals": [
@@ -313,7 +335,11 @@
       "assetDimensionsPx": [
         589,
         834
-      ]
+      ],
+      "separationStatus": "NOT_RUNTIME_ELIGIBLE",
+      "runtimeMode": "DIAGNOSTIC_ONLY",
+      "fallbackPolicy": "STATIC_COMPOSITE",
+      "runtimeStatusRef": "LAYER_GRASS_LEFT_DIAGNOSTIC"
     },
     {
       "layerId": "LAYER_GRASS_RIGHT",
@@ -333,7 +359,6 @@
       "blendMode": "SRC_OVER",
       "alpha": 1.0,
       "sourceType": "CONTROLLED_RECONSTRUCTION",
-      "runtimeEligible": true,
       "alphaMethod": "Per-pixel source-over delta inversion within green-chroma support; not native source alpha.",
       "motionEligible": false,
       "bakedResiduals": [
@@ -350,7 +375,11 @@
       "assetDimensionsPx": [
         403,
         589
-      ]
+      ],
+      "separationStatus": "NOT_RUNTIME_ELIGIBLE",
+      "runtimeMode": "DIAGNOSTIC_ONLY",
+      "fallbackPolicy": "STATIC_COMPOSITE",
+      "runtimeStatusRef": "LAYER_GRASS_RIGHT_DIAGNOSTIC"
     }
   ],
   "derivedFiles": [
@@ -395,16 +424,16 @@
     },
     {
       "path": "design/system/backgrounds/lake_glass_v2/assets/sunlight/sunlight_anchor.json",
-      "sha256": "48ff79419bfe2950a41bc1e975180e7272b76036ebeb98474e2cfe9cb1079838",
-      "sizeBytes": 671,
+      "sha256": "a29ef57a74703ca20da53c9941e35c459131c804ccc5b1a68e2557bc8b139906",
+      "sizeBytes": 643,
       "format": "JSON",
       "dimensionsPx": null,
       "mode": null
     },
     {
       "path": "design/system/backgrounds/lake_glass_v2/assets/sunlight/sunlight_anchor_v2.json",
-      "sha256": "1f6a0d5b5af7d4a7fd8cbdb77ef410cb368bb22f0949dc8d4ff6a43a4bc7149a",
-      "sizeBytes": 438,
+      "sha256": "45ebd8b2c32a8e497bb40decf3a903772b1ed84146b96aec9adeba120c0b58f1",
+      "sizeBytes": 564,
       "format": "JSON",
       "dimensionsPx": null,
       "mode": null
@@ -463,8 +492,8 @@
     },
     {
       "path": "design/system/backgrounds/lake_glass_v2/assets/sunlight/sunlight_params_v2.json",
-      "sha256": "7650d785c72dee6b484a9127ec6d8f38e94adb97b6539f24f6a45e1e998036de",
-      "sizeBytes": 453,
+      "sha256": "ada8b4c30cb6837462550bc57e968c77251430bf647920e957ef9495d6e236af",
+      "sizeBytes": 551,
       "format": "JSON",
       "dimensionsPx": null,
       "mode": null
@@ -523,16 +552,16 @@
     },
     {
       "path": "design/system/backgrounds/lake_glass_v2/assets/caustics/caustics_params.json",
-      "sha256": "830fb464e52f2d65dd8a9d3c83bca328fc517f9dd227ce6ff2d8469e489ecd6d",
-      "sizeBytes": 598,
+      "sha256": "04c6fe3575f6e1775c52c79e9ae2fe62871526a8ec87d6a6b723e3c8092ee8d6",
+      "sizeBytes": 570,
       "format": "JSON",
       "dimensionsPx": null,
       "mode": null
     },
     {
       "path": "design/system/backgrounds/lake_glass_v2/assets/caustics/caustics_params_v2.json",
-      "sha256": "f81db1d1bd61f146574445f250a1bd31e37e80ce93c741d2fbfe031a57c9e33f",
-      "sizeBytes": 638,
+      "sha256": "c752d391a8fe1ecf9480691141eaf3242d2d53ea6e37db4d903a8280c21d4759",
+      "sizeBytes": 742,
       "format": "JSON",
       "dimensionsPx": null,
       "mode": null
@@ -633,16 +662,16 @@
     },
     {
       "path": "design/system/backgrounds/lake_glass_v2/assets/grass/grass_motion_bones.json",
-      "sha256": "70e36f11a881ae844b836f0045f67cfb1870ff13c673d3f9684d72cca4e63119",
-      "sizeBytes": 618,
+      "sha256": "c5a6b659aed19329a04e36f6b251377aae67dc3a593d26653de3fc20dc54b2fa",
+      "sizeBytes": 699,
       "format": "JSON",
       "dimensionsPx": null,
       "mode": null
     },
     {
       "path": "design/system/backgrounds/lake_glass_v2/assets/grass/grass_motion_bones_v2.json",
-      "sha256": "14bdbf643cc5680873837216467ff228af9ca312cacea649ae195134bbebbd2b",
-      "sizeBytes": 988,
+      "sha256": "30c4e2393ec4ff385dbb268ade7f879dcdd2678b7187f2ea34ae01b5974c4887",
+      "sizeBytes": 1097,
       "format": "JSON",
       "dimensionsPx": null,
       "mode": null
@@ -969,16 +998,16 @@
     },
     {
       "path": "design/system/backgrounds/lake_glass_v2/assets/droplets/droplets_anchors.json",
-      "sha256": "b5e73263dbe0c63d184fd6854b9870f07a0a7e2a368a6e3adab0d92af0605ef8",
-      "sizeBytes": 2016,
+      "sha256": "d1a8a305a188554d0eef78b88a668aae7796e14daa176fa4ed0fbd2eba236eb4",
+      "sizeBytes": 2360,
       "format": "JSON",
       "dimensionsPx": null,
       "mode": null
     },
     {
       "path": "design/system/backgrounds/lake_glass_v2/assets/droplets/droplets_anchors_v2.json",
-      "sha256": "807f5adc2ba7cbc040188673dcb1ba430ecf3dae2da09ea299f44bb04e3eee73",
-      "sizeBytes": 1097,
+      "sha256": "5f8db353102b07f14a96ea35d5df08b95adb87d56a2b0183c4aea497384b22fe",
+      "sizeBytes": 1537,
       "format": "JSON",
       "dimensionsPx": null,
       "mode": null
@@ -993,8 +1022,8 @@
     },
     {
       "path": "design/system/backgrounds/lake_glass_v2/assets/android_runtime/android_asset_compatibility.md",
-      "sha256": "22ef70f86aed6ecab69e3088cea205dc6dd958304e2ec7a78f8dcd5c152e038b",
-      "sizeBytes": 544,
+      "sha256": "fe1608f4a5555a2481c598e0023f32f4681abf00d9f497988e9308684df2d3bd",
+      "sizeBytes": 1155,
       "format": "MD",
       "dimensionsPx": null,
       "mode": null
@@ -1024,14 +1053,6 @@
       "mode": "RGB",
       "colorSpace": "sRGB",
       "decodedMemoryBytesRgba8888": 17971200
-    },
-    {
-      "path": "design/system/backgrounds/lake_glass_v2/assets/android_runtime/runtime_manifest.json",
-      "sha256": "5a062d730556cb3f285c4f0e14b2a4fff81154a00bd647f6e96d8a1aaa80a4ef",
-      "sizeBytes": 1092,
-      "format": "JSON",
-      "dimensionsPx": null,
-      "mode": null
     },
     {
       "path": "design/system/backgrounds/lake_glass_v2/assets/metadata/android_asset_compatibility_v1.json",
@@ -1107,8 +1128,8 @@
     },
     {
       "path": "design/system/backgrounds/lake_glass_v2/assets/metadata/lake_layer_pack_v3.json",
-      "sha256": "140db7cf2650e3d9e0447823b168e0335d013236212f28cc62d95f813dfcc0b7",
-      "sizeBytes": 10825,
+      "sha256": "e80a73360e6764ec71caee03b78111cdf3a6879f372f5240677cd1356fb3f10a",
+      "sizeBytes": 13041,
       "format": "JSON",
       "dimensionsPx": null,
       "mode": null
@@ -1131,16 +1152,16 @@
     },
     {
       "path": "design/system/backgrounds/lake_glass_v2/assets/metadata/layer_feasibility_matrix.csv",
-      "sha256": "538022dde8aadc18858d525c27ad4cfebac6ca9ed34c8bfe5bd99380a8979571",
-      "sizeBytes": 1618,
+      "sha256": "389fcf28ce9c25d6e3882f80b59998f15d6c2b54493e093ad90575028ad0cb77",
+      "sizeBytes": 1767,
       "format": "CSV",
       "dimensionsPx": null,
       "mode": null
     },
     {
       "path": "design/system/backgrounds/lake_glass_v2/assets/metadata/layer_feasibility_review.md",
-      "sha256": "3863d8d617887b26af004d2fa56d52d62946e05336bd5675e5b96c6c0faefbc9",
-      "sizeBytes": 778,
+      "sha256": "efe6117533f32a3704960a5d7fabe341199fceda81365f0299d5ada03f0cef16",
+      "sizeBytes": 1394,
       "format": "MD",
       "dimensionsPx": null,
       "mode": null
@@ -1798,16 +1819,16 @@
     },
     {
       "path": "design/system/backgrounds/lake_glass_v2/evidence/final_delivery_report.md",
-      "sha256": "cf2230d67885902c04a65a6a41fb09524168adac6554aa2c420b1d176fc9e06b",
-      "sizeBytes": 483,
+      "sha256": "bb458f64956f330ce192c5206d8ae59c5b24ac29060abbc016f27af533535787",
+      "sizeBytes": 876,
       "format": "MD",
       "dimensionsPx": null,
       "mode": null
     },
     {
       "path": "design/system/backgrounds/lake_glass_v2/evidence/layer_pack_audit_report.md",
-      "sha256": "1e50df32bcb88e2233702ab7fc09eeebc32930a663185f47f9e59b90d2ad97ff",
-      "sizeBytes": 2724,
+      "sha256": "a23b319f4926830d94c77c7ab0309e0d9bd35de382a71347d16c3dceebc22430",
+      "sizeBytes": 1196,
       "format": "MD",
       "dimensionsPx": null,
       "mode": null
@@ -1854,8 +1875,8 @@
     },
     {
       "path": "design/system/backgrounds/lake_glass_v2/evidence/validation_report.json",
-      "sha256": "a8d42d1b76d2cffeb90e31913ad2225200fff5e9fec9fdac199e4c6d674483c7",
-      "sizeBytes": 3318,
+      "sha256": "192e9ba554fa499511db5d1848375316ce6407808009d3eef8577fe922cabf40",
+      "sizeBytes": 3456,
       "format": "JSON",
       "dimensionsPx": null,
       "mode": null
@@ -1874,9 +1895,54 @@
       "decodedMemoryBytesRgba8888": 4111536
     },
     {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/android_runtime/runtime_optical_masks_v1.png",
+      "sha256": "2eae796055e1417f6dc9b81ae49e4167c68796d87b976ea1f02cceca421d26b0",
+      "sizeBytes": 43264,
+      "format": "PNG",
+      "dimensionsPx": [
+        360,
+        780
+      ],
+      "mode": "RGBA",
+      "colorSpace": "sRGB",
+      "decodedMemoryBytesRgba8888": 1123200
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/android_runtime/layer_manifest_v1.json",
+      "sha256": "bf5c80eb149e67ed564859a7558688bcff279ba6961a93f8c684e140cb8e0a82",
+      "sizeBytes": 19558,
+      "format": "JSON",
+      "dimensionsPx": null,
+      "mode": null
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/assets/android_runtime/runtime_manifest.json",
+      "sha256": "30db1cbc801beb6b8897807a6b50e819b29a0697f66b93eb980e2222347a1f54",
+      "sizeBytes": 1358,
+      "format": "JSON",
+      "dimensionsPx": null,
+      "mode": null
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/evidence/true_layer_validation_failure_20261102.json",
+      "sha256": "f4c86967fd1175f67a6df03ee73e7951d7172ac02f0db90daaeee03ae96b8fde",
+      "sizeBytes": 5680,
+      "format": "JSON",
+      "dimensionsPx": null,
+      "mode": null
+    },
+    {
       "path": "design/system/backgrounds/lake_glass_v2/evidence/true_layer_validation_report_v1.json",
-      "sha256": "390aa6bf9559b7d6657e69d9bffcf81c66ca59a915e6e29c759e9ea62d9c4934",
-      "sizeBytes": 5619,
+      "sha256": "331100ca23d5b8b375cd4c2efd48f88dad38a6d5d5dd15904644b7c1ae7eec55",
+      "sizeBytes": 5692,
+      "format": "JSON",
+      "dimensionsPx": null,
+      "mode": null
+    },
+    {
+      "path": "design/system/backgrounds/lake_glass_v2/evidence/android_runtime_asset_pack_acceptance_v1.json",
+      "sha256": "5bdbef89d1e527c336210bc7a8a5b16dca786df5e0b38f53f9813c1ed7fd4021",
+      "sizeBytes": 8041,
       "format": "JSON",
       "dimensionsPx": null,
       "mode": null
@@ -1890,12 +1956,25 @@
     },
     {
       "path": "scripts/verify_lake_glass_true_layers_p1.py",
-      "sha256": "9359d5fdf1418fb274ac05fa57d1e3d6f59ea27242c8b5d120740bd51a304003"
+      "sha256": "94f31a5c6ca5eff92eeff6ef28eb2da1b0d6935b9bb87bf0da97f0024367d09e"
     },
     {
       "path": "scripts/generate_lake_glass_preview_p1.py",
       "sha256": "14261ec730517faa52ea64b5d49ce74f0b80d97b6b61dc95a0215168e6fea905"
+    },
+    {
+      "path": "scripts/build_lake_glass_android_runtime_v1.py",
+      "sha256": "6bfebfbb9b2416a8d2a91a62d4c99d528b4585e734718809637353a22bd9f775"
+    },
+    {
+      "path": "scripts/verify_lake_glass_android_runtime_v1.py",
+      "sha256": "31e9c3592cf5f09f6a1ddc92794143e124fda5dd792d9e74da87c41353464d21"
     }
   ],
-  "statusReason": "Broad upper-right sunlight, lower grass/root beds and surface reflection remain baked in the base; procedural sunlight is excluded from visible composition."
+  "statusReason": "Static composite is visually verified. Extracted grass and RGBA drop candidates stay diagnostic; baked effects are modulated in place only, with an API 24+ static fallback.",
+  "runtimeLayerManifest": "assets/android_runtime/layer_manifest_v1.json",
+  "runtimeLayerManifestSha256": "bf5c80eb149e67ed564859a7558688bcff279ba6961a93f8c684e140cb8e0a82",
+  "androidRuntimeManifest": "assets/android_runtime/runtime_manifest.json",
+  "androidRuntimeManifestSha256": "30db1cbc801beb6b8897807a6b50e819b29a0697f66b93eb980e2222347a1f54",
+  "sourceTaskId": "YUJIAN_LAKE_GLASS_V2_ASSET_PACK_ANDROID_RUNTIME_INTEGRATION_V1"
 }

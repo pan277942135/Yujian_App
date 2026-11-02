@@ -22,7 +22,9 @@
         0.048611,
         0.228526
       ],
-      "sourceType": "CONTROLLED_RECONSTRUCTION"
+      "sourceType": "CONTROLLED_RECONSTRUCTION",
+      "separationStatus": "SHADER_INPUTS_PROVISIONAL",
+      "runtimeMode": "API33_FIXED_ANCHOR_IN_PLACE_REFRACTION"
     },
     {
       "id": "droplet_02_upper_right",
@@ -40,7 +42,9 @@
         0.913889,
         0.145192
       ],
-      "sourceType": "CONTROLLED_RECONSTRUCTION"
+      "sourceType": "CONTROLLED_RECONSTRUCTION",
+      "separationStatus": "SHADER_INPUTS_PROVISIONAL",
+      "runtimeMode": "API33_FIXED_ANCHOR_IN_PLACE_REFRACTION"
     },
     {
       "id": "droplet_03_lower_right",
@@ -58,7 +62,11 @@
         0.945833,
         0.625641
       ],
-      "sourceType": "CONTROLLED_RECONSTRUCTION"
+      "sourceType": "CONTROLLED_RECONSTRUCTION",
+      "separationStatus": "SHADER_INPUTS_PROVISIONAL",
+      "runtimeMode": "API33_FIXED_ANCHOR_IN_PLACE_REFRACTION"
     }
-  ]
+  ],
+  "runtimeMode": "API33_FIXED_ANCHOR_IN_PLACE_REFRACTION",
+  "motionEligible": false
 }

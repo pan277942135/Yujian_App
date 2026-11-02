@@ -87,5 +87,7 @@
     }
   ],
   "readyForAndroid": false,
-  "reason": "Static master fallback and supporting analysis assets are verified, but independent optical layers remain baked and user review/native layered source is still needed before runtime use."
+  "reason": "Static master fallback and supporting analysis assets are verified, but independent optical layers remain baked and user review/native layered source is still needed before runtime use.",
+  "historical": true,
+  "supersededBy": "design/system/backgrounds/lake_glass_v2/evidence/android_runtime_asset_pack_acceptance_v1.json"
 }

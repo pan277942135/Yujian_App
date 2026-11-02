@@ -15,6 +15,5 @@
   "analysisOnly": true,
   "visibleLayer": false,
   "method": "luminance and warm-channel threshold sampled from the flattened RGB master; not a recovered original light layer",
-  "runtimeEligible": false,
   "reason": "Sunlight and water-surface refraction are composited into the same RGB pixels; overlay would duplicate light."
 }

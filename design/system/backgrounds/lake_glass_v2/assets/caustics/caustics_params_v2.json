@@ -20,5 +20,7 @@
   "tileable": false,
   "tileValidationStatus": "NOT_TILEABLE_NO_TILE_CREATED",
   "sourceType": "CONTROLLED_RECONSTRUCTION",
-  "runtimeEligible": true
+  "separationStatus": "SHADER_INPUTS_PROVISIONAL",
+  "runtimeMode": "API33_IN_PLACE_MASKED_MODULATION",
+  "motionEligible": false
 }

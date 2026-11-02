@@ -1,0 +1,270 @@
+{
+  "taskId": "YUJIAN_LAKE_GLASS_V2_ASSET_PACK_ANDROID_RUNTIME_INTEGRATION_V1",
+  "status": "PASS",
+  "assetPackStatus": "ASSET_PACK_READY_FOR_ANDROID",
+  "readyForAndroid": true,
+  "sourceMasterSha256": "d0bd07ba379491e8b93468c616468fc60d59a2dfebc11061cf4d14e9788c6e12",
+  "sourceOriginalSha256": "f3dc1549919f48f939df5a6cf5baf18fb6846164c6f857df8e20cfe247b495ba",
+  "sourceMasterManifestSha256": "623b978487ef294b7261c45e8ec1612ce372df61bbdca3859f5a9faa31af661b",
+  "staticCompositeSha256": "23a493146f7fbb06469e56ae18b2ed8d58b610d981169c8987319481c0df5368",
+  "authoritativeLayerManifestSha256": "bf5c80eb149e67ed564859a7558688bcff279ba6961a93f8c684e140cb8e0a82",
+  "runtimeManifestSha256": "30db1cbc801beb6b8897807a6b50e819b29a0697f66b93eb980e2222347a1f54",
+  "opticalMaskSha256": "2eae796055e1417f6dc9b81ae49e4167c68796d87b976ea1f02cceca421d26b0",
+  "checksPassed": 19,
+  "checksTotal": 19,
+  "failedChecks": [],
+  "checks": [
+    {
+      "name": "input_master_sha",
+      "passed": true,
+      "detail": "d0bd07ba379491e8b93468c616468fc60d59a2dfebc11061cf4d14e9788c6e12"
+    },
+    {
+      "name": "input_source_sha",
+      "passed": true,
+      "detail": "f3dc1549919f48f939df5a6cf5baf18fb6846164c6f857df8e20cfe247b495ba"
+    },
+    {
+      "name": "input_master_manifest_sha",
+      "passed": true,
+      "detail": "623b978487ef294b7261c45e8ec1612ce372df61bbdca3859f5a9faa31af661b"
+    },
+    {
+      "name": "source_dimensions",
+      "passed": true,
+      "detail": "Master=1440x3120; source=852x1846"
+    },
+    {
+      "name": "all_three_inputs_pinned",
+      "passed": true,
+      "detail": [
+        {
+          "role": "master",
+          "sourceFile": "assets/source_master/YuJian_Lake_Glass_V2_Master_Candidate_02_1440x3120.png",
+          "sourceSha256": "d0bd07ba379491e8b93468c616468fc60d59a2dfebc11061cf4d14e9788c6e12",
+          "dimensionsPx": [
+            1440,
+            3120
+          ]
+        },
+        {
+          "role": "original_source",
+          "sourceFile": "assets/source_master/宁静湖光玻璃水境背景.png",
+          "sourceSha256": "f3dc1549919f48f939df5a6cf5baf18fb6846164c6f857df8e20cfe247b495ba",
+          "dimensionsPx": [
+            852,
+            1846
+          ]
+        },
+        {
+          "role": "master_manifest",
+          "sourceFile": "assets/source_master/YuJian_Lake_Glass_V2_Master_Candidate_02_manifest.json",
+          "sourceSha256": "623b978487ef294b7261c45e8ec1612ce372df61bbdca3859f5a9faa31af661b",
+          "dimensionsPx": null
+        }
+      ]
+    },
+    {
+      "name": "runtime_manifest_hash_parity",
+      "passed": true,
+      "detail": {
+        "layerManifest": "bf5c80eb149e67ed564859a7558688bcff279ba6961a93f8c684e140cb8e0a82",
+        "runtimeManifest": "30db1cbc801beb6b8897807a6b50e819b29a0697f66b93eb980e2222347a1f54"
+      }
+    },
+    {
+      "name": "runtime_manifest_reference_parity",
+      "passed": true,
+      "detail": "all consumers reference the canonical layer manifest"
+    },
+    {
+      "name": "asset_pack_status",
+      "passed": true,
+      "detail": "asset=ASSET_PACK_READY_FOR_ANDROID; pack=ASSET_PACK_READY_FOR_ANDROID"
+    },
+    {
+      "name": "layer_provenance_geometry_and_sha",
+      "passed": true,
+      "detail": {
+        "count": 10,
+        "errors": []
+      }
+    },
+    {
+      "name": "consumer_layer_status_parity",
+      "passed": true,
+      "detail": []
+    },
+    {
+      "name": "visible_stack_has_static_only",
+      "passed": true,
+      "detail": [
+        "LAYER_STATIC_COMPOSITE"
+      ]
+    },
+    {
+      "name": "api24_32_static_policy",
+      "passed": true,
+      "detail": {
+        "mode": "STATIC",
+        "primary": "assets/android_runtime/api24_static/lake_glass_static_layered_v3.png",
+        "fallback": "assets/android_runtime/api24_static/lake_glass_master_fallback.png",
+        "shader": "DISABLED"
+      }
+    },
+    {
+      "name": "api33plus_error_fallback",
+      "passed": true,
+      "detail": {
+        "mode": "OPTIONAL_AGSL_IN_PLACE_MODULATION",
+        "staticFallback": "assets/android_runtime/api24_static/lake_glass_static_layered_v3.png",
+        "shaderFailureFallback": "STATIC_COMPOSITE",
+        "overlayLayers": [],
+        "effects": [
+          "LAYER_CAUSTICS_MODULATION",
+          "LAYER_SUNLIGHT_MODULATION",
+          "LAYER_DROPLET_01_REFRACTION",
+          "LAYER_DROPLET_02_REFRACTION",
+          "LAYER_DROPLET_03_REFRACTION"
+        ]
+      }
+    },
+    {
+      "name": "no_boolean_runtime_eligibility",
+      "passed": true,
+      "detail": []
+    },
+    {
+      "name": "static_recomposition_dimensions",
+      "passed": true,
+      "detail": [
+        [
+          3120,
+          1440,
+          3
+        ],
+        [
+          3120,
+          1440,
+          3
+        ]
+      ]
+    },
+    {
+      "name": "static_recomposition_metrics",
+      "passed": true,
+      "detail": {
+        "maeRgb": 5.935422602089269e-07,
+        "rmseRgb": 0.0007704169392017072,
+        "psnrDb": 110.39628714709322,
+        "ssimGlobalRgb": 0.9999999996491161,
+        "changedPixelRatio": 1.7806267806267806e-06,
+        "maxAbsChannelDelta": 1.0
+      }
+    },
+    {
+      "name": "local_roi_metrics",
+      "passed": true,
+      "detail": {
+        "top_light": "Infinity",
+        "drop_left": "Infinity",
+        "drop_upper_right": "Infinity",
+        "drop_lower_right": "Infinity",
+        "grass_left": "Infinity",
+        "grass_right": 100.63561965187822,
+        "caustics_lower": 106.02378972027351
+      }
+    },
+    {
+      "name": "optical_mask_atlas",
+      "passed": true,
+      "detail": {
+        "dimensions": [
+          360,
+          780
+        ],
+        "sha256": "2eae796055e1417f6dc9b81ae49e4167c68796d87b976ea1f02cceca421d26b0"
+      }
+    },
+    {
+      "name": "empty_home_and_morning_lake_v1_unchanged",
+      "passed": true,
+      "detail": "git diff against origin/main excludes protected assets/renderer"
+    }
+  ],
+  "staticRecompositionMetrics": {
+    "maeRgb": 5.935422602089269e-07,
+    "rmseRgb": 0.0007704169392017072,
+    "psnrDb": 110.39628714709322,
+    "ssimGlobalRgb": 0.9999999996491161,
+    "changedPixelRatio": 1.7806267806267806e-06,
+    "maxAbsChannelDelta": 1.0
+  },
+  "localRoiMetrics": {
+    "top_light": {
+      "maeRgb": 0.0,
+      "rmseRgb": 0.0,
+      "psnrDb": "Infinity",
+      "ssimGlobalRgb": 1.0,
+      "changedPixelRatio": 0.0,
+      "maxAbsChannelDelta": 0.0
+    },
+    "drop_left": {
+      "maeRgb": 0.0,
+      "rmseRgb": 0.0,
+      "psnrDb": "Infinity",
+      "ssimGlobalRgb": 1.0,
+      "changedPixelRatio": 0.0,
+      "maxAbsChannelDelta": 0.0
+    },
+    "drop_upper_right": {
+      "maeRgb": 0.0,
+      "rmseRgb": 0.0,
+      "psnrDb": "Infinity",
+      "ssimGlobalRgb": 1.0,
+      "changedPixelRatio": 0.0,
+      "maxAbsChannelDelta": 0.0
+    },
+    "drop_lower_right": {
+      "maeRgb": 0.0,
+      "rmseRgb": 0.0,
+      "psnrDb": "Infinity",
+      "ssimGlobalRgb": 1.0,
+      "changedPixelRatio": 0.0,
+      "maxAbsChannelDelta": 0.0
+    },
+    "grass_left": {
+      "maeRgb": 0.0,
+      "rmseRgb": 0.0,
+      "psnrDb": "Infinity",
+      "ssimGlobalRgb": 1.0,
+      "changedPixelRatio": 0.0,
+      "maxAbsChannelDelta": 0.0
+    },
+    "grass_right": {
+      "maeRgb": 5.6171807089162915e-06,
+      "rmseRgb": 0.002370059220550468,
+      "psnrDb": 100.63561965187822,
+      "ssimGlobalRgb": 0.9999999959417822,
+      "changedPixelRatio": 1.6851542126748873e-05,
+      "maxAbsChannelDelta": 1.0
+    },
+    "caustics_lower": {
+      "maeRgb": 1.6244314489928524e-06,
+      "rmseRgb": 0.0012745318548364542,
+      "psnrDb": 106.02378972027351,
+      "ssimGlobalRgb": 0.9999999991798142,
+      "changedPixelRatio": 4.873294346978558e-06,
+      "maxAbsChannelDelta": 1.0
+    }
+  },
+  "manualInspectionPerformed": true,
+  "manualReviewScope": [
+    "Master vs static composite",
+    "100% and 200% existing optical/grass details",
+    "black/white/checker grass edge sheets",
+    "difference/heatmap evidence",
+    "four CenterCrop viewport matrix"
+  ],
+  "deviceShaderValidation": "NOT_RUN"
+}

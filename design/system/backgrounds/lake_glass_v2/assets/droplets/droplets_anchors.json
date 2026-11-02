@@ -26,8 +26,9 @@
       "regionMask": "droplet_01_left_region_mask.png",
       "rgbaAsset": null,
       "status": "BAKED_STATIC",
-      "runtimeEligible": false,
-      "reason": "Visible refraction contains the background itself; an RGBA cutout would carry contaminated pixels and cannot be composited faithfully over a different scene."
+      "reason": "Visible refraction contains the background itself; an RGBA cutout would carry contaminated pixels and cannot be composited faithfully over a different scene.",
+      "separationStatus": "SHADER_INPUTS_PROVISIONAL",
+      "runtimeMode": "API33_FIXED_ANCHOR_IN_PLACE_REFRACTION"
     },
     {
       "id": "droplet_02_upper_right",
@@ -48,8 +49,9 @@
       "regionMask": "droplet_02_upper_right_region_mask.png",
       "rgbaAsset": null,
       "status": "BAKED_STATIC",
-      "runtimeEligible": false,
-      "reason": "Visible refraction contains the background itself; an RGBA cutout would carry contaminated pixels and cannot be composited faithfully over a different scene."
+      "reason": "Visible refraction contains the background itself; an RGBA cutout would carry contaminated pixels and cannot be composited faithfully over a different scene.",
+      "separationStatus": "SHADER_INPUTS_PROVISIONAL",
+      "runtimeMode": "API33_FIXED_ANCHOR_IN_PLACE_REFRACTION"
     },
     {
       "id": "droplet_03_lower_right",
@@ -70,8 +72,11 @@
       "regionMask": "droplet_03_lower_right_region_mask.png",
       "rgbaAsset": null,
       "status": "BAKED_STATIC",
-      "runtimeEligible": false,
-      "reason": "Visible refraction contains the background itself; an RGBA cutout would carry contaminated pixels and cannot be composited faithfully over a different scene."
+      "reason": "Visible refraction contains the background itself; an RGBA cutout would carry contaminated pixels and cannot be composited faithfully over a different scene.",
+      "separationStatus": "SHADER_INPUTS_PROVISIONAL",
+      "runtimeMode": "API33_FIXED_ANCHOR_IN_PLACE_REFRACTION"
     }
-  ]
+  ],
+  "runtimeMode": "API33_FIXED_ANCHOR_IN_PLACE_REFRACTION",
+  "motionEligible": false
 }

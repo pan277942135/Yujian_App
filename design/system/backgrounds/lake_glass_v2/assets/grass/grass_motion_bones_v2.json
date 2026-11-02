@@ -47,5 +47,8 @@
       "motionPhase": 0.42,
       "maxOffsetDp": 2
     }
-  ]
+  ],
+  "separationStatus": "NOT_RUNTIME_ELIGIBLE",
+  "runtimeMode": "DIAGNOSTIC_ONLY",
+  "motionEligible": false
 }

@@ -11,7 +11,6 @@
   ],
   "blendMode": "none; diagnostic mask only",
   "motionEligible": false,
-  "runtimeEligible": false,
   "tile": null,
   "reason": "Observed lower caustics cannot be separated from the underlying water pixels; no seamless repeatable tile is recoverable from one flattened frame."
 }

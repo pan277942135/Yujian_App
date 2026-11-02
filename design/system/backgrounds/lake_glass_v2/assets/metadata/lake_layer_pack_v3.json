@@ -12,16 +12,18 @@
   },
   "globalTransform": "single uniform transform applied to every layer",
   "visibleCompositeLayerIds": [
-    "LAYER_BASE_CLEAN",
-    "LAYER_CAUSTICS",
-    "LAYER_DROPLET_01_LEFT",
-    "LAYER_DROPLET_02_UPPER_RIGHT",
-    "LAYER_DROPLET_03_LOWER_RIGHT",
-    "LAYER_GRASS_LEFT",
-    "LAYER_GRASS_RIGHT"
+    "LAYER_STATIC_COMPOSITE"
   ],
   "excludedFromVisibleStack": [
-    "LAYER_SUNLIGHT_FIELD"
+    "LAYER_MASTER_FALLBACK",
+    "LAYER_BASE_CLEAN_DIAGNOSTIC",
+    "LAYER_CAUSTICS_MODULATION",
+    "LAYER_SUNLIGHT_MODULATION",
+    "LAYER_DROPLET_01_REFRACTION",
+    "LAYER_DROPLET_02_REFRACTION",
+    "LAYER_DROPLET_03_REFRACTION",
+    "LAYER_GRASS_LEFT_DIAGNOSTIC",
+    "LAYER_GRASS_RIGHT_DIAGNOSTIC"
   ],
   "layers": [
     {
@@ -42,7 +44,6 @@
       "blendMode": "SRC",
       "alpha": 1,
       "sourceType": "CONTROLLED_RECONSTRUCTION",
-      "runtimeEligible": true,
       "bakedResiduals": [
         "broad upper-right sunlight and surface reflection",
         "lower grass root beds in caustic-overlap zones"
@@ -58,7 +59,12 @@
       "assetDimensionsPx": [
         1440,
         3120
-      ]
+      ],
+      "separationStatus": "NOT_RUNTIME_ELIGIBLE",
+      "runtimeMode": "DIAGNOSTIC_ONLY",
+      "motionEligible": false,
+      "fallbackPolicy": "STATIC_COMPOSITE",
+      "runtimeStatusRef": "LAYER_BASE_CLEAN_DIAGNOSTIC"
     },
     {
       "layerId": "LAYER_SUNLIGHT_FIELD",
@@ -78,7 +84,6 @@
       "blendMode": "SRC_OVER",
       "alpha": 0.28,
       "sourceType": "PROCEDURAL_LAYER",
-      "runtimeEligible": false,
       "reason": "No clean unlit source; drawing over Master would double light.",
       "anchorNormalized": [
         0.945139,
@@ -91,7 +96,12 @@
       "assetDimensionsPx": [
         1440,
         3120
-      ]
+      ],
+      "separationStatus": "BAKED_IN_BASE",
+      "runtimeMode": "API33_IN_PLACE_LOW_AMPLITUDE_MODULATION",
+      "motionEligible": true,
+      "fallbackPolicy": "STATIC_COMPOSITE",
+      "runtimeStatusRef": "LAYER_SUNLIGHT_MODULATION"
     },
     {
       "layerId": "LAYER_CAUSTICS",
@@ -111,9 +121,8 @@
       "blendMode": "PLUS",
       "alpha": 1,
       "sourceType": "CONTROLLED_RECONSTRUCTION",
-      "runtimeEligible": true,
       "tileable": false,
-      "motionEligible": false,
+      "motionEligible": true,
       "anchorNormalized": [
         0.5,
         0.913462
@@ -125,7 +134,11 @@
       "assetDimensionsPx": [
         1440,
         1140
-      ]
+      ],
+      "separationStatus": "SHADER_INPUTS_PROVISIONAL",
+      "runtimeMode": "API33_IN_PLACE_MASKED_MODULATION",
+      "fallbackPolicy": "STATIC_COMPOSITE",
+      "runtimeStatusRef": "LAYER_CAUSTICS_MODULATION"
     },
     {
       "layerId": "LAYER_DROPLET_01_LEFT",
@@ -158,7 +171,6 @@
       "blendMode": "SRC_OVER_STATIC / SHADER_DISPLACEMENT",
       "alpha": 1.0,
       "sourceType": "CONTROLLED_RECONSTRUCTION",
-      "runtimeEligible": true,
       "refractionIndexReference": 1.333,
       "refractionIndexMeasured": false,
       "staticAssetMethod": "Shaped optical-delta RGBA solved against clean plate; no rectangular backdrop crop.",
@@ -173,7 +185,12 @@
       "assetDimensionsPx": [
         111,
         131
-      ]
+      ],
+      "separationStatus": "SHADER_INPUTS_PROVISIONAL",
+      "runtimeMode": "API33_FIXED_ANCHOR_IN_PLACE_REFRACTION",
+      "motionEligible": true,
+      "fallbackPolicy": "STATIC_COMPOSITE",
+      "runtimeStatusRef": "LAYER_DROPLET_01_REFRACTION"
     },
     {
       "layerId": "LAYER_DROPLET_02_UPPER_RIGHT",
@@ -206,7 +223,6 @@
       "blendMode": "SRC_OVER_STATIC / SHADER_DISPLACEMENT",
       "alpha": 1.0,
       "sourceType": "CONTROLLED_RECONSTRUCTION",
-      "runtimeEligible": true,
       "refractionIndexReference": 1.333,
       "refractionIndexMeasured": false,
       "staticAssetMethod": "Shaped optical-delta RGBA solved against clean plate; no rectangular backdrop crop.",
@@ -221,7 +237,12 @@
       "assetDimensionsPx": [
         133,
         165
-      ]
+      ],
+      "separationStatus": "SHADER_INPUTS_PROVISIONAL",
+      "runtimeMode": "API33_FIXED_ANCHOR_IN_PLACE_REFRACTION",
+      "motionEligible": true,
+      "fallbackPolicy": "STATIC_COMPOSITE",
+      "runtimeStatusRef": "LAYER_DROPLET_02_REFRACTION"
     },
     {
       "layerId": "LAYER_DROPLET_03_LOWER_RIGHT",
@@ -254,7 +275,6 @@
       "blendMode": "SRC_OVER_STATIC / SHADER_DISPLACEMENT",
       "alpha": 1.0,
       "sourceType": "CONTROLLED_RECONSTRUCTION",
-      "runtimeEligible": true,
       "refractionIndexReference": 1.333,
       "refractionIndexMeasured": false,
       "staticAssetMethod": "Shaped optical-delta RGBA solved against clean plate; no rectangular backdrop crop.",
@@ -269,7 +289,12 @@
       "assetDimensionsPx": [
         144,
         146
-      ]
+      ],
+      "separationStatus": "SHADER_INPUTS_PROVISIONAL",
+      "runtimeMode": "API33_FIXED_ANCHOR_IN_PLACE_REFRACTION",
+      "motionEligible": true,
+      "fallbackPolicy": "STATIC_COMPOSITE",
+      "runtimeStatusRef": "LAYER_DROPLET_03_REFRACTION"
     },
     {
       "layerId": "LAYER_GRASS_LEFT",
@@ -289,7 +314,6 @@
       "blendMode": "SRC_OVER",
       "alpha": 1.0,
       "sourceType": "CONTROLLED_RECONSTRUCTION",
-      "runtimeEligible": true,
       "alphaMethod": "Per-pixel source-over delta inversion within green-chroma support; not native source alpha.",
       "motionEligible": false,
       "bakedResiduals": [
@@ -306,7 +330,11 @@
       "assetDimensionsPx": [
         589,
         834
-      ]
+      ],
+      "separationStatus": "NOT_RUNTIME_ELIGIBLE",
+      "runtimeMode": "DIAGNOSTIC_ONLY",
+      "fallbackPolicy": "STATIC_COMPOSITE",
+      "runtimeStatusRef": "LAYER_GRASS_LEFT_DIAGNOSTIC"
     },
     {
       "layerId": "LAYER_GRASS_RIGHT",
@@ -326,7 +354,6 @@
       "blendMode": "SRC_OVER",
       "alpha": 1.0,
       "sourceType": "CONTROLLED_RECONSTRUCTION",
-      "runtimeEligible": true,
       "alphaMethod": "Per-pixel source-over delta inversion within green-chroma support; not native source alpha.",
       "motionEligible": false,
       "bakedResiduals": [
@@ -343,7 +370,23 @@
       "assetDimensionsPx": [
         403,
         589
-      ]
+      ],
+      "separationStatus": "NOT_RUNTIME_ELIGIBLE",
+      "runtimeMode": "DIAGNOSTIC_ONLY",
+      "fallbackPolicy": "STATIC_COMPOSITE",
+      "runtimeStatusRef": "LAYER_GRASS_RIGHT_DIAGNOSTIC"
     }
-  ]
+  ],
+  "runtimeLayerManifest": "assets/android_runtime/layer_manifest_v1.json",
+  "runtimeLayerManifestSha256": "bf5c80eb149e67ed564859a7558688bcff279ba6961a93f8c684e140cb8e0a82",
+  "status": "ASSET_PACK_READY_FOR_ANDROID",
+  "readyForAndroid": true,
+  "sourceReconstructionLayerIds": [
+    "LAYER_STATIC_COMPOSITE"
+  ],
+  "runtimeVisibleStack": [
+    "LAYER_STATIC_COMPOSITE"
+  ],
+  "androidRuntimeManifest": "assets/android_runtime/runtime_manifest.json",
+  "androidRuntimeManifestSha256": "30db1cbc801beb6b8897807a6b50e819b29a0697f66b93eb980e2222347a1f54"
 }

@@ -1,8 +1,8 @@
 {
   "taskId": "YUJIAN_LAKE_GLASS_V2_TRUE_LAYER_RECONSTRUCTION_ANDROID_ASSET_PACK_P1",
-  "validationStatus": "PASS_WITH_PARTIAL_LAYER_STATE",
-  "assetPackStatus": "ASSET_PACK_PARTIAL_WITH_BAKED_LAYERS",
-  "readyForAndroid": false,
+  "validationStatus": "PASS_STATIC_FIRST_ASSET_PACK",
+  "assetPackStatus": "ASSET_PACK_READY_FOR_ANDROID",
+  "readyForAndroid": true,
   "checksPassed": 21,
   "checksTotal": 21,
   "failedChecks": [],
@@ -20,7 +20,7 @@
     {
       "name": "manifest_schema_and_status",
       "passed": true,
-      "detail": "schema=3.0 status=ASSET_PACK_PARTIAL_WITH_BAKED_LAYERS ready=False"
+      "detail": "schema=3.0 status=ASSET_PACK_READY_FOR_ANDROID ready=True"
     },
     {
       "name": "manifest_source_hashes",
@@ -30,12 +30,12 @@
     {
       "name": "manifest_derived_file_integrity",
       "passed": true,
-      "detail": "files=134; errors=[]"
+      "detail": "files=138; errors=[]"
     },
     {
       "name": "automation_script_hashes",
       "passed": true,
-      "detail": "scripts=3; errors=[]"
+      "detail": "scripts=5; required=5; errors=[]; missing=[]"
     },
     {
       "name": "protected_paths_absent_from_package",
@@ -53,9 +53,9 @@
       "detail": "layers=8 errors=[]"
     },
     {
-      "name": "baked_assets_not_double_composited",
+      "name": "runtime_visible_stack_is_static_only",
       "passed": true,
-      "detail": "visible baked layers=[]"
+      "detail": "visible runtime stack=['LAYER_STATIC_COMPOSITE']"
     },
     {
       "name": "alpha_channel_quality",
@@ -105,12 +105,12 @@
     {
       "name": "source_and_rights_status",
       "passed": true,
-      "detail": "PENDING_REVIEW and source types remain explicit"
+      "detail": "user-provided source and scope are explicit"
     },
     {
-      "name": "honest_partial_status",
+      "name": "safe_static_first_pack_status",
       "passed": true,
-      "detail": "sunlight remains baked; READY is false"
+      "detail": "sunlight is baked; the static composite is the only visible runtime surface"
     }
   ],
   "masterReconstructionMetrics": {

@@ -14,5 +14,8 @@
     0.83
   ],
   "sourceType": "PROCEDURAL_LAYER",
-  "status": "BAKED_STATIC_RESIDUAL"
+  "status": "BAKED_STATIC_RESIDUAL",
+  "separationStatus": "BAKED_IN_BASE",
+  "runtimeMode": "API33_IN_PLACE_LOW_AMPLITUDE_MODULATION",
+  "motionEligible": false
 }

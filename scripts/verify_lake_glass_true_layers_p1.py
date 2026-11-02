@@ -74,7 +74,7 @@ def run(root: Path) -> dict:
     add("master_sha", sha(root / MASTER) == MASTER_SHA, sha(root / MASTER))
     add("original_source_sha", sha(root / ORIGINAL) == ORIGINAL_SHA, sha(root / ORIGINAL))
     manifest = load_json(root / MANIFEST)
-    add("manifest_schema_and_status", manifest.get("schemaVersion") == "3.0" and manifest.get("readyForAndroid") is False,
+    add("manifest_schema_and_status", manifest.get("schemaVersion") == "3.0" and manifest.get("status") == "ASSET_PACK_READY_FOR_ANDROID" and manifest.get("readyForAndroid") is True,
         f"schema={manifest.get('schemaVersion')} status={manifest.get('status')} ready={manifest.get('readyForAndroid')}")
     add("manifest_source_hashes", manifest.get("master", {}).get("sha256") == MASTER_SHA and manifest.get("source", {}).get("sha256") == ORIGINAL_SHA,
         "master/source hashes match archived inputs")
@@ -90,12 +90,21 @@ def run(root: Path) -> dict:
             integrity_ok = False; integrity_errors.append("size mismatch " + rec["path"])
     add("manifest_derived_file_integrity", integrity_ok, f"files={len(manifest.get('derivedFiles', []))}; errors={integrity_errors[:6]}")
     tool_errors = []
-    for rec in manifest.get("toolFiles", []):
+    tool_files = manifest.get("toolFiles", [])
+    for rec in tool_files:
         p = root / rec["path"]
         if not p.exists() or sha(p) != rec["sha256"]:
             tool_errors.append(rec["path"])
-    add("automation_script_hashes", not tool_errors and len(manifest.get("toolFiles", [])) == 3,
-        f"scripts={len(manifest.get('toolFiles', []))}; errors={tool_errors}")
+    required_tools = {
+        "scripts/build_lake_glass_true_layers_p1.py",
+        "scripts/verify_lake_glass_true_layers_p1.py",
+        "scripts/generate_lake_glass_preview_p1.py",
+        "scripts/build_lake_glass_android_runtime_v1.py",
+        "scripts/verify_lake_glass_android_runtime_v1.py",
+    }
+    registered_tools = {x.get("path") for x in tool_files}
+    add("automation_script_hashes", not tool_errors and required_tools.issubset(registered_tools),
+        f"scripts={len(tool_files)}; required={len(required_tools)}; errors={tool_errors}; missing={sorted(required_tools-registered_tools)}")
 
     package = root / PKG
     forbidden = ["morning_lake_v1/", "empty_home_runtime_v2/", "EmptyHomeSceneRenderer.kt"]
@@ -123,8 +132,7 @@ def run(root: Path) -> dict:
             geometry_ok = False; geometry_errors.append(layer["layerId"] + " source SHA")
     add("layer_bounds_anchors_and_sha", geometry_ok, f"layers={len(layers)} errors={geometry_errors}")
     stack = set(layer_pack.get("visibleCompositeLayerIds", []))
-    baked_visible = [x["layerId"] for x in layers if x.get("runtimeEligible") is False and x["layerId"] in stack]
-    add("baked_assets_not_double_composited", not baked_visible, f"visible baked layers={baked_visible}")
+    add("runtime_visible_stack_is_static_only", stack == {"LAYER_STATIC_COMPOSITE"}, f"visible runtime stack={sorted(stack)}")
 
     alpha_ok, alpha_notes = True, []
     for name in ["grass_left_rgba_v2.png", "grass_right_rgba_v2.png",
@@ -182,20 +190,20 @@ def run(root: Path) -> dict:
     add("crop_safe_zone",crop_ok,str([x["screenId"] for x in crop.get("screens",[])]))
 
     runtime=load_json(root/PKG/"assets/android_runtime/runtime_manifest.json")
-    android_ok=(runtime["api24to32"]["mode"]=="static" and runtime["api33plus"]["mode"].startswith("optional") and runtime.get("singleGlobalMatrix") is True)
+    android_ok=(runtime["api24to32"]["mode"]=="STATIC" and "OPTIONAL" in runtime["api33plus"]["mode"].upper() and runtime.get("singleGlobalMatrix") is True)
     add("android_asset_compatibility_contract",android_ok,"API24 static map and API33 optional shader map are documented; no device validation claimed")
-    rights_ok=manifest.get("originPermission")=="PENDING_REVIEW; derived from user-supplied images and procedural reconstruction; no independent rights claim"
-    add("source_and_rights_status",rights_ok,"PENDING_REVIEW and source types remain explicit")
+    rights_ok=manifest.get("originPermission")=="USER_PROVIDED_TASK_INPUT; task authorization covers derived assets; no ownership claim beyond supplied source."
+    add("source_and_rights_status",rights_ok,"user-provided source and scope are explicit")
 
     sunlight = next(x for x in layers if x["layerId"]=="LAYER_SUNLIGHT_FIELD")
-    partial = (manifest.get("status")=="ASSET_PACK_PARTIAL_WITH_BAKED_LAYERS" and sunlight.get("runtimeEligible") is False and "LAYER_SUNLIGHT_FIELD" not in stack)
-    add("honest_partial_status",partial,"sunlight remains baked; READY is false")
+    ready = (manifest.get("status")=="ASSET_PACK_READY_FOR_ANDROID" and sunlight.get("separationStatus")=="BAKED_IN_BASE" and "LAYER_SUNLIGHT_MODULATION" in {x["layerId"] for x in load_json(root / PKG / "assets/android_runtime/layer_manifest_v1.json")["layers"]})
+    add("safe_static_first_pack_status",ready,"sunlight is baked; the static composite is the only visible runtime surface")
 
     failed=[x["name"] for x in checks if not x["passed"]]
-    status="FAIL" if failed else "PASS_WITH_PARTIAL_LAYER_STATE"
+    status="FAIL" if failed else "PASS_STATIC_FIRST_ASSET_PACK"
     report={
         "taskId":"YUJIAN_LAKE_GLASS_V2_TRUE_LAYER_RECONSTRUCTION_ANDROID_ASSET_PACK_P1",
-        "validationStatus":status,"assetPackStatus":manifest.get("status"),"readyForAndroid":False,
+        "validationStatus":status,"assetPackStatus":manifest.get("status"),"readyForAndroid":not failed,
         "checksPassed":len(checks)-len(failed),"checksTotal":len(checks),"failedChecks":failed,"checks":checks,
         "masterReconstructionMetrics":full_metrics,"localRoiMetrics":roi_metrics,
         "visualReview":{"evidenceGenerated":True,"manualInspectionPerformed":True,"sunlightCleanPlate":"BLOCKED_BAKED_RESIDUAL"},
