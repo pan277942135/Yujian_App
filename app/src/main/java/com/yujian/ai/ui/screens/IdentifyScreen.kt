@@ -177,6 +177,8 @@ fun IdentifyScreen(
     captureResetToken: Int = 0,
     onBack: () -> Unit,
     onImageReady: (SelectedImage) -> Unit,
+    onGuideComplete: (() -> Unit)? = null,
+    onGuideDismiss: (() -> Unit)? = null,
 ) {
     val context = LocalContext.current
     val view = LocalView.current
@@ -1202,9 +1204,14 @@ fun IdentifyScreen(
             RecognitionFirstCaptureGuideOverlay(
                 initialPage = firstCaptureGuidePage,
                 onComplete = {
-                    if (firstCaptureGuideStore.markCompleted()) firstCaptureGuideVisible = false
+                    firstCaptureGuideStore.markCompleted()
+                    firstCaptureGuideVisible = false
+                    onGuideComplete?.invoke()
                 },
-                onDismiss = { firstCaptureGuideVisible = false },
+                onDismiss = {
+                    if (onGuideDismiss != null) onGuideDismiss()
+                    else firstCaptureGuideVisible = false
+                },
                 onPageChanged = { firstCaptureGuidePage = it },
             )
         }
