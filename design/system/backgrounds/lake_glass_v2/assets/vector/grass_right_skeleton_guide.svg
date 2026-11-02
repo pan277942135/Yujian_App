@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="3120" viewBox="0 0 1440 3120">
+  <!-- Diagnostic guide only. Curves are approximate visual anchors, not source-vector recovery. -->
+  <g id="grass-right-motion-guide" fill="none" stroke="#27a879" stroke-width="8" stroke-linecap="round">
+    <path id="blade-right-01" d="M 1380 3090 C 1350 2830 1275 2520 1135 2340"/>
+    <path id="blade-right-02" d="M 1320 3100 C 1390 2830 1415 2660 1430 2495"/>
+    <path id="blade-right-03" d="M 1220 3110 C 1160 2850 1085 2740 1035 2600"/>
+    <path id="blade-right-04" d="M 1425 3040 C 1385 2850 1388 2700 1360 2580"/>
+    <path id="blade-right-05" d="M 1260 3120 C 1290 2910 1350 2785 1435 2705"/>
+  </g>
+</svg>

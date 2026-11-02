@@ -1,0 +1,11 @@
+layerId,semantic,sourceClassification,runtimeDecision,reason,confidence,motionEligible,cleanPlateRequired
+LAYER_BASE,Lake Base,D — BAKED_STATIC,D — BAKED_STATIC,whole supplied flattened master remains the visible base,1.00,false,false
+LAYER_SUNLIGHT,Sunlight,D — BAKED_STATIC,D — BAKED_STATIC,light and surface refraction share RGB pixels; E-type analysis masks only,0.98,false,false
+LAYER_CAUSTICS,Water Caustics,D — BAKED_STATIC,D — BAKED_STATIC,lower texture inseparable from water; E-type region/luma masks only,0.96,false,false
+LAYER_GRASS_LEFT,Aquatic Grass Left,D — BAKED_STATIC,D — BAKED_STATIC,diagnostic alpha candidate contaminated at faded tips; not visible,0.78,false,false
+LAYER_GRASS_RIGHT,Aquatic Grass Right,D — BAKED_STATIC,D — BAKED_STATIC,diagnostic alpha candidate contaminated at faded tips; not visible,0.74,false,false
+LAYER_DROPLET_01,Water Droplet 01,D — BAKED_STATIC,D — BAKED_STATIC,refraction includes underlying scene; region mask only,0.99,false,false
+LAYER_DROPLET_02,Water Droplet 02,D — BAKED_STATIC,D — BAKED_STATIC,refraction includes underlying scene; region mask only,0.99,false,false
+LAYER_DROPLET_03,Water Droplet 03,D — BAKED_STATIC,D — BAKED_STATIC,refraction includes underlying scene; region mask only,0.99,false,false
+LAYER_VECTOR_GRASS,Grass motion skeleton guides,E — PROCEDURAL_MASK,DIAGNOSTIC_GUIDE_ONLY,"manually estimated path guides, not native vector recovery",0.66,false,false
+LAYER_SCENE_MASKS,Quiet/crop/protection masks,E — PROCEDURAL_MASK,ANALYSIS_ONLY,derived coordinate masks; no scene repaint,0.91,false,false

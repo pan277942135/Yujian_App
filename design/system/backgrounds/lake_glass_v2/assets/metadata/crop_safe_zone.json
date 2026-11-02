@@ -1,0 +1,312 @@
+{
+  "sourceCanvasPx": [
+    1440,
+    3120
+  ],
+  "fit": "CROP; same affine transform for every layer",
+  "preliminaryCandidate": "CenterCrop / verticalAlignment=0.5",
+  "status": "PRELIMINARY_SIMULATION_ONLY_NOT_DEVICE_VALIDATED",
+  "reason": "CenterCrop distributes short-screen loss across the bright top and lower grass. TopCenter preserves more sunlight but removes more bottom grass; no crop can preserve both edges at 320x480 without changing scale or moving layers.",
+  "records": [
+    {
+      "viewportDp": [
+        320,
+        480
+      ],
+      "viewportAspect": 0.666667,
+      "sourceAspect": 0.461538,
+      "scale": 0.22222222,
+      "scaledPx": [
+        320,
+        693
+      ],
+      "sourceCropLTRB": [
+        0.0,
+        0.0,
+        1440.0,
+        2160.0
+      ],
+      "cropPolicy": "TopCenter",
+      "croppedSourcePx": [
+        0.0,
+        958.5
+      ],
+      "status": "SIMULATED_NOT_ANDROID_CAPTURE"
+    },
+    {
+      "viewportDp": [
+        320,
+        480
+      ],
+      "viewportAspect": 0.666667,
+      "sourceAspect": 0.461538,
+      "scale": 0.22222222,
+      "scaledPx": [
+        320,
+        693
+      ],
+      "sourceCropLTRB": [
+        0.0,
+        477.0,
+        1440.0,
+        2637.0
+      ],
+      "cropPolicy": "Center",
+      "croppedSourcePx": [
+        0.0,
+        958.5
+      ],
+      "status": "SIMULATED_NOT_ANDROID_CAPTURE"
+    },
+    {
+      "viewportDp": [
+        320,
+        480
+      ],
+      "viewportAspect": 0.666667,
+      "sourceAspect": 0.461538,
+      "scale": 0.22222222,
+      "scaledPx": [
+        320,
+        693
+      ],
+      "sourceCropLTRB": [
+        0.0,
+        477.0,
+        1440.0,
+        2637.0
+      ],
+      "cropPolicy": "Center",
+      "croppedSourcePx": [
+        0.0,
+        958.5
+      ],
+      "status": "SIMULATED_NOT_ANDROID_CAPTURE"
+    },
+    {
+      "viewportDp": [
+        360,
+        640
+      ],
+      "viewportAspect": 0.5625,
+      "sourceAspect": 0.461538,
+      "scale": 0.25,
+      "scaledPx": [
+        360,
+        780
+      ],
+      "sourceCropLTRB": [
+        0.0,
+        0.0,
+        1440.0,
+        2560.0
+      ],
+      "cropPolicy": "TopCenter",
+      "croppedSourcePx": [
+        0.0,
+        560.0
+      ],
+      "status": "SIMULATED_NOT_ANDROID_CAPTURE"
+    },
+    {
+      "viewportDp": [
+        360,
+        640
+      ],
+      "viewportAspect": 0.5625,
+      "sourceAspect": 0.461538,
+      "scale": 0.25,
+      "scaledPx": [
+        360,
+        780
+      ],
+      "sourceCropLTRB": [
+        0.0,
+        280.0,
+        1440.0,
+        2840.0
+      ],
+      "cropPolicy": "Center",
+      "croppedSourcePx": [
+        0.0,
+        560.0
+      ],
+      "status": "SIMULATED_NOT_ANDROID_CAPTURE"
+    },
+    {
+      "viewportDp": [
+        360,
+        640
+      ],
+      "viewportAspect": 0.5625,
+      "sourceAspect": 0.461538,
+      "scale": 0.25,
+      "scaledPx": [
+        360,
+        780
+      ],
+      "sourceCropLTRB": [
+        0.0,
+        280.0,
+        1440.0,
+        2840.0
+      ],
+      "cropPolicy": "Center",
+      "croppedSourcePx": [
+        0.0,
+        560.0
+      ],
+      "status": "SIMULATED_NOT_ANDROID_CAPTURE"
+    },
+    {
+      "viewportDp": [
+        390,
+        844
+      ],
+      "viewportAspect": 0.462085,
+      "sourceAspect": 0.461538,
+      "scale": 0.27083333,
+      "scaledPx": [
+        390,
+        845
+      ],
+      "sourceCropLTRB": [
+        0.0,
+        0.0,
+        1440.0,
+        3116.31
+      ],
+      "cropPolicy": "TopCenter",
+      "croppedSourcePx": [
+        0.0,
+        3.69
+      ],
+      "status": "SIMULATED_NOT_ANDROID_CAPTURE"
+    },
+    {
+      "viewportDp": [
+        390,
+        844
+      ],
+      "viewportAspect": 0.462085,
+      "sourceAspect": 0.461538,
+      "scale": 0.27083333,
+      "scaledPx": [
+        390,
+        845
+      ],
+      "sourceCropLTRB": [
+        0.0,
+        0.0,
+        1440.0,
+        3116.31
+      ],
+      "cropPolicy": "Center",
+      "croppedSourcePx": [
+        0.0,
+        3.69
+      ],
+      "status": "SIMULATED_NOT_ANDROID_CAPTURE"
+    },
+    {
+      "viewportDp": [
+        390,
+        844
+      ],
+      "viewportAspect": 0.462085,
+      "sourceAspect": 0.461538,
+      "scale": 0.27083333,
+      "scaledPx": [
+        390,
+        845
+      ],
+      "sourceCropLTRB": [
+        0.0,
+        0.0,
+        1440.0,
+        3116.31
+      ],
+      "cropPolicy": "Center",
+      "croppedSourcePx": [
+        0.0,
+        3.69
+      ],
+      "status": "SIMULATED_NOT_ANDROID_CAPTURE"
+    },
+    {
+      "viewportDp": [
+        430,
+        932
+      ],
+      "viewportAspect": 0.461373,
+      "sourceAspect": 0.461538,
+      "scale": 0.29871795,
+      "scaledPx": [
+        430,
+        932
+      ],
+      "sourceCropLTRB": [
+        0.0,
+        0.0,
+        1439.48,
+        3120.0
+      ],
+      "cropPolicy": "TopCenter",
+      "croppedSourcePx": [
+        0.0,
+        0.0
+      ],
+      "status": "SIMULATED_NOT_ANDROID_CAPTURE"
+    },
+    {
+      "viewportDp": [
+        430,
+        932
+      ],
+      "viewportAspect": 0.461373,
+      "sourceAspect": 0.461538,
+      "scale": 0.29871795,
+      "scaledPx": [
+        430,
+        932
+      ],
+      "sourceCropLTRB": [
+        0.0,
+        0.0,
+        1439.48,
+        3120.0
+      ],
+      "cropPolicy": "Center",
+      "croppedSourcePx": [
+        0.0,
+        0.0
+      ],
+      "status": "SIMULATED_NOT_ANDROID_CAPTURE"
+    },
+    {
+      "viewportDp": [
+        430,
+        932
+      ],
+      "viewportAspect": 0.461373,
+      "sourceAspect": 0.461538,
+      "scale": 0.29871795,
+      "scaledPx": [
+        430,
+        932
+      ],
+      "sourceCropLTRB": [
+        0.0,
+        0.0,
+        1439.48,
+        3120.0
+      ],
+      "cropPolicy": "Center",
+      "croppedSourcePx": [
+        0.0,
+        0.0
+      ],
+      "status": "SIMULATED_NOT_ANDROID_CAPTURE"
+    }
+  ]
+}
