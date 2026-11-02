@@ -95,6 +95,9 @@ import com.yujian.ai.ui.screens.RecognitionIssueScreen
 import com.yujian.ai.ui.screens.RecognitionResultScreen
 import com.yujian.ai.ui.screens.RecognitionSaveDestination
 import com.yujian.ai.ui.identify.RecognitionUiState
+import com.yujian.ai.ui.identify.RecognitionFirstCaptureGuideStore
+import com.yujian.ai.ui.identify.RecognitionCaptureEntryDestination
+import com.yujian.ai.ui.identify.resolveFirstCaptureEntryDestination
 import com.yujian.ai.ui.identify.resolveRecognitionResultState
 import com.yujian.ai.ui.recognition.reveal.RecognitionRevealKey
 import com.yujian.ai.ui.recognition.reveal.RecognitionRevealHandoff
@@ -245,14 +248,77 @@ fun YujianApp() {
         captureResetToken++
     }
 
-    fun startCapture(openGallery: Boolean = false, preserveSession: Boolean = false) {
+    fun startCapture(
+        openGallery: Boolean = false,
+        preserveSession: Boolean = false,
+        returnToHome: Boolean = true,
+        replaceGuideEntry: Boolean = false,
+    ) {
         navigatingFromResult = false
         clearRecognitionSession(preserveSession)
         if (recognitionSessionId == null) recognitionSessionId = UUID.randomUUID().toString()
         nav.navigate(if (openGallery) "identify?openGallery=true" else "identify") {
-            popUpTo("home") { inclusive = false }
+            if (returnToHome) {
+                popUpTo("home") { inclusive = false }
+            } else if (replaceGuideEntry) {
+                popUpTo("first_capture_guide?returnToHome={returnToHome}") { inclusive = true }
+            }
             launchSingleTop = true
         }
+    }
+
+    fun enterCapture(
+        openGallery: Boolean = false,
+        preserveSession: Boolean = false,
+        returnToHome: Boolean = true,
+    ) {
+        val destination = resolveFirstCaptureEntryDestination(
+            openGallery = openGallery,
+            guideCompleted = RecognitionFirstCaptureGuideStore(context).isCompleted(),
+        )
+        if (destination != RecognitionCaptureEntryDestination.FIRST_CAPTURE_GUIDE) {
+            startCapture(
+                openGallery = destination == RecognitionCaptureEntryDestination.GALLERY,
+                preserveSession = preserveSession,
+                returnToHome = returnToHome,
+            )
+            return
+        }
+
+        navigatingFromResult = false
+        clearRecognitionSession(preserveSession)
+        nav.navigate("first_capture_guide?returnToHome=$returnToHome") {
+            if (returnToHome) popUpTo("home") { inclusive = false }
+            launchSingleTop = true
+        }
+    }
+
+    fun handleIdentifyImageReady(selected: SelectedImage) {
+        subjectAttemptRunner.cancel()
+        if (recognitionSessionId == null) recognitionSessionId = UUID.randomUUID().toString()
+        sessionImage = selected
+        activeRecognitionAttemptId = UUID.randomUUID().toString()
+        revealSessionStore.beginAttempt(
+            requireNotNull(recognitionSessionId),
+            requireNotNull(activeRecognitionAttemptId),
+            selected,
+        )
+        diagnosticDisplayMode = if (BuildConfig.DEBUG) {
+            RecognitionProgressDisplayMode.STEP_DIAGNOSTIC
+        } else {
+            RecognitionProgressDisplayMode.NORMAL_PROGRESS
+        }
+        // A new image starts the shared scene clock in AUTO. Debug controls can
+        // explicitly seek or pause after the scene is visible.
+        diagnosticPlaybackController.playProductionTimeline(0L, SystemClock.uptimeMillis())
+        productionResult = null
+        recognitionTechnicalFailure = false
+        subjectResult = FishSubjectResult(SubjectStatus.IDLE)
+        prediction = null
+        inferenceAsset = null
+        catchSaveError = null
+        catchSaveRequiresLogin = false
+        nav.navigate("recognizing") { launchSingleTop = true }
     }
 
     fun returnToRecognitionAfterLogin(): Boolean {
@@ -555,7 +621,7 @@ fun YujianApp() {
                     )
                 }
                 composable("home", exitTransition = {
-                    if (CaptureNavigationTransition.active.value) fadeOut(tween(180)) else ExitTransition.None
+                    if (CaptureNavigationTransition.active.value) fadeOut(tween(400)) else ExitTransition.None
                 }) {
                     val active = session
                     // The Home state is derived only from fish records. Login,
@@ -573,8 +639,8 @@ fun YujianApp() {
                         avatarUrl = active?.avatarUrl,
                         showEmptyState = resolvedHomeState == HomeState.EMPTY,
                         isResolving = resolvedHomeState == null,
-                        onIdentify = { startCapture() },
-                        onAlbumClick = { startCapture(openGallery = true) },
+                        onIdentify = { enterCapture() },
+                        onAlbumClick = { enterCapture(openGallery = true) },
                         onLoginClick = { nav.navigate("auth/login") { launchSingleTop = true } },
                         onSpeciesClick = { nav.navigate("guide") },
                         onCatchesClick = { nav.navigate("my_catches") },
@@ -713,12 +779,44 @@ fun YujianApp() {
                     }
                 }
                 composable(
+                    route = "first_capture_guide?returnToHome={returnToHome}",
+                    arguments = listOf(navArgument("returnToHome") {
+                        type = NavType.BoolType
+                        defaultValue = true
+                    }),
+                    enterTransition = { if (CaptureNavigationTransition.active.value) fadeIn(tween(400)) else EnterTransition.None },
+                    exitTransition = { ExitTransition.None },
+                    popEnterTransition = { EnterTransition.None },
+                    popExitTransition = { ExitTransition.None },
+                ) { entry ->
+                    val returnToHome = entry.arguments?.getBoolean("returnToHome") ?: true
+                    IdentifyScreen(
+                        image = null,
+                        captureResetToken = captureResetToken,
+                        onBack = {
+                            clearRecognitionSession()
+                            nav.popBackStack()
+                        },
+                        onImageReady = { selected -> handleIdentifyImageReady(selected) },
+                        onGuideComplete = {
+                            startCapture(
+                                returnToHome = returnToHome,
+                                replaceGuideEntry = true,
+                            )
+                        },
+                        onGuideDismiss = {
+                            clearRecognitionSession()
+                            nav.popBackStack()
+                        },
+                    )
+                }
+                composable(
                     route = "identify?openGallery={openGallery}",
                     arguments = listOf(navArgument("openGallery") {
                         type = NavType.BoolType
                         defaultValue = false
                     }),
-                    enterTransition = { if (CaptureNavigationTransition.active.value) fadeIn(tween(180)) else EnterTransition.None },
+                    enterTransition = { if (CaptureNavigationTransition.active.value) fadeIn(tween(400)) else EnterTransition.None },
                     exitTransition = { ExitTransition.None },
                     popEnterTransition = { EnterTransition.None },
                     popExitTransition = { ExitTransition.None },
@@ -731,30 +829,7 @@ fun YujianApp() {
                             clearRecognitionSession()
                             nav.popBackStack()
                         },
-                        onImageReady = { selected ->
-                            subjectAttemptRunner.cancel()
-                            if (recognitionSessionId == null) recognitionSessionId = UUID.randomUUID().toString()
-                            sessionImage = selected
-                            activeRecognitionAttemptId = UUID.randomUUID().toString()
-                            revealSessionStore.beginAttempt(
-                                requireNotNull(recognitionSessionId),
-                                requireNotNull(activeRecognitionAttemptId),
-                                selected,
-                            )
-                            diagnosticDisplayMode = if (BuildConfig.DEBUG) RecognitionProgressDisplayMode.STEP_DIAGNOSTIC
-                                else RecognitionProgressDisplayMode.NORMAL_PROGRESS
-                            // Diagnostic display is the Debug default, while the shared scene
-                            // clock still starts in AUTO. Next/Pause explicitly enter MANUAL.
-                            diagnosticPlaybackController.playProductionTimeline(0L, SystemClock.uptimeMillis())
-                            productionResult = null
-                            recognitionTechnicalFailure = false
-                            subjectResult = FishSubjectResult(SubjectStatus.IDLE)
-                            prediction = null
-                            inferenceAsset = null
-                            catchSaveError = null
-                            catchSaveRequiresLogin = false
-                            nav.navigate("recognizing") { launchSingleTop = true }
-                        },
+                        onImageReady = { selected -> handleIdentifyImageReady(selected) },
                     )
                 }
                 composable(
@@ -1204,7 +1279,7 @@ fun YujianApp() {
                         onBack = { nav.popBackStack() },
                         onCatch = { catchId -> nav.navigate("catch/${Uri.encode(catchId)}") },
                         onRetry = { catchReload++ },
-                        onCapture = { nav.navigate("identify") },
+                        onCapture = { enterCapture(returnToHome = false) },
                         onDayDetail = { day ->
                             val dayKey = day.key
                             nav.currentBackStackEntry?.savedStateHandle?.set("my_catches_day_ids", day.catches.map { it.id }.toTypedArray())

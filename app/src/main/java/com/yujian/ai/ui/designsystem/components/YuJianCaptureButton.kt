@@ -40,6 +40,7 @@ import com.yujian.ai.ui.designsystem.motion.rememberYuJianInfiniteTransition
 import com.yujian.ai.ui.designsystem.motion.rememberYuJianReduceMotion
 import com.yujian.ai.ui.designsystem.spacing.YuJianSpacing
 import com.yujian.ai.ui.home.CaptureVisualTokens
+import com.yujian.ai.ui.home.captureIdleBreathScale
 import kotlin.math.PI
 import kotlin.math.sin
 
@@ -122,6 +123,18 @@ fun YuJianCaptureButton(
         )
         value
     } else 0f
+    val idleBreathProgress = if (frozenVisual && effectiveMotionEnabled && clickElapsedMs == null) {
+        val idle = rememberYuJianInfiniteTransition(label = "CaptureIdleBreathing")
+        val value by idle.animateFloat(
+            initialValue = 0f, targetValue = 1f,
+            animationSpec = infiniteRepeatable(
+                tween(CaptureVisualTokens.IdleBreathCycleMs, easing = LinearEasing),
+                RepeatMode.Restart,
+            ),
+            label = "CaptureIdleBreathingCycle",
+        )
+        value
+    } else 0f
     val clickCycle = clickElapsedMs?.let { CaptureVisualTokens.activationProgress(it) }
     val pressScale = clickElapsedMs?.let {
         when {
@@ -150,7 +163,7 @@ fun YuJianCaptureButton(
                 .size(resolvedVisualSize)
                 .then(visualModifier)
                 .graphicsLayer {
-                    scaleX = if (frozenVisual) pressScale * (1f + .012f * sin((idleProgress * 5f).coerceIn(0f, 1f) * PI).toFloat()) else visualScale
+                    scaleX = if (frozenVisual) pressScale * captureIdleBreathScale(idleBreathProgress) else visualScale
                     scaleY = if (frozenVisual) scaleX else visualScale
                     alpha = if (enabled) 1f else 0.48f
                 }

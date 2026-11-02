@@ -7,7 +7,6 @@ on:
       - infra/camera-runtime-harness-p0-v1-1
       - fix/recognition-camera-capture-p0-v2
       - integration/android-product-closure-v1
-      - main
   workflow_dispatch:
 
 permissions:

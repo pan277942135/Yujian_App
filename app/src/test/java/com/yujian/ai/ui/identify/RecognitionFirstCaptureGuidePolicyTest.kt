@@ -7,6 +7,26 @@ import org.junit.Test
 
 class RecognitionFirstCaptureGuidePolicyTest {
     @Test
+    fun firstCaptureGuideRoutesIntoCameraAfterCompletionAndGalleryBypassesGuide() {
+        assertEquals(
+            RecognitionCaptureEntryDestination.FIRST_CAPTURE_GUIDE,
+            resolveFirstCaptureEntryDestination(openGallery = false, guideCompleted = false),
+        )
+        assertEquals(
+            RecognitionCaptureEntryDestination.CAMERA,
+            resolveFirstCaptureEntryDestination(openGallery = false, guideCompleted = true),
+        )
+        assertEquals(
+            RecognitionCaptureEntryDestination.GALLERY,
+            resolveFirstCaptureEntryDestination(openGallery = true, guideCompleted = false),
+        )
+        assertEquals(
+            RecognitionCaptureEntryDestination.GALLERY,
+            resolveFirstCaptureEntryDestination(openGallery = true, guideCompleted = true),
+        )
+    }
+
+    @Test
     fun guideActionsStackForCompactWidthOrLargeAccessibilityText() {
         assertTrue(shouldStackRecognitionGuideActions(379.9f, 1.0f))
         assertFalse(shouldStackRecognitionGuideActions(380f, 1.0f))

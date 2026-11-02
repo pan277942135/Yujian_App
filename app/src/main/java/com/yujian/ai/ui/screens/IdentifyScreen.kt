@@ -177,6 +177,8 @@ fun IdentifyScreen(
     captureResetToken: Int = 0,
     onBack: () -> Unit,
     onImageReady: (SelectedImage) -> Unit,
+    onGuideComplete: (() -> Unit)? = null,
+    onGuideDismiss: (() -> Unit)? = null,
 ) {
     val context = LocalContext.current
     val view = LocalView.current
@@ -227,6 +229,7 @@ fun IdentifyScreen(
     var captureTarget by remember { mutableStateOf(Offset.Unspecified) }
     var shutterDiameterPx by remember { mutableStateOf(0f) }
     var captureRootOrigin by remember { mutableStateOf(Offset.Zero) }
+    var captureRootPositionReady by remember { mutableStateOf(false) }
     DisposableEffect(Unit) {
         CaptureNavigationTransition.log("CAMERA_PREPARING", "camera_entry_ms=${android.os.SystemClock.uptimeMillis()}")
         onDispose { CaptureNavigationTransition.finish() }
@@ -784,13 +787,24 @@ fun IdentifyScreen(
 
     BoxWithConstraints(Modifier.fillMaxSize().onGloballyPositioned {
         captureRootOrigin = it.boundsInWindow().topLeft
+        captureRootPositionReady = true
     }) {
         CaptureFrostedBackground(Modifier.fillMaxSize())
-        val panelContentHeight = if (maxHeight < 560.dp) 150.dp else 166.dp
-        val panelHeight = panelContentHeight + safeInsets.calculateBottomPadding()
-        val cameraAreaHeight = maxHeight - panelHeight
+        val shutterDiameter = CaptureVisualTokens.buttonDiameter(maxWidth.value).dp
         val cameraDensity = LocalDensity.current
         val fontScale = cameraDensity.fontScale
+        val panelContentHeight = if (maxHeight < 560.dp) 150.dp else 166.dp
+        val defaultControlBottom = safeInsets.calculateBottomPadding() + (panelContentHeight - shutterDiameter) / 2f
+        val homeCenter = CaptureNavigationTransition.homeCenter
+        val hasHomeAnchor = captureRootPositionReady && homeCenter.x.isFinite() && homeCenter.y.isFinite()
+        val anchoredControlBottom = if (hasHomeAnchor) {
+            val localHomeCenterY = homeCenter.y - captureRootOrigin.y
+            with(cameraDensity) { (maxHeight.toPx() - localHomeCenterY - shutterDiameter.toPx() / 2f).toDp() }
+        } else defaultControlBottom
+        val panelControlBottom = if (hasHomeAnchor && anchoredControlBottom > 0.dp) anchoredControlBottom else defaultControlBottom
+        val basePanelHeight = panelContentHeight + safeInsets.calculateBottomPadding()
+        val panelHeight = maxOf(basePanelHeight, panelControlBottom + shutterDiameter + 24.dp)
+        val cameraAreaHeight = maxHeight - panelHeight
         val headerGap = if (maxHeight < 640.dp) 4.dp else 15.dp
         val headerBottom = if (headerBottomPx > 0f) with(cameraDensity) { headerBottomPx.toDp() }
             else safeInsets.calculateTopPadding() + 8.dp + (48f * fontScale).dp + headerGap
@@ -800,10 +814,8 @@ fun IdentifyScreen(
         val guideSpace = (framingBottom - headerBottom).coerceAtLeast(8.dp)
         val guideHeight = (guideSpace * .84f).coerceAtMost(maxWidth * CaptureVisualTokens.GuideWidthFraction * CaptureVisualTokens.GuideHeightToWidth)
         val guideTop = headerBottom + (guideSpace - guideHeight) / 2f
-        val shutterDiameter = CaptureVisualTokens.buttonDiameter(maxWidth.value).dp
         val cameraInk = Color(0xFF19565B)
         val secondaryInk = Color(0xFF627E7E)
-        val panelControlBottom = safeInsets.calculateBottomPadding() + (panelContentHeight - shutterDiameter) / 2f
         val layoutDirection = LocalLayoutDirection.current
         val captureControlsPlacement = remember(maxWidth, safeInsets, layoutDirection) {
             RecognitionCameraControlsGeometry.resolve(
@@ -977,7 +989,7 @@ fun IdentifyScreen(
                     .height(panelHeight)
                     .clip(RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp))
                     .background(Brush.verticalGradient(listOf(Color(0xE0D7EFEB), Color(0xD1A1D6D2))))
-                    .border(1.dp, Color.White.copy(alpha = .28f), RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp)),
+                    .border(1.dp, Color.White.copy(alpha = .32f), RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp)),
             )
             Box(
                 modifier = Modifier
@@ -1192,9 +1204,14 @@ fun IdentifyScreen(
             RecognitionFirstCaptureGuideOverlay(
                 initialPage = firstCaptureGuidePage,
                 onComplete = {
-                    if (firstCaptureGuideStore.markCompleted()) firstCaptureGuideVisible = false
+                    firstCaptureGuideStore.markCompleted()
+                    firstCaptureGuideVisible = false
+                    onGuideComplete?.invoke()
                 },
-                onDismiss = { firstCaptureGuideVisible = false },
+                onDismiss = {
+                    if (onGuideDismiss != null) onGuideDismiss()
+                    else firstCaptureGuideVisible = false
+                },
                 onPageChanged = { firstCaptureGuidePage = it },
             )
         }
