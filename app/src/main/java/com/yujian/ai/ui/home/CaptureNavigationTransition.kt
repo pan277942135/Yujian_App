@@ -66,7 +66,8 @@ object CaptureNavigationTransition {
     fun log(state: String, fields: String = "") {
         Log.d(
             "CaptureEntry",
-            "capture_session_id=$sessionId page_state=$state elapsed_ms=\${elapsedMs()} $fields",
+            "capture_session_id=" + sessionId + " page_state=" + state +
+                " elapsed_ms=" + elapsedMs() + " " + fields,
         )
     }
 
