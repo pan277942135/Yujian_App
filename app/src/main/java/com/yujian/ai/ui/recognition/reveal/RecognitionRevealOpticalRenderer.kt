@@ -6,19 +6,26 @@ import android.graphics.Matrix
 import android.graphics.Paint as AndroidPaint
 import android.graphics.PathMeasure
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.offset
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import com.yujian.ai.ui.designsystem.components.aiorb.AIOrbCore
+import com.yujian.ai.ui.designsystem.components.aiorb.AIOrbVisualState
 import com.yujian.ai.ui.waterlight.core.EnergyEvent
-import com.yujian.ai.ui.waterlight.core.EnergyFeedback
 import com.yujian.ai.ui.waterlight.core.WaterLightFrame
 import com.yujian.ai.ui.waterlight.core.WaterLightMaterialProfile
 import com.yujian.ai.ui.waterlight.renderer.WaterGrassRenderer
+import kotlin.math.roundToInt
 
 /** Draws the shared photo and optical reveal above Result content without owning input. */
 @Composable
@@ -40,6 +47,7 @@ internal fun RecognitionRevealOpticalOverlay(
     val activePhotoGeometry = photoGeometry ?: return
     val activeRevealGeometry = geometry
     if (!frame.drawOpticalLayer && !holdPhotoUntilHeroReady) return
+    val density = LocalDensity.current
     val drawsOptics = frame.drawOpticalLayer && activeRevealGeometry != null
     val canvasModifier = modifier.then(
         when {
@@ -96,15 +104,9 @@ internal fun RecognitionRevealOpticalOverlay(
     val dotPaint = remember { AndroidPaint(AndroidPaint.ANTI_ALIAS_FLAG) }
     val orbPaint = remember { AndroidPaint(AndroidPaint.ANTI_ALIAS_FLAG) }
     val waterGrassRenderer = remember { WaterGrassRenderer() }
-    val orbRimPaint = remember {
-        AndroidPaint(AndroidPaint.ANTI_ALIAS_FLAG).apply {
-            style = AndroidPaint.Style.STROKE
-            strokeCap = AndroidPaint.Cap.ROUND
-            strokeJoin = AndroidPaint.Join.ROUND
-        }
-    }
 
-    Canvas(canvasModifier) {
+    Box(canvasModifier) {
+    Canvas(Modifier.fillMaxSize()) {
         drawIntoCanvas { composeCanvas ->
             val canvas = composeCanvas.nativeCanvas
             val gold = material.primaryColor.toInt()
@@ -175,23 +177,6 @@ internal fun RecognitionRevealOpticalOverlay(
                 }
                 canvas.restore()
                 canvas.restoreToCount(clipSave)
-            }
-
-            val orbCenter = handoff.processingOrbCenterInWindow?.let { anchor ->
-                val origin = activeRevealGeometry?.rootWindowOrigin ?: return@let null
-                floatArrayOf(anchor.x - origin.x, anchor.y - origin.y)
-            }
-            if (activeRevealGeometry != null && orbCenter != null && frame.elapsedMs < RecognitionRevealClock.ORB_RETURN_END_MS) {
-                val formation = frame.titleFormationProgress.coerceIn(0f, 1f)
-                val returning = frame.elapsedMs in RecognitionRevealClock.PHOTO_END_MS until RecognitionRevealClock.ORB_RETURN_END_MS
-                val orbAlpha = if (returning) 1f else (1f - formation * .12f)
-                drawTransientOrb(
-                    canvas, orbCenter[0], orbCenter[1], 23f,
-                    alpha = orbAlpha,
-                    energy = if (energyEvent?.feedback == EnergyFeedback.RETURN) energyEvent.level else 0f,
-                    orbPaint = orbPaint,
-                    rimPaint = orbRimPaint,
-                )
             }
 
             // V4: fish energy starts returning while the photo continuity morph runs during 0–200 ms.
@@ -328,49 +313,36 @@ internal fun RecognitionRevealOpticalOverlay(
 
         }
     }
-}
-
-private fun drawTransientOrb(
-    canvas: android.graphics.Canvas,
-    centerX: Float,
-    centerY: Float,
-    radius: Float,
-    alpha: Float,
-    energy: Float,
-    orbPaint: AndroidPaint,
-    rimPaint: AndroidPaint,
-) {
-    val received = energy.coerceIn(0f, 1f)
-    val r = radius * (1f + .04f * received)
-    orbPaint.shader = android.graphics.RadialGradient(
-        centerX - r * .28f,
-        centerY - r * .34f,
-        r * 1.28f,
-        intArrayOf(
-            0xFFF4FFF2.toInt(),
-            0xFF9BD4CB.toInt(),
-            0xAA3B8FA2.toInt(),
-            0x44334859,
-        ),
-        null,
-        android.graphics.Shader.TileMode.CLAMP,
-    )
-    orbPaint.alpha = (215f * alpha.coerceIn(0f, 1f) * (1f + .16f * received)).toInt().coerceIn(0, 255)
-    canvas.drawCircle(centerX, centerY, r, orbPaint)
-    orbPaint.shader = null
-    rimPaint.style = AndroidPaint.Style.STROKE
-    rimPaint.strokeWidth = 1.25f
-    rimPaint.color = 0xFFE7D29B.toInt()
-    rimPaint.alpha = (125f * alpha.coerceIn(0f, 1f)).toInt().coerceIn(0, 150)
-    val filament = android.graphics.Path().apply {
-        moveTo(centerX - r * 1.05f, centerY + r * .10f)
-        cubicTo(centerX - r * .45f, centerY - r * .92f, centerX + r * .10f, centerY - r * .72f, centerX + r * .72f, centerY - r * .22f)
-        moveTo(centerX - r * .22f, centerY + r * .96f)
-        cubicTo(centerX + r * .75f, centerY + r * .43f, centerX + r * .80f, centerY + r * .02f, centerX + r * 1.02f, centerY - r * .16f)
+    val orbCenter = handoff.processingOrbCenterInWindow?.let { anchor ->
+        activeRevealGeometry?.rootWindowOrigin?.let { origin ->
+            (anchor.x - origin.x) to (anchor.y - origin.y)
+        }
     }
-    canvas.drawPath(filament, rimPaint)
-    rimPaint.color = 0xFFE9F9F0.toInt()
-    rimPaint.alpha = (85f * alpha.coerceIn(0f, 1f) + 70f * received).toInt().coerceIn(0, 180)
-    rimPaint.strokeWidth = .8f
-    canvas.drawCircle(centerX - r * .32f, centerY - r * .38f, r * .10f, rimPaint)
+    val orbDiameterPx = handoff.processingOrbCoreDiameterPx
+    if (activeRevealGeometry != null && orbCenter != null && orbDiameterPx > 1f &&
+        frame.elapsedMs < RecognitionRevealClock.ORB_RETURN_END_MS
+    ) {
+        val coreSize = with(density) { orbDiameterPx.toDp() }
+        val outerSizePx = with(density) { (coreSize + 28.dp).toPx() }
+        AIOrbCore(
+            state = AIOrbVisualState.ORB_ACTIVE,
+            modifier = Modifier.offset {
+                IntOffset(
+                    (orbCenter.first - outerSizePx / 2f).roundToInt(),
+                    (orbCenter.second - outerSizePx / 2f).roundToInt(),
+                )
+            },
+            coreSize = coreSize,
+            entranceElapsedMs = 900L,
+            elapsedMs = waterLightFrame?.elapsedMs ?: frame.elapsedMs,
+            completion = 0f,
+            reduceMotion = waterLightFrame?.reducedMotion == true,
+            lowPerformance = false,
+            fromCamera = false,
+            waterLightFrame = waterLightFrame,
+            energyEvent = energyEvent,
+            waterLightMaterial = WaterLightMaterialProfile.ORB_LEGACY,
+        )
+    }
+    }
 }

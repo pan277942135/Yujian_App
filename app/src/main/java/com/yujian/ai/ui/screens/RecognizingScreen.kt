@@ -318,7 +318,7 @@ fun RecognitionProcessingScene(
 
     LaunchedEffect(sceneKey, diagnosticPlaybackController, diagnosticUiAvailable) {
         if (diagnosticPlaybackController == null && diagnosticUiAvailable) {
-            playbackController.prepareInitialStepPreview()
+            playbackController.playProductionTimeline(0L, recognitionMonotonicNowMs())
         }
     }
 
@@ -787,12 +787,8 @@ fun RecognitionProcessingScene(
 
     fun changeDiagnosticDisplayMode(mode: RecognitionProgressDisplayMode) {
         if (mode == displayMode) return
-        val now = recognitionMonotonicNowMs()
-        if (mode == RecognitionProgressDisplayMode.NORMAL_PROGRESS) {
-            playbackController.playProductionTimeline(authoritativeOpticalReferenceElapsedMs, now)
-        } else {
-            playbackController.switchToStepDiagnostic(authoritativeOpticalReferenceElapsedMs, now)
-        }
+        // Display selection is presentation-only. The shared AUTO/MANUAL motion
+        // controller changes only when the user presses a playback control.
         if (onDiagnosticDisplayModeChange != null) onDiagnosticDisplayModeChange.invoke(mode)
         else localDisplayMode = mode
         playbackRevision++
@@ -1125,7 +1121,8 @@ fun RecognitionProcessingScene(
             maskRevealProgress = maskContourRevealProgress,
             trustedMask = trustedSubjectMask,
             successfulRevealAllowed = successfulRevealAllowed,
-            onProcessingPhotoSnapshot = { transform, bounds, photoBounds, cornerRadiusPx, actualOrbCenter ->
+            allowDiagnosticContourPreview = diagnosticUiAvailable && playbackMode == ScenePlaybackMode.MANUAL,
+            onProcessingPhotoSnapshot = { transform, bounds, photoBounds, cornerRadiusPx, actualOrbCenter, orbCoreDiameterPx ->
                 onProcessingPhotoSnapshot(
                     RecognitionProcessingPhotoSnapshot(
                         imageId = image.imageId,
@@ -1137,6 +1134,7 @@ fun RecognitionProcessingScene(
                             bounds.left + actualOrbCenter.x,
                             bounds.top + actualOrbCenter.y,
                         ),
+                        processingOrbCoreDiameterPx = orbCoreDiameterPx,
                     ),
                 )
             },
@@ -1187,8 +1185,10 @@ fun RecognitionProcessingScene(
             val currentPhotoTransform = interpolateRecognitionPhotoTransform(
                 plan.startTransform, plan.targetTransform, photoEntryProgress,
             )
-            val baseOrbEvent = WaterLightEnergy.at(waterLightFrame, trustedSubjectMask, successfulRevealAllowed)
-            val fishEnergyAnchor = if (trustedSubjectMask)
+            val fishEnergyAllowed = trustedSubjectMask && (successfulRevealAllowed ||
+                (diagnosticUiAvailable && playbackMode == ScenePlaybackMode.MANUAL))
+            val baseOrbEvent = WaterLightEnergy.at(waterLightFrame, fishEnergyAllowed, successfulRevealAllowed)
+            val fishEnergyAnchor = if (fishEnergyAllowed)
                 recognitionMaskAnchor(assessment?.primary?.box, contour, currentPhotoTransform) else null
             val perimeterEnergyAnchor = fishEnergyAnchor?.let {
                 nearestPhotoPerimeterAnchor(currentPhotoTransform.photoContentRect, it)
@@ -1216,7 +1216,7 @@ fun RecognitionProcessingScene(
                 else -> null
             }
             val orbEnergyEvent = WaterLightEnergy.at(
-                waterLightFrame, trustedSubjectMask, successfulRevealAllowed, orbPathGeometry,
+                waterLightFrame, fishEnergyAllowed, successfulRevealAllowed, orbPathGeometry,
             )
             LaunchedEffect(
                 waterLightFrame.sessionId,
@@ -1388,6 +1388,7 @@ private fun RecognitionPhoto(
         RecognitionRevealWindowRect,
         Float,
         Offset,
+        Float,
     ) -> Unit,
     onPhotoFirstFramePresented: (Long) -> Unit,
     processingClockStarted: Boolean,
@@ -1398,6 +1399,7 @@ private fun RecognitionPhoto(
     maskRevealProgress: Float,
     trustedMask: Boolean,
     successfulRevealAllowed: Boolean,
+    allowDiagnosticContourPreview: Boolean,
 ) {
     val transform = remember(photoFlowPlan, photoEntryProgress) {
         interpolateRecognitionPhotoTransform(
@@ -1422,11 +1424,12 @@ private fun RecognitionPhoto(
         photoBounds.left, photoBounds.top, photoBounds.right, photoBounds.bottom)
     val contourStart = focusBox?.let { transform.mapNormalized(it.x1, it.y1) }
     val contourEnd = focusBox?.let { transform.mapNormalized(it.x2, it.y2) }
-    val contourReady = contourStart != null && contourEnd != null && hostReady(WaterLightHost.CONTOUR,
+    val fishEnergyAllowed = trustedMask && (successfulRevealAllowed || allowDiagnosticContourPreview)
+    val contourReady = fishEnergyAllowed && contourStart != null && contourEnd != null && hostReady(WaterLightHost.CONTOUR,
         contourStart.x, contourStart.y, contourEnd.x, contourEnd.y)
     val waterScope = rememberCoroutineScope()
-    val baseEnergyEvent = WaterLightEnergy.at(waterLightFrame, trustedMask, successfulRevealAllowed)
-    val fishAnchor = if (trustedMask) recognitionMaskAnchor(focusBox, contour, transform) else null
+    val baseEnergyEvent = WaterLightEnergy.at(waterLightFrame, fishEnergyAllowed, successfulRevealAllowed)
+    val fishAnchor = if (fishEnergyAllowed) recognitionMaskAnchor(focusBox, contour, transform) else null
     val perimeterAnchor = fishAnchor?.let { nearestPhotoPerimeterAnchor(photoBounds, it) }
     val pathGeometry = when (baseEnergyEvent?.feedback) {
         EnergyFeedback.RELEASE -> nearestPhotoPerimeterAnchor(photoBounds, orbCenter)?.let { edge ->
@@ -1450,7 +1453,7 @@ private fun RecognitionPhoto(
             ) else null
         else -> null
     }
-    val energyEvent = WaterLightEnergy.at(waterLightFrame, trustedMask, successfulRevealAllowed, pathGeometry)
+    val energyEvent = WaterLightEnergy.at(waterLightFrame, fishEnergyAllowed, successfulRevealAllowed, pathGeometry)
     val causticsRenderer = remember(waterLightEngine) { WaterCausticsRenderer(waterScope) }
     val dropletRenderer = remember(waterLightEngine) { WaterDropletRenderer() }
     var causticsRevision by remember(waterLightEngine) { mutableIntStateOf(0) }
@@ -1505,6 +1508,7 @@ private fun RecognitionPhoto(
             photoBounds,
             with(density) { 16.dp.toPx() },
             orbCenter,
+            orbRadiusPx * 2f,
         )
     }
     if (onFishFocusTransform != null) {

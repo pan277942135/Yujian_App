@@ -18,6 +18,10 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -60,11 +64,12 @@ fun RecognitionStepDiagnosticControls(
     modifier: Modifier = Modifier,
 ) {
     val safeInsets = WindowInsets.safeDrawing.asPaddingValues()
+    var detailsExpanded by remember { mutableStateOf(false) }
     Box(modifier.fillMaxSize()) {
         Column(
             modifier = Modifier.align(Alignment.TopEnd)
                 .padding(top = safeInsets.calculateTopPadding() + 10.dp, end = 12.dp)
-                .width(228.dp),
+                .width(156.dp),
             horizontalAlignment = Alignment.End,
         ) {
             Row(
@@ -100,36 +105,35 @@ fun RecognitionStepDiagnosticControls(
                     else -> "播放中 · ${(elapsed / 1000f).formatSeconds()} / 3.00s"
                 }
                 Column(
-                    modifier = Modifier.padding(top = 5.dp).fillMaxWidth()
+                    modifier = Modifier.padding(top = 4.dp).fillMaxWidth()
                         .clip(RoundedCornerShape(10.dp)).background(Color(0xDDF8FFFC))
-                        .padding(horizontal = 8.dp, vertical = 6.dp),
+                        .padding(horizontal = 6.dp, vertical = 5.dp),
                     verticalArrangement = Arrangement.spacedBy(1.dp),
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
                             text = "%02d / 13".format(stage.ordinal + 1),
-                            color = Color(0xFF1D726D), fontSize = 12.sp, fontWeight = FontWeight.Bold,
+                            color = Color(0xFF1D726D), fontSize = 11.sp, fontWeight = FontWeight.Bold,
                         )
                         Text(
                             text = stage.displayName,
-                            color = Color(0xFF163F43), fontSize = 11.sp, fontWeight = FontWeight.SemiBold,
-                            modifier = Modifier.padding(start = 6.dp), maxLines = 1,
+                            color = Color(0xFF163F43), fontSize = 10.sp, fontWeight = FontWeight.SemiBold,
+                            modifier = Modifier.padding(start = 4.dp), maxLines = 1,
                         )
                     }
-                    Text(stage.name, color = Color(0xFF40696A), fontSize = 9.sp, maxLines = 1)
                     Text(
-                        "${stage.timeAnchorLabel} · 映射 ${mappedReferenceMs}ms",
-                        color = Color(0xFF567577), fontSize = 9.sp, maxLines = 1,
+                        "${stage.name} · ${stage.timeAnchorLabel}",
+                        color = Color(0xFF40696A), fontSize = 8.sp, maxLines = 1,
                     )
                     Text(
                         if (playbackMode == ScenePlaybackMode.MANUAL) {
                             "$previewState · 剩余 ${(DIAGNOSTIC_STEP_DURATION_MS - elapsed).coerceAtLeast(0L).let { (it / 1000f).formatSeconds() }}s"
-                        } else previewState,
+                        } else "$previewState · ${mappedReferenceMs}ms",
                         color = if (previewState.startsWith("等待")) Color(0xFF9B6228) else Color(0xFF287E79),
-                        fontSize = 9.sp, maxLines = 1,
+                        fontSize = 8.sp, maxLines = 1,
                     )
                     if (playbackMode == ScenePlaybackMode.MANUAL) {
-                        Canvas(Modifier.fillMaxWidth().height(3.dp)) {
+                        Canvas(Modifier.fillMaxWidth().height(2.dp)) {
                             val y = size.height / 2f
                             drawLine(Color(0x443A7772), androidx.compose.ui.geometry.Offset(0f, y),
                                 androidx.compose.ui.geometry.Offset(size.width, y), strokeWidth = size.height)
@@ -138,11 +142,18 @@ fun RecognitionStepDiagnosticControls(
                                 androidx.compose.ui.geometry.Offset(progressX, y), strokeWidth = size.height)
                         }
                     }
-                    Text(modelStatus, color = Color(0xFF567577), fontSize = 9.sp, maxLines = 1)
                     Text(
-                        "D:$detectorStatus · C:$classifierStatus · $maskStatus",
-                        color = Color(0xFF567577), fontSize = 8.sp, maxLines = 1,
+                        if (detailsExpanded) "收起模型状态 −" else "模型状态 +",
+                        modifier = Modifier.clickable { detailsExpanded = !detailsExpanded },
+                        color = Color(0xFF386766), fontSize = 8.sp, maxLines = 1,
                     )
+                    if (detailsExpanded) {
+                        Text(modelStatus, color = Color(0xFF567577), fontSize = 9.sp, maxLines = 1)
+                        Text(
+                            "D:$detectorStatus · C:$classifierStatus · $maskStatus",
+                            color = Color(0xFF567577), fontSize = 8.sp, maxLines = 2,
+                        )
+                    }
                     Canvas(Modifier.fillMaxWidth().height(10.dp)) {
                         val current = stage.ordinal
                         val radius = 2.5.dp.toPx()

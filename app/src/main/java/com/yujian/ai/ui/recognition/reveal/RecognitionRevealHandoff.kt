@@ -73,6 +73,8 @@ data class RecognitionProcessingPhotoSnapshot(
     val cornerRadiusPx: Float = 0f,
     /** Original Processing Orb center in window coordinates; retained for RR09 energy return. */
     val processingOrbCenterInWindow: DisplayPoint? = null,
+    /** Core diameter measured from the same Processing Orb instance, in physical pixels. */
+    val processingOrbCoreDiameterPx: Float = 0f,
 )
 
 data class RecognitionRevealHandoff(
@@ -99,6 +101,7 @@ data class RecognitionRevealHandoff(
     val processingPhotoClipBoundsInWindow: RecognitionRevealWindowRect? = null,
     val processingPhotoCornerRadiusPx: Float = 0f,
     val processingOrbCenterInWindow: DisplayPoint? = null,
+    val processingOrbCoreDiameterPx: Float = 0f,
     /** Final Classifier × SlimSAM decision captured before production Result navigation. */
     val revealDecision: RecognitionRevealDecisionState? = null,
 )
@@ -209,6 +212,8 @@ object RecognitionRevealHandoffFactory {
             processingPhotoClipBoundsInWindow = photoClip,
             processingPhotoCornerRadiusPx = photoCornerRadius,
             processingOrbCenterInWindow = orbAnchor,
+            processingOrbCoreDiameterPx = photo?.processingOrbCoreDiameterPx
+                ?.takeIf { it.isFinite() && it > 1f } ?: 0f,
             revealDecision = decision,
         )
     }

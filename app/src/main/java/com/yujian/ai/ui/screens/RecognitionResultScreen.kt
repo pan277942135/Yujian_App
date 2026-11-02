@@ -536,14 +536,7 @@ fun RecognitionResultScreen(
     }
     fun changeDiagnosticDisplayMode(mode: RecognitionProgressDisplayMode) {
         if (mode == diagnosticDisplayMode) return
-        val now = SystemClock.uptimeMillis()
-        val reference = (RecognitionSceneCoordinator.PROCESSING_END_MS + revealElapsedState.value)
-            .coerceAtMost(RecognitionSceneCoordinator.RR09_END_MS)
-        if (mode == RecognitionProgressDisplayMode.NORMAL_PROGRESS) {
-            diagnosticPlaybackController?.playProductionTimeline(reference, now)
-        } else {
-            diagnosticPlaybackController?.switchToStepDiagnostic(reference, now)
-        }
+        // Switching the two display modes must not seek or restart the shared scene clock.
         onDiagnosticDisplayModeChange(mode)
     }
     var geometryWaitExpired by remember(revealHandoff?.key) { mutableStateOf(false) }

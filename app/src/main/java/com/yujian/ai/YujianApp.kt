@@ -743,8 +743,9 @@ fun YujianApp() {
                             )
                             diagnosticDisplayMode = if (BuildConfig.DEBUG) RecognitionProgressDisplayMode.STEP_DIAGNOSTIC
                                 else RecognitionProgressDisplayMode.NORMAL_PROGRESS
-                            if (BuildConfig.DEBUG) diagnosticPlaybackController.prepareInitialStepPreview()
-                            else diagnosticPlaybackController.playProductionTimeline(0L, SystemClock.uptimeMillis())
+                            // Diagnostic display is the Debug default, while the shared scene
+                            // clock still starts in AUTO. Next/Pause explicitly enter MANUAL.
+                            diagnosticPlaybackController.playProductionTimeline(0L, SystemClock.uptimeMillis())
                             productionResult = null
                             recognitionTechnicalFailure = false
                             subjectResult = FishSubjectResult(SubjectStatus.IDLE)
@@ -776,7 +777,24 @@ fun YujianApp() {
                                 throw CancellationException("recognition attempt was superseded")
                             }
                             val selected = requireNotNull(sessionImage)
-                            val result = recognitionPipeline.recognize(selected.bitmap, onProgress)
+                            val result = recognitionPipeline.recognize(
+                                selected.bitmap,
+                                onProgress = { progress ->
+                                    if (activeRecognitionAttemptId != attemptId ||
+                                        sessionImage?.imageId != selected.imageId ||
+                                        sessionImage?.photoSha256 != selected.photoSha256
+                                    ) {
+                                        throw CancellationException("recognition progress belongs to a stale PhotoSession")
+                                    }
+                                    onProgress(progress)
+                                },
+                                modelIdentity = com.yujian.ai.ai.RecognitionModelIdentity(
+                                    sessionId = requireNotNull(recognitionSessionId),
+                                    attemptId = attemptId,
+                                    imageId = selected.imageId,
+                                    photoSha256 = selected.photoSha256,
+                                ),
+                            )
                             if (activeRecognitionAttemptId != attemptId) {
                                 throw CancellationException("recognition attempt was superseded")
                             }

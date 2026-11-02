@@ -2,6 +2,8 @@ package com.yujian.ai.ui.screens
 
 import android.graphics.BitmapFactory
 import android.util.Log
+import com.yujian.ai.ai.RecognitionModelIdentity
+import com.yujian.ai.ai.RecognitionModelWatchdog
 import com.yujian.ai.ai.NormalizedFishBox
 import com.yujian.ai.ai.subject.FishSubjectPreviewEngine
 import com.yujian.ai.ai.subject.FishSubjectQuality
@@ -48,7 +50,15 @@ class RecognitionSubjectAttemptRunner(
         identity = key
         return scope.async {
             val result = try {
-                engine.generate(selected, box, sessionId, attemptId)
+                RecognitionModelWatchdog.execute(
+                    modelName = "SLIMSAM",
+                    identity = RecognitionModelIdentity(
+                        sessionId = sessionId,
+                        attemptId = attemptId,
+                        imageId = selected.imageId,
+                        photoSha256 = selected.photoSha256,
+                    ),
+                ) { engine.generate(selected, box, sessionId, attemptId) }
             } catch (cancelled: CancellationException) {
                 throw cancelled
             } catch (error: Throwable) {
