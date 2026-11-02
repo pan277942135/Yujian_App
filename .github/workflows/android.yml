@@ -326,7 +326,7 @@ jobs:
     timeout-minutes: 50
     env:
       YUJIAN_SOURCE_SHA: ${{ needs.build.outputs.source_sha }}
-      ANDROID_I_WANT_MY_TCG: yes
+      ANDROID_I_WANT_MY_TCG: "yes"
 
     steps:
       - name: Checkout exact source for visual evidence
