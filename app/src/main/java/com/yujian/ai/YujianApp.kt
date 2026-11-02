@@ -96,6 +96,7 @@ import com.yujian.ai.ui.screens.RecognitionResultScreen
 import com.yujian.ai.ui.screens.RecognitionSaveDestination
 import com.yujian.ai.ui.identify.RecognitionUiState
 import com.yujian.ai.ui.identify.RecognitionFirstCaptureGuideStore
+import com.yujian.ai.ui.identify.RecognitionFirstCaptureGuideOverlay
 import com.yujian.ai.ui.identify.RecognitionCaptureEntryDestination
 import com.yujian.ai.ui.identify.resolveFirstCaptureEntryDestination
 import com.yujian.ai.ui.identify.resolveRecognitionResultState
@@ -255,6 +256,7 @@ fun YujianApp() {
         replaceGuideEntry: Boolean = false,
     ) {
         navigatingFromResult = false
+        if (!returnToHome) CaptureNavigationTransition.resetAnchor()
         clearRecognitionSession(preserveSession)
         if (recognitionSessionId == null) recognitionSessionId = UUID.randomUUID().toString()
         nav.navigate(if (openGallery) "identify?openGallery=true" else "identify") {
@@ -621,7 +623,7 @@ fun YujianApp() {
                     )
                 }
                 composable("home", exitTransition = {
-                    if (CaptureNavigationTransition.active.value) fadeOut(tween(400)) else ExitTransition.None
+                    fadeOut(tween(240))
                 }) {
                     val active = session
                     // The Home state is derived only from fish records. Login,
@@ -784,31 +786,27 @@ fun YujianApp() {
                         type = NavType.BoolType
                         defaultValue = true
                     }),
-                    enterTransition = { if (CaptureNavigationTransition.active.value) fadeIn(tween(400)) else EnterTransition.None },
-                    exitTransition = { ExitTransition.None },
+                    enterTransition = { fadeIn(tween(240)) },
+                    exitTransition = { fadeOut(tween(240)) },
                     popEnterTransition = { EnterTransition.None },
                     popExitTransition = { ExitTransition.None },
                 ) { entry ->
                     val returnToHome = entry.arguments?.getBoolean("returnToHome") ?: true
-                    IdentifyScreen(
-                        image = null,
-                        captureResetToken = captureResetToken,
-                        onBack = {
-                            clearRecognitionSession()
-                            nav.popBackStack()
-                        },
-                        onImageReady = { selected -> handleIdentifyImageReady(selected) },
-                        onGuideComplete = {
-                            startCapture(
-                                returnToHome = returnToHome,
-                                replaceGuideEntry = true,
-                            )
-                        },
-                        onGuideDismiss = {
-                            clearRecognitionSession()
-                            nav.popBackStack()
-                        },
-                    )
+                    Box(Modifier.fillMaxSize()) {
+                        RecognitionFirstCaptureGuideOverlay(
+                            onComplete = {
+                                RecognitionFirstCaptureGuideStore(context).markCompleted()
+                                startCapture(
+                                    returnToHome = returnToHome,
+                                    replaceGuideEntry = true,
+                                )
+                            },
+                            onDismiss = {
+                                clearRecognitionSession()
+                                nav.popBackStack()
+                            },
+                        )
+                    }
                 }
                 composable(
                     route = "identify?openGallery={openGallery}",
@@ -816,7 +814,7 @@ fun YujianApp() {
                         type = NavType.BoolType
                         defaultValue = false
                     }),
-                    enterTransition = { if (CaptureNavigationTransition.active.value) fadeIn(tween(400)) else EnterTransition.None },
+                    enterTransition = { fadeIn(tween(240)) },
                     exitTransition = { ExitTransition.None },
                     popEnterTransition = { EnterTransition.None },
                     popExitTransition = { ExitTransition.None },
