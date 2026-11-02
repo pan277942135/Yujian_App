@@ -1,0 +1,17 @@
+{
+  "sourceSha256": "d0bd07ba379491e8b93468c616468fc60d59a2dfebc11061cf4d14e9788c6e12",
+  "recomposedSha256": "d0bd07ba379491e8b93468c616468fc60d59a2dfebc11061cf4d14e9788c6e12",
+  "sizePx": [
+    1440,
+    3120
+  ],
+  "pixelIdentical": true,
+  "maeRgb": 0.0,
+  "rmseRgb": 0.0,
+  "psnrDb": "Infinity",
+  "ssim": 1.0,
+  "ssimMethod": "identity shortcut after exact pixel comparison",
+  "changedPixelRatio": 0.0,
+  "interpretation": "Exact because only the byte-identical master base is visible; this is not evidence that individual optical features were separated.",
+  "status": "PASS_STATIC_BASE_RECOMPOSITION_PARTIAL_LAYER_STATE"
+}

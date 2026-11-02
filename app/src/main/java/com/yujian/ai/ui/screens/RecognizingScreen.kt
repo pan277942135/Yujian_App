@@ -318,7 +318,11 @@ fun RecognitionProcessingScene(
 
     LaunchedEffect(sceneKey, diagnosticPlaybackController, diagnosticUiAvailable) {
         if (diagnosticPlaybackController == null && diagnosticUiAvailable) {
-            playbackController.playProductionTimeline(0L, recognitionMonotonicNowMs())
+            // Every Debug session opens on step 01. The clock starts only after the
+            // actual PhotoSession first frame is presented; choosing the diagnostic
+            // display must not silently switch playback to AUTO.
+            playbackController.prepareInitialStepPreview()
+            playbackRevision++
         }
     }
 
@@ -1328,7 +1332,10 @@ fun RecognitionProcessingScene(
                     playbackRevision++
                 },
                 onAutoPlay = {
-                    playbackController.playProductionTimeline(authoritativeOpticalReferenceElapsedMs, recognitionMonotonicNowMs())
+                    playbackController.playDiagnosticAuto(
+                        authoritativeOpticalReferenceElapsedMs,
+                        recognitionMonotonicNowMs(),
+                    )
                     diagnosticActionStatus = null
                     playbackRevision++
                 },

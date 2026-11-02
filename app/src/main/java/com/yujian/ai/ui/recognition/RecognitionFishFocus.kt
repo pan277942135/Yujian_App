@@ -11,6 +11,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.ColorMatrix
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
@@ -69,6 +71,23 @@ internal fun recognitionFishGoldStrength(elapsedMs: Long, reduceMotion: Boolean 
     val lower = upper - 1
     val p = smoothFraction((t - keys[lower]).toFloat() / (keys[upper] - keys[lower]).toFloat())
     return values[lower] + (values[upper] - values[lower]) * p
+}
+
+/** Web-derived contour values are Android calibration candidates, not frozen device values. */
+internal object RecognitionContourMaterialCandidate {
+    const val UNDER_STROKE_COLOR: Long = 0xFF063B46
+    const val UNDER_STROKE_OPACITY = .80f
+    const val ICE_HIGHLIGHT_COLOR: Long = 0xFFDDFBFF
+    const val ICE_HIGHLIGHT_OPACITY = .60f
+    const val GOLD_GLINT_COLOR: Long = 0xFFFFD166
+    const val GOLD_GLINT_ARC_RATIO = .20f
+    const val GOLD_GLINT_PERIOD_MS = 2_200L
+    const val GOLD_GLINT_INTENSITY = .80f
+
+    val CORE_GRADIENT_COLORS = listOf(
+        0xFF0284C7L, 0xFF38BDF8L, 0xFFFDE68AL, 0xFFF59E0BL,
+        0xFF0284C7L, 0xFF38BDF8L, 0xFFFDE68AL, 0xFFF59E0BL, 0xFF0284C7L,
+    )
 }
 
 internal const val RECOGNITION_MASK_CONTOUR_REVEAL_MS = 750L
@@ -287,13 +306,69 @@ fun RecognitionFishFocus(
                     )
                 }
 
-                // Gold Core.
+                // Dark teal under-stroke preserves contrast against bright scales and
+                // water while remaining strictly attached to the trusted Mask contour.
                 if (coreAlpha > 0.005f) {
                     drawPath(
                         pathToDraw,
-                        Color(material.primaryColor).copy(alpha = coreAlpha),
+                        Color(RecognitionContourMaterialCandidate.UNDER_STROKE_COLOR)
+                            .copy(alpha = coreAlpha * RecognitionContourMaterialCandidate.UNDER_STROKE_OPACITY),
                         style = Stroke(
-                            width = coreWidth,
+                            width = coreWidth * 1.85f,
+                            cap = StrokeCap.Round,
+                            join = StrokeJoin.Round,
+                        ),
+                    )
+
+                    // The Web palette is mapped to a spatial Android gradient over the
+                    // same real contour path; no BBox or synthetic outline is introduced.
+                    val contourBounds = pathToDraw.getBounds()
+                    val gradientStart = Offset(contourBounds.left, contourBounds.top)
+                    val gradientEnd = Offset(
+                        contourBounds.right.coerceAtLeast(contourBounds.left + 1f),
+                        contourBounds.bottom.coerceAtLeast(contourBounds.top + 1f),
+                    )
+                    val gradient = Brush.linearGradient(
+                        colors = RecognitionContourMaterialCandidate.CORE_GRADIENT_COLORS.map {
+                            Color(it).copy(alpha = coreAlpha)
+                        },
+                        start = gradientStart,
+                        end = gradientEnd,
+                    )
+                    drawPath(
+                        pathToDraw,
+                        gradient,
+                        style = Stroke(width = coreWidth, cap = StrokeCap.Round, join = StrokeJoin.Round),
+                    )
+
+                    drawPath(
+                        pathToDraw,
+                        Color(RecognitionContourMaterialCandidate.ICE_HIGHLIGHT_COLOR)
+                            .copy(alpha = coreAlpha * RecognitionContourMaterialCandidate.ICE_HIGHLIGHT_OPACITY),
+                        style = Stroke(
+                            width = (coreWidth * .46f).coerceAtLeast(.55f),
+                            cap = StrokeCap.Round,
+                            join = StrokeJoin.Round,
+                        ),
+                    )
+
+                    // A narrow sunlit glint moves deterministically from the shared
+                    // scene reference time; it does not start an independent animator.
+                    val glintProgress = (opticalReferenceElapsedMs.coerceAtLeast(0L) %
+                        RecognitionContourMaterialCandidate.GOLD_GLINT_PERIOD_MS).toFloat() /
+                        RecognitionContourMaterialCandidate.GOLD_GLINT_PERIOD_MS
+                    val glintPath = recognitionContourGlintPath(
+                        pathToDraw.asAndroidPath(),
+                        glintProgress,
+                        RecognitionContourMaterialCandidate.GOLD_GLINT_ARC_RATIO,
+                    )
+                    if (!glintPath.isEmpty) drawPath(
+                        glintPath.asComposePath(),
+                        Color(RecognitionContourMaterialCandidate.GOLD_GLINT_COLOR).copy(
+                            alpha = coreAlpha * RecognitionContourMaterialCandidate.GOLD_GLINT_INTENSITY,
+                        ),
+                        style = Stroke(
+                            width = (coreWidth * 1.35f).coerceAtLeast(1f),
                             cap = StrokeCap.Round,
                             join = StrokeJoin.Round,
                         ),
@@ -301,6 +376,46 @@ fun RecognitionFishFocus(
                 }
             }
     }
+}
+
+/** Extracts a wrapped arc from the current Mask path for the contour confirmation glint. */
+internal fun recognitionContourGlintPath(
+    path: AndroidPath,
+    progress: Float,
+    arcRatio: Float,
+): AndroidPath {
+    val result = AndroidPath()
+    val measure = AndroidPathMeasure(path, false)
+    var totalLength = 0f
+    do {
+        totalLength += measure.length
+    } while (measure.nextContour())
+    if (totalLength <= 1f) return result
+
+    val start = (progress.coerceIn(0f, 1f) * totalLength).coerceIn(0f, totalLength)
+    val arcLength = (arcRatio.coerceIn(0f, 1f) * totalLength).coerceAtMost(totalLength)
+    val end = start + arcLength
+    appendRecognitionContourRange(path, start, minOf(end, totalLength), result)
+    if (end > totalLength) appendRecognitionContourRange(path, 0f, end - totalLength, result)
+    return result
+}
+
+private fun appendRecognitionContourRange(
+    path: AndroidPath,
+    rangeStart: Float,
+    rangeEnd: Float,
+    out: AndroidPath,
+) {
+    if (rangeEnd <= rangeStart) return
+    val measure = AndroidPathMeasure(path, false)
+    var consumed = 0f
+    do {
+        val contourLength = measure.length
+        val localStart = (rangeStart - consumed).coerceAtLeast(0f)
+        val localEnd = (rangeEnd - consumed).coerceAtMost(contourLength)
+        if (localEnd > localStart) measure.getSegment(localStart, localEnd, out, true)
+        consumed += contourLength
+    } while (consumed < rangeEnd && measure.nextContour())
 }
 
 private fun DrawScope.drawLocalContourBlur(

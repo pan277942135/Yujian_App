@@ -137,16 +137,39 @@ class SceneMotionCoordinator {
     private var previewStartedAtMs: Long? = null
     private var previewElapsedBeforePauseMs = 0L
     private var autoOffsetMs = 0L
+    private var autoStageStartedAtMs: Long? = null
+    private var autoStageElapsedBeforePauseMs = 0L
+    private var diagnosticAuto = false
 
     fun sample(authoritativeReferenceMs: Long, nowMs: Long): Long {
         if (mode == ScenePlaybackMode.MANUAL) {
             updatePreviewCompletion(nowMs)
             return RecognitionSceneCoordinator.previewReferenceMs(currentStage, previewElapsedMsWithoutUpdate(nowMs))
         }
-        val reference = if (paused) frozenReferenceMs ?: authoritativeReferenceMs.coerceAtLeast(0L)
-        else (authoritativeReferenceMs + autoOffsetMs).coerceAtLeast(0L)
-        currentStage = RecognitionSceneCoordinator.stageAt(reference)
-        return reference
+        if (paused) return frozenReferenceMs ?: authoritativeReferenceMs.coerceAtLeast(0L)
+
+        if (!diagnosticAuto) {
+            val reference = (authoritativeReferenceMs + autoOffsetMs).coerceAtLeast(0L)
+            currentStage = RecognitionSceneCoordinator.stageAt(reference)
+            return reference
+        }
+
+        // Diagnostic AUTO slows the same authoritative scene projection to at least
+        // three seconds per semantic stage. It can never run ahead of the stage
+        // reached by the production controller, so real model gates remain in force.
+        val elapsed = autoStageElapsedMs(nowMs)
+        val authoritativeStage = RecognitionSceneCoordinator.stageAt(authoritativeReferenceMs)
+        var remaining = elapsed
+        while (remaining >= DIAGNOSTIC_STEP_DURATION_MS && currentStage.ordinal < authoritativeStage.ordinal) {
+            remaining -= DIAGNOSTIC_STEP_DURATION_MS
+            currentStage = RecognitionSceneStage.entries[currentStage.ordinal + 1]
+        }
+        autoStageElapsedBeforePauseMs = remaining.coerceAtMost(DIAGNOSTIC_STEP_DURATION_MS)
+        autoStageStartedAtMs = nowMs
+        if (remaining >= DIAGNOSTIC_STEP_DURATION_MS && currentStage == authoritativeStage) {
+            autoStageElapsedBeforePauseMs = DIAGNOSTIC_STEP_DURATION_MS
+        }
+        return RecognitionSceneCoordinator.previewReferenceMs(currentStage, autoStageElapsedBeforePauseMs)
     }
 
     /** Prepare stage 01 before the photo's real first stable frame; its 3 s begins on presentation. */
@@ -159,6 +182,9 @@ class SceneMotionCoordinator {
         previewElapsedBeforePauseMs = 0L
         frozenReferenceMs = 0L
         autoOffsetMs = 0L
+        diagnosticAuto = false
+        autoStageStartedAtMs = null
+        autoStageElapsedBeforePauseMs = 0L
     }
 
     fun startPreparedStepPreview(nowMs: Long) {
@@ -179,6 +205,9 @@ class SceneMotionCoordinator {
         previewStartedAtMs = nowMs.takeIf { startImmediately }
         frozenReferenceMs = RecognitionSceneCoordinator.previewReferenceMs(stage, 0L)
         autoOffsetMs = 0L
+        diagnosticAuto = false
+        autoStageStartedAtMs = null
+        autoStageElapsedBeforePauseMs = 0L
     }
 
     fun advanceToNextStage(nowMs: Long): RecognitionSceneStage? {
@@ -230,6 +259,10 @@ class SceneMotionCoordinator {
             return
         }
         frozenReferenceMs = sample(authoritativeReferenceMs, nowMs)
+        if (diagnosticAuto) {
+            autoStageElapsedBeforePauseMs = autoStageElapsedMs(nowMs).coerceIn(0L, DIAGNOSTIC_STEP_DURATION_MS)
+            autoStageStartedAtMs = null
+        }
         paused = true
     }
 
@@ -242,8 +275,11 @@ class SceneMotionCoordinator {
             frozenReferenceMs = null
             return
         }
-        val frozen = frozenReferenceMs ?: authoritativeReferenceMs.coerceAtLeast(0L)
-        autoOffsetMs = frozen - authoritativeReferenceMs
+        if (diagnosticAuto) autoStageStartedAtMs = nowMs
+        else {
+            val frozen = frozenReferenceMs ?: authoritativeReferenceMs.coerceAtLeast(0L)
+            autoOffsetMs = frozen - authoritativeReferenceMs
+        }
         frozenReferenceMs = null
         paused = false
     }
@@ -252,8 +288,9 @@ class SceneMotionCoordinator {
         playProductionTimeline(authoritativeReferenceMs, nowMs)
     }
 
-    fun playProductionTimeline(authoritativeReferenceMs: Long, @Suppress("UNUSED_PARAMETER") nowMs: Long) {
+    fun playProductionTimeline(authoritativeReferenceMs: Long, nowMs: Long) {
         mode = ScenePlaybackMode.AUTO
+        diagnosticAuto = false
         paused = false
         previewCompleted = false
         previewStartedAtMs = null
@@ -261,6 +298,29 @@ class SceneMotionCoordinator {
         frozenReferenceMs = null
         autoOffsetMs = 0L
         currentStage = RecognitionSceneCoordinator.stageAt(authoritativeReferenceMs)
+        val stage = currentStage
+        val progress = if (stage.durationMs == 0L) 0f else
+            ((authoritativeReferenceMs - stage.startMs).toFloat() / stage.durationMs).coerceIn(0f, 1f)
+        autoStageElapsedBeforePauseMs = (progress * DIAGNOSTIC_STEP_DURATION_MS).toLong()
+        autoStageStartedAtMs = null
+    }
+
+    /** Debug-only AUTO: preserve each diagnostic stage for at least three seconds. */
+    fun playDiagnosticAuto(authoritativeReferenceMs: Long, nowMs: Long) {
+        mode = ScenePlaybackMode.AUTO
+        diagnosticAuto = true
+        paused = false
+        previewCompleted = false
+        previewStartedAtMs = null
+        previewElapsedBeforePauseMs = 0L
+        frozenReferenceMs = null
+        autoOffsetMs = 0L
+        currentStage = RecognitionSceneCoordinator.stageAt(authoritativeReferenceMs)
+        val stage = currentStage
+        val progress = if (stage.durationMs == 0L) 0f else
+            ((authoritativeReferenceMs - stage.startMs).toFloat() / stage.durationMs).coerceIn(0f, 1f)
+        autoStageElapsedBeforePauseMs = (progress * DIAGNOSTIC_STEP_DURATION_MS).toLong()
+        autoStageStartedAtMs = nowMs
     }
 
     fun switchToStepDiagnostic(authoritativeReferenceMs: Long, nowMs: Long) {
@@ -295,6 +355,12 @@ class SceneMotionCoordinator {
             previewCompleted = true
             frozenReferenceMs = RecognitionSceneCoordinator.previewReferenceMs(currentStage, DIAGNOSTIC_STEP_DURATION_MS)
         }
+    }
+
+    private fun autoStageElapsedMs(nowMs: Long): Long {
+        val startedAt = autoStageStartedAtMs ?: return autoStageElapsedBeforePauseMs
+        return (autoStageElapsedBeforePauseMs + (nowMs - startedAt).coerceAtLeast(0L))
+            .coerceAtLeast(0L)
     }
 
     private fun previewElapsedMsWithoutUpdate(nowMs: Long): Long {

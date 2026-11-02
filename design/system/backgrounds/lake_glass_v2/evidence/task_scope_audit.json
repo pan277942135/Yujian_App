@@ -1,0 +1,13 @@
+{
+  "allowedNewPrefixes": [
+    "design/system/backgrounds/lake_glass_v2/",
+    "scripts/"
+  ],
+  "protectedPaths": [
+    "design/system/backgrounds/morning_lake_v1/",
+    "app/src/main/java/com/yujian/ai/ui/home/EmptyHomeSceneRenderer.kt",
+    "app/src/main/assets/empty_home_runtime_v2/"
+  ],
+  "intendedChangeType": "additions_only",
+  "statement": "The GitHub PR file list is the authoritative check that no protected path is modified."
+}

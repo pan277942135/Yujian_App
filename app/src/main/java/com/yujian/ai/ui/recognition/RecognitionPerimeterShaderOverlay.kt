@@ -49,6 +49,19 @@ private const val SOURCE_SPEED = 1f
 private const val PERIMETER_LOG_TAG = "RecognitionPerimeter"
 private const val NODE_POSITION_FLOATS = RecognitionPerimeterShaderMath.SPARKLE_COUNT * 2
 
+internal fun recognitionPerimeterOpacity(
+    processingClockStarted: Boolean,
+    reduceMotion: Boolean,
+    opticalReferenceElapsedMs: Long,
+): Float = when {
+    !processingClockStarted -> 0f
+    reduceMotion -> .10f
+    else -> processingEnvironmentStrength(opticalReferenceElapsedMs.coerceAtLeast(0L)) / 100f
+}
+
+internal fun recognitionPerimeterActive(processingClockStarted: Boolean, phase: RecognitionPhase): Boolean =
+    processingClockStarted && phase != RecognitionPhase.RESULT && phase != RecognitionPhase.FAILURE
+
 /**
  * The TextureView renders the actual photo plus perimeter in one surface. Compose keeps the
  * unchanged photo underneath until the matching GPU frame has been presented.
@@ -97,12 +110,11 @@ internal fun RecognitionPerimeterShaderOverlay(
     val shaderElapsedMs = if (waterLightFrame.reducedMotion) 0L else waterLightFrame.elapsedMs
     val timeSec = RecognitionPerimeterShaderMath.sourceTimeSec(shaderElapsedMs, speed = SOURCE_SPEED)
     val progress = if (waterLightFrame.reducedMotion) 1f else RecognitionPerimeterShaderMath.linearProgress(waterLightFrame.opticalReferenceElapsedMs)
-    val perimeterOpacity = when {
-        !processingClockStarted -> 0f
-        opticalReferenceElapsedMs >= 2_800L -> 0f
-        reduceMotion -> .10f
-        else -> processingEnvironmentStrength(opticalReferenceElapsedMs) / 100f
-    }
+    val perimeterOpacity = recognitionPerimeterOpacity(
+        processingClockStarted = processingClockStarted,
+        reduceMotion = reduceMotion,
+        opticalReferenceElapsedMs = opticalReferenceElapsedMs,
+    )
     val nodes = RecognitionPerimeterShaderMath.sparkles(
         path = path,
         timeSec = timeSec,
@@ -117,8 +129,9 @@ internal fun RecognitionPerimeterShaderOverlay(
             values[index * 2 + 1] = node.y
         }
     }
-    val active = processingClockStarted && phase != RecognitionPhase.RESULT &&
-        phase != RecognitionPhase.FAILURE && opticalReferenceElapsedMs < 2_800L
+    // Stage progress and model gates own its lifetime. P7 can drive opacity to zero,
+    // but an absolute elapsed-time cutoff must not terminate a slow real recognition.
+    val active = recognitionPerimeterActive(processingClockStarted, phase)
     val frame = PerimeterFrame(
         bitmap = bitmap,
         photoBounds = DisplayRect(0f, 0f, photoRect.width, photoRect.height),

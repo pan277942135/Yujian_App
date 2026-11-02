@@ -1,0 +1,18 @@
+{
+  "minSdk": 24,
+  "api24to32": {
+    "CanvasStaticComposite": true,
+    "dynamicOpticalMaps": false
+  },
+  "api33plus": {
+    "AGSLOptional": true,
+    "deviceTested": false
+  },
+  "blendModes": {
+    "SRC_OVER": "Canvas",
+    "PLUS": "PorterDuff ADD / shader plus"
+  },
+  "noGLSurfaceView": true,
+  "losslessCanonicalAssets": true,
+  "rightsStatus": "PENDING_REVIEW"
+}

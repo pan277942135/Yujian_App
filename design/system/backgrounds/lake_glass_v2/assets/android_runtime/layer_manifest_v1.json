@@ -1,0 +1,559 @@
+{
+  "schemaVersion": "1.0",
+  "manifestId": "LAKE_GLASS_V2_ANDROID_RUNTIME_LAYER_MANIFEST_V1",
+  "taskIds": [
+    "YUJIAN_LAKE_GLASS_V2_ASSET_PACK_ANDROID_RUNTIME_INTEGRATION_V1",
+    "YUJIAN_LAKE_GLASS_V2_OPEN_SOURCE_SHADER_REUSE_V1"
+  ],
+  "master": {
+    "sourceFile": "assets/source_master/YuJian_Lake_Glass_V2_Master_Candidate_02_1440x3120.png",
+    "sourceSha256": "d0bd07ba379491e8b93468c616468fc60d59a2dfebc11061cf4d14e9788c6e12",
+    "dimensionsPx": [
+      1440,
+      3120
+    ]
+  },
+  "sourceInputs": [
+    {
+      "role": "master",
+      "sourceFile": "assets/source_master/YuJian_Lake_Glass_V2_Master_Candidate_02_1440x3120.png",
+      "sourceSha256": "d0bd07ba379491e8b93468c616468fc60d59a2dfebc11061cf4d14e9788c6e12",
+      "dimensionsPx": [
+        1440,
+        3120
+      ]
+    },
+    {
+      "role": "original_source",
+      "sourceFile": "assets/source_master/宁静湖光玻璃水境背景.png",
+      "sourceSha256": "f3dc1549919f48f939df5a6cf5baf18fb6846164c6f857df8e20cfe247b495ba",
+      "dimensionsPx": [
+        852,
+        1846
+      ]
+    },
+    {
+      "role": "master_manifest",
+      "sourceFile": "assets/source_master/YuJian_Lake_Glass_V2_Master_Candidate_02_manifest.json",
+      "sourceSha256": "623b978487ef294b7261c45e8ec1612ce372df61bbdca3859f5a9faa31af661b",
+      "dimensionsPx": null
+    }
+  ],
+  "canvasSizePx": [
+    1440,
+    3120
+  ],
+  "coordinateSystem": "Master px, top-left origin; every visible/effect sample uses one viewport transform.",
+  "visibleRuntimeStack": [
+    "LAYER_STATIC_COMPOSITE"
+  ],
+  "api24to32": {
+    "mode": "STATIC",
+    "primary": "assets/android_runtime/api24_static/lake_glass_static_layered_v3.png",
+    "fallback": "assets/android_runtime/api24_static/lake_glass_master_fallback.png",
+    "shader": "DISABLED"
+  },
+  "api33plus": {
+    "mode": "OPTIONAL_AGSL_IN_PLACE_MODULATION",
+    "staticFallback": "assets/android_runtime/api24_static/lake_glass_static_layered_v3.png",
+    "shaderFailureFallback": "STATIC_COMPOSITE",
+    "overlayLayers": [],
+    "effects": [
+      "LAYER_CAUSTICS_MODULATION",
+      "LAYER_SUNLIGHT_MODULATION",
+      "LAYER_DROPLET_01_REFRACTION",
+      "LAYER_DROPLET_02_REFRACTION",
+      "LAYER_DROPLET_03_REFRACTION"
+    ]
+  },
+  "motionDefault": "DISABLED_UNTIL_API33_VISUAL_AND_DEVICE_VALIDATION",
+  "noDuplicateVisibleSurfaces": true,
+  "noGLSurfaceView": true,
+  "layers": [
+    {
+      "layerId": "LAYER_STATIC_COMPOSITE",
+      "assetFile": "assets/android_runtime/api24_static/lake_glass_static_layered_v3.png",
+      "assetSha256": "23a493146f7fbb06469e56ae18b2ed8d58b610d981169c8987319481c0df5368",
+      "sourceFile": "assets/source_master/YuJian_Lake_Glass_V2_Master_Candidate_02_1440x3120.png",
+      "sourceSha256": "d0bd07ba379491e8b93468c616468fc60d59a2dfebc11061cf4d14e9788c6e12",
+      "sourceFiles": [
+        {
+          "sourceFile": "assets/source_master/YuJian_Lake_Glass_V2_Master_Candidate_02_1440x3120.png",
+          "sourceSha256": "d0bd07ba379491e8b93468c616468fc60d59a2dfebc11061cf4d14e9788c6e12"
+        }
+      ],
+      "format": "PNG",
+      "dimensionsPx": [
+        1440,
+        3120
+      ],
+      "pixelBounds": [
+        0,
+        0,
+        1440,
+        3120
+      ],
+      "anchorPx": [
+        0,
+        0
+      ],
+      "anchorNormalized": [
+        0.0,
+        0.0
+      ],
+      "zIndex": 0,
+      "blendMode": "SRC",
+      "alpha": 1.0,
+      "separationStatus": "STATIC_COMPOSITE_ONLY",
+      "runtimeMode": "STATIC_COMPOSITE",
+      "motionEligible": true,
+      "fallbackPolicy": "STATIC_COMPOSITE",
+      "note": "Validated full-scene composition; it is the only visible runtime surface on API 24–32 and the universal fallback."
+    },
+    {
+      "layerId": "LAYER_MASTER_FALLBACK",
+      "assetFile": "assets/android_runtime/api24_static/lake_glass_master_fallback.png",
+      "assetSha256": "d0bd07ba379491e8b93468c616468fc60d59a2dfebc11061cf4d14e9788c6e12",
+      "sourceFile": "assets/source_master/YuJian_Lake_Glass_V2_Master_Candidate_02_1440x3120.png",
+      "sourceSha256": "d0bd07ba379491e8b93468c616468fc60d59a2dfebc11061cf4d14e9788c6e12",
+      "sourceFiles": [
+        {
+          "sourceFile": "assets/source_master/YuJian_Lake_Glass_V2_Master_Candidate_02_1440x3120.png",
+          "sourceSha256": "d0bd07ba379491e8b93468c616468fc60d59a2dfebc11061cf4d14e9788c6e12"
+        }
+      ],
+      "format": "PNG",
+      "dimensionsPx": [
+        1440,
+        3120
+      ],
+      "pixelBounds": [
+        0,
+        0,
+        1440,
+        3120
+      ],
+      "anchorPx": [
+        0,
+        0
+      ],
+      "anchorNormalized": [
+        0.0,
+        0.0
+      ],
+      "zIndex": 0,
+      "blendMode": "SRC",
+      "alpha": 1.0,
+      "separationStatus": "STATIC_COMPOSITE_ONLY",
+      "runtimeMode": "STATIC_FALLBACK_ONLY",
+      "motionEligible": false,
+      "fallbackPolicy": "STATIC_COMPOSITE",
+      "note": "Byte-identical user-supplied Master fallback; retained for exact source recovery."
+    },
+    {
+      "layerId": "LAYER_BASE_CLEAN_DIAGNOSTIC",
+      "assetFile": "assets/base/lake_base_clean_v2.png",
+      "assetSha256": "cf18dedc43c3e59e93e4273a4e195850d881b913480b18499228c53f1e2b5f51",
+      "sourceFile": "assets/source_master/YuJian_Lake_Glass_V2_Master_Candidate_02_1440x3120.png",
+      "sourceSha256": "d0bd07ba379491e8b93468c616468fc60d59a2dfebc11061cf4d14e9788c6e12",
+      "sourceFiles": [
+        {
+          "sourceFile": "assets/source_master/YuJian_Lake_Glass_V2_Master_Candidate_02_1440x3120.png",
+          "sourceSha256": "d0bd07ba379491e8b93468c616468fc60d59a2dfebc11061cf4d14e9788c6e12"
+        }
+      ],
+      "format": "PNG",
+      "dimensionsPx": [
+        1440,
+        3120
+      ],
+      "pixelBounds": [
+        0,
+        0,
+        1440,
+        3120
+      ],
+      "anchorPx": [
+        0,
+        0
+      ],
+      "anchorNormalized": [
+        0.0,
+        0.0
+      ],
+      "zIndex": 0,
+      "blendMode": "SRC",
+      "alpha": 1.0,
+      "separationStatus": "NOT_RUNTIME_ELIGIBLE",
+      "runtimeMode": "DIAGNOSTIC_ONLY",
+      "motionEligible": false,
+      "fallbackPolicy": "STATIC_COMPOSITE",
+      "note": "Repaired plate retains baked upper-right sunlight and lower grass/root-bed residuals; not drawn separately."
+    },
+    {
+      "layerId": "LAYER_CAUSTICS_MODULATION",
+      "assetFile": "assets/android_runtime/runtime_optical_masks_v1.png",
+      "assetSha256": "2eae796055e1417f6dc9b81ae49e4167c68796d87b976ea1f02cceca421d26b0",
+      "sourceFile": "assets/source_master/YuJian_Lake_Glass_V2_Master_Candidate_02_1440x3120.png",
+      "sourceSha256": "d0bd07ba379491e8b93468c616468fc60d59a2dfebc11061cf4d14e9788c6e12",
+      "sourceFiles": [
+        {
+          "sourceFile": "assets/caustics/caustics_luma_analysis_mask.png",
+          "sourceSha256": "a403675745dd1b6889269f5bdfb4f8726ec1fbb99d4ec9bb5856ff81e2a97d09"
+        },
+        {
+          "sourceFile": "assets/sunlight/sunlight_soft_analysis_mask.png",
+          "sourceSha256": "43ff918eb7357799b522619413ce817f42ec158483581dfc8bd59a71c5f36bcc"
+        },
+        {
+          "sourceFile": "assets/droplets/droplet_01_left_region_mask.png",
+          "sourceSha256": "203ee4f481e967ebd3b8f5470486adc6e601e2b44bc889cf423bd0eb05a76214"
+        },
+        {
+          "sourceFile": "assets/droplets/droplet_02_upper_right_region_mask.png",
+          "sourceSha256": "28a027aac9965fba4f71383ac57a88d94ccf9f760aae6573978773854d9c9d57"
+        },
+        {
+          "sourceFile": "assets/droplets/droplet_03_lower_right_region_mask.png",
+          "sourceSha256": "72719512e16e1969c38fba92d4632888253e0c1178a5a8b232e85bbf9e71ae80"
+        }
+      ],
+      "format": "PNG",
+      "dimensionsPx": [
+        360,
+        780
+      ],
+      "pixelBounds": [
+        0,
+        0,
+        1440,
+        3120
+      ],
+      "anchorPx": [
+        720,
+        2850
+      ],
+      "anchorNormalized": [
+        0.5,
+        0.913462
+      ],
+      "zIndex": 1,
+      "blendMode": "IN_PLACE_LUMA_MULTIPLY",
+      "alpha": 0.0025,
+      "separationStatus": "SHADER_INPUTS_PROVISIONAL",
+      "runtimeMode": "API33_IN_PLACE_MASKED_MODULATION",
+      "motionEligible": true,
+      "fallbackPolicy": "STATIC_COMPOSITE",
+      "note": "Uses the Master-derived caustics mask to multiply existing baked luminance; never draws a second caustics sheet.",
+      "effectChannel": "R"
+    },
+    {
+      "layerId": "LAYER_SUNLIGHT_MODULATION",
+      "assetFile": "assets/android_runtime/runtime_optical_masks_v1.png",
+      "assetSha256": "2eae796055e1417f6dc9b81ae49e4167c68796d87b976ea1f02cceca421d26b0",
+      "sourceFile": "assets/source_master/YuJian_Lake_Glass_V2_Master_Candidate_02_1440x3120.png",
+      "sourceSha256": "d0bd07ba379491e8b93468c616468fc60d59a2dfebc11061cf4d14e9788c6e12",
+      "sourceFiles": [
+        {
+          "sourceFile": "assets/caustics/caustics_luma_analysis_mask.png",
+          "sourceSha256": "a403675745dd1b6889269f5bdfb4f8726ec1fbb99d4ec9bb5856ff81e2a97d09"
+        },
+        {
+          "sourceFile": "assets/sunlight/sunlight_soft_analysis_mask.png",
+          "sourceSha256": "43ff918eb7357799b522619413ce817f42ec158483581dfc8bd59a71c5f36bcc"
+        },
+        {
+          "sourceFile": "assets/droplets/droplet_01_left_region_mask.png",
+          "sourceSha256": "203ee4f481e967ebd3b8f5470486adc6e601e2b44bc889cf423bd0eb05a76214"
+        },
+        {
+          "sourceFile": "assets/droplets/droplet_02_upper_right_region_mask.png",
+          "sourceSha256": "28a027aac9965fba4f71383ac57a88d94ccf9f760aae6573978773854d9c9d57"
+        },
+        {
+          "sourceFile": "assets/droplets/droplet_03_lower_right_region_mask.png",
+          "sourceSha256": "72719512e16e1969c38fba92d4632888253e0c1178a5a8b232e85bbf9e71ae80"
+        }
+      ],
+      "format": "PNG",
+      "dimensionsPx": [
+        360,
+        780
+      ],
+      "pixelBounds": [
+        0,
+        0,
+        1440,
+        3120
+      ],
+      "anchorPx": [
+        1361,
+        109
+      ],
+      "anchorNormalized": [
+        0.945139,
+        0.034936
+      ],
+      "zIndex": 2,
+      "blendMode": "IN_PLACE_LUMA_MULTIPLY",
+      "alpha": 0.0015,
+      "separationStatus": "BAKED_IN_BASE",
+      "runtimeMode": "API33_IN_PLACE_LOW_AMPLITUDE_MODULATION",
+      "motionEligible": true,
+      "fallbackPolicy": "STATIC_COMPOSITE",
+      "note": "The Master light remains baked and fixed at the upper-right anchor; the field can only modulate existing pixels.",
+      "effectChannel": "G"
+    },
+    {
+      "layerId": "LAYER_DROPLET_01_REFRACTION",
+      "assetFile": "assets/android_runtime/runtime_optical_masks_v1.png",
+      "assetSha256": "2eae796055e1417f6dc9b81ae49e4167c68796d87b976ea1f02cceca421d26b0",
+      "sourceFile": "assets/source_master/YuJian_Lake_Glass_V2_Master_Candidate_02_1440x3120.png",
+      "sourceSha256": "d0bd07ba379491e8b93468c616468fc60d59a2dfebc11061cf4d14e9788c6e12",
+      "sourceFiles": [
+        {
+          "sourceFile": "assets/caustics/caustics_luma_analysis_mask.png",
+          "sourceSha256": "a403675745dd1b6889269f5bdfb4f8726ec1fbb99d4ec9bb5856ff81e2a97d09"
+        },
+        {
+          "sourceFile": "assets/sunlight/sunlight_soft_analysis_mask.png",
+          "sourceSha256": "43ff918eb7357799b522619413ce817f42ec158483581dfc8bd59a71c5f36bcc"
+        },
+        {
+          "sourceFile": "assets/droplets/droplet_01_left_region_mask.png",
+          "sourceSha256": "203ee4f481e967ebd3b8f5470486adc6e601e2b44bc889cf423bd0eb05a76214"
+        },
+        {
+          "sourceFile": "assets/droplets/droplet_02_upper_right_region_mask.png",
+          "sourceSha256": "28a027aac9965fba4f71383ac57a88d94ccf9f760aae6573978773854d9c9d57"
+        },
+        {
+          "sourceFile": "assets/droplets/droplet_03_lower_right_region_mask.png",
+          "sourceSha256": "72719512e16e1969c38fba92d4632888253e0c1178a5a8b232e85bbf9e71ae80"
+        }
+      ],
+      "format": "PNG",
+      "dimensionsPx": [
+        360,
+        780
+      ],
+      "pixelBounds": [
+        15,
+        648,
+        111,
+        131
+      ],
+      "anchorPx": [
+        70,
+        713
+      ],
+      "anchorNormalized": [
+        0.048611,
+        0.228526
+      ],
+      "zIndex": 4,
+      "blendMode": "IN_PLACE_SCREEN_SPACE_REFRACTION",
+      "alpha": 0.35,
+      "separationStatus": "SHADER_INPUTS_PROVISIONAL",
+      "runtimeMode": "API33_FIXED_ANCHOR_IN_PLACE_REFRACTION",
+      "motionEligible": true,
+      "fallbackPolicy": "STATIC_COMPOSITE",
+      "note": "Fixed Master anchor/SDF bounds from the resource anchor file; no RGBA surface is drawn. Normal maps remain estimates.",
+      "effectChannel": "B"
+    },
+    {
+      "layerId": "LAYER_DROPLET_02_REFRACTION",
+      "assetFile": "assets/android_runtime/runtime_optical_masks_v1.png",
+      "assetSha256": "2eae796055e1417f6dc9b81ae49e4167c68796d87b976ea1f02cceca421d26b0",
+      "sourceFile": "assets/source_master/YuJian_Lake_Glass_V2_Master_Candidate_02_1440x3120.png",
+      "sourceSha256": "d0bd07ba379491e8b93468c616468fc60d59a2dfebc11061cf4d14e9788c6e12",
+      "sourceFiles": [
+        {
+          "sourceFile": "assets/caustics/caustics_luma_analysis_mask.png",
+          "sourceSha256": "a403675745dd1b6889269f5bdfb4f8726ec1fbb99d4ec9bb5856ff81e2a97d09"
+        },
+        {
+          "sourceFile": "assets/sunlight/sunlight_soft_analysis_mask.png",
+          "sourceSha256": "43ff918eb7357799b522619413ce817f42ec158483581dfc8bd59a71c5f36bcc"
+        },
+        {
+          "sourceFile": "assets/droplets/droplet_01_left_region_mask.png",
+          "sourceSha256": "203ee4f481e967ebd3b8f5470486adc6e601e2b44bc889cf423bd0eb05a76214"
+        },
+        {
+          "sourceFile": "assets/droplets/droplet_02_upper_right_region_mask.png",
+          "sourceSha256": "28a027aac9965fba4f71383ac57a88d94ccf9f760aae6573978773854d9c9d57"
+        },
+        {
+          "sourceFile": "assets/droplets/droplet_03_lower_right_region_mask.png",
+          "sourceSha256": "72719512e16e1969c38fba92d4632888253e0c1178a5a8b232e85bbf9e71ae80"
+        }
+      ],
+      "format": "PNG",
+      "dimensionsPx": [
+        360,
+        780
+      ],
+      "pixelBounds": [
+        1250,
+        371,
+        133,
+        165
+      ],
+      "anchorPx": [
+        1316,
+        453
+      ],
+      "anchorNormalized": [
+        0.913889,
+        0.145192
+      ],
+      "zIndex": 5,
+      "blendMode": "IN_PLACE_SCREEN_SPACE_REFRACTION",
+      "alpha": 0.35,
+      "separationStatus": "SHADER_INPUTS_PROVISIONAL",
+      "runtimeMode": "API33_FIXED_ANCHOR_IN_PLACE_REFRACTION",
+      "motionEligible": true,
+      "fallbackPolicy": "STATIC_COMPOSITE",
+      "note": "Fixed Master anchor/SDF bounds from the resource anchor file; no RGBA surface is drawn. Normal maps remain estimates.",
+      "effectChannel": "B"
+    },
+    {
+      "layerId": "LAYER_DROPLET_03_REFRACTION",
+      "assetFile": "assets/android_runtime/runtime_optical_masks_v1.png",
+      "assetSha256": "2eae796055e1417f6dc9b81ae49e4167c68796d87b976ea1f02cceca421d26b0",
+      "sourceFile": "assets/source_master/YuJian_Lake_Glass_V2_Master_Candidate_02_1440x3120.png",
+      "sourceSha256": "d0bd07ba379491e8b93468c616468fc60d59a2dfebc11061cf4d14e9788c6e12",
+      "sourceFiles": [
+        {
+          "sourceFile": "assets/caustics/caustics_luma_analysis_mask.png",
+          "sourceSha256": "a403675745dd1b6889269f5bdfb4f8726ec1fbb99d4ec9bb5856ff81e2a97d09"
+        },
+        {
+          "sourceFile": "assets/sunlight/sunlight_soft_analysis_mask.png",
+          "sourceSha256": "43ff918eb7357799b522619413ce817f42ec158483581dfc8bd59a71c5f36bcc"
+        },
+        {
+          "sourceFile": "assets/droplets/droplet_01_left_region_mask.png",
+          "sourceSha256": "203ee4f481e967ebd3b8f5470486adc6e601e2b44bc889cf423bd0eb05a76214"
+        },
+        {
+          "sourceFile": "assets/droplets/droplet_02_upper_right_region_mask.png",
+          "sourceSha256": "28a027aac9965fba4f71383ac57a88d94ccf9f760aae6573978773854d9c9d57"
+        },
+        {
+          "sourceFile": "assets/droplets/droplet_03_lower_right_region_mask.png",
+          "sourceSha256": "72719512e16e1969c38fba92d4632888253e0c1178a5a8b232e85bbf9e71ae80"
+        }
+      ],
+      "format": "PNG",
+      "dimensionsPx": [
+        360,
+        780
+      ],
+      "pixelBounds": [
+        1291,
+        1880,
+        144,
+        146
+      ],
+      "anchorPx": [
+        1362,
+        1952
+      ],
+      "anchorNormalized": [
+        0.945833,
+        0.625641
+      ],
+      "zIndex": 6,
+      "blendMode": "IN_PLACE_SCREEN_SPACE_REFRACTION",
+      "alpha": 0.35,
+      "separationStatus": "SHADER_INPUTS_PROVISIONAL",
+      "runtimeMode": "API33_FIXED_ANCHOR_IN_PLACE_REFRACTION",
+      "motionEligible": true,
+      "fallbackPolicy": "STATIC_COMPOSITE",
+      "note": "Fixed Master anchor/SDF bounds from the resource anchor file; no RGBA surface is drawn. Normal maps remain estimates.",
+      "effectChannel": "B"
+    },
+    {
+      "layerId": "LAYER_GRASS_LEFT_DIAGNOSTIC",
+      "assetFile": "assets/grass/grass_left_rgba_v2.png",
+      "assetSha256": "127ef609c016baba112e1ef0d7d385aa4be7dcb2550e7ccc3252ad579566c04d",
+      "sourceFile": "assets/source_master/YuJian_Lake_Glass_V2_Master_Candidate_02_1440x3120.png",
+      "sourceSha256": "d0bd07ba379491e8b93468c616468fc60d59a2dfebc11061cf4d14e9788c6e12",
+      "sourceFiles": [
+        {
+          "sourceFile": "assets/source_master/YuJian_Lake_Glass_V2_Master_Candidate_02_1440x3120.png",
+          "sourceSha256": "d0bd07ba379491e8b93468c616468fc60d59a2dfebc11061cf4d14e9788c6e12"
+        }
+      ],
+      "format": "PNG",
+      "dimensionsPx": [
+        589,
+        834
+      ],
+      "pixelBounds": [
+        0,
+        2027,
+        589,
+        834
+      ],
+      "anchorPx": [
+        294,
+        2860
+      ],
+      "anchorNormalized": [
+        0.204167,
+        0.916667
+      ],
+      "zIndex": 10,
+      "blendMode": "SRC_OVER_DIAGNOSTIC_ONLY",
+      "alpha": 1.0,
+      "separationStatus": "NOT_RUNTIME_ELIGIBLE",
+      "runtimeMode": "DIAGNOSTIC_ONLY",
+      "motionEligible": false,
+      "fallbackPolicy": "STATIC_COMPOSITE",
+      "note": "Flattened-source extraction has estimated alpha and baked root-bed overlap; do not draw over the complete scene."
+    },
+    {
+      "layerId": "LAYER_GRASS_RIGHT_DIAGNOSTIC",
+      "assetFile": "assets/grass/grass_right_rgba_v2.png",
+      "assetSha256": "2bcc24d946abdf2b54d0b72f09e028ba4d4ceb50946ffc484b8d3a1cf57fe7a7",
+      "sourceFile": "assets/source_master/YuJian_Lake_Glass_V2_Master_Candidate_02_1440x3120.png",
+      "sourceSha256": "d0bd07ba379491e8b93468c616468fc60d59a2dfebc11061cf4d14e9788c6e12",
+      "sourceFiles": [
+        {
+          "sourceFile": "assets/source_master/YuJian_Lake_Glass_V2_Master_Candidate_02_1440x3120.png",
+          "sourceSha256": "d0bd07ba379491e8b93468c616468fc60d59a2dfebc11061cf4d14e9788c6e12"
+        }
+      ],
+      "format": "PNG",
+      "dimensionsPx": [
+        403,
+        589
+      ],
+      "pixelBounds": [
+        1037,
+        2272,
+        403,
+        589
+      ],
+      "anchorPx": [
+        1238,
+        2860
+      ],
+      "anchorNormalized": [
+        0.859722,
+        0.916667
+      ],
+      "zIndex": 11,
+      "blendMode": "SRC_OVER_DIAGNOSTIC_ONLY",
+      "alpha": 1.0,
+      "separationStatus": "NOT_RUNTIME_ELIGIBLE",
+      "runtimeMode": "DIAGNOSTIC_ONLY",
+      "motionEligible": false,
+      "fallbackPolicy": "STATIC_COMPOSITE",
+      "note": "Flattened-source extraction has estimated alpha and baked root-bed overlap; do not draw over the complete scene."
+    }
+  ]
+}

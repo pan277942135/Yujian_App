@@ -1,0 +1,81 @@
+{
+  "canvasSizePx": [
+    1440,
+    3120
+  ],
+  "recommendedAlignment": "CenterCrop",
+  "screens": [
+    {
+      "screenId": "M01",
+      "sizeDp": [
+        320,
+        480
+      ],
+      "alignment": "CenterCrop",
+      "sourceCropPx": [
+        0,
+        480,
+        1440,
+        2160
+      ],
+      "singleMatrixForAllLayers": true,
+      "topLightRetained": false,
+      "lowerGrassRetained": false,
+      "knownTradeoff": "Top light and bottom grass cannot both be fully retained under crop-only scaling."
+    },
+    {
+      "screenId": "M02",
+      "sizeDp": [
+        360,
+        640
+      ],
+      "alignment": "CenterCrop",
+      "sourceCropPx": [
+        0,
+        280,
+        1440,
+        2560
+      ],
+      "singleMatrixForAllLayers": true,
+      "topLightRetained": false,
+      "lowerGrassRetained": false,
+      "knownTradeoff": null
+    },
+    {
+      "screenId": "M03",
+      "sizeDp": [
+        390,
+        844
+      ],
+      "alignment": "CenterCrop",
+      "sourceCropPx": [
+        0,
+        2,
+        1440,
+        3116
+      ],
+      "singleMatrixForAllLayers": true,
+      "topLightRetained": false,
+      "lowerGrassRetained": true,
+      "knownTradeoff": null
+    },
+    {
+      "screenId": "M04",
+      "sizeDp": [
+        430,
+        932
+      ],
+      "alignment": "CenterCrop",
+      "sourceCropPx": [
+        0,
+        0,
+        1439,
+        3120
+      ],
+      "singleMatrixForAllLayers": true,
+      "topLightRetained": true,
+      "lowerGrassRetained": true,
+      "knownTradeoff": null
+    }
+  ]
+}

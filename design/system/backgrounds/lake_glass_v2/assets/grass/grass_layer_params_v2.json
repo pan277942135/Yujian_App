@@ -1,0 +1,10 @@
+{
+  "defaultVisible": true,
+  "blendMode": "SRC_OVER",
+  "alpha": 1,
+  "colorSpace": "sRGB",
+  "motionEnabled": false,
+  "leftRightMirror": false,
+  "sourceType": "CONTROLLED_RECONSTRUCTION",
+  "alphaMethod": "source-over delta inversion in botanical chroma support"
+}

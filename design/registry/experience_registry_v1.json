@@ -3266,7 +3266,7 @@
                 "p03"
               ],
               "runtime_visual_authority": false,
-              "summary": "首次拍照教学开发前工作区：结构化高保真、响应式模拟与素材清单在原 Resources 路由内提供。该素材工作区仅用于 Design Manager 资产目录，不映射为 Android 运行时背景，也不构成 Android 运行时页面实现。三张 Frozen 整页 PNG 保持原样；8 张独立生成候选图绑定 12 个角色槽位，均未获生产/运行时批准。",
+              "summary": "首次拍照教学资源工作区：结构化高保真、响应式模拟与素材目录仍位于原 Resources 路由。产品负责人已批准 8 张独立 GENERATED_CANDIDATE 图片供 Android Runtime 使用，并登记 ZIP2 的 P01/P02 两张页面背景。候选图仍不是 Frozen；Frozen 整页 PNG 仅作设计参考，不作为 Runtime 照片或背景。CameraX Preview Ready 门禁不变，Android API 28 Runtime 验收仍 NOT_RUN。",
               "frontend_asset_manifest": "design/pages/recognition/first_use_camera_guide/frontend_assets_manifest.json",
               "structured_page_manifest": "design/pages/recognition/first_use_camera_guide/structured_pages.json",
               "geometry_measurement_manifest": "design/pages/recognition/first_use_camera_guide/geometry_measurements.json",
@@ -3288,7 +3288,7 @@
                 {
                   "id": "resources",
                   "title": "资源",
-                  "status": "PASS_WITH_CANDIDATE_AND_BLOCKED_STATES"
+                  "status": "PASS_WITH_OWNER_APPROVED_RUNTIME_CANDIDATES_AND_SOURCE_BLOCKED"
                 }
               ]
             }

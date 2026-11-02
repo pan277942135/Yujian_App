@@ -149,6 +149,31 @@ class RecognitionSceneFrameTest {
         assertEquals(RecognitionSceneStage.CONTOUR_B, playback.currentStage)
     }
 
+    @Test fun diagnosticAutoKeepsThreeSecondStageFloorAndWaitsForAuthoritativeModelGate() {
+        val playback = SceneMotionCoordinator()
+        playback.playDiagnosticAuto(authoritativeReferenceMs = 0L, nowMs = 0L)
+
+        assertEquals(0L, playback.sample(authoritativeReferenceMs = 1_199L, nowMs = 2_999L))
+        assertEquals(RecognitionSceneStage.PHOTO_STABLE, playback.currentStage)
+
+        assertEquals(
+            RecognitionSceneCoordinator.previewReferenceMs(RecognitionSceneStage.ORB_WAKE, 0L),
+            playback.sample(authoritativeReferenceMs = 1_199L, nowMs = 3_000L),
+        )
+        assertEquals(RecognitionSceneStage.ORB_WAKE, playback.currentStage)
+
+        // Even after a long diagnostic AUTO run, a production controller held at
+        // PATH_TO_FISH cannot be advanced into contour stages by a timer.
+        playback.sample(authoritativeReferenceMs = 1_199L, nowMs = 20_000L)
+        assertEquals(RecognitionSceneStage.PATH_TO_FISH, playback.currentStage)
+        assertEquals(
+            RecognitionSceneCoordinator.previewReferenceMs(RecognitionSceneStage.PATH_TO_FISH, 3_000L),
+            playback.sample(authoritativeReferenceMs = 1_199L, nowMs = 20_000L),
+        )
+        playback.sample(authoritativeReferenceMs = 1_199L, nowMs = 60_000L)
+        assertEquals(RecognitionSceneStage.PATH_TO_FISH, playback.currentStage)
+    }
+
     @Test fun nextAdvancesOnlyAfterEachThreeSecondStageAndVisitsAllThirteen() {
         val playback = SceneMotionCoordinator()
         playback.prepareInitialStepPreview()

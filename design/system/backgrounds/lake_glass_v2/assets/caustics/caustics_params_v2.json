@@ -1,0 +1,26 @@
+{
+  "sourceFile": "design/system/backgrounds/lake_glass_v2/assets/source_master/YuJian_Lake_Glass_V2_Master_Candidate_02_1440x3120.png",
+  "sourceSha256": "d0bd07ba379491e8b93468c616468fc60d59a2dfebc11061cf4d14e9788c6e12",
+  "regionBounds": [
+    0,
+    1980,
+    1440,
+    1140
+  ],
+  "intensity": 1,
+  "spatialFrequency": "positive high-pass detail; gaussian sigma 13px",
+  "scale": 1,
+  "blendMode": "PLUS",
+  "alpha": 1,
+  "phase": 0,
+  "motionPeriodSeconds": [
+    24,
+    36
+  ],
+  "tileable": false,
+  "tileValidationStatus": "NOT_TILEABLE_NO_TILE_CREATED",
+  "sourceType": "CONTROLLED_RECONSTRUCTION",
+  "separationStatus": "SHADER_INPUTS_PROVISIONAL",
+  "runtimeMode": "API33_IN_PLACE_MASKED_MODULATION",
+  "motionEligible": false
+}

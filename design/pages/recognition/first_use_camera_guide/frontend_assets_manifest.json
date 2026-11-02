@@ -1,11 +1,11 @@
 {
   "schema_version": "1.1",
   "task_id": "YUJIAN_FIRST_USE_GUIDE_PREDEV_CONTRACT_ASSETS_RESPONSIVE_FREEZE_V1",
-  "status": "GENERATED_CANDIDATES_AVAILABLE; ORIGINAL_PHOTOS_AND_APPROVAL_BLOCKED",
+  "status": "OWNER_APPROVED_GENERATED_CANDIDATES_AVAILABLE; ORIGINAL_PHOTOS_NOT_REQUIRED_FOR_RUNTIME",
   "authority": "design/pages/recognition/first_use_camera_guide/First_Use_Camera_Guide_Spec_V1.md",
   "frozen_page_manifest": "design/pages/recognition/first_use_camera_guide/manifest.json",
   "structured_page_manifest": "design/pages/recognition/first_use_camera_guide/structured_pages.json",
-  "usage_boundary": "Design Manager and front-end development source catalog only; not Android runtime mapping.",
+  "usage_boundary": "Design Manager source catalog and explicit Android Runtime mappings; Frozen full-page reference PNGs remain design-only.",
   "policy": {
     "frozen_page_pngs_are_not_independent_photo_assets": true,
     "composite_screenshot_crop_allowed": false,
@@ -13,8 +13,9 @@
     "generated_or_candidate_assets_must_not_be_marked_frozen": true,
     "source_license_and_privacy_must_be_confirmed_before_public_release": true,
     "generated_candidates_must_not_be_marked_frozen": true,
-    "generated_candidates_are_not_approved_frontend_or_runtime_assets": true,
-    "candidate_png_bytes_are_preserved_without_resizing_or_reencoding": true
+    "generated_candidates_are_not_approved_frontend_or_runtime_assets": false,
+    "candidate_png_bytes_are_preserved_without_resizing_or_reencoding": true,
+    "generated_candidate_android_runtime_use_requires_explicit_owner_approval": true
   },
   "roles": [
     {
@@ -73,21 +74,22 @@
       "bytes": 2160330,
       "sha256": "ac8098537f5a2b33fc989479650604483b32fbb161663e944aef8bb20dc98b8e",
       "provenance": "Generated with ChatGPT ImageGen on 2026-10-25 for a development proposal. It is a new independent generated image, not cropped, derived, or pixel-matched from the frozen P01/P02/P03 reference PNGs or screenshot crops.",
-      "license_status": "NOT_CONFIRMED; product owner review required before production use or asset freeze",
-      "authority_state": "CANDIDATE_NEEDS_APPROVAL",
-      "approved_for_frontend": false,
+      "license_status": "Product owner approved this ChatGPT ImageGen candidate for YuJian Android runtime on 2026-11-02; public-release use remains subject to applicable project policy.",
+      "authority_state": "OWNER_APPROVED_FOR_RUNTIME",
+      "approved_for_frontend": true,
       "page_refs": [
         "p01",
         "p03"
       ],
       "source_type": "GENERATED_CANDIDATE",
       "semantic_description": "A complete horizontal fish held clearly above a calm dawn lake.",
-      "privacy_status": "Generated image; no identifiable face is visible; visible hands/arms still need owner review before production use.",
+      "privacy_status": "Generated with ChatGPT ImageGen; no identifiable face is visible. Product owner approved this candidate for YuJian first-use guide runtime on 2026-11-02.",
       "candidate_type": "GENERATED_CANDIDATE",
-      "approved_for_runtime": false,
+      "approved_for_runtime": true,
       "allowed_use": [
         "Design Manager candidate preview",
-        "layout and responsive development discussion"
+        "layout and responsive development discussion",
+        "YuJian Android first-use guide runtime"
       ],
       "fit": "contain",
       "semantic_crop": "No crop applied; preserve original generated file and intrinsic aspect ratio.",
@@ -97,10 +99,11 @@
       ],
       "shared_file_rule": "P01/P03 share this horizontal candidate file by manifest reference; no duplicate binary is stored.",
       "original_source_status": "ASSET_SOURCE_BLOCKED",
-      "candidate_status": "CANDIDATE_NEEDS_APPROVAL",
+      "candidate_status": "OWNER_APPROVED_FOR_RUNTIME",
       "original_source_found": false,
-      "generated_candidate_allowed_use": "Design Manager review and layout/responsive development discussion only",
-      "production_or_runtime_use": "BLOCKED_PENDING_OWNER_APPROVAL_AND_LICENSE_PRIVACY_REVIEW"
+      "generated_candidate_allowed_use": "Design Manager preview, layout/responsive review, and product-owner-approved Android runtime.",
+      "production_or_runtime_use": "OWNER_APPROVED_FOR_ANDROID_RUNTIME_ON_2026-11-02",
+      "owner_approval_id": "YUJIAN_FIRST_USE_GUIDE_RUNTIME_ASSET_OWNER_APPROVAL_20261102"
     },
     {
       "id": "p01_fish_head_out_of_frame",
@@ -117,9 +120,9 @@
       "bytes": 2278993,
       "sha256": "c0491f107e19da5753b6b94f9dd980ca9dc290b5e3c710e0e9e805f3a3dcddda",
       "provenance": "Generated with ChatGPT ImageGen on 2026-10-25 for a development proposal. It is a new independent generated image, not cropped, derived, or pixel-matched from the frozen P01/P02/P03 reference PNGs or screenshot crops.",
-      "license_status": "NOT_CONFIRMED; product owner review required before production use or asset freeze",
-      "authority_state": "CANDIDATE_NEEDS_APPROVAL",
-      "approved_for_frontend": false,
+      "license_status": "Product owner approved this ChatGPT ImageGen candidate for YuJian Android runtime on 2026-11-02; public-release use remains subject to applicable project policy.",
+      "authority_state": "OWNER_APPROVED_FOR_RUNTIME",
+      "approved_for_frontend": true,
       "reference_package_asset": {
         "package": "design/resource_packages/Yujian_NH01_P01-P03_Extracted_Resources_V1.zip.parts",
         "internal_path": "03_P01/images/guide_avoid_1_no_head_3x_native.png",
@@ -137,12 +140,13 @@
       ],
       "source_type": "GENERATED_CANDIDATE",
       "semantic_description": "The fish head is cropped completely beyond the left frame edge.",
-      "privacy_status": "Generated image; no identifiable face is visible; visible hands/arms still need owner review before production use.",
+      "privacy_status": "Generated with ChatGPT ImageGen; no identifiable face is visible. Product owner approved this candidate for YuJian first-use guide runtime on 2026-11-02.",
       "candidate_type": "GENERATED_CANDIDATE",
-      "approved_for_runtime": false,
+      "approved_for_runtime": true,
       "allowed_use": [
         "Design Manager candidate preview",
-        "layout and responsive development discussion"
+        "layout and responsive development discussion",
+        "YuJian Android first-use guide runtime"
       ],
       "fit": "contain",
       "semantic_crop": "No crop applied; preserve original generated file and intrinsic aspect ratio.",
@@ -152,10 +156,11 @@
       ],
       "shared_file_rule": "P01/P03 share this horizontal candidate file by manifest reference; no duplicate binary is stored.",
       "original_source_status": "ASSET_SOURCE_BLOCKED",
-      "candidate_status": "CANDIDATE_NEEDS_APPROVAL",
+      "candidate_status": "OWNER_APPROVED_FOR_RUNTIME",
       "original_source_found": false,
-      "generated_candidate_allowed_use": "Design Manager review and layout/responsive development discussion only",
-      "production_or_runtime_use": "BLOCKED_PENDING_OWNER_APPROVAL_AND_LICENSE_PRIVACY_REVIEW"
+      "generated_candidate_allowed_use": "Design Manager preview, layout/responsive review, and product-owner-approved Android runtime.",
+      "production_or_runtime_use": "OWNER_APPROVED_FOR_ANDROID_RUNTIME_ON_2026-11-02",
+      "owner_approval_id": "YUJIAN_FIRST_USE_GUIDE_RUNTIME_ASSET_OWNER_APPROVAL_20261102"
     },
     {
       "id": "p01_fish_too_small",
@@ -172,9 +177,9 @@
       "bytes": 1734238,
       "sha256": "0233634df7918b5dc9b1f1fc9a9db1c37addf28efa07c849cb5710c65a2e3a0d",
       "provenance": "Generated with ChatGPT ImageGen on 2026-10-25 for a development proposal. It is a new independent generated image, not cropped, derived, or pixel-matched from the frozen P01/P02/P03 reference PNGs or screenshot crops.",
-      "license_status": "NOT_CONFIRMED; product owner review required before production use or asset freeze",
-      "authority_state": "CANDIDATE_NEEDS_APPROVAL",
-      "approved_for_frontend": false,
+      "license_status": "Product owner approved this ChatGPT ImageGen candidate for YuJian Android runtime on 2026-11-02; public-release use remains subject to applicable project policy.",
+      "authority_state": "OWNER_APPROVED_FOR_RUNTIME",
+      "approved_for_frontend": true,
       "reference_package_asset": {
         "package": "design/resource_packages/Yujian_NH01_P01-P03_Extracted_Resources_V1.zip.parts",
         "internal_path": "03_P01/images/guide_avoid_2_too_small_3x_native.png",
@@ -192,12 +197,13 @@
       ],
       "source_type": "GENERATED_CANDIDATE",
       "semantic_description": "The horizontal fish is intentionally small within a wide scene.",
-      "privacy_status": "Generated image; no identifiable face is visible; visible hands/arms still need owner review before production use.",
+      "privacy_status": "Generated with ChatGPT ImageGen; no identifiable face is visible. Product owner approved this candidate for YuJian first-use guide runtime on 2026-11-02.",
       "candidate_type": "GENERATED_CANDIDATE",
-      "approved_for_runtime": false,
+      "approved_for_runtime": true,
       "allowed_use": [
         "Design Manager candidate preview",
-        "layout and responsive development discussion"
+        "layout and responsive development discussion",
+        "YuJian Android first-use guide runtime"
       ],
       "fit": "contain",
       "semantic_crop": "No crop applied; preserve original generated file and intrinsic aspect ratio.",
@@ -207,10 +213,11 @@
       ],
       "shared_file_rule": "P01/P03 share this horizontal candidate file by manifest reference; no duplicate binary is stored.",
       "original_source_status": "ASSET_SOURCE_BLOCKED",
-      "candidate_status": "CANDIDATE_NEEDS_APPROVAL",
+      "candidate_status": "OWNER_APPROVED_FOR_RUNTIME",
       "original_source_found": false,
-      "generated_candidate_allowed_use": "Design Manager review and layout/responsive development discussion only",
-      "production_or_runtime_use": "BLOCKED_PENDING_OWNER_APPROVAL_AND_LICENSE_PRIVACY_REVIEW"
+      "generated_candidate_allowed_use": "Design Manager preview, layout/responsive review, and product-owner-approved Android runtime.",
+      "production_or_runtime_use": "OWNER_APPROVED_FOR_ANDROID_RUNTIME_ON_2026-11-02",
+      "owner_approval_id": "YUJIAN_FIRST_USE_GUIDE_RUNTIME_ASSET_OWNER_APPROVAL_20261102"
     },
     {
       "id": "p01_excessive_occlusion",
@@ -227,9 +234,9 @@
       "bytes": 1974238,
       "sha256": "3d2d84ec2b2979d75ed62517f4899785b7c2641b96b3f9188b7fafd320d9bacc",
       "provenance": "Generated with ChatGPT ImageGen on 2026-10-25 for a development proposal. It is a new independent generated image, not cropped, derived, or pixel-matched from the frozen P01/P02/P03 reference PNGs or screenshot crops.",
-      "license_status": "NOT_CONFIRMED; product owner review required before production use or asset freeze",
-      "authority_state": "CANDIDATE_NEEDS_APPROVAL",
-      "approved_for_frontend": false,
+      "license_status": "Product owner approved this ChatGPT ImageGen candidate for YuJian Android runtime on 2026-11-02; public-release use remains subject to applicable project policy.",
+      "authority_state": "OWNER_APPROVED_FOR_RUNTIME",
+      "approved_for_frontend": true,
       "reference_package_asset": {
         "package": "design/resource_packages/Yujian_NH01_P01-P03_Extracted_Resources_V1.zip.parts",
         "internal_path": "03_P01/images/guide_avoid_3_occluded_3x_native.png",
@@ -247,12 +254,13 @@
       ],
       "source_type": "GENERATED_CANDIDATE",
       "semantic_description": "A hand and jacket cover a substantial part of the fish body.",
-      "privacy_status": "Generated image; no identifiable face is visible; visible hands/arms still need owner review before production use.",
+      "privacy_status": "Generated with ChatGPT ImageGen; no identifiable face is visible. Product owner approved this candidate for YuJian first-use guide runtime on 2026-11-02.",
       "candidate_type": "GENERATED_CANDIDATE",
-      "approved_for_runtime": false,
+      "approved_for_runtime": true,
       "allowed_use": [
         "Design Manager candidate preview",
-        "layout and responsive development discussion"
+        "layout and responsive development discussion",
+        "YuJian Android first-use guide runtime"
       ],
       "fit": "contain",
       "semantic_crop": "No crop applied; preserve original generated file and intrinsic aspect ratio.",
@@ -262,10 +270,11 @@
       ],
       "shared_file_rule": "P01/P03 share this horizontal candidate file by manifest reference; no duplicate binary is stored.",
       "original_source_status": "ASSET_SOURCE_BLOCKED",
-      "candidate_status": "CANDIDATE_NEEDS_APPROVAL",
+      "candidate_status": "OWNER_APPROVED_FOR_RUNTIME",
       "original_source_found": false,
-      "generated_candidate_allowed_use": "Design Manager review and layout/responsive development discussion only",
-      "production_or_runtime_use": "BLOCKED_PENDING_OWNER_APPROVAL_AND_LICENSE_PRIVACY_REVIEW"
+      "generated_candidate_allowed_use": "Design Manager preview, layout/responsive review, and product-owner-approved Android runtime.",
+      "production_or_runtime_use": "OWNER_APPROVED_FOR_ANDROID_RUNTIME_ON_2026-11-02",
+      "owner_approval_id": "YUJIAN_FIRST_USE_GUIDE_RUNTIME_ASSET_OWNER_APPROVAL_20261102"
     },
     {
       "id": "p02_correct_hero",
@@ -281,20 +290,21 @@
       "bytes": 2251219,
       "sha256": "c2d1b3426de3466a8e38885674797bb289db50f3b2e7b30913beab82de64c292",
       "provenance": "Generated with ChatGPT ImageGen on 2026-10-25 for a development proposal. It is a new independent generated image, not cropped, derived, or pixel-matched from the frozen P01/P02/P03 reference PNGs or screenshot crops.",
-      "license_status": "NOT_CONFIRMED; product owner review required before production use or asset freeze",
-      "authority_state": "CANDIDATE_NEEDS_APPROVAL",
-      "approved_for_frontend": false,
+      "license_status": "Product owner approved this ChatGPT ImageGen candidate for YuJian Android runtime on 2026-11-02; public-release use remains subject to applicable project policy.",
+      "authority_state": "OWNER_APPROVED_FOR_RUNTIME",
+      "approved_for_frontend": true,
       "page_refs": [
         "p02"
       ],
       "source_type": "GENERATED_CANDIDATE",
       "semantic_description": "The complete fish is held upright head-up and tail-down.",
-      "privacy_status": "Generated image; no identifiable face is visible; visible hands/arms still need owner review before production use.",
+      "privacy_status": "Generated with ChatGPT ImageGen; no identifiable face is visible. Product owner approved this candidate for YuJian first-use guide runtime on 2026-11-02.",
       "candidate_type": "GENERATED_CANDIDATE",
-      "approved_for_runtime": false,
+      "approved_for_runtime": true,
       "allowed_use": [
         "Design Manager candidate preview",
-        "layout and responsive development discussion"
+        "layout and responsive development discussion",
+        "YuJian Android first-use guide runtime"
       ],
       "fit": "contain",
       "semantic_crop": "No crop applied; preserve original generated file and intrinsic aspect ratio.",
@@ -304,10 +314,11 @@
       ],
       "shared_file_rule": "P02 references a vertical candidate file.",
       "original_source_status": "ASSET_SOURCE_BLOCKED",
-      "candidate_status": "CANDIDATE_NEEDS_APPROVAL",
+      "candidate_status": "OWNER_APPROVED_FOR_RUNTIME",
       "original_source_found": false,
-      "generated_candidate_allowed_use": "Design Manager review and layout/responsive development discussion only",
-      "production_or_runtime_use": "BLOCKED_PENDING_OWNER_APPROVAL_AND_LICENSE_PRIVACY_REVIEW"
+      "generated_candidate_allowed_use": "Design Manager preview, layout/responsive review, and product-owner-approved Android runtime.",
+      "production_or_runtime_use": "OWNER_APPROVED_FOR_ANDROID_RUNTIME_ON_2026-11-02",
+      "owner_approval_id": "YUJIAN_FIRST_USE_GUIDE_RUNTIME_ASSET_OWNER_APPROVAL_20261102"
     },
     {
       "id": "p02_fish_head_out_of_frame",
@@ -324,9 +335,9 @@
       "bytes": 2043188,
       "sha256": "ac202c85d6d2379e168521bc42994c5af82a6216f21700b71a5d07cf2dbc8b31",
       "provenance": "Generated with ChatGPT ImageGen on 2026-10-25 for a development proposal. It is a new independent generated image, not cropped, derived, or pixel-matched from the frozen P01/P02/P03 reference PNGs or screenshot crops.",
-      "license_status": "NOT_CONFIRMED; product owner review required before production use or asset freeze",
-      "authority_state": "CANDIDATE_NEEDS_APPROVAL",
-      "approved_for_frontend": false,
+      "license_status": "Product owner approved this ChatGPT ImageGen candidate for YuJian Android runtime on 2026-11-02; public-release use remains subject to applicable project policy.",
+      "authority_state": "OWNER_APPROVED_FOR_RUNTIME",
+      "approved_for_frontend": true,
       "reference_package_asset": {
         "package": "design/resource_packages/Yujian_NH01_P01-P03_Extracted_Resources_V1.zip.parts",
         "internal_path": "04_P02/images/guide_avoid_1_no_head_3x_native.png",
@@ -343,12 +354,13 @@
       ],
       "source_type": "GENERATED_CANDIDATE",
       "semantic_description": "The fish head is cropped beyond the top frame edge.",
-      "privacy_status": "Generated image; no identifiable face is visible; visible hands/arms still need owner review before production use.",
+      "privacy_status": "Generated with ChatGPT ImageGen; no identifiable face is visible. Product owner approved this candidate for YuJian first-use guide runtime on 2026-11-02.",
       "candidate_type": "GENERATED_CANDIDATE",
-      "approved_for_runtime": false,
+      "approved_for_runtime": true,
       "allowed_use": [
         "Design Manager candidate preview",
-        "layout and responsive development discussion"
+        "layout and responsive development discussion",
+        "YuJian Android first-use guide runtime"
       ],
       "fit": "contain",
       "semantic_crop": "No crop applied; preserve original generated file and intrinsic aspect ratio.",
@@ -358,10 +370,11 @@
       ],
       "shared_file_rule": "P02 references a vertical candidate file.",
       "original_source_status": "ASSET_SOURCE_BLOCKED",
-      "candidate_status": "CANDIDATE_NEEDS_APPROVAL",
+      "candidate_status": "OWNER_APPROVED_FOR_RUNTIME",
       "original_source_found": false,
-      "generated_candidate_allowed_use": "Design Manager review and layout/responsive development discussion only",
-      "production_or_runtime_use": "BLOCKED_PENDING_OWNER_APPROVAL_AND_LICENSE_PRIVACY_REVIEW"
+      "generated_candidate_allowed_use": "Design Manager preview, layout/responsive review, and product-owner-approved Android runtime.",
+      "production_or_runtime_use": "OWNER_APPROVED_FOR_ANDROID_RUNTIME_ON_2026-11-02",
+      "owner_approval_id": "YUJIAN_FIRST_USE_GUIDE_RUNTIME_ASSET_OWNER_APPROVAL_20261102"
     },
     {
       "id": "p02_fish_too_small",
@@ -378,9 +391,9 @@
       "bytes": 2123855,
       "sha256": "4cb42997eb7b01ff480c0fb36db3075c1698203277755f034b0731646829730f",
       "provenance": "Generated with ChatGPT ImageGen on 2026-10-25 for a development proposal. It is a new independent generated image, not cropped, derived, or pixel-matched from the frozen P01/P02/P03 reference PNGs or screenshot crops.",
-      "license_status": "NOT_CONFIRMED; product owner review required before production use or asset freeze",
-      "authority_state": "CANDIDATE_NEEDS_APPROVAL",
-      "approved_for_frontend": false,
+      "license_status": "Product owner approved this ChatGPT ImageGen candidate for YuJian Android runtime on 2026-11-02; public-release use remains subject to applicable project policy.",
+      "authority_state": "OWNER_APPROVED_FOR_RUNTIME",
+      "approved_for_frontend": true,
       "reference_package_asset": {
         "package": "design/resource_packages/Yujian_NH01_P01-P03_Extracted_Resources_V1.zip.parts",
         "internal_path": "04_P02/images/guide_avoid_2_too_small_3x_native.png",
@@ -397,12 +410,13 @@
       ],
       "source_type": "GENERATED_CANDIDATE",
       "semantic_description": "The upright fish is intentionally tiny in a wide lake scene.",
-      "privacy_status": "Generated image; no identifiable face is visible; visible hands/arms still need owner review before production use.",
+      "privacy_status": "Generated with ChatGPT ImageGen; no identifiable face is visible. Product owner approved this candidate for YuJian first-use guide runtime on 2026-11-02.",
       "candidate_type": "GENERATED_CANDIDATE",
-      "approved_for_runtime": false,
+      "approved_for_runtime": true,
       "allowed_use": [
         "Design Manager candidate preview",
-        "layout and responsive development discussion"
+        "layout and responsive development discussion",
+        "YuJian Android first-use guide runtime"
       ],
       "fit": "contain",
       "semantic_crop": "No crop applied; preserve original generated file and intrinsic aspect ratio.",
@@ -412,10 +426,11 @@
       ],
       "shared_file_rule": "P02 references a vertical candidate file.",
       "original_source_status": "ASSET_SOURCE_BLOCKED",
-      "candidate_status": "CANDIDATE_NEEDS_APPROVAL",
+      "candidate_status": "OWNER_APPROVED_FOR_RUNTIME",
       "original_source_found": false,
-      "generated_candidate_allowed_use": "Design Manager review and layout/responsive development discussion only",
-      "production_or_runtime_use": "BLOCKED_PENDING_OWNER_APPROVAL_AND_LICENSE_PRIVACY_REVIEW"
+      "generated_candidate_allowed_use": "Design Manager preview, layout/responsive review, and product-owner-approved Android runtime.",
+      "production_or_runtime_use": "OWNER_APPROVED_FOR_ANDROID_RUNTIME_ON_2026-11-02",
+      "owner_approval_id": "YUJIAN_FIRST_USE_GUIDE_RUNTIME_ASSET_OWNER_APPROVAL_20261102"
     },
     {
       "id": "p02_excessive_occlusion",
@@ -432,9 +447,9 @@
       "bytes": 1875691,
       "sha256": "d5efedc6ed1659135d25ac2205c0fc3505b0bd4100039060f51036454af0d2c3",
       "provenance": "Generated with ChatGPT ImageGen on 2026-10-25 for a development proposal. It is a new independent generated image, not cropped, derived, or pixel-matched from the frozen P01/P02/P03 reference PNGs or screenshot crops.",
-      "license_status": "NOT_CONFIRMED; product owner review required before production use or asset freeze",
-      "authority_state": "CANDIDATE_NEEDS_APPROVAL",
-      "approved_for_frontend": false,
+      "license_status": "Product owner approved this ChatGPT ImageGen candidate for YuJian Android runtime on 2026-11-02; public-release use remains subject to applicable project policy.",
+      "authority_state": "OWNER_APPROVED_FOR_RUNTIME",
+      "approved_for_frontend": true,
       "reference_package_asset": {
         "package": "design/resource_packages/Yujian_NH01_P01-P03_Extracted_Resources_V1.zip.parts",
         "internal_path": "04_P02/images/guide_avoid_3_occluded_3x_native.png",
@@ -451,12 +466,13 @@
       ],
       "source_type": "GENERATED_CANDIDATE",
       "semantic_description": "A hand and jacket cover most of the upright fish body.",
-      "privacy_status": "Generated image; no identifiable face is visible; visible hands/arms still need owner review before production use.",
+      "privacy_status": "Generated with ChatGPT ImageGen; no identifiable face is visible. Product owner approved this candidate for YuJian first-use guide runtime on 2026-11-02.",
       "candidate_type": "GENERATED_CANDIDATE",
-      "approved_for_runtime": false,
+      "approved_for_runtime": true,
       "allowed_use": [
         "Design Manager candidate preview",
-        "layout and responsive development discussion"
+        "layout and responsive development discussion",
+        "YuJian Android first-use guide runtime"
       ],
       "fit": "contain",
       "semantic_crop": "No crop applied; preserve original generated file and intrinsic aspect ratio.",
@@ -466,10 +482,11 @@
       ],
       "shared_file_rule": "P02 references a vertical candidate file.",
       "original_source_status": "ASSET_SOURCE_BLOCKED",
-      "candidate_status": "CANDIDATE_NEEDS_APPROVAL",
+      "candidate_status": "OWNER_APPROVED_FOR_RUNTIME",
       "original_source_found": false,
-      "generated_candidate_allowed_use": "Design Manager review and layout/responsive development discussion only",
-      "production_or_runtime_use": "BLOCKED_PENDING_OWNER_APPROVAL_AND_LICENSE_PRIVACY_REVIEW"
+      "generated_candidate_allowed_use": "Design Manager preview, layout/responsive review, and product-owner-approved Android runtime.",
+      "production_or_runtime_use": "OWNER_APPROVED_FOR_ANDROID_RUNTIME_ON_2026-11-02",
+      "owner_approval_id": "YUJIAN_FIRST_USE_GUIDE_RUNTIME_ASSET_OWNER_APPROVAL_20261102"
     },
     {
       "id": "p03_correct_hero",
@@ -485,21 +502,22 @@
       "bytes": 2160330,
       "sha256": "ac8098537f5a2b33fc989479650604483b32fbb161663e944aef8bb20dc98b8e",
       "provenance": "Generated with ChatGPT ImageGen on 2026-10-25 for a development proposal. It is a new independent generated image, not cropped, derived, or pixel-matched from the frozen P01/P02/P03 reference PNGs or screenshot crops.",
-      "license_status": "NOT_CONFIRMED; product owner review required before production use or asset freeze",
-      "authority_state": "CANDIDATE_NEEDS_APPROVAL",
-      "approved_for_frontend": false,
+      "license_status": "Product owner approved this ChatGPT ImageGen candidate for YuJian Android runtime on 2026-11-02; public-release use remains subject to applicable project policy.",
+      "authority_state": "OWNER_APPROVED_FOR_RUNTIME",
+      "approved_for_frontend": true,
       "page_refs": [
         "p01",
         "p03"
       ],
       "source_type": "GENERATED_CANDIDATE",
       "semantic_description": "A complete horizontal fish held clearly above a calm dawn lake.",
-      "privacy_status": "Generated image; no identifiable face is visible; visible hands/arms still need owner review before production use.",
+      "privacy_status": "Generated with ChatGPT ImageGen; no identifiable face is visible. Product owner approved this candidate for YuJian first-use guide runtime on 2026-11-02.",
       "candidate_type": "GENERATED_CANDIDATE",
-      "approved_for_runtime": false,
+      "approved_for_runtime": true,
       "allowed_use": [
         "Design Manager candidate preview",
-        "layout and responsive development discussion"
+        "layout and responsive development discussion",
+        "YuJian Android first-use guide runtime"
       ],
       "fit": "contain",
       "semantic_crop": "No crop applied; preserve original generated file and intrinsic aspect ratio.",
@@ -509,10 +527,11 @@
       ],
       "shared_file_rule": "P01/P03 share this horizontal candidate file by manifest reference; no duplicate binary is stored.",
       "original_source_status": "ASSET_SOURCE_BLOCKED",
-      "candidate_status": "CANDIDATE_NEEDS_APPROVAL",
+      "candidate_status": "OWNER_APPROVED_FOR_RUNTIME",
       "original_source_found": false,
-      "generated_candidate_allowed_use": "Design Manager review and layout/responsive development discussion only",
-      "production_or_runtime_use": "BLOCKED_PENDING_OWNER_APPROVAL_AND_LICENSE_PRIVACY_REVIEW"
+      "generated_candidate_allowed_use": "Design Manager preview, layout/responsive review, and product-owner-approved Android runtime.",
+      "production_or_runtime_use": "OWNER_APPROVED_FOR_ANDROID_RUNTIME_ON_2026-11-02",
+      "owner_approval_id": "YUJIAN_FIRST_USE_GUIDE_RUNTIME_ASSET_OWNER_APPROVAL_20261102"
     },
     {
       "id": "p03_fish_head_out_of_frame",
@@ -529,9 +548,9 @@
       "bytes": 2278993,
       "sha256": "c0491f107e19da5753b6b94f9dd980ca9dc290b5e3c710e0e9e805f3a3dcddda",
       "provenance": "Generated with ChatGPT ImageGen on 2026-10-25 for a development proposal. It is a new independent generated image, not cropped, derived, or pixel-matched from the frozen P01/P02/P03 reference PNGs or screenshot crops.",
-      "license_status": "NOT_CONFIRMED; product owner review required before production use or asset freeze",
-      "authority_state": "CANDIDATE_NEEDS_APPROVAL",
-      "approved_for_frontend": false,
+      "license_status": "Product owner approved this ChatGPT ImageGen candidate for YuJian Android runtime on 2026-11-02; public-release use remains subject to applicable project policy.",
+      "authority_state": "OWNER_APPROVED_FOR_RUNTIME",
+      "approved_for_frontend": true,
       "reference_package_asset": {
         "package": "design/resource_packages/Yujian_NH01_P01-P03_Extracted_Resources_V1.zip.parts",
         "internal_path": "05_P03/images/guide_avoid_1_no_head_3x_native.png",
@@ -549,12 +568,13 @@
       ],
       "source_type": "GENERATED_CANDIDATE",
       "semantic_description": "The fish head is cropped completely beyond the left frame edge.",
-      "privacy_status": "Generated image; no identifiable face is visible; visible hands/arms still need owner review before production use.",
+      "privacy_status": "Generated with ChatGPT ImageGen; no identifiable face is visible. Product owner approved this candidate for YuJian first-use guide runtime on 2026-11-02.",
       "candidate_type": "GENERATED_CANDIDATE",
-      "approved_for_runtime": false,
+      "approved_for_runtime": true,
       "allowed_use": [
         "Design Manager candidate preview",
-        "layout and responsive development discussion"
+        "layout and responsive development discussion",
+        "YuJian Android first-use guide runtime"
       ],
       "fit": "contain",
       "semantic_crop": "No crop applied; preserve original generated file and intrinsic aspect ratio.",
@@ -564,10 +584,11 @@
       ],
       "shared_file_rule": "P01/P03 share this horizontal candidate file by manifest reference; no duplicate binary is stored.",
       "original_source_status": "ASSET_SOURCE_BLOCKED",
-      "candidate_status": "CANDIDATE_NEEDS_APPROVAL",
+      "candidate_status": "OWNER_APPROVED_FOR_RUNTIME",
       "original_source_found": false,
-      "generated_candidate_allowed_use": "Design Manager review and layout/responsive development discussion only",
-      "production_or_runtime_use": "BLOCKED_PENDING_OWNER_APPROVAL_AND_LICENSE_PRIVACY_REVIEW"
+      "generated_candidate_allowed_use": "Design Manager preview, layout/responsive review, and product-owner-approved Android runtime.",
+      "production_or_runtime_use": "OWNER_APPROVED_FOR_ANDROID_RUNTIME_ON_2026-11-02",
+      "owner_approval_id": "YUJIAN_FIRST_USE_GUIDE_RUNTIME_ASSET_OWNER_APPROVAL_20261102"
     },
     {
       "id": "p03_fish_too_small",
@@ -584,9 +605,9 @@
       "bytes": 1734238,
       "sha256": "0233634df7918b5dc9b1f1fc9a9db1c37addf28efa07c849cb5710c65a2e3a0d",
       "provenance": "Generated with ChatGPT ImageGen on 2026-10-25 for a development proposal. It is a new independent generated image, not cropped, derived, or pixel-matched from the frozen P01/P02/P03 reference PNGs or screenshot crops.",
-      "license_status": "NOT_CONFIRMED; product owner review required before production use or asset freeze",
-      "authority_state": "CANDIDATE_NEEDS_APPROVAL",
-      "approved_for_frontend": false,
+      "license_status": "Product owner approved this ChatGPT ImageGen candidate for YuJian Android runtime on 2026-11-02; public-release use remains subject to applicable project policy.",
+      "authority_state": "OWNER_APPROVED_FOR_RUNTIME",
+      "approved_for_frontend": true,
       "reference_package_asset": {
         "package": "design/resource_packages/Yujian_NH01_P01-P03_Extracted_Resources_V1.zip.parts",
         "internal_path": "05_P03/images/guide_avoid_2_too_small_3x_native.png",
@@ -604,12 +625,13 @@
       ],
       "source_type": "GENERATED_CANDIDATE",
       "semantic_description": "The horizontal fish is intentionally small within a wide scene.",
-      "privacy_status": "Generated image; no identifiable face is visible; visible hands/arms still need owner review before production use.",
+      "privacy_status": "Generated with ChatGPT ImageGen; no identifiable face is visible. Product owner approved this candidate for YuJian first-use guide runtime on 2026-11-02.",
       "candidate_type": "GENERATED_CANDIDATE",
-      "approved_for_runtime": false,
+      "approved_for_runtime": true,
       "allowed_use": [
         "Design Manager candidate preview",
-        "layout and responsive development discussion"
+        "layout and responsive development discussion",
+        "YuJian Android first-use guide runtime"
       ],
       "fit": "contain",
       "semantic_crop": "No crop applied; preserve original generated file and intrinsic aspect ratio.",
@@ -619,10 +641,11 @@
       ],
       "shared_file_rule": "P01/P03 share this horizontal candidate file by manifest reference; no duplicate binary is stored.",
       "original_source_status": "ASSET_SOURCE_BLOCKED",
-      "candidate_status": "CANDIDATE_NEEDS_APPROVAL",
+      "candidate_status": "OWNER_APPROVED_FOR_RUNTIME",
       "original_source_found": false,
-      "generated_candidate_allowed_use": "Design Manager review and layout/responsive development discussion only",
-      "production_or_runtime_use": "BLOCKED_PENDING_OWNER_APPROVAL_AND_LICENSE_PRIVACY_REVIEW"
+      "generated_candidate_allowed_use": "Design Manager preview, layout/responsive review, and product-owner-approved Android runtime.",
+      "production_or_runtime_use": "OWNER_APPROVED_FOR_ANDROID_RUNTIME_ON_2026-11-02",
+      "owner_approval_id": "YUJIAN_FIRST_USE_GUIDE_RUNTIME_ASSET_OWNER_APPROVAL_20261102"
     },
     {
       "id": "p03_excessive_occlusion",
@@ -639,9 +662,9 @@
       "bytes": 1974238,
       "sha256": "3d2d84ec2b2979d75ed62517f4899785b7c2641b96b3f9188b7fafd320d9bacc",
       "provenance": "Generated with ChatGPT ImageGen on 2026-10-25 for a development proposal. It is a new independent generated image, not cropped, derived, or pixel-matched from the frozen P01/P02/P03 reference PNGs or screenshot crops.",
-      "license_status": "NOT_CONFIRMED; product owner review required before production use or asset freeze",
-      "authority_state": "CANDIDATE_NEEDS_APPROVAL",
-      "approved_for_frontend": false,
+      "license_status": "Product owner approved this ChatGPT ImageGen candidate for YuJian Android runtime on 2026-11-02; public-release use remains subject to applicable project policy.",
+      "authority_state": "OWNER_APPROVED_FOR_RUNTIME",
+      "approved_for_frontend": true,
       "reference_package_asset": {
         "package": "design/resource_packages/Yujian_NH01_P01-P03_Extracted_Resources_V1.zip.parts",
         "internal_path": "05_P03/images/guide_avoid_3_occluded_3x_native.png",
@@ -659,12 +682,13 @@
       ],
       "source_type": "GENERATED_CANDIDATE",
       "semantic_description": "A hand and jacket cover a substantial part of the fish body.",
-      "privacy_status": "Generated image; no identifiable face is visible; visible hands/arms still need owner review before production use.",
+      "privacy_status": "Generated with ChatGPT ImageGen; no identifiable face is visible. Product owner approved this candidate for YuJian first-use guide runtime on 2026-11-02.",
       "candidate_type": "GENERATED_CANDIDATE",
-      "approved_for_runtime": false,
+      "approved_for_runtime": true,
       "allowed_use": [
         "Design Manager candidate preview",
-        "layout and responsive development discussion"
+        "layout and responsive development discussion",
+        "YuJian Android first-use guide runtime"
       ],
       "fit": "contain",
       "semantic_crop": "No crop applied; preserve original generated file and intrinsic aspect ratio.",
@@ -674,10 +698,11 @@
       ],
       "shared_file_rule": "P01/P03 share this horizontal candidate file by manifest reference; no duplicate binary is stored.",
       "original_source_status": "ASSET_SOURCE_BLOCKED",
-      "candidate_status": "CANDIDATE_NEEDS_APPROVAL",
+      "candidate_status": "OWNER_APPROVED_FOR_RUNTIME",
       "original_source_found": false,
-      "generated_candidate_allowed_use": "Design Manager review and layout/responsive development discussion only",
-      "production_or_runtime_use": "BLOCKED_PENDING_OWNER_APPROVAL_AND_LICENSE_PRIVACY_REVIEW"
+      "generated_candidate_allowed_use": "Design Manager preview, layout/responsive review, and product-owner-approved Android runtime.",
+      "production_or_runtime_use": "OWNER_APPROVED_FOR_ANDROID_RUNTIME_ON_2026-11-02",
+      "owner_approval_id": "YUJIAN_FIRST_USE_GUIDE_RUNTIME_ASSET_OWNER_APPROVAL_20261102"
     }
   ],
   "source_search": {
@@ -713,7 +738,63 @@
     "approved_independent_original_slots": 0,
     "blocked_original_source_slots": 12,
     "unique_candidate_files": 8,
-    "reference_only_archived_error_crops": 9
+    "reference_only_archived_error_crops": 9,
+    "runtime_background_files": 2
   },
-  "asset_authority_note": "The 12 manifest entries are page/role bindings to eight independent generated candidates. No entry is approved, frozen, licensed, or production-ready. The three frozen full-page PNGs remain unchanged and are never used as front-end photo slots."
+  "asset_authority_note": "The 12 page/role entries bind eight independent generated candidates. The product owner approved these eight files for Android runtime on 2026-11-02; approval does not mark candidate images as frozen. P01/P03 share the horizontal set, P02 uses the vertical set. The separate P01/P02 photo backgrounds are registered under runtime_backgrounds. Frozen full-page PNGs remain design-only.",
+  "owner_approval": {
+    "approval_id": "YUJIAN_FIRST_USE_GUIDE_RUNTIME_ASSET_OWNER_APPROVAL_20261102",
+    "approved_by": "Product owner",
+    "approved_at": "2026-11-02",
+    "approval_record": "design/pages/recognition/first_use_camera_guide/OWNER_APPROVAL_20261102.md",
+    "approved_unique_candidate_count": 8,
+    "approved_page_role_slots": 12,
+    "approved_for_frontend": true,
+    "approved_for_android_runtime": true,
+    "page_orientation_mapping": {
+      "p01": "horizontal",
+      "p02": "vertical",
+      "p03": "horizontal"
+    },
+    "native_android_runtime_acceptance": "NOT_RUN"
+  },
+  "runtime_backgrounds": [
+    {
+      "id": "p01_p03_horizontal_background",
+      "page_refs": [
+        "p01",
+        "p03"
+      ],
+      "fish_orientation": "horizontal",
+      "source_path": "design/pages/recognition/first_use_camera_guide/assets/backgrounds/first_use_guide_bg_p01.jpg",
+      "runtime_resource": "app/src/main/res/drawable-nodpi/first_use_guide_bg_p01.jpg",
+      "source_archive": "remix-remix-渔见-1011.zip:app/src/main/res/drawable-nodpi/first_use_guide_bg_p01.jpg",
+      "mime_type": "image/jpeg",
+      "width": 941,
+      "height": 1672,
+      "bytes": 124618,
+      "sha256": "544bbf91245ea0bc1a47fd5744effcd25b93f70748de926af1dd41c01e6498cf",
+      "approved_for_runtime": true,
+      "fit": "cover",
+      "owner_approval_id": "YUJIAN_FIRST_USE_GUIDE_RUNTIME_ASSET_OWNER_APPROVAL_20261102"
+    },
+    {
+      "id": "p02_vertical_background",
+      "page_refs": [
+        "p02"
+      ],
+      "fish_orientation": "vertical",
+      "source_path": "design/pages/recognition/first_use_camera_guide/assets/backgrounds/first_use_guide_bg_p02.jpg",
+      "runtime_resource": "app/src/main/res/drawable-nodpi/first_use_guide_bg_p02.jpg",
+      "source_archive": "remix-remix-渔见-1011.zip:app/src/main/res/drawable-nodpi/first_use_guide_bg_p02.jpg",
+      "mime_type": "image/jpeg",
+      "width": 941,
+      "height": 1672,
+      "bytes": 116538,
+      "sha256": "75c61cd08ed4a7bf9fd522cdbaff564928a00198ccd96f54d65aa9ef00d8d823",
+      "approved_for_runtime": true,
+      "fit": "cover",
+      "owner_approval_id": "YUJIAN_FIRST_USE_GUIDE_RUNTIME_ASSET_OWNER_APPROVAL_20261102"
+    }
+  ]
 }

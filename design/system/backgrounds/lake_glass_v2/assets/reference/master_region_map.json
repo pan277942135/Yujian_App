@@ -1,0 +1,138 @@
+{
+  "canvasSize": [
+    1440,
+    3120
+  ],
+  "origin": "top-left",
+  "units": "px",
+  "regions": [
+    {
+      "id": "sunlight_upper_right",
+      "bbox": [
+        620,
+        0,
+        820,
+        1050
+      ],
+      "anchorPx": [
+        1370,
+        120
+      ],
+      "anchorNormalized": [
+        0.951389,
+        0.038462
+      ],
+      "status": "BAKED_STATIC_WITH_ANALYSIS_MASK"
+    },
+    {
+      "id": "quiet_content_zone",
+      "bbox": [
+        170,
+        535,
+        1100,
+        1795
+      ],
+      "status": "REFERENCE_MASK"
+    },
+    {
+      "id": "grass_left",
+      "bbox": [
+        0,
+        1810,
+        660,
+        1310
+      ],
+      "anchorPx": [
+        90,
+        3060
+      ],
+      "anchorNormalized": [
+        0.0625,
+        0.980769
+      ],
+      "status": "BAKED_STATIC_WITH_DIAGNOSTIC_ALPHA_CANDIDATE"
+    },
+    {
+      "id": "grass_right",
+      "bbox": [
+        960,
+        2220,
+        480,
+        900
+      ],
+      "anchorPx": [
+        1370,
+        3090
+      ],
+      "anchorNormalized": [
+        0.951389,
+        0.990385
+      ],
+      "status": "BAKED_STATIC_WITH_DIAGNOSTIC_ALPHA_CANDIDATE"
+    },
+    {
+      "id": "droplet_01_left",
+      "bbox": [
+        18,
+        650,
+        104,
+        126
+      ],
+      "anchorPx": [
+        70,
+        713
+      ],
+      "anchorNormalized": [
+        0.048611,
+        0.228526
+      ],
+      "status": "BAKED_STATIC_REGION_MASK_ONLY"
+    },
+    {
+      "id": "droplet_02_upper_right",
+      "bbox": [
+        1250,
+        370,
+        132,
+        166
+      ],
+      "anchorPx": [
+        1316,
+        453
+      ],
+      "anchorNormalized": [
+        0.913889,
+        0.145192
+      ],
+      "status": "BAKED_STATIC_REGION_MASK_ONLY"
+    },
+    {
+      "id": "droplet_03_lower_right",
+      "bbox": [
+        1290,
+        1880,
+        145,
+        145
+      ],
+      "anchorPx": [
+        1362,
+        1952
+      ],
+      "anchorNormalized": [
+        0.945833,
+        0.625641
+      ],
+      "status": "BAKED_STATIC_REGION_MASK_ONLY"
+    },
+    {
+      "id": "lower_caustics",
+      "bbox": [
+        0,
+        1980,
+        1440,
+        1140
+      ],
+      "status": "BAKED_STATIC_WITH_ANALYSIS_MASK"
+    }
+  ]
+}

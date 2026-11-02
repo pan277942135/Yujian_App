@@ -1,0 +1,270 @@
+{
+  "schemaVersion": "2.1",
+  "assetId": "Lake_Glass_V2_Master_Candidate_02_Layer_Pack",
+  "status": "ASSET_PACK_PARTIAL_WITH_BAKED_LAYERS",
+  "master": {
+    "file": "assets/source_master/YuJian_Lake_Glass_V2_Master_Candidate_02_1440x3120.png",
+    "sha256": "d0bd07ba379491e8b93468c616468fc60d59a2dfebc11061cf4d14e9788c6e12",
+    "sizePx": [
+      1440,
+      3120
+    ],
+    "colorSpace": "sRGB RGB8"
+  },
+  "coordinateSystem": {
+    "width": 1440,
+    "height": 3120,
+    "origin": "top-left",
+    "xDirection": "right",
+    "yDirection": "down"
+  },
+  "visibleComposite": [
+    "LAYER_BASE"
+  ],
+  "layers": [
+    {
+      "layerId": "LAYER_BASE",
+      "semantic": "Lake Base + all baked optical details",
+      "status": "VISIBLE_STATIC_MASTER",
+      "sourceFile": "YuJian_Lake_Glass_V2_Master_Candidate_02_1440x3120.png",
+      "sourceSha256": "d0bd07ba379491e8b93468c616468fc60d59a2dfebc11061cf4d14e9788c6e12",
+      "assetFile": "assets/base/lake_base_static_master.png",
+      "assetSha256": "d0bd07ba379491e8b93468c616468fc60d59a2dfebc11061cf4d14e9788c6e12",
+      "format": "PNG RGB",
+      "canvasSize": [
+        1440,
+        3120
+      ],
+      "pixelBounds": [
+        0,
+        0,
+        1440,
+        3120
+      ],
+      "anchorPx": [
+        0,
+        0
+      ],
+      "anchorNormalized": [
+        0.0,
+        0.0
+      ],
+      "zIndex": 0,
+      "blendMode": "SRC_OVER",
+      "alpha": 1.0,
+      "scalePolicy": "FIT_CROP_SINGLE_SCENE_TRANSFORM",
+      "motionEligible": false,
+      "motionProfile": null,
+      "reconstruction": "byte-identical copy of supplied flattened master; no feature duplication"
+    },
+    {
+      "layerId": "LAYER_SUNLIGHT",
+      "semantic": "Sunlight analysis masks",
+      "status": "BAKED_STATIC_ANALYSIS_ONLY",
+      "sourceFile": "YuJian_Lake_Glass_V2_Master_Candidate_02_1440x3120.png",
+      "sourceSha256": "d0bd07ba379491e8b93468c616468fc60d59a2dfebc11061cf4d14e9788c6e12",
+      "assetFile": null,
+      "analysisFiles": [
+        "assets/sunlight/sunlight_luma_analysis_mask.png",
+        "assets/sunlight/sunlight_soft_analysis_mask.png"
+      ],
+      "pixelBounds": [
+        0,
+        0,
+        1440,
+        1550
+      ],
+      "anchorPx": [
+        1370,
+        120
+      ],
+      "anchorNormalized": [
+        0.951389,
+        0.038462
+      ],
+      "blendMode": "NONE_ANALYSIS_ONLY",
+      "alpha": 0.0,
+      "visible": false,
+      "motionEligible": false
+    },
+    {
+      "layerId": "LAYER_CAUSTICS",
+      "semantic": "Lower caustics analysis mask",
+      "status": "BAKED_STATIC_ANALYSIS_ONLY",
+      "sourceFile": "YuJian_Lake_Glass_V2_Master_Candidate_02_1440x3120.png",
+      "sourceSha256": "d0bd07ba379491e8b93468c616468fc60d59a2dfebc11061cf4d14e9788c6e12",
+      "assetFile": null,
+      "analysisFiles": [
+        "assets/caustics/caustics_luma_analysis_mask.png",
+        "assets/caustics/caustics_region_mask.png"
+      ],
+      "pixelBounds": [
+        0,
+        1980,
+        1440,
+        1140
+      ],
+      "anchorPx": [
+        720.0,
+        3119
+      ],
+      "anchorNormalized": [
+        0.5,
+        0.999679
+      ],
+      "blendMode": "NONE_ANALYSIS_ONLY",
+      "alpha": 0.0,
+      "visible": false,
+      "motionEligible": false
+    },
+    {
+      "layerId": "LAYER_GRASS_LEFT",
+      "semantic": "Aquatic grass left diagnostic extraction",
+      "status": "BAKED_STATIC_CANDIDATE_NOT_FOR_RUNTIME",
+      "sourceFile": "YuJian_Lake_Glass_V2_Master_Candidate_02_1440x3120.png",
+      "sourceSha256": "d0bd07ba379491e8b93468c616468fc60d59a2dfebc11061cf4d14e9788c6e12",
+      "assetFile": null,
+      "diagnosticFile": "assets/grass/grass_left_candidate_diagnostic_only_rgba.png",
+      "format": "PNG RGBA diagnostic",
+      "canvasSize": [
+        660,
+        1310
+      ],
+      "pixelBounds": [
+        0,
+        1810,
+        660,
+        1310
+      ],
+      "anchorPx": [
+        90,
+        3060
+      ],
+      "anchorNormalized": [
+        0.0625,
+        0.980769
+      ],
+      "blendMode": "NONE_DIAGNOSTIC_ONLY",
+      "alpha": 0.0,
+      "motionEligible": false
+    },
+    {
+      "layerId": "LAYER_GRASS_RIGHT",
+      "semantic": "Aquatic grass right diagnostic extraction",
+      "status": "BAKED_STATIC_CANDIDATE_NOT_FOR_RUNTIME",
+      "sourceFile": "YuJian_Lake_Glass_V2_Master_Candidate_02_1440x3120.png",
+      "sourceSha256": "d0bd07ba379491e8b93468c616468fc60d59a2dfebc11061cf4d14e9788c6e12",
+      "assetFile": null,
+      "diagnosticFile": "assets/grass/grass_right_candidate_diagnostic_only_rgba.png",
+      "format": "PNG RGBA diagnostic",
+      "canvasSize": [
+        480,
+        900
+      ],
+      "pixelBounds": [
+        960,
+        2220,
+        480,
+        900
+      ],
+      "anchorPx": [
+        1370,
+        3090
+      ],
+      "anchorNormalized": [
+        0.951389,
+        0.990385
+      ],
+      "blendMode": "NONE_DIAGNOSTIC_ONLY",
+      "alpha": 0.0,
+      "motionEligible": false
+    },
+    {
+      "layerId": "LAYER_DROPLET_01_LEFT",
+      "semantic": "Water droplet region mask only",
+      "status": "BAKED_STATIC",
+      "sourceFile": "YuJian_Lake_Glass_V2_Master_Candidate_02_1440x3120.png",
+      "sourceSha256": "d0bd07ba379491e8b93468c616468fc60d59a2dfebc11061cf4d14e9788c6e12",
+      "assetFile": null,
+      "analysisFile": "assets/droplets/droplet_01_left_region_mask.png",
+      "pixelBounds": [
+        18,
+        650,
+        104,
+        126
+      ],
+      "anchorPx": [
+        70,
+        713
+      ],
+      "anchorNormalized": [
+        0.048611,
+        0.228526
+      ],
+      "blendMode": "NONE_ANALYSIS_ONLY",
+      "alpha": 0.0,
+      "motionEligible": false
+    },
+    {
+      "layerId": "LAYER_DROPLET_02_UPPER_RIGHT",
+      "semantic": "Water droplet region mask only",
+      "status": "BAKED_STATIC",
+      "sourceFile": "YuJian_Lake_Glass_V2_Master_Candidate_02_1440x3120.png",
+      "sourceSha256": "d0bd07ba379491e8b93468c616468fc60d59a2dfebc11061cf4d14e9788c6e12",
+      "assetFile": null,
+      "analysisFile": "assets/droplets/droplet_02_upper_right_region_mask.png",
+      "pixelBounds": [
+        1250,
+        370,
+        132,
+        166
+      ],
+      "anchorPx": [
+        1316,
+        453
+      ],
+      "anchorNormalized": [
+        0.913889,
+        0.145192
+      ],
+      "blendMode": "NONE_ANALYSIS_ONLY",
+      "alpha": 0.0,
+      "motionEligible": false
+    },
+    {
+      "layerId": "LAYER_DROPLET_03_LOWER_RIGHT",
+      "semantic": "Water droplet region mask only",
+      "status": "BAKED_STATIC",
+      "sourceFile": "YuJian_Lake_Glass_V2_Master_Candidate_02_1440x3120.png",
+      "sourceSha256": "d0bd07ba379491e8b93468c616468fc60d59a2dfebc11061cf4d14e9788c6e12",
+      "assetFile": null,
+      "analysisFile": "assets/droplets/droplet_03_lower_right_region_mask.png",
+      "pixelBounds": [
+        1290,
+        1880,
+        145,
+        145
+      ],
+      "anchorPx": [
+        1362,
+        1952
+      ],
+      "anchorNormalized": [
+        0.945833,
+        0.625641
+      ],
+      "blendMode": "NONE_ANALYSIS_ONLY",
+      "alpha": 0.0,
+      "motionEligible": false
+    }
+  ],
+  "compositing": {
+    "workingSpace": "sRGB",
+    "premultiplication": "not applicable to visible RGB base",
+    "visibleLayerOrder": [
+      "LAYER_BASE"
+    ],
+    "diagnosticAssetsExcluded": true,
+    "noDoubleCompositing": true
+  }
+}
