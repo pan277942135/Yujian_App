@@ -5,10 +5,15 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.border
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -21,14 +26,19 @@ import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.sizeIn
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -45,7 +55,14 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.semantics.contentDescription
@@ -65,13 +82,10 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.collect
 
 /**
- * First-use guidance is an overlay over the live CameraX surface. It never
- * replaces the camera route and never invokes capture itself.
- *
- * The camera preview supplies the full-bleed photographic environment. The
- * separately sourced still-photo examples are not present in the repository
- * yet; their missing provenance is recorded as ASSET_SOURCE_BLOCKED instead
- * of using the frozen design screenshots as runtime artwork.
+ * First-use guidance is shown only after the CameraX preview is ready. Approved
+ * standalone photos provide the guide artwork; the frozen full-page reference
+ * PNGs are never used as runtime images. Completing the guide returns to the
+ * canonical camera route and does not trigger the shutter.
  */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -107,8 +121,15 @@ internal fun RecognitionFirstCaptureGuideOverlay(
             .fillMaxSize()
             .testTag("recognition-capture-first-guide"),
       ) {
-        // This no-op click target is above the camera controls and consumes
-        // taps on the non-action portions of the overlay.
+        val currentPageSpec = recognitionFirstCaptureGuidePageSpec(
+            RecognitionFirstCaptureGuidePage.fromIndex(pagerState.currentPage),
+        )
+        Image(
+            painter = painterResource(currentPageSpec.backgroundAsset),
+            contentDescription = null,
+            modifier = Modifier.fillMaxSize().testTag("recognition-guide-background-${pagerState.currentPage + 1}"),
+            contentScale = ContentScale.Crop,
+        )
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -122,6 +143,14 @@ internal fun RecognitionFirstCaptureGuideOverlay(
                         1f to Color(0x3E051624),
                     ),
                 )
+                .testTag("recognition-guide-ambient-gradient"),
+        )
+        // This no-op click target is above the camera controls and consumes
+        // taps on the non-action portions of the overlay.
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Transparent)
                 .clickable(
                     onClick = {},
                 )
@@ -313,151 +342,376 @@ private fun RecognitionFirstCaptureGuidePageContent(
         RecognitionGuideFishOrientation.HORIZONTAL -> "横向鱼体"
         RecognitionGuideFishOrientation.VERTICAL -> "竖直鱼体"
     }
+    val isVerticalFish = spec.fishOrientation == RecognitionGuideFishOrientation.VERTICAL
 
-    Column(
-        modifier = modifier
-            .verticalScroll(rememberScrollState())
-            .padding(horizontal = 8.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
+    Box(
+        modifier = modifier.fillMaxSize(),
+        contentAlignment = Alignment.TopCenter,
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            IconButton(
-                onClick = onDismiss,
-                modifier = Modifier
-                    .sizeIn(minWidth = 44.dp, minHeight = 44.dp)
-                    .testTag("recognition-guide-back")
-                    .semantics { contentDescription = "返回拍摄页面" },
-            ) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = null,
-                    tint = Color.White,
-                )
-            }
-            Column(
-                modifier = Modifier.weight(1f),
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                Text(
-                    text = "拍照识鱼",
-                    color = Color.White,
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.SemiBold,
-                )
-                Text(
-                    text = "用一张清晰的照片，记录你的每一次相遇",
-                    color = Color.White.copy(alpha = 0.90f),
-                    fontSize = 12.sp,
-                    textAlign = TextAlign.Center,
-                )
-            }
-            Box(Modifier.sizeIn(minWidth = 44.dp, minHeight = 44.dp))
-        }
-
         Column(
             modifier = Modifier
+                .widthIn(max = 480.dp)
                 .fillMaxWidth()
-                .padding(top = 10.dp)
-                .semantics(mergeDescendants = true) {
-                    selected = true
-                    stateDescription = "第${page.index + 1}页，共3页"
-                },
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 16.dp, vertical = 4.dp)
+                .padding(bottom = 18.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
-            Text(
-                text = "0${page.index + 1} / 03",
-                color = Color(0xFFF4D581),
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Medium,
-                modifier = Modifier.testTag("recognition-guide-page-number-${page.index + 1}"),
-            )
-            Text(
-                text = spec.title,
-                color = Color.White,
-                fontSize = 28.sp,
-                lineHeight = 34.sp,
-                fontWeight = FontWeight.SemiBold,
+            Row(
                 modifier = Modifier
-                    .padding(top = 2.dp)
-                    .testTag("recognition-guide-page-title-${page.index + 1}"),
-            )
+                    .fillMaxWidth()
+                    .heightIn(min = 52.dp)
+                    .padding(top = 4.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                IconButton(
+                    onClick = onDismiss,
+                    modifier = Modifier
+                        .sizeIn(minWidth = 44.dp, minHeight = 44.dp)
+                        .testTag("recognition-guide-back")
+                        .semantics { contentDescription = "返回拍摄页面" },
+                ) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = null,
+                        tint = Color.White,
+                    )
+                }
+                Column(
+                    modifier = Modifier.weight(1f),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    Text(
+                        text = "拍照识鱼",
+                        color = Color.White,
+                        fontSize = 17.5.sp,
+                        fontWeight = FontWeight.SemiBold,
+                    )
+                    Spacer(Modifier.height(2.dp))
+                    Text(
+                        text = "用一张清晰的照片，记录你的每一次相遇",
+                        color = Color.White.copy(alpha = 0.90f),
+                        fontSize = 12.sp,
+                        textAlign = TextAlign.Center,
+                    )
+                }
+                Box(Modifier.sizeIn(minWidth = 44.dp, minHeight = 44.dp))
+            }
+
             Box(
                 modifier = Modifier
-                    .padding(top = 7.dp, bottom = 10.dp)
-                    .height(1.dp)
-                    .fillMaxWidth(0.52f)
-                    .background(Color(0xFFE7C96D)),
-            )
-            Text(
-                text = spec.subtitle,
-                color = Color.White.copy(alpha = 0.92f),
-                fontSize = 16.sp,
-                lineHeight = 23.sp,
-                textAlign = TextAlign.Start,
-                modifier = Modifier.fillMaxWidth(),
-            )
-        }
-
-        // The live CameraX image remains visible through this region. A
-        // distinct still photo is required for the frozen Hero demonstration;
-        // do not substitute or crop the page-level Frozen PNG.
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(176.dp)
-                .semantics {
-                    contentDescription = "正确示范区域，$orientationLabel，鱼体完整，可拍摄"
-                },
-            contentAlignment = Alignment.BottomCenter,
-        ) {
-            Text(
-                text = "鱼体完整，可拍摄",
-                color = Color(0xFFF4D581),
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Medium,
-                modifier = Modifier
-                    .padding(bottom = 6.dp)
-                    .testTag("recognition-guide-hero-caption-${page.index + 1}"),
-            )
-        }
-
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 4.dp, bottom = 10.dp),
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
-            verticalAlignment = Alignment.Top,
-        ) {
-            spec.errors.forEachIndexed { index, example ->
-                Column(
+                    .fillMaxWidth()
+                    .padding(horizontal = 8.dp, vertical = 4.dp)
+                    .heightIn(min = 138.dp, max = if (isVerticalFish) 236.dp else 190.dp)
+                    .aspectRatio(if (isVerticalFish) 0.82f else 1.55f)
+                    .semantics {
+                        contentDescription = "正确示范区域，$orientationLabel，鱼体完整，可拍摄"
+                    }
+                    .testTag("recognition-guide-hero-${page.index + 1}"),
+                contentAlignment = Alignment.Center,
+            ) {
+                Image(
+                    painter = painterResource(spec.heroAsset),
+                    contentDescription = null,
                     modifier = Modifier
-                        .weight(1f)
-                        .semantics(mergeDescendants = true) {
-                            contentDescription = "避免：${example.label}，$orientationLabel"
-                        }
-                        .testTag("recognition-guide-error-${page.index + 1}-${index + 1}"),
+                        .fillMaxSize()
+                        .clip(RoundedCornerShape(10.dp))
+                        .border(0.75.dp, Color(0x66FFFFFF), RoundedCornerShape(10.dp))
+                        .testTag("recognition-guide-hero-image-${page.index + 1}"),
+                    contentScale = ContentScale.Fit,
+                )
+                CornerFrameMarkers(
+                    modifier = Modifier.fillMaxSize(),
+                    strokeWidth = 2.5f,
+                    cornerLength = 26f,
+                    color = Color.White.copy(alpha = 0.95f),
+                )
+            }
+
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 2.dp, bottom = 4.dp)
+                    .semantics(mergeDescendants = true) {
+                        selected = true
+                        stateDescription = "第${page.index + 1}页，共3页"
+                    },
+                horizontalAlignment = Alignment.Start,
+            ) {
+                Text(
+                    text = "0${page.index + 1} / 03",
+                    color = Color(0xFFF4D581),
+                    fontSize = 13.5.sp,
+                    fontWeight = FontWeight.Medium,
+                    letterSpacing = 0.5.sp,
+                    modifier = Modifier.testTag("recognition-guide-page-number-${page.index + 1}"),
+                )
+                Spacer(Modifier.height(2.dp))
+                Column(
+                    modifier = Modifier.wrapContentSize(),
                     horizontalAlignment = Alignment.Start,
                 ) {
                     Text(
-                        text = "× 避免",
-                        color = Color.White.copy(alpha = 0.94f),
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.Medium,
-                    )
-                    Text(
-                        text = example.label,
+                        text = spec.title,
                         color = Color.White,
-                        fontSize = 14.sp,
-                        lineHeight = 19.sp,
-                        fontWeight = FontWeight.Medium,
-                        modifier = Modifier.padding(top = 2.dp),
+                        fontSize = 25.sp,
+                        lineHeight = 31.sp,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.testTag("recognition-guide-page-title-${page.index + 1}"),
+                    )
+                    Box(
+                        modifier = Modifier
+                            .padding(top = 4.dp, bottom = 6.dp)
+                            .height(1.5.dp)
+                            .fillMaxWidth()
+                            .background(
+                                Brush.horizontalGradient(
+                                    0f to Color(0xFFE7C96D),
+                                    0.85f to Color(0xFFE7C96D),
+                                    1f to Color(0x66E7C96D),
+                                ),
+                            ),
                     )
                 }
+                Spacer(Modifier.height(2.dp))
+                Text(
+                    text = spec.subtitle,
+                    color = Color.White.copy(alpha = 0.92f),
+                    fontSize = 14.5.sp,
+                    lineHeight = 21.sp,
+                    textAlign = TextAlign.Start,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
+
+            BoxWithConstraints(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 6.dp, bottom = 2.dp),
+            ) {
+                val wrapToTwoColumns = maxWidth < 352.dp
+                if (wrapToTwoColumns) {
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(10.dp),
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalAlignment = Alignment.Top,
+                        ) {
+                            spec.errors.take(2).forEachIndexed { index, example ->
+                                Box(Modifier.weight(1f)) {
+                                    AvoidanceExampleCard(
+                                        example = example,
+                                        imageRes = spec.errorAssets[index],
+                                        pageIndex = page.index,
+                                        cardIndex = index,
+                                    )
+                                }
+                            }
+                        }
+                        if (spec.errors.size > 2) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            ) {
+                                Box(Modifier.weight(0.5f)) {
+                                    AvoidanceExampleCard(
+                                        example = spec.errors[2],
+                                        imageRes = spec.errorAssets[2],
+                                        pageIndex = page.index,
+                                        cardIndex = 2,
+                                    )
+                                }
+                                Spacer(Modifier.weight(0.5f))
+                            }
+                        }
+                    }
+                } else {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.Top,
+                    ) {
+                        spec.errors.forEachIndexed { index, example ->
+                            Box(Modifier.weight(1f)) {
+                                AvoidanceExampleCard(
+                                    example = example,
+                                    imageRes = spec.errorAssets[index],
+                                    pageIndex = page.index,
+                                    cardIndex = index,
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 4.dp, bottom = 6.dp),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Box(
+                    modifier = Modifier
+                        .weight(1f, fill = false)
+                        .widthIn(max = 56.dp)
+                        .height(1.dp)
+                        .background(Brush.horizontalGradient(listOf(Color.Transparent, Color(0x80F4D581)))),
+                )
+                Spacer(Modifier.width(8.dp))
+                VectorFishOutlineIcon(Modifier.size(width = 22.dp, height = 12.dp))
+                Spacer(Modifier.width(8.dp))
+                Text(
+                    text = "鱼体完整，可拍摄",
+                    color = Color(0xFFF4D581),
+                    fontSize = 13.5.sp,
+                    fontWeight = FontWeight.Medium,
+                    letterSpacing = 0.2.sp,
+                    modifier = Modifier.testTag("recognition-guide-hero-caption-${page.index + 1}"),
+                )
+                Spacer(Modifier.width(8.dp))
+                Box(
+                    modifier = Modifier
+                        .weight(1f, fill = false)
+                        .widthIn(max = 56.dp)
+                        .height(1.dp)
+                        .background(Brush.horizontalGradient(listOf(Color(0x80F4D581), Color.Transparent))),
+                )
             }
         }
+    }
+}
+
+@Composable
+private fun AvoidanceExampleCard(
+    example: RecognitionFirstCaptureGuideErrorExample,
+    @androidx.annotation.DrawableRes imageRes: Int,
+    pageIndex: Int,
+    cardIndex: Int,
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .semantics(mergeDescendants = true) {
+                contentDescription = "避免：${example.label}，${if (example.orientation == RecognitionGuideFishOrientation.HORIZONTAL) "横向鱼体" else "竖直鱼体"}"
+            }
+            .testTag("recognition-guide-error-${pageIndex + 1}-${cardIndex + 1}"),
+        horizontalAlignment = Alignment.Start,
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .aspectRatio(1.28f)
+                .clip(RoundedCornerShape(8.dp))
+                .border(0.75.dp, Color(0x55FFFFFF), RoundedCornerShape(8.dp))
+                .testTag("recognition-guide-error-image-${pageIndex + 1}-${cardIndex + 1}"),
+        ) {
+            Image(
+                painter = painterResource(imageRes),
+                contentDescription = null,
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Fit,
+            )
+        }
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(top = 6.dp),
+        ) {
+            AvoidanceCancelMicroIcon(Modifier.size(13.dp))
+            Spacer(Modifier.width(4.dp))
+            Text(
+                text = "避免",
+                color = Color.White.copy(alpha = 0.95f),
+                fontSize = 12.5.sp,
+                fontWeight = FontWeight.Medium,
+            )
+        }
+        Text(
+            text = example.label,
+            color = Color.White.copy(alpha = 0.92f),
+            fontSize = 11.5.sp,
+            lineHeight = 15.sp,
+            fontWeight = FontWeight.Normal,
+            modifier = Modifier.padding(top = 2.dp),
+        )
+    }
+}
+
+@Composable
+private fun AvoidanceCancelMicroIcon(
+    modifier: Modifier = Modifier,
+    backgroundColor: Color = Color.White.copy(alpha = 0.95f),
+    crossColor: Color = Color(0xFF10283A),
+) {
+    Canvas(modifier = modifier) {
+        val radius = size.minDimension / 2f
+        val center = Offset(size.width / 2f, size.height / 2f)
+        drawCircle(color = backgroundColor, radius = radius, center = center)
+        val mark = radius * 0.40f
+        val stroke = 1.35.dp.toPx()
+        drawLine(
+            color = crossColor,
+            start = Offset(center.x - mark, center.y - mark),
+            end = Offset(center.x + mark, center.y + mark),
+            strokeWidth = stroke,
+            cap = StrokeCap.Round,
+        )
+        drawLine(
+            color = crossColor,
+            start = Offset(center.x - mark, center.y + mark),
+            end = Offset(center.x + mark, center.y - mark),
+            strokeWidth = stroke,
+            cap = StrokeCap.Round,
+        )
+    }
+}
+
+@Composable
+private fun VectorFishOutlineIcon(
+    modifier: Modifier = Modifier,
+    color: Color = Color(0xFFF4D581),
+) {
+    Canvas(modifier = modifier) {
+        val width = size.width
+        val height = size.height
+        val stroke = 1.25.dp.toPx()
+        val path = Path().apply {
+            moveTo(width, height * 0.18f)
+            cubicTo(width * 0.68f, height * 0.86f, width * 0.30f, height * 0.92f, width * 0.04f, height * 0.50f)
+            cubicTo(width * 0.30f, height * 0.08f, width * 0.68f, height * 0.14f, width, height * 0.82f)
+        }
+        drawPath(path, color = color, style = Stroke(width = stroke, cap = StrokeCap.Round))
+        drawCircle(color = color, radius = 1.dp.toPx(), center = Offset(width * 0.22f, height * 0.48f))
+    }
+}
+
+@Composable
+private fun CornerFrameMarkers(
+    modifier: Modifier = Modifier,
+    strokeWidth: Float = 2.5f,
+    cornerLength: Float = 26f,
+    color: Color = Color.White,
+) {
+    val density = LocalDensity.current
+    val strokePx = with(density) { strokeWidth.dp.toPx() }
+    val lengthPx = with(density) { cornerLength.dp.toPx() }
+    Canvas(modifier = modifier) {
+        val width = size.width
+        val height = size.height
+        drawLine(color, Offset(0f, 0f), Offset(lengthPx, 0f), strokeWidth = strokePx, cap = StrokeCap.Round)
+        drawLine(color, Offset(0f, 0f), Offset(0f, lengthPx), strokeWidth = strokePx, cap = StrokeCap.Round)
+        drawLine(color, Offset(width, 0f), Offset(width - lengthPx, 0f), strokeWidth = strokePx, cap = StrokeCap.Round)
+        drawLine(color, Offset(width, 0f), Offset(width, lengthPx), strokeWidth = strokePx, cap = StrokeCap.Round)
+        drawLine(color, Offset(0f, height), Offset(lengthPx, height), strokeWidth = strokePx, cap = StrokeCap.Round)
+        drawLine(color, Offset(0f, height), Offset(0f, height - lengthPx), strokeWidth = strokePx, cap = StrokeCap.Round)
+        drawLine(color, Offset(width, height), Offset(width - lengthPx, height), strokeWidth = strokePx, cap = StrokeCap.Round)
+        drawLine(color, Offset(width, height), Offset(width, height - lengthPx), strokeWidth = strokePx, cap = StrokeCap.Round)
     }
 }
 
@@ -481,24 +735,20 @@ private fun RecognitionFirstCaptureGuidePageIndicator(
             val selected = index == currentPage
             Box(
                 modifier = Modifier
-                    .padding(horizontal = 6.dp)
-                    .sizeIn(minWidth = 12.dp, minHeight = 12.dp)
+                    .padding(horizontal = 4.dp)
+                    .size(16.dp)
                     .semantics {
                         this.selected = selected
                         stateDescription = if (selected) "当前页" else "第${index + 1}页"
                     },
+                contentAlignment = Alignment.Center,
             ) {
                 Box(
-                    modifier = Modifier
-                        .align(Alignment.Center)
-                        .background(
-                            color = if (selected) Color(0xFFF4D581) else Color.White.copy(alpha = 0.78f),
-                            shape = androidx.compose.foundation.shape.CircleShape,
-                        )
-                        .then(
-                            if (selected) Modifier.sizeIn(minWidth = 10.dp, minHeight = 10.dp)
-                            else Modifier.sizeIn(minWidth = 7.dp, minHeight = 7.dp),
-                        ),
+                    modifier = if (selected) {
+                        Modifier.size(8.dp).background(Color(0xFFF4D581), CircleShape)
+                    } else {
+                        Modifier.size(8.dp).border(1.dp, Color.White.copy(alpha = 0.88f), CircleShape)
+                    },
                 )
             }
         }

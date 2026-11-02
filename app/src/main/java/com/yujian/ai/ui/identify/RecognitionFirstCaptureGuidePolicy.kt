@@ -1,5 +1,8 @@
 package com.yujian.ai.ui.identify
 
+import androidx.annotation.DrawableRes
+import com.yujian.ai.R
+
 internal enum class RecognitionGuideFishOrientation {
     HORIZONTAL,
     VERTICAL,
@@ -61,6 +64,7 @@ internal data class RecognitionFirstCaptureGuideState(
 internal data class RecognitionFirstCaptureGuideErrorExample(
     val label: String,
     val orientation: RecognitionGuideFishOrientation,
+    @param:DrawableRes val imageRes: Int,
 )
 
 internal data class RecognitionFirstCaptureGuidePageSpec(
@@ -70,8 +74,9 @@ internal data class RecognitionFirstCaptureGuidePageSpec(
     val title: String,
     val subtitle: String,
     val primaryActionLabel: String,
-    val heroAsset: String?,
-    val errorAssets: List<String?>,
+    @param:DrawableRes val backgroundAsset: Int,
+    @param:DrawableRes val heroAsset: Int,
+    val errorAssets: List<Int>,
     val runtimeAssetStatus: RecognitionGuideRuntimeAssetStatus,
     val errors: List<RecognitionFirstCaptureGuideErrorExample>,
 )
@@ -98,6 +103,30 @@ internal fun recognitionFirstCaptureGuidePageSpec(
     }
     val fishPose = if (fishOrientation == RecognitionGuideFishOrientation.VERTICAL) "竖直" else "横向"
     val subtitle = "手机保持$phoneOrientationLabel，整条鱼${fishPose}完整放入取景范围"
+    val horizontal = fishOrientation == RecognitionGuideFishOrientation.HORIZONTAL
+    val backgroundAsset = if (page == RecognitionFirstCaptureGuidePage.P02) {
+        R.drawable.first_use_guide_bg_p02
+    } else {
+        R.drawable.first_use_guide_bg_p01
+    }
+    val heroAsset = if (horizontal) {
+        R.drawable.first_use_guide_horizontal_correct_hero
+    } else {
+        R.drawable.first_use_guide_vertical_correct_hero
+    }
+    val errorAssets = if (horizontal) {
+        listOf(
+            R.drawable.first_use_guide_horizontal_fish_head_out,
+            R.drawable.first_use_guide_horizontal_fish_too_small,
+            R.drawable.first_use_guide_horizontal_excessive_occlusion,
+        )
+    } else {
+        listOf(
+            R.drawable.first_use_guide_vertical_fish_head_out,
+            R.drawable.first_use_guide_vertical_fish_too_small,
+            R.drawable.first_use_guide_vertical_excessive_occlusion,
+        )
+    }
     return RecognitionFirstCaptureGuidePageSpec(
         page = page,
         phoneOrientationLabel = phoneOrientationLabel,
@@ -105,11 +134,16 @@ internal fun recognitionFirstCaptureGuidePageSpec(
         title = title,
         subtitle = subtitle,
         primaryActionLabel = if (page == RecognitionFirstCaptureGuidePage.P03) "开始拍摄" else "下一张",
-        heroAsset = null,
-        errorAssets = listOf(null, null, null),
-        runtimeAssetStatus = RecognitionGuideRuntimeAssetStatus.ASSET_SOURCE_BLOCKED,
-        errors = captureGuideErrorLabels.map { label ->
-            RecognitionFirstCaptureGuideErrorExample(label = label, orientation = fishOrientation)
+        backgroundAsset = backgroundAsset,
+        heroAsset = heroAsset,
+        errorAssets = errorAssets,
+        runtimeAssetStatus = RecognitionGuideRuntimeAssetStatus.AVAILABLE,
+        errors = captureGuideErrorLabels.mapIndexed { index, label ->
+            RecognitionFirstCaptureGuideErrorExample(
+                label = label,
+                orientation = fishOrientation,
+                imageRes = errorAssets[index],
+            )
         },
     )
 }

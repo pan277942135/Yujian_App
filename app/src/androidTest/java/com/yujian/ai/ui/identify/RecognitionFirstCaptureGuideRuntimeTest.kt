@@ -355,7 +355,7 @@ class RecognitionFirstCaptureGuideRuntimeTest {
     }
 
     @Test
-    fun capturesComponentEvidenceAndReportsTheIndependentPhotoSourceBlocker() {
+    fun capturesComponentEvidenceWithoutClaimingCameraRouteAcceptance() {
         assertEquals("runtime device must be API 28", 28, Build.VERSION.SDK_INT)
         var page by mutableStateOf(RecognitionFirstCaptureGuidePage.P01)
         composeRule.setContent {
@@ -389,9 +389,10 @@ class RecognitionFirstCaptureGuideRuntimeTest {
         val report = JSONObject()
             .put("schema_version", "1.0")
             .put("task_id", "RECOGNITION-FIRST-USE-GUIDE-V1")
-            .put("status", "ASSET_SOURCE_BLOCKED")
+            .put("status", "COMPONENT_EVIDENCE_ONLY")
             .put("runtime_evidence_status", "COMPONENT_INSTRUMENTATION_ONLY")
             .put("runtime_route_evidence", "NOT_RUN")
+            .put("android_api_28_runtime_acceptance", "NOT_RUN")
             .put("apk_sha256", sha256(File(context.applicationInfo.sourceDir)))
             .put("source_sha256", JSONObject.NULL)
             .put(
@@ -413,17 +414,21 @@ class RecognitionFirstCaptureGuideRuntimeTest {
                 "visual_observations",
                 JSONArray().put("Rendered screenshots are from the Android Compose instrumentation component harness.")
                     .put("They are not IdentifyScreen/CameraX runtime screenshots and are not visual parity evidence.")
-                    .put("Independent page-specific hero and error photographs are unavailable; frozen page PNGs were not used at runtime."),
+                    .put("Approved page-specific hero, error, and background photos render from mapped Android Runtime resources.")
+                    .put("These screenshots do not show the IdentifyScreen/CameraX route, establish camera readiness, or provide visual parity acceptance."),
             )
             .put("pass", false)
-            .put("failure_classification", "ASSET_SOURCE_BLOCKED")
+            .put("failure_classification", "NOT_RUN_RUNTIME_ACCEPTANCE")
         File(evidenceDir, "first_use_camera_guide_runtime_report.json")
             .writeText(report.toString(2), Charsets.UTF_8)
 
         assertTrue(File(evidenceDir, "P01_compose_component.png").length() > 0L)
         assertTrue(File(evidenceDir, "P02_compose_component.png").length() > 0L)
         assertTrue(File(evidenceDir, "P03_compose_component.png").length() > 0L)
-        assertEquals("ASSET_SOURCE_BLOCKED", report.getString("status"))
+        assertEquals("COMPONENT_EVIDENCE_ONLY", report.getString("status"))
+        assertEquals("NOT_RUN", report.getString("runtime_route_evidence"))
+        assertEquals("NOT_RUN", report.getString("android_api_28_runtime_acceptance"))
+        assertFalse(report.getBoolean("pass"))
     }
 
     private fun assertInsideViewport(tag: String, widthDp: Int, heightDp: Int) {
@@ -461,6 +466,10 @@ class RecognitionFirstCaptureGuideRuntimeTest {
         screenshot: String,
     ): JSONObject {
         val mapping = mapRecognitionGuideReferenceSpace(page, screenshotWidthPx, screenshotHeightPx)
+        val spec = recognitionFirstCaptureGuidePageSpec(page)
+        val errorAssetNames = JSONArray().apply {
+            spec.errorAssets.forEach { put(context.resources.getResourceEntryName(it)) }
+        }
         val titleTag = "recognition-guide-page-title-${page.index + 1}"
         val actionBounds = composeRule.onNodeWithTag("recognition-guide-primary-action")
             .fetchSemanticsNode().boundsInWindow
@@ -488,10 +497,11 @@ class RecognitionFirstCaptureGuideRuntimeTest {
                     mapping.offsetYPx + mapping.referenceHeightPx * mapping.uniformScale,
                 )))
             .put("runtime_photo_assets", JSONObject()
-                .put("status", "ASSET_SOURCE_BLOCKED")
-                .put("hero", JSONObject.NULL)
-                .put("errors", JSONArray().put(JSONObject.NULL).put(JSONObject.NULL).put(JSONObject.NULL)))
-            .put("visual_status", "BLOCKED_NOT_PARITY_EVIDENCE")
+                .put("status", "AVAILABLE")
+                .put("background", context.resources.getResourceEntryName(spec.backgroundAsset))
+                .put("hero", context.resources.getResourceEntryName(spec.heroAsset))
+                .put("errors", errorAssetNames))
+            .put("visual_status", "COMPONENT_ONLY_NOT_PARITY_EVIDENCE")
             .put("pass", false)
     }
 
