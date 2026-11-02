@@ -322,7 +322,7 @@ jobs:
   orb-visual-evidence:
     if: ${{ (github.event_name == 'push' && github.ref_name == 'work/android-ai-orb-r02-r06-runtime-v1') || (github.event_name == 'pull_request' && github.event.pull_request.head.ref == 'work/android-ai-orb-r02-r06-runtime-v1') || (github.event_name == 'workflow_dispatch' && inputs.runtime_backend == 'github-hosted') }}
     needs: build
-    runs-on: ubuntu-latest
+    runs-on: macos-15
     timeout-minutes: 50
     env:
       YUJIAN_SOURCE_SHA: ${{ needs.build.outputs.source_sha }}
@@ -355,10 +355,10 @@ jobs:
           mkdir -p "$avd_home"
           export ANDROID_AVD_HOME="$avd_home"
           echo "ANDROID_AVD_HOME=$avd_home" >> "$GITHUB_ENV"
-          sdkmanager --install "emulator" "system-images;android-28;google_apis;x86_64"
+          sdkmanager --install "emulator" "system-images;android-28;google_apis;arm64-v8a"
           printf 'no\n' | avdmanager create avd \
             --name yujian_pixel2_api28 \
-            --package "system-images;android-28;google_apis;x86_64" \
+            --package "system-images;android-28;google_apis;arm64-v8a" \
             --device pixel_2 \
             -p "$avd_home/yujian_pixel2_api28.avd" \
             --force
