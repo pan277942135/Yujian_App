@@ -260,6 +260,7 @@ fun RecognitionProcessingScene(
     }
     val displayMode = diagnosticDisplayMode ?: localDisplayMode
     val diagnosticUiAvailable = BuildConfig.DEBUG && phaseOverride == null && visualClockOverrideMs == null
+    val stepDiagnosticActive = diagnosticUiAvailable && displayMode == RecognitionProgressDisplayMode.STEP_DIAGNOSTIC
     // The diagnostic shell is a fixed Debug-session policy, independent of its display toggle.
     val diagnosticModeState = rememberUpdatedState(BuildConfig.DEBUG)
     val playbackController = diagnosticPlaybackController ?: remember(sceneKey) { SceneMotionCoordinator() }
@@ -273,6 +274,9 @@ fun RecognitionProcessingScene(
     var rootOrigin by remember(sceneKey) { mutableStateOf(Offset.Zero) }
     var realPhase by remember(sceneKey) { mutableStateOf(RecognitionPhase.CAPTURED) }
     var visualPhase by remember(sceneKey) { mutableStateOf(RecognitionPhase.CAPTURED) }
+    var productionSceneStage by remember(sceneKey) { mutableStateOf(RecognitionSceneStage.PHOTO_STABLE) }
+    var productionStageElapsedMs by remember(sceneKey) { mutableLongStateOf(0L) }
+    var productionStageProgress by remember(sceneKey) { mutableFloatStateOf(0f) }
     var assessment by remember(sceneKey) { mutableStateOf<FishInputAssessment?>(null) }
     var subjectBitmap by remember(sceneKey) { mutableStateOf<Bitmap?>(null) }
     var subjectBox by remember(sceneKey) { mutableStateOf<NormalizedFishBox?>(null) }
@@ -303,9 +307,10 @@ fun RecognitionProcessingScene(
     val latestSubjectStatus = rememberUpdatedState(subjectResult.status)
     val latestTrustedMask = rememberUpdatedState(trustedSubjectMask)
     val latestFinishedResult = rememberUpdatedState(finishedResult)
+    val latestAssessment = rememberUpdatedState(assessment)
     val diagnosticRevealCallback = rememberUpdatedState(onDiagnosticRevealRequested)
     val manualStepDiagnosticState = rememberUpdatedState(
-        diagnosticUiAvailable && playbackController.mode == ScenePlaybackMode.MANUAL,
+        stepDiagnosticActive && playbackController.mode == ScenePlaybackMode.MANUAL,
     )
     var diagnosticActionStatus by remember(sceneKey) { mutableStateOf<String?>(null) }
 
@@ -534,6 +539,9 @@ fun RecognitionProcessingScene(
         val startedAtMs = photoPresentedAtMs ?: return@LaunchedEffect
         controller.reset(startedAtMs)
         visualPhase = RecognitionPhase.CAPTURED
+        productionSceneStage = RecognitionSceneStage.PHOTO_STABLE
+        productionStageElapsedMs = 0L
+        productionStageProgress = 0f
         visualNowMs = startedAtMs
         if (realPhase != RecognitionPhase.CAPTURED) {
             controller.onPipelinePhase(
@@ -719,27 +727,40 @@ fun RecognitionProcessingScene(
                     controller.onRevealDecisionReady()
                 }
                 val currentSubjectStatus = latestSubjectStatus.value
+                val noDetectorTarget = latestFinishedResult.value?.ready == true &&
+                    latestAssessment.value?.primary?.box == null
                 val subjectTerminal = currentSubjectStatus == SubjectStatus.READY ||
-                    currentSubjectStatus == SubjectStatus.FAILED
-                val nextVisualPhase = controller.current(
+                    currentSubjectStatus == SubjectStatus.FAILED || noDetectorTarget
+                val currentResult = latestFinishedResult.value
+                val successfulRevealReady = currentResult?.let { result ->
+                    result.ready && resolveRecognitionUiState(result) == RecognitionUiState.RESULT_HIGH
+                } == true
+                val previousSceneStage = productionSceneStage
+                val nextSceneStage = controller.currentSceneStage(
                     visualNowMs,
                     trustedMask = latestTrustedMask.value,
                     subjectTerminal = subjectTerminal,
+                    successfulRevealAllowed = successfulRevealReady,
                 )
-                if (nextVisualPhase != visualPhase) {
-                    val stageElapsed = controller.phaseElapsedMs(visualNowMs)
-                    val referenceMs = controller.opticalReferenceElapsedMs(
-                        visualNowMs,
-                        trustedMask = latestTrustedMask.value,
-                        subjectTerminal = subjectTerminal,
-                    )
+                productionSceneStage = nextSceneStage
+                productionStageElapsedMs = controller.stageElapsedMs(visualNowMs)
+                productionStageProgress = controller.stageProgress(visualNowMs)
+                val nextVisualPhase = controller.presentedPhase()
+                if (nextSceneStage != previousSceneStage) {
+                    val stageElapsed = controller.stageElapsedMs(visualNowMs)
+                    val referenceMs = controller.opticalReferenceElapsedMs(visualNowMs)
+                    val sessionName = recognitionSessionId.orEmpty()
+                    val attemptName = recognitionAttemptId.orEmpty()
+                    val imageName = image?.imageId.orEmpty()
                     Log.i(
                         LOG_TAG,
-                        "VISUAL_STAGE session=${recognitionSessionId.orEmpty()} attempt=${recognitionAttemptId.orEmpty()} " +
-                            "image=${image?.imageId.orEmpty()} phase=$visualPhase->$nextVisualPhase " +
+                        "VISUAL_STAGE session=$sessionName attempt=$attemptName image=$imageName " +
+                            "stage=${previousSceneStage.name}->${nextSceneStage.name} " +
                             "stage_started_uptime_ms=$visualNowMs stage_elapsed_ms=$stageElapsed " +
                             "optical_reference_ms=$referenceMs trusted_mask=" + latestTrustedMask.value + " real_phase=$realPhase",
                     )
+                }
+                if (nextVisualPhase != visualPhase) {
                     visualPhase = nextVisualPhase
                     if (nextVisualPhase == RecognitionPhase.OUTLINE && latestTrustedMask.value &&
                         trustedMaskRevealStartedAtMs == null
@@ -749,7 +770,7 @@ fun RecognitionProcessingScene(
                     }
                     phasePresentedCallback(nextVisualPhase, visualNowMs)
                 }
-                if (nextVisualPhase == RecognitionPhase.RESULT && latestFinishedResult.value?.ready == true &&
+                if (nextSceneStage == RecognitionSceneStage.ORB_RETURN && latestFinishedResult.value?.ready == true &&
                     controller.resultVisualReady(visualNowMs) && !delivered && !diagnosticStepDisplayState.value) {
                     // The adaptive visual beats and real model result are both ready.
                     // RR09 starts from Result's first presented frame.
@@ -786,12 +807,12 @@ fun RecognitionProcessingScene(
             subjectTerminal = subjectResult.status == SubjectStatus.READY || subjectResult.status == SubjectStatus.FAILED,
         )
     }
-    val opticalReferenceElapsedMs = if (diagnosticUiAvailable) {
+    val opticalReferenceElapsedMs = if (stepDiagnosticActive) {
         playbackController.sample(authoritativeOpticalReferenceElapsedMs, visualNowMs)
     } else {
         authoritativeOpticalReferenceElapsedMs
     }
-    val sceneElapsedMs = if (diagnosticUiAvailable) opticalReferenceElapsedMs else processingElapsedMs
+    val sceneElapsedMs = if (stepDiagnosticActive) opticalReferenceElapsedMs else processingElapsedMs
 
     fun changeDiagnosticDisplayMode(mode: RecognitionProgressDisplayMode) {
         if (mode == displayMode) return
@@ -826,8 +847,11 @@ fun RecognitionProcessingScene(
         geometryVersion = photoGeometryVersion,
         attemptId = recognitionAttemptId.orEmpty(), imageId = image?.imageId.orEmpty(),
         photoContentVersion = image?.bitmap?.generationId?.toLong() ?: 0L,
-        playbackMode = if (diagnosticUiAvailable) playbackMode else ScenePlaybackMode.AUTO,
-        playbackPaused = diagnosticUiAvailable && playbackPaused,
+        playbackMode = if (stepDiagnosticActive) playbackMode else ScenePlaybackMode.AUTO,
+        playbackPaused = stepDiagnosticActive && playbackPaused,
+        sceneStageOverride = if (stepDiagnosticActive || phaseOverride != null || deterministicMotion) null else productionSceneStage,
+        sceneStageElapsedMsOverride = if (stepDiagnosticActive || phaseOverride != null || deterministicMotion) null else productionStageElapsedMs,
+        sceneStageProgressOverride = if (stepDiagnosticActive || phaseOverride != null || deterministicMotion) null else productionStageProgress,
     )
     val diagnosticSceneFrame = sceneBaseFrame.sceneFrame
     LaunchedEffect(sceneKey, diagnosticSceneFrame.stage) {
@@ -872,9 +896,11 @@ fun RecognitionProcessingScene(
                 "attempt=${recognitionAttemptId.orEmpty()} stage=${diagnosticSceneFrame.stage.name}")
         }
     }
-    val rendered = phaseOverride ?: if (diagnosticUiAvailable) {
+    val rendered = phaseOverride ?: if (stepDiagnosticActive) {
         diagnosticSceneFrame.stage.toRecognitionPhase()
-    } else if (visualPhase == RecognitionPhase.RESULT) RecognitionPhase.CLASSIFYING else visualPhase
+    } else {
+        productionSceneStage.toRecognitionPhase()
+    }
     val waterLightPhase = when (rendered) {
         RecognitionPhase.CAPTURED -> WaterLightPhase.PHOTO_ENTRY
         RecognitionPhase.DETECTING,
@@ -948,10 +974,12 @@ fun RecognitionProcessingScene(
             )
         }
     }
-    val stageContourProgress = when (diagnosticSceneFrame.stage) {
-        RecognitionSceneStage.CONTOUR_A -> diagnosticSceneFrame.stageProgress / 3f
-        RecognitionSceneStage.CONTOUR_B -> 1f / 3f + diagnosticSceneFrame.stageProgress / 3f
-        RecognitionSceneStage.CONTOUR_C -> 2f / 3f + diagnosticSceneFrame.stageProgress / 3f
+    val activeSceneStage = if (stepDiagnosticActive) diagnosticSceneFrame.stage else productionSceneStage
+    val activeStageProgress = if (stepDiagnosticActive) diagnosticSceneFrame.stageProgress else productionStageProgress
+    val stageContourProgress = when (activeSceneStage) {
+        RecognitionSceneStage.CONTOUR_A -> activeStageProgress / 3f
+        RecognitionSceneStage.CONTOUR_B -> 1f / 3f + activeStageProgress / 3f
+        RecognitionSceneStage.CONTOUR_C -> 2f / 3f + activeStageProgress / 3f
         RecognitionSceneStage.FISH_GOLD_PEAK,
         RecognitionSceneStage.ORB_RETURN,
         RecognitionSceneStage.ORB_TO_NAME,
@@ -959,17 +987,13 @@ fun RecognitionProcessingScene(
         RecognitionSceneStage.RESIDUE_SETTLE -> 1f
         else -> 0f
     }.coerceIn(0f, 1f)
-    val maskContourRevealProgress = if (diagnosticUiAvailable && trustedSubjectMask) stageContourProgress else recognitionMaskContourRevealProgress(
-        processingElapsedMs = opticalReferenceElapsedMs,
-        revealStartedAtMs = trustedMaskRevealStartedAtMs,
-        reduceMotion = motionPolicy.reduceMotion,
-    )
+    val maskContourRevealProgress = if (trustedSubjectMask) stageContourProgress else 0f
     val photoShockwave = photoShockwaveTransform(sceneElapsedMs, motionPolicy.reduceMotion)
     val phaseElapsedMs = when {
-        diagnosticUiAvailable -> diagnosticSceneFrame.stageElapsedMs
-        phaseOverride != null || visualPhase == RecognitionPhase.RESULT -> 1_000L
+        stepDiagnosticActive -> diagnosticSceneFrame.stageElapsedMs
+        phaseOverride != null -> 1_000L
         photoPresentedAtMs == null -> 0L
-        else -> controller.phaseElapsedMs(visualNowMs)
+        else -> controller.stageElapsedMs(visualNowMs)
     }
     val levelAAvailable = subjectBitmap != null && subjectBox != null && contour.isNotEmpty()
     val displayedFocusLevel = recognitionDisplayedFishFocusLevel(
