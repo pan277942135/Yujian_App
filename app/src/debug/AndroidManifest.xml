@@ -2,8 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application>
         <activity
-            android:name=".ui.designsystem.DesignSystemPreviewActivity"
+            android:name="com.yujian.ai.ui.designsystem.components.aiorb.AIOrbRuntimeLabActivity"
             android:exported="true"
-            android:launchMode="singleTop" />
+            android:label="AI Orb Runtime Lab" />
     </application>
 </manifest>

@@ -1,0 +1,71 @@
+package com.yujian.ai.ui.waterlight.renderer
+
+object OrbRuntimeProfileV1 {
+    enum class LifeState { S1_IDLE, S2_ACTIVE }
+    enum class MotionEvent { NONE, RELEASE, RETURN }
+
+    data class MotionKey(val progress: Float, val distance: Float)
+
+    const val PROFILE_VERSION = "R02-R06-V1.2"
+    const val CORE_SHA256 = "__CORE_SHA__"
+    const val R02_JSON_SHA256 = "__R02_SHA__"
+    const val R03_JSON_SHA256 = "__R03_SHA__"
+    const val R04_JSON_SHA256 = "__R04_SHA__"
+    const val R04_TRANSITION_JSON_SHA256 = "__R04T_SHA__"
+    const val R05_JSON_SHA256 = "__R05_SHA__"
+    const val R06_JSON_SHA256 = "__R06_SHA__"
+    const val GEOMETRY_JSON_SHA256 = "__GEOMETRY_SHA__"
+    const val R04_ACTIVE_TRANSITION_MS = __R04_ACTIVE_MS__L
+    const val R04_RETURN_TRANSITION_MS = __R04_RETURN_MS__L
+    const val R04_ENTRANCE_MS = __R04_ENTRANCE_MS__L
+    const val R02_LOW_PERFORMANCE_COUNT = __R02_LOW_COUNT__
+    const val R02_VERTICAL_DRIFT_MAX_D = __R02_VERTICAL_DRIFT__f
+    const val R02_LATERAL_DRIFT_MAX_D = __R02_LATERAL_DRIFT__f
+    const val R02_FIXED_AZIMUTH = __R02_FIXED_AZIMUTH__
+    const val R03_SUN_SOURCE_U = __R03_SOURCE_U__f
+    const val R03_SUN_SOURCE_V = __R03_SOURCE_V__f
+    const val R03_GLASS_SPECULAR_ALPHA_MAX = __R03_GLASS_ALPHA__f
+    const val R03_GLASS_SPECULAR_PERIOD_MS = __R03_GLASS_PERIOD__L
+    const val R03_GLASS_MAX_TRANSLATION_D = __R03_GLASS_TRANSLATION__f
+    const val R03_CORE_REFRACTION_ALPHA_MAX = __R03_REFRACTION_ALPHA__f
+    const val R03_CORE_REFRACTION_PERIOD_MS = __R03_REFRACTION_PERIOD__L
+    const val R03_CAUSTIC_RESPONSE_ALPHA_MAX = __R03_CAUSTIC_ALPHA__f
+    const val R03_GRASS_RESPONSE_ALPHA_MAX = __R03_GRASS_ALPHA__f
+    const val R03_DROPLET_SPECULAR_ALPHA_MAX = __R03_DROPLET_ALPHA__f
+    const val R03_MAX_EXTRA_ADDITIVE_ALPHA = __R03_MAX_ADDITIVE__f
+    const val R03_FIXED_AZIMUTH = __R03_FIXED_AZIMUTH__
+    val sunColor: Long = __R03_SUN_COLOR__L
+
+    const val CAUSTIC_INNER_RADIUS_D = __R05_INNER_RADIUS__f
+    const val CAUSTIC_EDGE_FADE_D = __R05_EDGE_FADE__f
+    const val CAUSTIC_NORMAL_TEXTURE_PX_80DP = __R05_NORMAL_TEXTURE__
+    const val CAUSTIC_LOW_TEXTURE_PX_80DP = __R05_LOW_TEXTURE__
+    const val CAUSTIC_NORMAL_MIN_INTERVAL_MS = __R05_NORMAL_INTERVAL__L
+    const val CAUSTIC_LOW_MIN_INTERVAL_MS = __R05_LOW_INTERVAL__L
+    const val CAUSTIC_BUFFER_COUNT = __R05_BUFFER_COUNT__
+    const val R06_MAX_OUTSIDE_DP = __R06_MAX_OUTSIDE__f
+    const val R06_NORMAL_STEPS_PER_PATH = __R06_NORMAL_STEPS__
+    const val R06_LOW_STEPS_PER_PATH = __R06_LOW_STEPS__
+    const val R06_REDUCED_MOTION_PHASE = __R06_REDUCED_PHASE__f
+    const val R06_EVENT_SWITCH_MS = __R06_EVENT_SWITCH_MS__L
+    const val R06_EXIT_TAIL_FADE = __R06_EXIT_TAIL_FADE__
+    val causticLayers: List<OrbCausticLayerV1> = listOf(
+__R05_LAYERS__
+    )
+
+    val droplets: List<OrbDropletSpecV1> = listOf(
+__R02_DROPLETS__
+    )
+
+    val motionKeys: List<MotionKey> = listOf(
+__R06_MOTION_KEYS__
+    )
+
+    val materials: Map<String, OrbFilamentMaterialV1> = mapOf(
+__R06_MATERIALS__
+    )
+
+    val paths: List<OrbFilamentSpecV1> = listOf(
+__R06_PATHS__
+    )
+}

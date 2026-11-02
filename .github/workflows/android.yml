@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - work/unified-waterlight-a02-core-component-v1
+      - work/android-ai-orb-r02-r06-runtime-v1
       - 'fix/**'
       - 'feature/**'
       - 'refactor/**'
@@ -33,7 +34,7 @@ on:
       - "scripts/validate_work_execution_state.py"
       - "scripts/validate_control_plane_admission.py"
   pull_request:
-    branches: [main]
+    branches: [main, design/ai-orb-existing-asset-gap-closure-v1]
     paths:
       - "app/**"
       - "gradle/**"
@@ -88,8 +89,8 @@ jobs:
     timeout-minutes: 25
     env:
       # A02 delivers an APK whose provenance is the product branch HEAD, not the PR merge ref.
-      SOURCE_SHA: ${{ github.event_name == 'pull_request' && github.head_ref == 'work/unified-waterlight-a02-core-component-v1' && github.event.pull_request.head.sha || github.sha }}
-      BUILD_SHA: ${{ github.event_name == 'pull_request' && github.head_ref == 'work/unified-waterlight-a02-core-component-v1' && github.event.pull_request.head.sha || github.sha }}
+      SOURCE_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+      BUILD_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
     outputs:
       model_id: ${{ steps.model_trace.outputs.model_id }}
       model_sha256: ${{ steps.model_trace.outputs.model_sha256 }}
@@ -190,6 +191,12 @@ jobs:
       - name: Verify capture and Processing raster decoding
         run: python3 scripts/verify_capture_presentation_assets.py
 
+      - name: Verify generated AI Orb runtime profile parity
+        run: python3 scripts/android_runtime/generate_orb_runtime_profile.py --check
+
+      - name: Verify immutable AI Orb core WebP
+        run: python3 scripts/android_runtime/verify_orb_runtime_asset.py
+
       - name: Unit tests
         run: gradle -Pandroid.aapt2FromMavenOverride="$YUJIAN_AAPT2" test --stacktrace --no-daemon --max-workers=2
 
@@ -224,6 +231,9 @@ jobs:
 
       - name: Decode capture and Processing rasters from actual APK
         run: python3 scripts/verify_capture_presentation_assets.py --apk app/build/outputs/apk/debug/app-debug.apk
+
+      - name: Verify packaged AI Orb core WebP and alpha
+        run: python3 scripts/android_runtime/verify_orb_runtime_asset.py --apk app/build/outputs/apk/debug/app-debug.apk
 
       - name: Export model trace from the actual APK
         run: >-
@@ -309,6 +319,140 @@ jobs:
 
   # One job, one Harness, and one frozen APK pair.  The optional parity row is
   # part of this same matrix so it cannot grow a second ADB/install path.
+  orb-visual-evidence:
+    if: ${{ (github.event_name == 'push' && github.ref_name == 'work/android-ai-orb-r02-r06-runtime-v1') || (github.event_name == 'pull_request' && github.event.pull_request.head.ref == 'work/android-ai-orb-r02-r06-runtime-v1') || (github.event_name == 'workflow_dispatch' && inputs.runtime_backend == 'github-hosted') }}
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    env:
+      YUJIAN_SOURCE_SHA: ${{ needs.build.outputs.source_sha }}
+
+    steps:
+      - name: Set up Android SDK and API 28 tools
+        uses: android-actions/setup-android@v3
+        with:
+          packages: platform-tools
+
+      - name: Create API 28 Pixel 2 emulator
+        shell: bash
+        run: |
+          set -euo pipefail
+          sdkmanager --install "emulator" "system-images;android-28;google_apis;x86_64"
+          avd_home="$HOME/.android/avd"
+          mkdir -p "$avd_home"
+          export ANDROID_AVD_HOME="$avd_home"
+          printf 'no\n' | avdmanager create avd \
+            --name yujian_orb_pixel2_api28 \
+            --package "system-images;android-28;google_apis;x86_64" \
+            --device pixel_2 \
+            -p "$avd_home/yujian_orb_pixel2_api28.avd" \
+            --force
+          "$ANDROID_HOME/emulator/emulator" -list-avds | grep -Fx yujian_orb_pixel2_api28
+
+      - name: Boot API 28 emulator
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p build/orb-visual-evidence
+          "$ANDROID_HOME/emulator/emulator" \
+            -avd yujian_orb_pixel2_api28 \
+            -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim \
+            -camera-back none -partition-size 4096 -skin 1080x1920 \
+            > build/orb-visual-evidence/emulator.log 2>&1 &
+          adb wait-for-device
+          for attempt in $(seq 1 90); do
+            if [[ "$(adb shell getprop sys.boot_completed | tr -d '\r')" == "1" ]]; then break; fi
+            sleep 2
+          done
+          test "$(adb shell getprop sys.boot_completed | tr -d '\r')" = "1"
+          adb shell wm size 1080x1920
+          adb shell wm density 420
+          adb shell settings put global animator_duration_scale 0
+          adb shell settings put global transition_animation_scale 0
+          adb shell settings put global window_animation_scale 0
+
+      - name: Download and verify exact-head runtime APK pair
+        uses: actions/download-artifact@v4
+        with:
+          name: YuJian-runtime-apks-${{ needs.build.outputs.source_sha }}-${{ needs.build.outputs.model_id }}
+          path: build/runtime-apks
+
+      - name: Install exact-head Debug APK and save runtime provenance
+        shell: bash
+        run: |
+          set -euo pipefail
+          (cd build/runtime-apks && sha256sum -c SHA256SUMS)
+          adb install -r build/runtime-apks/app-debug.apk
+          cat > build/orb-visual-evidence/runtime-provenance.txt <<EOF
+          source_sha=$YUJIAN_SOURCE_SHA
+          api_level=$(adb shell getprop ro.build.version.sdk | tr -d '\r')
+          apk_sha256=$(sha256sum build/runtime-apks/app-debug.apk | awk '{print $1}')
+          activity=com.yujian.ai.uiv2/com.yujian.ai.ui.designsystem.components.aiorb.AIOrbRuntimeLabActivity
+          EOF
+
+      - name: Capture real AIOrbCore candidate visual matrix
+        shell: bash
+        run: |
+          set -euo pipefail
+          activity="com.yujian.ai.uiv2/com.yujian.ai.ui.designsystem.components.aiorb.AIOrbRuntimeLabActivity"
+          output="build/orb-visual-evidence"
+          capture() {
+            local name="$1"
+            shift
+            adb shell am force-stop com.yujian.ai.uiv2
+            adb shell am start -W -n "$activity" "$@" > /dev/null
+            sleep 2
+            adb exec-out screencap -p > "$output/$name.png"
+            test -s "$output/$name.png"
+          }
+          for state in S1 S2; do
+            for size in 68 80; do
+              for dark in false true; do
+                background=light
+                [[ "$dark" == "true" ]] && background=dark
+                capture "${state}-${size}dp-${background}" \
+                  --es mode ORB_V1_CANDIDATE --es state "$state" \
+                  --ei size_dp "$size" --ez dark "$dark" --ez low false \
+                  --el optical_ms 2700 --ez droplets true --ez sunlight true --ez caustics true
+              done
+            done
+          done
+          for sample in 0 900 1800 2700; do
+            capture "R06-S2-80dp-dark-${sample}ms" \
+              --es mode ORB_V1_CANDIDATE --es state S2 --ei size_dp 80 \
+              --ez dark true --ez low false --el optical_ms "$sample"
+          done
+          capture "legacy-fallback-S2-80dp-dark" \
+            --es mode LEGACY --es state S2 --ei size_dp 80 --ez dark true --el optical_ms 1800
+          capture "release-before-1200ms" --es mode ORB_V1_CANDIDATE --es state S2 \
+            --ei size_dp 80 --ez dark true --el optical_ms 1200 --es event NONE --el event_start_ms 1200
+          capture "release-after-260ms" --es mode ORB_V1_CANDIDATE --es state S2 \
+            --ei size_dp 80 --ez dark true --el optical_ms 1460 --es event RELEASE --el event_start_ms 1200
+          capture "return-before-1200ms" --es mode ORB_V1_CANDIDATE --es state S2 \
+            --ei size_dp 80 --ez dark true --el optical_ms 1200 --es event NONE --el event_start_ms 1200
+          capture "return-after-260ms" --es mode ORB_V1_CANDIDATE --es state S2 \
+            --ei size_dp 80 --ez dark true --el optical_ms 1460 --es event RETURN --el event_start_ms 1200
+          for sample in 0 225 450; do
+            capture "S1-to-S2-${sample}ms" --es mode ORB_V1_CANDIDATE --es state S1 \
+              --es transition_target S2 --el transition_sample_ms "$sample" --el optical_ms 0 \
+              --ei size_dp 80 --ez dark true
+          done
+          for sample in 0 310 620; do
+            capture "S2-to-S1-${sample}ms" --es mode ORB_V1_CANDIDATE --es state S2 \
+              --es transition_target S1 --el transition_sample_ms "$sample" --el optical_ms 0 \
+              --ei size_dp 80 --ez dark true
+          done
+          adb logcat -d -s OrbCausticsRuntime:I > "$output/orb-caustics-runtime.log"
+          find "$output" -maxdepth 1 -type f -name '*.png' -printf '%f\n' | sort > "$output/screenshot-index.txt"
+
+      - name: Upload API 28 Orb runtime screenshots and provenance
+        uses: actions/upload-artifact@v4
+        with:
+          name: AI-ORB-runtime-visual-${{ needs.build.outputs.source_sha }}
+          path: build/orb-visual-evidence
+          if-no-files-found: error
+          retention-days: 14
+
   android-runtime:
     if: ${{ github.event_name == 'workflow_dispatch' }}
     needs: build

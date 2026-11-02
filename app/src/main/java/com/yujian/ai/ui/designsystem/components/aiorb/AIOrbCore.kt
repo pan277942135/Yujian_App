@@ -6,6 +6,13 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -20,11 +27,15 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.annotation.DrawableRes
+import com.yujian.ai.BuildConfig
 import com.yujian.ai.R
 import com.yujian.ai.ai.RecognitionPhase
 import com.yujian.ai.ui.waterlight.core.WaterLightFrame
 import com.yujian.ai.ui.waterlight.core.WaterLightMaterialProfile
 import com.yujian.ai.ui.waterlight.renderer.OrbWaterLightRibbons
+import com.yujian.ai.ui.waterlight.renderer.OrbCoreOpticalEffects
+import com.yujian.ai.ui.waterlight.renderer.OrbFilamentRendererMode
+import com.yujian.ai.ui.waterlight.renderer.OrbRuntimeProfileV1
 import com.yujian.ai.ui.designsystem.components.YuJianCaptureButton
 import com.yujian.ai.ui.designsystem.components.YuJianCaptureButtonRasterAssets
 import com.yujian.ai.ui.designsystem.components.YuJianCaptureButtonRasterMotion
@@ -71,6 +82,14 @@ fun AIOrbCore(
     fromCamera: Boolean = false,
     waterLightFrame: WaterLightFrame? = null,
     waterLightMaterial: WaterLightMaterialProfile = WaterLightMaterialProfile.ORB_LEGACY,
+    orbRendererMode: OrbFilamentRendererMode = if (BuildConfig.DEBUG) OrbFilamentRendererMode.ORB_V1_CANDIDATE else OrbFilamentRendererMode.LEGACY,
+    orbLifeState: OrbRuntimeProfileV1.LifeState = OrbRuntimeProfileV1.LifeState.S2_ACTIVE,
+    orbLifeAlpha: Float? = null,
+    orbMotionEvent: OrbRuntimeProfileV1.MotionEvent = OrbRuntimeProfileV1.MotionEvent.NONE,
+    orbMotionEventStartOpticalMs: Long = 0L,
+    orbShowDroplets: Boolean = true,
+    orbShowSunlight: Boolean = true,
+    orbShowCaustics: Boolean = true,
 ) {
     when (state) {
         AIOrbVisualState.CAPTURE_BUTTON_IDLE -> YuJianCaptureButton(
@@ -107,6 +126,14 @@ fun AIOrbCore(
             fromCamera = fromCamera,
             waterLightFrame = waterLightFrame,
             waterLightMaterial = waterLightMaterial,
+            orbRendererMode = orbRendererMode,
+            orbLifeState = orbLifeState,
+            orbLifeAlpha = orbLifeAlpha,
+            orbMotionEvent = orbMotionEvent,
+            orbMotionEventStartOpticalMs = orbMotionEventStartOpticalMs,
+            orbShowDroplets = orbShowDroplets,
+            orbShowSunlight = orbShowSunlight,
+            orbShowCaustics = orbShowCaustics,
             modifier = modifier,
         )
         AIOrbVisualState.HIDDEN -> Unit
@@ -143,6 +170,14 @@ private fun OrbVisual(
     fromCamera: Boolean,
     waterLightFrame: WaterLightFrame?,
     waterLightMaterial: WaterLightMaterialProfile,
+    orbRendererMode: OrbFilamentRendererMode,
+    orbLifeState: OrbRuntimeProfileV1.LifeState,
+    orbLifeAlpha: Float?,
+    orbMotionEvent: OrbRuntimeProfileV1.MotionEvent,
+    orbMotionEventStartOpticalMs: Long,
+    orbShowDroplets: Boolean,
+    orbShowSunlight: Boolean,
+    orbShowCaustics: Boolean,
     modifier: Modifier,
 ) {
     val frame = aiOrbMotionFrame(entranceElapsedMs, fromCamera, reduceMotion, completion)
@@ -155,6 +190,43 @@ private fun OrbVisual(
         opticalReferenceElapsedMs = elapsedMs.coerceAtLeast(0L), phase = RecognitionPhase.CAPTURED,
         completion = completion.coerceIn(0f, 1f), reducedMotion = reduceMotion, geometryVersion = 0L,
     )
+    val entranceLifeAlpha = when (orbLifeState) {
+        OrbRuntimeProfileV1.LifeState.S1_IDLE -> 0f
+        OrbRuntimeProfileV1.LifeState.S2_ACTIVE -> if (reduceMotion) 1f else {
+            val transition = ((entranceElapsedMs - 350L).toFloat() / OrbRuntimeProfileV1.R04_ACTIVE_TRANSITION_MS).coerceIn(0f, 1f)
+            transition * transition * (3f - 2f * transition)
+        }
+    }
+    var previousLifeState by remember { mutableStateOf(orbLifeState) }
+    var lifeFromAlpha by remember { mutableFloatStateOf(entranceLifeAlpha) }
+    var lifeToAlpha by remember { mutableFloatStateOf(entranceLifeAlpha) }
+    var lifeTransitionStartMs by remember { mutableLongStateOf(Long.MIN_VALUE) }
+    var lifeTransitionDurationMs by remember { mutableLongStateOf(OrbRuntimeProfileV1.R04_ACTIVE_TRANSITION_MS) }
+    var lastLifeAlpha by remember { mutableFloatStateOf(entranceLifeAlpha) }
+    val clockDrivenLifeAlpha = if (lifeTransitionStartMs == Long.MIN_VALUE) entranceLifeAlpha else {
+        OrbFilamentPathMathV1.smoothTransitionAlpha(
+            lifeFromAlpha,
+            lifeToAlpha,
+            (sharedFrame.opticalReferenceElapsedMs - lifeTransitionStartMs).coerceAtLeast(0L),
+            lifeTransitionDurationMs,
+        )
+    }
+    SideEffect {
+        if (orbLifeAlpha == null) {
+            if (orbLifeState != previousLifeState) {
+                lifeFromAlpha = lastLifeAlpha
+                lifeToAlpha = if (orbLifeState == OrbRuntimeProfileV1.LifeState.S1_IDLE) 0f else 1f
+                lifeTransitionStartMs = sharedFrame.opticalReferenceElapsedMs
+                lifeTransitionDurationMs = if (orbLifeState == OrbRuntimeProfileV1.LifeState.S1_IDLE) {
+                    OrbRuntimeProfileV1.R04_RETURN_TRANSITION_MS
+                } else OrbRuntimeProfileV1.R04_ACTIVE_TRANSITION_MS
+                previousLifeState = orbLifeState
+            } else if (lastLifeAlpha != clockDrivenLifeAlpha) {
+                lastLifeAlpha = clockDrivenLifeAlpha
+            }
+        }
+    }
+    val candidateLifeAlpha = orbLifeAlpha ?: clockDrivenLifeAlpha
     val breath = if (reduceMotion) 1f else 1f + .018f * sin(time * (2f * PI.toFloat() / 4.2f))
     Box(
         modifier.size(coreSize + 28.dp).graphicsLayer {
@@ -164,7 +236,8 @@ private fun OrbVisual(
         },
         contentAlignment = Alignment.Center,
     ) {
-        OrbWaterLightRibbons(coreSize, sharedFrame, ribbons, settle, false, lowPerformance, waterLightMaterial)
+        OrbWaterLightRibbons(coreSize, sharedFrame, ribbons, settle, false, lowPerformance, waterLightMaterial,
+            orbRendererMode, candidateLifeAlpha, orbMotionEvent, orbMotionEventStartOpticalMs)
         if (fromCamera && morph < 1f) {
             Image(
                 painter = painterResource(R.drawable.ai_orb_camera_activated_v1),
@@ -186,7 +259,7 @@ private fun OrbVisual(
                 scaleY = scaleX
             },
         )
-        Canvas(Modifier.fillMaxSize()) {
+        if (orbRendererMode == OrbFilamentRendererMode.LEGACY) Canvas(Modifier.fillMaxSize()) {
             if (morph <= 0f) return@Canvas
             val radius = coreSize.toPx() * .48f
             val mask = Path().apply {
@@ -216,6 +289,19 @@ private fun OrbVisual(
                 }
             }
         }
-        OrbWaterLightRibbons(coreSize, sharedFrame, ribbons, settle, true, lowPerformance, waterLightMaterial)
+        OrbCoreOpticalEffects(
+            coreSize = coreSize,
+            frame = sharedFrame,
+            coreAlpha = morph,
+            coreScale = .92f + .08f * morph,
+            low = lowPerformance,
+            lifeState = orbLifeState,
+            candidate = orbRendererMode == OrbFilamentRendererMode.ORB_V1_CANDIDATE,
+            showDroplets = orbShowDroplets,
+            showSunlight = orbShowSunlight,
+            showCaustics = orbShowCaustics,
+        )
+        OrbWaterLightRibbons(coreSize, sharedFrame, ribbons, settle, true, lowPerformance, waterLightMaterial,
+            orbRendererMode, candidateLifeAlpha, orbMotionEvent, orbMotionEventStartOpticalMs)
     }
 }
