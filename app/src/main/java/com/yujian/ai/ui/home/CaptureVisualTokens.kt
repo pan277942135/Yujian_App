@@ -2,7 +2,7 @@ package com.yujian.ai.ui.home
 
 /** Frozen Home / Camera shutter geometry and optical timing contract. */
 object CaptureVisualTokens {
-    const val ActivationMs = 600L
+    const val ActivationMs = 750L
     const val HandoffMs = 580
     const val IdleCycleMs = 10_500
     const val IdleBreathCycleMs = 5_000
@@ -18,6 +18,8 @@ object CaptureVisualTokens {
 
     fun buttonDiameter(widthDp: Float) = (widthDp * .244f).coerceIn(88f, 96f)
     fun activationProgress(elapsedMs: Long) =
+        (elapsedMs / ActivationMs.toFloat()).coerceIn(0f, 1f)
+    fun clickRippleProgress(elapsedMs: Long) =
         (elapsedMs / ClickRippleDurationMs.toFloat()).coerceIn(0f, 1f)
 }
 

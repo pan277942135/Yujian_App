@@ -52,9 +52,11 @@ class CaptureButtonMotionTest {
     fun clickWaterRippleUses600msAnd36dpOutwardTravel() {
         assertEquals(600L, CaptureVisualTokens.ClickRippleDurationMs)
         assertEquals(36f, CaptureVisualTokens.ClickRippleSpreadDp, 0.0001f)
-        assertEquals(0f, CaptureVisualTokens.activationProgress(0L), 0.0001f)
-        assertEquals(.5f, CaptureVisualTokens.activationProgress(300L), 0.0001f)
-        assertEquals(1f, CaptureVisualTokens.activationProgress(600L), 0.0001f)
+        assertEquals(.5f, CaptureVisualTokens.activationProgress(375L), 0.0001f)
+        assertEquals(1f, CaptureVisualTokens.activationProgress(750L), 0.0001f)
+        assertEquals(0f, CaptureVisualTokens.clickRippleProgress(0L), 0.0001f)
+        assertEquals(.5f, CaptureVisualTokens.clickRippleProgress(300L), 0.0001f)
+        assertEquals(1f, CaptureVisualTokens.clickRippleProgress(600L), 0.0001f)
     }
 
     @Test

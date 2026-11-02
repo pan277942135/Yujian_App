@@ -136,7 +136,7 @@ fun YuJianCaptureButton(
         )
         value
     } else 0f
-    val clickCycle = clickElapsedMs?.let { CaptureVisualTokens.activationProgress(it) }
+    val clickCycle = clickElapsedMs?.let { CaptureVisualTokens.clickRippleProgress(it) }
     val pressScale = clickElapsedMs?.let {
         when {
             it < 80L -> 1f - .04f * (it / 80f)

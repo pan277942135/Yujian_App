@@ -913,7 +913,7 @@ fun IdentifyScreen(
                     shutterClickElapsed?.let { elapsed ->
                         CaptureButtonOptics(
                             visualSize = shutterDiameter,
-                            progress = CaptureVisualTokens.activationProgress(elapsed),
+                            progress = CaptureVisualTokens.clickRippleProgress(elapsed),
                             click = true,
                             cameraReady = true,
                             modifier = Modifier.fillMaxSize(),
