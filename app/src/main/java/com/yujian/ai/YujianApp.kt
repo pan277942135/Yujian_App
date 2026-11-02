@@ -463,7 +463,7 @@ fun YujianApp() {
                     )
                 }
                 composable("home", exitTransition = {
-                    if (CaptureNavigationTransition.active.value) fadeOut(tween(180)) else ExitTransition.None
+                    if (CaptureNavigationTransition.active.value) fadeOut(tween(400)) else ExitTransition.None
                 }) {
                     val active = session
                     // The Home state is derived only from fish records. Login,
@@ -626,7 +626,7 @@ fun YujianApp() {
                         type = NavType.BoolType
                         defaultValue = false
                     }),
-                    enterTransition = { if (CaptureNavigationTransition.active.value) fadeIn(tween(180)) else EnterTransition.None },
+                    enterTransition = { if (CaptureNavigationTransition.active.value) fadeIn(tween(400)) else EnterTransition.None },
                     exitTransition = { ExitTransition.None },
                     popEnterTransition = { EnterTransition.None },
                     popExitTransition = { ExitTransition.None },
