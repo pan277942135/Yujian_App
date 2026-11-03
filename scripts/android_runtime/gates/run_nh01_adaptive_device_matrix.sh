@@ -7,7 +7,8 @@ set -uo pipefail
 : "${YUJIAN_EVIDENCE_DIR:?YUJIAN_EVIDENCE_DIR is required}"
 : "${BUILD_SHA:?BUILD_SHA is required}"
 
-readonly TEST_CLASS="com.yujian.ai.ui.home.GeminiHomeDeviceMatrixTest#capturesActualWindowWithTwoUniqueCatches"
+readonly TEST_CLASS="com.yujian.ai.ui.home.GeminiHomeDeviceMatrixTest#capturesActualWindowForScenario"
+readonly RECORD_SCENARIO="${YUJIAN_NH01_RECORD_SCENARIO:-two_unique_catches}"
 readonly APP_APK="${YUJIAN_APP_APK:-build/runtime-apks/app-debug.apk}"
 readonly TEST_APK="${YUJIAN_TEST_APK:-build/runtime-apks/app-debug-androidTest.apk}"
 readonly RAW_DIR="$YUJIAN_EVIDENCE_DIR/nh01-adaptive-raw"
@@ -395,6 +396,7 @@ PY
         -e font_scale "$font_scale" \
         -e expected_display_px "$requested" \
         -e source_sha "$BUILD_SHA" \
+        -e scenario "$RECORD_SCENARIO" \
         "$YUJIAN_INSTRUMENTATION_TARGET" > "$stdout" 2> "$stderr"
     else
       "${ADB[@]}" shell am instrument -w -r \
@@ -404,11 +406,12 @@ PY
         -e font_scale "$font_scale" \
         -e expected_display_px "$requested" \
         -e source_sha "$BUILD_SHA" \
+        -e scenario "$RECORD_SCENARIO" \
         "$YUJIAN_INSTRUMENTATION_TARGET" > "$stdout" 2> "$stderr"
     fi
     instrumentation_rc=$?
     {
-      echo "COMMAND=adb shell am instrument -w -r -e class $TEST_CLASS -e profile_id $profile -e layout_variant $variant -e font_scale $font_scale -e expected_display_px $requested -e source_sha $BUILD_SHA $YUJIAN_INSTRUMENTATION_TARGET"
+      echo "COMMAND=adb shell am instrument -w -r -e class $TEST_CLASS -e profile_id $profile -e layout_variant $variant -e font_scale $font_scale -e expected_display_px $requested -e source_sha $BUILD_SHA -e scenario $RECORD_SCENARIO $YUJIAN_INSTRUMENTATION_TARGET"
       echo "EXIT_CODE=$instrumentation_rc"
       echo "--- stdout ---"
       cat "$stdout"
