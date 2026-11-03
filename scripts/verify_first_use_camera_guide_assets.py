@@ -381,7 +381,7 @@ def verify_responsive_and_readiness() -> None:
         fail("responsive hero containment/48dp action invariants missing")
     if responsive.get("coordinate_and_unit_contract", {}).get("phone_orientation_rule") != "Both active guide steps require the phone to remain portrait; fish orientation changes between P01 and P02.":
         fail("both active guide steps must explicitly keep the phone portrait")
-    if "ALL_ASSETS_FROZEN" not in freeze or "are **not** PASS" not in freeze or "OWNER_APPROVED_FOR_RUNTIME" not in freeze or "NOT_FROZEN" not in freeze:
+    if "ALL_ASSETS_FROZEN" not in freeze or "are **not** PASS" not in freeze or "approved for Android Runtime" not in freeze or "GENERATED_CANDIDATE / NOT_FROZEN" not in freeze:
         fail("Freeze Decision must separate Runtime approval from Frozen asset status and prevent full-ready false PASS")
     print("PASS: responsive matrix, viewport/inset/font contract, explicit candidate tuning, readiness states and partial-freeze boundary are consistent.")
 
