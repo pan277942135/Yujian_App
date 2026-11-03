@@ -82,7 +82,7 @@ for(const [width,height] of profiles){
     assert.ok(r.targetHeroWidth<=contract.preview_engine.parameters.hero.maximum_width_dp+1e-5);
     assert.ok(r.actualHeroWidth<=r.targetHeroWidth+1e-5 || (width===320&&height===480&&font===1),'Hero must respect target width except exact M01');
     assert.ok(Math.abs(r.actualHeroWidth/r.heroHeight-247/293)<1e-5,'Hero must preserve the shared 247:293 ratio');
-    assert.ok(r.cameraSize>=56&&r.cameraSize<=80);
+    assert.ok(r.cameraSize>=contract.preview_engine.parameters.camera.minimum_visual_dp&&r.cameraSize<=contract.preview_engine.parameters.camera.maximum_visual_dp,'camera visual size must follow the active NH01 contract bounds');
     assert.ok(r.cameraTouchSize>=72);
     assert.equal(r.contractId,'NH01_RESPONSIVE_LAYOUT_V2');
     assert.ok(r.rects['peek-left']&&r.rects['peek-right'],'both Peek slots need measurable geometry');
