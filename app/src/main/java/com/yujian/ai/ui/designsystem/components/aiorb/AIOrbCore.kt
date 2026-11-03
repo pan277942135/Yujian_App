@@ -218,7 +218,13 @@ private fun OrbVisual(
             null
         }
     }
-    DisposableEffect(grassWarp) { onDispose { grassWarp?.close() } }
+    DisposableEffect(grassWarp) {
+        onDispose {
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+                grassWarp?.close()
+            }
+        }
+    }
     SideEffect {
         grassWarp?.update(if (reduceMotion) 0L else sharedFrame.elapsedMs, lifeProgress, wake.grassLight, coreTextureSizePx)
     }
