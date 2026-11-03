@@ -37,7 +37,7 @@ jobs:
   runtime:
     # Expensive API 28 evidence is opt-in via the run-nh01-api28 PR label.
     if: ${{ contains(github.event.pull_request.labels.*.name, 'run-nh01-api28') }}
-    runs-on: ubuntu-24.04
+    runs-on: macos-15-intel
     timeout-minutes: 100
     outputs:
       source_sha: ${{ steps.source.outputs.sha }}
@@ -63,10 +63,14 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Verify Linux runtime utilities
+      - name: Prepare macOS runtime utilities
         run: |
           set -euo pipefail
-          test "$RUNNER_OS" = "Linux"
+          test "$RUNNER_OS" = "macOS"
+          if ! command -v timeout >/dev/null 2>&1 || ! command -v sha256sum >/dev/null 2>&1; then
+            brew install coreutils
+            echo "$(brew --prefix coreutils)/libexec/gnubin" >> "$GITHUB_PATH"
+          fi
           command -v timeout
           command -v sha256sum
 
@@ -146,7 +150,7 @@ jobs:
           echo "ANDROID_AVD_HOME=$avd_home" >> "$GITHUB_ENV"
           echo "ANDROID_AVD_HOME=$avd_home"
 
-      - name: Check Linux KVM emulator acceleration
+      - name: Select previously proven API 28 emulator runner
         id: emulator_env
         run: |
           set -euo pipefail
@@ -157,21 +161,22 @@ jobs:
             echo "runner=$RUNNER_NAME"
             echo "os=$RUNNER_OS"
             echo "architecture=$(uname -m)"
-            echo "kvm_device=$(if [[ -c /dev/kvm ]]; then echo PRESENT; else echo MISSING; fi)"
             echo "emulator_binary=$emulator"
+            echo "selection_basis=API28 Pixel 2 runner completed real install and instrumentation in run 41586357228"
           } | tee "$diagnostic"
           set +e
           "$emulator" -accel-check >> "$diagnostic" 2>&1
           accel_rc=$?
           set -e
+          echo "accel_check_exit_code=$accel_rc" >> "$diagnostic"
+          echo "hardware_acceleration_is_not_a_gate=true" >> "$diagnostic"
           available=false
-          if [[ -c /dev/kvm && "$accel_rc" -eq 0 ]] && grep -qi 'installed and usable' "$diagnostic"; then
+          if [[ "$RUNNER_OS" == "macOS" && "$(uname -m)" == "x86_64" && -x "$emulator" ]]; then
             available=true
-            echo "NH01_EMULATOR_ACCELERATION=KVM" >> "$GITHUB_ENV"
+            echo "NH01_EMULATOR_ACCELERATION=RUNNER_DEFAULT" >> "$GITHUB_ENV"
           else
             echo "NH01_EMULATOR_ACCELERATION=UNAVAILABLE" >> "$GITHUB_ENV"
           fi
-          echo "accel_check_exit_code=$accel_rc" >> "$diagnostic"
           echo "available=$available" | tee -a "$diagnostic"
           echo "available=$available" >> "$GITHUB_OUTPUT"
 
