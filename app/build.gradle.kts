@@ -9,7 +9,7 @@ plugins {
 
 fun quotedBuildConfig(value: String): String = "\"" + value.replace("\\", "\\\\").replace("\"", "\\\"") + "\""
 val feedbackBaseUrl = providers.gradleProperty("YUJIAN_FEEDBACK_BASE_URL")
-    .orElse(providers.environmentVariable("YUJIAN_FEEDBACK_BASE_URL")).orElse("").get()
+    .orElse(providers.environmentVariable("YUJIAN_FEEDBACK_BASE_URL")).orElse("https://81.71.1.11").get()
 val fishKnowledgeBaseUrl = providers.gradleProperty("YUJIAN_FISH_KNOWLEDGE_BASE_URL")
     .orElse(providers.environmentVariable("YUJIAN_FISH_KNOWLEDGE_BASE_URL")).orElse(feedbackBaseUrl).get()
 val userApiBaseUrl = providers.gradleProperty("YUJIAN_API_BASE_URL")
@@ -54,8 +54,8 @@ android {
         buildConfigField("String", "SOURCE_REVISION", quotedBuildConfig(providers.environmentVariable("GITHUB_SHA").orElse("LOCAL_UNVERIFIED").get()))
         minSdk = 24
         targetSdk = 35
-        versionCode = 4
-        versionName = "2.3.1-quality-gate-v1.1"
+        versionCode = 5
+        versionName = "2.3.2-unified-qa-20261103"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
         buildConfigField("String", "FEEDBACK_BASE_URL", quotedBuildConfig(feedbackBaseUrl))
